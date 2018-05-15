@@ -1,47 +1,64 @@
 From: Jiri Pirko <jiri@resnulli.us>
-Subject: Re: [PATCH 00/14] Modify action API for implementing lockless actions
-Date: Tue, 15 May 2018 10:20:43 +0200
-Message-ID: <20180515082043.GH2134@nanopsycho.orion>
+Subject: Re: [PATCH 05/14] net: sched: always take reference to action
+Date: Tue, 15 May 2018 10:58:27 +0200
+Message-ID: <20180515085827.GJ2134@nanopsycho.orion>
 References: <1526308035-12484-1-git-send-email-vladbu@mellanox.com>
- <23f37e5a-dd30-0ad3-a5ab-df22bf0ad7f9@mojatatu.com>
+ <1526308035-12484-6-git-send-email-vladbu@mellanox.com>
+ <20180514162301.GC2134@nanopsycho.orion>
+ <vbftvradqe4.fsf@reg-r-vrt-018-180.mtr.labs.mlnx>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Vlad Buslov <vladbu@mellanox.com>, netdev@vger.kernel.org,
-        davem@davemloft.net, xiyou.wangcong@gmail.com, pablo@netfilter.org,
+Cc: netdev@vger.kernel.org, davem@davemloft.net, jhs@mojatatu.com,
+        xiyou.wangcong@gmail.com, pablo@netfilter.org,
         kadlec@blackhole.kfki.hu, fw@strlen.de, ast@kernel.org,
         daniel@iogearbox.net, edumazet@google.com, keescook@chromium.org,
         linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
         coreteam@netfilter.org, kliteyn@mellanox.com
-To: Jamal Hadi Salim <jhs@mojatatu.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+To: Vlad Buslov <vladbu@mellanox.com>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <23f37e5a-dd30-0ad3-a5ab-df22bf0ad7f9@mojatatu.com>
-Sender: linux-kernel-owner@vger.kernel.org
+In-Reply-To: <vbftvradqe4.fsf@reg-r-vrt-018-180.mtr.labs.mlnx>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Mon, May 14, 2018 at 08:03:20PM CEST, jhs@mojatatu.com wrote:
->On 14/05/18 10:27 AM, Vlad Buslov wrote:
->> Currently, all netlink protocol handlers for updating rules, actions and
->> qdiscs are protected with single global rtnl lock which removes any
->> possibility for parallelism. This patch set is a first step to remove
->> rtnl lock dependency from TC rules update path. It updates act API to
->> use atomic operations, rcu and spinlocks for fine-grained locking. It
->> also extend API with functions that are needed to update existing
->> actions for parallel execution.
->> 
->> Outline of changes:
->> - Change tc action to use atomic reference and bind counters, rcu
->>    mechanism for cookie update.
->> - Extend action ops API with 'delete' function and 'unlocked' flag.
->> - Change action API to work with actions in lockless manner based on
->>    primitives implemented in previous patches.
->> - Extend action API with new functions necessary to implement unlocked
->>    actions.
+Mon, May 14, 2018 at 08:49:07PM CEST, vladbu@mellanox.com wrote:
 >
->Please run all the tdc tests with these changes. This area has almost
->good test coverage at this point. If you need help just ping me.
+>On Mon 14 May 2018 at 16:23, Jiri Pirko <jiri@resnulli.us> wrote:
+>> Mon, May 14, 2018 at 04:27:06PM CEST, vladbu@mellanox.com wrote:
+>>>Without rtnl lock protection it is no longer safe to use pointer to tc
+>>>action without holding reference to it. (it can be destroyed concurrently)
+>>>
+>>>Remove unsafe action idr lookup function. Instead of it, implement safe tcf
+>>>idr check function that atomically looks up action in idr and increments
+>>>its reference and bind counters.
+>>>
+>>>Implement both action search and check using new safe function.
+>>>
+>>>Signed-off-by: Vlad Buslov <vladbu@mellanox.com>
+>>>---
+>>> net/sched/act_api.c | 38 ++++++++++++++++----------------------
+>>> 1 file changed, 16 insertions(+), 22 deletions(-)
+>>>
+>>>diff --git a/net/sched/act_api.c b/net/sched/act_api.c
+>>>index 1331beb..9459cce 100644
+>>>--- a/net/sched/act_api.c
+>>>+++ b/net/sched/act_api.c
+>>>@@ -284,44 +284,38 @@ int tcf_generic_walker(struct tc_action_net *tn, struct sk_buff *skb,
+>>> }
+>>> EXPORT_SYMBOL(tcf_generic_walker);
+>>> 
+>>>-static struct tc_action *tcf_idr_lookup(u32 index, struct tcf_idrinfo *idrinfo)
+>>>+bool __tcf_idr_check(struct tc_action_net *tn, u32 index, struct tc_action **a,
+>>>+		     int bind)
+>>> {
+>>>-	struct tc_action *p = NULL;
+>>>+	struct tcf_idrinfo *idrinfo = tn->idrinfo;
+>>>+	struct tc_action *p;
+>>> 
+>>> 	spin_lock_bh(&idrinfo->lock);
+>>
+>> Why "_bh" variant is necessary here?
+>
+>It is not my code.
 
-Oh, that reminds me. Vlad, please run also:
-tools/testing/selftests/net/forwarding/tc_*
-
-Thanks!
+Yeah, yet still I wonder :)
