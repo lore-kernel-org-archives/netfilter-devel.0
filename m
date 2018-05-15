@@ -1,138 +1,58 @@
-From: Vlad Buslov <vladbu@mellanox.com>
-Subject: Re: [PATCH 06/14] net: sched: implement reference counted action release
-Date: Tue, 15 May 2018 12:16:10 +0300
-Message-ID: <vbfmux1mg85.fsf@reg-r-vrt-018-180.mtr.labs.mlnx>
-References: <1526308035-12484-1-git-send-email-vladbu@mellanox.com> <1526308035-12484-7-git-send-email-vladbu@mellanox.com> <20180514164753.GF2134@nanopsycho.orion> <vbfsh6udpk5.fsf@reg-r-vrt-018-180.mtr.labs.mlnx> <20180515090357.GK2134@nanopsycho.orion>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: Re: linux-next: build warning after merge of the netfilter-next tree
+Date: Tue, 15 May 2018 12:54:22 +0200
+Message-ID: <CAMuHMdU0iUBbkPL5ZKxKuORnQA9ujX1J+5NLw=ft80hJh20VxQ@mail.gmail.com>
+References: <20180507105519.1d34f19e@canb.auug.org.au> <20180508102101.768d5c52@canb.auug.org.au>
+ <20180508071756.grie5wln2lpo52un@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: text/plain
-Cc: netdev@vger.kernel.org, davem@davemloft.net, jhs@mojatatu.com,
-        xiyou.wangcong@gmail.com, pablo@netfilter.org,
-        kadlec@blackhole.kfki.hu, fw@strlen.de, ast@kernel.org,
-        daniel@iogearbox.net, edumazet@google.com, keescook@chromium.org,
-        linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, kliteyn@mellanox.com
-To: Jiri Pirko <jiri@resnulli.us>
+Content-Type: text/plain; charset="UTF-8"
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>,
+        David Miller <davem@davemloft.net>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        NetFilter <netfilter-devel@vger.kernel.org>,
+        Linux-Next Mailing List <linux-next@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Fernando Fernandez Mancera <ffmancera@riseup.net>
+To: Florian Westphal <fw@strlen.de>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-reply-to: <20180515090357.GK2134@nanopsycho.orion>
+In-Reply-To: <20180508071756.grie5wln2lpo52un@breakpoint.cc>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi Florian,
 
-On Tue 15 May 2018 at 09:03, Jiri Pirko <jiri@resnulli.us> wrote:
-> Mon, May 14, 2018 at 09:07:06PM CEST, vladbu@mellanox.com wrote:
+On Tue, May 8, 2018 at 9:17 AM, Florian Westphal <fw@strlen.de> wrote:
+> Stephen Rothwell <sfr@canb.auug.org.au> wrote:
+>> On Mon, 7 May 2018 10:55:19 +1000 Stephen Rothwell <sfr@canb.auug.org.au> wrote:
+>> >
+>> > After merging the netfilter-next tree, today's linux-next build (x86_64
+>> > allmodconfig) produced this warning:
+>> >
+>> > ./usr/include/linux/netfilter/nf_osf.h:25: found __[us]{8,16,32,64} type without #include <linux/types.h>
 >>
->>On Mon 14 May 2018 at 16:47, Jiri Pirko <jiri@resnulli.us> wrote:
->>> Mon, May 14, 2018 at 04:27:07PM CEST, vladbu@mellanox.com wrote:
->>>
->>> [...]
->>>
->>>
->>>>+static int tcf_action_del_1(struct net *net, char *kind, u32 index,
->>>>+			    struct netlink_ext_ack *extack)
->>>>+{
->>>>+	const struct tc_action_ops *ops;
->>>>+	int err = -EINVAL;
->>>>+
->>>>+	ops = tc_lookup_action_n(kind);
->>>>+	if (!ops) {
->>>
->>> How this can happen? Apparently you hold reference to the module since
->>> you put it couple lines below. In that case, I don't really understand
->>> why you need to lookup and just don't use "ops" pointer you have in
->>> tcf_action_delete().
->>
->>The problem is that I cant really delete action while holding reference
+>> > Introduced by commit
+>> >
+>> >   bfb15f2a95cb ("netfilter: extract Passive OS fingerprint infrastructure from xt_osf")
 >
-> Wait a sec. I was talking about a "module reference" (module_put())
+> I'll send a fix for this, thanks for reporting.
 
-I misunderstood your question. Yes, I guess I can just save return value
-of tcf_action_put to variable, continue using ops pointer and only
-call module_put after delete.
++config NF_OSF
++       tristate 'Passive OS fingerprint infrastructure'
 
->
->
->>to it. I can try to decrement reference twice, however that might result
->>race condition if another task tries to delete that action at the same
->>time.
->>
->>Imagine situation:
->>1. Action is in actions idr, refcount==1
->>2. Task tries to delete action, takes reference while working with it,
->>refcount==2
->>3. Another task tries to delete same action, takes reference,
->>refcount==3
->>4. First task decrements refcount twice, refcount==1
->>5. At the same time second task decrements refcount twice, refcount==-1
->>
->>My solution is to save action index, but release the reference. Then try
->>to lookup action again and delete it if it is still in idr. (was not
->>concurrently deleted)
->>
->>Now same potential race condition with this patch:
->>1. Action is in actions idr, refcount==1
->>2. Task tries to delete action, takes reference while working with it,
->>refcount==2
->>3. Another task tries to delete same action, takes reference,
->>refcount==3
->>4. First task releases reference and deletes actions from idr, which
->>results another refcount decrement, refcount==1
->>5. At the same time second task releases reference to action,
->>refcount==0, action is deleted
->>6. When task tries to lookup-delete action from idr by index, action is
->>not found. This case is handled correctly by code and no negative
->>overflow of refcount happens.
->>
->>>
->>>
->>>>+		NL_SET_ERR_MSG(extack, "Specified TC action not found");
->>>>+		goto err_out;
->>>>+	}
->>>>+
->>>>+	if (ops->delete)
->>>>+		err = ops->delete(net, index);
->>>>+
->>>>+	module_put(ops->owner);
->>>>+err_out:
->>>>+	return err;
->>>>+}
->>>>+
->>>> static int tca_action_flush(struct net *net, struct nlattr *nla,
->>>> 			    struct nlmsghdr *n, u32 portid,
->>>> 			    struct netlink_ext_ack *extack)
->>>>@@ -1052,6 +1088,36 @@ static int tca_action_flush(struct net *net, struct nlattr *nla,
->>>> 	return err;
->>>> }
->>>> 
->>>>+static int tcf_action_delete(struct net *net, struct list_head *actions,
->>>>+			     struct netlink_ext_ack *extack)
->>>>+{
->>>>+	int ret;
->>>>+	struct tc_action *a, *tmp;
->>>>+	char kind[IFNAMSIZ];
->>>>+	u32 act_index;
->>>>+
->>>>+	list_for_each_entry_safe(a, tmp, actions, list) {
->>>>+		const struct tc_action_ops *ops = a->ops;
->>>>+
->>>>+		/* Actions can be deleted concurrently
->>>>+		 * so we must save their type and id to search again
->>>>+		 * after reference is released.
->>>>+		 */
->>>>+		strncpy(kind, a->ops->kind, sizeof(kind) - 1);
->>>>+		act_index = a->tcfa_index;
->>>>+
->>>>+		list_del(&a->list);
->>>>+		if (tcf_action_put(a))
->>>>+			module_put(ops->owner);
->>>>+
->>>>+		/* now do the delete */
->>>>+		ret = tcf_action_del_1(net, kind, act_index, extack);
->>>>+		if (ret < 0)
->>>>+			return ret;
->>>>+	}
->>>>+	return 0;
->>>>+}
->>>>+
->>>
->>> [...]
->>
+"There is no help available for this option."
+
+Is this meant to be a user-visible symbol?
+I noticed it is selected by NETFILTER_XT_MATCH_OSF.
+
+Thanks!
+
+Gr{oetje,eeting}s,
+
+                        Geert
+
+-- 
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
