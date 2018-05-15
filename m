@@ -1,49 +1,41 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: linux-next: build warning after merge of the netfilter-next tree
-Date: Tue, 15 May 2018 19:51:23 +0200
-Message-ID: <20180515175123.ncxzaaexp3ehcpwx@breakpoint.cc>
-References: <20180507105519.1d34f19e@canb.auug.org.au>
- <20180508102101.768d5c52@canb.auug.org.au>
- <20180508071756.grie5wln2lpo52un@breakpoint.cc>
- <CAMuHMdU0iUBbkPL5ZKxKuORnQA9ujX1J+5NLw=ft80hJh20VxQ@mail.gmail.com>
+From: Jamal Hadi Salim <jhs@mojatatu.com>
+Subject: Re: [PATCH 00/14] Modify action API for implementing lockless actions
+Date: Tue, 15 May 2018 14:25:02 -0400
+Message-ID: <97ccb118-a3dc-6eb0-b127-9c04adf9e2fd@mojatatu.com>
+References: <1526308035-12484-1-git-send-email-vladbu@mellanox.com>
+ <23f37e5a-dd30-0ad3-a5ab-df22bf0ad7f9@mojatatu.com>
+ <vbfo9him0d7.fsf@reg-r-vrt-018-180.mtr.labs.mlnx>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>,
-        Stephen Rothwell <sfr@canb.auug.org.au>,
-        David Miller <davem@davemloft.net>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        NetFilter <netfilter-devel@vger.kernel.org>,
-        Linux-Next Mailing List <linux-next@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Fernando Fernandez Mancera <ffmancera@riseup.net>
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAMuHMdU0iUBbkPL5ZKxKuORnQA9ujX1J+5NLw=ft80hJh20VxQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netdev@vger.kernel.org, davem@davemloft.net,
+        xiyou.wangcong@gmail.com, jiri@resnulli.us, pablo@netfilter.org,
+        kadlec@blackhole.kfki.hu, fw@strlen.de, ast@kernel.org,
+        daniel@iogearbox.net, edumazet@google.com, keescook@chromium.org,
+        linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, kliteyn@mellanox.com
+To: Vlad Buslov <vladbu@mellanox.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <vbfo9him0d7.fsf@reg-r-vrt-018-180.mtr.labs.mlnx>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Geert Uytterhoeven <geert@linux-m68k.org> wrote:
-> On Tue, May 8, 2018 at 9:17 AM, Florian Westphal <fw@strlen.de> wrote:
-> > Stephen Rothwell <sfr@canb.auug.org.au> wrote:
-> >> On Mon, 7 May 2018 10:55:19 +1000 Stephen Rothwell <sfr@canb.auug.org.au> wrote:
-> >> >
-> >> > After merging the netfilter-next tree, today's linux-next build (x86_64
-> >> > allmodconfig) produced this warning:
-> >> >
-> >> > ./usr/include/linux/netfilter/nf_osf.h:25: found __[us]{8,16,32,64} type without #include <linux/types.h>
-> >>
-> >> > Introduced by commit
-> >> >
-> >> >   bfb15f2a95cb ("netfilter: extract Passive OS fingerprint infrastructure from xt_osf")
-> >
-> > I'll send a fix for this, thanks for reporting.
+On 14/05/18 04:46 PM, Vlad Buslov wrote:
 > 
-> +config NF_OSF
-> +       tristate 'Passive OS fingerprint infrastructure'
-> 
-> "There is no help available for this option."
-> 
-> Is this meant to be a user-visible symbol?
+> On Mon 14 May 2018 at 18:03, Jamal Hadi Salim <jhs@mojatatu.com> wrote:
+>> On 14/05/18 10:27 AM, Vlad Buslov wrote:
 
-No, its not.  I can send a patch in case you're too busy, let me know.
+
+> Hello Jamal,
+> 
+> I'm trying to run tdc, but keep getting following error even on clean
+> branch without my patches:
+
+Vlad, not sure if you saw my email:
+Apply Roman's patch and try again
+
+https://marc.info/?l=linux-netdev&m=152639369112020&w=2
+
+cheers,
+jamal
