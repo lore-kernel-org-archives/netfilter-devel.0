@@ -1,83 +1,47 @@
-From: Richard Guy Briggs <rgb@redhat.com>
-Subject: Re: [PATCH ghak81 RFC V2 3/5] audit: use inline function to get
- audit context
-Date: Mon, 14 May 2018 23:28:08 -0400
-Message-ID: <20180515032808.ulyaotjyu4ye3ajp@madcap2.tricolour.ca>
-References: <cover.1526173613.git.rgb@redhat.com>
- <baa29a694e352bd4fe8acd0f46f7baca1ad2c147.1526173613.git.rgb@redhat.com>
- <CAHC9VhQXr76FXPCe8vUWNwa2VshcPg1mZmMY7M30H1F6w30rFA@mail.gmail.com>
- <20180515030545.7oiyz33rzoj6sxs5@madcap2.tricolour.ca>
+From: Jiri Pirko <jiri@resnulli.us>
+Subject: Re: [PATCH 00/14] Modify action API for implementing lockless actions
+Date: Tue, 15 May 2018 10:20:43 +0200
+Message-ID: <20180515082043.GH2134@nanopsycho.orion>
+References: <1526308035-12484-1-git-send-email-vladbu@mellanox.com>
+ <23f37e5a-dd30-0ad3-a5ab-df22bf0ad7f9@mojatatu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Linux-Audit Mailing List <linux-audit@redhat.com>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Linux NetDev Upstream Mailing List <netdev@vger.kernel.org>,
-        Netfilter Devel List <netfilter-devel@vger.kernel.org>,
-        Linux Security Module list
-        <linux-security-module@vger.kernel.org>,
-        Integrity Measurement Architecture
-        <linux-integrity@vger.kernel.org>,
-        SElinux list <selinux@tycho.nsa.gov>,
-        Eric Paris <eparis@redhat.com>,
-        Steve Grubb <sgrubb@redhat.com>,
-        Ingo Molnar <mingo@redhat.com>,
-        David Howells <dhowells@redhat.com>
-To: Paul Moore <paul@paul-moore.com>
+Cc: Vlad Buslov <vladbu@mellanox.com>, netdev@vger.kernel.org,
+        davem@davemloft.net, xiyou.wangcong@gmail.com, pablo@netfilter.org,
+        kadlec@blackhole.kfki.hu, fw@strlen.de, ast@kernel.org,
+        daniel@iogearbox.net, edumazet@google.com, keescook@chromium.org,
+        linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, kliteyn@mellanox.com
+To: Jamal Hadi Salim <jhs@mojatatu.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180515030545.7oiyz33rzoj6sxs5@madcap2.tricolour.ca>
+In-Reply-To: <23f37e5a-dd30-0ad3-a5ab-df22bf0ad7f9@mojatatu.com>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On 2018-05-14 23:05, Richard Guy Briggs wrote:
-> On 2018-05-14 17:44, Paul Moore wrote:
-> > On Sat, May 12, 2018 at 9:58 PM, Richard Guy Briggs <rgb@redhat.com> wrote:
-> > > Recognizing that the audit context is an internal audit value, use an
-> > > access function to retrieve the audit context pointer for the task
-> > > rather than reaching directly into the task struct to get it.
-> > >
-> > > Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
-> > > ---
-> > >  include/linux/audit.h                | 14 ++++++--
-> > >  include/net/xfrm.h                   |  2 +-
-> > >  kernel/audit.c                       |  6 ++--
-> > >  kernel/audit_watch.c                 |  2 +-
-> > >  kernel/auditsc.c                     | 64 +++++++++++++++++-------------------
-> > >  net/bridge/netfilter/ebtables.c      |  2 +-
-> > >  net/core/dev.c                       |  2 +-
-> > >  net/netfilter/x_tables.c             |  2 +-
-> > >  net/netlabel/netlabel_user.c         |  2 +-
-> > >  security/integrity/ima/ima_api.c     |  2 +-
-> > >  security/integrity/integrity_audit.c |  2 +-
-> > >  security/lsm_audit.c                 |  2 +-
-> > >  security/selinux/hooks.c             |  4 +--
-> > >  security/selinux/selinuxfs.c         |  6 ++--
-> > >  security/selinux/ss/services.c       | 12 +++----
-> > >  15 files changed, 64 insertions(+), 60 deletions(-)
-> > 
-> > Merged, but there was some fuzz due to the missing 1/5 patch and a
-> > handfull of checkpatch.pl fixes.  Please take a look at the commit in
-> > the audit/next branch and if anything looks awry please send a patch
-> > to fix it.
-> 
-> Some of that fuzz was due to the two patches (ghak46/47) that went
-> through the xelinux tree...  There will be a merge conflict.
-> 
-> Otherwise, looks ok.
+Mon, May 14, 2018 at 08:03:20PM CEST, jhs@mojatatu.com wrote:
+>On 14/05/18 10:27 AM, Vlad Buslov wrote:
+>> Currently, all netlink protocol handlers for updating rules, actions and
+>> qdiscs are protected with single global rtnl lock which removes any
+>> possibility for parallelism. This patch set is a first step to remove
+>> rtnl lock dependency from TC rules update path. It updates act API to
+>> use atomic operations, rcu and spinlocks for fine-grained locking. It
+>> also extend API with functions that are needed to update existing
+>> actions for parallel execution.
+>> 
+>> Outline of changes:
+>> - Change tc action to use atomic reference and bind counters, rcu
+>>    mechanism for cookie update.
+>> - Extend action ops API with 'delete' function and 'unlocked' flag.
+>> - Change action API to work with actions in lockless manner based on
+>>    primitives implemented in previous patches.
+>> - Extend action API with new functions necessary to implement unlocked
+>>    actions.
+>
+>Please run all the tdc tests with these changes. This area has almost
+>good test coverage at this point. If you need help just ping me.
 
-Spoke too soon, missed one from the new seccomp actions_logged...
+Oh, that reminds me. Vlad, please run also:
+tools/testing/selftests/net/forwarding/tc_*
 
-Patch pending...
-
-> > paul moore
-> 
-> - RGB
-
-- RGB
-
---
-Richard Guy Briggs <rgb@redhat.com>
-Sr. S/W Engineer, Kernel Security, Base Operating Systems
-Remote, Ottawa, Red Hat Canada
-IRC: rgb, SunRaycer
-Voice: +1.647.777.2635, Internal: (81) 32635
+Thanks!
