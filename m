@@ -1,58 +1,56 @@
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: Re: linux-next: build warning after merge of the netfilter-next tree
-Date: Tue, 15 May 2018 12:54:22 +0200
-Message-ID: <CAMuHMdU0iUBbkPL5ZKxKuORnQA9ujX1J+5NLw=ft80hJh20VxQ@mail.gmail.com>
-References: <20180507105519.1d34f19e@canb.auug.org.au> <20180508102101.768d5c52@canb.auug.org.au>
- <20180508071756.grie5wln2lpo52un@breakpoint.cc>
+From: Jiri Pirko <jiri@resnulli.us>
+Subject: Re: [PATCH 07/14] net: sched: use reference counting action init
+Date: Tue, 15 May 2018 13:24:04 +0200
+Message-ID: <20180515112404.GL2134@nanopsycho.orion>
+References: <1526308035-12484-1-git-send-email-vladbu@mellanox.com>
+ <1526308035-12484-8-git-send-email-vladbu@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>,
-        David Miller <davem@davemloft.net>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        NetFilter <netfilter-devel@vger.kernel.org>,
-        Linux-Next Mailing List <linux-next@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Fernando Fernandez Mancera <ffmancera@riseup.net>
-To: Florian Westphal <fw@strlen.de>
+Content-Type: text/plain; charset=us-ascii
+Cc: netdev@vger.kernel.org, davem@davemloft.net, jhs@mojatatu.com,
+        xiyou.wangcong@gmail.com, pablo@netfilter.org,
+        kadlec@blackhole.kfki.hu, fw@strlen.de, ast@kernel.org,
+        daniel@iogearbox.net, edumazet@google.com, keescook@chromium.org,
+        linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, kliteyn@mellanox.com
+To: Vlad Buslov <vladbu@mellanox.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180508071756.grie5wln2lpo52un@breakpoint.cc>
+Content-Disposition: inline
+In-Reply-To: <1526308035-12484-8-git-send-email-vladbu@mellanox.com>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Florian,
-
-On Tue, May 8, 2018 at 9:17 AM, Florian Westphal <fw@strlen.de> wrote:
-> Stephen Rothwell <sfr@canb.auug.org.au> wrote:
->> On Mon, 7 May 2018 10:55:19 +1000 Stephen Rothwell <sfr@canb.auug.org.au> wrote:
->> >
->> > After merging the netfilter-next tree, today's linux-next build (x86_64
->> > allmodconfig) produced this warning:
->> >
->> > ./usr/include/linux/netfilter/nf_osf.h:25: found __[us]{8,16,32,64} type without #include <linux/types.h>
->>
->> > Introduced by commit
->> >
->> >   bfb15f2a95cb ("netfilter: extract Passive OS fingerprint infrastructure from xt_osf")
+Mon, May 14, 2018 at 04:27:08PM CEST, vladbu@mellanox.com wrote:
+>Change action API to assume that action init function always takes
+>reference to action, even when overwriting existing action. This is
+>necessary because action API continues to use action pointer after init
+>function is done. At this point action becomes accessible for concurrent
+>modifications so user must always hold reference to it.
 >
-> I'll send a fix for this, thanks for reporting.
+>Implement helper put list function to atomically release list of actions
+>after action API init code is done using them.
+>
+>Signed-off-by: Vlad Buslov <vladbu@mellanox.com>
+>---
+> net/sched/act_api.c | 38 +++++++++++++++++---------------------
+> 1 file changed, 17 insertions(+), 21 deletions(-)
+>
 
-+config NF_OSF
-+       tristate 'Passive OS fingerprint infrastructure'
+[...]
 
-"There is no help available for this option."
 
-Is this meant to be a user-visible symbol?
-I noticed it is selected by NETFILTER_XT_MATCH_OSF.
+>@@ -1196,8 +1190,7 @@ tca_action_gd(struct net *net, struct nlattr *nla, struct nlmsghdr *n,
+> 		return ret;
+> 	}
+> err:
+>-	if (event != RTM_GETACTION)
 
-Thanks!
+Howcome you do this for RTM_GETACTION now too? Where is the related "get"?
 
-Gr{oetje,eeting}s,
 
-                        Geert
+>-		tcf_action_destroy(&actions, 0);
+>+	tcf_action_put_lst(&actions);
+> 	return ret;
+> }
+> 
 
--- 
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+[...]
