@@ -1,262 +1,89 @@
-From: Jiri Pirko <jiri@resnulli.us>
-Subject: Re: [PATCH 12/14] net: sched: retry action check-insert on
- concurrent modification
-Date: Wed, 16 May 2018 16:55:15 +0200
-Message-ID: <20180516145515.GP1972@nanopsycho>
-References: <1526308035-12484-1-git-send-email-vladbu@mellanox.com>
- <1526308035-12484-13-git-send-email-vladbu@mellanox.com>
- <20180516095953.GI1972@nanopsycho>
- <vbf4lj724th.fsf@reg-r-vrt-018-180.mtr.labs.mlnx>
- <20180516122600.GM1972@nanopsycho>
- <vbfwow322k1.fsf@reg-r-vrt-018-180.mtr.labs.mlnx>
- <20180516132135.GN1972@nanopsycho>
- <vbfvabn1zic.fsf@reg-r-vrt-018-180.mtr.labs.mlnx>
- <20180516141319.GO1972@nanopsycho>
- <vbfsh6r1xsv.fsf@reg-r-vrt-018-180.mtr.labs.mlnx>
+From: syzbot <syzbot+aac887f77319868646df@syzkaller.appspotmail.com>
+Subject: kernel BUG at lib/string.c:LINE! (4)
+Date: Wed, 16 May 2018 08:35:03 -0700
+Message-ID: <0000000000006764b4056c5476d9@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netdev@vger.kernel.org, davem@davemloft.net, jhs@mojatatu.com,
-        xiyou.wangcong@gmail.com, pablo@netfilter.org,
-        kadlec@blackhole.kfki.hu, fw@strlen.de, ast@kernel.org,
-        daniel@iogearbox.net, edumazet@google.com, keescook@chromium.org,
-        linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, kliteyn@mellanox.com
-To: Vlad Buslov <vladbu@mellanox.com>
+Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
+Content-Transfer-Encoding: base64
+To: coreteam@netfilter.org, davem@davemloft.net, fw@strlen.de,
+        horms@verge.net.au, ja@ssi.bg, kadlec@blackhole.kfki.hu,
+        linux-kernel@vger.kernel.org, lvs-devel@vger.kernel.org,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        pablo@netfilter.org, syzkaller-bugs@googlegroups.com,
+        wensong@linux-vs.org
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <vbfsh6r1xsv.fsf@reg-r-vrt-018-180.mtr.labs.mlnx>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Wed, May 16, 2018 at 04:26:40PM CEST, vladbu@mellanox.com wrote:
->
->On Wed 16 May 2018 at 14:13, Jiri Pirko <jiri@resnulli.us> wrote:
->> Wed, May 16, 2018 at 03:52:20PM CEST, vladbu@mellanox.com wrote:
->>>
->>>On Wed 16 May 2018 at 13:21, Jiri Pirko <jiri@resnulli.us> wrote:
->>>> Wed, May 16, 2018 at 02:43:58PM CEST, vladbu@mellanox.com wrote:
->>>>>
->>>>>On Wed 16 May 2018 at 12:26, Jiri Pirko <jiri@resnulli.us> wrote:
->>>>>> Wed, May 16, 2018 at 01:55:06PM CEST, vladbu@mellanox.com wrote:
->>>>>>>
->>>>>>>On Wed 16 May 2018 at 09:59, Jiri Pirko <jiri@resnulli.us> wrote:
->>>>>>>> Mon, May 14, 2018 at 04:27:13PM CEST, vladbu@mellanox.com wrote:
->>>>>>>>>Retry check-insert sequence in action init functions if action with same
->>>>>>>>>index was inserted concurrently.
->>>>>>>>>
->>>>>>>>>Signed-off-by: Vlad Buslov <vladbu@mellanox.com>
->>>>>>>>>---
->>>>>>>>> net/sched/act_bpf.c        | 8 +++++++-
->>>>>>>>> net/sched/act_connmark.c   | 8 +++++++-
->>>>>>>>> net/sched/act_csum.c       | 8 +++++++-
->>>>>>>>> net/sched/act_gact.c       | 8 +++++++-
->>>>>>>>> net/sched/act_ife.c        | 8 +++++++-
->>>>>>>>> net/sched/act_ipt.c        | 8 +++++++-
->>>>>>>>> net/sched/act_mirred.c     | 8 +++++++-
->>>>>>>>> net/sched/act_nat.c        | 8 +++++++-
->>>>>>>>> net/sched/act_pedit.c      | 8 +++++++-
->>>>>>>>> net/sched/act_police.c     | 9 ++++++++-
->>>>>>>>> net/sched/act_sample.c     | 8 +++++++-
->>>>>>>>> net/sched/act_simple.c     | 9 ++++++++-
->>>>>>>>> net/sched/act_skbedit.c    | 8 +++++++-
->>>>>>>>> net/sched/act_skbmod.c     | 8 +++++++-
->>>>>>>>> net/sched/act_tunnel_key.c | 9 ++++++++-
->>>>>>>>> net/sched/act_vlan.c       | 9 ++++++++-
->>>>>>>>> 16 files changed, 116 insertions(+), 16 deletions(-)
->>>>>>>>>
->>>>>>>>>diff --git a/net/sched/act_bpf.c b/net/sched/act_bpf.c
->>>>>>>>>index 5554bf7..7e20fdc 100644
->>>>>>>>>--- a/net/sched/act_bpf.c
->>>>>>>>>+++ b/net/sched/act_bpf.c
->>>>>>>>>@@ -299,10 +299,16 @@ static int tcf_bpf_init(struct net *net, struct nlattr *nla,
->>>>>>>>> 
->>>>>>>>> 	parm = nla_data(tb[TCA_ACT_BPF_PARMS]);
->>>>>>>>> 
->>>>>>>>>+replay:
->>>>>>>>> 	if (!tcf_idr_check(tn, parm->index, act, bind)) {
->>>>>>>>> 		ret = tcf_idr_create(tn, parm->index, est, act,
->>>>>>>>> 				     &act_bpf_ops, bind, true);
->>>>>>>>>-		if (ret < 0)
->>>>>>>>>+		/* Action with specified index was created concurrently.
->>>>>>>>>+		 * Check again.
->>>>>>>>>+		 */
->>>>>>>>>+		if (parm->index && ret == -ENOSPC)
->>>>>>>>>+			goto replay;
->>>>>>>>>+		else if (ret)
->>>>>>>>
->>>>>>>> Hmm, looks like you are doing the same/very similar thing in every act
->>>>>>>> code. I think it would make sense to introduce a helper function for
->>>>>>>> this purpose.
->>>>>>>
->>>>>>>This code uses goto so it can't be easily refactored into standalone
->>>>>>>function. Could you specify which part of this code you suggest to
->>>>>>>extract?
->>>>>>
->>>>>> Hmm, looking at the code, I think that what would help is to have a
->>>>>> helper that would atomically check if index exists and if not, it would
->>>>>> allocate one. Something like:
->>>>>>
->>>>>>
->>>>>> int tcf_idr_check_alloc(struct tc_action_net *tn, u32 *index,
->>>>>> 			struct tc_action **a, int bind)
->>>>>> {
->>>>>> 	struct tcf_idrinfo *idrinfo = tn->idrinfo;
->>>>>> 	struct tc_action *p;
->>>>>> 	int err;
->>>>>>
->>>>>> 	spin_lock(&idrinfo->lock);
->>>>>> 	if (*index) {
->>>>>> 		p = idr_find(&idrinfo->action_idr, *index);
->>>>>> 		if (p) {
->>>>>> 			if (bind)
->>>>>> 	   			p->tcfa_bindcnt++;
->>>>>> 			p->tcfa_refcnt++;
->>>>>> 			*a = p;
->>>>>> 			err = 0;
->>>>>> 		} else {
->>>>>> 			*a = NULL;
->>>>>> 			err = idr_alloc_u32(idr, NULL, index,
->>>>>> 					    *index, GFP_ATOMIC);
->>>>>> 		}
->>>>>> 	} else {
->>>>>> 		*index = 1;
->>>>>> 		*a = NULL;
->>>>>> 		err = idr_alloc_u32(idr, NULL, index, UINT_MAX, GFP_ATOMIC);
->>>>>> 	}
->>>>>> 	spin_unlock(&idrinfo->lock);
->>>>>> 	return err;
->>>>>> }
->>>>>>
->>>>>> The act code would just check if "a" is NULL and if so, it would call
->>>>>> tcf_idr_create() with allocated index as arg.
->>>>>
->>>>>What about multiple actions that have arbitrary code between initial
->>>>>check and idr allocation that is currently inside tcf_idr_create()?
->>>>
->>>> Why it would be a problem to have them after the allocation?
->>>
->>>Lets look at mirred for exmple:
->>>	exists = tcf_idr_check(tn, parm->index, a, bind);
->>>	if (exists && bind)
->>>		return 0;
->>>
->>>	switch (parm->eaction) {
->>>	case TCA_EGRESS_MIRROR:
->>>	case TCA_EGRESS_REDIR:
->>>	case TCA_INGRESS_REDIR:
->>>	case TCA_INGRESS_MIRROR:
->>>		break;
->>>	default:
->>>		if (exists)
->>>			tcf_idr_release(*a, bind);
->>>		NL_SET_ERR_MSG_MOD(extack, "Unknown mirred option");
->>>		return -EINVAL;
->>>	}
->>>	if (parm->ifindex) {
->>>		dev = __dev_get_by_index(net, parm->ifindex);
->>>		if (dev == NULL) {
->>>			if (exists)
->>>				tcf_idr_release(*a, bind);
->>>			return -ENODEV;
->>>		}
->>>		mac_header_xmit = dev_is_mac_header_xmit(dev);
->>>	} else {
->>>		dev = NULL;
->>>	}
->>>
->>>	if (!exists) {
->>>		if (!dev) {
->>>			NL_SET_ERR_MSG_MOD(extack, "Specified device does not exist");
->>>			return -EINVAL;
->>>		}
->>>		ret = tcf_idr_create(tn, parm->index, est, a,
->>>				     &act_mirred_ops, bind, true);
->>>		/* Action with specified index was created concurrently.
->>>		 * Check again.
->>>		 */
->>>		if (parm->index && ret == -ENOSPC)
->>>			goto replay;
->>>		else if (ret)
->>>			return ret;
->>>
->>>There are several returns and cleanup is only performed when action
->>>exists. So all code like that will have to be audited to also remove
->>>index from idr, otherwise idr handles leak on return.
->>
->> Yeah. You have to take care of the error path.
->>
->>
->>>
->>>>
->>>> There is one issue though with my draft. tcf_idr_insert() function
->>>> which actually assigns a "p" pointer to the idr index is called later on.
->>>> Until that happens, the idr_find() would return NULL even if the index
->>>> is actually allocated. We cannot assign "p" in tcf_idr_check_alloc()
->>>> because it is allocated only later on in tcf_idr_create(). But that is
->>>> resolvable by the following trick:
->>>>
->>>> int tcf_idr_check_alloc(struct tc_action_net *tn, u32 *index,
->>>> 			struct tc_action **a, int bind)
->>>> {
->>>> 	struct tcf_idrinfo *idrinfo = tn->idrinfo;
->>>> 	struct tc_action *p;
->>>> 	int err;
->>>>
->>>> again:
->>>> 	spin_lock(&idrinfo->lock);
->>>> 	if (*index) {
->>>>  		p = idr_find(&idrinfo->action_idr, *index);
->>>> 		if (IS_ERR(p)) {
->>>> 			/* This means that another process allocated
->>>> 			 * index but did not assign the pointer yet.
->>>> 			 */
->>>> 			spin_unlock(&idrinfo->lock);
->>>> 			goto again;
->>>> 		}
->>>>  		if (p) {
->>>>  			if (bind)
->>>>  	   			p->tcfa_bindcnt++;
->>>>  			p->tcfa_refcnt++;
->>>>  			*a = p;
->>>>  			err = 0;
->>>>  		} else {
->>>>  			*a = NULL;
->>>>  			err = idr_alloc_u32(idr, NULL, index,
->>>>  					    *index, GFP_ATOMIC);
->>>> 			idr_replace(&idrinfo->action_idr,
->>>> 				    ERR_PTR(-EBUSY), *index);
->>>>  		}
->>>>  	} else {
->>>>  		*index = 1;
->>>> 		*a = NULL;
->>>>  		err = idr_alloc_u32(idr, NULL, index, UINT_MAX, GFP_ATOMIC);
->>>> 		idr_replace(&idrinfo->action_idr, ERR_PTR(-EBUSY), *index);
->>>>  	}
->>>>  	spin_unlock(&idrinfo->lock);
->>>>  	return err;
->>>> }
->>>>
->>>
->>>So users of action idr that might perform concurrent lookups are also
->>>have to be changed to check for error pointers, that now can be inserted
->>>into idr? Seems like a complex change...
->>
->> You can just add a simple check into tcf_idr_lookup(). Where else?
->>
->
->To me it looks like we take something simple and already working, and
->make it complex to save few lines of code in action init...
-
-Well it is not only about saving lines of code but also to avoid
-duplications of code. And duplications lead to bugs. That's why I
-believe that helper here is needed.
-
-
->
->Anyway, how should I do patch split for this?
->Patch to implement function you outlined and another one to modify all
->actions to use it(with all refactoring to not leak references)? Or patch
->per action is better approach?
-
-If you do it per-action, you would end up with many patches. It is not
-needed I believe.
+SGVsbG8sDQoNCnN5emJvdCBmb3VuZCB0aGUgZm9sbG93aW5nIGNyYXNoIG9uOg0KDQpIRUFEIGNv
+bW1pdDogICAgMGI3ZDk5Nzg0MDZmIE1lcmdlIGJyYW5jaCAnTWljcm9zZW1pLU9jZWxvdC1FdGhl
+cm5ldC1zd2l0Yy4uDQpnaXQgdHJlZTogICAgICAgbmV0LW5leHQNCmNvbnNvbGUgb3V0cHV0OiBo
+dHRwczovL3N5emthbGxlci5hcHBzcG90LmNvbS94L2xvZy50eHQ/eD0xNmU5MTAxNzgwMDAwMA0K
+a2VybmVsIGNvbmZpZzogIGh0dHBzOi8vc3l6a2FsbGVyLmFwcHNwb3QuY29tL3gvLmNvbmZpZz94
+PWI2MzJkOGUyYzJhYjJjMQ0KZGFzaGJvYXJkIGxpbms6IGh0dHBzOi8vc3l6a2FsbGVyLmFwcHNw
+b3QuY29tL2J1Zz9leHRpZD1hYWM4ODdmNzczMTk4Njg2NDZkZg0KY29tcGlsZXI6ICAgICAgIGdj
+YyAoR0NDKSA4LjAuMSAyMDE4MDQxMyAoZXhwZXJpbWVudGFsKQ0Kc3l6a2FsbGVyIHJlcHJvOmh0
+dHBzOi8vc3l6a2FsbGVyLmFwcHNwb3QuY29tL3gvcmVwcm8uc3l6P3g9MTY2NWQ2Mzc4MDAwMDAN
+CkMgcmVwcm9kdWNlcjogICBodHRwczovL3N5emthbGxlci5hcHBzcG90LmNvbS94L3JlcHJvLmM/
+eD0xMDUxNzEwNzgwMDAwMA0KDQpJTVBPUlRBTlQ6IGlmIHlvdSBmaXggdGhlIGJ1ZywgcGxlYXNl
+IGFkZCB0aGUgZm9sbG93aW5nIHRhZyB0byB0aGUgY29tbWl0Og0KUmVwb3J0ZWQtYnk6IHN5emJv
+dCthYWM4ODdmNzczMTk4Njg2NDZkZkBzeXprYWxsZXIuYXBwc3BvdG1haWwuY29tDQoNCklQVlM6
+IFVua25vd24gbWNhc3QgaW50ZXJmYWNlOiB2ZXRoMV90b++/vWHvv73vv73vv73vv70NCklQVlM6
+IFVua25vd24gbWNhc3QgaW50ZXJmYWNlOiB2ZXRoMV90b++/vWHvv73vv73vv73vv70NCklQVlM6
+IFVua25vd24gbWNhc3QgaW50ZXJmYWNlOiB2ZXRoMV90b++/vWHvv73vv73vv73vv70NCmRldGVj
+dGVkIGJ1ZmZlciBvdmVyZmxvdyBpbiBzdHJsZW4NCi0tLS0tLS0tLS0tLVsgY3V0IGhlcmUgXS0t
+LS0tLS0tLS0tLQ0Ka2VybmVsIEJVRyBhdCBsaWIvc3RyaW5nLmM6MTA1MiENCmludmFsaWQgb3Bj
+b2RlOiAwMDAwIFsjMV0gU01QIEtBU0FODQpEdW1waW5nIGZ0cmFjZSBidWZmZXI6DQogICAgKGZ0
+cmFjZSBidWZmZXIgZW1wdHkpDQpNb2R1bGVzIGxpbmtlZCBpbjoNCkNQVTogMSBQSUQ6IDM3MyBD
+b21tOiBzeXotZXhlY3V0b3I5MzYgTm90IHRhaW50ZWQgNC4xNy4wLXJjNCsgIzQ1DQpIYXJkd2Fy
+ZSBuYW1lOiBHb29nbGUgR29vZ2xlIENvbXB1dGUgRW5naW5lL0dvb2dsZSBDb21wdXRlIEVuZ2lu
+ZSwgQklPUyAgDQpHb29nbGUgMDEvMDEvMjAxMQ0KUklQOiAwMDEwOmZvcnRpZnlfcGFuaWMrMHgx
+My8weDIwIGxpYi9zdHJpbmcuYzoxMDUxDQpSU1A6IDAwMTg6ZmZmZjg4MDFjOTc2ZjgwMCBFRkxB
+R1M6IDAwMDEwMjgyDQpSQVg6IDAwMDAwMDAwMDAwMDAwMjIgUkJYOiAwMDAwMDAwMDAwMDAwMDQw
+IFJDWDogMDAwMDAwMDAwMDAwMDAwMA0KUkRYOiAwMDAwMDAwMDAwMDAwMDIyIFJTSTogZmZmZmZm
+ZmY4MTYwZjZmMSBSREk6IGZmZmZlZDAwMzkyZWRlZjYNClJCUDogZmZmZjg4MDFjOTc2ZjgwMCBS
+MDg6IGZmZmY4ODAxY2Y0YzYyYzAgUjA5OiBmZmZmZWQwMDNiNWU0ZmIwDQpSMTA6IGZmZmZlZDAw
+M2I1ZTRmYjAgUjExOiBmZmZmODgwMWRhZjI3ZDg3IFIxMjogZmZmZjg4MDFjOTc2ZmEyMA0KUjEz
+OiBmZmZmODgwMWM5NzZmYWU0IFIxNDogZmZmZjg4MDFjOTc2ZmFlMCBSMTU6IDAwMDAwMDAwMDAw
+MDA0OGINCkZTOiAgMDAwMDdmZDk5Zjc1ZTcwMCgwMDAwKSBHUzpmZmZmODgwMWRhZjAwMDAwKDAw
+MDApIGtubEdTOjAwMDAwMDAwMDAwMDAwMDANCkNTOiAgMDAxMCBEUzogMDAwMCBFUzogMDAwMCBD
+UjA6IDAwMDAwMDAwODAwNTAwMzMNCkNSMjogMDAwMDAwMDAyMDAwMDFjMCBDUjM6IDAwMDAwMDAx
+ZDY4NDMwMDAgQ1I0OiAwMDAwMDAwMDAwMTQwNmUwDQpEUjA6IDAwMDAwMDAwMDAwMDAwMDAgRFIx
+OiAwMDAwMDAwMDAwMDAwMDAwIERSMjogMDAwMDAwMDAwMDAwMDAwMA0KRFIzOiAwMDAwMDAwMDAw
+MDAwMDAwIERSNjogMDAwMDAwMDBmZmZlMGZmMCBEUjc6IDAwMDAwMDAwMDAwMDA0MDANCkNhbGwg
+VHJhY2U6DQogIHN0cmxlbiBpbmNsdWRlL2xpbnV4L3N0cmluZy5oOjI3MCBbaW5saW5lXQ0KICBz
+dHJsY3B5IGluY2x1ZGUvbGludXgvc3RyaW5nLmg6MjkzIFtpbmxpbmVdDQogIGRvX2lwX3ZzX3Nl
+dF9jdGwrMHgzMWMvMHgxZDAwIG5ldC9uZXRmaWx0ZXIvaXB2cy9pcF92c19jdGwuYzoyMzg4DQog
+IG5mX3NvY2tvcHQgbmV0L25ldGZpbHRlci9uZl9zb2Nrb3B0LmM6MTA2IFtpbmxpbmVdDQogIG5m
+X3NldHNvY2tvcHQrMHg3ZC8weGQwIG5ldC9uZXRmaWx0ZXIvbmZfc29ja29wdC5jOjExNQ0KICBp
+cF9zZXRzb2Nrb3B0KzB4ZDgvMHhmMCBuZXQvaXB2NC9pcF9zb2NrZ2x1ZS5jOjEyNTMNCiAgdWRw
+X3NldHNvY2tvcHQrMHg2Mi8weGEwIG5ldC9pcHY0L3VkcC5jOjI0ODcNCiAgaXB2Nl9zZXRzb2Nr
+b3B0KzB4MTQ5LzB4MTcwIG5ldC9pcHY2L2lwdjZfc29ja2dsdWUuYzo5MTcNCiAgdGNwX3NldHNv
+Y2tvcHQrMHg5My8weGUwIG5ldC9pcHY0L3RjcC5jOjMwNTcNCiAgc29ja19jb21tb25fc2V0c29j
+a29wdCsweDlhLzB4ZTAgbmV0L2NvcmUvc29jay5jOjMwNDYNCiAgX19zeXNfc2V0c29ja29wdCsw
+eDFiZC8weDM5MCBuZXQvc29ja2V0LmM6MTkwMw0KICBfX2RvX3N5c19zZXRzb2Nrb3B0IG5ldC9z
+b2NrZXQuYzoxOTE0IFtpbmxpbmVdDQogIF9fc2Vfc3lzX3NldHNvY2tvcHQgbmV0L3NvY2tldC5j
+OjE5MTEgW2lubGluZV0NCiAgX194NjRfc3lzX3NldHNvY2tvcHQrMHhiZS8weDE1MCBuZXQvc29j
+a2V0LmM6MTkxMQ0KICBkb19zeXNjYWxsXzY0KzB4MWIxLzB4ODAwIGFyY2gveDg2L2VudHJ5L2Nv
+bW1vbi5jOjI4Nw0KICBlbnRyeV9TWVNDQUxMXzY0X2FmdGVyX2h3ZnJhbWUrMHg0OS8weGJlDQpS
+SVA6IDAwMzM6MHg0NDczNjkNClJTUDogMDAyYjowMDAwN2ZkOTlmNzVkZGE4IEVGTEFHUzogMDAw
+MDAyNDYgT1JJR19SQVg6IDAwMDAwMDAwMDAwMDAwMzYNClJBWDogZmZmZmZmZmZmZmZmZmZkYSBS
+Qlg6IDAwMDAwMDAwMDA2ZTM5ZTQgUkNYOiAwMDAwMDAwMDAwNDQ3MzY5DQpSRFg6IDAwMDAwMDAw
+MDAwMDA0OGIgUlNJOiAwMDAwMDAwMDAwMDAwMDAwIFJESTogMDAwMDAwMDAwMDAwMDAwMw0KUkJQ
+OiAwMDAwMDAwMDAwMDAwMDAwIFIwODogMDAwMDAwMDAwMDAwMDAxOCBSMDk6IDAwMDAwMDAwMDAw
+MDAwMDANClIxMDogMDAwMDAwMDAyMDAwMDFjMCBSMTE6IDAwMDAwMDAwMDAwMDAyNDYgUjEyOiAw
+MDAwMDAwMDAwNmUzOWUwDQpSMTM6IDc1YTFmZjkzZjA4OTYxOTUgUjE0OiA2Zjc0NWYzMTY4NzQ2
+NTc2IFIxNTogMDAwMDAwMDAwMDAwMDAwMQ0KQ29kZTogMDggNWIgNDEgNWMgNDEgNWQgNDEgNWUg
+NDEgNWYgNWQgYzMgMGYgMGIgNDggODkgZGYgZTggZDIgOGYgNDggZmEgZWIgIA0KZGUgNTUgNDgg
+ODkgZmUgNDggYzcgYzcgNjAgNjUgNjQgODggNDggODkgZTUgZTggOTEgZGQgZjMgZjkgPDBmPiAw
+YiA5MCA5MCAgDQo5MCA5MCA5MCA5MCA5MCA5MCA5MCA5MCA5MCA1NSA0OCA4OSBlNSA0MSA1NyA0
+MSA1Ng0KUklQOiBmb3J0aWZ5X3BhbmljKzB4MTMvMHgyMCBsaWIvc3RyaW5nLmM6MTA1MSBSU1A6
+IGZmZmY4ODAxYzk3NmY4MDANCi0tLVsgZW5kIHRyYWNlIDYyNDA0NmYyZDlhZjc3MDIgXS0tLQ0K
+DQoNCi0tLQ0KVGhpcyBidWcgaXMgZ2VuZXJhdGVkIGJ5IGEgYm90LiBJdCBtYXkgY29udGFpbiBl
+cnJvcnMuDQpTZWUgaHR0cHM6Ly9nb28uZ2wvdHBzbUVKIGZvciBtb3JlIGluZm9ybWF0aW9uIGFi
+b3V0IHN5emJvdC4NCnN5emJvdCBlbmdpbmVlcnMgY2FuIGJlIHJlYWNoZWQgYXQgc3l6a2FsbGVy
+QGdvb2dsZWdyb3Vwcy5jb20uDQoNCnN5emJvdCB3aWxsIGtlZXAgdHJhY2sgb2YgdGhpcyBidWcg
+cmVwb3J0LiBTZWU6DQpodHRwczovL2dvby5nbC90cHNtRUojYnVnLXN0YXR1cy10cmFja2luZyBm
+b3IgaG93IHRvIGNvbW11bmljYXRlIHdpdGggIA0Kc3l6Ym90Lg0Kc3l6Ym90IGNhbiB0ZXN0IHBh
+dGNoZXMgZm9yIHRoaXMgYnVnLCBmb3IgZGV0YWlscyBzZWU6DQpodHRwczovL2dvby5nbC90cHNt
+RUojdGVzdGluZy1wYXRjaGVzDQo=
