@@ -1,95 +1,71 @@
-From: Vlad Buslov <vladbu@mellanox.com>
-Subject: Re: [PATCH 14/14] net: sched: implement delete for all actions
-Date: Wed, 16 May 2018 12:58:38 +0300
-Message-ID: <vbf7eo32a7l.fsf@reg-r-vrt-018-180.mtr.labs.mlnx>
-References: <1526308035-12484-1-git-send-email-vladbu@mellanox.com> <1526308035-12484-15-git-send-email-vladbu@mellanox.com> <20180516094850.GF1972@nanopsycho>
+From: Jiri Pirko <jiri@resnulli.us>
+Subject: Re: [PATCH 12/14] net: sched: retry action check-insert on
+ concurrent modification
+Date: Wed, 16 May 2018 11:59:53 +0200
+Message-ID: <20180516095953.GI1972@nanopsycho>
+References: <1526308035-12484-1-git-send-email-vladbu@mellanox.com>
+ <1526308035-12484-13-git-send-email-vladbu@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Cc: netdev@vger.kernel.org, davem@davemloft.net, jhs@mojatatu.com,
         xiyou.wangcong@gmail.com, pablo@netfilter.org,
         kadlec@blackhole.kfki.hu, fw@strlen.de, ast@kernel.org,
         daniel@iogearbox.net, edumazet@google.com, keescook@chromium.org,
         linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
         coreteam@netfilter.org, kliteyn@mellanox.com
-To: Jiri Pirko <jiri@resnulli.us>
+To: Vlad Buslov <vladbu@mellanox.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-reply-to: <20180516094850.GF1972@nanopsycho>
+Content-Disposition: inline
+In-Reply-To: <1526308035-12484-13-git-send-email-vladbu@mellanox.com>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Mon, May 14, 2018 at 04:27:13PM CEST, vladbu@mellanox.com wrote:
+>Retry check-insert sequence in action init functions if action with same
+>index was inserted concurrently.
+>
+>Signed-off-by: Vlad Buslov <vladbu@mellanox.com>
+>---
+> net/sched/act_bpf.c        | 8 +++++++-
+> net/sched/act_connmark.c   | 8 +++++++-
+> net/sched/act_csum.c       | 8 +++++++-
+> net/sched/act_gact.c       | 8 +++++++-
+> net/sched/act_ife.c        | 8 +++++++-
+> net/sched/act_ipt.c        | 8 +++++++-
+> net/sched/act_mirred.c     | 8 +++++++-
+> net/sched/act_nat.c        | 8 +++++++-
+> net/sched/act_pedit.c      | 8 +++++++-
+> net/sched/act_police.c     | 9 ++++++++-
+> net/sched/act_sample.c     | 8 +++++++-
+> net/sched/act_simple.c     | 9 ++++++++-
+> net/sched/act_skbedit.c    | 8 +++++++-
+> net/sched/act_skbmod.c     | 8 +++++++-
+> net/sched/act_tunnel_key.c | 9 ++++++++-
+> net/sched/act_vlan.c       | 9 ++++++++-
+> 16 files changed, 116 insertions(+), 16 deletions(-)
+>
+>diff --git a/net/sched/act_bpf.c b/net/sched/act_bpf.c
+>index 5554bf7..7e20fdc 100644
+>--- a/net/sched/act_bpf.c
+>+++ b/net/sched/act_bpf.c
+>@@ -299,10 +299,16 @@ static int tcf_bpf_init(struct net *net, struct nlattr *nla,
+> 
+> 	parm = nla_data(tb[TCA_ACT_BPF_PARMS]);
+> 
+>+replay:
+> 	if (!tcf_idr_check(tn, parm->index, act, bind)) {
+> 		ret = tcf_idr_create(tn, parm->index, est, act,
+> 				     &act_bpf_ops, bind, true);
+>-		if (ret < 0)
+>+		/* Action with specified index was created concurrently.
+>+		 * Check again.
+>+		 */
+>+		if (parm->index && ret == -ENOSPC)
+>+			goto replay;
+>+		else if (ret)
 
-On Wed 16 May 2018 at 09:48, Jiri Pirko <jiri@resnulli.us> wrote:
-> Mon, May 14, 2018 at 04:27:15PM CEST, vladbu@mellanox.com wrote:
->>Implement delete function that is required to delete actions without
->>holding rtnl lock. Use action API function that atomically deletes action
->>only if it is still in action idr. This implementation prevents concurrent
->>threads from deleting same action twice.
->>
->>Signed-off-by: Vlad Buslov <vladbu@mellanox.com>
->>---
->> net/sched/act_bpf.c        |  8 ++++++++
->> net/sched/act_connmark.c   |  8 ++++++++
->> net/sched/act_csum.c       |  8 ++++++++
->> net/sched/act_gact.c       |  8 ++++++++
->> net/sched/act_ife.c        |  8 ++++++++
->> net/sched/act_ipt.c        | 16 ++++++++++++++++
->> net/sched/act_mirred.c     |  8 ++++++++
->> net/sched/act_nat.c        |  8 ++++++++
->> net/sched/act_pedit.c      |  8 ++++++++
->> net/sched/act_police.c     |  8 ++++++++
->> net/sched/act_sample.c     |  8 ++++++++
->> net/sched/act_simple.c     |  8 ++++++++
->> net/sched/act_skbedit.c    |  8 ++++++++
->> net/sched/act_skbmod.c     |  8 ++++++++
->> net/sched/act_tunnel_key.c |  8 ++++++++
->> net/sched/act_vlan.c       |  8 ++++++++
->> 16 files changed, 136 insertions(+)
->>
->>diff --git a/net/sched/act_bpf.c b/net/sched/act_bpf.c
->>index 0bf4ecf..36f7f66 100644
->>--- a/net/sched/act_bpf.c
->>+++ b/net/sched/act_bpf.c
->>@@ -394,6 +394,13 @@ static int tcf_bpf_search(struct net *net, struct tc_action **a, u32 index,
->> 	return tcf_idr_search(tn, a, index);
->> }
->> 
->>+static int tcf_bpf_delete(struct net *net, u32 index)
->>+{
->>+	struct tc_action_net *tn = net_generic(net, bpf_net_id);
->>+
->>+	return tcf_idr_find_delete(tn, index);
->>+}
->>+
->> static struct tc_action_ops act_bpf_ops __read_mostly = {
->> 	.kind		=	"bpf",
->> 	.type		=	TCA_ACT_BPF,
->>@@ -404,6 +411,7 @@ static struct tc_action_ops act_bpf_ops __read_mostly = {
->> 	.init		=	tcf_bpf_init,
->> 	.walk		=	tcf_bpf_walker,
->> 	.lookup		=	tcf_bpf_search,
->>+	.delete		=	tcf_bpf_delete,
->
-> I wonder, right before this patch, how the idr index got removed?
-> delete op is NULL and I didn't find anyone else to do it.
->
-> Also, after this patch, does it make sense to have following check in
-> tcf_action_del_1()?
->
->        if (ops->delete)
-> 	       err = ops->delete(net, index);
->
-> Looks like ops->delete is non-null for all.
->
-> Seems to me that you need to introduce this patch filling up the delete
-> op in all acts and only after that introduce a code that actually calls
-> it.
+Hmm, looks like you are doing the same/very similar thing in every act
+code. I think it would make sense to introduce a helper function for
+this purpose.
 
-Already moved this for V2 patchset to:
-  - Add delete callback to ops and implement it for all actions in single
-  patch.
-  - Move this patch before delete first use.
-
-Will now remove the conditional as well.
-
->
-> [...]
+[...]
