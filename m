@@ -1,9 +1,10 @@
 From: Jiri Pirko <jiri@resnulli.us>
-Subject: Re: [PATCH 08/14] net: sched: account for temporary action reference
-Date: Wed, 16 May 2018 09:12:32 +0200
-Message-ID: <20180516071232.GA1972@nanopsycho>
+Subject: Re: [PATCH 09/14] net: sched: don't release reference on action
+ overwrite
+Date: Wed, 16 May 2018 09:43:32 +0200
+Message-ID: <20180516074332.GB1972@nanopsycho>
 References: <1526308035-12484-1-git-send-email-vladbu@mellanox.com>
- <1526308035-12484-9-git-send-email-vladbu@mellanox.com>
+ <1526308035-12484-10-git-send-email-vladbu@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netdev@vger.kernel.org, davem@davemloft.net, jhs@mojatatu.com,
@@ -15,48 +16,68 @@ Cc: netdev@vger.kernel.org, davem@davemloft.net, jhs@mojatatu.com,
 To: Vlad Buslov <vladbu@mellanox.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1526308035-12484-9-git-send-email-vladbu@mellanox.com>
+In-Reply-To: <1526308035-12484-10-git-send-email-vladbu@mellanox.com>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Mon, May 14, 2018 at 04:27:09PM CEST, vladbu@mellanox.com wrote:
->tca_get_fill function has 'bind' and 'ref' arguments that get passed
->down to action dump function. These arguments values are subtracted from
->actual reference and bind counter values before writing them to skb.
+Mon, May 14, 2018 at 04:27:10PM CEST, vladbu@mellanox.com wrote:
+>Return from action init function with reference to action taken,
+>even when overwriting existing action.
 >
->In order to prevent concurrent action delete, RTM_GETACTION handler
->acquires a reference to action before 'dumping' it and releases it
->afterwards. This reference is temporal and should not be accounted by
->userspace clients. (both logically and to preserver current API
->behavior)
->
->Use existing infrastructure of tca_get_fill arguments to subtract that
->temporary reference and not expose it to userspace.
+>Action init API initializes its fourth argument (pointer to pointer to
+>tc action) to either existing action with same index or newly created
+>action. In case of existing index(and bind argument is zero), init
+>function returns without incrementing action reference counter. Caller
+>of action init then proceeds working with action without actually
+>holding reference to it. This means that action could be deleted
+>concurrently. To prevent such scenario this patch changes action init
+
+Be imperative to the codebase in the patch description.
+
+
+>behavior to always take reference to action before returning
+>successfully.
+
+Where's the balance? Who does the release instead? I'm probably missing
+something.
+
 >
 >Signed-off-by: Vlad Buslov <vladbu@mellanox.com>
 >---
-> net/sched/act_api.c | 4 ++--
-> 1 file changed, 2 insertions(+), 2 deletions(-)
+> net/sched/act_bpf.c        |  8 ++++----
+> net/sched/act_connmark.c   |  5 +++--
+> net/sched/act_csum.c       |  8 ++++----
+> net/sched/act_gact.c       |  5 +++--
+> net/sched/act_ife.c        | 12 +++++-------
+> net/sched/act_ipt.c        |  5 +++--
+> net/sched/act_mirred.c     |  5 ++---
+> net/sched/act_nat.c        |  5 +++--
+> net/sched/act_pedit.c      |  5 +++--
+> net/sched/act_police.c     |  8 +++-----
+> net/sched/act_sample.c     |  8 +++-----
+> net/sched/act_simple.c     |  5 +++--
+> net/sched/act_skbedit.c    |  5 +++--
+> net/sched/act_skbmod.c     |  8 +++-----
+> net/sched/act_tunnel_key.c |  8 +++-----
+> net/sched/act_vlan.c       |  8 +++-----
+> 16 files changed, 51 insertions(+), 57 deletions(-)
 >
->diff --git a/net/sched/act_api.c b/net/sched/act_api.c
->index 3f02cd1..2772276e 100644
->--- a/net/sched/act_api.c
->+++ b/net/sched/act_api.c
->@@ -935,7 +935,7 @@ tcf_get_notify(struct net *net, u32 portid, struct nlmsghdr *n,
-> 	if (!skb)
-> 		return -ENOBUFS;
-> 	if (tca_get_fill(skb, actions, portid, n->nlmsg_seq, 0, event,
->-			 0, 0) <= 0) {
->+			 0, 1) <= 0) {
-> 		NL_SET_ERR_MSG(extack, "Failed to fill netlink attributes while adding TC action");
-> 		kfree_skb(skb);
-> 		return -EINVAL;
->@@ -1125,7 +1125,7 @@ tcf_del_notify(struct net *net, struct nlmsghdr *n, struct list_head *actions,
-> 		return -ENOBUFS;
+>diff --git a/net/sched/act_bpf.c b/net/sched/act_bpf.c
+>index 5d95c43..5554bf7 100644
+>--- a/net/sched/act_bpf.c
+>+++ b/net/sched/act_bpf.c
+>@@ -311,9 +311,10 @@ static int tcf_bpf_init(struct net *net, struct nlattr *nla,
+> 		if (bind)
+> 			return 0;
 > 
-> 	if (tca_get_fill(skb, actions, portid, n->nlmsg_seq, 0, RTM_DELACTION,
->-			 0, 1) <= 0) {
->+			 0, 2) <= 0) {
+>-		tcf_idr_release(*act, bind);
+>-		if (!replace)
+>+		if (!replace) {
+>+			tcf_idr_release(*act, bind);
+> 			return -EEXIST;
+>+		}
+> 	}
+> 
+> 	is_bpf = tb[TCA_ACT_BPF_OPS_LEN] && tb[TCA_ACT_BPF_OPS];
 
-So now you are adjusting dump because of a change in a different patch
-right? This also breaks bisect.
+[...]
