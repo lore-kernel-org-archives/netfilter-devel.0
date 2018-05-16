@@ -1,65 +1,41 @@
-From: Vlad Buslov <vladbu@mellanox.com>
-Subject: Re: [PATCH 13/14] net: sched: use unique idr insert function in unlocked actions
-Date: Wed, 16 May 2018 12:54:29 +0300
-Message-ID: <vbf8t8k0vu2.fsf@reg-r-vrt-018-180.mtr.labs.mlnx>
-References: <1526308035-12484-1-git-send-email-vladbu@mellanox.com> <1526308035-12484-14-git-send-email-vladbu@mellanox.com> <20180516095057.GG1972@nanopsycho>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH 41/42] tty: replace ->proc_fops with ->proc_show
+Date: Wed, 16 May 2018 11:58:02 +0200
+Message-ID: <20180516095802.GA16090@kroah.com>
+References: <20180516094346.20506-1-hch@lst.de>
+ <20180516094346.20506-42-hch@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain
-Cc: netdev@vger.kernel.org, davem@davemloft.net, jhs@mojatatu.com,
-        xiyou.wangcong@gmail.com, pablo@netfilter.org,
-        kadlec@blackhole.kfki.hu, fw@strlen.de, ast@kernel.org,
-        daniel@iogearbox.net, edumazet@google.com, keescook@chromium.org,
-        linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, kliteyn@mellanox.com
-To: Jiri Pirko <jiri@resnulli.us>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-reply-to: <20180516095057.GG1972@nanopsycho>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Cc: linux-rtc@vger.kernel.org, Alessandro Zummo <a.zummo@towertech.it>,
+ Alexandre Belloni <alexandre.belloni@bootlin.com>, devel@driverdev.osuosl.org,
+ linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org, netdev@vger.kernel.org,
+ megaraidlinux.pdl@broadcom.com, linux-kernel@vger.kernel.org,
+ Alexey Dobriyan <adobriyan@gmail.com>, linux-ide@vger.kernel.org,
+ netfilter-devel@vger.kernel.org, Alexander Viro <viro@zeniv.linux.org.uk>,
+ Jiri Slaby <jslaby@suse.com>, Andrew Morton <akpm@linux-foundation.org>,
+ linux-ext4@vger.kernel.org, linux-afs@lists.infradead.org,
+ jfs-discussion@lists.sourceforge.net, drbd-dev@lists.linbit.com
+To: Christoph Hellwig <hch@lst.de>
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+Content-Disposition: inline
+In-Reply-To: <20180516094346.20506-42-hch@lst.de>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
 List-Id: netfilter-devel.vger.kernel.org
 
+On Wed, May 16, 2018 at 11:43:45AM +0200, Christoph Hellwig wrote:
+> Just set up the show callback in the tty_operations, and use
+> proc_create_single_data to create the file without additional
+> boilerplace code.
+> 
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
 
-On Wed 16 May 2018 at 09:50, Jiri Pirko <jiri@resnulli.us> wrote:
-> Mon, May 14, 2018 at 04:27:14PM CEST, vladbu@mellanox.com wrote:
->>Substitute calls to action insert function with calls to action insert
->>unique function that warns if insertion overwrites index in idr.
->>
->>Signed-off-by: Vlad Buslov <vladbu@mellanox.com>
->>---
->> net/sched/act_bpf.c        | 2 +-
->> net/sched/act_connmark.c   | 2 +-
->> net/sched/act_csum.c       | 2 +-
->> net/sched/act_gact.c       | 2 +-
->> net/sched/act_ife.c        | 2 +-
->> net/sched/act_ipt.c        | 2 +-
->> net/sched/act_mirred.c     | 2 +-
->> net/sched/act_nat.c        | 2 +-
->> net/sched/act_pedit.c      | 2 +-
->> net/sched/act_police.c     | 2 +-
->> net/sched/act_sample.c     | 2 +-
->> net/sched/act_simple.c     | 2 +-
->> net/sched/act_skbedit.c    | 2 +-
->> net/sched/act_skbmod.c     | 2 +-
->> net/sched/act_tunnel_key.c | 2 +-
->> net/sched/act_vlan.c       | 2 +-
->> 16 files changed, 16 insertions(+), 16 deletions(-)
->>
->>diff --git a/net/sched/act_bpf.c b/net/sched/act_bpf.c
->>index 7e20fdc..0bf4ecf 100644
->>--- a/net/sched/act_bpf.c
->>+++ b/net/sched/act_bpf.c
->>@@ -354,7 +354,7 @@ static int tcf_bpf_init(struct net *net, struct nlattr *nla,
->> 	rcu_assign_pointer(prog->filter, cfg.filter);
->> 
->> 	if (res == ACT_P_CREATED) {
->>-		tcf_idr_insert(tn, *act);
->>+		tcf_idr_insert_unique(tn, *act);
->
-> Seems to me that tcf_idr_insert() is unused after this patch. If that is
-> the case, I think that you don't need to introduce
-> tcf_idr_insert_unique() and just do what you need to do in
-> tcf_idr_insert()
-
-Got it.
-
->
-> [...]
+Reviewed-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
