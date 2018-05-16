@@ -1,75 +1,72 @@
-From: Vlad Buslov <vladbu@mellanox.com>
-Subject: Re: [PATCH 12/14] net: sched: retry action check-insert on concurrent modification
-Date: Wed, 16 May 2018 14:55:06 +0300
-Message-ID: <vbf4lj724th.fsf@reg-r-vrt-018-180.mtr.labs.mlnx>
-References: <1526308035-12484-1-git-send-email-vladbu@mellanox.com> <1526308035-12484-13-git-send-email-vladbu@mellanox.com> <20180516095953.GI1972@nanopsycho>
+From: Richard Guy Briggs <rgb@redhat.com>
+Subject: [PATCH ghak81 V3 0/3] audit: group task params
+Date: Wed, 16 May 2018 07:55:44 -0400
+Message-ID: <cover.1526430313.git.rgb@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Cc: netdev@vger.kernel.org, davem@davemloft.net, jhs@mojatatu.com,
-        xiyou.wangcong@gmail.com, pablo@netfilter.org,
-        kadlec@blackhole.kfki.hu, fw@strlen.de, ast@kernel.org,
-        daniel@iogearbox.net, edumazet@google.com, keescook@chromium.org,
-        linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, kliteyn@mellanox.com
-To: Jiri Pirko <jiri@resnulli.us>
-Return-path: <netdev-owner@vger.kernel.org>
-In-reply-to: <20180516095953.GI1972@nanopsycho>
-Sender: netdev-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Cc: Richard Guy Briggs <rgb@redhat.com>, David Howells <dhowells@redhat.com>,
+	Ingo Molnar <mingo@redhat.com>
+To: Linux-Audit Mailing List <linux-audit@redhat.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Linux NetDev Upstream Mailing List <netdev@vger.kernel.org>,
+	Netfilter Devel List <netfilter-devel@vger.kernel.org>,
+	Linux Security Module list <linux-security-module@vger.kernel.org>,
+	Integrity Measurement Architecture <linux-integrity@vger.kernel.org>,
+	SElinux list <selinux@tycho.nsa.gov>
+Return-path: <linux-audit-bounces@redhat.com>
+List-Unsubscribe: <https://www.redhat.com/mailman/options/linux-audit>,
+	<mailto:linux-audit-request@redhat.com?subject=unsubscribe>
+List-Archive: <https://www.redhat.com/archives/linux-audit>
+List-Post: <mailto:linux-audit@redhat.com>
+List-Help: <mailto:linux-audit-request@redhat.com?subject=help>
+List-Subscribe: <https://www.redhat.com/mailman/listinfo/linux-audit>,
+	<mailto:linux-audit-request@redhat.com?subject=subscribe>
+Sender: linux-audit-bounces@redhat.com
+Errors-To: linux-audit-bounces@redhat.com
 List-Id: netfilter-devel.vger.kernel.org
 
+Group the audit parameters for each task into one structure.
+In particular, remove the loginuid and sessionid values and the audit
+context pointer from the task structure, replacing them with an audit
+task information structure to contain them.  Use access functions to
+access audit values.
 
-On Wed 16 May 2018 at 09:59, Jiri Pirko <jiri@resnulli.us> wrote:
-> Mon, May 14, 2018 at 04:27:13PM CEST, vladbu@mellanox.com wrote:
->>Retry check-insert sequence in action init functions if action with same
->>index was inserted concurrently.
->>
->>Signed-off-by: Vlad Buslov <vladbu@mellanox.com>
->>---
->> net/sched/act_bpf.c        | 8 +++++++-
->> net/sched/act_connmark.c   | 8 +++++++-
->> net/sched/act_csum.c       | 8 +++++++-
->> net/sched/act_gact.c       | 8 +++++++-
->> net/sched/act_ife.c        | 8 +++++++-
->> net/sched/act_ipt.c        | 8 +++++++-
->> net/sched/act_mirred.c     | 8 +++++++-
->> net/sched/act_nat.c        | 8 +++++++-
->> net/sched/act_pedit.c      | 8 +++++++-
->> net/sched/act_police.c     | 9 ++++++++-
->> net/sched/act_sample.c     | 8 +++++++-
->> net/sched/act_simple.c     | 9 ++++++++-
->> net/sched/act_skbedit.c    | 8 +++++++-
->> net/sched/act_skbmod.c     | 8 +++++++-
->> net/sched/act_tunnel_key.c | 9 ++++++++-
->> net/sched/act_vlan.c       | 9 ++++++++-
->> 16 files changed, 116 insertions(+), 16 deletions(-)
->>
->>diff --git a/net/sched/act_bpf.c b/net/sched/act_bpf.c
->>index 5554bf7..7e20fdc 100644
->>--- a/net/sched/act_bpf.c
->>+++ b/net/sched/act_bpf.c
->>@@ -299,10 +299,16 @@ static int tcf_bpf_init(struct net *net, struct nlattr *nla,
->> 
->> 	parm = nla_data(tb[TCA_ACT_BPF_PARMS]);
->> 
->>+replay:
->> 	if (!tcf_idr_check(tn, parm->index, act, bind)) {
->> 		ret = tcf_idr_create(tn, parm->index, est, act,
->> 				     &act_bpf_ops, bind, true);
->>-		if (ret < 0)
->>+		/* Action with specified index was created concurrently.
->>+		 * Check again.
->>+		 */
->>+		if (parm->index && ret == -ENOSPC)
->>+			goto replay;
->>+		else if (ret)
->
-> Hmm, looks like you are doing the same/very similar thing in every act
-> code. I think it would make sense to introduce a helper function for
-> this purpose.
+Use dynamic allocation of the audit task information structure employing
+kmem_cache.  Static allocation has the limitation that future audit task
+information structure changes would cause a visible change to the rest
+of the kernel, whereas dynamic allocation would mostly hide any future
+changes.
 
-This code uses goto so it can't be easily refactored into standalone
-function. Could you specify which part of this code you suggest to
-extract?
+Passes audit-testsuite.
 
->
-> [...]
+Changelog:
+v3
+- drop patches 2, 3, 4 already merged.
+- fix for previous v2 patch 3 (seccomp get audit_context)
+- dynamic audit_task_info allocation from kmem_cache
+- fix assignment in if statement v2 patch 1 (normalize loginuid read)
+- fix a number of merge conflicts/checkpatch
+v2
+- p2/5: add audit header to init/init_task.c to quiet kbuildbot
+- audit_signal_info(): fetch loginuid once
+- remove task_struct from audit_context() param list
+- remove extra task_struct local vars
+- do nothing on request to set audit context when audit is disabled
+
+Richard Guy Briggs (3):
+  audit: use new audit_context access funciton for
+    seccomp_actions_logged
+  audit: normalize loginuid read access
+  audit: collect audit task parameters
+
+ include/linux/audit.h | 34 ++++++++++++++++-------
+ include/linux/sched.h |  5 +---
+ init/init_task.c      |  3 +-
+ init/main.c           |  2 ++
+ kernel/auditsc.c      | 77 ++++++++++++++++++++++++++++++++++++++-------------
+ kernel/fork.c         |  2 +-
+ 6 files changed, 87 insertions(+), 36 deletions(-)
+
+-- 
+1.8.3.1
