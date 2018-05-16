@@ -1,123 +1,295 @@
-From: Vlad Buslov <vladbu@mellanox.com>
-Subject: Re: [PATCH 12/14] net: sched: retry action check-insert on concurrent modification
-Date: Wed, 16 May 2018 15:43:58 +0300
-Message-ID: <vbfwow322k1.fsf@reg-r-vrt-018-180.mtr.labs.mlnx>
-References: <1526308035-12484-1-git-send-email-vladbu@mellanox.com> <1526308035-12484-13-git-send-email-vladbu@mellanox.com> <20180516095953.GI1972@nanopsycho> <vbf4lj724th.fsf@reg-r-vrt-018-180.mtr.labs.mlnx> <20180516122600.GM1972@nanopsycho>
+From: Dave Kleikamp <dave.kleikamp@oracle.com>
+Subject: Re: [Jfs-discussion] [PATCH 25/42] jfs: simplify procfs code
+Date: Wed, 16 May 2018 08:15:52 -0500
+Message-ID: <6e2593f4-6456-7a43-4af5-f3fdd9e78ab7@oracle.com>
+References: <20180516094346.20506-1-hch@lst.de>
+ <20180516094346.20506-26-hch@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain
-Cc: netdev@vger.kernel.org, davem@davemloft.net, jhs@mojatatu.com,
-        xiyou.wangcong@gmail.com, pablo@netfilter.org,
-        kadlec@blackhole.kfki.hu, fw@strlen.de, ast@kernel.org,
-        daniel@iogearbox.net, edumazet@google.com, keescook@chromium.org,
-        linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, kliteyn@mellanox.com
-To: Jiri Pirko <jiri@resnulli.us>
-Return-path: <netdev-owner@vger.kernel.org>
-In-reply-to: <20180516122600.GM1972@nanopsycho>
-Sender: netdev-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Cc: linux-rtc@vger.kernel.org, Alessandro Zummo <a.zummo@towertech.it>,
+ Alexandre Belloni <alexandre.belloni@bootlin.com>, devel@driverdev.osuosl.org,
+ linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org,
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jiri Slaby <jslaby@suse.com>,
+ linux-kernel@vger.kernel.org, Alexey Dobriyan <adobriyan@gmail.com>,
+ linux-ide@vger.kernel.org, netfilter-devel@vger.kernel.org,
+ megaraidlinux.pdl@broadcom.com, netdev@vger.kernel.org,
+ linux-ext4@vger.kernel.org, linux-afs@lists.infradead.org,
+ jfs-discussion@lists.sourceforge.net, drbd-dev@lists.linbit.com
+To: Christoph Hellwig <hch@lst.de>, Andrew Morton <akpm@linux-foundation.org>,
+ Alexander Viro <viro@zeniv.linux.org.uk>
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+In-Reply-To: <20180516094346.20506-26-hch@lst.de>
+Content-Language: en-US
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
 List-Id: netfilter-devel.vger.kernel.org
 
+On 05/16/2018 04:43 AM, Christoph Hellwig wrote:
+> Use remove_proc_subtree to remove the whole subtree on cleanup, and
+> unwind the registration loop into individual calls.  Switch to use
+> proc_create_seq where applicable.
+> 
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
 
-On Wed 16 May 2018 at 12:26, Jiri Pirko <jiri@resnulli.us> wrote:
-> Wed, May 16, 2018 at 01:55:06PM CEST, vladbu@mellanox.com wrote:
->>
->>On Wed 16 May 2018 at 09:59, Jiri Pirko <jiri@resnulli.us> wrote:
->>> Mon, May 14, 2018 at 04:27:13PM CEST, vladbu@mellanox.com wrote:
->>>>Retry check-insert sequence in action init functions if action with same
->>>>index was inserted concurrently.
->>>>
->>>>Signed-off-by: Vlad Buslov <vladbu@mellanox.com>
->>>>---
->>>> net/sched/act_bpf.c        | 8 +++++++-
->>>> net/sched/act_connmark.c   | 8 +++++++-
->>>> net/sched/act_csum.c       | 8 +++++++-
->>>> net/sched/act_gact.c       | 8 +++++++-
->>>> net/sched/act_ife.c        | 8 +++++++-
->>>> net/sched/act_ipt.c        | 8 +++++++-
->>>> net/sched/act_mirred.c     | 8 +++++++-
->>>> net/sched/act_nat.c        | 8 +++++++-
->>>> net/sched/act_pedit.c      | 8 +++++++-
->>>> net/sched/act_police.c     | 9 ++++++++-
->>>> net/sched/act_sample.c     | 8 +++++++-
->>>> net/sched/act_simple.c     | 9 ++++++++-
->>>> net/sched/act_skbedit.c    | 8 +++++++-
->>>> net/sched/act_skbmod.c     | 8 +++++++-
->>>> net/sched/act_tunnel_key.c | 9 ++++++++-
->>>> net/sched/act_vlan.c       | 9 ++++++++-
->>>> 16 files changed, 116 insertions(+), 16 deletions(-)
->>>>
->>>>diff --git a/net/sched/act_bpf.c b/net/sched/act_bpf.c
->>>>index 5554bf7..7e20fdc 100644
->>>>--- a/net/sched/act_bpf.c
->>>>+++ b/net/sched/act_bpf.c
->>>>@@ -299,10 +299,16 @@ static int tcf_bpf_init(struct net *net, struct nlattr *nla,
->>>> 
->>>> 	parm = nla_data(tb[TCA_ACT_BPF_PARMS]);
->>>> 
->>>>+replay:
->>>> 	if (!tcf_idr_check(tn, parm->index, act, bind)) {
->>>> 		ret = tcf_idr_create(tn, parm->index, est, act,
->>>> 				     &act_bpf_ops, bind, true);
->>>>-		if (ret < 0)
->>>>+		/* Action with specified index was created concurrently.
->>>>+		 * Check again.
->>>>+		 */
->>>>+		if (parm->index && ret == -ENOSPC)
->>>>+			goto replay;
->>>>+		else if (ret)
->>>
->>> Hmm, looks like you are doing the same/very similar thing in every act
->>> code. I think it would make sense to introduce a helper function for
->>> this purpose.
->>
->>This code uses goto so it can't be easily refactored into standalone
->>function. Could you specify which part of this code you suggest to
->>extract?
->
-> Hmm, looking at the code, I think that what would help is to have a
-> helper that would atomically check if index exists and if not, it would
-> allocate one. Something like:
->
->
-> int tcf_idr_check_alloc(struct tc_action_net *tn, u32 *index,
-> 			struct tc_action **a, int bind)
-> {
-> 	struct tcf_idrinfo *idrinfo = tn->idrinfo;
-> 	struct tc_action *p;
-> 	int err;
->
-> 	spin_lock(&idrinfo->lock);
-> 	if (*index) {
-> 		p = idr_find(&idrinfo->action_idr, *index);
-> 		if (p) {
-> 			if (bind)
-> 	   			p->tcfa_bindcnt++;
-> 			p->tcfa_refcnt++;
-> 			*a = p;
-> 			err = 0;
-> 		} else {
-> 			*a = NULL;
-> 			err = idr_alloc_u32(idr, NULL, index,
-> 					    *index, GFP_ATOMIC);
-> 		}
-> 	} else {
-> 		*index = 1;
-> 		*a = NULL;
-> 		err = idr_alloc_u32(idr, NULL, index, UINT_MAX, GFP_ATOMIC);
-> 	}
-> 	spin_unlock(&idrinfo->lock);
-> 	return err;
-> }
->
-> The act code would just check if "a" is NULL and if so, it would call
-> tcf_idr_create() with allocated index as arg.
+Acked-by:  Dave Kleikamp <dave.kleikamp@oracle.com>
 
-What about multiple actions that have arbitrary code between initial
-check and idr allocation that is currently inside tcf_idr_create()?
-
->
->
->>
->>>
->>> [...]
->>
+> ---
+>  fs/jfs/jfs_debug.c    | 43 ++++++++++++++-----------------------------
+>  fs/jfs/jfs_debug.h    | 10 +++++-----
+>  fs/jfs/jfs_logmgr.c   | 14 +-------------
+>  fs/jfs/jfs_metapage.c | 14 +-------------
+>  fs/jfs/jfs_txnmgr.c   | 28 ++--------------------------
+>  fs/jfs/jfs_xtree.c    | 14 +-------------
+>  6 files changed, 24 insertions(+), 99 deletions(-)
+> 
+> diff --git a/fs/jfs/jfs_debug.c b/fs/jfs/jfs_debug.c
+> index a70907606025..35a5b2a81ae0 100644
+> --- a/fs/jfs/jfs_debug.c
+> +++ b/fs/jfs/jfs_debug.c
+> @@ -29,7 +29,6 @@
+>  
+>  #ifdef PROC_FS_JFS /* see jfs_debug.h */
+>  
+> -static struct proc_dir_entry *base;
+>  #ifdef CONFIG_JFS_DEBUG
+>  static int jfs_loglevel_proc_show(struct seq_file *m, void *v)
+>  {
+> @@ -66,43 +65,29 @@ static const struct file_operations jfs_loglevel_proc_fops = {
+>  };
+>  #endif
+>  
+> -static struct {
+> -	const char	*name;
+> -	const struct file_operations *proc_fops;
+> -} Entries[] = {
+> -#ifdef CONFIG_JFS_STATISTICS
+> -	{ "lmstats",	&jfs_lmstats_proc_fops, },
+> -	{ "txstats",	&jfs_txstats_proc_fops, },
+> -	{ "xtstat",	&jfs_xtstat_proc_fops, },
+> -	{ "mpstat",	&jfs_mpstat_proc_fops, },
+> -#endif
+> -#ifdef CONFIG_JFS_DEBUG
+> -	{ "TxAnchor",	&jfs_txanchor_proc_fops, },
+> -	{ "loglevel",	&jfs_loglevel_proc_fops }
+> -#endif
+> -};
+> -#define NPROCENT	ARRAY_SIZE(Entries)
+> -
+>  void jfs_proc_init(void)
+>  {
+> -	int i;
+> +	struct proc_dir_entry *base;
+>  
+> -	if (!(base = proc_mkdir("fs/jfs", NULL)))
+> +	base = proc_mkdir("fs/jfs", NULL);
+> +	if (!base)
+>  		return;
+>  
+> -	for (i = 0; i < NPROCENT; i++)
+> -		proc_create(Entries[i].name, 0, base, Entries[i].proc_fops);
+> +#ifdef CONFIG_JFS_STATISTICS
+> +	proc_create_single("lmstats", 0, base, jfs_lmstats_proc_show);
+> +	proc_create_single("txstats", 0, base, jfs_txstats_proc_show);
+> +	proc_create_single("xtstat", 0, base, jfs_xtstat_proc_show);
+> +	proc_create_single("mpstat", 0, base, jfs_mpstat_proc_show);
+> +#endif
+> +#ifdef CONFIG_JFS_DEBUG
+> +	proc_create_single("TxAnchor", 0, base, jfs_txanchor_proc_show);
+> +	proc_create("loglevel", 0, base, &jfs_loglevel_proc_fops);
+> +#endif
+>  }
+>  
+>  void jfs_proc_clean(void)
+>  {
+> -	int i;
+> -
+> -	if (base) {
+> -		for (i = 0; i < NPROCENT; i++)
+> -			remove_proc_entry(Entries[i].name, base);
+> -		remove_proc_entry("fs/jfs", NULL);
+> -	}
+> +	remove_proc_subtree("fs/jfs", NULL);
+>  }
+>  
+>  #endif /* PROC_FS_JFS */
+> diff --git a/fs/jfs/jfs_debug.h b/fs/jfs/jfs_debug.h
+> index eafd1300a00b..0d9e35da8462 100644
+> --- a/fs/jfs/jfs_debug.h
+> +++ b/fs/jfs/jfs_debug.h
+> @@ -62,7 +62,7 @@ extern void jfs_proc_clean(void);
+>  
+>  extern int jfsloglevel;
+>  
+> -extern const struct file_operations jfs_txanchor_proc_fops;
+> +int jfs_txanchor_proc_show(struct seq_file *m, void *v);
+>  
+>  /* information message: e.g., configuration, major event */
+>  #define jfs_info(fmt, arg...) do {			\
+> @@ -105,10 +105,10 @@ extern const struct file_operations jfs_txanchor_proc_fops;
+>   *	----------
+>   */
+>  #ifdef	CONFIG_JFS_STATISTICS
+> -extern const struct file_operations jfs_lmstats_proc_fops;
+> -extern const struct file_operations jfs_txstats_proc_fops;
+> -extern const struct file_operations jfs_mpstat_proc_fops;
+> -extern const struct file_operations jfs_xtstat_proc_fops;
+> +int jfs_lmstats_proc_show(struct seq_file *m, void *v);
+> +int jfs_txstats_proc_show(struct seq_file *m, void *v);
+> +int jfs_mpstat_proc_show(struct seq_file *m, void *v);
+> +int jfs_xtstat_proc_show(struct seq_file *m, void *v);
+>  
+>  #define	INCREMENT(x)		((x)++)
+>  #define	DECREMENT(x)		((x)--)
+> diff --git a/fs/jfs/jfs_logmgr.c b/fs/jfs/jfs_logmgr.c
+> index 0e5d412c0b01..6b68df395892 100644
+> --- a/fs/jfs/jfs_logmgr.c
+> +++ b/fs/jfs/jfs_logmgr.c
+> @@ -2493,7 +2493,7 @@ int lmLogFormat(struct jfs_log *log, s64 logAddress, int logSize)
+>  }
+>  
+>  #ifdef CONFIG_JFS_STATISTICS
+> -static int jfs_lmstats_proc_show(struct seq_file *m, void *v)
+> +int jfs_lmstats_proc_show(struct seq_file *m, void *v)
+>  {
+>  	seq_printf(m,
+>  		       "JFS Logmgr stats\n"
+> @@ -2510,16 +2510,4 @@ static int jfs_lmstats_proc_show(struct seq_file *m, void *v)
+>  		       lmStat.partial_page);
+>  	return 0;
+>  }
+> -
+> -static int jfs_lmstats_proc_open(struct inode *inode, struct file *file)
+> -{
+> -	return single_open(file, jfs_lmstats_proc_show, NULL);
+> -}
+> -
+> -const struct file_operations jfs_lmstats_proc_fops = {
+> -	.open		= jfs_lmstats_proc_open,
+> -	.read		= seq_read,
+> -	.llseek		= seq_lseek,
+> -	.release	= single_release,
+> -};
+>  #endif /* CONFIG_JFS_STATISTICS */
+> diff --git a/fs/jfs/jfs_metapage.c b/fs/jfs/jfs_metapage.c
+> index 1a3b0cc22ad3..fa2c6824c7f2 100644
+> --- a/fs/jfs/jfs_metapage.c
+> +++ b/fs/jfs/jfs_metapage.c
+> @@ -815,7 +815,7 @@ void __invalidate_metapages(struct inode *ip, s64 addr, int len)
+>  }
+>  
+>  #ifdef CONFIG_JFS_STATISTICS
+> -static int jfs_mpstat_proc_show(struct seq_file *m, void *v)
+> +int jfs_mpstat_proc_show(struct seq_file *m, void *v)
+>  {
+>  	seq_printf(m,
+>  		       "JFS Metapage statistics\n"
+> @@ -828,16 +828,4 @@ static int jfs_mpstat_proc_show(struct seq_file *m, void *v)
+>  		       mpStat.lockwait);
+>  	return 0;
+>  }
+> -
+> -static int jfs_mpstat_proc_open(struct inode *inode, struct file *file)
+> -{
+> -	return single_open(file, jfs_mpstat_proc_show, NULL);
+> -}
+> -
+> -const struct file_operations jfs_mpstat_proc_fops = {
+> -	.open		= jfs_mpstat_proc_open,
+> -	.read		= seq_read,
+> -	.llseek		= seq_lseek,
+> -	.release	= single_release,
+> -};
+>  #endif
+> diff --git a/fs/jfs/jfs_txnmgr.c b/fs/jfs/jfs_txnmgr.c
+> index 4d973524c887..a5663cb621d8 100644
+> --- a/fs/jfs/jfs_txnmgr.c
+> +++ b/fs/jfs/jfs_txnmgr.c
+> @@ -2998,7 +2998,7 @@ int jfs_sync(void *arg)
+>  }
+>  
+>  #if defined(CONFIG_PROC_FS) && defined(CONFIG_JFS_DEBUG)
+> -static int jfs_txanchor_proc_show(struct seq_file *m, void *v)
+> +int jfs_txanchor_proc_show(struct seq_file *m, void *v)
+>  {
+>  	char *freewait;
+>  	char *freelockwait;
+> @@ -3032,22 +3032,10 @@ static int jfs_txanchor_proc_show(struct seq_file *m, void *v)
+>  		       list_empty(&TxAnchor.unlock_queue) ? "" : "not ");
+>  	return 0;
+>  }
+> -
+> -static int jfs_txanchor_proc_open(struct inode *inode, struct file *file)
+> -{
+> -	return single_open(file, jfs_txanchor_proc_show, NULL);
+> -}
+> -
+> -const struct file_operations jfs_txanchor_proc_fops = {
+> -	.open		= jfs_txanchor_proc_open,
+> -	.read		= seq_read,
+> -	.llseek		= seq_lseek,
+> -	.release	= single_release,
+> -};
+>  #endif
+>  
+>  #if defined(CONFIG_PROC_FS) && defined(CONFIG_JFS_STATISTICS)
+> -static int jfs_txstats_proc_show(struct seq_file *m, void *v)
+> +int jfs_txstats_proc_show(struct seq_file *m, void *v)
+>  {
+>  	seq_printf(m,
+>  		       "JFS TxStats\n"
+> @@ -3072,16 +3060,4 @@ static int jfs_txstats_proc_show(struct seq_file *m, void *v)
+>  		       TxStat.txLockAlloc_freelock);
+>  	return 0;
+>  }
+> -
+> -static int jfs_txstats_proc_open(struct inode *inode, struct file *file)
+> -{
+> -	return single_open(file, jfs_txstats_proc_show, NULL);
+> -}
+> -
+> -const struct file_operations jfs_txstats_proc_fops = {
+> -	.open		= jfs_txstats_proc_open,
+> -	.read		= seq_read,
+> -	.llseek		= seq_lseek,
+> -	.release	= single_release,
+> -};
+>  #endif
+> diff --git a/fs/jfs/jfs_xtree.c b/fs/jfs/jfs_xtree.c
+> index 5cde6d2fcfca..2c200b5256a6 100644
+> --- a/fs/jfs/jfs_xtree.c
+> +++ b/fs/jfs/jfs_xtree.c
+> @@ -3874,7 +3874,7 @@ s64 xtTruncate_pmap(tid_t tid, struct inode *ip, s64 committed_size)
+>  }
+>  
+>  #ifdef CONFIG_JFS_STATISTICS
+> -static int jfs_xtstat_proc_show(struct seq_file *m, void *v)
+> +int jfs_xtstat_proc_show(struct seq_file *m, void *v)
+>  {
+>  	seq_printf(m,
+>  		       "JFS Xtree statistics\n"
+> @@ -3887,16 +3887,4 @@ static int jfs_xtstat_proc_show(struct seq_file *m, void *v)
+>  		       xtStat.split);
+>  	return 0;
+>  }
+> -
+> -static int jfs_xtstat_proc_open(struct inode *inode, struct file *file)
+> -{
+> -	return single_open(file, jfs_xtstat_proc_show, NULL);
+> -}
+> -
+> -const struct file_operations jfs_xtstat_proc_fops = {
+> -	.open		= jfs_xtstat_proc_open,
+> -	.read		= seq_read,
+> -	.llseek		= seq_lseek,
+> -	.release	= single_release,
+> -};
+>  #endif
+> 
