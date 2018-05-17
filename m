@@ -1,8 +1,8 @@
 From: Paul Moore <paul@paul-moore.com>
-Subject: Re: [PATCH ghak81 V3 2/3] audit: normalize loginuid read access
-Date: Thu, 17 May 2018 19:02:39 -0400
-Message-ID: <CAHC9VhTU9q2c_3jCg5JLmuQbvFO03xLDiTi5NADDsadRv+p2Vw@mail.gmail.com>
-References: <cover.1526430313.git.rgb@redhat.com> <a50926963f4527a5273e0688275d1e9361e8d02e.1526430313.git.rgb@redhat.com>
+Subject: Re: [PATCH ghak81 V3 3/3] audit: collect audit task parameters
+Date: Thu, 17 May 2018 19:04:35 -0400
+Message-ID: <CAHC9VhRXn782LH5nvh9fKpk+EzbmmCEaHsj7fNTG3Yi5fp03_g@mail.gmail.com>
+References: <cover.1526430313.git.rgb@redhat.com> <fbed63483b5206009ee43ae889b30d43051f386c.1526430313.git.rgb@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Cc: Linux-Audit Mailing List <linux-audit@redhat.com>,
@@ -20,97 +20,314 @@ Cc: Linux-Audit Mailing List <linux-audit@redhat.com>,
         David Howells <dhowells@redhat.com>
 To: Richard Guy Briggs <rgb@redhat.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <a50926963f4527a5273e0688275d1e9361e8d02e.1526430313.git.rgb@redhat.com>
+In-Reply-To: <fbed63483b5206009ee43ae889b30d43051f386c.1526430313.git.rgb@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
 On Wed, May 16, 2018 at 7:55 AM, Richard Guy Briggs <rgb@redhat.com> wrote:
-> Recognizing that the loginuid is an internal audit value, use an access
-> function to retrieve the audit loginuid value for the task rather than
-> reaching directly into the task struct to get it.
+> The audit-related parameters in struct task_struct should ideally be
+> collected together and accessed through a standard audit API.
+>
+> Collect the existing loginuid, sessionid and audit_context together in a
+> new struct audit_task_info called "audit" in struct task_struct.
+>
+> Use kmem_cache to manage this pool of memory.
+> Un-inline audit_free() to be able to always recover that memory.
+>
+> See: https://github.com/linux-audit/audit-kernel/issues/81
 >
 > Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
 > ---
->  kernel/auditsc.c | 24 +++++++++++++++---------
->  1 file changed, 15 insertions(+), 9 deletions(-)
+>  include/linux/audit.h | 34 ++++++++++++++++++++++++----------
+>  include/linux/sched.h |  5 +----
+>  init/init_task.c      |  3 +--
+>  init/main.c           |  2 ++
+>  kernel/auditsc.c      | 51 ++++++++++++++++++++++++++++++++++++++++++---------
+>  kernel/fork.c         |  2 +-
+>  6 files changed, 71 insertions(+), 26 deletions(-)
 
-Also merged into audit/next.
+As discussed on-list and offline, I'm going to hold off on this change
+until the audit container ID work is father along.  That is the main
+driver for this change, and until that is closer to ready I just can't
+justify the extra overhead.
 
+> diff --git a/include/linux/audit.h b/include/linux/audit.h
+> index 69c7847..4f824c4 100644
+> --- a/include/linux/audit.h
+> +++ b/include/linux/audit.h
+> @@ -216,8 +216,15 @@ static inline void audit_log_task_info(struct audit_buffer *ab,
+>
+>  /* These are defined in auditsc.c */
+>                                 /* Public API */
+> +struct audit_task_info {
+> +       kuid_t                  loginuid;
+> +       unsigned int            sessionid;
+> +       struct audit_context    *ctx;
+> +};
+> +extern struct audit_task_info init_struct_audit;
+> +extern void __init audit_task_init(void);
+>  extern int  audit_alloc(struct task_struct *task);
+> -extern void __audit_free(struct task_struct *task);
+> +extern void audit_free(struct task_struct *task);
+>  extern void __audit_syscall_entry(int major, unsigned long a0, unsigned long a1,
+>                                   unsigned long a2, unsigned long a3);
+>  extern void __audit_syscall_exit(int ret_success, long ret_value);
+> @@ -239,12 +246,15 @@ extern void audit_seccomp_actions_logged(const char *names,
+>
+>  static inline void audit_set_context(struct task_struct *task, struct audit_context *ctx)
+>  {
+> -       task->audit_context = ctx;
+> +       task->audit->ctx = ctx;
+>  }
+>
+>  static inline struct audit_context *audit_context(void)
+>  {
+> -       return current->audit_context;
+> +       if (current->audit)
+> +               return current->audit->ctx;
+> +       else
+> +               return NULL;
+>  }
+>
+>  static inline bool audit_dummy_context(void)
+> @@ -252,11 +262,7 @@ static inline bool audit_dummy_context(void)
+>         void *p = audit_context();
+>         return !p || *(int *)p;
+>  }
+> -static inline void audit_free(struct task_struct *task)
+> -{
+> -       if (unlikely(task->audit_context))
+> -               __audit_free(task);
+> -}
+> +
+>  static inline void audit_syscall_entry(int major, unsigned long a0,
+>                                        unsigned long a1, unsigned long a2,
+>                                        unsigned long a3)
+> @@ -328,12 +334,18 @@ extern int auditsc_get_stamp(struct audit_context *ctx,
+>
+>  static inline kuid_t audit_get_loginuid(struct task_struct *tsk)
+>  {
+> -       return tsk->loginuid;
+> +       if (tsk->audit)
+> +               return tsk->audit->loginuid;
+> +       else
+> +               return INVALID_UID;
+>  }
+>
+>  static inline unsigned int audit_get_sessionid(struct task_struct *tsk)
+>  {
+> -       return tsk->sessionid;
+> +       if (tsk->audit)
+> +               return tsk->audit->sessionid;
+> +       else
+> +               return AUDIT_SID_UNSET;
+>  }
+>
+>  extern void __audit_ipc_obj(struct kern_ipc_perm *ipcp);
+> @@ -458,6 +470,8 @@ static inline void audit_fanotify(unsigned int response)
+>  extern int audit_n_rules;
+>  extern int audit_signals;
+>  #else /* CONFIG_AUDITSYSCALL */
+> +static inline void __init audit_task_init(void)
+> +{ }
+>  static inline int audit_alloc(struct task_struct *task)
+>  {
+>         return 0;
+> diff --git a/include/linux/sched.h b/include/linux/sched.h
+> index b3d697f..6a5db0e 100644
+> --- a/include/linux/sched.h
+> +++ b/include/linux/sched.h
+> @@ -29,7 +29,6 @@
+>  #include <linux/task_io_accounting.h>
+>
+>  /* task_struct member predeclarations (sorted alphabetically): */
+> -struct audit_context;
+>  struct backing_dev_info;
+>  struct bio_list;
+>  struct blk_plug;
+> @@ -832,10 +831,8 @@ struct task_struct {
+>
+>         struct callback_head            *task_works;
+>
+> -       struct audit_context            *audit_context;
+>  #ifdef CONFIG_AUDITSYSCALL
+> -       kuid_t                          loginuid;
+> -       unsigned int                    sessionid;
+> +       struct audit_task_info          *audit;
+>  #endif
+>         struct seccomp                  seccomp;
+>
+> diff --git a/init/init_task.c b/init/init_task.c
+> index 74f60ba..4058840 100644
+> --- a/init/init_task.c
+> +++ b/init/init_task.c
+> @@ -119,8 +119,7 @@ struct task_struct init_task
+>         .thread_group   = LIST_HEAD_INIT(init_task.thread_group),
+>         .thread_node    = LIST_HEAD_INIT(init_signals.thread_head),
+>  #ifdef CONFIG_AUDITSYSCALL
+> -       .loginuid       = INVALID_UID,
+> -       .sessionid      = AUDIT_SID_UNSET,
+> +       .audit          = &init_struct_audit,
+>  #endif
+>  #ifdef CONFIG_PERF_EVENTS
+>         .perf_event_mutex = __MUTEX_INITIALIZER(init_task.perf_event_mutex),
+> diff --git a/init/main.c b/init/main.c
+> index b795aa3..7ca3dfb 100644
+> --- a/init/main.c
+> +++ b/init/main.c
+> @@ -91,6 +91,7 @@
+>  #include <linux/cache.h>
+>  #include <linux/rodata_test.h>
+>  #include <linux/jump_label.h>
+> +#include <linux/audit.h>
+>
+>  #include <asm/io.h>
+>  #include <asm/bugs.h>
+> @@ -720,6 +721,7 @@ asmlinkage __visible void __init start_kernel(void)
+>         nsfs_init();
+>         cpuset_init();
+>         cgroup_init();
+> +       audit_task_init();
+>         taskstats_init_early();
+>         delayacct_init();
+>
 > diff --git a/kernel/auditsc.c b/kernel/auditsc.c
-> index f3d3dc6..ef3e189 100644
+> index ef3e189..4b1138a 100644
 > --- a/kernel/auditsc.c
 > +++ b/kernel/auditsc.c
-> @@ -374,7 +374,7 @@ static int audit_field_compare(struct task_struct *tsk,
->         case AUDIT_COMPARE_EGID_TO_OBJ_GID:
->                 return audit_compare_gid(cred->egid, name, f, ctx);
->         case AUDIT_COMPARE_AUID_TO_OBJ_UID:
-> -               return audit_compare_uid(tsk->loginuid, name, f, ctx);
-> +               return audit_compare_uid(audit_get_loginuid(tsk), name, f, ctx);
->         case AUDIT_COMPARE_SUID_TO_OBJ_UID:
->                 return audit_compare_uid(cred->suid, name, f, ctx);
->         case AUDIT_COMPARE_SGID_TO_OBJ_GID:
-> @@ -385,7 +385,8 @@ static int audit_field_compare(struct task_struct *tsk,
->                 return audit_compare_gid(cred->fsgid, name, f, ctx);
->         /* uid comparisons */
->         case AUDIT_COMPARE_UID_TO_AUID:
-> -               return audit_uid_comparator(cred->uid, f->op, tsk->loginuid);
-> +               return audit_uid_comparator(cred->uid, f->op,
-> +                                           audit_get_loginuid(tsk));
->         case AUDIT_COMPARE_UID_TO_EUID:
->                 return audit_uid_comparator(cred->uid, f->op, cred->euid);
->         case AUDIT_COMPARE_UID_TO_SUID:
-> @@ -394,11 +395,14 @@ static int audit_field_compare(struct task_struct *tsk,
->                 return audit_uid_comparator(cred->uid, f->op, cred->fsuid);
->         /* auid comparisons */
->         case AUDIT_COMPARE_AUID_TO_EUID:
-> -               return audit_uid_comparator(tsk->loginuid, f->op, cred->euid);
-> +               return audit_uid_comparator(audit_get_loginuid(tsk), f->op,
-> +                                           cred->euid);
->         case AUDIT_COMPARE_AUID_TO_SUID:
-> -               return audit_uid_comparator(tsk->loginuid, f->op, cred->suid);
-> +               return audit_uid_comparator(audit_get_loginuid(tsk), f->op,
-> +                                           cred->suid);
->         case AUDIT_COMPARE_AUID_TO_FSUID:
-> -               return audit_uid_comparator(tsk->loginuid, f->op, cred->fsuid);
-> +               return audit_uid_comparator(audit_get_loginuid(tsk), f->op,
-> +                                           cred->fsuid);
->         /* euid comparisons */
->         case AUDIT_COMPARE_EUID_TO_SUID:
->                 return audit_uid_comparator(cred->euid, f->op, cred->suid);
-> @@ -611,7 +615,8 @@ static int audit_filter_rules(struct task_struct *tsk,
->                                 result = match_tree_refs(ctx, rule->tree);
->                         break;
->                 case AUDIT_LOGINUID:
-> -                       result = audit_uid_comparator(tsk->loginuid, f->op, f->uid);
-> +                       result = audit_uid_comparator(audit_get_loginuid(tsk),
-> +                                                     f->op, f->uid);
->                         break;
->                 case AUDIT_LOGINUID_SET:
->                         result = audit_comparator(audit_loginuid_set(tsk), f->op, f->val);
-> @@ -2278,14 +2283,15 @@ int audit_signal_info(int sig, struct task_struct *t)
+> @@ -841,7 +841,7 @@ static inline struct audit_context *audit_take_context(struct task_struct *tsk,
+>                                                       int return_valid,
+>                                                       long return_code)
 >  {
->         struct audit_aux_data_pids *axp;
->         struct audit_context *ctx = audit_context();
-> -       kuid_t uid = current_uid(), t_uid = task_uid(t);
-> +       kuid_t uid = current_uid(), auid, t_uid = task_uid(t);
+> -       struct audit_context *context = tsk->audit_context;
+> +       struct audit_context *context = tsk->audit->ctx;
 >
->         if (auditd_test_task(t) &&
->             (sig == SIGTERM || sig == SIGHUP ||
->              sig == SIGUSR1 || sig == SIGUSR2)) {
->                 audit_sig_pid = task_tgid_nr(current);
-> -               if (uid_valid(current->loginuid))
-> -                       audit_sig_uid = current->loginuid;
-> +               auid = audit_get_loginuid(current);
-> +               if (uid_valid(auid))
-> +                       audit_sig_uid = auid;
->                 else
->                         audit_sig_uid = uid;
->                 security_task_getsecid(current, &audit_sig_sid);
+>         if (!context)
+>                 return NULL;
+> @@ -926,6 +926,15 @@ static inline struct audit_context *audit_alloc_context(enum audit_state state)
+>         return context;
+>  }
+>
+> +static struct kmem_cache *audit_task_cache;
+> +
+> +void __init audit_task_init(void)
+> +{
+> +       audit_task_cache = kmem_cache_create("audit_task",
+> +                                            sizeof(struct audit_task_info),
+> +                                            0, SLAB_PANIC, NULL);
+> +}
+> +
+>  /**
+>   * audit_alloc - allocate an audit context block for a task
+>   * @tsk: task
+> @@ -940,17 +949,28 @@ int audit_alloc(struct task_struct *tsk)
+>         struct audit_context *context;
+>         enum audit_state     state;
+>         char *key = NULL;
+> +       struct audit_task_info *info;
+> +
+> +       info = kmem_cache_zalloc(audit_task_cache, GFP_KERNEL);
+> +       if (!info)
+> +               return -ENOMEM;
+> +       info->loginuid = audit_get_loginuid(current);
+> +       info->sessionid = audit_get_sessionid(current);
+> +       tsk->audit = info;
+>
+>         if (likely(!audit_ever_enabled))
+>                 return 0; /* Return if not auditing. */
+>
+>         state = audit_filter_task(tsk, &key);
+>         if (state == AUDIT_DISABLED) {
+> +               audit_set_context(tsk, NULL);
+>                 clear_tsk_thread_flag(tsk, TIF_SYSCALL_AUDIT);
+>                 return 0;
+>         }
+>
+>         if (!(context = audit_alloc_context(state))) {
+> +               tsk->audit = NULL;
+> +               kmem_cache_free(audit_task_cache, info);
+>                 kfree(key);
+>                 audit_log_lost("out of memory in audit_alloc");
+>                 return -ENOMEM;
+> @@ -962,6 +982,12 @@ int audit_alloc(struct task_struct *tsk)
+>         return 0;
+>  }
+>
+> +struct audit_task_info init_struct_audit = {
+> +       .loginuid = INVALID_UID,
+> +       .sessionid = AUDIT_SID_UNSET,
+> +       .ctx = NULL,
+> +};
+> +
+>  static inline void audit_free_context(struct audit_context *context)
+>  {
+>         audit_free_names(context);
+> @@ -1469,26 +1495,33 @@ static void audit_log_exit(struct audit_context *context, struct task_struct *ts
+>  }
+>
+>  /**
+> - * __audit_free - free a per-task audit context
+> + * audit_free - free a per-task audit context
+>   * @tsk: task whose audit context block to free
+>   *
+>   * Called from copy_process and do_exit
+>   */
+> -void __audit_free(struct task_struct *tsk)
+> +void audit_free(struct task_struct *tsk)
+>  {
+>         struct audit_context *context;
+> +       struct audit_task_info *info;
+>
+>         context = audit_take_context(tsk, 0, 0);
+> -       if (!context)
+> -               return;
+> -
+>         /* Check for system calls that do not go through the exit
+>          * function (e.g., exit_group), then free context block.
+>          * We use GFP_ATOMIC here because we might be doing this
+>          * in the context of the idle thread */
+>         /* that can happen only if we are called from do_exit() */
+> -       if (context->in_syscall && context->current_state == AUDIT_RECORD_CONTEXT)
+> +       if (context && context->in_syscall &&
+> +           context->current_state == AUDIT_RECORD_CONTEXT)
+>                 audit_log_exit(context, tsk);
+> +       /* Freeing the audit_task_info struct must be performed after
+> +        * audit_log_exit() due to need for loginuid and sessionid.
+> +        */
+> +       info = tsk->audit;
+> +       tsk->audit = NULL;
+> +       kmem_cache_free(audit_task_cache, info);
+> +       if (!context)
+> +               return;
+>         if (!list_empty(&context->killed_trees))
+>                 audit_kill_trees(&context->killed_trees);
+>
+> @@ -2071,8 +2104,8 @@ int audit_set_loginuid(kuid_t loginuid)
+>                         sessionid = (unsigned int)atomic_inc_return(&session_id);
+>         }
+>
+> -       task->sessionid = sessionid;
+> -       task->loginuid = loginuid;
+> +       task->audit->sessionid = sessionid;
+> +       task->audit->loginuid = loginuid;
+>  out:
+>         audit_log_set_loginuid(oldloginuid, loginuid, oldsessionid, sessionid, rc);
+>         return rc;
+> diff --git a/kernel/fork.c b/kernel/fork.c
+> index cd18448..92ab849 100644
+> --- a/kernel/fork.c
+> +++ b/kernel/fork.c
+> @@ -1713,7 +1713,7 @@ static __latent_entropy struct task_struct *copy_process(
+>         p->start_time = ktime_get_ns();
+>         p->real_start_time = ktime_get_boot_ns();
+>         p->io_context = NULL;
+> -       audit_set_context(p, NULL);
+> +       p->audit = NULL;
+>         cgroup_fork(p);
+>  #ifdef CONFIG_NUMA
+>         p->mempolicy = mpol_dup(p->mempolicy);
 > --
 > 1.8.3.1
->
-
-
 
 -- 
 paul moore
