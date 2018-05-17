@@ -1,50 +1,60 @@
-From: ebiederm@xmission.com (Eric W. Biederman)
-Subject: Re: [PATCH 11/40] ipv6/flowlabel: simplify pid namespace lookup
-Date: Thu, 17 May 2018 14:14:57 -0500
-Message-ID: <87efiahz66.fsf@xmission.com>
-References: <20180425154827.32251-1-hch@lst.de>
-        <20180425154827.32251-12-hch@lst.de> <878t8y46sy.fsf@xmission.com>
-        <20180515145643.GA661@lst.de> <871seakg0u.fsf@xmission.com>
-        <20180517064220.GA24300@lst.de>
+From: Paul Moore <paul@paul-moore.com>
+Subject: Re: [PATCH ghak81 V3 1/3] audit: use new audit_context access
+ funciton for seccomp_actions_logged
+Date: Thu, 17 May 2018 19:00:46 -0400
+Message-ID: <CAHC9VhR0Y6ZO80XrRF45QD30Gi1TK49-JTSTY0wThWZ1nrGarA@mail.gmail.com>
+References: <cover.1526430313.git.rgb@redhat.com> <12a849e41468d761e0782c733e58db47d83b0d16.1526430313.git.rgb@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-        Alexander Viro <viro@zeniv.linux.org.uk>,
-        Alexey Dobriyan <adobriyan@gmail.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Jiri Slaby <jslaby@suse.com>,
-        Alessandro Zummo <a.zummo@towertech.it>,
-        Alexandre Belloni <alexandre.belloni@bootlin.com>,
-        linux-acpi@vger.kernel.org, drbd-dev@lists.linbit.com,
-        linux-ide@vger.kernel.org, netdev@vger.kernel.org,
-        linux-rtc@vger.kernel.org, megaraidlinux.pdl@broadcom.com,
-        linux-scsi@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-afs@lists.infradead.org, linux-ext4@vger.kernel.org,
-        jfs-discussion@lists.sourceforge.net,
-        netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org
-To: Christoph Hellwig <hch@lst.de>
+Content-Type: text/plain; charset="UTF-8"
+Cc: Linux-Audit Mailing List <linux-audit@redhat.com>,
+        LKML <linux-kernel@vger.kernel.org>,
+        Linux NetDev Upstream Mailing List <netdev@vger.kernel.org>,
+        Netfilter Devel List <netfilter-devel@vger.kernel.org>,
+        Linux Security Module list
+        <linux-security-module@vger.kernel.org>,
+        Integrity Measurement Architecture
+        <linux-integrity@vger.kernel.org>,
+        SElinux list <selinux@tycho.nsa.gov>,
+        Eric Paris <eparis@redhat.com>,
+        Steve Grubb <sgrubb@redhat.com>,
+        Ingo Molnar <mingo@redhat.com>,
+        David Howells <dhowells@redhat.com>
+To: Richard Guy Briggs <rgb@redhat.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180517064220.GA24300@lst.de> (Christoph Hellwig's message of
-        "Thu, 17 May 2018 08:42:20 +0200")
+In-Reply-To: <12a849e41468d761e0782c733e58db47d83b0d16.1526430313.git.rgb@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Christoph Hellwig <hch@lst.de> writes:
-
-> On Thu, May 17, 2018 at 12:28:01AM -0500, Eric W. Biederman wrote:
->> > struct pid_namespace *proc_pid_namespace(struct inode *inode)
->> > {
->> > 	// maybe warn on for s_magic not on procfs??
->> > 	return inode->i_sb->s_fs_info;
->> > }
->> 
->> That should work.  Ideally out of line for the proc_fs.h version.
->> Basically it should be a cousin of PDE_DATA.
+On Wed, May 16, 2018 at 7:55 AM, Richard Guy Briggs <rgb@redhat.com> wrote:
+> On the rebase of the following commit on the new seccomp actions_logged
+> function, one audit_context access was missed.
 >
-> The version in Al's tree is inline and without the warning as
-> I didn't want to drag in the magic.h include.  Please look at it for
-> additional comments, I can send incremental fixups if needed.
+> commit cdfb6b341f0f2409aba24b84f3b4b2bba50be5c5
+> ("audit: use inline function to get audit context")
+>
+> Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
+> ---
+>  kernel/auditsc.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 
-Sounds good.
+Merged into audit/next, thanks for the follow-up.
 
-Eric
+> diff --git a/kernel/auditsc.c b/kernel/auditsc.c
+> index cbab0da..f3d3dc6 100644
+> --- a/kernel/auditsc.c
+> +++ b/kernel/auditsc.c
+> @@ -2497,7 +2497,7 @@ void audit_seccomp_actions_logged(const char *names, const char *old_names,
+>         if (!audit_enabled)
+>                 return;
+>
+> -       ab = audit_log_start(current->audit_context, GFP_KERNEL,
+> +       ab = audit_log_start(audit_context(), GFP_KERNEL,
+>                              AUDIT_CONFIG_CHANGE);
+>         if (unlikely(!ab))
+>                 return;
+> --
+> 1.8.3.1
+
+-- 
+paul moore
+www.paul-moore.com
