@@ -1,59 +1,50 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH v2] netfilter: properly initialize xt_table_info structure
-Date: Thu, 17 May 2018 15:20:12 +0200
-Message-ID: <20180517132012.GA29160@kroah.com>
-References: <20180517084442.GA23981@kroah.com>
- <20180517085951.2wxvcg5herkjaxda@unicorn.suse.cz>
- <20180517093410.GB17597@kroah.com>
- <a8fadcf4-c2dd-7465-9b41-189eb97a3dd2@gmail.com>
- <20180517100908.GA3150@kroah.com>
- <alpine.LSU.2.20.1805171232210.30649@n3.vanv.qr>
+From: ebiederm@xmission.com (Eric W. Biederman)
+Subject: Re: [PATCH 11/40] ipv6/flowlabel: simplify pid namespace lookup
+Date: Thu, 17 May 2018 14:14:57 -0500
+Message-ID: <87efiahz66.fsf@xmission.com>
+References: <20180425154827.32251-1-hch@lst.de>
+        <20180425154827.32251-12-hch@lst.de> <878t8y46sy.fsf@xmission.com>
+        <20180515145643.GA661@lst.de> <871seakg0u.fsf@xmission.com>
+        <20180517064220.GA24300@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Eric Dumazet <eric.dumazet@gmail.com>,
-        Greg Hackmann <ghackmann@google.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>,
-        Michal Kubecek <mkubecek@suse.cz>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org
-To: Jan Engelhardt <jengelh@inai.de>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.LSU.2.20.1805171232210.30649@n3.vanv.qr>
-Sender: netdev-owner@vger.kernel.org
+Content-Type: text/plain
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+        Alexander Viro <viro@zeniv.linux.org.uk>,
+        Alexey Dobriyan <adobriyan@gmail.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Jiri Slaby <jslaby@suse.com>,
+        Alessandro Zummo <a.zummo@towertech.it>,
+        Alexandre Belloni <alexandre.belloni@bootlin.com>,
+        linux-acpi@vger.kernel.org, drbd-dev@lists.linbit.com,
+        linux-ide@vger.kernel.org, netdev@vger.kernel.org,
+        linux-rtc@vger.kernel.org, megaraidlinux.pdl@broadcom.com,
+        linux-scsi@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-afs@lists.infradead.org, linux-ext4@vger.kernel.org,
+        jfs-discussion@lists.sourceforge.net,
+        netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Christoph Hellwig <hch@lst.de>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180517064220.GA24300@lst.de> (Christoph Hellwig's message of
+        "Thu, 17 May 2018 08:42:20 +0200")
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, May 17, 2018 at 12:42:00PM +0200, Jan Engelhardt wrote:
-> 
-> On Thursday 2018-05-17 12:09, Greg Kroah-Hartman wrote:
-> >> > --- a/net/netfilter/x_tables.c
-> >> > +++ b/net/netfilter/x_tables.c
-> >> > @@ -1183,11 +1183,10 @@ struct xt_table_info *xt_alloc_table_info(unsigned int size)
-> >> >  	 * than shoot all processes down before realizing there is nothing
-> >> >  	 * more to reclaim.
-> >> >  	 */
-> >> > -	info = kvmalloc(sz, GFP_KERNEL | __GFP_NORETRY);
-> >> > +	info = kvzalloc(sz, GFP_KERNEL | __GFP_NORETRY);
-> >> >  	if (!info)
-> >> >  		return NULL;
-> >>
-> >> I am curious, what particular path does not later overwrite the whole zone ?
-> >
-> >In do_ipt_get_ctl, the IPT_SO_GET_ENTRIES: option uses a len value that
-> >can be larger than the size of the structure itself.
-> >
-> >Then the data is copied to userspace in copy_entries_to_user() for ipv4
-> >and v6, and that's where the "bad data"
-> 
-> If the kernel incorrectly copies more bytes than it should, isn't that
-> a sign that may be going going past the end of the info buffer?
-> (And thus, zeroing won't truly fix the issue)
+Christoph Hellwig <hch@lst.de> writes:
 
-No, the buffer size is correct, we just aren't filling up the whole
-buffer as the data requested is smaller than the buffer size.
+> On Thu, May 17, 2018 at 12:28:01AM -0500, Eric W. Biederman wrote:
+>> > struct pid_namespace *proc_pid_namespace(struct inode *inode)
+>> > {
+>> > 	// maybe warn on for s_magic not on procfs??
+>> > 	return inode->i_sb->s_fs_info;
+>> > }
+>> 
+>> That should work.  Ideally out of line for the proc_fs.h version.
+>> Basically it should be a cousin of PDE_DATA.
+>
+> The version in Al's tree is inline and without the warning as
+> I didn't want to drag in the magic.h include.  Please look at it for
+> additional comments, I can send incremental fixups if needed.
 
-thanks,
+Sounds good.
 
-greg k-h
+Eric
