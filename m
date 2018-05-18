@@ -1,91 +1,52 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH v2] netfilter: properly initialize xt_table_info structure
-Date: Fri, 18 May 2018 13:04:34 +0200
-Message-ID: <20180518110434.GA29570@kroah.com>
-References: <20180517084442.GA23981@kroah.com>
- <20180517085951.2wxvcg5herkjaxda@unicorn.suse.cz>
- <20180517093410.GB17597@kroah.com>
- <a8fadcf4-c2dd-7465-9b41-189eb97a3dd2@gmail.com>
- <20180517100908.GA3150@kroah.com>
- <alpine.LSU.2.20.1805171232210.30649@n3.vanv.qr>
- <20180517132012.GA29160@kroah.com>
- <20180518092756.odlyvxcpgbuistqq@breakpoint.cc>
+From: Lars Ellenberg <lars.ellenberg-63ez5xqkn6DQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 28/42] drbd: switch to proc_create_single
+Date: Fri, 18 May 2018 14:55:54 +0200
+Message-ID: <20180518125554.GA9238@soda.linbit>
+References: <20180516094346.20506-1-hch@lst.de>
+	<20180516094346.20506-29-hch@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Jan Engelhardt <jengelh@inai.de>,
-        Eric Dumazet <eric.dumazet@gmail.com>,
-        Greg Hackmann <ghackmann@google.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Michal Kubecek <mkubecek@suse.cz>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
-Return-path: <netdev-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Cc: linux-rtc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alessandro Zummo <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>,
+	Alexandre Belloni <alexandre.belloni-LDxbnhwyfcJBDgjK7y7TUQ@public.gmane.org>,
+	devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>,
+	Jiri Slaby <jslaby-IBi9RG/b67k@public.gmane.org>, megaraidlinux.pdl-dY08KVG/lbpWk0Htik3J/w@public.gmane.org,
+	linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	Alexey Dobriyan <adobriyan-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-ide-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	Alexander Viro <viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>,
+	linux-ext4-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-afs-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org,
+	jfs-discussion-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, drbd-dev-cunTk1MwBs8qoQakbn7OcQ@public.gmane.org
+To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Return-path: <drbd-dev-bounces-cunTk1MwBs8qoQakbn7OcQ@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20180518092756.odlyvxcpgbuistqq@breakpoint.cc>
-Sender: netdev-owner@vger.kernel.org
+In-Reply-To: <20180516094346.20506-29-hch-jcswGhMUV9g@public.gmane.org>
+List-Unsubscribe: <http://lists.linbit.com/mailman/options/drbd-dev>,
+	<mailto:drbd-dev-request-cunTk1MwBs8qoQakbn7OcQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linbit.com/pipermail/drbd-dev>
+List-Post: <mailto:drbd-dev-cunTk1MwBs8qoQakbn7OcQ@public.gmane.org>
+List-Help: <mailto:drbd-dev-request-cunTk1MwBs8qoQakbn7OcQ@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.linbit.com/mailman/listinfo/drbd-dev>,
+	<mailto:drbd-dev-request-cunTk1MwBs8qoQakbn7OcQ@public.gmane.org?subject=subscribe>
+Sender: drbd-dev-bounces-cunTk1MwBs8qoQakbn7OcQ@public.gmane.org
+Errors-To: drbd-dev-bounces-cunTk1MwBs8qoQakbn7OcQ@public.gmane.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, May 18, 2018 at 11:27:56AM +0200, Florian Westphal wrote:
-> Greg Kroah-Hartman <gregkh@linuxfoundation.org> wrote:
-> > On Thu, May 17, 2018 at 12:42:00PM +0200, Jan Engelhardt wrote:
-> > > 
-> > > On Thursday 2018-05-17 12:09, Greg Kroah-Hartman wrote:
-> > > >> > --- a/net/netfilter/x_tables.c
-> > > >> > +++ b/net/netfilter/x_tables.c
-> > > >> > @@ -1183,11 +1183,10 @@ struct xt_table_info *xt_alloc_table_info(unsigned int size)
-> > > >> >  	 * than shoot all processes down before realizing there is nothing
-> > > >> >  	 * more to reclaim.
-> > > >> >  	 */
-> > > >> > -	info = kvmalloc(sz, GFP_KERNEL | __GFP_NORETRY);
-> > > >> > +	info = kvzalloc(sz, GFP_KERNEL | __GFP_NORETRY);
-> > > >> >  	if (!info)
-> > > >> >  		return NULL;
-> > > >>
-> > > >> I am curious, what particular path does not later overwrite the whole zone ?
-> > > >
-> > > >In do_ipt_get_ctl, the IPT_SO_GET_ENTRIES: option uses a len value that
-> > > >can be larger than the size of the structure itself.
-> > > >
-> > > >Then the data is copied to userspace in copy_entries_to_user() for ipv4
-> > > >and v6, and that's where the "bad data"
-> > > 
-> > > If the kernel incorrectly copies more bytes than it should, isn't that
-> > > a sign that may be going going past the end of the info buffer?
-> > > (And thus, zeroing won't truly fix the issue)
-> > 
-> > No, the buffer size is correct, we just aren't filling up the whole
-> > buffer as the data requested is smaller than the buffer size.
-> 
-> I have no objections to the patch but I'd like to understand what
-> problem its fixing.
-> 
-> Normal pattern is:
-> newinfo = xt_alloc_table_info(tmp.size);
-> copy_from_user(newinfo->entries, user + sizeof(tmp), tmp.size);
-> 
-> So inital value of the rule blob area should not matter.
-> 
-> Furthermore, when copying the rule blob back to userspace,
-> the kernel is not supposed to copy any padding back to userspace either,
-> since commit f32815d21d4d8287336fb9cef4d2d9e0866214c2 only the
-> user-relevant parts should be copied (some matches and targets allocate
-> kernel-private data such as pointers, and we did use to leak such pointer
-> values back to userspace).
+On Wed, May 16, 2018 at 11:43:32AM +0200, Christoph Hellwig wrote:
+> And stop messing with try_module_get on THIS_MODULE, which doesn't make
+> any sense here.
 
-Ah, fun, commit f32815d21d4d ("xtables: add xt_match, xt_target and data
-copy_to_user functions") showed up in 4.11 and this was reported in 4.4 :(
+The idea was to increase module count on /proc/drbd access.
 
-However, the "bad" code path seems to be from the IPT_SO_GET_ENTRIES
-request, which does not look to use the new functions provided in
-f32815d21d4d, or am I mistaken?
+If someone holds /proc/drbd open, previously rmmod would
+"succeed" in starting the unload, but then block on remove_proc_entry,
+leading to a situation where the lsmod does not show drbd anymore,
+but /proc/drbd being still there (but no longer accessible).
 
-Let me go work on a reproducer for this to make it a lot more obvious
-what is happening, and if it is still even an issue after f32815d21d4d
-is applied to a kernel.  Sorry for not providing that in the first
-place...
+I'd rather have rmmod fail up front in this case.
+And try_module_get() seemed most appropriate.
 
-thanks,
-
-greg k-h
+    Lars
