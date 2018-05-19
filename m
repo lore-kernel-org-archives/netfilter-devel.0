@@ -1,52 +1,68 @@
 From: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
-Subject: Re: [PATCH 04/14] net: sched: implement unlocked action init API
-Date: Sat, 19 May 2018 18:11:04 -0300
-Message-ID: <20180519211104.GB5488@localhost.localdomain>
+Subject: Re: [PATCH 06/14] net: sched: implement reference counted action
+ release
+Date: Sat, 19 May 2018 18:43:27 -0300
+Message-ID: <20180519214327.GC5488@localhost.localdomain>
 References: <1526308035-12484-1-git-send-email-vladbu@mellanox.com>
- <1526308035-12484-5-git-send-email-vladbu@mellanox.com>
- <20180514151641.GD1848@nanopsycho>
+ <1526308035-12484-7-git-send-email-vladbu@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Vlad Buslov <vladbu@mellanox.com>, netdev@vger.kernel.org,
-        davem@davemloft.net, jhs@mojatatu.com, xiyou.wangcong@gmail.com,
-        pablo@netfilter.org, kadlec@blackhole.kfki.hu, fw@strlen.de,
-        ast@kernel.org, daniel@iogearbox.net, edumazet@google.com,
-        keescook@chromium.org, linux-kernel@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        kliteyn@mellanox.com
-To: Jiri Pirko <jiri@resnulli.us>
+Cc: netdev@vger.kernel.org, davem@davemloft.net, jhs@mojatatu.com,
+        xiyou.wangcong@gmail.com, jiri@resnulli.us, pablo@netfilter.org,
+        kadlec@blackhole.kfki.hu, fw@strlen.de, ast@kernel.org,
+        daniel@iogearbox.net, edumazet@google.com, keescook@chromium.org,
+        linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, kliteyn@mellanox.com
+To: Vlad Buslov <vladbu@mellanox.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180514151641.GD1848@nanopsycho>
+In-Reply-To: <1526308035-12484-7-git-send-email-vladbu@mellanox.com>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, May 14, 2018 at 05:16:41PM +0200, Jiri Pirko wrote:
-> Mon, May 14, 2018 at 04:27:05PM CEST, vladbu@mellanox.com wrote:
-> >Add additional 'unlocked' argument to act API init functions.
-> >Argument is true when rtnl lock is not taken and false otherwise.
-> >It is required to implement actions that need to release rtnl lock before
-> >loading kernel module and reacquire if afterwards.
-> >
-> >Signed-off-by: Vlad Buslov <vladbu@mellanox.com>
+On Mon, May 14, 2018 at 05:27:07PM +0300, Vlad Buslov wrote:
+...
+> @@ -1052,6 +1088,36 @@ static int tca_action_flush(struct net *net, struct nlattr *nla,
+>  	return err;
+>  }
 >
-> [...]
->
->
-> >@@ -721,9 +722,11 @@ struct tc_action *tcf_action_init_1(struct net *net, struct tcf_proto *tp,
-> > 	a_o = tc_lookup_action_n(act_name);
-> > 	if (a_o == NULL) {
-> > #ifdef CONFIG_MODULES
-> >-		rtnl_unlock();
-> >+		if (!unlocked)
-> >+			rtnl_unlock();
-> > 		request_module("act_%s", act_name);
-> >-		rtnl_lock();
-> >+		if (!unlocked)
-> >+			rtnl_lock();
->
-> Although I don't like this conditional locking scheme, I see no other
-> way to solve this :/ But I think would be better perhaps to rename
-> "unlocked" to something like "rtnl_held".
+> +static int tcf_action_delete(struct net *net, struct list_head *actions,
+> +			     struct netlink_ext_ack *extack)
+> +{
+> +	int ret;
 
-Agreed. "rtnl_held" also removes the double negation, "!un...".
+Reverse christmass tree.. this line should be the last in variable
+declarations.
+
+> +	struct tc_action *a, *tmp;
+> +	char kind[IFNAMSIZ];
+> +	u32 act_index;
+> +
+> +	list_for_each_entry_safe(a, tmp, actions, list) {
+> +		const struct tc_action_ops *ops = a->ops;
+> +
+> +		/* Actions can be deleted concurrently
+> +		 * so we must save their type and id to search again
+> +		 * after reference is released.
+> +		 */
+> +		strncpy(kind, a->ops->kind, sizeof(kind) - 1);
+
+This may be problematic. Why strncpy here?
+
+a->ops->kind is also of size IFNAMSIZ. If a->ops->kind is actually
+IFNAMSIZ-1 long, kind here won't be NULL terminated, as kind is not
+initialized and strncpy won't add the NULL.
+
+> +		act_index = a->tcfa_index;
+> +
+> +		list_del(&a->list);
+> +		if (tcf_action_put(a))
+> +			module_put(ops->owner);
+> +
+> +		/* now do the delete */
+> +		ret = tcf_action_del_1(net, kind, act_index, extack);
+> +		if (ret < 0)
+> +			return ret;
+> +	}
+> +	return 0;
+> +}
