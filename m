@@ -1,77 +1,52 @@
-From: Vlad Buslov <vladbu@mellanox.com>
-Subject: Re: [PATCH 06/14] net: sched: implement reference counted action release
-Date: Sun, 20 May 2018 13:59:29 +0300
-Message-ID: <vbfr2m6a8z2.fsf@reg-r-vrt-018-180.mtr.labs.mlnx>
-References: <1526308035-12484-1-git-send-email-vladbu@mellanox.com> <1526308035-12484-7-git-send-email-vladbu@mellanox.com> <20180519214327.GC5488@localhost.localdomain> <20180520062242.GB2255@nanopsycho.orion>
-Mime-Version: 1.0
-Content-Type: text/plain
-Cc: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>,
-        netdev@vger.kernel.org, davem@davemloft.net, jhs@mojatatu.com,
-        xiyou.wangcong@gmail.com, pablo@netfilter.org,
-        kadlec@blackhole.kfki.hu, fw@strlen.de, ast@kernel.org,
-        daniel@iogearbox.net, edumazet@google.com, keescook@chromium.org,
-        linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, kliteyn@mellanox.com
-To: Jiri Pirko <jiri@resnulli.us>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-reply-to: <20180520062242.GB2255@nanopsycho.orion>
-Sender: linux-kernel-owner@vger.kernel.org
+From: Vincent Bernat <vincent@bernat.im>
+Subject: [PATCH net-next v1] netfilter: provide input interface for route lookup for rpfilter
+Date: Sun, 20 May 2018 13:03:38 +0200
+Message-ID: <20180520110338.9376-1-vincent@bernat.im>
+Cc: Vincent Bernat <vincent@bernat.im>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
+In commit 47b7e7f82802, this bit was removed at the same time the
+RT6_LOOKUP_F_IFACE flag was removed. However, it is needed when
+link-local addresses are used, which is a very common case: when
+packets are routed, neighbor solicitations are done using link-local
+addresses. For example, the following neighbor solicitation is not
+matched by "-m rpfilter":
 
-On Sun 20 May 2018 at 06:22, Jiri Pirko <jiri@resnulli.us> wrote:
-> Sat, May 19, 2018 at 11:43:27PM CEST, marcelo.leitner@gmail.com wrote:
->>On Mon, May 14, 2018 at 05:27:07PM +0300, Vlad Buslov wrote:
->>...
->>> @@ -1052,6 +1088,36 @@ static int tca_action_flush(struct net *net, struct nlattr *nla,
->>>  	return err;
->>>  }
->>>
->>> +static int tcf_action_delete(struct net *net, struct list_head *actions,
->>> +			     struct netlink_ext_ack *extack)
->>> +{
->>> +	int ret;
->>
->>Reverse christmass tree.. this line should be the last in variable
->>declarations.
->>
->>> +	struct tc_action *a, *tmp;
->>> +	char kind[IFNAMSIZ];
->>> +	u32 act_index;
->>> +
->>> +	list_for_each_entry_safe(a, tmp, actions, list) {
->>> +		const struct tc_action_ops *ops = a->ops;
->>> +
->>> +		/* Actions can be deleted concurrently
->>> +		 * so we must save their type and id to search again
->>> +		 * after reference is released.
->>> +		 */
->>> +		strncpy(kind, a->ops->kind, sizeof(kind) - 1);
->>
->>This may be problematic. Why strncpy here?
->
-> This is not necessary if Vlad is going to hold module referece, ops
-> cannot disappear.
+    IP6 fe80::5254:33ff:fe00:1 > ff02::1:ff00:3: ICMP6, neighbor
+    solicitation, who has 2001:db8::5254:33ff:fe00:3, length 32
 
-Yes, I've already refactored this code to reuse ops.
+Commit 47b7e7f82802 doesn't quite explain why we shouldn't use
+RT6_LOOKUP_F_IFACE in the rpfilter case. I suppose the interface check
+later in the function would make it redundant. However, the remaining
+of the routing code is using RT6_LOOKUP_F_IFACE when there is no
+source address (which matches rpfilter's case with a non-unicast
+destination, like with neighbor solicitation).
 
->
->
->>
->>a->ops->kind is also of size IFNAMSIZ. If a->ops->kind is actually
->>IFNAMSIZ-1 long, kind here won't be NULL terminated, as kind is not
->>initialized and strncpy won't add the NULL.
->>
->>> +		act_index = a->tcfa_index;
->>> +
->>> +		list_del(&a->list);
->>> +		if (tcf_action_put(a))
->>> +			module_put(ops->owner);
->>> +
->>> +		/* now do the delete */
->>> +		ret = tcf_action_del_1(net, kind, act_index, extack);
->>> +		if (ret < 0)
->>> +			return ret;
->>> +	}
->>> +	return 0;
->>> +}
+Signed-off-by: Vincent Bernat <vincent@bernat.im>
+Fixes: 47b7e7f82802 ("netfilter: don't set F_IFACE on ipv6 fib lookups")
+---
+ net/ipv6/netfilter/ip6t_rpfilter.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/net/ipv6/netfilter/ip6t_rpfilter.c b/net/ipv6/netfilter/ip6t_rpfilter.c
+index d12f511929f5..0fe61ede77c6 100644
+--- a/net/ipv6/netfilter/ip6t_rpfilter.c
++++ b/net/ipv6/netfilter/ip6t_rpfilter.c
+@@ -48,6 +48,8 @@ static bool rpfilter_lookup_reverse6(struct net *net, const struct sk_buff *skb,
+ 	}
+ 
+ 	fl6.flowi6_mark = flags & XT_RPFILTER_VALID_MARK ? skb->mark : 0;
++	if ((flags & XT_RPFILTER_LOOSE) == 0)
++		fl6.flowi6_oif = dev->ifindex;
+ 
+ 	rt = (void *)ip6_route_lookup(net, &fl6, skb, lookup_flags);
+ 	if (rt->dst.error)
+-- 
+2.17.0
