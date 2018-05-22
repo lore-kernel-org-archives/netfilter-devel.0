@@ -1,136 +1,153 @@
 From: Toke =?utf-8?q?H=C3=B8iland-J=C3=B8rgensen?= <toke@toke.dk>
-Subject: [PATCH net-next v15 0/7] sched: Add Common Applications Kept
- Enhanced (cake) qdisc
+Subject: [PATCH net-next v15 4/7] sch_cake: Add NAT awareness to packet
+ classifier
 Date: Tue, 22 May 2018 15:57:38 +0200
-Message-ID: <152699741881.21931.11656377745581563912.stgit@alrua-kau>
+Message-ID: <152699745846.21931.4558451708304709296.stgit@alrua-kau>
+References: <152699741881.21931.11656377745581563912.stgit@alrua-kau>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-Cc: Georgios Amanakis <gamanakis@gmail.com>,
-        Pete Heist <peteheist@gmail.com>,
-        Yuchung Cheng <ycheng@google.com>,
-        Neal Cardwell <ncardwell@google.com>,
-        Dave Taht <dave.taht@gmail.com>,
-        netfilter-devel@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
 To: netdev@vger.kernel.org, cake@lists.bufferbloat.net
 Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <152699741881.21931.11656377745581563912.stgit@alrua-kau>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This patch series adds the CAKE qdisc, and has been split up to ease
-review.
+When CAKE is deployed on a gateway that also performs NAT (which is a
+common deployment mode), the host fairness mechanism cannot distinguish
+internal hosts from each other, and so fails to work correctly.
 
-I have attempted to split out each configurable feature into its own patch.
-The first commit adds the base shaper and packet scheduler, while
-subsequent commits add the optional features. The full userspace API and
-most data structures are included in this commit, but options not
-understood in the base version will be ignored.
+To fix this, we add an optional NAT awareness mode, which will query the
+kernel conntrack mechanism to obtain the pre-NAT addresses for each packet
+and use that in the flow and host hashing.
 
-The result of applying the entire series is identical to the out of tree
-version that have seen extensive testing in previous deployments, most
-notably as an out of tree patch to OpenWrt. However, note that I have only
-compile tested the individual patches; so the whole series should be
-considered as a unit.
+When the shaper is enabled and the host is already performing NAT, the cost
+of this lookup is negligible. However, in unlimited mode with no NAT being
+performed, there is a significant CPU cost at higher bandwidths. For this
+reason, the feature is turned off by default.
 
+Cc: netfilter-devel@vger.kernel.org
+Signed-off-by: Toke Høiland-Jørgensen <toke@toke.dk>
 ---
-Changelog
+ net/sched/sch_cake.c |   79 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 79 insertions(+)
 
-v15:
-  - Handle ECN flags in ACK filter
-
-v14:
-  - Handle seqno wraps and DSACKs in ACK filter
-
-v13:
-  - Avoid ktime_t to scalar compares
-  - Add class dumping and basic stats
-  - Fail with ENOTSUPP when requesting NAT mode and conntrack is not
-    available.
-  - Parse all TCP options in ACK filter and make sure to only drop safe
-    ones. Also handle SACK ranges properly.
-
-v12:
-  - Get rid of custom time typedefs. Use ktime_t for time and u64 for
-    duration instead.
-
-v11:
-  - Fix overhead compensation calculation for GSO packets
-  - Change configured rate to be u64 (I ran out of bits before I ran out
-    of CPU when testing the effects of the above)
-
-v10:
-  - Christmas tree gardening (fix variable declarations to be in reverse
-    line length order)
-
-v9:
-  - Remove duplicated checks around kvfree() and just call it
-    unconditionally.
-  - Don't pass __GFP_NOWARN when allocating memory
-  - Move options in cake_dump() that are related to optional features to
-    later patches implementing the features.
-  - Support attaching filters to the qdisc and use the classification
-    result to select flow queue.
-  - Support overriding diffserv priority tin from skb->priority
-
-v8:
-  - Remove inline keyword from function definitions
-  - Simplify ACK filter; remove the complex state handling to make the
-    logic easier to follow. This will potentially be a bit less efficient,
-    but I have not been able to measure a difference.
-
-v7:
-  - Split up patch into a series to ease review.
-  - Constify the ACK filter.
-
-v6:
-  - Fix 6in4 encapsulation checks in ACK filter code
-  - Checkpatch fixes
-
-v5:
-  - Refactor ACK filter code and hopefully fix the safety issues
-    properly this time.
-
-v4:
-  - Only split GSO packets if shaping at speeds <= 1Gbps
-  - Fix overhead calculation code to also work for GSO packets
-  - Don't re-implement kvzalloc()
-  - Remove local header include from out-of-tree build (fixes kbuild-bot
-    complaint).
-  - Several fixes to the ACK filter:
-    - Check pskb_may_pull() before deref of transport headers.
-    - Don't run ACK filter logic on split GSO packets
-    - Fix TCP sequence number compare to deal with wraparounds
-
-v3:
-  - Use IS_REACHABLE() macro to fix compilation when sch_cake is
-    built-in and conntrack is a module.
-  - Switch the stats output to use nested netlink attributes instead
-    of a versioned struct.
-  - Remove GPL boilerplate.
-  - Fix array initialisation style.
-
-v2:
-  - Fix kbuild test bot complaint
-  - Clean up the netlink ABI
-  - Fix checkpatch complaints
-  - A few tweaks to the behaviour of cake based on testing carried out
-    while writing the paper.
-
----
-
-Toke Høiland-Jørgensen (7):
-      sched: Add Common Applications Kept Enhanced (cake) qdisc
-      sch_cake: Add ingress mode
-      sch_cake: Add optional ACK filter
-      sch_cake: Add NAT awareness to packet classifier
-      sch_cake: Add DiffServ handling
-      sch_cake: Add overhead compensation support to the rate shaper
-      sch_cake: Conditionally split GSO segments
-
-
- include/uapi/linux/pkt_sched.h |  113 +
- net/sched/Kconfig              |   11 
- net/sched/Makefile             |    1 
- net/sched/sch_cake.c           | 3020 ++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 3145 insertions(+)
- create mode 100644 net/sched/sch_cake.c
+diff --git a/net/sched/sch_cake.c b/net/sched/sch_cake.c
+index 68ac908470f1..6f7cae705c84 100644
+--- a/net/sched/sch_cake.c
++++ b/net/sched/sch_cake.c
+@@ -71,6 +71,12 @@
+ #include <net/tcp.h>
+ #include <net/flow_dissector.h>
+ 
++#if IS_REACHABLE(CONFIG_NF_CONNTRACK)
++#include <net/netfilter/nf_conntrack_core.h>
++#include <net/netfilter/nf_conntrack_zones.h>
++#include <net/netfilter/nf_conntrack.h>
++#endif
++
+ #define CAKE_SET_WAYS (8)
+ #define CAKE_MAX_TINS (8)
+ #define CAKE_QUEUES (1024)
+@@ -516,6 +522,60 @@ static bool cobalt_should_drop(struct cobalt_vars *vars,
+ 	return drop;
+ }
+ 
++#if IS_REACHABLE(CONFIG_NF_CONNTRACK)
++
++static void cake_update_flowkeys(struct flow_keys *keys,
++				 const struct sk_buff *skb)
++{
++	const struct nf_conntrack_tuple *tuple;
++	enum ip_conntrack_info ctinfo;
++	struct nf_conn *ct;
++	bool rev = false;
++
++	if (tc_skb_protocol(skb) != htons(ETH_P_IP))
++		return;
++
++	ct = nf_ct_get(skb, &ctinfo);
++	if (ct) {
++		tuple = nf_ct_tuple(ct, CTINFO2DIR(ctinfo));
++	} else {
++		const struct nf_conntrack_tuple_hash *hash;
++		struct nf_conntrack_tuple srctuple;
++
++		if (!nf_ct_get_tuplepr(skb, skb_network_offset(skb),
++				       NFPROTO_IPV4, dev_net(skb->dev),
++				       &srctuple))
++			return;
++
++		hash = nf_conntrack_find_get(dev_net(skb->dev),
++					     &nf_ct_zone_dflt,
++					     &srctuple);
++		if (!hash)
++			return;
++
++		rev = true;
++		ct = nf_ct_tuplehash_to_ctrack(hash);
++		tuple = nf_ct_tuple(ct, !hash->tuple.dst.dir);
++	}
++
++	keys->addrs.v4addrs.src = rev ? tuple->dst.u3.ip : tuple->src.u3.ip;
++	keys->addrs.v4addrs.dst = rev ? tuple->src.u3.ip : tuple->dst.u3.ip;
++
++	if (keys->ports.ports) {
++		keys->ports.src = rev ? tuple->dst.u.all : tuple->src.u.all;
++		keys->ports.dst = rev ? tuple->src.u.all : tuple->dst.u.all;
++	}
++	if (rev)
++		nf_ct_put(ct);
++}
++#else
++static void cake_update_flowkeys(struct flow_keys *keys,
++				 const struct sk_buff *skb)
++{
++	/* There is nothing we can do here without CONNTRACK */
++}
++#endif
++
+ /* Cake has several subtle multiple bit settings. In these cases you
+  *  would be matching triple isolate mode as well.
+  */
+@@ -543,6 +603,9 @@ static u32 cake_hash(struct cake_tin_data *q, const struct sk_buff *skb,
+ 	skb_flow_dissect_flow_keys(skb, &keys,
+ 				   FLOW_DISSECTOR_F_STOP_AT_FLOW_LABEL);
+ 
++	if (flow_mode & CAKE_FLOW_NAT_FLAG)
++		cake_update_flowkeys(&keys, skb);
++
+ 	/* flow_hash_from_keys() sorts the addresses by value, so we have
+ 	 * to preserve their order in a separate data structure to treat
+ 	 * src and dst host addresses as independently selectable.
+@@ -1919,6 +1982,18 @@ static int cake_change(struct Qdisc *sch, struct nlattr *opt,
+ 	if (err < 0)
+ 		return err;
+ 
++	if (tb[TCA_CAKE_NAT]) {
++#if IS_REACHABLE(CONFIG_NF_CONNTRACK)
++		q->flow_mode &= ~CAKE_FLOW_NAT_FLAG;
++		q->flow_mode |= CAKE_FLOW_NAT_FLAG *
++			!!nla_get_u32(tb[TCA_CAKE_NAT]);
++#else
++		NL_SET_ERR_MSG_ATTR(extack, "No conntrack support in kernel",
++				    tb[TCA_CAKE_NAT]);
++		return -EOPNOTSUPP;
++#endif
++	}
++
+ 	if (tb[TCA_CAKE_BASE_RATE64])
+ 		q->rate_bps = nla_get_u64(tb[TCA_CAKE_BASE_RATE64]);
+ 
+@@ -2091,6 +2166,10 @@ static int cake_dump(struct Qdisc *sch, struct sk_buff *skb)
+ 	if (nla_put_u32(skb, TCA_CAKE_ACK_FILTER, q->ack_filter))
+ 		goto nla_put_failure;
+ 
++	if (nla_put_u32(skb, TCA_CAKE_NAT,
++			!!(q->flow_mode & CAKE_FLOW_NAT_FLAG)))
++		goto nla_put_failure;
++
+ 	return nla_nest_end(skb, opts);
+ 
+ nla_put_failure:
