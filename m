@@ -1,40 +1,136 @@
-From: Jamal Hadi Salim <jhs@mojatatu.com>
-Subject: netdev 0x12 conference update
-Date: Tue, 22 May 2018 08:25:57 -0400
-Message-ID: <3a8be40b-f8b1-43ec-3488-1b0143f2fe1a@mojatatu.com>
+From: Toke =?utf-8?q?H=C3=B8iland-J=C3=B8rgensen?= <toke@toke.dk>
+Subject: [PATCH net-next v15 0/7] sched: Add Common Applications Kept
+ Enhanced (cake) qdisc
+Date: Tue, 22 May 2018 15:57:38 +0200
+Message-ID: <152699741881.21931.11656377745581563912.stgit@alrua-kau>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-To: netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+Cc: Georgios Amanakis <gamanakis@gmail.com>,
+        Pete Heist <peteheist@gmail.com>,
+        Yuchung Cheng <ycheng@google.com>,
+        Neal Cardwell <ncardwell@google.com>,
+        Dave Taht <dave.taht@gmail.com>,
         netfilter-devel@vger.kernel.org
+To: netdev@vger.kernel.org, cake@lists.bufferbloat.net
 Return-path: <netdev-owner@vger.kernel.org>
-Content-Language: en-US
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Folks,
+This patch series adds the CAKE qdisc, and has been split up to ease
+review.
 
-This is a small update to the community on the Netdev 0x12 conference
-(July 11-13, 2018 in Montreal, Canada, https://www.netdevconf.org/0x12).
+I have attempted to split out each configurable feature into its own patch.
+The first commit adds the base shaper and packet scheduler, while
+subsequent commits add the optional features. The full userspace API and
+most data structures are included in this commit, but options not
+understood in the base version will be ignored.
 
-Early registration fees (20% off) are still in effect until June 1st.
-To Register: https://www.netdevconf.org/0x12/registration.html
+The result of applying the entire series is identical to the out of tree
+version that have seen extensive testing in previous deployments, most
+notably as an out of tree patch to OpenWrt. However, note that I have only
+compile tested the individual patches; so the whole series should be
+considered as a unit.
 
-Our bursaries are still open until June 20.
-Any member of the community may request for a bursary (sponsorship) to 
-attend.
-https://www.netdevconf.org/0x12/bursaries.html
+---
+Changelog
 
-The CFS closed on May 20.
-We expect the schedule up by June 11. In the meantime you can see
-the sessions the program committee has accepted so far at:
-https://www.netdevconf.org/0x12/accepted-sessions.html
+v15:
+  - Handle ECN flags in ACK filter
 
-For regular updates, please subscribe to people@lists.netdevconf.org
-(more info at: https://lists.netdevconf.org/cgi-bin/mailman/listinfo/people)
+v14:
+  - Handle seqno wraps and DSACKs in ACK filter
 
-If twitter is your thing then follow us: @netdev01
-and use hashtag #netdevconf
+v13:
+  - Avoid ktime_t to scalar compares
+  - Add class dumping and basic stats
+  - Fail with ENOTSUPP when requesting NAT mode and conntrack is not
+    available.
+  - Parse all TCP options in ACK filter and make sure to only drop safe
+    ones. Also handle SACK ranges properly.
 
-cheers,
-jamal
+v12:
+  - Get rid of custom time typedefs. Use ktime_t for time and u64 for
+    duration instead.
+
+v11:
+  - Fix overhead compensation calculation for GSO packets
+  - Change configured rate to be u64 (I ran out of bits before I ran out
+    of CPU when testing the effects of the above)
+
+v10:
+  - Christmas tree gardening (fix variable declarations to be in reverse
+    line length order)
+
+v9:
+  - Remove duplicated checks around kvfree() and just call it
+    unconditionally.
+  - Don't pass __GFP_NOWARN when allocating memory
+  - Move options in cake_dump() that are related to optional features to
+    later patches implementing the features.
+  - Support attaching filters to the qdisc and use the classification
+    result to select flow queue.
+  - Support overriding diffserv priority tin from skb->priority
+
+v8:
+  - Remove inline keyword from function definitions
+  - Simplify ACK filter; remove the complex state handling to make the
+    logic easier to follow. This will potentially be a bit less efficient,
+    but I have not been able to measure a difference.
+
+v7:
+  - Split up patch into a series to ease review.
+  - Constify the ACK filter.
+
+v6:
+  - Fix 6in4 encapsulation checks in ACK filter code
+  - Checkpatch fixes
+
+v5:
+  - Refactor ACK filter code and hopefully fix the safety issues
+    properly this time.
+
+v4:
+  - Only split GSO packets if shaping at speeds <= 1Gbps
+  - Fix overhead calculation code to also work for GSO packets
+  - Don't re-implement kvzalloc()
+  - Remove local header include from out-of-tree build (fixes kbuild-bot
+    complaint).
+  - Several fixes to the ACK filter:
+    - Check pskb_may_pull() before deref of transport headers.
+    - Don't run ACK filter logic on split GSO packets
+    - Fix TCP sequence number compare to deal with wraparounds
+
+v3:
+  - Use IS_REACHABLE() macro to fix compilation when sch_cake is
+    built-in and conntrack is a module.
+  - Switch the stats output to use nested netlink attributes instead
+    of a versioned struct.
+  - Remove GPL boilerplate.
+  - Fix array initialisation style.
+
+v2:
+  - Fix kbuild test bot complaint
+  - Clean up the netlink ABI
+  - Fix checkpatch complaints
+  - A few tweaks to the behaviour of cake based on testing carried out
+    while writing the paper.
+
+---
+
+Toke Høiland-Jørgensen (7):
+      sched: Add Common Applications Kept Enhanced (cake) qdisc
+      sch_cake: Add ingress mode
+      sch_cake: Add optional ACK filter
+      sch_cake: Add NAT awareness to packet classifier
+      sch_cake: Add DiffServ handling
+      sch_cake: Add overhead compensation support to the rate shaper
+      sch_cake: Conditionally split GSO segments
+
+
+ include/uapi/linux/pkt_sched.h |  113 +
+ net/sched/Kconfig              |   11 
+ net/sched/Makefile             |    1 
+ net/sched/sch_cake.c           | 3020 ++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 3145 insertions(+)
+ create mode 100644 net/sched/sch_cake.c
