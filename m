@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 11/18] netfilter: lift one-nat-hook-only restriction
-Date: Wed, 23 May 2018 20:42:47 +0200
-Message-ID: <20180523184254.22599-12-pablo@netfilter.org>
+Subject: [PATCH 08/18] netfilter: core: export raw versions of add/delete hook functions
+Date: Wed, 23 May 2018 20:42:44 +0200
+Message-ID: <20180523184254.22599-9-pablo@netfilter.org>
 References: <20180523184254.22599-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -12,143 +12,167 @@ List-Id: netfilter-devel.vger.kernel.org
 
 From: Florian Westphal <fw@strlen.de>
 
-This reverts commit f92b40a8b2645
-("netfilter: core: only allow one nat hook per hook point"), this
-limitation is no longer needed.  The nat core now invokes these
-functions and makes sure that hook evaluation stops after a mapping is
-created and a null binding is created otherwise.
+This will allow the nat core to reuse the nf_hook infrastructure
+to maintain nat lookup functions.
+
+The raw versions don't assume a particular hook location, the
+functions get added/deleted from the hook blob that is passed to the
+functions.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/linux/netfilter.h     |  1 -
- net/netfilter/core.c          |  5 ----
- net/netfilter/nf_tables_api.c | 66 ++-----------------------------------------
- 3 files changed, 2 insertions(+), 70 deletions(-)
+ net/netfilter/core.c         | 75 +++++++++++++++++++++++++++++++-------------
+ net/netfilter/nf_internals.h |  5 +++
+ 2 files changed, 59 insertions(+), 21 deletions(-)
 
-diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
-index 85a1a0b32c66..72f5871b9a0a 100644
---- a/include/linux/netfilter.h
-+++ b/include/linux/netfilter.h
-@@ -67,7 +67,6 @@ struct nf_hook_ops {
- 	struct net_device	*dev;
- 	void			*priv;
- 	u_int8_t		pf;
--	bool			nat_hook;
- 	unsigned int		hooknum;
- 	/* Hooks are ordered in ascending priority. */
- 	int			priority;
 diff --git a/net/netfilter/core.c b/net/netfilter/core.c
-index 5f0ebf9a8d5b..907d6ef8f3c1 100644
+index 0f6b8172fb9a..5f0ebf9a8d5b 100644
 --- a/net/netfilter/core.c
 +++ b/net/netfilter/core.c
-@@ -138,11 +138,6 @@ nf_hook_entries_grow(const struct nf_hook_entries *old,
- 			continue;
- 		}
- 
--		if (reg->nat_hook && orig_ops[i]->nat_hook) {
--			kvfree(new);
--			return ERR_PTR(-EBUSY);
--		}
--
- 		if (inserted || reg->priority > orig_ops[i]->priority) {
- 			new_ops[nhooks] = (void *)orig_ops[i];
- 			new->hooks[nhooks] = old->hooks[i];
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index ded54b2abfbc..a2bb31472aa1 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -74,64 +74,12 @@ static void nft_trans_destroy(struct nft_trans *trans)
- 	kfree(trans);
+@@ -186,9 +186,31 @@ static void hooks_validate(const struct nf_hook_entries *hooks)
+ #endif
  }
  
--/* removal requests are queued in the commit_list, but not acted upon
-- * until after all new rules are in place.
-- *
-- * Therefore, nf_register_net_hook(net, &nat_hook) runs before pending
-- * nf_unregister_net_hook().
-- *
-- * nf_register_net_hook thus fails if a nat hook is already in place
-- * even if the conflicting hook is about to be removed.
-- *
-- * If collision is detected, search commit_log for DELCHAIN matching
-- * the new nat hooknum; if we find one collision is temporary:
-- *
-- * Either transaction is aborted (new/colliding hook is removed), or
-- * transaction is committed (old hook is removed).
-- */
--static bool nf_tables_allow_nat_conflict(const struct net *net,
--					 const struct nf_hook_ops *ops)
--{
--	const struct nft_trans *trans;
--	bool ret = false;
--
--	if (!ops->nat_hook)
--		return false;
--
--	list_for_each_entry(trans, &net->nft.commit_list, list) {
--		const struct nf_hook_ops *pending_ops;
--		const struct nft_chain *pending;
--
--		if (trans->msg_type != NFT_MSG_NEWCHAIN &&
--		    trans->msg_type != NFT_MSG_DELCHAIN)
--			continue;
--
--		pending = trans->ctx.chain;
--		if (!nft_is_base_chain(pending))
--			continue;
--
--		pending_ops = &nft_base_chain(pending)->ops;
--		if (pending_ops->nat_hook &&
--		    pending_ops->pf == ops->pf &&
--		    pending_ops->hooknum == ops->hooknum) {
--			/* other hook registration already pending? */
--			if (trans->msg_type == NFT_MSG_NEWCHAIN)
--				return false;
--
--			ret = true;
--		}
--	}
--
--	return ret;
--}
--
- static int nf_tables_register_hook(struct net *net,
- 				   const struct nft_table *table,
- 				   struct nft_chain *chain)
++int nf_hook_entries_insert_raw(struct nf_hook_entries __rcu **pp,
++				const struct nf_hook_ops *reg)
++{
++	struct nf_hook_entries *new_hooks;
++	struct nf_hook_entries *p;
++
++	p = rcu_dereference_raw(*pp);
++	new_hooks = nf_hook_entries_grow(p, reg);
++	if (IS_ERR(new_hooks))
++		return PTR_ERR(new_hooks);
++
++	hooks_validate(new_hooks);
++
++	rcu_assign_pointer(*pp, new_hooks);
++
++	BUG_ON(p == new_hooks);
++	nf_hook_entries_free(p);
++	return 0;
++}
++EXPORT_SYMBOL_GPL(nf_hook_entries_insert_raw);
++
+ /*
+  * __nf_hook_entries_try_shrink - try to shrink hook array
+  *
++ * @old -- current hook blob at @pp
+  * @pp -- location of hook blob
+  *
+  * Hook unregistration must always succeed, so to-be-removed hooks
+@@ -201,14 +223,14 @@ static void hooks_validate(const struct nf_hook_entries *hooks)
+  *
+  * Returns address to free, or NULL.
+  */
+-static void *__nf_hook_entries_try_shrink(struct nf_hook_entries __rcu **pp)
++static void *__nf_hook_entries_try_shrink(struct nf_hook_entries *old,
++					  struct nf_hook_entries __rcu **pp)
  {
- 	const struct nft_base_chain *basechain;
--	struct nf_hook_ops *ops;
--	int ret;
-+	const struct nf_hook_ops *ops;
+-	struct nf_hook_entries *old, *new = NULL;
+ 	unsigned int i, j, skip = 0, hook_entries;
++	struct nf_hook_entries *new = NULL;
+ 	struct nf_hook_ops **orig_ops;
+ 	struct nf_hook_ops **new_ops;
  
- 	if (table->flags & NFT_TABLE_F_DORMANT ||
- 	    !nft_is_base_chain(chain))
-@@ -143,14 +91,7 @@ static int nf_tables_register_hook(struct net *net,
- 	if (basechain->type->ops_register)
- 		return basechain->type->ops_register(net, ops);
+-	old = nf_entry_dereference(*pp);
+ 	if (WARN_ON_ONCE(!old))
+ 		return NULL;
  
--	ret = nf_register_net_hook(net, ops);
--	if (ret == -EBUSY && nf_tables_allow_nat_conflict(net, ops)) {
--		ops->nat_hook = false;
--		ret = nf_register_net_hook(net, ops);
--		ops->nat_hook = true;
+@@ -347,11 +369,10 @@ static int __nf_register_net_hook(struct net *net, int pf,
+  * This cannot fail, hook unregistration must always succeed.
+  * Therefore replace the to-be-removed hook with a dummy hook.
+  */
+-static void nf_remove_net_hook(struct nf_hook_entries *old,
+-			       const struct nf_hook_ops *unreg, int pf)
++static bool nf_remove_net_hook(struct nf_hook_entries *old,
++			       const struct nf_hook_ops *unreg)
+ {
+ 	struct nf_hook_ops **orig_ops;
+-	bool found = false;
+ 	unsigned int i;
+ 
+ 	orig_ops = nf_hook_entries_get_hook_ops(old);
+@@ -360,21 +381,10 @@ static void nf_remove_net_hook(struct nf_hook_entries *old,
+ 			continue;
+ 		WRITE_ONCE(old->hooks[i].hook, accept_all);
+ 		WRITE_ONCE(orig_ops[i], &dummy_ops);
+-		found = true;
+-		break;
++		return true;
+ 	}
+ 
+-	if (found) {
+-#ifdef CONFIG_NETFILTER_INGRESS
+-		if (pf == NFPROTO_NETDEV && unreg->hooknum == NF_NETDEV_INGRESS)
+-			net_dec_ingress_queue();
+-#endif
+-#ifdef HAVE_JUMP_LABEL
+-		static_key_slow_dec(&nf_hooks_needed[pf][unreg->hooknum]);
+-#endif
+-	} else {
+-		WARN_ONCE(1, "hook not found, pf %d num %d", pf, unreg->hooknum);
 -	}
--
--	return ret;
-+	return nf_register_net_hook(net, ops);
++	return false;
  }
  
- static void nf_tables_unregister_hook(struct net *net,
-@@ -1418,9 +1359,6 @@ static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 genmask,
- 		ops->hook	= hook.type->hooks[ops->hooknum];
- 		ops->dev	= hook.dev;
+ static void __nf_unregister_net_hook(struct net *net, int pf,
+@@ -395,9 +405,19 @@ static void __nf_unregister_net_hook(struct net *net, int pf,
+ 		return;
+ 	}
  
--		if (basechain->type->type == NFT_CHAIN_T_NAT)
--			ops->nat_hook = true;
--
- 		chain->flags |= NFT_BASE_CHAIN;
- 		basechain->policy = policy;
- 	} else {
+-	nf_remove_net_hook(p, reg, pf);
++	if (nf_remove_net_hook(p, reg)) {
++#ifdef CONFIG_NETFILTER_INGRESS
++		if (pf == NFPROTO_NETDEV && reg->hooknum == NF_NETDEV_INGRESS)
++			net_dec_ingress_queue();
++#endif
++#ifdef HAVE_JUMP_LABEL
++		static_key_slow_dec(&nf_hooks_needed[pf][reg->hooknum]);
++#endif
++	} else {
++		WARN_ONCE(1, "hook not found, pf %d num %d", pf, reg->hooknum);
++	}
+ 
+-	p = __nf_hook_entries_try_shrink(pp);
++	p = __nf_hook_entries_try_shrink(p, pp);
+ 	mutex_unlock(&nf_hook_mutex);
+ 	if (!p)
+ 		return;
+@@ -417,6 +437,19 @@ void nf_unregister_net_hook(struct net *net, const struct nf_hook_ops *reg)
+ }
+ EXPORT_SYMBOL(nf_unregister_net_hook);
+ 
++void nf_hook_entries_delete_raw(struct nf_hook_entries __rcu **pp,
++				const struct nf_hook_ops *reg)
++{
++	struct nf_hook_entries *p;
++
++	p = rcu_dereference_raw(*pp);
++	if (nf_remove_net_hook(p, reg)) {
++		p = __nf_hook_entries_try_shrink(p, pp);
++		nf_hook_entries_free(p);
++	}
++}
++EXPORT_SYMBOL_GPL(nf_hook_entries_delete_raw);
++
+ int nf_register_net_hook(struct net *net, const struct nf_hook_ops *reg)
+ {
+ 	int err;
+diff --git a/net/netfilter/nf_internals.h b/net/netfilter/nf_internals.h
+index 18f6d7ae995b..e15779fd58e3 100644
+--- a/net/netfilter/nf_internals.h
++++ b/net/netfilter/nf_internals.h
+@@ -15,4 +15,9 @@ void nf_queue_nf_hook_drop(struct net *net);
+ /* nf_log.c */
+ int __init netfilter_log_init(void);
+ 
++/* core.c */
++void nf_hook_entries_delete_raw(struct nf_hook_entries __rcu **pp,
++				const struct nf_hook_ops *reg);
++int nf_hook_entries_insert_raw(struct nf_hook_entries __rcu **pp,
++				const struct nf_hook_ops *reg);
+ #endif
 -- 
 2.11.0
