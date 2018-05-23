@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 09/18] netfilter: nf_nat: add nat hook register functions to nf_nat
-Date: Wed, 23 May 2018 20:42:45 +0200
-Message-ID: <20180523184254.22599-10-pablo@netfilter.org>
+Subject: [PATCH 16/18] netfilter: add struct nf_nat_hook and use it
+Date: Wed, 23 May 2018 20:42:52 +0200
+Message-ID: <20180523184254.22599-17-pablo@netfilter.org>
 References: <20180523184254.22599-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,241 +10,198 @@ In-Reply-To: <20180523184254.22599-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+Move decode_session() and parse_nat_setup_hook() indirections to struct
+nf_nat_hook structure.
 
-This adds the infrastructure to register nat hooks with the nat core
-instead of the netfilter core.
-
-nat hooks are used to configure nat bindings.  Such hooks are registered
-from ip(6)table_nat or by the nftables core when a nat chain is added.
-
-After next patch, nat hooks will be registered with nf_nat instead of
-netfilter core.  This allows to use many nat lookup functions at the
-same time while doing the real packet rewrite (nat transformation) in
-one place.
-
-This change doesn't convert the intended users yet to ease review.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_nat.h |   4 ++
- net/netfilter/nf_nat_core.c    | 157 +++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 161 insertions(+)
+ include/linux/netfilter.h            | 21 ++++++++++++++++-----
+ include/net/netfilter/nf_nat_core.h  |  7 -------
+ net/netfilter/core.c                 |  8 +++-----
+ net/netfilter/nf_conntrack_core.c    |  5 -----
+ net/netfilter/nf_conntrack_netlink.c | 10 +++++-----
+ net/netfilter/nf_nat_core.c          | 23 ++++++++++++-----------
+ 6 files changed, 36 insertions(+), 38 deletions(-)
 
-diff --git a/include/net/netfilter/nf_nat.h b/include/net/netfilter/nf_nat.h
-index da3d601cadee..a17eb2f8d40e 100644
---- a/include/net/netfilter/nf_nat.h
-+++ b/include/net/netfilter/nf_nat.h
-@@ -75,4 +75,8 @@ static inline bool nf_nat_oif_changed(unsigned int hooknum,
+diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
+index 75ded6f6eebe..e8d09dc028f6 100644
+--- a/include/linux/netfilter.h
++++ b/include/linux/netfilter.h
+@@ -320,18 +320,29 @@ int nf_route(struct net *net, struct dst_entry **dst, struct flowi *fl,
+ int nf_reroute(struct sk_buff *skb, struct nf_queue_entry *entry);
+ 
+ #include <net/flow.h>
+-extern void (*nf_nat_decode_session_hook)(struct sk_buff *, struct flowi *);
++
++struct nf_conn;
++enum nf_nat_manip_type;
++struct nlattr;
++
++struct nf_nat_hook {
++	int (*parse_nat_setup)(struct nf_conn *ct, enum nf_nat_manip_type manip,
++			       const struct nlattr *attr);
++	void (*decode_session)(struct sk_buff *skb, struct flowi *fl);
++};
++
++extern struct nf_nat_hook __rcu *nf_nat_hook;
+ 
+ static inline void
+ nf_nat_decode_session(struct sk_buff *skb, struct flowi *fl, u_int8_t family)
+ {
+ #ifdef CONFIG_NF_NAT_NEEDED
+-	void (*decodefn)(struct sk_buff *, struct flowi *);
++	struct nf_nat_hook *nat_hook;
+ 
+ 	rcu_read_lock();
+-	decodefn = rcu_dereference(nf_nat_decode_session_hook);
+-	if (decodefn)
+-		decodefn(skb, fl);
++	nat_hook = rcu_dereference(nf_nat_hook);
++	if (nat_hook->decode_session)
++		nat_hook->decode_session(skb, fl);
+ 	rcu_read_unlock();
  #endif
  }
+diff --git a/include/net/netfilter/nf_nat_core.h b/include/net/netfilter/nf_nat_core.h
+index c78e9be14b3d..dc7cd0440229 100644
+--- a/include/net/netfilter/nf_nat_core.h
++++ b/include/net/netfilter/nf_nat_core.h
+@@ -26,11 +26,4 @@ static inline int nf_nat_initialized(struct nf_conn *ct,
+ 		return ct->status & IPS_DST_NAT_DONE;
+ }
  
-+int nf_nat_register_fn(struct net *net, const struct nf_hook_ops *ops,
-+		       const struct nf_hook_ops *nat_ops, unsigned int ops_count);
-+void nf_nat_unregister_fn(struct net *net, const struct nf_hook_ops *ops,
-+			  unsigned int ops_count);
+-struct nlattr;
+-
+-extern int
+-(*nfnetlink_parse_nat_setup_hook)(struct nf_conn *ct,
+-				  enum nf_nat_manip_type manip,
+-				  const struct nlattr *attr);
+-
+ #endif /* _NF_NAT_CORE_H */
+diff --git a/net/netfilter/core.c b/net/netfilter/core.c
+index 1bd844ea1d7c..e0ae4aae96f5 100644
+--- a/net/netfilter/core.c
++++ b/net/netfilter/core.c
+@@ -574,6 +574,9 @@ void (*ip_ct_attach)(struct sk_buff *, const struct sk_buff *)
+ 		__rcu __read_mostly;
+ EXPORT_SYMBOL(ip_ct_attach);
+ 
++struct nf_nat_hook __rcu *nf_nat_hook __read_mostly;
++EXPORT_SYMBOL_GPL(nf_nat_hook);
++
+ void nf_ct_attach(struct sk_buff *new, const struct sk_buff *skb)
+ {
+ 	void (*attach)(struct sk_buff *, const struct sk_buff *);
+@@ -608,11 +611,6 @@ const struct nf_conntrack_zone nf_ct_zone_dflt = {
+ EXPORT_SYMBOL_GPL(nf_ct_zone_dflt);
+ #endif /* CONFIG_NF_CONNTRACK */
+ 
+-#ifdef CONFIG_NF_NAT_NEEDED
+-void (*nf_nat_decode_session_hook)(struct sk_buff *, struct flowi *);
+-EXPORT_SYMBOL(nf_nat_decode_session_hook);
+-#endif
+-
+ static void __net_init __netfilter_net_init(struct nf_hook_entries **e, int max)
+ {
+ 	int h;
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 8b2a8644d955..8d109d750073 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -58,11 +58,6 @@
+ 
+ #include "nf_internals.h"
+ 
+-int (*nfnetlink_parse_nat_setup_hook)(struct nf_conn *ct,
+-				      enum nf_nat_manip_type manip,
+-				      const struct nlattr *attr) __read_mostly;
+-EXPORT_SYMBOL_GPL(nfnetlink_parse_nat_setup_hook);
+-
+ __cacheline_aligned_in_smp spinlock_t nf_conntrack_locks[CONNTRACK_LOCKS];
+ EXPORT_SYMBOL_GPL(nf_conntrack_locks);
+ 
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index d807b8770be3..39327a42879f 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -1431,11 +1431,11 @@ ctnetlink_parse_nat_setup(struct nf_conn *ct,
+ 			  enum nf_nat_manip_type manip,
+ 			  const struct nlattr *attr)
+ {
+-	typeof(nfnetlink_parse_nat_setup_hook) parse_nat_setup;
++	struct nf_nat_hook *nat_hook;
+ 	int err;
+ 
+-	parse_nat_setup = rcu_dereference(nfnetlink_parse_nat_setup_hook);
+-	if (!parse_nat_setup) {
++	nat_hook = rcu_dereference(nf_nat_hook);
++	if (!nat_hook) {
+ #ifdef CONFIG_MODULES
+ 		rcu_read_unlock();
+ 		nfnl_unlock(NFNL_SUBSYS_CTNETLINK);
+@@ -1446,13 +1446,13 @@ ctnetlink_parse_nat_setup(struct nf_conn *ct,
+ 		}
+ 		nfnl_lock(NFNL_SUBSYS_CTNETLINK);
+ 		rcu_read_lock();
+-		if (nfnetlink_parse_nat_setup_hook)
++		if (nat_hook->parse_nat_setup)
+ 			return -EAGAIN;
  #endif
+ 		return -EOPNOTSUPP;
+ 	}
+ 
+-	err = parse_nat_setup(ct, manip, attr);
++	err = nat_hook->parse_nat_setup(ct, manip, attr);
+ 	if (err == -EAGAIN) {
+ #ifdef CONFIG_MODULES
+ 		rcu_read_unlock();
 diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
-index 0cd503aacbf0..f531d77dd684 100644
+index 489599b549cf..f4d264676cfe 100644
 --- a/net/netfilter/nf_nat_core.c
 +++ b/net/netfilter/nf_nat_core.c
-@@ -32,6 +32,8 @@
- #include <net/netfilter/nf_conntrack_zones.h>
- #include <linux/netfilter/nf_nat.h>
- 
-+#include "nf_internals.h"
-+
- static spinlock_t nf_nat_locks[CONNTRACK_LOCKS];
- 
- static DEFINE_MUTEX(nf_nat_proto_mutex);
-@@ -39,11 +41,27 @@ static const struct nf_nat_l3proto __rcu *nf_nat_l3protos[NFPROTO_NUMPROTO]
- 						__read_mostly;
- static const struct nf_nat_l4proto __rcu **nf_nat_l4protos[NFPROTO_NUMPROTO]
- 						__read_mostly;
-+static unsigned int nat_net_id __read_mostly;
- 
- static struct hlist_head *nf_nat_bysource __read_mostly;
- static unsigned int nf_nat_htable_size __read_mostly;
- static unsigned int nf_nat_hash_rnd __read_mostly;
- 
-+struct nf_nat_lookup_hook_priv {
-+	struct nf_hook_entries __rcu *entries;
-+
-+	struct rcu_head rcu_head;
-+};
-+
-+struct nf_nat_hooks_net {
-+	struct nf_hook_ops *nat_hook_ops;
-+	unsigned int users;
-+};
-+
-+struct nat_net {
-+	struct nf_nat_hooks_net nat_proto_net[NFPROTO_NUMPROTO];
-+};
-+
- inline const struct nf_nat_l3proto *
- __nf_nat_l3proto_find(u8 family)
- {
-@@ -871,6 +889,138 @@ static struct nf_ct_helper_expectfn follow_master_nat = {
- 	.expectfn	= nf_nat_follow_master,
+@@ -1026,6 +1026,13 @@ static struct pernet_operations nat_net_ops = {
+ 	.size = sizeof(struct nat_net),
  };
  
-+int nf_nat_register_fn(struct net *net, const struct nf_hook_ops *ops,
-+		       const struct nf_hook_ops *orig_nat_ops, unsigned int ops_count)
-+{
-+	struct nat_net *nat_net = net_generic(net, nat_net_id);
-+	struct nf_nat_hooks_net *nat_proto_net;
-+	struct nf_nat_lookup_hook_priv *priv;
-+	unsigned int hooknum = ops->hooknum;
-+	struct nf_hook_ops *nat_ops;
-+	int i, ret;
-+
-+	if (WARN_ON_ONCE(ops->pf >= ARRAY_SIZE(nat_net->nat_proto_net)))
-+		return -EINVAL;
-+
-+	nat_proto_net = &nat_net->nat_proto_net[ops->pf];
-+
-+	for (i = 0; i < ops_count; i++) {
-+		if (WARN_ON(orig_nat_ops[i].pf != ops->pf))
-+			return -EINVAL;
-+		if (orig_nat_ops[i].hooknum == hooknum) {
-+			hooknum = i;
-+			break;
-+		}
-+	}
-+
-+	if (WARN_ON_ONCE(i == ops_count))
-+		return -EINVAL;
-+
-+	mutex_lock(&nf_nat_proto_mutex);
-+	if (!nat_proto_net->nat_hook_ops) {
-+		WARN_ON(nat_proto_net->users != 0);
-+
-+		nat_ops = kmemdup(orig_nat_ops, sizeof(*orig_nat_ops) * ops_count, GFP_KERNEL);
-+		if (!nat_ops) {
-+			mutex_unlock(&nf_nat_proto_mutex);
-+			return -ENOMEM;
-+		}
-+
-+		for (i = 0; i < ops_count; i++) {
-+			priv = kzalloc(sizeof(*priv), GFP_KERNEL);
-+			if (priv) {
-+				nat_ops[i].priv = priv;
-+				continue;
-+			}
-+			mutex_unlock(&nf_nat_proto_mutex);
-+			while (i)
-+				kfree(nat_ops[--i].priv);
-+			kfree(nat_ops);
-+			return -ENOMEM;
-+		}
-+
-+		ret = nf_register_net_hooks(net, nat_ops, ops_count);
-+		if (ret < 0) {
-+			mutex_unlock(&nf_nat_proto_mutex);
-+			for (i = 0; i < ops_count; i++)
-+				kfree(nat_ops[i].priv);
-+			kfree(nat_ops);
-+			return ret;
-+		}
-+
-+		nat_proto_net->nat_hook_ops = nat_ops;
-+	}
-+
-+	nat_ops = nat_proto_net->nat_hook_ops;
-+	priv = nat_ops[hooknum].priv;
-+	if (WARN_ON_ONCE(!priv)) {
-+		mutex_unlock(&nf_nat_proto_mutex);
-+		return -EOPNOTSUPP;
-+	}
-+
-+	ret = nf_hook_entries_insert_raw(&priv->entries, ops);
-+	if (ret == 0)
-+		nat_proto_net->users++;
-+
-+	mutex_unlock(&nf_nat_proto_mutex);
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(nf_nat_register_fn);
-+
-+void nf_nat_unregister_fn(struct net *net, const struct nf_hook_ops *ops,
-+		          unsigned int ops_count)
-+{
-+	struct nat_net *nat_net = net_generic(net, nat_net_id);
-+	struct nf_nat_hooks_net *nat_proto_net;
-+	struct nf_nat_lookup_hook_priv *priv;
-+	struct nf_hook_ops *nat_ops;
-+	int hooknum = ops->hooknum;
-+	int i;
-+
-+	if (ops->pf >= ARRAY_SIZE(nat_net->nat_proto_net))
-+		return;
-+
-+	nat_proto_net = &nat_net->nat_proto_net[ops->pf];
-+
-+	mutex_lock(&nf_nat_proto_mutex);
-+	if (WARN_ON(nat_proto_net->users == 0))
-+		goto unlock;
-+
-+	nat_proto_net->users--;
-+
-+	nat_ops = nat_proto_net->nat_hook_ops;
-+	for (i = 0; i < ops_count; i++) {
-+		if (nat_ops[i].hooknum == hooknum) {
-+			hooknum = i;
-+			break;
-+		}
-+	}
-+	if (WARN_ON_ONCE(i == ops_count))
-+		goto unlock;
-+	priv = nat_ops[hooknum].priv;
-+	nf_hook_entries_delete_raw(&priv->entries, ops);
-+
-+	if (nat_proto_net->users == 0) {
-+		nf_unregister_net_hooks(net, nat_ops, ops_count);
-+
-+		for (i = 0; i < ops_count; i++) {
-+			priv = nat_ops[i].priv;
-+			kfree_rcu(priv, rcu_head);
-+		}
-+
-+		nat_proto_net->nat_hook_ops = NULL;
-+		kfree(nat_ops);
-+	}
-+unlock:
-+	mutex_unlock(&nf_nat_proto_mutex);
-+}
-+EXPORT_SYMBOL_GPL(nf_nat_unregister_fn);
-+
-+static struct pernet_operations nat_net_ops = {
-+	.id = &nat_net_id,
-+	.size = sizeof(struct nat_net),
++struct nf_nat_hook nat_hook = {
++	.parse_nat_setup	= nfnetlink_parse_nat_setup,
++#ifdef CONFIG_XFRM
++	.decode_session		= __nf_nat_decode_session,
++#endif
 +};
 +
  static int __init nf_nat_init(void)
  {
  	int ret, i;
-@@ -894,6 +1044,12 @@ static int __init nf_nat_init(void)
- 	for (i = 0; i < CONNTRACK_LOCKS; i++)
- 		spin_lock_init(&nf_nat_locks[i]);
+@@ -1057,13 +1064,9 @@ static int __init nf_nat_init(void)
  
-+	ret = register_pernet_subsys(&nat_net_ops);
-+	if (ret < 0) {
-+		nf_ct_extend_unregister(&nat_extend);
-+		return ret;
-+	}
-+
  	nf_ct_helper_expectfn_register(&follow_master_nat);
  
- 	BUG_ON(nfnetlink_parse_nat_setup_hook != NULL);
-@@ -925,6 +1081,7 @@ static void __exit nf_nat_cleanup(void)
- 		kfree(nf_nat_l4protos[i]);
- 	synchronize_net();
- 	nf_ct_free_hashtable(nf_nat_bysource, nf_nat_htable_size);
-+	unregister_pernet_subsys(&nat_net_ops);
+-	BUG_ON(nfnetlink_parse_nat_setup_hook != NULL);
+-	RCU_INIT_POINTER(nfnetlink_parse_nat_setup_hook,
+-			   nfnetlink_parse_nat_setup);
+-#ifdef CONFIG_XFRM
+-	BUG_ON(nf_nat_decode_session_hook != NULL);
+-	RCU_INIT_POINTER(nf_nat_decode_session_hook, __nf_nat_decode_session);
+-#endif
++	WARN_ON(nf_nat_hook != NULL);
++	RCU_INIT_POINTER(nf_nat_hook, &nat_hook);
++
+ 	return 0;
  }
  
- MODULE_LICENSE("GPL");
+@@ -1076,10 +1079,8 @@ static void __exit nf_nat_cleanup(void)
+ 
+ 	nf_ct_extend_unregister(&nat_extend);
+ 	nf_ct_helper_expectfn_unregister(&follow_master_nat);
+-	RCU_INIT_POINTER(nfnetlink_parse_nat_setup_hook, NULL);
+-#ifdef CONFIG_XFRM
+-	RCU_INIT_POINTER(nf_nat_decode_session_hook, NULL);
+-#endif
++	RCU_INIT_POINTER(nf_nat_hook, NULL);
++
+ 	synchronize_rcu();
+ 
+ 	for (i = 0; i < NFPROTO_NUMPROTO; i++)
 -- 
 2.11.0
