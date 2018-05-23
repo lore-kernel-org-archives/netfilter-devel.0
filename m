@@ -1,34 +1,41 @@
 From: David Miller <davem@davemloft.net>
-Subject: Re: [Cake] [PATCH net-next v15 4/7] sch_cake: Add NAT awareness to
- packet classifier
-Date: Wed, 23 May 2018 16:39:10 -0400 (EDT)
-Message-ID: <20180523.163910.2061435036559770900.davem@davemloft.net>
-References: <91739F64-20B7-4C56-A7A3-AB8C71B9437C@gmail.com>
-        <20180523.160403.20551254565100734.davem@davemloft.net>
-        <370B23D9-E929-4A73-BB7C-C1BE4A01C7E6@gmail.com>
+Subject: Re: [PATCH net-next v15 4/7] sch_cake: Add NAT awareness to packet
+ classifier
+Date: Wed, 23 May 2018 16:41:52 -0400 (EDT)
+Message-ID: <20180523.164152.387997944739062215.davem@davemloft.net>
+References: <152699745846.21931.4558451708304709296.stgit@alrua-kau>
+        <20180523.144442.864194409238516747.davem@davemloft.net>
+        <87in7exg3d.fsf@toke.dk>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: toke@toke.dk, cake@lists.bufferbloat.net, netdev@vger.kernel.org,
+Content-Type: Text/Plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8BIT
+Cc: netdev@vger.kernel.org, cake@lists.bufferbloat.net,
         netfilter-devel@vger.kernel.org
-To: chromatix99@gmail.com
+To: toke@toke.dk
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <370B23D9-E929-4A73-BB7C-C1BE4A01C7E6@gmail.com>
+In-Reply-To: <87in7exg3d.fsf@toke.dk>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Jonathan Morton <chromatix99@gmail.com>
-Date: Wed, 23 May 2018 23:33:04 +0300
+From: Toke Høiland-Jørgensen <toke@toke.dk>
+Date: Wed, 23 May 2018 22:38:30 +0200
 
-> Now I'm *really* confused.
-> 
-> Are you saying that the user has to set up their own conntrack
-> mechanism using extra userspace commands?  Because complicating the
-> setup process that way runs directly counter to Cake's design
-> philosophy.
+> How would this work?
 
-I mean not anything filtering or firewall related.
-
-We have a full flow dissector in the networking core, which often runs
-on every RX packet anyways.  Record what we need and use it on egress
+On egress the core networking flow dissector records what you need
+somewhere in SKB or wherever.  You later retrieve it at egress time
 after NAT has occurred.
+
+> It's about making sure the per-host fairness works when NATing, so
+> we can distribute bandwidth between the hosts on the local LAN
+> regardless of how many flows they open.
+
+Ok, understood.
+
+> But it's not unreasonable to expect people who do NAT in eBPF to
+> also set skb->tc_classid if they want pre-nat host fairness, is it?
+
+And core networking can do it as well.
+
+Please remove this conntrack dependency, I don't think it is necessary
+and it is very short sighted.
