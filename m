@@ -1,178 +1,49 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 08/18] netfilter: core: export raw versions of add/delete hook functions
-Date: Wed, 23 May 2018 20:42:44 +0200
-Message-ID: <20180523184254.22599-9-pablo@netfilter.org>
-References: <20180523184254.22599-1-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH net-next v15 4/7] sch_cake: Add NAT awareness to packet
+ classifier
+Date: Wed, 23 May 2018 14:44:42 -0400 (EDT)
+Message-ID: <20180523.144442.864194409238516747.davem@davemloft.net>
+References: <152699741881.21931.11656377745581563912.stgit@alrua-kau>
+        <152699745846.21931.4558451708304709296.stgit@alrua-kau>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8BIT
+Cc: netdev@vger.kernel.org, cake@lists.bufferbloat.net,
+        netfilter-devel@vger.kernel.org
+To: toke@toke.dk
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180523184254.22599-1-pablo@netfilter.org>
+In-Reply-To: <152699745846.21931.4558451708304709296.stgit@alrua-kau>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+From: Toke Høiland-Jørgensen <toke@toke.dk>
+Date: Tue, 22 May 2018 15:57:38 +0200
 
-This will allow the nat core to reuse the nf_hook infrastructure
-to maintain nat lookup functions.
+> When CAKE is deployed on a gateway that also performs NAT (which is a
+> common deployment mode), the host fairness mechanism cannot distinguish
+> internal hosts from each other, and so fails to work correctly.
+> 
+> To fix this, we add an optional NAT awareness mode, which will query the
+> kernel conntrack mechanism to obtain the pre-NAT addresses for each packet
+> and use that in the flow and host hashing.
+> 
+> When the shaper is enabled and the host is already performing NAT, the cost
+> of this lookup is negligible. However, in unlimited mode with no NAT being
+> performed, there is a significant CPU cost at higher bandwidths. For this
+> reason, the feature is turned off by default.
+> 
+> Cc: netfilter-devel@vger.kernel.org
+> Signed-off-by: Toke Høiland-Jørgensen <toke@toke.dk>
 
-The raw versions don't assume a particular hook location, the
-functions get added/deleted from the hook blob that is passed to the
-functions.
+This is really pushing the limits of what a packet scheduler can
+require for correct operation.  And this creates an incredibly
+ugly dependency.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/core.c         | 75 +++++++++++++++++++++++++++++++-------------
- net/netfilter/nf_internals.h |  5 +++
- 2 files changed, 59 insertions(+), 21 deletions(-)
+I'd much rather you do something NAT method agnostic, like save
+or compute the necessary information on ingress and then later
+use it on egress.
 
-diff --git a/net/netfilter/core.c b/net/netfilter/core.c
-index 0f6b8172fb9a..5f0ebf9a8d5b 100644
---- a/net/netfilter/core.c
-+++ b/net/netfilter/core.c
-@@ -186,9 +186,31 @@ static void hooks_validate(const struct nf_hook_entries *hooks)
- #endif
- }
- 
-+int nf_hook_entries_insert_raw(struct nf_hook_entries __rcu **pp,
-+				const struct nf_hook_ops *reg)
-+{
-+	struct nf_hook_entries *new_hooks;
-+	struct nf_hook_entries *p;
-+
-+	p = rcu_dereference_raw(*pp);
-+	new_hooks = nf_hook_entries_grow(p, reg);
-+	if (IS_ERR(new_hooks))
-+		return PTR_ERR(new_hooks);
-+
-+	hooks_validate(new_hooks);
-+
-+	rcu_assign_pointer(*pp, new_hooks);
-+
-+	BUG_ON(p == new_hooks);
-+	nf_hook_entries_free(p);
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(nf_hook_entries_insert_raw);
-+
- /*
-  * __nf_hook_entries_try_shrink - try to shrink hook array
-  *
-+ * @old -- current hook blob at @pp
-  * @pp -- location of hook blob
-  *
-  * Hook unregistration must always succeed, so to-be-removed hooks
-@@ -201,14 +223,14 @@ static void hooks_validate(const struct nf_hook_entries *hooks)
-  *
-  * Returns address to free, or NULL.
-  */
--static void *__nf_hook_entries_try_shrink(struct nf_hook_entries __rcu **pp)
-+static void *__nf_hook_entries_try_shrink(struct nf_hook_entries *old,
-+					  struct nf_hook_entries __rcu **pp)
- {
--	struct nf_hook_entries *old, *new = NULL;
- 	unsigned int i, j, skip = 0, hook_entries;
-+	struct nf_hook_entries *new = NULL;
- 	struct nf_hook_ops **orig_ops;
- 	struct nf_hook_ops **new_ops;
- 
--	old = nf_entry_dereference(*pp);
- 	if (WARN_ON_ONCE(!old))
- 		return NULL;
- 
-@@ -347,11 +369,10 @@ static int __nf_register_net_hook(struct net *net, int pf,
-  * This cannot fail, hook unregistration must always succeed.
-  * Therefore replace the to-be-removed hook with a dummy hook.
-  */
--static void nf_remove_net_hook(struct nf_hook_entries *old,
--			       const struct nf_hook_ops *unreg, int pf)
-+static bool nf_remove_net_hook(struct nf_hook_entries *old,
-+			       const struct nf_hook_ops *unreg)
- {
- 	struct nf_hook_ops **orig_ops;
--	bool found = false;
- 	unsigned int i;
- 
- 	orig_ops = nf_hook_entries_get_hook_ops(old);
-@@ -360,21 +381,10 @@ static void nf_remove_net_hook(struct nf_hook_entries *old,
- 			continue;
- 		WRITE_ONCE(old->hooks[i].hook, accept_all);
- 		WRITE_ONCE(orig_ops[i], &dummy_ops);
--		found = true;
--		break;
-+		return true;
- 	}
- 
--	if (found) {
--#ifdef CONFIG_NETFILTER_INGRESS
--		if (pf == NFPROTO_NETDEV && unreg->hooknum == NF_NETDEV_INGRESS)
--			net_dec_ingress_queue();
--#endif
--#ifdef HAVE_JUMP_LABEL
--		static_key_slow_dec(&nf_hooks_needed[pf][unreg->hooknum]);
--#endif
--	} else {
--		WARN_ONCE(1, "hook not found, pf %d num %d", pf, unreg->hooknum);
--	}
-+	return false;
- }
- 
- static void __nf_unregister_net_hook(struct net *net, int pf,
-@@ -395,9 +405,19 @@ static void __nf_unregister_net_hook(struct net *net, int pf,
- 		return;
- 	}
- 
--	nf_remove_net_hook(p, reg, pf);
-+	if (nf_remove_net_hook(p, reg)) {
-+#ifdef CONFIG_NETFILTER_INGRESS
-+		if (pf == NFPROTO_NETDEV && reg->hooknum == NF_NETDEV_INGRESS)
-+			net_dec_ingress_queue();
-+#endif
-+#ifdef HAVE_JUMP_LABEL
-+		static_key_slow_dec(&nf_hooks_needed[pf][reg->hooknum]);
-+#endif
-+	} else {
-+		WARN_ONCE(1, "hook not found, pf %d num %d", pf, reg->hooknum);
-+	}
- 
--	p = __nf_hook_entries_try_shrink(pp);
-+	p = __nf_hook_entries_try_shrink(p, pp);
- 	mutex_unlock(&nf_hook_mutex);
- 	if (!p)
- 		return;
-@@ -417,6 +437,19 @@ void nf_unregister_net_hook(struct net *net, const struct nf_hook_ops *reg)
- }
- EXPORT_SYMBOL(nf_unregister_net_hook);
- 
-+void nf_hook_entries_delete_raw(struct nf_hook_entries __rcu **pp,
-+				const struct nf_hook_ops *reg)
-+{
-+	struct nf_hook_entries *p;
-+
-+	p = rcu_dereference_raw(*pp);
-+	if (nf_remove_net_hook(p, reg)) {
-+		p = __nf_hook_entries_try_shrink(p, pp);
-+		nf_hook_entries_free(p);
-+	}
-+}
-+EXPORT_SYMBOL_GPL(nf_hook_entries_delete_raw);
-+
- int nf_register_net_hook(struct net *net, const struct nf_hook_ops *reg)
- {
- 	int err;
-diff --git a/net/netfilter/nf_internals.h b/net/netfilter/nf_internals.h
-index 18f6d7ae995b..e15779fd58e3 100644
---- a/net/netfilter/nf_internals.h
-+++ b/net/netfilter/nf_internals.h
-@@ -15,4 +15,9 @@ void nf_queue_nf_hook_drop(struct net *net);
- /* nf_log.c */
- int __init netfilter_log_init(void);
- 
-+/* core.c */
-+void nf_hook_entries_delete_raw(struct nf_hook_entries __rcu **pp,
-+				const struct nf_hook_ops *reg);
-+int nf_hook_entries_insert_raw(struct nf_hook_entries __rcu **pp,
-+				const struct nf_hook_ops *reg);
- #endif
--- 
-2.11.0
+Because what you have here will completely break when someone does NAT
+using eBPF, act_nat, or similar.
+
+There is even skb->rxhash, be creative :-)
