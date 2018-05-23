@@ -1,152 +1,271 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 00/18] Netfilter updates for net-next
-Date: Wed, 23 May 2018 20:42:36 +0200
-Message-ID: <20180523184254.22599-1-pablo@netfilter.org>
+Subject: [PATCH 04/18] netfilter: nft_hash: add map lookups for hashing operations
+Date: Wed, 23 May 2018 20:42:40 +0200
+Message-ID: <20180523184254.22599-5-pablo@netfilter.org>
+References: <20180523184254.22599-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20180523184254.22599-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi David,
+From: Laura Garcia Liebana <nevola@gmail.com>
 
-The following patchset contains Netfilter updates for your net-next
-tree, they are:
+This patch creates new attributes to accept a map as argument and
+then perform the lookup with the generated hash accordingly.
 
-1) Remove obsolete nf_log tracing from nf_tables, from Florian Westphal.
+Both current hash functions are supported: Jenkins and Symmetric Hash.
 
-2) Add support for map lookups to numgen, random and hash expressions,
-   from Laura Garcia.
-
-3) Allow to register nat hooks for iptables and nftables at the same
-   time. Patchset from Florian Westpha.
-
-4) Timeout support for rbtree sets.
-
-5) ip6_rpfilter works needs interface for link-local addresses, from
-   Vincent Bernat.
-
-6) Add nf_ct_hook and nf_nat_hook structures and use them.
-
-7) Do not drop packets on packets raceing to insert conntrack entries
-   into hashes, this is particularly a problem in nfqueue setups.
-
-8) Address fallout from xt_osf separation to nf_osf, patches
-   from Florian Westphal and Fernando Mancera.
-
-9) Remove reference to struct nft_af_info, which doesn't exist anymore.
-   From Taehee Yoo.
-
-This batch comes with is a conflict between 25fd386e0bc0 ("netfilter:
-core: add missing __rcu annotation") in your tree and 2c205dd3981f
-("netfilter: add struct nf_nat_hook and use it") coming in this batch.
-This conflict can be solved by leaving the __rcu tag on
-__netfilter_net_init() - added by 25fd386e0bc0 - and remove all code
-related to nf_nat_decode_session_hook - which is gone after
-2c205dd3981f, as described by:
-
-diff --cc net/netfilter/core.c
-index e0ae4aae96f5,206fb2c4c319..168af54db975
---- a/net/netfilter/core.c
-+++ b/net/netfilter/core.c
-@@@ -611,7 -580,13 +611,8 @@@ const struct nf_conntrack_zone nf_ct_zo
-  EXPORT_SYMBOL_GPL(nf_ct_zone_dflt);
-  #endif /* CONFIG_NF_CONNTRACK */
-  
-- static void __net_init __netfilter_net_init(struct nf_hook_entries **e, int max)
- -#ifdef CONFIG_NF_NAT_NEEDED
- -void (*nf_nat_decode_session_hook)(struct sk_buff *, struct flowi *);
- -EXPORT_SYMBOL(nf_nat_decode_session_hook);
- -#endif
- -
-+ static void __net_init
-+ __netfilter_net_init(struct nf_hook_entries __rcu **e, int max)
-  {
-  	int h;
-  
-
-I can also merge your net-next tree into nf-next, solve the conflict and
-resend the pull request if you prefer so.
-
-You can pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git
-
-Thanks.
-
-----------------------------------------------------------------
-
-The following changes since commit 289e1f4e9e4a09c73a1c0152bb93855ea351ccda:
-
-  net: ipv4: ipconfig: fix unused variable (2018-05-13 20:27:25 -0400)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git HEAD
-
-for you to fetch changes up to 0c6bca747111dee19aa48c8f73d77fc85fcb8dd0:
-
-  netfilter: nf_tables: remove nft_af_info. (2018-05-23 12:16:25 +0200)
-
-----------------------------------------------------------------
-Fernando Fernandez Mancera (1):
-      netfilter: make NF_OSF non-visible symbol
-
-Florian Westphal (9):
-      netfilter: fix fallout from xt/nf osf separation
-      netfilter: nf_tables: remove old nf_log based tracing
-      netfilter: nf_nat: move common nat code to nat core
-      netfilter: xtables: allow table definitions not backed by hook_ops
-      netfilter: nf_tables: allow chain type to override hook register
-      netfilter: core: export raw versions of add/delete hook functions
-      netfilter: nf_nat: add nat hook register functions to nf_nat
-      netfilter: nf_nat: add nat type hooks to nat core
-      netfilter: lift one-nat-hook-only restriction
-
-Laura Garcia Liebana (2):
-      netfilter: nft_numgen: add map lookups for numgen random operations
-      netfilter: nft_hash: add map lookups for hashing operations
-
-Pablo Neira Ayuso (4):
-      netfilter: nft_set_rbtree: add timeout support
-      netfilter: add struct nf_ct_hook and use it
-      netfilter: add struct nf_nat_hook and use it
-      netfilter: nfnetlink_queue: resolve clash for unconfirmed conntracks
-
-Taehee Yoo (1):
-      netfilter: nf_tables: remove nft_af_info.
-
-Vincent Bernat (1):
-      netfilter: ip6t_rpfilter: provide input interface for route lookup
-
- include/linux/netfilter.h                |  34 +++-
- include/linux/netfilter/nf_osf.h         |   6 +
- include/net/netfilter/nf_nat.h           |   4 +
- include/net/netfilter/nf_nat_core.h      |  11 +-
- include/net/netfilter/nf_nat_l3proto.h   |  52 +-----
- include/net/netfilter/nf_tables.h        |   8 +-
- include/net/netns/nftables.h             |   2 -
- include/uapi/linux/netfilter/nf_osf.h    |   8 +-
+Signed-off-by: Laura Garcia Liebana <nevola@gmail.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
  include/uapi/linux/netfilter/nf_tables.h |   4 +
- net/ipv4/netfilter/ip_tables.c           |   5 +-
- net/ipv4/netfilter/iptable_nat.c         |  85 ++++-----
- net/ipv4/netfilter/nf_nat_l3proto_ipv4.c | 135 ++++++--------
- net/ipv4/netfilter/nft_chain_nat_ipv4.c  |  52 ++----
- net/ipv6/netfilter/ip6_tables.c          |   5 +-
- net/ipv6/netfilter/ip6t_rpfilter.c       |   2 +
- net/ipv6/netfilter/ip6table_nat.c        |  84 ++++-----
- net/ipv6/netfilter/nf_nat_l3proto_ipv6.c | 129 ++++++--------
- net/ipv6/netfilter/nft_chain_nat_ipv6.c  |  48 ++---
- net/netfilter/Kconfig                    |   2 +-
- net/netfilter/core.c                     | 102 +++++++----
- net/netfilter/nf_conntrack_core.c        |  91 +++++++++-
- net/netfilter/nf_conntrack_netlink.c     |  10 +-
- net/netfilter/nf_internals.h             |   5 +
- net/netfilter/nf_nat_core.c              | 294 ++++++++++++++++++++++++++++---
- net/netfilter/nf_tables_api.c            |  87 ++-------
- net/netfilter/nf_tables_core.c           |  29 +--
- net/netfilter/nfnetlink_queue.c          |  28 ++-
- net/netfilter/nft_hash.c                 | 131 +++++++++++++-
- net/netfilter/nft_numgen.c               |  76 +++++++-
- net/netfilter/nft_set_rbtree.c           |  75 +++++++-
- 30 files changed, 1033 insertions(+), 571 deletions(-)
+ net/netfilter/nft_hash.c                 | 131 ++++++++++++++++++++++++++++++-
+ 2 files changed, 134 insertions(+), 1 deletion(-)
+
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index ce031cf72288..9c71f024f9cc 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -856,6 +856,8 @@ enum nft_hash_types {
+  * @NFTA_HASH_SEED: seed value (NLA_U32)
+  * @NFTA_HASH_OFFSET: add this offset value to hash result (NLA_U32)
+  * @NFTA_HASH_TYPE: hash operation (NLA_U32: nft_hash_types)
++ * @NFTA_HASH_SET_NAME: name of the map to lookup (NLA_STRING)
++ * @NFTA_HASH_SET_ID: id of the map (NLA_U32)
+  */
+ enum nft_hash_attributes {
+ 	NFTA_HASH_UNSPEC,
+@@ -866,6 +868,8 @@ enum nft_hash_attributes {
+ 	NFTA_HASH_SEED,
+ 	NFTA_HASH_OFFSET,
+ 	NFTA_HASH_TYPE,
++	NFTA_HASH_SET_NAME,
++	NFTA_HASH_SET_ID,
+ 	__NFTA_HASH_MAX,
+ };
+ #define NFTA_HASH_MAX	(__NFTA_HASH_MAX - 1)
+diff --git a/net/netfilter/nft_hash.c b/net/netfilter/nft_hash.c
+index e235c17f1b8b..f0fc21f88775 100644
+--- a/net/netfilter/nft_hash.c
++++ b/net/netfilter/nft_hash.c
+@@ -25,6 +25,7 @@ struct nft_jhash {
+ 	u32			modulus;
+ 	u32			seed;
+ 	u32			offset;
++	struct nft_set		*map;
+ };
+ 
+ static void nft_jhash_eval(const struct nft_expr *expr,
+@@ -35,14 +36,39 @@ static void nft_jhash_eval(const struct nft_expr *expr,
+ 	const void *data = &regs->data[priv->sreg];
+ 	u32 h;
+ 
+-	h = reciprocal_scale(jhash(data, priv->len, priv->seed), priv->modulus);
++	h = reciprocal_scale(jhash(data, priv->len, priv->seed),
++			     priv->modulus);
++
+ 	regs->data[priv->dreg] = h + priv->offset;
+ }
+ 
++static void nft_jhash_map_eval(const struct nft_expr *expr,
++			       struct nft_regs *regs,
++			       const struct nft_pktinfo *pkt)
++{
++	struct nft_jhash *priv = nft_expr_priv(expr);
++	const void *data = &regs->data[priv->sreg];
++	const struct nft_set *map = priv->map;
++	const struct nft_set_ext *ext;
++	u32 result;
++	bool found;
++
++	result = reciprocal_scale(jhash(data, priv->len, priv->seed),
++					priv->modulus) + priv->offset;
++
++	found = map->ops->lookup(nft_net(pkt), map, &result, &ext);
++	if (!found)
++		return;
++
++	nft_data_copy(&regs->data[priv->dreg],
++		      nft_set_ext_data(ext), map->dlen);
++}
++
+ struct nft_symhash {
+ 	enum nft_registers      dreg:8;
+ 	u32			modulus;
+ 	u32			offset;
++	struct nft_set		*map;
+ };
+ 
+ static void nft_symhash_eval(const struct nft_expr *expr,
+@@ -58,6 +84,28 @@ static void nft_symhash_eval(const struct nft_expr *expr,
+ 	regs->data[priv->dreg] = h + priv->offset;
+ }
+ 
++static void nft_symhash_map_eval(const struct nft_expr *expr,
++				 struct nft_regs *regs,
++				 const struct nft_pktinfo *pkt)
++{
++	struct nft_symhash *priv = nft_expr_priv(expr);
++	struct sk_buff *skb = pkt->skb;
++	const struct nft_set *map = priv->map;
++	const struct nft_set_ext *ext;
++	u32 result;
++	bool found;
++
++	result = reciprocal_scale(__skb_get_hash_symmetric(skb),
++				  priv->modulus) + priv->offset;
++
++	found = map->ops->lookup(nft_net(pkt), map, &result, &ext);
++	if (!found)
++		return;
++
++	nft_data_copy(&regs->data[priv->dreg],
++		      nft_set_ext_data(ext), map->dlen);
++}
++
+ static const struct nla_policy nft_hash_policy[NFTA_HASH_MAX + 1] = {
+ 	[NFTA_HASH_SREG]	= { .type = NLA_U32 },
+ 	[NFTA_HASH_DREG]	= { .type = NLA_U32 },
+@@ -66,6 +114,9 @@ static const struct nla_policy nft_hash_policy[NFTA_HASH_MAX + 1] = {
+ 	[NFTA_HASH_SEED]	= { .type = NLA_U32 },
+ 	[NFTA_HASH_OFFSET]	= { .type = NLA_U32 },
+ 	[NFTA_HASH_TYPE]	= { .type = NLA_U32 },
++	[NFTA_HASH_SET_NAME]	= { .type = NLA_STRING,
++				    .len = NFT_SET_MAXNAMELEN - 1 },
++	[NFTA_HASH_SET_ID]	= { .type = NLA_U32 },
+ };
+ 
+ static int nft_jhash_init(const struct nft_ctx *ctx,
+@@ -115,6 +166,23 @@ static int nft_jhash_init(const struct nft_ctx *ctx,
+ 					   NFT_DATA_VALUE, sizeof(u32));
+ }
+ 
++static int nft_jhash_map_init(const struct nft_ctx *ctx,
++			      const struct nft_expr *expr,
++			      const struct nlattr * const tb[])
++{
++	struct nft_jhash *priv = nft_expr_priv(expr);
++	u8 genmask = nft_genmask_next(ctx->net);
++
++	nft_jhash_init(ctx, expr, tb);
++	priv->map = nft_set_lookup_global(ctx->net, ctx->table,
++					  tb[NFTA_HASH_SET_NAME],
++					  tb[NFTA_HASH_SET_ID], genmask);
++	if (IS_ERR(priv->map))
++		return PTR_ERR(priv->map);
++
++	return 0;
++}
++
+ static int nft_symhash_init(const struct nft_ctx *ctx,
+ 			    const struct nft_expr *expr,
+ 			    const struct nlattr * const tb[])
+@@ -141,6 +209,23 @@ static int nft_symhash_init(const struct nft_ctx *ctx,
+ 					   NFT_DATA_VALUE, sizeof(u32));
+ }
+ 
++static int nft_symhash_map_init(const struct nft_ctx *ctx,
++				const struct nft_expr *expr,
++				const struct nlattr * const tb[])
++{
++	struct nft_jhash *priv = nft_expr_priv(expr);
++	u8 genmask = nft_genmask_next(ctx->net);
++
++	nft_symhash_init(ctx, expr, tb);
++	priv->map = nft_set_lookup_global(ctx->net, ctx->table,
++					  tb[NFTA_HASH_SET_NAME],
++					  tb[NFTA_HASH_SET_ID], genmask);
++	if (IS_ERR(priv->map))
++		return PTR_ERR(priv->map);
++
++	return 0;
++}
++
+ static int nft_jhash_dump(struct sk_buff *skb,
+ 			  const struct nft_expr *expr)
+ {
+@@ -168,6 +253,18 @@ static int nft_jhash_dump(struct sk_buff *skb,
+ 	return -1;
+ }
+ 
++static int nft_jhash_map_dump(struct sk_buff *skb,
++			       const struct nft_expr *expr)
++{
++	const struct nft_jhash *priv = nft_expr_priv(expr);
++
++	if (nft_jhash_dump(skb, expr) ||
++	    nla_put_string(skb, NFTA_HASH_SET_NAME, priv->map->name))
++		return -1;
++
++	return 0;
++}
++
+ static int nft_symhash_dump(struct sk_buff *skb,
+ 			    const struct nft_expr *expr)
+ {
+@@ -188,6 +285,18 @@ static int nft_symhash_dump(struct sk_buff *skb,
+ 	return -1;
+ }
+ 
++static int nft_symhash_map_dump(struct sk_buff *skb,
++				const struct nft_expr *expr)
++{
++	const struct nft_symhash *priv = nft_expr_priv(expr);
++
++	if (nft_symhash_dump(skb, expr) ||
++	    nla_put_string(skb, NFTA_HASH_SET_NAME, priv->map->name))
++		return -1;
++
++	return 0;
++}
++
+ static struct nft_expr_type nft_hash_type;
+ static const struct nft_expr_ops nft_jhash_ops = {
+ 	.type		= &nft_hash_type,
+@@ -197,6 +306,14 @@ static const struct nft_expr_ops nft_jhash_ops = {
+ 	.dump		= nft_jhash_dump,
+ };
+ 
++static const struct nft_expr_ops nft_jhash_map_ops = {
++	.type		= &nft_hash_type,
++	.size		= NFT_EXPR_SIZE(sizeof(struct nft_jhash)),
++	.eval		= nft_jhash_map_eval,
++	.init		= nft_jhash_map_init,
++	.dump		= nft_jhash_map_dump,
++};
++
+ static const struct nft_expr_ops nft_symhash_ops = {
+ 	.type		= &nft_hash_type,
+ 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_symhash)),
+@@ -205,6 +322,14 @@ static const struct nft_expr_ops nft_symhash_ops = {
+ 	.dump		= nft_symhash_dump,
+ };
+ 
++static const struct nft_expr_ops nft_symhash_map_ops = {
++	.type		= &nft_hash_type,
++	.size		= NFT_EXPR_SIZE(sizeof(struct nft_symhash)),
++	.eval		= nft_symhash_map_eval,
++	.init		= nft_symhash_map_init,
++	.dump		= nft_symhash_map_dump,
++};
++
+ static const struct nft_expr_ops *
+ nft_hash_select_ops(const struct nft_ctx *ctx,
+ 		    const struct nlattr * const tb[])
+@@ -217,8 +342,12 @@ nft_hash_select_ops(const struct nft_ctx *ctx,
+ 	type = ntohl(nla_get_be32(tb[NFTA_HASH_TYPE]));
+ 	switch (type) {
+ 	case NFT_HASH_SYM:
++		if (tb[NFTA_HASH_SET_NAME])
++			return &nft_symhash_map_ops;
+ 		return &nft_symhash_ops;
+ 	case NFT_HASH_JENKINS:
++		if (tb[NFTA_HASH_SET_NAME])
++			return &nft_jhash_map_ops;
+ 		return &nft_jhash_ops;
+ 	default:
+ 		break;
+-- 
+2.11.0
