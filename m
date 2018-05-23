@@ -1,34 +1,44 @@
-From: Jonathan Morton <chromatix99@gmail.com>
-Subject: Re: [Cake] [PATCH net-next v15 4/7] sch_cake: Add NAT awareness to
- packet classifier
-Date: Wed, 23 May 2018 23:33:04 +0300
-Message-ID: <370B23D9-E929-4A73-BB7C-C1BE4A01C7E6@gmail.com>
-References: <152699745846.21931.4558451708304709296.stgit@alrua-kau>
- <20180523.144442.864194409238516747.davem@davemloft.net>
- <91739F64-20B7-4C56-A7A3-AB8C71B9437C@gmail.com>
- <20180523.160403.20551254565100734.davem@davemloft.net>
-Mime-Version: 1.0 (Mac OS X Mail 11.3 \(3445.6.18\))
-Content-Type: text/plain;
-        charset=us-ascii
-Content-Transfer-Encoding: quoted-printable
-Cc: toke@toke.dk, cake@lists.bufferbloat.net, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org
-To: David Miller <davem@davemloft.net>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 00/18] Netfilter updates for net-next
+Date: Wed, 23 May 2018 16:37:51 -0400 (EDT)
+Message-ID: <20180523.163751.177234858914755359.davem@davemloft.net>
+References: <20180523184254.22599-1-pablo@netfilter.org>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180523.160403.20551254565100734.davem@davemloft.net>
+In-Reply-To: <20180523184254.22599-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-> On 23 May, 2018, at 11:04 pm, David Miller <davem@davemloft.net> =
-wrote:
->=20
-> Who said anything about using an ingress qdisc to record/remember
-> this information?
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Wed, 23 May 2018 20:42:36 +0200
 
-Now I'm *really* confused.
+> The following patchset contains Netfilter updates for your net-next
+> tree, they are:
+ ...
+> This batch comes with is a conflict between 25fd386e0bc0 ("netfilter:
+> core: add missing __rcu annotation") in your tree and 2c205dd3981f
+> ("netfilter: add struct nf_nat_hook and use it") coming in this batch.
+> This conflict can be solved by leaving the __rcu tag on
+> __netfilter_net_init() - added by 25fd386e0bc0 - and remove all code
+> related to nf_nat_decode_session_hook - which is gone after
+> 2c205dd3981f, as described by:
+> 
+> diff --cc net/netfilter/core.c
+> index e0ae4aae96f5,206fb2c4c319..168af54db975
+> --- a/net/netfilter/core.c
+> +++ b/net/netfilter/core.c
+ ...
+> I can also merge your net-next tree into nf-next, solve the conflict and
+> resend the pull request if you prefer so.
+> 
+> You can pull these changes from:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git
 
-Are you saying that the user has to set up their own conntrack mechanism =
-using extra userspace commands?  Because complicating the setup process =
-that way runs directly counter to Cake's design philosophy.
+Thanks for the merge conflict resolution guide.
 
- - Jonathan Morton
+Pulled, thanks.
