@@ -1,282 +1,46 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 05/18] netfilter: nf_nat: move common nat code to nat core
-Date: Wed, 23 May 2018 20:42:41 +0200
-Message-ID: <20180523184254.22599-6-pablo@netfilter.org>
-References: <20180523184254.22599-1-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
+From: Jonathan Morton <chromatix99@gmail.com>
+Subject: Re: [Cake] [PATCH net-next v15 4/7] sch_cake: Add NAT awareness to
+ packet classifier
+Date: Wed, 23 May 2018 22:31:53 +0300
+Message-ID: <91739F64-20B7-4C56-A7A3-AB8C71B9437C@gmail.com>
+References: <152699741881.21931.11656377745581563912.stgit@alrua-kau>
+ <152699745846.21931.4558451708304709296.stgit@alrua-kau>
+ <20180523.144442.864194409238516747.davem@davemloft.net>
+Mime-Version: 1.0 (Mac OS X Mail 11.3 \(3445.6.18\))
+Content-Type: text/plain;
+        charset=us-ascii
+Content-Transfer-Encoding: quoted-printable
+Cc: toke@toke.dk, cake@lists.bufferbloat.net, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org
+To: David Miller <davem@davemloft.net>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180523184254.22599-1-pablo@netfilter.org>
+In-Reply-To: <20180523.144442.864194409238516747.davem@davemloft.net>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+> On 23 May, 2018, at 9:44 pm, David Miller <davem@davemloft.net> wrote:
+>=20
+> I'd much rather you do something NAT method agnostic, like save
+> or compute the necessary information on ingress and then later
+> use it on egress.
 
-Copy-pasted, both l3 helpers almost use same code here.
-Split out the common part into an 'inet' helper.
+We were under the impression that conntrack was the cleanest and most =
+correct way to convey this information between qdiscs.  Frankly it's =
+difficult to see how else we could do it without major complications.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/net/netfilter/nf_nat_core.h      |  7 ++++
- net/ipv4/netfilter/nf_nat_l3proto_ipv4.c | 55 +------------------------
- net/ipv6/netfilter/nf_nat_l3proto_ipv6.c | 48 +---------------------
- net/netfilter/nf_nat_core.c              | 70 ++++++++++++++++++++++++++++++++
- 4 files changed, 81 insertions(+), 99 deletions(-)
+Remember that it takes two different qdiscs to implement ingress and =
+egress on the same physical interface, and there's no obvious logical =
+link between them - especially since the ingress one has to be attached =
+to an ifb, not to the actual interface, because there's no native =
+support for ingress qdiscs.
 
-diff --git a/include/net/netfilter/nf_nat_core.h b/include/net/netfilter/nf_nat_core.h
-index 235bd0e9a5aa..0d84dd29108d 100644
---- a/include/net/netfilter/nf_nat_core.h
-+++ b/include/net/netfilter/nf_nat_core.h
-@@ -11,6 +11,13 @@
- unsigned int nf_nat_packet(struct nf_conn *ct, enum ip_conntrack_info ctinfo,
- 			   unsigned int hooknum, struct sk_buff *skb);
- 
-+unsigned int
-+nf_nat_inet_fn(void *priv, struct sk_buff *skb,
-+	       const struct nf_hook_state *state,
-+	       unsigned int (*do_chain)(void *priv,
-+					struct sk_buff *skb,
-+					const struct nf_hook_state *state));
-+
- int nf_xfrm_me_harder(struct net *net, struct sk_buff *skb, unsigned int family);
- 
- static inline int nf_nat_initialized(struct nf_conn *ct,
-diff --git a/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c b/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c
-index 325e02956bf5..29b5aceac66d 100644
---- a/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c
-+++ b/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c
-@@ -250,24 +250,12 @@ nf_nat_ipv4_fn(void *priv, struct sk_buff *skb,
- {
- 	struct nf_conn *ct;
- 	enum ip_conntrack_info ctinfo;
--	struct nf_conn_nat *nat;
--	/* maniptype == SRC for postrouting. */
--	enum nf_nat_manip_type maniptype = HOOK2MANIP(state->hook);
- 
- 	ct = nf_ct_get(skb, &ctinfo);
--	/* Can't track?  It's not due to stress, or conntrack would
--	 * have dropped it.  Hence it's the user's responsibilty to
--	 * packet filter it out, or implement conntrack/NAT for that
--	 * protocol. 8) --RR
--	 */
- 	if (!ct)
- 		return NF_ACCEPT;
- 
--	nat = nfct_nat(ct);
--
--	switch (ctinfo) {
--	case IP_CT_RELATED:
--	case IP_CT_RELATED_REPLY:
-+	if (ctinfo == IP_CT_RELATED || ctinfo == IP_CT_RELATED_REPLY) {
- 		if (ip_hdr(skb)->protocol == IPPROTO_ICMP) {
- 			if (!nf_nat_icmp_reply_translation(skb, ct, ctinfo,
- 							   state->hook))
-@@ -275,48 +263,9 @@ nf_nat_ipv4_fn(void *priv, struct sk_buff *skb,
- 			else
- 				return NF_ACCEPT;
- 		}
--		/* Only ICMPs can be IP_CT_IS_REPLY: */
--		/* fall through */
--	case IP_CT_NEW:
--		/* Seen it before?  This can happen for loopback, retrans,
--		 * or local packets.
--		 */
--		if (!nf_nat_initialized(ct, maniptype)) {
--			unsigned int ret;
--
--			ret = do_chain(priv, skb, state);
--			if (ret != NF_ACCEPT)
--				return ret;
--
--			if (nf_nat_initialized(ct, HOOK2MANIP(state->hook)))
--				break;
--
--			ret = nf_nat_alloc_null_binding(ct, state->hook);
--			if (ret != NF_ACCEPT)
--				return ret;
--		} else {
--			pr_debug("Already setup manip %s for ct %p\n",
--				 maniptype == NF_NAT_MANIP_SRC ? "SRC" : "DST",
--				 ct);
--			if (nf_nat_oif_changed(state->hook, ctinfo, nat,
--					       state->out))
--				goto oif_changed;
--		}
--		break;
--
--	default:
--		/* ESTABLISHED */
--		WARN_ON(ctinfo != IP_CT_ESTABLISHED &&
--			ctinfo != IP_CT_ESTABLISHED_REPLY);
--		if (nf_nat_oif_changed(state->hook, ctinfo, nat, state->out))
--			goto oif_changed;
- 	}
- 
--	return nf_nat_packet(ct, ctinfo, state->hook, skb);
--
--oif_changed:
--	nf_ct_kill_acct(ct, ctinfo, skb);
--	return NF_DROP;
-+	return nf_nat_inet_fn(priv, skb, state, do_chain);
- }
- EXPORT_SYMBOL_GPL(nf_nat_ipv4_fn);
- 
-diff --git a/net/ipv6/netfilter/nf_nat_l3proto_ipv6.c b/net/ipv6/netfilter/nf_nat_l3proto_ipv6.c
-index f1582b6f9588..3ec228984f82 100644
---- a/net/ipv6/netfilter/nf_nat_l3proto_ipv6.c
-+++ b/net/ipv6/netfilter/nf_nat_l3proto_ipv6.c
-@@ -261,8 +261,6 @@ nf_nat_ipv6_fn(void *priv, struct sk_buff *skb,
- {
- 	struct nf_conn *ct;
- 	enum ip_conntrack_info ctinfo;
--	struct nf_conn_nat *nat;
--	enum nf_nat_manip_type maniptype = HOOK2MANIP(state->hook);
- 	__be16 frag_off;
- 	int hdrlen;
- 	u8 nexthdr;
-@@ -276,11 +274,7 @@ nf_nat_ipv6_fn(void *priv, struct sk_buff *skb,
- 	if (!ct)
- 		return NF_ACCEPT;
- 
--	nat = nfct_nat(ct);
--
--	switch (ctinfo) {
--	case IP_CT_RELATED:
--	case IP_CT_RELATED_REPLY:
-+	if (ctinfo == IP_CT_RELATED || ctinfo == IP_CT_RELATED_REPLY) {
- 		nexthdr = ipv6_hdr(skb)->nexthdr;
- 		hdrlen = ipv6_skip_exthdr(skb, sizeof(struct ipv6hdr),
- 					  &nexthdr, &frag_off);
-@@ -293,47 +287,9 @@ nf_nat_ipv6_fn(void *priv, struct sk_buff *skb,
- 			else
- 				return NF_ACCEPT;
- 		}
--		/* Only ICMPs can be IP_CT_IS_REPLY: */
--		/* fall through */
--	case IP_CT_NEW:
--		/* Seen it before?  This can happen for loopback, retrans,
--		 * or local packets.
--		 */
--		if (!nf_nat_initialized(ct, maniptype)) {
--			unsigned int ret;
--
--			ret = do_chain(priv, skb, state);
--			if (ret != NF_ACCEPT)
--				return ret;
--
--			if (nf_nat_initialized(ct, HOOK2MANIP(state->hook)))
--				break;
--
--			ret = nf_nat_alloc_null_binding(ct, state->hook);
--			if (ret != NF_ACCEPT)
--				return ret;
--		} else {
--			pr_debug("Already setup manip %s for ct %p\n",
--				 maniptype == NF_NAT_MANIP_SRC ? "SRC" : "DST",
--				 ct);
--			if (nf_nat_oif_changed(state->hook, ctinfo, nat, state->out))
--				goto oif_changed;
--		}
--		break;
--
--	default:
--		/* ESTABLISHED */
--		WARN_ON(ctinfo != IP_CT_ESTABLISHED &&
--			ctinfo != IP_CT_ESTABLISHED_REPLY);
--		if (nf_nat_oif_changed(state->hook, ctinfo, nat, state->out))
--			goto oif_changed;
- 	}
- 
--	return nf_nat_packet(ct, ctinfo, state->hook, skb);
--
--oif_changed:
--	nf_ct_kill_acct(ct, ctinfo, skb);
--	return NF_DROP;
-+	return nf_nat_inet_fn(priv, skb, state, do_chain);
- }
- EXPORT_SYMBOL_GPL(nf_nat_ipv6_fn);
- 
-diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
-index 37b3c9913b08..0cd503aacbf0 100644
---- a/net/netfilter/nf_nat_core.c
-+++ b/net/netfilter/nf_nat_core.c
-@@ -513,6 +513,76 @@ unsigned int nf_nat_packet(struct nf_conn *ct,
- }
- EXPORT_SYMBOL_GPL(nf_nat_packet);
- 
-+unsigned int
-+nf_nat_inet_fn(void *priv, struct sk_buff *skb,
-+	       const struct nf_hook_state *state,
-+	       unsigned int (*do_chain)(void *priv,
-+					struct sk_buff *skb,
-+					const struct nf_hook_state *state))
-+{
-+	struct nf_conn *ct;
-+	enum ip_conntrack_info ctinfo;
-+	struct nf_conn_nat *nat;
-+	/* maniptype == SRC for postrouting. */
-+	enum nf_nat_manip_type maniptype = HOOK2MANIP(state->hook);
-+
-+	ct = nf_ct_get(skb, &ctinfo);
-+	/* Can't track?  It's not due to stress, or conntrack would
-+	 * have dropped it.  Hence it's the user's responsibilty to
-+	 * packet filter it out, or implement conntrack/NAT for that
-+	 * protocol. 8) --RR
-+	 */
-+	if (!ct)
-+		return NF_ACCEPT;
-+
-+	nat = nfct_nat(ct);
-+
-+	switch (ctinfo) {
-+	case IP_CT_RELATED:
-+	case IP_CT_RELATED_REPLY:
-+		/* Only ICMPs can be IP_CT_IS_REPLY.  Fallthrough */
-+	case IP_CT_NEW:
-+		/* Seen it before?  This can happen for loopback, retrans,
-+		 * or local packets.
-+		 */
-+		if (!nf_nat_initialized(ct, maniptype)) {
-+			unsigned int ret;
-+
-+			ret = do_chain(priv, skb, state);
-+			if (ret != NF_ACCEPT)
-+				return ret;
-+
-+			if (nf_nat_initialized(ct, HOOK2MANIP(state->hook)))
-+				break;
-+
-+			ret = nf_nat_alloc_null_binding(ct, state->hook);
-+			if (ret != NF_ACCEPT)
-+				return ret;
-+		} else {
-+			pr_debug("Already setup manip %s for ct %p (status bits 0x%lx)\n",
-+				 maniptype == NF_NAT_MANIP_SRC ? "SRC" : "DST",
-+				 ct, ct->status);
-+			if (nf_nat_oif_changed(state->hook, ctinfo, nat,
-+					       state->out))
-+				goto oif_changed;
-+		}
-+		break;
-+	default:
-+		/* ESTABLISHED */
-+		WARN_ON(ctinfo != IP_CT_ESTABLISHED &&
-+			ctinfo != IP_CT_ESTABLISHED_REPLY);
-+		if (nf_nat_oif_changed(state->hook, ctinfo, nat, state->out))
-+			goto oif_changed;
-+	}
-+
-+	return nf_nat_packet(ct, ctinfo, state->hook, skb);
-+
-+oif_changed:
-+	nf_ct_kill_acct(ct, ctinfo, skb);
-+	return NF_DROP;
-+}
-+EXPORT_SYMBOL_GPL(nf_nat_inet_fn);
-+
- struct nf_nat_proto_clean {
- 	u8	l3proto;
- 	u8	l4proto;
--- 
-2.11.0
+What's more, there's no information (besides conntrack) at ingress about =
+the "inside" address of NATted traffic. There might be some residual =
+information for egress traffic, but communicating that to the ingress =
+side feels very much like we need to reimplement something very like =
+conntrack.
+
+If not supporting "alternative" NAT mechanisms that don't register their =
+data in conntrack is the penalty, it's one I personally can live with.
+
+ - Jonathan Morton
