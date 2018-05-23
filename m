@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 13/18] netfilter: nft_set_rbtree: add timeout support
-Date: Wed, 23 May 2018 20:42:49 +0200
-Message-ID: <20180523184254.22599-14-pablo@netfilter.org>
+Subject: [PATCH 07/18] netfilter: nf_tables: allow chain type to override hook register
+Date: Wed, 23 May 2018 20:42:43 +0200
+Message-ID: <20180523184254.22599-8-pablo@netfilter.org>
 References: <20180523184254.22599-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,141 +10,194 @@ In-Reply-To: <20180523184254.22599-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Add garbage collection logic to expire elements stored in the rb-tree
-representation.
+From: Florian Westphal <fw@strlen.de>
 
+Will be used in followup patch when nat types no longer
+use nf_register_net_hook() but will instead register with the nat core.
+
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_set_rbtree.c | 75 ++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 72 insertions(+), 3 deletions(-)
+ include/net/netfilter/nf_tables.h       |  8 ++++----
+ net/ipv4/netfilter/nft_chain_nat_ipv4.c | 19 +++++++++++++------
+ net/ipv6/netfilter/nft_chain_nat_ipv6.c | 20 ++++++++++++++------
+ net/netfilter/nf_tables_api.c           | 23 ++++++++++++++++-------
+ 4 files changed, 47 insertions(+), 23 deletions(-)
 
-diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
-index 22c57d7612c4..d260ce2d6671 100644
---- a/net/netfilter/nft_set_rbtree.c
-+++ b/net/netfilter/nft_set_rbtree.c
-@@ -22,6 +22,7 @@ struct nft_rbtree {
- 	struct rb_root		root;
- 	rwlock_t		lock;
- 	seqcount_t		count;
-+	struct delayed_work	gc_work;
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index 435c9e3b9181..a94fd0c730d6 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -880,8 +880,8 @@ enum nft_chain_types {
+  * 	@owner: module owner
+  * 	@hook_mask: mask of valid hooks
+  * 	@hooks: array of hook functions
+- *	@init: chain initialization function
+- *	@free: chain release function
++ *	@ops_register: base chain register function
++ *	@ops_unregister: base chain unregister function
+  */
+ struct nft_chain_type {
+ 	const char			*name;
+@@ -890,8 +890,8 @@ struct nft_chain_type {
+ 	struct module			*owner;
+ 	unsigned int			hook_mask;
+ 	nf_hookfn			*hooks[NF_MAX_HOOKS];
+-	int				(*init)(struct nft_ctx *ctx);
+-	void				(*free)(struct nft_ctx *ctx);
++	int				(*ops_register)(struct net *net, const struct nf_hook_ops *ops);
++	void				(*ops_unregister)(struct net *net, const struct nf_hook_ops *ops);
  };
  
- struct nft_rbtree_elem {
-@@ -265,6 +266,7 @@ static void nft_rbtree_activate(const struct net *net,
- 	struct nft_rbtree_elem *rbe = elem->priv;
- 
- 	nft_set_elem_change_active(net, set, &rbe->ext);
-+	nft_set_elem_clear_busy(&rbe->ext);
+ int nft_chain_validate_dependency(const struct nft_chain *chain,
+diff --git a/net/ipv4/netfilter/nft_chain_nat_ipv4.c b/net/ipv4/netfilter/nft_chain_nat_ipv4.c
+index 285baccfbdea..bbcb624b6b81 100644
+--- a/net/ipv4/netfilter/nft_chain_nat_ipv4.c
++++ b/net/ipv4/netfilter/nft_chain_nat_ipv4.c
+@@ -66,14 +66,21 @@ static unsigned int nft_nat_ipv4_local_fn(void *priv,
+ 	return nf_nat_ipv4_local_fn(priv, skb, state, nft_nat_do_chain);
  }
  
- static bool nft_rbtree_flush(const struct net *net,
-@@ -272,8 +274,12 @@ static bool nft_rbtree_flush(const struct net *net,
+-static int nft_nat_ipv4_init(struct nft_ctx *ctx)
++static int nft_nat_ipv4_reg(struct net *net, const struct nf_hook_ops *ops)
  {
- 	struct nft_rbtree_elem *rbe = priv;
- 
--	nft_set_elem_change_active(net, set, &rbe->ext);
--	return true;
-+	if (!nft_set_elem_mark_busy(&rbe->ext) ||
-+	    !nft_is_active(net, &rbe->ext)) {
-+		nft_set_elem_change_active(net, set, &rbe->ext);
-+		return true;
+-	return nf_ct_netns_get(ctx->net, ctx->family);
++	int ret = nf_register_net_hook(net, ops);
++	if (ret == 0) {
++		ret = nf_ct_netns_get(net, NFPROTO_IPV4);
++		if (ret)
++			 nf_unregister_net_hook(net, ops);
 +	}
-+	return false;
++	return ret;
  }
  
- static void *nft_rbtree_deactivate(const struct net *net,
-@@ -347,6 +353,62 @@ static void nft_rbtree_walk(const struct nft_ctx *ctx,
- 	read_unlock_bh(&priv->lock);
- }
- 
-+static void nft_rbtree_gc(struct work_struct *work)
-+{
-+	struct nft_set_gc_batch *gcb = NULL;
-+	struct rb_node *node, *prev = NULL;
-+	struct nft_rbtree_elem *rbe;
-+	struct nft_rbtree *priv;
-+	struct nft_set *set;
-+	int i;
-+
-+	priv = container_of(work, struct nft_rbtree, gc_work.work);
-+	set  = nft_set_container_of(priv);
-+
-+	write_lock_bh(&priv->lock);
-+	write_seqcount_begin(&priv->count);
-+	for (node = rb_first(&priv->root); node != NULL; node = rb_next(node)) {
-+		rbe = rb_entry(node, struct nft_rbtree_elem, node);
-+
-+		if (nft_rbtree_interval_end(rbe)) {
-+			prev = node;
-+			continue;
-+		}
-+		if (!nft_set_elem_expired(&rbe->ext))
-+			continue;
-+		if (nft_set_elem_mark_busy(&rbe->ext))
-+			continue;
-+
-+		gcb = nft_set_gc_batch_check(set, gcb, GFP_ATOMIC);
-+		if (!gcb)
-+			goto out;
-+
-+		atomic_dec(&set->nelems);
-+		nft_set_gc_batch_add(gcb, rbe);
-+
-+		if (prev) {
-+			rbe = rb_entry(prev, struct nft_rbtree_elem, node);
-+			atomic_dec(&set->nelems);
-+			nft_set_gc_batch_add(gcb, rbe);
-+		}
-+		node = rb_next(node);
-+	}
-+out:
-+	if (gcb) {
-+		for (i = 0; i < gcb->head.cnt; i++) {
-+			rbe = gcb->elems[i];
-+			rb_erase(&rbe->node, &priv->root);
-+		}
-+	}
-+	write_seqcount_end(&priv->count);
-+	write_unlock_bh(&priv->lock);
-+
-+	nft_set_gc_batch_complete(gcb);
-+
-+	queue_delayed_work(system_power_efficient_wq, &priv->gc_work,
-+			   nft_set_gc_interval(set));
-+}
-+
- static unsigned int nft_rbtree_privsize(const struct nlattr * const nla[],
- 					const struct nft_set_desc *desc)
+-static void nft_nat_ipv4_free(struct nft_ctx *ctx)
++static void nft_nat_ipv4_unreg(struct net *net, const struct nf_hook_ops *ops)
  {
-@@ -362,6 +424,12 @@ static int nft_rbtree_init(const struct nft_set *set,
- 	rwlock_init(&priv->lock);
- 	seqcount_init(&priv->count);
- 	priv->root = RB_ROOT;
-+
-+	INIT_DEFERRABLE_WORK(&priv->gc_work, nft_rbtree_gc);
-+	if (set->flags & NFT_SET_TIMEOUT)
-+		queue_delayed_work(system_power_efficient_wq, &priv->gc_work,
-+				   nft_set_gc_interval(set));
-+
- 	return 0;
+-	nf_ct_netns_put(ctx->net, ctx->family);
++	nf_unregister_net_hook(net, ops);
++	nf_ct_netns_put(net, NFPROTO_IPV4);
  }
  
-@@ -371,6 +439,7 @@ static void nft_rbtree_destroy(const struct nft_set *set)
- 	struct nft_rbtree_elem *rbe;
- 	struct rb_node *node;
+ static const struct nft_chain_type nft_chain_nat_ipv4 = {
+@@ -91,8 +98,8 @@ static const struct nft_chain_type nft_chain_nat_ipv4 = {
+ 		[NF_INET_LOCAL_OUT]	= nft_nat_ipv4_local_fn,
+ 		[NF_INET_LOCAL_IN]	= nft_nat_ipv4_fn,
+ 	},
+-	.init		= nft_nat_ipv4_init,
+-	.free		= nft_nat_ipv4_free,
++	.ops_register = nft_nat_ipv4_reg,
++	.ops_unregister = nft_nat_ipv4_unreg,
+ };
  
-+	cancel_delayed_work_sync(&priv->gc_work);
- 	while ((node = priv->root.rb_node) != NULL) {
- 		rb_erase(node, &priv->root);
- 		rbe = rb_entry(node, struct nft_rbtree_elem, node);
-@@ -395,7 +464,7 @@ static bool nft_rbtree_estimate(const struct nft_set_desc *desc, u32 features,
+ static int __init nft_chain_nat_init(void)
+diff --git a/net/ipv6/netfilter/nft_chain_nat_ipv6.c b/net/ipv6/netfilter/nft_chain_nat_ipv6.c
+index 100a6bd1046a..05bcb2c23125 100644
+--- a/net/ipv6/netfilter/nft_chain_nat_ipv6.c
++++ b/net/ipv6/netfilter/nft_chain_nat_ipv6.c
+@@ -64,14 +64,22 @@ static unsigned int nft_nat_ipv6_local_fn(void *priv,
+ 	return nf_nat_ipv6_local_fn(priv, skb, state, nft_nat_do_chain);
+ }
  
- static struct nft_set_type nft_rbtree_type __read_mostly = {
- 	.owner		= THIS_MODULE,
--	.features	= NFT_SET_INTERVAL | NFT_SET_MAP | NFT_SET_OBJECT,
-+	.features	= NFT_SET_INTERVAL | NFT_SET_MAP | NFT_SET_OBJECT | NFT_SET_TIMEOUT,
- 	.ops		= {
- 		.privsize	= nft_rbtree_privsize,
- 		.elemsize	= offsetof(struct nft_rbtree_elem, ext),
+-static int nft_nat_ipv6_init(struct nft_ctx *ctx)
++static int nft_nat_ipv6_reg(struct net *net, const struct nf_hook_ops *ops)
+ {
+-	return nf_ct_netns_get(ctx->net, ctx->family);
++	int ret = nf_register_net_hook(net, ops);
++	if (ret == 0) {
++		ret = nf_ct_netns_get(net, NFPROTO_IPV6);
++		if (ret)
++			 nf_unregister_net_hook(net, ops);
++	}
++
++	return ret;
+ }
+ 
+-static void nft_nat_ipv6_free(struct nft_ctx *ctx)
++static void nft_nat_ipv6_unreg(struct net *net, const struct nf_hook_ops *ops)
+ {
+-	nf_ct_netns_put(ctx->net, ctx->family);
++	nf_unregister_net_hook(net, ops);
++	nf_ct_netns_put(net, NFPROTO_IPV6);
+ }
+ 
+ static const struct nft_chain_type nft_chain_nat_ipv6 = {
+@@ -89,8 +97,8 @@ static const struct nft_chain_type nft_chain_nat_ipv6 = {
+ 		[NF_INET_LOCAL_OUT]	= nft_nat_ipv6_local_fn,
+ 		[NF_INET_LOCAL_IN]	= nft_nat_ipv6_fn,
+ 	},
+-	.init		= nft_nat_ipv6_init,
+-	.free		= nft_nat_ipv6_free,
++	.ops_register		= nft_nat_ipv6_reg,
++	.ops_unregister		= nft_nat_ipv6_unreg,
+ };
+ 
+ static int __init nft_chain_nat_ipv6_init(void)
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 18bd584fadda..ded54b2abfbc 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -129,6 +129,7 @@ static int nf_tables_register_hook(struct net *net,
+ 				   const struct nft_table *table,
+ 				   struct nft_chain *chain)
+ {
++	const struct nft_base_chain *basechain;
+ 	struct nf_hook_ops *ops;
+ 	int ret;
+ 
+@@ -136,7 +137,12 @@ static int nf_tables_register_hook(struct net *net,
+ 	    !nft_is_base_chain(chain))
+ 		return 0;
+ 
+-	ops = &nft_base_chain(chain)->ops;
++	basechain = nft_base_chain(chain);
++	ops = &basechain->ops;
++
++	if (basechain->type->ops_register)
++		return basechain->type->ops_register(net, ops);
++
+ 	ret = nf_register_net_hook(net, ops);
+ 	if (ret == -EBUSY && nf_tables_allow_nat_conflict(net, ops)) {
+ 		ops->nat_hook = false;
+@@ -151,11 +157,19 @@ static void nf_tables_unregister_hook(struct net *net,
+ 				      const struct nft_table *table,
+ 				      struct nft_chain *chain)
+ {
++	const struct nft_base_chain *basechain;
++	const struct nf_hook_ops *ops;
++
+ 	if (table->flags & NFT_TABLE_F_DORMANT ||
+ 	    !nft_is_base_chain(chain))
+ 		return;
++	basechain = nft_base_chain(chain);
++	ops = &basechain->ops;
++
++	if (basechain->type->ops_unregister)
++		return basechain->type->ops_unregister(net, ops);
+ 
+-	nf_unregister_net_hook(net, &nft_base_chain(chain)->ops);
++	nf_unregister_net_hook(net, ops);
+ }
+ 
+ static int nft_trans_table_add(struct nft_ctx *ctx, int msg_type)
+@@ -1262,8 +1276,6 @@ static void nf_tables_chain_destroy(struct nft_ctx *ctx)
+ 	if (nft_is_base_chain(chain)) {
+ 		struct nft_base_chain *basechain = nft_base_chain(chain);
+ 
+-		if (basechain->type->free)
+-			basechain->type->free(ctx);
+ 		module_put(basechain->type->owner);
+ 		free_percpu(basechain->stats);
+ 		if (basechain->stats)
+@@ -1396,9 +1408,6 @@ static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 genmask,
+ 		}
+ 
+ 		basechain->type = hook.type;
+-		if (basechain->type->init)
+-			basechain->type->init(ctx);
+-
+ 		chain = &basechain->chain;
+ 
+ 		ops		= &basechain->ops;
 -- 
 2.11.0
