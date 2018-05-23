@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 12/18] netfilter: make NF_OSF non-visible symbol
-Date: Wed, 23 May 2018 20:42:48 +0200
-Message-ID: <20180523184254.22599-13-pablo@netfilter.org>
+Subject: [PATCH 11/18] netfilter: lift one-nat-hook-only restriction
+Date: Wed, 23 May 2018 20:42:47 +0200
+Message-ID: <20180523184254.22599-12-pablo@netfilter.org>
 References: <20180523184254.22599-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,26 +10,145 @@ In-Reply-To: <20180523184254.22599-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Fernando Fernandez Mancera <ffmancera@riseup.net>
+From: Florian Westphal <fw@strlen.de>
 
-Signed-off-by: Fernando Fernandez Mancera <ffmancera@riseup.net>
+This reverts commit f92b40a8b2645
+("netfilter: core: only allow one nat hook per hook point"), this
+limitation is no longer needed.  The nat core now invokes these
+functions and makes sure that hook evaluation stops after a mapping is
+created and a null binding is created otherwise.
+
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/netfilter.h     |  1 -
+ net/netfilter/core.c          |  5 ----
+ net/netfilter/nf_tables_api.c | 66 ++-----------------------------------------
+ 3 files changed, 2 insertions(+), 70 deletions(-)
 
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index e57c9d479503..a5b60e6a983e 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -445,7 +445,7 @@ config NETFILTER_SYNPROXY
- endif # NF_CONNTRACK
+diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
+index 85a1a0b32c66..72f5871b9a0a 100644
+--- a/include/linux/netfilter.h
++++ b/include/linux/netfilter.h
+@@ -67,7 +67,6 @@ struct nf_hook_ops {
+ 	struct net_device	*dev;
+ 	void			*priv;
+ 	u_int8_t		pf;
+-	bool			nat_hook;
+ 	unsigned int		hooknum;
+ 	/* Hooks are ordered in ascending priority. */
+ 	int			priority;
+diff --git a/net/netfilter/core.c b/net/netfilter/core.c
+index 5f0ebf9a8d5b..907d6ef8f3c1 100644
+--- a/net/netfilter/core.c
++++ b/net/netfilter/core.c
+@@ -138,11 +138,6 @@ nf_hook_entries_grow(const struct nf_hook_entries *old,
+ 			continue;
+ 		}
  
- config NF_OSF
--	tristate 'Passive OS fingerprint infrastructure'
-+	tristate
+-		if (reg->nat_hook && orig_ops[i]->nat_hook) {
+-			kvfree(new);
+-			return ERR_PTR(-EBUSY);
+-		}
+-
+ 		if (inserted || reg->priority > orig_ops[i]->priority) {
+ 			new_ops[nhooks] = (void *)orig_ops[i];
+ 			new->hooks[nhooks] = old->hooks[i];
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index ded54b2abfbc..a2bb31472aa1 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -74,64 +74,12 @@ static void nft_trans_destroy(struct nft_trans *trans)
+ 	kfree(trans);
+ }
  
- config NF_TABLES
- 	select NETFILTER_NETLINK
+-/* removal requests are queued in the commit_list, but not acted upon
+- * until after all new rules are in place.
+- *
+- * Therefore, nf_register_net_hook(net, &nat_hook) runs before pending
+- * nf_unregister_net_hook().
+- *
+- * nf_register_net_hook thus fails if a nat hook is already in place
+- * even if the conflicting hook is about to be removed.
+- *
+- * If collision is detected, search commit_log for DELCHAIN matching
+- * the new nat hooknum; if we find one collision is temporary:
+- *
+- * Either transaction is aborted (new/colliding hook is removed), or
+- * transaction is committed (old hook is removed).
+- */
+-static bool nf_tables_allow_nat_conflict(const struct net *net,
+-					 const struct nf_hook_ops *ops)
+-{
+-	const struct nft_trans *trans;
+-	bool ret = false;
+-
+-	if (!ops->nat_hook)
+-		return false;
+-
+-	list_for_each_entry(trans, &net->nft.commit_list, list) {
+-		const struct nf_hook_ops *pending_ops;
+-		const struct nft_chain *pending;
+-
+-		if (trans->msg_type != NFT_MSG_NEWCHAIN &&
+-		    trans->msg_type != NFT_MSG_DELCHAIN)
+-			continue;
+-
+-		pending = trans->ctx.chain;
+-		if (!nft_is_base_chain(pending))
+-			continue;
+-
+-		pending_ops = &nft_base_chain(pending)->ops;
+-		if (pending_ops->nat_hook &&
+-		    pending_ops->pf == ops->pf &&
+-		    pending_ops->hooknum == ops->hooknum) {
+-			/* other hook registration already pending? */
+-			if (trans->msg_type == NFT_MSG_NEWCHAIN)
+-				return false;
+-
+-			ret = true;
+-		}
+-	}
+-
+-	return ret;
+-}
+-
+ static int nf_tables_register_hook(struct net *net,
+ 				   const struct nft_table *table,
+ 				   struct nft_chain *chain)
+ {
+ 	const struct nft_base_chain *basechain;
+-	struct nf_hook_ops *ops;
+-	int ret;
++	const struct nf_hook_ops *ops;
+ 
+ 	if (table->flags & NFT_TABLE_F_DORMANT ||
+ 	    !nft_is_base_chain(chain))
+@@ -143,14 +91,7 @@ static int nf_tables_register_hook(struct net *net,
+ 	if (basechain->type->ops_register)
+ 		return basechain->type->ops_register(net, ops);
+ 
+-	ret = nf_register_net_hook(net, ops);
+-	if (ret == -EBUSY && nf_tables_allow_nat_conflict(net, ops)) {
+-		ops->nat_hook = false;
+-		ret = nf_register_net_hook(net, ops);
+-		ops->nat_hook = true;
+-	}
+-
+-	return ret;
++	return nf_register_net_hook(net, ops);
+ }
+ 
+ static void nf_tables_unregister_hook(struct net *net,
+@@ -1418,9 +1359,6 @@ static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 genmask,
+ 		ops->hook	= hook.type->hooks[ops->hooknum];
+ 		ops->dev	= hook.dev;
+ 
+-		if (basechain->type->type == NFT_CHAIN_T_NAT)
+-			ops->nat_hook = true;
+-
+ 		chain->flags |= NFT_BASE_CHAIN;
+ 		basechain->policy = policy;
+ 	} else {
 -- 
 2.11.0
