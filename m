@@ -1,84 +1,50 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: linux-next: manual merge of the netfilter-next tree with the
- netfilter tree
-Date: Thu, 24 May 2018 17:19:02 +0100
-Message-ID: <20180524161902.GZ4828@sirena.org.uk>
+From: Cong Wang <xiyou.wangcong@gmail.com>
+Subject: Re: [PATCH 00/14] Modify action API for implementing lockless actions
+Date: Thu, 24 May 2018 16:34:54 -0700
+Message-ID: <CAM_iQpXMbtUWsaGBrpJH08dM4p9oVwpMSGrev1PThbP5d23sdA@mail.gmail.com>
+References: <1526308035-12484-1-git-send-email-vladbu@mellanox.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="RGnAp+RkZMffi58C"
-Cc: Linux-Next Mailing List <linux-next@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-To: Florian Westphal <fw@strlen.de>,
+Content-Type: text/plain; charset="UTF-8"
+Cc: Linux Kernel Network Developers <netdev@vger.kernel.org>,
+        David Miller <davem@davemloft.net>,
+        Jamal Hadi Salim <jhs@mojatatu.com>,
+        Jiri Pirko <jiri@resnulli.us>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
-        NetFilter <netfilter-devel@vger.kernel.org>
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>,
+        Alexei Starovoitov <ast@kernel.org>,
+        Daniel Borkmann <daniel@iogearbox.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Kees Cook <keescook@chromium.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        NetFilter <netfilter-devel@vger.kernel.org>,
+        coreteam@netfilter.org, kliteyn@mellanox.com
+To: Vlad Buslov <vladbu@mellanox.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
+In-Reply-To: <1526308035-12484-1-git-send-email-vladbu@mellanox.com>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
+On Mon, May 14, 2018 at 7:27 AM, Vlad Buslov <vladbu@mellanox.com> wrote:
+> Currently, all netlink protocol handlers for updating rules, actions and
+> qdiscs are protected with single global rtnl lock which removes any
+> possibility for parallelism. This patch set is a first step to remove
+> rtnl lock dependency from TC rules update path. It updates act API to
+> use atomic operations, rcu and spinlocks for fine-grained locking. It
+> also extend API with functions that are needed to update existing
+> actions for parallel execution.
 
---RGnAp+RkZMffi58C
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Can you give a summary here for what and how it is achieved?
 
-Hi all,
+You said this is the first step, what do you want to achieve in this
+very first step? And how do you achieve it? Do you break the RTNL
+lock down to, for a quick example, a per-device lock? Or perhaps you
+completely remove it because of what reason?
 
-Today's linux-next merge of the netfilter-next tree got a conflict in:
+I go through all the descriptions of your 14 patches (but not any code),
+I still have no clue how you successfully avoid RTNL. Please don't
+let me read into your code to understand that, there must be some
+high-level justification on how it works. Without it, I don't event want
+to read into the code.
 
-  net/netfilter/core.c
-
-between commit:
-
-  25fd386e0bc065849 ("netfilter: core: add missing __rcu annotation")
-
-=66rom the netfilter tree and commit:
-
-  2c205dd3981f79cef ("netfilter: add struct nf_nat_hook and use it")
-
-=66rom the netfilter-next tree.
-
-I fixed it up (see below) and can carry the fix as necessary. This
-is now fixed as far as linux-next is concerned, but any non trivial
-conflicts should be mentioned to your upstream maintainer when your tree
-is submitted for merging.  You may also want to consider cooperating
-with the maintainer of the conflicting tree to minimise any particularly
-complex conflicts.
-
-diff --cc net/netfilter/core.c
-index 206fb2c4c319,e0ae4aae96f5..000000000000
---- a/net/netfilter/core.c
-+++ b/net/netfilter/core.c
-@@@ -580,13 -611,7 +611,8 @@@ const struct nf_conntrack_zone nf_ct_zo
-  EXPORT_SYMBOL_GPL(nf_ct_zone_dflt);
-  #endif /* CONFIG_NF_CONNTRACK */
- =20
-- #ifdef CONFIG_NF_NAT_NEEDED
-- void (*nf_nat_decode_session_hook)(struct sk_buff *, struct flowi *);
-- EXPORT_SYMBOL(nf_nat_decode_session_hook);
-- #endif
--=20
- -static void __net_init __netfilter_net_init(struct nf_hook_entries **e, i=
-nt max)
- +static void __net_init
- +__netfilter_net_init(struct nf_hook_entries __rcu **e, int max)
-  {
-  	int h;
- =20
-
---RGnAp+RkZMffi58C
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAlsG5fUACgkQJNaLcl1U
-h9BN8wf+IVcMrcMA4ND9qi4tLCsDQTmXVIPSQuIpuM+UlT2LhYmrpiWdRn2Tw5Kj
-h4gD8YTMxERppNLkJbSl2yg/qcJ0Zo3vlnd1TM174g7ny4VD4w6PxYEqw49ovqLu
-y5w0i1YkHpbHhy4QvWWgsJwGIzeVHe4Ikv4DLxwHALMm1Nr/UnK0v3CM1UzQN8z4
-Rv3vYxWjWOdyv75tTZrqqMxk/QF2qU2Hlg5P5dFLXnNPQUUT30zcOguvUC4jTR1n
-Jg3Jsl+qzPcbf38kcQ+iMdR5x6p4NSW46iPRlFCUYq6Tx2U7W/iSm11UxDCCz8ab
-YMTCRdplwxsoqFspnFSuap9SFBD4MQ==
-=+lEi
------END PGP SIGNATURE-----
-
---RGnAp+RkZMffi58C--
+Thanks.
