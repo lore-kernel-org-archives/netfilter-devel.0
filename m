@@ -1,146 +1,103 @@
-From: Toke =?utf-8?Q?H=C3=B8iland-J=C3=B8rgensen?= <toke@toke.dk>
-Subject: Re: [PATCH net-next v15 4/7] sch_cake: Add NAT awareness to packet classifier
-Date: Thu, 24 May 2018 01:25:47 +0200
-Message-ID: <87efi2c5tw.fsf@toke.dk>
-References: <152699741881.21931.11656377745581563912.stgit@alrua-kau> <152699745846.21931.4558451708304709296.stgit@alrua-kau> <20180522140759.2rl25eggaoaecw4m@salvia> <87k1rvg4qt.fsf@toke.dk> <20180523224653.mvxkibc4x37nbhha@salvia>
+From: Kevin Darbyshire-Bryant <kevin@darbyshire-bryant.me.uk>
+Subject: Re: [Cake] [PATCH net-next v15 4/7] sch_cake: Add NAT awareness to
+        packet classifier
+Date: Thu, 24 May 2018 04:52:16 +0000
+Message-ID: <F5E3D9FC-F7FC-42AB-8F39-717C3E040402@darbyshire-bryant.me.uk>
+References: <87in7exg3d.fsf@toke.dk>
+ <20180523.164152.387997944739062215.davem@davemloft.net>
+ <87bmd6xeur.fsf@toke.dk>
+ <20180523.172008.1067759293733489715.davem@davemloft.net>
+ <878t8axafk.fsf@toke.dk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Cc: netdev@vger.kernel.org, cake@lists.bufferbloat.net,
-        netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: multipart/signed;
+        boundary="Apple-Mail=_570C0C0C-3875-4DD0-B6DB-444EB597E6E2";
+        protocol="application/pgp-signature";
+        micalg=pgp-sha256
+Cc: David Miller <davem@davemloft.net>,
+        Cake List <cake@lists.bufferbloat.net>,
+        Linux Kernel Network Developers <netdev@vger.kernel.org>,
+        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+To: =?utf-8?B?VG9rZSBIw7hpbGFuZC1Kw7hyZ2Vuc2Vu?= <toke@toke.dk>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180523224653.mvxkibc4x37nbhha@salvia>
+In-Reply-To: <878t8axafk.fsf@toke.dk>
+Content-Language: en-US
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira Ayuso <pablo@netfilter.org> writes:
+--Apple-Mail=_570C0C0C-3875-4DD0-B6DB-444EB597E6E2
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain;
+	charset=utf-8
 
-> On Tue, May 22, 2018 at 04:11:06PM +0200, Toke H=C3=B8iland-J=C3=B8rgense=
-n wrote:
->> Pablo Neira Ayuso <pablo@netfilter.org> writes:
->>=20
->> > Hi Toke,
->> >
->> > On Tue, May 22, 2018 at 03:57:38PM +0200, Toke H=C3=B8iland-J=C3=B8rge=
-nsen wrote:
->> >> When CAKE is deployed on a gateway that also performs NAT (which is a
->> >> common deployment mode), the host fairness mechanism cannot distingui=
-sh
->> >> internal hosts from each other, and so fails to work correctly.
->> >>=20
->> >> To fix this, we add an optional NAT awareness mode, which will query =
-the
->> >> kernel conntrack mechanism to obtain the pre-NAT addresses for each p=
-acket
->> >> and use that in the flow and host hashing.
->> >>=20
->> >> When the shaper is enabled and the host is already performing NAT, th=
-e cost
->> >> of this lookup is negligible. However, in unlimited mode with no NAT =
-being
->> >> performed, there is a significant CPU cost at higher bandwidths. For =
-this
->> >> reason, the feature is turned off by default.
->> >>=20
->> >> Cc: netfilter-devel@vger.kernel.org
->> >> Signed-off-by: Toke H=C3=B8iland-J=C3=B8rgensen <toke@toke.dk>
->> >> ---
->> >>  net/sched/sch_cake.c |   79 ++++++++++++++++++++++++++++++++++++++++=
-++++++++++
->> >>  1 file changed, 79 insertions(+)
->> >>=20
->> >> diff --git a/net/sched/sch_cake.c b/net/sched/sch_cake.c
->> >> index 68ac908470f1..6f7cae705c84 100644
->> >> --- a/net/sched/sch_cake.c
->> >> +++ b/net/sched/sch_cake.c
->> >> @@ -71,6 +71,12 @@
->> >>  #include <net/tcp.h>
->> >>  #include <net/flow_dissector.h>
->> >>=20=20
->> >> +#if IS_REACHABLE(CONFIG_NF_CONNTRACK)
->> >> +#include <net/netfilter/nf_conntrack_core.h>
->> >> +#include <net/netfilter/nf_conntrack_zones.h>
->> >> +#include <net/netfilter/nf_conntrack.h>
->> >> +#endif
->> >> +
->> >>  #define CAKE_SET_WAYS (8)
->> >>  #define CAKE_MAX_TINS (8)
->> >>  #define CAKE_QUEUES (1024)
->> >> @@ -516,6 +522,60 @@ static bool cobalt_should_drop(struct cobalt_var=
-s *vars,
->> >>  	return drop;
->> >>  }
->> >>=20=20
->> >> +#if IS_REACHABLE(CONFIG_NF_CONNTRACK)
->> >> +
->> >> +static void cake_update_flowkeys(struct flow_keys *keys,
->> >> +				 const struct sk_buff *skb)
->> >> +{
->> >> +	const struct nf_conntrack_tuple *tuple;
->> >> +	enum ip_conntrack_info ctinfo;
->> >> +	struct nf_conn *ct;
->> >> +	bool rev =3D false;
->> >> +
->> >> +	if (tc_skb_protocol(skb) !=3D htons(ETH_P_IP))
->> >> +		return;
->> >> +
->> >> +	ct =3D nf_ct_get(skb, &ctinfo);
->> >> +	if (ct) {
->> >> +		tuple =3D nf_ct_tuple(ct, CTINFO2DIR(ctinfo));
->> >> +	} else {
->> >> +		const struct nf_conntrack_tuple_hash *hash;
->> >> +		struct nf_conntrack_tuple srctuple;
->> >> +
->> >> +		if (!nf_ct_get_tuplepr(skb, skb_network_offset(skb),
->> >> +				       NFPROTO_IPV4, dev_net(skb->dev),
->> >> +				       &srctuple))
->> >> +			return;
->> >> +
->> >> +		hash =3D nf_conntrack_find_get(dev_net(skb->dev),
->> >> +					     &nf_ct_zone_dflt,
->> >> +					     &srctuple);
->> >> +		if (!hash)
->> >> +			return;
->> >> +
->> >> +		rev =3D true;
->> >> +		ct =3D nf_ct_tuplehash_to_ctrack(hash);
->> >> +		tuple =3D nf_ct_tuple(ct, !hash->tuple.dst.dir);
->> >> +	}
->> >> +
->> >> +	keys->addrs.v4addrs.src =3D rev ? tuple->dst.u3.ip : tuple->src.u3.=
-ip;
->> >> +	keys->addrs.v4addrs.dst =3D rev ? tuple->src.u3.ip : tuple->dst.u3.=
-ip;
->> >> +
->> >> +	if (keys->ports.ports) {
->> >> +		keys->ports.src =3D rev ? tuple->dst.u.all : tuple->src.u.all;
->> >> +		keys->ports.dst =3D rev ? tuple->src.u.all : tuple->dst.u.all;
->> >> +	}
->> >> +	if (rev)
->> >> +		nf_ct_put(ct);
->> >> +}
->> >
->> > This is going to pull in the nf_conntrack module, even if you may not
->> > want it, as soon as cake is in place.
->>=20
->> Yeah, we are aware of that; we get a moddep on nf_conntrack. Our main
->> deployment scenario has been home routers where conntrack is used
->> anyway, so this has not been much of an issue. However, if there is a
->> way to avoid this, and instead detect at runtime if conntrack is
->> available, that would certainly be useful. Is there? :)
->
-> Yes, there is.
->
-> You place this function in net/netfilter/nf_conntrack_core.c, call it
-> nf_conntrack_get_tuple() which internally uses a rcu hook for this.
-> See nf_ct_attach() and ip_ct_attach() in net/netfilter/core.c for
-> instance.
->
-> This allows you to avoid the dependency with nf_conntrack (which would
-> be only called if the module has been explicitly loaded), which is
-> what you're searching for.
 
-Ah, awesome! I'll look into that; thanks :)
 
--Toke
+> On 23 May 2018, at 23:40, Toke H=C3=B8iland-J=C3=B8rgensen =
+<toke@toke.dk> wrote:
+>=20
+<snip>
+>=20
+> Hmm, and we still have an issue with ingress filtering (where cake is
+> running on an ifb interface). That runs pre-NAT in the conntrack case,
+> and we can't do the RX trick. Here we do the lookup manually in
+> conntrack (and this part is actually what brings in most of the
+> dependencies). Any neat tricks up your sleeve for this case? :)
+
+I wonder here if our terminology with =E2=80=98ingress=E2=80=99 is =
+causing confusion.  For avoidance of doubt:
+
+Typical use case of cake on LAN/WAN router requires two instances.  One =
+instance (the egress) is on the WAN interface itself.  It is post =
+conntrack and hence uses skb->nfct to work out the real pre-nat source =
+address of the LAN hosts.
+
+Since we cannot apply this qdisc to the ingress of our WAN interface we =
+use an IFB to mirror the ingress packets, and then use a cake instance =
+on the ifb interface on its egress path to in essence control the =
+ingress traffic.
+
+Cake has two modes, the normal =E2=80=98egress=E2=80=99 mode which is =
+designed to be used when controlling egress traffic output, and shapes =
+post any dropped packets.  =E2=80=98ingress=E2=80=99 mode is designed to =
+be used on the egress of our ingress IFB, where the shaper counts all =
+packets used (well they got here!) even if we decide to drop them a bit =
+later.
+
+The ifb positioned cake has the additional fun factor that the conntrack =
+field hasn=E2=80=99t yet been filled in, so the qdisc has to go looking =
+in the conntrack tables itself to see if any NATting has taken place and =
+balance LAN host fairness based on that.
+
+As far as I understand it, the flow dissector doesn=E2=80=99t obviously =
+help with working out the pre-NAT addressing as the flow has already =
+been mangled in the egress case, and is awaiting mangling on the ingress =
+case.
+
+
+Kevin
+
+--Apple-Mail=_570C0C0C-3875-4DD0-B6DB-444EB597E6E2
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename=signature.asc
+Content-Type: application/pgp-signature;
+	name=signature.asc
+Content-Description: Message signed with OpenPGP
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIyBAEBCAAdFiEEASyssijGxT6XdZEjs6I4m53iM0oFAlsGRP8ACgkQs6I4m53i
+M0rhLw/4vKMmRf9T/SCQgBTHHieZ1pUW+4MHAgfMstS4htyDwvC5Qicc1paqKpx+
+oJgwBsxGx2boMJ2XdAy2Y8Lgs3FUMBoA5V0cizEMtE8ACUGrf0sDTF8FzdiDRUDE
+7dSSsy/ryePGisLS7273SrGBxwBxsP4DbY0mPf8/6CgKXOFDSKZA7Rh83bCTKfTn
+y44dL/1ZJ6yf1mK7kXHgQBTLWcZzeN31JJ5lZo3k5Gs1TyrJ3qp4F/ZycrcLyqHb
+slEj6/l6loCI3lSscfIGu/enzpYH3tV3LBxSaSoBS3XEmEKxHA4wgkaB6OJFx5PY
+schAjBsMhKOwet367V+WaVX5ggiE/zA9ggXkQDIclrolFkRIHcKx8XN/JVYSFxQt
+wk3uSkRaJYzbOUgqrFBjrzU/juTuhNcgR4NBPQgJX8+fNNryqAiT7qJXCPSquQc7
+ypxFks9fCfhsWiZt4qsU/Mb1eGsf5AQJv/ZqYj/yBtJ2657hNW/aw2EfrNyt1BkC
+zGjheoLvwgLv++Ge5SuSQxntQBqixbVLMswYHT4osDD0rxEzuMWi0tSq/4q/p83h
+rCgoJoIbScf9hKNhS+ZgxJsKr0iqOYxlbYbzGBpqw19jsNeVBEOzYW2lgYiO/IH5
+78TCvTshiRTi21O2zfQyk3qChA8sJkZKmKCBzy3EgMy6Qi+T9Q==
+=DDwx
+-----END PGP SIGNATURE-----
+
+--Apple-Mail=_570C0C0C-3875-4DD0-B6DB-444EB597E6E2--
