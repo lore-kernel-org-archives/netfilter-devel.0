@@ -1,91 +1,45 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH v2] netfilter: properly initialize xt_table_info structure
-Date: Sat, 26 May 2018 16:54:49 +0200
-Message-ID: <20180526145449.GA10379@kroah.com>
-References: <20180517084442.GA23981@kroah.com>
- <20180517085951.2wxvcg5herkjaxda@unicorn.suse.cz>
- <20180517093410.GB17597@kroah.com>
- <a8fadcf4-c2dd-7465-9b41-189eb97a3dd2@gmail.com>
- <20180517100908.GA3150@kroah.com>
- <alpine.LSU.2.20.1805171232210.30649@n3.vanv.qr>
- <20180517132012.GA29160@kroah.com>
- <20180518092756.odlyvxcpgbuistqq@breakpoint.cc>
+From: Arushi Singhal <arushisinghal19971997@gmail.com>
+Subject: [PATCH] iptables-compat: homogenize error message
+Date: Sun, 27 May 2018 18:39:01 +0530
+Message-ID: <20180527130901.GA18320@seema-Inspiron-15-3567>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Jan Engelhardt <jengelh@inai.de>,
-        Eric Dumazet <eric.dumazet@gmail.com>,
-        Greg Hackmann <ghackmann@google.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Michal Kubecek <mkubecek@suse.cz>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>, Peter Pi <tiangangpi@gmail.com>
-Return-path: <netdev-owner@vger.kernel.org>
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+To: pablo@netfilter.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180518092756.odlyvxcpgbuistqq@breakpoint.cc>
-Sender: netdev-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, May 18, 2018 at 11:27:56AM +0200, Florian Westphal wrote:
-> Greg Kroah-Hartman <gregkh@linuxfoundation.org> wrote:
-> > On Thu, May 17, 2018 at 12:42:00PM +0200, Jan Engelhardt wrote:
-> > > 
-> > > On Thursday 2018-05-17 12:09, Greg Kroah-Hartman wrote:
-> > > >> > --- a/net/netfilter/x_tables.c
-> > > >> > +++ b/net/netfilter/x_tables.c
-> > > >> > @@ -1183,11 +1183,10 @@ struct xt_table_info *xt_alloc_table_info(unsigned int size)
-> > > >> >  	 * than shoot all processes down before realizing there is nothing
-> > > >> >  	 * more to reclaim.
-> > > >> >  	 */
-> > > >> > -	info = kvmalloc(sz, GFP_KERNEL | __GFP_NORETRY);
-> > > >> > +	info = kvzalloc(sz, GFP_KERNEL | __GFP_NORETRY);
-> > > >> >  	if (!info)
-> > > >> >  		return NULL;
-> > > >>
-> > > >> I am curious, what particular path does not later overwrite the whole zone ?
-> > > >
-> > > >In do_ipt_get_ctl, the IPT_SO_GET_ENTRIES: option uses a len value that
-> > > >can be larger than the size of the structure itself.
-> > > >
-> > > >Then the data is copied to userspace in copy_entries_to_user() for ipv4
-> > > >and v6, and that's where the "bad data"
-> > > 
-> > > If the kernel incorrectly copies more bytes than it should, isn't that
-> > > a sign that may be going going past the end of the info buffer?
-> > > (And thus, zeroing won't truly fix the issue)
-> > 
-> > No, the buffer size is correct, we just aren't filling up the whole
-> > buffer as the data requested is smaller than the buffer size.
-> 
-> I have no objections to the patch but I'd like to understand what
-> problem its fixing.
-> 
-> Normal pattern is:
-> newinfo = xt_alloc_table_info(tmp.size);
-> copy_from_user(newinfo->entries, user + sizeof(tmp), tmp.size);
-> 
-> So inital value of the rule blob area should not matter.
-> 
-> Furthermore, when copying the rule blob back to userspace,
-> the kernel is not supposed to copy any padding back to userspace either,
-> since commit f32815d21d4d8287336fb9cef4d2d9e0866214c2 only the
-> user-relevant parts should be copied (some matches and targets allocate
-> kernel-private data such as pointers, and we did use to leak such pointer
-> values back to userspace).
+There is a difference between error messages in iptables and
+iptables-compat:
 
-Adding Peter to this thread, as he originally reported this issue to
-Google back in February.
+#sudo iptables-compat -D INPUT 4
+iptables: No chain/target/match by that name.
 
-Peter, I know you reported this against the 4.4 kernel tree, but since
-then, commit f32815d21d4d ("xtables: add xt_match, xt_target and data
-copy_to_user functions") has been added to the kernel in release 4.11.
-In digging through this crazy code path, I think the issue is still
-there, but can not verify it for sure.
+#sudo iptables -D INPUT 4
+iptables: Index of deletion too big.
 
-Is there any way you can run your tests on the 4.14 or newer kernel tree
-to see if this issue really is fixed or not?
+Now, will show same error message.
 
-thanks,
+Signed-off-by: Arushi Singhal <arushisinghal19971997@gmail.com>
+---
+ iptables/nft.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-greg k-h
+diff --git a/iptables/nft.c b/iptables/nft.c
+index e33d00f..40646f4 100644
+--- a/iptables/nft.c
++++ b/iptables/nft.c
+@@ -2603,7 +2603,7 @@ const char *nft_strerror(int err)
+ 	    { nft_rule_add, E2BIG, "Index of insertion too big" },
+ 	    { nft_rule_check, ENOENT, "Bad rule (does a matching rule exist in that chain?)" },
+ 	    { nft_rule_replace, ENOENT, "Index of replacement too big" },
+-	    { nft_rule_delete_num, E2BIG, "Index of deletion too big" },
++	    { nft_rule_delete_num, ENOENT, "Index of deletion too big" },
+ /*	    { TC_READ_COUNTER, E2BIG, "Index of counter too big" },
+ 	    { TC_ZERO_COUNTER, E2BIG, "Index of counter too big" }, */
+ 	    { nft_rule_add, ELOOP, "Loop found in table" },
+-- 
+2.7.4
