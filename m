@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 7/9] netfilter: nf_tables: disable preemption in nft_update_chain_stats()
-Date: Tue, 29 May 2018 01:42:19 +0200
-Message-ID: <20180528234221.31254-8-pablo@netfilter.org>
+Subject: [PATCH 8/9] netfilter: nf_tables: fix NULL-ptr in nf_tables_dump_obj()
+Date: Tue, 29 May 2018 01:42:20 +0200
+Message-ID: <20180528234221.31254-9-pablo@netfilter.org>
 References: <20180528234221.31254-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,42 +10,82 @@ In-Reply-To: <20180528234221.31254-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This patch fixes the following splat.
+From: Taehee Yoo <ap420073@gmail.com>
 
-[118709.054937] BUG: using smp_processor_id() in preemptible [00000000] code: test/1571
-[118709.054970] caller is nft_update_chain_stats.isra.4+0x53/0x97 [nf_tables]
-[118709.054980] CPU: 2 PID: 1571 Comm: test Not tainted 4.17.0-rc6+ #335
-[...]
-[118709.054992] Call Trace:
-[118709.055011]  dump_stack+0x5f/0x86
-[118709.055026]  check_preemption_disabled+0xd4/0xe4
+The table field in nft_obj_filter is not an array. In order to check
+tablename, we should check if the pointer is set.
 
+Test commands:
+
+   %nft add table ip filter
+   %nft add counter ip filter ct1
+   %nft reset counters
+
+Splat looks like:
+
+[  306.510504] kasan: CONFIG_KASAN_INLINE enabled
+[  306.516184] kasan: GPF could be caused by NULL-ptr deref or user memory access
+[  306.524775] general protection fault: 0000 [#1] SMP DEBUG_PAGEALLOC KASAN PTI
+[  306.528284] Modules linked in: nft_objref nft_counter nf_tables nfnetlink ip_tables x_tables
+[  306.528284] CPU: 0 PID: 1488 Comm: nft Not tainted 4.17.0-rc4+ #17
+[  306.528284] Hardware name: To be filled by O.E.M. To be filled by O.E.M./Aptio CRB, BIOS 5.6.5 07/08/2015
+[  306.528284] RIP: 0010:nf_tables_dump_obj+0x52c/0xa70 [nf_tables]
+[  306.528284] RSP: 0018:ffff8800b6cb7520 EFLAGS: 00010246
+[  306.528284] RAX: 0000000000000000 RBX: ffff8800b6c49820 RCX: 0000000000000000
+[  306.528284] RDX: 0000000000000000 RSI: dffffc0000000000 RDI: ffffed0016d96e9a
+[  306.528284] RBP: ffff8800b6cb75c0 R08: ffffed00236fce7c R09: ffffed00236fce7b
+[  306.528284] R10: ffffffff9f6241e8 R11: ffffed00236fce7c R12: ffff880111365108
+[  306.528284] R13: 0000000000000000 R14: ffff8800b6c49860 R15: ffff8800b6c49860
+[  306.528284] FS:  00007f838b007700(0000) GS:ffff88011b600000(0000) knlGS:0000000000000000
+[  306.528284] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[  306.528284] CR2: 00007ffeafabcf78 CR3: 00000000b6cbe000 CR4: 00000000001006f0
+[  306.528284] Call Trace:
+[  306.528284]  netlink_dump+0x470/0xa20
+[  306.528284]  __netlink_dump_start+0x5ae/0x690
+[  306.528284]  ? nf_tables_getobj+0x1b3/0x740 [nf_tables]
+[  306.528284]  nf_tables_getobj+0x2f5/0x740 [nf_tables]
+[  306.528284]  ? nft_obj_notify+0x100/0x100 [nf_tables]
+[  306.528284]  ? nf_tables_getobj+0x740/0x740 [nf_tables]
+[  306.528284]  ? nf_tables_dump_flowtable_done+0x70/0x70 [nf_tables]
+[  306.528284]  ? nft_obj_notify+0x100/0x100 [nf_tables]
+[  306.528284]  nfnetlink_rcv_msg+0x8ff/0x932 [nfnetlink]
+[  306.528284]  ? nfnetlink_rcv_msg+0x216/0x932 [nfnetlink]
+[  306.528284]  netlink_rcv_skb+0x1c9/0x2f0
+[  306.528284]  ? nfnetlink_bind+0x1d0/0x1d0 [nfnetlink]
+[  306.528284]  ? debug_check_no_locks_freed+0x270/0x270
+[  306.528284]  ? netlink_ack+0x7a0/0x7a0
+[  306.528284]  ? ns_capable_common+0x6e/0x110
+[ ... ]
+
+Fixes: e46abbcc05aa8 ("netfilter: nf_tables: Allow table names of up to 255 chars")
+Signed-off-by: Taehee Yoo <ap420073@gmail.com>
+Acked-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_core.c | 4 ++--
+ net/netfilter/nf_tables_api.c | 4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/net/netfilter/nf_tables_core.c b/net/netfilter/nf_tables_core.c
-index 942702a2776f..40e744572283 100644
---- a/net/netfilter/nf_tables_core.c
-+++ b/net/netfilter/nf_tables_core.c
-@@ -126,15 +126,15 @@ static noinline void nft_update_chain_stats(const struct nft_chain *chain,
- 	if (!base_chain->stats)
- 		return;
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 91e80aa852d6..2bdc8767aa40 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -4706,7 +4706,7 @@ static int nf_tables_dump_obj(struct sk_buff *skb, struct netlink_callback *cb)
+ 			if (idx > s_idx)
+ 				memset(&cb->args[1], 0,
+ 				       sizeof(cb->args) - sizeof(cb->args[0]));
+-			if (filter && filter->table[0] &&
++			if (filter && filter->table &&
+ 			    strcmp(filter->table, table->name))
+ 				goto cont;
+ 			if (filter &&
+@@ -5380,7 +5380,7 @@ static int nf_tables_dump_flowtable(struct sk_buff *skb,
+ 			if (idx > s_idx)
+ 				memset(&cb->args[1], 0,
+ 				       sizeof(cb->args) - sizeof(cb->args[0]));
+-			if (filter && filter->table[0] &&
++			if (filter && filter->table &&
+ 			    strcmp(filter->table, table->name))
+ 				goto cont;
  
-+	local_bh_disable();
- 	stats = this_cpu_ptr(rcu_dereference(base_chain->stats));
- 	if (stats) {
--		local_bh_disable();
- 		u64_stats_update_begin(&stats->syncp);
- 		stats->pkts++;
- 		stats->bytes += pkt->skb->len;
- 		u64_stats_update_end(&stats->syncp);
--		local_bh_enable();
- 	}
-+	local_bh_enable();
- }
- 
- struct nft_jumpstack {
 -- 
 2.11.0
