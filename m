@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 5/9] ipvs: fix buffer overflow with sync daemon and service
-Date: Tue, 29 May 2018 01:42:17 +0200
-Message-ID: <20180528234221.31254-6-pablo@netfilter.org>
+Subject: [PATCH 6/9] netfilter: provide correct argument to nla_strlcpy()
+Date: Tue, 29 May 2018 01:42:18 +0200
+Message-ID: <20180528234221.31254-7-pablo@netfilter.org>
 References: <20180528234221.31254-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,144 +10,86 @@ In-Reply-To: <20180528234221.31254-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Julian Anastasov <ja@ssi.bg>
+From: Eric Dumazet <edumazet@google.com>
 
-syzkaller reports for buffer overflow for interface name
-when starting sync daemons [1]
+Recent patch forgot to remove nla_data(), upsetting syzkaller a bit.
 
-What we do is that we copy user structure into larger stack
-buffer but later we search NUL past the stack buffer.
-The same happens for sched_name when adding/editing virtual server.
+BUG: KASAN: slab-out-of-bounds in nla_strlcpy+0x13d/0x150 lib/nlattr.c:314
+Read of size 1 at addr ffff8801ad1f4fdd by task syz-executor189/4509
 
-We are restricted by IP_VS_SCHEDNAME_MAXLEN and IP_VS_IFNAME_MAXLEN
-being used as size in include/uapi/linux/ip_vs.h, so they
-include the space for NUL.
-
-As using strlcpy is wrong for unsafe source, replace it with
-strscpy and add checks to return EINVAL if source string is not
-NUL-terminated. The incomplete strlcpy fix comes from 2.6.13.
-
-For the netlink interface reduce the len parameter for
-IPVS_DAEMON_ATTR_MCAST_IFN and IPVS_SVC_ATTR_SCHED_NAME,
-so that we get proper EINVAL.
-
-[1]
-kernel BUG at lib/string.c:1052!
-invalid opcode: 0000 [#1] SMP KASAN
-Dumping ftrace buffer:
-    (ftrace buffer empty)
-Modules linked in:
-CPU: 1 PID: 373 Comm: syz-executor936 Not tainted 4.17.0-rc4+ #45
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS
-Google 01/01/2011
-RIP: 0010:fortify_panic+0x13/0x20 lib/string.c:1051
-RSP: 0018:ffff8801c976f800 EFLAGS: 00010282
-RAX: 0000000000000022 RBX: 0000000000000040 RCX: 0000000000000000
-RDX: 0000000000000022 RSI: ffffffff8160f6f1 RDI: ffffed00392edef6
-RBP: ffff8801c976f800 R08: ffff8801cf4c62c0 R09: ffffed003b5e4fb0
-R10: ffffed003b5e4fb0 R11: ffff8801daf27d87 R12: ffff8801c976fa20
-R13: ffff8801c976fae4 R14: ffff8801c976fae0 R15: 000000000000048b
-FS:  00007fd99f75e700(0000) GS:ffff8801daf00000(0000)
-knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 00000000200001c0 CR3: 00000001d6843000 CR4: 00000000001406e0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+CPU: 1 PID: 4509 Comm: syz-executor189 Not tainted 4.17.0-rc6+ #62
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
 Call Trace:
-  strlen include/linux/string.h:270 [inline]
-  strlcpy include/linux/string.h:293 [inline]
-  do_ip_vs_set_ctl+0x31c/0x1d00 net/netfilter/ipvs/ip_vs_ctl.c:2388
-  nf_sockopt net/netfilter/nf_sockopt.c:106 [inline]
-  nf_setsockopt+0x7d/0xd0 net/netfilter/nf_sockopt.c:115
-  ip_setsockopt+0xd8/0xf0 net/ipv4/ip_sockglue.c:1253
-  udp_setsockopt+0x62/0xa0 net/ipv4/udp.c:2487
-  ipv6_setsockopt+0x149/0x170 net/ipv6/ipv6_sockglue.c:917
-  tcp_setsockopt+0x93/0xe0 net/ipv4/tcp.c:3057
-  sock_common_setsockopt+0x9a/0xe0 net/core/sock.c:3046
-  __sys_setsockopt+0x1bd/0x390 net/socket.c:1903
-  __do_sys_setsockopt net/socket.c:1914 [inline]
-  __se_sys_setsockopt net/socket.c:1911 [inline]
-  __x64_sys_setsockopt+0xbe/0x150 net/socket.c:1911
-  do_syscall_64+0x1b1/0x800 arch/x86/entry/common.c:287
-  entry_SYSCALL_64_after_hwframe+0x49/0xbe
-RIP: 0033:0x447369
-RSP: 002b:00007fd99f75dda8 EFLAGS: 00000246 ORIG_RAX: 0000000000000036
-RAX: ffffffffffffffda RBX: 00000000006e39e4 RCX: 0000000000447369
-RDX: 000000000000048b RSI: 0000000000000000 RDI: 0000000000000003
-RBP: 0000000000000000 R08: 0000000000000018 R09: 0000000000000000
-R10: 00000000200001c0 R11: 0000000000000246 R12: 00000000006e39e0
-R13: 75a1ff93f0896195 R14: 6f745f3168746576 R15: 0000000000000001
-Code: 08 5b 41 5c 41 5d 41 5e 41 5f 5d c3 0f 0b 48 89 df e8 d2 8f 48 fa eb
-de 55 48 89 fe 48 c7 c7 60 65 64 88 48 89 e5 e8 91 dd f3 f9 <0f> 0b 90 90
-90 90 90 90 90 90 90 90 90 55 48 89 e5 41 57 41 56
-RIP: fortify_panic+0x13/0x20 lib/string.c:1051 RSP: ffff8801c976f800
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1b9/0x294 lib/dump_stack.c:113
+ print_address_description+0x6c/0x20b mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report.cold.7+0x242/0x2fe mm/kasan/report.c:412
+ __asan_report_load1_noabort+0x14/0x20 mm/kasan/report.c:430
+ nla_strlcpy+0x13d/0x150 lib/nlattr.c:314
+ nfnl_acct_new+0x574/0xc50 net/netfilter/nfnetlink_acct.c:118
+ nfnetlink_rcv_msg+0xdb5/0xff0 net/netfilter/nfnetlink.c:212
+ netlink_rcv_skb+0x172/0x440 net/netlink/af_netlink.c:2448
+ nfnetlink_rcv+0x1fe/0x1ba0 net/netfilter/nfnetlink.c:513
+ netlink_unicast_kernel net/netlink/af_netlink.c:1310 [inline]
+ netlink_unicast+0x58b/0x740 net/netlink/af_netlink.c:1336
+ netlink_sendmsg+0x9f0/0xfa0 net/netlink/af_netlink.c:1901
+ sock_sendmsg_nosec net/socket.c:629 [inline]
+ sock_sendmsg+0xd5/0x120 net/socket.c:639
+ sock_write_iter+0x35a/0x5a0 net/socket.c:908
+ call_write_iter include/linux/fs.h:1784 [inline]
+ new_sync_write fs/read_write.c:474 [inline]
+ __vfs_write+0x64d/0x960 fs/read_write.c:487
+ vfs_write+0x1f8/0x560 fs/read_write.c:549
+ ksys_write+0xf9/0x250 fs/read_write.c:598
+ __do_sys_write fs/read_write.c:610 [inline]
+ __se_sys_write fs/read_write.c:607 [inline]
+ __x64_sys_write+0x73/0xb0 fs/read_write.c:607
 
-Reported-and-tested-by: syzbot+aac887f77319868646df@syzkaller.appspotmail.com
-Fixes: e4ff67513096 ("ipvs: add sync_maxlen parameter for the sync daemon")
-Fixes: 4da62fc70d7c ("[IPVS]: Fix for overflows")
-Signed-off-by: Julian Anastasov <ja@ssi.bg>
-Acked-by: Simon Horman <horms+renesas@verge.net.au>
+Fixes: 4e09fc873d92 ("netfilter: prefer nla_strlcpy for dealing with NLA_STRING attributes")
+Signed-off-by: Eric Dumazet <edumazet@google.com>
+Acked-by: Florian Westphal <fw@strlen.de>
+Reported-by: syzbot <syzkaller@googlegroups.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/ipvs/ip_vs_ctl.c | 21 +++++++++++++++------
- 1 file changed, 15 insertions(+), 6 deletions(-)
+ net/netfilter/nfnetlink_acct.c     | 2 +-
+ net/netfilter/nfnetlink_cthelper.c | 4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index f36098887ad0..3ecca0616d8c 100644
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -2381,8 +2381,10 @@ do_ip_vs_set_ctl(struct sock *sk, int cmd, void __user *user, unsigned int len)
- 			struct ipvs_sync_daemon_cfg cfg;
- 
- 			memset(&cfg, 0, sizeof(cfg));
--			strlcpy(cfg.mcast_ifn, dm->mcast_ifn,
--				sizeof(cfg.mcast_ifn));
-+			ret = -EINVAL;
-+			if (strscpy(cfg.mcast_ifn, dm->mcast_ifn,
-+				    sizeof(cfg.mcast_ifn)) <= 0)
-+				goto out_dec;
- 			cfg.syncid = dm->syncid;
- 			ret = start_sync_thread(ipvs, &cfg, dm->state);
- 		} else {
-@@ -2420,12 +2422,19 @@ do_ip_vs_set_ctl(struct sock *sk, int cmd, void __user *user, unsigned int len)
- 		}
+diff --git a/net/netfilter/nfnetlink_acct.c b/net/netfilter/nfnetlink_acct.c
+index 6ddf89183e7b..a0e5adf0b3b6 100644
+--- a/net/netfilter/nfnetlink_acct.c
++++ b/net/netfilter/nfnetlink_acct.c
+@@ -115,7 +115,7 @@ static int nfnl_acct_new(struct net *net, struct sock *nfnl,
+ 		nfacct->flags = flags;
  	}
  
-+	if ((cmd == IP_VS_SO_SET_ADD || cmd == IP_VS_SO_SET_EDIT) &&
-+	    strnlen(usvc.sched_name, IP_VS_SCHEDNAME_MAXLEN) ==
-+	    IP_VS_SCHEDNAME_MAXLEN) {
-+		ret = -EINVAL;
-+		goto out_unlock;
-+	}
-+
- 	/* Check for valid protocol: TCP or UDP or SCTP, even for fwmark!=0 */
- 	if (usvc.protocol != IPPROTO_TCP && usvc.protocol != IPPROTO_UDP &&
- 	    usvc.protocol != IPPROTO_SCTP) {
--		pr_err("set_ctl: invalid protocol: %d %pI4:%d %s\n",
-+		pr_err("set_ctl: invalid protocol: %d %pI4:%d\n",
- 		       usvc.protocol, &usvc.addr.ip,
--		       ntohs(usvc.port), usvc.sched_name);
-+		       ntohs(usvc.port));
- 		ret = -EFAULT;
- 		goto out_unlock;
- 	}
-@@ -2847,7 +2856,7 @@ static const struct nla_policy ip_vs_cmd_policy[IPVS_CMD_ATTR_MAX + 1] = {
- static const struct nla_policy ip_vs_daemon_policy[IPVS_DAEMON_ATTR_MAX + 1] = {
- 	[IPVS_DAEMON_ATTR_STATE]	= { .type = NLA_U32 },
- 	[IPVS_DAEMON_ATTR_MCAST_IFN]	= { .type = NLA_NUL_STRING,
--					    .len = IP_VS_IFNAME_MAXLEN },
-+					    .len = IP_VS_IFNAME_MAXLEN - 1 },
- 	[IPVS_DAEMON_ATTR_SYNC_ID]	= { .type = NLA_U32 },
- 	[IPVS_DAEMON_ATTR_SYNC_MAXLEN]	= { .type = NLA_U16 },
- 	[IPVS_DAEMON_ATTR_MCAST_GROUP]	= { .type = NLA_U32 },
-@@ -2865,7 +2874,7 @@ static const struct nla_policy ip_vs_svc_policy[IPVS_SVC_ATTR_MAX + 1] = {
- 	[IPVS_SVC_ATTR_PORT]		= { .type = NLA_U16 },
- 	[IPVS_SVC_ATTR_FWMARK]		= { .type = NLA_U32 },
- 	[IPVS_SVC_ATTR_SCHED_NAME]	= { .type = NLA_NUL_STRING,
--					    .len = IP_VS_SCHEDNAME_MAXLEN },
-+					    .len = IP_VS_SCHEDNAME_MAXLEN - 1 },
- 	[IPVS_SVC_ATTR_PE_NAME]		= { .type = NLA_NUL_STRING,
- 					    .len = IP_VS_PENAME_MAXLEN },
- 	[IPVS_SVC_ATTR_FLAGS]		= { .type = NLA_BINARY,
+-	nla_strlcpy(nfacct->name, nla_data(tb[NFACCT_NAME]), NFACCT_NAME_MAX);
++	nla_strlcpy(nfacct->name, tb[NFACCT_NAME], NFACCT_NAME_MAX);
+ 
+ 	if (tb[NFACCT_BYTES]) {
+ 		atomic64_set(&nfacct->bytes,
+diff --git a/net/netfilter/nfnetlink_cthelper.c b/net/netfilter/nfnetlink_cthelper.c
+index fa026b269b36..cb5b5f207777 100644
+--- a/net/netfilter/nfnetlink_cthelper.c
++++ b/net/netfilter/nfnetlink_cthelper.c
+@@ -150,7 +150,7 @@ nfnl_cthelper_expect_policy(struct nf_conntrack_expect_policy *expect_policy,
+ 		return -EINVAL;
+ 
+ 	nla_strlcpy(expect_policy->name,
+-		    nla_data(tb[NFCTH_POLICY_NAME]), NF_CT_HELPER_NAME_LEN);
++		    tb[NFCTH_POLICY_NAME], NF_CT_HELPER_NAME_LEN);
+ 	expect_policy->max_expected =
+ 		ntohl(nla_get_be32(tb[NFCTH_POLICY_EXPECT_MAX]));
+ 	if (expect_policy->max_expected > NF_CT_EXPECT_MAX_CNT)
+@@ -235,7 +235,7 @@ nfnl_cthelper_create(const struct nlattr * const tb[],
+ 		goto err1;
+ 
+ 	nla_strlcpy(helper->name,
+-		    nla_data(tb[NFCTH_NAME]), NF_CT_HELPER_NAME_LEN);
++		    tb[NFCTH_NAME], NF_CT_HELPER_NAME_LEN);
+ 	size = ntohl(nla_get_be32(tb[NFCTH_PRIV_DATA_LEN]));
+ 	if (size > FIELD_SIZEOF(struct nf_conn_help, data)) {
+ 		ret = -ENOMEM;
 -- 
 2.11.0
