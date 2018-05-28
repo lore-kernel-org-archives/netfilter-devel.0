@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 8/9] netfilter: nf_tables: fix NULL-ptr in nf_tables_dump_obj()
-Date: Tue, 29 May 2018 01:42:20 +0200
-Message-ID: <20180528234221.31254-9-pablo@netfilter.org>
+Subject: [PATCH 5/9] ipvs: fix buffer overflow with sync daemon and service
+Date: Tue, 29 May 2018 01:42:17 +0200
+Message-ID: <20180528234221.31254-6-pablo@netfilter.org>
 References: <20180528234221.31254-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,82 +10,144 @@ In-Reply-To: <20180528234221.31254-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Taehee Yoo <ap420073@gmail.com>
+From: Julian Anastasov <ja@ssi.bg>
 
-The table field in nft_obj_filter is not an array. In order to check
-tablename, we should check if the pointer is set.
+syzkaller reports for buffer overflow for interface name
+when starting sync daemons [1]
 
-Test commands:
+What we do is that we copy user structure into larger stack
+buffer but later we search NUL past the stack buffer.
+The same happens for sched_name when adding/editing virtual server.
 
-   %nft add table ip filter
-   %nft add counter ip filter ct1
-   %nft reset counters
+We are restricted by IP_VS_SCHEDNAME_MAXLEN and IP_VS_IFNAME_MAXLEN
+being used as size in include/uapi/linux/ip_vs.h, so they
+include the space for NUL.
 
-Splat looks like:
+As using strlcpy is wrong for unsafe source, replace it with
+strscpy and add checks to return EINVAL if source string is not
+NUL-terminated. The incomplete strlcpy fix comes from 2.6.13.
 
-[  306.510504] kasan: CONFIG_KASAN_INLINE enabled
-[  306.516184] kasan: GPF could be caused by NULL-ptr deref or user memory access
-[  306.524775] general protection fault: 0000 [#1] SMP DEBUG_PAGEALLOC KASAN PTI
-[  306.528284] Modules linked in: nft_objref nft_counter nf_tables nfnetlink ip_tables x_tables
-[  306.528284] CPU: 0 PID: 1488 Comm: nft Not tainted 4.17.0-rc4+ #17
-[  306.528284] Hardware name: To be filled by O.E.M. To be filled by O.E.M./Aptio CRB, BIOS 5.6.5 07/08/2015
-[  306.528284] RIP: 0010:nf_tables_dump_obj+0x52c/0xa70 [nf_tables]
-[  306.528284] RSP: 0018:ffff8800b6cb7520 EFLAGS: 00010246
-[  306.528284] RAX: 0000000000000000 RBX: ffff8800b6c49820 RCX: 0000000000000000
-[  306.528284] RDX: 0000000000000000 RSI: dffffc0000000000 RDI: ffffed0016d96e9a
-[  306.528284] RBP: ffff8800b6cb75c0 R08: ffffed00236fce7c R09: ffffed00236fce7b
-[  306.528284] R10: ffffffff9f6241e8 R11: ffffed00236fce7c R12: ffff880111365108
-[  306.528284] R13: 0000000000000000 R14: ffff8800b6c49860 R15: ffff8800b6c49860
-[  306.528284] FS:  00007f838b007700(0000) GS:ffff88011b600000(0000) knlGS:0000000000000000
-[  306.528284] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[  306.528284] CR2: 00007ffeafabcf78 CR3: 00000000b6cbe000 CR4: 00000000001006f0
-[  306.528284] Call Trace:
-[  306.528284]  netlink_dump+0x470/0xa20
-[  306.528284]  __netlink_dump_start+0x5ae/0x690
-[  306.528284]  ? nf_tables_getobj+0x1b3/0x740 [nf_tables]
-[  306.528284]  nf_tables_getobj+0x2f5/0x740 [nf_tables]
-[  306.528284]  ? nft_obj_notify+0x100/0x100 [nf_tables]
-[  306.528284]  ? nf_tables_getobj+0x740/0x740 [nf_tables]
-[  306.528284]  ? nf_tables_dump_flowtable_done+0x70/0x70 [nf_tables]
-[  306.528284]  ? nft_obj_notify+0x100/0x100 [nf_tables]
-[  306.528284]  nfnetlink_rcv_msg+0x8ff/0x932 [nfnetlink]
-[  306.528284]  ? nfnetlink_rcv_msg+0x216/0x932 [nfnetlink]
-[  306.528284]  netlink_rcv_skb+0x1c9/0x2f0
-[  306.528284]  ? nfnetlink_bind+0x1d0/0x1d0 [nfnetlink]
-[  306.528284]  ? debug_check_no_locks_freed+0x270/0x270
-[  306.528284]  ? netlink_ack+0x7a0/0x7a0
-[  306.528284]  ? ns_capable_common+0x6e/0x110
-[ ... ]
+For the netlink interface reduce the len parameter for
+IPVS_DAEMON_ATTR_MCAST_IFN and IPVS_SVC_ATTR_SCHED_NAME,
+so that we get proper EINVAL.
 
-Fixes: e46abbcc05aa8 ("netfilter: nf_tables: Allow table names of up to 255 chars")
-Signed-off-by: Taehee Yoo <ap420073@gmail.com>
-Acked-by: Florian Westphal <fw@strlen.de>
+[1]
+kernel BUG at lib/string.c:1052!
+invalid opcode: 0000 [#1] SMP KASAN
+Dumping ftrace buffer:
+    (ftrace buffer empty)
+Modules linked in:
+CPU: 1 PID: 373 Comm: syz-executor936 Not tainted 4.17.0-rc4+ #45
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS
+Google 01/01/2011
+RIP: 0010:fortify_panic+0x13/0x20 lib/string.c:1051
+RSP: 0018:ffff8801c976f800 EFLAGS: 00010282
+RAX: 0000000000000022 RBX: 0000000000000040 RCX: 0000000000000000
+RDX: 0000000000000022 RSI: ffffffff8160f6f1 RDI: ffffed00392edef6
+RBP: ffff8801c976f800 R08: ffff8801cf4c62c0 R09: ffffed003b5e4fb0
+R10: ffffed003b5e4fb0 R11: ffff8801daf27d87 R12: ffff8801c976fa20
+R13: ffff8801c976fae4 R14: ffff8801c976fae0 R15: 000000000000048b
+FS:  00007fd99f75e700(0000) GS:ffff8801daf00000(0000)
+knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00000000200001c0 CR3: 00000001d6843000 CR4: 00000000001406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+  strlen include/linux/string.h:270 [inline]
+  strlcpy include/linux/string.h:293 [inline]
+  do_ip_vs_set_ctl+0x31c/0x1d00 net/netfilter/ipvs/ip_vs_ctl.c:2388
+  nf_sockopt net/netfilter/nf_sockopt.c:106 [inline]
+  nf_setsockopt+0x7d/0xd0 net/netfilter/nf_sockopt.c:115
+  ip_setsockopt+0xd8/0xf0 net/ipv4/ip_sockglue.c:1253
+  udp_setsockopt+0x62/0xa0 net/ipv4/udp.c:2487
+  ipv6_setsockopt+0x149/0x170 net/ipv6/ipv6_sockglue.c:917
+  tcp_setsockopt+0x93/0xe0 net/ipv4/tcp.c:3057
+  sock_common_setsockopt+0x9a/0xe0 net/core/sock.c:3046
+  __sys_setsockopt+0x1bd/0x390 net/socket.c:1903
+  __do_sys_setsockopt net/socket.c:1914 [inline]
+  __se_sys_setsockopt net/socket.c:1911 [inline]
+  __x64_sys_setsockopt+0xbe/0x150 net/socket.c:1911
+  do_syscall_64+0x1b1/0x800 arch/x86/entry/common.c:287
+  entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x447369
+RSP: 002b:00007fd99f75dda8 EFLAGS: 00000246 ORIG_RAX: 0000000000000036
+RAX: ffffffffffffffda RBX: 00000000006e39e4 RCX: 0000000000447369
+RDX: 000000000000048b RSI: 0000000000000000 RDI: 0000000000000003
+RBP: 0000000000000000 R08: 0000000000000018 R09: 0000000000000000
+R10: 00000000200001c0 R11: 0000000000000246 R12: 00000000006e39e0
+R13: 75a1ff93f0896195 R14: 6f745f3168746576 R15: 0000000000000001
+Code: 08 5b 41 5c 41 5d 41 5e 41 5f 5d c3 0f 0b 48 89 df e8 d2 8f 48 fa eb
+de 55 48 89 fe 48 c7 c7 60 65 64 88 48 89 e5 e8 91 dd f3 f9 <0f> 0b 90 90
+90 90 90 90 90 90 90 90 90 55 48 89 e5 41 57 41 56
+RIP: fortify_panic+0x13/0x20 lib/string.c:1051 RSP: ffff8801c976f800
+
+Reported-and-tested-by: syzbot+aac887f77319868646df@syzkaller.appspotmail.com
+Fixes: e4ff67513096 ("ipvs: add sync_maxlen parameter for the sync daemon")
+Fixes: 4da62fc70d7c ("[IPVS]: Fix for overflows")
+Signed-off-by: Julian Anastasov <ja@ssi.bg>
+Acked-by: Simon Horman <horms+renesas@verge.net.au>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ net/netfilter/ipvs/ip_vs_ctl.c | 21 +++++++++++++++------
+ 1 file changed, 15 insertions(+), 6 deletions(-)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 91e80aa852d6..2bdc8767aa40 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -4706,7 +4706,7 @@ static int nf_tables_dump_obj(struct sk_buff *skb, struct netlink_callback *cb)
- 			if (idx > s_idx)
- 				memset(&cb->args[1], 0,
- 				       sizeof(cb->args) - sizeof(cb->args[0]));
--			if (filter && filter->table[0] &&
-+			if (filter && filter->table &&
- 			    strcmp(filter->table, table->name))
- 				goto cont;
- 			if (filter &&
-@@ -5380,7 +5380,7 @@ static int nf_tables_dump_flowtable(struct sk_buff *skb,
- 			if (idx > s_idx)
- 				memset(&cb->args[1], 0,
- 				       sizeof(cb->args) - sizeof(cb->args[0]));
--			if (filter && filter->table[0] &&
-+			if (filter && filter->table &&
- 			    strcmp(filter->table, table->name))
- 				goto cont;
+diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+index f36098887ad0..3ecca0616d8c 100644
+--- a/net/netfilter/ipvs/ip_vs_ctl.c
++++ b/net/netfilter/ipvs/ip_vs_ctl.c
+@@ -2381,8 +2381,10 @@ do_ip_vs_set_ctl(struct sock *sk, int cmd, void __user *user, unsigned int len)
+ 			struct ipvs_sync_daemon_cfg cfg;
  
+ 			memset(&cfg, 0, sizeof(cfg));
+-			strlcpy(cfg.mcast_ifn, dm->mcast_ifn,
+-				sizeof(cfg.mcast_ifn));
++			ret = -EINVAL;
++			if (strscpy(cfg.mcast_ifn, dm->mcast_ifn,
++				    sizeof(cfg.mcast_ifn)) <= 0)
++				goto out_dec;
+ 			cfg.syncid = dm->syncid;
+ 			ret = start_sync_thread(ipvs, &cfg, dm->state);
+ 		} else {
+@@ -2420,12 +2422,19 @@ do_ip_vs_set_ctl(struct sock *sk, int cmd, void __user *user, unsigned int len)
+ 		}
+ 	}
+ 
++	if ((cmd == IP_VS_SO_SET_ADD || cmd == IP_VS_SO_SET_EDIT) &&
++	    strnlen(usvc.sched_name, IP_VS_SCHEDNAME_MAXLEN) ==
++	    IP_VS_SCHEDNAME_MAXLEN) {
++		ret = -EINVAL;
++		goto out_unlock;
++	}
++
+ 	/* Check for valid protocol: TCP or UDP or SCTP, even for fwmark!=0 */
+ 	if (usvc.protocol != IPPROTO_TCP && usvc.protocol != IPPROTO_UDP &&
+ 	    usvc.protocol != IPPROTO_SCTP) {
+-		pr_err("set_ctl: invalid protocol: %d %pI4:%d %s\n",
++		pr_err("set_ctl: invalid protocol: %d %pI4:%d\n",
+ 		       usvc.protocol, &usvc.addr.ip,
+-		       ntohs(usvc.port), usvc.sched_name);
++		       ntohs(usvc.port));
+ 		ret = -EFAULT;
+ 		goto out_unlock;
+ 	}
+@@ -2847,7 +2856,7 @@ static const struct nla_policy ip_vs_cmd_policy[IPVS_CMD_ATTR_MAX + 1] = {
+ static const struct nla_policy ip_vs_daemon_policy[IPVS_DAEMON_ATTR_MAX + 1] = {
+ 	[IPVS_DAEMON_ATTR_STATE]	= { .type = NLA_U32 },
+ 	[IPVS_DAEMON_ATTR_MCAST_IFN]	= { .type = NLA_NUL_STRING,
+-					    .len = IP_VS_IFNAME_MAXLEN },
++					    .len = IP_VS_IFNAME_MAXLEN - 1 },
+ 	[IPVS_DAEMON_ATTR_SYNC_ID]	= { .type = NLA_U32 },
+ 	[IPVS_DAEMON_ATTR_SYNC_MAXLEN]	= { .type = NLA_U16 },
+ 	[IPVS_DAEMON_ATTR_MCAST_GROUP]	= { .type = NLA_U32 },
+@@ -2865,7 +2874,7 @@ static const struct nla_policy ip_vs_svc_policy[IPVS_SVC_ATTR_MAX + 1] = {
+ 	[IPVS_SVC_ATTR_PORT]		= { .type = NLA_U16 },
+ 	[IPVS_SVC_ATTR_FWMARK]		= { .type = NLA_U32 },
+ 	[IPVS_SVC_ATTR_SCHED_NAME]	= { .type = NLA_NUL_STRING,
+-					    .len = IP_VS_SCHEDNAME_MAXLEN },
++					    .len = IP_VS_SCHEDNAME_MAXLEN - 1 },
+ 	[IPVS_SVC_ATTR_PE_NAME]		= { .type = NLA_NUL_STRING,
+ 					    .len = IP_VS_PENAME_MAXLEN },
+ 	[IPVS_SVC_ATTR_FLAGS]		= { .type = NLA_BINARY,
 -- 
 2.11.0
