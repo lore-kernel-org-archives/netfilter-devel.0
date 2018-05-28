@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 2/9] netfilter: ebtables: handle string from userspace with care
-Date: Tue, 29 May 2018 01:42:14 +0200
-Message-ID: <20180528234221.31254-3-pablo@netfilter.org>
+Subject: [PATCH 1/9] netfilter: nf_tables: fix NULL pointer dereference on nft_ct_helper_obj_dump()
+Date: Tue, 29 May 2018 01:42:13 +0200
+Message-ID: <20180528234221.31254-2-pablo@netfilter.org>
 References: <20180528234221.31254-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,98 +10,159 @@ In-Reply-To: <20180528234221.31254-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Paolo Abeni <pabeni@redhat.com>
+From: Taehee Yoo <ap420073@gmail.com>
 
-strlcpy() can't be safely used on a user-space provided string,
-as it can try to read beyond the buffer's end, if the latter is
-not NULL terminated.
+In the nft_ct_helper_obj_dump(), always priv->helper4 is dereferenced.
+But if family is ipv6, priv->helper6 should be dereferenced.
 
-Leveraging the above, syzbot has been able to trigger the following
-splat:
+Steps to reproduces:
 
-BUG: KASAN: stack-out-of-bounds in strlcpy include/linux/string.h:300
-[inline]
-BUG: KASAN: stack-out-of-bounds in compat_mtw_from_user
-net/bridge/netfilter/ebtables.c:1957 [inline]
-BUG: KASAN: stack-out-of-bounds in ebt_size_mwt
-net/bridge/netfilter/ebtables.c:2059 [inline]
-BUG: KASAN: stack-out-of-bounds in size_entry_mwt
-net/bridge/netfilter/ebtables.c:2155 [inline]
-BUG: KASAN: stack-out-of-bounds in compat_copy_entries+0x96c/0x14a0
-net/bridge/netfilter/ebtables.c:2194
-Write of size 33 at addr ffff8801b0abf888 by task syz-executor0/4504
+   #test.nft
+   table ip6 filter {
+	   ct helper ftp {
+		   type "ftp" protocol tcp
+	   }
+	   chain input {
+		   type filter hook input priority 4;
+		   ct helper set "ftp"
+	   }
+   }
 
-CPU: 0 PID: 4504 Comm: syz-executor0 Not tainted 4.17.0-rc2+ #40
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS
-Google 01/01/2011
-Call Trace:
-  __dump_stack lib/dump_stack.c:77 [inline]
-  dump_stack+0x1b9/0x294 lib/dump_stack.c:113
-  print_address_description+0x6c/0x20b mm/kasan/report.c:256
-  kasan_report_error mm/kasan/report.c:354 [inline]
-  kasan_report.cold.7+0x242/0x2fe mm/kasan/report.c:412
-  check_memory_region_inline mm/kasan/kasan.c:260 [inline]
-  check_memory_region+0x13e/0x1b0 mm/kasan/kasan.c:267
-  memcpy+0x37/0x50 mm/kasan/kasan.c:303
-  strlcpy include/linux/string.h:300 [inline]
-  compat_mtw_from_user net/bridge/netfilter/ebtables.c:1957 [inline]
-  ebt_size_mwt net/bridge/netfilter/ebtables.c:2059 [inline]
-  size_entry_mwt net/bridge/netfilter/ebtables.c:2155 [inline]
-  compat_copy_entries+0x96c/0x14a0 net/bridge/netfilter/ebtables.c:2194
-  compat_do_replace+0x483/0x900 net/bridge/netfilter/ebtables.c:2285
-  compat_do_ebt_set_ctl+0x2ac/0x324 net/bridge/netfilter/ebtables.c:2367
-  compat_nf_sockopt net/netfilter/nf_sockopt.c:144 [inline]
-  compat_nf_setsockopt+0x9b/0x140 net/netfilter/nf_sockopt.c:156
-  compat_ip_setsockopt+0xff/0x140 net/ipv4/ip_sockglue.c:1279
-  inet_csk_compat_setsockopt+0x97/0x120 net/ipv4/inet_connection_sock.c:1041
-  compat_tcp_setsockopt+0x49/0x80 net/ipv4/tcp.c:2901
-  compat_sock_common_setsockopt+0xb4/0x150 net/core/sock.c:3050
-  __compat_sys_setsockopt+0x1ab/0x7c0 net/compat.c:403
-  __do_compat_sys_setsockopt net/compat.c:416 [inline]
-  __se_compat_sys_setsockopt net/compat.c:413 [inline]
-  __ia32_compat_sys_setsockopt+0xbd/0x150 net/compat.c:413
-  do_syscall_32_irqs_on arch/x86/entry/common.c:323 [inline]
-  do_fast_syscall_32+0x345/0xf9b arch/x86/entry/common.c:394
-  entry_SYSENTER_compat+0x70/0x7f arch/x86/entry/entry_64_compat.S:139
-RIP: 0023:0xf7fb3cb9
-RSP: 002b:00000000fff0c26c EFLAGS: 00000282 ORIG_RAX: 000000000000016e
-RAX: ffffffffffffffda RBX: 0000000000000003 RCX: 0000000000000000
-RDX: 0000000000000080 RSI: 0000000020000300 RDI: 00000000000005f4
-RBP: 0000000000000000 R08: 0000000000000000 R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000000
-R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
+   %nft -f test.nft
+   %nft list ruleset
 
-The buggy address belongs to the page:
-page:ffffea0006c2afc0 count:0 mapcount:0 mapping:0000000000000000 index:0x0
-flags: 0x2fffc0000000000()
-raw: 02fffc0000000000 0000000000000000 0000000000000000 00000000ffffffff
-raw: 0000000000000000 ffffea0006c20101 0000000000000000 0000000000000000
-page dumped because: kasan: bad access detected
+we can see the below messages:
 
-Fix the issue replacing the unsafe function with strscpy() and
-taking care of possible errors.
+[  916.286233] kasan: GPF could be caused by NULL-ptr deref or user memory access
+[  916.294777] general protection fault: 0000 [#1] SMP DEBUG_PAGEALLOC KASAN PTI
+[  916.302613] Modules linked in: nft_objref nf_conntrack_sip nf_conntrack_snmp nf_conntrack_broadcast nf_conntrack_ftp nft_ct nf_conntrack nf_tables nfnetlink [last unloaded: nfnetlink]
+[  916.318758] CPU: 1 PID: 2093 Comm: nft Not tainted 4.17.0-rc4+ #181
+[  916.326772] Hardware name: To be filled by O.E.M. To be filled by O.E.M./Aptio CRB, BIOS 5.6.5 07/08/2015
+[  916.338773] RIP: 0010:strlen+0x1a/0x90
+[  916.342781] RSP: 0018:ffff88010ff0f2f8 EFLAGS: 00010292
+[  916.346773] RAX: dffffc0000000000 RBX: ffff880119b26ee8 RCX: ffff88010c150038
+[  916.354777] RDX: 0000000000000002 RSI: ffff880119b26ee8 RDI: 0000000000000010
+[  916.362773] RBP: 0000000000000010 R08: 0000000000007e88 R09: ffff88010c15003c
+[  916.370773] R10: ffff88010c150037 R11: ffffed002182a007 R12: ffff88010ff04040
+[  916.378779] R13: 0000000000000010 R14: ffff880119b26f30 R15: ffff88010ff04110
+[  916.387265] FS:  00007f57a1997700(0000) GS:ffff88011b800000(0000) knlGS:0000000000000000
+[  916.394785] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[  916.402778] CR2: 00007f57a0ac80f0 CR3: 000000010ff02000 CR4: 00000000001006e0
+[  916.410772] Call Trace:
+[  916.414787]  nft_ct_helper_obj_dump+0x94/0x200 [nft_ct]
+[  916.418779]  ? nft_ct_set_eval+0x560/0x560 [nft_ct]
+[  916.426771]  ? memset+0x1f/0x40
+[  916.426771]  ? __nla_reserve+0x92/0xb0
+[  916.434774]  ? memcpy+0x34/0x50
+[  916.434774]  nf_tables_fill_obj_info+0x484/0x860 [nf_tables]
+[  916.442773]  ? __nft_release_basechain+0x600/0x600 [nf_tables]
+[  916.450779]  ? lock_acquire+0x193/0x380
+[  916.454771]  ? lock_acquire+0x193/0x380
+[  916.458789]  ? nf_tables_dump_obj+0x148/0xcb0 [nf_tables]
+[  916.462777]  nf_tables_dump_obj+0x5f0/0xcb0 [nf_tables]
+[  916.470769]  ? __alloc_skb+0x30b/0x500
+[  916.474779]  netlink_dump+0x752/0xb50
+[  916.478775]  __netlink_dump_start+0x4d3/0x750
+[  916.482784]  nf_tables_getobj+0x27a/0x930 [nf_tables]
+[  916.490774]  ? nft_obj_notify+0x100/0x100 [nf_tables]
+[  916.494772]  ? nf_tables_getobj+0x930/0x930 [nf_tables]
+[  916.502579]  ? nf_tables_dump_flowtable_done+0x70/0x70 [nf_tables]
+[  916.506774]  ? nft_obj_notify+0x100/0x100 [nf_tables]
+[  916.514808]  nfnetlink_rcv_msg+0x8ab/0xa86 [nfnetlink]
+[  916.518771]  ? nfnetlink_rcv_msg+0x550/0xa86 [nfnetlink]
+[  916.526782]  netlink_rcv_skb+0x23e/0x360
+[  916.530773]  ? nfnetlink_bind+0x200/0x200 [nfnetlink]
+[  916.534778]  ? debug_check_no_locks_freed+0x280/0x280
+[  916.542770]  ? netlink_ack+0x870/0x870
+[  916.546786]  ? ns_capable_common+0xf4/0x130
+[  916.550765]  nfnetlink_rcv+0x172/0x16c0 [nfnetlink]
+[  916.554771]  ? sched_clock_local+0xe2/0x150
+[  916.558774]  ? sched_clock_cpu+0x144/0x180
+[  916.566575]  ? lock_acquire+0x380/0x380
+[  916.570775]  ? sched_clock_local+0xe2/0x150
+[  916.574765]  ? nfnetlink_net_init+0x130/0x130 [nfnetlink]
+[  916.578763]  ? sched_clock_cpu+0x144/0x180
+[  916.582770]  ? lock_acquire+0x193/0x380
+[  916.590771]  ? lock_acquire+0x193/0x380
+[  916.594766]  ? lock_acquire+0x380/0x380
+[  916.598760]  ? netlink_deliver_tap+0x262/0xa60
+[  916.602766]  ? lock_acquire+0x193/0x380
+[  916.606766]  netlink_unicast+0x3ef/0x5a0
+[  916.610771]  ? netlink_attachskb+0x630/0x630
+[  916.614763]  netlink_sendmsg+0x72a/0xb00
+[  916.618769]  ? netlink_unicast+0x5a0/0x5a0
+[  916.626766]  ? _copy_from_user+0x92/0xc0
+[  916.630773]  __sys_sendto+0x202/0x300
+[  916.634772]  ? __ia32_sys_getpeername+0xb0/0xb0
+[  916.638759]  ? lock_acquire+0x380/0x380
+[  916.642769]  ? lock_acquire+0x193/0x380
+[  916.646761]  ? finish_task_switch+0xf4/0x560
+[  916.650763]  ? __schedule+0x582/0x19a0
+[  916.655301]  ? __sched_text_start+0x8/0x8
+[  916.655301]  ? up_read+0x1c/0x110
+[  916.655301]  ? __do_page_fault+0x48b/0xaa0
+[  916.655301]  ? entry_SYSCALL_64_after_hwframe+0x59/0xbe
+[  916.655301]  __x64_sys_sendto+0xdd/0x1b0
+[  916.655301]  do_syscall_64+0x96/0x3d0
+[  916.655301]  entry_SYSCALL_64_after_hwframe+0x49/0xbe
+[  916.655301] RIP: 0033:0x7f57a0ff5e03
+[  916.655301] RSP: 002b:00007fff6367e0a8 EFLAGS: 00000246 ORIG_RAX: 000000000000002c
+[  916.655301] RAX: ffffffffffffffda RBX: 00007fff6367f1e0 RCX: 00007f57a0ff5e03
+[  916.655301] RDX: 0000000000000020 RSI: 00007fff6367e110 RDI: 0000000000000003
+[  916.655301] RBP: 00007fff6367e100 R08: 00007f57a0ce9160 R09: 000000000000000c
+[  916.655301] R10: 0000000000000000 R11: 0000000000000246 R12: 00007fff6367e110
+[  916.655301] R13: 0000000000000020 R14: 00007f57a153c610 R15: 0000562417258de0
+[  916.655301] Code: ff ff ff 0f 1f 40 00 66 2e 0f 1f 84 00 00 00 00 00 55 48 89 fa 53 48 c1 ea 03 48 b8 00 00 00 00 00 fc ff df 48 89 fd 48 83 ec 08 <0f> b6 04 02 48 89 fa 83 e2 07 38 d0 7f
+[  916.655301] RIP: strlen+0x1a/0x90 RSP: ffff88010ff0f2f8
+[  916.771929] ---[ end trace 1065e048e72479fe ]---
+[  916.777204] Kernel panic - not syncing: Fatal exception
+[  916.778158] Kernel Offset: 0x14000000 from 0xffffffff81000000 (relocation range: 0xffffffff80000000-0xffffffffbfffffff)
 
-Fixes: 81e675c227ec ("netfilter: ebtables: add CONFIG_COMPAT support")
-Reported-and-tested-by: syzbot+4e42a04e0bc33cb6c087@syzkaller.appspotmail.com
-Signed-off-by: Paolo Abeni <pabeni@redhat.com>
+Signed-off-by: Taehee Yoo <ap420073@gmail.com>
+Acked-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/bridge/netfilter/ebtables.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ net/netfilter/nft_ct.c | 20 ++++++++++++--------
+ 1 file changed, 12 insertions(+), 8 deletions(-)
 
-diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
-index 28a4c3490359..6ba639f6c51d 100644
---- a/net/bridge/netfilter/ebtables.c
-+++ b/net/bridge/netfilter/ebtables.c
-@@ -1954,7 +1954,8 @@ static int compat_mtw_from_user(struct compat_ebt_entry_mwt *mwt,
- 	int off, pad = 0;
- 	unsigned int size_kern, match_size = mwt->match_size;
+diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
+index ea737fd789e8..5c0de704bad5 100644
+--- a/net/netfilter/nft_ct.c
++++ b/net/netfilter/nft_ct.c
+@@ -880,22 +880,26 @@ static int nft_ct_helper_obj_dump(struct sk_buff *skb,
+ 				  struct nft_object *obj, bool reset)
+ {
+ 	const struct nft_ct_helper_obj *priv = nft_obj_data(obj);
+-	const struct nf_conntrack_helper *helper = priv->helper4;
++	const struct nf_conntrack_helper *helper;
+ 	u16 family;
  
--	strlcpy(name, mwt->u.name, sizeof(name));
-+	if (strscpy(name, mwt->u.name, sizeof(name)) < 0)
-+		return -EINVAL;
++	if (priv->helper4 && priv->helper6) {
++		family = NFPROTO_INET;
++		helper = priv->helper4;
++	} else if (priv->helper6) {
++		family = NFPROTO_IPV6;
++		helper = priv->helper6;
++	} else {
++		family = NFPROTO_IPV4;
++		helper = priv->helper4;
++	}
++
+ 	if (nla_put_string(skb, NFTA_CT_HELPER_NAME, helper->name))
+ 		return -1;
  
- 	if (state->buf_kern_start)
- 		dst = state->buf_kern_start + state->buf_kern_offset;
+ 	if (nla_put_u8(skb, NFTA_CT_HELPER_L4PROTO, priv->l4proto))
+ 		return -1;
+ 
+-	if (priv->helper4 && priv->helper6)
+-		family = NFPROTO_INET;
+-	else if (priv->helper6)
+-		family = NFPROTO_IPV6;
+-	else
+-		family = NFPROTO_IPV4;
+-
+ 	if (nla_put_be16(skb, NFTA_CT_HELPER_L3PROTO, htons(family)))
+ 		return -1;
+ 
 -- 
 2.11.0
