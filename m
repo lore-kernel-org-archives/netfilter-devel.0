@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 9/9] netfilter: nf_tables: increase nft_counters_enabled in nft_chain_stats_replace()
-Date: Tue, 29 May 2018 01:42:21 +0200
-Message-ID: <20180528234221.31254-10-pablo@netfilter.org>
+Subject: [PATCH 7/9] netfilter: nf_tables: disable preemption in nft_update_chain_stats()
+Date: Tue, 29 May 2018 01:42:19 +0200
+Message-ID: <20180528234221.31254-8-pablo@netfilter.org>
 References: <20180528234221.31254-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,62 +10,42 @@ In-Reply-To: <20180528234221.31254-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Taehee Yoo <ap420073@gmail.com>
+This patch fixes the following splat.
 
-When a chain is updated, a counter can be attached. if so,
-the nft_counters_enabled should be increased.
+[118709.054937] BUG: using smp_processor_id() in preemptible [00000000] code: test/1571
+[118709.054970] caller is nft_update_chain_stats.isra.4+0x53/0x97 [nf_tables]
+[118709.054980] CPU: 2 PID: 1571 Comm: test Not tainted 4.17.0-rc6+ #335
+[...]
+[118709.054992] Call Trace:
+[118709.055011]  dump_stack+0x5f/0x86
+[118709.055026]  check_preemption_disabled+0xd4/0xe4
 
-test commands:
-
-   %nft add table ip filter
-   %nft add chain ip filter input { type filter hook input priority 4\; }
-   %iptables-compat -Z input
-   %nft delete chain ip filter input
-
-we can see below messages.
-
-[  286.443720] jump label: negative count!
-[  286.448278] WARNING: CPU: 0 PID: 1459 at kernel/jump_label.c:197 __static_key_slow_dec_cpuslocked+0x6f/0xf0
-[  286.449144] Modules linked in: nf_tables nfnetlink ip_tables x_tables
-[  286.449144] CPU: 0 PID: 1459 Comm: nft Tainted: G        W         4.17.0-rc2+ #12
-[  286.449144] RIP: 0010:__static_key_slow_dec_cpuslocked+0x6f/0xf0
-[  286.449144] RSP: 0018:ffff88010e5176f0 EFLAGS: 00010286
-[  286.449144] RAX: 000000000000001b RBX: ffffffffc0179500 RCX: ffffffffb8a82522
-[  286.449144] RDX: 0000000000000001 RSI: 0000000000000008 RDI: ffff88011b7e5eac
-[  286.449144] RBP: 0000000000000000 R08: ffffed00236fce5c R09: ffffed00236fce5b
-[  286.449144] R10: ffffffffc0179503 R11: ffffed00236fce5c R12: 0000000000000000
-[  286.449144] R13: ffff88011a28e448 R14: ffff88011a28e470 R15: dffffc0000000000
-[  286.449144] FS:  00007f0384328700(0000) GS:ffff88011b600000(0000) knlGS:0000000000000000
-[  286.449144] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[  286.449144] CR2: 00007f038394bf10 CR3: 0000000104a86000 CR4: 00000000001006f0
-[  286.449144] Call Trace:
-[  286.449144]  static_key_slow_dec+0x6a/0x70
-[  286.449144]  nf_tables_chain_destroy+0x19d/0x210 [nf_tables]
-[  286.449144]  nf_tables_commit+0x1891/0x1c50 [nf_tables]
-[  286.449144]  nfnetlink_rcv+0x1148/0x13d0 [nfnetlink]
-[ ... ]
-
-Signed-off-by: Taehee Yoo <ap420073@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ net/netfilter/nf_tables_core.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 2bdc8767aa40..501e48a7965b 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -1298,8 +1298,10 @@ static void nft_chain_stats_replace(struct nft_base_chain *chain,
- 		rcu_assign_pointer(chain->stats, newstats);
- 		synchronize_rcu();
- 		free_percpu(oldstats);
--	} else
-+	} else {
- 		rcu_assign_pointer(chain->stats, newstats);
-+		static_branch_inc(&nft_counters_enabled);
-+	}
+diff --git a/net/netfilter/nf_tables_core.c b/net/netfilter/nf_tables_core.c
+index 942702a2776f..40e744572283 100644
+--- a/net/netfilter/nf_tables_core.c
++++ b/net/netfilter/nf_tables_core.c
+@@ -126,15 +126,15 @@ static noinline void nft_update_chain_stats(const struct nft_chain *chain,
+ 	if (!base_chain->stats)
+ 		return;
+ 
++	local_bh_disable();
+ 	stats = this_cpu_ptr(rcu_dereference(base_chain->stats));
+ 	if (stats) {
+-		local_bh_disable();
+ 		u64_stats_update_begin(&stats->syncp);
+ 		stats->pkts++;
+ 		stats->bytes += pkt->skb->len;
+ 		u64_stats_update_end(&stats->syncp);
+-		local_bh_enable();
+ 	}
++	local_bh_enable();
  }
  
- static void nf_tables_chain_destroy(struct nft_ctx *ctx)
+ struct nft_jumpstack {
 -- 
 2.11.0
