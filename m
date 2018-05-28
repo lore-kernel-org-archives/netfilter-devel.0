@@ -1,8 +1,8 @@
 From: Toke =?utf-8?q?H=C3=B8iland-J=C3=B8rgensen?= <toke@toke.dk>
-Subject: [PATCH net-next v17 5/8] sch_cake: Add NAT awareness to packet
- classifier
+Subject: [PATCH net-next v17 4/8] netfilter: Add nf_ct_get_tuple_skb global
+ lookup function
 Date: Tue, 29 May 2018 00:28:18 +0200
-Message-ID: <152754649852.18169.17478089670948312829.stgit@alrua-kau>
+Message-ID: <152754649848.18169.2953073016457785659.stgit@alrua-kau>
 References: <152754646847.18169.14016621463603092505.stgit@alrua-kau>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -14,107 +14,133 @@ In-Reply-To: <152754646847.18169.14016621463603092505.stgit@alrua-kau>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-When CAKE is deployed on a gateway that also performs NAT (which is a
-common deployment mode), the host fairness mechanism cannot distinguish
-internal hosts from each other, and so fails to work correctly.
+This adds a global netfilter function to extract a conntrack tuple from an
+skb. The function uses a new function added to nf_ct_hook, which will try
+to get the tuple from skb->_nfct, and do a full lookup if that fails. This
+makes it possible to use the lookup function before the skb has passed
+through the conntrack init hooks (e.g., in an ingress qdisc). The tuple is
+copied to the caller to avoid issues with reference counting.
 
-To fix this, we add an optional NAT awareness mode, which will query the
-kernel conntrack mechanism to obtain the pre-NAT addresses for each packet
-and use that in the flow and host hashing.
-
-When the shaper is enabled and the host is already performing NAT, the cost
-of this lookup is negligible. However, in unlimited mode with no NAT being
-performed, there is a significant CPU cost at higher bandwidths. For this
-reason, the feature is turned off by default.
+The function returns false if conntrack is not loaded, allowing it to be
+used without incurring a module dependency on conntrack. This is used by
+the NAT mode in sch_cake.
 
 Cc: netfilter-devel@vger.kernel.org
 Signed-off-by: Toke Høiland-Jørgensen <toke@toke.dk>
 ---
- net/sched/sch_cake.c |   46 ++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 46 insertions(+)
+ include/linux/netfilter.h         |   11 +++++++++++
+ net/netfilter/core.c              |   15 +++++++++++++++
+ net/netfilter/nf_conntrack_core.c |   36 ++++++++++++++++++++++++++++++++++++
+ 3 files changed, 62 insertions(+)
 
-diff --git a/net/sched/sch_cake.c b/net/sched/sch_cake.c
-index 68ac908470f1..c2cba5f32351 100644
---- a/net/sched/sch_cake.c
-+++ b/net/sched/sch_cake.c
-@@ -71,6 +71,10 @@
- #include <net/tcp.h>
- #include <net/flow_dissector.h>
+diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
+index 04551af2ff23..d7be35ab7967 100644
+--- a/include/linux/netfilter.h
++++ b/include/linux/netfilter.h
+@@ -388,8 +388,17 @@ nf_nat_decode_session(struct sk_buff *skb, struct flowi *fl, u_int8_t family)
  
-+#if IS_ENABLED(CONFIG_NF_CONNTRACK)
-+#include <net/netfilter/nf_conntrack_core.h>
-+#endif
+ extern void (*ip_ct_attach)(struct sk_buff *, const struct sk_buff *) __rcu;
+ void nf_ct_attach(struct sk_buff *, const struct sk_buff *);
++struct nf_conntrack_tuple;
++bool nf_ct_get_tuple_skb(struct nf_conntrack_tuple *dst_tuple,
++			 const struct sk_buff *skb);
+ #else
+ static inline void nf_ct_attach(struct sk_buff *new, struct sk_buff *skb) {}
++struct nf_conntrack_tuple;
++static inline bool nf_ct_get_tuple_skb(struct nf_conntrack_tuple *dst_tuple,
++				       const struct sk_buff *skb)
++{
++	return false;
++}
+ #endif
+ 
+ struct nf_conn;
+@@ -398,6 +407,8 @@ enum ip_conntrack_info;
+ struct nf_ct_hook {
+ 	int (*update)(struct net *net, struct sk_buff *skb);
+ 	void (*destroy)(struct nf_conntrack *);
++	bool (*get_tuple_skb)(struct nf_conntrack_tuple *,
++			      const struct sk_buff *);
+ };
+ extern struct nf_ct_hook __rcu *nf_ct_hook;
+ 
+diff --git a/net/netfilter/core.c b/net/netfilter/core.c
+index 168af54db975..dc240cb47ddf 100644
+--- a/net/netfilter/core.c
++++ b/net/netfilter/core.c
+@@ -603,6 +603,21 @@ void nf_conntrack_destroy(struct nf_conntrack *nfct)
+ }
+ EXPORT_SYMBOL(nf_conntrack_destroy);
+ 
++bool nf_ct_get_tuple_skb(struct nf_conntrack_tuple *dst_tuple,
++			 const struct sk_buff *skb)
++{
++	struct nf_ct_hook *ct_hook;
++	bool ret = false;
 +
- #define CAKE_SET_WAYS (8)
- #define CAKE_MAX_TINS (8)
- #define CAKE_QUEUES (1024)
-@@ -516,6 +520,29 @@ static bool cobalt_should_drop(struct cobalt_vars *vars,
- 	return drop;
++	rcu_read_lock();
++	ct_hook = rcu_dereference(nf_ct_hook);
++	if (ct_hook)
++		ret = ct_hook->get_tuple_skb(dst_tuple, skb);
++	rcu_read_unlock();
++	return ret;
++}
++EXPORT_SYMBOL(nf_ct_get_tuple_skb);
++
+ /* Built-in default zone used e.g. by modules. */
+ const struct nf_conntrack_zone nf_ct_zone_dflt = {
+ 	.id	= NF_CT_DEFAULT_ZONE_ID,
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 3465da2a98bd..85ab2fd6a665 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -1683,6 +1683,41 @@ static int nf_conntrack_update(struct net *net, struct sk_buff *skb)
+ 	return 0;
  }
  
-+static void cake_update_flowkeys(struct flow_keys *keys,
-+				 const struct sk_buff *skb)
++static bool nf_conntrack_get_tuple_skb(struct nf_conntrack_tuple *dst_tuple,
++				       const struct sk_buff *skb)
 +{
-+#if IS_ENABLED(CONFIG_NF_CONNTRACK)
-+	struct nf_conntrack_tuple tuple = {};
-+	bool rev = !skb->_nfct;
++	const struct nf_conntrack_tuple *src_tuple;
++	const struct nf_conntrack_tuple_hash *hash;
++	struct nf_conntrack_tuple srctuple;
++	enum ip_conntrack_info ctinfo;
++	struct nf_conn *ct;
 +
-+	if (tc_skb_protocol(skb) != htons(ETH_P_IP))
-+		return;
-+
-+	if (!nf_ct_get_tuple_skb(&tuple, skb))
-+		return;
-+
-+	keys->addrs.v4addrs.src = rev ? tuple.dst.u3.ip : tuple.src.u3.ip;
-+	keys->addrs.v4addrs.dst = rev ? tuple.src.u3.ip : tuple.dst.u3.ip;
-+
-+	if (keys->ports.ports) {
-+		keys->ports.src = rev ? tuple.dst.u.all : tuple.src.u.all;
-+		keys->ports.dst = rev ? tuple.src.u.all : tuple.dst.u.all;
++	ct = nf_ct_get(skb, &ctinfo);
++	if (ct) {
++		src_tuple = nf_ct_tuple(ct, CTINFO2DIR(ctinfo));
++		memcpy(dst_tuple, src_tuple, sizeof(*dst_tuple));
++		return true;
 +	}
-+#endif
++
++	if (!nf_ct_get_tuplepr(skb, skb_network_offset(skb),
++			       NFPROTO_IPV4, dev_net(skb->dev),
++			       &srctuple))
++		return false;
++
++	hash = nf_conntrack_find_get(dev_net(skb->dev),
++				     &nf_ct_zone_dflt,
++				     &srctuple);
++	if (!hash)
++		return false;
++
++	ct = nf_ct_tuplehash_to_ctrack(hash);
++	src_tuple = nf_ct_tuple(ct, !hash->tuple.dst.dir);
++	memcpy(dst_tuple, src_tuple, sizeof(*dst_tuple));
++	nf_ct_put(ct);
++
++	return true;
 +}
 +
- /* Cake has several subtle multiple bit settings. In these cases you
-  *  would be matching triple isolate mode as well.
-  */
-@@ -543,6 +570,9 @@ static u32 cake_hash(struct cake_tin_data *q, const struct sk_buff *skb,
- 	skb_flow_dissect_flow_keys(skb, &keys,
- 				   FLOW_DISSECTOR_F_STOP_AT_FLOW_LABEL);
+ /* Bring out ya dead! */
+ static struct nf_conn *
+ get_next_corpse(int (*iter)(struct nf_conn *i, void *data),
+@@ -2204,6 +2239,7 @@ int nf_conntrack_init_start(void)
+ static struct nf_ct_hook nf_conntrack_hook = {
+ 	.update		= nf_conntrack_update,
+ 	.destroy	= destroy_conntrack,
++	.get_tuple_skb  = nf_conntrack_get_tuple_skb,
+ };
  
-+	if (flow_mode & CAKE_FLOW_NAT_FLAG)
-+		cake_update_flowkeys(&keys, skb);
-+
- 	/* flow_hash_from_keys() sorts the addresses by value, so we have
- 	 * to preserve their order in a separate data structure to treat
- 	 * src and dst host addresses as independently selectable.
-@@ -1919,6 +1949,18 @@ static int cake_change(struct Qdisc *sch, struct nlattr *opt,
- 	if (err < 0)
- 		return err;
- 
-+	if (tb[TCA_CAKE_NAT]) {
-+#if IS_ENABLED(CONFIG_NF_CONNTRACK)
-+		q->flow_mode &= ~CAKE_FLOW_NAT_FLAG;
-+		q->flow_mode |= CAKE_FLOW_NAT_FLAG *
-+			!!nla_get_u32(tb[TCA_CAKE_NAT]);
-+#else
-+		NL_SET_ERR_MSG_ATTR(extack, tb[TCA_CAKE_NAT],
-+				    "No conntrack support in kernel");
-+		return -EOPNOTSUPP;
-+#endif
-+	}
-+
- 	if (tb[TCA_CAKE_BASE_RATE64])
- 		q->rate_bps = nla_get_u64(tb[TCA_CAKE_BASE_RATE64]);
- 
-@@ -2091,6 +2133,10 @@ static int cake_dump(struct Qdisc *sch, struct sk_buff *skb)
- 	if (nla_put_u32(skb, TCA_CAKE_ACK_FILTER, q->ack_filter))
- 		goto nla_put_failure;
- 
-+	if (nla_put_u32(skb, TCA_CAKE_NAT,
-+			!!(q->flow_mode & CAKE_FLOW_NAT_FLAG)))
-+		goto nla_put_failure;
-+
- 	return nla_nest_end(skb, opts);
- 
- nla_put_failure:
+ void nf_conntrack_init_end(void)
