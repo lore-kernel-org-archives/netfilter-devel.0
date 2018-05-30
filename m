@@ -1,48 +1,50 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/9] Netfilter/IPVS fixes for net
-Date: Mon, 28 May 2018 22:39:29 -0400 (EDT)
-Message-ID: <20180528.223929.1635327139685432602.davem@davemloft.net>
-References: <20180528234221.31254-1-pablo@netfilter.org>
+From: "Jason A. Donenfeld" <Jason@zx2c4.com>
+Subject: Missing skb->dst with flow offloading
+Date: Wed, 30 May 2018 02:01:05 +0200
+Message-ID: <CAHmME9que7BqU9sJcmtSpBoHTs8=kybvDZAT_Ai151qZQOCscA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180528234221.31254-1-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
+Cc: Netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org,
+ Jaap Buurman <jaapbuurman@gmail.com>, openwrt-devel@lists.openwrt.org,
+ WireGuard mailing list <wireguard@lists.zx2c4.com>,
+ Felix Fietkau <nbd@nbd.name>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <wireguard-bounces@lists.zx2c4.com>
+List-Unsubscribe: <https://lists.zx2c4.com/mailman/options/wireguard>,
+ <mailto:wireguard-request@lists.zx2c4.com?subject=unsubscribe>
+List-Archive: <http://lists.zx2c4.com/pipermail/wireguard/>
+List-Post: <mailto:wireguard@lists.zx2c4.com>
+List-Help: <mailto:wireguard-request@lists.zx2c4.com?subject=help>
+List-Subscribe: <https://lists.zx2c4.com/mailman/listinfo/wireguard>,
+ <mailto:wireguard-request@lists.zx2c4.com?subject=subscribe>
+Errors-To: wireguard-bounces@lists.zx2c4.com
+Sender: "WireGuard" <wireguard-bounces@lists.zx2c4.com>
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Tue, 29 May 2018 01:42:12 +0200
+Hey Pablo,
 
-> The following patchset contains Netfilter/IPVS fixes for your net tree:
-> 
-> 1) Null pointer dereference when dumping conntrack helper configuration,
->    from Taehee Yoo.
-> 
-> 2) Missing sanitization in ebtables extension name through compat,
->    from Paolo Abeni.
-> 
-> 3) Broken fetch of tracing value, from Taehee Yoo.
-> 
-> 4) Incorrect arithmetics in packet ratelimiting.
-> 
-> 5) Buffer overflow in IPVS sync daemon, from Julian Anastasov.
-> 
-> 6) Wrong argument to nla_strlcpy() in nfnetlink_{acct,cthelper},
->    from Eric Dumazet.
-> 
-> 7) Fix splat in nft_update_chain_stats().
-> 
-> 8) Null pointer dereference from object netlink dump path, from
->    Taehee Yoo.
-> 
-> 9) Missing static_branch_inc() when enabling counters in existing
->    chain, from Taehee Yoo.
-> 
-> You can pull these changes from:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
+Some OpenWRT people have reported to me that there's a crash when
+enabling flow offloading, because I rely on skb_dst(skb) being
+non-null in ndo_start_xmit. The fix in my code for this is very
+simple:
 
-Pulled, thanks.
+- mtu = dst_mtu(skb_dst(skb));
++ dst = skb_dst(skb);
++ mtu = dst ? dst_mtu(dst) : dev->mtu;
+
+I can make this change, but I wanted to be certain first that omitting
+the dst in the skb is intentional on your part. (If so, there might be
+other drivers to fix as well.) In tracing this, it looks like a packet
+that's forwarded from a flow offloaded interface to a virtual
+interface gets diverted immediately via neigh_xmit, where it is then
+passed to a virtual interface via dev_queue_xmit. I can't see anywhere
+along this path a call to skb_dst_set. Perhaps this is intended, as
+flow offloading is supposed to skip the routing table? Or is there an
+oversight in the new flow offloading code?
+
+I'd appreciate your input, so that I can make the appropriate change
+-- or not -- to my code.
+
+Regards,
+Jason
