@@ -1,50 +1,96 @@
-From: "Jason A. Donenfeld" <Jason@zx2c4.com>
-Subject: Missing skb->dst with flow offloading
-Date: Wed, 30 May 2018 02:01:05 +0200
-Message-ID: <CAHmME9que7BqU9sJcmtSpBoHTs8=kybvDZAT_Ai151qZQOCscA@mail.gmail.com>
+From: Kees Cook <keescook@chromium.org>
+Subject: [PATCH] netfilter: nfnetlink: Remove VLA usage
+Date: Tue, 29 May 2018 17:35:25 -0700
+Message-ID: <20180530003525.GA18642@beast>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Cc: Netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org,
- Jaap Buurman <jaapbuurman@gmail.com>, openwrt-devel@lists.openwrt.org,
- WireGuard mailing list <wireguard@lists.zx2c4.com>,
- Felix Fietkau <nbd@nbd.name>
+Content-Type: text/plain; charset=us-ascii
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <wireguard-bounces@lists.zx2c4.com>
-List-Unsubscribe: <https://lists.zx2c4.com/mailman/options/wireguard>,
- <mailto:wireguard-request@lists.zx2c4.com?subject=unsubscribe>
-List-Archive: <http://lists.zx2c4.com/pipermail/wireguard/>
-List-Post: <mailto:wireguard@lists.zx2c4.com>
-List-Help: <mailto:wireguard-request@lists.zx2c4.com?subject=help>
-List-Subscribe: <https://lists.zx2c4.com/mailman/listinfo/wireguard>,
- <mailto:wireguard-request@lists.zx2c4.com?subject=subscribe>
-Errors-To: wireguard-bounces@lists.zx2c4.com
-Sender: "WireGuard" <wireguard-bounces@lists.zx2c4.com>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hey Pablo,
+In the quest to remove all stack VLA usage from the kernel[1], this
+allocates the maximum size expected for all possible attrs and adds
+a sanity-check to make sure nothing gets out of sync.
 
-Some OpenWRT people have reported to me that there's a crash when
-enabling flow offloading, because I rely on skb_dst(skb) being
-non-null in ndo_start_xmit. The fix in my code for this is very
-simple:
+[1] https://lkml.kernel.org/r/CA+55aFzCG-zNmZwX4A2FQpadafLfEzK6CC=qPXydAacU1RqZWA@mail.gmail.com
 
-- mtu = dst_mtu(skb_dst(skb));
-+ dst = skb_dst(skb);
-+ mtu = dst ? dst_mtu(dst) : dev->mtu;
+Signed-off-by: Kees Cook <keescook@chromium.org>
+---
+ net/netfilter/nfnetlink.c | 22 ++++++++++++++++++++--
+ 1 file changed, 20 insertions(+), 2 deletions(-)
 
-I can make this change, but I wanted to be certain first that omitting
-the dst in the skb is intentional on your part. (If so, there might be
-other drivers to fix as well.) In tracing this, it looks like a packet
-that's forwarded from a flow offloaded interface to a virtual
-interface gets diverted immediately via neigh_xmit, where it is then
-passed to a virtual interface via dev_queue_xmit. I can't see anywhere
-along this path a call to skb_dst_set. Perhaps this is intended, as
-flow offloading is supposed to skip the routing table? Or is there an
-oversight in the new flow offloading code?
+diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
+index 03ead8a9e90c..0cb395f9627e 100644
+--- a/net/netfilter/nfnetlink.c
++++ b/net/netfilter/nfnetlink.c
+@@ -28,6 +28,7 @@
+ 
+ #include <net/netlink.h>
+ #include <linux/netfilter/nfnetlink.h>
++#include <linux/netfilter/nf_tables.h>
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Harald Welte <laforge@netfilter.org>");
+@@ -37,6 +38,11 @@ MODULE_ALIAS_NET_PF_PROTO(PF_NETLINK, NETLINK_NETFILTER);
+ 	rcu_dereference_protected(table[(id)].subsys, \
+ 				  lockdep_nfnl_is_held((id)))
+ 
++#define NFTA_MAX_ATTR	max(max(max(NFTA_CHAIN_MAX, NFTA_FLOWTABLE_MAX),\
++				max(NFTA_OBJ_MAX, NFTA_RULE_MAX)),	\
++			    max(NFTA_TABLE_MAX,				\
++				max(NFTA_SET_ELEM_LIST_MAX, NFTA_SET_MAX)))
++
+ static struct {
+ 	struct mutex				mutex;
+ 	const struct nfnetlink_subsystem __rcu	*subsys;
+@@ -185,11 +191,17 @@ static int nfnetlink_rcv_msg(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 	{
+ 		int min_len = nlmsg_total_size(sizeof(struct nfgenmsg));
+ 		u8 cb_id = NFNL_MSG_TYPE(nlh->nlmsg_type);
+-		struct nlattr *cda[ss->cb[cb_id].attr_count + 1];
++		struct nlattr *cda[NFTA_MAX_ATTR + 1];
+ 		struct nlattr *attr = (void *)nlh + min_len;
+ 		int attrlen = nlh->nlmsg_len - min_len;
+ 		__u8 subsys_id = NFNL_SUBSYS_ID(type);
+ 
++		/* Sanity-check NFTA_MAX_ATTR */
++		if (ss->cb[cb_id].attr_count > NFTA_MAX_ATTR) {
++			rcu_read_unlock();
++			return -ENOMEM;
++		}
++
+ 		err = nla_parse(cda, ss->cb[cb_id].attr_count, attr, attrlen,
+ 				ss->cb[cb_id].policy, extack);
+ 		if (err < 0) {
+@@ -379,10 +391,16 @@ static void nfnetlink_rcv_batch(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 		{
+ 			int min_len = nlmsg_total_size(sizeof(struct nfgenmsg));
+ 			u8 cb_id = NFNL_MSG_TYPE(nlh->nlmsg_type);
+-			struct nlattr *cda[ss->cb[cb_id].attr_count + 1];
++			struct nlattr *cda[NFTA_MAX_ATTR + 1];
+ 			struct nlattr *attr = (void *)nlh + min_len;
+ 			int attrlen = nlh->nlmsg_len - min_len;
+ 
++			/* Sanity-check NFTA_MAX_ATTR */
++			if (ss->cb[cb_id].attr_count > NFTA_MAX_ATTR) {
++				err = -ENOMEM;
++				goto ack;
++			}
++
+ 			err = nla_parse(cda, ss->cb[cb_id].attr_count, attr,
+ 					attrlen, ss->cb[cb_id].policy, NULL);
+ 			if (err < 0)
+-- 
+2.17.0
 
-I'd appreciate your input, so that I can make the appropriate change
--- or not -- to my code.
 
-Regards,
-Jason
+-- 
+Kees Cook
+Pixel Security
