@@ -1,100 +1,101 @@
 From: Kees Cook <keescook@chromium.org>
-Subject: Re: [PATCH] netfilter: nfnetlink: Remove VLA usage
-Date: Wed, 30 May 2018 12:08:08 -0700
-Message-ID: <CAGXu5jKdB+Md-8OkG8xfzpcSgCVbVsUU4ojD++gFsz4-Q0nxeg@mail.gmail.com>
-References: <20180530003525.GA18642@beast> <20180530095249.3jdhb5gdwt24cnsa@salvia>
+Subject: [PATCH v2] netfilter: nfnetlink: Remove VLA usage
+Date: Wed, 30 May 2018 12:17:56 -0700
+Message-ID: <20180530191756.GA39504@beast>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
         Florian Westphal <fw@strlen.de>,
         "David S. Miller" <davem@davemloft.net>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        Network Development <netdev@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180530095249.3jdhb5gdwt24cnsa@salvia>
+Content-Disposition: inline
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, May 30, 2018 at 2:52 AM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Tue, May 29, 2018 at 05:35:25PM -0700, Kees Cook wrote:
->> In the quest to remove all stack VLA usage from the kernel[1], this
->> allocates the maximum size expected for all possible attrs and adds
->> a sanity-check to make sure nothing gets out of sync.
->>
->> [1] https://lkml.kernel.org/r/CA+55aFzCG-zNmZwX4A2FQpadafLfEzK6CC=qPXydAacU1RqZWA@mail.gmail.com
->>
->> Signed-off-by: Kees Cook <keescook@chromium.org>
->> ---
->>  net/netfilter/nfnetlink.c | 22 ++++++++++++++++++++--
->>  1 file changed, 20 insertions(+), 2 deletions(-)
->>
->> diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
->> index 03ead8a9e90c..0cb395f9627e 100644
->> --- a/net/netfilter/nfnetlink.c
->> +++ b/net/netfilter/nfnetlink.c
->> @@ -28,6 +28,7 @@
->>
->>  #include <net/netlink.h>
->>  #include <linux/netfilter/nfnetlink.h>
->> +#include <linux/netfilter/nf_tables.h>
->>
->>  MODULE_LICENSE("GPL");
->>  MODULE_AUTHOR("Harald Welte <laforge@netfilter.org>");
->> @@ -37,6 +38,11 @@ MODULE_ALIAS_NET_PF_PROTO(PF_NETLINK, NETLINK_NETFILTER);
->>       rcu_dereference_protected(table[(id)].subsys, \
->>                                 lockdep_nfnl_is_held((id)))
->>
->> +#define NFTA_MAX_ATTR        max(max(max(NFTA_CHAIN_MAX, NFTA_FLOWTABLE_MAX),\
->> +                             max(NFTA_OBJ_MAX, NFTA_RULE_MAX)),      \
->> +                         max(NFTA_TABLE_MAX,                         \
->> +                             max(NFTA_SET_ELEM_LIST_MAX, NFTA_SET_MAX)))
->
-> This is very specific of nftables, there are other nf subsystems using
-> nfnetlink that may go over this maximum attribute value (grep from
-> "struct nfnetlink_subsystem").
+In the quest to remove all stack VLA usage from the kernel[1], this
+allocates the maximum size expected for all possible attrs and adds
+sanity-checks at both registration and usage to make sure nothing
+gets out of sync.
 
-Oops, yes. I see that now.
+[1] https://lkml.kernel.org/r/CA+55aFzCG-zNmZwX4A2FQpadafLfEzK6CC=qPXydAacU1RqZWA@mail.gmail.com
 
-> To remove the VLA, I think we need an artificial maximum attribute
-> that reasonably large enough.
+Signed-off-by: Kees Cook <keescook@chromium.org>
+---
+v2: Use a static value and add a check in nfnetlink_subsys_register()
+---
+ net/netfilter/nfnetlink.c | 25 +++++++++++++++++++++++--
+ 1 file changed, 23 insertions(+), 2 deletions(-)
 
-git grep insanity:
+diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
+index 03ead8a9e90c..1a80fdcf008f 100644
+--- a/net/netfilter/nfnetlink.c
++++ b/net/netfilter/nfnetlink.c
+@@ -37,6 +37,8 @@ MODULE_ALIAS_NET_PF_PROTO(PF_NETLINK, NETLINK_NETFILTER);
+ 	rcu_dereference_protected(table[(id)].subsys, \
+ 				  lockdep_nfnl_is_held((id)))
+ 
++#define NFNL_MAX_ATTR_COUNT	32
++
+ static struct {
+ 	struct mutex				mutex;
+ 	const struct nfnetlink_subsystem __rcu	*subsys;
+@@ -76,6 +78,13 @@ EXPORT_SYMBOL_GPL(lockdep_nfnl_is_held);
+ 
+ int nfnetlink_subsys_register(const struct nfnetlink_subsystem *n)
+ {
++	u8 cb_id;
++
++	/* Sanity-check attr_count size to avoid stack buffer overflow. */
++	for (cb_id = 0; cb_id < n->cb_count; cb_id++)
++		if (WARN_ON(n->cb[cb_id].attr_count > NFNL_MAX_ATTR_COUNT))
++			return -EINVAL;
++
+ 	nfnl_lock(n->subsys_id);
+ 	if (table[n->subsys_id].subsys) {
+ 		nfnl_unlock(n->subsys_id);
+@@ -185,11 +194,17 @@ static int nfnetlink_rcv_msg(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 	{
+ 		int min_len = nlmsg_total_size(sizeof(struct nfgenmsg));
+ 		u8 cb_id = NFNL_MSG_TYPE(nlh->nlmsg_type);
+-		struct nlattr *cda[ss->cb[cb_id].attr_count + 1];
++		struct nlattr *cda[NFNL_MAX_ATTR_COUNT + 1];
+ 		struct nlattr *attr = (void *)nlh + min_len;
+ 		int attrlen = nlh->nlmsg_len - min_len;
+ 		__u8 subsys_id = NFNL_SUBSYS_ID(type);
+ 
++		/* Sanity-check NFNL_MAX_ATTR_COUNT */
++		if (ss->cb[cb_id].attr_count > NFNL_MAX_ATTR_COUNT) {
++			rcu_read_unlock();
++			return -ENOMEM;
++		}
++
+ 		err = nla_parse(cda, ss->cb[cb_id].attr_count, attr, attrlen,
+ 				ss->cb[cb_id].policy, extack);
+ 		if (err < 0) {
+@@ -379,10 +394,16 @@ static void nfnetlink_rcv_batch(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 		{
+ 			int min_len = nlmsg_total_size(sizeof(struct nfgenmsg));
+ 			u8 cb_id = NFNL_MSG_TYPE(nlh->nlmsg_type);
+-			struct nlattr *cda[ss->cb[cb_id].attr_count + 1];
++			struct nlattr *cda[NFNL_MAX_ATTR_COUNT + 1];
+ 			struct nlattr *attr = (void *)nlh + min_len;
+ 			int attrlen = nlh->nlmsg_len - min_len;
+ 
++			/* Sanity-check NFTA_MAX_ATTR */
++			if (ss->cb[cb_id].attr_count > NFNL_MAX_ATTR_COUNT) {
++				err = -ENOMEM;
++				goto ack;
++			}
++
+ 			err = nla_parse(cda, ss->cb[cb_id].attr_count, attr,
+ 					attrlen, ss->cb[cb_id].policy, NULL);
+ 			if (err < 0)
+-- 
+2.17.0
 
-$ for i in $(git grep -A10 'static .*struct nfnetlink_subsystem' | \
-                 grep '\.cb\b' | awk '{print $NF}' | cut -d, -f1)
-do git grep -A100 'static .*'"$i\b"; done | \
-    grep '\.attr_count\b' | awk -F= '{print $NF}' | \
-    sed -e 's/ //g' | cut -d, -f1 | sort -u
-
-and manual counting gets me:
-
-CTA_EXPECT_MAX 12
-CTA_MAX 25
-CTA_TIMEOUT_MAX 6
-IPSET_ATTR_CMD_MAX 11
-NFACCT_MAX 9
-NFCTH_MAX 7
-NFQA_CFG_MAX 6
-NFQA_MAX 21
-NFTA_CHAIN_MAX 10
-NFTA_COMPAT_MAX 4
-NFTA_OBJ_MAX 8
-NFTA_RULE_MAX 10
-NFTA_SET_ELEM_LIST_MAX 5
-NFTA_SET_MAX 17
-NFTA_TABLE_MAX 6
-NFULA_CFG_MAX 7
-NFULA_MAX 20
-OSF_ATTR_MAX 2
-
-How about 32?
-
-As Florian suggested, I'll add the check in
-nfnetlink_subsys_register() with a WARN().
-
--Kees
 
 -- 
 Kees Cook
