@@ -1,58 +1,47 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: nfnetlink: Remove VLA usage
-Date: Wed, 30 May 2018 11:52:49 +0200
-Message-ID: <20180530095249.3jdhb5gdwt24cnsa@salvia>
-References: <20180530003525.GA18642@beast>
+Subject: Re: Missing skb->dst with flow offloading
+Date: Wed, 30 May 2018 20:05:47 +0200
+Message-ID: <20180530180547.kn4cikprj7drhlc3@salvia>
+References: <CAHmME9que7BqU9sJcmtSpBoHTs8=kybvDZAT_Ai151qZQOCscA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-To: Kees Cook <keescook@chromium.org>
+Cc: Felix Fietkau <nbd@nbd.name>, netfilter-devel@vger.kernel.org,
+        Netdev <netdev@vger.kernel.org>, openwrt-devel@lists.openwrt.org,
+        Jaap Buurman <jaapbuurman@gmail.com>,
+        WireGuard mailing list <wireguard@lists.zx2c4.com>
+To: "Jason A. Donenfeld" <Jason@zx2c4.com>
 Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180530003525.GA18642@beast>
+In-Reply-To: <CAHmME9que7BqU9sJcmtSpBoHTs8=kybvDZAT_Ai151qZQOCscA@mail.gmail.com>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, May 29, 2018 at 05:35:25PM -0700, Kees Cook wrote:
-> In the quest to remove all stack VLA usage from the kernel[1], this
-> allocates the maximum size expected for all possible attrs and adds
-> a sanity-check to make sure nothing gets out of sync.
-> 
-> [1] https://lkml.kernel.org/r/CA+55aFzCG-zNmZwX4A2FQpadafLfEzK6CC=qPXydAacU1RqZWA@mail.gmail.com
-> 
-> Signed-off-by: Kees Cook <keescook@chromium.org>
-> ---
->  net/netfilter/nfnetlink.c | 22 ++++++++++++++++++++--
->  1 file changed, 20 insertions(+), 2 deletions(-)
-> 
-> diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
-> index 03ead8a9e90c..0cb395f9627e 100644
-> --- a/net/netfilter/nfnetlink.c
-> +++ b/net/netfilter/nfnetlink.c
-> @@ -28,6 +28,7 @@
->  
->  #include <net/netlink.h>
->  #include <linux/netfilter/nfnetlink.h>
-> +#include <linux/netfilter/nf_tables.h>
->  
->  MODULE_LICENSE("GPL");
->  MODULE_AUTHOR("Harald Welte <laforge@netfilter.org>");
-> @@ -37,6 +38,11 @@ MODULE_ALIAS_NET_PF_PROTO(PF_NETLINK, NETLINK_NETFILTER);
->  	rcu_dereference_protected(table[(id)].subsys, \
->  				  lockdep_nfnl_is_held((id)))
->  
-> +#define NFTA_MAX_ATTR	max(max(max(NFTA_CHAIN_MAX, NFTA_FLOWTABLE_MAX),\
-> +				max(NFTA_OBJ_MAX, NFTA_RULE_MAX)),	\
-> +			    max(NFTA_TABLE_MAX,				\
-> +				max(NFTA_SET_ELEM_LIST_MAX, NFTA_SET_MAX)))
+Hi Jason,
 
-This is very specific of nftables, there are other nf subsystems using
-nfnetlink that may go over this maximum attribute value (grep from
-"struct nfnetlink_subsystem").
+On Wed, May 30, 2018 at 02:01:05AM +0200, Jason A. Donenfeld wrote:
+> Hey Pablo,
+> 
+> Some OpenWRT people have reported to me that there's a crash when
+> enabling flow offloading, because I rely on skb_dst(skb) being
+> non-null in ndo_start_xmit. The fix in my code for this is very
+> simple:
+> 
+> - mtu = dst_mtu(skb_dst(skb));
+> + dst = skb_dst(skb);
+> + mtu = dst ? dst_mtu(dst) : dev->mtu;
+> 
+> I can make this change, but I wanted to be certain first that omitting
+> the dst in the skb is intentional on your part. (If so, there might be
+> other drivers to fix as well.) In tracing this, it looks like a packet
+> that's forwarded from a flow offloaded interface to a virtual
+> interface gets diverted immediately via neigh_xmit, where it is then
+> passed to a virtual interface via dev_queue_xmit. I can't see anywhere
+> along this path a call to skb_dst_set. Perhaps this is intended, as
+> flow offloading is supposed to skip the routing table? Or is there an
+> oversight in the new flow offloading code?
+> 
+> I'd appreciate your input, so that I can make the appropriate change
+> -- or not -- to my code.
 
-To remove the VLA, I think we need an artificial maximum attribute
-that reasonably large enough.
+If there a more drivers in-tree that need this, we may add
+skb_dst_set_noref() calls to _hook function in the flowtable codebase.
