@@ -1,120 +1,55 @@
-From: Toke =?utf-8?q?H=C3=B8iland-J=C3=B8rgensen?= <toke@toke.dk>
-Subject: [PATCH net-next v18 5/8] sch_cake: Add NAT awareness to packet
- classifier
-Date: Thu, 31 May 2018 11:56:38 +0200
-Message-ID: <152776059871.16347.2595334757140381115.stgit@alrua-kau>
-References: <152776056580.16347.7216549227396672873.stgit@alrua-kau>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH v2] netfilter: properly initialize xt_table_info structure
+Date: Thu, 31 May 2018 12:11:47 +0200
+Message-ID: <20180531101147.GA26342@kroah.com>
+References: <a8fadcf4-c2dd-7465-9b41-189eb97a3dd2@gmail.com>
+ <20180517100908.GA3150@kroah.com>
+ <alpine.LSU.2.20.1805171232210.30649@n3.vanv.qr>
+ <20180517132012.GA29160@kroah.com>
+ <20180518092756.odlyvxcpgbuistqq@breakpoint.cc>
+ <20180526145449.GA10379@kroah.com>
+ <CANZU63WyNL4qUJx2eS3gokPMBJLn5=C4-bnOSEF5trX3jGngUA@mail.gmail.com>
+ <20180531082436.ffd6gkbuk6xpm47y@breakpoint.cc>
+ <20180531085116.GA17729@kroah.com>
+ <20180531090758.gwvbzpd4iu74yakj@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Cc: netfilter-devel@vger.kernel.org
-To: netdev@vger.kernel.org, cake@lists.bufferbloat.net
+Content-Type: text/plain; charset=us-ascii
+Cc: peter pi <tiangangpi@gmail.com>, Jan Engelhardt <jengelh@inai.de>,
+        Eric Dumazet <eric.dumazet@gmail.com>,
+        Greg Hackmann <ghackmann@google.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Michal Kubecek <mkubecek@suse.cz>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <152776056580.16347.7216549227396672873.stgit@alrua-kau>
+Content-Disposition: inline
+In-Reply-To: <20180531090758.gwvbzpd4iu74yakj@breakpoint.cc>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-When CAKE is deployed on a gateway that also performs NAT (which is a
-common deployment mode), the host fairness mechanism cannot distinguish
-internal hosts from each other, and so fails to work correctly.
+On Thu, May 31, 2018 at 11:07:58AM +0200, Florian Westphal wrote:
+> Greg Kroah-Hartman <gregkh@linuxfoundation.org> wrote:
+> > On Thu, May 31, 2018 at 10:24:36AM +0200, Florian Westphal wrote:
+> > > peter pi <tiangangpi@gmail.com> wrote:
+> > > > Hi Greg, I applied this patch on 4.4 and tested it on my Pixel 2, it seems
+> > > > the problem still exists,
+> > > 
+> > > What is the problem exactly?
+> > 
+> > The problem is that kernel data is being sent to userspace due to an
+> > uncleared buffer that was allocated and then copied to userspace.  This
+> > can be reproduced by dumping the current set of iptables rules.  Peter
+> > had an example reproducing script that he used to specifically show
+> > this.  Peter, can you provide that?
+> > 
+> > I thought that initializing this buffer to zero would solve the problem,
+> > but I guess I cleared the wrong buffer :(
+> 
+> Never mind, this test was on 4.4 not 4.14.
+> 
+> But even on 4.14 i don't see how zeroing a buffer that will
+> be filled via copy_from_user would help.
 
-To fix this, we add an optional NAT awareness mode, which will query the
-kernel conntrack mechanism to obtain the pre-NAT addresses for each packet
-and use that in the flow and host hashing.
-
-When the shaper is enabled and the host is already performing NAT, the cost
-of this lookup is negligible. However, in unlimited mode with no NAT being
-performed, there is a significant CPU cost at higher bandwidths. For this
-reason, the feature is turned off by default.
-
-Cc: netfilter-devel@vger.kernel.org
-Signed-off-by: Toke Høiland-Jørgensen <toke@toke.dk>
----
- net/sched/sch_cake.c |   46 ++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 46 insertions(+)
-
-diff --git a/net/sched/sch_cake.c b/net/sched/sch_cake.c
-index f6a26636e98b..51768fd454a8 100644
---- a/net/sched/sch_cake.c
-+++ b/net/sched/sch_cake.c
-@@ -71,6 +71,10 @@
- #include <net/tcp.h>
- #include <net/flow_dissector.h>
- 
-+#if IS_ENABLED(CONFIG_NF_CONNTRACK)
-+#include <net/netfilter/nf_conntrack_core.h>
-+#endif
-+
- #define CAKE_SET_WAYS (8)
- #define CAKE_MAX_TINS (8)
- #define CAKE_QUEUES (1024)
-@@ -516,6 +520,29 @@ static bool cobalt_should_drop(struct cobalt_vars *vars,
- 	return drop;
- }
- 
-+static void cake_update_flowkeys(struct flow_keys *keys,
-+				 const struct sk_buff *skb)
-+{
-+#if IS_ENABLED(CONFIG_NF_CONNTRACK)
-+	struct nf_conntrack_tuple tuple = {};
-+	bool rev = !skb->_nfct;
-+
-+	if (tc_skb_protocol(skb) != htons(ETH_P_IP))
-+		return;
-+
-+	if (!nf_ct_get_tuple_skb(&tuple, skb))
-+		return;
-+
-+	keys->addrs.v4addrs.src = rev ? tuple.dst.u3.ip : tuple.src.u3.ip;
-+	keys->addrs.v4addrs.dst = rev ? tuple.src.u3.ip : tuple.dst.u3.ip;
-+
-+	if (keys->ports.ports) {
-+		keys->ports.src = rev ? tuple.dst.u.all : tuple.src.u.all;
-+		keys->ports.dst = rev ? tuple.src.u.all : tuple.dst.u.all;
-+	}
-+#endif
-+}
-+
- /* Cake has several subtle multiple bit settings. In these cases you
-  *  would be matching triple isolate mode as well.
-  */
-@@ -543,6 +570,9 @@ static u32 cake_hash(struct cake_tin_data *q, const struct sk_buff *skb,
- 	skb_flow_dissect_flow_keys(skb, &keys,
- 				   FLOW_DISSECTOR_F_STOP_AT_FLOW_LABEL);
- 
-+	if (flow_mode & CAKE_FLOW_NAT_FLAG)
-+		cake_update_flowkeys(&keys, skb);
-+
- 	/* flow_hash_from_keys() sorts the addresses by value, so we have
- 	 * to preserve their order in a separate data structure to treat
- 	 * src and dst host addresses as independently selectable.
-@@ -1919,6 +1949,18 @@ static int cake_change(struct Qdisc *sch, struct nlattr *opt,
- 	if (err < 0)
- 		return err;
- 
-+	if (tb[TCA_CAKE_NAT]) {
-+#if IS_ENABLED(CONFIG_NF_CONNTRACK)
-+		q->flow_mode &= ~CAKE_FLOW_NAT_FLAG;
-+		q->flow_mode |= CAKE_FLOW_NAT_FLAG *
-+			!!nla_get_u32(tb[TCA_CAKE_NAT]);
-+#else
-+		NL_SET_ERR_MSG_ATTR(extack, tb[TCA_CAKE_NAT],
-+				    "No conntrack support in kernel");
-+		return -EOPNOTSUPP;
-+#endif
-+	}
-+
- 	if (tb[TCA_CAKE_BASE_RATE64])
- 		q->rate_bps = nla_get_u64(tb[TCA_CAKE_BASE_RATE64]);
- 
-@@ -2091,6 +2133,10 @@ static int cake_dump(struct Qdisc *sch, struct sk_buff *skb)
- 	if (nla_put_u32(skb, TCA_CAKE_ACK_FILTER, q->ack_filter))
- 		goto nla_put_failure;
- 
-+	if (nla_put_u32(skb, TCA_CAKE_NAT,
-+			!!(q->flow_mode & CAKE_FLOW_NAT_FLAG)))
-+		goto nla_put_failure;
-+
- 	return nla_nest_end(skb, opts);
- 
- nla_put_failure:
+It should be copy_to_user() :)
