@@ -1,53 +1,158 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH v2] netfilter: properly initialize xt_table_info structure
-Date: Thu, 31 May 2018 11:07:58 +0200
-Message-ID: <20180531090758.gwvbzpd4iu74yakj@breakpoint.cc>
-References: <20180517093410.GB17597@kroah.com>
- <a8fadcf4-c2dd-7465-9b41-189eb97a3dd2@gmail.com>
- <20180517100908.GA3150@kroah.com>
- <alpine.LSU.2.20.1805171232210.30649@n3.vanv.qr>
- <20180517132012.GA29160@kroah.com>
- <20180518092756.odlyvxcpgbuistqq@breakpoint.cc>
- <20180526145449.GA10379@kroah.com>
- <CANZU63WyNL4qUJx2eS3gokPMBJLn5=C4-bnOSEF5trX3jGngUA@mail.gmail.com>
- <20180531082436.ffd6gkbuk6xpm47y@breakpoint.cc>
- <20180531085116.GA17729@kroah.com>
+From: Toke =?utf-8?q?H=C3=B8iland-J=C3=B8rgensen?= <toke@toke.dk>
+Subject: [PATCH net-next v18 0/8] sched: Add Common Applications Kept
+ Enhanced (cake) qdisc
+Date: Thu, 31 May 2018 11:56:38 +0200
+Message-ID: <152776056580.16347.7216549227396672873.stgit@alrua-kau>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, peter pi <tiangangpi@gmail.com>,
-        Jan Engelhardt <jengelh@inai.de>,
-        Eric Dumazet <eric.dumazet@gmail.com>,
-        Greg Hackmann <ghackmann@google.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Michal Kubecek <mkubecek@suse.cz>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+Cc: Georgios Amanakis <gamanakis@gmail.com>,
+        Pete Heist <peteheist@gmail.com>,
+        Yuchung Cheng <ycheng@google.com>,
+        Neal Cardwell <ncardwell@google.com>,
+        Dave Taht <dave.taht@gmail.com>,
+        netfilter-devel@vger.kernel.org
+To: netdev@vger.kernel.org, cake@lists.bufferbloat.net
 Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180531085116.GA17729@kroah.com>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Greg Kroah-Hartman <gregkh@linuxfoundation.org> wrote:
-> On Thu, May 31, 2018 at 10:24:36AM +0200, Florian Westphal wrote:
-> > peter pi <tiangangpi@gmail.com> wrote:
-> > > Hi Greg, I applied this patch on 4.4 and tested it on my Pixel 2, it seems
-> > > the problem still exists,
-> > 
-> > What is the problem exactly?
-> 
-> The problem is that kernel data is being sent to userspace due to an
-> uncleared buffer that was allocated and then copied to userspace.  This
-> can be reproduced by dumping the current set of iptables rules.  Peter
-> had an example reproducing script that he used to specifically show
-> this.  Peter, can you provide that?
-> 
-> I thought that initializing this buffer to zero would solve the problem,
-> but I guess I cleared the wrong buffer :(
+This patch series adds the CAKE qdisc, and has been split up to ease
+review.
 
-Never mind, this test was on 4.4 not 4.14.
+I have attempted to split out each configurable feature into its own patch.
+The first commit adds the base shaper and packet scheduler, while
+subsequent commits add the optional features. The full userspace API and
+most data structures are included in this commit, but options not
+understood in the base version will be ignored.
 
-But even on 4.14 i don't see how zeroing a buffer that will
-be filled via copy_from_user would help.
+The result of applying the entire series is identical to the out of tree
+version that have seen extensive testing in previous deployments, most
+notably as an out of tree patch to OpenWrt. However, note that I have only
+compile tested the individual patches; so the whole series should be
+considered as a unit.
+
+---
+Changelog
+
+v18:
+  - Rework classification logic in the diffserv case to always hash if
+    filter doesn't select a queue, and to run TC filters before
+    selecting the diffserv tin (allowing filter to influence this).
+  - Make sure we always call qdisc_watchdog_init() in cake_init(), so we
+    don't crash in cake_destroy().
+
+v17:
+  - Rebase to newest net-next and move the conntrack callback to
+    nf_ct_hook
+  - Fix a compile error when NF_CONNTRACK is unset.
+
+v16:
+  - Move conntrack lookup function into conntrack core and read it via
+    RCU so it is only active when the nf_conntrack module is loaded.
+    This avoids the module dependency on conntrack for NAT mode. Thanks
+    to Pablo for the idea.
+
+v15:
+  - Handle ECN flags in ACK filter
+
+v14:
+  - Handle seqno wraps and DSACKs in ACK filter
+
+v13:
+  - Avoid ktime_t to scalar compares
+  - Add class dumping and basic stats
+  - Fail with ENOTSUPP when requesting NAT mode and conntrack is not
+    available.
+  - Parse all TCP options in ACK filter and make sure to only drop safe
+    ones. Also handle SACK ranges properly.
+
+v12:
+  - Get rid of custom time typedefs. Use ktime_t for time and u64 for
+    duration instead.
+
+v11:
+  - Fix overhead compensation calculation for GSO packets
+  - Change configured rate to be u64 (I ran out of bits before I ran out
+    of CPU when testing the effects of the above)
+
+v10:
+  - Christmas tree gardening (fix variable declarations to be in reverse
+    line length order)
+
+v9:
+  - Remove duplicated checks around kvfree() and just call it
+    unconditionally.
+  - Don't pass __GFP_NOWARN when allocating memory
+  - Move options in cake_dump() that are related to optional features to
+    later patches implementing the features.
+  - Support attaching filters to the qdisc and use the classification
+    result to select flow queue.
+  - Support overriding diffserv priority tin from skb->priority
+
+v8:
+  - Remove inline keyword from function definitions
+  - Simplify ACK filter; remove the complex state handling to make the
+    logic easier to follow. This will potentially be a bit less efficient,
+    but I have not been able to measure a difference.
+
+v7:
+  - Split up patch into a series to ease review.
+  - Constify the ACK filter.
+
+v6:
+  - Fix 6in4 encapsulation checks in ACK filter code
+  - Checkpatch fixes
+
+v5:
+  - Refactor ACK filter code and hopefully fix the safety issues
+    properly this time.
+
+v4:
+  - Only split GSO packets if shaping at speeds <= 1Gbps
+  - Fix overhead calculation code to also work for GSO packets
+  - Don't re-implement kvzalloc()
+  - Remove local header include from out-of-tree build (fixes kbuild-bot
+    complaint).
+  - Several fixes to the ACK filter:
+    - Check pskb_may_pull() before deref of transport headers.
+    - Don't run ACK filter logic on split GSO packets
+    - Fix TCP sequence number compare to deal with wraparounds
+
+v3:
+  - Use IS_REACHABLE() macro to fix compilation when sch_cake is
+    built-in and conntrack is a module.
+  - Switch the stats output to use nested netlink attributes instead
+    of a versioned struct.
+  - Remove GPL boilerplate.
+  - Fix array initialisation style.
+
+v2:
+  - Fix kbuild test bot complaint
+  - Clean up the netlink ABI
+  - Fix checkpatch complaints
+  - A few tweaks to the behaviour of cake based on testing carried out
+    while writing the paper.
+
+---
+
+Toke Høiland-Jørgensen (8):
+      sched: Add Common Applications Kept Enhanced (cake) qdisc
+      sch_cake: Add ingress mode
+      sch_cake: Add optional ACK filter
+      netfilter: Add nf_ct_get_tuple_skb global lookup function
+      sch_cake: Add NAT awareness to packet classifier
+      sch_cake: Add DiffServ handling
+      sch_cake: Add overhead compensation support to the rate shaper
+      sch_cake: Conditionally split GSO segments
+
+
+ include/linux/netfilter.h         |   11 
+ include/uapi/linux/pkt_sched.h    |  113 +
+ net/netfilter/core.c              |   15 
+ net/netfilter/nf_conntrack_core.c |   36 
+ net/sched/Kconfig                 |   11 
+ net/sched/Makefile                |    1 
+ net/sched/sch_cake.c              | 2998 +++++++++++++++++++++++++++++++++++++
+ 7 files changed, 3185 insertions(+)
+ create mode 100644 net/sched/sch_cake.c
