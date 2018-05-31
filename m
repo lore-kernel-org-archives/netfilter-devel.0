@@ -1,7 +1,7 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+From: Michal Kubecek <mkubecek@suse.cz>
 Subject: Re: [PATCH v2] netfilter: properly initialize xt_table_info structure
-Date: Thu, 31 May 2018 13:23:11 +0200
-Message-ID: <20180531112311.GA29517@kroah.com>
+Date: Thu, 31 May 2018 13:32:16 +0200
+Message-ID: <20180531113215.sbqqjip2gxvhl2eg@unicorn.suse.cz>
 References: <a8fadcf4-c2dd-7465-9b41-189eb97a3dd2@gmail.com>
  <20180517100908.GA3150@kroah.com>
  <alpine.LSU.2.20.1805171232210.30649@n3.vanv.qr>
@@ -14,12 +14,13 @@ References: <a8fadcf4-c2dd-7465-9b41-189eb97a3dd2@gmail.com>
  <CANZU63VE7fWNL+PJrLp7-5PBS6R6RQPvhw2QgqAK8NhX4uQc9Q@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, Jan Engelhardt <jengelh@inai.de>,
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Florian Westphal <fw@strlen.de>,
+        Jan Engelhardt <jengelh@inai.de>,
         Eric Dumazet <eric.dumazet@gmail.com>,
         Greg Hackmann <ghackmann@google.com>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
         Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Michal Kubecek <mkubecek@suse.cz>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org
 To: peter pi <tiangangpi@gmail.com>
@@ -30,7 +31,6 @@ Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
 On Thu, May 31, 2018 at 05:40:40PM +0800, peter pi wrote:
-> Hi Greg,
 > 
 > My test method is very simple:
 > 1, In copy_to_user, add a function call like my_examine(from, n) to check
@@ -39,14 +39,47 @@ On Thu, May 31, 2018 at 05:40:40PM +0800, peter pi wrote:
 > 2, Print a kernel log when there is a leak detected in function my_examine
 > 3, Run iptables-save or ip6tables-save in shell, it will hit the kernel
 > code path of the problem
-> 
-> 
-> Because my test code is specified for Pixel 2, so I think you can write the
-> test code yourself just about 10 lines code
 
-Any chance you can test this on a more modern kernel, like 4.14 or
-newer on a normal system?
+I think I start to understand the problem. IPT_SO_GET_ENTRIES leads to
+calling copy_entries_to_user() which copies the entries as they are to
+user provided buffer. It also copies instances of struct xt_entry_match
+and struct xt_entry_target which contain kernel pointers. We then
+rewrite them with match/target name for userspace but the layout looks
+(on x86_64) like this
 
-thanks,
+/* offset    |  size */  type = struct xt_entry_match {
+/*    0      |    32 */    union {
+/*                32 */        struct {
+/*    0      |     2 */            __u16 match_size;
+/*    2      |    29 */            char name[29];
+/*   31      |     1 */            __u8 revision;
 
-greg k-h
+                                   /* total size (bytes):   32 */
+                               } user;
+/*                16 */        struct {
+/*    0      |     2 */            __u16 match_size;
+/* XXX  6-byte hole  */
+/*    8      |     8 */            struct xt_match *match;
+
+                                   /* total size (bytes):   16 */
+                               } kernel;
+/*                 2 */        __u16 match_size;
+
+                               /* total size (bytes):   32 */
+                           } u;
+/*   32      |     0 */    unsigned char data[];
+
+                           /* total size (bytes):   32 */
+                         }
+
+
+so that if match name is no longer than five characters (which is often
+the case), writing to .u.user.name leaves .u.kernel.match untouched. The
+same problem exists in struct xt_entry_target.
+
+Unless there are other kernel pointers leaked, the solution should be
+simple: explicitly zero the copy of .u.kernel.match (.u.kernel.target)
+before we copy the name. I haven't checked yet if compat_ code path
+suffers from the same problem.
+
+Michal Kubecek
