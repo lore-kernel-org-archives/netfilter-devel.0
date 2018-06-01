@@ -1,107 +1,92 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [RFC nf-next 0/5] netfilter: add ebpf translation infrastructure
-Date: Fri,  1 Jun 2018 17:32:11 +0200
-Message-ID: <20180601153216.10901-1-fw@strlen.de>
-Cc: ast@kernel.org, daniel@iogearbox.net, netdev@vger.kernel.org
+Subject: [RFC nf-next 1/5] bpf: add bpf_prog_get_type_dev_file
+Date: Fri,  1 Jun 2018 17:32:12 +0200
+Message-ID: <20180601153216.10901-2-fw@strlen.de>
+References: <20180601153216.10901-1-fw@strlen.de>
+Cc: ast@kernel.org, daniel@iogearbox.net, netdev@vger.kernel.org,
+        Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20180601153216.10901-1-fw@strlen.de>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This patch series adds a JIT layer to translate nft expressions
-to ebpf programs.
+Same as bpf_prog_get_type_dev, but gets struct file* instead of fd.
 
->From commit phase, spawn a userspace program (using recently added UMH
-infrastructure).
+In case of nf_tables jit, a file descriptor representing the ebpf program
+gets passed to kernel via a pipe from the (userspace) jit helper,
+not 'current', so existing bpf_prog_get_type_dev() doesn't work.
 
-We then provide rules that came in this transaction to the helper via pipe,
-using same nf_tables netlink that nftables already uses.
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ include/linux/bpf.h  | 11 +++++++++++
+ kernel/bpf/syscall.c | 18 ++++++++++++++++++
+ 2 files changed, 29 insertions(+)
 
-The userspace helper translates the rules, and, if successful, installs the
-generated program(s) via bpf syscall.
-
-For each rule a small response containing the corresponding epbf file
-descriptor (can be -1 on failure) and a attribute count (how many
-expressions were jitted) gets sent back to kernel via pipe.
-
-If translation fails, the rule is will be processed by nf_tables
-interpreter (as before this patch).
-
-If translation succeeded, nf_tables fetches the bpf program using the file
-descriptor identifier, allocates a new rule blob containing the new 'ebpf'
-expression (and possible trailing un-translated expressions).
-
-It then replaces the original rule in the transaction log with the new
-'ebpf-rule'.  The original rule is retained in a private area inside the epbf
-expression to be able to present the original expressions back to userspace
-on 'nft list ruleset'.
-
-For easier review, this contains the kernel-side only.
-nf_tables_jit_work() will not do anything, yet.
-
-Unresolved issues:
- - maps and sets.
-   It might be possible to add a new ebpf map type that just wraps
-   the nft set infrastructure for lookups.
-   This would allow nft userspace to continue to work as-is while
-   not requiring new ebpf helper.
-   Anonymous set should be a lot easier as they're immutable
-   and could probably be handled already by existing infra.
-
- - BPF_PROG_RUN() is bolted into nft main loop via a middleman expression.
-   I'm also abusing skb->cb[] to pass network and transport header offsets.
-   Its not 'public' api so this can be changed later.
-
- - always uses BPF_PROG_TYPE_SCHED_CLS.
-   This is because it "works" for current RFC purposes.
-
- - we should eventually support translating multiple (adjacent) rules
-   into single program.
-
-   If we do this kernel will need to track mapping of rules to
-   program (to re-jit when a rule is changed.  This isn't implemented
-   so far, but can be added later.  Alternatively, one could also add a
-   'readonly' table switch to just prevent further updates.
-
-   We will also need to dump the 'next' generation of the
-   to-be-translated table.  The kernel has this information, so its only
-   a matter of serializing it back to userspace from the commit phase.
-
-The jitter is still limited.  So far it supports:
-
- * payload expression for network and transport header
- * meta mark, nfproto, l4proto
- * 32 bit immediates
- * 32 bit bitmask ops
- * accept/drop verdicts
-
-As this uses netlink, there is also no technical requirement for
-libnftnl, its simply used here for convienience.
-
-It doesn't need any userspace changes. Patches for libnftnl and nftables
-make debug info available (e.g. to map rule to its bpf prog id).
-
-Comments welcome.
-
-Florian Westphal (5):
-      bpf: add bpf_prog_get_type_dev_file
-      netfilter: nf_tables: add ebpf expression
-      netfilter: nf_tables: add rule ebpf jit infrastructure
-      netfilter: nf_tables_jit: add dumping of original rule
-      netfilter: nf_tables_jit: add userspace nft to ebpf translator
-
- include/linux/bpf.h                              |   11 
- include/net/netfilter/nf_tables_core.h           |   22 
- include/uapi/linux/netfilter/nf_tables.h         |   18 
- kernel/bpf/syscall.c                             |   18 
- net/netfilter/Kconfig                            |    7 
- net/netfilter/Makefile                           |    5 
- net/netfilter/nf_tables_api.c                    |   16 
- net/netfilter/nf_tables_core.c                   |   61 +
- net/netfilter/nf_tables_jit.c                    |  242 +++
- net/netfilter/nf_tables_jit/Makefile             |   19 
- net/netfilter/nf_tables_jit/imr.c                | 1401 +++++++++++++++++++++++
- net/netfilter/nf_tables_jit/imr.h                |   96 +
- net/netfilter/nf_tables_jit/main.c               |  579 +++++++++
- net/netfilter/nf_tables_jit/nf_tables_jit_kern.c |  175 ++
- 14 files changed, 2670 insertions(+)
+diff --git a/include/linux/bpf.h b/include/linux/bpf.h
+index bbe297436e5d..be7796ac48ac 100644
+--- a/include/linux/bpf.h
++++ b/include/linux/bpf.h
+@@ -24,6 +24,7 @@ struct bpf_map;
+ struct sock;
+ struct seq_file;
+ struct btf;
++struct file;
+ 
+ /* map is generic key/value storage optionally accesible by eBPF programs */
+ struct bpf_map_ops {
+@@ -417,6 +418,9 @@ extern const struct bpf_verifier_ops xdp_analyzer_ops;
+ struct bpf_prog *bpf_prog_get(u32 ufd);
+ struct bpf_prog *bpf_prog_get_type_dev(u32 ufd, enum bpf_prog_type type,
+ 				       bool attach_drv);
++struct bpf_prog *bpf_prog_get_type_dev_file(struct file *,
++					    enum bpf_prog_type type,
++					    bool attach_drv);
+ struct bpf_prog * __must_check bpf_prog_add(struct bpf_prog *prog, int i);
+ void bpf_prog_sub(struct bpf_prog *prog, int i);
+ struct bpf_prog * __must_check bpf_prog_inc(struct bpf_prog *prog);
+@@ -523,6 +527,13 @@ static inline struct bpf_prog *bpf_prog_get_type_dev(u32 ufd,
+ 	return ERR_PTR(-EOPNOTSUPP);
+ }
+ 
++static inline struct bpf_prog *bpf_prog_get_type_dev_file(struct file *f,
++							  enum bpf_prog_type type,
++							  bool b)
++{
++	return ERR_PTR(-EOPNOTSUPP);
++}
++
+ static inline struct bpf_prog * __must_check bpf_prog_add(struct bpf_prog *prog,
+ 							  int i)
+ {
+diff --git a/kernel/bpf/syscall.c b/kernel/bpf/syscall.c
+index 388d4feda348..3fcfd26f0290 100644
+--- a/kernel/bpf/syscall.c
++++ b/kernel/bpf/syscall.c
+@@ -1203,6 +1203,24 @@ struct bpf_prog *bpf_prog_get_type_dev(u32 ufd, enum bpf_prog_type type,
+ }
+ EXPORT_SYMBOL_GPL(bpf_prog_get_type_dev);
+ 
++struct bpf_prog *bpf_prog_get_type_dev_file(struct file *f,
++					    enum bpf_prog_type type,
++					    bool attach_drv)
++{
++	struct bpf_prog *prog;
++
++	if (f->f_op != &bpf_prog_fops)
++		return ERR_PTR(-EINVAL);
++
++	prog = f->private_data;
++
++	if (!bpf_prog_get_ok(prog, &type, attach_drv))
++		return ERR_PTR(-EINVAL);
++
++	return bpf_prog_inc(prog);
++}
++EXPORT_SYMBOL_GPL(bpf_prog_get_type_dev_file);
++
+ /* Initially all BPF programs could be loaded w/o specifying
+  * expected_attach_type. Later for some of them specifying expected_attach_type
+  * at load time became required so that program could be validated properly.
+-- 
+2.16.4
