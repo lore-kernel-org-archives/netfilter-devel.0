@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 14/20] netfilter: nf_tables: Add audit support to log statement
-Date: Sat,  2 Jun 2018 02:22:53 +0200
-Message-ID: <20180602002259.4024-15-pablo@netfilter.org>
+Subject: [PATCH 17/20] netfilter: nfnetlink: Remove VLA usage
+Date: Sat,  2 Jun 2018 02:22:56 +0200
+Message-ID: <20180602002259.4024-18-pablo@netfilter.org>
 References: <20180602002259.4024-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,180 +10,84 @@ In-Reply-To: <20180602002259.4024-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Phil Sutter <phil@nwl.cc>
+From: Kees Cook <keescook@chromium.org>
 
-This extends log statement to support the behaviour achieved with
-AUDIT target in iptables.
+In the quest to remove all stack VLA usage from the kernel[1], this
+allocates the maximum size expected for all possible attrs and adds
+sanity-checks at both registration and usage to make sure nothing
+gets out of sync.
 
-Audit logging is enabled via a pseudo log level 8. In this case any
-other settings like log prefix are ignored since audit log format is
-fixed.
+[1] https://lkml.kernel.org/r/CA+55aFzCG-zNmZwX4A2FQpadafLfEzK6CC=qPXydAacU1RqZWA@mail.gmail.com
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
+Signed-off-by: Kees Cook <keescook@chromium.org>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/uapi/linux/netfilter/nf_tables.h |  5 ++
- net/netfilter/nft_log.c                  | 92 +++++++++++++++++++++++++++++++-
- 2 files changed, 96 insertions(+), 1 deletion(-)
+ net/netfilter/nfnetlink.c | 25 +++++++++++++++++++++++--
+ 1 file changed, 23 insertions(+), 2 deletions(-)
 
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index 3d46c82a5ebd..5c7eb9b9f6d6 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -1081,6 +1081,11 @@ enum nft_log_attributes {
- #define NFTA_LOG_MAX		(__NFTA_LOG_MAX - 1)
+diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
+index 261820627711..4d0da7042aff 100644
+--- a/net/netfilter/nfnetlink.c
++++ b/net/netfilter/nfnetlink.c
+@@ -38,6 +38,8 @@ MODULE_ALIAS_NET_PF_PROTO(PF_NETLINK, NETLINK_NETFILTER);
+ 	rcu_dereference_protected(table[(id)].subsys, \
+ 				  lockdep_nfnl_is_held((id)))
  
- /**
-+ * LOGLEVEL_AUDIT - a pseudo log level enabling audit logging
-+ */
-+#define LOGLEVEL_AUDIT		8
++#define NFNL_MAX_ATTR_COUNT	32
 +
-+/**
-  * enum nft_queue_attributes - nf_tables queue expression netlink attributes
-  *
-  * @NFTA_QUEUE_NUM: netlink queue to send messages to (NLA_U16)
-diff --git a/net/netfilter/nft_log.c b/net/netfilter/nft_log.c
-index a27be36dc0af..7eef1cffbf1b 100644
---- a/net/netfilter/nft_log.c
-+++ b/net/netfilter/nft_log.c
-@@ -9,12 +9,15 @@
-  * Development of this code funded by Astaro AG (http://www.astaro.com/)
-  */
+ static struct {
+ 	struct mutex				mutex;
+ 	const struct nfnetlink_subsystem __rcu	*subsys;
+@@ -77,6 +79,13 @@ EXPORT_SYMBOL_GPL(lockdep_nfnl_is_held);
  
-+#include <linux/audit.h>
- #include <linux/kernel.h>
- #include <linux/init.h>
- #include <linux/module.h>
- #include <linux/netlink.h>
- #include <linux/netfilter.h>
- #include <linux/netfilter/nf_tables.h>
-+#include <net/ipv6.h>
-+#include <net/ip.h>
- #include <net/netfilter/nf_tables.h>
- #include <net/netfilter/nf_log.h>
- #include <linux/netdevice.h>
-@@ -26,12 +29,93 @@ struct nft_log {
- 	char			*prefix;
- };
- 
-+static bool audit_ip4(struct audit_buffer *ab, struct sk_buff *skb)
-+{
-+	struct iphdr _iph;
-+	const struct iphdr *ih;
-+
-+	ih = skb_header_pointer(skb, skb_network_offset(skb), sizeof(_iph), &_iph);
-+	if (!ih)
-+		return false;
-+
-+	audit_log_format(ab, " saddr=%pI4 daddr=%pI4 proto=%hhu",
-+			 &ih->saddr, &ih->daddr, ih->protocol);
-+
-+	return true;
-+}
-+
-+static bool audit_ip6(struct audit_buffer *ab, struct sk_buff *skb)
-+{
-+	struct ipv6hdr _ip6h;
-+	const struct ipv6hdr *ih;
-+	u8 nexthdr;
-+	__be16 frag_off;
-+
-+	ih = skb_header_pointer(skb, skb_network_offset(skb), sizeof(_ip6h), &_ip6h);
-+	if (!ih)
-+		return false;
-+
-+	nexthdr = ih->nexthdr;
-+	ipv6_skip_exthdr(skb, skb_network_offset(skb) + sizeof(_ip6h), &nexthdr, &frag_off);
-+
-+	audit_log_format(ab, " saddr=%pI6c daddr=%pI6c proto=%hhu",
-+			 &ih->saddr, &ih->daddr, nexthdr);
-+
-+	return true;
-+}
-+
-+static void nft_log_eval_audit(const struct nft_pktinfo *pkt)
-+{
-+	struct sk_buff *skb = pkt->skb;
-+	struct audit_buffer *ab;
-+	int fam = -1;
-+
-+	if (!audit_enabled)
-+		return;
-+
-+	ab = audit_log_start(NULL, GFP_ATOMIC, AUDIT_NETFILTER_PKT);
-+	if (!ab)
-+		return;
-+
-+	audit_log_format(ab, "mark=%#x", skb->mark);
-+
-+	switch (nft_pf(pkt)) {
-+	case NFPROTO_BRIDGE:
-+		switch (eth_hdr(skb)->h_proto) {
-+		case htons(ETH_P_IP):
-+			fam = audit_ip4(ab, skb) ? NFPROTO_IPV4 : -1;
-+			break;
-+		case htons(ETH_P_IPV6):
-+			fam = audit_ip6(ab, skb) ? NFPROTO_IPV6 : -1;
-+			break;
-+		}
-+		break;
-+	case NFPROTO_IPV4:
-+		fam = audit_ip4(ab, skb) ? NFPROTO_IPV4 : -1;
-+		break;
-+	case NFPROTO_IPV6:
-+		fam = audit_ip6(ab, skb) ? NFPROTO_IPV6 : -1;
-+		break;
-+	}
-+
-+	if (fam == -1)
-+		audit_log_format(ab, " saddr=? daddr=? proto=-1");
-+
-+	audit_log_end(ab);
-+}
-+
- static void nft_log_eval(const struct nft_expr *expr,
- 			 struct nft_regs *regs,
- 			 const struct nft_pktinfo *pkt)
+ int nfnetlink_subsys_register(const struct nfnetlink_subsystem *n)
  {
- 	const struct nft_log *priv = nft_expr_priv(expr);
- 
-+	if (priv->loginfo.type == NF_LOG_TYPE_LOG &&
-+	    priv->loginfo.u.log.level == LOGLEVEL_AUDIT) {
-+		nft_log_eval_audit(pkt);
-+		return;
-+	}
++	u8 cb_id;
 +
- 	nf_log_packet(nft_net(pkt), nft_pf(pkt), nft_hook(pkt), pkt->skb,
- 		      nft_in(pkt), nft_out(pkt), &priv->loginfo, "%s",
- 		      priv->prefix);
-@@ -84,7 +168,7 @@ static int nft_log_init(const struct nft_ctx *ctx,
- 		} else {
- 			li->u.log.level = LOGLEVEL_WARNING;
- 		}
--		if (li->u.log.level > LOGLEVEL_DEBUG) {
-+		if (li->u.log.level > LOGLEVEL_AUDIT) {
- 			err = -EINVAL;
- 			goto err1;
- 		}
-@@ -112,6 +196,9 @@ static int nft_log_init(const struct nft_ctx *ctx,
- 		break;
- 	}
- 
-+	if (li->u.log.level == LOGLEVEL_AUDIT)
-+		return 0;
++	/* Sanity-check attr_count size to avoid stack buffer overflow. */
++	for (cb_id = 0; cb_id < n->cb_count; cb_id++)
++		if (WARN_ON(n->cb[cb_id].attr_count > NFNL_MAX_ATTR_COUNT))
++			return -EINVAL;
 +
- 	err = nf_logger_find_get(ctx->family, li->type);
- 	if (err < 0)
- 		goto err1;
-@@ -133,6 +220,9 @@ static void nft_log_destroy(const struct nft_ctx *ctx,
- 	if (priv->prefix != nft_log_null_prefix)
- 		kfree(priv->prefix);
+ 	nfnl_lock(n->subsys_id);
+ 	if (table[n->subsys_id].subsys) {
+ 		nfnl_unlock(n->subsys_id);
+@@ -186,11 +195,17 @@ static int nfnetlink_rcv_msg(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 	{
+ 		int min_len = nlmsg_total_size(sizeof(struct nfgenmsg));
+ 		u8 cb_id = NFNL_MSG_TYPE(nlh->nlmsg_type);
+-		struct nlattr *cda[ss->cb[cb_id].attr_count + 1];
++		struct nlattr *cda[NFNL_MAX_ATTR_COUNT + 1];
+ 		struct nlattr *attr = (void *)nlh + min_len;
+ 		int attrlen = nlh->nlmsg_len - min_len;
+ 		__u8 subsys_id = NFNL_SUBSYS_ID(type);
  
-+	if (li->u.log.level == LOGLEVEL_AUDIT)
-+		return;
++		/* Sanity-check NFNL_MAX_ATTR_COUNT */
++		if (ss->cb[cb_id].attr_count > NFNL_MAX_ATTR_COUNT) {
++			rcu_read_unlock();
++			return -ENOMEM;
++		}
 +
- 	nf_logger_put(ctx->family, li->type);
- }
+ 		err = nla_parse(cda, ss->cb[cb_id].attr_count, attr, attrlen,
+ 				ss->cb[cb_id].policy, extack);
+ 		if (err < 0) {
+@@ -387,10 +402,16 @@ static void nfnetlink_rcv_batch(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 		{
+ 			int min_len = nlmsg_total_size(sizeof(struct nfgenmsg));
+ 			u8 cb_id = NFNL_MSG_TYPE(nlh->nlmsg_type);
+-			struct nlattr *cda[ss->cb[cb_id].attr_count + 1];
++			struct nlattr *cda[NFNL_MAX_ATTR_COUNT + 1];
+ 			struct nlattr *attr = (void *)nlh + min_len;
+ 			int attrlen = nlh->nlmsg_len - min_len;
  
++			/* Sanity-check NFTA_MAX_ATTR */
++			if (ss->cb[cb_id].attr_count > NFNL_MAX_ATTR_COUNT) {
++				err = -ENOMEM;
++				goto ack;
++			}
++
+ 			err = nla_parse(cda, ss->cb[cb_id].attr_count, attr,
+ 					attrlen, ss->cb[cb_id].policy, NULL);
+ 			if (err < 0)
 -- 
 2.11.0
