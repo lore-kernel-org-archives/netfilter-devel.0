@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 20/20] ipvs: add ipv6 support to ftp
-Date: Sat,  2 Jun 2018 02:22:59 +0200
-Message-ID: <20180602002259.4024-21-pablo@netfilter.org>
+Subject: [PATCH 15/20] netfilter: nf_tables: fix chain dependency validation
+Date: Sat,  2 Jun 2018 02:22:54 +0200
+Message-ID: <20180602002259.4024-16-pablo@netfilter.org>
 References: <20180602002259.4024-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,865 +10,498 @@ In-Reply-To: <20180602002259.4024-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Julian Anastasov <ja@ssi.bg>
+The following ruleset:
 
-Add support for FTP commands with extended format (RFC 2428):
+ add table ip filter
+ add chain ip filter input { type filter hook input priority 4; }
+ add chain ip filter ap
+ add rule ip filter input jump ap
+ add rule ip filter ap masquerade
 
-- FTP EPRT: IPv4 and IPv6, active mode, similar to PORT
-- FTP EPSV: IPv4 and IPv6, passive mode, similar to PASV.
-EPSV response usually contains only port but we allow real
-server to provide different address
+results in a panic, because the masquerade extension should be rejected
+from the filter chain. The existing validation is missing a chain
+dependency check when the rule is added to the non-base chain.
 
-We restrict control and data connection to be from same
-address family.
+This patch fixes the problem by walking down the rules from the
+basechains, searching for either immediate or lookup expressions, then
+jumping to non-base chains and again walking down the rules to perform
+the expression validation, so we make sure the full ruleset graph is
+validated. This is done only once from the commit phase, in case of
+problem, we abort the transaction and perform fine grain validation for
+error reporting. This patch requires 003087911af2 ("netfilter:
+nfnetlink: allow commit to fail") to achieve this behaviour.
 
-Allow the "(" and ")" to be optional in PASV response.
+This patch also adds a cleanup callback to nfnl batch interface to reset
+the validate state from the exit path.
 
-Also, add ipvsh argument to the pkt_in/pkt_out handlers to better
-access the payload after transport header.
+As a result of this patch, nf_tables_check_loops() doesn't use
+->validate to check for loops, instead it just checks for immediate
+expressions.
 
-Signed-off-by: Julian Anastasov <ja@ssi.bg>
+Reported-by: Taehee Yoo <ap420073@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/ip_vs.h                   |  10 +-
- net/netfilter/ipvs/ip_vs_app.c        |  24 +-
- net/netfilter/ipvs/ip_vs_ftp.c        | 467 ++++++++++++++++++++++------------
- net/netfilter/ipvs/ip_vs_proto_sctp.c |   4 +-
- net/netfilter/ipvs/ip_vs_proto_tcp.c  |   4 +-
- net/netfilter/ipvs/ip_vs_proto_udp.c  |   4 +-
- 6 files changed, 331 insertions(+), 182 deletions(-)
+ include/linux/netfilter/nfnetlink.h    |   1 +
+ include/net/netfilter/nf_tables.h      |   2 +
+ include/net/netfilter/nf_tables_core.h |   8 ++
+ include/net/netns/nftables.h           |   1 +
+ net/netfilter/nf_tables_api.c          | 152 ++++++++++++++++++++++++++++-----
+ net/netfilter/nfnetlink.c              |   2 +
+ net/netfilter/nft_immediate.c          |  27 ++++--
+ net/netfilter/nft_lookup.c             |  47 ++++++++++
+ 8 files changed, 208 insertions(+), 32 deletions(-)
 
-diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
-index 0ac795b41ab8..03f567eb9536 100644
---- a/include/net/ip_vs.h
-+++ b/include/net/ip_vs.h
-@@ -763,14 +763,14 @@ struct ip_vs_app {
- 	 *	   2=Mangled but checksum was not updated
- 	 */
- 	int (*pkt_out)(struct ip_vs_app *, struct ip_vs_conn *,
--		       struct sk_buff *, int *diff);
-+		       struct sk_buff *, int *diff, struct ip_vs_iphdr *ipvsh);
+diff --git a/include/linux/netfilter/nfnetlink.h b/include/linux/netfilter/nfnetlink.h
+index 34551f8aaf9d..3ecc3050be0e 100644
+--- a/include/linux/netfilter/nfnetlink.h
++++ b/include/linux/netfilter/nfnetlink.h
+@@ -31,6 +31,7 @@ struct nfnetlink_subsystem {
+ 	const struct nfnl_callback *cb;	/* callback for individual types */
+ 	int (*commit)(struct net *net, struct sk_buff *skb);
+ 	int (*abort)(struct net *net, struct sk_buff *skb);
++	void (*cleanup)(struct net *net);
+ 	bool (*valid_genid)(struct net *net, u32 genid);
+ };
  
- 	/* input hook: Process packet in outin direction, diff set for TCP.
- 	 * Return: 0=Error, 1=Payload Not Mangled/Mangled but checksum is ok,
- 	 *	   2=Mangled but checksum was not updated
- 	 */
- 	int (*pkt_in)(struct ip_vs_app *, struct ip_vs_conn *,
--		      struct sk_buff *, int *diff);
-+		      struct sk_buff *, int *diff, struct ip_vs_iphdr *ipvsh);
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index 6b9ddb99f3a8..435c32d8a995 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -874,6 +874,8 @@ struct nft_chain {
+ 	struct nft_rule			**rules_next;
+ };
  
- 	/* ip_vs_app initializer */
- 	int (*init_conn)(struct ip_vs_app *, struct ip_vs_conn *);
-@@ -1328,8 +1328,10 @@ int register_ip_vs_app_inc(struct netns_ipvs *ipvs, struct ip_vs_app *app, __u16
- int ip_vs_app_inc_get(struct ip_vs_app *inc);
- void ip_vs_app_inc_put(struct ip_vs_app *inc);
++int nft_chain_validate(const struct nft_ctx *ctx, const struct nft_chain *chain);
++
+ enum nft_chain_types {
+ 	NFT_CHAIN_T_DEFAULT = 0,
+ 	NFT_CHAIN_T_ROUTE,
+diff --git a/include/net/netfilter/nf_tables_core.h b/include/net/netfilter/nf_tables_core.h
+index cd6915b6c054..e0c0c2558ec4 100644
+--- a/include/net/netfilter/nf_tables_core.h
++++ b/include/net/netfilter/nf_tables_core.h
+@@ -2,6 +2,8 @@
+ #ifndef _NET_NF_TABLES_CORE_H
+ #define _NET_NF_TABLES_CORE_H
  
--int ip_vs_app_pkt_out(struct ip_vs_conn *, struct sk_buff *skb);
--int ip_vs_app_pkt_in(struct ip_vs_conn *, struct sk_buff *skb);
-+int ip_vs_app_pkt_out(struct ip_vs_conn *, struct sk_buff *skb,
-+		      struct ip_vs_iphdr *ipvsh);
-+int ip_vs_app_pkt_in(struct ip_vs_conn *, struct sk_buff *skb,
-+		     struct ip_vs_iphdr *ipvsh);
++#include <net/netfilter/nf_tables.h>
++
+ extern struct nft_expr_type nft_imm_type;
+ extern struct nft_expr_type nft_cmp_type;
+ extern struct nft_expr_type nft_lookup_type;
+@@ -23,6 +25,12 @@ struct nft_cmp_fast_expr {
+ 	u8			len;
+ };
  
- int register_ip_vs_pe(struct ip_vs_pe *pe);
- int unregister_ip_vs_pe(struct ip_vs_pe *pe);
-diff --git a/net/netfilter/ipvs/ip_vs_app.c b/net/netfilter/ipvs/ip_vs_app.c
-index 1c98c907bc63..12d74896556a 100644
---- a/net/netfilter/ipvs/ip_vs_app.c
-+++ b/net/netfilter/ipvs/ip_vs_app.c
-@@ -355,7 +355,8 @@ static inline void vs_seq_update(struct ip_vs_conn *cp, struct ip_vs_seq *vseq,
- }
++struct nft_immediate_expr {
++	struct nft_data		data;
++	enum nft_registers	dreg:8;
++	u8			dlen;
++};
++
+ /* Calculate the mask for the nft_cmp_fast expression. On big endian the
+  * mask needs to include the *upper* bytes when interpreting that data as
+  * something smaller than the full u32, therefore a cpu_to_le32 is done.
+diff --git a/include/net/netns/nftables.h b/include/net/netns/nftables.h
+index 29c3851b486a..94767ea3a490 100644
+--- a/include/net/netns/nftables.h
++++ b/include/net/netns/nftables.h
+@@ -9,6 +9,7 @@ struct netns_nftables {
+ 	struct list_head	commit_list;
+ 	unsigned int		base_seq;
+ 	u8			gencursor;
++	u8			validate_state;
+ };
  
- static inline int app_tcp_pkt_out(struct ip_vs_conn *cp, struct sk_buff *skb,
--				  struct ip_vs_app *app)
-+				  struct ip_vs_app *app,
-+				  struct ip_vs_iphdr *ipvsh)
- {
- 	int diff;
- 	const unsigned int tcp_offset = ip_hdrlen(skb);
-@@ -386,7 +387,7 @@ static inline int app_tcp_pkt_out(struct ip_vs_conn *cp, struct sk_buff *skb,
- 	if (app->pkt_out == NULL)
- 		return 1;
- 
--	if (!app->pkt_out(app, cp, skb, &diff))
-+	if (!app->pkt_out(app, cp, skb, &diff, ipvsh))
- 		return 0;
- 
- 	/*
-@@ -404,7 +405,8 @@ static inline int app_tcp_pkt_out(struct ip_vs_conn *cp, struct sk_buff *skb,
-  *	called by ipvs packet handler, assumes previously checked cp!=NULL
-  *	returns false if it can't handle packet (oom)
-  */
--int ip_vs_app_pkt_out(struct ip_vs_conn *cp, struct sk_buff *skb)
-+int ip_vs_app_pkt_out(struct ip_vs_conn *cp, struct sk_buff *skb,
-+		      struct ip_vs_iphdr *ipvsh)
- {
- 	struct ip_vs_app *app;
- 
-@@ -417,7 +419,7 @@ int ip_vs_app_pkt_out(struct ip_vs_conn *cp, struct sk_buff *skb)
- 
- 	/* TCP is complicated */
- 	if (cp->protocol == IPPROTO_TCP)
--		return app_tcp_pkt_out(cp, skb, app);
-+		return app_tcp_pkt_out(cp, skb, app, ipvsh);
- 
- 	/*
- 	 *	Call private output hook function
-@@ -425,12 +427,13 @@ int ip_vs_app_pkt_out(struct ip_vs_conn *cp, struct sk_buff *skb)
- 	if (app->pkt_out == NULL)
- 		return 1;
- 
--	return app->pkt_out(app, cp, skb, NULL);
-+	return app->pkt_out(app, cp, skb, NULL, ipvsh);
- }
- 
- 
- static inline int app_tcp_pkt_in(struct ip_vs_conn *cp, struct sk_buff *skb,
--				 struct ip_vs_app *app)
-+				 struct ip_vs_app *app,
-+				 struct ip_vs_iphdr *ipvsh)
- {
- 	int diff;
- 	const unsigned int tcp_offset = ip_hdrlen(skb);
-@@ -461,7 +464,7 @@ static inline int app_tcp_pkt_in(struct ip_vs_conn *cp, struct sk_buff *skb,
- 	if (app->pkt_in == NULL)
- 		return 1;
- 
--	if (!app->pkt_in(app, cp, skb, &diff))
-+	if (!app->pkt_in(app, cp, skb, &diff, ipvsh))
- 		return 0;
- 
- 	/*
-@@ -479,7 +482,8 @@ static inline int app_tcp_pkt_in(struct ip_vs_conn *cp, struct sk_buff *skb,
-  *	called by ipvs packet handler, assumes previously checked cp!=NULL.
-  *	returns false if can't handle packet (oom).
-  */
--int ip_vs_app_pkt_in(struct ip_vs_conn *cp, struct sk_buff *skb)
-+int ip_vs_app_pkt_in(struct ip_vs_conn *cp, struct sk_buff *skb,
-+		     struct ip_vs_iphdr *ipvsh)
- {
- 	struct ip_vs_app *app;
- 
-@@ -492,7 +496,7 @@ int ip_vs_app_pkt_in(struct ip_vs_conn *cp, struct sk_buff *skb)
- 
- 	/* TCP is complicated */
- 	if (cp->protocol == IPPROTO_TCP)
--		return app_tcp_pkt_in(cp, skb, app);
-+		return app_tcp_pkt_in(cp, skb, app, ipvsh);
- 
- 	/*
- 	 *	Call private input hook function
-@@ -500,7 +504,7 @@ int ip_vs_app_pkt_in(struct ip_vs_conn *cp, struct sk_buff *skb)
- 	if (app->pkt_in == NULL)
- 		return 1;
- 
--	return app->pkt_in(app, cp, skb, NULL);
-+	return app->pkt_in(app, cp, skb, NULL, ipvsh);
- }
- 
- 
-diff --git a/net/netfilter/ipvs/ip_vs_ftp.c b/net/netfilter/ipvs/ip_vs_ftp.c
-index 58d5d05aec24..4398a72edec5 100644
---- a/net/netfilter/ipvs/ip_vs_ftp.c
-+++ b/net/netfilter/ipvs/ip_vs_ftp.c
-@@ -29,6 +29,8 @@
- #include <linux/moduleparam.h>
- #include <linux/kernel.h>
- #include <linux/skbuff.h>
-+#include <linux/ctype.h>
-+#include <linux/inet.h>
- #include <linux/in.h>
- #include <linux/ip.h>
- #include <linux/netfilter.h>
-@@ -44,9 +46,18 @@
- #include <net/ip_vs.h>
- 
- 
--#define SERVER_STRING "227 "
--#define CLIENT_STRING "PORT"
-+#define SERVER_STRING_PASV "227 "
-+#define CLIENT_STRING_PORT "PORT"
-+#define SERVER_STRING_EPSV "229 "
-+#define CLIENT_STRING_EPRT "EPRT"
+ #endif
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 3b2ad96a9a05..c785bc5a66f1 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -28,6 +28,28 @@ static LIST_HEAD(nf_tables_objects);
+ static LIST_HEAD(nf_tables_flowtables);
+ static u64 table_handle;
  
 +enum {
-+	IP_VS_FTP_ACTIVE = 0,
-+	IP_VS_FTP_PORT = 0,
-+	IP_VS_FTP_PASV,
-+	IP_VS_FTP_EPRT,
-+	IP_VS_FTP_EPSV,
++	NFT_VALIDATE_SKIP	= 0,
++	NFT_VALIDATE_NEED,
++	NFT_VALIDATE_DO,
 +};
- 
- /*
-  * List of ports (up to IP_VS_APP_MAX_PORTS) to be handled by helper
-@@ -58,9 +69,15 @@ module_param_array(ports, ushort, &ports_count, 0444);
- MODULE_PARM_DESC(ports, "Ports to monitor for FTP control commands");
- 
- 
--/*	Dummy variable */
--static int ip_vs_ftp_pasv;
-+static char *ip_vs_ftp_data_ptr(struct sk_buff *skb, struct ip_vs_iphdr *ipvsh)
++
++static void nft_validate_state_update(struct net *net, u8 new_validate_state)
 +{
-+	struct tcphdr *th = (struct tcphdr *)((char *)skb->data + ipvsh->len);
++	switch (net->nft.validate_state) {
++	case NFT_VALIDATE_SKIP:
++		WARN_ON_ONCE(new_validate_state == NFT_VALIDATE_DO);
++		break;
++	case NFT_VALIDATE_NEED:
++		break;
++	case NFT_VALIDATE_DO:
++		if (new_validate_state == NFT_VALIDATE_NEED)
++			return;
++	}
 +
-+	if ((th->doff << 2) < sizeof(struct tcphdr))
-+		return NULL;
- 
-+	return (char *)th + (th->doff << 2);
++	net->nft.validate_state = new_validate_state;
 +}
- 
- static int
- ip_vs_ftp_init_conn(struct ip_vs_app *app, struct ip_vs_conn *cp)
-@@ -78,20 +95,20 @@ ip_vs_ftp_done_conn(struct ip_vs_app *app, struct ip_vs_conn *cp)
- }
- 
- 
--/*
-- * Get <addr,port> from the string "xxx.xxx.xxx.xxx,ppp,ppp", started
-- * with the "pattern", ignoring before "skip" and terminated with
-- * the "term" character.
-- * <addr,port> is in network order.
-+/* Get <addr,port> from the string "xxx.xxx.xxx.xxx,ppp,ppp", started
-+ * with the "pattern". <addr,port> is in network order.
-+ * Parse extended format depending on ext. In this case addr can be pre-set.
-  */
- static int ip_vs_ftp_get_addrport(char *data, char *data_limit,
- 				  const char *pattern, size_t plen,
--				  char skip, char term,
--				  __be32 *addr, __be16 *port,
--				  char **start, char **end)
-+				  char skip, bool ext, int mode,
-+				  union nf_inet_addr *addr, __be16 *port,
-+				  __u16 af, char **start, char **end)
- {
- 	char *s, c;
- 	unsigned char p[6];
-+	char edelim;
-+	__u16 hport;
- 	int i = 0;
- 
- 	if (data_limit - data < plen) {
-@@ -113,6 +130,11 @@ static int ip_vs_ftp_get_addrport(char *data, char *data_limit,
- 			if (s == data_limit)
- 				return -1;
- 			if (!found) {
-+				/* "(" is optional for non-extended format,
-+				 * so catch the start of IPv4 address
-+				 */
-+				if (!ext && isdigit(*s))
-+					break;
- 				if (*s == skip)
- 					found = 1;
- 			} else if (*s != skip) {
-@@ -120,41 +142,102 @@ static int ip_vs_ftp_get_addrport(char *data, char *data_limit,
- 			}
- 		}
- 	}
-+	/* Old IPv4-only format? */
-+	if (!ext) {
-+		p[0] = 0;
-+		for (data = s; ; data++) {
-+			if (data == data_limit)
-+				return -1;
-+			c = *data;
-+			if (isdigit(c)) {
-+				p[i] = p[i]*10 + c - '0';
-+			} else if (c == ',' && i < 5) {
-+				i++;
-+				p[i] = 0;
-+			} else {
-+				/* unexpected character or terminator */
-+				break;
-+			}
-+		}
- 
--	for (data = s; ; data++) {
--		if (data == data_limit)
-+		if (i != 5)
- 			return -1;
--		if (*data == term)
--			break;
 +
-+		*start = s;
-+		*end = data;
-+		addr->ip = get_unaligned((__be32 *) p);
-+		*port = get_unaligned((__be16 *) (p + 4));
-+		return 1;
- 	}
--	*end = data;
-+	if (s == data_limit)
-+		return -1;
-+	*start = s;
-+	edelim = *s++;
-+	if (edelim < 33 || edelim > 126)
-+		return -1;
-+	if (s == data_limit)
-+		return -1;
-+	if (*s == edelim) {
-+		/* Address family is usually missing for EPSV response */
-+		if (mode != IP_VS_FTP_EPSV)
-+			return -1;
-+		s++;
-+		if (s == data_limit)
-+			return -1;
-+		/* Then address should be missing too */
-+		if (*s != edelim)
-+			return -1;
-+		/* Caller can pre-set addr, if needed */
-+		s++;
-+	} else {
-+		const char *ep;
- 
--	memset(p, 0, sizeof(p));
--	for (data = s; ; data++) {
--		c = *data;
--		if (c == term)
--			break;
--		if (c >= '0' && c <= '9') {
--			p[i] = p[i]*10 + c - '0';
--		} else if (c == ',' && i < 5) {
--			i++;
--		} else {
--			/* unexpected character */
-+		/* We allow address only from same family */
-+		if (af == AF_INET6 && *s != '2')
- 			return -1;
-+		if (af == AF_INET && *s != '1')
-+			return -1;
-+		s++;
-+		if (s == data_limit)
-+			return -1;
-+		if (*s != edelim)
-+			return -1;
-+		s++;
-+		if (s == data_limit)
-+			return -1;
-+		if (af == AF_INET6) {
-+			if (in6_pton(s, data_limit - s, (u8 *)addr, edelim,
-+				     &ep) <= 0)
-+				return -1;
-+		} else {
-+			if (in4_pton(s, data_limit - s, (u8 *)addr, edelim,
-+				     &ep) <= 0)
-+				return -1;
- 		}
-+		s = (char *) ep;
-+		if (s == data_limit)
-+			return -1;
-+		if (*s != edelim)
-+			return -1;
-+		s++;
- 	}
--
--	if (i != 5)
-+	for (hport = 0; ; s++)
-+	{
-+		if (s == data_limit)
-+			return -1;
-+		if (!isdigit(*s))
-+			break;
-+		hport = hport * 10 + *s - '0';
-+	}
-+	if (s == data_limit || !hport || *s != edelim)
- 		return -1;
--
--	*start = s;
--	*addr = get_unaligned((__be32 *) p);
--	*port = get_unaligned((__be16 *) (p + 4));
-+	s++;
-+	*end = s;
-+	*port = htons(hport);
- 	return 1;
- }
- 
--/*
-- * Look at outgoing ftp packets to catch the response to a PASV command
-+/* Look at outgoing ftp packets to catch the response to a PASV/EPSV command
-  * from the server (inside-to-outside).
-  * When we see one, we build a connection entry with the client address,
-  * client port 0 (unknown at the moment), the server address and the
-@@ -165,12 +248,13 @@ static int ip_vs_ftp_get_addrport(char *data, char *data_limit,
-  * The outgoing packet should be something like
-  *   "227 Entering Passive Mode (xxx,xxx,xxx,xxx,ppp,ppp)".
-  * xxx,xxx,xxx,xxx is the server address, ppp,ppp is the server port number.
-+ * The extended format for EPSV response provides usually only port:
-+ *   "229 Entering Extended Passive Mode (|||ppp|)"
-  */
- static int ip_vs_ftp_out(struct ip_vs_app *app, struct ip_vs_conn *cp,
--			 struct sk_buff *skb, int *diff)
-+			 struct sk_buff *skb, int *diff,
-+			 struct ip_vs_iphdr *ipvsh)
- {
--	struct iphdr *iph;
--	struct tcphdr *th;
- 	char *data, *data_limit;
- 	char *start, *end;
- 	union nf_inet_addr from;
-@@ -184,14 +268,6 @@ static int ip_vs_ftp_out(struct ip_vs_app *app, struct ip_vs_conn *cp,
- 
- 	*diff = 0;
- 
--#ifdef CONFIG_IP_VS_IPV6
--	/* This application helper doesn't work with IPv6 yet,
--	 * so turn this into a no-op for IPv6 packets
--	 */
--	if (cp->af == AF_INET6)
--		return 1;
--#endif
--
- 	/* Only useful for established sessions */
- 	if (cp->state != IP_VS_TCP_S_ESTABLISHED)
- 		return 1;
-@@ -200,53 +276,77 @@ static int ip_vs_ftp_out(struct ip_vs_app *app, struct ip_vs_conn *cp,
- 	if (!skb_make_writable(skb, skb->len))
- 		return 0;
- 
--	if (cp->app_data == &ip_vs_ftp_pasv) {
--		iph = ip_hdr(skb);
--		th = (struct tcphdr *)&(((char *)iph)[iph->ihl*4]);
--		data = (char *)th + (th->doff << 2);
-+	if (cp->app_data == (void *) IP_VS_FTP_PASV) {
-+		data = ip_vs_ftp_data_ptr(skb, ipvsh);
- 		data_limit = skb_tail_pointer(skb);
- 
-+		if (!data || data >= data_limit)
-+			return 1;
-+
- 		if (ip_vs_ftp_get_addrport(data, data_limit,
--					   SERVER_STRING,
--					   sizeof(SERVER_STRING)-1,
--					   '(', ')',
--					   &from.ip, &port,
-+					   SERVER_STRING_PASV,
-+					   sizeof(SERVER_STRING_PASV)-1,
-+					   '(', false, IP_VS_FTP_PASV,
-+					   &from, &port, cp->af,
- 					   &start, &end) != 1)
- 			return 1;
- 
--		IP_VS_DBG(7, "PASV response (%pI4:%d) -> %pI4:%d detected\n",
-+		IP_VS_DBG(7, "PASV response (%pI4:%u) -> %pI4:%u detected\n",
- 			  &from.ip, ntohs(port), &cp->caddr.ip, 0);
-+	} else if (cp->app_data == (void *) IP_VS_FTP_EPSV) {
-+		data = ip_vs_ftp_data_ptr(skb, ipvsh);
-+		data_limit = skb_tail_pointer(skb);
- 
--		/*
--		 * Now update or create an connection entry for it
-+		if (!data || data >= data_limit)
-+			return 1;
-+
-+		/* Usually, data address is not specified but
-+		 * we support different address, so pre-set it.
- 		 */
--		{
--			struct ip_vs_conn_param p;
--			ip_vs_conn_fill_param(cp->ipvs, AF_INET,
--					      iph->protocol, &from, port,
--					      &cp->caddr, 0, &p);
--			n_cp = ip_vs_conn_out_get(&p);
--		}
--		if (!n_cp) {
--			struct ip_vs_conn_param p;
--			ip_vs_conn_fill_param(cp->ipvs,
--					      AF_INET, IPPROTO_TCP, &cp->caddr,
--					      0, &cp->vaddr, port, &p);
--			/* As above, this is ipv4 only */
--			n_cp = ip_vs_conn_new(&p, AF_INET, &from, port,
--					      IP_VS_CONN_F_NO_CPORT |
--					      IP_VS_CONN_F_NFCT,
--					      cp->dest, skb->mark);
--			if (!n_cp)
--				return 0;
-+		from = cp->daddr;
-+		if (ip_vs_ftp_get_addrport(data, data_limit,
-+					   SERVER_STRING_EPSV,
-+					   sizeof(SERVER_STRING_EPSV)-1,
-+					   '(', true, IP_VS_FTP_EPSV,
-+					   &from, &port, cp->af,
-+					   &start, &end) != 1)
-+			return 1;
- 
--			/* add its controller */
--			ip_vs_control_add(n_cp, cp);
--		}
-+		IP_VS_DBG_BUF(7, "EPSV response (%s:%u) -> %s:%u detected\n",
-+			      IP_VS_DBG_ADDR(cp->af, &from), ntohs(port),
-+			      IP_VS_DBG_ADDR(cp->af, &cp->caddr), 0);
-+	} else {
-+		return 1;
-+	}
- 
--		/*
--		 * Replace the old passive address with the new one
--		 */
-+	/* Now update or create a connection entry for it */
-+	{
-+		struct ip_vs_conn_param p;
-+
-+		ip_vs_conn_fill_param(cp->ipvs, cp->af,
-+				      ipvsh->protocol, &from, port,
-+				      &cp->caddr, 0, &p);
-+		n_cp = ip_vs_conn_out_get(&p);
-+	}
-+	if (!n_cp) {
-+		struct ip_vs_conn_param p;
-+
-+		ip_vs_conn_fill_param(cp->ipvs,
-+				      cp->af, ipvsh->protocol, &cp->caddr,
-+				      0, &cp->vaddr, port, &p);
-+		n_cp = ip_vs_conn_new(&p, cp->af, &from, port,
-+				      IP_VS_CONN_F_NO_CPORT |
-+				      IP_VS_CONN_F_NFCT,
-+				      cp->dest, skb->mark);
-+		if (!n_cp)
-+			return 0;
-+
-+		/* add its controller */
-+		ip_vs_control_add(n_cp, cp);
-+	}
-+
-+	/* Replace the old passive address with the new one */
-+	if (cp->app_data == (void *) IP_VS_FTP_PASV) {
- 		from.ip = n_cp->vaddr.ip;
- 		port = n_cp->vport;
- 		snprintf(buf, sizeof(buf), "%u,%u,%u,%u,%u,%u",
-@@ -256,50 +356,54 @@ static int ip_vs_ftp_out(struct ip_vs_app *app, struct ip_vs_conn *cp,
- 			 ((unsigned char *)&from.ip)[3],
- 			 ntohs(port) >> 8,
- 			 ntohs(port) & 0xFF);
-+	} else if (cp->app_data == (void *) IP_VS_FTP_EPSV) {
-+		from = n_cp->vaddr;
-+		port = n_cp->vport;
-+		/* Only port, client will use VIP for the data connection */
-+		snprintf(buf, sizeof(buf), "|||%u|",
-+			 ntohs(port));
-+	} else {
-+		*buf = 0;
-+	}
-+	buf_len = strlen(buf);
- 
--		buf_len = strlen(buf);
--
--		ct = nf_ct_get(skb, &ctinfo);
--		if (ct) {
--			bool mangled;
--
--			/* If mangling fails this function will return 0
--			 * which will cause the packet to be dropped.
--			 * Mangling can only fail under memory pressure,
--			 * hopefully it will succeed on the retransmitted
--			 * packet.
--			 */
--			mangled = nf_nat_mangle_tcp_packet(skb, ct, ctinfo,
--							   iph->ihl * 4,
--							   start - data,
--							   end - start,
--							   buf, buf_len);
--			if (mangled) {
--				ip_vs_nfct_expect_related(skb, ct, n_cp,
--							  IPPROTO_TCP, 0, 0);
--				if (skb->ip_summed == CHECKSUM_COMPLETE)
--					skb->ip_summed = CHECKSUM_UNNECESSARY;
--				/* csum is updated */
--				ret = 1;
--			}
--		}
-+	ct = nf_ct_get(skb, &ctinfo);
-+	if (ct) {
-+		bool mangled;
- 
--		/*
--		 * Not setting 'diff' is intentional, otherwise the sequence
--		 * would be adjusted twice.
-+		/* If mangling fails this function will return 0
-+		 * which will cause the packet to be dropped.
-+		 * Mangling can only fail under memory pressure,
-+		 * hopefully it will succeed on the retransmitted
-+		 * packet.
- 		 */
--
--		cp->app_data = NULL;
--		ip_vs_tcp_conn_listen(n_cp);
--		ip_vs_conn_put(n_cp);
--		return ret;
-+		mangled = nf_nat_mangle_tcp_packet(skb, ct, ctinfo,
-+						   ipvsh->len,
-+						   start - data,
-+						   end - start,
-+						   buf, buf_len);
-+		if (mangled) {
-+			ip_vs_nfct_expect_related(skb, ct, n_cp,
-+						  ipvsh->protocol, 0, 0);
-+			if (skb->ip_summed == CHECKSUM_COMPLETE)
-+				skb->ip_summed = CHECKSUM_UNNECESSARY;
-+			/* csum is updated */
-+			ret = 1;
-+		}
- 	}
--	return 1;
-+
-+	/* Not setting 'diff' is intentional, otherwise the sequence
-+	 * would be adjusted twice.
-+	 */
-+
-+	cp->app_data = (void *) IP_VS_FTP_ACTIVE;
-+	ip_vs_tcp_conn_listen(n_cp);
-+	ip_vs_conn_put(n_cp);
-+	return ret;
- }
- 
- 
--/*
-- * Look at incoming ftp packets to catch the PASV/PORT command
-+/* Look at incoming ftp packets to catch the PASV/PORT/EPRT/EPSV command
-  * (outside-to-inside).
-  *
-  * The incoming packet having the PORT command should be something like
-@@ -308,12 +412,19 @@ static int ip_vs_ftp_out(struct ip_vs_app *app, struct ip_vs_conn *cp,
-  * In this case, we create a connection entry using the client address and
-  * port, so that the active ftp data connection from the server can reach
-  * the client.
-+ * Extended format:
-+ *	"EPSV\r\n" when client requests server address from same family
-+ *	"EPSV 1\r\n" when client requests IPv4 server address
-+ *	"EPSV 2\r\n" when client requests IPv6 server address
-+ *	"EPSV ALL\r\n" - not supported
-+ *	EPRT with specified delimiter (ASCII 33..126), "|" by default:
-+ *	"EPRT |1|IPv4ADDR|PORT|\r\n" when client provides IPv4 addrport
-+ *	"EPRT |2|IPv6ADDR|PORT|\r\n" when client provides IPv6 addrport
-  */
- static int ip_vs_ftp_in(struct ip_vs_app *app, struct ip_vs_conn *cp,
--			struct sk_buff *skb, int *diff)
-+			struct sk_buff *skb, int *diff,
-+			struct ip_vs_iphdr *ipvsh)
- {
--	struct iphdr *iph;
--	struct tcphdr *th;
- 	char *data, *data_start, *data_limit;
- 	char *start, *end;
- 	union nf_inet_addr to;
-@@ -323,14 +434,6 @@ static int ip_vs_ftp_in(struct ip_vs_app *app, struct ip_vs_conn *cp,
- 	/* no diff required for incoming packets */
- 	*diff = 0;
- 
--#ifdef CONFIG_IP_VS_IPV6
--	/* This application helper doesn't work with IPv6 yet,
--	 * so turn this into a no-op for IPv6 packets
--	 */
--	if (cp->af == AF_INET6)
--		return 1;
--#endif
--
- 	/* Only useful for established sessions */
- 	if (cp->state != IP_VS_TCP_S_ESTABLISHED)
- 		return 1;
-@@ -339,27 +442,48 @@ static int ip_vs_ftp_in(struct ip_vs_app *app, struct ip_vs_conn *cp,
- 	if (!skb_make_writable(skb, skb->len))
- 		return 0;
- 
--	/*
--	 * Detecting whether it is passive
--	 */
--	iph = ip_hdr(skb);
--	th = (struct tcphdr *)&(((char *)iph)[iph->ihl*4]);
--
--	/* Since there may be OPTIONS in the TCP packet and the HLEN is
--	   the length of the header in 32-bit multiples, it is accurate
--	   to calculate data address by th+HLEN*4 */
--	data = data_start = (char *)th + (th->doff << 2);
-+	data = data_start = ip_vs_ftp_data_ptr(skb, ipvsh);
- 	data_limit = skb_tail_pointer(skb);
-+	if (!data || data >= data_limit)
-+		return 1;
- 
- 	while (data <= data_limit - 6) {
--		if (strncasecmp(data, "PASV\r\n", 6) == 0) {
-+		if (cp->af == AF_INET &&
-+		    strncasecmp(data, "PASV\r\n", 6) == 0) {
- 			/* Passive mode on */
- 			IP_VS_DBG(7, "got PASV at %td of %td\n",
- 				  data - data_start,
- 				  data_limit - data_start);
--			cp->app_data = &ip_vs_ftp_pasv;
-+			cp->app_data = (void *) IP_VS_FTP_PASV;
- 			return 1;
- 		}
-+
-+		/* EPSV or EPSV<space><net-prt> */
-+		if (strncasecmp(data, "EPSV", 4) == 0 &&
-+		    (data[4] == ' ' || data[4] == '\r')) {
-+			if (data[4] == ' ') {
-+				char proto = data[5];
-+
-+				if (data > data_limit - 7 || data[6] != '\r')
-+					return 1;
-+
-+#ifdef CONFIG_IP_VS_IPV6
-+				if (cp->af == AF_INET6 && proto == '2') {
-+				} else
-+#endif
-+				if (cp->af == AF_INET && proto == '1') {
-+				} else {
-+					return 1;
-+				}
-+			}
-+			/* Extended Passive mode on */
-+			IP_VS_DBG(7, "got EPSV at %td of %td\n",
-+				  data - data_start,
-+				  data_limit - data_start);
-+			cp->app_data = (void *) IP_VS_FTP_EPSV;
-+			return 1;
-+		}
-+
- 		data++;
+ static void nft_ctx_init(struct nft_ctx *ctx,
+ 			 struct net *net,
+ 			 const struct sk_buff *skb,
+@@ -1921,19 +1943,7 @@ static int nf_tables_newexpr(const struct nft_ctx *ctx,
+ 			goto err1;
  	}
  
-@@ -370,33 +494,52 @@ static int ip_vs_ftp_in(struct ip_vs_app *app, struct ip_vs_conn *cp,
- 	 * then create a new connection entry for the coming data
- 	 * connection.
- 	 */
--	if (ip_vs_ftp_get_addrport(data_start, data_limit,
--				   CLIENT_STRING, sizeof(CLIENT_STRING)-1,
--				   ' ', '\r', &to.ip, &port,
--				   &start, &end) != 1)
-+	if (cp->af == AF_INET &&
-+	    ip_vs_ftp_get_addrport(data_start, data_limit,
-+				   CLIENT_STRING_PORT,
-+				   sizeof(CLIENT_STRING_PORT)-1,
-+				   ' ', false, IP_VS_FTP_PORT,
-+				   &to, &port, cp->af,
-+				   &start, &end) == 1) {
-+
-+		IP_VS_DBG(7, "PORT %pI4:%u detected\n", &to.ip, ntohs(port));
-+
-+		/* Now update or create a connection entry for it */
-+		IP_VS_DBG(7, "protocol %s %pI4:%u %pI4:%u\n",
-+			  ip_vs_proto_name(ipvsh->protocol),
-+			  &to.ip, ntohs(port), &cp->vaddr.ip,
-+			  ntohs(cp->vport)-1);
-+	} else if (ip_vs_ftp_get_addrport(data_start, data_limit,
-+					  CLIENT_STRING_EPRT,
-+					  sizeof(CLIENT_STRING_EPRT)-1,
-+					  ' ', true, IP_VS_FTP_EPRT,
-+					  &to, &port, cp->af,
-+					  &start, &end) == 1) {
-+
-+		IP_VS_DBG_BUF(7, "EPRT %s:%u detected\n",
-+			      IP_VS_DBG_ADDR(cp->af, &to), ntohs(port));
-+
-+		/* Now update or create a connection entry for it */
-+		IP_VS_DBG_BUF(7, "protocol %s %s:%u %s:%u\n",
-+			      ip_vs_proto_name(ipvsh->protocol),
-+			      IP_VS_DBG_ADDR(cp->af, &to), ntohs(port),
-+			      IP_VS_DBG_ADDR(cp->af, &cp->vaddr),
-+			      ntohs(cp->vport)-1);
-+	} else {
- 		return 1;
+-	if (ops->validate) {
+-		const struct nft_data *data = NULL;
 -
--	IP_VS_DBG(7, "PORT %pI4:%d detected\n", &to.ip, ntohs(port));
-+	}
- 
- 	/* Passive mode off */
--	cp->app_data = NULL;
+-		err = ops->validate(ctx, expr, &data);
+-		if (err < 0)
+-			goto err2;
+-	}
 -
--	/*
--	 * Now update or create a connection entry for it
--	 */
--	IP_VS_DBG(7, "protocol %s %pI4:%d %pI4:%d\n",
--		  ip_vs_proto_name(iph->protocol),
--		  &to.ip, ntohs(port), &cp->vaddr.ip, 0);
-+	cp->app_data = (void *) IP_VS_FTP_ACTIVE;
- 
- 	{
- 		struct ip_vs_conn_param p;
--		ip_vs_conn_fill_param(cp->ipvs, AF_INET,
--				      iph->protocol, &to, port, &cp->vaddr,
-+		ip_vs_conn_fill_param(cp->ipvs, cp->af,
-+				      ipvsh->protocol, &to, port, &cp->vaddr,
- 				      htons(ntohs(cp->vport)-1), &p);
- 		n_cp = ip_vs_conn_in_get(&p);
- 		if (!n_cp) {
--			/* This is ipv4 only */
--			n_cp = ip_vs_conn_new(&p, AF_INET, &cp->daddr,
-+			n_cp = ip_vs_conn_new(&p, cp->af, &cp->daddr,
- 					      htons(ntohs(cp->dport)-1),
- 					      IP_VS_CONN_F_NFCT, cp->dest,
- 					      skb->mark);
-@@ -454,7 +597,7 @@ static int __net_init __ip_vs_ftp_init(struct net *net)
- 		ret = register_ip_vs_app_inc(ipvs, app, app->protocol, ports[i]);
- 		if (ret)
- 			goto err_unreg;
--		pr_info("%s: loaded support on port[%d] = %d\n",
-+		pr_info("%s: loaded support on port[%d] = %u\n",
- 			app->name, i, ports[i]);
- 	}
  	return 0;
-diff --git a/net/netfilter/ipvs/ip_vs_proto_sctp.c b/net/netfilter/ipvs/ip_vs_proto_sctp.c
-index eff7569824e5..3250c4a1111e 100644
---- a/net/netfilter/ipvs/ip_vs_proto_sctp.c
-+++ b/net/netfilter/ipvs/ip_vs_proto_sctp.c
-@@ -109,7 +109,7 @@ sctp_snat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
- 			return 0;
+-
+-err2:
+-	if (ops->destroy)
+-		ops->destroy(ctx, expr);
+ err1:
+ 	expr->ops = NULL;
+ 	return err;
+@@ -2299,6 +2309,53 @@ static void nf_tables_rule_release(const struct nft_ctx *ctx,
+ 	nf_tables_rule_destroy(ctx, rule);
+ }
  
- 		/* Call application helper if needed */
--		ret = ip_vs_app_pkt_out(cp, skb);
-+		ret = ip_vs_app_pkt_out(cp, skb, iph);
- 		if (ret == 0)
- 			return 0;
- 		/* ret=2: csum update is needed after payload mangling */
-@@ -156,7 +156,7 @@ sctp_dnat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
- 			return 0;
++int nft_chain_validate(const struct nft_ctx *ctx, const struct nft_chain *chain)
++{
++	struct nft_expr *expr, *last;
++	const struct nft_data *data;
++	struct nft_rule *rule;
++	int err;
++
++	list_for_each_entry(rule, &chain->rules, list) {
++		if (!nft_is_active_next(ctx->net, rule))
++			continue;
++
++		nft_rule_for_each_expr(expr, last, rule) {
++			if (!expr->ops->validate)
++				continue;
++
++			err = expr->ops->validate(ctx, expr, &data);
++			if (err < 0)
++				return err;
++		}
++	}
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(nft_chain_validate);
++
++static int nft_table_validate(struct net *net, const struct nft_table *table)
++{
++	struct nft_chain *chain;
++	struct nft_ctx ctx = {
++		.net	= net,
++		.family	= table->family,
++	};
++	int err;
++
++	list_for_each_entry(chain, &table->chains, list) {
++		if (!nft_is_base_chain(chain))
++			continue;
++
++		ctx.chain = chain;
++		err = nft_chain_validate(&ctx, chain);
++		if (err < 0)
++			return err;
++	}
++
++	return 0;
++}
++
+ #define NFT_RULE_MAXEXPRS	128
  
- 		/* Call application helper if needed */
--		ret = ip_vs_app_pkt_in(cp, skb);
-+		ret = ip_vs_app_pkt_in(cp, skb, iph);
- 		if (ret == 0)
- 			return 0;
- 		/* ret=2: csum update is needed after payload mangling */
-diff --git a/net/netfilter/ipvs/ip_vs_proto_tcp.c b/net/netfilter/ipvs/ip_vs_proto_tcp.c
-index 569631d2b2a1..80d10ad12a15 100644
---- a/net/netfilter/ipvs/ip_vs_proto_tcp.c
-+++ b/net/netfilter/ipvs/ip_vs_proto_tcp.c
-@@ -170,7 +170,7 @@ tcp_snat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
- 			return 0;
+ static struct nft_expr_info *info;
+@@ -2426,6 +2483,10 @@ static int nf_tables_newrule(struct net *net, struct sock *nlsk,
+ 		err = nf_tables_newexpr(&ctx, &info[i], expr);
+ 		if (err < 0)
+ 			goto err2;
++
++		if (info[i].ops->validate)
++			nft_validate_state_update(net, NFT_VALIDATE_NEED);
++
+ 		info[i].ops = NULL;
+ 		expr = nft_expr_next(expr);
+ 	}
+@@ -2469,8 +2530,11 @@ static int nf_tables_newrule(struct net *net, struct sock *nlsk,
+ 		}
+ 	}
+ 	chain->use++;
+-	return 0;
  
- 		/* Call application helper if needed */
--		if (!(ret = ip_vs_app_pkt_out(cp, skb)))
-+		if (!(ret = ip_vs_app_pkt_out(cp, skb, iph)))
- 			return 0;
- 		/* ret=2: csum update is needed after payload mangling */
- 		if (ret == 1)
-@@ -251,7 +251,7 @@ tcp_dnat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
- 		 *	Attempt ip_vs_app call.
- 		 *	It will fix ip_vs_conn and iph ack_seq stuff
- 		 */
--		if (!(ret = ip_vs_app_pkt_in(cp, skb)))
-+		if (!(ret = ip_vs_app_pkt_in(cp, skb, iph)))
- 			return 0;
- 		/* ret=2: csum update is needed after payload mangling */
- 		if (ret == 1)
-diff --git a/net/netfilter/ipvs/ip_vs_proto_udp.c b/net/netfilter/ipvs/ip_vs_proto_udp.c
-index c15ef7c2a1fa..e0ef11c3691e 100644
---- a/net/netfilter/ipvs/ip_vs_proto_udp.c
-+++ b/net/netfilter/ipvs/ip_vs_proto_udp.c
-@@ -162,7 +162,7 @@ udp_snat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
- 		/*
- 		 *	Call application helper if needed
- 		 */
--		if (!(ret = ip_vs_app_pkt_out(cp, skb)))
-+		if (!(ret = ip_vs_app_pkt_out(cp, skb, iph)))
- 			return 0;
- 		/* ret=2: csum update is needed after payload mangling */
- 		if (ret == 1)
-@@ -246,7 +246,7 @@ udp_dnat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
- 		 *	Attempt ip_vs_app call.
- 		 *	It will fix ip_vs_conn
- 		 */
--		if (!(ret = ip_vs_app_pkt_in(cp, skb)))
-+		if (!(ret = ip_vs_app_pkt_in(cp, skb, iph)))
- 			return 0;
- 		/* ret=2: csum update is needed after payload mangling */
- 		if (ret == 1)
++	if (net->nft.validate_state == NFT_VALIDATE_DO)
++		return nft_table_validate(net, table);
++
++	return 0;
+ err2:
+ 	nf_tables_rule_release(&ctx, rule);
+ err1:
+@@ -4112,6 +4176,12 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
+ 							  d2.type, d2.len);
+ 			if (err < 0)
+ 				goto err3;
++
++			if (d2.type == NFT_DATA_VERDICT &&
++			    (data.verdict.code == NFT_GOTO ||
++			     data.verdict.code == NFT_JUMP))
++				nft_validate_state_update(ctx->net,
++							  NFT_VALIDATE_NEED);
+ 		}
+ 
+ 		nft_set_ext_add_length(&tmpl, NFT_SET_EXT_DATA, d2.len);
+@@ -4211,7 +4281,7 @@ static int nf_tables_newsetelem(struct net *net, struct sock *nlsk,
+ 	const struct nlattr *attr;
+ 	struct nft_set *set;
+ 	struct nft_ctx ctx;
+-	int rem, err = 0;
++	int rem, err;
+ 
+ 	if (nla[NFTA_SET_ELEM_LIST_ELEMENTS] == NULL)
+ 		return -EINVAL;
+@@ -4232,9 +4302,13 @@ static int nf_tables_newsetelem(struct net *net, struct sock *nlsk,
+ 	nla_for_each_nested(attr, nla[NFTA_SET_ELEM_LIST_ELEMENTS], rem) {
+ 		err = nft_add_set_elem(&ctx, set, attr, nlh->nlmsg_flags);
+ 		if (err < 0)
+-			break;
++			return err;
+ 	}
+-	return err;
++
++	if (net->nft.validate_state == NFT_VALIDATE_DO)
++		return nft_table_validate(net, ctx.table);
++
++	return 0;
+ }
+ 
+ /**
+@@ -5867,6 +5941,27 @@ static const struct nfnl_callback nf_tables_cb[NFT_MSG_MAX] = {
+ 	},
+ };
+ 
++static int nf_tables_validate(struct net *net)
++{
++	struct nft_table *table;
++
++	switch (net->nft.validate_state) {
++	case NFT_VALIDATE_SKIP:
++		break;
++	case NFT_VALIDATE_NEED:
++		nft_validate_state_update(net, NFT_VALIDATE_DO);
++		/* fall through */
++	case NFT_VALIDATE_DO:
++		list_for_each_entry(table, &net->nft.tables, list) {
++			if (nft_table_validate(net, table) < 0)
++				return -EAGAIN;
++		}
++		break;
++	}
++
++	return 0;
++}
++
+ static void nft_chain_commit_update(struct nft_trans *trans)
+ {
+ 	struct nft_base_chain *basechain;
+@@ -6055,6 +6150,10 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
+ 	struct nft_chain *chain;
+ 	struct nft_table *table;
+ 
++	/* 0. Validate ruleset, otherwise roll back for error reporting. */
++	if (nf_tables_validate(net) < 0)
++		return -EAGAIN;
++
+ 	/* 1.  Allocate space for next generation rules_gen_X[] */
+ 	list_for_each_entry_safe(trans, next, &net->nft.commit_list, list) {
+ 		int ret;
+@@ -6349,6 +6448,11 @@ static int nf_tables_abort(struct net *net, struct sk_buff *skb)
+ 	return 0;
+ }
+ 
++static void nf_tables_cleanup(struct net *net)
++{
++	nft_validate_state_update(net, NFT_VALIDATE_SKIP);
++}
++
+ static bool nf_tables_valid_genid(struct net *net, u32 genid)
+ {
+ 	return net->nft.base_seq == genid;
+@@ -6361,6 +6465,7 @@ static const struct nfnetlink_subsystem nf_tables_subsys = {
+ 	.cb		= nf_tables_cb,
+ 	.commit		= nf_tables_commit,
+ 	.abort		= nf_tables_abort,
++	.cleanup	= nf_tables_cleanup,
+ 	.valid_genid	= nf_tables_valid_genid,
+ };
+ 
+@@ -6444,19 +6549,18 @@ static int nf_tables_check_loops(const struct nft_ctx *ctx,
+ 
+ 	list_for_each_entry(rule, &chain->rules, list) {
+ 		nft_rule_for_each_expr(expr, last, rule) {
+-			const struct nft_data *data = NULL;
++			struct nft_immediate_expr *priv;
++			const struct nft_data *data;
+ 			int err;
+ 
+-			if (!expr->ops->validate)
++			if (strcmp(expr->ops->type->name, "immediate"))
+ 				continue;
+ 
+-			err = expr->ops->validate(ctx, expr, &data);
+-			if (err < 0)
+-				return err;
+-
+-			if (data == NULL)
++			priv = nft_expr_priv(expr);
++			if (priv->dreg != NFT_REG_VERDICT)
+ 				continue;
+ 
++			data = &priv->data;
+ 			switch (data->verdict.code) {
+ 			case NFT_JUMP:
+ 			case NFT_GOTO:
+@@ -6936,6 +7040,8 @@ static int __net_init nf_tables_init_net(struct net *net)
+ 	INIT_LIST_HEAD(&net->nft.tables);
+ 	INIT_LIST_HEAD(&net->nft.commit_list);
+ 	net->nft.base_seq = 1;
++	net->nft.validate_state = NFT_VALIDATE_SKIP;
++
+ 	return 0;
+ }
+ 
+diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
+index 5a1bd23af1a3..261820627711 100644
+--- a/net/netfilter/nfnetlink.c
++++ b/net/netfilter/nfnetlink.c
+@@ -460,6 +460,8 @@ static void nfnetlink_rcv_batch(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 	} else {
+ 		ss->abort(net, oskb);
+ 	}
++	if (ss->cleanup)
++		ss->cleanup(net);
+ 
+ 	nfnl_err_deliver(&err_list, oskb);
+ 	nfnl_unlock(subsys_id);
+diff --git a/net/netfilter/nft_immediate.c b/net/netfilter/nft_immediate.c
+index aa87ff8beae8..15adf8ca82c3 100644
+--- a/net/netfilter/nft_immediate.c
++++ b/net/netfilter/nft_immediate.c
+@@ -17,12 +17,6 @@
+ #include <net/netfilter/nf_tables_core.h>
+ #include <net/netfilter/nf_tables.h>
+ 
+-struct nft_immediate_expr {
+-	struct nft_data		data;
+-	enum nft_registers	dreg:8;
+-	u8			dlen;
+-};
+-
+ static void nft_immediate_eval(const struct nft_expr *expr,
+ 			       struct nft_regs *regs,
+ 			       const struct nft_pktinfo *pkt)
+@@ -101,12 +95,27 @@ static int nft_immediate_dump(struct sk_buff *skb, const struct nft_expr *expr)
+ 
+ static int nft_immediate_validate(const struct nft_ctx *ctx,
+ 				  const struct nft_expr *expr,
+-				  const struct nft_data **data)
++				  const struct nft_data **d)
+ {
+ 	const struct nft_immediate_expr *priv = nft_expr_priv(expr);
++	const struct nft_data *data;
++	int err;
+ 
+-	if (priv->dreg == NFT_REG_VERDICT)
+-		*data = &priv->data;
++	if (priv->dreg != NFT_REG_VERDICT)
++		return 0;
++
++	data = &priv->data;
++
++	switch (data->verdict.code) {
++	case NFT_JUMP:
++	case NFT_GOTO:
++		err = nft_chain_validate(ctx, data->verdict.chain);
++		if (err < 0)
++			return err;
++		break;
++	default:
++		break;
++	}
+ 
+ 	return 0;
+ }
+diff --git a/net/netfilter/nft_lookup.c b/net/netfilter/nft_lookup.c
+index f52da5e2199f..42e6fadf1417 100644
+--- a/net/netfilter/nft_lookup.c
++++ b/net/netfilter/nft_lookup.c
+@@ -149,6 +149,52 @@ static int nft_lookup_dump(struct sk_buff *skb, const struct nft_expr *expr)
+ 	return -1;
+ }
+ 
++static int nft_lookup_validate_setelem(const struct nft_ctx *ctx,
++				       struct nft_set *set,
++				       const struct nft_set_iter *iter,
++				       struct nft_set_elem *elem)
++{
++	const struct nft_set_ext *ext = nft_set_elem_ext(set, elem->priv);
++	const struct nft_data *data;
++
++	if (nft_set_ext_exists(ext, NFT_SET_EXT_FLAGS) &&
++	    *nft_set_ext_flags(ext) & NFT_SET_ELEM_INTERVAL_END)
++		return 0;
++
++	data = nft_set_ext_data(ext);
++	switch (data->verdict.code) {
++	case NFT_JUMP:
++	case NFT_GOTO:
++		return nft_chain_validate(ctx, data->verdict.chain);
++	default:
++		return 0;
++	}
++}
++
++static int nft_lookup_validate(const struct nft_ctx *ctx,
++			       const struct nft_expr *expr,
++			       const struct nft_data **d)
++{
++	const struct nft_lookup *priv = nft_expr_priv(expr);
++	struct nft_set_iter iter;
++
++	if (!(priv->set->flags & NFT_SET_MAP) ||
++	    priv->set->dtype != NFT_DATA_VERDICT)
++		return 0;
++
++	iter.genmask	= nft_genmask_next(ctx->net);
++	iter.skip	= 0;
++	iter.count	= 0;
++	iter.err	= 0;
++	iter.fn		= nft_lookup_validate_setelem;
++
++	priv->set->ops->walk(ctx, priv->set, &iter);
++	if (iter.err < 0)
++		return iter.err;
++
++	return 0;
++}
++
+ static const struct nft_expr_ops nft_lookup_ops = {
+ 	.type		= &nft_lookup_type,
+ 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_lookup)),
+@@ -156,6 +202,7 @@ static const struct nft_expr_ops nft_lookup_ops = {
+ 	.init		= nft_lookup_init,
+ 	.destroy	= nft_lookup_destroy,
+ 	.dump		= nft_lookup_dump,
++	.validate	= nft_lookup_validate,
+ };
+ 
+ struct nft_expr_type nft_lookup_type __read_mostly = {
 -- 
 2.11.0
