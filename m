@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 9/9] netfilter: nf_tables: handle chain name lookups via rhltable
-Date: Sun,  3 Jun 2018 01:14:13 +0200
-Message-ID: <20180602231413.31974-10-pablo@netfilter.org>
+Subject: [PATCH 7/9] netfilter: nf_tables: add destroy_clone expression
+Date: Sun,  3 Jun 2018 01:14:11 +0200
+Message-ID: <20180602231413.31974-8-pablo@netfilter.org>
 References: <20180602231413.31974-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,309 +10,68 @@ In-Reply-To: <20180602231413.31974-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+Before this patch, cloned expressions are released via ->destroy. This
+is a problem for the new connlimit expression since the ->destroy path
+drop a reference on the conntrack modules and it unregisters hooks. The
+new ->destroy_clone provides context that this expression is being
+released from the packet path, so it is mirroring ->clone(), where
+neither module reference is dropped nor hooks need to be unregistered -
+because this done from the control plane path from the ->init() path.
 
-If there is a significant amount of chains list search is too slow, so
-add an rhlist table for this.
-
-This speeds up ruleset loading: for every new rule we have to check if
-the name already exists in current generation.
-
-We need to be able to cope with duplicate chain names in case a transaction
-drops the nfnl mutex (for request_module) and the abort of this old
-transaction is still pending.
-
-The list is kept -- we need a way to iterate chains even if hash resize is
-in progress without missing an entry.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_tables.h |   7 ++-
- net/netfilter/nf_tables_api.c     | 113 +++++++++++++++++++++++++++++++++-----
- 2 files changed, 104 insertions(+), 16 deletions(-)
+ include/net/netfilter/nf_tables.h |  2 ++
+ net/netfilter/nf_tables_api.c     | 12 ++++++++++--
+ net/netfilter/nft_counter.c       |  1 +
+ 3 files changed, 13 insertions(+), 2 deletions(-)
 
 diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 83e7b83ecf3e..08c005ce56e9 100644
+index 871cb3b012e9..83e7b83ecf3e 100644
 --- a/include/net/netfilter/nf_tables.h
 +++ b/include/net/netfilter/nf_tables.h
-@@ -9,6 +9,7 @@
- #include <linux/netfilter/x_tables.h>
- #include <linux/netfilter/nf_tables.h>
- #include <linux/u64_stats_sync.h>
-+#include <linux/rhashtable.h>
- #include <net/netfilter/nf_flow_table.h>
- #include <net/netlink.h>
- 
-@@ -860,6 +861,7 @@ enum nft_chain_flags {
-  *
-  *	@rules: list of rules in the chain
-  *	@list: used internally
-+ *	@rhlhead: used internally
-  *	@table: table that this chain belongs to
-  *	@handle: chain handle
-  *	@use: number of jump references to this chain
-@@ -872,6 +874,7 @@ struct nft_chain {
- 	struct nft_rule			*__rcu *rules_gen_1;
- 	struct list_head		rules;
- 	struct list_head		list;
-+	struct rhlist_head		rhlhead;
- 	struct nft_table		*table;
- 	u64				handle;
- 	u32				use;
-@@ -965,7 +968,8 @@ unsigned int nft_do_chain(struct nft_pktinfo *pkt, void *priv);
-  *	struct nft_table - nf_tables table
-  *
-  *	@list: used internally
-- *	@chains: chains in the table
-+ *	@chains_ht: chains in the table
-+ *	@chains: same, for stable walks
-  *	@sets: sets in the table
-  *	@objects: stateful objects in the table
-  *	@flowtables: flow tables in the table
-@@ -979,6 +983,7 @@ unsigned int nft_do_chain(struct nft_pktinfo *pkt, void *priv);
-  */
- struct nft_table {
- 	struct list_head		list;
-+	struct rhltable			chains_ht;
- 	struct list_head		chains;
- 	struct list_head		sets;
- 	struct list_head		objects;
+@@ -745,6 +745,8 @@ struct nft_expr_ops {
+ 						      const struct nft_expr *expr);
+ 	void				(*destroy)(const struct nft_ctx *ctx,
+ 						   const struct nft_expr *expr);
++	void				(*destroy_clone)(const struct nft_ctx *ctx,
++							 const struct nft_expr *expr);
+ 	int				(*dump)(struct sk_buff *skb,
+ 						const struct nft_expr *expr);
+ 	int				(*validate)(const struct nft_ctx *ctx,
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 0a6eafa49879..2e8fd961746d 100644
+index 12463984dd5c..0a6eafa49879 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -34,6 +34,20 @@ enum {
- 	NFT_VALIDATE_DO,
+@@ -4046,8 +4046,16 @@ void nft_set_elem_destroy(const struct nft_set *set, void *elem,
+ 	nft_data_release(nft_set_ext_key(ext), NFT_DATA_VALUE);
+ 	if (nft_set_ext_exists(ext, NFT_SET_EXT_DATA))
+ 		nft_data_release(nft_set_ext_data(ext), set->dtype);
+-	if (destroy_expr && nft_set_ext_exists(ext, NFT_SET_EXT_EXPR))
+-		nf_tables_expr_destroy(&ctx, nft_set_ext_expr(ext));
++	if (destroy_expr && nft_set_ext_exists(ext, NFT_SET_EXT_EXPR)) {
++		struct nft_expr *expr = nft_set_ext_expr(ext);
++
++		if (expr->ops->destroy_clone) {
++			expr->ops->destroy_clone(&ctx, expr);
++			module_put(expr->ops->type->owner);
++		} else {
++			nf_tables_expr_destroy(&ctx, expr);
++		}
++	}
+ 	if (nft_set_ext_exists(ext, NFT_SET_EXT_OBJREF))
+ 		(*nft_set_ext_obj(ext))->use--;
+ 	kfree(elem);
+diff --git a/net/netfilter/nft_counter.c b/net/netfilter/nft_counter.c
+index e59a74d6b7d6..a61d7edfc290 100644
+--- a/net/netfilter/nft_counter.c
++++ b/net/netfilter/nft_counter.c
+@@ -258,6 +258,7 @@ static const struct nft_expr_ops nft_counter_ops = {
+ 	.eval		= nft_counter_eval,
+ 	.init		= nft_counter_init,
+ 	.destroy	= nft_counter_destroy,
++	.destroy_clone	= nft_counter_destroy,
+ 	.dump		= nft_counter_dump,
+ 	.clone		= nft_counter_clone,
  };
- 
-+static u32 nft_chain_hash(const void *data, u32 len, u32 seed);
-+static u32 nft_chain_hash_obj(const void *data, u32 len, u32 seed);
-+static int nft_chain_hash_cmp(struct rhashtable_compare_arg *, const void *);
-+
-+static const struct rhashtable_params nft_chain_ht_params = {
-+	.head_offset		= offsetof(struct nft_chain, rhlhead),
-+	.key_offset		= offsetof(struct nft_chain, name),
-+	.hashfn			= nft_chain_hash,
-+	.obj_hashfn		= nft_chain_hash_obj,
-+	.obj_cmpfn		= nft_chain_hash_cmp,
-+	.locks_mul		= 1,
-+	.automatic_shrinking	= true,
-+};
-+
- static void nft_validate_state_update(struct net *net, u8 new_validate_state)
- {
- 	switch (net->nft.validate_state) {
-@@ -720,6 +734,29 @@ static int nf_tables_updtable(struct nft_ctx *ctx)
- 	return ret;
- }
- 
-+static u32 nft_chain_hash(const void *data, u32 len, u32 seed)
-+{
-+	const char *name = data;
-+
-+	return jhash(name, strlen(name), seed);
-+}
-+
-+static u32 nft_chain_hash_obj(const void *data, u32 len, u32 seed)
-+{
-+	const struct nft_chain *chain = data;
-+
-+	return nft_chain_hash(chain->name, 0, seed);
-+}
-+
-+static int nft_chain_hash_cmp(struct rhashtable_compare_arg *arg,
-+			      const void *ptr)
-+{
-+	const struct nft_chain *chain = ptr;
-+	const char *name = arg->key;
-+
-+	return strcmp(chain->name, name);
-+}
-+
- static int nf_tables_newtable(struct net *net, struct sock *nlsk,
- 			      struct sk_buff *skb, const struct nlmsghdr *nlh,
- 			      const struct nlattr * const nla[],
-@@ -766,6 +803,10 @@ static int nf_tables_newtable(struct net *net, struct sock *nlsk,
- 	if (table->name == NULL)
- 		goto err_strdup;
- 
-+	err = rhltable_init(&table->chains_ht, &nft_chain_ht_params);
-+	if (err)
-+		goto err_chain_ht;
-+
- 	INIT_LIST_HEAD(&table->chains);
- 	INIT_LIST_HEAD(&table->sets);
- 	INIT_LIST_HEAD(&table->objects);
-@@ -782,6 +823,8 @@ static int nf_tables_newtable(struct net *net, struct sock *nlsk,
- 	list_add_tail_rcu(&table->list, &net->nft.tables);
- 	return 0;
- err_trans:
-+	rhltable_destroy(&table->chains_ht);
-+err_chain_ht:
- 	kfree(table->name);
- err_strdup:
- 	kfree(table);
-@@ -922,6 +965,7 @@ static void nf_tables_table_destroy(struct nft_ctx *ctx)
- {
- 	BUG_ON(ctx->table->use > 0);
- 
-+	rhltable_destroy(&ctx->table->chains_ht);
- 	kfree(ctx->table->name);
- 	kfree(ctx->table);
- }
-@@ -967,21 +1011,35 @@ nft_chain_lookup_byhandle(const struct nft_table *table, u64 handle, u8 genmask)
- 	return ERR_PTR(-ENOENT);
- }
- 
--static struct nft_chain *nft_chain_lookup(const struct nft_table *table,
-+static struct nft_chain *nft_chain_lookup(struct nft_table *table,
- 					  const struct nlattr *nla, u8 genmask)
- {
-+	char search[NFT_CHAIN_MAXNAMELEN + 1];
-+	struct rhlist_head *tmp, *list;
- 	struct nft_chain *chain;
- 
- 	if (nla == NULL)
- 		return ERR_PTR(-EINVAL);
- 
--	list_for_each_entry_rcu(chain, &table->chains, list) {
--		if (!nla_strcmp(nla, chain->name) &&
--		    nft_active_genmask(chain, genmask))
--			return chain;
--	}
-+	nla_strlcpy(search, nla, sizeof(search));
- 
--	return ERR_PTR(-ENOENT);
-+	WARN_ON(!rcu_read_lock_held() &&
-+		!lockdep_nfnl_is_held(NFNL_SUBSYS_NFTABLES));
-+
-+	chain = ERR_PTR(-ENOENT);
-+	rcu_read_lock();
-+	list = rhltable_lookup(&table->chains_ht, search, nft_chain_ht_params);
-+	if (!list)
-+		goto out_unlock;
-+
-+	rhl_for_each_entry_rcu(chain, tmp, list, rhlhead) {
-+		if (nft_active_genmask(chain, genmask))
-+			goto out_unlock;
-+	}
-+	chain = ERR_PTR(-ENOENT);
-+out_unlock:
-+	rcu_read_unlock();
-+	return chain;
- }
- 
- static const struct nla_policy nft_chain_policy[NFTA_CHAIN_MAX + 1] = {
-@@ -1185,8 +1243,8 @@ static int nf_tables_getchain(struct net *net, struct sock *nlsk,
- {
- 	const struct nfgenmsg *nfmsg = nlmsg_data(nlh);
- 	u8 genmask = nft_genmask_cur(net);
--	const struct nft_table *table;
- 	const struct nft_chain *chain;
-+	struct nft_table *table;
- 	struct sk_buff *skb2;
- 	int family = nfmsg->nfgen_family;
- 	int err;
-@@ -1504,9 +1562,17 @@ static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 genmask,
- 	if (err < 0)
- 		goto err1;
- 
-+	err = rhltable_insert_key(&table->chains_ht, chain->name,
-+				  &chain->rhlhead, nft_chain_ht_params);
-+	if (err)
-+		goto err2;
-+
- 	err = nft_trans_chain_add(ctx, NFT_MSG_NEWCHAIN);
--	if (err < 0)
-+	if (err < 0) {
-+		rhltable_remove(&table->chains_ht, &chain->rhlhead,
-+				nft_chain_ht_params);
- 		goto err2;
-+	}
- 
- 	table->use++;
- 	list_add_tail_rcu(&chain->list, &table->chains);
-@@ -2206,9 +2272,9 @@ static int nf_tables_getrule(struct net *net, struct sock *nlsk,
- {
- 	const struct nfgenmsg *nfmsg = nlmsg_data(nlh);
- 	u8 genmask = nft_genmask_cur(net);
--	const struct nft_table *table;
- 	const struct nft_chain *chain;
- 	const struct nft_rule *rule;
-+	struct nft_table *table;
- 	struct sk_buff *skb2;
- 	int family = nfmsg->nfgen_family;
- 	int err;
-@@ -5981,8 +6047,16 @@ static void nft_chain_commit_update(struct nft_trans *trans)
- {
- 	struct nft_base_chain *basechain;
- 
--	if (nft_trans_chain_name(trans))
-+	if (nft_trans_chain_name(trans)) {
-+		rhltable_remove(&trans->ctx.table->chains_ht,
-+				&trans->ctx.chain->rhlhead,
-+				nft_chain_ht_params);
- 		swap(trans->ctx.chain->name, nft_trans_chain_name(trans));
-+		rhltable_insert_key(&trans->ctx.table->chains_ht,
-+				    trans->ctx.chain->name,
-+				    &trans->ctx.chain->rhlhead,
-+				    nft_chain_ht_params);
-+	}
- 
- 	if (!nft_is_base_chain(trans->ctx.chain))
- 		return;
-@@ -6159,6 +6233,15 @@ static void nf_tables_commit_chain_active(struct net *net, struct nft_chain *cha
- 		nf_tables_commit_chain_free_rules_old(g0);
- }
- 
-+static void nft_chain_del(struct nft_chain *chain)
-+{
-+	struct nft_table *table = chain->table;
-+
-+	WARN_ON_ONCE(rhltable_remove(&table->chains_ht, &chain->rhlhead,
-+				     nft_chain_ht_params));
-+	list_del_rcu(&chain->list);
-+}
-+
- static int nf_tables_commit(struct net *net, struct sk_buff *skb)
- {
- 	struct nft_trans *trans, *next;
-@@ -6233,7 +6316,7 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
- 			nft_trans_destroy(trans);
- 			break;
- 		case NFT_MSG_DELCHAIN:
--			list_del_rcu(&trans->ctx.chain->list);
-+			nft_chain_del(trans->ctx.chain);
- 			nf_tables_chain_notify(&trans->ctx, NFT_MSG_DELCHAIN);
- 			nf_tables_unregister_hook(trans->ctx.net,
- 						  trans->ctx.table,
-@@ -6384,7 +6467,7 @@ static int nf_tables_abort(struct net *net, struct sk_buff *skb)
- 				nft_trans_destroy(trans);
- 			} else {
- 				trans->ctx.table->use--;
--				list_del_rcu(&trans->ctx.chain->list);
-+				nft_chain_del(trans->ctx.chain);
- 				nf_tables_unregister_hook(trans->ctx.net,
- 							  trans->ctx.table,
- 							  trans->ctx.chain);
-@@ -6986,7 +7069,7 @@ int __nft_release_basechain(struct nft_ctx *ctx)
- 		ctx->chain->use--;
- 		nf_tables_rule_release(ctx, rule);
- 	}
--	list_del(&ctx->chain->list);
-+	nft_chain_del(ctx->chain);
- 	ctx->table->use--;
- 	nf_tables_chain_destroy(ctx);
- 
-@@ -7042,7 +7125,7 @@ static void __nft_release_tables(struct net *net)
- 		}
- 		list_for_each_entry_safe(chain, nc, &table->chains, list) {
- 			ctx.chain = chain;
--			list_del(&chain->list);
-+			nft_chain_del(chain);
- 			table->use--;
- 			nf_tables_chain_destroy(&ctx);
- 		}
 -- 
 2.11.0
