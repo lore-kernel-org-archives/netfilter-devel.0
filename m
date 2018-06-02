@@ -1,11 +1,8 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 13/20] netfilter: nf_tables: add support for native socket matching
-Date: Sat,  2 Jun 2018 02:22:52 +0200
-Message-ID: <20180602002259.4024-14-pablo@netfilter.org>
+Subject: [PATCH 18/20] netfilter: nft_fwd_netdev: allow to forward packets via neighbour layer
+Date: Sat,  2 Jun 2018 02:22:57 +0200
+Message-ID: <20180602002259.4024-19-pablo@netfilter.org>
 References: <20180602002259.4024-1-pablo@netfilter.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netdev-owner@vger.kernel.org>
@@ -13,236 +10,218 @@ In-Reply-To: <20180602002259.4024-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Máté Eckl <ecklm94@gmail.com>
+This allows us to forward packets from the netdev family via neighbour
+layer, so you don't need an explicit link-layer destination when using
+this expression from rules. The ttl/hop_limit field is decremented.
 
-Now it can only match the transparent flag of an ip/ipv6 socket.
-
-Signed-off-by: Máté Eckl <ecklm94@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/uapi/linux/netfilter/nf_tables.h |  25 ++++++
- net/netfilter/Kconfig                    |   9 ++
- net/netfilter/Makefile                   |   1 +
- net/netfilter/nft_socket.c               | 143 +++++++++++++++++++++++++++++++
- 4 files changed, 178 insertions(+)
- create mode 100644 net/netfilter/nft_socket.c
+ include/uapi/linux/netfilter/nf_tables.h |   4 +
+ net/netfilter/nft_fwd_netdev.c           | 146 ++++++++++++++++++++++++++++++-
+ 2 files changed, 149 insertions(+), 1 deletion(-)
 
 diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index 9c71f024f9cc..3d46c82a5ebd 100644
+index 5c7eb9b9f6d6..a089af092a29 100644
 --- a/include/uapi/linux/netfilter/nf_tables.h
 +++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -905,6 +905,31 @@ enum nft_rt_attributes {
- #define NFTA_RT_MAX		(__NFTA_RT_MAX - 1)
- 
- /**
-+ * enum nft_socket_attributes - nf_tables socket expression netlink attributes
-+ *
-+ * @NFTA_SOCKET_KEY: socket key to match
-+ * @NFTA_SOCKET_DREG: destination register
-+ */
-+enum nft_socket_attributes {
-+	NFTA_SOCKET_UNSPEC,
-+	NFTA_SOCKET_KEY,
-+	NFTA_SOCKET_DREG,
-+	__NFTA_SOCKET_MAX
-+};
-+#define NFTA_SOCKET_MAX		(__NFTA_SOCKET_MAX - 1)
-+
-+/*
-+ * enum nft_socket_keys - nf_tables socket expression keys
-+ *
-+ * @NFT_SOCKET_TRANSPARENT: Value of the IP(V6)_TRANSPARENT socket option_
-+ */
-+enum nft_socket_keys {
-+	NFT_SOCKET_TRANSPARENT,
-+	__NFT_SOCKET_MAX
-+};
-+#define NFT_SOCKET_MAX	(__NFT_SOCKET_MAX - 1)
-+
-+/**
-  * enum nft_ct_keys - nf_tables ct expression keys
+@@ -1260,10 +1260,14 @@ enum nft_dup_attributes {
+  * enum nft_fwd_attributes - nf_tables fwd expression netlink attributes
   *
-  * @NFT_CT_STATE: conntrack state (bitmask of enum ip_conntrack_info)
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index 3ec8886850b2..276e1e32f44e 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -613,6 +613,15 @@ config NFT_FIB_INET
- 	  The lookup will be delegated to the IPv4 or IPv6 FIB depending
- 	  on the protocol of the packet.
+  * @NFTA_FWD_SREG_DEV: source register of output interface (NLA_U32: nft_register)
++ * @NFTA_FWD_SREG_ADDR: source register of destination address (NLA_U32: nft_register)
++ * @NFTA_FWD_NFPROTO: layer 3 family of source register address (NLA_U32: enum nfproto)
+  */
+ enum nft_fwd_attributes {
+ 	NFTA_FWD_UNSPEC,
+ 	NFTA_FWD_SREG_DEV,
++	NFTA_FWD_SREG_ADDR,
++	NFTA_FWD_NFPROTO,
+ 	__NFTA_FWD_MAX
+ };
+ #define NFTA_FWD_MAX	(__NFTA_FWD_MAX - 1)
+diff --git a/net/netfilter/nft_fwd_netdev.c b/net/netfilter/nft_fwd_netdev.c
+index ce13a50b9189..8abb9891cdf2 100644
+--- a/net/netfilter/nft_fwd_netdev.c
++++ b/net/netfilter/nft_fwd_netdev.c
+@@ -12,8 +12,12 @@
+ #include <linux/netlink.h>
+ #include <linux/netfilter.h>
+ #include <linux/netfilter/nf_tables.h>
++#include <linux/ip.h>
++#include <linux/ipv6.h>
+ #include <net/netfilter/nf_tables.h>
+ #include <net/netfilter/nf_dup_netdev.h>
++#include <net/neighbour.h>
++#include <net/ip.h>
  
-+config NFT_SOCKET
-+	tristate "Netfilter nf_tables socket match support"
-+	depends on IPV6 || IPV6=n
-+	select NF_SOCKET_IPV4
-+	select NF_SOCKET_IPV6 if IPV6
-+	help
-+	  This option allows matching for the presence or absence of a
-+	  corresponding socket and its attributes.
-+
- if NF_TABLES_NETDEV
+ struct nft_fwd_netdev {
+ 	enum nft_registers	sreg_dev:8;
+@@ -32,6 +36,8 @@ static void nft_fwd_netdev_eval(const struct nft_expr *expr,
  
- config NF_DUP_NETDEV
-diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index 9b3434360d49..eec169555731 100644
---- a/net/netfilter/Makefile
-+++ b/net/netfilter/Makefile
-@@ -102,6 +102,7 @@ obj-$(CONFIG_NFT_FIB)		+= nft_fib.o
- obj-$(CONFIG_NFT_FIB_INET)	+= nft_fib_inet.o
- obj-$(CONFIG_NFT_FIB_NETDEV)	+= nft_fib_netdev.o
- obj-$(CONFIG_NF_OSF)		+= nf_osf.o
-+obj-$(CONFIG_NFT_SOCKET)	+= nft_socket.o
+ static const struct nla_policy nft_fwd_netdev_policy[NFTA_FWD_MAX + 1] = {
+ 	[NFTA_FWD_SREG_DEV]	= { .type = NLA_U32 },
++	[NFTA_FWD_SREG_ADDR]	= { .type = NLA_U32 },
++	[NFTA_FWD_NFPROTO]	= { .type = NLA_U32 },
+ };
  
- # nf_tables netdev
- obj-$(CONFIG_NFT_DUP_NETDEV)	+= nft_dup_netdev.o
-diff --git a/net/netfilter/nft_socket.c b/net/netfilter/nft_socket.c
-new file mode 100644
-index 000000000000..d86337068ecb
---- /dev/null
-+++ b/net/netfilter/nft_socket.c
-@@ -0,0 +1,143 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+#include <linux/module.h>
-+#include <linux/netfilter/nf_tables.h>
-+#include <net/netfilter/nf_tables.h>
-+#include <net/netfilter/nf_tables_core.h>
-+#include <net/netfilter/nf_socket.h>
-+#include <net/inet_sock.h>
-+
-+struct nft_socket {
-+	enum nft_socket_keys		key:8;
-+	union {
-+		enum nft_registers	dreg:8;
-+	};
+ static int nft_fwd_netdev_init(const struct nft_ctx *ctx,
+@@ -62,7 +68,133 @@ static int nft_fwd_netdev_dump(struct sk_buff *skb, const struct nft_expr *expr)
+ 	return -1;
+ }
+ 
++struct nft_fwd_neigh {
++	enum nft_registers	sreg_dev:8;
++	enum nft_registers	sreg_addr:8;
++	u8			nfproto;
 +};
 +
-+static void nft_socket_eval(const struct nft_expr *expr,
-+			    struct nft_regs *regs,
-+			    const struct nft_pktinfo *pkt)
++static void nft_fwd_neigh_eval(const struct nft_expr *expr,
++			      struct nft_regs *regs,
++			      const struct nft_pktinfo *pkt)
 +{
-+	const struct nft_socket *priv = nft_expr_priv(expr);
++	struct nft_fwd_neigh *priv = nft_expr_priv(expr);
++	void *addr = &regs->data[priv->sreg_addr];
++	int oif = regs->data[priv->sreg_dev];
++	unsigned int verdict = NF_STOLEN;
 +	struct sk_buff *skb = pkt->skb;
-+	struct sock *sk = skb->sk;
-+	u32 *dest = &regs->data[priv->dreg];
++	struct net_device *dev;
++	int neigh_table;
 +
-+	if (!sk)
-+		switch(nft_pf(pkt)) {
-+		case NFPROTO_IPV4:
-+			sk = nf_sk_lookup_slow_v4(nft_net(pkt), skb, nft_in(pkt));
-+			break;
-+#if IS_ENABLED(CONFIG_NF_SOCKET_IPV6)
-+		case NFPROTO_IPV6:
-+			sk = nf_sk_lookup_slow_v6(nft_net(pkt), skb, nft_in(pkt));
-+			break;
-+#endif
-+		default:
-+			WARN_ON_ONCE(1);
-+			regs->verdict.code = NFT_BREAK;
-+			return;
++	switch (priv->nfproto) {
++	case NFPROTO_IPV4: {
++		struct iphdr *iph;
++
++		if (skb->protocol != htons(ETH_P_IP)) {
++			verdict = NFT_BREAK;
++			goto out;
 +		}
-+
-+	if(!sk) {
-+		nft_reg_store8(dest, 0);
-+		return;
-+	}
-+
-+	/* So that subsequent socket matching not to require other lookups. */
-+	skb->sk = sk;
-+
-+	switch(priv->key) {
-+	case NFT_SOCKET_TRANSPARENT:
-+		nft_reg_store8(dest, nf_sk_is_transparent(sk));
++		if (skb_try_make_writable(skb, sizeof(*iph))) {
++			verdict = NF_DROP;
++			goto out;
++		}
++		iph = ip_hdr(skb);
++		ip_decrease_ttl(iph);
++		neigh_table = NEIGH_ARP_TABLE;
 +		break;
++		}
++	case NFPROTO_IPV6: {
++		struct ipv6hdr *ip6h;
++
++		if (skb->protocol != htons(ETH_P_IPV6)) {
++			verdict = NFT_BREAK;
++			goto out;
++		}
++		if (skb_try_make_writable(skb, sizeof(*ip6h))) {
++			verdict = NF_DROP;
++			goto out;
++		}
++		ip6h = ipv6_hdr(skb);
++		ip6h->hop_limit--;
++		neigh_table = NEIGH_ND_TABLE;
++		break;
++		}
 +	default:
-+		WARN_ON(1);
-+		regs->verdict.code = NFT_BREAK;
++		verdict = NFT_BREAK;
++		goto out;
 +	}
++
++	dev = dev_get_by_index_rcu(nft_net(pkt), oif);
++	if (dev == NULL)
++		return;
++
++	skb->dev = dev;
++	neigh_xmit(neigh_table, dev, addr, skb);
++out:
++	regs->verdict.code = verdict;
 +}
 +
-+static const struct nla_policy nft_socket_policy[NFTA_SOCKET_MAX + 1] = {
-+	[NFTA_SOCKET_KEY]		= { .type = NLA_U32 },
-+	[NFTA_SOCKET_DREG]		= { .type = NLA_U32 },
-+};
-+
-+static int nft_socket_init(const struct nft_ctx *ctx,
-+			   const struct nft_expr *expr,
-+			   const struct nlattr * const tb[])
++static int nft_fwd_neigh_init(const struct nft_ctx *ctx,
++			      const struct nft_expr *expr,
++			      const struct nlattr * const tb[])
 +{
-+	struct nft_socket *priv = nft_expr_priv(expr);
-+	unsigned int len;
++	struct nft_fwd_neigh *priv = nft_expr_priv(expr);
++	unsigned int addr_len;
++	int err;
 +
-+	if (!tb[NFTA_SOCKET_DREG] || !tb[NFTA_SOCKET_KEY])
++	if (!tb[NFTA_FWD_SREG_DEV] ||
++	    !tb[NFTA_FWD_SREG_ADDR] ||
++	    !tb[NFTA_FWD_NFPROTO])
 +		return -EINVAL;
 +
-+	switch(ctx->family) {
++	priv->sreg_dev = nft_parse_register(tb[NFTA_FWD_SREG_DEV]);
++	priv->sreg_addr = nft_parse_register(tb[NFTA_FWD_SREG_ADDR]);
++	priv->nfproto = ntohl(nla_get_be32(tb[NFTA_FWD_NFPROTO]));
++
++	switch (priv->nfproto) {
 +	case NFPROTO_IPV4:
-+#if IS_ENABLED(CONFIG_NF_SOCKET_IPV6)
++		addr_len = sizeof(struct in_addr);
++		break;
 +	case NFPROTO_IPV6:
-+#endif
-+	case NFPROTO_INET:
++		addr_len = sizeof(struct in6_addr);
 +		break;
 +	default:
 +		return -EOPNOTSUPP;
 +	}
 +
-+	priv->key = ntohl(nla_get_u32(tb[NFTA_SOCKET_KEY]));
-+	switch(priv->key) {
-+	case NFT_SOCKET_TRANSPARENT:
-+		len = sizeof(u8);
-+		break;
-+	default:
-+		return -EOPNOTSUPP;
-+	}
++	err = nft_validate_register_load(priv->sreg_dev, sizeof(int));
++	if (err < 0)
++		return err;
 +
-+	priv->dreg = nft_parse_register(tb[NFTA_SOCKET_DREG]);
-+	return nft_validate_register_store(ctx, priv->dreg, NULL,
-+					   NFT_DATA_VALUE, len);
++	return nft_validate_register_load(priv->sreg_addr, addr_len);
 +}
 +
-+static int nft_socket_dump(struct sk_buff *skb,
-+			   const struct nft_expr *expr)
-+{
-+	const struct nft_socket *priv = nft_expr_priv(expr);
++static const struct nft_expr_ops nft_fwd_netdev_ingress_ops;
 +
-+	if (nla_put_u32(skb, NFTA_SOCKET_KEY, htonl(priv->key)))
-+		return -1;
-+	if (nft_dump_register(skb, NFTA_SOCKET_DREG, priv->dreg))
-+		return -1;
++static int nft_fwd_neigh_dump(struct sk_buff *skb, const struct nft_expr *expr)
++{
++	struct nft_fwd_neigh *priv = nft_expr_priv(expr);
++
++	if (nft_dump_register(skb, NFTA_FWD_SREG_DEV, priv->sreg_dev) ||
++	    nft_dump_register(skb, NFTA_FWD_SREG_ADDR, priv->sreg_addr) ||
++	    nla_put_be32(skb, NFTA_FWD_NFPROTO, htonl(priv->nfproto)))
++		goto nla_put_failure;
++
 +	return 0;
++
++nla_put_failure:
++	return -1;
 +}
 +
-+static struct nft_expr_type nft_socket_type;
-+static const struct nft_expr_ops nft_socket_ops = {
-+	.type		= &nft_socket_type,
-+	.size		= NFT_EXPR_SIZE(sizeof(struct nft_socket)),
-+	.eval		= nft_socket_eval,
-+	.init		= nft_socket_init,
-+	.dump		= nft_socket_dump,
+ static struct nft_expr_type nft_fwd_netdev_type;
++static const struct nft_expr_ops nft_fwd_neigh_netdev_ops = {
++	.type		= &nft_fwd_netdev_type,
++	.size		= NFT_EXPR_SIZE(sizeof(struct nft_fwd_neigh)),
++	.eval		= nft_fwd_neigh_eval,
++	.init		= nft_fwd_neigh_init,
++	.dump		= nft_fwd_neigh_dump,
 +};
 +
-+static struct nft_expr_type nft_socket_type __read_mostly = {
-+	.name		= "socket",
-+	.ops		= &nft_socket_ops,
-+	.policy		= nft_socket_policy,
-+	.maxattr	= NFTA_SOCKET_MAX,
-+	.owner		= THIS_MODULE,
-+};
-+
-+static int __init nft_socket_module_init(void)
+ static const struct nft_expr_ops nft_fwd_netdev_ops = {
+ 	.type		= &nft_fwd_netdev_type,
+ 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_fwd_netdev)),
+@@ -71,10 +203,22 @@ static const struct nft_expr_ops nft_fwd_netdev_ops = {
+ 	.dump		= nft_fwd_netdev_dump,
+ };
+ 
++static const struct nft_expr_ops *
++nft_fwd_select_ops(const struct nft_ctx *ctx,
++		   const struct nlattr * const tb[])
 +{
-+	return nft_register_expr(&nft_socket_type);
++	if (tb[NFTA_FWD_SREG_ADDR])
++		return &nft_fwd_neigh_netdev_ops;
++	if (tb[NFTA_FWD_SREG_DEV])
++		return &nft_fwd_netdev_ops;
++
++        return ERR_PTR(-EOPNOTSUPP);
 +}
 +
-+static void __exit nft_socket_module_exit(void)
-+{
-+	nft_unregister_expr(&nft_socket_type);
-+}
-+
-+module_init(nft_socket_module_init);
-+module_exit(nft_socket_module_exit);
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Máté Eckl");
-+MODULE_DESCRIPTION("nf_tables socket match module");
+ static struct nft_expr_type nft_fwd_netdev_type __read_mostly = {
+ 	.family		= NFPROTO_NETDEV,
+ 	.name		= "fwd",
+-	.ops		= &nft_fwd_netdev_ops,
++	.select_ops	= nft_fwd_select_ops,
+ 	.policy		= nft_fwd_netdev_policy,
+ 	.maxattr	= NFTA_FWD_MAX,
+ 	.owner		= THIS_MODULE,
 -- 
 2.11.0
