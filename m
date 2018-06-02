@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 07/20] netfilter: nft_compat: use call_rcu for nfnl_compat_get
-Date: Sat,  2 Jun 2018 02:22:46 +0200
-Message-ID: <20180602002259.4024-8-pablo@netfilter.org>
+Subject: [PATCH 02/20] netfilter: nat: merge ipv4/ipv6 masquerade code into main nat module
+Date: Sat,  2 Jun 2018 02:22:41 +0200
+Message-ID: <20180602002259.4024-3-pablo@netfilter.org>
 References: <20180602002259.4024-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -12,87 +12,137 @@ List-Id: netfilter-devel.vger.kernel.org
 
 From: Florian Westphal <fw@strlen.de>
 
-Just use .call_rcu instead.  We can drop the rcu read lock
-after obtaining a reference and re-acquire on return.
+Instead of using extra modules for these, turn the config options into
+an implicit dependency that adds masq feature to the protocol specific nf_nat module.
+
+before:
+   text    data     bss     dec     hex filename
+   2001     860       4    2865     b31 net/ipv4/netfilter/nf_nat_masquerade_ipv4.ko
+   5579     780       2    6361    18d9 net/ipv4/netfilter/nf_nat_ipv4.ko
+   2860     836       8    3704     e78 net/ipv6/netfilter/nf_nat_masquerade_ipv6.ko
+   6648     780       2    7430    1d06 net/ipv6/netfilter/nf_nat_ipv6.ko
+
+after:
+   text    data     bss     dec     hex filename
+   7245     872       8    8125    1fbd net/ipv4/netfilter/nf_nat_ipv4.ko
+   9165     848      12   10025    2729 net/ipv6/netfilter/nf_nat_ipv6.ko
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_compat.c | 29 ++++++++++++++++++-----------
- 1 file changed, 18 insertions(+), 11 deletions(-)
+ net/ipv4/netfilter/Kconfig                  | 5 +----
+ net/ipv4/netfilter/Makefile                 | 4 +---
+ net/ipv4/netfilter/nf_nat_masquerade_ipv4.c | 4 ----
+ net/ipv6/netfilter/Kconfig                  | 5 +----
+ net/ipv6/netfilter/Makefile                 | 2 +-
+ net/ipv6/netfilter/nf_nat_masquerade_ipv6.c | 4 ----
+ 6 files changed, 4 insertions(+), 20 deletions(-)
 
-diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
-index 1d99a1efdafc..8d1ff654e5af 100644
---- a/net/netfilter/nft_compat.c
-+++ b/net/netfilter/nft_compat.c
-@@ -611,10 +611,10 @@ nfnl_compat_fill_info(struct sk_buff *skb, u32 portid, u32 seq, u32 type,
- 	return -1;
- }
+diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
+index 280048e1e395..d03bc5a01a70 100644
+--- a/net/ipv4/netfilter/Kconfig
++++ b/net/ipv4/netfilter/Kconfig
+@@ -129,10 +129,7 @@ config NFT_CHAIN_NAT_IPV4
+ 	  source and destination ports.
  
--static int nfnl_compat_get(struct net *net, struct sock *nfnl,
--			   struct sk_buff *skb, const struct nlmsghdr *nlh,
--			   const struct nlattr * const tb[],
--			   struct netlink_ext_ack *extack)
-+static int nfnl_compat_get_rcu(struct net *net, struct sock *nfnl,
-+			       struct sk_buff *skb, const struct nlmsghdr *nlh,
-+			       const struct nlattr * const tb[],
-+			       struct netlink_ext_ack *extack)
- {
- 	int ret = 0, target;
- 	struct nfgenmsg *nfmsg;
-@@ -653,16 +653,21 @@ static int nfnl_compat_get(struct net *net, struct sock *nfnl,
- 		return -EINVAL;
- 	}
+ config NF_NAT_MASQUERADE_IPV4
+-	tristate "IPv4 masquerade support"
+-	help
+-	  This is the kernel functionality to provide NAT in the masquerade
+-	  flavour (automatic source address selection).
++	bool
  
-+	if (!try_module_get(THIS_MODULE))
-+		return -EINVAL;
-+
-+	rcu_read_unlock();
- 	try_then_request_module(xt_find_revision(nfmsg->nfgen_family, name,
- 						 rev, target, &ret),
- 						 fmt, name);
+ config NFT_MASQ_IPV4
+ 	tristate "IPv4 masquerading support for nf_tables"
+diff --git a/net/ipv4/netfilter/Makefile b/net/ipv4/netfilter/Makefile
+index 0e5edd0c7926..c4b05b174091 100644
+--- a/net/ipv4/netfilter/Makefile
++++ b/net/ipv4/netfilter/Makefile
+@@ -10,6 +10,7 @@ nf_conntrack_ipv4-y	:=  nf_conntrack_l3proto_ipv4.o nf_conntrack_proto_icmp.o
+ obj-$(CONFIG_NF_CONNTRACK_IPV4) += nf_conntrack_ipv4.o
+ 
+ nf_nat_ipv4-y		:= nf_nat_l3proto_ipv4.o nf_nat_proto_icmp.o
++nf_nat_ipv4-$(CONFIG_NF_NAT_MASQUERADE_IPV4) += nf_nat_masquerade_ipv4.o
+ obj-$(CONFIG_NF_NAT_IPV4) += nf_nat_ipv4.o
+ 
+ # defrag
+@@ -32,9 +33,6 @@ nf_nat_snmp_basic-y := nf_nat_snmp_basic.asn1.o nf_nat_snmp_basic_main.o
+ $(obj)/nf_nat_snmp_basic_main.o: $(obj)/nf_nat_snmp_basic.asn1.h
+ obj-$(CONFIG_NF_NAT_SNMP_BASIC) += nf_nat_snmp_basic.o
+ 
+-obj-$(CONFIG_NF_NAT_MASQUERADE_IPV4) += nf_nat_masquerade_ipv4.o
 -
- 	if (ret < 0)
--		return ret;
-+		goto out_put;
- 
- 	skb2 = nlmsg_new(NLMSG_DEFAULT_SIZE, GFP_KERNEL);
--	if (skb2 == NULL)
--		return -ENOMEM;
-+	if (skb2 == NULL) {
-+		ret = -ENOMEM;
-+		goto out_put;
-+	}
- 
- 	/* include the best revision for this extension in the message */
- 	if (nfnl_compat_fill_info(skb2, NETLINK_CB(skb).portid,
-@@ -672,14 +677,16 @@ static int nfnl_compat_get(struct net *net, struct sock *nfnl,
- 				  nfmsg->nfgen_family,
- 				  name, ret, target) <= 0) {
- 		kfree_skb(skb2);
--		return -ENOSPC;
-+		goto out_put;
- 	}
- 
- 	ret = netlink_unicast(nfnl, skb2, NETLINK_CB(skb).portid,
- 				MSG_DONTWAIT);
- 	if (ret > 0)
- 		ret = 0;
 -
-+out_put:
-+	rcu_read_lock();
-+	module_put(THIS_MODULE);
- 	return ret == -EAGAIN ? -ENOBUFS : ret;
+ # NAT protocols (nf_nat)
+ obj-$(CONFIG_NF_NAT_PROTO_GRE) += nf_nat_proto_gre.o
+ 
+diff --git a/net/ipv4/netfilter/nf_nat_masquerade_ipv4.c b/net/ipv4/netfilter/nf_nat_masquerade_ipv4.c
+index f538c5001547..ad3aeff152ed 100644
+--- a/net/ipv4/netfilter/nf_nat_masquerade_ipv4.c
++++ b/net/ipv4/netfilter/nf_nat_masquerade_ipv4.c
+@@ -7,7 +7,6 @@
+  */
+ 
+ #include <linux/types.h>
+-#include <linux/module.h>
+ #include <linux/atomic.h>
+ #include <linux/inetdevice.h>
+ #include <linux/ip.h>
+@@ -157,6 +156,3 @@ void nf_nat_masquerade_ipv4_unregister_notifier(void)
+ 	unregister_inetaddr_notifier(&masq_inet_notifier);
  }
+ EXPORT_SYMBOL_GPL(nf_nat_masquerade_ipv4_unregister_notifier);
+-
+-MODULE_LICENSE("GPL");
+-MODULE_AUTHOR("Rusty Russell <rusty@rustcorp.com.au>");
+diff --git a/net/ipv6/netfilter/Kconfig b/net/ipv6/netfilter/Kconfig
+index ce77bcc2490c..9f5b00a39adf 100644
+--- a/net/ipv6/netfilter/Kconfig
++++ b/net/ipv6/netfilter/Kconfig
+@@ -136,10 +136,7 @@ config NF_NAT_IPV6
+ if NF_NAT_IPV6
  
-@@ -691,7 +698,7 @@ static const struct nla_policy nfnl_compat_policy_get[NFTA_COMPAT_MAX+1] = {
- };
+ config NF_NAT_MASQUERADE_IPV6
+-	tristate "IPv6 masquerade support"
+-	help
+-	  This is the kernel functionality to provide NAT in the masquerade
+-	  flavour (automatic source address selection) for IPv6.
++	bool
  
- static const struct nfnl_callback nfnl_nft_compat_cb[NFNL_MSG_COMPAT_MAX] = {
--	[NFNL_MSG_COMPAT_GET]		= { .call = nfnl_compat_get,
-+	[NFNL_MSG_COMPAT_GET]		= { .call_rcu = nfnl_compat_get_rcu,
- 					    .attr_count = NFTA_COMPAT_MAX,
- 					    .policy = nfnl_compat_policy_get },
- };
+ endif # NF_NAT_IPV6
+ 
+diff --git a/net/ipv6/netfilter/Makefile b/net/ipv6/netfilter/Makefile
+index 44273d6f03a5..71518f22ae39 100644
+--- a/net/ipv6/netfilter/Makefile
++++ b/net/ipv6/netfilter/Makefile
+@@ -18,8 +18,8 @@ nf_conntrack_ipv6-y  :=  nf_conntrack_l3proto_ipv6.o nf_conntrack_proto_icmpv6.o
+ obj-$(CONFIG_NF_CONNTRACK_IPV6) += nf_conntrack_ipv6.o
+ 
+ nf_nat_ipv6-y		:= nf_nat_l3proto_ipv6.o nf_nat_proto_icmpv6.o
++nf_nat_ipv6-$(CONFIG_NF_NAT_MASQUERADE_IPV6) += nf_nat_masquerade_ipv6.o
+ obj-$(CONFIG_NF_NAT_IPV6) += nf_nat_ipv6.o
+-obj-$(CONFIG_NF_NAT_MASQUERADE_IPV6) += nf_nat_masquerade_ipv6.o
+ 
+ # defrag
+ nf_defrag_ipv6-y := nf_defrag_ipv6_hooks.o nf_conntrack_reasm.o
+diff --git a/net/ipv6/netfilter/nf_nat_masquerade_ipv6.c b/net/ipv6/netfilter/nf_nat_masquerade_ipv6.c
+index 9dfc2b90c362..e6eb7cf9b54f 100644
+--- a/net/ipv6/netfilter/nf_nat_masquerade_ipv6.c
++++ b/net/ipv6/netfilter/nf_nat_masquerade_ipv6.c
+@@ -10,7 +10,6 @@
+  */
+ 
+ #include <linux/kernel.h>
+-#include <linux/module.h>
+ #include <linux/atomic.h>
+ #include <linux/netdevice.h>
+ #include <linux/ipv6.h>
+@@ -186,6 +185,3 @@ void nf_nat_masquerade_ipv6_unregister_notifier(void)
+ 	unregister_netdevice_notifier(&masq_dev_notifier);
+ }
+ EXPORT_SYMBOL_GPL(nf_nat_masquerade_ipv6_unregister_notifier);
+-
+-MODULE_LICENSE("GPL");
+-MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
 -- 
 2.11.0
