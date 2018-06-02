@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 5/9] netfilter: nf_tables: pass ctx to nf_tables_expr_destroy()
-Date: Sun,  3 Jun 2018 01:14:09 +0200
-Message-ID: <20180602231413.31974-6-pablo@netfilter.org>
+Subject: [PATCH 4/9] netfilter: nf_conncount: expose connection list interface
+Date: Sun,  3 Jun 2018 01:14:08 +0200
+Message-ID: <20180602231413.31974-5-pablo@netfilter.org>
 References: <20180602231413.31974-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,95 +10,132 @@ In-Reply-To: <20180602231413.31974-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-nft_set_elem_destroy() can be called from call_rcu context. Annotate
-netns and table in set object so we can populate the context object.
-Moreover, pass context object to nf_tables_set_elem_destroy() from the
-commit phase, since it is already available from there.
+This patch provides an interface to maintain the list of connections and
+the lookup function to obtain the number of connections in the list.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_tables.h |  4 ++++
- net/netfilter/nf_tables_api.c     | 16 ++++++++++++----
- 2 files changed, 16 insertions(+), 4 deletions(-)
+ include/net/netfilter/nf_conntrack_count.h | 11 +++++++++
+ net/netfilter/nf_conncount.c               | 36 +++++++++++++++++++-----------
+ 2 files changed, 34 insertions(+), 13 deletions(-)
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 81ec070582b6..e3d1bac9b0d5 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -370,6 +370,8 @@ void nft_unregister_set(struct nft_set_type *type);
-  *
-  *	@list: table set list node
-  *	@bindings: list of set bindings
-+ *	@table: table this set belongs to
-+ *	@net: netnamespace this set belongs to
-  * 	@name: name of the set
-  *	@handle: unique handle of the set
-  * 	@ktype: key type (numeric type defined by userspace, not used in the kernel)
-@@ -393,6 +395,8 @@ void nft_unregister_set(struct nft_set_type *type);
- struct nft_set {
- 	struct list_head		list;
- 	struct list_head		bindings;
-+	struct nft_table		*table;
-+	possible_net_t			net;
- 	char				*name;
- 	u64				handle;
- 	u32				ktype;
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 177658f4007e..12463984dd5c 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -3359,6 +3359,8 @@ static int nf_tables_newset(struct net *net, struct sock *nlsk,
- 	}
- 
- 	INIT_LIST_HEAD(&set->bindings);
-+	set->table = table;
-+	write_pnet(&set->net, net);
- 	set->ops   = ops;
- 	set->ktype = ktype;
- 	set->klen  = desc.klen;
-@@ -4036,12 +4038,16 @@ void nft_set_elem_destroy(const struct nft_set *set, void *elem,
- 			  bool destroy_expr)
- {
- 	struct nft_set_ext *ext = nft_set_elem_ext(set, elem);
-+	struct nft_ctx ctx = {
-+		.net	= read_pnet(&set->net),
-+		.family	= set->table->family,
-+	};
- 
- 	nft_data_release(nft_set_ext_key(ext), NFT_DATA_VALUE);
- 	if (nft_set_ext_exists(ext, NFT_SET_EXT_DATA))
- 		nft_data_release(nft_set_ext_data(ext), set->dtype);
- 	if (destroy_expr && nft_set_ext_exists(ext, NFT_SET_EXT_EXPR))
--		nf_tables_expr_destroy(NULL, nft_set_ext_expr(ext));
-+		nf_tables_expr_destroy(&ctx, nft_set_ext_expr(ext));
- 	if (nft_set_ext_exists(ext, NFT_SET_EXT_OBJREF))
- 		(*nft_set_ext_obj(ext))->use--;
- 	kfree(elem);
-@@ -4051,12 +4057,13 @@ EXPORT_SYMBOL_GPL(nft_set_elem_destroy);
- /* Only called from commit path, nft_set_elem_deactivate() already deals with
-  * the refcounting from the preparation phase.
-  */
--static void nf_tables_set_elem_destroy(const struct nft_set *set, void *elem)
-+static void nf_tables_set_elem_destroy(const struct nft_ctx *ctx,
-+				       const struct nft_set *set, void *elem)
- {
- 	struct nft_set_ext *ext = nft_set_elem_ext(set, elem);
- 
- 	if (nft_set_ext_exists(ext, NFT_SET_EXT_EXPR))
--		nf_tables_expr_destroy(NULL, nft_set_ext_expr(ext));
-+		nf_tables_expr_destroy(ctx, nft_set_ext_expr(ext));
- 	kfree(elem);
+diff --git a/include/net/netfilter/nf_conntrack_count.h b/include/net/netfilter/nf_conntrack_count.h
+index e61184fbfb71..1910b6572430 100644
+--- a/include/net/netfilter/nf_conntrack_count.h
++++ b/include/net/netfilter/nf_conntrack_count.h
+@@ -13,4 +13,15 @@ unsigned int nf_conncount_count(struct net *net,
+ 				const u32 *key,
+ 				const struct nf_conntrack_tuple *tuple,
+ 				const struct nf_conntrack_zone *zone);
++
++unsigned int nf_conncount_lookup(struct net *net, struct hlist_head *head,
++				 const struct nf_conntrack_tuple *tuple,
++				 const struct nf_conntrack_zone *zone,
++				 bool *addit);
++
++bool nf_conncount_add(struct hlist_head *head,
++		      const struct nf_conntrack_tuple *tuple);
++
++void nf_conncount_cache_free(struct hlist_head *hhead);
++
+ #endif
+diff --git a/net/netfilter/nf_conncount.c b/net/netfilter/nf_conncount.c
+index 153e690e2893..3b5059a8dcdd 100644
+--- a/net/netfilter/nf_conncount.c
++++ b/net/netfilter/nf_conncount.c
+@@ -79,7 +79,7 @@ static int key_diff(const u32 *a, const u32 *b, unsigned int klen)
+ 	return memcmp(a, b, klen * sizeof(u32));
  }
  
-@@ -5999,7 +6006,8 @@ static void nft_commit_release(struct nft_trans *trans)
- 		nft_set_destroy(nft_trans_set(trans));
- 		break;
- 	case NFT_MSG_DELSETELEM:
--		nf_tables_set_elem_destroy(nft_trans_elem_set(trans),
-+		nf_tables_set_elem_destroy(&trans->ctx,
-+					   nft_trans_elem_set(trans),
- 					   nft_trans_elem(trans).priv);
- 		break;
- 	case NFT_MSG_DELOBJ:
+-static bool add_hlist(struct hlist_head *head,
++bool nf_conncount_add(struct hlist_head *head,
+ 		      const struct nf_conntrack_tuple *tuple)
+ {
+ 	struct nf_conncount_tuple *conn;
+@@ -91,12 +91,12 @@ static bool add_hlist(struct hlist_head *head,
+ 	hlist_add_head(&conn->node, head);
+ 	return true;
+ }
++EXPORT_SYMBOL_GPL(nf_conncount_add);
+ 
+-static unsigned int check_hlist(struct net *net,
+-				struct hlist_head *head,
+-				const struct nf_conntrack_tuple *tuple,
+-				const struct nf_conntrack_zone *zone,
+-				bool *addit)
++unsigned int nf_conncount_lookup(struct net *net, struct hlist_head *head,
++				 const struct nf_conntrack_tuple *tuple,
++				 const struct nf_conntrack_zone *zone,
++				 bool *addit)
+ {
+ 	const struct nf_conntrack_tuple_hash *found;
+ 	struct nf_conncount_tuple *conn;
+@@ -141,6 +141,7 @@ static unsigned int check_hlist(struct net *net,
+ 
+ 	return length;
+ }
++EXPORT_SYMBOL_GPL(nf_conncount_lookup);
+ 
+ static void tree_nodes_free(struct rb_root *root,
+ 			    struct nf_conncount_rb *gc_nodes[],
+@@ -187,13 +188,15 @@ count_tree(struct net *net, struct rb_root *root,
+ 		} else {
+ 			/* same source network -> be counted! */
+ 			unsigned int count;
+-			count = check_hlist(net, &rbconn->hhead, tuple, zone, &addit);
++
++			count = nf_conncount_lookup(net, &rbconn->hhead, tuple,
++						    zone, &addit);
+ 
+ 			tree_nodes_free(root, gc_nodes, gc_count);
+ 			if (!addit)
+ 				return count;
+ 
+-			if (!add_hlist(&rbconn->hhead, tuple))
++			if (!nf_conncount_add(&rbconn->hhead, tuple))
+ 				return 0; /* hotdrop */
+ 
+ 			return count + 1;
+@@ -203,7 +206,7 @@ count_tree(struct net *net, struct rb_root *root,
+ 			continue;
+ 
+ 		/* only used for GC on hhead, retval and 'addit' ignored */
+-		check_hlist(net, &rbconn->hhead, tuple, zone, &addit);
++		nf_conncount_lookup(net, &rbconn->hhead, tuple, zone, &addit);
+ 		if (hlist_empty(&rbconn->hhead))
+ 			gc_nodes[gc_count++] = rbconn;
+ 	}
+@@ -303,11 +306,19 @@ struct nf_conncount_data *nf_conncount_init(struct net *net, unsigned int family
+ }
+ EXPORT_SYMBOL_GPL(nf_conncount_init);
+ 
+-static void destroy_tree(struct rb_root *r)
++void nf_conncount_cache_free(struct hlist_head *hhead)
+ {
+ 	struct nf_conncount_tuple *conn;
+-	struct nf_conncount_rb *rbconn;
+ 	struct hlist_node *n;
++
++	hlist_for_each_entry_safe(conn, n, hhead, node)
++		kmem_cache_free(conncount_conn_cachep, conn);
++}
++EXPORT_SYMBOL_GPL(nf_conncount_cache_free);
++
++static void destroy_tree(struct rb_root *r)
++{
++	struct nf_conncount_rb *rbconn;
+ 	struct rb_node *node;
+ 
+ 	while ((node = rb_first(r)) != NULL) {
+@@ -315,8 +326,7 @@ static void destroy_tree(struct rb_root *r)
+ 
+ 		rb_erase(node, r);
+ 
+-		hlist_for_each_entry_safe(conn, n, &rbconn->hhead, node)
+-			kmem_cache_free(conncount_conn_cachep, conn);
++		nf_conncount_cache_free(&rbconn->hhead);
+ 
+ 		kmem_cache_free(conncount_rb_cachep, rbconn);
+ 	}
 -- 
 2.11.0
