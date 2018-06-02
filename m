@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 04/20] netfilter: nfnetlink: allow commit to fail
-Date: Sat,  2 Jun 2018 02:22:43 +0200
-Message-ID: <20180602002259.4024-5-pablo@netfilter.org>
+Subject: [PATCH 08/20] netfilter: nf_tables: fix endian mismatch in return type
+Date: Sat,  2 Jun 2018 02:22:47 +0200
+Message-ID: <20180602002259.4024-9-pablo@netfilter.org>
 References: <20180602002259.4024-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -12,43 +12,31 @@ List-Id: netfilter-devel.vger.kernel.org
 
 From: Florian Westphal <fw@strlen.de>
 
-->commit() cannot fail at the moment.
+harmless, but it avoids sparse warnings:
 
-Followup-patch adds kmalloc calls in the commit phase, so we'll need
-to be able to handle errors.
-
-Make it so that -EGAIN causes a full replay, and make other errors
-cause the transaction to fail.
-
-Failing is ok from a consistency point of view as long as we
-perform all actions that could return an error before
-we increment the generation counter and the base seq.
+nf_tables_api.c:2813:16: warning: incorrect type in return expression (different base types)
+nf_tables_api.c:2863:47: warning: incorrect type in argument 3 (different base types)
+nf_tables_api.c:3524:47: warning: incorrect type in argument 3 (different base types)
+nf_tables_api.c:3538:55: warning: incorrect type in argument 3 (different base types)
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nfnetlink.c | 9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ net/netfilter/nf_tables_api.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
-index 03ead8a9e90c..88c9e222b670 100644
---- a/net/netfilter/nfnetlink.c
-+++ b/net/netfilter/nfnetlink.c
-@@ -441,7 +441,14 @@ static void nfnetlink_rcv_batch(struct sk_buff *skb, struct nlmsghdr *nlh,
- 		kfree_skb(skb);
- 		goto replay;
- 	} else if (status == NFNL_BATCH_DONE) {
--		ss->commit(net, oskb);
-+		err = ss->commit(net, oskb);
-+		if (err == -EAGAIN) {
-+			status |= NFNL_BATCH_REPLAY;
-+			goto done;
-+		} else if (err) {
-+			ss->abort(net, oskb);
-+			netlink_ack(oskb, nlmsg_hdr(oskb), err, NULL);
-+		}
- 	} else {
- 		ss->abort(net, oskb);
- 	}
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 583673743648..8f04bfc41bf9 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -2830,7 +2830,7 @@ static int nf_msecs_to_jiffies64(const struct nlattr *nla, u64 *result)
+ 	return 0;
+ }
+ 
+-static u64 nf_jiffies64_to_msecs(u64 input)
++static __be64 nf_jiffies64_to_msecs(u64 input)
+ {
+ 	u64 ms = jiffies64_to_nsecs(input);
+ 
 -- 
 2.11.0
