@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 08/20] netfilter: nf_tables: fix endian mismatch in return type
-Date: Sat,  2 Jun 2018 02:22:47 +0200
-Message-ID: <20180602002259.4024-9-pablo@netfilter.org>
+Subject: [PATCH 09/20] netfilter: nf_tables: fail batch if fatal signal is pending
+Date: Sat,  2 Jun 2018 02:22:48 +0200
+Message-ID: <20180602002259.4024-10-pablo@netfilter.org>
 References: <20180602002259.4024-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -12,31 +12,40 @@ List-Id: netfilter-devel.vger.kernel.org
 
 From: Florian Westphal <fw@strlen.de>
 
-harmless, but it avoids sparse warnings:
-
-nf_tables_api.c:2813:16: warning: incorrect type in return expression (different base types)
-nf_tables_api.c:2863:47: warning: incorrect type in argument 3 (different base types)
-nf_tables_api.c:3524:47: warning: incorrect type in argument 3 (different base types)
-nf_tables_api.c:3538:55: warning: incorrect type in argument 3 (different base types)
+abort batch processing and return so task can exit faster.
+Otherwise even SIGKILL has no immediate effect.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/netfilter/nfnetlink.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 583673743648..8f04bfc41bf9 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -2830,7 +2830,7 @@ static int nf_msecs_to_jiffies64(const struct nlattr *nla, u64 *result)
- 	return 0;
- }
+diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
+index 88c9e222b670..5a1bd23af1a3 100644
+--- a/net/netfilter/nfnetlink.c
++++ b/net/netfilter/nfnetlink.c
+@@ -25,6 +25,7 @@
+ #include <linux/uaccess.h>
+ #include <net/sock.h>
+ #include <linux/init.h>
++#include <linux/sched/signal.h>
  
--static u64 nf_jiffies64_to_msecs(u64 input)
-+static __be64 nf_jiffies64_to_msecs(u64 input)
- {
- 	u64 ms = jiffies64_to_nsecs(input);
+ #include <net/netlink.h>
+ #include <linux/netfilter/nfnetlink.h>
+@@ -330,6 +331,13 @@ static void nfnetlink_rcv_batch(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 	while (skb->len >= nlmsg_total_size(0)) {
+ 		int msglen, type;
  
++		if (fatal_signal_pending(current)) {
++			nfnl_err_reset(&err_list);
++			err = -EINTR;
++			status = NFNL_BATCH_FAILURE;
++			goto done;
++		}
++
+ 		memset(&extack, 0, sizeof(extack));
+ 		nlh = nlmsg_hdr(skb);
+ 		err = 0;
 -- 
 2.11.0
