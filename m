@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 4/9] netfilter: nf_conncount: expose connection list interface
-Date: Sun,  3 Jun 2018 01:14:08 +0200
-Message-ID: <20180602231413.31974-5-pablo@netfilter.org>
+Subject: [PATCH 9/9] netfilter: nf_tables: handle chain name lookups via rhltable
+Date: Sun,  3 Jun 2018 01:14:13 +0200
+Message-ID: <20180602231413.31974-10-pablo@netfilter.org>
 References: <20180602231413.31974-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,132 +10,309 @@ In-Reply-To: <20180602231413.31974-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This patch provides an interface to maintain the list of connections and
-the lookup function to obtain the number of connections in the list.
+From: Florian Westphal <fw@strlen.de>
 
+If there is a significant amount of chains list search is too slow, so
+add an rhlist table for this.
+
+This speeds up ruleset loading: for every new rule we have to check if
+the name already exists in current generation.
+
+We need to be able to cope with duplicate chain names in case a transaction
+drops the nfnl mutex (for request_module) and the abort of this old
+transaction is still pending.
+
+The list is kept -- we need a way to iterate chains even if hash resize is
+in progress without missing an entry.
+
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_conntrack_count.h | 11 +++++++++
- net/netfilter/nf_conncount.c               | 36 +++++++++++++++++++-----------
- 2 files changed, 34 insertions(+), 13 deletions(-)
+ include/net/netfilter/nf_tables.h |   7 ++-
+ net/netfilter/nf_tables_api.c     | 113 +++++++++++++++++++++++++++++++++-----
+ 2 files changed, 104 insertions(+), 16 deletions(-)
 
-diff --git a/include/net/netfilter/nf_conntrack_count.h b/include/net/netfilter/nf_conntrack_count.h
-index e61184fbfb71..1910b6572430 100644
---- a/include/net/netfilter/nf_conntrack_count.h
-+++ b/include/net/netfilter/nf_conntrack_count.h
-@@ -13,4 +13,15 @@ unsigned int nf_conncount_count(struct net *net,
- 				const u32 *key,
- 				const struct nf_conntrack_tuple *tuple,
- 				const struct nf_conntrack_zone *zone);
-+
-+unsigned int nf_conncount_lookup(struct net *net, struct hlist_head *head,
-+				 const struct nf_conntrack_tuple *tuple,
-+				 const struct nf_conntrack_zone *zone,
-+				 bool *addit);
-+
-+bool nf_conncount_add(struct hlist_head *head,
-+		      const struct nf_conntrack_tuple *tuple);
-+
-+void nf_conncount_cache_free(struct hlist_head *hhead);
-+
- #endif
-diff --git a/net/netfilter/nf_conncount.c b/net/netfilter/nf_conncount.c
-index 153e690e2893..3b5059a8dcdd 100644
---- a/net/netfilter/nf_conncount.c
-+++ b/net/netfilter/nf_conncount.c
-@@ -79,7 +79,7 @@ static int key_diff(const u32 *a, const u32 *b, unsigned int klen)
- 	return memcmp(a, b, klen * sizeof(u32));
- }
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index 83e7b83ecf3e..08c005ce56e9 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -9,6 +9,7 @@
+ #include <linux/netfilter/x_tables.h>
+ #include <linux/netfilter/nf_tables.h>
+ #include <linux/u64_stats_sync.h>
++#include <linux/rhashtable.h>
+ #include <net/netfilter/nf_flow_table.h>
+ #include <net/netlink.h>
  
--static bool add_hlist(struct hlist_head *head,
-+bool nf_conncount_add(struct hlist_head *head,
- 		      const struct nf_conntrack_tuple *tuple)
+@@ -860,6 +861,7 @@ enum nft_chain_flags {
+  *
+  *	@rules: list of rules in the chain
+  *	@list: used internally
++ *	@rhlhead: used internally
+  *	@table: table that this chain belongs to
+  *	@handle: chain handle
+  *	@use: number of jump references to this chain
+@@ -872,6 +874,7 @@ struct nft_chain {
+ 	struct nft_rule			*__rcu *rules_gen_1;
+ 	struct list_head		rules;
+ 	struct list_head		list;
++	struct rhlist_head		rhlhead;
+ 	struct nft_table		*table;
+ 	u64				handle;
+ 	u32				use;
+@@ -965,7 +968,8 @@ unsigned int nft_do_chain(struct nft_pktinfo *pkt, void *priv);
+  *	struct nft_table - nf_tables table
+  *
+  *	@list: used internally
+- *	@chains: chains in the table
++ *	@chains_ht: chains in the table
++ *	@chains: same, for stable walks
+  *	@sets: sets in the table
+  *	@objects: stateful objects in the table
+  *	@flowtables: flow tables in the table
+@@ -979,6 +983,7 @@ unsigned int nft_do_chain(struct nft_pktinfo *pkt, void *priv);
+  */
+ struct nft_table {
+ 	struct list_head		list;
++	struct rhltable			chains_ht;
+ 	struct list_head		chains;
+ 	struct list_head		sets;
+ 	struct list_head		objects;
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 0a6eafa49879..2e8fd961746d 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -34,6 +34,20 @@ enum {
+ 	NFT_VALIDATE_DO,
+ };
+ 
++static u32 nft_chain_hash(const void *data, u32 len, u32 seed);
++static u32 nft_chain_hash_obj(const void *data, u32 len, u32 seed);
++static int nft_chain_hash_cmp(struct rhashtable_compare_arg *, const void *);
++
++static const struct rhashtable_params nft_chain_ht_params = {
++	.head_offset		= offsetof(struct nft_chain, rhlhead),
++	.key_offset		= offsetof(struct nft_chain, name),
++	.hashfn			= nft_chain_hash,
++	.obj_hashfn		= nft_chain_hash_obj,
++	.obj_cmpfn		= nft_chain_hash_cmp,
++	.locks_mul		= 1,
++	.automatic_shrinking	= true,
++};
++
+ static void nft_validate_state_update(struct net *net, u8 new_validate_state)
  {
- 	struct nf_conncount_tuple *conn;
-@@ -91,12 +91,12 @@ static bool add_hlist(struct hlist_head *head,
- 	hlist_add_head(&conn->node, head);
- 	return true;
+ 	switch (net->nft.validate_state) {
+@@ -720,6 +734,29 @@ static int nf_tables_updtable(struct nft_ctx *ctx)
+ 	return ret;
  }
-+EXPORT_SYMBOL_GPL(nf_conncount_add);
  
--static unsigned int check_hlist(struct net *net,
--				struct hlist_head *head,
--				const struct nf_conntrack_tuple *tuple,
--				const struct nf_conntrack_zone *zone,
--				bool *addit)
-+unsigned int nf_conncount_lookup(struct net *net, struct hlist_head *head,
-+				 const struct nf_conntrack_tuple *tuple,
-+				 const struct nf_conntrack_zone *zone,
-+				 bool *addit)
- {
- 	const struct nf_conntrack_tuple_hash *found;
- 	struct nf_conncount_tuple *conn;
-@@ -141,6 +141,7 @@ static unsigned int check_hlist(struct net *net,
- 
- 	return length;
- }
-+EXPORT_SYMBOL_GPL(nf_conncount_lookup);
- 
- static void tree_nodes_free(struct rb_root *root,
- 			    struct nf_conncount_rb *gc_nodes[],
-@@ -187,13 +188,15 @@ count_tree(struct net *net, struct rb_root *root,
- 		} else {
- 			/* same source network -> be counted! */
- 			unsigned int count;
--			count = check_hlist(net, &rbconn->hhead, tuple, zone, &addit);
-+
-+			count = nf_conncount_lookup(net, &rbconn->hhead, tuple,
-+						    zone, &addit);
- 
- 			tree_nodes_free(root, gc_nodes, gc_count);
- 			if (!addit)
- 				return count;
- 
--			if (!add_hlist(&rbconn->hhead, tuple))
-+			if (!nf_conncount_add(&rbconn->hhead, tuple))
- 				return 0; /* hotdrop */
- 
- 			return count + 1;
-@@ -203,7 +206,7 @@ count_tree(struct net *net, struct rb_root *root,
- 			continue;
- 
- 		/* only used for GC on hhead, retval and 'addit' ignored */
--		check_hlist(net, &rbconn->hhead, tuple, zone, &addit);
-+		nf_conncount_lookup(net, &rbconn->hhead, tuple, zone, &addit);
- 		if (hlist_empty(&rbconn->hhead))
- 			gc_nodes[gc_count++] = rbconn;
- 	}
-@@ -303,11 +306,19 @@ struct nf_conncount_data *nf_conncount_init(struct net *net, unsigned int family
- }
- EXPORT_SYMBOL_GPL(nf_conncount_init);
- 
--static void destroy_tree(struct rb_root *r)
-+void nf_conncount_cache_free(struct hlist_head *hhead)
- {
- 	struct nf_conncount_tuple *conn;
--	struct nf_conncount_rb *rbconn;
- 	struct hlist_node *n;
-+
-+	hlist_for_each_entry_safe(conn, n, hhead, node)
-+		kmem_cache_free(conncount_conn_cachep, conn);
-+}
-+EXPORT_SYMBOL_GPL(nf_conncount_cache_free);
-+
-+static void destroy_tree(struct rb_root *r)
++static u32 nft_chain_hash(const void *data, u32 len, u32 seed)
 +{
-+	struct nf_conncount_rb *rbconn;
- 	struct rb_node *node;
++	const char *name = data;
++
++	return jhash(name, strlen(name), seed);
++}
++
++static u32 nft_chain_hash_obj(const void *data, u32 len, u32 seed)
++{
++	const struct nft_chain *chain = data;
++
++	return nft_chain_hash(chain->name, 0, seed);
++}
++
++static int nft_chain_hash_cmp(struct rhashtable_compare_arg *arg,
++			      const void *ptr)
++{
++	const struct nft_chain *chain = ptr;
++	const char *name = arg->key;
++
++	return strcmp(chain->name, name);
++}
++
+ static int nf_tables_newtable(struct net *net, struct sock *nlsk,
+ 			      struct sk_buff *skb, const struct nlmsghdr *nlh,
+ 			      const struct nlattr * const nla[],
+@@ -766,6 +803,10 @@ static int nf_tables_newtable(struct net *net, struct sock *nlsk,
+ 	if (table->name == NULL)
+ 		goto err_strdup;
  
- 	while ((node = rb_first(r)) != NULL) {
-@@ -315,8 +326,7 @@ static void destroy_tree(struct rb_root *r)
++	err = rhltable_init(&table->chains_ht, &nft_chain_ht_params);
++	if (err)
++		goto err_chain_ht;
++
+ 	INIT_LIST_HEAD(&table->chains);
+ 	INIT_LIST_HEAD(&table->sets);
+ 	INIT_LIST_HEAD(&table->objects);
+@@ -782,6 +823,8 @@ static int nf_tables_newtable(struct net *net, struct sock *nlsk,
+ 	list_add_tail_rcu(&table->list, &net->nft.tables);
+ 	return 0;
+ err_trans:
++	rhltable_destroy(&table->chains_ht);
++err_chain_ht:
+ 	kfree(table->name);
+ err_strdup:
+ 	kfree(table);
+@@ -922,6 +965,7 @@ static void nf_tables_table_destroy(struct nft_ctx *ctx)
+ {
+ 	BUG_ON(ctx->table->use > 0);
  
- 		rb_erase(node, r);
++	rhltable_destroy(&ctx->table->chains_ht);
+ 	kfree(ctx->table->name);
+ 	kfree(ctx->table);
+ }
+@@ -967,21 +1011,35 @@ nft_chain_lookup_byhandle(const struct nft_table *table, u64 handle, u8 genmask)
+ 	return ERR_PTR(-ENOENT);
+ }
  
--		hlist_for_each_entry_safe(conn, n, &rbconn->hhead, node)
--			kmem_cache_free(conncount_conn_cachep, conn);
-+		nf_conncount_cache_free(&rbconn->hhead);
+-static struct nft_chain *nft_chain_lookup(const struct nft_table *table,
++static struct nft_chain *nft_chain_lookup(struct nft_table *table,
+ 					  const struct nlattr *nla, u8 genmask)
+ {
++	char search[NFT_CHAIN_MAXNAMELEN + 1];
++	struct rhlist_head *tmp, *list;
+ 	struct nft_chain *chain;
  
- 		kmem_cache_free(conncount_rb_cachep, rbconn);
+ 	if (nla == NULL)
+ 		return ERR_PTR(-EINVAL);
+ 
+-	list_for_each_entry_rcu(chain, &table->chains, list) {
+-		if (!nla_strcmp(nla, chain->name) &&
+-		    nft_active_genmask(chain, genmask))
+-			return chain;
+-	}
++	nla_strlcpy(search, nla, sizeof(search));
+ 
+-	return ERR_PTR(-ENOENT);
++	WARN_ON(!rcu_read_lock_held() &&
++		!lockdep_nfnl_is_held(NFNL_SUBSYS_NFTABLES));
++
++	chain = ERR_PTR(-ENOENT);
++	rcu_read_lock();
++	list = rhltable_lookup(&table->chains_ht, search, nft_chain_ht_params);
++	if (!list)
++		goto out_unlock;
++
++	rhl_for_each_entry_rcu(chain, tmp, list, rhlhead) {
++		if (nft_active_genmask(chain, genmask))
++			goto out_unlock;
++	}
++	chain = ERR_PTR(-ENOENT);
++out_unlock:
++	rcu_read_unlock();
++	return chain;
+ }
+ 
+ static const struct nla_policy nft_chain_policy[NFTA_CHAIN_MAX + 1] = {
+@@ -1185,8 +1243,8 @@ static int nf_tables_getchain(struct net *net, struct sock *nlsk,
+ {
+ 	const struct nfgenmsg *nfmsg = nlmsg_data(nlh);
+ 	u8 genmask = nft_genmask_cur(net);
+-	const struct nft_table *table;
+ 	const struct nft_chain *chain;
++	struct nft_table *table;
+ 	struct sk_buff *skb2;
+ 	int family = nfmsg->nfgen_family;
+ 	int err;
+@@ -1504,9 +1562,17 @@ static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 genmask,
+ 	if (err < 0)
+ 		goto err1;
+ 
++	err = rhltable_insert_key(&table->chains_ht, chain->name,
++				  &chain->rhlhead, nft_chain_ht_params);
++	if (err)
++		goto err2;
++
+ 	err = nft_trans_chain_add(ctx, NFT_MSG_NEWCHAIN);
+-	if (err < 0)
++	if (err < 0) {
++		rhltable_remove(&table->chains_ht, &chain->rhlhead,
++				nft_chain_ht_params);
+ 		goto err2;
++	}
+ 
+ 	table->use++;
+ 	list_add_tail_rcu(&chain->list, &table->chains);
+@@ -2206,9 +2272,9 @@ static int nf_tables_getrule(struct net *net, struct sock *nlsk,
+ {
+ 	const struct nfgenmsg *nfmsg = nlmsg_data(nlh);
+ 	u8 genmask = nft_genmask_cur(net);
+-	const struct nft_table *table;
+ 	const struct nft_chain *chain;
+ 	const struct nft_rule *rule;
++	struct nft_table *table;
+ 	struct sk_buff *skb2;
+ 	int family = nfmsg->nfgen_family;
+ 	int err;
+@@ -5981,8 +6047,16 @@ static void nft_chain_commit_update(struct nft_trans *trans)
+ {
+ 	struct nft_base_chain *basechain;
+ 
+-	if (nft_trans_chain_name(trans))
++	if (nft_trans_chain_name(trans)) {
++		rhltable_remove(&trans->ctx.table->chains_ht,
++				&trans->ctx.chain->rhlhead,
++				nft_chain_ht_params);
+ 		swap(trans->ctx.chain->name, nft_trans_chain_name(trans));
++		rhltable_insert_key(&trans->ctx.table->chains_ht,
++				    trans->ctx.chain->name,
++				    &trans->ctx.chain->rhlhead,
++				    nft_chain_ht_params);
++	}
+ 
+ 	if (!nft_is_base_chain(trans->ctx.chain))
+ 		return;
+@@ -6159,6 +6233,15 @@ static void nf_tables_commit_chain_active(struct net *net, struct nft_chain *cha
+ 		nf_tables_commit_chain_free_rules_old(g0);
+ }
+ 
++static void nft_chain_del(struct nft_chain *chain)
++{
++	struct nft_table *table = chain->table;
++
++	WARN_ON_ONCE(rhltable_remove(&table->chains_ht, &chain->rhlhead,
++				     nft_chain_ht_params));
++	list_del_rcu(&chain->list);
++}
++
+ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
+ {
+ 	struct nft_trans *trans, *next;
+@@ -6233,7 +6316,7 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
+ 			nft_trans_destroy(trans);
+ 			break;
+ 		case NFT_MSG_DELCHAIN:
+-			list_del_rcu(&trans->ctx.chain->list);
++			nft_chain_del(trans->ctx.chain);
+ 			nf_tables_chain_notify(&trans->ctx, NFT_MSG_DELCHAIN);
+ 			nf_tables_unregister_hook(trans->ctx.net,
+ 						  trans->ctx.table,
+@@ -6384,7 +6467,7 @@ static int nf_tables_abort(struct net *net, struct sk_buff *skb)
+ 				nft_trans_destroy(trans);
+ 			} else {
+ 				trans->ctx.table->use--;
+-				list_del_rcu(&trans->ctx.chain->list);
++				nft_chain_del(trans->ctx.chain);
+ 				nf_tables_unregister_hook(trans->ctx.net,
+ 							  trans->ctx.table,
+ 							  trans->ctx.chain);
+@@ -6986,7 +7069,7 @@ int __nft_release_basechain(struct nft_ctx *ctx)
+ 		ctx->chain->use--;
+ 		nf_tables_rule_release(ctx, rule);
  	}
+-	list_del(&ctx->chain->list);
++	nft_chain_del(ctx->chain);
+ 	ctx->table->use--;
+ 	nf_tables_chain_destroy(ctx);
+ 
+@@ -7042,7 +7125,7 @@ static void __nft_release_tables(struct net *net)
+ 		}
+ 		list_for_each_entry_safe(chain, nc, &table->chains, list) {
+ 			ctx.chain = chain;
+-			list_del(&chain->list);
++			nft_chain_del(chain);
+ 			table->use--;
+ 			nf_tables_chain_destroy(&ctx);
+ 		}
 -- 
 2.11.0
