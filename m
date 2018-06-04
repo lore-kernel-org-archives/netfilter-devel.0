@@ -1,39 +1,62 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH net-next] netfilter: fix null-ptr-deref in
- nf_nat_decode_session
-Date: Mon, 4 Jun 2018 10:01:09 +0200
-Message-ID: <20180604080109.pwj46x6w7hqsbud7@salvia>
-References: <20180528091449.7508-1-bhole_prashant_q7@lab.ntt.co.jp>
- <20180528105249.36pvoyo5loqjjmsa@breakpoint.cc>
- <3c408f33-9c9c-b16f-3433-8931ea3e4bae@lab.ntt.co.jp>
+From: Dave Taht <dave.taht@gmail.com>
+Subject: issues with shaping cake to 60 gbits or in unlimited mode at 100gbps
+Date: Mon, 4 Jun 2018 14:32:42 -0700
+Message-ID: <CAA93jw4KdC72309Y++-vanu4m_L6bwxY2k9EQSGbwJKgPYvEFg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>,
-        "David S . Miller" <davem@davemloft.net>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Prashant Bhole <bhole_prashant_q7@lab.ntt.co.jp>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+Cc: =?UTF-8?B?VG9rZSBIw7hpbGFuZC1Kw7hyZ2Vuc2Vu?= <toke@toke.dk>,
+        Linux Kernel Network Developers <netdev@vger.kernel.org>,
+        Cake List <cake@lists.bufferbloat.net>,
+        George Amanakis <gamanakis@gmail.com>,
+        Pete Heist <peteheist@gmail.com>,
+        Yuchung Cheng <ycheng@google.com>,
+        Neal Cardwell <ncardwell@google.com>,
+        Netfilter Development Mailinglist
+        <netfilter-devel@vger.kernel.org>
+To: David Miller <davem@davemloft.net>
 Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <3c408f33-9c9c-b16f-3433-8931ea3e4bae@lab.ntt.co.jp>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Jun 04, 2018 at 10:10:08AM +0900, Prashant Bhole wrote:
-> CC netfilter-devel
-> 
-> On 5/28/2018 7:52 PM, Florian Westphal wrote:
-> > Prashant Bhole <bhole_prashant_q7@lab.ntt.co.jp> wrote:
-> > > Add null check for nat_hook in nf_nat_decode_session()
-> > 
-> > Acked-by: Florian Westphal <fw@strlen.de>
-> 
-> Hi Pablo,
-> Just pinging in case this patch was missed.
+I would like to point a finger at the mlx5 code rather than cake itself,
+I am wondering if there is anyone out there with a different 100gps
+capable device and setup that could give the sch_cake code a go?
 
-The original submission was missing Cc: netfilter-devel@vger.kernel.org,
-so patchwork didn't catch it:
+we've been unable to duplicate the lockup we're seeing with the veth device=
+s,
+for example.
 
-http://patchwork.ozlabs.org/project/netfilter-devel/list/
+On Fri, Jun 1, 2018 at 11:17 AM, David Miller <davem@davemloft.net> wrote:
+> From: Toke H=C3=B8iland-J=C3=B8rgensen <toke@toke.dk>
+> Date: Fri, 01 Jun 2018 19:42:12 +0200
+>
+>> Toke H=C3=B8iland-J=C3=B8rgensen <toke@toke.dk> writes:
+>>
+>>> This patch series adds the CAKE qdisc, and has been split up to ease
+>>> review.
+>>>
+>>> I have attempted to split out each configurable feature into its own pa=
+tch.
+>>> The first commit adds the base shaper and packet scheduler, while
+>>> subsequent commits add the optional features. The full userspace API an=
+d
+>>> most data structures are included in this commit, but options not
+>>> understood in the base version will be ignored.
+>>
+>> Hmm, there seems to be a lockup issue being triggered when running CAKE
+>> at high speeds (>40 Gbps in my tests). Please drop this series for now,
+>> we'll return for 4.19 with a revised version.
+>
+> Ok.
+>
+> Thanks for continuing to push this work along.
 
-Will include this patch in the next batch. Thanks.
+
+
+--=20
+
+Dave T=C3=A4ht
+CEO, TekLibre, LLC
+http://www.teklibre.com
+Tel: 1-669-226-2619
