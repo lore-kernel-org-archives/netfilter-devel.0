@@ -1,39 +1,33 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/9,v2] Netfilter updates for net-next
-Date: Sun, 03 Jun 2018 10:31:17 -0400 (EDT)
-Message-ID: <20180603.103117.2116609913907435559.davem@davemloft.net>
-References: <20180602232539.10574-1-pablo@netfilter.org>
+From: Prashant Bhole <bhole_prashant_q7@lab.ntt.co.jp>
+Subject: Re: [PATCH net-next] netfilter: fix null-ptr-deref in
+ nf_nat_decode_session
+Date: Mon, 4 Jun 2018 10:10:08 +0900
+Message-ID: <3c408f33-9c9c-b16f-3433-8931ea3e4bae@lab.ntt.co.jp>
+References: <20180528091449.7508-1-bhole_prashant_q7@lab.ntt.co.jp>
+ <20180528105249.36pvoyo5loqjjmsa@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8BIT
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Florian Westphal <fw@strlen.de>,
+        "David S . Miller" <davem@davemloft.net>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180602232539.10574-1-pablo@netfilter.org>
+In-Reply-To: <20180528105249.36pvoyo5loqjjmsa@breakpoint.cc>
+Content-Language: en-US
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Sun,  3 Jun 2018 01:25:39 +0200
+CC netfilter-devel
 
-> The following patchset contains Netfilter updates for your net-next tree:
+On 5/28/2018 7:52 PM, Florian Westphal wrote:
+> Prashant Bhole <bhole_prashant_q7@lab.ntt.co.jp> wrote:
+>> Add null check for nat_hook in nf_nat_decode_session()
 > 
-> 1) Get rid of nf_sk_is_transparent(), use inet_sk_transparent() instead.
->    From Máté Eckl.
-> 
-> 2) Move shared tproxy infrastructure to nf_tproxy_ipv4 and nf_tproxy_ipv6.
->    Also from Máté.
-> 
-> 3) Add hashtable to speed up chain lookups by name, from Florian Westphal.
-> 
-> 4) Patch series to add connlimit support reusing part of the
->    nf_conncount infrastructure. This includes preparation changes such
->    passing context to the object and expression destroy interface;
->    garbage collection for expressions embedded into set elements, and
->    the introduction of the clone_destroy interface for expressions.
-> 
-> You can pull these changes from:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git
+> Acked-by: Florian Westphal <fw@strlen.de>
 
-Pulled, thanks.
+Hi Pablo,
+Just pinging in case this patch was missed.
+
+-Prashant
