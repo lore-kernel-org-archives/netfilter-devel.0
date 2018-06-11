@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 10/15] netfilter: ipset: forbid family for hash:mac sets
-Date: Mon, 11 Jun 2018 11:22:28 +0200
-Message-ID: <20180611092233.3219-11-pablo@netfilter.org>
+Subject: [PATCH 13/15] netfilter: nf_conntrack: Increase __IPS_MAX_BIT with new bit IPS_OFFLOAD_BIT
+Date: Mon, 11 Jun 2018 11:22:31 +0200
+Message-ID: <20180611092233.3219-14-pablo@netfilter.org>
 References: <20180611092233.3219-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,46 +10,34 @@ In-Reply-To: <20180611092233.3219-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Florent Fourcot <florent.fourcot@wifirst.fr>
+From: Gao Feng <gfree.wind@vip.163.com>
 
-Userspace `ipset` command forbids family option for hash:mac type:
+The __IPS_MAX_BIT is used in __ctnetlink_change_status as the max bit
+value. When add new bit IPS_OFFLOAD_BIT whose value is 14, we should
+increase the __IPS_MAX_BIT too, from 14 to 15.
 
-ipset create test hash:mac family inet4
-ipset v6.30: Unknown argument: `family'
+There is no any bug in current codes, although it lost one loop in
+__ctnetlink_change_status. Because the new bit IPS_OFFLOAD_BIT belongs
+the IPS_UNCHANGEABLE_MASK.
 
-However, this check is not done in kernel itself. When someone use
-external netlink applications (pyroute2 python library for example), one
-can create hash:mac with invalid family and inconsistant results from
-userspace (`ipset` command cannot read set content anymore).
-
-This patch enforce the logic in kernel, and forbids insertion of
-hash:mac with a family set.
-
-Since IP_SET_PROTO_UNDEF is defined only for hash:mac, this patch has no
-impact on other hash:* sets
-
-Signed-off-by: Florent Fourcot <florent.fourcot@wifirst.fr>
-Signed-off-by: Victorien Molle <victorien.molle@wifirst.fr>
-Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Signed-off-by: Gao Feng <gfree.wind@vip.163.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/ipset/ip_set_hash_gen.h | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ include/uapi/linux/netfilter/nf_conntrack_common.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
-index bbad940c0137..8a33dac4e805 100644
---- a/net/netfilter/ipset/ip_set_hash_gen.h
-+++ b/net/netfilter/ipset/ip_set_hash_gen.h
-@@ -1234,7 +1234,10 @@ IPSET_TOKEN(HTYPE, _create)(struct net *net, struct ip_set *set,
- 	pr_debug("Create set %s with family %s\n",
- 		 set->name, set->family == NFPROTO_IPV4 ? "inet" : "inet6");
+diff --git a/include/uapi/linux/netfilter/nf_conntrack_common.h b/include/uapi/linux/netfilter/nf_conntrack_common.h
+index c712eb6879f1..336014bf8868 100644
+--- a/include/uapi/linux/netfilter/nf_conntrack_common.h
++++ b/include/uapi/linux/netfilter/nf_conntrack_common.h
+@@ -112,7 +112,7 @@ enum ip_conntrack_status {
+ 				 IPS_EXPECTED | IPS_CONFIRMED | IPS_DYING |
+ 				 IPS_SEQ_ADJUST | IPS_TEMPLATE | IPS_OFFLOAD),
  
--#ifndef IP_SET_PROTO_UNDEF
-+#ifdef IP_SET_PROTO_UNDEF
-+	if (set->family != NFPROTO_UNSPEC)
-+		return -IPSET_ERR_INVALID_FAMILY;
-+#else
- 	if (!(set->family == NFPROTO_IPV4 || set->family == NFPROTO_IPV6))
- 		return -IPSET_ERR_INVALID_FAMILY;
- #endif
+-	__IPS_MAX_BIT = 14,
++	__IPS_MAX_BIT = 15,
+ };
+ 
+ /* Connection tracking event types */
 -- 
 2.11.0
