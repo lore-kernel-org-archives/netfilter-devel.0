@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 12/15] netfilter: nft_set_rbtree: fix parameter of __nft_rbtree_lookup()
-Date: Mon, 11 Jun 2018 11:22:30 +0200
-Message-ID: <20180611092233.3219-13-pablo@netfilter.org>
+Subject: [PATCH 15/15] netfilter: remove include/net/netfilter/nft_dup.h
+Date: Mon, 11 Jun 2018 11:22:33 +0200
+Message-ID: <20180611092233.3219-16-pablo@netfilter.org>
 References: <20180611092233.3219-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,61 +10,35 @@ In-Reply-To: <20180611092233.3219-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Taehee Yoo <ap420073@gmail.com>
+From: Corentin Labbe <clabbe@baylibre.com>
 
-The parameter this doesn't have a flags value. so that it can't be
-used by nft_rbtree_interval_end().
+include/net/netfilter/nft_dup.h was introduced in d877f07112f1 ("netfilter: nf_tables: add nft_dup expression")
+but was never user since this date.
 
-test commands:
-   %nft add table ip filter
-   %nft add set ip filter s { type ipv4_addr \; flags interval \; }
-   %nft add element ip filter s {0-1}
-   %nft add element ip filter s {2-10}
-   %nft add chain ip filter input { type filter hook input priority 0\; }
-   %nft add rule ip filter input ip saddr @s
+Furthermore, the only struct in this file is unused elsewhere.
 
-Splat looks like:
-[  246.752502] BUG: KASAN: slab-out-of-bounds in __nft_rbtree_lookup+0x677/0x6a0 [nft_set_rbtree]
-[  246.752502] Read of size 1 at addr ffff88010d9efa47 by task http/1092
-
-[  246.752502] CPU: 1 PID: 1092 Comm: http Not tainted 4.17.0-rc6+ #185
-[  246.752502] Call Trace:
-[  246.752502]  <IRQ>
-[  246.752502]  dump_stack+0x74/0xbb
-[  246.752502]  ? __nft_rbtree_lookup+0x677/0x6a0 [nft_set_rbtree]
-[  246.752502]  print_address_description+0xc7/0x290
-[  246.752502]  ? __nft_rbtree_lookup+0x677/0x6a0 [nft_set_rbtree]
-[  246.752502]  kasan_report+0x22c/0x350
-[  246.752502]  __nft_rbtree_lookup+0x677/0x6a0 [nft_set_rbtree]
-[  246.752502]  nft_rbtree_lookup+0xc9/0x2d2 [nft_set_rbtree]
-[  246.752502]  ? sched_clock_cpu+0x144/0x180
-[  246.752502]  nft_lookup_eval+0x149/0x3a0 [nf_tables]
-[  246.752502]  ? __lock_acquire+0xcea/0x4ed0
-[  246.752502]  ? nft_lookup_init+0x6b0/0x6b0 [nf_tables]
-[  246.752502]  nft_do_chain+0x263/0xf50 [nf_tables]
-[  246.752502]  ? __nft_trace_packet+0x1a0/0x1a0 [nf_tables]
-[  246.752502]  ? sched_clock_cpu+0x144/0x180
-[ ... ]
-
-Fixes: f9121355eb6f ("netfilter: nft_set_rbtree: incorrect assumption on lower interval lookups")
-Signed-off-by: Taehee Yoo <ap420073@gmail.com>
+Signed-off-by: Corentin Labbe <clabbe@baylibre.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_set_rbtree.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/net/netfilter/nft_dup.h | 10 ----------
+ 1 file changed, 10 deletions(-)
+ delete mode 100644 include/net/netfilter/nft_dup.h
 
-diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
-index e6f08bc5f359..26fa93b23805 100644
---- a/net/netfilter/nft_set_rbtree.c
-+++ b/net/netfilter/nft_set_rbtree.c
-@@ -65,7 +65,7 @@ static bool __nft_rbtree_lookup(const struct net *net, const struct nft_set *set
- 			parent = rcu_dereference_raw(parent->rb_left);
- 			if (interval &&
- 			    nft_rbtree_equal(set, this, interval) &&
--			    nft_rbtree_interval_end(this) &&
-+			    nft_rbtree_interval_end(rbe) &&
- 			    !nft_rbtree_interval_end(interval))
- 				continue;
- 			interval = rbe;
+diff --git a/include/net/netfilter/nft_dup.h b/include/net/netfilter/nft_dup.h
+deleted file mode 100644
+index 4d9d512984b2..000000000000
+--- a/include/net/netfilter/nft_dup.h
++++ /dev/null
+@@ -1,10 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0 */
+-#ifndef _NFT_DUP_H_
+-#define _NFT_DUP_H_
+-
+-struct nft_dup_inet {
+-	enum nft_registers	sreg_addr:8;
+-	enum nft_registers	sreg_dev:8;
+-};
+-
+-#endif /* _NFT_DUP_H_ */
 -- 
 2.11.0
