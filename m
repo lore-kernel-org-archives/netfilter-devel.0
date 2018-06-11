@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 03/15] ipvs: register conntrack hooks for ftp
-Date: Mon, 11 Jun 2018 11:22:21 +0200
-Message-ID: <20180611092233.3219-4-pablo@netfilter.org>
+Subject: [PATCH 12/15] netfilter: nft_set_rbtree: fix parameter of __nft_rbtree_lookup()
+Date: Mon, 11 Jun 2018 11:22:30 +0200
+Message-ID: <20180611092233.3219-13-pablo@netfilter.org>
 References: <20180611092233.3219-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,94 +10,61 @@ In-Reply-To: <20180611092233.3219-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Julian Anastasov <ja@ssi.bg>
+From: Taehee Yoo <ap420073@gmail.com>
 
-ip_vs_ftp requires conntrack modules for mangling
-of FTP command responses in passive mode.
+The parameter this doesn't have a flags value. so that it can't be
+used by nft_rbtree_interval_end().
 
-Make sure the conntrack hooks are registered when
-real servers use NAT method in FTP virtual service.
-The hooks will be registered while the service is
-present.
+test commands:
+   %nft add table ip filter
+   %nft add set ip filter s { type ipv4_addr \; flags interval \; }
+   %nft add element ip filter s {0-1}
+   %nft add element ip filter s {2-10}
+   %nft add chain ip filter input { type filter hook input priority 0\; }
+   %nft add rule ip filter input ip saddr @s
 
-Fixes: 0c66dc1ea3f0 ("netfilter: conntrack: register hooks in netns when needed by ruleset")
-Signed-off-by: Julian Anastasov <ja@ssi.bg>
-Acked-by: Simon Horman <horms+renesas@verge.net.au>
+Splat looks like:
+[  246.752502] BUG: KASAN: slab-out-of-bounds in __nft_rbtree_lookup+0x677/0x6a0 [nft_set_rbtree]
+[  246.752502] Read of size 1 at addr ffff88010d9efa47 by task http/1092
+
+[  246.752502] CPU: 1 PID: 1092 Comm: http Not tainted 4.17.0-rc6+ #185
+[  246.752502] Call Trace:
+[  246.752502]  <IRQ>
+[  246.752502]  dump_stack+0x74/0xbb
+[  246.752502]  ? __nft_rbtree_lookup+0x677/0x6a0 [nft_set_rbtree]
+[  246.752502]  print_address_description+0xc7/0x290
+[  246.752502]  ? __nft_rbtree_lookup+0x677/0x6a0 [nft_set_rbtree]
+[  246.752502]  kasan_report+0x22c/0x350
+[  246.752502]  __nft_rbtree_lookup+0x677/0x6a0 [nft_set_rbtree]
+[  246.752502]  nft_rbtree_lookup+0xc9/0x2d2 [nft_set_rbtree]
+[  246.752502]  ? sched_clock_cpu+0x144/0x180
+[  246.752502]  nft_lookup_eval+0x149/0x3a0 [nf_tables]
+[  246.752502]  ? __lock_acquire+0xcea/0x4ed0
+[  246.752502]  ? nft_lookup_init+0x6b0/0x6b0 [nf_tables]
+[  246.752502]  nft_do_chain+0x263/0xf50 [nf_tables]
+[  246.752502]  ? __nft_trace_packet+0x1a0/0x1a0 [nf_tables]
+[  246.752502]  ? sched_clock_cpu+0x144/0x180
+[ ... ]
+
+Fixes: f9121355eb6f ("netfilter: nft_set_rbtree: incorrect assumption on lower interval lookups")
+Signed-off-by: Taehee Yoo <ap420073@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/ip_vs.h            | 30 ++++++++++++++++++++++++++++++
- net/netfilter/ipvs/ip_vs_ctl.c |  4 ++++
- 2 files changed, 34 insertions(+)
+ net/netfilter/nft_set_rbtree.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
-index eb0bec043c96..ae72d9057eda 100644
---- a/include/net/ip_vs.h
-+++ b/include/net/ip_vs.h
-@@ -643,6 +643,7 @@ struct ip_vs_service {
- 
- 	/* alternate persistence engine */
- 	struct ip_vs_pe __rcu	*pe;
-+	int			conntrack_afmask;
- 
- 	struct rcu_head		rcu_head;
- };
-@@ -1620,6 +1621,35 @@ static inline bool ip_vs_conn_uses_conntrack(struct ip_vs_conn *cp,
- 	return false;
- }
- 
-+static inline int ip_vs_register_conntrack(struct ip_vs_service *svc)
-+{
-+#if IS_ENABLED(CONFIG_NF_CONNTRACK)
-+	int afmask = (svc->af == AF_INET6) ? 2 : 1;
-+	int ret = 0;
-+
-+	if (!(svc->conntrack_afmask & afmask)) {
-+		ret = nf_ct_netns_get(svc->ipvs->net, svc->af);
-+		if (ret >= 0)
-+			svc->conntrack_afmask |= afmask;
-+	}
-+	return ret;
-+#else
-+	return 0;
-+#endif
-+}
-+
-+static inline void ip_vs_unregister_conntrack(struct ip_vs_service *svc)
-+{
-+#if IS_ENABLED(CONFIG_NF_CONNTRACK)
-+	int afmask = (svc->af == AF_INET6) ? 2 : 1;
-+
-+	if (svc->conntrack_afmask & afmask) {
-+		nf_ct_netns_put(svc->ipvs->net, svc->af);
-+		svc->conntrack_afmask &= ~afmask;
-+	}
-+#endif
-+}
-+
- static inline int
- ip_vs_dest_conn_overhead(struct ip_vs_dest *dest)
- {
-diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index 3ecca0616d8c..ee0ab278f1f1 100644
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -835,6 +835,9 @@ __ip_vs_update_dest(struct ip_vs_service *svc, struct ip_vs_dest *dest,
- 		 *    For now only for NAT!
- 		 */
- 		ip_vs_rs_hash(ipvs, dest);
-+		/* FTP-NAT requires conntrack for mangling */
-+		if (svc->port == FTPPORT)
-+			ip_vs_register_conntrack(svc);
- 	}
- 	atomic_set(&dest->conn_flags, conn_flags);
- 
-@@ -1458,6 +1461,7 @@ static void __ip_vs_del_service(struct ip_vs_service *svc, bool cleanup)
-  */
- static void ip_vs_unlink_service(struct ip_vs_service *svc, bool cleanup)
- {
-+	ip_vs_unregister_conntrack(svc);
- 	/* Hold svc to avoid double release from dest_trash */
- 	atomic_inc(&svc->refcnt);
- 	/*
+diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
+index e6f08bc5f359..26fa93b23805 100644
+--- a/net/netfilter/nft_set_rbtree.c
++++ b/net/netfilter/nft_set_rbtree.c
+@@ -65,7 +65,7 @@ static bool __nft_rbtree_lookup(const struct net *net, const struct nft_set *set
+ 			parent = rcu_dereference_raw(parent->rb_left);
+ 			if (interval &&
+ 			    nft_rbtree_equal(set, this, interval) &&
+-			    nft_rbtree_interval_end(this) &&
++			    nft_rbtree_interval_end(rbe) &&
+ 			    !nft_rbtree_interval_end(interval))
+ 				continue;
+ 			interval = rbe;
 -- 
 2.11.0
