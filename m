@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 14/15] netfilter: x_tables: initialise match/target check parameter struct
-Date: Mon, 11 Jun 2018 11:22:32 +0200
-Message-ID: <20180611092233.3219-15-pablo@netfilter.org>
+Subject: [PATCH 02/15] netfilter: nf_tables: check msg_type before nft_trans_set(trans)
+Date: Mon, 11 Jun 2018 11:22:20 +0200
+Message-ID: <20180611092233.3219-3-pablo@netfilter.org>
 References: <20180611092233.3219-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,72 +10,140 @@ In-Reply-To: <20180611092233.3219-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+From: Alexey Kodanev <alexey.kodanev@oracle.com>
 
-syzbot reports following splat:
+The patch moves the "trans->msg_type == NFT_MSG_NEWSET" check before
+using nft_trans_set(trans). Otherwise we can get out of bounds read.
 
-BUG: KMSAN: uninit-value in ebt_stp_mt_check+0x24b/0x450
- net/bridge/netfilter/ebt_stp.c:162
- ebt_stp_mt_check+0x24b/0x450 net/bridge/netfilter/ebt_stp.c:162
- xt_check_match+0x1438/0x1650 net/netfilter/x_tables.c:506
- ebt_check_match net/bridge/netfilter/ebtables.c:372 [inline]
- ebt_check_entry net/bridge/netfilter/ebtables.c:702 [inline]
+For example, KASAN reported the one when running 0001_cache_handling_0 nft
+test. In this case "trans->msg_type" was NFT_MSG_NEWTABLE:
 
-The uninitialised access is
-   xt_mtchk_param->nft_compat
+[75517.177808] BUG: KASAN: slab-out-of-bounds in nft_set_lookup_global+0x22f/0x270 [nf_tables]
+[75517.279094] Read of size 8 at addr ffff881bdb643fc8 by task nft/7356
+...
+[75517.375605] CPU: 26 PID: 7356 Comm: nft Tainted: G  E   4.17.0-rc7.1.x86_64 #1
+[75517.489587] Hardware name: Oracle Corporation SUN SERVER X4-2
+[75517.618129] Call Trace:
+[75517.648821]  dump_stack+0xd1/0x13b
+[75517.691040]  ? show_regs_print_info+0x5/0x5
+[75517.742519]  ? kmsg_dump_rewind_nolock+0xf5/0xf5
+[75517.799300]  ? lock_acquire+0x143/0x310
+[75517.846738]  print_address_description+0x85/0x3a0
+[75517.904547]  kasan_report+0x18d/0x4b0
+[75517.949892]  ? nft_set_lookup_global+0x22f/0x270 [nf_tables]
+[75518.019153]  ? nft_set_lookup_global+0x22f/0x270 [nf_tables]
+[75518.088420]  ? nft_set_lookup_global+0x22f/0x270 [nf_tables]
+[75518.157689]  nft_set_lookup_global+0x22f/0x270 [nf_tables]
+[75518.224869]  nf_tables_newsetelem+0x1a5/0x5d0 [nf_tables]
+[75518.291024]  ? nft_add_set_elem+0x2280/0x2280 [nf_tables]
+[75518.357154]  ? nla_parse+0x1a5/0x300
+[75518.401455]  ? kasan_kmalloc+0xa6/0xd0
+[75518.447842]  nfnetlink_rcv+0xc43/0x1bdf [nfnetlink]
+[75518.507743]  ? nfnetlink_rcv+0x7a5/0x1bdf [nfnetlink]
+[75518.569745]  ? nfnl_err_reset+0x3c0/0x3c0 [nfnetlink]
+[75518.631711]  ? lock_acquire+0x143/0x310
+[75518.679133]  ? netlink_deliver_tap+0x9b/0x1070
+[75518.733840]  ? kasan_unpoison_shadow+0x31/0x40
+[75518.788542]  netlink_unicast+0x45d/0x680
+[75518.837111]  ? __isolate_free_page+0x890/0x890
+[75518.891913]  ? netlink_attachskb+0x6b0/0x6b0
+[75518.944542]  netlink_sendmsg+0x6fa/0xd30
+[75518.993107]  ? netlink_unicast+0x680/0x680
+[75519.043758]  ? netlink_unicast+0x680/0x680
+[75519.094402]  sock_sendmsg+0xd9/0x160
+[75519.138810]  ___sys_sendmsg+0x64d/0x980
+[75519.186234]  ? copy_msghdr_from_user+0x350/0x350
+[75519.243118]  ? lock_downgrade+0x650/0x650
+[75519.292738]  ? do_raw_spin_unlock+0x5d/0x250
+[75519.345456]  ? _raw_spin_unlock+0x24/0x30
+[75519.395065]  ? __handle_mm_fault+0xbde/0x3410
+[75519.448830]  ? sock_setsockopt+0x3d2/0x1940
+[75519.500516]  ? __lock_acquire.isra.25+0xdc/0x19d0
+[75519.558448]  ? lock_downgrade+0x650/0x650
+[75519.608057]  ? __audit_syscall_entry+0x317/0x720
+[75519.664960]  ? __fget_light+0x58/0x250
+[75519.711325]  ? __sys_sendmsg+0xde/0x170
+[75519.758850]  __sys_sendmsg+0xde/0x170
+[75519.804193]  ? __ia32_sys_shutdown+0x90/0x90
+[75519.856725]  ? syscall_trace_enter+0x897/0x10e0
+[75519.912354]  ? trace_event_raw_event_sys_enter+0x920/0x920
+[75519.979432]  ? __audit_syscall_entry+0x720/0x720
+[75520.036118]  do_syscall_64+0xa3/0x3d0
+[75520.081248]  ? prepare_exit_to_usermode+0x47/0x1d0
+[75520.139904]  entry_SYSCALL_64_after_hwframe+0x44/0xa9
+[75520.201680] RIP: 0033:0x7fc153320ba0
+[75520.245772] RSP: 002b:00007ffe294c3638 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
+[75520.337708] RAX: ffffffffffffffda RBX: 00007ffe294c4820 RCX: 00007fc153320ba0
+[75520.424547] RDX: 0000000000000000 RSI: 00007ffe294c46b0 RDI: 0000000000000003
+[75520.511386] RBP: 00007ffe294c47b0 R08: 0000000000000004 R09: 0000000002114090
+[75520.598225] R10: 00007ffe294c30a0 R11: 0000000000000246 R12: 00007ffe294c3660
+[75520.684961] R13: 0000000000000001 R14: 00007ffe294c3650 R15: 0000000000000001
 
-... which should be set to 0.
-Fix it by zeroing the struct beforehand, same for tgchk.
+[75520.790946] Allocated by task 7356:
+[75520.833994]  kasan_kmalloc+0xa6/0xd0
+[75520.878088]  __kmalloc+0x189/0x450
+[75520.920107]  nft_trans_alloc_gfp+0x20/0x190 [nf_tables]
+[75520.983961]  nf_tables_newtable+0xcd0/0x1bd0 [nf_tables]
+[75521.048857]  nfnetlink_rcv+0xc43/0x1bdf [nfnetlink]
+[75521.108655]  netlink_unicast+0x45d/0x680
+[75521.157013]  netlink_sendmsg+0x6fa/0xd30
+[75521.205271]  sock_sendmsg+0xd9/0x160
+[75521.249365]  ___sys_sendmsg+0x64d/0x980
+[75521.296686]  __sys_sendmsg+0xde/0x170
+[75521.341822]  do_syscall_64+0xa3/0x3d0
+[75521.386957]  entry_SYSCALL_64_after_hwframe+0x44/0xa9
 
-ip(6)tables targetinfo uses c99-style initialiser, so no change
-needed there.
+[75521.467867] Freed by task 23454:
+[75521.507804]  __kasan_slab_free+0x132/0x180
+[75521.558137]  kfree+0x14d/0x4d0
+[75521.596005]  free_rt_sched_group+0x153/0x280
+[75521.648410]  sched_autogroup_create_attach+0x19a/0x520
+[75521.711330]  ksys_setsid+0x2ba/0x400
+[75521.755529]  __ia32_sys_setsid+0xa/0x10
+[75521.802850]  do_syscall_64+0xa3/0x3d0
+[75521.848090]  entry_SYSCALL_64_after_hwframe+0x44/0xa9
 
-Reported-by: syzbot+da4494182233c23a5fcf@syzkaller.appspotmail.com
-Fixes: 55917a21d0cc0 ("netfilter: x_tables: add context to know if extension runs from nft_compat")
-Signed-off-by: Florian Westphal <fw@strlen.de>
+[75521.929000] The buggy address belongs to the object at ffff881bdb643f80
+ which belongs to the cache kmalloc-96 of size 96
+[75522.079797] The buggy address is located 72 bytes inside of
+ 96-byte region [ffff881bdb643f80, ffff881bdb643fe0)
+[75522.221234] The buggy address belongs to the page:
+[75522.280100] page:ffffea006f6d90c0 count:1 mapcount:0 mapping:0000000000000000 index:0x0
+[75522.377443] flags: 0x2fffff80000100(slab)
+[75522.426956] raw: 002fffff80000100 0000000000000000 0000000000000000 0000000180200020
+[75522.521275] raw: ffffea006e6fafc0 0000000c0000000c ffff881bf180f400 0000000000000000
+[75522.615601] page dumped because: kasan: bad access detected
+
+Fixes: 37a9cc525525 ("netfilter: nf_tables: add generation mask to sets")
+Signed-off-by: Alexey Kodanev <alexey.kodanev@oracle.com>
+Acked-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/bridge/netfilter/ebtables.c | 2 ++
- net/ipv4/netfilter/ip_tables.c  | 1 +
- net/ipv6/netfilter/ip6_tables.c | 1 +
- 3 files changed, 4 insertions(+)
+ net/netfilter/nf_tables_api.c | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
-index 08a65e4a77d0..ead123dab05e 100644
---- a/net/bridge/netfilter/ebtables.c
-+++ b/net/bridge/netfilter/ebtables.c
-@@ -700,6 +700,8 @@ ebt_check_entry(struct ebt_entry *e, struct net *net,
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 501e48a7965b..8d8dfe417014 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -2728,12 +2728,13 @@ static struct nft_set *nf_tables_set_lookup_byid(const struct net *net,
+ 	u32 id = ntohl(nla_get_be32(nla));
+ 
+ 	list_for_each_entry(trans, &net->nft.commit_list, list) {
+-		struct nft_set *set = nft_trans_set(trans);
++		if (trans->msg_type == NFT_MSG_NEWSET) {
++			struct nft_set *set = nft_trans_set(trans);
+ 
+-		if (trans->msg_type == NFT_MSG_NEWSET &&
+-		    id == nft_trans_set_id(trans) &&
+-		    nft_active_genmask(set, genmask))
+-			return set;
++			if (id == nft_trans_set_id(trans) &&
++			    nft_active_genmask(set, genmask))
++				return set;
++		}
  	}
- 	i = 0;
- 
-+	memset(&mtpar, 0, sizeof(mtpar));
-+	memset(&tgpar, 0, sizeof(tgpar));
- 	mtpar.net	= tgpar.net       = net;
- 	mtpar.table     = tgpar.table     = name;
- 	mtpar.entryinfo = tgpar.entryinfo = e;
-diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index e85f35b89c49..f6130704f052 100644
---- a/net/ipv4/netfilter/ip_tables.c
-+++ b/net/ipv4/netfilter/ip_tables.c
-@@ -531,6 +531,7 @@ find_check_entry(struct ipt_entry *e, struct net *net, const char *name,
- 		return -ENOMEM;
- 
- 	j = 0;
-+	memset(&mtpar, 0, sizeof(mtpar));
- 	mtpar.net	= net;
- 	mtpar.table     = name;
- 	mtpar.entryinfo = &e->ip;
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index 97f79dc943d7..685c2168f524 100644
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -551,6 +551,7 @@ find_check_entry(struct ip6t_entry *e, struct net *net, const char *name,
- 		return -ENOMEM;
- 
- 	j = 0;
-+	memset(&mtpar, 0, sizeof(mtpar));
- 	mtpar.net	= net;
- 	mtpar.table     = name;
- 	mtpar.entryinfo = &e->ipv6;
+ 	return ERR_PTR(-ENOENT);
+ }
 -- 
 2.11.0
