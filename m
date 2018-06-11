@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 09/15] netfilter: ipset: Limit max timeout value
-Date: Mon, 11 Jun 2018 11:22:27 +0200
-Message-ID: <20180611092233.3219-10-pablo@netfilter.org>
+Subject: [PATCH 14/15] netfilter: x_tables: initialise match/target check parameter struct
+Date: Mon, 11 Jun 2018 11:22:32 +0200
+Message-ID: <20180611092233.3219-15-pablo@netfilter.org>
 References: <20180611092233.3219-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,74 +10,72 @@ In-Reply-To: <20180611092233.3219-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+From: Florian Westphal <fw@strlen.de>
 
-Due to the negative value condition in msecs_to_jiffies(), the real
-max possible timeout value must be set to (UINT_MAX >> 1)/MSEC_PER_SEC.
+syzbot reports following splat:
 
-Neutron Soutmun proposed the proper fix, but an insufficient one was
-applied, see https://patchwork.ozlabs.org/patch/400405/.
+BUG: KMSAN: uninit-value in ebt_stp_mt_check+0x24b/0x450
+ net/bridge/netfilter/ebt_stp.c:162
+ ebt_stp_mt_check+0x24b/0x450 net/bridge/netfilter/ebt_stp.c:162
+ xt_check_match+0x1438/0x1650 net/netfilter/x_tables.c:506
+ ebt_check_match net/bridge/netfilter/ebtables.c:372 [inline]
+ ebt_check_entry net/bridge/netfilter/ebtables.c:702 [inline]
 
-Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+The uninitialised access is
+   xt_mtchk_param->nft_compat
+
+... which should be set to 0.
+Fix it by zeroing the struct beforehand, same for tgchk.
+
+ip(6)tables targetinfo uses c99-style initialiser, so no change
+needed there.
+
+Reported-by: syzbot+da4494182233c23a5fcf@syzkaller.appspotmail.com
+Fixes: 55917a21d0cc0 ("netfilter: x_tables: add context to know if extension runs from nft_compat")
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/linux/netfilter/ipset/ip_set_timeout.h | 10 ++++++----
- net/netfilter/xt_set.c                         |  8 ++++----
- 2 files changed, 10 insertions(+), 8 deletions(-)
+ net/bridge/netfilter/ebtables.c | 2 ++
+ net/ipv4/netfilter/ip_tables.c  | 1 +
+ net/ipv6/netfilter/ip6_tables.c | 1 +
+ 3 files changed, 4 insertions(+)
 
-diff --git a/include/linux/netfilter/ipset/ip_set_timeout.h b/include/linux/netfilter/ipset/ip_set_timeout.h
-index 7ad8ddf9ca8a..8ce271e187b6 100644
---- a/include/linux/netfilter/ipset/ip_set_timeout.h
-+++ b/include/linux/netfilter/ipset/ip_set_timeout.h
-@@ -23,6 +23,9 @@
- /* Set is defined with timeout support: timeout value may be 0 */
- #define IPSET_NO_TIMEOUT	UINT_MAX
+diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
+index 08a65e4a77d0..ead123dab05e 100644
+--- a/net/bridge/netfilter/ebtables.c
++++ b/net/bridge/netfilter/ebtables.c
+@@ -700,6 +700,8 @@ ebt_check_entry(struct ebt_entry *e, struct net *net,
+ 	}
+ 	i = 0;
  
-+/* Max timeout value, see msecs_to_jiffies() in jiffies.h */
-+#define IPSET_MAX_TIMEOUT	(UINT_MAX >> 1)/MSEC_PER_SEC
-+
- #define ip_set_adt_opt_timeout(opt, set)	\
- ((opt)->ext.timeout != IPSET_NO_TIMEOUT ? (opt)->ext.timeout : (set)->timeout)
++	memset(&mtpar, 0, sizeof(mtpar));
++	memset(&tgpar, 0, sizeof(tgpar));
+ 	mtpar.net	= tgpar.net       = net;
+ 	mtpar.table     = tgpar.table     = name;
+ 	mtpar.entryinfo = tgpar.entryinfo = e;
+diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
+index e85f35b89c49..f6130704f052 100644
+--- a/net/ipv4/netfilter/ip_tables.c
++++ b/net/ipv4/netfilter/ip_tables.c
+@@ -531,6 +531,7 @@ find_check_entry(struct ipt_entry *e, struct net *net, const char *name,
+ 		return -ENOMEM;
  
-@@ -32,11 +35,10 @@ ip_set_timeout_uget(struct nlattr *tb)
- 	unsigned int timeout = ip_set_get_h32(tb);
+ 	j = 0;
++	memset(&mtpar, 0, sizeof(mtpar));
+ 	mtpar.net	= net;
+ 	mtpar.table     = name;
+ 	mtpar.entryinfo = &e->ip;
+diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
+index 97f79dc943d7..685c2168f524 100644
+--- a/net/ipv6/netfilter/ip6_tables.c
++++ b/net/ipv6/netfilter/ip6_tables.c
+@@ -551,6 +551,7 @@ find_check_entry(struct ip6t_entry *e, struct net *net, const char *name,
+ 		return -ENOMEM;
  
- 	/* Normalize to fit into jiffies */
--	if (timeout > UINT_MAX/MSEC_PER_SEC)
--		timeout = UINT_MAX/MSEC_PER_SEC;
-+	if (timeout > IPSET_MAX_TIMEOUT)
-+		timeout = IPSET_MAX_TIMEOUT;
- 
--	/* Userspace supplied TIMEOUT parameter: adjust crazy size */
--	return timeout == IPSET_NO_TIMEOUT ? IPSET_NO_TIMEOUT - 1 : timeout;
-+	return timeout;
- }
- 
- static inline bool
-diff --git a/net/netfilter/xt_set.c b/net/netfilter/xt_set.c
-index 07af7dbf7a30..bf2890b13212 100644
---- a/net/netfilter/xt_set.c
-+++ b/net/netfilter/xt_set.c
-@@ -372,8 +372,8 @@ set_target_v2(struct sk_buff *skb, const struct xt_action_param *par)
- 
- 	/* Normalize to fit into jiffies */
- 	if (add_opt.ext.timeout != IPSET_NO_TIMEOUT &&
--	    add_opt.ext.timeout > UINT_MAX / MSEC_PER_SEC)
--		add_opt.ext.timeout = UINT_MAX / MSEC_PER_SEC;
-+	    add_opt.ext.timeout > IPSET_MAX_TIMEOUT)
-+		add_opt.ext.timeout = IPSET_MAX_TIMEOUT;
- 	if (info->add_set.index != IPSET_INVALID_ID)
- 		ip_set_add(info->add_set.index, skb, par, &add_opt);
- 	if (info->del_set.index != IPSET_INVALID_ID)
-@@ -407,8 +407,8 @@ set_target_v3(struct sk_buff *skb, const struct xt_action_param *par)
- 
- 	/* Normalize to fit into jiffies */
- 	if (add_opt.ext.timeout != IPSET_NO_TIMEOUT &&
--	    add_opt.ext.timeout > UINT_MAX / MSEC_PER_SEC)
--		add_opt.ext.timeout = UINT_MAX / MSEC_PER_SEC;
-+	    add_opt.ext.timeout > IPSET_MAX_TIMEOUT)
-+		add_opt.ext.timeout = IPSET_MAX_TIMEOUT;
- 	if (info->add_set.index != IPSET_INVALID_ID)
- 		ip_set_add(info->add_set.index, skb, par, &add_opt);
- 	if (info->del_set.index != IPSET_INVALID_ID)
+ 	j = 0;
++	memset(&mtpar, 0, sizeof(mtpar));
+ 	mtpar.net	= net;
+ 	mtpar.table     = name;
+ 	mtpar.entryinfo = &e->ipv6;
 -- 
 2.11.0
