@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 06/15] netfilter: ebtables: fix compat entry padding
-Date: Mon, 11 Jun 2018 11:22:24 +0200
-Message-ID: <20180611092233.3219-7-pablo@netfilter.org>
+Subject: [PATCH 07/15] netfilter: xt_set: Check hook mask correctly
+Date: Mon, 11 Jun 2018 11:22:25 +0200
+Message-ID: <20180611092233.3219-8-pablo@netfilter.org>
 References: <20180611092233.3219-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,47 +10,39 @@ In-Reply-To: <20180611092233.3219-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Alin Nastac <alin.nastac@gmail.com>
+From: Serhey Popovych <serhe.popovych@gmail.com>
 
-On arm64, ebt_entry_{match,watcher,target} structs are 40 bytes long
-while on 32-bit arm these structs have a size of 36 bytes.
+Inserting rule before one with SET target we get error with warning in
+dmesg(1) output:
 
-COMPAT_XT_ALIGN() macro cannot be used here to determine the necessary
-padding for the CONFIG_COMPAT because it imposes an 8-byte boundary
-alignment, condition that is not found in 32-bit ebtables application.
+  # iptables -A FORWARD -t mangle -j SET --map-set test src --map-prio
+  # iptables -I FORWARD 1 -t mangle -j ACCEPT
+  iptables: Invalid argument. Run `dmesg' for more information.
+  # dmesg |tail -n1
+  [268578.026643] mapping of prio or/and queue is allowed only from \
+  OUTPUT/FORWARD/POSTROUTING chains
 
-Signed-off-by: Alin Nastac <alin.nastac@gmail.com>
-Acked-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Rather than checking for supported hook bits for SET target check for
+unsupported one as done in all rest of matches and targets.
+
+Signed-off-by: Serhey Popovych <serhe.popovych@gmail.com>
+Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 ---
- net/bridge/netfilter/ebtables.c | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ net/netfilter/xt_set.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
-index 6ba639f6c51d..5f459c8b7937 100644
---- a/net/bridge/netfilter/ebtables.c
-+++ b/net/bridge/netfilter/ebtables.c
-@@ -1610,16 +1610,16 @@ struct compat_ebt_entry_mwt {
- 		compat_uptr_t ptr;
- 	} u;
- 	compat_uint_t match_size;
--	compat_uint_t data[0];
-+	compat_uint_t data[0] __attribute__ ((aligned (__alignof__(struct compat_ebt_replace))));
- };
- 
- /* account for possible padding between match_size and ->data */
- static int ebt_compat_entry_padsize(void)
- {
--	BUILD_BUG_ON(XT_ALIGN(sizeof(struct ebt_entry_match)) <
--			COMPAT_XT_ALIGN(sizeof(struct compat_ebt_entry_mwt)));
--	return (int) XT_ALIGN(sizeof(struct ebt_entry_match)) -
--			COMPAT_XT_ALIGN(sizeof(struct compat_ebt_entry_mwt));
-+	BUILD_BUG_ON(sizeof(struct ebt_entry_match) <
-+			sizeof(struct compat_ebt_entry_mwt));
-+	return (int) sizeof(struct ebt_entry_match) -
-+			sizeof(struct compat_ebt_entry_mwt);
- }
- 
- static int ebt_compat_match_offset(const struct xt_match *match,
+diff --git a/net/netfilter/xt_set.c b/net/netfilter/xt_set.c
+index 6f4c5217d835..07af7dbf7a30 100644
+--- a/net/netfilter/xt_set.c
++++ b/net/netfilter/xt_set.c
+@@ -470,7 +470,7 @@ set_target_v3_checkentry(const struct xt_tgchk_param *par)
+ 		}
+ 		if (((info->flags & IPSET_FLAG_MAP_SKBPRIO) |
+ 		     (info->flags & IPSET_FLAG_MAP_SKBQUEUE)) &&
+-		     !(par->hook_mask & (1 << NF_INET_FORWARD |
++		     (par->hook_mask & ~(1 << NF_INET_FORWARD |
+ 					 1 << NF_INET_LOCAL_OUT |
+ 					 1 << NF_INET_POST_ROUTING))) {
+ 			pr_info_ratelimited("mapping of prio or/and queue is allowed only from OUTPUT/FORWARD/POSTROUTING chains\n");
 -- 
 2.11.0
