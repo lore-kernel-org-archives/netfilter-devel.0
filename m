@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 1/9] netfilter: fix null-ptr-deref in nf_nat_decode_session
-Date: Wed, 13 Jun 2018 12:56:52 +0200
-Message-ID: <20180613105700.12894-2-pablo@netfilter.org>
+Subject: [PATCH 3/9] netfilter: nft_dynset: do not reject set updates with NFT_SET_EVAL
+Date: Wed, 13 Jun 2018 12:56:54 +0200
+Message-ID: <20180613105700.12894-4-pablo@netfilter.org>
 References: <20180613105700.12894-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,70 +10,45 @@ In-Reply-To: <20180613105700.12894-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Prashant Bhole <bhole_prashant_q7@lab.ntt.co.jp>
+NFT_SET_EVAL is signalling the kernel that this sets can be updated from
+the evaluation path, even if there are no expressions attached to the
+element. Otherwise, set updates with no expressions fail. Update
+description to describe the right semantics.
 
-Add null check for nat_hook in nf_nat_decode_session()
-
-[  195.648098] UBSAN: Undefined behaviour in ./include/linux/netfilter.h:348:14
-[  195.651366] BUG: KASAN: null-ptr-deref in __xfrm_policy_check+0x208/0x1d70
-[  195.653888] member access within null pointer of type 'struct nf_nat_hook'
-[  195.653896] CPU: 3 PID: 0 Comm: swapper/3 Not tainted 4.17.0-rc6+ #5
-[  195.656320] Read of size 8 at addr 0000000000000008 by task ping/2469
-[  195.658715] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.10.2-1ubuntu1 04/01/2014
-[  195.658721] Call Trace:
-[  195.661087]
-[  195.669341]  <IRQ>
-[  195.670574]  dump_stack+0xc6/0x150
-[  195.672156]  ? dump_stack_print_info.cold.0+0x1b/0x1b
-[  195.674121]  ? ubsan_prologue+0x31/0x92
-[  195.676546]  ubsan_epilogue+0x9/0x49
-[  195.678159]  handle_null_ptr_deref+0x11a/0x130
-[  195.679800]  ? sprint_OID+0x1a0/0x1a0
-[  195.681322]  __ubsan_handle_type_mismatch_v1+0xd5/0x11d
-[  195.683146]  ? ubsan_prologue+0x92/0x92
-[  195.684642]  __xfrm_policy_check+0x18ef/0x1d70
-[  195.686294]  ? rt_cache_valid+0x118/0x180
-[  195.687804]  ? __xfrm_route_forward+0x410/0x410
-[  195.689463]  ? fib_multipath_hash+0x700/0x700
-[  195.691109]  ? kvm_sched_clock_read+0x23/0x40
-[  195.692805]  ? pvclock_clocksource_read+0xf6/0x280
-[  195.694409]  ? graph_lock+0xa0/0xa0
-[  195.695824]  ? pvclock_clocksource_read+0xf6/0x280
-[  195.697508]  ? pvclock_read_flags+0x80/0x80
-[  195.698981]  ? kvm_sched_clock_read+0x23/0x40
-[  195.700347]  ? sched_clock+0x5/0x10
-[  195.701525]  ? sched_clock_cpu+0x18/0x1a0
-[  195.702846]  tcp_v4_rcv+0x1d32/0x1de0
-[  195.704115]  ? lock_repin_lock+0x70/0x270
-[  195.707072]  ? pvclock_read_flags+0x80/0x80
-[  195.709302]  ? tcp_v4_early_demux+0x4b0/0x4b0
-[  195.711833]  ? lock_acquire+0x195/0x380
-[  195.714222]  ? ip_local_deliver_finish+0xfc/0x770
-[  195.716967]  ? raw_rcv+0x2b0/0x2b0
-[  195.718856]  ? lock_release+0xa00/0xa00
-[  195.720938]  ip_local_deliver_finish+0x1b9/0x770
-[...]
-
-Fixes: 2c205dd3981f ("netfilter: add struct nf_nat_hook and use it")
-Signed-off-by: Prashant Bhole <bhole_prashant_q7@lab.ntt.co.jp>
-Acked-by: Florian Westphal <fw@strlen.de>
+Fixes: 22fe54d5fefc ("netfilter: nf_tables: add support for dynamic set updates")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/linux/netfilter.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/uapi/linux/netfilter/nf_tables.h | 2 +-
+ net/netfilter/nft_dynset.c               | 4 +---
+ 2 files changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
-index 04551af2ff23..dd2052f0efb7 100644
---- a/include/linux/netfilter.h
-+++ b/include/linux/netfilter.h
-@@ -345,7 +345,7 @@ nf_nat_decode_session(struct sk_buff *skb, struct flowi *fl, u_int8_t family)
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index c9bf74b94f37..89438e68dc03 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -266,7 +266,7 @@ enum nft_rule_compat_attributes {
+  * @NFT_SET_INTERVAL: set contains intervals
+  * @NFT_SET_MAP: set is used as a dictionary
+  * @NFT_SET_TIMEOUT: set uses timeouts
+- * @NFT_SET_EVAL: set contains expressions for evaluation
++ * @NFT_SET_EVAL: set can be updated from the evaluation path
+  * @NFT_SET_OBJECT: set contains stateful objects
+  */
+ enum nft_set_flags {
+diff --git a/net/netfilter/nft_dynset.c b/net/netfilter/nft_dynset.c
+index 4d49529cff61..27d7e4598ab6 100644
+--- a/net/netfilter/nft_dynset.c
++++ b/net/netfilter/nft_dynset.c
+@@ -203,9 +203,7 @@ static int nft_dynset_init(const struct nft_ctx *ctx,
+ 				goto err1;
+ 			set->ops->gc_init(set);
+ 		}
+-
+-	} else if (set->flags & NFT_SET_EVAL)
+-		return -EINVAL;
++	}
  
- 	rcu_read_lock();
- 	nat_hook = rcu_dereference(nf_nat_hook);
--	if (nat_hook->decode_session)
-+	if (nat_hook && nat_hook->decode_session)
- 		nat_hook->decode_session(skb, fl);
- 	rcu_read_unlock();
- #endif
+ 	nft_set_ext_prepare(&priv->tmpl);
+ 	nft_set_ext_add_length(&priv->tmpl, NFT_SET_EXT_KEY, set->klen);
 -- 
 2.11.0
