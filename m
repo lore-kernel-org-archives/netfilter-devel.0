@@ -1,125 +1,100 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 4/9] netfilter: nf_tables: fix module unload race
-Date: Wed, 13 Jun 2018 12:56:55 +0200
-Message-ID: <20180613105700.12894-5-pablo@netfilter.org>
-References: <20180613105700.12894-1-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
+From: Eric Dumazet <edumazet@google.com>
+Subject: [PATCH net] netfilter: nf_queue: augment nfqa_cfg_policy
+Date: Wed, 13 Jun 2018 09:13:39 -0700
+Message-ID: <20180613161339.144919-1-edumazet@google.com>
+Cc: netfilter-devel@vger.kernel.org, netdev <netdev@vger.kernel.org>,
+        Eric Dumazet <edumazet@google.com>,
+        Eric Dumazet <eric.dumazet@gmail.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180613105700.12894-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+Three attributes are currently not verified, thus can trigger KMSAN
+warnings such as :
 
-We must first remove the nfnetlink protocol handler when nf_tables module
-is unloaded -- we don't want userspace to submit new change requests once
-we've started to tear down nft state.
+BUG: KMSAN: uninit-value in __arch_swab32 arch/x86/include/uapi/asm/swab.h:10 [inline]
+BUG: KMSAN: uninit-value in __fswab32 include/uapi/linux/swab.h:59 [inline]
+BUG: KMSAN: uninit-value in nfqnl_recv_config+0x939/0x17d0 net/netfilter/nfnetlink_queue.c:1268
+CPU: 1 PID: 4521 Comm: syz-executor120 Not tainted 4.17.0+ #5
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x185/0x1d0 lib/dump_stack.c:113
+ kmsan_report+0x188/0x2a0 mm/kmsan/kmsan.c:1117
+ __msan_warning_32+0x70/0xc0 mm/kmsan/kmsan_instr.c:620
+ __arch_swab32 arch/x86/include/uapi/asm/swab.h:10 [inline]
+ __fswab32 include/uapi/linux/swab.h:59 [inline]
+ nfqnl_recv_config+0x939/0x17d0 net/netfilter/nfnetlink_queue.c:1268
+ nfnetlink_rcv_msg+0xb2e/0xc80 net/netfilter/nfnetlink.c:212
+ netlink_rcv_skb+0x37e/0x600 net/netlink/af_netlink.c:2448
+ nfnetlink_rcv+0x2fe/0x680 net/netfilter/nfnetlink.c:513
+ netlink_unicast_kernel net/netlink/af_netlink.c:1310 [inline]
+ netlink_unicast+0x1680/0x1750 net/netlink/af_netlink.c:1336
+ netlink_sendmsg+0x104f/0x1350 net/netlink/af_netlink.c:1901
+ sock_sendmsg_nosec net/socket.c:629 [inline]
+ sock_sendmsg net/socket.c:639 [inline]
+ ___sys_sendmsg+0xec8/0x1320 net/socket.c:2117
+ __sys_sendmsg net/socket.c:2155 [inline]
+ __do_sys_sendmsg net/socket.c:2164 [inline]
+ __se_sys_sendmsg net/socket.c:2162 [inline]
+ __x64_sys_sendmsg+0x331/0x460 net/socket.c:2162
+ do_syscall_64+0x15b/0x230 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x43fd59
+RSP: 002b:00007ffde0e30d28 EFLAGS: 00000213 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 000000000043fd59
+RDX: 0000000000000000 RSI: 0000000020000080 RDI: 0000000000000003
+RBP: 00000000006ca018 R08: 00000000004002c8 R09: 00000000004002c8
+R10: 00000000004002c8 R11: 0000000000000213 R12: 0000000000401680
+R13: 0000000000401710 R14: 0000000000000000 R15: 0000000000000000
 
-Furthermore, nfnetlink must not call any subsystem function after
-call_batch returned -EAGAIN.
+Uninit was created at:
+ kmsan_save_stack_with_flags mm/kmsan/kmsan.c:279 [inline]
+ kmsan_internal_poison_shadow+0xb8/0x1b0 mm/kmsan/kmsan.c:189
+ kmsan_kmalloc+0x94/0x100 mm/kmsan/kmsan.c:315
+ kmsan_slab_alloc+0x10/0x20 mm/kmsan/kmsan.c:322
+ slab_post_alloc_hook mm/slab.h:446 [inline]
+ slab_alloc_node mm/slub.c:2753 [inline]
+ __kmalloc_node_track_caller+0xb35/0x11b0 mm/slub.c:4395
+ __kmalloc_reserve net/core/skbuff.c:138 [inline]
+ __alloc_skb+0x2cb/0x9e0 net/core/skbuff.c:206
+ alloc_skb include/linux/skbuff.h:988 [inline]
+ netlink_alloc_large_skb net/netlink/af_netlink.c:1182 [inline]
+ netlink_sendmsg+0x76e/0x1350 net/netlink/af_netlink.c:1876
+ sock_sendmsg_nosec net/socket.c:629 [inline]
+ sock_sendmsg net/socket.c:639 [inline]
+ ___sys_sendmsg+0xec8/0x1320 net/socket.c:2117
+ __sys_sendmsg net/socket.c:2155 [inline]
+ __do_sys_sendmsg net/socket.c:2164 [inline]
+ __se_sys_sendmsg net/socket.c:2162 [inline]
+ __x64_sys_sendmsg+0x331/0x460 net/socket.c:2162
+ do_syscall_64+0x15b/0x230 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
 
-EAGAIN means the subsys mutex was dropped, so its unlikely but possible that
-nf_tables subsystem was removed due to 'rmmod nf_tables' on another cpu.
-
-Therefore, we must abort batch completely and not move on to next part of
-the batch.
-
-Last, we can't invoke ->abort unless we've checked that the subsystem is
-still registered.
-
-Change netns exit path of nf_tables to make sure any incompleted
-transaction gets removed on exit.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Fixes: fdb694a01f1f ("netfilter: Add fail-open support")
+Fixes: 829e17a1a602 ("[NETFILTER]: nfnetlink_queue: allow changing queue length through netlink")
+Signed-off-by: Eric Dumazet <edumazet@google.com>
+Reported-by: syzbot <syzkaller@googlegroups.com>
 ---
- net/netfilter/nf_tables_api.c | 12 +++++++++---
- net/netfilter/nfnetlink.c     | 10 +++++++---
- 2 files changed, 16 insertions(+), 6 deletions(-)
+ net/netfilter/nfnetlink_queue.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 7979095b69b0..ae312b31db28 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -6439,7 +6439,7 @@ static void nf_tables_abort_release(struct nft_trans *trans)
- 	kfree(trans);
- }
+diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+index 4ccd2988f9db637166358335d8e26299c7237bec..ea4ba551abb28cb25c833dc408e23d1313b21bb4 100644
+--- a/net/netfilter/nfnetlink_queue.c
++++ b/net/netfilter/nfnetlink_queue.c
+@@ -1243,6 +1243,9 @@ static int nfqnl_recv_unsupp(struct net *net, struct sock *ctnl,
+ static const struct nla_policy nfqa_cfg_policy[NFQA_CFG_MAX+1] = {
+ 	[NFQA_CFG_CMD]		= { .len = sizeof(struct nfqnl_msg_config_cmd) },
+ 	[NFQA_CFG_PARAMS]	= { .len = sizeof(struct nfqnl_msg_config_params) },
++	[NFQA_CFG_QUEUE_MAXLEN]	= { .type = NLA_U32 },
++	[NFQA_CFG_MASK]		= { .type = NLA_U32 },
++	[NFQA_CFG_FLAGS]	= { .type = NLA_U32 },
+ };
  
--static int nf_tables_abort(struct net *net, struct sk_buff *skb)
-+static int __nf_tables_abort(struct net *net)
- {
- 	struct nft_trans *trans, *next;
- 	struct nft_trans_elem *te;
-@@ -6555,6 +6555,11 @@ static void nf_tables_cleanup(struct net *net)
- 	nft_validate_state_update(net, NFT_VALIDATE_SKIP);
- }
- 
-+static int nf_tables_abort(struct net *net, struct sk_buff *skb)
-+{
-+	return __nf_tables_abort(net);
-+}
-+
- static bool nf_tables_valid_genid(struct net *net, u32 genid)
- {
- 	return net->nft.base_seq == genid;
-@@ -7149,9 +7154,10 @@ static int __net_init nf_tables_init_net(struct net *net)
- 
- static void __net_exit nf_tables_exit_net(struct net *net)
- {
-+	if (!list_empty(&net->nft.commit_list))
-+		__nf_tables_abort(net);
- 	__nft_release_tables(net);
- 	WARN_ON_ONCE(!list_empty(&net->nft.tables));
--	WARN_ON_ONCE(!list_empty(&net->nft.commit_list));
- }
- 
- static struct pernet_operations nf_tables_net_ops = {
-@@ -7193,9 +7199,9 @@ static int __init nf_tables_module_init(void)
- 
- static void __exit nf_tables_module_exit(void)
- {
--	unregister_pernet_subsys(&nf_tables_net_ops);
- 	nfnetlink_subsys_unregister(&nf_tables_subsys);
- 	unregister_netdevice_notifier(&nf_tables_flowtable_notifier);
-+	unregister_pernet_subsys(&nf_tables_net_ops);
- 	rcu_barrier();
- 	nf_tables_core_module_exit();
- 	kfree(info);
-diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
-index 4d0da7042aff..e1b6be29848d 100644
---- a/net/netfilter/nfnetlink.c
-+++ b/net/netfilter/nfnetlink.c
-@@ -429,7 +429,7 @@ static void nfnetlink_rcv_batch(struct sk_buff *skb, struct nlmsghdr *nlh,
- 			 */
- 			if (err == -EAGAIN) {
- 				status |= NFNL_BATCH_REPLAY;
--				goto next;
-+				goto done;
- 			}
- 		}
- ack:
-@@ -456,7 +456,7 @@ static void nfnetlink_rcv_batch(struct sk_buff *skb, struct nlmsghdr *nlh,
- 			if (err)
- 				status |= NFNL_BATCH_FAILURE;
- 		}
--next:
-+
- 		msglen = NLMSG_ALIGN(nlh->nlmsg_len);
- 		if (msglen > skb->len)
- 			msglen = skb->len;
-@@ -464,7 +464,11 @@ static void nfnetlink_rcv_batch(struct sk_buff *skb, struct nlmsghdr *nlh,
- 	}
- done:
- 	if (status & NFNL_BATCH_REPLAY) {
--		ss->abort(net, oskb);
-+		const struct nfnetlink_subsystem *ss2;
-+
-+		ss2 = nfnl_dereference_protected(subsys_id);
-+		if (ss2 == ss)
-+			ss->abort(net, oskb);
- 		nfnl_err_reset(&err_list);
- 		nfnl_unlock(subsys_id);
- 		kfree_skb(skb);
+ static const struct nf_queue_handler nfqh = {
 -- 
-2.11.0
+2.18.0.rc1.242.g61856ae69a-goog
