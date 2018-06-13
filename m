@@ -1,7 +1,7 @@
 From: Eric Dumazet <edumazet@google.com>
-Subject: [PATCH net] netfilter: nf_queue: augment nfqa_cfg_policy
-Date: Wed, 13 Jun 2018 09:13:39 -0700
-Message-ID: <20180613161339.144919-1-edumazet@google.com>
+Subject: [PATCH net] netfilter: ipv6: nf_defrag: reduce struct net memory waste
+Date: Wed, 13 Jun 2018 10:11:56 -0700
+Message-ID: <20180613171156.240889-1-edumazet@google.com>
 Cc: netfilter-devel@vger.kernel.org, netdev <netdev@vger.kernel.org>,
         Eric Dumazet <edumazet@google.com>,
         Eric Dumazet <eric.dumazet@gmail.com>
@@ -12,89 +12,71 @@ Return-path: <netdev-owner@vger.kernel.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Three attributes are currently not verified, thus can trigger KMSAN
-warnings such as :
+It is a waste of memory to use a full "struct netns_sysctl_ipv6"
+while only one pointer is really used, considering netns_sysctl_ipv6
+keeps growing.
 
-BUG: KMSAN: uninit-value in __arch_swab32 arch/x86/include/uapi/asm/swab.h:10 [inline]
-BUG: KMSAN: uninit-value in __fswab32 include/uapi/linux/swab.h:59 [inline]
-BUG: KMSAN: uninit-value in nfqnl_recv_config+0x939/0x17d0 net/netfilter/nfnetlink_queue.c:1268
-CPU: 1 PID: 4521 Comm: syz-executor120 Not tainted 4.17.0+ #5
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
-Call Trace:
- __dump_stack lib/dump_stack.c:77 [inline]
- dump_stack+0x185/0x1d0 lib/dump_stack.c:113
- kmsan_report+0x188/0x2a0 mm/kmsan/kmsan.c:1117
- __msan_warning_32+0x70/0xc0 mm/kmsan/kmsan_instr.c:620
- __arch_swab32 arch/x86/include/uapi/asm/swab.h:10 [inline]
- __fswab32 include/uapi/linux/swab.h:59 [inline]
- nfqnl_recv_config+0x939/0x17d0 net/netfilter/nfnetlink_queue.c:1268
- nfnetlink_rcv_msg+0xb2e/0xc80 net/netfilter/nfnetlink.c:212
- netlink_rcv_skb+0x37e/0x600 net/netlink/af_netlink.c:2448
- nfnetlink_rcv+0x2fe/0x680 net/netfilter/nfnetlink.c:513
- netlink_unicast_kernel net/netlink/af_netlink.c:1310 [inline]
- netlink_unicast+0x1680/0x1750 net/netlink/af_netlink.c:1336
- netlink_sendmsg+0x104f/0x1350 net/netlink/af_netlink.c:1901
- sock_sendmsg_nosec net/socket.c:629 [inline]
- sock_sendmsg net/socket.c:639 [inline]
- ___sys_sendmsg+0xec8/0x1320 net/socket.c:2117
- __sys_sendmsg net/socket.c:2155 [inline]
- __do_sys_sendmsg net/socket.c:2164 [inline]
- __se_sys_sendmsg net/socket.c:2162 [inline]
- __x64_sys_sendmsg+0x331/0x460 net/socket.c:2162
- do_syscall_64+0x15b/0x230 arch/x86/entry/common.c:287
- entry_SYSCALL_64_after_hwframe+0x44/0xa9
-RIP: 0033:0x43fd59
-RSP: 002b:00007ffde0e30d28 EFLAGS: 00000213 ORIG_RAX: 000000000000002e
-RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 000000000043fd59
-RDX: 0000000000000000 RSI: 0000000020000080 RDI: 0000000000000003
-RBP: 00000000006ca018 R08: 00000000004002c8 R09: 00000000004002c8
-R10: 00000000004002c8 R11: 0000000000000213 R12: 0000000000401680
-R13: 0000000000401710 R14: 0000000000000000 R15: 0000000000000000
+Also, since "struct netns_frags" has cache line alignment,
+it is better to move the frags_hdr pointer outside, otherwise
+we spend a full cache line for this pointer.
 
-Uninit was created at:
- kmsan_save_stack_with_flags mm/kmsan/kmsan.c:279 [inline]
- kmsan_internal_poison_shadow+0xb8/0x1b0 mm/kmsan/kmsan.c:189
- kmsan_kmalloc+0x94/0x100 mm/kmsan/kmsan.c:315
- kmsan_slab_alloc+0x10/0x20 mm/kmsan/kmsan.c:322
- slab_post_alloc_hook mm/slab.h:446 [inline]
- slab_alloc_node mm/slub.c:2753 [inline]
- __kmalloc_node_track_caller+0xb35/0x11b0 mm/slub.c:4395
- __kmalloc_reserve net/core/skbuff.c:138 [inline]
- __alloc_skb+0x2cb/0x9e0 net/core/skbuff.c:206
- alloc_skb include/linux/skbuff.h:988 [inline]
- netlink_alloc_large_skb net/netlink/af_netlink.c:1182 [inline]
- netlink_sendmsg+0x76e/0x1350 net/netlink/af_netlink.c:1876
- sock_sendmsg_nosec net/socket.c:629 [inline]
- sock_sendmsg net/socket.c:639 [inline]
- ___sys_sendmsg+0xec8/0x1320 net/socket.c:2117
- __sys_sendmsg net/socket.c:2155 [inline]
- __do_sys_sendmsg net/socket.c:2164 [inline]
- __se_sys_sendmsg net/socket.c:2162 [inline]
- __x64_sys_sendmsg+0x331/0x460 net/socket.c:2162
- do_syscall_64+0x15b/0x230 arch/x86/entry/common.c:287
- entry_SYSCALL_64_after_hwframe+0x44/0xa9
+This saves 192 bytes of memory per netns.
 
-Fixes: fdb694a01f1f ("netfilter: Add fail-open support")
-Fixes: 829e17a1a602 ("[NETFILTER]: nfnetlink_queue: allow changing queue length through netlink")
+Fixes: c038a767cd69 ("ipv6: add a new namespace for nf_conntrack_reasm")
 Signed-off-by: Eric Dumazet <edumazet@google.com>
-Reported-by: syzbot <syzkaller@googlegroups.com>
 ---
- net/netfilter/nfnetlink_queue.c | 3 +++
- 1 file changed, 3 insertions(+)
+ include/net/net_namespace.h             | 1 +
+ include/net/netns/ipv6.h                | 1 -
+ net/ipv6/netfilter/nf_conntrack_reasm.c | 6 +++---
+ 3 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index 4ccd2988f9db637166358335d8e26299c7237bec..ea4ba551abb28cb25c833dc408e23d1313b21bb4 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -1243,6 +1243,9 @@ static int nfqnl_recv_unsupp(struct net *net, struct sock *ctnl,
- static const struct nla_policy nfqa_cfg_policy[NFQA_CFG_MAX+1] = {
- 	[NFQA_CFG_CMD]		= { .len = sizeof(struct nfqnl_msg_config_cmd) },
- 	[NFQA_CFG_PARAMS]	= { .len = sizeof(struct nfqnl_msg_config_params) },
-+	[NFQA_CFG_QUEUE_MAXLEN]	= { .type = NLA_U32 },
-+	[NFQA_CFG_MASK]		= { .type = NLA_U32 },
-+	[NFQA_CFG_FLAGS]	= { .type = NLA_U32 },
- };
+diff --git a/include/net/net_namespace.h b/include/net/net_namespace.h
+index 47e35cce3b648d696b127ed7bd643036128795f6..a71264d75d7f98d28f92dfd861ffe6e0d39c0198 100644
+--- a/include/net/net_namespace.h
++++ b/include/net/net_namespace.h
+@@ -128,6 +128,7 @@ struct net {
+ #endif
+ #if IS_ENABLED(CONFIG_NF_DEFRAG_IPV6)
+ 	struct netns_nf_frag	nf_frag;
++	struct ctl_table_header *nf_frag_frags_hdr;
+ #endif
+ 	struct sock		*nfnl;
+ 	struct sock		*nfnl_stash;
+diff --git a/include/net/netns/ipv6.h b/include/net/netns/ipv6.h
+index c978a31b0f846210b4c2a369af960d5349b5395a..762ac9931b6251152b6ee0e5780df0f7b073f3e6 100644
+--- a/include/net/netns/ipv6.h
++++ b/include/net/netns/ipv6.h
+@@ -109,7 +109,6 @@ struct netns_ipv6 {
  
- static const struct nf_queue_handler nfqh = {
+ #if IS_ENABLED(CONFIG_NF_DEFRAG_IPV6)
+ struct netns_nf_frag {
+-	struct netns_sysctl_ipv6 sysctl;
+ 	struct netns_frags	frags;
+ };
+ #endif
+diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
+index 5e0332014c1738999e680c1853829f384e880284..a452d99c9f5281b5e5d7e6f0162611deeb82212d 100644
+--- a/net/ipv6/netfilter/nf_conntrack_reasm.c
++++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
+@@ -107,7 +107,7 @@ static int nf_ct_frag6_sysctl_register(struct net *net)
+ 	if (hdr == NULL)
+ 		goto err_reg;
+ 
+-	net->nf_frag.sysctl.frags_hdr = hdr;
++	net->nf_frag_frags_hdr = hdr;
+ 	return 0;
+ 
+ err_reg:
+@@ -121,8 +121,8 @@ static void __net_exit nf_ct_frags6_sysctl_unregister(struct net *net)
+ {
+ 	struct ctl_table *table;
+ 
+-	table = net->nf_frag.sysctl.frags_hdr->ctl_table_arg;
+-	unregister_net_sysctl_table(net->nf_frag.sysctl.frags_hdr);
++	table = net->nf_frag_frags_hdr->ctl_table_arg;
++	unregister_net_sysctl_table(net->nf_frag_frags_hdr);
+ 	if (!net_eq(net, &init_net))
+ 		kfree(table);
+ }
 -- 
 2.18.0.rc1.242.g61856ae69a-goog
