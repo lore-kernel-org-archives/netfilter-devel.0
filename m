@@ -1,11 +1,8 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 9/9] netfilter: nf_conncount: Fix garbage collection with zones
-Date: Wed, 13 Jun 2018 12:57:00 +0200
-Message-ID: <20180613105700.12894-10-pablo@netfilter.org>
+Subject: [PATCH 1/9] netfilter: fix null-ptr-deref in nf_nat_decode_session
+Date: Wed, 13 Jun 2018 12:56:52 +0200
+Message-ID: <20180613105700.12894-2-pablo@netfilter.org>
 References: <20180613105700.12894-1-pablo@netfilter.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netdev-owner@vger.kernel.org>
@@ -13,114 +10,70 @@ In-Reply-To: <20180613105700.12894-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Yi-Hung Wei <yihung.wei@gmail.com>
+From: Prashant Bhole <bhole_prashant_q7@lab.ntt.co.jp>
 
-Currently, we use check_hlist() for garbage colleciton. However, we
-use the ‘zone’ from the counted entry to query the existence of
-existing entries in the hlist. This could be wrong when they are in
-different zones, and this patch fixes this issue.
+Add null check for nat_hook in nf_nat_decode_session()
 
-Fixes: e59ea3df3fc2 ("netfilter: xt_connlimit: honor conntrack zone if available")
-Signed-off-by: Yi-Hung Wei <yihung.wei@gmail.com>
+[  195.648098] UBSAN: Undefined behaviour in ./include/linux/netfilter.h:348:14
+[  195.651366] BUG: KASAN: null-ptr-deref in __xfrm_policy_check+0x208/0x1d70
+[  195.653888] member access within null pointer of type 'struct nf_nat_hook'
+[  195.653896] CPU: 3 PID: 0 Comm: swapper/3 Not tainted 4.17.0-rc6+ #5
+[  195.656320] Read of size 8 at addr 0000000000000008 by task ping/2469
+[  195.658715] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.10.2-1ubuntu1 04/01/2014
+[  195.658721] Call Trace:
+[  195.661087]
+[  195.669341]  <IRQ>
+[  195.670574]  dump_stack+0xc6/0x150
+[  195.672156]  ? dump_stack_print_info.cold.0+0x1b/0x1b
+[  195.674121]  ? ubsan_prologue+0x31/0x92
+[  195.676546]  ubsan_epilogue+0x9/0x49
+[  195.678159]  handle_null_ptr_deref+0x11a/0x130
+[  195.679800]  ? sprint_OID+0x1a0/0x1a0
+[  195.681322]  __ubsan_handle_type_mismatch_v1+0xd5/0x11d
+[  195.683146]  ? ubsan_prologue+0x92/0x92
+[  195.684642]  __xfrm_policy_check+0x18ef/0x1d70
+[  195.686294]  ? rt_cache_valid+0x118/0x180
+[  195.687804]  ? __xfrm_route_forward+0x410/0x410
+[  195.689463]  ? fib_multipath_hash+0x700/0x700
+[  195.691109]  ? kvm_sched_clock_read+0x23/0x40
+[  195.692805]  ? pvclock_clocksource_read+0xf6/0x280
+[  195.694409]  ? graph_lock+0xa0/0xa0
+[  195.695824]  ? pvclock_clocksource_read+0xf6/0x280
+[  195.697508]  ? pvclock_read_flags+0x80/0x80
+[  195.698981]  ? kvm_sched_clock_read+0x23/0x40
+[  195.700347]  ? sched_clock+0x5/0x10
+[  195.701525]  ? sched_clock_cpu+0x18/0x1a0
+[  195.702846]  tcp_v4_rcv+0x1d32/0x1de0
+[  195.704115]  ? lock_repin_lock+0x70/0x270
+[  195.707072]  ? pvclock_read_flags+0x80/0x80
+[  195.709302]  ? tcp_v4_early_demux+0x4b0/0x4b0
+[  195.711833]  ? lock_acquire+0x195/0x380
+[  195.714222]  ? ip_local_deliver_finish+0xfc/0x770
+[  195.716967]  ? raw_rcv+0x2b0/0x2b0
+[  195.718856]  ? lock_release+0xa00/0xa00
+[  195.720938]  ip_local_deliver_finish+0x1b9/0x770
+[...]
+
+Fixes: 2c205dd3981f ("netfilter: add struct nf_nat_hook and use it")
+Signed-off-by: Prashant Bhole <bhole_prashant_q7@lab.ntt.co.jp>
+Acked-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_conntrack_count.h |  3 ++-
- net/netfilter/nf_conncount.c               | 13 +++++++++----
- net/netfilter/nft_connlimit.c              |  2 +-
- 3 files changed, 12 insertions(+), 6 deletions(-)
+ include/linux/netfilter.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/include/net/netfilter/nf_conntrack_count.h b/include/net/netfilter/nf_conntrack_count.h
-index 1910b6572430..3a188a0923a3 100644
---- a/include/net/netfilter/nf_conntrack_count.h
-+++ b/include/net/netfilter/nf_conntrack_count.h
-@@ -20,7 +20,8 @@ unsigned int nf_conncount_lookup(struct net *net, struct hlist_head *head,
- 				 bool *addit);
+diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
+index 04551af2ff23..dd2052f0efb7 100644
+--- a/include/linux/netfilter.h
++++ b/include/linux/netfilter.h
+@@ -345,7 +345,7 @@ nf_nat_decode_session(struct sk_buff *skb, struct flowi *fl, u_int8_t family)
  
- bool nf_conncount_add(struct hlist_head *head,
--		      const struct nf_conntrack_tuple *tuple);
-+		      const struct nf_conntrack_tuple *tuple,
-+		      const struct nf_conntrack_zone *zone);
- 
- void nf_conncount_cache_free(struct hlist_head *hhead);
- 
-diff --git a/net/netfilter/nf_conncount.c b/net/netfilter/nf_conncount.c
-index 3b5059a8dcdd..d8383609fe28 100644
---- a/net/netfilter/nf_conncount.c
-+++ b/net/netfilter/nf_conncount.c
-@@ -46,6 +46,7 @@
- struct nf_conncount_tuple {
- 	struct hlist_node		node;
- 	struct nf_conntrack_tuple	tuple;
-+	struct nf_conntrack_zone	zone;
- };
- 
- struct nf_conncount_rb {
-@@ -80,7 +81,8 @@ static int key_diff(const u32 *a, const u32 *b, unsigned int klen)
- }
- 
- bool nf_conncount_add(struct hlist_head *head,
--		      const struct nf_conntrack_tuple *tuple)
-+		      const struct nf_conntrack_tuple *tuple,
-+		      const struct nf_conntrack_zone *zone)
- {
- 	struct nf_conncount_tuple *conn;
- 
-@@ -88,6 +90,7 @@ bool nf_conncount_add(struct hlist_head *head,
- 	if (conn == NULL)
- 		return false;
- 	conn->tuple = *tuple;
-+	conn->zone = *zone;
- 	hlist_add_head(&conn->node, head);
- 	return true;
- }
-@@ -108,7 +111,7 @@ unsigned int nf_conncount_lookup(struct net *net, struct hlist_head *head,
- 
- 	/* check the saved connections */
- 	hlist_for_each_entry_safe(conn, n, head, node) {
--		found = nf_conntrack_find_get(net, zone, &conn->tuple);
-+		found = nf_conntrack_find_get(net, &conn->zone, &conn->tuple);
- 		if (found == NULL) {
- 			hlist_del(&conn->node);
- 			kmem_cache_free(conncount_conn_cachep, conn);
-@@ -117,7 +120,8 @@ unsigned int nf_conncount_lookup(struct net *net, struct hlist_head *head,
- 
- 		found_ct = nf_ct_tuplehash_to_ctrack(found);
- 
--		if (tuple && nf_ct_tuple_equal(&conn->tuple, tuple)) {
-+		if (tuple && nf_ct_tuple_equal(&conn->tuple, tuple) &&
-+		    nf_ct_zone_equal(found_ct, zone, zone->dir)) {
- 			/*
- 			 * Just to be sure we have it only once in the list.
- 			 * We should not see tuples twice unless someone hooks
-@@ -196,7 +200,7 @@ count_tree(struct net *net, struct rb_root *root,
- 			if (!addit)
- 				return count;
- 
--			if (!nf_conncount_add(&rbconn->hhead, tuple))
-+			if (!nf_conncount_add(&rbconn->hhead, tuple, zone))
- 				return 0; /* hotdrop */
- 
- 			return count + 1;
-@@ -238,6 +242,7 @@ count_tree(struct net *net, struct rb_root *root,
- 	}
- 
- 	conn->tuple = *tuple;
-+	conn->zone = *zone;
- 	memcpy(rbconn->key, key, sizeof(u32) * keylen);
- 
- 	INIT_HLIST_HEAD(&rbconn->hhead);
-diff --git a/net/netfilter/nft_connlimit.c b/net/netfilter/nft_connlimit.c
-index 50c068d660e5..a832c59f0a9c 100644
---- a/net/netfilter/nft_connlimit.c
-+++ b/net/netfilter/nft_connlimit.c
-@@ -52,7 +52,7 @@ static inline void nft_connlimit_do_eval(struct nft_connlimit *priv,
- 	if (!addit)
- 		goto out;
- 
--	if (!nf_conncount_add(&priv->hhead, tuple_ptr)) {
-+	if (!nf_conncount_add(&priv->hhead, tuple_ptr, zone)) {
- 		regs->verdict.code = NF_DROP;
- 		spin_unlock_bh(&priv->lock);
- 		return;
+ 	rcu_read_lock();
+ 	nat_hook = rcu_dereference(nf_nat_hook);
+-	if (nat_hook->decode_session)
++	if (nat_hook && nat_hook->decode_session)
+ 		nat_hook->decode_session(skb, fl);
+ 	rcu_read_unlock();
+ #endif
 -- 
 2.11.0
