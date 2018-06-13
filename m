@@ -1,82 +1,89 @@
-From: Eric Dumazet <edumazet@google.com>
-Subject: [PATCH net] netfilter: ipv6: nf_defrag: reduce struct net memory waste
-Date: Wed, 13 Jun 2018 10:11:56 -0700
-Message-ID: <20180613171156.240889-1-edumazet@google.com>
-Cc: netfilter-devel@vger.kernel.org, netdev <netdev@vger.kernel.org>,
-        Eric Dumazet <edumazet@google.com>,
-        Eric Dumazet <eric.dumazet@gmail.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [RFC nf-next 0/5] netfilter: add ebpf translation infrastructure
+Date: Wed, 13 Jun 2018 22:59:49 +0200
+Message-ID: <20180613205949.tndbq3x6miwmli4w@breakpoint.cc>
+References: <20180601153216.10901-1-fw@strlen.de>
+ <20180611221257.qzip3iqh45kqqkpy@ast-mbp.dhcp.thefacebook.com>
+ <20180612092812.vptmhuekmpb4pn5z@breakpoint.cc>
+ <20180613004324.x2xdyj2qlbkkpccy@ast-mbp.dhcp.thefacebook.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
+        ast@kernel.org, daniel@iogearbox.net, netdev@vger.kernel.org,
+        "David S. Miller" <davem@davemloft.net>, ecree@solarflare.com
+To: Alexei Starovoitov <alexei.starovoitov@gmail.com>
 Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20180613004324.x2xdyj2qlbkkpccy@ast-mbp.dhcp.thefacebook.com>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-It is a waste of memory to use a full "struct netns_sysctl_ipv6"
-while only one pointer is really used, considering netns_sysctl_ipv6
-keeps growing.
+Alexei Starovoitov <alexei.starovoitov@gmail.com> wrote:
+> On Tue, Jun 12, 2018 at 11:28:12AM +0200, Florian Westphal wrote:
+> > I think its important user(space) can see which rules are jitted, and
+> > which ebpf prog corresponds to which rule(s), using an expression as
+> > container allows to re-use existing nft config plane code to serialze
+> > this via netlink attributes.
+> 
+> In my mind it would be all or nothing. I don't think it helps
+> to convert some rules and not all.
 
-Also, since "struct netns_frags" has cache line alignment,
-it is better to move the frags_hdr pointer outside, otherwise
-we spend a full cache line for this pointer.
+Ok.  Still, even in that case I think it would be good if we'd be able to tell
+userspace the ebpf program id that corresponds to the ruleset.
 
-This saves 192 bytes of memory per netns.
+> > Step 1: 1:1 mapping, an nft rule has at most one ebpf prog.
+> > Step 2: figure out how to handle maps, sets, and how to cope with
+> >         not-yet-translateable expressions
+> > Step 3: m:n mapping: kernel provides adjacent rules to the UMH for
+> >         jitting.  Example: user appends rules a, b, c.  UMH creates
+> > 	single ebpf prog from a/b/c.
+> >       	nft-pseudo-expression replaces a/b/c in the
+> > 	packet path, original rules a/b/c are linked from the pseudo
+> > 	expression for tracking.  If user deletes rule b, we provide
+> > 	a/c to UMH to create new epbf prog that replaces new
+> > 	sequence a/c.
+> > Step 4: always provide entire future base chain and all reachable chains
+> >         to the umh.  Ideally all of it is replaced by single program.
 
-Fixes: c038a767cd69 ("ipv6: add a new namespace for nf_conntrack_reasm")
-Signed-off-by: Eric Dumazet <edumazet@google.com>
----
- include/net/net_namespace.h             | 1 +
- include/net/netns/ipv6.h                | 1 -
- net/ipv6/netfilter/nf_conntrack_reasm.c | 6 +++---
- 3 files changed, 4 insertions(+), 4 deletions(-)
+[..]
 
-diff --git a/include/net/net_namespace.h b/include/net/net_namespace.h
-index 47e35cce3b648d696b127ed7bd643036128795f6..a71264d75d7f98d28f92dfd861ffe6e0d39c0198 100644
---- a/include/net/net_namespace.h
-+++ b/include/net/net_namespace.h
-@@ -128,6 +128,7 @@ struct net {
- #endif
- #if IS_ENABLED(CONFIG_NF_DEFRAG_IPV6)
- 	struct netns_nf_frag	nf_frag;
-+	struct ctl_table_header *nf_frag_frags_hdr;
- #endif
- 	struct sock		*nfnl;
- 	struct sock		*nfnl_stash;
-diff --git a/include/net/netns/ipv6.h b/include/net/netns/ipv6.h
-index c978a31b0f846210b4c2a369af960d5349b5395a..762ac9931b6251152b6ee0e5780df0f7b073f3e6 100644
---- a/include/net/netns/ipv6.h
-+++ b/include/net/netns/ipv6.h
-@@ -109,7 +109,6 @@ struct netns_ipv6 {
- 
- #if IS_ENABLED(CONFIG_NF_DEFRAG_IPV6)
- struct netns_nf_frag {
--	struct netns_sysctl_ipv6 sysctl;
- 	struct netns_frags	frags;
- };
- #endif
-diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
-index 5e0332014c1738999e680c1853829f384e880284..a452d99c9f5281b5e5d7e6f0162611deeb82212d 100644
---- a/net/ipv6/netfilter/nf_conntrack_reasm.c
-+++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
-@@ -107,7 +107,7 @@ static int nf_ct_frag6_sysctl_register(struct net *net)
- 	if (hdr == NULL)
- 		goto err_reg;
- 
--	net->nf_frag.sysctl.frags_hdr = hdr;
-+	net->nf_frag_frags_hdr = hdr;
- 	return 0;
- 
- err_reg:
-@@ -121,8 +121,8 @@ static void __net_exit nf_ct_frags6_sysctl_unregister(struct net *net)
- {
- 	struct ctl_table *table;
- 
--	table = net->nf_frag.sysctl.frags_hdr->ctl_table_arg;
--	unregister_net_sysctl_table(net->nf_frag.sysctl.frags_hdr);
-+	table = net->nf_frag_frags_hdr->ctl_table_arg;
-+	unregister_net_sysctl_table(net->nf_frag_frags_hdr);
- 	if (!net_eq(net, &init_net))
- 		kfree(table);
- }
--- 
-2.18.0.rc1.242.g61856ae69a-goog
+> > Does that make sense to you?
+> > 
+> > If you see this as flawed, please let me know, but as I have no idea
+> > how to resolve these issues going from 0 to 4 makes no sense to me.
+>
+> I think the challenge is how to implement 4 without doing step 1, right?
+
+Yes.
+
+> imo doing such 1:1 (single rule to single bpf prog) translation does not
+> help to break hard problem into smaller pieces. Such 1:1 is great
+> for prototype, but not to land upstream.
+> For the same reasons in bpfilter we did single iptable rule to single
+> bpf prog translation, but such code doesn't belong in upstream tree,
+> since it's not a scalable approach.
+[..]
+
+> > Okay, but without any idea how to consider existing expressions,
+> > sets, maps etc. I'm not sure it makes sense to work on that at this
+> > point.
+> 
+> I think sets and ipset (in case of iptables) fit well into trie model.
+
+Yes, but thats going to be a lot of effort to handle properly
+without breaking (or replacing) userland plumbing.
+
+For nft we could aim for full-translation for the ingress hook
+initially as that takes stateful filering out of the picture (ingress
+occurs before conntrack).
+
+We could also ignore sets for now and only deal with anonymous sets (they
+are immutable and data stored in such sets can be made available to
+UMH).
+
+I can rework the RFC to emit "future table" to UMH instead of
+individual rules, but I don't know yet when i will have time to work on
+it again.
+
+Thanks,
+Florian
