@@ -1,49 +1,65 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/9] Netfilter fixes for net
-Date: Wed, 13 Jun 2018 14:05:58 -0700 (PDT)
-Message-ID: <20180613.140558.671650650168307184.davem@davemloft.net>
-References: <20180613105700.12894-1-pablo@netfilter.org>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH net-next,RFC 01/13] net: Add a helper to get the packet offload callbacks by priority.
+Date: Thu, 14 Jun 2018 16:19:35 +0200
+Message-ID: <20180614141947.3580-2-pablo@netfilter.org>
+References: <20180614141947.3580-1-pablo@netfilter.org>
+Cc: netdev@vger.kernel.org, steffen.klassert@secunet.com
+To: netfilter-devel@vger.kernel.org
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180613105700.12894-1-pablo@netfilter.org>
+In-Reply-To: <20180614141947.3580-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Wed, 13 Jun 2018 12:56:51 +0200
+From: Steffen Klassert <steffen.klassert@secunet.com>
 
-> The following patchset contains Netfilter patches for your net tree:
-> 
-> 1) Fix NULL pointer dereference from nf_nat_decode_session() if NAT is
->    not loaded, from Prashant Bhole.
-> 
-> 2) Fix socket extension module autoload.
-> 
-> 3) Don't bogusly reject sets with the NFT_SET_EVAL flag set on from
->    the dynset extension.
-> 
-> 4) Fix races with nf_tables module removal and netns exit path,
->    patches from Florian Westphal.
-> 
-> 5) Don't hit BUG_ON if jumpstack goes too deep, instead hit
->    WARN_ON_ONCE, from Taehee Yoo.
-> 
-> 6) Another NULL pointer dereference from ctnetlink, again if NAT is
->    not loaded, from Florian Westphal.
-> 
-> 7) Fix x_tables match list corruption in xt_connmark module removal
->    path, also from Florian.
-> 
-> 8) nf_conncount doesn't properly deal with conntrack zones, hence
->    garbage collector may get rid of entries in a different zone.
->    From Yi-Hung Wei.
-> 
-> You can pull these changes from:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
+With this helper it is possible to request callbacks with
+a certain priority. This will be used in the upcoming forward
+fastpath to pass packets to the standard GRO path.
 
-Pulled, thank you.
+Signed-off-by: Steffen Klassert <steffen.klassert@secunet.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/linux/netdevice.h |  1 +
+ net/core/dev.c            | 14 ++++++++++++++
+ 2 files changed, 15 insertions(+)
+
+diff --git a/include/linux/netdevice.h b/include/linux/netdevice.h
+index 3ec9850c7936..13a56f9b2a32 100644
+--- a/include/linux/netdevice.h
++++ b/include/linux/netdevice.h
+@@ -2523,6 +2523,7 @@ void dev_remove_pack(struct packet_type *pt);
+ void __dev_remove_pack(struct packet_type *pt);
+ void dev_add_offload(struct packet_offload *po);
+ void dev_remove_offload(struct packet_offload *po);
++struct packet_offload *dev_get_packet_offload(__be16 type, int priority);
+ 
+ int dev_get_iflink(const struct net_device *dev);
+ int dev_fill_metadata_dst(struct net_device *dev, struct sk_buff *skb);
+diff --git a/net/core/dev.c b/net/core/dev.c
+index 6e18242a1cae..115de8bfcb54 100644
+--- a/net/core/dev.c
++++ b/net/core/dev.c
+@@ -468,7 +468,21 @@ void dev_remove_pack(struct packet_type *pt)
+ }
+ EXPORT_SYMBOL(dev_remove_pack);
+ 
++struct packet_offload *dev_get_packet_offload(__be16 type, int priority)
++{
++	struct list_head *offload_head = &offload_base;
++	struct packet_offload *ptype;
++
++	list_for_each_entry_rcu(ptype, offload_head, list) {
++		if (ptype->type != type || !ptype->callbacks.gro_receive || !ptype->callbacks.gro_complete || ptype->priority < priority)
++			continue;
+ 
++		return ptype;
++	}
++
++	return NULL;
++}
++EXPORT_SYMBOL(dev_get_packet_offload);
+ /**
+  *	dev_add_offload - register offload handlers
+  *	@po: protocol offload declaration
+-- 
+2.11.0
