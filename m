@@ -1,53 +1,140 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH net-next,RFC 02/13] net: Change priority of ipv4 and ipv6 packet offloads.
-Date: Thu, 14 Jun 2018 16:19:36 +0200
-Message-ID: <20180614141947.3580-3-pablo@netfilter.org>
-References: <20180614141947.3580-1-pablo@netfilter.org>
+Subject: [PATCH net-next,RFC 00/13] New fast forwarding path
+Date: Thu, 14 Jun 2018 16:19:34 +0200
+Message-ID: <20180614141947.3580-1-pablo@netfilter.org>
 Cc: netdev@vger.kernel.org, steffen.klassert@secunet.com
 To: netfilter-devel@vger.kernel.org
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180614141947.3580-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Steffen Klassert <steffen.klassert@secunet.com>
+Hi,
 
-The forward fastpath needs to insert callbacks with
-higher priority than the standard callbacks. So change
-the priority of ipv4 and ipv6 packet offloads from zero
-to one. With this we are able to insert callbacks with
-priotity zero if needed.
+This patchset proposes a new fast forwarding path infrastructure that
+combines the GRO/GSO and the flowtable infrastructures. The idea is to
+add a hook at the GRO layer that is invoked before the standard GRO
+protocol offloads. This allows us to build custom packet chains that we
+can quickly pass in one go to the neighbour layer to define fast
+forwarding path for flows.
 
-Signed-off-by: Steffen Klassert <steffen.klassert@secunet.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/ipv4/af_inet.c     | 1 +
- net/ipv6/ip6_offload.c | 1 +
- 2 files changed, 2 insertions(+)
+For each packet that gets into the GRO layer, we first check if there is
+an entry in the flowtable, if so, the packet is placed in a list until
+the GRO infrastructure decides to send the batch from gro_complete to
+the neighbour layer. The first packet in the list takes the route from
+the flowtable entry, so we avoid reiterative routing lookups.
 
-diff --git a/net/ipv4/af_inet.c b/net/ipv4/af_inet.c
-index 15e125558c76..fbb90f7556ea 100644
---- a/net/ipv4/af_inet.c
-+++ b/net/ipv4/af_inet.c
-@@ -1841,6 +1841,7 @@ static int ipv4_proc_init(void);
- 
- static struct packet_offload ip_packet_offload __read_mostly = {
- 	.type = cpu_to_be16(ETH_P_IP),
-+	.priority = 1,
- 	.callbacks = {
- 		.gso_segment = inet_gso_segment,
- 		.gro_receive = inet_gro_receive,
-diff --git a/net/ipv6/ip6_offload.c b/net/ipv6/ip6_offload.c
-index 5b3f2f89ef41..863913fb690f 100644
---- a/net/ipv6/ip6_offload.c
-+++ b/net/ipv6/ip6_offload.c
-@@ -343,6 +343,7 @@ static int ip4ip6_gro_complete(struct sk_buff *skb, int nhoff)
- 
- static struct packet_offload ipv6_packet_offload __read_mostly = {
- 	.type = cpu_to_be16(ETH_P_IPV6),
-+	.priority = 1,
- 	.callbacks = {
- 		.gso_segment = ipv6_gso_segment,
- 		.gro_receive = ipv6_gro_receive,
+In case no entry is found in the flowtable, the packet is passed up to
+the classic GRO offload handlers. Thus, this packet follows the standard
+forwarding path. Note that the initial packets of the flow always go
+through the standard IPv4/IPv6 netfilter forward hook, that is used to
+configure what flows are placed in the flowtable. Therefore, only a few
+(initial) packets follow the standard forwarding path while most of the
+follow up packets take this new fast forwarding path.
+
+The fast forwarding path is enabled through explicit user policy, so the
+user needs to request this behaviour from control plane, the following
+example shows how to place flows in the new fast forwarding path from
+the netfilter forward chain:
+
+ table x {
+        flowtable f {
+                hook early_ingress priority 0; devices = { eth0, eth1 }
+        }
+
+        chain y {
+                type filter hook forward priority 0;
+                ip protocol tcp flow offload @f
+        }
+ }
+
+The example above defines a fastpath for TCP flows that are placed in
+the flowtable 'f', this flowtable is hooked at the new early_ingress
+hook. The initial TCP packets that match this rule from the standard
+fowarding path create an entry in the flowtable, thus, GRO creates chain
+of packets for those that find an entry in the flowtable and send
+them through the neighbour layer.
+
+This new hook is happening before the ingress taps, therefore, packets
+that follow this new fast forwarding path are not shown by tcpdump.
+
+This patchset supports both layer 3 IPv4 and IPv6, and layer 4 TCP and
+UDP protocols. This fastpath also integrates with the IPSec
+infrastructure and the ESP protocol.
+
+We have collected performance numbers:
+
+        TCP TSO         TCP Fast Forward
+        32.5 Gbps       35.6 Gbps
+
+        UDP             UDP Fast Forward
+        17.6 Gbps       35.6 Gbps
+
+        ESP             ESP Fast Forward
+        6 Gbps          7.5 Gbps
+
+For UDP, this is doubling performance, and we almost achieve line rate
+with one single CPU using the Intel i40e NIC. We got similar numbers
+with the Mellanox ConnectX-4. For TCP, this is slightly improving things
+even if TSO is being defeated given that we need to segment the packet
+chain in software. We would like to explore HW GRO support with hardware
+vendors with this new mode, we think that should improve the TCP numbers
+we are showing above even more. For ESP traffic, performance improvement
+is ~25%, in this case, perf shows the bottleneck becomes the crypto layer.
+
+This patchset is co-authored work with Steffen Klassert.
+
+Comments are welcome, thanks.
+
+
+Pablo Neira Ayuso (6):
+  netfilter: nft_chain_filter: add support for early ingress
+  netfilter: nf_flow_table: add hooknum to flowtable type
+  netfilter: nf_flow_table: add flowtable for early ingress hook
+  netfilter: nft_flow_offload: enable offload after second packet is seen
+  netfilter: nft_flow_offload: remove secpath check
+  netfilter: nft_flow_offload: make sure route is not stale
+
+Steffen Klassert (7):
+  net: Add a helper to get the packet offload callbacks by priority.
+  net: Change priority of ipv4 and ipv6 packet offloads.
+  net: Add a GSO feature bit for the netfilter forward fastpath.
+  net: Use one bit of NAPI_GRO_CB for the netfilter fastpath.
+  netfilter: add early ingress hook for IPv4
+  netfilter: add early ingress support for IPv6
+  netfilter: add ESP support for early ingress
+
+ include/linux/netdev_features.h         |   4 +-
+ include/linux/netdevice.h               |   6 +-
+ include/linux/netfilter.h               |   6 +
+ include/linux/netfilter_ingress.h       |   1 +
+ include/linux/skbuff.h                  |   2 +
+ include/net/netfilter/early_ingress.h   |  24 +++
+ include/net/netfilter/nf_flow_table.h   |   4 +
+ include/uapi/linux/netfilter.h          |   1 +
+ net/core/dev.c                          |  50 ++++-
+ net/ipv4/af_inet.c                      |   1 +
+ net/ipv4/netfilter/Makefile             |   1 +
+ net/ipv4/netfilter/early_ingress.c      | 327 +++++++++++++++++++++++++++++
+ net/ipv4/netfilter/nf_flow_table_ipv4.c |  12 ++
+ net/ipv6/ip6_offload.c                  |   1 +
+ net/ipv6/netfilter/Makefile             |   1 +
+ net/ipv6/netfilter/early_ingress.c      | 315 ++++++++++++++++++++++++++++
+ net/ipv6/netfilter/nf_flow_table_ipv6.c |   1 +
+ net/netfilter/Kconfig                   |   8 +
+ net/netfilter/Makefile                  |   1 +
+ net/netfilter/core.c                    |  35 +++-
+ net/netfilter/early_ingress.c           | 361 ++++++++++++++++++++++++++++++++
+ net/netfilter/nf_flow_table_inet.c      |   1 +
+ net/netfilter/nf_flow_table_ip.c        |  72 +++++++
+ net/netfilter/nf_tables_api.c           | 120 ++++++-----
+ net/netfilter/nft_chain_filter.c        |   6 +-
+ net/netfilter/nft_flow_offload.c        |  13 +-
+ net/xfrm/xfrm_output.c                  |   4 +
+ 27 files changed, 1297 insertions(+), 81 deletions(-)
+ create mode 100644 include/net/netfilter/early_ingress.h
+ create mode 100644 net/ipv4/netfilter/early_ingress.c
+ create mode 100644 net/ipv6/netfilter/early_ingress.c
+ create mode 100644 net/netfilter/early_ingress.c
+
 -- 
 2.11.0
