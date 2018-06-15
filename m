@@ -1,32 +1,59 @@
-From: David Miller <davem@davemloft.net>
+From: Steffen Klassert <steffen.klassert@secunet.com>
 Subject: Re: [PATCH net-next,RFC 00/13] New fast forwarding path
-Date: Thu, 14 Jun 2018 16:58:34 -0700 (PDT)
-Message-ID: <20180614.165834.338565136334574983.davem@davemloft.net>
+Date: Fri, 15 Jun 2018 07:23:09 +0200
+Message-ID: <20180615052309.brad7wtaselcs6wq@gauss3.secunet.de>
 References: <20180614141947.3580-1-pablo@netfilter.org>
-        <CALx6S345B2-sejH52beewdiHuGo5nAY0v0uFmNuiJ0hQ6Wu3xw@mail.gmail.com>
+ <CAF=yD-+fJ_isaGtfLFVgMQ4_7K-v7b+Kyo6iOB-5kUbbPJXT7Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
-        netdev@vger.kernel.org, steffen.klassert@secunet.com
-To: tom@herbertland.com
+Content-Type: text/plain; charset="us-ascii"
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel <netfilter-devel@vger.kernel.org>,
+        Network Development <netdev@vger.kernel.org>
+To: Willem de Bruijn <willemdebruijn.kernel@gmail.com>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <CALx6S345B2-sejH52beewdiHuGo5nAY0v0uFmNuiJ0hQ6Wu3xw@mail.gmail.com>
+Content-Disposition: inline
+In-Reply-To: <CAF=yD-+fJ_isaGtfLFVgMQ4_7K-v7b+Kyo6iOB-5kUbbPJXT7Q@mail.gmail.com>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Tom Herbert <tom@herbertland.com>
-Date: Thu, 14 Jun 2018 13:52:03 -0700
+On Thu, Jun 14, 2018 at 11:50:49AM -0400, Willem de Bruijn wrote:
+> > This patchset supports both layer 3 IPv4 and IPv6, and layer 4 TCP and
+> > UDP protocols. This fastpath also integrates with the IPSec
+> > infrastructure and the ESP protocol.
+> >
+> > We have collected performance numbers:
+> >
+> >         TCP TSO         TCP Fast Forward
+> >         32.5 Gbps       35.6 Gbps
+> >
+> >         UDP             UDP Fast Forward
+> >         17.6 Gbps       35.6 Gbps
+> >
+> >         ESP             ESP Fast Forward
+> >         6 Gbps          7.5 Gbps
+> >
+> > For UDP, this is doubling performance, and we almost achieve line rate
+> > with one single CPU using the Intel i40e NIC. We got similar numbers
+> > with the Mellanox ConnectX-4. For TCP, this is slightly improving things
+> > even if TSO is being defeated given that we need to segment the packet
+> > chain in software.
+> 
+> The difference between TCP and UDP stems from lack of GRO for UDP.
 
-> IIRC, there was a similar proposal a while back that want to bundle
-> packets of the same flow together (without doing GRO) so that they
-> could be processed by various functions by looking at just one
-> representative packet in the group. The concept had some promise, but
-> in the end it created quite a bit of complexity since at some point
-> the packet bundle needed to be undone to go back to processing the
-> individual packets.
+Right.
 
-You're probably talking about Edward Cree's SKB list stuff, and as
-per his presenation at netconf 2 weeks ago he plans to revitalize
-it given how Spectre et al. gives cause to reevaluate all bulking
-techniques.
+> We
+> recently added UDP GSO to allow for batch traversal of the UDP stack on
+> transmission. Adding a UDP GRO handler can probably extend batching to
+> the forwarding path in a similar way without the need for a new infrastructure.
+
+That's more or less what we did. The batching method ist just
+optimized for the forwarding path. We are generating skb chains
+by chaning at the frag_list pointer of the first skb. With that,
+we don't need to mange packet. We keep the packets in the native
+form, so the 'segmentation' is rather easy.
+
+The rest is just to be able to configure this and to make
+sure that we handle only flows that are going to be (fast)
+forwarded, as the upper stack can not (yet) handle such
+skb chains.
