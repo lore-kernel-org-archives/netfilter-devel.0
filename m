@@ -1,8 +1,9 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH net] netfilter: nf_queue: augment nfqa_cfg_policy
-Date: Mon, 18 Jun 2018 14:13:52 +0200
-Message-ID: <20180618121352.fcvsmbjq2yov4z3f@salvia>
-References: <20180613161339.144919-1-edumazet@google.com>
+Subject: Re: [PATCH net] netfilter: ipv6: nf_defrag: reduce struct net memory
+ waste
+Date: Mon, 18 Jun 2018 14:14:11 +0200
+Message-ID: <20180618121411.mrbrmhntymfvteb2@salvia>
+References: <20180613171156.240889-1-edumazet@google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
@@ -12,18 +13,19 @@ Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
 To: Eric Dumazet <edumazet@google.com>
 Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180613161339.144919-1-edumazet@google.com>
+In-Reply-To: <20180613171156.240889-1-edumazet@google.com>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Jun 13, 2018 at 09:13:39AM -0700, Eric Dumazet wrote:
-> Three attributes are currently not verified, thus can trigger KMSAN
-> warnings such as :
+On Wed, Jun 13, 2018 at 10:11:56AM -0700, Eric Dumazet wrote:
+> It is a waste of memory to use a full "struct netns_sysctl_ipv6"
+> while only one pointer is really used, considering netns_sysctl_ipv6
+> keeps growing.
 > 
-> BUG: KMSAN: uninit-value in __arch_swab32 arch/x86/include/uapi/asm/swab.h:10 [inline]
-> BUG: KMSAN: uninit-value in __fswab32 include/uapi/linux/swab.h:59 [inline]
-> BUG: KMSAN: uninit-value in nfqnl_recv_config+0x939/0x17d0 net/netfilter/nfnetlink_queue.c:1268
-> CPU: 1 PID: 4521 Comm: syz-executor120 Not tainted 4.17.0+ #5
-> Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+> Also, since "struct netns_frags" has cache line alignment,
+> it is better to move the frags_hdr pointer outside, otherwise
+> we spend a full cache line for this pointer.
+> 
+> This saves 192 bytes of memory per netns.
 
-Applied, thanks Eric.
+Also applied, thanks.
