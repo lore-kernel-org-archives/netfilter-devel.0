@@ -1,61 +1,29 @@
-From: Steffen Klassert <steffen.klassert@secunet.com>
-Subject: Re: [PATCH net-next,RFC 00/13] New fast forwarding path
-Date: Sun, 17 Jun 2018 11:23:04 +0200
-Message-ID: <20180617092304.fviy36bvgnhexwtb@gauss3.secunet.de>
-References: <20180614141947.3580-1-pablo@netfilter.org>
- <20180614.101831.465275975690050595.davem@davemloft.net>
- <20180615061740.eqgr2iv722oydheb@gauss3.secunet.de>
- <8fd4ce02-6bf0-6bee-f8de-92c551881465@iogearbox.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH net] netfilter: nf_queue: augment nfqa_cfg_policy
+Date: Mon, 18 Jun 2018 14:13:52 +0200
+Message-ID: <20180618121352.fcvsmbjq2yov4z3f@salvia>
+References: <20180613161339.144919-1-edumazet@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Cc: David Miller <davem@davemloft.net>, <pablo@netfilter.org>,
-        <netfilter-devel@vger.kernel.org>, <netdev@vger.kernel.org>
-To: Daniel Borkmann <daniel@iogearbox.net>
+Content-Type: text/plain; charset=us-ascii
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>,
+        netfilter-devel@vger.kernel.org, netdev <netdev@vger.kernel.org>,
+        Eric Dumazet <eric.dumazet@gmail.com>
+To: Eric Dumazet <edumazet@google.com>
 Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <8fd4ce02-6bf0-6bee-f8de-92c551881465@iogearbox.net>
+In-Reply-To: <20180613161339.144919-1-edumazet@google.com>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Daniel,
-
-On Fri, Jun 15, 2018 at 03:22:24PM +0200, Daniel Borkmann wrote:
-> Hi Steffen,
+On Wed, Jun 13, 2018 at 09:13:39AM -0700, Eric Dumazet wrote:
+> Three attributes are currently not verified, thus can trigger KMSAN
+> warnings such as :
 > 
-> On 06/15/2018 08:17 AM, Steffen Klassert wrote:
-> > 
-> > I started with this last year because I wanted to improve
-> > the IPsec (and UDP) forwarding path. Batching packets
-> > at layer2  and send them directly to the output path
-> > seemed to be a good method to improve this.
-> > 
-> > In particular, we need to do only one IPsec lookup
-> > for the whole packet chain. So it relaxes the pain
-> > from reomoving the IPsec flowcache a bit. It can be
-> > only a first step, but we need some improvements here
-> > as people start to complain about that.
-> 
-> But did you also experiment with XDP on this? 
+> BUG: KMSAN: uninit-value in __arch_swab32 arch/x86/include/uapi/asm/swab.h:10 [inline]
+> BUG: KMSAN: uninit-value in __fswab32 include/uapi/linux/swab.h:59 [inline]
+> BUG: KMSAN: uninit-value in nfqnl_recv_config+0x939/0x17d0 net/netfilter/nfnetlink_queue.c:1268
+> CPU: 1 PID: 4521 Comm: syz-executor120 Not tainted 4.17.0+ #5
+> Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
 
-I've already tried to figure out what I have to to
-do to get XDP with forwarding, but still don't realy
-know how to set this up.
-
-Maybe it is time to have a deeper look into BPF/XDP,
-but for now I feel a bit lost with this.
-
-> Would be curious about
-> the numbers. You'd get implicit batching for the forwarding via devmap
-> as well if you're required to flush it out via different device with
-> XDP_REDIRECT; otherwise XDP_TX of course. Given we have recently
-> integrated helpers for XDP to do a FIB and neighbor lookup from the
-> kernel tables, where it's thus shared and integrated with the rest of
-> the stack and tooling, it would be awesome to get to the same point
-> with xfrm as well. Eyal recently did a start on that for xfrm for tc
-> progs; would be nice to have integration on XDP as well, potentially
-> it might also result in a bigger plus on the forwarding numbers.
-
-It might make sense to intrgrate XDP with xfrm to
-be able to compare numbers etc. But I need a working
-XDP setup and some understanding about it first, what
-could take some time.
+Applied, thanks Eric.
