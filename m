@@ -1,43 +1,36 @@
-From: Daniel Borkmann <daniel@iogearbox.net>
+From: Andrew Collins <bsderandrew@gmail.com>
 Subject: Re: [PATCH net-next,RFC 00/13] New fast forwarding path
-Date: Wed, 20 Jun 2018 00:22:05 +0200
-Message-ID: <161558ff-2002-ae17-d45a-58464b9f8619@iogearbox.net>
-References: <20180614141947.3580-1-pablo@netfilter.org>
- <20180614.101831.465275975690050595.davem@davemloft.net>
- <20180615061740.eqgr2iv722oydheb@gauss3.secunet.de>
- <8fd4ce02-6bf0-6bee-f8de-92c551881465@iogearbox.net>
- <20180617092304.fviy36bvgnhexwtb@gauss3.secunet.de>
+Date: Tue, 19 Jun 2018 18:56:45 -0600
+Message-ID: <CAKTPYJTBQSwNPx=pV1mQpRc6OriEru-1N7-XegUOOiU-xDMQ8A@mail.gmail.com>
+References: <20180614141947.3580-1-pablo@netfilter.org> <20180614.101831.465275975690050595.davem@davemloft.net>
+ <66634ba7-3d72-644a-9d26-d9644c540619@gmail.com> <20180614.165549.1790121217625223670.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Cc: David Miller <davem@davemloft.net>, pablo@netfilter.org,
-        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Steffen Klassert <steffen.klassert@secunet.com>
+Content-Type: text/plain; charset="UTF-8"
+Cc: f.fainelli@gmail.com, pablo@netfilter.org,
+        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+        Steffen Klassert <steffen.klassert@secunet.com>
+To: David Miller <davem@davemloft.net>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180617092304.fviy36bvgnhexwtb@gauss3.secunet.de>
-Content-Language: en-US
+In-Reply-To: <20180614.165549.1790121217625223670.davem@davemloft.net>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On 06/17/2018 11:23 AM, Steffen Klassert wrote:
-[...]
->> Would be curious about
->> the numbers. You'd get implicit batching for the forwarding via devmap
->> as well if you're required to flush it out via different device with
->> XDP_REDIRECT; otherwise XDP_TX of course. Given we have recently
->> integrated helpers for XDP to do a FIB and neighbor lookup from the
->> kernel tables, where it's thus shared and integrated with the rest of
->> the stack and tooling, it would be awesome to get to the same point
->> with xfrm as well. Eyal recently did a start on that for xfrm for tc
->> progs; would be nice to have integration on XDP as well, potentially
->> it might also result in a bigger plus on the forwarding numbers.
-> 
-> It might make sense to intrgrate XDP with xfrm to
-> be able to compare numbers etc. But I need a working
-> XDP setup and some understanding about it first, what
-> could take some time.
+On Thu, Jun 14, 2018 at 5:55 PM, David Miller <davem@davemloft.net> wrote:
+> And guess what?  Then millions of possibilities would have been
+> openned up, rather than just this one special case.
+>
+> So, I ask, please see the larger picture.
 
-Okay, no prob. If you have any questions feel free to shoot an email.
++cc netdev/etc
 
-Thanks,
-Daniel
+This is perhaps unrelated to the topic at hand, but as someone who's shipped
+a bunch of devices over the years using the linux kernel forwarding path and
+needs performance but wants to avoid moving to out of tree userspace offload
+for all the reasons that you and many others have stated, is the long
+term vision that the existing kernel forwarding path will transparently take
+advantage of eBPF (ala bpfilter), or that users will write custom/individualized
+eBPF forwarding paths for their usecases as necessary?
+
+I (and I suspect many others) will start on the latter anyways, I'm just curious
+whether it's desired/expected that such custom fastpath users will eventually
+be rolled back into/replaced by a transparent upstream in-kernel equivalent.
