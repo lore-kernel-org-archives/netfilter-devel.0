@@ -1,36 +1,44 @@
-From: Andrew Collins <bsderandrew@gmail.com>
-Subject: Re: [PATCH net-next,RFC 00/13] New fast forwarding path
-Date: Tue, 19 Jun 2018 18:56:45 -0600
-Message-ID: <CAKTPYJTBQSwNPx=pV1mQpRc6OriEru-1N7-XegUOOiU-xDMQ8A@mail.gmail.com>
-References: <20180614141947.3580-1-pablo@netfilter.org> <20180614.101831.465275975690050595.davem@davemloft.net>
- <66634ba7-3d72-644a-9d26-d9644c540619@gmail.com> <20180614.165549.1790121217625223670.davem@davemloft.net>
+From: Jann Horn <jannh@google.com>
+Subject: [PATCH net] netfilter: nf_log: fix uninit read in nf_log_proc_dostring
+Date: Wed, 20 Jun 2018 18:33:45 +0200
+Message-ID: <20180620163345.212776-1-jannh@google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Cc: f.fainelli@gmail.com, pablo@netfilter.org,
-        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-        Steffen Klassert <steffen.klassert@secunet.com>
-To: David Miller <davem@davemloft.net>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180614.165549.1790121217625223670.davem@davemloft.net>
-Sender: netdev-owner@vger.kernel.org
+Cc: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        jannh@google.com
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, Jun 14, 2018 at 5:55 PM, David Miller <davem@davemloft.net> wrote:
-> And guess what?  Then millions of possibilities would have been
-> openned up, rather than just this one special case.
->
-> So, I ask, please see the larger picture.
+When proc_dostring() is called with a non-zero offset in strict mode, it
+doesn't just write to the ->data buffer, it also reads. Make sure it
+doesn't read uninitialized data.
 
-+cc netdev/etc
+Fixes: c6ac37d8d884 ("netfilter: nf_log: fix error on write NONE to [...]")
+Signed-off-by: Jann Horn <jannh@google.com>
+---
+ net/netfilter/nf_log.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-This is perhaps unrelated to the topic at hand, but as someone who's shipped
-a bunch of devices over the years using the linux kernel forwarding path and
-needs performance but wants to avoid moving to out of tree userspace offload
-for all the reasons that you and many others have stated, is the long
-term vision that the existing kernel forwarding path will transparently take
-advantage of eBPF (ala bpfilter), or that users will write custom/individualized
-eBPF forwarding paths for their usecases as necessary?
-
-I (and I suspect many others) will start on the latter anyways, I'm just curious
-whether it's desired/expected that such custom fastpath users will eventually
-be rolled back into/replaced by a transparent upstream in-kernel equivalent.
+diff --git a/net/netfilter/nf_log.c b/net/netfilter/nf_log.c
+index 426457047578..2c47f9ec3511 100644
+--- a/net/netfilter/nf_log.c
++++ b/net/netfilter/nf_log.c
+@@ -424,6 +424,10 @@ static int nf_log_proc_dostring(struct ctl_table *table, int write,
+ 	if (write) {
+ 		struct ctl_table tmp = *table;
+ 
++		/* proc_dostring() can append to existing strings, so we need to
++		 * initialize it as an empty string.
++		 */
++		buf[0] = '\0';
+ 		tmp.data = buf;
+ 		r = proc_dostring(&tmp, write, buffer, lenp, ppos);
+ 		if (r)
+-- 
+2.18.0.rc1.244.gcf134e6275-goog
