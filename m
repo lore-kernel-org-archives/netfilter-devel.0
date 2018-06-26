@@ -1,8 +1,8 @@
-From: Flavio Leitner <fbl@redhat.com>
+From: Eric Dumazet <eric.dumazet@gmail.com>
 Subject: Re: [PATCH net-next] net: preserve sock reference when scrubbing the
  skb.
-Date: Tue, 26 Jun 2018 20:33:02 -0300
-Message-ID: <20180626233302.GU19565@plex.lan>
+Date: Tue, 26 Jun 2018 16:53:55 -0700
+Message-ID: <aae3fa15-598b-342d-20c7-23ed4b9faf84@gmail.com>
 References: <20180625155610.30802-1-fbl@redhat.com>
  <CAM_iQpX_X4hhSSrhMZavLibobp6tgMEa_26T6j4QvACKg-HPvw@mail.gmail.com>
  <48e15faf-f935-0166-e1db-18f7286e7264@gmail.com>
@@ -10,48 +10,39 @@ References: <20180625155610.30802-1-fbl@redhat.com>
  <20180626220300.GT19565@plex.lan>
  <CAM_iQpU8E5OuXx87Dm+jbqwbkkwETNF_RZh-VnUkF5seFPvv_A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Eric Dumazet <eric.dumazet@gmail.com>,
-        Linux Kernel Network Developers <netdev@vger.kernel.org>,
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Cc: Linux Kernel Network Developers <netdev@vger.kernel.org>,
         Paolo Abeni <pabeni@redhat.com>,
         David Miller <davem@davemloft.net>,
         Florian Westphal <fw@strlen.de>,
         NetFilter <netfilter-devel@vger.kernel.org>
-To: Cong Wang <xiyou.wangcong@gmail.com>
+To: Cong Wang <xiyou.wangcong@gmail.com>,
+        Flavio Leitner <fbl@redhat.com>
 Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
 In-Reply-To: <CAM_iQpU8E5OuXx87Dm+jbqwbkkwETNF_RZh-VnUkF5seFPvv_A@mail.gmail.com>
+Content-Language: en-US
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Jun 26, 2018 at 03:47:31PM -0700, Cong Wang wrote:
-> On Tue, Jun 26, 2018 at 3:03 PM Flavio Leitner <fbl@redhat.com> wrote:
-> >
-> > On Tue, Jun 26, 2018 at 02:48:47PM -0700, Cong Wang wrote:
-> > > On Mon, Jun 25, 2018 at 11:41 PM Eric Dumazet <eric.dumazet@gmail.com> wrote:
-> > > > When a packet is attached to a socket, we should keep the association as much as possible.
-> > >
-> > > As much as possible within one stack, I agree. I still don't understand
-> > > why we should keep it across the stack boundary.
-> > >
-> > > > Only when a new association needs to be done, skb_orphan() needs to be called.
-> > > >
-> > > > Doing this skb_orphan() too soon breaks back pressure in general, this is bad, since a socket
-> > > > can evades SO_SNDBUF limits.
-> > >
-> > > Right before leaving the stack is not too soon, it is the latest
-> > > actually, for veth case.
-> >
-> > Depends on how you view things - it's the same host/stack sharing the
-> > same resources, so why should we not keep it?
+
+
+On 06/26/2018 03:47 PM, Cong Wang wrote:
 > 
-> Because stacks are supposed to be independent, netdevices are
-> isolated, iptables and route tables too. This is how netns is designed
-> from the beginning. The trend today is actually more isolation instead
-> of more sharing, given the popularity of containers.
+> You need to justify why you want to break the TSQ's scope here,
+> which is obviously not compatible with netns design.
 
-It is still isolated, the sk carries the netns info and it is
-orphaned when it re-enters the stack.
+You have to explain why you do not want us to fix this buggy behavior.
 
--- 
-Flavio
+Right now TSQ (and more generally back pressure) is broken by this skb_orphan()
+
+So we want to restore TSQ (and back pressure)
+
+TSQ scope never mentioned netns.
+We (TCP stack TSQ handler) want to be notified when this packet leaves the host,
+even if it had to traverse multiple netns (for whatever reasons).
+
+_If_ a packet is locally 'consumed' (like on loopback device, or veth pair),
+then the skb_orphan() will automatically be done.
+
+If you have a case where this skb_orphan() is needed, please add it at the needed place.
