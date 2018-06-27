@@ -1,101 +1,49 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 1/6] netfilter: nf_queue: augment nfqa_cfg_policy
-Date: Wed, 27 Jun 2018 17:22:18 +0200
-Message-ID: <20180627152223.3633-2-pablo@netfilter.org>
-References: <20180627152223.3633-1-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
+From: Cong Wang <xiyou.wangcong@gmail.com>
+Subject: Re: [PATCH net-next] net: preserve sock reference when scrubbing the skb.
+Date: Wed, 27 Jun 2018 11:59:59 -0700
+Message-ID: <CAM_iQpUnyVHPb96TTNeNo0Ydu9D9s4HqVMwr-YX822euSPXngw@mail.gmail.com>
+References: <20180625155610.30802-1-fbl@redhat.com> <CAM_iQpX_X4hhSSrhMZavLibobp6tgMEa_26T6j4QvACKg-HPvw@mail.gmail.com>
+ <48e15faf-f935-0166-e1db-18f7286e7264@gmail.com> <CAM_iQpU0jp=wvutGbSLzVYX5qQeW0W8ARvR=-gp4MYJqWeee_A@mail.gmail.com>
+ <20180626220300.GT19565@plex.lan> <CAM_iQpU8E5OuXx87Dm+jbqwbkkwETNF_RZh-VnUkF5seFPvv_A@mail.gmail.com>
+ <aae3fa15-598b-342d-20c7-23ed4b9faf84@gmail.com> <CAM_iQpUOvavz580tJHCXhAR6AMprmFvakqiaiVMYe7NLFvFJ0Q@mail.gmail.com>
+ <d1818974-5445-4dc2-1c3c-2b67d2826d6f@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Cc: Flavio Leitner <fbl@redhat.com>,
+        Linux Kernel Network Developers <netdev@vger.kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>,
+        David Miller <davem@davemloft.net>,
+        Florian Westphal <fw@strlen.de>,
+        NetFilter <netfilter-devel@vger.kernel.org>
+To: Eric Dumazet <eric.dumazet@gmail.com>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180627152223.3633-1-pablo@netfilter.org>
+In-Reply-To: <d1818974-5445-4dc2-1c3c-2b67d2826d6f@gmail.com>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Eric Dumazet <edumazet@google.com>
+On Tue, Jun 26, 2018 at 7:35 PM Eric Dumazet <eric.dumazet@gmail.com> wrote:
+>
+>
+>
+> On 06/26/2018 05:44 PM, Cong Wang wrote:
+>
+> > With this, a netns could totally throttle a TCP socket in a different
+> > netns by holding the packets infinitely (e.g. putting them in a loop).
+> > This is where the isolation breaks.
+> >
+>
+> That is fine, really. Admin error -> Working as intended.
 
-Three attributes are currently not verified, thus can trigger KMSAN
-warnings such as :
+The point is never it is an error or not, the point is one netns could
+influence another one with this change.
 
-BUG: KMSAN: uninit-value in __arch_swab32 arch/x86/include/uapi/asm/swab.h:10 [inline]
-BUG: KMSAN: uninit-value in __fswab32 include/uapi/linux/swab.h:59 [inline]
-BUG: KMSAN: uninit-value in nfqnl_recv_config+0x939/0x17d0 net/netfilter/nfnetlink_queue.c:1268
-CPU: 1 PID: 4521 Comm: syz-executor120 Not tainted 4.17.0+ #5
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
-Call Trace:
- __dump_stack lib/dump_stack.c:77 [inline]
- dump_stack+0x185/0x1d0 lib/dump_stack.c:113
- kmsan_report+0x188/0x2a0 mm/kmsan/kmsan.c:1117
- __msan_warning_32+0x70/0xc0 mm/kmsan/kmsan_instr.c:620
- __arch_swab32 arch/x86/include/uapi/asm/swab.h:10 [inline]
- __fswab32 include/uapi/linux/swab.h:59 [inline]
- nfqnl_recv_config+0x939/0x17d0 net/netfilter/nfnetlink_queue.c:1268
- nfnetlink_rcv_msg+0xb2e/0xc80 net/netfilter/nfnetlink.c:212
- netlink_rcv_skb+0x37e/0x600 net/netlink/af_netlink.c:2448
- nfnetlink_rcv+0x2fe/0x680 net/netfilter/nfnetlink.c:513
- netlink_unicast_kernel net/netlink/af_netlink.c:1310 [inline]
- netlink_unicast+0x1680/0x1750 net/netlink/af_netlink.c:1336
- netlink_sendmsg+0x104f/0x1350 net/netlink/af_netlink.c:1901
- sock_sendmsg_nosec net/socket.c:629 [inline]
- sock_sendmsg net/socket.c:639 [inline]
- ___sys_sendmsg+0xec8/0x1320 net/socket.c:2117
- __sys_sendmsg net/socket.c:2155 [inline]
- __do_sys_sendmsg net/socket.c:2164 [inline]
- __se_sys_sendmsg net/socket.c:2162 [inline]
- __x64_sys_sendmsg+0x331/0x460 net/socket.c:2162
- do_syscall_64+0x15b/0x230 arch/x86/entry/common.c:287
- entry_SYSCALL_64_after_hwframe+0x44/0xa9
-RIP: 0033:0x43fd59
-RSP: 002b:00007ffde0e30d28 EFLAGS: 00000213 ORIG_RAX: 000000000000002e
-RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 000000000043fd59
-RDX: 0000000000000000 RSI: 0000000020000080 RDI: 0000000000000003
-RBP: 00000000006ca018 R08: 00000000004002c8 R09: 00000000004002c8
-R10: 00000000004002c8 R11: 0000000000000213 R12: 0000000000401680
-R13: 0000000000401710 R14: 0000000000000000 R15: 0000000000000000
+>
+> The current scrubbing is simply wrong, not documented, and added by someone
+> who had absolutely not intended all the side effects.
+>
 
-Uninit was created at:
- kmsan_save_stack_with_flags mm/kmsan/kmsan.c:279 [inline]
- kmsan_internal_poison_shadow+0xb8/0x1b0 mm/kmsan/kmsan.c:189
- kmsan_kmalloc+0x94/0x100 mm/kmsan/kmsan.c:315
- kmsan_slab_alloc+0x10/0x20 mm/kmsan/kmsan.c:322
- slab_post_alloc_hook mm/slab.h:446 [inline]
- slab_alloc_node mm/slub.c:2753 [inline]
- __kmalloc_node_track_caller+0xb35/0x11b0 mm/slub.c:4395
- __kmalloc_reserve net/core/skbuff.c:138 [inline]
- __alloc_skb+0x2cb/0x9e0 net/core/skbuff.c:206
- alloc_skb include/linux/skbuff.h:988 [inline]
- netlink_alloc_large_skb net/netlink/af_netlink.c:1182 [inline]
- netlink_sendmsg+0x76e/0x1350 net/netlink/af_netlink.c:1876
- sock_sendmsg_nosec net/socket.c:629 [inline]
- sock_sendmsg net/socket.c:639 [inline]
- ___sys_sendmsg+0xec8/0x1320 net/socket.c:2117
- __sys_sendmsg net/socket.c:2155 [inline]
- __do_sys_sendmsg net/socket.c:2164 [inline]
- __se_sys_sendmsg net/socket.c:2162 [inline]
- __x64_sys_sendmsg+0x331/0x460 net/socket.c:2162
- do_syscall_64+0x15b/0x230 arch/x86/entry/common.c:287
- entry_SYSCALL_64_after_hwframe+0x44/0xa9
+IIRC, this skb_orphan() was introduced much earlier than TSQ, probably
+from the beginning of veth.
 
-Fixes: fdb694a01f1f ("netfilter: Add fail-open support")
-Fixes: 829e17a1a602 ("[NETFILTER]: nfnetlink_queue: allow changing queue length through netlink")
-Signed-off-by: Eric Dumazet <edumazet@google.com>
-Reported-by: syzbot <syzkaller@googlegroups.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nfnetlink_queue.c | 3 +++
- 1 file changed, 3 insertions(+)
-
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index 4ccd2988f9db..ea4ba551abb2 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -1243,6 +1243,9 @@ static int nfqnl_recv_unsupp(struct net *net, struct sock *ctnl,
- static const struct nla_policy nfqa_cfg_policy[NFQA_CFG_MAX+1] = {
- 	[NFQA_CFG_CMD]		= { .len = sizeof(struct nfqnl_msg_config_cmd) },
- 	[NFQA_CFG_PARAMS]	= { .len = sizeof(struct nfqnl_msg_config_params) },
-+	[NFQA_CFG_QUEUE_MAXLEN]	= { .type = NLA_U32 },
-+	[NFQA_CFG_MASK]		= { .type = NLA_U32 },
-+	[NFQA_CFG_FLAGS]	= { .type = NLA_U32 },
- };
- 
- static const struct nf_queue_handler nfqh = {
--- 
-2.11.0
+Leaving the stack should be effectively equivalent to leaving the host,
+from the view of network isolation.
