@@ -1,98 +1,31 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH v2 net-next 2/2] skbuff: preserve sock reference when
- scrubbing the skb.
-Date: Wed, 27 Jun 2018 06:56:52 -0700
-Message-ID: <eb07f943-9033-8da6-7958-8ecdc94d25ac@gmail.com>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH v2 net-next 1/2] netfilter: check if the socket netns is
+ correct.
+Date: Wed, 27 Jun 2018 16:22:22 +0200
+Message-ID: <20180627142222.vzipwze4k4aebqay@breakpoint.cc>
 References: <20180627133426.3858-1-fbl@redhat.com>
- <20180627133426.3858-3-fbl@redhat.com>
+ <20180627133426.3858-2-fbl@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Cc: Eric Dumazet <eric.dumazet@gmail.com>,
+Content-Type: text/plain; charset=us-ascii
+Cc: netdev@vger.kernel.org, Eric Dumazet <eric.dumazet@gmail.com>,
         Paolo Abeni <pabeni@redhat.com>,
         David Miller <davem@davemloft.net>,
         Florian Westphal <fw@strlen.de>,
         netfilter-devel@vger.kernel.org
-To: Flavio Leitner <fbl@redhat.com>, netdev@vger.kernel.org
+To: Flavio Leitner <fbl@redhat.com>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180627133426.3858-3-fbl@redhat.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20180627133426.3858-2-fbl@redhat.com>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Flavio Leitner <fbl@redhat.com> wrote:
+> Netfilter assumes that if the socket is present in the skb, then
+> it can be used because that reference is cleaned up while the skb
+> is crossing netns.
+>
+> We want to change that to preserve the socket reference in a future
+> patch, so this is a preparation updating netfilter to check if the
+> socket netns matches before use it.
 
-
-On 06/27/2018 06:34 AM, Flavio Leitner wrote:
-> The sock reference is lost when scrubbing the packet and that breaks
-> TSQ (TCP Small Queues) and XPS (Transmit Packet Steering) causing
-> performance impacts of about 50% in a single TCP stream when crossing
-> network namespaces.
-> 
-> XPS breaks because the queue mapping stored in the socket is not
-> available, so another random queue might be selected when the stack
-> needs to transmit something like a TCP ACK, or TCP Retransmissions.
-> That causes packet re-ordering and/or performance issues.
-
-Note we do not care if another random queue is selected when TCP retransmit
-after timeout happens.
-
-The problem is really when sending a normal train of packets (being retransmission
-or not). We want all of them going through one queue to avoid reorders.
-
-After an idle period (no packets are in any qdisc/NIC queue), we absolutely
-are okay to select another "random queue".
-
-This choice is driven by skb->ooo_okay
-
-Most TCP ACK packets are sent while no prior packet is in qdisc, so should
-have ooo_okay set to 1.
-
-> 
-> TSQ breaks because it orphans the packet while it is still in the
-> host, so packets are queued contributing to the buffer bloat problem.
-> 
-> Preserving the sock reference fixes both issues. The socket is
-> orphaned anyways in the receiving path before any relevant action
-> and on TX side the netfilter checks if the reference is local before
-> use it.
-> 
-> Signed-off-by: Flavio Leitner <fbl@redhat.com>
-> ---
->  Documentation/networking/ip-sysctl.txt | 10 +++++-----
->  net/core/skbuff.c                      |  1 -
->  2 files changed, 5 insertions(+), 6 deletions(-)
-> 
-> diff --git a/Documentation/networking/ip-sysctl.txt b/Documentation/networking/ip-sysctl.txt
-> index ce8fbf5aa63c..f4c042be0216 100644
-> --- a/Documentation/networking/ip-sysctl.txt
-> +++ b/Documentation/networking/ip-sysctl.txt
-> @@ -733,11 +733,11 @@ tcp_limit_output_bytes - INTEGER
->  	Controls TCP Small Queue limit per tcp socket.
->  	TCP bulk sender tends to increase packets in flight until it
->  	gets losses notifications. With SNDBUF autotuning, this can
-> -	result in a large amount of packets queued in qdisc/device
-> -	on the local machine, hurting latency of other flows, for
-> -	typical pfifo_fast qdiscs.
-> -	tcp_limit_output_bytes limits the number of bytes on qdisc
-> -	or device to reduce artificial RTT/cwnd and reduce bufferbloat.
-> +	result in a large amount of packets queued on the local machine
-> +	(e.g.: qdiscs, CPU backlog, or device) hurting latency of other
-> +	flows, for typical pfifo_fast qdiscs.  tcp_limit_output_bytes
-> +	limits the number of bytes on qdisc or device to reduce artificial
-> +	RTT/cwnd and reduce bufferbloat.
->  	Default: 262144
->  
->  tcp_challenge_ack_limit - INTEGER
-> diff --git a/net/core/skbuff.c b/net/core/skbuff.c
-> index b1f274f22d85..f59e98ca72c5 100644
-> --- a/net/core/skbuff.c
-> +++ b/net/core/skbuff.c
-> @@ -4911,7 +4911,6 @@ void skb_scrub_packet(struct sk_buff *skb, bool xnet)
->  		return;
->  
->  	ipvs_reset(skb);
-> -	skb_orphan(skb);
->  	skb->mark = 0;
->  }
->  EXPORT_SYMBOL_GPL(skb_scrub_packet);
-> 
+Acked-by: Florian Westphal <fw@strlen.de>
