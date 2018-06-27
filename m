@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 3/6] netfilter: nf_ct_helper: Fix possible panic after nf_conntrack_helper_unregister
-Date: Wed, 27 Jun 2018 17:22:20 +0200
-Message-ID: <20180627152223.3633-4-pablo@netfilter.org>
+Subject: [PATCH 1/6] netfilter: nf_queue: augment nfqa_cfg_policy
+Date: Wed, 27 Jun 2018 17:22:18 +0200
+Message-ID: <20180627152223.3633-2-pablo@netfilter.org>
 References: <20180627152223.3633-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,48 +10,92 @@ In-Reply-To: <20180627152223.3633-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Gao Feng <gfree.wind@vip.163.com>
+From: Eric Dumazet <edumazet@google.com>
 
-The helper module would be unloaded after nf_conntrack_helper_unregister,
-so it may cause a possible panic caused by race.
+Three attributes are currently not verified, thus can trigger KMSAN
+warnings such as :
 
-nf_ct_iterate_destroy(unhelp, me) reset the helper of conntrack as NULL,
-but maybe someone has gotten the helper pointer during this period. Then
-it would panic, when it accesses the helper and the module was unloaded.
+BUG: KMSAN: uninit-value in __arch_swab32 arch/x86/include/uapi/asm/swab.h:10 [inline]
+BUG: KMSAN: uninit-value in __fswab32 include/uapi/linux/swab.h:59 [inline]
+BUG: KMSAN: uninit-value in nfqnl_recv_config+0x939/0x17d0 net/netfilter/nfnetlink_queue.c:1268
+CPU: 1 PID: 4521 Comm: syz-executor120 Not tainted 4.17.0+ #5
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x185/0x1d0 lib/dump_stack.c:113
+ kmsan_report+0x188/0x2a0 mm/kmsan/kmsan.c:1117
+ __msan_warning_32+0x70/0xc0 mm/kmsan/kmsan_instr.c:620
+ __arch_swab32 arch/x86/include/uapi/asm/swab.h:10 [inline]
+ __fswab32 include/uapi/linux/swab.h:59 [inline]
+ nfqnl_recv_config+0x939/0x17d0 net/netfilter/nfnetlink_queue.c:1268
+ nfnetlink_rcv_msg+0xb2e/0xc80 net/netfilter/nfnetlink.c:212
+ netlink_rcv_skb+0x37e/0x600 net/netlink/af_netlink.c:2448
+ nfnetlink_rcv+0x2fe/0x680 net/netfilter/nfnetlink.c:513
+ netlink_unicast_kernel net/netlink/af_netlink.c:1310 [inline]
+ netlink_unicast+0x1680/0x1750 net/netlink/af_netlink.c:1336
+ netlink_sendmsg+0x104f/0x1350 net/netlink/af_netlink.c:1901
+ sock_sendmsg_nosec net/socket.c:629 [inline]
+ sock_sendmsg net/socket.c:639 [inline]
+ ___sys_sendmsg+0xec8/0x1320 net/socket.c:2117
+ __sys_sendmsg net/socket.c:2155 [inline]
+ __do_sys_sendmsg net/socket.c:2164 [inline]
+ __se_sys_sendmsg net/socket.c:2162 [inline]
+ __x64_sys_sendmsg+0x331/0x460 net/socket.c:2162
+ do_syscall_64+0x15b/0x230 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x43fd59
+RSP: 002b:00007ffde0e30d28 EFLAGS: 00000213 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 000000000043fd59
+RDX: 0000000000000000 RSI: 0000000020000080 RDI: 0000000000000003
+RBP: 00000000006ca018 R08: 00000000004002c8 R09: 00000000004002c8
+R10: 00000000004002c8 R11: 0000000000000213 R12: 0000000000401680
+R13: 0000000000401710 R14: 0000000000000000 R15: 0000000000000000
 
-Take an example as following:
-CPU0                                                   CPU1
-ctnetlink_dump_helpinfo
-helper = rcu_dereference(help->helper);
-                                                       unhelp
-                                                       set helper as NULL
-                                                       unload helper module
-helper->to_nlattr(skb, ct);
+Uninit was created at:
+ kmsan_save_stack_with_flags mm/kmsan/kmsan.c:279 [inline]
+ kmsan_internal_poison_shadow+0xb8/0x1b0 mm/kmsan/kmsan.c:189
+ kmsan_kmalloc+0x94/0x100 mm/kmsan/kmsan.c:315
+ kmsan_slab_alloc+0x10/0x20 mm/kmsan/kmsan.c:322
+ slab_post_alloc_hook mm/slab.h:446 [inline]
+ slab_alloc_node mm/slub.c:2753 [inline]
+ __kmalloc_node_track_caller+0xb35/0x11b0 mm/slub.c:4395
+ __kmalloc_reserve net/core/skbuff.c:138 [inline]
+ __alloc_skb+0x2cb/0x9e0 net/core/skbuff.c:206
+ alloc_skb include/linux/skbuff.h:988 [inline]
+ netlink_alloc_large_skb net/netlink/af_netlink.c:1182 [inline]
+ netlink_sendmsg+0x76e/0x1350 net/netlink/af_netlink.c:1876
+ sock_sendmsg_nosec net/socket.c:629 [inline]
+ sock_sendmsg net/socket.c:639 [inline]
+ ___sys_sendmsg+0xec8/0x1320 net/socket.c:2117
+ __sys_sendmsg net/socket.c:2155 [inline]
+ __do_sys_sendmsg net/socket.c:2164 [inline]
+ __se_sys_sendmsg net/socket.c:2162 [inline]
+ __x64_sys_sendmsg+0x331/0x460 net/socket.c:2162
+ do_syscall_64+0x15b/0x230 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
 
-As above, the cpu0 tries to access the helper and its module is unloaded,
-then the panic happens.
-
-Signed-off-by: Gao Feng <gfree.wind@vip.163.com>
+Fixes: fdb694a01f1f ("netfilter: Add fail-open support")
+Fixes: 829e17a1a602 ("[NETFILTER]: nfnetlink_queue: allow changing queue length through netlink")
+Signed-off-by: Eric Dumazet <edumazet@google.com>
+Reported-by: syzbot <syzkaller@googlegroups.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_conntrack_helper.c | 5 +++++
- 1 file changed, 5 insertions(+)
+ net/netfilter/nfnetlink_queue.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
-index 551a1eddf0fa..a75b11c39312 100644
---- a/net/netfilter/nf_conntrack_helper.c
-+++ b/net/netfilter/nf_conntrack_helper.c
-@@ -465,6 +465,11 @@ void nf_conntrack_helper_unregister(struct nf_conntrack_helper *me)
+diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+index 4ccd2988f9db..ea4ba551abb2 100644
+--- a/net/netfilter/nfnetlink_queue.c
++++ b/net/netfilter/nfnetlink_queue.c
+@@ -1243,6 +1243,9 @@ static int nfqnl_recv_unsupp(struct net *net, struct sock *ctnl,
+ static const struct nla_policy nfqa_cfg_policy[NFQA_CFG_MAX+1] = {
+ 	[NFQA_CFG_CMD]		= { .len = sizeof(struct nfqnl_msg_config_cmd) },
+ 	[NFQA_CFG_PARAMS]	= { .len = sizeof(struct nfqnl_msg_config_params) },
++	[NFQA_CFG_QUEUE_MAXLEN]	= { .type = NLA_U32 },
++	[NFQA_CFG_MASK]		= { .type = NLA_U32 },
++	[NFQA_CFG_FLAGS]	= { .type = NLA_U32 },
+ };
  
- 	nf_ct_expect_iterate_destroy(expect_iter_me, NULL);
- 	nf_ct_iterate_destroy(unhelp, me);
-+
-+	/* Maybe someone has gotten the helper already when unhelp above.
-+	 * So need to wait it.
-+	 */
-+	synchronize_rcu();
- }
- EXPORT_SYMBOL_GPL(nf_conntrack_helper_unregister);
- 
+ static const struct nf_queue_handler nfqh = {
 -- 
 2.11.0
