@@ -1,30 +1,51 @@
 From: David Miller <davem@davemloft.net>
 Subject: Re: [PATCH v2 net-next 0/2] net: preserve sock reference when
  scrubbing the skb.
-Date: Thu, 28 Jun 2018 22:20:40 +0900 (KST)
-Message-ID: <20180628.222040.2117056805629988850.davem@davemloft.net>
+Date: Thu, 28 Jun 2018 22:21:56 +0900 (KST)
+Message-ID: <20180628.222156.1257330145207562337.davem@davemloft.net>
 References: <20180627133426.3858-1-fbl@redhat.com>
-        <CAM_iQpXnfc8uA10EK2X7B=vB_uWayeGw=M5F-_uygu7aPvCjRw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: fbl@redhat.com, netdev@vger.kernel.org, eric.dumazet@gmail.com,
-        pabeni@redhat.com, fw@strlen.de, netfilter-devel@vger.kernel.org
-To: xiyou.wangcong@gmail.com
+Cc: netdev@vger.kernel.org, eric.dumazet@gmail.com, pabeni@redhat.com,
+        fw@strlen.de, netfilter-devel@vger.kernel.org
+To: fbl@redhat.com
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <CAM_iQpXnfc8uA10EK2X7B=vB_uWayeGw=M5F-_uygu7aPvCjRw@mail.gmail.com>
+In-Reply-To: <20180627133426.3858-1-fbl@redhat.com>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Cong Wang <xiyou.wangcong@gmail.com>
-Date: Wed, 27 Jun 2018 12:39:01 -0700
+From: Flavio Leitner <fbl@redhat.com>
+Date: Wed, 27 Jun 2018 10:34:24 -0300
 
-> Let me rephrase why I don't like this patchset:
+> The sock reference is lost when scrubbing the packet and that breaks
+> TSQ (TCP Small Queues) and XPS (Transmit Packet Steering) causing
+> performance impacts of about 50% in a single TCP stream when crossing
+> network namespaces.
+> 
+> XPS breaks because the queue mapping stored in the socket is not
+> available, so another random queue might be selected when the stack
+> needs to transmit something like a TCP ACK, or TCP Retransmissions.
+> That causes packet re-ordering and/or performance issues.
+> 
+> TSQ breaks because it orphans the packet while it is still in the
+> host, so packets are queued contributing to the buffer bloat problem.
+> 
+> Preserving the sock reference fixes both issues. The socket is
+> orphaned anyways in the receiving path before any relevant action,
+> but the transmit side needs some extra checking included in the
+> first patch.
+> 
+> The first patch will update netfilter to check if the socket
+> netns is local before use it.
+> 
+> The second patch removes the skb_orphan() from the skb_scrub_packet()
+> and improve the documentation.
+> 
+> ChangeLog:
+> - split into two (Eric)
+> - addressed Paolo's offline feedback to swap the checks in xt_socket.c
+>   to preserve original behavior.
+> - improved ip-sysctl.txt (reported by Cong)
 
-Cong, I don't think you are seeing the situation clearly and
-I am certainly going to apply this patch series even in the
-face of your objections.
-
-Suggesting that solving the lack of back pressure on a UDP
-socket caused by this problem by using cgroups or cpu
-usage controllers is just complete and utter madness.
+Series applied, thanks Flavio.
