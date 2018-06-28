@@ -1,44 +1,30 @@
 From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/6] Netfilter fixes for net
-Date: Thu, 28 Jun 2018 13:33:04 +0900 (KST)
-Message-ID: <20180628.133304.905068642429205190.davem@davemloft.net>
-References: <20180627152223.3633-1-pablo@netfilter.org>
+Subject: Re: [PATCH v2 net-next 0/2] net: preserve sock reference when
+ scrubbing the skb.
+Date: Thu, 28 Jun 2018 22:20:40 +0900 (KST)
+Message-ID: <20180628.222040.2117056805629988850.davem@davemloft.net>
+References: <20180627133426.3858-1-fbl@redhat.com>
+        <CAM_iQpXnfc8uA10EK2X7B=vB_uWayeGw=M5F-_uygu7aPvCjRw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
+Cc: fbl@redhat.com, netdev@vger.kernel.org, eric.dumazet@gmail.com,
+        pabeni@redhat.com, fw@strlen.de, netfilter-devel@vger.kernel.org
+To: xiyou.wangcong@gmail.com
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180627152223.3633-1-pablo@netfilter.org>
+In-Reply-To: <CAM_iQpXnfc8uA10EK2X7B=vB_uWayeGw=M5F-_uygu7aPvCjRw@mail.gmail.com>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Wed, 27 Jun 2018 17:22:17 +0200
+From: Cong Wang <xiyou.wangcong@gmail.com>
+Date: Wed, 27 Jun 2018 12:39:01 -0700
 
-> The following patchset contains Netfilter fixes for your net tree:
-> 
-> 1) Missing netlink attribute validation in nf_queue, uncovered by KASAN,
->    from Eric Dumazet.
-> 
-> 2) Use pointer to sysctl table, save us 192 bytes of memory per netns.
->    Also from Eric.
-> 
-> 3) Possible use-after-free when removing conntrack helper modules due
->    to missing synchronize RCU call. From Taehee Yoo.
-> 
-> 4) Fix corner case in systcl writes to nf_log that lead to appending
->    data to uninitialized buffer, from Jann Horn.
-> 
-> 5) Jann Horn says we may indefinitely block other users of nf_log_mutex
->    if a userspace access in proc_dostring() blocked e.g. due to a
->    userfaultfd.
-> 
-> 6) Fix garbage collection race for unconfirmed conntrack entries,
->    from Florian Westphal.
-> 
-> You can pull these changes from:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
+> Let me rephrase why I don't like this patchset:
 
-Pulled, thank you.
+Cong, I don't think you are seeing the situation clearly and
+I am certainly going to apply this patch series even in the
+face of your objections.
+
+Suggesting that solving the lack of back pressure on a UDP
+socket caused by this problem by using cgroups or cpu
+usage controllers is just complete and utter madness.
