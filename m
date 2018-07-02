@@ -1,60 +1,43 @@
-From: Cong Wang <xiyou.wangcong@gmail.com>
-Subject: Re: [PATCH v2 net-next 0/2] net: preserve sock reference when
- scrubbing the skb.
-Date: Fri, 29 Jun 2018 17:15:55 -0700
-Message-ID: <CAM_iQpWVG+VfQfa3=FQYMuimVhwTcW9nD5DbNH3ES5uLEE3ZFg@mail.gmail.com>
-References: <20180627133426.3858-1-fbl@redhat.com> <CAM_iQpXnfc8uA10EK2X7B=vB_uWayeGw=M5F-_uygu7aPvCjRw@mail.gmail.com>
- <CAM_iQpVh8=sCiuSVkr4NRHWtxXGah95AOg91cy8AJfAXtU7Hkw@mail.gmail.com> <20180629.112235.970317820691624358.davem@davemloft.net>
+From: David Miller <davem@davemloft.net>
+Subject: Reminder: Linux Plumbers Networking Track CFP
+Date: Mon, 02 Jul 2018 09:10:31 +0900 (KST)
+Message-ID: <20180702.091031.757768903856885020.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Cc: Flavio Leitner <fbl@redhat.com>,
-        Linux Kernel Network Developers <netdev@vger.kernel.org>,
-        Eric Dumazet <eric.dumazet@gmail.com>,
-        Paolo Abeni <pabeni@redhat.com>,
-        Florian Westphal <fw@strlen.de>,
-        NetFilter <netfilter-devel@vger.kernel.org>
-To: David Miller <davem@davemloft.net>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: linux-wireless@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: netdev@vger.kernel.org
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180629.112235.970317820691624358.davem@davemloft.net>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, Jun 28, 2018 at 7:22 PM David Miller <davem@davemloft.net> wrote:
->
-> From: Cong Wang <xiyou.wangcong@gmail.com>
-> Date: Thu, 28 Jun 2018 14:53:09 -0700
->
-> > I will send a revert with quote of the above.
->
-> And it will go to /dev/null as far as I am concerned.  I read it the
-> first time, so posting it again will not change my opinion of what you
-> have to say.
 
-David, you claim you read it, now tell me, where is "cgroups" or "cpu"
-from?
+The deadline is only 10 days away, and slots are filling up quickly.
 
-This is the link of my reply you quoted:
-https://marc.info/?l=linux-netdev&m=153013948711582&w=2
+This is a call for proposals for the networking track at the 2018
+edition of the Linux Plumbers Conference which will be held in
+Vancouver on November 13th and November 14th.
 
-I did mention cgroups to Eric because of isolation, the softnet_data
-is per-CPU, and CPU is not isolated by netns apparently, therefore
-sd->input_pkt_queue can't be totally isolated for netns without cpuset.
+The LPC Networking Track is a community event, open to everyone, and
+does not require an invitation.
 
-But this is never the reason why I dislike it, this is why I never even
-mentioned it in the link above.
+We are seeking talks of 40 minutes in length, accompanied by papers of
+2 to 10 pages in length.
 
->
-> Cong, you really need to calm down and understand that people perhaps
-> simply fundamentally disagree with you.
+Although proposals on finished work are perfectly acceptable, there is
+even more value for talks on problems, proposals, and proof-of-concept
+solutions that require face-to-face discussions and debate.
 
-1. Eric's "forwarding to eth0" is missing, never brought up until in his
-private reply. Without this information, XPS makes no sense at all in
-this patchset. For the record, I provide a different solution for Eric.
+Please submit your proposals to the LPC Networking Technical Committee
+at:
 
-2. No one responses to:
-https://marc.info/?l=linux-netdev&m=153013948711582&w=2
-I never expect you agree with me on all of them, but no one
-gives me any response to my concerns.
+	lpc-netdev@vger.kernel.org
 
-3. I will write a blog post to draw you some pictures, since it
-is so hard to understand the isolation...
+Proposals must be submitted by July 11th, and submitters will be
+notified of acceptance by August 15th.
+
+The format of the submission and other details can be found at:
+
+	http://vger.kernel.org/lpc-networking.html
+
+We are looking forward to seeing everyone in November!
