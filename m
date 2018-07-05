@@ -1,85 +1,80 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH 4.14.y] netfilter: nf_tables: fix NULL-ptr in nf_tables_dump_obj()
-Date: Thu,  5 Jul 2018 18:31:07 +0200
-Message-ID: <20180705163107.15190-1-fw@strlen.de>
-Cc: <netfilter-devel@vger.kernel.org>, Taehee Yoo <ap420073@gmail.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>
-To: stable@vger.kernel.org
+From: Greg KH <greg@kroah.com>
+Subject: Re: [PATCH 4.14.y] netfilter: nf_tables: fix NULL-ptr in
+ nf_tables_dump_obj()
+Date: Thu, 5 Jul 2018 18:49:38 +0200
+Message-ID: <20180705164938.GA2984@kroah.com>
+References: <20180705163107.15190-1-fw@strlen.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: stable@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        Taehee Yoo <ap420073@gmail.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>
+To: Florian Westphal <fw@strlen.de>
 Return-path: <stable-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20180705163107.15190-1-fw@strlen.de>
 Sender: stable-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Taehee Yoo <ap420073@gmail.com>
+On Thu, Jul 05, 2018 at 06:31:07PM +0200, Florian Westphal wrote:
+> From: Taehee Yoo <ap420073@gmail.com>
+> 
+> commit 360cc79d9d299ce297b205508276285ceffc5fa8 upstream.
+> 
+> The table field in nft_obj_filter is not an array. In order to check
+> tablename, we should check if the pointer is set.
+> 
+> Test commands:
+> 
+>    %nft add table ip filter
+>    %nft add counter ip filter ct1
+>    %nft reset counters
+> 
+> Splat looks like:
+> 
+> [  306.510504] kasan: CONFIG_KASAN_INLINE enabled
+> [  306.516184] kasan: GPF could be caused by NULL-ptr deref or user memory access
+> [  306.524775] general protection fault: 0000 [#1] SMP DEBUG_PAGEALLOC KASAN PTI
+> [  306.528284] Modules linked in: nft_objref nft_counter nf_tables nfnetlink ip_tables x_tables
+> [  306.528284] CPU: 0 PID: 1488 Comm: nft Not tainted 4.17.0-rc4+ #17
+> [  306.528284] Hardware name: To be filled by O.E.M. To be filled by O.E.M./Aptio CRB, BIOS 5.6.5 07/08/2015
+> [  306.528284] RIP: 0010:nf_tables_dump_obj+0x52c/0xa70 [nf_tables]
+> [  306.528284] RSP: 0018:ffff8800b6cb7520 EFLAGS: 00010246
+> [  306.528284] RAX: 0000000000000000 RBX: ffff8800b6c49820 RCX: 0000000000000000
+> [  306.528284] RDX: 0000000000000000 RSI: dffffc0000000000 RDI: ffffed0016d96e9a
+> [  306.528284] RBP: ffff8800b6cb75c0 R08: ffffed00236fce7c R09: ffffed00236fce7b
+> [  306.528284] R10: ffffffff9f6241e8 R11: ffffed00236fce7c R12: ffff880111365108
+> [  306.528284] R13: 0000000000000000 R14: ffff8800b6c49860 R15: ffff8800b6c49860
+> [  306.528284] FS:  00007f838b007700(0000) GS:ffff88011b600000(0000) knlGS:0000000000000000
+> [  306.528284] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> [  306.528284] CR2: 00007ffeafabcf78 CR3: 00000000b6cbe000 CR4: 00000000001006f0
+> [  306.528284] Call Trace:
+> [  306.528284]  netlink_dump+0x470/0xa20
+> [  306.528284]  __netlink_dump_start+0x5ae/0x690
+> [  306.528284]  ? nf_tables_getobj+0x1b3/0x740 [nf_tables]
+> [  306.528284]  nf_tables_getobj+0x2f5/0x740 [nf_tables]
+> [  306.528284]  ? nft_obj_notify+0x100/0x100 [nf_tables]
+> [  306.528284]  ? nf_tables_getobj+0x740/0x740 [nf_tables]
+> [  306.528284]  ? nf_tables_dump_flowtable_done+0x70/0x70 [nf_tables]
+> [  306.528284]  ? nft_obj_notify+0x100/0x100 [nf_tables]
+> [  306.528284]  nfnetlink_rcv_msg+0x8ff/0x932 [nfnetlink]
+> [  306.528284]  ? nfnetlink_rcv_msg+0x216/0x932 [nfnetlink]
+> [  306.528284]  netlink_rcv_skb+0x1c9/0x2f0
+> [  306.528284]  ? nfnetlink_bind+0x1d0/0x1d0 [nfnetlink]
+> [  306.528284]  ? debug_check_no_locks_freed+0x270/0x270
+> [  306.528284]  ? netlink_ack+0x7a0/0x7a0
+> [  306.528284]  ? ns_capable_common+0x6e/0x110
+> [ ... ]
+> 
+> Fixes: e46abbcc05aa8 ("netfilter: nf_tables: Allow table names of up to 255 chars")
+> Signed-off-by: Taehee Yoo <ap420073@gmail.com>
+> Acked-by: Florian Westphal <fw@strlen.de>
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> Signed-off-by: Florian Westphal <fw@strlen.de>
+> ---
+>  net/netfilter/nf_tables_api.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 
-commit 360cc79d9d299ce297b205508276285ceffc5fa8 upstream.
+This worked, thanks!
 
-The table field in nft_obj_filter is not an array. In order to check
-tablename, we should check if the pointer is set.
-
-Test commands:
-
-   %nft add table ip filter
-   %nft add counter ip filter ct1
-   %nft reset counters
-
-Splat looks like:
-
-[  306.510504] kasan: CONFIG_KASAN_INLINE enabled
-[  306.516184] kasan: GPF could be caused by NULL-ptr deref or user memory access
-[  306.524775] general protection fault: 0000 [#1] SMP DEBUG_PAGEALLOC KASAN PTI
-[  306.528284] Modules linked in: nft_objref nft_counter nf_tables nfnetlink ip_tables x_tables
-[  306.528284] CPU: 0 PID: 1488 Comm: nft Not tainted 4.17.0-rc4+ #17
-[  306.528284] Hardware name: To be filled by O.E.M. To be filled by O.E.M./Aptio CRB, BIOS 5.6.5 07/08/2015
-[  306.528284] RIP: 0010:nf_tables_dump_obj+0x52c/0xa70 [nf_tables]
-[  306.528284] RSP: 0018:ffff8800b6cb7520 EFLAGS: 00010246
-[  306.528284] RAX: 0000000000000000 RBX: ffff8800b6c49820 RCX: 0000000000000000
-[  306.528284] RDX: 0000000000000000 RSI: dffffc0000000000 RDI: ffffed0016d96e9a
-[  306.528284] RBP: ffff8800b6cb75c0 R08: ffffed00236fce7c R09: ffffed00236fce7b
-[  306.528284] R10: ffffffff9f6241e8 R11: ffffed00236fce7c R12: ffff880111365108
-[  306.528284] R13: 0000000000000000 R14: ffff8800b6c49860 R15: ffff8800b6c49860
-[  306.528284] FS:  00007f838b007700(0000) GS:ffff88011b600000(0000) knlGS:0000000000000000
-[  306.528284] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[  306.528284] CR2: 00007ffeafabcf78 CR3: 00000000b6cbe000 CR4: 00000000001006f0
-[  306.528284] Call Trace:
-[  306.528284]  netlink_dump+0x470/0xa20
-[  306.528284]  __netlink_dump_start+0x5ae/0x690
-[  306.528284]  ? nf_tables_getobj+0x1b3/0x740 [nf_tables]
-[  306.528284]  nf_tables_getobj+0x2f5/0x740 [nf_tables]
-[  306.528284]  ? nft_obj_notify+0x100/0x100 [nf_tables]
-[  306.528284]  ? nf_tables_getobj+0x740/0x740 [nf_tables]
-[  306.528284]  ? nf_tables_dump_flowtable_done+0x70/0x70 [nf_tables]
-[  306.528284]  ? nft_obj_notify+0x100/0x100 [nf_tables]
-[  306.528284]  nfnetlink_rcv_msg+0x8ff/0x932 [nfnetlink]
-[  306.528284]  ? nfnetlink_rcv_msg+0x216/0x932 [nfnetlink]
-[  306.528284]  netlink_rcv_skb+0x1c9/0x2f0
-[  306.528284]  ? nfnetlink_bind+0x1d0/0x1d0 [nfnetlink]
-[  306.528284]  ? debug_check_no_locks_freed+0x270/0x270
-[  306.528284]  ? netlink_ack+0x7a0/0x7a0
-[  306.528284]  ? ns_capable_common+0x6e/0x110
-[ ... ]
-
-Fixes: e46abbcc05aa8 ("netfilter: nf_tables: Allow table names of up to 255 chars")
-Signed-off-by: Taehee Yoo <ap420073@gmail.com>
-Acked-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/nf_tables_api.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 60936bca3181..85b549e84104 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -4614,7 +4614,7 @@ static int nf_tables_dump_obj(struct sk_buff *skb, struct netlink_callback *cb)
- 				if (idx > s_idx)
- 					memset(&cb->args[1], 0,
- 					       sizeof(cb->args) - sizeof(cb->args[0]));
--				if (filter && filter->table[0] &&
-+				if (filter && filter->table &&
- 				    strcmp(filter->table, table->name))
- 					goto cont;
- 				if (filter &&
--- 
-2.16.4
+greg k-h
