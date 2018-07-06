@@ -1,52 +1,146 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH] netfilter: conntrack: add weak IPV6 dependency
-Date: Fri, 6 Jul 2018 17:14:06 +0200
-Message-ID: <CAK8P3a2H44gVZWkC+4vYbg68rr90Fhr12DktEAFMFFOB6fbE9Q@mail.gmail.com>
-References: <20180706130005.3640993-1-arnd@arndb.de> <20180706135516.viz6pjtkdmcoqq2l@breakpoint.cc>
- <CAK8P3a1o6+dcZuW_iMGzwBBw_dcW41QAQ2Mu4A5Ru9ScnwaYDA@mail.gmail.com> <20180706150037.knqt736uq6uyh3bs@breakpoint.cc>
+From: Toke =?utf-8?q?H=C3=B8iland-J=C3=B8rgensen?= <toke@toke.dk>
+Subject: [PATCH net-next v19 4/8] netfilter: Add nf_ct_get_tuple_skb global
+ lookup function
+Date: Fri, 06 Jul 2018 17:37:19 +0200
+Message-ID: <153089143936.14813.6047325174579983392.stgit@alrua-x1>
+References: <153089141290.14813.1010951705929696896.stgit@alrua-x1>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        "David S. Miller" <davem@davemloft.net>,
-        =?UTF-8?B?TcOhdMOpIEVja2w=?= <ecklm94@gmail.com>,
-        Fernando Fernandez Mancera <ffmancera@riseup.net>,
-        "Pablo M. Bermudo Garay" <pablombg@gmail.com>,
-        Felix Fietkau <nbd@nbd.name>, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, Networking <netdev@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-To: Florian Westphal <fw@strlen.de>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180706150037.knqt736uq6uyh3bs@breakpoint.cc>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+Cc: netfilter-devel@vger.kernel.org, cake@lists.bufferbloat.net
+To: netdev@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <153089141290.14813.1010951705929696896.stgit@alrua-x1>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, Jul 6, 2018 at 5:00 PM, Florian Westphal <fw@strlen.de> wrote:
-> Arnd Bergmann <arnd@arndb.de> wrote:
->> and that resulted in a new build failure:
->>
->> net/netfilter/nf_conntrack_proto.o:(.rodata+0x788): undefined
->> reference to `nf_conntrack_l4proto_icmpv6'
->> net/ipv6/netfilter/nf_conntrack_reasm.o: In function `nf_ct_frag6_expire':
->> nf_conntrack_reasm.c:(.text+0x2320): undefined reference to
->> `ip6_expire_frag_queue'
->> net/ipv6/netfilter/nf_conntrack_reasm.o: In function `nf_ct_frag6_init':
->> nf_conntrack_reasm.c:(.text+0x2384): undefined reference to `ip6_frag_init'
->> nf_conntrack_reasm.c:(.text+0x2394): undefined reference to `ip6_frag_init'
->> nf_conntrack_reasm.c:(.text+0x2398): undefined reference to `ip6_rhash_params'
->> net/ipv6/netfilter/nf_conntrack_reasm.o: In function `nf_ct_frag6_expire':
->> nf_conntrack_reasm.c:(.text+0x10bc): undefined reference to
->> `ip6_expire_frag_queue'
->>
->> I don't think we can get CONFIG_NF_DEFRAG_IPV6=y to work with IPV6=m.
->
-> Yes, not with current implementation, but I still don't think this
-> is unavoidable.
->
-> In case this is urgent I'm fine with the patch that adds the dependency,
-> otherwise I'd like to try and disentangle nf_conntrack_reasm and ipv6.
+This adds a global netfilter function to extract a conntrack tuple from an
+skb. The function uses a new function added to nf_ct_hook, which will try
+to get the tuple from skb->_nfct, and do a full lookup if that fails. This
+makes it possible to use the lookup function before the skb has passed
+through the conntrack init hooks (e.g., in an ingress qdisc). The tuple is
+copied to the caller to avoid issues with reference counting.
 
-I don't think any real users depend on it, but I hit the problem quite
-frequently in randconfig testing on linux-next.
+The function returns false if conntrack is not loaded, allowing it to be
+used without incurring a module dependency on conntrack. This is used by
+the NAT mode in sch_cake.
 
-       Arnd
+Cc: netfilter-devel@vger.kernel.org
+Signed-off-by: Toke Høiland-Jørgensen <toke@toke.dk>
+---
+ include/linux/netfilter.h         |   11 +++++++++++
+ net/netfilter/core.c              |   15 +++++++++++++++
+ net/netfilter/nf_conntrack_core.c |   36 ++++++++++++++++++++++++++++++++++++
+ 3 files changed, 62 insertions(+)
+
+diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
+index 5a5e0a2ab2a3..bf43e24b9dd0 100644
+--- a/include/linux/netfilter.h
++++ b/include/linux/netfilter.h
+@@ -410,8 +410,17 @@ nf_nat_decode_session(struct sk_buff *skb, struct flowi *fl, u_int8_t family)
+ 
+ extern void (*ip_ct_attach)(struct sk_buff *, const struct sk_buff *) __rcu;
+ void nf_ct_attach(struct sk_buff *, const struct sk_buff *);
++struct nf_conntrack_tuple;
++bool nf_ct_get_tuple_skb(struct nf_conntrack_tuple *dst_tuple,
++			 const struct sk_buff *skb);
+ #else
+ static inline void nf_ct_attach(struct sk_buff *new, struct sk_buff *skb) {}
++struct nf_conntrack_tuple;
++static inline bool nf_ct_get_tuple_skb(struct nf_conntrack_tuple *dst_tuple,
++				       const struct sk_buff *skb)
++{
++	return false;
++}
+ #endif
+ 
+ struct nf_conn;
+@@ -420,6 +429,8 @@ enum ip_conntrack_info;
+ struct nf_ct_hook {
+ 	int (*update)(struct net *net, struct sk_buff *skb);
+ 	void (*destroy)(struct nf_conntrack *);
++	bool (*get_tuple_skb)(struct nf_conntrack_tuple *,
++			      const struct sk_buff *);
+ };
+ extern struct nf_ct_hook __rcu *nf_ct_hook;
+ 
+diff --git a/net/netfilter/core.c b/net/netfilter/core.c
+index 168af54db975..dc240cb47ddf 100644
+--- a/net/netfilter/core.c
++++ b/net/netfilter/core.c
+@@ -603,6 +603,21 @@ void nf_conntrack_destroy(struct nf_conntrack *nfct)
+ }
+ EXPORT_SYMBOL(nf_conntrack_destroy);
+ 
++bool nf_ct_get_tuple_skb(struct nf_conntrack_tuple *dst_tuple,
++			 const struct sk_buff *skb)
++{
++	struct nf_ct_hook *ct_hook;
++	bool ret = false;
++
++	rcu_read_lock();
++	ct_hook = rcu_dereference(nf_ct_hook);
++	if (ct_hook)
++		ret = ct_hook->get_tuple_skb(dst_tuple, skb);
++	rcu_read_unlock();
++	return ret;
++}
++EXPORT_SYMBOL(nf_ct_get_tuple_skb);
++
+ /* Built-in default zone used e.g. by modules. */
+ const struct nf_conntrack_zone nf_ct_zone_dflt = {
+ 	.id	= NF_CT_DEFAULT_ZONE_ID,
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 3465da2a98bd..85ab2fd6a665 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -1683,6 +1683,41 @@ static int nf_conntrack_update(struct net *net, struct sk_buff *skb)
+ 	return 0;
+ }
+ 
++static bool nf_conntrack_get_tuple_skb(struct nf_conntrack_tuple *dst_tuple,
++				       const struct sk_buff *skb)
++{
++	const struct nf_conntrack_tuple *src_tuple;
++	const struct nf_conntrack_tuple_hash *hash;
++	struct nf_conntrack_tuple srctuple;
++	enum ip_conntrack_info ctinfo;
++	struct nf_conn *ct;
++
++	ct = nf_ct_get(skb, &ctinfo);
++	if (ct) {
++		src_tuple = nf_ct_tuple(ct, CTINFO2DIR(ctinfo));
++		memcpy(dst_tuple, src_tuple, sizeof(*dst_tuple));
++		return true;
++	}
++
++	if (!nf_ct_get_tuplepr(skb, skb_network_offset(skb),
++			       NFPROTO_IPV4, dev_net(skb->dev),
++			       &srctuple))
++		return false;
++
++	hash = nf_conntrack_find_get(dev_net(skb->dev),
++				     &nf_ct_zone_dflt,
++				     &srctuple);
++	if (!hash)
++		return false;
++
++	ct = nf_ct_tuplehash_to_ctrack(hash);
++	src_tuple = nf_ct_tuple(ct, !hash->tuple.dst.dir);
++	memcpy(dst_tuple, src_tuple, sizeof(*dst_tuple));
++	nf_ct_put(ct);
++
++	return true;
++}
++
+ /* Bring out ya dead! */
+ static struct nf_conn *
+ get_next_corpse(int (*iter)(struct nf_conn *i, void *data),
+@@ -2204,6 +2239,7 @@ int nf_conntrack_init_start(void)
+ static struct nf_ct_hook nf_conntrack_hook = {
+ 	.update		= nf_conntrack_update,
+ 	.destroy	= destroy_conntrack,
++	.get_tuple_skb  = nf_conntrack_get_tuple_skb,
+ };
+ 
+ void nf_conntrack_init_end(void)
