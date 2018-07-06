@@ -1,49 +1,57 @@
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH] netfilter: conntrack: add weak IPV6 dependency
-Date: Fri,  6 Jul 2018 14:59:52 +0200
-Message-ID: <20180706130005.3640993-1-arnd@arndb.de>
-Cc: Arnd Bergmann <arnd@arndb.de>,
-        =?UTF-8?q?M=C3=A1t=C3=A9=20Eckl?= <ecklm94@gmail.com>,
+Subject: Re: [PATCH net-next] netfilter: fix NETFILTER_XT_TARGET_TEE dependencies
+Date: Fri, 6 Jul 2018 15:05:13 +0200
+Message-ID: <CAK8P3a23rdqk-5i_6jLtCH6Z+_SSJ-0=5r=KfPuL-Xaas=6VyA@mail.gmail.com>
+References: <20180706123805.2852900-1-arnd@arndb.de> <20180706124542.jybscbmzixyt4rx2@salvia>
+ <20180706124827.xwho2rgu3jkk3hp5@salvia>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        =?UTF-8?B?TcOhdMOpIEVja2w=?= <ecklm94@gmail.com>,
         Fernando Fernandez Mancera <ffmancera@riseup.net>,
         "Pablo M. Bermudo Garay" <pablombg@gmail.com>,
         Felix Fietkau <nbd@nbd.name>, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+        coreteam@netfilter.org, Networking <netdev@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20180706124827.xwho2rgu3jkk3hp5@salvia>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Now that the conntrack module contains code for ipv6, we can no longer
-have it built-in while IPv6 itself is a loadable module:
+On Fri, Jul 6, 2018 at 2:48 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Fri, Jul 06, 2018 at 02:45:42PM +0200, Pablo Neira Ayuso wrote:
+>> On Fri, Jul 06, 2018 at 02:37:58PM +0200, Arnd Bergmann wrote:
+>> > With NETFILTER_XT_TARGET_TEE=y and IP6_NF_IPTABLES=m, we get a link
+>> > error when referencing the NF_DUP_IPV6 module:
+>> >
+>> > net/netfilter/xt_TEE.o: In function `tee_tg6':
+>> > xt_TEE.c:(.text+0x14): undefined reference to `nf_dup_ipv6'
+>> >
+>> > The problem here is the 'select NF_DUP_IPV6 if IP6_NF_IPTABLES'
+>> > that forces NF_DUP_IPV6 to be =m as well rather than setting it
+>> > to =y as was intended here. Adding a soft dependency on
+>> > IP6_NF_IPTABLES avoids that broken configuration.
+>>
+>> Applied to nf.git, thanks Arnd.
+>
+> Sorry, let me reconsider.
+>
+> We many need similar patches to other spots in 35bf1ccecaaa ?
+>
+> If so, it would be good to fix in the one go.
 
-net/netfilter/nf_conntrack_proto.o: In function `nf_ct_netns_do_get':
-nf_conntrack_proto.c:(.text+0x88c): undefined reference to `nf_defrag_ipv6_enable'
-net/netfilter/nf_conntrack_proto.o:(.rodata+0x178): undefined reference to `nf_conntrack_l4proto_icmpv6'
+I'm fairly sure that  NETFILTER_XT_TARGET_LOG is safe, since
+NF_LOG_IPV6 already depends on IP6_NF_IPTABLES.
 
-This adds a dependency on IPv6 that makes it possible to still build
-the conntrack module with IPv6 disabled, but avoids the broken configuration.
+NF_SOCKET_IPV6 like NF_DUP_IPV6 does not depend on
+IP6_NF_IPTABLES, so we may have a similar problem there, though
+I have not come across that. I have done only a few hundred randconfig
+builds since I started yesterday, so I may have missed something,
+but I think this is safe because CONFIG_NF_SOCKET_IPV6 is
+used like a 'bool' symbol these days, we don't actually control building
+a module with it, only a small portion in the nft_socket file.
 
-Fixes: 66c524acfb51 ("netfilter: conntrack: remove l3proto abstraction")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- net/netfilter/Kconfig | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index 74df382bf2ba..e42c38c99741 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -49,6 +49,7 @@ config NETFILTER_NETLINK_LOG
- config NF_CONNTRACK
- 	tristate "Netfilter connection tracking support"
- 	default m if NETFILTER_ADVANCED=n
-+	depends on IPV6 || !IPV6
- 	select NF_DEFRAG_IPV4
- 	select NF_DEFRAG_IPV6 if IPV6
- 	help
--- 
-2.9.0
+       Arnd
