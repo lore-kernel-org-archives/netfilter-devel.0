@@ -1,129 +1,64 @@
-From: Toke =?utf-8?q?H=C3=B8iland-J=C3=B8rgensen?= <toke@toke.dk>
-Subject: [PATCH net-next v19 5/8] sch_cake: Add NAT awareness to packet
- classifier
-Date: Fri, 06 Jul 2018 17:37:19 +0200
-Message-ID: <153089143943.14813.7164191512811411579.stgit@alrua-x1>
-References: <153089141290.14813.1010951705929696896.stgit@alrua-x1>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH net-next] netfilter: fix NETFILTER_XT_TARGET_TEE
+ dependencies
+Date: Fri, 6 Jul 2018 17:54:02 +0200
+Message-ID: <20180706155401.7jwc5laxqvnfpiur@salvia>
+References: <20180706123805.2852900-1-arnd@arndb.de>
+ <20180706124542.jybscbmzixyt4rx2@salvia>
+ <20180706124827.xwho2rgu3jkk3hp5@salvia>
+ <CAK8P3a23rdqk-5i_6jLtCH6Z+_SSJ-0=5r=KfPuL-Xaas=6VyA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Cc: netfilter-devel@vger.kernel.org, cake@lists.bufferbloat.net
-To: netdev@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <153089141290.14813.1010951705929696896.stgit@alrua-x1>
-Sender: netdev-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        =?iso-8859-1?Q?M=E1t=E9?= Eckl <ecklm94@gmail.com>,
+        Fernando Fernandez Mancera <ffmancera@riseup.net>,
+        "Pablo M. Bermudo Garay" <pablombg@gmail.com>,
+        Felix Fietkau <nbd@nbd.name>, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, Networking <netdev@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Arnd Bergmann <arnd@arndb.de>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAK8P3a23rdqk-5i_6jLtCH6Z+_SSJ-0=5r=KfPuL-Xaas=6VyA@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-When CAKE is deployed on a gateway that also performs NAT (which is a
-common deployment mode), the host fairness mechanism cannot distinguish
-internal hosts from each other, and so fails to work correctly.
+On Fri, Jul 06, 2018 at 03:05:13PM +0200, Arnd Bergmann wrote:
+> On Fri, Jul 6, 2018 at 2:48 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > On Fri, Jul 06, 2018 at 02:45:42PM +0200, Pablo Neira Ayuso wrote:
+> >> On Fri, Jul 06, 2018 at 02:37:58PM +0200, Arnd Bergmann wrote:
+> >> > With NETFILTER_XT_TARGET_TEE=y and IP6_NF_IPTABLES=m, we get a link
+> >> > error when referencing the NF_DUP_IPV6 module:
+> >> >
+> >> > net/netfilter/xt_TEE.o: In function `tee_tg6':
+> >> > xt_TEE.c:(.text+0x14): undefined reference to `nf_dup_ipv6'
+> >> >
+> >> > The problem here is the 'select NF_DUP_IPV6 if IP6_NF_IPTABLES'
+> >> > that forces NF_DUP_IPV6 to be =m as well rather than setting it
+> >> > to =y as was intended here. Adding a soft dependency on
+> >> > IP6_NF_IPTABLES avoids that broken configuration.
+> >>
+> >> Applied to nf.git, thanks Arnd.
+> >
+> > Sorry, let me reconsider.
+> >
+> > We many need similar patches to other spots in 35bf1ccecaaa ?
+> >
+> > If so, it would be good to fix in the one go.
+> 
+> I'm fairly sure that  NETFILTER_XT_TARGET_LOG is safe, since
+> NF_LOG_IPV6 already depends on IP6_NF_IPTABLES.
+> 
+> NF_SOCKET_IPV6 like NF_DUP_IPV6 does not depend on
+> IP6_NF_IPTABLES, so we may have a similar problem there, though
+> I have not come across that. I have done only a few hundred randconfig
+> builds since I started yesterday, so I may have missed something,
+> but I think this is safe because CONFIG_NF_SOCKET_IPV6 is
+> used like a 'bool' symbol these days, we don't actually control building
+> a module with it, only a small portion in the nft_socket file.
 
-To fix this, we add an optional NAT awareness mode, which will query the
-kernel conntrack mechanism to obtain the pre-NAT addresses for each packet
-and use that in the flow and host hashing.
+Thanks for explaining.
 
-When the shaper is enabled and the host is already performing NAT, the cost
-of this lookup is negligible. However, in unlimited mode with no NAT being
-performed, there is a significant CPU cost at higher bandwidths. For this
-reason, the feature is turned off by default.
-
-Cc: netfilter-devel@vger.kernel.org
-Signed-off-by: Toke Høiland-Jørgensen <toke@toke.dk>
----
- net/sched/sch_cake.c |   51 ++++++++++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 49 insertions(+), 2 deletions(-)
-
-diff --git a/net/sched/sch_cake.c b/net/sched/sch_cake.c
-index 930096d46c4f..633ca1578114 100644
---- a/net/sched/sch_cake.c
-+++ b/net/sched/sch_cake.c
-@@ -71,6 +71,10 @@
- #include <net/tcp.h>
- #include <net/flow_dissector.h>
- 
-+#if IS_ENABLED(CONFIG_NF_CONNTRACK)
-+#include <net/netfilter/nf_conntrack_core.h>
-+#endif
-+
- #define CAKE_SET_WAYS (8)
- #define CAKE_MAX_TINS (8)
- #define CAKE_QUEUES (1024)
-@@ -516,6 +520,29 @@ static bool cobalt_should_drop(struct cobalt_vars *vars,
- 	return drop;
- }
- 
-+static void cake_update_flowkeys(struct flow_keys *keys,
-+				 const struct sk_buff *skb)
-+{
-+#if IS_ENABLED(CONFIG_NF_CONNTRACK)
-+	struct nf_conntrack_tuple tuple = {};
-+	bool rev = !skb->_nfct;
-+
-+	if (tc_skb_protocol(skb) != htons(ETH_P_IP))
-+		return;
-+
-+	if (!nf_ct_get_tuple_skb(&tuple, skb))
-+		return;
-+
-+	keys->addrs.v4addrs.src = rev ? tuple.dst.u3.ip : tuple.src.u3.ip;
-+	keys->addrs.v4addrs.dst = rev ? tuple.src.u3.ip : tuple.dst.u3.ip;
-+
-+	if (keys->ports.ports) {
-+		keys->ports.src = rev ? tuple.dst.u.all : tuple.src.u.all;
-+		keys->ports.dst = rev ? tuple.src.u.all : tuple.dst.u.all;
-+	}
-+#endif
-+}
-+
- /* Cake has several subtle multiple bit settings. In these cases you
-  *  would be matching triple isolate mode as well.
-  */
-@@ -543,6 +570,9 @@ static u32 cake_hash(struct cake_tin_data *q, const struct sk_buff *skb,
- 	skb_flow_dissect_flow_keys(skb, &keys,
- 				   FLOW_DISSECTOR_F_STOP_AT_FLOW_LABEL);
- 
-+	if (flow_mode & CAKE_FLOW_NAT_FLAG)
-+		cake_update_flowkeys(&keys, skb);
-+
- 	/* flow_hash_from_keys() sorts the addresses by value, so we have
- 	 * to preserve their order in a separate data structure to treat
- 	 * src and dst host addresses as independently selectable.
-@@ -1939,12 +1969,25 @@ static int cake_change(struct Qdisc *sch, struct nlattr *opt,
- 	if (err < 0)
- 		return err;
- 
-+	if (tb[TCA_CAKE_NAT]) {
-+#if IS_ENABLED(CONFIG_NF_CONNTRACK)
-+		q->flow_mode &= ~CAKE_FLOW_NAT_FLAG;
-+		q->flow_mode |= CAKE_FLOW_NAT_FLAG *
-+			!!nla_get_u32(tb[TCA_CAKE_NAT]);
-+#else
-+		NL_SET_ERR_MSG_ATTR(extack, tb[TCA_CAKE_NAT],
-+				    "No conntrack support in kernel");
-+		return -EOPNOTSUPP;
-+#endif
-+	}
-+
- 	if (tb[TCA_CAKE_BASE_RATE64])
- 		q->rate_bps = nla_get_u64(tb[TCA_CAKE_BASE_RATE64]);
- 
- 	if (tb[TCA_CAKE_FLOW_MODE])
--		q->flow_mode = (nla_get_u32(tb[TCA_CAKE_FLOW_MODE]) &
--				CAKE_FLOW_MASK);
-+		q->flow_mode = ((q->flow_mode & CAKE_FLOW_NAT_FLAG) |
-+				(nla_get_u32(tb[TCA_CAKE_FLOW_MODE]) &
-+					CAKE_FLOW_MASK));
- 
- 	if (tb[TCA_CAKE_RTT]) {
- 		q->interval = nla_get_u32(tb[TCA_CAKE_RTT]);
-@@ -2111,6 +2154,10 @@ static int cake_dump(struct Qdisc *sch, struct sk_buff *skb)
- 	if (nla_put_u32(skb, TCA_CAKE_ACK_FILTER, q->ack_filter))
- 		goto nla_put_failure;
- 
-+	if (nla_put_u32(skb, TCA_CAKE_NAT,
-+			!!(q->flow_mode & CAKE_FLOW_NAT_FLAG)))
-+		goto nla_put_failure;
-+
- 	return nla_nest_end(skb, opts);
- 
- nla_put_failure:
+Applied, thanks!
