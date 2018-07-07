@@ -1,232 +1,111 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH] netfilter: conntrack: add weak IPV6 dependency
-Date: Fri, 6 Jul 2018 20:35:48 +0200
-Message-ID: <20180706183548.hk7jwobomkqdccs5@breakpoint.cc>
-References: <20180706130005.3640993-1-arnd@arndb.de>
- <20180706135516.viz6pjtkdmcoqq2l@breakpoint.cc>
- <CAK8P3a1o6+dcZuW_iMGzwBBw_dcW41QAQ2Mu4A5Ru9ScnwaYDA@mail.gmail.com>
- <20180706150037.knqt736uq6uyh3bs@breakpoint.cc>
+From: syzbot <syzbot+7b269953d076326d7de0@syzkaller.appspotmail.com>
+Subject: KASAN: stack-out-of-bounds Read in vmalloc_fault
+Date: Fri, 06 Jul 2018 18:19:02 -0700
+Message-ID: <000000000000d8e31b05705e901b@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Arnd Bergmann <arnd@arndb.de>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        "David S. Miller" <davem@davemloft.net>,
-        =?iso-8859-15?Q?M=E1t=E9?= Eckl <ecklm94@gmail.com>,
-        Fernando Fernandez Mancera <ffmancera@riseup.net>,
-        "Pablo M. Bermudo Garay" <pablombg@gmail.com>,
-        Felix Fietkau <nbd@nbd.name>, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, Networking <netdev@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-To: Florian Westphal <fw@strlen.de>
+Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
+To: bridge@lists.linux-foundation.org, coreteam@netfilter.org,
+        davem@davemloft.net, fw@strlen.de, kadlec@blackhole.kfki.hu,
+        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, pablo@netfilter.org,
+        stephen@networkplumber.org, syzkaller-bugs@googlegroups.com
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180706150037.knqt736uq6uyh3bs@breakpoint.cc>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Florian Westphal <fw@strlen.de> wrote:
-> Arnd Bergmann <arnd@arndb.de> wrote:
-> > and that resulted in a new build failure:
-> > 
-> > net/netfilter/nf_conntrack_proto.o:(.rodata+0x788): undefined
-> > reference to `nf_conntrack_l4proto_icmpv6'
-> > net/ipv6/netfilter/nf_conntrack_reasm.o: In function `nf_ct_frag6_expire':
-> > nf_conntrack_reasm.c:(.text+0x2320): undefined reference to
-> > `ip6_expire_frag_queue'
-> > net/ipv6/netfilter/nf_conntrack_reasm.o: In function `nf_ct_frag6_init':
-> > nf_conntrack_reasm.c:(.text+0x2384): undefined reference to `ip6_frag_init'
-> > nf_conntrack_reasm.c:(.text+0x2394): undefined reference to `ip6_frag_init'
-> > nf_conntrack_reasm.c:(.text+0x2398): undefined reference to `ip6_rhash_params'
-> > net/ipv6/netfilter/nf_conntrack_reasm.o: In function `nf_ct_frag6_expire':
-> > nf_conntrack_reasm.c:(.text+0x10bc): undefined reference to
-> > `ip6_expire_frag_queue'
-> > 
-> > I don't think we can get CONFIG_NF_DEFRAG_IPV6=y to work with IPV6=m.
-> 
-> Yes, not with current implementation, but I still don't think this
-> is unavoidable.
-> 
-> In case this is urgent I'm fine with the patch that adds the dependency,
-> otherwise I'd like to try and disentangle nf_conntrack_reasm and ipv6.
+Hello,
 
-This links fine for me with IPV6=m:
+syzbot found the following crash on:
 
-Pablo, do you think this is too ugly?
-It requires some copypastry from ipv6 defrag into nfct ipv6 defrag
-to avoid the link errors outlined above.
+HEAD commit:    6fcf9b1d4d6c r8169: fix runtime suspend
+git tree:       bpf-next
+console output: https://syzkaller.appspot.com/x/log.txt?x=174529b2400000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=d264f2b04177ca7c
+dashboard link: https://syzkaller.appspot.com/bug?extid=7b269953d076326d7de0
+compiler:       gcc (GCC) 8.0.1 20180413 (experimental)
+syzkaller repro:https://syzkaller.appspot.com/x/repro.syz?x=1397e2c2400000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=120e462c400000
 
-Rest of defrag uses generic inet_defrag routines.
+IMPORTANT: if you fix the bug, please add the following tag to the commit:
+Reported-by: syzbot+7b269953d076326d7de0@syzkaller.appspotmail.com
 
-diff --git a/net/ipv6/netfilter/Kconfig b/net/ipv6/netfilter/Kconfig
-index 07516d5c2f80..339d0762b027 100644
---- a/net/ipv6/netfilter/Kconfig
-+++ b/net/ipv6/netfilter/Kconfig
-@@ -5,10 +5,6 @@
- menu "IPv6: Netfilter Configuration"
- 	depends on INET && IPV6 && NETFILTER
- 
--config NF_DEFRAG_IPV6
--	tristate
--	default n
--
- config NF_SOCKET_IPV6
- 	tristate "IPv6 socket lookup support"
- 	help
-@@ -349,6 +345,7 @@ config IP6_NF_TARGET_NPT
- endif # IP6_NF_NAT
- 
- endif # IP6_NF_IPTABLES
--
- endmenu
- 
-+config NF_DEFRAG_IPV6
-+	tristate
-diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
-index 5e0332014c17..9973aadc6b71 100644
---- a/net/ipv6/netfilter/nf_conntrack_reasm.c
-+++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
-@@ -142,6 +142,50 @@ static inline u8 ip6_frag_ecn(const struct ipv6hdr *ipv6h)
- 	return 1 << (ipv6_get_dsfield(ipv6h) & INET_ECN_MASK);
- }
- 
-+static void nfct_expire_frag_queue(struct net *net, struct frag_queue *fq)
-+{
-+	struct net_device *dev = NULL;
-+	struct sk_buff *head;
-+
-+	rcu_read_lock();
-+	spin_lock(&fq->q.lock);
-+
-+	if (fq->q.flags & INET_FRAG_COMPLETE)
-+		goto out;
-+
-+	inet_frag_kill(&fq->q);
-+
-+	dev = dev_get_by_index_rcu(net, fq->iif);
-+	if (!dev)
-+		goto out;
-+
-+	__IP6_INC_STATS(net, __in6_dev_get(dev), IPSTATS_MIB_REASMFAILS);
-+	__IP6_INC_STATS(net, __in6_dev_get(dev), IPSTATS_MIB_REASMTIMEOUT);
-+
-+	/* Don't send error if the first segment did not arrive. */
-+	head = fq->q.fragments;
-+	if (!(fq->q.flags & INET_FRAG_FIRST_IN) || !head)
-+		goto out;
-+
-+	/* But use as source device on which LAST ARRIVED
-+	 * segment was received. And do not use fq->dev
-+	 * pointer directly, device might already disappeared.
-+	 */
-+	head->dev = dev;
-+	skb_get(head);
-+	spin_unlock(&fq->q.lock);
-+
-+	icmpv6_send(head, ICMPV6_TIME_EXCEED, ICMPV6_EXC_FRAGTIME, 0);
-+	kfree_skb(head);
-+	goto out_rcu_unlock;
-+
-+out:
-+	spin_unlock(&fq->q.lock);
-+out_rcu_unlock:
-+	rcu_read_unlock();
-+	inet_frag_put(&fq->q);
-+}
-+
- static void nf_ct_frag6_expire(struct timer_list *t)
- {
- 	struct inet_frag_queue *frag = from_timer(frag, t, timer);
-@@ -151,7 +195,7 @@ static void nf_ct_frag6_expire(struct timer_list *t)
- 	fq = container_of(frag, struct frag_queue, q);
- 	net = container_of(fq->q.net, struct net, nf_frag.frags);
- 
--	ip6_expire_frag_queue(net, fq);
-+	nfct_expire_frag_queue(net, fq);
- }
- 
- /* Creation primitives. */
-@@ -622,16 +666,55 @@ static struct pernet_operations nf_ct_net_ops = {
- 	.exit = nf_ct_net_exit,
- };
- 
-+static u32 ip6_key_hashfn(const void *data, u32 len, u32 seed)
-+{
-+	return jhash2(data,
-+		      sizeof(struct frag_v6_compare_key) / sizeof(u32), seed);
-+}
-+
-+static u32 ip6_obj_hashfn(const void *data, u32 len, u32 seed)
-+{
-+	const struct inet_frag_queue *fq = data;
-+
-+	return jhash2((const u32 *)&fq->key.v6,
-+		      sizeof(struct frag_v6_compare_key) / sizeof(u32), seed);
-+}
-+
-+static int ip6_obj_cmpfn(struct rhashtable_compare_arg *arg, const void *ptr)
-+{
-+	const struct frag_v6_compare_key *key = arg->key;
-+	const struct inet_frag_queue *fq = ptr;
-+
-+	return !!memcmp(&fq->key, key, sizeof(*key));
-+}
-+
-+static const struct rhashtable_params nfct_rhash_params = {
-+	.head_offset		= offsetof(struct inet_frag_queue, node),
-+	.hashfn			= ip6_key_hashfn,
-+	.obj_hashfn		= ip6_obj_hashfn,
-+	.obj_cmpfn		= ip6_obj_cmpfn,
-+	.automatic_shrinking	= true,
-+};
-+
-+static void nfct_frag_init(struct inet_frag_queue *q, const void *a)
-+{
-+	struct frag_queue *fq = container_of(q, struct frag_queue, q);
-+	const struct frag_v6_compare_key *key = a;
-+
-+	q->key.v6 = *key;
-+	fq->ecn = 0;
-+}
-+
- int nf_ct_frag6_init(void)
- {
- 	int ret = 0;
- 
--	nf_frags.constructor = ip6_frag_init;
-+	nf_frags.constructor = nfct_frag_init;
- 	nf_frags.destructor = NULL;
- 	nf_frags.qsize = sizeof(struct frag_queue);
- 	nf_frags.frag_expire = nf_ct_frag6_expire;
- 	nf_frags.frags_cache_name = nf_frags_cache_name;
--	nf_frags.rhash_params = ip6_rhash_params;
-+	nf_frags.rhash_params = nfct_rhash_params;
- 	ret = inet_frags_init(&nf_frags);
- 	if (ret)
- 		goto out;
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index 6c65d756e603..e0ab50c58dc4 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -50,7 +50,7 @@ config NF_CONNTRACK
- 	tristate "Netfilter connection tracking support"
- 	default m if NETFILTER_ADVANCED=n
- 	select NF_DEFRAG_IPV4
--	select NF_DEFRAG_IPV6 if IPV6
-+	select NF_DEFRAG_IPV6 if IPV6 != n
- 	help
- 	  Connection tracking keeps a record of what packets have passed
- 	  through your machine, in order to figure out how they are related
-diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index 0b3851e825fa..53bd1ed1228a 100644
---- a/net/netfilter/Makefile
-+++ b/net/netfilter/Makefile
-@@ -6,7 +6,7 @@ nf_conntrack-y	:= nf_conntrack_core.o nf_conntrack_standalone.o nf_conntrack_exp
- 		   nf_conntrack_proto_icmp.o \
- 		   nf_conntrack_extend.o nf_conntrack_acct.o nf_conntrack_seqadj.o
- 
--nf_conntrack-$(CONFIG_IPV6) += nf_conntrack_proto_icmpv6.o
-+nf_conntrack-$(subst m,y,$(CONFIG_IPV6)) += nf_conntrack_proto_icmpv6.o
- nf_conntrack-$(CONFIG_NF_CONNTRACK_TIMEOUT) += nf_conntrack_timeout.o
- nf_conntrack-$(CONFIG_NF_CONNTRACK_TIMESTAMP) += nf_conntrack_timestamp.o
- nf_conntrack-$(CONFIG_NF_CONNTRACK_EVENTS) += nf_conntrack_ecache.o
+IPv6: ADDRCONF(NETDEV_CHANGE): veth0: link becomes ready
+IPv6: ADDRCONF(NETDEV_CHANGE): bond0: link becomes ready
+IPv6: ADDRCONF(NETDEV_UP): team0: link is not ready
+8021q: adding VLAN 0 to HW filter on device team0
+==================================================================
+BUG: KASAN: stack-out-of-bounds in pgd_val  
+arch/x86/include/asm/paravirt.h:412 [inline]
+BUG: KASAN: stack-out-of-bounds in p4d_pfn  
+arch/x86/include/asm/pgtable.h:205 [inline]
+BUG: KASAN: stack-out-of-bounds in vmalloc_fault+0x743/0x760  
+arch/x86/mm/fault.c:462
+Read of size 8 at addr ffff8801a936f160 by task ksoftirqd/0/9
+
+CPU: 0 PID: 9 Comm: ksoftirqd/0 Not tainted 4.18.0-rc3+ #47
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS  
+Google 01/01/2011
+Call Trace:
+  __dump_stack lib/dump_stack.c:77 [inline]
+  dump_stack+0x1c9/0x2b4 lib/dump_stack.c:113
+  print_address_description+0x6c/0x20b mm/kasan/report.c:256
+  kasan_report_error mm/kasan/report.c:354 [inline]
+  kasan_report.cold.7+0x242/0x2fe mm/kasan/report.c:412
+  __asan_report_load8_noabort+0x14/0x20 mm/kasan/report.c:433
+  pgd_val arch/x86/include/asm/paravirt.h:412 [inline]
+  p4d_pfn arch/x86/include/asm/pgtable.h:205 [inline]
+  vmalloc_fault+0x743/0x760 arch/x86/mm/fault.c:462
+  __do_page_fault+0x829/0xe50 arch/x86/mm/fault.c:1245
+  do_page_fault+0xf6/0x8c0 arch/x86/mm/fault.c:1471
+  page_fault+0x1e/0x30 arch/x86/entry/entry_64.S:1160
+RIP: 0010:ebt_do_table+0x1a7/0x2170 net/bridge/netfilter/ebtables.c:208
+Code: 24 04 4d 8d ac 24 80 00 00 00 48 89 fa 48 c1 ea 03 0f b6 14 02 48 89  
+f8 83 e0 07 83 c0 03 38 d0 7c 08 84 d2 0f 85 8f 1e 00 00 <41> 8b 44 24 04  
+49 8d 7c 24 38 65 8b 15 28 7f 39 79 48 c1 e0 04 48
+RSP: 0018:ffff8801d9ab6ab8 EFLAGS: 00010246
+RAX: 0000000000000007 RBX: 0000000000000005 RCX: ffffffff81601dff
+RDX: 0000000000000000 RSI: 0000000000000004 RDI: ffffc90001e2c004
+RBP: ffff8801d9ab6c88 R08: ffffed003a6f4e49 R09: ffffed003a6f4e48
+R10: ffffed003a6f4e48 R11: ffff8801d37a7243 R12: ffffc90001e2c000
+R13: ffffc90001e2c080 R14: ffff8801d9ab6cc0 R15: ffff8801d9394380
+  ebt_broute+0x200/0x340 net/bridge/netfilter/ebtable_broute.c:60
+  br_handle_frame+0x6d1/0x1a20 net/bridge/br_input.c:292
+  __netif_receive_skb_core.constprop.140+0x142d/0x3620 net/core/dev.c:4697
+  __netif_receive_skb_one_core+0xd0/0x200 net/core/dev.c:4766
+  __netif_receive_skb+0x2c/0x1e0 net/core/dev.c:4873
+  process_backlog+0x219/0x760 net/core/dev.c:5676
+  napi_poll net/core/dev.c:6088 [inline]
+  net_rx_action+0x7a5/0x1950 net/core/dev.c:6154
+  __do_softirq+0x2e8/0xb17 kernel/softirq.c:288
+  run_ksoftirqd+0x86/0x100 kernel/softirq.c:649
+  smpboot_thread_fn+0x417/0x870 kernel/smpboot.c:164
+  kthread+0x345/0x410 kernel/kthread.c:240
+  ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:412
+
+The buggy address belongs to the page:
+page:ffffea0006a4dbc0 count:1 mapcount:0 mapping:0000000000000000 index:0x0
+flags: 0x2fffc0000000000()
+raw: 02fffc0000000000 dead000000000100 dead000000000200 0000000000000000
+raw: 0000000000000000 0000000000000000 00000001ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+  ffff8801a936f000: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  ffff8801a936f080: 00 00 00 f1 f1 f1 f1 00 f2 f2 f2 f2 f2 f2 f2 00
+> ffff8801a936f100: f2 f2 f2 f2 f2 f2 f2 00 f2 f2 f2 f2 f2 f2 f2 f8
+                                                        ^
+  ffff8801a936f180: f2 f2 f2 f2 f2 f2 f2 00 f2 f2 f2 00 00 00 00 00
+  ffff8801a936f200: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+==================================================================
+
+
+---
+This bug is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
+
+syzbot will keep track of this bug report. See:
+https://goo.gl/tpsmEJ#bug-status-tracking for how to communicate with  
+syzbot.
+syzbot can test patches for this bug, for details see:
+https://goo.gl/tpsmEJ#testing-patches
