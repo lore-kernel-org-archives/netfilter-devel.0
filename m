@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 6/6] netfilter: ipv6: nf_defrag: drop skb dst before queueing
-Date: Mon,  9 Jul 2018 19:19:04 +0200
-Message-ID: <20180709171904.2460-7-pablo@netfilter.org>
+Subject: [PATCH 3/6] netfilter: nf_tables: place all set backends in one single module
+Date: Mon,  9 Jul 2018 19:19:01 +0200
+Message-ID: <20180709171904.2460-4-pablo@netfilter.org>
 References: <20180709171904.2460-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,50 +10,268 @@ In-Reply-To: <20180709171904.2460-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+This patch disallows rbtree with single elements, which is causing
+problems with the recent timeout support. Before this patch, you
+could opt out individual set representations per module, which is
+just adding extra complexity.
 
-Eric Dumazet reports:
- Here is a reproducer of an annoying bug detected by syzkaller on our production kernel
- [..]
- ./b78305423 enable_conntrack
- Then :
- sleep 60
- dmesg | tail -10
- [  171.599093] unregister_netdevice: waiting for lo to become free. Usage count = 2
- [  181.631024] unregister_netdevice: waiting for lo to become free. Usage count = 2
- [  191.687076] unregister_netdevice: waiting for lo to become free. Usage count = 2
- [  201.703037] unregister_netdevice: waiting for lo to become free. Usage count = 2
- [  211.711072] unregister_netdevice: waiting for lo to become free. Usage count = 2
- [  221.959070] unregister_netdevice: waiting for lo to become free. Usage count = 2
-
-Reproducer sends ipv6 fragment that hits nfct defrag via LOCAL_OUT hook.
-skb gets queued until frag timer expiry -- 1 minute.
-
-Normally nf_conntrack_reasm gets called during prerouting, so skb has
-no dst yet which might explain why this wasn't spotted earlier.
-
-Reported-by: Eric Dumazet <eric.dumazet@gmail.com>
-Reported-by: John Sperbeck <jsperbeck@google.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Tested-by: Eric Dumazet <edumazet@google.com>
-Reported-by: syzbot <syzkaller@googlegroups.com>
+Fixes: 8d8540c4f5e0("netfilter: nft_set_rbtree: add timeout support")
+Reported-by: Taehee Yoo <ap420073@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/ipv6/netfilter/nf_conntrack_reasm.c | 2 ++
- 1 file changed, 2 insertions(+)
+ include/net/netfilter/nf_tables_core.h |  6 ++++++
+ net/netfilter/Kconfig                  | 25 +++++++------------------
+ net/netfilter/Makefile                 |  7 ++++---
+ net/netfilter/nf_tables_set_core.c     | 28 ++++++++++++++++++++++++++++
+ net/netfilter/nft_set_bitmap.c         | 19 +------------------
+ net/netfilter/nft_set_hash.c           | 29 +++--------------------------
+ net/netfilter/nft_set_rbtree.c         | 19 +------------------
+ 7 files changed, 50 insertions(+), 83 deletions(-)
+ create mode 100644 net/netfilter/nf_tables_set_core.c
 
-diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
-index a452d99c9f52..e4d9e6976d3c 100644
---- a/net/ipv6/netfilter/nf_conntrack_reasm.c
-+++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
-@@ -585,6 +585,8 @@ int nf_ct_frag6_gather(struct net *net, struct sk_buff *skb, u32 user)
- 	    fq->q.meat == fq->q.len &&
- 	    nf_ct_frag6_reasm(fq, skb, dev))
- 		ret = 0;
-+	else
-+		skb_dst_drop(skb);
+diff --git a/include/net/netfilter/nf_tables_core.h b/include/net/netfilter/nf_tables_core.h
+index e0c0c2558ec4..a05134507e7b 100644
+--- a/include/net/netfilter/nf_tables_core.h
++++ b/include/net/netfilter/nf_tables_core.h
+@@ -65,4 +65,10 @@ extern const struct nft_expr_ops nft_payload_fast_ops;
+ extern struct static_key_false nft_counters_enabled;
+ extern struct static_key_false nft_trace_enabled;
  
- out_unlock:
- 	spin_unlock_bh(&fq->q.lock);
++extern struct nft_set_type nft_set_rhash_type;
++extern struct nft_set_type nft_set_hash_type;
++extern struct nft_set_type nft_set_hash_fast_type;
++extern struct nft_set_type nft_set_rbtree_type;
++extern struct nft_set_type nft_set_bitmap_type;
++
+ #endif /* _NET_NF_TABLES_CORE_H */
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index dbd7d1fad277..f0a1c536ef15 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -460,6 +460,13 @@ config NF_TABLES
+ 
+ if NF_TABLES
+ 
++config NF_TABLES_SET
++	tristate "Netfilter nf_tables set infrastructure"
++	help
++	  This option enables the nf_tables set infrastructure that allows to
++	  look up for elements in a set and to build one-way mappings between
++	  matchings and actions.
++
+ config NF_TABLES_INET
+ 	depends on IPV6
+ 	select NF_TABLES_IPV4
+@@ -493,24 +500,6 @@ config NFT_FLOW_OFFLOAD
+ 	  This option adds the "flow_offload" expression that you can use to
+ 	  choose what flows are placed into the hardware.
+ 
+-config NFT_SET_RBTREE
+-	tristate "Netfilter nf_tables rbtree set module"
+-	help
+-	  This option adds the "rbtree" set type (Red Black tree) that is used
+-	  to build interval-based sets.
+-
+-config NFT_SET_HASH
+-	tristate "Netfilter nf_tables hash set module"
+-	help
+-	  This option adds the "hash" set type that is used to build one-way
+-	  mappings between matchings and actions.
+-
+-config NFT_SET_BITMAP
+-	tristate "Netfilter nf_tables bitmap set module"
+-	help
+-	  This option adds the "bitmap" set type that is used to build sets
+-	  whose keys are smaller or equal to 16 bits.
+-
+ config NFT_COUNTER
+ 	tristate "Netfilter nf_tables counter module"
+ 	help
+diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
+index 44449389e527..8a76dced974d 100644
+--- a/net/netfilter/Makefile
++++ b/net/netfilter/Makefile
+@@ -78,7 +78,11 @@ nf_tables-objs := nf_tables_core.o nf_tables_api.o nft_chain_filter.o \
+ 		  nft_bitwise.o nft_byteorder.o nft_payload.o nft_lookup.o \
+ 		  nft_dynset.o nft_meta.o nft_rt.o nft_exthdr.o
+ 
++nf_tables_set-objs := nf_tables_set_core.o \
++		      nft_set_hash.o nft_set_bitmap.o nft_set_rbtree.o
++
+ obj-$(CONFIG_NF_TABLES)		+= nf_tables.o
++obj-$(CONFIG_NF_TABLES_SET)	+= nf_tables_set.o
+ obj-$(CONFIG_NFT_COMPAT)	+= nft_compat.o
+ obj-$(CONFIG_NFT_CONNLIMIT)	+= nft_connlimit.o
+ obj-$(CONFIG_NFT_NUMGEN)	+= nft_numgen.o
+@@ -91,9 +95,6 @@ obj-$(CONFIG_NFT_QUEUE)		+= nft_queue.o
+ obj-$(CONFIG_NFT_QUOTA)		+= nft_quota.o
+ obj-$(CONFIG_NFT_REJECT) 	+= nft_reject.o
+ obj-$(CONFIG_NFT_REJECT_INET)	+= nft_reject_inet.o
+-obj-$(CONFIG_NFT_SET_RBTREE)	+= nft_set_rbtree.o
+-obj-$(CONFIG_NFT_SET_HASH)	+= nft_set_hash.o
+-obj-$(CONFIG_NFT_SET_BITMAP)	+= nft_set_bitmap.o
+ obj-$(CONFIG_NFT_COUNTER)	+= nft_counter.o
+ obj-$(CONFIG_NFT_LOG)		+= nft_log.o
+ obj-$(CONFIG_NFT_MASQ)		+= nft_masq.o
+diff --git a/net/netfilter/nf_tables_set_core.c b/net/netfilter/nf_tables_set_core.c
+new file mode 100644
+index 000000000000..814789644bd3
+--- /dev/null
++++ b/net/netfilter/nf_tables_set_core.c
+@@ -0,0 +1,28 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++#include <net/netfilter/nf_tables_core.h>
++
++static int __init nf_tables_set_module_init(void)
++{
++	nft_register_set(&nft_set_hash_fast_type);
++	nft_register_set(&nft_set_hash_type);
++	nft_register_set(&nft_set_rhash_type);
++	nft_register_set(&nft_set_bitmap_type);
++	nft_register_set(&nft_set_rbtree_type);
++
++	return 0;
++}
++
++static void __exit nf_tables_set_module_exit(void)
++{
++	nft_unregister_set(&nft_set_rbtree_type);
++	nft_unregister_set(&nft_set_bitmap_type);
++	nft_unregister_set(&nft_set_rhash_type);
++	nft_unregister_set(&nft_set_hash_type);
++	nft_unregister_set(&nft_set_hash_fast_type);
++}
++
++module_init(nf_tables_set_module_init);
++module_exit(nf_tables_set_module_exit);
++
++MODULE_LICENSE("GPL");
++MODULE_ALIAS_NFT_SET();
+diff --git a/net/netfilter/nft_set_bitmap.c b/net/netfilter/nft_set_bitmap.c
+index d6626e01c7ee..128bc16f52dd 100644
+--- a/net/netfilter/nft_set_bitmap.c
++++ b/net/netfilter/nft_set_bitmap.c
+@@ -296,7 +296,7 @@ static bool nft_bitmap_estimate(const struct nft_set_desc *desc, u32 features,
+ 	return true;
+ }
+ 
+-static struct nft_set_type nft_bitmap_type __read_mostly = {
++struct nft_set_type nft_set_bitmap_type __read_mostly = {
+ 	.owner		= THIS_MODULE,
+ 	.ops		= {
+ 		.privsize	= nft_bitmap_privsize,
+@@ -314,20 +314,3 @@ static struct nft_set_type nft_bitmap_type __read_mostly = {
+ 		.get		= nft_bitmap_get,
+ 	},
+ };
+-
+-static int __init nft_bitmap_module_init(void)
+-{
+-	return nft_register_set(&nft_bitmap_type);
+-}
+-
+-static void __exit nft_bitmap_module_exit(void)
+-{
+-	nft_unregister_set(&nft_bitmap_type);
+-}
+-
+-module_init(nft_bitmap_module_init);
+-module_exit(nft_bitmap_module_exit);
+-
+-MODULE_LICENSE("GPL");
+-MODULE_AUTHOR("Pablo Neira Ayuso <pablo@netfilter.org>");
+-MODULE_ALIAS_NFT_SET();
+diff --git a/net/netfilter/nft_set_hash.c b/net/netfilter/nft_set_hash.c
+index 6f9a1365a09f..72ef35b51cac 100644
+--- a/net/netfilter/nft_set_hash.c
++++ b/net/netfilter/nft_set_hash.c
+@@ -654,7 +654,7 @@ static bool nft_hash_fast_estimate(const struct nft_set_desc *desc, u32 features
+ 	return true;
+ }
+ 
+-static struct nft_set_type nft_rhash_type __read_mostly = {
++struct nft_set_type nft_set_rhash_type __read_mostly = {
+ 	.owner		= THIS_MODULE,
+ 	.features	= NFT_SET_MAP | NFT_SET_OBJECT |
+ 			  NFT_SET_TIMEOUT | NFT_SET_EVAL,
+@@ -677,7 +677,7 @@ static struct nft_set_type nft_rhash_type __read_mostly = {
+ 	},
+ };
+ 
+-static struct nft_set_type nft_hash_type __read_mostly = {
++struct nft_set_type nft_set_hash_type __read_mostly = {
+ 	.owner		= THIS_MODULE,
+ 	.features	= NFT_SET_MAP | NFT_SET_OBJECT,
+ 	.ops		= {
+@@ -697,7 +697,7 @@ static struct nft_set_type nft_hash_type __read_mostly = {
+ 	},
+ };
+ 
+-static struct nft_set_type nft_hash_fast_type __read_mostly = {
++struct nft_set_type nft_set_hash_fast_type __read_mostly = {
+ 	.owner		= THIS_MODULE,
+ 	.features	= NFT_SET_MAP | NFT_SET_OBJECT,
+ 	.ops		= {
+@@ -716,26 +716,3 @@ static struct nft_set_type nft_hash_fast_type __read_mostly = {
+ 		.get		= nft_hash_get,
+ 	},
+ };
+-
+-static int __init nft_hash_module_init(void)
+-{
+-	if (nft_register_set(&nft_hash_fast_type) ||
+-	    nft_register_set(&nft_hash_type) ||
+-	    nft_register_set(&nft_rhash_type))
+-		return 1;
+-	return 0;
+-}
+-
+-static void __exit nft_hash_module_exit(void)
+-{
+-	nft_unregister_set(&nft_rhash_type);
+-	nft_unregister_set(&nft_hash_type);
+-	nft_unregister_set(&nft_hash_fast_type);
+-}
+-
+-module_init(nft_hash_module_init);
+-module_exit(nft_hash_module_exit);
+-
+-MODULE_LICENSE("GPL");
+-MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
+-MODULE_ALIAS_NFT_SET();
+diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
+index 7f3a9a211034..1f8f257cb518 100644
+--- a/net/netfilter/nft_set_rbtree.c
++++ b/net/netfilter/nft_set_rbtree.c
+@@ -462,7 +462,7 @@ static bool nft_rbtree_estimate(const struct nft_set_desc *desc, u32 features,
+ 	return true;
+ }
+ 
+-static struct nft_set_type nft_rbtree_type __read_mostly = {
++struct nft_set_type nft_set_rbtree_type __read_mostly = {
+ 	.owner		= THIS_MODULE,
+ 	.features	= NFT_SET_INTERVAL | NFT_SET_MAP | NFT_SET_OBJECT | NFT_SET_TIMEOUT,
+ 	.ops		= {
+@@ -481,20 +481,3 @@ static struct nft_set_type nft_rbtree_type __read_mostly = {
+ 		.get		= nft_rbtree_get,
+ 	},
+ };
+-
+-static int __init nft_rbtree_module_init(void)
+-{
+-	return nft_register_set(&nft_rbtree_type);
+-}
+-
+-static void __exit nft_rbtree_module_exit(void)
+-{
+-	nft_unregister_set(&nft_rbtree_type);
+-}
+-
+-module_init(nft_rbtree_module_init);
+-module_exit(nft_rbtree_module_exit);
+-
+-MODULE_LICENSE("GPL");
+-MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
+-MODULE_ALIAS_NFT_SET();
 -- 
 2.11.0
