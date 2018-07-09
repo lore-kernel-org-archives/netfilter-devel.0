@@ -1,137 +1,55 @@
-From: Dmitry Vyukov <dvyukov@google.com>
-Subject: Re: KASAN: stack-out-of-bounds Read in vmalloc_fault
-Date: Sat, 7 Jul 2018 09:00:13 +0200
-Message-ID: <CACT4Y+Z2OWT4mzADTFScQv9r+8xyJgd4oAk9=Gv48XQ3YLfMfQ@mail.gmail.com>
-References: <000000000000d8e31b05705e901b@google.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Cc: bridge@lists.linux-foundation.org, coreteam@netfilter.org,
-        David Miller <davem@davemloft.net>,
-        Florian Westphal <fw@strlen.de>,
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH] netfilter: xt_tee: fix calling nf_dup_ipv6
+Date: Mon,  9 Jul 2018 17:25:38 +0200
+Message-ID: <20180709152546.1177277-1-arnd@arndb.de>
+Cc: Arnd Bergmann <arnd@arndb.de>, Kirill Tkhai <ktkhai@virtuozzo.com>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
         Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        LKML <linux-kernel@vger.kernel.org>,
-        netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        stephen hemminger <stephen@networkplumber.org>,
-        syzkaller-bugs <syzkaller-bugs@googlegroups.com>
-To: syzbot <syzbot+7b269953d076326d7de0@syzkaller.appspotmail.com>
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <000000000000d8e31b05705e901b@google.com>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, Jul 7, 2018 at 3:19 AM, syzbot
-<syzbot+7b269953d076326d7de0@syzkaller.appspotmail.com> wrote:
-> Hello,
->
-> syzbot found the following crash on:
->
-> HEAD commit:    6fcf9b1d4d6c r8169: fix runtime suspend
-> git tree:       bpf-next
-> console output: https://syzkaller.appspot.com/x/log.txt?x=174529b2400000
-> kernel config:  https://syzkaller.appspot.com/x/.config?x=d264f2b04177ca7c
-> dashboard link: https://syzkaller.appspot.com/bug?extid=7b269953d076326d7de0
-> compiler:       gcc (GCC) 8.0.1 20180413 (experimental)
-> syzkaller repro:https://syzkaller.appspot.com/x/repro.syz?x=1397e2c2400000
-> C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=120e462c400000
->
-> IMPORTANT: if you fix the bug, please add the following tag to the commit:
-> Reported-by: syzbot+7b269953d076326d7de0@syzkaller.appspotmail.com
+Now that we can enable the NETFILTER_XT_TARGET_TEE option without supporting
+TEE on ipv6, we get a build error with NETFILTER_XT_TARGET_TEE=y, IPV6=y and
+IP6_NF_IPTABLES=n:
 
+ERROR: "nf_dup_ipv6" [net/netfilter/xt_TEE.ko] undefined!
 
-This looks like the bpf map bug which leads to random bugs on stack:
+I previously submitted another patch that fixes the same symptom for the
+case of IP6_NF_IPTABLES=m, but missed the fact that there are still
+similarly broken configurations.
 
-#syz dup: KASAN: stack-out-of-bounds Read in timerqueue_add
+Fixes: 35bf1ccecaaa ("netfilter: Kconfig: Change IPv6 select dependencies")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+ net/netfilter/xt_TEE.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-
-> IPv6: ADDRCONF(NETDEV_CHANGE): veth0: link becomes ready
-> IPv6: ADDRCONF(NETDEV_CHANGE): bond0: link becomes ready
-> IPv6: ADDRCONF(NETDEV_UP): team0: link is not ready
-> 8021q: adding VLAN 0 to HW filter on device team0
-> ==================================================================
-> BUG: KASAN: stack-out-of-bounds in pgd_val
-> arch/x86/include/asm/paravirt.h:412 [inline]
-> BUG: KASAN: stack-out-of-bounds in p4d_pfn
-> arch/x86/include/asm/pgtable.h:205 [inline]
-> BUG: KASAN: stack-out-of-bounds in vmalloc_fault+0x743/0x760
-> arch/x86/mm/fault.c:462
-> Read of size 8 at addr ffff8801a936f160 by task ksoftirqd/0/9
->
-> CPU: 0 PID: 9 Comm: ksoftirqd/0 Not tainted 4.18.0-rc3+ #47
-> Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS
-> Google 01/01/2011
-> Call Trace:
->  __dump_stack lib/dump_stack.c:77 [inline]
->  dump_stack+0x1c9/0x2b4 lib/dump_stack.c:113
->  print_address_description+0x6c/0x20b mm/kasan/report.c:256
->  kasan_report_error mm/kasan/report.c:354 [inline]
->  kasan_report.cold.7+0x242/0x2fe mm/kasan/report.c:412
->  __asan_report_load8_noabort+0x14/0x20 mm/kasan/report.c:433
->  pgd_val arch/x86/include/asm/paravirt.h:412 [inline]
->  p4d_pfn arch/x86/include/asm/pgtable.h:205 [inline]
->  vmalloc_fault+0x743/0x760 arch/x86/mm/fault.c:462
->  __do_page_fault+0x829/0xe50 arch/x86/mm/fault.c:1245
->  do_page_fault+0xf6/0x8c0 arch/x86/mm/fault.c:1471
->  page_fault+0x1e/0x30 arch/x86/entry/entry_64.S:1160
-> RIP: 0010:ebt_do_table+0x1a7/0x2170 net/bridge/netfilter/ebtables.c:208
-> Code: 24 04 4d 8d ac 24 80 00 00 00 48 89 fa 48 c1 ea 03 0f b6 14 02 48 89
-> f8 83 e0 07 83 c0 03 38 d0 7c 08 84 d2 0f 85 8f 1e 00 00 <41> 8b 44 24 04 49
-> 8d 7c 24 38 65 8b 15 28 7f 39 79 48 c1 e0 04 48
-> RSP: 0018:ffff8801d9ab6ab8 EFLAGS: 00010246
-> RAX: 0000000000000007 RBX: 0000000000000005 RCX: ffffffff81601dff
-> RDX: 0000000000000000 RSI: 0000000000000004 RDI: ffffc90001e2c004
-> RBP: ffff8801d9ab6c88 R08: ffffed003a6f4e49 R09: ffffed003a6f4e48
-> R10: ffffed003a6f4e48 R11: ffff8801d37a7243 R12: ffffc90001e2c000
-> R13: ffffc90001e2c080 R14: ffff8801d9ab6cc0 R15: ffff8801d9394380
->  ebt_broute+0x200/0x340 net/bridge/netfilter/ebtable_broute.c:60
->  br_handle_frame+0x6d1/0x1a20 net/bridge/br_input.c:292
->  __netif_receive_skb_core.constprop.140+0x142d/0x3620 net/core/dev.c:4697
->  __netif_receive_skb_one_core+0xd0/0x200 net/core/dev.c:4766
->  __netif_receive_skb+0x2c/0x1e0 net/core/dev.c:4873
->  process_backlog+0x219/0x760 net/core/dev.c:5676
->  napi_poll net/core/dev.c:6088 [inline]
->  net_rx_action+0x7a5/0x1950 net/core/dev.c:6154
->  __do_softirq+0x2e8/0xb17 kernel/softirq.c:288
->  run_ksoftirqd+0x86/0x100 kernel/softirq.c:649
->  smpboot_thread_fn+0x417/0x870 kernel/smpboot.c:164
->  kthread+0x345/0x410 kernel/kthread.c:240
->  ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:412
->
-> The buggy address belongs to the page:
-> page:ffffea0006a4dbc0 count:1 mapcount:0 mapping:0000000000000000 index:0x0
-> flags: 0x2fffc0000000000()
-> raw: 02fffc0000000000 dead000000000100 dead000000000200 0000000000000000
-> raw: 0000000000000000 0000000000000000 00000001ffffffff 0000000000000000
-> page dumped because: kasan: bad access detected
->
-> Memory state around the buggy address:
->  ffff8801a936f000: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
->  ffff8801a936f080: 00 00 00 f1 f1 f1 f1 00 f2 f2 f2 f2 f2 f2 f2 00
->>
->> ffff8801a936f100: f2 f2 f2 f2 f2 f2 f2 00 f2 f2 f2 f2 f2 f2 f2 f8
->
->                                                        ^
->  ffff8801a936f180: f2 f2 f2 f2 f2 f2 f2 00 f2 f2 f2 00 00 00 00 00
->  ffff8801a936f200: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> ==================================================================
->
->
-> ---
-> This bug is generated by a bot. It may contain errors.
-> See https://goo.gl/tpsmEJ for more information about syzbot.
-> syzbot engineers can be reached at syzkaller@googlegroups.com.
->
-> syzbot will keep track of this bug report. See:
-> https://goo.gl/tpsmEJ#bug-status-tracking for how to communicate with
-> syzbot.
-> syzbot can test patches for this bug, for details see:
-> https://goo.gl/tpsmEJ#testing-patches
->
-> --
-> You received this message because you are subscribed to the Google Groups
-> "syzkaller-bugs" group.
-> To unsubscribe from this group and stop receiving emails from it, send an
-> email to syzkaller-bugs+unsubscribe@googlegroups.com.
-> To view this discussion on the web visit
-> https://groups.google.com/d/msgid/syzkaller-bugs/000000000000d8e31b05705e901b%40google.com.
-> For more options, visit https://groups.google.com/d/optout.
+diff --git a/net/netfilter/xt_TEE.c b/net/netfilter/xt_TEE.c
+index 475957cfcf50..0d0d68c989df 100644
+--- a/net/netfilter/xt_TEE.c
++++ b/net/netfilter/xt_TEE.c
+@@ -38,7 +38,7 @@ tee_tg4(struct sk_buff *skb, const struct xt_action_param *par)
+ 	return XT_CONTINUE;
+ }
+ 
+-#if IS_ENABLED(CONFIG_IPV6)
++#if IS_ENABLED(CONFIG_IP6_NF_IPTABLES)
+ static unsigned int
+ tee_tg6(struct sk_buff *skb, const struct xt_action_param *par)
+ {
+@@ -141,7 +141,7 @@ static struct xt_target tee_tg_reg[] __read_mostly = {
+ 		.destroy    = tee_tg_destroy,
+ 		.me         = THIS_MODULE,
+ 	},
+-#if IS_ENABLED(CONFIG_IPV6)
++#if IS_ENABLED(CONFIG_IP6_NF_IPTABLES)
+ 	{
+ 		.name       = "TEE",
+ 		.revision   = 1,
+-- 
+2.9.0
