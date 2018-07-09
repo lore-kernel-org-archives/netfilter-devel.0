@@ -1,58 +1,68 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] nf_conntrack: Fix possible possible crash on module
- loading.
-Date: Mon, 9 Jul 2018 18:01:04 +0200
-Message-ID: <20180709160104.jcf452tg3caktcdm@salvia>
-References: <20180706133853.15326-1-aryabinin@virtuozzo.com>
+Subject: Re: [PATCH] netfilter: conntrack: add weak IPV6 dependency
+Date: Mon, 9 Jul 2018 18:50:50 +0200
+Message-ID: <20180709165050.uuglk24ctiezhnye@salvia>
+References: <20180706130005.3640993-1-arnd@arndb.de>
+ <20180706135516.viz6pjtkdmcoqq2l@breakpoint.cc>
+ <CAK8P3a1o6+dcZuW_iMGzwBBw_dcW41QAQ2Mu4A5Ru9ScnwaYDA@mail.gmail.com>
+ <20180706150037.knqt736uq6uyh3bs@breakpoint.cc>
+ <20180706183548.hk7jwobomkqdccs5@breakpoint.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>,
+Cc: Arnd Bergmann <arnd@arndb.de>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
         "David S. Miller" <davem@davemloft.net>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-To: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Return-path: <netdev-owner@vger.kernel.org>
+        =?iso-8859-1?Q?M=E1t=E9?= Eckl <ecklm94@gmail.com>,
+        Fernando Fernandez Mancera <ffmancera@riseup.net>,
+        "Pablo M. Bermudo Garay" <pablombg@gmail.com>,
+        Felix Fietkau <nbd@nbd.name>, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, Networking <netdev@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Florian Westphal <fw@strlen.de>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180706133853.15326-1-aryabinin@virtuozzo.com>
-Sender: netdev-owner@vger.kernel.org
+In-Reply-To: <20180706183548.hk7jwobomkqdccs5@breakpoint.cc>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, Jul 06, 2018 at 04:38:53PM +0300, Andrey Ryabinin wrote:
-> Loading the nf_conntrack module with doubled hashsize parameter, i.e.
-> 	  modprobe nf_conntrack hashsize=12345 hashsize=12345
-> causes NULL-ptr deref.
+On Fri, Jul 06, 2018 at 08:35:48PM +0200, Florian Westphal wrote:
+> Florian Westphal <fw@strlen.de> wrote:
+> > Arnd Bergmann <arnd@arndb.de> wrote:
+> > > and that resulted in a new build failure:
+> > > 
+> > > net/netfilter/nf_conntrack_proto.o:(.rodata+0x788): undefined
+> > > reference to `nf_conntrack_l4proto_icmpv6'
+> > > net/ipv6/netfilter/nf_conntrack_reasm.o: In function `nf_ct_frag6_expire':
+> > > nf_conntrack_reasm.c:(.text+0x2320): undefined reference to
+> > > `ip6_expire_frag_queue'
+> > > net/ipv6/netfilter/nf_conntrack_reasm.o: In function `nf_ct_frag6_init':
+> > > nf_conntrack_reasm.c:(.text+0x2384): undefined reference to `ip6_frag_init'
+> > > nf_conntrack_reasm.c:(.text+0x2394): undefined reference to `ip6_frag_init'
+> > > nf_conntrack_reasm.c:(.text+0x2398): undefined reference to `ip6_rhash_params'
+> > > net/ipv6/netfilter/nf_conntrack_reasm.o: In function `nf_ct_frag6_expire':
+> > > nf_conntrack_reasm.c:(.text+0x10bc): undefined reference to
+> > > `ip6_expire_frag_queue'
+> > > 
+> > > I don't think we can get CONFIG_NF_DEFRAG_IPV6=y to work with IPV6=m.
+> > 
+> > Yes, not with current implementation, but I still don't think this
+> > is unavoidable.
+> > 
+> > In case this is urgent I'm fine with the patch that adds the dependency,
+> > otherwise I'd like to try and disentangle nf_conntrack_reasm and ipv6.
 > 
-> If 'hashsize' specified twice, the nf_conntrack_set_hashsize() function
-> will be called also twice.
-> The first nf_conntrack_set_hashsize() call will set the
-> 'nf_conntrack_htable_size' variable:
+> This links fine for me with IPV6=m:
 > 
-> 	nf_conntrack_set_hashsize()
-> 		...
-> 		/* On boot, we can set this without any fancy locking. */
-> 		if (!nf_conntrack_htable_size)
-> 			return param_set_uint(val, kp);
-> 
-> But on the second invocation, the nf_conntrack_htable_size is already set,
-> so the nf_conntrack_set_hashsize() will take a different path and call
-> the nf_conntrack_hash_resize() function. Which will crash on the attempt
-> to dereference 'nf_conntrack_hash' pointer:
-> 
-> 	BUG: unable to handle kernel NULL pointer dereference at 0000000000000000
-> 	RIP: 0010:nf_conntrack_hash_resize+0x255/0x490 [nf_conntrack]
-> 	Call Trace:
-> 	 nf_conntrack_set_hashsize+0xcd/0x100 [nf_conntrack]
-> 	 parse_args+0x1f9/0x5a0
-> 	 load_module+0x1281/0x1a50
-> 	 __se_sys_finit_module+0xbe/0xf0
-> 	 do_syscall_64+0x7c/0x390
-> 	 entry_SYSCALL_64_after_hwframe+0x49/0xbe
-> 
-> Fix this, by checking !nf_conntrack_hash instead of
-> !nf_conntrack_htable_size. nf_conntrack_hash will be initialized only
-> after the module loaded, so the second invocation of the
-> nf_conntrack_set_hashsize() won't crash, it will just reinitialize
-> nf_conntrack_htable_size again.
+> Pablo, do you think this is too ugly?
 
-Applied, thanks.
+Well, yes...
+
+> It requires some copypastry from ipv6 defrag into nfct ipv6 defrag
+> to avoid the link errors outlined above.
+
+This is a bit of a regression I think.
+
+While I think a bit of demodularization is fine, if things like this
+start to kick in, it's probably good if we go make a step back...
+
+Let me know, thanks.
