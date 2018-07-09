@@ -1,90 +1,59 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 0/6] Netfilter fixes for net
-Date: Mon,  9 Jul 2018 19:18:58 +0200
-Message-ID: <20180709171904.2460-1-pablo@netfilter.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Subject: [PATCH 6/6] netfilter: ipv6: nf_defrag: drop skb dst before queueing
+Date: Mon,  9 Jul 2018 19:19:04 +0200
+Message-ID: <20180709171904.2460-7-pablo@netfilter.org>
+References: <20180709171904.2460-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20180709171904.2460-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi David,
+From: Florian Westphal <fw@strlen.de>
 
-The following patchset contains Netfilter fixes for your net tree:
+Eric Dumazet reports:
+ Here is a reproducer of an annoying bug detected by syzkaller on our production kernel
+ [..]
+ ./b78305423 enable_conntrack
+ Then :
+ sleep 60
+ dmesg | tail -10
+ [  171.599093] unregister_netdevice: waiting for lo to become free. Usage count = 2
+ [  181.631024] unregister_netdevice: waiting for lo to become free. Usage count = 2
+ [  191.687076] unregister_netdevice: waiting for lo to become free. Usage count = 2
+ [  201.703037] unregister_netdevice: waiting for lo to become free. Usage count = 2
+ [  211.711072] unregister_netdevice: waiting for lo to become free. Usage count = 2
+ [  221.959070] unregister_netdevice: waiting for lo to become free. Usage count = 2
 
-1) Missing module autoloadfor icmp and icmpv6 x_tables matches,
-   from Florian Westphal.
+Reproducer sends ipv6 fragment that hits nfct defrag via LOCAL_OUT hook.
+skb gets queued until frag timer expiry -- 1 minute.
 
-2) Possible non-linear access to TCP header from tproxy, from
-   Mate Eckl.
+Normally nf_conntrack_reasm gets called during prerouting, so skb has
+no dst yet which might explain why this wasn't spotted earlier.
 
-3) Do not allow rbtree to be used for single elements, this patch
-   moves all set backend into one single module since such thing
-   can only happen if hashtable module is explicitly blacklisted,
-   which should not ever be done.
+Reported-by: Eric Dumazet <eric.dumazet@gmail.com>
+Reported-by: John Sperbeck <jsperbeck@google.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Tested-by: Eric Dumazet <edumazet@google.com>
+Reported-by: syzbot <syzkaller@googlegroups.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/ipv6/netfilter/nf_conntrack_reasm.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-4) Reject error and standard targets from nft_compat for sanity
-   reasons, they are never used from there.
-
-5) Don't crash on double hashsize module parameter, from Andrey
-   Ryabinin.
-
-6) Drop dst on skb before placing it in the fragmentation
-   reassembly queue, from Florian Westphal.
-
-You can pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
-
-Thanks!
-
-----------------------------------------------------------------
-
-The following changes since commit d461e3da905332189aad546b2ad9adbe6071c7cc:
-
-  smsc75xx: Add workaround for gigabit link up hardware errata. (2018-07-04 22:12:59 +0900)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git HEAD
-
-for you to fetch changes up to 84379c9afe011020e797e3f50a662b08a6355dcf:
-
-  netfilter: ipv6: nf_defrag: drop skb dst before queueing (2018-07-09 18:04:12 +0200)
-
-----------------------------------------------------------------
-Andrey Ryabinin (1):
-      netfilter: nf_conntrack: Fix possible possible crash on module loading.
-
-Florian Westphal (3):
-      netfilter: x_tables: set module owner for icmp(6) matches
-      netfilter: nft_compat: explicitly reject ERROR and standard target
-      netfilter: ipv6: nf_defrag: drop skb dst before queueing
-
-Máté Eckl (1):
-      netfilter: nf_tproxy: fix possible non-linear access to transport header
-
-Pablo Neira Ayuso (1):
-      netfilter: nf_tables: place all set backends in one single module
-
- include/net/netfilter/nf_tables_core.h  |  6 ++++++
- include/net/netfilter/nf_tproxy.h       |  4 ++--
- net/ipv4/netfilter/ip_tables.c          |  1 +
- net/ipv4/netfilter/nf_tproxy_ipv4.c     | 18 ++++++++++++------
- net/ipv6/netfilter/ip6_tables.c         |  1 +
- net/ipv6/netfilter/nf_conntrack_reasm.c |  2 ++
- net/ipv6/netfilter/nf_tproxy_ipv6.c     | 18 ++++++++++++------
- net/netfilter/Kconfig                   | 25 +++++++------------------
- net/netfilter/Makefile                  |  7 ++++---
- net/netfilter/nf_conntrack_core.c       |  2 +-
- net/netfilter/nf_tables_set_core.c      | 28 ++++++++++++++++++++++++++++
- net/netfilter/nft_compat.c              | 13 +++++++++++++
- net/netfilter/nft_set_bitmap.c          | 19 +------------------
- net/netfilter/nft_set_hash.c            | 29 +++--------------------------
- net/netfilter/nft_set_rbtree.c          | 19 +------------------
- net/netfilter/xt_TPROXY.c               |  8 ++++----
- 16 files changed, 98 insertions(+), 102 deletions(-)
- create mode 100644 net/netfilter/nf_tables_set_core.c
+diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
+index a452d99c9f52..e4d9e6976d3c 100644
+--- a/net/ipv6/netfilter/nf_conntrack_reasm.c
++++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
+@@ -585,6 +585,8 @@ int nf_ct_frag6_gather(struct net *net, struct sk_buff *skb, u32 user)
+ 	    fq->q.meat == fq->q.len &&
+ 	    nf_ct_frag6_reasm(fq, skb, dev))
+ 		ret = 0;
++	else
++		skb_dst_drop(skb);
+ 
+ out_unlock:
+ 	spin_unlock_bh(&fq->q.lock);
+-- 
+2.11.0
