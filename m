@@ -1,8 +1,8 @@
-From: =?utf-8?B?TcOhdMOp?= Eckl <ecklm94@gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 Subject: Re: [PATCH] netfilter: NFT_SOCKET don't use NF_SOCKET_IPV6 without
  NF_TABLES_IPV6
-Date: Tue, 10 Jul 2018 11:51:22 +0200
-Message-ID: <20180710095122.6ee4wxfg4sabhcvw@sch.bme.hu>
+Date: Tue, 10 Jul 2018 12:56:05 +0200
+Message-ID: <20180710105605.evgtmjiq5z46zld6@salvia>
 References: <20180709213537.2748896-1-arnd@arndb.de>
  <20180710080227.qwh53ahq26j6phhd@sch.bme.hu>
  <20180710080538.d7xqpjdvpksfrx6o@sch.bme.hu>
@@ -10,7 +10,7 @@ References: <20180709213537.2748896-1-arnd@arndb.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: 8bit
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+Cc: =?iso-8859-1?Q?M=E1t=E9?= Eckl <ecklm94@gmail.com>,
         Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
         Florian Westphal <fw@strlen.de>,
         "David S. Miller" <davem@davemloft.net>,
@@ -19,10 +19,10 @@ Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
         Networking <netdev@vger.kernel.org>,
         Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 To: Arnd Bergmann <arnd@arndb.de>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
 In-Reply-To: <CAK8P3a0zYmdoMdWdFDcWprZY_4w2hbMYq4--iZB=JE4x2UiscA@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
 On Tue, Jul 10, 2018 at 11:10:40AM +0200, Arnd Bergmann wrote:
@@ -52,46 +52,18 @@ On Tue, Jul 10, 2018 at 11:10:40AM +0200, Arnd Bergmann wrote:
 > >> I think this should be fixed in the Kconfig rather than inside the module(s).
 > 
 > Should we revert your patch then, or do you have a better idea?
-> 
-> >> I did some investigation and it turns out that you missed a circumstance. This
-> >> link error occures only if NFT_SOCKET=y && NF_SOCKET_IPV6=m && NF_TABLES_IPV6=y
-> >> (cannot be m here if NFT_SOCKET is y).
-> 
-> No, if NF_TABLES_IPV6=y the problem cannot happen, since NFT_SOCKET then
-> selects NF_SOCKET_IPV6=y as well. Before your patch, it would always select
-> NF_SOCKET_IPV6 when it could, so it worked in all configurations.
 
-Sorry I wanted to write NF_TABLES_IPV6=n...
-So: NFT_SOCKET=y && NF_SOCKET_IPV6=m && NF_TABLES_IPV6=n causes linkage error.
-NFT_SOCKET=m && NF_SOCKET_IPV6=m && NF_TABLES_IPV6=n compiles fine.
+Máté, would you resubmit a new patch that addresses all the problems
+that Arnd is reporting in one go?
 
-> >>  And probably the same with
-> >> iptables-related modules. Probably this possibility should be eliminated.
-> >
-> > NF_TPROXY_IPV6 might be in the same situation.
-> 
-> I tried coming up with a combination that is broken for NF_TPROXY_IPV6=m
-> but could not. From what I can see with
-> 
-> config NETFILTER_XT_TARGET_TPROXY
->        tristate '"TPROXY" target transparent proxying support'
->        depends on IP6_NF_IPTABLES || IP6_NF_IPTABLES=n
->        select NF_TPROXY_IPV6 if IP6_NF_IPTABLES
-> 
-> and
-> 
-> #if IS_ENABLED(CONFIG_IP6_NF_IPTABLES)
-> 
-> inside of net/netfilter/xt_TPROXY.c, there is no way we can end up with
-> xt_TPROXY calling into the nf_tproxy_ipv6 loadable module from
-> a built-in context. This is the same approach I used in my patch,
-> just with IP6_NF_IPTABLES instead of NF_SOCKET_IPV6, in both
-> the Kconfig dependency and the module.
+I think it's better if we toss your original patch in the tree and
+rebase, ie. take the new one that fixes all issues that Arnd is
+reporting. It would be good if we can sort out this before I send the
+next pull request for net-next stuff.
 
-Right, I see your point. I have an alternative solution which seems more robust
-to me, but I might be overthinking this situation.
+I was afraid of fallout like this when I saw your original patch,
+kbuild is always tricky.
 
-So
-Accepted-by: Máté Eckl <ecklm94@gmail.com>
+Please Cc Arnd, Florian and me for review.
 
->       Arnd
+Thanks!
