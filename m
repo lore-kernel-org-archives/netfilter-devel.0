@@ -1,7 +1,8 @@
 From: dsahern@kernel.org
-Subject: [PATCH RFC/RFT net-next 00/17] net: Convert neighbor tables to per-namespace
-Date: Tue, 17 Jul 2018 05:06:34 -0700
-Message-ID: <20180717120651.15748-1-dsahern@kernel.org>
+Subject: [PATCH RFC/RFT net-next 02/17] net/neigh: export neigh_find_table
+Date: Tue, 17 Jul 2018 05:06:36 -0700
+Message-ID: <20180717120651.15748-3-dsahern@kernel.org>
+References: <20180717120651.15748-1-dsahern@kernel.org>
 Cc: nikita.leshchenko@oracle.com, roopa@cumulusnetworks.com,
         stephen@networkplumber.org, idosch@mellanox.com, jiri@mellanox.com,
         saeedm@mellanox.com, alex.aring@gmail.com,
@@ -9,76 +10,74 @@ Cc: nikita.leshchenko@oracle.com, roopa@cumulusnetworks.com,
         linux-kernel@vger.kernel.org, David Ahern <dsahern@gmail.com>
 To: netdev@vger.kernel.org
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180717120651.15748-1-dsahern@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
 From: David Ahern <dsahern@gmail.com>
 
-Nikita Leshenko reported that neighbor entries in one namespace can
-evict neighbor entries in another. The problem is that the neighbor
-tables have entries across all namespaces without separate accounting
-and with global limits on when to scan for entries to evict.
+neighbor code already has an API for access to neighbor caches by
+address family. Export it for use by networking code. Add the
+namespace as an input arg and make family a u8 versus an int (all
+existing callers pass ndm_family which is a u8).
 
-Resolve by making the neighbor tables for ipv4, ipv6 and decnet per
-namespace and making the accounting and threshold limits per namespace.
+Signed-off-by: David Ahern <dsahern@gmail.com>
+---
+ include/net/neighbour.h | 2 ++
+ net/core/neighbour.c    | 7 ++++---
+ 2 files changed, 6 insertions(+), 3 deletions(-)
 
-David Ahern (17):
-  net/ipv4: rename ipv4_neigh_lookup to ipv4_dst_neigh_lookup
-  net/neigh: export neigh_find_table
-  net/ipv4: wrappers for arp table references
-  net/ipv4: Remove open coded use of arp table
-  net/ipv6: wrappers for neighbor table references
-  net/ipv6: Remove open coded use of neighbor table
-  drivers/net: remove open coding of neighbor tables
-  net: Remove nd_tbl from ipv6 stub
-  net: Remove arp_tbl and nd_tbl from headers
-  net: Add key_len to neighbor constructor
-  net: Change neigh_table_init and neigh_table_clear signature
-  net/neigh: Change neigh_xmit to take an address family
-  net/neighbor: Convert internal functions away from neigh_tables
-  net/ipv4: Convert arp table to per namespace
-  net/ipv6: Convert neighbor table to per-namespace
-  net/decnet: Move neighbor table to per-namespace
-  net/neighbor: Remove neigh_tables and NEIGH enum
-
- drivers/infiniband/ulp/ipoib/ipoib_main.c          |  14 +-
- drivers/net/ethernet/mellanox/mlx5/core/en_rep.c   |  35 ++---
- drivers/net/ethernet/mellanox/mlx5/core/en_tc.c    |  11 +-
- .../net/ethernet/mellanox/mlxsw/spectrum_router.c  |  27 ++--
- .../net/ethernet/mellanox/mlxsw/spectrum_span.c    |   8 +-
- .../ethernet/netronome/nfp/flower/tunnel_conf.c    |   2 +-
- drivers/net/ethernet/rocker/rocker_main.c          |   4 +-
- drivers/net/ethernet/rocker/rocker_ofdpa.c         |   2 +-
- drivers/net/vrf.c                                  |   4 +-
- drivers/net/vxlan.c                                |  10 +-
- include/net/addrconf.h                             |   1 -
- include/net/arp.h                                  |  25 +++-
- include/net/ndisc.h                                |  75 +++++++++-
- include/net/neighbour.h                            |  17 +--
- include/net/net_namespace.h                        |   3 +
- include/net/netns/ipv4.h                           |   1 +
- include/net/netns/ipv6.h                           |   1 +
- net/atm/clip.c                                     |  14 +-
- net/bridge/br_arp_nd_proxy.c                       |   4 +-
- net/core/filter.c                                  |   3 +-
- net/core/neighbour.c                               | 115 +++++++++-----
- net/decnet/dn_neigh.c                              |   8 +-
- net/ieee802154/6lowpan/tx.c                        |   2 +-
- net/ipv4/arp.c                                     | 130 +++++++++-------
- net/ipv4/devinet.c                                 |   8 +-
- net/ipv4/fib_semantics.c                           |   2 +-
- net/ipv4/ip_output.c                               |   2 +-
- net/ipv4/route.c                                   |  12 +-
- net/ipv6/addrconf.c                                |  16 +-
- net/ipv6/af_inet6.c                                |   1 -
- net/ipv6/ip6_output.c                              |   4 +-
- net/ipv6/ndisc.c                                   | 165 +++++++++++----------
- net/ipv6/route.c                                   |  12 +-
- net/mpls/af_mpls.c                                 |  33 ++---
- net/mpls/mpls_iptunnel.c                           |   6 +-
- net/netfilter/nf_flow_table_ip.c                   |   4 +-
- net/netfilter/nft_fwd_netdev.c                     |   6 +-
- 37 files changed, 467 insertions(+), 320 deletions(-)
-
+diff --git a/include/net/neighbour.h b/include/net/neighbour.h
+index 6c1eecd56a4d..5bc4d79b4b3a 100644
+--- a/include/net/neighbour.h
++++ b/include/net/neighbour.h
+@@ -229,6 +229,8 @@ enum {
+ 	NEIGH_LINK_TABLE = NEIGH_NR_TABLES /* Pseudo table for neigh_xmit */
+ };
+ 
++struct neigh_table *neigh_find_table(struct net *net, u8 family);
++
+ static inline int neigh_parms_family(struct neigh_parms *p)
+ {
+ 	return p->tbl->family;
+diff --git a/net/core/neighbour.c b/net/core/neighbour.c
+index cbe85d8d4cc2..e8630f9de24a 100644
+--- a/net/core/neighbour.c
++++ b/net/core/neighbour.c
+@@ -1625,7 +1625,7 @@ int neigh_table_clear(int index, struct neigh_table *tbl)
+ }
+ EXPORT_SYMBOL(neigh_table_clear);
+ 
+-static struct neigh_table *neigh_find_table(int family)
++struct neigh_table *neigh_find_table(struct net *net, u8 family)
+ {
+ 	struct neigh_table *tbl = NULL;
+ 
+@@ -1643,6 +1643,7 @@ static struct neigh_table *neigh_find_table(int family)
+ 
+ 	return tbl;
+ }
++EXPORT_SYMBOL(neigh_find_table);
+ 
+ static int neigh_delete(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 			struct netlink_ext_ack *extack)
+@@ -1672,7 +1673,7 @@ static int neigh_delete(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 		}
+ 	}
+ 
+-	tbl = neigh_find_table(ndm->ndm_family);
++	tbl = neigh_find_table(net, ndm->ndm_family);
+ 	if (tbl == NULL)
+ 		return -EAFNOSUPPORT;
+ 
+@@ -1740,7 +1741,7 @@ static int neigh_add(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 			goto out;
+ 	}
+ 
+-	tbl = neigh_find_table(ndm->ndm_family);
++	tbl = neigh_find_table(net, ndm->ndm_family);
+ 	if (tbl == NULL)
+ 		return -EAFNOSUPPORT;
+ 
 -- 
 2.11.0
