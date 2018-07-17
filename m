@@ -1,31 +1,44 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH net] netfilter: nf_conntrack: prevent uninit-value in
- gc_worker
-Date: Tue, 17 Jul 2018 18:15:52 +0200
-Message-ID: <20180717161552.6etdphougrsaoi57@breakpoint.cc>
-References: <20180712004037.197064-1-edumazet@google.com>
- <20180712090044.lwukow7nqzzht67g@breakpoint.cc>
- <9a877bfc-67f3-2242-a681-5814dc1c1dd4@gmail.com>
- <CACT4Y+buOFu2CLkGoqupQSHYpuxDsUPPdfSmpDa_6Sht9LesTQ@mail.gmail.com>
- <20180717135931.dexnlxtnv3daunit@breakpoint.cc>
+From: Cong Wang <xiyou.wangcong@gmail.com>
+Subject: Re: [PATCH RFC/RFT net-next 00/17] net: Convert neighbor tables to per-namespace
+Date: Tue, 17 Jul 2018 10:40:09 -0700
+Message-ID: <CAM_iQpW4g2v6xk49Gz+WBasKaO9VUk3Q-umX7iBRK-mAhn21Fw@mail.gmail.com>
+References: <20180717120651.15748-1-dsahern@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Dmitry Vyukov <dvyukov@google.com>,
-        Eric Dumazet <eric.dumazet@gmail.com>,
-        Eric Dumazet <edumazet@google.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        netfilter-devel@vger.kernel.org, netdev <netdev@vger.kernel.org>
-To: Florian Westphal <fw@strlen.de>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180717135931.dexnlxtnv3daunit@breakpoint.cc>
-Sender: netdev-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Cc: Linux Kernel Network Developers <netdev@vger.kernel.org>,
+        nikita.leshchenko@oracle.com,
+        Roopa Prabhu <roopa@cumulusnetworks.com>,
+        Stephen Hemminger <stephen@networkplumber.org>,
+        Ido Schimmel <idosch@mellanox.com>,
+        Jiri Pirko <jiri@mellanox.com>,
+        Saeed Mahameed <saeedm@mellanox.com>, alex.aring@gmail.com,
+        linux-wpan@vger.kernel.org,
+        NetFilter <netfilter-devel@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        David Ahern <dsahern@gmail.com>
+To: dsahern@kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180717120651.15748-1-dsahern@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Florian Westphal <fw@strlen.de> wrote:
-> What could be possible is that another core is registering/unregistering
-> the conntrack hooks in parallel, I guess in that case we could have:
-[..]
+On Tue, Jul 17, 2018 at 5:11 AM <dsahern@kernel.org> wrote:
+>
+> From: David Ahern <dsahern@gmail.com>
+>
+> Nikita Leshenko reported that neighbor entries in one namespace can
+> evict neighbor entries in another. The problem is that the neighbor
+> tables have entries across all namespaces without separate accounting
+> and with global limits on when to scan for entries to evict.
 
-much simpler explanation: dccp connection tracker.
+It is nothing new, people including me already noticed this before.
+
+
+>
+> Resolve by making the neighbor tables for ipv4, ipv6 and decnet per
+> namespace and making the accounting and threshold limits per namespace.
+
+
+The last discussion about this a long time ago concluded that neigh
+table entries are controllable by remote, so after moving it to per netns,
+it would be easier to DOS the host.
