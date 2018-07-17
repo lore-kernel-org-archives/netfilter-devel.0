@@ -1,7 +1,7 @@
 From: dsahern@kernel.org
-Subject: [PATCH RFC/RFT net-next 11/17] net: Change neigh_table_init and neigh_table_clear signature
-Date: Tue, 17 Jul 2018 05:06:45 -0700
-Message-ID: <20180717120651.15748-12-dsahern@kernel.org>
+Subject: [PATCH RFC/RFT net-next 13/17] net/neighbor: Convert internal functions away from neigh_tables
+Date: Tue, 17 Jul 2018 05:06:47 -0700
+Message-ID: <20180717120651.15748-14-dsahern@kernel.org>
 References: <20180717120651.15748-1-dsahern@kernel.org>
 Cc: nikita.leshchenko@oracle.com, roopa@cumulusnetworks.com,
         stephen@networkplumber.org, idosch@mellanox.com, jiri@mellanox.com,
@@ -16,173 +16,82 @@ List-Id: netfilter-devel.vger.kernel.org
 
 From: David Ahern <dsahern@gmail.com>
 
-Convert neigh_table_init and neigh_table_clear to use an address family
-instead of the NEIGH_*_TABLE macros which are effectively the same thing
-only setup as index into neigh_tables. The functions can do that mapping
-internally.
-
-Further, add net to the arg list for both and remove the dependence on
-init_net.
+Convert uses of neigh_tables array to neigh_find_table. Maintain existing
+family order using a new table_families array. A later patch removes the
+neigh_tables array in favor of per-namespace accesses.
 
 Signed-off-by: David Ahern <dsahern@gmail.com>
 ---
- include/net/neighbour.h |  4 ++--
- net/core/neighbour.c    | 40 ++++++++++++++++++++++++++++++++--------
- net/decnet/dn_neigh.c   |  4 ++--
- net/ipv4/arp.c          |  2 +-
- net/ipv6/ndisc.c        |  4 ++--
- 5 files changed, 39 insertions(+), 15 deletions(-)
+ net/core/neighbour.c | 27 ++++++++++++++++++++-------
+ 1 file changed, 20 insertions(+), 7 deletions(-)
 
-diff --git a/include/net/neighbour.h b/include/net/neighbour.h
-index 6cf9ce16eac8..b70afea05f86 100644
---- a/include/net/neighbour.h
-+++ b/include/net/neighbour.h
-@@ -304,8 +304,8 @@ static inline struct neighbour *__neigh_lookup_noref(struct neigh_table *tbl,
- 	return ___neigh_lookup_noref(tbl, tbl->key_eq, tbl->hash, pkey, dev);
- }
- 
--void neigh_table_init(int index, struct neigh_table *tbl);
--int neigh_table_clear(int index, struct neigh_table *tbl);
-+void neigh_table_init(struct net *net, struct neigh_table *tbl);
-+int neigh_table_clear(struct net *net, struct neigh_table *tbl);
- struct neighbour *neigh_lookup(struct neigh_table *tbl, const void *pkey,
- 			       struct net_device *dev);
- struct neighbour *neigh_lookup_nodev(struct neigh_table *tbl, struct net *net,
 diff --git a/net/core/neighbour.c b/net/core/neighbour.c
-index 41841d8e4ea4..8bdaeb080ce4 100644
+index b60087d7c0bc..afb2ee985dd1 100644
 --- a/net/core/neighbour.c
 +++ b/net/core/neighbour.c
-@@ -1548,14 +1548,15 @@ static struct lock_class_key neigh_table_proxy_queue_class;
- 
- static struct neigh_table *neigh_tables[NEIGH_NR_TABLES] __read_mostly;
- 
--void neigh_table_init(int index, struct neigh_table *tbl)
-+void neigh_table_init(struct net *net, struct neigh_table *tbl)
- {
- 	unsigned long now = jiffies;
-+	u8 family = tbl->family;
- 	unsigned long phsize;
- 
- 	INIT_LIST_HEAD(&tbl->parms_list);
- 	list_add(&tbl->parms.list, &tbl->parms_list);
--	write_pnet(&tbl->parms.net, &init_net);
-+	write_pnet(&tbl->parms.net, net);
- 	refcount_set(&tbl->parms.refcnt, 1);
- 	tbl->parms.reachable_time =
- 			  neigh_rand_reach_time(NEIGH_VAR(&tbl->parms, BASE_REACHABLE_TIME));
-@@ -1565,8 +1566,8 @@ void neigh_table_init(int index, struct neigh_table *tbl)
- 		panic("cannot create neighbour cache statistics");
- 
- #ifdef CONFIG_PROC_FS
--	if (!proc_create_seq_data(tbl->id, 0, init_net.proc_net_stat,
--			      &neigh_stat_seq_ops, tbl))
-+	if (!proc_create_seq_data(tbl->id, 0, net->proc_net_stat,
-+				  &neigh_stat_seq_ops, tbl))
- 		panic("cannot create neighbour proc dir entry");
+@@ -62,6 +62,19 @@ static int pneigh_ifdown_and_unlock(struct neigh_table *tbl,
+ static const struct seq_operations neigh_stat_seq_ops;
  #endif
  
-@@ -1595,13 +1596,36 @@ void neigh_table_init(int index, struct neigh_table *tbl)
- 	tbl->last_flush = now;
- 	tbl->last_rand	= now + tbl->parms.reachable_time * 20;
- 
--	neigh_tables[index] = tbl;
-+	switch (family) {
-+	case AF_INET:
-+		neigh_tables[NEIGH_ARP_TABLE] = tbl;
-+		break;
-+	case AF_INET6:
-+		neigh_tables[NEIGH_ND_TABLE] = tbl;
-+		break;
-+	case AF_DECnet:
-+		neigh_tables[NEIGH_DN_TABLE] = tbl;
-+		break;
-+	}
- }
- EXPORT_SYMBOL(neigh_table_init);
- 
--int neigh_table_clear(int index, struct neigh_table *tbl)
-+int neigh_table_clear(struct net *net, struct neigh_table *tbl)
- {
--	neigh_tables[index] = NULL;
-+	u8 family = tbl->family;
++/* used for table dumps to maintain the legacy order of
++ * ipv4, ipv6, decnet
++ */
++static int table_families[] = {
++	AF_INET,
++#if IS_ENABLED(CONFIG_IPV6)
++	AF_INET6,
++#endif
++#if IS_ENABLED(CONFIG_DECNET)
++	AF_DECnet,
++#endif
++};
 +
-+	switch (family) {
-+	case AF_INET:
-+		neigh_tables[NEIGH_ARP_TABLE] = NULL;
-+		break;
-+	case AF_INET6:
-+		neigh_tables[NEIGH_ND_TABLE] = NULL;
-+		break;
-+	case AF_DECnet:
-+		neigh_tables[NEIGH_DN_TABLE] = NULL;
-+		break;
-+	}
-+
- 	/* It is not clean... Fix it to unload IPv6 module safely */
- 	cancel_delayed_work_sync(&tbl->gc_work);
- 	del_timer_sync(&tbl->proxy_timer);
-@@ -1617,7 +1641,7 @@ int neigh_table_clear(int index, struct neigh_table *tbl)
- 	kfree(tbl->phash_buckets);
- 	tbl->phash_buckets = NULL;
+ /*
+    Neighbour hash table buckets are protected with rwlock tbl->lock.
  
--	remove_proc_entry(tbl->id, init_net.proc_net_stat);
-+	remove_proc_entry(tbl->id, net->proc_net_stat);
+@@ -2046,8 +2059,8 @@ static int neightbl_set(struct sk_buff *skb, struct nlmsghdr *nlh,
  
- 	free_percpu(tbl->stats);
- 	tbl->stats = NULL;
-diff --git a/net/decnet/dn_neigh.c b/net/decnet/dn_neigh.c
-index 74112777beb0..6d5078ddffac 100644
---- a/net/decnet/dn_neigh.c
-+++ b/net/decnet/dn_neigh.c
-@@ -593,7 +593,7 @@ static const struct seq_operations dn_neigh_seq_ops = {
+ 	ndtmsg = nlmsg_data(nlh);
  
- void __init dn_neigh_init(void)
+-	for (tidx = 0; tidx < NEIGH_NR_TABLES; tidx++) {
+-		tbl = neigh_tables[tidx];
++	for (tidx = 0; tidx < ARRAY_SIZE(table_families); tidx++) {
++		tbl = neigh_find_table(net, table_families[tidx]);
+ 		if (!tbl)
+ 			continue;
+ 		if (ndtmsg->ndtm_family && tbl->family != ndtmsg->ndtm_family)
+@@ -2195,10 +2208,10 @@ static int neightbl_dump_info(struct sk_buff *skb, struct netlink_callback *cb)
+ 
+ 	family = ((struct rtgenmsg *) nlmsg_data(cb->nlh))->rtgen_family;
+ 
+-	for (tidx = 0; tidx < NEIGH_NR_TABLES; tidx++) {
++	for (tidx = 0; tidx < ARRAY_SIZE(table_families); tidx++) {
+ 		struct neigh_parms *p;
+ 
+-		tbl = neigh_tables[tidx];
++		tbl = neigh_find_table(net, table_families[tidx]);
+ 		if (!tbl)
+ 			continue;
+ 
+@@ -2453,6 +2466,7 @@ static int pneigh_dump_table(struct neigh_table *tbl, struct sk_buff *skb,
+ 
+ static int neigh_dump_info(struct sk_buff *skb, struct netlink_callback *cb)
  {
--	neigh_table_init(NEIGH_DN_TABLE, &dn_neigh_table);
-+	neigh_table_init(&init_net, &dn_neigh_table);
- 	proc_create_net("decnet_neigh", 0444, init_net.proc_net,
- 			&dn_neigh_seq_ops, sizeof(struct neigh_seq_state));
- }
-@@ -601,5 +601,5 @@ void __init dn_neigh_init(void)
- void __exit dn_neigh_cleanup(void)
- {
- 	remove_proc_entry("decnet_neigh", init_net.proc_net);
--	neigh_table_clear(NEIGH_DN_TABLE, &dn_neigh_table);
-+	neigh_table_clear(&init_net, &dn_neigh_table);
- }
-diff --git a/net/ipv4/arp.c b/net/ipv4/arp.c
-index 7b27faefa01b..707b40f76852 100644
---- a/net/ipv4/arp.c
-+++ b/net/ipv4/arp.c
-@@ -1291,7 +1291,7 @@ static int arp_proc_init(void);
++	struct net *net = sock_net(skb->sk);
+ 	struct neigh_table *tbl;
+ 	int t, family, s_t;
+ 	int proxy = 0;
+@@ -2469,9 +2483,8 @@ static int neigh_dump_info(struct sk_buff *skb, struct netlink_callback *cb)
  
- void __init arp_init(void)
- {
--	neigh_table_init(NEIGH_ARP_TABLE, &arp_tbl);
-+	neigh_table_init(&init_net, &arp_tbl);
+ 	s_t = cb->args[0];
  
- 	dev_add_pack(&arp_packet_type);
- 	arp_proc_init();
-diff --git a/net/ipv6/ndisc.c b/net/ipv6/ndisc.c
-index 5103d8641b04..6105530fe865 100644
---- a/net/ipv6/ndisc.c
-+++ b/net/ipv6/ndisc.c
-@@ -1908,7 +1908,7 @@ int __init ndisc_init(void)
- 	/*
- 	 * Initialize the neighbour table
- 	 */
--	neigh_table_init(NEIGH_ND_TABLE, &nd_tbl);
-+	neigh_table_init(&init_net, &nd_tbl);
- 
- #ifdef CONFIG_SYSCTL
- 	err = neigh_sysctl_register(NULL, &nd_tbl.parms,
-@@ -1941,6 +1941,6 @@ void ndisc_cleanup(void)
- #ifdef CONFIG_SYSCTL
- 	neigh_sysctl_unregister(&nd_tbl.parms);
- #endif
--	neigh_table_clear(NEIGH_ND_TABLE, &nd_tbl);
-+	neigh_table_clear(&init_net, &nd_tbl);
- 	unregister_pernet_subsys(&ndisc_net_ops);
- }
+-	for (t = 0; t < NEIGH_NR_TABLES; t++) {
+-		tbl = neigh_tables[t];
+-
++	for (t = 0; t < ARRAY_SIZE(table_families); t++) {
++		tbl = neigh_find_table(net, table_families[t]);
+ 		if (!tbl)
+ 			continue;
+ 		if (t < s_t || (family && tbl->family != family))
 -- 
 2.11.0
