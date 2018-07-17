@@ -1,7 +1,7 @@
 From: dsahern@kernel.org
-Subject: [PATCH RFC/RFT net-next 05/17] net/ipv6: wrappers for neighbor table references
-Date: Tue, 17 Jul 2018 05:06:39 -0700
-Message-ID: <20180717120651.15748-6-dsahern@kernel.org>
+Subject: [PATCH RFC/RFT net-next 04/17] net/ipv4: Remove open coded use of arp table
+Date: Tue, 17 Jul 2018 05:06:38 -0700
+Message-ID: <20180717120651.15748-5-dsahern@kernel.org>
 References: <20180717120651.15748-1-dsahern@kernel.org>
 Cc: nikita.leshchenko@oracle.com, roopa@cumulusnetworks.com,
         stephen@networkplumber.org, idosch@mellanox.com, jiri@mellanox.com,
@@ -16,112 +16,261 @@ List-Id: netfilter-devel.vger.kernel.org
 
 From: David Ahern <dsahern@gmail.com>
 
-Create a helper, ipv6_neigh_table, for retrieving a reference to the ipv6
-neighbor table. Add additional wrappers for commonly used neigh_* functions
-to avoid propagating the ipv6_neigh_table lookup all over the code.
-
-For ipv6, the neighbor table may not exist (e.g., IPv6 not enabled at
-build time or the module is not loaded) so NULL checks are needed before
-use.
+Convert existing uses for arp_tbl to the helpers introduced in the previous
+patch.
 
 Signed-off-by: David Ahern <dsahern@gmail.com>
 ---
- include/net/ndisc.h | 69 +++++++++++++++++++++++++++++++++++++++++++++++++----
- 1 file changed, 65 insertions(+), 4 deletions(-)
+ net/bridge/br_arp_nd_proxy.c |  2 +-
+ net/ipv4/arp.c               | 36 ++++++++++++++++++++----------------
+ net/ipv4/devinet.c           |  8 ++++----
+ net/ipv4/fib_semantics.c     |  2 +-
+ net/ipv4/ip_output.c         |  2 +-
+ net/ipv4/route.c             |  4 ++--
+ 6 files changed, 29 insertions(+), 25 deletions(-)
 
-diff --git a/include/net/ndisc.h b/include/net/ndisc.h
-index ddfbb591e2c5..078951ac54fd 100644
---- a/include/net/ndisc.h
-+++ b/include/net/ndisc.h
-@@ -374,17 +374,70 @@ static inline u32 ndisc_hashfn(const void *pkey, const struct net_device *dev, _
- 		(p32[3] * hash_rnd[3]));
+diff --git a/net/bridge/br_arp_nd_proxy.c b/net/bridge/br_arp_nd_proxy.c
+index 2cf7716254be..29a1e25fc169 100644
+--- a/net/bridge/br_arp_nd_proxy.c
++++ b/net/bridge/br_arp_nd_proxy.c
+@@ -183,7 +183,7 @@ void br_do_proxy_suppress_arp(struct sk_buff *skb, struct net_bridge *br,
+ 		return;
+ 	}
+ 
+-	n = neigh_lookup(&arp_tbl, &tip, vlandev);
++	n = ipv4_neigh_lookup(vlandev, &tip);
+ 	if (n) {
+ 		struct net_bridge_fdb_entry *f;
+ 
+diff --git a/net/ipv4/arp.c b/net/ipv4/arp.c
+index e90c89ef8c08..fd4a380da9bb 100644
+--- a/net/ipv4/arp.c
++++ b/net/ipv4/arp.c
+@@ -678,6 +678,7 @@ static bool arp_is_garp(struct net *net, struct net_device *dev,
+ 
+ static int arp_process(struct net *net, struct sock *sk, struct sk_buff *skb)
+ {
++	struct neigh_table *tbl = ipv4_neigh_table(net);
+ 	struct net_device *dev = skb->dev;
+ 	struct in_device *in_dev = __in_dev_get_rcu(dev);
+ 	struct arphdr *arp;
+@@ -827,7 +828,7 @@ static int arp_process(struct net *net, struct sock *sk, struct sk_buff *skb)
+ 			if (!dont_send && IN_DEV_ARPFILTER(in_dev))
+ 				dont_send = arp_filter(sip, tip, dev);
+ 			if (!dont_send) {
+-				n = neigh_event_ns(&arp_tbl, sha, &sip, dev);
++				n = neigh_event_ns(tbl, sha, &sip, dev);
+ 				if (n) {
+ 					arp_send_dst(ARPOP_REPLY, ETH_P_ARP,
+ 						     sip, dev, tip, sha,
+@@ -842,8 +843,8 @@ static int arp_process(struct net *net, struct sock *sk, struct sk_buff *skb)
+ 			    (arp_fwd_proxy(in_dev, dev, rt) ||
+ 			     arp_fwd_pvlan(in_dev, dev, rt, sip, tip) ||
+ 			     (rt->dst.dev != dev &&
+-			      pneigh_lookup(&arp_tbl, net, &tip, dev, 0)))) {
+-				n = neigh_event_ns(&arp_tbl, sha, &sip, dev);
++			      pneigh_lookup(tbl, net, &tip, dev, 0)))) {
++				n = neigh_event_ns(tbl, sha, &sip, dev);
+ 				if (n)
+ 					neigh_release(n);
+ 
+@@ -855,7 +856,7 @@ static int arp_process(struct net *net, struct sock *sk, struct sk_buff *skb)
+ 						     dev->dev_addr, sha,
+ 						     reply_dst);
+ 				} else {
+-					pneigh_enqueue(&arp_tbl,
++					pneigh_enqueue(tbl,
+ 						       in_dev->arp_parms, skb);
+ 					goto out_free_dst;
+ 				}
+@@ -866,7 +867,7 @@ static int arp_process(struct net *net, struct sock *sk, struct sk_buff *skb)
+ 
+ 	/* Update our ARP tables */
+ 
+-	n = __neigh_lookup(&arp_tbl, &sip, dev, 0);
++	n = __neigh_lookup(tbl, &sip, dev, 0);
+ 
+ 	addr_type = -1;
+ 	if (n || IN_DEV_ARP_ACCEPT(in_dev)) {
+@@ -887,7 +888,7 @@ static int arp_process(struct net *net, struct sock *sk, struct sk_buff *skb)
+ 			/* postpone calculation to as late as possible */
+ 			inet_addr_type_dev_table(net, dev, sip) ==
+ 				RTN_UNICAST)))))
+-			n = __neigh_lookup(&arp_tbl, &sip, dev, 1);
++			n = __neigh_lookup(tbl, &sip, dev, 1);
+ 	}
+ 
+ 	if (n) {
+@@ -1011,7 +1012,7 @@ static int arp_req_set_public(struct net *net, struct arpreq *r,
+ 			return -ENODEV;
+ 	}
+ 	if (mask) {
+-		if (!pneigh_lookup(&arp_tbl, net, &ip, dev, 1))
++		if (!pneigh_lookup(ipv4_neigh_table(net), net, &ip, dev, 1))
+ 			return -ENOBUFS;
+ 		return 0;
+ 	}
+@@ -1063,7 +1064,7 @@ static int arp_req_set(struct net *net, struct arpreq *r,
+ 		break;
+ 	}
+ 
+-	neigh = __neigh_lookup_errno(&arp_tbl, &ip, dev);
++	neigh = __neigh_lookup_errno(ipv4_neigh_table(net), &ip, dev);
+ 	err = PTR_ERR(neigh);
+ 	if (!IS_ERR(neigh)) {
+ 		unsigned int state = NUD_STALE;
+@@ -1098,7 +1099,7 @@ static int arp_req_get(struct arpreq *r, struct net_device *dev)
+ 	struct neighbour *neigh;
+ 	int err = -ENXIO;
+ 
+-	neigh = neigh_lookup(&arp_tbl, &ip, dev);
++	neigh = ipv4_neigh_lookup(dev, &ip);
+ 	if (neigh) {
+ 		if (!(neigh->nud_state & NUD_NOARP)) {
+ 			read_lock_bh(&neigh->lock);
+@@ -1116,9 +1117,9 @@ static int arp_req_get(struct arpreq *r, struct net_device *dev)
+ 
+ static int arp_invalidate(struct net_device *dev, __be32 ip)
+ {
+-	struct neighbour *neigh = neigh_lookup(&arp_tbl, &ip, dev);
++	struct neigh_table *tbl = ipv4_neigh_table(dev_net(dev));
++	struct neighbour *neigh = neigh_lookup(tbl, &ip, dev);
+ 	int err = -ENXIO;
+-	struct neigh_table *tbl = &arp_tbl;
+ 
+ 	if (neigh) {
+ 		if (neigh->nud_state & ~NUD_NOARP)
+@@ -1141,7 +1142,7 @@ static int arp_req_delete_public(struct net *net, struct arpreq *r,
+ 	__be32 mask = ((struct sockaddr_in *)&r->arp_netmask)->sin_addr.s_addr;
+ 
+ 	if (mask == htonl(0xFFFFFFFF))
+-		return pneigh_delete(&arp_tbl, net, &ip, dev);
++		return pneigh_delete(ipv4_neigh_table(net), net, &ip, dev);
+ 
+ 	if (mask)
+ 		return -EINVAL;
+@@ -1248,13 +1249,13 @@ static int arp_netdev_event(struct notifier_block *this, unsigned long event,
+ 
+ 	switch (event) {
+ 	case NETDEV_CHANGEADDR:
+-		neigh_changeaddr(&arp_tbl, dev);
++		neigh_changeaddr(ipv4_neigh_table(dev_net(dev)), dev);
+ 		rt_cache_flush(dev_net(dev));
+ 		break;
+ 	case NETDEV_CHANGE:
+ 		change_info = ptr;
+ 		if (change_info->flags_changed & IFF_NOARP)
+-			neigh_changeaddr(&arp_tbl, dev);
++			neigh_changeaddr(ipv4_neigh_table(dev_net(dev)), dev);
+ 		break;
+ 	default:
+ 		break;
+@@ -1273,7 +1274,7 @@ static struct notifier_block arp_netdev_notifier = {
+  */
+ void arp_ifdown(struct net_device *dev)
+ {
+-	neigh_ifdown(&arp_tbl, dev);
++	neigh_ifdown(ipv4_neigh_table(dev_net(dev)), dev);
  }
  
--static inline struct neighbour *__ipv6_neigh_lookup_noref(struct net_device *dev, const void *pkey)
-+static inline struct neigh_table *ipv6_neigh_table(struct net *net)
+ 
+@@ -1403,10 +1404,13 @@ static int arp_seq_show(struct seq_file *seq, void *v)
+ 
+ static void *arp_seq_start(struct seq_file *seq, loff_t *pos)
  {
--	return ___neigh_lookup_noref(&nd_tbl, neigh_key_eq128, ndisc_hashfn, pkey, dev);
-+	return neigh_find_table(net, AF_INET6);
++	struct net *net = seq_file_net(seq);
++
+ 	/* Don't want to confuse "arp -a" w/ magic entries,
+ 	 * so we tell the generic iterator to skip NUD_NOARP.
+ 	 */
+-	return neigh_seq_start(seq, pos, &arp_tbl, NEIGH_SEQ_SKIP_NOARP);
++	return neigh_seq_start(seq, pos, ipv4_neigh_table(net),
++			       NEIGH_SEQ_SKIP_NOARP);
  }
  
--static inline struct neighbour *__ipv6_neigh_lookup(struct net_device *dev, const void *pkey)
-+static inline struct neighbour *ipv6_neigh_create(struct net_device *dev,
-+						  const void *pkey,
-+						  bool want_ref)
-+{
-+	struct neigh_table *tbl = ipv6_neigh_table(dev_net(dev));
-+	struct neighbour *n = NULL;
-+
-+	if (tbl)
-+		n = __neigh_create(tbl, pkey, dev, want_ref);
-+
-+	return n;
-+}
-+
-+static inline struct neighbour *ipv6_neigh_lookup(struct net_device *dev,
-+						  const void *pkey)
-+{
-+	struct neigh_table *tbl = ipv6_neigh_table(dev_net(dev));
-+	struct neighbour *n = NULL;
-+
-+	if (tbl)
-+		n = neigh_lookup(tbl, pkey, dev);
-+
-+	return n;
-+}
-+
-+static inline struct neighbour *__ipv6_neigh_lookup(struct net_device *dev,
-+						    const void *pkey, int creat)
-+{
-+	struct neigh_table *tbl = ipv6_neigh_table(dev_net(dev));
-+	struct neighbour *n = NULL;
-+
-+	if (tbl)
-+		n = __neigh_lookup(tbl, pkey, dev, creat);
-+
-+	return n;
-+}
-+
-+static inline
-+struct neighbour *___ipv6_neigh_lookup_noref(struct net_device *dev,
-+					     const void *pkey)
-+{
-+	struct neigh_table *tbl = ipv6_neigh_table(dev_net(dev));
-+	struct neighbour *n = NULL;
-+
-+	if (tbl)
-+		n = ___neigh_lookup_noref(tbl, neigh_key_eq128, ndisc_hashfn,
-+					  pkey, dev);
-+
-+	return n;
-+}
-+
-+static inline
-+struct neighbour *__ipv6_neigh_lookup_noref(struct net_device *dev,
-+					    const void *pkey)
+ /* ------------------------------------------------------------------------ */
+diff --git a/net/ipv4/devinet.c b/net/ipv4/devinet.c
+index d7585ab1a77a..07a57fd1a343 100644
+--- a/net/ipv4/devinet.c
++++ b/net/ipv4/devinet.c
+@@ -239,6 +239,7 @@ EXPORT_SYMBOL(in_dev_finish_destroy);
+ 
+ static struct in_device *inetdev_init(struct net_device *dev)
  {
++	struct net *net = dev_net(dev);
+ 	struct in_device *in_dev;
+ 	int err = -ENOMEM;
+ 
+@@ -247,11 +248,10 @@ static struct in_device *inetdev_init(struct net_device *dev)
+ 	in_dev = kzalloc(sizeof(*in_dev), GFP_KERNEL);
+ 	if (!in_dev)
+ 		goto out;
+-	memcpy(&in_dev->cnf, dev_net(dev)->ipv4.devconf_dflt,
+-			sizeof(in_dev->cnf));
++	memcpy(&in_dev->cnf, net->ipv4.devconf_dflt, sizeof(in_dev->cnf));
+ 	in_dev->cnf.sysctl = NULL;
+ 	in_dev->dev = dev;
+-	in_dev->arp_parms = neigh_parms_alloc(dev, &arp_tbl);
++	in_dev->arp_parms = neigh_parms_alloc(dev, ipv4_neigh_table(net));
+ 	if (!in_dev->arp_parms)
+ 		goto out_kfree;
+ 	if (IPV4_DEVCONF(in_dev->cnf, FORWARDING))
+@@ -309,7 +309,7 @@ static void inetdev_destroy(struct in_device *in_dev)
+ 	RCU_INIT_POINTER(dev->ip_ptr, NULL);
+ 
+ 	devinet_sysctl_unregister(in_dev);
+-	neigh_parms_release(&arp_tbl, in_dev->arp_parms);
++	neigh_parms_release(ipv4_neigh_table(dev_net(dev)), in_dev->arp_parms);
+ 	arp_ifdown(dev);
+ 
+ 	call_rcu(&in_dev->rcu_head, in_dev_rcu_put);
+diff --git a/net/ipv4/fib_semantics.c b/net/ipv4/fib_semantics.c
+index f3c89ccf14c5..d91cf61e044e 100644
+--- a/net/ipv4/fib_semantics.c
++++ b/net/ipv4/fib_semantics.c
+@@ -440,7 +440,7 @@ static int fib_detect_death(struct fib_info *fi, int order,
  	struct neighbour *n;
+ 	int state = NUD_NONE;
  
- 	rcu_read_lock_bh();
--	n = __ipv6_neigh_lookup_noref(dev, pkey);
-+	n = ___ipv6_neigh_lookup_noref(dev, pkey);
- 	if (n && !refcount_inc_not_zero(&n->refcnt))
- 		n = NULL;
- 	rcu_read_unlock_bh();
-@@ -409,6 +462,14 @@ static inline void __ipv6_confirm_neigh(struct net_device *dev,
- 	rcu_read_unlock_bh();
+-	n = neigh_lookup(&arp_tbl, &fi->fib_nh[0].nh_gw, fi->fib_dev);
++	n = ipv4_neigh_lookup(fi->fib_dev, &fi->fib_nh[0].nh_gw);
+ 	if (n) {
+ 		state = n->nud_state;
+ 		neigh_release(n);
+diff --git a/net/ipv4/ip_output.c b/net/ipv4/ip_output.c
+index e2b6bd478afb..0e880d4b859e 100644
+--- a/net/ipv4/ip_output.c
++++ b/net/ipv4/ip_output.c
+@@ -221,7 +221,7 @@ static int ip_finish_output2(struct net *net, struct sock *sk, struct sk_buff *s
+ 	nexthop = (__force u32) rt_nexthop(rt, ip_hdr(skb)->daddr);
+ 	neigh = __ipv4_neigh_lookup_noref(dev, nexthop);
+ 	if (unlikely(!neigh))
+-		neigh = __neigh_create(&arp_tbl, &nexthop, dev, false);
++		neigh = ipv4_neigh_create_noref(dev, &nexthop);
+ 	if (!IS_ERR(neigh)) {
+ 		int res;
+ 
+diff --git a/net/ipv4/route.c b/net/ipv4/route.c
+index 74e1df60ab7f..56dfa77c19ab 100644
+--- a/net/ipv4/route.c
++++ b/net/ipv4/route.c
+@@ -448,7 +448,7 @@ static struct neighbour *ipv4_dst_neigh_lookup(const struct dst_entry *dst,
+ 	n = __ipv4_neigh_lookup(dev, *(__force u32 *)pkey);
+ 	if (n)
+ 		return n;
+-	return neigh_create(&arp_tbl, pkey, dev);
++	return ipv4_neigh_create(dev, pkey);
  }
  
-+static inline struct pneigh_entry *ipv6_pneigh_lookup(struct net *net,
-+						      const void *key,
-+						      struct net_device *dev,
-+						      int creat)
-+{
-+	return pneigh_lookup(ipv6_neigh_table(net), net, key, dev, creat);
-+}
-+
- int ndisc_init(void);
- int ndisc_late_init(void);
+ static void ipv4_confirm_neigh(const struct dst_entry *dst, const void *daddr)
+@@ -770,7 +770,7 @@ static void __ip_do_redirect(struct rtable *rt, struct sk_buff *skb, struct flow
  
+ 	n = __ipv4_neigh_lookup(rt->dst.dev, new_gw);
+ 	if (!n)
+-		n = neigh_create(&arp_tbl, &new_gw, rt->dst.dev);
++		n = ipv4_neigh_create(rt->dst.dev, &new_gw);
+ 	if (!IS_ERR(n)) {
+ 		if (!(n->nud_state & NUD_VALID)) {
+ 			neigh_event_send(n, NULL);
 -- 
 2.11.0
