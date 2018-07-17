@@ -1,11 +1,15 @@
-From: Cong Wang <xiyou.wangcong@gmail.com>
-Subject: Re: [PATCH RFC/RFT net-next 00/17] net: Convert neighbor tables to per-namespace
-Date: Tue, 17 Jul 2018 10:53:21 -0700
-Message-ID: <CAM_iQpWabZorkMNswyfHyS4KT=f_bgMtK8K35=84uah6Kfqxew@mail.gmail.com>
-References: <20180717120651.15748-1-dsahern@kernel.org> <CAM_iQpW4g2v6xk49Gz+WBasKaO9VUk3Q-umX7iBRK-mAhn21Fw@mail.gmail.com>
+From: David Ahern <dsahern@gmail.com>
+Subject: Re: [PATCH RFC/RFT net-next 00/17] net: Convert neighbor tables to
+ per-namespace
+Date: Tue, 17 Jul 2018 13:02:18 -0600
+Message-ID: <1a27e301-3275-b349-a2f8-afdfdc02f04f@gmail.com>
+References: <20180717120651.15748-1-dsahern@kernel.org>
+ <CAM_iQpW4g2v6xk49Gz+WBasKaO9VUk3Q-umX7iBRK-mAhn21Fw@mail.gmail.com>
  <1a3f59a9-0ba5-c83f-16a6-f9550a84f693@gmail.com>
+ <CAM_iQpWabZorkMNswyfHyS4KT=f_bgMtK8K35=84uah6Kfqxew@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Cc: Linux Kernel Network Developers <netdev@vger.kernel.org>,
         nikita.leshchenko@oracle.com,
         Roopa Prabhu <roopa@cumulusnetworks.com>,
@@ -16,60 +20,52 @@ Cc: Linux Kernel Network Developers <netdev@vger.kernel.org>,
         linux-wpan@vger.kernel.org,
         NetFilter <netfilter-devel@vger.kernel.org>,
         LKML <linux-kernel@vger.kernel.org>
-To: David Ahern <dsahern@gmail.com>
+To: Cong Wang <xiyou.wangcong@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1a3f59a9-0ba5-c83f-16a6-f9550a84f693@gmail.com>
+In-Reply-To: <CAM_iQpWabZorkMNswyfHyS4KT=f_bgMtK8K35=84uah6Kfqxew@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Jul 17, 2018 at 10:43 AM David Ahern <dsahern@gmail.com> wrote:
->
-> On 7/17/18 11:40 AM, Cong Wang wrote:
-> > On Tue, Jul 17, 2018 at 5:11 AM <dsahern@kernel.org> wrote:
-> >>
-> >> From: David Ahern <dsahern@gmail.com>
-> >>
-> >> Nikita Leshenko reported that neighbor entries in one namespace can
-> >> evict neighbor entries in another. The problem is that the neighbor
-> >> tables have entries across all namespaces without separate accounting
-> >> and with global limits on when to scan for entries to evict.
-> >
-> > It is nothing new, people including me already noticed this before.
-> >
-> >
-> >>
-> >> Resolve by making the neighbor tables for ipv4, ipv6 and decnet per
-> >> namespace and making the accounting and threshold limits per namespace.
-> >
-> >
-> > The last discussion about this a long time ago concluded that neigh
-> > table entries are controllable by remote, so after moving it to per netns,
-> > it would be easier to DOS the host.
-> >
->
-> There are still limits on the total number of entries and with
-> per-namespace limits an admin has better control.
+On 7/17/18 11:53 AM, Cong Wang wrote:
+> You can see the original discussion here:
+> https://marc.info/?l=linux-netdev&m=140356141019653&w=2
+> 
 
-Per-netns limit is *exactly* the problem here.
+Thanks for the reference.
 
-Quote from David Miller:
-"
-From: ebiederm@xmission.com (Eric W. Biederman)
-Date: Wed, 25 Jun 2014 18:17:08 -0700
+I was surprised that the tables are still global. A number of objections
+raised in that thread were due to a large patch tackling multiple
+issues. This set is focused one thing - moving the tables to net - and
+does so in small incremental changes to make it easy to review.
 
-> I disagree that removing a global DOS prevention check is a benefit.
-> Certainly large semantics changes like that should not happen without
-> being discussed in the patch description.
+One of DaveM's comments:
 
-Agreed, this is the most important core issue.
+"Finally, another problem are permanent neigh entries as those cannot
+be reclaimed, that might be part of the main problem here.
 
-If we just make these things per netns, then as a result if you create
-N namespaces we will allow N times more neighbour entries to be
-sitting in the system at once.
+One idea wrt. permanent entries is that we could decide that, since
+they are administratively added, they don't count against the
+thresholds and limits."
 
-Actually, I'm really surprised the limits get hit and this actually
-causes problems.
-"
+this is another we have hit and with same thinking ... permanent entries
+should not count in the gc numbers. We need to address this for EVPN.
 
-You can see the original discussion here:
-https://marc.info/?l=linux-netdev&m=140356141019653&w=2
+As for the per-namespace tables, it is 4 years later and over that time
+Linux supports a number of features: EVPN which is very mac heavy, VRR
+which doubles mac entries (one against the VRR device and one against
+the lower device) and NOS level features such as mlxsw which has to
+ensure mac entries for nexthop gateaways stay active. In addition there
+are other features on the horizon - like the ability to use namespaces
+to create virtual switches (what Cisco calls a VDC) where you absolutely
+want isolation and not allowing entries from virtual switch to evict
+entries from another. And of course the continued proliferation of
+containerized workloads where isolation is desired.
+
+I understand the concern about global resource and limits: as it stands
+you have to increase the limits in init_net to the max expected and hope
+for the best. With per namespace limits you can lower the limits of each
+namespace better control the total impact on the total memory used.
+Perhaps the defaults for namespaces after init_net could have really low
+defaults (e.g., 16 / 32 / 64 for gc_thresh 1/2/3) requiring admin
+intervention.
