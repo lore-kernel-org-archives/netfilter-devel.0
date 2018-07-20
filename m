@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 05/38] netfilter: utils: move nf_ip6_checksum* from ipv6 to utils
-Date: Fri, 20 Jul 2018 15:08:33 +0200
-Message-ID: <20180720130906.27687-6-pablo@netfilter.org>
+Subject: [PATCH 04/38] netfilter: utils: move nf_ip_checksum* from ipv4 to utils
+Date: Fri, 20 Jul 2018 15:08:32 +0200
+Message-ID: <20180720130906.27687-5-pablo@netfilter.org>
 References: <20180720130906.27687-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -12,239 +12,178 @@ List-Id: netfilter-devel.vger.kernel.org
 
 From: Florian Westphal <fw@strlen.de>
 
-similar to previous change, this also allows to remove it
-from nf_ipv6_ops and avoid the indirection.
-
-It also removes the bogus dependency of nf_conntrack_ipv6 on ipv6 module:
-ipv6 checksum functions are built into kernel even if CONFIG_IPV6=m,
-but ipv6/netfilter.o isn't.
+allows to make nf_ip_checksum_partial static, it no longer
+has an external caller.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/linux/netfilter_ipv6.h |  5 ---
- net/ipv6/netfilter.c           | 62 ----------------------------------
- net/netfilter/utils.c          | 76 ++++++++++++++++++++++++++++++++++++------
- 3 files changed, 65 insertions(+), 78 deletions(-)
+ include/linux/netfilter_ipv4.h | 11 ---------
+ net/ipv4/netfilter.c           | 53 ----------------------------------------
+ net/netfilter/utils.c          | 55 ++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 55 insertions(+), 64 deletions(-)
 
-diff --git a/include/linux/netfilter_ipv6.h b/include/linux/netfilter_ipv6.h
-index 288c597e75b3..c0dc4dd78887 100644
---- a/include/linux/netfilter_ipv6.h
-+++ b/include/linux/netfilter_ipv6.h
-@@ -30,11 +30,6 @@ struct nf_ipv6_ops {
- 	void (*route_input)(struct sk_buff *skb);
- 	int (*fragment)(struct net *net, struct sock *sk, struct sk_buff *skb,
- 			int (*output)(struct net *, struct sock *, struct sk_buff *));
--	__sum16 (*checksum)(struct sk_buff *skb, unsigned int hook,
--			    unsigned int dataoff, u_int8_t protocol);
--	__sum16 (*checksum_partial)(struct sk_buff *skb, unsigned int hook,
--				    unsigned int dataoff, unsigned int len,
--				    u_int8_t protocol);
- 	int (*route)(struct net *net, struct dst_entry **dst, struct flowi *fl,
- 		     bool strict);
- 	int (*reroute)(struct sk_buff *skb, const struct nf_queue_entry *entry);
-diff --git a/net/ipv6/netfilter.c b/net/ipv6/netfilter.c
-index 531d6957af36..5ae8e1c51079 100644
---- a/net/ipv6/netfilter.c
-+++ b/net/ipv6/netfilter.c
-@@ -15,7 +15,6 @@
- #include <net/ipv6.h>
- #include <net/ip6_route.h>
- #include <net/xfrm.h>
--#include <net/ip6_checksum.h>
- #include <net/netfilter/nf_queue.h>
- 
- int ip6_route_me_harder(struct net *net, struct sk_buff *skb)
-@@ -106,71 +105,10 @@ static int nf_ip6_route(struct net *net, struct dst_entry **dst,
- 	return err;
+diff --git a/include/linux/netfilter_ipv4.h b/include/linux/netfilter_ipv4.h
+index b31dabfdb453..95ab5cc64422 100644
+--- a/include/linux/netfilter_ipv4.h
++++ b/include/linux/netfilter_ipv4.h
+@@ -23,9 +23,6 @@ struct nf_queue_entry;
+ #ifdef CONFIG_INET
+ __sum16 nf_ip_checksum(struct sk_buff *skb, unsigned int hook,
+ 		       unsigned int dataoff, u_int8_t protocol);
+-__sum16 nf_ip_checksum_partial(struct sk_buff *skb, unsigned int hook,
+-			       unsigned int dataoff, unsigned int len,
+-			       u_int8_t protocol);
+ int nf_ip_route(struct net *net, struct dst_entry **dst, struct flowi *fl,
+ 		bool strict);
+ int nf_ip_reroute(struct sk_buff *skb, const struct nf_queue_entry *entry);
+@@ -35,14 +32,6 @@ static inline __sum16 nf_ip_checksum(struct sk_buff *skb, unsigned int hook,
+ {
+ 	return 0;
  }
- 
--__sum16 nf_ip6_checksum(struct sk_buff *skb, unsigned int hook,
--			     unsigned int dataoff, u_int8_t protocol)
+-static inline __sum16 nf_ip_checksum_partial(struct sk_buff *skb,
+-					     unsigned int hook,
+-					     unsigned int dataoff,
+-					     unsigned int len,
+-					     u_int8_t protocol)
 -{
--	const struct ipv6hdr *ip6h = ipv6_hdr(skb);
+-	return 0;
+-}
+ static inline int nf_ip_route(struct net *net, struct dst_entry **dst,
+ 			      struct flowi *fl, bool strict)
+ {
+diff --git a/net/ipv4/netfilter.c b/net/ipv4/netfilter.c
+index e6774ccb7731..8d2e5dc9a827 100644
+--- a/net/ipv4/netfilter.c
++++ b/net/ipv4/netfilter.c
+@@ -98,59 +98,6 @@ int nf_ip_reroute(struct sk_buff *skb, const struct nf_queue_entry *entry)
+ }
+ EXPORT_SYMBOL_GPL(nf_ip_reroute);
+ 
+-__sum16 nf_ip_checksum(struct sk_buff *skb, unsigned int hook,
+-			    unsigned int dataoff, u_int8_t protocol)
+-{
+-	const struct iphdr *iph = ip_hdr(skb);
 -	__sum16 csum = 0;
 -
 -	switch (skb->ip_summed) {
 -	case CHECKSUM_COMPLETE:
 -		if (hook != NF_INET_PRE_ROUTING && hook != NF_INET_LOCAL_IN)
 -			break;
--		if (!csum_ipv6_magic(&ip6h->saddr, &ip6h->daddr,
--				     skb->len - dataoff, protocol,
--				     csum_sub(skb->csum,
--					      skb_checksum(skb, 0,
--							   dataoff, 0)))) {
+-		if ((protocol == 0 && !csum_fold(skb->csum)) ||
+-		    !csum_tcpudp_magic(iph->saddr, iph->daddr,
+-				       skb->len - dataoff, protocol,
+-				       skb->csum)) {
 -			skb->ip_summed = CHECKSUM_UNNECESSARY;
 -			break;
 -		}
 -		/* fall through */
 -	case CHECKSUM_NONE:
--		skb->csum = ~csum_unfold(
--				csum_ipv6_magic(&ip6h->saddr, &ip6h->daddr,
--					     skb->len - dataoff,
--					     protocol,
--					     csum_sub(0,
--						      skb_checksum(skb, 0,
--								   dataoff, 0))));
+-		if (protocol == 0)
+-			skb->csum = 0;
+-		else
+-			skb->csum = csum_tcpudp_nofold(iph->saddr, iph->daddr,
+-						       skb->len - dataoff,
+-						       protocol, 0);
 -		csum = __skb_checksum_complete(skb);
 -	}
 -	return csum;
 -}
--EXPORT_SYMBOL(nf_ip6_checksum);
+-EXPORT_SYMBOL(nf_ip_checksum);
 -
--static __sum16 nf_ip6_checksum_partial(struct sk_buff *skb, unsigned int hook,
--				       unsigned int dataoff, unsigned int len,
--				       u_int8_t protocol)
+-__sum16 nf_ip_checksum_partial(struct sk_buff *skb, unsigned int hook,
+-			       unsigned int dataoff, unsigned int len,
+-			       u_int8_t protocol)
 -{
--	const struct ipv6hdr *ip6h = ipv6_hdr(skb);
--	__wsum hsum;
+-	const struct iphdr *iph = ip_hdr(skb);
 -	__sum16 csum = 0;
 -
 -	switch (skb->ip_summed) {
 -	case CHECKSUM_COMPLETE:
 -		if (len == skb->len - dataoff)
--			return nf_ip6_checksum(skb, hook, dataoff, protocol);
+-			return nf_ip_checksum(skb, hook, dataoff, protocol);
 -		/* fall through */
 -	case CHECKSUM_NONE:
--		hsum = skb_checksum(skb, 0, dataoff, 0);
--		skb->csum = ~csum_unfold(csum_ipv6_magic(&ip6h->saddr,
--							 &ip6h->daddr,
--							 skb->len - dataoff,
--							 protocol,
--							 csum_sub(0, hsum)));
+-		skb->csum = csum_tcpudp_nofold(iph->saddr, iph->daddr, protocol,
+-					       skb->len - dataoff, 0);
 -		skb->ip_summed = CHECKSUM_NONE;
 -		return __skb_checksum_complete_head(skb, dataoff + len);
 -	}
 -	return csum;
--};
+-}
+-EXPORT_SYMBOL_GPL(nf_ip_checksum_partial);
 -
- static const struct nf_ipv6_ops ipv6ops = {
- 	.chk_addr		= ipv6_chk_addr,
- 	.route_input    	= ip6_route_input,
- 	.fragment		= ip6_fragment,
--	.checksum		= nf_ip6_checksum,
--	.checksum_partial	= nf_ip6_checksum_partial,
- 	.route			= nf_ip6_route,
- 	.reroute		= nf_ip6_reroute,
- };
+ int nf_ip_route(struct net *net, struct dst_entry **dst, struct flowi *fl,
+ 		bool strict __always_unused)
+ {
 diff --git a/net/netfilter/utils.c b/net/netfilter/utils.c
-index 8980c8a0fe5c..e8da9a9bba73 100644
+index 0b660c568156..8980c8a0fe5c 100644
 --- a/net/netfilter/utils.c
 +++ b/net/netfilter/utils.c
-@@ -4,6 +4,7 @@
+@@ -1,9 +1,64 @@
++// SPDX-License-Identifier: GPL-2.0
+ #include <linux/kernel.h>
+ #include <linux/netfilter.h>
  #include <linux/netfilter_ipv4.h>
  #include <linux/netfilter_ipv6.h>
  #include <net/netfilter/nf_queue.h>
-+#include <net/ip6_checksum.h>
  
- #ifdef CONFIG_INET
- __sum16 nf_ip_checksum(struct sk_buff *skb, unsigned int hook,
-@@ -59,11 +60,69 @@ static __sum16 nf_ip_checksum_partial(struct sk_buff *skb, unsigned int hook,
- 	return csum;
- }
- 
-+__sum16 nf_ip6_checksum(struct sk_buff *skb, unsigned int hook,
-+			unsigned int dataoff, u8 protocol)
++#ifdef CONFIG_INET
++__sum16 nf_ip_checksum(struct sk_buff *skb, unsigned int hook,
++		       unsigned int dataoff, u8 protocol)
 +{
-+	const struct ipv6hdr *ip6h = ipv6_hdr(skb);
++	const struct iphdr *iph = ip_hdr(skb);
 +	__sum16 csum = 0;
 +
 +	switch (skb->ip_summed) {
 +	case CHECKSUM_COMPLETE:
 +		if (hook != NF_INET_PRE_ROUTING && hook != NF_INET_LOCAL_IN)
 +			break;
-+		if (!csum_ipv6_magic(&ip6h->saddr, &ip6h->daddr,
-+				     skb->len - dataoff, protocol,
-+				     csum_sub(skb->csum,
-+					      skb_checksum(skb, 0,
-+							   dataoff, 0)))) {
++		if ((protocol == 0 && !csum_fold(skb->csum)) ||
++		    !csum_tcpudp_magic(iph->saddr, iph->daddr,
++				       skb->len - dataoff, protocol,
++				       skb->csum)) {
 +			skb->ip_summed = CHECKSUM_UNNECESSARY;
 +			break;
 +		}
 +		/* fall through */
 +	case CHECKSUM_NONE:
-+		skb->csum = ~csum_unfold(
-+				csum_ipv6_magic(&ip6h->saddr, &ip6h->daddr,
-+					     skb->len - dataoff,
-+					     protocol,
-+					     csum_sub(0,
-+						      skb_checksum(skb, 0,
-+								   dataoff, 0))));
++		if (protocol == 0)
++			skb->csum = 0;
++		else
++			skb->csum = csum_tcpudp_nofold(iph->saddr, iph->daddr,
++						       skb->len - dataoff,
++						       protocol, 0);
 +		csum = __skb_checksum_complete(skb);
 +	}
 +	return csum;
 +}
-+EXPORT_SYMBOL(nf_ip6_checksum);
++EXPORT_SYMBOL(nf_ip_checksum);
++#endif
 +
-+static __sum16 nf_ip6_checksum_partial(struct sk_buff *skb, unsigned int hook,
-+				       unsigned int dataoff, unsigned int len,
-+				       u8 protocol)
++static __sum16 nf_ip_checksum_partial(struct sk_buff *skb, unsigned int hook,
++				      unsigned int dataoff, unsigned int len,
++				      u8 protocol)
 +{
-+	const struct ipv6hdr *ip6h = ipv6_hdr(skb);
-+	__wsum hsum;
++	const struct iphdr *iph = ip_hdr(skb);
 +	__sum16 csum = 0;
 +
 +	switch (skb->ip_summed) {
 +	case CHECKSUM_COMPLETE:
 +		if (len == skb->len - dataoff)
-+			return nf_ip6_checksum(skb, hook, dataoff, protocol);
++			return nf_ip_checksum(skb, hook, dataoff, protocol);
 +		/* fall through */
 +	case CHECKSUM_NONE:
-+		hsum = skb_checksum(skb, 0, dataoff, 0);
-+		skb->csum = ~csum_unfold(csum_ipv6_magic(&ip6h->saddr,
-+							 &ip6h->daddr,
-+							 skb->len - dataoff,
-+							 protocol,
-+							 csum_sub(0, hsum)));
++		skb->csum = csum_tcpudp_nofold(iph->saddr, iph->daddr, protocol,
++					       skb->len - dataoff, 0);
 +		skb->ip_summed = CHECKSUM_NONE;
 +		return __skb_checksum_complete_head(skb, dataoff + len);
 +	}
 +	return csum;
-+};
++}
 +
  __sum16 nf_checksum(struct sk_buff *skb, unsigned int hook,
--		    unsigned int dataoff, u_int8_t protocol,
-+		    unsigned int dataoff, u8 protocol,
+ 		    unsigned int dataoff, u_int8_t protocol,
  		    unsigned short family)
- {
--	const struct nf_ipv6_ops *v6ops;
- 	__sum16 csum = 0;
- 
- 	switch (family) {
-@@ -71,9 +130,7 @@ __sum16 nf_checksum(struct sk_buff *skb, unsigned int hook,
- 		csum = nf_ip_checksum(skb, hook, dataoff, protocol);
- 		break;
- 	case AF_INET6:
--		v6ops = rcu_dereference(nf_ipv6_ops);
--		if (v6ops)
--			csum = v6ops->checksum(skb, hook, dataoff, protocol);
-+		csum = nf_ip6_checksum(skb, hook, dataoff, protocol);
- 		break;
- 	}
- 
-@@ -83,9 +140,8 @@ EXPORT_SYMBOL_GPL(nf_checksum);
- 
- __sum16 nf_checksum_partial(struct sk_buff *skb, unsigned int hook,
- 			    unsigned int dataoff, unsigned int len,
--			    u_int8_t protocol, unsigned short family)
-+			    u8 protocol, unsigned short family)
- {
--	const struct nf_ipv6_ops *v6ops;
- 	__sum16 csum = 0;
- 
- 	switch (family) {
-@@ -94,10 +150,8 @@ __sum16 nf_checksum_partial(struct sk_buff *skb, unsigned int hook,
- 					      protocol);
- 		break;
- 	case AF_INET6:
--		v6ops = rcu_dereference(nf_ipv6_ops);
--		if (v6ops)
--			csum = v6ops->checksum_partial(skb, hook, dataoff, len,
--						       protocol);
-+		csum = nf_ip6_checksum_partial(skb, hook, dataoff, len,
-+					       protocol);
- 		break;
- 	}
- 
 -- 
 2.11.0
