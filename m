@@ -1,11 +1,8 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 36/38] netfilter: nft_socket: Expose socket mark
-Date: Fri, 20 Jul 2018 15:09:04 +0200
-Message-ID: <20180720130906.27687-37-pablo@netfilter.org>
+Subject: [PATCH 33/38] netfilter: nf_osf: add nf_osf_match_one()
+Date: Fri, 20 Jul 2018 15:09:01 +0200
+Message-ID: <20180720130906.27687-34-pablo@netfilter.org>
 References: <20180720130906.27687-1-pablo@netfilter.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netdev-owner@vger.kernel.org>
@@ -13,61 +10,272 @@ In-Reply-To: <20180720130906.27687-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Máté Eckl <ecklm94@gmail.com>
+This new function allows us to check if there is TCP syn packet matching
+with a given fingerprint that can be reused from the upcoming new
+nf_osf_find() function.
 
-Signed-off-by: Máté Eckl <ecklm94@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/uapi/linux/netfilter/nf_tables.h |  4 +++-
- net/netfilter/nft_socket.c               | 11 +++++++++++
- 2 files changed, 14 insertions(+), 1 deletion(-)
+ net/netfilter/nf_osf.c | 207 ++++++++++++++++++++++++++-----------------------
+ 1 file changed, 111 insertions(+), 96 deletions(-)
 
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index 89438e68dc03..f466860bcf75 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -921,10 +921,12 @@ enum nft_socket_attributes {
- /*
-  * enum nft_socket_keys - nf_tables socket expression keys
-  *
-- * @NFT_SOCKET_TRANSPARENT: Value of the IP(V6)_TRANSPARENT socket option_
-+ * @NFT_SOCKET_TRANSPARENT: Value of the IP(V6)_TRANSPARENT socket option
-+ * @NFT_SOCKET_MARK: Value of the socket mark
-  */
- enum nft_socket_keys {
- 	NFT_SOCKET_TRANSPARENT,
-+	NFT_SOCKET_MARK,
- 	__NFT_SOCKET_MAX
- };
- #define NFT_SOCKET_MAX	(__NFT_SOCKET_MAX - 1)
-diff --git a/net/netfilter/nft_socket.c b/net/netfilter/nft_socket.c
-index 622ac2012a40..d7f3776dfd71 100644
---- a/net/netfilter/nft_socket.c
-+++ b/net/netfilter/nft_socket.c
-@@ -54,6 +54,14 @@ static void nft_socket_eval(const struct nft_expr *expr,
- 	case NFT_SOCKET_TRANSPARENT:
- 		nft_reg_store8(dest, inet_sk_transparent(sk));
- 		break;
-+	case NFT_SOCKET_MARK:
-+		if (sk_fullsock(sk)) {
-+			*dest = sk->sk_mark;
-+		} else {
-+			regs->verdict.code = NFT_BREAK;
-+			return;
+diff --git a/net/netfilter/nf_osf.c b/net/netfilter/nf_osf.c
+index 5ba5c7bef2f9..bd7b34dd7d87 100644
+--- a/net/netfilter/nf_osf.c
++++ b/net/netfilter/nf_osf.c
+@@ -21,15 +21,14 @@
+ #include <linux/netfilter/nf_osf.h>
+ 
+ static inline int nf_osf_ttl(const struct sk_buff *skb,
+-			     const struct nf_osf_info *info,
+-			     unsigned char f_ttl)
++			     int ttl_check, unsigned char f_ttl)
+ {
+ 	const struct iphdr *ip = ip_hdr(skb);
+ 
+-	if (info->flags & NF_OSF_TTL) {
+-		if (info->ttl == NF_OSF_TTL_TRUE)
++	if (ttl_check != -1) {
++		if (ttl_check == NF_OSF_TTL_TRUE)
+ 			return ip->ttl == f_ttl;
+-		if (info->ttl == NF_OSF_TTL_NOCHECK)
++		if (ttl_check == NF_OSF_TTL_NOCHECK)
+ 			return 1;
+ 		else if (ip->ttl <= f_ttl)
+ 			return 1;
+@@ -52,6 +51,104 @@ static inline int nf_osf_ttl(const struct sk_buff *skb,
+ 	return ip->ttl == f_ttl;
+ }
+ 
++static bool nf_osf_match_one(const struct sk_buff *skb,
++			     const struct nf_osf_user_finger *f,
++			     int ttl_check, u16 totlen, u16 window,
++			     const unsigned char *optp,
++			     unsigned int optsize)
++{
++	unsigned int check_WSS = 0;
++	int fmatch = FMATCH_WRONG;
++	int foptsize, optnum;
++	u16 mss = 0;
++
++	if (totlen != f->ss || !nf_osf_ttl(skb, ttl_check, f->ttl))
++		return false;
++
++	/*
++	 * Should not happen if userspace parser was written correctly.
++	 */
++	if (f->wss.wc >= OSF_WSS_MAX)
++		return false;
++
++	/* Check options */
++
++	foptsize = 0;
++	for (optnum = 0; optnum < f->opt_num; ++optnum)
++		foptsize += f->opt[optnum].length;
++
++	if (foptsize > MAX_IPOPTLEN ||
++	    optsize > MAX_IPOPTLEN ||
++	    optsize != foptsize)
++		return false;
++
++	check_WSS = f->wss.wc;
++
++	for (optnum = 0; optnum < f->opt_num; ++optnum) {
++		if (f->opt[optnum].kind == (*optp)) {
++			__u32 len = f->opt[optnum].length;
++			const __u8 *optend = optp + len;
++
++			fmatch = FMATCH_OK;
++
++			switch (*optp) {
++			case OSFOPT_MSS:
++				mss = optp[3];
++				mss <<= 8;
++				mss |= optp[2];
++
++				mss = ntohs((__force __be16)mss);
++				break;
++			case OSFOPT_TS:
++				break;
++			}
++
++			optp = optend;
++		} else
++			fmatch = FMATCH_OPT_WRONG;
++
++		if (fmatch != FMATCH_OK)
++			break;
++	}
++
++	if (fmatch != FMATCH_OPT_WRONG) {
++		fmatch = FMATCH_WRONG;
++
++		switch (check_WSS) {
++		case OSF_WSS_PLAIN:
++			if (f->wss.val == 0 || window == f->wss.val)
++				fmatch = FMATCH_OK;
++			break;
++		case OSF_WSS_MSS:
++			/*
++			 * Some smart modems decrease mangle MSS to
++			 * SMART_MSS_2, so we check standard, decreased
++			 * and the one provided in the fingerprint MSS
++			 * values.
++			 */
++#define SMART_MSS_1	1460
++#define SMART_MSS_2	1448
++			if (window == f->wss.val * mss ||
++			    window == f->wss.val * SMART_MSS_1 ||
++			    window == f->wss.val * SMART_MSS_2)
++				fmatch = FMATCH_OK;
++			break;
++		case OSF_WSS_MTU:
++			if (window == f->wss.val * (mss + 40) ||
++			    window == f->wss.val * (SMART_MSS_1 + 40) ||
++			    window == f->wss.val * (SMART_MSS_2 + 40))
++				fmatch = FMATCH_OK;
++			break;
++		case OSF_WSS_MODULO:
++			if ((window % f->wss.val) == 0)
++				fmatch = FMATCH_OK;
++			break;
 +		}
-+		break;
- 	default:
- 		WARN_ON(1);
- 		regs->verdict.code = NFT_BREAK;
-@@ -91,6 +99,9 @@ static int nft_socket_init(const struct nft_ctx *ctx,
- 	case NFT_SOCKET_TRANSPARENT:
- 		len = sizeof(u8);
- 		break;
-+	case NFT_SOCKET_MARK:
-+		len = sizeof(u32);
-+		break;
- 	default:
- 		return -EOPNOTSUPP;
++	}
++
++	return fmatch == FMATCH_OK;
++}
++
+ bool
+ nf_osf_match(const struct sk_buff *skb, u_int8_t family,
+ 	     int hooknum, struct net_device *in, struct net_device *out,
+@@ -59,15 +156,16 @@ nf_osf_match(const struct sk_buff *skb, u_int8_t family,
+ 	     const struct list_head *nf_osf_fingers)
+ {
+ 	const unsigned char *optp = NULL, *_optp = NULL;
+-	unsigned int optsize = 0, check_WSS = 0;
+-	int fmatch = FMATCH_WRONG, fcount = 0;
+ 	const struct iphdr *ip = ip_hdr(skb);
+ 	const struct nf_osf_user_finger *f;
+ 	unsigned char opts[MAX_IPOPTLEN];
+ 	const struct nf_osf_finger *kf;
+-	u16 window, totlen, mss = 0;
++	int fcount = 0, ttl_check;
++	int fmatch = FMATCH_WRONG;
++	unsigned int optsize = 0;
+ 	const struct tcphdr *tcp;
+ 	struct tcphdr _tcph;
++	u16 window, totlen;
+ 	bool df;
+ 
+ 	tcp = skb_header_pointer(skb, ip_hdrlen(skb), sizeof(struct tcphdr), &_tcph);
+@@ -88,103 +186,20 @@ nf_osf_match(const struct sk_buff *skb, u_int8_t family,
+ 				sizeof(struct tcphdr), optsize, opts);
  	}
+ 
++	ttl_check = (info->flags & NF_OSF_TTL) ? info->ttl : -1;
++
+ 	list_for_each_entry_rcu(kf, &nf_osf_fingers[df], finger_entry) {
+-		int foptsize, optnum;
+ 
+ 		f = &kf->finger;
+ 
+ 		if (!(info->flags & NF_OSF_LOG) && strcmp(info->genre, f->genre))
+ 			continue;
+ 
+-		optp = _optp;
+-		fmatch = FMATCH_WRONG;
+-
+-		if (totlen != f->ss || !nf_osf_ttl(skb, info, f->ttl))
+-			continue;
+-
+-		/*
+-		 * Should not happen if userspace parser was written correctly.
+-		 */
+-		if (f->wss.wc >= OSF_WSS_MAX)
++		if (!nf_osf_match_one(skb, f,
++				      ttl_check, totlen, window, optp, optsize))
+ 			continue;
+ 
+-		/* Check options */
+-
+-		foptsize = 0;
+-		for (optnum = 0; optnum < f->opt_num; ++optnum)
+-			foptsize += f->opt[optnum].length;
+-
+-		if (foptsize > MAX_IPOPTLEN ||
+-		    optsize > MAX_IPOPTLEN ||
+-		    optsize != foptsize)
+-			continue;
+-
+-		check_WSS = f->wss.wc;
+-
+-		for (optnum = 0; optnum < f->opt_num; ++optnum) {
+-			if (f->opt[optnum].kind == (*optp)) {
+-				__u32 len = f->opt[optnum].length;
+-				const __u8 *optend = optp + len;
+-
+-				fmatch = FMATCH_OK;
+-
+-				switch (*optp) {
+-				case OSFOPT_MSS:
+-					mss = optp[3];
+-					mss <<= 8;
+-					mss |= optp[2];
+-
+-					mss = ntohs((__force __be16)mss);
+-					break;
+-				case OSFOPT_TS:
+-					break;
+-				}
+-
+-				optp = optend;
+-			} else
+-				fmatch = FMATCH_OPT_WRONG;
+-
+-			if (fmatch != FMATCH_OK)
+-				break;
+-		}
+-
+-		if (fmatch != FMATCH_OPT_WRONG) {
+-			fmatch = FMATCH_WRONG;
+-
+-			switch (check_WSS) {
+-			case OSF_WSS_PLAIN:
+-				if (f->wss.val == 0 || window == f->wss.val)
+-					fmatch = FMATCH_OK;
+-				break;
+-			case OSF_WSS_MSS:
+-				/*
+-				 * Some smart modems decrease mangle MSS to
+-				 * SMART_MSS_2, so we check standard, decreased
+-				 * and the one provided in the fingerprint MSS
+-				 * values.
+-				 */
+-#define SMART_MSS_1	1460
+-#define SMART_MSS_2	1448
+-				if (window == f->wss.val * mss ||
+-				    window == f->wss.val * SMART_MSS_1 ||
+-				    window == f->wss.val * SMART_MSS_2)
+-					fmatch = FMATCH_OK;
+-				break;
+-			case OSF_WSS_MTU:
+-				if (window == f->wss.val * (mss + 40) ||
+-				    window == f->wss.val * (SMART_MSS_1 + 40) ||
+-				    window == f->wss.val * (SMART_MSS_2 + 40))
+-					fmatch = FMATCH_OK;
+-				break;
+-			case OSF_WSS_MODULO:
+-				if ((window % f->wss.val) == 0)
+-					fmatch = FMATCH_OK;
+-				break;
+-			}
+-		}
+-
+-		if (fmatch != FMATCH_OK)
+-			continue;
++		fmatch = FMATCH_OK;
+ 
+ 		fcount++;
+ 
 -- 
 2.11.0
