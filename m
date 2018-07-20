@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 28/38] netfilter: nf_tables: add and use helper for module autoload
-Date: Fri, 20 Jul 2018 15:08:56 +0200
-Message-ID: <20180720130906.27687-29-pablo@netfilter.org>
+Subject: [PATCH 27/38] netfilter: Remove useless param helper of nf_ct_helper_ext_add
+Date: Fri, 20 Jul 2018 15:08:55 +0200
+Message-ID: <20180720130906.27687-28-pablo@netfilter.org>
 References: <20180720130906.27687-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,204 +10,126 @@ In-Reply-To: <20180720130906.27687-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+From: Gao Feng <gfree.wind@vip.163.com>
 
-module autoload is problematic, it requires dropping the mutex that
-protects the transaction.  Once the mutex has been dropped, another
-client can start a new transaction before we had a chance to abort
-current transaction log.
+The param helper of nf_ct_helper_ext_add is useless now, then remove
+it now.
 
-This helper makes sure we first zap the transaction log, then
-drop mutex for module autoload.
-
-In case autload is successful, the caller has to reply entire
-message anyway.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Gao Feng <gfree.wind@vip.163.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c | 81 +++++++++++++++++++++++++++----------------
- 1 file changed, 52 insertions(+), 29 deletions(-)
+ include/net/netfilter/nf_conntrack_helper.h | 4 +---
+ net/netfilter/nf_conntrack_core.c           | 3 +--
+ net/netfilter/nf_conntrack_helper.c         | 5 ++---
+ net/netfilter/nf_conntrack_netlink.c        | 2 +-
+ net/netfilter/nft_ct.c                      | 2 +-
+ net/netfilter/xt_CT.c                       | 2 +-
+ net/openvswitch/conntrack.c                 | 2 +-
+ 7 files changed, 8 insertions(+), 12 deletions(-)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 3f211e1025c1..5e95e92e547b 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -455,8 +455,40 @@ __nf_tables_chain_type_lookup(const struct nlattr *nla, u8 family)
- 	return NULL;
- }
+diff --git a/include/net/netfilter/nf_conntrack_helper.h b/include/net/netfilter/nf_conntrack_helper.h
+index 32c2a94a219d..2492120b8097 100644
+--- a/include/net/netfilter/nf_conntrack_helper.h
++++ b/include/net/netfilter/nf_conntrack_helper.h
+@@ -103,9 +103,7 @@ int nf_conntrack_helpers_register(struct nf_conntrack_helper *, unsigned int);
+ void nf_conntrack_helpers_unregister(struct nf_conntrack_helper *,
+ 				     unsigned int);
  
-+/*
-+ * Loading a module requires dropping mutex that guards the
-+ * transaction.
-+ * We first need to abort any pending transactions as once
-+ * mutex is unlocked a different client could start a new
-+ * transaction.  It must not see any 'future generation'
-+ * changes * as these changes will never happen.
-+ */
-+#ifdef CONFIG_MODULES
-+static int __nf_tables_abort(struct net *net);
-+
-+static void nft_request_module(struct net *net, const char *fmt, ...)
-+{
-+	char module_name[MODULE_NAME_LEN];
-+	va_list args;
-+	int ret;
-+
-+	__nf_tables_abort(net);
-+
-+	va_start(args, fmt);
-+	ret = vsnprintf(module_name, MODULE_NAME_LEN, fmt, args);
-+	va_end(args);
-+	if (WARN(ret >= MODULE_NAME_LEN, "truncated: '%s' (len %d)", module_name, ret))
-+		return;
-+
-+	nfnl_unlock(NFNL_SUBSYS_NFTABLES);
-+	request_module("%s", module_name);
-+	nfnl_lock(NFNL_SUBSYS_NFTABLES);
-+}
-+#endif
-+
- static const struct nft_chain_type *
--nf_tables_chain_type_lookup(const struct nlattr *nla, u8 family, bool autoload)
-+nf_tables_chain_type_lookup(struct net *net, const struct nlattr *nla,
-+			    u8 family, bool autoload)
+-struct nf_conn_help *nf_ct_helper_ext_add(struct nf_conn *ct,
+-					  struct nf_conntrack_helper *helper,
+-					  gfp_t gfp);
++struct nf_conn_help *nf_ct_helper_ext_add(struct nf_conn *ct, gfp_t gfp);
+ 
+ int __nf_ct_try_assign_helper(struct nf_conn *ct, struct nf_conn *tmpl,
+ 			      gfp_t flags);
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 4ced7c7102b6..d97d7e9a9ee7 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -1401,8 +1401,7 @@ init_conntrack(struct net *net, struct nf_conn *tmpl,
+ 			/* exp->master safe, refcnt bumped in nf_ct_find_expectation */
+ 			ct->master = exp->master;
+ 			if (exp->helper) {
+-				help = nf_ct_helper_ext_add(ct, exp->helper,
+-							    GFP_ATOMIC);
++				help = nf_ct_helper_ext_add(ct, GFP_ATOMIC);
+ 				if (help)
+ 					rcu_assign_pointer(help->helper, exp->helper);
+ 			}
+diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
+index a55a58c706a9..d557a425289d 100644
+--- a/net/netfilter/nf_conntrack_helper.c
++++ b/net/netfilter/nf_conntrack_helper.c
+@@ -192,8 +192,7 @@ void nf_conntrack_helper_put(struct nf_conntrack_helper *helper)
+ EXPORT_SYMBOL_GPL(nf_conntrack_helper_put);
+ 
+ struct nf_conn_help *
+-nf_ct_helper_ext_add(struct nf_conn *ct,
+-		     struct nf_conntrack_helper *helper, gfp_t gfp)
++nf_ct_helper_ext_add(struct nf_conn *ct, gfp_t gfp)
  {
- 	const struct nft_chain_type *type;
+ 	struct nf_conn_help *help;
  
-@@ -465,10 +497,8 @@ nf_tables_chain_type_lookup(const struct nlattr *nla, u8 family, bool autoload)
- 		return type;
- #ifdef CONFIG_MODULES
- 	if (autoload) {
--		nfnl_unlock(NFNL_SUBSYS_NFTABLES);
--		request_module("nft-chain-%u-%.*s", family,
--			       nla_len(nla), (const char *)nla_data(nla));
--		nfnl_lock(NFNL_SUBSYS_NFTABLES);
-+		nft_request_module(net, "nft-chain-%u-%.*s", family,
-+				   nla_len(nla), (const char *)nla_data(nla));
- 		type = __nf_tables_chain_type_lookup(nla, family);
- 		if (type != NULL)
- 			return ERR_PTR(-EAGAIN);
-@@ -1412,7 +1442,7 @@ static int nft_chain_parse_hook(struct net *net,
- 
- 	type = chain_type[family][NFT_CHAIN_T_DEFAULT];
- 	if (nla[NFTA_CHAIN_TYPE]) {
--		type = nf_tables_chain_type_lookup(nla[NFTA_CHAIN_TYPE],
-+		type = nf_tables_chain_type_lookup(net, nla[NFTA_CHAIN_TYPE],
- 						   family, create);
- 		if (IS_ERR(type))
- 			return PTR_ERR(type);
-@@ -1875,7 +1905,8 @@ static const struct nft_expr_type *__nft_expr_type_get(u8 family,
- 	return NULL;
- }
- 
--static const struct nft_expr_type *nft_expr_type_get(u8 family,
-+static const struct nft_expr_type *nft_expr_type_get(struct net *net,
-+						     u8 family,
- 						     struct nlattr *nla)
- {
- 	const struct nft_expr_type *type;
-@@ -1889,17 +1920,13 @@ static const struct nft_expr_type *nft_expr_type_get(u8 family,
- 
- #ifdef CONFIG_MODULES
- 	if (type == NULL) {
--		nfnl_unlock(NFNL_SUBSYS_NFTABLES);
--		request_module("nft-expr-%u-%.*s", family,
--			       nla_len(nla), (char *)nla_data(nla));
--		nfnl_lock(NFNL_SUBSYS_NFTABLES);
-+		nft_request_module(net, "nft-expr-%u-%.*s", family,
-+				   nla_len(nla), (char *)nla_data(nla));
- 		if (__nft_expr_type_get(family, nla))
- 			return ERR_PTR(-EAGAIN);
- 
--		nfnl_unlock(NFNL_SUBSYS_NFTABLES);
--		request_module("nft-expr-%.*s",
--			       nla_len(nla), (char *)nla_data(nla));
--		nfnl_lock(NFNL_SUBSYS_NFTABLES);
-+		nft_request_module(net, "nft-expr-%.*s",
-+				   nla_len(nla), (char *)nla_data(nla));
- 		if (__nft_expr_type_get(family, nla))
- 			return ERR_PTR(-EAGAIN);
- 	}
-@@ -1968,7 +1995,7 @@ static int nf_tables_expr_parse(const struct nft_ctx *ctx,
- 	if (err < 0)
- 		return err;
- 
--	type = nft_expr_type_get(ctx->family, tb[NFTA_EXPR_NAME]);
-+	type = nft_expr_type_get(ctx->net, ctx->family, tb[NFTA_EXPR_NAME]);
- 	if (IS_ERR(type))
- 		return PTR_ERR(type);
- 
-@@ -2744,9 +2771,7 @@ nft_select_set_ops(const struct nft_ctx *ctx,
- 
- #ifdef CONFIG_MODULES
- 	if (list_empty(&nf_tables_set_types)) {
--		nfnl_unlock(NFNL_SUBSYS_NFTABLES);
--		request_module("nft-set");
--		nfnl_lock(NFNL_SUBSYS_NFTABLES);
-+		nft_request_module(ctx->net, "nft-set");
- 		if (!list_empty(&nf_tables_set_types))
- 			return ERR_PTR(-EAGAIN);
- 	}
-@@ -4779,7 +4804,8 @@ static const struct nft_object_type *__nft_obj_type_get(u32 objtype)
- 	return NULL;
- }
- 
--static const struct nft_object_type *nft_obj_type_get(u32 objtype)
-+static const struct nft_object_type *
-+nft_obj_type_get(struct net *net, u32 objtype)
- {
- 	const struct nft_object_type *type;
- 
-@@ -4789,9 +4815,7 @@ static const struct nft_object_type *nft_obj_type_get(u32 objtype)
- 
- #ifdef CONFIG_MODULES
- 	if (type == NULL) {
--		nfnl_unlock(NFNL_SUBSYS_NFTABLES);
--		request_module("nft-obj-%u", objtype);
--		nfnl_lock(NFNL_SUBSYS_NFTABLES);
-+		nft_request_module(net, "nft-obj-%u", objtype);
- 		if (__nft_obj_type_get(objtype))
- 			return ERR_PTR(-EAGAIN);
- 	}
-@@ -4843,7 +4867,7 @@ static int nf_tables_newobj(struct net *net, struct sock *nlsk,
- 
- 	nft_ctx_init(&ctx, net, skb, nlh, family, table, NULL, nla);
- 
--	type = nft_obj_type_get(objtype);
-+	type = nft_obj_type_get(net, objtype);
- 	if (IS_ERR(type))
- 		return PTR_ERR(type);
- 
-@@ -5339,7 +5363,8 @@ static const struct nf_flowtable_type *__nft_flowtable_type_get(u8 family)
- 	return NULL;
- }
- 
--static const struct nf_flowtable_type *nft_flowtable_type_get(u8 family)
-+static const struct nf_flowtable_type *
-+nft_flowtable_type_get(struct net *net, u8 family)
- {
- 	const struct nf_flowtable_type *type;
- 
-@@ -5349,9 +5374,7 @@ static const struct nf_flowtable_type *nft_flowtable_type_get(u8 family)
- 
- #ifdef CONFIG_MODULES
- 	if (type == NULL) {
--		nfnl_unlock(NFNL_SUBSYS_NFTABLES);
--		request_module("nf-flowtable-%u", family);
--		nfnl_lock(NFNL_SUBSYS_NFTABLES);
-+		nft_request_module(net, "nf-flowtable-%u", family);
- 		if (__nft_flowtable_type_get(family))
- 			return ERR_PTR(-EAGAIN);
- 	}
-@@ -5431,7 +5454,7 @@ static int nf_tables_newflowtable(struct net *net, struct sock *nlsk,
- 		goto err1;
+@@ -262,7 +261,7 @@ int __nf_ct_try_assign_helper(struct nf_conn *ct, struct nf_conn *tmpl,
  	}
  
--	type = nft_flowtable_type_get(family);
-+	type = nft_flowtable_type_get(net, family);
- 	if (IS_ERR(type)) {
- 		err = PTR_ERR(type);
- 		goto err2;
+ 	if (help == NULL) {
+-		help = nf_ct_helper_ext_add(ct, helper, flags);
++		help = nf_ct_helper_ext_add(ct, flags);
+ 		if (help == NULL)
+ 			return -ENOMEM;
+ 	} else {
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index 40152b9ad772..f981bfa8db72 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -1947,7 +1947,7 @@ ctnetlink_create_conntrack(struct net *net,
+ 		} else {
+ 			struct nf_conn_help *help;
+ 
+-			help = nf_ct_helper_ext_add(ct, helper, GFP_ATOMIC);
++			help = nf_ct_helper_ext_add(ct, GFP_ATOMIC);
+ 			if (help == NULL) {
+ 				err = -ENOMEM;
+ 				goto err2;
+diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
+index 1435ffc5f57e..3bc82ee5464d 100644
+--- a/net/netfilter/nft_ct.c
++++ b/net/netfilter/nft_ct.c
+@@ -870,7 +870,7 @@ static void nft_ct_helper_obj_eval(struct nft_object *obj,
+ 	if (test_bit(IPS_HELPER_BIT, &ct->status))
+ 		return;
+ 
+-	help = nf_ct_helper_ext_add(ct, to_assign, GFP_ATOMIC);
++	help = nf_ct_helper_ext_add(ct, GFP_ATOMIC);
+ 	if (help) {
+ 		rcu_assign_pointer(help->helper, to_assign);
+ 		set_bit(IPS_HELPER_BIT, &ct->status);
+diff --git a/net/netfilter/xt_CT.c b/net/netfilter/xt_CT.c
+index 03b9a50ec93b..7ba454e9e3fa 100644
+--- a/net/netfilter/xt_CT.c
++++ b/net/netfilter/xt_CT.c
+@@ -93,7 +93,7 @@ xt_ct_set_helper(struct nf_conn *ct, const char *helper_name,
+ 		return -ENOENT;
+ 	}
+ 
+-	help = nf_ct_helper_ext_add(ct, helper, GFP_KERNEL);
++	help = nf_ct_helper_ext_add(ct, GFP_KERNEL);
+ 	if (help == NULL) {
+ 		nf_conntrack_helper_put(helper);
+ 		return -ENOMEM;
+diff --git a/net/openvswitch/conntrack.c b/net/openvswitch/conntrack.c
+index e05bd3e53f0f..3e33c382367f 100644
+--- a/net/openvswitch/conntrack.c
++++ b/net/openvswitch/conntrack.c
+@@ -1303,7 +1303,7 @@ static int ovs_ct_add_helper(struct ovs_conntrack_info *info, const char *name,
+ 		return -EINVAL;
+ 	}
+ 
+-	help = nf_ct_helper_ext_add(info->ct, helper, GFP_KERNEL);
++	help = nf_ct_helper_ext_add(info->ct, GFP_KERNEL);
+ 	if (!help) {
+ 		nf_conntrack_helper_put(helper);
+ 		return -ENOMEM;
 -- 
 2.11.0
