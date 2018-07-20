@@ -1,42 +1,65 @@
-From: Cong Wang <xiyou.wangcong@gmail.com>
-Subject: Re: [PATCH RFC/RFT net-next 00/17] net: Convert neighbor tables to per-namespace
-Date: Thu, 19 Jul 2018 10:12:23 -0700
-Message-ID: <CAM_iQpW4-JkZY7jXx0Q1b907hQ85UOL1eXv2YHwSukb5L=apUg@mail.gmail.com>
-References: <1a3f59a9-0ba5-c83f-16a6-f9550a84f693@gmail.com>
- <CAM_iQpWabZorkMNswyfHyS4KT=f_bgMtK8K35=84uah6Kfqxew@mail.gmail.com>
- <1a27e301-3275-b349-a2f8-afdfdc02f04f@gmail.com> <20180718.125938.2271502580775162784.davem@davemloft.net>
- <28c30574-391c-b4bd-c337-51d3040d901a@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Cc: David Miller <davem@davemloft.net>,
-        Linux Kernel Network Developers <netdev@vger.kernel.org>,
-        nikita.leshchenko@oracle.com,
-        Roopa Prabhu <roopa@cumulusnetworks.com>,
-        Stephen Hemminger <stephen@networkplumber.org>,
-        Ido Schimmel <idosch@mellanox.com>,
-        Jiri Pirko <jiri@mellanox.com>,
-        Saeed Mahameed <saeedm@mellanox.com>,
-        Alexander Aring <alex.aring@gmail.com>,
-        linux-wpan@vger.kernel.org,
-        NetFilter <netfilter-devel@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>
-To: David Ahern <dsahern@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <28c30574-391c-b4bd-c337-51d3040d901a@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 02/38] netfilter: flowtables: use fixed renew timeout on teardown
+Date: Fri, 20 Jul 2018 15:08:30 +0200
+Message-ID: <20180720130906.27687-3-pablo@netfilter.org>
+References: <20180720130906.27687-1-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20180720130906.27687-1-pablo@netfilter.org>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, Jul 19, 2018 at 9:16 AM David Ahern <dsahern@gmail.com> wrote:
->
-> Chatting with Nikolay about this and he brought up a good corollary - ip
-> fragmentation. It really is a similar problem in that memory is consumed
-> as a result of packets received from an external entity. The ipfrag
-> sysctls are per namespace with a limit that non-init_net namespaces can
-> not set high_thresh > the current value of init_net. Potential memory
-> consumed by fragments scales with the number of namespaces which is the
-> primary concern with making neighbor tables per namespace.
+From: Florian Westphal <fw@strlen.de>
 
-Nothing new, already discussed:
-https://marc.info/?l=linux-netdev&m=140391416215988&w=2
+This is one of the very few external callers of ->get_timeouts(),
 
-:)
+We can use a fixed timeout instead, conntrack core will refresh this in
+case a new packet comes within this period.
+
+Use of ESTABLISHED timeout seems way too huge anyway.
+
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_flow_table_core.c | 13 +++++--------
+ 1 file changed, 5 insertions(+), 8 deletions(-)
+
+diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
+index eb0d1658ac05..d8125616edc7 100644
+--- a/net/netfilter/nf_flow_table_core.c
++++ b/net/netfilter/nf_flow_table_core.c
+@@ -107,11 +107,12 @@ static void flow_offload_fixup_tcp(struct ip_ct_tcp *tcp)
+ 	tcp->seen[1].td_maxwin = 0;
+ }
+ 
++#define NF_FLOWTABLE_TCP_PICKUP_TIMEOUT	(120 * HZ)
++#define NF_FLOWTABLE_UDP_PICKUP_TIMEOUT	(30 * HZ)
++
+ static void flow_offload_fixup_ct_state(struct nf_conn *ct)
+ {
+ 	const struct nf_conntrack_l4proto *l4proto;
+-	struct net *net = nf_ct_net(ct);
+-	unsigned int *timeouts;
+ 	unsigned int timeout;
+ 	int l4num;
+ 
+@@ -123,14 +124,10 @@ static void flow_offload_fixup_ct_state(struct nf_conn *ct)
+ 	if (!l4proto)
+ 		return;
+ 
+-	timeouts = l4proto->get_timeouts(net);
+-	if (!timeouts)
+-		return;
+-
+ 	if (l4num == IPPROTO_TCP)
+-		timeout = timeouts[TCP_CONNTRACK_ESTABLISHED];
++		timeout = NF_FLOWTABLE_TCP_PICKUP_TIMEOUT;
+ 	else if (l4num == IPPROTO_UDP)
+-		timeout = timeouts[UDP_CT_REPLIED];
++		timeout = NF_FLOWTABLE_UDP_PICKUP_TIMEOUT;
+ 	else
+ 		return;
+ 
+-- 
+2.11.0
