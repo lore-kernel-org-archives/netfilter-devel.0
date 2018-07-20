@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 10/38] netfilter: conntrack: remove invert_tuple indirection from l3 protocol trackers
-Date: Fri, 20 Jul 2018 15:08:38 +0200
-Message-ID: <20180720130906.27687-11-pablo@netfilter.org>
+Subject: [PATCH 05/38] netfilter: utils: move nf_ip6_checksum* from ipv6 to utils
+Date: Fri, 20 Jul 2018 15:08:33 +0200
+Message-ID: <20180720130906.27687-6-pablo@netfilter.org>
 References: <20180720130906.27687-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -12,247 +12,239 @@ List-Id: netfilter-devel.vger.kernel.org
 
 From: Florian Westphal <fw@strlen.de>
 
-Its simpler to just handle it directly in nf_ct_invert_tuple().
-Also gets rid of need to pass l3proto pointer to resolve_conntrack().
+similar to previous change, this also allows to remove it
+from nf_ipv6_ops and avoid the indirection.
+
+It also removes the bogus dependency of nf_conntrack_ipv6 on ipv6 module:
+ipv6 checksum functions are built into kernel even if CONFIG_IPV6=m,
+but ipv6/netfilter.o isn't.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_conntrack_core.h      |  1 -
- include/net/netfilter/nf_conntrack_l3proto.h   |  7 -------
- net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c | 10 ----------
- net/ipv4/netfilter/nf_conntrack_proto_icmp.c   |  3 +--
- net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c | 10 ----------
- net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c |  3 +--
- net/netfilter/nf_conntrack_core.c              | 26 ++++++++++++++++----------
- net/netfilter/nf_conntrack_l3proto_generic.c   | 10 ----------
- 8 files changed, 18 insertions(+), 52 deletions(-)
+ include/linux/netfilter_ipv6.h |  5 ---
+ net/ipv6/netfilter.c           | 62 ----------------------------------
+ net/netfilter/utils.c          | 76 ++++++++++++++++++++++++++++++++++++------
+ 3 files changed, 65 insertions(+), 78 deletions(-)
 
-diff --git a/include/net/netfilter/nf_conntrack_core.h b/include/net/netfilter/nf_conntrack_core.h
-index d454a53ba646..35461b2d3462 100644
---- a/include/net/netfilter/nf_conntrack_core.h
-+++ b/include/net/netfilter/nf_conntrack_core.h
-@@ -42,7 +42,6 @@ void nf_conntrack_cleanup_end(void);
+diff --git a/include/linux/netfilter_ipv6.h b/include/linux/netfilter_ipv6.h
+index 288c597e75b3..c0dc4dd78887 100644
+--- a/include/linux/netfilter_ipv6.h
++++ b/include/linux/netfilter_ipv6.h
+@@ -30,11 +30,6 @@ struct nf_ipv6_ops {
+ 	void (*route_input)(struct sk_buff *skb);
+ 	int (*fragment)(struct net *net, struct sock *sk, struct sk_buff *skb,
+ 			int (*output)(struct net *, struct sock *, struct sk_buff *));
+-	__sum16 (*checksum)(struct sk_buff *skb, unsigned int hook,
+-			    unsigned int dataoff, u_int8_t protocol);
+-	__sum16 (*checksum_partial)(struct sk_buff *skb, unsigned int hook,
+-				    unsigned int dataoff, unsigned int len,
+-				    u_int8_t protocol);
+ 	int (*route)(struct net *net, struct dst_entry **dst, struct flowi *fl,
+ 		     bool strict);
+ 	int (*reroute)(struct sk_buff *skb, const struct nf_queue_entry *entry);
+diff --git a/net/ipv6/netfilter.c b/net/ipv6/netfilter.c
+index 531d6957af36..5ae8e1c51079 100644
+--- a/net/ipv6/netfilter.c
++++ b/net/ipv6/netfilter.c
+@@ -15,7 +15,6 @@
+ #include <net/ipv6.h>
+ #include <net/ip6_route.h>
+ #include <net/xfrm.h>
+-#include <net/ip6_checksum.h>
+ #include <net/netfilter/nf_queue.h>
  
- bool nf_ct_invert_tuple(struct nf_conntrack_tuple *inverse,
- 			const struct nf_conntrack_tuple *orig,
--			const struct nf_conntrack_l3proto *l3proto,
- 			const struct nf_conntrack_l4proto *l4proto);
+ int ip6_route_me_harder(struct net *net, struct sk_buff *skb)
+@@ -106,71 +105,10 @@ static int nf_ip6_route(struct net *net, struct dst_entry **dst,
+ 	return err;
+ }
  
- /* Find a connection corresponding to a tuple. */
-diff --git a/include/net/netfilter/nf_conntrack_l3proto.h b/include/net/netfilter/nf_conntrack_l3proto.h
-index ece231450f30..164641c743a5 100644
---- a/include/net/netfilter/nf_conntrack_l3proto.h
-+++ b/include/net/netfilter/nf_conntrack_l3proto.h
-@@ -25,13 +25,6 @@ struct nf_conntrack_l3proto {
- 	u16 nla_size;
- 
- 	/*
--	 * Invert the per-proto part of the tuple: ie. turn xmit into reply.
--	 * Some packets can't be inverted: return 0 in that case.
--	 */
--	bool (*invert_tuple)(struct nf_conntrack_tuple *inverse,
--			     const struct nf_conntrack_tuple *orig);
--
--	/*
- 	 * Called before tracking. 
- 	 *	*dataoff: offset of protocol header (TCP, UDP,...) in skb
- 	 *	*protonum: protocol number
-diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-index 7ed56f61798b..e10e38c443ab 100644
---- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-+++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-@@ -38,15 +38,6 @@ struct conntrack4_net {
- 	unsigned int users;
- };
- 
--static bool ipv4_invert_tuple(struct nf_conntrack_tuple *tuple,
--			      const struct nf_conntrack_tuple *orig)
+-__sum16 nf_ip6_checksum(struct sk_buff *skb, unsigned int hook,
+-			     unsigned int dataoff, u_int8_t protocol)
 -{
--	tuple->src.u3.ip = orig->dst.u3.ip;
--	tuple->dst.u3.ip = orig->src.u3.ip;
+-	const struct ipv6hdr *ip6h = ipv6_hdr(skb);
+-	__sum16 csum = 0;
 -
--	return true;
+-	switch (skb->ip_summed) {
+-	case CHECKSUM_COMPLETE:
+-		if (hook != NF_INET_PRE_ROUTING && hook != NF_INET_LOCAL_IN)
+-			break;
+-		if (!csum_ipv6_magic(&ip6h->saddr, &ip6h->daddr,
+-				     skb->len - dataoff, protocol,
+-				     csum_sub(skb->csum,
+-					      skb_checksum(skb, 0,
+-							   dataoff, 0)))) {
+-			skb->ip_summed = CHECKSUM_UNNECESSARY;
+-			break;
+-		}
+-		/* fall through */
+-	case CHECKSUM_NONE:
+-		skb->csum = ~csum_unfold(
+-				csum_ipv6_magic(&ip6h->saddr, &ip6h->daddr,
+-					     skb->len - dataoff,
+-					     protocol,
+-					     csum_sub(0,
+-						      skb_checksum(skb, 0,
+-								   dataoff, 0))));
+-		csum = __skb_checksum_complete(skb);
+-	}
+-	return csum;
 -}
+-EXPORT_SYMBOL(nf_ip6_checksum);
 -
- static int ipv4_get_l4proto(const struct sk_buff *skb, unsigned int nhoff,
- 			    unsigned int *dataoff, u_int8_t *protonum)
- {
-@@ -306,7 +297,6 @@ static void ipv4_hooks_unregister(struct net *net)
- 
- const struct nf_conntrack_l3proto nf_conntrack_l3proto_ipv4 = {
- 	.l3proto	 = PF_INET,
--	.invert_tuple	 = ipv4_invert_tuple,
- 	.get_l4proto	 = ipv4_get_l4proto,
- 	.net_ns_get	 = ipv4_hooks_register,
- 	.net_ns_put	 = ipv4_hooks_unregister,
-diff --git a/net/ipv4/netfilter/nf_conntrack_proto_icmp.c b/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
-index 5c15beafa711..34095949a003 100644
---- a/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
-+++ b/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
-@@ -142,8 +142,7 @@ icmp_error_message(struct net *net, struct nf_conn *tmpl, struct sk_buff *skb,
- 
- 	/* Ordinarily, we'd expect the inverted tupleproto, but it's
- 	   been preserved inside the ICMP. */
--	if (!nf_ct_invert_tuple(&innertuple, &origtuple,
--				&nf_conntrack_l3proto_ipv4, innerproto)) {
-+	if (!nf_ct_invert_tuple(&innertuple, &origtuple, innerproto)) {
- 		pr_debug("icmp_error_message: no match\n");
- 		return -NF_ACCEPT;
- 	}
-diff --git a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-index bdb1709bb951..f8051fe20489 100644
---- a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-+++ b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-@@ -41,15 +41,6 @@ struct conntrack6_net {
- 	unsigned int users;
- };
- 
--static bool ipv6_invert_tuple(struct nf_conntrack_tuple *tuple,
--			      const struct nf_conntrack_tuple *orig)
+-static __sum16 nf_ip6_checksum_partial(struct sk_buff *skb, unsigned int hook,
+-				       unsigned int dataoff, unsigned int len,
+-				       u_int8_t protocol)
 -{
--	memcpy(tuple->src.u3.ip6, orig->dst.u3.ip6, sizeof(tuple->src.u3.ip6));
--	memcpy(tuple->dst.u3.ip6, orig->src.u3.ip6, sizeof(tuple->dst.u3.ip6));
+-	const struct ipv6hdr *ip6h = ipv6_hdr(skb);
+-	__wsum hsum;
+-	__sum16 csum = 0;
 -
--	return true;
--}
+-	switch (skb->ip_summed) {
+-	case CHECKSUM_COMPLETE:
+-		if (len == skb->len - dataoff)
+-			return nf_ip6_checksum(skb, hook, dataoff, protocol);
+-		/* fall through */
+-	case CHECKSUM_NONE:
+-		hsum = skb_checksum(skb, 0, dataoff, 0);
+-		skb->csum = ~csum_unfold(csum_ipv6_magic(&ip6h->saddr,
+-							 &ip6h->daddr,
+-							 skb->len - dataoff,
+-							 protocol,
+-							 csum_sub(0, hsum)));
+-		skb->ip_summed = CHECKSUM_NONE;
+-		return __skb_checksum_complete_head(skb, dataoff + len);
+-	}
+-	return csum;
+-};
 -
- static int ipv6_get_l4proto(const struct sk_buff *skb, unsigned int nhoff,
- 			    unsigned int *dataoff, u_int8_t *protonum)
- {
-@@ -290,7 +281,6 @@ static void ipv6_hooks_unregister(struct net *net)
+ static const struct nf_ipv6_ops ipv6ops = {
+ 	.chk_addr		= ipv6_chk_addr,
+ 	.route_input    	= ip6_route_input,
+ 	.fragment		= ip6_fragment,
+-	.checksum		= nf_ip6_checksum,
+-	.checksum_partial	= nf_ip6_checksum_partial,
+ 	.route			= nf_ip6_route,
+ 	.reroute		= nf_ip6_reroute,
+ };
+diff --git a/net/netfilter/utils.c b/net/netfilter/utils.c
+index 8980c8a0fe5c..e8da9a9bba73 100644
+--- a/net/netfilter/utils.c
++++ b/net/netfilter/utils.c
+@@ -4,6 +4,7 @@
+ #include <linux/netfilter_ipv4.h>
+ #include <linux/netfilter_ipv6.h>
+ #include <net/netfilter/nf_queue.h>
++#include <net/ip6_checksum.h>
  
- const struct nf_conntrack_l3proto nf_conntrack_l3proto_ipv6 = {
- 	.l3proto		= PF_INET6,
--	.invert_tuple		= ipv6_invert_tuple,
- 	.get_l4proto		= ipv6_get_l4proto,
- 	.net_ns_get		= ipv6_hooks_register,
- 	.net_ns_put		= ipv6_hooks_unregister,
-diff --git a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
-index 2548e2c8aedd..8bcbc2f15bd5 100644
---- a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
-+++ b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
-@@ -152,8 +152,7 @@ icmpv6_error_message(struct net *net, struct nf_conn *tmpl,
+ #ifdef CONFIG_INET
+ __sum16 nf_ip_checksum(struct sk_buff *skb, unsigned int hook,
+@@ -59,11 +60,69 @@ static __sum16 nf_ip_checksum_partial(struct sk_buff *skb, unsigned int hook,
+ 	return csum;
+ }
  
- 	/* Ordinarily, we'd expect the inverted tupleproto, but it's
- 	   been preserved inside the ICMP. */
--	if (!nf_ct_invert_tuple(&intuple, &origtuple,
--				&nf_conntrack_l3proto_ipv6, inproto)) {
-+	if (!nf_ct_invert_tuple(&intuple, &origtuple, inproto)) {
- 		pr_debug("icmpv6_error: Can't invert tuple\n");
- 		return -NF_ACCEPT;
- 	}
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 66b2ebae2747..14c040805b32 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -305,14 +305,24 @@ EXPORT_SYMBOL_GPL(nf_ct_get_tuplepr);
- bool
- nf_ct_invert_tuple(struct nf_conntrack_tuple *inverse,
- 		   const struct nf_conntrack_tuple *orig,
--		   const struct nf_conntrack_l3proto *l3proto,
- 		   const struct nf_conntrack_l4proto *l4proto)
- {
- 	memset(inverse, 0, sizeof(*inverse));
- 
- 	inverse->src.l3num = orig->src.l3num;
--	if (l3proto->invert_tuple(inverse, orig) == 0)
--		return false;
++__sum16 nf_ip6_checksum(struct sk_buff *skb, unsigned int hook,
++			unsigned int dataoff, u8 protocol)
++{
++	const struct ipv6hdr *ip6h = ipv6_hdr(skb);
++	__sum16 csum = 0;
 +
-+	switch (orig->src.l3num) {
-+	case NFPROTO_IPV4:
-+		inverse->src.u3.ip = orig->dst.u3.ip;
-+		inverse->dst.u3.ip = orig->src.u3.ip;
-+		break;
-+	case NFPROTO_IPV6:
-+		inverse->src.u3.in6 = orig->dst.u3.in6;
-+		inverse->dst.u3.in6 = orig->src.u3.in6;
-+		break;
-+	default:
-+		break;
++	switch (skb->ip_summed) {
++	case CHECKSUM_COMPLETE:
++		if (hook != NF_INET_PRE_ROUTING && hook != NF_INET_LOCAL_IN)
++			break;
++		if (!csum_ipv6_magic(&ip6h->saddr, &ip6h->daddr,
++				     skb->len - dataoff, protocol,
++				     csum_sub(skb->csum,
++					      skb_checksum(skb, 0,
++							   dataoff, 0)))) {
++			skb->ip_summed = CHECKSUM_UNNECESSARY;
++			break;
++		}
++		/* fall through */
++	case CHECKSUM_NONE:
++		skb->csum = ~csum_unfold(
++				csum_ipv6_magic(&ip6h->saddr, &ip6h->daddr,
++					     skb->len - dataoff,
++					     protocol,
++					     csum_sub(0,
++						      skb_checksum(skb, 0,
++								   dataoff, 0))));
++		csum = __skb_checksum_complete(skb);
 +	}
- 
- 	inverse->dst.dir = !orig->dst.dir;
- 
-@@ -1222,7 +1232,6 @@ EXPORT_SYMBOL_GPL(nf_conntrack_free);
- static noinline struct nf_conntrack_tuple_hash *
- init_conntrack(struct net *net, struct nf_conn *tmpl,
- 	       const struct nf_conntrack_tuple *tuple,
--	       const struct nf_conntrack_l3proto *l3proto,
- 	       const struct nf_conntrack_l4proto *l4proto,
- 	       struct sk_buff *skb,
- 	       unsigned int dataoff, u32 hash)
-@@ -1237,7 +1246,7 @@ init_conntrack(struct net *net, struct nf_conn *tmpl,
- 	struct nf_conntrack_zone tmp;
- 	unsigned int *timeouts;
- 
--	if (!nf_ct_invert_tuple(&repl_tuple, tuple, l3proto, l4proto)) {
-+	if (!nf_ct_invert_tuple(&repl_tuple, tuple, l4proto)) {
- 		pr_debug("Can't invert tuple.\n");
- 		return NULL;
- 	}
-@@ -1334,7 +1343,6 @@ resolve_normal_ct(struct net *net, struct nf_conn *tmpl,
- 		  unsigned int dataoff,
- 		  u_int16_t l3num,
- 		  u_int8_t protonum,
--		  const struct nf_conntrack_l3proto *l3proto,
- 		  const struct nf_conntrack_l4proto *l4proto)
++	return csum;
++}
++EXPORT_SYMBOL(nf_ip6_checksum);
++
++static __sum16 nf_ip6_checksum_partial(struct sk_buff *skb, unsigned int hook,
++				       unsigned int dataoff, unsigned int len,
++				       u8 protocol)
++{
++	const struct ipv6hdr *ip6h = ipv6_hdr(skb);
++	__wsum hsum;
++	__sum16 csum = 0;
++
++	switch (skb->ip_summed) {
++	case CHECKSUM_COMPLETE:
++		if (len == skb->len - dataoff)
++			return nf_ip6_checksum(skb, hook, dataoff, protocol);
++		/* fall through */
++	case CHECKSUM_NONE:
++		hsum = skb_checksum(skb, 0, dataoff, 0);
++		skb->csum = ~csum_unfold(csum_ipv6_magic(&ip6h->saddr,
++							 &ip6h->daddr,
++							 skb->len - dataoff,
++							 protocol,
++							 csum_sub(0, hsum)));
++		skb->ip_summed = CHECKSUM_NONE;
++		return __skb_checksum_complete_head(skb, dataoff + len);
++	}
++	return csum;
++};
++
+ __sum16 nf_checksum(struct sk_buff *skb, unsigned int hook,
+-		    unsigned int dataoff, u_int8_t protocol,
++		    unsigned int dataoff, u8 protocol,
+ 		    unsigned short family)
  {
- 	const struct nf_conntrack_zone *zone;
-@@ -1356,7 +1364,7 @@ resolve_normal_ct(struct net *net, struct nf_conn *tmpl,
- 	hash = hash_conntrack_raw(&tuple, net);
- 	h = __nf_conntrack_find_get(net, zone, &tuple, hash);
- 	if (!h) {
--		h = init_conntrack(net, tmpl, &tuple, l3proto, l4proto,
-+		h = init_conntrack(net, tmpl, &tuple, l4proto,
- 				   skb, dataoff, hash);
- 		if (!h)
- 			return 0;
-@@ -1439,8 +1447,7 @@ nf_conntrack_in(struct net *net, u_int8_t pf, unsigned int hooknum,
- 			goto out;
+-	const struct nf_ipv6_ops *v6ops;
+ 	__sum16 csum = 0;
+ 
+ 	switch (family) {
+@@ -71,9 +130,7 @@ __sum16 nf_checksum(struct sk_buff *skb, unsigned int hook,
+ 		csum = nf_ip_checksum(skb, hook, dataoff, protocol);
+ 		break;
+ 	case AF_INET6:
+-		v6ops = rcu_dereference(nf_ipv6_ops);
+-		if (v6ops)
+-			csum = v6ops->checksum(skb, hook, dataoff, protocol);
++		csum = nf_ip6_checksum(skb, hook, dataoff, protocol);
+ 		break;
  	}
- repeat:
--	ret = resolve_normal_ct(net, tmpl, skb, dataoff, pf, protonum,
--				l3proto, l4proto);
-+	ret = resolve_normal_ct(net, tmpl, skb, dataoff, pf, protonum, l4proto);
- 	if (ret < 0) {
- 		/* Too stressed to deal. */
- 		NF_CT_STAT_INC_ATOMIC(net, drop);
-@@ -1497,7 +1504,6 @@ bool nf_ct_invert_tuplepr(struct nf_conntrack_tuple *inverse,
  
- 	rcu_read_lock();
- 	ret = nf_ct_invert_tuple(inverse, orig,
--				 __nf_ct_l3proto_find(orig->src.l3num),
- 				 __nf_ct_l4proto_find(orig->src.l3num,
- 						      orig->dst.protonum));
- 	rcu_read_unlock();
-diff --git a/net/netfilter/nf_conntrack_l3proto_generic.c b/net/netfilter/nf_conntrack_l3proto_generic.c
-index 0b01c9970e99..d6a8fe591ccc 100644
---- a/net/netfilter/nf_conntrack_l3proto_generic.c
-+++ b/net/netfilter/nf_conntrack_l3proto_generic.c
-@@ -31,15 +31,6 @@
- #include <net/netfilter/nf_conntrack_core.h>
- #include <net/netfilter/ipv4/nf_conntrack_ipv4.h>
+@@ -83,9 +140,8 @@ EXPORT_SYMBOL_GPL(nf_checksum);
  
--static bool generic_invert_tuple(struct nf_conntrack_tuple *tuple,
--				 const struct nf_conntrack_tuple *orig)
--{
--	memset(&tuple->src.u3, 0, sizeof(tuple->src.u3));
--	memset(&tuple->dst.u3, 0, sizeof(tuple->dst.u3));
--
--	return true;
--}
--
- static int generic_get_l4proto(const struct sk_buff *skb, unsigned int nhoff,
- 			       unsigned int *dataoff, u_int8_t *protonum)
+ __sum16 nf_checksum_partial(struct sk_buff *skb, unsigned int hook,
+ 			    unsigned int dataoff, unsigned int len,
+-			    u_int8_t protocol, unsigned short family)
++			    u8 protocol, unsigned short family)
  {
-@@ -50,7 +41,6 @@ static int generic_get_l4proto(const struct sk_buff *skb, unsigned int nhoff,
+-	const struct nf_ipv6_ops *v6ops;
+ 	__sum16 csum = 0;
  
- struct nf_conntrack_l3proto nf_conntrack_l3proto_generic __read_mostly = {
- 	.l3proto	 = PF_UNSPEC,
--	.invert_tuple	 = generic_invert_tuple,
- 	.get_l4proto	 = generic_get_l4proto,
- };
- EXPORT_SYMBOL_GPL(nf_conntrack_l3proto_generic);
+ 	switch (family) {
+@@ -94,10 +150,8 @@ __sum16 nf_checksum_partial(struct sk_buff *skb, unsigned int hook,
+ 					      protocol);
+ 		break;
+ 	case AF_INET6:
+-		v6ops = rcu_dereference(nf_ipv6_ops);
+-		if (v6ops)
+-			csum = v6ops->checksum_partial(skb, hook, dataoff, len,
+-						       protocol);
++		csum = nf_ip6_checksum_partial(skb, hook, dataoff, len,
++					       protocol);
+ 		break;
+ 	}
+ 
 -- 
 2.11.0
