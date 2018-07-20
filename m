@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 37/38] ipv6: remove dependency of nf_defrag_ipv6 on ipv6 module
-Date: Fri, 20 Jul 2018 15:09:05 +0200
-Message-ID: <20180720130906.27687-38-pablo@netfilter.org>
+Subject: [PATCH 38/38] netfilter: nf_osf: add missing definitions to header file
+Date: Fri, 20 Jul 2018 15:09:06 +0200
+Message-ID: <20180720130906.27687-39-pablo@netfilter.org>
 References: <20180720130906.27687-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,408 +10,80 @@ In-Reply-To: <20180720130906.27687-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+From: Fernando Fernandez Mancera <ffmancera@riseup.net>
 
-IPV6=m
-DEFRAG_IPV6=m
-CONNTRACK=y yields:
+Add missing definitions from nf_osf.h in order to extract Passive OS
+fingerprint infrastructure from xt_osf.
 
-net/netfilter/nf_conntrack_proto.o: In function `nf_ct_netns_do_get':
-net/netfilter/nf_conntrack_proto.c:802: undefined reference to `nf_defrag_ipv6_enable'
-net/netfilter/nf_conntrack_proto.o:(.rodata+0x640): undefined reference to `nf_conntrack_l4proto_icmpv6'
-
-Setting DEFRAG_IPV6=y causes undefined references to ip6_rhash_params
-ip6_frag_init and ip6_expire_frag_queue so it would be needed to force
-IPV6=y too.
-
-This patch gets rid of the 'followup linker error' by removing
-the dependency of ipv6.ko symbols from netfilter ipv6 defrag.
-
-Shared code is placed into a header, then used from both.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Fernando Fernandez Mancera <ffmancera@riseup.net>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/ipv6.h                        |  28 --------
- include/net/ipv6_frag.h                   | 104 ++++++++++++++++++++++++++++++
- net/ieee802154/6lowpan/reassembly.c       |   2 +-
- net/ipv6/netfilter/nf_conntrack_reasm.c   |  17 +++--
- net/ipv6/netfilter/nf_defrag_ipv6_hooks.c |   3 +-
- net/ipv6/reassembly.c                     |  92 ++------------------------
- net/openvswitch/conntrack.c               |   1 +
- 7 files changed, 126 insertions(+), 121 deletions(-)
- create mode 100644 include/net/ipv6_frag.h
+ include/uapi/linux/netfilter/nf_osf.h | 11 +++++++++++
+ include/uapi/linux/netfilter/xt_osf.h | 10 ++--------
+ 2 files changed, 13 insertions(+), 8 deletions(-)
 
-diff --git a/include/net/ipv6.h b/include/net/ipv6.h
-index aa6fd11a887c..3720958cd4e1 100644
---- a/include/net/ipv6.h
-+++ b/include/net/ipv6.h
-@@ -581,34 +581,6 @@ static inline bool ipv6_prefix_equal(const struct in6_addr *addr1,
- }
- #endif
+diff --git a/include/uapi/linux/netfilter/nf_osf.h b/include/uapi/linux/netfilter/nf_osf.h
+index 8f2f2f403183..3738116b2bbe 100644
+--- a/include/uapi/linux/netfilter/nf_osf.h
++++ b/include/uapi/linux/netfilter/nf_osf.h
+@@ -16,9 +16,14 @@
  
--struct inet_frag_queue;
+ #define NF_OSF_TTL_TRUE			0	/* True ip and fingerprint TTL comparison */
+ 
++/* Check if ip TTL is less than fingerprint one */
++#define NF_OSF_TTL_LESS			1
++
+ /* Do not compare ip and fingerprint TTL at all */
+ #define NF_OSF_TTL_NOCHECK		2
+ 
++#define NF_OSF_FLAGMASK		(NF_OSF_GENRE | NF_OSF_TTL | \
++				 NF_OSF_LOG | NF_OSF_INVERT)
+ /* Wildcard MSS (kind of).
+  * It is used to implement a state machine for the different wildcard values
+  * of the MSS and window sizes.
+@@ -83,4 +88,10 @@ enum iana_options {
+ 	OSFOPT_EMPTY = 255,
+ };
+ 
++enum nf_osf_attr_type {
++	OSF_ATTR_UNSPEC,
++	OSF_ATTR_FINGER,
++	OSF_ATTR_MAX,
++};
++
+ #endif /* _NF_OSF_H */
+diff --git a/include/uapi/linux/netfilter/xt_osf.h b/include/uapi/linux/netfilter/xt_osf.h
+index 72956eceeb09..b189007f4f28 100644
+--- a/include/uapi/linux/netfilter/xt_osf.h
++++ b/include/uapi/linux/netfilter/xt_osf.h
+@@ -37,8 +37,7 @@
+ 
+ #define XT_OSF_TTL_TRUE		NF_OSF_TTL_TRUE
+ #define XT_OSF_TTL_NOCHECK	NF_OSF_TTL_NOCHECK
 -
--enum ip6_defrag_users {
--	IP6_DEFRAG_LOCAL_DELIVER,
--	IP6_DEFRAG_CONNTRACK_IN,
--	__IP6_DEFRAG_CONNTRACK_IN	= IP6_DEFRAG_CONNTRACK_IN + USHRT_MAX,
--	IP6_DEFRAG_CONNTRACK_OUT,
--	__IP6_DEFRAG_CONNTRACK_OUT	= IP6_DEFRAG_CONNTRACK_OUT + USHRT_MAX,
--	IP6_DEFRAG_CONNTRACK_BRIDGE_IN,
--	__IP6_DEFRAG_CONNTRACK_BRIDGE_IN = IP6_DEFRAG_CONNTRACK_BRIDGE_IN + USHRT_MAX,
+-#define XT_OSF_TTL_LESS	1	/* Check if ip TTL is less than fingerprint one */
++#define XT_OSF_TTL_LESS		NF_OSF_TTL_LESS
+ 
+ #define xt_osf_wc		nf_osf_wc
+ #define xt_osf_opt		nf_osf_opt
+@@ -47,6 +46,7 @@
+ #define xt_osf_finger		nf_osf_finger
+ #define xt_osf_nlmsg		nf_osf_nlmsg
+ 
++#define xt_osf_attr_type	nf_osf_attr_type
+ /*
+  * Add/remove fingerprint from the kernel.
+  */
+@@ -56,10 +56,4 @@ enum xt_osf_msg_types {
+ 	OSF_MSG_MAX,
+ };
+ 
+-enum xt_osf_attr_type {
+-	OSF_ATTR_UNSPEC,
+-	OSF_ATTR_FINGER,
+-	OSF_ATTR_MAX,
 -};
 -
--void ip6_frag_init(struct inet_frag_queue *q, const void *a);
--extern const struct rhashtable_params ip6_rhash_params;
--
--/*
-- *	Equivalent of ipv4 struct ip
-- */
--struct frag_queue {
--	struct inet_frag_queue	q;
--
--	int			iif;
--	__u16			nhoffset;
--	u8			ecn;
--};
--
--void ip6_expire_frag_queue(struct net *net, struct frag_queue *fq);
--
- static inline bool ipv6_addr_any(const struct in6_addr *a)
- {
- #if defined(CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS) && BITS_PER_LONG == 64
-diff --git a/include/net/ipv6_frag.h b/include/net/ipv6_frag.h
-new file mode 100644
-index 000000000000..6ced1e6899b6
---- /dev/null
-+++ b/include/net/ipv6_frag.h
-@@ -0,0 +1,104 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+#ifndef _IPV6_FRAG_H
-+#define _IPV6_FRAG_H
-+#include <linux/kernel.h>
-+#include <net/addrconf.h>
-+#include <net/ipv6.h>
-+#include <net/inet_frag.h>
-+
-+enum ip6_defrag_users {
-+	IP6_DEFRAG_LOCAL_DELIVER,
-+	IP6_DEFRAG_CONNTRACK_IN,
-+	__IP6_DEFRAG_CONNTRACK_IN	= IP6_DEFRAG_CONNTRACK_IN + USHRT_MAX,
-+	IP6_DEFRAG_CONNTRACK_OUT,
-+	__IP6_DEFRAG_CONNTRACK_OUT	= IP6_DEFRAG_CONNTRACK_OUT + USHRT_MAX,
-+	IP6_DEFRAG_CONNTRACK_BRIDGE_IN,
-+	__IP6_DEFRAG_CONNTRACK_BRIDGE_IN = IP6_DEFRAG_CONNTRACK_BRIDGE_IN + USHRT_MAX,
-+};
-+
-+/*
-+ *	Equivalent of ipv4 struct ip
-+ */
-+struct frag_queue {
-+	struct inet_frag_queue	q;
-+
-+	int			iif;
-+	__u16			nhoffset;
-+	u8			ecn;
-+};
-+
-+#if IS_ENABLED(CONFIG_IPV6)
-+static inline void ip6frag_init(struct inet_frag_queue *q, const void *a)
-+{
-+	struct frag_queue *fq = container_of(q, struct frag_queue, q);
-+	const struct frag_v6_compare_key *key = a;
-+
-+	q->key.v6 = *key;
-+	fq->ecn = 0;
-+}
-+
-+static inline u32 ip6frag_key_hashfn(const void *data, u32 len, u32 seed)
-+{
-+	return jhash2(data,
-+		      sizeof(struct frag_v6_compare_key) / sizeof(u32), seed);
-+}
-+
-+static inline u32 ip6frag_obj_hashfn(const void *data, u32 len, u32 seed)
-+{
-+	const struct inet_frag_queue *fq = data;
-+
-+	return jhash2((const u32 *)&fq->key.v6,
-+		      sizeof(struct frag_v6_compare_key) / sizeof(u32), seed);
-+}
-+
-+static inline int
-+ip6frag_obj_cmpfn(struct rhashtable_compare_arg *arg, const void *ptr)
-+{
-+	const struct frag_v6_compare_key *key = arg->key;
-+	const struct inet_frag_queue *fq = ptr;
-+
-+	return !!memcmp(&fq->key, key, sizeof(*key));
-+}
-+
-+static inline void
-+ip6frag_expire_frag_queue(struct net *net, struct frag_queue *fq)
-+{
-+	struct net_device *dev = NULL;
-+	struct sk_buff *head;
-+
-+	rcu_read_lock();
-+	spin_lock(&fq->q.lock);
-+
-+	if (fq->q.flags & INET_FRAG_COMPLETE)
-+		goto out;
-+
-+	inet_frag_kill(&fq->q);
-+
-+	dev = dev_get_by_index_rcu(net, fq->iif);
-+	if (!dev)
-+		goto out;
-+
-+	__IP6_INC_STATS(net, __in6_dev_get(dev), IPSTATS_MIB_REASMFAILS);
-+	__IP6_INC_STATS(net, __in6_dev_get(dev), IPSTATS_MIB_REASMTIMEOUT);
-+
-+	/* Don't send error if the first segment did not arrive. */
-+	head = fq->q.fragments;
-+	if (!(fq->q.flags & INET_FRAG_FIRST_IN) || !head)
-+		goto out;
-+
-+	head->dev = dev;
-+	skb_get(head);
-+	spin_unlock(&fq->q.lock);
-+
-+	icmpv6_send(head, ICMPV6_TIME_EXCEED, ICMPV6_EXC_FRAGTIME, 0);
-+	kfree_skb(head);
-+	goto out_rcu_unlock;
-+
-+out:
-+	spin_unlock(&fq->q.lock);
-+out_rcu_unlock:
-+	rcu_read_unlock();
-+	inet_frag_put(&fq->q);
-+}
-+#endif
-+#endif
-diff --git a/net/ieee802154/6lowpan/reassembly.c b/net/ieee802154/6lowpan/reassembly.c
-index 2cc224106b69..ec7a5da56129 100644
---- a/net/ieee802154/6lowpan/reassembly.c
-+++ b/net/ieee802154/6lowpan/reassembly.c
-@@ -25,7 +25,7 @@
- 
- #include <net/ieee802154_netdev.h>
- #include <net/6lowpan.h>
--#include <net/ipv6.h>
-+#include <net/ipv6_frag.h>
- #include <net/inet_frag.h>
- 
- #include "6lowpan_i.h"
-diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
-index a452d99c9f52..333ee3256964 100644
---- a/net/ipv6/netfilter/nf_conntrack_reasm.c
-+++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
-@@ -33,9 +33,8 @@
- 
- #include <net/sock.h>
- #include <net/snmp.h>
--#include <net/inet_frag.h>
-+#include <net/ipv6_frag.h>
- 
--#include <net/ipv6.h>
- #include <net/protocol.h>
- #include <net/transp_v6.h>
- #include <net/rawv6.h>
-@@ -151,7 +150,7 @@ static void nf_ct_frag6_expire(struct timer_list *t)
- 	fq = container_of(frag, struct frag_queue, q);
- 	net = container_of(fq->q.net, struct net, nf_frag.frags);
- 
--	ip6_expire_frag_queue(net, fq);
-+	ip6frag_expire_frag_queue(net, fq);
- }
- 
- /* Creation primitives. */
-@@ -622,16 +621,24 @@ static struct pernet_operations nf_ct_net_ops = {
- 	.exit = nf_ct_net_exit,
- };
- 
-+static const struct rhashtable_params nfct_rhash_params = {
-+	.head_offset		= offsetof(struct inet_frag_queue, node),
-+	.hashfn			= ip6frag_key_hashfn,
-+	.obj_hashfn		= ip6frag_obj_hashfn,
-+	.obj_cmpfn		= ip6frag_obj_cmpfn,
-+	.automatic_shrinking	= true,
-+};
-+
- int nf_ct_frag6_init(void)
- {
- 	int ret = 0;
- 
--	nf_frags.constructor = ip6_frag_init;
-+	nf_frags.constructor = ip6frag_init;
- 	nf_frags.destructor = NULL;
- 	nf_frags.qsize = sizeof(struct frag_queue);
- 	nf_frags.frag_expire = nf_ct_frag6_expire;
- 	nf_frags.frags_cache_name = nf_frags_cache_name;
--	nf_frags.rhash_params = ip6_rhash_params;
-+	nf_frags.rhash_params = nfct_rhash_params;
- 	ret = inet_frags_init(&nf_frags);
- 	if (ret)
- 		goto out;
-diff --git a/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c b/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c
-index e631be25337e..72dd3e202375 100644
---- a/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c
-+++ b/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c
-@@ -14,8 +14,7 @@
- #include <linux/skbuff.h>
- #include <linux/icmp.h>
- #include <linux/sysctl.h>
--#include <net/ipv6.h>
--#include <net/inet_frag.h>
-+#include <net/ipv6_frag.h>
- 
- #include <linux/netfilter_ipv6.h>
- #include <linux/netfilter_bridge.h>
-diff --git a/net/ipv6/reassembly.c b/net/ipv6/reassembly.c
-index b939b94e7e91..6edd2ac8ae4b 100644
---- a/net/ipv6/reassembly.c
-+++ b/net/ipv6/reassembly.c
-@@ -57,7 +57,7 @@
- #include <net/rawv6.h>
- #include <net/ndisc.h>
- #include <net/addrconf.h>
--#include <net/inet_frag.h>
-+#include <net/ipv6_frag.h>
- #include <net/inet_ecn.h>
- 
- static const char ip6_frag_cache_name[] = "ip6-frags";
-@@ -72,61 +72,6 @@ static struct inet_frags ip6_frags;
- static int ip6_frag_reasm(struct frag_queue *fq, struct sk_buff *prev,
- 			  struct net_device *dev);
- 
--void ip6_frag_init(struct inet_frag_queue *q, const void *a)
--{
--	struct frag_queue *fq = container_of(q, struct frag_queue, q);
--	const struct frag_v6_compare_key *key = a;
--
--	q->key.v6 = *key;
--	fq->ecn = 0;
--}
--EXPORT_SYMBOL(ip6_frag_init);
--
--void ip6_expire_frag_queue(struct net *net, struct frag_queue *fq)
--{
--	struct net_device *dev = NULL;
--	struct sk_buff *head;
--
--	rcu_read_lock();
--	spin_lock(&fq->q.lock);
--
--	if (fq->q.flags & INET_FRAG_COMPLETE)
--		goto out;
--
--	inet_frag_kill(&fq->q);
--
--	dev = dev_get_by_index_rcu(net, fq->iif);
--	if (!dev)
--		goto out;
--
--	__IP6_INC_STATS(net, __in6_dev_get(dev), IPSTATS_MIB_REASMFAILS);
--	__IP6_INC_STATS(net, __in6_dev_get(dev), IPSTATS_MIB_REASMTIMEOUT);
--
--	/* Don't send error if the first segment did not arrive. */
--	head = fq->q.fragments;
--	if (!(fq->q.flags & INET_FRAG_FIRST_IN) || !head)
--		goto out;
--
--	/* But use as source device on which LAST ARRIVED
--	 * segment was received. And do not use fq->dev
--	 * pointer directly, device might already disappeared.
--	 */
--	head->dev = dev;
--	skb_get(head);
--	spin_unlock(&fq->q.lock);
--
--	icmpv6_send(head, ICMPV6_TIME_EXCEED, ICMPV6_EXC_FRAGTIME, 0);
--	kfree_skb(head);
--	goto out_rcu_unlock;
--
--out:
--	spin_unlock(&fq->q.lock);
--out_rcu_unlock:
--	rcu_read_unlock();
--	inet_frag_put(&fq->q);
--}
--EXPORT_SYMBOL(ip6_expire_frag_queue);
--
- static void ip6_frag_expire(struct timer_list *t)
- {
- 	struct inet_frag_queue *frag = from_timer(frag, t, timer);
-@@ -136,7 +81,7 @@ static void ip6_frag_expire(struct timer_list *t)
- 	fq = container_of(frag, struct frag_queue, q);
- 	net = container_of(fq->q.net, struct net, ipv6.frags);
- 
--	ip6_expire_frag_queue(net, fq);
-+	ip6frag_expire_frag_queue(net, fq);
- }
- 
- static struct frag_queue *
-@@ -696,42 +641,19 @@ static struct pernet_operations ip6_frags_ops = {
- 	.exit = ipv6_frags_exit_net,
- };
- 
--static u32 ip6_key_hashfn(const void *data, u32 len, u32 seed)
--{
--	return jhash2(data,
--		      sizeof(struct frag_v6_compare_key) / sizeof(u32), seed);
--}
--
--static u32 ip6_obj_hashfn(const void *data, u32 len, u32 seed)
--{
--	const struct inet_frag_queue *fq = data;
--
--	return jhash2((const u32 *)&fq->key.v6,
--		      sizeof(struct frag_v6_compare_key) / sizeof(u32), seed);
--}
--
--static int ip6_obj_cmpfn(struct rhashtable_compare_arg *arg, const void *ptr)
--{
--	const struct frag_v6_compare_key *key = arg->key;
--	const struct inet_frag_queue *fq = ptr;
--
--	return !!memcmp(&fq->key, key, sizeof(*key));
--}
--
--const struct rhashtable_params ip6_rhash_params = {
-+static const struct rhashtable_params ip6_rhash_params = {
- 	.head_offset		= offsetof(struct inet_frag_queue, node),
--	.hashfn			= ip6_key_hashfn,
--	.obj_hashfn		= ip6_obj_hashfn,
--	.obj_cmpfn		= ip6_obj_cmpfn,
-+	.hashfn			= ip6frag_key_hashfn,
-+	.obj_hashfn		= ip6frag_obj_hashfn,
-+	.obj_cmpfn		= ip6frag_obj_cmpfn,
- 	.automatic_shrinking	= true,
- };
--EXPORT_SYMBOL(ip6_rhash_params);
- 
- int __init ipv6_frag_init(void)
- {
- 	int ret;
- 
--	ip6_frags.constructor = ip6_frag_init;
-+	ip6_frags.constructor = ip6frag_init;
- 	ip6_frags.destructor = NULL;
- 	ip6_frags.qsize = sizeof(struct frag_queue);
- 	ip6_frags.frag_expire = ip6_frag_expire;
-diff --git a/net/openvswitch/conntrack.c b/net/openvswitch/conntrack.c
-index 3e33c382367f..86a75105af1a 100644
---- a/net/openvswitch/conntrack.c
-+++ b/net/openvswitch/conntrack.c
-@@ -26,6 +26,7 @@
- #include <net/netfilter/nf_conntrack_seqadj.h>
- #include <net/netfilter/nf_conntrack_zones.h>
- #include <net/netfilter/ipv6/nf_defrag_ipv6.h>
-+#include <net/ipv6_frag.h>
- 
- #ifdef CONFIG_NF_NAT_NEEDED
- #include <linux/netfilter/nf_nat.h>
+ #endif				/* _XT_OSF_H */
 -- 
 2.11.0
