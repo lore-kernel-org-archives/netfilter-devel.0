@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 20/38] netfilter: nf_conncount: Move locking into count_tree()
-Date: Fri, 20 Jul 2018 15:08:48 +0200
-Message-ID: <20180720130906.27687-21-pablo@netfilter.org>
+Subject: [PATCH 14/38] netfilter: conntrack: remove get_timeout() indirection
+Date: Fri, 20 Jul 2018 15:08:42 +0200
+Message-ID: <20180720130906.27687-15-pablo@netfilter.org>
 References: <20180720130906.27687-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,139 +10,755 @@ In-Reply-To: <20180720130906.27687-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Yi-Hung Wei <yihung.wei@gmail.com>
+From: Florian Westphal <fw@strlen.de>
 
-This patch is originally from Florian Westphal.
+Not needed, we can have the l4trackers fetch it themselvs.
 
-This is a preparation patch to allow lockless traversal
-of the tree via RCU.
-
-Signed-off-by: Yi-Hung Wei <yihung.wei@gmail.com>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_conncount.c | 52 +++++++++++++++++++++-----------------------
- 1 file changed, 25 insertions(+), 27 deletions(-)
+ include/net/netfilter/nf_conntrack_l4proto.h   |  8 ++------
+ include/net/netfilter/nf_conntrack_timeout.h   | 18 ++++--------------
+ net/ipv4/netfilter/nf_conntrack_proto_icmp.c   | 16 +++++++++++-----
+ net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c | 14 ++++++++++----
+ net/netfilter/nf_conntrack_core.c              | 16 ++--------------
+ net/netfilter/nf_conntrack_proto_dccp.c        | 17 +++++++----------
+ net/netfilter/nf_conntrack_proto_generic.c     | 22 ++++++++++++----------
+ net/netfilter/nf_conntrack_proto_gre.c         | 14 ++++++++++----
+ net/netfilter/nf_conntrack_proto_sctp.c        | 18 ++++++++----------
+ net/netfilter/nf_conntrack_proto_tcp.c         | 23 +++++++++++------------
+ net/netfilter/nf_conntrack_proto_udp.c         | 20 +++++++++++++-------
+ net/netfilter/nfnetlink_cttimeout.c            | 12 ++++--------
+ 12 files changed, 94 insertions(+), 104 deletions(-)
 
-diff --git a/net/netfilter/nf_conncount.c b/net/netfilter/nf_conncount.c
-index 7dfd9d5e6a3e..d1a4fd1c0f81 100644
---- a/net/netfilter/nf_conncount.c
-+++ b/net/netfilter/nf_conncount.c
-@@ -262,18 +262,26 @@ static void tree_nodes_free(struct rb_root *root,
+diff --git a/include/net/netfilter/nf_conntrack_l4proto.h b/include/net/netfilter/nf_conntrack_l4proto.h
+index 6a55e337a161..c7a0075d96df 100644
+--- a/include/net/netfilter/nf_conntrack_l4proto.h
++++ b/include/net/netfilter/nf_conntrack_l4proto.h
+@@ -45,13 +45,12 @@ struct nf_conntrack_l4proto {
+ 	int (*packet)(struct nf_conn *ct,
+ 		      const struct sk_buff *skb,
+ 		      unsigned int dataoff,
+-		      enum ip_conntrack_info ctinfo,
+-		      unsigned int *timeouts);
++		      enum ip_conntrack_info ctinfo);
+ 
+ 	/* Called when a new connection for this protocol found;
+ 	 * returns TRUE if it's OK.  If so, packet() called next. */
+ 	bool (*new)(struct nf_conn *ct, const struct sk_buff *skb,
+-		    unsigned int dataoff, unsigned int *timeouts);
++		    unsigned int dataoff);
+ 
+ 	/* Called when a conntrack entry is destroyed */
+ 	void (*destroy)(struct nf_conn *ct);
+@@ -63,9 +62,6 @@ struct nf_conntrack_l4proto {
+ 	/* called by gc worker if table is full */
+ 	bool (*can_early_drop)(const struct nf_conn *ct);
+ 
+-	/* Return the array of timeouts for this protocol. */
+-	unsigned int *(*get_timeouts)(struct net *net);
+-
+ 	/* convert protoinfo to nfnetink attributes */
+ 	int (*to_nlattr)(struct sk_buff *skb, struct nlattr *nla,
+ 			 struct nf_conn *ct);
+diff --git a/include/net/netfilter/nf_conntrack_timeout.h b/include/net/netfilter/nf_conntrack_timeout.h
+index 9468ab4ad12d..80ceb3d0291d 100644
+--- a/include/net/netfilter/nf_conntrack_timeout.h
++++ b/include/net/netfilter/nf_conntrack_timeout.h
+@@ -67,27 +67,17 @@ struct nf_conn_timeout *nf_ct_timeout_ext_add(struct nf_conn *ct,
+ #endif
+ };
+ 
+-static inline unsigned int *
+-nf_ct_timeout_lookup(struct net *net, struct nf_conn *ct,
+-		     const struct nf_conntrack_l4proto *l4proto)
++static inline unsigned int *nf_ct_timeout_lookup(const struct nf_conn *ct)
+ {
++	unsigned int *timeouts = NULL;
+ #ifdef CONFIG_NF_CONNTRACK_TIMEOUT
+ 	struct nf_conn_timeout *timeout_ext;
+-	unsigned int *timeouts;
+ 
+ 	timeout_ext = nf_ct_timeout_find(ct);
+-	if (timeout_ext) {
++	if (timeout_ext)
+ 		timeouts = nf_ct_timeout_data(timeout_ext);
+-		if (unlikely(!timeouts))
+-			timeouts = l4proto->get_timeouts(net);
+-	} else {
+-		timeouts = l4proto->get_timeouts(net);
+-	}
+-
+-	return timeouts;
+-#else
+-	return l4proto->get_timeouts(net);
+ #endif
++	return timeouts;
  }
  
- static unsigned int
--count_tree(struct net *net, struct rb_root *root,
--	   const u32 *key, u8 keylen,
-+count_tree(struct net *net,
-+	   struct nf_conncount_data *data,
-+	   const u32 *key,
- 	   const struct nf_conntrack_tuple *tuple,
- 	   const struct nf_conntrack_zone *zone)
- {
- 	struct nf_conncount_rb *gc_nodes[CONNCOUNT_GC_MAX_NODES];
-+	struct rb_root *root;
- 	struct rb_node **rbnode, *parent;
- 	struct nf_conncount_rb *rbconn;
- 	struct nf_conncount_tuple *conn;
--	unsigned int gc_count;
-+	unsigned int gc_count, hash;
- 	bool no_gc = false;
-+	unsigned int count = 0;
-+	u8 keylen = data->keylen;
+ #ifdef CONFIG_NF_CONNTRACK_TIMEOUT
+diff --git a/net/ipv4/netfilter/nf_conntrack_proto_icmp.c b/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
+index 34095949a003..036670b38282 100644
+--- a/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
++++ b/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
+@@ -19,6 +19,7 @@
+ #include <net/netfilter/nf_conntrack_tuple.h>
+ #include <net/netfilter/nf_conntrack_l4proto.h>
+ #include <net/netfilter/nf_conntrack_core.h>
++#include <net/netfilter/nf_conntrack_timeout.h>
+ #include <net/netfilter/nf_conntrack_zones.h>
+ #include <net/netfilter/nf_log.h>
  
-+	hash = jhash2(key, data->keylen, conncount_rnd) % CONNCOUNT_SLOTS;
-+	root = &data->root[hash];
+@@ -80,12 +81,16 @@ static unsigned int *icmp_get_timeouts(struct net *net)
+ static int icmp_packet(struct nf_conn *ct,
+ 		       const struct sk_buff *skb,
+ 		       unsigned int dataoff,
+-		       enum ip_conntrack_info ctinfo,
+-		       unsigned int *timeout)
++		       enum ip_conntrack_info ctinfo)
+ {
+ 	/* Do not immediately delete the connection after the first
+ 	   successful reply to avoid excessive conntrackd traffic
+ 	   and also to handle correctly ICMP echo reply duplicates. */
++	unsigned int *timeout = nf_ct_timeout_lookup(ct);
 +
-+	spin_lock_bh(&nf_conncount_locks[hash % CONNCOUNT_LOCK_SLOTS]);
-  restart:
- 	gc_count = 0;
- 	parent = NULL;
-@@ -292,20 +300,20 @@ count_tree(struct net *net, struct rb_root *root,
- 			rbnode = &((*rbnode)->rb_right);
- 		} else {
- 			/* same source network -> be counted! */
--			unsigned int count;
--
- 			nf_conncount_lookup(net, &rbconn->list, tuple, zone,
- 					    &addit);
- 			count = rbconn->list.count;
++	if (!timeout)
++		timeout = icmp_get_timeouts(nf_ct_net(ct));
++
+ 	nf_ct_refresh_acct(ct, ctinfo, skb, *timeout);
  
- 			tree_nodes_free(root, gc_nodes, gc_count);
- 			if (!addit)
--				return count;
-+				goto out_unlock;
+ 	return NF_ACCEPT;
+@@ -93,7 +98,7 @@ static int icmp_packet(struct nf_conn *ct,
  
- 			if (!nf_conncount_add(&rbconn->list, tuple, zone))
--				return 0; /* hotdrop */
-+				count = 0; /* hotdrop */
-+				goto out_unlock;
- 
--			return count + 1;
-+			count++;
-+			goto out_unlock;
- 		}
- 
- 		if (no_gc || gc_count >= ARRAY_SIZE(gc_nodes))
-@@ -328,18 +336,18 @@ count_tree(struct net *net, struct rb_root *root,
- 		goto restart;
- 	}
- 
-+	count = 0;
- 	if (!tuple)
--		return 0;
--
-+		goto out_unlock;
- 	/* no match, need to insert new node */
- 	rbconn = kmem_cache_alloc(conncount_rb_cachep, GFP_ATOMIC);
- 	if (rbconn == NULL)
--		return 0;
-+		goto out_unlock;
- 
- 	conn = kmem_cache_alloc(conncount_conn_cachep, GFP_ATOMIC);
- 	if (conn == NULL) {
- 		kmem_cache_free(conncount_rb_cachep, rbconn);
--		return 0;
-+		goto out_unlock;
- 	}
- 
- 	conn->tuple = *tuple;
-@@ -348,10 +356,13 @@ count_tree(struct net *net, struct rb_root *root,
- 
- 	nf_conncount_list_init(&rbconn->list);
- 	list_add(&conn->node, &rbconn->list.head);
-+	count = 1;
- 
- 	rb_link_node(&rbconn->node, parent, rbnode);
- 	rb_insert_color(&rbconn->node, root);
--	return 1;
-+out_unlock:
-+	spin_unlock_bh(&nf_conncount_locks[hash % CONNCOUNT_LOCK_SLOTS]);
-+	return count;
- }
- 
- /* Count and return number of conntrack entries in 'net' with particular 'key'.
-@@ -363,20 +374,7 @@ unsigned int nf_conncount_count(struct net *net,
- 				const struct nf_conntrack_tuple *tuple,
- 				const struct nf_conntrack_zone *zone)
+ /* Called when a new connection for this protocol found. */
+ static bool icmp_new(struct nf_conn *ct, const struct sk_buff *skb,
+-		     unsigned int dataoff, unsigned int *timeouts)
++		     unsigned int dataoff)
  {
--	struct rb_root *root;
--	int count;
--	u32 hash;
+ 	static const u_int8_t valid_new[] = {
+ 		[ICMP_ECHO] = 1,
+@@ -280,9 +285,11 @@ static int icmp_timeout_nlattr_to_obj(struct nlattr *tb[],
+ 	struct nf_icmp_net *in = icmp_pernet(net);
+ 
+ 	if (tb[CTA_TIMEOUT_ICMP_TIMEOUT]) {
++		if (!timeout)
++			timeout = &in->timeout;
+ 		*timeout =
+ 			ntohl(nla_get_be32(tb[CTA_TIMEOUT_ICMP_TIMEOUT])) * HZ;
+-	} else {
++	} else if (timeout) {
+ 		/* Set default ICMP timeout. */
+ 		*timeout = in->timeout;
+ 	}
+@@ -357,7 +364,6 @@ const struct nf_conntrack_l4proto nf_conntrack_l4proto_icmp =
+ 	.pkt_to_tuple		= icmp_pkt_to_tuple,
+ 	.invert_tuple		= icmp_invert_tuple,
+ 	.packet			= icmp_packet,
+-	.get_timeouts		= icmp_get_timeouts,
+ 	.new			= icmp_new,
+ 	.error			= icmp_error,
+ 	.destroy		= NULL,
+diff --git a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
+index 8bcbc2f15bd5..bed07b998a10 100644
+--- a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
++++ b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
+@@ -23,6 +23,7 @@
+ #include <net/netfilter/nf_conntrack_tuple.h>
+ #include <net/netfilter/nf_conntrack_l4proto.h>
+ #include <net/netfilter/nf_conntrack_core.h>
++#include <net/netfilter/nf_conntrack_timeout.h>
+ #include <net/netfilter/nf_conntrack_zones.h>
+ #include <net/netfilter/ipv6/nf_conntrack_icmpv6.h>
+ #include <net/netfilter/nf_log.h>
+@@ -93,9 +94,13 @@ static unsigned int *icmpv6_get_timeouts(struct net *net)
+ static int icmpv6_packet(struct nf_conn *ct,
+ 		       const struct sk_buff *skb,
+ 		       unsigned int dataoff,
+-		       enum ip_conntrack_info ctinfo,
+-		       unsigned int *timeout)
++		       enum ip_conntrack_info ctinfo)
+ {
++	unsigned int *timeout = nf_ct_timeout_lookup(ct);
++
++	if (!timeout)
++		timeout = icmpv6_get_timeouts(nf_ct_net(ct));
++
+ 	/* Do not immediately delete the connection after the first
+ 	   successful reply to avoid excessive conntrackd traffic
+ 	   and also to handle correctly ICMP echo reply duplicates. */
+@@ -106,7 +111,7 @@ static int icmpv6_packet(struct nf_conn *ct,
+ 
+ /* Called when a new connection for this protocol found. */
+ static bool icmpv6_new(struct nf_conn *ct, const struct sk_buff *skb,
+-		       unsigned int dataoff, unsigned int *timeouts)
++		       unsigned int dataoff)
+ {
+ 	static const u_int8_t valid_new[] = {
+ 		[ICMPV6_ECHO_REQUEST - 128] = 1,
+@@ -280,6 +285,8 @@ static int icmpv6_timeout_nlattr_to_obj(struct nlattr *tb[],
+ 	unsigned int *timeout = data;
+ 	struct nf_icmp_net *in = icmpv6_pernet(net);
+ 
++	if (!timeout)
++		timeout = icmpv6_get_timeouts(net);
+ 	if (tb[CTA_TIMEOUT_ICMPV6_TIMEOUT]) {
+ 		*timeout =
+ 		    ntohl(nla_get_be32(tb[CTA_TIMEOUT_ICMPV6_TIMEOUT])) * HZ;
+@@ -358,7 +365,6 @@ const struct nf_conntrack_l4proto nf_conntrack_l4proto_icmpv6 =
+ 	.pkt_to_tuple		= icmpv6_pkt_to_tuple,
+ 	.invert_tuple		= icmpv6_invert_tuple,
+ 	.packet			= icmpv6_packet,
+-	.get_timeouts		= icmpv6_get_timeouts,
+ 	.new			= icmpv6_new,
+ 	.error			= icmpv6_error,
+ #if IS_ENABLED(CONFIG_NF_CT_NETLINK)
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 994591fd9b96..c069f2faff4c 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -1337,7 +1337,6 @@ init_conntrack(struct net *net, struct nf_conn *tmpl,
+ 	const struct nf_conntrack_zone *zone;
+ 	struct nf_conn_timeout *timeout_ext;
+ 	struct nf_conntrack_zone tmp;
+-	unsigned int *timeouts;
+ 
+ 	if (!nf_ct_invert_tuple(&repl_tuple, tuple, l4proto)) {
+ 		pr_debug("Can't invert tuple.\n");
+@@ -1356,15 +1355,8 @@ init_conntrack(struct net *net, struct nf_conn *tmpl,
+ 	}
+ 
+ 	timeout_ext = tmpl ? nf_ct_timeout_find(tmpl) : NULL;
+-	if (timeout_ext) {
+-		timeouts = nf_ct_timeout_data(timeout_ext);
+-		if (unlikely(!timeouts))
+-			timeouts = l4proto->get_timeouts(net);
+-	} else {
+-		timeouts = l4proto->get_timeouts(net);
+-	}
+ 
+-	if (!l4proto->new(ct, skb, dataoff, timeouts)) {
++	if (!l4proto->new(ct, skb, dataoff)) {
+ 		nf_conntrack_free(ct);
+ 		pr_debug("can't track with proto module\n");
+ 		return NULL;
+@@ -1493,7 +1485,6 @@ nf_conntrack_in(struct net *net, u_int8_t pf, unsigned int hooknum,
+ 	const struct nf_conntrack_l4proto *l4proto;
+ 	struct nf_conn *ct, *tmpl;
+ 	enum ip_conntrack_info ctinfo;
+-	unsigned int *timeouts;
+ 	u_int8_t protonum;
+ 	int dataoff, ret;
+ 
+@@ -1552,10 +1543,7 @@ nf_conntrack_in(struct net *net, u_int8_t pf, unsigned int hooknum,
+ 		goto out;
+ 	}
+ 
+-	/* Decide what timeout policy we want to apply to this flow. */
+-	timeouts = nf_ct_timeout_lookup(net, ct, l4proto);
 -
--	hash = jhash2(key, data->keylen, conncount_rnd) % CONNCOUNT_SLOTS;
--	root = &data->root[hash];
--
--	spin_lock_bh(&nf_conncount_locks[hash % CONNCOUNT_LOCK_SLOTS]);
--
--	count = count_tree(net, root, key, data->keylen, tuple, zone);
--
--	spin_unlock_bh(&nf_conncount_locks[hash % CONNCOUNT_LOCK_SLOTS]);
--
--	return count;
-+	return count_tree(net, data, key, tuple, zone);
+-	ret = l4proto->packet(ct, skb, dataoff, ctinfo, timeouts);
++	ret = l4proto->packet(ct, skb, dataoff, ctinfo);
+ 	if (ret <= 0) {
+ 		/* Invalid: inverse of the return code tells
+ 		 * the netfilter core what to do */
+diff --git a/net/netfilter/nf_conntrack_proto_dccp.c b/net/netfilter/nf_conntrack_proto_dccp.c
+index abfdce7baed5..f476d116c816 100644
+--- a/net/netfilter/nf_conntrack_proto_dccp.c
++++ b/net/netfilter/nf_conntrack_proto_dccp.c
+@@ -23,6 +23,7 @@
+ #include <net/netfilter/nf_conntrack.h>
+ #include <net/netfilter/nf_conntrack_l4proto.h>
+ #include <net/netfilter/nf_conntrack_ecache.h>
++#include <net/netfilter/nf_conntrack_timeout.h>
+ #include <net/netfilter/nf_log.h>
+ 
+ /* Timeouts are based on values from RFC4340:
+@@ -389,7 +390,7 @@ static inline struct nf_dccp_net *dccp_pernet(struct net *net)
  }
- EXPORT_SYMBOL_GPL(nf_conncount_count);
+ 
+ static bool dccp_new(struct nf_conn *ct, const struct sk_buff *skb,
+-		     unsigned int dataoff, unsigned int *timeouts)
++		     unsigned int dataoff)
+ {
+ 	struct net *net = nf_ct_net(ct);
+ 	struct nf_dccp_net *dn;
+@@ -437,19 +438,14 @@ static u64 dccp_ack_seq(const struct dccp_hdr *dh)
+ 		     ntohl(dhack->dccph_ack_nr_low);
+ }
+ 
+-static unsigned int *dccp_get_timeouts(struct net *net)
+-{
+-	return dccp_pernet(net)->dccp_timeout;
+-}
+-
+ static int dccp_packet(struct nf_conn *ct, const struct sk_buff *skb,
+-		       unsigned int dataoff, enum ip_conntrack_info ctinfo,
+-		       unsigned int *timeouts)
++		       unsigned int dataoff, enum ip_conntrack_info ctinfo)
+ {
+ 	enum ip_conntrack_dir dir = CTINFO2DIR(ctinfo);
+ 	struct dccp_hdr _dh, *dh;
+ 	u_int8_t type, old_state, new_state;
+ 	enum ct_dccp_roles role;
++	unsigned int *timeouts;
+ 
+ 	dh = skb_header_pointer(skb, dataoff, sizeof(_dh), &_dh);
+ 	BUG_ON(dh == NULL);
+@@ -523,6 +519,9 @@ static int dccp_packet(struct nf_conn *ct, const struct sk_buff *skb,
+ 	if (new_state != old_state)
+ 		nf_conntrack_event_cache(IPCT_PROTOINFO, ct);
+ 
++	timeouts = nf_ct_timeout_lookup(ct);
++	if (!timeouts)
++		timeouts = dccp_pernet(nf_ct_net(ct))->dccp_timeout;
+ 	nf_ct_refresh_acct(ct, ctinfo, skb, timeouts[new_state]);
+ 
+ 	return NF_ACCEPT;
+@@ -843,7 +842,6 @@ const struct nf_conntrack_l4proto nf_conntrack_l4proto_dccp4 = {
+ 	.l4proto		= IPPROTO_DCCP,
+ 	.new			= dccp_new,
+ 	.packet			= dccp_packet,
+-	.get_timeouts		= dccp_get_timeouts,
+ 	.error			= dccp_error,
+ 	.can_early_drop		= dccp_can_early_drop,
+ #ifdef CONFIG_NF_CONNTRACK_PROCFS
+@@ -877,7 +875,6 @@ const struct nf_conntrack_l4proto nf_conntrack_l4proto_dccp6 = {
+ 	.l4proto		= IPPROTO_DCCP,
+ 	.new			= dccp_new,
+ 	.packet			= dccp_packet,
+-	.get_timeouts		= dccp_get_timeouts,
+ 	.error			= dccp_error,
+ 	.can_early_drop		= dccp_can_early_drop,
+ #ifdef CONFIG_NF_CONNTRACK_PROCFS
+diff --git a/net/netfilter/nf_conntrack_proto_generic.c b/net/netfilter/nf_conntrack_proto_generic.c
+index 4dfe40aa9446..ac4a0b296dcd 100644
+--- a/net/netfilter/nf_conntrack_proto_generic.c
++++ b/net/netfilter/nf_conntrack_proto_generic.c
+@@ -11,6 +11,7 @@
+ #include <linux/timer.h>
+ #include <linux/netfilter.h>
+ #include <net/netfilter/nf_conntrack_l4proto.h>
++#include <net/netfilter/nf_conntrack_timeout.h>
+ 
+ static const unsigned int nf_ct_generic_timeout = 600*HZ;
+ 
+@@ -41,25 +42,24 @@ static bool generic_pkt_to_tuple(const struct sk_buff *skb,
+ 	return true;
+ }
+ 
+-static unsigned int *generic_get_timeouts(struct net *net)
+-{
+-	return &(generic_pernet(net)->timeout);
+-}
+-
+ /* Returns verdict for packet, or -1 for invalid. */
+ static int generic_packet(struct nf_conn *ct,
+ 			  const struct sk_buff *skb,
+ 			  unsigned int dataoff,
+-			  enum ip_conntrack_info ctinfo,
+-			  unsigned int *timeout)
++			  enum ip_conntrack_info ctinfo)
+ {
++	const unsigned int *timeout = nf_ct_timeout_lookup(ct);
++
++	if (!timeout)
++		timeout = &generic_pernet(nf_ct_net(ct))->timeout;
++
+ 	nf_ct_refresh_acct(ct, ctinfo, skb, *timeout);
+ 	return NF_ACCEPT;
+ }
+ 
+ /* Called when a new connection for this protocol found. */
+ static bool generic_new(struct nf_conn *ct, const struct sk_buff *skb,
+-			unsigned int dataoff, unsigned int *timeouts)
++			unsigned int dataoff)
+ {
+ 	bool ret;
+ 
+@@ -78,8 +78,11 @@ static bool generic_new(struct nf_conn *ct, const struct sk_buff *skb,
+ static int generic_timeout_nlattr_to_obj(struct nlattr *tb[],
+ 					 struct net *net, void *data)
+ {
+-	unsigned int *timeout = data;
+ 	struct nf_generic_net *gn = generic_pernet(net);
++	unsigned int *timeout = data;
++
++	if (!timeout)
++		timeout = &gn->timeout;
+ 
+ 	if (tb[CTA_TIMEOUT_GENERIC_TIMEOUT])
+ 		*timeout =
+@@ -160,7 +163,6 @@ const struct nf_conntrack_l4proto nf_conntrack_l4proto_generic =
+ 	.l4proto		= 255,
+ 	.pkt_to_tuple		= generic_pkt_to_tuple,
+ 	.packet			= generic_packet,
+-	.get_timeouts		= generic_get_timeouts,
+ 	.new			= generic_new,
+ #if IS_ENABLED(CONFIG_NF_CT_NETLINK_TIMEOUT)
+ 	.ctnl_timeout		= {
+diff --git a/net/netfilter/nf_conntrack_proto_gre.c b/net/netfilter/nf_conntrack_proto_gre.c
+index 0bd40eb06b55..d1632252bf5b 100644
+--- a/net/netfilter/nf_conntrack_proto_gre.c
++++ b/net/netfilter/nf_conntrack_proto_gre.c
+@@ -39,6 +39,7 @@
+ #include <net/netfilter/nf_conntrack_l4proto.h>
+ #include <net/netfilter/nf_conntrack_helper.h>
+ #include <net/netfilter/nf_conntrack_core.h>
++#include <net/netfilter/nf_conntrack_timeout.h>
+ #include <linux/netfilter/nf_conntrack_proto_gre.h>
+ #include <linux/netfilter/nf_conntrack_pptp.h>
+ 
+@@ -234,8 +235,7 @@ static unsigned int *gre_get_timeouts(struct net *net)
+ static int gre_packet(struct nf_conn *ct,
+ 		      const struct sk_buff *skb,
+ 		      unsigned int dataoff,
+-		      enum ip_conntrack_info ctinfo,
+-		      unsigned int *timeouts)
++		      enum ip_conntrack_info ctinfo)
+ {
+ 	/* If we've seen traffic both ways, this is a GRE connection.
+ 	 * Extend timeout. */
+@@ -254,8 +254,13 @@ static int gre_packet(struct nf_conn *ct,
+ 
+ /* Called when a new connection for this protocol found. */
+ static bool gre_new(struct nf_conn *ct, const struct sk_buff *skb,
+-		    unsigned int dataoff, unsigned int *timeouts)
++		    unsigned int dataoff)
+ {
++	unsigned int *timeouts = nf_ct_timeout_lookup(ct);
++
++	if (!timeouts)
++		timeouts = gre_get_timeouts(nf_ct_net(ct));
++
+ 	pr_debug(": ");
+ 	nf_ct_dump_tuple(&ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple);
+ 
+@@ -291,6 +296,8 @@ static int gre_timeout_nlattr_to_obj(struct nlattr *tb[],
+ 	unsigned int *timeouts = data;
+ 	struct netns_proto_gre *net_gre = gre_pernet(net);
+ 
++	if (!timeouts)
++		timeouts = gre_get_timeouts(net);
+ 	/* set default timeouts for GRE. */
+ 	timeouts[GRE_CT_UNREPLIED] = net_gre->gre_timeouts[GRE_CT_UNREPLIED];
+ 	timeouts[GRE_CT_REPLIED] = net_gre->gre_timeouts[GRE_CT_REPLIED];
+@@ -350,7 +357,6 @@ static const struct nf_conntrack_l4proto nf_conntrack_l4proto_gre4 = {
+ #ifdef CONFIG_NF_CONNTRACK_PROCFS
+ 	.print_conntrack = gre_print_conntrack,
+ #endif
+-	.get_timeouts    = gre_get_timeouts,
+ 	.packet		 = gre_packet,
+ 	.new		 = gre_new,
+ 	.destroy	 = gre_destroy,
+diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
+index b4126a842bfd..8d1e085fc14a 100644
+--- a/net/netfilter/nf_conntrack_proto_sctp.c
++++ b/net/netfilter/nf_conntrack_proto_sctp.c
+@@ -28,6 +28,7 @@
+ #include <net/netfilter/nf_conntrack.h>
+ #include <net/netfilter/nf_conntrack_l4proto.h>
+ #include <net/netfilter/nf_conntrack_ecache.h>
++#include <net/netfilter/nf_conntrack_timeout.h>
+ 
+ /* FIXME: Examine ipfilter's timeouts and conntrack transitions more
+    closely.  They're more complex. --RR
+@@ -272,17 +273,11 @@ static int sctp_new_state(enum ip_conntrack_dir dir,
+ 	return sctp_conntracks[dir][i][cur_state];
+ }
+ 
+-static unsigned int *sctp_get_timeouts(struct net *net)
+-{
+-	return sctp_pernet(net)->timeouts;
+-}
+-
+ /* Returns verdict for packet, or -NF_ACCEPT for invalid. */
+ static int sctp_packet(struct nf_conn *ct,
+ 		       const struct sk_buff *skb,
+ 		       unsigned int dataoff,
+-		       enum ip_conntrack_info ctinfo,
+-		       unsigned int *timeouts)
++		       enum ip_conntrack_info ctinfo)
+ {
+ 	enum sctp_conntrack new_state, old_state;
+ 	enum ip_conntrack_dir dir = CTINFO2DIR(ctinfo);
+@@ -291,6 +286,7 @@ static int sctp_packet(struct nf_conn *ct,
+ 	const struct sctp_chunkhdr *sch;
+ 	struct sctp_chunkhdr _sch;
+ 	u_int32_t offset, count;
++	unsigned int *timeouts;
+ 	unsigned long map[256 / sizeof(unsigned long)] = { 0 };
+ 
+ 	sh = skb_header_pointer(skb, dataoff, sizeof(_sctph), &_sctph);
+@@ -379,6 +375,10 @@ static int sctp_packet(struct nf_conn *ct,
+ 	}
+ 	spin_unlock_bh(&ct->lock);
+ 
++	timeouts = nf_ct_timeout_lookup(ct);
++	if (!timeouts)
++		timeouts = sctp_pernet(nf_ct_net(ct))->timeouts;
++
+ 	nf_ct_refresh_acct(ct, ctinfo, skb, timeouts[new_state]);
+ 
+ 	if (old_state == SCTP_CONNTRACK_COOKIE_ECHOED &&
+@@ -399,7 +399,7 @@ static int sctp_packet(struct nf_conn *ct,
+ 
+ /* Called when a new connection for this protocol found. */
+ static bool sctp_new(struct nf_conn *ct, const struct sk_buff *skb,
+-		     unsigned int dataoff, unsigned int *timeouts)
++		     unsigned int dataoff)
+ {
+ 	enum sctp_conntrack new_state;
+ 	const struct sctphdr *sh;
+@@ -760,7 +760,6 @@ const struct nf_conntrack_l4proto nf_conntrack_l4proto_sctp4 = {
+ 	.print_conntrack	= sctp_print_conntrack,
+ #endif
+ 	.packet 		= sctp_packet,
+-	.get_timeouts		= sctp_get_timeouts,
+ 	.new 			= sctp_new,
+ 	.error			= sctp_error,
+ 	.can_early_drop		= sctp_can_early_drop,
+@@ -795,7 +794,6 @@ const struct nf_conntrack_l4proto nf_conntrack_l4proto_sctp6 = {
+ 	.print_conntrack	= sctp_print_conntrack,
+ #endif
+ 	.packet 		= sctp_packet,
+-	.get_timeouts		= sctp_get_timeouts,
+ 	.new 			= sctp_new,
+ 	.error			= sctp_error,
+ 	.can_early_drop		= sctp_can_early_drop,
+diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+index 13c89fd107b2..d80d322b9d8b 100644
+--- a/net/netfilter/nf_conntrack_proto_tcp.c
++++ b/net/netfilter/nf_conntrack_proto_tcp.c
+@@ -29,6 +29,7 @@
+ #include <net/netfilter/nf_conntrack_ecache.h>
+ #include <net/netfilter/nf_conntrack_seqadj.h>
+ #include <net/netfilter/nf_conntrack_synproxy.h>
++#include <net/netfilter/nf_conntrack_timeout.h>
+ #include <net/netfilter/nf_log.h>
+ #include <net/netfilter/ipv4/nf_conntrack_ipv4.h>
+ #include <net/netfilter/ipv6/nf_conntrack_ipv6.h>
+@@ -768,27 +769,21 @@ static int tcp_error(struct net *net, struct nf_conn *tmpl,
+ 	return NF_ACCEPT;
+ }
+ 
+-static unsigned int *tcp_get_timeouts(struct net *net)
+-{
+-	return tcp_pernet(net)->timeouts;
+-}
+-
+ /* Returns verdict for packet, or -1 for invalid. */
+ static int tcp_packet(struct nf_conn *ct,
+ 		      const struct sk_buff *skb,
+ 		      unsigned int dataoff,
+-		      enum ip_conntrack_info ctinfo,
+-		      unsigned int *timeouts)
++		      enum ip_conntrack_info ctinfo)
+ {
+ 	struct net *net = nf_ct_net(ct);
+ 	struct nf_tcp_net *tn = tcp_pernet(net);
+ 	struct nf_conntrack_tuple *tuple;
+ 	enum tcp_conntrack new_state, old_state;
++	unsigned int index, *timeouts;
+ 	enum ip_conntrack_dir dir;
+ 	const struct tcphdr *th;
+ 	struct tcphdr _tcph;
+ 	unsigned long timeout;
+-	unsigned int index;
+ 
+ 	th = skb_header_pointer(skb, dataoff, sizeof(_tcph), &_tcph);
+ 	BUG_ON(th == NULL);
+@@ -1021,6 +1016,10 @@ static int tcp_packet(struct nf_conn *ct,
+ 	    && new_state == TCP_CONNTRACK_FIN_WAIT)
+ 		ct->proto.tcp.seen[dir].flags |= IP_CT_TCP_FLAG_CLOSE_INIT;
+ 
++	timeouts = nf_ct_timeout_lookup(ct);
++	if (!timeouts)
++		timeouts = tn->timeouts;
++
+ 	if (ct->proto.tcp.retrans >= tn->tcp_max_retrans &&
+ 	    timeouts[new_state] > timeouts[TCP_CONNTRACK_RETRANS])
+ 		timeout = timeouts[TCP_CONNTRACK_RETRANS];
+@@ -1070,7 +1069,7 @@ static int tcp_packet(struct nf_conn *ct,
+ 
+ /* Called when a new connection for this protocol found. */
+ static bool tcp_new(struct nf_conn *ct, const struct sk_buff *skb,
+-		    unsigned int dataoff, unsigned int *timeouts)
++		    unsigned int dataoff)
+ {
+ 	enum tcp_conntrack new_state;
+ 	const struct tcphdr *th;
+@@ -1288,10 +1287,12 @@ static unsigned int tcp_nlattr_tuple_size(void)
+ static int tcp_timeout_nlattr_to_obj(struct nlattr *tb[],
+ 				     struct net *net, void *data)
+ {
+-	unsigned int *timeouts = data;
+ 	struct nf_tcp_net *tn = tcp_pernet(net);
++	unsigned int *timeouts = data;
+ 	int i;
+ 
++	if (!timeouts)
++		timeouts = tn->timeouts;
+ 	/* set default TCP timeouts. */
+ 	for (i=0; i<TCP_CONNTRACK_TIMEOUT_MAX; i++)
+ 		timeouts[i] = tn->timeouts[i];
+@@ -1538,7 +1539,6 @@ const struct nf_conntrack_l4proto nf_conntrack_l4proto_tcp4 =
+ 	.print_conntrack 	= tcp_print_conntrack,
+ #endif
+ 	.packet 		= tcp_packet,
+-	.get_timeouts		= tcp_get_timeouts,
+ 	.new 			= tcp_new,
+ 	.error			= tcp_error,
+ 	.can_early_drop		= tcp_can_early_drop,
+@@ -1574,7 +1574,6 @@ const struct nf_conntrack_l4proto nf_conntrack_l4proto_tcp6 =
+ 	.print_conntrack 	= tcp_print_conntrack,
+ #endif
+ 	.packet 		= tcp_packet,
+-	.get_timeouts		= tcp_get_timeouts,
+ 	.new 			= tcp_new,
+ 	.error			= tcp_error,
+ 	.can_early_drop		= tcp_can_early_drop,
+diff --git a/net/netfilter/nf_conntrack_proto_udp.c b/net/netfilter/nf_conntrack_proto_udp.c
+index 8b435d70ffe3..7a1b8988a931 100644
+--- a/net/netfilter/nf_conntrack_proto_udp.c
++++ b/net/netfilter/nf_conntrack_proto_udp.c
+@@ -22,6 +22,7 @@
+ #include <linux/netfilter_ipv6.h>
+ #include <net/netfilter/nf_conntrack_l4proto.h>
+ #include <net/netfilter/nf_conntrack_ecache.h>
++#include <net/netfilter/nf_conntrack_timeout.h>
+ #include <net/netfilter/nf_log.h>
+ #include <net/netfilter/ipv4/nf_conntrack_ipv4.h>
+ #include <net/netfilter/ipv6/nf_conntrack_ipv6.h>
+@@ -45,9 +46,14 @@ static unsigned int *udp_get_timeouts(struct net *net)
+ static int udp_packet(struct nf_conn *ct,
+ 		      const struct sk_buff *skb,
+ 		      unsigned int dataoff,
+-		      enum ip_conntrack_info ctinfo,
+-		      unsigned int *timeouts)
++		      enum ip_conntrack_info ctinfo)
+ {
++	unsigned int *timeouts;
++
++	timeouts = nf_ct_timeout_lookup(ct);
++	if (!timeouts)
++		timeouts = udp_get_timeouts(nf_ct_net(ct));
++
+ 	/* If we've seen traffic both ways, this is some kind of UDP
+ 	   stream.  Extend timeout. */
+ 	if (test_bit(IPS_SEEN_REPLY_BIT, &ct->status)) {
+@@ -65,7 +71,7 @@ static int udp_packet(struct nf_conn *ct,
+ 
+ /* Called when a new connection for this protocol found. */
+ static bool udp_new(struct nf_conn *ct, const struct sk_buff *skb,
+-		    unsigned int dataoff, unsigned int *timeouts)
++		    unsigned int dataoff)
+ {
+ 	return true;
+ }
+@@ -176,6 +182,9 @@ static int udp_timeout_nlattr_to_obj(struct nlattr *tb[],
+ 	unsigned int *timeouts = data;
+ 	struct nf_udp_net *un = udp_pernet(net);
+ 
++	if (!timeouts)
++		timeouts = un->timeouts;
++
+ 	/* set default timeouts for UDP. */
+ 	timeouts[UDP_CT_UNREPLIED] = un->timeouts[UDP_CT_UNREPLIED];
+ 	timeouts[UDP_CT_REPLIED] = un->timeouts[UDP_CT_REPLIED];
+@@ -275,7 +284,6 @@ const struct nf_conntrack_l4proto nf_conntrack_l4proto_udp4 =
+ 	.l4proto		= IPPROTO_UDP,
+ 	.allow_clash		= true,
+ 	.packet			= udp_packet,
+-	.get_timeouts		= udp_get_timeouts,
+ 	.new			= udp_new,
+ 	.error			= udp_error,
+ #if IS_ENABLED(CONFIG_NF_CT_NETLINK)
+@@ -305,7 +313,6 @@ const struct nf_conntrack_l4proto nf_conntrack_l4proto_udplite4 =
+ 	.l4proto		= IPPROTO_UDPLITE,
+ 	.allow_clash		= true,
+ 	.packet			= udp_packet,
+-	.get_timeouts		= udp_get_timeouts,
+ 	.new			= udp_new,
+ 	.error			= udplite_error,
+ #if IS_ENABLED(CONFIG_NF_CT_NETLINK)
+@@ -335,7 +342,6 @@ const struct nf_conntrack_l4proto nf_conntrack_l4proto_udp6 =
+ 	.l4proto		= IPPROTO_UDP,
+ 	.allow_clash		= true,
+ 	.packet			= udp_packet,
+-	.get_timeouts		= udp_get_timeouts,
+ 	.new			= udp_new,
+ 	.error			= udp_error,
+ #if IS_ENABLED(CONFIG_NF_CT_NETLINK)
+@@ -365,7 +371,6 @@ const struct nf_conntrack_l4proto nf_conntrack_l4proto_udplite6 =
+ 	.l4proto		= IPPROTO_UDPLITE,
+ 	.allow_clash		= true,
+ 	.packet			= udp_packet,
+-	.get_timeouts		= udp_get_timeouts,
+ 	.new			= udp_new,
+ 	.error			= udplite_error,
+ #if IS_ENABLED(CONFIG_NF_CT_NETLINK)
+@@ -388,3 +393,4 @@ const struct nf_conntrack_l4proto nf_conntrack_l4proto_udplite6 =
+ };
+ EXPORT_SYMBOL_GPL(nf_conntrack_l4proto_udplite6);
+ #endif
++#include <net/netfilter/nf_conntrack_timeout.h>
+diff --git a/net/netfilter/nfnetlink_cttimeout.c b/net/netfilter/nfnetlink_cttimeout.c
+index 9da4b8462004..d9d952fad3e0 100644
+--- a/net/netfilter/nfnetlink_cttimeout.c
++++ b/net/netfilter/nfnetlink_cttimeout.c
+@@ -46,7 +46,7 @@ static const struct nla_policy cttimeout_nla_policy[CTA_TIMEOUT_MAX+1] = {
+ };
+ 
+ static int
+-ctnl_timeout_parse_policy(void *timeouts,
++ctnl_timeout_parse_policy(void *timeout,
+ 			  const struct nf_conntrack_l4proto *l4proto,
+ 			  struct net *net, const struct nlattr *attr)
+ {
+@@ -67,7 +67,7 @@ ctnl_timeout_parse_policy(void *timeouts,
+ 	if (ret < 0)
+ 		goto err;
+ 
+-	ret = l4proto->ctnl_timeout.nlattr_to_obj(tb, net, timeouts);
++	ret = l4proto->ctnl_timeout.nlattr_to_obj(tb, net, timeout);
+ 
+ err:
+ 	kfree(tb);
+@@ -372,7 +372,6 @@ static int cttimeout_default_set(struct net *net, struct sock *ctnl,
+ 				 struct netlink_ext_ack *extack)
+ {
+ 	const struct nf_conntrack_l4proto *l4proto;
+-	unsigned int *timeouts;
+ 	__u16 l3num;
+ 	__u8 l4num;
+ 	int ret;
+@@ -392,9 +391,7 @@ static int cttimeout_default_set(struct net *net, struct sock *ctnl,
+ 		goto err;
+ 	}
+ 
+-	timeouts = l4proto->get_timeouts(net);
+-
+-	ret = ctnl_timeout_parse_policy(timeouts, l4proto, net,
++	ret = ctnl_timeout_parse_policy(NULL, l4proto, net,
+ 					cda[CTA_TIMEOUT_DATA]);
+ 	if (ret < 0)
+ 		goto err;
+@@ -431,7 +428,6 @@ cttimeout_default_fill_info(struct net *net, struct sk_buff *skb, u32 portid,
+ 
+ 	if (likely(l4proto->ctnl_timeout.obj_to_nlattr)) {
+ 		struct nlattr *nest_parms;
+-		unsigned int *timeouts = l4proto->get_timeouts(net);
+ 		int ret;
+ 
+ 		nest_parms = nla_nest_start(skb,
+@@ -439,7 +435,7 @@ cttimeout_default_fill_info(struct net *net, struct sk_buff *skb, u32 portid,
+ 		if (!nest_parms)
+ 			goto nla_put_failure;
+ 
+-		ret = l4proto->ctnl_timeout.obj_to_nlattr(skb, timeouts);
++		ret = l4proto->ctnl_timeout.obj_to_nlattr(skb, NULL);
+ 		if (ret < 0)
+ 			goto nla_put_failure;
  
 -- 
 2.11.0
