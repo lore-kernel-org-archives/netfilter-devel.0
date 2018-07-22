@@ -1,166 +1,96 @@
-From: Laura Garcia <nevola@gmail.com>
-Subject: Re: [RFC PATCH ghak90 (was ghak32) V3 08/10] audit: NETFILTER_PKT:
- record each container ID associated with a netNS
-Date: Sat, 21 Jul 2018 17:32:38 +0200
-Message-ID: <CAF90-WhFVGKK7pxzRXnA=DGDzp-OZMWvoxfH0c+nm6+-Ao9Jag@mail.gmail.com>
-References: <cover.1528304203.git.rgb@redhat.com> <c6b64f6540e2e531636142ced36d51f0744d0e1f.1528304204.git.rgb@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Cc: cgroups@vger.kernel.org, containers@lists.linux-foundation.org,
-        linux-api@vger.kernel.org,
-        Linux-Audit Mailing List <linux-audit@redhat.com>,
-        linux-fsdevel@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-        netdev@vger.kernel.org, luto@kernel.org, jlayton@redhat.com,
-        carlos@redhat.com, viro@zeniv.linux.org.uk, dhowells@redhat.com,
-        simo@redhat.com, eparis@parisplace.org, serge@hallyn.com,
-        ebiederm@xmission.com,
-        Netfilter Development Mailing list
-        <netfilter-devel@vger.kernel.org>
-To: Richard Guy Briggs <rgb@redhat.com>
+From: Shaochun Chen <cscnull@gmail.com>
+Subject: [PATCH] netlink: fix memory leak
+Date: Sun, 22 Jul 2018 10:49:25 +0800
+Message-ID: <20180722024925.3176-1-cscnull@gmail.com>
+Cc: kadlec@blackhole.kfki.hu, fw@strlen.de, davem@davemloft.net,
+        johannes.berg@intel.com, pombredanne@nexb.com,
+        kstewart@linuxfoundation.org, cscnull@gmail.com,
+        gregkh@linuxfoundation.org, Jason@zx2c4.com, dsahern@gmail.com,
+        lucien.xin@gmail.com, ktkhai@virtuozzo.com,
+        xiyou.wangcong@gmail.com, linux-kernel@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <c6b64f6540e2e531636142ced36d51f0744d0e1f.1528304204.git.rgb@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-CC'ing Netfilter.
+when netlink_dump start failed, netlink_callback will not be called,
+and the memory which pointed by control->data will leak. so if netlink_dump
+start fail, call control->done to free the memory.
 
-On Wed, Jun 6, 2018 at 6:58 PM, Richard Guy Briggs <rgb@redhat.com> wrote:
-> Add audit container identifier auxiliary record(s) to NETFILTER_PKT
-> event standalone records.  Iterate through all potential audit container
-> identifiers associated with a network namespace.
->
-> Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
-> ---
->  include/linux/audit.h    |  5 +++++
->  kernel/audit.c           | 20 +++++++++++++++++++-
->  kernel/auditsc.c         |  2 ++
->  net/netfilter/xt_AUDIT.c | 12 ++++++++++--
->  4 files changed, 36 insertions(+), 3 deletions(-)
->
-> diff --git a/include/linux/audit.h b/include/linux/audit.h
-> index 7e2e51c..4560a4e 100644
-> --- a/include/linux/audit.h
-> +++ b/include/linux/audit.h
-> @@ -167,6 +167,8 @@ extern int audit_log_contid(struct audit_context *context,
->  extern void audit_contid_add(struct net *net, u64 contid);
->  extern void audit_contid_del(struct net *net, u64 contid);
->  extern void audit_switch_task_namespaces(struct nsproxy *ns, struct task_struct *p);
-> +extern void audit_log_contid_list(struct net *net,
-> +                                struct audit_context *context);
->
->  extern int                 audit_update_lsm_rules(void);
->
-> @@ -231,6 +233,9 @@ static inline void audit_contid_del(struct net *net, u64 contid)
->  { }
->  static inline void audit_switch_task_namespaces(struct nsproxy *ns, struct task_struct *p)
->  { }
-> +static inline void audit_log_contid_list(struct net *net,
-> +                                       struct audit_context *context)
-> +{ }
->
->  #define audit_enabled 0
->  #endif /* CONFIG_AUDIT */
-> diff --git a/kernel/audit.c b/kernel/audit.c
-> index ecd2de4..8cca41a 100644
-> --- a/kernel/audit.c
-> +++ b/kernel/audit.c
-> @@ -382,6 +382,20 @@ void audit_switch_task_namespaces(struct nsproxy *ns, struct task_struct *p)
->                 audit_contid_add(new->net_ns, contid);
->  }
->
-> +void audit_log_contid_list(struct net *net, struct audit_context *context)
-> +{
-> +       struct audit_contid *cont;
-> +       int i = 0;
-> +
-> +       list_for_each_entry(cont, audit_get_contid_list(net), list) {
-> +               char buf[14];
-> +
-> +               sprintf(buf, "net%u", i++);
-> +               audit_log_contid(context, buf, cont->id);
-> +       }
-> +}
-> +EXPORT_SYMBOL(audit_log_contid_list);
-> +
->  void audit_panic(const char *message)
->  {
->         switch (audit_failure) {
-> @@ -2132,17 +2146,21 @@ int audit_log_contid(struct audit_context *context,
->                               char *op, u64 contid)
->  {
->         struct audit_buffer *ab;
-> +       gfp_t gfpflags;
->
->         if (!cid_valid(contid))
->                 return 0;
-> +       /* We can be called in atomic context via audit_tg() */
-> +       gfpflags = (in_atomic() || irqs_disabled()) ? GFP_ATOMIC : GFP_KERNEL;
->         /* Generate AUDIT_CONTAINER record with container ID */
-> -       ab = audit_log_start(context, GFP_KERNEL, AUDIT_CONTAINER);
-> +       ab = audit_log_start(context, gfpflags, AUDIT_CONTAINER);
->         if (!ab)
->                 return -ENOMEM;
->         audit_log_format(ab, "op=%s contid=%llu", op, contid);
->         audit_log_end(ab);
->         return 0;
->  }
-> +EXPORT_SYMBOL(audit_log_contid);
->
->  void audit_log_key(struct audit_buffer *ab, char *key)
->  {
-> diff --git a/kernel/auditsc.c b/kernel/auditsc.c
-> index 6ab5e5e..e2a16d2 100644
-> --- a/kernel/auditsc.c
-> +++ b/kernel/auditsc.c
-> @@ -1015,6 +1015,7 @@ struct audit_context *audit_alloc_local(void)
->         context->in_syscall = 1;
->         return context;
->  }
-> +EXPORT_SYMBOL(audit_alloc_local);
->
->  void audit_free_context(struct audit_context *context)
->  {
-> @@ -1029,6 +1030,7 @@ void audit_free_context(struct audit_context *context)
->         audit_proctitle_free(context);
->         kfree(context);
->  }
-> +EXPORT_SYMBOL(audit_free_context);
->
->  static int audit_log_pid_context(struct audit_context *context, pid_t pid,
->                                  kuid_t auid, kuid_t uid, unsigned int sessionid,
-> diff --git a/net/netfilter/xt_AUDIT.c b/net/netfilter/xt_AUDIT.c
-> index f368ee6..10d2707 100644
-> --- a/net/netfilter/xt_AUDIT.c
-> +++ b/net/netfilter/xt_AUDIT.c
-> @@ -71,10 +71,13 @@ static bool audit_ip6(struct audit_buffer *ab, struct sk_buff *skb)
->  {
->         struct audit_buffer *ab;
->         int fam = -1;
-> +       struct audit_context *context;
-> +       struct net *net;
->
->         if (audit_enabled == 0)
-> -               goto errout;
-> -       ab = audit_log_start(NULL, GFP_ATOMIC, AUDIT_NETFILTER_PKT);
-> +               goto out;
-> +       context = audit_alloc_local();
-> +       ab = audit_log_start(context, GFP_ATOMIC, AUDIT_NETFILTER_PKT);
->         if (ab == NULL)
->                 goto errout;
->
-> @@ -104,7 +107,12 @@ static bool audit_ip6(struct audit_buffer *ab, struct sk_buff *skb)
->
->         audit_log_end(ab);
->
-> +       net = xt_net(par);
-> +       audit_log_contid_list(net, context);
-> +
->  errout:
-> +       audit_free_context(context);
-> +out:
->         return XT_CONTINUE;
->  }
->
-> --
-> 1.8.3.1
->
+Signed-off-by: Shaochun Chen <cscnull@gmail.com>
+---
+ include/linux/netlink.h       | 10 ++++++++++
+ net/netfilter/nf_tables_api.c |  4 +++-
+ net/netlink/af_netlink.c      |  4 ++++
+ 3 files changed, 17 insertions(+), 1 deletion(-)
+
+diff --git a/include/linux/netlink.h b/include/linux/netlink.h
+index f3075d6c7e82..9d6b3edc5a5b 100644
+--- a/include/linux/netlink.h
++++ b/include/linux/netlink.h
+@@ -214,6 +214,16 @@ static inline int netlink_dump_start(struct sock *ssk, struct sk_buff *skb,
+ 	return __netlink_dump_start(ssk, skb, nlh, control);
+ }
+ 
++static inline void netlink_dump_start_fail(struct netlink_dump_control *control)
++{
++	struct netlink_callback cb = {
++		.data = control->data,
++	};
++
++	if (control->done)
++		control->done(&cb);
++}
++
+ struct netlink_tap {
+ 	struct net_device *dev;
+ 	struct module *module;
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 896d4a36081d..dc30a329f785 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -588,8 +588,10 @@ static int nft_netlink_dump_start_rcu(struct sock *nlsk, struct sk_buff *skb,
+ {
+ 	int err;
+ 
+-	if (!try_module_get(THIS_MODULE))
++	if (!try_module_get(THIS_MODULE)) {
++		netlink_dump_start_fail(c);
+ 		return -EINVAL;
++	}
+ 
+ 	rcu_read_unlock();
+ 	err = netlink_dump_start(nlsk, skb, nlh, c);
+diff --git a/net/netlink/af_netlink.c b/net/netlink/af_netlink.c
+index 393573a99a5a..7b85176cf9bb 100644
+--- a/net/netlink/af_netlink.c
++++ b/net/netlink/af_netlink.c
+@@ -2275,6 +2275,7 @@ int __netlink_dump_start(struct sock *ssk, struct sk_buff *skb,
+ 	struct netlink_callback *cb;
+ 	struct sock *sk;
+ 	struct netlink_sock *nlk;
++	bool cb_running = false;
+ 	int ret;
+ 
+ 	refcount_inc(&skb->users);
+@@ -2317,6 +2318,7 @@ int __netlink_dump_start(struct sock *ssk, struct sk_buff *skb,
+ 
+ 	nlk->cb_running = true;
+ 	nlk->dump_done_errno = INT_MAX;
++	cb_running = true;
+ 
+ 	mutex_unlock(nlk->cb_mutex);
+ 
+@@ -2339,6 +2341,8 @@ int __netlink_dump_start(struct sock *ssk, struct sk_buff *skb,
+ 	mutex_unlock(nlk->cb_mutex);
+ error_free:
+ 	kfree_skb(skb);
++	if (cb_running)
++		netlink_dump_start_fail(control);
+ 	return ret;
+ }
+ EXPORT_SYMBOL(__netlink_dump_start);
+-- 
+2.17.1
