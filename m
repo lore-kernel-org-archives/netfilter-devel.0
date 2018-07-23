@@ -1,49 +1,39 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH] netlink: fix memory leak of dump
-Date: Mon, 23 Jul 2018 12:59:15 +0200
-Message-ID: <20180723105915.a6vx5t7htcclez3k@breakpoint.cc>
-References: <20180722143354.23722-1-cscnull@gmail.com>
- <20180722163925.gdfkndldatsoae6x@breakpoint.cc>
- <20180722.100755.19840167505550163.davem@davemloft.net>
- <20180722180910.wcwhantwpm2nfxet@breakpoint.cc>
- <20180723091551.mwhltw4ujm4bylvj@salvia>
- <20180723092818.ztsfsnqzxgzrauim@breakpoint.cc>
- <CAKDdixCx5za07R9KdyohsZjJqzdTpE3mR1+4TwY5xjeBGVeTjg@mail.gmail.com>
- <CAKDdixBBd08eKvk-hJtwPy46u2uzihRCh_KdEMF3xG1ZJ6oNsg@mail.gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH nf] netfilter: nf_tables: move dumper state alloation
+ into ->start
+Date: Mon, 23 Jul 2018 13:09:11 +0200
+Message-ID: <20180723110911.guinjwo5vglcyw2z@salvia>
+References: <20180723104714.24008-1-fw@strlen.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        David Miller <davem@davemloft.net>,
-        kadlec <kadlec@blackhole.kfki.hu>,
-        "johannes.berg" <johannes.berg@intel.com>, jason <Jason@zx2c4.com>,
-        ktkhai <ktkhai@virtuozzo.com>,
-        "lucien.xin" <lucien.xin@gmail.com>,
-        "xiyou.wangcong" <xiyou.wangcong@gmail.com>,
-        dsahern <dsahern@gmail.com>,
-        netfilter-devel <netfilter-devel@vger.kernel.org>,
-        tom <tom@quantonium.net>, netdev <netdev@vger.kernel.org>,
-        linux-kernel <linux-kernel@vger.kernel.org>
-To: shaochun chen <cscnull@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+        cscnull@gmail.com
+To: Florian Westphal <fw@strlen.de>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAKDdixBBd08eKvk-hJtwPy46u2uzihRCh_KdEMF3xG1ZJ6oNsg@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
+In-Reply-To: <20180723104714.24008-1-fw@strlen.de>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-shaochun chen <cscnull@gmail.com> wrote:
-> I have a question: we will try_module_get in __netlink_dump_start(),
+On Mon, Jul 23, 2018 at 12:47:14PM +0200, Florian Westphal wrote:
+> Shaochun Chen points out we leak dumper filter state allocations
+> stored in dump_control->data in case there is an error before netlink sets
+> cb_running (after which ->done will be called at some point).
+> 
+> In order to fix this, add .start functions and do the allocations
+> there.
+> 
+> ->done is going to clean up, and in case error occurs before
+> ->start invocation no cleanups need to be done anymore.
 
-Thats too late, we release rcu read lock before this, so the module
-implementing ->dump might have been removed already.
+LGTM. Thanks Florian
 
-> but why we need to call try_module_get again in  nft_netlink_dump_start ??
+BTW, probably we can add cb->nla with strict typing instead, so we
+don't need to use cb->data. This cb->nla would be only valid from
+.start().
 
-Its the other way around.
-This is the first try_module_get; at this point we still hold rcu read
-lock.
+Then, set cb->nla to NULL after .start() is called. Just to make sure
+people don't make wrong assumptions and try to access this from the
+classic dump path?
 
-If nf_tables module is being removed, try_module_get will fail and
-we can error out.
-
-If it succeeds, its safe to drop the rcu read lock.
+Just an idea.
