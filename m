@@ -1,53 +1,210 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+From: shaochun chen <cscnull@gmail.com>
 Subject: Re: [PATCH] netlink: fix memory leak of dump
-Date: Mon, 23 Jul 2018 11:47:42 +0200
-Message-ID: <20180723094742.gg6e73l6aknghal7@salvia>
-References: <20180722143354.23722-1-cscnull@gmail.com>
- <20180722163925.gdfkndldatsoae6x@breakpoint.cc>
- <20180722.100755.19840167505550163.davem@davemloft.net>
- <20180722180910.wcwhantwpm2nfxet@breakpoint.cc>
- <20180723091551.mwhltw4ujm4bylvj@salvia>
- <20180723092818.ztsfsnqzxgzrauim@breakpoint.cc>
- <20180723093855.c4ncixsnkee6r34v@salvia>
- <20180723094228.mejwuvoyitolqktv@breakpoint.cc>
+Date: Mon, 23 Jul 2018 17:52:44 +0800
+Message-ID: <CAKDdixCx5za07R9KdyohsZjJqzdTpE3mR1+4TwY5xjeBGVeTjg@mail.gmail.com>
+References: <20180722143354.23722-1-cscnull@gmail.com> <20180722163925.gdfkndldatsoae6x@breakpoint.cc>
+ <20180722.100755.19840167505550163.davem@davemloft.net> <20180722180910.wcwhantwpm2nfxet@breakpoint.cc>
+ <20180723091551.mwhltw4ujm4bylvj@salvia> <20180723092818.ztsfsnqzxgzrauim@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: David Miller <davem@davemloft.net>, cscnull@gmail.com,
-        kadlec@blackhole.kfki.hu, johannes.berg@intel.com, Jason@zx2c4.com,
-        ktkhai@virtuozzo.com, lucien.xin@gmail.com,
-        xiyou.wangcong@gmail.com, dsahern@gmail.com,
-        netfilter-devel@vger.kernel.org, tom@quantonium.net,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: multipart/alternative; boundary="0000000000006a9e5c0571a79bfd"
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+        David Miller <davem@davemloft.net>,
+        kadlec <kadlec@blackhole.kfki.hu>,
+        "johannes.berg" <johannes.berg@intel.com>, jason <Jason@zx2c4.com>,
+        ktkhai <ktkhai@virtuozzo.com>,
+        "lucien.xin" <lucien.xin@gmail.com>,
+        "xiyou.wangcong" <xiyou.wangcong@gmail.com>,
+        dsahern <dsahern@gmail.com>,
+        netfilter-devel <netfilter-devel@vger.kernel.org>,
+        tom <tom@quantonium.net>, netdev <netdev@vger.kernel.org>,
+        linux-kernel <linux-kernel@vger.kernel.org>
 To: Florian Westphal <fw@strlen.de>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180723094228.mejwuvoyitolqktv@breakpoint.cc>
+In-Reply-To: <20180723092818.ztsfsnqzxgzrauim@breakpoint.cc>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Jul 23, 2018 at 11:42:28AM +0200, Florian Westphal wrote:
+--0000000000006a9e5c0571a79bfd
+Content-Type: text/plain; charset="UTF-8"
+
+allocate memory in ->start(),  it's not convenient for users.
+if call ->done() isn't ok for clean memory when netlink_dump_start() fail,
+maybe we should have another function ->clean() to clean memory.
+
+2018-07-23 17:28 GMT+08:00 Florian Westphal <fw@strlen.de>:
+
 > Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > > As David pointed out, once ->start() returns 0 we set cb_running, i.e.
-> > > only after successful ->start() netlink core will call ->dump() again.
-> > > 
-> > > So I see no problem setting ->data to onstack cookie and then
-> > > duplicating it to heap via kmemdup in ->start().
-> > > 
-> > > As far as I can see netlink core offers all functionality already,
-> > > so we only need to switch netfilter to make use of it.
-> > > 
-> > > If you disagree please let me know, otherwise I will cook up
-> > > a patch along this pattern for net/netfilter/*.
-> > 
-> > Why not just call ->done from netlink_dump_start() when it fails?
-> 
-> Not sure thats safe for all users, we will also still need to call
-> it in nft_netlink_dump_start and we need to play guess game wrt
-> EINTR (which can mean 'dump was now started, do not send ack').
+> > > diff --git a/net/netfilter/nf_tables_api.c
+> b/net/netfilter/nf_tables_api.c
+> > > --- a/net/netfilter/nf_tables_api.c
+> > > +++ b/net/netfilter/nf_tables_api.c
+> > > @@ -5010,6 +5013,22 @@ nft_obj_filter_alloc(const struct nlattr *
+> const nla[])
+> > >     return filter;
+> > >  }
+> > >
+> > > +static int nf_tables_dump_obj_start(struct netlink_callback *cb)
+> > > +{
+> > > +   const struct nlattr * const *nla = cb->data;
+>
+> On-Stack input.
+> I can't see how its wrong, ->start() happens from same context as
+> netlink_dump_start so its valid.
+>
+> > > +   struct nft_obj_filter *filter = NULL;
+> > > +
+> > > +   if (nla[NFTA_OBJ_TABLE] ||
+> > > +       nla[NFTA_OBJ_TYPE]) {
+> > > +           filter = nft_obj_filter_alloc(nla);
+> > > +           if (IS_ERR(filter))
+> > > +                   return -ENOMEM;
+> > > +   }
+> > > +
+> > > +   cb->data = filter;
+>
+> And this replaced the on-stack input with dynamically
+> allocated one, which will be free'd via ->done().
+>
+> > >  /* called with rcu_read_lock held */
+> > >  static int nf_tables_getobj(struct net *net, struct sock *nlsk,
+> > >                         struct sk_buff *skb, const struct nlmsghdr
+> *nlh,
+> > > @@ -5028,21 +5047,13 @@ static int nf_tables_getobj(struct net *net,
+> struct sock *nlsk,
+> > >
+> > >     if (nlh->nlmsg_flags & NLM_F_DUMP) {
+> > >             struct netlink_dump_control c = {
+> > > +                   .start = nf_tables_dump_obj_start,
+> > >                     .dump = nf_tables_dump_obj,
+> > >                     .done = nf_tables_dump_obj_done,
+> > >                     .module = THIS_MODULE,
+> > > +                   .data = (void *)nla,
+> >
+> > You cannot do this.
+> >
+> > nla is allocated in this stack.
+>
+> Yes.
+>
+> > the nla will not be available in the second recv(), it won't be there.
+>
+> Its replaced in ->start().
+>
+> As David pointed out, once ->start() returns 0 we set cb_running, i.e.
+> only after successful ->start() netlink core will call ->dump() again.
+>
+> So I see no problem setting ->data to onstack cookie and then
+> duplicating it to heap via kmemdup in ->start().
+>
+> As far as I can see netlink core offers all functionality already,
+> so we only need to switch netfilter to make use of it.
+>
+> If you disagree please let me know, otherwise I will cook up
+> a patch along this pattern for net/netfilter/*.
+>
+> Thanks.
+>
 
-We can also add another scratchpad area, similar to the ->cb[x] area
-that can be initialized before netlink_dump_start()? So we don't need
-the data pointer.
+--0000000000006a9e5c0571a79bfd
+Content-Type: text/html; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-By passing the array of attributes, we'll need to do attribute parsing
-over and over again from each netlink_dump() call.
+<div dir=3D"ltr">allocate memory in -&gt;start(),=C2=A0 it&#39;s not conven=
+ient for users.<div>if call -&gt;done() isn&#39;t ok for clean memory when =
+netlink_dump_start() fail,</div><div>maybe we should have another function =
+-&gt;clean() to clean memory.</div></div><div class=3D"gmail_extra"><br><di=
+v class=3D"gmail_quote">2018-07-23 17:28 GMT+08:00 Florian Westphal <span d=
+ir=3D"ltr">&lt;<a href=3D"mailto:fw@strlen.de" target=3D"_blank">fw@strlen.=
+de</a>&gt;</span>:<br><blockquote class=3D"gmail_quote" style=3D"margin:0 0=
+ 0 .8ex;border-left:1px #ccc solid;padding-left:1ex"><span class=3D"">Pablo=
+ Neira Ayuso &lt;<a href=3D"mailto:pablo@netfilter.org">pablo@netfilter.org=
+</a>&gt; wrote:<br>
+&gt; &gt; diff --git a/net/netfilter/nf_tables_api.<wbr>c b/net/netfilter/n=
+f_tables_api.<wbr>c<br>
+&gt; &gt; --- a/net/netfilter/nf_tables_api.<wbr>c<br>
+&gt; &gt; +++ b/net/netfilter/nf_tables_api.<wbr>c<br>
+&gt; &gt; @@ -5010,6 +5013,22 @@ nft_obj_filter_alloc(const struct nlattr *=
+ const nla[])<br>
+&gt; &gt;=C2=A0 =C2=A0 =C2=A0return filter;<br>
+&gt; &gt;=C2=A0 }<br>
+&gt; &gt;=C2=A0 <br>
+&gt; &gt; +static int nf_tables_dump_obj_start(<wbr>struct netlink_callback=
+ *cb)<br>
+&gt; &gt; +{<br>
+&gt; &gt; +=C2=A0 =C2=A0const struct nlattr * const *nla =3D cb-&gt;data;<b=
+r>
+<br>
+</span>On-Stack input.<br>
+I can&#39;t see how its wrong, -&gt;start() happens from same context as<br=
+>
+netlink_dump_start so its valid.<br>
+<span class=3D""><br>
+&gt; &gt; +=C2=A0 =C2=A0struct nft_obj_filter *filter =3D NULL;<br>
+&gt; &gt; +<br>
+&gt; &gt; +=C2=A0 =C2=A0if (nla[NFTA_OBJ_TABLE] ||<br>
+&gt; &gt; +=C2=A0 =C2=A0 =C2=A0 =C2=A0nla[NFTA_OBJ_TYPE]) {<br>
+&gt; &gt; +=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0filter =3D nft_obj_filt=
+er_alloc(nla);<br>
+&gt; &gt; +=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0if (IS_ERR(filter))<br>
+&gt; &gt; +=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
+=C2=A0return -ENOMEM;<br>
+&gt; &gt; +=C2=A0 =C2=A0}<br>
+&gt; &gt; +<br>
+&gt; &gt; +=C2=A0 =C2=A0cb-&gt;data =3D filter;<br>
+<br>
+</span>And this replaced the on-stack input with dynamically<br>
+allocated one, which will be free&#39;d via -&gt;done().<br>
+<span class=3D""><br>
+&gt; &gt;=C2=A0 /* called with rcu_read_lock held */<br>
+&gt; &gt;=C2=A0 static int nf_tables_getobj(struct net *net, struct sock *n=
+lsk,<br>
+&gt; &gt;=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 =C2=A0 =C2=A0struct sk_buff *skb, const struct nlmsghdr *nlh,<br=
+>
+&gt; &gt; @@ -5028,21 +5047,13 @@ static int nf_tables_getobj(struct net *n=
+et, struct sock *nlsk,<br>
+&gt; &gt;=C2=A0 <br>
+&gt; &gt;=C2=A0 =C2=A0 =C2=A0if (nlh-&gt;nlmsg_flags &amp; NLM_F_DUMP) {<br=
+>
+&gt; &gt;=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0struct netlink_dum=
+p_control c =3D {<br>
+&gt; &gt; +=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
+=C2=A0.start =3D nf_tables_dump_obj_start,<br>
+&gt; &gt;=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0.dump =3D nf_tables_dump_obj,<br>
+&gt; &gt;=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0.done =3D nf_tables_dump_obj_done,<br>
+&gt; &gt;=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0.module =3D THIS_MODULE,<br>
+&gt; &gt; +=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
+=C2=A0.data =3D (void *)nla,<br>
+&gt; <br>
+&gt; You cannot do this.<br>
+&gt; <br>
+&gt; nla is allocated in this stack.<br>
+<br>
+</span>Yes.<br>
+<span class=3D""><br>
+&gt; the nla will not be available in the second recv(), it won&#39;t be th=
+ere.<br>
+<br>
+</span>Its replaced in -&gt;start().<br>
+<br>
+As David pointed out, once -&gt;start() returns 0 we set cb_running, i.e.<b=
+r>
+only after successful -&gt;start() netlink core will call -&gt;dump() again=
+.<br>
+<br>
+So I see no problem setting -&gt;data to onstack cookie and then<br>
+duplicating it to heap via kmemdup in -&gt;start().<br>
+<br>
+As far as I can see netlink core offers all functionality already,<br>
+so we only need to switch netfilter to make use of it.<br>
+<br>
+If you disagree please let me know, otherwise I will cook up<br>
+a patch along this pattern for net/netfilter/*.<br>
+<br>
+Thanks.<br>
+</blockquote></div><br></div>
+
+--0000000000006a9e5c0571a79bfd--
