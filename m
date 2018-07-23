@@ -1,41 +1,371 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netlink: fix memory leak of dump
-Date: Mon, 23 Jul 2018 12:43:27 +0200
-Message-ID: <20180723104327.rmptoqx7gzvwvbra@salvia>
-References: <20180722143354.23722-1-cscnull@gmail.com>
- <20180722163925.gdfkndldatsoae6x@breakpoint.cc>
- <20180722.100755.19840167505550163.davem@davemloft.net>
- <20180722180910.wcwhantwpm2nfxet@breakpoint.cc>
- <20180723091551.mwhltw4ujm4bylvj@salvia>
- <20180723092818.ztsfsnqzxgzrauim@breakpoint.cc>
- <CAKDdixCx5za07R9KdyohsZjJqzdTpE3mR1+4TwY5xjeBGVeTjg@mail.gmail.com>
- <CAKDdixBBd08eKvk-hJtwPy46u2uzihRCh_KdEMF3xG1ZJ6oNsg@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>,
-        David Miller <davem@davemloft.net>,
-        kadlec <kadlec@blackhole.kfki.hu>,
-        "johannes.berg" <johannes.berg@intel.com>, jason <Jason@zx2c4.com>,
-        ktkhai <ktkhai@virtuozzo.com>,
-        "lucien.xin" <lucien.xin@gmail.com>,
-        "xiyou.wangcong" <xiyou.wangcong@gmail.com>,
-        dsahern <dsahern@gmail.com>,
-        netfilter-devel <netfilter-devel@vger.kernel.org>,
-        tom <tom@quantonium.net>, netdev <netdev@vger.kernel.org>,
-        linux-kernel <linux-kernel@vger.kernel.org>
-To: shaochun chen <cscnull@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAKDdixBBd08eKvk-hJtwPy46u2uzihRCh_KdEMF3xG1ZJ6oNsg@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf] netfilter: nf_tables: move dumper state alloation into ->start
+Date: Mon, 23 Jul 2018 12:47:14 +0200
+Message-ID: <20180723104714.24008-1-fw@strlen.de>
+Cc: <netdev@vger.kernel.org>, cscnull@gmail.com,
+        Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Jul 23, 2018 at 06:34:36PM +0800, shaochun chen wrote:
-> I have a question: we will try_module_get in __netlink_dump_start(),
-> but why we need to call try_module_get again in  nft_netlink_dump_start ??
+Shaochun Chen points out we leak dumper filter state allocations
+stored in dump_control->data in case there is an error before netlink sets
+cb_running (after which ->done will be called at some point).
 
-Because they refer to two different modules. nfnetlink is multiplexing
-all netfilter subsystem through one single netlink bus.
+In order to fix this, add .start functions and do the allocations
+there.
 
-At the time that decision was made, there were concerns about netlink
-running out of busses.
+->done is going to clean up, and in case error occurs before
+->start invocation no cleanups need to be done anymore.
+
+Reported-by: shaochun chen <cscnull@gmail.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ There are other problematic spots outside of nf_tables too which
+ will need similar changes.
+
+ net/netfilter/nf_tables_api.c | 219 ++++++++++++++++++++++--------------------
+ 1 file changed, 115 insertions(+), 104 deletions(-)
+
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index d7b9748e338e..f5745e4c6513 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -2271,6 +2271,39 @@ static int nf_tables_dump_rules(struct sk_buff *skb,
+ 	return skb->len;
+ }
+ 
++static int nf_tables_dump_rules_start(struct netlink_callback *cb)
++{
++	const struct nlattr * const *nla = cb->data;
++	struct nft_rule_dump_ctx *ctx = NULL;
++
++	if (nla[NFTA_RULE_TABLE] || nla[NFTA_RULE_CHAIN]) {
++		ctx = kzalloc(sizeof(*ctx), GFP_ATOMIC);
++		if (!ctx)
++			return -ENOMEM;
++
++		if (nla[NFTA_RULE_TABLE]) {
++			ctx->table = nla_strdup(nla[NFTA_RULE_TABLE],
++							GFP_ATOMIC);
++			if (!ctx->table) {
++				kfree(ctx);
++				return -ENOMEM;
++			}
++		}
++		if (nla[NFTA_RULE_CHAIN]) {
++			ctx->chain = nla_strdup(nla[NFTA_RULE_CHAIN],
++						GFP_ATOMIC);
++			if (!ctx->chain) {
++				kfree(ctx->table);
++				kfree(ctx);
++				return -ENOMEM;
++			}
++		}
++	}
++
++	cb->data = ctx;
++	return 0;
++}
++
+ static int nf_tables_dump_rules_done(struct netlink_callback *cb)
+ {
+ 	struct nft_rule_dump_ctx *ctx = cb->data;
+@@ -2300,38 +2333,13 @@ static int nf_tables_getrule(struct net *net, struct sock *nlsk,
+ 
+ 	if (nlh->nlmsg_flags & NLM_F_DUMP) {
+ 		struct netlink_dump_control c = {
++			.start= nf_tables_dump_rules_start,
+ 			.dump = nf_tables_dump_rules,
+ 			.done = nf_tables_dump_rules_done,
+ 			.module = THIS_MODULE,
++			.data = (void *)nla,
+ 		};
+ 
+-		if (nla[NFTA_RULE_TABLE] || nla[NFTA_RULE_CHAIN]) {
+-			struct nft_rule_dump_ctx *ctx;
+-
+-			ctx = kzalloc(sizeof(*ctx), GFP_ATOMIC);
+-			if (!ctx)
+-				return -ENOMEM;
+-
+-			if (nla[NFTA_RULE_TABLE]) {
+-				ctx->table = nla_strdup(nla[NFTA_RULE_TABLE],
+-							GFP_ATOMIC);
+-				if (!ctx->table) {
+-					kfree(ctx);
+-					return -ENOMEM;
+-				}
+-			}
+-			if (nla[NFTA_RULE_CHAIN]) {
+-				ctx->chain = nla_strdup(nla[NFTA_RULE_CHAIN],
+-							GFP_ATOMIC);
+-				if (!ctx->chain) {
+-					kfree(ctx->table);
+-					kfree(ctx);
+-					return -ENOMEM;
+-				}
+-			}
+-			c.data = ctx;
+-		}
+-
+ 		return nft_netlink_dump_start_rcu(nlsk, skb, nlh, &c);
+ 	}
+ 
+@@ -3181,6 +3189,18 @@ static int nf_tables_dump_sets(struct sk_buff *skb, struct netlink_callback *cb)
+ 	return skb->len;
+ }
+ 
++static int nf_tables_dump_sets_start(struct netlink_callback *cb)
++{
++	struct nft_ctx *ctx_dump = NULL;
++
++	ctx_dump = kmemdup(cb->data, sizeof(*ctx_dump), GFP_ATOMIC);
++	if (ctx_dump == NULL)
++		return -ENOMEM;
++
++	cb->data = ctx_dump;
++	return 0;
++}
++
+ static int nf_tables_dump_sets_done(struct netlink_callback *cb)
+ {
+ 	kfree(cb->data);
+@@ -3208,18 +3228,12 @@ static int nf_tables_getset(struct net *net, struct sock *nlsk,
+ 
+ 	if (nlh->nlmsg_flags & NLM_F_DUMP) {
+ 		struct netlink_dump_control c = {
++			.start = nf_tables_dump_sets_start,
+ 			.dump = nf_tables_dump_sets,
+ 			.done = nf_tables_dump_sets_done,
++			.data = &ctx,
+ 			.module = THIS_MODULE,
+ 		};
+-		struct nft_ctx *ctx_dump;
+-
+-		ctx_dump = kmalloc(sizeof(*ctx_dump), GFP_ATOMIC);
+-		if (ctx_dump == NULL)
+-			return -ENOMEM;
+-
+-		*ctx_dump = ctx;
+-		c.data = ctx_dump;
+ 
+ 		return nft_netlink_dump_start_rcu(nlsk, skb, nlh, &c);
+ 	}
+@@ -3869,6 +3883,15 @@ static int nf_tables_dump_set(struct sk_buff *skb, struct netlink_callback *cb)
+ 	return -ENOSPC;
+ }
+ 
++static int nf_tables_dump_set_start(struct netlink_callback *cb)
++{
++	struct nft_set_dump_ctx *dump_ctx = cb->data;
++
++	cb->data = kmemdup(dump_ctx, sizeof(*dump_ctx), GFP_ATOMIC);
++
++	return cb->data ? 0 : -ENOMEM;
++}
++
+ static int nf_tables_dump_set_done(struct netlink_callback *cb)
+ {
+ 	kfree(cb->data);
+@@ -4022,20 +4045,17 @@ static int nf_tables_getsetelem(struct net *net, struct sock *nlsk,
+ 
+ 	if (nlh->nlmsg_flags & NLM_F_DUMP) {
+ 		struct netlink_dump_control c = {
++			.start = nf_tables_dump_set_start,
+ 			.dump = nf_tables_dump_set,
+ 			.done = nf_tables_dump_set_done,
+ 			.module = THIS_MODULE,
+ 		};
+-		struct nft_set_dump_ctx *dump_ctx;
+-
+-		dump_ctx = kmalloc(sizeof(*dump_ctx), GFP_ATOMIC);
+-		if (!dump_ctx)
+-			return -ENOMEM;
+-
+-		dump_ctx->set = set;
+-		dump_ctx->ctx = ctx;
++		struct nft_set_dump_ctx dump_ctx = {
++			.set = set,
++			.ctx = ctx,
++		};
+ 
+-		c.data = dump_ctx;
++		c.data = &dump_ctx;
+ 		return nft_netlink_dump_start_rcu(nlsk, skb, nlh, &c);
+ 	}
+ 
+@@ -4995,38 +5015,42 @@ static int nf_tables_dump_obj(struct sk_buff *skb, struct netlink_callback *cb)
+ 	return skb->len;
+ }
+ 
+-static int nf_tables_dump_obj_done(struct netlink_callback *cb)
++static int nf_tables_dump_obj_start(struct netlink_callback *cb)
+ {
+-	struct nft_obj_filter *filter = cb->data;
++	const struct nlattr * const *nla = cb->data;
++	struct nft_obj_filter *filter = NULL;
+ 
+-	if (filter) {
+-		kfree(filter->table);
+-		kfree(filter);
++	if (nla[NFTA_OBJ_TABLE] || nla[NFTA_OBJ_TYPE]) {
++		filter = kzalloc(sizeof(*filter), GFP_ATOMIC);
++		if (!filter)
++			return -ENOMEM;
++
++		if (nla[NFTA_OBJ_TABLE]) {
++			filter->table = nla_strdup(nla[NFTA_OBJ_TABLE], GFP_ATOMIC);
++			if (!filter->table) {
++				kfree(filter);
++				return -ENOMEM;
++			}
++		}
++
++		if (nla[NFTA_OBJ_TYPE])
++			filter->type = ntohl(nla_get_be32(nla[NFTA_OBJ_TYPE]));
+ 	}
+ 
++	cb->data = filter;
+ 	return 0;
+ }
+ 
+-static struct nft_obj_filter *
+-nft_obj_filter_alloc(const struct nlattr * const nla[])
++static int nf_tables_dump_obj_done(struct netlink_callback *cb)
+ {
+-	struct nft_obj_filter *filter;
+-
+-	filter = kzalloc(sizeof(*filter), GFP_ATOMIC);
+-	if (!filter)
+-		return ERR_PTR(-ENOMEM);
++	struct nft_obj_filter *filter = cb->data;
+ 
+-	if (nla[NFTA_OBJ_TABLE]) {
+-		filter->table = nla_strdup(nla[NFTA_OBJ_TABLE], GFP_ATOMIC);
+-		if (!filter->table) {
+-			kfree(filter);
+-			return ERR_PTR(-ENOMEM);
+-		}
++	if (filter) {
++		kfree(filter->table);
++		kfree(filter);
+ 	}
+-	if (nla[NFTA_OBJ_TYPE])
+-		filter->type = ntohl(nla_get_be32(nla[NFTA_OBJ_TYPE]));
+ 
+-	return filter;
++	return 0;
+ }
+ 
+ /* called with rcu_read_lock held */
+@@ -5047,21 +5071,13 @@ static int nf_tables_getobj(struct net *net, struct sock *nlsk,
+ 
+ 	if (nlh->nlmsg_flags & NLM_F_DUMP) {
+ 		struct netlink_dump_control c = {
++			.start = nf_tables_dump_obj_start,
+ 			.dump = nf_tables_dump_obj,
+ 			.done = nf_tables_dump_obj_done,
+ 			.module = THIS_MODULE,
++			.data = (void *)nla,
+ 		};
+ 
+-		if (nla[NFTA_OBJ_TABLE] ||
+-		    nla[NFTA_OBJ_TYPE]) {
+-			struct nft_obj_filter *filter;
+-
+-			filter = nft_obj_filter_alloc(nla);
+-			if (IS_ERR(filter))
+-				return -ENOMEM;
+-
+-			c.data = filter;
+-		}
+ 		return nft_netlink_dump_start_rcu(nlsk, skb, nlh, &c);
+ 	}
+ 
+@@ -5667,37 +5683,39 @@ static int nf_tables_dump_flowtable(struct sk_buff *skb,
+ 	return skb->len;
+ }
+ 
+-static int nf_tables_dump_flowtable_done(struct netlink_callback *cb)
++static int nf_tables_dump_flowtable_start(struct netlink_callback *cb)
+ {
+-	struct nft_flowtable_filter *filter = cb->data;
++	const struct nlattr * const *nla = cb->data;
++	struct nft_flowtable_filter *filter = NULL;
+ 
+-	if (!filter)
+-		return 0;
++	if (nla[NFTA_FLOWTABLE_TABLE]) {
++		filter = kzalloc(sizeof(*filter), GFP_ATOMIC);
++		if (!filter)
++			return -ENOMEM;
+ 
+-	kfree(filter->table);
+-	kfree(filter);
++		filter->table = nla_strdup(nla[NFTA_FLOWTABLE_TABLE],
++					   GFP_ATOMIC);
++		if (!filter->table) {
++			kfree(filter);
++			return -ENOMEM;
++		}
++	}
+ 
++	cb->data = filter;
+ 	return 0;
+ }
+ 
+-static struct nft_flowtable_filter *
+-nft_flowtable_filter_alloc(const struct nlattr * const nla[])
++static int nf_tables_dump_flowtable_done(struct netlink_callback *cb)
+ {
+-	struct nft_flowtable_filter *filter;
++	struct nft_flowtable_filter *filter = cb->data;
+ 
+-	filter = kzalloc(sizeof(*filter), GFP_ATOMIC);
+ 	if (!filter)
+-		return ERR_PTR(-ENOMEM);
++		return 0;
+ 
+-	if (nla[NFTA_FLOWTABLE_TABLE]) {
+-		filter->table = nla_strdup(nla[NFTA_FLOWTABLE_TABLE],
+-					   GFP_ATOMIC);
+-		if (!filter->table) {
+-			kfree(filter);
+-			return ERR_PTR(-ENOMEM);
+-		}
+-	}
+-	return filter;
++	kfree(filter->table);
++	kfree(filter);
++
++	return 0;
+ }
+ 
+ /* called with rcu_read_lock held */
+@@ -5717,20 +5735,13 @@ static int nf_tables_getflowtable(struct net *net, struct sock *nlsk,
+ 
+ 	if (nlh->nlmsg_flags & NLM_F_DUMP) {
+ 		struct netlink_dump_control c = {
++			.start = nf_tables_dump_flowtable_start,
+ 			.dump = nf_tables_dump_flowtable,
+ 			.done = nf_tables_dump_flowtable_done,
+ 			.module = THIS_MODULE,
++			.data = (void *)nla,
+ 		};
+ 
+-		if (nla[NFTA_FLOWTABLE_TABLE]) {
+-			struct nft_flowtable_filter *filter;
+-
+-			filter = nft_flowtable_filter_alloc(nla);
+-			if (IS_ERR(filter))
+-				return -ENOMEM;
+-
+-			c.data = filter;
+-		}
+ 		return nft_netlink_dump_start_rcu(nlsk, skb, nlh, &c);
+ 	}
+ 
+-- 
+2.16.4
