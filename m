@@ -1,7 +1,7 @@
 From: Stephen Hemminger <stephen@networkplumber.org>
-Subject: [PATCH PATCH net-next 09/18] ila: remove blank lines at EOF
-Date: Tue, 24 Jul 2018 12:29:09 -0700
-Message-ID: <20180724192918.31165-10-sthemmin@microsoft.com>
+Subject: [PATCH PATCH net-next 11/18] atm: remove blank lines at EOF
+Date: Tue, 24 Jul 2018 12:29:11 -0700
+Message-ID: <20180724192918.31165-12-sthemmin@microsoft.com>
 References: <20180724192918.31165-1-sthemmin@microsoft.com>
 Cc: netdev@vger.kernel.org, v9fs-developer@lists.sourceforge.net,
         linux-hams@vger.kernel.org, ceph-devel@vger.kernel.org,
@@ -30,27 +30,22 @@ List-Id: netfilter-devel.vger.kernel.org
 
 Signed-off-by: Stephen Hemminger <stephen@networkplumber.org>
 ---
- net/ipv6/ila/ila_common.c | 1 -
- net/ipv6/ila/ila_xlat.c   | 1 -
- 2 files changed, 2 deletions(-)
+ net/atm/mpoa_proc.c | 6 ------
+ 1 file changed, 6 deletions(-)
 
-diff --git a/net/ipv6/ila/ila_common.c b/net/ipv6/ila/ila_common.c
-index 579310466eac..95e9146918cc 100644
---- a/net/ipv6/ila/ila_common.c
-+++ b/net/ipv6/ila/ila_common.c
-@@ -153,4 +153,3 @@ void ila_update_ipv6_locator(struct sk_buff *skb, struct ila_params *p,
- 	/* Now change destination address */
- 	iaddr->loc = p->locator;
+diff --git a/net/atm/mpoa_proc.c b/net/atm/mpoa_proc.c
+index b93cc0f18292..46d6cd9a36ae 100644
+--- a/net/atm/mpoa_proc.c
++++ b/net/atm/mpoa_proc.c
+@@ -307,9 +307,3 @@ void mpc_proc_clean(void)
  }
--
-diff --git a/net/ipv6/ila/ila_xlat.c b/net/ipv6/ila/ila_xlat.c
-index 51a15ce50a64..17c455ff69ff 100644
---- a/net/ipv6/ila/ila_xlat.c
-+++ b/net/ipv6/ila/ila_xlat.c
-@@ -663,4 +663,3 @@ static int ila_xlat_addr(struct sk_buff *skb, bool sir2ila)
  
- 	return 0;
- }
+ #endif /* CONFIG_PROC_FS */
+-
+-
+-
+-
+-
 -
 -- 
 2.18.0
