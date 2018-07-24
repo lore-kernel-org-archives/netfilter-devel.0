@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 6/9] netfilter: nf_tables: fix memory leaks on chain rename
-Date: Tue, 24 Jul 2018 18:31:30 +0200
-Message-ID: <20180724163133.14586-7-pablo@netfilter.org>
+Subject: [PATCH 4/9] netfilter: nf_tables: use dev->name directly
+Date: Tue, 24 Jul 2018 18:31:28 +0200
+Message-ID: <20180724163133.14586-5-pablo@netfilter.org>
 References: <20180724163133.14586-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -12,66 +12,81 @@ List-Id: netfilter-devel.vger.kernel.org
 
 From: Florian Westphal <fw@strlen.de>
 
-The new name is stored in the transaction metadata, on commit,
-the pointers to the old and new names are swapped.
+no need to store the name in separate area.
 
-Therefore in abort and commit case we have to free the
-pointer in the chain_trans container.
+Furthermore, it uses kmalloc but not kfree and most accesses seem to treat
+it as char[IFNAMSIZ] not char *.
 
-In commit case, the pointer can be used by another cpu that
-is currently dumping the renamed chain, thus kfree needs to
-happen after waiting for rcu readers to complete.
+Remove this and use dev->name instead.
 
-Fixes: b7263e071a ("netfilter: nf_tables: Allow chain name of up to 255 chars")
+In case event zeroed dev, just omit the name in the dump.
+
+Fixes: d92191aa84e5f1 ("netfilter: nf_tables: cache device name in flowtable object")
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c | 17 +++++++++++------
- 1 file changed, 11 insertions(+), 6 deletions(-)
+ include/net/netfilter/nf_tables.h |  1 -
+ net/netfilter/nf_tables_api.c     | 14 +++++---------
+ 2 files changed, 5 insertions(+), 10 deletions(-)
 
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index 4e82a4c49912..dc417ef0a0c5 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -1124,7 +1124,6 @@ struct nft_flowtable {
+ 	u32				genmask:2,
+ 					use:30;
+ 	u64				handle;
+-	char				*dev_name[NFT_FLOWTABLE_DEVICE_MAX];
+ 	/* runtime data below here */
+ 	struct nf_hook_ops		*ops ____cacheline_aligned;
+ 	struct nf_flowtable		data;
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 200da08524ae..91230d713190 100644
+index d41fa2c82f14..54a4f75ff9da 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -6087,6 +6087,9 @@ static void nft_commit_release(struct nft_trans *trans)
- 	case NFT_MSG_DELTABLE:
- 		nf_tables_table_destroy(&trans->ctx);
+@@ -5324,8 +5324,6 @@ static int nf_tables_flowtable_parse_hook(const struct nft_ctx *ctx,
+ 		flowtable->ops[i].priv		= &flowtable->data;
+ 		flowtable->ops[i].hook		= flowtable->data.type->hook;
+ 		flowtable->ops[i].dev		= dev_array[i];
+-		flowtable->dev_name[i]		= kstrdup(dev_array[i]->name,
+-							  GFP_KERNEL);
+ 	}
+ 
+ 	return err;
+@@ -5483,10 +5481,8 @@ static int nf_tables_newflowtable(struct net *net, struct sock *nlsk,
+ err6:
+ 	i = flowtable->ops_len;
+ err5:
+-	for (k = i - 1; k >= 0; k--) {
+-		kfree(flowtable->dev_name[k]);
++	for (k = i - 1; k >= 0; k--)
+ 		nf_unregister_net_hook(net, &flowtable->ops[k]);
+-	}
+ 
+ 	kfree(flowtable->ops);
+ err4:
+@@ -5585,9 +5581,10 @@ static int nf_tables_fill_flowtable_info(struct sk_buff *skb, struct net *net,
+ 		goto nla_put_failure;
+ 
+ 	for (i = 0; i < flowtable->ops_len; i++) {
+-		if (flowtable->dev_name[i][0] &&
+-		    nla_put_string(skb, NFTA_DEVICE_NAME,
+-				   flowtable->dev_name[i]))
++		const struct net_device *dev = READ_ONCE(flowtable->ops[i].dev);
++
++		if (dev &&
++		    nla_put_string(skb, NFTA_DEVICE_NAME, dev->name))
+ 			goto nla_put_failure;
+ 	}
+ 	nla_nest_end(skb, nest_devs);
+@@ -5829,7 +5826,6 @@ static void nft_flowtable_event(unsigned long event, struct net_device *dev,
+ 			continue;
+ 
+ 		nf_unregister_net_hook(dev_net(dev), &flowtable->ops[i]);
+-		flowtable->dev_name[i][0] = '\0';
+ 		flowtable->ops[i].dev = NULL;
  		break;
-+	case NFT_MSG_NEWCHAIN:
-+		kfree(nft_trans_chain_name(trans));
-+		break;
- 	case NFT_MSG_DELCHAIN:
- 		nf_tables_chain_destroy(&trans->ctx);
- 		break;
-@@ -6316,13 +6319,15 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
- 			nf_tables_table_notify(&trans->ctx, NFT_MSG_DELTABLE);
- 			break;
- 		case NFT_MSG_NEWCHAIN:
--			if (nft_trans_chain_update(trans))
-+			if (nft_trans_chain_update(trans)) {
- 				nft_chain_commit_update(trans);
--			else
-+				nf_tables_chain_notify(&trans->ctx, NFT_MSG_NEWCHAIN);
-+				/* trans destroyed after rcu grace period */
-+			} else {
- 				nft_clear(net, trans->ctx.chain);
--
--			nf_tables_chain_notify(&trans->ctx, NFT_MSG_NEWCHAIN);
--			nft_trans_destroy(trans);
-+				nf_tables_chain_notify(&trans->ctx, NFT_MSG_NEWCHAIN);
-+				nft_trans_destroy(trans);
-+			}
- 			break;
- 		case NFT_MSG_DELCHAIN:
- 			nft_chain_del(trans->ctx.chain);
-@@ -6472,7 +6477,7 @@ static int __nf_tables_abort(struct net *net)
- 		case NFT_MSG_NEWCHAIN:
- 			if (nft_trans_chain_update(trans)) {
- 				free_percpu(nft_trans_chain_stats(trans));
--
-+				kfree(nft_trans_chain_name(trans));
- 				nft_trans_destroy(trans);
- 			} else {
- 				trans->ctx.table->use--;
+ 	}
 -- 
 2.11.0
