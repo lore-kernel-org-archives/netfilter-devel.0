@@ -1,101 +1,110 @@
-From: Stephen Hemminger <stephen-OTpzqLSitTUnbdJkjeBofR2eb7JE58TQ@public.gmane.org>
-Subject: [PATCH PATCH net-next 01/18] sched: fix trailing whitespace
-Date: Tue, 24 Jul 2018 12:29:01 -0700
-Message-ID: <20180724192918.31165-2-sthemmin@microsoft.com>
-References: <20180724192918.31165-1-sthemmin@microsoft.com>
-Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, v9fs-developer-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org,
-        linux-hams-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ceph-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
-        linux-decnet-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org,
-        netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, coreteam-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org,
-        linux-wpan-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
-        linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
-        linux-sctp-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
-        linux-x25-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
-        Stephen Hemminger <sthemmin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>,
-        Stephen Hemminger <stephen-OTpzqLSitTUnbdJkjeBofR2eb7JE58TQ@public.gmane.org>
-To: davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, ericvh-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, rminnich-4OHPYypu0djtX7QSmKvirg@public.gmane.org,
-        lucho-OnYtXJJ0/fesTnJN9+BGXg@public.gmane.org, ralf-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org, jreuter-K7Hl1MveuGQ@public.gmane.org,
-        pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org, kadlec-K40Dz/62t/MgiyqX0sVFJYdd74u8MsAO@public.gmane.org, fw-HFFVJYpyMKqzQB+pC5nmwQ@public.gmane.org,
-        alex.aring-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, stefan-OrPQZGeq07wqhVmZOOOmNx2eb7JE58TQ@public.gmane.org,
-        kuznet-v/Mj1YrvjDBInbfyfbPRSQ@public.gmane.org, yoshfuji-VfPWfsRibaP+Ru+s062T9g@public.gmane.org,
-        johannes-cdvu00un1VgdHxzADdlk8Q@public.gmane.org, jhs-jkUAjuhPggJWk0Htik3J/w@public.gmane.org,
-        xiyou.wangcong-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, jiri-rHqAuBHg3fBzbRFIqnYvSA@public.gmane.org, vyasevich-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org,
-        nhorman-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org, marcelo.leitner-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org,
-        trond.myklebust-F/q8l9xzQnoyLce1RVWEUA@public.gmane.org, anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org,
-        steffen.klassert-opNxpl+3fjRBDgjK7y7TUQ@public.gmane.org, herbert-lOAM2aK0SrRLBo1qDEOMRrpzq4S04n8Q@public.gmane.org
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180724192918.31165-1-sthemmin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Julian Anastasov <ja@ssi.bg>
+Subject: Re: [PATCH] ipvs: fix race between ip_vs_conn_new() and
+ ip_vs_del_dest()
+Date: Tue, 24 Jul 2018 22:47:12 +0300 (EEST)
+Message-ID: <alpine.LFD.2.20.1807242216100.3314@ja.home.ssi.bg>
+References: <1532419953-5517-1-git-send-email-tan.hu@zte.com.cn>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Cc: wensong@linux-vs.org, horms@verge.net.au, pablo@netfilter.org,
+        kadlec@blackhole.kfki.hu, fw@strlen.de, davem@davemloft.net,
+        netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        linux-kernel@vger.kernel.org, zhong.weidong@zte.com.cn,
+        jiang.biao2@zte.com.cn
+To: Tan Hu <tan.hu@zte.com.cn>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1532419953-5517-1-git-send-email-tan.hu@zte.com.cn>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Remove trailing whitespace and blank lines at EOF
 
-Signed-off-by: Stephen Hemminger <stephen-OTpzqLSitTUnbdJkjeBofR2eb7JE58TQ@public.gmane.org>
----
- net/sched/Kconfig        | 4 ++--
- net/sched/Makefile       | 2 +-
- net/sched/act_connmark.c | 1 -
- net/sched/act_pedit.c    | 1 -
- net/sched/cls_basic.c    | 1 -
- 5 files changed, 3 insertions(+), 6 deletions(-)
+	Hello,
 
-diff --git a/net/sched/Kconfig b/net/sched/Kconfig
-index 7af246764a35..bba71225adbd 100644
---- a/net/sched/Kconfig
-+++ b/net/sched/Kconfig
-@@ -1,6 +1,6 @@
- #
- # Traffic control configuration.
--# 
-+#
- 
- menuconfig NET_SCHED
- 	bool "QoS and/or fair queueing"
-@@ -706,7 +706,7 @@ config NET_CLS_ACT
- 
- config NET_ACT_POLICE
- 	tristate "Traffic Policing"
--        depends on NET_CLS_ACT 
-+        depends on NET_CLS_ACT
-         ---help---
- 	  Say Y here if you want to do traffic policing, i.e. strict
- 	  bandwidth limiting. This action replaces the existing policing
-diff --git a/net/sched/Makefile b/net/sched/Makefile
-index 673ee7d26ff2..910ec7463a36 100644
---- a/net/sched/Makefile
-+++ b/net/sched/Makefile
-@@ -33,7 +33,7 @@ obj-$(CONFIG_NET_SCH_HTB)	+= sch_htb.o
- obj-$(CONFIG_NET_SCH_HFSC)	+= sch_hfsc.o
- obj-$(CONFIG_NET_SCH_RED)	+= sch_red.o
- obj-$(CONFIG_NET_SCH_GRED)	+= sch_gred.o
--obj-$(CONFIG_NET_SCH_INGRESS)	+= sch_ingress.o 
-+obj-$(CONFIG_NET_SCH_INGRESS)	+= sch_ingress.o
- obj-$(CONFIG_NET_SCH_DSMARK)	+= sch_dsmark.o
- obj-$(CONFIG_NET_SCH_SFB)	+= sch_sfb.o
- obj-$(CONFIG_NET_SCH_SFQ)	+= sch_sfq.o
-diff --git a/net/sched/act_connmark.c b/net/sched/act_connmark.c
-index 1e31f0e448e2..2f9bc833d046 100644
---- a/net/sched/act_connmark.c
-+++ b/net/sched/act_connmark.c
-@@ -252,4 +252,3 @@ module_exit(connmark_cleanup_module);
- MODULE_AUTHOR("Felix Fietkau <nbd-p3rKhJxN3npAfugRpC6u6w@public.gmane.org>");
- MODULE_DESCRIPTION("Connection tracking mark restoring");
- MODULE_LICENSE("GPL");
--
-diff --git a/net/sched/act_pedit.c b/net/sched/act_pedit.c
-index cc8ffcd1ddb5..9ab5d81aff1a 100644
---- a/net/sched/act_pedit.c
-+++ b/net/sched/act_pedit.c
-@@ -516,4 +516,3 @@ static void __exit pedit_cleanup_module(void)
- 
- module_init(pedit_init_module);
- module_exit(pedit_cleanup_module);
--
-diff --git a/net/sched/cls_basic.c b/net/sched/cls_basic.c
-index 95367f37098d..6a5dce8baf19 100644
---- a/net/sched/cls_basic.c
-+++ b/net/sched/cls_basic.c
-@@ -324,4 +324,3 @@ static void __exit exit_basic(void)
- module_init(init_basic)
- module_exit(exit_basic)
- MODULE_LICENSE("GPL");
+On Tue, 24 Jul 2018, Tan Hu wrote:
+
+> We came across infinite loop in ipvs when using ipvs in docker
+> env.
+> 
+> When ipvs receives new packets and cannot find an ipvs connection,
+> it will create a new connection, then if the dest is unavailable
+> (i.e. IP_VS_DEST_F_AVAILABLE), the packet will be dropped sliently.
+> 
+> But if the dropped packet is the first packet of this connection,
+> the connection control timer never has a chance to start and the
+> ipvs connection cannot be released. This will lead to memory leak, or
+> infinite loop in cleanup_net() when net namespace is released like
+> this:
+> 
+>     ip_vs_conn_net_cleanup at ffffffffa0a9f31a [ip_vs]
+>     __ip_vs_cleanup at ffffffffa0a9f60a [ip_vs]
+>     ops_exit_list at ffffffff81567a49
+>     cleanup_net at ffffffff81568b40
+>     process_one_work at ffffffff810a851b
+>     worker_thread at ffffffff810a9356
+>     kthread at ffffffff810b0b6f
+>     ret_from_fork at ffffffff81697a18
+> 
+> race condition:
+>     CPU1                           CPU2
+>     ip_vs_in()
+>       ip_vs_conn_new()
+>                                    ip_vs_del_dest()
+>                                      __ip_vs_unlink_dest()
+>                                        ~IP_VS_DEST_F_AVAILABLE
+>       cp->dest && !IP_VS_DEST_F_AVAILABLE
+>       __ip_vs_conn_put
+>       ...
+>       cleanup_net  ---> infinite looping
+> 
+> Fix this by checking whether the timer already started.
+
+	Looks like an old bug...
+
+> 
+> Signed-off-by: Tan Hu <tan.hu@zte.com.cn>
+> Reviewed-by: Jiang Biao <jiang.biao2@zte.com.cn>
+> ---
+>  net/netfilter/ipvs/ip_vs_core.c | 10 +++++++---
+>  1 file changed, 7 insertions(+), 3 deletions(-)
+> 
+> diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+> index 0679dd1..ca9e7cc 100644
+> --- a/net/netfilter/ipvs/ip_vs_core.c
+> +++ b/net/netfilter/ipvs/ip_vs_core.c
+> @@ -1972,13 +1972,17 @@ static int ip_vs_in_icmp_v6(struct netns_ipvs *ipvs, struct sk_buff *skb,
+>  	if (cp->dest && !(cp->dest->flags & IP_VS_DEST_F_AVAILABLE)) {
+>  		/* the destination server is not available */
+
+		Add: u32 flags = cp->flags;
+
+>  
+> +		/* when timer already started, silently drop the packet.*/
+> +		if (timer_pending(&cp->timer))
+> +			__ip_vs_conn_put(cp);
+> +		else
+> +			ip_vs_conn_put(cp);
+
+	When ip_vs_conn_put is called for IP_VS_CONN_F_ONE_PACKET
+it is possible to call ip_vs_conn_expire and to free cp with
+ip_vs_conn_rcu_free immediately. What we can do is to avoid the
+ip_vs_conn_expire_now call in such case by reading the flags
+early (as above) and adding the needed check (as below).
+
+> +
+>  		if (sysctl_expire_nodest_conn(ipvs)) {
+
+	Add !(flags & IP_VS_CONN_F_ONE_PACKET) check in above 'if'.
+
+>  			/* try to expire the connection immediately */
+>  			ip_vs_conn_expire_now(cp);
+>  		}
+> -		/* don't restart its timer, and silently
+> -		   drop the packet. */
+> -		__ip_vs_conn_put(cp);
+> +
+>  		return NF_DROP;
+>  	}
+>  
+
+Regards
