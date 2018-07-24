@@ -1,148 +1,25 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 3/9] netfilter: nft_set_rbtree: fix panic when destroying set by GC
-Date: Tue, 24 Jul 2018 18:31:27 +0200
-Message-ID: <20180724163133.14586-4-pablo@netfilter.org>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 0/9] Netfilter fixes for net
+Date: Tue, 24 Jul 2018 10:00:24 -0700 (PDT)
+Message-ID: <20180724.100024.2189700411517256640.davem@davemloft.net>
 References: <20180724163133.14586-1-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180724163133.14586-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Taehee Yoo <ap420073@gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Tue, 24 Jul 2018 18:31:24 +0200
 
-This patch fixes below.
-1. check null pointer of rb_next.
- rb_next can return null. so null check routine should be added.
-2. add rcu_barrier in destroy routine.
- GC uses call_rcu to remove elements. but all elements should be
- removed before destroying set and chains. so that rcu_barrier is added.
+> The following patchset contains Netfilter fixes for net:
+ ...
+> You can pull these changes from:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
 
-test script:
-   %cat test.nft
-   table inet aa {
-	   map map1 {
-		   type ipv4_addr : verdict; flags interval, timeout;
-		   elements = {
-			   0-1 : jump a0,
-			   3-4 : jump a0,
-			   6-7 : jump a0,
-			   9-10 : jump a0,
-			   12-13 : jump a0,
-			   15-16 : jump a0,
-			   18-19 : jump a0,
-			   21-22 : jump a0,
-			   24-25 : jump a0,
-			   27-28 : jump a0,
-		   }
-		   timeout 1s;
-	   }
-	   chain a0 {
-	   }
-   }
-   flush ruleset
-   table inet aa {
-	   map map1 {
-		   type ipv4_addr : verdict; flags interval, timeout;
-		   elements = {
-			   0-1 : jump a0,
-			   3-4 : jump a0,
-			   6-7 : jump a0,
-			   9-10 : jump a0,
-			   12-13 : jump a0,
-			   15-16 : jump a0,
-			   18-19 : jump a0,
-			   21-22 : jump a0,
-			   24-25 : jump a0,
-			   27-28 : jump a0,
-		   }
-		   timeout 1s;
-	   }
-	   chain a0 {
-	   }
-   }
-   flush ruleset
-
-splat looks like:
-[ 2402.419838] kasan: GPF could be caused by NULL-ptr deref or user memory access
-[ 2402.428433] general protection fault: 0000 [#1] SMP DEBUG_PAGEALLOC KASAN PTI
-[ 2402.429343] CPU: 1 PID: 1350 Comm: kworker/1:1 Not tainted 4.18.0-rc2+ #1
-[ 2402.429343] Hardware name: To be filled by O.E.M. To be filled by O.E.M./Aptio CRB, BIOS 5.6.5 03/23/2017
-[ 2402.429343] Workqueue: events_power_efficient nft_rbtree_gc [nft_set_rbtree]
-[ 2402.429343] RIP: 0010:rb_next+0x1e/0x130
-[ 2402.429343] Code: e9 de f2 ff ff 0f 1f 80 00 00 00 00 41 55 48 89 fa 41 54 55 53 48 c1 ea 03 48 b8 00 00 00 0
-[ 2402.429343] RSP: 0018:ffff880105f77678 EFLAGS: 00010296
-[ 2402.429343] RAX: dffffc0000000000 RBX: ffff8801143e3428 RCX: 1ffff1002287c69c
-[ 2402.429343] RDX: 0000000000000000 RSI: 0000000000000004 RDI: 0000000000000000
-[ 2402.429343] RBP: 0000000000000000 R08: ffffed0016aabc24 R09: ffffed0016aabc24
-[ 2402.429343] R10: 0000000000000001 R11: ffffed0016aabc23 R12: 0000000000000000
-[ 2402.429343] R13: ffff8800b6933388 R14: dffffc0000000000 R15: ffff8801143e3440
-[ 2402.534486] kasan: CONFIG_KASAN_INLINE enabled
-[ 2402.534212] FS:  0000000000000000(0000) GS:ffff88011b600000(0000) knlGS:0000000000000000
-[ 2402.534212] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[ 2402.534212] CR2: 0000000000863008 CR3: 00000000a3c16000 CR4: 00000000001006e0
-[ 2402.534212] Call Trace:
-[ 2402.534212]  nft_rbtree_gc+0x2b5/0x5f0 [nft_set_rbtree]
-[ 2402.534212]  process_one_work+0xc1b/0x1ee0
-[ 2402.540329] kasan: GPF could be caused by NULL-ptr deref or user memory access
-[ 2402.534212]  ? _raw_spin_unlock_irq+0x29/0x40
-[ 2402.534212]  ? pwq_dec_nr_in_flight+0x3e0/0x3e0
-[ 2402.534212]  ? set_load_weight+0x270/0x270
-[ 2402.534212]  ? __schedule+0x6ea/0x1fb0
-[ 2402.534212]  ? __sched_text_start+0x8/0x8
-[ 2402.534212]  ? save_trace+0x320/0x320
-[ 2402.534212]  ? sched_clock_local+0xe2/0x150
-[ 2402.534212]  ? find_held_lock+0x39/0x1c0
-[ 2402.534212]  ? worker_thread+0x35f/0x1150
-[ 2402.534212]  ? lock_contended+0xe90/0xe90
-[ 2402.534212]  ? __lock_acquire+0x4520/0x4520
-[ 2402.534212]  ? do_raw_spin_unlock+0xb1/0x350
-[ 2402.534212]  ? do_raw_spin_trylock+0x111/0x1b0
-[ 2402.534212]  ? do_raw_spin_lock+0x1f0/0x1f0
-[ 2402.534212]  worker_thread+0x169/0x1150
-
-Fixes: 8d8540c4f5e0("netfilter: nft_set_rbtree: add timeout support")
-Signed-off-by: Taehee Yoo <ap420073@gmail.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nft_set_rbtree.c | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
-
-diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
-index 1f8f257cb518..9873d734b494 100644
---- a/net/netfilter/nft_set_rbtree.c
-+++ b/net/netfilter/nft_set_rbtree.c
-@@ -381,7 +381,7 @@ static void nft_rbtree_gc(struct work_struct *work)
- 
- 		gcb = nft_set_gc_batch_check(set, gcb, GFP_ATOMIC);
- 		if (!gcb)
--			goto out;
-+			break;
- 
- 		atomic_dec(&set->nelems);
- 		nft_set_gc_batch_add(gcb, rbe);
-@@ -390,10 +390,12 @@ static void nft_rbtree_gc(struct work_struct *work)
- 			rbe = rb_entry(prev, struct nft_rbtree_elem, node);
- 			atomic_dec(&set->nelems);
- 			nft_set_gc_batch_add(gcb, rbe);
-+			prev = NULL;
- 		}
- 		node = rb_next(node);
-+		if (!node)
-+			break;
- 	}
--out:
- 	if (gcb) {
- 		for (i = 0; i < gcb->head.cnt; i++) {
- 			rbe = gcb->elems[i];
-@@ -440,6 +442,7 @@ static void nft_rbtree_destroy(const struct nft_set *set)
- 	struct rb_node *node;
- 
- 	cancel_delayed_work_sync(&priv->gc_work);
-+	rcu_barrier();
- 	while ((node = priv->root.rb_node) != NULL) {
- 		rb_erase(node, &priv->root);
- 		rbe = rb_entry(node, struct nft_rbtree_elem, node);
--- 
-2.11.0
+Pulled, thank you.
