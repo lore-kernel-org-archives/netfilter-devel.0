@@ -1,44 +1,143 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH RFC/RFT net-next 00/17] net: Convert neighbor tables to
- per-namespace
-Date: Tue, 24 Jul 2018 10:14:05 -0700 (PDT)
-Message-ID: <20180724.101405.797730329231867648.davem@davemloft.net>
-References: <28c30574-391c-b4bd-c337-51d3040d901a@gmail.com>
-        <CAM_iQpW4-JkZY7jXx0Q1b907hQ85UOL1eXv2YHwSukb5L=apUg@mail.gmail.com>
-        <5021d874-8e99-6eba-f24b-4257c62d4457@gmail.com>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: xiyou.wangcong@gmail.com, netdev@vger.kernel.org,
-        nikita.leshchenko@oracle.com, roopa@cumulusnetworks.com,
-        stephen@networkplumber.org, idosch@mellanox.com, jiri@mellanox.com,
-        saeedm@mellanox.com, alex.aring@gmail.com,
-        linux-wpan@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-To: dsahern@gmail.com
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5021d874-8e99-6eba-f24b-4257c62d4457@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
+From: Stephen Hemminger <stephen@networkplumber.org>
+Subject: [PATCH PATCH net-next 00/18] net whitespace cleanups
+Date: Tue, 24 Jul 2018 12:29:00 -0700
+Message-ID: <20180724192918.31165-1-sthemmin@microsoft.com>
+Cc: netdev@vger.kernel.org, v9fs-developer@lists.sourceforge.net,
+        linux-hams@vger.kernel.org, ceph-devel@vger.kernel.org,
+        linux-decnet-user@lists.sourceforge.net,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        linux-wpan@vger.kernel.org, linux-s390@vger.kernel.org,
+        linux-wireless@vger.kernel.org, linux-rdma@vger.kernel.org,
+        linux-sctp@vger.kernel.org, linux-nfs@vger.kernel.org,
+        linux-x25@vger.kernel.org,
+        Stephen Hemminger <sthemmin@microsoft.com>
+To: davem@davemloft.net, ericvh@gmail.com, rminnich@sandia.gov,
+        lucho@ionkov.net, ralf@linux-mips.org, jreuter@yaina.de,
+        pablo@netfilter.org, kadlec@blackhole.kfki.hu, fw@strlen.de,
+        alex.aring@gmail.com, stefan@datenfreihafen.org,
+        kuznet@ms2.inr.ac.ru, yoshfuji@linux-ipv6.org,
+        johannes@sipsolutions.net, jhs@mojatatu.com,
+        xiyou.wangcong@gmail.com, jiri@resnulli.us, vyasevich@gmail.com,
+        nhorman@tuxdriver.com, marcelo.leitner@gmail.com,
+        trond.myklebust@hammerspace.com, anna.schumaker@netapp.com,
+        steffen.klassert@secunet.com, herbert@gondor.apana.org.au
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: David Ahern <dsahern@gmail.com>
-Date: Tue, 24 Jul 2018 09:14:01 -0600
+Ran script that I use to check for trailing whitespace and
+blank lines at end of files across all files in net/ directory.
+These are errors that checkpatch reports and git flags.
 
-> I get the impression there is no longer a strong resistance against
-> moving the tables to per namespace, but deciding what is the right
-> approach to handle backwards compatibility. Correct? Changing the
-> accounting is inevitably going to be noticeable to some use case(s), but
-> with sysctl settings it is a simple runtime update once the user knows
-> to make the change.
-> 
-> neighbor entries round up to 512 byte allocations, so with the current
-> gc_thresh defaults (128/512/1024) 512k can be consumed. Using those
-> limits per namespace seems high which is why I suggested a per-namespace
-> default of (16/32/64) which amounts to 32k per namespace limit by
-> default. Open to other suggestions as well.
+These are the resulting fixes broken up mostly by subsystem.
 
-No objection from me about going to per-ns neigh tables.
+Stephen Hemminger (18):
+  sched: fix trailing whitespace
+  wimax: remove blank lines at EOF
+  rds: remove trailing whitespace and blank lines
+  llc: fix whitespace issues
+  mpls: remove trailing whitepace
+  xfrm: remove blank lines at EOF
+  ceph: fix whitespace
+  sctp: whitespace fixes
+  ila: remove blank lines at EOF
+  9p: fix whitespace issues
+  atm: remove blank lines at EOF
+  ax25: remove blank line at EOF
+  x25: remove blank lines at EOF
+  decnet: whitespace fixes
+  sunrpc: whitespace fixes
+  bpfilter: remove trailing newline
+  l2tp: remove trailing newline
+  net: remove blank lines at end of file
 
-About the defaults, I wonder if we can scale them to the amount of
-memory given to the ns or something like that?  I bet this will better
-match the intended use of the ns.
+ net/8021q/Makefile                      | 1 -
+ net/9p/client.c                         | 4 ++--
+ net/9p/trans_virtio.c                   | 2 +-
+ net/9p/util.c                           | 1 -
+ net/Kconfig                             | 2 +-
+ net/atm/mpoa_proc.c                     | 6 ------
+ net/ax25/ax25_addr.c                    | 1 -
+ net/ax25/ax25_ds_in.c                   | 1 -
+ net/ax25/ax25_ds_subr.c                 | 1 -
+ net/ax25/ax25_ip.c                      | 1 -
+ net/ax25/ax25_out.c                     | 1 -
+ net/bpfilter/Kconfig                    | 1 -
+ net/ceph/Kconfig                        | 1 -
+ net/ceph/Makefile                       | 1 -
+ net/ceph/auth_none.c                    | 1 -
+ net/ceph/auth_none.h                    | 1 -
+ net/ceph/auth_x.c                       | 2 --
+ net/ceph/auth_x.h                       | 1 -
+ net/ceph/mon_client.c                   | 2 +-
+ net/ceph/pagevec.c                      | 1 -
+ net/core/neighbour.c                    | 1 -
+ net/decnet/Kconfig                      | 1 -
+ net/decnet/Makefile                     | 1 -
+ net/decnet/TODO                         | 5 ++---
+ net/decnet/dn_fib.c                     | 2 --
+ net/decnet/dn_nsp_in.c                  | 1 -
+ net/decnet/dn_nsp_out.c                 | 1 -
+ net/decnet/dn_route.c                   | 1 -
+ net/decnet/dn_rules.c                   | 2 --
+ net/decnet/netfilter/Makefile           | 1 -
+ net/decnet/netfilter/dn_rtmsg.c         | 1 -
+ net/dns_resolver/dns_key.c              | 1 -
+ net/ieee802154/core.c                   | 1 -
+ net/ieee802154/nl_policy.c              | 1 -
+ net/ipv4/Kconfig                        | 4 ++--
+ net/ipv4/Makefile                       | 2 +-
+ net/ipv4/bpfilter/Makefile              | 1 -
+ net/ipv6/Kconfig                        | 2 +-
+ net/ipv6/ila/ila_common.c               | 1 -
+ net/ipv6/ila/ila_xlat.c                 | 1 -
+ net/iucv/af_iucv.c                      | 1 -
+ net/kcm/Kconfig                         | 1 -
+ net/kcm/kcmsock.c                       | 1 -
+ net/l2tp/l2tp_core.c                    | 1 -
+ net/llc/Kconfig                         | 2 +-
+ net/llc/Makefile                        | 2 +-
+ net/llc/llc_if.c                        | 1 -
+ net/mac80211/rc80211_minstrel.c         | 1 -
+ net/mpls/mpls_iptunnel.c                | 2 +-
+ net/rds/Kconfig                         | 1 -
+ net/rds/Makefile                        | 1 -
+ net/rds/ib.c                            | 1 -
+ net/rds/message.c                       | 1 -
+ net/rds/rdma_transport.c                | 1 -
+ net/rds/tcp.c                           | 1 -
+ net/rds/transport.c                     | 1 -
+ net/sched/Kconfig                       | 4 ++--
+ net/sched/Makefile                      | 2 +-
+ net/sched/act_connmark.c                | 1 -
+ net/sched/act_pedit.c                   | 1 -
+ net/sched/cls_basic.c                   | 1 -
+ net/sctp/Kconfig                        | 4 ++--
+ net/sctp/sm_sideeffect.c                | 1 -
+ net/sunrpc/auth_gss/auth_gss.c          | 2 +-
+ net/sunrpc/auth_gss/gss_generic_token.c | 1 -
+ net/sunrpc/auth_gss/gss_krb5_crypto.c   | 1 -
+ net/sunrpc/auth_gss/gss_krb5_keys.c     | 1 -
+ net/sunrpc/auth_gss/gss_krb5_seal.c     | 1 -
+ net/sunrpc/auth_gss/gss_krb5_unseal.c   | 1 -
+ net/sunrpc/auth_gss/gss_krb5_wrap.c     | 1 -
+ net/sunrpc/auth_gss/svcauth_gss.c       | 2 +-
+ net/sunrpc/backchannel_rqst.c           | 1 -
+ net/sunrpc/clnt.c                       | 2 +-
+ net/sunrpc/rpcb_clnt.c                  | 2 +-
+ net/sunrpc/stats.c                      | 1 -
+ net/sunrpc/sunrpc.h                     | 1 -
+ net/sunrpc/xprt.c                       | 2 +-
+ net/sunrpc/xprtsock.c                   | 1 -
+ net/wimax/Makefile                      | 2 --
+ net/wimax/debugfs.c                     | 2 --
+ net/wimax/op-msg.c                      | 1 -
+ net/wimax/stack.c                       | 1 -
+ net/x25/Kconfig                         | 2 --
+ net/x25/x25_subr.c                      | 1 -
+ net/xfrm/Kconfig                        | 1 -
+ net/xfrm/xfrm_user.c                    | 1 -
+ 86 files changed, 24 insertions(+), 103 deletions(-)
+
+-- 
+2.18.0
