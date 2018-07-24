@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 2/9] netfilter: nft_set_hash: add rcu_barrier() in the nft_rhash_destroy()
-Date: Tue, 24 Jul 2018 18:31:26 +0200
-Message-ID: <20180724163133.14586-3-pablo@netfilter.org>
+Subject: [PATCH 7/9] netfilter: nf_tables: don't allow to rename to already-pending name
+Date: Tue, 24 Jul 2018 18:31:31 +0200
+Message-ID: <20180724163133.14586-8-pablo@netfilter.org>
 References: <20180724163133.14586-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,114 +10,105 @@ In-Reply-To: <20180724163133.14586-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Taehee Yoo <ap420073@gmail.com>
+From: Florian Westphal <fw@strlen.de>
 
-GC of set uses call_rcu() to destroy elements.
-So that elements would be destroyed after destroying sets and chains.
-But, elements should be destroyed before destroying sets and chains.
-In order to wait calling call_rcu(), a rcu_barrier() is added.
+Its possible to rename two chains to the same name in one
+transaction:
 
-In order to test correctly, below patch should be applied.
-https://patchwork.ozlabs.org/patch/940883/
+nft add chain t c1
+nft add chain t c2
+nft 'rename chain t c1 c3;rename chain t c2 c3'
 
-test scripts:
-   %cat test.nft
-   table ip aa {
-	   map map1 {
-		   type ipv4_addr : verdict; flags timeout;
-		   elements = {
-			   0 : jump a0,
-			   1 : jump a0,
-			   2 : jump a0,
-			   3 : jump a0,
-			   4 : jump a0,
-			   5 : jump a0,
-			   6 : jump a0,
-			   7 : jump a0,
-			   8 : jump a0,
-			   9 : jump a0,
-		   }
-		   timeout 1s;
-	   }
-	   chain a0 {
-	   }
-   }
-   flush ruleset
+This creates two chains named 'c3'.
 
-   [ ... ]
+Appears to be harmless, both chains can still be deleted both
+by name or handle, but, nevertheless, its a bug.
 
-   table ip aa {
-	   map map1 {
-		   type ipv4_addr : verdict; flags timeout;
-		   elements = {
-			   0 : jump a0,
-			   1 : jump a0,
-			   2 : jump a0,
-			   3 : jump a0,
-			   4 : jump a0,
-			   5 : jump a0,
-			   6 : jump a0,
-			   7 : jump a0,
-			   8 : jump a0,
-			   9 : jump a0,
-		   }
-		   timeout 1s;
-	   }
-	   chain a0 {
-	   }
-   }
-   flush ruleset
+Walk transaction log and also compare vs. the pending renames.
 
-Splat looks like:
-[  200.795603] kernel BUG at net/netfilter/nf_tables_api.c:1363!
-[  200.806944] invalid opcode: 0000 [#1] SMP DEBUG_PAGEALLOC KASAN PTI
-[  200.812253] CPU: 1 PID: 1582 Comm: nft Not tainted 4.17.0+ #24
-[  200.820297] Hardware name: To be filled by O.E.M. To be filled by O.E.M./Aptio CRB, BIOS 5.6.5 07/08/2015
-[  200.830309] RIP: 0010:nf_tables_chain_destroy.isra.34+0x62/0x240 [nf_tables]
-[  200.838317] Code: 43 50 85 c0 74 26 48 8b 45 00 48 8b 4d 08 ba 54 05 00 00 48 c7 c6 60 6d 29 c0 48 c7 c7 c0 65 29 c0
-4c 8b 40 08 e8 58 e5 fd f8 <0f> 0b 48 89 da 48 b8 00 00 00 00 00 fc ff
-[  200.860366] RSP: 0000:ffff880118dbf4d0 EFLAGS: 00010282
-[  200.866354] RAX: 0000000000000061 RBX: ffff88010cdeaf08 RCX: 0000000000000000
-[  200.874355] RDX: 0000000000000061 RSI: 0000000000000008 RDI: ffffed00231b7e90
-[  200.882361] RBP: ffff880118dbf4e8 R08: ffffed002373bcfb R09: ffffed002373bcfa
-[  200.890354] R10: 0000000000000000 R11: ffffed002373bcfb R12: dead000000000200
-[  200.898356] R13: dead000000000100 R14: ffffffffbb62af38 R15: dffffc0000000000
-[  200.906354] FS:  00007fefc31fd700(0000) GS:ffff88011b800000(0000) knlGS:0000000000000000
-[  200.915533] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[  200.922355] CR2: 0000557f1c8e9128 CR3: 0000000106880000 CR4: 00000000001006e0
-[  200.930353] Call Trace:
-[  200.932351]  ? nf_tables_commit+0x26f6/0x2c60 [nf_tables]
-[  200.939525]  ? nf_tables_setelem_notify.constprop.49+0x1a0/0x1a0 [nf_tables]
-[  200.947525]  ? nf_tables_delchain+0x6e0/0x6e0 [nf_tables]
-[  200.952383]  ? nft_add_set_elem+0x1700/0x1700 [nf_tables]
-[  200.959532]  ? nla_parse+0xab/0x230
-[  200.963529]  ? nfnetlink_rcv_batch+0xd06/0x10d0 [nfnetlink]
-[  200.968384]  ? nfnetlink_net_init+0x130/0x130 [nfnetlink]
-[  200.975525]  ? debug_show_all_locks+0x290/0x290
-[  200.980363]  ? debug_show_all_locks+0x290/0x290
-[  200.986356]  ? sched_clock_cpu+0x132/0x170
-[  200.990352]  ? find_held_lock+0x39/0x1b0
-[  200.994355]  ? sched_clock_local+0x10d/0x130
-[  200.999531]  ? memset+0x1f/0x40
+Both chains can still be deleted, but nevertheless it is a bug as
+we don't allow to create chains with identical names, so we should
+prevent this from happening-by-rename too.
 
-Fixes: 9d0982927e79 ("netfilter: nft_hash: add support for timeouts")
-Signed-off-by: Taehee Yoo <ap420073@gmail.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_set_hash.c | 1 +
- 1 file changed, 1 insertion(+)
+ net/netfilter/nf_tables_api.c | 42 +++++++++++++++++++++++++++++-------------
+ 1 file changed, 29 insertions(+), 13 deletions(-)
 
-diff --git a/net/netfilter/nft_set_hash.c b/net/netfilter/nft_set_hash.c
-index 72ef35b51cac..90c3e7e6cacb 100644
---- a/net/netfilter/nft_set_hash.c
-+++ b/net/netfilter/nft_set_hash.c
-@@ -387,6 +387,7 @@ static void nft_rhash_destroy(const struct nft_set *set)
- 	struct nft_rhash *priv = nft_set_priv(set);
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 91230d713190..d7b9748e338e 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -1598,7 +1598,6 @@ static int nf_tables_updchain(struct nft_ctx *ctx, u8 genmask, u8 policy,
+ 	struct nft_base_chain *basechain;
+ 	struct nft_stats *stats = NULL;
+ 	struct nft_chain_hook hook;
+-	const struct nlattr *name;
+ 	struct nf_hook_ops *ops;
+ 	struct nft_trans *trans;
+ 	int err;
+@@ -1646,12 +1645,11 @@ static int nf_tables_updchain(struct nft_ctx *ctx, u8 genmask, u8 policy,
+ 			return PTR_ERR(stats);
+ 	}
  
- 	cancel_delayed_work_sync(&priv->gc_work);
-+	rcu_barrier();
- 	rhashtable_free_and_destroy(&priv->ht, nft_rhash_elem_destroy,
- 				    (void *)set);
++	err = -ENOMEM;
+ 	trans = nft_trans_alloc(ctx, NFT_MSG_NEWCHAIN,
+ 				sizeof(struct nft_trans_chain));
+-	if (trans == NULL) {
+-		free_percpu(stats);
+-		return -ENOMEM;
+-	}
++	if (trans == NULL)
++		goto err;
+ 
+ 	nft_trans_chain_stats(trans) = stats;
+ 	nft_trans_chain_update(trans) = true;
+@@ -1661,19 +1659,37 @@ static int nf_tables_updchain(struct nft_ctx *ctx, u8 genmask, u8 policy,
+ 	else
+ 		nft_trans_chain_policy(trans) = -1;
+ 
+-	name = nla[NFTA_CHAIN_NAME];
+-	if (nla[NFTA_CHAIN_HANDLE] && name) {
+-		nft_trans_chain_name(trans) =
+-			nla_strdup(name, GFP_KERNEL);
+-		if (!nft_trans_chain_name(trans)) {
+-			kfree(trans);
+-			free_percpu(stats);
+-			return -ENOMEM;
++	if (nla[NFTA_CHAIN_HANDLE] &&
++	    nla[NFTA_CHAIN_NAME]) {
++		struct nft_trans *tmp;
++		char *name;
++
++		err = -ENOMEM;
++		name = nla_strdup(nla[NFTA_CHAIN_NAME], GFP_KERNEL);
++		if (!name)
++			goto err;
++
++		err = -EEXIST;
++		list_for_each_entry(tmp, &ctx->net->nft.commit_list, list) {
++			if (tmp->msg_type == NFT_MSG_NEWCHAIN &&
++			    tmp->ctx.table == table &&
++			    nft_trans_chain_update(tmp) &&
++			    nft_trans_chain_name(tmp) &&
++			    strcmp(name, nft_trans_chain_name(tmp)) == 0) {
++				kfree(name);
++				goto err;
++			}
+ 		}
++
++		nft_trans_chain_name(trans) = name;
+ 	}
+ 	list_add_tail(&trans->list, &ctx->net->nft.commit_list);
+ 
+ 	return 0;
++err:
++	free_percpu(stats);
++	kfree(trans);
++	return err;
  }
+ 
+ static int nf_tables_newchain(struct net *net, struct sock *nlsk,
 -- 
 2.11.0
