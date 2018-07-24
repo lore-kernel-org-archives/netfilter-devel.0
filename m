@@ -1,7 +1,7 @@
 From: Stephen Hemminger <stephen-OTpzqLSitTUnbdJkjeBofR2eb7JE58TQ@public.gmane.org>
-Subject: [PATCH PATCH net-next 02/18] wimax: remove blank lines at EOF
-Date: Tue, 24 Jul 2018 12:29:02 -0700
-Message-ID: <20180724192918.31165-3-sthemmin@microsoft.com>
+Subject: [PATCH PATCH net-next 01/18] sched: fix trailing whitespace
+Date: Tue, 24 Jul 2018 12:29:01 -0700
+Message-ID: <20180724192918.31165-2-sthemmin@microsoft.com>
 References: <20180724192918.31165-1-sthemmin@microsoft.com>
 Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, v9fs-developer-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org,
         linux-hams-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ceph-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
@@ -28,48 +28,74 @@ In-Reply-To: <20180724192918.31165-1-sthemmin-0li6OtcxBFHby3iVrkZq2A@public.gman
 Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Remove trailing whitespace and blank lines at EOF
+
 Signed-off-by: Stephen Hemminger <stephen-OTpzqLSitTUnbdJkjeBofR2eb7JE58TQ@public.gmane.org>
 ---
- net/wimax/Makefile  | 2 --
- net/wimax/debugfs.c | 2 --
- net/wimax/op-msg.c  | 1 -
- net/wimax/stack.c   | 1 -
- 4 files changed, 6 deletions(-)
+ net/sched/Kconfig        | 4 ++--
+ net/sched/Makefile       | 2 +-
+ net/sched/act_connmark.c | 1 -
+ net/sched/act_pedit.c    | 1 -
+ net/sched/cls_basic.c    | 1 -
+ 5 files changed, 3 insertions(+), 6 deletions(-)
 
-diff --git a/net/wimax/Makefile b/net/wimax/Makefile
-index eb2db0d3b880..c2a71ae487ac 100644
---- a/net/wimax/Makefile
-+++ b/net/wimax/Makefile
-@@ -11,5 +11,3 @@ wimax-y :=		\
- 	stack.o
+diff --git a/net/sched/Kconfig b/net/sched/Kconfig
+index 7af246764a35..bba71225adbd 100644
+--- a/net/sched/Kconfig
++++ b/net/sched/Kconfig
+@@ -1,6 +1,6 @@
+ #
+ # Traffic control configuration.
+-# 
++#
  
- wimax-$(CONFIG_DEBUG_FS) += debugfs.o
+ menuconfig NET_SCHED
+ 	bool "QoS and/or fair queueing"
+@@ -706,7 +706,7 @@ config NET_CLS_ACT
+ 
+ config NET_ACT_POLICE
+ 	tristate "Traffic Policing"
+-        depends on NET_CLS_ACT 
++        depends on NET_CLS_ACT
+         ---help---
+ 	  Say Y here if you want to do traffic policing, i.e. strict
+ 	  bandwidth limiting. This action replaces the existing policing
+diff --git a/net/sched/Makefile b/net/sched/Makefile
+index 673ee7d26ff2..910ec7463a36 100644
+--- a/net/sched/Makefile
++++ b/net/sched/Makefile
+@@ -33,7 +33,7 @@ obj-$(CONFIG_NET_SCH_HTB)	+= sch_htb.o
+ obj-$(CONFIG_NET_SCH_HFSC)	+= sch_hfsc.o
+ obj-$(CONFIG_NET_SCH_RED)	+= sch_red.o
+ obj-$(CONFIG_NET_SCH_GRED)	+= sch_gred.o
+-obj-$(CONFIG_NET_SCH_INGRESS)	+= sch_ingress.o 
++obj-$(CONFIG_NET_SCH_INGRESS)	+= sch_ingress.o
+ obj-$(CONFIG_NET_SCH_DSMARK)	+= sch_dsmark.o
+ obj-$(CONFIG_NET_SCH_SFB)	+= sch_sfb.o
+ obj-$(CONFIG_NET_SCH_SFQ)	+= sch_sfq.o
+diff --git a/net/sched/act_connmark.c b/net/sched/act_connmark.c
+index 1e31f0e448e2..2f9bc833d046 100644
+--- a/net/sched/act_connmark.c
++++ b/net/sched/act_connmark.c
+@@ -252,4 +252,3 @@ module_exit(connmark_cleanup_module);
+ MODULE_AUTHOR("Felix Fietkau <nbd-p3rKhJxN3npAfugRpC6u6w@public.gmane.org>");
+ MODULE_DESCRIPTION("Connection tracking mark restoring");
+ MODULE_LICENSE("GPL");
 -
+diff --git a/net/sched/act_pedit.c b/net/sched/act_pedit.c
+index cc8ffcd1ddb5..9ab5d81aff1a 100644
+--- a/net/sched/act_pedit.c
++++ b/net/sched/act_pedit.c
+@@ -516,4 +516,3 @@ static void __exit pedit_cleanup_module(void)
+ 
+ module_init(pedit_init_module);
+ module_exit(pedit_cleanup_module);
 -
-diff --git a/net/wimax/debugfs.c b/net/wimax/debugfs.c
-index 6c9bedb7431e..24514840746e 100644
---- a/net/wimax/debugfs.c
-+++ b/net/wimax/debugfs.c
-@@ -76,5 +76,3 @@ void wimax_debugfs_rm(struct wimax_dev *wimax_dev)
- {
- 	debugfs_remove_recursive(wimax_dev->debugfs_dentry);
- }
--
--
-diff --git a/net/wimax/op-msg.c b/net/wimax/op-msg.c
-index 54aa146930bd..101b2fa3f32e 100644
---- a/net/wimax/op-msg.c
-+++ b/net/wimax/op-msg.c
-@@ -404,4 +404,3 @@ int wimax_gnl_doit_msg_from_user(struct sk_buff *skb, struct genl_info *info)
- 	d_fnend(3, NULL, "(skb %p info %p) = %d\n", skb, info, result);
- 	return result;
- }
--
-diff --git a/net/wimax/stack.c b/net/wimax/stack.c
-index 73dba9c077bb..a6307813b6d5 100644
---- a/net/wimax/stack.c
-+++ b/net/wimax/stack.c
-@@ -630,4 +630,3 @@ module_exit(wimax_subsys_exit);
- MODULE_AUTHOR("Intel Corporation <linux-wimax-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>");
- MODULE_DESCRIPTION("Linux WiMAX stack");
+diff --git a/net/sched/cls_basic.c b/net/sched/cls_basic.c
+index 95367f37098d..6a5dce8baf19 100644
+--- a/net/sched/cls_basic.c
++++ b/net/sched/cls_basic.c
+@@ -324,4 +324,3 @@ static void __exit exit_basic(void)
+ module_init(init_basic)
+ module_exit(exit_basic)
  MODULE_LICENSE("GPL");
