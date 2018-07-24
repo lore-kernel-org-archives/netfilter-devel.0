@@ -1,7 +1,7 @@
 From: Stephen Hemminger <stephen@networkplumber.org>
-Subject: [PATCH PATCH net-next 07/18] ceph: fix whitespace
-Date: Tue, 24 Jul 2018 12:29:07 -0700
-Message-ID: <20180724192918.31165-8-sthemmin@microsoft.com>
+Subject: [PATCH PATCH net-next 04/18] llc: fix whitespace issues
+Date: Tue, 24 Jul 2018 12:29:04 -0700
+Message-ID: <20180724192918.31165-5-sthemmin@microsoft.com>
 References: <20180724192918.31165-1-sthemmin@microsoft.com>
 Cc: netdev@vger.kernel.org, v9fs-developer@lists.sourceforge.net,
         linux-hams@vger.kernel.org, ceph-devel@vger.kernel.org,
@@ -28,96 +28,45 @@ In-Reply-To: <20180724192918.31165-1-sthemmin@microsoft.com>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Remove blank lines at end of file and trailing whitespace.
-
 Signed-off-by: Stephen Hemminger <stephen@networkplumber.org>
 ---
- net/ceph/Kconfig      | 1 -
- net/ceph/Makefile     | 1 -
- net/ceph/auth_none.c  | 1 -
- net/ceph/auth_none.h  | 1 -
- net/ceph/auth_x.c     | 2 --
- net/ceph/auth_x.h     | 1 -
- net/ceph/mon_client.c | 2 +-
- net/ceph/pagevec.c    | 1 -
- 8 files changed, 1 insertion(+), 9 deletions(-)
+ net/llc/Kconfig  | 2 +-
+ net/llc/Makefile | 2 +-
+ net/llc/llc_if.c | 1 -
+ 3 files changed, 2 insertions(+), 3 deletions(-)
 
-diff --git a/net/ceph/Kconfig b/net/ceph/Kconfig
-index f8cceb99e732..cd2d5b9301a1 100644
---- a/net/ceph/Kconfig
-+++ b/net/ceph/Kconfig
-@@ -41,4 +41,3 @@ config CEPH_LIB_USE_DNS_RESOLVER
- 	  Documentation/networking/dns_resolver.txt
- 
- 	  If unsure, say N.
--
-diff --git a/net/ceph/Makefile b/net/ceph/Makefile
-index 12bf49772d24..db09defe27d0 100644
---- a/net/ceph/Makefile
-+++ b/net/ceph/Makefile
-@@ -15,4 +15,3 @@ libceph-y := ceph_common.o messenger.o msgpool.o buffer.o pagelist.o \
- 	auth_x.o \
- 	ceph_fs.o ceph_strings.o ceph_hash.o \
- 	pagevec.o snapshot.o string_table.o
--
-diff --git a/net/ceph/auth_none.c b/net/ceph/auth_none.c
-index 41d2a0c72236..edb7042479ed 100644
---- a/net/ceph/auth_none.c
-+++ b/net/ceph/auth_none.c
-@@ -142,4 +142,3 @@ int ceph_auth_none_init(struct ceph_auth_client *ac)
- 	ac->ops = &ceph_auth_none_ops;
- 	return 0;
+diff --git a/net/llc/Kconfig b/net/llc/Kconfig
+index b91c65108162..176a6c1521a5 100644
+--- a/net/llc/Kconfig
++++ b/net/llc/Kconfig
+@@ -6,5 +6,5 @@ config LLC2
+ 	tristate "ANSI/IEEE 802.2 LLC type 2 Support"
+ 	select LLC
+ 	help
+-	  This is a Logical Link Layer type 2, connection oriented support. 
++	  This is a Logical Link Layer type 2, connection oriented support.
+ 	  Select this if you want to have support for PF_LLC sockets.
+diff --git a/net/llc/Makefile b/net/llc/Makefile
+index 4e260cff3c5d..5e0ef436daae 100644
+--- a/net/llc/Makefile
++++ b/net/llc/Makefile
+@@ -4,7 +4,7 @@
+ # Copyright (c) 1997 by Procom Technology,Inc.
+ #		2001-2003 by Arnaldo Carvalho de Melo <acme@conectiva.com.br>
+ #
+-# This program can be redistributed or modified under the terms of the 
++# This program can be redistributed or modified under the terms of the
+ # GNU General Public License as published by the Free Software Foundation.
+ # This program is distributed without any warranty or implied warranty
+ # of merchantability or fitness for a particular purpose.
+diff --git a/net/llc/llc_if.c b/net/llc/llc_if.c
+index 6daf391b3e84..8db03c2d5440 100644
+--- a/net/llc/llc_if.c
++++ b/net/llc/llc_if.c
+@@ -151,4 +151,3 @@ int llc_send_disc(struct sock *sk)
+ 	sock_put(sk);
+ 	return rc;
  }
--
-diff --git a/net/ceph/auth_none.h b/net/ceph/auth_none.h
-index 860ed9875791..4158f064302e 100644
---- a/net/ceph/auth_none.h
-+++ b/net/ceph/auth_none.h
-@@ -26,4 +26,3 @@ struct ceph_auth_none_info {
- int ceph_auth_none_init(struct ceph_auth_client *ac);
- 
- #endif
--
-diff --git a/net/ceph/auth_x.c b/net/ceph/auth_x.c
-index 2f4a1baf5f52..32c7f5c4b1a6 100644
---- a/net/ceph/auth_x.c
-+++ b/net/ceph/auth_x.c
-@@ -823,5 +823,3 @@ int ceph_x_init(struct ceph_auth_client *ac)
- out:
- 	return ret;
- }
--
--
-diff --git a/net/ceph/auth_x.h b/net/ceph/auth_x.h
-index 454cb54568af..a71c4c282b57 100644
---- a/net/ceph/auth_x.h
-+++ b/net/ceph/auth_x.h
-@@ -52,4 +52,3 @@ struct ceph_x_info {
- int ceph_x_init(struct ceph_auth_client *ac);
- 
- #endif
--
-diff --git a/net/ceph/mon_client.c b/net/ceph/mon_client.c
-index d7a7a2330ef7..18deb3d889c4 100644
---- a/net/ceph/mon_client.c
-+++ b/net/ceph/mon_client.c
-@@ -1249,7 +1249,7 @@ static void dispatch(struct ceph_connection *con, struct ceph_msg *msg)
- 		if (monc->client->extra_mon_dispatch &&
- 		    monc->client->extra_mon_dispatch(monc->client, msg) == 0)
- 			break;
--			
-+
- 		pr_err("received unknown message type %d %s\n", type,
- 		       ceph_msg_type_name(type));
- 	}
-diff --git a/net/ceph/pagevec.c b/net/ceph/pagevec.c
-index e560d3975f41..d3736f5bffec 100644
---- a/net/ceph/pagevec.c
-+++ b/net/ceph/pagevec.c
-@@ -197,4 +197,3 @@ void ceph_zero_page_vector_range(int off, int len, struct page **pages)
- 	}
- }
- EXPORT_SYMBOL(ceph_zero_page_vector_range);
 -
 -- 
 2.18.0
