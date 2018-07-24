@@ -1,7 +1,7 @@
 From: Stephen Hemminger <stephen@networkplumber.org>
-Subject: [PATCH PATCH net-next 04/18] llc: fix whitespace issues
-Date: Tue, 24 Jul 2018 12:29:04 -0700
-Message-ID: <20180724192918.31165-5-sthemmin@microsoft.com>
+Subject: [PATCH PATCH net-next 03/18] rds: remove trailing whitespace and blank lines
+Date: Tue, 24 Jul 2018 12:29:03 -0700
+Message-ID: <20180724192918.31165-4-sthemmin@microsoft.com>
 References: <20180724192918.31165-1-sthemmin@microsoft.com>
 Cc: netdev@vger.kernel.org, v9fs-developer@lists.sourceforge.net,
         linux-hams@vger.kernel.org, ceph-devel@vger.kernel.org,
@@ -30,42 +30,76 @@ List-Id: netfilter-devel.vger.kernel.org
 
 Signed-off-by: Stephen Hemminger <stephen@networkplumber.org>
 ---
- net/llc/Kconfig  | 2 +-
- net/llc/Makefile | 2 +-
- net/llc/llc_if.c | 1 -
- 3 files changed, 2 insertions(+), 3 deletions(-)
+ net/rds/Kconfig          | 1 -
+ net/rds/Makefile         | 1 -
+ net/rds/ib.c             | 1 -
+ net/rds/message.c        | 1 -
+ net/rds/rdma_transport.c | 1 -
+ net/rds/tcp.c            | 1 -
+ net/rds/transport.c      | 1 -
+ 7 files changed, 7 deletions(-)
 
-diff --git a/net/llc/Kconfig b/net/llc/Kconfig
-index b91c65108162..176a6c1521a5 100644
---- a/net/llc/Kconfig
-+++ b/net/llc/Kconfig
-@@ -6,5 +6,5 @@ config LLC2
- 	tristate "ANSI/IEEE 802.2 LLC type 2 Support"
- 	select LLC
- 	help
--	  This is a Logical Link Layer type 2, connection oriented support. 
-+	  This is a Logical Link Layer type 2, connection oriented support.
- 	  Select this if you want to have support for PF_LLC sockets.
-diff --git a/net/llc/Makefile b/net/llc/Makefile
-index 4e260cff3c5d..5e0ef436daae 100644
---- a/net/llc/Makefile
-+++ b/net/llc/Makefile
-@@ -4,7 +4,7 @@
- # Copyright (c) 1997 by Procom Technology,Inc.
- #		2001-2003 by Arnaldo Carvalho de Melo <acme@conectiva.com.br>
- #
--# This program can be redistributed or modified under the terms of the 
-+# This program can be redistributed or modified under the terms of the
- # GNU General Public License as published by the Free Software Foundation.
- # This program is distributed without any warranty or implied warranty
- # of merchantability or fitness for a particular purpose.
-diff --git a/net/llc/llc_if.c b/net/llc/llc_if.c
-index 6daf391b3e84..8db03c2d5440 100644
---- a/net/llc/llc_if.c
-+++ b/net/llc/llc_if.c
-@@ -151,4 +151,3 @@ int llc_send_disc(struct sock *sk)
- 	sock_put(sk);
- 	return rc;
+diff --git a/net/rds/Kconfig b/net/rds/Kconfig
+index bffde4b46c5d..41f75563b54b 100644
+--- a/net/rds/Kconfig
++++ b/net/rds/Kconfig
+@@ -24,4 +24,3 @@ config RDS_DEBUG
+         bool "RDS debugging messages"
+ 	depends on RDS
+         default n
+-
+diff --git a/net/rds/Makefile b/net/rds/Makefile
+index b5d568bd479c..e647f9de104a 100644
+--- a/net/rds/Makefile
++++ b/net/rds/Makefile
+@@ -15,4 +15,3 @@ rds_tcp-y :=		tcp.o tcp_connect.o tcp_listen.o tcp_recv.o \
+ 			tcp_send.o tcp_stats.o
+ 
+ ccflags-$(CONFIG_RDS_DEBUG)	:=	-DRDS_DEBUG
+-
+diff --git a/net/rds/ib.c b/net/rds/ib.c
+index 63d95ea7cdff..a4245c42d43b 100644
+--- a/net/rds/ib.c
++++ b/net/rds/ib.c
+@@ -568,4 +568,3 @@ int rds_ib_init(void)
+ }
+ 
+ MODULE_LICENSE("GPL");
+-
+diff --git a/net/rds/message.c b/net/rds/message.c
+index a35f76971984..4b00b1152a5f 100644
+--- a/net/rds/message.c
++++ b/net/rds/message.c
+@@ -514,4 +514,3 @@ void rds_message_unmapped(struct rds_message *rm)
+ 	wake_up_interruptible(&rm->m_flush_wait);
+ }
+ EXPORT_SYMBOL_GPL(rds_message_unmapped);
+-
+diff --git a/net/rds/rdma_transport.c b/net/rds/rdma_transport.c
+index bd67e55354f4..ad78929036ef 100644
+--- a/net/rds/rdma_transport.c
++++ b/net/rds/rdma_transport.c
+@@ -281,4 +281,3 @@ module_exit(rds_rdma_exit);
+ MODULE_AUTHOR("Oracle Corporation <rds-devel@oss.oracle.com>");
+ MODULE_DESCRIPTION("RDS: IB transport");
+ MODULE_LICENSE("Dual BSD/GPL");
+-
+diff --git a/net/rds/tcp.c b/net/rds/tcp.c
+index 7028d6e51947..f23925af0b8d 100644
+--- a/net/rds/tcp.c
++++ b/net/rds/tcp.c
+@@ -717,4 +717,3 @@ module_init(rds_tcp_init);
+ MODULE_AUTHOR("Oracle Corporation <rds-devel@oss.oracle.com>");
+ MODULE_DESCRIPTION("RDS: TCP transport");
+ MODULE_LICENSE("Dual BSD/GPL");
+-
+diff --git a/net/rds/transport.c b/net/rds/transport.c
+index c9788dbce441..46f709a4b577 100644
+--- a/net/rds/transport.c
++++ b/net/rds/transport.c
+@@ -159,4 +159,3 @@ unsigned int rds_trans_stats_info_copy(struct rds_info_iterator *iter,
+ 
+ 	return total;
  }
 -
 -- 
