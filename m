@@ -1,106 +1,75 @@
-From: Stephen Hemminger <stephen@networkplumber.org>
-Subject: [PATCH PATCH net-next 03/18] rds: remove trailing whitespace and blank lines
-Date: Tue, 24 Jul 2018 12:29:03 -0700
-Message-ID: <20180724192918.31165-4-sthemmin@microsoft.com>
+From: Stephen Hemminger <stephen-OTpzqLSitTUnbdJkjeBofR2eb7JE58TQ@public.gmane.org>
+Subject: [PATCH PATCH net-next 02/18] wimax: remove blank lines at EOF
+Date: Tue, 24 Jul 2018 12:29:02 -0700
+Message-ID: <20180724192918.31165-3-sthemmin@microsoft.com>
 References: <20180724192918.31165-1-sthemmin@microsoft.com>
-Cc: netdev@vger.kernel.org, v9fs-developer@lists.sourceforge.net,
-        linux-hams@vger.kernel.org, ceph-devel@vger.kernel.org,
-        linux-decnet-user@lists.sourceforge.net,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        linux-wpan@vger.kernel.org, linux-s390@vger.kernel.org,
-        linux-wireless@vger.kernel.org, linux-rdma@vger.kernel.org,
-        linux-sctp@vger.kernel.org, linux-nfs@vger.kernel.org,
-        linux-x25@vger.kernel.org,
-        Stephen Hemminger <sthemmin@microsoft.com>,
-        Stephen Hemminger <stephen@networkplumber.org>
-To: davem@davemloft.net, ericvh@gmail.com, rminnich@sandia.gov,
-        lucho@ionkov.net, ralf@linux-mips.org, jreuter@yaina.de,
-        pablo@netfilter.org, kadlec@blackhole.kfki.hu, fw@strlen.de,
-        alex.aring@gmail.com, stefan@datenfreihafen.org,
-        kuznet@ms2.inr.ac.ru, yoshfuji@linux-ipv6.org,
-        johannes@sipsolutions.net, jhs@mojatatu.com,
-        xiyou.wangcong@gmail.com, jiri@resnulli.us, vyasevich@gmail.com,
-        nhorman@tuxdriver.com, marcelo.leitner@gmail.com,
-        trond.myklebust@hammerspace.com, anna.schumaker@netapp.com,
-        steffen.klassert@secunet.com, herbert@gondor.apana.org.au
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180724192918.31165-1-sthemmin@microsoft.com>
-Sender: netdev-owner@vger.kernel.org
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, v9fs-developer-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org,
+        linux-hams-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ceph-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+        linux-decnet-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org,
+        netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, coreteam-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org,
+        linux-wpan-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+        linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+        linux-sctp-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+        linux-x25-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+        Stephen Hemminger <sthemmin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>,
+        Stephen Hemminger <stephen-OTpzqLSitTUnbdJkjeBofR2eb7JE58TQ@public.gmane.org>
+To: davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, ericvh-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, rminnich-4OHPYypu0djtX7QSmKvirg@public.gmane.org,
+        lucho-OnYtXJJ0/fesTnJN9+BGXg@public.gmane.org, ralf-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org, jreuter-K7Hl1MveuGQ@public.gmane.org,
+        pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org, kadlec-K40Dz/62t/MgiyqX0sVFJYdd74u8MsAO@public.gmane.org, fw-HFFVJYpyMKqzQB+pC5nmwQ@public.gmane.org,
+        alex.aring-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, stefan-OrPQZGeq07wqhVmZOOOmNx2eb7JE58TQ@public.gmane.org,
+        kuznet-v/Mj1YrvjDBInbfyfbPRSQ@public.gmane.org, yoshfuji-VfPWfsRibaP+Ru+s062T9g@public.gmane.org,
+        johannes-cdvu00un1VgdHxzADdlk8Q@public.gmane.org, jhs-jkUAjuhPggJWk0Htik3J/w@public.gmane.org,
+        xiyou.wangcong-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, jiri-rHqAuBHg3fBzbRFIqnYvSA@public.gmane.org, vyasevich-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org,
+        nhorman-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org, marcelo.leitner-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org,
+        trond.myklebust-F/q8l9xzQnoyLce1RVWEUA@public.gmane.org, anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org,
+        steffen.klassert-opNxpl+3fjRBDgjK7y7TUQ@public.gmane.org, herbert-lOAM2aK0SrRLBo1qDEOMRrpzq4S04n8Q@public.gmane.org
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20180724192918.31165-1-sthemmin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Signed-off-by: Stephen Hemminger <stephen@networkplumber.org>
+Signed-off-by: Stephen Hemminger <stephen-OTpzqLSitTUnbdJkjeBofR2eb7JE58TQ@public.gmane.org>
 ---
- net/rds/Kconfig          | 1 -
- net/rds/Makefile         | 1 -
- net/rds/ib.c             | 1 -
- net/rds/message.c        | 1 -
- net/rds/rdma_transport.c | 1 -
- net/rds/tcp.c            | 1 -
- net/rds/transport.c      | 1 -
- 7 files changed, 7 deletions(-)
+ net/wimax/Makefile  | 2 --
+ net/wimax/debugfs.c | 2 --
+ net/wimax/op-msg.c  | 1 -
+ net/wimax/stack.c   | 1 -
+ 4 files changed, 6 deletions(-)
 
-diff --git a/net/rds/Kconfig b/net/rds/Kconfig
-index bffde4b46c5d..41f75563b54b 100644
---- a/net/rds/Kconfig
-+++ b/net/rds/Kconfig
-@@ -24,4 +24,3 @@ config RDS_DEBUG
-         bool "RDS debugging messages"
- 	depends on RDS
-         default n
--
-diff --git a/net/rds/Makefile b/net/rds/Makefile
-index b5d568bd479c..e647f9de104a 100644
---- a/net/rds/Makefile
-+++ b/net/rds/Makefile
-@@ -15,4 +15,3 @@ rds_tcp-y :=		tcp.o tcp_connect.o tcp_listen.o tcp_recv.o \
- 			tcp_send.o tcp_stats.o
+diff --git a/net/wimax/Makefile b/net/wimax/Makefile
+index eb2db0d3b880..c2a71ae487ac 100644
+--- a/net/wimax/Makefile
++++ b/net/wimax/Makefile
+@@ -11,5 +11,3 @@ wimax-y :=		\
+ 	stack.o
  
- ccflags-$(CONFIG_RDS_DEBUG)	:=	-DRDS_DEBUG
+ wimax-$(CONFIG_DEBUG_FS) += debugfs.o
 -
-diff --git a/net/rds/ib.c b/net/rds/ib.c
-index 63d95ea7cdff..a4245c42d43b 100644
---- a/net/rds/ib.c
-+++ b/net/rds/ib.c
-@@ -568,4 +568,3 @@ int rds_ib_init(void)
+-
+diff --git a/net/wimax/debugfs.c b/net/wimax/debugfs.c
+index 6c9bedb7431e..24514840746e 100644
+--- a/net/wimax/debugfs.c
++++ b/net/wimax/debugfs.c
+@@ -76,5 +76,3 @@ void wimax_debugfs_rm(struct wimax_dev *wimax_dev)
+ {
+ 	debugfs_remove_recursive(wimax_dev->debugfs_dentry);
  }
- 
+-
+-
+diff --git a/net/wimax/op-msg.c b/net/wimax/op-msg.c
+index 54aa146930bd..101b2fa3f32e 100644
+--- a/net/wimax/op-msg.c
++++ b/net/wimax/op-msg.c
+@@ -404,4 +404,3 @@ int wimax_gnl_doit_msg_from_user(struct sk_buff *skb, struct genl_info *info)
+ 	d_fnend(3, NULL, "(skb %p info %p) = %d\n", skb, info, result);
+ 	return result;
+ }
+-
+diff --git a/net/wimax/stack.c b/net/wimax/stack.c
+index 73dba9c077bb..a6307813b6d5 100644
+--- a/net/wimax/stack.c
++++ b/net/wimax/stack.c
+@@ -630,4 +630,3 @@ module_exit(wimax_subsys_exit);
+ MODULE_AUTHOR("Intel Corporation <linux-wimax-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>");
+ MODULE_DESCRIPTION("Linux WiMAX stack");
  MODULE_LICENSE("GPL");
--
-diff --git a/net/rds/message.c b/net/rds/message.c
-index a35f76971984..4b00b1152a5f 100644
---- a/net/rds/message.c
-+++ b/net/rds/message.c
-@@ -514,4 +514,3 @@ void rds_message_unmapped(struct rds_message *rm)
- 	wake_up_interruptible(&rm->m_flush_wait);
- }
- EXPORT_SYMBOL_GPL(rds_message_unmapped);
--
-diff --git a/net/rds/rdma_transport.c b/net/rds/rdma_transport.c
-index bd67e55354f4..ad78929036ef 100644
---- a/net/rds/rdma_transport.c
-+++ b/net/rds/rdma_transport.c
-@@ -281,4 +281,3 @@ module_exit(rds_rdma_exit);
- MODULE_AUTHOR("Oracle Corporation <rds-devel@oss.oracle.com>");
- MODULE_DESCRIPTION("RDS: IB transport");
- MODULE_LICENSE("Dual BSD/GPL");
--
-diff --git a/net/rds/tcp.c b/net/rds/tcp.c
-index 7028d6e51947..f23925af0b8d 100644
---- a/net/rds/tcp.c
-+++ b/net/rds/tcp.c
-@@ -717,4 +717,3 @@ module_init(rds_tcp_init);
- MODULE_AUTHOR("Oracle Corporation <rds-devel@oss.oracle.com>");
- MODULE_DESCRIPTION("RDS: TCP transport");
- MODULE_LICENSE("Dual BSD/GPL");
--
-diff --git a/net/rds/transport.c b/net/rds/transport.c
-index c9788dbce441..46f709a4b577 100644
---- a/net/rds/transport.c
-+++ b/net/rds/transport.c
-@@ -159,4 +159,3 @@ unsigned int rds_trans_stats_info_copy(struct rds_info_iterator *iter,
- 
- 	return total;
- }
--
--- 
-2.18.0
