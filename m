@@ -1,113 +1,94 @@
-From: Julian Anastasov <ja@ssi.bg>
-Subject: Re: [PATCH v3] ipvs: fix race between ip_vs_conn_new() and
- ip_vs_del_dest()
-Date: Wed, 25 Jul 2018 22:12:48 +0300 (EEST)
-Message-ID: <alpine.LFD.2.20.1807252208320.2437@ja.home.ssi.bg>
-References: <1532503387-3800-1-git-send-email-tan.hu@zte.com.cn>
+From: ebiederm@xmission.com (Eric W. Biederman)
+Subject: Re: [PATCH RFC/RFT net-next 00/17] net: Convert neighbor tables to per-namespace
+Date: Wed, 25 Jul 2018 14:17:21 -0500
+Message-ID: <87o9evt9a6.fsf@xmission.com>
+References: <1a3f59a9-0ba5-c83f-16a6-f9550a84f693@gmail.com>
+        <CAM_iQpWabZorkMNswyfHyS4KT=f_bgMtK8K35=84uah6Kfqxew@mail.gmail.com>
+        <1a27e301-3275-b349-a2f8-afdfdc02f04f@gmail.com>
+        <20180718.125938.2271502580775162784.davem@davemloft.net>
+        <28c30574-391c-b4bd-c337-51d3040d901a@gmail.com>
+        <CAM_iQpW4-JkZY7jXx0Q1b907hQ85UOL1eXv2YHwSukb5L=apUg@mail.gmail.com>
+        <5021d874-8e99-6eba-f24b-4257c62d4457@gmail.com>
+        <CAM_iQpUc-H2kZCBevePs6g-8qKyJkUhdd1ZDSQgYsCG0ChfC2w@mail.gmail.com>
+        <87muufze8w.fsf@xmission.com>
+        <4b03b5f6-87ce-9ff2-7c14-598beebd8fb8@gmail.com>
+        <87zhyfw70m.fsf@xmission.com>
+        <dacc9322-fd5a-dfeb-e4f1-7a288fb79886@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Cc: wensong@linux-vs.org, horms@verge.net.au, pablo@netfilter.org,
-        kadlec@blackhole.kfki.hu, fw@strlen.de, davem@davemloft.net,
-        netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        linux-kernel@vger.kernel.org, zhong.weidong@zte.com.cn,
-        jiang.biao2@zte.com.cn
-To: Tan Hu <tan.hu@zte.com.cn>
+Content-Type: text/plain
+Cc: Cong Wang <xiyou.wangcong@gmail.com>,
+        David Miller <davem@davemloft.net>,
+        Linux Kernel Network Developers <netdev@vger.kernel.org>,
+        nikita.leshchenko@oracle.com,
+        Roopa Prabhu <roopa@cumulusnetworks.com>,
+        Stephen Hemminger <stephen@networkplumber.org>,
+        Ido Schimmel <idosch@mellanox.com>,
+        Jiri Pirko <jiri@mellanox.com>,
+        Saeed Mahameed <saeedm@mellanox.com>,
+        Alexander Aring <alex.aring@gmail.com>,
+        linux-wpan@vger.kernel.org,
+        NetFilter <netfilter-devel@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>
+To: David Ahern <dsahern@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1532503387-3800-1-git-send-email-tan.hu@zte.com.cn>
+In-Reply-To: <dacc9322-fd5a-dfeb-e4f1-7a288fb79886@gmail.com> (David Ahern's
+        message of "Wed, 25 Jul 2018 12:13:30 -0600")
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
+David Ahern <dsahern@gmail.com> writes:
 
-	Hello,
+> On 7/25/18 11:38 AM, Eric W. Biederman wrote:
+>> 
+>> Absolutely NOT.  Global thresholds are exactly correct given the fact
+>> you are running on a single kernel.
+>> 
+>> Memory is not free (Even though we are swimming in enough of it memory
+>> rarely matters).  One of the few remaining challenges is for containers
+>> is finding was to limit resources in such a way that one application
+>> does not mess things up for another container during ordinary usage.
+>> 
+>> It looks like the neighbour tables absolutely are that kind of problem,
+>> because the artificial limits are too strict.   Completely giving up on
+>> limits does not seem right approach either.  We need to fix the limits
+>> we have (perhaps making them go away entirely), not just apply a
+>> band-aid.  Let's get to the bottom of this and make the system better.
+>
+> Eric: yes, they all share the global resource of memory and there should
+> be limits on how many entries a remote entity can create.
+>
+> Network namespaces can provide a separation such that one namespace does
+> not disrupt networking in another. It is absolutely appropriate to do
+> so. Your rigid stance is inconsistent given the basic meaning of a
+> network namespace and the parallels to this same problem -- bridges,
+> vxlans, and ip fragments. Only neighbor tables are not per-device or per
+> namespace; your insistence on global limits is missing the mark and wrong.
 
-On Wed, 25 Jul 2018, Tan Hu wrote:
+That is not what I said.  Let me rephrase and see if you understand.
 
-> We came across infinite loop in ipvs when using ipvs in docker
-> env.
-> 
-> When ipvs receives new packets and cannot find an ipvs connection,
-> it will create a new connection, then if the dest is unavailable
-> (i.e. IP_VS_DEST_F_AVAILABLE), the packet will be dropped sliently.
-> 
-> But if the dropped packet is the first packet of this connection,
-> the connection control timer never has a chance to start and the
-> ipvs connection cannot be released. This will lead to memory leak, or
-> infinite loop in cleanup_net() when net namespace is released like
-> this:
-> 
->     ip_vs_conn_net_cleanup at ffffffffa0a9f31a [ip_vs]
->     __ip_vs_cleanup at ffffffffa0a9f60a [ip_vs]
->     ops_exit_list at ffffffff81567a49
->     cleanup_net at ffffffff81568b40
->     process_one_work at ffffffff810a851b
->     worker_thread at ffffffff810a9356
->     kthread at ffffffff810b0b6f
->     ret_from_fork at ffffffff81697a18
-> 
-> race condition:
->     CPU1                           CPU2
->     ip_vs_in()
->       ip_vs_conn_new()
->                                    ip_vs_del_dest()
->                                      __ip_vs_unlink_dest()
->                                        ~IP_VS_DEST_F_AVAILABLE
->       cp->dest && !IP_VS_DEST_F_AVAILABLE
->       __ip_vs_conn_put
->     ...
->     cleanup_net  ---> infinite looping
-> 
-> Fix this by checking whether the timer already started.
-> 
-> Signed-off-by: Tan Hu <tan.hu@zte.com.cn>
-> Reviewed-by: Jiang Biao <jiang.biao2@zte.com.cn>
+The problem appears to be of lots of devices.  Fundamentally if you use
+lots of network devices today unless you adjust gc_thresh3 you will run
+out of neighbour table entries.
 
-	v3 looks good to me,
+The problem has a bigger scope than what you are looking at.
 
-Acked-by: Julian Anastasov <ja@ssi.bg>
+If you fix the core problem you won't see the problem in the context
+of network namespaces either.
 
-	Simon and Pablo, this can be applied to ipvs/nf tree...
+Default limits should be something that will never be hit unless
+something goes crazy.  We are hitting them.  Therefore by definition
+there is a bug in these limits.
 
-> ---
-> v2: fix use-after-free in CONN_ONE_PACKET case suggested by Julian Anastasov
-> v3: remove trailing whitespace for patch checking 
-> 
->  net/netfilter/ipvs/ip_vs_core.c | 15 +++++++++++----
->  1 file changed, 11 insertions(+), 4 deletions(-)
-> 
-> diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-> index 0679dd1..a17104f 100644
-> --- a/net/netfilter/ipvs/ip_vs_core.c
-> +++ b/net/netfilter/ipvs/ip_vs_core.c
-> @@ -1972,13 +1972,20 @@ static int ip_vs_in_icmp_v6(struct netns_ipvs *ipvs, struct sk_buff *skb,
->  	if (cp->dest && !(cp->dest->flags & IP_VS_DEST_F_AVAILABLE)) {
->  		/* the destination server is not available */
-> 
-> -		if (sysctl_expire_nodest_conn(ipvs)) {
-> +		__u32 flags = cp->flags;
-> +
-> +		/* when timer already started, silently drop the packet.*/
-> +		if (timer_pending(&cp->timer))
-> +			__ip_vs_conn_put(cp);
-> +		else
-> +			ip_vs_conn_put(cp);
-> +
-> +		if (sysctl_expire_nodest_conn(ipvs) &&
-> +		    !(flags & IP_VS_CONN_F_ONE_PACKET)) {
->  			/* try to expire the connection immediately */
->  			ip_vs_conn_expire_now(cp);
->  		}
-> -		/* don't restart its timer, and silently
-> -		   drop the packet. */
-> -		__ip_vs_conn_put(cp);
-> +
->  		return NF_DROP;
->  	}
-> 
-> --
-> 1.8.3.1
 
-Regards
+And yes there is absolutely a place for global limits on things like
+inodes, file descriptors etc, that does not care about which part of the
+kernel you are in.  However hitting those limits in normal operation is
+a bug.
 
---
-Julian Anastasov <ja@ssi.bg>
+We have ourselves a bug.
+
+Eric
+
+p.s. I wrote the definition of network namespaces and it absolutely does
+have room for global limits.   One of the things Linus has periodically
+yelled at me about is that there are not enough of them.
