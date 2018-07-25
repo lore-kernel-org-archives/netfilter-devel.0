@@ -1,185 +1,117 @@
-From: Li RongQing <lirongqing@baidu.com>
-Subject: [PATCH][v3] netfilter: use kvmalloc_array to allocate memory for hashtable
-Date: Wed, 25 Jul 2018 15:52:13 +0800
-Message-ID: <1532505133-9398-1-git-send-email-lirongqing@baidu.com>
-To: netdev@vger.kernel.org, pablo@netfilter.org,
-        kadlec@blackhole.kfki.hu, fw@strlen.de,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        edumazet@google.com
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
+From: ebiederm@xmission.com (Eric W. Biederman)
+Subject: Re: [PATCH RFC/RFT net-next 00/17] net: Convert neighbor tables to per-namespace
+Date: Wed, 25 Jul 2018 07:33:35 -0500
+Message-ID: <87muufze8w.fsf@xmission.com>
+References: <1a3f59a9-0ba5-c83f-16a6-f9550a84f693@gmail.com>
+        <CAM_iQpWabZorkMNswyfHyS4KT=f_bgMtK8K35=84uah6Kfqxew@mail.gmail.com>
+        <1a27e301-3275-b349-a2f8-afdfdc02f04f@gmail.com>
+        <20180718.125938.2271502580775162784.davem@davemloft.net>
+        <28c30574-391c-b4bd-c337-51d3040d901a@gmail.com>
+        <CAM_iQpW4-JkZY7jXx0Q1b907hQ85UOL1eXv2YHwSukb5L=apUg@mail.gmail.com>
+        <5021d874-8e99-6eba-f24b-4257c62d4457@gmail.com>
+        <CAM_iQpUc-H2kZCBevePs6g-8qKyJkUhdd1ZDSQgYsCG0ChfC2w@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain
+Cc: David Ahern <dsahern@gmail.com>,
+        David Miller <davem@davemloft.net>,
+        Linux Kernel Network Developers <netdev@vger.kernel.org>,
+        nikita.leshchenko@oracle.com,
+        Roopa Prabhu <roopa@cumulusnetworks.com>,
+        Stephen Hemminger <stephen@networkplumber.org>,
+        Ido Schimmel <idosch@mellanox.com>,
+        Jiri Pirko <jiri@mellanox.com>,
+        Saeed Mahameed <saeedm@mellanox.com>,
+        Alexander Aring <alex.aring@gmail.com>,
+        linux-wpan@vger.kernel.org,
+        NetFilter <netfilter-devel@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>
+To: Cong Wang <xiyou.wangcong@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAM_iQpUc-H2kZCBevePs6g-8qKyJkUhdd1ZDSQgYsCG0ChfC2w@mail.gmail.com>
+        (Cong Wang's message of "Tue, 24 Jul 2018 15:09:25 -0700")
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-nf_ct_alloc_hashtable is used to allocate memory for conntrack,
-NAT bysrc and expectation hashtable. Assuming 64k bucket size,
-which means 7th order page allocation, __get_free_pages, called
-by nf_ct_alloc_hashtable, will trigger the direct memory reclaim
-and stall for a long time, when system has lots of memory stress
+Cong Wang <xiyou.wangcong@gmail.com> writes:
 
-so replace combination of __get_free_pages and vzalloc with
-kvmalloc_array, which provides a overflow check and a fallback
-if no high order memory is available, and do not retry to reclaim
-memory, reduce stall
+> On Tue, Jul 24, 2018 at 8:14 AM David Ahern <dsahern@gmail.com> wrote:
+>>
+>> On 7/19/18 11:12 AM, Cong Wang wrote:
+>> > On Thu, Jul 19, 2018 at 9:16 AM David Ahern <dsahern@gmail.com> wrote:
+>> >>
+>> >> Chatting with Nikolay about this and he brought up a good corollary - ip
+>> >> fragmentation. It really is a similar problem in that memory is consumed
+>> >> as a result of packets received from an external entity. The ipfrag
+>> >> sysctls are per namespace with a limit that non-init_net namespaces can
+>> >> not set high_thresh > the current value of init_net. Potential memory
+>> >> consumed by fragments scales with the number of namespaces which is the
+>> >> primary concern with making neighbor tables per namespace.
+>> >
+>> > Nothing new, already discussed:
+>> > https://marc.info/?l=linux-netdev&m=140391416215988&w=2
+>> >
+>> > :)
+>> >
+>>
+>> Neighbor tables, bridge fdbs, vxlan fdbs and ip fragments all consume
+>> local memory resources due to received packets. bridge and vxlan fdb's
+>> are fairly straightforward analogs to neighbor entries; they are per
+>> device with no limits on the number of entries. Fragments have memory
+>> limits per namespace. So neighbor tables are the only ones with this
+>> strict limitation and concern on memory consumption.
+>>
+>> I get the impression there is no longer a strong resistance against
+>> moving the tables to per namespace, but deciding what is the right
+>> approach to handle backwards compatibility. Correct? Changing the
+>> accounting is inevitably going to be noticeable to some use case(s), but
+>> with sysctl settings it is a simple runtime update once the user knows
+>> to make the change.
+>
+> This question definitely should go to Eric Biederman who was against
+> my proposal.
+>
+> Let's add Eric into CC.
 
-and remove nf_ct_free_hashtable, since it is just a kvfree
+Given that the entries are per device and the devices are per-namespace,
+semantically neighbours are already kept in a per-namespace manner.  So
+this is all about making the code not honoring global resource limits.
+Making the code not honor gc_thresh3.
 
-Signed-off-by: Zhang Yu <zhangyu31@baidu.com>
-Signed-off-by: Wang Li <wangli39@baidu.com>
-Signed-off-by: Li RongQing <lirongqing@baidu.com>
----
- include/net/netfilter/nf_conntrack.h |  2 --
- net/netfilter/nf_conntrack_core.c    | 29 ++++++-----------------------
- net/netfilter/nf_conntrack_expect.c  |  2 +-
- net/netfilter/nf_conntrack_helper.c  |  4 ++--
- net/netfilter/nf_nat_core.c          |  4 ++--
- 5 files changed, 11 insertions(+), 30 deletions(-)
+Skimming through the code today the default for gc_thresh3 is 1024.
+Which means that we limit the neighbour tables to 1024 entries per
+protocol type.
 
-diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
-index a2b0ed025908..7e012312cd61 100644
---- a/include/net/netfilter/nf_conntrack.h
-+++ b/include/net/netfilter/nf_conntrack.h
-@@ -176,8 +176,6 @@ void nf_ct_netns_put(struct net *net, u8 nfproto);
-  */
- void *nf_ct_alloc_hashtable(unsigned int *sizep, int nulls);
- 
--void nf_ct_free_hashtable(void *hash, unsigned int size);
--
- int nf_conntrack_hash_check_insert(struct nf_conn *ct);
- bool nf_ct_delete(struct nf_conn *ct, u32 pid, int report);
- 
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 8a113ca1eea2..429151b4991a 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -2022,16 +2022,6 @@ static int kill_all(struct nf_conn *i, void *data)
- 	return net_eq(nf_ct_net(i), data);
- }
- 
--void nf_ct_free_hashtable(void *hash, unsigned int size)
--{
--	if (is_vmalloc_addr(hash))
--		vfree(hash);
--	else
--		free_pages((unsigned long)hash,
--			   get_order(sizeof(struct hlist_head) * size));
--}
--EXPORT_SYMBOL_GPL(nf_ct_free_hashtable);
--
- void nf_conntrack_cleanup_start(void)
- {
- 	conntrack_gc_work.exiting = true;
-@@ -2042,7 +2032,7 @@ void nf_conntrack_cleanup_end(void)
- {
- 	RCU_INIT_POINTER(nf_ct_hook, NULL);
- 	cancel_delayed_work_sync(&conntrack_gc_work.dwork);
--	nf_ct_free_hashtable(nf_conntrack_hash, nf_conntrack_htable_size);
-+	kvfree(nf_conntrack_hash);
- 
- 	nf_conntrack_proto_fini();
- 	nf_conntrack_seqadj_fini();
-@@ -2108,7 +2098,6 @@ void *nf_ct_alloc_hashtable(unsigned int *sizep, int nulls)
- {
- 	struct hlist_nulls_head *hash;
- 	unsigned int nr_slots, i;
--	size_t sz;
- 
- 	if (*sizep > (UINT_MAX / sizeof(struct hlist_nulls_head)))
- 		return NULL;
-@@ -2116,14 +2105,8 @@ void *nf_ct_alloc_hashtable(unsigned int *sizep, int nulls)
- 	BUILD_BUG_ON(sizeof(struct hlist_nulls_head) != sizeof(struct hlist_head));
- 	nr_slots = *sizep = roundup(*sizep, PAGE_SIZE / sizeof(struct hlist_nulls_head));
- 
--	if (nr_slots > (UINT_MAX / sizeof(struct hlist_nulls_head)))
--		return NULL;
--
--	sz = nr_slots * sizeof(struct hlist_nulls_head);
--	hash = (void *)__get_free_pages(GFP_KERNEL | __GFP_NOWARN | __GFP_ZERO,
--					get_order(sz));
--	if (!hash)
--		hash = vzalloc(sz);
-+	hash = kvmalloc_array(nr_slots, sizeof(struct hlist_nulls_head),
-+						GFP_KERNEL | __GFP_ZERO);
- 
- 	if (hash && nulls)
- 		for (i = 0; i < nr_slots; i++)
-@@ -2150,7 +2133,7 @@ int nf_conntrack_hash_resize(unsigned int hashsize)
- 
- 	old_size = nf_conntrack_htable_size;
- 	if (old_size == hashsize) {
--		nf_ct_free_hashtable(hash, hashsize);
-+		kvfree(hash);
- 		return 0;
- 	}
- 
-@@ -2186,7 +2169,7 @@ int nf_conntrack_hash_resize(unsigned int hashsize)
- 	local_bh_enable();
- 
- 	synchronize_net();
--	nf_ct_free_hashtable(old_hash, old_size);
-+	kvfree(old_hash);
- 	return 0;
- }
- 
-@@ -2350,7 +2333,7 @@ int nf_conntrack_init_start(void)
- err_expect:
- 	kmem_cache_destroy(nf_conntrack_cachep);
- err_cachep:
--	nf_ct_free_hashtable(nf_conntrack_hash, nf_conntrack_htable_size);
-+	kvfree(nf_conntrack_hash);
- 	return ret;
- }
- 
-diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
-index 3f586ba23d92..27b84231db10 100644
---- a/net/netfilter/nf_conntrack_expect.c
-+++ b/net/netfilter/nf_conntrack_expect.c
-@@ -712,5 +712,5 @@ void nf_conntrack_expect_fini(void)
- {
- 	rcu_barrier(); /* Wait for call_rcu() before destroy */
- 	kmem_cache_destroy(nf_ct_expect_cachep);
--	nf_ct_free_hashtable(nf_ct_expect_hash, nf_ct_expect_hsize);
-+	kvfree(nf_ct_expect_hash);
- }
-diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
-index d557a425289d..e24b762ffa1d 100644
---- a/net/netfilter/nf_conntrack_helper.c
-+++ b/net/netfilter/nf_conntrack_helper.c
-@@ -562,12 +562,12 @@ int nf_conntrack_helper_init(void)
- 
- 	return 0;
- out_extend:
--	nf_ct_free_hashtable(nf_ct_helper_hash, nf_ct_helper_hsize);
-+	kvfree(nf_ct_helper_hash);
- 	return ret;
- }
- 
- void nf_conntrack_helper_fini(void)
- {
- 	nf_ct_extend_unregister(&helper_extend);
--	nf_ct_free_hashtable(nf_ct_helper_hash, nf_ct_helper_hsize);
-+	kvfree(nf_ct_helper_hash);
- }
-diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
-index 6366f0c0b8c1..e2b196054dfc 100644
---- a/net/netfilter/nf_nat_core.c
-+++ b/net/netfilter/nf_nat_core.c
-@@ -1056,7 +1056,7 @@ static int __init nf_nat_init(void)
- 
- 	ret = nf_ct_extend_register(&nat_extend);
- 	if (ret < 0) {
--		nf_ct_free_hashtable(nf_nat_bysource, nf_nat_htable_size);
-+		kvfree(nf_nat_bysource);
- 		pr_err("Unable to register extension\n");
- 		return ret;
- 	}
-@@ -1094,7 +1094,7 @@ static void __exit nf_nat_cleanup(void)
- 	for (i = 0; i < NFPROTO_NUMPROTO; i++)
- 		kfree(nf_nat_l4protos[i]);
- 	synchronize_net();
--	nf_ct_free_hashtable(nf_nat_bysource, nf_nat_htable_size);
-+	kvfree(nf_nat_bysource);
- 	unregister_pernet_subsys(&nat_net_ops);
- }
- 
--- 
-2.16.2
+There are some pretty compelling reasons especially with ipv4 to keep
+the subnet size down.  Arp storms are a real thing.
+
+I don't know off the top of my head what the reasons for limiting the
+neighbour table sizes.  I would be much more comfortable with a patchset
+like this if we did some research and figured out the reasons why
+we have a global limit.  Then changed the code to remove those limits.
+
+When the limits are gone.  When the code can support large subnets
+without tuning.  We we don't have to worry about someone scanning an all
+addresses in an ipv6 subnet and causing a DOS on working machines.
+I think it is completely appropriate to look to see if something per
+network namespace needs to happen.
+
+So please let's address the limits, not the fact that some specific
+corner case ran into them.
+
+If we are going to neuter gc_thresh3 let's go as far as removing it
+entirely.  If we are going to make the neighbour table per something
+let's make it per network device.  If we can afford the multiple hash
+tables then a hash table per device is better.   Perhaps we want to move
+to rhash tables while we look at this, instead of an old hand grown
+version of resizable hash table.
+
+Unless I misread something all your patchset did is reshuffle code and
+data structures so that gc_thresh3 does not apply accross namespaces.
+That does not feel like it really fixes anything.  That just lies to
+people.
+
+Further unless I misread something you are increasing the number of
+timers to 3 per namespace.  If I create create a thousand network
+namespaces that feels like it will hurt system performance overall.
+
+Eric
