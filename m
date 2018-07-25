@@ -1,80 +1,185 @@
-From: <tan.hu@zte.com.cn>
-Subject: =?UTF-8?B?UmU6IFJlOiBbUEFUQ0ggdjJdIGlwdnM6IGZpeCByYWNlIGJldHdlZW4gaXBfdnNfY29ubl9uZXcoKSBhbmRpcF92c19kZWxfZGVzdCgp?=
-Date: Wed, 25 Jul 2018 15:15:49 +0800 (CST)
-Message-ID: <201807251515493276583@zte.com.cn>
-References: <alpine.LFD.2.20.1807250849100.2794@ja.home.ssi.bg>
-Mime-Version: 1.0
-Content-Type: multipart/mixed;
-        boundary="=====_001_next====="
-Cc: <wensong@linux-vs.org>, <horms@verge.net.au>,
-        <pablo@netfilter.org>, <kadlec@blackhole.kfki.hu>, <fw@strlen.de>,
-        <davem@davemloft.net>, <netdev@vger.kernel.org>,
-        <lvs-devel@vger.kernel.org>, <netfilter-devel@vger.kernel.org>,
-        <coreteam@netfilter.org>, <linux-kernel@vger.kernel.org>,
-        <zhong.weidong@zte.com.cn>, <jiang.biao2@zte.com.cn>
-To: <ja@ssi.bg>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <alpine.LFD.2.20.1807250849100.2794@ja.home.ssi.bg>
-References: 1532486980-17844-1-git-send-email-tan.hu@zte.com.cn,alpine.LFD.2.20.1807250849100.2794@ja.home.ssi.bg
-Sender: linux-kernel-owner@vger.kernel.org
+From: Li RongQing <lirongqing@baidu.com>
+Subject: [PATCH][v3] netfilter: use kvmalloc_array to allocate memory for hashtable
+Date: Wed, 25 Jul 2018 15:52:13 +0800
+Message-ID: <1532505133-9398-1-git-send-email-lirongqing@baidu.com>
+To: netdev@vger.kernel.org, pablo@netfilter.org,
+        kadlec@blackhole.kfki.hu, fw@strlen.de,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        edumazet@google.com
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
+nf_ct_alloc_hashtable is used to allocate memory for conntrack,
+NAT bysrc and expectation hashtable. Assuming 64k bucket size,
+which means 7th order page allocation, __get_free_pages, called
+by nf_ct_alloc_hashtable, will trigger the direct memory reclaim
+and stall for a long time, when system has lots of memory stress
 
+so replace combination of __get_free_pages and vzalloc with
+kvmalloc_array, which provides a overflow check and a fallback
+if no high order memory is available, and do not retry to reclaim
+memory, reduce stall
 
---=====_001_next=====
-Content-Type: multipart/alternative;
-	boundary="=====_003_next====="
+and remove nf_ct_free_hashtable, since it is just a kvfree
 
+Signed-off-by: Zhang Yu <zhangyu31@baidu.com>
+Signed-off-by: Wang Li <wangli39@baidu.com>
+Signed-off-by: Li RongQing <lirongqing@baidu.com>
+---
+ include/net/netfilter/nf_conntrack.h |  2 --
+ net/netfilter/nf_conntrack_core.c    | 29 ++++++-----------------------
+ net/netfilter/nf_conntrack_expect.c  |  2 +-
+ net/netfilter/nf_conntrack_helper.c  |  4 ++--
+ net/netfilter/nf_nat_core.c          |  4 ++--
+ 5 files changed, 11 insertions(+), 30 deletions(-)
 
---=====_003_next=====
-Content-Type: text/plain;
-	charset="UTF-8"
-Content-Transfer-Encoding: base64
-
-VGhhbmtzLCBwYXRjaC12MyBoYXMgYmVlbiBzZW50LiBwbGVhc2UgY2hlY2sgaXQgYWdhaW4uCgo+
-IEhlbGxvLAo+IAo+IE9uIFdlZCwgMjUgSnVsIDIwMTgsIFRhbiBIdSB3cm90ZToKPiAKPiA+IFdl
-IGNhbWUgYWNyb3NzIGluZmluaXRlIGxvb3AgaW4gaXB2cyB3aGVuIHVzaW5nIGlwdnMgaW4gZG9j
-a2VyCj4gPiBlbnYuCj4gPgo+ID4gV2hlbiBpcHZzIHJlY2VpdmVzIG5ldyBwYWNrZXRzIGFuZCBj
-YW5ub3QgZmluZCBhbiBpcHZzIGNvbm5lY3Rpb24sCj4gPiBpdCB3aWxsIGNyZWF0ZSBhIG5ldyBj
-b25uZWN0aW9uLCB0aGVuIGlmIHRoZSBkZXN0IGlzIHVuYXZhaWxhYmxlCj4gPiAoaS5lLiBJUF9W
-U19ERVNUX0ZfQVZBSUxBQkxFKSwgdGhlIHBhY2tldCB3aWxsIGJlIGRyb3BwZWQgc2xpZW50bHku
-Cj4gPgo+ID4gQnV0IGlmIHRoZSBkcm9wcGVkIHBhY2tldCBpcyB0aGUgZmlyc3QgcGFja2V0IG9m
-IHRoaXMgY29ubmVjdGlvbiwKPiA+IHRoZSBjb25uZWN0aW9uIGNvbnRyb2wgdGltZXIgbmV2ZXIg
-aGFzIGEgY2hhbmNlIHRvIHN0YXJ0IGFuZCB0aGUKPiA+IGlwdnMgY29ubmVjdGlvbiBjYW5ub3Qg
-YmUgcmVsZWFzZWQuIFRoaXMgd2lsbCBsZWFkIHRvIG1lbW9yeSBsZWFrLCBvcgo+ID4gaW5maW5p
-dGUgbG9vcCBpbiBjbGVhbnVwX25ldCgpIHdoZW4gbmV0IG5hbWVzcGFjZSBpcyByZWxlYXNlZCBs
-aWtlCj4gPiB0aGlzOgo+ID4KPiA+IGlwX3ZzX2Nvbm5fbmV0X2NsZWFudXAgYXQgZmZmZmZmZmZh
-MGE5ZjMxYSBbaXBfdnNdCj4gPiBfX2lwX3ZzX2NsZWFudXAgYXQgZmZmZmZmZmZhMGE5ZjYwYSBb
-aXBfdnNdCj4gPiBvcHNfZXhpdF9saXN0IGF0IGZmZmZmZmZmODE1NjdhNDkKPiA+IGNsZWFudXBf
-bmV0IGF0IGZmZmZmZmZmODE1NjhiNDAKPiA+IHByb2Nlc3Nfb25lX3dvcmsgYXQgZmZmZmZmZmY4
-MTBhODUxYgo+ID4gd29ya2VyX3RocmVhZCBhdCBmZmZmZmZmZjgxMGE5MzU2Cj4gPiBrdGhyZWFk
-IGF0IGZmZmZmZmZmODEwYjBiNmYKPiA+IHJldF9mcm9tX2ZvcmsgYXQgZmZmZmZmZmY4MTY5N2Ex
-OAo+ID4KPiA+IHJhY2UgY29uZGl0aW9uOgo+ID4gQ1BVMSBDUFUyCj4gPiBpcF92c19pbigpCj4g
-PiBpcF92c19jb25uX25ldygpCj4gPiBpcF92c19kZWxfZGVzdCgpCj4gPiBfX2lwX3ZzX3VubGlu
-a19kZXN0KCkKPiA+IH5JUF9WU19ERVNUX0ZfQVZBSUxBQkxFCj4gPiBjcC0+ZGVzdCAmJiAhSVBf
-VlNfREVTVF9GX0FWQUlMQUJMRQo+ID4gX19pcF92c19jb25uX3B1dAo+ID4gLi4uCj4gPiBjbGVh
-bnVwX25ldCAtLS0+IGluZmluaXRlIGxvb3BpbmcKPiA+Cj4gPiBGaXggdGhpcyBieSBjaGVja2lu
-ZyB3aGV0aGVyIHRoZSB0aW1lciBhbHJlYWR5IHN0YXJ0ZWQuCj4gPgo+ID4gU2lnbmVkLW9mZi1i
-eTogVGFuIEh1IDx0YW4uaHVAenRlLmNvbS5jbj4KPiA+IFJldmlld2VkLWJ5OiBKaWFuZyBCaWFv
-IDxqaWFuZy5iaWFvMkB6dGUuY29tLmNuPgo+ID4gLS0tCj4gPiB2MjogZml4IHVzZS1hZnRlci1m
-cmVlIGluIENPTk5fT05FX1BBQ0tFVCBjYXNlIHN1Z2dlc3RlZCBieSBKdWxpYW4gQW5hc3Rhc292
-Cj4gPgo+ID4gbmV0L25ldGZpbHRlci9pcHZzL2lwX3ZzX2NvcmUuYyB8IDE1ICsrKysrKysrKysr
-LS0tLQo+ID4gMSBmaWxlIGNoYW5nZWQsIDExIGluc2VydGlvbnMoKyksIDQgZGVsZXRpb25zKC0p
-Cj4gPgo+ID4gZGlmZiAtLWdpdCBhL25ldC9uZXRmaWx0ZXIvaXB2cy9pcF92c19jb3JlLmMgYi9u
-ZXQvbmV0ZmlsdGVyL2lwdnMvaXBfdnNfY29yZS5jCj4gPiBpbmRleCAwNjc5ZGQxLi5hMTcxMDRm
-IDEwMDY0NAo+ID4gLS0tIGEvbmV0L25ldGZpbHRlci9pcHZzL2lwX3ZzX2NvcmUuYwo+ID4gKysr
-IGIvbmV0L25ldGZpbHRlci9pcHZzL2lwX3ZzX2NvcmUuYwo+ID4gQEAgLTE5NzIsMTMgKzE5NzIs
-MjAgQEAgc3RhdGljIGludCBpcF92c19pbl9pY21wX3Y2KHN0cnVjdCBuZXRuc19pcHZzICppcHZz
-LCBzdHJ1Y3Qgc2tfYnVmZiAqc2tiLAo+ID4gaWYgKGNwLT5kZXN0ICYmICEoY3AtPmRlc3QtPmZs
-YWdzICYgSVBfVlNfREVTVF9GX0FWQUlMQUJMRSkpIHsKPiA+IC8qIHRoZSBkZXN0aW5hdGlvbiBz
-ZXJ2ZXIgaXMgbm90IGF2YWlsYWJsZSAqLwo+ID4KPiA+IC0gaWYgKHN5c2N0bF9leHBpcmVfbm9k
-ZXN0X2Nvbm4oaXB2cykpIHsKPiA+ICsgX191MzIgZmxhZ3MgPSBjcC0+ZmxhZ3M7Cj4gCj4gT3Bz
-LCBub3cgc2NyaXB0cy9jaGVja3BhdGNoLnBsIC0tc3RyaWN0IC90bXAvZmlsZS5wYXRjaAo+IGlz
-IGNvbXBsYWluaW5nIGFib3V0IGV4dHJhIHRyYWlsaW5nIHNwYWNlIGluIGFib3ZlIGxpbmUuCj4g
-WW91IGNhbiBhbHNvIHJlbW92ZSB0aGUgZW1wdHkgbGluZSBhYm92ZSB0aGUgbmV3IGNvZGUuLi4K
-PiAKPiBSZWdhcmRz
-
-
---=====_003_next=====--
-
---=====_001_next=====--
+diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
+index a2b0ed025908..7e012312cd61 100644
+--- a/include/net/netfilter/nf_conntrack.h
++++ b/include/net/netfilter/nf_conntrack.h
+@@ -176,8 +176,6 @@ void nf_ct_netns_put(struct net *net, u8 nfproto);
+  */
+ void *nf_ct_alloc_hashtable(unsigned int *sizep, int nulls);
+ 
+-void nf_ct_free_hashtable(void *hash, unsigned int size);
+-
+ int nf_conntrack_hash_check_insert(struct nf_conn *ct);
+ bool nf_ct_delete(struct nf_conn *ct, u32 pid, int report);
+ 
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 8a113ca1eea2..429151b4991a 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -2022,16 +2022,6 @@ static int kill_all(struct nf_conn *i, void *data)
+ 	return net_eq(nf_ct_net(i), data);
+ }
+ 
+-void nf_ct_free_hashtable(void *hash, unsigned int size)
+-{
+-	if (is_vmalloc_addr(hash))
+-		vfree(hash);
+-	else
+-		free_pages((unsigned long)hash,
+-			   get_order(sizeof(struct hlist_head) * size));
+-}
+-EXPORT_SYMBOL_GPL(nf_ct_free_hashtable);
+-
+ void nf_conntrack_cleanup_start(void)
+ {
+ 	conntrack_gc_work.exiting = true;
+@@ -2042,7 +2032,7 @@ void nf_conntrack_cleanup_end(void)
+ {
+ 	RCU_INIT_POINTER(nf_ct_hook, NULL);
+ 	cancel_delayed_work_sync(&conntrack_gc_work.dwork);
+-	nf_ct_free_hashtable(nf_conntrack_hash, nf_conntrack_htable_size);
++	kvfree(nf_conntrack_hash);
+ 
+ 	nf_conntrack_proto_fini();
+ 	nf_conntrack_seqadj_fini();
+@@ -2108,7 +2098,6 @@ void *nf_ct_alloc_hashtable(unsigned int *sizep, int nulls)
+ {
+ 	struct hlist_nulls_head *hash;
+ 	unsigned int nr_slots, i;
+-	size_t sz;
+ 
+ 	if (*sizep > (UINT_MAX / sizeof(struct hlist_nulls_head)))
+ 		return NULL;
+@@ -2116,14 +2105,8 @@ void *nf_ct_alloc_hashtable(unsigned int *sizep, int nulls)
+ 	BUILD_BUG_ON(sizeof(struct hlist_nulls_head) != sizeof(struct hlist_head));
+ 	nr_slots = *sizep = roundup(*sizep, PAGE_SIZE / sizeof(struct hlist_nulls_head));
+ 
+-	if (nr_slots > (UINT_MAX / sizeof(struct hlist_nulls_head)))
+-		return NULL;
+-
+-	sz = nr_slots * sizeof(struct hlist_nulls_head);
+-	hash = (void *)__get_free_pages(GFP_KERNEL | __GFP_NOWARN | __GFP_ZERO,
+-					get_order(sz));
+-	if (!hash)
+-		hash = vzalloc(sz);
++	hash = kvmalloc_array(nr_slots, sizeof(struct hlist_nulls_head),
++						GFP_KERNEL | __GFP_ZERO);
+ 
+ 	if (hash && nulls)
+ 		for (i = 0; i < nr_slots; i++)
+@@ -2150,7 +2133,7 @@ int nf_conntrack_hash_resize(unsigned int hashsize)
+ 
+ 	old_size = nf_conntrack_htable_size;
+ 	if (old_size == hashsize) {
+-		nf_ct_free_hashtable(hash, hashsize);
++		kvfree(hash);
+ 		return 0;
+ 	}
+ 
+@@ -2186,7 +2169,7 @@ int nf_conntrack_hash_resize(unsigned int hashsize)
+ 	local_bh_enable();
+ 
+ 	synchronize_net();
+-	nf_ct_free_hashtable(old_hash, old_size);
++	kvfree(old_hash);
+ 	return 0;
+ }
+ 
+@@ -2350,7 +2333,7 @@ int nf_conntrack_init_start(void)
+ err_expect:
+ 	kmem_cache_destroy(nf_conntrack_cachep);
+ err_cachep:
+-	nf_ct_free_hashtable(nf_conntrack_hash, nf_conntrack_htable_size);
++	kvfree(nf_conntrack_hash);
+ 	return ret;
+ }
+ 
+diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
+index 3f586ba23d92..27b84231db10 100644
+--- a/net/netfilter/nf_conntrack_expect.c
++++ b/net/netfilter/nf_conntrack_expect.c
+@@ -712,5 +712,5 @@ void nf_conntrack_expect_fini(void)
+ {
+ 	rcu_barrier(); /* Wait for call_rcu() before destroy */
+ 	kmem_cache_destroy(nf_ct_expect_cachep);
+-	nf_ct_free_hashtable(nf_ct_expect_hash, nf_ct_expect_hsize);
++	kvfree(nf_ct_expect_hash);
+ }
+diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
+index d557a425289d..e24b762ffa1d 100644
+--- a/net/netfilter/nf_conntrack_helper.c
++++ b/net/netfilter/nf_conntrack_helper.c
+@@ -562,12 +562,12 @@ int nf_conntrack_helper_init(void)
+ 
+ 	return 0;
+ out_extend:
+-	nf_ct_free_hashtable(nf_ct_helper_hash, nf_ct_helper_hsize);
++	kvfree(nf_ct_helper_hash);
+ 	return ret;
+ }
+ 
+ void nf_conntrack_helper_fini(void)
+ {
+ 	nf_ct_extend_unregister(&helper_extend);
+-	nf_ct_free_hashtable(nf_ct_helper_hash, nf_ct_helper_hsize);
++	kvfree(nf_ct_helper_hash);
+ }
+diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
+index 6366f0c0b8c1..e2b196054dfc 100644
+--- a/net/netfilter/nf_nat_core.c
++++ b/net/netfilter/nf_nat_core.c
+@@ -1056,7 +1056,7 @@ static int __init nf_nat_init(void)
+ 
+ 	ret = nf_ct_extend_register(&nat_extend);
+ 	if (ret < 0) {
+-		nf_ct_free_hashtable(nf_nat_bysource, nf_nat_htable_size);
++		kvfree(nf_nat_bysource);
+ 		pr_err("Unable to register extension\n");
+ 		return ret;
+ 	}
+@@ -1094,7 +1094,7 @@ static void __exit nf_nat_cleanup(void)
+ 	for (i = 0; i < NFPROTO_NUMPROTO; i++)
+ 		kfree(nf_nat_l4protos[i]);
+ 	synchronize_net();
+-	nf_ct_free_hashtable(nf_nat_bysource, nf_nat_htable_size);
++	kvfree(nf_nat_bysource);
+ 	unregister_pernet_subsys(&nat_net_ops);
+ }
+ 
+-- 
+2.16.2
