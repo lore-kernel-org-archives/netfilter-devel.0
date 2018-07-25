@@ -1,72 +1,89 @@
-From: Neil Horman <nhorman@tuxdriver.com>
-Subject: Re: [PATCH PATCH net-next 08/18] sctp: whitespace fixes
-Date: Wed, 25 Jul 2018 08:59:49 -0400
-Message-ID: <20180725125949.GB3622@hmswarspite.think-freely.org>
-References: <20180724192918.31165-1-sthemmin@microsoft.com>
- <20180724192918.31165-9-sthemmin@microsoft.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH 1/4] treewide: convert ISO_8859-1 text comments to utf-8
+Date: Wed, 25 Jul 2018 15:12:11 +0200
+Message-ID: <CAK8P3a3tOuP1FVS7oD1UhO5s4C+fLkL8VT3eCpRnSxBZxKzf6A@mail.gmail.com>
+References: <20180724111600.4158975-1-arnd@arndb.de> <20180724140010.e24a9964fd340afe2d98a994@linux-foundation.org>
+ <aa39b6d15f44555cb79d5ebdef74aeab19003d6a.camel@perches.com> <20180724175531.75276cf4e539124aa9e27177@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: davem@davemloft.net, ericvh@gmail.com, rminnich@sandia.gov,
-        lucho@ionkov.net, ralf@linux-mips.org, jreuter@yaina.de,
-        pablo@netfilter.org, kadlec@blackhole.kfki.hu, fw@strlen.de,
-        alex.aring@gmail.com, stefan@datenfreihafen.org,
-        kuznet@ms2.inr.ac.ru, yoshfuji@linux-ipv6.org,
-        johannes@sipsolutions.net, jhs@mojatatu.com,
-        xiyou.wangcong@gmail.com, jiri@resnulli.us, vyasevich@gmail.com,
-        marcelo.leitner@gmail.com, trond.myklebust@hammerspace.com,
-        anna.schumaker@netapp.com, steffen.klassert@secunet.com,
-        herbert@gondor.apana.org.au, netdev@vger.kernel.org,
-        v9fs-developer@lists.sourceforge.net, linux-hams@vger.kernel.org,
-        ceph-devel@vger.kernel.org,
-        linux-decnet-user@lists.sourceforge.net,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        linux-wpan@vger.kernel.org, linux-s390
-To: Stephen Hemminger <stephen@networkplumber.org>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180724192918.31165-9-sthemmin@microsoft.com>
-Sender: netdev-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Cc: Joe Perches <joe@perches.com>,
+        Samuel Ortiz <sameo@linux.intel.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Rob Herring <robh+dt@kernel.org>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Jonathan Cameron <jic23@kernel.org>,
+        linux-wireless <linux-wireless@vger.kernel.org>,
+        Networking <netdev@vger.kernel.org>,
+        DTML <devicetree@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Linux ARM <linux-arm-kernel@lists.infradead.org>,
+        "open list:HARDWARE RANDOM NUMBER GENERATOR CORE"
+        <linux-crypto@vger.kernel.org>,
+        linuxppc-dev <linuxppc-dev@lists.ozlabs.org>,
+        linux-iio@vger.kernel.org,
+        Linux PM list <linux-pm@vger.kernel.org>,
+        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180724175531.75276cf4e539124aa9e27177@linux-foundation.org>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Jul 24, 2018 at 12:29:08PM -0700, Stephen Hemminger wrote:
-> Remove blank line at EOF and trailing whitespace.
-> 
-> Signed-off-by: Stephen Hemminger <stephen@networkplumber.org>
-> ---
->  net/sctp/Kconfig         | 4 ++--
->  net/sctp/sm_sideeffect.c | 1 -
->  2 files changed, 2 insertions(+), 3 deletions(-)
-> 
-> diff --git a/net/sctp/Kconfig b/net/sctp/Kconfig
-> index c740b189d4ba..950ecf6e7439 100644
-> --- a/net/sctp/Kconfig
-> +++ b/net/sctp/Kconfig
-> @@ -41,8 +41,8 @@ config SCTP_DBG_OBJCNT
->  	bool "SCTP: Debug object counts"
->  	depends on PROC_FS
->  	help
-> -	  If you say Y, this will enable debugging support for counting the 
-> -	  type of objects that are currently allocated.  This is useful for 
-> +	  If you say Y, this will enable debugging support for counting the
-> +	  type of objects that are currently allocated.  This is useful for
->  	  identifying memory leaks. This debug information can be viewed by
->  	  'cat /proc/net/sctp/sctp_dbg_objcnt'
->  
-> diff --git a/net/sctp/sm_sideeffect.c b/net/sctp/sm_sideeffect.c
-> index 298112ca8c06..85d393090238 100644
-> --- a/net/sctp/sm_sideeffect.c
-> +++ b/net/sctp/sm_sideeffect.c
-> @@ -1827,4 +1827,3 @@ static int sctp_cmd_interpreter(enum sctp_event event_type,
->  	error = -ENOMEM;
->  	goto out;
->  }
-> -
-> -- 
-> 2.18.0
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-sctp" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-Acked-by: Neil Horman <nhorman@tuxdriver.com>
+tools/perf/tests/.gitignore:
+                            LLVM byte-codes, uncompressed
+On Wed, Jul 25, 2018 at 2:55 AM, Andrew Morton
+<akpm@linux-foundation.org> wrote:
+> On Tue, 24 Jul 2018 17:13:20 -0700 Joe Perches <joe@perches.com> wrote:
+>
+>> On Tue, 2018-07-24 at 14:00 -0700, Andrew Morton wrote:
+>> > On Tue, 24 Jul 2018 13:13:25 +0200 Arnd Bergmann <arnd@arndb.de> wrote:
+>> > > Almost all files in the kernel are either plain text or UTF-8
+>> > > encoded. A couple however are ISO_8859-1, usually just a few
+>> > > characters in a C comments, for historic reasons.
+>> > > This converts them all to UTF-8 for consistency.
+>> []
+>> > Will we be getting a checkpatch rule to keep things this way?
+>>
+>> How would that be done?
+>
+> I'm using this, seems to work.
+>
+>         if ! file $p | grep -q -P ", ASCII text|, UTF-8 Unicode text"
+>         then
+>                 echo $p: weird charset
+>         fi
+
+There are a couple of files that my version of 'find' incorrectly identified as
+something completely different, like:
+
+Documentation/devicetree/bindings/pinctrl/pinctrl-sx150x.txt:
+            SemOne archive data
+Documentation/devicetree/bindings/rtc/epson,rtc7301.txt:
+            Microsoft Document Imaging Format
+Documentation/filesystems/nfs/pnfs-block-server.txt:
+            PPMN archive data
+arch/arm/boot/dts/bcm283x-rpi-usb-host.dtsi:
+        Sendmail frozen configuration  - version = "host";
+Documentation/networking/segmentation-offloads.txt:
+        StuffIt Deluxe Segment (data) : gmentation Offloads in the
+Linux Networking Stack
+arch/sparc/include/asm/visasm.h:                              SAS 7+
+arch/xtensa/kernel/setup.c:                                         ,
+init=0x454c, stat=0x090a, dev=0x2009, bas=0x2020
+drivers/cpufreq/powernow-k8.c:
+TI-XX Graphing Calculator (FLASH)
+tools/testing/selftests/net/forwarding/tc_shblocks.sh:
+                            Minix filesystem, V2 (big endian)
+tools/perf/tests/.gitignore:
+                            LLVM byte-codes, uncompressed
+
+All of the above seem to be valid ASCII or UTF-8 files, so the check
+above will lead
+to false-positives, but it may be good enough as they are the
+exception, and may be
+bugs in 'file'.
+
+Not sure if we need to worry about 'file' not being installed.
+
+       Arnd
