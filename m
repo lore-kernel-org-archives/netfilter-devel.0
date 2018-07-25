@@ -1,67 +1,37 @@
-From: Cong Wang <xiyou.wangcong@gmail.com>
-Subject: Re: [PATCH RFC/RFT net-next 00/17] net: Convert neighbor tables to per-namespace
-Date: Tue, 24 Jul 2018 15:09:25 -0700
-Message-ID: <CAM_iQpUc-H2kZCBevePs6g-8qKyJkUhdd1ZDSQgYsCG0ChfC2w@mail.gmail.com>
-References: <1a3f59a9-0ba5-c83f-16a6-f9550a84f693@gmail.com>
- <CAM_iQpWabZorkMNswyfHyS4KT=f_bgMtK8K35=84uah6Kfqxew@mail.gmail.com>
- <1a27e301-3275-b349-a2f8-afdfdc02f04f@gmail.com> <20180718.125938.2271502580775162784.davem@davemloft.net>
- <28c30574-391c-b4bd-c337-51d3040d901a@gmail.com> <CAM_iQpW4-JkZY7jXx0Q1b907hQ85UOL1eXv2YHwSukb5L=apUg@mail.gmail.com>
- <5021d874-8e99-6eba-f24b-4257c62d4457@gmail.com>
+From: Joe Perches <joe@perches.com>
+Subject: Re: [PATCH 1/4] treewide: convert ISO_8859-1 text comments to utf-8
+Date: Tue, 24 Jul 2018 17:13:20 -0700
+Message-ID: <aa39b6d15f44555cb79d5ebdef74aeab19003d6a.camel@perches.com>
+References: <20180724111600.4158975-1-arnd@arndb.de>
+         <20180724140010.e24a9964fd340afe2d98a994@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Cc: David Miller <davem@davemloft.net>,
-        Linux Kernel Network Developers <netdev@vger.kernel.org>,
-        nikita.leshchenko@oracle.com,
-        Roopa Prabhu <roopa@cumulusnetworks.com>,
-        Stephen Hemminger <stephen@networkplumber.org>,
-        Ido Schimmel <idosch@mellanox.com>,
-        Jiri Pirko <jiri@mellanox.com>,
-        Saeed Mahameed <saeedm@mellanox.com>,
-        Alexander Aring <alex.aring@gmail.com>,
-        linux-wpan@vger.kernel.org,
-        NetFilter <netfilter-devel@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        "Eric W. Biederman" <ebiederm@xmission.com>
-To: David Ahern <dsahern@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5021d874-8e99-6eba-f24b-4257c62d4457@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Cc: Samuel Ortiz <sameo@linux.intel.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Rob Herring <robh+dt@kernel.org>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Jonathan Cameron <jic23@kernel.org>,
+        linux-wireless@vger.kernel.org, netdev@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-crypto@vger.kernel.org,
+        linuxppc-dev@lists.ozlabs.org, linux-iio@vger.kernel.org,
+        linux-pm@vger.kernel.org, lvs-devel@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+To: Andrew Morton <akpm@linux-foundation.org>,
+        Arnd Bergmann <arnd@arndb.de>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20180724140010.e24a9964fd340afe2d98a994@linux-foundation.org>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Jul 24, 2018 at 8:14 AM David Ahern <dsahern@gmail.com> wrote:
->
-> On 7/19/18 11:12 AM, Cong Wang wrote:
-> > On Thu, Jul 19, 2018 at 9:16 AM David Ahern <dsahern@gmail.com> wrote:
-> >>
-> >> Chatting with Nikolay about this and he brought up a good corollary - ip
-> >> fragmentation. It really is a similar problem in that memory is consumed
-> >> as a result of packets received from an external entity. The ipfrag
-> >> sysctls are per namespace with a limit that non-init_net namespaces can
-> >> not set high_thresh > the current value of init_net. Potential memory
-> >> consumed by fragments scales with the number of namespaces which is the
-> >> primary concern with making neighbor tables per namespace.
-> >
-> > Nothing new, already discussed:
-> > https://marc.info/?l=linux-netdev&m=140391416215988&w=2
-> >
-> > :)
-> >
->
-> Neighbor tables, bridge fdbs, vxlan fdbs and ip fragments all consume
-> local memory resources due to received packets. bridge and vxlan fdb's
-> are fairly straightforward analogs to neighbor entries; they are per
-> device with no limits on the number of entries. Fragments have memory
-> limits per namespace. So neighbor tables are the only ones with this
-> strict limitation and concern on memory consumption.
->
-> I get the impression there is no longer a strong resistance against
-> moving the tables to per namespace, but deciding what is the right
-> approach to handle backwards compatibility. Correct? Changing the
-> accounting is inevitably going to be noticeable to some use case(s), but
-> with sysctl settings it is a simple runtime update once the user knows
-> to make the change.
+On Tue, 2018-07-24 at 14:00 -0700, Andrew Morton wrote:
+> On Tue, 24 Jul 2018 13:13:25 +0200 Arnd Bergmann <arnd@arndb.de> wrote:
+> > Almost all files in the kernel are either plain text or UTF-8
+> > encoded. A couple however are ISO_8859-1, usually just a few
+> > characters in a C comments, for historic reasons.
+> > This converts them all to UTF-8 for consistency.
+[]
+> Will we be getting a checkpatch rule to keep things this way?
 
-This question definitely should go to Eric Biederman who was against
-my proposal.
-
-Let's add Eric into CC.
+How would that be done?
