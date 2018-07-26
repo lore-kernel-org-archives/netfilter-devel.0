@@ -1,133 +1,340 @@
 From: Dmitry Safonov <dima@arista.com>
-Subject: [PATCH 00/18] xfrm: Add compat layer
-Date: Thu, 26 Jul 2018 03:31:26 +0100
-Message-ID: <20180726023144.31066-1-dima@arista.com>
+Subject: [PATCH 07/18] netlink: Pass groups pointer to .bind()
+Date: Thu, 26 Jul 2018 03:31:33 +0100
+Message-ID: <20180726023144.31066-8-dima@arista.com>
+References: <20180726023144.31066-1-dima@arista.com>
 Cc: Dmitry Safonov <dima@arista.com>,
         "David S. Miller" <davem@davemloft.net>,
         Herbert Xu <herbert@gondor.apana.org.au>,
         Steffen Klassert <steffen.klassert@secunet.com>,
         Dmitry Safonov <0x7f454c46@gmail.com>, netdev@vger.kernel.org,
-        Andy Lutomirski <luto@kernel.org>,
-        Ard Biesheuvel <ard.biesheuvel@linaro.org>,
-        "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>,
-        John Stultz <john.stultz@linaro.org>,
-        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
-        Oleg Nesterov <oleg@redhat.com>,
-        Stephen Boyd <sboyd@kernel.org>,
-        Steven Rostedt <rostedt@goodmis.org>,
-        Thomas Gleixner <tglx@linutronix.de>, x86@kernel.org,
-        linux-efi@vger.kernel.org,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Mauro Carvalho
+        Eric Paris <eparis@redhat.com>,
+        Florian Westphal <fw@strlen.de>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Paul Moore <paul@paul-moore.com>, coreteam@netfilter.org,
+        linux-audit@redhat.com, netfilter-devel@vger.kernel.org
 To: linux-kernel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180726023144.31066-1-dima@arista.com>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Due to some historical mistake, xfrm User ABI differ between native and
-compatible applications. The difference is in structures paddings and in
-the result in the size of netlink messages.
-As it's already visible ABI, it cannot be adjusted by packing structures.
-
-Possibility for compatible application to manage xfrm tunnels was
-disabled by: the commmit 19d7df69fdb2 ("xfrm: Refuse to insert 32 bit
-userspace socket policies on 64 bit systems") and the commit 74005991b78a
-("xfrm: Do not parse 32bits compiled xfrm netlink msg on 64bits host").
-
-By some wonderful reasons and brilliant architecture decisions for
-creating userspace, on Arista switches we still use 32-bit userspace
-with 64-bit kernel. There is slow movement to full 64-bit build, but
-it's not yet here. As the switches need support for ipsec tunnels, the
-local kernel has reverted mentioned patches that disable xfrm for
-compat apps. On the top of that there is a bunch of disgraceful hacks
-in userspace to work around the size check for netlink messages
-and all that jazz.
-
-It looks like, we're not the only desirable users of compatible xfrm,
-there were a couple of attempts to make it work:
-https://lkml.org/lkml/2017/1/20/733
-https://patchwork.ozlabs.org/patch/44600/
-http://netdev.vger.kernel.narkive.com/2Gesykj6/patch-net-next-xfrm-correctly-parse-netlink-msg-from-32bits-ip-command-on-64bits-host
-
-All the discussions end in the conclusion that xfrm should have a full
-compatible layer to correctly work with 32-bit applications on 64-bit
-kernels:
-https://lkml.org/lkml/2017/1/23/413
-https://patchwork.ozlabs.org/patch/433279/
-
-In some recent lkml discussion, Linus said that it's worth to fix this
-problem and not giving people an excuse to stay on 32-bit kernel:
-https://lkml.org/lkml/2018/2/13/752
-
-So, here I add a compatible layer to xfrm.
-As xfrm uses netlink notifications, kernel should send them in ABI
-format that an application will parse. The proposed solution is
-to save the ABI of bind() syscall. The realization detail is
-to create kernel-hidden, non visible to userspace netlink groups
-for compat applications.
-
-The first two patches simplify ifdeffery, and while I've already submitted
-them a while ago, I'm resending them for completeness:
-https://lore.kernel.org/lkml/20180717005004.25984-1-dima@arista.com/T/#u
-
-There is also an exhaustive selftest for ipsec tunnels and to check
-that kernel parses correctly the structures those differ in size.
-It doesn't depend on any library and compat version can be easy
-build with: make CFLAGS=-m32 net/ipsec
+Netlink messages sent by xfrm differ in size between 64-bit native and
+32-bit compatible applications. To know which UABI to use to send the
+message from kernel, I'll use the type of bind() syscall.
+Xfrm will have hidden from userspace kernel-only groups for compatible
+applications.
+So, add pointer to groups to netlink_bind().
+With later patches xfrm will set a proper compat group for netlink
+socket during bind().
 
 Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Eric Paris <eparis@redhat.com>
+Cc: Florian Westphal <fw@strlen.de>
 Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Paul Moore <paul@paul-moore.com>
 Cc: Steffen Klassert <steffen.klassert@secunet.com>
-Cc: Dmitry Safonov <0x7f454c46@gmail.com>
+Cc: coreteam@netfilter.org
+Cc: linux-audit@redhat.com
 Cc: netdev@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
+Signed-off-by: Dmitry Safonov <dima@arista.com>
+---
+ include/linux/netlink.h   |  2 +-
+ kernel/audit.c            |  2 +-
+ net/core/rtnetlink.c      | 14 ++++++--------
+ net/core/sock_diag.c      | 25 ++++++++++++-------------
+ net/netfilter/nfnetlink.c | 24 ++++++++++++++----------
+ net/netlink/af_netlink.c  | 27 ++++++++++-----------------
+ net/netlink/af_netlink.h  |  4 ++--
+ net/netlink/genetlink.c   | 26 ++++++++++++++++++--------
+ 8 files changed, 64 insertions(+), 60 deletions(-)
 
-Dmitry Safonov (18):
-  x86/compat: Adjust in_compat_syscall() to generic code under !COMPAT
-  compat: Cleanup in_compat_syscall() callers
-  selftest/net/xfrm: Add test for ipsec tunnel
-  net/xfrm: Add _packed types for compat users
-  net/xfrm: Parse userspi_info{,_packed} depending on syscall
-  netlink: Do not subscribe to non-existent groups
-  netlink: Pass groups pointer to .bind()
-  xfrm: Add in-kernel groups for compat notifications
-  xfrm: Dump usersa_info in compat/native formats
-  xfrm: Send state notifications in compat format too
-  xfrm: Add compat support for xfrm_user_expire messages
-  xfrm: Add compat support for xfrm_userpolicy_info messages
-  xfrm: Add compat support for xfrm_user_acquire messages
-  xfrm: Add compat support for xfrm_user_polexpire messages
-  xfrm: Check compat acquire listeners in xfrm_is_alive()
-  xfrm: Notify compat listeners about policy flush
-  xfrm: Notify compat listeners about state flush
-  xfrm: Enable compat syscalls
-
- MAINTAINERS                            |    1 +
- arch/x86/include/asm/compat.h          |    9 +-
- arch/x86/include/asm/ftrace.h          |    4 +-
- arch/x86/kernel/process_64.c           |    4 +-
- arch/x86/kernel/sys_x86_64.c           |   11 +-
- arch/x86/mm/hugetlbpage.c              |    4 +-
- arch/x86/mm/mmap.c                     |    2 +-
- drivers/firmware/efi/efivars.c         |   16 +-
- include/linux/compat.h                 |    4 +-
- include/linux/netlink.h                |    2 +-
- include/net/xfrm.h                     |   14 -
- kernel/audit.c                         |    2 +-
- kernel/time/time.c                     |    2 +-
- net/core/rtnetlink.c                   |   14 +-
- net/core/sock_diag.c                   |   25 +-
- net/netfilter/nfnetlink.c              |   24 +-
- net/netlink/af_netlink.c               |   28 +-
- net/netlink/af_netlink.h               |    4 +-
- net/netlink/genetlink.c                |   26 +-
- net/xfrm/xfrm_state.c                  |    5 -
- net/xfrm/xfrm_user.c                   |  690 ++++++++---
- tools/testing/selftests/net/.gitignore |    1 +
- tools/testing/selftests/net/Makefile   |    1 +
- tools/testing/selftests/net/ipsec.c    | 1987 ++++++++++++++++++++++++++++++++
- 24 files changed, 2612 insertions(+), 268 deletions(-)
- create mode 100644 tools/testing/selftests/net/ipsec.c
-
+diff --git a/include/linux/netlink.h b/include/linux/netlink.h
+index f3075d6c7e82..19202648e04a 100644
+--- a/include/linux/netlink.h
++++ b/include/linux/netlink.h
+@@ -46,7 +46,7 @@ struct netlink_kernel_cfg {
+ 	unsigned int	flags;
+ 	void		(*input)(struct sk_buff *skb);
+ 	struct mutex	*cb_mutex;
+-	int		(*bind)(struct net *net, int group);
++	int		(*bind)(struct net *net, unsigned long *groups);
+ 	void		(*unbind)(struct net *net, int group);
+ 	bool		(*compare)(struct net *net, struct sock *sk);
+ };
+diff --git a/kernel/audit.c b/kernel/audit.c
+index e7478cb58079..87ca0214bcf2 100644
+--- a/kernel/audit.c
++++ b/kernel/audit.c
+@@ -1523,7 +1523,7 @@ static void audit_receive(struct sk_buff  *skb)
+ }
+ 
+ /* Run custom bind function on netlink socket group connect or bind requests. */
+-static int audit_bind(struct net *net, int group)
++static int audit_bind(struct net *net, unsigned long *groups)
+ {
+ 	if (!capable(CAP_AUDIT_READ))
+ 		return -EPERM;
+diff --git a/net/core/rtnetlink.c b/net/core/rtnetlink.c
+index e3f743c141b3..0465e692ae32 100644
+--- a/net/core/rtnetlink.c
++++ b/net/core/rtnetlink.c
+@@ -4683,15 +4683,13 @@ static void rtnetlink_rcv(struct sk_buff *skb)
+ 	netlink_rcv_skb(skb, &rtnetlink_rcv_msg);
+ }
+ 
+-static int rtnetlink_bind(struct net *net, int group)
++static int rtnetlink_bind(struct net *net, unsigned long *groups)
+ {
+-	switch (group) {
+-	case RTNLGRP_IPV4_MROUTE_R:
+-	case RTNLGRP_IPV6_MROUTE_R:
+-		if (!ns_capable(net->user_ns, CAP_NET_ADMIN))
+-			return -EPERM;
+-		break;
+-	}
++	unsigned long mroute_r;
++
++	mroute_r = 1UL << RTNLGRP_IPV4_MROUTE_R | 1UL << RTNLGRP_IPV6_MROUTE_R;
++	if ((*groups & mroute_r) && !ns_capable(net->user_ns, CAP_NET_ADMIN))
++		return -EPERM;
+ 	return 0;
+ }
+ 
+diff --git a/net/core/sock_diag.c b/net/core/sock_diag.c
+index c37b5be7c5e4..befa6759f2ad 100644
+--- a/net/core/sock_diag.c
++++ b/net/core/sock_diag.c
+@@ -273,20 +273,19 @@ static void sock_diag_rcv(struct sk_buff *skb)
+ 	mutex_unlock(&sock_diag_mutex);
+ }
+ 
+-static int sock_diag_bind(struct net *net, int group)
++static int sock_diag_bind(struct net *net, unsigned long *groups)
+ {
+-	switch (group) {
+-	case SKNLGRP_INET_TCP_DESTROY:
+-	case SKNLGRP_INET_UDP_DESTROY:
+-		if (!sock_diag_handlers[AF_INET])
+-			sock_load_diag_module(AF_INET, 0);
+-		break;
+-	case SKNLGRP_INET6_TCP_DESTROY:
+-	case SKNLGRP_INET6_UDP_DESTROY:
+-		if (!sock_diag_handlers[AF_INET6])
+-			sock_load_diag_module(AF_INET6, 0);
+-		break;
+-	}
++	unsigned long inet_mask, inet6_mask;
++
++	inet_mask   = 1UL << SKNLGRP_INET_TCP_DESTROY;
++	inet_mask  |= 1UL << SKNLGRP_INET_UDP_DESTROY;
++	inet6_mask  = 1UL << SKNLGRP_INET6_TCP_DESTROY;
++	inet6_mask |= 1UL << SKNLGRP_INET6_UDP_DESTROY;
++
++	if ((*groups & inet_mask) && !sock_diag_handlers[AF_INET])
++		sock_load_diag_module(AF_INET, 0);
++	if ((*groups & inet6_mask) && !sock_diag_handlers[AF_INET6])
++		sock_load_diag_module(AF_INET6, 0);
+ 	return 0;
+ }
+ 
+diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
+index e1b6be29848d..6a8893df5285 100644
+--- a/net/netfilter/nfnetlink.c
++++ b/net/netfilter/nfnetlink.c
+@@ -556,21 +556,25 @@ static void nfnetlink_rcv(struct sk_buff *skb)
+ }
+ 
+ #ifdef CONFIG_MODULES
+-static int nfnetlink_bind(struct net *net, int group)
++static int nfnetlink_bind(struct net *net, unsigned long *groups)
+ {
+ 	const struct nfnetlink_subsystem *ss;
+-	int type;
++	unsigned long _groups = *groups;
++	int type, group_bit, group = -1;
+ 
+-	if (group <= NFNLGRP_NONE || group > NFNLGRP_MAX)
+-		return 0;
++	while ((group_bit = __builtin_ffsl(_groups))) {
++		group += group_bit;
+ 
+-	type = nfnl_group2type[group];
++		type = nfnl_group2type[group];
++		rcu_read_lock();
++		ss = nfnetlink_get_subsys(type << 8);
++		rcu_read_unlock();
++		if (!ss)
++			request_module("nfnetlink-subsys-%d", type);
++
++		_groups >>= group_bit;
++	}
+ 
+-	rcu_read_lock();
+-	ss = nfnetlink_get_subsys(type << 8);
+-	rcu_read_unlock();
+-	if (!ss)
+-		request_module("nfnetlink-subsys-%d", type);
+ 	return 0;
+ }
+ #endif
+diff --git a/net/netlink/af_netlink.c b/net/netlink/af_netlink.c
+index ac805caed2e2..1e11e706c683 100644
+--- a/net/netlink/af_netlink.c
++++ b/net/netlink/af_netlink.c
+@@ -668,7 +668,7 @@ static int netlink_create(struct net *net, struct socket *sock, int protocol,
+ 	struct module *module = NULL;
+ 	struct mutex *cb_mutex;
+ 	struct netlink_sock *nlk;
+-	int (*bind)(struct net *net, int group);
++	int (*bind)(struct net *net, unsigned long *groups);
+ 	void (*unbind)(struct net *net, int group);
+ 	int err = 0;
+ 
+@@ -969,8 +969,7 @@ static int netlink_realloc_groups(struct sock *sk)
+ 	return err;
+ }
+ 
+-static void netlink_undo_bind(int group, long unsigned int groups,
+-			      struct sock *sk)
++static void netlink_undo_bind(unsigned long groups, struct sock *sk)
+ {
+ 	struct netlink_sock *nlk = nlk_sk(sk);
+ 	int undo;
+@@ -978,7 +977,7 @@ static void netlink_undo_bind(int group, long unsigned int groups,
+ 	if (!nlk->netlink_unbind)
+ 		return;
+ 
+-	for (undo = 0; undo < group; undo++)
++	for (undo = 0; undo < nlk->ngroups; undo++)
+ 		if (test_bit(undo, &groups))
+ 			nlk->netlink_unbind(sock_net(sk), undo + 1);
+ }
+@@ -991,7 +990,7 @@ static int netlink_bind(struct socket *sock, struct sockaddr *addr,
+ 	struct netlink_sock *nlk = nlk_sk(sk);
+ 	struct sockaddr_nl *nladdr = (struct sockaddr_nl *)addr;
+ 	int err = 0;
+-	long unsigned int groups = nladdr->nl_groups;
++	unsigned long groups = nladdr->nl_groups;
+ 	bool bound;
+ 
+ 	if (addr_len < sizeof(struct sockaddr_nl))
+@@ -1021,17 +1020,9 @@ static int netlink_bind(struct socket *sock, struct sockaddr *addr,
+ 
+ 	netlink_lock_table();
+ 	if (nlk->netlink_bind && groups) {
+-		int group;
+-
+-		for (group = 0; group < nlk->ngroups; group++) {
+-			if (!test_bit(group, &groups))
+-				continue;
+-			err = nlk->netlink_bind(net, group + 1);
+-			if (!err)
+-				continue;
+-			netlink_undo_bind(group, groups, sk);
++		err = nlk->netlink_bind(net, &groups);
++		if (err)
+ 			goto unlock;
+-		}
+ 	}
+ 
+ 	/* No need for barriers here as we return to user-space without
+@@ -1042,7 +1033,7 @@ static int netlink_bind(struct socket *sock, struct sockaddr *addr,
+ 			netlink_insert(sk, nladdr->nl_pid) :
+ 			netlink_autobind(sock);
+ 		if (err) {
+-			netlink_undo_bind(nlk->ngroups, groups, sk);
++			netlink_undo_bind(groups, sk);
+ 			goto unlock;
+ 		}
+ 	}
+@@ -1652,7 +1643,9 @@ static int netlink_setsockopt(struct socket *sock, int level, int optname,
+ 		if (!val || val - 1 >= nlk->ngroups)
+ 			return -EINVAL;
+ 		if (optname == NETLINK_ADD_MEMBERSHIP && nlk->netlink_bind) {
+-			err = nlk->netlink_bind(sock_net(sk), val);
++			unsigned long groups = 1UL << val;
++
++			err = nlk->netlink_bind(sock_net(sk), &groups);
+ 			if (err)
+ 				return err;
+ 		}
+diff --git a/net/netlink/af_netlink.h b/net/netlink/af_netlink.h
+index 962de7b3c023..e765172abbb7 100644
+--- a/net/netlink/af_netlink.h
++++ b/net/netlink/af_netlink.h
+@@ -39,7 +39,7 @@ struct netlink_sock {
+ 	struct mutex		*cb_mutex;
+ 	struct mutex		cb_def_mutex;
+ 	void			(*netlink_rcv)(struct sk_buff *skb);
+-	int			(*netlink_bind)(struct net *net, int group);
++	int			(*netlink_bind)(struct net *net, unsigned long *groups);
+ 	void			(*netlink_unbind)(struct net *net, int group);
+ 	struct module		*module;
+ 
+@@ -61,7 +61,7 @@ struct netlink_table {
+ 	unsigned int		groups;
+ 	struct mutex		*cb_mutex;
+ 	struct module		*module;
+-	int			(*bind)(struct net *net, int group);
++	int			(*bind)(struct net *net, unsigned long *groups);
+ 	void			(*unbind)(struct net *net, int group);
+ 	bool			(*compare)(struct net *net, struct sock *sock);
+ 	int			registered;
+diff --git a/net/netlink/genetlink.c b/net/netlink/genetlink.c
+index 25eeb6d2a75a..a86b105730cf 100644
+--- a/net/netlink/genetlink.c
++++ b/net/netlink/genetlink.c
+@@ -960,28 +960,38 @@ static struct genl_family genl_ctrl __ro_after_init = {
+ 	.netnsok = true,
+ };
+ 
+-static int genl_bind(struct net *net, int group)
++static int genl_bind(struct net *net, unsigned long *groups)
+ {
++	unsigned long mcgrps;
+ 	struct genl_family *f;
+-	int err = -ENOENT;
++	int err = 0;
+ 	unsigned int id;
+ 
+ 	down_read(&cb_lock);
+ 
+ 	idr_for_each_entry(&genl_fam_idr, f, id) {
+-		if (group >= f->mcgrp_offset &&
+-		    group < f->mcgrp_offset + f->n_mcgrps) {
+-			int fam_grp = group - f->mcgrp_offset;
++		int fam_grp_bit, fam_grp = -1;
++
++		mcgrps = (1UL << f->n_mcgrps) - 1;
++		mcgrps <<= f->mcgrp_offset;
++		mcgrps &= *groups;
++
++		if (!mcgrps)
++			continue;
++
++		while ((fam_grp_bit = __builtin_ffsl(mcgrps))) {
++			fam_grp += fam_grp_bit;
+ 
+ 			if (!f->netnsok && net != &init_net)
+ 				err = -ENOENT;
+ 			else if (f->mcast_bind)
+ 				err = f->mcast_bind(net, fam_grp);
+-			else
+-				err = 0;
+-			break;
++
++			if (err)
++				goto out;
+ 		}
+ 	}
++out:
+ 	up_read(&cb_lock);
+ 
+ 	return err;
 -- 
 2.13.6
