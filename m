@@ -1,63 +1,63 @@
-From: David Laight <David.Laight@ACULAB.COM>
-Subject: RE: [PATCH RFC/RFT net-next 00/17] net: Convert neighbor tables to
- per-namespace
-Date: Thu, 26 Jul 2018 11:12:34 +0000
-Message-ID: <be5c3f5be49e4e22bf1160a1d6d3a1b0@AcuMS.aculab.com>
-References: <1a3f59a9-0ba5-c83f-16a6-f9550a84f693@gmail.com>
-        <CAM_iQpWabZorkMNswyfHyS4KT=f_bgMtK8K35=84uah6Kfqxew@mail.gmail.com>
-        <1a27e301-3275-b349-a2f8-afdfdc02f04f@gmail.com>
-        <20180718.125938.2271502580775162784.davem@davemloft.net>
-        <28c30574-391c-b4bd-c337-51d3040d901a@gmail.com>
-        <CAM_iQpW4-JkZY7jXx0Q1b907hQ85UOL1eXv2YHwSukb5L=apUg@mail.gmail.com>
-        <5021d874-8e99-6eba-f24b-4257c62d4457@gmail.com>
-        <CAM_iQpUc-H2kZCBevePs6g-8qKyJkUhdd1ZDSQgYsCG0ChfC2w@mail.gmail.com>
-        <87muufze8w.fsf@xmission.com>
-        <4b03b5f6-87ce-9ff2-7c14-598beebd8fb8@gmail.com>
- <87zhyfw70m.fsf@xmission.com>
+From: Steffen Klassert <steffen.klassert@secunet.com>
+Subject: Re: [PATCH 00/18] xfrm: Add compat layer
+Date: Fri, 27 Jul 2018 09:37:47 +0200
+Message-ID: <20180727073747.h27dtojlnmc3k25v@gauss3.secunet.de>
+References: <20180726023144.31066-1-dima@arista.com>
+ <20180726084959.pzjvflfjq6a76du6@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
-Cc: Cong Wang <xiyou.wangcong@gmail.com>,
-        David Miller <davem@davemloft.net>,
-        Linux Kernel Network Developers <netdev@vger.kernel.org>,
-        "nikita.leshchenko@oracle.com" <nikita.leshchenko@oracle.com>,
-        Roopa Prabhu <roopa@cumulusnetworks.com>,
-        Stephen Hemminger <stephen@networkplumber.org>,
-        Ido Schimmel <idosch@mellanox.com>,
-        Jiri Pirko <jiri@mellanox.com>,
-        "Saeed Mahameed" <saeedm@mellanox.com>,
-        Alexander Aring <alex.aring@gmail.com>,
-        "linux-wpan@vger.kernel.org" <linux-wpan@vger.kernel.org>,
-        NetFilter <netfilter-devel@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>
-To: "'Eric W. Biederman'" <ebiederm@xmission.com>,
-        David Ahern <dsahern@gmail.com>
+Content-Type: text/plain; charset="us-ascii"
+Cc: Dmitry Safonov <dima@arista.com>, <linux-kernel@vger.kernel.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Herbert Xu <herbert@gondor.apana.org.au>,
+        Dmitry Safonov <0x7f454c46@gmail.com>,
+        <netdev@vger.kernel.org>, "Andy Lutomirski" <luto@kernel.org>,
+        Ard Biesheuvel <ard.biesheuvel@linaro.org>,
+        "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>,
+        John Stultz <john.stultz@linaro.org>,
+        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
+        Oleg Nesterov <oleg@redhat.com>,
+        "Stephen Boyd" <sboyd@kernel.org>,
+        Steven Rostedt <rostedt@goodmis.org>,
+        "Thomas Gleixner" <tglx@linutronix.de>, <x86@kernel.org>,
+        <linux-efi@vger.kernel.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Mauro Carvalho Chehab <mcheh
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <87zhyfw70m.fsf@xmission.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20180726084959.pzjvflfjq6a76du6@breakpoint.cc>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Eric W. Biederman
-> Sent: 25 July 2018 18:38
-...
-> >> Further unless I misread something you are increasing the number of
-> >> timers to 3 per namespace.  If I create create a thousand network
-> >> namespaces that feels like it will hurt system performance overall.
-> >
-> > It seems to me the timers are per neighbor entry not table. The per
-> > table ones are for proxies.
+On Thu, Jul 26, 2018 at 10:49:59AM +0200, Florian Westphal wrote:
+> Dmitry Safonov <dima@arista.com> wrote:
+> > So, here I add a compatible layer to xfrm.
+> > As xfrm uses netlink notifications, kernel should send them in ABI
+> > format that an application will parse. The proposed solution is
+> > to save the ABI of bind() syscall. The realization detail is
+> > to create kernel-hidden, non visible to userspace netlink groups
+> > for compat applications.
 > 
-> It seems I misread that bit when I was refreshing my memory on what
-> everything is doing.  If we can already have 1024 timers that makes
-> timers not a concern.
+> Why not use exisiting netlink support?
+> Just add the 32bit skb to skb64->frag_list and let
+> netlink find if tasks needs 64 or 32 one.
+> 
+> It only needs this small fix to properly signal the end of a dump:
+> https://marc.info/?l=linux-netdev&m=126625240303351&w=2
+> 
+> I had started a second attempt to make xfrm compat work,
+> but its still in early stage.
+> 
+> One link that might still have some value:
+> https://git.breakpoint.cc/cgit/fw/net-next.git/commit/?h=xfrm_config_compat_07&id=f64430e6d9e297f3990f485a4832e273751b9869
+> (compat structure definitions with BUILD_BUG_ON checking)
+> 
+> My plan was to make xfrm compat work strictly as shrinker (64->32)
+> and expander (32->64), i.e. no/little changes to exisiting code and
+> pass all "expanded" skbs through existing xfrm rcv functions.
 
-Surely it is enough to just have a timestamp in each entry.
-Deletion of expired items need not be done until insert (which
-has the table suitable locked) bumps into an expired item.
-
-	David
-
--
-Registered Address Lakeside, Bramley Road, Mount Farm, Milton Keynes, MK1 1PT, UK
-Registration No: 1397386 (Wales)
+I agree here with Florian. The code behind this ABI
+is already complicated. Please stay away from generic
+code a much as possible. Generic and compat code should
+be clearly separated.
