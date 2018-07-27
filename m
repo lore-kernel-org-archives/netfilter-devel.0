@@ -1,55 +1,72 @@
-From: Dmitry Safonov <dima@arista.com>
-Subject: Re: [PATCH 00/18] xfrm: Add compat layer
-Date: Fri, 27 Jul 2018 15:51:51 +0100
-Message-ID: <1532703111.2679.20.camel@arista.com>
-References: <20180726023144.31066-1-dima@arista.com>
-         <20180726084959.pzjvflfjq6a76du6@breakpoint.cc>
-         <20180727073747.h27dtojlnmc3k25v@gauss3.secunet.de>
-         <1532700173.2679.18.camel@arista.com>
-         <20180727141936.uze6ohordx7ue3no@breakpoint.cc>
+From: ebiederm@xmission.com (Eric W. Biederman)
+Subject: Re: [PATCH RFC/RFT net-next 00/17] net: Convert neighbor tables to per-namespace
+Date: Fri, 27 Jul 2018 11:27:06 -0500
+Message-ID: <87k1pg1w6d.fsf@xmission.com>
+References: <1a3f59a9-0ba5-c83f-16a6-f9550a84f693@gmail.com>
+        <CAM_iQpWabZorkMNswyfHyS4KT=f_bgMtK8K35=84uah6Kfqxew@mail.gmail.com>
+        <1a27e301-3275-b349-a2f8-afdfdc02f04f@gmail.com>
+        <20180718.125938.2271502580775162784.davem@davemloft.net>
+        <28c30574-391c-b4bd-c337-51d3040d901a@gmail.com>
+        <CAM_iQpW4-JkZY7jXx0Q1b907hQ85UOL1eXv2YHwSukb5L=apUg@mail.gmail.com>
+        <5021d874-8e99-6eba-f24b-4257c62d4457@gmail.com>
+        <CAM_iQpUc-H2kZCBevePs6g-8qKyJkUhdd1ZDSQgYsCG0ChfC2w@mail.gmail.com>
+        <87muufze8w.fsf@xmission.com>
+        <4b03b5f6-87ce-9ff2-7c14-598beebd8fb8@gmail.com>
+        <87zhyfw70m.fsf@xmission.com>
+        <be5c3f5be49e4e22bf1160a1d6d3a1b0@AcuMS.aculab.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: Steffen Klassert <steffen.klassert@secunet.com>,
-        linux-kernel@vger.kernel.org,
-        "David S. Miller" <davem@davemloft.net>,
-        Herbert Xu <herbert@gondor.apana.org.au>,
-        Dmitry Safonov <0x7f454c46@gmail.com>, netdev@vger.kernel.org,
-        Andy Lutomirski <luto@kernel.org>,
-        Ard Biesheuvel <ard.biesheuvel@linaro.org>,
-        "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>,
-        John Stultz <john.stultz@linaro.org>,
-        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
-        Oleg Nesterov <oleg@redhat.com>,
-        Stephen Boyd <sboyd@kernel.org>,
-        Steven Rostedt <rostedt@goodmis.org>,
-        Thomas Gleixner <tglx@linutronix.de>, x86@kernel.org,
-        linux-efi@vger.kernel.org,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Mauro Carvalho Cheh
-To: Florian Westphal <fw@strlen.de>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180727141936.uze6ohordx7ue3no@breakpoint.cc>
-Sender: netdev-owner@vger.kernel.org
+Content-Type: text/plain
+Cc: David Ahern <dsahern@gmail.com>,
+        Cong Wang <xiyou.wangcong@gmail.com>,
+        David Miller <davem@davemloft.net>,
+        Linux Kernel Network Developers <netdev@vger.kernel.org>,
+        "nikita.leshchenko\@oracle.com" <nikita.leshchenko@oracle.com>,
+        Roopa Prabhu <roopa@cumulusnetworks.com>,
+        Stephen Hemminger <stephen@networkplumber.org>,
+        Ido Schimmel <idosch@mellanox.com>,
+        Jiri Pirko <jiri@mellanox.com>,
+        "Saeed Mahameed" <saeedm@mellanox.com>,
+        Alexander Aring <alex.aring@gmail.com>,
+        "linux-wpan\@vger.kernel.org" <linux-wpan@vger.kernel.org>,
+        NetFilter <netfilter-devel@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>
+To: David Laight <David.Laight@ACULAB.COM>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <be5c3f5be49e4e22bf1160a1d6d3a1b0@AcuMS.aculab.com> (David
+        Laight's message of "Thu, 26 Jul 2018 11:12:34 +0000")
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 2018-07-27 at 16:19 +0200, Florian Westphal wrote:
-> Dmitry Safonov <dima@arista.com> wrote:
-> > 1. It will double copy netlink messages, making it O(n) instead of
-> > O(1), where n - is number of bind()s.. Probably we don't care much.
-> 
-> About those bind() patches, I don't understand why they are needed.
-> 
-> Why can't you just add the compat skb to the native skb when doing
-> the multicast call?
-> 
-> skb_shinfo(skb)->frag_list = compat_skb;
-> xfrm_nlmsg_multicast(net, skb, 0, ...
+David Laight <David.Laight@ACULAB.COM> writes:
 
-Oh yeah, sorry, I think I misread the patch - will try to add compat
-skb in the multicast call.
+> From: Eric W. Biederman
+>> Sent: 25 July 2018 18:38
+> ...
+>> >> Further unless I misread something you are increasing the number of
+>> >> timers to 3 per namespace.  If I create create a thousand network
+>> >> namespaces that feels like it will hurt system performance overall.
+>> >
+>> > It seems to me the timers are per neighbor entry not table. The per
+>> > table ones are for proxies.
+>> 
+>> It seems I misread that bit when I was refreshing my memory on what
+>> everything is doing.  If we can already have 1024 timers that makes
+>> timers not a concern.
+>
+> Surely it is enough to just have a timestamp in each entry.
+> Deletion of expired items need not be done until insert (which
+> has the table suitable locked) bumps into an expired item.
 
--- 
-Thanks,
-             Dmitry
+Part of the state machine the timer is used for is sending retransmits
+before we get out first response, so the state machine is not just
+about expiry and may not be simple enough to do without a timer.
+
+I honestly don't remember the tradeoffs between the various kinds of
+timers.  If we already can have up to 1000 timers without problems I suspect
+they are cheap enough optimizing for fewer times simply doesn't matter.
+Certainly we are not in regression territory if we don't.
+
+As for bumping into expired items on insert it would be a bad hash table
+if we were bumping into any other entries frequently on insert.
+
+Eric
