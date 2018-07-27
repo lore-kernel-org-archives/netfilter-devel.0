@@ -1,175 +1,219 @@
-From: Andy Lutomirski <luto@amacapital.net>
-Subject: Re: [PATCH 00/18] xfrm: Add compat layer
-Date: Fri, 27 Jul 2018 10:09:50 -0700
-Message-ID: <9907339A-4CBE-4F5C-88CB-A1C6DBCB4CED@amacapital.net>
-References: <20180726023144.31066-1-dima@arista.com> <20180726084959.pzjvflfjq6a76du6@breakpoint.cc> <20180727073747.h27dtojlnmc3k25v@gauss3.secunet.de> <1532700173.2679.18.camel@arista.com> <20180727141936.uze6ohordx7ue3no@breakpoint.cc> <1532703111.2679.20.camel@arista.com> <CADhJOfam+cY8uD4XTGvZSEFQdAgTu49G6cg6c64NJoP3bNuBmw@mail.gmail.com>
-Mime-Version: 1.0 (1.0)
-Content-Type: multipart/alternative;
-        boundary=Apple-Mail-F0CF300A-221A-4558-94AF-78ADCD92F052
+From: Anna Schumaker <Anna.Schumaker@Netapp.com>
+Subject: Re: [PATCH PATCH net-next 15/18] sunrpc: whitespace fixes
+Date: Fri, 27 Jul 2018 16:39:39 -0400
+Message-ID: <c4ca53ea-80d8-9fa1-15ce-ce9c5e4bc6ac@Netapp.com>
+References: <20180724192918.31165-1-sthemmin@microsoft.com>
+ <20180724192918.31165-16-sthemmin@microsoft.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Cc: Dmitry Safonov <dima@arista.com>, Florian Westphal <fw@strlen.de>,
-        Steffen Klassert <steffen.klassert@secunet.com>,
-        linux-kernel@vger.kernel.org,
-        "David S. Miller" <davem@davemloft.net>,
-        Herbert Xu <herbert@gondor.apana.org.au>,
-        Dmitry Safonov <0x7f454c46@gmail.com>, netdev@vger.kernel.org,
-        Andy Lutomirski <luto@kernel.org>,
-        Ard Biesheuvel <ard.biesheuvel@linaro.org>,
-        "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>,
-        John Stultz <john.stultz@linaro.org>,
-        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
-        Oleg Nesterov <oleg@redhat.com>,
-        Stephen Boyd <sboyd@kernel.org>,
-        Steven Rostedt <rostedt@goodmis.org>,
-        Thomas Gleixner <tglx@linutronix.de>, x86@kernel.org,
-        linux-efi@vger.kernel.org,
-        Andrew Morton <akpm@linux-foundation.org>,
-        G
-To: Nathan Harold <nharold@google.com>
+Cc: <netdev@vger.kernel.org>, <v9fs-developer@lists.sourceforge.net>,
+        <linux-hams@vger.kernel.org>, <ceph-devel@vger.kernel.org>,
+        <linux-decnet-user@lists.sourceforge.net>,
+        <netfilter-devel@vger.kernel.org>, <coreteam@netfilter.org>,
+        <linux-wpan@vger.kernel.org>, <linux-s390@vger.kernel.org>,
+        <linux-wireless@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
+        <linux-sctp@vger.kernel.org>, <linux-nfs@vger.kernel.org>,
+        <linux-x25@vger.kernel.org>,
+        Stephen Hemminger <sthemmin@microsoft.com>
+To: Stephen Hemminger <stephen@networkplumber.org>,
+        <davem@davemloft.net>, <ericvh@gmail.com>, <rminnich@sandia.gov>,
+        <lucho@ionkov.net>, <ralf@linux-mips.org>, <jreuter@yaina.de>,
+        <pablo@netfilter.org>, <kadlec@blackhole.kfki.hu>, <fw@strlen.de>,
+        <alex.aring@gmail.com>, <stefan@datenfreihafen.org>,
+        <kuznet@ms2.inr.ac.ru>, <yoshfuji@linux-ipv6.org>,
+        <johannes@sipsolutions.net>, <jhs@mojatatu.com>,
+        <xiyou.wangcong@gmail.com>, <jiri@resnulli.us>,
+        <vyasevich@gmail.com>, <nhorman@tuxdriver.com>,
+        <marcelo.leitner@gmail.com>, <trond.myklebust@hammerspace.com>,
+        <steffen.klassert@secunet.com>, <herbert@gondor.apana.org.au>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <CADhJOfam+cY8uD4XTGvZSEFQdAgTu49G6cg6c64NJoP3bNuBmw@mail.gmail.com>
+In-Reply-To: <20180724192918.31165-16-sthemmin@microsoft.com>
+Content-Language: en-GB
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
+On 07/24/2018 03:29 PM, Stephen Hemminger wrote:
+> Remove trailing whitespace and blank line at EOF
 
---Apple-Mail-F0CF300A-221A-4558-94AF-78ADCD92F052
-Content-Type: text/plain;
-	charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Looks good to me, I've applied it to my tree.
 
+Thanks!
+Anna
 
-
-> On Jul 27, 2018, at 9:48 AM, Nathan Harold <nharold@google.com> wrote:
->=20
-> We (Android) are very interested in removing the restriction for 32-bit us=
-erspace processes accessing xfrm netlink on 64-bit kernels. IPsec support is=
- required to pass Android conformance tests, and any manufacturer wishing to=
- ship 32-bit userspace with a recent kernel needs out-of-tree changes (remov=
-ing the compat_task check) to do so.
->=20
-> That said, it=E2=80=99s not difficult to work around alignment issues dire=
-ctly in userspace, so maybe we could just remove the check and make this the=
- caller's responsibility? Here=E2=80=99s an example of the workaround curren=
-tly in the Android tree:
-> https://android.googlesource.com/platform/system/netd/+/refs/heads/master/=
-server/XfrmController.h#257
->=20
-> We could also employ a (relatively simple) solution such as the one above i=
-n the uapi XFRM header itself, though it would require a caller to declare t=
-he target kernel ABI at compile time. Maybe that=E2=80=99s not unthinkable f=
-or an uncommon case?
->=20
-
-Could there just be an XFRM2 that is entirely identical to XFRM for 64-bit u=
-serspace but makes the 32-bit structures match?  If there are a grand total o=
-f two or so userspace implementations, that should cover most use cases. L
-
-> -Nathan
->=20
->=20
->> On Fri, Jul 27, 2018 at 7:51 AM, Dmitry Safonov <dima@arista.com> wrote:
->> On Fri, 2018-07-27 at 16:19 +0200, Florian Westphal wrote:
->> > Dmitry Safonov <dima@arista.com> wrote:
->> > > 1. It will double copy netlink messages, making it O(n) instead of
->> > > O(1), where n - is number of bind()s.. Probably we don't care much.
->> >=20
->> > About those bind() patches, I don't understand why they are needed.
->> >=20
->> > Why can't you just add the compat skb to the native skb when doing
->> > the multicast call?
->> >=20
->> > skb_shinfo(skb)->frag_list =3D compat_skb;
->> > xfrm_nlmsg_multicast(net, skb, 0, ...
->>=20
->> Oh yeah, sorry, I think I misread the patch - will try to add compat
->> skb in the multicast call.
->>=20
->> --=20
->> Thanks,
->>              Dmitry
->=20
-
---Apple-Mail-F0CF300A-221A-4558-94AF-78ADCD92F052
-Content-Type: text/html;
-	charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-
-<html><head><meta http-equiv=3D"content-type" content=3D"text/html; charset=3D=
-utf-8"></head><body dir=3D"auto"><br><div><br>On Jul 27, 2018, at 9:48 AM, N=
-athan Harold &lt;<a href=3D"mailto:nharold@google.com">nharold@google.com</a=
->&gt; wrote:<br><br></div><blockquote type=3D"cite"><div><div dir=3D"ltr"><b=
- style=3D"font-weight:normal" id=3D"gmail-docs-internal-guid-e4b05990-dca1-4=
-f17-94c5-d2141c339ad6"><p dir=3D"ltr" style=3D"line-height:1.38;margin-top:0=
-pt;margin-bottom:0pt"><span style=3D"font-size:11pt;font-family:Arial;color:=
-rgb(0,0,0);background-color:transparent;font-weight:400;font-style:normal;fo=
-nt-variant:normal;text-decoration:none;vertical-align:baseline;white-space:p=
-re-wrap">We (Android) are very interested in removing the restriction for 32=
--bit userspace processes accessing xfrm netlink on 64-bit kernels. IPsec sup=
-port is required to pass Android conformance tests, and any manufacturer wis=
-hing to ship 32-bit userspace with a recent kernel needs out-of-tree changes=
- (removing the compat_task check) to do so.</span></p><br><p dir=3D"ltr" sty=
-le=3D"line-height:1.38;margin-top:0pt;margin-bottom:0pt"><span style=3D"font=
--size:11pt;font-family:Arial;color:rgb(0,0,0);background-color:transparent;f=
-ont-weight:400;font-style:normal;font-variant:normal;text-decoration:none;ve=
-rtical-align:baseline;white-space:pre-wrap">That said, it=E2=80=99s not diff=
-icult to work around alignment issues directly in userspace, so maybe we cou=
-ld just remove the check and make this the caller's responsibility? Here=E2=80=
-=99s an example of the workaround currently in the Android tree:</span></p><=
-p dir=3D"ltr" style=3D"line-height:1.38;margin-top:0pt;margin-bottom:0pt"><a=
- href=3D"https://android.googlesource.com/platform/system/netd/+/refs/heads/=
-master/server/XfrmController.h#257" style=3D"text-decoration:none"><span sty=
-le=3D"font-size:11pt;font-family:Arial;color:rgb(17,85,204);background-color=
-:transparent;font-weight:400;font-style:normal;font-variant:normal;text-deco=
-ration:underline;vertical-align:baseline;white-space:pre-wrap">https://andro=
-id.googlesource.com/platform/system/netd/+/refs/heads/master/server/XfrmCont=
-roller.h#257</span></a></p><br><p dir=3D"ltr" style=3D"line-height:1.38;marg=
-in-top:0pt;margin-bottom:0pt"><span style=3D"font-size:11pt;font-family:Aria=
-l;color:rgb(0,0,0);background-color:transparent;font-weight:400;font-style:n=
-ormal;font-variant:normal;text-decoration:none;vertical-align:baseline;white=
--space:pre-wrap">We could also employ a (relatively simple) solution such as=
- the one above in the uapi XFRM header itself, though it would require a cal=
-ler to declare the target kernel ABI at compile time. Maybe that=E2=80=99s n=
-ot unthinkable for an uncommon case?</span></p><br></b></div></div></blockqu=
-ote><div><br></div><div>Could there just be an XFRM2 that is entirely identi=
-cal to XFRM for 64-bit userspace but makes the 32-bit structures match? &nbs=
-p;If there are a grand total of two or so userspace implementations, that sh=
-ould cover most use cases. L</div><br><blockquote type=3D"cite"><div><div di=
-r=3D"ltr"><b style=3D"font-weight:normal" id=3D"gmail-docs-internal-guid-e4b=
-05990-dca1-4f17-94c5-d2141c339ad6"><p dir=3D"ltr" style=3D"line-height:1.38;=
-margin-top:0pt;margin-bottom:0pt"><span style=3D"font-size:11pt;font-family:=
-Arial;color:rgb(0,0,0);background-color:transparent;font-weight:400;font-sty=
-le:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;w=
-hite-space:pre-wrap">-Nathan</span></p></b><br></div><div class=3D"gmail_ext=
-ra"><br><div class=3D"gmail_quote">On Fri, Jul 27, 2018 at 7:51 AM, Dmitry S=
-afonov <span dir=3D"ltr">&lt;<a href=3D"mailto:dima@arista.com" target=3D"_b=
-lank">dima@arista.com</a>&gt;</span> wrote:<br><blockquote class=3D"gmail_qu=
-ote" style=3D"margin:0 0 0 .8ex;border-left:1px #ccc solid;padding-left:1ex"=
-><div class=3D"HOEnZb"><div class=3D"h5">On Fri, 2018-07-27 at 16:19 +0200, =
-Florian Westphal wrote:<br>
-&gt; Dmitry Safonov &lt;<a href=3D"mailto:dima@arista.com">dima@arista.com</=
-a>&gt; wrote:<br>
-&gt; &gt; 1. It will double copy netlink messages, making it O(n) instead of=
-<br>
-&gt; &gt; O(1), where n - is number of bind()s.. Probably we don't care much=
-.<br>
-&gt; <br>
-&gt; About those bind() patches, I don't understand why they are needed.<br>=
-
-&gt; <br>
-&gt; Why can't you just add the compat skb to the native skb when doing<br>
-&gt; the multicast call?<br>
-&gt; <br>
-&gt; skb_shinfo(skb)-&gt;frag_list =3D compat_skb;<br>
-&gt; xfrm_nlmsg_multicast(net, skb, 0, ...<br>
-<br>
-</div></div>Oh yeah, sorry, I think I misread the patch - will try to add co=
-mpat<br>
-skb in the multicast call.<br>
-<span class=3D"HOEnZb"><font color=3D"#888888"><br>
--- <br>
-Thanks,<br>
-&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;Dmitry<br>
-</font></span></blockquote></div><br></div>
-</div></blockquote></body></html>=
-
---Apple-Mail-F0CF300A-221A-4558-94AF-78ADCD92F052--
+> 
+> Signed-off-by: Stephen Hemminger <stephen@networkplumber.org>
+> ---
+>  net/sunrpc/auth_gss/auth_gss.c          | 2 +-
+>  net/sunrpc/auth_gss/gss_generic_token.c | 1 -
+>  net/sunrpc/auth_gss/gss_krb5_crypto.c   | 1 -
+>  net/sunrpc/auth_gss/gss_krb5_keys.c     | 1 -
+>  net/sunrpc/auth_gss/gss_krb5_seal.c     | 1 -
+>  net/sunrpc/auth_gss/gss_krb5_unseal.c   | 1 -
+>  net/sunrpc/auth_gss/gss_krb5_wrap.c     | 1 -
+>  net/sunrpc/auth_gss/svcauth_gss.c       | 2 +-
+>  net/sunrpc/backchannel_rqst.c           | 1 -
+>  net/sunrpc/clnt.c                       | 2 +-
+>  net/sunrpc/rpcb_clnt.c                  | 2 +-
+>  net/sunrpc/stats.c                      | 1 -
+>  net/sunrpc/sunrpc.h                     | 1 -
+>  net/sunrpc/xprt.c                       | 2 +-
+>  net/sunrpc/xprtsock.c                   | 1 -
+>  15 files changed, 5 insertions(+), 15 deletions(-)
+> 
+> diff --git a/net/sunrpc/auth_gss/auth_gss.c b/net/sunrpc/auth_gss/auth_gss.c
+> index be8f103d22fd..b67ad98a36a6 100644
+> --- a/net/sunrpc/auth_gss/auth_gss.c
+> +++ b/net/sunrpc/auth_gss/auth_gss.c
+> @@ -1571,7 +1571,7 @@ static int gss_cred_is_negative_entry(struct rpc_cred *cred)
+>  	if (test_bit(RPCAUTH_CRED_NEGATIVE, &cred->cr_flags)) {
+>  		unsigned long now = jiffies;
+>  		unsigned long begin, expire;
+> -		struct gss_cred *gss_cred; 
+> +		struct gss_cred *gss_cred;
+>  
+>  		gss_cred = container_of(cred, struct gss_cred, gc_base);
+>  		begin = gss_cred->gc_upcall_timestamp;
+> diff --git a/net/sunrpc/auth_gss/gss_generic_token.c b/net/sunrpc/auth_gss/gss_generic_token.c
+> index 254defe446a7..fe97f3106536 100644
+> --- a/net/sunrpc/auth_gss/gss_generic_token.c
+> +++ b/net/sunrpc/auth_gss/gss_generic_token.c
+> @@ -231,4 +231,3 @@ g_verify_token_header(struct xdr_netobj *mech, int *body_size,
+>  }
+>  
+>  EXPORT_SYMBOL_GPL(g_verify_token_header);
+> -
+> diff --git a/net/sunrpc/auth_gss/gss_krb5_crypto.c b/net/sunrpc/auth_gss/gss_krb5_crypto.c
+> index 8654494b4d0a..a1acee106faa 100644
+> --- a/net/sunrpc/auth_gss/gss_krb5_crypto.c
+> +++ b/net/sunrpc/auth_gss/gss_krb5_crypto.c
+> @@ -1077,4 +1077,3 @@ krb5_rc4_setup_enc_key(struct krb5_ctx *kctx, struct crypto_skcipher *cipher,
+>  	dprintk("%s: returning %d\n", __func__, err);
+>  	return err;
+>  }
+> -
+> diff --git a/net/sunrpc/auth_gss/gss_krb5_keys.c b/net/sunrpc/auth_gss/gss_krb5_keys.c
+> index 870133146026..f7fe2d2b851f 100644
+> --- a/net/sunrpc/auth_gss/gss_krb5_keys.c
+> +++ b/net/sunrpc/auth_gss/gss_krb5_keys.c
+> @@ -324,4 +324,3 @@ u32 gss_krb5_aes_make_key(const struct gss_krb5_enctype *gk5e,
+>  err_out:
+>  	return ret;
+>  }
+> -
+> diff --git a/net/sunrpc/auth_gss/gss_krb5_seal.c b/net/sunrpc/auth_gss/gss_krb5_seal.c
+> index 94a2b3f082a8..eaad9bc7a0bd 100644
+> --- a/net/sunrpc/auth_gss/gss_krb5_seal.c
+> +++ b/net/sunrpc/auth_gss/gss_krb5_seal.c
+> @@ -229,4 +229,3 @@ gss_get_mic_kerberos(struct gss_ctx *gss_ctx, struct xdr_buf *text,
+>  		return gss_get_mic_v2(ctx, text, token);
+>  	}
+>  }
+> -
+> diff --git a/net/sunrpc/auth_gss/gss_krb5_unseal.c b/net/sunrpc/auth_gss/gss_krb5_unseal.c
+> index b601a73cc9db..ef2b25b86d2f 100644
+> --- a/net/sunrpc/auth_gss/gss_krb5_unseal.c
+> +++ b/net/sunrpc/auth_gss/gss_krb5_unseal.c
+> @@ -225,4 +225,3 @@ gss_verify_mic_kerberos(struct gss_ctx *gss_ctx,
+>  		return gss_verify_mic_v2(ctx, message_buffer, read_token);
+>  	}
+>  }
+> -
+> diff --git a/net/sunrpc/auth_gss/gss_krb5_wrap.c b/net/sunrpc/auth_gss/gss_krb5_wrap.c
+> index a737c2da0837..286fd22404f2 100644
+> --- a/net/sunrpc/auth_gss/gss_krb5_wrap.c
+> +++ b/net/sunrpc/auth_gss/gss_krb5_wrap.c
+> @@ -623,4 +623,3 @@ gss_unwrap_kerberos(struct gss_ctx *gctx, int offset, struct xdr_buf *buf)
+>  		return gss_unwrap_kerberos_v2(kctx, offset, buf);
+>  	}
+>  }
+> -
+> diff --git a/net/sunrpc/auth_gss/svcauth_gss.c b/net/sunrpc/auth_gss/svcauth_gss.c
+> index 5089dbb96d58..860f2a1bbb67 100644
+> --- a/net/sunrpc/auth_gss/svcauth_gss.c
+> +++ b/net/sunrpc/auth_gss/svcauth_gss.c
+> @@ -1389,7 +1389,7 @@ static void destroy_use_gss_proxy_proc_entry(struct net *net)
+>  	struct sunrpc_net *sn = net_generic(net, sunrpc_net_id);
+>  
+>  	if (sn->use_gssp_proc) {
+> -		remove_proc_entry("use-gss-proxy", sn->proc_net_rpc); 
+> +		remove_proc_entry("use-gss-proxy", sn->proc_net_rpc);
+>  		clear_gssp_clnt(sn);
+>  	}
+>  }
+> diff --git a/net/sunrpc/backchannel_rqst.c b/net/sunrpc/backchannel_rqst.c
+> index c2c68a15b59d..3c15a99b9700 100644
+> --- a/net/sunrpc/backchannel_rqst.c
+> +++ b/net/sunrpc/backchannel_rqst.c
+> @@ -362,4 +362,3 @@ void xprt_complete_bc_request(struct rpc_rqst *req, uint32_t copied)
+>  	wake_up(&bc_serv->sv_cb_waitq);
+>  	spin_unlock(&bc_serv->sv_cb_lock);
+>  }
+> -
+> diff --git a/net/sunrpc/clnt.c b/net/sunrpc/clnt.c
+> index d839c33ae7d9..3818e4d55c66 100644
+> --- a/net/sunrpc/clnt.c
+> +++ b/net/sunrpc/clnt.c
+> @@ -892,7 +892,7 @@ rpc_free_client(struct rpc_clnt *clnt)
+>  /*
+>   * Free an RPC client
+>   */
+> -static struct rpc_clnt * 
+> +static struct rpc_clnt *
+>  rpc_free_auth(struct rpc_clnt *clnt)
+>  {
+>  	if (clnt->cl_auth == NULL)
+> diff --git a/net/sunrpc/rpcb_clnt.c b/net/sunrpc/rpcb_clnt.c
+> index c526f8fb37c9..c7872bc13860 100644
+> --- a/net/sunrpc/rpcb_clnt.c
+> +++ b/net/sunrpc/rpcb_clnt.c
+> @@ -213,7 +213,7 @@ static void rpcb_set_local(struct net *net, struct rpc_clnt *clnt,
+>  	sn->rpcb_local_clnt = clnt;
+>  	sn->rpcb_local_clnt4 = clnt4;
+>  	sn->rpcb_is_af_local = is_af_local ? 1 : 0;
+> -	smp_wmb(); 
+> +	smp_wmb();
+>  	sn->rpcb_users = 1;
+>  	dprintk("RPC:       created new rpcb local clients (rpcb_local_clnt: "
+>  		"%p, rpcb_local_clnt4: %p) for net %x%s\n",
+> diff --git a/net/sunrpc/stats.c b/net/sunrpc/stats.c
+> index f68aa46c9dd7..86f316503c7c 100644
+> --- a/net/sunrpc/stats.c
+> +++ b/net/sunrpc/stats.c
+> @@ -310,4 +310,3 @@ void rpc_proc_exit(struct net *net)
+>  	dprintk("RPC:       unregistering /proc/net/rpc\n");
+>  	remove_proc_entry("rpc", net->proc_net);
+>  }
+> -
+> diff --git a/net/sunrpc/sunrpc.h b/net/sunrpc/sunrpc.h
+> index 09a0315ea77b..c9bacb3c930f 100644
+> --- a/net/sunrpc/sunrpc.h
+> +++ b/net/sunrpc/sunrpc.h
+> @@ -57,4 +57,3 @@ int svc_send_common(struct socket *sock, struct xdr_buf *xdr,
+>  int rpc_clients_notifier_register(void);
+>  void rpc_clients_notifier_unregister(void);
+>  #endif /* _NET_SUNRPC_SUNRPC_H */
+> -
+> diff --git a/net/sunrpc/xprt.c b/net/sunrpc/xprt.c
+> index 3fabf9f6a0f9..a8db2e3f8904 100644
+> --- a/net/sunrpc/xprt.c
+> +++ b/net/sunrpc/xprt.c
+> @@ -880,7 +880,7 @@ static void xprt_wait_on_pinned_rqst(struct rpc_rqst *req)
+>  __must_hold(&req->rq_xprt->recv_lock)
+>  {
+>  	struct rpc_task *task = req->rq_task;
+> -	
+> +
+>  	if (task && test_bit(RPC_TASK_MSG_RECV, &task->tk_runstate)) {
+>  		spin_unlock(&req->rq_xprt->recv_lock);
+>  		set_bit(RPC_TASK_MSG_RECV_WAIT, &task->tk_runstate);
+> diff --git a/net/sunrpc/xprtsock.c b/net/sunrpc/xprtsock.c
+> index 9e1c5024aba9..6b7539c0466e 100644
+> --- a/net/sunrpc/xprtsock.c
+> +++ b/net/sunrpc/xprtsock.c
+> @@ -3375,4 +3375,3 @@ module_param_named(tcp_max_slot_table_entries, xprt_max_tcp_slot_table_entries,
+>  		   max_slot_table_size, 0644);
+>  module_param_named(udp_slot_table_entries, xprt_udp_slot_table_entries,
+>  		   slot_table_size, 0644);
+> -
+> 
