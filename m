@@ -1,53 +1,82 @@
-From: Dmitry Safonov <dima@arista.com>
-Subject: Re: [PATCH 00/18] xfrm: Add compat layer
-Date: Mon, 30 Jul 2018 18:39:20 +0100
-Message-ID: <1532972360.2679.32.camel@arista.com>
-References: <1532703111.2679.20.camel@arista.com>
-         <CADhJOfam+cY8uD4XTGvZSEFQdAgTu49G6cg6c64NJoP3bNuBmw@mail.gmail.com>
-         <1532795215.2679.27.camel@arista.com>
-         <20180728.141812.1026007723536955024.davem@davemloft.net>
+From: Matteo Croce <mcroce@redhat.com>
+Subject: Re: [PATCH] ipvs: don't show negative times in ip_vs_conn
+Date: Mon, 30 Jul 2018 17:49:14 +0000
+Message-ID: <CAGnkfhzxz715p23PH+QgK2zduhv95O85wa92ktBRtw5xy1sZ8w@mail.gmail.com>
+References: <20180720151957.24791-1-mcroce@redhat.com> <ff823fec-0c37-80f9-9bcf-515357c5209a@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: nharold@google.com, fw@strlen.de, steffen.klassert@secunet.com,
-        linux-kernel@vger.kernel.org, herbert@gondor.apana.org.au,
-        0x7f454c46@gmail.com, netdev@vger.kernel.org, luto@kernel.org,
-        ard.biesheuvel@linaro.org, hpa@zytor.com, mingo@redhat.com,
-        john.stultz@linaro.org, kirill.shutemov@linux.intel.com,
-        oleg@redhat.com, sboyd@kernel.org, rostedt@goodmis.org,
-        tglx@linutronix.de, x86@kernel.org, linux-efi@vger.kernel.org,
-        akpm@linux-foundation.org, gregkh@linuxfoundation.org,
-        mchehab+samsung@kernel.org, shuah@kernel.org,
-        linux-kselftest@vger.kernel.org, eparis@redhat.com,
-        kadlec@blackhole.kfki.hu, pablo@netfilter.org, paul@paul-moore.com,
-        coreteam@netfilter.org, linux-audit@redhat.com,
-        netfilter-devel@vger.kernel.org, fan.du@intel.com
-To: David Miller <davem@davemloft.net>
+Cc: Wensong Zhang <wensong@linux-vs.org>,
+        Simon Horman <horms@verge.net.au>,
+        Julian Anastasov <ja@ssi.bg>, lvs-devel@vger.kernel.org,
+        netdev <netdev@vger.kernel.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        netfilter-devel@vger.kernel.org
+To: eric.dumazet@gmail.com
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180728.141812.1026007723536955024.davem@davemloft.net>
+In-Reply-To: <ff823fec-0c37-80f9-9bcf-515357c5209a@gmail.com>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, 2018-07-28 at 14:18 -0700, David Miller wrote:
-> From: Dmitry Safonov <dima@arista.com>
-> Date: Sat, 28 Jul 2018 17:26:55 +0100
-> 
-> > Well, I think, I'll rework my patches set according to critics and
-> > separate compat xfrm layer. I've already a selftest to check that
-> 32/64
-> > bit xfrm works - so the most time-taking part is done.
-> 
-> The way you've done the compat structures using __packed is only
-> going
-> to work on x86, just FYI.
+On Fri, Jul 20, 2018 at 4:19 PM Eric Dumazet <eric.dumazet@gmail.com> wrote:
+>
+>
+>
+> On 07/20/2018 08:19 AM, Matteo Croce wrote:
+> > Since commit 500462a9de65 ("timers: Switch to a non-cascading wheel"),
+> > timers duration can last even 12.5% more than the scheduled interval.
+> >
+> > Signed-off-by: Matteo Croce <mcroce@redhat.com>
+> > ---
+> >  net/netfilter/ipvs/ip_vs_conn.c | 22 ++++++++++++++--------
+> >  1 file changed, 14 insertions(+), 8 deletions(-)
+> >
+> > diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
+> > index 99e0aa350dc5..c78c48a6d53f 100644
+> > --- a/net/netfilter/ipvs/ip_vs_conn.c
+> > +++ b/net/netfilter/ipvs/ip_vs_conn.c
+> > @@ -1066,6 +1066,12 @@ static void ip_vs_conn_seq_stop(struct seq_file *seq, void *v)
+> >       rcu_read_unlock();
+> >  }
+> >
+> > +static unsigned int time_left(unsigned long time)
+> > +{
+> > +     return time_is_after_jiffies(time) ?
+> > +             jiffies_to_msecs(time - jiffies) / 1000 : 0;
+> > +}
+>
+>
+> I would suggest adding jiffies_delta_to_msecs(), because we will need elsewhere,
+> like in inet_sk_diag_fill()
+>
+>
+> diff --git a/include/linux/jiffies.h b/include/linux/jiffies.h
+> index a27cf66523279c1a5d4aaa0d0087f1e9d48d170f..fa928242567db30769839ac8738be5dc58e372ab 100644
+> --- a/include/linux/jiffies.h
+> +++ b/include/linux/jiffies.h
+> @@ -447,6 +447,11 @@ static inline clock_t jiffies_delta_to_clock_t(long delta)
+>         return jiffies_to_clock_t(max(0L, delta));
+>  }
+>
+> +static inline unsigned int jiffies_delta_to_msecs(long delta)
+> +{
+> +       return jiffies_to_msecs(max(0L, delta));
+> +}
+> +
+>  extern unsigned long clock_t_to_jiffies(unsigned long x);
+>  extern u64 jiffies_64_to_clock_t(u64 x);
+>  extern u64 nsec_to_clock_t(u64 x);
+>
 
-Thanks for pointing, so I'll probably cover it under something like
-HAS_COMPAT_XFRM.
-(if there isn't any better idea).
+Hi Eric,
+What about a function which returns directly the delta from a
+timestamp, and 0 if elapsed?
+So we can rely on time_is_after_jiffies() for overflows, it should be
+less error prone.
 
-> The "32-bit alignment for 64-bit objects" thing x86 has is very much
-> not universal amongst ABIs having 32-bit and 64-bit variants.
-
--- 
-Thanks,
-             Dmitry
+static unsigned int jiffies_delta_to_msecs(unsigned long time)
+{
+     return time_is_after_jiffies(time) ?
+             jiffies_to_msecs(time - jiffies) / 1000 : 0;
+}
