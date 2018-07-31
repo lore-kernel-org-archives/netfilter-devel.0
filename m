@@ -1,101 +1,191 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: SLAB_TYPESAFE_BY_RCU without constructors (was Re:
- [PATCH v4 13/17] khwasan: add hooks implementation)
-Date: Tue, 31 Jul 2018 11:51:59 -0700
-Message-ID: <CA+55aFzYLgyNp1jsqsvUOjwZdO_1Piqj=iB=rzDShjScdNtkbg@mail.gmail.com>
-References: <e3b48104-3efb-1896-0d46-792419f49a75@virtuozzo.com>
- <01000164f169bc6b-c73a8353-d7d9-47ec-a782-90aadcb86bfb-000000@email.amazonses.com>
- <CA+55aFzHR1+YbDee6Cduo6YXHO9LKmLN1wP=MVzbP41nxUb5=g@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Cc: Dave Airlie <airlied@linux.ie>, DRI <dri-devel@lists.freedesktop.org>,
- linux-mm <linux-mm@kvack.org>, Eric Dumazet <edumazet@google.com>,
- Network Development <netdev@vger.kernel.org>, gerrit@erg.abdn.ac.uk,
- dccp@vger.kernel.org, coreteam@netfilter.org,
- Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
- Andrey Ryabinin <aryabinin@virtuozzo.com>, linux-ext4@vger.kernel.org,
- Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
- Pablo Neira Ayuso <pablo@netfilter.org>,
- linux-s390 <linux-s390@vger.kernel.org>,
- Andrey Konovalov <andreyknvl@google.com>,
- intel-gfx <intel-gfx@lists.freedesktop.org>,
- Ursula Braun <ubraun@linux.ibm.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>,
- Dmitry Vyukov <dvyukov@google.com>, Theodore Ts'o <tytso@mit.edu>,
- Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
- Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
- Florian Westphal <fw@strlen.de>,
- Linux Kernel Mailing List <linu
-To: Christoph Lameter <cl@linux.com>
-Return-path: <intel-gfx-bounces@lists.freedesktop.org>
-In-Reply-To: <CA+55aFzHR1+YbDee6Cduo6YXHO9LKmLN1wP=MVzbP41nxUb5=g@mail.gmail.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: intel-gfx-bounces@lists.freedesktop.org
-Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
+From: Richard Guy Briggs <rgb@redhat.com>
+Subject: [PATCH ghak90 (was ghak32) V4 00/10] audit: implement container identifier
+Date: Tue, 31 Jul 2018 16:07:35 -0400
+Message-ID: <cover.1533065887.git.rgb@redhat.com>
+Cc: luto@kernel.org, carlos@redhat.com, viro@zeniv.linux.org.uk,
+        dhowells@redhat.com, simo@redhat.com, eparis@parisplace.org,
+        serge@hallyn.com, ebiederm@xmission.com,
+        Richard Guy Briggs <rgb@redhat.com>
+To: containers@lists.linux-foundation.org, linux-api@vger.kernel.org,
+        Linux-Audit Mailing List <linux-audit@redhat.com>,
+        linux-fsdevel@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-T24gVHVlLCBKdWwgMzEsIDIwMTggYXQgMTA6NDkgQU0gTGludXMgVG9ydmFsZHMKPHRvcnZhbGRz
-QGxpbnV4LWZvdW5kYXRpb24ub3JnPiB3cm90ZToKPgo+IFNvIHRoZSByZS11c2UgbWlnaHQgaW5p
-dGlhbGl6ZSB0aGUgZmllbGRzIGxhemlseSwgbm90IG5lY2Vzc2FyaWx5IHVzaW5nIGEgY3Rvci4K
-CkluIHBhcnRpY3VsYXIsIHRoZSBwYXR0ZXJuIHRoYXQgbmZfY29ubnRyYWNrIHVzZXMgbG9va3Mg
-bGlrZSBpdCBpcyBzYWZlLgoKSWYgeW91IGhhdmUgYSB3ZWxsLWRlZmluZWQgcmVmY291bnQsIGFu
-ZCB1c2UgImF0b21pY19pbmNfbm90X3plcm8oKSIKdG8gZ3VhcmQgdGhlIHNwZWN1bGF0aXZlIFJD
-VSBhY2Nlc3Mgc2VjdGlvbiwgYW5kIHVzZQoiYXRvbWljX2RlY19hbmRfdGVzdCgpIiBpbiB0aGUg
-ZnJlZWluZyBzZWN0aW9uLCB0aGVuIHlvdSBzaG91bGQgYmUKc2FmZSB3cnQgbmV3IGFsbG9jYXRp
-b25zLgoKSWYgeW91IGhhdmUgYSBjb21wbGV0ZWx5IG5ldyBhbGxvY2F0aW9uIHRoYXQgaGFzICJy
-YW5kb20gc3RhbGUKY29udGVudCIsIHlvdSBrbm93IHRoYXQgaXQgY2Fubm90IGJlIG9uIHRoZSBS
-Q1UgbGlzdCwgc28gdGhlcmUgaXMgbm8Kc3BlY3VsYXRpdmUgYWNjZXNzIHRoYXQgY2FuIGV2ZXIg
-c2VlIHRoYXQgcmFuZG9tIGNvbnRlbnQuCgpTbyB0aGUgb25seSBjYXNlIHlvdSBuZWVkIHRvIHdv
-cnJ5IGFib3V0IGlzIGEgcmUtdXNlIGFsbG9jYXRpb24sIGFuZAp5b3Uga25vdyB0aGF0IHRoZSBy
-ZWZjb3VudCB3aWxsIHN0YXJ0IG91dCBhcyB6ZXJvIGV2ZW4gaWYgeW91IGRvbid0CmhhdmUgYSBj
-b25zdHJ1Y3Rvci4KClNvIHlvdSBjYW4gdGhpbmsgb2YgdGhlIHJlZmNvdW50IGl0c2VsZiBhcyBh
-bHdheXMgaGF2aW5nIGEgemVybwpjb25zdHJ1Y3RvciwgKkJVVCogeW91IG5lZWQgdG8gYmUgY2Fy
-ZWZ1bCB3aXRoIG9yZGVyaW5nLgoKSW4gcGFydGljdWxhciwgd2hvZXZlciBkb2VzIHRoZSBhbGxv
-Y2F0aW9uIG5lZWRzIHRvIHRoZW4gc2V0IHRoZQpyZWZjb3VudCB0byBhIG5vbi16ZXJvIHZhbHVl
-ICphZnRlciogaXQgaGFzIGluaXRpYWxpemVkIGFsbCB0aGUgb3RoZXIKZmllbGRzLiBBbmQgaW4g
-cGFydGljdWxhciwgaXQgbmVlZHMgdG8gbWFrZSBzdXJlIHRoYXQgaXQgdXNlcyB0aGUKcHJvcGVy
-IG1lbW9yeSBvcmRlcmluZyB0byBkbyBzby4KCkFuZCBpbiB0aGlzIGNhc2UsIHdlIGhhdmUKCiAg
-c3RhdGljIHN0cnVjdCBuZl9jb25uICoKICBfX25mX2Nvbm50cmFja19hbGxvYyhzdHJ1Y3QgbmV0
-ICpuZXQsCiAgewogICAgICAgIC4uLgogICAgICAgIGF0b21pY19zZXQoJmN0LT5jdF9nZW5lcmFs
-LnVzZSwgMCk7Cgp3aGljaCBpcyBhIG5vLW9wIGZvciB0aGUgcmUtdXNlIGNhc2UgKHdoZXRoZXIg
-cmFjaW5nIG9yIG5vdCwgc2luY2UgYW55CiJpbmNfbm90X3plcm8iIHVzZXJzIHdvbid0IHRvdWNo
-IGl0KSwgYnV0IGluaXRpYWxpemVzIGl0IHRvIHplcm8gZm9yCnRoZSAiY29tcGxldGVseSBuZXcg
-b2JqZWN0IiBjYXNlLgoKQW5kIHRoZW4sIHRoZSB0aGluZyB0aGF0IGFjdHVhbGx5IGV4cG9zZXMg
-aXQgdG8gdGhlIHNwZWN1bGF0aXZlIHdhbGtlcnMgZG9lczoKCiAgaW50CiAgbmZfY29ubnRyYWNr
-X2hhc2hfY2hlY2tfaW5zZXJ0KHN0cnVjdCBuZl9jb25uICpjdCkKICB7CiAgICAgICAgLi4uCiAg
-ICAgICAgc21wX3dtYigpOwogICAgICAgIC8qIFRoZSBjYWxsZXIgaG9sZHMgYSByZWZlcmVuY2Ug
-dG8gdGhpcyBvYmplY3QgKi8KICAgICAgICBhdG9taWNfc2V0KCZjdC0+Y3RfZ2VuZXJhbC51c2Us
-IDIpOwoKd2hpY2ggbWVhbnMgdGhhdCBpdCBzdGF5cyBhcyB6ZXJvIHVudGlsIGV2ZXJ5dGhpbmcg
-aXMgYWN0dWFsbHkgc2V0IHVwLAphbmQgdGhlbiB0aGUgb3B0aW1pc3RpYyB3YWxrZXIgY2FuIHVz
-ZSB0aGUgb3RoZXIgZmllbGRzIChpbmNsdWRpbmcKc3BpbmxvY2tzIGV0YykgdG8gdmVyaWZ5IHRo
-YXQgaXQncyBhY3R1YWxseSB0aGUgcmlnaHQgdGhpbmcuIFRoZQpzbXBfd21iKCkgbWVhbnMgdGhh
-dCB0aGUgcHJldmlvdXMgaW5pdGlhbGl6YXRpb24gcmVhbGx5IHdpbGwgYmUKdmlzaWJsZSBiZWZv
-cmUgdGhlIG9iamVjdCBpcyB2aXNpYmxlLgoKU2lkZSBub3RlOiBvbiBzb21lIGFyY2hpdGVjdHVy
-ZXMgaXQgbWlnaHQgaGVscCB0byBtYWtlIHRoYXQgInNtcF93bWIKLT4gYXRvbWljX3NldCgpIiBz
-ZXF1ZW5jZSBiZSBhbSAic21wX3N0b3JlX3JlbGVhc2UoKSIgaW5zdGVhZC4gRG9lc24ndAptYXR0
-ZXIgb24geDg2LCBidXQgbWlnaHQgbWF0dGVyIG9uIGFybTY0LgoKTk9URSEgT25lIHRoaW5nIHRv
-IGJlIHZlcnkgd29ycmllZCBhYm91dCBpcyB0aGF0IHJlLWluaXRpYWxpemluZwp3aGF0ZXZlciBS
-Q1UgbGlzdHMgbWVhbnMgdGhhdCBub3cgdGhlIFJDVSB3YWxrZXIgbWF5IGJlIHdhbGtpbmcgb24g
-dGhlCndyb25nIGxpc3Qgc28gdGhlIHdhbGtlciBtYXkgZG8gdGhlIHJpZ2h0IHRoaW5nIGZvciB0
-aGlzIHBhcnRpY3VsYXIKZW50cnksIGJ1dCBpdCBtYXkgbWlzcyB3YWxraW5nICpvdGhlciogZW50
-cmllcy4gU28gdGhlbiB5b3UgY2FuIGdldApzcHVyaW91cyBsb29rdXAgZmFpbHVyZXMsIGJlY2F1
-c2UgdGhlIFJDVSB3YWxrZXIgbmV2ZXIgd2Fsa2VkIGFsbCB0aGUKd2F5IHRvIHRoZSBlbmQgb2Yg
-dGhlIHJpZ2h0IGxpc3QuIFRoYXQgZW5kcyB1cCBiZWluZyBhIG11Y2ggbW9yZQpzdWJ0bGUgYnVn
-LgoKQnV0IHRoZSBuZl9jb25udHJhY2sgY2FzZSBzZWVtcyB0byBnZXQgdGhhdCByaWdodCB0b28s
-IHNlZSB0aGUgcmVzdGFydAppbiBfX19fbmZfY29ubnRyYWNrX2ZpbmQoKS4KClNvIEkgZG9uJ3Qg
-c2VlIGFueXRoaW5nIHdyb25nIGluIG5mX2Nvbm50cmFjay4KCkJ1dCB5ZXMsIHVzaW5nIFNMQUJf
-VFlQRVNBRkVfQllfUkNVIGlzIHZlcnkgdmVyeSBzdWJ0bGUuIEJ1dCBtb3N0IG9mCnRoZSBzdWJ0
-bGV0aWVzIGhhdmUgbm90aGluZyB0byBkbyB3aXRoIGhhdmluZyBhIGNvbnN0cnVjdG9yLCB0aGV5
-IGFyZQphYm91dCB0aG9zZSAibWFrZSBzdXJlIG1lbW9yeSBvcmRlcmluZyB3cnQgcmVmY291bnQg
-aXMgcmlnaHQiIGFuZAoicmVzdGFydCBzcGVjdWxhdGl2ZSBSQ1Ugd2FsayIgaXNzdWVzIHRoYXQg
-YWN0dWFsbHkgaGFwcGVuIHJlZ2FyZGxlc3MKb2YgaGF2aW5nIGEgY29uc3RydWN0b3Igb3Igbm90
-LgoKICAgICAgICAgICAgICAgICAgTGludXMKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX18KSW50ZWwtZ2Z4IG1haWxpbmcgbGlzdApJbnRlbC1nZnhAbGlzdHMu
-ZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlz
-dGluZm8vaW50ZWwtZ2Z4Cg==
+Implement kernel audit container identifier.
+
+This patchset is a fourth based on the proposal document (V3)
+posted:
+	https://www.redhat.com/archives/linux-audit/2018-January/msg00014.html
+
+The first patch is the last patch from ghak81 that is included here as a
+convenience.
+
+The second patch implements the proc fs write to set the audit container
+identifier of a process, emitting an AUDIT_CONTAINER_OP record to announce the
+registration of that audit container identifier on that process.  This patch
+requires userspace support for record acceptance and proper type
+display.
+
+The third implements the auxiliary record AUDIT_CONTAINER if an
+audit container identifier is identifiable with an event.  This patch
+requires userspace support for proper type display.
+
+The 4th adds signal and ptrace support.
+
+The 5th creates a local audit context to be able to bind a standalone
+record with a locally created auxiliary record.
+
+The 6th patch adds audit container identifier records to the tty
+standalone record.
+
+The 7th adds audit container identifier filtering to the exit,
+exclude and user lists.  This patch adds the AUDIT_CONTID field and
+requires auditctl userspace support for the --contid option.
+
+The 8th adds network namespace audit container identifier labelling
+based on member tasks' audit container identifier labels.
+
+The 9th adds audit container identifier support to standalone netfilter
+records that don't have a task context and lists each container to which
+that net namespace belongs.
+
+The 10th implements reading the audit container identifier from the proc
+filesystem for debugging.  This patch isn't planned for upstream
+inclusion.
+
+
+Example: Set an audit container identifier of 123456 to the "sleep" task:
+
+  sleep 2&  
+  child=$!
+  echo 123456 > /proc/$child/audit_containerid; echo $?
+  ausearch -ts recent -m container
+  echo child:$child contid:$( cat /proc/$child/audit_containerid)
+
+This should produce a record such as:
+
+  type=CONTAINER_OP msg=audit(2018-06-06 12:39:29.636:26949) : op=set opid=2209 old-contid=18446744073709551615 contid=123456 pid=628 auid=root uid=root tty=ttyS0 ses=1 subj=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023 comm=bash exe=/usr/bin/bash res=yes 
+
+
+Example: Set a filter on an audit container identifier 123459 on /tmp/tmpcontainerid:
+
+  contid=123459
+  key=tmpcontainerid
+  auditctl -a exit,always -F dir=/tmp -F perm=wa -F contid=$contid -F key=$key
+  perl -e "sleep 1; open(my \$tmpfile, '>', \"/tmp/$key\"); close(\$tmpfile);" &
+  child=$!
+  echo $contid > /proc/$child/audit_containerid
+  sleep 2
+  ausearch -i -ts recent -k $key
+  auditctl -d exit,always -F dir=/tmp -F perm=wa -F contid=$contid -F key=$key
+  rm -f /tmp/$key
+
+This should produce an event such as:
+
+  type=CONTAINER msg=audit(2018-06-06 12:46:31.707:26953) : op=task contid=123459 
+  type=PROCTITLE msg=audit(2018-06-06 12:46:31.707:26953) : proctitle=perl -e sleep 1; open(my $tmpfile, '>', "/tmp/tmpcontainerid"); close($tmpfile); 
+  type=PATH msg=audit(2018-06-06 12:46:31.707:26953) : item=1 name=/tmp/tmpcontainerid inode=25656 dev=00:26 mode=file,644 ouid=root ogid=root rdev=00:00 obj=unconfined_u:object_r:user_tmp_t:s0 nametype=CREATE cap_fp=none cap_fi=none cap_fe=0 cap_fver=0 
+  type=PATH msg=audit(2018-06-06 12:46:31.707:26953) : item=0 name=/tmp/ inode=8985 dev=00:26 mode=dir,sticky,777 ouid=root ogid=root rdev=00:00 obj=system_u:object_r:tmp_t:s0 nametype=PARENT cap_fp=none cap_fi=none cap_fe=0 cap_fver=0 
+  type=CWD msg=audit(2018-06-06 12:46:31.707:26953) : cwd=/root 
+  type=SYSCALL msg=audit(2018-06-06 12:46:31.707:26953) : arch=x86_64 syscall=openat success=yes exit=3 a0=0xffffffffffffff9c a1=0x5621f2b81900 a2=O_WRONLY|O_CREAT|O_TRUNC a3=0x1b6 items=2 ppid=628 pid=2232 auid=root uid=root gid=root euid=root suid=root fsuid=root egid=root sgid=root fsgid=root tty=ttyS0 ses=1 comm=perl exe=/usr/bin/perl subj=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023 key=tmpcontainerid 
+
+
+Includes: https://github.com/linux-audit/audit-kernel/issues/81
+See: https://github.com/linux-audit/audit-kernel/issues/90
+See: https://github.com/linux-audit/audit-userspace/issues/40
+See: https://github.com/linux-audit/audit-testsuite/issues/64
+See: https://github.com/linux-audit/audit-kernel/wiki/RFE-Audit-Container-ID
+
+Changelog:
+
+v4
+- preface set with ghak81:"collect audit task parameters"
+- add shallyn and sgrubb acks
+- rename feature bitmap macro
+- rename cid_valid() to audit_contid_valid()
+- rename AUDIT_CONTAINER_ID to AUDIT_CONTAINER_OP
+- delete audit_get_contid_list() from headers
+- move work into inner if, delete "found"
+- change netns contid list function names
+- move exports for audit_log_contid audit_alloc_local audit_free_context to non-syscall patch
+- list contids CSV
+- pass in gfp flags to audit_alloc_local() (fix audit_alloc_context callers)
+- use "local" in lieu of abusing in_syscall for auditsc_get_stamp()
+- read_lock(&tasklist_lock) around children and thread check
+- task_lock(tsk) should be taken before first check of tsk->audit
+- add spin lock to contid list in aunet
+- restrict /proc read to CAP_AUDIT_CONTROL
+- remove set again prohibition and inherited flag
+- delete contidion spelling fix from patchset, send to netdev/linux-wireless
+
+v3
+- switched from containerid in task_struct to audit_task_info (depends on ghak81)
+- drop INVALID_CID in favour of only AUDIT_CID_UNSET
+- check for !audit_task_info, throw -ENOPROTOOPT on set
+- changed -EPERM to -EEXIST for parent check
+- return AUDIT_CID_UNSET if !audit_enabled
+- squash child/thread check patch into AUDIT_CONTAINER_ID patch
+- changed -EPERM to -EBUSY for child check
+- separate child and thread checks, use -EALREADY for latter
+- move addition of op= from ptrace/signal patch to AUDIT_CONTAINER patch
+- fix && to || bashism in ptrace/signal patch
+- uninline and export function for audit_free_context()
+- drop CONFIG_CHANGE, FEATURE_CHANGE, ANOM_ABEND, ANOM_SECCOMP patches
+- move audit_enabled check (xt_AUDIT)
+- switched from containerid list in struct net to net_generic's struct audit_net
+- move containerid list iteration into audit (xt_AUDIT)
+- create function to move namespace switch into audit
+- switched /proc/PID/ entry from containerid to audit_containerid
+- call kzalloc with GFP_ATOMIC on in_atomic() in audit_alloc_context()
+- call kzalloc with GFP_ATOMIC on in_atomic() in audit_log_container_info()
+- use xt_net(par) instead of sock_net(skb->sk) to get net
+- switched record and field names: initial CONTAINER_ID, aux CONTAINER, field CONTID
+- allow to set own contid
+- open code audit_set_containerid
+- add contid inherited flag
+- ccontainerid and pcontainerid eliminated due to inherited flag
+- change name of container list funcitons
+- rename containerid to contid
+- convert initial container record to syscall aux
+- fix spelling mistake of contidion in net/rfkill/core.c to avoid contid name collision
+
+v2
+- add check for children and threads
+- add network namespace container identifier list
+- add NETFILTER_PKT audit container identifier logging
+- patch description and documentation clean-up and example
+- reap unused ppid
+
+Richard Guy Briggs (10):
+  audit: collect audit task parameters
+  audit: add container id
+  audit: log container info of syscalls
+  audit: add containerid support for ptrace and signals
+  audit: add support for non-syscall auxiliary records
+  audit: add containerid support for tty_audit
+  audit: add containerid filtering
+  audit: add support for containerid to network namespaces
+  audit: NETFILTER_PKT: record each container ID associated with a netNS
+  debug audit: read container ID of a process
+
+ drivers/tty/tty_audit.c    |   5 +-
+ fs/proc/base.c             |  56 ++++++++++++++
+ include/linux/audit.h      |  95 ++++++++++++++++++++---
+ include/linux/sched.h      |   5 +-
+ include/uapi/linux/audit.h |   8 +-
+ init/init_task.c           |   3 +-
+ init/main.c                |   2 +
+ kernel/audit.c             | 137 +++++++++++++++++++++++++++++++++
+ kernel/audit.h             |   4 +
+ kernel/auditfilter.c       |  47 ++++++++++++
+ kernel/auditsc.c           | 183 ++++++++++++++++++++++++++++++++++++++++-----
+ kernel/fork.c              |   4 +-
+ kernel/nsproxy.c           |   4 +
+ net/netfilter/xt_AUDIT.c   |  12 ++-
+ 14 files changed, 526 insertions(+), 39 deletions(-)
+
+-- 
+1.8.3.1
