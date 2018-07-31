@@ -1,70 +1,105 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH 00/18] xfrm: Add compat layer
-Date: Mon, 30 Jul 2018 21:43:14 +0200
-Message-ID: <20180730194314.ixzvniuvdfofvvpj@breakpoint.cc>
-References: <1532703111.2679.20.camel@arista.com>
- <CADhJOfam+cY8uD4XTGvZSEFQdAgTu49G6cg6c64NJoP3bNuBmw@mail.gmail.com>
- <1532795215.2679.27.camel@arista.com>
- <20180728.141812.1026007723536955024.davem@davemloft.net>
- <1532972360.2679.32.camel@arista.com>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: [PATCH] ipvs: don't show negative times in ip_vs_conn
+Date: Mon, 30 Jul 2018 22:10:10 -0700
+Message-ID: <9e10d105-76a4-36c6-ba16-6aa8681adb68@gmail.com>
+References: <20180720151957.24791-1-mcroce@redhat.com>
+ <ff823fec-0c37-80f9-9bcf-515357c5209a@gmail.com>
+ <CAGnkfhzxz715p23PH+QgK2zduhv95O85wa92ktBRtw5xy1sZ8w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: David Miller <davem@davemloft.net>, nharold@google.com,
-        fw@strlen.de, steffen.klassert@secunet.com,
-        linux-kernel@vger.kernel.org, herbert@gondor.apana.org.au,
-        0x7f454c46@gmail.com, netdev@vger.kernel.org, luto@kernel.org,
-        ard.biesheuvel@linaro.org, hpa@zytor.com, mingo@redhat.com,
-        john.stultz@linaro.org, kirill.shutemov@linux.intel.com,
-        oleg@redhat.com, sboyd@kernel.org, rostedt@goodmis.org,
-        tglx@linutronix.de, x86@kernel.org, linux-efi@vger.kernel.org,
-        akpm@linux-foundation.org, gregkh@linuxfoundation.org,
-        mchehab+samsung@kernel.org, shuah@kernel.org,
-        linux-kselftest@vger.kernel.org, eparis@redhat.com,
-        kadlec@blackhole.kfki.hu, pablo@netfilter.org, paul@paul-moore.com,
-        coreteam@netfilter.org, linux-audit@redhat.com,
-        netfilter-devel@vger.kernel.org, fan.du@intel.com
-To: Dmitry Safonov <dima@arista.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1532972360.2679.32.camel@arista.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Cc: Wensong Zhang <wensong@linux-vs.org>,
+        Simon Horman <horms@verge.net.au>,
+        Julian Anastasov <ja@ssi.bg>, lvs-devel@vger.kernel.org,
+        netdev <netdev@vger.kernel.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        netfilter-devel@vger.kernel.org
+To: Matteo Croce <mcroce@redhat.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <CAGnkfhzxz715p23PH+QgK2zduhv95O85wa92ktBRtw5xy1sZ8w@mail.gmail.com>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Dmitry Safonov <dima@arista.com> wrote:
-> On Sat, 2018-07-28 at 14:18 -0700, David Miller wrote:
-> > From: Dmitry Safonov <dima@arista.com>
-> > Date: Sat, 28 Jul 2018 17:26:55 +0100
-> > 
-> > > Well, I think, I'll rework my patches set according to critics and
-> > > separate compat xfrm layer. I've already a selftest to check that
-> > 32/64
-> > > bit xfrm works - so the most time-taking part is done.
-> > 
-> > The way you've done the compat structures using __packed is only
-> > going
-> > to work on x86, just FYI.
+
+
+On 07/30/2018 10:49 AM, Matteo Croce wrote:
+> On Fri, Jul 20, 2018 at 4:19 PM Eric Dumazet <eric.dumazet@gmail.com> wrote:
+>>
+>>
+>>
+>> On 07/20/2018 08:19 AM, Matteo Croce wrote:
+>>> Since commit 500462a9de65 ("timers: Switch to a non-cascading wheel"),
+>>> timers duration can last even 12.5% more than the scheduled interval.
+>>>
+>>> Signed-off-by: Matteo Croce <mcroce@redhat.com>
+>>> ---
+>>>  net/netfilter/ipvs/ip_vs_conn.c | 22 ++++++++++++++--------
+>>>  1 file changed, 14 insertions(+), 8 deletions(-)
+>>>
+>>> diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
+>>> index 99e0aa350dc5..c78c48a6d53f 100644
+>>> --- a/net/netfilter/ipvs/ip_vs_conn.c
+>>> +++ b/net/netfilter/ipvs/ip_vs_conn.c
+>>> @@ -1066,6 +1066,12 @@ static void ip_vs_conn_seq_stop(struct seq_file *seq, void *v)
+>>>       rcu_read_unlock();
+>>>  }
+>>>
+>>> +static unsigned int time_left(unsigned long time)
+>>> +{
+>>> +     return time_is_after_jiffies(time) ?
+>>> +             jiffies_to_msecs(time - jiffies) / 1000 : 0;
+>>> +}
+>>
+>>
+>> I would suggest adding jiffies_delta_to_msecs(), because we will need elsewhere,
+>> like in inet_sk_diag_fill()
+>>
+>>
+>> diff --git a/include/linux/jiffies.h b/include/linux/jiffies.h
+>> index a27cf66523279c1a5d4aaa0d0087f1e9d48d170f..fa928242567db30769839ac8738be5dc58e372ab 100644
+>> --- a/include/linux/jiffies.h
+>> +++ b/include/linux/jiffies.h
+>> @@ -447,6 +447,11 @@ static inline clock_t jiffies_delta_to_clock_t(long delta)
+>>         return jiffies_to_clock_t(max(0L, delta));
+>>  }
+>>
+>> +static inline unsigned int jiffies_delta_to_msecs(long delta)
+>> +{
+>> +       return jiffies_to_msecs(max(0L, delta));
+>> +}
+>> +
+>>  extern unsigned long clock_t_to_jiffies(unsigned long x);
+>>  extern u64 jiffies_64_to_clock_t(u64 x);
+>>  extern u64 nsec_to_clock_t(u64 x);
+>>
 > 
-> Thanks for pointing, so I'll probably cover it under something like
-> HAS_COMPAT_XFRM.
-> (if there isn't any better idea).
+> Hi Eric,
+> What about a function which returns directly the delta from a
+> timestamp, and 0 if elapsed?
+> So we can rely on time_is_after_jiffies() for overflows, it should be
+> less error prone.
+> 
+> static unsigned int jiffies_delta_to_msecs(unsigned long time)
+> {
+>      return time_is_after_jiffies(time) ?
+>              jiffies_to_msecs(time - jiffies) / 1000 : 0;
+> }
+> 
 
-You can do that, I suspect you can use
-CONFIG_COMPAT_FOR_U64_ALIGNMENT
-as AFAICR the only reason for the compat problem is different alignment
-requirements of 64bit integer types in the structs, not e.g. due to
-"long" size differences.
+I dunno, I suggested jiffies_delta_to_msecs(long delta) because it is built
+on the same model than jiffies_delta_to_clock_t(long delta)
 
-Instead of __packed, you can use the "compat" data types, e.g.
-compat_u64 instead of u64:
+And it really does what you want.
 
-struct compat_xfrm_lifetime_cur {
-	compat_u64 bytes, packets, add_time, use_time;
-}; /* same size on i386, but only 4 byte alignment required even on x86_64*/
+Remember that jiffies can change, so what you wrote is buggy/racy.
 
-You might be able to reuse
-https://git.breakpoint.cc/cgit/fw/net-next.git/commit/?h=xfrm_config_compat_07&id=f64430e6d9e297f3990f485a4832e273751b9869
+if (time_is_after_jiffies(time)) {
 
-in your patch set.
+   ... jiffies is updated, and now (time - jiffies) might be negative,
+      since compiler reads jiffies a second time (jiffies is a volatile)
 
-I can try to submit the first few patches (which are not related to
-compat, they just add const qualifiers) for inclusion later this week.
+     return jiffies_to_msecs(time - jiffies)/ 1000;
+}
