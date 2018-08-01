@@ -1,61 +1,90 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: SLAB_TYPESAFE_BY_RCU without constructors (was Re: [PATCH v4
- 13/17] khwasan: add hooks implementation)
-Date: Wed, 1 Aug 2018 09:25:55 -0700
-Message-ID: <bf435a04-b689-ec5a-f5df-f47807b43316@gmail.com>
-References: <e3b48104-3efb-1896-0d46-792419f49a75@virtuozzo.com>
- <01000164f169bc6b-c73a8353-d7d9-47ec-a782-90aadcb86bfb-000000@email.amazonses.com>
- <CA+55aFzHR1+YbDee6Cduo6YXHO9LKmLN1wP=MVzbP41nxUb5=g@mail.gmail.com>
- <CA+55aFzYLgyNp1jsqsvUOjwZdO_1Piqj=iB=rzDShjScdNtkbg@mail.gmail.com>
- <30ee6c72-dc90-275a-8e23-54221f393cb0@virtuozzo.com>
- <c03fd1ca-0169-4492-7d6f-2df7a91bff5e@gmail.com>
- <CACT4Y+bLbDunoz+0qB=atbQXJ9Gu3N6+UXPwNnqMbq5RyZu1mQ@mail.gmail.com>
- <cf751136-c459-853a-0210-abf16f54ad17@gmail.com>
- <CACT4Y+b6aCHMTQD21fSf2AMZoH5g8p-FuCVHviMLF00uFV+zGg@mail.gmail.com>
- <01000164f60f3f12-b1253c6e-ee57-49fc-aed8-0944ab4fd7a2-000000@email.amazonses.com>
- <CANn89i+KtwtLvSw1c=Ux8okKP+XyMxzYbuKhYb2qhYeMw=NTzg@mail.gmail.com>
- <01000164f64bd525-be13e04f-18a9-4f7f-a44b-0c0fcec33b71-000000@email.amazonses.com>
+From: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Subject: [PATCH] netfilter: ipset: fix ip_set_list allocation failure
+Date: Wed,  1 Aug 2018 19:46:29 +0300
+Message-ID: <20180801164629.3621-1-aryabinin@virtuozzo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Cc: Dmitry Vyukov <dvyukov@google.com>,
-        Eric Dumazet <eric.dumazet@gmail.com>,
-        Andrey Ryabinin <aryabinin@virtuozzo.com>,
-        Linus Torvalds <torvalds@linux-foundation.org>,
-        Theodore Ts'o <tytso@mit.edu>, jack@suse.com,
-        linux-ext4@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>,
-        David Miller <davem@davemloft.net>,
+Content-Type: text/plain
+Cc: "David S. Miller" <davem@davemloft.net>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev <netdev@vger.kernel.org>,
-        Gerrit Renker <gerrit@erg.abdn.ac.uk>, dccp@vger.kernel.org,
-        jani.nikula@linux.intel.com, joonas.lahtinen@linux.intel.com,
-        rodrigo.vivi@intel.com, airlied@linux.ie,
-        intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org,
-To: Christopher Lameter <cl@linux.com>,
-        Eric Dumazet <edumazet@google.com>
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Andrey Ryabinin <aryabinin@virtuozzo.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <01000164f64bd525-be13e04f-18a9-4f7f-a44b-0c0fcec33b71-000000@email.amazonses.com>
-Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
+ip_set_create() and ip_set_net_init() attempt to allocate physically
+contiguous memory for ip_set_list. If memory is fragmented, the
+allocations could easily fail:
 
+	vzctl: page allocation failure: order:7, mode:0xc0d0
 
-On 08/01/2018 09:22 AM, Christopher Lameter wrote:
-> On Wed, 1 Aug 2018, Eric Dumazet wrote:
-> 
->> The idea of having a ctor() would only be a win if all the fields that
->> can be initialized in the ctor are contiguous and fill an integral
->> number of cache lines.
-> 
-> Ok. Its reducing code size and makes the object status more consistent.
-> Isn't that enough?
-> 
+	Call Trace:
+	 dump_stack+0x19/0x1b
+	 warn_alloc_failed+0x110/0x180
+	 __alloc_pages_nodemask+0x7bf/0xc60
+	 alloc_pages_current+0x98/0x110
+	 kmalloc_order+0x18/0x40
+	 kmalloc_order_trace+0x26/0xa0
+	 __kmalloc+0x279/0x290
+	 ip_set_net_init+0x4b/0x90 [ip_set]
+	 ops_init+0x3b/0xb0
+	 setup_net+0xbb/0x170
+	 copy_net_ns+0xf1/0x1c0
+	 create_new_namespaces+0xf9/0x180
+	 copy_namespaces+0x8e/0xd0
+	 copy_process+0xb61/0x1a00
+	 do_fork+0x91/0x320
 
-Prove it ;)
+Use kvcalloc() to fallback to 0-order allocations if high order
+page isn't available.
 
-I yet have to seen actual numbers.
+Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
+---
+ net/netfilter/ipset/ip_set_core.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
+index bc4bd247bb7d..96dd57c48b1c 100644
+--- a/net/netfilter/ipset/ip_set_core.c
++++ b/net/netfilter/ipset/ip_set_core.c
+@@ -961,7 +961,7 @@ static int ip_set_create(struct net *net, struct sock *ctnl,
+ 			/* Wraparound */
+ 			goto cleanup;
+ 
+-		list = kcalloc(i, sizeof(struct ip_set *), GFP_KERNEL);
++		list = kvcalloc(i, sizeof(struct ip_set *), GFP_KERNEL);
+ 		if (!list)
+ 			goto cleanup;
+ 		/* nfnl mutex is held, both lists are valid */
+@@ -973,7 +973,7 @@ static int ip_set_create(struct net *net, struct sock *ctnl,
+ 		/* Use new list */
+ 		index = inst->ip_set_max;
+ 		inst->ip_set_max = i;
+-		kfree(tmp);
++		kvfree(tmp);
+ 		ret = 0;
+ 	} else if (ret) {
+ 		goto cleanup;
+@@ -2059,7 +2059,7 @@ ip_set_net_init(struct net *net)
+ 	if (inst->ip_set_max >= IPSET_INVALID_ID)
+ 		inst->ip_set_max = IPSET_INVALID_ID - 1;
+ 
+-	list = kcalloc(inst->ip_set_max, sizeof(struct ip_set *), GFP_KERNEL);
++	list = kvcalloc(inst->ip_set_max, sizeof(struct ip_set *), GFP_KERNEL);
+ 	if (!list)
+ 		return -ENOMEM;
+ 	inst->is_deleted = false;
+@@ -2087,7 +2087,7 @@ ip_set_net_exit(struct net *net)
+ 		}
+ 	}
+ 	nfnl_unlock(NFNL_SUBSYS_IPSET);
+-	kfree(rcu_dereference_protected(inst->ip_set_list, 1));
++	kvfree(rcu_dereference_protected(inst->ip_set_list, 1));
+ }
+ 
+ static struct pernet_operations ip_set_net_ops = {
+-- 
+2.16.4
