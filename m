@@ -1,41 +1,37 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: linux-next: Tree for Aug 2 (netfilter: tproxy)
-Date: Thu, 2 Aug 2018 21:12:28 +0200
-Message-ID: <20180802191228.v4wblizz7v2qxxxy@salvia>
-References: <20180802193111.346fdde9@canb.auug.org.au>
- <0185f82e-4bf5-6c6c-a131-ba2c0197c9a0@infradead.org>
- <20180802190557.sha6wer6gkdgrd6i@sch.bme.hu>
- <20180802191011.ibm2lknbzwm7zjoc@sch.bme.hu>
+Subject: Re: [PATCH net v2 0/2] fix glitch in IPVS /proc handlers
+Date: Fri, 3 Aug 2018 12:40:24 +0200
+Message-ID: <20180803104024.ccfjhl6ybtcnhjxp@salvia>
+References: <20180731160333.12215-1-mcroce@redhat.com>
+ <20180731162822.egqgbh6rbekoqvqk@verge.net.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: Randy Dunlap <rdunlap@infradead.org>,
-        Stephen Rothwell <sfr@canb.auug.org.au>,
-        Linux-Next Mailing List <linux-next@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-To: =?iso-8859-1?Q?M=E1t=E9?= Eckl <ecklm94@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: Matteo Croce <mcroce@redhat.com>,
+        Wensong Zhang <wensong@linux-vs.org>,
+        Julian Anastasov <ja@ssi.bg>, lvs-devel@vger.kernel.org,
+        netdev@vger.kernel.org,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>,
+        netfilter-devel@vger.kernel.org,
+        Eric Dumazet <eric.dumazet@gmail.com>
+To: Simon Horman <horms@verge.net.au>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180802191011.ibm2lknbzwm7zjoc@sch.bme.hu>
-Sender: linux-kernel-owner@vger.kernel.org
+In-Reply-To: <20180731162822.egqgbh6rbekoqvqk@verge.net.au>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, Aug 02, 2018 at 09:10:11PM +0200, Máté Eckl wrote:
-> On Thu, Aug 02, 2018 at 09:05:57PM +0200, Máté Eckl wrote:
-> > Hi Randy,
+On Tue, Jul 31, 2018 at 06:28:22PM +0200, Simon Horman wrote:
+> On Tue, Jul 31, 2018 at 06:03:31PM +0200, Matteo Croce wrote:
+> > Fix a bug which shows negative values in IPVS /proc handlers.
+> > Also add an helper function to calculate a time delta
 > > 
-> > Thanks for reporting!
-> > 
-> > Please find the patch attached.
+> > Matteo Croce (2):
+> >   jiffies: add utility function to calculate delta in ms
+> >   ipvs: don't show negative times in ip_vs_conn
 > 
-> Sorry I made an error in the commit message... See the fix below.
+> Acked-by: Simon Horman <horms@verge.net.au>
+> 
+> Pablo, please consider taking these via the nf tree.
 
-Please, resubmit using git-send-mail so we make sure patchwork catches
-this patch.
-
-Cc'ing Randy when sending this to nf-devel, who has reported this,
-that should sufficient unless he or Stephen say otherwise.
-
-Thanks.
+Applied, thanks Simon.
