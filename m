@@ -1,37 +1,31 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v3] ipvs: fix race between ip_vs_conn_new() and
- ip_vs_del_dest()
-Date: Fri, 3 Aug 2018 13:25:16 +0200
-Message-ID: <20180803112516.zexgzi4hewvy6oo6@salvia>
-References: <1532503387-3800-1-git-send-email-tan.hu@zte.com.cn>
- <alpine.LFD.2.20.1807252208320.2437@ja.home.ssi.bg>
- <20180731165421.ee265xghmbqcy54g@verge.net.au>
+Subject: Re: [PATCH][v3] netfilter: use kvmalloc_array to allocate memory for
+ hashtable
+Date: Fri, 3 Aug 2018 18:37:16 +0200
+Message-ID: <20180803163716.7ut6zdlwoyswha6t@salvia>
+References: <1532505133-9398-1-git-send-email-lirongqing@baidu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Julian Anastasov <ja@ssi.bg>, Tan Hu <tan.hu@zte.com.cn>,
-        wensong@linux-vs.org, kadlec@blackhole.kfki.hu, fw@strlen.de,
-        davem@davemloft.net, netdev@vger.kernel.org,
-        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, linux-kernel@vger.kernel.org,
-        zhong.weidong@zte.com.cn, jiang.biao2@zte.com.cn
-To: Simon Horman <horms@verge.net.au>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Cc: netdev@vger.kernel.org, kadlec@blackhole.kfki.hu, fw@strlen.de,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        edumazet@google.com
+To: Li RongQing <lirongqing@baidu.com>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180731165421.ee265xghmbqcy54g@verge.net.au>
-Sender: linux-kernel-owner@vger.kernel.org
+In-Reply-To: <1532505133-9398-1-git-send-email-lirongqing@baidu.com>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Jul 31, 2018 at 06:54:21PM +0200, Simon Horman wrote:
-> On Wed, Jul 25, 2018 at 10:12:48PM +0300, Julian Anastasov wrote:
-[...]
-> > 	v3 looks good to me,
-> > 
-> > Acked-by: Julian Anastasov <ja@ssi.bg>
-> > 
-> > 	Simon and Pablo, this can be applied to ipvs/nf tree...
+On Wed, Jul 25, 2018 at 03:52:13PM +0800, Li RongQing wrote:
+> nf_ct_alloc_hashtable is used to allocate memory for conntrack,
+> NAT bysrc and expectation hashtable. Assuming 64k bucket size,
+> which means 7th order page allocation, __get_free_pages, called
+> by nf_ct_alloc_hashtable, will trigger the direct memory reclaim
+> and stall for a long time, when system has lots of memory stress
 > 
-> Acked-by: Simon Horman <horms@verge.net.au>
-> 
-> Pablo, please consider this for the nf tree.
+> so replace combination of __get_free_pages and vzalloc with
+> kvmalloc_array, which provides a overflow check and a fallback
+> if no high order memory is available, and do not retry to reclaim
+> memory, reduce stall
 
-Applied, thanks!
+Applied, thanks.
