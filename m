@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 06/21] netfilter: nf_tables: implement Passive OS fingerprint module in nft_osf
-Date: Sun,  5 Aug 2018 23:21:26 +0200
-Message-ID: <20180805212141.3033-7-pablo@netfilter.org>
+Subject: [PATCH 18/21] netfilter: nf_tables: simplify NLM_F_CREATE handling
+Date: Sun,  5 Aug 2018 23:21:38 +0200
+Message-ID: <20180805212141.3033-19-pablo@netfilter.org>
 References: <20180805212141.3033-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,180 +10,140 @@ In-Reply-To: <20180805212141.3033-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Fernando Fernandez Mancera <ffmancera@riseup.net>
+* From nf_tables_newchain(), codepath provides context that allows us to
+  infer if we are updating a chain (in that case, no module autoload is
+  required) or adding a new one (then, module autoload is indeed
+  needed).
+* We only need it in one single spot in nf_tables_newrule().
+* Not needed for nf_tables_newset() at all.
 
-Add basic module functions into nft_osf.[ch] in order to implement OSF
-module in nf_tables.
-
-Signed-off-by: Fernando Fernandez Mancera <ffmancera@riseup.net>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/uapi/linux/netfilter/nf_tables.h |   7 ++
- net/netfilter/Kconfig                    |   7 ++
- net/netfilter/Makefile                   |   1 +
- net/netfilter/nft_osf.c                  | 106 +++++++++++++++++++++++++++++++
- 4 files changed, 121 insertions(+)
- create mode 100644 net/netfilter/nft_osf.c
+ net/netfilter/nf_tables_api.c | 29 ++++++++++-------------------
+ 1 file changed, 10 insertions(+), 19 deletions(-)
 
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index f466860bcf75..382c32d630e9 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -1463,6 +1463,13 @@ enum nft_flowtable_hook_attributes {
- };
- #define NFTA_FLOWTABLE_HOOK_MAX	(__NFTA_FLOWTABLE_HOOK_MAX - 1)
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index debc1680607c..67cdd5c4f4f5 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -1442,7 +1442,7 @@ struct nft_chain_hook {
+ static int nft_chain_parse_hook(struct net *net,
+ 				const struct nlattr * const nla[],
+ 				struct nft_chain_hook *hook, u8 family,
+-				bool create)
++				bool autoload)
+ {
+ 	struct nlattr *ha[NFTA_HOOK_MAX + 1];
+ 	const struct nft_chain_type *type;
+@@ -1467,7 +1467,7 @@ static int nft_chain_parse_hook(struct net *net,
+ 	type = chain_type[family][NFT_CHAIN_T_DEFAULT];
+ 	if (nla[NFTA_CHAIN_TYPE]) {
+ 		type = nf_tables_chain_type_lookup(net, nla[NFTA_CHAIN_TYPE],
+-						   family, create);
++						   family, autoload);
+ 		if (IS_ERR(type))
+ 			return PTR_ERR(type);
+ 	}
+@@ -1534,7 +1534,7 @@ static struct nft_rule **nf_tables_chain_alloc_rules(const struct nft_chain *cha
+ }
  
-+enum nft_osf_attributes {
-+	NFTA_OSF_UNSPEC,
-+	NFTA_OSF_DREG,
-+	__NFTA_OSF_MAX,
-+};
-+#define NFTA_OSF_MAX (__NFTA_OSF_MAX - 1)
-+
- /**
-  * enum nft_device_attributes - nf_tables device netlink attributes
-  *
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index 85333431e524..16fdfb75efb5 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -627,6 +627,13 @@ config NFT_SOCKET
- 	  This option allows matching for the presence or absence of a
- 	  corresponding socket and its attributes.
+ static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 genmask,
+-			      u8 policy, bool create)
++			      u8 policy)
+ {
+ 	const struct nlattr * const *nla = ctx->nla;
+ 	struct nft_table *table = ctx->table;
+@@ -1552,7 +1552,7 @@ static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 genmask,
+ 		struct nft_chain_hook hook;
+ 		struct nf_hook_ops *ops;
  
-+config NFT_OSF
-+	tristate "Netfilter nf_tables passive OS fingerprint support"
-+	depends on NETFILTER_ADVANCED
-+	select NETFILTER_NETLINK_OSF
-+	help
-+	  This option allows matching packets from an specific OS.
-+
- if NF_TABLES_NETDEV
+-		err = nft_chain_parse_hook(net, nla, &hook, family, create);
++		err = nft_chain_parse_hook(net, nla, &hook, family, true);
+ 		if (err < 0)
+ 			return err;
  
- config NF_DUP_NETDEV
-diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index e684f9b8a9c3..5cbbf6978b55 100644
---- a/net/netfilter/Makefile
-+++ b/net/netfilter/Makefile
-@@ -110,6 +110,7 @@ obj-$(CONFIG_NFT_FIB)		+= nft_fib.o
- obj-$(CONFIG_NFT_FIB_INET)	+= nft_fib_inet.o
- obj-$(CONFIG_NFT_FIB_NETDEV)	+= nft_fib_netdev.o
- obj-$(CONFIG_NFT_SOCKET)	+= nft_socket.o
-+obj-$(CONFIG_NFT_OSF)		+= nft_osf.o
+@@ -1643,8 +1643,7 @@ static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 genmask,
+ 	return err;
+ }
  
- # nf_tables netdev
- obj-$(CONFIG_NFT_DUP_NETDEV)	+= nft_dup_netdev.o
-diff --git a/net/netfilter/nft_osf.c b/net/netfilter/nft_osf.c
-new file mode 100644
-index 000000000000..bdacc4cffba4
---- /dev/null
-+++ b/net/netfilter/nft_osf.c
-@@ -0,0 +1,106 @@
-+#include <net/ip.h>
-+#include <net/tcp.h>
-+
-+#include <net/netfilter/nf_tables.h>
-+#include <linux/netfilter/nf_osf.h>
-+
-+#define OSF_GENRE_SIZE		32
-+
-+struct nft_osf {
-+	enum nft_registers	dreg:8;
-+};
-+
-+static const struct nla_policy nft_osf_policy[NFTA_OSF_MAX + 1] = {
-+	[NFTA_OSF_DREG]		= { .type = NLA_U32 },
-+};
-+
-+static void nft_osf_eval(const struct nft_expr *expr, struct nft_regs *regs,
-+			 const struct nft_pktinfo *pkt)
-+{
-+	struct nft_osf *priv = nft_expr_priv(expr);
-+	u32 *dest = &regs->data[priv->dreg];
-+	struct sk_buff *skb = pkt->skb;
-+	const struct tcphdr *tcp;
-+	struct tcphdr _tcph;
-+	const char *os_name;
-+
-+	tcp = skb_header_pointer(skb, ip_hdrlen(skb),
-+				 sizeof(struct tcphdr), &_tcph);
-+	if (!tcp) {
-+		regs->verdict.code = NFT_BREAK;
-+		return;
-+	}
-+	if (!tcp->syn) {
-+		regs->verdict.code = NFT_BREAK;
-+		return;
-+	}
-+
-+	os_name = nf_osf_find(skb, nf_osf_fingers);
-+	if (!os_name)
-+		strncpy((char *)dest, "unknown", IFNAMSIZ);
-+	else
-+		strncpy((char *)dest, os_name, IFNAMSIZ);
-+}
-+
-+static int nft_osf_init(const struct nft_ctx *ctx,
-+			const struct nft_expr *expr,
-+			const struct nlattr * const tb[])
-+{
-+	struct nft_osf *priv = nft_expr_priv(expr);
-+	int err;
-+
-+	priv->dreg = nft_parse_register(tb[NFTA_OSF_DREG]);
-+	err = nft_validate_register_store(ctx, priv->dreg, NULL,
-+					  NFTA_DATA_VALUE, OSF_GENRE_SIZE);
-+	if (err < 0)
-+		return err;
-+
-+	return 0;
-+}
-+
-+static int nft_osf_dump(struct sk_buff *skb, const struct nft_expr *expr)
-+{
-+	const struct nft_osf *priv = nft_expr_priv(expr);
-+
-+	if (nft_dump_register(skb, NFTA_OSF_DREG, priv->dreg))
-+		goto nla_put_failure;
-+
-+	return 0;
-+
-+nla_put_failure:
-+	return -1;
-+}
-+
-+static struct nft_expr_type nft_osf_type;
-+static const struct nft_expr_ops nft_osf_op = {
-+	.eval		= nft_osf_eval,
-+	.size		= NFT_EXPR_SIZE(sizeof(struct nft_osf)),
-+	.init		= nft_osf_init,
-+	.dump		= nft_osf_dump,
-+	.type		= &nft_osf_type,
-+};
-+
-+static struct nft_expr_type nft_osf_type __read_mostly = {
-+	.ops		= &nft_osf_op,
-+	.name		= "osf",
-+	.owner		= THIS_MODULE,
-+	.policy		= nft_osf_policy,
-+	.maxattr	= NFTA_OSF_MAX,
-+};
-+
-+static int __init nft_osf_module_init(void)
-+{
-+	return nft_register_expr(&nft_osf_type);
-+}
-+
-+static void __exit nft_osf_module_exit(void)
-+{
-+	return nft_unregister_expr(&nft_osf_type);
-+}
-+
-+module_init(nft_osf_module_init);
-+module_exit(nft_osf_module_exit);
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Fernando Fernandez <ffmancera@riseup.net>");
-+MODULE_ALIAS_NFT_EXPR("osf");
+-static int nf_tables_updchain(struct nft_ctx *ctx, u8 genmask, u8 policy,
+-			      bool create)
++static int nf_tables_updchain(struct nft_ctx *ctx, u8 genmask, u8 policy)
+ {
+ 	const struct nlattr * const *nla = ctx->nla;
+ 	struct nft_table *table = ctx->table;
+@@ -1661,7 +1660,7 @@ static int nf_tables_updchain(struct nft_ctx *ctx, u8 genmask, u8 policy,
+ 			return -EBUSY;
+ 
+ 		err = nft_chain_parse_hook(ctx->net, nla, &hook, ctx->family,
+-					   create);
++					   false);
+ 		if (err < 0)
+ 			return err;
+ 
+@@ -1761,9 +1760,6 @@ static int nf_tables_newchain(struct net *net, struct sock *nlsk,
+ 	u8 policy = NF_ACCEPT;
+ 	struct nft_ctx ctx;
+ 	u64 handle = 0;
+-	bool create;
+-
+-	create = nlh->nlmsg_flags & NLM_F_CREATE ? true : false;
+ 
+ 	lockdep_assert_held(&net->nft.commit_mutex);
+ 
+@@ -1828,10 +1824,10 @@ static int nf_tables_newchain(struct net *net, struct sock *nlsk,
+ 		if (nlh->nlmsg_flags & NLM_F_REPLACE)
+ 			return -EOPNOTSUPP;
+ 
+-		return nf_tables_updchain(&ctx, genmask, policy, create);
++		return nf_tables_updchain(&ctx, genmask, policy);
+ 	}
+ 
+-	return nf_tables_addchain(&ctx, family, genmask, policy, create);
++	return nf_tables_addchain(&ctx, family, genmask, policy);
+ }
+ 
+ static int nf_tables_delchain(struct net *net, struct sock *nlsk,
+@@ -2529,13 +2525,10 @@ static int nf_tables_newrule(struct net *net, struct sock *nlsk,
+ 	struct nlattr *tmp;
+ 	unsigned int size, i, n, ulen = 0, usize = 0;
+ 	int err, rem;
+-	bool create;
+ 	u64 handle, pos_handle;
+ 
+ 	lockdep_assert_held(&net->nft.commit_mutex);
+ 
+-	create = nlh->nlmsg_flags & NLM_F_CREATE ? true : false;
+-
+ 	table = nft_table_lookup(net, nla[NFTA_RULE_TABLE], family, genmask);
+ 	if (IS_ERR(table)) {
+ 		NL_SET_BAD_ATTR(extack, nla[NFTA_RULE_TABLE]);
+@@ -2565,7 +2558,8 @@ static int nf_tables_newrule(struct net *net, struct sock *nlsk,
+ 		else
+ 			return -EOPNOTSUPP;
+ 	} else {
+-		if (!create || nlh->nlmsg_flags & NLM_F_REPLACE)
++		if (!(nlh->nlmsg_flags & NLM_F_CREATE) ||
++		    nlh->nlmsg_flags & NLM_F_REPLACE)
+ 			return -EINVAL;
+ 		handle = nf_tables_alloc_handle(table);
+ 
+@@ -3361,7 +3355,6 @@ static int nf_tables_newset(struct net *net, struct sock *nlsk,
+ 	struct nft_ctx ctx;
+ 	char *name;
+ 	unsigned int size;
+-	bool create;
+ 	u64 timeout;
+ 	u32 ktype, dtype, flags, policy, gc_int, objtype;
+ 	struct nft_set_desc desc;
+@@ -3462,8 +3455,6 @@ static int nf_tables_newset(struct net *net, struct sock *nlsk,
+ 			return err;
+ 	}
+ 
+-	create = nlh->nlmsg_flags & NLM_F_CREATE ? true : false;
+-
+ 	table = nft_table_lookup(net, nla[NFTA_SET_TABLE], family, genmask);
+ 	if (IS_ERR(table)) {
+ 		NL_SET_BAD_ATTR(extack, nla[NFTA_SET_TABLE]);
 -- 
 2.11.0
