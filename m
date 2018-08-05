@@ -1,11 +1,8 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 12/21] netfilter: nf_tables: remove unused variable
-Date: Sun,  5 Aug 2018 23:21:32 +0200
-Message-ID: <20180805212141.3033-13-pablo@netfilter.org>
+Subject: [PATCH 10/21] netfilter: nfnetlink_osf: rename nf_osf header file to nfnetlink_osf
+Date: Sun,  5 Aug 2018 23:21:30 +0200
+Message-ID: <20180805212141.3033-11-pablo@netfilter.org>
 References: <20180805212141.3033-1-pablo@netfilter.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netdev-owner@vger.kernel.org>
@@ -13,39 +10,84 @@ In-Reply-To: <20180805212141.3033-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: YueHaibing <yuehaibing@huawei.com>
+From: Fernando Fernandez Mancera <ffmancera@riseup.net>
 
-Variable 'ext' is being assigned but are never used hence they are
-unused and can be removed.
+The first client of the nf_osf.h userspace header is nft_osf, coming in
+this batch, rename it to nfnetlink_osf.h as there are no userspace
+clients for this yet, hence this looks consistent with other nfnetlink
+subsystem.
 
-Cleans up clang warnings:
-net/netfilter/nf_tables_api.c:4032:28: warning: variable ‘ext’ set but not used [-Wunused-but-set-variable]
-
-Signed-off-by: YueHaibing <yuehaibing@huawei.com>
+Suggested-by: Jan Engelhardt <jengelh@inai.de>
+Signed-off-by: Fernando Fernandez Mancera <ffmancera@riseup.net>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c | 2 --
- 1 file changed, 2 deletions(-)
+ include/linux/netfilter/{nf_osf.h => nfnetlink_osf.h}      | 2 +-
+ include/uapi/linux/netfilter/{nf_osf.h => nfnetlink_osf.h} | 0
+ include/uapi/linux/netfilter/xt_osf.h                      | 2 +-
+ net/netfilter/nfnetlink_osf.c                              | 2 +-
+ net/netfilter/nft_osf.c                                    | 2 +-
+ 5 files changed, 4 insertions(+), 4 deletions(-)
+ rename include/linux/netfilter/{nf_osf.h => nfnetlink_osf.h} (95%)
+ rename include/uapi/linux/netfilter/{nf_osf.h => nfnetlink_osf.h} (100%)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 06d6af067619..debc1680607c 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -4029,7 +4029,6 @@ static int nft_get_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 			    const struct nlattr *attr)
- {
- 	struct nlattr *nla[NFTA_SET_ELEM_MAX + 1];
--	const struct nft_set_ext *ext;
- 	struct nft_data_desc desc;
- 	struct nft_set_elem elem;
- 	struct sk_buff *skb;
-@@ -4063,7 +4062,6 @@ static int nft_get_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 		return PTR_ERR(priv);
+diff --git a/include/linux/netfilter/nf_osf.h b/include/linux/netfilter/nfnetlink_osf.h
+similarity index 95%
+rename from include/linux/netfilter/nf_osf.h
+rename to include/linux/netfilter/nfnetlink_osf.h
+index 3e455d6f94d5..a7311bc03d3a 100644
+--- a/include/linux/netfilter/nf_osf.h
++++ b/include/linux/netfilter/nfnetlink_osf.h
+@@ -2,7 +2,7 @@
+ #ifndef _NFOSF_H
+ #define _NFOSF_H
  
- 	elem.priv = priv;
--	ext = nft_set_elem_ext(set, &elem);
+-#include <uapi/linux/netfilter/nf_osf.h>
++#include <uapi/linux/netfilter/nfnetlink_osf.h>
  
- 	err = -ENOMEM;
- 	skb = nlmsg_new(NLMSG_GOODSIZE, GFP_ATOMIC);
+ /* Initial window size option state machine: multiple of mss, mtu or
+  * plain numeric value. Can also be made as plain numeric value which
+diff --git a/include/uapi/linux/netfilter/nf_osf.h b/include/uapi/linux/netfilter/nfnetlink_osf.h
+similarity index 100%
+rename from include/uapi/linux/netfilter/nf_osf.h
+rename to include/uapi/linux/netfilter/nfnetlink_osf.h
+diff --git a/include/uapi/linux/netfilter/xt_osf.h b/include/uapi/linux/netfilter/xt_osf.h
+index a90e90c27cef..c56c59605c2b 100644
+--- a/include/uapi/linux/netfilter/xt_osf.h
++++ b/include/uapi/linux/netfilter/xt_osf.h
+@@ -23,7 +23,7 @@
+ #include <linux/types.h>
+ #include <linux/ip.h>
+ #include <linux/tcp.h>
+-#include <linux/netfilter/nf_osf.h>
++#include <linux/netfilter/nfnetlink_osf.h>
+ 
+ #define XT_OSF_GENRE		NF_OSF_GENRE
+ #define XT_OSF_INVERT		NF_OSF_INVERT
+diff --git a/net/netfilter/nfnetlink_osf.c b/net/netfilter/nfnetlink_osf.c
+index ba0fa11869ce..f9dba62c450f 100644
+--- a/net/netfilter/nfnetlink_osf.c
++++ b/net/netfilter/nfnetlink_osf.c
+@@ -18,7 +18,7 @@
+ #include <linux/netfilter/nfnetlink.h>
+ #include <linux/netfilter/x_tables.h>
+ #include <net/netfilter/nf_log.h>
+-#include <linux/netfilter/nf_osf.h>
++#include <linux/netfilter/nfnetlink_osf.h>
+ 
+ /*
+  * Indexed by dont-fragment bit.
+diff --git a/net/netfilter/nft_osf.c b/net/netfilter/nft_osf.c
+index bdacc4cffba4..9b2f3de7be4f 100644
+--- a/net/netfilter/nft_osf.c
++++ b/net/netfilter/nft_osf.c
+@@ -2,7 +2,7 @@
+ #include <net/tcp.h>
+ 
+ #include <net/netfilter/nf_tables.h>
+-#include <linux/netfilter/nf_osf.h>
++#include <linux/netfilter/nfnetlink_osf.h>
+ 
+ #define OSF_GENRE_SIZE		32
+ 
 -- 
 2.11.0
