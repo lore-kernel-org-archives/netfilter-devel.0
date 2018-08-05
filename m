@@ -1,147 +1,115 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 00/21] Netfilter updates for net-next
-Date: Sun,  5 Aug 2018 23:21:20 +0200
-Message-ID: <20180805212141.3033-1-pablo@netfilter.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Subject: [PATCH 01/21] netfilter: nf_tables: handle meta/lookup with direct call
+Date: Sun,  5 Aug 2018 23:21:21 +0200
+Message-ID: <20180805212141.3033-2-pablo@netfilter.org>
+References: <20180805212141.3033-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20180805212141.3033-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi David,
+From: Florian Westphal <fw@strlen.de>
 
-The following patchset contains Netfilter updates for your net-next tree:
+Currently nft uses inlined variants for common operations
+such as 'ip saddr 1.2.3.4' instead of an indirect call.
 
-1) Support for transparent proxying for nf_tables, from Mate Eckl.
+Also handle meta get operations and lookups without indirect call,
+both are builtin.
 
-2) Patchset to add OS passive fingerprint recognition for nf_tables,
-   from Fernando Fernandez. This takes common code from xt_osf and
-   place it into the new nfnetlink_osf module for codebase sharing.
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/net/netfilter/nf_tables_core.h |  7 +++++++
+ net/netfilter/nf_tables_core.c         | 16 +++++++++++++++-
+ net/netfilter/nft_lookup.c             |  6 +++---
+ net/netfilter/nft_meta.c               |  6 +++---
+ 4 files changed, 28 insertions(+), 7 deletions(-)
 
-3) Lightweight tunneling support for nf_tables.
-
-4) meta and lookup are likely going to be used in rulesets, make them
-   direct calls. From Florian Westphal.
-
-A bunch of incremental updates:
-
-5) use PTR_ERR_OR_ZERO() from nft_numgen, from YueHaibing.
-
-6) Use kvmalloc_array() to allocate hashtables, from Li RongQing.
-
-7) Explicit dependencies between nfnetlink_cttimeout and conntrack
-   timeout extensions, from Harsha Sharma.
-
-8) Simplify NLM_F_CREATE handling in nf_tables.
-
-9) Removed unused variable in the get element command, from
-   YueHaibing.
-
-10) Expose bridge hook priorities through uapi, from Mate Eckl.
-
-And a few fixes for previous Netfilter batch for net-next:
-
-11) Use per-netns mutex from flowtable event, from Florian Westphal.
-
-12) Remove explicit dependency on iptables CT target from conntrack
-    zones, from Florian.
-
-13) Fix use-after-free in rmmod nf_conntrack path, also from Florian.
-
-You can pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git
-
-Thanks.
-
-----------------------------------------------------------------
-
-The following changes since commit ecbcd689d74a394b711d2360aef7e5d007ec9d98:
-
-  Merge tag 'mlx5e-updates-2018-07-26' of git://git.kernel.org/pub/scm/linux/kernel/git/saeed/linux (2018-07-26 21:33:24 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git HEAD
-
-for you to fetch changes up to 483f3fdcc70b3c3a1f314235ab0066f3dbd4cfbe:
-
-  netfilter: nft_tunnel: fix sparse errors (2018-08-04 00:53:29 +0200)
-
-----------------------------------------------------------------
-Fernando Fernandez Mancera (5):
-      netfilter: nf_osf: rename nf_osf.c to nfnetlink_osf.c
-      netfilter: nfnetlink_osf: extract nfnetlink_subsystem code from xt_osf.c
-      netfilter: nf_tables: implement Passive OS fingerprint module in nft_osf
-      netfilter: nf_osf: move nf_osf_fingers to non-uapi header file
-      netfilter: nfnetlink_osf: rename nf_osf header file to nfnetlink_osf
-
-Florian Westphal (4):
-      netfilter: nf_tables: handle meta/lookup with direct call
-      netfilter: nf_tables: flow event notifier must use transaction mutex
-      netfilter: kconfig: remove ct zone/label dependencies
-      netfilter: conntrack: avoid use-after free on rmmod
-
-Harsha Sharma (1):
-      netfilter: cttimeout: Make NF_CT_NETLINK_TIMEOUT depend on NF_CONNTRACK_TIMEOUT
-
-Li RongQing (1):
-      netfilter: use kvmalloc_array to allocate memory for hashtable
-
-Máté Eckl (3):
-      netfilter: nf_tables: Add native tproxy support
-      netfilter: nft_tproxy: Add missing config check
-      netfilter: bridge: Expose nf_tables bridge hook priorities through uapi
-
-Pablo Neira Ayuso (5):
-      netfilter: nf_osf: add nf_osf_find()
-      netfilter: nf_tables: add tunnel support
-      netfilter: nf_tables: match on tunnel metadata
-      netfilter: nf_tables: simplify NLM_F_CREATE handling
-      netfilter: nft_tunnel: fix sparse errors
-
-YueHaibing (2):
-      netfilter: use PTR_ERR_OR_ZERO()
-      netfilter: nf_tables: remove unused variable
-
- .../linux/netfilter/{nf_osf.h => nfnetlink_osf.h}  |  13 +-
- include/linux/netfilter_bridge.h                   |  11 -
- include/net/netfilter/nf_conntrack.h               |   2 -
- include/net/netfilter/nf_tables_core.h             |   7 +
- include/uapi/linux/netfilter/nf_tables.h           | 107 +++-
- .../linux/netfilter/{nf_osf.h => nfnetlink_osf.h}  |   9 +
- include/uapi/linux/netfilter/xt_osf.h              |  11 +-
- include/uapi/linux/netfilter_bridge.h              |  11 +
- net/bridge/br_netfilter_hooks.c                    |   1 +
- net/bridge/netfilter/ebtable_filter.c              |   1 +
- net/bridge/netfilter/ebtable_nat.c                 |   1 +
- net/core/dst.c                                     |   1 +
- net/netfilter/Kconfig                              |  45 +-
- net/netfilter/Makefile                             |   5 +-
- net/netfilter/nf_conntrack_core.c                  |  29 +-
- net/netfilter/nf_conntrack_expect.c                |   2 +-
- net/netfilter/nf_conntrack_helper.c                |   4 +-
- net/netfilter/nf_conntrack_proto.c                 |   7 +-
- net/netfilter/nf_nat_core.c                        |   4 +-
- net/netfilter/nf_tables_api.c                      |  35 +-
- net/netfilter/nf_tables_core.c                     |  16 +-
- net/netfilter/nfnetlink_cttimeout.c                |   6 -
- net/netfilter/{nf_osf.c => nfnetlink_osf.c}        | 186 ++++++-
- net/netfilter/nft_lookup.c                         |   6 +-
- net/netfilter/nft_meta.c                           |   6 +-
- net/netfilter/nft_numgen.c                         |   4 +-
- net/netfilter/nft_osf.c                            | 106 ++++
- net/netfilter/nft_tproxy.c                         | 316 ++++++++++++
- net/netfilter/nft_tunnel.c                         | 566 +++++++++++++++++++++
- net/netfilter/xt_connlimit.c                       |   4 +-
- net/netfilter/xt_osf.c                             | 149 +-----
- 31 files changed, 1417 insertions(+), 254 deletions(-)
- rename include/linux/netfilter/{nf_osf.h => nfnetlink_osf.h} (74%)
- rename include/uapi/linux/netfilter/{nf_osf.h => nfnetlink_osf.h} (94%)
- rename net/netfilter/{nf_osf.c => nfnetlink_osf.c} (58%)
- create mode 100644 net/netfilter/nft_osf.c
- create mode 100644 net/netfilter/nft_tproxy.c
- create mode 100644 net/netfilter/nft_tunnel.c
+diff --git a/include/net/netfilter/nf_tables_core.h b/include/net/netfilter/nf_tables_core.h
+index a05134507e7b..8da837d2aaf9 100644
+--- a/include/net/netfilter/nf_tables_core.h
++++ b/include/net/netfilter/nf_tables_core.h
+@@ -71,4 +71,11 @@ extern struct nft_set_type nft_set_hash_fast_type;
+ extern struct nft_set_type nft_set_rbtree_type;
+ extern struct nft_set_type nft_set_bitmap_type;
+ 
++struct nft_expr;
++struct nft_regs;
++struct nft_pktinfo;
++void nft_meta_get_eval(const struct nft_expr *expr,
++		       struct nft_regs *regs, const struct nft_pktinfo *pkt);
++void nft_lookup_eval(const struct nft_expr *expr,
++		     struct nft_regs *regs, const struct nft_pktinfo *pkt);
+ #endif /* _NET_NF_TABLES_CORE_H */
+diff --git a/net/netfilter/nf_tables_core.c b/net/netfilter/nf_tables_core.c
+index 8de912ca53d3..ffd5c0f9412b 100644
+--- a/net/netfilter/nf_tables_core.c
++++ b/net/netfilter/nf_tables_core.c
+@@ -120,6 +120,20 @@ struct nft_jumpstack {
+ 	struct nft_rule	*const *rules;
+ };
+ 
++static void expr_call_ops_eval(const struct nft_expr *expr,
++			       struct nft_regs *regs,
++			       struct nft_pktinfo *pkt)
++{
++	unsigned long e = (unsigned long)expr->ops->eval;
++
++	if (e == (unsigned long)nft_meta_get_eval)
++		nft_meta_get_eval(expr, regs, pkt);
++	else if (e == (unsigned long)nft_lookup_eval)
++		nft_lookup_eval(expr, regs, pkt);
++	else
++		expr->ops->eval(expr, regs, pkt);
++}
++
+ unsigned int
+ nft_do_chain(struct nft_pktinfo *pkt, void *priv)
+ {
+@@ -153,7 +167,7 @@ nft_do_chain(struct nft_pktinfo *pkt, void *priv)
+ 				nft_cmp_fast_eval(expr, &regs);
+ 			else if (expr->ops != &nft_payload_fast_ops ||
+ 				 !nft_payload_fast_eval(expr, &regs, pkt))
+-				expr->ops->eval(expr, &regs, pkt);
++				expr_call_ops_eval(expr, &regs, pkt);
+ 
+ 			if (regs.verdict.code != NFT_CONTINUE)
+ 				break;
+diff --git a/net/netfilter/nft_lookup.c b/net/netfilter/nft_lookup.c
+index c2a1d84cdfc4..ad13e8643599 100644
+--- a/net/netfilter/nft_lookup.c
++++ b/net/netfilter/nft_lookup.c
+@@ -26,9 +26,9 @@ struct nft_lookup {
+ 	struct nft_set_binding		binding;
+ };
+ 
+-static void nft_lookup_eval(const struct nft_expr *expr,
+-			    struct nft_regs *regs,
+-			    const struct nft_pktinfo *pkt)
++void nft_lookup_eval(const struct nft_expr *expr,
++		     struct nft_regs *regs,
++		     const struct nft_pktinfo *pkt)
+ {
+ 	const struct nft_lookup *priv = nft_expr_priv(expr);
+ 	const struct nft_set *set = priv->set;
+diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
+index 2b94dcc43456..297fe7d97c18 100644
+--- a/net/netfilter/nft_meta.c
++++ b/net/netfilter/nft_meta.c
+@@ -41,9 +41,9 @@ static DEFINE_PER_CPU(struct rnd_state, nft_prandom_state);
+ #include "../bridge/br_private.h"
+ #endif
+ 
+-static void nft_meta_get_eval(const struct nft_expr *expr,
+-			      struct nft_regs *regs,
+-			      const struct nft_pktinfo *pkt)
++void nft_meta_get_eval(const struct nft_expr *expr,
++		       struct nft_regs *regs,
++		       const struct nft_pktinfo *pkt)
+ {
+ 	const struct nft_meta *priv = nft_expr_priv(expr);
+ 	const struct sk_buff *skb = pkt->skb;
+-- 
+2.11.0
