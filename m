@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 19/21] netfilter: kconfig: remove ct zone/label dependencies
-Date: Sun,  5 Aug 2018 23:21:39 +0200
-Message-ID: <20180805212141.3033-20-pablo@netfilter.org>
+Subject: [PATCH 20/21] netfilter: conntrack: avoid use-after free on rmmod
+Date: Sun,  5 Aug 2018 23:21:40 +0200
+Message-ID: <20180805212141.3033-21-pablo@netfilter.org>
 References: <20180805212141.3033-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -12,51 +12,45 @@ List-Id: netfilter-devel.vger.kernel.org
 
 From: Florian Westphal <fw@strlen.de>
 
-connection tracking zones currently depend on the xtables CT target.
-The reasoning was that it makes no sense to support zones if they can't
-be configured (which needed CT target).
+When the conntrack module is removed, we call nf_ct_iterate_destroy via
+nf_ct_l4proto_unregister().
 
-Nowadays zones can also be used by OVS and configured via nftables,
-so remove the dependency.
+Problem is that nf_conntrack_proto_fini() gets called after the
+conntrack hash table has already been freed.
 
-connection tracking labels are handled via hidden dependency that gets
-auto-selected by the connlabel match.
-Make it a visible knob, as labels can be attached via ctnetlink
-or via nftables rules (nft_ct expression) too.
+Just remove the l4proto unregister call, its unecessary as the
+nf_ct_protos[] array gets free'd right after anyway.
 
-This allows to use conntrack labels and zones with nftables-only build.
+v2: add comment wrt. missing unreg call.
 
+Fixes: a0ae2562c6c4b2 ("netfilter: conntrack: remove l3proto abstraction")
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/Kconfig | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ net/netfilter/nf_conntrack_proto.c | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index 654588088676..71709c104081 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -106,7 +106,6 @@ config NF_CONNTRACK_SECMARK
- config NF_CONNTRACK_ZONES
- 	bool  'Connection tracking zones'
- 	depends on NETFILTER_ADVANCED
--	depends on NETFILTER_XT_TARGET_CT
- 	help
- 	  This option enables support for connection tracking zones.
- 	  Normally, each connection needs to have a unique system wide
-@@ -158,10 +157,11 @@ config NF_CONNTRACK_TIMESTAMP
- 	  If unsure, say `N'.
+diff --git a/net/netfilter/nf_conntrack_proto.c b/net/netfilter/nf_conntrack_proto.c
+index 803607a90102..30070732ee50 100644
+--- a/net/netfilter/nf_conntrack_proto.c
++++ b/net/netfilter/nf_conntrack_proto.c
+@@ -940,14 +940,13 @@ void nf_conntrack_proto_fini(void)
+ {
+ 	unsigned int i;
  
- config NF_CONNTRACK_LABELS
--	bool
-+	bool "Connection tracking labels"
- 	help
- 	  This option enables support for assigning user-defined flag bits
--	  to connection tracking entries.  It selected by the connlabel match.
-+	  to connection tracking entries.  It can be used with xtables connlabel
-+	  match and the nftables ct expression.
- 
- config NF_CT_PROTO_DCCP
- 	bool 'DCCP protocol connection tracking support'
+-	nf_ct_l4proto_unregister(builtin_l4proto,
+-				 ARRAY_SIZE(builtin_l4proto));
+ 	nf_unregister_sockopt(&so_getorigdst);
+ #if IS_ENABLED(CONFIG_IPV6)
+ 	nf_unregister_sockopt(&so_getorigdst6);
+ #endif
+-
+-	/* free l3proto protocol tables */
++	/* No need to call nf_ct_l4proto_unregister(), the register
++	 * tables are free'd here anyway.
++	 */
+ 	for (i = 0; i < ARRAY_SIZE(nf_ct_protos); i++)
+ 		kfree(nf_ct_protos[i]);
+ }
 -- 
 2.11.0
