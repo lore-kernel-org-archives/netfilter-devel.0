@@ -1,11 +1,8 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 17/21] netfilter: bridge: Expose nf_tables bridge hook priorities through uapi
-Date: Sun,  5 Aug 2018 23:21:37 +0200
-Message-ID: <20180805212141.3033-18-pablo@netfilter.org>
+Subject: [PATCH 15/21] netfilter: nf_tables: add tunnel support
+Date: Sun,  5 Aug 2018 23:21:35 +0200
+Message-ID: <20180805212141.3033-16-pablo@netfilter.org>
 References: <20180805212141.3033-1-pablo@netfilter.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netdev-owner@vger.kernel.org>
@@ -13,102 +10,609 @@ In-Reply-To: <20180805212141.3033-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Máté Eckl <ecklm94@gmail.com>
+This patch implements the tunnel object type that can be used to
+configure tunnels via metadata template through the existing lightweight
+API from the ingress path.
 
-Netfilter exposes standard hook priorities in case of ipv4, ipv6 and
-arp but not in case of bridge.
-
-This patch exposes the hook priority values of the bridge family (which are
-different from the formerly mentioned) via uapi so that they can be used by
-user-space applications just like the others.
-
-Signed-off-by: Máté Eckl <ecklm94@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/linux/netfilter_bridge.h      | 11 -----------
- include/uapi/linux/netfilter_bridge.h | 11 +++++++++++
- net/bridge/br_netfilter_hooks.c       |  1 +
- net/bridge/netfilter/ebtable_filter.c |  1 +
- net/bridge/netfilter/ebtable_nat.c    |  1 +
- 5 files changed, 14 insertions(+), 11 deletions(-)
+ include/uapi/linux/netfilter/nf_tables.h |  69 ++++-
+ net/core/dst.c                           |   1 +
+ net/netfilter/Kconfig                    |   6 +
+ net/netfilter/Makefile                   |   1 +
+ net/netfilter/nft_tunnel.c               | 458 +++++++++++++++++++++++++++++++
+ 5 files changed, 534 insertions(+), 1 deletion(-)
+ create mode 100644 net/netfilter/nft_tunnel.c
 
-diff --git a/include/linux/netfilter_bridge.h b/include/linux/netfilter_bridge.h
-index b671fdfd212b..fa0686500970 100644
---- a/include/linux/netfilter_bridge.h
-+++ b/include/linux/netfilter_bridge.h
-@@ -5,17 +5,6 @@
- #include <uapi/linux/netfilter_bridge.h>
- #include <linux/skbuff.h>
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index f112ea52dc1a..3ee1198eeac1 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -1416,7 +1416,8 @@ enum nft_ct_helper_attributes {
+ #define NFT_OBJECT_CT_HELPER	3
+ #define NFT_OBJECT_LIMIT	4
+ #define NFT_OBJECT_CONNLIMIT	5
+-#define __NFT_OBJECT_MAX	6
++#define NFT_OBJECT_TUNNEL	6
++#define __NFT_OBJECT_MAX	7
+ #define NFT_OBJECT_MAX		(__NFT_OBJECT_MAX - 1)
  
--enum nf_br_hook_priorities {
--	NF_BR_PRI_FIRST = INT_MIN,
--	NF_BR_PRI_NAT_DST_BRIDGED = -300,
--	NF_BR_PRI_FILTER_BRIDGED = -200,
--	NF_BR_PRI_BRNF = 0,
--	NF_BR_PRI_NAT_DST_OTHER = 100,
--	NF_BR_PRI_FILTER_OTHER = 200,
--	NF_BR_PRI_NAT_SRC = 300,
--	NF_BR_PRI_LAST = INT_MAX,
--};
--
- #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
+ /**
+@@ -1580,4 +1581,70 @@ enum nft_ng_types {
+ };
+ #define NFT_NG_MAX	(__NFT_NG_MAX - 1)
  
- int br_handle_frame_finish(struct net *net, struct sock *sk, struct sk_buff *skb);
-diff --git a/include/uapi/linux/netfilter_bridge.h b/include/uapi/linux/netfilter_bridge.h
-index 12fb77633f83..156ccd089df1 100644
---- a/include/uapi/linux/netfilter_bridge.h
-+++ b/include/uapi/linux/netfilter_bridge.h
-@@ -26,4 +26,15 @@
- #define NF_BR_BROUTING		5
- #define NF_BR_NUMHOOKS		6
++enum nft_tunnel_key_ip_attributes {
++	NFTA_TUNNEL_KEY_IP_UNSPEC,
++	NFTA_TUNNEL_KEY_IP_SRC,
++	NFTA_TUNNEL_KEY_IP_DST,
++	__NFTA_TUNNEL_KEY_IP_MAX
++};
++#define NFTA_TUNNEL_KEY_IP_MAX	(__NFTA_TUNNEL_KEY_IP_MAX - 1)
++
++enum nft_tunnel_ip6_attributes {
++	NFTA_TUNNEL_KEY_IP6_UNSPEC,
++	NFTA_TUNNEL_KEY_IP6_SRC,
++	NFTA_TUNNEL_KEY_IP6_DST,
++	NFTA_TUNNEL_KEY_IP6_FLOWLABEL,
++	__NFTA_TUNNEL_KEY_IP6_MAX
++};
++#define NFTA_TUNNEL_KEY_IP6_MAX	(__NFTA_TUNNEL_KEY_IP6_MAX - 1)
++
++enum nft_tunnel_opts_attributes {
++	NFTA_TUNNEL_KEY_OPTS_UNSPEC,
++	NFTA_TUNNEL_KEY_OPTS_VXLAN,
++	NFTA_TUNNEL_KEY_OPTS_ERSPAN,
++	__NFTA_TUNNEL_KEY_OPTS_MAX
++};
++#define NFTA_TUNNEL_KEY_OPTS_MAX	(__NFTA_TUNNEL_KEY_OPTS_MAX - 1)
++
++enum nft_tunnel_opts_vxlan_attributes {
++	NFTA_TUNNEL_KEY_VXLAN_UNSPEC,
++	NFTA_TUNNEL_KEY_VXLAN_GBP,
++	__NFTA_TUNNEL_KEY_VXLAN_MAX
++};
++#define NFTA_TUNNEL_KEY_VXLAN_MAX	(__NFTA_TUNNEL_KEY_VXLAN_MAX - 1)
++
++enum nft_tunnel_opts_erspan_attributes {
++	NFTA_TUNNEL_KEY_ERSPAN_UNSPEC,
++	NFTA_TUNNEL_KEY_ERSPAN_VERSION,
++	NFTA_TUNNEL_KEY_ERSPAN_V1_INDEX,
++	NFTA_TUNNEL_KEY_ERSPAN_V2_HWID,
++	NFTA_TUNNEL_KEY_ERSPAN_V2_DIR,
++	__NFTA_TUNNEL_KEY_ERSPAN_MAX
++};
++#define NFTA_TUNNEL_KEY_ERSPAN_MAX	(__NFTA_TUNNEL_KEY_ERSPAN_MAX - 1)
++
++enum nft_tunnel_flags {
++	NFT_TUNNEL_F_ZERO_CSUM_TX	= (1 << 0),
++	NFT_TUNNEL_F_DONT_FRAGMENT	= (1 << 1),
++	NFT_TUNNEL_F_SEQ_NUMBER		= (1 << 2),
++};
++#define NFT_TUNNEL_F_MASK	(NFT_TUNNEL_F_ZERO_CSUM_TX | \
++				 NFT_TUNNEL_F_DONT_FRAGMENT | \
++				 NFT_TUNNEL_F_SEQ_NUMBER)
++
++enum nft_tunnel_key_attributes {
++	NFTA_TUNNEL_KEY_UNSPEC,
++	NFTA_TUNNEL_KEY_ID,
++	NFTA_TUNNEL_KEY_IP,
++	NFTA_TUNNEL_KEY_IP6,
++	NFTA_TUNNEL_KEY_FLAGS,
++	NFTA_TUNNEL_KEY_TOS,
++	NFTA_TUNNEL_KEY_TTL,
++	NFTA_TUNNEL_KEY_SPORT,
++	NFTA_TUNNEL_KEY_DPORT,
++	NFTA_TUNNEL_KEY_OPTS,
++	__NFTA_TUNNEL_KEY_MAX
++};
++#define NFTA_TUNNEL_KEY_MAX	(__NFTA_TUNNEL_KEY_MAX - 1)
++
+ #endif /* _LINUX_NF_TABLES_H */
+diff --git a/net/core/dst.c b/net/core/dst.c
+index 2d9b37f8944a..81ccf20e2826 100644
+--- a/net/core/dst.c
++++ b/net/core/dst.c
+@@ -307,6 +307,7 @@ void metadata_dst_free(struct metadata_dst *md_dst)
+ #endif
+ 	kfree(md_dst);
+ }
++EXPORT_SYMBOL_GPL(metadata_dst_free);
  
-+enum nf_br_hook_priorities {
-+	NF_BR_PRI_FIRST = INT_MIN,
-+	NF_BR_PRI_NAT_DST_BRIDGED = -300,
-+	NF_BR_PRI_FILTER_BRIDGED = -200,
-+	NF_BR_PRI_BRNF = 0,
-+	NF_BR_PRI_NAT_DST_OTHER = 100,
-+	NF_BR_PRI_FILTER_OTHER = 200,
-+	NF_BR_PRI_NAT_SRC = 300,
-+	NF_BR_PRI_LAST = INT_MAX,
+ struct metadata_dst __percpu *
+ metadata_dst_alloc_percpu(u8 optslen, enum metadata_type type, gfp_t flags)
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index 55e399d5af10..654588088676 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -559,6 +559,12 @@ config NFT_NAT
+ 	  This option adds the "nat" expression that you can use to perform
+ 	  typical Network Address Translation (NAT) packet transformations.
+ 
++config NFT_TUNNEL
++	tristate "Netfilter nf_tables tunnel module"
++	help
++	  This option adds the "tunnel" expression that you can use to set
++	  tunneling policies.
++
+ config NFT_OBJREF
+ 	tristate "Netfilter nf_tables stateful object reference module"
+ 	help
+diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
+index cf61615cc529..16895e045b66 100644
+--- a/net/netfilter/Makefile
++++ b/net/netfilter/Makefile
+@@ -101,6 +101,7 @@ obj-$(CONFIG_NFT_QUEUE)		+= nft_queue.o
+ obj-$(CONFIG_NFT_QUOTA)		+= nft_quota.o
+ obj-$(CONFIG_NFT_REJECT) 	+= nft_reject.o
+ obj-$(CONFIG_NFT_REJECT_INET)	+= nft_reject_inet.o
++obj-$(CONFIG_NFT_TUNNEL)	+= nft_tunnel.o
+ obj-$(CONFIG_NFT_COUNTER)	+= nft_counter.o
+ obj-$(CONFIG_NFT_LOG)		+= nft_log.o
+ obj-$(CONFIG_NFT_MASQ)		+= nft_masq.o
+diff --git a/net/netfilter/nft_tunnel.c b/net/netfilter/nft_tunnel.c
+new file mode 100644
+index 000000000000..715613d99c20
+--- /dev/null
++++ b/net/netfilter/nft_tunnel.c
+@@ -0,0 +1,458 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/module.h>
++#include <linux/seqlock.h>
++#include <linux/netlink.h>
++#include <linux/netfilter.h>
++#include <linux/netfilter/nf_tables.h>
++#include <net/netfilter/nf_tables.h>
++#include <net/dst_metadata.h>
++#include <net/ip_tunnels.h>
++#include <net/vxlan.h>
++#include <net/erspan.h>
++
++struct nft_tunnel_opts {
++	union {
++		struct vxlan_metadata	vxlan;
++		struct erspan_metadata	erspan;
++	} u;
++	u32	len;
++	u32	flags;
 +};
 +
- #endif /* _UAPI__LINUX_BRIDGE_NETFILTER_H */
-diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
-index 9b16eaf33819..6e0dc6bcd32a 100644
---- a/net/bridge/br_netfilter_hooks.c
-+++ b/net/bridge/br_netfilter_hooks.c
-@@ -26,6 +26,7 @@
- #include <linux/if_pppox.h>
- #include <linux/ppp_defs.h>
- #include <linux/netfilter_bridge.h>
-+#include <uapi/linux/netfilter_bridge.h>
- #include <linux/netfilter_ipv4.h>
- #include <linux/netfilter_ipv6.h>
- #include <linux/netfilter_arp.h>
-diff --git a/net/bridge/netfilter/ebtable_filter.c b/net/bridge/netfilter/ebtable_filter.c
-index c41da5fac84f..550324c516ee 100644
---- a/net/bridge/netfilter/ebtable_filter.c
-+++ b/net/bridge/netfilter/ebtable_filter.c
-@@ -9,6 +9,7 @@
-  */
- 
- #include <linux/netfilter_bridge/ebtables.h>
-+#include <uapi/linux/netfilter_bridge.h>
- #include <linux/module.h>
- 
- #define FILTER_VALID_HOOKS ((1 << NF_BR_LOCAL_IN) | (1 << NF_BR_FORWARD) | \
-diff --git a/net/bridge/netfilter/ebtable_nat.c b/net/bridge/netfilter/ebtable_nat.c
-index 08df7406ecb3..c0fb3ca518af 100644
---- a/net/bridge/netfilter/ebtable_nat.c
-+++ b/net/bridge/netfilter/ebtable_nat.c
-@@ -9,6 +9,7 @@
-  */
- 
- #include <linux/netfilter_bridge/ebtables.h>
-+#include <uapi/linux/netfilter_bridge.h>
- #include <linux/module.h>
- 
- #define NAT_VALID_HOOKS ((1 << NF_BR_PRE_ROUTING) | (1 << NF_BR_LOCAL_OUT) | \
++struct nft_tunnel_obj {
++	struct metadata_dst	*md;
++	struct nft_tunnel_opts	opts;
++};
++
++static const struct nla_policy nft_tunnel_ip_policy[NFTA_TUNNEL_KEY_IP_MAX + 1] = {
++	[NFTA_TUNNEL_KEY_IP_SRC]	= { .type = NLA_U32 },
++	[NFTA_TUNNEL_KEY_IP_DST]	= { .type = NLA_U32 },
++};
++
++static int nft_tunnel_obj_ip_init(const struct nft_ctx *ctx,
++				  const struct nlattr *attr,
++				  struct ip_tunnel_info *info)
++{
++	struct nlattr *tb[NFTA_TUNNEL_KEY_IP_MAX + 1];
++	int err;
++
++	err = nla_parse_nested(tb, NFTA_TUNNEL_KEY_IP_MAX, attr,
++			       nft_tunnel_ip_policy, NULL);
++	if (err < 0)
++		return err;
++
++	if (!tb[NFTA_TUNNEL_KEY_IP_DST])
++		return -EINVAL;
++
++	if (tb[NFTA_TUNNEL_KEY_IP_SRC])
++		info->key.u.ipv4.src = nla_get_be32(tb[NFTA_TUNNEL_KEY_IP_SRC]);
++	if (tb[NFTA_TUNNEL_KEY_IP_DST])
++		info->key.u.ipv4.dst = nla_get_be32(tb[NFTA_TUNNEL_KEY_IP_DST]);
++
++	return 0;
++}
++
++static const struct nla_policy nft_tunnel_ip6_policy[NFTA_TUNNEL_KEY_IP6_MAX + 1] = {
++	[NFTA_TUNNEL_KEY_IP6_SRC]	= { .len = sizeof(struct in6_addr), },
++	[NFTA_TUNNEL_KEY_IP6_DST]	= { .len = sizeof(struct in6_addr), },
++	[NFTA_TUNNEL_KEY_IP6_FLOWLABEL]	= { .type = NLA_U32, }
++};
++
++static int nft_tunnel_obj_ip6_init(const struct nft_ctx *ctx,
++				   const struct nlattr *attr,
++				   struct ip_tunnel_info *info)
++{
++	struct nlattr *tb[NFTA_TUNNEL_KEY_IP6_MAX + 1];
++	int err;
++
++	err = nla_parse_nested(tb, NFTA_TUNNEL_KEY_IP6_MAX, attr,
++			       nft_tunnel_ip6_policy, NULL);
++	if (err < 0)
++		return err;
++
++	if (!tb[NFTA_TUNNEL_KEY_IP6_DST])
++		return -EINVAL;
++
++	if (tb[NFTA_TUNNEL_KEY_IP6_SRC]) {
++		memcpy(&info->key.u.ipv6.src,
++		       nla_data(tb[NFTA_TUNNEL_KEY_IP6_SRC]),
++		       sizeof(struct in6_addr));
++	}
++	if (tb[NFTA_TUNNEL_KEY_IP6_DST]) {
++		memcpy(&info->key.u.ipv6.dst,
++		       nla_data(tb[NFTA_TUNNEL_KEY_IP6_DST]),
++		       sizeof(struct in6_addr));
++	}
++	if (tb[NFTA_TUNNEL_KEY_IP6_FLOWLABEL])
++		info->key.label = nla_get_be32(tb[NFTA_TUNNEL_KEY_IP6_FLOWLABEL]);
++
++	info->mode |= IP_TUNNEL_INFO_IPV6;
++
++	return 0;
++}
++
++static const struct nla_policy nft_tunnel_opts_vxlan_policy[NFTA_TUNNEL_KEY_VXLAN_MAX + 1] = {
++	[NFTA_TUNNEL_KEY_VXLAN_GBP]	= { .type = NLA_U32 },
++};
++
++static int nft_tunnel_obj_vxlan_init(const struct nlattr *attr,
++				     struct nft_tunnel_opts *opts)
++{
++	struct nlattr *tb[NFTA_TUNNEL_KEY_VXLAN_MAX + 1];
++	int err;
++
++	err = nla_parse_nested(tb, NFTA_TUNNEL_KEY_VXLAN_MAX, attr,
++			       nft_tunnel_opts_vxlan_policy, NULL);
++	if (err < 0)
++		return err;
++
++	if (!tb[NFTA_TUNNEL_KEY_VXLAN_GBP])
++		return -EINVAL;
++
++	opts->u.vxlan.gbp = ntohl(nla_get_be32(tb[NFTA_TUNNEL_KEY_VXLAN_GBP]));
++
++	opts->len	= sizeof(struct vxlan_metadata);
++	opts->flags	= TUNNEL_VXLAN_OPT;
++
++	return 0;
++}
++
++static const struct nla_policy nft_tunnel_opts_erspan_policy[NFTA_TUNNEL_KEY_ERSPAN_MAX + 1] = {
++	[NFTA_TUNNEL_KEY_ERSPAN_V1_INDEX]	= { .type = NLA_U32 },
++	[NFTA_TUNNEL_KEY_ERSPAN_V2_DIR]	= { .type = NLA_U8 },
++	[NFTA_TUNNEL_KEY_ERSPAN_V2_HWID]	= { .type = NLA_U8 },
++};
++
++static int nft_tunnel_obj_erspan_init(const struct nlattr *attr,
++				      struct nft_tunnel_opts *opts)
++{
++	struct nlattr *tb[NFTA_TUNNEL_KEY_ERSPAN_MAX + 1];
++	uint8_t hwid, dir;
++	int err, version;
++
++	err = nla_parse_nested(tb, NFTA_TUNNEL_KEY_ERSPAN_MAX, attr,
++			       nft_tunnel_opts_erspan_policy, NULL);
++	if (err < 0)
++		return err;
++
++	version = ntohl(nla_get_be32(tb[NFTA_TUNNEL_KEY_ERSPAN_VERSION]));
++	switch (version) {
++	case ERSPAN_VERSION:
++		if (!tb[NFTA_TUNNEL_KEY_ERSPAN_V1_INDEX])
++			return -EINVAL;
++
++		opts->u.erspan.u.index =
++			nla_get_be32(tb[NFTA_TUNNEL_KEY_ERSPAN_V1_INDEX]);
++		break;
++	case ERSPAN_VERSION2:
++		if (!tb[NFTA_TUNNEL_KEY_ERSPAN_V2_DIR] ||
++		    !tb[NFTA_TUNNEL_KEY_ERSPAN_V2_HWID])
++			return -EINVAL;
++
++		hwid = nla_get_u8(tb[NFTA_TUNNEL_KEY_ERSPAN_V2_HWID]);
++		dir = nla_get_u8(tb[NFTA_TUNNEL_KEY_ERSPAN_V2_DIR]);
++
++		set_hwid(&opts->u.erspan.u.md2, hwid);
++		opts->u.erspan.u.md2.dir = dir;
++		break;
++	default:
++		return -EOPNOTSUPP;
++	}
++	opts->u.erspan.version = version;
++
++	opts->len	= sizeof(struct erspan_metadata);
++	opts->flags	= TUNNEL_ERSPAN_OPT;
++
++	return 0;
++}
++
++static const struct nla_policy nft_tunnel_opts_policy[NFTA_TUNNEL_KEY_OPTS_MAX + 1] = {
++	[NFTA_TUNNEL_KEY_OPTS_VXLAN]	= { .type = NLA_NESTED, },
++	[NFTA_TUNNEL_KEY_OPTS_ERSPAN]	= { .type = NLA_NESTED, },
++};
++
++static int nft_tunnel_obj_opts_init(const struct nft_ctx *ctx,
++				    const struct nlattr *attr,
++				    struct ip_tunnel_info *info,
++				    struct nft_tunnel_opts *opts)
++{
++	struct nlattr *tb[NFTA_TUNNEL_KEY_OPTS_MAX + 1];
++	int err;
++
++	err = nla_parse_nested(tb, NFTA_TUNNEL_KEY_OPTS_MAX, attr,
++			       nft_tunnel_opts_policy, NULL);
++	if (err < 0)
++		return err;
++
++	if (tb[NFTA_TUNNEL_KEY_OPTS_VXLAN]) {
++		err = nft_tunnel_obj_vxlan_init(tb[NFTA_TUNNEL_KEY_OPTS_VXLAN],
++						opts);
++	} else if (tb[NFTA_TUNNEL_KEY_OPTS_ERSPAN]) {
++		err = nft_tunnel_obj_erspan_init(tb[NFTA_TUNNEL_KEY_OPTS_ERSPAN],
++						 opts);
++	} else {
++		return -EOPNOTSUPP;
++	}
++
++	return err;
++}
++
++static const struct nla_policy nft_tunnel_key_policy[NFTA_TUNNEL_KEY_MAX + 1] = {
++	[NFTA_TUNNEL_KEY_IP]	= { .type = NLA_NESTED, },
++	[NFTA_TUNNEL_KEY_IP6]	= { .type = NLA_NESTED, },
++	[NFTA_TUNNEL_KEY_ID]	= { .type = NLA_U32, },
++	[NFTA_TUNNEL_KEY_FLAGS]	= { .type = NLA_U32, },
++	[NFTA_TUNNEL_KEY_TOS]	= { .type = NLA_U8, },
++	[NFTA_TUNNEL_KEY_TTL]	= { .type = NLA_U8, },
++	[NFTA_TUNNEL_KEY_OPTS]	= { .type = NLA_NESTED, },
++};
++
++static int nft_tunnel_obj_init(const struct nft_ctx *ctx,
++			       const struct nlattr * const tb[],
++			       struct nft_object *obj)
++{
++	struct nft_tunnel_obj *priv = nft_obj_data(obj);
++	struct ip_tunnel_info info;
++	struct metadata_dst *md;
++	int err;
++
++	if (!tb[NFTA_TUNNEL_KEY_ID])
++		return -EINVAL;
++
++	memset(&info, 0, sizeof(info));
++	info.mode		= IP_TUNNEL_INFO_TX;
++	info.key.tun_id		= key32_to_tunnel_id(nla_get_be32(tb[NFTA_TUNNEL_KEY_ID]));
++	info.key.tun_flags	= TUNNEL_KEY | TUNNEL_CSUM | TUNNEL_NOCACHE;
++
++	if (tb[NFTA_TUNNEL_KEY_IP]) {
++		err = nft_tunnel_obj_ip_init(ctx, tb[NFTA_TUNNEL_KEY_IP], &info);
++		if (err < 0)
++			return err;
++	} else if (tb[NFTA_TUNNEL_KEY_IP6]) {
++		err = nft_tunnel_obj_ip6_init(ctx, tb[NFTA_TUNNEL_KEY_IP6], &info);
++		if (err < 0)
++			return err;
++	} else {
++		return -EINVAL;
++	}
++
++	if (tb[NFTA_TUNNEL_KEY_SPORT]) {
++		info.key.tp_src =
++			ntohs(nla_get_be16(tb[NFTA_TUNNEL_KEY_SPORT]));
++	}
++	if (tb[NFTA_TUNNEL_KEY_DPORT]) {
++		info.key.tp_dst =
++			ntohs(nla_get_be16(tb[NFTA_TUNNEL_KEY_DPORT]));
++	}
++
++	if (tb[NFTA_TUNNEL_KEY_FLAGS]) {
++		u32 tun_flags;
++
++		tun_flags = ntohl(nla_get_be32(tb[NFTA_TUNNEL_KEY_FLAGS]));
++		if (tun_flags & ~NFT_TUNNEL_F_MASK)
++			return -EOPNOTSUPP;
++
++		if (tun_flags & NFT_TUNNEL_F_ZERO_CSUM_TX)
++			info.key.tun_flags &= ~TUNNEL_CSUM;
++		if (tun_flags & NFT_TUNNEL_F_DONT_FRAGMENT)
++			info.key.tun_flags |= TUNNEL_DONT_FRAGMENT;
++		if (tun_flags & NFT_TUNNEL_F_SEQ_NUMBER)
++			info.key.tun_flags |= TUNNEL_SEQ;
++	}
++	if (tb[NFTA_TUNNEL_KEY_TOS])
++		info.key.tos = nla_get_u8(tb[NFTA_TUNNEL_KEY_TOS]);
++	if (tb[NFTA_TUNNEL_KEY_TTL])
++		info.key.ttl = nla_get_u8(tb[NFTA_TUNNEL_KEY_TTL]);
++	else
++		info.key.ttl = U8_MAX;
++
++	if (tb[NFTA_TUNNEL_KEY_OPTS]) {
++		err = nft_tunnel_obj_opts_init(ctx, tb[NFTA_TUNNEL_KEY_OPTS],
++					       &info, &priv->opts);
++		if (err < 0)
++			return err;
++	}
++
++	md = metadata_dst_alloc(priv->opts.len, METADATA_IP_TUNNEL, GFP_KERNEL);
++	if (!md)
++		return -ENOMEM;
++
++	memcpy(&md->u.tun_info, &info, sizeof(info));
++	ip_tunnel_info_opts_set(&md->u.tun_info, &priv->opts.u, priv->opts.len,
++				priv->opts.flags);
++	priv->md = md;
++
++	return 0;
++}
++
++static inline void nft_tunnel_obj_eval(struct nft_object *obj,
++				       struct nft_regs *regs,
++				       const struct nft_pktinfo *pkt)
++{
++	struct nft_tunnel_obj *priv = nft_obj_data(obj);
++	struct sk_buff *skb = pkt->skb;
++
++	skb_dst_drop(skb);
++	dst_hold((struct dst_entry *) priv->md);
++	skb_dst_set(skb, (struct dst_entry *) priv->md);
++}
++
++static int nft_tunnel_ip_dump(struct sk_buff *skb, struct ip_tunnel_info *info)
++{
++	struct nlattr *nest;
++
++	if (info->mode & IP_TUNNEL_INFO_IPV6) {
++		nest = nla_nest_start(skb, NFTA_TUNNEL_KEY_IP6);
++		if (!nest)
++			return -1;
++
++		if (nla_put_in6_addr(skb, NFTA_TUNNEL_KEY_IP6_SRC, &info->key.u.ipv6.src) < 0 ||
++		    nla_put_in6_addr(skb, NFTA_TUNNEL_KEY_IP6_DST, &info->key.u.ipv6.dst) < 0 ||
++		    nla_put_be32(skb, NFTA_TUNNEL_KEY_IP6_FLOWLABEL, info->key.label))
++			return -1;
++
++		nla_nest_end(skb, nest);
++	} else {
++		nest = nla_nest_start(skb, NFTA_TUNNEL_KEY_IP);
++		if (!nest)
++			return -1;
++
++		if (nla_put_in_addr(skb, NFTA_TUNNEL_KEY_IP_SRC, info->key.u.ipv4.src) < 0 ||
++		    nla_put_in_addr(skb, NFTA_TUNNEL_KEY_IP_DST, info->key.u.ipv4.dst) < 0)
++			return -1;
++
++		nla_nest_end(skb, nest);
++	}
++
++	return 0;
++}
++
++static int nft_tunnel_opts_dump(struct sk_buff *skb,
++				struct nft_tunnel_obj *priv)
++{
++	struct nft_tunnel_opts *opts = &priv->opts;
++	struct nlattr *nest;
++
++	nest = nla_nest_start(skb, NFTA_TUNNEL_KEY_OPTS);
++	if (!nest)
++		return -1;
++
++	if (opts->flags & TUNNEL_VXLAN_OPT) {
++		if (nla_put_be32(skb, NFTA_TUNNEL_KEY_VXLAN_GBP,
++				 htonl(opts->u.vxlan.gbp)))
++			return -1;
++	} else if (opts->flags & TUNNEL_ERSPAN_OPT) {
++		switch (opts->u.erspan.version) {
++		case ERSPAN_VERSION:
++			if (nla_put_be32(skb, NFTA_TUNNEL_KEY_ERSPAN_V1_INDEX,
++					 opts->u.erspan.u.index))
++				return -1;
++			break;
++		case ERSPAN_VERSION2:
++			if (nla_put_u8(skb, NFTA_TUNNEL_KEY_ERSPAN_V2_HWID,
++				       get_hwid(&opts->u.erspan.u.md2)) ||
++			    nla_put_u8(skb, NFTA_TUNNEL_KEY_ERSPAN_V2_DIR,
++				       opts->u.erspan.u.md2.dir))
++				return -1;
++			break;
++		}
++	}
++	nla_nest_end(skb, nest);
++
++	return 0;
++}
++
++static int nft_tunnel_ports_dump(struct sk_buff *skb,
++				 struct ip_tunnel_info *info)
++{
++	if (nla_put_be16(skb, NFTA_TUNNEL_KEY_SPORT, htons(info->key.tp_src)) < 0 ||
++	    nla_put_be16(skb, NFTA_TUNNEL_KEY_DPORT, htons(info->key.tp_dst)) < 0)
++		return -1;
++
++	return 0;
++}
++
++static int nft_tunnel_flags_dump(struct sk_buff *skb,
++				 struct ip_tunnel_info *info)
++{
++	u32 flags = 0;
++
++	if (info->key.tun_flags & TUNNEL_DONT_FRAGMENT)
++		flags |= NFT_TUNNEL_F_DONT_FRAGMENT;
++	if (!(info->key.tun_flags & TUNNEL_CSUM))
++		flags |= NFT_TUNNEL_F_ZERO_CSUM_TX;
++	if (info->key.tun_flags & TUNNEL_SEQ)
++		flags |= NFT_TUNNEL_F_SEQ_NUMBER;
++
++	if (nla_put_be32(skb, NFTA_TUNNEL_KEY_FLAGS, htonl(flags)) < 0)
++		return -1;
++
++	return 0;
++}
++
++static int nft_tunnel_obj_dump(struct sk_buff *skb,
++			       struct nft_object *obj, bool reset)
++{
++	struct nft_tunnel_obj *priv = nft_obj_data(obj);
++	struct ip_tunnel_info *info = &priv->md->u.tun_info;
++
++	if (nla_put_be32(skb, NFTA_TUNNEL_KEY_ID,
++			 tunnel_id_to_key32(info->key.tun_id)) ||
++	    nft_tunnel_ip_dump(skb, info) < 0 ||
++	    nft_tunnel_ports_dump(skb, info) < 0 ||
++	    nft_tunnel_flags_dump(skb, info) < 0 ||
++	    nla_put_u8(skb, NFTA_TUNNEL_KEY_TOS, info->key.tos) ||
++	    nla_put_u8(skb, NFTA_TUNNEL_KEY_TTL, info->key.ttl) ||
++	    nft_tunnel_opts_dump(skb, priv) < 0)
++		goto nla_put_failure;
++
++	return 0;
++
++nla_put_failure:
++	return -1;
++}
++
++static void nft_tunnel_obj_destroy(const struct nft_ctx *ctx,
++				   struct nft_object *obj)
++{
++	struct nft_tunnel_obj *priv = nft_obj_data(obj);
++
++	metadata_dst_free(priv->md);
++}
++
++static struct nft_object_type nft_tunnel_obj_type;
++static const struct nft_object_ops nft_tunnel_obj_ops = {
++	.type		= &nft_tunnel_obj_type,
++	.size		= sizeof(struct nft_tunnel_obj),
++	.eval		= nft_tunnel_obj_eval,
++	.init		= nft_tunnel_obj_init,
++	.destroy	= nft_tunnel_obj_destroy,
++	.dump		= nft_tunnel_obj_dump,
++};
++
++static struct nft_object_type nft_tunnel_obj_type __read_mostly = {
++	.type		= NFT_OBJECT_TUNNEL,
++	.ops		= &nft_tunnel_obj_ops,
++	.maxattr	= NFTA_TUNNEL_KEY_MAX,
++	.policy		= nft_tunnel_key_policy,
++	.owner		= THIS_MODULE,
++};
++
++static int __init nft_tunnel_module_init(void)
++{
++	return nft_register_obj(&nft_tunnel_obj_type);
++}
++
++static void __exit nft_tunnel_module_exit(void)
++{
++	nft_unregister_obj(&nft_tunnel_obj_type);
++}
++
++module_init(nft_tunnel_module_init);
++module_exit(nft_tunnel_module_exit);
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Pablo Neira Ayuso <pablo@netfilter.org>");
++MODULE_ALIAS_NFT_OBJ(NFT_OBJECT_TUNNEL);
 -- 
 2.11.0
