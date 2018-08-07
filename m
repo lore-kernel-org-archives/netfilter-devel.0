@@ -1,55 +1,65 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: Re: [BUG] 4.18-rcX iptables regression
-Date: Tue, 7 Aug 2018 13:42:30 +1000
-Message-ID: <20180807134230.2b20d73e@canb.auug.org.au>
-References: <20180807010049.GA1345@gherkin.frus.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- boundary="Sig_/hxcJu+bhGcmBQfjaNVpzgwo"; protocol="application/pgp-signature"
-Cc: linux-net@vger.kernel.org, linux-kernel@vger.kernel.org,
-        NetFilter <netfilter-devel@vger.kernel.org>,
-        Networking <netdev@vger.kernel.org>
-To: Bob Tracy <rct@gherkin.frus.com>
+From: Michal Hocko <mhocko@kernel.org>
+Subject: [PATCH] netfilter/x_tables: do not fail xt_alloc_table_info too easilly
+Date: Tue,  7 Aug 2018 21:54:00 +0200
+Message-ID: <20180807195400.23687-1-mhocko@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>,
+        Georgi Nikolov <gnikolov@icdsoft.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        <linux-mm@kvack.org>, Michal Hocko <mhocko@suse.com>
+To: Florian Westphal <fw@strlen.de>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180807010049.GA1345@gherkin.frus.com>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
---Sig_/hxcJu+bhGcmBQfjaNVpzgwo
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+From: Michal Hocko <mhocko@suse.com>
 
-Hi Bob,
+eacd86ca3b03 ("net/netfilter/x_tables.c: use kvmalloc()
+in xt_alloc_table_info()") has unintentionally fortified
+xt_alloc_table_info allocation when __GFP_RETRY has been dropped from
+the vmalloc fallback. Later on there was a syzbot report that this
+can lead to OOM killer invocations when tables are too large and
+0537250fdc6c ("netfilter: x_tables: make allocation less aggressive")
+has been merged to restore the original behavior. Georgi Nikolov however
+noticed that he is not able to install his iptables anymore so this can
+be seen as a regression.
 
-[Juts cc'ing the netfilter and netdev mailing lists]
+The primary argument for 0537250fdc6c was that this allocation path
+shouldn't really trigger the OOM killer and kill innocent tasks. On the
+other hand the interface requires root and as such should allow what the
+admin asks for. Root inside a namespaces makes this more complicated
+because those might be not trusted in general. If they are not then such
+namespaces should be restricted anyway. Therefore drop the __GFP_NORETRY
+and replace it by __GFP_ACCOUNT to enfore memcg constrains on it.
 
-On Mon, 6 Aug 2018 20:00:49 -0500 Bob Tracy <rct@gherkin.frus.com> wrote:
->
-> With iptables v1.6.0 and kernel version 4.18-rc7, "iptables [-t table] -L"
-> produces diagnostic output to the effect of not being able to find the ta=
-ble.
-> Kernel version 4.17.0 and earlier work fine.
->=20
-> --Bob
+Fixes: 0537250fdc6c ("netfilter: x_tables: make allocation less aggressive")
+Reported-by: Georgi Nikolov <gnikolov@icdsoft.com>
+Suggested-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+---
+ net/netfilter/x_tables.c | 7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
---=20
-Cheers,
-Stephen Rothwell
-
---Sig_/hxcJu+bhGcmBQfjaNVpzgwo
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAltpFSYACgkQAVBC80lX
-0GwRygf/b8r16ngF0z/iY6IABeqoqJXjN6AzRP5Cf+MsiCbm68mcXLVUJPnbsIql
-afjk+/PKccdMdl8/qH1CvszH9CQUo1PdzS03/Qr6HkaHBV1dJSkllR+oI0OZ8ZpR
-R00bbSiEVprTbcMjaNNhGGwLJZ9+ziSs42eqnBWilbzyISL+Q/Wm6Y4PUuNUAXZl
-F6Z8g7aCf5MTrGAV2dpRhLAghi2IyNLqCHR890a+Lh+vKRumF/ljt+JDchaQS5P0
-vIuMJlp8RBLK5xk29mcQvg4AiU6Hp+Jdvz29RUXTczO7mFpsG1tjiO26Hs/huRqo
-JdTVz/gTgb5S/dMmffeXRG7xzWOudw==
-=Iwza
------END PGP SIGNATURE-----
-
---Sig_/hxcJu+bhGcmBQfjaNVpzgwo--
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index d0d8397c9588..aecadd471e1d 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -1178,12 +1178,7 @@ struct xt_table_info *xt_alloc_table_info(unsigned int size)
+ 	if (sz < sizeof(*info) || sz >= XT_MAX_TABLE_SIZE)
+ 		return NULL;
+ 
+-	/* __GFP_NORETRY is not fully supported by kvmalloc but it should
+-	 * work reasonably well if sz is too large and bail out rather
+-	 * than shoot all processes down before realizing there is nothing
+-	 * more to reclaim.
+-	 */
+-	info = kvmalloc(sz, GFP_KERNEL | __GFP_NORETRY);
++	info = kvmalloc(sz, GFP_KERNEL_ACCOUNT);
+ 	if (!info)
+ 		return NULL;
+ 
+-- 
+2.18.0
