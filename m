@@ -1,65 +1,40 @@
-From: Michal Hocko <mhocko@kernel.org>
-Subject: [PATCH] netfilter/x_tables: do not fail xt_alloc_table_info too easilly
-Date: Tue,  7 Aug 2018 21:54:00 +0200
-Message-ID: <20180807195400.23687-1-mhocko@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>,
-        Georgi Nikolov <gnikolov@icdsoft.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        <linux-mm@kvack.org>, Michal Hocko <mhocko@suse.com>
-To: Florian Westphal <fw@strlen.de>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+From: Wei Yongjun <weiyongjun1@huawei.com>
+Subject: [PATCH net-next] netfilter: nfnetlink_osf: fix using plain integer as NULL warning
+Date: Wed, 8 Aug 2018 03:23:44 +0000
+Message-ID: <1533698624-107304-1-git-send-email-weiyongjun1@huawei.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Cc: Wei Yongjun <weiyongjun1@huawei.com>,
+        <netfilter-devel@vger.kernel.org>, <coreteam@netfilter.org>,
+        <netdev@vger.kernel.org>, <kernel-janitors@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Michal Hocko <mhocko@suse.com>
+Fixes the following sparse warning:
 
-eacd86ca3b03 ("net/netfilter/x_tables.c: use kvmalloc()
-in xt_alloc_table_info()") has unintentionally fortified
-xt_alloc_table_info allocation when __GFP_RETRY has been dropped from
-the vmalloc fallback. Later on there was a syzbot report that this
-can lead to OOM killer invocations when tables are too large and
-0537250fdc6c ("netfilter: x_tables: make allocation less aggressive")
-has been merged to restore the original behavior. Georgi Nikolov however
-noticed that he is not able to install his iptables anymore so this can
-be seen as a regression.
+net/netfilter/nfnetlink_osf.c:274:24: warning:
+ Using plain integer as NULL pointer
 
-The primary argument for 0537250fdc6c was that this allocation path
-shouldn't really trigger the OOM killer and kill innocent tasks. On the
-other hand the interface requires root and as such should allow what the
-admin asks for. Root inside a namespaces makes this more complicated
-because those might be not trusted in general. If they are not then such
-namespaces should be restricted anyway. Therefore drop the __GFP_NORETRY
-and replace it by __GFP_ACCOUNT to enfore memcg constrains on it.
-
-Fixes: 0537250fdc6c ("netfilter: x_tables: make allocation less aggressive")
-Reported-by: Georgi Nikolov <gnikolov@icdsoft.com>
-Suggested-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Michal Hocko <mhocko@suse.com>
+Signed-off-by: Wei Yongjun <weiyongjun1@huawei.com>
 ---
- net/netfilter/x_tables.c | 7 +------
- 1 file changed, 1 insertion(+), 6 deletions(-)
+ net/netfilter/nfnetlink_osf.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index d0d8397c9588..aecadd471e1d 100644
---- a/net/netfilter/x_tables.c
-+++ b/net/netfilter/x_tables.c
-@@ -1178,12 +1178,7 @@ struct xt_table_info *xt_alloc_table_info(unsigned int size)
- 	if (sz < sizeof(*info) || sz >= XT_MAX_TABLE_SIZE)
- 		return NULL;
+diff --git a/net/netfilter/nfnetlink_osf.c b/net/netfilter/nfnetlink_osf.c
+index f9dba62..00db27d 100644
+--- a/net/netfilter/nfnetlink_osf.c
++++ b/net/netfilter/nfnetlink_osf.c
+@@ -271,7 +271,7 @@ const char *nf_osf_find(const struct sk_buff *skb,
  
--	/* __GFP_NORETRY is not fully supported by kvmalloc but it should
--	 * work reasonably well if sz is too large and bail out rather
--	 * than shoot all processes down before realizing there is nothing
--	 * more to reclaim.
--	 */
--	info = kvmalloc(sz, GFP_KERNEL | __GFP_NORETRY);
-+	info = kvmalloc(sz, GFP_KERNEL_ACCOUNT);
- 	if (!info)
- 		return NULL;
+ 	tcp = nf_osf_hdr_ctx_init(&ctx, skb, ip, opts);
+ 	if (!tcp)
+-		return false;
++		return NULL;
  
--- 
-2.18.0
+ 	list_for_each_entry_rcu(kf, &nf_osf_fingers[ctx.df], finger_entry) {
+ 		f = &kf->finger;
