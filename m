@@ -1,47 +1,81 @@
-From: "Andrey Jr. Melnikov" <temnota.am@gmail.com>
-Subject: Re: [PATCH] netfilter: nf_queue: Replace conntrack entry
-Date: Thu, 9 Aug 2018 17:09:37 +0300
-Message-ID: <vhut3f-tel.ln1@banana.localnet>
-References: <20180503140745.26588-1-kristian.evensen@gmail.com>
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 0/8] Netfilter updates for net-next
+Date: Fri, 10 Aug 2018 13:16:14 +0200
+Message-ID: <20180810111622.3981-1-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-In gmane.comp.security.firewalls.netfilter.devel Kristian Evensen <kristian.evensen@gmail.com> wrote:
-> SKBs are assigned a conntrack entry before being passed to any NFQUEUEs,
-> and if no entry is found then a new one is created. This behavior causes
-> problems for some traffic patterns. For example, if two UDP packets
-> to/from the same host (using the same ports) arrive at the "same" time,
-> both are assigned a new conntrack entry. After the first packet have
-> traversed all chains, the conntrack entry will be inserted into the
-> global table. The second packet will then be dropped during the
-> insertion step, as an entry for the same flow already exists. One type
-> of application that frequently generates this traffic pattern, is DNS
-> resolvers.
+Hi David,
 
-> This commit introduces a new function that checks, and potentially
-> replaces, the conntrack entry for any additional "new" SKBs mapping to
-> an existing flow. While not a perfect solution, there are still
-> situations where to-be-dropped SKBs can slip through, the situations is
-> improved considerably. On the routers I have used for testing, packets
-> belonging to the same UDP flow are let through (when generating the
-> traffic pattern described above). Without the change in this commit, all
-> packets except the first one was dropped.
+The following batch contains netfilter updates for your net-next tree:
 
-> With the change in this commit, a user can implement "perfect" solutions
-> in user-space. An application can for example keep track of seen UDP
-> flows, and then only release packets belonging to one flow when the
-> entry has been created. Without the change, and SKB is stuck with the
-> original conntrack entry.
+1) Expose NFT_OSF_MAXGENRELEN maximum OS name length from the new OS
+   passive fingerprint matching extension, from Fernando Fernandez.
 
-PING
-Any progress on this patch?
+2) Add extension to support for fine grain conntrack timeout policies
+   from nf_tables. As preparation works, this patchset moves
+   nf_ct_untimeout() to nf_conntrack_timeout and it also decouples the
+   timeout policy from the ctnl_timeout object, most work done by
+   Harsha Sharma.
 
-> Signed-off-by: Kristian Evensen <kristian.evensen@gmail.com>
-> ---
->  net/netfilter/nfnetlink_queue.c | 68 +++++++++++++++++++++++++++++++++++++++++
->  1 file changed, 68 insertions(+)
+3) Enable connection tracking when conntrack helper is in place.
 
-[...]
+4) Missing enumeration in uapi header when splitting original xt_osf
+   to nfnetlink_osf, also from Fernando.
+
+5) Fix a sparse warning due to incorrect typing in the nf_osf_find(),
+   from Wei Yongjun.
+
+You can pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git
+
+Thanks.
+
+----------------------------------------------------------------
+
+The following changes since commit 981467033a37d916649647fa3afe1fe99bba1817:
+
+  tc-testing: remove duplicate spaces in skbedit match patterns (2018-08-05 17:39:24 -0700)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git HEAD
+
+for you to fetch changes up to e7ea2a52ffaf60a211edc0df97dcf194d1257714:
+
+  netfilter: nfnetlink_osf: fix using plain integer as NULL warning (2018-08-08 19:05:39 +0200)
+
+----------------------------------------------------------------
+Fernando Fernandez Mancera (2):
+      netfilter: nft_osf: use NFT_OSF_MAXGENRELEN instead of IFNAMSIZ
+      netfilter: nfnetlink_osf: add missing enum in nfnetlink_osf uapi header
+
+Harsha Sharma (2):
+      netfilter: cttimeout: move ctnl_untimeout to nf_conntrack
+      netfilter: nft_ct: add ct timeout support
+
+Pablo Neira Ayuso (3):
+      netfilter: cttimeout: decouple timeout policy from nfnetlink_cttimeout object
+      netfilter: remove ifdef around cttimeout in struct nf_conntrack_l4proto
+      netfilter: nft_ct: enable conntrack for helpers
+
+Wei Yongjun (1):
+      netfilter: nfnetlink_osf: fix using plain integer as NULL warning
+
+ include/linux/netfilter/nfnetlink_osf.h      |  12 --
+ include/net/netfilter/nf_conntrack_l4proto.h |   2 -
+ include/net/netfilter/nf_conntrack_timeout.h |  21 ++-
+ include/uapi/linux/netfilter/nf_tables.h     |  15 +-
+ include/uapi/linux/netfilter/nfnetlink_osf.h |  12 ++
+ include/uapi/linux/netfilter/xt_osf.h        |   1 +
+ net/netfilter/nf_conntrack_timeout.c         |  21 ++-
+ net/netfilter/nfnetlink_cttimeout.c          |  55 +++----
+ net/netfilter/nfnetlink_osf.c                |   2 +-
+ net/netfilter/nft_ct.c                       | 218 ++++++++++++++++++++++++++-
+ net/netfilter/nft_osf.c                      |   8 +-
+ net/netfilter/xt_CT.c                        |   4 +-
+ 12 files changed, 304 insertions(+), 67 deletions(-)
