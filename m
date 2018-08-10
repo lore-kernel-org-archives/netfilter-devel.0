@@ -1,81 +1,72 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 0/8] Netfilter updates for net-next
-Date: Fri, 10 Aug 2018 13:16:14 +0200
-Message-ID: <20180810111622.3981-1-pablo@netfilter.org>
+Subject: [PATCH 1/8] netfilter: nft_osf: use NFT_OSF_MAXGENRELEN instead of IFNAMSIZ
+Date: Fri, 10 Aug 2018 13:16:15 +0200
+Message-ID: <20180810111622.3981-2-pablo@netfilter.org>
+References: <20180810111622.3981-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20180810111622.3981-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi David,
+From: Fernando Fernandez Mancera <ffmancera@riseup.net>
 
-The following batch contains netfilter updates for your net-next tree:
+As no "genre" on pf.os exceed 16 bytes of length, we reduce
+NFT_OSF_MAXGENRELEN parameter to 16 bytes and use it instead of IFNAMSIZ.
 
-1) Expose NFT_OSF_MAXGENRELEN maximum OS name length from the new OS
-   passive fingerprint matching extension, from Fernando Fernandez.
+Signed-off-by: Fernando Fernandez Mancera <ffmancera@riseup.net>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/uapi/linux/netfilter/nf_tables.h | 1 +
+ net/netfilter/nft_osf.c                  | 8 +++-----
+ 2 files changed, 4 insertions(+), 5 deletions(-)
 
-2) Add extension to support for fine grain conntrack timeout policies
-   from nf_tables. As preparation works, this patchset moves
-   nf_ct_untimeout() to nf_conntrack_timeout and it also decouples the
-   timeout policy from the ctnl_timeout object, most work done by
-   Harsha Sharma.
-
-3) Enable connection tracking when conntrack helper is in place.
-
-4) Missing enumeration in uapi header when splitting original xt_osf
-   to nfnetlink_osf, also from Fernando.
-
-5) Fix a sparse warning due to incorrect typing in the nf_osf_find(),
-   from Wei Yongjun.
-
-You can pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git
-
-Thanks.
-
-----------------------------------------------------------------
-
-The following changes since commit 981467033a37d916649647fa3afe1fe99bba1817:
-
-  tc-testing: remove duplicate spaces in skbedit match patterns (2018-08-05 17:39:24 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git HEAD
-
-for you to fetch changes up to e7ea2a52ffaf60a211edc0df97dcf194d1257714:
-
-  netfilter: nfnetlink_osf: fix using plain integer as NULL warning (2018-08-08 19:05:39 +0200)
-
-----------------------------------------------------------------
-Fernando Fernandez Mancera (2):
-      netfilter: nft_osf: use NFT_OSF_MAXGENRELEN instead of IFNAMSIZ
-      netfilter: nfnetlink_osf: add missing enum in nfnetlink_osf uapi header
-
-Harsha Sharma (2):
-      netfilter: cttimeout: move ctnl_untimeout to nf_conntrack
-      netfilter: nft_ct: add ct timeout support
-
-Pablo Neira Ayuso (3):
-      netfilter: cttimeout: decouple timeout policy from nfnetlink_cttimeout object
-      netfilter: remove ifdef around cttimeout in struct nf_conntrack_l4proto
-      netfilter: nft_ct: enable conntrack for helpers
-
-Wei Yongjun (1):
-      netfilter: nfnetlink_osf: fix using plain integer as NULL warning
-
- include/linux/netfilter/nfnetlink_osf.h      |  12 --
- include/net/netfilter/nf_conntrack_l4proto.h |   2 -
- include/net/netfilter/nf_conntrack_timeout.h |  21 ++-
- include/uapi/linux/netfilter/nf_tables.h     |  15 +-
- include/uapi/linux/netfilter/nfnetlink_osf.h |  12 ++
- include/uapi/linux/netfilter/xt_osf.h        |   1 +
- net/netfilter/nf_conntrack_timeout.c         |  21 ++-
- net/netfilter/nfnetlink_cttimeout.c          |  55 +++----
- net/netfilter/nfnetlink_osf.c                |   2 +-
- net/netfilter/nft_ct.c                       | 218 ++++++++++++++++++++++++++-
- net/netfilter/nft_osf.c                      |   8 +-
- net/netfilter/xt_CT.c                        |   4 +-
- 12 files changed, 304 insertions(+), 67 deletions(-)
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index 357862d948de..94657c701f22 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -8,6 +8,7 @@
+ #define NFT_SET_MAXNAMELEN	NFT_NAME_MAXLEN
+ #define NFT_OBJ_MAXNAMELEN	NFT_NAME_MAXLEN
+ #define NFT_USERDATA_MAXLEN	256
++#define NFT_OSF_MAXGENRELEN	16
+ 
+ /**
+  * enum nft_registers - nf_tables registers
+diff --git a/net/netfilter/nft_osf.c b/net/netfilter/nft_osf.c
+index 9b2f3de7be4f..5af74b37f423 100644
+--- a/net/netfilter/nft_osf.c
++++ b/net/netfilter/nft_osf.c
+@@ -4,8 +4,6 @@
+ #include <net/netfilter/nf_tables.h>
+ #include <linux/netfilter/nfnetlink_osf.h>
+ 
+-#define OSF_GENRE_SIZE		32
+-
+ struct nft_osf {
+ 	enum nft_registers	dreg:8;
+ };
+@@ -37,9 +35,9 @@ static void nft_osf_eval(const struct nft_expr *expr, struct nft_regs *regs,
+ 
+ 	os_name = nf_osf_find(skb, nf_osf_fingers);
+ 	if (!os_name)
+-		strncpy((char *)dest, "unknown", IFNAMSIZ);
++		strncpy((char *)dest, "unknown", NFT_OSF_MAXGENRELEN);
+ 	else
+-		strncpy((char *)dest, os_name, IFNAMSIZ);
++		strncpy((char *)dest, os_name, NFT_OSF_MAXGENRELEN);
+ }
+ 
+ static int nft_osf_init(const struct nft_ctx *ctx,
+@@ -51,7 +49,7 @@ static int nft_osf_init(const struct nft_ctx *ctx,
+ 
+ 	priv->dreg = nft_parse_register(tb[NFTA_OSF_DREG]);
+ 	err = nft_validate_register_store(ctx, priv->dreg, NULL,
+-					  NFTA_DATA_VALUE, OSF_GENRE_SIZE);
++					  NFTA_DATA_VALUE, NFT_OSF_MAXGENRELEN);
+ 	if (err < 0)
+ 		return err;
+ 
+-- 
+2.11.0
