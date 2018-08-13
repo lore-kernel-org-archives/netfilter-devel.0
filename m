@@ -1,47 +1,62 @@
-From: David Ahern <dsahern@gmail.com>
-Subject: Re: [RFC/RFT, net-next, 00/17] net: Convert neighbor tables to
- per-namespace
-Date: Sun, 12 Aug 2018 11:37:06 -0600
-Message-ID: <988a697a-984c-8ca8-7846-e62feb4a4aec@gmail.com>
-References: <20180717120651.15748-1-dsahern@kernel.org>
- <dc9cd93c-61d4-dc8c-9ba1-cd8584908ba2@virtuozzo.com>
+From: "Dmitry V. Levin" <ldv@altlinux.org>
+Subject: [PATCH] uapi: fix linux/netfilter/nf_osf.h userspace compilation
+ errors
+Date: Mon, 13 Aug 2018 18:43:36 +0300
+Message-ID: <20180813154335.GA22820@altlinux.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Cc: nikita.leshchenko@oracle.com, roopa@cumulusnetworks.com,
-        stephen@networkplumber.org, idosch@mellanox.com, jiri@mellanox.com,
-        saeedm@mellanox.com, alex.aring@gmail.com,
-        linux-wpan@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-To: Vasily Averin <vvs@virtuozzo.com>, dsahern@kernel.org,
-        netdev@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>,
+        Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <dc9cd93c-61d4-dc8c-9ba1-cd8584908ba2@virtuozzo.com>
-Content-Language: en-US
+Content-Disposition: inline
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On 8/12/18 12:46 AM, Vasily Averin wrote:
-> On 07/17/2018 03:06 PM, dsahern@kernel.org wrote:
->> From: David Ahern <dsahern@gmail.com>
->>
->> Nikita Leshenko reported that neighbor entries in one namespace can
->> evict neighbor entries in another. The problem is that the neighbor
->> tables have entries across all namespaces without separate accounting
->> and with global limits on when to scan for entries to evict.
->>
->> Resolve by making the neighbor tables for ipv4, ipv6 and decnet per
->> namespace and making the accounting and threshold limits per namespace.
-> 
-> Dear David,
-> I prepared own patch set to fix this problem and found your one.
-> It looks perfect for me, and I hope David Miller will merge it soon,
-> however I have found a few drawbacks:
-> 
+Move inclusion of <linux/ip.h> and <linux/tcp.h> from
+linux/netfilter/xt_osf.h to linux/netfilter/nf_osf.h to fix
+the following linux/netfilter/nf_osf.h userspace compilation errors:
 
-Hi:
+/usr/include/linux/netfilter/nf_osf.h:59:24: error: 'MAX_IPOPTLEN' undeclared here (not in a function)
+  struct nf_osf_opt opt[MAX_IPOPTLEN];
+/usr/include/linux/netfilter/nf_osf.h:64:17: error: field 'ip' has incomplete type
+  struct iphdr   ip;
+/usr/include/linux/netfilter/nf_osf.h:65:18: error: field 'tcp' has incomplete type
+  struct tcphdr   tcp;
 
-I just returned from an extended vacation. I will revive this topic in
-the next few days.
+Fixes: bfb15f2a95cb ("netfilter: extract Passive OS fingerprint infrastructure from xt_osf")
+Cc: <stable@vger.kernel.org> # v4.18
+Signed-off-by: Dmitry V. Levin <ldv@altlinux.org>
+---
+ include/uapi/linux/netfilter/nf_osf.h | 2 ++
+ include/uapi/linux/netfilter/xt_osf.h | 2 --
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-Thanks for the comments. I will address in the next version.
+diff --git a/include/uapi/linux/netfilter/nf_osf.h b/include/uapi/linux/netfilter/nf_osf.h
+index 8f2f2f403183..eb5c4e20bec0 100644
+--- a/include/uapi/linux/netfilter/nf_osf.h
++++ b/include/uapi/linux/netfilter/nf_osf.h
+@@ -2,6 +2,8 @@
+ #define _NF_OSF_H
+ 
+ #include <linux/types.h>
++#include <linux/ip.h>
++#include <linux/tcp.h>
+ 
+ #define MAXGENRELEN	32
+ 
+diff --git a/include/uapi/linux/netfilter/xt_osf.h b/include/uapi/linux/netfilter/xt_osf.h
+index 72956eceeb09..f1abe4c6f59d 100644
+--- a/include/uapi/linux/netfilter/xt_osf.h
++++ b/include/uapi/linux/netfilter/xt_osf.h
+@@ -21,8 +21,6 @@
+ #define _XT_OSF_H
+ 
+ #include <linux/types.h>
+-#include <linux/ip.h>
+-#include <linux/tcp.h>
+ #include <linux/netfilter/nf_osf.h>
+ 
+ #define XT_OSF_GENRE		NF_OSF_GENRE
+-- 
+ldv
