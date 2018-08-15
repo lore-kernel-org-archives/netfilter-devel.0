@@ -1,139 +1,135 @@
-From: ebiederm@xmission.com (Eric W. Biederman)
-Subject: Re: [PATCH RFC/RFT net-next 00/17] net: Convert neighbor tables to per-namespace
-Date: Tue, 14 Aug 2018 23:36:10 -0500
-Message-ID: <877eksi6v9.fsf@xmission.com>
-References: <1a3f59a9-0ba5-c83f-16a6-f9550a84f693@gmail.com>
-        <CAM_iQpWabZorkMNswyfHyS4KT=f_bgMtK8K35=84uah6Kfqxew@mail.gmail.com>
-        <1a27e301-3275-b349-a2f8-afdfdc02f04f@gmail.com>
-        <20180718.125938.2271502580775162784.davem@davemloft.net>
-        <28c30574-391c-b4bd-c337-51d3040d901a@gmail.com>
-        <CAM_iQpW4-JkZY7jXx0Q1b907hQ85UOL1eXv2YHwSukb5L=apUg@mail.gmail.com>
-        <5021d874-8e99-6eba-f24b-4257c62d4457@gmail.com>
-        <CAM_iQpUc-H2kZCBevePs6g-8qKyJkUhdd1ZDSQgYsCG0ChfC2w@mail.gmail.com>
-        <87muufze8w.fsf@xmission.com>
-        <4b03b5f6-87ce-9ff2-7c14-598beebd8fb8@gmail.com>
-        <87zhyfw70m.fsf@xmission.com>
-        <dacc9322-fd5a-dfeb-e4f1-7a288fb79886@gmail.com>
-        <87o9evt9a6.fsf@xmission.com>
-        <a227d23c-40a1-97a9-d39c-70d16cd470b4@gmail.com>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: Re: linux-next: manual merge of the net-next tree with the
+ netfilter tree
+Date: Thu, 16 Aug 2018 09:47:23 +1000
+Message-ID: <20180816094723.07452406@canb.auug.org.au>
+References: <20180807124932.73422224@canb.auug.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain
-Cc: Cong Wang <xiyou.wangcong@gmail.com>,
-        David Miller <davem@davemloft.net>,
-        Linux Kernel Network Developers <netdev@vger.kernel.org>,
-        nikita.leshchenko@oracle.com,
-        Roopa Prabhu <roopa@cumulusnetworks.com>,
-        Stephen Hemminger <stephen@networkplumber.org>,
-        Ido Schimmel <idosch@mellanox.com>,
-        Jiri Pirko <jiri@mellanox.com>,
-        Saeed Mahameed <saeedm@mellanox.com>,
-        Alexander Aring <alex.aring@gmail.com>,
-        linux-wpan@vger.kernel.org,
-        NetFilter <netfilter-devel@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>
-To: David Ahern <dsahern@gmail.com>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ boundary="Sig_/g0YZMO5jvaCY_ec_kDH7s38"; protocol="application/pgp-signature"
+Cc: David Miller <davem@davemloft.net>,
+        Networking <netdev@vger.kernel.org>,
+        Linux-Next Mailing List <linux-next@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Matteo Croce <mcroce@redhat.com>, Julian Anastasov <ja@ssi.bg>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+        NetFilter <netfilter-devel@vger.kernel.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <a227d23c-40a1-97a9-d39c-70d16cd470b4@gmail.com> (David Ahern's
-        message of "Mon, 13 Aug 2018 15:48:17 -0600")
+In-Reply-To: <20180807124932.73422224@canb.auug.org.au>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-David Ahern <dsahern@gmail.com> writes:
+--Sig_/g0YZMO5jvaCY_ec_kDH7s38
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-> On 7/25/18 1:17 PM, Eric W. Biederman wrote:
->> David Ahern <dsahern@gmail.com> writes:
->> 
->>> On 7/25/18 11:38 AM, Eric W. Biederman wrote:
->>>>
->>>> Absolutely NOT.  Global thresholds are exactly correct given the fact
->>>> you are running on a single kernel.
->>>>
->>>> Memory is not free (Even though we are swimming in enough of it memory
->>>> rarely matters).  One of the few remaining challenges is for containers
->>>> is finding was to limit resources in such a way that one application
->>>> does not mess things up for another container during ordinary usage.
->>>>
->>>> It looks like the neighbour tables absolutely are that kind of problem,
->>>> because the artificial limits are too strict.   Completely giving up on
->>>> limits does not seem right approach either.  We need to fix the limits
->>>> we have (perhaps making them go away entirely), not just apply a
->>>> band-aid.  Let's get to the bottom of this and make the system better.
->>>
->>> Eric: yes, they all share the global resource of memory and there should
->>> be limits on how many entries a remote entity can create.
->>>
->>> Network namespaces can provide a separation such that one namespace does
->>> not disrupt networking in another. It is absolutely appropriate to do
->>> so. Your rigid stance is inconsistent given the basic meaning of a
->>> network namespace and the parallels to this same problem -- bridges,
->>> vxlans, and ip fragments. Only neighbor tables are not per-device or per
->>> namespace; your insistence on global limits is missing the mark and wrong.
->> 
->> That is not what I said.  Let me rephrase and see if you understand.
->> 
->> The problem appears to be of lots of devices.  Fundamentally if you use
->> lots of network devices today unless you adjust gc_thresh3 you will run
->> out of neighbour table entries.
->> 
->> The problem has a bigger scope than what you are looking at.
->> 
->> If you fix the core problem you won't see the problem in the context
->> of network namespaces either.
->> 
->> Default limits should be something that will never be hit unless
->> something goes crazy.  We are hitting them.  Therefore by definition
->> there is a bug in these limits.
+Hi all,
+
+On Tue, 7 Aug 2018 12:49:32 +1000 Stephen Rothwell <sfr@canb.auug.org.au> w=
+rote:
 >
-> I disagree that the problem is a global limit. It is trivial for users
-> to increase gc_thresh3. That does not solve the fundamental problem.
->
->> 
->> 
->> And yes there is absolutely a place for global limits on things like
->> inodes, file descriptors etc, that does not care about which part of the
->> kernel you are in.  However hitting those limits in normal operation is
->> a bug.
->> 
->> We have ourselves a bug.
->
-> I agree we have a bug; we disagree on what that bug is.
->
-> I am just back from vacation and re-read your responses. No where do you
-> acknowledge the fundamental point of this patch set - that adding a new
-> neighbor entry in one namespace can evict an entry in another namespace
-> or worse networking in one namespace can fail due to table overflow
-> because of entries from another. That is a real problem.
->
-> It is not a matter of increasing the default gc_thresh3 to some number
-> N; it is ensuring that regardless of the value of gc_thresh3 one
-> namespace is not affected by another.
+> Today's linux-next merge of the net-next tree got a conflict in:
+>=20
+>   net/netfilter/ipvs/ip_vs_conn.c
+>=20
+> between commit:
+>=20
+>   16e98cec49a4 ("ipvs: don't show negative times in ip_vs_conn")
+>=20
+> from the netfilter tree and commit:
+>=20
+>   ec1b28ca9674 ("ipvs: provide just conn to ip_vs_state_name")
+>=20
+> from the net-next tree.
+>=20
+> I fixed it up (see below) and can carry the fix as necessary. This
+> is now fixed as far as linux-next is concerned, but any non trivial
+> conflicts should be mentioned to your upstream maintainer when your tree
+> is submitted for merging.  You may also want to consider cooperating
+> with the maintainer of the conflicting tree to minimise any particularly
+> complex conflicts.
+>=20
+> --=20
+> Cheers,
+> Stephen Rothwell
+>=20
+> diff --cc net/netfilter/ipvs/ip_vs_conn.c
+> index 615286dcf4c0,0edc62910ebf..000000000000
+> --- a/net/netfilter/ipvs/ip_vs_conn.c
+> +++ b/net/netfilter/ipvs/ip_vs_conn.c
+> @@@ -1107,10 -1122,8 +1122,10 @@@ static int ip_vs_conn_seq_show(struct s
+>   				&cp->caddr.in6, ntohs(cp->cport),
+>   				&cp->vaddr.in6, ntohs(cp->vport),
+>   				dbuf, ntohs(cp->dport),
+> - 				ip_vs_state_name(cp->protocol, cp->state),
+> + 				ip_vs_state_name(cp),
+>  -				(cp->timer.expires-jiffies)/HZ, pe_data);
+>  +				jiffies_delta_to_msecs(cp->timer.expires -
+>  +						       jiffies) / 1000,
+>  +				pe_data);
+>   		else
+>   #endif
+>   			seq_printf(seq,
+> @@@ -1120,10 -1133,8 +1135,10 @@@
+>   				ntohl(cp->caddr.ip), ntohs(cp->cport),
+>   				ntohl(cp->vaddr.ip), ntohs(cp->vport),
+>   				dbuf, ntohs(cp->dport),
+> - 				ip_vs_state_name(cp->protocol, cp->state),
+> + 				ip_vs_state_name(cp),
+>  -				(cp->timer.expires-jiffies)/HZ, pe_data);
+>  +				jiffies_delta_to_msecs(cp->timer.expires -
+>  +						       jiffies) / 1000,
+>  +				pe_data);
+>   	}
+>   	return 0;
+>   }
+> @@@ -1173,10 -1184,9 +1188,10 @@@ static int ip_vs_conn_sync_seq_show(str
+>   				&cp->caddr.in6, ntohs(cp->cport),
+>   				&cp->vaddr.in6, ntohs(cp->vport),
+>   				dbuf, ntohs(cp->dport),
+> - 				ip_vs_state_name(cp->protocol, cp->state),
+> + 				ip_vs_state_name(cp),
+>   				ip_vs_origin_name(cp->flags),
+>  -				(cp->timer.expires-jiffies)/HZ);
+>  +				jiffies_delta_to_msecs(cp->timer.expires -
+>  +						       jiffies) / 1000);
+>   		else
+>   #endif
+>   			seq_printf(seq,
+> @@@ -1186,10 -1196,9 +1201,10 @@@
+>   				ntohl(cp->caddr.ip), ntohs(cp->cport),
+>   				ntohl(cp->vaddr.ip), ntohs(cp->vport),
+>   				dbuf, ntohs(cp->dport),
+> - 				ip_vs_state_name(cp->protocol, cp->state),
+> + 				ip_vs_state_name(cp),
+>   				ip_vs_origin_name(cp->flags),
+>  -				(cp->timer.expires-jiffies)/HZ);
+>  +				jiffies_delta_to_msecs(cp->timer.expires -
+>  +						       jiffies) / 1000);
+>   	}
+>   	return 0;
+>   }
 
-My suggestion is to look at the problem and it's requirements and figure
-out how to safely remove gc_thresh3 entirely.  We do have to ensure
-neighbour tables don't grow too large, I expect we can do it in a way
-that can scale from a small machine with few neighbours to a large
-machine with many neighbours.
+This is now a conflict between Linus' tree and the netfilter tree.
 
-Perhaps the code just needs to limit the number of neighbours who have
-never replied and the code is probing for an a per interface basis.
+--=20
+Cheers,
+Stephen Rothwell
 
-It still may make sense to have a global limit of perhaps a million
-entries just because that would be an indicator that something has truly
-gone weird.
+--Sig_/g0YZMO5jvaCY_ec_kDH7s38
+Content-Type: application/pgp-signature
+Content-Description: OpenPGP digital signature
 
-> You created network namespaces and it provides isolation -- separate
-> tables essentially -- for devices, FIB entries, sockets, etc, but you
-> argue against completing the task with separate neighbor tables which is
-> very strange given the impact (completely broken networking).
+-----BEGIN PGP SIGNATURE-----
 
-Namespaces provide isolation at the level of names.  The objects still
-share a kernel and compete for resources.  Not competing for resources
-would require each namespace have it's own dedicated pool of resources
-which over the whole machine would be much less efficient.
+iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAlt0u4sACgkQAVBC80lX
+0Gxa/ggAiYjYiiKScMfhGCtvWCIDZ/4e9xlpIa0XAxGvaGRtuc/WXC0D/+bFXFkf
+ArQqXC/cni5NLfPckJBSy0QqP0D9m+74bVFf6tB7rq4XV/PVvj1UlotTl6PIfQXo
+prnqqA7hqDSN8QignxF+n8D8SuRSr7kwavBl/RdlcCrLFzkVJWRp/yO/YdpWxhgG
+fYg9O1XtCr3kagGquSZl8sn/wmsTHIfnuAeXMQCuBflQTByicsbBuSOrkupDnHCr
+76ePXH5FUDQeJNPFROjbFrMyoFoUqCoqJ0lkK6duEcmql7V2QkyA2sUkyfE7nJFr
+QIjjkFTjS45uJ9a3xC66FMcOZy+q9w==
+=VZut
+-----END PGP SIGNATURE-----
 
-That is the fundamental design difference between namespaces and VM's
-and it is why namespaces can be much cheaper and much more resource
-efficient.  Reserving your worst case resource usage ahead of time tends
-to result in a lot of inefficiencies.
-
-Eric
+--Sig_/g0YZMO5jvaCY_ec_kDH7s38--
