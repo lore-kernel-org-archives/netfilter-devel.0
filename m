@@ -1,44 +1,65 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter/x_tables: do not fail xt_alloc_table_info too
- easilly
-Date: Thu, 16 Aug 2018 18:41:10 +0200
-Message-ID: <20180816164110.g2dedcm7nh75zjms@salvia>
-References: <20180807195400.23687-1-mhocko@kernel.org>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: linux-next: manual merge of the ipvs tree with the netfilter tree
+Date: Fri, 17 Aug 2018 07:57:17 +1000
+Message-ID: <20180817075717.0bc15438@canb.auug.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, Vlastimil Babka <vbabka@suse.cz>,
-        Georgi Nikolov <gnikolov@icdsoft.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-mm@kvack.org, Michal Hocko <mhocko@suse.com>
-To: Michal Hocko <mhocko@kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ boundary="Sig_/5TmRJ.KLaABcun.uJPlj6uX"; protocol="application/pgp-signature"
+Cc: Linux-Next Mailing List <linux-next@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Matteo Croce <mcroce@redhat.com>
+To: Simon Horman <horms@verge.net.au>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        NetFilter <netfilter-devel@vger.kernel.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180807195400.23687-1-mhocko@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Aug 07, 2018 at 09:54:00PM +0200, Michal Hocko wrote:
-> From: Michal Hocko <mhocko@suse.com>
-> 
-> eacd86ca3b03 ("net/netfilter/x_tables.c: use kvmalloc()
-> in xt_alloc_table_info()") has unintentionally fortified
-> xt_alloc_table_info allocation when __GFP_RETRY has been dropped from
-> the vmalloc fallback. Later on there was a syzbot report that this
-> can lead to OOM killer invocations when tables are too large and
-> 0537250fdc6c ("netfilter: x_tables: make allocation less aggressive")
-> has been merged to restore the original behavior. Georgi Nikolov however
-> noticed that he is not able to install his iptables anymore so this can
-> be seen as a regression.
-> 
-> The primary argument for 0537250fdc6c was that this allocation path
-> shouldn't really trigger the OOM killer and kill innocent tasks. On the
-> other hand the interface requires root and as such should allow what the
-> admin asks for. Root inside a namespaces makes this more complicated
-> because those might be not trusted in general. If they are not then such
-> namespaces should be restricted anyway. Therefore drop the __GFP_NORETRY
-> and replace it by __GFP_ACCOUNT to enfore memcg constrains on it.
+--Sig_/5TmRJ.KLaABcun.uJPlj6uX
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-Applied, thanks.
+Hi all,
+
+Today's linux-next merge of the ipvs tree got a conflict in:
+
+  net/netfilter/ipvs/ip_vs_conn.c
+
+between commit:
+
+  b71ed54dc2a1 ("ipvs: don't show negative times in ip_vs_conn")
+
+from the netfilter tree and commit:
+
+  16e98cec49a4 ("ipvs: don't show negative times in ip_vs_conn")
+
+from the ipvs tree.
+
+I fixed it up (I just used the (updated) version from the netfilter tree)
+and can carry the fix as necessary. This is now fixed as far as linux-next
+is concerned, but any non trivial conflicts should be mentioned to your
+upstream maintainer when your tree is submitted for merging.  You may
+also want to consider cooperating with the maintainer of the conflicting
+tree to minimise any particularly complex conflicts.
+
+--=20
+Cheers,
+Stephen Rothwell
+
+--Sig_/5TmRJ.KLaABcun.uJPlj6uX
+Content-Type: application/pgp-signature
+Content-Description: OpenPGP digital signature
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAlt18z0ACgkQAVBC80lX
+0Gz1Pwf/QCcKsgUXw0F6JPwSF3FkvnAHm925RuiF93sCAePZBfZKy4WkEyfr9KBm
+HJOGgeZUnFeH0M9IUPpcYMtQyRaeDErtj7v97zNLSqraYiVPhhzTmIVRIt0dSXvy
+l5wkTNv9cnbs6mj1CRBn0gq07lLkEg5mz82k84OAay8gL9NtJZLeX/w2Nh5cwBwa
+UfimYk9v3xxqCiLmBvCpZTE6JeeS+7bdFhL+7R2qEc/dORAUb3KrU6LOK7ZR4I3r
+FKIKlt5Zrj9zE2ehxmeO5pt2h515AoVrjxso35+FJFMz9KUcgkzvBkTwAHYhAN6x
+EhR0zRi+EN8tSiZn0P9uIo4pH76Z6g==
+=cijq
+-----END PGP SIGNATURE-----
+
+--Sig_/5TmRJ.KLaABcun.uJPlj6uX--
