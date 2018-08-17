@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 02/15] jiffies: add utility function to calculate delta in ms
-Date: Fri, 17 Aug 2018 21:38:37 +0200
-Message-ID: <20180817193850.2796-3-pablo@netfilter.org>
+Subject: [PATCH 01/15] ipvs: fix race between ip_vs_conn_new() and ip_vs_del_dest()
+Date: Fri, 17 Aug 2018 21:38:36 +0200
+Message-ID: <20180817193850.2796-2-pablo@netfilter.org>
 References: <20180817193850.2796-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,35 +10,81 @@ In-Reply-To: <20180817193850.2796-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Matteo Croce <mcroce@redhat.com>
+From: Tan Hu <tan.hu@zte.com.cn>
 
-add jiffies_delta_to_msecs() helper func to calculate the delta between
-two times and eventually 0 if negative.
+We came across infinite loop in ipvs when using ipvs in docker
+env.
 
-Suggested-by: Eric Dumazet <eric.dumazet@gmail.com>
-Signed-off-by: Matteo Croce <mcroce@redhat.com>
-Reviewed-by: Eric Dumazet <edumazet@google.com>
+When ipvs receives new packets and cannot find an ipvs connection,
+it will create a new connection, then if the dest is unavailable
+(i.e. IP_VS_DEST_F_AVAILABLE), the packet will be dropped sliently.
+
+But if the dropped packet is the first packet of this connection,
+the connection control timer never has a chance to start and the
+ipvs connection cannot be released. This will lead to memory leak, or
+infinite loop in cleanup_net() when net namespace is released like
+this:
+
+    ip_vs_conn_net_cleanup at ffffffffa0a9f31a [ip_vs]
+    __ip_vs_cleanup at ffffffffa0a9f60a [ip_vs]
+    ops_exit_list at ffffffff81567a49
+    cleanup_net at ffffffff81568b40
+    process_one_work at ffffffff810a851b
+    worker_thread at ffffffff810a9356
+    kthread at ffffffff810b0b6f
+    ret_from_fork at ffffffff81697a18
+
+race condition:
+    CPU1                           CPU2
+    ip_vs_in()
+      ip_vs_conn_new()
+                                   ip_vs_del_dest()
+                                     __ip_vs_unlink_dest()
+                                       ~IP_VS_DEST_F_AVAILABLE
+      cp->dest && !IP_VS_DEST_F_AVAILABLE
+      __ip_vs_conn_put
+    ...
+    cleanup_net  ---> infinite looping
+
+Fix this by checking whether the timer already started.
+
+Signed-off-by: Tan Hu <tan.hu@zte.com.cn>
+Reviewed-by: Jiang Biao <jiang.biao2@zte.com.cn>
+Acked-by: Julian Anastasov <ja@ssi.bg>
 Acked-by: Simon Horman <horms@verge.net.au>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/linux/jiffies.h | 5 +++++
- 1 file changed, 5 insertions(+)
+ net/netfilter/ipvs/ip_vs_core.c | 15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
 
-diff --git a/include/linux/jiffies.h b/include/linux/jiffies.h
-index a27cf6652327..fa928242567d 100644
---- a/include/linux/jiffies.h
-+++ b/include/linux/jiffies.h
-@@ -447,6 +447,11 @@ static inline clock_t jiffies_delta_to_clock_t(long delta)
- 	return jiffies_to_clock_t(max(0L, delta));
- }
+diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+index 0679dd101e72..7ca926a03b81 100644
+--- a/net/netfilter/ipvs/ip_vs_core.c
++++ b/net/netfilter/ipvs/ip_vs_core.c
+@@ -1972,13 +1972,20 @@ ip_vs_in(struct netns_ipvs *ipvs, unsigned int hooknum, struct sk_buff *skb, int
+ 	if (cp->dest && !(cp->dest->flags & IP_VS_DEST_F_AVAILABLE)) {
+ 		/* the destination server is not available */
  
-+static inline unsigned int jiffies_delta_to_msecs(long delta)
-+{
-+	return jiffies_to_msecs(max(0L, delta));
-+}
+-		if (sysctl_expire_nodest_conn(ipvs)) {
++		__u32 flags = cp->flags;
 +
- extern unsigned long clock_t_to_jiffies(unsigned long x);
- extern u64 jiffies_64_to_clock_t(u64 x);
- extern u64 nsec_to_clock_t(u64 x);
++		/* when timer already started, silently drop the packet.*/
++		if (timer_pending(&cp->timer))
++			__ip_vs_conn_put(cp);
++		else
++			ip_vs_conn_put(cp);
++
++		if (sysctl_expire_nodest_conn(ipvs) &&
++		    !(flags & IP_VS_CONN_F_ONE_PACKET)) {
+ 			/* try to expire the connection immediately */
+ 			ip_vs_conn_expire_now(cp);
+ 		}
+-		/* don't restart its timer, and silently
+-		   drop the packet. */
+-		__ip_vs_conn_put(cp);
++
+ 		return NF_DROP;
+ 	}
+ 
 -- 
 2.11.0
