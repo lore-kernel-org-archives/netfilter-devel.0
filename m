@@ -1,132 +1,120 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 00/15] Netfilter/IPVS fixes for net
-Date: Fri, 17 Aug 2018 21:38:35 +0200
-Message-ID: <20180817193850.2796-1-pablo@netfilter.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Subject: [PATCH 03/15] ipvs: don't show negative times in ip_vs_conn
+Date: Fri, 17 Aug 2018 21:38:38 +0200
+Message-ID: <20180817193850.2796-4-pablo@netfilter.org>
+References: <20180817193850.2796-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20180817193850.2796-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi David,
+From: Matteo Croce <mcroce@redhat.com>
 
-The following patchset contains Netfilter/IPVS fixes for your net tree:
+Since commit 500462a9de65 ("timers: Switch to a non-cascading wheel"),
+timers duration can last even 12.5% more than the scheduled interval.
 
-1) Infinite loop in IPVS when net namespace is released, from
-   Tan Hu.
+IPVS has two handlers, /proc/net/ip_vs_conn and /proc/net/ip_vs_conn_sync,
+which shows the remaining time before that a connection expires.
+The default expire time for a connection is 60 seconds, and the
+expiration timer can fire even 4 seconds later than the scheduled time.
+The expiration time is calculated subtracting jiffies to the scheduled
+expiration time, and it's shown as a huge number when the timer fires late,
+since both values are unsigned.
 
-2) Do not show negative timeouts in ip_vs_conn by using the new
-   jiffies_delta_to_msecs(), patches from Matteo Croce.
+This can confuse script and tools which relies on it, like ipvsadm:
 
-3) Set F_IFACE flag for linklocal addresses in ip6t_rpfilter,
-   from Florian Westphal.
+    root@mcroce-redhat:~# while ipvsadm -lc |grep SYN_RECV; do sleep 1 ; done
+    TCP 00:05  SYN_RECV    [fc00:1::1]:55732  [fc00:1::2]:8000   [fc00:2000::1]:8000
+    TCP 00:04  SYN_RECV    [fc00:1::1]:55732  [fc00:1::2]:8000   [fc00:2000::1]:8000
+    TCP 00:03  SYN_RECV    [fc00:1::1]:55732  [fc00:1::2]:8000   [fc00:2000::1]:8000
+    TCP 00:02  SYN_RECV    [fc00:1::1]:55732  [fc00:1::2]:8000   [fc00:2000::1]:8000
+    TCP 00:01  SYN_RECV    [fc00:1::1]:55732  [fc00:1::2]:8000   [fc00:2000::1]:8000
+    TCP 00:00  SYN_RECV    [fc00:1::1]:55732  [fc00:1::2]:8000   [fc00:2000::1]:8000
+    TCP 68719476:44 SYN_RECV    [fc00:1::1]:55732  [fc00:1::2]:8000   [fc00:2000::1]:8000
+    TCP 68719476:43 SYN_RECV    [fc00:1::1]:55732  [fc00:1::2]:8000   [fc00:2000::1]:8000
+    TCP 68719476:42 SYN_RECV    [fc00:1::1]:55732  [fc00:1::2]:8000   [fc00:2000::1]:8000
+    TCP 68719476:41 SYN_RECV    [fc00:1::1]:55732  [fc00:1::2]:8000   [fc00:2000::1]:8000
+    TCP 68719476:40 SYN_RECV    [fc00:1::1]:55732  [fc00:1::2]:8000   [fc00:2000::1]:8000
+    TCP 68719476:39 SYN_RECV    [fc00:1::1]:55732  [fc00:1::2]:8000   [fc00:2000::1]:8000
 
-4) Fix overflow in set size allocation, from Taehee Yoo.
+Signed-off-by: Matteo Croce <mcroce@redhat.com>
+Acked-by: Simon Horman <horms@verge.net.au>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/ipvs/ip_vs_conn.c | 22 ++++++++++++++--------
+ 1 file changed, 14 insertions(+), 8 deletions(-)
 
-5) Use netlink_dump_start() from ctnetlink to fix memleak from
-   the error path, again from Florian.
-
-6) Register nfnetlink_subsys in last place, otherwise netns
-   init path may lose race and see net->nft uninitialized data.
-   This also reverts previous attempt to fix this by increase
-   netns refcount, patches from Florian.
-
-7) Remove conntrack entries on layer 4 protocol tracker module
-   removal, from Florian.
-
-8) Use GFP_KERNEL_ACCOUNT for xtables blob allocation, from
-   Michal Hocko.
-
-9) Get tproxy documentation in sync with existing codebase,
-   from Mate Eckl.
-
-10) Honor preset layer 3 protocol via ctx->family in the new nft_ct
-    timeout infrastructure, from Harsha Sharma.
-
-11) Let uapi nfnetlink_osf.h compile standalone with no errors,
-    from Dmitry V. Levin.
-
-12) Missing braces compilation warning in nft_tproxy, patch from
-    Mate Eclk.
-
-13) Disregard bogus check to bail out on non-anonymous sets from
-    the dynamic set update extension.
-
-You can pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
-
-Thanks.
-
-----------------------------------------------------------------
-
-The following changes since commit 9a76aba02a37718242d7cdc294f0a3901928aa57:
-
-  Merge git://git.kernel.org/pub/scm/linux/kernel/git/davem/net-next (2018-08-15 15:04:25 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git HEAD
-
-for you to fetch changes up to feb9f55c33e5114127238a2c87c069b4f30d1f23:
-
-  netfilter: nft_dynset: allow dynamic updates of non-anonymous set (2018-08-16 19:37:11 +0200)
-
-----------------------------------------------------------------
-Dmitry V. Levin (1):
-      netfilter: uapi: fix linux/netfilter/nf_osf.h userspace compilation errors
-
-Florian Westphal (5):
-      netfilter: ip6t_rpfilter: set F_IFACE for linklocal addresses
-      netfilter: fix memory leaks on netlink_dump_start error
-      netfilter: nf_tables: fix register ordering
-      netfilter: nf_tables: don't prevent event handler from device cleanup on netns exit
-      netfilter: conntrack: fix removal of conntrack entries when l4tracker is removed
-
-Harsha Sharma (1):
-      netfilter: nft_ct: make l3 protocol field optional for timeout object
-
-Matteo Croce (2):
-      jiffies: add utility function to calculate delta in ms
-      ipvs: don't show negative times in ip_vs_conn
-
-Michal Hocko (1):
-      netfilter: x_tables: do not fail xt_alloc_table_info too easilly
-
-Máté Eckl (2):
-      netfilter: doc: Add nf_tables part in tproxy.txt
-      netfilter: nft_tproxy: Fix missing-braces warning
-
-Pablo Neira Ayuso (1):
-      netfilter: nft_dynset: allow dynamic updates of non-anonymous set
-
-Taehee Yoo (1):
-      netfilter: nft_set: fix allocation size overflow in privsize callback.
-
-Tan Hu (1):
-      ipvs: fix race between ip_vs_conn_new() and ip_vs_del_dest()
-
- Documentation/networking/tproxy.txt          | 34 ++++++++++++++++++++-----
- include/linux/jiffies.h                      |  5 ++++
- include/net/netfilter/nf_tables.h            |  6 ++---
- include/uapi/linux/netfilter/nfnetlink_osf.h |  2 ++
- include/uapi/linux/netfilter/xt_osf.h        |  2 --
- net/ipv6/netfilter/ip6t_rpfilter.c           | 12 ++++++++-
- net/netfilter/ipvs/ip_vs_conn.c              | 22 ++++++++++------
- net/netfilter/ipvs/ip_vs_core.c              | 15 ++++++++---
- net/netfilter/nf_conntrack_netlink.c         | 26 ++++++++++++-------
- net/netfilter/nf_conntrack_proto.c           | 15 +++++++----
- net/netfilter/nf_tables_api.c                | 38 ++++++++++++++++++----------
- net/netfilter/nfnetlink_acct.c               | 29 ++++++++++-----------
- net/netfilter/nft_chain_filter.c             | 14 +++++-----
- net/netfilter/nft_ct.c                       |  7 ++---
- net/netfilter/nft_dynset.c                   |  2 --
- net/netfilter/nft_set_bitmap.c               |  6 ++---
- net/netfilter/nft_set_hash.c                 |  8 +++---
- net/netfilter/nft_set_rbtree.c               |  4 +--
- net/netfilter/nft_tproxy.c                   |  4 ++-
- net/netfilter/x_tables.c                     |  7 +----
- 20 files changed, 163 insertions(+), 95 deletions(-)
+diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
+index 0edc62910ebf..5b2b17867cb1 100644
+--- a/net/netfilter/ipvs/ip_vs_conn.c
++++ b/net/netfilter/ipvs/ip_vs_conn.c
+@@ -1117,24 +1117,28 @@ static int ip_vs_conn_seq_show(struct seq_file *seq, void *v)
+ #ifdef CONFIG_IP_VS_IPV6
+ 		if (cp->af == AF_INET6)
+ 			seq_printf(seq, "%-3s %pI6 %04X %pI6 %04X "
+-				"%s %04X %-11s %7lu%s\n",
++				"%s %04X %-11s %7u%s\n",
+ 				ip_vs_proto_name(cp->protocol),
+ 				&cp->caddr.in6, ntohs(cp->cport),
+ 				&cp->vaddr.in6, ntohs(cp->vport),
+ 				dbuf, ntohs(cp->dport),
+ 				ip_vs_state_name(cp),
+-				(cp->timer.expires-jiffies)/HZ, pe_data);
++				jiffies_delta_to_msecs(cp->timer.expires -
++						       jiffies) / 1000,
++				pe_data);
+ 		else
+ #endif
+ 			seq_printf(seq,
+ 				"%-3s %08X %04X %08X %04X"
+-				" %s %04X %-11s %7lu%s\n",
++				" %s %04X %-11s %7u%s\n",
+ 				ip_vs_proto_name(cp->protocol),
+ 				ntohl(cp->caddr.ip), ntohs(cp->cport),
+ 				ntohl(cp->vaddr.ip), ntohs(cp->vport),
+ 				dbuf, ntohs(cp->dport),
+ 				ip_vs_state_name(cp),
+-				(cp->timer.expires-jiffies)/HZ, pe_data);
++				jiffies_delta_to_msecs(cp->timer.expires -
++						       jiffies) / 1000,
++				pe_data);
+ 	}
+ 	return 0;
+ }
+@@ -1179,26 +1183,28 @@ static int ip_vs_conn_sync_seq_show(struct seq_file *seq, void *v)
+ #ifdef CONFIG_IP_VS_IPV6
+ 		if (cp->af == AF_INET6)
+ 			seq_printf(seq, "%-3s %pI6 %04X %pI6 %04X "
+-				"%s %04X %-11s %-6s %7lu\n",
++				"%s %04X %-11s %-6s %7u\n",
+ 				ip_vs_proto_name(cp->protocol),
+ 				&cp->caddr.in6, ntohs(cp->cport),
+ 				&cp->vaddr.in6, ntohs(cp->vport),
+ 				dbuf, ntohs(cp->dport),
+ 				ip_vs_state_name(cp),
+ 				ip_vs_origin_name(cp->flags),
+-				(cp->timer.expires-jiffies)/HZ);
++				jiffies_delta_to_msecs(cp->timer.expires -
++						       jiffies) / 1000);
+ 		else
+ #endif
+ 			seq_printf(seq,
+ 				"%-3s %08X %04X %08X %04X "
+-				"%s %04X %-11s %-6s %7lu\n",
++				"%s %04X %-11s %-6s %7u\n",
+ 				ip_vs_proto_name(cp->protocol),
+ 				ntohl(cp->caddr.ip), ntohs(cp->cport),
+ 				ntohl(cp->vaddr.ip), ntohs(cp->vport),
+ 				dbuf, ntohs(cp->dport),
+ 				ip_vs_state_name(cp),
+ 				ip_vs_origin_name(cp->flags),
+-				(cp->timer.expires-jiffies)/HZ);
++				jiffies_delta_to_msecs(cp->timer.expires -
++						       jiffies) / 1000);
+ 	}
+ 	return 0;
+ }
+-- 
+2.11.0
