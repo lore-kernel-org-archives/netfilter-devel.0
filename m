@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 07/15] netfilter: nf_tables: fix register ordering
-Date: Fri, 17 Aug 2018 21:38:42 +0200
-Message-ID: <20180817193850.2796-8-pablo@netfilter.org>
+Subject: [PATCH 09/15] netfilter: conntrack: fix removal of conntrack entries when l4tracker is removed
+Date: Fri, 17 Aug 2018 21:38:44 +0200
+Message-ID: <20180817193850.2796-10-pablo@netfilter.org>
 References: <20180817193850.2796-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -12,91 +12,55 @@ List-Id: netfilter-devel.vger.kernel.org
 
 From: Florian Westphal <fw@strlen.de>
 
-We must register nfnetlink ops last, as that exposes nf_tables to
-userspace.  Without this, we could theoretically get nfnetlink request
-before net->nft state has been initialized.
+nf_ct_l4proto_unregister_one() leaves conntracks added by
+to-be-removed tracker behind, nf_ct_l4proto_unregister has to iterate
+for each protocol to be removed.
 
-Fixes: 99633ab29b213 ("netfilter: nf_tables: complete net namespace support")
+v2: call nf_ct_iterate_destroy without holding nf_ct_proto_mutex.
+
+Fixes: 2c41f33c1b703 ("netfilter: move table iteration out of netns exit paths")
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_tables.h |  2 +-
- net/netfilter/nf_tables_api.c     | 29 ++++++++++++++++++++++-------
- net/netfilter/nft_chain_filter.c  |  2 +-
- 3 files changed, 24 insertions(+), 9 deletions(-)
+ net/netfilter/nf_conntrack_proto.c | 15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 552bfbef1bf1..0f39ac487012 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -1374,6 +1374,6 @@ struct nft_trans_flowtable {
- 	(((struct nft_trans_flowtable *)trans->data)->flowtable)
+diff --git a/net/netfilter/nf_conntrack_proto.c b/net/netfilter/nf_conntrack_proto.c
+index 30070732ee50..9f14b0df6960 100644
+--- a/net/netfilter/nf_conntrack_proto.c
++++ b/net/netfilter/nf_conntrack_proto.c
+@@ -312,7 +312,9 @@ void nf_ct_l4proto_unregister_one(const struct nf_conntrack_l4proto *l4proto)
+ 	__nf_ct_l4proto_unregister_one(l4proto);
+ 	mutex_unlock(&nf_ct_proto_mutex);
  
- int __init nft_chain_filter_init(void);
--void __exit nft_chain_filter_fini(void);
-+void nft_chain_filter_fini(void);
+-	synchronize_rcu();
++	synchronize_net();
++	/* Remove all contrack entries for this protocol */
++	nf_ct_iterate_destroy(kill_l4proto, (void *)l4proto);
+ }
+ EXPORT_SYMBOL_GPL(nf_ct_l4proto_unregister_one);
  
- #endif /* _NET_NF_TABLES_H */
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 3008f93469c4..80636cc59686 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -7273,21 +7273,36 @@ static int __init nf_tables_module_init(void)
+@@ -333,14 +335,17 @@ static void
+ nf_ct_l4proto_unregister(const struct nf_conntrack_l4proto * const l4proto[],
+ 			 unsigned int num_proto)
  {
- 	int err;
- 
--	nft_chain_filter_init();
-+	err = register_pernet_subsys(&nf_tables_net_ops);
-+	if (err < 0)
-+		return err;
++	int i;
 +
-+	err = nft_chain_filter_init();
-+	if (err < 0)
-+		goto err1;
+ 	mutex_lock(&nf_ct_proto_mutex);
+-	while (num_proto-- != 0)
+-		__nf_ct_l4proto_unregister_one(l4proto[num_proto]);
++	for (i = 0; i < num_proto; i++)
++		__nf_ct_l4proto_unregister_one(l4proto[i]);
+ 	mutex_unlock(&nf_ct_proto_mutex);
  
- 	err = nf_tables_core_module_init();
- 	if (err < 0)
--		return err;
-+		goto err2;
- 
--	err = nfnetlink_subsys_register(&nf_tables_subsys);
-+	err = register_netdevice_notifier(&nf_tables_flowtable_notifier);
- 	if (err < 0)
--		goto err;
-+		goto err3;
- 
--	register_netdevice_notifier(&nf_tables_flowtable_notifier);
-+	/* must be last */
-+	err = nfnetlink_subsys_register(&nf_tables_subsys);
-+	if (err < 0)
-+		goto err4;
- 
--	return register_pernet_subsys(&nf_tables_net_ops);
--err:
-+	return err;
-+err4:
-+	unregister_netdevice_notifier(&nf_tables_flowtable_notifier);
-+err3:
- 	nf_tables_core_module_exit();
-+err2:
-+	nft_chain_filter_fini();
-+err1:
-+	unregister_pernet_subsys(&nf_tables_net_ops);
- 	return err;
+ 	synchronize_net();
+-	/* Remove all contrack entries for this protocol */
+-	nf_ct_iterate_destroy(kill_l4proto, (void *)l4proto);
++
++	for (i = 0; i < num_proto; i++)
++		nf_ct_iterate_destroy(kill_l4proto, (void *)l4proto[i]);
  }
  
-diff --git a/net/netfilter/nft_chain_filter.c b/net/netfilter/nft_chain_filter.c
-index ea5b7c4944f6..9d07b277b9ee 100644
---- a/net/netfilter/nft_chain_filter.c
-+++ b/net/netfilter/nft_chain_filter.c
-@@ -392,7 +392,7 @@ int __init nft_chain_filter_init(void)
- 	return 0;
- }
- 
--void __exit nft_chain_filter_fini(void)
-+void nft_chain_filter_fini(void)
- {
- 	nft_chain_filter_bridge_fini();
- 	nft_chain_filter_inet_fini();
+ static int
 -- 
 2.11.0
