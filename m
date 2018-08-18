@@ -1,61 +1,25 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 13/15] netfilter: uapi: fix linux/netfilter/nf_osf.h userspace compilation errors
-Date: Fri, 17 Aug 2018 21:41:04 +0200
-Message-ID: <20180817194106.2878-4-pablo@netfilter.org>
-References: <20180817194106.2878-1-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 00/15] Netfilter/IPVS fixes for net
+Date: Sat, 18 Aug 2018 10:01:55 -0700 (PDT)
+Message-ID: <20180818.100155.1391759122340157319.davem@davemloft.net>
+References: <20180817193850.2796-1-pablo@netfilter.org>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180817194106.2878-1-pablo@netfilter.org>
+In-Reply-To: <20180817193850.2796-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: "Dmitry V. Levin" <ldv@altlinux.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Fri, 17 Aug 2018 21:38:35 +0200
 
-Move inclusion of <linux/ip.h> and <linux/tcp.h> from
-linux/netfilter/xt_osf.h to linux/netfilter/nf_osf.h to fix
-the following linux/netfilter/nf_osf.h userspace compilation errors:
+> The following patchset contains Netfilter/IPVS fixes for your net tree:
+ ...
+> You can pull these changes from:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
 
-/usr/include/linux/netfilter/nf_osf.h:59:24: error: 'MAX_IPOPTLEN' undeclared here (not in a function)
-  struct nf_osf_opt opt[MAX_IPOPTLEN];
-/usr/include/linux/netfilter/nf_osf.h:64:17: error: field 'ip' has incomplete type
-  struct iphdr   ip;
-/usr/include/linux/netfilter/nf_osf.h:65:18: error: field 'tcp' has incomplete type
-  struct tcphdr   tcp;
-
-Fixes: bfb15f2a95cb ("netfilter: extract Passive OS fingerprint infrastructure from xt_osf")
-Signed-off-by: Dmitry V. Levin <ldv@altlinux.org>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/uapi/linux/netfilter/nfnetlink_osf.h | 2 ++
- include/uapi/linux/netfilter/xt_osf.h        | 2 --
- 2 files changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/include/uapi/linux/netfilter/nfnetlink_osf.h b/include/uapi/linux/netfilter/nfnetlink_osf.h
-index 76a3527df5dd..272bc3195f2d 100644
---- a/include/uapi/linux/netfilter/nfnetlink_osf.h
-+++ b/include/uapi/linux/netfilter/nfnetlink_osf.h
-@@ -2,6 +2,8 @@
- #define _NF_OSF_H
- 
- #include <linux/types.h>
-+#include <linux/ip.h>
-+#include <linux/tcp.h>
- 
- #define MAXGENRELEN	32
- 
-diff --git a/include/uapi/linux/netfilter/xt_osf.h b/include/uapi/linux/netfilter/xt_osf.h
-index 24102b5286ec..6e466236ca4b 100644
---- a/include/uapi/linux/netfilter/xt_osf.h
-+++ b/include/uapi/linux/netfilter/xt_osf.h
-@@ -21,8 +21,6 @@
- #define _XT_OSF_H
- 
- #include <linux/types.h>
--#include <linux/ip.h>
--#include <linux/tcp.h>
- #include <linux/netfilter/nfnetlink_osf.h>
- 
- #define XT_OSF_GENRE		NF_OSF_GENRE
--- 
-2.11.0
+Pulled, thanks.
