@@ -1,25 +1,34 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 00/15] Netfilter/IPVS fixes for net
-Date: Sat, 18 Aug 2018 10:01:55 -0700 (PDT)
-Message-ID: <20180818.100155.1391759122340157319.davem@davemloft.net>
-References: <20180817193850.2796-1-pablo@netfilter.org>
+From: Yue Haibing <yuehaibing@huawei.com>
+Subject: [PATCH] netfilter: conntrack: remove duplicated include from nf_conntrack_proto_udp.c
+Date: Tue, 21 Aug 2018 14:03:04 +0000
+Message-ID: <1534860184-170985-1-git-send-email-yuehaibing@huawei.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
+Cc: Yue Haibing <yuehaibing@huawei.com>,
+        <netfilter-devel@vger.kernel.org>, <coreteam@netfilter.org>,
+        <netdev@vger.kernel.org>, <kernel-janitors@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180817193850.2796-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Fri, 17 Aug 2018 21:38:35 +0200
+Remove duplicated include.
 
-> The following patchset contains Netfilter/IPVS fixes for your net tree:
- ...
-> You can pull these changes from:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
+Signed-off-by: Yue Haibing <yuehaibing@huawei.com>
+---
+ net/netfilter/nf_conntrack_proto_udp.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-Pulled, thanks.
+diff --git a/net/netfilter/nf_conntrack_proto_udp.c b/net/netfilter/nf_conntrack_proto_udp.c
+index 7a1b898..9272a2c 100644
+--- a/net/netfilter/nf_conntrack_proto_udp.c
++++ b/net/netfilter/nf_conntrack_proto_udp.c
+@@ -393,4 +393,3 @@ static struct nf_proto_net *udp_get_net_proto(struct net *net)
+ };
+ EXPORT_SYMBOL_GPL(nf_conntrack_l4proto_udplite6);
+ #endif
+-#include <net/netfilter/nf_conntrack_timeout.h>
