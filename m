@@ -1,170 +1,98 @@
-From: Steve Grubb <sgrubb@redhat.com>
-Subject: Re: [PATCH ghak90 (was ghak32) V4 03/10] audit: log container info of
-	syscalls
-Date: Fri, 24 Aug 2018 12:01:56 -0400
-Message-ID: <1699902.8vVClggbhl@x2>
-References: <cover.1533065887.git.rgb@redhat.com>
-	<34017c395d03a213d6b0d49b9964429bd32b283d.1533065887.git.rgb@redhat.com>
+From: Eric Westbrook <eric@westbrook.io>
+Subject: [PATCH] netfilter: ipset: actually allow allowable CIDR 0 in
+ hash:net,port,net
+Date: Tue, 28 Aug 2018 15:14:42 -0600
+Message-ID: <a3d786d6-3608-8575-9901-afcf3a52693a@westbrook.io>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Cc: simo@redhat.com, Richard Guy Briggs <rgb@redhat.com>,
-	linux-api@vger.kernel.org, containers@lists.linux-foundation.org,
-	LKML <linux-kernel@vger.kernel.org>, dhowells@redhat.com,
-	carlos@redhat.com, netfilter-devel@vger.kernel.org,
-	ebiederm@xmission.com, luto@kernel.org, netdev@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org, eparis@parisplace.org,
-	serge@hallyn.com, viro@zeniv.linux.org.uk
-To: linux-audit@redhat.com
-Return-path: <linux-audit-bounces@redhat.com>
-In-Reply-To: <34017c395d03a213d6b0d49b9964429bd32b283d.1533065887.git.rgb@redhat.com>
-List-Unsubscribe: <https://www.redhat.com/mailman/options/linux-audit>,
-	<mailto:linux-audit-request@redhat.com?subject=unsubscribe>
-List-Archive: <https://www.redhat.com/archives/linux-audit>
-List-Post: <mailto:linux-audit@redhat.com>
-List-Help: <mailto:linux-audit-request@redhat.com?subject=help>
-List-Subscribe: <https://www.redhat.com/mailman/listinfo/linux-audit>,
-	<mailto:linux-audit-request@redhat.com?subject=subscribe>
-Sender: linux-audit-bounces@redhat.com
-Errors-To: linux-audit-bounces@redhat.com
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>,
+        Netfilter Development <netfilter-devel@vger.kernel.org>,
+        Netfilter Core Team <coreteam@netfilter.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Trivial Patch Monkey <trivial@kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tuesday, July 31, 2018 4:07:38 PM EDT Richard Guy Briggs wrote:
-> Create a new audit record AUDIT_CONTAINER to document the audit
-> container identifier of a process if it is present.
-> 
-> Called from audit_log_exit(), syscalls are covered.
-> 
-> A sample raw event:
-> type=SYSCALL msg=audit(1519924845.499:257): arch=c000003e syscall=257
-> success=yes exit=3 a0=ffffff9c a1=56374e1cef30 a2=241 a3=1b6 items=2
-> ppid=606 pid=635 auid=0 uid=0 gid=0 euid=0 suid=0 fsuid=0 egid=0 sgid=0
-> fsgid=0 tty=pts0 ses=3 comm="bash" exe="/usr/bin/bash"
-> subj=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023
-> key="tmpcontainerid" type=CWD msg=audit(1519924845.499:257): cwd="/root"
-> type=PATH msg=audit(1519924845.499:257): item=0 name="/tmp/" inode=13863
-> dev=00:27 mode=041777 ouid=0 ogid=0 rdev=00:00
-> obj=system_u:object_r:tmp_t:s0 nametype= PARENT cap_fp=0000000000000000
-> cap_fi=0000000000000000 cap_fe=0 cap_fver=0 type=PATH
-> msg=audit(1519924845.499:257): item=1 name="/tmp/tmpcontainerid"
-> inode=17729 dev=00:27 mode=0100644 ouid=0 ogid=0 rdev=00:00
-> obj=unconfined_u:object_r:user_tmp_t:s0 nametype=CREATE
-> cap_fp=0000000000000000 cap_fi=0000000000000000 cap_fe=0 cap_fver=0
-> type=PROCTITLE msg=audit(1519924845.499:257):
-> proctitle=62617368002D6300736C65657020313B206563686F2074657374203E202F746D
-> 702F746D70636F6E7461696E65726964 type=CONTAINER
-> msg=audit(1519924845.499:257): op=task contid=123458
+Allow /0 as advertised for hash:net,port,net sets.
 
-Ack for the event format.
+For "hash:net,port,net", ipset(8) says that "either subnet
+is permitted to be a /0 should you wish to match port
+between all destinations."
 
--Steve
+Make that statement true.
 
-> See: https://github.com/linux-audit/audit-kernel/issues/90
-> See: https://github.com/linux-audit/audit-userspace/issues/51
-> See: https://github.com/linux-audit/audit-testsuite/issues/64
-> See:
-> https://github.com/linux-audit/audit-kernel/wiki/RFE-Audit-Container-ID
-> Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
-> Acked-by: Serge Hallyn <serge@hallyn.com>
-> Acked-by: Steve Grubb <sgrubb@redhat.com>
-> ---
->  include/linux/audit.h      |  7 +++++++
->  include/uapi/linux/audit.h |  1 +
->  kernel/audit.c             | 24 ++++++++++++++++++++++++
->  kernel/auditsc.c           |  3 +++
->  4 files changed, 35 insertions(+)
-> 
-> diff --git a/include/linux/audit.h b/include/linux/audit.h
-> index 71a6fc6..d5a48dc 100644
-> --- a/include/linux/audit.h
-> +++ b/include/linux/audit.h
-> @@ -155,6 +155,9 @@ extern void		    audit_log_key(struct audit_buffer 
-*ab,
-> extern int audit_log_task_context(struct audit_buffer *ab);
->  extern void audit_log_task_info(struct audit_buffer *ab,
->  				struct task_struct *tsk);
-> +extern int audit_log_contid(struct task_struct *tsk,
-> +				    struct audit_context *context,
-> +				    char *op);
-> 
->  extern int		    audit_update_lsm_rules(void);
-> 
-> @@ -205,6 +208,10 @@ static inline int audit_log_task_context(struct
-> audit_buffer *ab) static inline void audit_log_task_info(struct
-> audit_buffer *ab,
->  				       struct task_struct *tsk)
->  { }
-> +static inline int audit_log_contid(struct task_struct *tsk,
-> +					   struct audit_context *context,
-> +					   char *op)
-> +{ }
->  #define audit_enabled AUDIT_OFF
->  #endif /* CONFIG_AUDIT */
-> 
-> diff --git a/include/uapi/linux/audit.h b/include/uapi/linux/audit.h
-> index 3474f57..dc259c7 100644
-> --- a/include/uapi/linux/audit.h
-> +++ b/include/uapi/linux/audit.h
-> @@ -115,6 +115,7 @@
->  #define AUDIT_REPLACE		1329	/* Replace auditd if this packet unanswerd 
-*/
->  #define AUDIT_KERN_MODULE	1330	/* Kernel Module events */
->  #define AUDIT_FANOTIFY		1331	/* Fanotify access decision */
-> +#define AUDIT_CONTAINER		1332	/* Container ID */
-> 
->  #define AUDIT_AVC		1400	/* SE Linux avc denial or grant */
->  #define AUDIT_SELINUX_ERR	1401	/* Internal SE Linux Errors */
-> diff --git a/kernel/audit.c b/kernel/audit.c
-> index 2a80587..15f54c7 100644
-> --- a/kernel/audit.c
-> +++ b/kernel/audit.c
-> @@ -2045,6 +2045,30 @@ void audit_log_session_info(struct audit_buffer *ab)
-> audit_log_format(ab, " auid=%u ses=%u", auid, sessionid);
->  }
-> 
-> +/*
-> + * audit_log_contid - report container info
-> + * @tsk: task to be recorded
-> + * @context: task or local context for record
-> + * @op: contid string description
-> + */
-> +int audit_log_contid(struct task_struct *tsk,
-> +			     struct audit_context *context, char *op)
-> +{
-> +	struct audit_buffer *ab;
-> +
-> +	if (!audit_contid_set(tsk))
-> +		return 0;
-> +	/* Generate AUDIT_CONTAINER record with container ID */
-> +	ab = audit_log_start(context, GFP_KERNEL, AUDIT_CONTAINER);
-> +	if (!ab)
-> +		return -ENOMEM;
-> +	audit_log_format(ab, "op=%s contid=%llu",
-> +			 op, audit_get_contid(tsk));
-> +	audit_log_end(ab);
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL(audit_log_contid);
-> +
->  void audit_log_key(struct audit_buffer *ab, char *key)
->  {
->  	audit_log_format(ab, " key=");
-> diff --git a/kernel/auditsc.c b/kernel/auditsc.c
-> index 6125cef..39e5633 100644
-> --- a/kernel/auditsc.c
-> +++ b/kernel/auditsc.c
-> @@ -1488,10 +1488,13 @@ static void audit_log_exit(struct audit_context
-> *context, struct task_struct *ts
-> 
->  	audit_log_proctitle(tsk, context);
-> 
-> +	audit_log_contid(tsk, context, "task");
-> +
->  	/* Send end of event record to help user space know we are finished */
->  	ab = audit_log_start(context, GFP_KERNEL, AUDIT_EOE);
->  	if (ab)
->  		audit_log_end(ab);
-> +
->  	if (call_panic)
->  		audit_panic("error converting sid to string");
->  }
+Before:
+
+    # ipset create cidrzero hash:net,port,net
+    # ipset add cidrzero 0.0.0.0/0,12345,0.0.0.0/0
+    ipset v6.34: The value of the CIDR parameter of the IP address is invalid
+
+    # ipset create cidrzero6 hash:net,port,net family inet6
+    # ipset add cidrzero6 ::/0,12345,::/0
+    ipset v6.34: The value of the CIDR parameter of the IP address is invalid
+
+After:
+
+    # ipset create cidrzero hash:net,port,net
+    # ipset add cidrzero 0.0.0.0/0,12345,0.0.0.0/0
+    # ipset test cidrzero 192.168.205.129,12345,172.16.205.129
+    192.168.205.129,tcp:12345,172.16.205.129 is in set cidrzero.
+
+    # ipset create cidrzero6 hash:net,port,net family inet6
+    # ipset add cidrzero6 ::/0,12345,::/0
+    # ipset test cidrzero6 fe80::1,12345,ff00::1
+    fe80::1,tcp:12345,ff00::1 is in set cidrzero6.
+
+See also:
+
+  https://bugzilla.kernel.org/show_bug.cgi?id=200897
+  https://github.com/ewestbrook/linux/commit/df7ff6efb0934ab6acc11f003ff1a7580d6c1d9c
+
+Signed-off-by: Eric Westbrook <linux@westbrook.io>
+---
+ net/netfilter/ipset/ip_set_hash_netportnet.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/net/netfilter/ipset/ip_set_hash_netportnet.c b/net/netfilter/ipset/ip_set_hash_netportnet.c
+index d391485a6acd..613e18e720a4 100644
+--- a/net/netfilter/ipset/ip_set_hash_netportnet.c
++++ b/net/netfilter/ipset/ip_set_hash_netportnet.c
+@@ -213,13 +213,13 @@ hash_netportnet4_uadt(struct ip_set *set, struct nlattr *tb[],
+
+ 	if (tb[IPSET_ATTR_CIDR]) {
+ 		e.cidr[0] = nla_get_u8(tb[IPSET_ATTR_CIDR]);
+-		if (!e.cidr[0] || e.cidr[0] > HOST_MASK)
++		if (e.cidr[0] > HOST_MASK)
+ 			return -IPSET_ERR_INVALID_CIDR;
+ 	}
+
+ 	if (tb[IPSET_ATTR_CIDR2]) {
+ 		e.cidr[1] = nla_get_u8(tb[IPSET_ATTR_CIDR2]);
+-		if (!e.cidr[1] || e.cidr[1] > HOST_MASK)
++		if (e.cidr[1] > HOST_MASK)
+ 			return -IPSET_ERR_INVALID_CIDR;
+ 	}
+
+@@ -493,13 +493,13 @@ hash_netportnet6_uadt(struct ip_set *set, struct nlattr *tb[],
+
+ 	if (tb[IPSET_ATTR_CIDR]) {
+ 		e.cidr[0] = nla_get_u8(tb[IPSET_ATTR_CIDR]);
+-		if (!e.cidr[0] || e.cidr[0] > HOST_MASK)
++		if (e.cidr[0] > HOST_MASK)
+ 			return -IPSET_ERR_INVALID_CIDR;
+ 	}
+
+ 	if (tb[IPSET_ATTR_CIDR2]) {
+ 		e.cidr[1] = nla_get_u8(tb[IPSET_ATTR_CIDR2]);
+-		if (!e.cidr[1] || e.cidr[1] > HOST_MASK)
++		if (e.cidr[1] > HOST_MASK)
+ 			return -IPSET_ERR_INVALID_CIDR;
+ 	}
+
+-- 
+2.18.0
