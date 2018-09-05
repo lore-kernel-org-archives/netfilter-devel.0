@@ -1,75 +1,54 @@
-From: David Howells <dhowells@redhat.com>
-Subject: [PATCH 06/11] UAPI: netfilter: Fix symbol collision issues
-Date: Wed, 05 Sep 2018 16:55:16 +0100
-Message-ID: <153616291694.23468.3826354165095743891.stgit@warthog.procyon.org.uk>
+From: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [RFC] UAPI: Check headers by compiling all together as C++
+Date: Wed, 5 Sep 2018 18:55:52 +0200
+Message-ID: <20180905165552.GB25206@kroah.com>
 References: <153616286704.23468.584491117180383924.stgit@warthog.procyon.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        linux-kernel@vger.kernel.org, dhowells@redhat.com
-To: linux-api@vger.kernel.org, linux-kbuild@vger.kernel.org
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <153616286704.23468.584491117180383924.stgit@warthog.procyon.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
+Cc: moderated for non-subscribers <alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org>,
+ "Michael S. Tsirkin" <mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, David Airlie <airlied-cv59FeDIM0c@public.gmane.org>,
+ Jason Wang <jasowang-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>,
+ Mat Martineau <mathew.j.martineau-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>,
+ dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, virtualization-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org,
+ Masahiro Yamada <yamada.masahiro-uWyLwvC0a2jby3iVrkZq2A@public.gmane.org>, keyrings-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+ Ryusuke Konishi <konishi.ryusuke-Zyj7fXuS5i5L9jVzuh4AOg@public.gmane.org>, linux-nilfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+ linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, codalist-/uMB558Y47wP4a1z8dhFYw@public.gmane.org, coda-ETDLCGt7PQU3uPMLIKxrzw@public.gmane.org,
+ coreteam-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org, Kent Overstreet <kent.overstreet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>,
+ linux-kbuild-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+ Coly Li <colyli-l3A5Bk7waGM@public.gmane.org>, linux-bcache-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+ Jaroslav Kysela <perex-/Fr2/VpizcU@public.gmane.org>, Jan Harkes <jaharkes-ETDLCGt7PQU3uPMLIKxrzw@public.gmane.org>,
+ Michal Marek <michal.lkml-yyZNWGI4GtDR7s880joybQ@public.gmane.org>, linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+ Takashi Iwai <tiwai-IBi9RG/b67k@public.gmane.org>, linux-kernel@
+To: David Howells <dhowells-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <153616286704.23468.584491117180383924.stgit-S6HVgzuS8uM4Awkfq6JHfwNdhmdF6hFW@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Id: netfilter-devel.vger.kernel.org
 
-The netfilter UAPI headers have some symbol collision issues:
+On Wed, Sep 05, 2018 at 04:54:27PM +0100, David Howells wrote:
+> 
+> Here's a set of patches that inserts a step into the build process to make
+> sure that the UAPI headers can all be built together with C++ (if the
+> compiler being used supports C++).  All but the final patch perform fixups,
+> including:
 
- (1) "enum nfnl_acct_msg_types" is defined twice, and each definition is
-     completely different.
+Wait, why do we care?  What has recently changed to start to directly
+import kernel uapi files into C++ code?
 
-     Fix this by renaming the one in nfnetlink_cthelper.h to be "enum
-     nfnl_cthelper_types" to be consistent with the other things in that
-     file.
+And if userspace wants to do this, can't they do the C namespace trick
+themselves when they do the import?  That must be how they are doing it
+today, right?
 
- (2) There's a disagreement between ipt_ECN.h and ipt_ecn.h over the
-     definition of various IPT_ECN_* constants, leading to an error over
-     IPT_ECN_IP_MASK being substituted when being defined as an enum value
-     in ipt_ecn.h if ipt_ECN.h is #included first.
+thanks,
 
-     Fix this by removing the conflicting constants from ipt_ECN.h and
-     including ipt_ecn.h instead.
-
-Signed-off-by: David Howells <dhowells@redhat.com>
-cc: netfilter-devel@vger.kernel.org
-cc: coreteam@netfilter.org
----
-
- include/uapi/linux/netfilter/nfnetlink_cthelper.h |    2 +-
- include/uapi/linux/netfilter_ipv4/ipt_ECN.h       |    9 +--------
- 2 files changed, 2 insertions(+), 9 deletions(-)
-
-diff --git a/include/uapi/linux/netfilter/nfnetlink_cthelper.h b/include/uapi/linux/netfilter/nfnetlink_cthelper.h
-index a13137afc429..b9313ed0c313 100644
---- a/include/uapi/linux/netfilter/nfnetlink_cthelper.h
-+++ b/include/uapi/linux/netfilter/nfnetlink_cthelper.h
-@@ -5,7 +5,7 @@
- #define NFCT_HELPER_STATUS_DISABLED	0
- #define NFCT_HELPER_STATUS_ENABLED	1
- 
--enum nfnl_acct_msg_types {
-+enum nfnl_cthelper_types {
- 	NFNL_MSG_CTHELPER_NEW,
- 	NFNL_MSG_CTHELPER_GET,
- 	NFNL_MSG_CTHELPER_DEL,
-diff --git a/include/uapi/linux/netfilter_ipv4/ipt_ECN.h b/include/uapi/linux/netfilter_ipv4/ipt_ECN.h
-index e3630fd045b8..d582119ad62a 100644
---- a/include/uapi/linux/netfilter_ipv4/ipt_ECN.h
-+++ b/include/uapi/linux/netfilter_ipv4/ipt_ECN.h
-@@ -12,14 +12,7 @@
- 
- #include <linux/types.h>
- #include <linux/netfilter/xt_DSCP.h>
--
--#define IPT_ECN_IP_MASK	(~XT_DSCP_MASK)
--
--#define IPT_ECN_OP_SET_IP	0x01	/* set ECN bits of IPv4 header */
--#define IPT_ECN_OP_SET_ECE	0x10	/* set ECE bit of TCP header */
--#define IPT_ECN_OP_SET_CWR	0x20	/* set CWR bit of TCP header */
--
--#define IPT_ECN_OP_MASK		0xce
-+#include <linux/netfilter_ipv4/ipt_ecn.h>
- 
- struct ipt_ECN_info {
- 	__u8 operation;	/* bitset of operations */
+greg k-h
