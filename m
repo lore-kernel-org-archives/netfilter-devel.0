@@ -1,114 +1,102 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH] netfilter: ipset: actually allow allowable CIDR 0 in
- hash:net,port,net
-Date: Thu, 30 Aug 2018 10:23:16 +0200 (CEST)
-Message-ID: <alpine.DEB.2.11.1808301022280.588@blackhole.kfki.hu>
-References: <a3d786d6-3608-8575-9901-afcf3a52693a@westbrook.io>
+From: David Howells <dhowells-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: [RFC] UAPI: Check headers by compiling all together as C++
+Date: Wed, 05 Sep 2018 16:54:27 +0100
+Message-ID: <153616286704.23468.584491117180383924.stgit@warthog.procyon.org.uk>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        Netfilter Development <netfilter-devel@vger.kernel.org>,
-        Netfilter Core Team <coreteam@netfilter.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Trivial Patch Monkey <trivial@kernel.org>
-To: Eric Westbrook <eric@westbrook.io>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <a3d786d6-3608-8575-9901-afcf3a52693a@westbrook.io>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Cc: moderated for non-subscribers <alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org>,
+ "Michael S. Tsirkin" <mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, David Airlie <airlied-cv59FeDIM0c@public.gmane.org>,
+ Jason Wang <jasowang-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>,
+ Mat Martineau <mathew.j.martineau-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>,
+ dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, virtualization-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org,
+ dhowells-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Masahiro Yamada <yamada.masahiro-uWyLwvC0a2jby3iVrkZq2A@public.gmane.org>,
+ keyrings-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ryusuke Konishi <konishi.ryusuke-Zyj7fXuS5i5L9jVzuh4AOg@public.gmane.org>,
+ linux-nilfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org,
+ codalist-/uMB558Y47wP4a1z8dhFYw@public.gmane.org, coda-ETDLCGt7PQU3uPMLIKxrzw@public.gmane.org, coreteam-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org,
+ Kent Overstreet <kent.overstreet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+ Coly Li <colyli-l3A5Bk7waGM@public.gmane.org>, linux-bcache-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+ Jaroslav Kysela <perex-/Fr2/VpizcU@public.gmane.org>, Jan Harkes <jaharkes-ETDLCGt7PQU3uPMLIKxrzw@public.gmane.org>,
+ Michal Marek <michal.lkml-yyZNWGI4GtDR7s880joybQ@public.gmane.org>, Takashi Iwai <tiwai-IBi9RG/b67k@public.gmane.org>,
+ linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Clark <robdclar
+To: linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kbuild-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 28 Aug 2018, Eric Westbrook wrote:
 
-> Allow /0 as advertised for hash:net,port,net sets.
-> 
-> For "hash:net,port,net", ipset(8) says that "either subnet
-> is permitted to be a /0 should you wish to match port
-> between all destinations."
-> 
-> Make that statement true.
-> 
-> Before:
-> 
->     # ipset create cidrzero hash:net,port,net
->     # ipset add cidrzero 0.0.0.0/0,12345,0.0.0.0/0
->     ipset v6.34: The value of the CIDR parameter of the IP address is invalid
-> 
->     # ipset create cidrzero6 hash:net,port,net family inet6
->     # ipset add cidrzero6 ::/0,12345,::/0
->     ipset v6.34: The value of the CIDR parameter of the IP address is invalid
-> 
-> After:
-> 
->     # ipset create cidrzero hash:net,port,net
->     # ipset add cidrzero 0.0.0.0/0,12345,0.0.0.0/0
->     # ipset test cidrzero 192.168.205.129,12345,172.16.205.129
->     192.168.205.129,tcp:12345,172.16.205.129 is in set cidrzero.
-> 
->     # ipset create cidrzero6 hash:net,port,net family inet6
->     # ipset add cidrzero6 ::/0,12345,::/0
->     # ipset test cidrzero6 fe80::1,12345,ff00::1
->     fe80::1,tcp:12345,ff00::1 is in set cidrzero6.
-> 
-> See also:
-> 
->   https://bugzilla.kernel.org/show_bug.cgi?id=200897
->   https://github.com/ewestbrook/linux/commit/df7ff6efb0934ab6acc11f003ff1a7580d6c1d9c
-> 
-> Signed-off-by: Eric Westbrook <linux@westbrook.io>
+Here's a set of patches that inserts a step into the build process to make
+sure that the UAPI headers can all be built together with C++ (if the
+compiler being used supports C++).  All but the final patch perform fixups,
+including:
 
-Patch is applied, thank you.
+ (1) Fix member names that conflict with C++ reserved words by providing
+     alternates that can be used anywhere.  An anonymous union is used so
+     that that the conflicting name is still available outside of C++.
 
-Best regards,
-Jozsef
+ (2) Fix the use of flexible arrays in structs that get embedded (which is
+     illegal in C++).
 
-> ---
->  net/netfilter/ipset/ip_set_hash_netportnet.c | 8 ++++----
->  1 file changed, 4 insertions(+), 4 deletions(-)
-> 
-> diff --git a/net/netfilter/ipset/ip_set_hash_netportnet.c b/net/netfilter/ipset/ip_set_hash_netportnet.c
-> index d391485a6acd..613e18e720a4 100644
-> --- a/net/netfilter/ipset/ip_set_hash_netportnet.c
-> +++ b/net/netfilter/ipset/ip_set_hash_netportnet.c
-> @@ -213,13 +213,13 @@ hash_netportnet4_uadt(struct ip_set *set, struct nlattr *tb[],
-> 
->  	if (tb[IPSET_ATTR_CIDR]) {
->  		e.cidr[0] = nla_get_u8(tb[IPSET_ATTR_CIDR]);
-> -		if (!e.cidr[0] || e.cidr[0] > HOST_MASK)
-> +		if (e.cidr[0] > HOST_MASK)
->  			return -IPSET_ERR_INVALID_CIDR;
->  	}
-> 
->  	if (tb[IPSET_ATTR_CIDR2]) {
->  		e.cidr[1] = nla_get_u8(tb[IPSET_ATTR_CIDR2]);
-> -		if (!e.cidr[1] || e.cidr[1] > HOST_MASK)
-> +		if (e.cidr[1] > HOST_MASK)
->  			return -IPSET_ERR_INVALID_CIDR;
->  	}
-> 
-> @@ -493,13 +493,13 @@ hash_netportnet6_uadt(struct ip_set *set, struct nlattr *tb[],
-> 
->  	if (tb[IPSET_ATTR_CIDR]) {
->  		e.cidr[0] = nla_get_u8(tb[IPSET_ATTR_CIDR]);
-> -		if (!e.cidr[0] || e.cidr[0] > HOST_MASK)
-> +		if (e.cidr[0] > HOST_MASK)
->  			return -IPSET_ERR_INVALID_CIDR;
->  	}
-> 
->  	if (tb[IPSET_ATTR_CIDR2]) {
->  		e.cidr[1] = nla_get_u8(tb[IPSET_ATTR_CIDR2]);
-> -		if (!e.cidr[1] || e.cidr[1] > HOST_MASK)
-> +		if (e.cidr[1] > HOST_MASK)
->  			return -IPSET_ERR_INVALID_CIDR;
->  	}
-> 
-> -- 
-> 2.18.0
-> 
-> 
+ (3) Remove the use of internal kernel structs in UAPI structures.
 
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+ (4) Fix symbol collisions.
+
+ (5) Replace usage of u32 and co. with __u32 and co.
+
+ (6) Fix use of sparsely initialised arrays (which g++ doesn't implement).
+
+ (7) Remove some use of PAGE_SIZE since this isn't valid outside of the
+     kernel.
+
+And lastly:
+
+ (8) Compile all of the UAPI headers (with a few exceptions) together as
+     C++ to catch new errors occurring as part of the regular build
+     process.
+
+The patches can also be found here:
+
+	http://git.kernel.org/cgit/linux/kernel/git/dhowells/linux-fs.git/log/?h=uapi-check
+
+Thanks,
+David
+---
+David Howells (11):
+      UAPI: drm: Fix use of C++ keywords as structural members
+      UAPI: keys: Fix use of C++ keywords as structural members
+      UAPI: virtio_net: Fix use of C++ keywords as structural members
+      UAPI: bcache: Fix use of embedded flexible array
+      UAPI: coda: Don't use internal kernel structs in UAPI
+      UAPI: netfilter: Fix symbol collision issues
+      UAPI: nilfs2: Fix use of undefined byteswapping functions
+      UAPI: sound: Fix use of u32 and co. in UAPI headers
+      UAPI: ndctl: Fix g++-unsupported initialisation in headers
+      UAPI: ndctl: Remove use of PAGE_SIZE
+      UAPI: Check headers build for C++
+
+
+ Makefile                                          |    1 
+ include/linux/ndctl.h                             |   22 ++++
+ include/uapi/drm/i810_drm.h                       |    7 +
+ include/uapi/drm/msm_drm.h                        |    7 +
+ include/uapi/linux/bcache.h                       |    2 
+ include/uapi/linux/coda_psdev.h                   |    4 +
+ include/uapi/linux/keyctl.h                       |    7 +
+ include/uapi/linux/ndctl.h                        |   20 ++-
+ include/uapi/linux/netfilter/nfnetlink_cthelper.h |    2 
+ include/uapi/linux/netfilter_ipv4/ipt_ECN.h       |    9 --
+ include/uapi/linux/nilfs2_ondisk.h                |   21 ++--
+ include/uapi/linux/virtio_net.h                   |    7 +
+ include/uapi/sound/skl-tplg-interface.h           |  106 +++++++++---------
+ scripts/headers-c++.sh                            |  124 +++++++++++++++++++++
+ 14 files changed, 255 insertions(+), 84 deletions(-)
+ create mode 100644 include/linux/ndctl.h
+ create mode 100755 scripts/headers-c++.sh
