@@ -1,102 +1,75 @@
-From: David Howells <dhowells-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: [RFC] UAPI: Check headers by compiling all together as C++
-Date: Wed, 05 Sep 2018 16:54:27 +0100
-Message-ID: <153616286704.23468.584491117180383924.stgit@warthog.procyon.org.uk>
+From: David Howells <dhowells@redhat.com>
+Subject: [PATCH 06/11] UAPI: netfilter: Fix symbol collision issues
+Date: Wed, 05 Sep 2018 16:55:16 +0100
+Message-ID: <153616291694.23468.3826354165095743891.stgit@warthog.procyon.org.uk>
+References: <153616286704.23468.584491117180383924.stgit@warthog.procyon.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Cc: moderated for non-subscribers <alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org>,
- "Michael S. Tsirkin" <mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, David Airlie <airlied-cv59FeDIM0c@public.gmane.org>,
- Jason Wang <jasowang-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>,
- Mat Martineau <mathew.j.martineau-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>,
- dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, virtualization-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org,
- dhowells-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Masahiro Yamada <yamada.masahiro-uWyLwvC0a2jby3iVrkZq2A@public.gmane.org>,
- keyrings-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ryusuke Konishi <konishi.ryusuke-Zyj7fXuS5i5L9jVzuh4AOg@public.gmane.org>,
- linux-nilfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org,
- codalist-/uMB558Y47wP4a1z8dhFYw@public.gmane.org, coda-ETDLCGt7PQU3uPMLIKxrzw@public.gmane.org, coreteam-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org,
- Kent Overstreet <kent.overstreet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
- Coly Li <colyli-l3A5Bk7waGM@public.gmane.org>, linux-bcache-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
- Jaroslav Kysela <perex-/Fr2/VpizcU@public.gmane.org>, Jan Harkes <jaharkes-ETDLCGt7PQU3uPMLIKxrzw@public.gmane.org>,
- Michal Marek <michal.lkml-yyZNWGI4GtDR7s880joybQ@public.gmane.org>, Takashi Iwai <tiwai-IBi9RG/b67k@public.gmane.org>,
- linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Clark <robdclar
-To: linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kbuild-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        linux-kernel@vger.kernel.org, dhowells@redhat.com
+To: linux-api@vger.kernel.org, linux-kbuild@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <153616286704.23468.584491117180383924.stgit@warthog.procyon.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
+The netfilter UAPI headers have some symbol collision issues:
 
-Here's a set of patches that inserts a step into the build process to make
-sure that the UAPI headers can all be built together with C++ (if the
-compiler being used supports C++).  All but the final patch perform fixups,
-including:
+ (1) "enum nfnl_acct_msg_types" is defined twice, and each definition is
+     completely different.
 
- (1) Fix member names that conflict with C++ reserved words by providing
-     alternates that can be used anywhere.  An anonymous union is used so
-     that that the conflicting name is still available outside of C++.
+     Fix this by renaming the one in nfnetlink_cthelper.h to be "enum
+     nfnl_cthelper_types" to be consistent with the other things in that
+     file.
 
- (2) Fix the use of flexible arrays in structs that get embedded (which is
-     illegal in C++).
+ (2) There's a disagreement between ipt_ECN.h and ipt_ecn.h over the
+     definition of various IPT_ECN_* constants, leading to an error over
+     IPT_ECN_IP_MASK being substituted when being defined as an enum value
+     in ipt_ecn.h if ipt_ECN.h is #included first.
 
- (3) Remove the use of internal kernel structs in UAPI structures.
+     Fix this by removing the conflicting constants from ipt_ECN.h and
+     including ipt_ecn.h instead.
 
- (4) Fix symbol collisions.
-
- (5) Replace usage of u32 and co. with __u32 and co.
-
- (6) Fix use of sparsely initialised arrays (which g++ doesn't implement).
-
- (7) Remove some use of PAGE_SIZE since this isn't valid outside of the
-     kernel.
-
-And lastly:
-
- (8) Compile all of the UAPI headers (with a few exceptions) together as
-     C++ to catch new errors occurring as part of the regular build
-     process.
-
-The patches can also be found here:
-
-	http://git.kernel.org/cgit/linux/kernel/git/dhowells/linux-fs.git/log/?h=uapi-check
-
-Thanks,
-David
+Signed-off-by: David Howells <dhowells@redhat.com>
+cc: netfilter-devel@vger.kernel.org
+cc: coreteam@netfilter.org
 ---
-David Howells (11):
-      UAPI: drm: Fix use of C++ keywords as structural members
-      UAPI: keys: Fix use of C++ keywords as structural members
-      UAPI: virtio_net: Fix use of C++ keywords as structural members
-      UAPI: bcache: Fix use of embedded flexible array
-      UAPI: coda: Don't use internal kernel structs in UAPI
-      UAPI: netfilter: Fix symbol collision issues
-      UAPI: nilfs2: Fix use of undefined byteswapping functions
-      UAPI: sound: Fix use of u32 and co. in UAPI headers
-      UAPI: ndctl: Fix g++-unsupported initialisation in headers
-      UAPI: ndctl: Remove use of PAGE_SIZE
-      UAPI: Check headers build for C++
 
+ include/uapi/linux/netfilter/nfnetlink_cthelper.h |    2 +-
+ include/uapi/linux/netfilter_ipv4/ipt_ECN.h       |    9 +--------
+ 2 files changed, 2 insertions(+), 9 deletions(-)
 
- Makefile                                          |    1 
- include/linux/ndctl.h                             |   22 ++++
- include/uapi/drm/i810_drm.h                       |    7 +
- include/uapi/drm/msm_drm.h                        |    7 +
- include/uapi/linux/bcache.h                       |    2 
- include/uapi/linux/coda_psdev.h                   |    4 +
- include/uapi/linux/keyctl.h                       |    7 +
- include/uapi/linux/ndctl.h                        |   20 ++-
- include/uapi/linux/netfilter/nfnetlink_cthelper.h |    2 
- include/uapi/linux/netfilter_ipv4/ipt_ECN.h       |    9 --
- include/uapi/linux/nilfs2_ondisk.h                |   21 ++--
- include/uapi/linux/virtio_net.h                   |    7 +
- include/uapi/sound/skl-tplg-interface.h           |  106 +++++++++---------
- scripts/headers-c++.sh                            |  124 +++++++++++++++++++++
- 14 files changed, 255 insertions(+), 84 deletions(-)
- create mode 100644 include/linux/ndctl.h
- create mode 100755 scripts/headers-c++.sh
+diff --git a/include/uapi/linux/netfilter/nfnetlink_cthelper.h b/include/uapi/linux/netfilter/nfnetlink_cthelper.h
+index a13137afc429..b9313ed0c313 100644
+--- a/include/uapi/linux/netfilter/nfnetlink_cthelper.h
++++ b/include/uapi/linux/netfilter/nfnetlink_cthelper.h
+@@ -5,7 +5,7 @@
+ #define NFCT_HELPER_STATUS_DISABLED	0
+ #define NFCT_HELPER_STATUS_ENABLED	1
+ 
+-enum nfnl_acct_msg_types {
++enum nfnl_cthelper_types {
+ 	NFNL_MSG_CTHELPER_NEW,
+ 	NFNL_MSG_CTHELPER_GET,
+ 	NFNL_MSG_CTHELPER_DEL,
+diff --git a/include/uapi/linux/netfilter_ipv4/ipt_ECN.h b/include/uapi/linux/netfilter_ipv4/ipt_ECN.h
+index e3630fd045b8..d582119ad62a 100644
+--- a/include/uapi/linux/netfilter_ipv4/ipt_ECN.h
++++ b/include/uapi/linux/netfilter_ipv4/ipt_ECN.h
+@@ -12,14 +12,7 @@
+ 
+ #include <linux/types.h>
+ #include <linux/netfilter/xt_DSCP.h>
+-
+-#define IPT_ECN_IP_MASK	(~XT_DSCP_MASK)
+-
+-#define IPT_ECN_OP_SET_IP	0x01	/* set ECN bits of IPv4 header */
+-#define IPT_ECN_OP_SET_ECE	0x10	/* set ECE bit of TCP header */
+-#define IPT_ECN_OP_SET_CWR	0x20	/* set CWR bit of TCP header */
+-
+-#define IPT_ECN_OP_MASK		0xce
++#include <linux/netfilter_ipv4/ipt_ecn.h>
+ 
+ struct ipt_ECN_info {
+ 	__u8 operation;	/* bitset of operations */
