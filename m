@@ -1,44 +1,113 @@
-From: David Howells <dhowells@redhat.com>
-Subject: Re: [RFC] UAPI: Check headers by compiling all together as C++
-Date: Wed, 05 Sep 2018 18:50:42 +0100
-Message-ID: <22225.1536169842@warthog.procyon.org.uk>
-References: <20180905165552.GB25206@kroah.com> <153616286704.23468.584491117180383924.stgit@warthog.procyon.org.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Cc: dhowells@redhat.com, linux-api@vger.kernel.org,
-        linux-kbuild@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        virtualization@lists.linux-foundation.org,
-        keyrings@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, alsa-devel@alsa-project.org,
-        freedreno@lists.freedesktop.org, linux-kernel@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180905165552.GB25206@kroah.com>
-Content-ID: <22224.1536169842.1@warthog.procyon.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
+From: Cong Wang <xiyou.wangcong@gmail.com>
+Subject: [Patch nf] xt_hashlimit: use s->file instead of s->private
+Date: Wed,  5 Sep 2018 11:41:31 -0700
+Message-ID: <20180905184131.10269-1-xiyou.wangcong@gmail.com>
+Cc: netfilter-devel@vger.kernel.org, hvtaifwkbgefbaei@gmail.com,
+        Cong Wang <xiyou.wangcong@gmail.com>,
+        Christoph Hellwig <hch@lst.de>,
+        Pablo Neira Ayuso <pablo@netfilter.org>
+To: netdev@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Greg KH <greg@kroah.com> wrote:
+After switching to the new procfs API, it is supposed to
+retrieve the private pointer from PDE_DATA(file_inode(s->file)),
+s->private is no longer referred.
 
-> > Here's a set of patches that inserts a step into the build process to make
-> > sure that the UAPI headers can all be built together with C++ (if the
-> > compiler being used supports C++).  All but the final patch perform fixups,
-> > including:
-> 
-> Wait, why do we care?  What has recently changed to start to directly
-> import kernel uapi files into C++ code?
+Fixes: 1cd671827290 ("netfilter/x_tables: switch to proc_create_seq_private")
+Reported-by: Sami Farin <hvtaifwkbgefbaei@gmail.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Cong Wang <xiyou.wangcong@gmail.com>
+---
+ net/netfilter/xt_hashlimit.c | 18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
-There's at least one outstanding bug due to a C++ identifier in the kernel
-UAPI headers.
-
-Are you saying you explicitly don't want people to be able to use the kernel
-UAPI headers in C++?
-
-> And if userspace wants to do this, can't they do the C namespace trick
-> themselves when they do the import?  That must be how they are doing it
-> today, right?
-
-No, because there's no such trick (except with the preprocessor).
-
-David
+diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
+index 9b16402f29af..3e7d259e5d8d 100644
+--- a/net/netfilter/xt_hashlimit.c
++++ b/net/netfilter/xt_hashlimit.c
+@@ -1057,7 +1057,7 @@ static struct xt_match hashlimit_mt_reg[] __read_mostly = {
+ static void *dl_seq_start(struct seq_file *s, loff_t *pos)
+ 	__acquires(htable->lock)
+ {
+-	struct xt_hashlimit_htable *htable = PDE_DATA(file_inode(s->private));
++	struct xt_hashlimit_htable *htable = PDE_DATA(file_inode(s->file));
+ 	unsigned int *bucket;
+ 
+ 	spin_lock_bh(&htable->lock);
+@@ -1074,7 +1074,7 @@ static void *dl_seq_start(struct seq_file *s, loff_t *pos)
+ 
+ static void *dl_seq_next(struct seq_file *s, void *v, loff_t *pos)
+ {
+-	struct xt_hashlimit_htable *htable = PDE_DATA(file_inode(s->private));
++	struct xt_hashlimit_htable *htable = PDE_DATA(file_inode(s->file));
+ 	unsigned int *bucket = v;
+ 
+ 	*pos = ++(*bucket);
+@@ -1088,7 +1088,7 @@ static void *dl_seq_next(struct seq_file *s, void *v, loff_t *pos)
+ static void dl_seq_stop(struct seq_file *s, void *v)
+ 	__releases(htable->lock)
+ {
+-	struct xt_hashlimit_htable *htable = PDE_DATA(file_inode(s->private));
++	struct xt_hashlimit_htable *htable = PDE_DATA(file_inode(s->file));
+ 	unsigned int *bucket = v;
+ 
+ 	if (!IS_ERR(bucket))
+@@ -1130,7 +1130,7 @@ static void dl_seq_print(struct dsthash_ent *ent, u_int8_t family,
+ static int dl_seq_real_show_v2(struct dsthash_ent *ent, u_int8_t family,
+ 			       struct seq_file *s)
+ {
+-	struct xt_hashlimit_htable *ht = PDE_DATA(file_inode(s->private));
++	struct xt_hashlimit_htable *ht = PDE_DATA(file_inode(s->file));
+ 
+ 	spin_lock(&ent->lock);
+ 	/* recalculate to show accurate numbers */
+@@ -1145,7 +1145,7 @@ static int dl_seq_real_show_v2(struct dsthash_ent *ent, u_int8_t family,
+ static int dl_seq_real_show_v1(struct dsthash_ent *ent, u_int8_t family,
+ 			       struct seq_file *s)
+ {
+-	struct xt_hashlimit_htable *ht = PDE_DATA(file_inode(s->private));
++	struct xt_hashlimit_htable *ht = PDE_DATA(file_inode(s->file));
+ 
+ 	spin_lock(&ent->lock);
+ 	/* recalculate to show accurate numbers */
+@@ -1160,7 +1160,7 @@ static int dl_seq_real_show_v1(struct dsthash_ent *ent, u_int8_t family,
+ static int dl_seq_real_show(struct dsthash_ent *ent, u_int8_t family,
+ 			    struct seq_file *s)
+ {
+-	struct xt_hashlimit_htable *ht = PDE_DATA(file_inode(s->private));
++	struct xt_hashlimit_htable *ht = PDE_DATA(file_inode(s->file));
+ 
+ 	spin_lock(&ent->lock);
+ 	/* recalculate to show accurate numbers */
+@@ -1174,7 +1174,7 @@ static int dl_seq_real_show(struct dsthash_ent *ent, u_int8_t family,
+ 
+ static int dl_seq_show_v2(struct seq_file *s, void *v)
+ {
+-	struct xt_hashlimit_htable *htable = PDE_DATA(file_inode(s->private));
++	struct xt_hashlimit_htable *htable = PDE_DATA(file_inode(s->file));
+ 	unsigned int *bucket = (unsigned int *)v;
+ 	struct dsthash_ent *ent;
+ 
+@@ -1188,7 +1188,7 @@ static int dl_seq_show_v2(struct seq_file *s, void *v)
+ 
+ static int dl_seq_show_v1(struct seq_file *s, void *v)
+ {
+-	struct xt_hashlimit_htable *htable = PDE_DATA(file_inode(s->private));
++	struct xt_hashlimit_htable *htable = PDE_DATA(file_inode(s->file));
+ 	unsigned int *bucket = v;
+ 	struct dsthash_ent *ent;
+ 
+@@ -1202,7 +1202,7 @@ static int dl_seq_show_v1(struct seq_file *s, void *v)
+ 
+ static int dl_seq_show(struct seq_file *s, void *v)
+ {
+-	struct xt_hashlimit_htable *htable = PDE_DATA(file_inode(s->private));
++	struct xt_hashlimit_htable *htable = PDE_DATA(file_inode(s->file));
+ 	unsigned int *bucket = v;
+ 	struct dsthash_ent *ent;
+ 
+-- 
+2.14.4
