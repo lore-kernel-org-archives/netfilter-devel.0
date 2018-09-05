@@ -1,56 +1,62 @@
-From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+From: "Michael S. Tsirkin" <mst@redhat.com>
 Subject: Re: [RFC] UAPI: Check headers by compiling all together as C++
-Date: Wed, 05 Sep 2018 19:33:38 +0200
-Message-ID: <a1efae8d26cc5b73b180e9521d6b62590c55aa86.camel@opteya.com>
+Date: Wed, 5 Sep 2018 13:42:58 -0400
+Message-ID: <20180905133711-mutt-send-email-mst@kernel.org>
 References: <153616286704.23468.584491117180383924.stgit@warthog.procyon.org.uk>
  <20180905165552.GB25206@kroah.com>
+ <a1efae8d26cc5b73b180e9521d6b62590c55aa86.camel@opteya.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
-Cc: moderated for non-subscribers <alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org>,
- "Michael S. Tsirkin" <mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, David Airlie <airlied-cv59FeDIM0c@public.gmane.org>,
- Jason Wang <jasowang-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>,
- Mat Martineau <mathew.j.martineau-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>,
- dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, virtualization-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org,
- Masahiro Yamada <yamada.masahiro-uWyLwvC0a2jby3iVrkZq2A@public.gmane.org>, keyrings-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
- Ryusuke Konishi <konishi.ryusuke-Zyj7fXuS5i5L9jVzuh4AOg@public.gmane.org>, linux-nilfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
- linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, codalist-/uMB558Y47wP4a1z8dhFYw@public.gmane.org, coda-ETDLCGt7PQU3uPMLIKxrzw@public.gmane.org,
- coreteam-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org, Kent Overstreet <kent.overstreet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>,
- linux-kbuild-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
- Coly Li <colyli-l3A5Bk7waGM@public.gmane.org>, linux-bcache-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
- Jaroslav Kysela <perex-/Fr2/VpizcU@public.gmane.org>, Jan Harkes <jaharkes-ETDLCGt7PQU3uPMLIKxrzw@public.gmane.org>,
- Michal Marek <michal.lkml-yyZNWGI4GtDR7s880joybQ@public.gmane.org>, linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
- Takashi Iwai <tiwai-IBi9RG/b67k@public.gmane.org>, linux-kernel@
-To: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>, David Howells <dhowells-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20180905165552.GB25206-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Cc: moderated for non-subscribers <alsa-devel@alsa-project.org>,
+ David Airlie <airlied@linux.ie>, Greg KH <greg@kroah.com>,
+ Jason Wang <jasowang@redhat.com>,
+ Mat Martineau <mathew.j.martineau@linux.intel.com>,
+ dri-devel@lists.freedesktop.org, virtualization@lists.linux-foundation.org,
+ David Howells <dhowells@redhat.com>,
+ Masahiro Yamada <yamada.masahiro@socionext.com>, keyrings@vger.kernel.org,
+ Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>, linux-nilfs@vger.kernel.org,
+ linux-nvdimm@lists.01.org, codalist@coda.cs.cmu.edu, coda@cs.cmu.edu,
+ coreteam@netfilter.org, Kent Overstreet <kent.overstreet@gmail.com>,
+ linux-kbuild@vger.kernel.org, linux-arm-msm@vger.kernel.org,
+ Coly Li <colyli@suse.de>, linux-bcache@vger.kernel.org,
+ Dan Williams <dan.j.williams@intel.com>, Jaroslav Kysela <perex@perex.cz>,
+ Jan Harkes <jaharkes@cs.cmu.edu>, Michal Marek <michal.lkml@markovi.net>,
+ linux
+To: Yann Droneaud <ydroneaud@opteya.com>
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Disposition: inline
+In-Reply-To: <a1efae8d26cc5b73b180e9521d6b62590c55aa86.camel@opteya.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
 List-Id: netfilter-devel.vger.kernel.org
 
-SGksCgpMZSBtZXJjcmVkaSAwNSBzZXB0ZW1icmUgMjAxOCDDoCAxODo1NSArMDIwMCwgR3JlZyBL
-SCBhIMOpY3JpdCA6Cj4gT24gV2VkLCBTZXAgMDUsIDIwMTggYXQgMDQ6NTQ6MjdQTSArMDEwMCwg
-RGF2aWQgSG93ZWxscyB3cm90ZToKPiA+IAo+ID4gSGVyZSdzIGEgc2V0IG9mIHBhdGNoZXMgdGhh
-dCBpbnNlcnRzIGEgc3RlcCBpbnRvIHRoZSBidWlsZCBwcm9jZXNzIHRvIG1ha2UKPiA+IHN1cmUg
-dGhhdCB0aGUgVUFQSSBoZWFkZXJzIGNhbiBhbGwgYmUgYnVpbHQgdG9nZXRoZXIgd2l0aCBDKysg
-KGlmIHRoZQo+ID4gY29tcGlsZXIgYmVpbmcgdXNlZCBzdXBwb3J0cyBDKyspLiAgQWxsIGJ1dCB0
-aGUgZmluYWwgcGF0Y2ggcGVyZm9ybSBmaXh1cHMsCj4gPiBpbmNsdWRpbmc6Cj4gCj4gV2FpdCwg
-d2h5IGRvIHdlIGNhcmU/ICBXaGF0IGhhcyByZWNlbnRseSBjaGFuZ2VkIHRvIHN0YXJ0IHRvIGRp
-cmVjdGx5Cj4gaW1wb3J0IGtlcm5lbCB1YXBpIGZpbGVzIGludG8gQysrIGNvZGU/Cj4gCj4gQW5k
-IGlmIHVzZXJzcGFjZSB3YW50cyB0byBkbyB0aGlzLCBjYW4ndCB0aGV5IGRvIHRoZSBDIG5hbWVz
-cGFjZSB0cmljawo+IHRoZW1zZWx2ZXMgd2hlbiB0aGV5IGRvIHRoZSBpbXBvcnQ/ICBUaGF0IG11
-c3QgYmUgaG93IHRoZXkgYXJlIGRvaW5nIGl0Cj4gdG9kYXksIHJpZ2h0Pwo+IAoKVGhleSBjYW4n
-dC4KCgpBZGRpbmcgZXh0ZXJuICJDIiB7IH0gZG9lc24ndCBtYWdpY2FsbHkgbWFrZSAiY2xhc3Mi
-IGEgbm9uIGtleXdvcmQuCkV2ZW4gaWYgaXQgd2FzIHRoZSBjYXNlLCB3cml0aW5nIEMrKyBjb2Rl
-IHVzaW5nIHdoYXRldmVyLT5jbGFzcyB3b3VsZApwcm9iYWJseSBicm9rZSBiZWNhdXNlIGNsYXNz
-IGlzIGEga2V5d29yZCBpbiBDKysuCgotLSAKWWFubiBEcm9uZWF1ZApPUFRFWUEKCgpfX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFp
-bGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcv
-bWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
+T24gV2VkLCBTZXAgMDUsIDIwMTggYXQgMDc6MzM6MzhQTSArMDIwMCwgWWFubiBEcm9uZWF1ZCB3
+cm90ZToKPiBIaSwKPiAKPiBMZSBtZXJjcmVkaSAwNSBzZXB0ZW1icmUgMjAxOCDDoCAxODo1NSAr
+MDIwMCwgR3JlZyBLSCBhIMOpY3JpdCA6Cj4gPiBPbiBXZWQsIFNlcCAwNSwgMjAxOCBhdCAwNDo1
+NDoyN1BNICswMTAwLCBEYXZpZCBIb3dlbGxzIHdyb3RlOgo+ID4gPiAKPiA+ID4gSGVyZSdzIGEg
+c2V0IG9mIHBhdGNoZXMgdGhhdCBpbnNlcnRzIGEgc3RlcCBpbnRvIHRoZSBidWlsZCBwcm9jZXNz
+IHRvIG1ha2UKPiA+ID4gc3VyZSB0aGF0IHRoZSBVQVBJIGhlYWRlcnMgY2FuIGFsbCBiZSBidWls
+dCB0b2dldGhlciB3aXRoIEMrKyAoaWYgdGhlCj4gPiA+IGNvbXBpbGVyIGJlaW5nIHVzZWQgc3Vw
+cG9ydHMgQysrKS4gIEFsbCBidXQgdGhlIGZpbmFsIHBhdGNoIHBlcmZvcm0gZml4dXBzLAo+ID4g
+PiBpbmNsdWRpbmc6Cj4gPiAKPiA+IFdhaXQsIHdoeSBkbyB3ZSBjYXJlPyAgV2hhdCBoYXMgcmVj
+ZW50bHkgY2hhbmdlZCB0byBzdGFydCB0byBkaXJlY3RseQo+ID4gaW1wb3J0IGtlcm5lbCB1YXBp
+IGZpbGVzIGludG8gQysrIGNvZGU/Cj4gPiAKPiA+IEFuZCBpZiB1c2Vyc3BhY2Ugd2FudHMgdG8g
+ZG8gdGhpcywgY2FuJ3QgdGhleSBkbyB0aGUgQyBuYW1lc3BhY2UgdHJpY2sKPiA+IHRoZW1zZWx2
+ZXMgd2hlbiB0aGV5IGRvIHRoZSBpbXBvcnQ/ICBUaGF0IG11c3QgYmUgaG93IHRoZXkgYXJlIGRv
+aW5nIGl0Cj4gPiB0b2RheSwgcmlnaHQ/Cj4gPiAKPiAKPiBUaGV5IGNhbid0Lgo+IAo+IAo+IEFk
+ZGluZyBleHRlcm4gIkMiIHsgfSBkb2Vzbid0IG1hZ2ljYWxseSBtYWtlICJjbGFzcyIgYSBub24g
+a2V5d29yZC4KPiBFdmVuIGlmIGl0IHdhcyB0aGUgY2FzZSwgd3JpdGluZyBDKysgY29kZSB1c2lu
+ZyB3aGF0ZXZlci0+Y2xhc3Mgd291bGQKPiBwcm9iYWJseSBicm9rZSBiZWNhdXNlIGNsYXNzIGlz
+IGEga2V5d29yZCBpbiBDKysuCgpJIHRoaW5rIGl0J3MgYSBidWcgaW4gdGhlIGxhbmd1YWdlIFRC
+SC4KCj4gLS0gCj4gWWFubiBEcm9uZWF1ZAo+IE9QVEVZQQo+IApfX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1k
+ZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcv
+bWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWwK
