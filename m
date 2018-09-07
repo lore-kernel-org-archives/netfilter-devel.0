@@ -1,75 +1,127 @@
-From: David Howells <dhowells@redhat.com>
-Subject: [PATCH 07/11] UAPI: netfilter: Fix symbol collision issues [ver #2]
-Date: Thu, 06 Sep 2018 10:19:11 +0100
-Message-ID: <153622555128.14298.11612304975343930534.stgit@warthog.procyon.org.uk>
-References: <153622549721.14298.8116794954073122489.stgit@warthog.procyon.org.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+From: Tan Hu <tan.hu@zte.com.cn>
+Subject: [PATCH] netfilter: masquerade: don't flush all conntracks if only one address deleted on device
+Date: Fri, 7 Sep 2018 16:33:33 +0800
+Message-ID: <1536309213-19632-1-git-send-email-tan.hu@zte.com.cn>
 Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        linux-kernel@vger.kernel.org, dhowells@redhat.com
-To: linux-api@vger.kernel.org, linux-kbuild@vger.kernel.org
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        zhong.weidong@zte.com.cn, jiang.biao2@zte.com.cn
+To: pablo@netfilter.org, kadlec@blackhole.kfki.hu, fw@strlen.de,
+        davem@davemloft.net, kuznet@ms2.inr.ac.ru, yoshfuji@linux-ipv6.org
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <153622549721.14298.8116794954073122489.stgit@warthog.procyon.org.uk>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-The netfilter UAPI headers have some symbol collision issues:
+We configured iptables as below, which only allowed incoming data on
+established connections:
 
- (1) "enum nfnl_acct_msg_types" is defined twice, and each definition is
-     completely different.
+iptables -t mangle -A PREROUTING -m state --state ESTABLISHED -j ACCEPT
+iptables -t mangle -P PREROUTING DROP
 
-     Fix this by renaming the one in nfnetlink_cthelper.h to be "enum
-     nfnl_cthelper_types" to be consistent with the other things in that
-     file.
+When deleting a secondary address, current masquerade implements would
+flush all conntracks on this device. All the established connections on
+primary address also be deleted, then subsequent incoming data on the
+connections would be dropped wrongly because it was identified as NEW
+connection.
 
- (2) There's a disagreement between ipt_ECN.h and ipt_ecn.h over the
-     definition of various IPT_ECN_* constants, leading to an error over
-     IPT_ECN_IP_MASK being substituted when being defined as an enum value
-     in ipt_ecn.h if ipt_ECN.h is #included first.
+So when an address was delete, it should only flush connections related
+with the address.
 
-     Fix this by removing the conflicting constants from ipt_ECN.h and
-     including ipt_ecn.h instead.
-
-Signed-off-by: David Howells <dhowells@redhat.com>
-cc: netfilter-devel@vger.kernel.org
-cc: coreteam@netfilter.org
+Signed-off-by: Tan Hu <tan.hu@zte.com.cn>
 ---
+ net/ipv4/netfilter/nf_nat_masquerade_ipv4.c | 22 +++++++++++++++++++---
+ net/ipv6/netfilter/nf_nat_masquerade_ipv6.c | 19 ++++++++++++++++---
+ 2 files changed, 35 insertions(+), 6 deletions(-)
 
- include/uapi/linux/netfilter/nfnetlink_cthelper.h |    2 +-
- include/uapi/linux/netfilter_ipv4/ipt_ECN.h       |    9 +--------
- 2 files changed, 2 insertions(+), 9 deletions(-)
-
-diff --git a/include/uapi/linux/netfilter/nfnetlink_cthelper.h b/include/uapi/linux/netfilter/nfnetlink_cthelper.h
-index a13137afc429..b9313ed0c313 100644
---- a/include/uapi/linux/netfilter/nfnetlink_cthelper.h
-+++ b/include/uapi/linux/netfilter/nfnetlink_cthelper.h
-@@ -5,7 +5,7 @@
- #define NFCT_HELPER_STATUS_DISABLED	0
- #define NFCT_HELPER_STATUS_ENABLED	1
+diff --git a/net/ipv4/netfilter/nf_nat_masquerade_ipv4.c b/net/ipv4/netfilter/nf_nat_masquerade_ipv4.c
+index ad3aeff..a9d5e01 100644
+--- a/net/ipv4/netfilter/nf_nat_masquerade_ipv4.c
++++ b/net/ipv4/netfilter/nf_nat_masquerade_ipv4.c
+@@ -104,12 +104,26 @@ static int masq_device_event(struct notifier_block *this,
+ 	return NOTIFY_DONE;
+ }
  
--enum nfnl_acct_msg_types {
-+enum nfnl_cthelper_types {
- 	NFNL_MSG_CTHELPER_NEW,
- 	NFNL_MSG_CTHELPER_GET,
- 	NFNL_MSG_CTHELPER_DEL,
-diff --git a/include/uapi/linux/netfilter_ipv4/ipt_ECN.h b/include/uapi/linux/netfilter_ipv4/ipt_ECN.h
-index e3630fd045b8..d582119ad62a 100644
---- a/include/uapi/linux/netfilter_ipv4/ipt_ECN.h
-+++ b/include/uapi/linux/netfilter_ipv4/ipt_ECN.h
-@@ -12,14 +12,7 @@
++static int inet_cmp(struct nf_conn *ct, void *ptr)
++{
++	struct in_ifaddr *ifa = (struct in_ifaddr *)ptr;
++	struct net_device *dev = ifa->ifa_dev->dev;
++	struct nf_conntrack_tuple *tuple;
++
++	if (!device_cmp(ct, (void *)(long)dev->ifindex))
++		return 0;
++
++	tuple = &ct->tuplehash[IP_CT_DIR_REPLY].tuple;
++
++	return ifa->ifa_address == tuple->dst.u3.ip;
++}
++
+ static int masq_inet_event(struct notifier_block *this,
+ 			   unsigned long event,
+ 			   void *ptr)
+ {
+ 	struct in_device *idev = ((struct in_ifaddr *)ptr)->ifa_dev;
+-	struct netdev_notifier_info info;
++	struct net *net = dev_net(idev->dev);
  
- #include <linux/types.h>
- #include <linux/netfilter/xt_DSCP.h>
--
--#define IPT_ECN_IP_MASK	(~XT_DSCP_MASK)
--
--#define IPT_ECN_OP_SET_IP	0x01	/* set ECN bits of IPv4 header */
--#define IPT_ECN_OP_SET_ECE	0x10	/* set ECE bit of TCP header */
--#define IPT_ECN_OP_SET_CWR	0x20	/* set CWR bit of TCP header */
--
--#define IPT_ECN_OP_MASK		0xce
-+#include <linux/netfilter_ipv4/ipt_ecn.h>
+ 	/* The masq_dev_notifier will catch the case of the device going
+ 	 * down.  So if the inetdev is dead and being destroyed we have
+@@ -119,8 +133,10 @@ static int masq_inet_event(struct notifier_block *this,
+ 	if (idev->dead)
+ 		return NOTIFY_DONE;
  
- struct ipt_ECN_info {
- 	__u8 operation;	/* bitset of operations */
+-	netdev_notifier_info_init(&info, idev->dev);
+-	return masq_device_event(this, event, &info);
++	if (event == NETDEV_DOWN)
++		nf_ct_iterate_cleanup_net(net, inet_cmp, ptr, 0, 0);
++
++	return NOTIFY_DONE;
+ }
+ 
+ static struct notifier_block masq_dev_notifier = {
+diff --git a/net/ipv6/netfilter/nf_nat_masquerade_ipv6.c b/net/ipv6/netfilter/nf_nat_masquerade_ipv6.c
+index e6eb7cf..3e4bf22 100644
+--- a/net/ipv6/netfilter/nf_nat_masquerade_ipv6.c
++++ b/net/ipv6/netfilter/nf_nat_masquerade_ipv6.c
+@@ -87,18 +87,30 @@ static struct notifier_block masq_dev_notifier = {
+ struct masq_dev_work {
+ 	struct work_struct work;
+ 	struct net *net;
++	struct in6_addr addr;
+ 	int ifindex;
+ };
+ 
++static int inet_cmp(struct nf_conn *ct, void *work)
++{
++	struct masq_dev_work *w = (struct masq_dev_work *)work;
++	struct nf_conntrack_tuple *tuple;
++
++	if (!device_cmp(ct, (void *)(long)w->ifindex))
++		return 0;
++
++	tuple = &ct->tuplehash[IP_CT_DIR_REPLY].tuple;
++
++	return ipv6_addr_equal(&w->addr, &tuple->dst.u3.in6);
++}
++
+ static void iterate_cleanup_work(struct work_struct *work)
+ {
+ 	struct masq_dev_work *w;
+-	long index;
+ 
+ 	w = container_of(work, struct masq_dev_work, work);
+ 
+-	index = w->ifindex;
+-	nf_ct_iterate_cleanup_net(w->net, device_cmp, (void *)index, 0, 0);
++	nf_ct_iterate_cleanup_net(w->net, inet_cmp, (void *)w, 0, 0);
+ 
+ 	put_net(w->net);
+ 	kfree(w);
+@@ -147,6 +159,7 @@ static int masq_inet_event(struct notifier_block *this,
+ 		INIT_WORK(&w->work, iterate_cleanup_work);
+ 		w->ifindex = dev->ifindex;
+ 		w->net = net;
++		w->addr = ifa->addr;
+ 		schedule_work(&w->work);
+ 
+ 		return NOTIFY_DONE;
+-- 
+1.8.3.1
