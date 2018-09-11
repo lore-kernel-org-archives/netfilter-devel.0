@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 07/12] netfilter: nf_tables: release chain in flushing set
-Date: Tue, 11 Sep 2018 02:20:39 +0200
-Message-ID: <20180911002044.9100-8-pablo@netfilter.org>
+Subject: [PATCH 06/12] netfilter: kconfig: nat related expression depend on nftables core
+Date: Tue, 11 Sep 2018 02:20:38 +0200
+Message-ID: <20180911002044.9100-7-pablo@netfilter.org>
 References: <20180911002044.9100-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,76 +10,61 @@ In-Reply-To: <20180911002044.9100-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Taehee Yoo <ap420073@gmail.com>
+From: Florian Westphal <fw@strlen.de>
 
-When element of verdict map is deleted, the delete routine should
-release chain. however, flush element of verdict map routine doesn't
-release chain.
+NF_TABLES_IPV4 is now boolean so it is possible to set
 
-test commands:
-   %nft add table ip filter
-   %nft add chain ip filter c1
-   %nft add map ip filter map1 { type ipv4_addr : verdict \; }
-   %nft add element ip filter map1 { 1 : jump c1 }
-   %nft flush map ip filter map1
-   %nft flush ruleset
+NF_TABLES=m
+NF_TABLES_IPV4=y
+NFT_CHAIN_NAT_IPV4=y
 
-splat looks like:
-[ 4895.170899] kernel BUG at net/netfilter/nf_tables_api.c:1415!
-[ 4895.178114] invalid opcode: 0000 [#1] SMP DEBUG_PAGEALLOC KASAN PTI
-[ 4895.178880] CPU: 0 PID: 1670 Comm: nft Not tainted 4.18.0+ #55
-[ 4895.178880] RIP: 0010:nf_tables_chain_destroy.isra.28+0x39/0x220 [nf_tables]
-[ 4895.178880] Code: fc ff df 53 48 89 fb 48 83 c7 50 48 89 fa 48 c1 ea 03 0f b6 04 02 84 c0 74 09 3c 03 7f 05 e8 3e 4c 25 e1 8b 43 50 85 c0 74 02 <0f> 0b 48 89 da 48 b8 00 00 00 00 00 fc ff df 48 c1 ea 03 80 3c 02
-[ 4895.228342] RSP: 0018:ffff88010b98f4c0 EFLAGS: 00010202
-[ 4895.234841] RAX: 0000000000000001 RBX: ffff8801131c6968 RCX: ffff8801146585b0
-[ 4895.234841] RDX: 1ffff10022638d37 RSI: ffff8801191a9348 RDI: ffff8801131c69b8
-[ 4895.234841] RBP: ffff8801146585a8 R08: 1ffff1002323526a R09: 0000000000000000
-[ 4895.234841] R10: 0000000000000000 R11: 0000000000000000 R12: dead000000000200
-[ 4895.234841] R13: dead000000000100 R14: ffffffffa3638af8 R15: dffffc0000000000
-[ 4895.234841] FS:  00007f6d188e6700(0000) GS:ffff88011b600000(0000) knlGS:0000000000000000
-[ 4895.234841] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[ 4895.234841] CR2: 00007ffe72b8df88 CR3: 000000010e2d4000 CR4: 00000000001006f0
-[ 4895.234841] Call Trace:
-[ 4895.234841]  nf_tables_commit+0x2704/0x2c70 [nf_tables]
-[ 4895.234841]  ? nfnetlink_rcv_batch+0xa4f/0x11b0 [nfnetlink]
-[ 4895.234841]  ? nf_tables_setelem_notify.constprop.48+0x1a0/0x1a0 [nf_tables]
-[ 4895.323824]  ? __lock_is_held+0x9d/0x130
-[ 4895.323824]  ? kasan_unpoison_shadow+0x30/0x40
-[ 4895.333299]  ? kasan_kmalloc+0xa9/0xc0
-[ 4895.333299]  ? kmem_cache_alloc_trace+0x2c0/0x310
-[ 4895.333299]  ? nfnetlink_rcv_batch+0xa4f/0x11b0 [nfnetlink]
-[ 4895.333299]  nfnetlink_rcv_batch+0xdb9/0x11b0 [nfnetlink]
-[ 4895.333299]  ? debug_show_all_locks+0x290/0x290
-[ 4895.333299]  ? nfnetlink_net_init+0x150/0x150 [nfnetlink]
-[ 4895.333299]  ? sched_clock_cpu+0xe5/0x170
-[ 4895.333299]  ? sched_clock_local+0xff/0x130
-[ 4895.333299]  ? sched_clock_cpu+0xe5/0x170
-[ 4895.333299]  ? find_held_lock+0x39/0x1b0
-[ 4895.333299]  ? sched_clock_local+0xff/0x130
-[ 4895.333299]  ? memset+0x1f/0x40
-[ 4895.333299]  ? nla_parse+0x33/0x260
-[ 4895.333299]  ? ns_capable_common+0x6e/0x110
-[ 4895.333299]  nfnetlink_rcv+0x2c0/0x310 [nfnetlink]
-[ ... ]
+which causes:
+nft_chain_nat_ipv4.c:(.text+0x6d): undefined reference to `nft_do_chain'
 
-Fixes: 591054469b3e ("netfilter: nf_tables: revisit chain/object refcounting from elements")
-Signed-off-by: Taehee Yoo <ap420073@gmail.com>
+Wrap NFT_CHAIN_NAT_IPV4 and related nat expressions with NF_TABLES to
+restore the dependency.
+
+Reported-by: Randy Dunlap <rdunlap@infradead.org>
+Fixes: 02c7b25e5f54 ("netfilter: nf_tables: build-in filter chain type")
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Acked-by: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c | 1 +
- 1 file changed, 1 insertion(+)
+ net/ipv4/netfilter/Kconfig | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 1dca5683f59f..2cfb173cd0b2 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -4637,6 +4637,7 @@ static int nft_flush_set(const struct nft_ctx *ctx,
- 	}
- 	set->ndeact++;
+diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
+index d9504adc47b3..184bf2e0a1ed 100644
+--- a/net/ipv4/netfilter/Kconfig
++++ b/net/ipv4/netfilter/Kconfig
+@@ -106,6 +106,10 @@ config NF_NAT_IPV4
  
-+	nft_set_elem_deactivate(ctx->net, set, elem);
- 	nft_trans_elem_set(trans) = set;
- 	nft_trans_elem(trans) = *elem;
- 	list_add_tail(&trans->list, &ctx->net->nft.commit_list);
+ if NF_NAT_IPV4
+ 
++config NF_NAT_MASQUERADE_IPV4
++	bool
++
++if NF_TABLES
+ config NFT_CHAIN_NAT_IPV4
+ 	depends on NF_TABLES_IPV4
+ 	tristate "IPv4 nf_tables nat chain support"
+@@ -115,9 +119,6 @@ config NFT_CHAIN_NAT_IPV4
+ 	  packet transformations such as the source, destination address and
+ 	  source and destination ports.
+ 
+-config NF_NAT_MASQUERADE_IPV4
+-	bool
+-
+ config NFT_MASQ_IPV4
+ 	tristate "IPv4 masquerading support for nf_tables"
+ 	depends on NF_TABLES_IPV4
+@@ -135,6 +136,7 @@ config NFT_REDIR_IPV4
+ 	help
+ 	  This is the expression that provides IPv4 redirect support for
+ 	  nf_tables.
++endif # NF_TABLES
+ 
+ config NF_NAT_SNMP_BASIC
+ 	tristate "Basic SNMP-ALG support"
 -- 
 2.11.0
