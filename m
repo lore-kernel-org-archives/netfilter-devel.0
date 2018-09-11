@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 11/12] netfilter: nfnetlink_queue: Solve the NFQUEUE/conntrack clash for NF_REPEAT
-Date: Tue, 11 Sep 2018 02:20:43 +0200
-Message-ID: <20180911002044.9100-12-pablo@netfilter.org>
+Subject: [PATCH 12/12] netfilter: xt_hashlimit: use s->file instead of s->private
+Date: Tue, 11 Sep 2018 02:20:44 +0200
+Message-ID: <20180911002044.9100-13-pablo@netfilter.org>
 References: <20180911002044.9100-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,31 +10,106 @@ In-Reply-To: <20180911002044.9100-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Michal 'vorner' Vaner <michal.vaner@avast.com>
+From: Cong Wang <xiyou.wangcong@gmail.com>
 
-NF_REPEAT places the packet at the beginning of the iptables chain
-instead of accepting or rejecting it right away. The packet however will
-reach the end of the chain and continue to the end of iptables
-eventually, so it needs the same handling as NF_ACCEPT and NF_DROP.
+After switching to the new procfs API, it is supposed to
+retrieve the private pointer from PDE_DATA(file_inode(s->file)),
+s->private is no longer referred.
 
-Fixes: 368982cd7d1b ("netfilter: nfnetlink_queue: resolve clash for unconfirmed conntracks")
-Signed-off-by: Michal 'vorner' Vaner <michal.vaner@avast.com>
+Fixes: 1cd671827290 ("netfilter/x_tables: switch to proc_create_seq_private")
+Reported-by: Sami Farin <hvtaifwkbgefbaei@gmail.com>
+Signed-off-by: Cong Wang <xiyou.wangcong@gmail.com>
+Acked-by: Christoph Hellwig <hch@lst.de>
+Tested-by: Sami Farin <hvtaifwkbgefbaei@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nfnetlink_queue.c | 1 +
- 1 file changed, 1 insertion(+)
+ net/netfilter/xt_hashlimit.c | 18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index ea4ba551abb2..d33094f4ec41 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -233,6 +233,7 @@ static void nfqnl_reinject(struct nf_queue_entry *entry, unsigned int verdict)
- 	int err;
+diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
+index 9b16402f29af..3e7d259e5d8d 100644
+--- a/net/netfilter/xt_hashlimit.c
++++ b/net/netfilter/xt_hashlimit.c
+@@ -1057,7 +1057,7 @@ static struct xt_match hashlimit_mt_reg[] __read_mostly = {
+ static void *dl_seq_start(struct seq_file *s, loff_t *pos)
+ 	__acquires(htable->lock)
+ {
+-	struct xt_hashlimit_htable *htable = PDE_DATA(file_inode(s->private));
++	struct xt_hashlimit_htable *htable = PDE_DATA(file_inode(s->file));
+ 	unsigned int *bucket;
  
- 	if (verdict == NF_ACCEPT ||
-+	    verdict == NF_REPEAT ||
- 	    verdict == NF_STOP) {
- 		rcu_read_lock();
- 		ct_hook = rcu_dereference(nf_ct_hook);
+ 	spin_lock_bh(&htable->lock);
+@@ -1074,7 +1074,7 @@ static void *dl_seq_start(struct seq_file *s, loff_t *pos)
+ 
+ static void *dl_seq_next(struct seq_file *s, void *v, loff_t *pos)
+ {
+-	struct xt_hashlimit_htable *htable = PDE_DATA(file_inode(s->private));
++	struct xt_hashlimit_htable *htable = PDE_DATA(file_inode(s->file));
+ 	unsigned int *bucket = v;
+ 
+ 	*pos = ++(*bucket);
+@@ -1088,7 +1088,7 @@ static void *dl_seq_next(struct seq_file *s, void *v, loff_t *pos)
+ static void dl_seq_stop(struct seq_file *s, void *v)
+ 	__releases(htable->lock)
+ {
+-	struct xt_hashlimit_htable *htable = PDE_DATA(file_inode(s->private));
++	struct xt_hashlimit_htable *htable = PDE_DATA(file_inode(s->file));
+ 	unsigned int *bucket = v;
+ 
+ 	if (!IS_ERR(bucket))
+@@ -1130,7 +1130,7 @@ static void dl_seq_print(struct dsthash_ent *ent, u_int8_t family,
+ static int dl_seq_real_show_v2(struct dsthash_ent *ent, u_int8_t family,
+ 			       struct seq_file *s)
+ {
+-	struct xt_hashlimit_htable *ht = PDE_DATA(file_inode(s->private));
++	struct xt_hashlimit_htable *ht = PDE_DATA(file_inode(s->file));
+ 
+ 	spin_lock(&ent->lock);
+ 	/* recalculate to show accurate numbers */
+@@ -1145,7 +1145,7 @@ static int dl_seq_real_show_v2(struct dsthash_ent *ent, u_int8_t family,
+ static int dl_seq_real_show_v1(struct dsthash_ent *ent, u_int8_t family,
+ 			       struct seq_file *s)
+ {
+-	struct xt_hashlimit_htable *ht = PDE_DATA(file_inode(s->private));
++	struct xt_hashlimit_htable *ht = PDE_DATA(file_inode(s->file));
+ 
+ 	spin_lock(&ent->lock);
+ 	/* recalculate to show accurate numbers */
+@@ -1160,7 +1160,7 @@ static int dl_seq_real_show_v1(struct dsthash_ent *ent, u_int8_t family,
+ static int dl_seq_real_show(struct dsthash_ent *ent, u_int8_t family,
+ 			    struct seq_file *s)
+ {
+-	struct xt_hashlimit_htable *ht = PDE_DATA(file_inode(s->private));
++	struct xt_hashlimit_htable *ht = PDE_DATA(file_inode(s->file));
+ 
+ 	spin_lock(&ent->lock);
+ 	/* recalculate to show accurate numbers */
+@@ -1174,7 +1174,7 @@ static int dl_seq_real_show(struct dsthash_ent *ent, u_int8_t family,
+ 
+ static int dl_seq_show_v2(struct seq_file *s, void *v)
+ {
+-	struct xt_hashlimit_htable *htable = PDE_DATA(file_inode(s->private));
++	struct xt_hashlimit_htable *htable = PDE_DATA(file_inode(s->file));
+ 	unsigned int *bucket = (unsigned int *)v;
+ 	struct dsthash_ent *ent;
+ 
+@@ -1188,7 +1188,7 @@ static int dl_seq_show_v2(struct seq_file *s, void *v)
+ 
+ static int dl_seq_show_v1(struct seq_file *s, void *v)
+ {
+-	struct xt_hashlimit_htable *htable = PDE_DATA(file_inode(s->private));
++	struct xt_hashlimit_htable *htable = PDE_DATA(file_inode(s->file));
+ 	unsigned int *bucket = v;
+ 	struct dsthash_ent *ent;
+ 
+@@ -1202,7 +1202,7 @@ static int dl_seq_show_v1(struct seq_file *s, void *v)
+ 
+ static int dl_seq_show(struct seq_file *s, void *v)
+ {
+-	struct xt_hashlimit_htable *htable = PDE_DATA(file_inode(s->private));
++	struct xt_hashlimit_htable *htable = PDE_DATA(file_inode(s->file));
+ 	unsigned int *bucket = v;
+ 	struct dsthash_ent *ent;
+ 
 -- 
 2.11.0
