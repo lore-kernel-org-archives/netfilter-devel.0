@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 06/12] netfilter: kconfig: nat related expression depend on nftables core
-Date: Tue, 11 Sep 2018 02:20:38 +0200
-Message-ID: <20180911002044.9100-7-pablo@netfilter.org>
+Subject: [PATCH 05/12] netfilter: nf_tables: rework ct timeout set support
+Date: Tue, 11 Sep 2018 02:20:37 +0200
+Message-ID: <20180911002044.9100-6-pablo@netfilter.org>
 References: <20180911002044.9100-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -12,59 +12,173 @@ List-Id: netfilter-devel.vger.kernel.org
 
 From: Florian Westphal <fw@strlen.de>
 
-NF_TABLES_IPV4 is now boolean so it is possible to set
+Using a private template is problematic:
 
-NF_TABLES=m
-NF_TABLES_IPV4=y
-NFT_CHAIN_NAT_IPV4=y
+1. We can't assign both a zone and a timeout policy
+   (zone assigns a conntrack template, so we hit problem 1)
+2. Using a template needs to take care of ct refcount, else we'll
+   eventually free the private template due to ->use underflow.
 
-which causes:
-nft_chain_nat_ipv4.c:(.text+0x6d): undefined reference to `nft_do_chain'
+This patch reworks template policy to instead work with existing conntrack.
 
-Wrap NFT_CHAIN_NAT_IPV4 and related nat expressions with NF_TABLES to
-restore the dependency.
+As long as such conntrack has not yet been placed into the hash table
+(unconfirmed) we can still add the timeout extension.
 
-Reported-by: Randy Dunlap <rdunlap@infradead.org>
-Fixes: 02c7b25e5f54 ("netfilter: nf_tables: build-in filter chain type")
+The only caveat is that we now need to update/correct ct->timeout to
+reflect the initial/new state, otherwise the conntrack entry retains the
+default 'new' timeout.
+
+Side effect of this change is that setting the policy must
+now occur from chains that are evaluated *after* the conntrack lookup
+has taken place.
+
+No released kernel contains the timeout policy feature yet, so this change
+should be ok.
+
+Changes since v2:
+ - don't handle 'ct is confirmed case'
+ - after previous patch, no need to special-case tcp/dccp/sctp timeout
+   anymore
+
 Signed-off-by: Florian Westphal <fw@strlen.de>
-Acked-by: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/ipv4/netfilter/Kconfig | 8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ include/net/netfilter/nf_conntrack_timeout.h |  2 +-
+ net/netfilter/nft_ct.c                       | 59 ++++++++++++++--------------
+ 2 files changed, 30 insertions(+), 31 deletions(-)
 
-diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
-index d9504adc47b3..184bf2e0a1ed 100644
---- a/net/ipv4/netfilter/Kconfig
-+++ b/net/ipv4/netfilter/Kconfig
-@@ -106,6 +106,10 @@ config NF_NAT_IPV4
+diff --git a/include/net/netfilter/nf_conntrack_timeout.h b/include/net/netfilter/nf_conntrack_timeout.h
+index d5f62cc6c2ae..3394d75e1c80 100644
+--- a/include/net/netfilter/nf_conntrack_timeout.h
++++ b/include/net/netfilter/nf_conntrack_timeout.h
+@@ -30,7 +30,7 @@ struct nf_conn_timeout {
+ };
  
- if NF_NAT_IPV4
+ static inline unsigned int *
+-nf_ct_timeout_data(struct nf_conn_timeout *t)
++nf_ct_timeout_data(const struct nf_conn_timeout *t)
+ {
+ 	struct nf_ct_timeout *timeout;
  
-+config NF_NAT_MASQUERADE_IPV4
-+	bool
+diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
+index 26a8baebd072..5dd87748afa8 100644
+--- a/net/netfilter/nft_ct.c
++++ b/net/netfilter/nft_ct.c
+@@ -799,7 +799,7 @@ nft_ct_timeout_parse_policy(void *timeouts,
+ }
+ 
+ struct nft_ct_timeout_obj {
+-	struct nf_conn		*tmpl;
++	struct nf_ct_timeout    *timeout;
+ 	u8			l4proto;
+ };
+ 
+@@ -809,26 +809,42 @@ static void nft_ct_timeout_obj_eval(struct nft_object *obj,
+ {
+ 	const struct nft_ct_timeout_obj *priv = nft_obj_data(obj);
+ 	struct nf_conn *ct = (struct nf_conn *)skb_nfct(pkt->skb);
+-	struct sk_buff *skb = pkt->skb;
++	struct nf_conn_timeout *timeout;
++	const unsigned int *values;
 +
-+if NF_TABLES
- config NFT_CHAIN_NAT_IPV4
- 	depends on NF_TABLES_IPV4
- 	tristate "IPv4 nf_tables nat chain support"
-@@ -115,9 +119,6 @@ config NFT_CHAIN_NAT_IPV4
- 	  packet transformations such as the source, destination address and
- 	  source and destination ports.
++	if (priv->l4proto != pkt->tprot)
++		return;
  
--config NF_NAT_MASQUERADE_IPV4
--	bool
+-	if (ct ||
+-	    priv->l4proto != pkt->tprot)
++	if (!ct || nf_ct_is_template(ct) || nf_ct_is_confirmed(ct))
+ 		return;
+ 
+-	nf_ct_set(skb, priv->tmpl, IP_CT_NEW);
++	timeout = nf_ct_timeout_find(ct);
++	if (!timeout) {
++		timeout = nf_ct_timeout_ext_add(ct, priv->timeout, GFP_ATOMIC);
++		if (!timeout) {
++			regs->verdict.code = NF_DROP;
++			return;
++		}
++	}
++
++	rcu_assign_pointer(timeout->timeout, priv->timeout);
++
++	/* adjust the timeout as per 'new' state. ct is unconfirmed,
++	 * so the current timestamp must not be added.
++	 */
++	values = nf_ct_timeout_data(timeout);
++	if (values)
++		nf_ct_refresh(ct, pkt->skb, values[0]);
+ }
+ 
+ static int nft_ct_timeout_obj_init(const struct nft_ctx *ctx,
+ 				   const struct nlattr * const tb[],
+ 				   struct nft_object *obj)
+ {
+-	const struct nf_conntrack_zone *zone = &nf_ct_zone_dflt;
+ 	struct nft_ct_timeout_obj *priv = nft_obj_data(obj);
+ 	const struct nf_conntrack_l4proto *l4proto;
+-	struct nf_conn_timeout *timeout_ext;
+ 	struct nf_ct_timeout *timeout;
+ 	int l3num = ctx->family;
+-	struct nf_conn *tmpl;
+ 	__u8 l4num;
+ 	int ret;
+ 
+@@ -863,28 +879,14 @@ static int nft_ct_timeout_obj_init(const struct nft_ctx *ctx,
+ 
+ 	timeout->l3num = l3num;
+ 	timeout->l4proto = l4proto;
+-	tmpl = nf_ct_tmpl_alloc(ctx->net, zone, GFP_ATOMIC);
+-	if (!tmpl) {
+-		ret = -ENOMEM;
+-		goto err_free_timeout;
+-	}
 -
- config NFT_MASQ_IPV4
- 	tristate "IPv4 masquerading support for nf_tables"
- 	depends on NF_TABLES_IPV4
-@@ -135,6 +136,7 @@ config NFT_REDIR_IPV4
- 	help
- 	  This is the expression that provides IPv4 redirect support for
- 	  nf_tables.
-+endif # NF_TABLES
+-	timeout_ext = nf_ct_timeout_ext_add(tmpl, timeout, GFP_ATOMIC);
+-	if (!timeout_ext) {
+-		ret = -ENOMEM;
+-		goto err_free_tmpl;
+-	}
  
- config NF_NAT_SNMP_BASIC
- 	tristate "Basic SNMP-ALG support"
+ 	ret = nf_ct_netns_get(ctx->net, ctx->family);
+ 	if (ret < 0)
+-		goto err_free_tmpl;
+-
+-	priv->tmpl = tmpl;
++		goto err_free_timeout;
+ 
++	priv->timeout = timeout;
+ 	return 0;
+ 
+-err_free_tmpl:
+-	nf_ct_tmpl_free(tmpl);
+ err_free_timeout:
+ 	kfree(timeout);
+ err_proto_put:
+@@ -896,22 +898,19 @@ static void nft_ct_timeout_obj_destroy(const struct nft_ctx *ctx,
+ 				       struct nft_object *obj)
+ {
+ 	struct nft_ct_timeout_obj *priv = nft_obj_data(obj);
+-	struct nf_conn_timeout *t = nf_ct_timeout_find(priv->tmpl);
+-	struct nf_ct_timeout *timeout;
++	struct nf_ct_timeout *timeout = priv->timeout;
+ 
+-	timeout = rcu_dereference_raw(t->timeout);
+ 	nf_ct_untimeout(ctx->net, timeout);
+ 	nf_ct_l4proto_put(timeout->l4proto);
+ 	nf_ct_netns_put(ctx->net, ctx->family);
+-	nf_ct_tmpl_free(priv->tmpl);
++	kfree(priv->timeout);
+ }
+ 
+ static int nft_ct_timeout_obj_dump(struct sk_buff *skb,
+ 				   struct nft_object *obj, bool reset)
+ {
+ 	const struct nft_ct_timeout_obj *priv = nft_obj_data(obj);
+-	const struct nf_conn_timeout *t = nf_ct_timeout_find(priv->tmpl);
+-	const struct nf_ct_timeout *timeout = rcu_dereference_raw(t->timeout);
++	const struct nf_ct_timeout *timeout = priv->timeout;
+ 	struct nlattr *nest_params;
+ 	int ret;
+ 
 -- 
 2.11.0
