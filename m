@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 10/12] netfilter: cttimeout: ctnl_timeout_find_get() returns incorrect pointer to type
-Date: Tue, 11 Sep 2018 02:20:42 +0200
-Message-ID: <20180911002044.9100-11-pablo@netfilter.org>
+Subject: [PATCH 11/12] netfilter: nfnetlink_queue: Solve the NFQUEUE/conntrack clash for NF_REPEAT
+Date: Tue, 11 Sep 2018 02:20:43 +0200
+Message-ID: <20180911002044.9100-12-pablo@netfilter.org>
 References: <20180911002044.9100-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,44 +10,31 @@ In-Reply-To: <20180911002044.9100-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Compiler did not catch incorrect typing in the rcu hook assignment.
+From: Michal 'vorner' Vaner <michal.vaner@avast.com>
 
- % nfct add timeout test-tcp inet tcp established 100 close 10 close_wait 10
- % iptables -I OUTPUT -t raw -p tcp -j CT --timeout test-tcp
- dmesg - xt_CT: Timeout policy `test-tcp' can only be used by L3 protocol number 25000
+NF_REPEAT places the packet at the beginning of the iptables chain
+instead of accepting or rejecting it right away. The packet however will
+reach the end of the chain and continue to the end of iptables
+eventually, so it needs the same handling as NF_ACCEPT and NF_DROP.
 
-The CT target bails out with incorrect layer 3 protocol number.
-
-Fixes: 6c1fd7dc489d ("netfilter: cttimeout: decouple timeout policy from nfnetlink_cttimeout object")
-Reported-by: Harsha Sharma <harshasharmaiitr@gmail.com>
+Fixes: 368982cd7d1b ("netfilter: nfnetlink_queue: resolve clash for unconfirmed conntracks")
+Signed-off-by: Michal 'vorner' Vaner <michal.vaner@avast.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nfnetlink_cttimeout.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ net/netfilter/nfnetlink_queue.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/net/netfilter/nfnetlink_cttimeout.c b/net/netfilter/nfnetlink_cttimeout.c
-index d46a236cdf31..a30f8ba4b89a 100644
---- a/net/netfilter/nfnetlink_cttimeout.c
-+++ b/net/netfilter/nfnetlink_cttimeout.c
-@@ -489,8 +489,8 @@ static int cttimeout_default_get(struct net *net, struct sock *ctnl,
- 	return err;
- }
+diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+index ea4ba551abb2..d33094f4ec41 100644
+--- a/net/netfilter/nfnetlink_queue.c
++++ b/net/netfilter/nfnetlink_queue.c
+@@ -233,6 +233,7 @@ static void nfqnl_reinject(struct nf_queue_entry *entry, unsigned int verdict)
+ 	int err;
  
--static struct ctnl_timeout *
--ctnl_timeout_find_get(struct net *net, const char *name)
-+static struct nf_ct_timeout *ctnl_timeout_find_get(struct net *net,
-+						   const char *name)
- {
- 	struct ctnl_timeout *timeout, *matching = NULL;
- 
-@@ -509,7 +509,7 @@ ctnl_timeout_find_get(struct net *net, const char *name)
- 		break;
- 	}
- err:
--	return matching;
-+	return matching ? &matching->timeout : NULL;
- }
- 
- static void ctnl_timeout_put(struct nf_ct_timeout *t)
+ 	if (verdict == NF_ACCEPT ||
++	    verdict == NF_REPEAT ||
+ 	    verdict == NF_STOP) {
+ 		rcu_read_lock();
+ 		ct_hook = rcu_dereference(nf_ct_hook);
 -- 
 2.11.0
