@@ -1,119 +1,123 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 00/12] Netfilter fixes for net
-Date: Tue, 11 Sep 2018 02:20:32 +0200
-Message-ID: <20180911002044.9100-1-pablo@netfilter.org>
+Subject: [PATCH 03/12] netfilter: xt_checksum: ignore gso skbs
+Date: Tue, 11 Sep 2018 02:20:35 +0200
+Message-ID: <20180911002044.9100-4-pablo@netfilter.org>
+References: <20180911002044.9100-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20180911002044.9100-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi David,
+From: Florian Westphal <fw@strlen.de>
 
-The following patchset contains Netfilter fixes for you net tree:
+Satish Patel reports a skb_warn_bad_offload() splat caused
+by -j CHECKSUM rules:
 
-1) Remove duplicated include at the end of UDP conntrack, from Yue Haibing.
+-A POSTROUTING -p tcp -m tcp --sport 80 -j CHECKSUM
 
-2) Restore conntrack dependency on xt_cluster, from Martin Willi.
+The CHECKSUM target has never worked with GSO skbs, and the above rule
+makes no sense as kernel will handle checksum updates on transmit.
 
-3) Fix splat with GSO skbs from the checksum target, from Florian Westphal.
+Unfortunately, there are 3rd party tools that install such rules, so we
+cannot reject this from the config plane without potential breakage.
 
-4) Rework ct timeout support, the template strategy to attach custom timeouts
-   is not correct since it will not work in conjunction with conntrack zones
-   and we have a possible free after use when removing the rule due to missing
-   refcounting. To fix these problems, do not use conntrack template at all
-   and set custom timeout on the already valid conntrack object. This
-   fix comes with a preparation patch to simplify timeout adjustment by
-   initializating the first position of the timeout array for all of the
-   existing trackers. Patchset from Florian Westphal.
+Amend Kconfig text to clarify that the CHECKSUM target is only useful
+in virtualized environments, where old dhcp clients that use AF_PACKET
+used to discard UDP packets with a 'bad' header checksum and add a
+one-time warning in case such rule isn't restricted to UDP.
 
-5) Fix missing dependency on from IPv4 chain NAT type, from Florian.
+v2: check IP6T_F_PROTO flag before cmp (Michal Kubecek)
 
-6) Release chain reference counter from the flush path, from Taehee Yoo.
+Reported-by: Satish Patel <satish.txt@gmail.com>
+Reported-by: Markos Chandras <markos.chandras@suse.com>
+Reported-by: Michal Kubecek <mkubecek@suse.cz>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Reviewed-by: Michal Kubecek <mkubecek@suse.cz>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/Kconfig       | 12 ++++++------
+ net/netfilter/xt_CHECKSUM.c | 22 +++++++++++++++++++++-
+ 2 files changed, 27 insertions(+), 7 deletions(-)
 
-7) After flushing an iptables ruleset, conntrack hooks are unregistered
-   and entries are left stale to be cleaned up by the timeout garbage
-   collector. No TCP tracking is done on established flows by this time.
-   If ruleset is reloaded, then hooks are registered again and TCP
-   tracking is restored, which considers packets to be invalid. Clear
-   window tracking to exercise TCP flow pickup from the middle given that
-   history is lost for us. Again from Florian.
-
-8) Fix crash from netlink interface with CONFIG_NF_CONNTRACK_TIMEOUT=y
-   and CONFIG_NF_CT_NETLINK_TIMEOUT=n.
-
-9) Broken CT target due to returning incorrect type from
-   ctnl_timeout_find_get().
-
-10) Solve conntrack clash on NF_REPEAT verdicts too, from Michal Vaner.
-
-11) Missing conversion of hashlimit sysctl interface to new API, from
-    Cong Wang.
-
-You can pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
-
-Thanks.
-
-----------------------------------------------------------------
-
-The following changes since commit 0d092f06faa46b95a8e07b9bb5737b7c0f1176ee:
-
-  Merge branch 'for-upstream' of git://git.kernel.org/pub/scm/linux/kernel/git/bluetooth/bluetooth (2018-08-22 22:43:11 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git HEAD
-
-for you to fetch changes up to 1286df269f498165061e0cf8092ca212545dbb5a:
-
-  netfilter: xt_hashlimit: use s->file instead of s->private (2018-09-11 01:35:32 +0200)
-
-----------------------------------------------------------------
-Cong Wang (1):
-      netfilter: xt_hashlimit: use s->file instead of s->private
-
-Florian Westphal (5):
-      netfilter: xt_checksum: ignore gso skbs
-      netfilter: conntrack: place 'new' timeout in first location too
-      netfilter: nf_tables: rework ct timeout set support
-      netfilter: kconfig: nat related expression depend on nftables core
-      netfilter: conntrack: reset tcp maxwin on re-register
-
-Martin Willi (1):
-      netfilter: xt_cluster: add dependency on conntrack module
-
-Michal 'vorner' Vaner (1):
-      netfilter: nfnetlink_queue: Solve the NFQUEUE/conntrack clash for NF_REPEAT
-
-Pablo Neira Ayuso (2):
-      netfilter: conntrack: timeout interface depend on CONFIG_NF_CONNTRACK_TIMEOUT
-      netfilter: cttimeout: ctnl_timeout_find_get() returns incorrect pointer to type
-
-Taehee Yoo (1):
-      netfilter: nf_tables: release chain in flushing set
-
-Yue Haibing (1):
-      netfilter: conntrack: remove duplicated include from nf_conntrack_proto_udp.c
-
- include/net/netfilter/nf_conntrack_timeout.h |  2 +-
- net/ipv4/netfilter/Kconfig                   |  8 ++--
- net/netfilter/Kconfig                        | 12 +++---
- net/netfilter/nf_conntrack_proto.c           | 26 ++++++++++++
- net/netfilter/nf_conntrack_proto_dccp.c      | 19 ++++++---
- net/netfilter/nf_conntrack_proto_generic.c   |  8 ++--
- net/netfilter/nf_conntrack_proto_gre.c       |  8 ++--
- net/netfilter/nf_conntrack_proto_icmp.c      |  8 ++--
- net/netfilter/nf_conntrack_proto_icmpv6.c    |  8 ++--
- net/netfilter/nf_conntrack_proto_sctp.c      | 21 ++++++----
- net/netfilter/nf_conntrack_proto_tcp.c       | 19 ++++++---
- net/netfilter/nf_conntrack_proto_udp.c       | 21 +++++-----
- net/netfilter/nf_tables_api.c                |  1 +
- net/netfilter/nfnetlink_cttimeout.c          |  6 +--
- net/netfilter/nfnetlink_queue.c              |  1 +
- net/netfilter/nft_ct.c                       | 59 ++++++++++++++--------------
- net/netfilter/xt_CHECKSUM.c                  | 22 ++++++++++-
- net/netfilter/xt_cluster.c                   | 14 ++++++-
- net/netfilter/xt_hashlimit.c                 | 18 ++++-----
- 19 files changed, 181 insertions(+), 100 deletions(-)
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index 71709c104081..f61c306de1d0 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -771,13 +771,13 @@ config NETFILTER_XT_TARGET_CHECKSUM
+ 	depends on NETFILTER_ADVANCED
+ 	---help---
+ 	  This option adds a `CHECKSUM' target, which can be used in the iptables mangle
+-	  table.
++	  table to work around buggy DHCP clients in virtualized environments.
+ 
+-	  You can use this target to compute and fill in the checksum in
+-	  a packet that lacks a checksum.  This is particularly useful,
+-	  if you need to work around old applications such as dhcp clients,
+-	  that do not work well with checksum offloads, but don't want to disable
+-	  checksum offload in your device.
++	  Some old DHCP clients drop packets because they are not aware
++	  that the checksum would normally be offloaded to hardware and
++	  thus should be considered valid.
++	  This target can be used to fill in the checksum using iptables
++	  when such packets are sent via a virtual network device.
+ 
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+ 
+diff --git a/net/netfilter/xt_CHECKSUM.c b/net/netfilter/xt_CHECKSUM.c
+index 9f4151ec3e06..6c7aa6a0a0d2 100644
+--- a/net/netfilter/xt_CHECKSUM.c
++++ b/net/netfilter/xt_CHECKSUM.c
+@@ -16,6 +16,9 @@
+ #include <linux/netfilter/x_tables.h>
+ #include <linux/netfilter/xt_CHECKSUM.h>
+ 
++#include <linux/netfilter_ipv4/ip_tables.h>
++#include <linux/netfilter_ipv6/ip6_tables.h>
++
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Michael S. Tsirkin <mst@redhat.com>");
+ MODULE_DESCRIPTION("Xtables: checksum modification");
+@@ -25,7 +28,7 @@ MODULE_ALIAS("ip6t_CHECKSUM");
+ static unsigned int
+ checksum_tg(struct sk_buff *skb, const struct xt_action_param *par)
+ {
+-	if (skb->ip_summed == CHECKSUM_PARTIAL)
++	if (skb->ip_summed == CHECKSUM_PARTIAL && !skb_is_gso(skb))
+ 		skb_checksum_help(skb);
+ 
+ 	return XT_CONTINUE;
+@@ -34,6 +37,8 @@ checksum_tg(struct sk_buff *skb, const struct xt_action_param *par)
+ static int checksum_tg_check(const struct xt_tgchk_param *par)
+ {
+ 	const struct xt_CHECKSUM_info *einfo = par->targinfo;
++	const struct ip6t_ip6 *i6 = par->entryinfo;
++	const struct ipt_ip *i4 = par->entryinfo;
+ 
+ 	if (einfo->operation & ~XT_CHECKSUM_OP_FILL) {
+ 		pr_info_ratelimited("unsupported CHECKSUM operation %x\n",
+@@ -43,6 +48,21 @@ static int checksum_tg_check(const struct xt_tgchk_param *par)
+ 	if (!einfo->operation)
+ 		return -EINVAL;
+ 
++	switch (par->family) {
++	case NFPROTO_IPV4:
++		if (i4->proto == IPPROTO_UDP &&
++		    (i4->invflags & XT_INV_PROTO) == 0)
++			return 0;
++		break;
++	case NFPROTO_IPV6:
++		if ((i6->flags & IP6T_F_PROTO) &&
++		    i6->proto == IPPROTO_UDP &&
++		    (i6->invflags & XT_INV_PROTO) == 0)
++			return 0;
++		break;
++	}
++
++	pr_warn_once("CHECKSUM should be avoided.  If really needed, restrict with \"-p udp\" and only use in OUTPUT\n");
+ 	return 0;
+ }
+ 
+-- 
+2.11.0
