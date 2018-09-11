@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 09/12] netfilter: conntrack: timeout interface depend on CONFIG_NF_CONNTRACK_TIMEOUT
-Date: Tue, 11 Sep 2018 02:20:41 +0200
-Message-ID: <20180911002044.9100-10-pablo@netfilter.org>
+Subject: [PATCH 07/12] netfilter: nf_tables: release chain in flushing set
+Date: Tue, 11 Sep 2018 02:20:39 +0200
+Message-ID: <20180911002044.9100-8-pablo@netfilter.org>
 References: <20180911002044.9100-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,458 +10,76 @@ In-Reply-To: <20180911002044.9100-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Now that cttimeout support for nft_ct is in place, these should depend
-on CONFIG_NF_CONNTRACK_TIMEOUT otherwise we can crash when dumping the
-policy if this option is not enabled.
+From: Taehee Yoo <ap420073@gmail.com>
 
-[   71.600121] BUG: unable to handle kernel NULL pointer dereference at 0000000000000000
-[...]
-[   71.600141] CPU: 3 PID: 7612 Comm: nft Not tainted 4.18.0+ #246
-[...]
-[   71.600188] Call Trace:
-[   71.600201]  ? nft_ct_timeout_obj_dump+0xc6/0xf0 [nft_ct]
+When element of verdict map is deleted, the delete routine should
+release chain. however, flush element of verdict map routine doesn't
+release chain.
 
+test commands:
+   %nft add table ip filter
+   %nft add chain ip filter c1
+   %nft add map ip filter map1 { type ipv4_addr : verdict \; }
+   %nft add element ip filter map1 { 1 : jump c1 }
+   %nft flush map ip filter map1
+   %nft flush ruleset
+
+splat looks like:
+[ 4895.170899] kernel BUG at net/netfilter/nf_tables_api.c:1415!
+[ 4895.178114] invalid opcode: 0000 [#1] SMP DEBUG_PAGEALLOC KASAN PTI
+[ 4895.178880] CPU: 0 PID: 1670 Comm: nft Not tainted 4.18.0+ #55
+[ 4895.178880] RIP: 0010:nf_tables_chain_destroy.isra.28+0x39/0x220 [nf_tables]
+[ 4895.178880] Code: fc ff df 53 48 89 fb 48 83 c7 50 48 89 fa 48 c1 ea 03 0f b6 04 02 84 c0 74 09 3c 03 7f 05 e8 3e 4c 25 e1 8b 43 50 85 c0 74 02 <0f> 0b 48 89 da 48 b8 00 00 00 00 00 fc ff df 48 c1 ea 03 80 3c 02
+[ 4895.228342] RSP: 0018:ffff88010b98f4c0 EFLAGS: 00010202
+[ 4895.234841] RAX: 0000000000000001 RBX: ffff8801131c6968 RCX: ffff8801146585b0
+[ 4895.234841] RDX: 1ffff10022638d37 RSI: ffff8801191a9348 RDI: ffff8801131c69b8
+[ 4895.234841] RBP: ffff8801146585a8 R08: 1ffff1002323526a R09: 0000000000000000
+[ 4895.234841] R10: 0000000000000000 R11: 0000000000000000 R12: dead000000000200
+[ 4895.234841] R13: dead000000000100 R14: ffffffffa3638af8 R15: dffffc0000000000
+[ 4895.234841] FS:  00007f6d188e6700(0000) GS:ffff88011b600000(0000) knlGS:0000000000000000
+[ 4895.234841] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[ 4895.234841] CR2: 00007ffe72b8df88 CR3: 000000010e2d4000 CR4: 00000000001006f0
+[ 4895.234841] Call Trace:
+[ 4895.234841]  nf_tables_commit+0x2704/0x2c70 [nf_tables]
+[ 4895.234841]  ? nfnetlink_rcv_batch+0xa4f/0x11b0 [nfnetlink]
+[ 4895.234841]  ? nf_tables_setelem_notify.constprop.48+0x1a0/0x1a0 [nf_tables]
+[ 4895.323824]  ? __lock_is_held+0x9d/0x130
+[ 4895.323824]  ? kasan_unpoison_shadow+0x30/0x40
+[ 4895.333299]  ? kasan_kmalloc+0xa9/0xc0
+[ 4895.333299]  ? kmem_cache_alloc_trace+0x2c0/0x310
+[ 4895.333299]  ? nfnetlink_rcv_batch+0xa4f/0x11b0 [nfnetlink]
+[ 4895.333299]  nfnetlink_rcv_batch+0xdb9/0x11b0 [nfnetlink]
+[ 4895.333299]  ? debug_show_all_locks+0x290/0x290
+[ 4895.333299]  ? nfnetlink_net_init+0x150/0x150 [nfnetlink]
+[ 4895.333299]  ? sched_clock_cpu+0xe5/0x170
+[ 4895.333299]  ? sched_clock_local+0xff/0x130
+[ 4895.333299]  ? sched_clock_cpu+0xe5/0x170
+[ 4895.333299]  ? find_held_lock+0x39/0x1b0
+[ 4895.333299]  ? sched_clock_local+0xff/0x130
+[ 4895.333299]  ? memset+0x1f/0x40
+[ 4895.333299]  ? nla_parse+0x33/0x260
+[ 4895.333299]  ? ns_capable_common+0x6e/0x110
+[ 4895.333299]  nfnetlink_rcv+0x2c0/0x310 [nfnetlink]
+[ ... ]
+
+Fixes: 591054469b3e ("netfilter: nf_tables: revisit chain/object refcounting from elements")
+Signed-off-by: Taehee Yoo <ap420073@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_conntrack_proto_dccp.c    | 12 ++++++------
- net/netfilter/nf_conntrack_proto_generic.c |  8 ++++----
- net/netfilter/nf_conntrack_proto_gre.c     |  8 ++++----
- net/netfilter/nf_conntrack_proto_icmp.c    |  8 ++++----
- net/netfilter/nf_conntrack_proto_icmpv6.c  |  8 ++++----
- net/netfilter/nf_conntrack_proto_sctp.c    | 14 +++++++-------
- net/netfilter/nf_conntrack_proto_tcp.c     | 12 ++++++------
- net/netfilter/nf_conntrack_proto_udp.c     | 20 ++++++++++----------
- 8 files changed, 45 insertions(+), 45 deletions(-)
+ net/netfilter/nf_tables_api.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/net/netfilter/nf_conntrack_proto_dccp.c b/net/netfilter/nf_conntrack_proto_dccp.c
-index b81f70039828..f3f91ed2c21a 100644
---- a/net/netfilter/nf_conntrack_proto_dccp.c
-+++ b/net/netfilter/nf_conntrack_proto_dccp.c
-@@ -675,7 +675,7 @@ static int nlattr_to_dccp(struct nlattr *cda[], struct nf_conn *ct)
- }
- #endif
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 1dca5683f59f..2cfb173cd0b2 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -4637,6 +4637,7 @@ static int nft_flush_set(const struct nft_ctx *ctx,
+ 	}
+ 	set->ndeact++;
  
--#if IS_ENABLED(CONFIG_NF_CT_NETLINK_TIMEOUT)
-+#ifdef CONFIG_NF_CONNTRACK_TIMEOUT
- 
- #include <linux/netfilter/nfnetlink.h>
- #include <linux/netfilter/nfnetlink_cttimeout.h>
-@@ -728,7 +728,7 @@ dccp_timeout_nla_policy[CTA_TIMEOUT_DCCP_MAX+1] = {
- 	[CTA_TIMEOUT_DCCP_CLOSING]	= { .type = NLA_U32 },
- 	[CTA_TIMEOUT_DCCP_TIMEWAIT]	= { .type = NLA_U32 },
- };
--#endif /* CONFIG_NF_CT_NETLINK_TIMEOUT */
-+#endif /* CONFIG_NF_CONNTRACK_TIMEOUT */
- 
- #ifdef CONFIG_SYSCTL
- /* template, data assigned later */
-@@ -863,7 +863,7 @@ const struct nf_conntrack_l4proto nf_conntrack_l4proto_dccp4 = {
- 	.nlattr_to_tuple	= nf_ct_port_nlattr_to_tuple,
- 	.nla_policy		= nf_ct_port_nla_policy,
- #endif
--#if IS_ENABLED(CONFIG_NF_CT_NETLINK_TIMEOUT)
-+#ifdef CONFIG_NF_CONNTRACK_TIMEOUT
- 	.ctnl_timeout		= {
- 		.nlattr_to_obj	= dccp_timeout_nlattr_to_obj,
- 		.obj_to_nlattr	= dccp_timeout_obj_to_nlattr,
-@@ -871,7 +871,7 @@ const struct nf_conntrack_l4proto nf_conntrack_l4proto_dccp4 = {
- 		.obj_size	= sizeof(unsigned int) * CT_DCCP_MAX,
- 		.nla_policy	= dccp_timeout_nla_policy,
- 	},
--#endif /* CONFIG_NF_CT_NETLINK_TIMEOUT */
-+#endif /* CONFIG_NF_CONNTRACK_TIMEOUT */
- 	.init_net		= dccp_init_net,
- 	.get_net_proto		= dccp_get_net_proto,
- };
-@@ -896,7 +896,7 @@ const struct nf_conntrack_l4proto nf_conntrack_l4proto_dccp6 = {
- 	.nlattr_to_tuple	= nf_ct_port_nlattr_to_tuple,
- 	.nla_policy		= nf_ct_port_nla_policy,
- #endif
--#if IS_ENABLED(CONFIG_NF_CT_NETLINK_TIMEOUT)
-+#ifdef CONFIG_NF_CONNTRACK_TIMEOUT
- 	.ctnl_timeout		= {
- 		.nlattr_to_obj	= dccp_timeout_nlattr_to_obj,
- 		.obj_to_nlattr	= dccp_timeout_obj_to_nlattr,
-@@ -904,7 +904,7 @@ const struct nf_conntrack_l4proto nf_conntrack_l4proto_dccp6 = {
- 		.obj_size	= sizeof(unsigned int) * CT_DCCP_MAX,
- 		.nla_policy	= dccp_timeout_nla_policy,
- 	},
--#endif /* CONFIG_NF_CT_NETLINK_TIMEOUT */
-+#endif /* CONFIG_NF_CONNTRACK_TIMEOUT */
- 	.init_net		= dccp_init_net,
- 	.get_net_proto		= dccp_get_net_proto,
- };
-diff --git a/net/netfilter/nf_conntrack_proto_generic.c b/net/netfilter/nf_conntrack_proto_generic.c
-index ac4a0b296dcd..1df3244ecd07 100644
---- a/net/netfilter/nf_conntrack_proto_generic.c
-+++ b/net/netfilter/nf_conntrack_proto_generic.c
-@@ -70,7 +70,7 @@ static bool generic_new(struct nf_conn *ct, const struct sk_buff *skb,
- 	return ret;
- }
- 
--#if IS_ENABLED(CONFIG_NF_CT_NETLINK_TIMEOUT)
-+#ifdef CONFIG_NF_CONNTRACK_TIMEOUT
- 
- #include <linux/netfilter/nfnetlink.h>
- #include <linux/netfilter/nfnetlink_cttimeout.h>
-@@ -113,7 +113,7 @@ static const struct nla_policy
- generic_timeout_nla_policy[CTA_TIMEOUT_GENERIC_MAX+1] = {
- 	[CTA_TIMEOUT_GENERIC_TIMEOUT]	= { .type = NLA_U32 },
- };
--#endif /* CONFIG_NF_CT_NETLINK_TIMEOUT */
-+#endif /* CONFIG_NF_CONNTRACK_TIMEOUT */
- 
- #ifdef CONFIG_SYSCTL
- static struct ctl_table generic_sysctl_table[] = {
-@@ -164,7 +164,7 @@ const struct nf_conntrack_l4proto nf_conntrack_l4proto_generic =
- 	.pkt_to_tuple		= generic_pkt_to_tuple,
- 	.packet			= generic_packet,
- 	.new			= generic_new,
--#if IS_ENABLED(CONFIG_NF_CT_NETLINK_TIMEOUT)
-+#ifdef CONFIG_NF_CONNTRACK_TIMEOUT
- 	.ctnl_timeout		= {
- 		.nlattr_to_obj	= generic_timeout_nlattr_to_obj,
- 		.obj_to_nlattr	= generic_timeout_obj_to_nlattr,
-@@ -172,7 +172,7 @@ const struct nf_conntrack_l4proto nf_conntrack_l4proto_generic =
- 		.obj_size	= sizeof(unsigned int),
- 		.nla_policy	= generic_timeout_nla_policy,
- 	},
--#endif /* CONFIG_NF_CT_NETLINK_TIMEOUT */
-+#endif /* CONFIG_NF_CONNTRACK_TIMEOUT */
- 	.init_net		= generic_init_net,
- 	.get_net_proto		= generic_get_net_proto,
- };
-diff --git a/net/netfilter/nf_conntrack_proto_gre.c b/net/netfilter/nf_conntrack_proto_gre.c
-index d1632252bf5b..650eb4fba2c5 100644
---- a/net/netfilter/nf_conntrack_proto_gre.c
-+++ b/net/netfilter/nf_conntrack_proto_gre.c
-@@ -285,7 +285,7 @@ static void gre_destroy(struct nf_conn *ct)
- 		nf_ct_gre_keymap_destroy(master);
- }
- 
--#if IS_ENABLED(CONFIG_NF_CT_NETLINK_TIMEOUT)
-+#ifdef CONFIG_NF_CONNTRACK_TIMEOUT
- 
- #include <linux/netfilter/nfnetlink.h>
- #include <linux/netfilter/nfnetlink_cttimeout.h>
-@@ -334,7 +334,7 @@ gre_timeout_nla_policy[CTA_TIMEOUT_GRE_MAX+1] = {
- 	[CTA_TIMEOUT_GRE_UNREPLIED]	= { .type = NLA_U32 },
- 	[CTA_TIMEOUT_GRE_REPLIED]	= { .type = NLA_U32 },
- };
--#endif /* CONFIG_NF_CT_NETLINK_TIMEOUT */
-+#endif /* CONFIG_NF_CONNTRACK_TIMEOUT */
- 
- static int gre_init_net(struct net *net, u_int16_t proto)
- {
-@@ -367,7 +367,7 @@ static const struct nf_conntrack_l4proto nf_conntrack_l4proto_gre4 = {
- 	.nlattr_to_tuple = nf_ct_port_nlattr_to_tuple,
- 	.nla_policy	 = nf_ct_port_nla_policy,
- #endif
--#if IS_ENABLED(CONFIG_NF_CT_NETLINK_TIMEOUT)
-+#ifdef CONFIG_NF_CONNTRACK_TIMEOUT
- 	.ctnl_timeout    = {
- 		.nlattr_to_obj	= gre_timeout_nlattr_to_obj,
- 		.obj_to_nlattr	= gre_timeout_obj_to_nlattr,
-@@ -375,7 +375,7 @@ static const struct nf_conntrack_l4proto nf_conntrack_l4proto_gre4 = {
- 		.obj_size	= sizeof(unsigned int) * GRE_CT_MAX,
- 		.nla_policy	= gre_timeout_nla_policy,
- 	},
--#endif /* CONFIG_NF_CT_NETLINK_TIMEOUT */
-+#endif /* CONFIG_NF_CONNTRACK_TIMEOUT */
- 	.net_id		= &proto_gre_net_id,
- 	.init_net	= gre_init_net,
- };
-diff --git a/net/netfilter/nf_conntrack_proto_icmp.c b/net/netfilter/nf_conntrack_proto_icmp.c
-index 036670b38282..43c7e1a217b9 100644
---- a/net/netfilter/nf_conntrack_proto_icmp.c
-+++ b/net/netfilter/nf_conntrack_proto_icmp.c
-@@ -273,7 +273,7 @@ static unsigned int icmp_nlattr_tuple_size(void)
- }
- #endif
- 
--#if IS_ENABLED(CONFIG_NF_CT_NETLINK_TIMEOUT)
-+#ifdef CONFIG_NF_CONNTRACK_TIMEOUT
- 
- #include <linux/netfilter/nfnetlink.h>
- #include <linux/netfilter/nfnetlink_cttimeout.h>
-@@ -313,7 +313,7 @@ static const struct nla_policy
- icmp_timeout_nla_policy[CTA_TIMEOUT_ICMP_MAX+1] = {
- 	[CTA_TIMEOUT_ICMP_TIMEOUT]	= { .type = NLA_U32 },
- };
--#endif /* CONFIG_NF_CT_NETLINK_TIMEOUT */
-+#endif /* CONFIG_NF_CONNTRACK_TIMEOUT */
- 
- #ifdef CONFIG_SYSCTL
- static struct ctl_table icmp_sysctl_table[] = {
-@@ -374,7 +374,7 @@ const struct nf_conntrack_l4proto nf_conntrack_l4proto_icmp =
- 	.nlattr_to_tuple	= icmp_nlattr_to_tuple,
- 	.nla_policy		= icmp_nla_policy,
- #endif
--#if IS_ENABLED(CONFIG_NF_CT_NETLINK_TIMEOUT)
-+#ifdef CONFIG_NF_CONNTRACK_TIMEOUT
- 	.ctnl_timeout		= {
- 		.nlattr_to_obj	= icmp_timeout_nlattr_to_obj,
- 		.obj_to_nlattr	= icmp_timeout_obj_to_nlattr,
-@@ -382,7 +382,7 @@ const struct nf_conntrack_l4proto nf_conntrack_l4proto_icmp =
- 		.obj_size	= sizeof(unsigned int),
- 		.nla_policy	= icmp_timeout_nla_policy,
- 	},
--#endif /* CONFIG_NF_CT_NETLINK_TIMEOUT */
-+#endif /* CONFIG_NF_CONNTRACK_TIMEOUT */
- 	.init_net		= icmp_init_net,
- 	.get_net_proto		= icmp_get_net_proto,
- };
-diff --git a/net/netfilter/nf_conntrack_proto_icmpv6.c b/net/netfilter/nf_conntrack_proto_icmpv6.c
-index bed07b998a10..97e40f77d678 100644
---- a/net/netfilter/nf_conntrack_proto_icmpv6.c
-+++ b/net/netfilter/nf_conntrack_proto_icmpv6.c
-@@ -274,7 +274,7 @@ static unsigned int icmpv6_nlattr_tuple_size(void)
- }
- #endif
- 
--#if IS_ENABLED(CONFIG_NF_CT_NETLINK_TIMEOUT)
-+#ifdef CONFIG_NF_CONNTRACK_TIMEOUT
- 
- #include <linux/netfilter/nfnetlink.h>
- #include <linux/netfilter/nfnetlink_cttimeout.h>
-@@ -314,7 +314,7 @@ static const struct nla_policy
- icmpv6_timeout_nla_policy[CTA_TIMEOUT_ICMPV6_MAX+1] = {
- 	[CTA_TIMEOUT_ICMPV6_TIMEOUT]	= { .type = NLA_U32 },
- };
--#endif /* CONFIG_NF_CT_NETLINK_TIMEOUT */
-+#endif /* CONFIG_NF_CONNTRACK_TIMEOUT */
- 
- #ifdef CONFIG_SYSCTL
- static struct ctl_table icmpv6_sysctl_table[] = {
-@@ -373,7 +373,7 @@ const struct nf_conntrack_l4proto nf_conntrack_l4proto_icmpv6 =
- 	.nlattr_to_tuple	= icmpv6_nlattr_to_tuple,
- 	.nla_policy		= icmpv6_nla_policy,
- #endif
--#if IS_ENABLED(CONFIG_NF_CT_NETLINK_TIMEOUT)
-+#ifdef CONFIG_NF_CONNTRACK_TIMEOUT
- 	.ctnl_timeout		= {
- 		.nlattr_to_obj	= icmpv6_timeout_nlattr_to_obj,
- 		.obj_to_nlattr	= icmpv6_timeout_obj_to_nlattr,
-@@ -381,7 +381,7 @@ const struct nf_conntrack_l4proto nf_conntrack_l4proto_icmpv6 =
- 		.obj_size	= sizeof(unsigned int),
- 		.nla_policy	= icmpv6_timeout_nla_policy,
- 	},
--#endif /* CONFIG_NF_CT_NETLINK_TIMEOUT */
-+#endif /* CONFIG_NF_CONNTRACK_TIMEOUT */
- 	.init_net		= icmpv6_init_net,
- 	.get_net_proto		= icmpv6_get_net_proto,
- };
-diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
-index 5eddfd32b852..e4d738d34cd0 100644
---- a/net/netfilter/nf_conntrack_proto_sctp.c
-+++ b/net/netfilter/nf_conntrack_proto_sctp.c
-@@ -591,7 +591,7 @@ static int nlattr_to_sctp(struct nlattr *cda[], struct nf_conn *ct)
- }
- #endif
- 
--#if IS_ENABLED(CONFIG_NF_CT_NETLINK_TIMEOUT)
-+#ifdef CONFIG_NF_CONNTRACK_TIMEOUT
- 
- #include <linux/netfilter/nfnetlink.h>
- #include <linux/netfilter/nfnetlink_cttimeout.h>
-@@ -646,7 +646,7 @@ sctp_timeout_nla_policy[CTA_TIMEOUT_SCTP_MAX+1] = {
- 	[CTA_TIMEOUT_SCTP_HEARTBEAT_SENT]	= { .type = NLA_U32 },
- 	[CTA_TIMEOUT_SCTP_HEARTBEAT_ACKED]	= { .type = NLA_U32 },
- };
--#endif /* CONFIG_NF_CT_NETLINK_TIMEOUT */
-+#endif /* CONFIG_NF_CONNTRACK_TIMEOUT */
- 
- 
- #ifdef CONFIG_SYSCTL
-@@ -780,7 +780,7 @@ const struct nf_conntrack_l4proto nf_conntrack_l4proto_sctp4 = {
- 	.nlattr_to_tuple	= nf_ct_port_nlattr_to_tuple,
- 	.nla_policy		= nf_ct_port_nla_policy,
- #endif
--#if IS_ENABLED(CONFIG_NF_CT_NETLINK_TIMEOUT)
-+#ifdef CONFIG_NF_CONNTRACK_TIMEOUT
- 	.ctnl_timeout		= {
- 		.nlattr_to_obj	= sctp_timeout_nlattr_to_obj,
- 		.obj_to_nlattr	= sctp_timeout_obj_to_nlattr,
-@@ -788,7 +788,7 @@ const struct nf_conntrack_l4proto nf_conntrack_l4proto_sctp4 = {
- 		.obj_size	= sizeof(unsigned int) * SCTP_CONNTRACK_MAX,
- 		.nla_policy	= sctp_timeout_nla_policy,
- 	},
--#endif /* CONFIG_NF_CT_NETLINK_TIMEOUT */
-+#endif /* CONFIG_NF_CONNTRACK_TIMEOUT */
- 	.init_net		= sctp_init_net,
- 	.get_net_proto		= sctp_get_net_proto,
- };
-@@ -813,7 +813,8 @@ const struct nf_conntrack_l4proto nf_conntrack_l4proto_sctp6 = {
- 	.nlattr_tuple_size	= nf_ct_port_nlattr_tuple_size,
- 	.nlattr_to_tuple	= nf_ct_port_nlattr_to_tuple,
- 	.nla_policy		= nf_ct_port_nla_policy,
--#if IS_ENABLED(CONFIG_NF_CT_NETLINK_TIMEOUT)
-+#endif
-+#ifdef CONFIG_NF_CONNTRACK_TIMEOUT
- 	.ctnl_timeout		= {
- 		.nlattr_to_obj	= sctp_timeout_nlattr_to_obj,
- 		.obj_to_nlattr	= sctp_timeout_obj_to_nlattr,
-@@ -821,8 +822,7 @@ const struct nf_conntrack_l4proto nf_conntrack_l4proto_sctp6 = {
- 		.obj_size	= sizeof(unsigned int) * SCTP_CONNTRACK_MAX,
- 		.nla_policy	= sctp_timeout_nla_policy,
- 	},
--#endif /* CONFIG_NF_CT_NETLINK_TIMEOUT */
--#endif
-+#endif /* CONFIG_NF_CONNTRACK_TIMEOUT */
- 	.init_net		= sctp_init_net,
- 	.get_net_proto		= sctp_get_net_proto,
- };
-diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-index 3e2dc56a96c3..b4bdf9eda7b7 100644
---- a/net/netfilter/nf_conntrack_proto_tcp.c
-+++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -1279,7 +1279,7 @@ static unsigned int tcp_nlattr_tuple_size(void)
- }
- #endif
- 
--#if IS_ENABLED(CONFIG_NF_CT_NETLINK_TIMEOUT)
-+#ifdef CONFIG_NF_CONNTRACK_TIMEOUT
- 
- #include <linux/netfilter/nfnetlink.h>
- #include <linux/netfilter/nfnetlink_cttimeout.h>
-@@ -1394,7 +1394,7 @@ static const struct nla_policy tcp_timeout_nla_policy[CTA_TIMEOUT_TCP_MAX+1] = {
- 	[CTA_TIMEOUT_TCP_RETRANS]	= { .type = NLA_U32 },
- 	[CTA_TIMEOUT_TCP_UNACK]		= { .type = NLA_U32 },
- };
--#endif /* CONFIG_NF_CT_NETLINK_TIMEOUT */
-+#endif /* CONFIG_NF_CONNTRACK_TIMEOUT */
- 
- #ifdef CONFIG_SYSCTL
- static struct ctl_table tcp_sysctl_table[] = {
-@@ -1558,7 +1558,7 @@ const struct nf_conntrack_l4proto nf_conntrack_l4proto_tcp4 =
- 	.nlattr_size		= TCP_NLATTR_SIZE,
- 	.nla_policy		= nf_ct_port_nla_policy,
- #endif
--#if IS_ENABLED(CONFIG_NF_CT_NETLINK_TIMEOUT)
-+#ifdef CONFIG_NF_CONNTRACK_TIMEOUT
- 	.ctnl_timeout		= {
- 		.nlattr_to_obj	= tcp_timeout_nlattr_to_obj,
- 		.obj_to_nlattr	= tcp_timeout_obj_to_nlattr,
-@@ -1567,7 +1567,7 @@ const struct nf_conntrack_l4proto nf_conntrack_l4proto_tcp4 =
- 					TCP_CONNTRACK_TIMEOUT_MAX,
- 		.nla_policy	= tcp_timeout_nla_policy,
- 	},
--#endif /* CONFIG_NF_CT_NETLINK_TIMEOUT */
-+#endif /* CONFIG_NF_CONNTRACK_TIMEOUT */
- 	.init_net		= tcp_init_net,
- 	.get_net_proto		= tcp_get_net_proto,
- };
-@@ -1593,7 +1593,7 @@ const struct nf_conntrack_l4proto nf_conntrack_l4proto_tcp6 =
- 	.nlattr_tuple_size	= tcp_nlattr_tuple_size,
- 	.nla_policy		= nf_ct_port_nla_policy,
- #endif
--#if IS_ENABLED(CONFIG_NF_CT_NETLINK_TIMEOUT)
-+#ifdef CONFIG_NF_CONNTRACK_TIMEOUT
- 	.ctnl_timeout		= {
- 		.nlattr_to_obj	= tcp_timeout_nlattr_to_obj,
- 		.obj_to_nlattr	= tcp_timeout_obj_to_nlattr,
-@@ -1602,7 +1602,7 @@ const struct nf_conntrack_l4proto nf_conntrack_l4proto_tcp6 =
- 					TCP_CONNTRACK_TIMEOUT_MAX,
- 		.nla_policy	= tcp_timeout_nla_policy,
- 	},
--#endif /* CONFIG_NF_CT_NETLINK_TIMEOUT */
-+#endif /* CONFIG_NF_CONNTRACK_TIMEOUT */
- 	.init_net		= tcp_init_net,
- 	.get_net_proto		= tcp_get_net_proto,
- };
-diff --git a/net/netfilter/nf_conntrack_proto_udp.c b/net/netfilter/nf_conntrack_proto_udp.c
-index 9272a2c525a8..3065fb8ef91b 100644
---- a/net/netfilter/nf_conntrack_proto_udp.c
-+++ b/net/netfilter/nf_conntrack_proto_udp.c
-@@ -171,7 +171,7 @@ static int udp_error(struct net *net, struct nf_conn *tmpl, struct sk_buff *skb,
- 	return NF_ACCEPT;
- }
- 
--#if IS_ENABLED(CONFIG_NF_CT_NETLINK_TIMEOUT)
-+#ifdef CONFIG_NF_CONNTRACK_TIMEOUT
- 
- #include <linux/netfilter/nfnetlink.h>
- #include <linux/netfilter/nfnetlink_cttimeout.h>
-@@ -221,7 +221,7 @@ udp_timeout_nla_policy[CTA_TIMEOUT_UDP_MAX+1] = {
-        [CTA_TIMEOUT_UDP_UNREPLIED]	= { .type = NLA_U32 },
-        [CTA_TIMEOUT_UDP_REPLIED]	= { .type = NLA_U32 },
- };
--#endif /* CONFIG_NF_CT_NETLINK_TIMEOUT */
-+#endif /* CONFIG_NF_CONNTRACK_TIMEOUT */
- 
- #ifdef CONFIG_SYSCTL
- static struct ctl_table udp_sysctl_table[] = {
-@@ -292,7 +292,7 @@ const struct nf_conntrack_l4proto nf_conntrack_l4proto_udp4 =
- 	.nlattr_tuple_size	= nf_ct_port_nlattr_tuple_size,
- 	.nla_policy		= nf_ct_port_nla_policy,
- #endif
--#if IS_ENABLED(CONFIG_NF_CT_NETLINK_TIMEOUT)
-+#ifdef CONFIG_NF_CONNTRACK_TIMEOUT
- 	.ctnl_timeout		= {
- 		.nlattr_to_obj	= udp_timeout_nlattr_to_obj,
- 		.obj_to_nlattr	= udp_timeout_obj_to_nlattr,
-@@ -300,7 +300,7 @@ const struct nf_conntrack_l4proto nf_conntrack_l4proto_udp4 =
- 		.obj_size	= sizeof(unsigned int) * CTA_TIMEOUT_UDP_MAX,
- 		.nla_policy	= udp_timeout_nla_policy,
- 	},
--#endif /* CONFIG_NF_CT_NETLINK_TIMEOUT */
-+#endif /* CONFIG_NF_CONNTRACK_TIMEOUT */
- 	.init_net		= udp_init_net,
- 	.get_net_proto		= udp_get_net_proto,
- };
-@@ -321,7 +321,7 @@ const struct nf_conntrack_l4proto nf_conntrack_l4proto_udplite4 =
- 	.nlattr_tuple_size	= nf_ct_port_nlattr_tuple_size,
- 	.nla_policy		= nf_ct_port_nla_policy,
- #endif
--#if IS_ENABLED(CONFIG_NF_CT_NETLINK_TIMEOUT)
-+#ifdef CONFIG_NF_CONNTRACK_TIMEOUT
- 	.ctnl_timeout		= {
- 		.nlattr_to_obj	= udp_timeout_nlattr_to_obj,
- 		.obj_to_nlattr	= udp_timeout_obj_to_nlattr,
-@@ -329,7 +329,7 @@ const struct nf_conntrack_l4proto nf_conntrack_l4proto_udplite4 =
- 		.obj_size	= sizeof(unsigned int) * CTA_TIMEOUT_UDP_MAX,
- 		.nla_policy	= udp_timeout_nla_policy,
- 	},
--#endif /* CONFIG_NF_CT_NETLINK_TIMEOUT */
-+#endif /* CONFIG_NF_CONNTRACK_TIMEOUT */
- 	.init_net		= udp_init_net,
- 	.get_net_proto		= udp_get_net_proto,
- };
-@@ -350,7 +350,7 @@ const struct nf_conntrack_l4proto nf_conntrack_l4proto_udp6 =
- 	.nlattr_tuple_size	= nf_ct_port_nlattr_tuple_size,
- 	.nla_policy		= nf_ct_port_nla_policy,
- #endif
--#if IS_ENABLED(CONFIG_NF_CT_NETLINK_TIMEOUT)
-+#ifdef CONFIG_NF_CONNTRACK_TIMEOUT
- 	.ctnl_timeout		= {
- 		.nlattr_to_obj	= udp_timeout_nlattr_to_obj,
- 		.obj_to_nlattr	= udp_timeout_obj_to_nlattr,
-@@ -358,7 +358,7 @@ const struct nf_conntrack_l4proto nf_conntrack_l4proto_udp6 =
- 		.obj_size	= sizeof(unsigned int) * CTA_TIMEOUT_UDP_MAX,
- 		.nla_policy	= udp_timeout_nla_policy,
- 	},
--#endif /* CONFIG_NF_CT_NETLINK_TIMEOUT */
-+#endif /* CONFIG_NF_CONNTRACK_TIMEOUT */
- 	.init_net		= udp_init_net,
- 	.get_net_proto		= udp_get_net_proto,
- };
-@@ -379,7 +379,7 @@ const struct nf_conntrack_l4proto nf_conntrack_l4proto_udplite6 =
- 	.nlattr_tuple_size	= nf_ct_port_nlattr_tuple_size,
- 	.nla_policy		= nf_ct_port_nla_policy,
- #endif
--#if IS_ENABLED(CONFIG_NF_CT_NETLINK_TIMEOUT)
-+#ifdef CONFIG_NF_CONNTRACK_TIMEOUT
- 	.ctnl_timeout		= {
- 		.nlattr_to_obj	= udp_timeout_nlattr_to_obj,
- 		.obj_to_nlattr	= udp_timeout_obj_to_nlattr,
-@@ -387,7 +387,7 @@ const struct nf_conntrack_l4proto nf_conntrack_l4proto_udplite6 =
- 		.obj_size	= sizeof(unsigned int) * CTA_TIMEOUT_UDP_MAX,
- 		.nla_policy	= udp_timeout_nla_policy,
- 	},
--#endif /* CONFIG_NF_CT_NETLINK_TIMEOUT */
-+#endif /* CONFIG_NF_CONNTRACK_TIMEOUT */
- 	.init_net		= udp_init_net,
- 	.get_net_proto		= udp_get_net_proto,
- };
++	nft_set_elem_deactivate(ctx->net, set, elem);
+ 	nft_trans_elem_set(trans) = set;
+ 	nft_trans_elem(trans) = *elem;
+ 	list_add_tail(&trans->list, &ctx->net->nft.commit_list);
 -- 
 2.11.0
