@@ -1,9 +1,10 @@
 From: Stephen Hemminger <stephen@networkplumber.org>
-Subject: [PATCH v2 04/30] inet: frags: Convert timers to use timer_setup()
-Date: Wed, 12 Sep 2018 09:36:22 -0700
-Message-ID: <20180912163648.17611-5-sthemmin@microsoft.com>
-References: <20180912163648.17611-1-sthemmin@microsoft.com>
-Cc: edumazet@google.com, Kees Cook <keescook@chromium.org>,
+Subject: [PATCH v3 04/30] inet: frags: Convert timers to use timer_setup()
+Date: Thu, 13 Sep 2018 07:58:36 -0700
+Message-ID: <20180913145902.17531-5-sthemmin@microsoft.com>
+References: <20180913145902.17531-1-sthemmin@microsoft.com>
+Cc: netdev@vger.kernel.org, stable@vger.kernel.org,
+        edumazet@google.com, Kees Cook <keescook@chromium.org>,
         Alexander Aring <alex.aring@gmail.com>,
         Stefan Schmidt <stefan@osg.samsung.com>,
         Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
@@ -11,11 +12,10 @@ Cc: edumazet@google.com, Kees Cook <keescook@chromium.org>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
         Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
         Florian Westphal <fw@strlen.de>, linux-wpan@vger.kernel.org,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
 To: davem@davemloft.net, gregkh@linuxfoundation.org
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180912163648.17611-1-sthemmin@microsoft.com>
+In-Reply-To: <20180913145902.17531-1-sthemmin@microsoft.com>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
