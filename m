@@ -1,169 +1,87 @@
-From: Stephen Hemminger <stephen@networkplumber.org>
-Subject: [PATCH v3 04/30] inet: frags: Convert timers to use timer_setup()
-Date: Thu, 13 Sep 2018 07:58:36 -0700
-Message-ID: <20180913145902.17531-5-sthemmin@microsoft.com>
-References: <20180913145902.17531-1-sthemmin@microsoft.com>
-Cc: netdev@vger.kernel.org, stable@vger.kernel.org,
-        edumazet@google.com, Kees Cook <keescook@chromium.org>,
-        Alexander Aring <alex.aring@gmail.com>,
-        Stefan Schmidt <stefan@osg.samsung.com>,
-        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>, linux-wpan@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-To: davem@davemloft.net, gregkh@linuxfoundation.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180913145902.17531-1-sthemmin@microsoft.com>
-Sender: netdev-owner@vger.kernel.org
+From: syzbot <syzbot+23b5f9e7caf61d9a3898@syzkaller.appspotmail.com>
+Subject: KMSAN: uninit-value in do_ip_vs_set_ctl
+Date: Fri, 14 Sep 2018 11:23:04 -0700
+Message-ID: <00000000000015a13b0575d8eae8@google.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
+To: coreteam@netfilter.org, davem@davemloft.net, fw@strlen.de,
+        horms@verge.net.au, ja@ssi.bg, kadlec@blackhole.kfki.hu,
+        linux-kernel@vger.kernel.org, lvs-devel@vger.kernel.org,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        pablo@netfilter.org, syzkaller-bugs@googlegroups.com,
+        wensong@linux-vs.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Kees Cook <keescook@chromium.org>
+Hello,
 
-In preparation for unconditionally passing the struct timer_list pointer to
-all timer callbacks, switch to using the new timer_setup() and from_timer()
-to pass the timer pointer explicitly.
+syzbot found the following crash on:
 
-Cc: Alexander Aring <alex.aring@gmail.com>
-Cc: Stefan Schmidt <stefan@osg.samsung.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>
-Cc: Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Cc: Florian Westphal <fw@strlen.de>
-Cc: linux-wpan@vger.kernel.org
-Cc: netdev@vger.kernel.org
-Cc: netfilter-devel@vger.kernel.org
-Cc: coreteam@netfilter.org
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Acked-by: Stefan Schmidt <stefan@osg.samsung.com> # for ieee802154
-Signed-off-by: David S. Miller <davem@davemloft.net>
-(cherry picked from commit 78802011fbe34331bdef6f2dfb1634011f0e4c32)
+HEAD commit:    06b2df0593a8 kmsan: unpoison only the created pages in get..
+git tree:       https://github.com/google/kmsan.git/master
+console output: https://syzkaller.appspot.com/x/log.txt?x=11a6ae37800000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=4ca1e57bafa8ab1f
+dashboard link: https://syzkaller.appspot.com/bug?extid=23b5f9e7caf61d9a3898
+compiler:       clang version 7.0.0 (trunk 329391)
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=14008417800000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=11deb017800000
+
+IMPORTANT: if you fix the bug, please add the following tag to the commit:
+Reported-by: syzbot+23b5f9e7caf61d9a3898@syzkaller.appspotmail.com
+
+random: sshd: uninitialized urandom read (32 bytes read)
+random: sshd: uninitialized urandom read (32 bytes read)
+random: sshd: uninitialized urandom read (32 bytes read)
+random: sshd: uninitialized urandom read (32 bytes read)
+==================================================================
+BUG: KMSAN: uninit-value in do_ip_vs_set_ctl+0x15ac/0x2760  
+net/netfilter/ipvs/ip_vs_ctl.c:2424
+CPU: 1 PID: 4464 Comm: syz-executor844 Not tainted 4.17.0-rc3+ #94
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS  
+Google 01/01/2011
+Call Trace:
+  __dump_stack lib/dump_stack.c:77 [inline]
+  dump_stack+0x185/0x1d0 lib/dump_stack.c:113
+  kmsan_report+0x142/0x240 mm/kmsan/kmsan.c:1084
+  __msan_warning_32+0x6c/0xb0 mm/kmsan/kmsan_instr.c:683
+  do_ip_vs_set_ctl+0x15ac/0x2760 net/netfilter/ipvs/ip_vs_ctl.c:2424
+  nf_sockopt net/netfilter/nf_sockopt.c:106 [inline]
+  nf_setsockopt+0x476/0x4d0 net/netfilter/nf_sockopt.c:115
+  ip_setsockopt+0x24b/0x2b0 net/ipv4/ip_sockglue.c:1253
+  raw_setsockopt+0x2e5/0x350 net/ipv4/raw.c:868
+  sock_common_setsockopt+0x136/0x170 net/core/sock.c:3039
+  __sys_setsockopt+0x4af/0x560 net/socket.c:1903
+  __do_sys_setsockopt net/socket.c:1914 [inline]
+  __se_sys_setsockopt net/socket.c:1911 [inline]
+  __x64_sys_setsockopt+0x15c/0x1c0 net/socket.c:1911
+  do_syscall_64+0x154/0x220 arch/x86/entry/common.c:287
+  entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x43fca9
+RSP: 002b:00007fff7a4795b8 EFLAGS: 00000213 ORIG_RAX: 0000000000000036
+RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 000000000043fca9
+RDX: 0000000000000480 RSI: 0000000000000000 RDI: 0000000000000003
+RBP: 00000000006ca018 R08: 0000000000000000 R09: 00000000004002c8
+R10: 0000000000000000 R11: 0000000000000213 R12: 00000000004015d0
+R13: 0000000000401660 R14: 0000000000000000 R15: 0000000000000000
+
+Local variable description: ----arg@do_ip_vs_set_ctl
+Variable was created at:
+  read_pnet include/net/net_namespace.h:288 [inline]
+  sock_net include/net/sock.h:2306 [inline]
+  do_ip_vs_set_ctl+0x93/0x2760 net/netfilter/ipvs/ip_vs_ctl.c:2347
+  nf_sockopt net/netfilter/nf_sockopt.c:106 [inline]
+  nf_setsockopt+0x476/0x4d0 net/netfilter/nf_sockopt.c:115
+==================================================================
+
+
 ---
- include/net/inet_frag.h                 | 2 +-
- net/ieee802154/6lowpan/reassembly.c     | 5 +++--
- net/ipv4/inet_fragment.c                | 4 ++--
- net/ipv4/ip_fragment.c                  | 5 +++--
- net/ipv6/netfilter/nf_conntrack_reasm.c | 5 +++--
- net/ipv6/reassembly.c                   | 5 +++--
- 6 files changed, 15 insertions(+), 11 deletions(-)
+This bug is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
 
-diff --git a/include/net/inet_frag.h b/include/net/inet_frag.h
-index fd338293a095..69e531ed8189 100644
---- a/include/net/inet_frag.h
-+++ b/include/net/inet_frag.h
-@@ -97,7 +97,7 @@ struct inet_frags {
- 	void			(*constructor)(struct inet_frag_queue *q,
- 					       const void *arg);
- 	void			(*destructor)(struct inet_frag_queue *);
--	void			(*frag_expire)(unsigned long data);
-+	void			(*frag_expire)(struct timer_list *t);
- 	struct kmem_cache	*frags_cachep;
- 	const char		*frags_cache_name;
- };
-diff --git a/net/ieee802154/6lowpan/reassembly.c b/net/ieee802154/6lowpan/reassembly.c
-index 9ccb8458b5c3..6badc055555b 100644
---- a/net/ieee802154/6lowpan/reassembly.c
-+++ b/net/ieee802154/6lowpan/reassembly.c
-@@ -80,12 +80,13 @@ static void lowpan_frag_init(struct inet_frag_queue *q, const void *a)
- 	fq->daddr = *arg->dst;
- }
- 
--static void lowpan_frag_expire(unsigned long data)
-+static void lowpan_frag_expire(struct timer_list *t)
- {
-+	struct inet_frag_queue *frag = from_timer(frag, t, timer);
- 	struct frag_queue *fq;
- 	struct net *net;
- 
--	fq = container_of((struct inet_frag_queue *)data, struct frag_queue, q);
-+	fq = container_of(frag, struct frag_queue, q);
- 	net = container_of(fq->q.net, struct net, ieee802154_lowpan.frags);
- 
- 	spin_lock(&fq->q.lock);
-diff --git a/net/ipv4/inet_fragment.c b/net/ipv4/inet_fragment.c
-index 4b44f973c37f..97e747b1e9a0 100644
---- a/net/ipv4/inet_fragment.c
-+++ b/net/ipv4/inet_fragment.c
-@@ -150,7 +150,7 @@ inet_evict_bucket(struct inet_frags *f, struct inet_frag_bucket *hb)
- 	spin_unlock(&hb->chain_lock);
- 
- 	hlist_for_each_entry_safe(fq, n, &expired, list_evictor)
--		f->frag_expire((unsigned long) fq);
-+		f->frag_expire(&fq->timer);
- 
- 	return evicted;
- }
-@@ -367,7 +367,7 @@ static struct inet_frag_queue *inet_frag_alloc(struct netns_frags *nf,
- 	f->constructor(q, arg);
- 	add_frag_mem_limit(nf, f->qsize);
- 
--	setup_timer(&q->timer, f->frag_expire, (unsigned long)q);
-+	timer_setup(&q->timer, f->frag_expire, 0);
- 	spin_lock_init(&q->lock);
- 	refcount_set(&q->refcnt, 1);
- 
-diff --git a/net/ipv4/ip_fragment.c b/net/ipv4/ip_fragment.c
-index 9d0b08c8ee00..5171c8cc0eb6 100644
---- a/net/ipv4/ip_fragment.c
-+++ b/net/ipv4/ip_fragment.c
-@@ -191,12 +191,13 @@ static bool frag_expire_skip_icmp(u32 user)
- /*
-  * Oops, a fragment queue timed out.  Kill it and send an ICMP reply.
-  */
--static void ip_expire(unsigned long arg)
-+static void ip_expire(struct timer_list *t)
- {
-+	struct inet_frag_queue *frag = from_timer(frag, t, timer);
- 	struct ipq *qp;
- 	struct net *net;
- 
--	qp = container_of((struct inet_frag_queue *) arg, struct ipq, q);
-+	qp = container_of(frag, struct ipq, q);
- 	net = container_of(qp->q.net, struct net, ipv4.frags);
- 
- 	rcu_read_lock();
-diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
-index 7ea2b4490672..bc776ef392ea 100644
---- a/net/ipv6/netfilter/nf_conntrack_reasm.c
-+++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
-@@ -169,12 +169,13 @@ static unsigned int nf_hashfn(const struct inet_frag_queue *q)
- 	return nf_hash_frag(nq->id, &nq->saddr, &nq->daddr);
- }
- 
--static void nf_ct_frag6_expire(unsigned long data)
-+static void nf_ct_frag6_expire(struct timer_list *t)
- {
-+	struct inet_frag_queue *frag = from_timer(frag, t, timer);
- 	struct frag_queue *fq;
- 	struct net *net;
- 
--	fq = container_of((struct inet_frag_queue *)data, struct frag_queue, q);
-+	fq = container_of(frag, struct frag_queue, q);
- 	net = container_of(fq->q.net, struct net, nf_frag.frags);
- 
- 	ip6_expire_frag_queue(net, fq);
-diff --git a/net/ipv6/reassembly.c b/net/ipv6/reassembly.c
-index 26f737c3fc7b..b85ef051b75c 100644
---- a/net/ipv6/reassembly.c
-+++ b/net/ipv6/reassembly.c
-@@ -169,12 +169,13 @@ void ip6_expire_frag_queue(struct net *net, struct frag_queue *fq)
- }
- EXPORT_SYMBOL(ip6_expire_frag_queue);
- 
--static void ip6_frag_expire(unsigned long data)
-+static void ip6_frag_expire(struct timer_list *t)
- {
-+	struct inet_frag_queue *frag = from_timer(frag, t, timer);
- 	struct frag_queue *fq;
- 	struct net *net;
- 
--	fq = container_of((struct inet_frag_queue *)data, struct frag_queue, q);
-+	fq = container_of(frag, struct frag_queue, q);
- 	net = container_of(fq->q.net, struct net, ipv6.frags);
- 
- 	ip6_expire_frag_queue(net, fq);
--- 
-2.18.0
+syzbot will keep track of this bug report. See:
+https://goo.gl/tpsmEJ#bug-status-tracking for how to communicate with  
+syzbot.
+syzbot can test patches for this bug, for details see:
+https://goo.gl/tpsmEJ#testing-patches
