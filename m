@@ -1,60 +1,164 @@
-From: dsahern@kernel.org
-Subject: [PATCH net] netfilter: bridge: Don't sabotage nf_hook calls from an l3mdev
-Date: Mon, 17 Sep 2018 08:20:36 -0700
-Message-ID: <20180917152036.30674-1-dsahern@kernel.org>
-Cc: ndsouza@ciena.com, idosch@mellanox.com, pablo@netfilter.org,
-        fw@strlen.de, David Ahern <dsahern@gmail.com>
-To: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: [PATCH 4.14 095/126] inet: frags: Convert timers to use timer_setup()
+Date: Tue, 18 Sep 2018 00:42:23 +0200
+Message-ID: <20180917211710.179209058@linuxfoundation.org>
+References: <20180917211703.481236999@linuxfoundation.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        stable@vger.kernel.org, Alexander Aring <alex.aring@gmail.com>,
+        Stefan Schmidt <stefan@osg.samsung.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>, linux-wpan@vger.kernel.org,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, Kees Cook <keescook@chromium.org>
+To: linux-kernel@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180917211703.481236999@linuxfoundation.org>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: David Ahern <dsahern@gmail.com>
+4.14-stable review patch.  If anyone has any objections, please let me know.
 
-For starters, the bridge netfilter code registers operations that
-are invoked any time nh_hook is called. Specifically, ip_sabotage_in
-watches for nested calls for NF_INET_PRE_ROUTING when a bridge is in
-the stack.
+------------------
 
-Packet wise, the bridge netfilter hook runs first. br_nf_pre_routing
-allocates nf_bridge, sets in_prerouting to 1 and calls NF_HOOK for
-NF_INET_PRE_ROUTING. It's finish function, br_nf_pre_routing_finish,
-then resets in_prerouting flag to 0 and the packet continues up the
-stack. The packet eventually makes it to the VRF driver and it invokes
-nf_hook for NF_INET_PRE_ROUTING in case any rules have been added against
-the vrf device.
+From: Kees Cook <keescook@chromium.org>
 
-Because of the registered operations the call to nf_hook causes
-ip_sabotage_in to be invoked. That function sees the nf_bridge on the
-skb and that in_prerouting is not set. Thinking it is an invalid nested
-call it steals (drops) the packet.
+In preparation for unconditionally passing the struct timer_list pointer to
+all timer callbacks, switch to using the new timer_setup() and from_timer()
+to pass the timer pointer explicitly.
 
-Update ip_sabotage_in to recognize that the bridge or one of its upper
-devices (e.g., vlan) can be enslaved to a VRF (L3 master device) and
-allow the packet to go through the nf_hook a second time.
-
-Fixes: 73e20b761acf ("net: vrf: Add support for PREROUTING rules on vrf device")
-Reported-by: D'Souza, Nelson <ndsouza@ciena.com>
-Signed-off-by: David Ahern <dsahern@gmail.com>
+Cc: Alexander Aring <alex.aring@gmail.com>
+Cc: Stefan Schmidt <stefan@osg.samsung.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>
+Cc: Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Cc: Florian Westphal <fw@strlen.de>
+Cc: linux-wpan@vger.kernel.org
+Cc: netdev@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
+Cc: coreteam@netfilter.org
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Acked-by: Stefan Schmidt <stefan@osg.samsung.com> # for ieee802154
+Signed-off-by: David S. Miller <davem@davemloft.net>
+(cherry picked from commit 78802011fbe34331bdef6f2dfb1634011f0e4c32)
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
-re-send adding netfilter
+ include/net/inet_frag.h                 |    2 +-
+ net/ieee802154/6lowpan/reassembly.c     |    5 +++--
+ net/ipv4/inet_fragment.c                |    4 ++--
+ net/ipv4/ip_fragment.c                  |    5 +++--
+ net/ipv6/netfilter/nf_conntrack_reasm.c |    5 +++--
+ net/ipv6/reassembly.c                   |    5 +++--
+ 6 files changed, 15 insertions(+), 11 deletions(-)
 
- net/bridge/br_netfilter_hooks.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
-index 6e0dc6bcd32a..37278dc280eb 100644
---- a/net/bridge/br_netfilter_hooks.c
-+++ b/net/bridge/br_netfilter_hooks.c
-@@ -835,7 +835,8 @@ static unsigned int ip_sabotage_in(void *priv,
- 				   struct sk_buff *skb,
- 				   const struct nf_hook_state *state)
+--- a/include/net/inet_frag.h
++++ b/include/net/inet_frag.h
+@@ -97,7 +97,7 @@ struct inet_frags {
+ 	void			(*constructor)(struct inet_frag_queue *q,
+ 					       const void *arg);
+ 	void			(*destructor)(struct inet_frag_queue *);
+-	void			(*frag_expire)(unsigned long data);
++	void			(*frag_expire)(struct timer_list *t);
+ 	struct kmem_cache	*frags_cachep;
+ 	const char		*frags_cache_name;
+ };
+--- a/net/ieee802154/6lowpan/reassembly.c
++++ b/net/ieee802154/6lowpan/reassembly.c
+@@ -80,12 +80,13 @@ static void lowpan_frag_init(struct inet
+ 	fq->daddr = *arg->dst;
+ }
+ 
+-static void lowpan_frag_expire(unsigned long data)
++static void lowpan_frag_expire(struct timer_list *t)
  {
--	if (skb->nf_bridge && !skb->nf_bridge->in_prerouting) {
-+	if (skb->nf_bridge && !skb->nf_bridge->in_prerouting &&
-+	    !netif_is_l3_master(skb->dev)) {
- 		state->okfn(state->net, state->sk, skb);
- 		return NF_STOLEN;
- 	}
--- 
-2.11.0
++	struct inet_frag_queue *frag = from_timer(frag, t, timer);
+ 	struct frag_queue *fq;
+ 	struct net *net;
+ 
+-	fq = container_of((struct inet_frag_queue *)data, struct frag_queue, q);
++	fq = container_of(frag, struct frag_queue, q);
+ 	net = container_of(fq->q.net, struct net, ieee802154_lowpan.frags);
+ 
+ 	spin_lock(&fq->q.lock);
+--- a/net/ipv4/inet_fragment.c
++++ b/net/ipv4/inet_fragment.c
+@@ -150,7 +150,7 @@ inet_evict_bucket(struct inet_frags *f,
+ 	spin_unlock(&hb->chain_lock);
+ 
+ 	hlist_for_each_entry_safe(fq, n, &expired, list_evictor)
+-		f->frag_expire((unsigned long) fq);
++		f->frag_expire(&fq->timer);
+ 
+ 	return evicted;
+ }
+@@ -367,7 +367,7 @@ static struct inet_frag_queue *inet_frag
+ 	f->constructor(q, arg);
+ 	add_frag_mem_limit(nf, f->qsize);
+ 
+-	setup_timer(&q->timer, f->frag_expire, (unsigned long)q);
++	timer_setup(&q->timer, f->frag_expire, 0);
+ 	spin_lock_init(&q->lock);
+ 	refcount_set(&q->refcnt, 1);
+ 
+--- a/net/ipv4/ip_fragment.c
++++ b/net/ipv4/ip_fragment.c
+@@ -191,12 +191,13 @@ static bool frag_expire_skip_icmp(u32 us
+ /*
+  * Oops, a fragment queue timed out.  Kill it and send an ICMP reply.
+  */
+-static void ip_expire(unsigned long arg)
++static void ip_expire(struct timer_list *t)
+ {
++	struct inet_frag_queue *frag = from_timer(frag, t, timer);
+ 	struct ipq *qp;
+ 	struct net *net;
+ 
+-	qp = container_of((struct inet_frag_queue *) arg, struct ipq, q);
++	qp = container_of(frag, struct ipq, q);
+ 	net = container_of(qp->q.net, struct net, ipv4.frags);
+ 
+ 	rcu_read_lock();
+--- a/net/ipv6/netfilter/nf_conntrack_reasm.c
++++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
+@@ -169,12 +169,13 @@ static unsigned int nf_hashfn(const stru
+ 	return nf_hash_frag(nq->id, &nq->saddr, &nq->daddr);
+ }
+ 
+-static void nf_ct_frag6_expire(unsigned long data)
++static void nf_ct_frag6_expire(struct timer_list *t)
+ {
++	struct inet_frag_queue *frag = from_timer(frag, t, timer);
+ 	struct frag_queue *fq;
+ 	struct net *net;
+ 
+-	fq = container_of((struct inet_frag_queue *)data, struct frag_queue, q);
++	fq = container_of(frag, struct frag_queue, q);
+ 	net = container_of(fq->q.net, struct net, nf_frag.frags);
+ 
+ 	ip6_expire_frag_queue(net, fq);
+--- a/net/ipv6/reassembly.c
++++ b/net/ipv6/reassembly.c
+@@ -169,12 +169,13 @@ out:
+ }
+ EXPORT_SYMBOL(ip6_expire_frag_queue);
+ 
+-static void ip6_frag_expire(unsigned long data)
++static void ip6_frag_expire(struct timer_list *t)
+ {
++	struct inet_frag_queue *frag = from_timer(frag, t, timer);
+ 	struct frag_queue *fq;
+ 	struct net *net;
+ 
+-	fq = container_of((struct inet_frag_queue *)data, struct frag_queue, q);
++	fq = container_of(frag, struct frag_queue, q);
+ 	net = container_of(fq->q.net, struct net, ipv6.frags);
+ 
+ 	ip6_expire_frag_queue(net, fq);
