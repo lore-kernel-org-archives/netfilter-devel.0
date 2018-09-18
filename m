@@ -1,47 +1,43 @@
-From: Stefan Agner <stefan@agner.ch>
-Subject: [PATCH] netfilter: nft_osf: use enum nft_data_types for nft_validate_register_store
-Date: Mon, 17 Sep 2018 22:21:36 -0700
-Message-ID: <20180918052136.25978-1-stefan@agner.ch>
+From: Jamal Hadi Salim <jhs@mojatatu.com>
+Subject: Announcing Netdev 0x13 conference
+Date: Tue, 18 Sep 2018 08:11:57 -0400
+Message-ID: <6cab0b49-a6f3-65c5-f371-1f8c7d4325bb@mojatatu.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Stefan Agner <stefan@agner.ch>
-To: ffmancera@riseup.net, pablo@netfilter.org,
-        kadlec@blackhole.kfki.hu, fw@strlen.de, davem@davemloft.net
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        linux-wireless <linux-wireless@vger.kernel.org>,
+        netfilter-devel@vger.kernel.org, lwn@lwn.net
+To: people <people@netdevconf.org>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-The function nft_validate_register_store requires a struct of type
-struct nft_data_types. NFTA_DATA_VALUE is of type enum
-nft_verdict_attributes. Pass the correct enum type.
 
-This fixes a warning seen with Clang:
-  net/netfilter/nft_osf.c:52:8: warning: implicit conversion from
-    enumeration type 'enum nft_data_attributes' to different enumeration
-    type 'enum nft_data_types' [-Wenum-conversion]
-                                          NFTA_DATA_VALUE, NFT_OSF_MAXGENRELEN);
-                                          ^~~~~~~~~~~~~~~
+On behalf of the NetDev Society, this is a formal announcement that
+Netdev 0x13 conference will be held in Prague, Czech Republic.
+Tentative dates are March 20-22, 2019.
 
-Link: https://github.com/ClangBuiltLinux/linux/issues/103
-Signed-off-by: Stefan Agner <stefan@agner.ch>
----
- net/netfilter/nft_osf.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+We had a very successful 0x12 meeting. The summaries are posted here:
+https://lwn.net/Articles/763627/rss
 
-diff --git a/net/netfilter/nft_osf.c b/net/netfilter/nft_osf.c
-index 5af74b37f423..a35fb59ace73 100644
---- a/net/netfilter/nft_osf.c
-+++ b/net/netfilter/nft_osf.c
-@@ -49,7 +49,7 @@ static int nft_osf_init(const struct nft_ctx *ctx,
- 
- 	priv->dreg = nft_parse_register(tb[NFTA_OSF_DREG]);
- 	err = nft_validate_register_store(ctx, priv->dreg, NULL,
--					  NFTA_DATA_VALUE, NFT_OSF_MAXGENRELEN);
-+					  NFT_DATA_VALUE, NFT_OSF_MAXGENRELEN);
- 	if (err < 0)
- 		return err;
- 
--- 
-2.19.0
+For more details, all the slides, papers and videos are now up. Visit:
+https://www.netdevconf.org/0x12/accepted-sessions.html
+
+At 0x12 we tried a new format where the first day constitutes developer
+working sessions via workshops and educational sessions via tutorials.
+We have received feedback which we are in the process of evaluating
+and we will be notifying you of any format changes. The window for
+suggestions is still open - please send email to people@netdevconf.org.
+
+We hope to announce the CFP much earlier than usual to give folks
+ample time to submit.
+
+For more frequent announcements join the people@netdevconf mailing list.
+If tweeter is your thing we also do announce @netdev01
+
+The official 0x13 website is at: https://www.netdevconf.org/0x13
+
+cheers,
+jamal
