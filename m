@@ -1,164 +1,47 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: [PATCH 4.14 095/126] inet: frags: Convert timers to use timer_setup()
-Date: Tue, 18 Sep 2018 00:42:23 +0200
-Message-ID: <20180917211710.179209058@linuxfoundation.org>
-References: <20180917211703.481236999@linuxfoundation.org>
+From: Stefan Agner <stefan@agner.ch>
+Subject: [PATCH] netfilter: nft_osf: use enum nft_data_types for nft_validate_register_store
+Date: Mon, 17 Sep 2018 22:21:36 -0700
+Message-ID: <20180918052136.25978-1-stefan@agner.ch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        stable@vger.kernel.org, Alexander Aring <alex.aring@gmail.com>,
-        Stefan Schmidt <stefan@osg.samsung.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>, linux-wpan@vger.kernel.org,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, Kees Cook <keescook@chromium.org>
-To: linux-kernel@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Stefan Agner <stefan@agner.ch>
+To: ffmancera@riseup.net, pablo@netfilter.org,
+        kadlec@blackhole.kfki.hu, fw@strlen.de, davem@davemloft.net
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180917211703.481236999@linuxfoundation.org>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-4.14-stable review patch.  If anyone has any objections, please let me know.
+The function nft_validate_register_store requires a struct of type
+struct nft_data_types. NFTA_DATA_VALUE is of type enum
+nft_verdict_attributes. Pass the correct enum type.
 
-------------------
+This fixes a warning seen with Clang:
+  net/netfilter/nft_osf.c:52:8: warning: implicit conversion from
+    enumeration type 'enum nft_data_attributes' to different enumeration
+    type 'enum nft_data_types' [-Wenum-conversion]
+                                          NFTA_DATA_VALUE, NFT_OSF_MAXGENRELEN);
+                                          ^~~~~~~~~~~~~~~
 
-From: Kees Cook <keescook@chromium.org>
-
-In preparation for unconditionally passing the struct timer_list pointer to
-all timer callbacks, switch to using the new timer_setup() and from_timer()
-to pass the timer pointer explicitly.
-
-Cc: Alexander Aring <alex.aring@gmail.com>
-Cc: Stefan Schmidt <stefan@osg.samsung.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>
-Cc: Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Cc: Florian Westphal <fw@strlen.de>
-Cc: linux-wpan@vger.kernel.org
-Cc: netdev@vger.kernel.org
-Cc: netfilter-devel@vger.kernel.org
-Cc: coreteam@netfilter.org
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Acked-by: Stefan Schmidt <stefan@osg.samsung.com> # for ieee802154
-Signed-off-by: David S. Miller <davem@davemloft.net>
-(cherry picked from commit 78802011fbe34331bdef6f2dfb1634011f0e4c32)
-Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Link: https://github.com/ClangBuiltLinux/linux/issues/103
+Signed-off-by: Stefan Agner <stefan@agner.ch>
 ---
- include/net/inet_frag.h                 |    2 +-
- net/ieee802154/6lowpan/reassembly.c     |    5 +++--
- net/ipv4/inet_fragment.c                |    4 ++--
- net/ipv4/ip_fragment.c                  |    5 +++--
- net/ipv6/netfilter/nf_conntrack_reasm.c |    5 +++--
- net/ipv6/reassembly.c                   |    5 +++--
- 6 files changed, 15 insertions(+), 11 deletions(-)
+ net/netfilter/nft_osf.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/net/inet_frag.h
-+++ b/include/net/inet_frag.h
-@@ -97,7 +97,7 @@ struct inet_frags {
- 	void			(*constructor)(struct inet_frag_queue *q,
- 					       const void *arg);
- 	void			(*destructor)(struct inet_frag_queue *);
--	void			(*frag_expire)(unsigned long data);
-+	void			(*frag_expire)(struct timer_list *t);
- 	struct kmem_cache	*frags_cachep;
- 	const char		*frags_cache_name;
- };
---- a/net/ieee802154/6lowpan/reassembly.c
-+++ b/net/ieee802154/6lowpan/reassembly.c
-@@ -80,12 +80,13 @@ static void lowpan_frag_init(struct inet
- 	fq->daddr = *arg->dst;
- }
+diff --git a/net/netfilter/nft_osf.c b/net/netfilter/nft_osf.c
+index 5af74b37f423..a35fb59ace73 100644
+--- a/net/netfilter/nft_osf.c
++++ b/net/netfilter/nft_osf.c
+@@ -49,7 +49,7 @@ static int nft_osf_init(const struct nft_ctx *ctx,
  
--static void lowpan_frag_expire(unsigned long data)
-+static void lowpan_frag_expire(struct timer_list *t)
- {
-+	struct inet_frag_queue *frag = from_timer(frag, t, timer);
- 	struct frag_queue *fq;
- 	struct net *net;
+ 	priv->dreg = nft_parse_register(tb[NFTA_OSF_DREG]);
+ 	err = nft_validate_register_store(ctx, priv->dreg, NULL,
+-					  NFTA_DATA_VALUE, NFT_OSF_MAXGENRELEN);
++					  NFT_DATA_VALUE, NFT_OSF_MAXGENRELEN);
+ 	if (err < 0)
+ 		return err;
  
--	fq = container_of((struct inet_frag_queue *)data, struct frag_queue, q);
-+	fq = container_of(frag, struct frag_queue, q);
- 	net = container_of(fq->q.net, struct net, ieee802154_lowpan.frags);
- 
- 	spin_lock(&fq->q.lock);
---- a/net/ipv4/inet_fragment.c
-+++ b/net/ipv4/inet_fragment.c
-@@ -150,7 +150,7 @@ inet_evict_bucket(struct inet_frags *f,
- 	spin_unlock(&hb->chain_lock);
- 
- 	hlist_for_each_entry_safe(fq, n, &expired, list_evictor)
--		f->frag_expire((unsigned long) fq);
-+		f->frag_expire(&fq->timer);
- 
- 	return evicted;
- }
-@@ -367,7 +367,7 @@ static struct inet_frag_queue *inet_frag
- 	f->constructor(q, arg);
- 	add_frag_mem_limit(nf, f->qsize);
- 
--	setup_timer(&q->timer, f->frag_expire, (unsigned long)q);
-+	timer_setup(&q->timer, f->frag_expire, 0);
- 	spin_lock_init(&q->lock);
- 	refcount_set(&q->refcnt, 1);
- 
---- a/net/ipv4/ip_fragment.c
-+++ b/net/ipv4/ip_fragment.c
-@@ -191,12 +191,13 @@ static bool frag_expire_skip_icmp(u32 us
- /*
-  * Oops, a fragment queue timed out.  Kill it and send an ICMP reply.
-  */
--static void ip_expire(unsigned long arg)
-+static void ip_expire(struct timer_list *t)
- {
-+	struct inet_frag_queue *frag = from_timer(frag, t, timer);
- 	struct ipq *qp;
- 	struct net *net;
- 
--	qp = container_of((struct inet_frag_queue *) arg, struct ipq, q);
-+	qp = container_of(frag, struct ipq, q);
- 	net = container_of(qp->q.net, struct net, ipv4.frags);
- 
- 	rcu_read_lock();
---- a/net/ipv6/netfilter/nf_conntrack_reasm.c
-+++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
-@@ -169,12 +169,13 @@ static unsigned int nf_hashfn(const stru
- 	return nf_hash_frag(nq->id, &nq->saddr, &nq->daddr);
- }
- 
--static void nf_ct_frag6_expire(unsigned long data)
-+static void nf_ct_frag6_expire(struct timer_list *t)
- {
-+	struct inet_frag_queue *frag = from_timer(frag, t, timer);
- 	struct frag_queue *fq;
- 	struct net *net;
- 
--	fq = container_of((struct inet_frag_queue *)data, struct frag_queue, q);
-+	fq = container_of(frag, struct frag_queue, q);
- 	net = container_of(fq->q.net, struct net, nf_frag.frags);
- 
- 	ip6_expire_frag_queue(net, fq);
---- a/net/ipv6/reassembly.c
-+++ b/net/ipv6/reassembly.c
-@@ -169,12 +169,13 @@ out:
- }
- EXPORT_SYMBOL(ip6_expire_frag_queue);
- 
--static void ip6_frag_expire(unsigned long data)
-+static void ip6_frag_expire(struct timer_list *t)
- {
-+	struct inet_frag_queue *frag = from_timer(frag, t, timer);
- 	struct frag_queue *fq;
- 	struct net *net;
- 
--	fq = container_of((struct inet_frag_queue *)data, struct frag_queue, q);
-+	fq = container_of(frag, struct frag_queue, q);
- 	net = container_of(fq->q.net, struct net, ipv6.frags);
- 
- 	ip6_expire_frag_queue(net, fq);
+-- 
+2.19.0
