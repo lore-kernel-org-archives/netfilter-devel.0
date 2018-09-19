@@ -1,55 +1,41 @@
-From: Dmitry Vyukov <dvyukov@google.com>
-Subject: Re: bpfilter breaks IPT_SO_GET_INFO
-Date: Wed, 19 Sep 2018 10:29:42 +0200
-Message-ID: <CACT4Y+bdzDe_LhQQh-eLapOg0ZsfXFRm2tjUbiAsgS-ObMvwBg@mail.gmail.com>
-References: <CACT4Y+YS55tk5xoPmscBXcgSbLrgWFSLAz1MUEjby0XT8eanmQ@mail.gmail.com>
- <20180919071847.GE3876@unicorn.suse.cz>
+From: zhong jiang <zhongjiang@huawei.com>
+Subject: [PATCH] netfilter: conntrack: get rid of double sizeof
+Date: Wed, 19 Sep 2018 20:21:11 +0800
+Message-ID: <1537359671-53720-1-git-send-email-zhongjiang@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Cc: Alexei Starovoitov <ast@kernel.org>,
-        David Miller <davem@davemloft.net>,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        netdev <netdev@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        syzkaller <syzkaller@googlegroups.com>,
-        NetFilter <netfilter-devel@vger.kernel.org>,
-        Fabian Vogt <fvogt@suse.com>, Takashi Iwai <tiwai@suse.de>
-To: Michal Kubecek <mkubecek@suse.cz>
+Content-Type: text/plain
+Cc: <kadlec@blackhole.kfki.hu>, <pablo@netfilter.org>, <fw@strlen.de>,
+        <netfilter-devel@vger.kernel.org>, <netdev@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>
+To: <davem@davemloft.net>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180919071847.GE3876@unicorn.suse.cz>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Sep 19, 2018 at 9:18 AM, Michal Kubecek <mkubecek@suse.cz> wrote:
-> On Mon, Sep 17, 2018 at 03:36:21PM +0200, Dmitry Vyukov wrote:
->> Hi,
->>
->> I am having some problem with upstream kernel and bpfilter. The
->> manifestation is that IPT_SO_GET_INFO on an ipv4 socket works, then
->> something (that I can't fully localize but can reproduce) happens and
->> then IPT_SO_GET_INFO starts permanently returning 256.
-> ...
->> Now the litmus program always fails with:
->>
->> getsockopt(3, SOL_IP, 0x40 /* IP_??? */,
->> "filter\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"..., [84])
->> = 256
->>
->> I am currently on upstream commit
->> 28619527b8a712590c93d0a9e24b4425b9376a8c, my .config is attached. I
->> don't know what is bpfilter, I see it mentions some umh, if it
->> requires some additional setup I don't it, i.e. I don't install any
->> userspace modules/helpers.
->
-> This looks similar to the fallback issue described here:
->
->   https://bugzilla.suse.com/show_bug.cgi?id=1106751#c1
->
-> Unfortunately I didn't have time to look into it more closely yet.
+sizeof(sizeof()) is quite strange and does not seem to be what
+is wanted here.
 
-+Takashi
+The issue is detected with the help of Coccinelle.
 
-But I already have CONFIG_BPFILTER_UMH=y in my config, so it does not
-help completely.
-Also in my case it is working initially, but breaks after I run the
-second program.
+Signed-off-by: zhong jiang <zhongjiang@huawei.com>
+---
+ net/netfilter/nf_conntrack_proto_tcp.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+index b4bdf9e..247b897 100644
+--- a/net/netfilter/nf_conntrack_proto_tcp.c
++++ b/net/netfilter/nf_conntrack_proto_tcp.c
+@@ -1213,8 +1213,8 @@ static int tcp_to_nlattr(struct sk_buff *skb, struct nlattr *nla,
+ #define TCP_NLATTR_SIZE	( \
+ 	NLA_ALIGN(NLA_HDRLEN + 1) + \
+ 	NLA_ALIGN(NLA_HDRLEN + 1) + \
+-	NLA_ALIGN(NLA_HDRLEN + sizeof(sizeof(struct nf_ct_tcp_flags))) + \
+-	NLA_ALIGN(NLA_HDRLEN + sizeof(sizeof(struct nf_ct_tcp_flags))))
++	NLA_ALIGN(NLA_HDRLEN + sizeof(struct nf_ct_tcp_flags)) + \
++	NLA_ALIGN(NLA_HDRLEN + sizeof(struct nf_ct_tcp_flags)))
+ 
+ static int nlattr_to_tcp(struct nlattr *cda[], struct nf_conn *ct)
+ {
+-- 
+1.7.12.4
