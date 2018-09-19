@@ -1,43 +1,48 @@
-From: Jamal Hadi Salim <jhs@mojatatu.com>
-Subject: Announcing Netdev 0x13 conference
-Date: Tue, 18 Sep 2018 08:11:57 -0400
-Message-ID: <6cab0b49-a6f3-65c5-f371-1f8c7d4325bb@mojatatu.com>
+From: Michal Kubecek <mkubecek@suse.cz>
+Subject: Re: bpfilter breaks IPT_SO_GET_INFO
+Date: Wed, 19 Sep 2018 09:18:47 +0200
+Message-ID: <20180919071847.GE3876@unicorn.suse.cz>
+References: <CACT4Y+YS55tk5xoPmscBXcgSbLrgWFSLAz1MUEjby0XT8eanmQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-        linux-wireless <linux-wireless@vger.kernel.org>,
-        netfilter-devel@vger.kernel.org, lwn@lwn.net
-To: people <people@netdevconf.org>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Alexei Starovoitov <ast@kernel.org>,
+        David Miller <davem@davemloft.net>,
+        Daniel Borkmann <daniel@iogearbox.net>,
+        netdev <netdev@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        syzkaller <syzkaller@googlegroups.com>,
+        netfilter-devel@vger.kernel.org, Fabian Vogt <fvogt@suse.com>
+To: Dmitry Vyukov <dvyukov@google.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CACT4Y+YS55tk5xoPmscBXcgSbLrgWFSLAz1MUEjby0XT8eanmQ@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
+On Mon, Sep 17, 2018 at 03:36:21PM +0200, Dmitry Vyukov wrote:
+> Hi,
+> 
+> I am having some problem with upstream kernel and bpfilter. The
+> manifestation is that IPT_SO_GET_INFO on an ipv4 socket works, then
+> something (that I can't fully localize but can reproduce) happens and
+> then IPT_SO_GET_INFO starts permanently returning 256.
+...
+> Now the litmus program always fails with:
+> 
+> getsockopt(3, SOL_IP, 0x40 /* IP_??? */,
+> "filter\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"..., [84])
+> = 256
+> 
+> I am currently on upstream commit
+> 28619527b8a712590c93d0a9e24b4425b9376a8c, my .config is attached. I
+> don't know what is bpfilter, I see it mentions some umh, if it
+> requires some additional setup I don't it, i.e. I don't install any
+> userspace modules/helpers.
 
-On behalf of the NetDev Society, this is a formal announcement that
-Netdev 0x13 conference will be held in Prague, Czech Republic.
-Tentative dates are March 20-22, 2019.
+This looks similar to the fallback issue described here:
 
-We had a very successful 0x12 meeting. The summaries are posted here:
-https://lwn.net/Articles/763627/rss
+  https://bugzilla.suse.com/show_bug.cgi?id=1106751#c1
 
-For more details, all the slides, papers and videos are now up. Visit:
-https://www.netdevconf.org/0x12/accepted-sessions.html
+Unfortunately I didn't have time to look into it more closely yet.
 
-At 0x12 we tried a new format where the first day constitutes developer
-working sessions via workshops and educational sessions via tutorials.
-We have received feedback which we are in the process of evaluating
-and we will be notifying you of any format changes. The window for
-suggestions is still open - please send email to people@netdevconf.org.
-
-We hope to announce the CFP much earlier than usual to give folks
-ample time to submit.
-
-For more frequent announcements join the people@netdevconf mailing list.
-If tweeter is your thing we also do announce @netdev01
-
-The official 0x13 website is at: https://www.netdevconf.org/0x13
-
-cheers,
-jamal
+Michal Kubecek
