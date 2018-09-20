@@ -1,31 +1,24 @@
-From: Casey Schaufler <casey@schaufler-ca.com>
-Subject: Re: [PATCH] netfilter: nf_tables: add SECMARK support
-Date: Thu, 20 Sep 2018 08:23:30 -0700
-Message-ID: <f65fb0db-d79f-3867-f48c-cec2f61e027b@schaufler-ca.com>
-References: <20180919231402.4482-1-cgzones@googlemail.com>
- <75b3fed9-e549-4ed0-c435-ec4795fc1e39@schaufler-ca.com>
- <CAJ2a_Ddd19txwUiKkOwpdWUSq9+VWFSR6Cqe4zgXKggWUPi4hw@mail.gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] netfilter: conntrack: get rid of double sizeof
+Date: Thu, 20 Sep 2018 18:22:56 +0200
+Message-ID: <20180920162256.yrjkxw6n7q75ibom@salvia>
+References: <1537359671-53720-1-git-send-email-zhongjiang@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Cc: pablo@netfilter.org, kadlec@blackhole.kfki.hu, fw@strlen.de,
-        davem@davemloft.net, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org, Paul Moore <paul@paul-moore.com>,
-        Stephen Smalley <sds@tycho.nsa.gov>,
-        Eric Paris <eparis@parisplace.org>, jmorris@namei.org,
-        serge@hallyn.com, selinux <selinux@tycho.nsa.gov>,
-        linux-security-module@vger.kernel.org
-To: =?UTF-8?Q?Christian_G=c3=b6ttsche?= <cgzones@googlemail.com>
+Content-Type: text/plain; charset=us-ascii
+Cc: davem@davemloft.net, kadlec@blackhole.kfki.hu, fw@strlen.de,
+        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+To: zhong jiang <zhongjiang@huawei.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJ2a_Ddd19txwUiKkOwpdWUSq9+VWFSR6Cqe4zgXKggWUPi4hw@mail.gmail.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <1537359671-53720-1-git-send-email-zhongjiang@huawei.com>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On 9/20/2018 12:18 AM, Christian Göttsche wrote:
->> I've only had a cursory look at your patch, but how is it
->> different from what's in xt_SECMARK.c ?
-> xt_SEXMARK.c is for xtables, use-able in iptables; this is for nftables (nft)
+On Wed, Sep 19, 2018 at 08:21:11PM +0800, zhong jiang wrote:
+> sizeof(sizeof()) is quite strange and does not seem to be what
+> is wanted here.
+> 
+> The issue is detected with the help of Coccinelle.
 
-Thank you. I am enlightened.
+Applied to nf, thanks.
