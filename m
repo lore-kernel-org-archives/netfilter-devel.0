@@ -1,28 +1,27 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH net-next 0/3] net: wean netfilter from fib_nh
-Date: Thu, 20 Sep 2018 20:02:08 -0700 (PDT)
-Message-ID: <20180920.200208.1568858977478629095.davem@davemloft.net>
-References: <20180920205049.15143-1-dsahern@kernel.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH nf-next] netfilter: ctnetlink: must check mark attributes
+ vs NULL
+Date: Fri, 21 Sep 2018 10:14:58 +0200
+Message-ID: <20180921081458.l42yaho6r6sfd76f@salvia>
+References: <000000000000f4bf02057653dc0a@google.com>
+ <20180920215306.10018-1-fw@strlen.de>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        pablo@netfilter.org, fw@strlen.de, dsahern@gmail.com
-To: dsahern@kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org,
+        syzbot+e45eda8eda6e93a03959@syzkaller.appspotmail.com,
+        syzkaller-bugs@googlegroups.com, netdev@vger.kernel.org,
+        kristian.evensen@gmail.com
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180920205049.15143-1-dsahern@kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20180920215306.10018-1-fw@strlen.de>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: dsahern@kernel.org
-Date: Thu, 20 Sep 2018 13:50:46 -0700
-
-> From: David Ahern <dsahern@gmail.com>
+On Thu, Sep 20, 2018 at 11:53:06PM +0200, Florian Westphal wrote:
+> else we will oops (null deref) when the attributes aren't present.
 > 
-> Two netfilter modules reference fib_nh. In both cases the code is
-> only checking if a nexthop in a fib_info uses a specific device.
-> Both instances essentially duplicate code from __fib_validate_source,
-> so move that code into a helper and flip the netfilter modules to
-> use it.
+> Also add back the EOPNOTSUPP in case MARK filtering is requested but
+> kernel doesn't support it.
 
-Series applied, thanks David.
+Applied, thanks Florian.
