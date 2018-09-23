@@ -1,36 +1,95 @@
-From: Kristian Evensen <kristian.evensen@gmail.com>
-Subject: Re: [PATCH nf-next] netfilter: ctnetlink: must check mark attributes
- vs NULL
-Date: Sun, 23 Sep 2018 09:48:58 +0200
-Message-ID: <CAKfDRXj87vZF+=Y=SKURmxw87BoK2jwvbWm2W-2jz_-yari1pA@mail.gmail.com>
-References: <000000000000f4bf02057653dc0a@google.com> <20180920215306.10018-1-fw@strlen.de>
- <20180921081458.l42yaho6r6sfd76f@salvia>
+From: =?UTF-8?q?Christian=20G=C3=B6ttsche?= <cgzones@googlemail.com>
+Subject: [PATCH 2/2] netfilter: nf_tables: add requirements for connsecmark support
+Date: Sun, 23 Sep 2018 11:16:11 +0200
+Message-ID: <20180923091611.19815-2-cgzones@googlemail.com>
+References: <20180923091611.19815-1-cgzones@googlemail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Cc: Florian Westphal <fw@strlen.de>,
-        Netfilter Development Mailing list
-        <netfilter-devel@vger.kernel.org>,
-        syzbot+e45eda8eda6e93a03959@syzkaller.appspotmail.com,
-        syzkaller-bugs@googlegroups.com,
-        Network Development <netdev@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+To: pablo@netfilter.org, kadlec@blackhole.kfki.hu, fw@strlen.de,
+        davem@davemloft.net, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org, paul@paul-moore.com,
+        sds@tycho.nsa.gov, eparis@parisplace.org, jmorris@namei.org,
+        serge@hallyn.com, selinux@tycho.nsa.gov,
+        linux-security-module@vger.kernel.org
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180921081458.l42yaho6r6sfd76f@salvia>
+In-Reply-To: <20180923091611.19815-1-cgzones@googlemail.com>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Florian,
-On Fri, Sep 21, 2018 at 10:15 AM Pablo Neira Ayuso <pablo@netfilter.org> wrote:
->
-> On Thu, Sep 20, 2018 at 11:53:06PM +0200, Florian Westphal wrote:
-> > else we will oops (null deref) when the attributes aren't present.
-> >
-> > Also add back the EOPNOTSUPP in case MARK filtering is requested but
-> > kernel doesn't support it.
->
-> Applied, thanks Florian.
+Add ability to set the connection tracking secmark value.
 
-Thanks for fixing my embarrassing mistake!
+Add ability to set the meta secmark value.
 
-BR,
-Kristian
+Signed-off-by: Christian Göttsche <cgzones@googlemail.com>
+---
+
+Based on nf-next
+Tested with v4.18.8
+
+ net/netfilter/nft_ct.c   | 15 +++++++++++++++
+ net/netfilter/nft_meta.c |  8 ++++++++
+ 2 files changed, 23 insertions(+)
+
+diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
+index d74afa707..dcc451c20 100644
+--- a/net/netfilter/nft_ct.c
++++ b/net/netfilter/nft_ct.c
+@@ -298,6 +298,14 @@ static void nft_ct_set_eval(const struct nft_expr *expr,
+ 		}
+ 		break;
+ #endif
++#ifdef CONFIG_NF_CONNTRACK_SECMARK
++	case NFT_CT_SECMARK:
++		if (ct->secmark != value) {
++			ct->secmark = value;
++			nf_conntrack_event_cache(IPCT_SECMARK, ct);
++		}
++		break;
++#endif
+ #ifdef CONFIG_NF_CONNTRACK_LABELS
+ 	case NFT_CT_LABELS:
+ 		nf_connlabels_replace(ct,
+@@ -564,6 +572,13 @@ static int nft_ct_set_init(const struct nft_ctx *ctx,
+ 			return -EINVAL;
+ 		len = sizeof(u32);
+ 		break;
++#endif
++#ifdef CONFIG_NF_CONNTRACK_SECMARK
++	case NFT_CT_SECMARK:
++		if (tb[NFTA_CT_DIRECTION])
++			return -EINVAL;
++		len = sizeof(u32);
++		break;
+ #endif
+ 	default:
+ 		return -EOPNOTSUPP;
+diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
+index ac5df9508..555fcd66b 100644
+--- a/net/netfilter/nft_meta.c
++++ b/net/netfilter/nft_meta.c
+@@ -284,6 +284,11 @@ static void nft_meta_set_eval(const struct nft_expr *expr,
+ 
+ 		skb->nf_trace = !!value8;
+ 		break;
++#ifdef CONFIG_NETWORK_SECMARK
++	case NFT_META_SECMARK:
++		skb->secmark = value;
++		break;
++#endif
+ 	default:
+ 		WARN_ON(1);
+ 	}
+@@ -436,6 +441,9 @@ static int nft_meta_set_init(const struct nft_ctx *ctx,
+ 	switch (priv->key) {
+ 	case NFT_META_MARK:
+ 	case NFT_META_PRIORITY:
++#ifdef CONFIG_NETWORK_SECMARK
++	case NFT_META_SECMARK:
++#endif
+ 		len = sizeof(u32);
+ 		break;
+ 	case NFT_META_NFTRACE:
+-- 
+2.19.0
