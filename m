@@ -1,60 +1,81 @@
-From: Dmitry Vyukov <dvyukov@google.com>
-Subject: Re: bpfilter breaks IPT_SO_GET_INFO
-Date: Tue, 25 Sep 2018 19:59:00 +0200
-Message-ID: <CACT4Y+aGYtWnGcVPhriLZB8z-hMdZ+2u=na5GN4GvByL6w49Wg@mail.gmail.com>
-References: <CACT4Y+YS55tk5xoPmscBXcgSbLrgWFSLAz1MUEjby0XT8eanmQ@mail.gmail.com>
- <20180919071847.GE3876@unicorn.suse.cz> <CACT4Y+bdzDe_LhQQh-eLapOg0ZsfXFRm2tjUbiAsgS-ObMvwBg@mail.gmail.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Subject: Re: [PATCH] netfilter: check if the socket netns is correct.
+Date: Thu, 27 Sep 2018 13:46:29 -0700
+Message-ID: <20180927204629.GA4680@roeck-us.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Cc: Alexei Starovoitov <ast@kernel.org>,
-        David Miller <davem@davemloft.net>,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        netdev <netdev@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        syzkaller <syzkaller@googlegroups.com>,
-        NetFilter <netfilter-devel@vger.kernel.org>,
-        Fabian Vogt <fvogt@suse.com>, Takashi Iwai <tiwai@suse.de>
-To: Michal Kubecek <mkubecek@suse.cz>
+Content-Type: text/plain; charset=us-ascii
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Flavio Leitner <fbl@redhat.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CACT4Y+bdzDe_LhQQh-eLapOg0ZsfXFRm2tjUbiAsgS-ObMvwBg@mail.gmail.com>
+Content-Disposition: inline
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Sep 19, 2018 at 10:29 AM, Dmitry Vyukov <dvyukov@google.com> wrote:
-> On Wed, Sep 19, 2018 at 9:18 AM, Michal Kubecek <mkubecek@suse.cz> wrote:
->> On Mon, Sep 17, 2018 at 03:36:21PM +0200, Dmitry Vyukov wrote:
->>> Hi,
->>>
->>> I am having some problem with upstream kernel and bpfilter. The
->>> manifestation is that IPT_SO_GET_INFO on an ipv4 socket works, then
->>> something (that I can't fully localize but can reproduce) happens and
->>> then IPT_SO_GET_INFO starts permanently returning 256.
->> ...
->>> Now the litmus program always fails with:
->>>
->>> getsockopt(3, SOL_IP, 0x40 /* IP_??? */,
->>> "filter\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"..., [84])
->>> = 256
->>>
->>> I am currently on upstream commit
->>> 28619527b8a712590c93d0a9e24b4425b9376a8c, my .config is attached. I
->>> don't know what is bpfilter, I see it mentions some umh, if it
->>> requires some additional setup I don't it, i.e. I don't install any
->>> userspace modules/helpers.
->>
->> This looks similar to the fallback issue described here:
->>
->>   https://bugzilla.suse.com/show_bug.cgi?id=1106751#c1
->>
->> Unfortunately I didn't have time to look into it more closely yet.
->
-> +Takashi
->
-> But I already have CONFIG_BPFILTER_UMH=y in my config, so it does not
-> help completely.
-> Also in my case it is working initially, but breaks after I run the
-> second program.
+Hi Flavio,
 
+On Wed, Jun 27, 2018 at 10:34:25AM -0300, Flavio Leitner wrote:
+> Netfilter assumes that if the socket is present in the skb, then
+> it can be used because that reference is cleaned up while the skb
+> is crossing netns.
+> 
+> We want to change that to preserve the socket reference in a future
+> patch, so this is a preparation updating netfilter to check if the
+> socket netns matches before use it.
+> 
+> Signed-off-by: Flavio Leitner <fbl@redhat.com>
+> Acked-by: Florian Westphal <fw@strlen.de>
+> Signed-off-by: David S. Miller <davem@davemloft.net>
+> ---
+...
+> --- a/net/netfilter/xt_socket.c
+> +++ b/net/netfilter/xt_socket.c
+> @@ -56,8 +56,12 @@ socket_match(const struct sk_buff *skb, struct xt_action_param *par,
+>  	struct sk_buff *pskb = (struct sk_buff *)skb;
+>  	struct sock *sk = skb->sk;
+>  
+> +	if (!net_eq(xt_net(par), sock_net(sk)))
+> +		sk = NULL;
+> +
 
-I've disabled CONFIG_BPFILTER for now, it causes too many failures.
-https://github.com/google/syzkaller/commit/19a403430d8d5ae2472e16dab2f26ddd899cf552
+I am having trouble with this code. With CONFIG_NET_NS enabled, it crashes
+for me in read_pnet() because sk is NULL.
+
+>  	if (!sk)
+>  		sk = nf_sk_lookup_slow_v4(xt_net(par), skb, xt_in(par));
+
+The old code seems to suggest that sk == NULL was possible.
+
+I see the problem with the Chrome OS kernel rebased to v4.19-rc5, so I
+can not guarantee that this really an upstream problem. The change seems
+odd, though. Are you sure that it is not (or, rather, no longer) necessary
+to check if sk == NULL before dereferencing it in sock_net() ?
+
+> +
+>  	if (sk) {
+>  		bool wildcard;
+>  		bool transparent = true;
+> @@ -113,8 +117,12 @@ socket_mt6_v1_v2_v3(const struct sk_buff *skb, struct xt_action_param *par)
+>  	struct sk_buff *pskb = (struct sk_buff *)skb;
+>  	struct sock *sk = skb->sk;
+>  
+> +	if (!net_eq(xt_net(par), sock_net(sk)))
+> +		sk = NULL;
+> +
+Same here.
+
+>  	if (!sk)
+>  		sk = nf_sk_lookup_slow_v6(xt_net(par), skb, xt_in(par));
+> +
+>  	if (sk) {
+>  		bool wildcard;
+>  		bool transparent = true;
+
+Thanks,
+Guenter
