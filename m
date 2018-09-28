@@ -1,41 +1,35 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [netfilter-core] [PATCH 07/11] UAPI: netfilter: Fix symbol
- collision issues [ver #2]
-Date: Fri, 28 Sep 2018 15:07:04 +0200
-Message-ID: <20180928130704.kcmsnsecp6aqpk66@salvia>
-References: <153622549721.14298.8116794954073122489.stgit@warthog.procyon.org.uk>
- <153622555128.14298.11612304975343930534.stgit@warthog.procyon.org.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: linux-api@vger.kernel.org, linux-kbuild@vger.kernel.org,
-        coreteam@netfilter.org, netfilter-devel@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-To: David Howells <dhowells@redhat.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <153622555128.14298.11612304975343930534.stgit@warthog.procyon.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
+From: Flavio Leitner <fbl@redhat.com>
+Subject: [PATCH] openvswitch: load NAT helper
+Date: Fri, 28 Sep 2018 14:51:28 -0300
+Message-ID: <20180928175128.13126-1-fbl@redhat.com>
+Cc: Pravin B Shelar <pshelar@ovn.org>, Flavio Leitner <fbl@redhat.com>
+To: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+        dev@openvswitch.org
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, Sep 06, 2018 at 10:19:11AM +0100, David Howells wrote:
-> The netfilter UAPI headers have some symbol collision issues:
-> 
->  (1) "enum nfnl_acct_msg_types" is defined twice, and each definition is
->      completely different.
-> 
->      Fix this by renaming the one in nfnetlink_cthelper.h to be "enum
->      nfnl_cthelper_types" to be consistent with the other things in that
->      file.
-> 
->  (2) There's a disagreement between ipt_ECN.h and ipt_ecn.h over the
->      definition of various IPT_ECN_* constants, leading to an error over
->      IPT_ECN_IP_MASK being substituted when being defined as an enum value
->      in ipt_ecn.h if ipt_ECN.h is #included first.
-> 
->      Fix this by removing the conflicting constants from ipt_ECN.h and
->      including ipt_ecn.h instead.
+Load the respective NAT helper module if the flow uses it.
 
-David, may I upstream this or you will pass it to Greg? I can just
-take this, as you prefer.
+Signed-off-by: Flavio Leitner <fbl@redhat.com>
+---
+ net/openvswitch/conntrack.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-Thanks.
+diff --git a/net/openvswitch/conntrack.c b/net/openvswitch/conntrack.c
+index 86a75105af1a..7e9a5283e236 100644
+--- a/net/openvswitch/conntrack.c
++++ b/net/openvswitch/conntrack.c
+@@ -1312,6 +1312,10 @@ static int ovs_ct_add_helper(struct ovs_conntrack_info *info, const char *name,
+ 
+ 	rcu_assign_pointer(help->helper, helper);
+ 	info->helper = helper;
++
++	if (info->nat)
++		request_module("ip_nat_%s", name);
++
+ 	return 0;
+ }
+ 
+-- 
+2.14.4
