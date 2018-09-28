@@ -1,37 +1,41 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: masquerade: don't flush all conntracks if
- only one address deleted on device
-Date: Fri, 28 Sep 2018 14:22:11 +0200
-Message-ID: <20180928122211.vxjfcrme6oiukjol@salvia>
-References: <1536309213-19632-1-git-send-email-tan.hu@zte.com.cn>
+Subject: Re: [netfilter-core] [PATCH 07/11] UAPI: netfilter: Fix symbol
+ collision issues [ver #2]
+Date: Fri, 28 Sep 2018 15:07:04 +0200
+Message-ID: <20180928130704.kcmsnsecp6aqpk66@salvia>
+References: <153622549721.14298.8116794954073122489.stgit@warthog.procyon.org.uk>
+ <153622555128.14298.11612304975343930534.stgit@warthog.procyon.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: kadlec@blackhole.kfki.hu, fw@strlen.de, davem@davemloft.net,
-        kuznet@ms2.inr.ac.ru, yoshfuji@linux-ipv6.org,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        zhong.weidong@zte.com.cn, jiang.biao2@zte.com.cn
-To: Tan Hu <tan.hu@zte.com.cn>
+Cc: linux-api@vger.kernel.org, linux-kbuild@vger.kernel.org,
+        coreteam@netfilter.org, netfilter-devel@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+To: David Howells <dhowells@redhat.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1536309213-19632-1-git-send-email-tan.hu@zte.com.cn>
+In-Reply-To: <153622555128.14298.11612304975343930534.stgit@warthog.procyon.org.uk>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, Sep 07, 2018 at 04:33:33PM +0800, Tan Hu wrote:
-> We configured iptables as below, which only allowed incoming data on
-> established connections:
+On Thu, Sep 06, 2018 at 10:19:11AM +0100, David Howells wrote:
+> The netfilter UAPI headers have some symbol collision issues:
 > 
-> iptables -t mangle -A PREROUTING -m state --state ESTABLISHED -j ACCEPT
-> iptables -t mangle -P PREROUTING DROP
+>  (1) "enum nfnl_acct_msg_types" is defined twice, and each definition is
+>      completely different.
 > 
-> When deleting a secondary address, current masquerade implements would
-> flush all conntracks on this device. All the established connections on
-> primary address also be deleted, then subsequent incoming data on the
-> connections would be dropped wrongly because it was identified as NEW
-> connection.
+>      Fix this by renaming the one in nfnetlink_cthelper.h to be "enum
+>      nfnl_cthelper_types" to be consistent with the other things in that
+>      file.
 > 
-> So when an address was delete, it should only flush connections related
-> with the address.
+>  (2) There's a disagreement between ipt_ECN.h and ipt_ecn.h over the
+>      definition of various IPT_ECN_* constants, leading to an error over
+>      IPT_ECN_IP_MASK being substituted when being defined as an enum value
+>      in ipt_ecn.h if ipt_ECN.h is #included first.
+> 
+>      Fix this by removing the conflicting constants from ipt_ECN.h and
+>      including ipt_ecn.h instead.
 
-Applied to nf-next, thanks.
+David, may I upstream this or you will pass it to Greg? I can just
+take this, as you prefer.
+
+Thanks.
