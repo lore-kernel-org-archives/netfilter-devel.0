@@ -1,38 +1,31 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: check if the socket netns is correct.
-Date: Fri, 28 Sep 2018 10:33:00 +0200
-Message-ID: <20180928083300.q6xz2vbibm7jipws@salvia>
-References: <20180927204629.GA4680@roeck-us.net>
- <20180927225824.GT2702@plex.lan>
+Subject: Re: [PATCH v3 1/2] netfilter: nf_tables: add SECMARK support
+Date: Fri, 28 Sep 2018 11:01:11 +0200
+Message-ID: <20180928090111.7h2rj5vbf5l2dzcy@salvia>
+References: <20180923182616.11398-1-cgzones@googlemail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Guenter Roeck <linux@roeck-us.net>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Cc: kadlec@blackhole.kfki.hu, fw@strlen.de, davem@davemloft.net,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-To: Flavio Leitner <fbl@redhat.com>
-Return-path: <netdev-owner@vger.kernel.org>
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        paul@paul-moore.com, sds@tycho.nsa.gov, eparis@parisplace.org,
+        jmorris@namei.org, serge@hallyn.com, selinux@tycho.nsa.gov,
+        linux-security-module@vger.kernel.org
+To: Christian =?iso-8859-1?Q?G=F6ttsche?= <cgzones@googlemail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180927225824.GT2702@plex.lan>
-Sender: netdev-owner@vger.kernel.org
+In-Reply-To: <20180923182616.11398-1-cgzones@googlemail.com>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, Sep 27, 2018 at 07:58:24PM -0300, Flavio Leitner wrote:
-[...]
-> From a5f927e7f1368d753f87cb978d630d786d5adb62 Mon Sep 17 00:00:00 2001
-> From: Flavio Leitner <fbl@redhat.com>
-> Date: Thu, 27 Sep 2018 19:36:28 -0300
-> Subject: [PATCH] xt_socket: check sk before checking for netns.
+On Sun, Sep 23, 2018 at 08:26:15PM +0200, Christian Göttsche wrote:
+> Add the ability to set the security context of packets within the nf_tables framework.
+> Add a nft_object for holding security contexts in the kernel and manipulating packets on the wire.
 > 
-> Only check for the network namespace if the socket is available.
+> Convert the security context strings at rule addition time to security identifiers.
+> This is the same behavior like in xt_SECMARK and offers better performance than computing it per packet.
+> 
+> Set the maximum security context length to 256.
 
-Applied.
-
-Please, Cc netfilter-devel@vger.kernel.org next time for your
-netfilter patches.
-
-Thanks.
+Applied, thanks Christian.
