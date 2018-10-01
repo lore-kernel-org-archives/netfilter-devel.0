@@ -1,77 +1,167 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 0/6] Netfilter fixes for net
-Date: Tue,  2 Oct 2018 00:37:39 +0200
-Message-ID: <20181001223745.29010-1-pablo@netfilter.org>
+Subject: [PATCH 4/6] netfilter: nft_set_rbtree: add missing rb_erase() in GC routine
+Date: Tue,  2 Oct 2018 00:37:43 +0200
+Message-ID: <20181001223745.29010-5-pablo@netfilter.org>
+References: <20181001223745.29010-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20181001223745.29010-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi David,
+From: Taehee Yoo <ap420073@gmail.com>
 
-The following patchset contains Netfilter fixes for your net tree:
+The nft_set_gc_batch_check() checks whether gc buffer is full.
+If gc buffer is full, gc buffer is released by
+the nft_set_gc_batch_complete() internally.
+In case of rbtree, the rb_erase() should be called before calling the
+nft_set_gc_batch_complete(). therefore the rb_erase() should
+be called before calling the nft_set_gc_batch_check() too.
 
-1) Skip ip_sabotage_in() for packet making into the VRF driver,
-   otherwise packets are dropped, from David Ahern.
+test commands:
+   table ip filter {
+	   set set1 {
+		   type ipv4_addr; flags interval, timeout;
+		   gc-interval 10s;
+		   timeout 1s;
+		   elements = {
+			   1-2,
+			   3-4,
+			   5-6,
+			   ...
+			   10000-10001,
+		   }
+	   }
+   }
+   %nft -f test.nft
 
-2) Clang compilation warning uncovering typo in the
-   nft_validate_register_store() call from nft_osf, from Stefan Agner.
+splat looks like:
+[  430.273885] kasan: GPF could be caused by NULL-ptr deref or user memory access
+[  430.282158] general protection fault: 0000 [#1] SMP DEBUG_PAGEALLOC KASAN PTI
+[  430.283116] CPU: 1 PID: 190 Comm: kworker/1:2 Tainted: G    B             4.18.0+ #7
+[  430.283116] Workqueue: events_power_efficient nft_rbtree_gc [nf_tables_set]
+[  430.313559] RIP: 0010:rb_next+0x81/0x130
+[  430.313559] Code: 08 49 bd 00 00 00 00 00 fc ff df 48 bb 00 00 00 00 00 fc ff df 48 85 c0 75 05 eb 58 48 89 d4
+[  430.313559] RSP: 0018:ffff88010cdb7680 EFLAGS: 00010207
+[  430.313559] RAX: 0000000000b84854 RBX: dffffc0000000000 RCX: ffffffff83f01973
+[  430.313559] RDX: 000000000017090c RSI: 0000000000000008 RDI: 0000000000b84864
+[  430.313559] RBP: ffff8801060d4588 R08: fffffbfff09bc349 R09: fffffbfff09bc349
+[  430.313559] R10: 0000000000000001 R11: fffffbfff09bc348 R12: ffff880100f081a8
+[  430.313559] R13: dffffc0000000000 R14: ffff880100ff8688 R15: dffffc0000000000
+[  430.313559] FS:  0000000000000000(0000) GS:ffff88011b400000(0000) knlGS:0000000000000000
+[  430.313559] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[  430.313559] CR2: 0000000001551008 CR3: 000000005dc16000 CR4: 00000000001006e0
+[  430.313559] Call Trace:
+[  430.313559]  nft_rbtree_gc+0x112/0x5c0 [nf_tables_set]
+[  430.313559]  process_one_work+0xc13/0x1ec0
+[  430.313559]  ? _raw_spin_unlock_irq+0x29/0x40
+[  430.313559]  ? pwq_dec_nr_in_flight+0x3c0/0x3c0
+[  430.313559]  ? set_load_weight+0x270/0x270
+[  430.313559]  ? __switch_to_asm+0x34/0x70
+[  430.313559]  ? __switch_to_asm+0x40/0x70
+[  430.313559]  ? __switch_to_asm+0x34/0x70
+[  430.313559]  ? __switch_to_asm+0x34/0x70
+[  430.313559]  ? __switch_to_asm+0x40/0x70
+[  430.313559]  ? __switch_to_asm+0x34/0x70
+[  430.313559]  ? __switch_to_asm+0x40/0x70
+[  430.313559]  ? __switch_to_asm+0x34/0x70
+[  430.313559]  ? __switch_to_asm+0x34/0x70
+[  430.313559]  ? __switch_to_asm+0x40/0x70
+[  430.313559]  ? __switch_to_asm+0x34/0x70
+[  430.313559]  ? __schedule+0x6d3/0x1f50
+[  430.313559]  ? find_held_lock+0x39/0x1c0
+[  430.313559]  ? __sched_text_start+0x8/0x8
+[  430.313559]  ? cyc2ns_read_end+0x10/0x10
+[  430.313559]  ? save_trace+0x300/0x300
+[  430.313559]  ? sched_clock_local+0xd4/0x140
+[  430.313559]  ? find_held_lock+0x39/0x1c0
+[  430.313559]  ? worker_thread+0x353/0x1120
+[  430.313559]  ? worker_thread+0x353/0x1120
+[  430.313559]  ? lock_contended+0xe70/0xe70
+[  430.313559]  ? __lock_acquire+0x4500/0x4500
+[  430.535635]  ? do_raw_spin_unlock+0xa5/0x330
+[  430.535635]  ? do_raw_spin_trylock+0x101/0x1a0
+[  430.535635]  ? do_raw_spin_lock+0x1f0/0x1f0
+[  430.535635]  ? _raw_spin_lock_irq+0x10/0x70
+[  430.535635]  worker_thread+0x15d/0x1120
+[ ... ]
 
-3) Double sizeof netlink message length calculations in ctnetlink,
-   from zhong jiang.
+Fixes: 8d8540c4f5e0 ("netfilter: nft_set_rbtree: add timeout support")
+Signed-off-by: Taehee Yoo <ap420073@gmail.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nft_set_rbtree.c | 28 ++++++++++++++--------------
+ 1 file changed, 14 insertions(+), 14 deletions(-)
 
-4) Missing rb_erase() on batch full in rbtree garbage collector,
-   from Taehee Yoo.
-
-5) Calm down compilation warning in nf_hook(), from Florian Westphal.
-
-6) Missing check for non-null sk in xt_socket before validating
-   netns procedence, from Flavio Leitner.
-
-You can pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
-
-Thanks.
-
-----------------------------------------------------------------
-
-The following changes since commit 56ce3c5a50f4d8cc95361b1ec7f152006c6320d8:
-
-  smc: generic netlink family should be __ro_after_init (2018-09-20 07:49:55 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git HEAD
-
-for you to fetch changes up to 40e4f26e6a14fc1496eabb8b0004a547303114e6:
-
-  netfilter: xt_socket: check sk before checking for netns. (2018-09-28 14:47:41 +0200)
-
-----------------------------------------------------------------
-David Ahern (1):
-      netfilter: bridge: Don't sabotage nf_hook calls from an l3mdev
-
-Flavio Leitner (1):
-      netfilter: xt_socket: check sk before checking for netns.
-
-Florian Westphal (1):
-      netfilter: avoid erronous array bounds warning
-
-Stefan Agner (1):
-      netfilter: nft_osf: use enum nft_data_types for nft_validate_register_store
-
-Taehee Yoo (1):
-      netfilter: nft_set_rbtree: add missing rb_erase() in GC routine
-
-zhong jiang (1):
-      netfilter: conntrack: get rid of double sizeof
-
- include/linux/netfilter.h              |  2 ++
- net/bridge/br_netfilter_hooks.c        |  3 ++-
- net/netfilter/nf_conntrack_proto_tcp.c |  4 ++--
- net/netfilter/nft_osf.c                |  2 +-
- net/netfilter/nft_set_rbtree.c         | 28 ++++++++++++++--------------
- net/netfilter/xt_socket.c              |  4 ++--
- 6 files changed, 23 insertions(+), 20 deletions(-)
+diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
+index 55e2d9215c0d..0e5ec126f6ad 100644
+--- a/net/netfilter/nft_set_rbtree.c
++++ b/net/netfilter/nft_set_rbtree.c
+@@ -355,12 +355,11 @@ static void nft_rbtree_walk(const struct nft_ctx *ctx,
+ 
+ static void nft_rbtree_gc(struct work_struct *work)
+ {
++	struct nft_rbtree_elem *rbe, *rbe_end = NULL, *rbe_prev = NULL;
+ 	struct nft_set_gc_batch *gcb = NULL;
+-	struct rb_node *node, *prev = NULL;
+-	struct nft_rbtree_elem *rbe;
+ 	struct nft_rbtree *priv;
++	struct rb_node *node;
+ 	struct nft_set *set;
+-	int i;
+ 
+ 	priv = container_of(work, struct nft_rbtree, gc_work.work);
+ 	set  = nft_set_container_of(priv);
+@@ -371,7 +370,7 @@ static void nft_rbtree_gc(struct work_struct *work)
+ 		rbe = rb_entry(node, struct nft_rbtree_elem, node);
+ 
+ 		if (nft_rbtree_interval_end(rbe)) {
+-			prev = node;
++			rbe_end = rbe;
+ 			continue;
+ 		}
+ 		if (!nft_set_elem_expired(&rbe->ext))
+@@ -379,29 +378,30 @@ static void nft_rbtree_gc(struct work_struct *work)
+ 		if (nft_set_elem_mark_busy(&rbe->ext))
+ 			continue;
+ 
++		if (rbe_prev) {
++			rb_erase(&rbe_prev->node, &priv->root);
++			rbe_prev = NULL;
++		}
+ 		gcb = nft_set_gc_batch_check(set, gcb, GFP_ATOMIC);
+ 		if (!gcb)
+ 			break;
+ 
+ 		atomic_dec(&set->nelems);
+ 		nft_set_gc_batch_add(gcb, rbe);
++		rbe_prev = rbe;
+ 
+-		if (prev) {
+-			rbe = rb_entry(prev, struct nft_rbtree_elem, node);
++		if (rbe_end) {
+ 			atomic_dec(&set->nelems);
+-			nft_set_gc_batch_add(gcb, rbe);
+-			prev = NULL;
++			nft_set_gc_batch_add(gcb, rbe_end);
++			rb_erase(&rbe_end->node, &priv->root);
++			rbe_end = NULL;
+ 		}
+ 		node = rb_next(node);
+ 		if (!node)
+ 			break;
+ 	}
+-	if (gcb) {
+-		for (i = 0; i < gcb->head.cnt; i++) {
+-			rbe = gcb->elems[i];
+-			rb_erase(&rbe->node, &priv->root);
+-		}
+-	}
++	if (rbe_prev)
++		rb_erase(&rbe_prev->node, &priv->root);
+ 	write_seqcount_end(&priv->count);
+ 	write_unlock_bh(&priv->lock);
+ 
+-- 
+2.11.0
