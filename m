@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 6/6] netfilter: xt_socket: check sk before checking for netns.
-Date: Tue,  2 Oct 2018 00:37:45 +0200
-Message-ID: <20181001223745.29010-7-pablo@netfilter.org>
+Subject: [PATCH 5/6] netfilter: avoid erronous array bounds warning
+Date: Tue,  2 Oct 2018 00:37:44 +0200
+Message-ID: <20181001223745.29010-6-pablo@netfilter.org>
 References: <20181001223745.29010-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,40 +10,42 @@ In-Reply-To: <20181001223745.29010-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Flavio Leitner <fbl@redhat.com>
+From: Florian Westphal <fw@strlen.de>
 
-Only check for the network namespace if the socket is available.
+Unfortunately some versions of gcc emit following warning:
+  $ make net/xfrm/xfrm_output.o
+  linux/compiler.h:252:20: warning: array subscript is above array bounds [-Warray-bounds]
+  hook_head = rcu_dereference(net->nf.hooks_arp[hook]);
+                            ^~~~~~~~~~~~~~~~~~~~~
+xfrm_output_resume passes skb_dst(skb)->ops->family as its 'pf' arg so compiler
+can't know that we'll never access hooks_arp[].
+(NFPROTO_IPV4 or NFPROTO_IPV6 are only possible cases).
 
-Fixes: f564650106a6 ("netfilter: check if the socket netns is correct.")
-Reported-by: Guenter Roeck <linux@roeck-us.net>
-Tested-by: Guenter Roeck <linux@roeck-us.net>
-Signed-off-by: Flavio Leitner <fbl@redhat.com>
+Avoid this by adding an explicit WARN_ON_ONCE() check.
+
+This patch has no effect if the family is a compile-time constant as gcc
+will remove the switch() construct entirely.
+
+Reported-by: David Ahern <dsahern@gmail.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Reviewed-by: David Ahern <dsahern@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/xt_socket.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/netfilter.h | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/net/netfilter/xt_socket.c b/net/netfilter/xt_socket.c
-index 0472f3472842..ada144e5645b 100644
---- a/net/netfilter/xt_socket.c
-+++ b/net/netfilter/xt_socket.c
-@@ -56,7 +56,7 @@ socket_match(const struct sk_buff *skb, struct xt_action_param *par,
- 	struct sk_buff *pskb = (struct sk_buff *)skb;
- 	struct sock *sk = skb->sk;
- 
--	if (!net_eq(xt_net(par), sock_net(sk)))
-+	if (sk && !net_eq(xt_net(par), sock_net(sk)))
- 		sk = NULL;
- 
- 	if (!sk)
-@@ -117,7 +117,7 @@ socket_mt6_v1_v2_v3(const struct sk_buff *skb, struct xt_action_param *par)
- 	struct sk_buff *pskb = (struct sk_buff *)skb;
- 	struct sock *sk = skb->sk;
- 
--	if (!net_eq(xt_net(par), sock_net(sk)))
-+	if (sk && !net_eq(xt_net(par), sock_net(sk)))
- 		sk = NULL;
- 
- 	if (!sk)
+diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
+index 07efffd0c759..bbe99d2b28b4 100644
+--- a/include/linux/netfilter.h
++++ b/include/linux/netfilter.h
+@@ -215,6 +215,8 @@ static inline int nf_hook(u_int8_t pf, unsigned int hook, struct net *net,
+ 		break;
+ 	case NFPROTO_ARP:
+ #ifdef CONFIG_NETFILTER_FAMILY_ARP
++		if (WARN_ON_ONCE(hook >= ARRAY_SIZE(net->nf.hooks_arp)))
++			break;
+ 		hook_head = rcu_dereference(net->nf.hooks_arp[hook]);
+ #endif
+ 		break;
 -- 
 2.11.0
