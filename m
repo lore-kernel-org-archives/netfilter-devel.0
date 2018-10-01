@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 2/6] netfilter: nft_osf: use enum nft_data_types for nft_validate_register_store
-Date: Tue,  2 Oct 2018 00:37:41 +0200
-Message-ID: <20181001223745.29010-3-pablo@netfilter.org>
+Subject: [PATCH 3/6] netfilter: conntrack: get rid of double sizeof
+Date: Tue,  2 Oct 2018 00:37:42 +0200
+Message-ID: <20181001223745.29010-4-pablo@netfilter.org>
 References: <20181001223745.29010-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,39 +10,35 @@ In-Reply-To: <20181001223745.29010-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Stefan Agner <stefan@agner.ch>
+From: zhong jiang <zhongjiang@huawei.com>
 
-The function nft_validate_register_store requires a struct of type
-struct nft_data_types. NFTA_DATA_VALUE is of type enum
-nft_verdict_attributes. Pass the correct enum type.
+sizeof(sizeof()) is quite strange and does not seem to be what
+is wanted here.
 
-This fixes a warning seen with Clang:
-  net/netfilter/nft_osf.c:52:8: warning: implicit conversion from
-    enumeration type 'enum nft_data_attributes' to different enumeration
-    type 'enum nft_data_types' [-Wenum-conversion]
-                                          NFTA_DATA_VALUE, NFT_OSF_MAXGENRELEN);
-                                          ^~~~~~~~~~~~~~~
+The issue is detected with the help of Coccinelle.
 
-Fixes: b96af92d6eaf ("netfilter: nf_tables: implement Passive OS fingerprint module in nft_osf")
-Link: https://github.com/ClangBuiltLinux/linux/issues/103
-Signed-off-by: Stefan Agner <stefan@agner.ch>
+Fixes: 39215846740a ("netfilter: conntrack: remove nlattr_size pointer from l4proto trackers")
+Signed-off-by: zhong jiang <zhongjiang@huawei.com>
+Acked-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_osf.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/netfilter/nf_conntrack_proto_tcp.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/net/netfilter/nft_osf.c b/net/netfilter/nft_osf.c
-index 5af74b37f423..a35fb59ace73 100644
---- a/net/netfilter/nft_osf.c
-+++ b/net/netfilter/nft_osf.c
-@@ -49,7 +49,7 @@ static int nft_osf_init(const struct nft_ctx *ctx,
+diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+index b4bdf9eda7b7..247b89784a6f 100644
+--- a/net/netfilter/nf_conntrack_proto_tcp.c
++++ b/net/netfilter/nf_conntrack_proto_tcp.c
+@@ -1213,8 +1213,8 @@ static const struct nla_policy tcp_nla_policy[CTA_PROTOINFO_TCP_MAX+1] = {
+ #define TCP_NLATTR_SIZE	( \
+ 	NLA_ALIGN(NLA_HDRLEN + 1) + \
+ 	NLA_ALIGN(NLA_HDRLEN + 1) + \
+-	NLA_ALIGN(NLA_HDRLEN + sizeof(sizeof(struct nf_ct_tcp_flags))) + \
+-	NLA_ALIGN(NLA_HDRLEN + sizeof(sizeof(struct nf_ct_tcp_flags))))
++	NLA_ALIGN(NLA_HDRLEN + sizeof(struct nf_ct_tcp_flags)) + \
++	NLA_ALIGN(NLA_HDRLEN + sizeof(struct nf_ct_tcp_flags)))
  
- 	priv->dreg = nft_parse_register(tb[NFTA_OSF_DREG]);
- 	err = nft_validate_register_store(ctx, priv->dreg, NULL,
--					  NFTA_DATA_VALUE, NFT_OSF_MAXGENRELEN);
-+					  NFT_DATA_VALUE, NFT_OSF_MAXGENRELEN);
- 	if (err < 0)
- 		return err;
- 
+ static int nlattr_to_tcp(struct nlattr *cda[], struct nf_conn *ct)
+ {
 -- 
 2.11.0
