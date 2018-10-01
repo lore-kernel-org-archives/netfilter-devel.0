@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 5/6] netfilter: avoid erronous array bounds warning
-Date: Tue,  2 Oct 2018 00:37:44 +0200
-Message-ID: <20181001223745.29010-6-pablo@netfilter.org>
+Subject: [PATCH 2/6] netfilter: nft_osf: use enum nft_data_types for nft_validate_register_store
+Date: Tue,  2 Oct 2018 00:37:41 +0200
+Message-ID: <20181001223745.29010-3-pablo@netfilter.org>
 References: <20181001223745.29010-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,42 +10,39 @@ In-Reply-To: <20181001223745.29010-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+From: Stefan Agner <stefan@agner.ch>
 
-Unfortunately some versions of gcc emit following warning:
-  $ make net/xfrm/xfrm_output.o
-  linux/compiler.h:252:20: warning: array subscript is above array bounds [-Warray-bounds]
-  hook_head = rcu_dereference(net->nf.hooks_arp[hook]);
-                            ^~~~~~~~~~~~~~~~~~~~~
-xfrm_output_resume passes skb_dst(skb)->ops->family as its 'pf' arg so compiler
-can't know that we'll never access hooks_arp[].
-(NFPROTO_IPV4 or NFPROTO_IPV6 are only possible cases).
+The function nft_validate_register_store requires a struct of type
+struct nft_data_types. NFTA_DATA_VALUE is of type enum
+nft_verdict_attributes. Pass the correct enum type.
 
-Avoid this by adding an explicit WARN_ON_ONCE() check.
+This fixes a warning seen with Clang:
+  net/netfilter/nft_osf.c:52:8: warning: implicit conversion from
+    enumeration type 'enum nft_data_attributes' to different enumeration
+    type 'enum nft_data_types' [-Wenum-conversion]
+                                          NFTA_DATA_VALUE, NFT_OSF_MAXGENRELEN);
+                                          ^~~~~~~~~~~~~~~
 
-This patch has no effect if the family is a compile-time constant as gcc
-will remove the switch() construct entirely.
-
-Reported-by: David Ahern <dsahern@gmail.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Reviewed-by: David Ahern <dsahern@gmail.com>
+Fixes: b96af92d6eaf ("netfilter: nf_tables: implement Passive OS fingerprint module in nft_osf")
+Link: https://github.com/ClangBuiltLinux/linux/issues/103
+Signed-off-by: Stefan Agner <stefan@agner.ch>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/linux/netfilter.h | 2 ++
- 1 file changed, 2 insertions(+)
+ net/netfilter/nft_osf.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
-index 07efffd0c759..bbe99d2b28b4 100644
---- a/include/linux/netfilter.h
-+++ b/include/linux/netfilter.h
-@@ -215,6 +215,8 @@ static inline int nf_hook(u_int8_t pf, unsigned int hook, struct net *net,
- 		break;
- 	case NFPROTO_ARP:
- #ifdef CONFIG_NETFILTER_FAMILY_ARP
-+		if (WARN_ON_ONCE(hook >= ARRAY_SIZE(net->nf.hooks_arp)))
-+			break;
- 		hook_head = rcu_dereference(net->nf.hooks_arp[hook]);
- #endif
- 		break;
+diff --git a/net/netfilter/nft_osf.c b/net/netfilter/nft_osf.c
+index 5af74b37f423..a35fb59ace73 100644
+--- a/net/netfilter/nft_osf.c
++++ b/net/netfilter/nft_osf.c
+@@ -49,7 +49,7 @@ static int nft_osf_init(const struct nft_ctx *ctx,
+ 
+ 	priv->dreg = nft_parse_register(tb[NFTA_OSF_DREG]);
+ 	err = nft_validate_register_store(ctx, priv->dreg, NULL,
+-					  NFTA_DATA_VALUE, NFT_OSF_MAXGENRELEN);
++					  NFT_DATA_VALUE, NFT_OSF_MAXGENRELEN);
+ 	if (err < 0)
+ 		return err;
+ 
 -- 
 2.11.0
