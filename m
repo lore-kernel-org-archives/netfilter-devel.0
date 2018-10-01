@@ -1,44 +1,25 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 3/6] netfilter: conntrack: get rid of double sizeof
-Date: Tue,  2 Oct 2018 00:37:42 +0200
-Message-ID: <20181001223745.29010-4-pablo@netfilter.org>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 0/6] Netfilter fixes for net
+Date: Mon, 01 Oct 2018 15:41:22 -0700 (PDT)
+Message-ID: <20181001.154122.384063357401903441.davem@davemloft.net>
 References: <20181001223745.29010-1-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20181001223745.29010-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: zhong jiang <zhongjiang@huawei.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Tue,  2 Oct 2018 00:37:39 +0200
 
-sizeof(sizeof()) is quite strange and does not seem to be what
-is wanted here.
+> The following patchset contains Netfilter fixes for your net tree:
+ ...
+> You can pull these changes from:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
 
-The issue is detected with the help of Coccinelle.
-
-Fixes: 39215846740a ("netfilter: conntrack: remove nlattr_size pointer from l4proto trackers")
-Signed-off-by: zhong jiang <zhongjiang@huawei.com>
-Acked-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_conntrack_proto_tcp.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-index b4bdf9eda7b7..247b89784a6f 100644
---- a/net/netfilter/nf_conntrack_proto_tcp.c
-+++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -1213,8 +1213,8 @@ static const struct nla_policy tcp_nla_policy[CTA_PROTOINFO_TCP_MAX+1] = {
- #define TCP_NLATTR_SIZE	( \
- 	NLA_ALIGN(NLA_HDRLEN + 1) + \
- 	NLA_ALIGN(NLA_HDRLEN + 1) + \
--	NLA_ALIGN(NLA_HDRLEN + sizeof(sizeof(struct nf_ct_tcp_flags))) + \
--	NLA_ALIGN(NLA_HDRLEN + sizeof(sizeof(struct nf_ct_tcp_flags))))
-+	NLA_ALIGN(NLA_HDRLEN + sizeof(struct nf_ct_tcp_flags)) + \
-+	NLA_ALIGN(NLA_HDRLEN + sizeof(struct nf_ct_tcp_flags)))
- 
- static int nlattr_to_tcp(struct nlattr *cda[], struct nf_conn *ct)
- {
--- 
-2.11.0
+Pulled, thanks.
