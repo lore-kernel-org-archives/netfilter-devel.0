@@ -1,60 +1,77 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 1/6] netfilter: bridge: Don't sabotage nf_hook calls from an l3mdev
-Date: Tue,  2 Oct 2018 00:37:40 +0200
-Message-ID: <20181001223745.29010-2-pablo@netfilter.org>
-References: <20181001223745.29010-1-pablo@netfilter.org>
+Subject: [PATCH 0/6] Netfilter fixes for net
+Date: Tue,  2 Oct 2018 00:37:39 +0200
+Message-ID: <20181001223745.29010-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20181001223745.29010-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: David Ahern <dsahern@gmail.com>
+Hi David,
 
-For starters, the bridge netfilter code registers operations that
-are invoked any time nh_hook is called. Specifically, ip_sabotage_in
-watches for nested calls for NF_INET_PRE_ROUTING when a bridge is in
-the stack.
+The following patchset contains Netfilter fixes for your net tree:
 
-Packet wise, the bridge netfilter hook runs first. br_nf_pre_routing
-allocates nf_bridge, sets in_prerouting to 1 and calls NF_HOOK for
-NF_INET_PRE_ROUTING. It's finish function, br_nf_pre_routing_finish,
-then resets in_prerouting flag to 0 and the packet continues up the
-stack. The packet eventually makes it to the VRF driver and it invokes
-nf_hook for NF_INET_PRE_ROUTING in case any rules have been added against
-the vrf device.
+1) Skip ip_sabotage_in() for packet making into the VRF driver,
+   otherwise packets are dropped, from David Ahern.
 
-Because of the registered operations the call to nf_hook causes
-ip_sabotage_in to be invoked. That function sees the nf_bridge on the
-skb and that in_prerouting is not set. Thinking it is an invalid nested
-call it steals (drops) the packet.
+2) Clang compilation warning uncovering typo in the
+   nft_validate_register_store() call from nft_osf, from Stefan Agner.
 
-Update ip_sabotage_in to recognize that the bridge or one of its upper
-devices (e.g., vlan) can be enslaved to a VRF (L3 master device) and
-allow the packet to go through the nf_hook a second time.
+3) Double sizeof netlink message length calculations in ctnetlink,
+   from zhong jiang.
 
-Fixes: 73e20b761acf ("net: vrf: Add support for PREROUTING rules on vrf device")
-Reported-by: D'Souza, Nelson <ndsouza@ciena.com>
-Signed-off-by: David Ahern <dsahern@gmail.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/bridge/br_netfilter_hooks.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+4) Missing rb_erase() on batch full in rbtree garbage collector,
+   from Taehee Yoo.
 
-diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
-index 6e0dc6bcd32a..37278dc280eb 100644
---- a/net/bridge/br_netfilter_hooks.c
-+++ b/net/bridge/br_netfilter_hooks.c
-@@ -835,7 +835,8 @@ static unsigned int ip_sabotage_in(void *priv,
- 				   struct sk_buff *skb,
- 				   const struct nf_hook_state *state)
- {
--	if (skb->nf_bridge && !skb->nf_bridge->in_prerouting) {
-+	if (skb->nf_bridge && !skb->nf_bridge->in_prerouting &&
-+	    !netif_is_l3_master(skb->dev)) {
- 		state->okfn(state->net, state->sk, skb);
- 		return NF_STOLEN;
- 	}
--- 
-2.11.0
+5) Calm down compilation warning in nf_hook(), from Florian Westphal.
+
+6) Missing check for non-null sk in xt_socket before validating
+   netns procedence, from Flavio Leitner.
+
+You can pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
+
+Thanks.
+
+----------------------------------------------------------------
+
+The following changes since commit 56ce3c5a50f4d8cc95361b1ec7f152006c6320d8:
+
+  smc: generic netlink family should be __ro_after_init (2018-09-20 07:49:55 -0700)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git HEAD
+
+for you to fetch changes up to 40e4f26e6a14fc1496eabb8b0004a547303114e6:
+
+  netfilter: xt_socket: check sk before checking for netns. (2018-09-28 14:47:41 +0200)
+
+----------------------------------------------------------------
+David Ahern (1):
+      netfilter: bridge: Don't sabotage nf_hook calls from an l3mdev
+
+Flavio Leitner (1):
+      netfilter: xt_socket: check sk before checking for netns.
+
+Florian Westphal (1):
+      netfilter: avoid erronous array bounds warning
+
+Stefan Agner (1):
+      netfilter: nft_osf: use enum nft_data_types for nft_validate_register_store
+
+Taehee Yoo (1):
+      netfilter: nft_set_rbtree: add missing rb_erase() in GC routine
+
+zhong jiang (1):
+      netfilter: conntrack: get rid of double sizeof
+
+ include/linux/netfilter.h              |  2 ++
+ net/bridge/br_netfilter_hooks.c        |  3 ++-
+ net/netfilter/nf_conntrack_proto_tcp.c |  4 ++--
+ net/netfilter/nft_osf.c                |  2 +-
+ net/netfilter/nft_set_rbtree.c         | 28 ++++++++++++++--------------
+ net/netfilter/xt_socket.c              |  4 ++--
+ 6 files changed, 23 insertions(+), 20 deletions(-)
