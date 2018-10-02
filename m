@@ -1,7 +1,7 @@
 From: Chenbo Feng <chenbofeng.kernel@gmail.com>
-Subject: [PATCH iptables] extensions: libxt_quota: Allow setting the remaining quota
-Date: Mon,  1 Oct 2018 18:23:07 -0700
-Message-ID: <1538443388-6881-2-git-send-email-chenbofeng.kernel@gmail.com>
+Subject: [PATCH net-next] netfilter: xt_quota: fix the behavior of xt_quota module
+Date: Mon,  1 Oct 2018 18:23:08 -0700
+Message-ID: <1538443388-6881-3-git-send-email-chenbofeng.kernel@gmail.com>
 References: <1538443388-6881-1-git-send-email-chenbofeng.kernel@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -17,104 +17,27 @@ List-Id: netfilter-devel.vger.kernel.org
 
 From: Chenbo Feng <fengc@google.com>
 
-The current xt_quota module cannot track the current remaining quota
-of a specific rule. Everytime an unrelated rule is updated in the same
-iptables table, the quota will be reset. This is not a very useful
-function for iptables that get changed at run time. This patch fixes the
-above problem by adding a new field in the struct that records the
-current remaining quota.
-
-Fixed a print out bug in verbose print out wrt. inversion.
+A major flaw of the current xt_quota module is that quota in a specific
+rule gets reset every time there is a rule change in the same table. It
+makes the xt_quota module not very useful in a table in which iptables
+rules are changed at run time. This fix introduces a new counter that is
+visible to userspace as the remaining quota of the current rule. When
+userspace restores the rules in a table, it can restore the counter to
+the remaining quota instead of resetting it to the full quota.
 
 Signed-off-by: Chenbo Feng <fengc@google.com>
 Suggested-by: Maciej Żenczykowski <maze@google.com>
 Reviewed-by: Maciej Żenczykowski <maze@google.com>
 ---
- extensions/libxt_quota.c           | 25 +++++++++++++++++++++++--
- include/linux/netfilter/xt_quota.h |  8 +++++---
- 2 files changed, 28 insertions(+), 5 deletions(-)
+ include/uapi/linux/netfilter/xt_quota.h |  8 +++--
+ net/netfilter/xt_quota.c                | 55 +++++++++++++--------------------
+ 2 files changed, 27 insertions(+), 36 deletions(-)
 
-diff --git a/extensions/libxt_quota.c b/extensions/libxt_quota.c
-index bad77d2..6371aa0 100644
---- a/extensions/libxt_quota.c
-+++ b/extensions/libxt_quota.c
-@@ -9,26 +9,36 @@
- 
- enum {
- 	O_QUOTA = 0,
-+	O_REMAIN = 1,
- };
- 
- static const struct xt_option_entry quota_opts[] = {
- 	{.name = "quota", .id = O_QUOTA, .type = XTTYPE_UINT64,
- 	 .flags = XTOPT_MAND | XTOPT_INVERT | XTOPT_PUT,
- 	 XTOPT_POINTER(struct xt_quota_info, quota)},
-+	{.name = "remain", .id = O_REMAIN, .type = XTTYPE_UINT64,
-+	 .flags = XTOPT_PUT, XTOPT_POINTER(struct xt_quota_info, remain)},
- 	XTOPT_TABLEEND,
- };
- 
- static void quota_help(void)
- {
- 	printf("quota match options:\n"
--	       "[!] --quota quota		quota (bytes)\n");
-+	       "[!] --quota quota		quota (bytes)\n"
-+	       "    --remain remain		remain (bytes)\n");
- }
- 
- static void
- quota_print(const void *ip, const struct xt_entry_match *match, int numeric)
- {
- 	const struct xt_quota_info *q = (const void *)match->data;
-+	if (q->flags & XT_QUOTA_INVERT)
-+		printf(" !");
- 	printf(" quota: %llu bytes", (unsigned long long)q->quota);
-+	if (q->remain) {
-+		printf(" remain: %llu bytes",
-+			(unsigned long long)q->remain - 1);
-+	}
- }
- 
- static void
-@@ -39,6 +49,10 @@ quota_save(const void *ip, const struct xt_entry_match *match)
- 	if (q->flags & XT_QUOTA_INVERT)
- 		printf(" !");
- 	printf(" --quota %llu", (unsigned long long) q->quota);
-+	if (q->remain) {
-+		printf(" --remain %llu",
-+			(unsigned long long) q->remain - 1);
-+	}
- }
- 
- static void quota_parse(struct xt_option_call *cb)
-@@ -48,6 +62,8 @@ static void quota_parse(struct xt_option_call *cb)
- 	xtables_option_parse(cb);
- 	if (cb->invert)
- 		info->flags |= XT_QUOTA_INVERT;
-+	if (cb->entry->id == O_REMAIN)
-+		info->remain++;
- }
- 
- static int quota_xlate(struct xt_xlate *xl,
-@@ -66,7 +82,12 @@ static struct xtables_match quota_match = {
- 	.name		= "quota",
- 	.version	= XTABLES_VERSION,
- 	.size		= XT_ALIGN(sizeof (struct xt_quota_info)),
--	.userspacesize	= offsetof(struct xt_quota_info, master),
-+	/*
-+	 * This size is only used for rule matching purpose when deleting
-+	 * rules. The real size copied out from new kernel xt_quota module
-+	 * is the whole struct xt_quota_info.
-+	 */
-+	.userspacesize	= offsetof(struct xt_quota_info, remain),
- 	.help		= quota_help,
- 	.print		= quota_print,
- 	.save		= quota_save,
-diff --git a/include/linux/netfilter/xt_quota.h b/include/linux/netfilter/xt_quota.h
-index 9314723..d817aab 100644
---- a/include/linux/netfilter/xt_quota.h
-+++ b/include/linux/netfilter/xt_quota.h
-@@ -14,9 +14,11 @@ struct xt_quota_info {
+diff --git a/include/uapi/linux/netfilter/xt_quota.h b/include/uapi/linux/netfilter/xt_quota.h
+index f3ba5d9..d72fd52 100644
+--- a/include/uapi/linux/netfilter/xt_quota.h
++++ b/include/uapi/linux/netfilter/xt_quota.h
+@@ -15,9 +15,11 @@ struct xt_quota_info {
  	__u32 flags;
  	__u32 pad;
  	__aligned_u64 quota;
@@ -129,5 +52,98 @@ index 9314723..d817aab 100644
  };
  
  #endif /* _XT_QUOTA_H */
+diff --git a/net/netfilter/xt_quota.c b/net/netfilter/xt_quota.c
+index 10d61a6..6afa7f4 100644
+--- a/net/netfilter/xt_quota.c
++++ b/net/netfilter/xt_quota.c
+@@ -11,11 +11,6 @@
+ #include <linux/netfilter/xt_quota.h>
+ #include <linux/module.h>
+ 
+-struct xt_quota_priv {
+-	spinlock_t	lock;
+-	uint64_t	quota;
+-};
+-
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Sam Johnston <samj@samj.net>");
+ MODULE_DESCRIPTION("Xtables: countdown quota match");
+@@ -26,54 +21,48 @@ static bool
+ quota_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ {
+ 	struct xt_quota_info *q = (void *)par->matchinfo;
+-	struct xt_quota_priv *priv = q->master;
++	u64 current_count = atomic64_read(&q->counter);
+ 	bool ret = q->flags & XT_QUOTA_INVERT;
+-
+-	spin_lock_bh(&priv->lock);
+-	if (priv->quota >= skb->len) {
+-		priv->quota -= skb->len;
+-		ret = !ret;
+-	} else {
+-		/* we do not allow even small packets from now on */
+-		priv->quota = 0;
+-	}
+-	spin_unlock_bh(&priv->lock);
+-
+-	return ret;
++	u64 old_count, new_count;
++
++	do {
++		if (current_count == 1)
++			return ret;
++		if (current_count <= skb->len) {
++			atomic64_set(&q->counter, 1);
++			return ret;
++		}
++		old_count = current_count;
++		new_count = current_count - skb->len;
++		current_count = atomic64_cmpxchg(&q->counter, old_count,
++						 new_count);
++	} while (current_count != old_count);
++	return !ret;
+ }
+ 
+ static int quota_mt_check(const struct xt_mtchk_param *par)
+ {
+ 	struct xt_quota_info *q = par->matchinfo;
+ 
++	BUILD_BUG_ON(sizeof(atomic64_t) != sizeof(__aligned_u64));
++
+ 	if (q->flags & ~XT_QUOTA_MASK)
+ 		return -EINVAL;
++	if (atomic64_read(&q->counter) > q->quota + 1)
++		return -ERANGE;
+ 
+-	q->master = kmalloc(sizeof(*q->master), GFP_KERNEL);
+-	if (q->master == NULL)
+-		return -ENOMEM;
+-
+-	spin_lock_init(&q->master->lock);
+-	q->master->quota = q->quota;
++	if (atomic64_read(&q->counter) == 0)
++		atomic64_set(&q->counter, q->quota + 1);
+ 	return 0;
+ }
+ 
+-static void quota_mt_destroy(const struct xt_mtdtor_param *par)
+-{
+-	const struct xt_quota_info *q = par->matchinfo;
+-
+-	kfree(q->master);
+-}
+-
+ static struct xt_match quota_mt_reg __read_mostly = {
+ 	.name       = "quota",
+ 	.revision   = 0,
+ 	.family     = NFPROTO_UNSPEC,
+ 	.match      = quota_mt,
+ 	.checkentry = quota_mt_check,
+-	.destroy    = quota_mt_destroy,
+ 	.matchsize  = sizeof(struct xt_quota_info),
+-	.usersize   = offsetof(struct xt_quota_info, master),
+ 	.me         = THIS_MODULE,
+ };
+ 
 -- 
 2.7.4
