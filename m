@@ -1,95 +1,186 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH RFC,net-next 3/3] netfilter: nft_tunnel: support for tunnel type
-Date: Thu,  4 Oct 2018 02:03:45 +0200
-Message-ID: <20181004000345.2380-4-pablo@netfilter.org>
+From: Daniel Borkmann <daniel@iogearbox.net>
+Subject: Re: [PATCH RFC,net-next 1/3] ip_tunnel: add type field to struct
+ ip_tunnel_info
+Date: Thu, 4 Oct 2018 11:25:33 +0200
+Message-ID: <81675bff-ec49-a40a-ffab-2c298b506154@iogearbox.net>
 References: <20181004000345.2380-1-pablo@netfilter.org>
+ <20181004000345.2380-2-pablo@netfilter.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org, roopa@cumulusnetworks.com,
-        amir@vadai.me, pshelar@ovn.org, u9012063@gmail.com
-To: netdev@vger.kernel.org
+        amir@vadai.me, pshelar@ovn.org, u9012063@gmail.com,
+        alexei.starovoitov@gmail.com
+To: Pablo Neira Ayuso <pablo@netfilter.org>, netdev@vger.kernel.org
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20181004000345.2380-1-pablo@netfilter.org>
+In-Reply-To: <20181004000345.2380-2-pablo@netfilter.org>
+Content-Language: en-US
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This patch allows you to set an explicit tunnel driver type in the
-metadata template. In case of misconfiguration, ie. if the packets ends
-up in the wrong tunnel device, the packet is dropped.
+On 10/04/2018 02:03 AM, Pablo Neira Ayuso wrote:
+> This new field allows you to restrict the metadata template for a given
+> tunnel driver. This is convenient in scenarios that combine different
+> tunneling drivers, to deal with possible misconfigurations given that
+> the template can be interpreted by any target tunnel driver. Default
+> value is IP_TUNNEL_TYPE_UNSPEC, to retain the existing behaviour. This
+> also implicitly exposes what drivers are currently supported in the
+> IP_TUNNEL_INFO_TX mode.
+> 
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> ---
+>  drivers/net/geneve.c           |  3 ++-
+>  drivers/net/vxlan.c            | 13 +++++++------
+>  include/net/dst_metadata.h     |  1 +
+>  include/net/ip_tunnels.h       | 16 ++++++++++++++++
+>  net/ipv4/ip_gre.c              |  2 ++
+>  net/ipv6/ip6_gre.c             |  2 ++
+>  net/openvswitch/flow_netlink.c |  1 +
+>  7 files changed, 31 insertions(+), 7 deletions(-)
+> 
+> diff --git a/drivers/net/geneve.c b/drivers/net/geneve.c
+> index 6625fabe2c88..c383c394f0d2 100644
+> --- a/drivers/net/geneve.c
+> +++ b/drivers/net/geneve.c
+> @@ -920,7 +920,8 @@ static netdev_tx_t geneve_xmit(struct sk_buff *skb, struct net_device *dev)
+>  
+>  	if (geneve->collect_md) {
+>  		info = skb_tunnel_info(skb);
+> -		if (unlikely(!info || !(info->mode & IP_TUNNEL_INFO_TX))) {
+> +		if (unlikely(!info || !(info->mode & IP_TUNNEL_INFO_TX) ||
+> +			     !ip_tunnel_type(info, IP_TUNNEL_TYPE_GENEVE))) {
+>  			err = -EINVAL;
+>  			netdev_dbg(dev, "no tunnel metadata\n");
+>  			goto tx_error;
+> diff --git a/drivers/net/vxlan.c b/drivers/net/vxlan.c
+> index e5d236595206..8cca91b572bd 100644
+> --- a/drivers/net/vxlan.c
+> +++ b/drivers/net/vxlan.c
+> @@ -2296,14 +2296,15 @@ static netdev_tx_t vxlan_xmit(struct sk_buff *skb, struct net_device *dev)
+>  	skb_reset_mac_header(skb);
+>  
+>  	if (vxlan->cfg.flags & VXLAN_F_COLLECT_METADATA) {
+> -		if (info && info->mode & IP_TUNNEL_INFO_BRIDGE &&
+> -		    info->mode & IP_TUNNEL_INFO_TX) {
+> +		if (unlikely(!info || !(info->mode & IP_TUNNEL_INFO_TX) ||
+> +			     !ip_tunnel_type(info, IP_TUNNEL_TYPE_VXLAN))) {
+> +			kfree_skb(skb);
+> +			return NETDEV_TX_OK;
+> +		}
+> +		if (info->mode & IP_TUNNEL_INFO_BRIDGE) {
+>  			vni = tunnel_id_to_key32(info->key.tun_id);
+>  		} else {
+> -			if (info && info->mode & IP_TUNNEL_INFO_TX)
+> -				vxlan_xmit_one(skb, dev, vni, NULL, false);
+> -			else
+> -				kfree_skb(skb);
+> +			vxlan_xmit_one(skb, dev, vni, NULL, false);
+>  			return NETDEV_TX_OK;
+>  		}
+>  	}
+> diff --git a/include/net/dst_metadata.h b/include/net/dst_metadata.h
+> index 56cb3c38569a..674116f7fa4a 100644
+> --- a/include/net/dst_metadata.h
+> +++ b/include/net/dst_metadata.h
+> @@ -100,6 +100,7 @@ static inline struct metadata_dst *tun_rx_dst(int md_size)
+>  	if (!tun_dst)
+>  		return NULL;
+>  
+> +	tun_dst->u.tun_info.type = IP_TUNNEL_TYPE_UNSPEC;
+>  	tun_dst->u.tun_info.options_len = 0;
+>  	tun_dst->u.tun_info.mode = 0;
+>  	return tun_dst;
+> diff --git a/include/net/ip_tunnels.h b/include/net/ip_tunnels.h
+> index b0d022ff6ea1..985d24b6a102 100644
+> --- a/include/net/ip_tunnels.h
+> +++ b/include/net/ip_tunnels.h
+> @@ -66,7 +66,16 @@ struct ip_tunnel_key {
+>  	GENMASK((FIELD_SIZEOF(struct ip_tunnel_info,		\
+>  			      options_len) * BITS_PER_BYTE) - 1, 0)
+>  
+> +enum ip_tunnel_type {
+> +	IP_TUNNEL_TYPE_UNSPEC	= 0,
+> +	IP_TUNNEL_TYPE_GRE,
+> +	IP_TUNNEL_TYPE_VXLAN,
+> +	IP_TUNNEL_TYPE_GENEVE,
+> +	IP_TUNNEL_TYPE_ERSPAN,
+> +};
+> +
+>  struct ip_tunnel_info {
+> +	enum ip_tunnel_type	type;
+>  	struct ip_tunnel_key	key;
+>  #ifdef CONFIG_DST_CACHE
+>  	struct dst_cache	dst_cache;
+> @@ -75,6 +84,13 @@ struct ip_tunnel_info {
+>  	u8			mode;
+>  };
+>  
+> +static inline bool ip_tunnel_type(const struct ip_tunnel_info *tun_info,
+> +				  enum ip_tunnel_type type)
+> +{
+> +	return tun_info->type == IP_TUNNEL_TYPE_UNSPEC ||
+> +	       tun_info->type == type;
+> +}
+> +
+>  /* 6rd prefix/relay information */
+>  #ifdef CONFIG_IPV6_SIT_6RD
+>  struct ip_tunnel_6rd_parm {
+> diff --git a/net/ipv4/ip_gre.c b/net/ipv4/ip_gre.c
+> index c3385a84f8ff..3ad12135c3d3 100644
+> --- a/net/ipv4/ip_gre.c
+> +++ b/net/ipv4/ip_gre.c
+> @@ -534,6 +534,7 @@ static void gre_fb_xmit(struct sk_buff *skb, struct net_device *dev,
+>  
+>  	tun_info = skb_tunnel_info(skb);
+>  	if (unlikely(!tun_info || !(tun_info->mode & IP_TUNNEL_INFO_TX) ||
+> +		     !ip_tunnel_type(tun_info, IP_TUNNEL_TYPE_GRE) ||
+>  		     ip_tunnel_info_af(tun_info) != AF_INET))
+>  		goto err_free_skb;
+>  
+> @@ -585,6 +586,7 @@ static void erspan_fb_xmit(struct sk_buff *skb, struct net_device *dev,
+>  
+>  	tun_info = skb_tunnel_info(skb);
+>  	if (unlikely(!tun_info || !(tun_info->mode & IP_TUNNEL_INFO_TX) ||
+> +		     !ip_tunnel_type(tun_info, IP_TUNNEL_TYPE_ERSPAN) ||
+>  		     ip_tunnel_info_af(tun_info) != AF_INET))
+>  		goto err_free_skb;
+>  
+> diff --git a/net/ipv6/ip6_gre.c b/net/ipv6/ip6_gre.c
+> index 515adbdba1d2..675f373809ee 100644
+> --- a/net/ipv6/ip6_gre.c
+> +++ b/net/ipv6/ip6_gre.c
+> @@ -732,6 +732,7 @@ static netdev_tx_t __gre6_xmit(struct sk_buff *skb,
+>  		tun_info = skb_tunnel_info(skb);
+>  		if (unlikely(!tun_info ||
+>  			     !(tun_info->mode & IP_TUNNEL_INFO_TX) ||
+> +			     !ip_tunnel_type(tun_info, IP_TUNNEL_TYPE_GRE) ||
+>  			     ip_tunnel_info_af(tun_info) != AF_INET6))
+>  			return -EINVAL;
+>  
+> @@ -960,6 +961,7 @@ static netdev_tx_t ip6erspan_tunnel_xmit(struct sk_buff *skb,
+>  		tun_info = skb_tunnel_info(skb);
+>  		if (unlikely(!tun_info ||
+>  			     !(tun_info->mode & IP_TUNNEL_INFO_TX) ||
+> +			     !ip_tunnel_type(tun_info, IP_TUNNEL_TYPE_ERSPAN) ||
+>  			     ip_tunnel_info_af(tun_info) != AF_INET6))
+>  			return -EINVAL;
+>  
+> diff --git a/net/openvswitch/flow_netlink.c b/net/openvswitch/flow_netlink.c
+> index a70097ecf33c..1ee2509534df 100644
+> --- a/net/openvswitch/flow_netlink.c
+> +++ b/net/openvswitch/flow_netlink.c
+> @@ -2602,6 +2602,7 @@ static int validate_and_copy_set_tun(const struct nlattr *attr,
+>  	ovs_tun->tun_dst = tun_dst;
+>  
+>  	tun_info = &tun_dst->u.tun_info;
+> +	tun_info->type = IP_TUNNEL_TYPE_UNSPEC;
+>  	tun_info->mode = IP_TUNNEL_INFO_TX;
+>  	if (key.tun_proto == AF_INET6)
+>  		tun_info->mode |= IP_TUNNEL_INFO_IPV6;
+> 
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/uapi/linux/netfilter/nf_tables.h | 10 ++++++++++
- net/netfilter/nft_tunnel.c               |  9 ++++++++-
- 2 files changed, 18 insertions(+), 1 deletion(-)
+If so then this should also be made explicit IP_TUNNEL_TYPE_UNSPEC in BPF code
+since all these tunnel types are supported there as well.
 
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index 5444e76870bb..b36acb52eb50 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -1692,6 +1692,15 @@ enum nft_tunnel_flags {
- 				 NFT_TUNNEL_F_DONT_FRAGMENT | \
- 				 NFT_TUNNEL_F_SEQ_NUMBER)
- 
-+/* 1:1 mapping with the internal enum ip_tunnel_type. */
-+enum nft_tunnel_type {
-+	NFT_TUNNEL_TYPE_UNSPEC   = 0,
-+	NFT_TUNNEL_TYPE_GRE,
-+	NFT_TUNNEL_TYPE_VXLAN,
-+	NFT_TUNNEL_TYPE_GENEVE,
-+	NFT_TUNNEL_TYPE_ERSPAN,
-+};
-+
- enum nft_tunnel_key_attributes {
- 	NFTA_TUNNEL_KEY_UNSPEC,
- 	NFTA_TUNNEL_KEY_ID,
-@@ -1703,6 +1712,7 @@ enum nft_tunnel_key_attributes {
- 	NFTA_TUNNEL_KEY_SPORT,
- 	NFTA_TUNNEL_KEY_DPORT,
- 	NFTA_TUNNEL_KEY_OPTS,
-+	NFTA_TUNNEL_KEY_TYPE,
- 	__NFTA_TUNNEL_KEY_MAX
- };
- #define NFTA_TUNNEL_KEY_MAX	(__NFTA_TUNNEL_KEY_MAX - 1)
-diff --git a/net/netfilter/nft_tunnel.c b/net/netfilter/nft_tunnel.c
-index 3a15f219e4e7..3cc54bc4ce31 100644
---- a/net/netfilter/nft_tunnel.c
-+++ b/net/netfilter/nft_tunnel.c
-@@ -305,6 +305,7 @@ static const struct nla_policy nft_tunnel_key_policy[NFTA_TUNNEL_KEY_MAX + 1] =
- 	[NFTA_TUNNEL_KEY_TOS]	= { .type = NLA_U8, },
- 	[NFTA_TUNNEL_KEY_TTL]	= { .type = NLA_U8, },
- 	[NFTA_TUNNEL_KEY_OPTS]	= { .type = NLA_NESTED, },
-+	[NFTA_TUNNEL_KEY_TYPE]	= { .type = NLA_U32, },
- };
- 
- static int nft_tunnel_obj_init(const struct nft_ctx *ctx,
-@@ -312,6 +313,7 @@ static int nft_tunnel_obj_init(const struct nft_ctx *ctx,
- 			       struct nft_object *obj)
- {
- 	struct nft_tunnel_obj *priv = nft_obj_data(obj);
-+	u32 type = NFT_TUNNEL_TYPE_UNSPEC;
- 	struct ip_tunnel_info info;
- 	struct metadata_dst *md;
- 	int err;
-@@ -319,7 +321,11 @@ static int nft_tunnel_obj_init(const struct nft_ctx *ctx,
- 	if (!tb[NFTA_TUNNEL_KEY_ID])
- 		return -EINVAL;
- 
-+	if (tb[NFTA_TUNNEL_KEY_TYPE])
-+		type = ntohl(nla_get_be32(tb[NFTA_TUNNEL_KEY_TYPE]));
-+
- 	memset(&info, 0, sizeof(info));
-+	info.type		= type;
- 	info.mode		= IP_TUNNEL_INFO_TX;
- 	info.key.tun_id		= key32_to_tunnel_id(nla_get_be32(tb[NFTA_TUNNEL_KEY_ID]));
- 	info.key.tun_flags	= TUNNEL_KEY | TUNNEL_CSUM | TUNNEL_NOCACHE;
-@@ -494,7 +500,8 @@ static int nft_tunnel_obj_dump(struct sk_buff *skb,
- 	struct nft_tunnel_obj *priv = nft_obj_data(obj);
- 	struct ip_tunnel_info *info = &priv->md->u.tun_info;
- 
--	if (nla_put_be32(skb, NFTA_TUNNEL_KEY_ID,
-+	if (nla_put_be32(skb, NFTA_TUNNEL_KEY_TYPE, htonl(info->type)) ||
-+	    nla_put_be32(skb, NFTA_TUNNEL_KEY_ID,
- 			 tunnel_id_to_key32(info->key.tun_id)) ||
- 	    nft_tunnel_ip_dump(skb, info) < 0 ||
- 	    nft_tunnel_ports_dump(skb, info) < 0 ||
--- 
-2.11.0
+Thanks,
+Daniel
