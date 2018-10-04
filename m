@@ -1,53 +1,50 @@
-From: Daniel Borkmann <daniel@iogearbox.net>
-Subject: Re: [PATCH RFC,net-next 1/3] ip_tunnel: add type field to struct
- ip_tunnel_info
-Date: Thu, 4 Oct 2018 14:00:10 +0200
-Message-ID: <31d90557-b7a4-7cdc-2ac6-acc574b2de69@iogearbox.net>
+From: Jakub Kicinski <jakub.kicinski@netronome.com>
+Subject: Re: [PATCH RFC,net-next 0/3] ip_tunnel: specify tunnel type via
+ template
+Date: Thu, 4 Oct 2018 12:13:57 -0700
+Message-ID: <20181004121357.3efa7275@cakuba.netronome.com>
 References: <20181004000345.2380-1-pablo@netfilter.org>
- <20181004000345.2380-2-pablo@netfilter.org>
- <81675bff-ec49-a40a-ffab-2c298b506154@iogearbox.net>
- <20181004105618.pugjxorqyuapwlzl@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
         roopa@cumulusnetworks.com, amir@vadai.me, pshelar@ovn.org,
-        u9012063@gmail.com, alexei.starovoitov@gmail.com
+        u9012063@gmail.com
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20181004105618.pugjxorqyuapwlzl@salvia>
-Content-Language: en-US
+In-Reply-To: <20181004000345.2380-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On 10/04/2018 12:56 PM, Pablo Neira Ayuso wrote:
-> On Thu, Oct 04, 2018 at 11:25:33AM +0200, Daniel Borkmann wrote:
->> On 10/04/2018 02:03 AM, Pablo Neira Ayuso wrote:
-[...]
->>> diff --git a/net/openvswitch/flow_netlink.c b/net/openvswitch/flow_netlink.c
->>> index a70097ecf33c..1ee2509534df 100644
->>> --- a/net/openvswitch/flow_netlink.c
->>> +++ b/net/openvswitch/flow_netlink.c
->>> @@ -2602,6 +2602,7 @@ static int validate_and_copy_set_tun(const struct nlattr *attr,
->>>  	ovs_tun->tun_dst = tun_dst;
->>>  
->>>  	tun_info = &tun_dst->u.tun_info;
->>> +	tun_info->type = IP_TUNNEL_TYPE_UNSPEC;
->>>  	tun_info->mode = IP_TUNNEL_INFO_TX;
->>>  	if (key.tun_proto == AF_INET6)
->>>  		tun_info->mode |= IP_TUNNEL_INFO_IPV6;
->>>
->>
->> If so then this should also be made explicit IP_TUNNEL_TYPE_UNSPEC in BPF code
->> since all these tunnel types are supported there as well.
+On Thu,  4 Oct 2018 02:03:42 +0200, Pablo Neira Ayuso wrote:
+> Hi,
 > 
-> Are you refering to proper initialization? I can see a memset() there
-> for the ip_tunnel_info structure, which is implicitly setting
-> tun_info->type to zero, ie. IP_TUNNEL_TYPE_UNSPEC.
+> The following patchset adds a new field to the tunnel metadata template
+> to restrict the configuration to a given tunnel driver. Currently, a
+> misconfiguration may result in packets going to the wrong tunnel driver.
 > 
-> I can also make it explicit there if you prefer.
+> Although we have the tunnel option flags, they are not mandatory for
+> some tunnel drivers, eg. vxlan, which may use it or not; and gre which
+> does not use them.
 
-Yeah that would be my preference as otherwise we might miss future changes there.
+Option flags are necessary because interpretation of option blob is
+entirely protocol-specific.
 
-Thanks,
-Daniel
+> This patch updates tc's tunnel action and netfilter's tunnel extension
+> to use this new field. OVS netlink interface has been left unset, although they
+> could be updated to use this.
+> 
+> By extending the existing tc action to support the IP_TUNNEL_INFO_BRIDGE
+> mode, I think it should be possible to expose IP_TUNNEL_TYPE_VLAN too,
+> although this patchset doesn't address this scenario.
+> 
+> The field is initialized to zero, which maps to IP_TUNNEL_TYPE_UNSPEC to
+> retain the existing behaviour, so the existing flexibility is still in
+> place while this new feature is added.
+> 
+> Cc'ing people that git annotate show as dealing with these bits more
+> recently.
+
+What practical scenario are you trying to address here?  Have you seen
+https://www.mail-archive.com/netdev@vger.kernel.org/msg250705.html
+?
