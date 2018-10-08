@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 28/31] netfilter: nf_flow_table: remove unnecessary nat flag check code
-Date: Tue,  9 Oct 2018 01:01:22 +0200
-Message-ID: <20181008230125.2330-29-pablo@netfilter.org>
+Subject: [PATCH 29/31] netfilter: nf_tables: use rhashtable_lookup() instead of rhashtable_lookup_fast()
+Date: Tue,  9 Oct 2018 01:01:23 +0200
+Message-ID: <20181008230125.2330-30-pablo@netfilter.org>
 References: <20181008230125.2330-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -12,39 +12,71 @@ List-Id: netfilter-devel.vger.kernel.org
 
 From: Taehee Yoo <ap420073@gmail.com>
 
-nf_flow_offload_{ip/ipv6}_hook() check nat flag then, call
-nf_flow_nat_{ip/ipv6} but that also check nat flag. so that
-nat flag check code in nf_flow_offload_{ip/ipv6}_hook() are unnecessary.
+Internally, rhashtable_lookup_fast() calls rcu_read_lock() then,
+calls rhashtable_lookup(). so that in places where are guaranteed
+by rcu read lock, rhashtable_lookup() is enough.
 
 Signed-off-by: Taehee Yoo <ap420073@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_flow_table_ip.c | 6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ net/netfilter/nf_flow_table_core.c | 4 ++--
+ net/netfilter/nft_set_hash.c       | 8 ++++----
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
-index 15ed91309992..1d291a51cd45 100644
---- a/net/netfilter/nf_flow_table_ip.c
-+++ b/net/netfilter/nf_flow_table_ip.c
-@@ -254,8 +254,7 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
- 	if (nf_flow_state_check(flow, ip_hdr(skb)->protocol, skb, thoff))
- 		return NF_ACCEPT;
+diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
+index da3044482317..185c633b6872 100644
+--- a/net/netfilter/nf_flow_table_core.c
++++ b/net/netfilter/nf_flow_table_core.c
+@@ -233,8 +233,8 @@ flow_offload_lookup(struct nf_flowtable *flow_table,
+ 	struct flow_offload *flow;
+ 	int dir;
  
--	if (flow->flags & (FLOW_OFFLOAD_SNAT | FLOW_OFFLOAD_DNAT) &&
--	    nf_flow_nat_ip(flow, skb, thoff, dir) < 0)
-+	if (nf_flow_nat_ip(flow, skb, thoff, dir) < 0)
- 		return NF_DROP;
+-	tuplehash = rhashtable_lookup_fast(&flow_table->rhashtable, tuple,
+-					   nf_flow_offload_rhash_params);
++	tuplehash = rhashtable_lookup(&flow_table->rhashtable, tuple,
++				      nf_flow_offload_rhash_params);
+ 	if (!tuplehash)
+ 		return NULL;
  
- 	flow->timeout = (u32)jiffies + NF_FLOW_TIMEOUT;
-@@ -471,8 +470,7 @@ nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
- 	if (skb_try_make_writable(skb, sizeof(*ip6h)))
- 		return NF_DROP;
+diff --git a/net/netfilter/nft_set_hash.c b/net/netfilter/nft_set_hash.c
+index 4f9c01715856..339a9dd1c832 100644
+--- a/net/netfilter/nft_set_hash.c
++++ b/net/netfilter/nft_set_hash.c
+@@ -88,7 +88,7 @@ static bool nft_rhash_lookup(const struct net *net, const struct nft_set *set,
+ 		.key	 = key,
+ 	};
  
--	if (flow->flags & (FLOW_OFFLOAD_SNAT | FLOW_OFFLOAD_DNAT) &&
--	    nf_flow_nat_ipv6(flow, skb, dir) < 0)
-+	if (nf_flow_nat_ipv6(flow, skb, dir) < 0)
- 		return NF_DROP;
+-	he = rhashtable_lookup_fast(&priv->ht, &arg, nft_rhash_params);
++	he = rhashtable_lookup(&priv->ht, &arg, nft_rhash_params);
+ 	if (he != NULL)
+ 		*ext = &he->ext;
  
- 	flow->timeout = (u32)jiffies + NF_FLOW_TIMEOUT;
+@@ -106,7 +106,7 @@ static void *nft_rhash_get(const struct net *net, const struct nft_set *set,
+ 		.key	 = elem->key.val.data,
+ 	};
+ 
+-	he = rhashtable_lookup_fast(&priv->ht, &arg, nft_rhash_params);
++	he = rhashtable_lookup(&priv->ht, &arg, nft_rhash_params);
+ 	if (he != NULL)
+ 		return he;
+ 
+@@ -129,7 +129,7 @@ static bool nft_rhash_update(struct nft_set *set, const u32 *key,
+ 		.key	 = key,
+ 	};
+ 
+-	he = rhashtable_lookup_fast(&priv->ht, &arg, nft_rhash_params);
++	he = rhashtable_lookup(&priv->ht, &arg, nft_rhash_params);
+ 	if (he != NULL)
+ 		goto out;
+ 
+@@ -217,7 +217,7 @@ static void *nft_rhash_deactivate(const struct net *net,
+ 	};
+ 
+ 	rcu_read_lock();
+-	he = rhashtable_lookup_fast(&priv->ht, &arg, nft_rhash_params);
++	he = rhashtable_lookup(&priv->ht, &arg, nft_rhash_params);
+ 	if (he != NULL &&
+ 	    !nft_rhash_flush(net, set, he))
+ 		he = NULL;
 -- 
 2.11.0
