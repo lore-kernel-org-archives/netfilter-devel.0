@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 12/31] netfilter: cttimeout: remove superfluous check on layer 4 netlink functions
-Date: Tue,  9 Oct 2018 01:01:06 +0200
-Message-ID: <20181008230125.2330-13-pablo@netfilter.org>
+Subject: [PATCH 09/31] netfilter: nf_tables: avoid BUG_ON usage
+Date: Tue,  9 Oct 2018 01:01:03 +0200
+Message-ID: <20181008230125.2330-10-pablo@netfilter.org>
 References: <20181008230125.2330-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,120 +10,101 @@ In-Reply-To: <20181008230125.2330-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-We assume they are always set accordingly since a874752a10da
-("netfilter: conntrack: timeout interface depend on
-CONFIG_NF_CONNTRACK_TIMEOUT"), so we can get rid of this checks.
+From: Florian Westphal <fw@strlen.de>
 
+None of these spots really needs to crash the kernel.
+In one two cases we can jsut report error to userspace, in the other
+cases we can just use WARN_ON (and leak memory instead).
+
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nfnetlink_cttimeout.c | 48 ++++++++++++++-----------------------
- net/netfilter/nft_ct.c              |  3 ---
- 2 files changed, 18 insertions(+), 33 deletions(-)
+ net/netfilter/nf_tables_api.c | 9 ++++++---
+ net/netfilter/nft_cmp.c       | 6 ++++--
+ net/netfilter/nft_reject.c    | 6 ++++--
+ 3 files changed, 14 insertions(+), 7 deletions(-)
 
-diff --git a/net/netfilter/nfnetlink_cttimeout.c b/net/netfilter/nfnetlink_cttimeout.c
-index a30f8ba4b89a..6ca0df7f416f 100644
---- a/net/netfilter/nfnetlink_cttimeout.c
-+++ b/net/netfilter/nfnetlink_cttimeout.c
-@@ -53,9 +53,6 @@ ctnl_timeout_parse_policy(void *timeout,
- 	struct nlattr **tb;
- 	int ret = 0;
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 72dbdb1faa3c..f0159eea2978 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -1021,7 +1021,8 @@ static int nf_tables_deltable(struct net *net, struct sock *nlsk,
  
--	if (!l4proto->ctnl_timeout.nlattr_to_obj)
--		return 0;
--
- 	tb = kcalloc(l4proto->ctnl_timeout.nlattr_max + 1, sizeof(*tb),
- 		     GFP_KERNEL);
+ static void nf_tables_table_destroy(struct nft_ctx *ctx)
+ {
+-	BUG_ON(ctx->table->use > 0);
++	if (WARN_ON(ctx->table->use > 0))
++		return;
  
-@@ -167,6 +164,8 @@ ctnl_timeout_fill_info(struct sk_buff *skb, u32 portid, u32 seq, u32 type,
- 	struct nfgenmsg *nfmsg;
- 	unsigned int flags = portid ? NLM_F_MULTI : 0;
- 	const struct nf_conntrack_l4proto *l4proto = timeout->timeout.l4proto;
-+	struct nlattr *nest_parms;
-+	int ret;
+ 	rhltable_destroy(&ctx->table->chains_ht);
+ 	kfree(ctx->table->name);
+@@ -1428,7 +1429,8 @@ static void nf_tables_chain_destroy(struct nft_ctx *ctx)
+ {
+ 	struct nft_chain *chain = ctx->chain;
  
- 	event = nfnl_msg_type(NFNL_SUBSYS_CTNETLINK_TIMEOUT, event);
- 	nlh = nlmsg_put(skb, portid, seq, event, sizeof(*nfmsg), flags);
-@@ -186,22 +185,15 @@ ctnl_timeout_fill_info(struct sk_buff *skb, u32 portid, u32 seq, u32 type,
- 			 htonl(refcount_read(&timeout->refcnt))))
- 		goto nla_put_failure;
+-	BUG_ON(chain->use > 0);
++	if (WARN_ON(chain->use > 0))
++		return;
  
--	if (likely(l4proto->ctnl_timeout.obj_to_nlattr)) {
--		struct nlattr *nest_parms;
--		int ret;
--
--		nest_parms = nla_nest_start(skb,
--					    CTA_TIMEOUT_DATA | NLA_F_NESTED);
--		if (!nest_parms)
--			goto nla_put_failure;
-+	nest_parms = nla_nest_start(skb, CTA_TIMEOUT_DATA | NLA_F_NESTED);
-+	if (!nest_parms)
-+		goto nla_put_failure;
+ 	/* no concurrent access possible anymore */
+ 	nf_tables_chain_free_chain_rules(chain);
+@@ -7243,7 +7245,8 @@ int __nft_release_basechain(struct nft_ctx *ctx)
+ {
+ 	struct nft_rule *rule, *nr;
  
--		ret = l4proto->ctnl_timeout.obj_to_nlattr(skb,
--							&timeout->timeout.data);
--		if (ret < 0)
--			goto nla_put_failure;
-+	ret = l4proto->ctnl_timeout.obj_to_nlattr(skb, &timeout->timeout.data);
-+	if (ret < 0)
-+		goto nla_put_failure;
+-	BUG_ON(!nft_is_base_chain(ctx->chain));
++	if (WARN_ON(!nft_is_base_chain(ctx->chain)))
++		return 0;
  
--		nla_nest_end(skb, nest_parms);
--	}
-+	nla_nest_end(skb, nest_parms);
+ 	nf_tables_unregister_hook(ctx->net, ctx->chain->table, ctx->chain);
+ 	list_for_each_entry_safe(rule, nr, &ctx->chain->rules, list) {
+diff --git a/net/netfilter/nft_cmp.c b/net/netfilter/nft_cmp.c
+index fa90a8402845..79d48c1d06f4 100644
+--- a/net/netfilter/nft_cmp.c
++++ b/net/netfilter/nft_cmp.c
+@@ -79,7 +79,8 @@ static int nft_cmp_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
  
- 	nlmsg_end(skb, nlh);
- 	return skb->len;
-@@ -397,6 +389,8 @@ cttimeout_default_fill_info(struct net *net, struct sk_buff *skb, u32 portid,
- 	struct nlmsghdr *nlh;
- 	struct nfgenmsg *nfmsg;
- 	unsigned int flags = portid ? NLM_F_MULTI : 0;
-+	struct nlattr *nest_parms;
-+	int ret;
+ 	err = nft_data_init(NULL, &priv->data, sizeof(priv->data), &desc,
+ 			    tb[NFTA_CMP_DATA]);
+-	BUG_ON(err < 0);
++	if (err < 0)
++		return err;
  
- 	event = nfnl_msg_type(NFNL_SUBSYS_CTNETLINK_TIMEOUT, event);
- 	nlh = nlmsg_put(skb, portid, seq, event, sizeof(*nfmsg), flags);
-@@ -412,21 +406,15 @@ cttimeout_default_fill_info(struct net *net, struct sk_buff *skb, u32 portid,
- 	    nla_put_u8(skb, CTA_TIMEOUT_L4PROTO, l4proto->l4proto))
- 		goto nla_put_failure;
+ 	priv->sreg = nft_parse_register(tb[NFTA_CMP_SREG]);
+ 	err = nft_validate_register_load(priv->sreg, desc.len);
+@@ -129,7 +130,8 @@ static int nft_cmp_fast_init(const struct nft_ctx *ctx,
  
--	if (likely(l4proto->ctnl_timeout.obj_to_nlattr)) {
--		struct nlattr *nest_parms;
--		int ret;
--
--		nest_parms = nla_nest_start(skb,
--					    CTA_TIMEOUT_DATA | NLA_F_NESTED);
--		if (!nest_parms)
--			goto nla_put_failure;
-+	nest_parms = nla_nest_start(skb, CTA_TIMEOUT_DATA | NLA_F_NESTED);
-+	if (!nest_parms)
-+		goto nla_put_failure;
+ 	err = nft_data_init(NULL, &data, sizeof(data), &desc,
+ 			    tb[NFTA_CMP_DATA]);
+-	BUG_ON(err < 0);
++	if (err < 0)
++		return err;
  
--		ret = l4proto->ctnl_timeout.obj_to_nlattr(skb, NULL);
--		if (ret < 0)
--			goto nla_put_failure;
-+	ret = l4proto->ctnl_timeout.obj_to_nlattr(skb, NULL);
-+	if (ret < 0)
-+		goto nla_put_failure;
+ 	priv->sreg = nft_parse_register(tb[NFTA_CMP_SREG]);
+ 	err = nft_validate_register_load(priv->sreg, desc.len);
+diff --git a/net/netfilter/nft_reject.c b/net/netfilter/nft_reject.c
+index 29f5bd2377b0..b48e58cceeb7 100644
+--- a/net/netfilter/nft_reject.c
++++ b/net/netfilter/nft_reject.c
+@@ -94,7 +94,8 @@ static u8 icmp_code_v4[NFT_REJECT_ICMPX_MAX + 1] = {
  
--		nla_nest_end(skb, nest_parms);
--	}
-+	nla_nest_end(skb, nest_parms);
+ int nft_reject_icmp_code(u8 code)
+ {
+-	BUG_ON(code > NFT_REJECT_ICMPX_MAX);
++	if (WARN_ON_ONCE(code > NFT_REJECT_ICMPX_MAX))
++		return ICMP_NET_UNREACH;
  
- 	nlmsg_end(skb, nlh);
- 	return skb->len;
-diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
-index 5dd87748afa8..17ae5059c312 100644
---- a/net/netfilter/nft_ct.c
-+++ b/net/netfilter/nft_ct.c
-@@ -776,9 +776,6 @@ nft_ct_timeout_parse_policy(void *timeouts,
- 	struct nlattr **tb;
- 	int ret = 0;
+ 	return icmp_code_v4[code];
+ }
+@@ -111,7 +112,8 @@ static u8 icmp_code_v6[NFT_REJECT_ICMPX_MAX + 1] = {
  
--	if (!l4proto->ctnl_timeout.nlattr_to_obj)
--		return 0;
--
- 	tb = kcalloc(l4proto->ctnl_timeout.nlattr_max + 1, sizeof(*tb),
- 		     GFP_KERNEL);
+ int nft_reject_icmpv6_code(u8 code)
+ {
+-	BUG_ON(code > NFT_REJECT_ICMPX_MAX);
++	if (WARN_ON_ONCE(code > NFT_REJECT_ICMPX_MAX))
++		return ICMPV6_NOROUTE;
  
+ 	return icmp_code_v6[code];
+ }
 -- 
 2.11.0
