@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 04/31] netfilter: nf_tables: asynchronous release
-Date: Tue,  9 Oct 2018 01:00:58 +0200
-Message-ID: <20181008230125.2330-5-pablo@netfilter.org>
+Subject: [PATCH 01/31] netfilter: nf_tables: rt: allow checking if dst has xfrm attached
+Date: Tue,  9 Oct 2018 01:00:55 +0200
+Message-ID: <20181008230125.2330-2-pablo@netfilter.org>
 References: <20181008230125.2330-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -12,165 +12,69 @@ List-Id: netfilter-devel.vger.kernel.org
 
 From: Florian Westphal <fw@strlen.de>
 
-Release the committed transaction log from a work queue, moving
-expensive synchronize_rcu out of the locked section and providing
-opportunity to batch this.
-
-On my test machine this cuts runtime of nft-test.py in half.
-Based on earlier patch from Pablo Neira Ayuso.
+Useful e.g. to avoid NATting inner headers of to-be-encrypted packets.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_tables.h |  2 ++
- net/netfilter/nf_tables_api.c     | 56 ++++++++++++++++++++++++++++++++++-----
- 2 files changed, 52 insertions(+), 6 deletions(-)
+ include/uapi/linux/netfilter/nf_tables.h |  2 ++
+ net/netfilter/nft_rt.c                   | 11 +++++++++++
+ 2 files changed, 13 insertions(+)
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 2c33958f3e7a..841835a387e1 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -1298,12 +1298,14 @@ static inline void nft_set_elem_clear_busy(struct nft_set_ext *ext)
-  *
-  *	@list: used internally
-  *	@msg_type: message type
-+ *	@put_net: ctx->net needs to be put
-  *	@ctx: transaction context
-  *	@data: internal information related to the transaction
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index e23290ffdc77..6c44cbbb2cda 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -826,12 +826,14 @@ enum nft_meta_keys {
+  * @NFT_RT_NEXTHOP4: routing nexthop for IPv4
+  * @NFT_RT_NEXTHOP6: routing nexthop for IPv6
+  * @NFT_RT_TCPMSS: fetch current path tcp mss
++ * @NFT_RT_XFRM: boolean, skb->dst->xfrm != NULL
   */
- struct nft_trans {
- 	struct list_head		list;
- 	int				msg_type;
-+	bool				put_net;
- 	struct nft_ctx			ctx;
- 	char				data[0];
+ enum nft_rt_keys {
+ 	NFT_RT_CLASSID,
+ 	NFT_RT_NEXTHOP4,
+ 	NFT_RT_NEXTHOP6,
+ 	NFT_RT_TCPMSS,
++	NFT_RT_XFRM,
+ 	__NFT_RT_MAX
  };
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index d4c531e0a26f..72dbdb1faa3c 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -27,6 +27,8 @@
- static LIST_HEAD(nf_tables_expressions);
- static LIST_HEAD(nf_tables_objects);
- static LIST_HEAD(nf_tables_flowtables);
-+static LIST_HEAD(nf_tables_destroy_list);
-+static DEFINE_SPINLOCK(nf_tables_destroy_list_lock);
- static u64 table_handle;
- 
- enum {
-@@ -64,6 +66,8 @@ static void nft_validate_state_update(struct net *net, u8 new_validate_state)
- 
- 	net->nft.validate_state = new_validate_state;
- }
-+static void nf_tables_trans_destroy_work(struct work_struct *w);
-+static DECLARE_WORK(trans_destroy_work, nf_tables_trans_destroy_work);
- 
- static void nft_ctx_init(struct nft_ctx *ctx,
- 			 struct net *net,
-@@ -2453,7 +2457,6 @@ static void nf_tables_rule_destroy(const struct nft_ctx *ctx,
- {
- 	struct nft_expr *expr;
- 
--	lockdep_assert_held(&ctx->net->nft.commit_mutex);
- 	/*
- 	 * Careful: some expressions might not be initialized in case this
- 	 * is called on error from nf_tables_newrule().
-@@ -6224,19 +6227,28 @@ static void nft_commit_release(struct nft_trans *trans)
- 		nf_tables_flowtable_destroy(nft_trans_flowtable(trans));
+ #define NFT_RT_MAX		(__NFT_RT_MAX - 1)
+diff --git a/net/netfilter/nft_rt.c b/net/netfilter/nft_rt.c
+index 76dba9f6b6f6..f35fa33913ae 100644
+--- a/net/netfilter/nft_rt.c
++++ b/net/netfilter/nft_rt.c
+@@ -90,6 +90,11 @@ static void nft_rt_get_eval(const struct nft_expr *expr,
+ 	case NFT_RT_TCPMSS:
+ 		nft_reg_store16(dest, get_tcpmss(pkt, dst));
  		break;
++#ifdef CONFIG_XFRM
++	case NFT_RT_XFRM:
++		nft_reg_store8(dest, !!dst->xfrm);
++		break;
++#endif
+ 	default:
+ 		WARN_ON(1);
+ 		goto err;
+@@ -130,6 +135,11 @@ static int nft_rt_get_init(const struct nft_ctx *ctx,
+ 	case NFT_RT_TCPMSS:
+ 		len = sizeof(u16);
+ 		break;
++#ifdef CONFIG_XFRM
++	case NFT_RT_XFRM:
++		len = sizeof(u8);
++		break;
++#endif
+ 	default:
+ 		return -EOPNOTSUPP;
  	}
-+
-+	if (trans->put_net)
-+		put_net(trans->ctx.net);
-+
- 	kfree(trans);
- }
- 
--static void nf_tables_commit_release(struct net *net)
-+static void nf_tables_trans_destroy_work(struct work_struct *w)
- {
- 	struct nft_trans *trans, *next;
-+	LIST_HEAD(head);
-+
-+	spin_lock(&nf_tables_destroy_list_lock);
-+	list_splice_init(&nf_tables_destroy_list, &head);
-+	spin_unlock(&nf_tables_destroy_list_lock);
- 
--	if (list_empty(&net->nft.commit_list))
-+	if (list_empty(&head))
- 		return;
- 
- 	synchronize_rcu();
- 
--	list_for_each_entry_safe(trans, next, &net->nft.commit_list, list) {
-+	list_for_each_entry_safe(trans, next, &head, list) {
- 		list_del(&trans->list);
- 		nft_commit_release(trans);
- 	}
-@@ -6367,6 +6379,37 @@ static void nft_chain_del(struct nft_chain *chain)
- 	list_del_rcu(&chain->list);
- }
- 
-+static void nf_tables_commit_release(struct net *net)
-+{
-+	struct nft_trans *trans;
-+
-+	/* all side effects have to be made visible.
-+	 * For example, if a chain named 'foo' has been deleted, a
-+	 * new transaction must not find it anymore.
-+	 *
-+	 * Memory reclaim happens asynchronously from work queue
-+	 * to prevent expensive synchronize_rcu() in commit phase.
-+	 */
-+	if (list_empty(&net->nft.commit_list)) {
-+		mutex_unlock(&net->nft.commit_mutex);
-+		return;
-+	}
-+
-+	trans = list_last_entry(&net->nft.commit_list,
-+				struct nft_trans, list);
-+	get_net(trans->ctx.net);
-+	WARN_ON_ONCE(trans->put_net);
-+
-+	trans->put_net = true;
-+	spin_lock(&nf_tables_destroy_list_lock);
-+	list_splice_tail_init(&net->nft.commit_list, &nf_tables_destroy_list);
-+	spin_unlock(&nf_tables_destroy_list_lock);
-+
-+	mutex_unlock(&net->nft.commit_mutex);
-+
-+	schedule_work(&trans_destroy_work);
-+}
-+
- static int nf_tables_commit(struct net *net, struct sk_buff *skb)
- {
- 	struct nft_trans *trans, *next;
-@@ -6528,9 +6571,8 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
- 		}
- 	}
- 
--	nf_tables_commit_release(net);
- 	nf_tables_gen_notify(net, skb, NFT_MSG_NEWGEN);
--	mutex_unlock(&net->nft.commit_mutex);
-+	nf_tables_commit_release(net);
- 
- 	return 0;
- }
-@@ -7304,6 +7346,7 @@ static int __init nf_tables_module_init(void)
- {
- 	int err;
- 
-+	spin_lock_init(&nf_tables_destroy_list_lock);
- 	err = register_pernet_subsys(&nf_tables_net_ops);
- 	if (err < 0)
- 		return err;
-@@ -7343,6 +7386,7 @@ static void __exit nf_tables_module_exit(void)
- 	unregister_netdevice_notifier(&nf_tables_flowtable_notifier);
- 	nft_chain_filter_fini();
- 	unregister_pernet_subsys(&nf_tables_net_ops);
-+	cancel_work_sync(&trans_destroy_work);
- 	rcu_barrier();
- 	nf_tables_core_module_exit();
- }
+@@ -164,6 +174,7 @@ static int nft_rt_validate(const struct nft_ctx *ctx, const struct nft_expr *exp
+ 	case NFT_RT_NEXTHOP4:
+ 	case NFT_RT_NEXTHOP6:
+ 	case NFT_RT_CLASSID:
++	case NFT_RT_XFRM:
+ 		return 0;
+ 	case NFT_RT_TCPMSS:
+ 		hooks = (1 << NF_INET_FORWARD) |
 -- 
 2.11.0
