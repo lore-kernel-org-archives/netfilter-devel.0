@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 10/31] netfilter: xtables: avoid BUG_ON
-Date: Tue,  9 Oct 2018 01:01:04 +0200
-Message-ID: <20181008230125.2330-11-pablo@netfilter.org>
+Subject: [PATCH 08/31] netfilter: xt_cgroup: shrink size of v2 path
+Date: Tue,  9 Oct 2018 01:01:02 +0200
+Message-ID: <20181008230125.2330-9-pablo@netfilter.org>
 References: <20181008230125.2330-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,101 +10,152 @@ In-Reply-To: <20181008230125.2330-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+cgroup v2 path field is PATH_MAX which is too large, this is placing too
+much pressure on memory allocation for people with many rules doing
+cgroup v1 classid matching, side effects of this are bug reports like:
 
-I see no reason for them, label or timer cannot be NULL, and if they
-were, we'll crash with null deref anyway.
+https://bugzilla.kernel.org/show_bug.cgi?id=200639
 
-For skb_header_pointer failure, just set hotdrop to true and toss
-such packet.
+This patch registers a new revision that shrinks the cgroup path to 512
+bytes, which is the same approach we follow in similar extensions that
+have a path field.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Acked-by: Tejun Heo <tj@kernel.org>
 ---
- net/ipv6/netfilter/ip6t_ipv6header.c |  5 ++++-
- net/ipv6/netfilter/ip6t_rt.c         | 10 ++++++++--
- net/netfilter/xt_IDLETIMER.c         |  4 ----
- net/netfilter/xt_SECMARK.c           |  2 --
- 4 files changed, 12 insertions(+), 9 deletions(-)
+ include/uapi/linux/netfilter/xt_cgroup.h | 16 +++++++
+ net/netfilter/xt_cgroup.c                | 72 ++++++++++++++++++++++++++++++++
+ 2 files changed, 88 insertions(+)
 
-diff --git a/net/ipv6/netfilter/ip6t_ipv6header.c b/net/ipv6/netfilter/ip6t_ipv6header.c
-index 8b147440fbdc..af737b47b9b5 100644
---- a/net/ipv6/netfilter/ip6t_ipv6header.c
-+++ b/net/ipv6/netfilter/ip6t_ipv6header.c
-@@ -65,7 +65,10 @@ ipv6header_mt6(const struct sk_buff *skb, struct xt_action_param *par)
- 		}
+diff --git a/include/uapi/linux/netfilter/xt_cgroup.h b/include/uapi/linux/netfilter/xt_cgroup.h
+index e96dfa1b34f7..b74e370d6133 100644
+--- a/include/uapi/linux/netfilter/xt_cgroup.h
++++ b/include/uapi/linux/netfilter/xt_cgroup.h
+@@ -22,4 +22,20 @@ struct xt_cgroup_info_v1 {
+ 	void		*priv __attribute__((aligned(8)));
+ };
  
- 		hp = skb_header_pointer(skb, ptr, sizeof(_hdr), &_hdr);
--		BUG_ON(hp == NULL);
-+		if (!hp) {
-+			par->hotdrop = true;
-+			return false;
++#define XT_CGROUP_PATH_MAX	512
++
++struct xt_cgroup_info_v2 {
++	__u8		has_path;
++	__u8		has_classid;
++	__u8		invert_path;
++	__u8		invert_classid;
++	union {
++		char	path[XT_CGROUP_PATH_MAX];
++		__u32	classid;
++	};
++
++	/* kernel internal data */
++	void		*priv __attribute__((aligned(8)));
++};
++
+ #endif /* _UAPI_XT_CGROUP_H */
+diff --git a/net/netfilter/xt_cgroup.c b/net/netfilter/xt_cgroup.c
+index 5d92e1781980..5cb1ecb29ea4 100644
+--- a/net/netfilter/xt_cgroup.c
++++ b/net/netfilter/xt_cgroup.c
+@@ -68,6 +68,38 @@ static int cgroup_mt_check_v1(const struct xt_mtchk_param *par)
+ 	return 0;
+ }
+ 
++static int cgroup_mt_check_v2(const struct xt_mtchk_param *par)
++{
++	struct xt_cgroup_info_v2 *info = par->matchinfo;
++	struct cgroup *cgrp;
++
++	if ((info->invert_path & ~1) || (info->invert_classid & ~1))
++		return -EINVAL;
++
++	if (!info->has_path && !info->has_classid) {
++		pr_info("xt_cgroup: no path or classid specified\n");
++		return -EINVAL;
++	}
++
++	if (info->has_path && info->has_classid) {
++		pr_info_ratelimited("path and classid specified\n");
++		return -EINVAL;
++	}
++
++	info->priv = NULL;
++	if (info->has_path) {
++		cgrp = cgroup_get_from_path(info->path);
++		if (IS_ERR(cgrp)) {
++			pr_info_ratelimited("invalid path, errno=%ld\n",
++					    PTR_ERR(cgrp));
++			return -EINVAL;
 +		}
- 
- 		/* Calculate the header length */
- 		if (nexthdr == NEXTHDR_FRAGMENT)
-diff --git a/net/ipv6/netfilter/ip6t_rt.c b/net/ipv6/netfilter/ip6t_rt.c
-index 2c99b94eeca3..21bf6bf04323 100644
---- a/net/ipv6/netfilter/ip6t_rt.c
-+++ b/net/ipv6/netfilter/ip6t_rt.c
-@@ -137,7 +137,10 @@ static bool rt_mt6(const struct sk_buff *skb, struct xt_action_param *par)
- 							sizeof(_addr),
- 							&_addr);
- 
--				BUG_ON(ap == NULL);
-+				if (ap == NULL) {
-+					par->hotdrop = true;
-+					return false;
-+				}
- 
- 				if (ipv6_addr_equal(ap, &rtinfo->addrs[i])) {
- 					pr_debug("i=%d temp=%d;\n", i, temp);
-@@ -166,7 +169,10 @@ static bool rt_mt6(const struct sk_buff *skb, struct xt_action_param *par)
- 							+ temp * sizeof(_addr),
- 							sizeof(_addr),
- 							&_addr);
--				BUG_ON(ap == NULL);
-+				if (ap == NULL) {
-+					par->hotdrop = true;
-+					return false;
-+				}
- 
- 				if (!ipv6_addr_equal(ap, &rtinfo->addrs[temp]))
- 					break;
-diff --git a/net/netfilter/xt_IDLETIMER.c b/net/netfilter/xt_IDLETIMER.c
-index 5ee859193783..c6acfc2d9c84 100644
---- a/net/netfilter/xt_IDLETIMER.c
-+++ b/net/netfilter/xt_IDLETIMER.c
-@@ -68,8 +68,6 @@ struct idletimer_tg *__idletimer_tg_find_by_label(const char *label)
++		info->priv = cgrp;
++	}
++
++	return 0;
++}
++
+ static bool
+ cgroup_mt_v0(const struct sk_buff *skb, struct xt_action_param *par)
  {
- 	struct idletimer_tg *entry;
+@@ -99,6 +131,24 @@ static bool cgroup_mt_v1(const struct sk_buff *skb, struct xt_action_param *par)
+ 			info->invert_classid;
+ }
  
--	BUG_ON(!label);
--
- 	list_for_each_entry(entry, &idletimer_tg_list, entry) {
- 		if (!strcmp(label, entry->attr.attr.name))
- 			return entry;
-@@ -172,8 +170,6 @@ static unsigned int idletimer_tg_target(struct sk_buff *skb,
- 	pr_debug("resetting timer %s, timeout period %u\n",
- 		 info->label, info->timeout);
++static bool cgroup_mt_v2(const struct sk_buff *skb, struct xt_action_param *par)
++{
++	const struct xt_cgroup_info_v2 *info = par->matchinfo;
++	struct sock_cgroup_data *skcd = &skb->sk->sk_cgrp_data;
++	struct cgroup *ancestor = info->priv;
++	struct sock *sk = skb->sk;
++
++	if (!sk || !sk_fullsock(sk) || !net_eq(xt_net(par), sock_net(sk)))
++		return false;
++
++	if (ancestor)
++		return cgroup_is_descendant(sock_cgroup_ptr(skcd), ancestor) ^
++			info->invert_path;
++	else
++		return (info->classid == sock_cgroup_classid(skcd)) ^
++			info->invert_classid;
++}
++
+ static void cgroup_mt_destroy_v1(const struct xt_mtdtor_param *par)
+ {
+ 	struct xt_cgroup_info_v1 *info = par->matchinfo;
+@@ -107,6 +157,14 @@ static void cgroup_mt_destroy_v1(const struct xt_mtdtor_param *par)
+ 		cgroup_put(info->priv);
+ }
  
--	BUG_ON(!info->timer);
--
- 	mod_timer(&info->timer->timer,
- 		  msecs_to_jiffies(info->timeout * 1000) + jiffies);
++static void cgroup_mt_destroy_v2(const struct xt_mtdtor_param *par)
++{
++	struct xt_cgroup_info_v2 *info = par->matchinfo;
++
++	if (info->priv)
++		cgroup_put(info->priv);
++}
++
+ static struct xt_match cgroup_mt_reg[] __read_mostly = {
+ 	{
+ 		.name		= "cgroup",
+@@ -134,6 +192,20 @@ static struct xt_match cgroup_mt_reg[] __read_mostly = {
+ 				  (1 << NF_INET_POST_ROUTING) |
+ 				  (1 << NF_INET_LOCAL_IN),
+ 	},
++	{
++		.name		= "cgroup",
++		.revision	= 2,
++		.family		= NFPROTO_UNSPEC,
++		.checkentry	= cgroup_mt_check_v2,
++		.match		= cgroup_mt_v2,
++		.matchsize	= sizeof(struct xt_cgroup_info_v2),
++		.usersize	= offsetof(struct xt_cgroup_info_v2, priv),
++		.destroy	= cgroup_mt_destroy_v2,
++		.me		= THIS_MODULE,
++		.hooks		= (1 << NF_INET_LOCAL_OUT) |
++				  (1 << NF_INET_POST_ROUTING) |
++				  (1 << NF_INET_LOCAL_IN),
++	},
+ };
  
-diff --git a/net/netfilter/xt_SECMARK.c b/net/netfilter/xt_SECMARK.c
-index 4ad5fe27e08b..f16202d26c20 100644
---- a/net/netfilter/xt_SECMARK.c
-+++ b/net/netfilter/xt_SECMARK.c
-@@ -35,8 +35,6 @@ secmark_tg(struct sk_buff *skb, const struct xt_action_param *par)
- 	u32 secmark = 0;
- 	const struct xt_secmark_target_info *info = par->targinfo;
- 
--	BUG_ON(info->mode != mode);
--
- 	switch (mode) {
- 	case SECMARK_MODE_SEL:
- 		secmark = info->secid;
+ static int __init cgroup_mt_init(void)
 -- 
 2.11.0
