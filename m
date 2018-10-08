@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 08/31] netfilter: xt_cgroup: shrink size of v2 path
-Date: Tue,  9 Oct 2018 01:01:02 +0200
-Message-ID: <20181008230125.2330-9-pablo@netfilter.org>
+Subject: [PATCH 07/31] netfilter: ctnetlink: Support L3 protocol-filter on flush
+Date: Tue,  9 Oct 2018 01:01:01 +0200
+Message-ID: <20181008230125.2330-8-pablo@netfilter.org>
 References: <20181008230125.2330-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,152 +10,151 @@ In-Reply-To: <20181008230125.2330-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-cgroup v2 path field is PATH_MAX which is too large, this is placing too
-much pressure on memory allocation for people with many rules doing
-cgroup v1 classid matching, side effects of this are bug reports like:
+From: Kristian Evensen <kristian.evensen@gmail.com>
 
-https://bugzilla.kernel.org/show_bug.cgi?id=200639
+The same connection mark can be set on flows belonging to different
+address families. This commit adds support for filtering on the L3
+protocol when flushing connection track entries. If no protocol is
+specified, then all L3 protocols match.
 
-This patch registers a new revision that shrinks the cgroup path to 512
-bytes, which is the same approach we follow in similar extensions that
-have a path field.
+In order to avoid code duplication and a redundant check, the protocol
+comparison in ctnetlink_dump_table() has been removed. Instead, a filter
+is created if the GET-message triggering the dump contains an address
+family. ctnetlink_filter_match() is then used to compare the L3
+protocols.
 
-Cc: Tejun Heo <tj@kernel.org>
+Signed-off-by: Kristian Evensen <kristian.evensen@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Acked-by: Tejun Heo <tj@kernel.org>
 ---
- include/uapi/linux/netfilter/xt_cgroup.h | 16 +++++++
- net/netfilter/xt_cgroup.c                | 72 ++++++++++++++++++++++++++++++++
- 2 files changed, 88 insertions(+)
+ net/netfilter/nf_conntrack_netlink.c | 50 ++++++++++++++++++++----------------
+ 1 file changed, 28 insertions(+), 22 deletions(-)
 
-diff --git a/include/uapi/linux/netfilter/xt_cgroup.h b/include/uapi/linux/netfilter/xt_cgroup.h
-index e96dfa1b34f7..b74e370d6133 100644
---- a/include/uapi/linux/netfilter/xt_cgroup.h
-+++ b/include/uapi/linux/netfilter/xt_cgroup.h
-@@ -22,4 +22,20 @@ struct xt_cgroup_info_v1 {
- 	void		*priv __attribute__((aligned(8)));
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index 036207ecaf16..f8c74f31aa36 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -821,6 +821,7 @@ static int ctnetlink_done(struct netlink_callback *cb)
+ }
+ 
+ struct ctnetlink_filter {
++	u8 family;
+ 	struct {
+ 		u_int32_t val;
+ 		u_int32_t mask;
+@@ -828,31 +829,32 @@ struct ctnetlink_filter {
  };
  
-+#define XT_CGROUP_PATH_MAX	512
+ static struct ctnetlink_filter *
+-ctnetlink_alloc_filter(const struct nlattr * const cda[])
++ctnetlink_alloc_filter(const struct nlattr * const cda[], u8 family)
+ {
+-#ifdef CONFIG_NF_CONNTRACK_MARK
+ 	struct ctnetlink_filter *filter;
+ 
+ 	filter = kzalloc(sizeof(*filter), GFP_KERNEL);
+ 	if (filter == NULL)
+ 		return ERR_PTR(-ENOMEM);
+ 
++	filter->family = family;
 +
-+struct xt_cgroup_info_v2 {
-+	__u8		has_path;
-+	__u8		has_classid;
-+	__u8		invert_path;
-+	__u8		invert_classid;
-+	union {
-+		char	path[XT_CGROUP_PATH_MAX];
-+		__u32	classid;
-+	};
++#ifdef CONFIG_NF_CONNTRACK_MARK
+ 	filter->mark.val = ntohl(nla_get_be32(cda[CTA_MARK]));
+ 	filter->mark.mask = ntohl(nla_get_be32(cda[CTA_MARK_MASK]));
+-
+-	return filter;
+-#else
+-	return ERR_PTR(-EOPNOTSUPP);
+ #endif
++	return filter;
+ }
+ 
+ static int ctnetlink_start(struct netlink_callback *cb)
+ {
+ 	const struct nlattr * const *cda = cb->data;
+ 	struct ctnetlink_filter *filter = NULL;
++	struct nfgenmsg *nfmsg = nlmsg_data(cb->nlh);
++	u8 family = nfmsg->nfgen_family;
+ 
+-	if (cda[CTA_MARK] && cda[CTA_MARK_MASK]) {
+-		filter = ctnetlink_alloc_filter(cda);
++	if (family || (cda[CTA_MARK] && cda[CTA_MARK_MASK])) {
++		filter = ctnetlink_alloc_filter(cda, family);
+ 		if (IS_ERR(filter))
+ 			return PTR_ERR(filter);
+ 	}
+@@ -866,13 +868,24 @@ static int ctnetlink_filter_match(struct nf_conn *ct, void *data)
+ 	struct ctnetlink_filter *filter = data;
+ 
+ 	if (filter == NULL)
+-		return 1;
++		goto out;
 +
-+	/* kernel internal data */
-+	void		*priv __attribute__((aligned(8)));
-+};
++	/* Match entries of a given L3 protocol number.
++	 * If it is not specified, ie. l3proto == 0,
++	 * then match everything.
++	 */
++	if (filter->family && nf_ct_l3num(ct) != filter->family)
++		goto ignore_entry;
+ 
+ #ifdef CONFIG_NF_CONNTRACK_MARK
+-	if ((ct->mark & filter->mark.mask) == filter->mark.val)
+-		return 1;
++	if ((ct->mark & filter->mark.mask) != filter->mark.val)
++		goto ignore_entry;
+ #endif
+ 
++out:
++	return 1;
 +
- #endif /* _UAPI_XT_CGROUP_H */
-diff --git a/net/netfilter/xt_cgroup.c b/net/netfilter/xt_cgroup.c
-index 5d92e1781980..5cb1ecb29ea4 100644
---- a/net/netfilter/xt_cgroup.c
-+++ b/net/netfilter/xt_cgroup.c
-@@ -68,6 +68,38 @@ static int cgroup_mt_check_v1(const struct xt_mtchk_param *par)
++ignore_entry:
  	return 0;
  }
  
-+static int cgroup_mt_check_v2(const struct xt_mtchk_param *par)
-+{
-+	struct xt_cgroup_info_v2 *info = par->matchinfo;
-+	struct cgroup *cgrp;
-+
-+	if ((info->invert_path & ~1) || (info->invert_classid & ~1))
-+		return -EINVAL;
-+
-+	if (!info->has_path && !info->has_classid) {
-+		pr_info("xt_cgroup: no path or classid specified\n");
-+		return -EINVAL;
-+	}
-+
-+	if (info->has_path && info->has_classid) {
-+		pr_info_ratelimited("path and classid specified\n");
-+		return -EINVAL;
-+	}
-+
-+	info->priv = NULL;
-+	if (info->has_path) {
-+		cgrp = cgroup_get_from_path(info->path);
-+		if (IS_ERR(cgrp)) {
-+			pr_info_ratelimited("invalid path, errno=%ld\n",
-+					    PTR_ERR(cgrp));
-+			return -EINVAL;
-+		}
-+		info->priv = cgrp;
-+	}
-+
-+	return 0;
-+}
-+
- static bool
- cgroup_mt_v0(const struct sk_buff *skb, struct xt_action_param *par)
+@@ -883,8 +896,6 @@ ctnetlink_dump_table(struct sk_buff *skb, struct netlink_callback *cb)
+ 	struct nf_conn *ct, *last;
+ 	struct nf_conntrack_tuple_hash *h;
+ 	struct hlist_nulls_node *n;
+-	struct nfgenmsg *nfmsg = nlmsg_data(cb->nlh);
+-	u_int8_t l3proto = nfmsg->nfgen_family;
+ 	struct nf_conn *nf_ct_evict[8];
+ 	int res, i;
+ 	spinlock_t *lockp;
+@@ -923,11 +934,6 @@ ctnetlink_dump_table(struct sk_buff *skb, struct netlink_callback *cb)
+ 			if (!net_eq(net, nf_ct_net(ct)))
+ 				continue;
+ 
+-			/* Dump entries of a given L3 protocol number.
+-			 * If it is not specified, ie. l3proto == 0,
+-			 * then dump everything. */
+-			if (l3proto && nf_ct_l3num(ct) != l3proto)
+-				continue;
+ 			if (cb->args[1]) {
+ 				if (ct != last)
+ 					continue;
+@@ -1213,12 +1219,12 @@ static int ctnetlink_flush_iterate(struct nf_conn *ct, void *data)
+ 
+ static int ctnetlink_flush_conntrack(struct net *net,
+ 				     const struct nlattr * const cda[],
+-				     u32 portid, int report)
++				     u32 portid, int report, u8 family)
  {
-@@ -99,6 +131,24 @@ static bool cgroup_mt_v1(const struct sk_buff *skb, struct xt_action_param *par)
- 			info->invert_classid;
- }
+ 	struct ctnetlink_filter *filter = NULL;
  
-+static bool cgroup_mt_v2(const struct sk_buff *skb, struct xt_action_param *par)
-+{
-+	const struct xt_cgroup_info_v2 *info = par->matchinfo;
-+	struct sock_cgroup_data *skcd = &skb->sk->sk_cgrp_data;
-+	struct cgroup *ancestor = info->priv;
-+	struct sock *sk = skb->sk;
-+
-+	if (!sk || !sk_fullsock(sk) || !net_eq(xt_net(par), sock_net(sk)))
-+		return false;
-+
-+	if (ancestor)
-+		return cgroup_is_descendant(sock_cgroup_ptr(skcd), ancestor) ^
-+			info->invert_path;
-+	else
-+		return (info->classid == sock_cgroup_classid(skcd)) ^
-+			info->invert_classid;
-+}
-+
- static void cgroup_mt_destroy_v1(const struct xt_mtdtor_param *par)
- {
- 	struct xt_cgroup_info_v1 *info = par->matchinfo;
-@@ -107,6 +157,14 @@ static void cgroup_mt_destroy_v1(const struct xt_mtdtor_param *par)
- 		cgroup_put(info->priv);
- }
+-	if (cda[CTA_MARK] && cda[CTA_MARK_MASK]) {
+-		filter = ctnetlink_alloc_filter(cda);
++	if (family || (cda[CTA_MARK] && cda[CTA_MARK_MASK])) {
++		filter = ctnetlink_alloc_filter(cda, family);
+ 		if (IS_ERR(filter))
+ 			return PTR_ERR(filter);
+ 	}
+@@ -1257,7 +1263,7 @@ static int ctnetlink_del_conntrack(struct net *net, struct sock *ctnl,
+ 	else {
+ 		return ctnetlink_flush_conntrack(net, cda,
+ 						 NETLINK_CB(skb).portid,
+-						 nlmsg_report(nlh));
++						 nlmsg_report(nlh), u3);
+ 	}
  
-+static void cgroup_mt_destroy_v2(const struct xt_mtdtor_param *par)
-+{
-+	struct xt_cgroup_info_v2 *info = par->matchinfo;
-+
-+	if (info->priv)
-+		cgroup_put(info->priv);
-+}
-+
- static struct xt_match cgroup_mt_reg[] __read_mostly = {
- 	{
- 		.name		= "cgroup",
-@@ -134,6 +192,20 @@ static struct xt_match cgroup_mt_reg[] __read_mostly = {
- 				  (1 << NF_INET_POST_ROUTING) |
- 				  (1 << NF_INET_LOCAL_IN),
- 	},
-+	{
-+		.name		= "cgroup",
-+		.revision	= 2,
-+		.family		= NFPROTO_UNSPEC,
-+		.checkentry	= cgroup_mt_check_v2,
-+		.match		= cgroup_mt_v2,
-+		.matchsize	= sizeof(struct xt_cgroup_info_v2),
-+		.usersize	= offsetof(struct xt_cgroup_info_v2, priv),
-+		.destroy	= cgroup_mt_destroy_v2,
-+		.me		= THIS_MODULE,
-+		.hooks		= (1 << NF_INET_LOCAL_OUT) |
-+				  (1 << NF_INET_POST_ROUTING) |
-+				  (1 << NF_INET_LOCAL_IN),
-+	},
- };
- 
- static int __init cgroup_mt_init(void)
+ 	if (err < 0)
 -- 
 2.11.0
