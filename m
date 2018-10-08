@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 30/31] netfilter: xt_quota: fix the behavior of xt_quota module
-Date: Tue,  9 Oct 2018 01:01:24 +0200
-Message-ID: <20181008230125.2330-31-pablo@netfilter.org>
+Subject: [PATCH 26/31] netfilter: nf_tables: add SECMARK support
+Date: Tue,  9 Oct 2018 01:01:20 +0200
+Message-ID: <20181008230125.2330-27-pablo@netfilter.org>
 References: <20181008230125.2330-1-pablo@netfilter.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -13,136 +13,247 @@ In-Reply-To: <20181008230125.2330-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Chenbo Feng <fengc@google.com>
+From: Christian Göttsche <cgzones@googlemail.com>
 
-A major flaw of the current xt_quota module is that quota in a specific
-rule gets reset every time there is a rule change in the same table. It
-makes the xt_quota module not very useful in a table in which iptables
-rules are changed at run time. This fix introduces a new counter that is
-visible to userspace as the remaining quota of the current rule. When
-userspace restores the rules in a table, it can restore the counter to
-the remaining quota instead of resetting it to the full quota.
+Add the ability to set the security context of packets within the nf_tables framework.
+Add a nft_object for holding security contexts in the kernel and manipulating packets on the wire.
 
-Signed-off-by: Chenbo Feng <fengc@google.com>
-Suggested-by: Maciej Żenczykowski <maze@google.com>
-Reviewed-by: Maciej Żenczykowski <maze@google.com>
+Convert the security context strings at rule addition time to security identifiers.
+This is the same behavior like in xt_SECMARK and offers better performance than computing it per packet.
+
+Set the maximum security context length to 256.
+
+Signed-off-by: Christian Göttsche <cgzones@googlemail.com>
+Acked-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/uapi/linux/netfilter/xt_quota.h |  8 +++--
- net/netfilter/xt_quota.c                | 55 +++++++++++++--------------------
- 2 files changed, 27 insertions(+), 36 deletions(-)
+ include/net/netfilter/nf_tables_core.h   |   4 ++
+ include/uapi/linux/netfilter/nf_tables.h |  18 +++++-
+ net/netfilter/nf_tables_core.c           |  28 ++++++--
+ net/netfilter/nft_meta.c                 | 108 +++++++++++++++++++++++++++++++
+ 4 files changed, 153 insertions(+), 5 deletions(-)
 
-diff --git a/include/uapi/linux/netfilter/xt_quota.h b/include/uapi/linux/netfilter/xt_quota.h
-index f3ba5d9e58b6..d72fd52adbba 100644
---- a/include/uapi/linux/netfilter/xt_quota.h
-+++ b/include/uapi/linux/netfilter/xt_quota.h
-@@ -15,9 +15,11 @@ struct xt_quota_info {
- 	__u32 flags;
- 	__u32 pad;
- 	__aligned_u64 quota;
--
--	/* Used internally by the kernel */
--	struct xt_quota_priv	*master;
-+#ifdef __KERNEL__
-+	atomic64_t counter;
-+#else
-+	__aligned_u64 remain;
+diff --git a/include/net/netfilter/nf_tables_core.h b/include/net/netfilter/nf_tables_core.h
+index 8da837d2aaf9..2046d104f323 100644
+--- a/include/net/netfilter/nf_tables_core.h
++++ b/include/net/netfilter/nf_tables_core.h
+@@ -16,6 +16,10 @@ extern struct nft_expr_type nft_meta_type;
+ extern struct nft_expr_type nft_rt_type;
+ extern struct nft_expr_type nft_exthdr_type;
+ 
++#ifdef CONFIG_NETWORK_SECMARK
++extern struct nft_object_type nft_secmark_obj_type;
 +#endif
++
+ int nf_tables_core_module_init(void);
+ void nf_tables_core_module_exit(void);
+ 
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index 702e4f0bec56..5444e76870bb 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -1177,6 +1177,21 @@ enum nft_quota_attributes {
+ #define NFTA_QUOTA_MAX		(__NFTA_QUOTA_MAX - 1)
+ 
+ /**
++ * enum nft_secmark_attributes - nf_tables secmark object netlink attributes
++ *
++ * @NFTA_SECMARK_CTX: security context (NLA_STRING)
++ */
++enum nft_secmark_attributes {
++	NFTA_SECMARK_UNSPEC,
++	NFTA_SECMARK_CTX,
++	__NFTA_SECMARK_MAX,
++};
++#define NFTA_SECMARK_MAX	(__NFTA_SECMARK_MAX - 1)
++
++/* Max security context length */
++#define NFT_SECMARK_CTX_MAXLEN		256
++
++/**
+  * enum nft_reject_types - nf_tables reject expression reject types
+  *
+  * @NFT_REJECT_ICMP_UNREACH: reject using ICMP unreachable
+@@ -1432,7 +1447,8 @@ enum nft_ct_timeout_timeout_attributes {
+ #define NFT_OBJECT_CONNLIMIT	5
+ #define NFT_OBJECT_TUNNEL	6
+ #define NFT_OBJECT_CT_TIMEOUT	7
+-#define __NFT_OBJECT_MAX	8
++#define NFT_OBJECT_SECMARK	8
++#define __NFT_OBJECT_MAX	9
+ #define NFT_OBJECT_MAX		(__NFT_OBJECT_MAX - 1)
+ 
+ /**
+diff --git a/net/netfilter/nf_tables_core.c b/net/netfilter/nf_tables_core.c
+index ffd5c0f9412b..3fbce3b9c5ec 100644
+--- a/net/netfilter/nf_tables_core.c
++++ b/net/netfilter/nf_tables_core.c
+@@ -249,12 +249,24 @@ static struct nft_expr_type *nft_basic_types[] = {
+ 	&nft_exthdr_type,
  };
  
- #endif /* _XT_QUOTA_H */
-diff --git a/net/netfilter/xt_quota.c b/net/netfilter/xt_quota.c
-index 10d61a6eed71..6afa7f468a73 100644
---- a/net/netfilter/xt_quota.c
-+++ b/net/netfilter/xt_quota.c
-@@ -11,11 +11,6 @@
- #include <linux/netfilter/xt_quota.h>
- #include <linux/module.h>
- 
--struct xt_quota_priv {
--	spinlock_t	lock;
--	uint64_t	quota;
--};
--
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Sam Johnston <samj@samj.net>");
- MODULE_DESCRIPTION("Xtables: countdown quota match");
-@@ -26,54 +21,48 @@ static bool
- quota_mt(const struct sk_buff *skb, struct xt_action_param *par)
- {
- 	struct xt_quota_info *q = (void *)par->matchinfo;
--	struct xt_quota_priv *priv = q->master;
-+	u64 current_count = atomic64_read(&q->counter);
- 	bool ret = q->flags & XT_QUOTA_INVERT;
--
--	spin_lock_bh(&priv->lock);
--	if (priv->quota >= skb->len) {
--		priv->quota -= skb->len;
--		ret = !ret;
--	} else {
--		/* we do not allow even small packets from now on */
--		priv->quota = 0;
--	}
--	spin_unlock_bh(&priv->lock);
--
--	return ret;
-+	u64 old_count, new_count;
++static struct nft_object_type *nft_basic_objects[] = {
++#ifdef CONFIG_NETWORK_SECMARK
++	&nft_secmark_obj_type,
++#endif
++};
 +
-+	do {
-+		if (current_count == 1)
-+			return ret;
-+		if (current_count <= skb->len) {
-+			atomic64_set(&q->counter, 1);
-+			return ret;
-+		}
-+		old_count = current_count;
-+		new_count = current_count - skb->len;
-+		current_count = atomic64_cmpxchg(&q->counter, old_count,
-+						 new_count);
-+	} while (current_count != old_count);
-+	return !ret;
- }
- 
- static int quota_mt_check(const struct xt_mtchk_param *par)
+ int __init nf_tables_core_module_init(void)
  {
- 	struct xt_quota_info *q = par->matchinfo;
- 
-+	BUILD_BUG_ON(sizeof(atomic64_t) != sizeof(__aligned_u64));
+-	int err, i;
++	int err, i, j = 0;
 +
- 	if (q->flags & ~XT_QUOTA_MASK)
- 		return -EINVAL;
-+	if (atomic64_read(&q->counter) > q->quota + 1)
-+		return -ERANGE;
++	for (i = 0; i < ARRAY_SIZE(nft_basic_objects); i++) {
++		err = nft_register_obj(nft_basic_objects[i]);
++		if (err)
++			goto err;
++	}
  
--	q->master = kmalloc(sizeof(*q->master), GFP_KERNEL);
--	if (q->master == NULL)
--		return -ENOMEM;
--
--	spin_lock_init(&q->master->lock);
--	q->master->quota = q->quota;
-+	if (atomic64_read(&q->counter) == 0)
-+		atomic64_set(&q->counter, q->quota + 1);
+-	for (i = 0; i < ARRAY_SIZE(nft_basic_types); i++) {
+-		err = nft_register_expr(nft_basic_types[i]);
++	for (j = 0; j < ARRAY_SIZE(nft_basic_types); j++) {
++		err = nft_register_expr(nft_basic_types[j]);
+ 		if (err)
+ 			goto err;
+ 	}
+@@ -262,8 +274,12 @@ int __init nf_tables_core_module_init(void)
  	return 0;
+ 
+ err:
++	while (j-- > 0)
++		nft_unregister_expr(nft_basic_types[j]);
++
+ 	while (i-- > 0)
+-		nft_unregister_expr(nft_basic_types[i]);
++		nft_unregister_obj(nft_basic_objects[i]);
++
+ 	return err;
  }
  
--static void quota_mt_destroy(const struct xt_mtdtor_param *par)
--{
--	const struct xt_quota_info *q = par->matchinfo;
--
--	kfree(q->master);
--}
--
- static struct xt_match quota_mt_reg __read_mostly = {
- 	.name       = "quota",
- 	.revision   = 0,
- 	.family     = NFPROTO_UNSPEC,
- 	.match      = quota_mt,
- 	.checkentry = quota_mt_check,
--	.destroy    = quota_mt_destroy,
- 	.matchsize  = sizeof(struct xt_quota_info),
--	.usersize   = offsetof(struct xt_quota_info, master),
- 	.me         = THIS_MODULE,
+@@ -274,4 +290,8 @@ void nf_tables_core_module_exit(void)
+ 	i = ARRAY_SIZE(nft_basic_types);
+ 	while (i-- > 0)
+ 		nft_unregister_expr(nft_basic_types[i]);
++
++	i = ARRAY_SIZE(nft_basic_objects);
++	while (i-- > 0)
++		nft_unregister_obj(nft_basic_objects[i]);
+ }
+diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
+index 297fe7d97c18..91fd6e677ad7 100644
+--- a/net/netfilter/nft_meta.c
++++ b/net/netfilter/nft_meta.c
+@@ -543,3 +543,111 @@ struct nft_expr_type nft_meta_type __read_mostly = {
+ 	.maxattr	= NFTA_META_MAX,
+ 	.owner		= THIS_MODULE,
  };
- 
++
++#ifdef CONFIG_NETWORK_SECMARK
++struct nft_secmark {
++	u32 secid;
++	char *ctx;
++};
++
++static const struct nla_policy nft_secmark_policy[NFTA_SECMARK_MAX + 1] = {
++	[NFTA_SECMARK_CTX]     = { .type = NLA_STRING, .len = NFT_SECMARK_CTX_MAXLEN },
++};
++
++static int nft_secmark_compute_secid(struct nft_secmark *priv)
++{
++	u32 tmp_secid = 0;
++	int err;
++
++	err = security_secctx_to_secid(priv->ctx, strlen(priv->ctx), &tmp_secid);
++	if (err)
++		return err;
++
++	if (!tmp_secid)
++		return -ENOENT;
++
++	err = security_secmark_relabel_packet(tmp_secid);
++	if (err)
++		return err;
++
++	priv->secid = tmp_secid;
++	return 0;
++}
++
++static void nft_secmark_obj_eval(struct nft_object *obj, struct nft_regs *regs,
++				 const struct nft_pktinfo *pkt)
++{
++	const struct nft_secmark *priv = nft_obj_data(obj);
++	struct sk_buff *skb = pkt->skb;
++
++	skb->secmark = priv->secid;
++}
++
++static int nft_secmark_obj_init(const struct nft_ctx *ctx,
++				const struct nlattr * const tb[],
++				struct nft_object *obj)
++{
++	struct nft_secmark *priv = nft_obj_data(obj);
++	int err;
++
++	if (tb[NFTA_SECMARK_CTX] == NULL)
++		return -EINVAL;
++
++	priv->ctx = nla_strdup(tb[NFTA_SECMARK_CTX], GFP_KERNEL);
++	if (!priv->ctx)
++		return -ENOMEM;
++
++	err = nft_secmark_compute_secid(priv);
++	if (err) {
++		kfree(priv->ctx);
++		return err;
++	}
++
++	security_secmark_refcount_inc();
++
++	return 0;
++}
++
++static int nft_secmark_obj_dump(struct sk_buff *skb, struct nft_object *obj,
++				bool reset)
++{
++	struct nft_secmark *priv = nft_obj_data(obj);
++	int err;
++
++	if (nla_put_string(skb, NFTA_SECMARK_CTX, priv->ctx))
++		return -1;
++
++	if (reset) {
++		err = nft_secmark_compute_secid(priv);
++		if (err)
++			return err;
++	}
++
++	return 0;
++}
++
++static void nft_secmark_obj_destroy(const struct nft_ctx *ctx, struct nft_object *obj)
++{
++	struct nft_secmark *priv = nft_obj_data(obj);
++
++	security_secmark_refcount_dec();
++
++	kfree(priv->ctx);
++}
++
++static const struct nft_object_ops nft_secmark_obj_ops = {
++	.type		= &nft_secmark_obj_type,
++	.size		= sizeof(struct nft_secmark),
++	.init		= nft_secmark_obj_init,
++	.eval		= nft_secmark_obj_eval,
++	.dump		= nft_secmark_obj_dump,
++	.destroy	= nft_secmark_obj_destroy,
++};
++struct nft_object_type nft_secmark_obj_type __read_mostly = {
++	.type		= NFT_OBJECT_SECMARK,
++	.ops		= &nft_secmark_obj_ops,
++	.maxattr	= NFTA_SECMARK_MAX,
++	.policy		= nft_secmark_policy,
++	.owner		= THIS_MODULE,
++};
++#endif /* CONFIG_NETWORK_SECMARK */
 -- 
 2.11.0
