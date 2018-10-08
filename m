@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 21/31] netfilter: conntrack: clamp l4proto array size at largers supported protocol
-Date: Tue,  9 Oct 2018 01:01:15 +0200
-Message-ID: <20181008230125.2330-22-pablo@netfilter.org>
+Subject: [PATCH 31/31] netfilter: xt_quota: Don't use aligned attribute in sizeof
+Date: Tue,  9 Oct 2018 01:01:25 +0200
+Message-ID: <20181008230125.2330-32-pablo@netfilter.org>
 References: <20181008230125.2330-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,44 +10,37 @@ In-Reply-To: <20181008230125.2330-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+From: Nathan Chancellor <natechancellor@gmail.com>
 
-All higher l4proto numbers are handled by the generic tracker; the
-l4proto lookup function already returns generic one in case the l4proto
-number exceeds max size.
+Clang warns:
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
+net/netfilter/xt_quota.c:47:44: warning: 'aligned' attribute ignored
+when parsing type [-Wignored-attributes]
+        BUILD_BUG_ON(sizeof(atomic64_t) != sizeof(__aligned_u64));
+                                                  ^~~~~~~~~~~~~
+
+Use 'sizeof(__u64)' instead, as the alignment doesn't affect the size
+of the type.
+
+Fixes: e9837e55b020 ("netfilter: xt_quota: fix the behavior of xt_quota module")
+Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_conntrack_l4proto.h | 2 +-
- net/netfilter/nf_conntrack_proto.c           | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ net/netfilter/xt_quota.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/include/net/netfilter/nf_conntrack_l4proto.h b/include/net/netfilter/nf_conntrack_l4proto.h
-index d838a93430a1..eed04af9b75e 100644
---- a/include/net/netfilter/nf_conntrack_l4proto.h
-+++ b/include/net/netfilter/nf_conntrack_l4proto.h
-@@ -102,7 +102,7 @@ int nf_conntrack_icmpv6_error(struct nf_conn *tmpl,
- /* Existing built-in generic protocol */
- extern const struct nf_conntrack_l4proto nf_conntrack_l4proto_generic;
+diff --git a/net/netfilter/xt_quota.c b/net/netfilter/xt_quota.c
+index 6afa7f468a73..fceae245eb03 100644
+--- a/net/netfilter/xt_quota.c
++++ b/net/netfilter/xt_quota.c
+@@ -44,7 +44,7 @@ static int quota_mt_check(const struct xt_mtchk_param *par)
+ {
+ 	struct xt_quota_info *q = par->matchinfo;
  
--#define MAX_NF_CT_PROTO 256
-+#define MAX_NF_CT_PROTO IPPROTO_UDPLITE
+-	BUILD_BUG_ON(sizeof(atomic64_t) != sizeof(__aligned_u64));
++	BUILD_BUG_ON(sizeof(atomic64_t) != sizeof(__u64));
  
- const struct nf_conntrack_l4proto *__nf_ct_l4proto_find(u8 l4proto);
- 
-diff --git a/net/netfilter/nf_conntrack_proto.c b/net/netfilter/nf_conntrack_proto.c
-index 69d7170cfa8c..40643af7137e 100644
---- a/net/netfilter/nf_conntrack_proto.c
-+++ b/net/netfilter/nf_conntrack_proto.c
-@@ -43,7 +43,7 @@
- 
- extern unsigned int nf_conntrack_net_id;
- 
--static struct nf_conntrack_l4proto __rcu *nf_ct_protos[MAX_NF_CT_PROTO] __read_mostly;
-+static struct nf_conntrack_l4proto __rcu *nf_ct_protos[MAX_NF_CT_PROTO + 1] __read_mostly;
- 
- static DEFINE_MUTEX(nf_ct_proto_mutex);
- 
+ 	if (q->flags & ~XT_QUOTA_MASK)
+ 		return -EINVAL;
 -- 
 2.11.0
