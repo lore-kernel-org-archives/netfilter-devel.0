@@ -1,22 +1,25 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 00/31] Netfilter updates for net-next
-Date: Mon, 08 Oct 2018 21:29:10 -0700 (PDT)
-Message-ID: <20181008.212910.1729669408722882162.davem@davemloft.net>
-References: <20181008230125.2330-1-pablo@netfilter.org>
+From: David Howells <dhowells@redhat.com>
+Subject: Re: [netfilter-core] [PATCH 07/11] UAPI: netfilter: Fix symbol collision issues [ver #2]
+Date: Tue, 09 Oct 2018 16:35:14 +0100
+Message-ID: <17564.1539099314@warthog.procyon.org.uk>
+References: <20180928130704.kcmsnsecp6aqpk66@salvia> <153622549721.14298.8116794954073122489.stgit@warthog.procyon.org.uk> <153622555128.14298.11612304975343930534.stgit@warthog.procyon.org.uk>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20181008230125.2330-1-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Cc: dhowells@redhat.com, linux-api@vger.kernel.org,
+        linux-kbuild@vger.kernel.org, coreteam@netfilter.org,
+        netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180928130704.kcmsnsecp6aqpk66@salvia>
+Content-ID: <17563.1539099314.1@warthog.procyon.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Tue,  9 Oct 2018 01:00:54 +0200
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
 
-> The following patchset contains Netfilter updates for your net-next
-> tree:
+> David, may I upstream this or you will pass it to Greg? I can just
+> take this, as you prefer.
 
-Pulled, thanks.
+Feel free to take it.
+
+David
