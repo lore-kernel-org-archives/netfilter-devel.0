@@ -1,28 +1,28 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH net] netfilter: fix DNAT target for shifted portmap ranges
-Date: Tue, 16 Oct 2018 19:35:10 +0200
-Message-ID: <20181016173510.eokgsdh6nhszmnhx@salvia>
-References: <e59ead42affbd4280e678a7c77eda13106d40984.1539701235.git.pabeni@redhat.com>
+Subject: netfilter request for -stable 4.9.x inclusion
+Date: Wed, 17 Oct 2018 18:34:22 +0200
+Message-ID: <20181017163422.bqp4ydpj5ndhhrrd@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netdev@vger.kernel.org, Thierry Du Tre <thierry@dtsystems.be>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
+Cc: stable@vger.kernel.org, Laura Garcia <nevola@gmail.com>,
         netfilter-devel@vger.kernel.org
-To: Paolo Abeni <pabeni@redhat.com>
-Return-path: <netdev-owner@vger.kernel.org>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Return-path: <stable-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <e59ead42affbd4280e678a7c77eda13106d40984.1539701235.git.pabeni@redhat.com>
-Sender: netdev-owner@vger.kernel.org
+Sender: stable-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Oct 16, 2018 at 04:52:05PM +0200, Paolo Abeni wrote:
-> The commit 2eb0f624b709 ("netfilter: add NAT support for shifted
-> portmap ranges") did not set the checkentry/destroy callbacks for
-> the newly added DNAT target. As a result, rulesets using only
-> such nat targets are not effective, as the relevant conntrack hooks
-> are not enabled.
-> The above affect also nft_compat rulesets.
-> Fix the issue adding the missing initializers.
+Hi Greg,
 
-Applied, thanks Paolo.
+Could you enqueue the following patch for -stable 4.9.x?
+
+commit ab6dd1beac7be3c17f8bf3d38bdf29ecb7293f1e
+Author: Xin Long <lucien.xin@gmail.com>
+Date:   Thu Aug 10 10:22:24 2017 +0800
+
+    netfilter: check for seqadj ext existence before adding it in nf_nat_setup_info
+
+Cc'ing Laura, combining SNAT+DNAT+ftp helper is currently broken with
+4.9.x. The patch above cures the issues.
+
+Thanks.
