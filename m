@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 09/10] netfilter: nfnetlink_log: remove empty nfnetlink_log.h header file
-Date: Sat, 20 Oct 2018 11:43:16 +0200
-Message-ID: <20181020094317.16011-10-pablo@netfilter.org>
+Subject: [PATCH 06/10] netfilter: nf_nat_snmp_basic: add missing helper alias name
+Date: Sat, 20 Oct 2018 11:43:13 +0200
+Message-ID: <20181020094317.16011-7-pablo@netfilter.org>
 References: <20181020094317.16011-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -12,22 +12,36 @@ List-Id: netfilter-devel.vger.kernel.org
 
 From: Taehee Yoo <ap420073@gmail.com>
 
-/include/net/netfilter/nfnetlink_log.h file is empty.
-so that it can be removed.
+In order to upload helper module automatically, helper alias name
+is needed. so that MODULE_ALIAS_NFCT_HELPER() should be added.
+And unlike other nat helper modules, the nf_nat_snmp_basic can be
+used independently.
+helper name is "snmp_trap" so that alias name will be
+"nfct-helper-snmp_trap" by MODULE_ALIAS_NFCT_HELPER(snmp_trap)
+
+test command:
+   %iptables -t raw -I PREROUTING -p udp -j CT --helper snmp_trap
+   %lsmod | grep nf_nat_snmp_basic
+
+We can see nf_nat_snmp_basic module is uploaded automatically.
 
 Signed-off-by: Taehee Yoo <ap420073@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nfnetlink_log.h | 1 -
- 1 file changed, 1 deletion(-)
- delete mode 100644 include/net/netfilter/nfnetlink_log.h
+ net/ipv4/netfilter/nf_nat_snmp_basic_main.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/include/net/netfilter/nfnetlink_log.h b/include/net/netfilter/nfnetlink_log.h
-deleted file mode 100644
-index ea32a7d3cf1b..000000000000
---- a/include/net/netfilter/nfnetlink_log.h
-+++ /dev/null
-@@ -1 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 */
+diff --git a/net/ipv4/netfilter/nf_nat_snmp_basic_main.c b/net/ipv4/netfilter/nf_nat_snmp_basic_main.c
+index ac110c1d55b5..a0aa13bcabda 100644
+--- a/net/ipv4/netfilter/nf_nat_snmp_basic_main.c
++++ b/net/ipv4/netfilter/nf_nat_snmp_basic_main.c
+@@ -60,6 +60,7 @@ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("James Morris <jmorris@intercode.com.au>");
+ MODULE_DESCRIPTION("Basic SNMP Application Layer Gateway");
+ MODULE_ALIAS("ip_nat_snmp_basic");
++MODULE_ALIAS_NFCT_HELPER("snmp_trap");
+ 
+ #define SNMP_PORT 161
+ #define SNMP_TRAP_PORT 162
 -- 
 2.11.0
