@@ -1,47 +1,49 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 00/10] Netfilter updates for net-next
-Date: Sat, 20 Oct 2018 12:33:00 -0700 (PDT)
-Message-ID: <20181020.123300.1298272113544877395.davem@davemloft.net>
-References: <20181020094317.16011-1-pablo@netfilter.org>
+From: Michal Hocko <mhocko-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH] mm: convert totalram_pages, totalhigh_pages and
+ managed_pages to atomic.
+Date: Mon, 22 Oct 2018 20:11:22 +0200
+Message-ID: <20181022181122.GK18839@dhcp22.suse.cz>
+References: <1540229092-25207-1-git-send-email-arunks@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20181020094317.16011-1-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
+Cc: Mike Snitzer <snitzer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>,
+ Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>,
+ Kemi Wang <kemi.wang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org,
+ "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>, linux-sctp-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+ Paul Mackerras <paulus-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>,
+ Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, "K. Y. Srinivasan" <kys-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>,
+ Sumit Semwal <sumit.semwal-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>,
+ "David \(ChunMing\) Zhou" <David1.Zhou-5C7GfCeVMHo@public.gmane.org>,
+ Petr Tesarik <ptesarik-IBi9RG/b67k@public.gmane.org>, Michael Ellerman <mpe-Gsx/Oe8HsFggBc27wqDAHg@public.gmane.org>,
+ ceph-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "James E.J. Bottomley" <jejb-6jwH94ZQLHl74goWV3ctuw@public.gmane.org>,
+ kasan-dev-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, Marcos Paulo de Souza <marcos.souza.org-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>,
+ "Steven J. Hill" <steven.hill-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>,
+ David Rientjes <rientjes-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>,
+ Anthony Yznaga <anthony.yznaga-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Daniel Vacek <neelx-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>,
+ Roman Gushchin <guro-b10kYP2dOMg@public.gmane.org>, Len Brown <len.b
+To: Arun KS <arunks-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Return-path: <linux-mediatek-bounces+glpam-linux-mediatek=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1540229092-25207-1-git-send-email-arunks-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mediatek>,
+ <mailto:linux-mediatek-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-mediatek/>
+List-Post: <mailto:linux-mediatek-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+List-Help: <mailto:linux-mediatek-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mediatek>,
+ <mailto:linux-mediatek-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=subscribe>
+Sender: "Linux-mediatek" <linux-mediatek-bounces-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Errors-To: linux-mediatek-bounces+glpam-linux-mediatek=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Sat, 20 Oct 2018 11:43:07 +0200
+On Mon 22-10-18 22:53:22, Arun KS wrote:
+> Remove managed_page_count_lock spinlock and instead use atomic
+> variables.
 
-> The following patchset contains Netfilter updates for your net-next tree:
-> 
-> 1) Use lockdep_is_held() in ipset_dereference_protected(), from Lance Roy.
-> 
-> 2) Remove unused variable in cttimeout, from YueHaibing.
-> 
-> 3) Add ttl option for nft_osf, from Fernando Fernandez Mancera.
-> 
-> 4) Use xfrm family to deal with IPv6-in-IPv4 packets from nft_xfrm,
->    from Florian Westphal.
-> 
-> 5) Simplify xt_osf_match_packet().
-> 
-> 6) Missing ct helper alias definition in snmp_trap helper, from Taehee Yoo.
-> 
-> 7) Remove unnecessary parameter in nf_flow_table_cleanup(), from Taehee Yoo.
-> 
-> 8) Remove unused variable definitions in nft_{dup,fwd}, from Weongyo Jeong.
-> 
-> 9) Remove empty net/netfilter/nfnetlink_log.h file, from Taehee Yoo.
-> 
-> 10) Revert xt_quota updates remain option due to problems in the listing
->     path for 32-bit arches, from Maze.
-> 
-> You can pull these changes from:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git
-
-Pulled, thanks.
+I assume this has been auto-generated. If yes, it would be better to
+mention the script so that people can review it and regenerate for
+comparision. Such a large change is hard to review manually.
+-- 
+Michal Hocko
+SUSE Labs
