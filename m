@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 4/8] netfilter: xt_TEE: add missing code to get interface index in checkentry.
-Date: Mon, 22 Oct 2018 22:07:20 +0200
-Message-ID: <20181022200724.25806-5-pablo@netfilter.org>
+Subject: [PATCH 1/8] netfilter: nft_set_rbtree: allow loose matching of closing element in interval
+Date: Mon, 22 Oct 2018 22:07:17 +0200
+Message-ID: <20181022200724.25806-2-pablo@netfilter.org>
 References: <20181022200724.25806-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,43 +10,45 @@ In-Reply-To: <20181022200724.25806-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Taehee Yoo <ap420073@gmail.com>
+Allow to find closest matching for the right side of an interval (end
+flag set on) so we allow lookups in inner ranges, eg. 10-20 in 5-25.
 
-checkentry(tee_tg_check) should initialize priv->oif from dev if possible.
-But only netdevice notifier handler can set that.
-Hence priv->oif is always -1 until notifier handler is called.
-
-Fixes: 9e2f6c5d78db ("netfilter: Rework xt_TEE netdevice notifier")
-Signed-off-by: Taehee Yoo <ap420073@gmail.com>
+Fixes: ba0e4d9917b4 ("netfilter: nf_tables: get set elements via netlink")
+Reported-by: Phil Sutter <phil@nwl.cc>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/xt_TEE.c | 7 +++++++
- 1 file changed, 7 insertions(+)
+ net/netfilter/nft_set_rbtree.c | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-diff --git a/net/netfilter/xt_TEE.c b/net/netfilter/xt_TEE.c
-index 673ad2099f97..1dae02a97ee3 100644
---- a/net/netfilter/xt_TEE.c
-+++ b/net/netfilter/xt_TEE.c
-@@ -104,6 +104,8 @@ static int tee_tg_check(const struct xt_tgchk_param *par)
- 		return -EINVAL;
+diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
+index 0e5ec126f6ad..fa61208371f8 100644
+--- a/net/netfilter/nft_set_rbtree.c
++++ b/net/netfilter/nft_set_rbtree.c
+@@ -135,9 +135,12 @@ static bool __nft_rbtree_get(const struct net *net, const struct nft_set *set,
+ 		d = memcmp(this, key, set->klen);
+ 		if (d < 0) {
+ 			parent = rcu_dereference_raw(parent->rb_left);
+-			interval = rbe;
++			if (!(flags & NFT_SET_ELEM_INTERVAL_END))
++				interval = rbe;
+ 		} else if (d > 0) {
+ 			parent = rcu_dereference_raw(parent->rb_right);
++			if (flags & NFT_SET_ELEM_INTERVAL_END)
++				interval = rbe;
+ 		} else {
+ 			if (!nft_set_elem_active(&rbe->ext, genmask))
+ 				parent = rcu_dereference_raw(parent->rb_left);
+@@ -154,7 +157,10 @@ static bool __nft_rbtree_get(const struct net *net, const struct nft_set *set,
  
- 	if (info->oif[0]) {
-+		struct net_device *dev;
-+
- 		if (info->oif[sizeof(info->oif)-1] != '\0')
- 			return -EINVAL;
- 
-@@ -115,6 +117,11 @@ static int tee_tg_check(const struct xt_tgchk_param *par)
- 		priv->oif     = -1;
- 		info->priv    = priv;
- 
-+		dev = dev_get_by_name(par->net, info->oif);
-+		if (dev) {
-+			priv->oif = dev->ifindex;
-+			dev_put(dev);
-+		}
- 		mutex_lock(&tn->lock);
- 		list_add(&priv->list, &tn->priv_list);
- 		mutex_unlock(&tn->lock);
+ 	if (set->flags & NFT_SET_INTERVAL && interval != NULL &&
+ 	    nft_set_elem_active(&interval->ext, genmask) &&
+-	    !nft_rbtree_interval_end(interval)) {
++	    ((!nft_rbtree_interval_end(interval) &&
++	      !(flags & NFT_SET_ELEM_INTERVAL_END)) ||
++	     (nft_rbtree_interval_end(interval) &&
++	      (flags & NFT_SET_ELEM_INTERVAL_END)))) {
+ 		*elem = interval;
+ 		return true;
+ 	}
 -- 
 2.11.0
