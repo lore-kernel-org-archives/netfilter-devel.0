@@ -1,83 +1,194 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 0/8] Netfilter fixes for net
-Date: Mon, 22 Oct 2018 22:07:16 +0200
-Message-ID: <20181022200724.25806-1-pablo@netfilter.org>
+Subject: [PATCH 3/8] netfilter: xt_TEE: fix wrong interface selection
+Date: Mon, 22 Oct 2018 22:07:19 +0200
+Message-ID: <20181022200724.25806-4-pablo@netfilter.org>
+References: <20181022200724.25806-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20181022200724.25806-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi David,
+From: Taehee Yoo <ap420073@gmail.com>
 
-The following patchset contains Netfilter fixes for your net tree:
+TEE netdevice notifier handler checks only interface name. however
+each netns can have same interface name. hence other netns's interface
+could be selected.
 
-1) rbtree lookup from control plane returns the left-hand side element
-   of the range when the interval end flag is set on.
+test commands:
+   %ip netns add vm1
+   %iptables -I INPUT -p icmp -j TEE --gateway 192.168.1.1 --oif enp2s0
+   %ip link set enp2s0 netns vm1
 
-2) osf extension is not supported from the input path, reject this from
-   the control plane, from Fernando Fernandez Mancera.
+Above rule is in the root netns. but that rule could get enp2s0
+ifindex of vm1 by notifier handler.
 
-3) xt_TEE is leaving output interface unset due to a recent incorrect
-   netns rework, from Taehee Yoo.
+After this patch, TEE rule is added to the per-netns list.
 
-4) xt_TEE allows to select an interface which does not belong to this
-   netnamespace, from Taehee Yoo.
+Fixes: 9e2f6c5d78db ("netfilter: Rework xt_TEE netdevice notifier")
+Signed-off-by: Taehee Yoo <ap420073@gmail.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/xt_TEE.c | 69 +++++++++++++++++++++++++++++++++++++-------------
+ 1 file changed, 52 insertions(+), 17 deletions(-)
 
-5) Zero private extension area in nft_compat, just like we do in x_tables,
-   otherwise we leak kernel memory to userspace.
-
-6) Missing .checkentry and .destroy entries in new DNAT extensions breaks
-   it since we never load nf_conntrack dependencies, from Paolo Abeni.
-
-7) Do not remove flowtable hook from netns exit path, the netdevice handler
-   already deals with this, also from Taehee Yoo.
-
-8) Only cleanup flowtable entries that reside in this netnamespace, also
-   from Taehee Yoo.
-
-You can pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
-
-Thanks.
-
-----------------------------------------------------------------
-
-The following changes since commit 9a4890bd6d6325a1c88564a20ab310b2d56f6094:
-
-  rds: RDS (tcp) hangs on sendto() to unresponding address (2018-10-10 22:19:52 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git HEAD
-
-for you to fetch changes up to a3fb3698cadf27dc142b24394c401625e14d80d0:
-
-  netfilter: nf_flow_table: do not remove offload when other netns's interface is down (2018-10-19 13:30:48 +0200)
-
-----------------------------------------------------------------
-Fernando Fernandez Mancera (1):
-      netfilter: nft_osf: usage from output path is not valid
-
-Pablo Neira Ayuso (2):
-      netfilter: nft_set_rbtree: allow loose matching of closing element in interval
-      netfilter: nft_compat: do not dump private area
-
-Paolo Abeni (1):
-      netfilter: xt_nat: fix DNAT target for shifted portmap ranges
-
-Taehee Yoo (4):
-      netfilter: xt_TEE: fix wrong interface selection
-      netfilter: xt_TEE: add missing code to get interface index in checkentry.
-      netfilter: nf_flow_table: remove flowtable hook flush routine in netns exit routine
-      netfilter: nf_flow_table: do not remove offload when other netns's interface is down
-
- net/netfilter/nf_flow_table_core.c |  9 +++--
- net/netfilter/nf_tables_api.c      |  3 --
- net/netfilter/nft_compat.c         | 24 +++++++++++-
- net/netfilter/nft_osf.c            | 10 +++++
- net/netfilter/nft_set_rbtree.c     | 10 ++++-
- net/netfilter/xt_TEE.c             | 76 +++++++++++++++++++++++++++++---------
- net/netfilter/xt_nat.c             |  2 +
- 7 files changed, 107 insertions(+), 27 deletions(-)
+diff --git a/net/netfilter/xt_TEE.c b/net/netfilter/xt_TEE.c
+index 0d0d68c989df..673ad2099f97 100644
+--- a/net/netfilter/xt_TEE.c
++++ b/net/netfilter/xt_TEE.c
+@@ -14,6 +14,8 @@
+ #include <linux/skbuff.h>
+ #include <linux/route.h>
+ #include <linux/netfilter/x_tables.h>
++#include <net/net_namespace.h>
++#include <net/netns/generic.h>
+ #include <net/route.h>
+ #include <net/netfilter/ipv4/nf_dup_ipv4.h>
+ #include <net/netfilter/ipv6/nf_dup_ipv6.h>
+@@ -25,8 +27,15 @@ struct xt_tee_priv {
+ 	int			oif;
+ };
+ 
++static unsigned int tee_net_id __read_mostly;
+ static const union nf_inet_addr tee_zero_address;
+ 
++struct tee_net {
++	struct list_head priv_list;
++	/* lock protects the priv_list */
++	struct mutex lock;
++};
++
+ static unsigned int
+ tee_tg4(struct sk_buff *skb, const struct xt_action_param *par)
+ {
+@@ -51,17 +60,16 @@ tee_tg6(struct sk_buff *skb, const struct xt_action_param *par)
+ }
+ #endif
+ 
+-static DEFINE_MUTEX(priv_list_mutex);
+-static LIST_HEAD(priv_list);
+-
+ static int tee_netdev_event(struct notifier_block *this, unsigned long event,
+ 			    void *ptr)
+ {
+ 	struct net_device *dev = netdev_notifier_info_to_dev(ptr);
++	struct net *net = dev_net(dev);
++	struct tee_net *tn = net_generic(net, tee_net_id);
+ 	struct xt_tee_priv *priv;
+ 
+-	mutex_lock(&priv_list_mutex);
+-	list_for_each_entry(priv, &priv_list, list) {
++	mutex_lock(&tn->lock);
++	list_for_each_entry(priv, &tn->priv_list, list) {
+ 		switch (event) {
+ 		case NETDEV_REGISTER:
+ 			if (!strcmp(dev->name, priv->tginfo->oif))
+@@ -79,13 +87,14 @@ static int tee_netdev_event(struct notifier_block *this, unsigned long event,
+ 			break;
+ 		}
+ 	}
+-	mutex_unlock(&priv_list_mutex);
++	mutex_unlock(&tn->lock);
+ 
+ 	return NOTIFY_DONE;
+ }
+ 
+ static int tee_tg_check(const struct xt_tgchk_param *par)
+ {
++	struct tee_net *tn = net_generic(par->net, tee_net_id);
+ 	struct xt_tee_tginfo *info = par->targinfo;
+ 	struct xt_tee_priv *priv;
+ 
+@@ -106,9 +115,9 @@ static int tee_tg_check(const struct xt_tgchk_param *par)
+ 		priv->oif     = -1;
+ 		info->priv    = priv;
+ 
+-		mutex_lock(&priv_list_mutex);
+-		list_add(&priv->list, &priv_list);
+-		mutex_unlock(&priv_list_mutex);
++		mutex_lock(&tn->lock);
++		list_add(&priv->list, &tn->priv_list);
++		mutex_unlock(&tn->lock);
+ 	} else
+ 		info->priv = NULL;
+ 
+@@ -118,12 +127,13 @@ static int tee_tg_check(const struct xt_tgchk_param *par)
+ 
+ static void tee_tg_destroy(const struct xt_tgdtor_param *par)
+ {
++	struct tee_net *tn = net_generic(par->net, tee_net_id);
+ 	struct xt_tee_tginfo *info = par->targinfo;
+ 
+ 	if (info->priv) {
+-		mutex_lock(&priv_list_mutex);
++		mutex_lock(&tn->lock);
+ 		list_del(&info->priv->list);
+-		mutex_unlock(&priv_list_mutex);
++		mutex_unlock(&tn->lock);
+ 		kfree(info->priv);
+ 	}
+ 	static_key_slow_dec(&xt_tee_enabled);
+@@ -156,6 +166,21 @@ static struct xt_target tee_tg_reg[] __read_mostly = {
+ #endif
+ };
+ 
++static int __net_init tee_net_init(struct net *net)
++{
++	struct tee_net *tn = net_generic(net, tee_net_id);
++
++	INIT_LIST_HEAD(&tn->priv_list);
++	mutex_init(&tn->lock);
++	return 0;
++}
++
++static struct pernet_operations tee_net_ops = {
++	.init = tee_net_init,
++	.id   = &tee_net_id,
++	.size = sizeof(struct tee_net),
++};
++
+ static struct notifier_block tee_netdev_notifier = {
+ 	.notifier_call = tee_netdev_event,
+ };
+@@ -164,22 +189,32 @@ static int __init tee_tg_init(void)
+ {
+ 	int ret;
+ 
+-	ret = xt_register_targets(tee_tg_reg, ARRAY_SIZE(tee_tg_reg));
+-	if (ret)
++	ret = register_pernet_subsys(&tee_net_ops);
++	if (ret < 0)
+ 		return ret;
++
++	ret = xt_register_targets(tee_tg_reg, ARRAY_SIZE(tee_tg_reg));
++	if (ret < 0)
++		goto cleanup_subsys;
++
+ 	ret = register_netdevice_notifier(&tee_netdev_notifier);
+-	if (ret) {
+-		xt_unregister_targets(tee_tg_reg, ARRAY_SIZE(tee_tg_reg));
+-		return ret;
+-	}
++	if (ret < 0)
++		goto unregister_targets;
+ 
+ 	return 0;
++
++unregister_targets:
++	xt_unregister_targets(tee_tg_reg, ARRAY_SIZE(tee_tg_reg));
++cleanup_subsys:
++	unregister_pernet_subsys(&tee_net_ops);
++	return ret;
+ }
+ 
+ static void __exit tee_tg_exit(void)
+ {
+ 	unregister_netdevice_notifier(&tee_netdev_notifier);
+ 	xt_unregister_targets(tee_tg_reg, ARRAY_SIZE(tee_tg_reg));
++	unregister_pernet_subsys(&tee_net_ops);
+ }
+ 
+ module_init(tee_tg_init);
+-- 
+2.11.0
