@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 3/8] netfilter: xt_TEE: fix wrong interface selection
-Date: Mon, 22 Oct 2018 22:07:19 +0200
-Message-ID: <20181022200724.25806-4-pablo@netfilter.org>
+Subject: [PATCH 7/8] netfilter: nf_flow_table: remove flowtable hook flush routine in netns exit routine
+Date: Mon, 22 Oct 2018 22:07:23 +0200
+Message-ID: <20181022200724.25806-8-pablo@netfilter.org>
 References: <20181022200724.25806-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -12,183 +12,85 @@ List-Id: netfilter-devel.vger.kernel.org
 
 From: Taehee Yoo <ap420073@gmail.com>
 
-TEE netdevice notifier handler checks only interface name. however
-each netns can have same interface name. hence other netns's interface
-could be selected.
+When device is unregistered, flowtable flush routine is called
+by notifier_call(nf_tables_flowtable_event). and exit callback of
+nftables pernet_operation(nf_tables_exit_net) also has flowtable flush
+routine. but when network namespace is destroyed, both notifier_call
+and pernet_operation are called. hence flowtable flush routine in
+pernet_operation is unnecessary.
 
 test commands:
    %ip netns add vm1
-   %iptables -I INPUT -p icmp -j TEE --gateway 192.168.1.1 --oif enp2s0
-   %ip link set enp2s0 netns vm1
+   %ip netns exec vm1 nft add table ip filter
+   %ip netns exec vm1 nft add flowtable ip filter w \
+	{ hook ingress priority 0\; devices = { lo }\; }
+   %ip netns del vm1
 
-Above rule is in the root netns. but that rule could get enp2s0
-ifindex of vm1 by notifier handler.
+splat looks like:
+[  265.187019] WARNING: CPU: 0 PID: 87 at net/netfilter/core.c:309 nf_hook_entry_head+0xc7/0xf0
+[  265.187112] Modules linked in: nf_flow_table_ipv4 nf_flow_table nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 nf_tables nfnetlink ip_tables x_tables
+[  265.187390] CPU: 0 PID: 87 Comm: kworker/u4:2 Not tainted 4.19.0-rc3+ #5
+[  265.187453] Workqueue: netns cleanup_net
+[  265.187514] RIP: 0010:nf_hook_entry_head+0xc7/0xf0
+[  265.187546] Code: 8d 81 68 03 00 00 5b c3 89 d0 83 fa 04 48 8d 84 c7 e8 11 00 00 76 81 0f 0b 31 c0 e9 78 ff ff ff 0f 0b 48 83 c4 08 31 c0 5b c3 <0f> 0b 31 c0 e9 65 ff ff ff 0f 0b 31 c0 e9 5c ff ff ff 48 89 0c 24
+[  265.187573] RSP: 0018:ffff88011546f098 EFLAGS: 00010246
+[  265.187624] RAX: ffffffff8d90e135 RBX: 1ffff10022a8de1c RCX: 0000000000000000
+[  265.187645] RDX: 0000000000000000 RSI: 0000000000000005 RDI: ffff880116298040
+[  265.187645] RBP: ffff88010ea4c1a8 R08: 0000000000000000 R09: 0000000000000000
+[  265.187645] R10: ffff88011546f1d8 R11: ffffed0022c532c1 R12: ffff88010ea4c1d0
+[  265.187645] R13: 0000000000000005 R14: dffffc0000000000 R15: ffff88010ea4c1c4
+[  265.187645] FS:  0000000000000000(0000) GS:ffff88011b200000(0000) knlGS:0000000000000000
+[  265.187645] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[  265.187645] CR2: 00007fdfb8d00000 CR3: 0000000057a16000 CR4: 00000000001006f0
+[  265.187645] Call Trace:
+[  265.187645]  __nf_unregister_net_hook+0xca/0x5d0
+[  265.187645]  ? nf_hook_entries_free.part.3+0x80/0x80
+[  265.187645]  ? save_trace+0x300/0x300
+[  265.187645]  nf_unregister_net_hooks+0x2e/0x40
+[  265.187645]  nf_tables_exit_net+0x479/0x1340 [nf_tables]
+[  265.187645]  ? find_held_lock+0x39/0x1c0
+[  265.187645]  ? nf_tables_abort+0x30/0x30 [nf_tables]
+[  265.187645]  ? inet_frag_destroy_rcu+0xd0/0xd0
+[  265.187645]  ? trace_hardirqs_on+0x93/0x210
+[  265.187645]  ? __bpf_trace_preemptirq_template+0x10/0x10
+[  265.187645]  ? inet_frag_destroy_rcu+0xd0/0xd0
+[  265.187645]  ? inet_frag_destroy_rcu+0xd0/0xd0
+[  265.187645]  ? __mutex_unlock_slowpath+0x17f/0x740
+[  265.187645]  ? wait_for_completion+0x710/0x710
+[  265.187645]  ? bucket_table_free+0xb2/0x1f0
+[  265.187645]  ? nested_table_free+0x130/0x130
+[  265.187645]  ? __lock_is_held+0xb4/0x140
+[  265.187645]  ops_exit_list.isra.10+0x94/0x140
+[  265.187645]  cleanup_net+0x45b/0x900
+[ ... ]
 
-After this patch, TEE rule is added to the per-netns list.
+This WARNING means that hook unregisteration is failed because
+all flowtables hooks are already unregistered by notifier_call.
 
-Fixes: 9e2f6c5d78db ("netfilter: Rework xt_TEE netdevice notifier")
+Network namespace exit routine guarantees that all devices will be
+unregistered first. then, other exit callbacks of pernet_operations
+are called. so that removing flowtable flush routine in exit callback of
+pernet_operation(nf_tables_exit_net) doesn't make flowtable leak.
+
 Signed-off-by: Taehee Yoo <ap420073@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/xt_TEE.c | 69 +++++++++++++++++++++++++++++++++++++-------------
- 1 file changed, 52 insertions(+), 17 deletions(-)
+ net/netfilter/nf_tables_api.c | 3 ---
+ 1 file changed, 3 deletions(-)
 
-diff --git a/net/netfilter/xt_TEE.c b/net/netfilter/xt_TEE.c
-index 0d0d68c989df..673ad2099f97 100644
---- a/net/netfilter/xt_TEE.c
-+++ b/net/netfilter/xt_TEE.c
-@@ -14,6 +14,8 @@
- #include <linux/skbuff.h>
- #include <linux/route.h>
- #include <linux/netfilter/x_tables.h>
-+#include <net/net_namespace.h>
-+#include <net/netns/generic.h>
- #include <net/route.h>
- #include <net/netfilter/ipv4/nf_dup_ipv4.h>
- #include <net/netfilter/ipv6/nf_dup_ipv6.h>
-@@ -25,8 +27,15 @@ struct xt_tee_priv {
- 	int			oif;
- };
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 2cfb173cd0b2..d83c0d01a266 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -7202,9 +7202,6 @@ static void __nft_release_tables(struct net *net)
  
-+static unsigned int tee_net_id __read_mostly;
- static const union nf_inet_addr tee_zero_address;
- 
-+struct tee_net {
-+	struct list_head priv_list;
-+	/* lock protects the priv_list */
-+	struct mutex lock;
-+};
-+
- static unsigned int
- tee_tg4(struct sk_buff *skb, const struct xt_action_param *par)
- {
-@@ -51,17 +60,16 @@ tee_tg6(struct sk_buff *skb, const struct xt_action_param *par)
- }
- #endif
- 
--static DEFINE_MUTEX(priv_list_mutex);
--static LIST_HEAD(priv_list);
--
- static int tee_netdev_event(struct notifier_block *this, unsigned long event,
- 			    void *ptr)
- {
- 	struct net_device *dev = netdev_notifier_info_to_dev(ptr);
-+	struct net *net = dev_net(dev);
-+	struct tee_net *tn = net_generic(net, tee_net_id);
- 	struct xt_tee_priv *priv;
- 
--	mutex_lock(&priv_list_mutex);
--	list_for_each_entry(priv, &priv_list, list) {
-+	mutex_lock(&tn->lock);
-+	list_for_each_entry(priv, &tn->priv_list, list) {
- 		switch (event) {
- 		case NETDEV_REGISTER:
- 			if (!strcmp(dev->name, priv->tginfo->oif))
-@@ -79,13 +87,14 @@ static int tee_netdev_event(struct notifier_block *this, unsigned long event,
- 			break;
- 		}
- 	}
--	mutex_unlock(&priv_list_mutex);
-+	mutex_unlock(&tn->lock);
- 
- 	return NOTIFY_DONE;
- }
- 
- static int tee_tg_check(const struct xt_tgchk_param *par)
- {
-+	struct tee_net *tn = net_generic(par->net, tee_net_id);
- 	struct xt_tee_tginfo *info = par->targinfo;
- 	struct xt_tee_priv *priv;
- 
-@@ -106,9 +115,9 @@ static int tee_tg_check(const struct xt_tgchk_param *par)
- 		priv->oif     = -1;
- 		info->priv    = priv;
- 
--		mutex_lock(&priv_list_mutex);
--		list_add(&priv->list, &priv_list);
--		mutex_unlock(&priv_list_mutex);
-+		mutex_lock(&tn->lock);
-+		list_add(&priv->list, &tn->priv_list);
-+		mutex_unlock(&tn->lock);
- 	} else
- 		info->priv = NULL;
- 
-@@ -118,12 +127,13 @@ static int tee_tg_check(const struct xt_tgchk_param *par)
- 
- static void tee_tg_destroy(const struct xt_tgdtor_param *par)
- {
-+	struct tee_net *tn = net_generic(par->net, tee_net_id);
- 	struct xt_tee_tginfo *info = par->targinfo;
- 
- 	if (info->priv) {
--		mutex_lock(&priv_list_mutex);
-+		mutex_lock(&tn->lock);
- 		list_del(&info->priv->list);
--		mutex_unlock(&priv_list_mutex);
-+		mutex_unlock(&tn->lock);
- 		kfree(info->priv);
- 	}
- 	static_key_slow_dec(&xt_tee_enabled);
-@@ -156,6 +166,21 @@ static struct xt_target tee_tg_reg[] __read_mostly = {
- #endif
- };
- 
-+static int __net_init tee_net_init(struct net *net)
-+{
-+	struct tee_net *tn = net_generic(net, tee_net_id);
-+
-+	INIT_LIST_HEAD(&tn->priv_list);
-+	mutex_init(&tn->lock);
-+	return 0;
-+}
-+
-+static struct pernet_operations tee_net_ops = {
-+	.init = tee_net_init,
-+	.id   = &tee_net_id,
-+	.size = sizeof(struct tee_net),
-+};
-+
- static struct notifier_block tee_netdev_notifier = {
- 	.notifier_call = tee_netdev_event,
- };
-@@ -164,22 +189,32 @@ static int __init tee_tg_init(void)
- {
- 	int ret;
- 
--	ret = xt_register_targets(tee_tg_reg, ARRAY_SIZE(tee_tg_reg));
--	if (ret)
-+	ret = register_pernet_subsys(&tee_net_ops);
-+	if (ret < 0)
- 		return ret;
-+
-+	ret = xt_register_targets(tee_tg_reg, ARRAY_SIZE(tee_tg_reg));
-+	if (ret < 0)
-+		goto cleanup_subsys;
-+
- 	ret = register_netdevice_notifier(&tee_netdev_notifier);
--	if (ret) {
--		xt_unregister_targets(tee_tg_reg, ARRAY_SIZE(tee_tg_reg));
--		return ret;
--	}
-+	if (ret < 0)
-+		goto unregister_targets;
- 
- 	return 0;
-+
-+unregister_targets:
-+	xt_unregister_targets(tee_tg_reg, ARRAY_SIZE(tee_tg_reg));
-+cleanup_subsys:
-+	unregister_pernet_subsys(&tee_net_ops);
-+	return ret;
- }
- 
- static void __exit tee_tg_exit(void)
- {
- 	unregister_netdevice_notifier(&tee_netdev_notifier);
- 	xt_unregister_targets(tee_tg_reg, ARRAY_SIZE(tee_tg_reg));
-+	unregister_pernet_subsys(&tee_net_ops);
- }
- 
- module_init(tee_tg_init);
+ 		list_for_each_entry(chain, &table->chains, list)
+ 			nf_tables_unregister_hook(net, table, chain);
+-		list_for_each_entry(flowtable, &table->flowtables, list)
+-			nf_unregister_net_hooks(net, flowtable->ops,
+-						flowtable->ops_len);
+ 		/* No packets are walking on these chains anymore. */
+ 		ctx.table = table;
+ 		list_for_each_entry(chain, &table->chains, list) {
 -- 
 2.11.0
