@@ -1,58 +1,57 @@
-From: "Huang\, Ying" <ying.huang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] mm: convert totalram_pages,
- totalhigh_pages and managed_pages to atomic.
-Date: Tue, 23 Oct 2018 13:37:01 +0800
-Message-ID: <874lddxlz6.fsf@yhuang-dev.intel.com>
-References: <1540229092-25207-1-git-send-email-arunks@codeaurora.org>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf] netfilter: ipv6: fix oops when defragmenting locally generated fragments
+Date: Tue, 23 Oct 2018 16:47:16 +0200
+Message-ID: <20181023144716.19746-1-fw@strlen.de>
+References: <CANP3RGeX5=c=Lb+Pkg89zD7zQ_Z1T8oPJRCkorNCdghmofYXxg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Cc: Mike Snitzer <snitzer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>,
- Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>,
- Kemi Wang <kemi.wang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org,
- "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>, linux-sctp-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
- Paul Mackerras <paulus-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>,
- Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, "K. Y. Srinivasan" <kys-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>,
- Sumit Semwal <sumit.semwal-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>,
- "David \(ChunMing\) Zhou" <David1.Zhou-5C7GfCeVMHo@public.gmane.org>,
- Petr Tesarik <ptesarik-IBi9RG/b67k@public.gmane.org>, Michael
- Ellerman <mpe-Gsx/Oe8HsFggBc27wqDAHg@public.gmane.org>, ceph-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
- "James E.J. Bottomley" <jejb-6jwH94ZQLHl74goWV3ctuw@public.gmane.org>, kasan-dev-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org,
- Marcos Paulo de Souza <marcos.souza.org-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>,
- "Steven J. Hill" <steven.hill-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>,
- David Rientjes <rientjes-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>,
- Anthony Yznaga <anthony.yznaga-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Daniel Vacek <neelx-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>,
- Roman Gushchin <guro-b10kYP2dOMg@public.gmane.org>, Len Brown <len.
-To: Arun KS <arunks-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Return-path: <linux-mediatek-bounces+glpam-linux-mediatek=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-In-Reply-To: <1540229092-25207-1-git-send-email-arunks-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org> (Arun
- KS's message of "Mon, 22 Oct 2018 22:53:22 +0530")
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mediatek>,
- <mailto:linux-mediatek-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mediatek/>
-List-Post: <mailto:linux-mediatek-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-List-Help: <mailto:linux-mediatek-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mediatek>,
- <mailto:linux-mediatek-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=subscribe>
-Sender: "Linux-mediatek" <linux-mediatek-bounces-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-Errors-To: linux-mediatek-bounces+glpam-linux-mediatek=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Cc: lorenzo@google.com, zenczykowski@gmail.com, edumazet@google.com,
+        netdev@vger.kernel.org, maze@google.com,
+        Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <CANP3RGeX5=c=Lb+Pkg89zD7zQ_Z1T8oPJRCkorNCdghmofYXxg@mail.gmail.com>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Arun KS <arunks-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org> writes:
+Unlike ipv4 and normal ipv6 defrag, netfilter ipv6 defragmentation did
+not save/restore skb->dst.
 
-> Remove managed_page_count_lock spinlock and instead use atomic
-> variables.
->
-> Suggested-by: Michal Hocko <mhocko-IBi9RG/b67k@public.gmane.org>
-> Suggested-by: Vlastimil Babka <vbabka-AlSwsSmVLrQ@public.gmane.org>
-> Signed-off-by: Arun KS <arunks-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
->
-> ---
-> As discussed here,
-> https://patchwork.kernel.org/patch/10627521/#22261253
+This causes oops when handling locally generated ipv6 fragments, as
+output path needs a valid dst.
 
-My 2 cents.  I think you should include at least part of the discussion
-in the patch description to make it more readable by itself.
+Reported-by: Maciej Żenczykowski <zenczykowski@gmail.com>
+Fixes: 84379c9afe01 ("netfilter: ipv6: nf_defrag: drop skb dst before queueing")
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ net/ipv6/netfilter/nf_conntrack_reasm.c | 13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
-Best Regards,
-Huang, Ying
+diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
+index 8f68a518d9db..f76bd4d15704 100644
+--- a/net/ipv6/netfilter/nf_conntrack_reasm.c
++++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
+@@ -587,11 +587,16 @@ int nf_ct_frag6_gather(struct net *net, struct sk_buff *skb, u32 user)
+ 	 */
+ 	ret = -EINPROGRESS;
+ 	if (fq->q.flags == (INET_FRAG_FIRST_IN | INET_FRAG_LAST_IN) &&
+-	    fq->q.meat == fq->q.len &&
+-	    nf_ct_frag6_reasm(fq, skb, dev))
+-		ret = 0;
+-	else
++	    fq->q.meat == fq->q.len) {
++		unsigned long orefdst = skb->_skb_refdst;
++
++		skb->_skb_refdst = 0UL;
++		if (nf_ct_frag6_reasm(fq, skb, dev))
++			ret = 0;
++		skb->_skb_refdst = orefdst;
++	} else {
+ 		skb_dst_drop(skb);
++	}
+ 
+ out_unlock:
+ 	spin_unlock_bh(&fq->q.lock);
+-- 
+2.18.1
