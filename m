@@ -1,120 +1,91 @@
-From: Richard Guy Briggs <rgb@redhat.com>
-Subject: Re: [PATCH ghak90 (was ghak32) V4 03/10] audit: log container info
- of syscalls
-Date: Wed, 24 Oct 2018 11:14:39 -0400
-Message-ID: <20181024151439.lavhanabsyxdrdvo@madcap2.tricolour.ca>
-References: <cover.1533065887.git.rgb@redhat.com>
- <34017c395d03a213d6b0d49b9964429bd32b283d.1533065887.git.rgb@redhat.com>
- <CAHC9VhSv4hWGHiaaOfuBrRQKdp2YG5RtqXQbFXg7j7LNEhO2XQ@mail.gmail.com>
+From: <zhe.he@windriver.com>
+Subject: [RFC] [PATCH] netfilter: Fix kmemleak false positive reports
+Date: Thu, 25 Oct 2018 01:29:57 +0800
+Message-ID: <1540402197-173015-1-git-send-email-zhe.he@windriver.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: containers@lists.linux-foundation.org, linux-api@vger.kernel.org,
-        linux-audit@redhat.com, linux-fsdevel@vger.kernel.org,
-        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, ebiederm@xmission.com,
-        luto@kernel.org, carlos@redhat.com, dhowells@redhat.com,
-        viro@zeniv.linux.org.uk, simo@redhat.com,
-        Eric Paris <eparis@parisplace.org>,
-        Serge Hallyn <serge@hallyn.com>
-To: Paul Moore <paul@paul-moore.com>
+Content-Type: text/plain
+To: <pablo@netfilter.org>, <kadlec@blackhole.kfki.hu>, <fw@strlen.de>,
+        <davem@davemloft.net>, <netfilter-devel@vger.kernel.org>,
+        <coreteam@netfilter.org>, <netdev@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>, <catalin.marinas@arm.com>,
+        <linux-mm@kvack.org>, <zhe.he@windriver.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAHC9VhSv4hWGHiaaOfuBrRQKdp2YG5RtqXQbFXg7j7LNEhO2XQ@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On 2018-10-19 19:16, Paul Moore wrote:
-> On Sun, Aug 5, 2018 at 4:32 AM Richard Guy Briggs <rgb@redhat.com> wrote:
-> > Create a new audit record AUDIT_CONTAINER to document the audit
-> > container identifier of a process if it is present.
-> >
-> > Called from audit_log_exit(), syscalls are covered.
-> >
-> > A sample raw event:
-> > type=SYSCALL msg=audit(1519924845.499:257): arch=c000003e syscall=257 success=yes exit=3 a0=ffffff9c a1=56374e1cef30 a2=241 a3=1b6 items=2 ppid=606 pid=635 auid=0 uid=0 gid=0 euid=0 suid=0 fsuid=0 egid=0 sgid=0 fsgid=0 tty=pts0 ses=3 comm="bash" exe="/usr/bin/bash" subj=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023 key="tmpcontainerid"
-> > type=CWD msg=audit(1519924845.499:257): cwd="/root"
-> > type=PATH msg=audit(1519924845.499:257): item=0 name="/tmp/" inode=13863 dev=00:27 mode=041777 ouid=0 ogid=0 rdev=00:00 obj=system_u:object_r:tmp_t:s0 nametype= PARENT cap_fp=0000000000000000 cap_fi=0000000000000000 cap_fe=0 cap_fver=0
-> > type=PATH msg=audit(1519924845.499:257): item=1 name="/tmp/tmpcontainerid" inode=17729 dev=00:27 mode=0100644 ouid=0 ogid=0 rdev=00:00 obj=unconfined_u:object_r:user_tmp_t:s0 nametype=CREATE cap_fp=0000000000000000 cap_fi=0000000000000000 cap_fe=0 cap_fver=0
-> > type=PROCTITLE msg=audit(1519924845.499:257): proctitle=62617368002D6300736C65657020313B206563686F2074657374203E202F746D702F746D70636F6E7461696E65726964
-> > type=CONTAINER msg=audit(1519924845.499:257): op=task contid=123458
-> >
-> > See: https://github.com/linux-audit/audit-kernel/issues/90
-> > See: https://github.com/linux-audit/audit-userspace/issues/51
-> > See: https://github.com/linux-audit/audit-testsuite/issues/64
-> > See: https://github.com/linux-audit/audit-kernel/wiki/RFE-Audit-Container-ID
-> > Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
-> > Acked-by: Serge Hallyn <serge@hallyn.com>
-> > Acked-by: Steve Grubb <sgrubb@redhat.com>
-> > ---
-> >  include/linux/audit.h      |  7 +++++++
-> >  include/uapi/linux/audit.h |  1 +
-> >  kernel/audit.c             | 24 ++++++++++++++++++++++++
-> >  kernel/auditsc.c           |  3 +++
-> >  4 files changed, 35 insertions(+)
-> 
-> ...
-> 
-> > @@ -2045,6 +2045,30 @@ void audit_log_session_info(struct audit_buffer *ab)
-> >         audit_log_format(ab, " auid=%u ses=%u", auid, sessionid);
-> >  }
-> >
-> > +/*
-> > + * audit_log_contid - report container info
-> > + * @tsk: task to be recorded
-> > + * @context: task or local context for record
-> > + * @op: contid string description
-> > + */
-> > +int audit_log_contid(struct task_struct *tsk,
-> > +                            struct audit_context *context, char *op)
-> > +{
-> > +       struct audit_buffer *ab;
-> > +
-> > +       if (!audit_contid_set(tsk))
-> > +               return 0;
-> > +       /* Generate AUDIT_CONTAINER record with container ID */
-> > +       ab = audit_log_start(context, GFP_KERNEL, AUDIT_CONTAINER);
-> > +       if (!ab)
-> > +               return -ENOMEM;
-> > +       audit_log_format(ab, "op=%s contid=%llu",
-> > +                        op, audit_get_contid(tsk));
-> > +       audit_log_end(ab);
-> > +       return 0;
-> > +}
-> > +EXPORT_SYMBOL(audit_log_contid);
-> 
-> As discussed in the previous iteration of the patch, I prefer
-> AUDIT_CONTAINER_ID here over AUDIT_CONTAINER.  If you feel strongly
-> about keeping it as-is with AUDIT_CONTAINER I suppose I could live
-> with that, but it is isn't my first choice.
+From: He Zhe <zhe.he@windriver.com>
 
-I don't have a strong opinion on this one, mildly preferring the shorter
-one only because it is shorter.
+unreferenced object 0xffff9643edb89900 (size 256):
+  comm "sd-resolve", pid 220, jiffies 4295016710 (age 208.256s)
+  hex dump (first 32 bytes):
+    01 00 00 00 00 00 00 00 03 00 74 f3 ba b1 b6 b5  ..........t.....
+    65 3e 00 00 00 00 00 00 90 f9 a0 ed 43 96 ff ff  e>..........C...
+  backtrace:
+    [<0000000070d5b185>] kmem_cache_alloc+0x146/0x200
+    [<0000000007a27faa>] __nf_conntrack_alloc.isra.13+0x4d/0x170 [nf_conntrack]
+    [<00000000ecc5b0ec>] init_conntrack+0x6a/0x2f0 [nf_conntrack]
+    [<000000003d38809f>] nf_conntrack_in+0x2c5/0x360 [nf_conntrack]
+    [<000000001fe154e3>] ipv4_conntrack_local+0x5d/0x70 [nf_conntrack_ipv4]
+    [<0000000027adadb2>] nf_hook_slow+0x48/0xd0
+    [<000000009893511f>] __ip_local_out+0xbd/0xf0
+    [<00000000d68cbd2f>] ip_local_out+0x1c/0x50
+    [<00000000995e2f37>] ip_send_skb+0x19/0x40
+    [<000000003d95f220>] udp_send_skb.isra.5+0x157/0x360
+    [<00000000ebc25968>] udp_sendmsg+0x9d8/0xc10
+    [<000000003bef56ec>] inet_sendmsg+0x3e/0xf0
+    [<000000008d23e405>] sock_sendmsg+0x1d/0x30
+    [<000000008c297097>] ___sys_sendmsg+0x108/0x2b0
+    [<00000000f15a806c>] __sys_sendmmsg+0xba/0x1c0
+    [<00000000e195d2cf>] __x64_sys_sendmmsg+0x24/0x30
 
-Steve?  Can you comment on this one way or the other?
+In __nf_conntrack_confirm, object ct can be referenced to by the stack variable
+ct and the members of ct->tuplehash. kmemleak needs at least one of them to find
+the ct object during scan.
 
-> However, I do care about the "op" field in this record.  It just
-> doesn't make any sense; the way you are using it it is more of a
-> context field than an operations field, and even then why is the
-> context important from a logging and/or security perspective?  Drop it
-> please.
+When the ct object is moved from the unconfirmed hlist to the confirmed hlist.
+kmemleak cannot see ct object if things happen in the following order and thus
+give the above false positive report.
+1) The ct object is removed from the unconfirmed hlist.
+2) kmemleak scans data/bss sections(heap scan passes without heap reference).
+3) The ct object is added to confirmed hlist and the variable ct is destroyed as
+   the function returns.
+4) kmemleak scans task stacks(stack scan passes without stack reference).
 
-I'll rename it to whatever you like.  I'd suggest "ref=".  The reason I
-think it is important is there are multiple sources that aren't always
-obvious from the other records to which it is associated.  In the case
-of ptrace and signals, there can be many target tasks listed (OBJ_PID)
-with no other way to distinguish the matching audit container identifier
-records all for one event.  This is in addition to the default syscall
-container identifier record.  I'm not currently happy with the text
-content to link the two, but that should be solvable (most obvious is
-taret PID).  Throwing away this information seems shortsighted.
+This patch marks ct object as not a leak.
 
-> paul moore
+Signed-off-by: He Zhe <zhe.he@windriver.com>
+Cc: pablo@netfilter.org
+Cc: kadlec@blackhole.kfki.hu
+Cc: fw@strlen.de
+Cc: davem@davemloft.net
+Cc: catalin.marinas@arm.com
+---
+So far this is only observed in v4.18, not in v4.19. But the case seems apply    
+to both.
 
-- RGB
+ net/netfilter/nf_conntrack_core.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
---
-Richard Guy Briggs <rgb@redhat.com>
-Sr. S/W Engineer, Kernel Security, Base Operating Systems
-Remote, Ottawa, Red Hat Canada
-IRC: rgb, SunRaycer
-Voice: +1.647.777.2635, Internal: (81) 32635
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index a676d5f..067365d 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -35,6 +35,7 @@
+ #include <linux/mm.h>
+ #include <linux/nsproxy.h>
+ #include <linux/rculist_nulls.h>
++#include <linux/kmemleak.h>
+ 
+ #include <net/netfilter/nf_conntrack.h>
+ #include <net/netfilter/nf_conntrack_l4proto.h>
+@@ -1282,6 +1283,8 @@ __nf_conntrack_alloc(struct net *net,
+ 	if (ct == NULL)
+ 		goto out;
+ 
++	kmemleak_not_leak(ct);
++
+ 	spin_lock_init(&ct->lock);
+ 	ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple = *orig;
+ 	ct->tuplehash[IP_CT_DIR_ORIGINAL].hnnode.pprev = NULL;
+-- 
+2.7.4
