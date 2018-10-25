@@ -1,77 +1,84 @@
-From: Paul Moore <paul@paul-moore.com>
-Subject: Re: [PATCH ghak90 (was ghak32) V4 03/10] audit: log container info of syscalls
-Date: Thu, 25 Oct 2018 07:13:07 +0100
-Message-ID: <166a9dae538.280e.85c95baa4474aabc7814e68940a78392@paul-moore.com>
-References: <cover.1533065887.git.rgb@redhat.com>
- <34017c395d03a213d6b0d49b9964429bd32b283d.1533065887.git.rgb@redhat.com>
- <CAHC9VhSv4hWGHiaaOfuBrRQKdp2YG5RtqXQbFXg7j7LNEhO2XQ@mail.gmail.com>
- <20181024151439.lavhanabsyxdrdvo@madcap2.tricolour.ca>
- <CAHC9VhRF1vsxM-k0Lw-9NqS9b9rgXRRBu0tq4ajdFpMqUxiH4A@mail.gmail.com>
- <20181025004255.zl7p7j6gztouh2hh@madcap2.tricolour.ca>
+From: Vasiliy Khoruzhick <vasilykh@arista.com>
+Subject: Re: [PATCH] netfilter: conntrack: fix calculation of next bucket
+ number in early_drop
+Date: Wed, 24 Oct 2018 23:37:47 -0700
+Message-ID: <CAL0zPMMhCxJSuvyV-D7f=bxczHEo1_Wz8OhUU6Ste=eY86xTrg@mail.gmail.com>
+References: <20181025034853.23573-1-vasilykh@arista.com> <a2fa755a-048b-459a-b526-2fe27cbb6574@arista.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Cc: <containers@lists.linux-foundation.org>,
-        <linux-api@vger.kernel.org>, <linux-audit@redhat.com>,
-        <linux-fsdevel@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <netdev@vger.kernel.org>, <netfilter-devel@vger.kernel.org>,
-        <ebiederm@xmission.com>, <luto@kernel.org>, <carlos@redhat.com>,
-        <dhowells@redhat.com>, <viro@zeniv.linux.org.uk>,
-        <simo@redhat.com>, Eric Paris <eparis@parisplace.org>,
-        Serge Hallyn <serge@hallyn.com>
-To: Richard Guy Briggs <rgb@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        stable@vger.kernel.org
+To: Dmitry Safonov <dima@arista.com>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20181025004255.zl7p7j6gztouh2hh@madcap2.tricolour.ca>
+In-Reply-To: <a2fa755a-048b-459a-b526-2fe27cbb6574@arista.com>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On October 25, 2018 1:43:16 AM Richard Guy Briggs <rgb@redhat.com> wrote:
-> On 2018-10-24 16:55, Paul Moore wrote:
->> On Wed, Oct 24, 2018 at 11:15 AM Richard Guy Briggs <rgb@redhat.com> wro=
-te:
->>> On 2018-10-19 19:16, Paul Moore wrote:
->>>> On Sun, Aug 5, 2018 at 4:32 AM Richard Guy Briggs <rgb@redhat.com> wro=
-te:
->
-
-...
-
->
->>>> However, I do care about the "op" field in this record.  It just
->>>> doesn't make any sense; the way you are using it it is more of a
->>>> context field than an operations field, and even then why is the
->>>> context important from a logging and/or security perspective?  Drop it
->>>> please.
->>>
->>> I'll rename it to whatever you like.  I'd suggest "ref=3D".  The reason=
- I
->>> think it is important is there are multiple sources that aren't always
->>> obvious from the other records to which it is associated.  In the case
->>> of ptrace and signals, there can be many target tasks listed (OBJ_PID)
->>> with no other way to distinguish the matching audit container identifie=
-r
->>> records all for one event.  This is in addition to the default syscall
->>> container identifier record.  I'm not currently happy with the text
->>> content to link the two, but that should be solvable (most obvious is
->>> taret PID).  Throwing away this information seems shortsighted.
+On Wed, Oct 24, 2018 at 9:52 PM, Dmitry Safonov <dima@arista.com> wrote:
+> On 10/25/18 4:48 AM, Vasily Khoruzhick wrote:
 >>
->> It would be helpful if you could generate real audit events
->> demonstrating the problems you are describing, as well as a more
->> standard syscall event, so we can discuss some possible solutions.
+>> If there's no entry to drop in bucket that corresponds to the hash,
+>> early_drop() should look for it in other buckets. But since it increments
+>> hash instead of bucket number, it actually looks in the same bucket 8
+>> times: hsize is 16k by default (14 bits) and hash is 32-bit value, so
+>> reciprocal_scale(hash, hsize) returns the same value for hash..hash+7 in
+>> most cases.
+>>
+>> Fix it by increasing bucket number instead of hash and rename _hash
+>> to bucket to avoid future confusion.
+>>
+>> Fixes: 3e86638e9a0b ("netfilter: conntrack: consider ct netns in
+>> early_drop logic")
+>> Cc: <stable@vger.kernel.org> # v4.7+
+>> Signed-off-by: Vasily Khoruzhick <vasilykh@arista.com>
 >
-> If the auditted process is in a container and it ptraces or signals
-> another process in a container, there will be two AUDIT_CONTAINER
-> records for the same event that won't be identified as to which record
-> belongs to which process or other record (SYSCALL vs 1+ OBJ_PID
-> records).  There could be many signals recorded, each with their own
-> OBJ_PID record.  The first is stored in the audit context and additional
-> ones are stored in a chained struct that can accommodate 16 entries each.
 >
-> (See audit_signal_info(), __audit_ptrace().)
+> Nice work!
 >
-> (As a side note, on code inspection it appears that a signal target
-> would get overwritten by a ptrace action if they were to happen in that
-> order.)
+> Reviewed-by: Dmitry Safonov <dima@arista.com>
 
-As requested above, please respond with real audit events generated by this=
- patchset so that we can discuss possible solutions.
+Oops, found a bug in it - 'bucket' should be moved outside of the
+loop. I'll send v2 tomorrow morning.
+
+>
+>> ---
+>>   net/netfilter/nf_conntrack_core.c | 11 +++++++----
+>>   1 file changed, 7 insertions(+), 4 deletions(-)
+>>
+>> diff --git a/net/netfilter/nf_conntrack_core.c
+>> b/net/netfilter/nf_conntrack_core.c
+>> index ca1168d67fac..a04af246b184 100644
+>> --- a/net/netfilter/nf_conntrack_core.c
+>> +++ b/net/netfilter/nf_conntrack_core.c
+>> @@ -1073,19 +1073,22 @@ static unsigned int early_drop_list(struct net
+>> *net,
+>>         return drops;
+>>   }
+>>   -static noinline int early_drop(struct net *net, unsigned int _hash)
+>> +static noinline int early_drop(struct net *net, unsigned int hash)
+>>   {
+>>         unsigned int i;
+>>         for (i = 0; i < NF_CT_EVICTION_RANGE; i++) {
+>>                 struct hlist_nulls_head *ct_hash;
+>> -               unsigned int hash, hsize, drops;
+>> +               unsigned int bucket, hsize, drops;
+>>                 rcu_read_lock();
+>>                 nf_conntrack_get_ht(&ct_hash, &hsize);
+>> -               hash = reciprocal_scale(_hash++, hsize);
+>> +               if (!i)
+>> +                       bucket = reciprocal_scale(hash, hsize);
+>> +               else
+>> +                       bucket = (bucket + 1) % hsize;
+>>   -             drops = early_drop_list(net, &ct_hash[hash]);
+>> +               drops = early_drop_list(net, &ct_hash[bucket]);
+>>                 rcu_read_unlock();
+>>                 if (drops) {
+>>
+>
+> --
+>           Dima
