@@ -1,33 +1,90 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: bridge: define INT_MIN & INT_MAX in userspace
-Date: Thu, 25 Oct 2018 10:25:18 +0200
-Message-ID: <20181025082518.yxvnoxfyr7qqpxyh@salvia>
-References: <20181024115403.3938-1-jslaby@suse.cz>
+From: Paul Moore <paul@paul-moore.com>
+Subject: Re: [PATCH ghak90 (was ghak32) V4 03/10] audit: log container info of syscalls
+Date: Thu, 25 Oct 2018 06:49:50 -0400
+Message-ID: <CAHC9VhR02siURgadQs0EikcOm0d_TPAi4jJYCx4NkA=wQ5rjSA@mail.gmail.com>
+References: <cover.1533065887.git.rgb@redhat.com> <34017c395d03a213d6b0d49b9964429bd32b283d.1533065887.git.rgb@redhat.com>
+ <CAHC9VhSv4hWGHiaaOfuBrRQKdp2YG5RtqXQbFXg7j7LNEhO2XQ@mail.gmail.com>
+ <20181024151439.lavhanabsyxdrdvo@madcap2.tricolour.ca> <CAHC9VhRF1vsxM-k0Lw-9NqS9b9rgXRRBu0tq4ajdFpMqUxiH4A@mail.gmail.com>
+ <20181025004255.zl7p7j6gztouh2hh@madcap2.tricolour.ca> <20181025080638.771621a3@ivy-bridge>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: kadlec@blackhole.kfki.hu, fw@strlen.de,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        linux-kernel@vger.kernel.org,
-        =?iso-8859-1?Q?M=E1t=E9?= Eckl <ecklm94@gmail.com>
-To: Jiri Slaby <jslaby@suse.cz>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181024115403.3938-1-jslaby@suse.cz>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Cc: rgb@redhat.com, simo@redhat.com, carlos@redhat.com,
+        linux-api@vger.kernel.org, containers@lists.linux-foundation.org,
+        linux-kernel@vger.kernel.org, dhowells@redhat.com,
+        linux-audit@redhat.com, netfilter-devel@vger.kernel.org,
+        ebiederm@xmission.com, luto@kernel.org, netdev@vger.kernel.org,
+        linux-fsdevel@vger.kernel.org, Eric Paris <eparis@parisplace.org>,
+        Serge Hallyn <serge@hallyn.com>, viro@zeniv.linux.org.uk
+To: sgrubb@redhat.com
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20181025080638.771621a3@ivy-bridge>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Oct 24, 2018 at 01:54:03PM +0200, Jiri Slaby wrote:
-> With 4.19, programs like ebtables fail to build when they include
-> "linux/netfilter_bridge.h". It is caused by commit 94276fa8a2a4 which
-> added a use of INT_MIN and INT_MAX to the header:
-> : In file included from /usr/include/linux/netfilter_bridge/ebtables.h:18,
-> :                  from include/ebtables_u.h:28,
-> :                  from communication.c:23:
-> : /usr/include/linux/netfilter_bridge.h:30:20: error: 'INT_MIN' undeclared here (not in a function)
-> :   NF_BR_PRI_FIRST = INT_MIN,
-> :                     ^~~~~~~
-> 
-> Define these constants by including "limits.h" when !__KERNEL__ (the
-> same way as for other netfilter_* headers).
+On Thu, Oct 25, 2018 at 2:06 AM Steve Grubb <sgrubb@redhat.com> wrote:
+> On Wed, 24 Oct 2018 20:42:55 -0400
+> Richard Guy Briggs <rgb@redhat.com> wrote:
+> > On 2018-10-24 16:55, Paul Moore wrote:
+> > > On Wed, Oct 24, 2018 at 11:15 AM Richard Guy Briggs
+> > > <rgb@redhat.com> wrote:
+> > > > On 2018-10-19 19:16, Paul Moore wrote:
+> > > > > On Sun, Aug 5, 2018 at 4:32 AM Richard Guy Briggs
+> > > > > <rgb@redhat.com> wrote:
 
-Applied, thanks.
+...
+
+> > > > > > +/*
+> > > > > > + * audit_log_contid - report container info
+> > > > > > + * @tsk: task to be recorded
+> > > > > > + * @context: task or local context for record
+> > > > > > + * @op: contid string description
+> > > > > > + */
+> > > > > > +int audit_log_contid(struct task_struct *tsk,
+> > > > > > +                            struct audit_context *context,
+> > > > > > char *op) +{
+> > > > > > +       struct audit_buffer *ab;
+> > > > > > +
+> > > > > > +       if (!audit_contid_set(tsk))
+> > > > > > +               return 0;
+> > > > > > +       /* Generate AUDIT_CONTAINER record with container ID
+> > > > > > */
+> > > > > > +       ab = audit_log_start(context, GFP_KERNEL,
+> > > > > > AUDIT_CONTAINER);
+> > > > > > +       if (!ab)
+> > > > > > +               return -ENOMEM;
+> > > > > > +       audit_log_format(ab, "op=%s contid=%llu",
+> > > > > > +                        op, audit_get_contid(tsk));
+> > > > > > +       audit_log_end(ab);
+> > > > > > +       return 0;
+> > > > > > +}
+> > > > > > +EXPORT_SYMBOL(audit_log_contid);
+> > > > >
+> > > > > As discussed in the previous iteration of the patch, I prefer
+> > > > > AUDIT_CONTAINER_ID here over AUDIT_CONTAINER.  If you feel
+> > > > > strongly about keeping it as-is with AUDIT_CONTAINER I suppose
+> > > > > I could live with that, but it is isn't my first choice.
+> > > >
+> > > > I don't have a strong opinion on this one, mildly preferring the
+> > > > shorter one only because it is shorter.
+> > >
+> > > We already have multiple AUDIT_CONTAINER* record types, so it seems
+> > > as though we should use "AUDIT_CONTAINER" as a prefix of sorts,
+> > > rather than a type itself.
+> >
+> > I'm fine with that.  I'd still like to hear Steve's input.  He had
+> > stronger opinions than me.
+>
+> The creation event should be separate and distinct from the continuing
+> use when its used as a supplemental record. IOW, binding the ID to a
+> container is part of the lifecycle and needs to be kept distinct.
+
+Steve's comment is pretty ambiguous when it comes to AUDIT_CONTAINER
+vs AUDIT_CONTAINER_ID, but one could argue that AUDIT_CONTAINER_ID
+helps distinguish the audit container id marking record and gets to
+what I believe is the spirit of Steve's comment.  Taking this in
+context with my previous remarks, let's switch to using
+AUDIT_CONTAINER_ID.
+
+-- 
+paul moore
+www.paul-moore.com
