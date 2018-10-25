@@ -1,84 +1,27 @@
-From: Vasiliy Khoruzhick <vasilykh@arista.com>
-Subject: Re: [PATCH] netfilter: conntrack: fix calculation of next bucket
- number in early_drop
-Date: Wed, 24 Oct 2018 23:37:47 -0700
-Message-ID: <CAL0zPMMhCxJSuvyV-D7f=bxczHEo1_Wz8OhUU6Ste=eY86xTrg@mail.gmail.com>
-References: <20181025034853.23573-1-vasilykh@arista.com> <a2fa755a-048b-459a-b526-2fe27cbb6574@arista.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH nf] netfilter: ipv6: fix oops when defragmenting locally
+ generated fragments
+Date: Thu, 25 Oct 2018 10:18:51 +0200
+Message-ID: <20181025081851.fblnz7u4jd4hgdfd@salvia>
+References: <CANP3RGeX5=c=Lb+Pkg89zD7zQ_Z1T8oPJRCkorNCdghmofYXxg@mail.gmail.com>
+ <20181023144716.19746-1-fw@strlen.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        stable@vger.kernel.org
-To: Dmitry Safonov <dima@arista.com>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, lorenzo@google.com,
+        zenczykowski@gmail.com, edumazet@google.com,
+        netdev@vger.kernel.org, maze@google.com
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <a2fa755a-048b-459a-b526-2fe27cbb6574@arista.com>
+Content-Disposition: inline
+In-Reply-To: <20181023144716.19746-1-fw@strlen.de>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Oct 24, 2018 at 9:52 PM, Dmitry Safonov <dima@arista.com> wrote:
-> On 10/25/18 4:48 AM, Vasily Khoruzhick wrote:
->>
->> If there's no entry to drop in bucket that corresponds to the hash,
->> early_drop() should look for it in other buckets. But since it increments
->> hash instead of bucket number, it actually looks in the same bucket 8
->> times: hsize is 16k by default (14 bits) and hash is 32-bit value, so
->> reciprocal_scale(hash, hsize) returns the same value for hash..hash+7 in
->> most cases.
->>
->> Fix it by increasing bucket number instead of hash and rename _hash
->> to bucket to avoid future confusion.
->>
->> Fixes: 3e86638e9a0b ("netfilter: conntrack: consider ct netns in
->> early_drop logic")
->> Cc: <stable@vger.kernel.org> # v4.7+
->> Signed-off-by: Vasily Khoruzhick <vasilykh@arista.com>
->
->
-> Nice work!
->
-> Reviewed-by: Dmitry Safonov <dima@arista.com>
+On Tue, Oct 23, 2018 at 04:47:16PM +0200, Florian Westphal wrote:
+> Unlike ipv4 and normal ipv6 defrag, netfilter ipv6 defragmentation did
+> not save/restore skb->dst.
+> 
+> This causes oops when handling locally generated ipv6 fragments, as
+> output path needs a valid dst.
 
-Oops, found a bug in it - 'bucket' should be moved outside of the
-loop. I'll send v2 tomorrow morning.
-
->
->> ---
->>   net/netfilter/nf_conntrack_core.c | 11 +++++++----
->>   1 file changed, 7 insertions(+), 4 deletions(-)
->>
->> diff --git a/net/netfilter/nf_conntrack_core.c
->> b/net/netfilter/nf_conntrack_core.c
->> index ca1168d67fac..a04af246b184 100644
->> --- a/net/netfilter/nf_conntrack_core.c
->> +++ b/net/netfilter/nf_conntrack_core.c
->> @@ -1073,19 +1073,22 @@ static unsigned int early_drop_list(struct net
->> *net,
->>         return drops;
->>   }
->>   -static noinline int early_drop(struct net *net, unsigned int _hash)
->> +static noinline int early_drop(struct net *net, unsigned int hash)
->>   {
->>         unsigned int i;
->>         for (i = 0; i < NF_CT_EVICTION_RANGE; i++) {
->>                 struct hlist_nulls_head *ct_hash;
->> -               unsigned int hash, hsize, drops;
->> +               unsigned int bucket, hsize, drops;
->>                 rcu_read_lock();
->>                 nf_conntrack_get_ht(&ct_hash, &hsize);
->> -               hash = reciprocal_scale(_hash++, hsize);
->> +               if (!i)
->> +                       bucket = reciprocal_scale(hash, hsize);
->> +               else
->> +                       bucket = (bucket + 1) % hsize;
->>   -             drops = early_drop_list(net, &ct_hash[hash]);
->> +               drops = early_drop_list(net, &ct_hash[bucket]);
->>                 rcu_read_unlock();
->>                 if (drops) {
->>
->
-> --
->           Dima
+Applied, thanks!
