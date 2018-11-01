@@ -1,299 +1,187 @@
-From: Richard Guy Briggs <rgb@redhat.com>
-Subject: Re: [PATCH ghak90 (was ghak32) V4 09/10] audit: NETFILTER_PKT:
- record each container ID associated with a netNS
-Date: Wed, 31 Oct 2018 15:30:18 -0400
-Message-ID: <20181031193018.67pxaxzxlbdc4lkd@madcap2.tricolour.ca>
-References: <cover.1533065887.git.rgb@redhat.com>
- <3f5edfb0d530d7f0061fe11b817b315b350b9d86.1533065887.git.rgb@redhat.com>
- <CAHC9VhT2GJH2cJsrCsxCZMLsdv67oXJhH9mHAgpfMRY4=y43WQ@mail.gmail.com>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: [PATCH 12/31] netfilter: cttimeout: remove superfluous check on
+ layer 4 netlink functions
+Date: Thu, 1 Nov 2018 07:57:26 -0700
+Message-ID: <46a2d5fe-ca45-c07b-2e2d-2ec99412dcb9@gmail.com>
+References: <20181008230125.2330-1-pablo@netfilter.org>
+ <20181008230125.2330-13-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: containers@lists.linux-foundation.org, linux-audit@redhat.com,
-        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, ebiederm@xmission.com,
-        luto@kernel.org, carlos@redhat.com, dhowells@redhat.com,
-        viro@zeniv.linux.org.uk, simo@redhat.com,
-        Eric Paris <eparis@parisplace.org>,
-        Serge Hallyn <serge@hallyn.com>
-To: Paul Moore <paul@paul-moore.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAHC9VhT2GJH2cJsrCsxCZMLsdv67oXJhH9mHAgpfMRY4=y43WQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20181008230125.2330-13-pablo@netfilter.org>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On 2018-10-19 19:18, Paul Moore wrote:
-> On Sun, Aug 5, 2018 at 4:33 AM Richard Guy Briggs <rgb@redhat.com> wrote:
-> > Add audit container identifier auxiliary record(s) to NETFILTER_PKT
-> > event standalone records.  Iterate through all potential audit container
-> > identifiers associated with a network namespace.
-> >
-> > Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
-> > ---
-> >  include/linux/audit.h    |  5 +++++
-> >  kernel/audit.c           | 26 ++++++++++++++++++++++++++
-> >  net/netfilter/xt_AUDIT.c | 12 ++++++++++--
-> >  3 files changed, 41 insertions(+), 2 deletions(-)
-> 
-> ...
-> 
-> > diff --git a/include/linux/audit.h b/include/linux/audit.h
-> > index 9a02095..8755f4d 100644
-> > --- a/include/linux/audit.h
-> > +++ b/include/linux/audit.h
-> > @@ -169,6 +169,8 @@ extern int audit_log_contid(struct audit_context *context,
-> >  extern void audit_netns_contid_add(struct net *net, u64 contid);
-> >  extern void audit_netns_contid_del(struct net *net, u64 contid);
-> >  extern void audit_switch_task_namespaces(struct nsproxy *ns, struct task_struct *p);
-> > +extern void audit_log_netns_contid_list(struct net *net,
-> > +                                struct audit_context *context);
-> >
-> >  extern int                 audit_update_lsm_rules(void);
-> >
-> > @@ -228,6 +230,9 @@ static inline void audit_netns_contid_del(struct net *net, u64 contid)
-> >  { }
-> >  static inline void audit_switch_task_namespaces(struct nsproxy *ns, struct task_struct *p)
-> >  { }
-> > +static inline void audit_log_netns_contid_list(struct net *net,
-> > +                                       struct audit_context *context)
-> > +{ }
-> >
-> >  #define audit_enabled AUDIT_OFF
-> >  #endif /* CONFIG_AUDIT */
-> > diff --git a/kernel/audit.c b/kernel/audit.c
-> > index c5fed3b..b23711c 100644
-> > --- a/kernel/audit.c
-> > +++ b/kernel/audit.c
-> > @@ -392,6 +392,32 @@ void audit_switch_task_namespaces(struct nsproxy *ns, struct task_struct *p)
-> >                 audit_netns_contid_add(new->net_ns, contid);
-> >  }
-> >
-> > +void audit_log_netns_contid_list(struct net *net, struct audit_context *context)
-> > +{
-> > +       spinlock_t *lock = audit_get_netns_contid_list_lock(net);
-> > +       struct audit_buffer *ab;
-> > +       struct audit_contid *cont;
-> > +       bool first = true;
-> > +
-> > +       /* Generate AUDIT_CONTAINER record with container ID CSV list */
-> > +       ab = audit_log_start(context, GFP_ATOMIC, AUDIT_CONTAINER);
-> > +       if (!ab) {
-> > +               audit_log_lost("out of memory in audit_log_netns_contid_list");
-> > +               return;
-> > +       }
-> > +       audit_log_format(ab, "contid=");
-> > +       spin_lock(lock);
-> > +       list_for_each_entry(cont, audit_get_netns_contid_list(net), list) {
-> > +               if (!first)
-> > +                       audit_log_format(ab, ",");
-> > +               audit_log_format(ab, "%llu", cont->id);
-> > +               first = false;
-> > +       }
-> > +       spin_unlock(lock);
-> 
-> This is looking like potentially a lot of work to be doing under a
-> spinlock, not to mention a single spinlock that is shared across CPUs.
-> Considering that I expect changes to the list to be somewhat
-> infrequent, this might be a good candidate for a RCU based locking
-> scheme.
 
-Would something like this look reasonable?
-(This is on top of a patch to make contid list lock and unlock
-functions.)
 
-diff --git a/include/linux/audit.h b/include/linux/audit.h
-index be5d6eb..9428fc3 100644
---- a/include/linux/audit.h
-+++ b/include/linux/audit.h
-@@ -92,6 +92,7 @@ struct audit_contid {
- 	struct list_head	list;
- 	u64			id;
- 	refcount_t		refcount;
-+	struct rcu_head		rcu;
- };
- 
- extern int is_audit_feature_set(int which);
-diff --git a/kernel/audit.c b/kernel/audit.c
-index d5b58163..6f84c25 100644
---- a/kernel/audit.c
-+++ b/kernel/audit.c
-@@ -106,7 +106,6 @@
- struct audit_net {
- 	struct sock *sk;
- 	struct list_head contid_list;
--	spinlock_t contid_list_lock;
- };
- 
- /**
-@@ -327,26 +326,6 @@ struct list_head *audit_get_netns_contid_list(const struct net *net)
- 	return &aunet->contid_list;
- }
- 
--static int audit_netns_contid_lock(const struct net *net)
--{
--	struct audit_net *aunet = net_generic(net, audit_net_id);
--
--	if (!aunet)
--		return -EINVAL;
--	spin_lock(aunet->contid_list_lock);
--	return 0;
--}
--
--static int audit_netns_contid_unlock(const struct net *net)
--{
--	struct audit_net *aunet = net_generic(net, audit_net_id);
--
--	if (!aunet)
--		return -EINVAL;
--	spin_unlock(aunet->contid_list_lock);
--	return 0;
--}
--
- void audit_netns_contid_add(struct net *net, u64 contid)
- {
- 	struct list_head *contid_list = audit_get_netns_contid_list(net);
-@@ -354,10 +333,9 @@ void audit_netns_contid_add(struct net *net, u64 contid)
- 
- 	if (!audit_contid_valid(contid))
- 		return;
--	if (audit_netns_contid_lock(net))
--		return;
-+	rcu_read_lock();
- 	if (!list_empty(contid_list))
--		list_for_each_entry(cont, contid_list, list)
-+		list_for_each_entry_rcu(cont, contid_list, list)
- 			if (cont->id == contid) {
- 				refcount_inc(&cont->refcount);
- 				goto out;
-@@ -367,10 +345,16 @@ void audit_netns_contid_add(struct net *net, u64 contid)
- 		INIT_LIST_HEAD(&cont->list);
- 		cont->id = contid;
- 		refcount_set(&cont->refcount, 1);
--		list_add(&cont->list, contid_list);
-+		list_add_rcu(&cont->list, contid_list);
- 	}
- out:
--	audit_netns_contid_unlock(net);
-+	rcu_read_unlock();
-+}
-+
-+audit_free_contid_rcu(struct rcu_head *head) {
-+	struct audit_contid *contid = container_of(head, struct audit_contid, rcu);
-+
-+	kfree(contid);
- }
- 
- void audit_netns_contid_del(struct net *net, u64 contid)
-@@ -380,17 +364,16 @@ void audit_netns_contid_del(struct net *net, u64 contid)
- 
- 	if (!audit_contid_valid(contid))
- 		return;
--	if (audit_netns_contid_lock(net))
--		return;
-+	rcu_read_lock();
- 	if (!list_empty(contid_list))
--		list_for_each_entry(cont, contid_list, list)
-+		list_for_each_entry_rcu(cont, contid_list, list)
- 			if (cont->id == contid) {
--				list_del(&cont->list);
-+				list_del_rcu(&cont->list);
- 				if (refcount_dec_and_test(&cont->refcount))
--					kfree(cont);
-+					call_rcu(&cont->rcu, audit_free_contid_rcu);
- 				break;
- 			}
--	audit_netns_contid_unlock(net);
-+	rcu_read_unlock();
- }
- 
- void audit_switch_task_namespaces(struct nsproxy *ns, struct task_struct *p)
-@@ -418,15 +401,14 @@ void audit_log_netns_contid_list(struct net *net, struct audit_context *context)
- 		return;
- 	}
- 	audit_log_format(ab, "ref=net contid=");
--	if (audit_netns_contid_lock(net))
--		return;
--	list_for_each_entry(cont, audit_get_netns_contid_list(net), list) {
-+	rcu_read_lock();
-+	list_for_each_entry_rcu(cont, audit_get_netns_contid_list(net), list) {
- 		if (!first)
- 			audit_log_format(ab, ",");
- 		audit_log_format(ab, "%llu", cont->id);
- 		first = false;
- 	}
--	audit_netns_contid_unlock(net);
-+	rcu_read_unlock();
- 	audit_log_end(ab);
- }
- EXPORT_SYMBOL(audit_log_netns_contid_list);
-@@ -1674,7 +1656,6 @@ static int __net_init audit_net_init(struct net *net)
- 		.flags	= NL_CFG_F_NONROOT_RECV,
- 		.groups	= AUDIT_NLGRP_MAX,
- 	};
--
- 	struct audit_net *aunet = net_generic(net, audit_net_id);
- 
- 	aunet->sk = netlink_kernel_create(net, NETLINK_AUDIT, &cfg);
-@@ -1684,8 +1665,6 @@ static int __net_init audit_net_init(struct net *net)
- 	}
- 	aunet->sk->sk_sndtimeo = MAX_SCHEDULE_TIMEOUT;
- 	INIT_LIST_HEAD(&aunet->contid_list);
--	spin_lock_init(&aunet->contid_list_lock);
--
- 	return 0;
- }
- 
+On 10/08/2018 04:01 PM, Pablo Neira Ayuso wrote:
+> We assume they are always set accordingly since a874752a10da
+> ("netfilter: conntrack: timeout interface depend on
+> CONFIG_NF_CONNTRACK_TIMEOUT"), so we can get rid of this checks.
 > 
-> > +       audit_log_end(ab);
-> > +}
-> > +EXPORT_SYMBOL(audit_log_netns_contid_list);
-> >
-> >  void audit_panic(const char *message)
-> >  {
-> >         switch (audit_failure) {
-> > diff --git a/net/netfilter/xt_AUDIT.c b/net/netfilter/xt_AUDIT.c
-> > index af883f1..44fac3f 100644
-> > --- a/net/netfilter/xt_AUDIT.c
-> > +++ b/net/netfilter/xt_AUDIT.c
-> > @@ -71,10 +71,13 @@ static bool audit_ip6(struct audit_buffer *ab, struct sk_buff *skb)
-> >  {
-> >         struct audit_buffer *ab;
-> >         int fam = -1;
-> > +       struct audit_context *context;
-> > +       struct net *net;
-> >
-> >         if (audit_enabled == AUDIT_OFF)
-> > -               goto errout;
-> > -       ab = audit_log_start(NULL, GFP_ATOMIC, AUDIT_NETFILTER_PKT);
-> > +               goto out;
-> > +       context = audit_alloc_local(GFP_ATOMIC);
-> > +       ab = audit_log_start(context, GFP_ATOMIC, AUDIT_NETFILTER_PKT);
-> >         if (ab == NULL)
-> >                 goto errout;
-> >
-> > @@ -104,7 +107,12 @@ static bool audit_ip6(struct audit_buffer *ab, struct sk_buff *skb)
-> >
-> >         audit_log_end(ab);
-> >
-> > +       net = xt_net(par);
-> > +       audit_log_netns_contid_list(net, context);
-> > +
-> >  errout:
-> > +       audit_free_context(context);
-> > +out:
-> >         return XT_CONTINUE;
-> >  }
-> >
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> ---
+>  net/netfilter/nfnetlink_cttimeout.c | 48 ++++++++++++++-----------------------
+>  net/netfilter/nft_ct.c              |  3 ---
+>  2 files changed, 18 insertions(+), 33 deletions(-)
 > 
-> --
-> paul moore
-> www.paul-moore.com
+> diff --git a/net/netfilter/nfnetlink_cttimeout.c b/net/netfilter/nfnetlink_cttimeout.c
+> index a30f8ba4b89a..6ca0df7f416f 100644
+> --- a/net/netfilter/nfnetlink_cttimeout.c
+> +++ b/net/netfilter/nfnetlink_cttimeout.c
+> @@ -53,9 +53,6 @@ ctnl_timeout_parse_policy(void *timeout,
+>  	struct nlattr **tb;
+>  	int ret = 0;
+>  
+> -	if (!l4proto->ctnl_timeout.nlattr_to_obj)
+> -		return 0;
+> -
+>  	tb = kcalloc(l4proto->ctnl_timeout.nlattr_max + 1, sizeof(*tb),
+>  		     GFP_KERNEL);
+>  
+> @@ -167,6 +164,8 @@ ctnl_timeout_fill_info(struct sk_buff *skb, u32 portid, u32 seq, u32 type,
+>  	struct nfgenmsg *nfmsg;
+>  	unsigned int flags = portid ? NLM_F_MULTI : 0;
+>  	const struct nf_conntrack_l4proto *l4proto = timeout->timeout.l4proto;
+> +	struct nlattr *nest_parms;
+> +	int ret;
+>  
+>  	event = nfnl_msg_type(NFNL_SUBSYS_CTNETLINK_TIMEOUT, event);
+>  	nlh = nlmsg_put(skb, portid, seq, event, sizeof(*nfmsg), flags);
+> @@ -186,22 +185,15 @@ ctnl_timeout_fill_info(struct sk_buff *skb, u32 portid, u32 seq, u32 type,
+>  			 htonl(refcount_read(&timeout->refcnt))))
+>  		goto nla_put_failure;
+>  
+> -	if (likely(l4proto->ctnl_timeout.obj_to_nlattr)) {
+> -		struct nlattr *nest_parms;
+> -		int ret;
+> -
+> -		nest_parms = nla_nest_start(skb,
+> -					    CTA_TIMEOUT_DATA | NLA_F_NESTED);
+> -		if (!nest_parms)
+> -			goto nla_put_failure;
+> +	nest_parms = nla_nest_start(skb, CTA_TIMEOUT_DATA | NLA_F_NESTED);
+> +	if (!nest_parms)
+> +		goto nla_put_failure;
+>  
+> -		ret = l4proto->ctnl_timeout.obj_to_nlattr(skb,
+> -							&timeout->timeout.data);
+> -		if (ret < 0)
+> -			goto nla_put_failure;
+> +	ret = l4proto->ctnl_timeout.obj_to_nlattr(skb, &timeout->timeout.data);
+> +	if (ret < 0)
+> +		goto nla_put_failure;
+>  
+> -		nla_nest_end(skb, nest_parms);
+> -	}
+> +	nla_nest_end(skb, nest_parms);
+>  
+>  	nlmsg_end(skb, nlh);
+>  	return skb->len;
+> @@ -397,6 +389,8 @@ cttimeout_default_fill_info(struct net *net, struct sk_buff *skb, u32 portid,
+>  	struct nlmsghdr *nlh;
+>  	struct nfgenmsg *nfmsg;
+>  	unsigned int flags = portid ? NLM_F_MULTI : 0;
+> +	struct nlattr *nest_parms;
+> +	int ret;
+>  
+>  	event = nfnl_msg_type(NFNL_SUBSYS_CTNETLINK_TIMEOUT, event);
+>  	nlh = nlmsg_put(skb, portid, seq, event, sizeof(*nfmsg), flags);
+> @@ -412,21 +406,15 @@ cttimeout_default_fill_info(struct net *net, struct sk_buff *skb, u32 portid,
+>  	    nla_put_u8(skb, CTA_TIMEOUT_L4PROTO, l4proto->l4proto))
+>  		goto nla_put_failure;
+>  
+> -	if (likely(l4proto->ctnl_timeout.obj_to_nlattr)) {
+> -		struct nlattr *nest_parms;
+> -		int ret;
+> -
+> -		nest_parms = nla_nest_start(skb,
+> -					    CTA_TIMEOUT_DATA | NLA_F_NESTED);
+> -		if (!nest_parms)
+> -			goto nla_put_failure;
+> +	nest_parms = nla_nest_start(skb, CTA_TIMEOUT_DATA | NLA_F_NESTED);
+> +	if (!nest_parms)
+> +		goto nla_put_failure;
+>  
+> -		ret = l4proto->ctnl_timeout.obj_to_nlattr(skb, NULL);
+> -		if (ret < 0)
+> -			goto nla_put_failure;
+> +	ret = l4proto->ctnl_timeout.obj_to_nlattr(skb, NULL);
 
-- RGB
+Hi Pablo
 
---
-Richard Guy Briggs <rgb@redhat.com>
-Sr. S/W Engineer, Kernel Security, Base Operating Systems
-Remote, Ottawa, Red Hat Canada
-IRC: rgb, SunRaycer
-Voice: +1.647.777.2635, Internal: (81) 32635
+None of the obj_to_nlattr handlers can handle a NULL pointer.
+What is the intent here ?
+
+netlink: 24 bytes leftover after parsing attributes in process `syz-executor2'.
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#1] PREEMPT SMP KASAN
+CPU: 0 PID: 9575 Comm: syz-executor1 Not tainted 4.19.0+ #312
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:icmp_timeout_obj_to_nlattr+0x77/0x170 net/netfilter/nf_conntrack_proto_icmp.c:297
+kobject: 'loop5' (00000000d8ff612b): kobject_uevent_env
+Code: b5 41 c7 00 f1 f1 f1 f1 c7 40 04 04 f2 f2 f2 65 48 8b 04 25 28 00 00 00 48 89 45 d0 31 c0 e8 c0 06 26 fb 4c 89 e8 48 c1 e8 03 <42> 0f b6 14 38 4c 89 e8 83 e0 07 83 c0 03 38 d0 7c 08 84 d2 0f 85
+kobject: 'loop5' (00000000d8ff612b): fill_kobj_path: path = '/devices/virtual/block/loop5'
+RSP: 0018:ffff88017def7220 EFLAGS: 00010246
+RAX: 0000000000000000 RBX: 1ffff1002fbdee45 RCX: ffffc90004561000
+RDX: 000000000000064f RSI: ffffffff865970c0 RDI: ffff8801ba602bc0
+RBP: ffff88017def72b0 R08: ffff8801879e2400 R09: ffff880188d264a8
+R10: ffffed00311a4c94 R11: ffff880188d264a0 R12: ffff8801ba602bc0
+R13: 0000000000000000 R14: ffff88017def7288 R15: dffffc0000000000
+FS:  00007fb495a6f700(0000) GS:ffff8801dae00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+kobject: 'loop3' (00000000bc48af2d): kobject_uevent_env
+CR2: 00007f4879a55000 CR3: 00000001b7b96000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+kobject: 'loop3' (00000000bc48af2d): fill_kobj_path: path = '/devices/virtual/block/loop3'
+ cttimeout_default_fill_info net/netfilter/nfnetlink_cttimeout.c:411 [inline]
+ cttimeout_default_get+0x644/0x9e0 net/netfilter/nfnetlink_cttimeout.c:457
+ nfnetlink_rcv_msg+0xdd3/0x10c0 net/netfilter/nfnetlink.c:228
+kobject: 'loop3' (00000000bc48af2d): kobject_uevent_env
+kobject: 'loop3' (00000000bc48af2d): fill_kobj_path: path = '/devices/virtual/block/loop3'
+ netlink_rcv_skb+0x172/0x440 net/netlink/af_netlink.c:2477
+ nfnetlink_rcv+0x1c0/0x4d0 net/netfilter/nfnetlink.c:560
+ netlink_unicast_kernel net/netlink/af_netlink.c:1310 [inline]
+ netlink_unicast+0x5a5/0x760 net/netlink/af_netlink.c:1336
+ netlink_sendmsg+0xa18/0xfc0 net/netlink/af_netlink.c:1917
+ sock_sendmsg_nosec net/socket.c:621 [inline]
+ sock_sendmsg+0xd5/0x120 net/socket.c:631
+ ___sys_sendmsg+0x7fd/0x930 net/socket.c:2116
+ __sys_sendmsg+0x11d/0x280 net/socket.c:2154
+ __do_sys_sendmsg net/socket.c:2163 [inline]
+ __se_sys_sendmsg net/socket.c:2161 [inline]
+ __x64_sys_sendmsg+0x78/0xb0 net/socket.c:2161
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+
+> +	if (ret < 0)
+> +		goto nla_put_failure;
+>  
+> -		nla_nest_end(skb, nest_parms);
+> -	}
+> +	nla_nest_end(skb, nest_parms);
+>  
+>  	nlmsg_end(skb, nlh);
+>  	return skb->len;
+> diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
+> index 5dd87748afa8..17ae5059c312 100644
+> --- a/net/netfilter/nft_ct.c
+> +++ b/net/netfilter/nft_ct.c
+> @@ -776,9 +776,6 @@ nft_ct_timeout_parse_policy(void *timeouts,
+>  	struct nlattr **tb;
+>  	int ret = 0;
+>  
+> -	if (!l4proto->ctnl_timeout.nlattr_to_obj)
+> -		return 0;
+> -
+>  	tb = kcalloc(l4proto->ctnl_timeout.nlattr_max + 1, sizeof(*tb),
+>  		     GFP_KERNEL);
+>  
+> 
