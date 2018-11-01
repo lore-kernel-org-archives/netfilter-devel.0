@@ -1,187 +1,185 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH 12/31] netfilter: cttimeout: remove superfluous check on
- layer 4 netlink functions
-Date: Thu, 1 Nov 2018 07:57:26 -0700
-Message-ID: <46a2d5fe-ca45-c07b-2e2d-2ec99412dcb9@gmail.com>
-References: <20181008230125.2330-1-pablo@netfilter.org>
- <20181008230125.2330-13-pablo@netfilter.org>
+From: Richard Guy Briggs <rgb@redhat.com>
+Subject: Re: [PATCH ghak90 (was ghak32) V4 05/10] audit: add support for
+ non-syscall auxiliary records
+Date: Thu, 1 Nov 2018 14:48:53 -0400
+Message-ID: <20181101184853.vxel3dfdntzmhcnq@madcap2.tricolour.ca>
+References: <cover.1533065887.git.rgb@redhat.com>
+ <2827530000d6b4972d446b0226adab153ff3b5c5.1533065887.git.rgb@redhat.com>
+ <CAHC9VhSG3Hk2zrNP3w=CfEBXN7_LcywiTpvhGp48661xYhRq2A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20181008230125.2330-13-pablo@netfilter.org>
-Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: containers@lists.linux-foundation.org, linux-audit@redhat.com,
+        linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        ebiederm@xmission.com, luto@kernel.org, carlos@redhat.com,
+        dhowells@redhat.com, viro@zeniv.linux.org.uk, simo@redhat.com,
+        Eric Paris <eparis@parisplace.org>,
+        Serge Hallyn <serge@hallyn.com>
+To: Paul Moore <paul@paul-moore.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAHC9VhSG3Hk2zrNP3w=CfEBXN7_LcywiTpvhGp48661xYhRq2A@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-
-
-On 10/08/2018 04:01 PM, Pablo Neira Ayuso wrote:
-> We assume they are always set accordingly since a874752a10da
-> ("netfilter: conntrack: timeout interface depend on
-> CONFIG_NF_CONNTRACK_TIMEOUT"), so we can get rid of this checks.
+On 2018-10-19 19:17, Paul Moore wrote:
+> On Sun, Aug 5, 2018 at 4:33 AM Richard Guy Briggs <rgb@redhat.com> wrote:
+> > Standalone audit records have the timestamp and serial number generated
+> > on the fly and as such are unique, making them standalone.  This new
+> > function audit_alloc_local() generates a local audit context that will
+> > be used only for a standalone record and its auxiliary record(s).  The
+> > context is discarded immediately after the local associated records are
+> > produced.
+> >
+> > Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
+> > Acked-by: Serge Hallyn <serge@hallyn.com>
+> > ---
+> >  include/linux/audit.h |  8 ++++++++
+> >  kernel/audit.h        |  1 +
+> >  kernel/auditsc.c      | 33 ++++++++++++++++++++++++++++-----
+> >  3 files changed, 37 insertions(+), 5 deletions(-)
 > 
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> ---
->  net/netfilter/nfnetlink_cttimeout.c | 48 ++++++++++++++-----------------------
->  net/netfilter/nft_ct.c              |  3 ---
->  2 files changed, 18 insertions(+), 33 deletions(-)
+> I'm not in love with the local flag, and the whole local context in
+> general, but that's a larger discussion and not something I want to
+> force on this patchset; we can fix it later.
+
+I understand your reasoning to combine it so that if one patch gets
+backported then both do, or if one gets reverted both do, but I really
+prefer them seperate for similar reasons if there is more than one user.
+
+> I think this patch looks fine, but it seems a bit odd standalone; it's
+> almost always better to include new capabilities/functions in the same
+> patch as the user.  Since the only user is the networking bits, it
+> might make more sense to fold this patch into that one.
+
+It was kept seperate due to tty_audit usage.  See my reasoning for patch
+6, but I'm willing to negotiate if that merits an exception like the
+USER records do.
+
+> > diff --git a/include/linux/audit.h b/include/linux/audit.h
+> > index 4f514ed..1f340ad 100644
+> > --- a/include/linux/audit.h
+> > +++ b/include/linux/audit.h
+> > @@ -234,7 +234,9 @@ struct audit_task_info {
+> >  extern struct audit_task_info init_struct_audit;
+> >  extern void __init audit_task_init(void);
+> >  extern int  audit_alloc(struct task_struct *task);
+> > +extern struct audit_context *audit_alloc_local(gfp_t gfpflags);
+> >  extern void audit_free(struct task_struct *task);
+> > +extern void audit_free_context(struct audit_context *context);
+> >  extern void __audit_syscall_entry(int major, unsigned long a0, unsigned long a1,
+> >                                   unsigned long a2, unsigned long a3);
+> >  extern void __audit_syscall_exit(int ret_success, long ret_value);
+> > @@ -495,6 +497,12 @@ static inline int audit_alloc(struct task_struct *task)
+> >  {
+> >         return 0;
+> >  }
+> > +static inline struct audit_context *audit_alloc_local(gfp_t gfpflags)
+> > +{
+> > +       return NULL;
+> > +}
+> > +static inline void audit_free_context(struct audit_context *context)
+> > +{ }
+> >  static inline void audit_free(struct task_struct *task)
+> >  { }
+> >  static inline void audit_syscall_entry(int major, unsigned long a0,
+> > diff --git a/kernel/audit.h b/kernel/audit.h
+> > index 1cf1c35..a6d00a5 100644
+> > --- a/kernel/audit.h
+> > +++ b/kernel/audit.h
+> > @@ -110,6 +110,7 @@ struct audit_proctitle {
+> >  struct audit_context {
+> >         int                 dummy;      /* must be the first element */
+> >         int                 in_syscall; /* 1 if task is in a syscall */
+> > +       bool                local;      /* local context needed */
+> >         enum audit_state    state, current_state;
+> >         unsigned int        serial;     /* serial number for record */
+> >         int                 major;      /* syscall number */
+> > diff --git a/kernel/auditsc.c b/kernel/auditsc.c
+> > index cdb24cf..7627f21 100644
+> > --- a/kernel/auditsc.c
+> > +++ b/kernel/auditsc.c
+> > @@ -913,11 +913,13 @@ static inline void audit_free_aux(struct audit_context *context)
+> >         }
+> >  }
+> >
+> > -static inline struct audit_context *audit_alloc_context(enum audit_state state)
+> > +static inline struct audit_context *audit_alloc_context(enum audit_state state,
+> > +                                                       gfp_t gfpflags)
+> >  {
+> >         struct audit_context *context;
+> >
+> > -       context = kzalloc(sizeof(*context), GFP_KERNEL);
+> > +       /* We can be called in atomic context via audit_tg() */
+> > +       context = kzalloc(sizeof(*context), gfpflags);
+> >         if (!context)
+> >                 return NULL;
+> >         context->state = state;
+> > @@ -970,7 +972,8 @@ int audit_alloc(struct task_struct *tsk)
+> >                 return 0;
+> >         }
+> >
+> > -       if (!(context = audit_alloc_context(state))) {
+> > +       context = audit_alloc_context(state, GFP_KERNEL);
+> > +       if (!(context)) {
+> >                 tsk->audit = NULL;
+> >                 kmem_cache_free(audit_task_cache, info);
+> >                 kfree(key);
+> > @@ -991,8 +994,27 @@ struct audit_task_info init_struct_audit = {
+> >         .ctx = NULL,
+> >  };
+> >
+> > -static inline void audit_free_context(struct audit_context *context)
+> > +struct audit_context *audit_alloc_local(gfp_t gfpflags)
+> >  {
+> > +       struct audit_context *context;
+> > +
+> > +       if (!audit_ever_enabled)
+> > +               return NULL; /* Return if not auditing. */
+> > +
+> > +       context = audit_alloc_context(AUDIT_RECORD_CONTEXT, gfpflags);
+> > +       if (!context)
+> > +               return NULL;
+> > +       context->serial = audit_serial();
+> > +       context->ctime = current_kernel_time64();
+> > +       context->local = true;
+> > +       return context;
+> > +}
+> > +EXPORT_SYMBOL(audit_alloc_local);
+> > +
+> > +void audit_free_context(struct audit_context *context)
+> > +{
+> > +       if (!context)
+> > +               return;
+> >         audit_free_names(context);
+> >         unroll_tree_refs(context, NULL, 0);
+> >         free_tree_refs(context);
+> > @@ -1002,6 +1024,7 @@ static inline void audit_free_context(struct audit_context *context)
+> >         audit_proctitle_free(context);
+> >         kfree(context);
+> >  }
+> > +EXPORT_SYMBOL(audit_free_context);
+> >
+> >  static int audit_log_pid_context(struct audit_context *context, pid_t pid,
+> >                                  kuid_t auid, kuid_t uid, unsigned int sessionid,
+> > @@ -2024,7 +2047,7 @@ void __audit_inode_child(struct inode *parent,
+> >  int auditsc_get_stamp(struct audit_context *ctx,
+> >                        struct timespec64 *t, unsigned int *serial)
+> >  {
+> > -       if (!ctx->in_syscall)
+> > +       if (!ctx->in_syscall && !ctx->local)
+> >                 return 0;
+> >         if (!ctx->serial)
+> >                 ctx->serial = audit_serial();
 > 
-> diff --git a/net/netfilter/nfnetlink_cttimeout.c b/net/netfilter/nfnetlink_cttimeout.c
-> index a30f8ba4b89a..6ca0df7f416f 100644
-> --- a/net/netfilter/nfnetlink_cttimeout.c
-> +++ b/net/netfilter/nfnetlink_cttimeout.c
-> @@ -53,9 +53,6 @@ ctnl_timeout_parse_policy(void *timeout,
->  	struct nlattr **tb;
->  	int ret = 0;
->  
-> -	if (!l4proto->ctnl_timeout.nlattr_to_obj)
-> -		return 0;
-> -
->  	tb = kcalloc(l4proto->ctnl_timeout.nlattr_max + 1, sizeof(*tb),
->  		     GFP_KERNEL);
->  
-> @@ -167,6 +164,8 @@ ctnl_timeout_fill_info(struct sk_buff *skb, u32 portid, u32 seq, u32 type,
->  	struct nfgenmsg *nfmsg;
->  	unsigned int flags = portid ? NLM_F_MULTI : 0;
->  	const struct nf_conntrack_l4proto *l4proto = timeout->timeout.l4proto;
-> +	struct nlattr *nest_parms;
-> +	int ret;
->  
->  	event = nfnl_msg_type(NFNL_SUBSYS_CTNETLINK_TIMEOUT, event);
->  	nlh = nlmsg_put(skb, portid, seq, event, sizeof(*nfmsg), flags);
-> @@ -186,22 +185,15 @@ ctnl_timeout_fill_info(struct sk_buff *skb, u32 portid, u32 seq, u32 type,
->  			 htonl(refcount_read(&timeout->refcnt))))
->  		goto nla_put_failure;
->  
-> -	if (likely(l4proto->ctnl_timeout.obj_to_nlattr)) {
-> -		struct nlattr *nest_parms;
-> -		int ret;
-> -
-> -		nest_parms = nla_nest_start(skb,
-> -					    CTA_TIMEOUT_DATA | NLA_F_NESTED);
-> -		if (!nest_parms)
-> -			goto nla_put_failure;
-> +	nest_parms = nla_nest_start(skb, CTA_TIMEOUT_DATA | NLA_F_NESTED);
-> +	if (!nest_parms)
-> +		goto nla_put_failure;
->  
-> -		ret = l4proto->ctnl_timeout.obj_to_nlattr(skb,
-> -							&timeout->timeout.data);
-> -		if (ret < 0)
-> -			goto nla_put_failure;
-> +	ret = l4proto->ctnl_timeout.obj_to_nlattr(skb, &timeout->timeout.data);
-> +	if (ret < 0)
-> +		goto nla_put_failure;
->  
-> -		nla_nest_end(skb, nest_parms);
-> -	}
-> +	nla_nest_end(skb, nest_parms);
->  
->  	nlmsg_end(skb, nlh);
->  	return skb->len;
-> @@ -397,6 +389,8 @@ cttimeout_default_fill_info(struct net *net, struct sk_buff *skb, u32 portid,
->  	struct nlmsghdr *nlh;
->  	struct nfgenmsg *nfmsg;
->  	unsigned int flags = portid ? NLM_F_MULTI : 0;
-> +	struct nlattr *nest_parms;
-> +	int ret;
->  
->  	event = nfnl_msg_type(NFNL_SUBSYS_CTNETLINK_TIMEOUT, event);
->  	nlh = nlmsg_put(skb, portid, seq, event, sizeof(*nfmsg), flags);
-> @@ -412,21 +406,15 @@ cttimeout_default_fill_info(struct net *net, struct sk_buff *skb, u32 portid,
->  	    nla_put_u8(skb, CTA_TIMEOUT_L4PROTO, l4proto->l4proto))
->  		goto nla_put_failure;
->  
-> -	if (likely(l4proto->ctnl_timeout.obj_to_nlattr)) {
-> -		struct nlattr *nest_parms;
-> -		int ret;
-> -
-> -		nest_parms = nla_nest_start(skb,
-> -					    CTA_TIMEOUT_DATA | NLA_F_NESTED);
-> -		if (!nest_parms)
-> -			goto nla_put_failure;
-> +	nest_parms = nla_nest_start(skb, CTA_TIMEOUT_DATA | NLA_F_NESTED);
-> +	if (!nest_parms)
-> +		goto nla_put_failure;
->  
-> -		ret = l4proto->ctnl_timeout.obj_to_nlattr(skb, NULL);
-> -		if (ret < 0)
-> -			goto nla_put_failure;
-> +	ret = l4proto->ctnl_timeout.obj_to_nlattr(skb, NULL);
+> --
+> paul moore
+> www.paul-moore.com
 
-Hi Pablo
+- RGB
 
-None of the obj_to_nlattr handlers can handle a NULL pointer.
-What is the intent here ?
-
-netlink: 24 bytes leftover after parsing attributes in process `syz-executor2'.
-kasan: CONFIG_KASAN_INLINE enabled
-kasan: GPF could be caused by NULL-ptr deref or user memory access
-general protection fault: 0000 [#1] PREEMPT SMP KASAN
-CPU: 0 PID: 9575 Comm: syz-executor1 Not tainted 4.19.0+ #312
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
-RIP: 0010:icmp_timeout_obj_to_nlattr+0x77/0x170 net/netfilter/nf_conntrack_proto_icmp.c:297
-kobject: 'loop5' (00000000d8ff612b): kobject_uevent_env
-Code: b5 41 c7 00 f1 f1 f1 f1 c7 40 04 04 f2 f2 f2 65 48 8b 04 25 28 00 00 00 48 89 45 d0 31 c0 e8 c0 06 26 fb 4c 89 e8 48 c1 e8 03 <42> 0f b6 14 38 4c 89 e8 83 e0 07 83 c0 03 38 d0 7c 08 84 d2 0f 85
-kobject: 'loop5' (00000000d8ff612b): fill_kobj_path: path = '/devices/virtual/block/loop5'
-RSP: 0018:ffff88017def7220 EFLAGS: 00010246
-RAX: 0000000000000000 RBX: 1ffff1002fbdee45 RCX: ffffc90004561000
-RDX: 000000000000064f RSI: ffffffff865970c0 RDI: ffff8801ba602bc0
-RBP: ffff88017def72b0 R08: ffff8801879e2400 R09: ffff880188d264a8
-R10: ffffed00311a4c94 R11: ffff880188d264a0 R12: ffff8801ba602bc0
-R13: 0000000000000000 R14: ffff88017def7288 R15: dffffc0000000000
-FS:  00007fb495a6f700(0000) GS:ffff8801dae00000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-kobject: 'loop3' (00000000bc48af2d): kobject_uevent_env
-CR2: 00007f4879a55000 CR3: 00000001b7b96000 CR4: 00000000001406f0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-Call Trace:
-kobject: 'loop3' (00000000bc48af2d): fill_kobj_path: path = '/devices/virtual/block/loop3'
- cttimeout_default_fill_info net/netfilter/nfnetlink_cttimeout.c:411 [inline]
- cttimeout_default_get+0x644/0x9e0 net/netfilter/nfnetlink_cttimeout.c:457
- nfnetlink_rcv_msg+0xdd3/0x10c0 net/netfilter/nfnetlink.c:228
-kobject: 'loop3' (00000000bc48af2d): kobject_uevent_env
-kobject: 'loop3' (00000000bc48af2d): fill_kobj_path: path = '/devices/virtual/block/loop3'
- netlink_rcv_skb+0x172/0x440 net/netlink/af_netlink.c:2477
- nfnetlink_rcv+0x1c0/0x4d0 net/netfilter/nfnetlink.c:560
- netlink_unicast_kernel net/netlink/af_netlink.c:1310 [inline]
- netlink_unicast+0x5a5/0x760 net/netlink/af_netlink.c:1336
- netlink_sendmsg+0xa18/0xfc0 net/netlink/af_netlink.c:1917
- sock_sendmsg_nosec net/socket.c:621 [inline]
- sock_sendmsg+0xd5/0x120 net/socket.c:631
- ___sys_sendmsg+0x7fd/0x930 net/socket.c:2116
- __sys_sendmsg+0x11d/0x280 net/socket.c:2154
- __do_sys_sendmsg net/socket.c:2163 [inline]
- __se_sys_sendmsg net/socket.c:2161 [inline]
- __x64_sys_sendmsg+0x78/0xb0 net/socket.c:2161
- do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
-
-> +	if (ret < 0)
-> +		goto nla_put_failure;
->  
-> -		nla_nest_end(skb, nest_parms);
-> -	}
-> +	nla_nest_end(skb, nest_parms);
->  
->  	nlmsg_end(skb, nlh);
->  	return skb->len;
-> diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
-> index 5dd87748afa8..17ae5059c312 100644
-> --- a/net/netfilter/nft_ct.c
-> +++ b/net/netfilter/nft_ct.c
-> @@ -776,9 +776,6 @@ nft_ct_timeout_parse_policy(void *timeouts,
->  	struct nlattr **tb;
->  	int ret = 0;
->  
-> -	if (!l4proto->ctnl_timeout.nlattr_to_obj)
-> -		return 0;
-> -
->  	tb = kcalloc(l4proto->ctnl_timeout.nlattr_max + 1, sizeof(*tb),
->  		     GFP_KERNEL);
->  
-> 
+--
+Richard Guy Briggs <rgb@redhat.com>
+Sr. S/W Engineer, Kernel Security, Base Operating Systems
+Remote, Ottawa, Red Hat Canada
+IRC: rgb, SunRaycer
+Voice: +1.647.777.2635, Internal: (81) 32635
