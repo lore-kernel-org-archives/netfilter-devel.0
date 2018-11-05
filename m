@@ -1,8 +1,11 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 06/14] netfilter: ipset: actually allow allowable CIDR 0 in hash:net,port,net
-Date: Tue,  6 Nov 2018 00:28:24 +0100
-Message-ID: <20181105232832.21896-7-pablo@netfilter.org>
+Subject: [PATCH 03/14] netfilter: bridge: define INT_MIN & INT_MAX in userspace
+Date: Tue,  6 Nov 2018 00:28:21 +0100
+Message-ID: <20181105232832.21896-4-pablo@netfilter.org>
 References: <20181105232832.21896-1-pablo@netfilter.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netdev-owner@vger.kernel.org>
@@ -10,85 +13,43 @@ In-Reply-To: <20181105232832.21896-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Eric Westbrook <eric@westbrook.io>
+From: Jiri Slaby <jslaby@suse.cz>
 
-Allow /0 as advertised for hash:net,port,net sets.
+With 4.19, programs like ebtables fail to build when they include
+"linux/netfilter_bridge.h". It is caused by commit 94276fa8a2a4 which
+added a use of INT_MIN and INT_MAX to the header:
+: In file included from /usr/include/linux/netfilter_bridge/ebtables.h:18,
+:                  from include/ebtables_u.h:28,
+:                  from communication.c:23:
+: /usr/include/linux/netfilter_bridge.h:30:20: error: 'INT_MIN' undeclared here (not in a function)
+:   NF_BR_PRI_FIRST = INT_MIN,
+:                     ^~~~~~~
 
-For "hash:net,port,net", ipset(8) says that "either subnet
-is permitted to be a /0 should you wish to match port
-between all destinations."
+Define these constants by including "limits.h" when !__KERNEL__ (the
+same way as for other netfilter_* headers).
 
-Make that statement true.
-
-Before:
-
-    # ipset create cidrzero hash:net,port,net
-    # ipset add cidrzero 0.0.0.0/0,12345,0.0.0.0/0
-    ipset v6.34: The value of the CIDR parameter of the IP address is invalid
-
-    # ipset create cidrzero6 hash:net,port,net family inet6
-    # ipset add cidrzero6 ::/0,12345,::/0
-    ipset v6.34: The value of the CIDR parameter of the IP address is invalid
-
-After:
-
-    # ipset create cidrzero hash:net,port,net
-    # ipset add cidrzero 0.0.0.0/0,12345,0.0.0.0/0
-    # ipset test cidrzero 192.168.205.129,12345,172.16.205.129
-    192.168.205.129,tcp:12345,172.16.205.129 is in set cidrzero.
-
-    # ipset create cidrzero6 hash:net,port,net family inet6
-    # ipset add cidrzero6 ::/0,12345,::/0
-    # ipset test cidrzero6 fe80::1,12345,ff00::1
-    fe80::1,tcp:12345,ff00::1 is in set cidrzero6.
-
-See also:
-
-  https://bugzilla.kernel.org/show_bug.cgi?id=200897
-  https://github.com/ewestbrook/linux/commit/df7ff6efb0934ab6acc11f003ff1a7580d6c1d9c
-
-Signed-off-by: Eric Westbrook <linux@westbrook.io>
-Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Fixes: 94276fa8a2a4 ("netfilter: bridge: Expose nf_tables bridge hook priorities through uapi")
+Signed-off-by: Jiri Slaby <jslaby@suse.cz>
+Acked-by: Máté Eckl <ecklm94@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/ipset/ip_set_hash_netportnet.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ include/uapi/linux/netfilter_bridge.h | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/net/netfilter/ipset/ip_set_hash_netportnet.c b/net/netfilter/ipset/ip_set_hash_netportnet.c
-index d391485a6acd..613e18e720a4 100644
---- a/net/netfilter/ipset/ip_set_hash_netportnet.c
-+++ b/net/netfilter/ipset/ip_set_hash_netportnet.c
-@@ -213,13 +213,13 @@ hash_netportnet4_uadt(struct ip_set *set, struct nlattr *tb[],
+diff --git a/include/uapi/linux/netfilter_bridge.h b/include/uapi/linux/netfilter_bridge.h
+index 156ccd089df1..1610fdbab98d 100644
+--- a/include/uapi/linux/netfilter_bridge.h
++++ b/include/uapi/linux/netfilter_bridge.h
+@@ -11,6 +11,10 @@
+ #include <linux/if_vlan.h>
+ #include <linux/if_pppox.h>
  
- 	if (tb[IPSET_ATTR_CIDR]) {
- 		e.cidr[0] = nla_get_u8(tb[IPSET_ATTR_CIDR]);
--		if (!e.cidr[0] || e.cidr[0] > HOST_MASK)
-+		if (e.cidr[0] > HOST_MASK)
- 			return -IPSET_ERR_INVALID_CIDR;
- 	}
- 
- 	if (tb[IPSET_ATTR_CIDR2]) {
- 		e.cidr[1] = nla_get_u8(tb[IPSET_ATTR_CIDR2]);
--		if (!e.cidr[1] || e.cidr[1] > HOST_MASK)
-+		if (e.cidr[1] > HOST_MASK)
- 			return -IPSET_ERR_INVALID_CIDR;
- 	}
- 
-@@ -493,13 +493,13 @@ hash_netportnet6_uadt(struct ip_set *set, struct nlattr *tb[],
- 
- 	if (tb[IPSET_ATTR_CIDR]) {
- 		e.cidr[0] = nla_get_u8(tb[IPSET_ATTR_CIDR]);
--		if (!e.cidr[0] || e.cidr[0] > HOST_MASK)
-+		if (e.cidr[0] > HOST_MASK)
- 			return -IPSET_ERR_INVALID_CIDR;
- 	}
- 
- 	if (tb[IPSET_ATTR_CIDR2]) {
- 		e.cidr[1] = nla_get_u8(tb[IPSET_ATTR_CIDR2]);
--		if (!e.cidr[1] || e.cidr[1] > HOST_MASK)
-+		if (e.cidr[1] > HOST_MASK)
- 			return -IPSET_ERR_INVALID_CIDR;
- 	}
- 
++#ifndef __KERNEL__
++#include <limits.h> /* for INT_MIN, INT_MAX */
++#endif
++
+ /* Bridge Hooks */
+ /* After promisc drops, checksum checks. */
+ #define NF_BR_PRE_ROUTING	0
 -- 
 2.11.0
