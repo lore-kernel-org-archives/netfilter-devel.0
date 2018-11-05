@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 10/14] netfilter: ipset: Fix calling ip_set() macro at dumping
-Date: Tue,  6 Nov 2018 00:28:28 +0100
-Message-ID: <20181105232832.21896-11-pablo@netfilter.org>
+Subject: [PATCH 13/14] netfilter: nft_compat: ebtables 'nat' table is normal chain type
+Date: Tue,  6 Nov 2018 00:28:31 +0100
+Message-ID: <20181105232832.21896-14-pablo@netfilter.org>
 References: <20181105232832.21896-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,58 +10,72 @@ In-Reply-To: <20181105232832.21896-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+From: Florian Westphal <fw@strlen.de>
 
-The ip_set() macro is called when either ip_set_ref_lock held only
-or no lock/nfnl mutex is held at dumping. Take this into account
-properly. Also, use Pablo's suggestion to use rcu_dereference_raw(),
-the ref_netlink protects the set.
+Unlike ip(6)tables, the ebtables nat table has no special properties.
+This bug causes 'ebtables -A' to fail when using a target such as
+'snat' (ebt_snat target sets ".table = "nat"').  Targets that have
+no table restrictions work fine.
 
-Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/ipset/ip_set_core.c | 12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ net/netfilter/nft_compat.c | 21 ++++++++++++---------
+ 1 file changed, 12 insertions(+), 9 deletions(-)
 
-diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
-index 68db946df151..1577f2f76060 100644
---- a/net/netfilter/ipset/ip_set_core.c
-+++ b/net/netfilter/ipset/ip_set_core.c
-@@ -55,11 +55,15 @@ MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>");
- MODULE_DESCRIPTION("core IP set support");
- MODULE_ALIAS_NFNL_SUBSYS(NFNL_SUBSYS_IPSET);
+diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
+index 768292eac2a4..9d0ede474224 100644
+--- a/net/netfilter/nft_compat.c
++++ b/net/netfilter/nft_compat.c
+@@ -54,9 +54,11 @@ static bool nft_xt_put(struct nft_xt *xt)
+ 	return false;
+ }
  
--/* When the nfnl mutex is held: */
-+/* When the nfnl mutex or ip_set_ref_lock is held: */
- #define ip_set_dereference(p)		\
--	rcu_dereference_protected(p, lockdep_nfnl_is_held(NFNL_SUBSYS_IPSET))
-+	rcu_dereference_protected(p,	\
-+		lockdep_nfnl_is_held(NFNL_SUBSYS_IPSET) || \
-+		lockdep_is_held(&ip_set_ref_lock))
- #define ip_set(inst, id)		\
- 	ip_set_dereference((inst)->ip_set_list)[id]
-+#define ip_set_ref_netlink(inst,id)	\
-+	rcu_dereference_raw((inst)->ip_set_list)[id]
+-static int nft_compat_chain_validate_dependency(const char *tablename,
+-						const struct nft_chain *chain)
++static int nft_compat_chain_validate_dependency(const struct nft_ctx *ctx,
++						const char *tablename)
+ {
++	enum nft_chain_types type = NFT_CHAIN_T_DEFAULT;
++	const struct nft_chain *chain = ctx->chain;
+ 	const struct nft_base_chain *basechain;
  
- /* The set types are implemented in modules and registered set types
-  * can be found in ip_set_type_list. Adding/deleting types is
-@@ -1251,7 +1255,7 @@ ip_set_dump_done(struct netlink_callback *cb)
- 		struct ip_set_net *inst =
- 			(struct ip_set_net *)cb->args[IPSET_CB_NET];
- 		ip_set_id_t index = (ip_set_id_t)cb->args[IPSET_CB_INDEX];
--		struct ip_set *set = ip_set(inst, index);
-+		struct ip_set *set = ip_set_ref_netlink(inst, index);
+ 	if (!tablename ||
+@@ -64,9 +66,12 @@ static int nft_compat_chain_validate_dependency(const char *tablename,
+ 		return 0;
  
- 		if (set->variant->uref)
- 			set->variant->uref(set, cb, false);
-@@ -1440,7 +1444,7 @@ ip_set_dump_start(struct sk_buff *skb, struct netlink_callback *cb)
- release_refcount:
- 	/* If there was an error or set is done, release set */
- 	if (ret || !cb->args[IPSET_CB_ARG0]) {
--		set = ip_set(inst, index);
-+		set = ip_set_ref_netlink(inst, index);
- 		if (set->variant->uref)
- 			set->variant->uref(set, cb, false);
- 		pr_debug("release set %s\n", set->name);
+ 	basechain = nft_base_chain(chain);
+-	if (strcmp(tablename, "nat") == 0 &&
+-	    basechain->type->type != NFT_CHAIN_T_NAT)
+-		return -EINVAL;
++	if (strcmp(tablename, "nat") == 0) {
++		if (ctx->family != NFPROTO_BRIDGE)
++			type = NFT_CHAIN_T_NAT;
++		if (basechain->type->type != type)
++			return -EINVAL;
++	}
+ 
+ 	return 0;
+ }
+@@ -342,8 +347,7 @@ static int nft_target_validate(const struct nft_ctx *ctx,
+ 		if (target->hooks && !(hook_mask & target->hooks))
+ 			return -EINVAL;
+ 
+-		ret = nft_compat_chain_validate_dependency(target->table,
+-							   ctx->chain);
++		ret = nft_compat_chain_validate_dependency(ctx, target->table);
+ 		if (ret < 0)
+ 			return ret;
+ 	}
+@@ -590,8 +594,7 @@ static int nft_match_validate(const struct nft_ctx *ctx,
+ 		if (match->hooks && !(hook_mask & match->hooks))
+ 			return -EINVAL;
+ 
+-		ret = nft_compat_chain_validate_dependency(match->table,
+-							   ctx->chain);
++		ret = nft_compat_chain_validate_dependency(ctx, match->table);
+ 		if (ret < 0)
+ 			return ret;
+ 	}
 -- 
 2.11.0
