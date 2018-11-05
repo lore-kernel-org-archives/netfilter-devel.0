@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 13/14] netfilter: nft_compat: ebtables 'nat' table is normal chain type
-Date: Tue,  6 Nov 2018 00:28:31 +0100
-Message-ID: <20181105232832.21896-14-pablo@netfilter.org>
+Subject: [PATCH 12/14] netfilter: nfnetlink_cttimeout: pass default timeout policy to obj_to_nlattr
+Date: Tue,  6 Nov 2018 00:28:30 +0100
+Message-ID: <20181105232832.21896-13-pablo@netfilter.org>
 References: <20181105232832.21896-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,72 +10,112 @@ In-Reply-To: <20181105232832.21896-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+Otherwise, we hit a NULL pointer deference since handlers always assume
+default timeout policy is passed.
 
-Unlike ip(6)tables, the ebtables nat table has no special properties.
-This bug causes 'ebtables -A' to fail when using a target such as
-'snat' (ebt_snat target sets ".table = "nat"').  Targets that have
-no table restrictions work fine.
+  netlink: 24 bytes leftover after parsing attributes in process `syz-executor2'.
+  kasan: CONFIG_KASAN_INLINE enabled
+  kasan: GPF could be caused by NULL-ptr deref or user memory access
+  general protection fault: 0000 [#1] PREEMPT SMP KASAN
+  CPU: 0 PID: 9575 Comm: syz-executor1 Not tainted 4.19.0+ #312
+  Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+  RIP: 0010:icmp_timeout_obj_to_nlattr+0x77/0x170 net/netfilter/nf_conntrack_proto_icmp.c:297
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Fixes: c779e849608a ("netfilter: conntrack: remove get_timeout() indirection")
+Reported-by: Eric Dumazet <eric.dumazet@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_compat.c | 21 ++++++++++++---------
- 1 file changed, 12 insertions(+), 9 deletions(-)
+ net/netfilter/nfnetlink_cttimeout.c | 47 +++++++++++++++++++++++++++++++------
+ 1 file changed, 40 insertions(+), 7 deletions(-)
 
-diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
-index 768292eac2a4..9d0ede474224 100644
---- a/net/netfilter/nft_compat.c
-+++ b/net/netfilter/nft_compat.c
-@@ -54,9 +54,11 @@ static bool nft_xt_put(struct nft_xt *xt)
- 	return false;
- }
- 
--static int nft_compat_chain_validate_dependency(const char *tablename,
--						const struct nft_chain *chain)
-+static int nft_compat_chain_validate_dependency(const struct nft_ctx *ctx,
-+						const char *tablename)
+diff --git a/net/netfilter/nfnetlink_cttimeout.c b/net/netfilter/nfnetlink_cttimeout.c
+index e7a50af1b3d6..a518eb162344 100644
+--- a/net/netfilter/nfnetlink_cttimeout.c
++++ b/net/netfilter/nfnetlink_cttimeout.c
+@@ -382,7 +382,8 @@ static int cttimeout_default_set(struct net *net, struct sock *ctnl,
+ static int
+ cttimeout_default_fill_info(struct net *net, struct sk_buff *skb, u32 portid,
+ 			    u32 seq, u32 type, int event, u16 l3num,
+-			    const struct nf_conntrack_l4proto *l4proto)
++			    const struct nf_conntrack_l4proto *l4proto,
++			    const unsigned int *timeouts)
  {
-+	enum nft_chain_types type = NFT_CHAIN_T_DEFAULT;
-+	const struct nft_chain *chain = ctx->chain;
- 	const struct nft_base_chain *basechain;
+ 	struct nlmsghdr *nlh;
+ 	struct nfgenmsg *nfmsg;
+@@ -408,7 +409,7 @@ cttimeout_default_fill_info(struct net *net, struct sk_buff *skb, u32 portid,
+ 	if (!nest_parms)
+ 		goto nla_put_failure;
  
- 	if (!tablename ||
-@@ -64,9 +66,12 @@ static int nft_compat_chain_validate_dependency(const char *tablename,
- 		return 0;
+-	ret = l4proto->ctnl_timeout.obj_to_nlattr(skb, NULL);
++	ret = l4proto->ctnl_timeout.obj_to_nlattr(skb, timeouts);
+ 	if (ret < 0)
+ 		goto nla_put_failure;
  
- 	basechain = nft_base_chain(chain);
--	if (strcmp(tablename, "nat") == 0 &&
--	    basechain->type->type != NFT_CHAIN_T_NAT)
--		return -EINVAL;
-+	if (strcmp(tablename, "nat") == 0) {
-+		if (ctx->family != NFPROTO_BRIDGE)
-+			type = NFT_CHAIN_T_NAT;
-+		if (basechain->type->type != type)
-+			return -EINVAL;
-+	}
+@@ -430,6 +431,7 @@ static int cttimeout_default_get(struct net *net, struct sock *ctnl,
+ 				 struct netlink_ext_ack *extack)
+ {
+ 	const struct nf_conntrack_l4proto *l4proto;
++	unsigned int *timeouts = NULL;
+ 	struct sk_buff *skb2;
+ 	int ret, err;
+ 	__u16 l3num;
+@@ -442,12 +444,44 @@ static int cttimeout_default_get(struct net *net, struct sock *ctnl,
+ 	l4num = nla_get_u8(cda[CTA_TIMEOUT_L4PROTO]);
+ 	l4proto = nf_ct_l4proto_find_get(l4num);
  
- 	return 0;
- }
-@@ -342,8 +347,7 @@ static int nft_target_validate(const struct nft_ctx *ctx,
- 		if (target->hooks && !(hook_mask & target->hooks))
- 			return -EINVAL;
- 
--		ret = nft_compat_chain_validate_dependency(target->table,
--							   ctx->chain);
-+		ret = nft_compat_chain_validate_dependency(ctx, target->table);
- 		if (ret < 0)
- 			return ret;
+-	/* This protocol is not supported, skip. */
+-	if (l4proto->l4proto != l4num) {
+-		err = -EOPNOTSUPP;
++	err = -EOPNOTSUPP;
++	if (l4proto->l4proto != l4num)
+ 		goto err;
++
++	switch (l4proto->l4proto) {
++	case IPPROTO_ICMP:
++		timeouts = &nf_icmp_pernet(net)->timeout;
++		break;
++	case IPPROTO_TCP:
++		timeouts = nf_tcp_pernet(net)->timeouts;
++		break;
++	case IPPROTO_UDP:
++		timeouts = nf_udp_pernet(net)->timeouts;
++		break;
++	case IPPROTO_DCCP:
++#ifdef CONFIG_NF_CT_PROTO_DCCP
++		timeouts = nf_dccp_pernet(net)->dccp_timeout;
++#endif
++		break;
++	case IPPROTO_ICMPV6:
++		timeouts = &nf_icmpv6_pernet(net)->timeout;
++		break;
++	case IPPROTO_SCTP:
++#ifdef CONFIG_NF_CT_PROTO_SCTP
++		timeouts = nf_sctp_pernet(net)->timeouts;
++#endif
++		break;
++	case 255:
++		timeouts = &nf_generic_pernet(net)->timeout;
++		break;
++	default:
++		WARN_ON_ONCE(1);
++		break;
  	}
-@@ -590,8 +594,7 @@ static int nft_match_validate(const struct nft_ctx *ctx,
- 		if (match->hooks && !(hook_mask & match->hooks))
- 			return -EINVAL;
  
--		ret = nft_compat_chain_validate_dependency(match->table,
--							   ctx->chain);
-+		ret = nft_compat_chain_validate_dependency(ctx, match->table);
- 		if (ret < 0)
- 			return ret;
- 	}
++	if (!timeouts)
++		goto err;
++
+ 	skb2 = nlmsg_new(NLMSG_DEFAULT_SIZE, GFP_KERNEL);
+ 	if (skb2 == NULL) {
+ 		err = -ENOMEM;
+@@ -458,8 +492,7 @@ static int cttimeout_default_get(struct net *net, struct sock *ctnl,
+ 					  nlh->nlmsg_seq,
+ 					  NFNL_MSG_TYPE(nlh->nlmsg_type),
+ 					  IPCTNL_MSG_TIMEOUT_DEFAULT_SET,
+-					  l3num,
+-					  l4proto);
++					  l3num, l4proto, timeouts);
+ 	if (ret <= 0) {
+ 		kfree_skb(skb2);
+ 		err = -ENOMEM;
 -- 
 2.11.0
