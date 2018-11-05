@@ -1,33 +1,34 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v2] netfilter: conntrack: fix calculation of next bucket
- number in early_drop
-Date: Sat, 3 Nov 2018 14:16:20 +0100
-Message-ID: <20181103131620.alepdriguhu2rxc3@salvia>
-References: <20181025191543.15061-1-vasilykh@arista.com>
+From: Jamal Hadi Salim <jhs-jkUAjuhPggJWk0Htik3J/w@public.gmane.org>
+Subject: CFS for Netdev 0x13 open!
+Date: Mon, 5 Nov 2018 15:42:21 -0500
+Message-ID: <4b4c923f-a39a-4ff0-0de4-2ffd565d8ba2@mojatatu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Dmitry Safonov <dima@arista.com>, stable@vger.kernel.org
-To: Vasily Khoruzhick <vasilykh@arista.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181025191543.15061-1-vasilykh@arista.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,
+        netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+        linux-wireless <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, lwn-T1hC0tSOHrs@public.gmane.org
+To: people <people-Aq7fehzYRUagpaxmtUs7hg@public.gmane.org>
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Language: en-US
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, Oct 25, 2018 at 12:15:43PM -0700, Vasily Khoruzhick wrote:
-> If there's no entry to drop in bucket that corresponds to the hash,
-> early_drop() should look for it in other buckets. But since it increments
-> hash instead of bucket number, it actually looks in the same bucket 8
-> times: hsize is 16k by default (14 bits) and hash is 32-bit value, so
-> reciprocal_scale(hash, hsize) returns the same value for hash..hash+7 in
-> most cases.
-> 
-> Fix it by increasing bucket number instead of hash and rename _hash
-> to bucket to avoid future confusion.
 
-Applied, thanks.
+
+We are pleased to announce the opening of call for submissions(CFS)
+for Netdev 0x13.
+For overview of topics, submissions and requirements please visit:
+https://netdevconf.org/0x13/submit-proposal.html
+
+Sessions are selected via a blind review process carried out by
+the Program Committee and Shepherd. Please refer to:
+https://www.netdevconf.org/0x13/pc_review.html
+
+Important dates:
+Closing of CFS: Tue, January 15, 2019.
+Acceptance or rejection notification by: Fri, January 18, 2019
+Conference dates:  Wed, March 20 to Fri, March 22.
+
+cheers,
+jamal
