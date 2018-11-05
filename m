@@ -1,132 +1,195 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 00/14] Netfilter fixes for net
-Date: Tue,  6 Nov 2018 00:28:18 +0100
-Message-ID: <20181105232832.21896-1-pablo@netfilter.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Subject: [PATCH 05/14] netfilter: ipset: list:set: Decrease refcount synchronously on deletion and replace
+Date: Tue,  6 Nov 2018 00:28:23 +0100
+Message-ID: <20181105232832.21896-6-pablo@netfilter.org>
+References: <20181105232832.21896-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20181105232832.21896-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi David,
+From: Stefano Brivio <sbrivio@redhat.com>
 
-The following patchset contains the first batch of Netfilter fixes for
-your net tree:
+Commit 45040978c899 ("netfilter: ipset: Fix set:list type crash
+when flush/dump set in parallel") postponed decreasing set
+reference counters to the RCU callback.
 
-1) Fix splat with IPv6 defragmenting locally generated fragments,
-   from Florian Westphal.
+An 'ipset del' command can terminate before the RCU grace period
+is elapsed, and if sets are listed before then, the reference
+counter shown in userspace will be wrong:
 
-2) Fix Incorrect check for missing attribute in nft_osf.
+ # ipset create h hash:ip; ipset create l list:set; ipset add l
+ # ipset del l h; ipset list h
+ Name: h
+ Type: hash:ip
+ Revision: 4
+ Header: family inet hashsize 1024 maxelem 65536
+ Size in memory: 88
+ References: 1
+ Number of entries: 0
+ Members:
+ # sleep 1; ipset list h
+ Name: h
+ Type: hash:ip
+ Revision: 4
+ Header: family inet hashsize 1024 maxelem 65536
+ Size in memory: 88
+ References: 0
+ Number of entries: 0
+ Members:
 
-3) Missing INT_MIN & INT_MAX definition for netfilter bridge uapi
-   header, from Jiri Slaby.
+Fix this by making the reference count update synchronous again.
 
-4) Revert map lookup in nft_numgen, this is already possible with
-   the existing infrastructure without this extension.
+As a result, when sets are listed, ip_set_name_byindex() might
+now fetch a set whose reference count is already zero. Instead
+of relying on the reference count to protect against concurrent
+set renaming, grab ip_set_ref_lock as reader and copy the name,
+while holding the same lock in ip_set_rename() as writer
+instead.
 
-5) Fix wrong listing of set reference counter, make counter
-   synchronous again, from Stefano Brivio.
+Reported-by: Li Shuang <shuali@redhat.com>
+Fixes: 45040978c899 ("netfilter: ipset: Fix set:list type crash when flush/dump set in parallel")
+Signed-off-by: Stefano Brivio <sbrivio@redhat.com>
+Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/linux/netfilter/ipset/ip_set.h |  2 +-
+ net/netfilter/ipset/ip_set_core.c      | 23 +++++++++++------------
+ net/netfilter/ipset/ip_set_list_set.c  | 17 +++++++++++------
+ 3 files changed, 23 insertions(+), 19 deletions(-)
 
-6) Fix CIDR 0 in hash:net,port,net, from Eric Westbrook.
-
-7) Fix allocation failure with large set, use kvcalloc().
-   From Andrey Ryabinin.
-
-8) No need to disable BH when fetch ip set comment, patch from
-   Jozsef Kadlecsik.
-
-9) Sanity check for valid sysfs entry in xt_IDLETIMER, from
-   Taehee Yoo.
-
-10) Fix suspicious rcu usage via ip_set() macro at netlink dump,
-    from Jozsef Kadlecsik.
-
-11) Fix setting default timeout via nfnetlink_cttimeout, this
-    comes with preparation patch to add nf_{tcp,udp,...}_pernet()
-    helper.
-
-12) Allow ebtables table nat to be of filter type via nft_compat.
-    From Florian Westphal.
-
-13) Incorrect calculation of next bucket in early_drop, do no bump
-    hash value, update bucket counter instead. From Vasily Khoruzhick.
-
-You can pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
-
-Thanks!
-
-----------------------------------------------------------------
-
-The following changes since commit 4f3ebb04d05fe36f74ef17c6ee06559626d47964:
-
-  Merge branch '100GbE' of git://git.kernel.org/pub/scm/linux/kernel/git/jkirsher/net-queue (2018-10-24 16:27:33 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git HEAD
-
-for you to fetch changes up to f393808dc64149ccd0e5a8427505ba2974a59854:
-
-  netfilter: conntrack: fix calculation of next bucket number in early_drop (2018-11-03 14:16:28 +0100)
-
-----------------------------------------------------------------
-Andrey Ryabinin (1):
-      netfilter: ipset: fix ip_set_list allocation failure
-
-Eric Westbrook (1):
-      netfilter: ipset: actually allow allowable CIDR 0 in hash:net,port,net
-
-Florian Westphal (2):
-      netfilter: ipv6: fix oops when defragmenting locally generated fragments
-      netfilter: nft_compat: ebtables 'nat' table is normal chain type
-
-Jiri Slaby (1):
-      netfilter: bridge: define INT_MIN & INT_MAX in userspace
-
-Jozsef Kadlecsik (2):
-      netfilter: ipset: Correct rcu_dereference() call in ip_set_put_comment()
-      netfilter: ipset: Fix calling ip_set() macro at dumping
-
-Pablo Neira Ayuso (4):
-      netfilter: nft_osf: check if attribute is present
-      Revert "netfilter: nft_numgen: add map lookups for numgen random operations"
-      netfilter: conntrack: add nf_{tcp,udp,sctp,icmp,dccp,icmpv6,generic}_pernet()
-      netfilter: nfnetlink_cttimeout: pass default timeout policy to obj_to_nlattr
-
-Stefano Brivio (1):
-      netfilter: ipset: list:set: Decrease refcount synchronously on deletion and replace
-
-Taehee Yoo (1):
-      netfilter: xt_IDLETIMER: add sysfs filename checking routine
-
-Vasily Khoruzhick (1):
-      netfilter: conntrack: fix calculation of next bucket number in early_drop
-
- include/linux/netfilter/ipset/ip_set.h         |   2 +-
- include/linux/netfilter/ipset/ip_set_comment.h |   4 +-
- include/net/netfilter/nf_conntrack_l4proto.h   |  39 ++++++++
- include/uapi/linux/netfilter/nf_tables.h       |   4 +-
- include/uapi/linux/netfilter_bridge.h          |   4 +
- net/ipv6/netfilter/nf_conntrack_reasm.c        |  13 ++-
- net/netfilter/ipset/ip_set_core.c              |  43 +++++----
- net/netfilter/ipset/ip_set_hash_netportnet.c   |   8 +-
- net/netfilter/ipset/ip_set_list_set.c          |  17 ++--
- net/netfilter/nf_conntrack_core.c              |  13 ++-
- net/netfilter/nf_conntrack_proto_dccp.c        |  13 +--
- net/netfilter/nf_conntrack_proto_generic.c     |  11 +--
- net/netfilter/nf_conntrack_proto_icmp.c        |  11 +--
- net/netfilter/nf_conntrack_proto_icmpv6.c      |  11 +--
- net/netfilter/nf_conntrack_proto_sctp.c        |  11 +--
- net/netfilter/nf_conntrack_proto_tcp.c         |  15 +--
- net/netfilter/nf_conntrack_proto_udp.c         |  11 +--
- net/netfilter/nfnetlink_cttimeout.c            |  47 +++++++--
- net/netfilter/nft_compat.c                     |  21 ++--
- net/netfilter/nft_numgen.c                     | 127 -------------------------
- net/netfilter/nft_osf.c                        |   2 +-
- net/netfilter/xt_IDLETIMER.c                   |  20 ++++
- 22 files changed, 200 insertions(+), 247 deletions(-)
+diff --git a/include/linux/netfilter/ipset/ip_set.h b/include/linux/netfilter/ipset/ip_set.h
+index 34fc80f3eb90..1d100efe74ec 100644
+--- a/include/linux/netfilter/ipset/ip_set.h
++++ b/include/linux/netfilter/ipset/ip_set.h
+@@ -314,7 +314,7 @@ enum {
+ extern ip_set_id_t ip_set_get_byname(struct net *net,
+ 				     const char *name, struct ip_set **set);
+ extern void ip_set_put_byindex(struct net *net, ip_set_id_t index);
+-extern const char *ip_set_name_byindex(struct net *net, ip_set_id_t index);
++extern void ip_set_name_byindex(struct net *net, ip_set_id_t index, char *name);
+ extern ip_set_id_t ip_set_nfnl_get_byindex(struct net *net, ip_set_id_t index);
+ extern void ip_set_nfnl_put(struct net *net, ip_set_id_t index);
+ 
+diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
+index bc4bd247bb7d..fa15a831aeee 100644
+--- a/net/netfilter/ipset/ip_set_core.c
++++ b/net/netfilter/ipset/ip_set_core.c
+@@ -693,21 +693,20 @@ ip_set_put_byindex(struct net *net, ip_set_id_t index)
+ EXPORT_SYMBOL_GPL(ip_set_put_byindex);
+ 
+ /* Get the name of a set behind a set index.
+- * We assume the set is referenced, so it does exist and
+- * can't be destroyed. The set cannot be renamed due to
+- * the referencing either.
+- *
++ * Set itself is protected by RCU, but its name isn't: to protect against
++ * renaming, grab ip_set_ref_lock as reader (see ip_set_rename()) and copy the
++ * name.
+  */
+-const char *
+-ip_set_name_byindex(struct net *net, ip_set_id_t index)
++void
++ip_set_name_byindex(struct net *net, ip_set_id_t index, char *name)
+ {
+-	const struct ip_set *set = ip_set_rcu_get(net, index);
++	struct ip_set *set = ip_set_rcu_get(net, index);
+ 
+ 	BUG_ON(!set);
+-	BUG_ON(set->ref == 0);
+ 
+-	/* Referenced, so it's safe */
+-	return set->name;
++	read_lock_bh(&ip_set_ref_lock);
++	strncpy(name, set->name, IPSET_MAXNAMELEN);
++	read_unlock_bh(&ip_set_ref_lock);
+ }
+ EXPORT_SYMBOL_GPL(ip_set_name_byindex);
+ 
+@@ -1153,7 +1152,7 @@ static int ip_set_rename(struct net *net, struct sock *ctnl,
+ 	if (!set)
+ 		return -ENOENT;
+ 
+-	read_lock_bh(&ip_set_ref_lock);
++	write_lock_bh(&ip_set_ref_lock);
+ 	if (set->ref != 0) {
+ 		ret = -IPSET_ERR_REFERENCED;
+ 		goto out;
+@@ -1170,7 +1169,7 @@ static int ip_set_rename(struct net *net, struct sock *ctnl,
+ 	strncpy(set->name, name2, IPSET_MAXNAMELEN);
+ 
+ out:
+-	read_unlock_bh(&ip_set_ref_lock);
++	write_unlock_bh(&ip_set_ref_lock);
+ 	return ret;
+ }
+ 
+diff --git a/net/netfilter/ipset/ip_set_list_set.c b/net/netfilter/ipset/ip_set_list_set.c
+index 072a658fde04..4eef55da0878 100644
+--- a/net/netfilter/ipset/ip_set_list_set.c
++++ b/net/netfilter/ipset/ip_set_list_set.c
+@@ -148,9 +148,7 @@ __list_set_del_rcu(struct rcu_head * rcu)
+ {
+ 	struct set_elem *e = container_of(rcu, struct set_elem, rcu);
+ 	struct ip_set *set = e->set;
+-	struct list_set *map = set->data;
+ 
+-	ip_set_put_byindex(map->net, e->id);
+ 	ip_set_ext_destroy(set, e);
+ 	kfree(e);
+ }
+@@ -158,15 +156,21 @@ __list_set_del_rcu(struct rcu_head * rcu)
+ static inline void
+ list_set_del(struct ip_set *set, struct set_elem *e)
+ {
++	struct list_set *map = set->data;
++
+ 	set->elements--;
+ 	list_del_rcu(&e->list);
++	ip_set_put_byindex(map->net, e->id);
+ 	call_rcu(&e->rcu, __list_set_del_rcu);
+ }
+ 
+ static inline void
+-list_set_replace(struct set_elem *e, struct set_elem *old)
++list_set_replace(struct ip_set *set, struct set_elem *e, struct set_elem *old)
+ {
++	struct list_set *map = set->data;
++
+ 	list_replace_rcu(&old->list, &e->list);
++	ip_set_put_byindex(map->net, old->id);
+ 	call_rcu(&old->rcu, __list_set_del_rcu);
+ }
+ 
+@@ -298,7 +302,7 @@ list_set_uadd(struct ip_set *set, void *value, const struct ip_set_ext *ext,
+ 	INIT_LIST_HEAD(&e->list);
+ 	list_set_init_extensions(set, ext, e);
+ 	if (n)
+-		list_set_replace(e, n);
++		list_set_replace(set, e, n);
+ 	else if (next)
+ 		list_add_tail_rcu(&e->list, &next->list);
+ 	else if (prev)
+@@ -486,6 +490,7 @@ list_set_list(const struct ip_set *set,
+ 	const struct list_set *map = set->data;
+ 	struct nlattr *atd, *nested;
+ 	u32 i = 0, first = cb->args[IPSET_CB_ARG0];
++	char name[IPSET_MAXNAMELEN];
+ 	struct set_elem *e;
+ 	int ret = 0;
+ 
+@@ -504,8 +509,8 @@ list_set_list(const struct ip_set *set,
+ 		nested = ipset_nest_start(skb, IPSET_ATTR_DATA);
+ 		if (!nested)
+ 			goto nla_put_failure;
+-		if (nla_put_string(skb, IPSET_ATTR_NAME,
+-				   ip_set_name_byindex(map->net, e->id)))
++		ip_set_name_byindex(map->net, e->id, name);
++		if (nla_put_string(skb, IPSET_ATTR_NAME, name))
+ 			goto nla_put_failure;
+ 		if (ip_set_put_extensions(skb, set, e, true))
+ 			goto nla_put_failure;
+-- 
+2.11.0
