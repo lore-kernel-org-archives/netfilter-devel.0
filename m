@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 07/14] netfilter: ipset: fix ip_set_list allocation failure
-Date: Tue,  6 Nov 2018 00:28:25 +0100
-Message-ID: <20181105232832.21896-8-pablo@netfilter.org>
+Subject: [PATCH 10/14] netfilter: ipset: Fix calling ip_set() macro at dumping
+Date: Tue,  6 Nov 2018 00:28:28 +0100
+Message-ID: <20181105232832.21896-11-pablo@netfilter.org>
 References: <20181105232832.21896-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,80 +10,58 @@ In-Reply-To: <20181105232832.21896-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Andrey Ryabinin <aryabinin@virtuozzo.com>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 
-ip_set_create() and ip_set_net_init() attempt to allocate physically
-contiguous memory for ip_set_list. If memory is fragmented, the
-allocations could easily fail:
+The ip_set() macro is called when either ip_set_ref_lock held only
+or no lock/nfnl mutex is held at dumping. Take this into account
+properly. Also, use Pablo's suggestion to use rcu_dereference_raw(),
+the ref_netlink protects the set.
 
-        vzctl: page allocation failure: order:7, mode:0xc0d0
-
-        Call Trace:
-         dump_stack+0x19/0x1b
-         warn_alloc_failed+0x110/0x180
-         __alloc_pages_nodemask+0x7bf/0xc60
-         alloc_pages_current+0x98/0x110
-         kmalloc_order+0x18/0x40
-         kmalloc_order_trace+0x26/0xa0
-         __kmalloc+0x279/0x290
-         ip_set_net_init+0x4b/0x90 [ip_set]
-         ops_init+0x3b/0xb0
-         setup_net+0xbb/0x170
-         copy_net_ns+0xf1/0x1c0
-         create_new_namespaces+0xf9/0x180
-         copy_namespaces+0x8e/0xd0
-         copy_process+0xb61/0x1a00
-         do_fork+0x91/0x320
-
-Use kvcalloc() to fallback to 0-order allocations if high order
-page isn't available.
-
-Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/ipset/ip_set_core.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ net/netfilter/ipset/ip_set_core.c | 12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
 diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
-index fa15a831aeee..68db946df151 100644
+index 68db946df151..1577f2f76060 100644
 --- a/net/netfilter/ipset/ip_set_core.c
 +++ b/net/netfilter/ipset/ip_set_core.c
-@@ -960,7 +960,7 @@ static int ip_set_create(struct net *net, struct sock *ctnl,
- 			/* Wraparound */
- 			goto cleanup;
+@@ -55,11 +55,15 @@ MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>");
+ MODULE_DESCRIPTION("core IP set support");
+ MODULE_ALIAS_NFNL_SUBSYS(NFNL_SUBSYS_IPSET);
  
--		list = kcalloc(i, sizeof(struct ip_set *), GFP_KERNEL);
-+		list = kvcalloc(i, sizeof(struct ip_set *), GFP_KERNEL);
- 		if (!list)
- 			goto cleanup;
- 		/* nfnl mutex is held, both lists are valid */
-@@ -972,7 +972,7 @@ static int ip_set_create(struct net *net, struct sock *ctnl,
- 		/* Use new list */
- 		index = inst->ip_set_max;
- 		inst->ip_set_max = i;
--		kfree(tmp);
-+		kvfree(tmp);
- 		ret = 0;
- 	} else if (ret) {
- 		goto cleanup;
-@@ -2058,7 +2058,7 @@ ip_set_net_init(struct net *net)
- 	if (inst->ip_set_max >= IPSET_INVALID_ID)
- 		inst->ip_set_max = IPSET_INVALID_ID - 1;
+-/* When the nfnl mutex is held: */
++/* When the nfnl mutex or ip_set_ref_lock is held: */
+ #define ip_set_dereference(p)		\
+-	rcu_dereference_protected(p, lockdep_nfnl_is_held(NFNL_SUBSYS_IPSET))
++	rcu_dereference_protected(p,	\
++		lockdep_nfnl_is_held(NFNL_SUBSYS_IPSET) || \
++		lockdep_is_held(&ip_set_ref_lock))
+ #define ip_set(inst, id)		\
+ 	ip_set_dereference((inst)->ip_set_list)[id]
++#define ip_set_ref_netlink(inst,id)	\
++	rcu_dereference_raw((inst)->ip_set_list)[id]
  
--	list = kcalloc(inst->ip_set_max, sizeof(struct ip_set *), GFP_KERNEL);
-+	list = kvcalloc(inst->ip_set_max, sizeof(struct ip_set *), GFP_KERNEL);
- 	if (!list)
- 		return -ENOMEM;
- 	inst->is_deleted = false;
-@@ -2086,7 +2086,7 @@ ip_set_net_exit(struct net *net)
- 		}
- 	}
- 	nfnl_unlock(NFNL_SUBSYS_IPSET);
--	kfree(rcu_dereference_protected(inst->ip_set_list, 1));
-+	kvfree(rcu_dereference_protected(inst->ip_set_list, 1));
- }
+ /* The set types are implemented in modules and registered set types
+  * can be found in ip_set_type_list. Adding/deleting types is
+@@ -1251,7 +1255,7 @@ ip_set_dump_done(struct netlink_callback *cb)
+ 		struct ip_set_net *inst =
+ 			(struct ip_set_net *)cb->args[IPSET_CB_NET];
+ 		ip_set_id_t index = (ip_set_id_t)cb->args[IPSET_CB_INDEX];
+-		struct ip_set *set = ip_set(inst, index);
++		struct ip_set *set = ip_set_ref_netlink(inst, index);
  
- static struct pernet_operations ip_set_net_ops = {
+ 		if (set->variant->uref)
+ 			set->variant->uref(set, cb, false);
+@@ -1440,7 +1444,7 @@ ip_set_dump_start(struct sk_buff *skb, struct netlink_callback *cb)
+ release_refcount:
+ 	/* If there was an error or set is done, release set */
+ 	if (ret || !cb->args[IPSET_CB_ARG0]) {
+-		set = ip_set(inst, index);
++		set = ip_set_ref_netlink(inst, index);
+ 		if (set->variant->uref)
+ 			set->variant->uref(set, cb, false);
+ 		pr_debug("release set %s\n", set->name);
 -- 
 2.11.0
