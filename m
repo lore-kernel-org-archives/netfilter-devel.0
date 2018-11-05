@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 12/14] netfilter: nfnetlink_cttimeout: pass default timeout policy to obj_to_nlattr
-Date: Tue,  6 Nov 2018 00:28:30 +0100
-Message-ID: <20181105232832.21896-13-pablo@netfilter.org>
+Subject: [PATCH 14/14] netfilter: conntrack: fix calculation of next bucket number in early_drop
+Date: Tue,  6 Nov 2018 00:28:32 +0100
+Message-ID: <20181105232832.21896-15-pablo@netfilter.org>
 References: <20181105232832.21896-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,112 +10,57 @@ In-Reply-To: <20181105232832.21896-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Otherwise, we hit a NULL pointer deference since handlers always assume
-default timeout policy is passed.
+From: Vasily Khoruzhick <vasilykh@arista.com>
 
-  netlink: 24 bytes leftover after parsing attributes in process `syz-executor2'.
-  kasan: CONFIG_KASAN_INLINE enabled
-  kasan: GPF could be caused by NULL-ptr deref or user memory access
-  general protection fault: 0000 [#1] PREEMPT SMP KASAN
-  CPU: 0 PID: 9575 Comm: syz-executor1 Not tainted 4.19.0+ #312
-  Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
-  RIP: 0010:icmp_timeout_obj_to_nlattr+0x77/0x170 net/netfilter/nf_conntrack_proto_icmp.c:297
+If there's no entry to drop in bucket that corresponds to the hash,
+early_drop() should look for it in other buckets. But since it increments
+hash instead of bucket number, it actually looks in the same bucket 8
+times: hsize is 16k by default (14 bits) and hash is 32-bit value, so
+reciprocal_scale(hash, hsize) returns the same value for hash..hash+7 in
+most cases.
 
-Fixes: c779e849608a ("netfilter: conntrack: remove get_timeout() indirection")
-Reported-by: Eric Dumazet <eric.dumazet@gmail.com>
+Fix it by increasing bucket number instead of hash and rename _hash
+to bucket to avoid future confusion.
+
+Fixes: 3e86638e9a0b ("netfilter: conntrack: consider ct netns in early_drop logic")
+Cc: <stable@vger.kernel.org> # v4.7+
+Signed-off-by: Vasily Khoruzhick <vasilykh@arista.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nfnetlink_cttimeout.c | 47 +++++++++++++++++++++++++++++++------
- 1 file changed, 40 insertions(+), 7 deletions(-)
+ net/netfilter/nf_conntrack_core.c | 13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
 
-diff --git a/net/netfilter/nfnetlink_cttimeout.c b/net/netfilter/nfnetlink_cttimeout.c
-index e7a50af1b3d6..a518eb162344 100644
---- a/net/netfilter/nfnetlink_cttimeout.c
-+++ b/net/netfilter/nfnetlink_cttimeout.c
-@@ -382,7 +382,8 @@ static int cttimeout_default_set(struct net *net, struct sock *ctnl,
- static int
- cttimeout_default_fill_info(struct net *net, struct sk_buff *skb, u32 portid,
- 			    u32 seq, u32 type, int event, u16 l3num,
--			    const struct nf_conntrack_l4proto *l4proto)
-+			    const struct nf_conntrack_l4proto *l4proto,
-+			    const unsigned int *timeouts)
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index ca1168d67fac..e92e749aff53 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -1073,19 +1073,22 @@ static unsigned int early_drop_list(struct net *net,
+ 	return drops;
+ }
+ 
+-static noinline int early_drop(struct net *net, unsigned int _hash)
++static noinline int early_drop(struct net *net, unsigned int hash)
  {
- 	struct nlmsghdr *nlh;
- 	struct nfgenmsg *nfmsg;
-@@ -408,7 +409,7 @@ cttimeout_default_fill_info(struct net *net, struct sk_buff *skb, u32 portid,
- 	if (!nest_parms)
- 		goto nla_put_failure;
+-	unsigned int i;
++	unsigned int i, bucket;
  
--	ret = l4proto->ctnl_timeout.obj_to_nlattr(skb, NULL);
-+	ret = l4proto->ctnl_timeout.obj_to_nlattr(skb, timeouts);
- 	if (ret < 0)
- 		goto nla_put_failure;
+ 	for (i = 0; i < NF_CT_EVICTION_RANGE; i++) {
+ 		struct hlist_nulls_head *ct_hash;
+-		unsigned int hash, hsize, drops;
++		unsigned int hsize, drops;
  
-@@ -430,6 +431,7 @@ static int cttimeout_default_get(struct net *net, struct sock *ctnl,
- 				 struct netlink_ext_ack *extack)
- {
- 	const struct nf_conntrack_l4proto *l4proto;
-+	unsigned int *timeouts = NULL;
- 	struct sk_buff *skb2;
- 	int ret, err;
- 	__u16 l3num;
-@@ -442,12 +444,44 @@ static int cttimeout_default_get(struct net *net, struct sock *ctnl,
- 	l4num = nla_get_u8(cda[CTA_TIMEOUT_L4PROTO]);
- 	l4proto = nf_ct_l4proto_find_get(l4num);
+ 		rcu_read_lock();
+ 		nf_conntrack_get_ht(&ct_hash, &hsize);
+-		hash = reciprocal_scale(_hash++, hsize);
++		if (!i)
++			bucket = reciprocal_scale(hash, hsize);
++		else
++			bucket = (bucket + 1) % hsize;
  
--	/* This protocol is not supported, skip. */
--	if (l4proto->l4proto != l4num) {
--		err = -EOPNOTSUPP;
-+	err = -EOPNOTSUPP;
-+	if (l4proto->l4proto != l4num)
- 		goto err;
-+
-+	switch (l4proto->l4proto) {
-+	case IPPROTO_ICMP:
-+		timeouts = &nf_icmp_pernet(net)->timeout;
-+		break;
-+	case IPPROTO_TCP:
-+		timeouts = nf_tcp_pernet(net)->timeouts;
-+		break;
-+	case IPPROTO_UDP:
-+		timeouts = nf_udp_pernet(net)->timeouts;
-+		break;
-+	case IPPROTO_DCCP:
-+#ifdef CONFIG_NF_CT_PROTO_DCCP
-+		timeouts = nf_dccp_pernet(net)->dccp_timeout;
-+#endif
-+		break;
-+	case IPPROTO_ICMPV6:
-+		timeouts = &nf_icmpv6_pernet(net)->timeout;
-+		break;
-+	case IPPROTO_SCTP:
-+#ifdef CONFIG_NF_CT_PROTO_SCTP
-+		timeouts = nf_sctp_pernet(net)->timeouts;
-+#endif
-+		break;
-+	case 255:
-+		timeouts = &nf_generic_pernet(net)->timeout;
-+		break;
-+	default:
-+		WARN_ON_ONCE(1);
-+		break;
- 	}
+-		drops = early_drop_list(net, &ct_hash[hash]);
++		drops = early_drop_list(net, &ct_hash[bucket]);
+ 		rcu_read_unlock();
  
-+	if (!timeouts)
-+		goto err;
-+
- 	skb2 = nlmsg_new(NLMSG_DEFAULT_SIZE, GFP_KERNEL);
- 	if (skb2 == NULL) {
- 		err = -ENOMEM;
-@@ -458,8 +492,7 @@ static int cttimeout_default_get(struct net *net, struct sock *ctnl,
- 					  nlh->nlmsg_seq,
- 					  NFNL_MSG_TYPE(nlh->nlmsg_type),
- 					  IPCTNL_MSG_TIMEOUT_DEFAULT_SET,
--					  l3num,
--					  l4proto);
-+					  l3num, l4proto, timeouts);
- 	if (ret <= 0) {
- 		kfree_skb(skb2);
- 		err = -ENOMEM;
+ 		if (drops) {
 -- 
 2.11.0
