@@ -1,36 +1,26 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 02/14] netfilter: nft_osf: check if attribute is present
-Date: Tue,  6 Nov 2018 00:28:20 +0100
-Message-ID: <20181105232832.21896-3-pablo@netfilter.org>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 00/14] Netfilter fixes for net
+Date: Mon, 05 Nov 2018 17:19:45 -0800 (PST)
+Message-ID: <20181105.171945.1710605866162937712.davem@davemloft.net>
 References: <20181105232832.21896-1-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20181105232832.21896-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-If the attribute is not sent, eg. old libnftnl binary, then
-tb[NFTA_OSF_TTL] is NULL and kernel crashes from the _init path.
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Tue,  6 Nov 2018 00:28:18 +0100
 
-Fixes: a218dc82f0b5 ("netfilter: nft_osf: Add ttl option support")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nft_osf.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+> The following patchset contains the first batch of Netfilter fixes for
+> your net tree:
+ ...
+> You can pull these changes from:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
 
-diff --git a/net/netfilter/nft_osf.c b/net/netfilter/nft_osf.c
-index ca5e5d8c5ef8..b13618c764ec 100644
---- a/net/netfilter/nft_osf.c
-+++ b/net/netfilter/nft_osf.c
-@@ -50,7 +50,7 @@ static int nft_osf_init(const struct nft_ctx *ctx,
- 	int err;
- 	u8 ttl;
- 
--	if (nla_get_u8(tb[NFTA_OSF_TTL])) {
-+	if (tb[NFTA_OSF_TTL]) {
- 		ttl = nla_get_u8(tb[NFTA_OSF_TTL]);
- 		if (ttl > 2)
- 			return -EINVAL;
--- 
-2.11.0
+Pulled, thank you.
