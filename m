@@ -1,7 +1,7 @@
 From: Christian Brauner <christian@brauner.io>
-Subject: [PATCH net-next 1/2] br_netfilter: add struct netns_brnf
-Date: Wed,  7 Nov 2018 14:48:58 +0100
-Message-ID: <20181107134859.19896-2-christian@brauner.io>
+Subject: [PATCH net-next 2/2] br_netfilter: namespace bridge netfilter sysctls
+Date: Wed,  7 Nov 2018 14:48:59 +0100
+Message-ID: <20181107134859.19896-3-christian@brauner.io>
 References: <20181107134859.19896-1-christian@brauner.io>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -17,247 +17,325 @@ In-Reply-To: <20181107134859.19896-1-christian@brauner.io>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This adds struct netns_brnf in preparation for per-network-namespace
-br_netfilter settings. The individual br_netfilter sysctl options are moved
-into a central place in struct net. The struct is only included when
-the CONFIG_BRIDGE_NETFILTER kconfig option is enabled in the kernel.
+Currently, the /proc/sys/net/bridge folder is only created in the initial
+network namespace. This patch ensures that the /proc/sys/net/bridge folder
+is available in each network namespace if the module is loaded and
+disappears from all network namespaces when the module is unloaded.
+
+In doing so the patch makes the sysctls:
+
+bridge-nf-call-arptables
+bridge-nf-call-ip6tables
+bridge-nf-call-iptables
+bridge-nf-filter-pppoe-tagged
+bridge-nf-filter-vlan-tagged
+bridge-nf-pass-vlan-input-dev
+
+apply per network namespace. This unblocks some use-cases where users would
+like to e.g. not do bridge filtering for bridges in a specific network
+namespace while doing so for bridges located in another network namespace.
+
+The netfilter rules are afaict already per network namespace so it should
+be safe for users to specify whether bridge devices inside a network
+namespace are supposed to go through iptables et al. or not. Also, this can
+already be done per-bridge by setting an option for each individual bridge
+via Netlink. It should also be possible to do this for all bridges in a
+network namespace via sysctls.
 
 Signed-off-by: Christian Brauner <christian.brauner@ubuntu.com>
 Reviewed-by: Tyler Hicks <tyhicks@canonical.com>
 ---
- include/net/net_namespace.h     |  3 ++
- include/net/netns/netfilter.h   | 16 ++++++++
- net/bridge/br_netfilter_hooks.c | 68 ++++++++++++++++-----------------
- 3 files changed, 52 insertions(+), 35 deletions(-)
+ include/net/netfilter/br_netfilter.h |   3 +-
+ net/bridge/br_netfilter_hooks.c      | 116 ++++++++++++++++++++-------
+ net/bridge/br_netfilter_ipv6.c       |   2 +-
+ 3 files changed, 91 insertions(+), 30 deletions(-)
 
-diff --git a/include/net/net_namespace.h b/include/net/net_namespace.h
-index 99d4148e0f90..bea0474cd3ea 100644
---- a/include/net/net_namespace.h
-+++ b/include/net/net_namespace.h
-@@ -125,6 +125,9 @@ struct net {
- #if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
- 	struct netns_ct		ct;
- #endif
-+#if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
-+	struct netns_brnf	brnf;
-+#endif
- #if defined(CONFIG_NF_TABLES) || defined(CONFIG_NF_TABLES_MODULE)
- 	struct netns_nftables	nft;
- #endif
-diff --git a/include/net/netns/netfilter.h b/include/net/netns/netfilter.h
-index ca043342c0eb..eedbd1ac940e 100644
---- a/include/net/netns/netfilter.h
-+++ b/include/net/netns/netfilter.h
-@@ -35,4 +35,20 @@ struct netns_nf {
- 	bool			defrag_ipv6;
- #endif
- };
-+
-+struct netns_brnf {
-+#ifdef CONFIG_SYSCTL
-+	struct ctl_table_header *ctl_hdr;
-+#endif
-+
-+	/* default value is 1 */
-+	int call_iptables;
-+	int call_ip6tables;
-+	int call_arptables;
-+
-+	/* default value is 0 */
-+	int filter_vlan_tagged;
-+	int filter_pppoe_tagged;
-+	int pass_vlan_indev;
-+};
- #endif
+diff --git a/include/net/netfilter/br_netfilter.h b/include/net/netfilter/br_netfilter.h
+index 74af19c3a8f7..e51f5961272b 100644
+--- a/include/net/netfilter/br_netfilter.h
++++ b/include/net/netfilter/br_netfilter.h
+@@ -48,7 +48,8 @@ static inline struct rtable *bridge_parent_rtable(const struct net_device *dev)
+ 	return port ? &port->br->fake_rtable : NULL;
+ }
+ 
+-struct net_device *setup_pre_routing(struct sk_buff *skb);
++struct net_device *setup_pre_routing(struct sk_buff *skb,
++				     const struct net *net);
+ void br_netfilter_enable(void);
+ 
+ #if IS_ENABLED(CONFIG_IPV6)
 diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
-index b1b5e8516724..656a084f4825 100644
+index 656a084f4825..8a33268f2750 100644
 --- a/net/bridge/br_netfilter_hooks.c
 +++ b/net/bridge/br_netfilter_hooks.c
-@@ -53,23 +53,6 @@ struct brnf_net {
- 	bool enabled;
- };
+@@ -72,17 +72,17 @@ static inline __be16 vlan_proto(const struct sk_buff *skb)
+ 		return 0;
+ }
  
--#ifdef CONFIG_SYSCTL
--static struct ctl_table_header *brnf_sysctl_header;
--static int brnf_call_iptables __read_mostly = 1;
--static int brnf_call_ip6tables __read_mostly = 1;
--static int brnf_call_arptables __read_mostly = 1;
--static int brnf_filter_vlan_tagged __read_mostly;
--static int brnf_filter_pppoe_tagged __read_mostly;
--static int brnf_pass_vlan_indev __read_mostly;
--#else
--#define brnf_call_iptables 1
--#define brnf_call_ip6tables 1
--#define brnf_call_arptables 1
--#define brnf_filter_vlan_tagged 0
--#define brnf_filter_pppoe_tagged 0
--#define brnf_pass_vlan_indev 0
--#endif
--
- #define IS_IP(skb) \
- 	(!skb_vlan_tag_present(skb) && skb->protocol == htons(ETH_P_IP))
- 
-@@ -91,15 +74,15 @@ static inline __be16 vlan_proto(const struct sk_buff *skb)
- 
- #define IS_VLAN_IP(skb) \
+-#define IS_VLAN_IP(skb) \
++#define IS_VLAN_IP(skb, net) \
  	(vlan_proto(skb) == htons(ETH_P_IP) && \
--	 brnf_filter_vlan_tagged)
-+	 init_net.brnf.filter_vlan_tagged)
+-	 init_net.brnf.filter_vlan_tagged)
++	 net->brnf.filter_vlan_tagged)
  
- #define IS_VLAN_IPV6(skb) \
+-#define IS_VLAN_IPV6(skb) \
++#define IS_VLAN_IPV6(skb, net) \
  	(vlan_proto(skb) == htons(ETH_P_IPV6) && \
--	 brnf_filter_vlan_tagged)
-+	 init_net.brnf.filter_vlan_tagged)
+-	 init_net.brnf.filter_vlan_tagged)
++	 net->brnf.filter_vlan_tagged)
  
- #define IS_VLAN_ARP(skb) \
+-#define IS_VLAN_ARP(skb) \
++#define IS_VLAN_ARP(skb, net) \
  	(vlan_proto(skb) == htons(ETH_P_ARP) &&	\
--	 brnf_filter_vlan_tagged)
-+	 init_net.brnf.filter_vlan_tagged)
+-	 init_net.brnf.filter_vlan_tagged)
++	 net->brnf.filter_vlan_tagged)
  
  static inline __be16 pppoe_proto(const struct sk_buff *skb)
  {
-@@ -110,12 +93,12 @@ static inline __be16 pppoe_proto(const struct sk_buff *skb)
- #define IS_PPPOE_IP(skb) \
+@@ -90,15 +90,15 @@ static inline __be16 pppoe_proto(const struct sk_buff *skb)
+ 			    sizeof(struct pppoe_hdr)));
+ }
+ 
+-#define IS_PPPOE_IP(skb) \
++#define IS_PPPOE_IP(skb, net) \
  	(skb->protocol == htons(ETH_P_PPP_SES) && \
  	 pppoe_proto(skb) == htons(PPP_IP) && \
--	 brnf_filter_pppoe_tagged)
-+	 init_net.brnf.filter_pppoe_tagged)
+-	 init_net.brnf.filter_pppoe_tagged)
++	 net->brnf.filter_pppoe_tagged)
  
- #define IS_PPPOE_IPV6(skb) \
+-#define IS_PPPOE_IPV6(skb) \
++#define IS_PPPOE_IPV6(skb, net) \
  	(skb->protocol == htons(ETH_P_PPP_SES) && \
  	 pppoe_proto(skb) == htons(PPP_IPV6) && \
--	 brnf_filter_pppoe_tagged)
-+	 init_net.brnf.filter_pppoe_tagged)
+-	 init_net.brnf.filter_pppoe_tagged)
++	 net->brnf.filter_pppoe_tagged)
  
  /* largest possible L2 header, see br_nf_dev_queue_xmit() */
  #define NF_BRIDGE_MAX_MAC_HEADER_LENGTH (PPPOE_SES_HLEN + ETH_HLEN)
-@@ -430,7 +413,7 @@ static struct net_device *brnf_get_logical_dev(struct sk_buff *skb, const struct
+@@ -408,12 +408,14 @@ static int br_nf_pre_routing_finish(struct net *net, struct sock *sk, struct sk_
+ 	return 0;
+ }
+ 
+-static struct net_device *brnf_get_logical_dev(struct sk_buff *skb, const struct net_device *dev)
++static struct net_device *brnf_get_logical_dev(struct sk_buff *skb,
++					       const struct net_device *dev,
++					       const struct net *net)
+ {
  	struct net_device *vlan, *br;
  
  	br = bridge_parent(dev);
--	if (brnf_pass_vlan_indev == 0 || !skb_vlan_tag_present(skb))
-+	if (init_net.brnf.pass_vlan_indev == 0 || !skb_vlan_tag_present(skb))
+-	if (init_net.brnf.pass_vlan_indev == 0 || !skb_vlan_tag_present(skb))
++	if (net->brnf.pass_vlan_indev == 0 || !skb_vlan_tag_present(skb))
  		return br;
  
  	vlan = __vlan_find_dev_deep_rcu(br, skb->vlan_proto,
-@@ -487,7 +470,7 @@ static unsigned int br_nf_pre_routing(void *priv,
+@@ -423,7 +425,7 @@ static struct net_device *brnf_get_logical_dev(struct sk_buff *skb, const struct
+ }
+ 
+ /* Some common code for IPv4/IPv6 */
+-struct net_device *setup_pre_routing(struct sk_buff *skb)
++struct net_device *setup_pre_routing(struct sk_buff *skb, const struct net *net)
+ {
+ 	struct nf_bridge_info *nf_bridge = nf_bridge_info_get(skb);
+ 
+@@ -434,7 +436,7 @@ struct net_device *setup_pre_routing(struct sk_buff *skb)
+ 
+ 	nf_bridge->in_prerouting = 1;
+ 	nf_bridge->physindev = skb->dev;
+-	skb->dev = brnf_get_logical_dev(skb, skb->dev);
++	skb->dev = brnf_get_logical_dev(skb, skb->dev, net);
+ 
+ 	if (skb->protocol == htons(ETH_P_8021Q))
+ 		nf_bridge->orig_proto = BRNF_PROTO_8021Q;
+@@ -469,8 +471,9 @@ static unsigned int br_nf_pre_routing(void *priv,
+ 		return NF_DROP;
  	br = p->br;
  
- 	if (IS_IPV6(skb) || IS_VLAN_IPV6(skb) || IS_PPPOE_IPV6(skb)) {
--		if (!brnf_call_ip6tables &&
-+		if (!init_net.brnf.call_ip6tables &&
+-	if (IS_IPV6(skb) || IS_VLAN_IPV6(skb) || IS_PPPOE_IPV6(skb)) {
+-		if (!init_net.brnf.call_ip6tables &&
++	if (IS_IPV6(skb) || IS_VLAN_IPV6(skb, state->net) ||
++	    IS_PPPOE_IPV6(skb, state->net)) {
++		if (!state->net->brnf.call_ip6tables &&
  		    !br_opt_get(br, BROPT_NF_CALL_IP6TABLES))
  			return NF_ACCEPT;
  
-@@ -495,7 +478,8 @@ static unsigned int br_nf_pre_routing(void *priv,
+@@ -478,11 +481,12 @@ static unsigned int br_nf_pre_routing(void *priv,
  		return br_nf_pre_routing_ipv6(priv, skb, state);
  	}
  
--	if (!brnf_call_iptables && !br_opt_get(br, BROPT_NF_CALL_IPTABLES))
-+	if (!init_net.brnf.call_iptables &&
-+	    !br_opt_get(br, BROPT_NF_CALL_IPTABLES))
+-	if (!init_net.brnf.call_iptables &&
++	if (!state->net->brnf.call_iptables &&
+ 	    !br_opt_get(br, BROPT_NF_CALL_IPTABLES))
  		return NF_ACCEPT;
  
- 	if (!IS_IP(skb) && !IS_VLAN_IP(skb) && !IS_PPPOE_IP(skb))
-@@ -637,7 +621,8 @@ static unsigned int br_nf_forward_arp(void *priv,
+-	if (!IS_IP(skb) && !IS_VLAN_IP(skb) && !IS_PPPOE_IP(skb))
++	if (!IS_IP(skb) && !IS_VLAN_IP(skb, state->net) &&
++	    !IS_PPPOE_IP(skb, state->net))
+ 		return NF_ACCEPT;
+ 
+ 	nf_bridge_pull_encap_header_rcsum(skb);
+@@ -493,7 +497,7 @@ static unsigned int br_nf_pre_routing(void *priv,
+ 	nf_bridge_put(skb->nf_bridge);
+ 	if (!nf_bridge_alloc(skb))
+ 		return NF_DROP;
+-	if (!setup_pre_routing(skb))
++	if (!setup_pre_routing(skb, state->net))
+ 		return NF_DROP;
+ 
+ 	nf_bridge = nf_bridge_info_get(skb);
+@@ -515,7 +519,7 @@ static int br_nf_forward_finish(struct net *net, struct sock *sk, struct sk_buff
+ 	struct nf_bridge_info *nf_bridge = nf_bridge_info_get(skb);
+ 	struct net_device *in;
+ 
+-	if (!IS_ARP(skb) && !IS_VLAN_ARP(skb)) {
++	if (!IS_ARP(skb) && !IS_VLAN_ARP(skb, net)) {
+ 
+ 		if (skb->protocol == htons(ETH_P_IP))
+ 			nf_bridge->frag_max_size = IPCB(skb)->frag_max_size;
+@@ -569,9 +573,11 @@ static unsigned int br_nf_forward_ip(void *priv,
+ 	if (!parent)
+ 		return NF_DROP;
+ 
+-	if (IS_IP(skb) || IS_VLAN_IP(skb) || IS_PPPOE_IP(skb))
++	if (IS_IP(skb) || IS_VLAN_IP(skb, state->net) ||
++	    IS_PPPOE_IP(skb, state->net))
+ 		pf = NFPROTO_IPV4;
+-	else if (IS_IPV6(skb) || IS_VLAN_IPV6(skb) || IS_PPPOE_IPV6(skb))
++	else if (IS_IPV6(skb) || IS_VLAN_IPV6(skb, state->net) ||
++		 IS_PPPOE_IPV6(skb, state->net))
+ 		pf = NFPROTO_IPV6;
+ 	else
+ 		return NF_ACCEPT;
+@@ -602,7 +608,7 @@ static unsigned int br_nf_forward_ip(void *priv,
+ 		skb->protocol = htons(ETH_P_IPV6);
+ 
+ 	NF_HOOK(pf, NF_INET_FORWARD, state->net, NULL, skb,
+-		brnf_get_logical_dev(skb, state->in),
++		brnf_get_logical_dev(skb, state->in, state->net),
+ 		parent,	br_nf_forward_finish);
+ 
+ 	return NF_STOLEN;
+@@ -621,18 +627,18 @@ static unsigned int br_nf_forward_arp(void *priv,
  		return NF_ACCEPT;
  	br = p->br;
  
--	if (!brnf_call_arptables && !br_opt_get(br, BROPT_NF_CALL_ARPTABLES))
-+	if (!init_net.brnf.call_arptables &&
-+	    !br_opt_get(br, BROPT_NF_CALL_ARPTABLES))
+-	if (!init_net.brnf.call_arptables &&
++	if (!state->net->brnf.call_arptables &&
+ 	    !br_opt_get(br, BROPT_NF_CALL_ARPTABLES))
  		return NF_ACCEPT;
  
  	if (!IS_ARP(skb)) {
-@@ -1032,42 +1017,42 @@ int brnf_sysctl_call_tables(struct ctl_table *ctl, int write,
- static struct ctl_table brnf_table[] = {
- 	{
- 		.procname	= "bridge-nf-call-arptables",
--		.data		= &brnf_call_arptables,
-+		.data		= &init_net.brnf.call_arptables,
- 		.maxlen		= sizeof(int),
- 		.mode		= 0644,
- 		.proc_handler	= brnf_sysctl_call_tables,
- 	},
- 	{
- 		.procname	= "bridge-nf-call-iptables",
--		.data		= &brnf_call_iptables,
-+		.data		= &init_net.brnf.call_iptables,
- 		.maxlen		= sizeof(int),
- 		.mode		= 0644,
- 		.proc_handler	= brnf_sysctl_call_tables,
- 	},
- 	{
- 		.procname	= "bridge-nf-call-ip6tables",
--		.data		= &brnf_call_ip6tables,
-+		.data		= &init_net.brnf.call_ip6tables,
- 		.maxlen		= sizeof(int),
- 		.mode		= 0644,
- 		.proc_handler	= brnf_sysctl_call_tables,
- 	},
- 	{
- 		.procname	= "bridge-nf-filter-vlan-tagged",
--		.data		= &brnf_filter_vlan_tagged,
-+		.data		= &init_net.brnf.filter_vlan_tagged,
- 		.maxlen		= sizeof(int),
- 		.mode		= 0644,
- 		.proc_handler	= brnf_sysctl_call_tables,
- 	},
- 	{
- 		.procname	= "bridge-nf-filter-pppoe-tagged",
--		.data		= &brnf_filter_pppoe_tagged,
-+		.data		= &init_net.brnf.filter_pppoe_tagged,
- 		.maxlen		= sizeof(int),
- 		.mode		= 0644,
- 		.proc_handler	= brnf_sysctl_call_tables,
- 	},
- 	{
- 		.procname	= "bridge-nf-pass-vlan-input-dev",
--		.data		= &brnf_pass_vlan_indev,
-+		.data		= &init_net.brnf.pass_vlan_indev,
- 		.maxlen		= sizeof(int),
- 		.mode		= 0644,
- 		.proc_handler	= brnf_sysctl_call_tables,
-@@ -1076,6 +1061,16 @@ static struct ctl_table brnf_table[] = {
- };
- #endif
+-		if (!IS_VLAN_ARP(skb))
++		if (!IS_VLAN_ARP(skb, state->net))
+ 			return NF_ACCEPT;
+ 		nf_bridge_pull_encap_header(skb);
+ 	}
  
-+static inline void br_netfilter_sysctl_default(struct netns_brnf *brnf)
+ 	if (arp_hdr(skb)->ar_pln != 4) {
+-		if (IS_VLAN_ARP(skb))
++		if (IS_VLAN_ARP(skb, state->net))
+ 			nf_bridge_push_encap_header(skb);
+ 		return NF_ACCEPT;
+ 	}
+@@ -787,9 +793,11 @@ static unsigned int br_nf_post_routing(void *priv,
+ 	if (!realoutdev)
+ 		return NF_DROP;
+ 
+-	if (IS_IP(skb) || IS_VLAN_IP(skb) || IS_PPPOE_IP(skb))
++	if (IS_IP(skb) || IS_VLAN_IP(skb, state->net) ||
++	    IS_PPPOE_IP(skb, state->net))
+ 		pf = NFPROTO_IPV4;
+-	else if (IS_IPV6(skb) || IS_VLAN_IPV6(skb) || IS_PPPOE_IPV6(skb))
++	else if (IS_IPV6(skb) || IS_VLAN_IPV6(skb, state->net) ||
++		 IS_PPPOE_IPV6(skb, state->net))
+ 		pf = NFPROTO_IPV6;
+ 	else
+ 		return NF_ACCEPT;
+@@ -1071,6 +1079,49 @@ static inline void br_netfilter_sysctl_default(struct netns_brnf *brnf)
+ 	brnf->pass_vlan_indev = 0;
+ }
+ 
++static __net_init int br_netfilter_sysctl_init_net(struct net *net)
 +{
-+	brnf->call_iptables = 1;
-+	brnf->call_ip6tables = 1;
-+	brnf->call_arptables = 1;
-+	brnf->filter_vlan_tagged = 0;
-+	brnf->filter_pppoe_tagged = 0;
-+	brnf->pass_vlan_indev = 0;
++	struct ctl_table *table = brnf_table;
++
++	if (net_eq(net, &init_net))
++		return 0;
++
++	table = kmemdup(table, sizeof(brnf_table), GFP_KERNEL);
++	if (!table)
++		return -ENOMEM;
++
++	table[0].data = &net->brnf.call_arptables;
++	table[1].data = &net->brnf.call_iptables;
++	table[2].data = &net->brnf.call_ip6tables;
++	table[3].data = &net->brnf.filter_vlan_tagged;
++	table[4].data = &net->brnf.filter_pppoe_tagged;
++	table[5].data = &net->brnf.pass_vlan_indev;
++
++	net->brnf.ctl_hdr = register_net_sysctl(net, "net/bridge", table);
++	if (!net->brnf.ctl_hdr) {
++		kfree(table);
++		return -ENOMEM;
++	}
++
++	br_netfilter_sysctl_default(&net->brnf);
++
++	return 0;
 +}
++
++static __net_exit void br_netfilter_sysctl_exit_net(struct net *net)
++{
++	if (net_eq(net, &init_net))
++		return;
++
++	unregister_net_sysctl_table(net->brnf.ctl_hdr);
++	kfree(net->brnf.ctl_hdr->ctl_table_arg);
++}
++
++static struct pernet_operations br_netfilter_sysctl_ops = {
++	.init = br_netfilter_sysctl_init_net,
++	.exit = br_netfilter_sysctl_exit_net,
++};
 +
  static int __init br_netfilter_init(void)
  {
  	int ret;
-@@ -1090,9 +1085,12 @@ static int __init br_netfilter_init(void)
- 		return ret;
+@@ -1097,6 +1148,14 @@ static int __init br_netfilter_init(void)
+ 		unregister_pernet_subsys(&brnf_net_ops);
+ 		return -ENOMEM;
  	}
- 
-+	/* Always set default values. Even if CONFIG_SYSCTL is not set. */
-+	br_netfilter_sysctl_default(&init_net.brnf);
 +
- #ifdef CONFIG_SYSCTL
--	brnf_sysctl_header = register_net_sysctl(&init_net, "net/bridge", brnf_table);
--	if (brnf_sysctl_header == NULL) {
-+	init_net.brnf.ctl_hdr = register_net_sysctl(&init_net, "net/bridge", brnf_table);
-+	if (!init_net.brnf.ctl_hdr) {
- 		printk(KERN_WARNING
- 		       "br_netfilter: can't register to sysctl.\n");
- 		unregister_netdevice_notifier(&brnf_notifier);
-@@ -1111,7 +1109,7 @@ static void __exit br_netfilter_fini(void)
- 	unregister_netdevice_notifier(&brnf_notifier);
++	ret = register_pernet_subsys(&br_netfilter_sysctl_ops);
++	if (ret < 0) {
++		unregister_netdevice_notifier(&brnf_notifier);
++		unregister_pernet_subsys(&brnf_net_ops);
++		unregister_net_sysctl_table(init_net.brnf.ctl_hdr);
++		return ret;
++	}
+ #endif
+ 	RCU_INIT_POINTER(nf_br_ops, &br_ops);
+ 	printk(KERN_NOTICE "Bridge firewalling registered\n");
+@@ -1110,6 +1169,7 @@ static void __exit br_netfilter_fini(void)
  	unregister_pernet_subsys(&brnf_net_ops);
  #ifdef CONFIG_SYSCTL
--	unregister_net_sysctl_table(brnf_sysctl_header);
-+	unregister_net_sysctl_table(init_net.brnf.ctl_hdr);
+ 	unregister_net_sysctl_table(init_net.brnf.ctl_hdr);
++	unregister_pernet_subsys(&br_netfilter_sysctl_ops);
  #endif
  }
  
+diff --git a/net/bridge/br_netfilter_ipv6.c b/net/bridge/br_netfilter_ipv6.c
+index 96c072e71ea2..d2220e502b6f 100644
+--- a/net/bridge/br_netfilter_ipv6.c
++++ b/net/bridge/br_netfilter_ipv6.c
+@@ -227,7 +227,7 @@ unsigned int br_nf_pre_routing_ipv6(void *priv,
+ 	nf_bridge_put(skb->nf_bridge);
+ 	if (!nf_bridge_alloc(skb))
+ 		return NF_DROP;
+-	if (!setup_pre_routing(skb))
++	if (!setup_pre_routing(skb, state->net))
+ 		return NF_DROP;
+ 
+ 	nf_bridge = nf_bridge_info_get(skb);
 -- 
 2.19.1
