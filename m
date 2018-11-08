@@ -1,25 +1,25 @@
 From: =?UTF-8?q?Micha=C5=82=20Miros=C5=82aw?= <mirq-linux@rere.qmqm.pl>
-Subject: [PATCH net-next 4/9] 8021q: use __vlan_hwaccel helpers
-Date: Fri, 09 Nov 2018 00:18:03 +0100
-Message-ID: <e016c369084d747bdd4b1cd5956f2272261ff678.1541718583.git.mirq-linux@rere.qmqm.pl>
+Subject: [PATCH net-next 2/9] nfnetlink/queue: use __vlan_hwaccel helpers
+Date: Fri, 09 Nov 2018 00:18:02 +0100
+Message-ID: <af0443419646b8e53d794c7565c47f8dc9ef5d1a.1541718583.git.mirq-linux@rere.qmqm.pl>
 References: <cover.1541718583.git.mirq-linux@rere.qmqm.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-Cc: "David S. Miller" <davem@davemloft.net>,
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         Ajit Khaparde <ajit.khaparde@broadcom.com>,
         Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
         bridge@lists.linux-foundation.org,
-        Cong Wang <xiyou.wangcong@gmail.com>, coreteam@netfilter.org,
-        Florian Westphal <fw@strlen.de>,
+        Cong Wang <xiyou.wangcong@gmail.com>,
+        "David S. Miller" <davem@davemloft.net>,
         Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
         Jamal Hadi Salim <jhs@mojatatu.com>,
-        Jiri Pirko <jiri@resnulli.us>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        linux-rdma@vger.kernel.org, Mirko Lindner <mlindner@marvell.com>,
-        netfilter-devel@vger.kernel.org,
+        Jiri Pirko <jiri@resnulli.us>, linux-rdma@vger.kernel.org,
+        Mirko Lindner <mlindner@marvell.com>,
         Nikolay Aleksandrov <nikolay@cumulusnetworks.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
         Roopa Prabhu <roopa@cumulusnetworks.com>,
         Sathya Perla <sathya.perla@broadcom.com>,
         Somnath Kotur <somnath.kotur@broadcom.com>,
@@ -32,21 +32,24 @@ List-Id: netfilter-devel.vger.kernel.org
 
 Signed-off-by: Michał Mirosław <mirq-linux@rere.qmqm.pl>
 ---
- net/8021q/vlan_core.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/netfilter/nfnetlink_queue.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/net/8021q/vlan_core.c b/net/8021q/vlan_core.c
-index 4f60e86f4b8d..dd39489c829a 100644
---- a/net/8021q/vlan_core.c
-+++ b/net/8021q/vlan_core.c
-@@ -57,7 +57,7 @@ bool vlan_do_receive(struct sk_buff **skbp)
+diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+index 43041f087eb3..1ce30efe6854 100644
+--- a/net/netfilter/nfnetlink_queue.c
++++ b/net/netfilter/nfnetlink_queue.c
+@@ -1148,8 +1148,9 @@ static int nfqa_parse_bridge(struct nf_queue_entry *entry,
+ 		if (!tb[NFQA_VLAN_TCI] || !tb[NFQA_VLAN_PROTO])
+ 			return -EINVAL;
+ 
+-		entry->skb->vlan_tci = ntohs(nla_get_be16(tb[NFQA_VLAN_TCI]));
+-		entry->skb->vlan_proto = nla_get_be16(tb[NFQA_VLAN_PROTO]);
++		__vlan_hwaccel_put_tag(entry->skb,
++			nla_get_be16(tb[NFQA_VLAN_PROTO]),
++			ntohs(nla_get_be16(tb[NFQA_VLAN_TCI])));
  	}
  
- 	skb->priority = vlan_get_ingress_priority(vlan_dev, skb->vlan_tci);
--	skb->vlan_tci = 0;
-+	__vlan_hwaccel_clear_tag(skb);
- 
- 	rx_stats = this_cpu_ptr(vlan_dev_priv(vlan_dev)->vlan_pcpu_stats);
- 
+ 	if (nfqa[NFQA_L2HDR]) {
 -- 
 2.19.1
