@@ -1,26 +1,26 @@
 From: =?UTF-8?q?Micha=C5=82=20Miros=C5=82aw?= <mirq-linux@rere.qmqm.pl>
-Subject: [PATCH net-next 3/9] net/core: use __vlan_hwaccel helpers
-Date: Fri, 09 Nov 2018 00:18:02 +0100
-Message-ID: <c27737b63ec762836a000e2bb4fc95419ab0f097.1541718583.git.mirq-linux@rere.qmqm.pl>
+Subject: [PATCH net-next 5/9] bridge: use __vlan_hwaccel helpers
+Date: Fri, 09 Nov 2018 00:18:03 +0100
+Message-ID: <e3a2983a43e3e31bc123f0129d08d4b9df267136.1541718583.git.mirq-linux@rere.qmqm.pl>
 References: <cover.1541718583.git.mirq-linux@rere.qmqm.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-Cc: "David S. Miller" <davem@davemloft.net>,
-        Jamal Hadi Salim <jhs@mojatatu.com>,
-        Cong Wang <xiyou.wangcong@gmail.com>,
-        Jiri Pirko <jiri@resnulli.us>,
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>,
+        Roopa Prabhu <roopa@cumulusnetworks.com>,
+        Nikolay Aleksandrov <nikolay@cumulusnetworks.com>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        bridge@lists.linux-foundation.org,
         Ajit Khaparde <ajit.khaparde@broadcom.com>,
         Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-        bridge@lists.linux-foundation.org, coreteam@netfilter.org,
-        Florian Westphal <fw@strlen.de>,
+        Cong Wang <xiyou.wangcong@gmail.com>,
+        "David S. Miller" <davem@davemloft.net>,
         Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        linux-rdma@vger.kernel.org, Mirko Lindner <mlindner@marvell.com>,
-        netfilter-devel@vger.kernel.org,
-        Nikolay Aleksandrov <nikolay@cumulusnetworks.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Roopa Prabhu <roopa@cumulusnetworks.com>,
+        Jamal Hadi Salim <jhs@mojatatu.com>,
+        Jiri Pirko <jiri@resnulli.us>, linux-rdma@vger.kernel.org,
+        Mirko Lindner <mlindner@marvell.com>,
         Sathya Perla <sathya.perla@broadcom.com>,
         Somnath Kotur <somnath.kotur@broadcom.com>,
         Sriharsha Basavapatna <srih
@@ -30,73 +30,84 @@ In-Reply-To: <cover.1541718583.git.mirq-linux@rere.qmqm.pl>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This removes assumptions about VLAN_TAG_PRESENT bit.
+This removes assumption than vlan_tci != 0 when tag is present.
 
 Signed-off-by: Michał Mirosław <mirq-linux@rere.qmqm.pl>
 ---
- net/core/dev.c       | 8 +++++---
- net/core/skbuff.c    | 2 +-
- net/sched/act_vlan.c | 2 +-
- 3 files changed, 7 insertions(+), 5 deletions(-)
+ net/bridge/br_netfilter_hooks.c | 15 +++++++++------
+ net/bridge/br_private.h         |  2 +-
+ net/bridge/br_vlan.c            |  6 +++---
+ 3 files changed, 13 insertions(+), 10 deletions(-)
 
-diff --git a/net/core/dev.c b/net/core/dev.c
-index 0ffcbdd55fa9..bf7e0a471186 100644
---- a/net/core/dev.c
-+++ b/net/core/dev.c
-@@ -4889,7 +4889,7 @@ static int __netif_receive_skb_core(struct sk_buff *skb, bool pfmemalloc,
- 		 * and set skb->priority like in vlan_do_receive()
- 		 * For the time being, just ignore Priority Code Point
- 		 */
--		skb->vlan_tci = 0;
-+		__vlan_hwaccel_clear_tag(skb);
+diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
+index b1b5e8516724..c9383c470a83 100644
+--- a/net/bridge/br_netfilter_hooks.c
++++ b/net/bridge/br_netfilter_hooks.c
+@@ -671,10 +671,8 @@ static int br_nf_push_frag_xmit(struct net *net, struct sock *sk, struct sk_buff
+ 		return 0;
  	}
  
- 	type = skb->protocol;
-@@ -5386,7 +5386,9 @@ static struct list_head *gro_list_prepare(struct napi_struct *napi,
- 		}
+-	if (data->vlan_tci) {
+-		skb->vlan_tci = data->vlan_tci;
+-		skb->vlan_proto = data->vlan_proto;
+-	}
++	if (data->vlan_proto)
++		__vlan_hwaccel_put_tag(skb, data->vlan_proto, data->vlan_tci);
  
- 		diffs = (unsigned long)p->dev ^ (unsigned long)skb->dev;
--		diffs |= p->vlan_tci ^ skb->vlan_tci;
-+		diffs |= skb_vlan_tag_present(p) ^ skb_vlan_tag_present(skb);
-+		if (skb_vlan_tag_present(p))
-+			diffs |= p->vlan_tci ^ skb->vlan_tci;
- 		diffs |= skb_metadata_dst_cmp(p, skb);
- 		diffs |= skb_metadata_differs(p, skb);
- 		if (maclen == ETH_HLEN)
-@@ -5652,7 +5654,7 @@ static void napi_reuse_skb(struct napi_struct *napi, struct sk_buff *skb)
- 	__skb_pull(skb, skb_headlen(skb));
- 	/* restore the reserve we had after netdev_alloc_skb_ip_align() */
- 	skb_reserve(skb, NET_SKB_PAD + NET_IP_ALIGN - skb_headroom(skb));
--	skb->vlan_tci = 0;
-+	__vlan_hwaccel_clear_tag(skb);
- 	skb->dev = napi->dev;
- 	skb->skb_iif = 0;
- 	skb->encapsulation = 0;
-diff --git a/net/core/skbuff.c b/net/core/skbuff.c
-index b4ee5c8b928f..5bb5eb500605 100644
---- a/net/core/skbuff.c
-+++ b/net/core/skbuff.c
-@@ -5123,7 +5123,7 @@ int skb_vlan_pop(struct sk_buff *skb)
- 	int err;
+ 	skb_copy_to_linear_data_offset(skb, -data->size, data->mac, data->size);
+ 	__skb_push(skb, data->encap_size);
+@@ -740,8 +738,13 @@ static int br_nf_dev_queue_xmit(struct net *net, struct sock *sk, struct sk_buff
  
- 	if (likely(skb_vlan_tag_present(skb))) {
+ 		data = this_cpu_ptr(&brnf_frag_data_storage);
+ 
+-		data->vlan_tci = skb->vlan_tci;
+-		data->vlan_proto = skb->vlan_proto;
++		if (skb_vlan_tag_present(skb)) {
++			data->vlan_tci = skb->vlan_tci;
++			data->vlan_proto = skb->vlan_proto;
++		} else {
++			data->vlan_proto = 0;
++		}
++
+ 		data->encap_size = nf_bridge_encap_header_len(skb);
+ 		data->size = ETH_HLEN + data->encap_size;
+ 
+diff --git a/net/bridge/br_private.h b/net/bridge/br_private.h
+index 2920e06a5403..67105c66584a 100644
+--- a/net/bridge/br_private.h
++++ b/net/bridge/br_private.h
+@@ -905,7 +905,7 @@ static inline int br_vlan_get_tag(const struct sk_buff *skb, u16 *vid)
+ 	int err = 0;
+ 
+ 	if (skb_vlan_tag_present(skb)) {
+-		*vid = skb_vlan_tag_get(skb) & VLAN_VID_MASK;
++		*vid = skb_vlan_tag_get_id(skb);
+ 	} else {
+ 		*vid = 0;
+ 		err = -EINVAL;
+diff --git a/net/bridge/br_vlan.c b/net/bridge/br_vlan.c
+index 8c9297a01947..a7e869da21bf 100644
+--- a/net/bridge/br_vlan.c
++++ b/net/bridge/br_vlan.c
+@@ -420,7 +420,7 @@ struct sk_buff *br_handle_vlan(struct net_bridge *br,
+ 	}
+ 
+ 	if (v->flags & BRIDGE_VLAN_INFO_UNTAGGED)
 -		skb->vlan_tci = 0;
 +		__vlan_hwaccel_clear_tag(skb);
- 	} else {
- 		if (unlikely(!eth_type_vlan(skb->protocol)))
- 			return 0;
-diff --git a/net/sched/act_vlan.c b/net/sched/act_vlan.c
-index ba677d54a7af..93fdaf707313 100644
---- a/net/sched/act_vlan.c
-+++ b/net/sched/act_vlan.c
-@@ -63,7 +63,7 @@ static int tcf_vlan_act(struct sk_buff *skb, const struct tc_action *a,
- 		/* extract existing tag (and guarantee no hw-accel tag) */
- 		if (skb_vlan_tag_present(skb)) {
- 			tci = skb_vlan_tag_get(skb);
--			skb->vlan_tci = 0;
-+			__vlan_hwaccel_clear_tag(skb);
- 		} else {
- 			/* in-payload vlan tag, pop it */
- 			err = __skb_vlan_pop(skb, &tci);
+ 
+ 	if (p && (p->flags & BR_VLAN_TUNNEL) &&
+ 	    br_handle_egress_vlan_tunnel(skb, v)) {
+@@ -493,8 +493,8 @@ static bool __allowed_ingress(const struct net_bridge *br,
+ 			__vlan_hwaccel_put_tag(skb, br->vlan_proto, pvid);
+ 		else
+ 			/* Priority-tagged Frame.
+-			 * At this point, We know that skb->vlan_tci had
+-			 * VLAN_TAG_PRESENT bit and its VID field was 0x000.
++			 * At this point, we know that skb->vlan_tci VID
++			 * field was 0.
+ 			 * We update only VID field and preserve PCP field.
+ 			 */
+ 			skb->vlan_tci |= pvid;
 -- 
 2.19.1
