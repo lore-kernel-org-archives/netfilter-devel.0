@@ -1,11 +1,13 @@
 From: =?UTF-8?q?Micha=C5=82=20Miros=C5=82aw?= <mirq-linux@rere.qmqm.pl>
-Subject: [PATCH net-next 0/9] Use __vlan_hwaccel_*() helpers
-Date: Fri, 09 Nov 2018 00:17:58 +0100
-Message-ID: <cover.1541718583.git.mirq-linux@rere.qmqm.pl>
+Subject: [PATCH net-next 1/9] cxgb4: use __vlan_hwaccel helpers
+Date: Fri, 09 Nov 2018 00:18:01 +0100
+Message-ID: <e579b65f04995118e86f7042ef4d436bc1f09e86.1541718583.git.mirq-linux@rere.qmqm.pl>
+References: <cover.1541718583.git.mirq-linux@rere.qmqm.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-Cc: Ajit Khaparde <ajit.khaparde@broadcom.com>,
+Cc: Steve Wise <swise@chelsio.com>, linux-rdma@vger.kernel.org,
+        Ajit Khaparde <ajit.khaparde@broadcom.com>,
         Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
         bridge@lists.linux-foundation.org,
         Cong Wang <xiyou.wangcong@gmail.com>, coreteam@netfilter.org,
@@ -15,48 +17,38 @@ Cc: Ajit Khaparde <ajit.khaparde@broadcom.com>,
         Jamal Hadi Salim <jhs@mojatatu.com>,
         Jiri Pirko <jiri@resnulli.us>,
         Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        linux-rdma@vger.kernel.org, Mirko Lindner <mlindner@marvell.com>,
+        Mirko Lindner <mlindner@marvell.com>,
         netfilter-devel@vger.kernel.org,
         Nikolay Aleksandrov <nikolay@cumulusnetworks.com>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
         Roopa Prabhu <roopa@cumulusnetworks.com>,
         Sathya Perla <sathya.perla@broadcom.com>,
-        Somnath Kotur <somnath.kotur@broadcom.com>,
-        Sriharsha Basavapatna <srih
+        Somnath Kotur <somnath.kotur@broadcom.c
 To: netdev@vger.kernel.org
 Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <cover.1541718583.git.mirq-linux@rere.qmqm.pl>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This series removes from networking core and driver code an assumption
-about how VLAN tag presence is stored in an skb. This will allow to free
-up overloading of VLAN.CFI bit to incidate tag's presence.
+Use __vlan_hwaccel_put_tag() to set vlan tag and proto fields.
 
-Michał Mirosław (9):
-  cxgb4: use __vlan_hwaccel helpers
-  nfnetlink/queue: use __vlan_hwaccel helpers
-  net/core: use __vlan_hwaccel helpers
-  8021q: use __vlan_hwaccel helpers
-  bridge: use __vlan_hwaccel helpers
-  ipv4/tunnel: use __vlan_hwaccel helpers
-  benet: use __vlan_hwaccel helpers
-  mlx4: use __vlan_hwaccel helpers
-  sky2: use __vlan_hwaccel helpers
+Signed-off-by: Michał Mirosław <mirq-linux@rere.qmqm.pl>
+---
+ drivers/infiniband/hw/cxgb4/cm.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
- drivers/infiniband/hw/cxgb4/cm.c            |  2 +-
- drivers/net/ethernet/emulex/benet/be_main.c | 13 +++++++++----
- drivers/net/ethernet/marvell/sky2.c         |  6 ++----
- drivers/net/ethernet/mellanox/mlx4/en_rx.c  |  2 +-
- net/8021q/vlan_core.c                       |  2 +-
- net/bridge/br_netfilter_hooks.c             | 15 +++++++++------
- net/bridge/br_private.h                     |  2 +-
- net/bridge/br_vlan.c                        |  6 +++---
- net/core/dev.c                              |  8 +++++---
- net/core/skbuff.c                           |  2 +-
- net/ipv4/ip_tunnel_core.c                   |  2 +-
- net/netfilter/nfnetlink_queue.c             |  5 +++--
- net/sched/act_vlan.c                        |  2 +-
- 13 files changed, 38 insertions(+), 29 deletions(-)
-
+diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
+index 615413bd3e8d..8ed01e07c463 100644
+--- a/drivers/infiniband/hw/cxgb4/cm.c
++++ b/drivers/infiniband/hw/cxgb4/cm.c
+@@ -3944,7 +3944,7 @@ static int rx_pkt(struct c4iw_dev *dev, struct sk_buff *skb)
+ 	} else {
+ 		vlan_eh = (struct vlan_ethhdr *)(req + 1);
+ 		iph = (struct iphdr *)(vlan_eh + 1);
+-		skb->vlan_tci = ntohs(cpl->vlan);
++		__vlan_hwaccel_put_tag(skb, htons(ETH_P_8021Q), ntohs(cpl->vlan));
+ 	}
+ 
+ 	if (iph->version != 0x4)
 -- 
 2.19.1
