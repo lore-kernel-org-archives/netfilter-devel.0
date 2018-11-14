@@ -1,9 +1,10 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.18 05/59] netfilter: ipset: list:set: Decrease refcount synchronously on deletion and replace
-Date: Wed, 14 Nov 2018 17:22:37 -0500
-Message-ID: <20181114222335.99339-5-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.18 06/59] netfilter: ipset: actually allow allowable CIDR 0 in hash:net,port,net
+Date: Wed, 14 Nov 2018 17:22:38 -0500
+Message-ID: <20181114222335.99339-6-sashal@kernel.org>
 References: <20181114222335.99339-1-sashal@kernel.org>
-Cc: Stefano Brivio <sbrivio@redhat.com>,
+Cc: Eric Westbrook <eric@westbrook.io>,
+        Eric Westbrook <linux@westbrook.io>,
         Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
         Sasha Levin <sashal@kernel.org>,
@@ -15,189 +16,88 @@ In-Reply-To: <20181114222335.99339-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Stefano Brivio <sbrivio@redhat.com>
+From: Eric Westbrook <eric@westbrook.io>
 
-[ Upstream commit 439cd39ea136d2c026805264d58a91f36b6b64ca ]
+[ Upstream commit 886503f34d63e681662057448819edb5b1057a97 ]
 
-Commit 45040978c899 ("netfilter: ipset: Fix set:list type crash
-when flush/dump set in parallel") postponed decreasing set
-reference counters to the RCU callback.
+Allow /0 as advertised for hash:net,port,net sets.
 
-An 'ipset del' command can terminate before the RCU grace period
-is elapsed, and if sets are listed before then, the reference
-counter shown in userspace will be wrong:
+For "hash:net,port,net", ipset(8) says that "either subnet
+is permitted to be a /0 should you wish to match port
+between all destinations."
 
- # ipset create h hash:ip; ipset create l list:set; ipset add l
- # ipset del l h; ipset list h
- Name: h
- Type: hash:ip
- Revision: 4
- Header: family inet hashsize 1024 maxelem 65536
- Size in memory: 88
- References: 1
- Number of entries: 0
- Members:
- # sleep 1; ipset list h
- Name: h
- Type: hash:ip
- Revision: 4
- Header: family inet hashsize 1024 maxelem 65536
- Size in memory: 88
- References: 0
- Number of entries: 0
- Members:
+Make that statement true.
 
-Fix this by making the reference count update synchronous again.
+Before:
 
-As a result, when sets are listed, ip_set_name_byindex() might
-now fetch a set whose reference count is already zero. Instead
-of relying on the reference count to protect against concurrent
-set renaming, grab ip_set_ref_lock as reader and copy the name,
-while holding the same lock in ip_set_rename() as writer
-instead.
+    # ipset create cidrzero hash:net,port,net
+    # ipset add cidrzero 0.0.0.0/0,12345,0.0.0.0/0
+    ipset v6.34: The value of the CIDR parameter of the IP address is invalid
 
-Reported-by: Li Shuang <shuali@redhat.com>
-Fixes: 45040978c899 ("netfilter: ipset: Fix set:list type crash when flush/dump set in parallel")
-Signed-off-by: Stefano Brivio <sbrivio@redhat.com>
+    # ipset create cidrzero6 hash:net,port,net family inet6
+    # ipset add cidrzero6 ::/0,12345,::/0
+    ipset v6.34: The value of the CIDR parameter of the IP address is invalid
+
+After:
+
+    # ipset create cidrzero hash:net,port,net
+    # ipset add cidrzero 0.0.0.0/0,12345,0.0.0.0/0
+    # ipset test cidrzero 192.168.205.129,12345,172.16.205.129
+    192.168.205.129,tcp:12345,172.16.205.129 is in set cidrzero.
+
+    # ipset create cidrzero6 hash:net,port,net family inet6
+    # ipset add cidrzero6 ::/0,12345,::/0
+    # ipset test cidrzero6 fe80::1,12345,ff00::1
+    fe80::1,tcp:12345,ff00::1 is in set cidrzero6.
+
+See also:
+
+  https://bugzilla.kernel.org/show_bug.cgi?id=200897
+  https://github.com/ewestbrook/linux/commit/df7ff6efb0934ab6acc11f003ff1a7580d6c1d9c
+
+Signed-off-by: Eric Westbrook <linux@westbrook.io>
 Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- include/linux/netfilter/ipset/ip_set.h |  2 +-
- net/netfilter/ipset/ip_set_core.c      | 23 +++++++++++------------
- net/netfilter/ipset/ip_set_list_set.c  | 17 +++++++++++------
- 3 files changed, 23 insertions(+), 19 deletions(-)
+ net/netfilter/ipset/ip_set_hash_netportnet.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/include/linux/netfilter/ipset/ip_set.h b/include/linux/netfilter/ipset/ip_set.h
-index 34fc80f3eb90..1d100efe74ec 100644
---- a/include/linux/netfilter/ipset/ip_set.h
-+++ b/include/linux/netfilter/ipset/ip_set.h
-@@ -314,7 +314,7 @@ enum {
- extern ip_set_id_t ip_set_get_byname(struct net *net,
- 				     const char *name, struct ip_set **set);
- extern void ip_set_put_byindex(struct net *net, ip_set_id_t index);
--extern const char *ip_set_name_byindex(struct net *net, ip_set_id_t index);
-+extern void ip_set_name_byindex(struct net *net, ip_set_id_t index, char *name);
- extern ip_set_id_t ip_set_nfnl_get_byindex(struct net *net, ip_set_id_t index);
- extern void ip_set_nfnl_put(struct net *net, ip_set_id_t index);
+diff --git a/net/netfilter/ipset/ip_set_hash_netportnet.c b/net/netfilter/ipset/ip_set_hash_netportnet.c
+index d391485a6acd..613e18e720a4 100644
+--- a/net/netfilter/ipset/ip_set_hash_netportnet.c
++++ b/net/netfilter/ipset/ip_set_hash_netportnet.c
+@@ -213,13 +213,13 @@ hash_netportnet4_uadt(struct ip_set *set, struct nlattr *tb[],
  
-diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
-index bc4bd247bb7d..fa15a831aeee 100644
---- a/net/netfilter/ipset/ip_set_core.c
-+++ b/net/netfilter/ipset/ip_set_core.c
-@@ -693,21 +693,20 @@ ip_set_put_byindex(struct net *net, ip_set_id_t index)
- EXPORT_SYMBOL_GPL(ip_set_put_byindex);
+ 	if (tb[IPSET_ATTR_CIDR]) {
+ 		e.cidr[0] = nla_get_u8(tb[IPSET_ATTR_CIDR]);
+-		if (!e.cidr[0] || e.cidr[0] > HOST_MASK)
++		if (e.cidr[0] > HOST_MASK)
+ 			return -IPSET_ERR_INVALID_CIDR;
+ 	}
  
- /* Get the name of a set behind a set index.
-- * We assume the set is referenced, so it does exist and
-- * can't be destroyed. The set cannot be renamed due to
-- * the referencing either.
-- *
-+ * Set itself is protected by RCU, but its name isn't: to protect against
-+ * renaming, grab ip_set_ref_lock as reader (see ip_set_rename()) and copy the
-+ * name.
-  */
--const char *
--ip_set_name_byindex(struct net *net, ip_set_id_t index)
-+void
-+ip_set_name_byindex(struct net *net, ip_set_id_t index, char *name)
- {
--	const struct ip_set *set = ip_set_rcu_get(net, index);
-+	struct ip_set *set = ip_set_rcu_get(net, index);
+ 	if (tb[IPSET_ATTR_CIDR2]) {
+ 		e.cidr[1] = nla_get_u8(tb[IPSET_ATTR_CIDR2]);
+-		if (!e.cidr[1] || e.cidr[1] > HOST_MASK)
++		if (e.cidr[1] > HOST_MASK)
+ 			return -IPSET_ERR_INVALID_CIDR;
+ 	}
  
- 	BUG_ON(!set);
--	BUG_ON(set->ref == 0);
+@@ -493,13 +493,13 @@ hash_netportnet6_uadt(struct ip_set *set, struct nlattr *tb[],
  
--	/* Referenced, so it's safe */
--	return set->name;
-+	read_lock_bh(&ip_set_ref_lock);
-+	strncpy(name, set->name, IPSET_MAXNAMELEN);
-+	read_unlock_bh(&ip_set_ref_lock);
- }
- EXPORT_SYMBOL_GPL(ip_set_name_byindex);
+ 	if (tb[IPSET_ATTR_CIDR]) {
+ 		e.cidr[0] = nla_get_u8(tb[IPSET_ATTR_CIDR]);
+-		if (!e.cidr[0] || e.cidr[0] > HOST_MASK)
++		if (e.cidr[0] > HOST_MASK)
+ 			return -IPSET_ERR_INVALID_CIDR;
+ 	}
  
-@@ -1153,7 +1152,7 @@ static int ip_set_rename(struct net *net, struct sock *ctnl,
- 	if (!set)
- 		return -ENOENT;
+ 	if (tb[IPSET_ATTR_CIDR2]) {
+ 		e.cidr[1] = nla_get_u8(tb[IPSET_ATTR_CIDR2]);
+-		if (!e.cidr[1] || e.cidr[1] > HOST_MASK)
++		if (e.cidr[1] > HOST_MASK)
+ 			return -IPSET_ERR_INVALID_CIDR;
+ 	}
  
--	read_lock_bh(&ip_set_ref_lock);
-+	write_lock_bh(&ip_set_ref_lock);
- 	if (set->ref != 0) {
- 		ret = -IPSET_ERR_REFERENCED;
- 		goto out;
-@@ -1170,7 +1169,7 @@ static int ip_set_rename(struct net *net, struct sock *ctnl,
- 	strncpy(set->name, name2, IPSET_MAXNAMELEN);
- 
- out:
--	read_unlock_bh(&ip_set_ref_lock);
-+	write_unlock_bh(&ip_set_ref_lock);
- 	return ret;
- }
- 
-diff --git a/net/netfilter/ipset/ip_set_list_set.c b/net/netfilter/ipset/ip_set_list_set.c
-index 072a658fde04..4eef55da0878 100644
---- a/net/netfilter/ipset/ip_set_list_set.c
-+++ b/net/netfilter/ipset/ip_set_list_set.c
-@@ -148,9 +148,7 @@ __list_set_del_rcu(struct rcu_head * rcu)
- {
- 	struct set_elem *e = container_of(rcu, struct set_elem, rcu);
- 	struct ip_set *set = e->set;
--	struct list_set *map = set->data;
- 
--	ip_set_put_byindex(map->net, e->id);
- 	ip_set_ext_destroy(set, e);
- 	kfree(e);
- }
-@@ -158,15 +156,21 @@ __list_set_del_rcu(struct rcu_head * rcu)
- static inline void
- list_set_del(struct ip_set *set, struct set_elem *e)
- {
-+	struct list_set *map = set->data;
-+
- 	set->elements--;
- 	list_del_rcu(&e->list);
-+	ip_set_put_byindex(map->net, e->id);
- 	call_rcu(&e->rcu, __list_set_del_rcu);
- }
- 
- static inline void
--list_set_replace(struct set_elem *e, struct set_elem *old)
-+list_set_replace(struct ip_set *set, struct set_elem *e, struct set_elem *old)
- {
-+	struct list_set *map = set->data;
-+
- 	list_replace_rcu(&old->list, &e->list);
-+	ip_set_put_byindex(map->net, old->id);
- 	call_rcu(&old->rcu, __list_set_del_rcu);
- }
- 
-@@ -298,7 +302,7 @@ list_set_uadd(struct ip_set *set, void *value, const struct ip_set_ext *ext,
- 	INIT_LIST_HEAD(&e->list);
- 	list_set_init_extensions(set, ext, e);
- 	if (n)
--		list_set_replace(e, n);
-+		list_set_replace(set, e, n);
- 	else if (next)
- 		list_add_tail_rcu(&e->list, &next->list);
- 	else if (prev)
-@@ -486,6 +490,7 @@ list_set_list(const struct ip_set *set,
- 	const struct list_set *map = set->data;
- 	struct nlattr *atd, *nested;
- 	u32 i = 0, first = cb->args[IPSET_CB_ARG0];
-+	char name[IPSET_MAXNAMELEN];
- 	struct set_elem *e;
- 	int ret = 0;
- 
-@@ -504,8 +509,8 @@ list_set_list(const struct ip_set *set,
- 		nested = ipset_nest_start(skb, IPSET_ATTR_DATA);
- 		if (!nested)
- 			goto nla_put_failure;
--		if (nla_put_string(skb, IPSET_ATTR_NAME,
--				   ip_set_name_byindex(map->net, e->id)))
-+		ip_set_name_byindex(map->net, e->id, name);
-+		if (nla_put_string(skb, IPSET_ATTR_NAME, name))
- 			goto nla_put_failure;
- 		if (ip_set_put_extensions(skb, set, e, true))
- 			goto nla_put_failure;
 -- 
 2.17.1
