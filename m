@@ -1,94 +1,103 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.14 09/27] netfilter: xt_IDLETIMER: add sysfs filename checking routine
-Date: Wed, 14 Nov 2018 17:24:58 -0500
-Message-ID: <20181114222520.99926-9-sashal@kernel.org>
-References: <20181114222520.99926-1-sashal@kernel.org>
-Cc: Taehee Yoo <ap420073@gmail.com>,
+Subject: [PATCH AUTOSEL 4.9 02/13] netfilter: ipset: actually allow allowable CIDR 0 in hash:net,port,net
+Date: Wed, 14 Nov 2018 17:25:43 -0500
+Message-ID: <20181114222558.100213-2-sashal@kernel.org>
+References: <20181114222558.100213-1-sashal@kernel.org>
+Cc: Eric Westbrook <eric@westbrook.io>,
+        Eric Westbrook <linux@westbrook.io>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
         Sasha Levin <sashal@kernel.org>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org
 To: stable@vger.kernel.org, linux-kernel@vger.kernel.org
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181114222520.99926-1-sashal@kernel.org>
+In-Reply-To: <20181114222558.100213-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Taehee Yoo <ap420073@gmail.com>
+From: Eric Westbrook <eric@westbrook.io>
 
-[ Upstream commit 54451f60c8fa061af9051a53be9786393947367c ]
+[ Upstream commit 886503f34d63e681662057448819edb5b1057a97 ]
 
-When IDLETIMER rule is added, sysfs file is created under
-/sys/class/xt_idletimer/timers/
-But some label name shouldn't be used.
-".", "..", "power", "uevent", "subsystem", etc...
-So that sysfs filename checking routine is needed.
+Allow /0 as advertised for hash:net,port,net sets.
 
-test commands:
-   %iptables -I INPUT -j IDLETIMER --timeout 1 --label "power"
+For "hash:net,port,net", ipset(8) says that "either subnet
+is permitted to be a /0 should you wish to match port
+between all destinations."
 
-splat looks like:
-[95765.423132] sysfs: cannot create duplicate filename '/devices/virtual/xt_idletimer/timers/power'
-[95765.433418] CPU: 0 PID: 8446 Comm: iptables Not tainted 4.19.0-rc6+ #20
-[95765.449755] Call Trace:
-[95765.449755]  dump_stack+0xc9/0x16b
-[95765.449755]  ? show_regs_print_info+0x5/0x5
-[95765.449755]  sysfs_warn_dup+0x74/0x90
-[95765.449755]  sysfs_add_file_mode_ns+0x352/0x500
-[95765.449755]  sysfs_create_file_ns+0x179/0x270
-[95765.449755]  ? sysfs_add_file_mode_ns+0x500/0x500
-[95765.449755]  ? idletimer_tg_checkentry+0x3e5/0xb1b [xt_IDLETIMER]
-[95765.449755]  ? rcu_read_lock_sched_held+0x114/0x130
-[95765.449755]  ? __kmalloc_track_caller+0x211/0x2b0
-[95765.449755]  ? memcpy+0x34/0x50
-[95765.449755]  idletimer_tg_checkentry+0x4e2/0xb1b [xt_IDLETIMER]
-[ ... ]
+Make that statement true.
 
-Fixes: 0902b469bd25 ("netfilter: xtables: idletimer target implementation")
-Signed-off-by: Taehee Yoo <ap420073@gmail.com>
+Before:
+
+    # ipset create cidrzero hash:net,port,net
+    # ipset add cidrzero 0.0.0.0/0,12345,0.0.0.0/0
+    ipset v6.34: The value of the CIDR parameter of the IP address is invalid
+
+    # ipset create cidrzero6 hash:net,port,net family inet6
+    # ipset add cidrzero6 ::/0,12345,::/0
+    ipset v6.34: The value of the CIDR parameter of the IP address is invalid
+
+After:
+
+    # ipset create cidrzero hash:net,port,net
+    # ipset add cidrzero 0.0.0.0/0,12345,0.0.0.0/0
+    # ipset test cidrzero 192.168.205.129,12345,172.16.205.129
+    192.168.205.129,tcp:12345,172.16.205.129 is in set cidrzero.
+
+    # ipset create cidrzero6 hash:net,port,net family inet6
+    # ipset add cidrzero6 ::/0,12345,::/0
+    # ipset test cidrzero6 fe80::1,12345,ff00::1
+    fe80::1,tcp:12345,ff00::1 is in set cidrzero6.
+
+See also:
+
+  https://bugzilla.kernel.org/show_bug.cgi?id=200897
+  https://github.com/ewestbrook/linux/commit/df7ff6efb0934ab6acc11f003ff1a7580d6c1d9c
+
+Signed-off-by: Eric Westbrook <linux@westbrook.io>
+Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- net/netfilter/xt_IDLETIMER.c | 20 ++++++++++++++++++++
- 1 file changed, 20 insertions(+)
+ net/netfilter/ipset/ip_set_hash_netportnet.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/net/netfilter/xt_IDLETIMER.c b/net/netfilter/xt_IDLETIMER.c
-index 1141f08810b6..3fef8c2e545d 100644
---- a/net/netfilter/xt_IDLETIMER.c
-+++ b/net/netfilter/xt_IDLETIMER.c
-@@ -116,6 +116,22 @@ static void idletimer_tg_expired(unsigned long data)
- 	schedule_work(&timer->work);
- }
+diff --git a/net/netfilter/ipset/ip_set_hash_netportnet.c b/net/netfilter/ipset/ip_set_hash_netportnet.c
+index 9a14c237830f..b259a5814965 100644
+--- a/net/netfilter/ipset/ip_set_hash_netportnet.c
++++ b/net/netfilter/ipset/ip_set_hash_netportnet.c
+@@ -213,13 +213,13 @@ hash_netportnet4_uadt(struct ip_set *set, struct nlattr *tb[],
  
-+static int idletimer_check_sysfs_name(const char *name, unsigned int size)
-+{
-+	int ret;
-+
-+	ret = xt_check_proc_name(name, size);
-+	if (ret < 0)
-+		return ret;
-+
-+	if (!strcmp(name, "power") ||
-+	    !strcmp(name, "subsystem") ||
-+	    !strcmp(name, "uevent"))
-+		return -EINVAL;
-+
-+	return 0;
-+}
-+
- static int idletimer_tg_create(struct idletimer_tg_info *info)
- {
- 	int ret;
-@@ -126,6 +142,10 @@ static int idletimer_tg_create(struct idletimer_tg_info *info)
- 		goto out;
+ 	if (tb[IPSET_ATTR_CIDR]) {
+ 		e.cidr[0] = nla_get_u8(tb[IPSET_ATTR_CIDR]);
+-		if (!e.cidr[0] || e.cidr[0] > HOST_MASK)
++		if (e.cidr[0] > HOST_MASK)
+ 			return -IPSET_ERR_INVALID_CIDR;
  	}
  
-+	ret = idletimer_check_sysfs_name(info->label, sizeof(info->label));
-+	if (ret < 0)
-+		goto out_free_timer;
-+
- 	sysfs_attr_init(&info->timer->attr.attr);
- 	info->timer->attr.attr.name = kstrdup(info->label, GFP_KERNEL);
- 	if (!info->timer->attr.attr.name) {
+ 	if (tb[IPSET_ATTR_CIDR2]) {
+ 		e.cidr[1] = nla_get_u8(tb[IPSET_ATTR_CIDR2]);
+-		if (!e.cidr[1] || e.cidr[1] > HOST_MASK)
++		if (e.cidr[1] > HOST_MASK)
+ 			return -IPSET_ERR_INVALID_CIDR;
+ 	}
+ 
+@@ -492,13 +492,13 @@ hash_netportnet6_uadt(struct ip_set *set, struct nlattr *tb[],
+ 
+ 	if (tb[IPSET_ATTR_CIDR]) {
+ 		e.cidr[0] = nla_get_u8(tb[IPSET_ATTR_CIDR]);
+-		if (!e.cidr[0] || e.cidr[0] > HOST_MASK)
++		if (e.cidr[0] > HOST_MASK)
+ 			return -IPSET_ERR_INVALID_CIDR;
+ 	}
+ 
+ 	if (tb[IPSET_ATTR_CIDR2]) {
+ 		e.cidr[1] = nla_get_u8(tb[IPSET_ATTR_CIDR2]);
+-		if (!e.cidr[1] || e.cidr[1] > HOST_MASK)
++		if (e.cidr[1] > HOST_MASK)
+ 			return -IPSET_ERR_INVALID_CIDR;
+ 	}
+ 
 -- 
 2.17.1
