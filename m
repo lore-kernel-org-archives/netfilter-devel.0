@@ -1,49 +1,94 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.9 05/13] netfilter: ipset: Correct rcu_dereference() call in ip_set_put_comment()
-Date: Wed, 14 Nov 2018 17:25:46 -0500
-Message-ID: <20181114222558.100213-5-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.9 06/13] netfilter: xt_IDLETIMER: add sysfs filename checking routine
+Date: Wed, 14 Nov 2018 17:25:47 -0500
+Message-ID: <20181114222558.100213-6-sashal@kernel.org>
 References: <20181114222558.100213-1-sashal@kernel.org>
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+Cc: Taehee Yoo <ap420073@gmail.com>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
         Sasha Levin <sashal@kernel.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org
 To: stable@vger.kernel.org, linux-kernel@vger.kernel.org
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20181114222558.100213-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+From: Taehee Yoo <ap420073@gmail.com>
 
-[ Upstream commit 17b8b74c0f8dbf9b9e3301f9ca5b65dd1c079951 ]
+[ Upstream commit 54451f60c8fa061af9051a53be9786393947367c ]
 
-The function is called when rcu_read_lock() is held and not
-when rcu_read_lock_bh() is held.
+When IDLETIMER rule is added, sysfs file is created under
+/sys/class/xt_idletimer/timers/
+But some label name shouldn't be used.
+".", "..", "power", "uevent", "subsystem", etc...
+So that sysfs filename checking routine is needed.
 
-Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+test commands:
+   %iptables -I INPUT -j IDLETIMER --timeout 1 --label "power"
+
+splat looks like:
+[95765.423132] sysfs: cannot create duplicate filename '/devices/virtual/xt_idletimer/timers/power'
+[95765.433418] CPU: 0 PID: 8446 Comm: iptables Not tainted 4.19.0-rc6+ #20
+[95765.449755] Call Trace:
+[95765.449755]  dump_stack+0xc9/0x16b
+[95765.449755]  ? show_regs_print_info+0x5/0x5
+[95765.449755]  sysfs_warn_dup+0x74/0x90
+[95765.449755]  sysfs_add_file_mode_ns+0x352/0x500
+[95765.449755]  sysfs_create_file_ns+0x179/0x270
+[95765.449755]  ? sysfs_add_file_mode_ns+0x500/0x500
+[95765.449755]  ? idletimer_tg_checkentry+0x3e5/0xb1b [xt_IDLETIMER]
+[95765.449755]  ? rcu_read_lock_sched_held+0x114/0x130
+[95765.449755]  ? __kmalloc_track_caller+0x211/0x2b0
+[95765.449755]  ? memcpy+0x34/0x50
+[95765.449755]  idletimer_tg_checkentry+0x4e2/0xb1b [xt_IDLETIMER]
+[ ... ]
+
+Fixes: 0902b469bd25 ("netfilter: xtables: idletimer target implementation")
+Signed-off-by: Taehee Yoo <ap420073@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- include/linux/netfilter/ipset/ip_set_comment.h | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ net/netfilter/xt_IDLETIMER.c | 20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
-diff --git a/include/linux/netfilter/ipset/ip_set_comment.h b/include/linux/netfilter/ipset/ip_set_comment.h
-index 8d0248525957..9f34204978e4 100644
---- a/include/linux/netfilter/ipset/ip_set_comment.h
-+++ b/include/linux/netfilter/ipset/ip_set_comment.h
-@@ -41,11 +41,11 @@ ip_set_init_comment(struct ip_set_comment *comment,
- 	rcu_assign_pointer(comment->c, c);
+diff --git a/net/netfilter/xt_IDLETIMER.c b/net/netfilter/xt_IDLETIMER.c
+index bb5d6a058fb7..921c9bd7e1e7 100644
+--- a/net/netfilter/xt_IDLETIMER.c
++++ b/net/netfilter/xt_IDLETIMER.c
+@@ -116,6 +116,22 @@ static void idletimer_tg_expired(unsigned long data)
+ 	schedule_work(&timer->work);
  }
  
--/* Used only when dumping a set, protected by rcu_read_lock_bh() */
-+/* Used only when dumping a set, protected by rcu_read_lock() */
- static inline int
- ip_set_put_comment(struct sk_buff *skb, struct ip_set_comment *comment)
++static int idletimer_check_sysfs_name(const char *name, unsigned int size)
++{
++	int ret;
++
++	ret = xt_check_proc_name(name, size);
++	if (ret < 0)
++		return ret;
++
++	if (!strcmp(name, "power") ||
++	    !strcmp(name, "subsystem") ||
++	    !strcmp(name, "uevent"))
++		return -EINVAL;
++
++	return 0;
++}
++
+ static int idletimer_tg_create(struct idletimer_tg_info *info)
  {
--	struct ip_set_comment_rcu *c = rcu_dereference_bh(comment->c);
-+	struct ip_set_comment_rcu *c = rcu_dereference(comment->c);
+ 	int ret;
+@@ -126,6 +142,10 @@ static int idletimer_tg_create(struct idletimer_tg_info *info)
+ 		goto out;
+ 	}
  
- 	if (!c)
- 		return 0;
++	ret = idletimer_check_sysfs_name(info->label, sizeof(info->label));
++	if (ret < 0)
++		goto out_free_timer;
++
+ 	sysfs_attr_init(&info->timer->attr.attr);
+ 	info->timer->attr.attr.name = kstrdup(info->label, GFP_KERNEL);
+ 	if (!info->timer->attr.attr.name) {
 -- 
 2.17.1
