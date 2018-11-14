@@ -1,88 +1,94 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.18 18/59] netfilter: nft_compat: ebtables 'nat' table is normal chain type
-Date: Wed, 14 Nov 2018 17:22:50 -0500
-Message-ID: <20181114222335.99339-18-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.18 16/59] netfilter: xt_IDLETIMER: add sysfs filename checking routine
+Date: Wed, 14 Nov 2018 17:22:48 -0500
+Message-ID: <20181114222335.99339-16-sashal@kernel.org>
 References: <20181114222335.99339-1-sashal@kernel.org>
-Cc: Florian Westphal <fw@strlen.de>,
+Cc: Taehee Yoo <ap420073@gmail.com>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
         Sasha Levin <sashal@kernel.org>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org
 To: stable@vger.kernel.org, linux-kernel@vger.kernel.org
-Return-path: <stable-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20181114222335.99339-1-sashal@kernel.org>
-Sender: stable-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+From: Taehee Yoo <ap420073@gmail.com>
 
-[ Upstream commit e4844c9c62a0fe47980d6c3d4b7a096a5d755925 ]
+[ Upstream commit 54451f60c8fa061af9051a53be9786393947367c ]
 
-Unlike ip(6)tables, the ebtables nat table has no special properties.
-This bug causes 'ebtables -A' to fail when using a target such as
-'snat' (ebt_snat target sets ".table = "nat"').  Targets that have
-no table restrictions work fine.
+When IDLETIMER rule is added, sysfs file is created under
+/sys/class/xt_idletimer/timers/
+But some label name shouldn't be used.
+".", "..", "power", "uevent", "subsystem", etc...
+So that sysfs filename checking routine is needed.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
+test commands:
+   %iptables -I INPUT -j IDLETIMER --timeout 1 --label "power"
+
+splat looks like:
+[95765.423132] sysfs: cannot create duplicate filename '/devices/virtual/xt_idletimer/timers/power'
+[95765.433418] CPU: 0 PID: 8446 Comm: iptables Not tainted 4.19.0-rc6+ #20
+[95765.449755] Call Trace:
+[95765.449755]  dump_stack+0xc9/0x16b
+[95765.449755]  ? show_regs_print_info+0x5/0x5
+[95765.449755]  sysfs_warn_dup+0x74/0x90
+[95765.449755]  sysfs_add_file_mode_ns+0x352/0x500
+[95765.449755]  sysfs_create_file_ns+0x179/0x270
+[95765.449755]  ? sysfs_add_file_mode_ns+0x500/0x500
+[95765.449755]  ? idletimer_tg_checkentry+0x3e5/0xb1b [xt_IDLETIMER]
+[95765.449755]  ? rcu_read_lock_sched_held+0x114/0x130
+[95765.449755]  ? __kmalloc_track_caller+0x211/0x2b0
+[95765.449755]  ? memcpy+0x34/0x50
+[95765.449755]  idletimer_tg_checkentry+0x4e2/0xb1b [xt_IDLETIMER]
+[ ... ]
+
+Fixes: 0902b469bd25 ("netfilter: xtables: idletimer target implementation")
+Signed-off-by: Taehee Yoo <ap420073@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- net/netfilter/nft_compat.c | 21 ++++++++++++---------
- 1 file changed, 12 insertions(+), 9 deletions(-)
+ net/netfilter/xt_IDLETIMER.c | 20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
-diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
-index 32535eea51b2..ad2fe6a7e47d 100644
---- a/net/netfilter/nft_compat.c
-+++ b/net/netfilter/nft_compat.c
-@@ -54,9 +54,11 @@ static bool nft_xt_put(struct nft_xt *xt)
- 	return false;
+diff --git a/net/netfilter/xt_IDLETIMER.c b/net/netfilter/xt_IDLETIMER.c
+index 5ee859193783..25453a16385e 100644
+--- a/net/netfilter/xt_IDLETIMER.c
++++ b/net/netfilter/xt_IDLETIMER.c
+@@ -116,6 +116,22 @@ static void idletimer_tg_expired(struct timer_list *t)
+ 	schedule_work(&timer->work);
  }
  
--static int nft_compat_chain_validate_dependency(const char *tablename,
--						const struct nft_chain *chain)
-+static int nft_compat_chain_validate_dependency(const struct nft_ctx *ctx,
-+						const char *tablename)
++static int idletimer_check_sysfs_name(const char *name, unsigned int size)
++{
++	int ret;
++
++	ret = xt_check_proc_name(name, size);
++	if (ret < 0)
++		return ret;
++
++	if (!strcmp(name, "power") ||
++	    !strcmp(name, "subsystem") ||
++	    !strcmp(name, "uevent"))
++		return -EINVAL;
++
++	return 0;
++}
++
+ static int idletimer_tg_create(struct idletimer_tg_info *info)
  {
-+	enum nft_chain_types type = NFT_CHAIN_T_DEFAULT;
-+	const struct nft_chain *chain = ctx->chain;
- 	const struct nft_base_chain *basechain;
- 
- 	if (!tablename ||
-@@ -64,9 +66,12 @@ static int nft_compat_chain_validate_dependency(const char *tablename,
- 		return 0;
- 
- 	basechain = nft_base_chain(chain);
--	if (strcmp(tablename, "nat") == 0 &&
--	    basechain->type->type != NFT_CHAIN_T_NAT)
--		return -EINVAL;
-+	if (strcmp(tablename, "nat") == 0) {
-+		if (ctx->family != NFPROTO_BRIDGE)
-+			type = NFT_CHAIN_T_NAT;
-+		if (basechain->type->type != type)
-+			return -EINVAL;
-+	}
- 
- 	return 0;
- }
-@@ -323,8 +328,7 @@ static int nft_target_validate(const struct nft_ctx *ctx,
- 		if (target->hooks && !(hook_mask & target->hooks))
- 			return -EINVAL;
- 
--		ret = nft_compat_chain_validate_dependency(target->table,
--							   ctx->chain);
-+		ret = nft_compat_chain_validate_dependency(ctx, target->table);
- 		if (ret < 0)
- 			return ret;
+ 	int ret;
+@@ -126,6 +142,10 @@ static int idletimer_tg_create(struct idletimer_tg_info *info)
+ 		goto out;
  	}
-@@ -570,8 +574,7 @@ static int nft_match_validate(const struct nft_ctx *ctx,
- 		if (match->hooks && !(hook_mask & match->hooks))
- 			return -EINVAL;
  
--		ret = nft_compat_chain_validate_dependency(match->table,
--							   ctx->chain);
-+		ret = nft_compat_chain_validate_dependency(ctx, match->table);
- 		if (ret < 0)
- 			return ret;
- 	}
++	ret = idletimer_check_sysfs_name(info->label, sizeof(info->label));
++	if (ret < 0)
++		goto out_free_timer;
++
+ 	sysfs_attr_init(&info->timer->attr.attr);
+ 	info->timer->attr.attr.name = kstrdup(info->label, GFP_KERNEL);
+ 	if (!info->timer->attr.attr.name) {
 -- 
 2.17.1
