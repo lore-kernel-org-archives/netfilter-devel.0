@@ -1,97 +1,49 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.18 07/59] netfilter: ipset: fix ip_set_list allocation failure
-Date: Wed, 14 Nov 2018 17:22:39 -0500
-Message-ID: <20181114222335.99339-7-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.18 15/59] netfilter: ipset: Correct rcu_dereference() call in ip_set_put_comment()
+Date: Wed, 14 Nov 2018 17:22:47 -0500
+Message-ID: <20181114222335.99339-15-sashal@kernel.org>
 References: <20181114222335.99339-1-sashal@kernel.org>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
         Sasha Levin <sashal@kernel.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
 To: stable@vger.kernel.org, linux-kernel@vger.kernel.org
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20181114222335.99339-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Andrey Ryabinin <aryabinin@virtuozzo.com>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 
-[ Upstream commit ed956f3947a01ff9875cd908d7c1ef1fe7f47bf0 ]
+[ Upstream commit 17b8b74c0f8dbf9b9e3301f9ca5b65dd1c079951 ]
 
-ip_set_create() and ip_set_net_init() attempt to allocate physically
-contiguous memory for ip_set_list. If memory is fragmented, the
-allocations could easily fail:
+The function is called when rcu_read_lock() is held and not
+when rcu_read_lock_bh() is held.
 
-        vzctl: page allocation failure: order:7, mode:0xc0d0
-
-        Call Trace:
-         dump_stack+0x19/0x1b
-         warn_alloc_failed+0x110/0x180
-         __alloc_pages_nodemask+0x7bf/0xc60
-         alloc_pages_current+0x98/0x110
-         kmalloc_order+0x18/0x40
-         kmalloc_order_trace+0x26/0xa0
-         __kmalloc+0x279/0x290
-         ip_set_net_init+0x4b/0x90 [ip_set]
-         ops_init+0x3b/0xb0
-         setup_net+0xbb/0x170
-         copy_net_ns+0xf1/0x1c0
-         create_new_namespaces+0xf9/0x180
-         copy_namespaces+0x8e/0xd0
-         copy_process+0xb61/0x1a00
-         do_fork+0x91/0x320
-
-Use kvcalloc() to fallback to 0-order allocations if high order
-page isn't available.
-
-Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- net/netfilter/ipset/ip_set_core.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ include/linux/netfilter/ipset/ip_set_comment.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
-index fa15a831aeee..68db946df151 100644
---- a/net/netfilter/ipset/ip_set_core.c
-+++ b/net/netfilter/ipset/ip_set_core.c
-@@ -960,7 +960,7 @@ static int ip_set_create(struct net *net, struct sock *ctnl,
- 			/* Wraparound */
- 			goto cleanup;
- 
--		list = kcalloc(i, sizeof(struct ip_set *), GFP_KERNEL);
-+		list = kvcalloc(i, sizeof(struct ip_set *), GFP_KERNEL);
- 		if (!list)
- 			goto cleanup;
- 		/* nfnl mutex is held, both lists are valid */
-@@ -972,7 +972,7 @@ static int ip_set_create(struct net *net, struct sock *ctnl,
- 		/* Use new list */
- 		index = inst->ip_set_max;
- 		inst->ip_set_max = i;
--		kfree(tmp);
-+		kvfree(tmp);
- 		ret = 0;
- 	} else if (ret) {
- 		goto cleanup;
-@@ -2058,7 +2058,7 @@ ip_set_net_init(struct net *net)
- 	if (inst->ip_set_max >= IPSET_INVALID_ID)
- 		inst->ip_set_max = IPSET_INVALID_ID - 1;
- 
--	list = kcalloc(inst->ip_set_max, sizeof(struct ip_set *), GFP_KERNEL);
-+	list = kvcalloc(inst->ip_set_max, sizeof(struct ip_set *), GFP_KERNEL);
- 	if (!list)
- 		return -ENOMEM;
- 	inst->is_deleted = false;
-@@ -2086,7 +2086,7 @@ ip_set_net_exit(struct net *net)
- 		}
- 	}
- 	nfnl_unlock(NFNL_SUBSYS_IPSET);
--	kfree(rcu_dereference_protected(inst->ip_set_list, 1));
-+	kvfree(rcu_dereference_protected(inst->ip_set_list, 1));
+diff --git a/include/linux/netfilter/ipset/ip_set_comment.h b/include/linux/netfilter/ipset/ip_set_comment.h
+index 8e2bab1e8e90..70877f8de7e9 100644
+--- a/include/linux/netfilter/ipset/ip_set_comment.h
++++ b/include/linux/netfilter/ipset/ip_set_comment.h
+@@ -43,11 +43,11 @@ ip_set_init_comment(struct ip_set *set, struct ip_set_comment *comment,
+ 	rcu_assign_pointer(comment->c, c);
  }
  
- static struct pernet_operations ip_set_net_ops = {
+-/* Used only when dumping a set, protected by rcu_read_lock_bh() */
++/* Used only when dumping a set, protected by rcu_read_lock() */
+ static inline int
+ ip_set_put_comment(struct sk_buff *skb, const struct ip_set_comment *comment)
+ {
+-	struct ip_set_comment_rcu *c = rcu_dereference_bh(comment->c);
++	struct ip_set_comment_rcu *c = rcu_dereference(comment->c);
+ 
+ 	if (!c)
+ 		return 0;
 -- 
 2.17.1
