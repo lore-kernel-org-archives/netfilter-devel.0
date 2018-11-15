@@ -1,94 +1,60 @@
-From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.18 16/59] netfilter: xt_IDLETIMER: add sysfs filename checking routine
-Date: Wed, 14 Nov 2018 17:22:48 -0500
-Message-ID: <20181114222335.99339-16-sashal@kernel.org>
-References: <20181114222335.99339-1-sashal@kernel.org>
-Cc: Taehee Yoo <ap420073@gmail.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Sasha Levin <sashal@kernel.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org
-To: stable@vger.kernel.org, linux-kernel@vger.kernel.org
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181114222335.99339-1-sashal@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+From: Xin Long <lucien.xin@gmail.com>
+Subject: [PATCHv2 net] ipvs: call ip_vs_dst_notifier earlier than ipv6_dev_notf
+Date: Thu, 15 Nov 2018 15:14:30 +0800
+Message-ID: <832d0eccc937ab122b337e627244533df3eb74a5.1542266070.git.lucien.xin@gmail.com>
+Cc: davem@davemloft.net, pablo@netfilter.org,
+        Hans Schillstrom <hans@schillstrom.com>
+To: network dev <netdev@vger.kernel.org>,
+        netfilter-devel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Taehee Yoo <ap420073@gmail.com>
+ip_vs_dst_event is supposed to clean up all dst used in ipvs'
+destinations when a net dev is going down. But it works only
+when the dst's dev is the same as the dev from the event.
 
-[ Upstream commit 54451f60c8fa061af9051a53be9786393947367c ]
+Now with the same priority but late registration,
+ip_vs_dst_notifier is always called later than ipv6_dev_notf
+where the dst's dev is set to lo for NETDEV_DOWN event.
 
-When IDLETIMER rule is added, sysfs file is created under
-/sys/class/xt_idletimer/timers/
-But some label name shouldn't be used.
-".", "..", "power", "uevent", "subsystem", etc...
-So that sysfs filename checking routine is needed.
+As the dst's dev lo is not the same as the dev from the event
+in ip_vs_dst_event, ip_vs_dst_notifier doesn't actually work.
+Also as these dst have to wait for dest_trash_timer to clean
+them up. It would cause some non-permanent kernel warnings:
 
-test commands:
-   %iptables -I INPUT -j IDLETIMER --timeout 1 --label "power"
+  unregister_netdevice: waiting for br0 to become free. Usage count = 3
 
-splat looks like:
-[95765.423132] sysfs: cannot create duplicate filename '/devices/virtual/xt_idletimer/timers/power'
-[95765.433418] CPU: 0 PID: 8446 Comm: iptables Not tainted 4.19.0-rc6+ #20
-[95765.449755] Call Trace:
-[95765.449755]  dump_stack+0xc9/0x16b
-[95765.449755]  ? show_regs_print_info+0x5/0x5
-[95765.449755]  sysfs_warn_dup+0x74/0x90
-[95765.449755]  sysfs_add_file_mode_ns+0x352/0x500
-[95765.449755]  sysfs_create_file_ns+0x179/0x270
-[95765.449755]  ? sysfs_add_file_mode_ns+0x500/0x500
-[95765.449755]  ? idletimer_tg_checkentry+0x3e5/0xb1b [xt_IDLETIMER]
-[95765.449755]  ? rcu_read_lock_sched_held+0x114/0x130
-[95765.449755]  ? __kmalloc_track_caller+0x211/0x2b0
-[95765.449755]  ? memcpy+0x34/0x50
-[95765.449755]  idletimer_tg_checkentry+0x4e2/0xb1b [xt_IDLETIMER]
-[ ... ]
+To fix it, call ip_vs_dst_notifier earlier than ipv6_dev_notf
+by increasing its priority to ADDRCONF_NOTIFY_PRIORITY + 5.
 
-Fixes: 0902b469bd25 ("netfilter: xtables: idletimer target implementation")
-Signed-off-by: Taehee Yoo <ap420073@gmail.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
+Note that for ipv4 route fib_netdev_notifier doesn't set dst's
+dev to lo in NETDEV_DOWN event, so this fix is only needed when
+IP_VS_IPV6 is defined.
+
+v1->v2:
+  - apply it only when CONFIG_IP_VS_IPV6 is defined.
+
+Fixes: 7a4f0761fce3 ("IPVS: init and cleanup restructuring")
+Reported-by: Li Shuang <shuali@redhat.com>
+Signed-off-by: Xin Long <lucien.xin@gmail.com>
 ---
- net/netfilter/xt_IDLETIMER.c | 20 ++++++++++++++++++++
- 1 file changed, 20 insertions(+)
+ net/netfilter/ipvs/ip_vs_ctl.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/net/netfilter/xt_IDLETIMER.c b/net/netfilter/xt_IDLETIMER.c
-index 5ee859193783..25453a16385e 100644
---- a/net/netfilter/xt_IDLETIMER.c
-+++ b/net/netfilter/xt_IDLETIMER.c
-@@ -116,6 +116,22 @@ static void idletimer_tg_expired(struct timer_list *t)
- 	schedule_work(&timer->work);
- }
+diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+index 83395bf6..432141f 100644
+--- a/net/netfilter/ipvs/ip_vs_ctl.c
++++ b/net/netfilter/ipvs/ip_vs_ctl.c
+@@ -3980,6 +3980,9 @@ static void __net_exit ip_vs_control_net_cleanup_sysctl(struct netns_ipvs *ipvs)
  
-+static int idletimer_check_sysfs_name(const char *name, unsigned int size)
-+{
-+	int ret;
-+
-+	ret = xt_check_proc_name(name, size);
-+	if (ret < 0)
-+		return ret;
-+
-+	if (!strcmp(name, "power") ||
-+	    !strcmp(name, "subsystem") ||
-+	    !strcmp(name, "uevent"))
-+		return -EINVAL;
-+
-+	return 0;
-+}
-+
- static int idletimer_tg_create(struct idletimer_tg_info *info)
- {
- 	int ret;
-@@ -126,6 +142,10 @@ static int idletimer_tg_create(struct idletimer_tg_info *info)
- 		goto out;
- 	}
+ static struct notifier_block ip_vs_dst_notifier = {
+ 	.notifier_call = ip_vs_dst_event,
++#ifdef CONFIG_IP_VS_IPV6
++	.priority = ADDRCONF_NOTIFY_PRIORITY + 5,
++#endif
+ };
  
-+	ret = idletimer_check_sysfs_name(info->label, sizeof(info->label));
-+	if (ret < 0)
-+		goto out_free_timer;
-+
- 	sysfs_attr_init(&info->timer->attr.attr);
- 	info->timer->attr.attr.name = kstrdup(info->label, GFP_KERNEL);
- 	if (!info->timer->attr.attr.name) {
+ int __net_init ip_vs_control_net_init(struct netns_ipvs *ipvs)
 -- 
-2.17.1
+2.1.0
