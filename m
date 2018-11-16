@@ -1,77 +1,93 @@
-From: Julian Anastasov <ja@ssi.bg>
+From: Simon Horman <horms@verge.net.au>
 Subject: Re: [PATCHv2 net] ipvs: call ip_vs_dst_notifier earlier than
  ipv6_dev_notf
-Date: Fri, 16 Nov 2018 09:10:16 +0200 (EET)
-Message-ID: <alpine.LFD.2.21.1811160907480.2751@ja.home.ssi.bg>
+Date: Fri, 16 Nov 2018 06:37:19 -0800
+Message-ID: <20181116143711.wwskkrcpqhrybwpq@verge.net.au>
 References: <832d0eccc937ab122b337e627244533df3eb74a5.1542266070.git.lucien.xin@gmail.com>
+ <alpine.LFD.2.21.1811160907480.2751@ja.home.ssi.bg>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Cc: network dev <netdev@vger.kernel.org>,
+Content-Type: text/plain; charset=us-ascii
+Cc: Xin Long <lucien.xin@gmail.com>,
+        network dev <netdev@vger.kernel.org>,
         netfilter-devel@vger.kernel.org,
-        "David S. Miller" <davem@davemloft.net>, pablo@netfilter.org,
-        Hans Schillstrom <hans@schillstrom.com>,
-        Simon Horman <horms@verge.net.au>
-To: Xin Long <lucien.xin@gmail.com>
+        "David S. Miller" <davem@davemloft.net>,
+        Hans Schillstrom <hans@schillstrom.com>
+To: Julian Anastasov <ja@ssi.bg>,
+        Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <832d0eccc937ab122b337e627244533df3eb74a5.1542266070.git.lucien.xin@gmail.com>
+Content-Disposition: inline
+In-Reply-To: <alpine.LFD.2.21.1811160907480.2751@ja.home.ssi.bg>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
+On Fri, Nov 16, 2018 at 09:10:16AM +0200, Julian Anastasov wrote:
+> 
+> 	Hello,
+> 
+> On Thu, 15 Nov 2018, Xin Long wrote:
+> 
+> > ip_vs_dst_event is supposed to clean up all dst used in ipvs'
+> > destinations when a net dev is going down. But it works only
+> > when the dst's dev is the same as the dev from the event.
+> > 
+> > Now with the same priority but late registration,
+> > ip_vs_dst_notifier is always called later than ipv6_dev_notf
+> > where the dst's dev is set to lo for NETDEV_DOWN event.
+> > 
+> > As the dst's dev lo is not the same as the dev from the event
+> > in ip_vs_dst_event, ip_vs_dst_notifier doesn't actually work.
+> > Also as these dst have to wait for dest_trash_timer to clean
+> > them up. It would cause some non-permanent kernel warnings:
+> > 
+> >   unregister_netdevice: waiting for br0 to become free. Usage count = 3
+> > 
+> > To fix it, call ip_vs_dst_notifier earlier than ipv6_dev_notf
+> > by increasing its priority to ADDRCONF_NOTIFY_PRIORITY + 5.
+> > 
+> > Note that for ipv4 route fib_netdev_notifier doesn't set dst's
+> > dev to lo in NETDEV_DOWN event, so this fix is only needed when
+> > IP_VS_IPV6 is defined.
+> > 
+> > v1->v2:
+> >   - apply it only when CONFIG_IP_VS_IPV6 is defined.
+> > 
+> > Fixes: 7a4f0761fce3 ("IPVS: init and cleanup restructuring")
+> > Reported-by: Li Shuang <shuali@redhat.com>
+> > Signed-off-by: Xin Long <lucien.xin@gmail.com>
+> 
+> Acked-by: Julian Anastasov <ja@ssi.bg>
 
-	Hello,
+Thanks,
 
-On Thu, 15 Nov 2018, Xin Long wrote:
+Pablo, could you consider this for nf?
 
-> ip_vs_dst_event is supposed to clean up all dst used in ipvs'
-> destinations when a net dev is going down. But it works only
-> when the dst's dev is the same as the dev from the event.
-> 
-> Now with the same priority but late registration,
-> ip_vs_dst_notifier is always called later than ipv6_dev_notf
-> where the dst's dev is set to lo for NETDEV_DOWN event.
-> 
-> As the dst's dev lo is not the same as the dev from the event
-> in ip_vs_dst_event, ip_vs_dst_notifier doesn't actually work.
-> Also as these dst have to wait for dest_trash_timer to clean
-> them up. It would cause some non-permanent kernel warnings:
-> 
->   unregister_netdevice: waiting for br0 to become free. Usage count = 3
-> 
-> To fix it, call ip_vs_dst_notifier earlier than ipv6_dev_notf
-> by increasing its priority to ADDRCONF_NOTIFY_PRIORITY + 5.
-> 
-> Note that for ipv4 route fib_netdev_notifier doesn't set dst's
-> dev to lo in NETDEV_DOWN event, so this fix is only needed when
-> IP_VS_IPV6 is defined.
-> 
-> v1->v2:
->   - apply it only when CONFIG_IP_VS_IPV6 is defined.
-> 
-> Fixes: 7a4f0761fce3 ("IPVS: init and cleanup restructuring")
-> Reported-by: Li Shuang <shuali@redhat.com>
-> Signed-off-by: Xin Long <lucien.xin@gmail.com>
+Acked-by: Simon Horman <horms@verge.net.au>
 
-Acked-by: Julian Anastasov <ja@ssi.bg>
 
-> ---
->  net/netfilter/ipvs/ip_vs_ctl.c | 3 +++
->  1 file changed, 3 insertions(+)
 > 
-> diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-> index 83395bf6..432141f 100644
-> --- a/net/netfilter/ipvs/ip_vs_ctl.c
-> +++ b/net/netfilter/ipvs/ip_vs_ctl.c
-> @@ -3980,6 +3980,9 @@ static void __net_exit ip_vs_control_net_cleanup_sysctl(struct netns_ipvs *ipvs)
->  
->  static struct notifier_block ip_vs_dst_notifier = {
->  	.notifier_call = ip_vs_dst_event,
-> +#ifdef CONFIG_IP_VS_IPV6
-> +	.priority = ADDRCONF_NOTIFY_PRIORITY + 5,
-> +#endif
->  };
->  
->  int __net_init ip_vs_control_net_init(struct netns_ipvs *ipvs)
-> -- 
-> 2.1.0
-
-Regards
+> > ---
+> >  net/netfilter/ipvs/ip_vs_ctl.c | 3 +++
+> >  1 file changed, 3 insertions(+)
+> > 
+> > diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+> > index 83395bf6..432141f 100644
+> > --- a/net/netfilter/ipvs/ip_vs_ctl.c
+> > +++ b/net/netfilter/ipvs/ip_vs_ctl.c
+> > @@ -3980,6 +3980,9 @@ static void __net_exit ip_vs_control_net_cleanup_sysctl(struct netns_ipvs *ipvs)
+> >  
+> >  static struct notifier_block ip_vs_dst_notifier = {
+> >  	.notifier_call = ip_vs_dst_event,
+> > +#ifdef CONFIG_IP_VS_IPV6
+> > +	.priority = ADDRCONF_NOTIFY_PRIORITY + 5,
+> > +#endif
+> >  };
+> >  
+> >  int __net_init ip_vs_control_net_init(struct netns_ipvs *ipvs)
+> > -- 
+> > 2.1.0
+> 
+> Regards
+> 
+> --
+> Julian Anastasov <ja@ssi.bg>
+> 
