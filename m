@@ -1,93 +1,101 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: Re: [PATCHv2 net] ipvs: call ip_vs_dst_notifier earlier than
- ipv6_dev_notf
-Date: Fri, 16 Nov 2018 06:37:19 -0800
-Message-ID: <20181116143711.wwskkrcpqhrybwpq@verge.net.au>
-References: <832d0eccc937ab122b337e627244533df3eb74a5.1542266070.git.lucien.xin@gmail.com>
- <alpine.LFD.2.21.1811160907480.2751@ja.home.ssi.bg>
+From: syzbot <syzbot+2fae8fa157dd92618cae@syzkaller.appspotmail.com>
+Subject: WARNING in cttimeout_default_get
+Date: Fri, 16 Nov 2018 14:09:03 -0800
+Message-ID: <0000000000004f5883057acf6af2@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Xin Long <lucien.xin@gmail.com>,
-        network dev <netdev@vger.kernel.org>,
-        netfilter-devel@vger.kernel.org,
-        "David S. Miller" <davem@davemloft.net>,
-        Hans Schillstrom <hans@schillstrom.com>
-To: Julian Anastasov <ja@ssi.bg>,
-        Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.21.1811160907480.2751@ja.home.ssi.bg>
-Sender: netdev-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
+To: coreteam@netfilter.org, davem@davemloft.net, fw@strlen.de,
+        kadlec@blackhole.kfki.hu, linux-kernel@vger.kernel.org,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        pablo@netfilter.org, syzkaller-bugs@googlegroups.com
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, Nov 16, 2018 at 09:10:16AM +0200, Julian Anastasov wrote:
-> 
-> 	Hello,
-> 
-> On Thu, 15 Nov 2018, Xin Long wrote:
-> 
-> > ip_vs_dst_event is supposed to clean up all dst used in ipvs'
-> > destinations when a net dev is going down. But it works only
-> > when the dst's dev is the same as the dev from the event.
-> > 
-> > Now with the same priority but late registration,
-> > ip_vs_dst_notifier is always called later than ipv6_dev_notf
-> > where the dst's dev is set to lo for NETDEV_DOWN event.
-> > 
-> > As the dst's dev lo is not the same as the dev from the event
-> > in ip_vs_dst_event, ip_vs_dst_notifier doesn't actually work.
-> > Also as these dst have to wait for dest_trash_timer to clean
-> > them up. It would cause some non-permanent kernel warnings:
-> > 
-> >   unregister_netdevice: waiting for br0 to become free. Usage count = 3
-> > 
-> > To fix it, call ip_vs_dst_notifier earlier than ipv6_dev_notf
-> > by increasing its priority to ADDRCONF_NOTIFY_PRIORITY + 5.
-> > 
-> > Note that for ipv4 route fib_netdev_notifier doesn't set dst's
-> > dev to lo in NETDEV_DOWN event, so this fix is only needed when
-> > IP_VS_IPV6 is defined.
-> > 
-> > v1->v2:
-> >   - apply it only when CONFIG_IP_VS_IPV6 is defined.
-> > 
-> > Fixes: 7a4f0761fce3 ("IPVS: init and cleanup restructuring")
-> > Reported-by: Li Shuang <shuali@redhat.com>
-> > Signed-off-by: Xin Long <lucien.xin@gmail.com>
-> 
-> Acked-by: Julian Anastasov <ja@ssi.bg>
+Hello,
 
-Thanks,
+syzbot found the following crash on:
 
-Pablo, could you consider this for nf?
+HEAD commit:    da5322e65940 Merge tag 'selinux-pr-20181115' of git://git...
+git tree:       upstream
+console output: https://syzkaller.appspot.com/x/log.txt?x=15d719eb400000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=4a0a89f12ca9b0f5
+dashboard link: https://syzkaller.appspot.com/bug?extid=2fae8fa157dd92618cae
+compiler:       gcc (GCC) 8.0.1 20180413 (experimental)
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=129e0893400000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=125f66a3400000
 
-Acked-by: Simon Horman <horms@verge.net.au>
+IMPORTANT: if you fix the bug, please add the following tag to the commit:
+Reported-by: syzbot+2fae8fa157dd92618cae@syzkaller.appspotmail.com
+
+audit: type=1800 audit(1542315810.422:30): pid=5877 uid=0 auid=4294967295  
+ses=4294967295 subj==unconfined op=collect_data cause=failed(directio)  
+comm="startpar" name="rmnologin" dev="sda1" ino=2423 res=0
+netlink: 'syz-executor298': attribute type 3 has an invalid length.
+netlink: 'syz-executor298': attribute type 2 has an invalid length.
+WARNING: CPU: 0 PID: 6032 at net/netfilter/nfnetlink_cttimeout.c:478  
+cttimeout_default_get+0x1df/0xb30 net/netfilter/nfnetlink_cttimeout.c:478
+Kernel panic - not syncing: panic_on_warn set ...
+CPU: 0 PID: 6032 Comm: syz-executor298 Not tainted 4.20.0-rc2+ #336
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS  
+Google 01/01/2011
+Call Trace:
+  __dump_stack lib/dump_stack.c:77 [inline]
+  dump_stack+0x244/0x39d lib/dump_stack.c:113
+  panic+0x2ad/0x55c kernel/panic.c:188
+  __warn.cold.8+0x20/0x45 kernel/panic.c:540
+  report_bug+0x254/0x2d0 lib/bug.c:186
+  fixup_bug arch/x86/kernel/traps.c:178 [inline]
+  do_error_trap+0x11b/0x200 arch/x86/kernel/traps.c:271
+  do_invalid_op+0x36/0x40 arch/x86/kernel/traps.c:290
+  invalid_op+0x14/0x20 arch/x86/entry/entry_64.S:969
+RIP: 0010:cttimeout_default_get+0x1df/0xb30  
+net/netfilter/nfnetlink_cttimeout.c:478
+Code: 00 0f 87 8d 00 00 00 41 80 ff 06 0f 84 94 07 00 00 41 80 ff 11 0f 84  
+6c 07 00 00 41 80 ff 01 0f 84 44 07 00 00 e8 91 f1 20 fb <0f> 0b 41 bd a1  
+ff ff ff eb 06 41 bd a1 ff ff ff e8 7c f1 20 fb 48
+RSP: 0018:ffff8881b64c72b0 EFLAGS: 00010293
+RAX: ffff8881c1686380 RBX: ffffffff88bf58e0 RCX: ffffffff865e961c
+RDX: 0000000000000000 RSI: ffffffff865e964f RDI: 0000000000000001
+RBP: ffff8881b64c73c0 R08: ffff8881c1686380 R09: ffffed103b5c5b67
+R10: 0000000000000002 R11: ffff8881dae2db3b R12: 0000000000000088
+R13: ffff8881bf42b300 R14: 0000000000000000 R15: 0000000000000088
+  nfnetlink_rcv_msg+0xdd3/0x10c0 net/netfilter/nfnetlink.c:228
+  netlink_rcv_skb+0x172/0x440 net/netlink/af_netlink.c:2477
+  nfnetlink_rcv+0x1c0/0x4d0 net/netfilter/nfnetlink.c:560
+  netlink_unicast_kernel net/netlink/af_netlink.c:1310 [inline]
+  netlink_unicast+0x5a5/0x760 net/netlink/af_netlink.c:1336
+  netlink_sendmsg+0xa18/0xfc0 net/netlink/af_netlink.c:1917
+  sock_sendmsg_nosec net/socket.c:621 [inline]
+  sock_sendmsg+0xd5/0x120 net/socket.c:631
+  ___sys_sendmsg+0x7fd/0x930 net/socket.c:2116
+  __sys_sendmsg+0x11d/0x280 net/socket.c:2154
+  __do_sys_sendmsg net/socket.c:2163 [inline]
+  __se_sys_sendmsg net/socket.c:2161 [inline]
+  __x64_sys_sendmsg+0x78/0xb0 net/socket.c:2161
+  do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+  entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x4400d9
+Code: 18 89 d0 c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 00 48 89 f8 48 89 f7  
+48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff  
+ff 0f 83 fb 13 fc ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007ffc704c30c8 EFLAGS: 00000213 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 00000000004400d9
+RDX: 0000000000000000 RSI: 0000000020dddfc8 RDI: 0000000000000003
+RBP: 00000000006ca018 R08: 0000000000000000 R09: 00000000004002c8
+R10: 0000000000000000 R11: 0000000000000213 R12: 0000000000401960
+R13: 00000000004019f0 R14: 0000000000000000 R15: 0000000000000000
+Kernel Offset: disabled
+Rebooting in 86400 seconds..
 
 
-> 
-> > ---
-> >  net/netfilter/ipvs/ip_vs_ctl.c | 3 +++
-> >  1 file changed, 3 insertions(+)
-> > 
-> > diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-> > index 83395bf6..432141f 100644
-> > --- a/net/netfilter/ipvs/ip_vs_ctl.c
-> > +++ b/net/netfilter/ipvs/ip_vs_ctl.c
-> > @@ -3980,6 +3980,9 @@ static void __net_exit ip_vs_control_net_cleanup_sysctl(struct netns_ipvs *ipvs)
-> >  
-> >  static struct notifier_block ip_vs_dst_notifier = {
-> >  	.notifier_call = ip_vs_dst_event,
-> > +#ifdef CONFIG_IP_VS_IPV6
-> > +	.priority = ADDRCONF_NOTIFY_PRIORITY + 5,
-> > +#endif
-> >  };
-> >  
-> >  int __net_init ip_vs_control_net_init(struct netns_ipvs *ipvs)
-> > -- 
-> > 2.1.0
-> 
-> Regards
-> 
-> --
-> Julian Anastasov <ja@ssi.bg>
-> 
+---
+This bug is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
+
+syzbot will keep track of this bug report. See:
+https://goo.gl/tpsmEJ#bug-status-tracking for how to communicate with  
+syzbot.
+syzbot can test patches for this bug, for details see:
+https://goo.gl/tpsmEJ#testing-patches
