@@ -1,46 +1,62 @@
-From: Pan Bian <bianpan2016@163.com>
-Subject: [PATCH] netfilter: ipset: do not call ipset_nest_end after nla_nest_cancel
-Date: Mon, 26 Nov 2018 18:42:10 +0800
-Message-ID: <1543228930-103509-1-git-send-email-bianpan2016@163.com>
-Cc: Stefano Brivio <sbrivio@redhat.com>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Pan Bian <bianpan2016@163.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>
+From: Sami Farin <hvtaifwkbgefbaei@gmail.com>
+Subject: 4.19.4 nf_conntrack_count kernel panic
+Date: Mon, 26 Nov 2018 20:46:38 +0100
+Message-ID: <20181126194638.tpwagr7gqzvi3ogf@m.mifar.in>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Yi-Hung Wei <yihung.wei@gmail.com>, netfilter-devel@vger.kernel.org
+To: Linux Networking Mailing List <netdev@vger.kernel.org>
 Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-In the error handling block, nla_nest_cancel(skb, atd) is called to
-cancel the nest operation. But then, ipset_nest_end(skb, atd) is
-unexpected called to end the nest operation. This patch calls the
-ipset_nest_end only on the branch that nla_nest_cancel is
-not called.
+4.18.20 works OK, but unfortunately 4.18 series is EOL.
+I have Ryzen 1600X, 32 GB RAM, Fedora 28, gcc-8.2.1-5, nosmt=force, igb module for Intel I211,
+using XFS filesystems only.
 
-Fixes: 45040978c89("netfilter: ipset: Fix set:list type crash when
-flush/dump set in parallel")
+To reproduce, I only do this: connect to VPN using a tunnel (e.g. tun0),
+start downloading a file with qbittorrent (allow port for incoming
+TCP connections in qbittorrent and iptables) and wait a couple of minutes.
+I am also using ipset and connlimit modules.
+I reproduced this bug three times.
+With 4.18 I use fq+htb and  with 4.19 I use CAKE for traffic control.
 
-Signed-off-by: Pan Bian <bianpan2016@163.com>
----
- net/netfilter/ipset/ip_set_list_set.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Only this message in kernel log:
+[  363.935074] TCP: request_sock_TCP: Possible SYN flooding on port 19044. Dropping request.  Check SNMP counters.
+I get this message with both 4.18.20 and 4.19.4.
 
-diff --git a/net/netfilter/ipset/ip_set_list_set.c b/net/netfilter/ipset/ip_set_list_set.c
-index 4eef55d..8da228d 100644
---- a/net/netfilter/ipset/ip_set_list_set.c
-+++ b/net/netfilter/ipset/ip_set_list_set.c
-@@ -531,8 +531,8 @@ list_set_list(const struct ip_set *set,
- 		ret = -EMSGSIZE;
- 	} else {
- 		cb->args[IPSET_CB_ARG0] = i;
-+		ipset_nest_end(skb, atd);
- 	}
--	ipset_nest_end(skb, atd);
- out:
- 	rcu_read_unlock();
- 	return ret;
+RIP: 0010:rb_insert_color+0x64
+Call Trace:
+  nf_conntrack_count [nf_conncount]
+  ip_set_test [ip_set]
+  connlimit_mt [xt_connlimit]
+  set_match_v4 [xt_set]
+  ipt_do_table [ip_tables]
+  ip_route_input_noref
+  nf_hook_slow 
+  ip_local_deliver
+  inet_add_protocol
+  ip_rcv
+  ip_rcv_finish_core
+  __netif_receive_skb_one_core
+  netif_receive_skb_internal
+  tun_rx_batched
+  tun_get_user
+  __local_bh_enable_ip
+  tun_get_user
+  tun_chr_write_iter
+  __vfs_write
+  vfs_write
+  ksys_write
+  do_syscall_64
+  trace_hardirqs_off_thunk
+  entry_SYSCALL_64_after_hwframe
+
+...
+
+Kernel panic - not syncing: Fatal exception in interrupt
+
 -- 
-2.7.4
+Do what you love because life is too short for anything else.
+https://samifar.in/
