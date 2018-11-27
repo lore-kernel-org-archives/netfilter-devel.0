@@ -1,104 +1,81 @@
-From: Christian Brauner <christian@brauner.io>
-Subject: Re: [PATCH net-next 1/2] br_netfilter: add struct netns_brnf
-Date: Tue, 27 Nov 2018 11:19:08 +0100
-Message-ID: <20181127101906.wzi3sxazxwo5x45h@brauner.io>
-References: <20181107134859.19896-1-christian@brauner.io>
- <20181107134859.19896-2-christian@brauner.io>
- <20181127002047.7jzpfy32oupsthtj@salvia>
- <20181127022043.mzpqxlknqxcl6fmg@brauner.io>
- <20181127082349.ummq2perajt6olhh@salvia>
+From: Aaron Conole <aconole@bytheb.org>
+Subject: Re: [RFC -next v0 1/3] bpf: modular maps
+Date: Tue, 27 Nov 2018 09:24:05 -0500
+Message-ID: <f7tftvmd2ey.fsf@dhcp-25.97.bos.redhat.com>
+References: <20181125180919.13996-1-aconole@bytheb.org>
+        <20181125180919.13996-2-aconole@bytheb.org>
+        <20181127020608.4vucwmhrtu2cxrwu@ast-mbp.dhcp.thefacebook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Cc: davem@davemloft.net, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, bridge@lists.linux-foundation.org,
-        tyhicks@canonical.com, kadlec@blackhole.kfki.hu, fw@strlen.de,
-        roopa@cumulusnetworks.com, nikolay@cumulusnetworks.com
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain
+Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        Alexei Starovoitov <ast@kernel.org>,
+        Daniel Borkmann <daniel@iogearbox.net>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>,
+        John Fastabend <john.fastabend@gmail.com>,
+        Jesper Brouer <brouer@redhat.com>,
+        "David S . Miller" <davem@davemloft.net>,
+        Andy Gospodarek <andy@greyhouse.net>,
+        Rony Efraim <ronye@mellanox.com>,
+        Simon Horman <horms@verge.net.au>,
+        Marcelo Leitner <marcelo.leitner@gmail.com>
+To: Alexei Starovoitov <alexei.starovoitov@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181127082349.ummq2perajt6olhh@salvia>
+In-Reply-To: <20181127020608.4vucwmhrtu2cxrwu@ast-mbp.dhcp.thefacebook.com>
+        (Alexei Starovoitov's message of "Mon, 26 Nov 2018 18:06:09 -0800")
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Nov 27, 2018 at 09:23:49AM +0100, Pablo Neira Ayuso wrote:
-> On Tue, Nov 27, 2018 at 03:20:45AM +0100, Christian Brauner wrote:
-> > On Tue, Nov 27, 2018 at 01:20:47AM +0100, Pablo Neira Ayuso wrote:
-> > > Hi,
-> > > 
-> > > On Wed, Nov 07, 2018 at 02:48:58PM +0100, Christian Brauner wrote:
-> > > [...]
-> > > > diff --git a/include/net/netns/netfilter.h b/include/net/netns/netfilter.h
-> > > > index ca043342c0eb..eedbd1ac940e 100644
-> > > > --- a/include/net/netns/netfilter.h
-> > > > +++ b/include/net/netns/netfilter.h
-> > > > @@ -35,4 +35,20 @@ struct netns_nf {
-> > > >  	bool			defrag_ipv6;
-> > > >  #endif
-> > > >  };
-> > > > +
-> > > > +struct netns_brnf {
-> > > > +#ifdef CONFIG_SYSCTL
-> > > > +	struct ctl_table_header *ctl_hdr;
-> > > > +#endif
-> > > > +
-> > > > +	/* default value is 1 */
-> > > > +	int call_iptables;
-> > > > +	int call_ip6tables;
-> > > > +	int call_arptables;
-> > > > +
-> > > > +	/* default value is 0 */
-> > > > +	int filter_vlan_tagged;
-> > > > +	int filter_pppoe_tagged;
-> > > > +	int pass_vlan_indev;
-> > > > +};
-> > > 
-> > > I have spun on this several times, wondering if there's a way to avoid
-> > > scratching these many bytes per netns to expose these sysctl entries
-> > > that are plain on/off toggles... You said this:
-> > > 
-> > > >Currently, the /proc/sys/net/bridge folder is only created in the
-> > > >initial network namespace
-> > > 
-> > > I think we can add one single sysctl to expose these as flags from net
-> > > namespaces. Idea is to keep the existing (legacy) sysctl entries for
-> > > init_net only, and add a new single new one that exposes these as flags
-> > > (should be also available for consistency in init_net I'd suggest).
-> > > Flags could be map in this way, eg.
-> > > 
-> > >         0x1     call_iptables
-> > >         0x2     call_ip6tables
-> > >         0x4     call_arptables
-> > >         0x8     filter_vlan_tagged
-> > >         ...
-> > > 
-> > > Also documentation would be good to have for this.
-> > > 
-> > > Would this idea fly for you? Thanks.
-> > 
-> > My suggestion is to keep these files per network namespace but have a
-> > single flag argument in struct netns_brnf:
-> > +struct netns_brnf {
-> > +#ifdef CONFIG_SYSCTL
-> > +        struct ctl_table_header *ctl_hdr;
-> > +#endif
-> > +
-> > +       /* default value is 1 */
-> > +       unsigned int filter_flags;
-> > +};
-> > 
-> > #define BRNF_CALL_IPTABLES    0x1
-> > #define BRNF_CALL_IP6TABLES   0x2
-> > #define BRNF_CALL_ARPTABLES   0x4
-> > #define BRNF_CALL_VLAN_TAGGED 0x8
-> > 
-> > a write to the corresponding file would then cause the flag to be set or
-> > unset in filter_flags.
-> > This way we are a) space-efficient internally not bloating struct net
-> > while b) not breaking running tools in non-initial network namespaces
-> > that expect the files to be there. b) is really the important bit here. :)
-> 
-> OK, please, go explore this space-efficient approach. Thanks.
+Alexei Starovoitov <alexei.starovoitov@gmail.com> writes:
 
-Will do. I'll try to get to it in the next couple of days and send out a
-new version. Thanks! 
+> On Sun, Nov 25, 2018 at 01:09:17PM -0500, Aaron Conole wrote:
+>> This commit allows for map operations to be loaded by an lkm, rather than
+>> needing to be baked into the kernel at compile time.
+>
+> Nack.
+> Please see Documentation/bpf/bpf_design_QA.rst
+
+Thanks for the review, Alexei!  I hadn't been aware of this doc, so it's
+good to read through it.
+
+I see that the following is there:
+
+   Q: New functionality via kernel modules?
+   ----------------------------------------
+   Q: Can BPF functionality such as new program or map types, new
+   helpers, etc be added out of kernel module code?
+
+   A: NO.
+
+So, I think that means that even changing the helpers would be of no
+value (since it would only be useful in the event that the kernel were
+compiled with netfilter linked in, rather than as a module - and I doubt
+there's any place where that would be true).
+
+BUT, as I wrote in my cover I have some alternative approaches that I've
+thought about, and I'm listing here.  Can you let me know if any would
+be acceptable?  If none are, is there an alternative approach you would
+support?
+
+  1. Introduce flowmap again, this time, basically having it close to a
+     copy of the hashmap.  Introduce a few function calls that allow an
+     external module to easily manipulate all maps of that type to insert
+     / remove / update entries.  This makes it similar to, for example,
+     devmap.
+
+  2. Introduce a way to share maps between modules.  IE:
+     something like bpf_helper_expose_map(map_id, module_name).  Then have
+     netfilter and eBPF share access to the hashmap.  Netfilter and the
+     ebpf program will need to agree on the key and value size, and will
+     push data in/out.
+
+  3. Introduce an xdp/ebpf hook in the flowmap.
+     IE: nft add flowmap xx { .program=foo.o }
+     Then that will be called with a context, and can update a shared map
+     with userspace.  I haven't though out all the logistics on how to do
+     this, but it would put the onus of sharing the information on the
+     bpf program writer.
+
+What do you think?
