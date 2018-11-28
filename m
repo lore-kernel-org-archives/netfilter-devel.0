@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 13/16] netfilter: add missing error handling code for register functions
-Date: Wed, 28 Nov 2018 11:17:38 +0100
-Message-ID: <20181128101741.20924-14-pablo@netfilter.org>
+Subject: [PATCH 11/16] netfilter: nfnetlink_cttimeout: fetch timeouts for udplite and gre, too
+Date: Wed, 28 Nov 2018 11:17:36 +0100
+Message-ID: <20181128101741.20924-12-pablo@netfilter.org>
 References: <20181128101741.20924-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,244 +10,132 @@ In-Reply-To: <20181128101741.20924-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Taehee Yoo <ap420073@gmail.com>
+From: Florian Westphal <fw@strlen.de>
 
-register_{netdevice/inetaddr/inet6addr}_notifier may return an error
-value, this patch adds the code to handle these error paths.
+syzbot was able to trigger the WARN in cttimeout_default_get() by
+passing UDPLITE as l4protocol.  Alias UDPLITE to UDP, both use
+same timeout values.
 
-Signed-off-by: Taehee Yoo <ap420073@gmail.com>
+Furthermore, also fetch GRE timeouts.  GRE is a bit more complicated,
+as it still can be a module and its netns_proto_gre struct layout isn't
+visible outside of the gre module. Can't move timeouts around, it
+appears conntrack sysctl unregister assumes net_generic() returns
+nf_proto_net, so we get crash. Expose layout of netns_proto_gre instead.
+
+A followup nf-next patch could make gre tracker be built-in as well
+if needed, its not that large.
+
+Last, make the WARN() mention the missing protocol value in case
+anything else is missing.
+
+Reported-by: syzbot+2fae8fa157dd92618cae@syzkaller.appspotmail.com
+Fixes: 8866df9264a3 ("netfilter: nfnetlink_cttimeout: pass default timeout policy to obj_to_nlattr")
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/ipv4/nf_nat_masquerade.h |  2 +-
- include/net/netfilter/ipv6/nf_nat_masquerade.h |  2 +-
- net/ipv4/netfilter/ipt_MASQUERADE.c            |  7 ++++--
- net/ipv4/netfilter/nf_nat_masquerade_ipv4.c    | 21 +++++++++++++----
- net/ipv4/netfilter/nft_masq_ipv4.c             |  4 +++-
- net/ipv6/netfilter/ip6t_MASQUERADE.c           |  8 +++++--
- net/ipv6/netfilter/nf_nat_masquerade_ipv6.c    | 32 ++++++++++++++++++--------
- net/ipv6/netfilter/nft_masq_ipv6.c             |  4 +++-
- net/netfilter/nft_flow_offload.c               |  5 +++-
- 9 files changed, 63 insertions(+), 22 deletions(-)
+ include/linux/netfilter/nf_conntrack_proto_gre.h | 13 +++++++++++++
+ net/netfilter/nf_conntrack_proto_gre.c           | 14 ++------------
+ net/netfilter/nfnetlink_cttimeout.c              | 15 +++++++++++++--
+ 3 files changed, 28 insertions(+), 14 deletions(-)
 
-diff --git a/include/net/netfilter/ipv4/nf_nat_masquerade.h b/include/net/netfilter/ipv4/nf_nat_masquerade.h
-index cd24be4c4a99..13d55206bb9f 100644
---- a/include/net/netfilter/ipv4/nf_nat_masquerade.h
-+++ b/include/net/netfilter/ipv4/nf_nat_masquerade.h
-@@ -9,7 +9,7 @@ nf_nat_masquerade_ipv4(struct sk_buff *skb, unsigned int hooknum,
- 		       const struct nf_nat_range2 *range,
- 		       const struct net_device *out);
- 
--void nf_nat_masquerade_ipv4_register_notifier(void);
-+int nf_nat_masquerade_ipv4_register_notifier(void);
- void nf_nat_masquerade_ipv4_unregister_notifier(void);
- 
- #endif /*_NF_NAT_MASQUERADE_IPV4_H_ */
-diff --git a/include/net/netfilter/ipv6/nf_nat_masquerade.h b/include/net/netfilter/ipv6/nf_nat_masquerade.h
-index 0c3b5ebf0bb8..2917bf95c437 100644
---- a/include/net/netfilter/ipv6/nf_nat_masquerade.h
-+++ b/include/net/netfilter/ipv6/nf_nat_masquerade.h
-@@ -5,7 +5,7 @@
- unsigned int
- nf_nat_masquerade_ipv6(struct sk_buff *skb, const struct nf_nat_range2 *range,
- 		       const struct net_device *out);
--void nf_nat_masquerade_ipv6_register_notifier(void);
-+int nf_nat_masquerade_ipv6_register_notifier(void);
- void nf_nat_masquerade_ipv6_unregister_notifier(void);
- 
- #endif /* _NF_NAT_MASQUERADE_IPV6_H_ */
-diff --git a/net/ipv4/netfilter/ipt_MASQUERADE.c b/net/ipv4/netfilter/ipt_MASQUERADE.c
-index ce1512b02cb2..fd3f9e8a74da 100644
---- a/net/ipv4/netfilter/ipt_MASQUERADE.c
-+++ b/net/ipv4/netfilter/ipt_MASQUERADE.c
-@@ -81,9 +81,12 @@ static int __init masquerade_tg_init(void)
- 	int ret;
- 
- 	ret = xt_register_target(&masquerade_tg_reg);
-+	if (ret)
-+		return ret;
- 
--	if (ret == 0)
--		nf_nat_masquerade_ipv4_register_notifier();
-+	ret = nf_nat_masquerade_ipv4_register_notifier();
-+	if (ret)
-+		xt_unregister_target(&masquerade_tg_reg);
- 
- 	return ret;
- }
-diff --git a/net/ipv4/netfilter/nf_nat_masquerade_ipv4.c b/net/ipv4/netfilter/nf_nat_masquerade_ipv4.c
-index a9d5e013e555..c7d7fa4fc369 100644
---- a/net/ipv4/netfilter/nf_nat_masquerade_ipv4.c
-+++ b/net/ipv4/netfilter/nf_nat_masquerade_ipv4.c
-@@ -149,16 +149,29 @@ static struct notifier_block masq_inet_notifier = {
- 
- static atomic_t masquerade_notifier_refcount = ATOMIC_INIT(0);
- 
--void nf_nat_masquerade_ipv4_register_notifier(void)
-+int nf_nat_masquerade_ipv4_register_notifier(void)
- {
-+	int ret;
-+
- 	/* check if the notifier was already set */
- 	if (atomic_inc_return(&masquerade_notifier_refcount) > 1)
--		return;
-+		return 0;
- 
- 	/* Register for device down reports */
--	register_netdevice_notifier(&masq_dev_notifier);
-+	ret = register_netdevice_notifier(&masq_dev_notifier);
-+	if (ret)
-+		goto err_dec;
- 	/* Register IP address change reports */
--	register_inetaddr_notifier(&masq_inet_notifier);
-+	ret = register_inetaddr_notifier(&masq_inet_notifier);
-+	if (ret)
-+		goto err_unregister;
-+
-+	return ret;
-+err_unregister:
-+	unregister_netdevice_notifier(&masq_dev_notifier);
-+err_dec:
-+	atomic_dec(&masquerade_notifier_refcount);
-+	return ret;
- }
- EXPORT_SYMBOL_GPL(nf_nat_masquerade_ipv4_register_notifier);
- 
-diff --git a/net/ipv4/netfilter/nft_masq_ipv4.c b/net/ipv4/netfilter/nft_masq_ipv4.c
-index f1193e1e928a..6847de1d1db8 100644
---- a/net/ipv4/netfilter/nft_masq_ipv4.c
-+++ b/net/ipv4/netfilter/nft_masq_ipv4.c
-@@ -69,7 +69,9 @@ static int __init nft_masq_ipv4_module_init(void)
- 	if (ret < 0)
- 		return ret;
- 
--	nf_nat_masquerade_ipv4_register_notifier();
-+	ret = nf_nat_masquerade_ipv4_register_notifier();
-+	if (ret)
-+		nft_unregister_expr(&nft_masq_ipv4_type);
- 
- 	return ret;
- }
-diff --git a/net/ipv6/netfilter/ip6t_MASQUERADE.c b/net/ipv6/netfilter/ip6t_MASQUERADE.c
-index 491f808e356a..29c7f1915a96 100644
---- a/net/ipv6/netfilter/ip6t_MASQUERADE.c
-+++ b/net/ipv6/netfilter/ip6t_MASQUERADE.c
-@@ -58,8 +58,12 @@ static int __init masquerade_tg6_init(void)
- 	int err;
- 
- 	err = xt_register_target(&masquerade_tg6_reg);
--	if (err == 0)
--		nf_nat_masquerade_ipv6_register_notifier();
-+	if (err)
-+		return err;
-+
-+	err = nf_nat_masquerade_ipv6_register_notifier();
-+	if (err)
-+		xt_unregister_target(&masquerade_tg6_reg);
- 
- 	return err;
- }
-diff --git a/net/ipv6/netfilter/nf_nat_masquerade_ipv6.c b/net/ipv6/netfilter/nf_nat_masquerade_ipv6.c
-index 3e4bf2286abe..7afd1e63d2db 100644
---- a/net/ipv6/netfilter/nf_nat_masquerade_ipv6.c
-+++ b/net/ipv6/netfilter/nf_nat_masquerade_ipv6.c
-@@ -132,8 +132,8 @@ static void iterate_cleanup_work(struct work_struct *work)
-  * of ipv6 addresses being deleted), we also need to add an upper
-  * limit to the number of queued work items.
-  */
--static int masq_inet_event(struct notifier_block *this,
--			   unsigned long event, void *ptr)
-+static int masq_inet6_event(struct notifier_block *this,
-+			    unsigned long event, void *ptr)
- {
- 	struct inet6_ifaddr *ifa = ptr;
- 	const struct net_device *dev;
-@@ -171,20 +171,34 @@ static int masq_inet_event(struct notifier_block *this,
- 	return NOTIFY_DONE;
- }
- 
--static struct notifier_block masq_inet_notifier = {
--	.notifier_call	= masq_inet_event,
-+static struct notifier_block masq_inet6_notifier = {
-+	.notifier_call	= masq_inet6_event,
+diff --git a/include/linux/netfilter/nf_conntrack_proto_gre.h b/include/linux/netfilter/nf_conntrack_proto_gre.h
+index b8d95564bd53..14edb795ab43 100644
+--- a/include/linux/netfilter/nf_conntrack_proto_gre.h
++++ b/include/linux/netfilter/nf_conntrack_proto_gre.h
+@@ -21,6 +21,19 @@ struct nf_ct_gre_keymap {
+ 	struct nf_conntrack_tuple tuple;
  };
  
- static atomic_t masquerade_notifier_refcount = ATOMIC_INIT(0);
++enum grep_conntrack {
++	GRE_CT_UNREPLIED,
++	GRE_CT_REPLIED,
++	GRE_CT_MAX
++};
++
++struct netns_proto_gre {
++	struct nf_proto_net	nf;
++	rwlock_t		keymap_lock;
++	struct list_head	keymap_list;
++	unsigned int		gre_timeouts[GRE_CT_MAX];
++};
++
+ /* add new tuple->key_reply pair to keymap */
+ int nf_ct_gre_keymap_add(struct nf_conn *ct, enum ip_conntrack_dir dir,
+ 			 struct nf_conntrack_tuple *t);
+diff --git a/net/netfilter/nf_conntrack_proto_gre.c b/net/netfilter/nf_conntrack_proto_gre.c
+index 9b48dc8b4b88..2a5e56c6d8d9 100644
+--- a/net/netfilter/nf_conntrack_proto_gre.c
++++ b/net/netfilter/nf_conntrack_proto_gre.c
+@@ -43,24 +43,12 @@
+ #include <linux/netfilter/nf_conntrack_proto_gre.h>
+ #include <linux/netfilter/nf_conntrack_pptp.h>
  
--void nf_nat_masquerade_ipv6_register_notifier(void)
-+int nf_nat_masquerade_ipv6_register_notifier(void)
+-enum grep_conntrack {
+-	GRE_CT_UNREPLIED,
+-	GRE_CT_REPLIED,
+-	GRE_CT_MAX
+-};
+-
+ static const unsigned int gre_timeouts[GRE_CT_MAX] = {
+ 	[GRE_CT_UNREPLIED]	= 30*HZ,
+ 	[GRE_CT_REPLIED]	= 180*HZ,
+ };
+ 
+ static unsigned int proto_gre_net_id __read_mostly;
+-struct netns_proto_gre {
+-	struct nf_proto_net	nf;
+-	rwlock_t		keymap_lock;
+-	struct list_head	keymap_list;
+-	unsigned int		gre_timeouts[GRE_CT_MAX];
+-};
+ 
+ static inline struct netns_proto_gre *gre_pernet(struct net *net)
  {
-+	int ret;
-+
- 	/* check if the notifier is already set */
- 	if (atomic_inc_return(&masquerade_notifier_refcount) > 1)
--		return;
-+		return 0;
+@@ -402,6 +390,8 @@ static int __init nf_ct_proto_gre_init(void)
+ {
+ 	int ret;
  
--	register_netdevice_notifier(&masq_dev_notifier);
--	register_inet6addr_notifier(&masq_inet_notifier);
-+	ret = register_netdevice_notifier(&masq_dev_notifier);
-+	if (ret)
-+		goto err_dec;
++	BUILD_BUG_ON(offsetof(struct netns_proto_gre, nf) != 0);
 +
-+	ret = register_inet6addr_notifier(&masq_inet6_notifier);
-+	if (ret)
-+		goto err_unregister;
-+
-+	return ret;
-+err_unregister:
-+	unregister_netdevice_notifier(&masq_dev_notifier);
-+err_dec:
-+	atomic_dec(&masquerade_notifier_refcount);
-+	return ret;
- }
- EXPORT_SYMBOL_GPL(nf_nat_masquerade_ipv6_register_notifier);
- 
-@@ -194,7 +208,7 @@ void nf_nat_masquerade_ipv6_unregister_notifier(void)
- 	if (atomic_dec_return(&masquerade_notifier_refcount) > 0)
- 		return;
- 
--	unregister_inet6addr_notifier(&masq_inet_notifier);
-+	unregister_inet6addr_notifier(&masq_inet6_notifier);
- 	unregister_netdevice_notifier(&masq_dev_notifier);
- }
- EXPORT_SYMBOL_GPL(nf_nat_masquerade_ipv6_unregister_notifier);
-diff --git a/net/ipv6/netfilter/nft_masq_ipv6.c b/net/ipv6/netfilter/nft_masq_ipv6.c
-index dd0122f3cffe..e06c82e9dfcd 100644
---- a/net/ipv6/netfilter/nft_masq_ipv6.c
-+++ b/net/ipv6/netfilter/nft_masq_ipv6.c
-@@ -70,7 +70,9 @@ static int __init nft_masq_ipv6_module_init(void)
+ 	ret = register_pernet_subsys(&proto_gre_net_ops);
  	if (ret < 0)
- 		return ret;
- 
--	nf_nat_masquerade_ipv6_register_notifier();
-+	ret = nf_nat_masquerade_ipv6_register_notifier();
-+	if (ret)
-+		nft_unregister_expr(&nft_masq_ipv6_type);
- 
- 	return ret;
- }
-diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
-index e82d9a966c45..974525eb92df 100644
---- a/net/netfilter/nft_flow_offload.c
-+++ b/net/netfilter/nft_flow_offload.c
-@@ -214,7 +214,9 @@ static int __init nft_flow_offload_module_init(void)
- {
- 	int err;
- 
--	register_netdevice_notifier(&flow_offload_netdev_notifier);
-+	err = register_netdevice_notifier(&flow_offload_netdev_notifier);
-+	if (err)
-+		goto err;
- 
- 	err = nft_register_expr(&nft_flow_offload_type);
- 	if (err < 0)
-@@ -224,6 +226,7 @@ static int __init nft_flow_offload_module_init(void)
- 
- register_expr:
- 	unregister_netdevice_notifier(&flow_offload_netdev_notifier);
-+err:
- 	return err;
- }
+ 		goto out_pernet;
+diff --git a/net/netfilter/nfnetlink_cttimeout.c b/net/netfilter/nfnetlink_cttimeout.c
+index a518eb162344..109b0d27345a 100644
+--- a/net/netfilter/nfnetlink_cttimeout.c
++++ b/net/netfilter/nfnetlink_cttimeout.c
+@@ -455,7 +455,8 @@ static int cttimeout_default_get(struct net *net, struct sock *ctnl,
+ 	case IPPROTO_TCP:
+ 		timeouts = nf_tcp_pernet(net)->timeouts;
+ 		break;
+-	case IPPROTO_UDP:
++	case IPPROTO_UDP: /* fallthrough */
++	case IPPROTO_UDPLITE:
+ 		timeouts = nf_udp_pernet(net)->timeouts;
+ 		break;
+ 	case IPPROTO_DCCP:
+@@ -471,11 +472,21 @@ static int cttimeout_default_get(struct net *net, struct sock *ctnl,
+ 		timeouts = nf_sctp_pernet(net)->timeouts;
+ #endif
+ 		break;
++	case IPPROTO_GRE:
++#ifdef CONFIG_NF_CT_PROTO_GRE
++		if (l4proto->net_id) {
++			struct netns_proto_gre *net_gre;
++
++			net_gre = net_generic(net, *l4proto->net_id);
++			timeouts = net_gre->gre_timeouts;
++		}
++#endif
++		break;
+ 	case 255:
+ 		timeouts = &nf_generic_pernet(net)->timeout;
+ 		break;
+ 	default:
+-		WARN_ON_ONCE(1);
++		WARN_ONCE(1, "Missing timeouts for proto %d", l4proto->l4proto);
+ 		break;
+ 	}
  
 -- 
 2.11.0
