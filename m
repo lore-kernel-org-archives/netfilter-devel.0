@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 06/16] netfilter: nf_tables: don't use position attribute on rule replacement
-Date: Wed, 28 Nov 2018 11:17:31 +0100
-Message-ID: <20181128101741.20924-7-pablo@netfilter.org>
+Subject: [PATCH 07/16] netfilter: xt_RATEEST: remove netns exit routine
+Date: Wed, 28 Nov 2018 11:17:32 +0100
+Message-ID: <20181128101741.20924-8-pablo@netfilter.org>
 References: <20181128101741.20924-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,51 +10,89 @@ In-Reply-To: <20181128101741.20924-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+From: Taehee Yoo <ap420073@gmail.com>
 
-Its possible to set both HANDLE and POSITION when replacing a rule.
-In this case, the rule at POSITION gets replaced using the
-userspace-provided handle.  Rule handles are supposed to be generated
-by the kernel only.
+xt_rateest_net_exit() was added to check whether rules are flushed
+successfully. but ->net_exit() callback is called earlier than
+->destroy() callback.
+So that ->net_exit() callback can't check that.
 
-Duplicate handles should be harmless, however better disable this "feature"
-by only checking for the POSITION attribute on insert operations.
+test commands:
+   %ip netns add vm1
+   %ip netns exec vm1 iptables -t mangle -I PREROUTING -p udp \
+	   --dport 1111 -j RATEEST --rateest-name ap \
+	   --rateest-interval 250ms --rateest-ewma 0.5s
+   %ip netns del vm1
 
-Fixes: 5e94846686d0 ("netfilter: nf_tables: add insert operation")
-Signed-off-by: Florian Westphal <fw@strlen.de>
+splat looks like:
+[  668.813518] WARNING: CPU: 0 PID: 87 at net/netfilter/xt_RATEEST.c:210 xt_rateest_net_exit+0x210/0x340 [xt_RATEEST]
+[  668.813518] Modules linked in: xt_RATEEST xt_tcpudp iptable_mangle bpfilter ip_tables x_tables
+[  668.813518] CPU: 0 PID: 87 Comm: kworker/u4:2 Not tainted 4.19.0-rc7+ #21
+[  668.813518] Workqueue: netns cleanup_net
+[  668.813518] RIP: 0010:xt_rateest_net_exit+0x210/0x340 [xt_RATEEST]
+[  668.813518] Code: 00 48 8b 85 30 ff ff ff 4c 8b 23 80 38 00 0f 85 24 01 00 00 48 8b 85 30 ff ff ff 4d 85 e4 4c 89 a5 58 ff ff ff c6 00 f8 74 b2 <0f> 0b 48 83 c3 08 4c 39 f3 75 b0 48 b8 00 00 00 00 00 fc ff df 49
+[  668.813518] RSP: 0018:ffff8801156c73f8 EFLAGS: 00010282
+[  668.813518] RAX: ffffed0022ad8e85 RBX: ffff880118928e98 RCX: 5db8012a00000000
+[  668.813518] RDX: ffff8801156c7428 RSI: 00000000cb1d185f RDI: ffff880115663b74
+[  668.813518] RBP: ffff8801156c74d0 R08: ffff8801156633c0 R09: 1ffff100236440be
+[  668.813518] R10: 0000000000000001 R11: ffffed002367d852 R12: ffff880115142b08
+[  668.813518] R13: 1ffff10022ad8e81 R14: ffff880118928ea8 R15: dffffc0000000000
+[  668.813518] FS:  0000000000000000(0000) GS:ffff88011b200000(0000) knlGS:0000000000000000
+[  668.813518] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[  668.813518] CR2: 0000563aa69f4f28 CR3: 0000000105a16000 CR4: 00000000001006f0
+[  668.813518] Call Trace:
+[  668.813518]  ? unregister_netdevice_many+0xe0/0xe0
+[  668.813518]  ? xt_rateest_net_init+0x2c0/0x2c0 [xt_RATEEST]
+[  668.813518]  ? default_device_exit+0x1ca/0x270
+[  668.813518]  ? remove_proc_entry+0x1cd/0x390
+[  668.813518]  ? dev_change_net_namespace+0xd00/0xd00
+[  668.813518]  ? __init_waitqueue_head+0x130/0x130
+[  668.813518]  ops_exit_list.isra.10+0x94/0x140
+[  668.813518]  cleanup_net+0x45b/0x900
+[  668.813518]  ? net_drop_ns+0x110/0x110
+[  668.813518]  ? swapgs_restore_regs_and_return_to_usermode+0x3c/0x80
+[  668.813518]  ? save_trace+0x300/0x300
+[  668.813518]  ? lock_acquire+0x196/0x470
+[  668.813518]  ? lock_acquire+0x196/0x470
+[  668.813518]  ? process_one_work+0xb60/0x1de0
+[  668.813518]  ? _raw_spin_unlock_irq+0x29/0x40
+[  668.813518]  ? _raw_spin_unlock_irq+0x29/0x40
+[  668.813518]  ? __lock_acquire+0x4500/0x4500
+[  668.813518]  ? __lock_is_held+0xb4/0x140
+[  668.813518]  process_one_work+0xc13/0x1de0
+[  668.813518]  ? pwq_dec_nr_in_flight+0x3c0/0x3c0
+[  668.813518]  ? set_load_weight+0x270/0x270
+[ ... ]
+
+Fixes: 3427b2ab63fa ("netfilter: make xt_rateest hash table per net")
+Signed-off-by: Taehee Yoo <ap420073@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c | 17 +++++++----------
- 1 file changed, 7 insertions(+), 10 deletions(-)
+ net/netfilter/xt_RATEEST.c | 10 ----------
+ 1 file changed, 10 deletions(-)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index dd577e7d100c..e496030fdc3b 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -2589,17 +2589,14 @@ static int nf_tables_newrule(struct net *net, struct sock *nlsk,
+diff --git a/net/netfilter/xt_RATEEST.c b/net/netfilter/xt_RATEEST.c
+index dec843cadf46..9e05c86ba5c4 100644
+--- a/net/netfilter/xt_RATEEST.c
++++ b/net/netfilter/xt_RATEEST.c
+@@ -201,18 +201,8 @@ static __net_init int xt_rateest_net_init(struct net *net)
+ 	return 0;
+ }
  
- 		if (chain->use == UINT_MAX)
- 			return -EOVERFLOW;
--	}
+-static void __net_exit xt_rateest_net_exit(struct net *net)
+-{
+-	struct xt_rateest_net *xn = net_generic(net, xt_rateest_id);
+-	int i;
 -
--	if (nla[NFTA_RULE_POSITION]) {
--		if (!(nlh->nlmsg_flags & NLM_F_CREATE))
--			return -EOPNOTSUPP;
- 
--		pos_handle = be64_to_cpu(nla_get_be64(nla[NFTA_RULE_POSITION]));
--		old_rule = __nft_rule_lookup(chain, pos_handle);
--		if (IS_ERR(old_rule)) {
--			NL_SET_BAD_ATTR(extack, nla[NFTA_RULE_POSITION]);
--			return PTR_ERR(old_rule);
-+		if (nla[NFTA_RULE_POSITION]) {
-+			pos_handle = be64_to_cpu(nla_get_be64(nla[NFTA_RULE_POSITION]));
-+			old_rule = __nft_rule_lookup(chain, pos_handle);
-+			if (IS_ERR(old_rule)) {
-+				NL_SET_BAD_ATTR(extack, nla[NFTA_RULE_POSITION]);
-+				return PTR_ERR(old_rule);
-+			}
- 		}
- 	}
- 
+-	for (i = 0; i < ARRAY_SIZE(xn->hash); i++)
+-		WARN_ON_ONCE(!hlist_empty(&xn->hash[i]));
+-}
+-
+ static struct pernet_operations xt_rateest_net_ops = {
+ 	.init = xt_rateest_net_init,
+-	.exit = xt_rateest_net_exit,
+ 	.id   = &xt_rateest_id,
+ 	.size = sizeof(struct xt_rateest_net),
+ };
 -- 
 2.11.0
