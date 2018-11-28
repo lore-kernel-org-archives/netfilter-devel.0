@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 09/16] netfilter: xt_hashlimit: fix a possible memory leak in htable_create()
-Date: Wed, 28 Nov 2018 11:17:34 +0100
-Message-ID: <20181128101741.20924-10-pablo@netfilter.org>
+Subject: [PATCH 08/16] netfilter: nf_tables: fix use-after-free when deleting compat expressions
+Date: Wed, 28 Nov 2018 11:17:33 +0100
+Message-ID: <20181128101741.20924-9-pablo@netfilter.org>
 References: <20181128101741.20924-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,66 +10,73 @@ In-Reply-To: <20181128101741.20924-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Taehee Yoo <ap420073@gmail.com>
+From: Florian Westphal <fw@strlen.de>
 
-In the htable_create(), hinfo is allocated by vmalloc()
-So that if error occurred, hinfo should be freed.
+nft_compat ops do not have static storage duration, unlike all other
+expressions.
 
-Fixes: 11d5f15723c9 ("netfilter: xt_hashlimit: Create revision 2 to support higher pps rates")
-Signed-off-by: Taehee Yoo <ap420073@gmail.com>
+When nf_tables_expr_destroy() returns, expr->ops might have been
+free'd already, so we need to store next address before calling
+expression destructor.
+
+For same reason, we can't deref match pointer after nft_xt_put().
+
+This can be easily reproduced by adding msleep() before
+nft_match_destroy() returns.
+
+Fixes: 0ca743a55991 ("netfilter: nf_tables: add compatibility layer for x_tables")
+Reported-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/xt_hashlimit.c | 9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+ net/netfilter/nf_tables_api.c | 5 +++--
+ net/netfilter/nft_compat.c    | 3 ++-
+ 2 files changed, 5 insertions(+), 3 deletions(-)
 
-diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
-index 3e7d259e5d8d..1ad4017f9b73 100644
---- a/net/netfilter/xt_hashlimit.c
-+++ b/net/netfilter/xt_hashlimit.c
-@@ -295,9 +295,10 @@ static int htable_create(struct net *net, struct hashlimit_cfg3 *cfg,
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index e496030fdc3b..ddeaa1990e1e 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -2457,7 +2457,7 @@ static int nf_tables_getrule(struct net *net, struct sock *nlsk,
+ static void nf_tables_rule_destroy(const struct nft_ctx *ctx,
+ 				   struct nft_rule *rule)
+ {
+-	struct nft_expr *expr;
++	struct nft_expr *expr, *next;
  
- 	/* copy match config into hashtable config */
- 	ret = cfg_copy(&hinfo->cfg, (void *)cfg, 3);
--
--	if (ret)
-+	if (ret) {
-+		vfree(hinfo);
- 		return ret;
-+	}
+ 	/*
+ 	 * Careful: some expressions might not be initialized in case this
+@@ -2465,8 +2465,9 @@ static void nf_tables_rule_destroy(const struct nft_ctx *ctx,
+ 	 */
+ 	expr = nft_expr_first(rule);
+ 	while (expr != nft_expr_last(rule) && expr->ops) {
++		next = nft_expr_next(expr);
+ 		nf_tables_expr_destroy(ctx, expr);
+-		expr = nft_expr_next(expr);
++		expr = next;
+ 	}
+ 	kfree(rule);
+ }
+diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
+index 9d0ede474224..7334e0b80a5e 100644
+--- a/net/netfilter/nft_compat.c
++++ b/net/netfilter/nft_compat.c
+@@ -520,6 +520,7 @@ __nft_match_destroy(const struct nft_ctx *ctx, const struct nft_expr *expr,
+ 		    void *info)
+ {
+ 	struct xt_match *match = expr->ops->data;
++	struct module *me = match->me;
+ 	struct xt_mtdtor_param par;
  
- 	hinfo->cfg.size = size;
- 	if (hinfo->cfg.max == 0)
-@@ -814,7 +815,6 @@ hashlimit_mt_v1(const struct sk_buff *skb, struct xt_action_param *par)
- 	int ret;
+ 	par.net = ctx->net;
+@@ -530,7 +531,7 @@ __nft_match_destroy(const struct nft_ctx *ctx, const struct nft_expr *expr,
+ 		par.match->destroy(&par);
  
- 	ret = cfg_copy(&cfg, (void *)&info->cfg, 1);
--
- 	if (ret)
- 		return ret;
+ 	if (nft_xt_put(container_of(expr->ops, struct nft_xt, ops)))
+-		module_put(match->me);
++		module_put(me);
+ }
  
-@@ -830,7 +830,6 @@ hashlimit_mt_v2(const struct sk_buff *skb, struct xt_action_param *par)
- 	int ret;
- 
- 	ret = cfg_copy(&cfg, (void *)&info->cfg, 2);
--
- 	if (ret)
- 		return ret;
- 
-@@ -921,7 +920,6 @@ static int hashlimit_mt_check_v1(const struct xt_mtchk_param *par)
- 		return ret;
- 
- 	ret = cfg_copy(&cfg, (void *)&info->cfg, 1);
--
- 	if (ret)
- 		return ret;
- 
-@@ -940,7 +938,6 @@ static int hashlimit_mt_check_v2(const struct xt_mtchk_param *par)
- 		return ret;
- 
- 	ret = cfg_copy(&cfg, (void *)&info->cfg, 2);
--
- 	if (ret)
- 		return ret;
- 
+ static void
 -- 
 2.11.0
