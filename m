@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 03/16] netfilter: nf_conncount: fix unexpected permanent node of list.
-Date: Wed, 28 Nov 2018 11:17:28 +0100
-Message-ID: <20181128101741.20924-4-pablo@netfilter.org>
+Subject: [PATCH 09/16] netfilter: xt_hashlimit: fix a possible memory leak in htable_create()
+Date: Wed, 28 Nov 2018 11:17:34 +0100
+Message-ID: <20181128101741.20924-10-pablo@netfilter.org>
 References: <20181128101741.20924-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -12,79 +12,64 @@ List-Id: netfilter-devel.vger.kernel.org
 
 From: Taehee Yoo <ap420073@gmail.com>
 
-When list->count is 0, the list is deleted by GC. But list->count is
-never reached 0 because initial count value is 1 and it is increased
-when node is inserted. So that initial value of list->count should be 0.
+In the htable_create(), hinfo is allocated by vmalloc()
+So that if error occurred, hinfo should be freed.
 
-Originally GC always finds zero count list through deleting node and
-decreasing count. However, list may be left empty since node insertion
-may fail eg.  allocaton problem. In order to solve this problem, GC
-routine also finds zero count list without deleting node.
-
-Fixes: cb2b36f5a97d ("netfilter: nf_conncount: Switch to plain list")
+Fixes: 11d5f15723c9 ("netfilter: xt_hashlimit: Create revision 2 to support higher pps rates")
 Signed-off-by: Taehee Yoo <ap420073@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_conncount.c | 18 +++++++++++++++---
- 1 file changed, 15 insertions(+), 3 deletions(-)
+ net/netfilter/xt_hashlimit.c | 9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
 
-diff --git a/net/netfilter/nf_conncount.c b/net/netfilter/nf_conncount.c
-index cb33709138df..8acae4a3e4c0 100644
---- a/net/netfilter/nf_conncount.c
-+++ b/net/netfilter/nf_conncount.c
-@@ -144,8 +144,10 @@ static bool conn_free(struct nf_conncount_list *list,
- 	list->count--;
- 	conn->dead = true;
- 	list_del_rcu(&conn->node);
--	if (list->count == 0)
-+	if (list->count == 0) {
-+		list->dead = true;
- 		free_entry = true;
+diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
+index 3e7d259e5d8d..1ad4017f9b73 100644
+--- a/net/netfilter/xt_hashlimit.c
++++ b/net/netfilter/xt_hashlimit.c
+@@ -295,9 +295,10 @@ static int htable_create(struct net *net, struct hashlimit_cfg3 *cfg,
+ 
+ 	/* copy match config into hashtable config */
+ 	ret = cfg_copy(&hinfo->cfg, (void *)cfg, 3);
+-
+-	if (ret)
++	if (ret) {
++		vfree(hinfo);
+ 		return ret;
 +	}
  
- 	spin_unlock_bh(&list->list_lock);
- 	call_rcu(&conn->rcu_head, __conn_free);
-@@ -248,7 +250,7 @@ void nf_conncount_list_init(struct nf_conncount_list *list)
- {
- 	spin_lock_init(&list->list_lock);
- 	INIT_LIST_HEAD(&list->head);
--	list->count = 1;
-+	list->count = 0;
- 	list->dead = false;
- }
- EXPORT_SYMBOL_GPL(nf_conncount_list_init);
-@@ -262,6 +264,7 @@ bool nf_conncount_gc_list(struct net *net,
- 	struct nf_conn *found_ct;
- 	unsigned int collected = 0;
- 	bool free_entry = false;
-+	bool ret = false;
+ 	hinfo->cfg.size = size;
+ 	if (hinfo->cfg.max == 0)
+@@ -814,7 +815,6 @@ hashlimit_mt_v1(const struct sk_buff *skb, struct xt_action_param *par)
+ 	int ret;
  
- 	list_for_each_entry_safe(conn, conn_n, &list->head, node) {
- 		found = find_or_evict(net, list, conn, &free_entry);
-@@ -291,7 +294,15 @@ bool nf_conncount_gc_list(struct net *net,
- 		if (collected > CONNCOUNT_GC_MAX_NODES)
- 			return false;
- 	}
--	return false;
-+
-+	spin_lock_bh(&list->list_lock);
-+	if (!list->count) {
-+		list->dead = true;
-+		ret = true;
-+	}
-+	spin_unlock_bh(&list->list_lock);
-+
-+	return ret;
- }
- EXPORT_SYMBOL_GPL(nf_conncount_gc_list);
+ 	ret = cfg_copy(&cfg, (void *)&info->cfg, 1);
+-
+ 	if (ret)
+ 		return ret;
  
-@@ -417,6 +428,7 @@ insert_tree(struct net *net,
- 	nf_conncount_list_init(&rbconn->list);
- 	list_add(&conn->node, &rbconn->list.head);
- 	count = 1;
-+	rbconn->list.count = count;
+@@ -830,7 +830,6 @@ hashlimit_mt_v2(const struct sk_buff *skb, struct xt_action_param *par)
+ 	int ret;
  
- 	rb_link_node(&rbconn->node, parent, rbnode);
- 	rb_insert_color(&rbconn->node, root);
+ 	ret = cfg_copy(&cfg, (void *)&info->cfg, 2);
+-
+ 	if (ret)
+ 		return ret;
+ 
+@@ -921,7 +920,6 @@ static int hashlimit_mt_check_v1(const struct xt_mtchk_param *par)
+ 		return ret;
+ 
+ 	ret = cfg_copy(&cfg, (void *)&info->cfg, 1);
+-
+ 	if (ret)
+ 		return ret;
+ 
+@@ -940,7 +938,6 @@ static int hashlimit_mt_check_v2(const struct xt_mtchk_param *par)
+ 		return ret;
+ 
+ 	ret = cfg_copy(&cfg, (void *)&info->cfg, 2);
+-
+ 	if (ret)
+ 		return ret;
+ 
 -- 
 2.11.0
