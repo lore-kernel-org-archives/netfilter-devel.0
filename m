@@ -1,122 +1,110 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 00/16] Netfilter fixes for net
-Date: Wed, 28 Nov 2018 11:17:25 +0100
-Message-ID: <20181128101741.20924-1-pablo@netfilter.org>
+Subject: [PATCH 01/16] netfilter: nf_conncount: use spin_lock_bh instead of spin_lock
+Date: Wed, 28 Nov 2018 11:17:26 +0100
+Message-ID: <20181128101741.20924-2-pablo@netfilter.org>
+References: <20181128101741.20924-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20181128101741.20924-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi David,
+From: Taehee Yoo <ap420073@gmail.com>
 
-The following patchset contains Netfilter fixes for net:
+conn_free() holds lock with spin_lock() and it is called by both
+nf_conncount_lookup() and nf_conncount_gc_list(). nf_conncount_lookup()
+is called from bottom-half context and nf_conncount_gc_list() from
+process context. So that spin_lock() call is not safe. Hence
+conn_free() should use spin_lock_bh() instead of spin_lock().
 
-1) Disable BH while holding list spinlock in nf_conncount, from
-   Taehee Yoo.
+test commands:
+   %nft add table ip filter
+   %nft add chain ip filter input { type filter hook input priority 0\; }
+   %nft add rule filter input meter test { ip saddr ct count over 2 } \
+	   counter
 
-2) List corruption in nf_conncount, also from Taehee.
+splat looks like:
+[  461.996507] ================================
+[  461.998999] WARNING: inconsistent lock state
+[  461.998999] 4.19.0-rc6+ #22 Not tainted
+[  461.998999] --------------------------------
+[  461.998999] inconsistent {IN-SOFTIRQ-W} -> {SOFTIRQ-ON-W} usage.
+[  461.998999] kworker/0:2/134 [HC0[0]:SC0[0]:HE1:SE1] takes:
+[  461.998999] 00000000a71a559a (&(&list->list_lock)->rlock){+.?.}, at: conn_free+0x69/0x2b0 [nf_conncount]
+[  461.998999] {IN-SOFTIRQ-W} state was registered at:
+[  461.998999]   _raw_spin_lock+0x30/0x70
+[  461.998999]   nf_conncount_add+0x28a/0x520 [nf_conncount]
+[  461.998999]   nft_connlimit_eval+0x401/0x580 [nft_connlimit]
+[  461.998999]   nft_dynset_eval+0x32b/0x590 [nf_tables]
+[  461.998999]   nft_do_chain+0x497/0x1430 [nf_tables]
+[  461.998999]   nft_do_chain_ipv4+0x255/0x330 [nf_tables]
+[  461.998999]   nf_hook_slow+0xb1/0x160
+[ ... ]
+[  461.998999] other info that might help us debug this:
+[  461.998999]  Possible unsafe locking scenario:
+[  461.998999]
+[  461.998999]        CPU0
+[  461.998999]        ----
+[  461.998999]   lock(&(&list->list_lock)->rlock);
+[  461.998999]   <Interrupt>
+[  461.998999]     lock(&(&list->list_lock)->rlock);
+[  461.998999]
+[  461.998999]  *** DEADLOCK ***
+[  461.998999]
+[ ... ]
 
-3) Fix race that results in leaving around an empty list node in
-   nf_conncount, from Taehee Yoo.
+Fixes: 5c789e131cbb ("netfilter: nf_conncount: Add list lock and gc worker, and RCU for init tree search")
+Signed-off-by: Taehee Yoo <ap420073@gmail.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_conncount.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-4) Proper chain handling for inactive chains from the commit path,
-   from Florian Westphal. This includes a selftest for this.
-
-5) Do duplicate rule handles when replacing rules, also from Florian.
-
-6) Remove net_exit path in xt_RATEEST that results in splat, from Taehee.
-
-7) Possible use-after-free in nft_compat when releasing extensions.
-   From Florian.
-
-8) Memory leak in xt_hashlimit, from Taehee.
-
-9) Call ip_vs_dst_notifier after ipv6_dev_notf, from Xin Long.
-
-10) Fix cttimeout with udplite and gre, from Florian.
-
-11) Preserve oif for IPv6 link-local generated traffic from mangle
-    table, from Alin Nastac.
-
-12) Missing error handling in masquerade notifiers, from Taehee Yoo.
-
-13) Use mutex to protect registration/unregistration of masquerade
-    extensions in order to prevent a race, from Taehee.
-
-14) Incorrect condition check in tree_nodes_free(), also from Taehee.
-
-15) Fix chain counter leak in rule replacement path, from Taehee.
-
-You can pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
-
-Thanks.
-
-----------------------------------------------------------------
-
-The following changes since commit ccda4af0f4b92f7b4c308d3acc262f4a7e3affad:
-
-  Linux 4.20-rc2 (2018-11-11 17:12:31 -0600)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git HEAD
-
-for you to fetch changes up to ca08987885a147643817d02bf260bc4756ce8cd4:
-
-  netfilter: nf_tables: deactivate expressions in rule replecement routine (2018-11-28 10:56:40 +0100)
-
-----------------------------------------------------------------
-Alin Nastac (1):
-      netfilter: ipv6: Preserve link scope traffic original oif
-
-Florian Westphal (5):
-      netfilter: nf_tables: don't skip inactive chains during update
-      selftests: add script to stress-test nft packet path vs. control plane
-      netfilter: nf_tables: don't use position attribute on rule replacement
-      netfilter: nf_tables: fix use-after-free when deleting compat expressions
-      netfilter: nfnetlink_cttimeout: fetch timeouts for udplite and gre, too
-
-Taehee Yoo (9):
-      netfilter: nf_conncount: use spin_lock_bh instead of spin_lock
-      netfilter: nf_conncount: fix list_del corruption in conn_free
-      netfilter: nf_conncount: fix unexpected permanent node of list.
-      netfilter: xt_RATEEST: remove netns exit routine
-      netfilter: xt_hashlimit: fix a possible memory leak in htable_create()
-      netfilter: add missing error handling code for register functions
-      netfilter: nat: fix double register in masquerade modules
-      netfilter: nf_conncount: remove wrong condition check routine
-      netfilter: nf_tables: deactivate expressions in rule replecement routine
-
-Xin Long (1):
-      ipvs: call ip_vs_dst_notifier earlier than ipv6_dev_notf
-
- include/linux/netfilter/nf_conntrack_proto_gre.h   | 13 ++++
- include/net/netfilter/ipv4/nf_nat_masquerade.h     |  2 +-
- include/net/netfilter/ipv6/nf_nat_masquerade.h     |  2 +-
- net/ipv4/netfilter/ipt_MASQUERADE.c                |  7 +-
- net/ipv4/netfilter/nf_nat_masquerade_ipv4.c        | 38 ++++++++---
- net/ipv4/netfilter/nft_masq_ipv4.c                 |  4 +-
- net/ipv6/netfilter.c                               |  3 +-
- net/ipv6/netfilter/ip6t_MASQUERADE.c               |  8 ++-
- net/ipv6/netfilter/nf_nat_masquerade_ipv6.c        | 49 ++++++++++----
- net/ipv6/netfilter/nft_masq_ipv6.c                 |  4 +-
- net/netfilter/ipvs/ip_vs_ctl.c                     |  3 +
- net/netfilter/nf_conncount.c                       | 44 +++++++-----
- net/netfilter/nf_conntrack_proto_gre.c             | 14 +---
- net/netfilter/nf_tables_api.c                      | 46 +++++--------
- net/netfilter/nfnetlink_cttimeout.c                | 15 ++++-
- net/netfilter/nft_compat.c                         |  3 +-
- net/netfilter/nft_flow_offload.c                   |  5 +-
- net/netfilter/xt_RATEEST.c                         | 10 ---
- net/netfilter/xt_hashlimit.c                       |  9 +--
- tools/testing/selftests/Makefile                   |  1 +
- tools/testing/selftests/netfilter/Makefile         |  6 ++
- tools/testing/selftests/netfilter/config           |  2 +
- .../selftests/netfilter/nft_trans_stress.sh        | 78 ++++++++++++++++++++++
- 23 files changed, 259 insertions(+), 107 deletions(-)
- create mode 100644 tools/testing/selftests/netfilter/Makefile
- create mode 100644 tools/testing/selftests/netfilter/config
- create mode 100755 tools/testing/selftests/netfilter/nft_trans_stress.sh
+diff --git a/net/netfilter/nf_conncount.c b/net/netfilter/nf_conncount.c
+index 02ca7df793f5..71b1f4f99580 100644
+--- a/net/netfilter/nf_conncount.c
++++ b/net/netfilter/nf_conncount.c
+@@ -106,15 +106,15 @@ nf_conncount_add(struct nf_conncount_list *list,
+ 	conn->zone = *zone;
+ 	conn->cpu = raw_smp_processor_id();
+ 	conn->jiffies32 = (u32)jiffies;
+-	spin_lock(&list->list_lock);
++	spin_lock_bh(&list->list_lock);
+ 	if (list->dead == true) {
+ 		kmem_cache_free(conncount_conn_cachep, conn);
+-		spin_unlock(&list->list_lock);
++		spin_unlock_bh(&list->list_lock);
+ 		return NF_CONNCOUNT_SKIP;
+ 	}
+ 	list_add_tail(&conn->node, &list->head);
+ 	list->count++;
+-	spin_unlock(&list->list_lock);
++	spin_unlock_bh(&list->list_lock);
+ 	return NF_CONNCOUNT_ADDED;
+ }
+ EXPORT_SYMBOL_GPL(nf_conncount_add);
+@@ -132,10 +132,10 @@ static bool conn_free(struct nf_conncount_list *list,
+ {
+ 	bool free_entry = false;
+ 
+-	spin_lock(&list->list_lock);
++	spin_lock_bh(&list->list_lock);
+ 
+ 	if (list->count == 0) {
+-		spin_unlock(&list->list_lock);
++		spin_unlock_bh(&list->list_lock);
+                 return free_entry;
+ 	}
+ 
+@@ -144,7 +144,7 @@ static bool conn_free(struct nf_conncount_list *list,
+ 	if (list->count == 0)
+ 		free_entry = true;
+ 
+-	spin_unlock(&list->list_lock);
++	spin_unlock_bh(&list->list_lock);
+ 	call_rcu(&conn->rcu_head, __conn_free);
+ 	return free_entry;
+ }
+-- 
+2.11.0
