@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 08/16] netfilter: nf_tables: fix use-after-free when deleting compat expressions
-Date: Wed, 28 Nov 2018 11:17:33 +0100
-Message-ID: <20181128101741.20924-9-pablo@netfilter.org>
+Subject: [PATCH 05/16] selftests: add script to stress-test nft packet path vs. control plane
+Date: Wed, 28 Nov 2018 11:17:30 +0100
+Message-ID: <20181128101741.20924-6-pablo@netfilter.org>
 References: <20181128101741.20924-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -12,71 +12,143 @@ List-Id: netfilter-devel.vger.kernel.org
 
 From: Florian Westphal <fw@strlen.de>
 
-nft_compat ops do not have static storage duration, unlike all other
-expressions.
+Start flood ping for each cpu while loading/flushing rulesets to make
+sure we do not access already-free'd rules from nf_tables evaluation loop.
 
-When nf_tables_expr_destroy() returns, expr->ops might have been
-free'd already, so we need to store next address before calling
-expression destructor.
+Also add this to TARGETS so 'make run_tests' in selftest dir runs it
+automatically.
 
-For same reason, we can't deref match pointer after nft_xt_put().
+This would have caught the bug fixed in previous change
+("netfilter: nf_tables: do not skip inactive chains during generation update")
+sooner.
 
-This can be easily reproduced by adding msleep() before
-nft_match_destroy() returns.
-
-Fixes: 0ca743a55991 ("netfilter: nf_tables: add compatibility layer for x_tables")
-Reported-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c | 5 +++--
- net/netfilter/nft_compat.c    | 3 ++-
- 2 files changed, 5 insertions(+), 3 deletions(-)
+ tools/testing/selftests/Makefile                   |  1 +
+ tools/testing/selftests/netfilter/Makefile         |  6 ++
+ tools/testing/selftests/netfilter/config           |  2 +
+ .../selftests/netfilter/nft_trans_stress.sh        | 78 ++++++++++++++++++++++
+ 4 files changed, 87 insertions(+)
+ create mode 100644 tools/testing/selftests/netfilter/Makefile
+ create mode 100644 tools/testing/selftests/netfilter/config
+ create mode 100755 tools/testing/selftests/netfilter/nft_trans_stress.sh
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index e496030fdc3b..ddeaa1990e1e 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -2457,7 +2457,7 @@ static int nf_tables_getrule(struct net *net, struct sock *nlsk,
- static void nf_tables_rule_destroy(const struct nft_ctx *ctx,
- 				   struct nft_rule *rule)
- {
--	struct nft_expr *expr;
-+	struct nft_expr *expr, *next;
- 
- 	/*
- 	 * Careful: some expressions might not be initialized in case this
-@@ -2465,8 +2465,9 @@ static void nf_tables_rule_destroy(const struct nft_ctx *ctx,
- 	 */
- 	expr = nft_expr_first(rule);
- 	while (expr != nft_expr_last(rule) && expr->ops) {
-+		next = nft_expr_next(expr);
- 		nf_tables_expr_destroy(ctx, expr);
--		expr = nft_expr_next(expr);
-+		expr = next;
- 	}
- 	kfree(rule);
- }
-diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
-index 9d0ede474224..7334e0b80a5e 100644
---- a/net/netfilter/nft_compat.c
-+++ b/net/netfilter/nft_compat.c
-@@ -520,6 +520,7 @@ __nft_match_destroy(const struct nft_ctx *ctx, const struct nft_expr *expr,
- 		    void *info)
- {
- 	struct xt_match *match = expr->ops->data;
-+	struct module *me = match->me;
- 	struct xt_mtdtor_param par;
- 
- 	par.net = ctx->net;
-@@ -530,7 +531,7 @@ __nft_match_destroy(const struct nft_ctx *ctx, const struct nft_expr *expr,
- 		par.match->destroy(&par);
- 
- 	if (nft_xt_put(container_of(expr->ops, struct nft_xt, ops)))
--		module_put(match->me);
-+		module_put(me);
- }
- 
- static void
+diff --git a/tools/testing/selftests/Makefile b/tools/testing/selftests/Makefile
+index f1fe492c8e17..f0017c831e57 100644
+--- a/tools/testing/selftests/Makefile
++++ b/tools/testing/selftests/Makefile
+@@ -24,6 +24,7 @@ TARGETS += memory-hotplug
+ TARGETS += mount
+ TARGETS += mqueue
+ TARGETS += net
++TARGETS += netfilter
+ TARGETS += nsfs
+ TARGETS += powerpc
+ TARGETS += proc
+diff --git a/tools/testing/selftests/netfilter/Makefile b/tools/testing/selftests/netfilter/Makefile
+new file mode 100644
+index 000000000000..47ed6cef93fb
+--- /dev/null
++++ b/tools/testing/selftests/netfilter/Makefile
+@@ -0,0 +1,6 @@
++# SPDX-License-Identifier: GPL-2.0
++# Makefile for netfilter selftests
++
++TEST_PROGS := nft_trans_stress.sh
++
++include ../lib.mk
+diff --git a/tools/testing/selftests/netfilter/config b/tools/testing/selftests/netfilter/config
+new file mode 100644
+index 000000000000..1017313e41a8
+--- /dev/null
++++ b/tools/testing/selftests/netfilter/config
+@@ -0,0 +1,2 @@
++CONFIG_NET_NS=y
++NF_TABLES_INET=y
+diff --git a/tools/testing/selftests/netfilter/nft_trans_stress.sh b/tools/testing/selftests/netfilter/nft_trans_stress.sh
+new file mode 100755
+index 000000000000..f1affd12c4b1
+--- /dev/null
++++ b/tools/testing/selftests/netfilter/nft_trans_stress.sh
+@@ -0,0 +1,78 @@
++#!/bin/bash
++#
++# This test is for stress-testing the nf_tables config plane path vs.
++# packet path processing: Make sure we never release rules that are
++# still visible to other cpus.
++#
++# set -e
++
++# Kselftest framework requirement - SKIP code is 4.
++ksft_skip=4
++
++testns=testns1
++tables="foo bar baz quux"
++
++nft --version > /dev/null 2>&1
++if [ $? -ne 0 ];then
++	echo "SKIP: Could not run test without nft tool"
++	exit $ksft_skip
++fi
++
++ip -Version > /dev/null 2>&1
++if [ $? -ne 0 ];then
++	echo "SKIP: Could not run test without ip tool"
++	exit $ksft_skip
++fi
++
++tmp=$(mktemp)
++
++for table in $tables; do
++	echo add table inet "$table" >> "$tmp"
++	echo flush table inet "$table" >> "$tmp"
++
++	echo "add chain inet $table INPUT { type filter hook input priority 0; }" >> "$tmp"
++	echo "add chain inet $table OUTPUT { type filter hook output priority 0; }" >> "$tmp"
++	for c in $(seq 1 400); do
++		chain=$(printf "chain%03u" "$c")
++		echo "add chain inet $table $chain" >> "$tmp"
++	done
++
++	for c in $(seq 1 400); do
++		chain=$(printf "chain%03u" "$c")
++		for BASE in INPUT OUTPUT; do
++			echo "add rule inet $table $BASE counter jump $chain" >> "$tmp"
++		done
++		echo "add rule inet $table $chain counter return" >> "$tmp"
++	done
++done
++
++ip netns add "$testns"
++ip -netns "$testns" link set lo up
++
++lscpu | grep ^CPU\(s\): | ( read cpu cpunum ;
++cpunum=$((cpunum-1))
++for i in $(seq 0 $cpunum);do
++	mask=$(printf 0x%x $((1<<$i)))
++        ip netns exec "$testns" taskset $mask ping -4 127.0.0.1 -fq > /dev/null &
++        ip netns exec "$testns" taskset $mask ping -6 ::1 -fq > /dev/null &
++done)
++
++sleep 1
++
++for i in $(seq 1 10) ; do ip netns exec "$testns" nft -f "$tmp" & done
++
++for table in $tables;do
++	randsleep=$((RANDOM%10))
++	sleep $randsleep
++	ip netns exec "$testns" nft delete table inet $table 2>/dev/null
++done
++
++randsleep=$((RANDOM%10))
++sleep $randsleep
++
++pkill -9 ping
++
++wait
++
++rm -f "$tmp"
++ip netns del "$testns"
 -- 
 2.11.0
