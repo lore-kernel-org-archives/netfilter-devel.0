@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 05/16] selftests: add script to stress-test nft packet path vs. control plane
-Date: Wed, 28 Nov 2018 11:17:30 +0100
-Message-ID: <20181128101741.20924-6-pablo@netfilter.org>
+Subject: [PATCH 04/16] netfilter: nf_tables: don't skip inactive chains during update
+Date: Wed, 28 Nov 2018 11:17:29 +0100
+Message-ID: <20181128101741.20924-5-pablo@netfilter.org>
 References: <20181128101741.20924-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -12,143 +12,64 @@ List-Id: netfilter-devel.vger.kernel.org
 
 From: Florian Westphal <fw@strlen.de>
 
-Start flood ping for each cpu while loading/flushing rulesets to make
-sure we do not access already-free'd rules from nf_tables evaluation loop.
+There is no synchronization between packet path and the configuration plane.
 
-Also add this to TARGETS so 'make run_tests' in selftest dir runs it
-automatically.
+The packet path uses two arrays with rules, one contains the current (active)
+generation.  The other either contains the last (obsolete) generation or
+the future one.
 
-This would have caught the bug fixed in previous change
-("netfilter: nf_tables: do not skip inactive chains during generation update")
-sooner.
+Consider:
+cpu1               cpu2
+                   nft_do_chain(c);
+delete c
+net->gen++;
+                   genbit = !!net->gen;
+                   rules = c->rg[genbit];
 
+cpu1 ignores c when updating if c is not active anymore in the new
+generation.
+
+On cpu2, we now use rules from wrong generation, as c->rg[old]
+contains the rules matching 'c' whereas c->rg[new] was not updated and
+can even point to rules that have been free'd already, causing a crash.
+
+To fix this, make sure that 'current' to the 'next' generation are
+identical for chains that are going away so that c->rg[new] will just
+use the matching rules even if genbit was incremented already.
+
+Fixes: 0cbc06b3faba7 ("netfilter: nf_tables: remove synchronize_rcu in commit phase")
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- tools/testing/selftests/Makefile                   |  1 +
- tools/testing/selftests/netfilter/Makefile         |  6 ++
- tools/testing/selftests/netfilter/config           |  2 +
- .../selftests/netfilter/nft_trans_stress.sh        | 78 ++++++++++++++++++++++
- 4 files changed, 87 insertions(+)
- create mode 100644 tools/testing/selftests/netfilter/Makefile
- create mode 100644 tools/testing/selftests/netfilter/config
- create mode 100755 tools/testing/selftests/netfilter/nft_trans_stress.sh
+ net/netfilter/nf_tables_api.c | 9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
 
-diff --git a/tools/testing/selftests/Makefile b/tools/testing/selftests/Makefile
-index f1fe492c8e17..f0017c831e57 100644
---- a/tools/testing/selftests/Makefile
-+++ b/tools/testing/selftests/Makefile
-@@ -24,6 +24,7 @@ TARGETS += memory-hotplug
- TARGETS += mount
- TARGETS += mqueue
- TARGETS += net
-+TARGETS += netfilter
- TARGETS += nsfs
- TARGETS += powerpc
- TARGETS += proc
-diff --git a/tools/testing/selftests/netfilter/Makefile b/tools/testing/selftests/netfilter/Makefile
-new file mode 100644
-index 000000000000..47ed6cef93fb
---- /dev/null
-+++ b/tools/testing/selftests/netfilter/Makefile
-@@ -0,0 +1,6 @@
-+# SPDX-License-Identifier: GPL-2.0
-+# Makefile for netfilter selftests
-+
-+TEST_PROGS := nft_trans_stress.sh
-+
-+include ../lib.mk
-diff --git a/tools/testing/selftests/netfilter/config b/tools/testing/selftests/netfilter/config
-new file mode 100644
-index 000000000000..1017313e41a8
---- /dev/null
-+++ b/tools/testing/selftests/netfilter/config
-@@ -0,0 +1,2 @@
-+CONFIG_NET_NS=y
-+NF_TABLES_INET=y
-diff --git a/tools/testing/selftests/netfilter/nft_trans_stress.sh b/tools/testing/selftests/netfilter/nft_trans_stress.sh
-new file mode 100755
-index 000000000000..f1affd12c4b1
---- /dev/null
-+++ b/tools/testing/selftests/netfilter/nft_trans_stress.sh
-@@ -0,0 +1,78 @@
-+#!/bin/bash
-+#
-+# This test is for stress-testing the nf_tables config plane path vs.
-+# packet path processing: Make sure we never release rules that are
-+# still visible to other cpus.
-+#
-+# set -e
-+
-+# Kselftest framework requirement - SKIP code is 4.
-+ksft_skip=4
-+
-+testns=testns1
-+tables="foo bar baz quux"
-+
-+nft --version > /dev/null 2>&1
-+if [ $? -ne 0 ];then
-+	echo "SKIP: Could not run test without nft tool"
-+	exit $ksft_skip
-+fi
-+
-+ip -Version > /dev/null 2>&1
-+if [ $? -ne 0 ];then
-+	echo "SKIP: Could not run test without ip tool"
-+	exit $ksft_skip
-+fi
-+
-+tmp=$(mktemp)
-+
-+for table in $tables; do
-+	echo add table inet "$table" >> "$tmp"
-+	echo flush table inet "$table" >> "$tmp"
-+
-+	echo "add chain inet $table INPUT { type filter hook input priority 0; }" >> "$tmp"
-+	echo "add chain inet $table OUTPUT { type filter hook output priority 0; }" >> "$tmp"
-+	for c in $(seq 1 400); do
-+		chain=$(printf "chain%03u" "$c")
-+		echo "add chain inet $table $chain" >> "$tmp"
-+	done
-+
-+	for c in $(seq 1 400); do
-+		chain=$(printf "chain%03u" "$c")
-+		for BASE in INPUT OUTPUT; do
-+			echo "add rule inet $table $BASE counter jump $chain" >> "$tmp"
-+		done
-+		echo "add rule inet $table $chain counter return" >> "$tmp"
-+	done
-+done
-+
-+ip netns add "$testns"
-+ip -netns "$testns" link set lo up
-+
-+lscpu | grep ^CPU\(s\): | ( read cpu cpunum ;
-+cpunum=$((cpunum-1))
-+for i in $(seq 0 $cpunum);do
-+	mask=$(printf 0x%x $((1<<$i)))
-+        ip netns exec "$testns" taskset $mask ping -4 127.0.0.1 -fq > /dev/null &
-+        ip netns exec "$testns" taskset $mask ping -6 ::1 -fq > /dev/null &
-+done)
-+
-+sleep 1
-+
-+for i in $(seq 1 10) ; do ip netns exec "$testns" nft -f "$tmp" & done
-+
-+for table in $tables;do
-+	randsleep=$((RANDOM%10))
-+	sleep $randsleep
-+	ip netns exec "$testns" nft delete table inet $table 2>/dev/null
-+done
-+
-+randsleep=$((RANDOM%10))
-+sleep $randsleep
-+
-+pkill -9 ping
-+
-+wait
-+
-+rm -f "$tmp"
-+ip netns del "$testns"
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 42487d01a3ed..dd577e7d100c 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -6324,7 +6324,7 @@ static void nf_tables_commit_chain_free_rules_old(struct nft_rule **rules)
+ 	call_rcu(&old->h, __nf_tables_commit_chain_free_rules_old);
+ }
+ 
+-static void nf_tables_commit_chain_active(struct net *net, struct nft_chain *chain)
++static void nf_tables_commit_chain(struct net *net, struct nft_chain *chain)
+ {
+ 	struct nft_rule **g0, **g1;
+ 	bool next_genbit;
+@@ -6441,11 +6441,8 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
+ 
+ 	/* step 2.  Make rules_gen_X visible to packet path */
+ 	list_for_each_entry(table, &net->nft.tables, list) {
+-		list_for_each_entry(chain, &table->chains, list) {
+-			if (!nft_is_active_next(net, chain))
+-				continue;
+-			nf_tables_commit_chain_active(net, chain);
+-		}
++		list_for_each_entry(chain, &table->chains, list)
++			nf_tables_commit_chain(net, chain);
+ 	}
+ 
+ 	/*
 -- 
 2.11.0
