@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 01/16] netfilter: nf_conncount: use spin_lock_bh instead of spin_lock
-Date: Wed, 28 Nov 2018 11:17:26 +0100
-Message-ID: <20181128101741.20924-2-pablo@netfilter.org>
+Subject: [PATCH 06/16] netfilter: nf_tables: don't use position attribute on rule replacement
+Date: Wed, 28 Nov 2018 11:17:31 +0100
+Message-ID: <20181128101741.20924-7-pablo@netfilter.org>
 References: <20181128101741.20924-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,101 +10,51 @@ In-Reply-To: <20181128101741.20924-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Taehee Yoo <ap420073@gmail.com>
+From: Florian Westphal <fw@strlen.de>
 
-conn_free() holds lock with spin_lock() and it is called by both
-nf_conncount_lookup() and nf_conncount_gc_list(). nf_conncount_lookup()
-is called from bottom-half context and nf_conncount_gc_list() from
-process context. So that spin_lock() call is not safe. Hence
-conn_free() should use spin_lock_bh() instead of spin_lock().
+Its possible to set both HANDLE and POSITION when replacing a rule.
+In this case, the rule at POSITION gets replaced using the
+userspace-provided handle.  Rule handles are supposed to be generated
+by the kernel only.
 
-test commands:
-   %nft add table ip filter
-   %nft add chain ip filter input { type filter hook input priority 0\; }
-   %nft add rule filter input meter test { ip saddr ct count over 2 } \
-	   counter
+Duplicate handles should be harmless, however better disable this "feature"
+by only checking for the POSITION attribute on insert operations.
 
-splat looks like:
-[  461.996507] ================================
-[  461.998999] WARNING: inconsistent lock state
-[  461.998999] 4.19.0-rc6+ #22 Not tainted
-[  461.998999] --------------------------------
-[  461.998999] inconsistent {IN-SOFTIRQ-W} -> {SOFTIRQ-ON-W} usage.
-[  461.998999] kworker/0:2/134 [HC0[0]:SC0[0]:HE1:SE1] takes:
-[  461.998999] 00000000a71a559a (&(&list->list_lock)->rlock){+.?.}, at: conn_free+0x69/0x2b0 [nf_conncount]
-[  461.998999] {IN-SOFTIRQ-W} state was registered at:
-[  461.998999]   _raw_spin_lock+0x30/0x70
-[  461.998999]   nf_conncount_add+0x28a/0x520 [nf_conncount]
-[  461.998999]   nft_connlimit_eval+0x401/0x580 [nft_connlimit]
-[  461.998999]   nft_dynset_eval+0x32b/0x590 [nf_tables]
-[  461.998999]   nft_do_chain+0x497/0x1430 [nf_tables]
-[  461.998999]   nft_do_chain_ipv4+0x255/0x330 [nf_tables]
-[  461.998999]   nf_hook_slow+0xb1/0x160
-[ ... ]
-[  461.998999] other info that might help us debug this:
-[  461.998999]  Possible unsafe locking scenario:
-[  461.998999]
-[  461.998999]        CPU0
-[  461.998999]        ----
-[  461.998999]   lock(&(&list->list_lock)->rlock);
-[  461.998999]   <Interrupt>
-[  461.998999]     lock(&(&list->list_lock)->rlock);
-[  461.998999]
-[  461.998999]  *** DEADLOCK ***
-[  461.998999]
-[ ... ]
-
-Fixes: 5c789e131cbb ("netfilter: nf_conncount: Add list lock and gc worker, and RCU for init tree search")
-Signed-off-by: Taehee Yoo <ap420073@gmail.com>
+Fixes: 5e94846686d0 ("netfilter: nf_tables: add insert operation")
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_conncount.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ net/netfilter/nf_tables_api.c | 17 +++++++----------
+ 1 file changed, 7 insertions(+), 10 deletions(-)
 
-diff --git a/net/netfilter/nf_conncount.c b/net/netfilter/nf_conncount.c
-index 02ca7df793f5..71b1f4f99580 100644
---- a/net/netfilter/nf_conncount.c
-+++ b/net/netfilter/nf_conncount.c
-@@ -106,15 +106,15 @@ nf_conncount_add(struct nf_conncount_list *list,
- 	conn->zone = *zone;
- 	conn->cpu = raw_smp_processor_id();
- 	conn->jiffies32 = (u32)jiffies;
--	spin_lock(&list->list_lock);
-+	spin_lock_bh(&list->list_lock);
- 	if (list->dead == true) {
- 		kmem_cache_free(conncount_conn_cachep, conn);
--		spin_unlock(&list->list_lock);
-+		spin_unlock_bh(&list->list_lock);
- 		return NF_CONNCOUNT_SKIP;
- 	}
- 	list_add_tail(&conn->node, &list->head);
- 	list->count++;
--	spin_unlock(&list->list_lock);
-+	spin_unlock_bh(&list->list_lock);
- 	return NF_CONNCOUNT_ADDED;
- }
- EXPORT_SYMBOL_GPL(nf_conncount_add);
-@@ -132,10 +132,10 @@ static bool conn_free(struct nf_conncount_list *list,
- {
- 	bool free_entry = false;
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index dd577e7d100c..e496030fdc3b 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -2589,17 +2589,14 @@ static int nf_tables_newrule(struct net *net, struct sock *nlsk,
  
--	spin_lock(&list->list_lock);
-+	spin_lock_bh(&list->list_lock);
+ 		if (chain->use == UINT_MAX)
+ 			return -EOVERFLOW;
+-	}
+-
+-	if (nla[NFTA_RULE_POSITION]) {
+-		if (!(nlh->nlmsg_flags & NLM_F_CREATE))
+-			return -EOPNOTSUPP;
  
- 	if (list->count == 0) {
--		spin_unlock(&list->list_lock);
-+		spin_unlock_bh(&list->list_lock);
-                 return free_entry;
+-		pos_handle = be64_to_cpu(nla_get_be64(nla[NFTA_RULE_POSITION]));
+-		old_rule = __nft_rule_lookup(chain, pos_handle);
+-		if (IS_ERR(old_rule)) {
+-			NL_SET_BAD_ATTR(extack, nla[NFTA_RULE_POSITION]);
+-			return PTR_ERR(old_rule);
++		if (nla[NFTA_RULE_POSITION]) {
++			pos_handle = be64_to_cpu(nla_get_be64(nla[NFTA_RULE_POSITION]));
++			old_rule = __nft_rule_lookup(chain, pos_handle);
++			if (IS_ERR(old_rule)) {
++				NL_SET_BAD_ATTR(extack, nla[NFTA_RULE_POSITION]);
++				return PTR_ERR(old_rule);
++			}
+ 		}
  	}
  
-@@ -144,7 +144,7 @@ static bool conn_free(struct nf_conncount_list *list,
- 	if (list->count == 0)
- 		free_entry = true;
- 
--	spin_unlock(&list->list_lock);
-+	spin_unlock_bh(&list->list_lock);
- 	call_rcu(&conn->rcu_head, __conn_free);
- 	return free_entry;
- }
 -- 
 2.11.0
