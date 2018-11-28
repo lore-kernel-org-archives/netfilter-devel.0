@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 14/16] netfilter: nat: fix double register in masquerade modules
-Date: Wed, 28 Nov 2018 11:17:39 +0100
-Message-ID: <20181128101741.20924-15-pablo@netfilter.org>
+Subject: [PATCH 16/16] netfilter: nf_tables: deactivate expressions in rule replecement routine
+Date: Wed, 28 Nov 2018 11:17:41 +0100
+Message-ID: <20181128101741.20924-17-pablo@netfilter.org>
 References: <20181128101741.20924-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -12,201 +12,87 @@ List-Id: netfilter-devel.vger.kernel.org
 
 From: Taehee Yoo <ap420073@gmail.com>
 
-There is a reference counter to ensure that masquerade modules register
-notifiers only once. However, the existing reference counter approach is
-not safe, test commands are:
+There is no expression deactivation call from the rule replacement path,
+hence, chain counter is not decremented. A few steps to reproduce the
+problem:
 
-   while :
-   do
-   	   modprobe ip6t_MASQUERADE &
-	   modprobe nft_masq_ipv6 &
-	   modprobe -rv ip6t_MASQUERADE &
-	   modprobe -rv nft_masq_ipv6 &
-   done
+   %nft add table ip filter
+   %nft add chain ip filter c1
+   %nft add chain ip filter c1
+   %nft add rule ip filter c1 jump c2
+   %nft replace rule ip filter c1 handle 3 accept
+   %nft flush ruleset
 
-numbers below represent the reference counter.
---------------------------------------------------------
-CPU0        CPU1        CPU2        CPU3        CPU4
-[insmod]    [insmod]    [rmmod]     [rmmod]     [insmod]
---------------------------------------------------------
-0->1
-register    1->2
-            returns     2->1
-			returns     1->0
-                                                0->1
-                                                register <--
-                                    unregister
---------------------------------------------------------
+<jump c2> expression means immediate NFT_JUMP to chain c2.
+Reference count of chain c2 is increased when the rule is added.
 
-The unregistation of CPU3 should be processed before the
-registration of CPU4.
+When rule is deleted or replaced, the reference counter of c2 should be
+decreased via nft_rule_expr_deactivate() which calls
+nft_immediate_deactivate().
 
-In order to fix this, use a mutex instead of reference counter.
-
-splat looks like:
-[  323.869557] watchdog: BUG: soft lockup - CPU#0 stuck for 22s! [modprobe:1381]
-[  323.869574] Modules linked in: nf_tables(+) nf_nat_ipv6(-) nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 n]
-[  323.869574] irq event stamp: 194074
-[  323.898930] hardirqs last  enabled at (194073): [<ffffffff90004a0d>] trace_hardirqs_on_thunk+0x1a/0x1c
-[  323.898930] hardirqs last disabled at (194074): [<ffffffff90004a29>] trace_hardirqs_off_thunk+0x1a/0x1c
-[  323.898930] softirqs last  enabled at (182132): [<ffffffff922006ec>] __do_softirq+0x6ec/0xa3b
-[  323.898930] softirqs last disabled at (182109): [<ffffffff90193426>] irq_exit+0x1a6/0x1e0
-[  323.898930] CPU: 0 PID: 1381 Comm: modprobe Not tainted 4.20.0-rc2+ #27
-[  323.898930] RIP: 0010:raw_notifier_chain_register+0xea/0x240
-[  323.898930] Code: 3c 03 0f 8e f2 00 00 00 44 3b 6b 10 7f 4d 49 bc 00 00 00 00 00 fc ff df eb 22 48 8d 7b 10 488
-[  323.898930] RSP: 0018:ffff888101597218 EFLAGS: 00000206 ORIG_RAX: ffffffffffffff13
-[  323.898930] RAX: 0000000000000000 RBX: ffffffffc04361c0 RCX: 0000000000000000
-[  323.898930] RDX: 1ffffffff26132ae RSI: ffffffffc04aa3c0 RDI: ffffffffc04361d0
-[  323.898930] RBP: ffffffffc04361c8 R08: 0000000000000000 R09: 0000000000000001
-[  323.898930] R10: ffff8881015972b0 R11: fffffbfff26132c4 R12: dffffc0000000000
-[  323.898930] R13: 0000000000000000 R14: 1ffff110202b2e44 R15: ffffffffc04aa3c0
-[  323.898930] FS:  00007f813ed41540(0000) GS:ffff88811ae00000(0000) knlGS:0000000000000000
-[  323.898930] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[  323.898930] CR2: 0000559bf2c9f120 CR3: 000000010bc80000 CR4: 00000000001006f0
-[  323.898930] Call Trace:
-[  323.898930]  ? atomic_notifier_chain_register+0x2d0/0x2d0
-[  323.898930]  ? down_read+0x150/0x150
-[  323.898930]  ? sched_clock_cpu+0x126/0x170
-[  323.898930]  ? nf_tables_core_module_init+0xe4/0xe4 [nf_tables]
-[  323.898930]  ? nf_tables_core_module_init+0xe4/0xe4 [nf_tables]
-[  323.898930]  register_netdevice_notifier+0xbb/0x790
-[  323.898930]  ? __dev_close_many+0x2d0/0x2d0
-[  323.898930]  ? __mutex_unlock_slowpath+0x17f/0x740
-[  323.898930]  ? wait_for_completion+0x710/0x710
-[  323.898930]  ? nf_tables_core_module_init+0xe4/0xe4 [nf_tables]
-[  323.898930]  ? up_write+0x6c/0x210
-[  323.898930]  ? nf_tables_core_module_init+0xe4/0xe4 [nf_tables]
-[  324.127073]  ? nf_tables_core_module_init+0xe4/0xe4 [nf_tables]
-[  324.127073]  nft_chain_filter_init+0x1e/0xe8a [nf_tables]
-[  324.127073]  nf_tables_module_init+0x37/0x92 [nf_tables]
+Splat looks like:
+[  214.396453] WARNING: CPU: 1 PID: 21 at net/netfilter/nf_tables_api.c:1432 nf_tables_chain_destroy.isra.38+0x2f9/0x3a0 [nf_tables]
+[  214.398983] Modules linked in: nf_tables nfnetlink
+[  214.398983] CPU: 1 PID: 21 Comm: kworker/1:1 Not tainted 4.20.0-rc2+ #44
+[  214.398983] Workqueue: events nf_tables_trans_destroy_work [nf_tables]
+[  214.398983] RIP: 0010:nf_tables_chain_destroy.isra.38+0x2f9/0x3a0 [nf_tables]
+[  214.398983] Code: 00 00 00 fc ff df 48 89 fa 48 c1 ea 03 80 3c 02 00 0f 85 8e 00 00 00 48 8b 7b 58 e8 e1 2c 4e c6 48 89 df e8 d9 2c 4e c6 eb 9a <0f> 0b eb 96 0f 0b e9 7e fe ff ff e8 a7 7e 4e c6 e9 a4 fe ff ff e8
+[  214.398983] RSP: 0018:ffff8881152874e8 EFLAGS: 00010202
+[  214.398983] RAX: 0000000000000001 RBX: ffff88810ef9fc28 RCX: ffff8881152876f0
+[  214.398983] RDX: dffffc0000000000 RSI: 1ffff11022a50ede RDI: ffff88810ef9fc78
+[  214.398983] RBP: 1ffff11022a50e9d R08: 0000000080000000 R09: 0000000000000000
+[  214.398983] R10: 0000000000000000 R11: 0000000000000000 R12: 1ffff11022a50eba
+[  214.398983] R13: ffff888114446e08 R14: ffff8881152876f0 R15: ffffed1022a50ed6
+[  214.398983] FS:  0000000000000000(0000) GS:ffff888116400000(0000) knlGS:0000000000000000
+[  214.398983] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[  214.398983] CR2: 00007fab9bb5f868 CR3: 000000012aa16000 CR4: 00000000001006e0
+[  214.398983] Call Trace:
+[  214.398983]  ? nf_tables_table_destroy.isra.37+0x100/0x100 [nf_tables]
+[  214.398983]  ? __kasan_slab_free+0x145/0x180
+[  214.398983]  ? nf_tables_trans_destroy_work+0x439/0x830 [nf_tables]
+[  214.398983]  ? kfree+0xdb/0x280
+[  214.398983]  nf_tables_trans_destroy_work+0x5f5/0x830 [nf_tables]
 [ ... ]
 
-Fixes: 8dd33cc93ec9 ("netfilter: nf_nat: generalize IPv4 masquerading support for nf_tables")
-Fixes: be6b635cd674 ("netfilter: nf_nat: generalize IPv6 masquerading support for nf_tables")
+Fixes: bb7b40aecbf7 ("netfilter: nf_tables: bogus EBUSY in chain deletions")
+Reported by: Christoph Anton Mitterer <calestyo@scientia.net>
+Link: https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=914505
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=201791
 Signed-off-by: Taehee Yoo <ap420073@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/ipv4/netfilter/nf_nat_masquerade_ipv4.c | 23 ++++++++++++++++-------
- net/ipv6/netfilter/nf_nat_masquerade_ipv6.c | 23 ++++++++++++++++-------
- 2 files changed, 32 insertions(+), 14 deletions(-)
+ net/netfilter/nf_tables_api.c | 15 ++++-----------
+ 1 file changed, 4 insertions(+), 11 deletions(-)
 
-diff --git a/net/ipv4/netfilter/nf_nat_masquerade_ipv4.c b/net/ipv4/netfilter/nf_nat_masquerade_ipv4.c
-index c7d7fa4fc369..41327bb99093 100644
---- a/net/ipv4/netfilter/nf_nat_masquerade_ipv4.c
-+++ b/net/ipv4/netfilter/nf_nat_masquerade_ipv4.c
-@@ -147,15 +147,17 @@ static struct notifier_block masq_inet_notifier = {
- 	.notifier_call	= masq_inet_event,
- };
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index ddeaa1990e1e..2e61aab6ed73 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -2667,21 +2667,14 @@ static int nf_tables_newrule(struct net *net, struct sock *nlsk,
+ 	}
  
--static atomic_t masquerade_notifier_refcount = ATOMIC_INIT(0);
-+static int masq_refcnt;
-+static DEFINE_MUTEX(masq_mutex);
+ 	if (nlh->nlmsg_flags & NLM_F_REPLACE) {
+-		if (!nft_is_active_next(net, old_rule)) {
+-			err = -ENOENT;
+-			goto err2;
+-		}
+-		trans = nft_trans_rule_add(&ctx, NFT_MSG_DELRULE,
+-					   old_rule);
++		trans = nft_trans_rule_add(&ctx, NFT_MSG_NEWRULE, rule);
+ 		if (trans == NULL) {
+ 			err = -ENOMEM;
+ 			goto err2;
+ 		}
+-		nft_deactivate_next(net, old_rule);
+-		chain->use--;
+-
+-		if (nft_trans_rule_add(&ctx, NFT_MSG_NEWRULE, rule) == NULL) {
+-			err = -ENOMEM;
++		err = nft_delrule(&ctx, old_rule);
++		if (err < 0) {
++			nft_trans_destroy(trans);
+ 			goto err2;
+ 		}
  
- int nf_nat_masquerade_ipv4_register_notifier(void)
- {
--	int ret;
-+	int ret = 0;
- 
-+	mutex_lock(&masq_mutex);
- 	/* check if the notifier was already set */
--	if (atomic_inc_return(&masquerade_notifier_refcount) > 1)
--		return 0;
-+	if (++masq_refcnt > 1)
-+		goto out_unlock;
- 
- 	/* Register for device down reports */
- 	ret = register_netdevice_notifier(&masq_dev_notifier);
-@@ -166,22 +168,29 @@ int nf_nat_masquerade_ipv4_register_notifier(void)
- 	if (ret)
- 		goto err_unregister;
- 
-+	mutex_unlock(&masq_mutex);
- 	return ret;
-+
- err_unregister:
- 	unregister_netdevice_notifier(&masq_dev_notifier);
- err_dec:
--	atomic_dec(&masquerade_notifier_refcount);
-+	masq_refcnt--;
-+out_unlock:
-+	mutex_unlock(&masq_mutex);
- 	return ret;
- }
- EXPORT_SYMBOL_GPL(nf_nat_masquerade_ipv4_register_notifier);
- 
- void nf_nat_masquerade_ipv4_unregister_notifier(void)
- {
-+	mutex_lock(&masq_mutex);
- 	/* check if the notifier still has clients */
--	if (atomic_dec_return(&masquerade_notifier_refcount) > 0)
--		return;
-+	if (--masq_refcnt > 0)
-+		goto out_unlock;
- 
- 	unregister_netdevice_notifier(&masq_dev_notifier);
- 	unregister_inetaddr_notifier(&masq_inet_notifier);
-+out_unlock:
-+	mutex_unlock(&masq_mutex);
- }
- EXPORT_SYMBOL_GPL(nf_nat_masquerade_ipv4_unregister_notifier);
-diff --git a/net/ipv6/netfilter/nf_nat_masquerade_ipv6.c b/net/ipv6/netfilter/nf_nat_masquerade_ipv6.c
-index 7afd1e63d2db..0ad0da5a2600 100644
---- a/net/ipv6/netfilter/nf_nat_masquerade_ipv6.c
-+++ b/net/ipv6/netfilter/nf_nat_masquerade_ipv6.c
-@@ -175,15 +175,17 @@ static struct notifier_block masq_inet6_notifier = {
- 	.notifier_call	= masq_inet6_event,
- };
- 
--static atomic_t masquerade_notifier_refcount = ATOMIC_INIT(0);
-+static int masq_refcnt;
-+static DEFINE_MUTEX(masq_mutex);
- 
- int nf_nat_masquerade_ipv6_register_notifier(void)
- {
--	int ret;
-+	int ret = 0;
- 
-+	mutex_lock(&masq_mutex);
- 	/* check if the notifier is already set */
--	if (atomic_inc_return(&masquerade_notifier_refcount) > 1)
--		return 0;
-+	if (++masq_refcnt > 1)
-+		goto out_unlock;
- 
- 	ret = register_netdevice_notifier(&masq_dev_notifier);
- 	if (ret)
-@@ -193,22 +195,29 @@ int nf_nat_masquerade_ipv6_register_notifier(void)
- 	if (ret)
- 		goto err_unregister;
- 
-+	mutex_unlock(&masq_mutex);
- 	return ret;
-+
- err_unregister:
- 	unregister_netdevice_notifier(&masq_dev_notifier);
- err_dec:
--	atomic_dec(&masquerade_notifier_refcount);
-+	masq_refcnt--;
-+out_unlock:
-+	mutex_unlock(&masq_mutex);
- 	return ret;
- }
- EXPORT_SYMBOL_GPL(nf_nat_masquerade_ipv6_register_notifier);
- 
- void nf_nat_masquerade_ipv6_unregister_notifier(void)
- {
-+	mutex_lock(&masq_mutex);
- 	/* check if the notifier still has clients */
--	if (atomic_dec_return(&masquerade_notifier_refcount) > 0)
--		return;
-+	if (--masq_refcnt > 0)
-+		goto out_unlock;
- 
- 	unregister_inet6addr_notifier(&masq_inet6_notifier);
- 	unregister_netdevice_notifier(&masq_dev_notifier);
-+out_unlock:
-+	mutex_unlock(&masq_mutex);
- }
- EXPORT_SYMBOL_GPL(nf_nat_masquerade_ipv6_unregister_notifier);
 -- 
 2.11.0
