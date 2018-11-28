@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 11/16] netfilter: nfnetlink_cttimeout: fetch timeouts for udplite and gre, too
-Date: Wed, 28 Nov 2018 11:17:36 +0100
-Message-ID: <20181128101741.20924-12-pablo@netfilter.org>
+Subject: [PATCH 03/16] netfilter: nf_conncount: fix unexpected permanent node of list.
+Date: Wed, 28 Nov 2018 11:17:28 +0100
+Message-ID: <20181128101741.20924-4-pablo@netfilter.org>
 References: <20181128101741.20924-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,132 +10,81 @@ In-Reply-To: <20181128101741.20924-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+From: Taehee Yoo <ap420073@gmail.com>
 
-syzbot was able to trigger the WARN in cttimeout_default_get() by
-passing UDPLITE as l4protocol.  Alias UDPLITE to UDP, both use
-same timeout values.
+When list->count is 0, the list is deleted by GC. But list->count is
+never reached 0 because initial count value is 1 and it is increased
+when node is inserted. So that initial value of list->count should be 0.
 
-Furthermore, also fetch GRE timeouts.  GRE is a bit more complicated,
-as it still can be a module and its netns_proto_gre struct layout isn't
-visible outside of the gre module. Can't move timeouts around, it
-appears conntrack sysctl unregister assumes net_generic() returns
-nf_proto_net, so we get crash. Expose layout of netns_proto_gre instead.
+Originally GC always finds zero count list through deleting node and
+decreasing count. However, list may be left empty since node insertion
+may fail eg.  allocaton problem. In order to solve this problem, GC
+routine also finds zero count list without deleting node.
 
-A followup nf-next patch could make gre tracker be built-in as well
-if needed, its not that large.
-
-Last, make the WARN() mention the missing protocol value in case
-anything else is missing.
-
-Reported-by: syzbot+2fae8fa157dd92618cae@syzkaller.appspotmail.com
-Fixes: 8866df9264a3 ("netfilter: nfnetlink_cttimeout: pass default timeout policy to obj_to_nlattr")
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Fixes: cb2b36f5a97d ("netfilter: nf_conncount: Switch to plain list")
+Signed-off-by: Taehee Yoo <ap420073@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/linux/netfilter/nf_conntrack_proto_gre.h | 13 +++++++++++++
- net/netfilter/nf_conntrack_proto_gre.c           | 14 ++------------
- net/netfilter/nfnetlink_cttimeout.c              | 15 +++++++++++++--
- 3 files changed, 28 insertions(+), 14 deletions(-)
+ net/netfilter/nf_conncount.c | 18 +++++++++++++++---
+ 1 file changed, 15 insertions(+), 3 deletions(-)
 
-diff --git a/include/linux/netfilter/nf_conntrack_proto_gre.h b/include/linux/netfilter/nf_conntrack_proto_gre.h
-index b8d95564bd53..14edb795ab43 100644
---- a/include/linux/netfilter/nf_conntrack_proto_gre.h
-+++ b/include/linux/netfilter/nf_conntrack_proto_gre.h
-@@ -21,6 +21,19 @@ struct nf_ct_gre_keymap {
- 	struct nf_conntrack_tuple tuple;
- };
+diff --git a/net/netfilter/nf_conncount.c b/net/netfilter/nf_conncount.c
+index cb33709138df..8acae4a3e4c0 100644
+--- a/net/netfilter/nf_conncount.c
++++ b/net/netfilter/nf_conncount.c
+@@ -144,8 +144,10 @@ static bool conn_free(struct nf_conncount_list *list,
+ 	list->count--;
+ 	conn->dead = true;
+ 	list_del_rcu(&conn->node);
+-	if (list->count == 0)
++	if (list->count == 0) {
++		list->dead = true;
+ 		free_entry = true;
++	}
  
-+enum grep_conntrack {
-+	GRE_CT_UNREPLIED,
-+	GRE_CT_REPLIED,
-+	GRE_CT_MAX
-+};
-+
-+struct netns_proto_gre {
-+	struct nf_proto_net	nf;
-+	rwlock_t		keymap_lock;
-+	struct list_head	keymap_list;
-+	unsigned int		gre_timeouts[GRE_CT_MAX];
-+};
-+
- /* add new tuple->key_reply pair to keymap */
- int nf_ct_gre_keymap_add(struct nf_conn *ct, enum ip_conntrack_dir dir,
- 			 struct nf_conntrack_tuple *t);
-diff --git a/net/netfilter/nf_conntrack_proto_gre.c b/net/netfilter/nf_conntrack_proto_gre.c
-index 9b48dc8b4b88..2a5e56c6d8d9 100644
---- a/net/netfilter/nf_conntrack_proto_gre.c
-+++ b/net/netfilter/nf_conntrack_proto_gre.c
-@@ -43,24 +43,12 @@
- #include <linux/netfilter/nf_conntrack_proto_gre.h>
- #include <linux/netfilter/nf_conntrack_pptp.h>
- 
--enum grep_conntrack {
--	GRE_CT_UNREPLIED,
--	GRE_CT_REPLIED,
--	GRE_CT_MAX
--};
--
- static const unsigned int gre_timeouts[GRE_CT_MAX] = {
- 	[GRE_CT_UNREPLIED]	= 30*HZ,
- 	[GRE_CT_REPLIED]	= 180*HZ,
- };
- 
- static unsigned int proto_gre_net_id __read_mostly;
--struct netns_proto_gre {
--	struct nf_proto_net	nf;
--	rwlock_t		keymap_lock;
--	struct list_head	keymap_list;
--	unsigned int		gre_timeouts[GRE_CT_MAX];
--};
- 
- static inline struct netns_proto_gre *gre_pernet(struct net *net)
+ 	spin_unlock_bh(&list->list_lock);
+ 	call_rcu(&conn->rcu_head, __conn_free);
+@@ -248,7 +250,7 @@ void nf_conncount_list_init(struct nf_conncount_list *list)
  {
-@@ -402,6 +390,8 @@ static int __init nf_ct_proto_gre_init(void)
- {
- 	int ret;
+ 	spin_lock_init(&list->list_lock);
+ 	INIT_LIST_HEAD(&list->head);
+-	list->count = 1;
++	list->count = 0;
+ 	list->dead = false;
+ }
+ EXPORT_SYMBOL_GPL(nf_conncount_list_init);
+@@ -262,6 +264,7 @@ bool nf_conncount_gc_list(struct net *net,
+ 	struct nf_conn *found_ct;
+ 	unsigned int collected = 0;
+ 	bool free_entry = false;
++	bool ret = false;
  
-+	BUILD_BUG_ON(offsetof(struct netns_proto_gre, nf) != 0);
-+
- 	ret = register_pernet_subsys(&proto_gre_net_ops);
- 	if (ret < 0)
- 		goto out_pernet;
-diff --git a/net/netfilter/nfnetlink_cttimeout.c b/net/netfilter/nfnetlink_cttimeout.c
-index a518eb162344..109b0d27345a 100644
---- a/net/netfilter/nfnetlink_cttimeout.c
-+++ b/net/netfilter/nfnetlink_cttimeout.c
-@@ -455,7 +455,8 @@ static int cttimeout_default_get(struct net *net, struct sock *ctnl,
- 	case IPPROTO_TCP:
- 		timeouts = nf_tcp_pernet(net)->timeouts;
- 		break;
--	case IPPROTO_UDP:
-+	case IPPROTO_UDP: /* fallthrough */
-+	case IPPROTO_UDPLITE:
- 		timeouts = nf_udp_pernet(net)->timeouts;
- 		break;
- 	case IPPROTO_DCCP:
-@@ -471,11 +472,21 @@ static int cttimeout_default_get(struct net *net, struct sock *ctnl,
- 		timeouts = nf_sctp_pernet(net)->timeouts;
- #endif
- 		break;
-+	case IPPROTO_GRE:
-+#ifdef CONFIG_NF_CT_PROTO_GRE
-+		if (l4proto->net_id) {
-+			struct netns_proto_gre *net_gre;
-+
-+			net_gre = net_generic(net, *l4proto->net_id);
-+			timeouts = net_gre->gre_timeouts;
-+		}
-+#endif
-+		break;
- 	case 255:
- 		timeouts = &nf_generic_pernet(net)->timeout;
- 		break;
- 	default:
--		WARN_ON_ONCE(1);
-+		WARN_ONCE(1, "Missing timeouts for proto %d", l4proto->l4proto);
- 		break;
+ 	list_for_each_entry_safe(conn, conn_n, &list->head, node) {
+ 		found = find_or_evict(net, list, conn, &free_entry);
+@@ -291,7 +294,15 @@ bool nf_conncount_gc_list(struct net *net,
+ 		if (collected > CONNCOUNT_GC_MAX_NODES)
+ 			return false;
  	}
+-	return false;
++
++	spin_lock_bh(&list->list_lock);
++	if (!list->count) {
++		list->dead = true;
++		ret = true;
++	}
++	spin_unlock_bh(&list->list_lock);
++
++	return ret;
+ }
+ EXPORT_SYMBOL_GPL(nf_conncount_gc_list);
  
+@@ -417,6 +428,7 @@ insert_tree(struct net *net,
+ 	nf_conncount_list_init(&rbconn->list);
+ 	list_add(&conn->node, &rbconn->list.head);
+ 	count = 1;
++	rbconn->list.count = count;
+ 
+ 	rb_link_node(&rbconn->node, parent, rbnode);
+ 	rb_insert_color(&rbconn->node, root);
 -- 
 2.11.0
