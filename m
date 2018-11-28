@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 07/16] netfilter: xt_RATEEST: remove netns exit routine
-Date: Wed, 28 Nov 2018 11:17:32 +0100
-Message-ID: <20181128101741.20924-8-pablo@netfilter.org>
+Subject: [PATCH 10/16] ipvs: call ip_vs_dst_notifier earlier than ipv6_dev_notf
+Date: Wed, 28 Nov 2018 11:17:35 +0100
+Message-ID: <20181128101741.20924-11-pablo@netfilter.org>
 References: <20181128101741.20924-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,89 +10,53 @@ In-Reply-To: <20181128101741.20924-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Taehee Yoo <ap420073@gmail.com>
+From: Xin Long <lucien.xin@gmail.com>
 
-xt_rateest_net_exit() was added to check whether rules are flushed
-successfully. but ->net_exit() callback is called earlier than
-->destroy() callback.
-So that ->net_exit() callback can't check that.
+ip_vs_dst_event is supposed to clean up all dst used in ipvs'
+destinations when a net dev is going down. But it works only
+when the dst's dev is the same as the dev from the event.
 
-test commands:
-   %ip netns add vm1
-   %ip netns exec vm1 iptables -t mangle -I PREROUTING -p udp \
-	   --dport 1111 -j RATEEST --rateest-name ap \
-	   --rateest-interval 250ms --rateest-ewma 0.5s
-   %ip netns del vm1
+Now with the same priority but late registration,
+ip_vs_dst_notifier is always called later than ipv6_dev_notf
+where the dst's dev is set to lo for NETDEV_DOWN event.
 
-splat looks like:
-[  668.813518] WARNING: CPU: 0 PID: 87 at net/netfilter/xt_RATEEST.c:210 xt_rateest_net_exit+0x210/0x340 [xt_RATEEST]
-[  668.813518] Modules linked in: xt_RATEEST xt_tcpudp iptable_mangle bpfilter ip_tables x_tables
-[  668.813518] CPU: 0 PID: 87 Comm: kworker/u4:2 Not tainted 4.19.0-rc7+ #21
-[  668.813518] Workqueue: netns cleanup_net
-[  668.813518] RIP: 0010:xt_rateest_net_exit+0x210/0x340 [xt_RATEEST]
-[  668.813518] Code: 00 48 8b 85 30 ff ff ff 4c 8b 23 80 38 00 0f 85 24 01 00 00 48 8b 85 30 ff ff ff 4d 85 e4 4c 89 a5 58 ff ff ff c6 00 f8 74 b2 <0f> 0b 48 83 c3 08 4c 39 f3 75 b0 48 b8 00 00 00 00 00 fc ff df 49
-[  668.813518] RSP: 0018:ffff8801156c73f8 EFLAGS: 00010282
-[  668.813518] RAX: ffffed0022ad8e85 RBX: ffff880118928e98 RCX: 5db8012a00000000
-[  668.813518] RDX: ffff8801156c7428 RSI: 00000000cb1d185f RDI: ffff880115663b74
-[  668.813518] RBP: ffff8801156c74d0 R08: ffff8801156633c0 R09: 1ffff100236440be
-[  668.813518] R10: 0000000000000001 R11: ffffed002367d852 R12: ffff880115142b08
-[  668.813518] R13: 1ffff10022ad8e81 R14: ffff880118928ea8 R15: dffffc0000000000
-[  668.813518] FS:  0000000000000000(0000) GS:ffff88011b200000(0000) knlGS:0000000000000000
-[  668.813518] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[  668.813518] CR2: 0000563aa69f4f28 CR3: 0000000105a16000 CR4: 00000000001006f0
-[  668.813518] Call Trace:
-[  668.813518]  ? unregister_netdevice_many+0xe0/0xe0
-[  668.813518]  ? xt_rateest_net_init+0x2c0/0x2c0 [xt_RATEEST]
-[  668.813518]  ? default_device_exit+0x1ca/0x270
-[  668.813518]  ? remove_proc_entry+0x1cd/0x390
-[  668.813518]  ? dev_change_net_namespace+0xd00/0xd00
-[  668.813518]  ? __init_waitqueue_head+0x130/0x130
-[  668.813518]  ops_exit_list.isra.10+0x94/0x140
-[  668.813518]  cleanup_net+0x45b/0x900
-[  668.813518]  ? net_drop_ns+0x110/0x110
-[  668.813518]  ? swapgs_restore_regs_and_return_to_usermode+0x3c/0x80
-[  668.813518]  ? save_trace+0x300/0x300
-[  668.813518]  ? lock_acquire+0x196/0x470
-[  668.813518]  ? lock_acquire+0x196/0x470
-[  668.813518]  ? process_one_work+0xb60/0x1de0
-[  668.813518]  ? _raw_spin_unlock_irq+0x29/0x40
-[  668.813518]  ? _raw_spin_unlock_irq+0x29/0x40
-[  668.813518]  ? __lock_acquire+0x4500/0x4500
-[  668.813518]  ? __lock_is_held+0xb4/0x140
-[  668.813518]  process_one_work+0xc13/0x1de0
-[  668.813518]  ? pwq_dec_nr_in_flight+0x3c0/0x3c0
-[  668.813518]  ? set_load_weight+0x270/0x270
-[ ... ]
+As the dst's dev lo is not the same as the dev from the event
+in ip_vs_dst_event, ip_vs_dst_notifier doesn't actually work.
+Also as these dst have to wait for dest_trash_timer to clean
+them up. It would cause some non-permanent kernel warnings:
 
-Fixes: 3427b2ab63fa ("netfilter: make xt_rateest hash table per net")
-Signed-off-by: Taehee Yoo <ap420073@gmail.com>
+  unregister_netdevice: waiting for br0 to become free. Usage count = 3
+
+To fix it, call ip_vs_dst_notifier earlier than ipv6_dev_notf
+by increasing its priority to ADDRCONF_NOTIFY_PRIORITY + 5.
+
+Note that for ipv4 route fib_netdev_notifier doesn't set dst's
+dev to lo in NETDEV_DOWN event, so this fix is only needed when
+IP_VS_IPV6 is defined.
+
+Fixes: 7a4f0761fce3 ("IPVS: init and cleanup restructuring")
+Reported-by: Li Shuang <shuali@redhat.com>
+Signed-off-by: Xin Long <lucien.xin@gmail.com>
+Acked-by: Julian Anastasov <ja@ssi.bg>
+Acked-by: Simon Horman <horms@verge.net.au>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/xt_RATEEST.c | 10 ----------
- 1 file changed, 10 deletions(-)
+ net/netfilter/ipvs/ip_vs_ctl.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/net/netfilter/xt_RATEEST.c b/net/netfilter/xt_RATEEST.c
-index dec843cadf46..9e05c86ba5c4 100644
---- a/net/netfilter/xt_RATEEST.c
-+++ b/net/netfilter/xt_RATEEST.c
-@@ -201,18 +201,8 @@ static __net_init int xt_rateest_net_init(struct net *net)
- 	return 0;
- }
+diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+index 83395bf6dc35..432141f04af3 100644
+--- a/net/netfilter/ipvs/ip_vs_ctl.c
++++ b/net/netfilter/ipvs/ip_vs_ctl.c
+@@ -3980,6 +3980,9 @@ static void __net_exit ip_vs_control_net_cleanup_sysctl(struct netns_ipvs *ipvs)
  
--static void __net_exit xt_rateest_net_exit(struct net *net)
--{
--	struct xt_rateest_net *xn = net_generic(net, xt_rateest_id);
--	int i;
--
--	for (i = 0; i < ARRAY_SIZE(xn->hash); i++)
--		WARN_ON_ONCE(!hlist_empty(&xn->hash[i]));
--}
--
- static struct pernet_operations xt_rateest_net_ops = {
- 	.init = xt_rateest_net_init,
--	.exit = xt_rateest_net_exit,
- 	.id   = &xt_rateest_id,
- 	.size = sizeof(struct xt_rateest_net),
+ static struct notifier_block ip_vs_dst_notifier = {
+ 	.notifier_call = ip_vs_dst_event,
++#ifdef CONFIG_IP_VS_IPV6
++	.priority = ADDRCONF_NOTIFY_PRIORITY + 5,
++#endif
  };
+ 
+ int __net_init ip_vs_control_net_init(struct netns_ipvs *ipvs)
 -- 
 2.11.0
