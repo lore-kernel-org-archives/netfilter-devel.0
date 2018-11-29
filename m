@@ -1,25 +1,36 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 00/16] Netfilter fixes for net
-Date: Wed, 28 Nov 2018 11:03:08 -0800 (PST)
-Message-ID: <20181128.110308.1703454564302793559.davem@davemloft.net>
-References: <20181128101741.20924-1-pablo@netfilter.org>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
+From: Xiaozhou Liu <liuxiaozhou@bytedance.com>
+Subject: [PATCH] netfilter: update comment about get_unique_tuple()
+Date: Thu, 29 Nov 2018 11:29:05 +0800
+Message-ID: <20181129032905.1148062-1-liuxiaozhou@bytedance.com>
+Cc: Xiaozhou Liu <liuxiaozhou@bytedance.com>
+To: pablo@netfilter.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20181128101741.20924-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Wed, 28 Nov 2018 11:17:25 +0100
+`__ip_conntrack_confirm' in the comment is a bit confusing since
+it has long been replaced with __nf_conntrack_confirm in the code.
+Just update the comment.
 
-> The following patchset contains Netfilter fixes for net:
- ...
-> You can pull these changes from:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
+Signed-off-by: Xiaozhou Liu <liuxiaozhou@bytedance.com>
+---
+ net/netfilter/nf_nat_core.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-Pulled.
+diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
+index e2b196054dfc..527d125964d1 100644
+--- a/net/netfilter/nf_nat_core.c
++++ b/net/netfilter/nf_nat_core.c
+@@ -315,7 +315,8 @@ find_best_ips_proto(const struct nf_conntrack_zone *zone,
+  * and NF_INET_LOCAL_OUT, we change the destination to map into the
+  * range. It might not be possible to get a unique tuple, but we try.
+  * At worst (or if we race), we will end up with a final duplicate in
+- * __ip_conntrack_confirm and drop the packet. */
++ * __nf_conntrack_confirm and drop the packet.
++ */
+ static void
+ get_unique_tuple(struct nf_conntrack_tuple *tuple,
+ 		 const struct nf_conntrack_tuple *orig_tuple,
+-- 
+2.11.0
