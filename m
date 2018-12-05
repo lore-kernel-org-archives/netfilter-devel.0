@@ -1,122 +1,117 @@
-From: Alexei Starovoitov <alexei.starovoitov@gmail.com>
-Subject: Re: [RFC -next v0 1/3] bpf: modular maps
-Date: Tue, 4 Dec 2018 18:49:30 -0800
-Message-ID: <20181205024928.57xcrgspllcr7umo@ast-mbp.dhcp.thefacebook.com>
-References: <20181125180919.13996-1-aconole@bytheb.org>
- <20181125180919.13996-2-aconole@bytheb.org>
- <20181127020608.4vucwmhrtu2cxrwu@ast-mbp.dhcp.thefacebook.com>
- <f7tftvmd2ey.fsf@dhcp-25.97.bos.redhat.com>
- <20181128051001.wcsgqx3d6c2aszp6@ast-mbp.dhcp.thefacebook.com>
- <f7to9a99gsh.fsf@dhcp-25.97.bos.redhat.com>
- <20181129041948.pepdcksplt6xppk3@ast-mbp>
- <f7twoou65gi.fsf@dhcp-25.97.bos.redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        Alexei Starovoitov <ast@kernel.org>,
-        Daniel Borkmann <daniel@iogearbox.net>,
+From: Sasha Levin <sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 017/123] netfilter: nf_conncount: use spin_lock_bh instead of spin_lock
+Date: Wed,  5 Dec 2018 04:34:09 -0500
+Message-ID: <20181205093555.5386-17-sashal@kernel.org>
+References: <20181205093555.5386-1-sashal@kernel.org>
+Cc: Taehee Yoo <ap420073@gmail.com>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>,
-        John Fastabend <john.fastabend@gmail.com>,
-        Jesper Brouer <brouer@redhat.com>,
-        "David S . Miller" <davem@davemloft.net>,
-        Andy Gospodarek <andy@greyhouse.net>,
-        Rony Efraim <ronye@mellanox.com>,
-        Simon Horman <horms@verge.net.au>,
-        Marcelo Leitner <marcelo.leitner@gmail.com>
-To: Aaron Conole <aconole@bytheb.org>
+        Sasha Levin <sashal@kernel.org>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org
+To: stable@vger.kernel.org, linux-kernel@vger.kernel.org
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <f7twoou65gi.fsf@dhcp-25.97.bos.redhat.com>
+In-Reply-To: <20181205093555.5386-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, Nov 30, 2018 at 08:49:17AM -0500, Aaron Conole wrote:
-> 
-> While this is one reason to use hash map, I don't think we should use
-> this as a reason to exclude development of a data type that may work
-> better.  After all, if we can do better then we should.
+From: Taehee Yoo <ap420073@gmail.com>
 
-I'm all for improving existing hash map or implementing new data types.
-Like classifier map == same as wild-card match map == ACL map.
-The one that OVS folks could use and other folks wanted for long time.
+[ Upstream commit fd3e71a9f71e232181a225301a75936373636ccc ]
 
-But I don't want bpf to become a collection of single purpose solutions.
-Like mega-flow style OVS map.
-That one does linear number of lookups applying mask at a time.
+conn_free() holds lock with spin_lock() and it is called by both
+nf_conncount_lookup() and nf_conncount_gc_list(). nf_conncount_lookup()
+is called from bottom-half context and nf_conncount_gc_list() from
+process context. So that spin_lock() call is not safe. Hence
+conn_free() should use spin_lock_bh() instead of spin_lock().
 
-It sounds to me that you're proposing "NAT-as-bpf-helper"
-or "NAT-as-bpf-map" type of solution.
-That falls into single purpose solution category.
-I'd rather see generic connection tracking building block.
-The one that works out of skb and out of XDP layer.
-Existing stack-queue-map can already be used to allocate integers
-out of specified range. It can be used to implement port allocation for NAT.
-If generic stack-queue-map is not enough, let's improve it.
+test commands:
+   %nft add table ip filter
+   %nft add chain ip filter input { type filter hook input priority 0\; }
+   %nft add rule filter input meter test { ip saddr ct count over 2 } \
+	   counter
 
-> >> forward direction addresses could be different from reverse direction so
-> >> just swapping addresses / ports will not match).
-> >
-> > That makes no sense to me. What would be an example of such flow?
-> > Certainly not a tcp flow.
-> 
-> Maybe it's poorly worded on my part.  Think about this scenario (ipv4, tcp):
-> 
-> Interfaces A(internet), B(lan)
-> 
-> When XDP program receives a packet from B, it will have a tuple like:
-> 
-> source=B-subnet:B-port  dest=inet-addr:inet-port
-> 
-> When XDP program receives a packet from A, it will have a tuple like:
-> 
-> source=inet-addr:inet-port  dest=gw-addr:gw-port
+splat looks like:
+[  461.996507] ================================
+[  461.998999] WARNING: inconsistent lock state
+[  461.998999] 4.19.0-rc6+ #22 Not tainted
+[  461.998999] --------------------------------
+[  461.998999] inconsistent {IN-SOFTIRQ-W} -> {SOFTIRQ-ON-W} usage.
+[  461.998999] kworker/0:2/134 [HC0[0]:SC0[0]:HE1:SE1] takes:
+[  461.998999] 00000000a71a559a (&(&list->list_lock)->rlock){+.?.}, at: conn_free+0x69/0x2b0 [nf_conncount]
+[  461.998999] {IN-SOFTIRQ-W} state was registered at:
+[  461.998999]   _raw_spin_lock+0x30/0x70
+[  461.998999]   nf_conncount_add+0x28a/0x520 [nf_conncount]
+[  461.998999]   nft_connlimit_eval+0x401/0x580 [nft_connlimit]
+[  461.998999]   nft_dynset_eval+0x32b/0x590 [nf_tables]
+[  461.998999]   nft_do_chain+0x497/0x1430 [nf_tables]
+[  461.998999]   nft_do_chain_ipv4+0x255/0x330 [nf_tables]
+[  461.998999]   nf_hook_slow+0xb1/0x160
+[ ... ]
+[  461.998999] other info that might help us debug this:
+[  461.998999]  Possible unsafe locking scenario:
+[  461.998999]
+[  461.998999]        CPU0
+[  461.998999]        ----
+[  461.998999]   lock(&(&list->list_lock)->rlock);
+[  461.998999]   <Interrupt>
+[  461.998999]     lock(&(&list->list_lock)->rlock);
+[  461.998999]
+[  461.998999]  *** DEADLOCK ***
+[  461.998999]
+[ ... ]
 
-first of all there are two netdevs.
-one XDP program can attach to multiple netdevs, but in this
-case we're dealing with two indepedent tcp flows.
+Fixes: 5c789e131cbb ("netfilter: nf_conncount: Add list lock and gc worker, and RCU for init tree search")
+Signed-off-by: Taehee Yoo <ap420073@gmail.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ net/netfilter/nf_conncount.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-> The only data in common there is inet-addr:inet-port, and that will
-> likely be shared among too many connections to be a valid key.
-
-two independent tcp flows don't make a 'connection'.
-That definition of connection is only meaningful in the context
-of the particular problem you're trying to solve and
-confuses me quite a bit.
-
-> I don't know how to figure out from A the same connetion that
-> corresponds to B.  A really simple static map works, *except*, when
-> something causes either side of the connection to become invalid, I
-> can't mark the other side.  For instance, even if I have some static
-> mapping, I might not be able to infer the correct B-side tuple from the
-> A-side tuple to do the teardown.
-
-I don't think I got enough information from the above description to
-understand why two tcp flows (same as two tcp connections) will
-form single 'connection' in your definition of connection.
-
-> 1. Port / address reservation.  If I want to do NAT, I need to reserve
->    ports and addresses correctly.  That requires knowing the interface
->    addresses, and which addresses are currently allocated.  The stack
->    knows this already, let it do these allocations then.  Then when
->    packets arrive for the connection that the stack set up, just forward
->    via XDP.
-
-I beg to disagree. For NAT use case the stack has nothing to do with
-port allocation for NATing. It's all within NAT framework
-(whichever way it's implemented).
-The stack cares about sockets and ports that are open on the host
-to be consumed by the host.
-NAT function is independent of that.
-
-> 2. Helpers.  Parsing an in-flight stream is always going to be slow.
->    Let the stack do that.  But when it sets up an expectation, then use
->    that information to forward that via XDP.
-
-XDP parses packets way faster than the stack, since XDP deals with linear
-buffers whereas stack has to do pskb_may_pull at every step.
-The stack can be optimized further, but assuming that packet parsing
-by the stack is faster than XDP and making techincal decisions based
-on that just doesn't seem like the right approach to take.
+diff --git a/net/netfilter/nf_conncount.c b/net/netfilter/nf_conncount.c
+index 02ca7df793f5..71b1f4f99580 100644
+--- a/net/netfilter/nf_conncount.c
++++ b/net/netfilter/nf_conncount.c
+@@ -106,15 +106,15 @@ nf_conncount_add(struct nf_conncount_list *list,
+ 	conn->zone = *zone;
+ 	conn->cpu = raw_smp_processor_id();
+ 	conn->jiffies32 = (u32)jiffies;
+-	spin_lock(&list->list_lock);
++	spin_lock_bh(&list->list_lock);
+ 	if (list->dead == true) {
+ 		kmem_cache_free(conncount_conn_cachep, conn);
+-		spin_unlock(&list->list_lock);
++		spin_unlock_bh(&list->list_lock);
+ 		return NF_CONNCOUNT_SKIP;
+ 	}
+ 	list_add_tail(&conn->node, &list->head);
+ 	list->count++;
+-	spin_unlock(&list->list_lock);
++	spin_unlock_bh(&list->list_lock);
+ 	return NF_CONNCOUNT_ADDED;
+ }
+ EXPORT_SYMBOL_GPL(nf_conncount_add);
+@@ -132,10 +132,10 @@ static bool conn_free(struct nf_conncount_list *list,
+ {
+ 	bool free_entry = false;
+ 
+-	spin_lock(&list->list_lock);
++	spin_lock_bh(&list->list_lock);
+ 
+ 	if (list->count == 0) {
+-		spin_unlock(&list->list_lock);
++		spin_unlock_bh(&list->list_lock);
+                 return free_entry;
+ 	}
+ 
+@@ -144,7 +144,7 @@ static bool conn_free(struct nf_conncount_list *list,
+ 	if (list->count == 0)
+ 		free_entry = true;
+ 
+-	spin_unlock(&list->list_lock);
++	spin_unlock_bh(&list->list_lock);
+ 	call_rcu(&conn->rcu_head, __conn_free);
+ 	return free_entry;
+ }
+-- 
+2.17.1
