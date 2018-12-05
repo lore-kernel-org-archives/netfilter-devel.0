@@ -1,7 +1,7 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.19 017/123] netfilter: nf_conncount: use spin_lock_bh instead of spin_lock
-Date: Wed,  5 Dec 2018 04:34:09 -0500
-Message-ID: <20181205093555.5386-17-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 018/123] netfilter: nf_conncount: fix list_del corruption in conn_free
+Date: Wed,  5 Dec 2018 04:34:10 -0500
+Message-ID: <20181205093555.5386-18-sashal@kernel.org>
 References: <20181205093555.5386-1-sashal@kernel.org>
 Cc: Taehee Yoo <ap420073@gmail.com>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
@@ -16,48 +16,55 @@ List-Id: netfilter-devel.vger.kernel.org
 
 From: Taehee Yoo <ap420073@gmail.com>
 
-[ Upstream commit fd3e71a9f71e232181a225301a75936373636ccc ]
+[ Upstream commit 31568ec09ea02a050249921698c9729419539cce ]
 
-conn_free() holds lock with spin_lock() and it is called by both
-nf_conncount_lookup() and nf_conncount_gc_list(). nf_conncount_lookup()
-is called from bottom-half context and nf_conncount_gc_list() from
-process context. So that spin_lock() call is not safe. Hence
-conn_free() should use spin_lock_bh() instead of spin_lock().
+nf_conncount_tuple is an element of nft_connlimit and that is deleted by
+conn_free(). Elements can be deleted by both GC routine and data path
+functions (nf_conncount_lookup, nf_conncount_add) and they call
+conn_free() to free elements. But conn_free() only protects lists, not
+each element. So that list_del corruption could occurred.
+
+The conn_free() doesn't check whether element is already deleted. In
+order to protect elements, dead flag is added. If an element is deleted,
+dead flag is set. The only conn_free() can delete elements so that both
+list lock and dead flag are enough to protect it.
 
 test commands:
    %nft add table ip filter
    %nft add chain ip filter input { type filter hook input priority 0\; }
-   %nft add rule filter input meter test { ip saddr ct count over 2 } \
-	   counter
+   %nft add rule filter input meter test { ip id ct count over 2 } counter
 
 splat looks like:
-[  461.996507] ================================
-[  461.998999] WARNING: inconsistent lock state
-[  461.998999] 4.19.0-rc6+ #22 Not tainted
-[  461.998999] --------------------------------
-[  461.998999] inconsistent {IN-SOFTIRQ-W} -> {SOFTIRQ-ON-W} usage.
-[  461.998999] kworker/0:2/134 [HC0[0]:SC0[0]:HE1:SE1] takes:
-[  461.998999] 00000000a71a559a (&(&list->list_lock)->rlock){+.?.}, at: conn_free+0x69/0x2b0 [nf_conncount]
-[  461.998999] {IN-SOFTIRQ-W} state was registered at:
-[  461.998999]   _raw_spin_lock+0x30/0x70
-[  461.998999]   nf_conncount_add+0x28a/0x520 [nf_conncount]
-[  461.998999]   nft_connlimit_eval+0x401/0x580 [nft_connlimit]
-[  461.998999]   nft_dynset_eval+0x32b/0x590 [nf_tables]
-[  461.998999]   nft_do_chain+0x497/0x1430 [nf_tables]
-[  461.998999]   nft_do_chain_ipv4+0x255/0x330 [nf_tables]
-[  461.998999]   nf_hook_slow+0xb1/0x160
-[ ... ]
-[  461.998999] other info that might help us debug this:
-[  461.998999]  Possible unsafe locking scenario:
-[  461.998999]
-[  461.998999]        CPU0
-[  461.998999]        ----
-[  461.998999]   lock(&(&list->list_lock)->rlock);
-[  461.998999]   <Interrupt>
-[  461.998999]     lock(&(&list->list_lock)->rlock);
-[  461.998999]
-[  461.998999]  *** DEADLOCK ***
-[  461.998999]
+[ 1779.495778] list_del corruption, ffff8800b6e12008->prev is LIST_POISON2 (dead000000000200)
+[ 1779.505453] ------------[ cut here ]------------
+[ 1779.506260] kernel BUG at lib/list_debug.c:50!
+[ 1779.515831] invalid opcode: 0000 [#1] SMP DEBUG_PAGEALLOC KASAN PTI
+[ 1779.516772] CPU: 0 PID: 33 Comm: kworker/0:2 Not tainted 4.19.0-rc6+ #22
+[ 1779.516772] Workqueue: events_power_efficient nft_rhash_gc [nf_tables_set]
+[ 1779.516772] RIP: 0010:__list_del_entry_valid+0xd8/0x150
+[ 1779.516772] Code: 39 48 83 c4 08 b8 01 00 00 00 5b 5d c3 48 89 ea 48 c7 c7 00 c3 5b 98 e8 0f dc 40 ff 0f 0b 48 c7 c7 60 c3 5b 98 e8 01 dc 40 ff <0f> 0b 48 c7 c7 c0 c3 5b 98 e8 f3 db 40 ff 0f 0b 48 c7 c7 20 c4 5b
+[ 1779.516772] RSP: 0018:ffff880119127420 EFLAGS: 00010286
+[ 1779.516772] RAX: 000000000000004e RBX: dead000000000200 RCX: 0000000000000000
+[ 1779.516772] RDX: 000000000000004e RSI: 0000000000000008 RDI: ffffed0023224e7a
+[ 1779.516772] RBP: ffff88011934bc10 R08: ffffed002367cea9 R09: ffffed002367cea9
+[ 1779.516772] R10: 0000000000000001 R11: ffffed002367cea8 R12: ffff8800b6e12008
+[ 1779.516772] R13: ffff8800b6e12010 R14: ffff88011934bc20 R15: ffff8800b6e12008
+[ 1779.516772] FS:  0000000000000000(0000) GS:ffff88011b200000(0000) knlGS:0000000000000000
+[ 1779.516772] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[ 1779.516772] CR2: 00007fc876534010 CR3: 000000010da16000 CR4: 00000000001006f0
+[ 1779.516772] Call Trace:
+[ 1779.516772]  conn_free+0x9f/0x2b0 [nf_conncount]
+[ 1779.516772]  ? nf_ct_tmpl_alloc+0x2a0/0x2a0 [nf_conntrack]
+[ 1779.516772]  ? nf_conncount_add+0x520/0x520 [nf_conncount]
+[ 1779.516772]  ? do_raw_spin_trylock+0x1a0/0x1a0
+[ 1779.516772]  ? do_raw_spin_trylock+0x10/0x1a0
+[ 1779.516772]  find_or_evict+0xe5/0x150 [nf_conncount]
+[ 1779.516772]  nf_conncount_gc_list+0x162/0x360 [nf_conncount]
+[ 1779.516772]  ? nf_conncount_lookup+0xee0/0xee0 [nf_conncount]
+[ 1779.516772]  ? _raw_spin_unlock_irqrestore+0x45/0x50
+[ 1779.516772]  ? trace_hardirqs_off+0x6b/0x220
+[ 1779.516772]  ? trace_hardirqs_on_caller+0x220/0x220
+[ 1779.516772]  nft_rhash_gc+0x16b/0x540 [nf_tables_set]
 [ ... ]
 
 Fixes: 5c789e131cbb ("netfilter: nf_conncount: Add list lock and gc worker, and RCU for init tree search")
@@ -65,53 +72,44 @@ Signed-off-by: Taehee Yoo <ap420073@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- net/netfilter/nf_conncount.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ net/netfilter/nf_conncount.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
 diff --git a/net/netfilter/nf_conncount.c b/net/netfilter/nf_conncount.c
-index 02ca7df793f5..71b1f4f99580 100644
+index 71b1f4f99580..cb33709138df 100644
 --- a/net/netfilter/nf_conncount.c
 +++ b/net/netfilter/nf_conncount.c
-@@ -106,15 +106,15 @@ nf_conncount_add(struct nf_conncount_list *list,
+@@ -49,6 +49,7 @@ struct nf_conncount_tuple {
+ 	struct nf_conntrack_zone	zone;
+ 	int				cpu;
+ 	u32				jiffies32;
++	bool				dead;
+ 	struct rcu_head			rcu_head;
+ };
+ 
+@@ -106,6 +107,7 @@ nf_conncount_add(struct nf_conncount_list *list,
  	conn->zone = *zone;
  	conn->cpu = raw_smp_processor_id();
  	conn->jiffies32 = (u32)jiffies;
--	spin_lock(&list->list_lock);
-+	spin_lock_bh(&list->list_lock);
++	conn->dead = false;
+ 	spin_lock_bh(&list->list_lock);
  	if (list->dead == true) {
  		kmem_cache_free(conncount_conn_cachep, conn);
--		spin_unlock(&list->list_lock);
-+		spin_unlock_bh(&list->list_lock);
- 		return NF_CONNCOUNT_SKIP;
- 	}
- 	list_add_tail(&conn->node, &list->head);
- 	list->count++;
--	spin_unlock(&list->list_lock);
-+	spin_unlock_bh(&list->list_lock);
- 	return NF_CONNCOUNT_ADDED;
- }
- EXPORT_SYMBOL_GPL(nf_conncount_add);
-@@ -132,10 +132,10 @@ static bool conn_free(struct nf_conncount_list *list,
- {
- 	bool free_entry = false;
+@@ -134,12 +136,13 @@ static bool conn_free(struct nf_conncount_list *list,
  
--	spin_lock(&list->list_lock);
-+	spin_lock_bh(&list->list_lock);
+ 	spin_lock_bh(&list->list_lock);
  
- 	if (list->count == 0) {
--		spin_unlock(&list->list_lock);
-+		spin_unlock_bh(&list->list_lock);
-                 return free_entry;
+-	if (list->count == 0) {
++	if (conn->dead) {
+ 		spin_unlock_bh(&list->list_lock);
+-                return free_entry;
++		return free_entry;
  	}
  
-@@ -144,7 +144,7 @@ static bool conn_free(struct nf_conncount_list *list,
+ 	list->count--;
++	conn->dead = true;
+ 	list_del_rcu(&conn->node);
  	if (list->count == 0)
  		free_entry = true;
- 
--	spin_unlock(&list->list_lock);
-+	spin_unlock_bh(&list->list_lock);
- 	call_rcu(&conn->rcu_head, __conn_free);
- 	return free_entry;
- }
 -- 
 2.17.1
