@@ -1,105 +1,69 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.14 46/69] netfilter: nf_tables: deactivate expressions in rule replecement routine
-Date: Wed,  5 Dec 2018 04:42:24 -0500
-Message-ID: <20181205094247.6556-46-sashal@kernel.org>
-References: <20181205094247.6556-1-sashal@kernel.org>
-Cc: Taehee Yoo <ap420073@gmail.com>,
+Subject: [PATCH AUTOSEL 4.9 21/45] ipvs: call ip_vs_dst_notifier earlier than ipv6_dev_notf
+Date: Wed,  5 Dec 2018 04:46:42 -0500
+Message-ID: <20181205094706.7225-21-sashal@kernel.org>
+References: <20181205094706.7225-1-sashal@kernel.org>
+Cc: Xin Long <lucien.xin@gmail.com>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
-        Sasha Levin <sashal@kernel.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org
+        Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org,
+        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org
 To: stable@vger.kernel.org, linux-kernel@vger.kernel.org
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181205094247.6556-1-sashal@kernel.org>
+In-Reply-To: <20181205094706.7225-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Taehee Yoo <ap420073@gmail.com>
+From: Xin Long <lucien.xin@gmail.com>
 
-[ Upstream commit ca08987885a147643817d02bf260bc4756ce8cd4 ]
+[ Upstream commit 2a31e4bd9ad255ee40809b5c798c4b1c2b09703b ]
 
-There is no expression deactivation call from the rule replacement path,
-hence, chain counter is not decremented. A few steps to reproduce the
-problem:
+ip_vs_dst_event is supposed to clean up all dst used in ipvs'
+destinations when a net dev is going down. But it works only
+when the dst's dev is the same as the dev from the event.
 
-   %nft add table ip filter
-   %nft add chain ip filter c1
-   %nft add chain ip filter c1
-   %nft add rule ip filter c1 jump c2
-   %nft replace rule ip filter c1 handle 3 accept
-   %nft flush ruleset
+Now with the same priority but late registration,
+ip_vs_dst_notifier is always called later than ipv6_dev_notf
+where the dst's dev is set to lo for NETDEV_DOWN event.
 
-<jump c2> expression means immediate NFT_JUMP to chain c2.
-Reference count of chain c2 is increased when the rule is added.
+As the dst's dev lo is not the same as the dev from the event
+in ip_vs_dst_event, ip_vs_dst_notifier doesn't actually work.
+Also as these dst have to wait for dest_trash_timer to clean
+them up. It would cause some non-permanent kernel warnings:
 
-When rule is deleted or replaced, the reference counter of c2 should be
-decreased via nft_rule_expr_deactivate() which calls
-nft_immediate_deactivate().
+  unregister_netdevice: waiting for br0 to become free. Usage count = 3
 
-Splat looks like:
-[  214.396453] WARNING: CPU: 1 PID: 21 at net/netfilter/nf_tables_api.c:1432 nf_tables_chain_destroy.isra.38+0x2f9/0x3a0 [nf_tables]
-[  214.398983] Modules linked in: nf_tables nfnetlink
-[  214.398983] CPU: 1 PID: 21 Comm: kworker/1:1 Not tainted 4.20.0-rc2+ #44
-[  214.398983] Workqueue: events nf_tables_trans_destroy_work [nf_tables]
-[  214.398983] RIP: 0010:nf_tables_chain_destroy.isra.38+0x2f9/0x3a0 [nf_tables]
-[  214.398983] Code: 00 00 00 fc ff df 48 89 fa 48 c1 ea 03 80 3c 02 00 0f 85 8e 00 00 00 48 8b 7b 58 e8 e1 2c 4e c6 48 89 df e8 d9 2c 4e c6 eb 9a <0f> 0b eb 96 0f 0b e9 7e fe ff ff e8 a7 7e 4e c6 e9 a4 fe ff ff e8
-[  214.398983] RSP: 0018:ffff8881152874e8 EFLAGS: 00010202
-[  214.398983] RAX: 0000000000000001 RBX: ffff88810ef9fc28 RCX: ffff8881152876f0
-[  214.398983] RDX: dffffc0000000000 RSI: 1ffff11022a50ede RDI: ffff88810ef9fc78
-[  214.398983] RBP: 1ffff11022a50e9d R08: 0000000080000000 R09: 0000000000000000
-[  214.398983] R10: 0000000000000000 R11: 0000000000000000 R12: 1ffff11022a50eba
-[  214.398983] R13: ffff888114446e08 R14: ffff8881152876f0 R15: ffffed1022a50ed6
-[  214.398983] FS:  0000000000000000(0000) GS:ffff888116400000(0000) knlGS:0000000000000000
-[  214.398983] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[  214.398983] CR2: 00007fab9bb5f868 CR3: 000000012aa16000 CR4: 00000000001006e0
-[  214.398983] Call Trace:
-[  214.398983]  ? nf_tables_table_destroy.isra.37+0x100/0x100 [nf_tables]
-[  214.398983]  ? __kasan_slab_free+0x145/0x180
-[  214.398983]  ? nf_tables_trans_destroy_work+0x439/0x830 [nf_tables]
-[  214.398983]  ? kfree+0xdb/0x280
-[  214.398983]  nf_tables_trans_destroy_work+0x5f5/0x830 [nf_tables]
-[ ... ]
+To fix it, call ip_vs_dst_notifier earlier than ipv6_dev_notf
+by increasing its priority to ADDRCONF_NOTIFY_PRIORITY + 5.
 
-Fixes: bb7b40aecbf7 ("netfilter: nf_tables: bogus EBUSY in chain deletions")
-Reported by: Christoph Anton Mitterer <calestyo@scientia.net>
-Link: https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=914505
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=201791
-Signed-off-by: Taehee Yoo <ap420073@gmail.com>
+Note that for ipv4 route fib_netdev_notifier doesn't set dst's
+dev to lo in NETDEV_DOWN event, so this fix is only needed when
+IP_VS_IPV6 is defined.
+
+Fixes: 7a4f0761fce3 ("IPVS: init and cleanup restructuring")
+Reported-by: Li Shuang <shuali@redhat.com>
+Signed-off-by: Xin Long <lucien.xin@gmail.com>
+Acked-by: Julian Anastasov <ja@ssi.bg>
+Acked-by: Simon Horman <horms@verge.net.au>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- net/netfilter/nf_tables_api.c | 15 ++++-----------
- 1 file changed, 4 insertions(+), 11 deletions(-)
+ net/netfilter/ipvs/ip_vs_ctl.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index ea1e57daf50e..623ec29ade26 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -2400,21 +2400,14 @@ static int nf_tables_newrule(struct net *net, struct sock *nlsk,
- 	}
+diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+index 079b3c426720..8382b7880b24 100644
+--- a/net/netfilter/ipvs/ip_vs_ctl.c
++++ b/net/netfilter/ipvs/ip_vs_ctl.c
+@@ -4013,6 +4013,9 @@ static void __net_exit ip_vs_control_net_cleanup_sysctl(struct netns_ipvs *ipvs)
  
- 	if (nlh->nlmsg_flags & NLM_F_REPLACE) {
--		if (!nft_is_active_next(net, old_rule)) {
--			err = -ENOENT;
--			goto err2;
--		}
--		trans = nft_trans_rule_add(&ctx, NFT_MSG_DELRULE,
--					   old_rule);
-+		trans = nft_trans_rule_add(&ctx, NFT_MSG_NEWRULE, rule);
- 		if (trans == NULL) {
- 			err = -ENOMEM;
- 			goto err2;
- 		}
--		nft_deactivate_next(net, old_rule);
--		chain->use--;
--
--		if (nft_trans_rule_add(&ctx, NFT_MSG_NEWRULE, rule) == NULL) {
--			err = -ENOMEM;
-+		err = nft_delrule(&ctx, old_rule);
-+		if (err < 0) {
-+			nft_trans_destroy(trans);
- 			goto err2;
- 		}
+ static struct notifier_block ip_vs_dst_notifier = {
+ 	.notifier_call = ip_vs_dst_event,
++#ifdef CONFIG_IP_VS_IPV6
++	.priority = ADDRCONF_NOTIFY_PRIORITY + 5,
++#endif
+ };
  
+ int __net_init ip_vs_control_net_init(struct netns_ipvs *ipvs)
 -- 
 2.17.1
