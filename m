@@ -1,9 +1,9 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.14 40/69] netfilter: ipv6: Preserve link scope traffic original oif
-Date: Wed,  5 Dec 2018 04:42:18 -0500
-Message-ID: <20181205094247.6556-40-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.14 17/69] netfilter: xt_hashlimit: fix a possible memory leak in htable_create()
+Date: Wed,  5 Dec 2018 04:41:55 -0500
+Message-ID: <20181205094247.6556-17-sashal@kernel.org>
 References: <20181205094247.6556-1-sashal@kernel.org>
-Cc: Alin Nastac <alin.nastac@gmail.com>,
+Cc: Taehee Yoo <ap420073@gmail.com>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
         Sasha Levin <sashal@kernel.org>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
@@ -14,39 +14,69 @@ In-Reply-To: <20181205094247.6556-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Alin Nastac <alin.nastac@gmail.com>
+From: Taehee Yoo <ap420073@gmail.com>
 
-[ Upstream commit 508b09046c0f21678652fb66fd1e9959d55591d2 ]
+[ Upstream commit b4e955e9f372035361fbc6f07b21fe2cc6a5be4a ]
 
-When ip6_route_me_harder is invoked, it resets outgoing interface of:
-  - link-local scoped packets sent by neighbor discovery
-  - multicast packets sent by MLD host
-  - multicast packets send by MLD proxy daemon that sets outgoing
-    interface through IPV6_PKTINFO ipi6_ifindex
+In the htable_create(), hinfo is allocated by vmalloc()
+So that if error occurred, hinfo should be freed.
 
-Link-local and multicast packets must keep their original oif after
-ip6_route_me_harder is called.
-
-Signed-off-by: Alin Nastac <alin.nastac@gmail.com>
+Fixes: 11d5f15723c9 ("netfilter: xt_hashlimit: Create revision 2 to support higher pps rates")
+Signed-off-by: Taehee Yoo <ap420073@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- net/ipv6/netfilter.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ net/netfilter/xt_hashlimit.c | 9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
 
-diff --git a/net/ipv6/netfilter.c b/net/ipv6/netfilter.c
-index 9bf260459f83..1f8b1a433b5d 100644
---- a/net/ipv6/netfilter.c
-+++ b/net/ipv6/netfilter.c
-@@ -25,7 +25,8 @@ int ip6_route_me_harder(struct net *net, struct sk_buff *skb)
- 	unsigned int hh_len;
- 	struct dst_entry *dst;
- 	struct flowi6 fl6 = {
--		.flowi6_oif = sk ? sk->sk_bound_dev_if : 0,
-+		.flowi6_oif = sk && sk->sk_bound_dev_if ? sk->sk_bound_dev_if :
-+			rt6_need_strict(&iph->daddr) ? skb_dst(skb)->dev->ifindex : 0,
- 		.flowi6_mark = skb->mark,
- 		.flowi6_uid = sock_net_uid(net, sk),
- 		.daddr = iph->daddr,
+diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
+index 0c034597b9b8..fe8e8a1622b5 100644
+--- a/net/netfilter/xt_hashlimit.c
++++ b/net/netfilter/xt_hashlimit.c
+@@ -295,9 +295,10 @@ static int htable_create(struct net *net, struct hashlimit_cfg3 *cfg,
+ 
+ 	/* copy match config into hashtable config */
+ 	ret = cfg_copy(&hinfo->cfg, (void *)cfg, 3);
+-
+-	if (ret)
++	if (ret) {
++		vfree(hinfo);
+ 		return ret;
++	}
+ 
+ 	hinfo->cfg.size = size;
+ 	if (hinfo->cfg.max == 0)
+@@ -814,7 +815,6 @@ hashlimit_mt_v1(const struct sk_buff *skb, struct xt_action_param *par)
+ 	int ret;
+ 
+ 	ret = cfg_copy(&cfg, (void *)&info->cfg, 1);
+-
+ 	if (ret)
+ 		return ret;
+ 
+@@ -830,7 +830,6 @@ hashlimit_mt_v2(const struct sk_buff *skb, struct xt_action_param *par)
+ 	int ret;
+ 
+ 	ret = cfg_copy(&cfg, (void *)&info->cfg, 2);
+-
+ 	if (ret)
+ 		return ret;
+ 
+@@ -920,7 +919,6 @@ static int hashlimit_mt_check_v1(const struct xt_mtchk_param *par)
+ 		return ret;
+ 
+ 	ret = cfg_copy(&cfg, (void *)&info->cfg, 1);
+-
+ 	if (ret)
+ 		return ret;
+ 
+@@ -939,7 +937,6 @@ static int hashlimit_mt_check_v2(const struct xt_mtchk_param *par)
+ 		return ret;
+ 
+ 	ret = cfg_copy(&cfg, (void *)&info->cfg, 2);
+-
+ 	if (ret)
+ 		return ret;
+ 
 -- 
 2.17.1
