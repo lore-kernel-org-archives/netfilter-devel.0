@@ -1,105 +1,89 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.19 089/123] netfilter: nf_tables: deactivate expressions in rule replecement routine
-Date: Wed,  5 Dec 2018 04:35:21 -0500
-Message-ID: <20181205093555.5386-89-sashal@kernel.org>
-References: <20181205093555.5386-1-sashal@kernel.org>
-Cc: Taehee Yoo <ap420073@gmail.com>,
+Subject: [PATCH AUTOSEL 4.14 09/69] netfilter: nf_tables: fix use-after-free when deleting compat expressions
+Date: Wed,  5 Dec 2018 04:41:47 -0500
+Message-ID: <20181205094247.6556-9-sashal@kernel.org>
+References: <20181205094247.6556-1-sashal@kernel.org>
+Cc: Florian Westphal <fw@strlen.de>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
         Sasha Levin <sashal@kernel.org>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org
 To: stable@vger.kernel.org, linux-kernel@vger.kernel.org
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181205093555.5386-1-sashal@kernel.org>
+In-Reply-To: <20181205094247.6556-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Taehee Yoo <ap420073@gmail.com>
+From: Florian Westphal <fw@strlen.de>
 
-[ Upstream commit ca08987885a147643817d02bf260bc4756ce8cd4 ]
+[ Upstream commit 29e3880109e357fdc607b4393f8308cef6af9413 ]
 
-There is no expression deactivation call from the rule replacement path,
-hence, chain counter is not decremented. A few steps to reproduce the
-problem:
+nft_compat ops do not have static storage duration, unlike all other
+expressions.
 
-   %nft add table ip filter
-   %nft add chain ip filter c1
-   %nft add chain ip filter c1
-   %nft add rule ip filter c1 jump c2
-   %nft replace rule ip filter c1 handle 3 accept
-   %nft flush ruleset
+When nf_tables_expr_destroy() returns, expr->ops might have been
+free'd already, so we need to store next address before calling
+expression destructor.
 
-<jump c2> expression means immediate NFT_JUMP to chain c2.
-Reference count of chain c2 is increased when the rule is added.
+For same reason, we can't deref match pointer after nft_xt_put().
 
-When rule is deleted or replaced, the reference counter of c2 should be
-decreased via nft_rule_expr_deactivate() which calls
-nft_immediate_deactivate().
+This can be easily reproduced by adding msleep() before
+nft_match_destroy() returns.
 
-Splat looks like:
-[  214.396453] WARNING: CPU: 1 PID: 21 at net/netfilter/nf_tables_api.c:1432 nf_tables_chain_destroy.isra.38+0x2f9/0x3a0 [nf_tables]
-[  214.398983] Modules linked in: nf_tables nfnetlink
-[  214.398983] CPU: 1 PID: 21 Comm: kworker/1:1 Not tainted 4.20.0-rc2+ #44
-[  214.398983] Workqueue: events nf_tables_trans_destroy_work [nf_tables]
-[  214.398983] RIP: 0010:nf_tables_chain_destroy.isra.38+0x2f9/0x3a0 [nf_tables]
-[  214.398983] Code: 00 00 00 fc ff df 48 89 fa 48 c1 ea 03 80 3c 02 00 0f 85 8e 00 00 00 48 8b 7b 58 e8 e1 2c 4e c6 48 89 df e8 d9 2c 4e c6 eb 9a <0f> 0b eb 96 0f 0b e9 7e fe ff ff e8 a7 7e 4e c6 e9 a4 fe ff ff e8
-[  214.398983] RSP: 0018:ffff8881152874e8 EFLAGS: 00010202
-[  214.398983] RAX: 0000000000000001 RBX: ffff88810ef9fc28 RCX: ffff8881152876f0
-[  214.398983] RDX: dffffc0000000000 RSI: 1ffff11022a50ede RDI: ffff88810ef9fc78
-[  214.398983] RBP: 1ffff11022a50e9d R08: 0000000080000000 R09: 0000000000000000
-[  214.398983] R10: 0000000000000000 R11: 0000000000000000 R12: 1ffff11022a50eba
-[  214.398983] R13: ffff888114446e08 R14: ffff8881152876f0 R15: ffffed1022a50ed6
-[  214.398983] FS:  0000000000000000(0000) GS:ffff888116400000(0000) knlGS:0000000000000000
-[  214.398983] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[  214.398983] CR2: 00007fab9bb5f868 CR3: 000000012aa16000 CR4: 00000000001006e0
-[  214.398983] Call Trace:
-[  214.398983]  ? nf_tables_table_destroy.isra.37+0x100/0x100 [nf_tables]
-[  214.398983]  ? __kasan_slab_free+0x145/0x180
-[  214.398983]  ? nf_tables_trans_destroy_work+0x439/0x830 [nf_tables]
-[  214.398983]  ? kfree+0xdb/0x280
-[  214.398983]  nf_tables_trans_destroy_work+0x5f5/0x830 [nf_tables]
-[ ... ]
-
-Fixes: bb7b40aecbf7 ("netfilter: nf_tables: bogus EBUSY in chain deletions")
-Reported by: Christoph Anton Mitterer <calestyo@scientia.net>
-Link: https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=914505
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=201791
-Signed-off-by: Taehee Yoo <ap420073@gmail.com>
+Fixes: 0ca743a55991 ("netfilter: nf_tables: add compatibility layer for x_tables")
+Reported-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- net/netfilter/nf_tables_api.c | 15 ++++-----------
- 1 file changed, 4 insertions(+), 11 deletions(-)
+ net/netfilter/nf_tables_api.c | 5 +++--
+ net/netfilter/nft_compat.c    | 3 ++-
+ 2 files changed, 5 insertions(+), 3 deletions(-)
 
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 06ed55cef962..fe0558b15fd3 100644
+index 3ae365f92bff..ea1e57daf50e 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -2646,21 +2646,14 @@ static int nf_tables_newrule(struct net *net, struct sock *nlsk,
+@@ -2252,7 +2252,7 @@ static int nf_tables_getrule(struct net *net, struct sock *nlsk,
+ static void nf_tables_rule_destroy(const struct nft_ctx *ctx,
+ 				   struct nft_rule *rule)
+ {
+-	struct nft_expr *expr;
++	struct nft_expr *expr, *next;
+ 
+ 	/*
+ 	 * Careful: some expressions might not be initialized in case this
+@@ -2260,8 +2260,9 @@ static void nf_tables_rule_destroy(const struct nft_ctx *ctx,
+ 	 */
+ 	expr = nft_expr_first(rule);
+ 	while (expr != nft_expr_last(rule) && expr->ops) {
++		next = nft_expr_next(expr);
+ 		nf_tables_expr_destroy(ctx, expr);
+-		expr = nft_expr_next(expr);
++		expr = next;
  	}
+ 	kfree(rule);
+ }
+diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
+index 6da1cec1494a..7533c2fd6b76 100644
+--- a/net/netfilter/nft_compat.c
++++ b/net/netfilter/nft_compat.c
+@@ -497,6 +497,7 @@ __nft_match_destroy(const struct nft_ctx *ctx, const struct nft_expr *expr,
+ 		    void *info)
+ {
+ 	struct xt_match *match = expr->ops->data;
++	struct module *me = match->me;
+ 	struct xt_mtdtor_param par;
  
- 	if (nlh->nlmsg_flags & NLM_F_REPLACE) {
--		if (!nft_is_active_next(net, old_rule)) {
--			err = -ENOENT;
--			goto err2;
--		}
--		trans = nft_trans_rule_add(&ctx, NFT_MSG_DELRULE,
--					   old_rule);
-+		trans = nft_trans_rule_add(&ctx, NFT_MSG_NEWRULE, rule);
- 		if (trans == NULL) {
- 			err = -ENOMEM;
- 			goto err2;
- 		}
--		nft_deactivate_next(net, old_rule);
--		chain->use--;
--
--		if (nft_trans_rule_add(&ctx, NFT_MSG_NEWRULE, rule) == NULL) {
--			err = -ENOMEM;
-+		err = nft_delrule(&ctx, old_rule);
-+		if (err < 0) {
-+			nft_trans_destroy(trans);
- 			goto err2;
- 		}
+ 	par.net = ctx->net;
+@@ -507,7 +508,7 @@ __nft_match_destroy(const struct nft_ctx *ctx, const struct nft_expr *expr,
+ 		par.match->destroy(&par);
  
+ 	if (nft_xt_put(container_of(expr->ops, struct nft_xt, ops)))
+-		module_put(match->me);
++		module_put(me);
+ }
+ 
+ static void
 -- 
 2.17.1
