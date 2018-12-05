@@ -1,7 +1,7 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.19 079/123] netfilter: nf_conncount: remove wrong condition check routine
-Date: Wed,  5 Dec 2018 04:35:11 -0500
-Message-ID: <20181205093555.5386-79-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 089/123] netfilter: nf_tables: deactivate expressions in rule replecement routine
+Date: Wed,  5 Dec 2018 04:35:21 -0500
+Message-ID: <20181205093555.5386-89-sashal@kernel.org>
 References: <20181205093555.5386-1-sashal@kernel.org>
 Cc: Taehee Yoo <ap420073@gmail.com>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
@@ -16,39 +16,90 @@ List-Id: netfilter-devel.vger.kernel.org
 
 From: Taehee Yoo <ap420073@gmail.com>
 
-[ Upstream commit 53ca0f2fec39c80ccd19e6e3f30cc8daef174b70 ]
+[ Upstream commit ca08987885a147643817d02bf260bc4756ce8cd4 ]
 
-All lists that reach the tree_nodes_free() function have both zero
-counter and true dead flag. The reason for this is that lists to be
-release are selected by nf_conncount_gc_list() which already decrements
-the list counter and sets on the dead flag. Therefore, this if statement
-in tree_nodes_free() is unnecessary and wrong.
+There is no expression deactivation call from the rule replacement path,
+hence, chain counter is not decremented. A few steps to reproduce the
+problem:
 
-Fixes: 31568ec09ea0 ("netfilter: nf_conncount: fix list_del corruption in conn_free")
+   %nft add table ip filter
+   %nft add chain ip filter c1
+   %nft add chain ip filter c1
+   %nft add rule ip filter c1 jump c2
+   %nft replace rule ip filter c1 handle 3 accept
+   %nft flush ruleset
+
+<jump c2> expression means immediate NFT_JUMP to chain c2.
+Reference count of chain c2 is increased when the rule is added.
+
+When rule is deleted or replaced, the reference counter of c2 should be
+decreased via nft_rule_expr_deactivate() which calls
+nft_immediate_deactivate().
+
+Splat looks like:
+[  214.396453] WARNING: CPU: 1 PID: 21 at net/netfilter/nf_tables_api.c:1432 nf_tables_chain_destroy.isra.38+0x2f9/0x3a0 [nf_tables]
+[  214.398983] Modules linked in: nf_tables nfnetlink
+[  214.398983] CPU: 1 PID: 21 Comm: kworker/1:1 Not tainted 4.20.0-rc2+ #44
+[  214.398983] Workqueue: events nf_tables_trans_destroy_work [nf_tables]
+[  214.398983] RIP: 0010:nf_tables_chain_destroy.isra.38+0x2f9/0x3a0 [nf_tables]
+[  214.398983] Code: 00 00 00 fc ff df 48 89 fa 48 c1 ea 03 80 3c 02 00 0f 85 8e 00 00 00 48 8b 7b 58 e8 e1 2c 4e c6 48 89 df e8 d9 2c 4e c6 eb 9a <0f> 0b eb 96 0f 0b e9 7e fe ff ff e8 a7 7e 4e c6 e9 a4 fe ff ff e8
+[  214.398983] RSP: 0018:ffff8881152874e8 EFLAGS: 00010202
+[  214.398983] RAX: 0000000000000001 RBX: ffff88810ef9fc28 RCX: ffff8881152876f0
+[  214.398983] RDX: dffffc0000000000 RSI: 1ffff11022a50ede RDI: ffff88810ef9fc78
+[  214.398983] RBP: 1ffff11022a50e9d R08: 0000000080000000 R09: 0000000000000000
+[  214.398983] R10: 0000000000000000 R11: 0000000000000000 R12: 1ffff11022a50eba
+[  214.398983] R13: ffff888114446e08 R14: ffff8881152876f0 R15: ffffed1022a50ed6
+[  214.398983] FS:  0000000000000000(0000) GS:ffff888116400000(0000) knlGS:0000000000000000
+[  214.398983] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[  214.398983] CR2: 00007fab9bb5f868 CR3: 000000012aa16000 CR4: 00000000001006e0
+[  214.398983] Call Trace:
+[  214.398983]  ? nf_tables_table_destroy.isra.37+0x100/0x100 [nf_tables]
+[  214.398983]  ? __kasan_slab_free+0x145/0x180
+[  214.398983]  ? nf_tables_trans_destroy_work+0x439/0x830 [nf_tables]
+[  214.398983]  ? kfree+0xdb/0x280
+[  214.398983]  nf_tables_trans_destroy_work+0x5f5/0x830 [nf_tables]
+[ ... ]
+
+Fixes: bb7b40aecbf7 ("netfilter: nf_tables: bogus EBUSY in chain deletions")
+Reported by: Christoph Anton Mitterer <calestyo@scientia.net>
+Link: https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=914505
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=201791
 Signed-off-by: Taehee Yoo <ap420073@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- net/netfilter/nf_conncount.c | 7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ net/netfilter/nf_tables_api.c | 15 ++++-----------
+ 1 file changed, 4 insertions(+), 11 deletions(-)
 
-diff --git a/net/netfilter/nf_conncount.c b/net/netfilter/nf_conncount.c
-index 8acae4a3e4c0..b6d0f6deea86 100644
---- a/net/netfilter/nf_conncount.c
-+++ b/net/netfilter/nf_conncount.c
-@@ -323,11 +323,8 @@ static void tree_nodes_free(struct rb_root *root,
- 	while (gc_count) {
- 		rbconn = gc_nodes[--gc_count];
- 		spin_lock(&rbconn->list.list_lock);
--		if (rbconn->list.count == 0 && rbconn->list.dead == false) {
--			rbconn->list.dead = true;
--			rb_erase(&rbconn->node, root);
--			call_rcu(&rbconn->rcu_head, __tree_nodes_free);
--		}
-+		rb_erase(&rbconn->node, root);
-+		call_rcu(&rbconn->rcu_head, __tree_nodes_free);
- 		spin_unlock(&rbconn->list.list_lock);
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 06ed55cef962..fe0558b15fd3 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -2646,21 +2646,14 @@ static int nf_tables_newrule(struct net *net, struct sock *nlsk,
  	}
- }
+ 
+ 	if (nlh->nlmsg_flags & NLM_F_REPLACE) {
+-		if (!nft_is_active_next(net, old_rule)) {
+-			err = -ENOENT;
+-			goto err2;
+-		}
+-		trans = nft_trans_rule_add(&ctx, NFT_MSG_DELRULE,
+-					   old_rule);
++		trans = nft_trans_rule_add(&ctx, NFT_MSG_NEWRULE, rule);
+ 		if (trans == NULL) {
+ 			err = -ENOMEM;
+ 			goto err2;
+ 		}
+-		nft_deactivate_next(net, old_rule);
+-		chain->use--;
+-
+-		if (nft_trans_rule_add(&ctx, NFT_MSG_NEWRULE, rule) == NULL) {
+-			err = -ENOMEM;
++		err = nft_delrule(&ctx, old_rule);
++		if (err < 0) {
++			nft_trans_destroy(trans);
+ 			goto err2;
+ 		}
+ 
 -- 
 2.17.1
