@@ -1,69 +1,52 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.19 067/123] ipvs: call ip_vs_dst_notifier earlier than ipv6_dev_notf
-Date: Wed,  5 Dec 2018 04:34:59 -0500
-Message-ID: <20181205093555.5386-67-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 075/123] netfilter: ipv6: Preserve link scope traffic original oif
+Date: Wed,  5 Dec 2018 04:35:07 -0500
+Message-ID: <20181205093555.5386-75-sashal@kernel.org>
 References: <20181205093555.5386-1-sashal@kernel.org>
-Cc: Xin Long <lucien.xin@gmail.com>,
+Cc: Alin Nastac <alin.nastac@gmail.com>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
-        Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org,
-        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org
+        Sasha Levin <sashal@kernel.org>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org
 To: stable@vger.kernel.org, linux-kernel@vger.kernel.org
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20181205093555.5386-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Xin Long <lucien.xin@gmail.com>
+From: Alin Nastac <alin.nastac@gmail.com>
 
-[ Upstream commit 2a31e4bd9ad255ee40809b5c798c4b1c2b09703b ]
+[ Upstream commit 508b09046c0f21678652fb66fd1e9959d55591d2 ]
 
-ip_vs_dst_event is supposed to clean up all dst used in ipvs'
-destinations when a net dev is going down. But it works only
-when the dst's dev is the same as the dev from the event.
+When ip6_route_me_harder is invoked, it resets outgoing interface of:
+  - link-local scoped packets sent by neighbor discovery
+  - multicast packets sent by MLD host
+  - multicast packets send by MLD proxy daemon that sets outgoing
+    interface through IPV6_PKTINFO ipi6_ifindex
 
-Now with the same priority but late registration,
-ip_vs_dst_notifier is always called later than ipv6_dev_notf
-where the dst's dev is set to lo for NETDEV_DOWN event.
+Link-local and multicast packets must keep their original oif after
+ip6_route_me_harder is called.
 
-As the dst's dev lo is not the same as the dev from the event
-in ip_vs_dst_event, ip_vs_dst_notifier doesn't actually work.
-Also as these dst have to wait for dest_trash_timer to clean
-them up. It would cause some non-permanent kernel warnings:
-
-  unregister_netdevice: waiting for br0 to become free. Usage count = 3
-
-To fix it, call ip_vs_dst_notifier earlier than ipv6_dev_notf
-by increasing its priority to ADDRCONF_NOTIFY_PRIORITY + 5.
-
-Note that for ipv4 route fib_netdev_notifier doesn't set dst's
-dev to lo in NETDEV_DOWN event, so this fix is only needed when
-IP_VS_IPV6 is defined.
-
-Fixes: 7a4f0761fce3 ("IPVS: init and cleanup restructuring")
-Reported-by: Li Shuang <shuali@redhat.com>
-Signed-off-by: Xin Long <lucien.xin@gmail.com>
-Acked-by: Julian Anastasov <ja@ssi.bg>
-Acked-by: Simon Horman <horms@verge.net.au>
+Signed-off-by: Alin Nastac <alin.nastac@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- net/netfilter/ipvs/ip_vs_ctl.c | 3 +++
- 1 file changed, 3 insertions(+)
+ net/ipv6/netfilter.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index 62eefea48973..518364f4abcc 100644
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -3980,6 +3980,9 @@ static void __net_exit ip_vs_control_net_cleanup_sysctl(struct netns_ipvs *ipvs)
- 
- static struct notifier_block ip_vs_dst_notifier = {
- 	.notifier_call = ip_vs_dst_event,
-+#ifdef CONFIG_IP_VS_IPV6
-+	.priority = ADDRCONF_NOTIFY_PRIORITY + 5,
-+#endif
- };
- 
- int __net_init ip_vs_control_net_init(struct netns_ipvs *ipvs)
+diff --git a/net/ipv6/netfilter.c b/net/ipv6/netfilter.c
+index 5ae8e1c51079..8b075f0bc351 100644
+--- a/net/ipv6/netfilter.c
++++ b/net/ipv6/netfilter.c
+@@ -24,7 +24,8 @@ int ip6_route_me_harder(struct net *net, struct sk_buff *skb)
+ 	unsigned int hh_len;
+ 	struct dst_entry *dst;
+ 	struct flowi6 fl6 = {
+-		.flowi6_oif = sk ? sk->sk_bound_dev_if : 0,
++		.flowi6_oif = sk && sk->sk_bound_dev_if ? sk->sk_bound_dev_if :
++			rt6_need_strict(&iph->daddr) ? skb_dst(skb)->dev->ifindex : 0,
+ 		.flowi6_mark = skb->mark,
+ 		.flowi6_uid = sock_net_uid(net, sk),
+ 		.daddr = iph->daddr,
 -- 
 2.17.1
