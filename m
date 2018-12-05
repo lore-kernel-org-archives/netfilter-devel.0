@@ -1,82 +1,69 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.19 042/123] netfilter: xt_hashlimit: fix a possible memory leak in htable_create()
-Date: Wed,  5 Dec 2018 04:34:34 -0500
-Message-ID: <20181205093555.5386-42-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 067/123] ipvs: call ip_vs_dst_notifier earlier than ipv6_dev_notf
+Date: Wed,  5 Dec 2018 04:34:59 -0500
+Message-ID: <20181205093555.5386-67-sashal@kernel.org>
 References: <20181205093555.5386-1-sashal@kernel.org>
-Cc: Taehee Yoo <ap420073@gmail.com>,
+Cc: Xin Long <lucien.xin@gmail.com>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
-        Sasha Levin <sashal@kernel.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org
+        Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org,
+        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org
 To: stable@vger.kernel.org, linux-kernel@vger.kernel.org
-Return-path: <stable-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20181205093555.5386-1-sashal@kernel.org>
-Sender: stable-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Taehee Yoo <ap420073@gmail.com>
+From: Xin Long <lucien.xin@gmail.com>
 
-[ Upstream commit b4e955e9f372035361fbc6f07b21fe2cc6a5be4a ]
+[ Upstream commit 2a31e4bd9ad255ee40809b5c798c4b1c2b09703b ]
 
-In the htable_create(), hinfo is allocated by vmalloc()
-So that if error occurred, hinfo should be freed.
+ip_vs_dst_event is supposed to clean up all dst used in ipvs'
+destinations when a net dev is going down. But it works only
+when the dst's dev is the same as the dev from the event.
 
-Fixes: 11d5f15723c9 ("netfilter: xt_hashlimit: Create revision 2 to support higher pps rates")
-Signed-off-by: Taehee Yoo <ap420073@gmail.com>
+Now with the same priority but late registration,
+ip_vs_dst_notifier is always called later than ipv6_dev_notf
+where the dst's dev is set to lo for NETDEV_DOWN event.
+
+As the dst's dev lo is not the same as the dev from the event
+in ip_vs_dst_event, ip_vs_dst_notifier doesn't actually work.
+Also as these dst have to wait for dest_trash_timer to clean
+them up. It would cause some non-permanent kernel warnings:
+
+  unregister_netdevice: waiting for br0 to become free. Usage count = 3
+
+To fix it, call ip_vs_dst_notifier earlier than ipv6_dev_notf
+by increasing its priority to ADDRCONF_NOTIFY_PRIORITY + 5.
+
+Note that for ipv4 route fib_netdev_notifier doesn't set dst's
+dev to lo in NETDEV_DOWN event, so this fix is only needed when
+IP_VS_IPV6 is defined.
+
+Fixes: 7a4f0761fce3 ("IPVS: init and cleanup restructuring")
+Reported-by: Li Shuang <shuali@redhat.com>
+Signed-off-by: Xin Long <lucien.xin@gmail.com>
+Acked-by: Julian Anastasov <ja@ssi.bg>
+Acked-by: Simon Horman <horms@verge.net.au>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- net/netfilter/xt_hashlimit.c | 9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+ net/netfilter/ipvs/ip_vs_ctl.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
-index 3e7d259e5d8d..1ad4017f9b73 100644
---- a/net/netfilter/xt_hashlimit.c
-+++ b/net/netfilter/xt_hashlimit.c
-@@ -295,9 +295,10 @@ static int htable_create(struct net *net, struct hashlimit_cfg3 *cfg,
+diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+index 62eefea48973..518364f4abcc 100644
+--- a/net/netfilter/ipvs/ip_vs_ctl.c
++++ b/net/netfilter/ipvs/ip_vs_ctl.c
+@@ -3980,6 +3980,9 @@ static void __net_exit ip_vs_control_net_cleanup_sysctl(struct netns_ipvs *ipvs)
  
- 	/* copy match config into hashtable config */
- 	ret = cfg_copy(&hinfo->cfg, (void *)cfg, 3);
--
--	if (ret)
-+	if (ret) {
-+		vfree(hinfo);
- 		return ret;
-+	}
+ static struct notifier_block ip_vs_dst_notifier = {
+ 	.notifier_call = ip_vs_dst_event,
++#ifdef CONFIG_IP_VS_IPV6
++	.priority = ADDRCONF_NOTIFY_PRIORITY + 5,
++#endif
+ };
  
- 	hinfo->cfg.size = size;
- 	if (hinfo->cfg.max == 0)
-@@ -814,7 +815,6 @@ hashlimit_mt_v1(const struct sk_buff *skb, struct xt_action_param *par)
- 	int ret;
- 
- 	ret = cfg_copy(&cfg, (void *)&info->cfg, 1);
--
- 	if (ret)
- 		return ret;
- 
-@@ -830,7 +830,6 @@ hashlimit_mt_v2(const struct sk_buff *skb, struct xt_action_param *par)
- 	int ret;
- 
- 	ret = cfg_copy(&cfg, (void *)&info->cfg, 2);
--
- 	if (ret)
- 		return ret;
- 
-@@ -921,7 +920,6 @@ static int hashlimit_mt_check_v1(const struct xt_mtchk_param *par)
- 		return ret;
- 
- 	ret = cfg_copy(&cfg, (void *)&info->cfg, 1);
--
- 	if (ret)
- 		return ret;
- 
-@@ -940,7 +938,6 @@ static int hashlimit_mt_check_v2(const struct xt_mtchk_param *par)
- 		return ret;
- 
- 	ret = cfg_copy(&cfg, (void *)&info->cfg, 2);
--
- 	if (ret)
- 		return ret;
- 
+ int __net_init ip_vs_control_net_init(struct netns_ipvs *ipvs)
 -- 
 2.17.1
