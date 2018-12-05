@@ -1,7 +1,7 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.19 078/123] netfilter: nat: fix double register in masquerade modules
-Date: Wed,  5 Dec 2018 04:35:10 -0500
-Message-ID: <20181205093555.5386-78-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 019/123] netfilter: nf_conncount: fix unexpected permanent node of list.
+Date: Wed,  5 Dec 2018 04:34:11 -0500
+Message-ID: <20181205093555.5386-19-sashal@kernel.org>
 References: <20181205093555.5386-1-sashal@kernel.org>
 Cc: Taehee Yoo <ap420073@gmail.com>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
@@ -9,212 +9,89 @@ Cc: Taehee Yoo <ap420073@gmail.com>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org
 To: stable@vger.kernel.org, linux-kernel@vger.kernel.org
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20181205093555.5386-1-sashal@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
 From: Taehee Yoo <ap420073@gmail.com>
 
-[ Upstream commit 095faf45e64be00bff4da2d6182dface3d69c9b7 ]
+[ Upstream commit 3c5cdb17c3be76714dfd0d03e384f70579545614 ]
 
-There is a reference counter to ensure that masquerade modules register
-notifiers only once. However, the existing reference counter approach is
-not safe, test commands are:
+When list->count is 0, the list is deleted by GC. But list->count is
+never reached 0 because initial count value is 1 and it is increased
+when node is inserted. So that initial value of list->count should be 0.
 
-   while :
-   do
-   	   modprobe ip6t_MASQUERADE &
-	   modprobe nft_masq_ipv6 &
-	   modprobe -rv ip6t_MASQUERADE &
-	   modprobe -rv nft_masq_ipv6 &
-   done
+Originally GC always finds zero count list through deleting node and
+decreasing count. However, list may be left empty since node insertion
+may fail eg.  allocaton problem. In order to solve this problem, GC
+routine also finds zero count list without deleting node.
 
-numbers below represent the reference counter.
---------------------------------------------------------
-CPU0        CPU1        CPU2        CPU3        CPU4
-[insmod]    [insmod]    [rmmod]     [rmmod]     [insmod]
---------------------------------------------------------
-0->1
-register    1->2
-            returns     2->1
-			returns     1->0
-                                                0->1
-                                                register <--
-                                    unregister
---------------------------------------------------------
-
-The unregistation of CPU3 should be processed before the
-registration of CPU4.
-
-In order to fix this, use a mutex instead of reference counter.
-
-splat looks like:
-[  323.869557] watchdog: BUG: soft lockup - CPU#0 stuck for 22s! [modprobe:1381]
-[  323.869574] Modules linked in: nf_tables(+) nf_nat_ipv6(-) nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 n]
-[  323.869574] irq event stamp: 194074
-[  323.898930] hardirqs last  enabled at (194073): [<ffffffff90004a0d>] trace_hardirqs_on_thunk+0x1a/0x1c
-[  323.898930] hardirqs last disabled at (194074): [<ffffffff90004a29>] trace_hardirqs_off_thunk+0x1a/0x1c
-[  323.898930] softirqs last  enabled at (182132): [<ffffffff922006ec>] __do_softirq+0x6ec/0xa3b
-[  323.898930] softirqs last disabled at (182109): [<ffffffff90193426>] irq_exit+0x1a6/0x1e0
-[  323.898930] CPU: 0 PID: 1381 Comm: modprobe Not tainted 4.20.0-rc2+ #27
-[  323.898930] RIP: 0010:raw_notifier_chain_register+0xea/0x240
-[  323.898930] Code: 3c 03 0f 8e f2 00 00 00 44 3b 6b 10 7f 4d 49 bc 00 00 00 00 00 fc ff df eb 22 48 8d 7b 10 488
-[  323.898930] RSP: 0018:ffff888101597218 EFLAGS: 00000206 ORIG_RAX: ffffffffffffff13
-[  323.898930] RAX: 0000000000000000 RBX: ffffffffc04361c0 RCX: 0000000000000000
-[  323.898930] RDX: 1ffffffff26132ae RSI: ffffffffc04aa3c0 RDI: ffffffffc04361d0
-[  323.898930] RBP: ffffffffc04361c8 R08: 0000000000000000 R09: 0000000000000001
-[  323.898930] R10: ffff8881015972b0 R11: fffffbfff26132c4 R12: dffffc0000000000
-[  323.898930] R13: 0000000000000000 R14: 1ffff110202b2e44 R15: ffffffffc04aa3c0
-[  323.898930] FS:  00007f813ed41540(0000) GS:ffff88811ae00000(0000) knlGS:0000000000000000
-[  323.898930] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[  323.898930] CR2: 0000559bf2c9f120 CR3: 000000010bc80000 CR4: 00000000001006f0
-[  323.898930] Call Trace:
-[  323.898930]  ? atomic_notifier_chain_register+0x2d0/0x2d0
-[  323.898930]  ? down_read+0x150/0x150
-[  323.898930]  ? sched_clock_cpu+0x126/0x170
-[  323.898930]  ? nf_tables_core_module_init+0xe4/0xe4 [nf_tables]
-[  323.898930]  ? nf_tables_core_module_init+0xe4/0xe4 [nf_tables]
-[  323.898930]  register_netdevice_notifier+0xbb/0x790
-[  323.898930]  ? __dev_close_many+0x2d0/0x2d0
-[  323.898930]  ? __mutex_unlock_slowpath+0x17f/0x740
-[  323.898930]  ? wait_for_completion+0x710/0x710
-[  323.898930]  ? nf_tables_core_module_init+0xe4/0xe4 [nf_tables]
-[  323.898930]  ? up_write+0x6c/0x210
-[  323.898930]  ? nf_tables_core_module_init+0xe4/0xe4 [nf_tables]
-[  324.127073]  ? nf_tables_core_module_init+0xe4/0xe4 [nf_tables]
-[  324.127073]  nft_chain_filter_init+0x1e/0xe8a [nf_tables]
-[  324.127073]  nf_tables_module_init+0x37/0x92 [nf_tables]
-[ ... ]
-
-Fixes: 8dd33cc93ec9 ("netfilter: nf_nat: generalize IPv4 masquerading support for nf_tables")
-Fixes: be6b635cd674 ("netfilter: nf_nat: generalize IPv6 masquerading support for nf_tables")
+Fixes: cb2b36f5a97d ("netfilter: nf_conncount: Switch to plain list")
 Signed-off-by: Taehee Yoo <ap420073@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- net/ipv4/netfilter/nf_nat_masquerade_ipv4.c | 23 ++++++++++++++-------
- net/ipv6/netfilter/nf_nat_masquerade_ipv6.c | 23 ++++++++++++++-------
- 2 files changed, 32 insertions(+), 14 deletions(-)
+ net/netfilter/nf_conncount.c | 18 +++++++++++++++---
+ 1 file changed, 15 insertions(+), 3 deletions(-)
 
-diff --git a/net/ipv4/netfilter/nf_nat_masquerade_ipv4.c b/net/ipv4/netfilter/nf_nat_masquerade_ipv4.c
-index 4a7c1f207d6e..4c7fcd32f8e6 100644
---- a/net/ipv4/netfilter/nf_nat_masquerade_ipv4.c
-+++ b/net/ipv4/netfilter/nf_nat_masquerade_ipv4.c
-@@ -131,15 +131,17 @@ static struct notifier_block masq_inet_notifier = {
- 	.notifier_call	= masq_inet_event,
- };
+diff --git a/net/netfilter/nf_conncount.c b/net/netfilter/nf_conncount.c
+index cb33709138df..8acae4a3e4c0 100644
+--- a/net/netfilter/nf_conncount.c
++++ b/net/netfilter/nf_conncount.c
+@@ -144,8 +144,10 @@ static bool conn_free(struct nf_conncount_list *list,
+ 	list->count--;
+ 	conn->dead = true;
+ 	list_del_rcu(&conn->node);
+-	if (list->count == 0)
++	if (list->count == 0) {
++		list->dead = true;
+ 		free_entry = true;
++	}
  
--static atomic_t masquerade_notifier_refcount = ATOMIC_INIT(0);
-+static int masq_refcnt;
-+static DEFINE_MUTEX(masq_mutex);
- 
- int nf_nat_masquerade_ipv4_register_notifier(void)
+ 	spin_unlock_bh(&list->list_lock);
+ 	call_rcu(&conn->rcu_head, __conn_free);
+@@ -248,7 +250,7 @@ void nf_conncount_list_init(struct nf_conncount_list *list)
  {
--	int ret;
-+	int ret = 0;
+ 	spin_lock_init(&list->list_lock);
+ 	INIT_LIST_HEAD(&list->head);
+-	list->count = 1;
++	list->count = 0;
+ 	list->dead = false;
+ }
+ EXPORT_SYMBOL_GPL(nf_conncount_list_init);
+@@ -262,6 +264,7 @@ bool nf_conncount_gc_list(struct net *net,
+ 	struct nf_conn *found_ct;
+ 	unsigned int collected = 0;
+ 	bool free_entry = false;
++	bool ret = false;
  
-+	mutex_lock(&masq_mutex);
- 	/* check if the notifier was already set */
--	if (atomic_inc_return(&masquerade_notifier_refcount) > 1)
--		return 0;
-+	if (++masq_refcnt > 1)
-+		goto out_unlock;
- 
- 	/* Register for device down reports */
- 	ret = register_netdevice_notifier(&masq_dev_notifier);
-@@ -150,22 +152,29 @@ int nf_nat_masquerade_ipv4_register_notifier(void)
- 	if (ret)
- 		goto err_unregister;
- 
-+	mutex_unlock(&masq_mutex);
- 	return ret;
+ 	list_for_each_entry_safe(conn, conn_n, &list->head, node) {
+ 		found = find_or_evict(net, list, conn, &free_entry);
+@@ -291,7 +294,15 @@ bool nf_conncount_gc_list(struct net *net,
+ 		if (collected > CONNCOUNT_GC_MAX_NODES)
+ 			return false;
+ 	}
+-	return false;
 +
- err_unregister:
- 	unregister_netdevice_notifier(&masq_dev_notifier);
- err_dec:
--	atomic_dec(&masquerade_notifier_refcount);
-+	masq_refcnt--;
-+out_unlock:
-+	mutex_unlock(&masq_mutex);
- 	return ret;
- }
- EXPORT_SYMBOL_GPL(nf_nat_masquerade_ipv4_register_notifier);
- 
- void nf_nat_masquerade_ipv4_unregister_notifier(void)
- {
-+	mutex_lock(&masq_mutex);
- 	/* check if the notifier still has clients */
--	if (atomic_dec_return(&masquerade_notifier_refcount) > 0)
--		return;
-+	if (--masq_refcnt > 0)
-+		goto out_unlock;
- 
- 	unregister_netdevice_notifier(&masq_dev_notifier);
- 	unregister_inetaddr_notifier(&masq_inet_notifier);
-+out_unlock:
-+	mutex_unlock(&masq_mutex);
- }
- EXPORT_SYMBOL_GPL(nf_nat_masquerade_ipv4_unregister_notifier);
-diff --git a/net/ipv6/netfilter/nf_nat_masquerade_ipv6.c b/net/ipv6/netfilter/nf_nat_masquerade_ipv6.c
-index 10012fc687b6..37b1d413c825 100644
---- a/net/ipv6/netfilter/nf_nat_masquerade_ipv6.c
-+++ b/net/ipv6/netfilter/nf_nat_masquerade_ipv6.c
-@@ -162,15 +162,17 @@ static struct notifier_block masq_inet6_notifier = {
- 	.notifier_call	= masq_inet6_event,
- };
- 
--static atomic_t masquerade_notifier_refcount = ATOMIC_INIT(0);
-+static int masq_refcnt;
-+static DEFINE_MUTEX(masq_mutex);
- 
- int nf_nat_masquerade_ipv6_register_notifier(void)
- {
--	int ret;
-+	int ret = 0;
- 
-+	mutex_lock(&masq_mutex);
- 	/* check if the notifier is already set */
--	if (atomic_inc_return(&masquerade_notifier_refcount) > 1)
--		return 0;
-+	if (++masq_refcnt > 1)
-+		goto out_unlock;
- 
- 	ret = register_netdevice_notifier(&masq_dev_notifier);
- 	if (ret)
-@@ -180,22 +182,29 @@ int nf_nat_masquerade_ipv6_register_notifier(void)
- 	if (ret)
- 		goto err_unregister;
- 
-+	mutex_unlock(&masq_mutex);
- 	return ret;
++	spin_lock_bh(&list->list_lock);
++	if (!list->count) {
++		list->dead = true;
++		ret = true;
++	}
++	spin_unlock_bh(&list->list_lock);
 +
- err_unregister:
- 	unregister_netdevice_notifier(&masq_dev_notifier);
- err_dec:
--	atomic_dec(&masquerade_notifier_refcount);
-+	masq_refcnt--;
-+out_unlock:
-+	mutex_unlock(&masq_mutex);
- 	return ret;
++	return ret;
  }
- EXPORT_SYMBOL_GPL(nf_nat_masquerade_ipv6_register_notifier);
+ EXPORT_SYMBOL_GPL(nf_conncount_gc_list);
  
- void nf_nat_masquerade_ipv6_unregister_notifier(void)
- {
-+	mutex_lock(&masq_mutex);
- 	/* check if the notifier still has clients */
--	if (atomic_dec_return(&masquerade_notifier_refcount) > 0)
--		return;
-+	if (--masq_refcnt > 0)
-+		goto out_unlock;
+@@ -417,6 +428,7 @@ insert_tree(struct net *net,
+ 	nf_conncount_list_init(&rbconn->list);
+ 	list_add(&conn->node, &rbconn->list.head);
+ 	count = 1;
++	rbconn->list.count = count;
  
- 	unregister_inet6addr_notifier(&masq_inet6_notifier);
- 	unregister_netdevice_notifier(&masq_dev_notifier);
-+out_unlock:
-+	mutex_unlock(&masq_mutex);
- }
- EXPORT_SYMBOL_GPL(nf_nat_masquerade_ipv6_unregister_notifier);
+ 	rb_link_node(&rbconn->node, parent, rbnode);
+ 	rb_insert_color(&rbconn->node, root);
 -- 
 2.17.1
