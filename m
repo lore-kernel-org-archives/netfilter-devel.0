@@ -1,89 +1,82 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.19 024/123] netfilter: nf_tables: fix use-after-free when deleting compat expressions
-Date: Wed,  5 Dec 2018 04:34:16 -0500
-Message-ID: <20181205093555.5386-24-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 042/123] netfilter: xt_hashlimit: fix a possible memory leak in htable_create()
+Date: Wed,  5 Dec 2018 04:34:34 -0500
+Message-ID: <20181205093555.5386-42-sashal@kernel.org>
 References: <20181205093555.5386-1-sashal@kernel.org>
-Cc: Florian Westphal <fw@strlen.de>,
+Cc: Taehee Yoo <ap420073@gmail.com>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
         Sasha Levin <sashal@kernel.org>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org
 To: stable@vger.kernel.org, linux-kernel@vger.kernel.org
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <stable-owner@vger.kernel.org>
 In-Reply-To: <20181205093555.5386-1-sashal@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: stable-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+From: Taehee Yoo <ap420073@gmail.com>
 
-[ Upstream commit 29e3880109e357fdc607b4393f8308cef6af9413 ]
+[ Upstream commit b4e955e9f372035361fbc6f07b21fe2cc6a5be4a ]
 
-nft_compat ops do not have static storage duration, unlike all other
-expressions.
+In the htable_create(), hinfo is allocated by vmalloc()
+So that if error occurred, hinfo should be freed.
 
-When nf_tables_expr_destroy() returns, expr->ops might have been
-free'd already, so we need to store next address before calling
-expression destructor.
-
-For same reason, we can't deref match pointer after nft_xt_put().
-
-This can be easily reproduced by adding msleep() before
-nft_match_destroy() returns.
-
-Fixes: 0ca743a55991 ("netfilter: nf_tables: add compatibility layer for x_tables")
-Reported-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Fixes: 11d5f15723c9 ("netfilter: xt_hashlimit: Create revision 2 to support higher pps rates")
+Signed-off-by: Taehee Yoo <ap420073@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- net/netfilter/nf_tables_api.c | 5 +++--
- net/netfilter/nft_compat.c    | 3 ++-
- 2 files changed, 5 insertions(+), 3 deletions(-)
+ net/netfilter/xt_hashlimit.c | 9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 4c016b49fe2b..06ed55cef962 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -2432,7 +2432,7 @@ static int nf_tables_getrule(struct net *net, struct sock *nlsk,
- static void nf_tables_rule_destroy(const struct nft_ctx *ctx,
- 				   struct nft_rule *rule)
- {
--	struct nft_expr *expr;
-+	struct nft_expr *expr, *next;
+diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
+index 3e7d259e5d8d..1ad4017f9b73 100644
+--- a/net/netfilter/xt_hashlimit.c
++++ b/net/netfilter/xt_hashlimit.c
+@@ -295,9 +295,10 @@ static int htable_create(struct net *net, struct hashlimit_cfg3 *cfg,
  
- 	lockdep_assert_held(&ctx->net->nft.commit_mutex);
- 	/*
-@@ -2441,8 +2441,9 @@ static void nf_tables_rule_destroy(const struct nft_ctx *ctx,
- 	 */
- 	expr = nft_expr_first(rule);
- 	while (expr != nft_expr_last(rule) && expr->ops) {
-+		next = nft_expr_next(expr);
- 		nf_tables_expr_destroy(ctx, expr);
--		expr = nft_expr_next(expr);
-+		expr = next;
- 	}
- 	kfree(rule);
- }
-diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
-index ad2fe6a7e47d..29d6fc73caf9 100644
---- a/net/netfilter/nft_compat.c
-+++ b/net/netfilter/nft_compat.c
-@@ -501,6 +501,7 @@ __nft_match_destroy(const struct nft_ctx *ctx, const struct nft_expr *expr,
- 		    void *info)
- {
- 	struct xt_match *match = expr->ops->data;
-+	struct module *me = match->me;
- 	struct xt_mtdtor_param par;
+ 	/* copy match config into hashtable config */
+ 	ret = cfg_copy(&hinfo->cfg, (void *)cfg, 3);
+-
+-	if (ret)
++	if (ret) {
++		vfree(hinfo);
+ 		return ret;
++	}
  
- 	par.net = ctx->net;
-@@ -511,7 +512,7 @@ __nft_match_destroy(const struct nft_ctx *ctx, const struct nft_expr *expr,
- 		par.match->destroy(&par);
+ 	hinfo->cfg.size = size;
+ 	if (hinfo->cfg.max == 0)
+@@ -814,7 +815,6 @@ hashlimit_mt_v1(const struct sk_buff *skb, struct xt_action_param *par)
+ 	int ret;
  
- 	if (nft_xt_put(container_of(expr->ops, struct nft_xt, ops)))
--		module_put(match->me);
-+		module_put(me);
- }
+ 	ret = cfg_copy(&cfg, (void *)&info->cfg, 1);
+-
+ 	if (ret)
+ 		return ret;
  
- static void
+@@ -830,7 +830,6 @@ hashlimit_mt_v2(const struct sk_buff *skb, struct xt_action_param *par)
+ 	int ret;
+ 
+ 	ret = cfg_copy(&cfg, (void *)&info->cfg, 2);
+-
+ 	if (ret)
+ 		return ret;
+ 
+@@ -921,7 +920,6 @@ static int hashlimit_mt_check_v1(const struct xt_mtchk_param *par)
+ 		return ret;
+ 
+ 	ret = cfg_copy(&cfg, (void *)&info->cfg, 1);
+-
+ 	if (ret)
+ 		return ret;
+ 
+@@ -940,7 +938,6 @@ static int hashlimit_mt_check_v2(const struct xt_mtchk_param *par)
+ 		return ret;
+ 
+ 	ret = cfg_copy(&cfg, (void *)&info->cfg, 2);
+-
+ 	if (ret)
+ 		return ret;
+ 
 -- 
 2.17.1
