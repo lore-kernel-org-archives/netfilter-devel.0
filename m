@@ -1,37 +1,92 @@
-From: Yafang Shao <laoar.shao@gmail.com>
-Subject: [PATCH 5/5] netfilter: fix error return value of nf_ct_l4proto_pernet_register_one()
-Date: Wed,  5 Dec 2018 20:56:30 +0800
-Message-ID: <1544014590-14429-5-git-send-email-laoar.shao@gmail.com>
-References: <1544014590-14429-1-git-send-email-laoar.shao@gmail.com>
-Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-        linux-kernel@vger.kernel.org, Yafang Shao <laoar.shao@gmail.com>
-To: pablo@netfilter.org, kadlec@blackhole.kfki.hu, fw@strlen.de,
-        davem@davemloft.net, adobriyan@gmail.com, akpm@linux-foundation.org
+From: =?UTF-8?q?Linus=20L=C3=BCssing?= <linus.luessing@c0d3.blue>
+Subject: [PATCH net-next v2] netfilter: ebtables: avoid resetting limit rule state
+Date: Sun,  9 Dec 2018 07:14:05 +0100
+Message-ID: <20181209061405.15112-1-linus.luessing@c0d3.blue>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>,
+        Roopa Prabhu <roopa@cumulusnetworks.com>,
+        Nikolay Aleksandrov <nikolay@cumulusnetworks.com>,
+        "David S . Miller" <davem@davemloft.net>, coreteam@netfilter.org,
+        bridge@lists.linux-foundation.org, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org,
+        =?UTF-8?q?Linus=20L=C3=BCssing?= <linus.luessing@c0d3.blue>
+To: netfilter-devel@vger.kernel.org
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1544014590-14429-1-git-send-email-laoar.shao@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-If pn is NULL, it will return 0.
-That's not proper. We should return an error.
+So far any changes with ebtables will reset the state of limit rules,
+leading to spikes in traffic. This is especially noticeable if changes
+are done frequently, for instance via a daemon.
 
-Signed-off-by: Yafang Shao <laoar.shao@gmail.com>
+This patch fixes this by bailing out from (re)setting if the limit
+rule was initialized before.
+
+When sending packets every 250ms for 600s, with a
+"--limit 1/sec --limit-burst 50" rule and a command like this
+in the background:
+
+$ ebtables -N VOIDCHAIN
+$ while true; do ebtables -F VOIDCHAIN; sleep 30; done
+
+The results are:
+
+Before: ~1600 packets
+After: 650 packets
+
+This also aligns the behavior to "xtables-nft-multi ebtables" which uses
+nft_limit instead of ebt_limit. In tests nft_limit did not suffer from
+this issue and rate limited to 650 just fine.
+
+Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
+Signed-off-by: Linus Lüssing <linus.luessing@c0d3.blue>
+
 ---
- net/netfilter/nf_conntrack_proto.c | 1 +
- 1 file changed, 1 insertion(+)
 
-diff --git a/net/netfilter/nf_conntrack_proto.c b/net/netfilter/nf_conntrack_proto.c
-index 316fef3..3caf137 100644
---- a/net/netfilter/nf_conntrack_proto.c
-+++ b/net/netfilter/nf_conntrack_proto.c
-@@ -252,6 +252,7 @@ int nf_ct_l4proto_pernet_register_one(struct net *net,
- 			goto out;
- 	}
+Changelog v2:
+
+- Adjusted commit message (adjusted title, added test results with
+  nft_limit for comparison)
+- Excluded rate limiting variables from zeroing when passed to userspace
+  by increasing .usersize. This became necessary with 4.11 /
+  commit ec2318904965 ("xtables: extend matches and targets with .usersize")
+- Retested with 4.20-rc4 and current net-next/master (83af01ba1c2d)
+
+v1 was:
+
+"[net-next] bridge: ebtables: Avoid resetting limit rule state"
+-> https://lore.kernel.org/patchwork/patch/854802/
+---
+ net/bridge/netfilter/ebt_limit.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/net/bridge/netfilter/ebt_limit.c b/net/bridge/netfilter/ebt_limit.c
+index 165b9d678cf1..2cf9861c3bce 100644
+--- a/net/bridge/netfilter/ebt_limit.c
++++ b/net/bridge/netfilter/ebt_limit.c
+@@ -69,6 +69,10 @@ static int ebt_limit_mt_check(const struct xt_mtchk_param *par)
+ {
+ 	struct ebt_limit_info *info = par->matchinfo;
  
-+	ret = -EINVAL;
- 	pn = nf_ct_l4proto_net(net, l4proto);
- 	if (pn == NULL)
- 		goto out;
++	/* Do not reset state on unrelated table changes */
++	if (info->prev)
++		return 0;
++
+ 	/* Check for overflow. */
+ 	if (info->burst == 0 ||
+ 	    user2credits(info->avg * info->burst) < user2credits(info->avg)) {
+@@ -105,7 +109,7 @@ static struct xt_match ebt_limit_mt_reg __read_mostly = {
+ 	.match		= ebt_limit_mt,
+ 	.checkentry	= ebt_limit_mt_check,
+ 	.matchsize	= sizeof(struct ebt_limit_info),
+-	.usersize	= offsetof(struct ebt_limit_info, prev),
++	.usersize	= sizeof(struct ebt_limit_info),
+ #ifdef CONFIG_COMPAT
+ 	.compatsize	= sizeof(struct ebt_compat_limit_info),
+ #endif
 -- 
-1.8.3.1
+2.11.0
