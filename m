@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 2/5] netfilter: seqadj: re-load tcp header pointer after possible head reallocation
-Date: Thu, 13 Dec 2018 02:06:28 +0100
-Message-ID: <20181213010631.9753-3-pablo@netfilter.org>
+Subject: [PATCH 5/5] netfilter: nf_conncount: use rb_link_node_rcu() instead of rb_link_node()
+Date: Thu, 13 Dec 2018 02:06:31 +0100
+Message-ID: <20181213010631.9753-6-pablo@netfilter.org>
 References: <20181213010631.9753-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,61 +10,31 @@ In-Reply-To: <20181213010631.9753-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+From: Taehee Yoo <ap420073@gmail.com>
 
-When adjusting sack block sequence numbers, skb_make_writable() gets
-called to make sure tcp options are all in the linear area, and buffer
-is not shared.
+rbnode in insert_tree() is rcu protected pointer.
+So, in order to handle this pointer, _rcu function should be used.
+rb_link_node_rcu() is a rcu version of rb_link_node().
 
-This can cause tcp header pointer to get reallocated, so we must
-reaload it to avoid memory corruption.
-
-This bug pre-dates git history.
-
-Reported-by: Neel Mehta <nmehta@google.com>
-Reported-by: Shane Huntley <shuntley@google.com>
-Reported-by: Heather Adkins <argv@google.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Fixes: 34848d5c896e ("netfilter: nf_conncount: Split insert and traversal")
+Signed-off-by: Taehee Yoo <ap420073@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_conntrack_seqadj.c | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ net/netfilter/nf_conncount.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nf_conntrack_seqadj.c b/net/netfilter/nf_conntrack_seqadj.c
-index a975efd6b8c3..9da303461069 100644
---- a/net/netfilter/nf_conntrack_seqadj.c
-+++ b/net/netfilter/nf_conntrack_seqadj.c
-@@ -115,12 +115,12 @@ static void nf_ct_sack_block_adjust(struct sk_buff *skb,
- /* TCP SACK sequence number adjustment */
- static unsigned int nf_ct_sack_adjust(struct sk_buff *skb,
- 				      unsigned int protoff,
--				      struct tcphdr *tcph,
- 				      struct nf_conn *ct,
- 				      enum ip_conntrack_info ctinfo)
- {
--	unsigned int dir, optoff, optend;
-+	struct tcphdr *tcph = (void *)skb->data + protoff;
- 	struct nf_conn_seqadj *seqadj = nfct_seqadj(ct);
-+	unsigned int dir, optoff, optend;
+diff --git a/net/netfilter/nf_conncount.c b/net/netfilter/nf_conncount.c
+index b6d0f6deea86..9cd180bda092 100644
+--- a/net/netfilter/nf_conncount.c
++++ b/net/netfilter/nf_conncount.c
+@@ -427,7 +427,7 @@ insert_tree(struct net *net,
+ 	count = 1;
+ 	rbconn->list.count = count;
  
- 	optoff = protoff + sizeof(struct tcphdr);
- 	optend = protoff + tcph->doff * 4;
-@@ -128,6 +128,7 @@ static unsigned int nf_ct_sack_adjust(struct sk_buff *skb,
- 	if (!skb_make_writable(skb, optend))
- 		return 0;
- 
-+	tcph = (void *)skb->data + protoff;
- 	dir = CTINFO2DIR(ctinfo);
- 
- 	while (optoff < optend) {
-@@ -207,7 +208,7 @@ int nf_ct_seq_adjust(struct sk_buff *skb,
- 		 ntohl(newack));
- 	tcph->ack_seq = newack;
- 
--	res = nf_ct_sack_adjust(skb, protoff, tcph, ct, ctinfo);
-+	res = nf_ct_sack_adjust(skb, protoff, ct, ctinfo);
- out:
- 	spin_unlock_bh(&ct->lock);
- 
+-	rb_link_node(&rbconn->node, parent, rbnode);
++	rb_link_node_rcu(&rbconn->node, parent, rbnode);
+ 	rb_insert_color(&rbconn->node, root);
+ out_unlock:
+ 	spin_unlock_bh(&nf_conncount_locks[hash % CONNCOUNT_LOCK_SLOTS]);
 -- 
 2.11.0
