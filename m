@@ -1,69 +1,168 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 0/5] Netfilter fixes for net
-Date: Thu, 13 Dec 2018 02:06:26 +0100
-Message-ID: <20181213010631.9753-1-pablo@netfilter.org>
+Subject: [PATCH 1/5] netfilter: nf_tables: fix suspicious RCU usage in nft_chain_stats_replace()
+Date: Thu, 13 Dec 2018 02:06:27 +0100
+Message-ID: <20181213010631.9753-2-pablo@netfilter.org>
+References: <20181213010631.9753-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20181213010631.9753-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi David,
+From: Taehee Yoo <ap420073@gmail.com>
 
-The following patchset contains Netfilter fixes for net:
+basechain->stats is rcu protected data which is updated from
+nft_chain_stats_replace(). This function is executed from the commit
+phase which holds the pernet nf_tables commit mutex - not the global
+nfnetlink subsystem mutex.
 
-1) Fix warnings suspicious rcu usage when handling base chain
-   statistics, from Taehee Yoo.
+Test commands to reproduce the problem are:
+   %iptables-nft -I INPUT
+   %iptables-nft -Z
+   %iptables-nft -Z
 
-2) Refetch pointer to tcp header from nf_ct_sack_adjust() since
-   skb_make_writable() may reallocate data area, reported by Google
-   folks patch from Florian.
+This patch uses RCU calls to handle basechain->stats updates to fix a
+splat that looks like:
 
-3) Incorrect netlink nest end after previous cancellation from error
-   path in ipset, from Pan Bian.
+[89279.358755] =============================
+[89279.363656] WARNING: suspicious RCU usage
+[89279.368458] 4.20.0-rc2+ #44 Tainted: G        W    L
+[89279.374661] -----------------------------
+[89279.379542] net/netfilter/nf_tables_api.c:1404 suspicious rcu_dereference_protected() usage!
+[...]
+[89279.406556] 1 lock held by iptables-nft/5225:
+[89279.411728]  #0: 00000000bf45a000 (&net->nft.commit_mutex){+.+.}, at: nf_tables_valid_genid+0x1f/0x70 [nf_tables]
+[89279.424022] stack backtrace:
+[89279.429236] CPU: 0 PID: 5225 Comm: iptables-nft Tainted: G        W    L    4.20.0-rc2+ #44
+[89279.430135] Call Trace:
+[89279.430135]  dump_stack+0xc9/0x16b
+[89279.430135]  ? show_regs_print_info+0x5/0x5
+[89279.430135]  ? lockdep_rcu_suspicious+0x117/0x160
+[89279.430135]  nft_chain_commit_update+0x4ea/0x640 [nf_tables]
+[89279.430135]  ? sched_clock_local+0xd4/0x140
+[89279.430135]  ? check_flags.part.35+0x440/0x440
+[89279.430135]  ? __rhashtable_remove_fast.constprop.67+0xec0/0xec0 [nf_tables]
+[89279.430135]  ? sched_clock_cpu+0x126/0x170
+[89279.430135]  ? find_held_lock+0x39/0x1c0
+[89279.430135]  ? hlock_class+0x140/0x140
+[89279.430135]  ? is_bpf_text_address+0x5/0xf0
+[89279.430135]  ? check_flags.part.35+0x440/0x440
+[89279.430135]  ? __lock_is_held+0xb4/0x140
+[89279.430135]  nf_tables_commit+0x2555/0x39c0 [nf_tables]
 
-4) Use dst_hold_safe() from nf_xfrm_me_harder(), from Florian.
+Fixes: f102d66b335a4 ("netfilter: nf_tables: use dedicated mutex to guard transactions")
+Signed-off-by: Taehee Yoo <ap420073@gmail.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/linux/netfilter/nfnetlink.h | 12 ------------
+ net/netfilter/nf_tables_api.c       | 21 +++++++++++++--------
+ net/netfilter/nf_tables_core.c      |  2 +-
+ 3 files changed, 14 insertions(+), 21 deletions(-)
 
-5) Use rb_link_node_rcu() for rcu-protected rbtree node in
-   nf_conncount, from Taehee Yoo.
-
-You can pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
-
-Thanks!
-
-----------------------------------------------------------------
-
-The following changes since commit 986103e7920cabc0b910749e77ae5589d3934d52:
-
-  net/ibmvnic: Fix RTNL deadlock during device reset (2018-12-03 15:53:55 -0800)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git HEAD
-
-for you to fetch changes up to d4e7df16567b80836a78d31b42f1a9355a636d67:
-
-  netfilter: nf_conncount: use rb_link_node_rcu() instead of rb_link_node() (2018-12-13 01:14:58 +0100)
-
-----------------------------------------------------------------
-Florian Westphal (2):
-      netfilter: seqadj: re-load tcp header pointer after possible head reallocation
-      netfilter: nat: can't use dst_hold on noref dst
-
-Pan Bian (1):
-      netfilter: ipset: do not call ipset_nest_end after nla_nest_cancel
-
-Taehee Yoo (2):
-      netfilter: nf_tables: fix suspicious RCU usage in nft_chain_stats_replace()
-      netfilter: nf_conncount: use rb_link_node_rcu() instead of rb_link_node()
-
- include/linux/netfilter/nfnetlink.h   | 12 ------------
- net/netfilter/ipset/ip_set_list_set.c |  2 +-
- net/netfilter/nf_conncount.c          |  2 +-
- net/netfilter/nf_conntrack_seqadj.c   |  7 ++++---
- net/netfilter/nf_nat_core.c           |  3 ++-
- net/netfilter/nf_tables_api.c         | 21 +++++++++++++--------
- net/netfilter/nf_tables_core.c        |  2 +-
- 7 files changed, 22 insertions(+), 27 deletions(-)
+diff --git a/include/linux/netfilter/nfnetlink.h b/include/linux/netfilter/nfnetlink.h
+index 4a520d3304a2..cf09ab37b45b 100644
+--- a/include/linux/netfilter/nfnetlink.h
++++ b/include/linux/netfilter/nfnetlink.h
+@@ -62,18 +62,6 @@ static inline bool lockdep_nfnl_is_held(__u8 subsys_id)
+ }
+ #endif /* CONFIG_PROVE_LOCKING */
+ 
+-/*
+- * nfnl_dereference - fetch RCU pointer when updates are prevented by subsys mutex
+- *
+- * @p: The pointer to read, prior to dereferencing
+- * @ss: The nfnetlink subsystem ID
+- *
+- * Return the value of the specified RCU-protected pointer, but omit
+- * the READ_ONCE(), because caller holds the NFNL subsystem mutex.
+- */
+-#define nfnl_dereference(p, ss)					\
+-	rcu_dereference_protected(p, lockdep_nfnl_is_held(ss))
+-
+ #define MODULE_ALIAS_NFNL_SUBSYS(subsys) \
+ 	MODULE_ALIAS("nfnetlink-subsys-" __stringify(subsys))
+ 
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 2e61aab6ed73..6e548d7c9f67 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -1216,7 +1216,8 @@ static int nf_tables_fill_chain_info(struct sk_buff *skb, struct net *net,
+ 		if (nla_put_string(skb, NFTA_CHAIN_TYPE, basechain->type->name))
+ 			goto nla_put_failure;
+ 
+-		if (basechain->stats && nft_dump_stats(skb, basechain->stats))
++		if (rcu_access_pointer(basechain->stats) &&
++		    nft_dump_stats(skb, rcu_dereference(basechain->stats)))
+ 			goto nla_put_failure;
+ 	}
+ 
+@@ -1392,7 +1393,8 @@ static struct nft_stats __percpu *nft_stats_alloc(const struct nlattr *attr)
+ 	return newstats;
+ }
+ 
+-static void nft_chain_stats_replace(struct nft_base_chain *chain,
++static void nft_chain_stats_replace(struct net *net,
++				    struct nft_base_chain *chain,
+ 				    struct nft_stats __percpu *newstats)
+ {
+ 	struct nft_stats __percpu *oldstats;
+@@ -1400,8 +1402,9 @@ static void nft_chain_stats_replace(struct nft_base_chain *chain,
+ 	if (newstats == NULL)
+ 		return;
+ 
+-	if (chain->stats) {
+-		oldstats = nfnl_dereference(chain->stats, NFNL_SUBSYS_NFTABLES);
++	if (rcu_access_pointer(chain->stats)) {
++		oldstats = rcu_dereference_protected(chain->stats,
++					lockdep_commit_lock_is_held(net));
+ 		rcu_assign_pointer(chain->stats, newstats);
+ 		synchronize_rcu();
+ 		free_percpu(oldstats);
+@@ -1439,9 +1442,10 @@ static void nf_tables_chain_destroy(struct nft_ctx *ctx)
+ 		struct nft_base_chain *basechain = nft_base_chain(chain);
+ 
+ 		module_put(basechain->type->owner);
+-		free_percpu(basechain->stats);
+-		if (basechain->stats)
++		if (rcu_access_pointer(basechain->stats)) {
+ 			static_branch_dec(&nft_counters_enabled);
++			free_percpu(rcu_dereference_raw(basechain->stats));
++		}
+ 		kfree(chain->name);
+ 		kfree(basechain);
+ 	} else {
+@@ -1590,7 +1594,7 @@ static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 genmask,
+ 				kfree(basechain);
+ 				return PTR_ERR(stats);
+ 			}
+-			basechain->stats = stats;
++			rcu_assign_pointer(basechain->stats, stats);
+ 			static_branch_inc(&nft_counters_enabled);
+ 		}
+ 
+@@ -6180,7 +6184,8 @@ static void nft_chain_commit_update(struct nft_trans *trans)
+ 		return;
+ 
+ 	basechain = nft_base_chain(trans->ctx.chain);
+-	nft_chain_stats_replace(basechain, nft_trans_chain_stats(trans));
++	nft_chain_stats_replace(trans->ctx.net, basechain,
++				nft_trans_chain_stats(trans));
+ 
+ 	switch (nft_trans_chain_policy(trans)) {
+ 	case NF_DROP:
+diff --git a/net/netfilter/nf_tables_core.c b/net/netfilter/nf_tables_core.c
+index 3fbce3b9c5ec..a50500232b0a 100644
+--- a/net/netfilter/nf_tables_core.c
++++ b/net/netfilter/nf_tables_core.c
+@@ -101,7 +101,7 @@ static noinline void nft_update_chain_stats(const struct nft_chain *chain,
+ 	struct nft_stats *stats;
+ 
+ 	base_chain = nft_base_chain(chain);
+-	if (!base_chain->stats)
++	if (!rcu_access_pointer(base_chain->stats))
+ 		return;
+ 
+ 	local_bh_disable();
+-- 
+2.11.0
