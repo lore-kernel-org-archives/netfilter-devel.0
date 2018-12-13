@@ -1,55 +1,119 @@
-From: Yafang Shao <laoar.shao@gmail.com>
-Subject: Re: [PATCH 4/5] netfilter: fix missed NULL check in nf_conntrack_proto_pernet_init()
-Date: Thu, 13 Dec 2018 17:50:23 +0800
-Message-ID: <CALOAHbDfYD-nEWrW5pryibafg7tEYDsyu-6-Ey2Sdwa9O64Xnw@mail.gmail.com>
-References: <1544014590-14429-1-git-send-email-laoar.shao@gmail.com>
- <1544014590-14429-4-git-send-email-laoar.shao@gmail.com> <20181212232648.qsvyuc3g2jj5v2ej@salvia>
+From: Christian Brauner <christian@brauner.io>
+Subject: Re: [PATCH net-next 1/2] br_netfilter: add struct netns_brnf
+Date: Thu, 13 Dec 2018 12:43:39 +0100
+Message-ID: <20181213114338.j3thzzu7cvrpz72e@brauner.io>
+References: <20181107134859.19896-1-christian@brauner.io>
+ <20181107134859.19896-2-christian@brauner.io>
+ <20181127002047.7jzpfy32oupsthtj@salvia>
+ <20181127022043.mzpqxlknqxcl6fmg@brauner.io>
+ <20181127082349.ummq2perajt6olhh@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Cc: kadlec@blackhole.kfki.hu, fw@strlen.de,
-        David Miller <davem@davemloft.net>,
-        Alexey Dobriyan <adobriyan@gmail.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev <netdev@vger.kernel.org>, linux-fsdevel@vger.kernel.org,
-        LKML <linux-kernel@vger.kernel.org>
-To: pablo@netfilter.org
+Content-Type: text/plain; charset=utf-8
+Cc: davem@davemloft.net, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, bridge@lists.linux-foundation.org,
+        tyhicks@canonical.com, kadlec@blackhole.kfki.hu, fw@strlen.de,
+        roopa@cumulusnetworks.com, nikolay@cumulusnetworks.com
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181212232648.qsvyuc3g2jj5v2ej@salvia>
+Content-Disposition: inline
+In-Reply-To: <20181127082349.ummq2perajt6olhh@salvia>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, Dec 13, 2018 at 7:26 AM Pablo Neira Ayuso <pablo@netfilter.org> wrote:
->
-> On Wed, Dec 05, 2018 at 08:56:29PM +0800, Yafang Shao wrote:
-> > nf_ct_l4proto_net() may return NULL.
-> > That may happens if some module forget to set both l4proto->get_net_proto
-> > and l4proto->net_id.
-> > We'd check the return value here, in case crash happens.
-> >
-> > Signed-off-by: Yafang Shao <laoar.shao@gmail.com>
-> > ---
-> >  net/netfilter/nf_conntrack_proto.c | 3 +++
-> >  1 file changed, 3 insertions(+)
-> >
-> > diff --git a/net/netfilter/nf_conntrack_proto.c b/net/netfilter/nf_conntrack_proto.c
-> > index 154e8c0..316fef3 100644
-> > --- a/net/netfilter/nf_conntrack_proto.c
-> > +++ b/net/netfilter/nf_conntrack_proto.c
-> > @@ -946,6 +946,9 @@ int nf_conntrack_proto_pernet_init(struct net *net)
-> >       struct nf_proto_net *pn = nf_ct_l4proto_net(net,
-> >                                       &nf_conntrack_l4proto_generic);
->
-> There is another spot missing in this file that is missing the check
-> for NULL.
->
-> We can probably simplify all this is we place the gre conntracker in
-> the conntrack core, as it's been suggested already. It's the only one
-> remaining as a module and it now supports for IPv6, so it's probably
-> better follow that path.
+On Tue, Nov 27, 2018 at 09:23:49AM +0100, Pablo Neira Ayuso wrote:
+> On Tue, Nov 27, 2018 at 03:20:45AM +0100, Christian Brauner wrote:
+> > On Tue, Nov 27, 2018 at 01:20:47AM +0100, Pablo Neira Ayuso wrote:
+> > > Hi,
+> > > 
+> > > On Wed, Nov 07, 2018 at 02:48:58PM +0100, Christian Brauner wrote:
+> > > [...]
+> > > > diff --git a/include/net/netns/netfilter.h b/include/net/netns/netfilter.h
+> > > > index ca043342c0eb..eedbd1ac940e 100644
+> > > > --- a/include/net/netns/netfilter.h
+> > > > +++ b/include/net/netns/netfilter.h
+> > > > @@ -35,4 +35,20 @@ struct netns_nf {
+> > > >  	bool			defrag_ipv6;
+> > > >  #endif
+> > > >  };
+> > > > +
+> > > > +struct netns_brnf {
+> > > > +#ifdef CONFIG_SYSCTL
+> > > > +	struct ctl_table_header *ctl_hdr;
+> > > > +#endif
+> > > > +
+> > > > +	/* default value is 1 */
+> > > > +	int call_iptables;
+> > > > +	int call_ip6tables;
+> > > > +	int call_arptables;
+> > > > +
+> > > > +	/* default value is 0 */
+> > > > +	int filter_vlan_tagged;
+> > > > +	int filter_pppoe_tagged;
+> > > > +	int pass_vlan_indev;
+> > > > +};
+> > > 
+> > > I have spun on this several times, wondering if there's a way to avoid
+> > > scratching these many bytes per netns to expose these sysctl entries
+> > > that are plain on/off toggles... You said this:
+> > > 
+> > > >Currently, the /proc/sys/net/bridge folder is only created in the
+> > > >initial network namespace
+> > > 
+> > > I think we can add one single sysctl to expose these as flags from net
+> > > namespaces. Idea is to keep the existing (legacy) sysctl entries for
+> > > init_net only, and add a new single new one that exposes these as flags
+> > > (should be also available for consistency in init_net I'd suggest).
+> > > Flags could be map in this way, eg.
+> > > 
+> > >         0x1     call_iptables
+> > >         0x2     call_ip6tables
+> > >         0x4     call_arptables
+> > >         0x8     filter_vlan_tagged
+> > >         ...
+> > > 
+> > > Also documentation would be good to have for this.
+> > > 
+> > > Would this idea fly for you? Thanks.
+> > 
+> > My suggestion is to keep these files per network namespace but have a
+> > single flag argument in struct netns_brnf:
+> > +struct netns_brnf {
+> > +#ifdef CONFIG_SYSCTL
+> > +        struct ctl_table_header *ctl_hdr;
+> > +#endif
+> > +
+> > +       /* default value is 1 */
+> > +       unsigned int filter_flags;
+> > +};
+> > 
+> > #define BRNF_CALL_IPTABLES    0x1
+> > #define BRNF_CALL_IP6TABLES   0x2
+> > #define BRNF_CALL_ARPTABLES   0x4
+> > #define BRNF_CALL_VLAN_TAGGED 0x8
+> > 
+> > a write to the corresponding file would then cause the flag to be set or
+> > unset in filter_flags.
+> > This way we are a) space-efficient internally not bloating struct net
+> > while b) not breaking running tools in non-initial network namespaces
+> > that expect the files to be there. b) is really the important bit here. :)
+> 
+> OK, please, go explore this space-efficient approach. Thanks.
 
-Got it.
-Thanks for your explanation.
+Sorry for the wait. Other patches came up. :)
+So, I looked into this approach and it is annoying to do:
+- the sysctl proc parsing infrastructure is not equipped to deal with
+  flags at all and expanding it to it would be a lot of code
+- we would need either an atomic type or locking for filter_flags in the
+  netns_brnf struct if multiple proc sysctl handlers try to raise or
+  lower bits in filter_flags via different files at the same time
 
-Thanks
-Yafang
+So I feel that this is not a feasible solution. We could make netns_brnf
+a pointer in struct net and allocate it on new network namespace
+creation if we care about space but then we take the performance hit of
+k*alloc().
+What I stressed before: for userspace it's important that we don't
+change the semantics how br netfilter is configured in a non-initial
+network namespace to not break existing tools in such environments.
+
+Christian
