@@ -1,54 +1,40 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 4/5] netfilter: nat: can't use dst_hold on noref dst
-Date: Thu, 13 Dec 2018 02:06:30 +0100
-Message-ID: <20181213010631.9753-5-pablo@netfilter.org>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 0/5] Netfilter fixes for net
+Date: Wed, 12 Dec 2018 21:37:16 -0800 (PST)
+Message-ID: <20181212.213716.1799330740342232493.davem@davemloft.net>
 References: <20181213010631.9753-1-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: unlisted-recipients:; (no To-header on input)
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20181213010631.9753-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Thu, 13 Dec 2018 02:06:26 +0100
 
-The dst entry might already have a zero refcount, waiting on rcu list
-to be free'd.  Using dst_hold() transitions its reference count to 1, and
-next dst release will try to free it again -- resulting in a double free:
+> The following patchset contains Netfilter fixes for net:
+> 
+> 1) Fix warnings suspicious rcu usage when handling base chain
+>    statistics, from Taehee Yoo.
+> 
+> 2) Refetch pointer to tcp header from nf_ct_sack_adjust() since
+>    skb_make_writable() may reallocate data area, reported by Google
+>    folks patch from Florian.
+> 
+> 3) Incorrect netlink nest end after previous cancellation from error
+>    path in ipset, from Pan Bian.
+> 
+> 4) Use dst_hold_safe() from nf_xfrm_me_harder(), from Florian.
+> 
+> 5) Use rb_link_node_rcu() for rcu-protected rbtree node in
+>    nf_conncount, from Taehee Yoo.
+> 
+> You can pull these changes from:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
 
-  WARNING: CPU: 1 PID: 0 at include/net/dst.h:239 nf_xfrm_me_harder+0xe7/0x130 [nf_nat]
-  RIP: 0010:nf_xfrm_me_harder+0xe7/0x130 [nf_nat]
-  Code: 48 8b 5c 24 60 65 48 33 1c 25 28 00 00 00 75 53 48 83 c4 68 5b 5d 41 5c c3 85 c0 74 0d 8d 48 01 f0 0f b1 0a 74 86 85 c0 75 f3 <0f> 0b e9 7b ff ff ff 29 c6 31 d2 b9 20 00 48 00 4c 89 e7 e8 31 27
-  Call Trace:
-  nf_nat_ipv4_out+0x78/0x90 [nf_nat_ipv4]
-  nf_hook_slow+0x36/0xd0
-  ip_output+0x9f/0xd0
-  ip_forward+0x328/0x440
-  ip_rcv+0x8a/0xb0
-
-Use dst_hold_safe instead and bail out if we cannot take a reference.
-
-Fixes: a4c2fd7f7891 ("net: remove DST_NOCACHE flag")
-Reported-by: Martin Zaharinov <micron10@gmail.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_nat_core.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
-index e2b196054dfc..2268b10a9dcf 100644
---- a/net/netfilter/nf_nat_core.c
-+++ b/net/netfilter/nf_nat_core.c
-@@ -117,7 +117,8 @@ int nf_xfrm_me_harder(struct net *net, struct sk_buff *skb, unsigned int family)
- 	dst = skb_dst(skb);
- 	if (dst->xfrm)
- 		dst = ((struct xfrm_dst *)dst)->route;
--	dst_hold(dst);
-+	if (!dst_hold_safe(dst))
-+		return -EHOSTUNREACH;
- 
- 	if (sk && !net_eq(net, sock_net(sk)))
- 		sk = NULL;
--- 
-2.11.0
+Pulled, thanks.
