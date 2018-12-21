@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 30/37] netfilter: conntrack: udp: set stream timeout to 2 minutes
-Date: Fri, 21 Dec 2018 01:28:34 +0100
-Message-ID: <20181221002841.28587-31-pablo@netfilter.org>
+Subject: [PATCH 27/37] netfilter: ipt_CLUSTERIP: fix sleep-in-atomic bug in clusterip_config_entry_put()
+Date: Fri, 21 Dec 2018 01:28:31 +0100
+Message-ID: <20181221002841.28587-28-pablo@netfilter.org>
 References: <20181221002841.28587-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,48 +10,135 @@ In-Reply-To: <20181221002841.28587-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+From: Taehee Yoo <ap420073@gmail.com>
 
-We have no explicit signal when a UDP stream has terminated, peers just
-stop sending.
+A proc_remove() can sleep. so that it can't be inside of spin_lock.
+Hence proc_remove() is moved to outside of spin_lock. and it also
+adds mutex to sync create and remove of proc entry(config->pde).
 
-For suspected stream connections a timeout of two minutes is sane to keep
-NAT mapping alive a while longer.
+test commands:
+SHELL#1
+   %while :; do iptables -A INPUT -p udp -i enp2s0 -d 192.168.1.100 \
+	   --dport 9000  -j CLUSTERIP --new --hashmode sourceip \
+	   --clustermac 01:00:5e:00:00:21 --total-nodes 3 --local-node 3; \
+	   iptables -F; done
 
-It matches tcp conntracks 'timewait' default timeout value.
+SHELL#2
+   %while :; do echo +1 > /proc/net/ipt_CLUSTERIP/192.168.1.100; \
+	   echo -1 > /proc/net/ipt_CLUSTERIP/192.168.1.100; done
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
+[ 2949.569864] BUG: sleeping function called from invalid context at kernel/sched/completion.c:99
+[ 2949.579944] in_atomic(): 1, irqs_disabled(): 0, pid: 5472, name: iptables
+[ 2949.587920] 1 lock held by iptables/5472:
+[ 2949.592711]  #0: 000000008f0ebcf2 (&(&cn->lock)->rlock){+...}, at: refcount_dec_and_lock+0x24/0x50
+[ 2949.603307] CPU: 1 PID: 5472 Comm: iptables Tainted: G        W         4.19.0-rc5+ #16
+[ 2949.604212] Hardware name: To be filled by O.E.M. To be filled by O.E.M./Aptio CRB, BIOS 5.6.5 07/08/2015
+[ 2949.604212] Call Trace:
+[ 2949.604212]  dump_stack+0xc9/0x16b
+[ 2949.604212]  ? show_regs_print_info+0x5/0x5
+[ 2949.604212]  ___might_sleep+0x2eb/0x420
+[ 2949.604212]  ? set_rq_offline.part.87+0x140/0x140
+[ 2949.604212]  ? _rcu_barrier_trace+0x400/0x400
+[ 2949.604212]  wait_for_completion+0x94/0x710
+[ 2949.604212]  ? wait_for_completion_interruptible+0x780/0x780
+[ 2949.604212]  ? __kernel_text_address+0xe/0x30
+[ 2949.604212]  ? __lockdep_init_map+0x10e/0x5c0
+[ 2949.604212]  ? __lockdep_init_map+0x10e/0x5c0
+[ 2949.604212]  ? __init_waitqueue_head+0x86/0x130
+[ 2949.604212]  ? init_wait_entry+0x1a0/0x1a0
+[ 2949.604212]  proc_entry_rundown+0x208/0x270
+[ 2949.604212]  ? proc_reg_get_unmapped_area+0x370/0x370
+[ 2949.604212]  ? __lock_acquire+0x4500/0x4500
+[ 2949.604212]  ? complete+0x18/0x70
+[ 2949.604212]  remove_proc_subtree+0x143/0x2a0
+[ 2949.708655]  ? remove_proc_entry+0x390/0x390
+[ 2949.708655]  clusterip_tg_destroy+0x27a/0x630 [ipt_CLUSTERIP]
+[ ... ]
+
+Fixes: b3e456fce9f5 ("netfilter: ipt_CLUSTERIP: fix a race condition of proc file creation")
+Signed-off-by: Taehee Yoo <ap420073@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- Documentation/networking/nf_conntrack-sysctl.txt | 2 +-
- net/netfilter/nf_conntrack_proto_udp.c           | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ net/ipv4/netfilter/ipt_CLUSTERIP.c | 19 ++++++++++++++-----
+ 1 file changed, 14 insertions(+), 5 deletions(-)
 
-diff --git a/Documentation/networking/nf_conntrack-sysctl.txt b/Documentation/networking/nf_conntrack-sysctl.txt
-index 1669dc2419fd..e69b2e6a4a29 100644
---- a/Documentation/networking/nf_conntrack-sysctl.txt
-+++ b/Documentation/networking/nf_conntrack-sysctl.txt
-@@ -157,7 +157,7 @@ nf_conntrack_udp_timeout - INTEGER (seconds)
- 	default 30
+diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+index ddf9a878932a..d4d549a46c04 100644
+--- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
++++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+@@ -56,7 +56,7 @@ struct clusterip_config {
+ #endif
+ 	enum clusterip_hashmode hash_mode;	/* which hashing mode */
+ 	u_int32_t hash_initval;			/* hash initialization */
+-	struct rcu_head rcu;
++	struct rcu_head rcu;			/* for call_rcu_bh */
+ 	struct net *net;			/* netns for pernet list */
+ 	char ifname[IFNAMSIZ];			/* device ifname */
+ };
+@@ -72,6 +72,8 @@ struct clusterip_net {
  
- nf_conntrack_udp_timeout_stream - INTEGER (seconds)
--	default 180
-+	default 120
- 
- 	This extended timeout will be used in case there is an UDP stream
- 	detected.
-diff --git a/net/netfilter/nf_conntrack_proto_udp.c b/net/netfilter/nf_conntrack_proto_udp.c
-index 9f2e05adba69..b4f5d5e82031 100644
---- a/net/netfilter/nf_conntrack_proto_udp.c
-+++ b/net/netfilter/nf_conntrack_proto_udp.c
-@@ -29,7 +29,7 @@
- 
- static const unsigned int udp_timeouts[UDP_CT_MAX] = {
- 	[UDP_CT_UNREPLIED]	= 30*HZ,
--	[UDP_CT_REPLIED]	= 180*HZ,
-+	[UDP_CT_REPLIED]	= 120*HZ,
+ #ifdef CONFIG_PROC_FS
+ 	struct proc_dir_entry *procdir;
++	/* mutex protects the config->pde*/
++	struct mutex mutex;
+ #endif
  };
  
- static unsigned int *udp_get_timeouts(struct net *net)
+@@ -118,17 +120,18 @@ clusterip_config_entry_put(struct clusterip_config *c)
+ 
+ 	local_bh_disable();
+ 	if (refcount_dec_and_lock(&c->entries, &cn->lock)) {
++		list_del_rcu(&c->list);
++		spin_unlock(&cn->lock);
++		local_bh_enable();
+ 		/* In case anyone still accesses the file, the open/close
+ 		 * functions are also incrementing the refcount on their own,
+ 		 * so it's safe to remove the entry even if it's in use. */
+ #ifdef CONFIG_PROC_FS
++		mutex_lock(&cn->mutex);
+ 		if (cn->procdir)
+ 			proc_remove(c->pde);
++		mutex_unlock(&cn->mutex);
+ #endif
+-		list_del_rcu(&c->list);
+-		spin_unlock(&cn->lock);
+-		local_bh_enable();
+-
+ 		return;
+ 	}
+ 	local_bh_enable();
+@@ -278,9 +281,11 @@ clusterip_config_init(struct net *net, const struct ipt_clusterip_tgt_info *i,
+ 
+ 		/* create proc dir entry */
+ 		sprintf(buffer, "%pI4", &ip);
++		mutex_lock(&cn->mutex);
+ 		c->pde = proc_create_data(buffer, 0600,
+ 					  cn->procdir,
+ 					  &clusterip_proc_fops, c);
++		mutex_unlock(&cn->mutex);
+ 		if (!c->pde) {
+ 			err = -ENOMEM;
+ 			goto err;
+@@ -832,6 +837,7 @@ static int clusterip_net_init(struct net *net)
+ 		pr_err("Unable to proc dir entry\n");
+ 		return -ENOMEM;
+ 	}
++	mutex_init(&cn->mutex);
+ #endif /* CONFIG_PROC_FS */
+ 
+ 	return 0;
+@@ -840,9 +846,12 @@ static int clusterip_net_init(struct net *net)
+ static void clusterip_net_exit(struct net *net)
+ {
+ 	struct clusterip_net *cn = clusterip_pernet(net);
++
+ #ifdef CONFIG_PROC_FS
++	mutex_lock(&cn->mutex);
+ 	proc_remove(cn->procdir);
+ 	cn->procdir = NULL;
++	mutex_unlock(&cn->mutex);
+ #endif
+ 	nf_unregister_net_hook(net, &cip_arp_ops);
+ }
 -- 
 2.11.0
