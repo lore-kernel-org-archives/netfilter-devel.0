@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 31/37] netfilter: conntrack: register sysctl table for gre
-Date: Fri, 21 Dec 2018 01:28:35 +0100
-Message-ID: <20181221002841.28587-32-pablo@netfilter.org>
+Subject: [PATCH 24/37] netfilter: nf_tables: Speed up selective rule dumps
+Date: Fri, 21 Dec 2018 01:28:28 +0100
+Message-ID: <20181221002841.28587-25-pablo@netfilter.org>
 References: <20181221002841.28587-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,101 +10,144 @@ In-Reply-To: <20181221002841.28587-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Yafang Shao <laoar.shao@gmail.com>
+From: Phil Sutter <phil@nwl.cc>
 
-This patch adds two sysctl knobs for GRE:
+If just a table name was given, nf_tables_dump_rules() continued over
+the list of tables even after a match was found. The simple fix is to
+exit the loop if it reached the bottom and ctx->table was not NULL.
 
-	net.netfilter.nf_conntrack_gre_timeout = 30
-	net.netfilter.nf_conntrack_gre_timeout_stream = 180
+When iterating over the table's chains, the same problem as above
+existed. But worse than that, if a chain name was given the hash table
+wasn't used to find the corresponding chain. Fix this by introducing a
+helper function iterating over a chain's rules (and taking care of the
+cb->args handling), then introduce a shortcut to it if a chain name was
+given.
 
-Update the Documentation as well.
-
-Signed-off-by: Yafang Shao <laoar.shao@gmail.com>
+Signed-off-by: Phil Sutter <phil@nwl.cc>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- Documentation/networking/nf_conntrack-sysctl.txt |  9 +++++
- net/netfilter/nf_conntrack_proto_gre.c           | 42 +++++++++++++++++++++++-
- 2 files changed, 50 insertions(+), 1 deletion(-)
+ net/netfilter/nf_tables_api.c | 90 +++++++++++++++++++++++++++++--------------
+ 1 file changed, 62 insertions(+), 28 deletions(-)
 
-diff --git a/Documentation/networking/nf_conntrack-sysctl.txt b/Documentation/networking/nf_conntrack-sysctl.txt
-index e69b2e6a4a29..f75c2ce6e136 100644
---- a/Documentation/networking/nf_conntrack-sysctl.txt
-+++ b/Documentation/networking/nf_conntrack-sysctl.txt
-@@ -161,3 +161,12 @@ nf_conntrack_udp_timeout_stream - INTEGER (seconds)
- 
- 	This extended timeout will be used in case there is an UDP stream
- 	detected.
-+
-+nf_conntrack_gre_timeout - INTEGER (seconds)
-+	default 30
-+
-+nf_conntrack_gre_timeout_stream - INTEGER (seconds)
-+	default 180
-+
-+	This extended timeout will be used in case there is an GRE stream
-+	detected.
-diff --git a/net/netfilter/nf_conntrack_proto_gre.c b/net/netfilter/nf_conntrack_proto_gre.c
-index 9b48dc8b4b88..d5e76bc37b89 100644
---- a/net/netfilter/nf_conntrack_proto_gre.c
-+++ b/net/netfilter/nf_conntrack_proto_gre.c
-@@ -332,9 +332,49 @@ gre_timeout_nla_policy[CTA_TIMEOUT_GRE_MAX+1] = {
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 42487d01a3ed..200751a49745 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -2291,15 +2291,52 @@ struct nft_rule_dump_ctx {
+ 	char *chain;
  };
- #endif /* CONFIG_NF_CONNTRACK_TIMEOUT */
  
-+#ifdef CONFIG_SYSCTL
-+static struct ctl_table gre_sysctl_table[] = {
-+	{
-+		.procname       = "nf_conntrack_gre_timeout",
-+		.maxlen         = sizeof(unsigned int),
-+		.mode           = 0644,
-+		.proc_handler   = proc_dointvec_jiffies,
-+	},
-+	{
-+		.procname       = "nf_conntrack_gre_timeout_stream",
-+		.maxlen         = sizeof(unsigned int),
-+		.mode           = 0644,
-+		.proc_handler   = proc_dointvec_jiffies,
-+	},
-+	{}
-+};
-+#endif
-+
-+static int gre_kmemdup_sysctl_table(struct net *net, struct nf_proto_net *nf,
-+				    struct netns_proto_gre *net_gre)
++static int __nf_tables_dump_rules(struct sk_buff *skb,
++				  unsigned int *idx,
++				  struct netlink_callback *cb,
++				  const struct nft_table *table,
++				  const struct nft_chain *chain)
 +{
-+#ifdef CONFIG_SYSCTL
-+	int i;
++	struct net *net = sock_net(skb->sk);
++	unsigned int s_idx = cb->args[0];
++	const struct nft_rule *rule;
++	int rc = 1;
 +
-+	if (nf->ctl_table)
-+		return 0;
++	list_for_each_entry_rcu(rule, &chain->rules, list) {
++		if (!nft_is_active(net, rule))
++			goto cont;
++		if (*idx < s_idx)
++			goto cont;
++		if (*idx > s_idx) {
++			memset(&cb->args[1], 0,
++					sizeof(cb->args) - sizeof(cb->args[0]));
++		}
++		if (nf_tables_fill_rule_info(skb, net, NETLINK_CB(cb->skb).portid,
++					cb->nlh->nlmsg_seq,
++					NFT_MSG_NEWRULE,
++					NLM_F_MULTI | NLM_F_APPEND,
++					table->family,
++					table, chain, rule) < 0)
++			goto out_unfinished;
 +
-+	nf->ctl_table = kmemdup(gre_sysctl_table,
-+				sizeof(gre_sysctl_table),
-+				GFP_KERNEL);
-+	if (!nf->ctl_table)
-+		return -ENOMEM;
-+
-+	for (i = 0; i < GRE_CT_MAX; i++)
-+		nf->ctl_table[i].data = &net_gre->gre_timeouts[i];
-+#endif
-+	return 0;
++		nl_dump_check_consistent(cb, nlmsg_hdr(skb));
++cont:
++		(*idx)++;
++	}
++	rc = 0;
++out_unfinished:
++	cb->args[0] = *idx;
++	return rc;
 +}
 +
- static int gre_init_net(struct net *net)
+ static int nf_tables_dump_rules(struct sk_buff *skb,
+ 				struct netlink_callback *cb)
  {
- 	struct netns_proto_gre *net_gre = gre_pernet(net);
-+	struct nf_proto_net *nf = &net_gre->nf;
- 	int i;
+ 	const struct nfgenmsg *nfmsg = nlmsg_data(cb->nlh);
+ 	const struct nft_rule_dump_ctx *ctx = cb->data;
+-	const struct nft_table *table;
++	struct nft_table *table;
+ 	const struct nft_chain *chain;
+-	const struct nft_rule *rule;
+-	unsigned int idx = 0, s_idx = cb->args[0];
++	unsigned int idx = 0;
+ 	struct net *net = sock_net(skb->sk);
+ 	int family = nfmsg->nfgen_family;
  
- 	rwlock_init(&net_gre->keymap_lock);
-@@ -342,7 +382,7 @@ static int gre_init_net(struct net *net)
- 	for (i = 0; i < GRE_CT_MAX; i++)
- 		net_gre->gre_timeouts[i] = gre_timeouts[i];
+@@ -2313,37 +2350,34 @@ static int nf_tables_dump_rules(struct sk_buff *skb,
+ 		if (ctx && ctx->table && strcmp(ctx->table, table->name) != 0)
+ 			continue;
  
--	return 0;
-+	return gre_kmemdup_sysctl_table(net, nf, net_gre);
+-		list_for_each_entry_rcu(chain, &table->chains, list) {
+-			if (ctx && ctx->chain &&
+-			    strcmp(ctx->chain, chain->name) != 0)
+-				continue;
++		if (ctx && ctx->chain) {
++			struct rhlist_head *list, *tmp;
+ 
+-			list_for_each_entry_rcu(rule, &chain->rules, list) {
+-				if (!nft_is_active(net, rule))
+-					goto cont;
+-				if (idx < s_idx)
+-					goto cont;
+-				if (idx > s_idx)
+-					memset(&cb->args[1], 0,
+-					       sizeof(cb->args) - sizeof(cb->args[0]));
+-				if (nf_tables_fill_rule_info(skb, net, NETLINK_CB(cb->skb).portid,
+-							      cb->nlh->nlmsg_seq,
+-							      NFT_MSG_NEWRULE,
+-							      NLM_F_MULTI | NLM_F_APPEND,
+-							      table->family,
+-							      table, chain, rule) < 0)
+-					goto done;
+-
+-				nl_dump_check_consistent(cb, nlmsg_hdr(skb));
+-cont:
+-				idx++;
++			list = rhltable_lookup(&table->chains_ht, ctx->chain,
++					       nft_chain_ht_params);
++			if (!list)
++				goto done;
++
++			rhl_for_each_entry_rcu(chain, tmp, list, rhlhead) {
++				if (!nft_is_active(net, chain))
++					continue;
++				__nf_tables_dump_rules(skb, &idx,
++						       cb, table, chain);
++				break;
+ 			}
++			goto done;
+ 		}
++
++		list_for_each_entry_rcu(chain, &table->chains, list) {
++			if (__nf_tables_dump_rules(skb, &idx, cb, table, chain))
++				goto done;
++		}
++
++		if (ctx && ctx->table)
++			break;
+ 	}
+ done:
+ 	rcu_read_unlock();
+-
+-	cb->args[0] = idx;
+ 	return skb->len;
  }
  
- /* protocol helper struct */
 -- 
 2.11.0
