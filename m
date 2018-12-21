@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 29/37] netfilter: conntrack: udp: only extend timeout to stream mode after 2s
-Date: Fri, 21 Dec 2018 01:28:33 +0100
-Message-ID: <20181221002841.28587-30-pablo@netfilter.org>
+Subject: [PATCH 30/37] netfilter: conntrack: udp: set stream timeout to 2 minutes
+Date: Fri, 21 Dec 2018 01:28:34 +0100
+Message-ID: <20181221002841.28587-31-pablo@netfilter.org>
 References: <20181221002841.28587-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -12,74 +12,46 @@ List-Id: netfilter-devel.vger.kernel.org
 
 From: Florian Westphal <fw@strlen.de>
 
-Currently DNS resolvers that send both A and AAAA queries from same source port
-can trigger stream mode prematurely, which results in non-early-evictable conntrack entry
-for three minutes, even though DNS requests are done in a few milliseconds.
+We have no explicit signal when a UDP stream has terminated, peers just
+stop sending.
 
-Add a two second grace period where we continue to use the ordinary
-30-second default timeout.  Its enough for DNS request/response traffic,
-even if two request/reply packets are involved.
+For suspected stream connections a timeout of two minutes is sane to keep
+NAT mapping alive a while longer.
 
-ASSURED is still set, else conntrack (and thus a possible
-NAT mapping ...) gets zapped too in case conntrack table runs full.
+It matches tcp conntracks 'timewait' default timeout value.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_conntrack.h   |  5 +++++
- net/netfilter/nf_conntrack_proto_udp.c | 16 +++++++++++++---
- 2 files changed, 18 insertions(+), 3 deletions(-)
+ Documentation/networking/nf_conntrack-sysctl.txt | 2 +-
+ net/netfilter/nf_conntrack_proto_udp.c           | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
-index 7e012312cd61..249d0a5b12b8 100644
---- a/include/net/netfilter/nf_conntrack.h
-+++ b/include/net/netfilter/nf_conntrack.h
-@@ -27,12 +27,17 @@
+diff --git a/Documentation/networking/nf_conntrack-sysctl.txt b/Documentation/networking/nf_conntrack-sysctl.txt
+index 1669dc2419fd..e69b2e6a4a29 100644
+--- a/Documentation/networking/nf_conntrack-sysctl.txt
++++ b/Documentation/networking/nf_conntrack-sysctl.txt
+@@ -157,7 +157,7 @@ nf_conntrack_udp_timeout - INTEGER (seconds)
+ 	default 30
  
- #include <net/netfilter/nf_conntrack_tuple.h>
+ nf_conntrack_udp_timeout_stream - INTEGER (seconds)
+-	default 180
++	default 120
  
-+struct nf_ct_udp {
-+	unsigned long	stream_ts;
-+};
-+
- /* per conntrack: protocol private data */
- union nf_conntrack_proto {
- 	/* insert conntrack proto private data here */
- 	struct nf_ct_dccp dccp;
- 	struct ip_ct_sctp sctp;
- 	struct ip_ct_tcp tcp;
-+	struct nf_ct_udp udp;
- 	struct nf_ct_gre gre;
- 	unsigned int tmpl_padto;
- };
+ 	This extended timeout will be used in case there is an UDP stream
+ 	detected.
 diff --git a/net/netfilter/nf_conntrack_proto_udp.c b/net/netfilter/nf_conntrack_proto_udp.c
-index c879d8d78cfd..9f2e05adba69 100644
+index 9f2e05adba69..b4f5d5e82031 100644
 --- a/net/netfilter/nf_conntrack_proto_udp.c
 +++ b/net/netfilter/nf_conntrack_proto_udp.c
-@@ -100,11 +100,21 @@ static int udp_packet(struct nf_conn *ct,
- 	if (!timeouts)
- 		timeouts = udp_get_timeouts(nf_ct_net(ct));
+@@ -29,7 +29,7 @@
  
-+	if (!nf_ct_is_confirmed(ct))
-+		ct->proto.udp.stream_ts = 2 * HZ + jiffies;
-+
- 	/* If we've seen traffic both ways, this is some kind of UDP
--	   stream.  Extend timeout. */
-+	 * stream. Set Assured.
-+	 */
- 	if (test_bit(IPS_SEEN_REPLY_BIT, &ct->status)) {
--		nf_ct_refresh_acct(ct, ctinfo, skb,
--				   timeouts[UDP_CT_REPLIED]);
-+		unsigned long extra = timeouts[UDP_CT_UNREPLIED];
-+
-+		/* Still active after two seconds? Extend timeout. */
-+		if (time_after(jiffies, ct->proto.udp.stream_ts))
-+			extra = timeouts[UDP_CT_REPLIED];
-+
-+		nf_ct_refresh_acct(ct, ctinfo, skb, extra);
-+
- 		/* Also, more likely to be important, and not a probe */
- 		if (!test_and_set_bit(IPS_ASSURED_BIT, &ct->status))
- 			nf_conntrack_event_cache(IPCT_ASSURED, ct);
+ static const unsigned int udp_timeouts[UDP_CT_MAX] = {
+ 	[UDP_CT_UNREPLIED]	= 30*HZ,
+-	[UDP_CT_REPLIED]	= 180*HZ,
++	[UDP_CT_REPLIED]	= 120*HZ,
+ };
+ 
+ static unsigned int *udp_get_timeouts(struct net *net)
 -- 
 2.11.0
