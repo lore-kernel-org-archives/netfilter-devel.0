@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 01/37] netfilter: ipset: Allow matching on destination MAC address for mac and ipmac sets
-Date: Fri, 21 Dec 2018 01:28:05 +0100
-Message-ID: <20181221002841.28587-2-pablo@netfilter.org>
+Subject: [PATCH 10/37] netfilter: ipset: fix ip_set_byindex function
+Date: Fri, 21 Dec 2018 01:28:14 +0100
+Message-ID: <20181221002841.28587-11-pablo@netfilter.org>
 References: <20181221002841.28587-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,130 +10,30 @@ In-Reply-To: <20181221002841.28587-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Stefano Brivio <sbrivio@redhat.com>
+From: Florent Fourcot <florent.fourcot@wifirst.fr>
 
-There doesn't seem to be any reason to restrict MAC address
-matching to source MAC addresses in set types bitmap:ipmac,
-hash:ipmac and hash:mac. With this patch, and this setup:
+New function added by "Introduction of new commands and protocol
+version 7" is not working, since we return skb2 to user
 
-  ip netns add A
-  ip link add veth1 type veth peer name veth2 netns A
-  ip addr add 192.0.2.1/24 dev veth1
-  ip -net A addr add 192.0.2.2/24 dev veth2
-  ip link set veth1 up
-  ip -net A link set veth2 up
-
-  ip netns exec A ipset create test hash:mac
-  dst=$(ip netns exec A cat /sys/class/net/veth2/address)
-  ip netns exec A ipset add test ${dst}
-  ip netns exec A iptables -P INPUT DROP
-  ip netns exec A iptables -I INPUT -m set --match-set test dst -j ACCEPT
-
-ipset will match packets based on destination MAC address:
-
-  # ping -c1 192.0.2.2 >/dev/null
-  # echo $?
-  0
-
-Reported-by: Yi Chen <yiche@redhat.com>
-Signed-off-by: Stefano Brivio <sbrivio@redhat.com>
-Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Signed-off-by: Victorien Molle <victorien.molle@wifirst.fr>
+Signed-off-by: Florent Fourcot <florent.fourcot@wifirst.fr>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/ipset/ip_set_bitmap_ipmac.c | 10 +++++-----
- net/netfilter/ipset/ip_set_hash_ipmac.c   | 16 ++++++++++------
- net/netfilter/ipset/ip_set_hash_mac.c     | 10 +++++-----
- 3 files changed, 20 insertions(+), 16 deletions(-)
+ net/netfilter/ipset/ip_set_core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/netfilter/ipset/ip_set_bitmap_ipmac.c b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
-index c00b6a2e8e3c..13ade5782847 100644
---- a/net/netfilter/ipset/ip_set_bitmap_ipmac.c
-+++ b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
-@@ -219,10 +219,6 @@ bitmap_ipmac_kadt(struct ip_set *set, const struct sk_buff *skb,
- 	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, set);
- 	u32 ip;
+diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
+index 1c3614aca34e..e3113aa1a975 100644
+--- a/net/netfilter/ipset/ip_set_core.c
++++ b/net/netfilter/ipset/ip_set_core.c
+@@ -1949,7 +1949,7 @@ static int ip_set_byindex(struct net *net, struct sock *ctnl,
+ 	if (!nlh2)
+ 		goto nlmsg_failure;
+ 	if (nla_put_u8(skb2, IPSET_ATTR_PROTOCOL, protocol(attr)) ||
+-	    nla_put_string(skb, IPSET_ATTR_SETNAME, set->name))
++	    nla_put_string(skb2, IPSET_ATTR_SETNAME, set->name))
+ 		goto nla_put_failure;
+ 	nlmsg_end(skb2, nlh2);
  
--	/* MAC can be src only */
--	if (!(opt->flags & IPSET_DIM_TWO_SRC))
--		return 0;
--
- 	ip = ntohl(ip4addr(skb, opt->flags & IPSET_DIM_ONE_SRC));
- 	if (ip < map->first_ip || ip > map->last_ip)
- 		return -IPSET_ERR_BITMAP_RANGE;
-@@ -233,7 +229,11 @@ bitmap_ipmac_kadt(struct ip_set *set, const struct sk_buff *skb,
- 		return -EINVAL;
- 
- 	e.id = ip_to_id(map, ip);
--	memcpy(e.ether, eth_hdr(skb)->h_source, ETH_ALEN);
-+
-+	if (opt->flags & IPSET_DIM_ONE_SRC)
-+		ether_addr_copy(e.ether, eth_hdr(skb)->h_source);
-+	else
-+		ether_addr_copy(e.ether, eth_hdr(skb)->h_dest);
- 
- 	return adtfn(set, &e, &ext, &opt->ext, opt->cmdflags);
- }
-diff --git a/net/netfilter/ipset/ip_set_hash_ipmac.c b/net/netfilter/ipset/ip_set_hash_ipmac.c
-index 1ab5ed2f6839..fd87de3ed55b 100644
---- a/net/netfilter/ipset/ip_set_hash_ipmac.c
-+++ b/net/netfilter/ipset/ip_set_hash_ipmac.c
-@@ -103,7 +103,11 @@ hash_ipmac4_kadt(struct ip_set *set, const struct sk_buff *skb,
- 	    (skb_mac_header(skb) + ETH_HLEN) > skb->data)
- 		return -EINVAL;
- 
--	memcpy(e.ether, eth_hdr(skb)->h_source, ETH_ALEN);
-+	if (opt->flags & IPSET_DIM_ONE_SRC)
-+		ether_addr_copy(e.ether, eth_hdr(skb)->h_source);
-+	else
-+		ether_addr_copy(e.ether, eth_hdr(skb)->h_dest);
-+
- 	if (ether_addr_equal(e.ether, invalid_ether))
- 		return -EINVAL;
- 
-@@ -211,15 +215,15 @@ hash_ipmac6_kadt(struct ip_set *set, const struct sk_buff *skb,
- 	};
- 	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, set);
- 
--	 /* MAC can be src only */
--	if (!(opt->flags & IPSET_DIM_TWO_SRC))
--		return 0;
--
- 	if (skb_mac_header(skb) < skb->head ||
- 	    (skb_mac_header(skb) + ETH_HLEN) > skb->data)
- 		return -EINVAL;
- 
--	memcpy(e.ether, eth_hdr(skb)->h_source, ETH_ALEN);
-+	if (opt->flags & IPSET_DIM_ONE_SRC)
-+		ether_addr_copy(e.ether, eth_hdr(skb)->h_source);
-+	else
-+		ether_addr_copy(e.ether, eth_hdr(skb)->h_dest);
-+
- 	if (ether_addr_equal(e.ether, invalid_ether))
- 		return -EINVAL;
- 
-diff --git a/net/netfilter/ipset/ip_set_hash_mac.c b/net/netfilter/ipset/ip_set_hash_mac.c
-index f9d5a2a1e3d0..4fe5f243d0a3 100644
---- a/net/netfilter/ipset/ip_set_hash_mac.c
-+++ b/net/netfilter/ipset/ip_set_hash_mac.c
-@@ -81,15 +81,15 @@ hash_mac4_kadt(struct ip_set *set, const struct sk_buff *skb,
- 	struct hash_mac4_elem e = { { .foo[0] = 0, .foo[1] = 0 } };
- 	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, set);
- 
--	 /* MAC can be src only */
--	if (!(opt->flags & IPSET_DIM_ONE_SRC))
--		return 0;
--
- 	if (skb_mac_header(skb) < skb->head ||
- 	    (skb_mac_header(skb) + ETH_HLEN) > skb->data)
- 		return -EINVAL;
- 
--	ether_addr_copy(e.ether, eth_hdr(skb)->h_source);
-+	if (opt->flags & IPSET_DIM_ONE_SRC)
-+		ether_addr_copy(e.ether, eth_hdr(skb)->h_source);
-+	else
-+		ether_addr_copy(e.ether, eth_hdr(skb)->h_dest);
-+
- 	if (is_zero_ether_addr(e.ether))
- 		return -EINVAL;
- 	return adtfn(set, &e, &ext, &opt->ext, opt->cmdflags);
 -- 
 2.11.0
