@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 33/37] netfilter: conntrack: add mnemonics for sysctl table
-Date: Fri, 21 Dec 2018 01:28:37 +0100
-Message-ID: <20181221002841.28587-34-pablo@netfilter.org>
+Subject: [PATCH 31/37] netfilter: conntrack: register sysctl table for gre
+Date: Fri, 21 Dec 2018 01:28:35 +0100
+Message-ID: <20181221002841.28587-32-pablo@netfilter.org>
 References: <20181221002841.28587-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,107 +10,101 @@ In-Reply-To: <20181221002841.28587-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+From: Yafang Shao <laoar.shao@gmail.com>
 
-Its a bit hard to see what table[3] really lines up with, so add
-human-readable mnemonics and use them for initialisation.
+This patch adds two sysctl knobs for GRE:
 
-This makes it easier to see e.g. which sysctls are not exported to
-unprivileged userns.
+	net.netfilter.nf_conntrack_gre_timeout = 30
+	net.netfilter.nf_conntrack_gre_timeout_stream = 180
 
-objdiff shows no changes.
+Update the Documentation as well.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Yafang Shao <laoar.shao@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_conntrack_standalone.c | 31 ++++++++++++++++++++-----------
- 1 file changed, 20 insertions(+), 11 deletions(-)
+ Documentation/networking/nf_conntrack-sysctl.txt |  9 +++++
+ net/netfilter/nf_conntrack_proto_gre.c           | 42 +++++++++++++++++++++++-
+ 2 files changed, 50 insertions(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
-index feeff346f946..f9fa825ddc62 100644
---- a/net/netfilter/nf_conntrack_standalone.c
-+++ b/net/netfilter/nf_conntrack_standalone.c
-@@ -532,36 +532,45 @@ nf_conntrack_hash_sysctl(struct ctl_table *table, int write,
+diff --git a/Documentation/networking/nf_conntrack-sysctl.txt b/Documentation/networking/nf_conntrack-sysctl.txt
+index e69b2e6a4a29..f75c2ce6e136 100644
+--- a/Documentation/networking/nf_conntrack-sysctl.txt
++++ b/Documentation/networking/nf_conntrack-sysctl.txt
+@@ -161,3 +161,12 @@ nf_conntrack_udp_timeout_stream - INTEGER (seconds)
  
- static struct ctl_table_header *nf_ct_netfilter_header;
- 
-+enum nf_ct_sysctl_index {
-+	NF_SYSCTL_CT_MAX,
-+	NF_SYSCTL_CT_COUNT,
-+	NF_SYSCTL_CT_BUCKETS,
-+	NF_SYSCTL_CT_CHECKSUM,
-+	NF_SYSCTL_CT_LOG_INVALID,
-+	NF_SYSCTL_CT_EXPECT_MAX,
-+};
+ 	This extended timeout will be used in case there is an UDP stream
+ 	detected.
 +
- static struct ctl_table nf_ct_sysctl_table[] = {
--	{
-+	[NF_SYSCTL_CT_MAX] = {
- 		.procname	= "nf_conntrack_max",
- 		.data		= &nf_conntrack_max,
- 		.maxlen		= sizeof(int),
- 		.mode		= 0644,
- 		.proc_handler	= proc_dointvec,
- 	},
--	{
-+	[NF_SYSCTL_CT_COUNT] = {
- 		.procname	= "nf_conntrack_count",
- 		.data		= &init_net.ct.count,
- 		.maxlen		= sizeof(int),
- 		.mode		= 0444,
- 		.proc_handler	= proc_dointvec,
- 	},
--	{
-+	[NF_SYSCTL_CT_BUCKETS] = {
- 		.procname       = "nf_conntrack_buckets",
- 		.data           = &nf_conntrack_htable_size_user,
- 		.maxlen         = sizeof(unsigned int),
- 		.mode           = 0644,
- 		.proc_handler   = nf_conntrack_hash_sysctl,
- 	},
--	{
-+	[NF_SYSCTL_CT_CHECKSUM] = {
- 		.procname	= "nf_conntrack_checksum",
- 		.data		= &init_net.ct.sysctl_checksum,
- 		.maxlen		= sizeof(unsigned int),
- 		.mode		= 0644,
- 		.proc_handler	= proc_dointvec,
- 	},
--	{
-+	[NF_SYSCTL_CT_LOG_INVALID] = {
- 		.procname	= "nf_conntrack_log_invalid",
- 		.data		= &init_net.ct.sysctl_log_invalid,
- 		.maxlen		= sizeof(unsigned int),
-@@ -570,7 +579,7 @@ static struct ctl_table nf_ct_sysctl_table[] = {
- 		.extra1		= &log_invalid_proto_min,
- 		.extra2		= &log_invalid_proto_max,
- 	},
--	{
-+	[NF_SYSCTL_CT_EXPECT_MAX] = {
- 		.procname	= "nf_conntrack_expect_max",
- 		.data		= &nf_ct_expect_max,
- 		.maxlen		= sizeof(int),
-@@ -600,16 +609,16 @@ static int nf_conntrack_standalone_init_sysctl(struct net *net)
- 	if (!table)
- 		goto out_kmemdup;
++nf_conntrack_gre_timeout - INTEGER (seconds)
++	default 30
++
++nf_conntrack_gre_timeout_stream - INTEGER (seconds)
++	default 180
++
++	This extended timeout will be used in case there is an GRE stream
++	detected.
+diff --git a/net/netfilter/nf_conntrack_proto_gre.c b/net/netfilter/nf_conntrack_proto_gre.c
+index 9b48dc8b4b88..d5e76bc37b89 100644
+--- a/net/netfilter/nf_conntrack_proto_gre.c
++++ b/net/netfilter/nf_conntrack_proto_gre.c
+@@ -332,9 +332,49 @@ gre_timeout_nla_policy[CTA_TIMEOUT_GRE_MAX+1] = {
+ };
+ #endif /* CONFIG_NF_CONNTRACK_TIMEOUT */
  
--	table[1].data = &net->ct.count;
--	table[3].data = &net->ct.sysctl_checksum;
--	table[4].data = &net->ct.sysctl_log_invalid;
-+	table[NF_SYSCTL_CT_COUNT].data = &net->ct.count;
-+	table[NF_SYSCTL_CT_CHECKSUM].data = &net->ct.sysctl_checksum;
-+	table[NF_SYSCTL_CT_LOG_INVALID].data = &net->ct.sysctl_log_invalid;
++#ifdef CONFIG_SYSCTL
++static struct ctl_table gre_sysctl_table[] = {
++	{
++		.procname       = "nf_conntrack_gre_timeout",
++		.maxlen         = sizeof(unsigned int),
++		.mode           = 0644,
++		.proc_handler   = proc_dointvec_jiffies,
++	},
++	{
++		.procname       = "nf_conntrack_gre_timeout_stream",
++		.maxlen         = sizeof(unsigned int),
++		.mode           = 0644,
++		.proc_handler   = proc_dointvec_jiffies,
++	},
++	{}
++};
++#endif
++
++static int gre_kmemdup_sysctl_table(struct net *net, struct nf_proto_net *nf,
++				    struct netns_proto_gre *net_gre)
++{
++#ifdef CONFIG_SYSCTL
++	int i;
++
++	if (nf->ctl_table)
++		return 0;
++
++	nf->ctl_table = kmemdup(gre_sysctl_table,
++				sizeof(gre_sysctl_table),
++				GFP_KERNEL);
++	if (!nf->ctl_table)
++		return -ENOMEM;
++
++	for (i = 0; i < GRE_CT_MAX; i++)
++		nf->ctl_table[i].data = &net_gre->gre_timeouts[i];
++#endif
++	return 0;
++}
++
+ static int gre_init_net(struct net *net)
+ {
+ 	struct netns_proto_gre *net_gre = gre_pernet(net);
++	struct nf_proto_net *nf = &net_gre->nf;
+ 	int i;
  
- 	/* Don't export sysctls to unprivileged users */
- 	if (net->user_ns != &init_user_ns)
--		table[0].procname = NULL;
-+		table[NF_SYSCTL_CT_MAX].procname = NULL;
+ 	rwlock_init(&net_gre->keymap_lock);
+@@ -342,7 +382,7 @@ static int gre_init_net(struct net *net)
+ 	for (i = 0; i < GRE_CT_MAX; i++)
+ 		net_gre->gre_timeouts[i] = gre_timeouts[i];
  
- 	if (!net_eq(&init_net, net))
--		table[2].mode = 0444;
-+		table[NF_SYSCTL_CT_BUCKETS].mode = 0444;
+-	return 0;
++	return gre_kmemdup_sysctl_table(net, nf, net_gre);
+ }
  
- 	net->ct.sysctl_header = register_net_sysctl(net, "net/netfilter", table);
- 	if (!net->ct.sysctl_header)
+ /* protocol helper struct */
 -- 
 2.11.0
