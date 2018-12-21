@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 04/37] netfilter: ctnetlink: always honor CTA_MARK_MASK
-Date: Fri, 21 Dec 2018 01:28:08 +0100
-Message-ID: <20181221002841.28587-5-pablo@netfilter.org>
+Subject: [PATCH 08/37] netfilter: remove NFC_* cache bits
+Date: Fri, 21 Dec 2018 01:28:12 +0100
+Message-ID: <20181221002841.28587-9-pablo@netfilter.org>
 References: <20181221002841.28587-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,84 +10,131 @@ In-Reply-To: <20181221002841.28587-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Andreas Jaggi <andreas.jaggi@waterwave.ch>
+These are very very (for long time unused) caching infrastructure
+definition, remove then. They have nothing to do with the NFC subsystem.
 
-Useful to only set a particular range of the conntrack mark while
-leaving existing parts of the value alone, e.g. when updating
-conntrack marks via netlink from userspace.
-
-For NFQUEUE it was already implemented in commit 534473c6080e
-("netfilter: ctnetlink: honor CTA_MARK_MASK when setting ctmark").
-
-This now adds the same functionality also for the other netlink
-conntrack mark changes.
-
-Signed-off-by: Andreas Jaggi <andreas.jaggi@waterwave.ch>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_conntrack_netlink.c | 29 +++++++++++++++++++----------
- 1 file changed, 19 insertions(+), 10 deletions(-)
+ include/uapi/linux/netfilter.h        |  4 ----
+ include/uapi/linux/netfilter_decnet.h | 10 ----------
+ include/uapi/linux/netfilter_ipv4.h   | 28 ----------------------------
+ include/uapi/linux/netfilter_ipv6.h   | 29 -----------------------------
+ 4 files changed, 71 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 4ae8e528943a..4f54c4355d33 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -1688,6 +1688,22 @@ static int ctnetlink_change_timeout(struct nf_conn *ct,
- 	return 0;
- }
+diff --git a/include/uapi/linux/netfilter.h b/include/uapi/linux/netfilter.h
+index cca10e767cd8..ca9e63d6e0e4 100644
+--- a/include/uapi/linux/netfilter.h
++++ b/include/uapi/linux/netfilter.h
+@@ -34,10 +34,6 @@
  
-+#if defined(CONFIG_NF_CONNTRACK_MARK)
-+static void ctnetlink_change_mark(struct nf_conn *ct,
-+				    const struct nlattr * const cda[])
-+{
-+	u32 mark, newmark, mask = 0;
-+
-+	if (cda[CTA_MARK_MASK])
-+		mask = ~ntohl(nla_get_be32(cda[CTA_MARK_MASK]));
-+
-+	mark = ntohl(nla_get_be32(cda[CTA_MARK]));
-+	newmark = (ct->mark & mask) ^ mark;
-+	if (newmark != ct->mark)
-+		ct->mark = newmark;
-+}
-+#endif
-+
- static const struct nla_policy protoinfo_policy[CTA_PROTOINFO_MAX+1] = {
- 	[CTA_PROTOINFO_TCP]	= { .type = NLA_NESTED },
- 	[CTA_PROTOINFO_DCCP]	= { .type = NLA_NESTED },
-@@ -1883,7 +1899,7 @@ ctnetlink_change_conntrack(struct nf_conn *ct,
+ /* only for userspace compatibility */
+ #ifndef __KERNEL__
+-/* Generic cache responses from hook functions.
+-   <= 0x2000 is used for protocol-flags. */
+-#define NFC_UNKNOWN 0x4000
+-#define NFC_ALTERED 0x8000
  
- #if defined(CONFIG_NF_CONNTRACK_MARK)
- 	if (cda[CTA_MARK])
--		ct->mark = ntohl(nla_get_be32(cda[CTA_MARK]));
-+		ctnetlink_change_mark(ct, cda);
- #endif
+ /* NF_VERDICT_BITS should be 8 now, but userspace might break if this changes */
+ #define NF_VERDICT_BITS 16
+diff --git a/include/uapi/linux/netfilter_decnet.h b/include/uapi/linux/netfilter_decnet.h
+index 61f1c7dfd033..3c77f54560f2 100644
+--- a/include/uapi/linux/netfilter_decnet.h
++++ b/include/uapi/linux/netfilter_decnet.h
+@@ -15,16 +15,6 @@
  
- 	if (cda[CTA_SEQ_ADJ_ORIG] || cda[CTA_SEQ_ADJ_REPLY]) {
-@@ -2027,7 +2043,7 @@ ctnetlink_create_conntrack(struct net *net,
+ #include <limits.h> /* for INT_MIN, INT_MAX */
  
- #if defined(CONFIG_NF_CONNTRACK_MARK)
- 	if (cda[CTA_MARK])
--		ct->mark = ntohl(nla_get_be32(cda[CTA_MARK]));
-+		ctnetlink_change_mark(ct, cda);
- #endif
- 
- 	/* setup master conntrack: this is a confirmed expectation */
-@@ -2524,14 +2540,7 @@ ctnetlink_glue_parse_ct(const struct nlattr *cda[], struct nf_conn *ct)
- 	}
- #if defined(CONFIG_NF_CONNTRACK_MARK)
- 	if (cda[CTA_MARK]) {
--		u32 mask = 0, mark, newmark;
--		if (cda[CTA_MARK_MASK])
--			mask = ~ntohl(nla_get_be32(cda[CTA_MARK_MASK]));
+-/* IP Cache bits. */
+-/* Src IP address. */
+-#define NFC_DN_SRC		0x0001
+-/* Dest IP address. */
+-#define NFC_DN_DST		0x0002
+-/* Input device. */
+-#define NFC_DN_IF_IN		0x0004
+-/* Output device. */
+-#define NFC_DN_IF_OUT		0x0008
 -
--		mark = ntohl(nla_get_be32(cda[CTA_MARK]));
--		newmark = (ct->mark & mask) ^ mark;
--		if (newmark != ct->mark)
--			ct->mark = newmark;
-+		ctnetlink_change_mark(ct, cda);
- 	}
- #endif
- 	return 0;
+ /* kernel define is in netfilter_defs.h */
+ #define NF_DN_NUMHOOKS		7
+ #endif /* ! __KERNEL__ */
+diff --git a/include/uapi/linux/netfilter_ipv4.h b/include/uapi/linux/netfilter_ipv4.h
+index c3b060775e13..155e77d6a42d 100644
+--- a/include/uapi/linux/netfilter_ipv4.h
++++ b/include/uapi/linux/netfilter_ipv4.h
+@@ -13,34 +13,6 @@
+ 
+ #include <limits.h> /* for INT_MIN, INT_MAX */
+ 
+-/* IP Cache bits. */
+-/* Src IP address. */
+-#define NFC_IP_SRC		0x0001
+-/* Dest IP address. */
+-#define NFC_IP_DST		0x0002
+-/* Input device. */
+-#define NFC_IP_IF_IN		0x0004
+-/* Output device. */
+-#define NFC_IP_IF_OUT		0x0008
+-/* TOS. */
+-#define NFC_IP_TOS		0x0010
+-/* Protocol. */
+-#define NFC_IP_PROTO		0x0020
+-/* IP options. */
+-#define NFC_IP_OPTIONS		0x0040
+-/* Frag & flags. */
+-#define NFC_IP_FRAG		0x0080
+-
+-/* Per-protocol information: only matters if proto match. */
+-/* TCP flags. */
+-#define NFC_IP_TCPFLAGS		0x0100
+-/* Source port. */
+-#define NFC_IP_SRC_PT		0x0200
+-/* Dest port. */
+-#define NFC_IP_DST_PT		0x0400
+-/* Something else about the proto */
+-#define NFC_IP_PROTO_UNKNOWN	0x2000
+-
+ /* IP Hooks */
+ /* After promisc drops, checksum checks. */
+ #define NF_IP_PRE_ROUTING	0
+diff --git a/include/uapi/linux/netfilter_ipv6.h b/include/uapi/linux/netfilter_ipv6.h
+index dc624fd24d25..80aa9b0799af 100644
+--- a/include/uapi/linux/netfilter_ipv6.h
++++ b/include/uapi/linux/netfilter_ipv6.h
+@@ -16,35 +16,6 @@
+ 
+ #include <limits.h> /* for INT_MIN, INT_MAX */
+ 
+-/* IP Cache bits. */
+-/* Src IP address. */
+-#define NFC_IP6_SRC              0x0001
+-/* Dest IP address. */
+-#define NFC_IP6_DST              0x0002
+-/* Input device. */
+-#define NFC_IP6_IF_IN            0x0004
+-/* Output device. */
+-#define NFC_IP6_IF_OUT           0x0008
+-/* TOS. */
+-#define NFC_IP6_TOS              0x0010
+-/* Protocol. */
+-#define NFC_IP6_PROTO            0x0020
+-/* IP options. */
+-#define NFC_IP6_OPTIONS          0x0040
+-/* Frag & flags. */
+-#define NFC_IP6_FRAG             0x0080
+-
+-
+-/* Per-protocol information: only matters if proto match. */
+-/* TCP flags. */
+-#define NFC_IP6_TCPFLAGS         0x0100
+-/* Source port. */
+-#define NFC_IP6_SRC_PT           0x0200
+-/* Dest port. */
+-#define NFC_IP6_DST_PT           0x0400
+-/* Something else about the proto */
+-#define NFC_IP6_PROTO_UNKNOWN    0x2000
+-
+ /* IP6 Hooks */
+ /* After promisc drops, checksum checks. */
+ #define NF_IP6_PRE_ROUTING	0
 -- 
 2.11.0
