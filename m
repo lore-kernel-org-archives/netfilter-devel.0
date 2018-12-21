@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 18/37] netfilter: nat: fold in_range indirection into caller
-Date: Fri, 21 Dec 2018 01:28:22 +0100
-Message-ID: <20181221002841.28587-19-pablo@netfilter.org>
+Subject: [PATCH 16/37] netfilter: nat: un-export nf_nat_l4proto_unique_tuple
+Date: Fri, 21 Dec 2018 01:28:20 +0100
+Message-ID: <20181221002841.28587-17-pablo@netfilter.org>
 References: <20181221002841.28587-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -12,152 +12,356 @@ List-Id: netfilter-devel.vger.kernel.org
 
 From: Florian Westphal <fw@strlen.de>
 
-No need for indirections here, we only support ipv4 and ipv6
-and the called functions are very small.
+almost all l4proto->unique_tuple implementations just call this helper,
+so make ->unique_tuple() optional and call its helper directly if the
+l4proto doesn't override it.
+
+This is an intermediate step to get rid of ->unique_tuple completely.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_nat_l3proto.h   |  3 ---
- net/ipv4/netfilter/nf_nat_l3proto_ipv4.c |  8 --------
- net/ipv6/netfilter/nf_nat_l3proto_ipv6.c |  8 --------
- net/netfilter/nf_nat_core.c              | 23 ++++++++++++++++-------
- 4 files changed, 16 insertions(+), 26 deletions(-)
+ include/net/netfilter/nf_nat_l4proto.h |  6 ---
+ net/netfilter/nf_nat_core.c            | 76 +++++++++++++++++++++++++++++++++-
+ net/netfilter/nf_nat_proto_common.c    | 73 --------------------------------
+ net/netfilter/nf_nat_proto_dccp.c      | 11 -----
+ net/netfilter/nf_nat_proto_sctp.c      | 11 -----
+ net/netfilter/nf_nat_proto_tcp.c       | 11 -----
+ net/netfilter/nf_nat_proto_udp.c       | 22 ----------
+ 7 files changed, 75 insertions(+), 135 deletions(-)
 
-diff --git a/include/net/netfilter/nf_nat_l3proto.h b/include/net/netfilter/nf_nat_l3proto.h
-index f8b3fbe7a1bf..1ce0980da638 100644
---- a/include/net/netfilter/nf_nat_l3proto.h
-+++ b/include/net/netfilter/nf_nat_l3proto.h
-@@ -6,9 +6,6 @@ struct nf_nat_l4proto;
- struct nf_nat_l3proto {
- 	u8	l3proto;
+diff --git a/include/net/netfilter/nf_nat_l4proto.h b/include/net/netfilter/nf_nat_l4proto.h
+index 7ecac2cd1020..96f0794bb1f8 100644
+--- a/include/net/netfilter/nf_nat_l4proto.h
++++ b/include/net/netfilter/nf_nat_l4proto.h
+@@ -70,12 +70,6 @@ bool nf_nat_l4proto_in_range(const struct nf_conntrack_tuple *tuple,
+ 			     const union nf_conntrack_man_proto *min,
+ 			     const union nf_conntrack_man_proto *max);
  
--	bool	(*in_range)(const struct nf_conntrack_tuple *t,
--			    const struct nf_nat_range2 *range);
+-void nf_nat_l4proto_unique_tuple(const struct nf_nat_l3proto *l3proto,
+-				 struct nf_conntrack_tuple *tuple,
+-				 const struct nf_nat_range2 *range,
+-				 enum nf_nat_manip_type maniptype,
+-				 const struct nf_conn *ct);
 -
- 	bool	(*manip_pkt)(struct sk_buff *skb,
- 			     unsigned int iphdroff,
- 			     const struct nf_nat_l4proto *l4proto,
-diff --git a/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c b/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c
-index 4d755a6f73ad..00904e605e85 100644
---- a/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c
-+++ b/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c
-@@ -62,13 +62,6 @@ static void nf_nat_ipv4_decode_session(struct sk_buff *skb,
- }
- #endif /* CONFIG_XFRM */
+ int nf_nat_l4proto_nlattr_to_range(struct nlattr *tb[],
+ 				   struct nf_nat_range2 *range);
  
--static bool nf_nat_ipv4_in_range(const struct nf_conntrack_tuple *t,
--				 const struct nf_nat_range2 *range)
--{
--	return ntohl(t->src.u3.ip) >= ntohl(range->min_addr.ip) &&
--	       ntohl(t->src.u3.ip) <= ntohl(range->max_addr.ip);
--}
--
- static bool nf_nat_ipv4_manip_pkt(struct sk_buff *skb,
- 				  unsigned int iphdroff,
- 				  const struct nf_nat_l4proto *l4proto,
-@@ -155,7 +148,6 @@ static int nf_nat_ipv4_nlattr_to_range(struct nlattr *tb[],
- 
- static const struct nf_nat_l3proto nf_nat_l3proto_ipv4 = {
- 	.l3proto		= NFPROTO_IPV4,
--	.in_range		= nf_nat_ipv4_in_range,
- 	.manip_pkt		= nf_nat_ipv4_manip_pkt,
- 	.csum_update		= nf_nat_ipv4_csum_update,
- 	.csum_recalc		= nf_nat_ipv4_csum_recalc,
-diff --git a/net/ipv6/netfilter/nf_nat_l3proto_ipv6.c b/net/ipv6/netfilter/nf_nat_l3proto_ipv6.c
-index 290bb0142192..016ab74ac1c6 100644
---- a/net/ipv6/netfilter/nf_nat_l3proto_ipv6.c
-+++ b/net/ipv6/netfilter/nf_nat_l3proto_ipv6.c
-@@ -61,13 +61,6 @@ static void nf_nat_ipv6_decode_session(struct sk_buff *skb,
- }
- #endif
- 
--static bool nf_nat_ipv6_in_range(const struct nf_conntrack_tuple *t,
--				 const struct nf_nat_range2 *range)
--{
--	return ipv6_addr_cmp(&t->src.u3.in6, &range->min_addr.in6) >= 0 &&
--	       ipv6_addr_cmp(&t->src.u3.in6, &range->max_addr.in6) <= 0;
--}
--
- static bool nf_nat_ipv6_manip_pkt(struct sk_buff *skb,
- 				  unsigned int iphdroff,
- 				  const struct nf_nat_l4proto *l4proto,
-@@ -165,7 +158,6 @@ static int nf_nat_ipv6_nlattr_to_range(struct nlattr *tb[],
- 
- static const struct nf_nat_l3proto nf_nat_l3proto_ipv6 = {
- 	.l3proto		= NFPROTO_IPV6,
--	.in_range		= nf_nat_ipv6_in_range,
- 	.manip_pkt		= nf_nat_ipv6_manip_pkt,
- 	.csum_update		= nf_nat_ipv6_csum_update,
- 	.csum_recalc		= nf_nat_ipv6_csum_recalc,
 diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
-index 763a92e82755..e1d9903a1e40 100644
+index e2b196054dfc..0c0f012343b1 100644
 --- a/net/netfilter/nf_nat_core.c
 +++ b/net/netfilter/nf_nat_core.c
-@@ -172,11 +172,21 @@ nf_nat_used_tuple(const struct nf_conntrack_tuple *tuple,
+@@ -310,6 +310,77 @@ find_best_ips_proto(const struct nf_conntrack_zone *zone,
+ 	}
  }
- EXPORT_SYMBOL(nf_nat_used_tuple);
  
-+static bool nf_nat_inet_in_range(const struct nf_conntrack_tuple *t,
-+				 const struct nf_nat_range2 *range)
++static void nf_nat_l4proto_unique_tuple(struct nf_conntrack_tuple *tuple,
++					const struct nf_nat_range2 *range,
++					enum nf_nat_manip_type maniptype,
++					const struct nf_conn *ct)
 +{
-+	if (t->src.l3num == NFPROTO_IPV4)
-+		return ntohl(t->src.u3.ip) >= ntohl(range->min_addr.ip) &&
-+		       ntohl(t->src.u3.ip) <= ntohl(range->max_addr.ip);
++	unsigned int range_size, min, max, i, attempts;
++	__be16 *portptr;
++	u16 off;
++	static const unsigned int max_attempts = 128;
 +
-+	return ipv6_addr_cmp(&t->src.u3.in6, &range->min_addr.in6) >= 0 &&
-+	       ipv6_addr_cmp(&t->src.u3.in6, &range->max_addr.in6) <= 0;
++	if (maniptype == NF_NAT_MANIP_SRC)
++		portptr = &tuple->src.u.all;
++	else
++		portptr = &tuple->dst.u.all;
++
++	/* If no range specified... */
++	if (!(range->flags & NF_NAT_RANGE_PROTO_SPECIFIED)) {
++		/* If it's dst rewrite, can't change port */
++		if (maniptype == NF_NAT_MANIP_DST)
++			return;
++
++		if (ntohs(*portptr) < 1024) {
++			/* Loose convention: >> 512 is credential passing */
++			if (ntohs(*portptr) < 512) {
++				min = 1;
++				range_size = 511 - min + 1;
++			} else {
++				min = 600;
++				range_size = 1023 - min + 1;
++			}
++		} else {
++			min = 1024;
++			range_size = 65535 - 1024 + 1;
++		}
++	} else {
++		min = ntohs(range->min_proto.all);
++		max = ntohs(range->max_proto.all);
++		if (unlikely(max < min))
++			swap(max, min);
++		range_size = max - min + 1;
++	}
++
++	if (range->flags & NF_NAT_RANGE_PROTO_OFFSET)
++		off = (ntohs(*portptr) - ntohs(range->base_proto.all));
++	else
++		off = prandom_u32();
++
++	attempts = range_size;
++	if (attempts > max_attempts)
++		attempts = max_attempts;
++
++	/* We are in softirq; doing a search of the entire range risks
++	 * soft lockup when all tuples are already used.
++	 *
++	 * If we can't find any free port from first offset, pick a new
++	 * one and try again, with ever smaller search window.
++	 */
++another_round:
++	for (i = 0; i < attempts; i++, off++) {
++		*portptr = htons(min + off % range_size);
++		if (!nf_nat_used_tuple(tuple, ct))
++			return;
++	}
++
++	if (attempts >= range_size || attempts < 16)
++		return;
++	attempts /= 2;
++	off = prandom_u32();
++	goto another_round;
 +}
 +
- /* If we source map this tuple so reply looks like reply_tuple, will
-  * that meet the constraints of range.
-  */
--static int in_range(const struct nf_nat_l3proto *l3proto,
--		    const struct nf_nat_l4proto *l4proto,
-+static int in_range(const struct nf_nat_l4proto *l4proto,
- 		    const struct nf_conntrack_tuple *tuple,
- 		    const struct nf_nat_range2 *range)
- {
-@@ -184,7 +194,7 @@ static int in_range(const struct nf_nat_l3proto *l3proto,
- 	 * range specified, otherwise let this drag us onto a new src IP.
- 	 */
- 	if (range->flags & NF_NAT_RANGE_MAP_IPS &&
--	    !l3proto->in_range(tuple, range))
-+	    !nf_nat_inet_in_range(tuple, range))
- 		return 0;
- 
- 	if (!(range->flags & NF_NAT_RANGE_PROTO_SPECIFIED) ||
-@@ -211,7 +221,6 @@ same_src(const struct nf_conn *ct,
- static int
- find_appropriate_src(struct net *net,
- 		     const struct nf_conntrack_zone *zone,
--		     const struct nf_nat_l3proto *l3proto,
- 		     const struct nf_nat_l4proto *l4proto,
- 		     const struct nf_conntrack_tuple *tuple,
- 		     struct nf_conntrack_tuple *result,
-@@ -229,7 +238,7 @@ find_appropriate_src(struct net *net,
- 				       &ct->tuplehash[IP_CT_DIR_REPLY].tuple);
- 			result->dst = tuple->dst;
- 
--			if (in_range(l3proto, l4proto, result, range))
-+			if (in_range(l4proto, result, range))
- 				return 1;
- 		}
+ /* Manipulate the tuple into the range given. For NF_INET_POST_ROUTING,
+  * we change the source to map into the range. For NF_INET_PRE_ROUTING
+  * and NF_INET_LOCAL_OUT, we change the destination to map into the
+@@ -383,7 +454,10 @@ get_unique_tuple(struct nf_conntrack_tuple *tuple,
  	}
-@@ -463,12 +472,12 @@ get_unique_tuple(struct nf_conntrack_tuple *tuple,
- 	if (maniptype == NF_NAT_MANIP_SRC &&
- 	    !(range->flags & NF_NAT_RANGE_PROTO_RANDOM_ALL)) {
- 		/* try the original tuple first */
--		if (in_range(l3proto, l4proto, orig_tuple, range)) {
-+		if (in_range(l4proto, orig_tuple, range)) {
- 			if (!nf_nat_used_tuple(orig_tuple, ct)) {
- 				*tuple = *orig_tuple;
- 				goto out;
- 			}
--		} else if (find_appropriate_src(net, zone, l3proto, l4proto,
-+		} else if (find_appropriate_src(net, zone, l4proto,
- 						orig_tuple, tuple, range)) {
- 			pr_debug("get_unique_tuple: Found current src map\n");
- 			if (!nf_nat_used_tuple(tuple, ct))
+ 
+ 	/* Last chance: get protocol to try to obtain unique tuple. */
+-	l4proto->unique_tuple(l3proto, tuple, range, maniptype, ct);
++	if (l4proto->unique_tuple)
++		l4proto->unique_tuple(l3proto, tuple, range, maniptype, ct);
++	else
++		nf_nat_l4proto_unique_tuple(tuple, range, maniptype, ct);
+ out:
+ 	rcu_read_unlock();
+ }
+diff --git a/net/netfilter/nf_nat_proto_common.c b/net/netfilter/nf_nat_proto_common.c
+index dabfe9a2c041..ef14d86f0f5b 100644
+--- a/net/netfilter/nf_nat_proto_common.c
++++ b/net/netfilter/nf_nat_proto_common.c
+@@ -34,79 +34,6 @@ bool nf_nat_l4proto_in_range(const struct nf_conntrack_tuple *tuple,
+ }
+ EXPORT_SYMBOL_GPL(nf_nat_l4proto_in_range);
+ 
+-void nf_nat_l4proto_unique_tuple(const struct nf_nat_l3proto *l3proto,
+-				 struct nf_conntrack_tuple *tuple,
+-				 const struct nf_nat_range2 *range,
+-				 enum nf_nat_manip_type maniptype,
+-				 const struct nf_conn *ct)
+-{
+-	unsigned int range_size, min, max, i, attempts;
+-	__be16 *portptr;
+-	u16 off;
+-	static const unsigned int max_attempts = 128;
+-
+-	if (maniptype == NF_NAT_MANIP_SRC)
+-		portptr = &tuple->src.u.all;
+-	else
+-		portptr = &tuple->dst.u.all;
+-
+-	/* If no range specified... */
+-	if (!(range->flags & NF_NAT_RANGE_PROTO_SPECIFIED)) {
+-		/* If it's dst rewrite, can't change port */
+-		if (maniptype == NF_NAT_MANIP_DST)
+-			return;
+-
+-		if (ntohs(*portptr) < 1024) {
+-			/* Loose convention: >> 512 is credential passing */
+-			if (ntohs(*portptr) < 512) {
+-				min = 1;
+-				range_size = 511 - min + 1;
+-			} else {
+-				min = 600;
+-				range_size = 1023 - min + 1;
+-			}
+-		} else {
+-			min = 1024;
+-			range_size = 65535 - 1024 + 1;
+-		}
+-	} else {
+-		min = ntohs(range->min_proto.all);
+-		max = ntohs(range->max_proto.all);
+-		if (unlikely(max < min))
+-			swap(max, min);
+-		range_size = max - min + 1;
+-	}
+-
+-	if (range->flags & NF_NAT_RANGE_PROTO_OFFSET)
+-		off = (ntohs(*portptr) - ntohs(range->base_proto.all));
+-	else
+-		off = prandom_u32();
+-
+-	attempts = range_size;
+-	if (attempts > max_attempts)
+-		attempts = max_attempts;
+-
+-	/* We are in softirq; doing a search of the entire range risks
+-	 * soft lockup when all tuples are already used.
+-	 *
+-	 * If we can't find any free port from first offset, pick a new
+-	 * one and try again, with ever smaller search window.
+-	 */
+-another_round:
+-	for (i = 0; i < attempts; i++, off++) {
+-		*portptr = htons(min + off % range_size);
+-		if (!nf_nat_used_tuple(tuple, ct))
+-			return;
+-	}
+-
+-	if (attempts >= range_size || attempts < 16)
+-		return;
+-	attempts /= 2;
+-	off = prandom_u32();
+-	goto another_round;
+-}
+-EXPORT_SYMBOL_GPL(nf_nat_l4proto_unique_tuple);
+-
+ #if IS_ENABLED(CONFIG_NF_CT_NETLINK)
+ int nf_nat_l4proto_nlattr_to_range(struct nlattr *tb[],
+ 				   struct nf_nat_range2 *range)
+diff --git a/net/netfilter/nf_nat_proto_dccp.c b/net/netfilter/nf_nat_proto_dccp.c
+index 7d4d2c124990..8dbba7b20177 100644
+--- a/net/netfilter/nf_nat_proto_dccp.c
++++ b/net/netfilter/nf_nat_proto_dccp.c
+@@ -18,16 +18,6 @@
+ #include <net/netfilter/nf_nat_l3proto.h>
+ #include <net/netfilter/nf_nat_l4proto.h>
+ 
+-static void
+-dccp_unique_tuple(const struct nf_nat_l3proto *l3proto,
+-		  struct nf_conntrack_tuple *tuple,
+-		  const struct nf_nat_range2 *range,
+-		  enum nf_nat_manip_type maniptype,
+-		  const struct nf_conn *ct)
+-{
+-	nf_nat_l4proto_unique_tuple(l3proto, tuple, range, maniptype, ct);
+-}
+-
+ static bool
+ dccp_manip_pkt(struct sk_buff *skb,
+ 	       const struct nf_nat_l3proto *l3proto,
+@@ -72,7 +62,6 @@ const struct nf_nat_l4proto nf_nat_l4proto_dccp = {
+ 	.l4proto		= IPPROTO_DCCP,
+ 	.manip_pkt		= dccp_manip_pkt,
+ 	.in_range		= nf_nat_l4proto_in_range,
+-	.unique_tuple		= dccp_unique_tuple,
+ #if IS_ENABLED(CONFIG_NF_CT_NETLINK)
+ 	.nlattr_to_range	= nf_nat_l4proto_nlattr_to_range,
+ #endif
+diff --git a/net/netfilter/nf_nat_proto_sctp.c b/net/netfilter/nf_nat_proto_sctp.c
+index f05ad8fa7b20..da86475d0db6 100644
+--- a/net/netfilter/nf_nat_proto_sctp.c
++++ b/net/netfilter/nf_nat_proto_sctp.c
+@@ -12,16 +12,6 @@
+ 
+ #include <net/netfilter/nf_nat_l4proto.h>
+ 
+-static void
+-sctp_unique_tuple(const struct nf_nat_l3proto *l3proto,
+-		  struct nf_conntrack_tuple *tuple,
+-		  const struct nf_nat_range2 *range,
+-		  enum nf_nat_manip_type maniptype,
+-		  const struct nf_conn *ct)
+-{
+-	nf_nat_l4proto_unique_tuple(l3proto, tuple, range, maniptype, ct);
+-}
+-
+ static bool
+ sctp_manip_pkt(struct sk_buff *skb,
+ 	       const struct nf_nat_l3proto *l3proto,
+@@ -67,7 +57,6 @@ const struct nf_nat_l4proto nf_nat_l4proto_sctp = {
+ 	.l4proto		= IPPROTO_SCTP,
+ 	.manip_pkt		= sctp_manip_pkt,
+ 	.in_range		= nf_nat_l4proto_in_range,
+-	.unique_tuple		= sctp_unique_tuple,
+ #if IS_ENABLED(CONFIG_NF_CT_NETLINK)
+ 	.nlattr_to_range	= nf_nat_l4proto_nlattr_to_range,
+ #endif
+diff --git a/net/netfilter/nf_nat_proto_tcp.c b/net/netfilter/nf_nat_proto_tcp.c
+index c312e6b3e2ea..666a4b3303f7 100644
+--- a/net/netfilter/nf_nat_proto_tcp.c
++++ b/net/netfilter/nf_nat_proto_tcp.c
+@@ -18,16 +18,6 @@
+ #include <net/netfilter/nf_nat_l4proto.h>
+ #include <net/netfilter/nf_nat_core.h>
+ 
+-static void
+-tcp_unique_tuple(const struct nf_nat_l3proto *l3proto,
+-		 struct nf_conntrack_tuple *tuple,
+-		 const struct nf_nat_range2 *range,
+-		 enum nf_nat_manip_type maniptype,
+-		 const struct nf_conn *ct)
+-{
+-	nf_nat_l4proto_unique_tuple(l3proto, tuple, range, maniptype, ct);
+-}
+-
+ static bool
+ tcp_manip_pkt(struct sk_buff *skb,
+ 	      const struct nf_nat_l3proto *l3proto,
+@@ -75,7 +65,6 @@ const struct nf_nat_l4proto nf_nat_l4proto_tcp = {
+ 	.l4proto		= IPPROTO_TCP,
+ 	.manip_pkt		= tcp_manip_pkt,
+ 	.in_range		= nf_nat_l4proto_in_range,
+-	.unique_tuple		= tcp_unique_tuple,
+ #if IS_ENABLED(CONFIG_NF_CT_NETLINK)
+ 	.nlattr_to_range	= nf_nat_l4proto_nlattr_to_range,
+ #endif
+diff --git a/net/netfilter/nf_nat_proto_udp.c b/net/netfilter/nf_nat_proto_udp.c
+index 208c14316359..26f3715a457a 100644
+--- a/net/netfilter/nf_nat_proto_udp.c
++++ b/net/netfilter/nf_nat_proto_udp.c
+@@ -18,16 +18,6 @@
+ #include <net/netfilter/nf_nat_l4proto.h>
+ 
+ static void
+-udp_unique_tuple(const struct nf_nat_l3proto *l3proto,
+-		 struct nf_conntrack_tuple *tuple,
+-		 const struct nf_nat_range2 *range,
+-		 enum nf_nat_manip_type maniptype,
+-		 const struct nf_conn *ct)
+-{
+-	nf_nat_l4proto_unique_tuple(l3proto, tuple, range, maniptype, ct);
+-}
+-
+-static void
+ __udp_manip_pkt(struct sk_buff *skb,
+ 	        const struct nf_nat_l3proto *l3proto,
+ 	        unsigned int iphdroff, struct udphdr *hdr,
+@@ -92,21 +82,10 @@ static bool udplite_manip_pkt(struct sk_buff *skb,
+ 	return true;
+ }
+ 
+-static void
+-udplite_unique_tuple(const struct nf_nat_l3proto *l3proto,
+-		     struct nf_conntrack_tuple *tuple,
+-		     const struct nf_nat_range2 *range,
+-		     enum nf_nat_manip_type maniptype,
+-		     const struct nf_conn *ct)
+-{
+-	nf_nat_l4proto_unique_tuple(l3proto, tuple, range, maniptype, ct);
+-}
+-
+ const struct nf_nat_l4proto nf_nat_l4proto_udplite = {
+ 	.l4proto		= IPPROTO_UDPLITE,
+ 	.manip_pkt		= udplite_manip_pkt,
+ 	.in_range		= nf_nat_l4proto_in_range,
+-	.unique_tuple		= udplite_unique_tuple,
+ #if IS_ENABLED(CONFIG_NF_CT_NETLINK)
+ 	.nlattr_to_range	= nf_nat_l4proto_nlattr_to_range,
+ #endif
+@@ -117,7 +96,6 @@ const struct nf_nat_l4proto nf_nat_l4proto_udp = {
+ 	.l4proto		= IPPROTO_UDP,
+ 	.manip_pkt		= udp_manip_pkt,
+ 	.in_range		= nf_nat_l4proto_in_range,
+-	.unique_tuple		= udp_unique_tuple,
+ #if IS_ENABLED(CONFIG_NF_CT_NETLINK)
+ 	.nlattr_to_range	= nf_nat_l4proto_nlattr_to_range,
+ #endif
 -- 
 2.11.0
