@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 07/37] netfilter: Replace call_rcu_bh(), rcu_barrier_bh(), and synchronize_rcu_bh()
-Date: Fri, 21 Dec 2018 01:28:11 +0100
-Message-ID: <20181221002841.28587-8-pablo@netfilter.org>
+Subject: [PATCH 14/37] netfilter: remove unused parameters in nf_ct_l4proto_[un]register_sysctl()
+Date: Fri, 21 Dec 2018 01:28:18 +0100
+Message-ID: <20181221002841.28587-15-pablo@netfilter.org>
 References: <20181221002841.28587-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,104 +10,90 @@ In-Reply-To: <20181221002841.28587-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: "Paul E. McKenney" <paulmck@linux.ibm.com>
+From: Yafang Shao <laoar.shao@gmail.com>
 
-Now that call_rcu()'s callback is not invoked until after bh-disable
-regions of code have completed (in addition to explicitly marked
-RCU read-side critical sections), call_rcu() can be used in place
-of call_rcu_bh().  Similarly, rcu_barrier() can be used in place of
-rcu_barrier_bh() and synchronize_rcu() in place of synchronize_rcu_bh().
-This commit therefore makes these changes.
+These parameters aren't used now.
+So remove them.
 
-Signed-off-by: Paul E. McKenney <paulmck@linux.ibm.com>
+Signed-off-by: Yafang Shao <laoar.shao@gmail.com>
+Acked-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/ipv4/netfilter/ipt_CLUSTERIP.c    | 6 +++---
- net/netfilter/ipset/ip_set_hash_gen.h | 4 ++--
- net/netfilter/nfnetlink_log.c         | 2 +-
- net/netfilter/xt_hashlimit.c          | 4 ++--
- 4 files changed, 8 insertions(+), 8 deletions(-)
+ net/netfilter/nf_conntrack_proto.c | 21 +++++++--------------
+ 1 file changed, 7 insertions(+), 14 deletions(-)
 
-diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-index 2c8d313ae216..5b0c1ee6ae26 100644
---- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
-+++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-@@ -94,7 +94,7 @@ static inline void
- clusterip_config_put(struct clusterip_config *c)
+diff --git a/net/netfilter/nf_conntrack_proto.c b/net/netfilter/nf_conntrack_proto.c
+index 40643af7137e..859f5d07a915 100644
+--- a/net/netfilter/nf_conntrack_proto.c
++++ b/net/netfilter/nf_conntrack_proto.c
+@@ -175,8 +175,7 @@ static struct nf_proto_net *nf_ct_l4proto_net(struct net *net,
+ 
+ static
+ int nf_ct_l4proto_register_sysctl(struct net *net,
+-				  struct nf_proto_net *pn,
+-				  const struct nf_conntrack_l4proto *l4proto)
++				  struct nf_proto_net *pn)
  {
- 	if (refcount_dec_and_test(&c->refcount))
--		call_rcu_bh(&c->rcu, clusterip_config_rcu_free);
-+		call_rcu(&c->rcu, clusterip_config_rcu_free);
+ 	int err = 0;
+ 
+@@ -198,9 +197,7 @@ int nf_ct_l4proto_register_sysctl(struct net *net,
  }
  
- /* decrease the count of entries using/referencing this config.  If last
-@@ -876,8 +876,8 @@ static void __exit clusterip_tg_exit(void)
- 	xt_unregister_target(&clusterip_tg_reg);
- 	unregister_pernet_subsys(&clusterip_net_ops);
- 
--	/* Wait for completion of call_rcu_bh()'s (clusterip_config_rcu_free) */
--	rcu_barrier_bh();
-+	/* Wait for completion of call_rcu()'s (clusterip_config_rcu_free) */
-+	rcu_barrier();
- }
- 
- module_init(clusterip_tg_init);
-diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
-index e287da68d5fa..2c9609929c71 100644
---- a/net/netfilter/ipset/ip_set_hash_gen.h
-+++ b/net/netfilter/ipset/ip_set_hash_gen.h
-@@ -67,7 +67,7 @@ tune_ahash_max(u8 curr, u32 multi)
- 
- /* A hash bucket */
- struct hbucket {
--	struct rcu_head rcu;	/* for call_rcu_bh */
-+	struct rcu_head rcu;	/* for call_rcu */
- 	/* Which positions are used in the array */
- 	DECLARE_BITMAP(used, AHASH_MAX_TUNED);
- 	u8 size;		/* size of the array */
-@@ -664,7 +664,7 @@ mtype_resize(struct ip_set *set, bool retried)
- 	spin_unlock_bh(&set->lock);
- 
- 	/* Give time to other readers of the set */
--	synchronize_rcu_bh();
-+	synchronize_rcu();
- 
- 	pr_debug("set %s resized from %u (%p) to %u (%p)\n", set->name,
- 		 orig->htable_bits, orig, t->htable_bits, t);
-diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
-index 332c69d27b47..b1f9c5303f02 100644
---- a/net/netfilter/nfnetlink_log.c
-+++ b/net/netfilter/nfnetlink_log.c
-@@ -148,7 +148,7 @@ static void
- instance_put(struct nfulnl_instance *inst)
+ static
+-void nf_ct_l4proto_unregister_sysctl(struct net *net,
+-				struct nf_proto_net *pn,
+-				const struct nf_conntrack_l4proto *l4proto)
++void nf_ct_l4proto_unregister_sysctl(struct nf_proto_net *pn)
  {
- 	if (inst && refcount_dec_and_test(&inst->use))
--		call_rcu_bh(&inst->rcu, nfulnl_instance_free_rcu);
-+		call_rcu(&inst->rcu, nfulnl_instance_free_rcu);
+ #ifdef CONFIG_SYSCTL
+ 	if (pn->ctl_table_header != NULL)
+@@ -252,7 +249,7 @@ int nf_ct_l4proto_pernet_register_one(struct net *net,
+ 	if (pn == NULL)
+ 		goto out;
+ 
+-	ret = nf_ct_l4proto_register_sysctl(net, pn, l4proto);
++	ret = nf_ct_l4proto_register_sysctl(net, pn);
+ 	if (ret < 0)
+ 		goto out;
+ 
+@@ -296,7 +293,7 @@ void nf_ct_l4proto_pernet_unregister_one(struct net *net,
+ 		return;
+ 
+ 	pn->users--;
+-	nf_ct_l4proto_unregister_sysctl(net, pn, l4proto);
++	nf_ct_l4proto_unregister_sysctl(pn);
+ }
+ EXPORT_SYMBOL_GPL(nf_ct_l4proto_pernet_unregister_one);
+ 
+@@ -946,16 +943,14 @@ int nf_conntrack_proto_pernet_init(struct net *net)
+ 	if (err < 0)
+ 		return err;
+ 	err = nf_ct_l4proto_register_sysctl(net,
+-					    pn,
+-					    &nf_conntrack_l4proto_generic);
++					    pn);
+ 	if (err < 0)
+ 		return err;
+ 
+ 	err = nf_ct_l4proto_pernet_register(net, builtin_l4proto,
+ 					    ARRAY_SIZE(builtin_l4proto));
+ 	if (err < 0) {
+-		nf_ct_l4proto_unregister_sysctl(net, pn,
+-						&nf_conntrack_l4proto_generic);
++		nf_ct_l4proto_unregister_sysctl(pn);
+ 		return err;
+ 	}
+ 
+@@ -971,9 +966,7 @@ void nf_conntrack_proto_pernet_fini(struct net *net)
+ 	nf_ct_l4proto_pernet_unregister(net, builtin_l4proto,
+ 					ARRAY_SIZE(builtin_l4proto));
+ 	pn->users--;
+-	nf_ct_l4proto_unregister_sysctl(net,
+-					pn,
+-					&nf_conntrack_l4proto_generic);
++	nf_ct_l4proto_unregister_sysctl(pn);
  }
  
- static void nfulnl_timer(struct timer_list *t);
-diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
-index 3e7d259e5d8d..8138b68a9a44 100644
---- a/net/netfilter/xt_hashlimit.c
-+++ b/net/netfilter/xt_hashlimit.c
-@@ -260,7 +260,7 @@ static inline void
- dsthash_free(struct xt_hashlimit_htable *ht, struct dsthash_ent *ent)
- {
- 	hlist_del_rcu(&ent->node);
--	call_rcu_bh(&ent->rcu, dsthash_free_rcu);
-+	call_rcu(&ent->rcu, dsthash_free_rcu);
- 	ht->count--;
- }
- static void htable_gc(struct work_struct *work);
-@@ -1329,7 +1329,7 @@ static void __exit hashlimit_mt_exit(void)
- 	xt_unregister_matches(hashlimit_mt_reg, ARRAY_SIZE(hashlimit_mt_reg));
- 	unregister_pernet_subsys(&hashlimit_net_ops);
- 
--	rcu_barrier_bh();
-+	rcu_barrier();
- 	kmem_cache_destroy(hashlimit_cachep);
- }
  
 -- 
 2.11.0
