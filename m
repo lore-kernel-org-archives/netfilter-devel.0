@@ -1,11 +1,11 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.19 37/97] netfilter: nf_conncount: use rb_link_node_rcu() instead of rb_link_node()
-Date: Wed, 26 Dec 2018 17:34:57 -0500
-Message-ID: <20181226223557.149329-37-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 36/97] netfilter: nat: can't use dst_hold on noref dst
+Date: Wed, 26 Dec 2018 17:34:56 -0500
+Message-ID: <20181226223557.149329-36-sashal@kernel.org>
 References: <20181226223557.149329-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Cc: Taehee Yoo <ap420073@gmail.com>,
+Cc: Florian Westphal <fw@strlen.de>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
         Sasha Levin <sashal@kernel.org>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
@@ -16,34 +16,48 @@ In-Reply-To: <20181226223557.149329-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Taehee Yoo <ap420073@gmail.com>
+From: Florian Westphal <fw@strlen.de>
 
-[ Upstream commit d4e7df16567b80836a78d31b42f1a9355a636d67 ]
+[ Upstream commit 542fbda0f08f1cbbc250f9e59f7537649651d0c8 ]
 
-rbnode in insert_tree() is rcu protected pointer.
-So, in order to handle this pointer, _rcu function should be used.
-rb_link_node_rcu() is a rcu version of rb_link_node().
+The dst entry might already have a zero refcount, waiting on rcu list
+to be free'd.  Using dst_hold() transitions its reference count to 1, and
+next dst release will try to free it again -- resulting in a double free:
 
-Fixes: 34848d5c896e ("netfilter: nf_conncount: Split insert and traversal")
-Signed-off-by: Taehee Yoo <ap420073@gmail.com>
+  WARNING: CPU: 1 PID: 0 at include/net/dst.h:239 nf_xfrm_me_harder+0xe7/0x130 [nf_nat]
+  RIP: 0010:nf_xfrm_me_harder+0xe7/0x130 [nf_nat]
+  Code: 48 8b 5c 24 60 65 48 33 1c 25 28 00 00 00 75 53 48 83 c4 68 5b 5d 41 5c c3 85 c0 74 0d 8d 48 01 f0 0f b1 0a 74 86 85 c0 75 f3 <0f> 0b e9 7b ff ff ff 29 c6 31 d2 b9 20 00 48 00 4c 89 e7 e8 31 27
+  Call Trace:
+  nf_nat_ipv4_out+0x78/0x90 [nf_nat_ipv4]
+  nf_hook_slow+0x36/0xd0
+  ip_output+0x9f/0xd0
+  ip_forward+0x328/0x440
+  ip_rcv+0x8a/0xb0
+
+Use dst_hold_safe instead and bail out if we cannot take a reference.
+
+Fixes: a4c2fd7f7891 ("net: remove DST_NOCACHE flag")
+Reported-by: Martin Zaharinov <micron10@gmail.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- net/netfilter/nf_conncount.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/netfilter/nf_nat_core.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nf_conncount.c b/net/netfilter/nf_conncount.c
-index b6d0f6deea86..9cd180bda092 100644
---- a/net/netfilter/nf_conncount.c
-+++ b/net/netfilter/nf_conncount.c
-@@ -427,7 +427,7 @@ insert_tree(struct net *net,
- 	count = 1;
- 	rbconn->list.count = count;
+diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
+index e2b196054dfc..2268b10a9dcf 100644
+--- a/net/netfilter/nf_nat_core.c
++++ b/net/netfilter/nf_nat_core.c
+@@ -117,7 +117,8 @@ int nf_xfrm_me_harder(struct net *net, struct sk_buff *skb, unsigned int family)
+ 	dst = skb_dst(skb);
+ 	if (dst->xfrm)
+ 		dst = ((struct xfrm_dst *)dst)->route;
+-	dst_hold(dst);
++	if (!dst_hold_safe(dst))
++		return -EHOSTUNREACH;
  
--	rb_link_node(&rbconn->node, parent, rbnode);
-+	rb_link_node_rcu(&rbconn->node, parent, rbnode);
- 	rb_insert_color(&rbconn->node, root);
- out_unlock:
- 	spin_unlock_bh(&nf_conncount_locks[hash % CONNCOUNT_LOCK_SLOTS]);
+ 	if (sk && !net_eq(net, sock_net(sk)))
+ 		sk = NULL;
 -- 
 2.19.1
