@@ -1,63 +1,53 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.19 36/97] netfilter: nat: can't use dst_hold on noref dst
-Date: Wed, 26 Dec 2018 17:34:56 -0500
-Message-ID: <20181226223557.149329-36-sashal@kernel.org>
-References: <20181226223557.149329-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.9 12/35] netfilter: ipset: do not call ipset_nest_end after nla_nest_cancel
+Date: Wed, 26 Dec 2018 17:41:19 -0500
+Message-ID: <20181226224142.150866-12-sashal@kernel.org>
+References: <20181226224142.150866-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Cc: Florian Westphal <fw@strlen.de>,
+Cc: Pan Bian <bianpan2016@163.com>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
         Sasha Levin <sashal@kernel.org>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org
 To: stable@vger.kernel.org, linux-kernel@vger.kernel.org
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181226223557.149329-1-sashal@kernel.org>
+In-Reply-To: <20181226224142.150866-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+From: Pan Bian <bianpan2016@163.com>
 
-[ Upstream commit 542fbda0f08f1cbbc250f9e59f7537649651d0c8 ]
+[ Upstream commit 708abf74dd87f8640871b814faa195fb5970b0e3 ]
 
-The dst entry might already have a zero refcount, waiting on rcu list
-to be free'd.  Using dst_hold() transitions its reference count to 1, and
-next dst release will try to free it again -- resulting in a double free:
+In the error handling block, nla_nest_cancel(skb, atd) is called to
+cancel the nest operation. But then, ipset_nest_end(skb, atd) is
+unexpected called to end the nest operation. This patch calls the
+ipset_nest_end only on the branch that nla_nest_cancel is not called.
 
-  WARNING: CPU: 1 PID: 0 at include/net/dst.h:239 nf_xfrm_me_harder+0xe7/0x130 [nf_nat]
-  RIP: 0010:nf_xfrm_me_harder+0xe7/0x130 [nf_nat]
-  Code: 48 8b 5c 24 60 65 48 33 1c 25 28 00 00 00 75 53 48 83 c4 68 5b 5d 41 5c c3 85 c0 74 0d 8d 48 01 f0 0f b1 0a 74 86 85 c0 75 f3 <0f> 0b e9 7b ff ff ff 29 c6 31 d2 b9 20 00 48 00 4c 89 e7 e8 31 27
-  Call Trace:
-  nf_nat_ipv4_out+0x78/0x90 [nf_nat_ipv4]
-  nf_hook_slow+0x36/0xd0
-  ip_output+0x9f/0xd0
-  ip_forward+0x328/0x440
-  ip_rcv+0x8a/0xb0
-
-Use dst_hold_safe instead and bail out if we cannot take a reference.
-
-Fixes: a4c2fd7f7891 ("net: remove DST_NOCACHE flag")
-Reported-by: Martin Zaharinov <micron10@gmail.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Fixes: 45040978c899 ("netfilter: ipset: Fix set:list type crash when flush/dump set in parallel")
+Signed-off-by: Pan Bian <bianpan2016@163.com>
+Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- net/netfilter/nf_nat_core.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ net/netfilter/ipset/ip_set_list_set.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
-index e2b196054dfc..2268b10a9dcf 100644
---- a/net/netfilter/nf_nat_core.c
-+++ b/net/netfilter/nf_nat_core.c
-@@ -117,7 +117,8 @@ int nf_xfrm_me_harder(struct net *net, struct sk_buff *skb, unsigned int family)
- 	dst = skb_dst(skb);
- 	if (dst->xfrm)
- 		dst = ((struct xfrm_dst *)dst)->route;
--	dst_hold(dst);
-+	if (!dst_hold_safe(dst))
-+		return -EHOSTUNREACH;
- 
- 	if (sk && !net_eq(net, sock_net(sk)))
- 		sk = NULL;
+diff --git a/net/netfilter/ipset/ip_set_list_set.c b/net/netfilter/ipset/ip_set_list_set.c
+index a2a89e4e0a14..e82157285d34 100644
+--- a/net/netfilter/ipset/ip_set_list_set.c
++++ b/net/netfilter/ipset/ip_set_list_set.c
+@@ -518,8 +518,8 @@ list_set_list(const struct ip_set *set,
+ 		ret = -EMSGSIZE;
+ 	} else {
+ 		cb->args[IPSET_CB_ARG0] = i;
++		ipset_nest_end(skb, atd);
+ 	}
+-	ipset_nest_end(skb, atd);
+ out:
+ 	rcu_read_unlock();
+ 	return ret;
 -- 
 2.19.1
