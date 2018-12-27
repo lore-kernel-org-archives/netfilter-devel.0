@@ -1,177 +1,319 @@
-From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.19 20/97] netfilter: nf_tables: fix suspicious RCU usage in nft_chain_stats_replace()
-Date: Wed, 26 Dec 2018 17:34:40 -0500
-Message-ID: <20181226223557.149329-20-sashal@kernel.org>
-References: <20181226223557.149329-1-sashal@kernel.org>
+From: Richard Guy Briggs <rgb@redhat.com>
+Subject: Re: [PATCH ghak90 (was ghak32) V4 09/10] audit: NETFILTER_PKT:
+ record each container ID associated with a netNS
+Date: Thu, 27 Dec 2018 10:33:54 -0500
+Message-ID: <20181227153354.k2vd4be2c6t2kqe4@madcap2.tricolour.ca>
+References: <cover.1533065887.git.rgb@redhat.com>
+ <3f5edfb0d530d7f0061fe11b817b315b350b9d86.1533065887.git.rgb@redhat.com>
+ <CAHC9VhT2GJH2cJsrCsxCZMLsdv67oXJhH9mHAgpfMRY4=y43WQ@mail.gmail.com>
+ <20181031193018.67pxaxzxlbdc4lkd@madcap2.tricolour.ca>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Cc: Taehee Yoo <ap420073@gmail.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Sasha Levin <sashal@kernel.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org
-To: stable@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: simo@redhat.com, carlos@redhat.com, netdev@vger.kernel.org,
+        containers@lists.linux-foundation.org,
+        linux-kernel@vger.kernel.org, dhowells@redhat.com,
+        linux-audit@redhat.com, netfilter-devel@vger.kernel.org,
+        ebiederm@xmission.com, luto@kernel.org,
+        Eric Paris <eparis@parisplace.org>,
+        Serge Hallyn <serge@hallyn.com>, viro@zeniv.linux.org.uk
+To: Paul Moore <paul@paul-moore.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181226223557.149329-1-sashal@kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20181031193018.67pxaxzxlbdc4lkd@madcap2.tricolour.ca>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Taehee Yoo <ap420073@gmail.com>
+On 2018-10-31 15:30, Richard Guy Briggs wrote:
+> On 2018-10-19 19:18, Paul Moore wrote:
+> > On Sun, Aug 5, 2018 at 4:33 AM Richard Guy Briggs <rgb@redhat.com> wrote:
+> > > Add audit container identifier auxiliary record(s) to NETFILTER_PKT
+> > > event standalone records.  Iterate through all potential audit container
+> > > identifiers associated with a network namespace.
+> > >
+> > > Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
+> > > ---
+> > >  include/linux/audit.h    |  5 +++++
+> > >  kernel/audit.c           | 26 ++++++++++++++++++++++++++
+> > >  net/netfilter/xt_AUDIT.c | 12 ++++++++++--
+> > >  3 files changed, 41 insertions(+), 2 deletions(-)
+> > 
+> > ...
+> > 
+> > > diff --git a/include/linux/audit.h b/include/linux/audit.h
+> > > index 9a02095..8755f4d 100644
+> > > --- a/include/linux/audit.h
+> > > +++ b/include/linux/audit.h
+> > > @@ -169,6 +169,8 @@ extern int audit_log_contid(struct audit_context *context,
+> > >  extern void audit_netns_contid_add(struct net *net, u64 contid);
+> > >  extern void audit_netns_contid_del(struct net *net, u64 contid);
+> > >  extern void audit_switch_task_namespaces(struct nsproxy *ns, struct task_struct *p);
+> > > +extern void audit_log_netns_contid_list(struct net *net,
+> > > +                                struct audit_context *context);
+> > >
+> > >  extern int                 audit_update_lsm_rules(void);
+> > >
+> > > @@ -228,6 +230,9 @@ static inline void audit_netns_contid_del(struct net *net, u64 contid)
+> > >  { }
+> > >  static inline void audit_switch_task_namespaces(struct nsproxy *ns, struct task_struct *p)
+> > >  { }
+> > > +static inline void audit_log_netns_contid_list(struct net *net,
+> > > +                                       struct audit_context *context)
+> > > +{ }
+> > >
+> > >  #define audit_enabled AUDIT_OFF
+> > >  #endif /* CONFIG_AUDIT */
+> > > diff --git a/kernel/audit.c b/kernel/audit.c
+> > > index c5fed3b..b23711c 100644
+> > > --- a/kernel/audit.c
+> > > +++ b/kernel/audit.c
+> > > @@ -392,6 +392,32 @@ void audit_switch_task_namespaces(struct nsproxy *ns, struct task_struct *p)
+> > >                 audit_netns_contid_add(new->net_ns, contid);
+> > >  }
+> > >
+> > > +void audit_log_netns_contid_list(struct net *net, struct audit_context *context)
+> > > +{
+> > > +       spinlock_t *lock = audit_get_netns_contid_list_lock(net);
+> > > +       struct audit_buffer *ab;
+> > > +       struct audit_contid *cont;
+> > > +       bool first = true;
+> > > +
+> > > +       /* Generate AUDIT_CONTAINER record with container ID CSV list */
+> > > +       ab = audit_log_start(context, GFP_ATOMIC, AUDIT_CONTAINER);
+> > > +       if (!ab) {
+> > > +               audit_log_lost("out of memory in audit_log_netns_contid_list");
+> > > +               return;
+> > > +       }
+> > > +       audit_log_format(ab, "contid=");
+> > > +       spin_lock(lock);
+> > > +       list_for_each_entry(cont, audit_get_netns_contid_list(net), list) {
+> > > +               if (!first)
+> > > +                       audit_log_format(ab, ",");
+> > > +               audit_log_format(ab, "%llu", cont->id);
+> > > +               first = false;
+> > > +       }
+> > > +       spin_unlock(lock);
+> > 
+> > This is looking like potentially a lot of work to be doing under a
+> > spinlock, not to mention a single spinlock that is shared across CPUs.
+> > Considering that I expect changes to the list to be somewhat
+> > infrequent, this might be a good candidate for a RCU based locking
+> > scheme.
+> 
+> Would something like this look reasonable?
+> (This is on top of a patch to make contid list lock and unlock
+> functions.)
 
-[ Upstream commit 4c05ec47384ab3627b62814e8f886e90cc38ce15 ]
+Paul, could I please get your review on this locking approach I proposed
+almost two months ago so I can be more reassured that it won't be an
+issue in v5?  Thanks!
 
-basechain->stats is rcu protected data which is updated from
-nft_chain_stats_replace(). This function is executed from the commit
-phase which holds the pernet nf_tables commit mutex - not the global
-nfnetlink subsystem mutex.
+> diff --git a/include/linux/audit.h b/include/linux/audit.h
+> index be5d6eb..9428fc3 100644
+> --- a/include/linux/audit.h
+> +++ b/include/linux/audit.h
+> @@ -92,6 +92,7 @@ struct audit_contid {
+>  	struct list_head	list;
+>  	u64			id;
+>  	refcount_t		refcount;
+> +	struct rcu_head		rcu;
+>  };
+>  
+>  extern int is_audit_feature_set(int which);
+> diff --git a/kernel/audit.c b/kernel/audit.c
+> index d5b58163..6f84c25 100644
+> --- a/kernel/audit.c
+> +++ b/kernel/audit.c
+> @@ -106,7 +106,6 @@
+>  struct audit_net {
+>  	struct sock *sk;
+>  	struct list_head contid_list;
+> -	spinlock_t contid_list_lock;
+>  };
+>  
+>  /**
+> @@ -327,26 +326,6 @@ struct list_head *audit_get_netns_contid_list(const struct net *net)
+>  	return &aunet->contid_list;
+>  }
+>  
+> -static int audit_netns_contid_lock(const struct net *net)
+> -{
+> -	struct audit_net *aunet = net_generic(net, audit_net_id);
+> -
+> -	if (!aunet)
+> -		return -EINVAL;
+> -	spin_lock(aunet->contid_list_lock);
+> -	return 0;
+> -}
+> -
+> -static int audit_netns_contid_unlock(const struct net *net)
+> -{
+> -	struct audit_net *aunet = net_generic(net, audit_net_id);
+> -
+> -	if (!aunet)
+> -		return -EINVAL;
+> -	spin_unlock(aunet->contid_list_lock);
+> -	return 0;
+> -}
+> -
+>  void audit_netns_contid_add(struct net *net, u64 contid)
+>  {
+>  	struct list_head *contid_list = audit_get_netns_contid_list(net);
+> @@ -354,10 +333,9 @@ void audit_netns_contid_add(struct net *net, u64 contid)
+>  
+>  	if (!audit_contid_valid(contid))
+>  		return;
+> -	if (audit_netns_contid_lock(net))
+> -		return;
+> +	rcu_read_lock();
+>  	if (!list_empty(contid_list))
+> -		list_for_each_entry(cont, contid_list, list)
+> +		list_for_each_entry_rcu(cont, contid_list, list)
+>  			if (cont->id == contid) {
+>  				refcount_inc(&cont->refcount);
+>  				goto out;
+> @@ -367,10 +345,16 @@ void audit_netns_contid_add(struct net *net, u64 contid)
+>  		INIT_LIST_HEAD(&cont->list);
+>  		cont->id = contid;
+>  		refcount_set(&cont->refcount, 1);
+> -		list_add(&cont->list, contid_list);
+> +		list_add_rcu(&cont->list, contid_list);
+>  	}
+>  out:
+> -	audit_netns_contid_unlock(net);
+> +	rcu_read_unlock();
+> +}
+> +
+> +audit_free_contid_rcu(struct rcu_head *head) {
+> +	struct audit_contid *contid = container_of(head, struct audit_contid, rcu);
+> +
+> +	kfree(contid);
+>  }
+>  
+>  void audit_netns_contid_del(struct net *net, u64 contid)
+> @@ -380,17 +364,16 @@ void audit_netns_contid_del(struct net *net, u64 contid)
+>  
+>  	if (!audit_contid_valid(contid))
+>  		return;
+> -	if (audit_netns_contid_lock(net))
+> -		return;
+> +	rcu_read_lock();
+>  	if (!list_empty(contid_list))
+> -		list_for_each_entry(cont, contid_list, list)
+> +		list_for_each_entry_rcu(cont, contid_list, list)
+>  			if (cont->id == contid) {
+> -				list_del(&cont->list);
+> +				list_del_rcu(&cont->list);
+>  				if (refcount_dec_and_test(&cont->refcount))
+> -					kfree(cont);
+> +					call_rcu(&cont->rcu, audit_free_contid_rcu);
+>  				break;
+>  			}
+> -	audit_netns_contid_unlock(net);
+> +	rcu_read_unlock();
+>  }
+>  
+>  void audit_switch_task_namespaces(struct nsproxy *ns, struct task_struct *p)
+> @@ -418,15 +401,14 @@ void audit_log_netns_contid_list(struct net *net, struct audit_context *context)
+>  		return;
+>  	}
+>  	audit_log_format(ab, "ref=net contid=");
+> -	if (audit_netns_contid_lock(net))
+> -		return;
+> -	list_for_each_entry(cont, audit_get_netns_contid_list(net), list) {
+> +	rcu_read_lock();
+> +	list_for_each_entry_rcu(cont, audit_get_netns_contid_list(net), list) {
+>  		if (!first)
+>  			audit_log_format(ab, ",");
+>  		audit_log_format(ab, "%llu", cont->id);
+>  		first = false;
+>  	}
+> -	audit_netns_contid_unlock(net);
+> +	rcu_read_unlock();
+>  	audit_log_end(ab);
+>  }
+>  EXPORT_SYMBOL(audit_log_netns_contid_list);
+> @@ -1674,7 +1656,6 @@ static int __net_init audit_net_init(struct net *net)
+>  		.flags	= NL_CFG_F_NONROOT_RECV,
+>  		.groups	= AUDIT_NLGRP_MAX,
+>  	};
+> -
+>  	struct audit_net *aunet = net_generic(net, audit_net_id);
+>  
+>  	aunet->sk = netlink_kernel_create(net, NETLINK_AUDIT, &cfg);
+> @@ -1684,8 +1665,6 @@ static int __net_init audit_net_init(struct net *net)
+>  	}
+>  	aunet->sk->sk_sndtimeo = MAX_SCHEDULE_TIMEOUT;
+>  	INIT_LIST_HEAD(&aunet->contid_list);
+> -	spin_lock_init(&aunet->contid_list_lock);
+> -
+>  	return 0;
+>  }
+>  
+> > 
+> > > +       audit_log_end(ab);
+> > > +}
+> > > +EXPORT_SYMBOL(audit_log_netns_contid_list);
+> > >
+> > >  void audit_panic(const char *message)
+> > >  {
+> > >         switch (audit_failure) {
+> > > diff --git a/net/netfilter/xt_AUDIT.c b/net/netfilter/xt_AUDIT.c
+> > > index af883f1..44fac3f 100644
+> > > --- a/net/netfilter/xt_AUDIT.c
+> > > +++ b/net/netfilter/xt_AUDIT.c
+> > > @@ -71,10 +71,13 @@ static bool audit_ip6(struct audit_buffer *ab, struct sk_buff *skb)
+> > >  {
+> > >         struct audit_buffer *ab;
+> > >         int fam = -1;
+> > > +       struct audit_context *context;
+> > > +       struct net *net;
+> > >
+> > >         if (audit_enabled == AUDIT_OFF)
+> > > -               goto errout;
+> > > -       ab = audit_log_start(NULL, GFP_ATOMIC, AUDIT_NETFILTER_PKT);
+> > > +               goto out;
+> > > +       context = audit_alloc_local(GFP_ATOMIC);
+> > > +       ab = audit_log_start(context, GFP_ATOMIC, AUDIT_NETFILTER_PKT);
+> > >         if (ab == NULL)
+> > >                 goto errout;
+> > >
+> > > @@ -104,7 +107,12 @@ static bool audit_ip6(struct audit_buffer *ab, struct sk_buff *skb)
+> > >
+> > >         audit_log_end(ab);
+> > >
+> > > +       net = xt_net(par);
+> > > +       audit_log_netns_contid_list(net, context);
+> > > +
+> > >  errout:
+> > > +       audit_free_context(context);
+> > > +out:
+> > >         return XT_CONTINUE;
+> > >  }
+> > >
+> > 
+> > --
+> > paul moore
+> > www.paul-moore.com
+> 
+> - RGB
+> 
+> --
+> Richard Guy Briggs <rgb@redhat.com>
+> Sr. S/W Engineer, Kernel Security, Base Operating Systems
+> Remote, Ottawa, Red Hat Canada
+> IRC: rgb, SunRaycer
+> Voice: +1.647.777.2635, Internal: (81) 32635
+> 
+> --
+> Linux-audit mailing list
+> Linux-audit@redhat.com
+> https://www.redhat.com/mailman/listinfo/linux-audit
 
-Test commands to reproduce the problem are:
-   %iptables-nft -I INPUT
-   %iptables-nft -Z
-   %iptables-nft -Z
+- RGB
 
-This patch uses RCU calls to handle basechain->stats updates to fix a
-splat that looks like:
-
-[89279.358755] =============================
-[89279.363656] WARNING: suspicious RCU usage
-[89279.368458] 4.20.0-rc2+ #44 Tainted: G        W    L
-[89279.374661] -----------------------------
-[89279.379542] net/netfilter/nf_tables_api.c:1404 suspicious rcu_dereference_protected() usage!
-[...]
-[89279.406556] 1 lock held by iptables-nft/5225:
-[89279.411728]  #0: 00000000bf45a000 (&net->nft.commit_mutex){+.+.}, at: nf_tables_valid_genid+0x1f/0x70 [nf_tables]
-[89279.424022] stack backtrace:
-[89279.429236] CPU: 0 PID: 5225 Comm: iptables-nft Tainted: G        W    L    4.20.0-rc2+ #44
-[89279.430135] Call Trace:
-[89279.430135]  dump_stack+0xc9/0x16b
-[89279.430135]  ? show_regs_print_info+0x5/0x5
-[89279.430135]  ? lockdep_rcu_suspicious+0x117/0x160
-[89279.430135]  nft_chain_commit_update+0x4ea/0x640 [nf_tables]
-[89279.430135]  ? sched_clock_local+0xd4/0x140
-[89279.430135]  ? check_flags.part.35+0x440/0x440
-[89279.430135]  ? __rhashtable_remove_fast.constprop.67+0xec0/0xec0 [nf_tables]
-[89279.430135]  ? sched_clock_cpu+0x126/0x170
-[89279.430135]  ? find_held_lock+0x39/0x1c0
-[89279.430135]  ? hlock_class+0x140/0x140
-[89279.430135]  ? is_bpf_text_address+0x5/0xf0
-[89279.430135]  ? check_flags.part.35+0x440/0x440
-[89279.430135]  ? __lock_is_held+0xb4/0x140
-[89279.430135]  nf_tables_commit+0x2555/0x39c0 [nf_tables]
-
-Fixes: f102d66b335a4 ("netfilter: nf_tables: use dedicated mutex to guard transactions")
-Signed-off-by: Taehee Yoo <ap420073@gmail.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- include/linux/netfilter/nfnetlink.h | 12 ------------
- net/netfilter/nf_tables_api.c       | 21 +++++++++++++--------
- net/netfilter/nf_tables_core.c      |  2 +-
- 3 files changed, 14 insertions(+), 21 deletions(-)
-
-diff --git a/include/linux/netfilter/nfnetlink.h b/include/linux/netfilter/nfnetlink.h
-index 4a520d3304a2..cf09ab37b45b 100644
---- a/include/linux/netfilter/nfnetlink.h
-+++ b/include/linux/netfilter/nfnetlink.h
-@@ -62,18 +62,6 @@ static inline bool lockdep_nfnl_is_held(__u8 subsys_id)
- }
- #endif /* CONFIG_PROVE_LOCKING */
- 
--/*
-- * nfnl_dereference - fetch RCU pointer when updates are prevented by subsys mutex
-- *
-- * @p: The pointer to read, prior to dereferencing
-- * @ss: The nfnetlink subsystem ID
-- *
-- * Return the value of the specified RCU-protected pointer, but omit
-- * the READ_ONCE(), because caller holds the NFNL subsystem mutex.
-- */
--#define nfnl_dereference(p, ss)					\
--	rcu_dereference_protected(p, lockdep_nfnl_is_held(ss))
--
- #define MODULE_ALIAS_NFNL_SUBSYS(subsys) \
- 	MODULE_ALIAS("nfnetlink-subsys-" __stringify(subsys))
- 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index fe0558b15fd3..ed9af46720e1 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -1199,7 +1199,8 @@ static int nf_tables_fill_chain_info(struct sk_buff *skb, struct net *net,
- 		if (nla_put_string(skb, NFTA_CHAIN_TYPE, basechain->type->name))
- 			goto nla_put_failure;
- 
--		if (basechain->stats && nft_dump_stats(skb, basechain->stats))
-+		if (rcu_access_pointer(basechain->stats) &&
-+		    nft_dump_stats(skb, rcu_dereference(basechain->stats)))
- 			goto nla_put_failure;
- 	}
- 
-@@ -1375,7 +1376,8 @@ static struct nft_stats __percpu *nft_stats_alloc(const struct nlattr *attr)
- 	return newstats;
- }
- 
--static void nft_chain_stats_replace(struct nft_base_chain *chain,
-+static void nft_chain_stats_replace(struct net *net,
-+				    struct nft_base_chain *chain,
- 				    struct nft_stats __percpu *newstats)
- {
- 	struct nft_stats __percpu *oldstats;
-@@ -1383,8 +1385,9 @@ static void nft_chain_stats_replace(struct nft_base_chain *chain,
- 	if (newstats == NULL)
- 		return;
- 
--	if (chain->stats) {
--		oldstats = nfnl_dereference(chain->stats, NFNL_SUBSYS_NFTABLES);
-+	if (rcu_access_pointer(chain->stats)) {
-+		oldstats = rcu_dereference_protected(chain->stats,
-+					lockdep_commit_lock_is_held(net));
- 		rcu_assign_pointer(chain->stats, newstats);
- 		synchronize_rcu();
- 		free_percpu(oldstats);
-@@ -1421,9 +1424,10 @@ static void nf_tables_chain_destroy(struct nft_ctx *ctx)
- 		struct nft_base_chain *basechain = nft_base_chain(chain);
- 
- 		module_put(basechain->type->owner);
--		free_percpu(basechain->stats);
--		if (basechain->stats)
-+		if (rcu_access_pointer(basechain->stats)) {
- 			static_branch_dec(&nft_counters_enabled);
-+			free_percpu(rcu_dereference_raw(basechain->stats));
-+		}
- 		kfree(chain->name);
- 		kfree(basechain);
- 	} else {
-@@ -1572,7 +1576,7 @@ static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 genmask,
- 				kfree(basechain);
- 				return PTR_ERR(stats);
- 			}
--			basechain->stats = stats;
-+			rcu_assign_pointer(basechain->stats, stats);
- 			static_branch_inc(&nft_counters_enabled);
- 		}
- 
-@@ -6145,7 +6149,8 @@ static void nft_chain_commit_update(struct nft_trans *trans)
- 		return;
- 
- 	basechain = nft_base_chain(trans->ctx.chain);
--	nft_chain_stats_replace(basechain, nft_trans_chain_stats(trans));
-+	nft_chain_stats_replace(trans->ctx.net, basechain,
-+				nft_trans_chain_stats(trans));
- 
- 	switch (nft_trans_chain_policy(trans)) {
- 	case NF_DROP:
-diff --git a/net/netfilter/nf_tables_core.c b/net/netfilter/nf_tables_core.c
-index ffd5c0f9412b..60f258f2c707 100644
---- a/net/netfilter/nf_tables_core.c
-+++ b/net/netfilter/nf_tables_core.c
-@@ -101,7 +101,7 @@ static noinline void nft_update_chain_stats(const struct nft_chain *chain,
- 	struct nft_stats *stats;
- 
- 	base_chain = nft_base_chain(chain);
--	if (!base_chain->stats)
-+	if (!rcu_access_pointer(base_chain->stats))
- 		return;
- 
- 	local_bh_disable();
--- 
-2.19.1
+--
+Richard Guy Briggs <rgb@redhat.com>
+Sr. S/W Engineer, Kernel Security, Base Operating Systems
+Remote, Ottawa, Red Hat Canada
+IRC: rgb, SunRaycer
+Voice: +1.647.777.2635, Internal: (81) 32635
