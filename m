@@ -1,51 +1,69 @@
-From: Michal Hocko <mhocko@kernel.org>
-Subject: Re: [PATCH] netfilter: account ebt_table_info to kmemcg
-Date: Sat, 29 Dec 2018 11:06:15 +0100
-Message-ID: <20181229100615.GB16738@dhcp22.suse.cz>
-References: <20181229015524.222741-1-shakeelb@google.com>
- <20181229073325.GZ16738@dhcp22.suse.cz>
- <20181229095215.nbcijqacw5b6aho7@breakpoint.cc>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Shakeel Butt <shakeelb@google.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Roopa Prabhu <roopa@cumulusnetworks.com>,
-        Nikolay Aleksandrov <nikolay@cumulusnetworks.com>,
-        Andrew Morton <akpm@linux-foundation.org>, linux-mm@kvack.org,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        bridge@lists.linux-foundation.org, linux-kernel@vger.kernel.org,
-        syzbot+7713f3aa67be76b1552c@syzkaller.appspotmail.com
-To: Florian Westphal <fw@strlen.de>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181229095215.nbcijqacw5b6aho7@breakpoint.cc>
-Sender: linux-kernel-owner@vger.kernel.org
+From: wenxu@ucloud.cn
+Subject: [PATCH] nft_flow_offload: Make flow offload work with vrf slave  device correct
+Date: Sat, 29 Dec 2018 18:10:25 +0800
+Message-ID: <1546078225-22699-1-git-send-email-wenxu@ucloud.cn>
+To: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sat 29-12-18 10:52:15, Florian Westphal wrote:
-> Michal Hocko <mhocko@kernel.org> wrote:
-> > On Fri 28-12-18 17:55:24, Shakeel Butt wrote:
-> > > The [ip,ip6,arp]_tables use x_tables_info internally and the underlying
-> > > memory is already accounted to kmemcg. Do the same for ebtables. The
-> > > syzbot, by using setsockopt(EBT_SO_SET_ENTRIES), was able to OOM the
-> > > whole system from a restricted memcg, a potential DoS.
-> > 
-> > What is the lifetime of these objects? Are they bound to any process?
-> 
-> No, they are not.
-> They are free'd only when userspace requests it or the netns is
-> destroyed.
+From: wenxu <wenxu@ucloud.cn>
 
-Then this is problematic, because the oom killer is not able to
-guarantee the hard limit and so the excessive memory consumption cannot
-be really contained. As a result the memcg will be basically useless
-until somebody tears down the charged objects by other means. The memcg
-oom killer will surely kill all the existing tasks in the cgroup and
-this could somehow reduce the problem. Maybe this is sufficient for
-some usecases but that should be properly analyzed and described in the
-changelog.
+In the forward chain the iif is changed from slave device to master vrf
+device. It will lead the offload not match on lower slave device.
 
+This patch make the flollowing example can work correct
+
+ip addr add dev eth0 1.1.1.1/24
+ip addr add dev eth1 10.0.0.1/24
+ip link add user1 type vrf table 1
+ip l set user1 up
+ip l set dev eth0 master user1
+ip l set dev eth1 master user1
+
+nft add table firewall
+nft add flowtable f fb1 { hook ingress priority 0 \; devices = { eth0, eth1 } \; }
+nft add chain f ftb-all {type filter hook forward priority 0 \; policy accept \; }
+nft add rule f ftb-all ct zone 1 ip protocol tcp flow offload @fb1
+nft add rule f ftb-all ct zone 1 ip protocol udp flow offload @fb1
+
+Signed-off-by: wenxu <wenxu@ucloud.cn>
+---
+ net/netfilter/nft_flow_offload.c | 12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
+
+diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
+index 974525e..a5995c0 100644
+--- a/net/netfilter/nft_flow_offload.c
++++ b/net/netfilter/nft_flow_offload.c
+@@ -30,9 +30,11 @@ static int nft_flow_route(const struct nft_pktinfo *pkt,
+ 	switch (nft_pf(pkt)) {
+ 	case NFPROTO_IPV4:
+ 		fl.u.ip4.daddr = ct->tuplehash[!dir].tuple.dst.u3.ip;
++		fl.u.ip4.flowi4_oif = nft_in(pkt)->ifindex;
+ 		break;
+ 	case NFPROTO_IPV6:
+ 		fl.u.ip6.daddr = ct->tuplehash[!dir].tuple.dst.u3.in6;
++		fl.u.ip6.flowi6_oif = nft_in(pkt)->ifindex;
+ 		break;
+ 	}
+ 
+@@ -41,7 +43,15 @@ static int nft_flow_route(const struct nft_pktinfo *pkt,
+ 		return -ENOENT;
+ 
+ 	route->tuple[dir].dst		= this_dst;
+-	route->tuple[dir].ifindex	= nft_in(pkt)->ifindex;
++	if (netif_is_l3_master(nft_in(pkt))) {
++		if (other_dst->dev)
++			route->tuple[dir].ifindex = other_dst->dev->ifindex;
++		else
++			route->tuple[dir].ifindex = nft_in(pkt)->ifindex;
++	} else {
++		route->tuple[dir].ifindex = nft_in(pkt)->ifindex;
++	}
++
+ 	route->tuple[!dir].dst		= other_dst;
+ 	route->tuple[!dir].ifindex	= nft_out(pkt)->ifindex;
+ 
 -- 
-Michal Hocko
-SUSE Labs
+1.8.3.1
