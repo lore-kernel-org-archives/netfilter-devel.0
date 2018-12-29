@@ -1,92 +1,93 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 0/9] Netfilter fixes for net
-Date: Sat, 29 Dec 2018 13:57:54 +0100
-Message-ID: <20181229125803.7415-1-pablo@netfilter.org>
+Subject: [PATCH 5/9] netfilter: nf_conncount: restart search when nodes have been erased
+Date: Sat, 29 Dec 2018 13:57:59 +0100
+Message-ID: <20181229125803.7415-6-pablo@netfilter.org>
+References: <20181229125803.7415-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20181229125803.7415-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi David,
+From: Florian Westphal <fw@strlen.de>
 
-The following patchset contains Netfilter fixes for net, specifically
-fixes for the nf_conncount infrastructure which is causing troubles
-since 5c789e131cbb9 ("netfilter: nf_conncount: Add list lock and gc
-worker, and RCU for init tree search"). Patches aim to simplify this
-infrastructure while fixing up the problems:
+Shawn Bohrer reported a following crash:
+ |RIP: 0010:rb_erase+0xae/0x360
+ [..]
+ Call Trace:
+  nf_conncount_destroy+0x59/0xc0 [nf_conncount]
+  cleanup_match+0x45/0x70 [ip_tables]
+  ...
 
-1) Use fixed size CONNCOUNT_SLOTS in nf_conncount, from Shawn Bohrer.
+Shawn tracked this down to bogus 'parent' pointer:
+Problem is that when we insert a new node, then there is a chance that
+the 'parent' that we found was also passed to tree_nodes_free() (because
+that node was empty) for erase+free.
 
-2) Incorrect signedness in age calculation from find_or_evict(),
-   from Florian Westphal.
+Instead of trying to be clever and detect when this happens, restart
+the search if we have evicted one or more nodes.  To prevent frequent
+restarts, do not perform gc on the second round.
 
-3) Proper locking for the garbage collector workqueue callback,
-   first make a patch to count how many nodes can be collected
-   without holding locks, then grab lock and release them. Also
-   from Florian.
+Also, unconditionally schedule the gc worker.
+The condition
 
-4) Restart node lookup from the insertion path, after releasing nodes
-   via packet path garbage collection. Shawn Bohrer described a scenario
-   that may result in inserting a connection in an already dead list
-   node. Patch from Florian.
+  gc_count > ARRAY_SIZE(gc_nodes))
 
-5) Merge lookup and add function to avoid a hold release and re-grab.
-   From Florian.
+cannot be true unless tree grows very large, as the height of the tree
+will be low even with hundreds of nodes present.
 
-6) Be safe and iterate over the node lists under the spinlock.
+Fixes: 5c789e131cbb9 ("netfilter: nf_conncount: Add list lock and gc worker, and RCU for init tree search")
+Reported-by: Shawn Bohrer <sbohrer@cloudflare.com>
+Reviewed-by: Shawn Bohrer <sbohrer@cloudflare.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_conncount.c | 18 +++++++-----------
+ 1 file changed, 7 insertions(+), 11 deletions(-)
 
-7) Speculative list nodes removal via garbage collection, check if
-   list node got a connection while it was scheduled for deletion
-   via gc.
-
-8) Accidental argument swap in find_next_bit() that leads to more
-   frequent scheduling of the workqueue. From Florian Westphal.
-
-And one patch that falls within the miscelanea category in this batch:
-
-9) Missing error path for nla_nest_start(), from Kangjie Lu.
-
-You can pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
-
-Thanks!
-
-----------------------------------------------------------------
-
-The following changes since commit a3c9311f62b4943228ae90f769775dd3bcbfa7c0:
-
-  include/linux/phy/phy.h: fix minor kerneldoc errors (2018-12-27 16:31:10 -0800)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git HEAD
-
-for you to fetch changes up to a007232066f6839d6f256bab21e825d968f1a163:
-
-  netfilter: nf_conncount: fix argument order to find_next_bit (2018-12-29 02:45:22 +0100)
-
-----------------------------------------------------------------
-Florian Westphal (5):
-      netfilter: nf_conncount: don't skip eviction when age is negative
-      netfilter: nf_conncount: split gc in two phases
-      netfilter: nf_conncount: restart search when nodes have been erased
-      netfilter: nf_conncount: merge lookup and add functions
-      netfilter: nf_conncount: fix argument order to find_next_bit
-
-Kangjie Lu (1):
-      netfilter: nf_tables: fix a missing check of nla_put_failure
-
-Pablo Neira Ayuso (2):
-      netfilter: nf_conncount: move all list iterations under spinlock
-      netfilter: nf_conncount: speculative garbage collection on empty lists
-
-Shawn Bohrer (1):
-      netfilter: nf_conncount: replace CONNCOUNT_LOCK_SLOTS with CONNCOUNT_SLOTS
-
- include/net/netfilter/nf_conntrack_count.h |  19 +-
- net/netfilter/nf_conncount.c               | 290 +++++++++++++----------------
- net/netfilter/nf_tables_api.c              |   2 +
- net/netfilter/nft_connlimit.c              |  14 +-
- 4 files changed, 136 insertions(+), 189 deletions(-)
+diff --git a/net/netfilter/nf_conncount.c b/net/netfilter/nf_conncount.c
+index 753132e4afa8..0a83c694a8f1 100644
+--- a/net/netfilter/nf_conncount.c
++++ b/net/netfilter/nf_conncount.c
+@@ -346,9 +346,10 @@ insert_tree(struct net *net,
+ 	struct nf_conncount_tuple *conn;
+ 	unsigned int count = 0, gc_count = 0;
+ 	bool node_found = false;
++	bool do_gc = true;
+ 
+ 	spin_lock_bh(&nf_conncount_locks[hash]);
+-
++restart:
+ 	parent = NULL;
+ 	rbnode = &(root->rb_node);
+ 	while (*rbnode) {
+@@ -381,21 +382,16 @@ insert_tree(struct net *net,
+ 		if (gc_count >= ARRAY_SIZE(gc_nodes))
+ 			continue;
+ 
+-		if (nf_conncount_gc_list(net, &rbconn->list))
++		if (do_gc && nf_conncount_gc_list(net, &rbconn->list))
+ 			gc_nodes[gc_count++] = rbconn;
+ 	}
+ 
+ 	if (gc_count) {
+ 		tree_nodes_free(root, gc_nodes, gc_count);
+-		/* tree_node_free before new allocation permits
+-		 * allocator to re-use newly free'd object.
+-		 *
+-		 * This is a rare event; in most cases we will find
+-		 * existing node to re-use. (or gc_count is 0).
+-		 */
+-
+-		if (gc_count >= ARRAY_SIZE(gc_nodes))
+-			schedule_gc_worker(data, hash);
++		schedule_gc_worker(data, hash);
++		gc_count = 0;
++		do_gc = false;
++		goto restart;
+ 	}
+ 
+ 	if (node_found)
+-- 
+2.11.0
