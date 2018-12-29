@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 4/9] netfilter: nf_conncount: split gc in two phases
-Date: Sat, 29 Dec 2018 13:57:58 +0100
-Message-ID: <20181229125803.7415-5-pablo@netfilter.org>
+Subject: [PATCH 7/9] netfilter: nf_conncount: move all list iterations under spinlock
+Date: Sat, 29 Dec 2018 13:58:01 +0100
+Message-ID: <20181229125803.7415-8-pablo@netfilter.org>
 References: <20181229125803.7415-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,75 +10,151 @@ In-Reply-To: <20181229125803.7415-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+Two CPUs may race to remove a connection from the list, the existing
+conn->dead will result in a use-after-free. Use the per-list spinlock to
+protect list iterations.
 
-The lockless workqueue garbage collector can race with packet path
-garbage collector to delete list nodes, as it calls tree_nodes_free()
-with the addresses of nodes that might have been free'd already from
-another cpu.
+As all accesses to the list now happen while holding the per-list lock,
+we no longer need to delay free operations with rcu.
 
-To fix this, split gc into two phases.
-
-One phase to perform gc on the connections: From a locking perspective,
-this is the same as count_tree(): we hold rcu lock, but we do not
-change the tree, we only change the nodes' contents.
-
-The second phase acquires the tree lock and reaps empty nodes.
-This avoids a race condition of the garbage collection vs.  packet path:
-If a node has been free'd already, the second phase won't find it anymore.
-
-This second phase is, from locking perspective, same as insert_tree().
-
-The former only modifies nodes (list content, count), latter modifies
-the tree itself (rb_erase or rb_insert).
+Joint work with Florian.
 
 Fixes: 5c789e131cbb9 ("netfilter: nf_conncount: Add list lock and gc worker, and RCU for init tree search")
 Reviewed-by: Shawn Bohrer <sbohrer@cloudflare.com>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_conncount.c | 22 +++++++++++++++++++---
- 1 file changed, 19 insertions(+), 3 deletions(-)
+ net/netfilter/nf_conncount.c | 46 +++++++++++++++++++-------------------------
+ 1 file changed, 20 insertions(+), 26 deletions(-)
 
 diff --git a/net/netfilter/nf_conncount.c b/net/netfilter/nf_conncount.c
-index 8bb4ed85c262..753132e4afa8 100644
+index ce7f7d1212a6..d0fd195b19a8 100644
 --- a/net/netfilter/nf_conncount.c
 +++ b/net/netfilter/nf_conncount.c
-@@ -500,16 +500,32 @@ static void tree_gc_worker(struct work_struct *work)
+@@ -43,8 +43,6 @@ struct nf_conncount_tuple {
+ 	struct nf_conntrack_zone	zone;
+ 	int				cpu;
+ 	u32				jiffies32;
+-	bool				dead;
+-	struct rcu_head			rcu_head;
+ };
+ 
+ struct nf_conncount_rb {
+@@ -83,36 +81,21 @@ static int key_diff(const u32 *a, const u32 *b, unsigned int klen)
+ 	return memcmp(a, b, klen * sizeof(u32));
+ }
+ 
+-static void __conn_free(struct rcu_head *h)
+-{
+-	struct nf_conncount_tuple *conn;
+-
+-	conn = container_of(h, struct nf_conncount_tuple, rcu_head);
+-	kmem_cache_free(conncount_conn_cachep, conn);
+-}
+-
+ static bool conn_free(struct nf_conncount_list *list,
+ 		      struct nf_conncount_tuple *conn)
+ {
+ 	bool free_entry = false;
+ 
+-	spin_lock_bh(&list->list_lock);
+-
+-	if (conn->dead) {
+-		spin_unlock_bh(&list->list_lock);
+-		return free_entry;
+-	}
++	lockdep_assert_held(&list->list_lock);
+ 
+ 	list->count--;
+-	conn->dead = true;
+-	list_del_rcu(&conn->node);
++	list_del(&conn->node);
+ 	if (list->count == 0) {
+ 		list->dead = true;
+ 		free_entry = true;
+ 	}
+ 
+-	spin_unlock_bh(&list->list_lock);
+-	call_rcu(&conn->rcu_head, __conn_free);
++	kmem_cache_free(conncount_conn_cachep, conn);
+ 	return free_entry;
+ }
+ 
+@@ -242,7 +225,7 @@ void nf_conncount_list_init(struct nf_conncount_list *list)
+ }
+ EXPORT_SYMBOL_GPL(nf_conncount_list_init);
+ 
+-/* Return true if the list is empty */
++/* Return true if the list is empty. Must be called with BH disabled. */
+ bool nf_conncount_gc_list(struct net *net,
+ 			  struct nf_conncount_list *list)
+ {
+@@ -253,12 +236,18 @@ bool nf_conncount_gc_list(struct net *net,
+ 	bool free_entry = false;
+ 	bool ret = false;
+ 
++	/* don't bother if other cpu is already doing GC */
++	if (!spin_trylock(&list->list_lock))
++		return false;
++
+ 	list_for_each_entry_safe(conn, conn_n, &list->head, node) {
+ 		found = find_or_evict(net, list, conn, &free_entry);
+ 		if (IS_ERR(found)) {
+ 			if (PTR_ERR(found) == -ENOENT)  {
+-				if (free_entry)
++				if (free_entry) {
++					spin_unlock(&list->list_lock);
+ 					return true;
++				}
+ 				collected++;
+ 			}
+ 			continue;
+@@ -271,23 +260,24 @@ bool nf_conncount_gc_list(struct net *net,
+ 			 * closed already -> ditch it
+ 			 */
+ 			nf_ct_put(found_ct);
+-			if (conn_free(list, conn))
++			if (conn_free(list, conn)) {
++				spin_unlock(&list->list_lock);
+ 				return true;
++			}
+ 			collected++;
+ 			continue;
+ 		}
+ 
+ 		nf_ct_put(found_ct);
+ 		if (collected > CONNCOUNT_GC_MAX_NODES)
+-			return false;
++			break;
+ 	}
+ 
+-	spin_lock_bh(&list->list_lock);
+ 	if (!list->count) {
+ 		list->dead = true;
+ 		ret = true;
+ 	}
+-	spin_unlock_bh(&list->list_lock);
++	spin_unlock(&list->list_lock);
+ 
+ 	return ret;
+ }
+@@ -478,6 +468,7 @@ static void tree_gc_worker(struct work_struct *work)
+ 	tree = data->gc_tree % CONNCOUNT_SLOTS;
+ 	root = &data->root[tree];
+ 
++	local_bh_disable();
+ 	rcu_read_lock();
  	for (node = rb_first(root); node != NULL; node = rb_next(node)) {
  		rbconn = rb_entry(node, struct nf_conncount_rb, node);
- 		if (nf_conncount_gc_list(data->net, &rbconn->list))
--			gc_nodes[gc_count++] = rbconn;
-+			gc_count++;
+@@ -485,6 +476,9 @@ static void tree_gc_worker(struct work_struct *work)
+ 			gc_count++;
  	}
  	rcu_read_unlock();
++	local_bh_enable();
++
++	cond_resched();
  
  	spin_lock_bh(&nf_conncount_locks[tree]);
-+	if (gc_count < ARRAY_SIZE(gc_nodes))
-+		goto next; /* do not bother */
- 
--	if (gc_count) {
--		tree_nodes_free(root, gc_nodes, gc_count);
-+	gc_count = 0;
-+	node = rb_first(root);
-+	while (node != NULL) {
-+		rbconn = rb_entry(node, struct nf_conncount_rb, node);
-+		node = rb_next(node);
-+
-+		if (rbconn->list.count > 0)
-+			continue;
-+
-+		gc_nodes[gc_count++] = rbconn;
-+		if (gc_count >= ARRAY_SIZE(gc_nodes)) {
-+			tree_nodes_free(root, gc_nodes, gc_count);
-+			gc_count = 0;
-+		}
- 	}
- 
-+	tree_nodes_free(root, gc_nodes, gc_count);
-+next:
- 	clear_bit(tree, data->pending_trees);
- 
- 	next_tree = (tree + 1) % CONNCOUNT_SLOTS;
+ 	if (gc_count < ARRAY_SIZE(gc_nodes))
 -- 
 2.11.0
