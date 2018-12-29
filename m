@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 2/9] netfilter: nf_conncount: replace CONNCOUNT_LOCK_SLOTS with CONNCOUNT_SLOTS
-Date: Sat, 29 Dec 2018 13:57:56 +0100
-Message-ID: <20181229125803.7415-3-pablo@netfilter.org>
+Subject: [PATCH 3/9] netfilter: nf_conncount: don't skip eviction when age is negative
+Date: Sat, 29 Dec 2018 13:57:57 +0100
+Message-ID: <20181229125803.7415-4-pablo@netfilter.org>
 References: <20181229125803.7415-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,89 +10,33 @@ In-Reply-To: <20181229125803.7415-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Shawn Bohrer <sbohrer@cloudflare.com>
+From: Florian Westphal <fw@strlen.de>
 
-Most of the time these were the same value anyway, but when
-CONFIG_LOCKDEP was enabled we would use a smaller number of locks to
-reduce overhead.  Unfortunately having two values is confusing and not
-worth the complexity.
+age is signed integer, so result can be negative when the timestamps
+have a large delta.  In this case we want to discard the entry.
 
-This fixes a bug where tree_gc_worker() would only GC up to
-CONNCOUNT_LOCK_SLOTS trees which meant when CONFIG_LOCKDEP was enabled
-not all trees would be GCed by tree_gc_worker().
+Instead of using age >= 2 || age < 0, just make it unsigned.
 
-Fixes: 5c789e131cbb9 ("netfilter: nf_conncount: Add list lock and gc worker, and RCU for init tree search")
+Fixes: b36e4523d4d56 ("netfilter: nf_conncount: fix garbage collection confirm race")
+Reviewed-by: Shawn Bohrer <sbohrer@cloudflare.com>
 Signed-off-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Shawn Bohrer <sbohrer@cloudflare.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_conncount.c | 19 +++++--------------
- 1 file changed, 5 insertions(+), 14 deletions(-)
+ net/netfilter/nf_conncount.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/net/netfilter/nf_conncount.c b/net/netfilter/nf_conncount.c
-index 9cd180bda092..3271a4e00500 100644
+index 3271a4e00500..8bb4ed85c262 100644
 --- a/net/netfilter/nf_conncount.c
 +++ b/net/netfilter/nf_conncount.c
-@@ -33,12 +33,6 @@
+@@ -155,7 +155,7 @@ find_or_evict(struct net *net, struct nf_conncount_list *list,
+ 	const struct nf_conntrack_tuple_hash *found;
+ 	unsigned long a, b;
+ 	int cpu = raw_smp_processor_id();
+-	__s32 age;
++	u32 age;
  
- #define CONNCOUNT_SLOTS		256U
- 
--#ifdef CONFIG_LOCKDEP
--#define CONNCOUNT_LOCK_SLOTS	8U
--#else
--#define CONNCOUNT_LOCK_SLOTS	256U
--#endif
--
- #define CONNCOUNT_GC_MAX_NODES	8
- #define MAX_KEYLEN		5
- 
-@@ -60,7 +54,7 @@ struct nf_conncount_rb {
- 	struct rcu_head rcu_head;
- };
- 
--static spinlock_t nf_conncount_locks[CONNCOUNT_LOCK_SLOTS] __cacheline_aligned_in_smp;
-+static spinlock_t nf_conncount_locks[CONNCOUNT_SLOTS] __cacheline_aligned_in_smp;
- 
- struct nf_conncount_data {
- 	unsigned int keylen;
-@@ -353,7 +347,7 @@ insert_tree(struct net *net,
- 	unsigned int count = 0, gc_count = 0;
- 	bool node_found = false;
- 
--	spin_lock_bh(&nf_conncount_locks[hash % CONNCOUNT_LOCK_SLOTS]);
-+	spin_lock_bh(&nf_conncount_locks[hash]);
- 
- 	parent = NULL;
- 	rbnode = &(root->rb_node);
-@@ -430,7 +424,7 @@ insert_tree(struct net *net,
- 	rb_link_node_rcu(&rbconn->node, parent, rbnode);
- 	rb_insert_color(&rbconn->node, root);
- out_unlock:
--	spin_unlock_bh(&nf_conncount_locks[hash % CONNCOUNT_LOCK_SLOTS]);
-+	spin_unlock_bh(&nf_conncount_locks[hash]);
- 	return count;
- }
- 
-@@ -499,7 +493,7 @@ static void tree_gc_worker(struct work_struct *work)
- 	struct rb_node *node;
- 	unsigned int tree, next_tree, gc_count = 0;
- 
--	tree = data->gc_tree % CONNCOUNT_LOCK_SLOTS;
-+	tree = data->gc_tree % CONNCOUNT_SLOTS;
- 	root = &data->root[tree];
- 
- 	rcu_read_lock();
-@@ -621,10 +615,7 @@ static int __init nf_conncount_modinit(void)
- {
- 	int i;
- 
--	BUILD_BUG_ON(CONNCOUNT_LOCK_SLOTS > CONNCOUNT_SLOTS);
--	BUILD_BUG_ON((CONNCOUNT_SLOTS % CONNCOUNT_LOCK_SLOTS) != 0);
--
--	for (i = 0; i < CONNCOUNT_LOCK_SLOTS; ++i)
-+	for (i = 0; i < CONNCOUNT_SLOTS; ++i)
- 		spin_lock_init(&nf_conncount_locks[i]);
- 
- 	conncount_conn_cachep = kmem_cache_create("nf_conncount_tuple",
+ 	found = nf_conntrack_find_get(net, &conn->zone, &conn->tuple);
+ 	if (found)
 -- 
 2.11.0
