@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 7/9] netfilter: nf_conncount: move all list iterations under spinlock
-Date: Sat, 29 Dec 2018 13:58:01 +0100
-Message-ID: <20181229125803.7415-8-pablo@netfilter.org>
+Subject: [PATCH 2/9] netfilter: nf_conncount: replace CONNCOUNT_LOCK_SLOTS with CONNCOUNT_SLOTS
+Date: Sat, 29 Dec 2018 13:57:56 +0100
+Message-ID: <20181229125803.7415-3-pablo@netfilter.org>
 References: <20181229125803.7415-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,151 +10,89 @@ In-Reply-To: <20181229125803.7415-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Two CPUs may race to remove a connection from the list, the existing
-conn->dead will result in a use-after-free. Use the per-list spinlock to
-protect list iterations.
+From: Shawn Bohrer <sbohrer@cloudflare.com>
 
-As all accesses to the list now happen while holding the per-list lock,
-we no longer need to delay free operations with rcu.
+Most of the time these were the same value anyway, but when
+CONFIG_LOCKDEP was enabled we would use a smaller number of locks to
+reduce overhead.  Unfortunately having two values is confusing and not
+worth the complexity.
 
-Joint work with Florian.
+This fixes a bug where tree_gc_worker() would only GC up to
+CONNCOUNT_LOCK_SLOTS trees which meant when CONFIG_LOCKDEP was enabled
+not all trees would be GCed by tree_gc_worker().
 
 Fixes: 5c789e131cbb9 ("netfilter: nf_conncount: Add list lock and gc worker, and RCU for init tree search")
-Reviewed-by: Shawn Bohrer <sbohrer@cloudflare.com>
 Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Shawn Bohrer <sbohrer@cloudflare.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_conncount.c | 46 +++++++++++++++++++-------------------------
- 1 file changed, 20 insertions(+), 26 deletions(-)
+ net/netfilter/nf_conncount.c | 19 +++++--------------
+ 1 file changed, 5 insertions(+), 14 deletions(-)
 
 diff --git a/net/netfilter/nf_conncount.c b/net/netfilter/nf_conncount.c
-index ce7f7d1212a6..d0fd195b19a8 100644
+index 9cd180bda092..3271a4e00500 100644
 --- a/net/netfilter/nf_conncount.c
 +++ b/net/netfilter/nf_conncount.c
-@@ -43,8 +43,6 @@ struct nf_conncount_tuple {
- 	struct nf_conntrack_zone	zone;
- 	int				cpu;
- 	u32				jiffies32;
--	bool				dead;
--	struct rcu_head			rcu_head;
+@@ -33,12 +33,6 @@
+ 
+ #define CONNCOUNT_SLOTS		256U
+ 
+-#ifdef CONFIG_LOCKDEP
+-#define CONNCOUNT_LOCK_SLOTS	8U
+-#else
+-#define CONNCOUNT_LOCK_SLOTS	256U
+-#endif
+-
+ #define CONNCOUNT_GC_MAX_NODES	8
+ #define MAX_KEYLEN		5
+ 
+@@ -60,7 +54,7 @@ struct nf_conncount_rb {
+ 	struct rcu_head rcu_head;
  };
  
- struct nf_conncount_rb {
-@@ -83,36 +81,21 @@ static int key_diff(const u32 *a, const u32 *b, unsigned int klen)
- 	return memcmp(a, b, klen * sizeof(u32));
+-static spinlock_t nf_conncount_locks[CONNCOUNT_LOCK_SLOTS] __cacheline_aligned_in_smp;
++static spinlock_t nf_conncount_locks[CONNCOUNT_SLOTS] __cacheline_aligned_in_smp;
+ 
+ struct nf_conncount_data {
+ 	unsigned int keylen;
+@@ -353,7 +347,7 @@ insert_tree(struct net *net,
+ 	unsigned int count = 0, gc_count = 0;
+ 	bool node_found = false;
+ 
+-	spin_lock_bh(&nf_conncount_locks[hash % CONNCOUNT_LOCK_SLOTS]);
++	spin_lock_bh(&nf_conncount_locks[hash]);
+ 
+ 	parent = NULL;
+ 	rbnode = &(root->rb_node);
+@@ -430,7 +424,7 @@ insert_tree(struct net *net,
+ 	rb_link_node_rcu(&rbconn->node, parent, rbnode);
+ 	rb_insert_color(&rbconn->node, root);
+ out_unlock:
+-	spin_unlock_bh(&nf_conncount_locks[hash % CONNCOUNT_LOCK_SLOTS]);
++	spin_unlock_bh(&nf_conncount_locks[hash]);
+ 	return count;
  }
  
--static void __conn_free(struct rcu_head *h)
--{
--	struct nf_conncount_tuple *conn;
--
--	conn = container_of(h, struct nf_conncount_tuple, rcu_head);
--	kmem_cache_free(conncount_conn_cachep, conn);
--}
--
- static bool conn_free(struct nf_conncount_list *list,
- 		      struct nf_conncount_tuple *conn)
- {
- 	bool free_entry = false;
+@@ -499,7 +493,7 @@ static void tree_gc_worker(struct work_struct *work)
+ 	struct rb_node *node;
+ 	unsigned int tree, next_tree, gc_count = 0;
  
--	spin_lock_bh(&list->list_lock);
--
--	if (conn->dead) {
--		spin_unlock_bh(&list->list_lock);
--		return free_entry;
--	}
-+	lockdep_assert_held(&list->list_lock);
- 
- 	list->count--;
--	conn->dead = true;
--	list_del_rcu(&conn->node);
-+	list_del(&conn->node);
- 	if (list->count == 0) {
- 		list->dead = true;
- 		free_entry = true;
- 	}
- 
--	spin_unlock_bh(&list->list_lock);
--	call_rcu(&conn->rcu_head, __conn_free);
-+	kmem_cache_free(conncount_conn_cachep, conn);
- 	return free_entry;
- }
- 
-@@ -242,7 +225,7 @@ void nf_conncount_list_init(struct nf_conncount_list *list)
- }
- EXPORT_SYMBOL_GPL(nf_conncount_list_init);
- 
--/* Return true if the list is empty */
-+/* Return true if the list is empty. Must be called with BH disabled. */
- bool nf_conncount_gc_list(struct net *net,
- 			  struct nf_conncount_list *list)
- {
-@@ -253,12 +236,18 @@ bool nf_conncount_gc_list(struct net *net,
- 	bool free_entry = false;
- 	bool ret = false;
- 
-+	/* don't bother if other cpu is already doing GC */
-+	if (!spin_trylock(&list->list_lock))
-+		return false;
-+
- 	list_for_each_entry_safe(conn, conn_n, &list->head, node) {
- 		found = find_or_evict(net, list, conn, &free_entry);
- 		if (IS_ERR(found)) {
- 			if (PTR_ERR(found) == -ENOENT)  {
--				if (free_entry)
-+				if (free_entry) {
-+					spin_unlock(&list->list_lock);
- 					return true;
-+				}
- 				collected++;
- 			}
- 			continue;
-@@ -271,23 +260,24 @@ bool nf_conncount_gc_list(struct net *net,
- 			 * closed already -> ditch it
- 			 */
- 			nf_ct_put(found_ct);
--			if (conn_free(list, conn))
-+			if (conn_free(list, conn)) {
-+				spin_unlock(&list->list_lock);
- 				return true;
-+			}
- 			collected++;
- 			continue;
- 		}
- 
- 		nf_ct_put(found_ct);
- 		if (collected > CONNCOUNT_GC_MAX_NODES)
--			return false;
-+			break;
- 	}
- 
--	spin_lock_bh(&list->list_lock);
- 	if (!list->count) {
- 		list->dead = true;
- 		ret = true;
- 	}
--	spin_unlock_bh(&list->list_lock);
-+	spin_unlock(&list->list_lock);
- 
- 	return ret;
- }
-@@ -478,6 +468,7 @@ static void tree_gc_worker(struct work_struct *work)
- 	tree = data->gc_tree % CONNCOUNT_SLOTS;
+-	tree = data->gc_tree % CONNCOUNT_LOCK_SLOTS;
++	tree = data->gc_tree % CONNCOUNT_SLOTS;
  	root = &data->root[tree];
  
-+	local_bh_disable();
  	rcu_read_lock();
- 	for (node = rb_first(root); node != NULL; node = rb_next(node)) {
- 		rbconn = rb_entry(node, struct nf_conncount_rb, node);
-@@ -485,6 +476,9 @@ static void tree_gc_worker(struct work_struct *work)
- 			gc_count++;
- 	}
- 	rcu_read_unlock();
-+	local_bh_enable();
-+
-+	cond_resched();
+@@ -621,10 +615,7 @@ static int __init nf_conncount_modinit(void)
+ {
+ 	int i;
  
- 	spin_lock_bh(&nf_conncount_locks[tree]);
- 	if (gc_count < ARRAY_SIZE(gc_nodes))
+-	BUILD_BUG_ON(CONNCOUNT_LOCK_SLOTS > CONNCOUNT_SLOTS);
+-	BUILD_BUG_ON((CONNCOUNT_SLOTS % CONNCOUNT_LOCK_SLOTS) != 0);
+-
+-	for (i = 0; i < CONNCOUNT_LOCK_SLOTS; ++i)
++	for (i = 0; i < CONNCOUNT_SLOTS; ++i)
+ 		spin_lock_init(&nf_conncount_locks[i]);
+ 
+ 	conncount_conn_cachep = kmem_cache_create("nf_conncount_tuple",
 -- 
 2.11.0
