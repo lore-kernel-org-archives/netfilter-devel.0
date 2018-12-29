@@ -1,29 +1,38 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] nft_flow_offload: Fix the peer route get from wrong daddr
-Date: Sat, 29 Dec 2018 13:42:17 +0100
-Message-ID: <20181229124217.b6wbizgjozvexhpj@salvia>
-References: <1545977698-1635-1-git-send-email-wenxu@ucloud.cn>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: wenxu@ucloud.cn
+Subject: [PATCH 1/9] netfilter: nf_tables: fix a missing check of nla_put_failure
+Date: Sat, 29 Dec 2018 13:57:55 +0100
+Message-ID: <20181229125803.7415-2-pablo@netfilter.org>
+References: <20181229125803.7415-1-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1545977698-1635-1-git-send-email-wenxu@ucloud.cn>
+In-Reply-To: <20181229125803.7415-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, Dec 28, 2018 at 02:14:58PM +0800, wenxu@ucloud.cn wrote:
-> From: wenxu <wenxu@ucloud.cn>
-> 
-> For nat example:
-> client 1.1.1.7 ---> 2.2.2.7 which dnat to 10.0.0.7 server
-> 
-> When syn_rcv pkt from server it get the peer(client->server) route
-> through daddr = ct->tuplehash[!dir].tuple.dst.u3.ip, the value 2.2.2.7
-> is not correct in this situation. it should be 10.0.0.7
-> ct->tuplehash[dir].tuple.src.u3.ip
+From: Kangjie Lu <kjlu@umn.edu>
 
-Please, Cc netfilter-devel@vger.kernel.org for your netfilter patches.
+If nla_nest_start() may fail. The fix checks its return value and goes
+to nla_put_failure if it fails.
 
-Thanks.
+Signed-off-by: Kangjie Lu <kjlu@umn.edu>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_tables_api.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index fec814dace5a..2b0a93300dd7 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -5727,6 +5727,8 @@ static int nf_tables_fill_flowtable_info(struct sk_buff *skb, struct net *net,
+ 		goto nla_put_failure;
+ 
+ 	nest = nla_nest_start(skb, NFTA_FLOWTABLE_HOOK);
++	if (!nest)
++		goto nla_put_failure;
+ 	if (nla_put_be32(skb, NFTA_FLOWTABLE_HOOK_NUM, htonl(flowtable->hooknum)) ||
+ 	    nla_put_be32(skb, NFTA_FLOWTABLE_HOOK_PRIORITY, htonl(flowtable->priority)))
+ 		goto nla_put_failure;
+-- 
+2.11.0
