@@ -1,42 +1,62 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 3/9] netfilter: nf_conncount: don't skip eviction when age is negative
-Date: Sat, 29 Dec 2018 13:57:57 +0100
-Message-ID: <20181229125803.7415-4-pablo@netfilter.org>
-References: <20181229125803.7415-1-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20181229125803.7415-1-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
+From: Shakeel Butt <shakeelb@google.com>
+Subject: Re: [PATCH] netfilter: account ebt_table_info to kmemcg
+Date: Sat, 29 Dec 2018 11:34:29 -0800
+Message-ID: <CALvZod7v-CC1XipLAerFj1Zp_M=qXZq6MzDL4pubJMTRCsMFNw@mail.gmail.com>
+References: <20181229015524.222741-1-shakeelb@google.com> <20181229073325.GZ16738@dhcp22.suse.cz>
+ <20181229095215.nbcijqacw5b6aho7@breakpoint.cc> <20181229100615.GB16738@dhcp22.suse.cz>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Cc: Florian Westphal <fw@strlen.de>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Roopa Prabhu <roopa@cumulusnetworks.com>,
+        Nikolay Aleksandrov <nikolay@cumulusnetworks.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Linux MM <linux-mm@kvack.org>, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, bridge@lists.linux-foundation.org,
+        LKML <linux-kernel@vger.kernel.org>,
+        syzbot+7713f3aa67be76b1552c@syzkaller.appspotmail.com
+To: Michal Hocko <mhocko@kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20181229100615.GB16738@dhcp22.suse.cz>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+On Sat, Dec 29, 2018 at 2:06 AM Michal Hocko <mhocko@kernel.org> wrote:
+>
+> On Sat 29-12-18 10:52:15, Florian Westphal wrote:
+> > Michal Hocko <mhocko@kernel.org> wrote:
+> > > On Fri 28-12-18 17:55:24, Shakeel Butt wrote:
+> > > > The [ip,ip6,arp]_tables use x_tables_info internally and the underlying
+> > > > memory is already accounted to kmemcg. Do the same for ebtables. The
+> > > > syzbot, by using setsockopt(EBT_SO_SET_ENTRIES), was able to OOM the
+> > > > whole system from a restricted memcg, a potential DoS.
+> > >
+> > > What is the lifetime of these objects? Are they bound to any process?
+> >
+> > No, they are not.
+> > They are free'd only when userspace requests it or the netns is
+> > destroyed.
+>
+> Then this is problematic, because the oom killer is not able to
+> guarantee the hard limit and so the excessive memory consumption cannot
+> be really contained. As a result the memcg will be basically useless
+> until somebody tears down the charged objects by other means. The memcg
+> oom killer will surely kill all the existing tasks in the cgroup and
+> this could somehow reduce the problem. Maybe this is sufficient for
+> some usecases but that should be properly analyzed and described in the
+> changelog.
+>
 
-age is signed integer, so result can be negative when the timestamps
-have a large delta.  In this case we want to discard the entry.
+Can you explain why you think the memcg hard limit will not be
+enforced? From what I understand, the memcg oom-killer will kill the
+allocating processes as you have mentioned. We do force charging for
+very limited conditions but here the memcg oom-killer will take care
+of
 
-Instead of using age >= 2 || age < 0, just make it unsigned.
+Anyways, the kernel is already charging the memory for
+[ip,ip6,arp]_tables and this patch adds the charging for ebtables.
+Without this patch, as Kirill has described and shown by syzbot, a low
+priority memcg can force system OOM.
 
-Fixes: b36e4523d4d56 ("netfilter: nf_conncount: fix garbage collection confirm race")
-Reviewed-by: Shawn Bohrer <sbohrer@cloudflare.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_conncount.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/net/netfilter/nf_conncount.c b/net/netfilter/nf_conncount.c
-index 3271a4e00500..8bb4ed85c262 100644
---- a/net/netfilter/nf_conncount.c
-+++ b/net/netfilter/nf_conncount.c
-@@ -155,7 +155,7 @@ find_or_evict(struct net *net, struct nf_conncount_list *list,
- 	const struct nf_conntrack_tuple_hash *found;
- 	unsigned long a, b;
- 	int cpu = raw_smp_processor_id();
--	__s32 age;
-+	u32 age;
- 
- 	found = nf_conntrack_find_get(net, &conn->zone, &conn->tuple);
- 	if (found)
--- 
-2.11.0
+Shakeel
