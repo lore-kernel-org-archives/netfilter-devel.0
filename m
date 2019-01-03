@@ -1,72 +1,73 @@
 From: Paul Moore <paul@paul-moore.com>
-Subject: Re: [PATCH ghak90 (was ghak32) V4 05/10] audit: add support for
- non-syscall auxiliary records
-Date: Thu, 3 Jan 2019 15:10:59 -0500
-Message-ID: <CAHC9VhSutzkgmUyp9NeWVL8CFpCgJ5XNTtj1SxOWHST-6oz+4g@mail.gmail.com>
-References: <cover.1533065887.git.rgb@redhat.com> <2827530000d6b4972d446b0226adab153ff3b5c5.1533065887.git.rgb@redhat.com>
- <CAHC9VhSG3Hk2zrNP3w=CfEBXN7_LcywiTpvhGp48661xYhRq2A@mail.gmail.com> <20181101184853.vxel3dfdntzmhcnq@madcap2.tricolour.ca>
+Subject: Re: [PATCH ghak90 (was ghak32) V4 00/10] audit: implement container identifier
+Date: Thu, 3 Jan 2019 15:12:27 -0500
+Message-ID: <CAHC9VhTzX6dJCqAN_8Vpd5t7JhZamu2gRDRQve1-ubz739GsSg@mail.gmail.com>
+References: <cover.1533065887.git.rgb@redhat.com> <20190103161525.GA6551@roeck-us.net>
+ <20190103173613.jb5kukysslozytwg@madcap2.tricolour.ca>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Cc: containers@lists.linux-foundation.org, linux-audit@redhat.com,
-        linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        ebiederm@xmission.com, luto@kernel.org, carlos@redhat.com,
-        dhowells@redhat.com, viro@zeniv.linux.org.uk, simo@redhat.com,
-        Eric Paris <eparis@parisplace.org>,
+Cc: Guenter Roeck <linux@roeck-us.net>, ebiederm@xmission.com,
+        simo@redhat.com, carlos@redhat.com, linux-api@vger.kernel.org,
+        containers@lists.linux-foundation.org,
+        LKML <linux-kernel@vger.kernel.org>, dhowells@redhat.com,
+        Linux-Audit Mailing List <linux-audit@redhat.com>,
+        netfilter-devel@vger.kernel.org, viro@zeniv.linux.org.uk,
+        luto@kernel.org, netdev@vger.kernel.org,
+        linux-fsdevel@vger.kernel.org, Eric Paris <eparis@parisplace.org>,
         Serge Hallyn <serge@hallyn.com>
 To: Richard Guy Briggs <rgb@redhat.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181101184853.vxel3dfdntzmhcnq@madcap2.tricolour.ca>
+In-Reply-To: <20190103173613.jb5kukysslozytwg@madcap2.tricolour.ca>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, Nov 1, 2018 at 2:49 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-&gt; On 2018-10-19 19:17, Paul Moore wrote:
-&gt; &gt; On Sun, Aug 5, 2018 at 4:33 AM Richard Guy Briggs
-<rgb@redhat.com> wrote:
-&gt; &gt; &gt; Standalone audit records have the timestamp and serial
-number generated
-&gt; &gt; &gt; on the fly and as such are unique, making them
-standalone.  This new
-&gt; &gt; &gt; function audit_alloc_local() generates a local audit
-context that will
-&gt; &gt; &gt; be used only for a standalone record and its auxiliary
-record(s).  The
-&gt; &gt; &gt; context is discarded immediately after the local
-associated records are
-&gt; &gt; &gt; produced.
-&gt; &gt; &gt;
-&gt; &gt; &gt; Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
-&gt; &gt; &gt; Acked-by: Serge Hallyn <serge@hallyn.com>
-&gt; &gt; &gt; ---
-&gt; &gt; &gt;  include/linux/audit.h |  8 ++++++++
-&gt; &gt; &gt;  kernel/audit.h        |  1 +
-&gt; &gt; &gt;  kernel/auditsc.c      | 33 ++++++++++++++++++++++++++++-----
-&gt; &gt; &gt;  3 files changed, 37 insertions(+), 5 deletions(-)
-&gt; &gt;
-&gt; &gt; I'm not in love with the local flag, and the whole local context in
-&gt; &gt; general, but that's a larger discussion and not something I want to
-&gt; &gt; force on this patchset; we can fix it later.
-&gt;
-&gt; I understand your reasoning to combine it so that if one patch gets
-&gt; backported then both do, or if one gets reverted both do, but I really
-&gt; prefer them seperate for similar reasons if there is more than one user.
-
-The key is "more than one user".  As I mentioned below, assuming that
-the only user is the networking bits (we can continue to discuss the
-tty caller in the tty patch), this should live with the networking
-bits; it makes no sense to keep it separate in that case.  Of course,
-if there is more than one user, then keeping this change separate is
-reasonable.
-
-> > I think this patch looks fine, but it seems a bit odd standalone; it's
-> > almost always better to include new capabilities/functions in the same
-> > patch as the user.  Since the only user is the networking bits, it
-> > might make more sense to fold this patch into that one.
+On Thu, Jan 3, 2019 at 12:36 PM Richard Guy Briggs <rgb@redhat.com> wrote:
+> On 2019-01-03 08:15, Guenter Roeck wrote:
+> > Hi,
+> >
+> > On Tue, Jul 31, 2018 at 04:07:35PM -0400, Richard Guy Briggs wrote:
+> > > Implement kernel audit container identifier.
+> >
+> > I don't see a follow-up submission of this patch series. Has it been abandoned,
+> > or do I use the wrong search terms ?
 >
-> It was kept seperate due to tty_audit usage.  See my reasoning for patch
-> 6, but I'm willing to negotiate if that merits an exception like the
-> USER records do.
+> Guenter, thanks for your interest in this patchset.  I haven't
+> abandoned it.  I've pushed some updates to my own (ill-publicized)
+> public git repo.  This effort has been going on more than 5 years with 8
+> previous revisions trying to document task namespaces and deciding that
+> was insufficient.
+>
+> For this patchset I waited 11.5 weeks (80 days, Jules Verne anyone?)
+> before the primary intended maintainer did the first review, then I
+> responded within 2 weeks with further questions and a followup patch
+> proposal and then waited another 8 weeks for any response before adding
+> another query for that followup patch proposal review at which point I
+> got a rude answer saying I had disappointed and exhausted the
+> maintainer's goodwill with some hints at how to proceed just before new
+> year's.
 
---
+For what it is worth, I've found your emails to me to be rather "rude"
+as well (to borrow the term), and I responded with what I felt was
+appropriate.  Perhaps our interactions may have been seen as overly,
+or quickly, harsh but I would remind those that we have several years
+of history that extends far beyond the lists which obviously affects
+how we interact.  Our expectations for each other are clearly higher
+than either of us are delivering, so I'm going to suggest what I've
+suggested before, albeit privately: let's stick to the code, that's
+where we can find common ground.
+
+There were only a few outstanding threads/questions from your last
+posting, you should have responses to those sitting in your inbox now.
+
+> I'd be delighted with other upstream review to get other angles and to
+> take some of the load and responsibility off the primary maintainer.
+>
+> I expect to submit a v5 within a week without having had those questions
+> directly answered, but with some ideas of what to check and verify
+> before I resubmit.  Most of the changes have been sitting in that branch
+> for two months, already rebased one kernel version and will need
+> updating again.
+
+-- 
 paul moore
 www.paul-moore.com
