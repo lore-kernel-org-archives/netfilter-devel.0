@@ -1,87 +1,276 @@
-From: Kirill Tkhai <ktkhai@virtuozzo.com>
-Subject: Re: [PATCH v2] netfilter: account ebt_table_info to kmemcg
-Date: Sun, 6 Jan 2019 11:00:24 +0000
-Message-ID: <5cc8efad-9d3d-3136-3ddc-1f8a640cb1f8@virtuozzo.com>
-References: <20190103031431.247970-1-shakeelb@google.com>
+From: Jacek <wampir990-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Apparmor netfiter support?
+Date: Mon, 7 Jan 2019 11:16:13 +0100
+Message-ID: <91b5b9f7-bb9a-29d9-bc72-b0077b885726@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Cc: Nikolay Aleksandrov <nikolay@cumulusnetworks.com>,
-	Roopa Prabhu <roopa@cumulusnetworks.com>,
-	"bridge@lists.linux-foundation.org" <bridge@lists.linux-foundation.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-mm@kvack.org" <linux-mm@kvack.org>,
-	"coreteam@netfilter.org" <coreteam@netfilter.org>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	"syzbot+7713f3aa67be76b1552c@syzkaller.appspotmail.com"
-	<syzbot+7713f3aa67be76b1552c@syzkaller.appspotmail.com>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: Shakeel Butt <shakeelb@google.com>, Michal Hocko <mhocko@kernel.org>,
-	Andrew Morton <akpm@linux-foundation.org>, Florian Westphal <fw@strlen.de>
-Return-path: <bridge-bounces@lists.linux-foundation.org>
-In-Reply-To: <20190103031431.247970-1-shakeelb@google.com>
-Content-Language: en-US
-Content-ID: <44C40DD317502844B1969825E000CB76@eurprd08.prod.outlook.com>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/bridge>,
-	<mailto:bridge-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/bridge/>
-List-Post: <mailto:bridge@lists.linux-foundation.org>
-List-Help: <mailto:bridge-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/bridge>,
-	<mailto:bridge-request@lists.linux-foundation.org?subject=subscribe>
-Sender: bridge-bounces@lists.linux-foundation.org
-Errors-To: bridge-bounces@lists.linux-foundation.org
+Content-Type: multipart/mixed; boundary="===============6395670286216889898=="
+Cc: apparmor-nLRlyDuq1AZFpShjVBNYrg@public.gmane.org
+To: netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <apparmor-bounces-nLRlyDuq1AZFpShjVBNYrg@public.gmane.org>
+List-Unsubscribe: <https://lists.ubuntu.com/mailman/options/apparmor>,
+ <mailto:apparmor-request-nLRlyDuq1AZFpShjVBNYrg@public.gmane.org?subject=unsubscribe>
+List-Archive: <https://lists.ubuntu.com/archives/apparmor>
+List-Post: <mailto:apparmor-nLRlyDuq1AZFpShjVBNYrg@public.gmane.org>
+List-Help: <mailto:apparmor-request-nLRlyDuq1AZFpShjVBNYrg@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ubuntu.com/mailman/listinfo/apparmor>,
+ <mailto:apparmor-request-nLRlyDuq1AZFpShjVBNYrg@public.gmane.org?subject=subscribe>
+Errors-To: apparmor-bounces-nLRlyDuq1AZFpShjVBNYrg@public.gmane.org
+Sender: "AppArmor" <apparmor-bounces-nLRlyDuq1AZFpShjVBNYrg@public.gmane.org>
 List-Id: netfilter-devel.vger.kernel.org
 
-T24gMDMuMDEuMjAxOSAwNjoxNCwgU2hha2VlbCBCdXR0IHdyb3RlOg0KPiBUaGUgW2lwLGlwNixh
-cnBdX3RhYmxlcyB1c2UgeF90YWJsZXNfaW5mbyBpbnRlcm5hbGx5IGFuZCB0aGUgdW5kZXJseWlu
-Zw0KPiBtZW1vcnkgaXMgYWxyZWFkeSBhY2NvdW50ZWQgdG8ga21lbWNnLiBEbyB0aGUgc2FtZSBm
-b3IgZWJ0YWJsZXMuIFRoZQ0KPiBzeXpib3QsIGJ5IHVzaW5nIHNldHNvY2tvcHQoRUJUX1NPX1NF
-VF9FTlRSSUVTKSwgd2FzIGFibGUgdG8gT09NIHRoZQ0KPiB3aG9sZSBzeXN0ZW0gZnJvbSBhIHJl
-c3RyaWN0ZWQgbWVtY2csIGEgcG90ZW50aWFsIERvUy4NCj4gDQo+IEJ5IGFjY291bnRpbmcgdGhl
-IGVidF90YWJsZV9pbmZvLCB0aGUgbWVtb3J5IHVzZWQgZm9yIGVidF90YWJsZV9pbmZvIGNhbg0K
-PiBiZSBjb250YWluZWQgd2l0aGluIHRoZSBtZW1jZyBvZiB0aGUgYWxsb2NhdGluZyBwcm9jZXNz
-LiBIb3dldmVyIHRoZQ0KPiBsaWZldGltZSBvZiBlYnRfdGFibGVfaW5mbyBpcyBpbmRlcGVuZGVu
-dCBvZiB0aGUgYWxsb2NhdGluZyBwcm9jZXNzIGFuZA0KPiBpcyB0aWVkIHRvIHRoZSBuZXR3b3Jr
-IG5hbWVzcGFjZS4gU28sIHRoZSBvb20ta2lsbGVyIHdpbGwgbm90IGJlIGFibGUgdG8NCj4gcmVs
-aWV2ZSB0aGUgbWVtb3J5IHByZXNzdXJlIGR1ZSB0byBlYnRfdGFibGVfaW5mbyBtZW1vcnkuIFRo
-ZSBtZW1vcnkgZm9yDQo+IGVidF90YWJsZV9pbmZvIGlzIGFsbG9jYXRlZCB0aHJvdWdoIHZtYWxs
-b2MuIEN1cnJlbnRseSB2bWFsbG9jIGRvZXMgbm90DQo+IGhhbmRsZSB0aGUgb29tLWtpbGxlZCBh
-bGxvY2F0aW5nIHByb2Nlc3MgY29ycmVjdGx5IGFuZCBvbmUgbGFyZ2UNCj4gYWxsb2NhdGlvbiBj
-YW4gYnlwYXNzIG1lbWNnIGxpbWl0IGVuZm9yY2VtZW50LiBTbywgd2l0aCB0aGlzIHBhdGNoLA0K
-PiBhdCBsZWFzdCB0aGUgc21hbGwgYWxsb2NhdGlvbnMgd2lsbCBiZSBjb250YWluZWQuIEZvciBs
-YXJnZSBhbGxvY2F0aW9ucywNCj4gd2UgbmVlZCB0byBmaXggdm1hbGxvYy4NCj4gDQo+IFJlcG9y
-dGVkLWJ5OiBzeXpib3QrNzcxM2YzYWE2N2JlNzZiMTU1MmNAc3l6a2FsbGVyLmFwcHNwb3RtYWls
-LmNvbQ0KPiBTaWduZWQtb2ZmLWJ5OiBTaGFrZWVsIEJ1dHQgPHNoYWtlZWxiQGdvb2dsZS5jb20+
-DQo+IENjOiBGbG9yaWFuIFdlc3RwaGFsIDxmd0BzdHJsZW4uZGU+DQo+IENjOiBNaWNoYWwgSG9j
-a28gPG1ob2Nrb0BrZXJuZWwub3JnPg0KPiBDYzogS2lyaWxsIFRraGFpIDxrdGtoYWlAdmlydHVv
-enpvLmNvbT4NCj4gQ2M6IFBhYmxvIE5laXJhIEF5dXNvIDxwYWJsb0BuZXRmaWx0ZXIub3JnPg0K
-PiBDYzogSm96c2VmIEthZGxlY3NpayA8a2FkbGVjQGJsYWNraG9sZS5rZmtpLmh1Pg0KPiBDYzog
-Um9vcGEgUHJhYmh1IDxyb29wYUBjdW11bHVzbmV0d29ya3MuY29tPg0KPiBDYzogTmlrb2xheSBB
-bGVrc2FuZHJvdiA8bmlrb2xheUBjdW11bHVzbmV0d29ya3MuY29tPg0KPiBDYzogQW5kcmV3IE1v
-cnRvbiA8YWtwbUBsaW51eC1mb3VuZGF0aW9uLm9yZz4NCj4gQ2M6IExpbnV4IE1NIDxsaW51eC1t
-bUBrdmFjay5vcmc+DQo+IENjOiBuZXRmaWx0ZXItZGV2ZWxAdmdlci5rZXJuZWwub3JnDQo+IENj
-OiBjb3JldGVhbUBuZXRmaWx0ZXIub3JnDQo+IENjOiBicmlkZ2VAbGlzdHMubGludXgtZm91bmRh
-dGlvbi5vcmcNCj4gQ2M6IExLTUwgPGxpbnV4LWtlcm5lbEB2Z2VyLmtlcm5lbC5vcmc+DQo+IC0t
-LQ0KPiBDaGFuZ2Vsb2cgc2luY2UgdjE6DQo+IC0gTW9yZSBkZXNjcmlwdGl2ZSBjb21taXQgbWVz
-c2FnZS4NCg0KUmV2aWV3ZWQtYnk6IEtpcmlsbCBUa2hhaSA8a3RraGFpQHZpcnR1b3p6by5jb20+
-DQoNCj4gDQo+ICBuZXQvYnJpZGdlL25ldGZpbHRlci9lYnRhYmxlcy5jIHwgNiArKysrLS0NCj4g
-IDEgZmlsZSBjaGFuZ2VkLCA0IGluc2VydGlvbnMoKyksIDIgZGVsZXRpb25zKC0pDQo+IA0KPiBk
-aWZmIC0tZ2l0IGEvbmV0L2JyaWRnZS9uZXRmaWx0ZXIvZWJ0YWJsZXMuYyBiL25ldC9icmlkZ2Uv
-bmV0ZmlsdGVyL2VidGFibGVzLmMNCj4gaW5kZXggNDkxODI4NzEzZTBiLi41ZTU1Y2VmMGNlYzMg
-MTAwNjQ0DQo+IC0tLSBhL25ldC9icmlkZ2UvbmV0ZmlsdGVyL2VidGFibGVzLmMNCj4gKysrIGIv
-bmV0L2JyaWRnZS9uZXRmaWx0ZXIvZWJ0YWJsZXMuYw0KPiBAQCAtMTEzNywxNCArMTEzNywxNiBA
-QCBzdGF0aWMgaW50IGRvX3JlcGxhY2Uoc3RydWN0IG5ldCAqbmV0LCBjb25zdCB2b2lkIF9fdXNl
-ciAqdXNlciwNCj4gIAl0bXAubmFtZVtzaXplb2YodG1wLm5hbWUpIC0gMV0gPSAwOw0KPiAgDQo+
-ICAJY291bnRlcnNpemUgPSBDT1VOVEVSX09GRlNFVCh0bXAubmVudHJpZXMpICogbnJfY3B1X2lk
-czsNCj4gLQluZXdpbmZvID0gdm1hbGxvYyhzaXplb2YoKm5ld2luZm8pICsgY291bnRlcnNpemUp
-Ow0KPiArCW5ld2luZm8gPSBfX3ZtYWxsb2Moc2l6ZW9mKCpuZXdpbmZvKSArIGNvdW50ZXJzaXpl
-LCBHRlBfS0VSTkVMX0FDQ09VTlQsDQo+ICsJCQkgICAgUEFHRV9LRVJORUwpOw0KPiAgCWlmICgh
-bmV3aW5mbykNCj4gIAkJcmV0dXJuIC1FTk9NRU07DQo+ICANCj4gIAlpZiAoY291bnRlcnNpemUp
-DQo+ICAJCW1lbXNldChuZXdpbmZvLT5jb3VudGVycywgMCwgY291bnRlcnNpemUpOw0KPiAgDQo+
-IC0JbmV3aW5mby0+ZW50cmllcyA9IHZtYWxsb2ModG1wLmVudHJpZXNfc2l6ZSk7DQo+ICsJbmV3
-aW5mby0+ZW50cmllcyA9IF9fdm1hbGxvYyh0bXAuZW50cmllc19zaXplLCBHRlBfS0VSTkVMX0FD
-Q09VTlQsDQo+ICsJCQkJICAgICBQQUdFX0tFUk5FTCk7DQo+ICAJaWYgKCFuZXdpbmZvLT5lbnRy
-aWVzKSB7DQo+ICAJCXJldCA9IC1FTk9NRU07DQo+ICAJCWdvdG8gZnJlZV9uZXdpbmZvOw0KPiAN
-Cg0K
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--===============6395670286216889898==
+Content-Type: multipart/signed; micalg=pgp-sha512;
+ protocol="application/pgp-signature";
+ boundary="tLQbqWky4mhSg4lF26wA7ujwkztV08f4G"
+
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--tLQbqWky4mhSg4lF26wA7ujwkztV08f4G
+Content-Type: multipart/mixed; boundary="rAONKwYQwIyLBHeEQsN73BLpx1EiYRSt2";
+ protected-headers="v1"
+From: Jacek <wampir990-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: apparmor-nLRlyDuq1AZFpShjVBNYruG/Ez6ZCGd0@public.gmane.org
+Message-ID: <91b5b9f7-bb9a-29d9-bc72-b0077b885726-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Apparmor netfiter support?
+
+--rAONKwYQwIyLBHeEQsN73BLpx1EiYRSt2
+Content-Type: multipart/alternative;
+ boundary="------------3961FC5C7CA439C16905DF0A"
+Content-Language: en-US
+
+This is a multi-part message in MIME format.
+--------------3961FC5C7CA439C16905DF0A
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+
+Hi
+
+Apparmor hasn't a Netfilter firewall support module.
+
+Network rules is a good choice for applications that have AA-profiles,
+but it does not protect unconfined processes for forbidden network
+outgoing connections.
+
+I mean the function of the Security netfiter tables for SElinux, but the
+easy way similar to xt_gradm, part of the Grsecurity project:
+https://grsecurity.net/stable/grsecurity-2.2.0-iptables.patch
+
+Proposed solution (userspace):
+NFtables (next Linux firewall):
+
+nft insert rule ip filter output meta apparmor aapolicy unconfined drop
+nft insert rule ip filter output meta apparmor aapolicy enforce accept
+nft insert rule ip filter output meta apparmor aapolicy complain log acce=
+pt
+
+Iptables (current/old Linux firewall):
+iptables -I OUTPUT ! -o lo -m apparmor --aapolicy unconfined -j DROP
+iptables -A OUTPUT ! -o lo -m apparmor --aapolicy enforce=C2=A0 -j ACCEPT=
+
+iptables -A OUTPUT ! -o lo -m apparmor --aapolicy complain=C2=A0 -j LOG
+--log-prefix "$PROFILE_NAME - complain: $APP_NAME"
+iptables -A OUTPUT ! -o lo -m apparmor --aapolicy complain=C2=A0 -j ACCEP=
+T
+
+
+
+Example log from LSM Integrity IMA (Apparmor Variables - enforce)
+
+/audit: type=3D1800 audit(1546855115.951:3766): pid=3D12211 uid=3D0 auid=3D=
+1001
+ses=3D4 subj=3D=3D/bin/kmod (enforce) op=3Dappraise_data
+cause=3DIMA-signature-required comm=3D"modprobe"
+name=3D"/lib64/modules/4.19.13-gt5/kernel/net/sched/sch_codel.ko"
+dev=3D"sdb1" ino=3D1334797 res=3D0/
+
+/where:/
+
+Apparmor Profile name & policy:/=C2=A0=C2=A0 //subj=3D=3D/bin/kmod (enfor=
+ce) /
+Real aplication name:=C2=A0 /comm=3D"modprobe" /
+
+AA-variables - unconfined:
+
+[ 1703.396288] audit: type=3D1800 audit(1546855383.896:3777): pid=3D12347=
+
+uid=3D0 auid=3D1001 ses=3D4 subj=3D=3Dunconfined op=3Dappraise_data
+cause=3DIMA-signature-required comm=3D"modprobe"
+name=3D"/lib64/modules/4.19.13-gt5/kernel/net/sched/sch_codel.ko"
+dev=3D"sdb1" ino=3D1334797 res=3D0
+
+where:
+
+AA-policy: subj=3D=3Dunconfined
+
+aplication name: =C2=A0=C2=A0 comm=3D"modprobe"
+
+AA-variables - complain:
+
+audit: type=3D1800 audit(1546855552.256:3785): pid=3D12402 uid=3D0 auid=3D=
+1001
+ses=3D4 subj=3D=3D/bin/kmod (complain) op=3Dappraise_data
+cause=3DIMA-signature-required comm=3D"insmod"=C2=A0
+name=3D"/lib64/modules/4.19.13-gt5/kernel/net/sched/sch_codel.ko"
+dev=3D"sdb1" ino=3D1334797 res=3D0
+
+where:
+
+AA - profile & policy:=C2=A0 subj=3D=3D/bin/kmod (complain)
+
+App name:=C2=A0comm=3D"insmod"
+
+I'm not a programmer, is there any chance of adding a similar module in
+Apparmor?
+
+Cheers
+
+
+
+
+
+--------------3961FC5C7CA439C16905DF0A
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+
+<html>
+  <head>
+
+    <meta http-equiv=3D"content-type" content=3D"text/html; charset=3DUTF=
+-8">
+  </head>
+  <body text=3D"#000000" bgcolor=3D"#FFFFFF">
+    <p>Hi</p>
+    Apparmor hasn't a Netfilter firewall support module.<br>
+    <br>
+    Network rules is a good choice for applications that have
+    AA-profiles,<br>
+    but it does not protect unconfined processes for forbidden network<br=
+>
+    outgoing connections.<br>
+    <br>
+    I mean the function of the Security netfiter tables for SElinux, but
+    the<br>
+    easy way similar to xt_gradm, part of the Grsecurity project:<br>
+    <a class=3D"moz-txt-link-freetext" href=3D"https://grsecurity.net/sta=
+ble/grsecurity-2.2.0-iptables.patch">https://grsecurity.net/stable/grsecu=
+rity-2.2.0-iptables.patch</a><br>
+    <br>
+    Proposed solution (userspace):<br>
+    NFtables (next Linux firewall):<br>
+    <br>
+    nft insert rule ip filter output meta apparmor aapolicy unconfined
+    drop<br>
+    nft insert rule ip filter output meta apparmor aapolicy enforce
+    accept<br>
+    nft insert rule ip filter output meta apparmor aapolicy complain log
+    accept<br>
+    <br>
+    Iptables (current/old Linux firewall):<br>
+    iptables -I OUTPUT ! -o lo -m apparmor --aapolicy unconfined -j DROP<=
+br>
+    iptables -A OUTPUT ! -o lo -m apparmor --aapolicy enforce=C2=A0 -j AC=
+CEPT<br>
+    iptables -A OUTPUT ! -o lo -m apparmor --aapolicy complain=C2=A0 -j L=
+OG<br>
+    --log-prefix "$PROFILE_NAME - complain: $APP_NAME"<br>
+    iptables -A OUTPUT ! -o lo -m apparmor --aapolicy complain=C2=A0 -j
+    ACCEPT<br>
+    <p><br>
+    </p>
+    <p><br>
+    </p>
+    <p>Example log from LSM Integrity IMA (Apparmor Variables - enforce)<=
+/p>
+    <p><i>audit: type=3D1800 audit(1546855115.951:3766): pid=3D12211 uid=3D=
+0
+        auid=3D1001 ses=3D4 subj=3D=3D/bin/kmod (enforce) op=3Dappraise_d=
+ata
+        cause=3DIMA-signature-required comm=3D"modprobe"
+        name=3D"/lib64/modules/4.19.13-gt5/kernel/net/sched/sch_codel.ko"=
+
+        dev=3D"sdb1" ino=3D1334797 res=3D0</i></p>
+    <p><i>where:</i></p>
+    <p>Apparmor Profile name &amp; policy:<i>=C2=A0=C2=A0 </i><i>subj=3D=3D=
+/bin/kmod
+        (enforce) </i><br>
+      Real aplication name:=C2=A0 <i>comm=3D"modprobe" </i></p>
+    <p>AA-variables - unconfined:</p>
+    <p>[ 1703.396288] audit: type=3D1800 audit(1546855383.896:3777):
+      pid=3D12347 uid=3D0 auid=3D1001 ses=3D4 subj=3D=3Dunconfined op=3Da=
+ppraise_data
+      cause=3DIMA-signature-required comm=3D"modprobe"
+      name=3D"/lib64/modules/4.19.13-gt5/kernel/net/sched/sch_codel.ko"
+      dev=3D"sdb1" ino=3D1334797 res=3D0<br>
+    </p>
+    <p>where:</p>
+    <p>AA-policy: subj=3D=3Dunconfined</p>
+    <p>aplication name: =C2=A0=C2=A0 comm=3D"modprobe" <br>
+    </p>
+    <p>AA-variables - complain:</p>
+    <p>audit: type=3D1800 audit(1546855552.256:3785): pid=3D12402 uid=3D0=
+
+      auid=3D1001 ses=3D4 subj=3D=3D/bin/kmod (complain) op=3Dappraise_da=
+ta
+      cause=3DIMA-signature-required comm=3D"insmod"=C2=A0
+      name=3D"/lib64/modules/4.19.13-gt5/kernel/net/sched/sch_codel.ko"
+      dev=3D"sdb1" ino=3D1334797 res=3D0<br>
+    </p>
+    <p>where:<br>
+    </p>
+    <p>AA - profile &amp; policy:=C2=A0 subj=3D=3D/bin/kmod (complain)</p=
+>
+    <p>App name:=C2=A0comm=3D"insmod" <br>
+    </p>
+    I'm not a programmer, is there any chance of adding a similar module
+    in<br>
+    Apparmor?<br>
+    <br>
+    Cheers<br>
+    <br>
+    <br>
+    <br>
+    <br>
+  </body>
+</html>
+
+--------------3961FC5C7CA439C16905DF0A--
+
+--rAONKwYQwIyLBHeEQsN73BLpx1EiYRSt2--
+
+--tLQbqWky4mhSg4lF26wA7ujwkztV08f4G
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCgAdFiEEsq/Hyleni+6nqiBAOu067AdQmvEFAlwzJu4ACgkQOu067AdQ
+mvFlYw/+M0rowJHxd19OJ56w3ffSBJ+oNia1OSKr7OvaYYdt7X4Yigvxb0IAjMSN
+KHfU3Ju9/OHTusXEjBkK9n+VbyZu+Y/exAuwBpj7wE7hAa7UMqEtYdwOk7eYM5WA
+e4eZpB1FO/GT0+f+FoxkynHfCnxoccGqSihHRtvjZUJtkMuKl6V9MvbYHXswhOvV
+WMPmiFnrwGAqg3LJkCZJ/dEo49lYjHO8M7rPE4A+KFFhlUw7wqNU64fNhahghS8P
+KiT0mpt9xUE7H4LBX6U6MY4hB0G4xm5zl6hX5SiMNzn8ykdn8aUO+Ykfx1t4y0rq
+AIXWZDHR6Q+gLE3wWEQ1KjnaDaCUvU/UiaMtY/PrDCQpVHE4IjSlJ2WhJ+q2RBx9
+VEO6Uj3DXWoi4tr1PIy3d2mNW5ULdLKO4Ke9rfAX8ba3eXztdn5Lyb/E67m+2nQU
+G1JBhmGn+H6NMBcro+zW1FW5V7+VgFvGzmKf6icoTm6K8V/Nv2ph/g2TrcxLAL4J
+YcH47faNG4f52i5c5jjA1c2hBWSMjrXxq8T1mW1lsaYjj4NU+DXwdea9ZYxI5HYZ
+X3mQejFJzDsZMz/qPxEbslbnmmfr2BaqNmStvckL28yg5oRgexFeXcXP5ngYjvBX
+I8TihTWQ1pK4co003bP59Cw+5afyE5w964iE19/ZA8Uh2lYWtcE=
+=Y+jc
+-----END PGP SIGNATURE-----
+
+--tLQbqWky4mhSg4lF26wA7ujwkztV08f4G--
+
+
+--===============6395670286216889898==
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
+
+LS0gCkFwcEFybW9yIG1haWxpbmcgbGlzdApBcHBBcm1vckBsaXN0cy51YnVudHUuY29tCk1vZGlm
+eSBzZXR0aW5ncyBvciB1bnN1YnNjcmliZSBhdDogaHR0cHM6Ly9saXN0cy51YnVudHUuY29tL21h
+aWxtYW4vbGlzdGluZm8vYXBwYXJtb3IK
+
+--===============6395670286216889898==--
