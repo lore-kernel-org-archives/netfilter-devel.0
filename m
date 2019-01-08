@@ -1,60 +1,146 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.20 084/117] netfilter: ipt_CLUSTERIP: check MAC address when duplicate config is set
-Date: Tue,  8 Jan 2019 14:25:52 -0500
-Message-ID: <20190108192628.121270-84-sashal@kernel.org>
-References: <20190108192628.121270-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 01/97] netfilter: ipset: Allow matching on destination MAC address for mac and ipmac sets
+Date: Tue,  8 Jan 2019 14:28:10 -0500
+Message-ID: <20190108192949.122407-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Cc: Taehee Yoo <ap420073@gmail.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
+Cc: Stefano Brivio <sbrivio@redhat.com>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
         Sasha Levin <sashal@kernel.org>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20190108192628.121270-1-sashal@kernel.org>
-Sender: stable-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Taehee Yoo <ap420073@gmail.com>
+From: Stefano Brivio <sbrivio@redhat.com>
 
-[ Upstream commit 06aa151ad1fc74a49b45336672515774a678d78d ]
+[ Upstream commit 8cc4ccf58379935f3ad456cc34e61c4e4c921d0e ]
 
-If same destination IP address config is already existing, that config is
-just used. MAC address also should be same.
-However, there is no MAC address checking routine.
-So that MAC address checking routine is added.
+There doesn't seem to be any reason to restrict MAC address
+matching to source MAC addresses in set types bitmap:ipmac,
+hash:ipmac and hash:mac. With this patch, and this setup:
 
-test commands:
-   %iptables -A INPUT -p tcp -i lo -d 192.168.0.5 --dport 80 \
-	   -j CLUSTERIP --new --hashmode sourceip \
-	   --clustermac 01:00:5e:00:00:20 --total-nodes 2 --local-node 1
-   %iptables -A INPUT -p tcp -i lo -d 192.168.0.5 --dport 80 \
-	   -j CLUSTERIP --new --hashmode sourceip \
-	   --clustermac 01:00:5e:00:00:21 --total-nodes 2 --local-node 1
+  ip netns add A
+  ip link add veth1 type veth peer name veth2 netns A
+  ip addr add 192.0.2.1/24 dev veth1
+  ip -net A addr add 192.0.2.2/24 dev veth2
+  ip link set veth1 up
+  ip -net A link set veth2 up
 
-After this patch, above commands are disallowed.
+  ip netns exec A ipset create test hash:mac
+  dst=$(ip netns exec A cat /sys/class/net/veth2/address)
+  ip netns exec A ipset add test ${dst}
+  ip netns exec A iptables -P INPUT DROP
+  ip netns exec A iptables -I INPUT -m set --match-set test dst -j ACCEPT
 
-Signed-off-by: Taehee Yoo <ap420073@gmail.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+ipset will match packets based on destination MAC address:
+
+  # ping -c1 192.0.2.2 >/dev/null
+  # echo $?
+  0
+
+Reported-by: Yi Chen <yiche@redhat.com>
+Signed-off-by: Stefano Brivio <sbrivio@redhat.com>
+Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- net/ipv4/netfilter/ipt_CLUSTERIP.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ net/netfilter/ipset/ip_set_bitmap_ipmac.c | 10 +++++-----
+ net/netfilter/ipset/ip_set_hash_ipmac.c   | 16 ++++++++++------
+ net/netfilter/ipset/ip_set_hash_mac.c     | 10 +++++-----
+ 3 files changed, 20 insertions(+), 16 deletions(-)
 
-diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-index 2c8d313ae216..e40e6795bd20 100644
---- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
-+++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-@@ -496,7 +496,8 @@ static int clusterip_tg_check(const struct xt_tgchk_param *par)
- 			if (IS_ERR(config))
- 				return PTR_ERR(config);
- 		}
--	}
-+	} else if (memcmp(&config->clustermac, &cipinfo->clustermac, ETH_ALEN))
-+		return -EINVAL;
+diff --git a/net/netfilter/ipset/ip_set_bitmap_ipmac.c b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
+index c00b6a2e8e3c..13ade5782847 100644
+--- a/net/netfilter/ipset/ip_set_bitmap_ipmac.c
++++ b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
+@@ -219,10 +219,6 @@ bitmap_ipmac_kadt(struct ip_set *set, const struct sk_buff *skb,
+ 	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, set);
+ 	u32 ip;
  
- 	ret = nf_ct_netns_get(par->net, par->family);
- 	if (ret < 0) {
+-	/* MAC can be src only */
+-	if (!(opt->flags & IPSET_DIM_TWO_SRC))
+-		return 0;
+-
+ 	ip = ntohl(ip4addr(skb, opt->flags & IPSET_DIM_ONE_SRC));
+ 	if (ip < map->first_ip || ip > map->last_ip)
+ 		return -IPSET_ERR_BITMAP_RANGE;
+@@ -233,7 +229,11 @@ bitmap_ipmac_kadt(struct ip_set *set, const struct sk_buff *skb,
+ 		return -EINVAL;
+ 
+ 	e.id = ip_to_id(map, ip);
+-	memcpy(e.ether, eth_hdr(skb)->h_source, ETH_ALEN);
++
++	if (opt->flags & IPSET_DIM_ONE_SRC)
++		ether_addr_copy(e.ether, eth_hdr(skb)->h_source);
++	else
++		ether_addr_copy(e.ether, eth_hdr(skb)->h_dest);
+ 
+ 	return adtfn(set, &e, &ext, &opt->ext, opt->cmdflags);
+ }
+diff --git a/net/netfilter/ipset/ip_set_hash_ipmac.c b/net/netfilter/ipset/ip_set_hash_ipmac.c
+index 1ab5ed2f6839..fd87de3ed55b 100644
+--- a/net/netfilter/ipset/ip_set_hash_ipmac.c
++++ b/net/netfilter/ipset/ip_set_hash_ipmac.c
+@@ -103,7 +103,11 @@ hash_ipmac4_kadt(struct ip_set *set, const struct sk_buff *skb,
+ 	    (skb_mac_header(skb) + ETH_HLEN) > skb->data)
+ 		return -EINVAL;
+ 
+-	memcpy(e.ether, eth_hdr(skb)->h_source, ETH_ALEN);
++	if (opt->flags & IPSET_DIM_ONE_SRC)
++		ether_addr_copy(e.ether, eth_hdr(skb)->h_source);
++	else
++		ether_addr_copy(e.ether, eth_hdr(skb)->h_dest);
++
+ 	if (ether_addr_equal(e.ether, invalid_ether))
+ 		return -EINVAL;
+ 
+@@ -211,15 +215,15 @@ hash_ipmac6_kadt(struct ip_set *set, const struct sk_buff *skb,
+ 	};
+ 	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, set);
+ 
+-	 /* MAC can be src only */
+-	if (!(opt->flags & IPSET_DIM_TWO_SRC))
+-		return 0;
+-
+ 	if (skb_mac_header(skb) < skb->head ||
+ 	    (skb_mac_header(skb) + ETH_HLEN) > skb->data)
+ 		return -EINVAL;
+ 
+-	memcpy(e.ether, eth_hdr(skb)->h_source, ETH_ALEN);
++	if (opt->flags & IPSET_DIM_ONE_SRC)
++		ether_addr_copy(e.ether, eth_hdr(skb)->h_source);
++	else
++		ether_addr_copy(e.ether, eth_hdr(skb)->h_dest);
++
+ 	if (ether_addr_equal(e.ether, invalid_ether))
+ 		return -EINVAL;
+ 
+diff --git a/net/netfilter/ipset/ip_set_hash_mac.c b/net/netfilter/ipset/ip_set_hash_mac.c
+index f9d5a2a1e3d0..4fe5f243d0a3 100644
+--- a/net/netfilter/ipset/ip_set_hash_mac.c
++++ b/net/netfilter/ipset/ip_set_hash_mac.c
+@@ -81,15 +81,15 @@ hash_mac4_kadt(struct ip_set *set, const struct sk_buff *skb,
+ 	struct hash_mac4_elem e = { { .foo[0] = 0, .foo[1] = 0 } };
+ 	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, set);
+ 
+-	 /* MAC can be src only */
+-	if (!(opt->flags & IPSET_DIM_ONE_SRC))
+-		return 0;
+-
+ 	if (skb_mac_header(skb) < skb->head ||
+ 	    (skb_mac_header(skb) + ETH_HLEN) > skb->data)
+ 		return -EINVAL;
+ 
+-	ether_addr_copy(e.ether, eth_hdr(skb)->h_source);
++	if (opt->flags & IPSET_DIM_ONE_SRC)
++		ether_addr_copy(e.ether, eth_hdr(skb)->h_source);
++	else
++		ether_addr_copy(e.ether, eth_hdr(skb)->h_dest);
++
+ 	if (is_zero_ether_addr(e.ether))
+ 		return -EINVAL;
+ 	return adtfn(set, &e, &ext, &opt->ext, opt->cmdflags);
 -- 
 2.19.1
