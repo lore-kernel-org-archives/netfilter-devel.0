@@ -1,85 +1,66 @@
-From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.20 085/117] netfilter: ipt_CLUSTERIP: remove wrong WARN_ON_ONCE in netns exit routine
-Date: Tue,  8 Jan 2019 14:25:53 -0500
-Message-ID: <20190108192628.121270-85-sashal@kernel.org>
-References: <20190108192628.121270-1-sashal@kernel.org>
+From: =?ISO-8859-15?Q?Kadlecsik_J=F3zsef?=
+        <kadlecsik.jozsef@wigner.mta.hu>
+Subject: Re: [PATCH] [v2] netfilter: ipset: fix a missing check of
+ nla_parse
+Date: Tue, 8 Jan 2019 21:01:41 +0100 (CET)
+Message-ID: <alpine.DEB.2.20.1901082101100.21270@localhost>
+References: <20190105153150.2600-1-pakki001@umn.edu>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Cc: Taehee Yoo <ap420073@gmail.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Sasha Levin <sashal@kernel.org>,
+Content-Type: text/plain; charset=US-ASCII
+Cc: kjlu@umn.edu, Pablo Neira Ayuso <pablo@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Kirill Tkhai <ktkhai@virtuozzo.com>,
+        Stefano Brivio <sbrivio@redhat.com>,
+        "Gustavo A. R. Silva" <garsilva@embeddedor.com>,
+        Andrey Ryabinin <aryabinin@virtuozzo.com>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org
-To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190108192628.121270-1-sashal@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Aditya Pakki <pakki001@umn.edu>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20190105153150.2600-1-pakki001@umn.edu>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Taehee Yoo <ap420073@gmail.com>
+Hi,
 
-[ Upstream commit b12f7bad5ad3724d19754390a3e80928525c0769 ]
+On Sat, 5 Jan 2019, Aditya Pakki wrote:
 
-When network namespace is destroyed, both clusterip_tg_destroy() and
-clusterip_net_exit() are called. and clusterip_net_exit() is called
-before clusterip_tg_destroy().
-Hence cleanup check code in clusterip_net_exit() doesn't make sense.
+> When nla_parse fails, we should not use the results (the first
+> argument). The fix checks if it fails, and if so, returns its error code
+> upstream.
 
-test commands:
-   %ip netns add vm1
-   %ip netns exec vm1 bash
-   %ip link set lo up
-   %iptables -A INPUT -p tcp -i lo -d 192.168.0.5 --dport 80 \
-	-j CLUSTERIP --new --hashmode sourceip \
-	--clustermac 01:00:5e:00:00:20 --total-nodes 2 --local-node 1
-   %exit
-   %ip netns del vm1
+Patch is applied in the ipset git tree, thanks!
 
-splat looks like:
-[  341.184508] WARNING: CPU: 1 PID: 87 at net/ipv4/netfilter/ipt_CLUSTERIP.c:840 clusterip_net_exit+0x319/0x380 [ipt_CLUSTERIP]
-[  341.184850] Modules linked in: ipt_CLUSTERIP nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 xt_tcpudp iptable_filter bpfilter ip_tables x_tables
-[  341.184850] CPU: 1 PID: 87 Comm: kworker/u4:2 Not tainted 4.19.0-rc5+ #16
-[  341.227509] Workqueue: netns cleanup_net
-[  341.227509] RIP: 0010:clusterip_net_exit+0x319/0x380 [ipt_CLUSTERIP]
-[  341.227509] Code: 0f 85 7f fe ff ff 48 c7 c2 80 64 2c c0 be a8 02 00 00 48 c7 c7 a0 63 2c c0 c6 05 18 6e 00 00 01 e8 bc 38 ff f5 e9 5b fe ff ff <0f> 0b e9 33 ff ff ff e8 4b 90 50 f6 e9 2d fe ff ff 48 89 df e8 de
-[  341.227509] RSP: 0018:ffff88011086f408 EFLAGS: 00010202
-[  341.227509] RAX: dffffc0000000000 RBX: 1ffff1002210de85 RCX: 0000000000000000
-[  341.227509] RDX: 1ffff1002210de85 RSI: ffff880110813be8 RDI: ffffed002210de58
-[  341.227509] RBP: ffff88011086f4d0 R08: 0000000000000000 R09: 0000000000000000
-[  341.227509] R10: 0000000000000000 R11: 0000000000000000 R12: 1ffff1002210de81
-[  341.227509] R13: ffff880110625a48 R14: ffff880114cec8c8 R15: 0000000000000014
-[  341.227509] FS:  0000000000000000(0000) GS:ffff880116600000(0000) knlGS:0000000000000000
-[  341.227509] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[  341.227509] CR2: 00007f11fd38e000 CR3: 000000013ca16000 CR4: 00000000001006e0
-[  341.227509] Call Trace:
-[  341.227509]  ? __clusterip_config_find+0x460/0x460 [ipt_CLUSTERIP]
-[  341.227509]  ? default_device_exit+0x1ca/0x270
-[  341.227509]  ? remove_proc_entry+0x1cd/0x390
-[  341.227509]  ? dev_change_net_namespace+0xd00/0xd00
-[  341.227509]  ? __init_waitqueue_head+0x130/0x130
-[  341.227509]  ops_exit_list.isra.10+0x94/0x140
-[  341.227509]  cleanup_net+0x45b/0x900
-[ ... ]
+Best regards,
+Jozsef
 
-Fixes: 613d0776d3fe ("netfilter: exit_net cleanup check added")
-Signed-off-by: Taehee Yoo <ap420073@gmail.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- net/ipv4/netfilter/ipt_CLUSTERIP.c | 1 -
- 1 file changed, 1 deletion(-)
-
-diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-index e40e6795bd20..33491cb6b9d1 100644
---- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
-+++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-@@ -838,7 +838,6 @@ static void clusterip_net_exit(struct net *net)
- 	cn->procdir = NULL;
- #endif
- 	nf_unregister_net_hook(net, &cip_arp_ops);
--	WARN_ON_ONCE(!list_empty(&cn->configs));
- }
- 
- static struct pernet_operations clusterip_net_ops = {
--- 
-2.19.1
+> Signed-off-by: Aditya Pakki <pakki001@umn.edu>
+> ---
+>  net/netfilter/ipset/ip_set_core.c | 9 +++++++--
+>  1 file changed, 7 insertions(+), 2 deletions(-)
+> 
+> diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
+> index 45a257695bef..3ee0fda05a3b 100644
+> --- a/net/netfilter/ipset/ip_set_core.c
+> +++ b/net/netfilter/ipset/ip_set_core.c
+> @@ -1546,8 +1546,13 @@ call_ad(struct sock *ctnl, struct sk_buff *skb, struct ip_set *set,
+>  		memcpy(&errmsg->msg, nlh, nlh->nlmsg_len);
+>  		cmdattr = (void *)&errmsg->msg + min_len;
+>  
+> -		nla_parse(cda, IPSET_ATTR_CMD_MAX, cmdattr,
+> -			  nlh->nlmsg_len - min_len, ip_set_adt_policy, NULL);
+> +		ret = nla_parse(cda, IPSET_ATTR_CMD_MAX, cmdattr,
+> +				nlh->nlmsg_len - min_len, ip_set_adt_policy,
+> +				NULL);
+> +		if (ret) {
+> +			nlmsg_free(skb2);
+> +			return ret;
+> +		}
+>  
+>  		errline = nla_data(cda[IPSET_ATTR_LINENO]);
+>  
+> -- 
+> 2.17.1
+> 
+> 
