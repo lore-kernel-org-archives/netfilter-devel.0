@@ -1,146 +1,85 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.19 01/97] netfilter: ipset: Allow matching on destination MAC address for mac and ipmac sets
-Date: Tue,  8 Jan 2019 14:28:10 -0500
-Message-ID: <20190108192949.122407-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 69/97] netfilter: ipt_CLUSTERIP: remove wrong WARN_ON_ONCE in netns exit routine
+Date: Tue,  8 Jan 2019 14:29:18 -0500
+Message-ID: <20190108192949.122407-69-sashal@kernel.org>
+References: <20190108192949.122407-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Cc: Stefano Brivio <sbrivio@redhat.com>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+Cc: Taehee Yoo <ap420073@gmail.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
         Sasha Levin <sashal@kernel.org>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190108192949.122407-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Stefano Brivio <sbrivio@redhat.com>
+From: Taehee Yoo <ap420073@gmail.com>
 
-[ Upstream commit 8cc4ccf58379935f3ad456cc34e61c4e4c921d0e ]
+[ Upstream commit b12f7bad5ad3724d19754390a3e80928525c0769 ]
 
-There doesn't seem to be any reason to restrict MAC address
-matching to source MAC addresses in set types bitmap:ipmac,
-hash:ipmac and hash:mac. With this patch, and this setup:
+When network namespace is destroyed, both clusterip_tg_destroy() and
+clusterip_net_exit() are called. and clusterip_net_exit() is called
+before clusterip_tg_destroy().
+Hence cleanup check code in clusterip_net_exit() doesn't make sense.
 
-  ip netns add A
-  ip link add veth1 type veth peer name veth2 netns A
-  ip addr add 192.0.2.1/24 dev veth1
-  ip -net A addr add 192.0.2.2/24 dev veth2
-  ip link set veth1 up
-  ip -net A link set veth2 up
+test commands:
+   %ip netns add vm1
+   %ip netns exec vm1 bash
+   %ip link set lo up
+   %iptables -A INPUT -p tcp -i lo -d 192.168.0.5 --dport 80 \
+	-j CLUSTERIP --new --hashmode sourceip \
+	--clustermac 01:00:5e:00:00:20 --total-nodes 2 --local-node 1
+   %exit
+   %ip netns del vm1
 
-  ip netns exec A ipset create test hash:mac
-  dst=$(ip netns exec A cat /sys/class/net/veth2/address)
-  ip netns exec A ipset add test ${dst}
-  ip netns exec A iptables -P INPUT DROP
-  ip netns exec A iptables -I INPUT -m set --match-set test dst -j ACCEPT
+splat looks like:
+[  341.184508] WARNING: CPU: 1 PID: 87 at net/ipv4/netfilter/ipt_CLUSTERIP.c:840 clusterip_net_exit+0x319/0x380 [ipt_CLUSTERIP]
+[  341.184850] Modules linked in: ipt_CLUSTERIP nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 xt_tcpudp iptable_filter bpfilter ip_tables x_tables
+[  341.184850] CPU: 1 PID: 87 Comm: kworker/u4:2 Not tainted 4.19.0-rc5+ #16
+[  341.227509] Workqueue: netns cleanup_net
+[  341.227509] RIP: 0010:clusterip_net_exit+0x319/0x380 [ipt_CLUSTERIP]
+[  341.227509] Code: 0f 85 7f fe ff ff 48 c7 c2 80 64 2c c0 be a8 02 00 00 48 c7 c7 a0 63 2c c0 c6 05 18 6e 00 00 01 e8 bc 38 ff f5 e9 5b fe ff ff <0f> 0b e9 33 ff ff ff e8 4b 90 50 f6 e9 2d fe ff ff 48 89 df e8 de
+[  341.227509] RSP: 0018:ffff88011086f408 EFLAGS: 00010202
+[  341.227509] RAX: dffffc0000000000 RBX: 1ffff1002210de85 RCX: 0000000000000000
+[  341.227509] RDX: 1ffff1002210de85 RSI: ffff880110813be8 RDI: ffffed002210de58
+[  341.227509] RBP: ffff88011086f4d0 R08: 0000000000000000 R09: 0000000000000000
+[  341.227509] R10: 0000000000000000 R11: 0000000000000000 R12: 1ffff1002210de81
+[  341.227509] R13: ffff880110625a48 R14: ffff880114cec8c8 R15: 0000000000000014
+[  341.227509] FS:  0000000000000000(0000) GS:ffff880116600000(0000) knlGS:0000000000000000
+[  341.227509] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[  341.227509] CR2: 00007f11fd38e000 CR3: 000000013ca16000 CR4: 00000000001006e0
+[  341.227509] Call Trace:
+[  341.227509]  ? __clusterip_config_find+0x460/0x460 [ipt_CLUSTERIP]
+[  341.227509]  ? default_device_exit+0x1ca/0x270
+[  341.227509]  ? remove_proc_entry+0x1cd/0x390
+[  341.227509]  ? dev_change_net_namespace+0xd00/0xd00
+[  341.227509]  ? __init_waitqueue_head+0x130/0x130
+[  341.227509]  ops_exit_list.isra.10+0x94/0x140
+[  341.227509]  cleanup_net+0x45b/0x900
+[ ... ]
 
-ipset will match packets based on destination MAC address:
-
-  # ping -c1 192.0.2.2 >/dev/null
-  # echo $?
-  0
-
-Reported-by: Yi Chen <yiche@redhat.com>
-Signed-off-by: Stefano Brivio <sbrivio@redhat.com>
-Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Fixes: 613d0776d3fe ("netfilter: exit_net cleanup check added")
+Signed-off-by: Taehee Yoo <ap420073@gmail.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- net/netfilter/ipset/ip_set_bitmap_ipmac.c | 10 +++++-----
- net/netfilter/ipset/ip_set_hash_ipmac.c   | 16 ++++++++++------
- net/netfilter/ipset/ip_set_hash_mac.c     | 10 +++++-----
- 3 files changed, 20 insertions(+), 16 deletions(-)
+ net/ipv4/netfilter/ipt_CLUSTERIP.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/net/netfilter/ipset/ip_set_bitmap_ipmac.c b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
-index c00b6a2e8e3c..13ade5782847 100644
---- a/net/netfilter/ipset/ip_set_bitmap_ipmac.c
-+++ b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
-@@ -219,10 +219,6 @@ bitmap_ipmac_kadt(struct ip_set *set, const struct sk_buff *skb,
- 	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, set);
- 	u32 ip;
- 
--	/* MAC can be src only */
--	if (!(opt->flags & IPSET_DIM_TWO_SRC))
--		return 0;
--
- 	ip = ntohl(ip4addr(skb, opt->flags & IPSET_DIM_ONE_SRC));
- 	if (ip < map->first_ip || ip > map->last_ip)
- 		return -IPSET_ERR_BITMAP_RANGE;
-@@ -233,7 +229,11 @@ bitmap_ipmac_kadt(struct ip_set *set, const struct sk_buff *skb,
- 		return -EINVAL;
- 
- 	e.id = ip_to_id(map, ip);
--	memcpy(e.ether, eth_hdr(skb)->h_source, ETH_ALEN);
-+
-+	if (opt->flags & IPSET_DIM_ONE_SRC)
-+		ether_addr_copy(e.ether, eth_hdr(skb)->h_source);
-+	else
-+		ether_addr_copy(e.ether, eth_hdr(skb)->h_dest);
- 
- 	return adtfn(set, &e, &ext, &opt->ext, opt->cmdflags);
+diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+index e40e6795bd20..33491cb6b9d1 100644
+--- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
++++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+@@ -838,7 +838,6 @@ static void clusterip_net_exit(struct net *net)
+ 	cn->procdir = NULL;
+ #endif
+ 	nf_unregister_net_hook(net, &cip_arp_ops);
+-	WARN_ON_ONCE(!list_empty(&cn->configs));
  }
-diff --git a/net/netfilter/ipset/ip_set_hash_ipmac.c b/net/netfilter/ipset/ip_set_hash_ipmac.c
-index 1ab5ed2f6839..fd87de3ed55b 100644
---- a/net/netfilter/ipset/ip_set_hash_ipmac.c
-+++ b/net/netfilter/ipset/ip_set_hash_ipmac.c
-@@ -103,7 +103,11 @@ hash_ipmac4_kadt(struct ip_set *set, const struct sk_buff *skb,
- 	    (skb_mac_header(skb) + ETH_HLEN) > skb->data)
- 		return -EINVAL;
  
--	memcpy(e.ether, eth_hdr(skb)->h_source, ETH_ALEN);
-+	if (opt->flags & IPSET_DIM_ONE_SRC)
-+		ether_addr_copy(e.ether, eth_hdr(skb)->h_source);
-+	else
-+		ether_addr_copy(e.ether, eth_hdr(skb)->h_dest);
-+
- 	if (ether_addr_equal(e.ether, invalid_ether))
- 		return -EINVAL;
- 
-@@ -211,15 +215,15 @@ hash_ipmac6_kadt(struct ip_set *set, const struct sk_buff *skb,
- 	};
- 	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, set);
- 
--	 /* MAC can be src only */
--	if (!(opt->flags & IPSET_DIM_TWO_SRC))
--		return 0;
--
- 	if (skb_mac_header(skb) < skb->head ||
- 	    (skb_mac_header(skb) + ETH_HLEN) > skb->data)
- 		return -EINVAL;
- 
--	memcpy(e.ether, eth_hdr(skb)->h_source, ETH_ALEN);
-+	if (opt->flags & IPSET_DIM_ONE_SRC)
-+		ether_addr_copy(e.ether, eth_hdr(skb)->h_source);
-+	else
-+		ether_addr_copy(e.ether, eth_hdr(skb)->h_dest);
-+
- 	if (ether_addr_equal(e.ether, invalid_ether))
- 		return -EINVAL;
- 
-diff --git a/net/netfilter/ipset/ip_set_hash_mac.c b/net/netfilter/ipset/ip_set_hash_mac.c
-index f9d5a2a1e3d0..4fe5f243d0a3 100644
---- a/net/netfilter/ipset/ip_set_hash_mac.c
-+++ b/net/netfilter/ipset/ip_set_hash_mac.c
-@@ -81,15 +81,15 @@ hash_mac4_kadt(struct ip_set *set, const struct sk_buff *skb,
- 	struct hash_mac4_elem e = { { .foo[0] = 0, .foo[1] = 0 } };
- 	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, set);
- 
--	 /* MAC can be src only */
--	if (!(opt->flags & IPSET_DIM_ONE_SRC))
--		return 0;
--
- 	if (skb_mac_header(skb) < skb->head ||
- 	    (skb_mac_header(skb) + ETH_HLEN) > skb->data)
- 		return -EINVAL;
- 
--	ether_addr_copy(e.ether, eth_hdr(skb)->h_source);
-+	if (opt->flags & IPSET_DIM_ONE_SRC)
-+		ether_addr_copy(e.ether, eth_hdr(skb)->h_source);
-+	else
-+		ether_addr_copy(e.ether, eth_hdr(skb)->h_dest);
-+
- 	if (is_zero_ether_addr(e.ether))
- 		return -EINVAL;
- 	return adtfn(set, &e, &ext, &opt->ext, opt->cmdflags);
+ static struct pernet_operations clusterip_net_ops = {
 -- 
 2.19.1
