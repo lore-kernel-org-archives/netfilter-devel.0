@@ -1,31 +1,38 @@
-From: wenxu <wenxu@ucloud.cn>
-Subject: Re: [PATCH] nft_flow_offload: Make flow offload work with vrf slave
- device correct
-Date: Wed, 9 Jan 2019 10:52:04 +0800
-Message-ID: <0cbf054a-6948-0b36-19d2-5eff27b2dbd6@ucloud.cn>
-References: <1546078225-22699-1-git-send-email-wenxu@ucloud.cn>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] netfilter: x_tables: add xt_tunnel match
+Date: Wed, 9 Jan 2019 17:41:43 +0100
+Message-ID: <20190109164143.d6gqky7dvxfxg7jr@salvia>
+References: <1545387144-5796-1-git-send-email-wenxu@ucloud.cn>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: wenxu@ucloud.cn
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1546078225-22699-1-git-send-email-wenxu@ucloud.cn>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <1545387144-5796-1-git-send-email-wenxu@ucloud.cn>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi pablo,
+On Fri, Dec 21, 2018 at 06:12:24PM +0800, wenxu@ucloud.cn wrote:
+[...]
+> +static struct xt_match tunnel_mt_reg __read_mostly = {
+> +	.name           = "tunnel",
+> +	.revision       = 0,
+> +	.family         = NFPROTO_UNSPEC,
+> +	.match          = tunnel_mt,
+> +	.matchsize      = sizeof(struct xt_tunnel_mtinfo),
 
-How about the status for this patch?
- 
+Does this work away from the prerouting hook?
 
-On 12/29/2018 6:10 PM, wenxu@ucloud.cn wrote:
-> From: wenxu <wenxu@ucloud.cn>
->
-> In the forward chain the iif is changed from slave device to master vrf
-> device. It will lead the offload not match on lower slave device.
->
-> This patch make the flollowing example can work correct
->
->
+> +	.me             = THIS_MODULE,
+> +};
+> +
+> +static int __init tunnel_mt_init(void)
+> +{
+> +	int ret;
+> +
+> +	ret = xt_register_match(&tunnel_mt_reg);
+> +	if (ret < 0)
+> +		return ret;
+
+Probably one single line for this?
