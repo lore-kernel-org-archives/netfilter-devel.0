@@ -1,38 +1,62 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH RESEND] nft_flow_offload: Fix the peer route get from
- wrong daddr
-Date: Wed, 9 Jan 2019 20:06:37 +0100
-Message-ID: <20190109190637.rhqpp2edpikv3vng@salvia>
-References: <1547001611-26793-1-git-send-email-wenxu@ucloud.cn>
- <20190109190358.o2asukctfbijhbqw@salvia>
+Subject: Re: [PATCH] ipset: fix a missing check of nla_parse
+Date: Wed, 9 Jan 2019 23:43:35 +0100
+Message-ID: <20190109224335.qe6f4x4722qz6x5p@salvia>
+References: <20181226035002.73614-1-kjlu@umn.edu>
+ <c462e7f4-6c41-78e8-26e9-8ce16ca26a5c@virtuozzo.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: wenxu@ucloud.cn
-Return-path: <netdev-owner@vger.kernel.org>
+Cc: Kangjie Lu <kjlu@umn.edu>, pakki001@umn.edu,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Stefano Brivio <sbrivio@redhat.com>,
+        Andrey Ryabinin <aryabinin@virtuozzo.com>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Kirill Tkhai <ktkhai@virtuozzo.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190109190358.o2asukctfbijhbqw@salvia>
-Sender: netdev-owner@vger.kernel.org
+In-Reply-To: <c462e7f4-6c41-78e8-26e9-8ce16ca26a5c@virtuozzo.com>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Jan 09, 2019 at 08:03:58PM +0100, Pablo Neira Ayuso wrote:
-> On Wed, Jan 09, 2019 at 10:40:11AM +0800, wenxu@ucloud.cn wrote:
-> > From: wenxu <wenxu@ucloud.cn>
+On Wed, Dec 26, 2018 at 12:16:25PM +0300, Kirill Tkhai wrote:
+> On 26.12.2018 06:50, Kangjie Lu wrote:
+> > When nla_parse fails, we should not use the results (the first
+> > argument). The fix checks if it fails, and if so, returns its error code
+> > upstream.
 > > 
-> > For nat example:
-> > client 1.1.1.7 ---> 2.2.2.7 which dnat to 10.0.0.7 server
+> > Signed-off-by: Kangjie Lu <kjlu@umn.edu>
+> > ---
+> >  net/netfilter/ipset/ip_set_core.c | 4 +++-
+> >  1 file changed, 3 insertions(+), 1 deletion(-)
 > > 
-> > When syn_rcv pkt from server it get the peer(client->server) route
-> > through daddr = ct->tuplehash[!dir].tuple.dst.u3.ip, the value 2.2.2.7
-> > is not correct in this situation. it should be 10.0.0.7
-> > ct->tuplehash[dir].tuple.src.u3.ip
+> > diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
+> > index 1577f2f76060..4dc8057cff02 100644
+> > --- a/net/netfilter/ipset/ip_set_core.c
+> > +++ b/net/netfilter/ipset/ip_set_core.c
+> > @@ -1531,8 +1531,10 @@ call_ad(struct sock *ctnl, struct sk_buff *skb, struct ip_set *set,
+> >  		memcpy(&errmsg->msg, nlh, nlh->nlmsg_len);
+> >  		cmdattr = (void *)&errmsg->msg + min_len;
+> >  
+> > -		nla_parse(cda, IPSET_ATTR_CMD_MAX, cmdattr,
+> > +		ret = nla_parse(cda, IPSET_ATTR_CMD_MAX, cmdattr,
+> >  			  nlh->nlmsg_len - min_len, ip_set_adt_policy, NULL);
+
+@Kangjie: nitpick, could you align this line below? ie.
+
+		ret = nla_parse(cda, IPSET_ATTR_CMD_MAX, cmdattr,
+                                nlh->nlmsg_len - min_len, ip_set_adt_policy,
+                                NULL);
+
+> > +		if (ret)
+> > +			return ret;
 > 
-> Patch is correct, applied, thanks.
+> In this function above nlmsg_new() allocates skb2, but I don't see, where you free it here.
 
-BTW, let me rewrite patch title to:
+netlink_unicast() is responsible for releasing this skb2.
 
-        netfilter: nft_flow_offload: Fix reverse route lookup
-
-I'll also slightly revisit the patch description before applying.
-
-Thanks.
+> >  		errline = nla_data(cda[IPSET_ATTR_LINENO]);
+> >  
+> > 
