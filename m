@@ -1,44 +1,29 @@
-From: wenxu@ucloud.cn
-Subject: [PATCH RESEND] nft_flow_offload: Fix the peer route get from wrong daddr
-Date: Wed,  9 Jan 2019 10:40:11 +0800
-Message-ID: <1547001611-26793-1-git-send-email-wenxu@ucloud.cn>
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+From: wenxu <wenxu@ucloud.cn>
+Subject: Re: [PATCH] netfilter: x_tables: add xt_tunnel match
+Date: Wed, 9 Jan 2019 10:48:55 +0800
+Message-ID: <243c3130-e47d-134e-873a-3508473a836f@ucloud.cn>
+References: <1545387144-5796-1-git-send-email-wenxu@ucloud.cn>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1545387144-5796-1-git-send-email-wenxu@ucloud.cn>
+Content-Language: en-US
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: wenxu <wenxu@ucloud.cn>
+Hi pablo,
 
-For nat example:
-client 1.1.1.7 ---> 2.2.2.7 which dnat to 10.0.0.7 server
+How about the state for this patch?
 
-When syn_rcv pkt from server it get the peer(client->server) route
-through daddr = ct->tuplehash[!dir].tuple.dst.u3.ip, the value 2.2.2.7
-is not correct in this situation. it should be 10.0.0.7
-ct->tuplehash[dir].tuple.src.u3.ip
 
-Signed-off-by: wenxu <wenxu@ucloud.cn>
----
- net/netfilter/nft_flow_offload.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
-index 974525e..ccdb8f5 100644
---- a/net/netfilter/nft_flow_offload.c
-+++ b/net/netfilter/nft_flow_offload.c
-@@ -29,10 +29,10 @@ static int nft_flow_route(const struct nft_pktinfo *pkt,
- 	memset(&fl, 0, sizeof(fl));
- 	switch (nft_pf(pkt)) {
- 	case NFPROTO_IPV4:
--		fl.u.ip4.daddr = ct->tuplehash[!dir].tuple.dst.u3.ip;
-+		fl.u.ip4.daddr = ct->tuplehash[dir].tuple.src.u3.ip;
- 		break;
- 	case NFPROTO_IPV6:
--		fl.u.ip6.daddr = ct->tuplehash[!dir].tuple.dst.u3.in6;
-+		fl.u.ip6.daddr = ct->tuplehash[dir].tuple.src.u3.in6;
- 		break;
- 	}
- 
--- 
-1.8.3.1
+On 12/21/2018 6:12 PM, wenxu@ucloud.cn wrote:
+> From: wenxu <wenxu@ucloud.cn>
+>
+> This patch allows us to match on the tunnel metadata that is available
+> of the packet. We can use this to validate if the packet comes from/goes
+> to tunnel and the corresponding tunnel ID in the iptables.
+>
+>
