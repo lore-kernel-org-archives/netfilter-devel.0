@@ -1,100 +1,32 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v2] netfilter: account ebt_table_info to kmemcg
-Date: Thu, 10 Jan 2019 01:44:26 +0100
-Message-ID: <20190110004426.p4n4lrpnnvv4czir@salvia>
-References: <20190103031431.247970-1-shakeelb@google.com>
+From: wenxu <wenxu@ucloud.cn>
+Subject: Re: [PATCH] netfilter: x_tables: add xt_tunnel match
+Date: Thu, 10 Jan 2019 12:05:07 +0800
+Message-ID: <5dfb9bb4-5148-9288-dcee-22b7d3997a1a@ucloud.cn>
+References: <1545387144-5796-1-git-send-email-wenxu@ucloud.cn>
+ <20190109164143.d6gqky7dvxfxg7jr@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: coreteam@netfilter.org, Nikolay Aleksandrov <nikolay@cumulusnetworks.com>,
-	Roopa Prabhu <roopa@cumulusnetworks.com>,
-	bridge@lists.linux-foundation.org,
-	Florian Westphal <fw@strlen.de>, linux-kernel@vger.kernel.org,
-	Michal Hocko <mhocko@kernel.org>, linux-mm@kvack.org,
-	Kirill Tkhai <ktkhai@virtuozzo.com>, netfilter-devel@vger.kernel.org,
-	syzbot+7713f3aa67be76b1552c@syzkaller.appspotmail.com,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	Andrew Morton <akpm@linux-foundation.org>
-To: Shakeel Butt <shakeelb@google.com>
-Return-path: <bridge-bounces@lists.linux-foundation.org>
-Content-Disposition: inline
-In-Reply-To: <20190103031431.247970-1-shakeelb@google.com>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/bridge>,
-	<mailto:bridge-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/bridge/>
-List-Post: <mailto:bridge@lists.linux-foundation.org>
-List-Help: <mailto:bridge-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/bridge>,
-	<mailto:bridge-request@lists.linux-foundation.org?subject=subscribe>
-Sender: bridge-bounces@lists.linux-foundation.org
-Errors-To: bridge-bounces@lists.linux-foundation.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20190109164143.d6gqky7dvxfxg7jr@salvia>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Jan 02, 2019 at 07:14:31PM -0800, Shakeel Butt wrote:
-> The [ip,ip6,arp]_tables use x_tables_info internally and the underlying
-> memory is already accounted to kmemcg. Do the same for ebtables. The
-> syzbot, by using setsockopt(EBT_SO_SET_ENTRIES), was able to OOM the
-> whole system from a restricted memcg, a potential DoS.
-> 
-> By accounting the ebt_table_info, the memory used for ebt_table_info can
-> be contained within the memcg of the allocating process. However the
-> lifetime of ebt_table_info is independent of the allocating process and
-> is tied to the network namespace. So, the oom-killer will not be able to
-> relieve the memory pressure due to ebt_table_info memory. The memory for
-> ebt_table_info is allocated through vmalloc. Currently vmalloc does not
-> handle the oom-killed allocating process correctly and one large
-> allocation can bypass memcg limit enforcement. So, with this patch,
-> at least the small allocations will be contained. For large allocations,
-> we need to fix vmalloc.
 
-Fine with this -mm?
+On 1/10/2019 12:41 AM, Pablo Neira Ayuso wrote:
+> On Fri, Dec 21, 2018 at 06:12:24PM +0800, wenxu@ucloud.cn wrote:
+> [...]
+>> +static struct xt_match tunnel_mt_reg __read_mostly = {
+>> +	.name           = "tunnel",
+>> +	.revision       = 0,
+>> +	.family         = NFPROTO_UNSPEC,
+>> +	.match          = tunnel_mt,
+>> +	.matchsize      = sizeof(struct xt_tunnel_mtinfo),
+> Does this work away from the prerouting hook?
 
-If no objections, I'll apply this to the netfilter tree. Thanks.
+Yes, I just test all the hooks. It can work for ingress packet match for PREROUTING and INPUT.
 
-> Reported-by: syzbot+7713f3aa67be76b1552c@syzkaller.appspotmail.com
-> Signed-off-by: Shakeel Butt <shakeelb@google.com>
-> Cc: Florian Westphal <fw@strlen.de>
-> Cc: Michal Hocko <mhocko@kernel.org>
-> Cc: Kirill Tkhai <ktkhai@virtuozzo.com>
-> Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-> Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-> Cc: Roopa Prabhu <roopa@cumulusnetworks.com>
-> Cc: Nikolay Aleksandrov <nikolay@cumulusnetworks.com>
-> Cc: Andrew Morton <akpm@linux-foundation.org>
-> Cc: Linux MM <linux-mm@kvack.org>
-> Cc: netfilter-devel@vger.kernel.org
-> Cc: coreteam@netfilter.org
-> Cc: bridge@lists.linux-foundation.org
-> Cc: LKML <linux-kernel@vger.kernel.org>
-> ---
-> Changelog since v1:
-> - More descriptive commit message.
-> 
->  net/bridge/netfilter/ebtables.c | 6 ++++--
->  1 file changed, 4 insertions(+), 2 deletions(-)
-> 
-> diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
-> index 491828713e0b..5e55cef0cec3 100644
-> --- a/net/bridge/netfilter/ebtables.c
-> +++ b/net/bridge/netfilter/ebtables.c
-> @@ -1137,14 +1137,16 @@ static int do_replace(struct net *net, const void __user *user,
->  	tmp.name[sizeof(tmp.name) - 1] = 0;
->  
->  	countersize = COUNTER_OFFSET(tmp.nentries) * nr_cpu_ids;
-> -	newinfo = vmalloc(sizeof(*newinfo) + countersize);
-> +	newinfo = __vmalloc(sizeof(*newinfo) + countersize, GFP_KERNEL_ACCOUNT,
-> +			    PAGE_KERNEL);
->  	if (!newinfo)
->  		return -ENOMEM;
->  
->  	if (countersize)
->  		memset(newinfo->counters, 0, countersize);
->  
-> -	newinfo->entries = vmalloc(tmp.entries_size);
-> +	newinfo->entries = __vmalloc(tmp.entries_size, GFP_KERNEL_ACCOUNT,
-> +				     PAGE_KERNEL);
->  	if (!newinfo->entries) {
->  		ret = -ENOMEM;
->  		goto free_newinfo;
-> -- 
-> 2.20.1.415.g653613c723-goog
-> 
+egress packet (output go through a lwtunnel) on FORWARD, OUTPUT and POSTROUTING.
