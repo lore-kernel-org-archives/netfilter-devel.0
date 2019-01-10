@@ -1,7 +1,7 @@
 From: wenxu@ucloud.cn
-Subject: [PATCH v2] netfilter: x_tables: add xt_tunnel match
-Date: Thu, 10 Jan 2019 13:16:08 +0800
-Message-ID: <1547097368-31835-1-git-send-email-wenxu@ucloud.cn>
+Subject: [PATCH v2] nft_flow_offload: Make flow offload work with vrf slave device correct
+Date: Thu, 10 Jan 2019 14:51:35 +0800
+Message-ID: <1547103095-8443-1-git-send-email-wenxu@ucloud.cn>
 Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netdev-owner@vger.kernel.org>
@@ -10,132 +10,94 @@ List-Id: netfilter-devel.vger.kernel.org
 
 From: wenxu <wenxu@ucloud.cn>
 
-This patch allows us to match on the tunnel metadata that is available
-of the packet. We can use this to validate if the packet comes from/goes
-to tunnel and the corresponding tunnel ID in the iptables.
+In the forward chain the iif is changed from slave device to master vrf
+device. It will lead the offload not match on lower slave device.
+
+This patch the  flow table iif and oif based on route cache dst->dev, not
+the skb->iif
+
+This patch make the flollowing example can work correct
+
+ip addr add dev eth0 1.1.1.1/24
+ip addr add dev eth1 10.0.0.1/24
+ip link add user1 type vrf table 1
+ip l set user1 up
+ip l set dev eth0 master user1
+ip l set dev eth1 master user1
+
+nft add table firewall
+nft add flowtable f fb1 { hook ingress priority 0 \; devices = { eth0, eth1 } \; }
+nft add chain f ftb-all {type filter hook forward priority 0 \; policy accept \; }
+nft add rule f ftb-all ct zone 1 ip protocol tcp flow offload @fb1
+nft add rule f ftb-all ct zone 1 ip protocol udp flow offload @fb1
 
 Signed-off-by: wenxu <wenxu@ucloud.cn>
 ---
- include/uapi/linux/netfilter/xt_tunnel.h | 12 +++++++
- net/netfilter/Kconfig                    | 10 ++++++
- net/netfilter/Makefile                   |  1 +
- net/netfilter/xt_tunnel.c                | 56 ++++++++++++++++++++++++++++++++
- 4 files changed, 79 insertions(+)
- create mode 100644 include/uapi/linux/netfilter/xt_tunnel.h
- create mode 100644 net/netfilter/xt_tunnel.c
+ include/net/netfilter/nf_flow_table.h | 1 -
+ net/netfilter/nf_flow_table_core.c    | 5 +++--
+ net/netfilter/nft_flow_offload.c      | 4 ++--
+ 3 files changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/include/uapi/linux/netfilter/xt_tunnel.h b/include/uapi/linux/netfilter/xt_tunnel.h
-new file mode 100644
-index 0000000..5231afa
---- /dev/null
-+++ b/include/uapi/linux/netfilter/xt_tunnel.h
-@@ -0,0 +1,12 @@
-+/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
-+#ifndef _XT_TUNNEL_H
-+#define _XT_TUNNEL_H
-+
-+#include <linux/types.h>
-+
-+struct xt_tunnel_mtinfo {
-+	__u32 key, mask;
-+	__u8 invert;
-+};
-+
-+#endif /*_XT_TUNNEL_H*/
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index beb3a69..ee52a75 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -1586,6 +1586,16 @@ config NETFILTER_XT_MATCH_U32
+diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
+index 7d5cda7..3e370cb 100644
+--- a/include/net/netfilter/nf_flow_table.h
++++ b/include/net/netfilter/nf_flow_table.h
+@@ -84,7 +84,6 @@ struct flow_offload {
+ struct nf_flow_route {
+ 	struct {
+ 		struct dst_entry	*dst;
+-		int			ifindex;
+ 	} tuple[FLOW_OFFLOAD_DIR_MAX];
+ };
  
- 	  Details and examples are in the kernel module source.
+diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
+index fa0844e..fc0741b 100644
+--- a/net/netfilter/nf_flow_table_core.c
++++ b/net/netfilter/nf_flow_table_core.c
+@@ -29,6 +29,7 @@ struct flow_offload_entry {
+ 	struct flow_offload_tuple *ft = &flow->tuplehash[dir].tuple;
+ 	struct nf_conntrack_tuple *ctt = &ct->tuplehash[dir].tuple;
+ 	struct dst_entry *dst = route->tuple[dir].dst;
++	struct dst_entry *other_dst = route->tuple[!dir].dst;
  
-+config NETFILTER_XT_MATCH_TUNNEL
-+	tristate '"tunnel" match support'
-+	depends on NETFILTER_ADVANCED
-+	help
-+	  This option adds a "tunnel" match, which allows you to match based on
-+	  the packet tunnel_id
-+
-+	  If you want to compile it as a module, say M here.
-+	  If unsure, say N.
-+
- endif # NETFILTER_XTABLES
+ 	ft->dir = dir;
  
- endmenu
-diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index 1ae65a3..965541c 100644
---- a/net/netfilter/Makefile
-+++ b/net/netfilter/Makefile
-@@ -198,6 +198,7 @@ obj-$(CONFIG_NETFILTER_XT_MATCH_STRING) += xt_string.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_TCPMSS) += xt_tcpmss.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_TIME) += xt_time.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_U32) += xt_u32.o
-+obj-$(CONFIG_NETFILTER_XT_MATCH_TUNNEL) += xt_tunnel.o
+@@ -50,8 +51,8 @@ struct flow_offload_entry {
+ 	ft->src_port = ctt->src.u.tcp.port;
+ 	ft->dst_port = ctt->dst.u.tcp.port;
  
- # ipset
- obj-$(CONFIG_IP_SET) += ipset/
-diff --git a/net/netfilter/xt_tunnel.c b/net/netfilter/xt_tunnel.c
-new file mode 100644
-index 0000000..0ca1dce
---- /dev/null
-+++ b/net/netfilter/xt_tunnel.c
-@@ -0,0 +1,56 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+#include <linux/module.h>
-+#include <linux/skbuff.h>
-+#include <net/dst_metadata.h>
-+#include <net/ip_tunnels.h>
-+
-+#include <linux/netfilter/xt_tunnel.h>
-+#include <linux/netfilter/x_tables.h>
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("wenxu <wenxu@ucloud.cn>");
-+MODULE_DESCRIPTION("Xtables: packet tunnel match");
-+MODULE_ALIAS("ipt_tunnel");
-+MODULE_ALIAS("ip6t_tunnel");
-+
-+static bool
-+tunnel_mt(const struct sk_buff *skb, struct xt_action_param *par)
-+{
-+	const struct xt_tunnel_mtinfo *info = par->matchinfo;
-+	struct ip_tunnel_info *tun_info;
-+	u32 key;
-+
-+	tun_info = skb_tunnel_info(skb);
-+	if (tun_info) {
-+		key = ntohl(tunnel_id_to_key32(tun_info->key.tun_id));
-+		return ((key & info->mask) == info->key) ^ info->invert;
-+	}
-+
-+	return info->invert;
-+}
-+
-+static struct xt_match tunnel_mt_reg __read_mostly = {
-+	.name           = "tunnel",
-+	.revision       = 0,
-+	.family         = NFPROTO_UNSPEC,
-+	.match          = tunnel_mt,
-+	.matchsize      = sizeof(struct xt_tunnel_mtinfo),
-+	.hooks          = ((1 << NF_INET_PRE_ROUTING) |
-+					  (1 << NF_INET_POST_ROUTING) |
-+					  (1 << NF_INET_LOCAL_OUT) |
-+					  (1 << NF_INET_FORWARD)),
-+	.me             = THIS_MODULE,
-+};
-+
-+static int __init tunnel_mt_init(void)
-+{
-+	return xt_register_match(&tunnel_mt_reg);
-+}
-+
-+static void __exit tunnel_mt_exit(void)
-+{
-+	xt_unregister_match(&tunnel_mt_reg);
-+}
-+
-+module_init(tunnel_mt_init);
-+module_exit(tunnel_mt_exit);
+-	ft->iifidx = route->tuple[dir].ifindex;
+-	ft->oifidx = route->tuple[!dir].ifindex;
++	ft->iifidx = other_dst->dev->ifindex;
++	ft->oifidx = dst->dev->ifindex;
+ 	ft->dst_cache = dst;
+ }
+ 
+diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
+index ccdb8f5..188c6bb 100644
+--- a/net/netfilter/nft_flow_offload.c
++++ b/net/netfilter/nft_flow_offload.c
+@@ -30,9 +30,11 @@ static int nft_flow_route(const struct nft_pktinfo *pkt,
+ 	switch (nft_pf(pkt)) {
+ 	case NFPROTO_IPV4:
+ 		fl.u.ip4.daddr = ct->tuplehash[dir].tuple.src.u3.ip;
++		fl.u.ip4.flowi4_oif = nft_in(pkt)->ifindex;
+ 		break;
+ 	case NFPROTO_IPV6:
+ 		fl.u.ip6.daddr = ct->tuplehash[dir].tuple.src.u3.in6;
++		fl.u.ip6.flowi6_oif = nft_in(pkt)->ifindex;
+ 		break;
+ 	}
+ 
+@@ -41,9 +43,7 @@ static int nft_flow_route(const struct nft_pktinfo *pkt,
+ 		return -ENOENT;
+ 
+ 	route->tuple[dir].dst		= this_dst;
+-	route->tuple[dir].ifindex	= nft_in(pkt)->ifindex;
+ 	route->tuple[!dir].dst		= other_dst;
+-	route->tuple[!dir].ifindex	= nft_out(pkt)->ifindex;
+ 
+ 	return 0;
+ }
 -- 
 1.8.3.1
