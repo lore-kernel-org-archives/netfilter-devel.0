@@ -1,47 +1,43 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v2] nft_flow_offload: Make flow offload work with vrf
- slave device correct
-Date: Fri, 11 Jan 2019 00:36:58 +0100
-Message-ID: <20190110233658.jdrpqjav6pghfn22@salvia>
-References: <1547103095-8443-1-git-send-email-wenxu@ucloud.cn>
+Subject: Re: [PATCH v2] netfilter: account ebt_table_info to kmemcg
+Date: Fri, 11 Jan 2019 00:57:46 +0100
+Message-ID: <20190110235746.65mp4kgyscgjhktl@salvia>
+References: <20190103031431.247970-1-shakeelb@google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: wenxu@ucloud.cn
-Return-path: <netdev-owner@vger.kernel.org>
+Cc: Michal Hocko <mhocko@kernel.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Florian Westphal <fw@strlen.de>,
+        Kirill Tkhai <ktkhai@virtuozzo.com>, linux-mm@kvack.org,
+        linux-kernel@vger.kernel.org,
+        syzbot+7713f3aa67be76b1552c@syzkaller.appspotmail.com,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Roopa Prabhu <roopa@cumulusnetworks.com>,
+        Nikolay Aleksandrov <nikolay@cumulusnetworks.com>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        bridge@lists.linux-foundation.org
+To: Shakeel Butt <shakeelb@google.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1547103095-8443-1-git-send-email-wenxu@ucloud.cn>
-Sender: netdev-owner@vger.kernel.org
+In-Reply-To: <20190103031431.247970-1-shakeelb@google.com>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, Jan 10, 2019 at 02:51:35PM +0800, wenxu@ucloud.cn wrote:
-> From: wenxu <wenxu@ucloud.cn>
->
-> In the forward chain the iif is changed from slave device to master vrf
-> device. It will lead the offload not match on lower slave device.
->
-> This patch the  flow table iif and oif based on route cache dst->dev, not
-> the skb->iif
->
-> This patch make the flollowing example can work correct
->
-> ip addr add dev eth0 1.1.1.1/24
-> ip addr add dev eth1 10.0.0.1/24
-> ip link add user1 type vrf table 1
-> ip l set user1 up
-> ip l set dev eth0 master user1
-> ip l set dev eth1 master user1
->
-> nft add table firewall
-> nft add flowtable f fb1 { hook ingress priority 0 \; devices = { eth0, eth1 } \; }
-> nft add chain f ftb-all {type filter hook forward priority 0 \; policy accept \; }
-> nft add rule f ftb-all ct zone 1 ip protocol tcp flow offload @fb1
-> nft add rule f ftb-all ct zone 1 ip protocol udp flow offload @fb1
+On Wed, Jan 02, 2019 at 07:14:31PM -0800, Shakeel Butt wrote:
+> The [ip,ip6,arp]_tables use x_tables_info internally and the underlying
+> memory is already accounted to kmemcg. Do the same for ebtables. The
+> syzbot, by using setsockopt(EBT_SO_SET_ENTRIES), was able to OOM the
+> whole system from a restricted memcg, a potential DoS.
+> 
+> By accounting the ebt_table_info, the memory used for ebt_table_info can
+> be contained within the memcg of the allocating process. However the
+> lifetime of ebt_table_info is independent of the allocating process and
+> is tied to the network namespace. So, the oom-killer will not be able to
+> relieve the memory pressure due to ebt_table_info memory. The memory for
+> ebt_table_info is allocated through vmalloc. Currently vmalloc does not
+> handle the oom-killed allocating process correctly and one large
+> allocation can bypass memcg limit enforcement. So, with this patch,
+> at least the small allocations will be contained. For large allocations,
+> we need to fix vmalloc.
 
-v2 looks much better, thanks.
-
-Let me revamp this patch title to:
-
-        netfilter: nft_flow_offload: fix interaction with vrf slave device
-
-before applying. Thanks.
+OK, patch is applied, thanks.
