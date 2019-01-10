@@ -1,84 +1,100 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] nft_flow_offload: Make flow offload work with vrf slave
- device correct
-Date: Thu, 10 Jan 2019 01:40:04 +0100
-Message-ID: <20190110004004.v3djxtj6bjenk72l@salvia>
-References: <1546078225-22699-1-git-send-email-wenxu@ucloud.cn>
+Subject: Re: [PATCH v2] netfilter: account ebt_table_info to kmemcg
+Date: Thu, 10 Jan 2019 01:44:26 +0100
+Message-ID: <20190110004426.p4n4lrpnnvv4czir@salvia>
+References: <20190103031431.247970-1-shakeelb@google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: wenxu@ucloud.cn
-Return-path: <netdev-owner@vger.kernel.org>
+Cc: coreteam@netfilter.org, Nikolay Aleksandrov <nikolay@cumulusnetworks.com>,
+	Roopa Prabhu <roopa@cumulusnetworks.com>,
+	bridge@lists.linux-foundation.org,
+	Florian Westphal <fw@strlen.de>, linux-kernel@vger.kernel.org,
+	Michal Hocko <mhocko@kernel.org>, linux-mm@kvack.org,
+	Kirill Tkhai <ktkhai@virtuozzo.com>, netfilter-devel@vger.kernel.org,
+	syzbot+7713f3aa67be76b1552c@syzkaller.appspotmail.com,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	Andrew Morton <akpm@linux-foundation.org>
+To: Shakeel Butt <shakeelb@google.com>
+Return-path: <bridge-bounces@lists.linux-foundation.org>
 Content-Disposition: inline
-In-Reply-To: <1546078225-22699-1-git-send-email-wenxu@ucloud.cn>
-Sender: netdev-owner@vger.kernel.org
+In-Reply-To: <20190103031431.247970-1-shakeelb@google.com>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/bridge>,
+	<mailto:bridge-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/bridge/>
+List-Post: <mailto:bridge@lists.linux-foundation.org>
+List-Help: <mailto:bridge-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/bridge>,
+	<mailto:bridge-request@lists.linux-foundation.org?subject=subscribe>
+Sender: bridge-bounces@lists.linux-foundation.org
+Errors-To: bridge-bounces@lists.linux-foundation.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, Dec 29, 2018 at 06:10:25PM +0800, wenxu@ucloud.cn wrote:
-> From: wenxu <wenxu@ucloud.cn>
+On Wed, Jan 02, 2019 at 07:14:31PM -0800, Shakeel Butt wrote:
+> The [ip,ip6,arp]_tables use x_tables_info internally and the underlying
+> memory is already accounted to kmemcg. Do the same for ebtables. The
+> syzbot, by using setsockopt(EBT_SO_SET_ENTRIES), was able to OOM the
+> whole system from a restricted memcg, a potential DoS.
 > 
-> In the forward chain the iif is changed from slave device to master vrf
-> device. It will lead the offload not match on lower slave device.
-> 
-> This patch make the flollowing example can work correct
-> 
-> ip addr add dev eth0 1.1.1.1/24
-> ip addr add dev eth1 10.0.0.1/24
-> ip link add user1 type vrf table 1
-> ip l set user1 up
-> ip l set dev eth0 master user1
-> ip l set dev eth1 master user1
-> 
-> nft add table firewall
-> nft add flowtable f fb1 { hook ingress priority 0 \; devices = { eth0, eth1 } \; }
-> nft add chain f ftb-all {type filter hook forward priority 0 \; policy accept \; }
-> nft add rule f ftb-all ct zone 1 ip protocol tcp flow offload @fb1
-> nft add rule f ftb-all ct zone 1 ip protocol udp flow offload @fb1
-> 
-> Signed-off-by: wenxu <wenxu@ucloud.cn>
+> By accounting the ebt_table_info, the memory used for ebt_table_info can
+> be contained within the memcg of the allocating process. However the
+> lifetime of ebt_table_info is independent of the allocating process and
+> is tied to the network namespace. So, the oom-killer will not be able to
+> relieve the memory pressure due to ebt_table_info memory. The memory for
+> ebt_table_info is allocated through vmalloc. Currently vmalloc does not
+> handle the oom-killed allocating process correctly and one large
+> allocation can bypass memcg limit enforcement. So, with this patch,
+> at least the small allocations will be contained. For large allocations,
+> we need to fix vmalloc.
+
+Fine with this -mm?
+
+If no objections, I'll apply this to the netfilter tree. Thanks.
+
+> Reported-by: syzbot+7713f3aa67be76b1552c@syzkaller.appspotmail.com
+> Signed-off-by: Shakeel Butt <shakeelb@google.com>
+> Cc: Florian Westphal <fw@strlen.de>
+> Cc: Michal Hocko <mhocko@kernel.org>
+> Cc: Kirill Tkhai <ktkhai@virtuozzo.com>
+> Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+> Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+> Cc: Roopa Prabhu <roopa@cumulusnetworks.com>
+> Cc: Nikolay Aleksandrov <nikolay@cumulusnetworks.com>
+> Cc: Andrew Morton <akpm@linux-foundation.org>
+> Cc: Linux MM <linux-mm@kvack.org>
+> Cc: netfilter-devel@vger.kernel.org
+> Cc: coreteam@netfilter.org
+> Cc: bridge@lists.linux-foundation.org
+> Cc: LKML <linux-kernel@vger.kernel.org>
 > ---
->  net/netfilter/nft_flow_offload.c | 12 +++++++++++-
->  1 file changed, 11 insertions(+), 1 deletion(-)
+> Changelog since v1:
+> - More descriptive commit message.
 > 
-> diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
-> index 974525e..a5995c0 100644
-> --- a/net/netfilter/nft_flow_offload.c
-> +++ b/net/netfilter/nft_flow_offload.c
-> @@ -30,9 +30,11 @@ static int nft_flow_route(const struct nft_pktinfo *pkt,
->  	switch (nft_pf(pkt)) {
->  	case NFPROTO_IPV4:
->  		fl.u.ip4.daddr = ct->tuplehash[!dir].tuple.dst.u3.ip;
-> +		fl.u.ip4.flowi4_oif = nft_in(pkt)->ifindex;
->  		break;
->  	case NFPROTO_IPV6:
->  		fl.u.ip6.daddr = ct->tuplehash[!dir].tuple.dst.u3.in6;
-> +		fl.u.ip6.flowi6_oif = nft_in(pkt)->ifindex;
->  		break;
->  	}
+>  net/bridge/netfilter/ebtables.c | 6 ++++--
+>  1 file changed, 4 insertions(+), 2 deletions(-)
+> 
+> diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
+> index 491828713e0b..5e55cef0cec3 100644
+> --- a/net/bridge/netfilter/ebtables.c
+> +++ b/net/bridge/netfilter/ebtables.c
+> @@ -1137,14 +1137,16 @@ static int do_replace(struct net *net, const void __user *user,
+>  	tmp.name[sizeof(tmp.name) - 1] = 0;
 >  
-> @@ -41,7 +43,15 @@ static int nft_flow_route(const struct nft_pktinfo *pkt,
->  		return -ENOENT;
+>  	countersize = COUNTER_OFFSET(tmp.nentries) * nr_cpu_ids;
+> -	newinfo = vmalloc(sizeof(*newinfo) + countersize);
+> +	newinfo = __vmalloc(sizeof(*newinfo) + countersize, GFP_KERNEL_ACCOUNT,
+> +			    PAGE_KERNEL);
+>  	if (!newinfo)
+>  		return -ENOMEM;
 >  
->  	route->tuple[dir].dst		= this_dst;
-> -	route->tuple[dir].ifindex	= nft_in(pkt)->ifindex;
-> +	if (netif_is_l3_master(nft_in(pkt))) {
-> +		if (other_dst->dev)
-> +			route->tuple[dir].ifindex = other_dst->dev->ifindex;
-> +		else
-> +			route->tuple[dir].ifindex = nft_in(pkt)->ifindex;
-> +	} else {
-> +		route->tuple[dir].ifindex = nft_in(pkt)->ifindex;
-> +	}
-
-Could we just use the the ifindex that we pass via
-route->tuple[dir].dst from flow_offload_fill_dir()?
-
-We could just remove this route->tuple[dir].ifindex field.
-
-> +
->  	route->tuple[!dir].dst		= other_dst;
->  	route->tuple[!dir].ifindex	= nft_out(pkt)->ifindex;
+>  	if (countersize)
+>  		memset(newinfo->counters, 0, countersize);
 >  
+> -	newinfo->entries = vmalloc(tmp.entries_size);
+> +	newinfo->entries = __vmalloc(tmp.entries_size, GFP_KERNEL_ACCOUNT,
+> +				     PAGE_KERNEL);
+>  	if (!newinfo->entries) {
+>  		ret = -ENOMEM;
+>  		goto free_newinfo;
 > -- 
-> 1.8.3.1
+> 2.20.1.415.g653613c723-goog
 > 
