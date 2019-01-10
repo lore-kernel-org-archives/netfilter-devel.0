@@ -1,51 +1,38 @@
-From: Kirill Tkhai <ktkhai@virtuozzo.com>
-Subject: Re: [PATCH v2] netfilter: account ebt_table_info to kmemcg
-Date: Thu, 10 Jan 2019 12:48:17 +0300
-Message-ID: <4c8051dd-2214-49eb-a342-5ee2171665d1@virtuozzo.com>
-References: <20190103031431.247970-1-shakeelb@google.com>
- <5cc8efad-9d3d-3136-3ddc-1f8a640cb1f8@virtuozzo.com>
- <2d8f28cb-8620-be05-21bc-dcf3009b2774@virtuozzo.com>
- <20190110094142.GI31793@dhcp22.suse.cz>
+From: YueHaibing <yuehaibing@huawei.com>
+Subject: [PATCH] netfilter: nat: Update comment of get_unique_tuple
+Date: Thu, 10 Jan 2019 21:06:18 +0800
+Message-ID: <20190110130618.25344-1-yuehaibing@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Cc: Shakeel Butt <shakeelb@google.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Florian Westphal <fw@strlen.de>, linux-mm@kvack.org,
-        linux-kernel@vger.kernel.org,
-        syzbot+7713f3aa67be76b1552c@syzkaller.appspotmail.com,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Roopa Prabhu <roopa@cumulusnetworks.com>,
-        Nikolay Aleksandrov <nikolay@cumulusnetworks.com>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        bridge@lists.linux-foundation.org
-To: Michal Hocko <mhocko@kernel.org>
+Content-Type: text/plain
+Cc: <linux-kernel@vger.kernel.org>, <netdev@vger.kernel.org>,
+        <netfilter-devel@vger.kernel.org>, <coreteam@netfilter.org>,
+        YueHaibing <yuehaibing@huawei.com>
+To: <pablo@netfilter.org>, <kadlec@blackhole.kfki.hu>, <fw@strlen.de>,
+        <davem@davemloft.net>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190110094142.GI31793@dhcp22.suse.cz>
-Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On 10.01.2019 12:41, Michal Hocko wrote:
-> On Thu 10-01-19 12:22:09, Kirill Tkhai wrote:
-> [...]
->>>> diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
->>>> index 491828713e0b..5e55cef0cec3 100644
->>>> --- a/net/bridge/netfilter/ebtables.c
->>>> +++ b/net/bridge/netfilter/ebtables.c
->>>> @@ -1137,14 +1137,16 @@ static int do_replace(struct net *net, const void __user *user,
->>>>  	tmp.name[sizeof(tmp.name) - 1] = 0;
->>>>  
->>>>  	countersize = COUNTER_OFFSET(tmp.nentries) * nr_cpu_ids;
->>>> -	newinfo = vmalloc(sizeof(*newinfo) + countersize);
->>>> +	newinfo = __vmalloc(sizeof(*newinfo) + countersize, GFP_KERNEL_ACCOUNT,
->>>> +			    PAGE_KERNEL);
->>
->> Do we need GFP_HIGHMEM here?
-> 
-> No. vmalloc adds __GPF_HIGHMEM implicitly (see __vmalloc_area_node).
+Replace outdated __ip_conntrack_confirm in comment.
 
-Then OK, thanks for the explanation.
+Signed-off-by: YueHaibing <yuehaibing@huawei.com>
+---
+ net/netfilter/nf_nat_core.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-Kirill
+diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
+index d159e9e..f54a8db 100644
+--- a/net/netfilter/nf_nat_core.c
++++ b/net/netfilter/nf_nat_core.c
+@@ -460,7 +460,8 @@ static void nf_nat_l4proto_unique_tuple(struct nf_conntrack_tuple *tuple,
+  * and NF_INET_LOCAL_OUT, we change the destination to map into the
+  * range. It might not be possible to get a unique tuple, but we try.
+  * At worst (or if we race), we will end up with a final duplicate in
+- * __ip_conntrack_confirm and drop the packet. */
++ * __nf_conntrack_confirm and drop the packet.
++ */
+ static void
+ get_unique_tuple(struct nf_conntrack_tuple *tuple,
+ 		 const struct nf_conntrack_tuple *orig_tuple,
+-- 
+2.7.0
