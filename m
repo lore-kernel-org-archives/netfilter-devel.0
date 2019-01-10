@@ -1,38 +1,32 @@
-From: YueHaibing <yuehaibing@huawei.com>
-Subject: [PATCH] netfilter: nat: Update comment of get_unique_tuple
-Date: Thu, 10 Jan 2019 21:06:18 +0800
-Message-ID: <20190110130618.25344-1-yuehaibing@huawei.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH v2] netfilter: x_tables: add xt_tunnel match
+Date: Thu, 10 Jan 2019 19:15:14 +0100
+Message-ID: <20190110181514.76mkggdfbgdvxkav@salvia>
+References: <1547097368-31835-1-git-send-email-wenxu@ucloud.cn>
 Mime-Version: 1.0
-Content-Type: text/plain
-Cc: <linux-kernel@vger.kernel.org>, <netdev@vger.kernel.org>,
-        <netfilter-devel@vger.kernel.org>, <coreteam@netfilter.org>,
-        YueHaibing <yuehaibing@huawei.com>
-To: <pablo@netfilter.org>, <kadlec@blackhole.kfki.hu>, <fw@strlen.de>,
-        <davem@davemloft.net>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: wenxu@ucloud.cn
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1547097368-31835-1-git-send-email-wenxu@ucloud.cn>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Replace outdated __ip_conntrack_confirm in comment.
+On Thu, Jan 10, 2019 at 01:16:08PM +0800, wenxu@ucloud.cn wrote:
+[...]
+> +static struct xt_match tunnel_mt_reg __read_mostly = {
+> +	.name           = "tunnel",
+> +	.revision       = 0,
+> +	.family         = NFPROTO_UNSPEC,
+> +	.match          = tunnel_mt,
+> +	.matchsize      = sizeof(struct xt_tunnel_mtinfo),
+> +	.hooks          = ((1 << NF_INET_PRE_ROUTING) |
+> +					  (1 << NF_INET_POST_ROUTING) |
+> +					  (1 << NF_INET_LOCAL_OUT) |
+> +					  (1 << NF_INET_FORWARD)),
 
-Signed-off-by: YueHaibing <yuehaibing@huawei.com>
----
- net/netfilter/nf_nat_core.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+Are you sure this works from the forward chain? This template is
+dropped after the route lookup.
 
-diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
-index d159e9e..f54a8db 100644
---- a/net/netfilter/nf_nat_core.c
-+++ b/net/netfilter/nf_nat_core.c
-@@ -460,7 +460,8 @@ static void nf_nat_l4proto_unique_tuple(struct nf_conntrack_tuple *tuple,
-  * and NF_INET_LOCAL_OUT, we change the destination to map into the
-  * range. It might not be possible to get a unique tuple, but we try.
-  * At worst (or if we race), we will end up with a final duplicate in
-- * __ip_conntrack_confirm and drop the packet. */
-+ * __nf_conntrack_confirm and drop the packet.
-+ */
- static void
- get_unique_tuple(struct nf_conntrack_tuple *tuple,
- 		 const struct nf_conntrack_tuple *orig_tuple,
--- 
-2.7.0
+Thanks.
