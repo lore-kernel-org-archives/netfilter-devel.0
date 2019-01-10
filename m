@@ -1,34 +1,141 @@
-From: wenxu <wenxu@ucloud.cn>
-Subject: Re: [PATCH] netfilter: x_tables: add xt_tunnel match
-Date: Thu, 10 Jan 2019 12:46:35 +0800
-Message-ID: <30391cb7-d35d-c474-5e85-b4e77461a223@ucloud.cn>
-References: <1545387144-5796-1-git-send-email-wenxu@ucloud.cn>
- <20190109164143.d6gqky7dvxfxg7jr@salvia>
- <5dfb9bb4-5148-9288-dcee-22b7d3997a1a@ucloud.cn>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+From: wenxu@ucloud.cn
+Subject: [PATCH v2] netfilter: x_tables: add xt_tunnel match
+Date: Thu, 10 Jan 2019 13:16:08 +0800
+Message-ID: <1547097368-31835-1-git-send-email-wenxu@ucloud.cn>
 Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: pablo@netfilter.org
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <5dfb9bb4-5148-9288-dcee-22b7d3997a1a@ucloud.cn>
-Content-Language: en-US
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
+From: wenxu <wenxu@ucloud.cn>
 
-On 1/10/2019 12:05 PM, wenxu wrote:
-> On 1/10/2019 12:41 AM, Pablo Neira Ayuso wrote:
->> On Fri, Dec 21, 2018 at 06:12:24PM +0800, wenxu@ucloud.cn wrote:
->> [...]
->>> +static struct xt_match tunnel_mt_reg __read_mostly = {
->>> +	.name           = "tunnel",
->>> +	.revision       = 0,
->>> +	.family         = NFPROTO_UNSPEC,
->>> +	.match          = tunnel_mt,
->>> +	.matchsize      = sizeof(struct xt_tunnel_mtinfo),
->> Does this work away from the prerouting hook?
-> Yes, I just test all the hooks. It can work for ingress packet match for PREROUTING and INPUT.
->
-> egress packet (output go through a lwtunnel) on FORWARD, OUTPUT and POSTROUTING.
-sorry I check that the INPUT hook can't be work for this
+This patch allows us to match on the tunnel metadata that is available
+of the packet. We can use this to validate if the packet comes from/goes
+to tunnel and the corresponding tunnel ID in the iptables.
+
+Signed-off-by: wenxu <wenxu@ucloud.cn>
+---
+ include/uapi/linux/netfilter/xt_tunnel.h | 12 +++++++
+ net/netfilter/Kconfig                    | 10 ++++++
+ net/netfilter/Makefile                   |  1 +
+ net/netfilter/xt_tunnel.c                | 56 ++++++++++++++++++++++++++++++++
+ 4 files changed, 79 insertions(+)
+ create mode 100644 include/uapi/linux/netfilter/xt_tunnel.h
+ create mode 100644 net/netfilter/xt_tunnel.c
+
+diff --git a/include/uapi/linux/netfilter/xt_tunnel.h b/include/uapi/linux/netfilter/xt_tunnel.h
+new file mode 100644
+index 0000000..5231afa
+--- /dev/null
++++ b/include/uapi/linux/netfilter/xt_tunnel.h
+@@ -0,0 +1,12 @@
++/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
++#ifndef _XT_TUNNEL_H
++#define _XT_TUNNEL_H
++
++#include <linux/types.h>
++
++struct xt_tunnel_mtinfo {
++	__u32 key, mask;
++	__u8 invert;
++};
++
++#endif /*_XT_TUNNEL_H*/
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index beb3a69..ee52a75 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -1586,6 +1586,16 @@ config NETFILTER_XT_MATCH_U32
+ 
+ 	  Details and examples are in the kernel module source.
+ 
++config NETFILTER_XT_MATCH_TUNNEL
++	tristate '"tunnel" match support'
++	depends on NETFILTER_ADVANCED
++	help
++	  This option adds a "tunnel" match, which allows you to match based on
++	  the packet tunnel_id
++
++	  If you want to compile it as a module, say M here.
++	  If unsure, say N.
++
+ endif # NETFILTER_XTABLES
+ 
+ endmenu
+diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
+index 1ae65a3..965541c 100644
+--- a/net/netfilter/Makefile
++++ b/net/netfilter/Makefile
+@@ -198,6 +198,7 @@ obj-$(CONFIG_NETFILTER_XT_MATCH_STRING) += xt_string.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_TCPMSS) += xt_tcpmss.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_TIME) += xt_time.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_U32) += xt_u32.o
++obj-$(CONFIG_NETFILTER_XT_MATCH_TUNNEL) += xt_tunnel.o
+ 
+ # ipset
+ obj-$(CONFIG_IP_SET) += ipset/
+diff --git a/net/netfilter/xt_tunnel.c b/net/netfilter/xt_tunnel.c
+new file mode 100644
+index 0000000..0ca1dce
+--- /dev/null
++++ b/net/netfilter/xt_tunnel.c
+@@ -0,0 +1,56 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++#include <linux/module.h>
++#include <linux/skbuff.h>
++#include <net/dst_metadata.h>
++#include <net/ip_tunnels.h>
++
++#include <linux/netfilter/xt_tunnel.h>
++#include <linux/netfilter/x_tables.h>
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("wenxu <wenxu@ucloud.cn>");
++MODULE_DESCRIPTION("Xtables: packet tunnel match");
++MODULE_ALIAS("ipt_tunnel");
++MODULE_ALIAS("ip6t_tunnel");
++
++static bool
++tunnel_mt(const struct sk_buff *skb, struct xt_action_param *par)
++{
++	const struct xt_tunnel_mtinfo *info = par->matchinfo;
++	struct ip_tunnel_info *tun_info;
++	u32 key;
++
++	tun_info = skb_tunnel_info(skb);
++	if (tun_info) {
++		key = ntohl(tunnel_id_to_key32(tun_info->key.tun_id));
++		return ((key & info->mask) == info->key) ^ info->invert;
++	}
++
++	return info->invert;
++}
++
++static struct xt_match tunnel_mt_reg __read_mostly = {
++	.name           = "tunnel",
++	.revision       = 0,
++	.family         = NFPROTO_UNSPEC,
++	.match          = tunnel_mt,
++	.matchsize      = sizeof(struct xt_tunnel_mtinfo),
++	.hooks          = ((1 << NF_INET_PRE_ROUTING) |
++					  (1 << NF_INET_POST_ROUTING) |
++					  (1 << NF_INET_LOCAL_OUT) |
++					  (1 << NF_INET_FORWARD)),
++	.me             = THIS_MODULE,
++};
++
++static int __init tunnel_mt_init(void)
++{
++	return xt_register_match(&tunnel_mt_reg);
++}
++
++static void __exit tunnel_mt_exit(void)
++{
++	xt_unregister_match(&tunnel_mt_reg);
++}
++
++module_init(tunnel_mt_init);
++module_exit(tunnel_mt_exit);
+-- 
+1.8.3.1
