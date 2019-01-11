@@ -1,103 +1,39 @@
-From: wenxu@ucloud.cn
-Subject: [PATCH v3] netfilter: nft_flow_offload: fix interaction with vrf slave device
-Date: Fri, 11 Jan 2019 10:42:26 +0800
-Message-ID: <1547174546-17883-1-git-send-email-wenxu@ucloud.cn>
+From: wenxu <wenxu@ucloud.cn>
+Subject: Re: [PATCH v2] netfilter: x_tables: add xt_tunnel match
+Date: Fri, 11 Jan 2019 11:09:39 +0800
+Message-ID: <2e6b7801-7988-c532-52ca-e6f18a81e341@ucloud.cn>
+References: <1547097368-31835-1-git-send-email-wenxu@ucloud.cn>
+ <20190110181514.76mkggdfbgdvxkav@salvia>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20190110181514.76mkggdfbgdvxkav@salvia>
+Content-Language: en-US
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: wenxu <wenxu@ucloud.cn>
 
-In the forward chain the iif is changed from slave device to master vrf
-device. It will lead the offload not match on lower slave device.
+On 1/11/2019 2:15 AM, Pablo Neira Ayuso wrote:
+> On Thu, Jan 10, 2019 at 01:16:08PM +0800, wenxu@ucloud.cn wrote:
+> [...]
+>> +static struct xt_match tunnel_mt_reg __read_mostly = {
+>> +	.name           = "tunnel",
+>> +	.revision       = 0,
+>> +	.family         = NFPROTO_UNSPEC,
+>> +	.match          = tunnel_mt,
+>> +	.matchsize      = sizeof(struct xt_tunnel_mtinfo),
+>> +	.hooks          = ((1 << NF_INET_PRE_ROUTING) |
+>> +					  (1 << NF_INET_POST_ROUTING) |
+>> +					  (1 << NF_INET_LOCAL_OUT) |
+>> +					  (1 << NF_INET_FORWARD)),
+> Are you sure this works from the forward chain? This template is
+> dropped after the route lookup.
+>
+> Thanks.
 
-This patch the  flow table iif and oif based on route cache dst->dev, not
-the skb->iif
+Yes.  NF_INET_FORWARD is also used to match the packet goes to tunnel(IP_TUNNEL_INFO_TX type), After route lookup, the packet send to tunnel through lwtunnel-route.
 
-This patch make the flollowing example can work correct
-
-ip addr add dev eth0 1.1.1.1/24
-ip addr add dev eth1 10.0.0.1/24
-ip link add user1 type vrf table 1
-ip l set user1 up
-ip l set dev eth0 master user1
-ip l set dev eth1 master user1
-
-nft add table firewall
-nft add flowtable f fb1 { hook ingress priority 0 \; devices = { eth0, eth1 } \; }
-nft add chain f ftb-all {type filter hook forward priority 0 \; policy accept \; }
-nft add rule f ftb-all ct zone 1 ip protocol tcp flow offload @fb1
-nft add rule f ftb-all ct zone 1 ip protocol udp flow offload @fb1
-
-Signed-off-by: wenxu <wenxu@ucloud.cn>
----
- include/net/netfilter/nf_flow_table.h | 1 -
- net/netfilter/nf_flow_table_core.c    | 5 +++--
- net/netfilter/nft_flow_offload.c      | 4 ++--
- 3 files changed, 5 insertions(+), 5 deletions(-)
-
-diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
-index 7d5cda7..3e370cb 100644
---- a/include/net/netfilter/nf_flow_table.h
-+++ b/include/net/netfilter/nf_flow_table.h
-@@ -84,7 +84,6 @@ struct flow_offload {
- struct nf_flow_route {
- 	struct {
- 		struct dst_entry	*dst;
--		int			ifindex;
- 	} tuple[FLOW_OFFLOAD_DIR_MAX];
- };
- 
-diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
-index fa0844e..fc0741b 100644
---- a/net/netfilter/nf_flow_table_core.c
-+++ b/net/netfilter/nf_flow_table_core.c
-@@ -29,6 +29,7 @@ struct flow_offload_entry {
- 	struct flow_offload_tuple *ft = &flow->tuplehash[dir].tuple;
- 	struct nf_conntrack_tuple *ctt = &ct->tuplehash[dir].tuple;
- 	struct dst_entry *dst = route->tuple[dir].dst;
-+	struct dst_entry *other_dst = route->tuple[!dir].dst;
- 
- 	ft->dir = dir;
- 
-@@ -50,8 +51,8 @@ struct flow_offload_entry {
- 	ft->src_port = ctt->src.u.tcp.port;
- 	ft->dst_port = ctt->dst.u.tcp.port;
- 
--	ft->iifidx = route->tuple[dir].ifindex;
--	ft->oifidx = route->tuple[!dir].ifindex;
-+	ft->iifidx = other_dst->dev->ifindex;
-+	ft->oifidx = dst->dev->ifindex;
- 	ft->dst_cache = dst;
- }
- 
-diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
-index ccdb8f5..188c6bb 100644
---- a/net/netfilter/nft_flow_offload.c
-+++ b/net/netfilter/nft_flow_offload.c
-@@ -30,9 +30,11 @@ static int nft_flow_route(const struct nft_pktinfo *pkt,
- 	switch (nft_pf(pkt)) {
- 	case NFPROTO_IPV4:
- 		fl.u.ip4.daddr = ct->tuplehash[dir].tuple.src.u3.ip;
-+		fl.u.ip4.flowi4_oif = nft_in(pkt)->ifindex;
- 		break;
- 	case NFPROTO_IPV6:
- 		fl.u.ip6.daddr = ct->tuplehash[dir].tuple.src.u3.in6;
-+		fl.u.ip6.flowi6_oif = nft_in(pkt)->ifindex;
- 		break;
- 	}
- 
-@@ -41,9 +43,7 @@ static int nft_flow_route(const struct nft_pktinfo *pkt,
- 		return -ENOENT;
- 
- 	route->tuple[dir].dst		= this_dst;
--	route->tuple[dir].ifindex	= nft_in(pkt)->ifindex;
- 	route->tuple[!dir].dst		= other_dst;
--	route->tuple[!dir].ifindex	= nft_out(pkt)->ifindex;
- 
- 	return 0;
- }
--- 
-1.8.3.1
+NF_INET_PRE_ROUTING can be used for 'from' tunnel match, The other three hooks can be used for 'to' tunnel match.
