@@ -1,39 +1,85 @@
-From: wenxu <wenxu@ucloud.cn>
-Subject: Re: [PATCH v2] netfilter: x_tables: add xt_tunnel match
-Date: Fri, 11 Jan 2019 11:09:39 +0800
-Message-ID: <2e6b7801-7988-c532-52ca-e6f18a81e341@ucloud.cn>
-References: <1547097368-31835-1-git-send-email-wenxu@ucloud.cn>
- <20190110181514.76mkggdfbgdvxkav@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: wenxu@ucloud.cn
+Subject: [PATCH v3] vrf: Fix conntrack-dnat conflict in vrf-device PREROUTING  hook
+Date: Sat, 12 Jan 2019 08:03:19 +0800
+Message-ID: <1547251399-15997-1-git-send-email-wenxu@ucloud.cn>
+Cc: netfilter-devel@vger.kernel.org
+To: netdev@vger.kernel.org, dsahern@gmail.com
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190110181514.76mkggdfbgdvxkav@salvia>
-Content-Language: en-US
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
+From: wenxu <wenxu@ucloud.cn>
 
-On 1/11/2019 2:15 AM, Pablo Neira Ayuso wrote:
-> On Thu, Jan 10, 2019 at 01:16:08PM +0800, wenxu@ucloud.cn wrote:
-> [...]
->> +static struct xt_match tunnel_mt_reg __read_mostly = {
->> +	.name           = "tunnel",
->> +	.revision       = 0,
->> +	.family         = NFPROTO_UNSPEC,
->> +	.match          = tunnel_mt,
->> +	.matchsize      = sizeof(struct xt_tunnel_mtinfo),
->> +	.hooks          = ((1 << NF_INET_PRE_ROUTING) |
->> +					  (1 << NF_INET_POST_ROUTING) |
->> +					  (1 << NF_INET_LOCAL_OUT) |
->> +					  (1 << NF_INET_FORWARD)),
-> Are you sure this works from the forward chain? This template is
-> dropped after the route lookup.
->
-> Thanks.
+In the ip_rcv the skb go through the PREROUTING hook first,
+Then jump in vrf device go through the same hook again.
+When conntrack dnat work with vrf, there will be some conflict for rules.
+Because the package go through the hook twice with different nf status
 
-Yes.  NF_INET_FORWARD is also used to match the packet goes to tunnel(IP_TUNNEL_INFO_TX type), After route lookup, the packet send to tunnel through lwtunnel-route.
+ip link add user1 type vrf table 1
+ip link add user2 type vrf table 2
+ip l set dev tun1 master user1
+ip l set dev tun2 master user2
 
-NF_INET_PRE_ROUTING can be used for 'from' tunnel match, The other three hooks can be used for 'to' tunnel match.
+nft add table firewall
+nft add chain firewall zones { type filter hook prerouting  priority - 300 \; }
+nft add rule firewall zones counter ct zone set iif map { "tun1" : 1, "tun2" : 2 }
+nft add chain firewall rule-1000-ingress
+nft add rule firewall rule-1000-ingress ct zone 1 tcp dport 22 ct state new counter accept
+nft add rule firewall rule-1000-ingress counter drop
+nft add chain firewall rule-1000-egress
+nft add rule firewall rule-1000-egress tcp dport 22 ct state new counter drop
+nft add rule firewall rule-1000-egress counter accept
+
+nft add chain firewall rules-all { type filter hook prerouting priority - 150 \; }
+nft add rule firewall rules-all ip daddr vmap { "2.2.2.11" : jump rule-1000-ingress }
+nft add rule firewall rules-all ct zone vmap { 1 : jump rule-1000-egress }
+
+nft add rule firewall dnat-all ct zone vmap { 1 : jump dnat-1000 }
+nft add rule firewall dnat-1000 ip daddr 2.2.2.11 counter dnat to 10.0.0.7
+
+For a package with ip daddr 2.2.2.11 and tcp dport 22, first time accept in the
+rule-1000-ingress and dnat to 10.0.0.7. Then second time the packet goto the wrong
+chain rule-1000-egress which leads the packet drop
+
+So This patch avoid already dnat packet go through the prerouting hook for the
+second time.
+
+Fixes: 73e20b761acf8 ("net: vrf: Add support for PREROUTING rules on vrf
+device")
+Signed-off-by: wenxu <wenxu@ucloud.cn>
+---
+ drivers/net/vrf.c | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/drivers/net/vrf.c b/drivers/net/vrf.c
+index 95909e2..9b01ca871 100644
+--- a/drivers/net/vrf.c
++++ b/drivers/net/vrf.c
+@@ -38,6 +38,10 @@
+ #include <net/fib_rules.h>
+ #include <net/netns/generic.h>
+ 
++#if IS_ENABLED(CONFIG_NF_CONNTRACK)
++#include <net/netfilter/nf_conntrack.h>
++#endif
++
+ #define DRV_NAME	"vrf"
+ #define DRV_VERSION	"1.0"
+ 
+@@ -898,6 +902,14 @@ static struct sk_buff *vrf_rcv_nfhook(u8 pf, unsigned int hook,
+ 				      struct net_device *dev)
+ {
+ 	struct net *net = dev_net(dev);
++#if IS_ENABLED(CONFIG_NF_CONNTRACK)
++	enum ip_conntrack_info ctinfo;
++	struct nf_conn *ct;
++
++	ct = nf_ct_get(skb, &ctinfo);
++	if (ct && (ct->status & IPS_DST_NAT))
++		return skb;
++#endif
+ 
+ 	if (nf_hook(pf, hook, net, NULL, skb, dev, NULL, vrf_rcv_finish) != 1)
+ 		skb = NULL;    /* kfree_skb(skb) handled by nf code */
+-- 
+1.8.3.1
