@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 4/7] netfilter: nft_flow_offload: Fix reverse route lookup
-Date: Mon, 14 Jan 2019 22:29:37 +0100
-Message-ID: <20190114212940.5704-5-pablo@netfilter.org>
+Subject: [PATCH 5/7] netfilter: ebtables: account ebt_table_info to kmemcg
+Date: Mon, 14 Jan 2019 22:29:38 +0100
+Message-ID: <20190114212940.5704-6-pablo@netfilter.org>
 References: <20190114212940.5704-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,46 +10,54 @@ In-Reply-To: <20190114212940.5704-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: wenxu <wenxu@ucloud.cn>
+From: Shakeel Butt <shakeelb@google.com>
 
-Using the following example:
+The [ip,ip6,arp]_tables use x_tables_info internally and the underlying
+memory is already accounted to kmemcg. Do the same for ebtables. The
+syzbot, by using setsockopt(EBT_SO_SET_ENTRIES), was able to OOM the
+whole system from a restricted memcg, a potential DoS.
 
-	client 1.1.1.7 ---> 2.2.2.7 which dnat to 10.0.0.7 server
+By accounting the ebt_table_info, the memory used for ebt_table_info can
+be contained within the memcg of the allocating process. However the
+lifetime of ebt_table_info is independent of the allocating process and
+is tied to the network namespace. So, the oom-killer will not be able to
+relieve the memory pressure due to ebt_table_info memory. The memory for
+ebt_table_info is allocated through vmalloc. Currently vmalloc does not
+handle the oom-killed allocating process correctly and one large
+allocation can bypass memcg limit enforcement. So, with this patch,
+at least the small allocations will be contained. For large allocations,
+we need to fix vmalloc.
 
-The first reply packet (ie. syn+ack) uses an incorrect destination
-address for the reverse route lookup since it uses:
-
-	daddr = ct->tuplehash[!dir].tuple.dst.u3.ip;
-
-which is 2.2.2.7 in the scenario that is described above, while this
-should be:
-
-	daddr = ct->tuplehash[dir].tuple.src.u3.ip;
-
-that is 10.0.0.7.
-
-Signed-off-by: wenxu <wenxu@ucloud.cn>
+Reported-by: syzbot+7713f3aa67be76b1552c@syzkaller.appspotmail.com
+Signed-off-by: Shakeel Butt <shakeelb@google.com>
+Reviewed-by: Kirill Tkhai <ktkhai@virtuozzo.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_flow_offload.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ net/bridge/netfilter/ebtables.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
-index 974525eb92df..ccdb8f5ababb 100644
---- a/net/netfilter/nft_flow_offload.c
-+++ b/net/netfilter/nft_flow_offload.c
-@@ -29,10 +29,10 @@ static int nft_flow_route(const struct nft_pktinfo *pkt,
- 	memset(&fl, 0, sizeof(fl));
- 	switch (nft_pf(pkt)) {
- 	case NFPROTO_IPV4:
--		fl.u.ip4.daddr = ct->tuplehash[!dir].tuple.dst.u3.ip;
-+		fl.u.ip4.daddr = ct->tuplehash[dir].tuple.src.u3.ip;
- 		break;
- 	case NFPROTO_IPV6:
--		fl.u.ip6.daddr = ct->tuplehash[!dir].tuple.dst.u3.in6;
-+		fl.u.ip6.daddr = ct->tuplehash[dir].tuple.src.u3.in6;
- 		break;
- 	}
+diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
+index 491828713e0b..5e55cef0cec3 100644
+--- a/net/bridge/netfilter/ebtables.c
++++ b/net/bridge/netfilter/ebtables.c
+@@ -1137,14 +1137,16 @@ static int do_replace(struct net *net, const void __user *user,
+ 	tmp.name[sizeof(tmp.name) - 1] = 0;
  
+ 	countersize = COUNTER_OFFSET(tmp.nentries) * nr_cpu_ids;
+-	newinfo = vmalloc(sizeof(*newinfo) + countersize);
++	newinfo = __vmalloc(sizeof(*newinfo) + countersize, GFP_KERNEL_ACCOUNT,
++			    PAGE_KERNEL);
+ 	if (!newinfo)
+ 		return -ENOMEM;
+ 
+ 	if (countersize)
+ 		memset(newinfo->counters, 0, countersize);
+ 
+-	newinfo->entries = vmalloc(tmp.entries_size);
++	newinfo->entries = __vmalloc(tmp.entries_size, GFP_KERNEL_ACCOUNT,
++				     PAGE_KERNEL);
+ 	if (!newinfo->entries) {
+ 		ret = -ENOMEM;
+ 		goto free_newinfo;
 -- 
 2.11.0
