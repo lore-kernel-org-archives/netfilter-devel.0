@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 2/7] netfilter: nf_tables: fix leaking object reference count
-Date: Mon, 14 Jan 2019 22:29:35 +0100
-Message-ID: <20190114212940.5704-3-pablo@netfilter.org>
+Subject: [PATCH 3/7] netfilter: nf_tables: selective rule dump needs table to be specified
+Date: Mon, 14 Jan 2019 22:29:36 +0100
+Message-ID: <20190114212940.5704-4-pablo@netfilter.org>
 References: <20190114212940.5704-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,52 +10,27 @@ In-Reply-To: <20190114212940.5704-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Taehee Yoo <ap420073@gmail.com>
+Table needs to be specified for selective rule dumps per chain.
 
-There is no code that decreases the reference count of stateful objects
-in error path of the nft_add_set_elem(). this causes a leak of reference
-count of stateful objects.
-
-Test commands:
-   $nft add table ip filter
-   $nft add counter ip filter c1
-   $nft add map ip filter m1 { type ipv4_addr : counter \;}
-   $nft add element ip filter m1 { 1 : c1 }
-   $nft add element ip filter m1 { 1 : c1 }
-   $nft delete element ip filter m1 { 1 }
-   $nft delete counter ip filter c1
-
-Result:
-   Error: Could not process rule: Device or resource busy
-   delete counter ip filter c1
-   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-At the second 'nft add element ip filter m1 { 1 : c1 }', the reference
-count of the 'c1' is increased then it tries to insert into the 'm1'. but
-the 'm1' already has same element so it returns -EEXIST.
-But it doesn't decrease the reference count of the 'c1' in the error path.
-Due to a leak of the reference count of the 'c1', the 'c1' can't be
-removed by 'nft delete counter ip filter c1'.
-
-Fixes: 8aeff920dcc9 ("netfilter: nf_tables: add stateful object reference to set elements")
-Signed-off-by: Taehee Yoo <ap420073@gmail.com>
+Fixes: 241faeceb849c ("netfilter: nf_tables: Speed up selective rule dumps")
+Reported-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c | 2 ++
- 1 file changed, 2 insertions(+)
+ net/netfilter/nf_tables_api.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index e3ddd8e95e58..dcea979423bc 100644
+index dcea979423bc..fb07f6cfc719 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -4506,6 +4506,8 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- err5:
- 	kfree(trans);
- err4:
-+	if (obj)
-+		obj->use--;
- 	kfree(elem.priv);
- err3:
- 	if (nla[NFTA_SET_ELEM_DATA] != NULL)
+@@ -2350,7 +2350,7 @@ static int nf_tables_dump_rules(struct sk_buff *skb,
+ 		if (ctx && ctx->table && strcmp(ctx->table, table->name) != 0)
+ 			continue;
+ 
+-		if (ctx && ctx->chain) {
++		if (ctx && ctx->table && ctx->chain) {
+ 			struct rhlist_head *list, *tmp;
+ 
+ 			list = rhltable_lookup(&table->chains_ht, ctx->chain,
 -- 
 2.11.0
