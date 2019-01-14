@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 6/7] netfilter: nft_flow_offload: fix interaction with vrf slave device
-Date: Mon, 14 Jan 2019 22:29:39 +0100
-Message-ID: <20190114212940.5704-7-pablo@netfilter.org>
+Subject: [PATCH 7/7] netfilter: nft_flow_offload: fix checking method of conntrack helper
+Date: Mon, 14 Jan 2019 22:29:40 +0100
+Message-ID: <20190114212940.5704-8-pablo@netfilter.org>
 References: <20190114212940.5704-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,98 +10,57 @@ In-Reply-To: <20190114212940.5704-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: wenxu <wenxu@ucloud.cn>
+From: Henry Yen <henry.yen@mediatek.com>
 
-In the forward chain, the iif is changed from slave device to master vrf
-device. Thus, flow offload does not find a match on the lower slave
-device.
+This patch uses nfct_help() to detect whether an established connection
+needs conntrack helper instead of using test_bit(IPS_HELPER_BIT,
+&ct->status).
 
-This patch uses the cached route, ie. dst->dev, to update the iif and
-oif fields in the flow entry.
+The reason is that IPS_HELPER_BIT is only set when using explicit CT
+target.
 
-After this patch, the following example works fine:
+However, in the case that a device enables conntrack helper via command
+"echo 1 > /proc/sys/net/netfilter/nf_conntrack_helper", the status of
+IPS_HELPER_BIT will not present any change, and consequently it loses
+the checking ability in the context.
 
- # ip addr add dev eth0 1.1.1.1/24
- # ip addr add dev eth1 10.0.0.1/24
- # ip link add user1 type vrf table 1
- # ip l set user1 up
- # ip l set dev eth0 master user1
- # ip l set dev eth1 master user1
-
- # nft add table firewall
- # nft add flowtable f fb1 { hook ingress priority 0 \; devices = { eth0, eth1 } \; }
- # nft add chain f ftb-all {type filter hook forward priority 0 \; policy accept \; }
- # nft add rule f ftb-all ct zone 1 ip protocol tcp flow offload @fb1
- # nft add rule f ftb-all ct zone 1 ip protocol udp flow offload @fb1
-
-Signed-off-by: wenxu <wenxu@ucloud.cn>
+Signed-off-by: Henry Yen <henry.yen@mediatek.com>
+Reviewed-by: Ryder Lee <ryder.lee@mediatek.com>
+Tested-by: John Crispin <john@phrozen.org>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_flow_table.h | 1 -
- net/netfilter/nf_flow_table_core.c    | 5 +++--
- net/netfilter/nft_flow_offload.c      | 4 ++--
- 3 files changed, 5 insertions(+), 5 deletions(-)
+ net/netfilter/nft_flow_offload.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
-index 7d5cda7ce32a..3e370cb36263 100644
---- a/include/net/netfilter/nf_flow_table.h
-+++ b/include/net/netfilter/nf_flow_table.h
-@@ -84,7 +84,6 @@ struct flow_offload {
- struct nf_flow_route {
- 	struct {
- 		struct dst_entry	*dst;
--		int			ifindex;
- 	} tuple[FLOW_OFFLOAD_DIR_MAX];
- };
- 
-diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
-index fa0844e2a68d..c0c72ae9df42 100644
---- a/net/netfilter/nf_flow_table_core.c
-+++ b/net/netfilter/nf_flow_table_core.c
-@@ -28,6 +28,7 @@ flow_offload_fill_dir(struct flow_offload *flow, struct nf_conn *ct,
- {
- 	struct flow_offload_tuple *ft = &flow->tuplehash[dir].tuple;
- 	struct nf_conntrack_tuple *ctt = &ct->tuplehash[dir].tuple;
-+	struct dst_entry *other_dst = route->tuple[!dir].dst;
- 	struct dst_entry *dst = route->tuple[dir].dst;
- 
- 	ft->dir = dir;
-@@ -50,8 +51,8 @@ flow_offload_fill_dir(struct flow_offload *flow, struct nf_conn *ct,
- 	ft->src_port = ctt->src.u.tcp.port;
- 	ft->dst_port = ctt->dst.u.tcp.port;
- 
--	ft->iifidx = route->tuple[dir].ifindex;
--	ft->oifidx = route->tuple[!dir].ifindex;
-+	ft->iifidx = other_dst->dev->ifindex;
-+	ft->oifidx = dst->dev->ifindex;
- 	ft->dst_cache = dst;
- }
- 
 diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
-index ccdb8f5ababb..188c6bbf4e16 100644
+index 188c6bbf4e16..6e6b9adf7d38 100644
 --- a/net/netfilter/nft_flow_offload.c
 +++ b/net/netfilter/nft_flow_offload.c
-@@ -30,9 +30,11 @@ static int nft_flow_route(const struct nft_pktinfo *pkt,
- 	switch (nft_pf(pkt)) {
- 	case NFPROTO_IPV4:
- 		fl.u.ip4.daddr = ct->tuplehash[dir].tuple.src.u3.ip;
-+		fl.u.ip4.flowi4_oif = nft_in(pkt)->ifindex;
- 		break;
- 	case NFPROTO_IPV6:
- 		fl.u.ip6.daddr = ct->tuplehash[dir].tuple.src.u3.in6;
-+		fl.u.ip6.flowi6_oif = nft_in(pkt)->ifindex;
- 		break;
+@@ -12,6 +12,7 @@
+ #include <net/netfilter/nf_conntrack_core.h>
+ #include <linux/netfilter/nf_conntrack_common.h>
+ #include <net/netfilter/nf_flow_table.h>
++#include <net/netfilter/nf_conntrack_helper.h>
+ 
+ struct nft_flow_offload {
+ 	struct nft_flowtable	*flowtable;
+@@ -66,6 +67,7 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
+ {
+ 	struct nft_flow_offload *priv = nft_expr_priv(expr);
+ 	struct nf_flowtable *flowtable = &priv->flowtable->data;
++	const struct nf_conn_help *help;
+ 	enum ip_conntrack_info ctinfo;
+ 	struct nf_flow_route route;
+ 	struct flow_offload *flow;
+@@ -88,7 +90,8 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
+ 		goto out;
  	}
  
-@@ -41,9 +43,7 @@ static int nft_flow_route(const struct nft_pktinfo *pkt,
- 		return -ENOENT;
+-	if (test_bit(IPS_HELPER_BIT, &ct->status))
++	help = nfct_help(ct);
++	if (help)
+ 		goto out;
  
- 	route->tuple[dir].dst		= this_dst;
--	route->tuple[dir].ifindex	= nft_in(pkt)->ifindex;
- 	route->tuple[!dir].dst		= other_dst;
--	route->tuple[!dir].ifindex	= nft_out(pkt)->ifindex;
- 
- 	return 0;
- }
+ 	if (ctinfo == IP_CT_NEW ||
 -- 
 2.11.0
