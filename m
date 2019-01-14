@@ -1,63 +1,94 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 5/7] netfilter: ebtables: account ebt_table_info to kmemcg
-Date: Mon, 14 Jan 2019 22:29:38 +0100
-Message-ID: <20190114212940.5704-6-pablo@netfilter.org>
-References: <20190114212940.5704-1-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH v3] vrf: Fix conntrack-dnat conflict in vrf-device
+ PREROUTING  hook
+Date: Mon, 14 Jan 2019 22:40:43 +0100
+Message-ID: <20190114214043.pji6usreyngezczt@salvia>
+References: <1547251399-15997-1-git-send-email-wenxu@ucloud.cn>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netdev@vger.kernel.org, dsahern@gmail.com,
+        netfilter-devel@vger.kernel.org
+To: wenxu@ucloud.cn
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190114212940.5704-1-pablo@netfilter.org>
+Content-Disposition: inline
+In-Reply-To: <1547251399-15997-1-git-send-email-wenxu@ucloud.cn>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Shakeel Butt <shakeelb@google.com>
+On Sat, Jan 12, 2019 at 08:03:19AM +0800, wenxu@ucloud.cn wrote:
+> From: wenxu <wenxu@ucloud.cn>
+> 
+> In the ip_rcv the skb go through the PREROUTING hook first,
+> Then jump in vrf device go through the same hook again.
+> When conntrack dnat work with vrf, there will be some conflict for rules.
+> Because the package go through the hook twice with different nf status
 
-The [ip,ip6,arp]_tables use x_tables_info internally and the underlying
-memory is already accounted to kmemcg. Do the same for ebtables. The
-syzbot, by using setsockopt(EBT_SO_SET_ENTRIES), was able to OOM the
-whole system from a restricted memcg, a potential DoS.
+Then, the first hook applies NAT, while the second is simply ignored.
 
-By accounting the ebt_table_info, the memory used for ebt_table_info can
-be contained within the memcg of the allocating process. However the
-lifetime of ebt_table_info is independent of the allocating process and
-is tied to the network namespace. So, the oom-killer will not be able to
-relieve the memory pressure due to ebt_table_info memory. The memory for
-ebt_table_info is allocated through vmalloc. Currently vmalloc does not
-handle the oom-killed allocating process correctly and one large
-allocation can bypass memcg limit enforcement. So, with this patch,
-at least the small allocations will be contained. For large allocations,
-we need to fix vmalloc.
+> ip link add user1 type vrf table 1
+> ip link add user2 type vrf table 2
+> ip l set dev tun1 master user1
+> ip l set dev tun2 master user2
+> 
+> nft add table firewall
+> nft add chain firewall zones { type filter hook prerouting  priority - 300 \; }
+> nft add rule firewall zones counter ct zone set iif map { "tun1" : 1, "tun2" : 2 }
+> nft add chain firewall rule-1000-ingress
+> nft add rule firewall rule-1000-ingress ct zone 1 tcp dport 22 ct state new counter accept
+> nft add rule firewall rule-1000-ingress counter drop
+> nft add chain firewall rule-1000-egress
+> nft add rule firewall rule-1000-egress tcp dport 22 ct state new counter drop
+> nft add rule firewall rule-1000-egress counter accept
+> 
+> nft add chain firewall rules-all { type filter hook prerouting priority - 150 \; }
+> nft add rule firewall rules-all ip daddr vmap { "2.2.2.11" : jump rule-1000-ingress }
+> nft add rule firewall rules-all ct zone vmap { 1 : jump rule-1000-egress }
+> 
+> nft add rule firewall dnat-all ct zone vmap { 1 : jump dnat-1000 }
+> nft add rule firewall dnat-1000 ip daddr 2.2.2.11 counter dnat to 10.0.0.7
+> 
+> For a package with ip daddr 2.2.2.11 and tcp dport 22, first time accept in the
+> rule-1000-ingress and dnat to 10.0.0.7. Then second time the packet goto the wrong
+> chain rule-1000-egress which leads the packet drop
+> 
+> So This patch avoid already dnat packet go through the prerouting hook for the
+> second time.
+> 
+> Fixes: 73e20b761acf8 ("net: vrf: Add support for PREROUTING rules on vrf
+> device")
+> Signed-off-by: wenxu <wenxu@ucloud.cn>
+> ---
+>  drivers/net/vrf.c | 12 ++++++++++++
+>  1 file changed, 12 insertions(+)
+> 
+> diff --git a/drivers/net/vrf.c b/drivers/net/vrf.c
+> index 95909e2..9b01ca871 100644
+> --- a/drivers/net/vrf.c
+> +++ b/drivers/net/vrf.c
+> @@ -38,6 +38,10 @@
+>  #include <net/fib_rules.h>
+>  #include <net/netns/generic.h>
+>  
+> +#if IS_ENABLED(CONFIG_NF_CONNTRACK)
+> +#include <net/netfilter/nf_conntrack.h>
+> +#endif
+> +
+>  #define DRV_NAME	"vrf"
+>  #define DRV_VERSION	"1.0"
+>  
+> @@ -898,6 +902,14 @@ static struct sk_buff *vrf_rcv_nfhook(u8 pf, unsigned int hook,
+>  				      struct net_device *dev)
+>  {
+>  	struct net *net = dev_net(dev);
+> +#if IS_ENABLED(CONFIG_NF_CONNTRACK)
+> +	enum ip_conntrack_info ctinfo;
+> +	struct nf_conn *ct;
+> +
+> +	ct = nf_ct_get(skb, &ctinfo);
+> +	if (ct && (ct->status & IPS_DST_NAT))
+> +		return skb;
+> +#endif
 
-Reported-by: syzbot+7713f3aa67be76b1552c@syzkaller.appspotmail.com
-Signed-off-by: Shakeel Butt <shakeelb@google.com>
-Reviewed-by: Kirill Tkhai <ktkhai@virtuozzo.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/bridge/netfilter/ebtables.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
-
-diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
-index 491828713e0b..5e55cef0cec3 100644
---- a/net/bridge/netfilter/ebtables.c
-+++ b/net/bridge/netfilter/ebtables.c
-@@ -1137,14 +1137,16 @@ static int do_replace(struct net *net, const void __user *user,
- 	tmp.name[sizeof(tmp.name) - 1] = 0;
- 
- 	countersize = COUNTER_OFFSET(tmp.nentries) * nr_cpu_ids;
--	newinfo = vmalloc(sizeof(*newinfo) + countersize);
-+	newinfo = __vmalloc(sizeof(*newinfo) + countersize, GFP_KERNEL_ACCOUNT,
-+			    PAGE_KERNEL);
- 	if (!newinfo)
- 		return -ENOMEM;
- 
- 	if (countersize)
- 		memset(newinfo->counters, 0, countersize);
- 
--	newinfo->entries = vmalloc(tmp.entries_size);
-+	newinfo->entries = __vmalloc(tmp.entries_size, GFP_KERNEL_ACCOUNT,
-+				     PAGE_KERNEL);
- 	if (!newinfo->entries) {
- 		ret = -ENOMEM;
- 		goto free_newinfo;
--- 
-2.11.0
+I think we need to scrub the packet here, from the beginning of the
+vrf path. The vrf represents a new virtual space, not sure we should
+be sharing connection tracking information between different vrf.
