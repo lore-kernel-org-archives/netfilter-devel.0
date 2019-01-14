@@ -1,94 +1,82 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Florian Westphal <fw@strlen.de>
 Subject: Re: [PATCH v3] vrf: Fix conntrack-dnat conflict in vrf-device
  PREROUTING  hook
-Date: Mon, 14 Jan 2019 22:40:43 +0100
-Message-ID: <20190114214043.pji6usreyngezczt@salvia>
+Date: Mon, 14 Jan 2019 23:15:10 +0100
+Message-ID: <20190114221510.pvge3hmb3qyicry4@breakpoint.cc>
 References: <1547251399-15997-1-git-send-email-wenxu@ucloud.cn>
+ <20190114214043.pji6usreyngezczt@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netdev@vger.kernel.org, dsahern@gmail.com,
+Cc: wenxu@ucloud.cn, netdev@vger.kernel.org, dsahern@gmail.com,
         netfilter-devel@vger.kernel.org
-To: wenxu@ucloud.cn
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1547251399-15997-1-git-send-email-wenxu@ucloud.cn>
+In-Reply-To: <20190114214043.pji6usreyngezczt@salvia>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, Jan 12, 2019 at 08:03:19AM +0800, wenxu@ucloud.cn wrote:
-> From: wenxu <wenxu@ucloud.cn>
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Sat, Jan 12, 2019 at 08:03:19AM +0800, wenxu@ucloud.cn wrote:
+> > From: wenxu <wenxu@ucloud.cn>
+> > 
+> > In the ip_rcv the skb go through the PREROUTING hook first,
+> > Then jump in vrf device go through the same hook again.
+> > When conntrack dnat work with vrf, there will be some conflict for rules.
+> > Because the package go through the hook twice with different nf status
 > 
-> In the ip_rcv the skb go through the PREROUTING hook first,
-> Then jump in vrf device go through the same hook again.
-> When conntrack dnat work with vrf, there will be some conflict for rules.
-> Because the package go through the hook twice with different nf status
+> Then, the first hook applies NAT, while the second is simply ignored.
 
-Then, the first hook applies NAT, while the second is simply ignored.
+Yes, but re-entry occurs with munged addresses in case DNAT was applied.
+I'm not sure about this patch either though.
 
-> ip link add user1 type vrf table 1
-> ip link add user2 type vrf table 2
-> ip l set dev tun1 master user1
-> ip l set dev tun2 master user2
-> 
-> nft add table firewall
-> nft add chain firewall zones { type filter hook prerouting  priority - 300 \; }
-> nft add rule firewall zones counter ct zone set iif map { "tun1" : 1, "tun2" : 2 }
-> nft add chain firewall rule-1000-ingress
-> nft add rule firewall rule-1000-ingress ct zone 1 tcp dport 22 ct state new counter accept
-> nft add rule firewall rule-1000-ingress counter drop
-> nft add chain firewall rule-1000-egress
-> nft add rule firewall rule-1000-egress tcp dport 22 ct state new counter drop
-> nft add rule firewall rule-1000-egress counter accept
-> 
-> nft add chain firewall rules-all { type filter hook prerouting priority - 150 \; }
-> nft add rule firewall rules-all ip daddr vmap { "2.2.2.11" : jump rule-1000-ingress }
-> nft add rule firewall rules-all ct zone vmap { 1 : jump rule-1000-egress }
-> 
-> nft add rule firewall dnat-all ct zone vmap { 1 : jump dnat-1000 }
-> nft add rule firewall dnat-1000 ip daddr 2.2.2.11 counter dnat to 10.0.0.7
-> 
-> For a package with ip daddr 2.2.2.11 and tcp dport 22, first time accept in the
-> rule-1000-ingress and dnat to 10.0.0.7. Then second time the packet goto the wrong
-> chain rule-1000-egress which leads the packet drop
-> 
-> So This patch avoid already dnat packet go through the prerouting hook for the
-> second time.
-> 
-> Fixes: 73e20b761acf8 ("net: vrf: Add support for PREROUTING rules on vrf
-> device")
-> Signed-off-by: wenxu <wenxu@ucloud.cn>
-> ---
->  drivers/net/vrf.c | 12 ++++++++++++
->  1 file changed, 12 insertions(+)
-> 
-> diff --git a/drivers/net/vrf.c b/drivers/net/vrf.c
-> index 95909e2..9b01ca871 100644
-> --- a/drivers/net/vrf.c
-> +++ b/drivers/net/vrf.c
-> @@ -38,6 +38,10 @@
->  #include <net/fib_rules.h>
->  #include <net/netns/generic.h>
->  
-> +#if IS_ENABLED(CONFIG_NF_CONNTRACK)
-> +#include <net/netfilter/nf_conntrack.h>
-> +#endif
-> +
->  #define DRV_NAME	"vrf"
->  #define DRV_VERSION	"1.0"
->  
-> @@ -898,6 +902,14 @@ static struct sk_buff *vrf_rcv_nfhook(u8 pf, unsigned int hook,
->  				      struct net_device *dev)
->  {
->  	struct net *net = dev_net(dev);
-> +#if IS_ENABLED(CONFIG_NF_CONNTRACK)
-> +	enum ip_conntrack_info ctinfo;
-> +	struct nf_conn *ct;
-> +
-> +	ct = nf_ct_get(skb, &ctinfo);
-> +	if (ct && (ct->status & IPS_DST_NAT))
-> +		return skb;
-> +#endif
+If vrf is used, then it seems its enough to add a 'meta iifname vr+ accept'
+rule to prevent false matches/re-invocation.
+If the name isn't enough, I think we should consider extending meta to
+query 'interface is vrf' so userspace can add the 'don't re-do entire
+ruleset for vrf' policy itself.
 
-I think we need to scrub the packet here, from the beginning of the
-vrf path. The vrf represents a new virtual space, not sure we should
-be sharing connection tracking information between different vrf.
+I am not sure kernel should auto-enforce bypass based on conntrack
+state, there is no precedence for this and I don't like
+arbitrarily-chosen behaviour.
+
+In bridge case (ingress), the bridge path doesn't run the inet (ipv4/ipv6)
+hooks, so we don't have a double-invocation if packet gets pushed up the
+stack.  Same for bond/team.
+
+> > +#if IS_ENABLED(CONFIG_NF_CONNTRACK)
+> > +	enum ip_conntrack_info ctinfo;
+> > +	struct nf_conn *ct;
+> > +
+> > +	ct = nf_ct_get(skb, &ctinfo);
+> > +	if (ct && (ct->status & IPS_DST_NAT))
+> > +		return skb;
+> > +#endif
+> 
+> I think we need to scrub the packet here, from the beginning of the
+> vrf path. The vrf represents a new virtual space, not sure we should
+> be sharing connection tracking information between different vrf.
+
+Hmm.  I see nf_reset calls, but apparently only on output.
+
+If we would scrub (but no packet rewrite occured) we would re-lookup the
+exactly same conntrack entry we just discarded, so I don't see the
+point (we would also double-account each packet with nf_acct=1).
+
+If re-write occured, I think we would mess up conntrack table:
+
+1. Wire format: saddr A to daddr B.
+2. NAT is applied, daddr B gets rewritten to daddr C (DNAT took place).
+Then conntrack has: ORIGIN A,B; REPLY C,A            (expects replies to
+come from the new destination to original source and further packets from
+A to B).
+
+If we re-enter conntrack, then packet (still the original packet!) is
+'saddr A to daddr c'.
+
+So, unless I've made a thinko here, conntrack picks up a new flow:
+ORIGIN A,C ;  REPLY C,A .
+
+Unlike netns, where the 'old' conntrack incarnation is invisible (netns
+is part of the conntrack key), there will now be a clash/collision at
+confirm time, because there already is a 'REPLY C,A' in the table.
