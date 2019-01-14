@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 3/7] netfilter: nf_tables: selective rule dump needs table to be specified
-Date: Mon, 14 Jan 2019 22:29:36 +0100
-Message-ID: <20190114212940.5704-4-pablo@netfilter.org>
+Subject: [PATCH 6/7] netfilter: nft_flow_offload: fix interaction with vrf slave device
+Date: Mon, 14 Jan 2019 22:29:39 +0100
+Message-ID: <20190114212940.5704-7-pablo@netfilter.org>
 References: <20190114212940.5704-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,27 +10,98 @@ In-Reply-To: <20190114212940.5704-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Table needs to be specified for selective rule dumps per chain.
+From: wenxu <wenxu@ucloud.cn>
 
-Fixes: 241faeceb849c ("netfilter: nf_tables: Speed up selective rule dumps")
-Reported-by: Florian Westphal <fw@strlen.de>
+In the forward chain, the iif is changed from slave device to master vrf
+device. Thus, flow offload does not find a match on the lower slave
+device.
+
+This patch uses the cached route, ie. dst->dev, to update the iif and
+oif fields in the flow entry.
+
+After this patch, the following example works fine:
+
+ # ip addr add dev eth0 1.1.1.1/24
+ # ip addr add dev eth1 10.0.0.1/24
+ # ip link add user1 type vrf table 1
+ # ip l set user1 up
+ # ip l set dev eth0 master user1
+ # ip l set dev eth1 master user1
+
+ # nft add table firewall
+ # nft add flowtable f fb1 { hook ingress priority 0 \; devices = { eth0, eth1 } \; }
+ # nft add chain f ftb-all {type filter hook forward priority 0 \; policy accept \; }
+ # nft add rule f ftb-all ct zone 1 ip protocol tcp flow offload @fb1
+ # nft add rule f ftb-all ct zone 1 ip protocol udp flow offload @fb1
+
+Signed-off-by: wenxu <wenxu@ucloud.cn>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/net/netfilter/nf_flow_table.h | 1 -
+ net/netfilter/nf_flow_table_core.c    | 5 +++--
+ net/netfilter/nft_flow_offload.c      | 4 ++--
+ 3 files changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index dcea979423bc..fb07f6cfc719 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -2350,7 +2350,7 @@ static int nf_tables_dump_rules(struct sk_buff *skb,
- 		if (ctx && ctx->table && strcmp(ctx->table, table->name) != 0)
- 			continue;
+diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
+index 7d5cda7ce32a..3e370cb36263 100644
+--- a/include/net/netfilter/nf_flow_table.h
++++ b/include/net/netfilter/nf_flow_table.h
+@@ -84,7 +84,6 @@ struct flow_offload {
+ struct nf_flow_route {
+ 	struct {
+ 		struct dst_entry	*dst;
+-		int			ifindex;
+ 	} tuple[FLOW_OFFLOAD_DIR_MAX];
+ };
  
--		if (ctx && ctx->chain) {
-+		if (ctx && ctx->table && ctx->chain) {
- 			struct rhlist_head *list, *tmp;
+diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
+index fa0844e2a68d..c0c72ae9df42 100644
+--- a/net/netfilter/nf_flow_table_core.c
++++ b/net/netfilter/nf_flow_table_core.c
+@@ -28,6 +28,7 @@ flow_offload_fill_dir(struct flow_offload *flow, struct nf_conn *ct,
+ {
+ 	struct flow_offload_tuple *ft = &flow->tuplehash[dir].tuple;
+ 	struct nf_conntrack_tuple *ctt = &ct->tuplehash[dir].tuple;
++	struct dst_entry *other_dst = route->tuple[!dir].dst;
+ 	struct dst_entry *dst = route->tuple[dir].dst;
  
- 			list = rhltable_lookup(&table->chains_ht, ctx->chain,
+ 	ft->dir = dir;
+@@ -50,8 +51,8 @@ flow_offload_fill_dir(struct flow_offload *flow, struct nf_conn *ct,
+ 	ft->src_port = ctt->src.u.tcp.port;
+ 	ft->dst_port = ctt->dst.u.tcp.port;
+ 
+-	ft->iifidx = route->tuple[dir].ifindex;
+-	ft->oifidx = route->tuple[!dir].ifindex;
++	ft->iifidx = other_dst->dev->ifindex;
++	ft->oifidx = dst->dev->ifindex;
+ 	ft->dst_cache = dst;
+ }
+ 
+diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
+index ccdb8f5ababb..188c6bbf4e16 100644
+--- a/net/netfilter/nft_flow_offload.c
++++ b/net/netfilter/nft_flow_offload.c
+@@ -30,9 +30,11 @@ static int nft_flow_route(const struct nft_pktinfo *pkt,
+ 	switch (nft_pf(pkt)) {
+ 	case NFPROTO_IPV4:
+ 		fl.u.ip4.daddr = ct->tuplehash[dir].tuple.src.u3.ip;
++		fl.u.ip4.flowi4_oif = nft_in(pkt)->ifindex;
+ 		break;
+ 	case NFPROTO_IPV6:
+ 		fl.u.ip6.daddr = ct->tuplehash[dir].tuple.src.u3.in6;
++		fl.u.ip6.flowi6_oif = nft_in(pkt)->ifindex;
+ 		break;
+ 	}
+ 
+@@ -41,9 +43,7 @@ static int nft_flow_route(const struct nft_pktinfo *pkt,
+ 		return -ENOENT;
+ 
+ 	route->tuple[dir].dst		= this_dst;
+-	route->tuple[dir].ifindex	= nft_in(pkt)->ifindex;
+ 	route->tuple[!dir].dst		= other_dst;
+-	route->tuple[!dir].ifindex	= nft_out(pkt)->ifindex;
+ 
+ 	return 0;
+ }
 -- 
 2.11.0
