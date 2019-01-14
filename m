@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 1/7] netfilter: nf_tables: Fix for endless loop when dumping ruleset
-Date: Mon, 14 Jan 2019 22:29:34 +0100
-Message-ID: <20190114212940.5704-2-pablo@netfilter.org>
+Subject: [PATCH 2/7] netfilter: nf_tables: fix leaking object reference count
+Date: Mon, 14 Jan 2019 22:29:35 +0100
+Message-ID: <20190114212940.5704-3-pablo@netfilter.org>
 References: <20190114212940.5704-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,66 +10,52 @@ In-Reply-To: <20190114212940.5704-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Phil Sutter <phil@nwl.cc>
+From: Taehee Yoo <ap420073@gmail.com>
 
-__nf_tables_dump_rules() stores the current idx value into cb->args[0]
-before returning to caller. With multiple chains present, cb->args[0] is
-therefore updated after each chain's rules have been traversed. This
-though causes the final nf_tables_dump_rules() run (which should return
-an skb->len of zero since no rules are left to dump) to continue dumping
-rules for each but the first chain. Fix this by moving the cb->args[0]
-update to nf_tables_dump_rules().
+There is no code that decreases the reference count of stateful objects
+in error path of the nft_add_set_elem(). this causes a leak of reference
+count of stateful objects.
 
-With no final action to be performed anymore in
-__nf_tables_dump_rules(), drop 'out_unfinished' jump label and 'rc'
-variable - instead return the appropriate value directly.
+Test commands:
+   $nft add table ip filter
+   $nft add counter ip filter c1
+   $nft add map ip filter m1 { type ipv4_addr : counter \;}
+   $nft add element ip filter m1 { 1 : c1 }
+   $nft add element ip filter m1 { 1 : c1 }
+   $nft delete element ip filter m1 { 1 }
+   $nft delete counter ip filter c1
 
-Fixes: 241faeceb849c ("netfilter: nf_tables: Speed up selective rule dumps")
-Signed-off-by: Phil Sutter <phil@nwl.cc>
+Result:
+   Error: Could not process rule: Device or resource busy
+   delete counter ip filter c1
+   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+At the second 'nft add element ip filter m1 { 1 : c1 }', the reference
+count of the 'c1' is increased then it tries to insert into the 'm1'. but
+the 'm1' already has same element so it returns -EEXIST.
+But it doesn't decrease the reference count of the 'c1' in the error path.
+Due to a leak of the reference count of the 'c1', the 'c1' can't be
+removed by 'nft delete counter ip filter c1'.
+
+Fixes: 8aeff920dcc9 ("netfilter: nf_tables: add stateful object reference to set elements")
+Signed-off-by: Taehee Yoo <ap420073@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c | 10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ net/netfilter/nf_tables_api.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 2b0a93300dd7..e3ddd8e95e58 100644
+index e3ddd8e95e58..dcea979423bc 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -2304,7 +2304,6 @@ static int __nf_tables_dump_rules(struct sk_buff *skb,
- 	struct net *net = sock_net(skb->sk);
- 	unsigned int s_idx = cb->args[0];
- 	const struct nft_rule *rule;
--	int rc = 1;
- 
- 	list_for_each_entry_rcu(rule, &chain->rules, list) {
- 		if (!nft_is_active(net, rule))
-@@ -2321,16 +2320,13 @@ static int __nf_tables_dump_rules(struct sk_buff *skb,
- 					NLM_F_MULTI | NLM_F_APPEND,
- 					table->family,
- 					table, chain, rule) < 0)
--			goto out_unfinished;
-+			return 1;
- 
- 		nl_dump_check_consistent(cb, nlmsg_hdr(skb));
- cont:
- 		(*idx)++;
- 	}
--	rc = 0;
--out_unfinished:
--	cb->args[0] = *idx;
--	return rc;
-+	return 0;
- }
- 
- static int nf_tables_dump_rules(struct sk_buff *skb,
-@@ -2382,6 +2378,8 @@ static int nf_tables_dump_rules(struct sk_buff *skb,
- 	}
- done:
- 	rcu_read_unlock();
-+
-+	cb->args[0] = idx;
- 	return skb->len;
- }
- 
+@@ -4506,6 +4506,8 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
+ err5:
+ 	kfree(trans);
+ err4:
++	if (obj)
++		obj->use--;
+ 	kfree(elem.priv);
+ err3:
+ 	if (nla[NFTA_SET_ELEM_DATA] != NULL)
 -- 
 2.11.0
