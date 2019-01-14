@@ -1,85 +1,70 @@
-From: wenxu@ucloud.cn
-Subject: [PATCH v3] vrf: Fix conntrack-dnat conflict in vrf-device PREROUTING  hook
-Date: Sat, 12 Jan 2019 08:03:19 +0800
-Message-ID: <1547251399-15997-1-git-send-email-wenxu@ucloud.cn>
-Cc: netfilter-devel@vger.kernel.org
-To: netdev@vger.kernel.org, dsahern@gmail.com
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
+From: Henry Yen <henry.yen@mediatek.com>
+Subject: [PATCH] netfilter: fix checking method of conntrack helper
+Date: Mon, 14 Jan 2019 17:59:43 +0800
+Message-ID: <1547459983-15724-1-git-send-email-henry.yen@mediatek.com>
+Mime-Version: 1.0
+Content-Type: text/plain
+Cc: Ryder Lee <ryder.lee@mediatek.com>,
+        Sean Wang <sean.wang@kernel.org>,
+        Weijie Gao <weijie.gao@mediatek.com>,
+        <netfilter-devel@vger.kernel.org>, <netdev@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-mediatek@lists.infradead.org>,
+        Henry Yen <henry.yen@mediatek.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+        "David S. Miller" <davem@davemloft.net>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: wenxu <wenxu@ucloud.cn>
+This patch uses nfct_help() to detect whether an
+established connection needs conntrack helper instead of using
+test_bit(IPS_HELPER_BIT, &ct->status).
 
-In the ip_rcv the skb go through the PREROUTING hook first,
-Then jump in vrf device go through the same hook again.
-When conntrack dnat work with vrf, there will be some conflict for rules.
-Because the package go through the hook twice with different nf status
+The reason is that IPS_HELPER_BIT is only set when using explicit
+CT target.
 
-ip link add user1 type vrf table 1
-ip link add user2 type vrf table 2
-ip l set dev tun1 master user1
-ip l set dev tun2 master user2
+However, in the case that a device enables conntrack helper via
+command "echo 1 > /proc/sys/net/netfilter/nf_conntrack_helper",
+the status of IPS_HELPER_BIT will not present any change, and
+consequently it loses the checking ability in the context.
 
-nft add table firewall
-nft add chain firewall zones { type filter hook prerouting  priority - 300 \; }
-nft add rule firewall zones counter ct zone set iif map { "tun1" : 1, "tun2" : 2 }
-nft add chain firewall rule-1000-ingress
-nft add rule firewall rule-1000-ingress ct zone 1 tcp dport 22 ct state new counter accept
-nft add rule firewall rule-1000-ingress counter drop
-nft add chain firewall rule-1000-egress
-nft add rule firewall rule-1000-egress tcp dport 22 ct state new counter drop
-nft add rule firewall rule-1000-egress counter accept
-
-nft add chain firewall rules-all { type filter hook prerouting priority - 150 \; }
-nft add rule firewall rules-all ip daddr vmap { "2.2.2.11" : jump rule-1000-ingress }
-nft add rule firewall rules-all ct zone vmap { 1 : jump rule-1000-egress }
-
-nft add rule firewall dnat-all ct zone vmap { 1 : jump dnat-1000 }
-nft add rule firewall dnat-1000 ip daddr 2.2.2.11 counter dnat to 10.0.0.7
-
-For a package with ip daddr 2.2.2.11 and tcp dport 22, first time accept in the
-rule-1000-ingress and dnat to 10.0.0.7. Then second time the packet goto the wrong
-chain rule-1000-egress which leads the packet drop
-
-So This patch avoid already dnat packet go through the prerouting hook for the
-second time.
-
-Fixes: 73e20b761acf8 ("net: vrf: Add support for PREROUTING rules on vrf
-device")
-Signed-off-by: wenxu <wenxu@ucloud.cn>
+Signed-off-by: Henry Yen <henry.yen@mediatek.com>
+Reviewed-by: Ryder Lee <ryder.lee@mediatek.com>
 ---
- drivers/net/vrf.c | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ net/netfilter/nft_flow_offload.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/net/vrf.c b/drivers/net/vrf.c
-index 95909e2..9b01ca871 100644
---- a/drivers/net/vrf.c
-+++ b/drivers/net/vrf.c
-@@ -38,6 +38,10 @@
- #include <net/fib_rules.h>
- #include <net/netns/generic.h>
+diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
+index 974525eb92df..de4684cc4633 100644
+--- a/net/netfilter/nft_flow_offload.c
++++ b/net/netfilter/nft_flow_offload.c
+@@ -12,6 +12,7 @@
+ #include <net/netfilter/nf_conntrack_core.h>
+ #include <linux/netfilter/nf_conntrack_common.h>
+ #include <net/netfilter/nf_flow_table.h>
++#include <net/netfilter/nf_conntrack_helper.h>
  
-+#if IS_ENABLED(CONFIG_NF_CONNTRACK)
-+#include <net/netfilter/nf_conntrack.h>
-+#endif
-+
- #define DRV_NAME	"vrf"
- #define DRV_VERSION	"1.0"
+ struct nft_flow_offload {
+ 	struct nft_flowtable	*flowtable;
+@@ -71,6 +72,7 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
+ 	struct flow_offload *flow;
+ 	enum ip_conntrack_dir dir;
+ 	struct nf_conn *ct;
++	const struct nf_conn_help *help;
+ 	int ret;
  
-@@ -898,6 +902,14 @@ static struct sk_buff *vrf_rcv_nfhook(u8 pf, unsigned int hook,
- 				      struct net_device *dev)
- {
- 	struct net *net = dev_net(dev);
-+#if IS_ENABLED(CONFIG_NF_CONNTRACK)
-+	enum ip_conntrack_info ctinfo;
-+	struct nf_conn *ct;
-+
-+	ct = nf_ct_get(skb, &ctinfo);
-+	if (ct && (ct->status & IPS_DST_NAT))
-+		return skb;
-+#endif
+ 	if (nft_flow_offload_skip(pkt->skb))
+@@ -88,7 +90,8 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
+ 		goto out;
+ 	}
  
- 	if (nf_hook(pf, hook, net, NULL, skb, dev, NULL, vrf_rcv_finish) != 1)
- 		skb = NULL;    /* kfree_skb(skb) handled by nf code */
+-	if (test_bit(IPS_HELPER_BIT, &ct->status))
++	help = nfct_help(ct);
++	if (help)
+ 		goto out;
+ 
+ 	if (ctinfo == IP_CT_NEW ||
 -- 
-1.8.3.1
+2.17.1
