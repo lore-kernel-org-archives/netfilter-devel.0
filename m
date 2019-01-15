@@ -1,25 +1,42 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH v2] netfilter: nft_meta: Add NFT_META_I/OIFKIND meta type
-Date: Tue, 15 Jan 2019 19:03:00 +0100
-Message-ID: <20190115180300.plsfkbxqxj5cxsau@breakpoint.cc>
-References: <1547565584-16842-1-git-send-email-wenxu@ucloud.cn>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 0/7] Netfilter fixes for net
+Date: Tue, 15 Jan 2019 13:32:26 -0800 (PST)
+Message-ID: <20190115.133226.27643735600937727.davem@davemloft.net>
+References: <20190114212940.5704-1-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: pablo@netfilter.org, fw@strlen.de, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org
-To: wenxu@ucloud.cn
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1547565584-16842-1-git-send-email-wenxu@ucloud.cn>
+In-Reply-To: <20190114212940.5704-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-wenxu@ucloud.cn <wenxu@ucloud.cn> wrote:
-> nft add rule firewall rules-all meta iifkind vrf counter accept
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Mon, 14 Jan 2019 22:29:33 +0100
 
-Looks good to me.
+> This is the first batch of Netfilter fixes for your net tree:
+> 
+> 1) Fix endless loop in nf_tables rules netlink dump, from Phil Sutter.
+> 
+> 2) Reference counter leak in object from the error path, from Taehee Yoo.
+> 
+> 3) Selective rule dump requires table and chain.
+> 
+> 4) Fix DNAT with nft_flow_offload reverse route lookup, from wenxu.
+> 
+> 5) Use GFP_KERNEL_ACCOUNT in vmalloc allocation from ebtables, from
+>    Shakeel Butt.
+> 
+> 6) Set ifindex from route to fix interaction with VRF slave device,
+>    also from wenxu.
+> 
+> 7) Use nfct_help() to check for conntrack helper, IPS_HELPER status
+>    flag is only set from explicit helpers via -j CT, from Henry Yen.
+> 
+> You can pull these changes from:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
 
-Only comment (unrelated to this patch):
-could you make nft parser enforce quoted string (meta iifkind "vrf")?
-
-Thanks!
+Pulled, thanks Pablo.
