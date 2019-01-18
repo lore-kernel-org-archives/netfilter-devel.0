@@ -1,38 +1,41 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Florian Westphal <fw@strlen.de>
 Subject: Re: [PATCH v3] netfilter: nft_meta: Add NFT_META_I/OIFKIND meta type
-Date: Fri, 18 Jan 2019 15:30:49 +0100
-Message-ID: <20190118143049.i2wakdxsr5oonnl6@salvia>
+Date: Fri, 18 Jan 2019 15:32:08 +0100
+Message-ID: <20190118143208.42q5ifmidcvtphtt@breakpoint.cc>
 References: <1547596431-31824-1-git-send-email-wenxu@ucloud.cn>
  <20190118142430.rsnru4hyrbsodobf@salvia>
- <a1a3c7cc-cdd5-3409-8296-f057c6e869c6@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: wenxu@ucloud.cn, fw@strlen.de, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org
-To: David Ahern <dsahern@gmail.com>
+        netfilter-devel@vger.kernel.org, David Ahern <dsahern@gmail.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <a1a3c7cc-cdd5-3409-8296-f057c6e869c6@gmail.com>
+In-Reply-To: <20190118142430.rsnru4hyrbsodobf@salvia>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, Jan 18, 2019 at 07:27:48AM -0700, David Ahern wrote:
-> On 1/18/19 7:24 AM, Pablo Neira Ayuso wrote:
-> > 
-> > There is no other way to identify a vft device rather than this
-> > string? The only l3mdev that exists if vrf, right?
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > +	case NFT_META_IIFKIND:
+> > +		if (in == NULL || in->rtnl_link_ops == NULL)
+> > +			goto err;
+> > +		strncpy((char *)dest, in->rtnl_link_ops->kind, IFNAMSIZ);
 > 
-> ipvlan uses some of the hooks.
-> 
-> > 
-> > If there is no other alternative, we can just place this in the tree,
-> > but probably it would be better to have a numeric way to identify a
-> > vrf device?
-> 
-> IFF_L3MDEV_MASTER and IFF_L3MDEV_SLAVE are used via netif_is_l3_master
-> and netif_is_l3_slave in all of the code. This was done because of
-> requests to not bleed 'vrf' all over core kernel code.
+> It seems kind can be arbitrarily large, no limitation in its length.
 
-Thanks for explaining.
+Its limited to 60 or 56 bytes it seems:
+char kind[MODULE_NAME_LEN];
 
-So no other way than this string to identify vrf device, right?
+nla_strlcpy(kind, linfo[IFLA_INFO_KIND], sizeof(kind));
+
+(linkinfo_to_kind_ops in rtnetlink.c).
+
+> Thinking...
+> 
+> There is no other way to identify a vft device rather than this
+> string? The only l3mdev that exists if vrf, right?
+
+There is, I suggested this more generic approach, as it would allow
+to create rules that match on the kind of device used (vrf, ppp, etc.).
+
+If you think its too generic, ok.
