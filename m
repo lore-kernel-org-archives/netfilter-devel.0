@@ -1,42 +1,24 @@
-From: YueHaibing <yuehaibing@huawei.com>
-Subject: Re: [PATCH] netfilter: nat: Update comment of get_unique_tuple
-Date: Thu, 24 Jan 2019 10:18:07 +0800
-Message-ID: <fa26810d-4b22-f1a3-8d0d-bbbde4cc14f5@huawei.com>
-References: <20190110130618.25344-1-yuehaibing@huawei.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] ipvs: Fix signed integer overflow when setsockopt timeout
+Date: Thu, 24 Jan 2019 13:32:04 +0100
+Message-ID: <20190124123204.yllpivzdshofap6z@salvia>
+References: <1547109546-11344-1-git-send-email-zhangxiaoxu5@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Cc: <linux-kernel@vger.kernel.org>, <netdev@vger.kernel.org>,
-        <netfilter-devel@vger.kernel.org>, <coreteam@netfilter.org>
-To: <pablo@netfilter.org>, <kadlec@blackhole.kfki.hu>, <fw@strlen.de>,
-        <davem@davemloft.net>
+Content-Type: text/plain; charset=us-ascii
+Cc: wensong@linux-vs.org, horms@verge.net.au, ja@ssi.bg,
+        netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
+        netfilter-devel@vger.kernel.org
+To: ZhangXiaoxu <zhangxiaoxu5@huawei.com>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190110130618.25344-1-yuehaibing@huawei.com>
+Content-Disposition: inline
+In-Reply-To: <1547109546-11344-1-git-send-email-zhangxiaoxu5@huawei.com>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-ping...
+On Thu, Jan 10, 2019 at 04:39:06PM +0800, ZhangXiaoxu wrote:
+> There is a UBSAN bug report as below:
+> UBSAN: Undefined behaviour in net/netfilter/ipvs/ip_vs_ctl.c:2227:21
+> signed integer overflow:
+> -2147483647 * 1000 cannot be represented in type 'int'
 
-On 2019/1/10 21:06, YueHaibing wrote:
-> Replace outdated __ip_conntrack_confirm in comment.
-> 
-> Signed-off-by: YueHaibing <yuehaibing@huawei.com>
-> ---
->  net/netfilter/nf_nat_core.c | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
-> 
-> diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
-> index d159e9e..f54a8db 100644
-> --- a/net/netfilter/nf_nat_core.c
-> +++ b/net/netfilter/nf_nat_core.c
-> @@ -460,7 +460,8 @@ static void nf_nat_l4proto_unique_tuple(struct nf_conntrack_tuple *tuple,
->   * and NF_INET_LOCAL_OUT, we change the destination to map into the
->   * range. It might not be possible to get a unique tuple, but we try.
->   * At worst (or if we race), we will end up with a final duplicate in
-> - * __ip_conntrack_confirm and drop the packet. */
-> + * __nf_conntrack_confirm and drop the packet.
-> + */
->  static void
->  get_unique_tuple(struct nf_conntrack_tuple *tuple,
->  		 const struct nf_conntrack_tuple *orig_tuple,
-> 
+Applied, thanks.
