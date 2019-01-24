@@ -1,52 +1,27 @@
-From: wenxu <wenxu@ucloud.cn>
+From: Florian Westphal <fw@strlen.de>
 Subject: Re: [PATCH v3] netfilter: nft_meta: Add NFT_META_I/OIFKIND meta type
-Date: Thu, 24 Jan 2019 21:51:27 +0800
-Message-ID: <de38b79c-4e94-16bd-5389-9b0fc224f7eb@ucloud.cn>
+Date: Thu, 24 Jan 2019 14:59:53 +0100
+Message-ID: <20190124135953.cps24owg5b6aplgl@breakpoint.cc>
 References: <1547596431-31824-1-git-send-email-wenxu@ucloud.cn>
  <20190118142430.rsnru4hyrbsodobf@salvia>
  <20190118143208.42q5ifmidcvtphtt@breakpoint.cc>
  <20190118143503.3h2tv4fujl4w25mz@salvia>
+ <de38b79c-4e94-16bd-5389-9b0fc224f7eb@ucloud.cn>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=iso-8859-15
 Content-Transfer-Encoding: 8bit
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        David Ahern <dsahern@gmail.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, David Ahern <dsahern@gmail.com>
+To: wenxu <wenxu@ucloud.cn>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190118143503.3h2tv4fujl4w25mz@salvia>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <de38b79c-4e94-16bd-5389-9b0fc224f7eb@ucloud.cn>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi all,
-Are there any other idear for this patch?  Maye should modify  IFNAMSIZ to MODULE_NAME_LEN
+wenxu <wenxu@ucloud.cn> wrote:
+> Hi all,
+> Are there any other idear for this patch?� Maye should modify� IFNAMSIZ to MODULE_NAME_LEN
 
-BR
-wenxu
-On 2019/1/18 下午10:35, Pablo Neira Ayuso wrote:
-> On Fri, Jan 18, 2019 at 03:32:08PM +0100, Florian Westphal wrote:
->> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
->>>> +	case NFT_META_IIFKIND:
->>>> +		if (in == NULL || in->rtnl_link_ops == NULL)
->>>> +			goto err;
->>>> +		strncpy((char *)dest, in->rtnl_link_ops->kind, IFNAMSIZ);
->>> It seems kind can be arbitrarily large, no limitation in its length.
->> Its limited to 60 or 56 bytes it seems:
->> char kind[MODULE_NAME_LEN];
->>
->> nla_strlcpy(kind, linfo[IFLA_INFO_KIND], sizeof(kind));
->>
->> (linkinfo_to_kind_ops in rtnetlink.c).
->>
->>> Thinking...
->>>
->>> There is no other way to identify a vft device rather than this
->>> string? The only l3mdev that exists if vrf, right?
->> There is, I suggested this more generic approach, as it would allow
->> to create rules that match on the kind of device used (vrf, ppp, etc.).
-> Ah I see.
->
->> If you think its too generic, ok.
-> I think it's fine, thanks for explaining.
->
+i think its fine as-is.
