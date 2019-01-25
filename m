@@ -1,38 +1,103 @@
-From: Steffen Nurpmeso <steffen@sdaoden.eu>
-Subject: Re: 4.19.{12,[13],14}: RIP:
- 0010:nf_conncount_cache_free+0x26/0x2f [nf_conncount]
-Date: Fri, 25 Jan 2019 00:14:10 +0100
-Message-ID: <20190124231410.YGNS4%steffen@sdaoden.eu>
-References: <20190112000517.nQ-CW%steffen@sdaoden.eu>
- <20190118131055.RtuE5%steffen@sdaoden.eu>
-To: linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org
+From: syzbot <syzbot+fcee88b2d87f0539dfe9@syzkaller.appspotmail.com>
+Subject: Re: general protection fault in nf_ct_gre_keymap_flush
+Date: Thu, 24 Jan 2019 16:44:03 -0800
+Message-ID: <000000000000a1440c05803d9f9b@google.com>
+References: <0000000000000cf22a058011d494@google.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
+To: coreteam@netfilter.org, davem@davemloft.net, fw@strlen.de,
+        kadlec@blackhole.kfki.hu, linux-kernel@vger.kernel.org,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        pablo@netfilter.org, syzkaller-bugs@googlegroups.com,
+        xiyou.wangcong@gmail.com
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190118131055.RtuE5%steffen@sdaoden.eu>
+In-Reply-To: <0000000000000cf22a058011d494@google.com>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello and good evening,
+syzbot has found a reproducer for the following crash on:
 
-Steffen Nurpmeso wrote in <20190118131055.RtuE5%steffen@sdaoden.eu>:
-  ...
- |The problem still persists with v14.19.15, i have reverter to
- ...
- |Jan 18 12:40:00 kernel: [37953.963613] BUG: unable to handle kernel \
- |NULL pointer dereference at 0000000000000000
- ...
- |  Jan 18 00:40:00 kernel: [38154.458219] RIP: 0010:nf_conncount_cache_free\
- |  +0x26/0x2f [nf_conncount]
- ...
+HEAD commit:    755d01d17697 Add linux-next specific files for 20190124
+git tree:       linux-next
+console output: https://syzkaller.appspot.com/x/log.txt?x=128f88c4c00000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=35842b82e8cde424
+dashboard link: https://syzkaller.appspot.com/bug?extid=fcee88b2d87f0539dfe9
+compiler:       gcc (GCC) 9.0.0 20181231 (experimental)
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=13e5f517400000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=17da1cef400000
 
-No problems now with v4.19.17, thank you very much!
-I guess this makes an australian eight cylindre, or a 1000 KW
-electric car.  Rammed straight in space here on my side, anyway.
+IMPORTANT: if you fix the bug, please add the following tag to the commit:
+Reported-by: syzbot+fcee88b2d87f0539dfe9@syzkaller.appspotmail.com
 
-Ciao, and keep on rocking!!!
-
---steffen
-|
-|Der Kragenbaer,                The moon bear,
-|der holt sich munter           he cheerfully and one by one
-|einen nach dem anderen runter  wa.ks himself off
-|(By Robert Gernhardt)
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#1] PREEMPT SMP KASAN
+CPU: 0 PID: 7374 Comm: syz-executor189 Not tainted 5.0.0-rc3-next-20190124  
+#19
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS  
+Google 01/01/2011
+RIP: 0010:nf_ct_gre_keymap_flush+0xb9/0x2f0  
+net/netfilter/nf_conntrack_proto_gre.c:65
+Code: 4c 89 f0 48 c1 e8 03 42 80 3c 20 00 0f 85 2b 02 00 00 4c 8b bb f8 16  
+00 00 48 b8 00 00 00 00 00 fc ff df 4c 89 f9 48 c1 e9 03 <80> 3c 01 00 0f  
+85 fc 01 00 00 4c 3b bd 68 ff ff ff 4d 8b 27 0f 84
+RSP: 0018:ffff88808a6e7698 EFLAGS: 00010246
+RAX: dffffc0000000000 RBX: ffff8880930082c0 RCX: 0000000000000000
+RDX: 1ffffffff146e05a RSI: 0000000000000004 RDI: ffff88808a6e7600
+RBP: ffff88808a6e7748 R08: 1ffff110114dcec0 R09: ffffed10114dcec1
+R10: ffffed10114dcec0 R11: 0000000000000003 R12: dffffc0000000000
+R13: ffff88808a6e7858 R14: ffff8880930099b8 R15: 0000000000000000
+FS:  00007febe4d2d700(0000) GS:ffff8880ae600000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007febe4d2cdb8 CR3: 00000000901a3000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+  nf_conntrack_proto_pernet_fini+0x16/0x1a  
+net/netfilter/nf_conntrack_proto.c:617
+  nf_conntrack_cleanup_net_list+0x204/0x330  
+net/netfilter/nf_conntrack_core.c:2183
+  nf_conntrack_cleanup_net+0x1c5/0x270 net/netfilter/nf_conntrack_core.c:2156
+  nf_conntrack_pernet_init net/netfilter/nf_conntrack_standalone.c:1122  
+[inline]
+  nf_conntrack_pernet_init+0xc3f/0xf00  
+net/netfilter/nf_conntrack_standalone.c:1091
+  ops_init+0x109/0x5d0 net/core/net_namespace.c:129
+  setup_net+0x38f/0x940 net/core/net_namespace.c:314
+  copy_net_ns+0x2ae/0x4b0 net/core/net_namespace.c:437
+  create_new_namespaces+0x4ce/0x930 kernel/nsproxy.c:107
+  unshare_nsproxy_namespaces+0xc2/0x200 kernel/nsproxy.c:206
+  ksys_unshare+0x6d7/0xfb0 kernel/fork.c:2550
+  __do_sys_unshare kernel/fork.c:2618 [inline]
+  __se_sys_unshare kernel/fork.c:2616 [inline]
+  __x64_sys_unshare+0x31/0x40 kernel/fork.c:2616
+  do_syscall_64+0x1a3/0x800 arch/x86/entry/common.c:290
+  entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x449009
+Code: e8 6c 14 03 00 48 83 c4 18 c3 0f 1f 80 00 00 00 00 48 89 f8 48 89 f7  
+48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff  
+ff 0f 83 cb 05 fc ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007febe4d2ccf8 EFLAGS: 00000246 ORIG_RAX: 0000000000000110
+RAX: ffffffffffffffda RBX: 00000000006e59f8 RCX: 0000000000449009
+RDX: 0000000000449009 RSI: 0000000000449009 RDI: 0000000040000000
+RBP: 00000000006e59f0 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000006e59fc
+R13: 00007ffeec84fdaf R14: 00007febe4d2d9c0 R15: 0000000000000001
+Modules linked in:
+---[ end trace e72b60d04a028cfc ]---
+RIP: 0010:nf_ct_gre_keymap_flush+0xb9/0x2f0  
+net/netfilter/nf_conntrack_proto_gre.c:65
+Code: 4c 89 f0 48 c1 e8 03 42 80 3c 20 00 0f 85 2b 02 00 00 4c 8b bb f8 16  
+00 00 48 b8 00 00 00 00 00 fc ff df 4c 89 f9 48 c1 e9 03 <80> 3c 01 00 0f  
+85 fc 01 00 00 4c 3b bd 68 ff ff ff 4d 8b 27 0f 84
+RSP: 0018:ffff88808a6e7698 EFLAGS: 00010246
+RAX: dffffc0000000000 RBX: ffff8880930082c0 RCX: 0000000000000000
+RDX: 1ffffffff146e05a RSI: 0000000000000004 RDI: ffff88808a6e7600
+RBP: ffff88808a6e7748 R08: 1ffff110114dcec0 R09: ffffed10114dcec1
+R10: ffffed10114dcec0 R11: 0000000000000003 R12: dffffc0000000000
+R13: ffff88808a6e7858 R14: ffff8880930099b8 R15: 0000000000000000
+FS:  00007febe4d2d700(0000) GS:ffff8880ae600000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007febe4d2cdb8 CR3: 00000000901a3000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
