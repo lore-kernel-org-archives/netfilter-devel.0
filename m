@@ -1,103 +1,84 @@
-From: syzbot <syzbot+fcee88b2d87f0539dfe9@syzkaller.appspotmail.com>
-Subject: Re: general protection fault in nf_ct_gre_keymap_flush
-Date: Thu, 24 Jan 2019 16:44:03 -0800
-Message-ID: <000000000000a1440c05803d9f9b@google.com>
-References: <0000000000000cf22a058011d494@google.com>
+From: Linus =?utf-8?Q?L=C3=BCssing?= <linus.luessing-djzkFPsfvsizQB+pC5nmwQ@public.gmane.org>
+Subject: "Kernel bug detected [...]
+ nf_ct_del_from_dying_or_unconfirmed_list"
+Date: Sun, 27 Jan 2019 22:47:08 +0100
+Message-ID: <20190127214708.GC1788@otheros>
+Reply-To: The list for a Better Approach To Mobile Ad-hoc Networking
+ <b.a.t.m.a.n-ZwoEplunGu2X36UT3dwllkB+6BGkLq7r@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
-To: coreteam@netfilter.org, davem@davemloft.net, fw@strlen.de,
-        kadlec@blackhole.kfki.hu, linux-kernel@vger.kernel.org,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        pablo@netfilter.org, syzkaller-bugs@googlegroups.com,
-        xiyou.wangcong@gmail.com
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <0000000000000cf22a058011d494@google.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Cc: b.a.t.m.a.n-ZwoEplunGu2X36UT3dwllkB+6BGkLq7r@public.gmane.org
+To: netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <b.a.t.m.a.n-bounces-ZwoEplunGu2X36UT3dwllkB+6BGkLq7r@public.gmane.org>
+Content-Disposition: inline
+List-Unsubscribe: <https://lists.open-mesh.org/mm/options/b.a.t.m.a.n>,
+ <mailto:b.a.t.m.a.n-request-ZwoEplunGu2X36UT3dwllkB+6BGkLq7r@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.open-mesh.org/pipermail/b.a.t.m.a.n/>
+List-Post: <mailto:b.a.t.m.a.n-ZwoEplunGu2X36UT3dwllkB+6BGkLq7r@public.gmane.org>
+List-Help: <mailto:b.a.t.m.a.n-request-ZwoEplunGu2X36UT3dwllkB+6BGkLq7r@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.open-mesh.org/mm/listinfo/b.a.t.m.a.n>,
+ <mailto:b.a.t.m.a.n-request-ZwoEplunGu2X36UT3dwllkB+6BGkLq7r@public.gmane.org?subject=subscribe>
+Errors-To: b.a.t.m.a.n-bounces-ZwoEplunGu2X36UT3dwllkB+6BGkLq7r@public.gmane.org
+Sender: "B.A.T.M.A.N" <b.a.t.m.a.n-bounces-ZwoEplunGu2X36UT3dwllkB+6BGkLq7r@public.gmane.org>
 List-Id: netfilter-devel.vger.kernel.org
 
-syzbot has found a reproducer for the following crash on:
+Hi,
 
-HEAD commit:    755d01d17697 Add linux-next specific files for 20190124
-git tree:       linux-next
-console output: https://syzkaller.appspot.com/x/log.txt?x=128f88c4c00000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=35842b82e8cde424
-dashboard link: https://syzkaller.appspot.com/bug?extid=fcee88b2d87f0539dfe9
-compiler:       gcc (GCC) 9.0.0 20181231 (experimental)
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=13e5f517400000
-C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=17da1cef400000
+I was trying to implement a multicast-to-multi-unicast conversion
+in batman-adv with the following patch:
 
-IMPORTANT: if you fix the bug, please add the following tag to the commit:
-Reported-by: syzbot+fcee88b2d87f0539dfe9@syzkaller.appspotmail.com
+https://patchwork.open-mesh.org/patch/17729/
 
-kasan: CONFIG_KASAN_INLINE enabled
-kasan: GPF could be caused by NULL-ptr deref or user memory access
-general protection fault: 0000 [#1] PREEMPT SMP KASAN
-CPU: 0 PID: 7374 Comm: syz-executor189 Not tainted 5.0.0-rc3-next-20190124  
-#19
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS  
-Google 01/01/2011
-RIP: 0010:nf_ct_gre_keymap_flush+0xb9/0x2f0  
-net/netfilter/nf_conntrack_proto_gre.c:65
-Code: 4c 89 f0 48 c1 e8 03 42 80 3c 20 00 0f 85 2b 02 00 00 4c 8b bb f8 16  
-00 00 48 b8 00 00 00 00 00 fc ff df 4c 89 f9 48 c1 e9 03 <80> 3c 01 00 0f  
-85 fc 01 00 00 4c 3b bd 68 ff ff ff 4d 8b 27 0f 84
-RSP: 0018:ffff88808a6e7698 EFLAGS: 00010246
-RAX: dffffc0000000000 RBX: ffff8880930082c0 RCX: 0000000000000000
-RDX: 1ffffffff146e05a RSI: 0000000000000004 RDI: ffff88808a6e7600
-RBP: ffff88808a6e7748 R08: 1ffff110114dcec0 R09: ffffed10114dcec1
-R10: ffffed10114dcec0 R11: 0000000000000003 R12: dffffc0000000000
-R13: ffff88808a6e7858 R14: ffff8880930099b8 R15: 0000000000000000
-FS:  00007febe4d2d700(0000) GS:ffff8880ae600000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 00007febe4d2cdb8 CR3: 00000000901a3000 CR4: 00000000001406f0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-Call Trace:
-  nf_conntrack_proto_pernet_fini+0x16/0x1a  
-net/netfilter/nf_conntrack_proto.c:617
-  nf_conntrack_cleanup_net_list+0x204/0x330  
-net/netfilter/nf_conntrack_core.c:2183
-  nf_conntrack_cleanup_net+0x1c5/0x270 net/netfilter/nf_conntrack_core.c:2156
-  nf_conntrack_pernet_init net/netfilter/nf_conntrack_standalone.c:1122  
-[inline]
-  nf_conntrack_pernet_init+0xc3f/0xf00  
-net/netfilter/nf_conntrack_standalone.c:1091
-  ops_init+0x109/0x5d0 net/core/net_namespace.c:129
-  setup_net+0x38f/0x940 net/core/net_namespace.c:314
-  copy_net_ns+0x2ae/0x4b0 net/core/net_namespace.c:437
-  create_new_namespaces+0x4ce/0x930 kernel/nsproxy.c:107
-  unshare_nsproxy_namespaces+0xc2/0x200 kernel/nsproxy.c:206
-  ksys_unshare+0x6d7/0xfb0 kernel/fork.c:2550
-  __do_sys_unshare kernel/fork.c:2618 [inline]
-  __se_sys_unshare kernel/fork.c:2616 [inline]
-  __x64_sys_unshare+0x31/0x40 kernel/fork.c:2616
-  do_syscall_64+0x1a3/0x800 arch/x86/entry/common.c:290
-  entry_SYSCALL_64_after_hwframe+0x49/0xbe
-RIP: 0033:0x449009
-Code: e8 6c 14 03 00 48 83 c4 18 c3 0f 1f 80 00 00 00 00 48 89 f8 48 89 f7  
-48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff  
-ff 0f 83 cb 05 fc ff c3 66 2e 0f 1f 84 00 00 00 00
-RSP: 002b:00007febe4d2ccf8 EFLAGS: 00000246 ORIG_RAX: 0000000000000110
-RAX: ffffffffffffffda RBX: 00000000006e59f8 RCX: 0000000000449009
-RDX: 0000000000449009 RSI: 0000000000449009 RDI: 0000000040000000
-RBP: 00000000006e59f0 R08: 0000000000000000 R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000000000246 R12: 00000000006e59fc
-R13: 00007ffeec84fdaf R14: 00007febe4d2d9c0 R15: 0000000000000001
-Modules linked in:
----[ end trace e72b60d04a028cfc ]---
-RIP: 0010:nf_ct_gre_keymap_flush+0xb9/0x2f0  
-net/netfilter/nf_conntrack_proto_gre.c:65
-Code: 4c 89 f0 48 c1 e8 03 42 80 3c 20 00 0f 85 2b 02 00 00 4c 8b bb f8 16  
-00 00 48 b8 00 00 00 00 00 fc ff df 4c 89 f9 48 c1 e9 03 <80> 3c 01 00 0f  
-85 fc 01 00 00 4c 3b bd 68 ff ff ff 4d 8b 27 0f 84
-RSP: 0018:ffff88808a6e7698 EFLAGS: 00010246
-RAX: dffffc0000000000 RBX: ffff8880930082c0 RCX: 0000000000000000
-RDX: 1ffffffff146e05a RSI: 0000000000000004 RDI: ffff88808a6e7600
-RBP: ffff88808a6e7748 R08: 1ffff110114dcec0 R09: ffffed10114dcec1
-R10: ffffed10114dcec0 R11: 0000000000000003 R12: dffffc0000000000
-R13: ffff88808a6e7858 R14: ffff8880930099b8 R15: 0000000000000000
-FS:  00007febe4d2d700(0000) GS:ffff8880ae600000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 00007febe4d2cdb8 CR3: 00000000901a3000 CR4: 00000000001406f0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+However, on OpenWrt with a 4.9.146 kernel I get a
+"Kernel bug detected [...] nf_ct_del_from_dying_or_unconfirmed_list".
+
+This only happens upon sending a SIGTERM to the network manager
+"netifd" (so upon network shutdown). And only if the node is connected
+to mesh of reasonable size, so if there is a certain amount of
+multicast traffic for the multicast-to-multi-unicast patch to work on.
+
+Upon normal operation, no such crash seems to occur.
+
+The crash itself is triggered by the:
+
+  BUG_ON(hlist_nulls_unhashed(&ct->tuplehash[IP_CT_DIR_ORIGINAL].hnnode));
+
+in here:
+
+https://elixir.bootlin.com/linux/v4.9.146/source/net/netfilter/nf_conntrack_core.c#L354
+
+
+What confuses me a bit is, that the multicast-to-multi-unicast
+conversion uses the same/similar, simple skb_copy() approach like the
+"classic broadcast flooding" approach in batman-adv so far. The latter too
+transmits three redundant frames via skb_copy() to increase
+reliability for Wifi broadcast packets.
+
+One difference is that the broadcast flooding adds a bit of
+delay between each transmission. Which the multicast-to-multi-unicast
+doesn't.
+
+Looking at "git log net/netfilter/nf_conntrack_core.c" I noticed
+"netfilter: nfnetlink_queue: resolve clash for unconfirmed
+conntracks" (368982cd7). Which says:
+
+"In nfqueue, two consecutive skbuffs may race to create the conntrack
+ entry. Hence, the one that loses the race gets dropped due to clash in
+ the insertion into the hashes from the nf_conntrack_confirm() path."
+
+This patch is only part of >= 4.18, so not part of the firmware we use
+yet. Could this issue somehow be related?
+
+
+Other than that I was wondering whether we might be missing to
+reset something after skb_copy()-ing. We do a "skb->protocol =
+htons(ETH_P_BATMAN)" right before the dev_queue_xmit(skb) call in
+batman-adv which sends the encapsulated frame into the
+mesh. And we do a nf_reset(skb) after decapsulating a frame
+received from the mesh. But maybe that is not enough?
+
+Ticket this issue was reported at:
+
+https://github.com/freifunk-gluon/gluon/issues/1468
+
+Regards, Linus
