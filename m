@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 04/33] netfilter: conntrack: remove helper hook again
-Date: Tue, 29 Jan 2019 00:57:21 +0100
-Message-ID: <20190128235750.18412-5-pablo@netfilter.org>
+Subject: [PATCH 05/33] netfilter: physdev: relax br_netfilter dependency
+Date: Tue, 29 Jan 2019 00:57:22 +0100
+Message-ID: <20190128235750.18412-6-pablo@netfilter.org>
 References: <20190128235750.18412-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -12,243 +12,89 @@ List-Id: netfilter-devel.vger.kernel.org
 
 From: Florian Westphal <fw@strlen.de>
 
-place them into the confirm one.
+Following command:
+  iptables -D FORWARD -m physdev ...
+causes connectivity loss in some setups.
 
-Old:
- hook (300): ipv4/6_help() first call helper, then seqadj.
- hook (INT_MAX): confirm
+Reason is that iptables userspace will probe kernel for the module revision
+of the physdev patch, and physdev has an artificial dependency on
+br_netfilter (xt_physdev use makes no sense unless a br_netfilter module
+is loaded).
 
-Now:
- hook (INT_MAX): confirm, first call helper, then seqadj, then confirm
+This causes the "phydev" module to be loaded, which in turn enables the
+"call-iptables" infrastructure.
 
-Not having the extra call is noticeable in bechmarks.
+bridged packets might then get dropped by the iptables ruleset.
+
+The better fix would be to change the "call-iptables" defaults to 0 and
+enforce explicit setting to 1, but that breaks backwards compatibility.
+
+This does the next best thing: add a request_module call to checkentry.
+This was a stray '-D ... -m physdev' won't activate br_netfilter
+anymore.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_conntrack_proto.c | 142 ++++++++++---------------------------
- 1 file changed, 36 insertions(+), 106 deletions(-)
+ include/net/netfilter/br_netfilter.h | 1 -
+ net/bridge/br_netfilter_hooks.c      | 5 -----
+ net/netfilter/xt_physdev.c           | 9 +++++++--
+ 3 files changed, 7 insertions(+), 8 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_proto.c b/net/netfilter/nf_conntrack_proto.c
-index 859f5d07a915..2bbc32d939e4 100644
---- a/net/netfilter/nf_conntrack_proto.c
-+++ b/net/netfilter/nf_conntrack_proto.c
-@@ -364,55 +364,55 @@ void nf_ct_l4proto_pernet_unregister(struct net *net,
- }
- EXPORT_SYMBOL_GPL(nf_ct_l4proto_pernet_unregister);
- 
--static unsigned int ipv4_helper(void *priv,
--				struct sk_buff *skb,
--				const struct nf_hook_state *state)
-+static unsigned int nf_confirm(struct sk_buff *skb,
-+			       unsigned int protoff,
-+			       struct nf_conn *ct,
-+			       enum ip_conntrack_info ctinfo)
- {
--	struct nf_conn *ct;
--	enum ip_conntrack_info ctinfo;
- 	const struct nf_conn_help *help;
--	const struct nf_conntrack_helper *helper;
--
--	/* This is where we call the helper: as the packet goes out. */
--	ct = nf_ct_get(skb, &ctinfo);
--	if (!ct || ctinfo == IP_CT_RELATED_REPLY)
--		return NF_ACCEPT;
- 
- 	help = nfct_help(ct);
--	if (!help)
--		return NF_ACCEPT;
-+	if (help) {
-+		const struct nf_conntrack_helper *helper;
-+		int ret;
-+
-+		/* rcu_read_lock()ed by nf_hook_thresh */
-+		helper = rcu_dereference(help->helper);
-+		if (helper) {
-+			ret = helper->help(skb,
-+					   protoff,
-+					   ct, ctinfo);
-+			if (ret != NF_ACCEPT)
-+				return ret;
-+		}
-+	}
- 
--	/* rcu_read_lock()ed by nf_hook_thresh */
--	helper = rcu_dereference(help->helper);
--	if (!helper)
--		return NF_ACCEPT;
-+	if (test_bit(IPS_SEQ_ADJUST_BIT, &ct->status) &&
-+	    !nf_is_loopback_packet(skb)) {
-+		if (!nf_ct_seq_adjust(skb, ct, ctinfo, protoff)) {
-+			NF_CT_STAT_INC_ATOMIC(nf_ct_net(ct), drop);
-+			return NF_DROP;
-+		}
-+	}
- 
--	return helper->help(skb, skb_network_offset(skb) + ip_hdrlen(skb),
--			    ct, ctinfo);
-+	/* We've seen it coming out the other side: confirm it */
-+	return nf_conntrack_confirm(skb);
+diff --git a/include/net/netfilter/br_netfilter.h b/include/net/netfilter/br_netfilter.h
+index 4cd56808ac4e..89808ce293c4 100644
+--- a/include/net/netfilter/br_netfilter.h
++++ b/include/net/netfilter/br_netfilter.h
+@@ -43,7 +43,6 @@ static inline struct rtable *bridge_parent_rtable(const struct net_device *dev)
  }
  
- static unsigned int ipv4_confirm(void *priv,
- 				 struct sk_buff *skb,
- 				 const struct nf_hook_state *state)
- {
--	struct nf_conn *ct;
- 	enum ip_conntrack_info ctinfo;
-+	struct nf_conn *ct;
+ struct net_device *setup_pre_routing(struct sk_buff *skb);
+-void br_netfilter_enable(void);
  
- 	ct = nf_ct_get(skb, &ctinfo);
- 	if (!ct || ctinfo == IP_CT_RELATED_REPLY)
--		goto out;
-+		return nf_conntrack_confirm(skb);
+ #if IS_ENABLED(CONFIG_IPV6)
+ int br_validate_ipv6(struct net *net, struct sk_buff *skb);
+diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
+index c93c35bb73dd..40d058378b52 100644
+--- a/net/bridge/br_netfilter_hooks.c
++++ b/net/bridge/br_netfilter_hooks.c
+@@ -881,11 +881,6 @@ static const struct nf_br_ops br_ops = {
+ 	.br_dev_xmit_hook =	br_nf_dev_xmit,
+ };
  
--	/* adjust seqs for loopback traffic only in outgoing direction */
--	if (test_bit(IPS_SEQ_ADJUST_BIT, &ct->status) &&
--	    !nf_is_loopback_packet(skb)) {
--		if (!nf_ct_seq_adjust(skb, ct, ctinfo, ip_hdrlen(skb))) {
--			NF_CT_STAT_INC_ATOMIC(nf_ct_net(ct), drop);
--			return NF_DROP;
--		}
--	}
--out:
--	/* We've seen it coming out the other side: confirm it */
--	return nf_conntrack_confirm(skb);
-+	return nf_confirm(skb,
-+			  skb_network_offset(skb) + ip_hdrlen(skb),
-+			  ct, ctinfo);
- }
- 
- static unsigned int ipv4_conntrack_in(void *priv,
-@@ -461,24 +461,12 @@ static const struct nf_hook_ops ipv4_conntrack_ops[] = {
- 		.priority	= NF_IP_PRI_CONNTRACK,
- 	},
- 	{
--		.hook		= ipv4_helper,
--		.pf		= NFPROTO_IPV4,
--		.hooknum	= NF_INET_POST_ROUTING,
--		.priority	= NF_IP_PRI_CONNTRACK_HELPER,
--	},
--	{
- 		.hook		= ipv4_confirm,
- 		.pf		= NFPROTO_IPV4,
- 		.hooknum	= NF_INET_POST_ROUTING,
- 		.priority	= NF_IP_PRI_CONNTRACK_CONFIRM,
- 	},
- 	{
--		.hook		= ipv4_helper,
--		.pf		= NFPROTO_IPV4,
--		.hooknum	= NF_INET_LOCAL_IN,
--		.priority	= NF_IP_PRI_CONNTRACK_HELPER,
--	},
--	{
- 		.hook		= ipv4_confirm,
- 		.pf		= NFPROTO_IPV4,
- 		.hooknum	= NF_INET_LOCAL_IN,
-@@ -623,31 +611,21 @@ static unsigned int ipv6_confirm(void *priv,
- 	struct nf_conn *ct;
- 	enum ip_conntrack_info ctinfo;
- 	unsigned char pnum = ipv6_hdr(skb)->nexthdr;
--	int protoff;
- 	__be16 frag_off;
-+	int protoff;
- 
- 	ct = nf_ct_get(skb, &ctinfo);
- 	if (!ct || ctinfo == IP_CT_RELATED_REPLY)
--		goto out;
-+		return nf_conntrack_confirm(skb);
- 
- 	protoff = ipv6_skip_exthdr(skb, sizeof(struct ipv6hdr), &pnum,
- 				   &frag_off);
- 	if (protoff < 0 || (frag_off & htons(~0x7)) != 0) {
- 		pr_debug("proto header not found\n");
--		goto out;
-+		return nf_conntrack_confirm(skb);
- 	}
- 
--	/* adjust seqs for loopback traffic only in outgoing direction */
--	if (test_bit(IPS_SEQ_ADJUST_BIT, &ct->status) &&
--	    !nf_is_loopback_packet(skb)) {
--		if (!nf_ct_seq_adjust(skb, ct, ctinfo, protoff)) {
--			NF_CT_STAT_INC_ATOMIC(nf_ct_net(ct), drop);
--			return NF_DROP;
--		}
--	}
--out:
--	/* We've seen it coming out the other side: confirm it */
--	return nf_conntrack_confirm(skb);
-+	return nf_confirm(skb, protoff, ct, ctinfo);
- }
- 
- static unsigned int ipv6_conntrack_in(void *priv,
-@@ -664,42 +642,6 @@ static unsigned int ipv6_conntrack_local(void *priv,
- 	return nf_conntrack_in(skb, state);
- }
- 
--static unsigned int ipv6_helper(void *priv,
--				struct sk_buff *skb,
--				const struct nf_hook_state *state)
+-void br_netfilter_enable(void)
 -{
--	struct nf_conn *ct;
--	const struct nf_conn_help *help;
--	const struct nf_conntrack_helper *helper;
--	enum ip_conntrack_info ctinfo;
--	__be16 frag_off;
--	int protoff;
--	u8 nexthdr;
--
--	/* This is where we call the helper: as the packet goes out. */
--	ct = nf_ct_get(skb, &ctinfo);
--	if (!ct || ctinfo == IP_CT_RELATED_REPLY)
--		return NF_ACCEPT;
--
--	help = nfct_help(ct);
--	if (!help)
--		return NF_ACCEPT;
--	/* rcu_read_lock()ed by nf_hook_thresh */
--	helper = rcu_dereference(help->helper);
--	if (!helper)
--		return NF_ACCEPT;
--
--	nexthdr = ipv6_hdr(skb)->nexthdr;
--	protoff = ipv6_skip_exthdr(skb, sizeof(struct ipv6hdr), &nexthdr,
--				   &frag_off);
--	if (protoff < 0 || (frag_off & htons(~0x7)) != 0) {
--		pr_debug("proto header not found\n");
--		return NF_ACCEPT;
--	}
--
--	return helper->help(skb, protoff, ct, ctinfo);
 -}
+-EXPORT_SYMBOL_GPL(br_netfilter_enable);
 -
- static const struct nf_hook_ops ipv6_conntrack_ops[] = {
- 	{
- 		.hook		= ipv6_conntrack_in,
-@@ -714,24 +656,12 @@ static const struct nf_hook_ops ipv6_conntrack_ops[] = {
- 		.priority	= NF_IP6_PRI_CONNTRACK,
- 	},
- 	{
--		.hook		= ipv6_helper,
--		.pf		= NFPROTO_IPV6,
--		.hooknum	= NF_INET_POST_ROUTING,
--		.priority	= NF_IP6_PRI_CONNTRACK_HELPER,
--	},
--	{
- 		.hook		= ipv6_confirm,
- 		.pf		= NFPROTO_IPV6,
- 		.hooknum	= NF_INET_POST_ROUTING,
- 		.priority	= NF_IP6_PRI_LAST,
- 	},
- 	{
--		.hook		= ipv6_helper,
--		.pf		= NFPROTO_IPV6,
--		.hooknum	= NF_INET_LOCAL_IN,
--		.priority	= NF_IP6_PRI_CONNTRACK_HELPER,
--	},
--	{
- 		.hook		= ipv6_confirm,
- 		.pf		= NFPROTO_IPV6,
- 		.hooknum	= NF_INET_LOCAL_IN,
+ /* For br_nf_post_routing, we need (prio = NF_BR_PRI_LAST), because
+  * br_dev_queue_push_xmit is called afterwards */
+ static const struct nf_hook_ops br_nf_ops[] = {
+diff --git a/net/netfilter/xt_physdev.c b/net/netfilter/xt_physdev.c
+index 4034d70bff39..b2e39cb6a590 100644
+--- a/net/netfilter/xt_physdev.c
++++ b/net/netfilter/xt_physdev.c
+@@ -96,8 +96,7 @@ physdev_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ static int physdev_mt_check(const struct xt_mtchk_param *par)
+ {
+ 	const struct xt_physdev_info *info = par->matchinfo;
+-
+-	br_netfilter_enable();
++	static bool brnf_probed __read_mostly;
+ 
+ 	if (!(info->bitmask & XT_PHYSDEV_OP_MASK) ||
+ 	    info->bitmask & ~XT_PHYSDEV_OP_MASK)
+@@ -111,6 +110,12 @@ static int physdev_mt_check(const struct xt_mtchk_param *par)
+ 		if (par->hook_mask & (1 << NF_INET_LOCAL_OUT))
+ 			return -EINVAL;
+ 	}
++
++	if (!brnf_probed) {
++		brnf_probed = true;
++		request_module("br_netfilter");
++	}
++
+ 	return 0;
+ }
+ 
 -- 
 2.11.0
