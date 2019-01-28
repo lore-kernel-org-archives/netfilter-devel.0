@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 05/33] netfilter: physdev: relax br_netfilter dependency
-Date: Tue, 29 Jan 2019 00:57:22 +0100
-Message-ID: <20190128235750.18412-6-pablo@netfilter.org>
+Subject: [PATCH 06/33] netfilter: nf_tables: Support RULE_ID reference in new rule
+Date: Tue, 29 Jan 2019 00:57:23 +0100
+Message-ID: <20190128235750.18412-7-pablo@netfilter.org>
 References: <20190128235750.18412-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,91 +10,71 @@ In-Reply-To: <20190128235750.18412-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+From: Phil Sutter <phil@nwl.cc>
 
-Following command:
-  iptables -D FORWARD -m physdev ...
-causes connectivity loss in some setups.
+To allow for a batch to contain rules in arbitrary ordering, introduce
+NFTA_RULE_POSITION_ID attribute which works just like NFTA_RULE_POSITION
+but contains the ID of another rule within the same batch. This helps
+iptables-nft-restore handling dumps with mixed insert/append commands
+correctly.
 
-Reason is that iptables userspace will probe kernel for the module revision
-of the physdev patch, and physdev has an artificial dependency on
-br_netfilter (xt_physdev use makes no sense unless a br_netfilter module
-is loaded).
+Note that NFTA_RULE_POSITION takes precedence over
+NFTA_RULE_POSITION_ID, so if the former is present, the latter is
+ignored.
 
-This causes the "phydev" module to be loaded, which in turn enables the
-"call-iptables" infrastructure.
-
-bridged packets might then get dropped by the iptables ruleset.
-
-The better fix would be to change the "call-iptables" defaults to 0 and
-enforce explicit setting to 1, but that breaks backwards compatibility.
-
-This does the next best thing: add a request_module call to checkentry.
-This was a stray '-D ... -m physdev' won't activate br_netfilter
-anymore.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Phil Sutter <phil@nwl.cc>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/br_netfilter.h | 1 -
- net/bridge/br_netfilter_hooks.c      | 5 -----
- net/netfilter/xt_physdev.c           | 9 +++++++--
- 3 files changed, 7 insertions(+), 8 deletions(-)
+ include/uapi/linux/netfilter/nf_tables.h | 2 ++
+ net/netfilter/nf_tables_api.c            | 9 +++++++++
+ 2 files changed, 11 insertions(+)
 
-diff --git a/include/net/netfilter/br_netfilter.h b/include/net/netfilter/br_netfilter.h
-index 4cd56808ac4e..89808ce293c4 100644
---- a/include/net/netfilter/br_netfilter.h
-+++ b/include/net/netfilter/br_netfilter.h
-@@ -43,7 +43,6 @@ static inline struct rtable *bridge_parent_rtable(const struct net_device *dev)
- }
- 
- struct net_device *setup_pre_routing(struct sk_buff *skb);
--void br_netfilter_enable(void);
- 
- #if IS_ENABLED(CONFIG_IPV6)
- int br_validate_ipv6(struct net *net, struct sk_buff *skb);
-diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
-index c93c35bb73dd..40d058378b52 100644
---- a/net/bridge/br_netfilter_hooks.c
-+++ b/net/bridge/br_netfilter_hooks.c
-@@ -881,11 +881,6 @@ static const struct nf_br_ops br_ops = {
- 	.br_dev_xmit_hook =	br_nf_dev_xmit,
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index 7de4f1bdaf06..99ca95b830b6 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -219,6 +219,7 @@ enum nft_chain_attributes {
+  * @NFTA_RULE_POSITION: numeric handle of the previous rule (NLA_U64)
+  * @NFTA_RULE_USERDATA: user data (NLA_BINARY, NFT_USERDATA_MAXLEN)
+  * @NFTA_RULE_ID: uniquely identifies a rule in a transaction (NLA_U32)
++ * @NFTA_RULE_POSITION_ID: transaction unique identifier of the previous rule (NLA_U32)
+  */
+ enum nft_rule_attributes {
+ 	NFTA_RULE_UNSPEC,
+@@ -231,6 +232,7 @@ enum nft_rule_attributes {
+ 	NFTA_RULE_USERDATA,
+ 	NFTA_RULE_PAD,
+ 	NFTA_RULE_ID,
++	NFTA_RULE_POSITION_ID,
+ 	__NFTA_RULE_MAX
  };
- 
--void br_netfilter_enable(void)
--{
--}
--EXPORT_SYMBOL_GPL(br_netfilter_enable);
--
- /* For br_nf_post_routing, we need (prio = NF_BR_PRI_LAST), because
-  * br_dev_queue_push_xmit is called afterwards */
- static const struct nf_hook_ops br_nf_ops[] = {
-diff --git a/net/netfilter/xt_physdev.c b/net/netfilter/xt_physdev.c
-index 4034d70bff39..b2e39cb6a590 100644
---- a/net/netfilter/xt_physdev.c
-+++ b/net/netfilter/xt_physdev.c
-@@ -96,8 +96,7 @@ physdev_mt(const struct sk_buff *skb, struct xt_action_param *par)
- static int physdev_mt_check(const struct xt_mtchk_param *par)
- {
- 	const struct xt_physdev_info *info = par->matchinfo;
--
--	br_netfilter_enable();
-+	static bool brnf_probed __read_mostly;
- 
- 	if (!(info->bitmask & XT_PHYSDEV_OP_MASK) ||
- 	    info->bitmask & ~XT_PHYSDEV_OP_MASK)
-@@ -111,6 +110,12 @@ static int physdev_mt_check(const struct xt_mtchk_param *par)
- 		if (par->hook_mask & (1 << NF_INET_LOCAL_OUT))
- 			return -EINVAL;
- 	}
-+
-+	if (!brnf_probed) {
-+		brnf_probed = true;
-+		request_module("br_netfilter");
-+	}
-+
+ #define NFTA_RULE_MAX		(__NFTA_RULE_MAX - 1)
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 621ff834d3a4..d88c86c5b433 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -2610,6 +2610,9 @@ static int nft_table_validate(struct net *net, const struct nft_table *table)
  	return 0;
  }
+ 
++static struct nft_rule *nft_rule_lookup_byid(const struct net *net,
++					     const struct nlattr *nla);
++
+ #define NFT_RULE_MAXEXPRS	128
+ 
+ static int nf_tables_newrule(struct net *net, struct sock *nlsk,
+@@ -2679,6 +2682,12 @@ static int nf_tables_newrule(struct net *net, struct sock *nlsk,
+ 				NL_SET_BAD_ATTR(extack, nla[NFTA_RULE_POSITION]);
+ 				return PTR_ERR(old_rule);
+ 			}
++		} else if (nla[NFTA_RULE_POSITION_ID]) {
++			old_rule = nft_rule_lookup_byid(net, nla[NFTA_RULE_POSITION_ID]);
++			if (IS_ERR(old_rule)) {
++				NL_SET_BAD_ATTR(extack, nla[NFTA_RULE_POSITION_ID]);
++				return PTR_ERR(old_rule);
++			}
+ 		}
+ 	}
  
 -- 
 2.11.0
