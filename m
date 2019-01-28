@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 3/7] netfilter: nft_compat: destroy function must not have side effects
-Date: Mon, 28 Jan 2019 15:04:01 +0100
-Message-ID: <20190128140405.15020-4-pablo@netfilter.org>
+Subject: [PATCH 6/7] netfilter: nfnetlink_osf: add missing fmatch check
+Date: Mon, 28 Jan 2019 15:04:04 +0100
+Message-ID: <20190128140405.15020-7-pablo@netfilter.org>
 References: <20190128140405.15020-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,134 +10,55 @@ In-Reply-To: <20190128140405.15020-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+From: Fernando Fernandez Mancera <ffmancera@riseup.net>
 
-The nft_compat destroy function deletes the nft_xt object from a list.
-This isn't allowed anymore. Destroy functions are called asynchronously,
-i.e. next batch can find the object that has a pending ->destroy()
-invocation:
+When we check the tcp options of a packet and it doesn't match the current
+fingerprint, the tcp packet option pointer must be restored to its initial
+value in order to do the proper tcp options check for the next fingerprint.
 
-cpu0                       cpu1
- worker
-   ->destroy               for_each_entry()
-	                     if (x == ...
-			        return x->ops;
-     list_del(x)
-     kfree_rcu(x)
-                           expr->ops->... // ops was free'd
+Here we can see an example.
+Assumming the following fingerprint base with two lines:
 
-To resolve this, the list_del needs to occur before the transaction
-mutex gets released.  nf_tables has a 'deactivate' hook for this
-purpose, so use that to unlink the object from the list.
+S10:64:1:60:M*,S,T,N,W6:      Linux:3.0::Linux 3.0
+S20:64:1:60:M*,S,T,N,W7:      Linux:4.19:arch:Linux 4.1
 
-Fixes: 0935d5588400 ("netfilter: nf_tables: asynchronous release")
-Reported-by: Taehee Yoo <ap420073@gmail.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Where TCP options are the last field in the OS signature, all of them overlap
+except by the last one, ie. 'W6' versus 'W7'.
+
+In case a packet for Linux 4.19 kicks in, the osf finds no matching because the
+TCP options pointer is updated after checking for the TCP options in the first
+line.
+
+Therefore, reset pointer back to where it should be.
+
+Fixes: 11eeef41d5f6 ("netfilter: passive OS fingerprint xtables match")
+Signed-off-by: Fernando Fernandez Mancera <ffmancera@riseup.net>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_compat.c | 48 +++++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 47 insertions(+), 1 deletion(-)
+ net/netfilter/nfnetlink_osf.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
-index abed3490a8f8..5eb269428832 100644
---- a/net/netfilter/nft_compat.c
-+++ b/net/netfilter/nft_compat.c
-@@ -29,6 +29,9 @@ struct nft_xt {
- 	struct nft_expr_ops	ops;
- 	refcount_t		refcnt;
- 
-+	/* used only when transaction mutex is locked */
-+	unsigned int		listcnt;
-+
- 	/* Unlike other expressions, ops doesn't have static storage duration.
- 	 * nft core assumes they do.  We use kfree_rcu so that nft core can
- 	 * can check expr->ops->size even after nft_compat->destroy() frees
-@@ -61,7 +64,7 @@ static struct nft_compat_net *nft_compat_pernet(struct net *net)
- static bool nft_xt_put(struct nft_xt *xt)
+diff --git a/net/netfilter/nfnetlink_osf.c b/net/netfilter/nfnetlink_osf.c
+index 6f41dd74729d..1f1d90c1716b 100644
+--- a/net/netfilter/nfnetlink_osf.c
++++ b/net/netfilter/nfnetlink_osf.c
+@@ -66,6 +66,7 @@ static bool nf_osf_match_one(const struct sk_buff *skb,
+ 			     int ttl_check,
+ 			     struct nf_osf_hdr_ctx *ctx)
  {
- 	if (refcount_dec_and_test(&xt->refcnt)) {
--		list_del(&xt->head);
-+		WARN_ON_ONCE(!list_empty(&xt->head));
- 		kfree_rcu(xt, rcu_head);
- 		return true;
++	const __u8 *optpinit = ctx->optp;
+ 	unsigned int check_WSS = 0;
+ 	int fmatch = FMATCH_WRONG;
+ 	int foptsize, optnum;
+@@ -155,6 +156,9 @@ static bool nf_osf_match_one(const struct sk_buff *skb,
+ 		}
  	}
-@@ -555,6 +558,43 @@ nft_match_destroy(const struct nft_ctx *ctx, const struct nft_expr *expr)
- 	__nft_match_destroy(ctx, expr, nft_expr_priv(expr));
+ 
++	if (fmatch != FMATCH_OK)
++		ctx->optp = optpinit;
++
+ 	return fmatch == FMATCH_OK;
  }
  
-+static void nft_compat_activate(const struct nft_ctx *ctx,
-+				const struct nft_expr *expr,
-+				struct list_head *h)
-+{
-+	struct nft_xt *xt = container_of(expr->ops, struct nft_xt, ops);
-+
-+	if (xt->listcnt == 0)
-+		list_add(&xt->head, h);
-+
-+	xt->listcnt++;
-+}
-+
-+static void nft_compat_activate_mt(const struct nft_ctx *ctx,
-+				   const struct nft_expr *expr)
-+{
-+	struct nft_compat_net *cn = nft_compat_pernet(ctx->net);
-+
-+	nft_compat_activate(ctx, expr, &cn->nft_match_list);
-+}
-+
-+static void nft_compat_activate_tg(const struct nft_ctx *ctx,
-+				   const struct nft_expr *expr)
-+{
-+	struct nft_compat_net *cn = nft_compat_pernet(ctx->net);
-+
-+	nft_compat_activate(ctx, expr, &cn->nft_target_list);
-+}
-+
-+static void nft_compat_deactivate(const struct nft_ctx *ctx,
-+				  const struct nft_expr *expr)
-+{
-+	struct nft_xt *xt = container_of(expr->ops, struct nft_xt, ops);
-+
-+	if (--xt->listcnt == 0)
-+		list_del_init(&xt->head);
-+}
-+
- static void
- nft_match_large_destroy(const struct nft_ctx *ctx, const struct nft_expr *expr)
- {
-@@ -808,6 +848,8 @@ nft_match_select_ops(const struct nft_ctx *ctx,
- 	nft_match->ops.eval = nft_match_eval;
- 	nft_match->ops.init = nft_match_init;
- 	nft_match->ops.destroy = nft_match_destroy;
-+	nft_match->ops.activate = nft_compat_activate_mt;
-+	nft_match->ops.deactivate = nft_compat_deactivate;
- 	nft_match->ops.dump = nft_match_dump;
- 	nft_match->ops.validate = nft_match_validate;
- 	nft_match->ops.data = match;
-@@ -824,6 +866,7 @@ nft_match_select_ops(const struct nft_ctx *ctx,
- 
- 	nft_match->ops.size = matchsize;
- 
-+	nft_match->listcnt = 1;
- 	list_add(&nft_match->head, &cn->nft_match_list);
- 
- 	return &nft_match->ops;
-@@ -910,6 +953,8 @@ nft_target_select_ops(const struct nft_ctx *ctx,
- 	nft_target->ops.size = NFT_EXPR_SIZE(XT_ALIGN(target->targetsize));
- 	nft_target->ops.init = nft_target_init;
- 	nft_target->ops.destroy = nft_target_destroy;
-+	nft_target->ops.activate = nft_compat_activate_tg;
-+	nft_target->ops.deactivate = nft_compat_deactivate;
- 	nft_target->ops.dump = nft_target_dump;
- 	nft_target->ops.validate = nft_target_validate;
- 	nft_target->ops.data = target;
-@@ -919,6 +964,7 @@ nft_target_select_ops(const struct nft_ctx *ctx,
- 	else
- 		nft_target->ops.eval = nft_target_eval_xt;
- 
-+	nft_target->listcnt = 1;
- 	list_add(&nft_target->head, &cn->nft_target_list);
- 
- 	return &nft_target->ops;
 -- 
 2.11.0
