@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 26/33] Revert "netfilter: nft_hash: add map lookups for hashing operations"
-Date: Tue, 29 Jan 2019 00:57:43 +0100
-Message-ID: <20190128235750.18412-27-pablo@netfilter.org>
+Subject: [PATCH 29/33] ipvs: avoid indirect calls when calculating checksums
+Date: Tue, 29 Jan 2019 00:57:46 +0100
+Message-ID: <20190128235750.18412-30-pablo@netfilter.org>
 References: <20190128235750.18412-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,241 +10,216 @@ In-Reply-To: <20190128235750.18412-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Laura Garcia Liebana <nevola@gmail.com>
+From: Matteo Croce <mcroce@redhat.com>
 
-A better way to implement this from userspace has been found without
-specific code in the kernel side, revert this.
+The function pointer ip_vs_protocol->csum_check is only used in protocol
+specific code, and never in the generic one.
+Remove the function pointer from struct ip_vs_protocol and call the
+checksum functions directly.
+This reduces the performance impact of the Spectre mitigation, and
+should give a small improvement even with RETPOLINES disabled.
 
-Fixes: b9ccc07e3f31 ("netfilter: nft_hash: add map lookups for hashing operations")
-Signed-off-by: Laura Garcia Liebana <nevola@gmail.com>
+Signed-off-by: Matteo Croce <mcroce@redhat.com>
+Acked-by: Julian Anastasov <ja@ssi.bg>
+Acked-by: Simon Horman <horms@verge.net.au>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/uapi/linux/netfilter/nf_tables.h |   4 +-
- net/netfilter/nft_hash.c                 | 121 -------------------------------
- 2 files changed, 2 insertions(+), 123 deletions(-)
+ include/net/ip_vs.h                     |  3 ---
+ net/netfilter/ipvs/ip_vs_proto_ah_esp.c |  2 --
+ net/netfilter/ipvs/ip_vs_proto_sctp.c   |  8 +++++---
+ net/netfilter/ipvs/ip_vs_proto_tcp.c    | 12 +++++++-----
+ net/netfilter/ipvs/ip_vs_proto_udp.c    | 12 +++++++-----
+ 5 files changed, 19 insertions(+), 18 deletions(-)
 
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index 0ba8f48bdf0b..030302893d96 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -877,8 +877,8 @@ enum nft_hash_attributes {
- 	NFTA_HASH_SEED,
- 	NFTA_HASH_OFFSET,
- 	NFTA_HASH_TYPE,
--	NFTA_HASH_SET_NAME,
--	NFTA_HASH_SET_ID,
-+	NFTA_HASH_SET_NAME,	/* deprecated */
-+	NFTA_HASH_SET_ID,	/* deprecated */
- 	__NFTA_HASH_MAX,
- };
- #define NFTA_HASH_MAX	(__NFTA_HASH_MAX - 1)
-diff --git a/net/netfilter/nft_hash.c b/net/netfilter/nft_hash.c
-index c2d237144f74..ea658e6c53e3 100644
---- a/net/netfilter/nft_hash.c
-+++ b/net/netfilter/nft_hash.c
-@@ -25,7 +25,6 @@ struct nft_jhash {
- 	u32			modulus;
- 	u32			seed;
- 	u32			offset;
--	struct nft_set		*map;
- };
+diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
+index a0d2e0bb9a94..047f9a5ccaad 100644
+--- a/include/net/ip_vs.h
++++ b/include/net/ip_vs.h
+@@ -453,9 +453,6 @@ struct ip_vs_protocol {
+ 	int (*dnat_handler)(struct sk_buff *skb, struct ip_vs_protocol *pp,
+ 			    struct ip_vs_conn *cp, struct ip_vs_iphdr *iph);
  
- static void nft_jhash_eval(const struct nft_expr *expr,
-@@ -42,33 +41,10 @@ static void nft_jhash_eval(const struct nft_expr *expr,
- 	regs->data[priv->dreg] = h + priv->offset;
- }
+-	int (*csum_check)(int af, struct sk_buff *skb,
+-			  struct ip_vs_protocol *pp);
+-
+ 	const char *(*state_name)(int state);
  
--static void nft_jhash_map_eval(const struct nft_expr *expr,
--			       struct nft_regs *regs,
--			       const struct nft_pktinfo *pkt)
--{
--	struct nft_jhash *priv = nft_expr_priv(expr);
--	const void *data = &regs->data[priv->sreg];
--	const struct nft_set *map = priv->map;
--	const struct nft_set_ext *ext;
--	u32 result;
--	bool found;
--
--	result = reciprocal_scale(jhash(data, priv->len, priv->seed),
--					priv->modulus) + priv->offset;
--
--	found = map->ops->lookup(nft_net(pkt), map, &result, &ext);
--	if (!found)
--		return;
--
--	nft_data_copy(&regs->data[priv->dreg],
--		      nft_set_ext_data(ext), map->dlen);
--}
--
- struct nft_symhash {
- 	enum nft_registers      dreg:8;
- 	u32			modulus;
- 	u32			offset;
--	struct nft_set		*map;
- };
+ 	void (*state_transition)(struct ip_vs_conn *cp, int direction,
+diff --git a/net/netfilter/ipvs/ip_vs_proto_ah_esp.c b/net/netfilter/ipvs/ip_vs_proto_ah_esp.c
+index 5320d39976e1..480598cb0f05 100644
+--- a/net/netfilter/ipvs/ip_vs_proto_ah_esp.c
++++ b/net/netfilter/ipvs/ip_vs_proto_ah_esp.c
+@@ -129,7 +129,6 @@ struct ip_vs_protocol ip_vs_protocol_ah = {
+ 	.conn_out_get =		ah_esp_conn_out_get,
+ 	.snat_handler =		NULL,
+ 	.dnat_handler =		NULL,
+-	.csum_check =		NULL,
+ 	.state_transition =	NULL,
+ 	.register_app =		NULL,
+ 	.unregister_app =	NULL,
+@@ -152,7 +151,6 @@ struct ip_vs_protocol ip_vs_protocol_esp = {
+ 	.conn_out_get =		ah_esp_conn_out_get,
+ 	.snat_handler =		NULL,
+ 	.dnat_handler =		NULL,
+-	.csum_check =		NULL,
+ 	.state_transition =	NULL,
+ 	.register_app =		NULL,
+ 	.unregister_app =	NULL,
+diff --git a/net/netfilter/ipvs/ip_vs_proto_sctp.c b/net/netfilter/ipvs/ip_vs_proto_sctp.c
+index b0cd7d08f2a7..bc3d1625ecc8 100644
+--- a/net/netfilter/ipvs/ip_vs_proto_sctp.c
++++ b/net/netfilter/ipvs/ip_vs_proto_sctp.c
+@@ -10,6 +10,9 @@
+ #include <net/ip_vs.h>
  
- static void nft_symhash_eval(const struct nft_expr *expr,
-@@ -84,28 +60,6 @@ static void nft_symhash_eval(const struct nft_expr *expr,
- 	regs->data[priv->dreg] = h + priv->offset;
- }
+ static int
++sctp_csum_check(int af, struct sk_buff *skb, struct ip_vs_protocol *pp);
++
++static int
+ sctp_conn_schedule(struct netns_ipvs *ipvs, int af, struct sk_buff *skb,
+ 		   struct ip_vs_proto_data *pd,
+ 		   int *verdict, struct ip_vs_conn **cpp,
+@@ -105,7 +108,7 @@ sctp_snat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
+ 		int ret;
  
--static void nft_symhash_map_eval(const struct nft_expr *expr,
--				 struct nft_regs *regs,
--				 const struct nft_pktinfo *pkt)
--{
--	struct nft_symhash *priv = nft_expr_priv(expr);
--	struct sk_buff *skb = pkt->skb;
--	const struct nft_set *map = priv->map;
--	const struct nft_set_ext *ext;
--	u32 result;
--	bool found;
--
--	result = reciprocal_scale(__skb_get_hash_symmetric(skb),
--				  priv->modulus) + priv->offset;
--
--	found = map->ops->lookup(nft_net(pkt), map, &result, &ext);
--	if (!found)
--		return;
--
--	nft_data_copy(&regs->data[priv->dreg],
--		      nft_set_ext_data(ext), map->dlen);
--}
--
- static const struct nla_policy nft_hash_policy[NFTA_HASH_MAX + 1] = {
- 	[NFTA_HASH_SREG]	= { .type = NLA_U32 },
- 	[NFTA_HASH_DREG]	= { .type = NLA_U32 },
-@@ -114,9 +68,6 @@ static const struct nla_policy nft_hash_policy[NFTA_HASH_MAX + 1] = {
- 	[NFTA_HASH_SEED]	= { .type = NLA_U32 },
- 	[NFTA_HASH_OFFSET]	= { .type = NLA_U32 },
- 	[NFTA_HASH_TYPE]	= { .type = NLA_U32 },
--	[NFTA_HASH_SET_NAME]	= { .type = NLA_STRING,
--				    .len = NFT_SET_MAXNAMELEN - 1 },
--	[NFTA_HASH_SET_ID]	= { .type = NLA_U32 },
- };
+ 		/* Some checks before mangling */
+-		if (pp->csum_check && !pp->csum_check(cp->af, skb, pp))
++		if (!sctp_csum_check(cp->af, skb, pp))
+ 			return 0;
  
- static int nft_jhash_init(const struct nft_ctx *ctx,
-@@ -166,20 +117,6 @@ static int nft_jhash_init(const struct nft_ctx *ctx,
- 					   NFT_DATA_VALUE, sizeof(u32));
- }
+ 		/* Call application helper if needed */
+@@ -152,7 +155,7 @@ sctp_dnat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
+ 		int ret;
  
--static int nft_jhash_map_init(const struct nft_ctx *ctx,
--			      const struct nft_expr *expr,
--			      const struct nlattr * const tb[])
--{
--	struct nft_jhash *priv = nft_expr_priv(expr);
--	u8 genmask = nft_genmask_next(ctx->net);
--
--	nft_jhash_init(ctx, expr, tb);
--	priv->map = nft_set_lookup_global(ctx->net, ctx->table,
--					  tb[NFTA_HASH_SET_NAME],
--					  tb[NFTA_HASH_SET_ID], genmask);
--	return PTR_ERR_OR_ZERO(priv->map);
--}
--
- static int nft_symhash_init(const struct nft_ctx *ctx,
- 			    const struct nft_expr *expr,
- 			    const struct nlattr * const tb[])
-@@ -206,20 +143,6 @@ static int nft_symhash_init(const struct nft_ctx *ctx,
- 					   NFT_DATA_VALUE, sizeof(u32));
- }
+ 		/* Some checks before mangling */
+-		if (pp->csum_check && !pp->csum_check(cp->af, skb, pp))
++		if (!sctp_csum_check(cp->af, skb, pp))
+ 			return 0;
  
--static int nft_symhash_map_init(const struct nft_ctx *ctx,
--				const struct nft_expr *expr,
--				const struct nlattr * const tb[])
--{
--	struct nft_jhash *priv = nft_expr_priv(expr);
--	u8 genmask = nft_genmask_next(ctx->net);
--
--	nft_symhash_init(ctx, expr, tb);
--	priv->map = nft_set_lookup_global(ctx->net, ctx->table,
--					  tb[NFTA_HASH_SET_NAME],
--					  tb[NFTA_HASH_SET_ID], genmask);
--	return PTR_ERR_OR_ZERO(priv->map);
--}
--
- static int nft_jhash_dump(struct sk_buff *skb,
- 			  const struct nft_expr *expr)
- {
-@@ -247,18 +170,6 @@ static int nft_jhash_dump(struct sk_buff *skb,
- 	return -1;
- }
+ 		/* Call application helper if needed */
+@@ -587,7 +590,6 @@ struct ip_vs_protocol ip_vs_protocol_sctp = {
+ 	.conn_out_get	= ip_vs_conn_out_get_proto,
+ 	.snat_handler	= sctp_snat_handler,
+ 	.dnat_handler	= sctp_dnat_handler,
+-	.csum_check	= sctp_csum_check,
+ 	.state_name	= sctp_state_name,
+ 	.state_transition = sctp_state_transition,
+ 	.app_conn_bind	= sctp_app_conn_bind,
+diff --git a/net/netfilter/ipvs/ip_vs_proto_tcp.c b/net/netfilter/ipvs/ip_vs_proto_tcp.c
+index 1770fc6ce960..6a275f989085 100644
+--- a/net/netfilter/ipvs/ip_vs_proto_tcp.c
++++ b/net/netfilter/ipvs/ip_vs_proto_tcp.c
+@@ -32,6 +32,9 @@
+ #include <net/ip_vs.h>
  
--static int nft_jhash_map_dump(struct sk_buff *skb,
--			       const struct nft_expr *expr)
--{
--	const struct nft_jhash *priv = nft_expr_priv(expr);
--
--	if (nft_jhash_dump(skb, expr) ||
--	    nla_put_string(skb, NFTA_HASH_SET_NAME, priv->map->name))
--		return -1;
--
--	return 0;
--}
--
- static int nft_symhash_dump(struct sk_buff *skb,
- 			    const struct nft_expr *expr)
- {
-@@ -279,18 +190,6 @@ static int nft_symhash_dump(struct sk_buff *skb,
- 	return -1;
- }
+ static int
++tcp_csum_check(int af, struct sk_buff *skb, struct ip_vs_protocol *pp);
++
++static int
+ tcp_conn_schedule(struct netns_ipvs *ipvs, int af, struct sk_buff *skb,
+ 		  struct ip_vs_proto_data *pd,
+ 		  int *verdict, struct ip_vs_conn **cpp,
+@@ -166,7 +169,7 @@ tcp_snat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
+ 		int ret;
  
--static int nft_symhash_map_dump(struct sk_buff *skb,
--				const struct nft_expr *expr)
--{
--	const struct nft_symhash *priv = nft_expr_priv(expr);
--
--	if (nft_symhash_dump(skb, expr) ||
--	    nla_put_string(skb, NFTA_HASH_SET_NAME, priv->map->name))
--		return -1;
--
--	return 0;
--}
--
- static struct nft_expr_type nft_hash_type;
- static const struct nft_expr_ops nft_jhash_ops = {
- 	.type		= &nft_hash_type,
-@@ -300,14 +199,6 @@ static const struct nft_expr_ops nft_jhash_ops = {
- 	.dump		= nft_jhash_dump,
- };
+ 		/* Some checks before mangling */
+-		if (pp->csum_check && !pp->csum_check(cp->af, skb, pp))
++		if (!tcp_csum_check(cp->af, skb, pp))
+ 			return 0;
  
--static const struct nft_expr_ops nft_jhash_map_ops = {
--	.type		= &nft_hash_type,
--	.size		= NFT_EXPR_SIZE(sizeof(struct nft_jhash)),
--	.eval		= nft_jhash_map_eval,
--	.init		= nft_jhash_map_init,
--	.dump		= nft_jhash_map_dump,
--};
--
- static const struct nft_expr_ops nft_symhash_ops = {
- 	.type		= &nft_hash_type,
- 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_symhash)),
-@@ -316,14 +207,6 @@ static const struct nft_expr_ops nft_symhash_ops = {
- 	.dump		= nft_symhash_dump,
- };
+ 		/* Call application helper if needed */
+@@ -192,7 +195,7 @@ tcp_snat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
+ 		tcp_fast_csum_update(cp->af, tcph, &cp->daddr, &cp->vaddr,
+ 				     cp->dport, cp->vport);
+ 		if (skb->ip_summed == CHECKSUM_COMPLETE)
+-			skb->ip_summed = (cp->app && pp->csum_check) ?
++			skb->ip_summed = cp->app ?
+ 					 CHECKSUM_UNNECESSARY : CHECKSUM_NONE;
+ 	} else {
+ 		/* full checksum calculation */
+@@ -244,7 +247,7 @@ tcp_dnat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
+ 		int ret;
  
--static const struct nft_expr_ops nft_symhash_map_ops = {
--	.type		= &nft_hash_type,
--	.size		= NFT_EXPR_SIZE(sizeof(struct nft_symhash)),
--	.eval		= nft_symhash_map_eval,
--	.init		= nft_symhash_map_init,
--	.dump		= nft_symhash_map_dump,
--};
--
- static const struct nft_expr_ops *
- nft_hash_select_ops(const struct nft_ctx *ctx,
- 		    const struct nlattr * const tb[])
-@@ -336,12 +219,8 @@ nft_hash_select_ops(const struct nft_ctx *ctx,
- 	type = ntohl(nla_get_be32(tb[NFTA_HASH_TYPE]));
- 	switch (type) {
- 	case NFT_HASH_SYM:
--		if (tb[NFTA_HASH_SET_NAME])
--			return &nft_symhash_map_ops;
- 		return &nft_symhash_ops;
- 	case NFT_HASH_JENKINS:
--		if (tb[NFTA_HASH_SET_NAME])
--			return &nft_jhash_map_ops;
- 		return &nft_jhash_ops;
- 	default:
- 		break;
+ 		/* Some checks before mangling */
+-		if (pp->csum_check && !pp->csum_check(cp->af, skb, pp))
++		if (!tcp_csum_check(cp->af, skb, pp))
+ 			return 0;
+ 
+ 		/*
+@@ -275,7 +278,7 @@ tcp_dnat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
+ 		tcp_fast_csum_update(cp->af, tcph, &cp->vaddr, &cp->daddr,
+ 				     cp->vport, cp->dport);
+ 		if (skb->ip_summed == CHECKSUM_COMPLETE)
+-			skb->ip_summed = (cp->app && pp->csum_check) ?
++			skb->ip_summed = cp->app ?
+ 					 CHECKSUM_UNNECESSARY : CHECKSUM_NONE;
+ 	} else {
+ 		/* full checksum calculation */
+@@ -736,7 +739,6 @@ struct ip_vs_protocol ip_vs_protocol_tcp = {
+ 	.conn_out_get =		ip_vs_conn_out_get_proto,
+ 	.snat_handler =		tcp_snat_handler,
+ 	.dnat_handler =		tcp_dnat_handler,
+-	.csum_check =		tcp_csum_check,
+ 	.state_name =		tcp_state_name,
+ 	.state_transition =	tcp_state_transition,
+ 	.app_conn_bind =	tcp_app_conn_bind,
+diff --git a/net/netfilter/ipvs/ip_vs_proto_udp.c b/net/netfilter/ipvs/ip_vs_proto_udp.c
+index 0f53c49025f8..3285718264d5 100644
+--- a/net/netfilter/ipvs/ip_vs_proto_udp.c
++++ b/net/netfilter/ipvs/ip_vs_proto_udp.c
+@@ -29,6 +29,9 @@
+ #include <net/ip6_checksum.h>
+ 
+ static int
++udp_csum_check(int af, struct sk_buff *skb, struct ip_vs_protocol *pp);
++
++static int
+ udp_conn_schedule(struct netns_ipvs *ipvs, int af, struct sk_buff *skb,
+ 		  struct ip_vs_proto_data *pd,
+ 		  int *verdict, struct ip_vs_conn **cpp,
+@@ -156,7 +159,7 @@ udp_snat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
+ 		int ret;
+ 
+ 		/* Some checks before mangling */
+-		if (pp->csum_check && !pp->csum_check(cp->af, skb, pp))
++		if (!udp_csum_check(cp->af, skb, pp))
+ 			return 0;
+ 
+ 		/*
+@@ -186,7 +189,7 @@ udp_snat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
+ 		udp_fast_csum_update(cp->af, udph, &cp->daddr, &cp->vaddr,
+ 				     cp->dport, cp->vport);
+ 		if (skb->ip_summed == CHECKSUM_COMPLETE)
+-			skb->ip_summed = (cp->app && pp->csum_check) ?
++			skb->ip_summed = cp->app ?
+ 					 CHECKSUM_UNNECESSARY : CHECKSUM_NONE;
+ 	} else {
+ 		/* full checksum calculation */
+@@ -239,7 +242,7 @@ udp_dnat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
+ 		int ret;
+ 
+ 		/* Some checks before mangling */
+-		if (pp->csum_check && !pp->csum_check(cp->af, skb, pp))
++		if (!udp_csum_check(cp->af, skb, pp))
+ 			return 0;
+ 
+ 		/*
+@@ -270,7 +273,7 @@ udp_dnat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
+ 		udp_fast_csum_update(cp->af, udph, &cp->vaddr, &cp->daddr,
+ 				     cp->vport, cp->dport);
+ 		if (skb->ip_summed == CHECKSUM_COMPLETE)
+-			skb->ip_summed = (cp->app && pp->csum_check) ?
++			skb->ip_summed = cp->app ?
+ 					 CHECKSUM_UNNECESSARY : CHECKSUM_NONE;
+ 	} else {
+ 		/* full checksum calculation */
+@@ -494,7 +497,6 @@ struct ip_vs_protocol ip_vs_protocol_udp = {
+ 	.conn_out_get =		ip_vs_conn_out_get_proto,
+ 	.snat_handler =		udp_snat_handler,
+ 	.dnat_handler =		udp_dnat_handler,
+-	.csum_check =		udp_csum_check,
+ 	.state_transition =	udp_state_transition,
+ 	.state_name =		udp_state_name,
+ 	.register_app =		udp_register_app,
 -- 
 2.11.0
