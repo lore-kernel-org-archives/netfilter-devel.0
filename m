@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 27/33] netfilter: conntrack: fix IPV6=n builds
-Date: Tue, 29 Jan 2019 00:57:44 +0100
-Message-ID: <20190128235750.18412-28-pablo@netfilter.org>
+Subject: [PATCH 33/33] netfilter: ipv4: remove useless export_symbol
+Date: Tue, 29 Jan 2019 00:57:50 +0100
+Message-ID: <20190128235750.18412-34-pablo@netfilter.org>
 References: <20190128235750.18412-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -12,96 +12,98 @@ List-Id: netfilter-devel.vger.kernel.org
 
 From: Florian Westphal <fw@strlen.de>
 
-Stephen Rothwell reports:
- After merging the netfilter-next tree, today's linux-next build
- (powerpc ppc64_defconfig) failed like this:
+Only one caller; place it where needed and get rid of the EXPORT_SYMBOL.
 
- ERROR: "nf_conntrack_invert_icmpv6_tuple" [nf_conntrack.ko] undefined!
- ERROR: "nf_conntrack_icmpv6_packet" [nf_conntrack.ko] undefined!
- ERROR: "nf_conntrack_icmpv6_init_net" [nf_conntrack.ko] undefined!
- ERROR: "icmpv6_pkt_to_tuple" [nf_conntrack.ko] undefined!
- ERROR: "nf_ct_gre_keymap_destroy" [nf_conntrack.ko] undefined!
-
-icmpv6 related errors are due to lack of IS_ENABLED(CONFIG_IPV6) (no
-icmpv6 support is builtin if kernel has CONFIG_IPV6=n), the
-nf_ct_gre_keymap_destroy error is due to lack of PROTO_GRE check.
-
-Fixes: a47c54048162 ("netfilter: conntrack: handle builtin l4proto packet functions via direct calls")
-Fixes: e2e48b471634 ("netfilter: conntrack: handle icmp pkt_to_tuple helper via direct calls")
-Fixes: 197c4300aec0 ("netfilter: conntrack: remove invert_tuple callback")
-Fixes: 2a389de86e4a ("netfilter: conntrack: remove l4proto init and get_net callbacks")
-Fixes: e56894356f60 ("netfilter: conntrack: remove l4proto destroy hook")
-Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_conntrack_core.c  | 8 ++++++++
- net/netfilter/nf_conntrack_proto.c | 2 ++
- 2 files changed, 10 insertions(+)
+ include/linux/netfilter_ipv4.h |  6 ------
+ net/ipv4/netfilter.c           | 18 ------------------
+ net/netfilter/utils.c          | 19 +++++++++++++++++++
+ 3 files changed, 19 insertions(+), 24 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 171659aa69a1..a3e5232c2088 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -274,8 +274,10 @@ nf_ct_get_tuple(const struct sk_buff *skb,
- 	tuple->dst.dir = IP_CT_DIR_ORIGINAL;
- 
- 	switch (protonum) {
-+#if IS_ENABLED(CONFIG_IPV6)
- 	case IPPROTO_ICMPV6:
- 		return icmpv6_pkt_to_tuple(skb, dataoff, net, tuple);
-+#endif
- 	case IPPROTO_ICMP:
- 		return icmp_pkt_to_tuple(skb, dataoff, net, tuple);
- #ifdef CONFIG_NF_CT_PROTO_GRE
-@@ -412,8 +414,10 @@ nf_ct_invert_tuple(struct nf_conntrack_tuple *inverse,
- 	switch (orig->dst.protonum) {
- 	case IPPROTO_ICMP:
- 		return nf_conntrack_invert_icmp_tuple(inverse, orig);
-+#if IS_ENABLED(CONFIG_IPV6)
- 	case IPPROTO_ICMPV6:
- 		return nf_conntrack_invert_icmpv6_tuple(inverse, orig);
-+#endif
- 	}
- 
- 	inverse->src.u.all = orig->dst.u.all;
-@@ -526,10 +530,12 @@ EXPORT_SYMBOL_GPL(nf_ct_tmpl_free);
- 
- static void destroy_gre_conntrack(struct nf_conn *ct)
+diff --git a/include/linux/netfilter_ipv4.h b/include/linux/netfilter_ipv4.h
+index 95ab5cc64422..082e2c41b7ff 100644
+--- a/include/linux/netfilter_ipv4.h
++++ b/include/linux/netfilter_ipv4.h
+@@ -25,7 +25,6 @@ __sum16 nf_ip_checksum(struct sk_buff *skb, unsigned int hook,
+ 		       unsigned int dataoff, u_int8_t protocol);
+ int nf_ip_route(struct net *net, struct dst_entry **dst, struct flowi *fl,
+ 		bool strict);
+-int nf_ip_reroute(struct sk_buff *skb, const struct nf_queue_entry *entry);
+ #else
+ static inline __sum16 nf_ip_checksum(struct sk_buff *skb, unsigned int hook,
+ 				     unsigned int dataoff, u_int8_t protocol)
+@@ -37,11 +36,6 @@ static inline int nf_ip_route(struct net *net, struct dst_entry **dst,
  {
-+#ifdef CONFIG_NF_CT_PROTO_GRE
- 	struct nf_conn *master = ct->master;
- 
- 	if (master)
- 		nf_ct_gre_keymap_destroy(master);
-+#endif
+ 	return -EOPNOTSUPP;
  }
+-static inline int nf_ip_reroute(struct sk_buff *skb,
+-				const struct nf_queue_entry *entry)
+-{
+-	return -EOPNOTSUPP;
+-}
+ #endif /* CONFIG_INET */
  
- static void
-@@ -1553,8 +1559,10 @@ static int nf_conntrack_handle_packet(struct nf_conn *ct,
- 					       ctinfo, state);
- 	case IPPROTO_ICMP:
- 		return nf_conntrack_icmp_packet(ct, skb, ctinfo, state);
-+#if IS_ENABLED(CONFIG_IPV6)
- 	case IPPROTO_ICMPV6:
- 		return nf_conntrack_icmpv6_packet(ct, skb, ctinfo, state);
+ #endif /*__LINUX_IP_NETFILTER_H*/
+diff --git a/net/ipv4/netfilter.c b/net/ipv4/netfilter.c
+index 8d2e5dc9a827..a058213b77a7 100644
+--- a/net/ipv4/netfilter.c
++++ b/net/ipv4/netfilter.c
+@@ -80,24 +80,6 @@ int ip_route_me_harder(struct net *net, struct sk_buff *skb, unsigned int addr_t
+ }
+ EXPORT_SYMBOL(ip_route_me_harder);
+ 
+-int nf_ip_reroute(struct sk_buff *skb, const struct nf_queue_entry *entry)
+-{
+-	const struct ip_rt_info *rt_info = nf_queue_entry_reroute(entry);
+-
+-	if (entry->state.hook == NF_INET_LOCAL_OUT) {
+-		const struct iphdr *iph = ip_hdr(skb);
+-
+-		if (!(iph->tos == rt_info->tos &&
+-		      skb->mark == rt_info->mark &&
+-		      iph->daddr == rt_info->daddr &&
+-		      iph->saddr == rt_info->saddr))
+-			return ip_route_me_harder(entry->state.net, skb,
+-						  RTN_UNSPEC);
+-	}
+-	return 0;
+-}
+-EXPORT_SYMBOL_GPL(nf_ip_reroute);
+-
+ int nf_ip_route(struct net *net, struct dst_entry **dst, struct flowi *fl,
+ 		bool strict __always_unused)
+ {
+diff --git a/net/netfilter/utils.c b/net/netfilter/utils.c
+index e8da9a9bba73..55af9f247993 100644
+--- a/net/netfilter/utils.c
++++ b/net/netfilter/utils.c
+@@ -180,6 +180,25 @@ int nf_route(struct net *net, struct dst_entry **dst, struct flowi *fl,
+ }
+ EXPORT_SYMBOL_GPL(nf_route);
+ 
++static int nf_ip_reroute(struct sk_buff *skb, const struct nf_queue_entry *entry)
++{
++#ifdef CONFIG_INET
++	const struct ip_rt_info *rt_info = nf_queue_entry_reroute(entry);
++
++	if (entry->state.hook == NF_INET_LOCAL_OUT) {
++		const struct iphdr *iph = ip_hdr(skb);
++
++		if (!(iph->tos == rt_info->tos &&
++		      skb->mark == rt_info->mark &&
++		      iph->daddr == rt_info->daddr &&
++		      iph->saddr == rt_info->saddr))
++			return ip_route_me_harder(entry->state.net, skb,
++						  RTN_UNSPEC);
++	}
 +#endif
- #ifdef CONFIG_NF_CT_PROTO_UDPLITE
- 	case IPPROTO_UDPLITE:
- 		return nf_conntrack_udplite_packet(ct, skb, dataoff,
-diff --git a/net/netfilter/nf_conntrack_proto.c b/net/netfilter/nf_conntrack_proto.c
-index aa8d3fe0b37f..b9403a266a2e 100644
---- a/net/netfilter/nf_conntrack_proto.c
-+++ b/net/netfilter/nf_conntrack_proto.c
-@@ -597,7 +597,9 @@ void nf_conntrack_proto_pernet_init(struct net *net)
- 	nf_conntrack_udp_init_net(net);
- 	nf_conntrack_tcp_init_net(net);
- 	nf_conntrack_icmp_init_net(net);
-+#if IS_ENABLED(CONFIG_IPV6)
- 	nf_conntrack_icmpv6_init_net(net);
-+#endif
- #ifdef CONFIG_NF_CT_PROTO_DCCP
- 	nf_conntrack_dccp_init_net(net);
- #endif
++	return 0;
++}
++
+ int nf_reroute(struct sk_buff *skb, struct nf_queue_entry *entry)
+ {
+ 	const struct nf_ipv6_ops *v6ops;
 -- 
 2.11.0
