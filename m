@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 17/33] netfilter: conntrack: avoid unneeded nf_conntrack_l4proto lookups
-Date: Tue, 29 Jan 2019 00:57:34 +0100
-Message-ID: <20190128235750.18412-18-pablo@netfilter.org>
+Subject: [PATCH 20/33] netfilter: conntrack: remove l4proto init and get_net callbacks
+Date: Tue, 29 Jan 2019 00:57:37 +0100
+Message-ID: <20190128235750.18412-21-pablo@netfilter.org>
 References: <20190128235750.18412-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -12,369 +12,601 @@ List-Id: netfilter-devel.vger.kernel.org
 
 From: Florian Westphal <fw@strlen.de>
 
-after removal of the packet and invert function pointers, several
-places do not need to lookup the l4proto structure anymore.
-
-Remove those lookups.
-The function nf_ct_invert_tuplepr becomes redundant, replace
-it with nf_ct_invert_tuple everywhere.
+Those were needed we still had modular trackers.
+As we don't have those anymore, prefer direct calls and remove all
+the (un)register infrastructure associated with this.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_conntrack.h      |  2 --
- include/net/netfilter/nf_conntrack_core.h |  3 +-
- net/ipv4/netfilter/nf_nat_l3proto_ipv4.c  |  2 +-
- net/ipv6/netfilter/nf_nat_l3proto_ipv6.c  |  2 +-
- net/netfilter/nf_conntrack_core.c         | 53 ++++++-------------------------
- net/netfilter/nf_conntrack_pptp.c         |  2 +-
- net/netfilter/nf_conntrack_proto_icmp.c   |  6 +---
- net/netfilter/nf_conntrack_proto_icmpv6.c |  6 +---
- net/netfilter/nf_nat_core.c               | 12 +++----
- net/openvswitch/conntrack.c               |  2 +-
- 10 files changed, 22 insertions(+), 68 deletions(-)
+ include/net/netfilter/nf_conntrack_l4proto.h |  15 ++--
+ include/net/netns/conntrack.h                |  11 ---
+ net/netfilter/nf_conntrack_proto.c           | 103 ++++-----------------------
+ net/netfilter/nf_conntrack_proto_dccp.c      |  42 ++++-------
+ net/netfilter/nf_conntrack_proto_generic.c   |  11 +--
+ net/netfilter/nf_conntrack_proto_gre.c       |   5 +-
+ net/netfilter/nf_conntrack_proto_icmp.c      |  12 +---
+ net/netfilter/nf_conntrack_proto_icmpv6.c    |  12 +---
+ net/netfilter/nf_conntrack_proto_sctp.c      |  29 +++-----
+ net/netfilter/nf_conntrack_proto_tcp.c       |  35 +++------
+ net/netfilter/nf_conntrack_proto_udp.c       |  24 ++-----
+ 11 files changed, 65 insertions(+), 234 deletions(-)
 
-diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
-index 249d0a5b12b8..b5aac5ae5129 100644
---- a/include/net/netfilter/nf_conntrack.h
-+++ b/include/net/netfilter/nf_conntrack.h
-@@ -187,8 +187,6 @@ bool nf_ct_delete(struct nf_conn *ct, u32 pid, int report);
- bool nf_ct_get_tuplepr(const struct sk_buff *skb, unsigned int nhoff,
- 		       u_int16_t l3num, struct net *net,
- 		       struct nf_conntrack_tuple *tuple);
--bool nf_ct_invert_tuplepr(struct nf_conntrack_tuple *inverse,
--			  const struct nf_conntrack_tuple *orig);
- 
- void __nf_ct_refresh_acct(struct nf_conn *ct, enum ip_conntrack_info ctinfo,
- 			  const struct sk_buff *skb,
-diff --git a/include/net/netfilter/nf_conntrack_core.h b/include/net/netfilter/nf_conntrack_core.h
-index afc9b3620473..235c182022b2 100644
---- a/include/net/netfilter/nf_conntrack_core.h
-+++ b/include/net/netfilter/nf_conntrack_core.h
-@@ -39,8 +39,7 @@ void nf_conntrack_init_end(void);
- void nf_conntrack_cleanup_end(void);
- 
- bool nf_ct_invert_tuple(struct nf_conntrack_tuple *inverse,
--			const struct nf_conntrack_tuple *orig,
--			const struct nf_conntrack_l4proto *l4proto);
-+			const struct nf_conntrack_tuple *orig);
- 
- /* Find a connection corresponding to a tuple. */
- struct nf_conntrack_tuple_hash *
-diff --git a/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c b/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c
-index 2687db015b6f..e26165af45cb 100644
---- a/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c
-+++ b/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c
-@@ -214,7 +214,7 @@ int nf_nat_icmp_reply_translation(struct sk_buff *skb,
- 	}
- 
- 	/* Change outer to look like the reply to an incoming packet */
--	nf_ct_invert_tuplepr(&target, &ct->tuplehash[!dir].tuple);
-+	nf_ct_invert_tuple(&target, &ct->tuplehash[!dir].tuple);
- 	if (!nf_nat_ipv4_manip_pkt(skb, 0, &target, manip))
- 		return 0;
- 
-diff --git a/net/ipv6/netfilter/nf_nat_l3proto_ipv6.c b/net/ipv6/netfilter/nf_nat_l3proto_ipv6.c
-index 23022447eb49..9c914db44bec 100644
---- a/net/ipv6/netfilter/nf_nat_l3proto_ipv6.c
-+++ b/net/ipv6/netfilter/nf_nat_l3proto_ipv6.c
-@@ -225,7 +225,7 @@ int nf_nat_icmpv6_reply_translation(struct sk_buff *skb,
- 						     skb->len - hdrlen, 0));
- 	}
- 
--	nf_ct_invert_tuplepr(&target, &ct->tuplehash[!dir].tuple);
-+	nf_ct_invert_tuple(&target, &ct->tuplehash[!dir].tuple);
- 	if (!nf_nat_ipv6_manip_pkt(skb, 0, &target, manip))
- 		return 0;
- 
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 264074f04615..728d2b5bdb1a 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -229,8 +229,7 @@ nf_ct_get_tuple(const struct sk_buff *skb,
- 		u_int16_t l3num,
- 		u_int8_t protonum,
- 		struct net *net,
--		struct nf_conntrack_tuple *tuple,
--		const struct nf_conntrack_l4proto *l4proto)
-+		struct nf_conntrack_tuple *tuple)
- {
- 	unsigned int size;
- 	const __be32 *ap;
-@@ -374,33 +373,20 @@ bool nf_ct_get_tuplepr(const struct sk_buff *skb, unsigned int nhoff,
- 		       u_int16_t l3num,
- 		       struct net *net, struct nf_conntrack_tuple *tuple)
- {
--	const struct nf_conntrack_l4proto *l4proto;
- 	u8 protonum;
- 	int protoff;
--	int ret;
+diff --git a/include/net/netfilter/nf_conntrack_l4proto.h b/include/net/netfilter/nf_conntrack_l4proto.h
+index 87d9c198c05e..d5909e51ca92 100644
+--- a/include/net/netfilter/nf_conntrack_l4proto.h
++++ b/include/net/netfilter/nf_conntrack_l4proto.h
+@@ -61,12 +61,6 @@ struct nf_conntrack_l4proto {
+ 	/* Print out the private part of the conntrack. */
+ 	void (*print_conntrack)(struct seq_file *s, struct nf_conn *);
+ #endif
 -
--	rcu_read_lock();
- 
- 	protoff = get_l4proto(skb, nhoff, l3num, &protonum);
--	if (protoff <= 0) {
--		rcu_read_unlock();
-+	if (protoff <= 0)
- 		return false;
--	}
- 
--	l4proto = __nf_ct_l4proto_find(protonum);
+-	/* Init l4proto pernet data */
+-	int (*init_net)(struct net *net);
 -
--	ret = nf_ct_get_tuple(skb, nhoff, protoff, l3num, protonum, net, tuple,
--			      l4proto);
+-	/* Return the per-net protocol part. */
+-	struct nf_proto_net *(*get_net_proto)(struct net *net);
+ };
+ 
+ bool icmp_pkt_to_tuple(const struct sk_buff *skb,
+@@ -135,6 +129,15 @@ int nf_conntrack_gre_packet(struct nf_conn *ct,
+ 			    enum ip_conntrack_info ctinfo,
+ 			    const struct nf_hook_state *state);
+ 
++void nf_conntrack_generic_init_net(struct net *net);
++void nf_conntrack_tcp_init_net(struct net *net);
++void nf_conntrack_udp_init_net(struct net *net);
++void nf_conntrack_gre_init_net(struct net *net);
++void nf_conntrack_dccp_init_net(struct net *net);
++void nf_conntrack_sctp_init_net(struct net *net);
++void nf_conntrack_icmp_init_net(struct net *net);
++void nf_conntrack_icmpv6_init_net(struct net *net);
++
+ /* Existing built-in generic protocol */
+ extern const struct nf_conntrack_l4proto nf_conntrack_l4proto_generic;
+ 
+diff --git a/include/net/netns/conntrack.h b/include/net/netns/conntrack.h
+index b8faa72e0f5b..f19b53130bf7 100644
+--- a/include/net/netns/conntrack.h
++++ b/include/net/netns/conntrack.h
+@@ -18,17 +18,11 @@
+ struct ctl_table_header;
+ struct nf_conntrack_ecache;
+ 
+-struct nf_proto_net {
+-	unsigned int		users;
+-};
 -
--	rcu_read_unlock();
--	return ret;
-+	return nf_ct_get_tuple(skb, nhoff, protoff, l3num, protonum, net, tuple);
+ struct nf_generic_net {
+-	struct nf_proto_net pn;
+ 	unsigned int timeout;
+ };
+ 
+ struct nf_tcp_net {
+-	struct nf_proto_net pn;
+ 	unsigned int timeouts[TCP_CONNTRACK_TIMEOUT_MAX];
+ 	unsigned int tcp_loose;
+ 	unsigned int tcp_be_liberal;
+@@ -42,18 +36,15 @@ enum udp_conntrack {
+ };
+ 
+ struct nf_udp_net {
+-	struct nf_proto_net pn;
+ 	unsigned int timeouts[UDP_CT_MAX];
+ };
+ 
+ struct nf_icmp_net {
+-	struct nf_proto_net pn;
+ 	unsigned int timeout;
+ };
+ 
+ #ifdef CONFIG_NF_CT_PROTO_DCCP
+ struct nf_dccp_net {
+-	struct nf_proto_net pn;
+ 	int dccp_loose;
+ 	unsigned int dccp_timeout[CT_DCCP_MAX + 1];
+ };
+@@ -61,7 +52,6 @@ struct nf_dccp_net {
+ 
+ #ifdef CONFIG_NF_CT_PROTO_SCTP
+ struct nf_sctp_net {
+-	struct nf_proto_net pn;
+ 	unsigned int timeouts[SCTP_CONNTRACK_MAX];
+ };
+ #endif
+@@ -74,7 +64,6 @@ enum gre_conntrack {
+ };
+ 
+ struct nf_gre_net {
+-	struct nf_proto_net	nf;
+ 	struct list_head	keymap_list;
+ 	unsigned int		timeouts[GRE_CT_MAX];
+ };
+diff --git a/net/netfilter/nf_conntrack_proto.c b/net/netfilter/nf_conntrack_proto.c
+index c8f024d731c8..e6bc02c13f0f 100644
+--- a/net/netfilter/nf_conntrack_proto.c
++++ b/net/netfilter/nf_conntrack_proto.c
+@@ -123,15 +123,6 @@ static int kill_l4proto(struct nf_conn *i, void *data)
+ 	return nf_ct_protonum(i) == l4proto->l4proto;
  }
- EXPORT_SYMBOL_GPL(nf_ct_get_tuplepr);
  
- bool
- nf_ct_invert_tuple(struct nf_conntrack_tuple *inverse,
--		   const struct nf_conntrack_tuple *orig,
--		   const struct nf_conntrack_l4proto *l4proto)
-+		   const struct nf_conntrack_tuple *orig)
- {
- 	memset(inverse, 0, sizeof(*inverse));
- 
-@@ -1354,7 +1340,6 @@ EXPORT_SYMBOL_GPL(nf_conntrack_free);
- static noinline struct nf_conntrack_tuple_hash *
- init_conntrack(struct net *net, struct nf_conn *tmpl,
- 	       const struct nf_conntrack_tuple *tuple,
--	       const struct nf_conntrack_l4proto *l4proto,
- 	       struct sk_buff *skb,
- 	       unsigned int dataoff, u32 hash)
- {
-@@ -1367,7 +1352,7 @@ init_conntrack(struct net *net, struct nf_conn *tmpl,
- 	struct nf_conn_timeout *timeout_ext;
- 	struct nf_conntrack_zone tmp;
- 
--	if (!nf_ct_invert_tuple(&repl_tuple, tuple, l4proto)) {
-+	if (!nf_ct_invert_tuple(&repl_tuple, tuple)) {
- 		pr_debug("Can't invert tuple.\n");
- 		return NULL;
- 	}
-@@ -1449,7 +1434,6 @@ resolve_normal_ct(struct nf_conn *tmpl,
- 		  struct sk_buff *skb,
- 		  unsigned int dataoff,
- 		  u_int8_t protonum,
--		  const struct nf_conntrack_l4proto *l4proto,
- 		  const struct nf_hook_state *state)
- {
- 	const struct nf_conntrack_zone *zone;
-@@ -1462,7 +1446,7 @@ resolve_normal_ct(struct nf_conn *tmpl,
- 
- 	if (!nf_ct_get_tuple(skb, skb_network_offset(skb),
- 			     dataoff, state->pf, protonum, state->net,
--			     &tuple, l4proto)) {
-+			     &tuple)) {
- 		pr_debug("Can't get tuple\n");
- 		return 0;
- 	}
-@@ -1472,7 +1456,7 @@ resolve_normal_ct(struct nf_conn *tmpl,
- 	hash = hash_conntrack_raw(&tuple, state->net);
- 	h = __nf_conntrack_find_get(state->net, zone, &tuple, hash);
- 	if (!h) {
--		h = init_conntrack(state->net, tmpl, &tuple, l4proto,
-+		h = init_conntrack(state->net, tmpl, &tuple,
- 				   skb, dataoff, hash);
- 		if (!h)
- 			return 0;
-@@ -1592,7 +1576,6 @@ static int nf_conntrack_handle_packet(struct nf_conn *ct,
- unsigned int
- nf_conntrack_in(struct sk_buff *skb, const struct nf_hook_state *state)
- {
--	const struct nf_conntrack_l4proto *l4proto;
- 	enum ip_conntrack_info ctinfo;
- 	struct nf_conn *ct, *tmpl;
- 	u_int8_t protonum;
-@@ -1619,8 +1602,6 @@ nf_conntrack_in(struct sk_buff *skb, const struct nf_hook_state *state)
- 		goto out;
- 	}
- 
--	l4proto = __nf_ct_l4proto_find(protonum);
--
- 	if (protonum == IPPROTO_ICMP || protonum == IPPROTO_ICMPV6) {
- 		ret = nf_conntrack_handle_icmp(tmpl, skb, dataoff,
- 					       protonum, state);
-@@ -1634,7 +1615,7 @@ nf_conntrack_in(struct sk_buff *skb, const struct nf_hook_state *state)
- 	}
- repeat:
- 	ret = resolve_normal_ct(tmpl, skb, dataoff,
--				protonum, l4proto, state);
-+				protonum, state);
- 	if (ret < 0) {
- 		/* Too stressed to deal. */
- 		NF_CT_STAT_INC_ATOMIC(state->net, drop);
-@@ -1681,19 +1662,6 @@ nf_conntrack_in(struct sk_buff *skb, const struct nf_hook_state *state)
- }
- EXPORT_SYMBOL_GPL(nf_conntrack_in);
- 
--bool nf_ct_invert_tuplepr(struct nf_conntrack_tuple *inverse,
--			  const struct nf_conntrack_tuple *orig)
+-static struct nf_proto_net *nf_ct_l4proto_net(struct net *net,
+-				const struct nf_conntrack_l4proto *l4proto)
 -{
--	bool ret;
+-	if (l4proto->get_net_proto)
+-		return l4proto->get_net_proto(net);
 -
--	rcu_read_lock();
--	ret = nf_ct_invert_tuple(inverse, orig,
--				 __nf_ct_l4proto_find(orig->dst.protonum));
--	rcu_read_unlock();
+-	return NULL;
+-}
+-
+ /* FIXME: Allow NULL functions and sub in pointers to generic for
+    them. --RR */
+ int nf_ct_l4proto_register_one(const struct nf_conntrack_l4proto *l4proto)
+@@ -158,27 +149,6 @@ int nf_ct_l4proto_register_one(const struct nf_conntrack_l4proto *l4proto)
+ }
+ EXPORT_SYMBOL_GPL(nf_ct_l4proto_register_one);
+ 
+-static int nf_ct_l4proto_pernet_register_one(struct net *net,
+-					     const struct nf_conntrack_l4proto *l4proto)
+-{
+-	int ret = 0;
+-	struct nf_proto_net *pn = NULL;
+-
+-	if (l4proto->init_net) {
+-		ret = l4proto->init_net(net);
+-		if (ret < 0)
+-			goto out;
+-	}
+-
+-	pn = nf_ct_l4proto_net(net, l4proto);
+-	if (pn == NULL)
+-		goto out;
+-
+-	pn->users++;
+-out:
 -	return ret;
 -}
--EXPORT_SYMBOL_GPL(nf_ct_invert_tuplepr);
 -
- /* Alter reply tuple (maybe alter helper).  This is for NAT, and is
-    implicitly racy: see __nf_conntrack_confirm */
- void nf_conntrack_alter_reply(struct nf_conn *ct,
-@@ -1824,7 +1792,6 @@ static void nf_conntrack_attach(struct sk_buff *nskb, const struct sk_buff *skb)
+ static void __nf_ct_l4proto_unregister_one(const struct nf_conntrack_l4proto *l4proto)
  
- static int nf_conntrack_update(struct net *net, struct sk_buff *skb)
  {
--	const struct nf_conntrack_l4proto *l4proto;
- 	struct nf_conntrack_tuple_hash *h;
- 	struct nf_conntrack_tuple tuple;
- 	enum ip_conntrack_info ctinfo;
-@@ -1845,10 +1812,8 @@ static int nf_conntrack_update(struct net *net, struct sk_buff *skb)
- 	if (dataoff <= 0)
- 		return -1;
+@@ -204,17 +174,6 @@ void nf_ct_l4proto_unregister_one(const struct nf_conntrack_l4proto *l4proto)
+ }
+ EXPORT_SYMBOL_GPL(nf_ct_l4proto_unregister_one);
  
--	l4proto = nf_ct_l4proto_find_get(l4num);
+-static void nf_ct_l4proto_pernet_unregister_one(struct net *net,
+-				const struct nf_conntrack_l4proto *l4proto)
+-{
+-	struct nf_proto_net *pn = nf_ct_l4proto_net(net, l4proto);
 -
- 	if (!nf_ct_get_tuple(skb, skb_network_offset(skb), dataoff, l3num,
--			     l4num, net, &tuple, l4proto))
-+			     l4num, net, &tuple))
- 		return -1;
+-	if (pn == NULL)
+-		return;
+-
+-	pn->users--;
+-}
+-
+ static void
+ nf_ct_l4proto_unregister(const struct nf_conntrack_l4proto * const l4proto[],
+ 			 unsigned int num_proto)
+@@ -252,34 +211,6 @@ nf_ct_l4proto_register(const struct nf_conntrack_l4proto * const l4proto[],
+ 	return ret;
+ }
  
- 	if (ct->status & IPS_SRC_NAT) {
-diff --git a/net/netfilter/nf_conntrack_pptp.c b/net/netfilter/nf_conntrack_pptp.c
-index 11562f2a08bb..976f1dcb97f0 100644
---- a/net/netfilter/nf_conntrack_pptp.c
-+++ b/net/netfilter/nf_conntrack_pptp.c
-@@ -121,7 +121,7 @@ static void pptp_expectfn(struct nf_conn *ct,
- 		struct nf_conntrack_expect *exp_other;
+-static void nf_ct_l4proto_pernet_unregister(struct net *net,
+-				const struct nf_conntrack_l4proto *const l4proto[],
+-				unsigned int num_proto)
+-{
+-	while (num_proto-- != 0)
+-		nf_ct_l4proto_pernet_unregister_one(net, l4proto[num_proto]);
+-}
+-
+-static int nf_ct_l4proto_pernet_register(struct net *net,
+-				  const struct nf_conntrack_l4proto *const l4proto[],
+-				  unsigned int num_proto)
+-{
+-	int ret = -EINVAL;
+-	unsigned int i;
+-
+-	for (i = 0; i < num_proto; i++) {
+-		ret = nf_ct_l4proto_pernet_register_one(net, l4proto[i]);
+-		if (ret < 0)
+-			break;
+-	}
+-	if (i != num_proto) {
+-		pr_err("nf_conntrack %d: pernet registration failed\n",
+-		       l4proto[i]->l4proto);
+-		nf_ct_l4proto_pernet_unregister(net, l4proto, i);
+-	}
+-	return ret;
+-}
+-
+ static unsigned int nf_confirm(struct sk_buff *skb,
+ 			       unsigned int protoff,
+ 			       struct nf_conn *ct,
+@@ -784,31 +715,25 @@ void nf_conntrack_proto_fini(void)
  
- 		/* obviously this tuple inversion only works until you do NAT */
--		nf_ct_invert_tuplepr(&inv_t, &exp->tuple);
-+		nf_ct_invert_tuple(&inv_t, &exp->tuple);
- 		pr_debug("trying to unexpect other dir: ");
- 		nf_ct_dump_tuple(&inv_t);
+ int nf_conntrack_proto_pernet_init(struct net *net)
+ {
+-	int err;
+-	struct nf_proto_net *pn = nf_ct_l4proto_net(net,
+-					&nf_conntrack_l4proto_generic);
+-
+-	err = nf_conntrack_l4proto_generic.init_net(net);
+-	if (err < 0)
+-		return err;
+-
+-	err = nf_ct_l4proto_pernet_register(net, builtin_l4proto,
+-					    ARRAY_SIZE(builtin_l4proto));
+-	if (err < 0)
+-		return err;
+-
+-	pn->users++;
++	nf_conntrack_generic_init_net(net);
++	nf_conntrack_udp_init_net(net);
++	nf_conntrack_tcp_init_net(net);
++	nf_conntrack_icmp_init_net(net);
++	nf_conntrack_icmpv6_init_net(net);
++#ifdef CONFIG_NF_CT_PROTO_DCCP
++	nf_conntrack_dccp_init_net(net);
++#endif
++#ifdef CONFIG_NF_CT_PROTO_SCTP
++	nf_conntrack_sctp_init_net(net);
++#endif
++#ifdef CONFIG_NF_CT_PROTO_GRE
++	nf_conntrack_gre_init_net(net);
++#endif
+ 	return 0;
+ }
  
+ void nf_conntrack_proto_pernet_fini(struct net *net)
+ {
+-	struct nf_proto_net *pn = nf_ct_l4proto_net(net,
+-					&nf_conntrack_l4proto_generic);
+-
+-	nf_ct_l4proto_pernet_unregister(net, builtin_l4proto,
+-					ARRAY_SIZE(builtin_l4proto));
+-	pn->users--;
+ #ifdef CONFIG_NF_CT_PROTO_GRE
+ 	nf_ct_gre_keymap_flush(net);
+ #endif
+diff --git a/net/netfilter/nf_conntrack_proto_dccp.c b/net/netfilter/nf_conntrack_proto_dccp.c
+index 31ba88311bc4..6fca80587505 100644
+--- a/net/netfilter/nf_conntrack_proto_dccp.c
++++ b/net/netfilter/nf_conntrack_proto_dccp.c
+@@ -724,34 +724,24 @@ dccp_timeout_nla_policy[CTA_TIMEOUT_DCCP_MAX+1] = {
+ };
+ #endif /* CONFIG_NF_CONNTRACK_TIMEOUT */
+ 
+-static int dccp_init_net(struct net *net)
++void nf_conntrack_dccp_init_net(struct net *net)
+ {
+ 	struct nf_dccp_net *dn = nf_dccp_pernet(net);
+-	struct nf_proto_net *pn = &dn->pn;
+-
+-	if (!pn->users) {
+-		/* default values */
+-		dn->dccp_loose = 1;
+-		dn->dccp_timeout[CT_DCCP_REQUEST]	= 2 * DCCP_MSL;
+-		dn->dccp_timeout[CT_DCCP_RESPOND]	= 4 * DCCP_MSL;
+-		dn->dccp_timeout[CT_DCCP_PARTOPEN]	= 4 * DCCP_MSL;
+-		dn->dccp_timeout[CT_DCCP_OPEN]		= 12 * 3600 * HZ;
+-		dn->dccp_timeout[CT_DCCP_CLOSEREQ]	= 64 * HZ;
+-		dn->dccp_timeout[CT_DCCP_CLOSING]	= 64 * HZ;
+-		dn->dccp_timeout[CT_DCCP_TIMEWAIT]	= 2 * DCCP_MSL;
+-
+-		/* timeouts[0] is unused, make it same as SYN_SENT so
+-		 * ->timeouts[0] contains 'new' timeout, like udp or icmp.
+-		 */
+-		dn->dccp_timeout[CT_DCCP_NONE] = dn->dccp_timeout[CT_DCCP_REQUEST];
+-	}
+-
+-	return 0;
+-}
+ 
+-static struct nf_proto_net *dccp_get_net_proto(struct net *net)
+-{
+-	return &net->ct.nf_ct_proto.dccp.pn;
++	/* default values */
++	dn->dccp_loose = 1;
++	dn->dccp_timeout[CT_DCCP_REQUEST]	= 2 * DCCP_MSL;
++	dn->dccp_timeout[CT_DCCP_RESPOND]	= 4 * DCCP_MSL;
++	dn->dccp_timeout[CT_DCCP_PARTOPEN]	= 4 * DCCP_MSL;
++	dn->dccp_timeout[CT_DCCP_OPEN]		= 12 * 3600 * HZ;
++	dn->dccp_timeout[CT_DCCP_CLOSEREQ]	= 64 * HZ;
++	dn->dccp_timeout[CT_DCCP_CLOSING]	= 64 * HZ;
++	dn->dccp_timeout[CT_DCCP_TIMEWAIT]	= 2 * DCCP_MSL;
++
++	/* timeouts[0] is unused, make it same as SYN_SENT so
++	 * ->timeouts[0] contains 'new' timeout, like udp or icmp.
++	 */
++	dn->dccp_timeout[CT_DCCP_NONE] = dn->dccp_timeout[CT_DCCP_REQUEST];
+ }
+ 
+ const struct nf_conntrack_l4proto nf_conntrack_l4proto_dccp = {
+@@ -778,6 +768,4 @@ const struct nf_conntrack_l4proto nf_conntrack_l4proto_dccp = {
+ 		.nla_policy	= dccp_timeout_nla_policy,
+ 	},
+ #endif /* CONFIG_NF_CONNTRACK_TIMEOUT */
+-	.init_net		= dccp_init_net,
+-	.get_net_proto		= dccp_get_net_proto,
+ };
+diff --git a/net/netfilter/nf_conntrack_proto_generic.c b/net/netfilter/nf_conntrack_proto_generic.c
+index 0edbf82594d0..0f526fafecae 100644
+--- a/net/netfilter/nf_conntrack_proto_generic.c
++++ b/net/netfilter/nf_conntrack_proto_generic.c
+@@ -60,18 +60,11 @@ generic_timeout_nla_policy[CTA_TIMEOUT_GENERIC_MAX+1] = {
+ };
+ #endif /* CONFIG_NF_CONNTRACK_TIMEOUT */
+ 
+-static int generic_init_net(struct net *net)
++void nf_conntrack_generic_init_net(struct net *net)
+ {
+ 	struct nf_generic_net *gn = nf_generic_pernet(net);
+ 
+ 	gn->timeout = nf_ct_generic_timeout;
+-
+-	return 0;
+-}
+-
+-static struct nf_proto_net *generic_get_net_proto(struct net *net)
+-{
+-	return &net->ct.nf_ct_proto.generic.pn;
+ }
+ 
+ const struct nf_conntrack_l4proto nf_conntrack_l4proto_generic =
+@@ -86,6 +79,4 @@ const struct nf_conntrack_l4proto nf_conntrack_l4proto_generic =
+ 		.nla_policy	= generic_timeout_nla_policy,
+ 	},
+ #endif /* CONFIG_NF_CONNTRACK_TIMEOUT */
+-	.init_net		= generic_init_net,
+-	.get_net_proto		= generic_get_net_proto,
+ };
+diff --git a/net/netfilter/nf_conntrack_proto_gre.c b/net/netfilter/nf_conntrack_proto_gre.c
+index e573ec0fa12b..fa765d2fd586 100644
+--- a/net/netfilter/nf_conntrack_proto_gre.c
++++ b/net/netfilter/nf_conntrack_proto_gre.c
+@@ -313,7 +313,7 @@ gre_timeout_nla_policy[CTA_TIMEOUT_GRE_MAX+1] = {
+ };
+ #endif /* CONFIG_NF_CONNTRACK_TIMEOUT */
+ 
+-static int gre_init_net(struct net *net)
++void nf_conntrack_gre_init_net(struct net *net)
+ {
+ 	struct nf_gre_net *net_gre = gre_pernet(net);
+ 	int i;
+@@ -321,8 +321,6 @@ static int gre_init_net(struct net *net)
+ 	INIT_LIST_HEAD(&net_gre->keymap_list);
+ 	for (i = 0; i < GRE_CT_MAX; i++)
+ 		net_gre->timeouts[i] = gre_timeouts[i];
+-
+-	return 0;
+ }
+ 
+ /* protocol helper struct */
+@@ -347,5 +345,4 @@ const struct nf_conntrack_l4proto nf_conntrack_l4proto_gre = {
+ 		.nla_policy	= gre_timeout_nla_policy,
+ 	},
+ #endif /* CONFIG_NF_CONNTRACK_TIMEOUT */
+-	.init_net	= gre_init_net,
+ };
 diff --git a/net/netfilter/nf_conntrack_proto_icmp.c b/net/netfilter/nf_conntrack_proto_icmp.c
-index d28c1d7633b2..1007efae741d 100644
+index eb77f747759f..7df477996b16 100644
 --- a/net/netfilter/nf_conntrack_proto_icmp.c
 +++ b/net/netfilter/nf_conntrack_proto_icmp.c
-@@ -109,7 +109,6 @@ icmp_error_message(struct nf_conn *tmpl, struct sk_buff *skb,
- 		   const struct nf_hook_state *state)
- {
- 	struct nf_conntrack_tuple innertuple, origtuple;
--	const struct nf_conntrack_l4proto *innerproto;
- 	const struct nf_conntrack_tuple_hash *h;
- 	const struct nf_conntrack_zone *zone;
- 	enum ip_conntrack_info ctinfo;
-@@ -127,12 +126,9 @@ icmp_error_message(struct nf_conn *tmpl, struct sk_buff *skb,
- 		return -NF_ACCEPT;
- 	}
+@@ -298,19 +298,11 @@ icmp_timeout_nla_policy[CTA_TIMEOUT_ICMP_MAX+1] = {
+ };
+ #endif /* CONFIG_NF_CONNTRACK_TIMEOUT */
  
--	/* rcu_read_lock()ed by nf_hook_thresh */
--	innerproto = __nf_ct_l4proto_find(origtuple.dst.protonum);
 -
- 	/* Ordinarily, we'd expect the inverted tupleproto, but it's
- 	   been preserved inside the ICMP. */
--	if (!nf_ct_invert_tuple(&innertuple, &origtuple, innerproto)) {
-+	if (!nf_ct_invert_tuple(&innertuple, &origtuple)) {
- 		pr_debug("icmp_error_message: no match\n");
- 		return -NF_ACCEPT;
- 	}
+-static int icmp_init_net(struct net *net)
++void nf_conntrack_icmp_init_net(struct net *net)
+ {
+ 	struct nf_icmp_net *in = nf_icmp_pernet(net);
+ 
+ 	in->timeout = nf_ct_icmp_timeout;
+-
+-	return 0;
+-}
+-
+-static struct nf_proto_net *icmp_get_net_proto(struct net *net)
+-{
+-	return &net->ct.nf_ct_proto.icmp.pn;
+ }
+ 
+ const struct nf_conntrack_l4proto nf_conntrack_l4proto_icmp =
+@@ -331,6 +323,4 @@ const struct nf_conntrack_l4proto nf_conntrack_l4proto_icmp =
+ 		.nla_policy	= icmp_timeout_nla_policy,
+ 	},
+ #endif /* CONFIG_NF_CONNTRACK_TIMEOUT */
+-	.init_net		= icmp_init_net,
+-	.get_net_proto		= icmp_get_net_proto,
+ };
 diff --git a/net/netfilter/nf_conntrack_proto_icmpv6.c b/net/netfilter/nf_conntrack_proto_icmpv6.c
-index 2910dcdea134..6c93c091a8dd 100644
+index d243ef8a128e..bec4a3211658 100644
 --- a/net/netfilter/nf_conntrack_proto_icmpv6.c
 +++ b/net/netfilter/nf_conntrack_proto_icmpv6.c
-@@ -130,7 +130,6 @@ icmpv6_error_message(struct net *net, struct nf_conn *tmpl,
- {
- 	struct nf_conntrack_tuple intuple, origtuple;
- 	const struct nf_conntrack_tuple_hash *h;
--	const struct nf_conntrack_l4proto *inproto;
- 	enum ip_conntrack_info ctinfo;
- 	struct nf_conntrack_zone tmp;
+@@ -309,19 +309,11 @@ icmpv6_timeout_nla_policy[CTA_TIMEOUT_ICMPV6_MAX+1] = {
+ };
+ #endif /* CONFIG_NF_CONNTRACK_TIMEOUT */
  
-@@ -146,12 +145,9 @@ icmpv6_error_message(struct net *net, struct nf_conn *tmpl,
- 		return -NF_ACCEPT;
- 	}
- 
--	/* rcu_read_lock()ed by nf_hook_thresh */
--	inproto = __nf_ct_l4proto_find(origtuple.dst.protonum);
 -
- 	/* Ordinarily, we'd expect the inverted tupleproto, but it's
- 	   been preserved inside the ICMP. */
--	if (!nf_ct_invert_tuple(&intuple, &origtuple, inproto)) {
-+	if (!nf_ct_invert_tuple(&intuple, &origtuple)) {
- 		pr_debug("icmpv6_error: Can't invert tuple\n");
- 		return -NF_ACCEPT;
- 	}
-diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
-index d159e9e7835b..44f97b3a215a 100644
---- a/net/netfilter/nf_nat_core.c
-+++ b/net/netfilter/nf_nat_core.c
-@@ -158,7 +158,7 @@ nf_nat_used_tuple(const struct nf_conntrack_tuple *tuple,
- 	 */
- 	struct nf_conntrack_tuple reply;
+-static int icmpv6_init_net(struct net *net)
++void nf_conntrack_icmpv6_init_net(struct net *net)
+ {
+ 	struct nf_icmp_net *in = nf_icmpv6_pernet(net);
  
--	nf_ct_invert_tuplepr(&reply, tuple);
-+	nf_ct_invert_tuple(&reply, tuple);
- 	return nf_conntrack_tuple_taken(&reply, ignored_conntrack);
+ 	in->timeout = nf_ct_icmpv6_timeout;
+-
+-	return 0;
+-}
+-
+-static struct nf_proto_net *icmpv6_get_net_proto(struct net *net)
+-{
+-	return &net->ct.nf_ct_proto.icmpv6.pn;
  }
- EXPORT_SYMBOL(nf_nat_used_tuple);
-@@ -253,7 +253,7 @@ find_appropriate_src(struct net *net,
- 		    net_eq(net, nf_ct_net(ct)) &&
- 		    nf_ct_zone_equal(ct, zone, IP_CT_DIR_ORIGINAL)) {
- 			/* Copy source part from reply tuple. */
--			nf_ct_invert_tuplepr(result,
-+			nf_ct_invert_tuple(result,
- 				       &ct->tuplehash[IP_CT_DIR_REPLY].tuple);
- 			result->dst = tuple->dst;
  
-@@ -560,8 +560,8 @@ nf_nat_setup_info(struct nf_conn *ct,
- 	 * manipulations (future optimization: if num_manips == 0,
- 	 * orig_tp = ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple)
- 	 */
--	nf_ct_invert_tuplepr(&curr_tuple,
--			     &ct->tuplehash[IP_CT_DIR_REPLY].tuple);
-+	nf_ct_invert_tuple(&curr_tuple,
-+			   &ct->tuplehash[IP_CT_DIR_REPLY].tuple);
+ const struct nf_conntrack_l4proto nf_conntrack_l4proto_icmpv6 =
+@@ -342,6 +334,4 @@ const struct nf_conntrack_l4proto nf_conntrack_l4proto_icmpv6 =
+ 		.nla_policy	= icmpv6_timeout_nla_policy,
+ 	},
+ #endif /* CONFIG_NF_CONNTRACK_TIMEOUT */
+-	.init_net		= icmpv6_init_net,
+-	.get_net_proto		= icmpv6_get_net_proto,
+ };
+diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
+index 31130f218d8f..a7818101ad80 100644
+--- a/net/netfilter/nf_conntrack_proto_sctp.c
++++ b/net/netfilter/nf_conntrack_proto_sctp.c
+@@ -642,29 +642,18 @@ sctp_timeout_nla_policy[CTA_TIMEOUT_SCTP_MAX+1] = {
+ };
+ #endif /* CONFIG_NF_CONNTRACK_TIMEOUT */
  
- 	get_unique_tuple(&new_tuple, &curr_tuple, range, ct, maniptype);
+-static int sctp_init_net(struct net *net)
++void nf_conntrack_sctp_init_net(struct net *net)
+ {
+ 	struct nf_sctp_net *sn = nf_sctp_pernet(net);
+-	struct nf_proto_net *pn = &sn->pn;
+-
+-	if (!pn->users) {
+-		int i;
+-
+-		for (i = 0; i < SCTP_CONNTRACK_MAX; i++)
+-			sn->timeouts[i] = sctp_timeouts[i];
+-
+-		/* timeouts[0] is unused, init it so ->timeouts[0] contains
+-		 * 'new' timeout, like udp or icmp.
+-		 */
+-		sn->timeouts[0] = sctp_timeouts[SCTP_CONNTRACK_CLOSED];
+-	}
++	int i;
  
-@@ -569,7 +569,7 @@ nf_nat_setup_info(struct nf_conn *ct,
- 		struct nf_conntrack_tuple reply;
+-	return 0;
+-}
++	for (i = 0; i < SCTP_CONNTRACK_MAX; i++)
++		sn->timeouts[i] = sctp_timeouts[i];
  
- 		/* Alter conntrack table so will recognize replies. */
--		nf_ct_invert_tuplepr(&reply, &new_tuple);
-+		nf_ct_invert_tuple(&reply, &new_tuple);
- 		nf_conntrack_alter_reply(ct, &reply);
+-static struct nf_proto_net *sctp_get_net_proto(struct net *net)
+-{
+-	return &net->ct.nf_ct_proto.sctp.pn;
++	/* timeouts[0] is unused, init it so ->timeouts[0] contains
++	 * 'new' timeout, like udp or icmp.
++	 */
++	sn->timeouts[0] = sctp_timeouts[SCTP_CONNTRACK_CLOSED];
+ }
  
- 		/* Non-atomic: we own this at the moment. */
-@@ -640,7 +640,7 @@ static unsigned int nf_nat_manip_pkt(struct sk_buff *skb, struct nf_conn *ct,
- 	struct nf_conntrack_tuple target;
+ const struct nf_conntrack_l4proto nf_conntrack_l4proto_sctp = {
+@@ -691,6 +680,4 @@ const struct nf_conntrack_l4proto nf_conntrack_l4proto_sctp = {
+ 		.nla_policy	= sctp_timeout_nla_policy,
+ 	},
+ #endif /* CONFIG_NF_CONNTRACK_TIMEOUT */
+-	.init_net		= sctp_init_net,
+-	.get_net_proto		= sctp_get_net_proto,
+ };
+diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+index 422bdedac0ed..01c748fa8913 100644
+--- a/net/netfilter/nf_conntrack_proto_tcp.c
++++ b/net/netfilter/nf_conntrack_proto_tcp.c
+@@ -1387,32 +1387,21 @@ static const struct nla_policy tcp_timeout_nla_policy[CTA_TIMEOUT_TCP_MAX+1] = {
+ };
+ #endif /* CONFIG_NF_CONNTRACK_TIMEOUT */
  
- 	/* We are aiming to look like inverse of other direction. */
--	nf_ct_invert_tuplepr(&target, &ct->tuplehash[!dir].tuple);
-+	nf_ct_invert_tuple(&target, &ct->tuplehash[!dir].tuple);
+-static int tcp_init_net(struct net *net)
++void nf_conntrack_tcp_init_net(struct net *net)
+ {
+ 	struct nf_tcp_net *tn = nf_tcp_pernet(net);
+-	struct nf_proto_net *pn = &tn->pn;
+-
+-	if (!pn->users) {
+-		int i;
+-
+-		for (i = 0; i < TCP_CONNTRACK_TIMEOUT_MAX; i++)
+-			tn->timeouts[i] = tcp_timeouts[i];
+-
+-		/* timeouts[0] is unused, make it same as SYN_SENT so
+-		 * ->timeouts[0] contains 'new' timeout, like udp or icmp.
+-		 */
+-		tn->timeouts[0] = tcp_timeouts[TCP_CONNTRACK_SYN_SENT];
+-		tn->tcp_loose = nf_ct_tcp_loose;
+-		tn->tcp_be_liberal = nf_ct_tcp_be_liberal;
+-		tn->tcp_max_retrans = nf_ct_tcp_max_retrans;
+-	}
++	int i;
  
- 	l3proto = __nf_nat_l3proto_find(target.src.l3num);
- 	if (!l3proto->manip_pkt(skb, 0, &target, mtype))
-diff --git a/net/openvswitch/conntrack.c b/net/openvswitch/conntrack.c
-index cd94f925495a..35884f836260 100644
---- a/net/openvswitch/conntrack.c
-+++ b/net/openvswitch/conntrack.c
-@@ -622,7 +622,7 @@ ovs_ct_find_existing(struct net *net, const struct nf_conntrack_zone *zone,
- 	if (natted) {
- 		struct nf_conntrack_tuple inverse;
+-	return 0;
+-}
++	for (i = 0; i < TCP_CONNTRACK_TIMEOUT_MAX; i++)
++		tn->timeouts[i] = tcp_timeouts[i];
  
--		if (!nf_ct_invert_tuplepr(&inverse, &tuple)) {
-+		if (!nf_ct_invert_tuple(&inverse, &tuple)) {
- 			pr_debug("ovs_ct_find_existing: Inversion failed!\n");
- 			return NULL;
- 		}
+-static struct nf_proto_net *tcp_get_net_proto(struct net *net)
+-{
+-	return &net->ct.nf_ct_proto.tcp.pn;
++	/* timeouts[0] is unused, make it same as SYN_SENT so
++	 * ->timeouts[0] contains 'new' timeout, like udp or icmp.
++	 */
++	tn->timeouts[0] = tcp_timeouts[TCP_CONNTRACK_SYN_SENT];
++	tn->tcp_loose = nf_ct_tcp_loose;
++	tn->tcp_be_liberal = nf_ct_tcp_be_liberal;
++	tn->tcp_max_retrans = nf_ct_tcp_max_retrans;
+ }
+ 
+ const struct nf_conntrack_l4proto nf_conntrack_l4proto_tcp =
+@@ -1441,6 +1430,4 @@ const struct nf_conntrack_l4proto nf_conntrack_l4proto_tcp =
+ 		.nla_policy	= tcp_timeout_nla_policy,
+ 	},
+ #endif /* CONFIG_NF_CONNTRACK_TIMEOUT */
+-	.init_net		= tcp_init_net,
+-	.get_net_proto		= tcp_get_net_proto,
+ };
+diff --git a/net/netfilter/nf_conntrack_proto_udp.c b/net/netfilter/nf_conntrack_proto_udp.c
+index 6e81e79844d7..951366dfbec3 100644
+--- a/net/netfilter/nf_conntrack_proto_udp.c
++++ b/net/netfilter/nf_conntrack_proto_udp.c
+@@ -260,25 +260,13 @@ udp_timeout_nla_policy[CTA_TIMEOUT_UDP_MAX+1] = {
+ };
+ #endif /* CONFIG_NF_CONNTRACK_TIMEOUT */
+ 
+-
+-static int udp_init_net(struct net *net)
++void nf_conntrack_udp_init_net(struct net *net)
+ {
+ 	struct nf_udp_net *un = nf_udp_pernet(net);
+-	struct nf_proto_net *pn = &un->pn;
+-
+-	if (!pn->users) {
+-		int i;
+-
+-		for (i = 0; i < UDP_CT_MAX; i++)
+-			un->timeouts[i] = udp_timeouts[i];
+-	}
++	int i;
+ 
+-	return 0;
+-}
+-
+-static struct nf_proto_net *udp_get_net_proto(struct net *net)
+-{
+-	return &net->ct.nf_ct_proto.udp.pn;
++	for (i = 0; i < UDP_CT_MAX; i++)
++		un->timeouts[i] = udp_timeouts[i];
+ }
+ 
+ const struct nf_conntrack_l4proto nf_conntrack_l4proto_udp =
+@@ -300,8 +288,6 @@ const struct nf_conntrack_l4proto nf_conntrack_l4proto_udp =
+ 		.nla_policy	= udp_timeout_nla_policy,
+ 	},
+ #endif /* CONFIG_NF_CONNTRACK_TIMEOUT */
+-	.init_net		= udp_init_net,
+-	.get_net_proto		= udp_get_net_proto,
+ };
+ 
+ #ifdef CONFIG_NF_CT_PROTO_UDPLITE
+@@ -324,7 +310,5 @@ const struct nf_conntrack_l4proto nf_conntrack_l4proto_udplite =
+ 		.nla_policy	= udp_timeout_nla_policy,
+ 	},
+ #endif /* CONFIG_NF_CONNTRACK_TIMEOUT */
+-	.init_net		= udp_init_net,
+-	.get_net_proto		= udp_get_net_proto,
+ };
+ #endif
 -- 
 2.11.0
