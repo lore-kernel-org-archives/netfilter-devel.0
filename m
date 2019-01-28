@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 5/7] netfilter: ebtables: compat: un-break 32bit setsockopt when no rules are present
-Date: Mon, 28 Jan 2019 15:04:03 +0100
-Message-ID: <20190128140405.15020-6-pablo@netfilter.org>
+Subject: [PATCH 1/7] netfilter: nft_compat: use refcnt_t type for nft_xt reference count
+Date: Mon, 28 Jan 2019 15:03:59 +0100
+Message-ID: <20190128140405.15020-2-pablo@netfilter.org>
 References: <20190128140405.15020-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -12,42 +12,109 @@ List-Id: netfilter-devel.vger.kernel.org
 
 From: Florian Westphal <fw@strlen.de>
 
-Unlike ip(6)tables ebtables only counts user-defined chains.
+Using standard integer type was fine while all operations on it were
+guarded by the nftnl subsys mutex.
 
-The effect is that a 32bit ebtables binary on a 64bit kernel can do
-'ebtables -N FOO' only after adding at least one rule, else the request
-fails with -EINVAL.
+This isn't true anymore:
+1. transactions are guarded only by a pernet mutex, so concurrent
+   rule manipulation in different netns is racy
+2. the ->destroy hook runs from a work queue after the transaction
+   mutex has been released already.
 
-This is a similar fix as done in
-3f1e53abff84 ("netfilter: ebtables: don't attempt to allocate 0-sized compat array").
+cpu0                           cpu1 (net 1)        cpu2 (net 2)
+ kworker
+    nft_compat->destroy        nft_compat->init    nft_compat->init
+      if (--nft_xt->ref == 0)   nft_xt->ref++        nft_xt->ref++
 
-Fixes: 7d7d7e02111e9 ("netfilter: compat: reject huge allocation requests")
-Reported-by: Francesco Ruggeri <fruggeri@arista.com>
+Switch to refcount_t.  Doing this however only fixes a minor aspect,
+nft_compat also performs linked-list operations in an unsafe way.
+
+This is addressed in the next two patches.
+
+Fixes: f102d66b335a ("netfilter: nf_tables: use dedicated mutex to guard transactions")
+Fixes: 0935d5588400 ("netfilter: nf_tables: asynchronous release")
+Reported-by: Taehee Yoo <ap420073@gmail.com>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/bridge/netfilter/ebtables.c | 9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ net/netfilter/nft_compat.c | 16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
-index 5e55cef0cec3..6693e209efe8 100644
---- a/net/bridge/netfilter/ebtables.c
-+++ b/net/bridge/netfilter/ebtables.c
-@@ -2293,9 +2293,12 @@ static int compat_do_replace(struct net *net, void __user *user,
+diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
+index 7334e0b80a5e..acc85acad31b 100644
+--- a/net/netfilter/nft_compat.c
++++ b/net/netfilter/nft_compat.c
+@@ -26,7 +26,7 @@
+ struct nft_xt {
+ 	struct list_head	head;
+ 	struct nft_expr_ops	ops;
+-	unsigned int		refcnt;
++	refcount_t		refcnt;
  
- 	xt_compat_lock(NFPROTO_BRIDGE);
+ 	/* Unlike other expressions, ops doesn't have static storage duration.
+ 	 * nft core assumes they do.  We use kfree_rcu so that nft core can
+@@ -45,7 +45,7 @@ struct nft_xt_match_priv {
  
--	ret = xt_compat_init_offsets(NFPROTO_BRIDGE, tmp.nentries);
--	if (ret < 0)
--		goto out_unlock;
-+	if (tmp.nentries) {
-+		ret = xt_compat_init_offsets(NFPROTO_BRIDGE, tmp.nentries);
-+		if (ret < 0)
-+			goto out_unlock;
-+	}
-+
- 	ret = compat_copy_entries(entries_tmp, tmp.entries_size, &state);
- 	if (ret < 0)
- 		goto out_unlock;
+ static bool nft_xt_put(struct nft_xt *xt)
+ {
+-	if (--xt->refcnt == 0) {
++	if (refcount_dec_and_test(&xt->refcnt)) {
+ 		list_del(&xt->head);
+ 		kfree_rcu(xt, rcu_head);
+ 		return true;
+@@ -273,7 +273,7 @@ nft_target_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
+ 		return -EINVAL;
+ 
+ 	nft_xt = container_of(expr->ops, struct nft_xt, ops);
+-	nft_xt->refcnt++;
++	refcount_inc(&nft_xt->refcnt);
+ 	return 0;
+ }
+ 
+@@ -486,7 +486,7 @@ __nft_match_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
+ 		return ret;
+ 
+ 	nft_xt = container_of(expr->ops, struct nft_xt, ops);
+-	nft_xt->refcnt++;
++	refcount_inc(&nft_xt->refcnt);
+ 	return 0;
+ }
+ 
+@@ -789,7 +789,7 @@ nft_match_select_ops(const struct nft_ctx *ctx,
+ 		goto err;
+ 	}
+ 
+-	nft_match->refcnt = 0;
++	refcount_set(&nft_match->refcnt, 0);
+ 	nft_match->ops.type = &nft_match_type;
+ 	nft_match->ops.eval = nft_match_eval;
+ 	nft_match->ops.init = nft_match_init;
+@@ -893,7 +893,7 @@ nft_target_select_ops(const struct nft_ctx *ctx,
+ 		goto err;
+ 	}
+ 
+-	nft_target->refcnt = 0;
++	refcount_set(&nft_target->refcnt, 0);
+ 	nft_target->ops.type = &nft_target_type;
+ 	nft_target->ops.size = NFT_EXPR_SIZE(XT_ALIGN(target->targetsize));
+ 	nft_target->ops.init = nft_target_init;
+@@ -964,7 +964,7 @@ static void __exit nft_compat_module_exit(void)
+ 	list_for_each_entry_safe(xt, next, &nft_target_list, head) {
+ 		struct xt_target *target = xt->ops.data;
+ 
+-		if (WARN_ON_ONCE(xt->refcnt))
++		if (WARN_ON_ONCE(refcount_read(&xt->refcnt)))
+ 			continue;
+ 		module_put(target->me);
+ 		kfree(xt);
+@@ -973,7 +973,7 @@ static void __exit nft_compat_module_exit(void)
+ 	list_for_each_entry_safe(xt, next, &nft_match_list, head) {
+ 		struct xt_match *match = xt->ops.data;
+ 
+-		if (WARN_ON_ONCE(xt->refcnt))
++		if (WARN_ON_ONCE(refcount_read(&xt->refcnt)))
+ 			continue;
+ 		module_put(match->me);
+ 		kfree(xt);
 -- 
 2.11.0
