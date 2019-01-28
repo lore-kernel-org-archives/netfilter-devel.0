@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 06/33] netfilter: nf_tables: Support RULE_ID reference in new rule
-Date: Tue, 29 Jan 2019 00:57:23 +0100
-Message-ID: <20190128235750.18412-7-pablo@netfilter.org>
+Subject: [PATCH 02/33] netfilter: nf_tables: handle nft_object lookups via rhltable
+Date: Tue, 29 Jan 2019 00:57:19 +0100
+Message-ID: <20190128235750.18412-3-pablo@netfilter.org>
 References: <20190128235750.18412-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,71 +10,295 @@ In-Reply-To: <20190128235750.18412-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Phil Sutter <phil@nwl.cc>
+From: Florian Westphal <fw@strlen.de>
 
-To allow for a batch to contain rules in arbitrary ordering, introduce
-NFTA_RULE_POSITION_ID attribute which works just like NFTA_RULE_POSITION
-but contains the ID of another rule within the same batch. This helps
-iptables-nft-restore handling dumps with mixed insert/append commands
-correctly.
+Instead of linear search, use rhlist interface to look up the objects.
+This fixes rulesets with thousands of named objects (quota, counters and
+the like).
 
-Note that NFTA_RULE_POSITION takes precedence over
-NFTA_RULE_POSITION_ID, so if the former is present, the latter is
-ignored.
+We only use a single table for this and consider the address of the
+table we're doing the lookup in as a part of the key.
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
+This reduces restore time of a sample ruleset with ~20k named counters
+from 37 seconds to 0.8 seconds.
+
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/uapi/linux/netfilter/nf_tables.h | 2 ++
- net/netfilter/nf_tables_api.c            | 9 +++++++++
- 2 files changed, 11 insertions(+)
+ include/net/netfilter/nf_tables.h |   7 ++-
+ net/netfilter/nf_tables_api.c     | 103 +++++++++++++++++++++++++++++++++-----
+ net/netfilter/nft_objref.c        |   3 +-
+ 3 files changed, 98 insertions(+), 15 deletions(-)
 
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index 7de4f1bdaf06..99ca95b830b6 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -219,6 +219,7 @@ enum nft_chain_attributes {
-  * @NFTA_RULE_POSITION: numeric handle of the previous rule (NLA_U64)
-  * @NFTA_RULE_USERDATA: user data (NLA_BINARY, NFT_USERDATA_MAXLEN)
-  * @NFTA_RULE_ID: uniquely identifies a rule in a transaction (NLA_U32)
-+ * @NFTA_RULE_POSITION_ID: transaction unique identifier of the previous rule (NLA_U32)
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index 325d0a6b808b..45eba7d7ab38 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -1027,14 +1027,16 @@ struct nft_object_hash_key {
+  *
+  *	@list: table stateful object list node
+  *	@key:  keys that identify this object
++ *	@rhlhead: nft_objname_ht node
+  *	@genmask: generation mask
+  *	@use: number of references to this stateful object
+  *	@handle: unique object handle
+  *	@ops: object operations
+- * 	@data: object data, layout depends on type
++ *	@data: object data, layout depends on type
   */
- enum nft_rule_attributes {
- 	NFTA_RULE_UNSPEC,
-@@ -231,6 +232,7 @@ enum nft_rule_attributes {
- 	NFTA_RULE_USERDATA,
- 	NFTA_RULE_PAD,
- 	NFTA_RULE_ID,
-+	NFTA_RULE_POSITION_ID,
- 	__NFTA_RULE_MAX
- };
- #define NFTA_RULE_MAX		(__NFTA_RULE_MAX - 1)
+ struct nft_object {
+ 	struct list_head		list;
++	struct rhlist_head		rhlhead;
+ 	struct nft_object_hash_key	key;
+ 	u32				genmask:2,
+ 					use:30;
+@@ -1052,7 +1054,8 @@ static inline void *nft_obj_data(const struct nft_object *obj)
+ 
+ #define nft_expr_obj(expr)	*((struct nft_object **)nft_expr_priv(expr))
+ 
+-struct nft_object *nft_obj_lookup(const struct nft_table *table,
++struct nft_object *nft_obj_lookup(const struct net *net,
++				  const struct nft_table *table,
+ 				  const struct nlattr *nla, u32 objtype,
+ 				  u8 genmask);
+ 
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 621ff834d3a4..d88c86c5b433 100644
+index 5e213941e85b..621ff834d3a4 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -2610,6 +2610,9 @@ static int nft_table_validate(struct net *net, const struct nft_table *table)
- 	return 0;
+@@ -37,10 +37,16 @@ enum {
+ 	NFT_VALIDATE_DO,
+ };
+ 
++static struct rhltable nft_objname_ht;
++
+ static u32 nft_chain_hash(const void *data, u32 len, u32 seed);
+ static u32 nft_chain_hash_obj(const void *data, u32 len, u32 seed);
+ static int nft_chain_hash_cmp(struct rhashtable_compare_arg *, const void *);
+ 
++static u32 nft_objname_hash(const void *data, u32 len, u32 seed);
++static u32 nft_objname_hash_obj(const void *data, u32 len, u32 seed);
++static int nft_objname_hash_cmp(struct rhashtable_compare_arg *, const void *);
++
+ static const struct rhashtable_params nft_chain_ht_params = {
+ 	.head_offset		= offsetof(struct nft_chain, rhlhead),
+ 	.key_offset		= offsetof(struct nft_chain, name),
+@@ -51,6 +57,15 @@ static const struct rhashtable_params nft_chain_ht_params = {
+ 	.automatic_shrinking	= true,
+ };
+ 
++static const struct rhashtable_params nft_objname_ht_params = {
++	.head_offset		= offsetof(struct nft_object, rhlhead),
++	.key_offset		= offsetof(struct nft_object, key),
++	.hashfn			= nft_objname_hash,
++	.obj_hashfn		= nft_objname_hash_obj,
++	.obj_cmpfn		= nft_objname_hash_cmp,
++	.automatic_shrinking	= true,
++};
++
+ static void nft_validate_state_update(struct net *net, u8 new_validate_state)
+ {
+ 	switch (net->nft.validate_state) {
+@@ -814,6 +829,34 @@ static int nft_chain_hash_cmp(struct rhashtable_compare_arg *arg,
+ 	return strcmp(chain->name, name);
  }
  
-+static struct nft_rule *nft_rule_lookup_byid(const struct net *net,
-+					     const struct nlattr *nla);
++static u32 nft_objname_hash(const void *data, u32 len, u32 seed)
++{
++	const struct nft_object_hash_key *k = data;
 +
- #define NFT_RULE_MAXEXPRS	128
++	seed ^= hash_ptr(k->table, 32);
++
++	return jhash(k->name, strlen(k->name), seed);
++}
++
++static u32 nft_objname_hash_obj(const void *data, u32 len, u32 seed)
++{
++	const struct nft_object *obj = data;
++
++	return nft_objname_hash(&obj->key, 0, seed);
++}
++
++static int nft_objname_hash_cmp(struct rhashtable_compare_arg *arg,
++				const void *ptr)
++{
++	const struct nft_object_hash_key *k = arg->key;
++	const struct nft_object *obj = ptr;
++
++	if (obj->key.table != k->table)
++		return -1;
++
++	return strcmp(obj->key.name, k->name);
++}
++
+ static int nf_tables_newtable(struct net *net, struct sock *nlsk,
+ 			      struct sk_buff *skb, const struct nlmsghdr *nlh,
+ 			      const struct nlattr * const nla[],
+@@ -1070,7 +1113,7 @@ nft_chain_lookup_byhandle(const struct nft_table *table, u64 handle, u8 genmask)
+ 	return ERR_PTR(-ENOENT);
+ }
  
- static int nf_tables_newrule(struct net *net, struct sock *nlsk,
-@@ -2679,6 +2682,12 @@ static int nf_tables_newrule(struct net *net, struct sock *nlsk,
- 				NL_SET_BAD_ATTR(extack, nla[NFTA_RULE_POSITION]);
- 				return PTR_ERR(old_rule);
- 			}
-+		} else if (nla[NFTA_RULE_POSITION_ID]) {
-+			old_rule = nft_rule_lookup_byid(net, nla[NFTA_RULE_POSITION_ID]);
-+			if (IS_ERR(old_rule)) {
-+				NL_SET_BAD_ATTR(extack, nla[NFTA_RULE_POSITION_ID]);
-+				return PTR_ERR(old_rule);
-+			}
+-static bool lockdep_commit_lock_is_held(struct net *net)
++static bool lockdep_commit_lock_is_held(const struct net *net)
+ {
+ #ifdef CONFIG_PROVE_LOCKING
+ 	return lockdep_is_held(&net->nft.commit_mutex);
+@@ -4386,7 +4429,8 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
+ 			err = -EINVAL;
+ 			goto err2;
  		}
+-		obj = nft_obj_lookup(ctx->table, nla[NFTA_SET_ELEM_OBJREF],
++		obj = nft_obj_lookup(ctx->net, ctx->table,
++				     nla[NFTA_SET_ELEM_OBJREF],
+ 				     set->objtype, genmask);
+ 		if (IS_ERR(obj)) {
+ 			err = PTR_ERR(obj);
+@@ -4819,18 +4863,36 @@ void nft_unregister_obj(struct nft_object_type *obj_type)
+ }
+ EXPORT_SYMBOL_GPL(nft_unregister_obj);
+ 
+-struct nft_object *nft_obj_lookup(const struct nft_table *table,
++struct nft_object *nft_obj_lookup(const struct net *net,
++				  const struct nft_table *table,
+ 				  const struct nlattr *nla, u32 objtype,
+ 				  u8 genmask)
+ {
++	struct nft_object_hash_key k = { .table = table };
++	char search[NFT_OBJ_MAXNAMELEN];
++	struct rhlist_head *tmp, *list;
+ 	struct nft_object *obj;
+ 
+-	list_for_each_entry_rcu(obj, &table->objects, list) {
+-		if (!nla_strcmp(nla, obj->key.name) &&
+-		    objtype == obj->ops->type->type &&
+-		    nft_active_genmask(obj, genmask))
++	nla_strlcpy(search, nla, sizeof(search));
++	k.name = search;
++
++	WARN_ON_ONCE(!rcu_read_lock_held() &&
++		     !lockdep_commit_lock_is_held(net));
++
++	rcu_read_lock();
++	list = rhltable_lookup(&nft_objname_ht, &k, nft_objname_ht_params);
++	if (!list)
++		goto out;
++
++	rhl_for_each_entry_rcu(obj, tmp, list, rhlhead) {
++		if (objtype == obj->ops->type->type &&
++		    nft_active_genmask(obj, genmask)) {
++			rcu_read_unlock();
+ 			return obj;
++		}
+ 	}
++out:
++	rcu_read_unlock();
+ 	return ERR_PTR(-ENOENT);
+ }
+ EXPORT_SYMBOL_GPL(nft_obj_lookup);
+@@ -4988,7 +5050,7 @@ static int nf_tables_newobj(struct net *net, struct sock *nlsk,
  	}
  
+ 	objtype = ntohl(nla_get_be32(nla[NFTA_OBJ_TYPE]));
+-	obj = nft_obj_lookup(table, nla[NFTA_OBJ_NAME], objtype, genmask);
++	obj = nft_obj_lookup(net, table, nla[NFTA_OBJ_NAME], objtype, genmask);
+ 	if (IS_ERR(obj)) {
+ 		err = PTR_ERR(obj);
+ 		if (err != -ENOENT) {
+@@ -5027,9 +5089,18 @@ static int nf_tables_newobj(struct net *net, struct sock *nlsk,
+ 	if (err < 0)
+ 		goto err3;
+ 
++	err = rhltable_insert(&nft_objname_ht, &obj->rhlhead,
++			      nft_objname_ht_params);
++	if (err < 0)
++		goto err4;
++
+ 	list_add_tail_rcu(&obj->list, &table->objects);
+ 	table->use++;
+ 	return 0;
++err4:
++	/* queued in transaction log */
++	INIT_LIST_HEAD(&obj->list);
++	return err;
+ err3:
+ 	kfree(obj->key.name);
+ err2:
+@@ -5215,7 +5286,7 @@ static int nf_tables_getobj(struct net *net, struct sock *nlsk,
+ 	}
+ 
+ 	objtype = ntohl(nla_get_be32(nla[NFTA_OBJ_TYPE]));
+-	obj = nft_obj_lookup(table, nla[NFTA_OBJ_NAME], objtype, genmask);
++	obj = nft_obj_lookup(net, table, nla[NFTA_OBJ_NAME], objtype, genmask);
+ 	if (IS_ERR(obj)) {
+ 		NL_SET_BAD_ATTR(extack, nla[NFTA_OBJ_NAME]);
+ 		return PTR_ERR(obj);
+@@ -5280,7 +5351,7 @@ static int nf_tables_delobj(struct net *net, struct sock *nlsk,
+ 		obj = nft_obj_lookup_byhandle(table, attr, objtype, genmask);
+ 	} else {
+ 		attr = nla[NFTA_OBJ_NAME];
+-		obj = nft_obj_lookup(table, attr, objtype, genmask);
++		obj = nft_obj_lookup(net, table, attr, objtype, genmask);
+ 	}
+ 
+ 	if (IS_ERR(obj)) {
+@@ -6406,6 +6477,7 @@ static void nf_tables_commit_chain(struct net *net, struct nft_chain *chain)
+ 
+ static void nft_obj_del(struct nft_object *obj)
+ {
++	rhltable_remove(&nft_objname_ht, &obj->rhlhead, nft_objname_ht_params);
+ 	list_del_rcu(&obj->list);
+ }
+ 
+@@ -6721,7 +6793,7 @@ static int __nf_tables_abort(struct net *net)
+ 			break;
+ 		case NFT_MSG_NEWOBJ:
+ 			trans->ctx.table->use--;
+-			list_del_rcu(&nft_trans_obj(trans)->list);
++			nft_obj_del(nft_trans_obj(trans));
+ 			break;
+ 		case NFT_MSG_DELOBJ:
+ 			trans->ctx.table->use++;
+@@ -7397,12 +7469,18 @@ static int __init nf_tables_module_init(void)
+ 	if (err < 0)
+ 		goto err3;
+ 
++	err = rhltable_init(&nft_objname_ht, &nft_objname_ht_params);
++	if (err < 0)
++		goto err4;
++
+ 	/* must be last */
+ 	err = nfnetlink_subsys_register(&nf_tables_subsys);
+ 	if (err < 0)
+-		goto err4;
++		goto err5;
+ 
+ 	return err;
++err5:
++	rhltable_destroy(&nft_objname_ht);
+ err4:
+ 	unregister_netdevice_notifier(&nf_tables_flowtable_notifier);
+ err3:
+@@ -7422,6 +7500,7 @@ static void __exit nf_tables_module_exit(void)
+ 	unregister_pernet_subsys(&nf_tables_net_ops);
+ 	cancel_work_sync(&trans_destroy_work);
+ 	rcu_barrier();
++	rhltable_destroy(&nft_objname_ht);
+ 	nf_tables_core_module_exit();
+ }
+ 
+diff --git a/net/netfilter/nft_objref.c b/net/netfilter/nft_objref.c
+index 58eb75ad61bf..c1f2adf198a0 100644
+--- a/net/netfilter/nft_objref.c
++++ b/net/netfilter/nft_objref.c
+@@ -38,7 +38,8 @@ static int nft_objref_init(const struct nft_ctx *ctx,
+ 		return -EINVAL;
+ 
+ 	objtype = ntohl(nla_get_be32(tb[NFTA_OBJREF_IMM_TYPE]));
+-	obj = nft_obj_lookup(ctx->table, tb[NFTA_OBJREF_IMM_NAME], objtype,
++	obj = nft_obj_lookup(ctx->net, ctx->table,
++			     tb[NFTA_OBJREF_IMM_NAME], objtype,
+ 			     genmask);
+ 	if (IS_ERR(obj))
+ 		return -ENOENT;
 -- 
 2.11.0
