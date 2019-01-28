@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 03/33] netfilter: nf_tables: add direct calls for all builtin expressions
-Date: Tue, 29 Jan 2019 00:57:20 +0100
-Message-ID: <20190128235750.18412-4-pablo@netfilter.org>
+Subject: [PATCH 13/33] netfilter: conntrack: remove invert_tuple callback
+Date: Tue, 29 Jan 2019 00:57:30 +0100
+Message-ID: <20190128235750.18412-14-pablo@netfilter.org>
 References: <20190128235750.18412-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -12,231 +12,111 @@ List-Id: netfilter-devel.vger.kernel.org
 
 From: Florian Westphal <fw@strlen.de>
 
-With CONFIG_RETPOLINE its faster to add an if (ptr == &foo_func)
-check and and use direct calls for all the built-in expressions.
-
-~15% improvement in pathological cases.
-
-checkpatch doesn't like the X macro due to the embedded return statement,
-but the macro has a very limited scope so I don't think its a problem.
-
-I would like to avoid bugs of the form
-  If (e->ops->eval == (unsigned long)nft_foo_eval)
-	 nft_bar_eval();
-
-and open-coded if ()/else if()/else cascade, thus the macro.
+Only used by icmp(v6).  Prefer a direct call and remove this
+function from the l4proto struct.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_tables_core.h | 16 ++++++++++++++++
- net/netfilter/nf_tables_core.c         | 25 ++++++++++++++++++-------
- net/netfilter/nft_bitwise.c            |  5 ++---
- net/netfilter/nft_byteorder.c          |  6 +++---
- net/netfilter/nft_cmp.c                |  6 +++---
- net/netfilter/nft_dynset.c             |  5 ++---
- net/netfilter/nft_immediate.c          |  6 +++---
- net/netfilter/nft_payload.c            |  6 +++---
- net/netfilter/nft_range.c              |  5 ++---
- net/netfilter/nft_rt.c                 |  6 +++---
- 10 files changed, 55 insertions(+), 31 deletions(-)
+ include/net/netfilter/nf_conntrack_l4proto.h | 11 +++++------
+ net/netfilter/nf_conntrack_core.c            |  8 ++++++--
+ net/netfilter/nf_conntrack_proto_icmp.c      |  5 ++---
+ net/netfilter/nf_conntrack_proto_icmpv6.c    |  5 ++---
+ 4 files changed, 15 insertions(+), 14 deletions(-)
 
-diff --git a/include/net/netfilter/nf_tables_core.h b/include/net/netfilter/nf_tables_core.h
-index 2046d104f323..7281895fa6d9 100644
---- a/include/net/netfilter/nf_tables_core.h
-+++ b/include/net/netfilter/nf_tables_core.h
-@@ -80,6 +80,22 @@ struct nft_regs;
- struct nft_pktinfo;
- void nft_meta_get_eval(const struct nft_expr *expr,
- 		       struct nft_regs *regs, const struct nft_pktinfo *pkt);
-+void nft_cmp_eval(const struct nft_expr *expr,
-+		  struct nft_regs *regs, const struct nft_pktinfo *pkt);
- void nft_lookup_eval(const struct nft_expr *expr,
- 		     struct nft_regs *regs, const struct nft_pktinfo *pkt);
-+void nft_payload_eval(const struct nft_expr *expr,
-+		      struct nft_regs *regs, const struct nft_pktinfo *pkt);
-+void nft_immediate_eval(const struct nft_expr *expr,
-+			struct nft_regs *regs, const struct nft_pktinfo *pkt);
-+void nft_bitwise_eval(const struct nft_expr *expr,
-+		      struct nft_regs *regs, const struct nft_pktinfo *pkt);
-+void nft_range_eval(const struct nft_expr *expr,
-+		    struct nft_regs *regs, const struct nft_pktinfo *pkt);
-+void nft_byteorder_eval(const struct nft_expr *expr,
-+			struct nft_regs *regs, const struct nft_pktinfo *pkt);
-+void nft_dynset_eval(const struct nft_expr *expr,
-+		     struct nft_regs *regs, const struct nft_pktinfo *pkt);
-+void nft_rt_get_eval(const struct nft_expr *expr,
-+		     struct nft_regs *regs, const struct nft_pktinfo *pkt);
- #endif /* _NET_NF_TABLES_CORE_H */
-diff --git a/net/netfilter/nf_tables_core.c b/net/netfilter/nf_tables_core.c
-index a50500232b0a..2a00aef7b6d4 100644
---- a/net/netfilter/nf_tables_core.c
-+++ b/net/netfilter/nf_tables_core.c
-@@ -124,14 +124,25 @@ static void expr_call_ops_eval(const struct nft_expr *expr,
- 			       struct nft_regs *regs,
- 			       struct nft_pktinfo *pkt)
- {
-+#ifdef CONFIG_RETPOLINE
- 	unsigned long e = (unsigned long)expr->ops->eval;
+diff --git a/include/net/netfilter/nf_conntrack_l4proto.h b/include/net/netfilter/nf_conntrack_l4proto.h
+index 0d4b0398aeb9..6cec8337e684 100644
+--- a/include/net/netfilter/nf_conntrack_l4proto.h
++++ b/include/net/netfilter/nf_conntrack_l4proto.h
+@@ -27,12 +27,6 @@ struct nf_conntrack_l4proto {
+ 	/* protoinfo nlattr size, closes a hole */
+ 	u16 nlattr_size;
+ 
+-	/* Invert the per-proto part of the tuple: ie. turn xmit into reply.
+-	 * Only used by icmp, most protocols use a generic version.
+-	 */
+-	bool (*invert_tuple)(struct nf_conntrack_tuple *inverse,
+-			     const struct nf_conntrack_tuple *orig);
 -
--	if (e == (unsigned long)nft_meta_get_eval)
--		nft_meta_get_eval(expr, regs, pkt);
--	else if (e == (unsigned long)nft_lookup_eval)
--		nft_lookup_eval(expr, regs, pkt);
--	else
--		expr->ops->eval(expr, regs, pkt);
-+#define X(e, fun) \
-+	do { if ((e) == (unsigned long)(fun)) \
-+		return fun(expr, regs, pkt); } while (0)
+ 	/* Returns verdict for packet, or -1 for invalid. */
+ 	int (*packet)(struct nf_conn *ct,
+ 		      struct sk_buff *skb,
+@@ -95,6 +89,11 @@ bool icmpv6_pkt_to_tuple(const struct sk_buff *skb,
+ 			 struct net *net,
+ 			 struct nf_conntrack_tuple *tuple);
+ 
++bool nf_conntrack_invert_icmp_tuple(struct nf_conntrack_tuple *tuple,
++				    const struct nf_conntrack_tuple *orig);
++bool nf_conntrack_invert_icmpv6_tuple(struct nf_conntrack_tuple *tuple,
++				      const struct nf_conntrack_tuple *orig);
 +
-+	X(e, nft_payload_eval);
-+	X(e, nft_cmp_eval);
-+	X(e, nft_meta_get_eval);
-+	X(e, nft_lookup_eval);
-+	X(e, nft_range_eval);
-+	X(e, nft_immediate_eval);
-+	X(e, nft_byteorder_eval);
-+	X(e, nft_dynset_eval);
-+	X(e, nft_rt_get_eval);
-+	X(e, nft_bitwise_eval);
-+#undef  X
-+#endif /* CONFIG_RETPOLINE */
-+	expr->ops->eval(expr, regs, pkt);
- }
+ int nf_conntrack_icmpv4_error(struct nf_conn *tmpl,
+ 			      struct sk_buff *skb,
+ 			      unsigned int dataoff,
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index b71e271f2b44..d56cb0fc82b6 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -423,8 +423,12 @@ nf_ct_invert_tuple(struct nf_conntrack_tuple *inverse,
  
- unsigned int
-diff --git a/net/netfilter/nft_bitwise.c b/net/netfilter/nft_bitwise.c
-index fff8073e2a56..2c75b9e0474e 100644
---- a/net/netfilter/nft_bitwise.c
-+++ b/net/netfilter/nft_bitwise.c
-@@ -25,9 +25,8 @@ struct nft_bitwise {
- 	struct nft_data		xor;
+ 	inverse->dst.protonum = orig->dst.protonum;
+ 
+-	if (unlikely(l4proto->invert_tuple))
+-		return l4proto->invert_tuple(inverse, orig);
++	switch (orig->dst.protonum) {
++	case IPPROTO_ICMP:
++		return nf_conntrack_invert_icmp_tuple(inverse, orig);
++	case IPPROTO_ICMPV6:
++		return nf_conntrack_invert_icmpv6_tuple(inverse, orig);
++	}
+ 
+ 	inverse->src.u.all = orig->dst.u.all;
+ 	inverse->dst.u.all = orig->src.u.all;
+diff --git a/net/netfilter/nf_conntrack_proto_icmp.c b/net/netfilter/nf_conntrack_proto_icmp.c
+index 805c1fe5b837..d28c1d7633b2 100644
+--- a/net/netfilter/nf_conntrack_proto_icmp.c
++++ b/net/netfilter/nf_conntrack_proto_icmp.c
+@@ -54,8 +54,8 @@ static const u_int8_t invmap[] = {
+ 	[ICMP_ADDRESSREPLY] = ICMP_ADDRESS + 1
  };
  
--static void nft_bitwise_eval(const struct nft_expr *expr,
--			     struct nft_regs *regs,
--			     const struct nft_pktinfo *pkt)
-+void nft_bitwise_eval(const struct nft_expr *expr,
-+		      struct nft_regs *regs, const struct nft_pktinfo *pkt)
+-static bool icmp_invert_tuple(struct nf_conntrack_tuple *tuple,
+-			      const struct nf_conntrack_tuple *orig)
++bool nf_conntrack_invert_icmp_tuple(struct nf_conntrack_tuple *tuple,
++				    const struct nf_conntrack_tuple *orig)
  {
- 	const struct nft_bitwise *priv = nft_expr_priv(expr);
- 	const u32 *src = &regs->data[priv->sreg];
-diff --git a/net/netfilter/nft_byteorder.c b/net/netfilter/nft_byteorder.c
-index 13d4e421a6b3..19dbc34cc75e 100644
---- a/net/netfilter/nft_byteorder.c
-+++ b/net/netfilter/nft_byteorder.c
-@@ -26,9 +26,9 @@ struct nft_byteorder {
- 	u8			size;
+ 	if (orig->dst.u.icmp.type >= sizeof(invmap) ||
+ 	    !invmap[orig->dst.u.icmp.type])
+@@ -347,7 +347,6 @@ static struct nf_proto_net *icmp_get_net_proto(struct net *net)
+ const struct nf_conntrack_l4proto nf_conntrack_l4proto_icmp =
+ {
+ 	.l4proto		= IPPROTO_ICMP,
+-	.invert_tuple		= icmp_invert_tuple,
+ #if IS_ENABLED(CONFIG_NF_CT_NETLINK)
+ 	.tuple_to_nlattr	= icmp_tuple_to_nlattr,
+ 	.nlattr_tuple_size	= icmp_nlattr_tuple_size,
+diff --git a/net/netfilter/nf_conntrack_proto_icmpv6.c b/net/netfilter/nf_conntrack_proto_icmpv6.c
+index 20cd55e55e41..2910dcdea134 100644
+--- a/net/netfilter/nf_conntrack_proto_icmpv6.c
++++ b/net/netfilter/nf_conntrack_proto_icmpv6.c
+@@ -67,8 +67,8 @@ static const u_int8_t noct_valid_new[] = {
+ 	[ICMPV6_MLD2_REPORT - 130] = 1
  };
  
--static void nft_byteorder_eval(const struct nft_expr *expr,
--			       struct nft_regs *regs,
--			       const struct nft_pktinfo *pkt)
-+void nft_byteorder_eval(const struct nft_expr *expr,
-+			struct nft_regs *regs,
-+			const struct nft_pktinfo *pkt)
+-static bool icmpv6_invert_tuple(struct nf_conntrack_tuple *tuple,
+-				const struct nf_conntrack_tuple *orig)
++bool nf_conntrack_invert_icmpv6_tuple(struct nf_conntrack_tuple *tuple,
++				      const struct nf_conntrack_tuple *orig)
  {
- 	const struct nft_byteorder *priv = nft_expr_priv(expr);
- 	u32 *src = &regs->data[priv->sreg];
-diff --git a/net/netfilter/nft_cmp.c b/net/netfilter/nft_cmp.c
-index 79d48c1d06f4..f9f1fa66a16e 100644
---- a/net/netfilter/nft_cmp.c
-+++ b/net/netfilter/nft_cmp.c
-@@ -24,9 +24,9 @@ struct nft_cmp_expr {
- 	enum nft_cmp_ops	op:8;
- };
- 
--static void nft_cmp_eval(const struct nft_expr *expr,
--			 struct nft_regs *regs,
--			 const struct nft_pktinfo *pkt)
-+void nft_cmp_eval(const struct nft_expr *expr,
-+		  struct nft_regs *regs,
-+		  const struct nft_pktinfo *pkt)
+ 	int type = orig->dst.u.icmp.type - 128;
+ 	if (type < 0 || type >= sizeof(invmap) || !invmap[type])
+@@ -358,7 +358,6 @@ static struct nf_proto_net *icmpv6_get_net_proto(struct net *net)
+ const struct nf_conntrack_l4proto nf_conntrack_l4proto_icmpv6 =
  {
- 	const struct nft_cmp_expr *priv = nft_expr_priv(expr);
- 	int d;
-diff --git a/net/netfilter/nft_dynset.c b/net/netfilter/nft_dynset.c
-index 07d4efd3d851..9658493d37d4 100644
---- a/net/netfilter/nft_dynset.c
-+++ b/net/netfilter/nft_dynset.c
-@@ -62,9 +62,8 @@ static void *nft_dynset_new(struct nft_set *set, const struct nft_expr *expr,
- 	return NULL;
- }
- 
--static void nft_dynset_eval(const struct nft_expr *expr,
--			    struct nft_regs *regs,
--			    const struct nft_pktinfo *pkt)
-+void nft_dynset_eval(const struct nft_expr *expr,
-+		     struct nft_regs *regs, const struct nft_pktinfo *pkt)
- {
- 	const struct nft_dynset *priv = nft_expr_priv(expr);
- 	struct nft_set *set = priv->set;
-diff --git a/net/netfilter/nft_immediate.c b/net/netfilter/nft_immediate.c
-index 0777a93211e2..3e5ed787b1d4 100644
---- a/net/netfilter/nft_immediate.c
-+++ b/net/netfilter/nft_immediate.c
-@@ -17,9 +17,9 @@
- #include <net/netfilter/nf_tables_core.h>
- #include <net/netfilter/nf_tables.h>
- 
--static void nft_immediate_eval(const struct nft_expr *expr,
--			       struct nft_regs *regs,
--			       const struct nft_pktinfo *pkt)
-+void nft_immediate_eval(const struct nft_expr *expr,
-+			struct nft_regs *regs,
-+			const struct nft_pktinfo *pkt)
- {
- 	const struct nft_immediate_expr *priv = nft_expr_priv(expr);
- 
-diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
-index e110b0ebbf58..54e15de4b79a 100644
---- a/net/netfilter/nft_payload.c
-+++ b/net/netfilter/nft_payload.c
-@@ -70,9 +70,9 @@ nft_payload_copy_vlan(u32 *d, const struct sk_buff *skb, u8 offset, u8 len)
- 	return skb_copy_bits(skb, offset + mac_off, dst_u8, len) == 0;
- }
- 
--static void nft_payload_eval(const struct nft_expr *expr,
--			     struct nft_regs *regs,
--			     const struct nft_pktinfo *pkt)
-+void nft_payload_eval(const struct nft_expr *expr,
-+		      struct nft_regs *regs,
-+		      const struct nft_pktinfo *pkt)
- {
- 	const struct nft_payload *priv = nft_expr_priv(expr);
- 	const struct sk_buff *skb = pkt->skb;
-diff --git a/net/netfilter/nft_range.c b/net/netfilter/nft_range.c
-index cedb96c3619f..529ac8acb19d 100644
---- a/net/netfilter/nft_range.c
-+++ b/net/netfilter/nft_range.c
-@@ -23,9 +23,8 @@ struct nft_range_expr {
- 	enum nft_range_ops	op:8;
- };
- 
--static void nft_range_eval(const struct nft_expr *expr,
--			 struct nft_regs *regs,
--			 const struct nft_pktinfo *pkt)
-+void nft_range_eval(const struct nft_expr *expr,
-+		    struct nft_regs *regs, const struct nft_pktinfo *pkt)
- {
- 	const struct nft_range_expr *priv = nft_expr_priv(expr);
- 	int d1, d2;
-diff --git a/net/netfilter/nft_rt.c b/net/netfilter/nft_rt.c
-index f35fa33913ae..c48daed5c46b 100644
---- a/net/netfilter/nft_rt.c
-+++ b/net/netfilter/nft_rt.c
-@@ -53,9 +53,9 @@ static u16 get_tcpmss(const struct nft_pktinfo *pkt, const struct dst_entry *skb
- 	return mtu - minlen;
- }
- 
--static void nft_rt_get_eval(const struct nft_expr *expr,
--			    struct nft_regs *regs,
--			    const struct nft_pktinfo *pkt)
-+void nft_rt_get_eval(const struct nft_expr *expr,
-+		     struct nft_regs *regs,
-+		     const struct nft_pktinfo *pkt)
- {
- 	const struct nft_rt *priv = nft_expr_priv(expr);
- 	const struct sk_buff *skb = pkt->skb;
+ 	.l4proto		= IPPROTO_ICMPV6,
+-	.invert_tuple		= icmpv6_invert_tuple,
+ #if IS_ENABLED(CONFIG_NF_CT_NETLINK)
+ 	.tuple_to_nlattr	= icmpv6_tuple_to_nlattr,
+ 	.nlattr_tuple_size	= icmpv6_nlattr_tuple_size,
 -- 
 2.11.0
