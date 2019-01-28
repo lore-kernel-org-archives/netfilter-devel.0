@@ -1,27 +1,28 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH net v2 0/2] fix glitch in IPVS /proc handlers
-Date: Mon, 28 Jan 2019 11:17:13 +0100
-Message-ID: <20190128101713.tuthooahqonvesyk@salvia>
-References: <20180731160333.12215-1-mcroce@redhat.com>
+Subject: Re: [Patch nf-next] nf_conntrack: fix error path in
+ nf_conntrack_pernet_init()
+Date: Mon, 28 Jan 2019 11:18:32 +0100
+Message-ID: <20190128101832.rvdego4wxgcib6w4@salvia>
+References: <20190123205857.8107-1-xiyou.wangcong@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Wensong Zhang <wensong@linux-vs.org>,
-        Simon Horman <horms@verge.net.au>,
-        Julian Anastasov <ja@ssi.bg>, lvs-devel@vger.kernel.org,
-        netdev@vger.kernel.org,
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        syzbot+fcee88b2d87f0539dfe9@syzkaller.appspotmail.com,
         Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>,
-        netfilter-devel@vger.kernel.org,
-        Eric Dumazet <eric.dumazet@gmail.com>
-To: Matteo Croce <mcroce@redhat.com>
+        Florian Westphal <fw@strlen.de>
+To: Cong Wang <xiyou.wangcong@gmail.com>
 Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180731160333.12215-1-mcroce@redhat.com>
+In-Reply-To: <20190123205857.8107-1-xiyou.wangcong@gmail.com>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Jul 31, 2018 at 06:03:31PM +0200, Matteo Croce wrote:
-> Fix a bug which shows negative values in IPVS /proc handlers.
-> Also add an helper function to calculate a time delta
+On Wed, Jan 23, 2019 at 12:58:57PM -0800, Cong Wang wrote:
+> When nf_ct_netns_get() fails, it should clean up itself,
+> its caller doesn't need to call nf_conntrack_fini_net().
+> 
+> nf_conntrack_init_net() is called after registering sysctl
+> and proc, so its cleanup function should be called before
+> unregistering sysctl and proc.
 
-Series applied, thanks Matteo.
+Applies, thanks.
