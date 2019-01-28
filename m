@@ -1,55 +1,76 @@
-From: Chieh-Min Wang <chiehmin18-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: "Kernel bug detected [...]
- nf_ct_del_from_dying_or_unconfirmed_list"
-Date: Mon, 28 Jan 2019 22:03:28 +0800
-Message-ID: <CALJUYjO4=pDT0COGJRx2YWDMiEJTpa2CdqQqxndd93khVDZHjA@mail.gmail.com>
-References: <20190127214708.GC1788@otheros>
- <20190127224822.lsagihtfiuvxyool@breakpoint.cc>
- <CALJUYjOq-xpjorsfnMRthzmC+iuDTVOPHXRb2p3ahU248Jrw4w@mail.gmail.com>
- <20190128133940.jxwuscyi2wvbfb52@breakpoint.cc>
- <20190128135030.xmtngyqaq3p74iug@salvia>
-Reply-To: The list for a Better Approach To Mobile Ad-hoc Networking
- <b.a.t.m.a.n-ZwoEplunGu2X36UT3dwllkB+6BGkLq7r@public.gmane.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 0/7] Netfilter/IPVS fixes for net
+Date: Mon, 28 Jan 2019 15:03:58 +0100
+Message-ID: <20190128140405.15020-1-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-Cc: netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, b.a.t.m.a.n-ZwoEplunGu2X36UT3dwllkB+6BGkLq7r@public.gmane.org,
- Florian Westphal <fw-HFFVJYpyMKqzQB+pC5nmwQ@public.gmane.org>
-To: Pablo Neira Ayuso <pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org>
-Return-path: <b.a.t.m.a.n-bounces-ZwoEplunGu2X36UT3dwllkB+6BGkLq7r@public.gmane.org>
-In-Reply-To: <20190128135030.xmtngyqaq3p74iug@salvia>
-List-Unsubscribe: <https://lists.open-mesh.org/mm/options/b.a.t.m.a.n>,
- <mailto:b.a.t.m.a.n-request-ZwoEplunGu2X36UT3dwllkB+6BGkLq7r@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.open-mesh.org/pipermail/b.a.t.m.a.n/>
-List-Post: <mailto:b.a.t.m.a.n-ZwoEplunGu2X36UT3dwllkB+6BGkLq7r@public.gmane.org>
-List-Help: <mailto:b.a.t.m.a.n-request-ZwoEplunGu2X36UT3dwllkB+6BGkLq7r@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.open-mesh.org/mm/listinfo/b.a.t.m.a.n>,
- <mailto:b.a.t.m.a.n-request-ZwoEplunGu2X36UT3dwllkB+6BGkLq7r@public.gmane.org?subject=subscribe>
-Errors-To: b.a.t.m.a.n-bounces-ZwoEplunGu2X36UT3dwllkB+6BGkLq7r@public.gmane.org
-Sender: "B.A.T.M.A.N" <b.a.t.m.a.n-bounces-ZwoEplunGu2X36UT3dwllkB+6BGkLq7r@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-I think 71d8c47fc653711c4(netfilter: conntrack: introduce clash
-resolution on insertion race) is doing the same logic for resolving
-conntrack clashing.
+Hi David,
 
-The first packet who win the race should handle the NAT stuff on the
-conntrack right?
+The following patchset contains Netfilter/IPVS fixes for your net tree:
 
-Pablo Neira Ayuso <pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org> =E6=96=BC 2019=E5=B9=B41=E6=9C=8828=
-=E6=97=A5 =E9=80=B1=E4=B8=80 =E4=B8=8B=E5=8D=889:50=E5=AF=AB=E9=81=93=EF=BC=
-=9A
->
-> On Mon, Jan 28, 2019 at 02:39:40PM +0100, Florian Westphal wrote:
-> > Chieh-Min Wang <chiehmin18-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> > > I think this is the same issue as this one.
-> > >
-> > > http://patchwork.ozlabs.org/patch/995825/
-> >
-> > Yes, likely.
->
-> I see.
->
-> I don't think letting the packet go through is a good idea. Not sure
-> NAT will work fine, packets would go through being unmangled? I think
-> we should still drop the packet until we fix this.
+1) The nftnl mutex is now per-netns, therefore use reference counter
+   for matches and targets to deal with concurrent updates from netns.
+   Moreover, place extensions in a pernet list. Patches from Florian Westphal.
+
+2) Bail out with EINVAL in case of negative timeouts via setsockopt()
+   through ip_vs_set_timeout(), from ZhangXiaoxu.
+
+3) Spurious EINVAL on ebtables 32bit binary with 64bit kernel, also
+   from Florian.
+
+4) Reset TCP option header parser in case of fingerprint mismatch,
+   otherwise follow up overlapping fingerprint definitions including
+   TCP options do not work, from Fernando Fernandez Mancera.
+
+5) Compilation warning in ipt_CLUSTER with CONFIG_PROC_FS unset.
+   From Anders Roxell.
+
+You can pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
+
+Thanks!
+
+----------------------------------------------------------------
+
+The following changes since commit 88a8121dc1d3d0dbddd411b79ed236b6b6ea415c:
+
+  af_packet: fix raw sockets over 6in4 tunnel (2019-01-17 15:54:45 -0800)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git HEAD
+
+for you to fetch changes up to 206b8cc514d7ff2b79dd2d5ad939adc7c493f07a:
+
+  netfilter: ipt_CLUSTERIP: fix warning unused variable cn (2019-01-28 11:09:12 +0100)
+
+----------------------------------------------------------------
+Anders Roxell (1):
+      netfilter: ipt_CLUSTERIP: fix warning unused variable cn
+
+Fernando Fernandez Mancera (1):
+      netfilter: nfnetlink_osf: add missing fmatch check
+
+Florian Westphal (4):
+      netfilter: nft_compat: use refcnt_t type for nft_xt reference count
+      netfilter: nft_compat: make lists per netns
+      netfilter: nft_compat: destroy function must not have side effects
+      netfilter: ebtables: compat: un-break 32bit setsockopt when no rules are present
+
+ZhangXiaoxu (1):
+      ipvs: Fix signed integer overflow when setsockopt timeout
+
+ net/bridge/netfilter/ebtables.c    |   9 +-
+ net/ipv4/netfilter/ipt_CLUSTERIP.c |   2 +-
+ net/netfilter/ipvs/ip_vs_ctl.c     |  12 +++
+ net/netfilter/nfnetlink_osf.c      |   4 +
+ net/netfilter/nft_compat.c         | 189 ++++++++++++++++++++++++++++---------
+ 5 files changed, 165 insertions(+), 51 deletions(-)
