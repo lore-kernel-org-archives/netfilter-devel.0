@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 28/33] netfilter: conntrack: fix bogus port values for other l4 protocols
-Date: Tue, 29 Jan 2019 00:57:45 +0100
-Message-ID: <20190128235750.18412-29-pablo@netfilter.org>
+Subject: [PATCH 24/33] netfilter: nft_meta: Add NFT_META_I/OIFKIND meta type
+Date: Tue, 29 Jan 2019 00:57:41 +0100
+Message-ID: <20190128235750.18412-25-pablo@netfilter.org>
 References: <20190128235750.18412-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,100 +10,102 @@ In-Reply-To: <20190128235750.18412-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+From: wenxu <wenxu@ucloud.cn>
 
-We must only extract l4 proto information if we can track the layer 4
-protocol.
+In the ip_rcv the skb goes through the PREROUTING hook first, then kicks
+in vrf device and go through the same hook again. When conntrack dnat
+works with vrf, there will be some conflict with rules because the
+packet goes through the hook twice with different nf status.
 
-Before removal of pkt_to_tuple callback, the code to extract port
-information was only reached for TCP/UDP/LITE/DCCP/SCTP.
+ip link add user1 type vrf table 1
+ip link add user2 type vrf table 2
+ip l set dev tun1 master user1
+ip l set dev tun2 master user2
 
-The other protocols were handled by the indirect call, and the
-'generic' tracker took care of other protocols that have no notion
-of 'ports'.
+nft add table firewall
+nft add chain firewall zones { type filter hook prerouting  priority - 300 \; }
+nft add rule firewall zones counter ct zone set iif map { "tun1" : 1, "tun2" : 2 }
+nft add chain firewall rule-1000-ingress
+nft add rule firewall rule-1000-ingress ct zone 1 tcp dport 22 ct state new counter accept
+nft add rule firewall rule-1000-ingress counter drop
+nft add chain firewall rule-1000-egress
+nft add rule firewall rule-1000-egress tcp dport 22 ct state new counter drop
+nft add rule firewall rule-1000-egress counter accept
 
-After removal of the callback we must be more strict here and only
-init port numbers for those protocols that have ports.
+nft add chain firewall rules-all { type filter hook prerouting priority - 150 \; }
+nft add rule firewall rules-all ip daddr vmap { "2.2.2.11" : jump rule-1000-ingress }
+nft add rule firewall rules-all ct zone vmap { 1 : jump rule-1000-egress }
 
-Fixes: df5e1629087a ("netfilter: conntrack: remove pkt_to_tuple callback")
-Signed-off-by: Florian Westphal <fw@strlen.de>
+nft add rule firewall dnat-all ct zone vmap { 1 : jump dnat-1000 }
+nft add rule firewall dnat-1000 ip daddr 2.2.2.11 counter dnat to 10.0.0.7
+
+For a package with ip daddr 2.2.2.11 and tcp dport 22, first time accept in the
+rule-1000-ingress and dnat to 10.0.0.7. Then second time the packet goto the wrong
+chain rule-1000-egress which leads the packet drop
+
+With this patch, userspace can add the 'don't re-do entire ruleset for
+vrf' policy itself via:
+
+nft add rule firewall rules-all meta iifkind "vrf" counter accept
+
+Signed-off-by: wenxu <wenxu@ucloud.cn>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_conntrack_core.c | 46 +++++++++++++++++++++++++++++----------
- 1 file changed, 35 insertions(+), 11 deletions(-)
+ include/uapi/linux/netfilter/nf_tables.h |  4 ++++
+ net/netfilter/nft_meta.c                 | 12 ++++++++++++
+ 2 files changed, 16 insertions(+)
 
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index a3e5232c2088..815956ac5a76 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -222,6 +222,24 @@ static u32 hash_conntrack(const struct net *net,
- 	return scale_hash(hash_conntrack_raw(tuple, net));
- }
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index 99ca95b830b6..0ba8f48bdf0b 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -791,6 +791,8 @@ enum nft_exthdr_attributes {
+  * @NFT_META_CGROUP: socket control group (skb->sk->sk_classid)
+  * @NFT_META_PRANDOM: a 32bit pseudo-random number
+  * @NFT_META_SECPATH: boolean, secpath_exists (!!skb->sp)
++ * @NFT_META_IIFKIND: packet input interface kind name (dev->rtnl_link_ops->kind)
++ * @NFT_META_OIFKIND: packet output interface kind name (dev->rtnl_link_ops->kind)
+  */
+ enum nft_meta_keys {
+ 	NFT_META_LEN,
+@@ -819,6 +821,8 @@ enum nft_meta_keys {
+ 	NFT_META_CGROUP,
+ 	NFT_META_PRANDOM,
+ 	NFT_META_SECPATH,
++	NFT_META_IIFKIND,
++	NFT_META_OIFKIND,
+ };
  
-+static bool nf_ct_get_tuple_ports(const struct sk_buff *skb,
-+				  unsigned int dataoff,
-+				  struct nf_conntrack_tuple *tuple)
-+{	struct {
-+		__be16 sport;
-+		__be16 dport;
-+	} _inet_hdr, *inet_hdr;
-+
-+	/* Actually only need first 4 bytes to get ports. */
-+	inet_hdr = skb_header_pointer(skb, dataoff, sizeof(_inet_hdr), &_inet_hdr);
-+	if (!inet_hdr)
-+		return false;
-+
-+	tuple->src.u.udp.port = inet_hdr->sport;
-+	tuple->dst.u.udp.port = inet_hdr->dport;
-+	return true;
-+}
-+
- static bool
- nf_ct_get_tuple(const struct sk_buff *skb,
- 		unsigned int nhoff,
-@@ -234,10 +252,6 @@ nf_ct_get_tuple(const struct sk_buff *skb,
- 	unsigned int size;
- 	const __be32 *ap;
- 	__be32 _addrs[8];
--	struct {
--		__be16 sport;
--		__be16 dport;
--	} _inet_hdr, *inet_hdr;
- 
- 	memset(tuple, 0, sizeof(*tuple));
- 
-@@ -284,15 +298,25 @@ nf_ct_get_tuple(const struct sk_buff *skb,
- 	case IPPROTO_GRE:
- 		return gre_pkt_to_tuple(skb, dataoff, net, tuple);
+ /**
+diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
+index 6df486c5ebd3..987d2d6ce624 100644
+--- a/net/netfilter/nft_meta.c
++++ b/net/netfilter/nft_meta.c
+@@ -244,6 +244,16 @@ void nft_meta_get_eval(const struct nft_expr *expr,
+ 		strncpy((char *)dest, p->br->dev->name, IFNAMSIZ);
+ 		return;
  #endif
-+	case IPPROTO_TCP:
-+	case IPPROTO_UDP: /* fallthrough */
-+		return nf_ct_get_tuple_ports(skb, dataoff, tuple);
-+#ifdef CONFIG_NF_CT_PROTO_UDPLITE
-+	case IPPROTO_UDPLITE:
-+		return nf_ct_get_tuple_ports(skb, dataoff, tuple);
-+#endif
-+#ifdef CONFIG_NF_CT_PROTO_SCTP
-+	case IPPROTO_SCTP:
-+		return nf_ct_get_tuple_ports(skb, dataoff, tuple);
-+#endif
-+#ifdef CONFIG_NF_CT_PROTO_DCCP
-+	case IPPROTO_DCCP:
-+		return nf_ct_get_tuple_ports(skb, dataoff, tuple);
-+#endif
-+	default:
++	case NFT_META_IIFKIND:
++		if (in == NULL || in->rtnl_link_ops == NULL)
++			goto err;
++		strncpy((char *)dest, in->rtnl_link_ops->kind, IFNAMSIZ);
 +		break;
- 	}
- 
--	/* Actually only need first 4 bytes to get ports. */
--	inet_hdr = skb_header_pointer(skb, dataoff, sizeof(_inet_hdr), &_inet_hdr);
--	if (!inet_hdr)
--		return false;
--
--	tuple->src.u.udp.port = inet_hdr->sport;
--	tuple->dst.u.udp.port = inet_hdr->dport;
- 	return true;
- }
- 
++	case NFT_META_OIFKIND:
++		if (out == NULL || out->rtnl_link_ops == NULL)
++			goto err;
++		strncpy((char *)dest, out->rtnl_link_ops->kind, IFNAMSIZ);
++		break;
+ 	default:
+ 		WARN_ON(1);
+ 		goto err;
+@@ -340,6 +350,8 @@ static int nft_meta_get_init(const struct nft_ctx *ctx,
+ 		break;
+ 	case NFT_META_IIFNAME:
+ 	case NFT_META_OIFNAME:
++	case NFT_META_IIFKIND:
++	case NFT_META_OIFKIND:
+ 		len = IFNAMSIZ;
+ 		break;
+ 	case NFT_META_PRANDOM:
 -- 
 2.11.0
