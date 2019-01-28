@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 30/33] ipvs: use indirect call wrappers
-Date: Tue, 29 Jan 2019 00:57:47 +0100
-Message-ID: <20190128235750.18412-31-pablo@netfilter.org>
+Subject: [PATCH 27/33] netfilter: conntrack: fix IPV6=n builds
+Date: Tue, 29 Jan 2019 00:57:44 +0100
+Message-ID: <20190128235750.18412-28-pablo@netfilter.org>
 References: <20190128235750.18412-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,187 +10,98 @@ In-Reply-To: <20190128235750.18412-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Matteo Croce <mcroce@redhat.com>
+From: Florian Westphal <fw@strlen.de>
 
-Use the new indirect call wrappers in IPVS when calling the TCP or UDP
-protocol specific functions.
-This avoids an indirect calls in IPVS, and reduces the performance
-impact of the Spectre mitigation.
+Stephen Rothwell reports:
+ After merging the netfilter-next tree, today's linux-next build
+ (powerpc ppc64_defconfig) failed like this:
 
-Signed-off-by: Matteo Croce <mcroce@redhat.com>
-Acked-by: Julian Anastasov <ja@ssi.bg>
-Acked-by: Simon Horman <horms@verge.net.au>
+ ERROR: "nf_conntrack_invert_icmpv6_tuple" [nf_conntrack.ko] undefined!
+ ERROR: "nf_conntrack_icmpv6_packet" [nf_conntrack.ko] undefined!
+ ERROR: "nf_conntrack_icmpv6_init_net" [nf_conntrack.ko] undefined!
+ ERROR: "icmpv6_pkt_to_tuple" [nf_conntrack.ko] undefined!
+ ERROR: "nf_ct_gre_keymap_destroy" [nf_conntrack.ko] undefined!
+
+icmpv6 related errors are due to lack of IS_ENABLED(CONFIG_IPV6) (no
+icmpv6 support is builtin if kernel has CONFIG_IPV6=n), the
+nf_ct_gre_keymap_destroy error is due to lack of PROTO_GRE check.
+
+Fixes: a47c54048162 ("netfilter: conntrack: handle builtin l4proto packet functions via direct calls")
+Fixes: e2e48b471634 ("netfilter: conntrack: handle icmp pkt_to_tuple helper via direct calls")
+Fixes: 197c4300aec0 ("netfilter: conntrack: remove invert_tuple callback")
+Fixes: 2a389de86e4a ("netfilter: conntrack: remove l4proto init and get_net callbacks")
+Fixes: e56894356f60 ("netfilter: conntrack: remove l4proto destroy hook")
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/ipvs/ip_vs_core.c      | 49 ++++++++++++++++++++++++++++++------
- net/netfilter/ipvs/ip_vs_proto_tcp.c |  3 ++-
- net/netfilter/ipvs/ip_vs_proto_udp.c |  3 ++-
- 3 files changed, 45 insertions(+), 10 deletions(-)
+ net/netfilter/nf_conntrack_core.c  | 8 ++++++++
+ net/netfilter/nf_conntrack_proto.c | 2 ++
+ 2 files changed, 10 insertions(+)
 
-diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-index fe9abf3cc10a..e969dad66991 100644
---- a/net/netfilter/ipvs/ip_vs_core.c
-+++ b/net/netfilter/ipvs/ip_vs_core.c
-@@ -53,6 +53,7 @@
- #endif
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 171659aa69a1..a3e5232c2088 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -274,8 +274,10 @@ nf_ct_get_tuple(const struct sk_buff *skb,
+ 	tuple->dst.dir = IP_CT_DIR_ORIGINAL;
  
- #include <net/ip_vs.h>
-+#include <linux/indirect_call_wrapper.h>
- 
- 
- EXPORT_SYMBOL(register_ip_vs_scheduler);
-@@ -70,6 +71,29 @@ EXPORT_SYMBOL(ip_vs_get_debug_level);
- #endif
- EXPORT_SYMBOL(ip_vs_new_conn_out);
- 
-+#ifdef CONFIG_IP_VS_PROTO_TCP
-+INDIRECT_CALLABLE_DECLARE(int
-+	tcp_snat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
-+			 struct ip_vs_conn *cp, struct ip_vs_iphdr *iph));
+ 	switch (protonum) {
++#if IS_ENABLED(CONFIG_IPV6)
+ 	case IPPROTO_ICMPV6:
+ 		return icmpv6_pkt_to_tuple(skb, dataoff, net, tuple);
 +#endif
-+
-+#ifdef CONFIG_IP_VS_PROTO_UDP
-+INDIRECT_CALLABLE_DECLARE(int
-+	udp_snat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
-+			 struct ip_vs_conn *cp, struct ip_vs_iphdr *iph));
+ 	case IPPROTO_ICMP:
+ 		return icmp_pkt_to_tuple(skb, dataoff, net, tuple);
+ #ifdef CONFIG_NF_CT_PROTO_GRE
+@@ -412,8 +414,10 @@ nf_ct_invert_tuple(struct nf_conntrack_tuple *inverse,
+ 	switch (orig->dst.protonum) {
+ 	case IPPROTO_ICMP:
+ 		return nf_conntrack_invert_icmp_tuple(inverse, orig);
++#if IS_ENABLED(CONFIG_IPV6)
+ 	case IPPROTO_ICMPV6:
+ 		return nf_conntrack_invert_icmpv6_tuple(inverse, orig);
 +#endif
-+
-+#if defined(CONFIG_IP_VS_PROTO_TCP) && defined(CONFIG_IP_VS_PROTO_UDP)
-+#define SNAT_CALL(f, ...) \
-+	INDIRECT_CALL_2(f, tcp_snat_handler, udp_snat_handler, __VA_ARGS__)
-+#elif defined(CONFIG_IP_VS_PROTO_TCP)
-+#define SNAT_CALL(f, ...) INDIRECT_CALL_1(f, tcp_snat_handler, __VA_ARGS__)
-+#elif defined(CONFIG_IP_VS_PROTO_UDP)
-+#define SNAT_CALL(f, ...) INDIRECT_CALL_1(f, udp_snat_handler, __VA_ARGS__)
-+#else
-+#define SNAT_CALL(f, ...) f(__VA_ARGS__)
+ 	}
+ 
+ 	inverse->src.u.all = orig->dst.u.all;
+@@ -526,10 +530,12 @@ EXPORT_SYMBOL_GPL(nf_ct_tmpl_free);
+ 
+ static void destroy_gre_conntrack(struct nf_conn *ct)
+ {
++#ifdef CONFIG_NF_CT_PROTO_GRE
+ 	struct nf_conn *master = ct->master;
+ 
+ 	if (master)
+ 		nf_ct_gre_keymap_destroy(master);
 +#endif
-+
- static unsigned int ip_vs_net_id __read_mostly;
- /* netns cnt used for uniqueness */
- static atomic_t ipvs_netns_cnt = ATOMIC_INIT(0);
-@@ -478,7 +502,9 @@ ip_vs_schedule(struct ip_vs_service *svc, struct sk_buff *skb,
- 	 */
- 	if ((!skb->dev || skb->dev->flags & IFF_LOOPBACK)) {
- 		iph->hdr_flags ^= IP_VS_HDR_INVERSE;
--		cp = pp->conn_in_get(svc->ipvs, svc->af, skb, iph);
-+		cp = INDIRECT_CALL_1(pp->conn_in_get,
-+				     ip_vs_conn_in_get_proto, svc->ipvs,
-+				     svc->af, skb, iph);
- 		iph->hdr_flags ^= IP_VS_HDR_INVERSE;
- 
- 		if (cp) {
-@@ -972,7 +998,8 @@ static int ip_vs_out_icmp(struct netns_ipvs *ipvs, struct sk_buff *skb,
- 	ip_vs_fill_iph_skb_icmp(AF_INET, skb, offset, true, &ciph);
- 
- 	/* The embedded headers contain source and dest in reverse order */
--	cp = pp->conn_out_get(ipvs, AF_INET, skb, &ciph);
-+	cp = INDIRECT_CALL_1(pp->conn_out_get, ip_vs_conn_out_get_proto,
-+			     ipvs, AF_INET, skb, &ciph);
- 	if (!cp)
- 		return NF_ACCEPT;
- 
-@@ -1028,7 +1055,8 @@ static int ip_vs_out_icmp_v6(struct netns_ipvs *ipvs, struct sk_buff *skb,
- 		return NF_ACCEPT;
- 
- 	/* The embedded headers contain source and dest in reverse order */
--	cp = pp->conn_out_get(ipvs, AF_INET6, skb, &ciph);
-+	cp = INDIRECT_CALL_1(pp->conn_out_get, ip_vs_conn_out_get_proto,
-+			     ipvs, AF_INET6, skb, &ciph);
- 	if (!cp)
- 		return NF_ACCEPT;
- 
-@@ -1263,7 +1291,8 @@ handle_response(int af, struct sk_buff *skb, struct ip_vs_proto_data *pd,
- 		goto drop;
- 
- 	/* mangle the packet */
--	if (pp->snat_handler && !pp->snat_handler(skb, pp, cp, iph))
-+	if (pp->snat_handler &&
-+	    !SNAT_CALL(pp->snat_handler, skb, pp, cp, iph))
- 		goto drop;
- 
- #ifdef CONFIG_IP_VS_IPV6
-@@ -1389,7 +1418,8 @@ ip_vs_out(struct netns_ipvs *ipvs, unsigned int hooknum, struct sk_buff *skb, in
- 	/*
- 	 * Check if the packet belongs to an existing entry
- 	 */
--	cp = pp->conn_out_get(ipvs, af, skb, &iph);
-+	cp = INDIRECT_CALL_1(pp->conn_out_get, ip_vs_conn_out_get_proto,
-+			     ipvs, af, skb, &iph);
- 
- 	if (likely(cp)) {
- 		if (IP_VS_FWD_METHOD(cp) != IP_VS_CONN_F_MASQ)
-@@ -1644,7 +1674,8 @@ ip_vs_in_icmp(struct netns_ipvs *ipvs, struct sk_buff *skb, int *related,
- 	/* The embedded headers contain source and dest in reverse order.
- 	 * For IPIP this is error for request, not for reply.
- 	 */
--	cp = pp->conn_in_get(ipvs, AF_INET, skb, &ciph);
-+	cp = INDIRECT_CALL_1(pp->conn_in_get, ip_vs_conn_in_get_proto,
-+			     ipvs, AF_INET, skb, &ciph);
- 
- 	if (!cp) {
- 		int v;
-@@ -1796,7 +1827,8 @@ static int ip_vs_in_icmp_v6(struct netns_ipvs *ipvs, struct sk_buff *skb,
- 	/* The embedded headers contain source and dest in reverse order
- 	 * if not from localhost
- 	 */
--	cp = pp->conn_in_get(ipvs, AF_INET6, skb, &ciph);
-+	cp = INDIRECT_CALL_1(pp->conn_in_get, ip_vs_conn_in_get_proto,
-+			     ipvs, AF_INET6, skb, &ciph);
- 
- 	if (!cp) {
- 		int v;
-@@ -1925,7 +1957,8 @@ ip_vs_in(struct netns_ipvs *ipvs, unsigned int hooknum, struct sk_buff *skb, int
- 	/*
- 	 * Check if the packet belongs to an existing connection entry
- 	 */
--	cp = pp->conn_in_get(ipvs, af, skb, &iph);
-+	cp = INDIRECT_CALL_1(pp->conn_in_get, ip_vs_conn_in_get_proto,
-+			     ipvs, af, skb, &iph);
- 
- 	conn_reuse_mode = sysctl_conn_reuse_mode(ipvs);
- 	if (conn_reuse_mode && !iph.fragoffs && is_new_conn(skb, &iph) && cp) {
-diff --git a/net/netfilter/ipvs/ip_vs_proto_tcp.c b/net/netfilter/ipvs/ip_vs_proto_tcp.c
-index 6a275f989085..479419759983 100644
---- a/net/netfilter/ipvs/ip_vs_proto_tcp.c
-+++ b/net/netfilter/ipvs/ip_vs_proto_tcp.c
-@@ -28,6 +28,7 @@
- #include <net/ip6_checksum.h>
- #include <linux/netfilter.h>
- #include <linux/netfilter_ipv4.h>
-+#include <linux/indirect_call_wrapper.h>
- 
- #include <net/ip_vs.h>
- 
-@@ -146,7 +147,7 @@ tcp_partial_csum_update(int af, struct tcphdr *tcph,
  }
  
- 
--static int
-+INDIRECT_CALLABLE_SCOPE int
- tcp_snat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
- 		 struct ip_vs_conn *cp, struct ip_vs_iphdr *iph)
- {
-diff --git a/net/netfilter/ipvs/ip_vs_proto_udp.c b/net/netfilter/ipvs/ip_vs_proto_udp.c
-index 3285718264d5..646c384910fb 100644
---- a/net/netfilter/ipvs/ip_vs_proto_udp.c
-+++ b/net/netfilter/ipvs/ip_vs_proto_udp.c
-@@ -23,6 +23,7 @@
- #include <linux/netfilter.h>
- #include <linux/netfilter_ipv4.h>
- #include <linux/udp.h>
-+#include <linux/indirect_call_wrapper.h>
- 
- #include <net/ip_vs.h>
- #include <net/ip.h>
-@@ -136,7 +137,7 @@ udp_partial_csum_update(int af, struct udphdr *uhdr,
- }
- 
- 
--static int
-+INDIRECT_CALLABLE_SCOPE int
- udp_snat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
- 		 struct ip_vs_conn *cp, struct ip_vs_iphdr *iph)
- {
+ static void
+@@ -1553,8 +1559,10 @@ static int nf_conntrack_handle_packet(struct nf_conn *ct,
+ 					       ctinfo, state);
+ 	case IPPROTO_ICMP:
+ 		return nf_conntrack_icmp_packet(ct, skb, ctinfo, state);
++#if IS_ENABLED(CONFIG_IPV6)
+ 	case IPPROTO_ICMPV6:
+ 		return nf_conntrack_icmpv6_packet(ct, skb, ctinfo, state);
++#endif
+ #ifdef CONFIG_NF_CT_PROTO_UDPLITE
+ 	case IPPROTO_UDPLITE:
+ 		return nf_conntrack_udplite_packet(ct, skb, dataoff,
+diff --git a/net/netfilter/nf_conntrack_proto.c b/net/netfilter/nf_conntrack_proto.c
+index aa8d3fe0b37f..b9403a266a2e 100644
+--- a/net/netfilter/nf_conntrack_proto.c
++++ b/net/netfilter/nf_conntrack_proto.c
+@@ -597,7 +597,9 @@ void nf_conntrack_proto_pernet_init(struct net *net)
+ 	nf_conntrack_udp_init_net(net);
+ 	nf_conntrack_tcp_init_net(net);
+ 	nf_conntrack_icmp_init_net(net);
++#if IS_ENABLED(CONFIG_IPV6)
+ 	nf_conntrack_icmpv6_init_net(net);
++#endif
+ #ifdef CONFIG_NF_CT_PROTO_DCCP
+ 	nf_conntrack_dccp_init_net(net);
+ #endif
 -- 
 2.11.0
