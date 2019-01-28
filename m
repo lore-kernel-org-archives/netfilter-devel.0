@@ -1,28 +1,29 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [Patch nf-next] nf_conntrack: fix error path in
- nf_conntrack_pernet_init()
-Date: Mon, 28 Jan 2019 11:18:32 +0100
-Message-ID: <20190128101832.rvdego4wxgcib6w4@salvia>
-References: <20190123205857.8107-1-xiyou.wangcong@gmail.com>
+Subject: Re: [PATCH] nft_counter: remove wrong __percpu of
+ nft_counter_resest()'s arg
+Date: Mon, 28 Jan 2019 11:20:22 +0100
+Message-ID: <20190128102022.mrnh2j6orgnrdfyp@salvia>
+References: <20190119215024.90174-1-luc.vanoostenryck@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        syzbot+fcee88b2d87f0539dfe9@syzkaller.appspotmail.com,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>
-To: Cong Wang <xiyou.wangcong@gmail.com>
-Return-path: <netdev-owner@vger.kernel.org>
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        linux-kernel@vger.kernel.org
+To: Luc Van Oostenryck <luc.vanoostenryck@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190123205857.8107-1-xiyou.wangcong@gmail.com>
-Sender: netdev-owner@vger.kernel.org
+In-Reply-To: <20190119215024.90174-1-luc.vanoostenryck@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Jan 23, 2019 at 12:58:57PM -0800, Cong Wang wrote:
-> When nf_ct_netns_get() fails, it should clean up itself,
-> its caller doesn't need to call nf_conntrack_fini_net().
+On Sat, Jan 19, 2019 at 10:50:24PM +0100, Luc Van Oostenryck wrote:
+> nft_counter_rest() has its first argument declared as
+> 	struct nft_counter_percpu_priv __percpu *priv
+> but this structure is not percpu (it only countains
+> a member 'counter' which is, correctly, a pointer to a
+> percpu struct nft_counter).
 > 
-> nf_conntrack_init_net() is called after registering sysctl
-> and proc, so its cleanup function should be called before
-> unregistering sysctl and proc.
+> So, remove the '__percpu' from the argument's declaration.
 
-Applies, thanks.
+Applied, thanks.
