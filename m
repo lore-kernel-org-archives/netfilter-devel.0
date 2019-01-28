@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 19/33] netfilter: conntrack: remove sysctl registration helpers
-Date: Tue, 29 Jan 2019 00:57:36 +0100
-Message-ID: <20190128235750.18412-20-pablo@netfilter.org>
+Subject: [PATCH 15/33] netfilter: conntrack: remove remaining l4proto indirect packet calls
+Date: Tue, 29 Jan 2019 00:57:32 +0100
+Message-ID: <20190128235750.18412-16-pablo@netfilter.org>
 References: <20190128235750.18412-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -12,156 +12,184 @@ List-Id: netfilter-devel.vger.kernel.org
 
 From: Florian Westphal <fw@strlen.de>
 
-After previous patch these are not used anymore.
+Now that all l4trackers are builtin, no need to use a mix of direct and
+indirect calls.
+This removes the last two users: gre and the generic l4 protocol
+tracker.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netns/conntrack.h      |  4 --
- net/netfilter/nf_conntrack_proto.c | 77 +-------------------------------------
- 2 files changed, 1 insertion(+), 80 deletions(-)
+ include/net/netfilter/nf_conntrack_l4proto.h | 12 ++++------
+ net/netfilter/nf_conntrack_core.c            | 26 +++++++++++++++------
+ net/netfilter/nf_conntrack_proto_generic.c   | 35 ----------------------------
+ net/netfilter/nf_conntrack_proto_gre.c       | 11 ++++-----
+ 4 files changed, 29 insertions(+), 55 deletions(-)
 
-diff --git a/include/net/netns/conntrack.h b/include/net/netns/conntrack.h
-index c72f413a2d4d..b8faa72e0f5b 100644
---- a/include/net/netns/conntrack.h
-+++ b/include/net/netns/conntrack.h
-@@ -19,10 +19,6 @@ struct ctl_table_header;
- struct nf_conntrack_ecache;
+diff --git a/include/net/netfilter/nf_conntrack_l4proto.h b/include/net/netfilter/nf_conntrack_l4proto.h
+index fd8954429e87..dda028996559 100644
+--- a/include/net/netfilter/nf_conntrack_l4proto.h
++++ b/include/net/netfilter/nf_conntrack_l4proto.h
+@@ -27,13 +27,6 @@ struct nf_conntrack_l4proto {
+ 	/* protoinfo nlattr size, closes a hole */
+ 	u16 nlattr_size;
  
- struct nf_proto_net {
--#ifdef CONFIG_SYSCTL
--	struct ctl_table_header *ctl_table_header;
--	struct ctl_table        *ctl_table;
--#endif
- 	unsigned int		users;
- };
+-	/* Returns verdict for packet, or -1 for invalid. */
+-	int (*packet)(struct nf_conn *ct,
+-		      struct sk_buff *skb,
+-		      unsigned int dataoff,
+-		      enum ip_conntrack_info ctinfo,
+-		      const struct nf_hook_state *state);
+-
+ 	/* Called when a conntrack entry is destroyed */
+ 	void (*destroy)(struct nf_conn *ct);
  
-diff --git a/net/netfilter/nf_conntrack_proto.c b/net/netfilter/nf_conntrack_proto.c
-index 13b782cc6a7a..c8f024d731c8 100644
---- a/net/netfilter/nf_conntrack_proto.c
-+++ b/net/netfilter/nf_conntrack_proto.c
-@@ -48,35 +48,6 @@ static struct nf_conntrack_l4proto __rcu *nf_ct_protos[MAX_NF_CT_PROTO + 1] __re
- static DEFINE_MUTEX(nf_ct_proto_mutex);
+@@ -136,6 +129,11 @@ int nf_conntrack_sctp_packet(struct nf_conn *ct,
+ 			     unsigned int dataoff,
+ 			     enum ip_conntrack_info ctinfo,
+ 			     const struct nf_hook_state *state);
++int nf_conntrack_gre_packet(struct nf_conn *ct,
++			    struct sk_buff *skb,
++			    unsigned int dataoff,
++			    enum ip_conntrack_info ctinfo,
++			    const struct nf_hook_state *state);
  
- #ifdef CONFIG_SYSCTL
--static int
--nf_ct_register_sysctl(struct net *net,
--		      struct ctl_table_header **header,
--		      const char *path,
--		      struct ctl_table *table)
--{
--	if (*header == NULL) {
--		*header = register_net_sysctl(net, path, table);
--		if (*header == NULL)
--			return -ENOMEM;
--	}
--
--	return 0;
--}
--
--static void
--nf_ct_unregister_sysctl(struct ctl_table_header **header,
--			struct ctl_table **table,
--			unsigned int users)
--{
--	if (users > 0)
--		return;
--
--	unregister_net_sysctl_table(*header);
--	kfree(*table);
--	*header = NULL;
--	*table = NULL;
--}
--
- __printf(5, 6)
- void nf_l4proto_log_invalid(const struct sk_buff *skb,
- 			    struct net *net,
-@@ -161,40 +132,6 @@ static struct nf_proto_net *nf_ct_l4proto_net(struct net *net,
- 	return NULL;
- }
- 
--static
--int nf_ct_l4proto_register_sysctl(struct net *net,
--				  struct nf_proto_net *pn)
--{
--	int err = 0;
--
--#ifdef CONFIG_SYSCTL
--	if (pn->ctl_table != NULL) {
--		err = nf_ct_register_sysctl(net,
--					    &pn->ctl_table_header,
--					    "net/netfilter",
--					    pn->ctl_table);
--		if (err < 0) {
--			if (!pn->users) {
--				kfree(pn->ctl_table);
--				pn->ctl_table = NULL;
--			}
--		}
--	}
--#endif /* CONFIG_SYSCTL */
--	return err;
--}
--
--static
--void nf_ct_l4proto_unregister_sysctl(struct nf_proto_net *pn)
--{
--#ifdef CONFIG_SYSCTL
--	if (pn->ctl_table_header != NULL)
--		nf_ct_unregister_sysctl(&pn->ctl_table_header,
--					&pn->ctl_table,
--					pn->users);
--#endif /* CONFIG_SYSCTL */
--}
--
- /* FIXME: Allow NULL functions and sub in pointers to generic for
-    them. --RR */
- int nf_ct_l4proto_register_one(const struct nf_conntrack_l4proto *l4proto)
-@@ -237,10 +174,6 @@ static int nf_ct_l4proto_pernet_register_one(struct net *net,
- 	if (pn == NULL)
- 		goto out;
- 
--	ret = nf_ct_l4proto_register_sysctl(net, pn);
--	if (ret < 0)
--		goto out;
--
- 	pn->users++;
- out:
+ /* Existing built-in generic protocol */
+ extern const struct nf_conntrack_l4proto nf_conntrack_l4proto_generic;
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index d56cb0fc82b6..264074f04615 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -1534,6 +1534,18 @@ nf_conntrack_handle_icmp(struct nf_conn *tmpl,
  	return ret;
-@@ -280,7 +213,6 @@ static void nf_ct_l4proto_pernet_unregister_one(struct net *net,
- 		return;
- 
- 	pn->users--;
--	nf_ct_l4proto_unregister_sysctl(pn);
  }
  
- static void
-@@ -859,17 +791,11 @@ int nf_conntrack_proto_pernet_init(struct net *net)
- 	err = nf_conntrack_l4proto_generic.init_net(net);
- 	if (err < 0)
- 		return err;
--	err = nf_ct_l4proto_register_sysctl(net,
--					    pn);
--	if (err < 0)
--		return err;
- 
- 	err = nf_ct_l4proto_pernet_register(net, builtin_l4proto,
- 					    ARRAY_SIZE(builtin_l4proto));
--	if (err < 0) {
--		nf_ct_l4proto_unregister_sysctl(pn);
-+	if (err < 0)
- 		return err;
--	}
- 
- 	pn->users++;
- 	return 0;
-@@ -883,7 +809,6 @@ void nf_conntrack_proto_pernet_fini(struct net *net)
- 	nf_ct_l4proto_pernet_unregister(net, builtin_l4proto,
- 					ARRAY_SIZE(builtin_l4proto));
- 	pn->users--;
--	nf_ct_l4proto_unregister_sysctl(pn);
- #ifdef CONFIG_NF_CT_PROTO_GRE
- 	nf_ct_gre_keymap_flush(net);
++static int generic_packet(struct nf_conn *ct, struct sk_buff *skb,
++			  enum ip_conntrack_info ctinfo)
++{
++	const unsigned int *timeout = nf_ct_timeout_lookup(ct);
++
++	if (!timeout)
++		timeout = &nf_generic_pernet(nf_ct_net(ct))->timeout;
++
++	nf_ct_refresh_acct(ct, ctinfo, skb, *timeout);
++	return NF_ACCEPT;
++}
++
+ /* Returns verdict for packet, or -1 for invalid. */
+ static int nf_conntrack_handle_packet(struct nf_conn *ct,
+ 				      struct sk_buff *skb,
+@@ -1567,10 +1579,14 @@ static int nf_conntrack_handle_packet(struct nf_conn *ct,
+ 		return nf_conntrack_dccp_packet(ct, skb, dataoff,
+ 						ctinfo, state);
  #endif
++#ifdef CONFIG_NF_CT_PROTO_GRE
++	case IPPROTO_GRE:
++		return nf_conntrack_gre_packet(ct, skb, dataoff,
++					       ctinfo, state);
++#endif
+ 	}
+ 
+-	WARN_ON_ONCE(1);
+-	return -NF_ACCEPT;
++	return generic_packet(ct, skb, ctinfo);
+ }
+ 
+ unsigned int
+@@ -1634,11 +1650,7 @@ nf_conntrack_in(struct sk_buff *skb, const struct nf_hook_state *state)
+ 		goto out;
+ 	}
+ 
+-	if (l4proto->packet)
+-		ret = l4proto->packet(ct, skb, dataoff, ctinfo, state);
+-	else
+-		ret = nf_conntrack_handle_packet(ct, skb, dataoff, ctinfo, state);
+-
++	ret = nf_conntrack_handle_packet(ct, skb, dataoff, ctinfo, state);
+ 	if (ret <= 0) {
+ 		/* Invalid: inverse of the return code tells
+ 		 * the netfilter core what to do */
+diff --git a/net/netfilter/nf_conntrack_proto_generic.c b/net/netfilter/nf_conntrack_proto_generic.c
+index 5a5bf7cb6508..78358d192c60 100644
+--- a/net/netfilter/nf_conntrack_proto_generic.c
++++ b/net/netfilter/nf_conntrack_proto_generic.c
+@@ -15,40 +15,6 @@
+ 
+ static const unsigned int nf_ct_generic_timeout = 600*HZ;
+ 
+-static bool nf_generic_should_process(u8 proto)
+-{
+-	switch (proto) {
+-#ifdef CONFIG_NF_CT_PROTO_GRE_MODULE
+-	case IPPROTO_GRE:
+-		return false;
+-#endif
+-	default:
+-		return true;
+-	}
+-}
+-
+-/* Returns verdict for packet, or -1 for invalid. */
+-static int generic_packet(struct nf_conn *ct,
+-			  struct sk_buff *skb,
+-			  unsigned int dataoff,
+-			  enum ip_conntrack_info ctinfo,
+-			  const struct nf_hook_state *state)
+-{
+-	const unsigned int *timeout = nf_ct_timeout_lookup(ct);
+-
+-	if (!nf_generic_should_process(nf_ct_protonum(ct))) {
+-		pr_warn_once("conntrack: generic helper won't handle protocol %d. Please consider loading the specific helper module.\n",
+-			     nf_ct_protonum(ct));
+-		return -NF_ACCEPT;
+-	}
+-
+-	if (!timeout)
+-		timeout = &nf_generic_pernet(nf_ct_net(ct))->timeout;
+-
+-	nf_ct_refresh_acct(ct, ctinfo, skb, *timeout);
+-	return NF_ACCEPT;
+-}
+-
+ #ifdef CONFIG_NF_CONNTRACK_TIMEOUT
+ 
+ #include <linux/netfilter/nfnetlink.h>
+@@ -139,7 +105,6 @@ static struct nf_proto_net *generic_get_net_proto(struct net *net)
+ const struct nf_conntrack_l4proto nf_conntrack_l4proto_generic =
+ {
+ 	.l4proto		= 255,
+-	.packet			= generic_packet,
+ #ifdef CONFIG_NF_CONNTRACK_TIMEOUT
+ 	.ctnl_timeout		= {
+ 		.nlattr_to_obj	= generic_timeout_nlattr_to_obj,
+diff --git a/net/netfilter/nf_conntrack_proto_gre.c b/net/netfilter/nf_conntrack_proto_gre.c
+index 0c26cfd5d29f..f6391991bcf6 100644
+--- a/net/netfilter/nf_conntrack_proto_gre.c
++++ b/net/netfilter/nf_conntrack_proto_gre.c
+@@ -213,11 +213,11 @@ static unsigned int *gre_get_timeouts(struct net *net)
+ }
+ 
+ /* Returns verdict for packet, and may modify conntrack */
+-static int gre_packet(struct nf_conn *ct,
+-		      struct sk_buff *skb,
+-		      unsigned int dataoff,
+-		      enum ip_conntrack_info ctinfo,
+-		      const struct nf_hook_state *state)
++int nf_conntrack_gre_packet(struct nf_conn *ct,
++			    struct sk_buff *skb,
++			    unsigned int dataoff,
++			    enum ip_conntrack_info ctinfo,
++			    const struct nf_hook_state *state)
+ {
+ 	if (state->pf != NFPROTO_IPV4)
+ 		return -NF_ACCEPT;
+@@ -371,7 +371,6 @@ const struct nf_conntrack_l4proto nf_conntrack_l4proto_gre = {
+ #ifdef CONFIG_NF_CONNTRACK_PROCFS
+ 	.print_conntrack = gre_print_conntrack,
+ #endif
+-	.packet		 = gre_packet,
+ 	.destroy	 = gre_destroy,
+ #if IS_ENABLED(CONFIG_NF_CT_NETLINK)
+ 	.tuple_to_nlattr = nf_ct_port_tuple_to_nlattr,
 -- 
 2.11.0
