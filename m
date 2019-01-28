@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 25/33] netfilter: nat: un-export nf_nat_used_tuple
-Date: Tue, 29 Jan 2019 00:57:42 +0100
-Message-ID: <20190128235750.18412-26-pablo@netfilter.org>
+Subject: [PATCH 28/33] netfilter: conntrack: fix bogus port values for other l4 protocols
+Date: Tue, 29 Jan 2019 00:57:45 +0100
+Message-ID: <20190128235750.18412-29-pablo@netfilter.org>
 References: <20190128235750.18412-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -12,50 +12,98 @@ List-Id: netfilter-devel.vger.kernel.org
 
 From: Florian Westphal <fw@strlen.de>
 
-Not used since 203f2e78200c27e ("netfilter: nat: remove l4proto->unique_tuple")
+We must only extract l4 proto information if we can track the layer 4
+protocol.
 
+Before removal of pkt_to_tuple callback, the code to extract port
+information was only reached for TCP/UDP/LITE/DCCP/SCTP.
+
+The other protocols were handled by the indirect call, and the
+'generic' tracker took care of other protocols that have no notion
+of 'ports'.
+
+After removal of the callback we must be more strict here and only
+init port numbers for those protocols that have ports.
+
+Fixes: df5e1629087a ("netfilter: conntrack: remove pkt_to_tuple callback")
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_nat.h | 4 ----
- net/netfilter/nf_nat_core.c    | 3 +--
- 2 files changed, 1 insertion(+), 6 deletions(-)
+ net/netfilter/nf_conntrack_core.c | 46 +++++++++++++++++++++++++++++----------
+ 1 file changed, 35 insertions(+), 11 deletions(-)
 
-diff --git a/include/net/netfilter/nf_nat.h b/include/net/netfilter/nf_nat.h
-index a17eb2f8d40e..8aff77cafb8b 100644
---- a/include/net/netfilter/nf_nat.h
-+++ b/include/net/netfilter/nf_nat.h
-@@ -47,10 +47,6 @@ extern unsigned int nf_nat_alloc_null_binding(struct nf_conn *ct,
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index a3e5232c2088..815956ac5a76 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -222,6 +222,24 @@ static u32 hash_conntrack(const struct net *net,
+ 	return scale_hash(hash_conntrack_raw(tuple, net));
+ }
  
- struct nf_conn_nat *nf_ct_nat_ext_add(struct nf_conn *ct);
++static bool nf_ct_get_tuple_ports(const struct sk_buff *skb,
++				  unsigned int dataoff,
++				  struct nf_conntrack_tuple *tuple)
++{	struct {
++		__be16 sport;
++		__be16 dport;
++	} _inet_hdr, *inet_hdr;
++
++	/* Actually only need first 4 bytes to get ports. */
++	inet_hdr = skb_header_pointer(skb, dataoff, sizeof(_inet_hdr), &_inet_hdr);
++	if (!inet_hdr)
++		return false;
++
++	tuple->src.u.udp.port = inet_hdr->sport;
++	tuple->dst.u.udp.port = inet_hdr->dport;
++	return true;
++}
++
+ static bool
+ nf_ct_get_tuple(const struct sk_buff *skb,
+ 		unsigned int nhoff,
+@@ -234,10 +252,6 @@ nf_ct_get_tuple(const struct sk_buff *skb,
+ 	unsigned int size;
+ 	const __be32 *ap;
+ 	__be32 _addrs[8];
+-	struct {
+-		__be16 sport;
+-		__be16 dport;
+-	} _inet_hdr, *inet_hdr;
  
--/* Is this tuple already taken? (not by us)*/
--int nf_nat_used_tuple(const struct nf_conntrack_tuple *tuple,
--		      const struct nf_conn *ignored_conntrack);
+ 	memset(tuple, 0, sizeof(*tuple));
+ 
+@@ -284,15 +298,25 @@ nf_ct_get_tuple(const struct sk_buff *skb,
+ 	case IPPROTO_GRE:
+ 		return gre_pkt_to_tuple(skb, dataoff, net, tuple);
+ #endif
++	case IPPROTO_TCP:
++	case IPPROTO_UDP: /* fallthrough */
++		return nf_ct_get_tuple_ports(skb, dataoff, tuple);
++#ifdef CONFIG_NF_CT_PROTO_UDPLITE
++	case IPPROTO_UDPLITE:
++		return nf_ct_get_tuple_ports(skb, dataoff, tuple);
++#endif
++#ifdef CONFIG_NF_CT_PROTO_SCTP
++	case IPPROTO_SCTP:
++		return nf_ct_get_tuple_ports(skb, dataoff, tuple);
++#endif
++#ifdef CONFIG_NF_CT_PROTO_DCCP
++	case IPPROTO_DCCP:
++		return nf_ct_get_tuple_ports(skb, dataoff, tuple);
++#endif
++	default:
++		break;
+ 	}
+ 
+-	/* Actually only need first 4 bytes to get ports. */
+-	inet_hdr = skb_header_pointer(skb, dataoff, sizeof(_inet_hdr), &_inet_hdr);
+-	if (!inet_hdr)
+-		return false;
 -
- static inline struct nf_conn_nat *nfct_nat(const struct nf_conn *ct)
- {
- #if defined(CONFIG_NF_NAT) || defined(CONFIG_NF_NAT_MODULE)
-diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
-index 44f97b3a215a..35e61038ae96 100644
---- a/net/netfilter/nf_nat_core.c
-+++ b/net/netfilter/nf_nat_core.c
-@@ -146,7 +146,7 @@ hash_by_src(const struct net *n, const struct nf_conntrack_tuple *tuple)
+-	tuple->src.u.udp.port = inet_hdr->sport;
+-	tuple->dst.u.udp.port = inet_hdr->dport;
+ 	return true;
  }
  
- /* Is this tuple already taken? (not by us) */
--int
-+static int
- nf_nat_used_tuple(const struct nf_conntrack_tuple *tuple,
- 		  const struct nf_conn *ignored_conntrack)
- {
-@@ -161,7 +161,6 @@ nf_nat_used_tuple(const struct nf_conntrack_tuple *tuple,
- 	nf_ct_invert_tuple(&reply, tuple);
- 	return nf_conntrack_tuple_taken(&reply, ignored_conntrack);
- }
--EXPORT_SYMBOL(nf_nat_used_tuple);
- 
- static bool nf_nat_inet_in_range(const struct nf_conntrack_tuple *t,
- 				 const struct nf_nat_range2 *range)
 -- 
 2.11.0
