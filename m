@@ -1,29 +1,35 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] nft_counter: remove wrong __percpu of
- nft_counter_resest()'s arg
-Date: Mon, 28 Jan 2019 11:20:22 +0100
-Message-ID: <20190128102022.mrnh2j6orgnrdfyp@salvia>
-References: <20190119215024.90174-1-luc.vanoostenryck@gmail.com>
+From: Florian Westphal <fw-HFFVJYpyMKqzQB+pC5nmwQ@public.gmane.org>
+Subject: Re: "Kernel bug detected [...]
+ nf_ct_del_from_dying_or_unconfirmed_list"
+Date: Mon, 28 Jan 2019 14:39:40 +0100
+Message-ID: <20190128133940.jxwuscyi2wvbfb52@breakpoint.cc>
+References: <20190127214708.GC1788@otheros>
+ <20190127224822.lsagihtfiuvxyool@breakpoint.cc>
+ <CALJUYjOq-xpjorsfnMRthzmC+iuDTVOPHXRb2p3ahU248Jrw4w@mail.gmail.com>
+Reply-To: The list for a Better Approach To Mobile Ad-hoc Networking
+ <b.a.t.m.a.n-ZwoEplunGu2X36UT3dwllkB+6BGkLq7r@public.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        linux-kernel@vger.kernel.org
-To: Luc Van Oostenryck <luc.vanoostenryck@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Cc: netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, b.a.t.m.a.n-ZwoEplunGu2X36UT3dwllkB+6BGkLq7r@public.gmane.org,
+ Florian Westphal <fw-HFFVJYpyMKqzQB+pC5nmwQ@public.gmane.org>
+To: Chieh-Min Wang <chiehmin18-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Return-path: <b.a.t.m.a.n-bounces-ZwoEplunGu2X36UT3dwllkB+6BGkLq7r@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20190119215024.90174-1-luc.vanoostenryck@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
+In-Reply-To: <CALJUYjOq-xpjorsfnMRthzmC+iuDTVOPHXRb2p3ahU248Jrw4w-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+List-Unsubscribe: <https://lists.open-mesh.org/mm/options/b.a.t.m.a.n>,
+ <mailto:b.a.t.m.a.n-request-ZwoEplunGu2X36UT3dwllkB+6BGkLq7r@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.open-mesh.org/pipermail/b.a.t.m.a.n/>
+List-Post: <mailto:b.a.t.m.a.n-ZwoEplunGu2X36UT3dwllkB+6BGkLq7r@public.gmane.org>
+List-Help: <mailto:b.a.t.m.a.n-request-ZwoEplunGu2X36UT3dwllkB+6BGkLq7r@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.open-mesh.org/mm/listinfo/b.a.t.m.a.n>,
+ <mailto:b.a.t.m.a.n-request-ZwoEplunGu2X36UT3dwllkB+6BGkLq7r@public.gmane.org?subject=subscribe>
+Errors-To: b.a.t.m.a.n-bounces-ZwoEplunGu2X36UT3dwllkB+6BGkLq7r@public.gmane.org
+Sender: "B.A.T.M.A.N" <b.a.t.m.a.n-bounces-ZwoEplunGu2X36UT3dwllkB+6BGkLq7r@public.gmane.org>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, Jan 19, 2019 at 10:50:24PM +0100, Luc Van Oostenryck wrote:
-> nft_counter_rest() has its first argument declared as
-> 	struct nft_counter_percpu_priv __percpu *priv
-> but this structure is not percpu (it only countains
-> a member 'counter' which is, correctly, a pointer to a
-> percpu struct nft_counter).
+Chieh-Min Wang <chiehmin18-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+> I think this is the same issue as this one.
 > 
-> So, remove the '__percpu' from the argument's declaration.
+> http://patchwork.ozlabs.org/patch/995825/
 
-Applied, thanks.
+Yes, likely.
