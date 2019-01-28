@@ -1,76 +1,143 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 0/7] Netfilter/IPVS fixes for net
-Date: Mon, 28 Jan 2019 15:03:58 +0100
-Message-ID: <20190128140405.15020-1-pablo@netfilter.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Subject: [PATCH 3/7] netfilter: nft_compat: destroy function must not have side effects
+Date: Mon, 28 Jan 2019 15:04:01 +0100
+Message-ID: <20190128140405.15020-4-pablo@netfilter.org>
+References: <20190128140405.15020-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20190128140405.15020-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi David,
+From: Florian Westphal <fw@strlen.de>
 
-The following patchset contains Netfilter/IPVS fixes for your net tree:
+The nft_compat destroy function deletes the nft_xt object from a list.
+This isn't allowed anymore. Destroy functions are called asynchronously,
+i.e. next batch can find the object that has a pending ->destroy()
+invocation:
 
-1) The nftnl mutex is now per-netns, therefore use reference counter
-   for matches and targets to deal with concurrent updates from netns.
-   Moreover, place extensions in a pernet list. Patches from Florian Westphal.
+cpu0                       cpu1
+ worker
+   ->destroy               for_each_entry()
+	                     if (x == ...
+			        return x->ops;
+     list_del(x)
+     kfree_rcu(x)
+                           expr->ops->... // ops was free'd
 
-2) Bail out with EINVAL in case of negative timeouts via setsockopt()
-   through ip_vs_set_timeout(), from ZhangXiaoxu.
+To resolve this, the list_del needs to occur before the transaction
+mutex gets released.  nf_tables has a 'deactivate' hook for this
+purpose, so use that to unlink the object from the list.
 
-3) Spurious EINVAL on ebtables 32bit binary with 64bit kernel, also
-   from Florian.
+Fixes: 0935d5588400 ("netfilter: nf_tables: asynchronous release")
+Reported-by: Taehee Yoo <ap420073@gmail.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nft_compat.c | 48 +++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 47 insertions(+), 1 deletion(-)
 
-4) Reset TCP option header parser in case of fingerprint mismatch,
-   otherwise follow up overlapping fingerprint definitions including
-   TCP options do not work, from Fernando Fernandez Mancera.
-
-5) Compilation warning in ipt_CLUSTER with CONFIG_PROC_FS unset.
-   From Anders Roxell.
-
-You can pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
-
-Thanks!
-
-----------------------------------------------------------------
-
-The following changes since commit 88a8121dc1d3d0dbddd411b79ed236b6b6ea415c:
-
-  af_packet: fix raw sockets over 6in4 tunnel (2019-01-17 15:54:45 -0800)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git HEAD
-
-for you to fetch changes up to 206b8cc514d7ff2b79dd2d5ad939adc7c493f07a:
-
-  netfilter: ipt_CLUSTERIP: fix warning unused variable cn (2019-01-28 11:09:12 +0100)
-
-----------------------------------------------------------------
-Anders Roxell (1):
-      netfilter: ipt_CLUSTERIP: fix warning unused variable cn
-
-Fernando Fernandez Mancera (1):
-      netfilter: nfnetlink_osf: add missing fmatch check
-
-Florian Westphal (4):
-      netfilter: nft_compat: use refcnt_t type for nft_xt reference count
-      netfilter: nft_compat: make lists per netns
-      netfilter: nft_compat: destroy function must not have side effects
-      netfilter: ebtables: compat: un-break 32bit setsockopt when no rules are present
-
-ZhangXiaoxu (1):
-      ipvs: Fix signed integer overflow when setsockopt timeout
-
- net/bridge/netfilter/ebtables.c    |   9 +-
- net/ipv4/netfilter/ipt_CLUSTERIP.c |   2 +-
- net/netfilter/ipvs/ip_vs_ctl.c     |  12 +++
- net/netfilter/nfnetlink_osf.c      |   4 +
- net/netfilter/nft_compat.c         | 189 ++++++++++++++++++++++++++++---------
- 5 files changed, 165 insertions(+), 51 deletions(-)
+diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
+index abed3490a8f8..5eb269428832 100644
+--- a/net/netfilter/nft_compat.c
++++ b/net/netfilter/nft_compat.c
+@@ -29,6 +29,9 @@ struct nft_xt {
+ 	struct nft_expr_ops	ops;
+ 	refcount_t		refcnt;
+ 
++	/* used only when transaction mutex is locked */
++	unsigned int		listcnt;
++
+ 	/* Unlike other expressions, ops doesn't have static storage duration.
+ 	 * nft core assumes they do.  We use kfree_rcu so that nft core can
+ 	 * can check expr->ops->size even after nft_compat->destroy() frees
+@@ -61,7 +64,7 @@ static struct nft_compat_net *nft_compat_pernet(struct net *net)
+ static bool nft_xt_put(struct nft_xt *xt)
+ {
+ 	if (refcount_dec_and_test(&xt->refcnt)) {
+-		list_del(&xt->head);
++		WARN_ON_ONCE(!list_empty(&xt->head));
+ 		kfree_rcu(xt, rcu_head);
+ 		return true;
+ 	}
+@@ -555,6 +558,43 @@ nft_match_destroy(const struct nft_ctx *ctx, const struct nft_expr *expr)
+ 	__nft_match_destroy(ctx, expr, nft_expr_priv(expr));
+ }
+ 
++static void nft_compat_activate(const struct nft_ctx *ctx,
++				const struct nft_expr *expr,
++				struct list_head *h)
++{
++	struct nft_xt *xt = container_of(expr->ops, struct nft_xt, ops);
++
++	if (xt->listcnt == 0)
++		list_add(&xt->head, h);
++
++	xt->listcnt++;
++}
++
++static void nft_compat_activate_mt(const struct nft_ctx *ctx,
++				   const struct nft_expr *expr)
++{
++	struct nft_compat_net *cn = nft_compat_pernet(ctx->net);
++
++	nft_compat_activate(ctx, expr, &cn->nft_match_list);
++}
++
++static void nft_compat_activate_tg(const struct nft_ctx *ctx,
++				   const struct nft_expr *expr)
++{
++	struct nft_compat_net *cn = nft_compat_pernet(ctx->net);
++
++	nft_compat_activate(ctx, expr, &cn->nft_target_list);
++}
++
++static void nft_compat_deactivate(const struct nft_ctx *ctx,
++				  const struct nft_expr *expr)
++{
++	struct nft_xt *xt = container_of(expr->ops, struct nft_xt, ops);
++
++	if (--xt->listcnt == 0)
++		list_del_init(&xt->head);
++}
++
+ static void
+ nft_match_large_destroy(const struct nft_ctx *ctx, const struct nft_expr *expr)
+ {
+@@ -808,6 +848,8 @@ nft_match_select_ops(const struct nft_ctx *ctx,
+ 	nft_match->ops.eval = nft_match_eval;
+ 	nft_match->ops.init = nft_match_init;
+ 	nft_match->ops.destroy = nft_match_destroy;
++	nft_match->ops.activate = nft_compat_activate_mt;
++	nft_match->ops.deactivate = nft_compat_deactivate;
+ 	nft_match->ops.dump = nft_match_dump;
+ 	nft_match->ops.validate = nft_match_validate;
+ 	nft_match->ops.data = match;
+@@ -824,6 +866,7 @@ nft_match_select_ops(const struct nft_ctx *ctx,
+ 
+ 	nft_match->ops.size = matchsize;
+ 
++	nft_match->listcnt = 1;
+ 	list_add(&nft_match->head, &cn->nft_match_list);
+ 
+ 	return &nft_match->ops;
+@@ -910,6 +953,8 @@ nft_target_select_ops(const struct nft_ctx *ctx,
+ 	nft_target->ops.size = NFT_EXPR_SIZE(XT_ALIGN(target->targetsize));
+ 	nft_target->ops.init = nft_target_init;
+ 	nft_target->ops.destroy = nft_target_destroy;
++	nft_target->ops.activate = nft_compat_activate_tg;
++	nft_target->ops.deactivate = nft_compat_deactivate;
+ 	nft_target->ops.dump = nft_target_dump;
+ 	nft_target->ops.validate = nft_target_validate;
+ 	nft_target->ops.data = target;
+@@ -919,6 +964,7 @@ nft_target_select_ops(const struct nft_ctx *ctx,
+ 	else
+ 		nft_target->ops.eval = nft_target_eval_xt;
+ 
++	nft_target->listcnt = 1;
+ 	list_add(&nft_target->head, &cn->nft_target_list);
+ 
+ 	return &nft_target->ops;
+-- 
+2.11.0
