@@ -1,190 +1,204 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 00/33] Netfilter/IPVS updates for net-next
-Date: Tue, 29 Jan 2019 00:57:17 +0100
-Message-ID: <20190128235750.18412-1-pablo@netfilter.org>
+Subject: [PATCH 01/33] netfilter: nf_tables: prepare nft_object for lookups via hashtable
+Date: Tue, 29 Jan 2019 00:57:18 +0100
+Message-ID: <20190128235750.18412-2-pablo@netfilter.org>
+References: <20190128235750.18412-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20190128235750.18412-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi David,
+From: Florian Westphal <fw@strlen.de>
 
-The following patchset contains Netfilter/IPVS updates for your net-next tree:
+Add a 'key' structure for object, so we can look them up by name + table
+combination (the name can be the same in each table).
 
-1) Introduce a hashtable to speed up object lookups, from Florian Westphal.
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/net/netfilter/nf_tables.h | 19 ++++++++++++++-----
+ net/netfilter/nf_tables_api.c     | 27 ++++++++++++++++-----------
+ net/netfilter/nft_objref.c        |  2 +-
+ net/netfilter/nft_quota.c         |  2 +-
+ 4 files changed, 32 insertions(+), 18 deletions(-)
 
-2) Make direct calls to built-in extension, also from Florian.
-
-3) Call helper before confirming the conntrack as it used to be originally,
-   from Florian.
-
-4) Call request_module() to autoload br_netfilter when physdev is used
-   to relax the dependency, also from Florian.
-
-5) Allow to insert rules at a given position ID that is internal to the
-   batch, from Phil Sutter.
-
-6) Several patches to replace conntrack indirections by direct calls,
-   and to reduce modularization, from Florian. This also includes
-   several follow up patches to deal with minor fallout from this
-   rework.
-
-7) Use RCU from conntrack gre helper, from Florian.
-
-8) GRE conntrack module becomes built-in into nf_conntrack, from Florian.
-
-9) Replace nf_ct_invert_tuplepr() by calls to nf_ct_invert_tuple(),
-   from Florian.
-
-10) Unify sysctl handling at the core of nf_conntrack, from Florian.
-
-11) Provide modparam to register conntrack hooks.
-
-12) Allow to match on the interface kind string, from wenxu.
-
-13) Remove several exported symbols, not required anymore now after
-    a bit of de-modulatization work has been done, from Florian.
-
-14) Remove built-in map support in the hash extension, this can be
-    done with the existing userspace infrastructure, from laura.
-
-15) Remove indirection to calculate checksums in IPVS, from Matteo Croce.
-
-16) Use call wrappers for indirection in IPVS, also from Matteo.
-
-17) Remove superfluous __percpu parameter in nft_counter, patch from
-    Luc Van Oostenryck.
-
-You can pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git
-
-Thanks!
-
-----------------------------------------------------------------
-
-The following changes since commit 435f3f267780321a1aff41bdade257722328ead5:
-
-  Merge branch 'tcp_openreq_child' (2019-01-17 22:19:05 -0800)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git HEAD
-
-for you to fetch changes up to 83f529281d7aa42b10c2c5cb64fcbd2c7cab4409:
-
-  netfilter: ipv4: remove useless export_symbol (2019-01-28 11:32:58 +0100)
-
-----------------------------------------------------------------
-Cong Wang (1):
-      netfilter: conntrack: fix error path in nf_conntrack_pernet_init()
-
-Florian Westphal (25):
-      netfilter: nf_tables: prepare nft_object for lookups via hashtable
-      netfilter: nf_tables: handle nft_object lookups via rhltable
-      netfilter: nf_tables: add direct calls for all builtin expressions
-      netfilter: conntrack: remove helper hook again
-      netfilter: physdev: relax br_netfilter dependency
-      netfilter: conntrack: handle builtin l4proto packet functions via direct calls
-      netfilter: conntrack: handle icmp pkt_to_tuple helper via direct calls
-      netfilter: conntrack: gre: convert rwlock to rcu
-      netfilter: conntrack: gre: switch module to be built-in
-      netfilter: conntrack: remove net_id
-      netfilter: conntrack: remove pkt_to_tuple callback
-      netfilter: conntrack: remove invert_tuple callback
-      netfilter: conntrack: remove module owner field
-      netfilter: conntrack: remove remaining l4proto indirect packet calls
-      netfilter: conntrack: remove pernet l4 proto register interface
-      netfilter: conntrack: avoid unneeded nf_conntrack_l4proto lookups
-      netfilter: conntrack: unify sysctl handling
-      netfilter: conntrack: remove sysctl registration helpers
-      netfilter: conntrack: remove l4proto init and get_net callbacks
-      netfilter: conntrack: remove l4proto destroy hook
-      netfilter: conntrack: remove nf_ct_l4proto_find_get
-      netfilter: nat: un-export nf_nat_used_tuple
-      netfilter: conntrack: fix IPV6=n builds
-      netfilter: conntrack: fix bogus port values for other l4 protocols
-      netfilter: ipv4: remove useless export_symbol
-
-Laura Garcia Liebana (1):
-      Revert "netfilter: nft_hash: add map lookups for hashing operations"
-
-Luc Van Oostenryck (1):
-      netfilter: nft_counter: remove wrong __percpu of nft_counter_resest()'s arg
-
-Matteo Croce (2):
-      ipvs: avoid indirect calls when calculating checksums
-      ipvs: use indirect call wrappers
-
-Pablo Neira Ayuso (1):
-      netfilter: nf_conntrack: provide modparam to always register conntrack hooks
-
-Phil Sutter (1):
-      netfilter: nf_tables: Support RULE_ID reference in new rule
-
-wenxu (1):
-      netfilter: nft_meta: Add NFT_META_I/OIFKIND meta type
-
- include/linux/netfilter/nf_conntrack_proto_gre.h |  17 +-
- include/linux/netfilter_ipv4.h                   |   6 -
- include/net/ip_vs.h                              |   3 -
- include/net/netfilter/br_netfilter.h             |   1 -
- include/net/netfilter/ipv4/nf_conntrack_ipv4.h   |   3 +
- include/net/netfilter/nf_conntrack.h             |   2 -
- include/net/netfilter/nf_conntrack_core.h        |   5 +-
- include/net/netfilter/nf_conntrack_l4proto.h     | 122 +++---
- include/net/netfilter/nf_nat.h                   |   4 -
- include/net/netfilter/nf_tables.h                |  26 +-
- include/net/netfilter/nf_tables_core.h           |  16 +
- include/net/netns/conntrack.h                    |  30 +-
- include/uapi/linux/netfilter/nf_tables.h         |  10 +-
- net/bridge/br_netfilter_hooks.c                  |   5 -
- net/ipv4/netfilter.c                             |  18 -
- net/ipv4/netfilter/nf_nat_l3proto_ipv4.c         |   2 +-
- net/ipv6/netfilter/nf_nat_l3proto_ipv6.c         |   2 +-
- net/netfilter/Kconfig                            |   2 +-
- net/netfilter/Makefile                           |   3 +-
- net/netfilter/ipvs/ip_vs_core.c                  |  49 ++-
- net/netfilter/ipvs/ip_vs_proto_ah_esp.c          |   2 -
- net/netfilter/ipvs/ip_vs_proto_sctp.c            |   8 +-
- net/netfilter/ipvs/ip_vs_proto_tcp.c             |  15 +-
- net/netfilter/ipvs/ip_vs_proto_udp.c             |  15 +-
- net/netfilter/nf_conntrack_core.c                | 210 +++++----
- net/netfilter/nf_conntrack_expect.c              |   2 +-
- net/netfilter/nf_conntrack_netlink.c             |  14 +-
- net/netfilter/nf_conntrack_pptp.c                |   2 +-
- net/netfilter/nf_conntrack_proto.c               | 514 ++++-------------------
- net/netfilter/nf_conntrack_proto_dccp.c          | 134 +-----
- net/netfilter/nf_conntrack_proto_generic.c       |  85 +---
- net/netfilter/nf_conntrack_proto_gre.c           | 196 ++-------
- net/netfilter/nf_conntrack_proto_icmp.c          |  67 +--
- net/netfilter/nf_conntrack_proto_icmpv6.c        |  69 +--
- net/netfilter/nf_conntrack_proto_sctp.c          | 128 +-----
- net/netfilter/nf_conntrack_proto_tcp.c           | 160 +------
- net/netfilter/nf_conntrack_proto_udp.c           |  80 +---
- net/netfilter/nf_conntrack_standalone.c          | 427 ++++++++++++++++++-
- net/netfilter/nf_flow_table_core.c               |   2 +-
- net/netfilter/nf_nat_core.c                      |  15 +-
- net/netfilter/nf_tables_api.c                    | 137 +++++-
- net/netfilter/nf_tables_core.c                   |  25 +-
- net/netfilter/nfnetlink_cttimeout.c              |  19 +-
- net/netfilter/nft_bitwise.c                      |   5 +-
- net/netfilter/nft_byteorder.c                    |   6 +-
- net/netfilter/nft_cmp.c                          |   6 +-
- net/netfilter/nft_counter.c                      |   2 +-
- net/netfilter/nft_ct.c                           |   4 +-
- net/netfilter/nft_dynset.c                       |   5 +-
- net/netfilter/nft_hash.c                         | 121 ------
- net/netfilter/nft_immediate.c                    |   6 +-
- net/netfilter/nft_meta.c                         |  12 +
- net/netfilter/nft_objref.c                       |   5 +-
- net/netfilter/nft_payload.c                      |   6 +-
- net/netfilter/nft_quota.c                        |   2 +-
- net/netfilter/nft_range.c                        |   5 +-
- net/netfilter/nft_rt.c                           |   6 +-
- net/netfilter/utils.c                            |  19 +
- net/netfilter/xt_CT.c                            |   2 +-
- net/netfilter/xt_physdev.c                       |   9 +-
- net/openvswitch/conntrack.c                      |   2 +-
- 61 files changed, 1178 insertions(+), 1697 deletions(-)
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index 841835a387e1..325d0a6b808b 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -1012,11 +1012,21 @@ int nft_verdict_dump(struct sk_buff *skb, int type,
+ 		     const struct nft_verdict *v);
+ 
+ /**
++ *	struct nft_object_hash_key - key to lookup nft_object
++ *
++ *	@name: name of the stateful object to look up
++ *	@table: table the object belongs to
++ */
++struct nft_object_hash_key {
++	const char                      *name;
++	const struct nft_table          *table;
++};
++
++/**
+  *	struct nft_object - nf_tables stateful object
+  *
+  *	@list: table stateful object list node
+- *	@table: table this object belongs to
+- *	@name: name of this stateful object
++ *	@key:  keys that identify this object
+  *	@genmask: generation mask
+  *	@use: number of references to this stateful object
+  *	@handle: unique object handle
+@@ -1025,8 +1035,7 @@ int nft_verdict_dump(struct sk_buff *skb, int type,
+  */
+ struct nft_object {
+ 	struct list_head		list;
+-	char				*name;
+-	struct nft_table		*table;
++	struct nft_object_hash_key	key;
+ 	u32				genmask:2,
+ 					use:30;
+ 	u64				handle;
+@@ -1047,7 +1056,7 @@ struct nft_object *nft_obj_lookup(const struct nft_table *table,
+ 				  const struct nlattr *nla, u32 objtype,
+ 				  u8 genmask);
+ 
+-void nft_obj_notify(struct net *net, struct nft_table *table,
++void nft_obj_notify(struct net *net, const struct nft_table *table,
+ 		    struct nft_object *obj, u32 portid, u32 seq,
+ 		    int event, int family, int report, gfp_t gfp);
+ 
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 2b0a93300dd7..5e213941e85b 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -3853,7 +3853,7 @@ static int nf_tables_fill_setelem(struct sk_buff *skb,
+ 
+ 	if (nft_set_ext_exists(ext, NFT_SET_EXT_OBJREF) &&
+ 	    nla_put_string(skb, NFTA_SET_ELEM_OBJREF,
+-			   (*nft_set_ext_obj(ext))->name) < 0)
++			   (*nft_set_ext_obj(ext))->key.name) < 0)
+ 		goto nla_put_failure;
+ 
+ 	if (nft_set_ext_exists(ext, NFT_SET_EXT_FLAGS) &&
+@@ -4826,7 +4826,7 @@ struct nft_object *nft_obj_lookup(const struct nft_table *table,
+ 	struct nft_object *obj;
+ 
+ 	list_for_each_entry_rcu(obj, &table->objects, list) {
+-		if (!nla_strcmp(nla, obj->name) &&
++		if (!nla_strcmp(nla, obj->key.name) &&
+ 		    objtype == obj->ops->type->type &&
+ 		    nft_active_genmask(obj, genmask))
+ 			return obj;
+@@ -5014,11 +5014,11 @@ static int nf_tables_newobj(struct net *net, struct sock *nlsk,
+ 		err = PTR_ERR(obj);
+ 		goto err1;
+ 	}
+-	obj->table = table;
++	obj->key.table = table;
+ 	obj->handle = nf_tables_alloc_handle(table);
+ 
+-	obj->name = nla_strdup(nla[NFTA_OBJ_NAME], GFP_KERNEL);
+-	if (!obj->name) {
++	obj->key.name = nla_strdup(nla[NFTA_OBJ_NAME], GFP_KERNEL);
++	if (!obj->key.name) {
+ 		err = -ENOMEM;
+ 		goto err2;
+ 	}
+@@ -5031,7 +5031,7 @@ static int nf_tables_newobj(struct net *net, struct sock *nlsk,
+ 	table->use++;
+ 	return 0;
+ err3:
+-	kfree(obj->name);
++	kfree(obj->key.name);
+ err2:
+ 	if (obj->ops->destroy)
+ 		obj->ops->destroy(&ctx, obj);
+@@ -5060,7 +5060,7 @@ static int nf_tables_fill_obj_info(struct sk_buff *skb, struct net *net,
+ 	nfmsg->res_id		= htons(net->nft.base_seq & 0xffff);
+ 
+ 	if (nla_put_string(skb, NFTA_OBJ_TABLE, table->name) ||
+-	    nla_put_string(skb, NFTA_OBJ_NAME, obj->name) ||
++	    nla_put_string(skb, NFTA_OBJ_NAME, obj->key.name) ||
+ 	    nla_put_be32(skb, NFTA_OBJ_TYPE, htonl(obj->ops->type->type)) ||
+ 	    nla_put_be32(skb, NFTA_OBJ_USE, htonl(obj->use)) ||
+ 	    nft_object_dump(skb, NFTA_OBJ_DATA, obj, reset) ||
+@@ -5246,7 +5246,7 @@ static void nft_obj_destroy(const struct nft_ctx *ctx, struct nft_object *obj)
+ 		obj->ops->destroy(ctx, obj);
+ 
+ 	module_put(obj->ops->type->owner);
+-	kfree(obj->name);
++	kfree(obj->key.name);
+ 	kfree(obj);
+ }
+ 
+@@ -5297,7 +5297,7 @@ static int nf_tables_delobj(struct net *net, struct sock *nlsk,
+ 	return nft_delobj(&ctx, obj);
+ }
+ 
+-void nft_obj_notify(struct net *net, struct nft_table *table,
++void nft_obj_notify(struct net *net, const struct nft_table *table,
+ 		    struct nft_object *obj, u32 portid, u32 seq, int event,
+ 		    int family, int report, gfp_t gfp)
+ {
+@@ -6404,6 +6404,11 @@ static void nf_tables_commit_chain(struct net *net, struct nft_chain *chain)
+ 		nf_tables_commit_chain_free_rules_old(g0);
+ }
+ 
++static void nft_obj_del(struct nft_object *obj)
++{
++	list_del_rcu(&obj->list);
++}
++
+ static void nft_chain_del(struct nft_chain *chain)
+ {
+ 	struct nft_table *table = chain->table;
+@@ -6580,7 +6585,7 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
+ 			nft_trans_destroy(trans);
+ 			break;
+ 		case NFT_MSG_DELOBJ:
+-			list_del_rcu(&nft_trans_obj(trans)->list);
++			nft_obj_del(nft_trans_obj(trans));
+ 			nf_tables_obj_notify(&trans->ctx, nft_trans_obj(trans),
+ 					     NFT_MSG_DELOBJ);
+ 			break;
+@@ -7330,7 +7335,7 @@ static void __nft_release_tables(struct net *net)
+ 			nft_set_destroy(set);
+ 		}
+ 		list_for_each_entry_safe(obj, ne, &table->objects, list) {
+-			list_del(&obj->list);
++			nft_obj_del(obj);
+ 			table->use--;
+ 			nft_obj_destroy(&ctx, obj);
+ 		}
+diff --git a/net/netfilter/nft_objref.c b/net/netfilter/nft_objref.c
+index a3185ca2a3a9..58eb75ad61bf 100644
+--- a/net/netfilter/nft_objref.c
++++ b/net/netfilter/nft_objref.c
+@@ -53,7 +53,7 @@ static int nft_objref_dump(struct sk_buff *skb, const struct nft_expr *expr)
+ {
+ 	const struct nft_object *obj = nft_objref_priv(expr);
+ 
+-	if (nla_put_string(skb, NFTA_OBJREF_IMM_NAME, obj->name) ||
++	if (nla_put_string(skb, NFTA_OBJREF_IMM_NAME, obj->key.name) ||
+ 	    nla_put_be32(skb, NFTA_OBJREF_IMM_TYPE,
+ 			 htonl(obj->ops->type->type)))
+ 		goto nla_put_failure;
+diff --git a/net/netfilter/nft_quota.c b/net/netfilter/nft_quota.c
+index 0ed124a93fcf..354cde67bca9 100644
+--- a/net/netfilter/nft_quota.c
++++ b/net/netfilter/nft_quota.c
+@@ -61,7 +61,7 @@ static void nft_quota_obj_eval(struct nft_object *obj,
+ 
+ 	if (overquota &&
+ 	    !test_and_set_bit(NFT_QUOTA_DEPLETED_BIT, &priv->flags))
+-		nft_obj_notify(nft_net(pkt), obj->table, obj, 0, 0,
++		nft_obj_notify(nft_net(pkt), obj->key.table, obj, 0, 0,
+ 			       NFT_MSG_NEWOBJ, nft_pf(pkt), 0, GFP_ATOMIC);
+ }
+ 
+-- 
+2.11.0
