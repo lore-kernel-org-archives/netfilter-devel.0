@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 24/33] netfilter: nft_meta: Add NFT_META_I/OIFKIND meta type
-Date: Tue, 29 Jan 2019 00:57:41 +0100
-Message-ID: <20190128235750.18412-25-pablo@netfilter.org>
+Subject: [PATCH 23/33] netfilter: nf_conntrack: provide modparam to always register conntrack hooks
+Date: Tue, 29 Jan 2019 00:57:40 +0100
+Message-ID: <20190128235750.18412-24-pablo@netfilter.org>
 References: <20190128235750.18412-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,102 +10,93 @@ In-Reply-To: <20190128235750.18412-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: wenxu <wenxu@ucloud.cn>
+The connection tracking hooks can be optionally registered per netns
+when conntrack is specifically invoked from the ruleset since
+0c66dc1ea3f0 ("netfilter: conntrack: register hooks in netns when needed
+by ruleset"). Then, since 4d3a57f23dec ("netfilter: conntrack: do not
+enable connection tracking unless needed"), the default behaviour is
+changed to always register them on demand.
 
-In the ip_rcv the skb goes through the PREROUTING hook first, then kicks
-in vrf device and go through the same hook again. When conntrack dnat
-works with vrf, there will be some conflict with rules because the
-packet goes through the hook twice with different nf status.
+This patch provides a toggle that allows users to always register them.
+Without this toggle, in order to use conntrack for statistics
+collection, you need a dummy rule that refers to conntrack, eg.
 
-ip link add user1 type vrf table 1
-ip link add user2 type vrf table 2
-ip l set dev tun1 master user1
-ip l set dev tun2 master user2
+        iptables -I INPUT -m state --state NEW
 
-nft add table firewall
-nft add chain firewall zones { type filter hook prerouting  priority - 300 \; }
-nft add rule firewall zones counter ct zone set iif map { "tun1" : 1, "tun2" : 2 }
-nft add chain firewall rule-1000-ingress
-nft add rule firewall rule-1000-ingress ct zone 1 tcp dport 22 ct state new counter accept
-nft add rule firewall rule-1000-ingress counter drop
-nft add chain firewall rule-1000-egress
-nft add rule firewall rule-1000-egress tcp dport 22 ct state new counter drop
-nft add rule firewall rule-1000-egress counter accept
+This patch allows users to restore the original behaviour via modparam,
+ie. always register connection tracking, eg.
 
-nft add chain firewall rules-all { type filter hook prerouting priority - 150 \; }
-nft add rule firewall rules-all ip daddr vmap { "2.2.2.11" : jump rule-1000-ingress }
-nft add rule firewall rules-all ct zone vmap { 1 : jump rule-1000-egress }
+        modprobe nf_conntrack enable_hooks=1
 
-nft add rule firewall dnat-all ct zone vmap { 1 : jump dnat-1000 }
-nft add rule firewall dnat-1000 ip daddr 2.2.2.11 counter dnat to 10.0.0.7
+Hence, no dummy rule is required.
 
-For a package with ip daddr 2.2.2.11 and tcp dport 22, first time accept in the
-rule-1000-ingress and dnat to 10.0.0.7. Then second time the packet goto the wrong
-chain rule-1000-egress which leads the packet drop
-
-With this patch, userspace can add the 'don't re-do entire ruleset for
-vrf' policy itself via:
-
-nft add rule firewall rules-all meta iifkind "vrf" counter accept
-
-Signed-off-by: wenxu <wenxu@ucloud.cn>
+Reported-by: Laura Garcia <nevola@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/uapi/linux/netfilter/nf_tables.h |  4 ++++
- net/netfilter/nft_meta.c                 | 12 ++++++++++++
- 2 files changed, 16 insertions(+)
+ net/netfilter/nf_conntrack_standalone.c | 28 ++++++++++++++++++++++++----
+ 1 file changed, 24 insertions(+), 4 deletions(-)
 
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index 99ca95b830b6..0ba8f48bdf0b 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -791,6 +791,8 @@ enum nft_exthdr_attributes {
-  * @NFT_META_CGROUP: socket control group (skb->sk->sk_classid)
-  * @NFT_META_PRANDOM: a 32bit pseudo-random number
-  * @NFT_META_SECPATH: boolean, secpath_exists (!!skb->sp)
-+ * @NFT_META_IIFKIND: packet input interface kind name (dev->rtnl_link_ops->kind)
-+ * @NFT_META_OIFKIND: packet output interface kind name (dev->rtnl_link_ops->kind)
-  */
- enum nft_meta_keys {
- 	NFT_META_LEN,
-@@ -819,6 +821,8 @@ enum nft_meta_keys {
- 	NFT_META_CGROUP,
- 	NFT_META_PRANDOM,
- 	NFT_META_SECPATH,
-+	NFT_META_IIFKIND,
-+	NFT_META_OIFKIND,
- };
+diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
+index ddfca5f1784c..8928a4d0933e 100644
+--- a/net/netfilter/nf_conntrack_standalone.c
++++ b/net/netfilter/nf_conntrack_standalone.c
+@@ -24,6 +24,10 @@
+ #include <net/netfilter/nf_conntrack_timestamp.h>
+ #include <linux/rculist_nulls.h>
  
- /**
-diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
-index 6df486c5ebd3..987d2d6ce624 100644
---- a/net/netfilter/nft_meta.c
-+++ b/net/netfilter/nft_meta.c
-@@ -244,6 +244,16 @@ void nft_meta_get_eval(const struct nft_expr *expr,
- 		strncpy((char *)dest, p->br->dev->name, IFNAMSIZ);
- 		return;
- #endif
-+	case NFT_META_IIFKIND:
-+		if (in == NULL || in->rtnl_link_ops == NULL)
-+			goto err;
-+		strncpy((char *)dest, in->rtnl_link_ops->kind, IFNAMSIZ);
-+		break;
-+	case NFT_META_OIFKIND:
-+		if (out == NULL || out->rtnl_link_ops == NULL)
-+			goto err;
-+		strncpy((char *)dest, out->rtnl_link_ops->kind, IFNAMSIZ);
-+		break;
- 	default:
- 		WARN_ON(1);
- 		goto err;
-@@ -340,6 +350,8 @@ static int nft_meta_get_init(const struct nft_ctx *ctx,
- 		break;
- 	case NFT_META_IIFNAME:
- 	case NFT_META_OIFNAME:
-+	case NFT_META_IIFKIND:
-+	case NFT_META_OIFKIND:
- 		len = IFNAMSIZ;
- 		break;
- 	case NFT_META_PRANDOM:
++static bool enable_hooks __read_mostly;
++MODULE_PARM_DESC(enable_hooks, "Always enable conntrack hooks");
++module_param(enable_hooks, bool, 0000);
++
+ unsigned int nf_conntrack_net_id __read_mostly;
+ 
+ #ifdef CONFIG_NF_CONNTRACK_PROCFS
+@@ -1075,6 +1079,15 @@ static void nf_conntrack_standalone_fini_sysctl(struct net *net)
+ }
+ #endif /* CONFIG_SYSCTL */
+ 
++static void nf_conntrack_fini_net(struct net *net)
++{
++	if (enable_hooks)
++		nf_ct_netns_put(net, NFPROTO_INET);
++
++	nf_conntrack_standalone_fini_proc(net);
++	nf_conntrack_standalone_fini_sysctl(net);
++}
++
+ static int nf_conntrack_pernet_init(struct net *net)
+ {
+ 	int ret;
+@@ -1093,8 +1106,16 @@ static int nf_conntrack_pernet_init(struct net *net)
+ 	if (ret < 0)
+ 		goto out_init_net;
+ 
++	if (enable_hooks) {
++		ret = nf_ct_netns_get(net, NFPROTO_INET);
++		if (ret < 0)
++			goto out_hooks;
++	}
++
+ 	return 0;
+ 
++out_hooks:
++	nf_conntrack_fini_net(net);
+ out_init_net:
+ 	nf_conntrack_standalone_fini_proc(net);
+ out_proc:
+@@ -1106,10 +1127,9 @@ static void nf_conntrack_pernet_exit(struct list_head *net_exit_list)
+ {
+ 	struct net *net;
+ 
+-	list_for_each_entry(net, net_exit_list, exit_list) {
+-		nf_conntrack_standalone_fini_sysctl(net);
+-		nf_conntrack_standalone_fini_proc(net);
+-	}
++	list_for_each_entry(net, net_exit_list, exit_list)
++		nf_conntrack_fini_net(net);
++
+ 	nf_conntrack_cleanup_net_list(net_exit_list);
+ }
+ 
 -- 
 2.11.0
