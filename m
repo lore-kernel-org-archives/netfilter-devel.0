@@ -1,30 +1,27 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: ipt_CLUSTERIP: fix warning unused variable cn
-Date: Mon, 28 Jan 2019 10:51:43 +0100
-Message-ID: <20190128095143.5yxst4dn7pvodqwn@salvia>
-References: <20190123114811.25388-1-anders.roxell@linaro.org>
+Subject: Re: [PATCH net v2 0/2] fix glitch in IPVS /proc handlers
+Date: Mon, 28 Jan 2019 11:17:13 +0100
+Message-ID: <20190128101713.tuthooahqonvesyk@salvia>
+References: <20180731160333.12215-1-mcroce@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Cc: kadlec@blackhole.kfki.hu, fw@strlen.de, davem@davemloft.net,
-        kuznet@ms2.inr.ac.ru, yoshfuji@linux-ipv6.org,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-To: Anders Roxell <anders.roxell@linaro.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: Wensong Zhang <wensong@linux-vs.org>,
+        Simon Horman <horms@verge.net.au>,
+        Julian Anastasov <ja@ssi.bg>, lvs-devel@vger.kernel.org,
+        netdev@vger.kernel.org,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>,
+        netfilter-devel@vger.kernel.org,
+        Eric Dumazet <eric.dumazet@gmail.com>
+To: Matteo Croce <mcroce@redhat.com>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190123114811.25388-1-anders.roxell@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
+In-Reply-To: <20180731160333.12215-1-mcroce@redhat.com>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Jan 23, 2019 at 12:48:11PM +0100, Anders Roxell wrote:
-> When CONFIG_PROC_FS isn't set the variable cn isn't used.
-> 
-> net/ipv4/netfilter/ipt_CLUSTERIP.c: In function ‘clusterip_net_exit’:
-> net/ipv4/netfilter/ipt_CLUSTERIP.c:849:24: warning: unused variable ‘cn’ [-Wunused-variable]
->   struct clusterip_net *cn = clusterip_pernet(net);
->                         ^~
-> 
-> Rework so the variable 'cn' is declared inside "#ifdef CONFIG_PROC_FS".
+On Tue, Jul 31, 2018 at 06:03:31PM +0200, Matteo Croce wrote:
+> Fix a bug which shows negative values in IPVS /proc handlers.
+> Also add an helper function to calculate a time delta
 
-Applied, thanks.
+Series applied, thanks Matteo.
