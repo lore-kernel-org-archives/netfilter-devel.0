@@ -1,298 +1,49 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 2/7] netfilter: nft_compat: make lists per netns
-Date: Mon, 28 Jan 2019 15:04:00 +0100
-Message-ID: <20190128140405.15020-3-pablo@netfilter.org>
-References: <20190128140405.15020-1-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190128140405.15020-1-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
+From: Florian Westphal <fw-HFFVJYpyMKqzQB+pC5nmwQ@public.gmane.org>
+Subject: Re: "Kernel bug detected [...]
+ nf_ct_del_from_dying_or_unconfirmed_list"
+Date: Mon, 28 Jan 2019 15:13:17 +0100
+Message-ID: <20190128141317.pxq7vklx346bv2bu@breakpoint.cc>
+References: <20190127214708.GC1788@otheros>
+ <20190127224822.lsagihtfiuvxyool@breakpoint.cc>
+ <CALJUYjOq-xpjorsfnMRthzmC+iuDTVOPHXRb2p3ahU248Jrw4w@mail.gmail.com>
+ <20190128133940.jxwuscyi2wvbfb52@breakpoint.cc>
+ <20190128135030.xmtngyqaq3p74iug@salvia>
+ <CALJUYjO4=pDT0COGJRx2YWDMiEJTpa2CdqQqxndd93khVDZHjA@mail.gmail.com>
+Reply-To: The list for a Better Approach To Mobile Ad-hoc Networking
+ <b.a.t.m.a.n-ZwoEplunGu2X36UT3dwllkB+6BGkLq7r@public.gmane.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, b.a.t.m.a.n-ZwoEplunGu2X36UT3dwllkB+6BGkLq7r@public.gmane.org,
+ Florian Westphal <fw-HFFVJYpyMKqzQB+pC5nmwQ@public.gmane.org>, Pablo Neira Ayuso <pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org>
+To: Chieh-Min Wang <chiehmin18-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Return-path: <b.a.t.m.a.n-bounces-ZwoEplunGu2X36UT3dwllkB+6BGkLq7r@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CALJUYjO4=pDT0COGJRx2YWDMiEJTpa2CdqQqxndd93khVDZHjA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+List-Unsubscribe: <https://lists.open-mesh.org/mm/options/b.a.t.m.a.n>,
+ <mailto:b.a.t.m.a.n-request-ZwoEplunGu2X36UT3dwllkB+6BGkLq7r@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.open-mesh.org/pipermail/b.a.t.m.a.n/>
+List-Post: <mailto:b.a.t.m.a.n-ZwoEplunGu2X36UT3dwllkB+6BGkLq7r@public.gmane.org>
+List-Help: <mailto:b.a.t.m.a.n-request-ZwoEplunGu2X36UT3dwllkB+6BGkLq7r@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.open-mesh.org/mm/listinfo/b.a.t.m.a.n>,
+ <mailto:b.a.t.m.a.n-request-ZwoEplunGu2X36UT3dwllkB+6BGkLq7r@public.gmane.org?subject=subscribe>
+Errors-To: b.a.t.m.a.n-bounces-ZwoEplunGu2X36UT3dwllkB+6BGkLq7r@public.gmane.org
+Sender: "B.A.T.M.A.N" <b.a.t.m.a.n-bounces-ZwoEplunGu2X36UT3dwllkB+6BGkLq7r@public.gmane.org>
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+Chieh-Min Wang <chiehmin18-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+> I think 71d8c47fc653711c4(netfilter: conntrack: introduce clash
+> resolution on insertion race) is doing the same logic for resolving
+> conntrack clashing.
 
-There are two problems with nft_compat since the netlink config
-plane uses a per-netns mutex:
+No, that commit dealsl with the case where two skbs have different
+conntrack objects but where tuples are the same.
 
-1. Concurrent add/del accesses to the same list
-2. accesses to a list element after it has been free'd already.
+In nfqueue+bridge flood case the skbs point to the same conntrack
+object.
 
-This patch fixes the first problem.
+Maybe one way to fix this would be to let nfqueue perform a deep
+copy of skb->_nfct in case conntrack is unconfirmed and skb_shared()
+is true.
 
-Freeing occurs from a work queue, after transaction mutexes have been
-released, i.e., it still possible for a new transaction (even from
-same net ns) to find the to-be-deleted expression in the list.
-
-The ->destroy functions are not allowed to have any such side effects,
-i.e. the list_del() in the destroy function is not allowed.
-
-This part of the problem is solved in the next patch.
-I tried to make this work by serializing list access via mutex
-and by moving list_del() to a deactivate callback, but
-Taehee spotted following race on this approach:
-
-  NET #0                          NET #1
-   >select_ops()
-   ->init()
-                                   ->select_ops()
-   ->deactivate()
-   ->destroy()
-      nft_xt_put()
-       kfree_rcu(xt, rcu_head);
-                                   ->init() <-- use-after-free occurred.
-
-Unfortunately, we can't increment reference count in
-select_ops(), because we can't undo the refcount increase in
-case a different expression fails in the same batch.
-
-(The destroy hook will only be called in case the expression
- was initialized successfully).
-
-Fixes: f102d66b335a ("netfilter: nf_tables: use dedicated mutex to guard transactions")
-Reported-by: Taehee Yoo <ap420073@gmail.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nft_compat.c | 129 +++++++++++++++++++++++++++++++--------------
- 1 file changed, 89 insertions(+), 40 deletions(-)
-
-diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
-index acc85acad31b..abed3490a8f8 100644
---- a/net/netfilter/nft_compat.c
-+++ b/net/netfilter/nft_compat.c
-@@ -22,6 +22,7 @@
- #include <linux/netfilter_bridge/ebtables.h>
- #include <linux/netfilter_arp/arp_tables.h>
- #include <net/netfilter/nf_tables.h>
-+#include <net/netns/generic.h>
- 
- struct nft_xt {
- 	struct list_head	head;
-@@ -43,6 +44,20 @@ struct nft_xt_match_priv {
- 	void *info;
- };
- 
-+struct nft_compat_net {
-+	struct list_head nft_target_list;
-+	struct list_head nft_match_list;
-+};
-+
-+static unsigned int nft_compat_net_id __read_mostly;
-+static struct nft_expr_type nft_match_type;
-+static struct nft_expr_type nft_target_type;
-+
-+static struct nft_compat_net *nft_compat_pernet(struct net *net)
-+{
-+	return net_generic(net, nft_compat_net_id);
-+}
-+
- static bool nft_xt_put(struct nft_xt *xt)
- {
- 	if (refcount_dec_and_test(&xt->refcnt)) {
-@@ -734,10 +749,6 @@ static const struct nfnetlink_subsystem nfnl_compat_subsys = {
- 	.cb		= nfnl_nft_compat_cb,
- };
- 
--static LIST_HEAD(nft_match_list);
--
--static struct nft_expr_type nft_match_type;
--
- static bool nft_match_cmp(const struct xt_match *match,
- 			  const char *name, u32 rev, u32 family)
- {
-@@ -749,6 +760,7 @@ static const struct nft_expr_ops *
- nft_match_select_ops(const struct nft_ctx *ctx,
- 		     const struct nlattr * const tb[])
- {
-+	struct nft_compat_net *cn;
- 	struct nft_xt *nft_match;
- 	struct xt_match *match;
- 	unsigned int matchsize;
-@@ -765,8 +777,10 @@ nft_match_select_ops(const struct nft_ctx *ctx,
- 	rev = ntohl(nla_get_be32(tb[NFTA_MATCH_REV]));
- 	family = ctx->family;
- 
-+	cn = nft_compat_pernet(ctx->net);
-+
- 	/* Re-use the existing match if it's already loaded. */
--	list_for_each_entry(nft_match, &nft_match_list, head) {
-+	list_for_each_entry(nft_match, &cn->nft_match_list, head) {
- 		struct xt_match *match = nft_match->ops.data;
- 
- 		if (nft_match_cmp(match, mt_name, rev, family))
-@@ -810,7 +824,7 @@ nft_match_select_ops(const struct nft_ctx *ctx,
- 
- 	nft_match->ops.size = matchsize;
- 
--	list_add(&nft_match->head, &nft_match_list);
-+	list_add(&nft_match->head, &cn->nft_match_list);
- 
- 	return &nft_match->ops;
- err:
-@@ -826,10 +840,6 @@ static struct nft_expr_type nft_match_type __read_mostly = {
- 	.owner		= THIS_MODULE,
- };
- 
--static LIST_HEAD(nft_target_list);
--
--static struct nft_expr_type nft_target_type;
--
- static bool nft_target_cmp(const struct xt_target *tg,
- 			   const char *name, u32 rev, u32 family)
- {
-@@ -841,6 +851,7 @@ static const struct nft_expr_ops *
- nft_target_select_ops(const struct nft_ctx *ctx,
- 		      const struct nlattr * const tb[])
- {
-+	struct nft_compat_net *cn;
- 	struct nft_xt *nft_target;
- 	struct xt_target *target;
- 	char *tg_name;
-@@ -861,8 +872,9 @@ nft_target_select_ops(const struct nft_ctx *ctx,
- 	    strcmp(tg_name, "standard") == 0)
- 		return ERR_PTR(-EINVAL);
- 
-+	cn = nft_compat_pernet(ctx->net);
- 	/* Re-use the existing target if it's already loaded. */
--	list_for_each_entry(nft_target, &nft_target_list, head) {
-+	list_for_each_entry(nft_target, &cn->nft_target_list, head) {
- 		struct xt_target *target = nft_target->ops.data;
- 
- 		if (!target->target)
-@@ -907,7 +919,7 @@ nft_target_select_ops(const struct nft_ctx *ctx,
- 	else
- 		nft_target->ops.eval = nft_target_eval_xt;
- 
--	list_add(&nft_target->head, &nft_target_list);
-+	list_add(&nft_target->head, &cn->nft_target_list);
- 
- 	return &nft_target->ops;
- err:
-@@ -923,13 +935,74 @@ static struct nft_expr_type nft_target_type __read_mostly = {
- 	.owner		= THIS_MODULE,
- };
- 
-+static int __net_init nft_compat_init_net(struct net *net)
-+{
-+	struct nft_compat_net *cn = nft_compat_pernet(net);
-+
-+	INIT_LIST_HEAD(&cn->nft_target_list);
-+	INIT_LIST_HEAD(&cn->nft_match_list);
-+
-+	return 0;
-+}
-+
-+static void __net_exit nft_compat_exit_net(struct net *net)
-+{
-+	struct nft_compat_net *cn = nft_compat_pernet(net);
-+	struct nft_xt *xt, *next;
-+
-+	if (list_empty(&cn->nft_match_list) &&
-+	    list_empty(&cn->nft_target_list))
-+		return;
-+
-+	/* If there was an error that caused nft_xt expr to not be initialized
-+	 * fully and noone else requested the same expression later, the lists
-+	 * contain 0-refcount entries that still hold module reference.
-+	 *
-+	 * Clean them here.
-+	 */
-+	mutex_lock(&net->nft.commit_mutex);
-+	list_for_each_entry_safe(xt, next, &cn->nft_target_list, head) {
-+		struct xt_target *target = xt->ops.data;
-+
-+		list_del_init(&xt->head);
-+
-+		if (refcount_read(&xt->refcnt))
-+			continue;
-+		module_put(target->me);
-+		kfree(xt);
-+	}
-+
-+	list_for_each_entry_safe(xt, next, &cn->nft_match_list, head) {
-+		struct xt_match *match = xt->ops.data;
-+
-+		list_del_init(&xt->head);
-+
-+		if (refcount_read(&xt->refcnt))
-+			continue;
-+		module_put(match->me);
-+		kfree(xt);
-+	}
-+	mutex_unlock(&net->nft.commit_mutex);
-+}
-+
-+static struct pernet_operations nft_compat_net_ops = {
-+	.init	= nft_compat_init_net,
-+	.exit	= nft_compat_exit_net,
-+	.id	= &nft_compat_net_id,
-+	.size	= sizeof(struct nft_compat_net),
-+};
-+
- static int __init nft_compat_module_init(void)
- {
- 	int ret;
- 
-+	ret = register_pernet_subsys(&nft_compat_net_ops);
-+	if (ret < 0)
-+		goto err_target;
-+
- 	ret = nft_register_expr(&nft_match_type);
- 	if (ret < 0)
--		return ret;
-+		goto err_pernet;
- 
- 	ret = nft_register_expr(&nft_target_type);
- 	if (ret < 0)
-@@ -942,45 +1015,21 @@ static int __init nft_compat_module_init(void)
- 	}
- 
- 	return ret;
--
- err_target:
- 	nft_unregister_expr(&nft_target_type);
- err_match:
- 	nft_unregister_expr(&nft_match_type);
-+err_pernet:
-+	unregister_pernet_subsys(&nft_compat_net_ops);
- 	return ret;
- }
- 
- static void __exit nft_compat_module_exit(void)
- {
--	struct nft_xt *xt, *next;
--
--	/* list should be empty here, it can be non-empty only in case there
--	 * was an error that caused nft_xt expr to not be initialized fully
--	 * and noone else requested the same expression later.
--	 *
--	 * In this case, the lists contain 0-refcount entries that still
--	 * hold module reference.
--	 */
--	list_for_each_entry_safe(xt, next, &nft_target_list, head) {
--		struct xt_target *target = xt->ops.data;
--
--		if (WARN_ON_ONCE(refcount_read(&xt->refcnt)))
--			continue;
--		module_put(target->me);
--		kfree(xt);
--	}
--
--	list_for_each_entry_safe(xt, next, &nft_match_list, head) {
--		struct xt_match *match = xt->ops.data;
--
--		if (WARN_ON_ONCE(refcount_read(&xt->refcnt)))
--			continue;
--		module_put(match->me);
--		kfree(xt);
--	}
- 	nfnetlink_subsys_unregister(&nfnl_compat_subsys);
- 	nft_unregister_expr(&nft_target_type);
- 	nft_unregister_expr(&nft_match_type);
-+	unregister_pernet_subsys(&nft_compat_net_ops);
- }
- 
- MODULE_ALIAS_NFNL_SUBSYS(NFNL_SUBSYS_NFT_COMPAT);
--- 
-2.11.0
+But that would of course cause drop for l4 protocols that do not support
+clash resolution.
