@@ -1,42 +1,30 @@
-From: YueHaibing <yuehaibing@huawei.com>
-Subject: Re: [PATCH] netfilter: nat: Update comment of get_unique_tuple
-Date: Tue, 29 Jan 2019 14:20:48 +0800
-Message-ID: <ea3bd7e3-cceb-7356-5704-d091221b02a1@huawei.com>
-References: <20190110130618.25344-1-yuehaibing@huawei.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Cc: <linux-kernel@vger.kernel.org>, <netdev@vger.kernel.org>,
-        <netfilter-devel@vger.kernel.org>, <coreteam@netfilter.org>
-To: <pablo@netfilter.org>, <kadlec@blackhole.kfki.hu>, <fw@strlen.de>,
-        <davem@davemloft.net>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190110130618.25344-1-yuehaibing@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
+From: Naresh Kamboju <naresh.kamboju@linaro.org>
+Subject: [PATCH] selftests/netfilter: fix config fragment CONFIG_NF_TABLES_INET
+Date: Tue, 29 Jan 2019 06:28:35 +0000
+Message-ID: <20190129062835.31122-1-naresh.kamboju@linaro.org>
+Cc: fw@strlen.de, pablo@netfilter.org, davem@davemloft.net,
+        linux-kselftest@vger.kernel.org,
+        Naresh Kamboju <naresh.kamboju@linaro.org>
+To: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Friendly ping...
+In selftests the config fragment for netfilter was added as
+NF_TABLES_INET=y and this patch correct it as CONFIG_NF_TABLES_INET=y
 
-On 2019/1/10 21:06, YueHaibing wrote:
-> Replace outdated __ip_conntrack_confirm in comment.
-> 
-> Signed-off-by: YueHaibing <yuehaibing@huawei.com>
-> ---
->  net/netfilter/nf_nat_core.c | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
-> 
-> diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
-> index d159e9e..f54a8db 100644
-> --- a/net/netfilter/nf_nat_core.c
-> +++ b/net/netfilter/nf_nat_core.c
-> @@ -460,7 +460,8 @@ static void nf_nat_l4proto_unique_tuple(struct nf_conntrack_tuple *tuple,
->   * and NF_INET_LOCAL_OUT, we change the destination to map into the
->   * range. It might not be possible to get a unique tuple, but we try.
->   * At worst (or if we race), we will end up with a final duplicate in
-> - * __ip_conntrack_confirm and drop the packet. */
-> + * __nf_conntrack_confirm and drop the packet.
-> + */
->  static void
->  get_unique_tuple(struct nf_conntrack_tuple *tuple,
->  		 const struct nf_conntrack_tuple *orig_tuple,
-> 
+Signed-off-by: Naresh Kamboju <naresh.kamboju@linaro.org>
+---
+ tools/testing/selftests/netfilter/config | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/tools/testing/selftests/netfilter/config b/tools/testing/selftests/netfilter/config
+index 1017313e41a8..59caa8f71cd8 100644
+--- a/tools/testing/selftests/netfilter/config
++++ b/tools/testing/selftests/netfilter/config
+@@ -1,2 +1,2 @@
+ CONFIG_NET_NS=y
+-NF_TABLES_INET=y
++CONFIG_NF_TABLES_INET=y
+-- 
+2.17.1
