@@ -1,7 +1,8 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 00/12 net-next,v7] add flow_rule infrastructure
-Date: Sat,  2 Feb 2019 12:50:42 +0100
-Message-ID: <20190202115054.4880-1-pablo@netfilter.org>
+Subject: [PATCH 02/12 net-next,v7] net/mlx5e: support for two independent packet edit actions
+Date: Sat,  2 Feb 2019 12:50:44 +0100
+Message-ID: <20190202115054.4880-3-pablo@netfilter.org>
+References: <20190202115054.4880-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, thomas.lendacky@amd.com, f.fainelli@gmail.com,
         ariel.elior@cavium.com, michael.chan@broadcom.com,
         santosh@chelsio.com, madalin.bucur@nxp.com,
@@ -19,75 +20,232 @@ Cc: davem@davemloft.net, thomas.lendacky@amd.com, f.fainelli@gmail.com,
         netfilter-devel@vger.kernel.org, cphealy@gmail.co
 To: netdev@vger.kernel.org
 Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20190202115054.4880-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+This patch adds pedit_headers_action structure to store the result of
+parsing tc pedit actions. Then, it calls alloc_tc_pedit_action() to
+populate the mlx5e hardware intermediate representation once all actions
+have been parsed.
 
-This patchset, as is, allows us to reuse the driver codebase to
-configure ACL hardware offloads for the ethtool_rxnfc and the TC flower
-interfaces. A few clients for this infrastructure are presented, such as
-the bcm_sf2 and the qede drivers, for reference. Moreover all of the
-existing drivers in the tree are converted to use this infrastructure.
+This patch comes in preparation for the new flow_action infrastructure,
+where each packet mangling comes in an separated action, ie. not packed
+as in tc pedit.
 
-This patchset is re-using the existing flow dissector infrastructure
-that was introduced by Jiri Pirko et al. so the amount of abstractions
-that this patchset adds are minimal. Well, just a few wrapper structures
-for the selector side of the rules. And, in order to express actions,
-this patchset exposes an action API that is based on the existing TC
-action infrastructure and what existing drivers already support on that
-front.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Acked-by: Jiri Pirko <jiri@mellanox.com>
+Acked-by: Saeed Mahameed <saeedm@mellanox.com>
+---
+v7: rebase on top of net-next.
 
-v7: This patchset is a rebase on top of the net-next tree, after
-    addressing questions and feedback from driver developers in the
-    last batch.
+ drivers/net/ethernet/mellanox/mlx5/core/en_tc.c | 81 ++++++++++++++++++-------
+ 1 file changed, 59 insertions(+), 22 deletions(-)
 
-Please, apply. Thanks!
-
-P.S: I would like to thank driver developers for their fruitful
-     cooperation and feedback, which has been very useful to shape
-     the layout of this incremental work on top of the existing
-     infrastructure. Thanks!
-
-Pablo Neira Ayuso (12):
-  flow_offload: add flow_rule and flow_match structures and use them
-  net/mlx5e: support for two independent packet edit actions
-  flow_offload: add flow action infrastructure
-  cls_api: add translator to flow_action representation
-  flow_offload: add statistics retrieval infrastructure and use it
-  drivers: net: use flow action infrastructure
-  cls_flower: don't expose TC actions to drivers anymore
-  flow_offload: add wake-up-on-lan and queue to flow_action
-  ethtool: add ethtool_rx_flow_spec to flow_rule structure translator
-  dsa: bcm_sf2: use flow_rule infrastructure
-  qede: place ethtool_rx_flow_spec after code after TC flower codebase
-  qede: use ethtool_rx_flow_rule() to remove duplicated parser code
-
- drivers/net/dsa/bcm_sf2_cfp.c                      | 102 +--
- drivers/net/ethernet/broadcom/bnxt/bnxt_tc.c       | 252 ++++----
- .../net/ethernet/chelsio/cxgb4/cxgb4_tc_flower.c   | 450 ++++++-------
- drivers/net/ethernet/intel/i40e/i40e_main.c        | 178 ++----
- drivers/net/ethernet/intel/iavf/iavf_main.c        | 195 +++---
- drivers/net/ethernet/intel/igb/igb_main.c          |  64 +-
- .../net/ethernet/mellanox/mlx5/core/en/tc_tun.c    |  68 +-
- drivers/net/ethernet/mellanox/mlx5/core/en_tc.c    | 698 ++++++++++-----------
- drivers/net/ethernet/mellanox/mlxsw/spectrum_acl.c |   2 +-
- .../net/ethernet/mellanox/mlxsw/spectrum_flower.c  | 258 ++++----
- drivers/net/ethernet/netronome/nfp/flower/action.c | 198 +++---
- drivers/net/ethernet/netronome/nfp/flower/match.c  | 417 ++++++------
- .../net/ethernet/netronome/nfp/flower/offload.c    | 154 ++---
- drivers/net/ethernet/qlogic/qede/qede_filter.c     | 572 +++++++----------
- include/linux/ethtool.h                            |  15 +
- include/net/flow_offload.h                         | 203 ++++++
- include/net/pkt_cls.h                              |  16 +-
- net/core/Makefile                                  |   2 +-
- net/core/ethtool.c                                 | 241 +++++++
- net/core/flow_offload.c                            | 153 +++++
- net/sched/cls_api.c                                | 116 ++++
- net/sched/cls_flower.c                             |  71 ++-
- 22 files changed, 2416 insertions(+), 2009 deletions(-)
- create mode 100644 include/net/flow_offload.h
- create mode 100644 net/core/flow_offload.c
-
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
+index cd289ce0582d..1c8e8da166bd 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
+@@ -1804,6 +1804,12 @@ struct pedit_headers {
+ 	struct udphdr  udp;
+ };
+ 
++struct pedit_headers_action {
++	struct pedit_headers	vals;
++	struct pedit_headers	masks;
++	u32			pedits;
++};
++
+ static int pedit_header_offsets[] = {
+ 	[TCA_PEDIT_KEY_EX_HDR_TYPE_ETH] = offsetof(struct pedit_headers, eth),
+ 	[TCA_PEDIT_KEY_EX_HDR_TYPE_IP4] = offsetof(struct pedit_headers, ip4),
+@@ -1815,16 +1821,15 @@ static int pedit_header_offsets[] = {
+ #define pedit_header(_ph, _htype) ((void *)(_ph) + pedit_header_offsets[_htype])
+ 
+ static int set_pedit_val(u8 hdr_type, u32 mask, u32 val, u32 offset,
+-			 struct pedit_headers *masks,
+-			 struct pedit_headers *vals)
++			 struct pedit_headers_action *hdrs)
+ {
+ 	u32 *curr_pmask, *curr_pval;
+ 
+ 	if (hdr_type >= __PEDIT_HDR_TYPE_MAX)
+ 		goto out_err;
+ 
+-	curr_pmask = (u32 *)(pedit_header(masks, hdr_type) + offset);
+-	curr_pval  = (u32 *)(pedit_header(vals, hdr_type) + offset);
++	curr_pmask = (u32 *)(pedit_header(&hdrs->masks, hdr_type) + offset);
++	curr_pval  = (u32 *)(pedit_header(&hdrs->vals, hdr_type) + offset);
+ 
+ 	if (*curr_pmask & mask)  /* disallow acting twice on the same location */
+ 		goto out_err;
+@@ -1880,8 +1885,7 @@ static struct mlx5_fields fields[] = {
+  * max from the SW pedit action. On success, it says how many HW actions were
+  * actually parsed.
+  */
+-static int offload_pedit_fields(struct pedit_headers *masks,
+-				struct pedit_headers *vals,
++static int offload_pedit_fields(struct pedit_headers_action *hdrs,
+ 				struct mlx5e_tc_flow_parse_attr *parse_attr,
+ 				struct netlink_ext_ack *extack)
+ {
+@@ -1896,10 +1900,10 @@ static int offload_pedit_fields(struct pedit_headers *masks,
+ 	__be16 mask_be16;
+ 	void *action;
+ 
+-	set_masks = &masks[TCA_PEDIT_KEY_EX_CMD_SET];
+-	add_masks = &masks[TCA_PEDIT_KEY_EX_CMD_ADD];
+-	set_vals = &vals[TCA_PEDIT_KEY_EX_CMD_SET];
+-	add_vals = &vals[TCA_PEDIT_KEY_EX_CMD_ADD];
++	set_masks = &hdrs[TCA_PEDIT_KEY_EX_CMD_SET].masks;
++	add_masks = &hdrs[TCA_PEDIT_KEY_EX_CMD_ADD].masks;
++	set_vals = &hdrs[TCA_PEDIT_KEY_EX_CMD_SET].vals;
++	add_vals = &hdrs[TCA_PEDIT_KEY_EX_CMD_ADD].vals;
+ 
+ 	action_size = MLX5_UN_SZ_BYTES(set_action_in_add_action_in_auto);
+ 	action = parse_attr->mod_hdr_actions;
+@@ -1995,12 +1999,14 @@ static int offload_pedit_fields(struct pedit_headers *masks,
+ }
+ 
+ static int alloc_mod_hdr_actions(struct mlx5e_priv *priv,
+-				 const struct tc_action *a, int namespace,
++				 struct pedit_headers_action *hdrs,
++				 int namespace,
+ 				 struct mlx5e_tc_flow_parse_attr *parse_attr)
+ {
+ 	int nkeys, action_size, max_actions;
+ 
+-	nkeys = tcf_pedit_nkeys(a);
++	nkeys = hdrs[TCA_PEDIT_KEY_EX_CMD_SET].pedits +
++		hdrs[TCA_PEDIT_KEY_EX_CMD_ADD].pedits;
+ 	action_size = MLX5_UN_SZ_BYTES(set_action_in_add_action_in_auto);
+ 
+ 	if (namespace == MLX5_FLOW_NAMESPACE_FDB) /* FDB offloading */
+@@ -2024,18 +2030,15 @@ static const struct pedit_headers zero_masks = {};
+ static int parse_tc_pedit_action(struct mlx5e_priv *priv,
+ 				 const struct tc_action *a, int namespace,
+ 				 struct mlx5e_tc_flow_parse_attr *parse_attr,
++				 struct pedit_headers_action *hdrs,
+ 				 struct netlink_ext_ack *extack)
+ {
+-	struct pedit_headers masks[__PEDIT_CMD_MAX], vals[__PEDIT_CMD_MAX], *cmd_masks;
+ 	int nkeys, i, err = -EOPNOTSUPP;
+ 	u32 mask, val, offset;
+ 	u8 cmd, htype;
+ 
+ 	nkeys = tcf_pedit_nkeys(a);
+ 
+-	memset(masks, 0, sizeof(struct pedit_headers) * __PEDIT_CMD_MAX);
+-	memset(vals,  0, sizeof(struct pedit_headers) * __PEDIT_CMD_MAX);
+-
+ 	for (i = 0; i < nkeys; i++) {
+ 		htype = tcf_pedit_htype(a, i);
+ 		cmd = tcf_pedit_cmd(a, i);
+@@ -2056,21 +2059,37 @@ static int parse_tc_pedit_action(struct mlx5e_priv *priv,
+ 		val = tcf_pedit_val(a, i);
+ 		offset = tcf_pedit_offset(a, i);
+ 
+-		err = set_pedit_val(htype, ~mask, val, offset, &masks[cmd], &vals[cmd]);
++		err = set_pedit_val(htype, ~mask, val, offset, &hdrs[cmd]);
+ 		if (err)
+ 			goto out_err;
++
++		hdrs[cmd].pedits++;
+ 	}
+ 
+-	err = alloc_mod_hdr_actions(priv, a, namespace, parse_attr);
++	return 0;
++out_err:
++	return err;
++}
++
++static int alloc_tc_pedit_action(struct mlx5e_priv *priv, int namespace,
++				 struct mlx5e_tc_flow_parse_attr *parse_attr,
++				 struct pedit_headers_action *hdrs,
++				 struct netlink_ext_ack *extack)
++{
++	struct pedit_headers *cmd_masks;
++	int err;
++	u8 cmd;
++
++	err = alloc_mod_hdr_actions(priv, hdrs, namespace, parse_attr);
+ 	if (err)
+ 		goto out_err;
+ 
+-	err = offload_pedit_fields(masks, vals, parse_attr, extack);
++	err = offload_pedit_fields(hdrs, parse_attr, extack);
+ 	if (err < 0)
+ 		goto out_dealloc_parsed_actions;
+ 
+ 	for (cmd = 0; cmd < __PEDIT_CMD_MAX; cmd++) {
+-		cmd_masks = &masks[cmd];
++		cmd_masks = &hdrs[cmd].masks;
+ 		if (memcmp(cmd_masks, &zero_masks, sizeof(zero_masks))) {
+ 			NL_SET_ERR_MSG_MOD(extack,
+ 					   "attempt to offload an unsupported field");
+@@ -2211,6 +2230,7 @@ static int parse_tc_nic_actions(struct mlx5e_priv *priv, struct tcf_exts *exts,
+ 				struct mlx5e_tc_flow *flow,
+ 				struct netlink_ext_ack *extack)
+ {
++	struct pedit_headers_action hdrs[__PEDIT_CMD_MAX] = {};
+ 	struct mlx5_nic_flow_attr *attr = flow->nic_attr;
+ 	const struct tc_action *a;
+ 	u32 action = 0;
+@@ -2232,7 +2252,7 @@ static int parse_tc_nic_actions(struct mlx5e_priv *priv, struct tcf_exts *exts,
+ 
+ 		if (is_tcf_pedit(a)) {
+ 			err = parse_tc_pedit_action(priv, a, MLX5_FLOW_NAMESPACE_KERNEL,
+-						    parse_attr, extack);
++						    parse_attr, hdrs, extack);
+ 			if (err)
+ 				return err;
+ 
+@@ -2286,6 +2306,14 @@ static int parse_tc_nic_actions(struct mlx5e_priv *priv, struct tcf_exts *exts,
+ 		return -EINVAL;
+ 	}
+ 
++	if (hdrs[TCA_PEDIT_KEY_EX_CMD_SET].pedits ||
++	    hdrs[TCA_PEDIT_KEY_EX_CMD_ADD].pedits) {
++		err = alloc_tc_pedit_action(priv, MLX5_FLOW_NAMESPACE_KERNEL,
++					    parse_attr, hdrs, extack);
++		if (err)
++			return err;
++	}
++
+ 	attr->action = action;
+ 	if (!actions_match_supported(priv, exts, parse_attr, flow, extack))
+ 		return -EOPNOTSUPP;
+@@ -2446,6 +2474,7 @@ static int parse_tc_fdb_actions(struct mlx5e_priv *priv, struct tcf_exts *exts,
+ 				struct mlx5e_tc_flow *flow,
+ 				struct netlink_ext_ack *extack)
+ {
++	struct pedit_headers_action hdrs[__PEDIT_CMD_MAX] = {};
+ 	struct mlx5_eswitch *esw = priv->mdev->priv.eswitch;
+ 	struct mlx5_esw_flow_attr *attr = flow->esw_attr;
+ 	struct mlx5e_rep_priv *rpriv = priv->ppriv;
+@@ -2470,7 +2499,7 @@ static int parse_tc_fdb_actions(struct mlx5e_priv *priv, struct tcf_exts *exts,
+ 
+ 		if (is_tcf_pedit(a)) {
+ 			err = parse_tc_pedit_action(priv, a, MLX5_FLOW_NAMESPACE_FDB,
+-						    parse_attr, extack);
++						    parse_attr, hdrs, extack);
+ 			if (err)
+ 				return err;
+ 
+@@ -2605,6 +2634,14 @@ static int parse_tc_fdb_actions(struct mlx5e_priv *priv, struct tcf_exts *exts,
+ 		return -EINVAL;
+ 	}
+ 
++	if (hdrs[TCA_PEDIT_KEY_EX_CMD_SET].pedits ||
++	    hdrs[TCA_PEDIT_KEY_EX_CMD_ADD].pedits) {
++		err = alloc_tc_pedit_action(priv, MLX5_FLOW_NAMESPACE_KERNEL,
++					    parse_attr, hdrs, extack);
++		if (err)
++			return err;
++	}
++
+ 	attr->action = action;
+ 	if (!actions_match_supported(priv, exts, parse_attr, flow, extack))
+ 		return -EOPNOTSUPP;
 -- 
 2.11.0
