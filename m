@@ -1,10 +1,10 @@
 From: Jiri Pirko <jiri@resnulli.us>
-Subject: Re: [PATCH 01/12 net-next,v7] flow_offload: add flow_rule and
- flow_match structures and use them
-Date: Sat, 2 Feb 2019 16:19:14 +0100
-Message-ID: <20190202151914.GA2778@nanopsycho>
+Subject: Re: [PATCH 06/12 net-next,v7] drivers: net: use flow action
+ infrastructure
+Date: Sat, 2 Feb 2019 16:44:34 +0100
+Message-ID: <20190202154434.GB2778@nanopsycho>
 References: <20190202115054.4880-1-pablo@netfilter.org>
- <20190202115054.4880-2-pablo@netfilter.org>
+ <20190202115054.4880-7-pablo@netfilter.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netdev@vger.kernel.org, davem@davemloft.net,
@@ -26,29 +26,12 @@ Cc: netdev@vger.kernel.org, davem@davemloft.net,
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190202115054.4880-2-pablo@netfilter.org>
+In-Reply-To: <20190202115054.4880-7-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Sat, Feb 02, 2019 at 12:50:43PM CET, pablo@netfilter.org wrote:
->This patch wraps the dissector key and mask - that flower uses to
->represent the matching side - around the flow_match structure.
->
->To avoid a follow up patch that would edit the same LoCs in the drivers,
->this patch also wraps this new flow match structure around the flow rule
->object. This new structure will also contain the flow actions in follow
->up patches.
->
->This introduces two new interfaces:
->
->	bool flow_rule_match_key(rule, dissector_id)
->
->that returns true if a given matching key is set on, and:
->
->	flow_rule_match_XYZ(rule, &match);
->
->To fetch the matching side XYZ into the match container structure, to
->retrieve the key and the mask with one single call.
+Sat, Feb 02, 2019 at 12:50:48PM CET, pablo@netfilter.org wrote:
+>This patch updates drivers to use the new flow action infrastructure.
 >
 >Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 >---
@@ -56,6 +39,6 @@ Sat, Feb 02, 2019 at 12:50:43PM CET, pablo@netfilter.org wrote:
 >    this one is slightly large, and it would be good another look after
 >    this rebase.
 
-Looks good to me.
+Looks fine.
 
 Acked-by: Jiri Pirko <jiri@mellanox.com>
