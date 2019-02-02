@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 04/12 net-next,v7] cls_api: add translator to flow_action representation
-Date: Sat,  2 Feb 2019 12:50:46 +0100
-Message-ID: <20190202115054.4880-5-pablo@netfilter.org>
+Subject: [PATCH 05/12 net-next,v7] flow_offload: add statistics retrieval infrastructure and use it
+Date: Sat,  2 Feb 2019 12:50:47 +0100
+Message-ID: <20190202115054.4880-6-pablo@netfilter.org>
 References: <20190202115054.4880-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, thomas.lendacky@amd.com, f.fainelli@gmail.com,
         ariel.elior@cavium.com, michael.chan@broadcom.com,
@@ -24,181 +24,149 @@ In-Reply-To: <20190202115054.4880-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This patch implements a new function to translate from native TC action
-to the new flow_action representation. Moreover, this patch also updates
-cls_flower to use this new function.
+This patch provides the flow_stats structure that acts as container for
+tc_cls_flower_offload, then we can use to restore the statistics on the
+existing TC actions. Hence, tcf_exts_stats_update() is not used from
+drivers anymore.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Acked-by: Jiri Pirko <jiri@mellanox.com>
 ---
 v7: rebase on top of net-next.
 
- include/net/pkt_cls.h  |  2 +
- net/sched/cls_api.c    | 99 ++++++++++++++++++++++++++++++++++++++++++++++++++
- net/sched/cls_flower.c | 14 +++++++
- 3 files changed, 115 insertions(+)
+ drivers/net/ethernet/broadcom/bnxt/bnxt_tc.c          |  4 ++--
+ drivers/net/ethernet/chelsio/cxgb4/cxgb4_tc_flower.c  |  6 +++---
+ drivers/net/ethernet/mellanox/mlx5/core/en_tc.c       |  2 +-
+ drivers/net/ethernet/mellanox/mlxsw/spectrum_flower.c |  2 +-
+ drivers/net/ethernet/netronome/nfp/flower/offload.c   |  5 ++---
+ include/net/flow_offload.h                            | 14 ++++++++++++++
+ include/net/pkt_cls.h                                 |  1 +
+ net/sched/cls_flower.c                                |  4 ++++
+ 8 files changed, 28 insertions(+), 10 deletions(-)
 
+diff --git a/drivers/net/ethernet/broadcom/bnxt/bnxt_tc.c b/drivers/net/ethernet/broadcom/bnxt/bnxt_tc.c
+index 90a2170c5138..6a87434b7173 100644
+--- a/drivers/net/ethernet/broadcom/bnxt/bnxt_tc.c
++++ b/drivers/net/ethernet/broadcom/bnxt/bnxt_tc.c
+@@ -1396,8 +1396,8 @@ static int bnxt_tc_get_flow_stats(struct bnxt *bp,
+ 	lastused = flow->lastused;
+ 	spin_unlock(&flow->stats_lock);
+ 
+-	tcf_exts_stats_update(tc_flow_cmd->exts, stats.bytes, stats.packets,
+-			      lastused);
++	flow_stats_update(&tc_flow_cmd->stats, stats.bytes, stats.packets,
++			  lastused);
+ 	return 0;
+ }
+ 
+diff --git a/drivers/net/ethernet/chelsio/cxgb4/cxgb4_tc_flower.c b/drivers/net/ethernet/chelsio/cxgb4/cxgb4_tc_flower.c
+index 39c5af5dad3d..8a2d66ee1d7b 100644
+--- a/drivers/net/ethernet/chelsio/cxgb4/cxgb4_tc_flower.c
++++ b/drivers/net/ethernet/chelsio/cxgb4/cxgb4_tc_flower.c
+@@ -807,9 +807,9 @@ int cxgb4_tc_flower_stats(struct net_device *dev,
+ 	if (ofld_stats->packet_count != packets) {
+ 		if (ofld_stats->prev_packet_count != packets)
+ 			ofld_stats->last_used = jiffies;
+-		tcf_exts_stats_update(cls->exts, bytes - ofld_stats->byte_count,
+-				      packets - ofld_stats->packet_count,
+-				      ofld_stats->last_used);
++		flow_stats_update(&cls->stats, bytes - ofld_stats->byte_count,
++				  packets - ofld_stats->packet_count,
++				  ofld_stats->last_used);
+ 
+ 		ofld_stats->packet_count = packets;
+ 		ofld_stats->byte_count = bytes;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
+index 1c8e8da166bd..c4c6bbcafc68 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
+@@ -3071,7 +3071,7 @@ int mlx5e_stats_flower(struct net_device *dev, struct mlx5e_priv *priv,
+ 	mlx5_devcom_release_peer_data(devcom, MLX5_DEVCOM_ESW_OFFLOADS);
+ 
+ out:
+-	tcf_exts_stats_update(f->exts, bytes, packets, lastuse);
++	flow_stats_update(&f->stats, bytes, packets, lastuse);
+ 
+ 	return 0;
+ }
+diff --git a/drivers/net/ethernet/mellanox/mlxsw/spectrum_flower.c b/drivers/net/ethernet/mellanox/mlxsw/spectrum_flower.c
+index a20379e29e02..c090ecb62041 100644
+--- a/drivers/net/ethernet/mellanox/mlxsw/spectrum_flower.c
++++ b/drivers/net/ethernet/mellanox/mlxsw/spectrum_flower.c
+@@ -460,7 +460,7 @@ int mlxsw_sp_flower_stats(struct mlxsw_sp *mlxsw_sp,
+ 	if (err)
+ 		goto err_rule_get_stats;
+ 
+-	tcf_exts_stats_update(f->exts, bytes, packets, lastuse);
++	flow_stats_update(&f->stats, bytes, packets, lastuse);
+ 
+ 	mlxsw_sp_acl_ruleset_put(mlxsw_sp, ruleset);
+ 	return 0;
+diff --git a/drivers/net/ethernet/netronome/nfp/flower/offload.c b/drivers/net/ethernet/netronome/nfp/flower/offload.c
+index 74f7ff292052..fe1469d201af 100644
+--- a/drivers/net/ethernet/netronome/nfp/flower/offload.c
++++ b/drivers/net/ethernet/netronome/nfp/flower/offload.c
+@@ -554,9 +554,8 @@ nfp_flower_get_stats(struct nfp_app *app, struct net_device *netdev,
+ 	ctx_id = be32_to_cpu(nfp_flow->meta.host_ctx_id);
+ 
+ 	spin_lock_bh(&priv->stats_lock);
+-	tcf_exts_stats_update(flow->exts, priv->stats[ctx_id].bytes,
+-			      priv->stats[ctx_id].pkts,
+-			      priv->stats[ctx_id].used);
++	flow_stats_update(&flow->stats, priv->stats[ctx_id].bytes,
++			  priv->stats[ctx_id].pkts, priv->stats[ctx_id].used);
+ 
+ 	priv->stats[ctx_id].pkts = 0;
+ 	priv->stats[ctx_id].bytes = 0;
+diff --git a/include/net/flow_offload.h b/include/net/flow_offload.h
+index dabc819b6cc9..f9ce39992dbd 100644
+--- a/include/net/flow_offload.h
++++ b/include/net/flow_offload.h
+@@ -179,4 +179,18 @@ static inline bool flow_rule_match_key(const struct flow_rule *rule,
+ 	return dissector_uses_key(rule->match.dissector, key);
+ }
+ 
++struct flow_stats {
++	u64	pkts;
++	u64	bytes;
++	u64	lastused;
++};
++
++static inline void flow_stats_update(struct flow_stats *flow_stats,
++				     u64 bytes, u64 pkts, u64 lastused)
++{
++	flow_stats->pkts	= pkts;
++	flow_stats->bytes	= bytes;
++	flow_stats->lastused	= lastused;
++}
++
+ #endif /* _NET_FLOW_OFFLOAD_H */
 diff --git a/include/net/pkt_cls.h b/include/net/pkt_cls.h
-index 74a7582ad47c..c470c100b926 100644
+index c470c100b926..bea1b1c3ea9b 100644
 --- a/include/net/pkt_cls.h
 +++ b/include/net/pkt_cls.h
-@@ -620,6 +620,8 @@ tcf_match_indev(struct sk_buff *skb, int ifindex)
- }
- #endif /* CONFIG_NET_CLS_IND */
- 
-+int tc_setup_flow_action(struct flow_action *flow_action,
-+			 const struct tcf_exts *exts);
- int tc_setup_cb_call(struct tcf_block *block, enum tc_setup_type type,
- 		     void *type_data, bool err_stop);
- unsigned int tcf_exts_num_actions(struct tcf_exts *exts);
-diff --git a/net/sched/cls_api.c b/net/sched/cls_api.c
-index 57713c63ac56..02cf6d2fa0e1 100644
---- a/net/sched/cls_api.c
-+++ b/net/sched/cls_api.c
-@@ -32,6 +32,13 @@
- #include <net/pkt_sched.h>
- #include <net/pkt_cls.h>
- #include <net/tc_act/tc_pedit.h>
-+#include <net/tc_act/tc_mirred.h>
-+#include <net/tc_act/tc_vlan.h>
-+#include <net/tc_act/tc_tunnel_key.h>
-+#include <net/tc_act/tc_csum.h>
-+#include <net/tc_act/tc_gact.h>
-+#include <net/tc_act/tc_skbedit.h>
-+#include <net/tc_act/tc_mirred.h>
- 
- extern const struct nla_policy rtm_tca_policy[TCA_MAX + 1];
- 
-@@ -2516,6 +2523,98 @@ int tc_setup_cb_call(struct tcf_block *block, enum tc_setup_type type,
- }
- EXPORT_SYMBOL(tc_setup_cb_call);
- 
-+int tc_setup_flow_action(struct flow_action *flow_action,
-+			 const struct tcf_exts *exts)
-+{
-+	const struct tc_action *act;
-+	int i, j, k;
-+
-+	if (!exts)
-+		return 0;
-+
-+	j = 0;
-+	tcf_exts_for_each_action(i, act, exts) {
-+		struct flow_action_entry *entry;
-+
-+		entry = &flow_action->entries[j];
-+		if (is_tcf_gact_ok(act)) {
-+			entry->id = FLOW_ACTION_ACCEPT;
-+		} else if (is_tcf_gact_shot(act)) {
-+			entry->id = FLOW_ACTION_DROP;
-+		} else if (is_tcf_gact_trap(act)) {
-+			entry->id = FLOW_ACTION_TRAP;
-+		} else if (is_tcf_gact_goto_chain(act)) {
-+			entry->id = FLOW_ACTION_GOTO;
-+			entry->chain_index = tcf_gact_goto_chain_index(act);
-+		} else if (is_tcf_mirred_egress_redirect(act)) {
-+			entry->id = FLOW_ACTION_REDIRECT;
-+			entry->dev = tcf_mirred_dev(act);
-+		} else if (is_tcf_mirred_egress_mirror(act)) {
-+			entry->id = FLOW_ACTION_MIRRED;
-+			entry->dev = tcf_mirred_dev(act);
-+		} else if (is_tcf_vlan(act)) {
-+			switch (tcf_vlan_action(act)) {
-+			case TCA_VLAN_ACT_PUSH:
-+				entry->id = FLOW_ACTION_VLAN_PUSH;
-+				entry->vlan.vid = tcf_vlan_push_vid(act);
-+				entry->vlan.proto = tcf_vlan_push_proto(act);
-+				entry->vlan.prio = tcf_vlan_push_prio(act);
-+				break;
-+			case TCA_VLAN_ACT_POP:
-+				entry->id = FLOW_ACTION_VLAN_POP;
-+				break;
-+			case TCA_VLAN_ACT_MODIFY:
-+				entry->id = FLOW_ACTION_VLAN_MANGLE;
-+				entry->vlan.vid = tcf_vlan_push_vid(act);
-+				entry->vlan.proto = tcf_vlan_push_proto(act);
-+				entry->vlan.prio = tcf_vlan_push_prio(act);
-+				break;
-+			default:
-+				goto err_out;
-+			}
-+		} else if (is_tcf_tunnel_set(act)) {
-+			entry->id = FLOW_ACTION_TUNNEL_ENCAP;
-+			entry->tunnel = tcf_tunnel_info(act);
-+		} else if (is_tcf_tunnel_release(act)) {
-+			entry->id = FLOW_ACTION_TUNNEL_DECAP;
-+			entry->tunnel = tcf_tunnel_info(act);
-+		} else if (is_tcf_pedit(act)) {
-+			for (k = 0; k < tcf_pedit_nkeys(act); k++) {
-+				switch (tcf_pedit_cmd(act, k)) {
-+				case TCA_PEDIT_KEY_EX_CMD_SET:
-+					entry->id = FLOW_ACTION_MANGLE;
-+					break;
-+				case TCA_PEDIT_KEY_EX_CMD_ADD:
-+					entry->id = FLOW_ACTION_ADD;
-+					break;
-+				default:
-+					goto err_out;
-+				}
-+				entry->mangle.htype = tcf_pedit_htype(act, k);
-+				entry->mangle.mask = tcf_pedit_mask(act, k);
-+				entry->mangle.val = tcf_pedit_val(act, k);
-+				entry->mangle.offset = tcf_pedit_offset(act, k);
-+				entry = &flow_action->entries[++j];
-+			}
-+		} else if (is_tcf_csum(act)) {
-+			entry->id = FLOW_ACTION_CSUM;
-+			entry->csum_flags = tcf_csum_update_flags(act);
-+		} else if (is_tcf_skbedit_mark(act)) {
-+			entry->id = FLOW_ACTION_MARK;
-+			entry->mark = tcf_skbedit_mark(act);
-+		} else {
-+			goto err_out;
-+		}
-+
-+		if (!is_tcf_pedit(act))
-+			j++;
-+	}
-+	return 0;
-+err_out:
-+	return -EOPNOTSUPP;
-+}
-+EXPORT_SYMBOL(tc_setup_flow_action);
-+
- unsigned int tcf_exts_num_actions(struct tcf_exts *exts)
- {
- 	unsigned int num_acts = 0;
+@@ -765,6 +765,7 @@ struct tc_cls_flower_offload {
+ 	enum tc_fl_command command;
+ 	unsigned long cookie;
+ 	struct flow_rule *rule;
++	struct flow_stats stats;
+ 	struct tcf_exts *exts;
+ 	u32 classid;
+ };
 diff --git a/net/sched/cls_flower.c b/net/sched/cls_flower.c
-index 0062c9133a22..48c54ef52a98 100644
+index 48c54ef52a98..8ec85056aa0d 100644
 --- a/net/sched/cls_flower.c
 +++ b/net/sched/cls_flower.c
-@@ -394,6 +394,12 @@ static int fl_hw_replace_filter(struct tcf_proto *tp,
- 	cls_flower.exts = &f->exts;
+@@ -429,6 +429,10 @@ static void fl_hw_update_stats(struct tcf_proto *tp, struct cls_fl_filter *f)
  	cls_flower.classid = f->res.classid;
  
-+	err = tc_setup_flow_action(&cls_flower.rule->action, &f->exts);
-+	if (err) {
-+		kfree(cls_flower.rule);
-+		return err;
-+	}
+ 	tc_setup_cb_call(block, TC_SETUP_CLSFLOWER, &cls_flower, false);
 +
- 	err = tc_setup_cb_call(block, TC_SETUP_CLSFLOWER, &cls_flower, skip_sw);
- 	kfree(cls_flower.rule);
++	tcf_exts_stats_update(&f->exts, cls_flower.stats.bytes,
++			      cls_flower.stats.pkts,
++			      cls_flower.stats.lastused);
+ }
  
-@@ -1483,6 +1489,14 @@ static int fl_reoffload(struct tcf_proto *tp, bool add, tc_setup_cb_t *cb,
- 			cls_flower.rule->match.mask = &mask->key;
- 			cls_flower.rule->match.key = &f->mkey;
- 			cls_flower.exts = &f->exts;
-+
-+			err = tc_setup_flow_action(&cls_flower.rule->action,
-+						   &f->exts);
-+			if (err) {
-+				kfree(cls_flower.rule);
-+				return err;
-+			}
-+
- 			cls_flower.classid = f->res.classid;
- 
- 			err = cb(TC_SETUP_CLSFLOWER, &cls_flower, cb_priv);
+ static bool __fl_delete(struct tcf_proto *tp, struct cls_fl_filter *f,
 -- 
 2.11.0
