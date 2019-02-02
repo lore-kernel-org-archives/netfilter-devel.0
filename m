@@ -1,54 +1,93 @@
-From: Linus =?utf-8?Q?L=C3=BCssing?= <linus.luessing-djzkFPsfvsizQB+pC5nmwQ@public.gmane.org>
-Subject: Re: "Kernel bug detected [...]
- nf_ct_del_from_dying_or_unconfirmed_list"
-Date: Tue, 29 Jan 2019 10:07:54 +0100
-Message-ID: <20190129090754.GB1528@otheros>
-References: <20190127214708.GC1788@otheros>
-Reply-To: The list for a Better Approach To Mobile Ad-hoc Networking
- <b.a.t.m.a.n-ZwoEplunGu2X36UT3dwllkB+6BGkLq7r@public.gmane.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Cc: b.a.t.m.a.n-ZwoEplunGu2X36UT3dwllkB+6BGkLq7r@public.gmane.org
-To: netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Return-path: <b.a.t.m.a.n-bounces-ZwoEplunGu2X36UT3dwllkB+6BGkLq7r@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20190127214708.GC1788@otheros>
-List-Unsubscribe: <https://lists.open-mesh.org/mm/options/b.a.t.m.a.n>,
- <mailto:b.a.t.m.a.n-request-ZwoEplunGu2X36UT3dwllkB+6BGkLq7r@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.open-mesh.org/pipermail/b.a.t.m.a.n/>
-List-Post: <mailto:b.a.t.m.a.n-ZwoEplunGu2X36UT3dwllkB+6BGkLq7r@public.gmane.org>
-List-Help: <mailto:b.a.t.m.a.n-request-ZwoEplunGu2X36UT3dwllkB+6BGkLq7r@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.open-mesh.org/mm/listinfo/b.a.t.m.a.n>,
- <mailto:b.a.t.m.a.n-request-ZwoEplunGu2X36UT3dwllkB+6BGkLq7r@public.gmane.org?subject=subscribe>
-Errors-To: b.a.t.m.a.n-bounces-ZwoEplunGu2X36UT3dwllkB+6BGkLq7r@public.gmane.org
-Sender: "B.A.T.M.A.N" <b.a.t.m.a.n-bounces-ZwoEplunGu2X36UT3dwllkB+6BGkLq7r@public.gmane.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 00/12 net-next,v7] add flow_rule infrastructure
+Date: Sat,  2 Feb 2019 12:50:42 +0100
+Message-ID: <20190202115054.4880-1-pablo@netfilter.org>
+Cc: davem@davemloft.net, thomas.lendacky@amd.com, f.fainelli@gmail.com,
+        ariel.elior@cavium.com, michael.chan@broadcom.com,
+        santosh@chelsio.com, madalin.bucur@nxp.com,
+        yisen.zhuang@huawei.com, salil.mehta@huawei.com,
+        jeffrey.t.kirsher@intel.com, tariqt@mellanox.com,
+        saeedm@mellanox.com, jiri@mellanox.com, idosch@mellanox.com,
+        jakub.kicinski@netronome.com, peppe.cavallaro@st.com,
+        grygorii.strashko@ti.com, andrew@lunn.ch,
+        vivien.didelot@savoirfairelinux.com, alexandre.torgue@st.com,
+        joabreu@synopsys.com, linux-net-drivers@solarflare.com,
+        ganeshgr@chelsio.com, ogerlitz@mellanox.com,
+        Manish.Chopra@cavium.com, marcelo.leitner@gmail.com,
+        mkubecek@suse.cz, venkatkumar.duvvuru@broadcom.com,
+        julia.lawall@lip6.fr, john.fastabend@gmail.com,
+        netfilter-devel@vger.kernel.org, cphealy@gmail.co
+To: netdev@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sun, Jan 27, 2019 at 10:47:08PM +0100, Linus Lüssing wrote:
-[...]
-> The crash itself is triggered by the:
-> 
->   BUG_ON(hlist_nulls_unhashed(&ct->tuplehash[IP_CT_DIR_ORIGINAL].hnnode));
-> 
-> in here:
-> 
-> https://elixir.bootlin.com/linux/v4.9.146/source/net/netfilter/nf_conntrack_core.c#L354
+Hi,
 
-I had tried the nf_reset()s and Wang's patch but with no success.
+This patchset, as is, allows us to reuse the driver codebase to
+configure ACL hardware offloads for the ethtool_rxnfc and the TC flower
+interfaces. A few clients for this infrastructure are presented, such as
+the bcm_sf2 and the qede drivers, for reference. Moreover all of the
+existing drivers in the tree are converted to use this infrastructure.
 
-Skimming through the code I noticed that there aren't that many
-opportunities for the hnnode to become zero. There are several
-hlist_nulls_del_rcu(), but no hlist_nulls_del_init_rcu()s for
-instance.
+This patchset is re-using the existing flow dissector infrastructure
+that was introduced by Jiri Pirko et al. so the amount of abstractions
+that this patchset adds are minimal. Well, just a few wrapper structures
+for the selector side of the rules. And, in order to express actions,
+this patchset exposes an action API that is based on the existing TC
+action infrastructure and what existing drivers already support on that
+front.
 
-That started to make me wonder whether something from "outside"
-might be setting the hnnode to zero - and yeah...
+v7: This patchset is a rebase on top of the net-next tree, after
+    addressing questions and feedback from driver developers in the
+    last batch.
 
-I missed that batadv_send_skb_unicast() always frees/consumes the
-skb... and I was freeing the skb myself if that call returned
-!NET_XMIT_SUCCESS. So a double kfree_skb()... I'm a bit surprised
-that things did not crash more often...
+Please, apply. Thanks!
 
-Sorry for the noise :-(. But thanks for all the help and quick
-responses!
+P.S: I would like to thank driver developers for their fruitful
+     cooperation and feedback, which has been very useful to shape
+     the layout of this incremental work on top of the existing
+     infrastructure. Thanks!
+
+Pablo Neira Ayuso (12):
+  flow_offload: add flow_rule and flow_match structures and use them
+  net/mlx5e: support for two independent packet edit actions
+  flow_offload: add flow action infrastructure
+  cls_api: add translator to flow_action representation
+  flow_offload: add statistics retrieval infrastructure and use it
+  drivers: net: use flow action infrastructure
+  cls_flower: don't expose TC actions to drivers anymore
+  flow_offload: add wake-up-on-lan and queue to flow_action
+  ethtool: add ethtool_rx_flow_spec to flow_rule structure translator
+  dsa: bcm_sf2: use flow_rule infrastructure
+  qede: place ethtool_rx_flow_spec after code after TC flower codebase
+  qede: use ethtool_rx_flow_rule() to remove duplicated parser code
+
+ drivers/net/dsa/bcm_sf2_cfp.c                      | 102 +--
+ drivers/net/ethernet/broadcom/bnxt/bnxt_tc.c       | 252 ++++----
+ .../net/ethernet/chelsio/cxgb4/cxgb4_tc_flower.c   | 450 ++++++-------
+ drivers/net/ethernet/intel/i40e/i40e_main.c        | 178 ++----
+ drivers/net/ethernet/intel/iavf/iavf_main.c        | 195 +++---
+ drivers/net/ethernet/intel/igb/igb_main.c          |  64 +-
+ .../net/ethernet/mellanox/mlx5/core/en/tc_tun.c    |  68 +-
+ drivers/net/ethernet/mellanox/mlx5/core/en_tc.c    | 698 ++++++++++-----------
+ drivers/net/ethernet/mellanox/mlxsw/spectrum_acl.c |   2 +-
+ .../net/ethernet/mellanox/mlxsw/spectrum_flower.c  | 258 ++++----
+ drivers/net/ethernet/netronome/nfp/flower/action.c | 198 +++---
+ drivers/net/ethernet/netronome/nfp/flower/match.c  | 417 ++++++------
+ .../net/ethernet/netronome/nfp/flower/offload.c    | 154 ++---
+ drivers/net/ethernet/qlogic/qede/qede_filter.c     | 572 +++++++----------
+ include/linux/ethtool.h                            |  15 +
+ include/net/flow_offload.h                         | 203 ++++++
+ include/net/pkt_cls.h                              |  16 +-
+ net/core/Makefile                                  |   2 +-
+ net/core/ethtool.c                                 | 241 +++++++
+ net/core/flow_offload.c                            | 153 +++++
+ net/sched/cls_api.c                                | 116 ++++
+ net/sched/cls_flower.c                             |  71 ++-
+ 22 files changed, 2416 insertions(+), 2009 deletions(-)
+ create mode 100644 include/net/flow_offload.h
+ create mode 100644 net/core/flow_offload.c
+
+-- 
+2.11.0
