@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 03/12 net-next,v7] flow_offload: add flow action infrastructure
-Date: Sat,  2 Feb 2019 12:50:45 +0100
-Message-ID: <20190202115054.4880-4-pablo@netfilter.org>
+Subject: [PATCH 04/12 net-next,v7] cls_api: add translator to flow_action representation
+Date: Sat,  2 Feb 2019 12:50:46 +0100
+Message-ID: <20190202115054.4880-5-pablo@netfilter.org>
 References: <20190202115054.4880-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, thomas.lendacky@amd.com, f.fainelli@gmail.com,
         ariel.elior@cavium.com, michael.chan@broadcom.com,
@@ -24,210 +24,181 @@ In-Reply-To: <20190202115054.4880-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This new infrastructure defines the nic actions that you can perform
-from existing network drivers. This infrastructure allows us to avoid a
-direct dependency with the native software TC action representation.
+This patch implements a new function to translate from native TC action
+to the new flow_action representation. Moreover, this patch also updates
+cls_flower to use this new function.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Acked-by: Jiri Pirko <jiri@mellanox.com>
 ---
 v7: rebase on top of net-next.
 
- include/net/flow_offload.h | 69 +++++++++++++++++++++++++++++++++++++++++++++-
- include/net/pkt_cls.h      |  1 +
- net/core/flow_offload.c    | 14 ++++++++--
- net/sched/cls_api.c        | 17 ++++++++++++
- net/sched/cls_flower.c     |  7 +++--
- 5 files changed, 102 insertions(+), 6 deletions(-)
+ include/net/pkt_cls.h  |  2 +
+ net/sched/cls_api.c    | 99 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ net/sched/cls_flower.c | 14 +++++++
+ 3 files changed, 115 insertions(+)
 
-diff --git a/include/net/flow_offload.h b/include/net/flow_offload.h
-index 461c66595763..dabc819b6cc9 100644
---- a/include/net/flow_offload.h
-+++ b/include/net/flow_offload.h
-@@ -100,11 +100,78 @@ void flow_rule_match_enc_keyid(const struct flow_rule *rule,
- void flow_rule_match_enc_opts(const struct flow_rule *rule,
- 			      struct flow_match_enc_opts *out);
- 
-+enum flow_action_id {
-+	FLOW_ACTION_ACCEPT		= 0,
-+	FLOW_ACTION_DROP,
-+	FLOW_ACTION_TRAP,
-+	FLOW_ACTION_GOTO,
-+	FLOW_ACTION_REDIRECT,
-+	FLOW_ACTION_MIRRED,
-+	FLOW_ACTION_VLAN_PUSH,
-+	FLOW_ACTION_VLAN_POP,
-+	FLOW_ACTION_VLAN_MANGLE,
-+	FLOW_ACTION_TUNNEL_ENCAP,
-+	FLOW_ACTION_TUNNEL_DECAP,
-+	FLOW_ACTION_MANGLE,
-+	FLOW_ACTION_ADD,
-+	FLOW_ACTION_CSUM,
-+	FLOW_ACTION_MARK,
-+};
-+
-+/* This is mirroring enum pedit_header_type definition for easy mapping between
-+ * tc pedit action. Legacy TCA_PEDIT_KEY_EX_HDR_TYPE_NETWORK is mapped to
-+ * FLOW_ACT_MANGLE_UNSPEC, which is supported by no driver.
-+ */
-+enum flow_action_mangle_base {
-+	FLOW_ACT_MANGLE_UNSPEC		= 0,
-+	FLOW_ACT_MANGLE_HDR_TYPE_ETH,
-+	FLOW_ACT_MANGLE_HDR_TYPE_IP4,
-+	FLOW_ACT_MANGLE_HDR_TYPE_IP6,
-+	FLOW_ACT_MANGLE_HDR_TYPE_TCP,
-+	FLOW_ACT_MANGLE_HDR_TYPE_UDP,
-+};
-+
-+struct flow_action_entry {
-+	enum flow_action_id		id;
-+	union {
-+		u32			chain_index;	/* FLOW_ACTION_GOTO */
-+		struct net_device	*dev;		/* FLOW_ACTION_REDIRECT */
-+		struct {				/* FLOW_ACTION_VLAN */
-+			u16		vid;
-+			__be16		proto;
-+			u8		prio;
-+		} vlan;
-+		struct {				/* FLOW_ACTION_PACKET_EDIT */
-+			enum flow_action_mangle_base htype;
-+			u32		offset;
-+			u32		mask;
-+			u32		val;
-+		} mangle;
-+		const struct ip_tunnel_info *tunnel;	/* FLOW_ACTION_TUNNEL_ENCAP */
-+		u32			csum_flags;	/* FLOW_ACTION_CSUM */
-+		u32			mark;		/* FLOW_ACTION_MARK */
-+	};
-+};
-+
-+struct flow_action {
-+	unsigned int			num_entries;
-+	struct flow_action_entry 	entries[0];
-+};
-+
-+static inline bool flow_action_has_entries(const struct flow_action *action)
-+{
-+	return action->num_entries;
-+}
-+
-+#define flow_action_for_each(__i, __act, __actions)			\
-+        for (__i = 0, __act = &(__actions)->entries[0]; __i < (__actions)->num_entries; __act = &(__actions)->entries[__i++])
-+
- struct flow_rule {
- 	struct flow_match	match;
-+	struct flow_action	action;
- };
- 
--struct flow_rule *flow_rule_alloc(void);
-+struct flow_rule *flow_rule_alloc(unsigned int num_actions);
- 
- static inline bool flow_rule_match_key(const struct flow_rule *rule,
- 				       enum flow_dissector_key_id key)
 diff --git a/include/net/pkt_cls.h b/include/net/pkt_cls.h
-index 04b64523cc32..74a7582ad47c 100644
+index 74a7582ad47c..c470c100b926 100644
 --- a/include/net/pkt_cls.h
 +++ b/include/net/pkt_cls.h
-@@ -622,6 +622,7 @@ tcf_match_indev(struct sk_buff *skb, int ifindex)
+@@ -620,6 +620,8 @@ tcf_match_indev(struct sk_buff *skb, int ifindex)
+ }
+ #endif /* CONFIG_NET_CLS_IND */
  
++int tc_setup_flow_action(struct flow_action *flow_action,
++			 const struct tcf_exts *exts);
  int tc_setup_cb_call(struct tcf_block *block, enum tc_setup_type type,
  		     void *type_data, bool err_stop);
-+unsigned int tcf_exts_num_actions(struct tcf_exts *exts);
- 
- enum tc_block_command {
- 	TC_BLOCK_BIND,
-diff --git a/net/core/flow_offload.c b/net/core/flow_offload.c
-index 2fbf6903d2f6..c3a00eac4804 100644
---- a/net/core/flow_offload.c
-+++ b/net/core/flow_offload.c
-@@ -3,9 +3,19 @@
- #include <linux/slab.h>
- #include <net/flow_offload.h>
- 
--struct flow_rule *flow_rule_alloc(void)
-+struct flow_rule *flow_rule_alloc(unsigned int num_actions)
- {
--	return kzalloc(sizeof(struct flow_rule), GFP_KERNEL);
-+	struct flow_rule *rule;
-+
-+	rule = kzalloc(sizeof(struct flow_rule) +
-+		       sizeof(struct flow_action_entry) * num_actions,
-+		       GFP_KERNEL);
-+	if (!rule)
-+		return NULL;
-+
-+	rule->action.num_entries = num_actions;
-+
-+	return rule;
- }
- EXPORT_SYMBOL(flow_rule_alloc);
- 
+ unsigned int tcf_exts_num_actions(struct tcf_exts *exts);
 diff --git a/net/sched/cls_api.c b/net/sched/cls_api.c
-index e2b5cb2eb34e..57713c63ac56 100644
+index 57713c63ac56..02cf6d2fa0e1 100644
 --- a/net/sched/cls_api.c
 +++ b/net/sched/cls_api.c
-@@ -31,6 +31,7 @@
- #include <net/netlink.h>
+@@ -32,6 +32,13 @@
  #include <net/pkt_sched.h>
  #include <net/pkt_cls.h>
-+#include <net/tc_act/tc_pedit.h>
+ #include <net/tc_act/tc_pedit.h>
++#include <net/tc_act/tc_mirred.h>
++#include <net/tc_act/tc_vlan.h>
++#include <net/tc_act/tc_tunnel_key.h>
++#include <net/tc_act/tc_csum.h>
++#include <net/tc_act/tc_gact.h>
++#include <net/tc_act/tc_skbedit.h>
++#include <net/tc_act/tc_mirred.h>
  
  extern const struct nla_policy rtm_tca_policy[TCA_MAX + 1];
  
-@@ -2515,6 +2516,22 @@ int tc_setup_cb_call(struct tcf_block *block, enum tc_setup_type type,
+@@ -2516,6 +2523,98 @@ int tc_setup_cb_call(struct tcf_block *block, enum tc_setup_type type,
  }
  EXPORT_SYMBOL(tc_setup_cb_call);
  
-+unsigned int tcf_exts_num_actions(struct tcf_exts *exts)
++int tc_setup_flow_action(struct flow_action *flow_action,
++			 const struct tcf_exts *exts)
 +{
-+	unsigned int num_acts = 0;
-+	struct tc_action *act;
-+	int i;
++	const struct tc_action *act;
++	int i, j, k;
 +
++	if (!exts)
++		return 0;
++
++	j = 0;
 +	tcf_exts_for_each_action(i, act, exts) {
-+		if (is_tcf_pedit(act))
-+			num_acts += tcf_pedit_nkeys(act);
-+		else
-+			num_acts++;
-+	}
-+	return num_acts;
-+}
-+EXPORT_SYMBOL(tcf_exts_num_actions);
++		struct flow_action_entry *entry;
 +
- static __net_init int tcf_net_init(struct net *net)
++		entry = &flow_action->entries[j];
++		if (is_tcf_gact_ok(act)) {
++			entry->id = FLOW_ACTION_ACCEPT;
++		} else if (is_tcf_gact_shot(act)) {
++			entry->id = FLOW_ACTION_DROP;
++		} else if (is_tcf_gact_trap(act)) {
++			entry->id = FLOW_ACTION_TRAP;
++		} else if (is_tcf_gact_goto_chain(act)) {
++			entry->id = FLOW_ACTION_GOTO;
++			entry->chain_index = tcf_gact_goto_chain_index(act);
++		} else if (is_tcf_mirred_egress_redirect(act)) {
++			entry->id = FLOW_ACTION_REDIRECT;
++			entry->dev = tcf_mirred_dev(act);
++		} else if (is_tcf_mirred_egress_mirror(act)) {
++			entry->id = FLOW_ACTION_MIRRED;
++			entry->dev = tcf_mirred_dev(act);
++		} else if (is_tcf_vlan(act)) {
++			switch (tcf_vlan_action(act)) {
++			case TCA_VLAN_ACT_PUSH:
++				entry->id = FLOW_ACTION_VLAN_PUSH;
++				entry->vlan.vid = tcf_vlan_push_vid(act);
++				entry->vlan.proto = tcf_vlan_push_proto(act);
++				entry->vlan.prio = tcf_vlan_push_prio(act);
++				break;
++			case TCA_VLAN_ACT_POP:
++				entry->id = FLOW_ACTION_VLAN_POP;
++				break;
++			case TCA_VLAN_ACT_MODIFY:
++				entry->id = FLOW_ACTION_VLAN_MANGLE;
++				entry->vlan.vid = tcf_vlan_push_vid(act);
++				entry->vlan.proto = tcf_vlan_push_proto(act);
++				entry->vlan.prio = tcf_vlan_push_prio(act);
++				break;
++			default:
++				goto err_out;
++			}
++		} else if (is_tcf_tunnel_set(act)) {
++			entry->id = FLOW_ACTION_TUNNEL_ENCAP;
++			entry->tunnel = tcf_tunnel_info(act);
++		} else if (is_tcf_tunnel_release(act)) {
++			entry->id = FLOW_ACTION_TUNNEL_DECAP;
++			entry->tunnel = tcf_tunnel_info(act);
++		} else if (is_tcf_pedit(act)) {
++			for (k = 0; k < tcf_pedit_nkeys(act); k++) {
++				switch (tcf_pedit_cmd(act, k)) {
++				case TCA_PEDIT_KEY_EX_CMD_SET:
++					entry->id = FLOW_ACTION_MANGLE;
++					break;
++				case TCA_PEDIT_KEY_EX_CMD_ADD:
++					entry->id = FLOW_ACTION_ADD;
++					break;
++				default:
++					goto err_out;
++				}
++				entry->mangle.htype = tcf_pedit_htype(act, k);
++				entry->mangle.mask = tcf_pedit_mask(act, k);
++				entry->mangle.val = tcf_pedit_val(act, k);
++				entry->mangle.offset = tcf_pedit_offset(act, k);
++				entry = &flow_action->entries[++j];
++			}
++		} else if (is_tcf_csum(act)) {
++			entry->id = FLOW_ACTION_CSUM;
++			entry->csum_flags = tcf_csum_update_flags(act);
++		} else if (is_tcf_skbedit_mark(act)) {
++			entry->id = FLOW_ACTION_MARK;
++			entry->mark = tcf_skbedit_mark(act);
++		} else {
++			goto err_out;
++		}
++
++		if (!is_tcf_pedit(act))
++			j++;
++	}
++	return 0;
++err_out:
++	return -EOPNOTSUPP;
++}
++EXPORT_SYMBOL(tc_setup_flow_action);
++
+ unsigned int tcf_exts_num_actions(struct tcf_exts *exts)
  {
- 	struct tcf_net *tn = net_generic(net, tcf_net_id);
+ 	unsigned int num_acts = 0;
 diff --git a/net/sched/cls_flower.c b/net/sched/cls_flower.c
-index aaffea0b66e9..0062c9133a22 100644
+index 0062c9133a22..48c54ef52a98 100644
 --- a/net/sched/cls_flower.c
 +++ b/net/sched/cls_flower.c
-@@ -381,7 +381,7 @@ static int fl_hw_replace_filter(struct tcf_proto *tp,
- 	bool skip_sw = tc_skip_sw(f->flags);
- 	int err;
+@@ -394,6 +394,12 @@ static int fl_hw_replace_filter(struct tcf_proto *tp,
+ 	cls_flower.exts = &f->exts;
+ 	cls_flower.classid = f->res.classid;
  
--	cls_flower.rule = flow_rule_alloc();
-+	cls_flower.rule = flow_rule_alloc(tcf_exts_num_actions(&f->exts));
- 	if (!cls_flower.rule)
- 		return -ENOMEM;
++	err = tc_setup_flow_action(&cls_flower.rule->action, &f->exts);
++	if (err) {
++		kfree(cls_flower.rule);
++		return err;
++	}
++
+ 	err = tc_setup_cb_call(block, TC_SETUP_CLSFLOWER, &cls_flower, skip_sw);
+ 	kfree(cls_flower.rule);
  
-@@ -1469,7 +1469,8 @@ static int fl_reoffload(struct tcf_proto *tp, bool add, tc_setup_cb_t *cb,
- 			if (tc_skip_hw(f->flags))
- 				continue;
+@@ -1483,6 +1489,14 @@ static int fl_reoffload(struct tcf_proto *tp, bool add, tc_setup_cb_t *cb,
+ 			cls_flower.rule->match.mask = &mask->key;
+ 			cls_flower.rule->match.key = &f->mkey;
+ 			cls_flower.exts = &f->exts;
++
++			err = tc_setup_flow_action(&cls_flower.rule->action,
++						   &f->exts);
++			if (err) {
++				kfree(cls_flower.rule);
++				return err;
++			}
++
+ 			cls_flower.classid = f->res.classid;
  
--			cls_flower.rule = flow_rule_alloc();
-+			cls_flower.rule =
-+				flow_rule_alloc(tcf_exts_num_actions(&f->exts));
- 			if (!cls_flower.rule)
- 				return -ENOMEM;
- 
-@@ -1508,7 +1509,7 @@ static int fl_hw_create_tmplt(struct tcf_chain *chain,
- 	struct tcf_block *block = chain->block;
- 	struct tcf_exts dummy_exts = { 0, };
- 
--	cls_flower.rule = flow_rule_alloc();
-+	cls_flower.rule = flow_rule_alloc(0);
- 	if (!cls_flower.rule)
- 		return -ENOMEM;
- 
+ 			err = cb(TC_SETUP_CLSFLOWER, &cls_flower, cb_priv);
 -- 
 2.11.0
