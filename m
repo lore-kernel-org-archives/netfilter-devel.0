@@ -1,41 +1,22 @@
-From: Or Gerlitz <gerlitz.or@gmail.com>
-Subject: Re: [PATCH 02/12 net-next,v7] net/mlx5e: support for two independent
- packet edit actions
-Date: Sat, 2 Feb 2019 23:43:10 +0200
-Message-ID: <CAJ3xEMiXxqsN=bict2iFNmTsEez9LUGFOJwR_Yz=Ff_sW7fGkA@mail.gmail.com>
-References: <20190202115054.4880-1-pablo@netfilter.org> <20190202115054.4880-3-pablo@netfilter.org>
- <CAMDZJNVv20HWiv4zT__jhYv8RWfTdUJ+bnG1QsgJZTDL6XfV4A@mail.gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] selftests/netfilter: fix config fragment
+ CONFIG_NF_TABLES_INET
+Date: Mon, 4 Feb 2019 14:21:55 +0100
+Message-ID: <20190204132155.wigblmuifkibg6dk@salvia>
+References: <20190129062835.31122-1-naresh.kamboju@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Linux Kernel Network Developers <netdev@vger.kernel.org>,
-        David Miller <davem@davemloft.net>, thomas.lendacky@amd.com,
-        Florian Fainelli <f.fainelli@gmail.com>,
-        Ariel Elior <ariel.elior@cavium.com>,
-        Michael Chan <michael.chan@broadcom.com>, santosh@chelsio.com,
-        madalin.bucur@nxp.com,
-        "Zhuangyuzeng (Yisen)" <yisen.zhuang@huawei.com>,
-        Salil Mehta <salil.mehta@huawei.com>,
-        Jeff Kirsher <jeffrey.t.kirsher@intel.com>,
-        Tariq Toukan <tariqt@mellanox.com>,
-        Saeed Mahameed <saeedm@mellanox.com>,
-        Jiri Pirko <jiri@mellanox.com>,
-        Ido Schimmel <idosch@mellanox.com>,
-        Jakub Kicinski <jakub.kicinski@netronome.com>,
-        peppe.cavallaro@st.com, grygorii.strashko@ti.com,
-        Andrew Lunn <andrew@lunn.ch>,
-        Vivien Didelot <vivien.didelot@sav
-To: Tonghao Zhang <xiangxia.m.yue@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+        fw@strlen.de, davem@davemloft.net, linux-kselftest@vger.kernel.org
+To: Naresh Kamboju <naresh.kamboju@linaro.org>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <CAMDZJNVv20HWiv4zT__jhYv8RWfTdUJ+bnG1QsgJZTDL6XfV4A@mail.gmail.com>
+Content-Disposition: inline
+In-Reply-To: <20190129062835.31122-1-naresh.kamboju@linaro.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, Feb 2, 2019 at 5:19 PM Tonghao Zhang <xiangxia.m.yue@gmail.com> wrote:
+On Tue, Jan 29, 2019 at 06:28:35AM +0000, Naresh Kamboju wrote:
+> In selftests the config fragment for netfilter was added as
+> NF_TABLES_INET=y and this patch correct it as CONFIG_NF_TABLES_INET=y
 
-> The patch [1] is ready too. David may decide which one will be applied
-> firstly. and other is rebased ?.
-
-Your patch is for net, net-next is rebased over net
-
-> [1] http://patchwork.ozlabs.org/patch/1032952/
+Applied, thanks.
