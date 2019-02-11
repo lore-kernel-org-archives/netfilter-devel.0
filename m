@@ -1,33 +1,23 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/2] Netfilter fixes for net
-Date: Mon, 11 Feb 2019 10:43:07 -0800 (PST)
-Message-ID: <20190211.104307.685457577050727077.davem@davemloft.net>
-References: <20190211165319.17965-1-pablo@netfilter.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] netfilter: nft_tunnel: Add NFTA_TUNNEL_MODE options
+Date: Tue, 12 Feb 2019 00:25:33 +0100
+Message-ID: <20190211232533.lv2tvyohakvr22nt@salvia>
+References: <1548748277-2587-1-git-send-email-wenxu@ucloud.cn>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
+To: wenxu@ucloud.cn
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190211165319.17965-1-pablo@netfilter.org>
+Content-Disposition: inline
+In-Reply-To: <1548748277-2587-1-git-send-email-wenxu@ucloud.cn>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Mon, 11 Feb 2019 17:53:17 +0100
+On Tue, Jan 29, 2019 at 03:51:17PM +0800, wenxu@ucloud.cn wrote:
+> From: wenxu <wenxu@ucloud.cn>
+> 
+> nft "tunnel" expr match both the tun_info of RX and TX. This patch
+> provide the NFTA_TUNNEL_MODE to individually match the tun_info of
+> RX or TX.
 
-> The following patchset contains Netfilter fixes for net:
-> 
-> 1) Out-of-bound access to packet data from the snmp nat helper,
->    from Jann Horn.
-> 
-> 2) ICMP(v6) error packets are set as related traffic by conntrack,
->    update protocol number before calling nf_nat_ipv4_manip_pkt()
->    to use ICMP(v6) rather than the original protocol number,
->    from Florian Westphal.
-> 
-> You can pull these changes from:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
-
-Pulled, thanks Pablo.
+Applied, thanks.
