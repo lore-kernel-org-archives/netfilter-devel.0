@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 1/2] netfilter: nf_nat_snmp_basic: add missing length checks in ASN.1 cbs
-Date: Mon, 11 Feb 2019 17:53:18 +0100
-Message-ID: <20190211165319.17965-2-pablo@netfilter.org>
+Subject: [PATCH 2/2] netfilter: nat: fix spurious connection timeouts
+Date: Mon, 11 Feb 2019 17:53:19 +0100
+Message-ID: <20190211165319.17965-3-pablo@netfilter.org>
 References: <20190211165319.17965-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,48 +10,54 @@ In-Reply-To: <20190211165319.17965-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Jann Horn <jannh@google.com>
+From: Florian Westphal <fw@strlen.de>
 
-The generic ASN.1 decoder infrastructure doesn't guarantee that callbacks
-will get as much data as they expect; callbacks have to check the `datalen`
-parameter before looking at `data`. Make sure that snmp_version() and
-snmp_helper() don't read/write beyond the end of the packet data.
+Sander Eikelenboom bisected a NAT related regression down
+to the l4proto->manip_pkt indirection removal.
 
-(Also move the assignment to `pdata` down below the check to make it clear
-that it isn't necessarily a pointer we can use before the `datalen` check.)
+I forgot that ICMP(v6) errors (e.g. PKTTOOBIG) can be set as related
+to the existing conntrack entry.
 
-Fixes: cc2d58634e0f ("netfilter: nf_nat_snmp_basic: use asn1 decoder library")
-Signed-off-by: Jann Horn <jannh@google.com>
+Therefore, when passing the skb to nf_nat_ipv4/6_manip_pkt(), that
+ended up calling the wrong l4 manip function, as tuple->dst.protonum
+is the original flows l4 protocol (TCP, UDP, etc).
+
+Set the dst protocol field to ICMP(v6), we already have a private copy
+of the tuple due to the inversion of src/dst.
+
+Reported-by: Sander Eikelenboom <linux@eikelenboom.it>
+Tested-by: Sander Eikelenboom <linux@eikelenboom.it>
+Fixes: faec18dbb0405 ("netfilter: nat: remove l4proto->manip_pkt")
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/ipv4/netfilter/nf_nat_snmp_basic_main.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ net/ipv4/netfilter/nf_nat_l3proto_ipv4.c | 1 +
+ net/ipv6/netfilter/nf_nat_l3proto_ipv6.c | 1 +
+ 2 files changed, 2 insertions(+)
 
-diff --git a/net/ipv4/netfilter/nf_nat_snmp_basic_main.c b/net/ipv4/netfilter/nf_nat_snmp_basic_main.c
-index a0aa13bcabda..0a8a60c1bf9a 100644
---- a/net/ipv4/netfilter/nf_nat_snmp_basic_main.c
-+++ b/net/ipv4/netfilter/nf_nat_snmp_basic_main.c
-@@ -105,6 +105,8 @@ static void fast_csum(struct snmp_ctx *ctx, unsigned char offset)
- int snmp_version(void *context, size_t hdrlen, unsigned char tag,
- 		 const void *data, size_t datalen)
- {
-+	if (datalen != 1)
-+		return -EINVAL;
- 	if (*(unsigned char *)data > 1)
- 		return -ENOTSUPP;
- 	return 1;
-@@ -114,8 +116,11 @@ int snmp_helper(void *context, size_t hdrlen, unsigned char tag,
- 		const void *data, size_t datalen)
- {
- 	struct snmp_ctx *ctx = (struct snmp_ctx *)context;
--	__be32 *pdata = (__be32 *)data;
-+	__be32 *pdata;
+diff --git a/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c b/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c
+index 2687db015b6f..fa2ba7c500e4 100644
+--- a/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c
++++ b/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c
+@@ -215,6 +215,7 @@ int nf_nat_icmp_reply_translation(struct sk_buff *skb,
  
-+	if (datalen != 4)
-+		return -EINVAL;
-+	pdata = (__be32 *)data;
- 	if (*pdata == ctx->from) {
- 		pr_debug("%s: %pI4 to %pI4\n", __func__,
- 			 (void *)&ctx->from, (void *)&ctx->to);
+ 	/* Change outer to look like the reply to an incoming packet */
+ 	nf_ct_invert_tuplepr(&target, &ct->tuplehash[!dir].tuple);
++	target.dst.protonum = IPPROTO_ICMP;
+ 	if (!nf_nat_ipv4_manip_pkt(skb, 0, &target, manip))
+ 		return 0;
+ 
+diff --git a/net/ipv6/netfilter/nf_nat_l3proto_ipv6.c b/net/ipv6/netfilter/nf_nat_l3proto_ipv6.c
+index 23022447eb49..7a41ee3c11b4 100644
+--- a/net/ipv6/netfilter/nf_nat_l3proto_ipv6.c
++++ b/net/ipv6/netfilter/nf_nat_l3proto_ipv6.c
+@@ -226,6 +226,7 @@ int nf_nat_icmpv6_reply_translation(struct sk_buff *skb,
+ 	}
+ 
+ 	nf_ct_invert_tuplepr(&target, &ct->tuplehash[!dir].tuple);
++	target.dst.protonum = IPPROTO_ICMPV6;
+ 	if (!nf_nat_ipv6_manip_pkt(skb, 0, &target, manip))
+ 		return 0;
+ 
 -- 
 2.11.0
