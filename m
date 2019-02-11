@@ -1,53 +1,57 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 0/2] Netfilter fixes for net
-Date: Mon, 11 Feb 2019 17:53:17 +0100
-Message-ID: <20190211165319.17965-1-pablo@netfilter.org>
+Subject: [PATCH 1/2] netfilter: nf_nat_snmp_basic: add missing length checks in ASN.1 cbs
+Date: Mon, 11 Feb 2019 17:53:18 +0100
+Message-ID: <20190211165319.17965-2-pablo@netfilter.org>
+References: <20190211165319.17965-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20190211165319.17965-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi David,
+From: Jann Horn <jannh@google.com>
 
-The following patchset contains Netfilter fixes for net:
+The generic ASN.1 decoder infrastructure doesn't guarantee that callbacks
+will get as much data as they expect; callbacks have to check the `datalen`
+parameter before looking at `data`. Make sure that snmp_version() and
+snmp_helper() don't read/write beyond the end of the packet data.
 
-1) Out-of-bound access to packet data from the snmp nat helper,
-   from Jann Horn.
+(Also move the assignment to `pdata` down below the check to make it clear
+that it isn't necessarily a pointer we can use before the `datalen` check.)
 
-2) ICMP(v6) error packets are set as related traffic by conntrack,
-   update protocol number before calling nf_nat_ipv4_manip_pkt()
-   to use ICMP(v6) rather than the original protocol number,
-   from Florian Westphal.
-
-You can pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
-
-Thanks!
-
-----------------------------------------------------------------
-
-The following changes since commit 31b58ad0c3279817cd246eab27eaf53b626dfcde:
-
-  Merge branch 'r8169-revert-two-commits-due-to-a-regression' (2019-02-10 12:54:49 -0800)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git HEAD
-
-for you to fetch changes up to 8303b7e8f018724a2cd7752eb29c2801fa8c4067:
-
-  netfilter: nat: fix spurious connection timeouts (2019-02-11 17:43:17 +0100)
-
-----------------------------------------------------------------
-Florian Westphal (1):
-      netfilter: nat: fix spurious connection timeouts
-
-Jann Horn (1):
-      netfilter: nf_nat_snmp_basic: add missing length checks in ASN.1 cbs
-
- net/ipv4/netfilter/nf_nat_l3proto_ipv4.c    | 1 +
+Fixes: cc2d58634e0f ("netfilter: nf_nat_snmp_basic: use asn1 decoder library")
+Signed-off-by: Jann Horn <jannh@google.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
  net/ipv4/netfilter/nf_nat_snmp_basic_main.c | 7 ++++++-
- net/ipv6/netfilter/nf_nat_l3proto_ipv6.c    | 1 +
- 3 files changed, 8 insertions(+), 1 deletion(-)
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/net/ipv4/netfilter/nf_nat_snmp_basic_main.c b/net/ipv4/netfilter/nf_nat_snmp_basic_main.c
+index a0aa13bcabda..0a8a60c1bf9a 100644
+--- a/net/ipv4/netfilter/nf_nat_snmp_basic_main.c
++++ b/net/ipv4/netfilter/nf_nat_snmp_basic_main.c
+@@ -105,6 +105,8 @@ static void fast_csum(struct snmp_ctx *ctx, unsigned char offset)
+ int snmp_version(void *context, size_t hdrlen, unsigned char tag,
+ 		 const void *data, size_t datalen)
+ {
++	if (datalen != 1)
++		return -EINVAL;
+ 	if (*(unsigned char *)data > 1)
+ 		return -ENOTSUPP;
+ 	return 1;
+@@ -114,8 +116,11 @@ int snmp_helper(void *context, size_t hdrlen, unsigned char tag,
+ 		const void *data, size_t datalen)
+ {
+ 	struct snmp_ctx *ctx = (struct snmp_ctx *)context;
+-	__be32 *pdata = (__be32 *)data;
++	__be32 *pdata;
+ 
++	if (datalen != 4)
++		return -EINVAL;
++	pdata = (__be32 *)data;
+ 	if (*pdata == ctx->from) {
+ 		pr_debug("%s: %pI4 to %pI4\n", __func__,
+ 			 (void *)&ctx->from, (void *)&ctx->to);
+-- 
+2.11.0
