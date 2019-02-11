@@ -1,67 +1,53 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: Update pf.os with newer OS fingerprints
-Date: Fri, 8 Feb 2019 17:07:25 +0100
-Message-ID: <20190208160725.aen3uil2jmfnp6zc@salvia>
-References: <7d39a0dc-d7bd-7934-1d86-7268bf7c51b9@riseup.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Cc: tech@openbsd.org, netfilter-devel@vger.kernel.org
-To: Fernando Fernandez Mancera <ffmancera@riseup.net>
-Return-path: <owner-tech+M68999=goot+2Dtech=gmane.org@openbsd.org>
-Content-Disposition: inline
-In-Reply-To: <7d39a0dc-d7bd-7934-1d86-7268bf7c51b9@riseup.net>
-List-Help: <mailto:majordomo@openbsd.org?body=help>
-List-Owner: <mailto:owner-tech@openbsd.org>
-List-Post: <mailto:tech@openbsd.org>
-List-Subscribe: <mailto:majordomo@openbsd.org?body=sub%20tech>
-List-Unsubscribe: <mailto:majordomo@openbsd.org?body=unsub%20tech>
-Sender: owner-tech@openbsd.org
+Subject: [PATCH 0/2] Netfilter fixes for net
+Date: Mon, 11 Feb 2019 17:53:17 +0100
+Message-ID: <20190211165319.17965-1-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Fernando,
+Hi David,
 
-On Fri, Feb 08, 2019 at 03:06:00PM +0100, Fernando Fernandez Mancera wrote:
-> Hi,
-> 
-> I have been updating the pf.os signatures with more recent OS
-> fingerprints. I have checked out new Linux, FreeBSD and OpenBSD but only
-> Linux and FreeBSD needed new ones. I have been doing this because it is
-> related with my work during the last Google Summer of Code. In addition,
-> Michal Zalewski is aware of the new fingerprints too.
-> 
-> Thanks.
-> 
-> P.S: Keep me on Cc. I'm not subscribed to the list.
-> 
-> diff --git etc/pf.os etc/pf.os
-> index 41c1bc6a482..8f235876799 100644
-> --- etc/pf.os
-> +++ etc/pf.os
-> @@ -232,6 +232,11 @@ S4:64:1:60:M*,S,T,N,W7:		Linux:2.6::Linux 2.6
-> (newer, 3)
->  T4:64:1:60:M*,S,T,N,W7:		Linux:2.6::Linux 2.6 (newer, 4)
-> 
->  S10:64:1:60:M*,S,T,N,W4:	Linux:3.0::Linux 3.0
-> +S10:64:1:60:M*,S,T,N,W6:	Linux:3.1::Linux 3.1
-> +S10:64:1:60:M*,S,T,N,W7:	Linux:3.4-3.10::Linux 3.4 - 3.10
-> +S20:64:1:60:M*,S,T,N,W7:	Linux:3.11-3.19::Linux 3.11 - 3.19
-> +S20:64:1:60:M*,S,T,N,W7:	Linux:4.0-4.19::Linux 4.0 - 4.19
+The following patchset contains Netfilter fixes for net:
 
-Probably merge these two lines above? ie.
+1) Out-of-bound access to packet data from the snmp nat helper,
+   from Jann Horn.
 
-S20:64:1:60:M*,S,T,N,W7:	Linux:3.11-4.19::Linux 3.11 - 4.19
+2) ICMP(v6) error packets are set as related traffic by conntrack,
+   update protocol number before calling nf_nat_ipv4_manip_pkt()
+   to use ICMP(v6) rather than the original protocol number,
+   from Florian Westphal.
 
-> +S44:64:1:60:M*,S,T,N,W7:	Linux:4.20::Linux 4.20
-> 
->  S3:64:1:60:M*,S,T,N,W1:		Linux:2.5::Linux 2.5 (sometimes 2.4)
->  S4:64:1:60:M*,S,T,N,W1:		Linux:2.5-2.6::Linux 2.5/2.6
-> @@ -283,6 +288,8 @@ S22:64:1:52:M*,N,N,S,N,W0:	Linux:2.2:ts:Linux 2.2
-> w/o timestamps
->  65535:64:1:60:M*,N,W1,N,N,T:	FreeBSD:4.7-4.11::FreeBSD 4.7-5.2
->  65535:64:1:60:M*,N,W1,N,N,T:	FreeBSD:5.0-5.2::FreeBSD 4.7-5.2
-> 
-> +65535:64:1:60:M*,N,W6,S,T:	FreeBSD:9.0-12.0::FreeBSD 9.0 - 12.0
-> +
->  # XXX need quirks support
->  # 65535:64:1:60:M*,N,W0,N,N,T:Z:FreeBSD:5.1-5.4::5.1-current (1)
->  # 65535:64:1:60:M*,N,W1,N,N,T:Z:FreeBSD:5.1-5.4::5.1-current (2)
+You can pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
+
+Thanks!
+
+----------------------------------------------------------------
+
+The following changes since commit 31b58ad0c3279817cd246eab27eaf53b626dfcde:
+
+  Merge branch 'r8169-revert-two-commits-due-to-a-regression' (2019-02-10 12:54:49 -0800)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git HEAD
+
+for you to fetch changes up to 8303b7e8f018724a2cd7752eb29c2801fa8c4067:
+
+  netfilter: nat: fix spurious connection timeouts (2019-02-11 17:43:17 +0100)
+
+----------------------------------------------------------------
+Florian Westphal (1):
+      netfilter: nat: fix spurious connection timeouts
+
+Jann Horn (1):
+      netfilter: nf_nat_snmp_basic: add missing length checks in ASN.1 cbs
+
+ net/ipv4/netfilter/nf_nat_l3proto_ipv4.c    | 1 +
+ net/ipv4/netfilter/nf_nat_snmp_basic_main.c | 7 ++++++-
+ net/ipv6/netfilter/nf_nat_l3proto_ipv6.c    | 1 +
+ 3 files changed, 8 insertions(+), 1 deletion(-)
