@@ -1,23 +1,26 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: nft_tunnel: Add NFTA_TUNNEL_MODE options
-Date: Tue, 12 Feb 2019 00:25:33 +0100
-Message-ID: <20190211232533.lv2tvyohakvr22nt@salvia>
-References: <1548748277-2587-1-git-send-email-wenxu@ucloud.cn>
+Subject: Re: [PATCH] netfilter: conntrack: fix indentation issue
+Date: Tue, 12 Feb 2019 00:40:04 +0100
+Message-ID: <20190211234004.j6z3grpxqwgtphv4@salvia>
+References: <20190207131311.3725-1-colin.king@canonical.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: wenxu@ucloud.cn
-Return-path: <netdev-owner@vger.kernel.org>
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>,
+        "David S . Miller" <davem@davemloft.net>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, kernel-janitors@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+To: Colin King <colin.king@canonical.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1548748277-2587-1-git-send-email-wenxu@ucloud.cn>
-Sender: netdev-owner@vger.kernel.org
+In-Reply-To: <20190207131311.3725-1-colin.king@canonical.com>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Jan 29, 2019 at 03:51:17PM +0800, wenxu@ucloud.cn wrote:
-> From: wenxu <wenxu@ucloud.cn>
+On Thu, Feb 07, 2019 at 01:13:11PM +0000, Colin King wrote:
+> From: Colin Ian King <colin.king@canonical.com>
 > 
-> nft "tunnel" expr match both the tun_info of RX and TX. This patch
-> provide the NFTA_TUNNEL_MODE to individually match the tun_info of
-> RX or TX.
+> A statement in an if block is not indented correctly. Fix this.
 
 Applied, thanks.
