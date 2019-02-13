@@ -1,58 +1,74 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 0/3] Netfilter/IPVS fixes for net
-Date: Wed, 13 Feb 2019 18:47:55 +0100
-Message-ID: <20190213174758.17275-1-pablo@netfilter.org>
+Subject: [PATCH 1/3] netfilter: compat: initialize all fields in xt_init
+Date: Wed, 13 Feb 2019 18:47:56 +0100
+Message-ID: <20190213174758.17275-2-pablo@netfilter.org>
+References: <20190213174758.17275-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20190213174758.17275-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi David,
+From: Francesco Ruggeri <fruggeri@arista.com>
 
-The following patchset contains Netfilter/IPVS fixes for net:
+If a non zero value happens to be in xt[NFPROTO_BRIDGE].cur at init
+time, the following panic can be caused by running
 
-1) Missing structure initialization in ebtables causes splat with
-   32-bit user level on a 64-bit kernel, from Francesco Ruggeri.
+% ebtables -t broute -F BROUTING
 
-2) Missing dependency on nf_defrag in IPVS IPv6 codebase, from
-   Andrea Claudi.
+from a 32-bit user level on a 64-bit kernel. This patch replaces
+kmalloc_array with kcalloc when allocating xt.
 
-3) Fix possible use-after-free from release path of target extensions.
+[  474.680846] BUG: unable to handle kernel paging request at 0000000009600920
+[  474.687869] PGD 2037006067 P4D 2037006067 PUD 2038938067 PMD 0
+[  474.693838] Oops: 0000 [#1] SMP
+[  474.697055] CPU: 9 PID: 4662 Comm: ebtables Kdump: loaded Not tainted 4.19.17-11302235.AroraKernelnext.fc18.x86_64 #1
+[  474.707721] Hardware name: Supermicro X9DRT/X9DRT, BIOS 3.0 06/28/2013
+[  474.714313] RIP: 0010:xt_compat_calc_jump+0x2f/0x63 [x_tables]
+[  474.720201] Code: 40 0f b6 ff 55 31 c0 48 6b ff 70 48 03 3d dc 45 00 00 48 89 e5 8b 4f 6c 4c 8b 47 60 ff c9 39 c8 7f 2f 8d 14 08 d1 fa 48 63 fa <41> 39 34 f8 4c 8d 0c fd 00 00 00 00 73 05 8d 42 01 eb e1 76 05 8d
+[  474.739023] RSP: 0018:ffffc9000943fc58 EFLAGS: 00010207
+[  474.744296] RAX: 0000000000000000 RBX: ffffc90006465000 RCX: 0000000002580249
+[  474.751485] RDX: 00000000012c0124 RSI: fffffffff7be17e9 RDI: 00000000012c0124
+[  474.758670] RBP: ffffc9000943fc58 R08: 0000000000000000 R09: ffffffff8117cf8f
+[  474.765855] R10: ffffc90006477000 R11: 0000000000000000 R12: 0000000000000001
+[  474.773048] R13: 0000000000000000 R14: ffffc9000943fcb8 R15: ffffc9000943fcb8
+[  474.780234] FS:  0000000000000000(0000) GS:ffff88a03f840000(0063) knlGS:00000000f7ac7700
+[  474.788612] CS:  0010 DS: 002b ES: 002b CR0: 0000000080050033
+[  474.794632] CR2: 0000000009600920 CR3: 0000002037422006 CR4: 00000000000606e0
+[  474.802052] Call Trace:
+[  474.804789]  compat_do_replace+0x1fb/0x2a3 [ebtables]
+[  474.810105]  compat_do_ebt_set_ctl+0x69/0xe6 [ebtables]
+[  474.815605]  ? try_module_get+0x37/0x42
+[  474.819716]  compat_nf_setsockopt+0x4f/0x6d
+[  474.824172]  compat_ip_setsockopt+0x7e/0x8c
+[  474.828641]  compat_raw_setsockopt+0x16/0x3a
+[  474.833220]  compat_sock_common_setsockopt+0x1d/0x24
+[  474.838458]  __compat_sys_setsockopt+0x17e/0x1b1
+[  474.843343]  ? __check_object_size+0x76/0x19a
+[  474.847960]  __ia32_compat_sys_socketcall+0x1cb/0x25b
+[  474.853276]  do_fast_syscall_32+0xaf/0xf6
+[  474.857548]  entry_SYSENTER_compat+0x6b/0x7a
 
-You can pull these changes from:
+Signed-off-by: Francesco Ruggeri <fruggeri@arista.com>
+Acked-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/x_tables.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
-
-Thanks!
-
-----------------------------------------------------------------
-
-The following changes since commit cf657d22ee1f0e887326a92169f2e28dc932fd10:
-
-  net/x25: do not hold the cpu too long in x25_new_lci() (2019-02-11 13:20:14 -0800)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git HEAD
-
-for you to fetch changes up to 753c111f655e38bbd52fc01321266633f022ebe2:
-
-  netfilter: nft_compat: use-after-free when deleting targets (2019-02-13 18:14:54 +0100)
-
-----------------------------------------------------------------
-Andrea Claudi (1):
-      ipvs: fix dependency on nf_defrag_ipv6
-
-Francesco Ruggeri (1):
-      netfilter: compat: initialize all fields in xt_init
-
-Pablo Neira Ayuso (1):
-      netfilter: nft_compat: use-after-free when deleting targets
-
- net/netfilter/ipvs/Kconfig      |  1 +
- net/netfilter/ipvs/ip_vs_core.c | 10 ++++------
- net/netfilter/ipvs/ip_vs_ctl.c  | 10 ++++++++++
- net/netfilter/nft_compat.c      |  3 ++-
- net/netfilter/x_tables.c        |  2 +-
- 5 files changed, 18 insertions(+), 8 deletions(-)
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index aecadd471e1d..13e1ac333fa4 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -1899,7 +1899,7 @@ static int __init xt_init(void)
+ 		seqcount_init(&per_cpu(xt_recseq, i));
+ 	}
+ 
+-	xt = kmalloc_array(NFPROTO_NUMPROTO, sizeof(struct xt_af), GFP_KERNEL);
++	xt = kcalloc(NFPROTO_NUMPROTO, sizeof(struct xt_af), GFP_KERNEL);
+ 	if (!xt)
+ 		return -ENOMEM;
+ 
+-- 
+2.11.0
