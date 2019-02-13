@@ -1,70 +1,63 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.20 038/105] netfilter: nf_tables: fix leaking object reference count
-Date: Tue, 12 Feb 2019 21:32:29 -0500
-Message-ID: <20190213023336.19019-38-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.20 043/105] netfilter: nft_flow_offload: Fix reverse route lookup
+Date: Tue, 12 Feb 2019 21:32:34 -0500
+Message-ID: <20190213023336.19019-43-sashal@kernel.org>
 References: <20190213023336.19019-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Cc: Taehee Yoo <ap420073@gmail.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
+Cc: wenxu <wenxu@ucloud.cn>, Pablo Neira Ayuso <pablo@netfilter.org>,
         Sasha Levin <sashal@kernel.org>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20190213023336.19019-1-sashal@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Taehee Yoo <ap420073@gmail.com>
+From: wenxu <wenxu@ucloud.cn>
 
-[ Upstream commit b91d9036883793122cf6575ca4dfbfbdd201a83d ]
+[ Upstream commit a799aea0988ea0d1b1f263e996fdad2f6133c680 ]
 
-There is no code that decreases the reference count of stateful objects
-in error path of the nft_add_set_elem(). this causes a leak of reference
-count of stateful objects.
+Using the following example:
 
-Test commands:
-   $nft add table ip filter
-   $nft add counter ip filter c1
-   $nft add map ip filter m1 { type ipv4_addr : counter \;}
-   $nft add element ip filter m1 { 1 : c1 }
-   $nft add element ip filter m1 { 1 : c1 }
-   $nft delete element ip filter m1 { 1 }
-   $nft delete counter ip filter c1
+	client 1.1.1.7 ---> 2.2.2.7 which dnat to 10.0.0.7 server
 
-Result:
-   Error: Could not process rule: Device or resource busy
-   delete counter ip filter c1
-   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+The first reply packet (ie. syn+ack) uses an incorrect destination
+address for the reverse route lookup since it uses:
 
-At the second 'nft add element ip filter m1 { 1 : c1 }', the reference
-count of the 'c1' is increased then it tries to insert into the 'm1'. but
-the 'm1' already has same element so it returns -EEXIST.
-But it doesn't decrease the reference count of the 'c1' in the error path.
-Due to a leak of the reference count of the 'c1', the 'c1' can't be
-removed by 'nft delete counter ip filter c1'.
+	daddr = ct->tuplehash[!dir].tuple.dst.u3.ip;
 
-Fixes: 8aeff920dcc9 ("netfilter: nf_tables: add stateful object reference to set elements")
-Signed-off-by: Taehee Yoo <ap420073@gmail.com>
+which is 2.2.2.7 in the scenario that is described above, while this
+should be:
+
+	daddr = ct->tuplehash[dir].tuple.src.u3.ip;
+
+that is 10.0.0.7.
+
+Signed-off-by: wenxu <wenxu@ucloud.cn>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- net/netfilter/nf_tables_api.c | 2 ++
- 1 file changed, 2 insertions(+)
+ net/netfilter/nft_flow_offload.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 6e548d7c9f67..aba6ec4a14ce 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -4474,6 +4474,8 @@ err6:
- err5:
- 	kfree(trans);
- err4:
-+	if (obj)
-+		obj->use--;
- 	kfree(elem.priv);
- err3:
- 	if (nla[NFTA_SET_ELEM_DATA] != NULL)
+diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
+index 974525eb92df..ccdb8f5ababb 100644
+--- a/net/netfilter/nft_flow_offload.c
++++ b/net/netfilter/nft_flow_offload.c
+@@ -29,10 +29,10 @@ static int nft_flow_route(const struct nft_pktinfo *pkt,
+ 	memset(&fl, 0, sizeof(fl));
+ 	switch (nft_pf(pkt)) {
+ 	case NFPROTO_IPV4:
+-		fl.u.ip4.daddr = ct->tuplehash[!dir].tuple.dst.u3.ip;
++		fl.u.ip4.daddr = ct->tuplehash[dir].tuple.src.u3.ip;
+ 		break;
+ 	case NFPROTO_IPV6:
+-		fl.u.ip6.daddr = ct->tuplehash[!dir].tuple.dst.u3.in6;
++		fl.u.ip6.daddr = ct->tuplehash[dir].tuple.src.u3.in6;
+ 		break;
+ 	}
+ 
 -- 
 2.19.1
