@@ -1,70 +1,115 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.14 17/34] netfilter: nf_tables: fix leaking object reference count
-Date: Tue, 12 Feb 2019 21:39:35 -0500
-Message-ID: <20190213023952.21311-17-sashal@kernel.org>
-References: <20190213023952.21311-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 41/83] netfilter: nft_flow_offload: fix interaction with vrf slave device
+Date: Tue, 12 Feb 2019 21:36:19 -0500
+Message-ID: <20190213023701.20286-41-sashal@kernel.org>
+References: <20190213023701.20286-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Cc: Taehee Yoo <ap420073@gmail.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
+Cc: wenxu <wenxu@ucloud.cn>, Pablo Neira Ayuso <pablo@netfilter.org>,
         Sasha Levin <sashal@kernel.org>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190213023952.21311-1-sashal@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20190213023701.20286-1-sashal@kernel.org>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Taehee Yoo <ap420073@gmail.com>
+From: wenxu <wenxu@ucloud.cn>
 
-[ Upstream commit b91d9036883793122cf6575ca4dfbfbdd201a83d ]
+[ Upstream commit 10f4e765879e514e1ce7f52ed26603047af196e2 ]
 
-There is no code that decreases the reference count of stateful objects
-in error path of the nft_add_set_elem(). this causes a leak of reference
-count of stateful objects.
+In the forward chain, the iif is changed from slave device to master vrf
+device. Thus, flow offload does not find a match on the lower slave
+device.
 
-Test commands:
-   $nft add table ip filter
-   $nft add counter ip filter c1
-   $nft add map ip filter m1 { type ipv4_addr : counter \;}
-   $nft add element ip filter m1 { 1 : c1 }
-   $nft add element ip filter m1 { 1 : c1 }
-   $nft delete element ip filter m1 { 1 }
-   $nft delete counter ip filter c1
+This patch uses the cached route, ie. dst->dev, to update the iif and
+oif fields in the flow entry.
 
-Result:
-   Error: Could not process rule: Device or resource busy
-   delete counter ip filter c1
-   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+After this patch, the following example works fine:
 
-At the second 'nft add element ip filter m1 { 1 : c1 }', the reference
-count of the 'c1' is increased then it tries to insert into the 'm1'. but
-the 'm1' already has same element so it returns -EEXIST.
-But it doesn't decrease the reference count of the 'c1' in the error path.
-Due to a leak of the reference count of the 'c1', the 'c1' can't be
-removed by 'nft delete counter ip filter c1'.
+ # ip addr add dev eth0 1.1.1.1/24
+ # ip addr add dev eth1 10.0.0.1/24
+ # ip link add user1 type vrf table 1
+ # ip l set user1 up
+ # ip l set dev eth0 master user1
+ # ip l set dev eth1 master user1
 
-Fixes: 8aeff920dcc9 ("netfilter: nf_tables: add stateful object reference to set elements")
-Signed-off-by: Taehee Yoo <ap420073@gmail.com>
+ # nft add table firewall
+ # nft add flowtable f fb1 { hook ingress priority 0 \; devices = { eth0, eth1 } \; }
+ # nft add chain f ftb-all {type filter hook forward priority 0 \; policy accept \; }
+ # nft add rule f ftb-all ct zone 1 ip protocol tcp flow offload @fb1
+ # nft add rule f ftb-all ct zone 1 ip protocol udp flow offload @fb1
+
+Signed-off-by: wenxu <wenxu@ucloud.cn>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- net/netfilter/nf_tables_api.c | 2 ++
- 1 file changed, 2 insertions(+)
+ include/net/netfilter/nf_flow_table.h | 1 -
+ net/netfilter/nf_flow_table_core.c    | 5 +++--
+ net/netfilter/nft_flow_offload.c      | 4 ++--
+ 3 files changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 623ec29ade26..bf26e27ca456 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -4046,6 +4046,8 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- err5:
- 	kfree(trans);
- err4:
-+	if (obj)
-+		obj->use--;
- 	kfree(elem.priv);
- err3:
- 	if (nla[NFTA_SET_ELEM_DATA] != NULL)
+diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
+index 0e355f4a3d76..0a3de10c6dec 100644
+--- a/include/net/netfilter/nf_flow_table.h
++++ b/include/net/netfilter/nf_flow_table.h
+@@ -84,7 +84,6 @@ struct flow_offload {
+ struct nf_flow_route {
+ 	struct {
+ 		struct dst_entry	*dst;
+-		int			ifindex;
+ 	} tuple[FLOW_OFFLOAD_DIR_MAX];
+ };
+ 
+diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
+index d8125616edc7..e1537ace2b90 100644
+--- a/net/netfilter/nf_flow_table_core.c
++++ b/net/netfilter/nf_flow_table_core.c
+@@ -28,6 +28,7 @@ flow_offload_fill_dir(struct flow_offload *flow, struct nf_conn *ct,
+ {
+ 	struct flow_offload_tuple *ft = &flow->tuplehash[dir].tuple;
+ 	struct nf_conntrack_tuple *ctt = &ct->tuplehash[dir].tuple;
++	struct dst_entry *other_dst = route->tuple[!dir].dst;
+ 	struct dst_entry *dst = route->tuple[dir].dst;
+ 
+ 	ft->dir = dir;
+@@ -50,8 +51,8 @@ flow_offload_fill_dir(struct flow_offload *flow, struct nf_conn *ct,
+ 	ft->src_port = ctt->src.u.tcp.port;
+ 	ft->dst_port = ctt->dst.u.tcp.port;
+ 
+-	ft->iifidx = route->tuple[dir].ifindex;
+-	ft->oifidx = route->tuple[!dir].ifindex;
++	ft->iifidx = other_dst->dev->ifindex;
++	ft->oifidx = dst->dev->ifindex;
+ 	ft->dst_cache = dst;
+ }
+ 
+diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
+index e0c04851a349..4d7cf943fff2 100644
+--- a/net/netfilter/nft_flow_offload.c
++++ b/net/netfilter/nft_flow_offload.c
+@@ -30,9 +30,11 @@ static int nft_flow_route(const struct nft_pktinfo *pkt,
+ 	switch (nft_pf(pkt)) {
+ 	case NFPROTO_IPV4:
+ 		fl.u.ip4.daddr = ct->tuplehash[dir].tuple.src.u3.ip;
++		fl.u.ip4.flowi4_oif = nft_in(pkt)->ifindex;
+ 		break;
+ 	case NFPROTO_IPV6:
+ 		fl.u.ip6.daddr = ct->tuplehash[dir].tuple.src.u3.in6;
++		fl.u.ip6.flowi6_oif = nft_in(pkt)->ifindex;
+ 		break;
+ 	}
+ 
+@@ -41,9 +43,7 @@ static int nft_flow_route(const struct nft_pktinfo *pkt,
+ 		return -ENOENT;
+ 
+ 	route->tuple[dir].dst		= this_dst;
+-	route->tuple[dir].ifindex	= nft_in(pkt)->ifindex;
+ 	route->tuple[!dir].dst		= other_dst;
+-	route->tuple[!dir].ifindex	= nft_out(pkt)->ifindex;
+ 
+ 	return 0;
+ }
 -- 
 2.19.1
