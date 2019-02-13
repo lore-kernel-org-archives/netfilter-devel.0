@@ -1,63 +1,75 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.19 37/83] netfilter: nft_flow_offload: Fix reverse route lookup
-Date: Tue, 12 Feb 2019 21:36:15 -0500
-Message-ID: <20190213023701.20286-37-sashal@kernel.org>
-References: <20190213023701.20286-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.20 065/105] netfilter: nft_flow_offload: fix checking method of conntrack helper
+Date: Tue, 12 Feb 2019 21:32:56 -0500
+Message-ID: <20190213023336.19019-65-sashal@kernel.org>
+References: <20190213023336.19019-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Cc: wenxu <wenxu@ucloud.cn>, Pablo Neira Ayuso <pablo@netfilter.org>,
+Cc: Henry Yen <henry.yen@mediatek.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
         Sasha Levin <sashal@kernel.org>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190213023701.20286-1-sashal@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20190213023336.19019-1-sashal@kernel.org>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: wenxu <wenxu@ucloud.cn>
+From: Henry Yen <henry.yen@mediatek.com>
 
-[ Upstream commit a799aea0988ea0d1b1f263e996fdad2f6133c680 ]
+[ Upstream commit 2314e879747e82896f51cce4488f6a00f3e1af7b ]
 
-Using the following example:
+This patch uses nfct_help() to detect whether an established connection
+needs conntrack helper instead of using test_bit(IPS_HELPER_BIT,
+&ct->status).
 
-	client 1.1.1.7 ---> 2.2.2.7 which dnat to 10.0.0.7 server
+The reason is that IPS_HELPER_BIT is only set when using explicit CT
+target.
 
-The first reply packet (ie. syn+ack) uses an incorrect destination
-address for the reverse route lookup since it uses:
+However, in the case that a device enables conntrack helper via command
+"echo 1 > /proc/sys/net/netfilter/nf_conntrack_helper", the status of
+IPS_HELPER_BIT will not present any change, and consequently it loses
+the checking ability in the context.
 
-	daddr = ct->tuplehash[!dir].tuple.dst.u3.ip;
-
-which is 2.2.2.7 in the scenario that is described above, while this
-should be:
-
-	daddr = ct->tuplehash[dir].tuple.src.u3.ip;
-
-that is 10.0.0.7.
-
-Signed-off-by: wenxu <wenxu@ucloud.cn>
+Signed-off-by: Henry Yen <henry.yen@mediatek.com>
+Reviewed-by: Ryder Lee <ryder.lee@mediatek.com>
+Tested-by: John Crispin <john@phrozen.org>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- net/netfilter/nft_flow_offload.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ net/netfilter/nft_flow_offload.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
 diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
-index 5fd4c57c79cc..e0c04851a349 100644
+index 188c6bbf4e16..6e6b9adf7d38 100644
 --- a/net/netfilter/nft_flow_offload.c
 +++ b/net/netfilter/nft_flow_offload.c
-@@ -29,10 +29,10 @@ static int nft_flow_route(const struct nft_pktinfo *pkt,
- 	memset(&fl, 0, sizeof(fl));
- 	switch (nft_pf(pkt)) {
- 	case NFPROTO_IPV4:
--		fl.u.ip4.daddr = ct->tuplehash[!dir].tuple.dst.u3.ip;
-+		fl.u.ip4.daddr = ct->tuplehash[dir].tuple.src.u3.ip;
- 		break;
- 	case NFPROTO_IPV6:
--		fl.u.ip6.daddr = ct->tuplehash[!dir].tuple.dst.u3.in6;
-+		fl.u.ip6.daddr = ct->tuplehash[dir].tuple.src.u3.in6;
- 		break;
+@@ -12,6 +12,7 @@
+ #include <net/netfilter/nf_conntrack_core.h>
+ #include <linux/netfilter/nf_conntrack_common.h>
+ #include <net/netfilter/nf_flow_table.h>
++#include <net/netfilter/nf_conntrack_helper.h>
+ 
+ struct nft_flow_offload {
+ 	struct nft_flowtable	*flowtable;
+@@ -66,6 +67,7 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
+ {
+ 	struct nft_flow_offload *priv = nft_expr_priv(expr);
+ 	struct nf_flowtable *flowtable = &priv->flowtable->data;
++	const struct nf_conn_help *help;
+ 	enum ip_conntrack_info ctinfo;
+ 	struct nf_flow_route route;
+ 	struct flow_offload *flow;
+@@ -88,7 +90,8 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
+ 		goto out;
  	}
  
+-	if (test_bit(IPS_HELPER_BIT, &ct->status))
++	help = nfct_help(ct);
++	if (help)
+ 		goto out;
+ 
+ 	if (ctinfo == IP_CT_NEW ||
 -- 
 2.19.1
