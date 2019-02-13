@@ -1,112 +1,58 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: linux-next: build failure after merge of the netfilter-next tree
-Date: Wed, 13 Feb 2019 16:54:15 +1100
-Message-ID: <20190213165415.5a992838@canb.auug.org.au>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- boundary="Sig_/H8=D_/BOxF_SwYAG=cgyHrp"; protocol="application/pgp-signature"
-Cc: Linux Next Mailing List <linux-next@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Alin Nastac <alin.nastac@gmail.com>,
-        Florian Westphal <fw@strlen.de>,
-        David Miller <davem@davemloft.net>
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-        NetFilter <netfilter-devel@vger.kernel.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 0/3] Netfilter/IPVS fixes for net
+Date: Wed, 13 Feb 2019 18:47:55 +0100
+Message-ID: <20190213174758.17275-1-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
---Sig_/H8=D_/BOxF_SwYAG=cgyHrp
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+Hi David,
 
-Hi all,
+The following patchset contains Netfilter/IPVS fixes for net:
 
-After merging the netfilter-next tree, today's linux-next build (powerpc
-allyesconfig) failed like this:
+1) Missing structure initialization in ebtables causes splat with
+   32-bit user level on a 64-bit kernel, from Francesco Ruggeri.
 
-ld: net/ipv4/netfilter/nf_reject_ipv4.o:(.opd+0x78): multiple definition of=
- `nf_reject_verify_csum'; net/netfilter/nft_reject_inet.o:(.opd+0x78): firs=
-t defined here
-ld: net/ipv4/netfilter/nf_reject_ipv4.o: in function `.nf_reject_verify_csu=
-m':
-(.text.nf_reject_verify_csum+0x0): multiple definition of `.nf_reject_verif=
-y_csum'; net/netfilter/nft_reject_inet.o:(.text.nf_reject_verify_csum+0x0):=
- first defined here
-ld: net/ipv4/netfilter/nft_reject_ipv4.o:(.opd+0x48): multiple definition o=
-f `nf_reject_verify_csum'; net/netfilter/nft_reject_inet.o:(.opd+0x78): fir=
-st defined here
-ld: net/ipv4/netfilter/nft_reject_ipv4.o: in function `.nf_reject_verify_cs=
-um':
-(.text.nf_reject_verify_csum+0x0): multiple definition of `.nf_reject_verif=
-y_csum'; net/netfilter/nft_reject_inet.o:(.text.nf_reject_verify_csum+0x0):=
- first defined here
-ld: net/ipv4/netfilter/ipt_REJECT.o:(.opd+0x60): multiple definition of `nf=
-_reject_verify_csum'; net/netfilter/nft_reject_inet.o:(.opd+0x78): first de=
-fined here
-ld: net/ipv4/netfilter/ipt_REJECT.o: in function `.nf_reject_verify_csum':
-(.text.nf_reject_verify_csum+0x0): multiple definition of `.nf_reject_verif=
-y_csum'; net/netfilter/nft_reject_inet.o:(.text.nf_reject_verify_csum+0x0):=
- first defined here
-ld: net/ipv6/netfilter/nf_reject_ipv6.o:(.opd+0x78): multiple definition of=
- `nf_reject_verify_csum'; net/netfilter/nft_reject_inet.o:(.opd+0x78): firs=
-t defined here
-ld: net/ipv6/netfilter/nf_reject_ipv6.o: in function `.nf_reject_verify_csu=
-m':
-(.text.nf_reject_verify_csum+0x0): multiple definition of `.nf_reject_verif=
-y_csum'; net/netfilter/nft_reject_inet.o:(.text.nf_reject_verify_csum+0x0):=
- first defined here
-ld: net/ipv6/netfilter/nft_reject_ipv6.o:(.opd+0x48): multiple definition o=
-f `nf_reject_verify_csum'; net/netfilter/nft_reject_inet.o:(.opd+0x78): fir=
-st defined here
-ld: net/ipv6/netfilter/nft_reject_ipv6.o: in function `.nf_reject_verify_cs=
-um':
-(.text.nf_reject_verify_csum+0x0): multiple definition of `.nf_reject_verif=
-y_csum'; net/netfilter/nft_reject_inet.o:(.text.nf_reject_verify_csum+0x0):=
- first defined here
-ld: net/ipv6/netfilter/ip6t_REJECT.o:(.opd+0x60): multiple definition of `n=
-f_reject_verify_csum'; net/netfilter/nft_reject_inet.o:(.opd+0x78): first d=
-efined here
-ld: net/ipv6/netfilter/ip6t_REJECT.o: in function `.nf_reject_verify_csum':
-(.text.nf_reject_verify_csum+0x0): multiple definition of `.nf_reject_verif=
-y_csum'; net/netfilter/nft_reject_inet.o:(.text.nf_reject_verify_csum+0x0):=
- first defined here
-ld: net/bridge/netfilter/nft_reject_bridge.o:(.opd+0x108): multiple definit=
-ion of `nf_reject_verify_csum'; net/netfilter/nft_reject_inet.o:(.opd+0x78)=
-: first defined here
-ld: net/bridge/netfilter/nft_reject_bridge.o: in function `.nf_reject_verif=
-y_csum':
-(.text.nf_reject_verify_csum+0x0): multiple definition of `.nf_reject_verif=
-y_csum'; net/netfilter/nft_reject_inet.o:(.text.nf_reject_verify_csum+0x0):=
- first defined here
+2) Missing dependency on nf_defrag in IPVS IPv6 codebase, from
+   Andrea Claudi.
 
-Caused by commit
+3) Fix possible use-after-free from release path of target extensions.
 
-  bfcf40da7559 ("netfilter: reject: skip csum verification for protocols th=
-at don't support it")
+You can pull these changes from:
 
-I have reverted that commit for today.
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
 
+Thanks!
 
+----------------------------------------------------------------
 
---=20
-Cheers,
-Stephen Rothwell
+The following changes since commit cf657d22ee1f0e887326a92169f2e28dc932fd10:
 
---Sig_/H8=D_/BOxF_SwYAG=cgyHrp
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
+  net/x25: do not hold the cpu too long in x25_new_lci() (2019-02-11 13:20:14 -0800)
 
------BEGIN PGP SIGNATURE-----
+are available in the git repository at:
 
-iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAlxjsQcACgkQAVBC80lX
-0GxC8wf+MmMGIH9mmr0wQOs8NTy3WJcrktXmDoZjBkv8gAwNOen7TkzmfjddeDT9
-Z6jYcPQ6pnBSZyCif0UORURYJMGPQMCtvIwKGnHMno5d4rAR5fkbwDsNdbFwBs+S
-ldZ/8nm7/UrS6N7E4l1jLgyhnukTn3DKYqBlDK2tLHP+hRFHW9E8P4bEVjW55R65
-e2E7Nt2791qeRQu46aO+BCiKsP8D5L10qkcvSDu3q5p4gsGAj0+P8dsT3UHlLPjO
-yiIVgLc9sMHWu0Q//EL/XEd/z7I62tYNOZ1n9Rx1UGSEH75tCFn95/XeuT+GfEP0
-t/8w9w5iWM6kfXBSBRepaBns4C91bg==
-=FgFO
------END PGP SIGNATURE-----
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git HEAD
 
---Sig_/H8=D_/BOxF_SwYAG=cgyHrp--
+for you to fetch changes up to 753c111f655e38bbd52fc01321266633f022ebe2:
+
+  netfilter: nft_compat: use-after-free when deleting targets (2019-02-13 18:14:54 +0100)
+
+----------------------------------------------------------------
+Andrea Claudi (1):
+      ipvs: fix dependency on nf_defrag_ipv6
+
+Francesco Ruggeri (1):
+      netfilter: compat: initialize all fields in xt_init
+
+Pablo Neira Ayuso (1):
+      netfilter: nft_compat: use-after-free when deleting targets
+
+ net/netfilter/ipvs/Kconfig      |  1 +
+ net/netfilter/ipvs/ip_vs_core.c | 10 ++++------
+ net/netfilter/ipvs/ip_vs_ctl.c  | 10 ++++++++++
+ net/netfilter/nft_compat.c      |  3 ++-
+ net/netfilter/x_tables.c        |  2 +-
+ 5 files changed, 18 insertions(+), 8 deletions(-)
