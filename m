@@ -1,115 +1,112 @@
-From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.20 049/105] netfilter: nft_flow_offload: fix interaction with vrf slave device
-Date: Tue, 12 Feb 2019 21:32:40 -0500
-Message-ID: <20190213023336.19019-49-sashal@kernel.org>
-References: <20190213023336.19019-1-sashal@kernel.org>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: linux-next: build failure after merge of the netfilter-next tree
+Date: Wed, 13 Feb 2019 16:54:15 +1100
+Message-ID: <20190213165415.5a992838@canb.auug.org.au>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Cc: wenxu <wenxu@ucloud.cn>, Pablo Neira Ayuso <pablo@netfilter.org>,
-        Sasha Levin <sashal@kernel.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org
-To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ boundary="Sig_/H8=D_/BOxF_SwYAG=cgyHrp"; protocol="application/pgp-signature"
+Cc: Linux Next Mailing List <linux-next@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Alin Nastac <alin.nastac@gmail.com>,
+        Florian Westphal <fw@strlen.de>,
+        David Miller <davem@davemloft.net>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+        NetFilter <netfilter-devel@vger.kernel.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190213023336.19019-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: wenxu <wenxu@ucloud.cn>
+--Sig_/H8=D_/BOxF_SwYAG=cgyHrp
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-[ Upstream commit 10f4e765879e514e1ce7f52ed26603047af196e2 ]
+Hi all,
 
-In the forward chain, the iif is changed from slave device to master vrf
-device. Thus, flow offload does not find a match on the lower slave
-device.
+After merging the netfilter-next tree, today's linux-next build (powerpc
+allyesconfig) failed like this:
 
-This patch uses the cached route, ie. dst->dev, to update the iif and
-oif fields in the flow entry.
+ld: net/ipv4/netfilter/nf_reject_ipv4.o:(.opd+0x78): multiple definition of=
+ `nf_reject_verify_csum'; net/netfilter/nft_reject_inet.o:(.opd+0x78): firs=
+t defined here
+ld: net/ipv4/netfilter/nf_reject_ipv4.o: in function `.nf_reject_verify_csu=
+m':
+(.text.nf_reject_verify_csum+0x0): multiple definition of `.nf_reject_verif=
+y_csum'; net/netfilter/nft_reject_inet.o:(.text.nf_reject_verify_csum+0x0):=
+ first defined here
+ld: net/ipv4/netfilter/nft_reject_ipv4.o:(.opd+0x48): multiple definition o=
+f `nf_reject_verify_csum'; net/netfilter/nft_reject_inet.o:(.opd+0x78): fir=
+st defined here
+ld: net/ipv4/netfilter/nft_reject_ipv4.o: in function `.nf_reject_verify_cs=
+um':
+(.text.nf_reject_verify_csum+0x0): multiple definition of `.nf_reject_verif=
+y_csum'; net/netfilter/nft_reject_inet.o:(.text.nf_reject_verify_csum+0x0):=
+ first defined here
+ld: net/ipv4/netfilter/ipt_REJECT.o:(.opd+0x60): multiple definition of `nf=
+_reject_verify_csum'; net/netfilter/nft_reject_inet.o:(.opd+0x78): first de=
+fined here
+ld: net/ipv4/netfilter/ipt_REJECT.o: in function `.nf_reject_verify_csum':
+(.text.nf_reject_verify_csum+0x0): multiple definition of `.nf_reject_verif=
+y_csum'; net/netfilter/nft_reject_inet.o:(.text.nf_reject_verify_csum+0x0):=
+ first defined here
+ld: net/ipv6/netfilter/nf_reject_ipv6.o:(.opd+0x78): multiple definition of=
+ `nf_reject_verify_csum'; net/netfilter/nft_reject_inet.o:(.opd+0x78): firs=
+t defined here
+ld: net/ipv6/netfilter/nf_reject_ipv6.o: in function `.nf_reject_verify_csu=
+m':
+(.text.nf_reject_verify_csum+0x0): multiple definition of `.nf_reject_verif=
+y_csum'; net/netfilter/nft_reject_inet.o:(.text.nf_reject_verify_csum+0x0):=
+ first defined here
+ld: net/ipv6/netfilter/nft_reject_ipv6.o:(.opd+0x48): multiple definition o=
+f `nf_reject_verify_csum'; net/netfilter/nft_reject_inet.o:(.opd+0x78): fir=
+st defined here
+ld: net/ipv6/netfilter/nft_reject_ipv6.o: in function `.nf_reject_verify_cs=
+um':
+(.text.nf_reject_verify_csum+0x0): multiple definition of `.nf_reject_verif=
+y_csum'; net/netfilter/nft_reject_inet.o:(.text.nf_reject_verify_csum+0x0):=
+ first defined here
+ld: net/ipv6/netfilter/ip6t_REJECT.o:(.opd+0x60): multiple definition of `n=
+f_reject_verify_csum'; net/netfilter/nft_reject_inet.o:(.opd+0x78): first d=
+efined here
+ld: net/ipv6/netfilter/ip6t_REJECT.o: in function `.nf_reject_verify_csum':
+(.text.nf_reject_verify_csum+0x0): multiple definition of `.nf_reject_verif=
+y_csum'; net/netfilter/nft_reject_inet.o:(.text.nf_reject_verify_csum+0x0):=
+ first defined here
+ld: net/bridge/netfilter/nft_reject_bridge.o:(.opd+0x108): multiple definit=
+ion of `nf_reject_verify_csum'; net/netfilter/nft_reject_inet.o:(.opd+0x78)=
+: first defined here
+ld: net/bridge/netfilter/nft_reject_bridge.o: in function `.nf_reject_verif=
+y_csum':
+(.text.nf_reject_verify_csum+0x0): multiple definition of `.nf_reject_verif=
+y_csum'; net/netfilter/nft_reject_inet.o:(.text.nf_reject_verify_csum+0x0):=
+ first defined here
 
-After this patch, the following example works fine:
+Caused by commit
 
- # ip addr add dev eth0 1.1.1.1/24
- # ip addr add dev eth1 10.0.0.1/24
- # ip link add user1 type vrf table 1
- # ip l set user1 up
- # ip l set dev eth0 master user1
- # ip l set dev eth1 master user1
+  bfcf40da7559 ("netfilter: reject: skip csum verification for protocols th=
+at don't support it")
 
- # nft add table firewall
- # nft add flowtable f fb1 { hook ingress priority 0 \; devices = { eth0, eth1 } \; }
- # nft add chain f ftb-all {type filter hook forward priority 0 \; policy accept \; }
- # nft add rule f ftb-all ct zone 1 ip protocol tcp flow offload @fb1
- # nft add rule f ftb-all ct zone 1 ip protocol udp flow offload @fb1
+I have reverted that commit for today.
 
-Signed-off-by: wenxu <wenxu@ucloud.cn>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- include/net/netfilter/nf_flow_table.h | 1 -
- net/netfilter/nf_flow_table_core.c    | 5 +++--
- net/netfilter/nft_flow_offload.c      | 4 ++--
- 3 files changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
-index 77e2761d4f2f..ff4eb9869e5b 100644
---- a/include/net/netfilter/nf_flow_table.h
-+++ b/include/net/netfilter/nf_flow_table.h
-@@ -84,7 +84,6 @@ struct flow_offload {
- struct nf_flow_route {
- 	struct {
- 		struct dst_entry	*dst;
--		int			ifindex;
- 	} tuple[FLOW_OFFLOAD_DIR_MAX];
- };
- 
-diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
-index b7a4816add76..cc91b4d6aa22 100644
---- a/net/netfilter/nf_flow_table_core.c
-+++ b/net/netfilter/nf_flow_table_core.c
-@@ -28,6 +28,7 @@ flow_offload_fill_dir(struct flow_offload *flow, struct nf_conn *ct,
- {
- 	struct flow_offload_tuple *ft = &flow->tuplehash[dir].tuple;
- 	struct nf_conntrack_tuple *ctt = &ct->tuplehash[dir].tuple;
-+	struct dst_entry *other_dst = route->tuple[!dir].dst;
- 	struct dst_entry *dst = route->tuple[dir].dst;
- 
- 	ft->dir = dir;
-@@ -50,8 +51,8 @@ flow_offload_fill_dir(struct flow_offload *flow, struct nf_conn *ct,
- 	ft->src_port = ctt->src.u.tcp.port;
- 	ft->dst_port = ctt->dst.u.tcp.port;
- 
--	ft->iifidx = route->tuple[dir].ifindex;
--	ft->oifidx = route->tuple[!dir].ifindex;
-+	ft->iifidx = other_dst->dev->ifindex;
-+	ft->oifidx = dst->dev->ifindex;
- 	ft->dst_cache = dst;
- }
- 
-diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
-index ccdb8f5ababb..188c6bbf4e16 100644
---- a/net/netfilter/nft_flow_offload.c
-+++ b/net/netfilter/nft_flow_offload.c
-@@ -30,9 +30,11 @@ static int nft_flow_route(const struct nft_pktinfo *pkt,
- 	switch (nft_pf(pkt)) {
- 	case NFPROTO_IPV4:
- 		fl.u.ip4.daddr = ct->tuplehash[dir].tuple.src.u3.ip;
-+		fl.u.ip4.flowi4_oif = nft_in(pkt)->ifindex;
- 		break;
- 	case NFPROTO_IPV6:
- 		fl.u.ip6.daddr = ct->tuplehash[dir].tuple.src.u3.in6;
-+		fl.u.ip6.flowi6_oif = nft_in(pkt)->ifindex;
- 		break;
- 	}
- 
-@@ -41,9 +43,7 @@ static int nft_flow_route(const struct nft_pktinfo *pkt,
- 		return -ENOENT;
- 
- 	route->tuple[dir].dst		= this_dst;
--	route->tuple[dir].ifindex	= nft_in(pkt)->ifindex;
- 	route->tuple[!dir].dst		= other_dst;
--	route->tuple[!dir].ifindex	= nft_out(pkt)->ifindex;
- 
- 	return 0;
- }
--- 
-2.19.1
+
+--=20
+Cheers,
+Stephen Rothwell
+
+--Sig_/H8=D_/BOxF_SwYAG=cgyHrp
+Content-Type: application/pgp-signature
+Content-Description: OpenPGP digital signature
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAlxjsQcACgkQAVBC80lX
+0GxC8wf+MmMGIH9mmr0wQOs8NTy3WJcrktXmDoZjBkv8gAwNOen7TkzmfjddeDT9
+Z6jYcPQ6pnBSZyCif0UORURYJMGPQMCtvIwKGnHMno5d4rAR5fkbwDsNdbFwBs+S
+ldZ/8nm7/UrS6N7E4l1jLgyhnukTn3DKYqBlDK2tLHP+hRFHW9E8P4bEVjW55R65
+e2E7Nt2791qeRQu46aO+BCiKsP8D5L10qkcvSDu3q5p4gsGAj0+P8dsT3UHlLPjO
+yiIVgLc9sMHWu0Q//EL/XEd/z7I62tYNOZ1n9Rx1UGSEH75tCFn95/XeuT+GfEP0
+t/8w9w5iWM6kfXBSBRepaBns4C91bg==
+=FgFO
+-----END PGP SIGNATURE-----
+
+--Sig_/H8=D_/BOxF_SwYAG=cgyHrp--
