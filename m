@@ -1,61 +1,70 @@
-From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-Subject: Re: [PATCH net-next] ipvs: Use struct_size() helper
-Date: Mon, 11 Feb 2019 19:47:28 -0600
-Message-ID: <40215a8b-3b64-cf6c-c6cd-7d8d5dd971d3@embeddedor.com>
-References: <20190208004456.GA15845@embeddedor>
- <20190208095648.la4ushbjxkqgqzb6@verge.net.au>
- <20190211234033.wwpygxamqwvsuxmv@salvia>
+From: Sasha Levin <sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.20 038/105] netfilter: nf_tables: fix leaking object reference count
+Date: Tue, 12 Feb 2019 21:32:29 -0500
+Message-ID: <20190213023336.19019-38-sashal@kernel.org>
+References: <20190213023336.19019-1-sashal@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Cc: Wensong Zhang <wensong@linux-vs.org>, Julian Anastasov <ja@ssi.bg>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
-        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, linux-kernel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Simon Horman <horms@verge.net.au>
+Content-Transfer-Encoding: 8bit
+Cc: Taehee Yoo <ap420073@gmail.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Sasha Levin <sashal@kernel.org>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190211234033.wwpygxamqwvsuxmv@salvia>
-Content-Language: en-US
+In-Reply-To: <20190213023336.19019-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
+From: Taehee Yoo <ap420073@gmail.com>
 
+[ Upstream commit b91d9036883793122cf6575ca4dfbfbdd201a83d ]
 
-On 2/11/19 5:40 PM, Pablo Neira Ayuso wrote:
-> On Fri, Feb 08, 2019 at 10:56:48AM +0100, Simon Horman wrote:
->> On Thu, Feb 07, 2019 at 06:44:56PM -0600, Gustavo A. R. Silva wrote:
->>> One of the more common cases of allocation size calculations is finding
->>> the size of a structure that has a zero-sized array at the end, along
->>> with memory for some number of elements for that array. For example:
->>>
->>> struct foo {
->>>     int stuff;
->>>     struct boo entry[];
->>> };
->>>
->>> size = sizeof(struct foo) + count * sizeof(struct boo);
->>> instance = alloc(size, GFP_KERNEL)
->>>
->>> Instead of leaving these open-coded and prone to type mistakes, we can
->>> now use the new struct_size() helper:
->>>
->>> size = struct_size(instance, entry, count);
->>>
->>> This code was detected with the help of Coccinelle.
->>>
->>> Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
->>
->> Acked-by: Simon Horman <horms+renesas@verge.net.au>
->>
->> Pablo, could you consider applying this?
-> 
-> Applied, thanks!
-> 
+There is no code that decreases the reference count of stateful objects
+in error path of the nft_add_set_elem(). this causes a leak of reference
+count of stateful objects.
 
-Thank you both, Simon and Pablo.
+Test commands:
+   $nft add table ip filter
+   $nft add counter ip filter c1
+   $nft add map ip filter m1 { type ipv4_addr : counter \;}
+   $nft add element ip filter m1 { 1 : c1 }
+   $nft add element ip filter m1 { 1 : c1 }
+   $nft delete element ip filter m1 { 1 }
+   $nft delete counter ip filter c1
 
---
-Gustavo
+Result:
+   Error: Could not process rule: Device or resource busy
+   delete counter ip filter c1
+   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+At the second 'nft add element ip filter m1 { 1 : c1 }', the reference
+count of the 'c1' is increased then it tries to insert into the 'm1'. but
+the 'm1' already has same element so it returns -EEXIST.
+But it doesn't decrease the reference count of the 'c1' in the error path.
+Due to a leak of the reference count of the 'c1', the 'c1' can't be
+removed by 'nft delete counter ip filter c1'.
+
+Fixes: 8aeff920dcc9 ("netfilter: nf_tables: add stateful object reference to set elements")
+Signed-off-by: Taehee Yoo <ap420073@gmail.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ net/netfilter/nf_tables_api.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 6e548d7c9f67..aba6ec4a14ce 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -4474,6 +4474,8 @@ err6:
+ err5:
+ 	kfree(trans);
+ err4:
++	if (obj)
++		obj->use--;
+ 	kfree(elem.priv);
+ err3:
+ 	if (nla[NFTA_SET_ELEM_DATA] != NULL)
+-- 
+2.19.1
