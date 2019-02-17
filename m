@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 08/11] netfilter: conntrack: fix cloned unconfirmed skb->_nfct race in __nf_conntrack_confirm
-Date: Mon, 18 Feb 2019 00:23:54 +0100
-Message-ID: <20190217232357.29858-9-pablo@netfilter.org>
+Subject: [PATCH 07/11] netfilter: xt_recent: Use struct_size() in kvzalloc()
+Date: Mon, 18 Feb 2019 00:23:53 +0100
+Message-ID: <20190217232357.29858-8-pablo@netfilter.org>
 References: <20190217232357.29858-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,126 +10,58 @@ In-Reply-To: <20190217232357.29858-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Chieh-Min Wang <chiehminw@synology.com>
+From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
 
-For bridge(br_flood) or broadcast/multicast packets, they could clone
-skb with unconfirmed conntrack which break the rule that unconfirmed
-skb->_nfct is never shared.  With nfqueue running on my system, the race
-can be easily reproduced with following warning calltrace:
+One of the more common cases of allocation size calculations is finding
+the size of a structure that has a zero-sized array at the end, along
+with memory for some number of elements for that array. For example:
 
-[13257.707525] CPU: 0 PID: 12132 Comm: main Tainted: P        W       4.4.60 #7744
-[13257.707568] Hardware name: Qualcomm (Flattened Device Tree)
-[13257.714700] [<c021f6dc>] (unwind_backtrace) from [<c021bce8>] (show_stack+0x10/0x14)
-[13257.720253] [<c021bce8>] (show_stack) from [<c0449e10>] (dump_stack+0x94/0xa8)
-[13257.728240] [<c0449e10>] (dump_stack) from [<c022a7e0>] (warn_slowpath_common+0x94/0xb0)
-[13257.735268] [<c022a7e0>] (warn_slowpath_common) from [<c022a898>] (warn_slowpath_null+0x1c/0x24)
-[13257.743519] [<c022a898>] (warn_slowpath_null) from [<c06ee450>] (__nf_conntrack_confirm+0xa8/0x618)
-[13257.752284] [<c06ee450>] (__nf_conntrack_confirm) from [<c0772670>] (ipv4_confirm+0xb8/0xfc)
-[13257.761049] [<c0772670>] (ipv4_confirm) from [<c06e7a60>] (nf_iterate+0x48/0xa8)
-[13257.769725] [<c06e7a60>] (nf_iterate) from [<c06e7af0>] (nf_hook_slow+0x30/0xb0)
-[13257.777108] [<c06e7af0>] (nf_hook_slow) from [<c07f20b4>] (br_nf_post_routing+0x274/0x31c)
-[13257.784486] [<c07f20b4>] (br_nf_post_routing) from [<c06e7a60>] (nf_iterate+0x48/0xa8)
-[13257.792556] [<c06e7a60>] (nf_iterate) from [<c06e7af0>] (nf_hook_slow+0x30/0xb0)
-[13257.800458] [<c06e7af0>] (nf_hook_slow) from [<c07e5580>] (br_forward_finish+0x94/0xa4)
-[13257.808010] [<c07e5580>] (br_forward_finish) from [<c07f22ac>] (br_nf_forward_finish+0x150/0x1ac)
-[13257.815736] [<c07f22ac>] (br_nf_forward_finish) from [<c06e8df0>] (nf_reinject+0x108/0x170)
-[13257.824762] [<c06e8df0>] (nf_reinject) from [<c06ea854>] (nfqnl_recv_verdict+0x3d8/0x420)
-[13257.832924] [<c06ea854>] (nfqnl_recv_verdict) from [<c06e940c>] (nfnetlink_rcv_msg+0x158/0x248)
-[13257.841256] [<c06e940c>] (nfnetlink_rcv_msg) from [<c06e5564>] (netlink_rcv_skb+0x54/0xb0)
-[13257.849762] [<c06e5564>] (netlink_rcv_skb) from [<c06e4ec8>] (netlink_unicast+0x148/0x23c)
-[13257.858093] [<c06e4ec8>] (netlink_unicast) from [<c06e5364>] (netlink_sendmsg+0x2ec/0x368)
-[13257.866348] [<c06e5364>] (netlink_sendmsg) from [<c069fb8c>] (sock_sendmsg+0x34/0x44)
-[13257.874590] [<c069fb8c>] (sock_sendmsg) from [<c06a03dc>] (___sys_sendmsg+0x1ec/0x200)
-[13257.882489] [<c06a03dc>] (___sys_sendmsg) from [<c06a11c8>] (__sys_sendmsg+0x3c/0x64)
-[13257.890300] [<c06a11c8>] (__sys_sendmsg) from [<c0209b40>] (ret_fast_syscall+0x0/0x34)
+struct foo {
+    int stuff;
+    void *entry[];
+};
 
-The original code just triggered the warning but do nothing. It will
-caused the shared conntrack moves to the dying list and the packet be
-droppped (nf_ct_resolve_clash returns NF_DROP for dying conntrack).
+size = sizeof(struct foo) + count * sizeof(void *);
+instance = alloc(size, GFP_KERNEL)
 
-- Reproduce steps:
+Instead of leaving these open-coded and prone to type mistakes, we can
+now use the new struct_size() helper:
 
-+----------------------------+
-|          br0(bridge)       |
-|                            |
-+-+---------+---------+------+
-  | eth0|   | eth1|   | eth2|
-  |     |   |     |   |     |
-  +--+--+   +--+--+   +---+-+
-     |         |          |
-     |         |          |
-  +--+-+     +-+--+    +--+-+
-  | PC1|     | PC2|    | PC3|
-  +----+     +----+    +----+
+size = struct_size(instance, entry, count);
+instance = alloc(size, GFP_KERNEL)
 
-iptables -A FORWARD -m mark --mark 0x1000000/0x1000000 -j NFQUEUE --queue-num 100 --queue-bypass
+Notice that, in this case, variable sz is not necessary, hence it is
+removed.
 
-ps: Our nfq userspace program will set mark on packets whose connection
-has already been processed.
+This code was detected with the help of Coccinelle.
 
-PC1 sends broadcast packets simulated by hping3:
-
-hping3 --rand-source --udp 192.168.1.255 -i u100
-
-- Broadcast racing flow chart is as follow:
-
-br_handle_frame
-  BR_HOOK(NFPROTO_BRIDGE, NF_BR_PRE_ROUTING, br_handle_frame_finish)
-  // skb->_nfct (unconfirmed conntrack) is constructed at PRE_ROUTING stage
-  br_handle_frame_finish
-    // check if this packet is broadcast
-    br_flood_forward
-      br_flood
-        list_for_each_entry_rcu(p, &br->port_list, list) // iterate through each port
-          maybe_deliver
-            deliver_clone
-              skb = skb_clone(skb)
-              __br_forward
-                BR_HOOK(NFPROTO_BRIDGE, NF_BR_FORWARD,...)
-                // queue in our nfq and received by our userspace program
-                // goto __nf_conntrack_confirm with process context on CPU 1
-    br_pass_frame_up
-      BR_HOOK(NFPROTO_BRIDGE, NF_BR_LOCAL_IN,...)
-      // goto __nf_conntrack_confirm with softirq context on CPU 0
-
-Because conntrack confirm can happen at both INPUT and POSTROUTING
-stage.  So with NFQUEUE running, skb->_nfct with the same unconfirmed
-conntrack could race on different core.
-
-This patch fixes a repeating kernel splat, now it is only displayed
-once.
-
-Signed-off-by: Chieh-Min Wang <chiehminw@synology.com>
+Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_conntrack_core.c | 14 +++++++++++---
- 1 file changed, 11 insertions(+), 3 deletions(-)
+ net/netfilter/xt_recent.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 815956ac5a76..85de2a7b0ede 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -936,10 +936,18 @@ __nf_conntrack_confirm(struct sk_buff *skb)
- 	 * REJECT will give spurious warnings here.
- 	 */
+diff --git a/net/netfilter/xt_recent.c b/net/netfilter/xt_recent.c
+index f44de4bc2100..1664d2ec8b2f 100644
+--- a/net/netfilter/xt_recent.c
++++ b/net/netfilter/xt_recent.c
+@@ -337,7 +337,6 @@ static int recent_mt_check(const struct xt_mtchk_param *par,
+ 	unsigned int nstamp_mask;
+ 	unsigned int i;
+ 	int ret = -EINVAL;
+-	size_t sz;
  
--	/* No external references means no one else could have
--	 * confirmed us.
-+	/* Another skb with the same unconfirmed conntrack may
-+	 * win the race. This may happen for bridge(br_flood)
-+	 * or broadcast/multicast packets do skb_clone with
-+	 * unconfirmed conntrack.
- 	 */
--	WARN_ON(nf_ct_is_confirmed(ct));
-+	if (unlikely(nf_ct_is_confirmed(ct))) {
-+		WARN_ON_ONCE(1);
-+		nf_conntrack_double_unlock(hash, reply_hash);
-+		local_bh_enable();
-+		return NF_DROP;
-+	}
-+
- 	pr_debug("Confirming conntrack %p\n", ct);
- 	/* We have to check the DYING flag after unlink to prevent
- 	 * a race against nf_ct_get_next_corpse() possibly called from
+ 	net_get_random_once(&hash_rnd, sizeof(hash_rnd));
+ 
+@@ -387,8 +386,7 @@ static int recent_mt_check(const struct xt_mtchk_param *par,
+ 		goto out;
+ 	}
+ 
+-	sz = sizeof(*t) + sizeof(t->iphash[0]) * ip_list_hash_size;
+-	t = kvzalloc(sz, GFP_KERNEL);
++	t = kvzalloc(struct_size(t, iphash, ip_list_hash_size), GFP_KERNEL);
+ 	if (t == NULL) {
+ 		ret = -ENOMEM;
+ 		goto out;
 -- 
 2.11.0
