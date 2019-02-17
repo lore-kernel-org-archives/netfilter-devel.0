@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 03/11] netfilter: nat: remove module dependency on ipv6 core
-Date: Mon, 18 Feb 2019 00:23:49 +0100
-Message-ID: <20190217232357.29858-4-pablo@netfilter.org>
+Subject: [PATCH 02/11] netfilter: nft_tunnel: Add NFTA_TUNNEL_MODE options
+Date: Mon, 18 Feb 2019 00:23:48 +0100
+Message-ID: <20190217232357.29858-3-pablo@netfilter.org>
 References: <20190217232357.29858-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,136 +10,121 @@ In-Reply-To: <20190217232357.29858-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+From: wenxu <wenxu@ucloud.cn>
 
-nf_nat_ipv6 calls two ipv6 core functions, so add those to v6ops to avoid
-the module dependency.
+nft "tunnel" expr match both the tun_info of RX and TX. This patch
+provide the NFTA_TUNNEL_MODE to individually match the tun_info of
+RX or TX.
 
-This is a prerequisite for merging ipv4 and ipv6 nat implementations.
-
-Add wrappers to avoid the indirection if ipv6 is builtin.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: wenxu <wenxu@ucloud.cn>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/linux/netfilter_ipv6.h              |  6 ++++++
- net/ipv6/netfilter.c                        |  4 ++++
- net/ipv6/netfilter/nf_nat_l3proto_ipv6.c    | 17 ++++++++++++++++-
- net/ipv6/netfilter/nf_nat_masquerade_ipv6.c | 21 +++++++++++++++++++--
- 4 files changed, 45 insertions(+), 3 deletions(-)
+ include/uapi/linux/netfilter/nf_tables.h |  9 +++++++++
+ net/netfilter/nft_tunnel.c               | 34 ++++++++++++++++++++++++++++++--
+ 2 files changed, 41 insertions(+), 2 deletions(-)
 
-diff --git a/include/linux/netfilter_ipv6.h b/include/linux/netfilter_ipv6.h
-index c0dc4dd78887..ad4223c10488 100644
---- a/include/linux/netfilter_ipv6.h
-+++ b/include/linux/netfilter_ipv6.h
-@@ -33,6 +33,12 @@ struct nf_ipv6_ops {
- 	int (*route)(struct net *net, struct dst_entry **dst, struct flowi *fl,
- 		     bool strict);
- 	int (*reroute)(struct sk_buff *skb, const struct nf_queue_entry *entry);
-+#if IS_MODULE(CONFIG_IPV6)
-+	int (*route_me_harder)(struct net *net, struct sk_buff *skb);
-+	int (*dev_get_saddr)(struct net *net, const struct net_device *dev,
-+		       const struct in6_addr *daddr, unsigned int srcprefs,
-+		       struct in6_addr *saddr);
-+#endif
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index 030302893d96..a66c8de006cc 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -1727,10 +1727,19 @@ enum nft_tunnel_keys {
+ };
+ #define NFT_TUNNEL_MAX	(__NFT_TUNNEL_MAX - 1)
+ 
++enum nft_tunnel_mode {
++	NFT_TUNNEL_MODE_NONE,
++	NFT_TUNNEL_MODE_RX,
++	NFT_TUNNEL_MODE_TX,
++	__NFT_TUNNEL_MODE_MAX
++};
++#define NFT_TUNNEL_MODE_MAX	(__NFT_TUNNEL_MODE_MAX - 1)
++
+ enum nft_tunnel_attributes {
+ 	NFTA_TUNNEL_UNSPEC,
+ 	NFTA_TUNNEL_KEY,
+ 	NFTA_TUNNEL_DREG,
++	NFTA_TUNNEL_MODE,
+ 	__NFTA_TUNNEL_MAX
+ };
+ #define NFTA_TUNNEL_MAX	(__NFTA_TUNNEL_MAX - 1)
+diff --git a/net/netfilter/nft_tunnel.c b/net/netfilter/nft_tunnel.c
+index 3a15f219e4e7..ea28588c5eed 100644
+--- a/net/netfilter/nft_tunnel.c
++++ b/net/netfilter/nft_tunnel.c
+@@ -15,6 +15,7 @@
+ struct nft_tunnel {
+ 	enum nft_tunnel_keys	key:8;
+ 	enum nft_registers	dreg:8;
++	enum nft_tunnel_mode	mode:8;
  };
  
- #ifdef CONFIG_NETFILTER
-diff --git a/net/ipv6/netfilter.c b/net/ipv6/netfilter.c
-index 8b075f0bc351..0a5caf263889 100644
---- a/net/ipv6/netfilter.c
-+++ b/net/ipv6/netfilter.c
-@@ -112,6 +112,10 @@ static const struct nf_ipv6_ops ipv6ops = {
- 	.fragment		= ip6_fragment,
- 	.route			= nf_ip6_route,
- 	.reroute		= nf_ip6_reroute,
-+#if IS_MODULE(CONFIG_IPV6)
-+	.route_me_harder	= ip6_route_me_harder,
-+	.dev_get_saddr		= ipv6_dev_get_saddr,
-+#endif
- };
+ static void nft_tunnel_get_eval(const struct nft_expr *expr,
+@@ -29,14 +30,32 @@ static void nft_tunnel_get_eval(const struct nft_expr *expr,
  
- int __init ipv6_netfilter_init(void)
-diff --git a/net/ipv6/netfilter/nf_nat_l3proto_ipv6.c b/net/ipv6/netfilter/nf_nat_l3proto_ipv6.c
-index 9c914db44bec..b52026adb3e7 100644
---- a/net/ipv6/netfilter/nf_nat_l3proto_ipv6.c
-+++ b/net/ipv6/netfilter/nf_nat_l3proto_ipv6.c
-@@ -17,6 +17,7 @@
- #include <net/checksum.h>
- #include <net/ip6_checksum.h>
- #include <net/ip6_route.h>
-+#include <net/xfrm.h>
- #include <net/ipv6.h>
- 
- #include <net/netfilter/nf_conntrack_core.h>
-@@ -317,6 +318,20 @@ nf_nat_ipv6_out(void *priv, struct sk_buff *skb,
- 	return ret;
- }
- 
-+static int nat_route_me_harder(struct net *net, struct sk_buff *skb)
-+{
-+#ifdef CONFIG_IPV6_MODULE
-+	const struct nf_ipv6_ops *v6_ops = nf_get_ipv6_ops();
-+
-+	if (!v6_ops)
-+		return -EHOSTUNREACH;
-+
-+	return v6_ops->route_me_harder(net, skb);
-+#else
-+	return ip6_route_me_harder(net, skb);
-+#endif
-+}
-+
- static unsigned int
- nf_nat_ipv6_local_fn(void *priv, struct sk_buff *skb,
- 		     const struct nf_hook_state *state)
-@@ -333,7 +348,7 @@ nf_nat_ipv6_local_fn(void *priv, struct sk_buff *skb,
- 
- 		if (!nf_inet_addr_cmp(&ct->tuplehash[dir].tuple.dst.u3,
- 				      &ct->tuplehash[!dir].tuple.src.u3)) {
--			err = ip6_route_me_harder(state->net, skb);
-+			err = nat_route_me_harder(state->net, skb);
- 			if (err < 0)
- 				ret = NF_DROP_ERR(err);
+ 	switch (priv->key) {
+ 	case NFT_TUNNEL_PATH:
+-		nft_reg_store8(dest, !!tun_info);
++		if (!tun_info) {
++			nft_reg_store8(dest, false);
++			return;
++		}
++		if (priv->mode == NFT_TUNNEL_MODE_NONE ||
++		    (priv->mode == NFT_TUNNEL_MODE_RX &&
++		     !(tun_info->mode & IP_TUNNEL_INFO_TX)) ||
++		    (priv->mode == NFT_TUNNEL_MODE_TX &&
++		     (tun_info->mode & IP_TUNNEL_INFO_TX)))
++			nft_reg_store8(dest, true);
++		else
++			nft_reg_store8(dest, false);
+ 		break;
+ 	case NFT_TUNNEL_ID:
+ 		if (!tun_info) {
+ 			regs->verdict.code = NFT_BREAK;
+ 			return;
  		}
-diff --git a/net/ipv6/netfilter/nf_nat_masquerade_ipv6.c b/net/ipv6/netfilter/nf_nat_masquerade_ipv6.c
-index 0ad0da5a2600..fd313b726263 100644
---- a/net/ipv6/netfilter/nf_nat_masquerade_ipv6.c
-+++ b/net/ipv6/netfilter/nf_nat_masquerade_ipv6.c
-@@ -24,6 +24,23 @@
+-		*dest = ntohl(tunnel_id_to_key32(tun_info->key.tun_id));
++		if (priv->mode == NFT_TUNNEL_MODE_NONE ||
++		    (priv->mode == NFT_TUNNEL_MODE_RX &&
++		     !(tun_info->mode & IP_TUNNEL_INFO_TX)) ||
++		    (priv->mode == NFT_TUNNEL_MODE_TX &&
++		     (tun_info->mode & IP_TUNNEL_INFO_TX)))
++			*dest = ntohl(tunnel_id_to_key32(tun_info->key.tun_id));
++		else
++			regs->verdict.code = NFT_BREAK;
+ 		break;
+ 	default:
+ 		WARN_ON(1);
+@@ -47,6 +66,7 @@ static void nft_tunnel_get_eval(const struct nft_expr *expr,
+ static const struct nla_policy nft_tunnel_policy[NFTA_TUNNEL_MAX + 1] = {
+ 	[NFTA_TUNNEL_KEY]	= { .type = NLA_U32 },
+ 	[NFTA_TUNNEL_DREG]	= { .type = NLA_U32 },
++	[NFTA_TUNNEL_MODE]	= { .type = NLA_U32 },
+ };
  
- static atomic_t v6_worker_count;
+ static int nft_tunnel_get_init(const struct nft_ctx *ctx,
+@@ -74,6 +94,14 @@ static int nft_tunnel_get_init(const struct nft_ctx *ctx,
  
-+static int
-+nat_ipv6_dev_get_saddr(struct net *net, const struct net_device *dev,
-+		       const struct in6_addr *daddr, unsigned int srcprefs,
-+		       struct in6_addr *saddr)
-+{
-+#ifdef CONFIG_IPV6_MODULE
-+	const struct nf_ipv6_ops *v6_ops = nf_get_ipv6_ops();
+ 	priv->dreg = nft_parse_register(tb[NFTA_TUNNEL_DREG]);
+ 
++	if (tb[NFTA_TUNNEL_MODE]) {
++		priv->mode = ntohl(nla_get_be32(tb[NFTA_TUNNEL_MODE]));
++		if (priv->mode > NFT_TUNNEL_MODE_MAX)
++			return -EOPNOTSUPP;
++	} else {
++		priv->mode = NFT_TUNNEL_MODE_NONE;
++	}
 +
-+	if (!v6_ops)
-+		return -EHOSTUNREACH;
-+
-+	return v6_ops->dev_get_saddr(net, dev, daddr, srcprefs, saddr);
-+#else
-+	return ipv6_dev_get_saddr(net, dev, daddr, srcprefs, saddr);
-+#endif
-+}
-+
- unsigned int
- nf_nat_masquerade_ipv6(struct sk_buff *skb, const struct nf_nat_range2 *range,
- 		       const struct net_device *out)
-@@ -38,8 +55,8 @@ nf_nat_masquerade_ipv6(struct sk_buff *skb, const struct nf_nat_range2 *range,
- 	WARN_ON(!(ct && (ctinfo == IP_CT_NEW || ctinfo == IP_CT_RELATED ||
- 			 ctinfo == IP_CT_RELATED_REPLY)));
+ 	return nft_validate_register_store(ctx, priv->dreg, NULL,
+ 					   NFT_DATA_VALUE, len);
+ }
+@@ -87,6 +115,8 @@ static int nft_tunnel_get_dump(struct sk_buff *skb,
+ 		goto nla_put_failure;
+ 	if (nft_dump_register(skb, NFTA_TUNNEL_DREG, priv->dreg))
+ 		goto nla_put_failure;
++	if (nla_put_be32(skb, NFTA_TUNNEL_MODE, htonl(priv->mode)))
++		goto nla_put_failure;
+ 	return 0;
  
--	if (ipv6_dev_get_saddr(nf_ct_net(ct), out,
--			       &ipv6_hdr(skb)->daddr, 0, &src) < 0)
-+	if (nat_ipv6_dev_get_saddr(nf_ct_net(ct), out,
-+				   &ipv6_hdr(skb)->daddr, 0, &src) < 0)
- 		return NF_DROP;
- 
- 	nat = nf_ct_nat_ext_add(ct);
+ nla_put_failure:
 -- 
 2.11.0
