@@ -1,260 +1,132 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 04/11] netfilter: ipv6: avoid indirect calls for IPV6=y case
-Date: Mon, 18 Feb 2019 00:23:50 +0100
-Message-ID: <20190217232357.29858-5-pablo@netfilter.org>
-References: <20190217232357.29858-1-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190217232357.29858-1-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
+From: syzbot <syzbot+a910a514846e27f15348@syzkaller.appspotmail.com>
+Subject: Re: INFO: rcu detected stall in netlink_sendmsg
+Date: Sun, 17 Feb 2019 15:44:03 -0800
+Message-ID: <00000000000041f96405821f9524@google.com>
+References: <000000000000db5b24057dbe0ab9@google.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
+To: coreteam@netfilter.org, davem@davemloft.net, fw@strlen.de,
+        herbert@gondor.apana.org.au, kadlec@blackhole.kfki.hu,
+        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, pablo@netfilter.org,
+        steffen.klassert@secunet.com, syzkaller-bugs@googlegroups.com
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <000000000000db5b24057dbe0ab9@google.com>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+syzbot has found a reproducer for the following crash on:
 
-indirect calls are only needed if ipv6 is a module.
-Add helpers to abstract the v6ops indirections and use them instead.
+HEAD commit:    8d33316d5205 Merge branch 'x86-urgent-for-linus' of git://..
+git tree:       upstream
+console output: https://syzkaller.appspot.com/x/log.txt?x=14d5f3bcc00000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=ee434566c893c7b1
+dashboard link: https://syzkaller.appspot.com/bug?extid=a910a514846e27f15348
+compiler:       gcc (GCC) 9.0.0 20181231 (experimental)
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=13923b60c00000
 
-fragment, reroute and route_input are kept as indirect calls.
-The first two are not not used in hot path and route_input is only
-used by bridge netfilter.
+IMPORTANT: if you fix the bug, please add the following tag to the commit:
+Reported-by: syzbot+a910a514846e27f15348@syzkaller.appspotmail.com
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/linux/netfilter_ipv6.h    | 64 +++++++++++++++++++++++++++++++--------
- net/ipv6/netfilter.c              | 15 ++++-----
- net/ipv6/netfilter/nft_fib_ipv6.c |  9 ++----
- net/netfilter/utils.c             |  6 ++--
- net/netfilter/xt_addrtype.c       | 16 +++-------
- 5 files changed, 68 insertions(+), 42 deletions(-)
-
-diff --git a/include/linux/netfilter_ipv6.h b/include/linux/netfilter_ipv6.h
-index ad4223c10488..471e9467105b 100644
---- a/include/linux/netfilter_ipv6.h
-+++ b/include/linux/netfilter_ipv6.h
-@@ -25,29 +25,24 @@ struct nf_queue_entry;
-  * if IPv6 is a module.
-  */
- struct nf_ipv6_ops {
-+#if IS_MODULE(CONFIG_IPV6)
- 	int (*chk_addr)(struct net *net, const struct in6_addr *addr,
- 			const struct net_device *dev, int strict);
--	void (*route_input)(struct sk_buff *skb);
--	int (*fragment)(struct net *net, struct sock *sk, struct sk_buff *skb,
--			int (*output)(struct net *, struct sock *, struct sk_buff *));
--	int (*route)(struct net *net, struct dst_entry **dst, struct flowi *fl,
--		     bool strict);
--	int (*reroute)(struct sk_buff *skb, const struct nf_queue_entry *entry);
--#if IS_MODULE(CONFIG_IPV6)
- 	int (*route_me_harder)(struct net *net, struct sk_buff *skb);
- 	int (*dev_get_saddr)(struct net *net, const struct net_device *dev,
- 		       const struct in6_addr *daddr, unsigned int srcprefs,
- 		       struct in6_addr *saddr);
-+	int (*route)(struct net *net, struct dst_entry **dst, struct flowi *fl,
-+		     bool strict);
- #endif
-+	void (*route_input)(struct sk_buff *skb);
-+	int (*fragment)(struct net *net, struct sock *sk, struct sk_buff *skb,
-+			int (*output)(struct net *, struct sock *, struct sk_buff *));
-+	int (*reroute)(struct sk_buff *skb, const struct nf_queue_entry *entry);
- };
- 
- #ifdef CONFIG_NETFILTER
--int ip6_route_me_harder(struct net *net, struct sk_buff *skb);
--__sum16 nf_ip6_checksum(struct sk_buff *skb, unsigned int hook,
--			unsigned int dataoff, u_int8_t protocol);
--
--int ipv6_netfilter_init(void);
--void ipv6_netfilter_fini(void);
-+#include <net/addrconf.h>
- 
- extern const struct nf_ipv6_ops __rcu *nf_ipv6_ops;
- static inline const struct nf_ipv6_ops *nf_get_ipv6_ops(void)
-@@ -55,6 +50,49 @@ static inline const struct nf_ipv6_ops *nf_get_ipv6_ops(void)
- 	return rcu_dereference(nf_ipv6_ops);
- }
- 
-+static inline int nf_ipv6_chk_addr(struct net *net, const struct in6_addr *addr,
-+				   const struct net_device *dev, int strict)
-+{
-+#if IS_MODULE(CONFIG_IPV6)
-+	const struct nf_ipv6_ops *v6_ops = nf_get_ipv6_ops();
-+
-+	if (!v6_ops)
-+		return 1;
-+
-+	return v6_ops->chk_addr(net, addr, dev, strict);
-+#else
-+	return ipv6_chk_addr(net, addr, dev, strict);
-+#endif
-+}
-+
-+int __nf_ip6_route(struct net *net, struct dst_entry **dst,
-+			       struct flowi *fl, bool strict);
-+
-+static inline int nf_ip6_route(struct net *net, struct dst_entry **dst,
-+			       struct flowi *fl, bool strict)
-+{
-+#if IS_MODULE(CONFIG_IPV6)
-+	const struct nf_ipv6_ops *v6ops = nf_get_ipv6_ops();
-+
-+	if (v6ops)
-+		return v6ops->route(net, dst, fl, strict);
-+
-+	return -EHOSTUNREACH;
-+#endif
-+#if IS_BUILTIN(CONFIG_IPV6)
-+	return __nf_ip6_route(net, dst, fl, strict);
-+#else
-+	return -EHOSTUNREACH;
-+#endif
-+}
-+
-+int ip6_route_me_harder(struct net *net, struct sk_buff *skb);
-+__sum16 nf_ip6_checksum(struct sk_buff *skb, unsigned int hook,
-+			unsigned int dataoff, u_int8_t protocol);
-+
-+int ipv6_netfilter_init(void);
-+void ipv6_netfilter_fini(void);
-+
- #else /* CONFIG_NETFILTER */
- static inline int ipv6_netfilter_init(void) { return 0; }
- static inline void ipv6_netfilter_fini(void) { return; }
-diff --git a/net/ipv6/netfilter.c b/net/ipv6/netfilter.c
-index 0a5caf263889..a8263031f3a6 100644
---- a/net/ipv6/netfilter.c
-+++ b/net/ipv6/netfilter.c
-@@ -84,8 +84,8 @@ static int nf_ip6_reroute(struct sk_buff *skb,
- 	return 0;
- }
- 
--static int nf_ip6_route(struct net *net, struct dst_entry **dst,
--			struct flowi *fl, bool strict)
-+int __nf_ip6_route(struct net *net, struct dst_entry **dst,
-+		   struct flowi *fl, bool strict)
- {
- 	static const struct ipv6_pinfo fake_pinfo;
- 	static const struct inet_sock fake_sk = {
-@@ -105,17 +105,18 @@ static int nf_ip6_route(struct net *net, struct dst_entry **dst,
- 		*dst = result;
- 	return err;
- }
-+EXPORT_SYMBOL_GPL(__nf_ip6_route);
- 
- static const struct nf_ipv6_ops ipv6ops = {
--	.chk_addr		= ipv6_chk_addr,
--	.route_input    	= ip6_route_input,
--	.fragment		= ip6_fragment,
--	.route			= nf_ip6_route,
--	.reroute		= nf_ip6_reroute,
- #if IS_MODULE(CONFIG_IPV6)
-+	.chk_addr		= ipv6_chk_addr,
- 	.route_me_harder	= ip6_route_me_harder,
- 	.dev_get_saddr		= ipv6_dev_get_saddr,
-+	.route			= __nf_ip6_route,
- #endif
-+	.route_input		= ip6_route_input,
-+	.fragment		= ip6_fragment,
-+	.reroute		= nf_ip6_reroute,
- };
- 
- int __init ipv6_netfilter_init(void)
-diff --git a/net/ipv6/netfilter/nft_fib_ipv6.c b/net/ipv6/netfilter/nft_fib_ipv6.c
-index 36be3cf0adef..73cdc0bc63f7 100644
---- a/net/ipv6/netfilter/nft_fib_ipv6.c
-+++ b/net/ipv6/netfilter/nft_fib_ipv6.c
-@@ -59,7 +59,6 @@ static u32 __nft_fib6_eval_type(const struct nft_fib *priv,
- 				struct ipv6hdr *iph)
- {
- 	const struct net_device *dev = NULL;
--	const struct nf_ipv6_ops *v6ops;
- 	int route_err, addrtype;
- 	struct rt6_info *rt;
- 	struct flowi6 fl6 = {
-@@ -68,10 +67,6 @@ static u32 __nft_fib6_eval_type(const struct nft_fib *priv,
- 	};
- 	u32 ret = 0;
- 
--	v6ops = nf_get_ipv6_ops();
--	if (!v6ops)
--		return RTN_UNREACHABLE;
--
- 	if (priv->flags & NFTA_FIB_F_IIF)
- 		dev = nft_in(pkt);
- 	else if (priv->flags & NFTA_FIB_F_OIF)
-@@ -79,10 +74,10 @@ static u32 __nft_fib6_eval_type(const struct nft_fib *priv,
- 
- 	nft_fib6_flowi_init(&fl6, priv, pkt, dev, iph);
- 
--	if (dev && v6ops->chk_addr(nft_net(pkt), &fl6.daddr, dev, true))
-+	if (dev && nf_ipv6_chk_addr(nft_net(pkt), &fl6.daddr, dev, true))
- 		ret = RTN_LOCAL;
- 
--	route_err = v6ops->route(nft_net(pkt), (struct dst_entry **)&rt,
-+	route_err = nf_ip6_route(nft_net(pkt), (struct dst_entry **)&rt,
- 				 flowi6_to_flowi(&fl6), false);
- 	if (route_err)
- 		goto err;
-diff --git a/net/netfilter/utils.c b/net/netfilter/utils.c
-index 55af9f247993..06dc55590441 100644
---- a/net/netfilter/utils.c
-+++ b/net/netfilter/utils.c
-@@ -162,7 +162,7 @@ EXPORT_SYMBOL_GPL(nf_checksum_partial);
- int nf_route(struct net *net, struct dst_entry **dst, struct flowi *fl,
- 	     bool strict, unsigned short family)
- {
--	const struct nf_ipv6_ops *v6ops;
-+	const struct nf_ipv6_ops *v6ops __maybe_unused;
- 	int ret = 0;
- 
- 	switch (family) {
-@@ -170,9 +170,7 @@ int nf_route(struct net *net, struct dst_entry **dst, struct flowi *fl,
- 		ret = nf_ip_route(net, dst, fl, strict);
- 		break;
- 	case AF_INET6:
--		v6ops = rcu_dereference(nf_ipv6_ops);
--		if (v6ops)
--			ret = v6ops->route(net, dst, fl, strict);
-+		ret = nf_ip6_route(net, dst, fl, strict);
- 		break;
- 	}
- 
-diff --git a/net/netfilter/xt_addrtype.c b/net/netfilter/xt_addrtype.c
-index 89e281b3bfc2..29987ff03621 100644
---- a/net/netfilter/xt_addrtype.c
-+++ b/net/netfilter/xt_addrtype.c
-@@ -36,7 +36,6 @@ MODULE_ALIAS("ip6t_addrtype");
- static u32 match_lookup_rt6(struct net *net, const struct net_device *dev,
- 			    const struct in6_addr *addr, u16 mask)
- {
--	const struct nf_ipv6_ops *v6ops;
- 	struct flowi6 flow;
- 	struct rt6_info *rt;
- 	u32 ret = 0;
-@@ -47,18 +46,13 @@ static u32 match_lookup_rt6(struct net *net, const struct net_device *dev,
- 	if (dev)
- 		flow.flowi6_oif = dev->ifindex;
- 
--	v6ops = nf_get_ipv6_ops();
--	if (v6ops) {
--		if (dev && (mask & XT_ADDRTYPE_LOCAL)) {
--			if (v6ops->chk_addr(net, addr, dev, true))
--				ret = XT_ADDRTYPE_LOCAL;
--		}
--		route_err = v6ops->route(net, (struct dst_entry **)&rt,
--					 flowi6_to_flowi(&flow), false);
--	} else {
--		route_err = 1;
-+	if (dev && (mask & XT_ADDRTYPE_LOCAL)) {
-+		if (nf_ipv6_chk_addr(net, addr, dev, true))
-+			ret = XT_ADDRTYPE_LOCAL;
- 	}
- 
-+	route_err = nf_ip6_route(net, (struct dst_entry **)&rt,
-+				 flowi6_to_flowi(&flow), false);
- 	if (route_err)
- 		return XT_ADDRTYPE_UNREACHABLE;
- 
--- 
-2.11.0
+kernel msg: ebtables bug: please report to author: Entries_size never zero
+kernel msg: ebtables bug: please report to author: Entries_size never zero
+kernel msg: ebtables bug: please report to author: Entries_size never zero
+kernel msg: ebtables bug: please report to author: Entries_size never zero
+32-bit node address hash set to aa1414ac
+rcu: INFO: rcu_preempt self-detected stall on CPU
+rcu: 	1-....: (1 GPs behind) idle=5aa/1/0x4000000000000002  
+softirq=10469/10470 fqs=5225
+rcu: 	 (t=10500 jiffies g=6081 q=489)
+NMI backtrace for cpu 1
+CPU: 1 PID: 7809 Comm: syz-executor.3 Not tainted 5.0.0-rc6+ #76
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS  
+Google 01/01/2011
+Call Trace:
+  <IRQ>
+  __dump_stack lib/dump_stack.c:77 [inline]
+  dump_stack+0x172/0x1f0 lib/dump_stack.c:113
+  nmi_cpu_backtrace.cold+0x63/0xa4 lib/nmi_backtrace.c:101
+  nmi_trigger_cpumask_backtrace+0x1be/0x236 lib/nmi_backtrace.c:62
+  arch_trigger_cpumask_backtrace+0x14/0x20 arch/x86/kernel/apic/hw_nmi.c:38
+  trigger_single_cpu_backtrace include/linux/nmi.h:164 [inline]
+  rcu_dump_cpu_stacks+0x183/0x1cf kernel/rcu/tree.c:1211
+  print_cpu_stall kernel/rcu/tree.c:1348 [inline]
+  check_cpu_stall kernel/rcu/tree.c:1422 [inline]
+  rcu_pending kernel/rcu/tree.c:3018 [inline]
+  rcu_check_callbacks.cold+0x500/0xa4a kernel/rcu/tree.c:2521
+  update_process_times+0x32/0x80 kernel/time/timer.c:1635
+  tick_sched_handle+0xa2/0x190 kernel/time/tick-sched.c:161
+  tick_sched_timer+0x47/0x130 kernel/time/tick-sched.c:1271
+  __run_hrtimer kernel/time/hrtimer.c:1389 [inline]
+  __hrtimer_run_queues+0x33e/0xde0 kernel/time/hrtimer.c:1451
+  hrtimer_interrupt+0x314/0x770 kernel/time/hrtimer.c:1509
+  local_apic_timer_interrupt arch/x86/kernel/apic/apic.c:1035 [inline]
+  smp_apic_timer_interrupt+0x120/0x570 arch/x86/kernel/apic/apic.c:1060
+  apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:807
+  </IRQ>
+RIP: 0010:check_memory_region+0x21/0x190 mm/kasan/generic.c:190
+Code: 2e 0f 1f 84 00 00 00 00 00 48 85 f6 0f 84 21 01 00 00 48 b8 ff ff ff  
+ff ff 7f ff ff 55 0f b6 d2 48 39 c7 48 89 e5 41 55 41 54 <53> 0f 86 f6 00  
+00 00 4c 8d 5c 37 ff 49 89 f8 48 b8 00 00 00 00 00
+RSP: 0018:ffff88808b8fea60 EFLAGS: 00000212 ORIG_RAX: ffffffffffffff13
+RAX: ffff7fffffffffff RBX: ffffe8ffffd2f348 RCX: ffffffff8157be27
+RDX: 0000000000000000 RSI: 0000000000000004 RDI: ffffe8ffffd2f348
+RBP: ffff88808b8fea70 R08: 1ffffd1ffffa5e69 R09: fffff91ffffa5e6a
+R10: fffff91ffffa5e69 R11: ffffe8ffffd2f34b R12: 0000000000000001
+R13: 0000000000000003 R14: fffff91ffffa5e69 R15: 00000000000005e8
+  kasan_check_read+0x11/0x20 mm/kasan/common.c:100
+  atomic_read include/asm-generic/atomic-instrumented.h:21 [inline]
+  virt_spin_lock arch/x86/include/asm/qspinlock.h:83 [inline]
+  native_queued_spin_lock_slowpath+0xb7/0x970 kernel/locking/qspinlock.c:337
+  pv_queued_spin_lock_slowpath arch/x86/include/asm/paravirt.h:653 [inline]
+  queued_spin_lock_slowpath arch/x86/include/asm/qspinlock.h:50 [inline]
+  queued_spin_lock include/asm-generic/qspinlock.h:90 [inline]
+  do_raw_spin_lock+0x20e/0x2e0 kernel/locking/spinlock_debug.c:113
+  __raw_spin_lock include/linux/spinlock_api_smp.h:143 [inline]
+  _raw_spin_lock+0x37/0x40 kernel/locking/spinlock.c:144
+  spin_lock include/linux/spinlock.h:329 [inline]
+  nf_ct_add_to_unconfirmed_list net/netfilter/nf_conntrack_core.c:462  
+[inline]
+  init_conntrack.isra.0+0xa15/0x1180 net/netfilter/nf_conntrack_core.c:1437
+  resolve_normal_ct net/netfilter/nf_conntrack_core.c:1479 [inline]
+  nf_conntrack_in+0xa68/0x1070 net/netfilter/nf_conntrack_core.c:1585
+  ipv4_conntrack_local+0x169/0x210 net/netfilter/nf_conntrack_proto.c:444
+  nf_hook_entry_hookfn include/linux/netfilter.h:119 [inline]
+  nf_hook_slow+0xbf/0x1f0 net/netfilter/core.c:511
+  nf_hook include/linux/netfilter.h:244 [inline]
+  __ip_local_out+0x403/0x880 net/ipv4/ip_output.c:113
+  ip_local_out+0x2d/0x1b0 net/ipv4/ip_output.c:122
+  iptunnel_xmit+0x58e/0x980 net/ipv4/ip_tunnel_core.c:91
+  udp_tunnel_xmit_skb+0x236/0x310 net/ipv4/udp_tunnel.c:200
+  tipc_udp_xmit.isra.0+0x7fd/0xcc0 net/tipc/udp_media.c:181
+  tipc_udp_send_msg+0x295/0x4a0 net/tipc/udp_media.c:247
+  tipc_bearer_xmit_skb+0x172/0x360 net/tipc/bearer.c:503
+  tipc_enable_bearer+0xac4/0xd20 net/tipc/bearer.c:328
+  __tipc_nl_bearer_enable+0x2d1/0x3b0 net/tipc/bearer.c:899
+  tipc_nl_bearer_enable+0x23/0x40 net/tipc/bearer.c:907
+  genl_family_rcv_msg+0x6e1/0xd90 net/netlink/genetlink.c:601
+  genl_rcv_msg+0xca/0x16c net/netlink/genetlink.c:626
+  netlink_rcv_skb+0x17a/0x460 net/netlink/af_netlink.c:2477
+  genl_rcv+0x29/0x40 net/netlink/genetlink.c:637
+  netlink_unicast_kernel net/netlink/af_netlink.c:1310 [inline]
+  netlink_unicast+0x536/0x720 net/netlink/af_netlink.c:1336
+  netlink_sendmsg+0x8ae/0xd70 net/netlink/af_netlink.c:1917
+  sock_sendmsg_nosec net/socket.c:621 [inline]
+  sock_sendmsg+0xdd/0x130 net/socket.c:631
+  ___sys_sendmsg+0x806/0x930 net/socket.c:2114
+  __sys_sendmsg+0x105/0x1d0 net/socket.c:2152
+  __do_sys_sendmsg net/socket.c:2161 [inline]
+  __se_sys_sendmsg net/socket.c:2159 [inline]
+  __x64_sys_sendmsg+0x78/0xb0 net/socket.c:2159
+  do_syscall_64+0x103/0x610 arch/x86/entry/common.c:290
+  entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x457e29
+Code: ad b8 fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 48 89 f8 48 89 f7  
+48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff  
+ff 0f 83 7b b8 fb ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007fafcebf0c78 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 0000000000000003 RCX: 0000000000457e29
+RDX: 0000000000000010 RSI: 00000000200000c0 RDI: 0000000000000009
+RBP: 000000000073bfa0 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00007fafcebf16d4
+R13: 00000000004c5210 R14: 00000000004d8fc8 R15: 00000000ffffffff
