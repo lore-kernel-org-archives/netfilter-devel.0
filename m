@@ -1,53 +1,40 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 0/2] Netfilter/IPVS fixes for net
-Date: Tue, 19 Feb 2019 00:08:21 +0100
-Message-ID: <20190218230823.8114-1-pablo@netfilter.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Subject: [PATCH 1/2] netfilter: nf_tables: fix flush after rule deletion in the same batch
+Date: Tue, 19 Feb 2019 00:08:22 +0100
+Message-ID: <20190218230823.8114-2-pablo@netfilter.org>
+References: <20190218230823.8114-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20190218230823.8114-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi David,
+Flush after rule deletion bogusly hits -ENOENT. Skip rules that have
+been already from nft_delrule_by_chain() which is always called from the
+flush path.
 
-The following patchset contains Netfilter/IPVS fixes for net:
+Fixes: cf9dc09d0949 ("netfilter: nf_tables: fix missing rules flushing per table")
+Reported-by: Phil Sutter <phil@nwl.cc>
+Acked-by: Phil Sutter <phil@nwl.cc>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_tables_api.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-1) Follow up patch to fix a compilation warning in a recent IPVS fix:
-   098e13f5b21d ("ipvs: fix dependency on nf_defrag_ipv6").
-
-2) Bogus ENOENT error on flush after rule deletion in the same batch,
-   reported by Phil Sutter.
-
-You can pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
-
-Thanks!
-
-----------------------------------------------------------------
-
-The following changes since commit f9bcc9f3ee4fbbe8f11dfec76745476f5780517e:
-
-  net: ethernet: freescale: set FEC ethtool regs version (2019-02-14 12:45:35 -0500)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git HEAD
-
-for you to fetch changes up to c93a49b9769e435990c82297aa0baa31e1538790:
-
-  ipvs: fix warning on unused variable (2019-02-16 10:41:42 +0100)
-
-----------------------------------------------------------------
-Andrea Claudi (1):
-      ipvs: fix warning on unused variable
-
-Pablo Neira Ayuso (1):
-      netfilter: nf_tables: fix flush after rule deletion in the same batch
-
- net/netfilter/ipvs/ip_vs_ctl.c | 3 ++-
- net/netfilter/nf_tables_api.c  | 3 +++
- 2 files changed, 5 insertions(+), 1 deletion(-)
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 5a92f23f179f..4893f248dfdc 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -313,6 +313,9 @@ static int nft_delrule_by_chain(struct nft_ctx *ctx)
+ 	int err;
+ 
+ 	list_for_each_entry(rule, &ctx->chain->rules, list) {
++		if (!nft_is_active_next(ctx->net, rule))
++			continue;
++
+ 		err = nft_delrule(ctx, rule);
+ 		if (err < 0)
+ 			return err;
+-- 
+2.11.0
