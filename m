@@ -1,31 +1,43 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/2] Netfilter/IPVS fixes for net
-Date: Mon, 18 Feb 2019 17:56:46 -0800 (PST)
-Message-ID: <20190218.175646.1731967864749489486.davem@davemloft.net>
-References: <20190218230823.8114-1-pablo@netfilter.org>
+From: Jamal Hadi Salim <jhs@mojatatu.com>
+Subject: update on netdev 0x13 conference
+Date: Wed, 20 Feb 2019 08:24:54 -0500
+Message-ID: <e2934422-87e3-5096-0a35-ec514247d45e@mojatatu.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
+To: "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        linux-wireless <linux-wireless@vger.kernel.org>,
+        netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+        lartc@vger.kernel.org
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190218230823.8114-1-pablo@netfilter.org>
+Content-Language: en-US
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Tue, 19 Feb 2019 00:08:21 +0100
+This is a small update to the community on the Netdev 0x13 conference
+(March 20-22, in Prague, Czech Republic)
+https://www.netdevconf.org/0x13
 
-> The following patchset contains Netfilter/IPVS fixes for net:
-> 
-> 1) Follow up patch to fix a compilation warning in a recent IPVS fix:
->    098e13f5b21d ("ipvs: fix dependency on nf_defrag_ipv6").
-> 
-> 2) Bogus ENOENT error on flush after rule deletion in the same batch,
->    reported by Phil Sutter.
-> 
-> You can pull these changes from:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
+Early registration fees end today at 23:59 EST.
+To Register: https://www.netdevconf.org/0x13/registration.html
 
-Series applied, thanks.
+Our bursaries are also going to close today at 23:59 EST.
+Any member of the community may request for a bursary (sponsorship) to
+attend.
+https://www.netdevconf.org/0x13/bursaries.html
+
+Many hours of exciting working discussions and talks.
+https://www.netdevconf.org/0x13/accepted-sessions.html
+https://www.netdevconf.org/0x13/schedule.html
+
+Because the schedule is packed we will be providing lunch
+this time at the conference location.
+
+For regular updates, please subscribe to people@lists.netdevconf.org
+(more info at: https://lists.netdevconf.org/cgi-bin/mailman/listinfo/people)
+
+If twitter is your thing then follow us: @netdev01
+and use hashtag #netdevconf
+
+cheers,
+jamal
