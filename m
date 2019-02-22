@@ -3,78 +3,127 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C1D01C4360F
-	for <netfilter-devel@archiver.kernel.org>; Fri, 22 Feb 2019 12:27:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 70634C43381
+	for <netfilter-devel@archiver.kernel.org>; Fri, 22 Feb 2019 13:46:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 982172075A
-	for <netfilter-devel@archiver.kernel.org>; Fri, 22 Feb 2019 12:27:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4C162207E0
+	for <netfilter-devel@archiver.kernel.org>; Fri, 22 Feb 2019 13:46:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726420AbfBVM16 (ORCPT
+        id S1726343AbfBVNqJ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 22 Feb 2019 07:27:58 -0500
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:54516 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725944AbfBVM16 (ORCPT
+        Fri, 22 Feb 2019 08:46:09 -0500
+Received: from mx60.baidu.com ([61.135.168.60]:37601 "EHLO
+        tc-sys-mailedm01.tc.baidu.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1726275AbfBVNqI (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 22 Feb 2019 07:27:58 -0500
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.89)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1gx9vo-0007w5-7J; Fri, 22 Feb 2019 13:27:56 +0100
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH iptables] arptables-nft: fix decoding of hlen on bigendian platforms
-Date:   Fri, 22 Feb 2019 13:26:05 +0100
-Message-Id: <20190222122605.9860-1-fw@strlen.de>
-X-Mailer: git-send-email 2.19.2
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        Fri, 22 Feb 2019 08:46:08 -0500
+Received: from localhost (cp01-cos-dev01.cp01.baidu.com [10.92.119.46])
+        by tc-sys-mailedm01.tc.baidu.com (Postfix) with ESMTP id CFC9E2040053;
+        Fri, 22 Feb 2019 21:45:52 +0800 (CST)
+From:   Li RongQing <lirongqing@baidu.com>
+To:     netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        bridge@lists.linux-foundation.org
+Subject: [PATCH][nf-next][v2] netfilter: convert the proto argument from u8 to u16
+Date:   Fri, 22 Feb 2019 21:45:52 +0800
+Message-Id: <1550843152-1772-1-git-send-email-lirongqing@baidu.com>
+X-Mailer: git-send-email 1.7.1
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The existing test fail with:
-extensions/libarpt_standard.t: ERROR: line 2 (cannot find: arptables -I INPUT -s 192.168.0.1)
+The proto in struct xt_match and struct xt_target is u16, when
+calling xt_check_target/match, their proto argument is u8,
+and will cause truncation, it is harmless to ip packet, since
+ip proto is u8
 
-... because hlen is 0 instead of expected "6".
-The rule is correct, i.e. this is a decode/display bug: arp_hlen is
-specified as 'unsigned short' instead of uint8_t.
+if a etable's match/target has proto that is u16, will cause
+the check failure.
 
-On LSB systems, this doesn't matter but on MSB the value then is '0x600'
-instead of '0x006' which becomes 0 when assignment to the u8 header field.
+and convert be16 to short in bridge/netfilter/ebtables.c
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Zhang Yu <zhangyu31@baidu.com>
+Signed-off-by: Li RongQing <lirongqing@baidu.com>
 ---
- iptables/nft-arp.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+v2: change type from u_int16_t to u16
 
-diff --git a/iptables/nft-arp.c b/iptables/nft-arp.c
-index 637da4274ded..c786abb82ed2 100644
---- a/iptables/nft-arp.c
-+++ b/iptables/nft-arp.c
-@@ -338,7 +338,8 @@ static void nft_arp_parse_payload(struct nft_xt_ctx *ctx,
- 	struct iptables_command_state *cs = data;
- 	struct arpt_entry *fw = &cs->arp;
- 	struct in_addr addr;
--	unsigned short int ar_hrd, ar_pro, ar_op, ar_hln;
-+	uint16_t ar_hrd, ar_pro, ar_op;
-+	uint8_t ar_hln;
- 	bool inv;
+ include/linux/netfilter/x_tables.h | 4 ++--
+ net/bridge/netfilter/ebtables.c    | 6 +++---
+ net/netfilter/x_tables.c           | 4 ++--
+ 3 files changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
+index 9077b3ebea08..8ba6a6227542 100644
+--- a/include/linux/netfilter/x_tables.h
++++ b/include/linux/netfilter/x_tables.h
+@@ -289,9 +289,9 @@ bool xt_find_jump_offset(const unsigned int *offsets,
  
- 	switch (ctx->payload.offset) {
-@@ -364,7 +365,7 @@ static void nft_arp_parse_payload(struct nft_xt_ctx *ctx,
- 			fw->arp.invflags |= ARPT_INV_ARPOP;
- 		break;
- 	case offsetof(struct arphdr, ar_hln):
--		get_cmp_data(e, &ar_hln, sizeof(ar_op), &inv);
-+		get_cmp_data(e, &ar_hln, sizeof(ar_hln), &inv);
- 		fw->arp.arhln = ar_hln;
- 		fw->arp.arhln_mask = 0xff;
- 		if (inv)
+ int xt_check_proc_name(const char *name, unsigned int size);
+ 
+-int xt_check_match(struct xt_mtchk_param *, unsigned int size, u_int8_t proto,
++int xt_check_match(struct xt_mtchk_param *, unsigned int size, u16 proto,
+ 		   bool inv_proto);
+-int xt_check_target(struct xt_tgchk_param *, unsigned int size, u_int8_t proto,
++int xt_check_target(struct xt_tgchk_param *, unsigned int size, u16 proto,
+ 		    bool inv_proto);
+ 
+ int xt_match_to_user(const struct xt_entry_match *m,
+diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
+index 6693e209efe8..7bbb9b189752 100644
+--- a/net/bridge/netfilter/ebtables.c
++++ b/net/bridge/netfilter/ebtables.c
+@@ -385,7 +385,7 @@ ebt_check_match(struct ebt_entry_match *m, struct xt_mtchk_param *par,
+ 	par->match     = match;
+ 	par->matchinfo = m->data;
+ 	ret = xt_check_match(par, m->match_size,
+-	      e->ethproto, e->invflags & EBT_IPROTO);
++	      ntohs(e->ethproto), e->invflags & EBT_IPROTO);
+ 	if (ret < 0) {
+ 		module_put(match->me);
+ 		return ret;
+@@ -422,7 +422,7 @@ ebt_check_watcher(struct ebt_entry_watcher *w, struct xt_tgchk_param *par,
+ 	par->target   = watcher;
+ 	par->targinfo = w->data;
+ 	ret = xt_check_target(par, w->watcher_size,
+-	      e->ethproto, e->invflags & EBT_IPROTO);
++	      ntohs(e->ethproto), e->invflags & EBT_IPROTO);
+ 	if (ret < 0) {
+ 		module_put(watcher->me);
+ 		return ret;
+@@ -767,7 +767,7 @@ ebt_check_entry(struct ebt_entry *e, struct net *net,
+ 	tgpar.target   = target;
+ 	tgpar.targinfo = t->data;
+ 	ret = xt_check_target(&tgpar, t->target_size,
+-	      e->ethproto, e->invflags & EBT_IPROTO);
++	      ntohs(e->ethproto), e->invflags & EBT_IPROTO);
+ 	if (ret < 0) {
+ 		module_put(target->me);
+ 		goto cleanup_watchers;
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index 13e1ac333fa4..5b61146443ad 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -461,7 +461,7 @@ int xt_check_proc_name(const char *name, unsigned int size)
+ EXPORT_SYMBOL(xt_check_proc_name);
+ 
+ int xt_check_match(struct xt_mtchk_param *par,
+-		   unsigned int size, u_int8_t proto, bool inv_proto)
++		   unsigned int size, u16 proto, bool inv_proto)
+ {
+ 	int ret;
+ 
+@@ -984,7 +984,7 @@ bool xt_find_jump_offset(const unsigned int *offsets,
+ EXPORT_SYMBOL(xt_find_jump_offset);
+ 
+ int xt_check_target(struct xt_tgchk_param *par,
+-		    unsigned int size, u_int8_t proto, bool inv_proto)
++		    unsigned int size, u16 proto, bool inv_proto)
+ {
+ 	int ret;
+ 
 -- 
-2.19.2
+2.16.2
 
