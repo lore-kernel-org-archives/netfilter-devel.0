@@ -4,50 +4,50 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.2 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	SPF_PASS,USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C3D3C43381
-	for <netfilter-devel@archiver.kernel.org>; Sat, 23 Feb 2019 21:32:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 23408C43381
+	for <netfilter-devel@archiver.kernel.org>; Sat, 23 Feb 2019 21:33:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1F67820661
-	for <netfilter-devel@archiver.kernel.org>; Sat, 23 Feb 2019 21:32:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E045F20661
+	for <netfilter-devel@archiver.kernel.org>; Sat, 23 Feb 2019 21:33:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1550957523;
-	bh=VUKeMSV75Rz9V5KKmRvEDog5lDNxkXc5ddb8aNs6viE=;
+	s=default; t=1550957632;
+	bh=QOUCuOYn5IzbNSDLGPQjDoYU8+86w2H9yEdbOk4CWS0=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=h6VsxCAAGQ3HpFKy27qg2G7cweMNJoKcrN747IA7tcn2HI+kIlg7AWgNlTnMdJIQy
-	 wBRNrZNFy7pKzLA5pqublNa3SpWGUMp04vySif1Teki2KTwLcy6lQXl9JEGP5H/1Qb
-	 P5ruxm3YHe4tCC5hC1pKnzLix90h2YlKL0M/1Bys=
+	b=xFyMrRSz3qqXtcbcG7zefIGYBvSQSonpnGvl0clJmuVpdrCV5d64u5DQ7igAmhlXA
+	 5xGI3SfjVhDkSBpCugpNXSrzJL0wsZrmv99N+5Vb1cdm0gNvBHjhhzT43sGEfQzlt2
+	 rOW70EgGTZsCJFHOIwvsoC1CysaLWghqxjKPLlec=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728751AbfBWVcC (ORCPT
+        id S1728328AbfBWVdo (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 23 Feb 2019 16:32:02 -0500
-Received: from mail.kernel.org ([198.145.29.99]:40592 "EHLO mail.kernel.org"
+        Sat, 23 Feb 2019 16:33:44 -0500
+Received: from mail.kernel.org ([198.145.29.99]:39974 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728359AbfBWVF3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 23 Feb 2019 16:05:29 -0500
+        id S1728108AbfBWVEv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 23 Feb 2019 16:04:51 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id B23AB20855;
-        Sat, 23 Feb 2019 21:05:27 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id CEFE220675;
+        Sat, 23 Feb 2019 21:04:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1550955928;
-        bh=VUKeMSV75Rz9V5KKmRvEDog5lDNxkXc5ddb8aNs6viE=;
+        s=default; t=1550955890;
+        bh=QOUCuOYn5IzbNSDLGPQjDoYU8+86w2H9yEdbOk4CWS0=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=l6Y079ma5y1QEDRvpNFxaPpkgCQmL8F7jxyrocKBy+9QbHSeKvxDNQTjo3FJACxuW
-         6Xz3SukE9INxyAs8kyCP4e4bfh4+0x+Cai6T0ADjPjQAVTqrj5880K9J990D85cvhT
-         u9jysXIXkRvMndoNqrls03IfapbD/eSBqljAGEDU=
+        b=vTEWGD8q90lRMxvSnOyUPEvGPBdJt83arBmSVvE8ZW/1BTXPdwIyILvxz+chg7Eqv
+         UZrBQPYgaJaq0juwOGLmUtmRaTrhg1HlTyc1rtXOdC7PUwyZ4hzUAGudLPeZfGrn1K
+         z9y0EImfIaeUU/QYQc83zpYYPD2P387SEHqHxEgA=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Fernando Fernandez Mancera <ffmancera@riseup.net>,
+Cc:     ZhangXiaoxu <zhangxiaoxu5@huawei.com>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
-        Sasha Levin <sashal@kernel.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.20 38/72] netfilter: nfnetlink_osf: add missing fmatch check
-Date:   Sat, 23 Feb 2019 16:03:48 -0500
-Message-Id: <20190223210422.199966-38-sashal@kernel.org>
+        Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org,
+        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org
+Subject: [PATCH AUTOSEL 4.20 17/72] ipvs: Fix signed integer overflow when setsockopt timeout
+Date:   Sat, 23 Feb 2019 16:03:27 -0500
+Message-Id: <20190223210422.199966-17-sashal@kernel.org>
 X-Mailer: git-send-email 2.19.1
 In-Reply-To: <20190223210422.199966-1-sashal@kernel.org>
 References: <20190223210422.199966-1-sashal@kernel.org>
@@ -59,59 +59,91 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Fernando Fernandez Mancera <ffmancera@riseup.net>
+From: ZhangXiaoxu <zhangxiaoxu5@huawei.com>
 
-[ Upstream commit 1a6a0951fc009f6d9fe8ebea2d2417d80d54097b ]
+[ Upstream commit 53ab60baa1ac4f20b080a22c13b77b6373922fd7 ]
 
-When we check the tcp options of a packet and it doesn't match the current
-fingerprint, the tcp packet option pointer must be restored to its initial
-value in order to do the proper tcp options check for the next fingerprint.
+There is a UBSAN bug report as below:
+UBSAN: Undefined behaviour in net/netfilter/ipvs/ip_vs_ctl.c:2227:21
+signed integer overflow:
+-2147483647 * 1000 cannot be represented in type 'int'
 
-Here we can see an example.
-Assumming the following fingerprint base with two lines:
+Reproduce program:
+	#include <stdio.h>
+	#include <sys/types.h>
+	#include <sys/socket.h>
 
-S10:64:1:60:M*,S,T,N,W6:      Linux:3.0::Linux 3.0
-S20:64:1:60:M*,S,T,N,W7:      Linux:4.19:arch:Linux 4.1
+	#define IPPROTO_IP 0
+	#define IPPROTO_RAW 255
 
-Where TCP options are the last field in the OS signature, all of them overlap
-except by the last one, ie. 'W6' versus 'W7'.
+	#define IP_VS_BASE_CTL		(64+1024+64)
+	#define IP_VS_SO_SET_TIMEOUT	(IP_VS_BASE_CTL+10)
 
-In case a packet for Linux 4.19 kicks in, the osf finds no matching because the
-TCP options pointer is updated after checking for the TCP options in the first
-line.
+	/* The argument to IP_VS_SO_GET_TIMEOUT */
+	struct ipvs_timeout_t {
+		int tcp_timeout;
+		int tcp_fin_timeout;
+		int udp_timeout;
+	};
 
-Therefore, reset pointer back to where it should be.
+	int main() {
+		int ret = -1;
+		int sockfd = -1;
+		struct ipvs_timeout_t to;
 
-Fixes: 11eeef41d5f6 ("netfilter: passive OS fingerprint xtables match")
-Signed-off-by: Fernando Fernandez Mancera <ffmancera@riseup.net>
+		sockfd = socket(AF_INET, SOCK_RAW, IPPROTO_RAW);
+		if (sockfd == -1) {
+			printf("socket init error\n");
+			return -1;
+		}
+
+		to.tcp_timeout = -2147483647;
+		to.tcp_fin_timeout = -2147483647;
+		to.udp_timeout = -2147483647;
+
+		ret = setsockopt(sockfd,
+				 IPPROTO_IP,
+				 IP_VS_SO_SET_TIMEOUT,
+				 (char *)(&to),
+				 sizeof(to));
+
+		printf("setsockopt return %d\n", ret);
+		return ret;
+	}
+
+Return -EINVAL if the timeout value is negative or max than 'INT_MAX / HZ'.
+
+Signed-off-by: ZhangXiaoxu <zhangxiaoxu5@huawei.com>
+Acked-by: Simon Horman <horms@verge.net.au>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- net/netfilter/nfnetlink_osf.c | 4 ++++
- 1 file changed, 4 insertions(+)
+ net/netfilter/ipvs/ip_vs_ctl.c | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff --git a/net/netfilter/nfnetlink_osf.c b/net/netfilter/nfnetlink_osf.c
-index 6f41dd74729d9..1f1d90c1716b5 100644
---- a/net/netfilter/nfnetlink_osf.c
-+++ b/net/netfilter/nfnetlink_osf.c
-@@ -66,6 +66,7 @@ static bool nf_osf_match_one(const struct sk_buff *skb,
- 			     int ttl_check,
- 			     struct nf_osf_hdr_ctx *ctx)
- {
-+	const __u8 *optpinit = ctx->optp;
- 	unsigned int check_WSS = 0;
- 	int fmatch = FMATCH_WRONG;
- 	int foptsize, optnum;
-@@ -155,6 +156,9 @@ static bool nf_osf_match_one(const struct sk_buff *skb,
- 		}
- 	}
+diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+index 432141f04af3d..7d6318664eb24 100644
+--- a/net/netfilter/ipvs/ip_vs_ctl.c
++++ b/net/netfilter/ipvs/ip_vs_ctl.c
+@@ -2220,6 +2220,18 @@ static int ip_vs_set_timeout(struct netns_ipvs *ipvs, struct ip_vs_timeout_user
+ 		  u->tcp_fin_timeout,
+ 		  u->udp_timeout);
  
-+	if (fmatch != FMATCH_OK)
-+		ctx->optp = optpinit;
++#ifdef CONFIG_IP_VS_PROTO_TCP
++	if (u->tcp_timeout < 0 || u->tcp_timeout > (INT_MAX / HZ) ||
++	    u->tcp_fin_timeout < 0 || u->tcp_fin_timeout > (INT_MAX / HZ)) {
++		return -EINVAL;
++	}
++#endif
 +
- 	return fmatch == FMATCH_OK;
- }
- 
++#ifdef CONFIG_IP_VS_PROTO_UDP
++	if (u->udp_timeout < 0 || u->udp_timeout > (INT_MAX / HZ))
++		return -EINVAL;
++#endif
++
+ #ifdef CONFIG_IP_VS_PROTO_TCP
+ 	if (u->tcp_timeout) {
+ 		pd = ip_vs_proto_data_get(ipvs, IPPROTO_TCP);
 -- 
 2.19.1
 
