@@ -4,54 +4,53 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.2 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+	SPF_PASS,USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E7EF8C43381
-	for <netfilter-devel@archiver.kernel.org>; Sat, 23 Feb 2019 21:07:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7D612C43381
+	for <netfilter-devel@archiver.kernel.org>; Sat, 23 Feb 2019 21:13:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id AE8AC20855
-	for <netfilter-devel@archiver.kernel.org>; Sat, 23 Feb 2019 21:07:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4B09E20651
+	for <netfilter-devel@archiver.kernel.org>; Sat, 23 Feb 2019 21:13:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1550956062;
-	bh=/domX6QGodOOIjnWM5HQCqszFzXqc2YX701h0tejA4w=;
+	s=default; t=1550956405;
+	bh=D4GLoDbhDpYPgEAKqxbJTvF9uYgDNcErvVJczgVwb3E=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=ow/2T32z94Ww9oD5sfL4Qrx5+Mh8jr17hdM9MLCs1gnAvjhspB3V9hGayn41sBEmA
-	 l6QMSQERWpCQ4eYa8r3znronGMIY+EMQ6So8WqMN11aqVQj6tecz0tTMUBEtd3q8t1
-	 E8zhxeopNCHP63MtVxAg/edV63BhvjxEi/Y2aMpc=
+	b=VwDiOxWBg5ZB4c2JoSaVfGj1kYtguTQ+hi2v6I9zomOVpt9VidTimkNXH68soeA2W
+	 28G7SpuujMavd7yRqZMrVzIxof3FIcG8RNfE4i+VooePDib8y5pSNKwbOBoUdPnARe
+	 hjC7vUJGpdSrRPX77cEtmhVa3CeuXDlT1VozfCsA=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729127AbfBWVHl (ORCPT
+        id S1730054AbfBWVNR (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 23 Feb 2019 16:07:41 -0500
-Received: from mail.kernel.org ([198.145.29.99]:42872 "EHLO mail.kernel.org"
+        Sat, 23 Feb 2019 16:13:17 -0500
+Received: from mail.kernel.org ([198.145.29.99]:48304 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729114AbfBWVHi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 23 Feb 2019 16:07:38 -0500
+        id S1730048AbfBWVLm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 23 Feb 2019 16:11:42 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id D2EB220868;
-        Sat, 23 Feb 2019 21:07:36 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id B078D2086C;
+        Sat, 23 Feb 2019 21:11:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1550956057;
-        bh=/domX6QGodOOIjnWM5HQCqszFzXqc2YX701h0tejA4w=;
+        s=default; t=1550956301;
+        bh=D4GLoDbhDpYPgEAKqxbJTvF9uYgDNcErvVJczgVwb3E=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=d52IHkFCj7VPSyg758Iq6+MiVWyAF8fvl6CtV+sCKYMQ1Xr7gm4x3yrZplAn9ZZhD
-         32HMQhbpExPWxV7GlfLZYzp79UL1Z3iNpW5Vc82YR1HcZMudkYEkKhALKz+YJMB5q9
-         uAQ4lI0kJDoGJZZbVnL95OoHJuRmt///ng5qr0yc=
+        b=oPfZqAxpDsMT9syJrf8hi+5sFys+NEfwO+FyS6+EwncTrg0zyyVLRqEkDBFJeqZAc
+         80Yb2fDH/aIM1NWO3MMbHhfWWmVkaEMR5oYlojYCEe06pGHvq021CLEaqqtR8gzZnc
+         KplXHgLRPXlqusmnrc5etrINAFX+vAgu51Qxy9dg=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Florian Westphal <fw@strlen.de>,
+Cc:     ZhangXiaoxu <zhangxiaoxu5@huawei.com>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
-        Sasha Levin <sashal@kernel.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.19 33/65] netfilter: ebtables: compat: un-break 32bit setsockopt when no rules are present
-Date:   Sat, 23 Feb 2019 16:06:08 -0500
-Message-Id: <20190223210640.200911-33-sashal@kernel.org>
+        Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org,
+        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org
+Subject: [PATCH AUTOSEL 3.18 04/18] ipvs: Fix signed integer overflow when setsockopt timeout
+Date:   Sat, 23 Feb 2019 16:11:21 -0500
+Message-Id: <20190223211135.203082-4-sashal@kernel.org>
 X-Mailer: git-send-email 2.19.1
-In-Reply-To: <20190223210640.200911-1-sashal@kernel.org>
-References: <20190223210640.200911-1-sashal@kernel.org>
+In-Reply-To: <20190223211135.203082-1-sashal@kernel.org>
+References: <20190223211135.203082-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-Patchwork-Hint: Ignore
 Content-Transfer-Encoding: 8bit
@@ -60,48 +59,91 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+From: ZhangXiaoxu <zhangxiaoxu5@huawei.com>
 
-[ Upstream commit 2035f3ff8eaa29cfb5c8e2160b0f6e85eeb21a95 ]
+[ Upstream commit 53ab60baa1ac4f20b080a22c13b77b6373922fd7 ]
 
-Unlike ip(6)tables ebtables only counts user-defined chains.
+There is a UBSAN bug report as below:
+UBSAN: Undefined behaviour in net/netfilter/ipvs/ip_vs_ctl.c:2227:21
+signed integer overflow:
+-2147483647 * 1000 cannot be represented in type 'int'
 
-The effect is that a 32bit ebtables binary on a 64bit kernel can do
-'ebtables -N FOO' only after adding at least one rule, else the request
-fails with -EINVAL.
+Reproduce program:
+	#include <stdio.h>
+	#include <sys/types.h>
+	#include <sys/socket.h>
 
-This is a similar fix as done in
-3f1e53abff84 ("netfilter: ebtables: don't attempt to allocate 0-sized compat array").
+	#define IPPROTO_IP 0
+	#define IPPROTO_RAW 255
 
-Fixes: 7d7d7e02111e9 ("netfilter: compat: reject huge allocation requests")
-Reported-by: Francesco Ruggeri <fruggeri@arista.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
+	#define IP_VS_BASE_CTL		(64+1024+64)
+	#define IP_VS_SO_SET_TIMEOUT	(IP_VS_BASE_CTL+10)
+
+	/* The argument to IP_VS_SO_GET_TIMEOUT */
+	struct ipvs_timeout_t {
+		int tcp_timeout;
+		int tcp_fin_timeout;
+		int udp_timeout;
+	};
+
+	int main() {
+		int ret = -1;
+		int sockfd = -1;
+		struct ipvs_timeout_t to;
+
+		sockfd = socket(AF_INET, SOCK_RAW, IPPROTO_RAW);
+		if (sockfd == -1) {
+			printf("socket init error\n");
+			return -1;
+		}
+
+		to.tcp_timeout = -2147483647;
+		to.tcp_fin_timeout = -2147483647;
+		to.udp_timeout = -2147483647;
+
+		ret = setsockopt(sockfd,
+				 IPPROTO_IP,
+				 IP_VS_SO_SET_TIMEOUT,
+				 (char *)(&to),
+				 sizeof(to));
+
+		printf("setsockopt return %d\n", ret);
+		return ret;
+	}
+
+Return -EINVAL if the timeout value is negative or max than 'INT_MAX / HZ'.
+
+Signed-off-by: ZhangXiaoxu <zhangxiaoxu5@huawei.com>
+Acked-by: Simon Horman <horms@verge.net.au>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- net/bridge/netfilter/ebtables.c | 9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ net/netfilter/ipvs/ip_vs_ctl.c | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
-index 5e55cef0cec39..6693e209efe80 100644
---- a/net/bridge/netfilter/ebtables.c
-+++ b/net/bridge/netfilter/ebtables.c
-@@ -2293,9 +2293,12 @@ static int compat_do_replace(struct net *net, void __user *user,
+diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+index 9b1452e8e868f..444a0cb33e979 100644
+--- a/net/netfilter/ipvs/ip_vs_ctl.c
++++ b/net/netfilter/ipvs/ip_vs_ctl.c
+@@ -2182,6 +2182,18 @@ static int ip_vs_set_timeout(struct net *net, struct ip_vs_timeout_user *u)
+ 		  u->tcp_fin_timeout,
+ 		  u->udp_timeout);
  
- 	xt_compat_lock(NFPROTO_BRIDGE);
- 
--	ret = xt_compat_init_offsets(NFPROTO_BRIDGE, tmp.nentries);
--	if (ret < 0)
--		goto out_unlock;
-+	if (tmp.nentries) {
-+		ret = xt_compat_init_offsets(NFPROTO_BRIDGE, tmp.nentries);
-+		if (ret < 0)
-+			goto out_unlock;
++#ifdef CONFIG_IP_VS_PROTO_TCP
++	if (u->tcp_timeout < 0 || u->tcp_timeout > (INT_MAX / HZ) ||
++	    u->tcp_fin_timeout < 0 || u->tcp_fin_timeout > (INT_MAX / HZ)) {
++		return -EINVAL;
 +	}
++#endif
 +
- 	ret = compat_copy_entries(entries_tmp, tmp.entries_size, &state);
- 	if (ret < 0)
- 		goto out_unlock;
++#ifdef CONFIG_IP_VS_PROTO_UDP
++	if (u->udp_timeout < 0 || u->udp_timeout > (INT_MAX / HZ))
++		return -EINVAL;
++#endif
++
+ #ifdef CONFIG_IP_VS_PROTO_TCP
+ 	if (u->tcp_timeout) {
+ 		pd = ip_vs_proto_data_get(net, IPPROTO_TCP);
 -- 
 2.19.1
 
