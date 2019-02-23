@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-9.2 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 67079C10F18
-	for <netfilter-devel@archiver.kernel.org>; Sat, 23 Feb 2019 21:15:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0BA68C43381
+	for <netfilter-devel@archiver.kernel.org>; Sat, 23 Feb 2019 21:17:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3579520675
-	for <netfilter-devel@archiver.kernel.org>; Sat, 23 Feb 2019 21:15:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CDA8D20651
+	for <netfilter-devel@archiver.kernel.org>; Sat, 23 Feb 2019 21:17:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1550956502;
-	bh=10cr7PejezyuovDhyFTA/LxItolyjHELA1dLVH+nphY=;
+	s=default; t=1550956659;
+	bh=AoAhagqnA8fQRWmtJByUmWYHaEN2UPlIQx9UHWUrLOI=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=ppg8aVrnEyDs8jQJx2MFIF/FVenqfRqEMNqLNTl2VfrXHU4vqdW/SGxql/W360NLV
-	 uY8I88G4dchUtS6S0fLediecx+ZUocJJoupmR21srx3e+WBKsTNzETX84gcGLxKzUL
-	 cJElkpXU8YmguT1Ya/12f0BHbCcYhPQhHkmVQu/Q=
+	b=YG7qKCeuwZ2wvzD3H0uUIUwmrMP1jNCE8AxYTyo5UD9sdNQXmigTDCl1ysDZWyTX1
+	 lUones6ijB5NIWskSvIkFKpmd/RQ4s8ZFaUzAmhEy9ax4Rjmuud9uqvVs//q0idhn3
+	 /4q0jGGfkjUzFfisbghhK1hHrcJA5TC4qWvQqmN4=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730088AbfBWVPB (ORCPT
+        id S1729762AbfBWVRb (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 23 Feb 2019 16:15:01 -0500
-Received: from mail.kernel.org ([198.145.29.99]:47254 "EHLO mail.kernel.org"
+        Sat, 23 Feb 2019 16:17:31 -0500
+Received: from mail.kernel.org ([198.145.29.99]:45978 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729872AbfBWVK5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 23 Feb 2019 16:10:57 -0500
+        id S1729666AbfBWVKE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 23 Feb 2019 16:10:04 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id BB75C20861;
-        Sat, 23 Feb 2019 21:10:55 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id C810620861;
+        Sat, 23 Feb 2019 21:10:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1550956256;
-        bh=10cr7PejezyuovDhyFTA/LxItolyjHELA1dLVH+nphY=;
+        s=default; t=1550956203;
+        bh=AoAhagqnA8fQRWmtJByUmWYHaEN2UPlIQx9UHWUrLOI=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=woJWwH4A5CDUSWwX2sXVi27FiVFhLLfUT1+/SmbjhZ/LuLrCnaGWqY4qe341Sf04R
-         o9frrmHwJ+D5HWxBVsxF2xg493B2MCwPpFBf1C4zyslgg3/+Cg7kBVSH5pYbdTMXeu
-         QvYCBTyhbu30RU70qdJ0puf74ytuyClNMz4pdt8c=
+        b=re/AH3lpMFJJMm+aVI4lqO1sfhyR/e044ODuDYy7uek4eUOZGWfefngENxp8QISPR
+         RySGwyoEvZXvvBpWFXUXGQIzAMv30xls+8Ul5+nlIPalcBrQQhO6DncWkUneTFv4DT
+         zsFQcBYsUGCj+LfyDEtHOvdT0omOlY/mG1v6k4nE=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     ZhangXiaoxu <zhangxiaoxu5@huawei.com>,
@@ -46,12 +46,12 @@ Cc:     ZhangXiaoxu <zhangxiaoxu5@huawei.com>,
         Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org,
         lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
         coreteam@netfilter.org
-Subject: [PATCH AUTOSEL 4.4 05/26] ipvs: Fix signed integer overflow when setsockopt timeout
-Date:   Sat, 23 Feb 2019 16:10:26 -0500
-Message-Id: <20190223211047.202725-5-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.9 08/32] ipvs: Fix signed integer overflow when setsockopt timeout
+Date:   Sat, 23 Feb 2019 16:09:27 -0500
+Message-Id: <20190223210951.202268-8-sashal@kernel.org>
 X-Mailer: git-send-email 2.19.1
-In-Reply-To: <20190223211047.202725-1-sashal@kernel.org>
-References: <20190223211047.202725-1-sashal@kernel.org>
+In-Reply-To: <20190223210951.202268-1-sashal@kernel.org>
+References: <20190223210951.202268-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-Patchwork-Hint: Ignore
 Content-Transfer-Encoding: 8bit
@@ -123,10 +123,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 12 insertions(+)
 
 diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index 3167ec76903a2..56c62b65923f1 100644
+index 8382b7880b240..8037b25ddb76a 100644
 --- a/net/netfilter/ipvs/ip_vs_ctl.c
 +++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -2217,6 +2217,18 @@ static int ip_vs_set_timeout(struct netns_ipvs *ipvs, struct ip_vs_timeout_user
+@@ -2258,6 +2258,18 @@ static int ip_vs_set_timeout(struct netns_ipvs *ipvs, struct ip_vs_timeout_user
  		  u->tcp_fin_timeout,
  		  u->udp_timeout);
  
