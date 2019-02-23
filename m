@@ -1,148 +1,196 @@
-Return-Path: <SRS0=yr9h=Q5=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=cwGx=Q6=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.7 required=3.0 tests=FROM_LOCAL_HEX,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.2 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3401EC43381
-	for <netfilter-devel@archiver.kernel.org>; Fri, 22 Feb 2019 17:10:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D1682C4360F
+	for <netfilter-devel@archiver.kernel.org>; Sat, 23 Feb 2019 21:04:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0E75E20700
-	for <netfilter-devel@archiver.kernel.org>; Fri, 22 Feb 2019 17:10:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 94CFC206B6
+	for <netfilter-devel@archiver.kernel.org>; Sat, 23 Feb 2019 21:04:38 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1550955878;
+	bh=fxjziN0NIrFrP471E1bKVWdmhc2aaJOPYJLblK/FAiA=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=Xbmqt0zgNwpKTuObPiSUXbcIOtFXacDZoBG26G7hphDd0Cd8ngvU9ZK7msoH5cqlD
+	 wCXx0MZq8tAoCqa3nRV83r2kM2bkJYsiJq6zuhsueSkEsd/ovfNgSgd32z2YywUGHm
+	 jiWo3DFVcHDGhqf2AFQPbEJdI9ti9ldeg58W22no=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727301AbfBVRKG (ORCPT
+        id S1728029AbfBWVEg (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 22 Feb 2019 12:10:06 -0500
-Received: from mail-it1-f199.google.com ([209.85.166.199]:55253 "EHLO
-        mail-it1-f199.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726403AbfBVRKG (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 22 Feb 2019 12:10:06 -0500
-Received: by mail-it1-f199.google.com with SMTP id v125so2449004itc.4
-        for <netfilter-devel@vger.kernel.org>; Fri, 22 Feb 2019 09:10:05 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:date:message-id:subject:from:to;
-        bh=pHxPEfLIOcr/61xwOv7FPjJT/D7GpsqoBSDZ06xID2s=;
-        b=cXw19E3Pr2TQk3SwjHEy+ToIxwKSr84ei7nAcyudx3+F0LTQhNDh4MEA4b+YXfud66
-         RJZUFIqflfkT6v+8DMVKk1t9uJwgEDvtaHGcPlBSUUf+ZxAcWcHJcvEo+fcpWc/PMyhs
-         xfLYjeBNQEmPLrpU5iM4Os+6OY4Wb+KL9+STmFWY4+zf0n+Ql88DXMv3E2txz8+OyH5m
-         GH2krLARS5IzfCyklmHzeh3bkeB+wgR+5zBAzXiPBc9d+rA9nTW2u4su8bMw3HfRVzkJ
-         YmKVZIpW44xqr7/YYZAsVPSJ2RtXEhOIfKARgCoj9aSSipa4eyDc4U8nNvUkMH4th38X
-         OvcQ==
-X-Gm-Message-State: AHQUAubd33LW3VGxQc8TZi8S8kTEQOjQq4mn+uqiISlr0pzupSoq589t
-        8rJx37Uazv1oM6yO4hknKxF0/ChonysyHdVu/6ylFxjklsVl
-X-Google-Smtp-Source: AHgI3IbuhF26WsE1jY3Of8Zv6LqCIYedQ5yImfOJXTIkZliTXH5Z7bRUQa4mEy9ZiVLCFf7QWw9+QB9oy8k62m74YKHGdjWt031b
+        Sat, 23 Feb 2019 16:04:36 -0500
+Received: from mail.kernel.org ([198.145.29.99]:39662 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727959AbfBWVEf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 23 Feb 2019 16:04:35 -0500
+Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 2A80720855;
+        Sat, 23 Feb 2019 21:04:33 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1550955874;
+        bh=fxjziN0NIrFrP471E1bKVWdmhc2aaJOPYJLblK/FAiA=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=FFJPWxGTTVFJkRhWKiBQ+UhcaSYRId+guULyJGU737ahcccMAM8G9k9MNAGIkvPos
+         n9Tc4ghtaWxToEpByZoS6mf+WhuyPI/O2S8V5ytV2wU/f0e0PXm1xT68XCUukO+puw
+         jRBbpuikYLxwJZil76BmPEX9MurE0GsztzDe59ls=
+From:   Sasha Levin <sashal@kernel.org>
+To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc:     Florian Westphal <fw@strlen.de>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Sasha Levin <sashal@kernel.org>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org
+Subject: [PATCH AUTOSEL 4.20 07/72] netfilter: nft_compat: destroy function must not have side effects
+Date:   Sat, 23 Feb 2019 16:03:17 -0500
+Message-Id: <20190223210422.199966-7-sashal@kernel.org>
+X-Mailer: git-send-email 2.19.1
+In-Reply-To: <20190223210422.199966-1-sashal@kernel.org>
+References: <20190223210422.199966-1-sashal@kernel.org>
 MIME-Version: 1.0
-X-Received: by 2002:a24:9143:: with SMTP id i64mr2820304ite.32.1550855404882;
- Fri, 22 Feb 2019 09:10:04 -0800 (PST)
-Date:   Fri, 22 Feb 2019 09:10:04 -0800
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <00000000000081994205827ea9a0@google.com>
-Subject: WARNING in xt_compat_add_offset
-From:   syzbot <syzbot+276ddebab3382bbf72db@syzkaller.appspotmail.com>
-To:     coreteam@netfilter.org, davem@davemloft.net, fw@strlen.de,
-        kadlec@blackhole.kfki.hu, linux-kernel@vger.kernel.org,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        pablo@netfilter.org, syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
+X-Patchwork-Hint: Ignore
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello,
+From: Florian Westphal <fw@strlen.de>
 
-syzbot found the following crash on:
+[ Upstream commit b2e3d68d1251a051a620f9086e18f7ffa6833b5b ]
 
-HEAD commit:    8a61716ff2ab Merge tag 'ceph-for-5.0-rc8' of git://github...
-git tree:       upstream
-console output: https://syzkaller.appspot.com/x/log.txt?x=1456fa6cc00000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=7132344728e7ec3f
-dashboard link: https://syzkaller.appspot.com/bug?extid=276ddebab3382bbf72db
-compiler:       gcc (GCC) 9.0.0 20181231 (experimental)
-userspace arch: i386
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=140c0914c00000
+The nft_compat destroy function deletes the nft_xt object from a list.
+This isn't allowed anymore. Destroy functions are called asynchronously,
+i.e. next batch can find the object that has a pending ->destroy()
+invocation:
 
-IMPORTANT: if you fix the bug, please add the following tag to the commit:
-Reported-by: syzbot+276ddebab3382bbf72db@syzkaller.appspotmail.com
+cpu0                       cpu1
+ worker
+   ->destroy               for_each_entry()
+	                     if (x == ...
+			        return x->ops;
+     list_del(x)
+     kfree_rcu(x)
+                           expr->ops->... // ops was free'd
 
-IPv6: ADDRCONF(NETDEV_CHANGE): hsr_slave_0: link becomes ready
-IPv6: ADDRCONF(NETDEV_CHANGE): hsr_slave_1: link becomes ready
-IPv6: ADDRCONF(NETDEV_CHANGE): hsr0: link becomes ready
-8021q: adding VLAN 0 to HW filter on device batadv0
-cannot load conntrack support for proto=7
-WARNING: CPU: 1 PID: 7458 at net/netfilter/x_tables.c:654  
-xt_compat_add_offset+0x22a/0x290 net/netfilter/x_tables.c:654
-Kernel panic - not syncing: panic_on_warn set ...
-CPU: 1 PID: 7458 Comm: syz-executor.0 Not tainted 5.0.0-rc7+ #83
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS  
-Google 01/01/2011
-Call Trace:
-  __dump_stack lib/dump_stack.c:77 [inline]
-  dump_stack+0x172/0x1f0 lib/dump_stack.c:113
-  panic+0x2cb/0x65c kernel/panic.c:214
-  __warn.cold+0x20/0x45 kernel/panic.c:571
-  report_bug+0x263/0x2b0 lib/bug.c:186
-  fixup_bug arch/x86/kernel/traps.c:178 [inline]
-  fixup_bug arch/x86/kernel/traps.c:173 [inline]
-  do_error_trap+0x11b/0x200 arch/x86/kernel/traps.c:271
-  do_invalid_op+0x37/0x50 arch/x86/kernel/traps.c:290
-  invalid_op+0x14/0x20 arch/x86/entry/entry_64.S:973
-RIP: 0010:xt_compat_add_offset+0x22a/0x290 net/netfilter/x_tables.c:654
-Code: 00 01 e8 59 67 bb fb 44 89 e0 48 83 c4 08 5b 41 5c 41 5d 41 5e 41 5f  
-5d c3 e8 42 67 bb fb 0f 0b e9 56 fe ff ff e8 36 67 bb fb <0f> 0b 41 bc f4  
-ff ff ff eb ce 4c 89 f7 e8 14 6a f2 fb e9 75 ff ff
-RSP: 0018:ffff8880a8197808 EFLAGS: 00010293
-RAX: ffff88809055e040 RBX: ffff8882166548d0 RCX: ffffffff85b47892
-RDX: 0000000000000000 RSI: ffffffff85b47a4a RDI: ffff8882166549f0
-RBP: ffff8880a8197838 R08: ffff88809055e040 R09: ffffed1042cca92f
-R10: ffffed1042cca92e R11: ffff888216654977 R12: 0000000000000018
-R13: 0000000000000030 R14: ffff88809055e040 R15: 0000000000000000
-  size_entry_mwt net/bridge/netfilter/ebtables.c:2183 [inline]
-  compat_copy_entries+0x51b/0x1360 net/bridge/netfilter/ebtables.c:2208
-  compat_do_replace+0x3b3/0x680 net/bridge/netfilter/ebtables.c:2302
-  compat_do_ebt_set_ctl+0x229/0x278 net/bridge/netfilter/ebtables.c:2384
-  compat_nf_sockopt net/netfilter/nf_sockopt.c:144 [inline]
-  compat_nf_setsockopt+0x9b/0x140 net/netfilter/nf_sockopt.c:156
-  compat_ip_setsockopt net/ipv4/ip_sockglue.c:1284 [inline]
-  compat_ip_setsockopt+0x106/0x140 net/ipv4/ip_sockglue.c:1265
-  compat_udp_setsockopt+0x68/0xb0 net/ipv4/udp.c:2629
-  compat_ipv6_setsockopt+0xca/0x210 net/ipv6/ipv6_sockglue.c:959
-  inet_csk_compat_setsockopt+0x99/0x120 net/ipv4/inet_connection_sock.c:1054
-  compat_tcp_setsockopt+0x4d/0x80 net/ipv4/tcp.c:3079
-  compat_sock_common_setsockopt+0xb4/0x150 net/core/sock.c:3002
-  __compat_sys_setsockopt+0x176/0x610 net/compat.c:404
-  __do_compat_sys_setsockopt net/compat.c:417 [inline]
-  __se_compat_sys_setsockopt net/compat.c:414 [inline]
-  __ia32_compat_sys_setsockopt+0xbd/0x150 net/compat.c:414
-  do_syscall_32_irqs_on arch/x86/entry/common.c:326 [inline]
-  do_fast_syscall_32+0x281/0xc98 arch/x86/entry/common.c:397
-  entry_SYSENTER_compat+0x70/0x7f arch/x86/entry/entry_64_compat.S:139
-RIP: 0023:0xf7fd3869
-Code: 85 d2 74 02 89 0a 5b 5d c3 8b 04 24 c3 8b 14 24 c3 8b 3c 24 c3 90 90  
-90 90 90 90 90 90 90 90 90 90 51 52 55 89 e5 0f 34 cd 80 <5d> 5a 59 c3 90  
-90 90 90 eb 0d 90 90 90 90 90 90 90 90 90 90 90 90
-RSP: 002b:00000000f7fcf0cc EFLAGS: 00000296 ORIG_RAX: 000000000000016e
-RAX: ffffffffffffffda RBX: 0000000000000006 RCX: 0000000000000000
-RDX: 0000000000000080 RSI: 00000000200000c0 RDI: 0000000000000270
-RBP: 0000000000000000 R08: 0000000000000000 R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000000
-R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
-Kernel Offset: disabled
-Rebooting in 86400 seconds..
+To resolve this, the list_del needs to occur before the transaction
+mutex gets released.  nf_tables has a 'deactivate' hook for this
+purpose, so use that to unlink the object from the list.
 
-
+Fixes: 0935d5588400 ("netfilter: nf_tables: asynchronous release")
+Reported-by: Taehee Yoo <ap420073@gmail.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
-This bug is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
+ net/netfilter/nft_compat.c | 48 +++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 47 insertions(+), 1 deletion(-)
 
-syzbot will keep track of this bug report. See:
-https://goo.gl/tpsmEJ#bug-status-tracking for how to communicate with  
-syzbot.
-syzbot can test patches for this bug, for details see:
-https://goo.gl/tpsmEJ#testing-patches
+diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
+index abed3490a8f8a..5eb269428832c 100644
+--- a/net/netfilter/nft_compat.c
++++ b/net/netfilter/nft_compat.c
+@@ -29,6 +29,9 @@ struct nft_xt {
+ 	struct nft_expr_ops	ops;
+ 	refcount_t		refcnt;
+ 
++	/* used only when transaction mutex is locked */
++	unsigned int		listcnt;
++
+ 	/* Unlike other expressions, ops doesn't have static storage duration.
+ 	 * nft core assumes they do.  We use kfree_rcu so that nft core can
+ 	 * can check expr->ops->size even after nft_compat->destroy() frees
+@@ -61,7 +64,7 @@ static struct nft_compat_net *nft_compat_pernet(struct net *net)
+ static bool nft_xt_put(struct nft_xt *xt)
+ {
+ 	if (refcount_dec_and_test(&xt->refcnt)) {
+-		list_del(&xt->head);
++		WARN_ON_ONCE(!list_empty(&xt->head));
+ 		kfree_rcu(xt, rcu_head);
+ 		return true;
+ 	}
+@@ -555,6 +558,43 @@ nft_match_destroy(const struct nft_ctx *ctx, const struct nft_expr *expr)
+ 	__nft_match_destroy(ctx, expr, nft_expr_priv(expr));
+ }
+ 
++static void nft_compat_activate(const struct nft_ctx *ctx,
++				const struct nft_expr *expr,
++				struct list_head *h)
++{
++	struct nft_xt *xt = container_of(expr->ops, struct nft_xt, ops);
++
++	if (xt->listcnt == 0)
++		list_add(&xt->head, h);
++
++	xt->listcnt++;
++}
++
++static void nft_compat_activate_mt(const struct nft_ctx *ctx,
++				   const struct nft_expr *expr)
++{
++	struct nft_compat_net *cn = nft_compat_pernet(ctx->net);
++
++	nft_compat_activate(ctx, expr, &cn->nft_match_list);
++}
++
++static void nft_compat_activate_tg(const struct nft_ctx *ctx,
++				   const struct nft_expr *expr)
++{
++	struct nft_compat_net *cn = nft_compat_pernet(ctx->net);
++
++	nft_compat_activate(ctx, expr, &cn->nft_target_list);
++}
++
++static void nft_compat_deactivate(const struct nft_ctx *ctx,
++				  const struct nft_expr *expr)
++{
++	struct nft_xt *xt = container_of(expr->ops, struct nft_xt, ops);
++
++	if (--xt->listcnt == 0)
++		list_del_init(&xt->head);
++}
++
+ static void
+ nft_match_large_destroy(const struct nft_ctx *ctx, const struct nft_expr *expr)
+ {
+@@ -808,6 +848,8 @@ nft_match_select_ops(const struct nft_ctx *ctx,
+ 	nft_match->ops.eval = nft_match_eval;
+ 	nft_match->ops.init = nft_match_init;
+ 	nft_match->ops.destroy = nft_match_destroy;
++	nft_match->ops.activate = nft_compat_activate_mt;
++	nft_match->ops.deactivate = nft_compat_deactivate;
+ 	nft_match->ops.dump = nft_match_dump;
+ 	nft_match->ops.validate = nft_match_validate;
+ 	nft_match->ops.data = match;
+@@ -824,6 +866,7 @@ nft_match_select_ops(const struct nft_ctx *ctx,
+ 
+ 	nft_match->ops.size = matchsize;
+ 
++	nft_match->listcnt = 1;
+ 	list_add(&nft_match->head, &cn->nft_match_list);
+ 
+ 	return &nft_match->ops;
+@@ -910,6 +953,8 @@ nft_target_select_ops(const struct nft_ctx *ctx,
+ 	nft_target->ops.size = NFT_EXPR_SIZE(XT_ALIGN(target->targetsize));
+ 	nft_target->ops.init = nft_target_init;
+ 	nft_target->ops.destroy = nft_target_destroy;
++	nft_target->ops.activate = nft_compat_activate_tg;
++	nft_target->ops.deactivate = nft_compat_deactivate;
+ 	nft_target->ops.dump = nft_target_dump;
+ 	nft_target->ops.validate = nft_target_validate;
+ 	nft_target->ops.data = target;
+@@ -919,6 +964,7 @@ nft_target_select_ops(const struct nft_ctx *ctx,
+ 	else
+ 		nft_target->ops.eval = nft_target_eval_xt;
+ 
++	nft_target->listcnt = 1;
+ 	list_add(&nft_target->head, &cn->nft_target_list);
+ 
+ 	return &nft_target->ops;
+-- 
+2.19.1
+
