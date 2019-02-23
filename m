@@ -4,50 +4,51 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.2 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 23408C43381
-	for <netfilter-devel@archiver.kernel.org>; Sat, 23 Feb 2019 21:33:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 927D8C43381
+	for <netfilter-devel@archiver.kernel.org>; Sat, 23 Feb 2019 21:34:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E045F20661
-	for <netfilter-devel@archiver.kernel.org>; Sat, 23 Feb 2019 21:33:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4CE8E20661
+	for <netfilter-devel@archiver.kernel.org>; Sat, 23 Feb 2019 21:34:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1550957632;
-	bh=QOUCuOYn5IzbNSDLGPQjDoYU8+86w2H9yEdbOk4CWS0=;
+	s=default; t=1550957674;
+	bh=eZivZ0FYKkdQy3/0V/YgygR4NFS+DUZp/h6joJdXwVU=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=xFyMrRSz3qqXtcbcG7zefIGYBvSQSonpnGvl0clJmuVpdrCV5d64u5DQ7igAmhlXA
-	 5xGI3SfjVhDkSBpCugpNXSrzJL0wsZrmv99N+5Vb1cdm0gNvBHjhhzT43sGEfQzlt2
-	 rOW70EgGTZsCJFHOIwvsoC1CysaLWghqxjKPLlec=
+	b=vIuK/sQCM0br/aSVY6FJmtKIYHhZJRygm201HA2QMytcd6a8oYaafdq9e2mj4lqeb
+	 8XEpWNMTIg7nOv8KhnW19Lcj+bTmbHkzAy2w3CjpSEmfQDal/ogKIBMJcKp2snyAdw
+	 7Trt3SsXkymaTlXHAlwDKtTxbn3q7ORcI3AIorbg=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728328AbfBWVdo (ORCPT
+        id S1728013AbfBWVEf (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 23 Feb 2019 16:33:44 -0500
-Received: from mail.kernel.org ([198.145.29.99]:39974 "EHLO mail.kernel.org"
+        Sat, 23 Feb 2019 16:04:35 -0500
+Received: from mail.kernel.org ([198.145.29.99]:39646 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728108AbfBWVEv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 23 Feb 2019 16:04:51 -0500
+        id S1727987AbfBWVEe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 23 Feb 2019 16:04:34 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id CEFE220675;
-        Sat, 23 Feb 2019 21:04:49 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id D2D6220675;
+        Sat, 23 Feb 2019 21:04:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1550955890;
-        bh=QOUCuOYn5IzbNSDLGPQjDoYU8+86w2H9yEdbOk4CWS0=;
+        s=default; t=1550955872;
+        bh=eZivZ0FYKkdQy3/0V/YgygR4NFS+DUZp/h6joJdXwVU=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=vTEWGD8q90lRMxvSnOyUPEvGPBdJt83arBmSVvE8ZW/1BTXPdwIyILvxz+chg7Eqv
-         UZrBQPYgaJaq0juwOGLmUtmRaTrhg1HlTyc1rtXOdC7PUwyZ4hzUAGudLPeZfGrn1K
-         z9y0EImfIaeUU/QYQc83zpYYPD2P387SEHqHxEgA=
+        b=ylk3RGZNDEzo3HE2MqNLhchrXlDWA4uh8YzcBjG7biW5OBElWum3Qj4lknJODkkts
+         xlxIByeEkFukKLjf8j0PA82zMVQyZ355uIE58qYTF0e0zqelYpgsT68t86SLa00oZo
+         f+ypSINs9c7AqCmEpvMz54e/O5cJwPmSA9hnUo0o=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     ZhangXiaoxu <zhangxiaoxu5@huawei.com>,
+Cc:     Florian Westphal <fw@strlen.de>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
-        Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org,
-        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org
-Subject: [PATCH AUTOSEL 4.20 17/72] ipvs: Fix signed integer overflow when setsockopt timeout
-Date:   Sat, 23 Feb 2019 16:03:27 -0500
-Message-Id: <20190223210422.199966-17-sashal@kernel.org>
+        Sasha Levin <sashal@kernel.org>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org
+Subject: [PATCH AUTOSEL 4.20 06/72] netfilter: nft_compat: make lists per netns
+Date:   Sat, 23 Feb 2019 16:03:16 -0500
+Message-Id: <20190223210422.199966-6-sashal@kernel.org>
 X-Mailer: git-send-email 2.19.1
 In-Reply-To: <20190223210422.199966-1-sashal@kernel.org>
 References: <20190223210422.199966-1-sashal@kernel.org>
@@ -59,91 +60,293 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: ZhangXiaoxu <zhangxiaoxu5@huawei.com>
+From: Florian Westphal <fw@strlen.de>
 
-[ Upstream commit 53ab60baa1ac4f20b080a22c13b77b6373922fd7 ]
+[ Upstream commit cf52572ebbd7189a1966c2b5fc34b97078cd1dce ]
 
-There is a UBSAN bug report as below:
-UBSAN: Undefined behaviour in net/netfilter/ipvs/ip_vs_ctl.c:2227:21
-signed integer overflow:
--2147483647 * 1000 cannot be represented in type 'int'
+There are two problems with nft_compat since the netlink config
+plane uses a per-netns mutex:
 
-Reproduce program:
-	#include <stdio.h>
-	#include <sys/types.h>
-	#include <sys/socket.h>
+1. Concurrent add/del accesses to the same list
+2. accesses to a list element after it has been free'd already.
 
-	#define IPPROTO_IP 0
-	#define IPPROTO_RAW 255
+This patch fixes the first problem.
 
-	#define IP_VS_BASE_CTL		(64+1024+64)
-	#define IP_VS_SO_SET_TIMEOUT	(IP_VS_BASE_CTL+10)
+Freeing occurs from a work queue, after transaction mutexes have been
+released, i.e., it still possible for a new transaction (even from
+same net ns) to find the to-be-deleted expression in the list.
 
-	/* The argument to IP_VS_SO_GET_TIMEOUT */
-	struct ipvs_timeout_t {
-		int tcp_timeout;
-		int tcp_fin_timeout;
-		int udp_timeout;
-	};
+The ->destroy functions are not allowed to have any such side effects,
+i.e. the list_del() in the destroy function is not allowed.
 
-	int main() {
-		int ret = -1;
-		int sockfd = -1;
-		struct ipvs_timeout_t to;
+This part of the problem is solved in the next patch.
+I tried to make this work by serializing list access via mutex
+and by moving list_del() to a deactivate callback, but
+Taehee spotted following race on this approach:
 
-		sockfd = socket(AF_INET, SOCK_RAW, IPPROTO_RAW);
-		if (sockfd == -1) {
-			printf("socket init error\n");
-			return -1;
-		}
+  NET #0                          NET #1
+   >select_ops()
+   ->init()
+                                   ->select_ops()
+   ->deactivate()
+   ->destroy()
+      nft_xt_put()
+       kfree_rcu(xt, rcu_head);
+                                   ->init() <-- use-after-free occurred.
 
-		to.tcp_timeout = -2147483647;
-		to.tcp_fin_timeout = -2147483647;
-		to.udp_timeout = -2147483647;
+Unfortunately, we can't increment reference count in
+select_ops(), because we can't undo the refcount increase in
+case a different expression fails in the same batch.
 
-		ret = setsockopt(sockfd,
-				 IPPROTO_IP,
-				 IP_VS_SO_SET_TIMEOUT,
-				 (char *)(&to),
-				 sizeof(to));
+(The destroy hook will only be called in case the expression
+ was initialized successfully).
 
-		printf("setsockopt return %d\n", ret);
-		return ret;
-	}
-
-Return -EINVAL if the timeout value is negative or max than 'INT_MAX / HZ'.
-
-Signed-off-by: ZhangXiaoxu <zhangxiaoxu5@huawei.com>
-Acked-by: Simon Horman <horms@verge.net.au>
+Fixes: f102d66b335a ("netfilter: nf_tables: use dedicated mutex to guard transactions")
+Reported-by: Taehee Yoo <ap420073@gmail.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- net/netfilter/ipvs/ip_vs_ctl.c | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ net/netfilter/nft_compat.c | 129 +++++++++++++++++++++++++------------
+ 1 file changed, 89 insertions(+), 40 deletions(-)
 
-diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index 432141f04af3d..7d6318664eb24 100644
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -2220,6 +2220,18 @@ static int ip_vs_set_timeout(struct netns_ipvs *ipvs, struct ip_vs_timeout_user
- 		  u->tcp_fin_timeout,
- 		  u->udp_timeout);
+diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
+index acc85acad31bd..abed3490a8f8a 100644
+--- a/net/netfilter/nft_compat.c
++++ b/net/netfilter/nft_compat.c
+@@ -22,6 +22,7 @@
+ #include <linux/netfilter_bridge/ebtables.h>
+ #include <linux/netfilter_arp/arp_tables.h>
+ #include <net/netfilter/nf_tables.h>
++#include <net/netns/generic.h>
  
-+#ifdef CONFIG_IP_VS_PROTO_TCP
-+	if (u->tcp_timeout < 0 || u->tcp_timeout > (INT_MAX / HZ) ||
-+	    u->tcp_fin_timeout < 0 || u->tcp_fin_timeout > (INT_MAX / HZ)) {
-+		return -EINVAL;
+ struct nft_xt {
+ 	struct list_head	head;
+@@ -43,6 +44,20 @@ struct nft_xt_match_priv {
+ 	void *info;
+ };
+ 
++struct nft_compat_net {
++	struct list_head nft_target_list;
++	struct list_head nft_match_list;
++};
++
++static unsigned int nft_compat_net_id __read_mostly;
++static struct nft_expr_type nft_match_type;
++static struct nft_expr_type nft_target_type;
++
++static struct nft_compat_net *nft_compat_pernet(struct net *net)
++{
++	return net_generic(net, nft_compat_net_id);
++}
++
+ static bool nft_xt_put(struct nft_xt *xt)
+ {
+ 	if (refcount_dec_and_test(&xt->refcnt)) {
+@@ -734,10 +749,6 @@ static const struct nfnetlink_subsystem nfnl_compat_subsys = {
+ 	.cb		= nfnl_nft_compat_cb,
+ };
+ 
+-static LIST_HEAD(nft_match_list);
+-
+-static struct nft_expr_type nft_match_type;
+-
+ static bool nft_match_cmp(const struct xt_match *match,
+ 			  const char *name, u32 rev, u32 family)
+ {
+@@ -749,6 +760,7 @@ static const struct nft_expr_ops *
+ nft_match_select_ops(const struct nft_ctx *ctx,
+ 		     const struct nlattr * const tb[])
+ {
++	struct nft_compat_net *cn;
+ 	struct nft_xt *nft_match;
+ 	struct xt_match *match;
+ 	unsigned int matchsize;
+@@ -765,8 +777,10 @@ nft_match_select_ops(const struct nft_ctx *ctx,
+ 	rev = ntohl(nla_get_be32(tb[NFTA_MATCH_REV]));
+ 	family = ctx->family;
+ 
++	cn = nft_compat_pernet(ctx->net);
++
+ 	/* Re-use the existing match if it's already loaded. */
+-	list_for_each_entry(nft_match, &nft_match_list, head) {
++	list_for_each_entry(nft_match, &cn->nft_match_list, head) {
+ 		struct xt_match *match = nft_match->ops.data;
+ 
+ 		if (nft_match_cmp(match, mt_name, rev, family))
+@@ -810,7 +824,7 @@ nft_match_select_ops(const struct nft_ctx *ctx,
+ 
+ 	nft_match->ops.size = matchsize;
+ 
+-	list_add(&nft_match->head, &nft_match_list);
++	list_add(&nft_match->head, &cn->nft_match_list);
+ 
+ 	return &nft_match->ops;
+ err:
+@@ -826,10 +840,6 @@ static struct nft_expr_type nft_match_type __read_mostly = {
+ 	.owner		= THIS_MODULE,
+ };
+ 
+-static LIST_HEAD(nft_target_list);
+-
+-static struct nft_expr_type nft_target_type;
+-
+ static bool nft_target_cmp(const struct xt_target *tg,
+ 			   const char *name, u32 rev, u32 family)
+ {
+@@ -841,6 +851,7 @@ static const struct nft_expr_ops *
+ nft_target_select_ops(const struct nft_ctx *ctx,
+ 		      const struct nlattr * const tb[])
+ {
++	struct nft_compat_net *cn;
+ 	struct nft_xt *nft_target;
+ 	struct xt_target *target;
+ 	char *tg_name;
+@@ -861,8 +872,9 @@ nft_target_select_ops(const struct nft_ctx *ctx,
+ 	    strcmp(tg_name, "standard") == 0)
+ 		return ERR_PTR(-EINVAL);
+ 
++	cn = nft_compat_pernet(ctx->net);
+ 	/* Re-use the existing target if it's already loaded. */
+-	list_for_each_entry(nft_target, &nft_target_list, head) {
++	list_for_each_entry(nft_target, &cn->nft_target_list, head) {
+ 		struct xt_target *target = nft_target->ops.data;
+ 
+ 		if (!target->target)
+@@ -907,7 +919,7 @@ nft_target_select_ops(const struct nft_ctx *ctx,
+ 	else
+ 		nft_target->ops.eval = nft_target_eval_xt;
+ 
+-	list_add(&nft_target->head, &nft_target_list);
++	list_add(&nft_target->head, &cn->nft_target_list);
+ 
+ 	return &nft_target->ops;
+ err:
+@@ -923,13 +935,74 @@ static struct nft_expr_type nft_target_type __read_mostly = {
+ 	.owner		= THIS_MODULE,
+ };
+ 
++static int __net_init nft_compat_init_net(struct net *net)
++{
++	struct nft_compat_net *cn = nft_compat_pernet(net);
++
++	INIT_LIST_HEAD(&cn->nft_target_list);
++	INIT_LIST_HEAD(&cn->nft_match_list);
++
++	return 0;
++}
++
++static void __net_exit nft_compat_exit_net(struct net *net)
++{
++	struct nft_compat_net *cn = nft_compat_pernet(net);
++	struct nft_xt *xt, *next;
++
++	if (list_empty(&cn->nft_match_list) &&
++	    list_empty(&cn->nft_target_list))
++		return;
++
++	/* If there was an error that caused nft_xt expr to not be initialized
++	 * fully and noone else requested the same expression later, the lists
++	 * contain 0-refcount entries that still hold module reference.
++	 *
++	 * Clean them here.
++	 */
++	mutex_lock(&net->nft.commit_mutex);
++	list_for_each_entry_safe(xt, next, &cn->nft_target_list, head) {
++		struct xt_target *target = xt->ops.data;
++
++		list_del_init(&xt->head);
++
++		if (refcount_read(&xt->refcnt))
++			continue;
++		module_put(target->me);
++		kfree(xt);
 +	}
-+#endif
 +
-+#ifdef CONFIG_IP_VS_PROTO_UDP
-+	if (u->udp_timeout < 0 || u->udp_timeout > (INT_MAX / HZ))
-+		return -EINVAL;
-+#endif
++	list_for_each_entry_safe(xt, next, &cn->nft_match_list, head) {
++		struct xt_match *match = xt->ops.data;
 +
- #ifdef CONFIG_IP_VS_PROTO_TCP
- 	if (u->tcp_timeout) {
- 		pd = ip_vs_proto_data_get(ipvs, IPPROTO_TCP);
++		list_del_init(&xt->head);
++
++		if (refcount_read(&xt->refcnt))
++			continue;
++		module_put(match->me);
++		kfree(xt);
++	}
++	mutex_unlock(&net->nft.commit_mutex);
++}
++
++static struct pernet_operations nft_compat_net_ops = {
++	.init	= nft_compat_init_net,
++	.exit	= nft_compat_exit_net,
++	.id	= &nft_compat_net_id,
++	.size	= sizeof(struct nft_compat_net),
++};
++
+ static int __init nft_compat_module_init(void)
+ {
+ 	int ret;
+ 
++	ret = register_pernet_subsys(&nft_compat_net_ops);
++	if (ret < 0)
++		goto err_target;
++
+ 	ret = nft_register_expr(&nft_match_type);
+ 	if (ret < 0)
+-		return ret;
++		goto err_pernet;
+ 
+ 	ret = nft_register_expr(&nft_target_type);
+ 	if (ret < 0)
+@@ -942,45 +1015,21 @@ static int __init nft_compat_module_init(void)
+ 	}
+ 
+ 	return ret;
+-
+ err_target:
+ 	nft_unregister_expr(&nft_target_type);
+ err_match:
+ 	nft_unregister_expr(&nft_match_type);
++err_pernet:
++	unregister_pernet_subsys(&nft_compat_net_ops);
+ 	return ret;
+ }
+ 
+ static void __exit nft_compat_module_exit(void)
+ {
+-	struct nft_xt *xt, *next;
+-
+-	/* list should be empty here, it can be non-empty only in case there
+-	 * was an error that caused nft_xt expr to not be initialized fully
+-	 * and noone else requested the same expression later.
+-	 *
+-	 * In this case, the lists contain 0-refcount entries that still
+-	 * hold module reference.
+-	 */
+-	list_for_each_entry_safe(xt, next, &nft_target_list, head) {
+-		struct xt_target *target = xt->ops.data;
+-
+-		if (WARN_ON_ONCE(refcount_read(&xt->refcnt)))
+-			continue;
+-		module_put(target->me);
+-		kfree(xt);
+-	}
+-
+-	list_for_each_entry_safe(xt, next, &nft_match_list, head) {
+-		struct xt_match *match = xt->ops.data;
+-
+-		if (WARN_ON_ONCE(refcount_read(&xt->refcnt)))
+-			continue;
+-		module_put(match->me);
+-		kfree(xt);
+-	}
+ 	nfnetlink_subsys_unregister(&nfnl_compat_subsys);
+ 	nft_unregister_expr(&nft_target_type);
+ 	nft_unregister_expr(&nft_match_type);
++	unregister_pernet_subsys(&nft_compat_net_ops);
+ }
+ 
+ MODULE_ALIAS_NFNL_SUBSYS(NFNL_SUBSYS_NFT_COMPAT);
 -- 
 2.19.1
 
