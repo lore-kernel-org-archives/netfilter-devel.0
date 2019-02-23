@@ -4,50 +4,50 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.2 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D9EDC10F18
-	for <netfilter-devel@archiver.kernel.org>; Sat, 23 Feb 2019 21:32:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C3D3C43381
+	for <netfilter-devel@archiver.kernel.org>; Sat, 23 Feb 2019 21:32:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3090F20661
-	for <netfilter-devel@archiver.kernel.org>; Sat, 23 Feb 2019 21:32:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1F67820661
+	for <netfilter-devel@archiver.kernel.org>; Sat, 23 Feb 2019 21:32:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1550957522;
-	bh=/domX6QGodOOIjnWM5HQCqszFzXqc2YX701h0tejA4w=;
+	s=default; t=1550957523;
+	bh=VUKeMSV75Rz9V5KKmRvEDog5lDNxkXc5ddb8aNs6viE=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=ovE4C4Y3YvzPcYFKZUDvoBTHMN8e+z5gFLfd64uVXN91vGUD9zDfUgJ6vAeDBSJZV
-	 gg5F7mXesfZl6MZ4VLy56caA4wcrnf5PHgSBi6oos/gUJl+5yB5bsoH5XJJ26AcWmc
-	 8WuiMSSckY+lML1+yEKXcnHXplMVrdS6GmTo6wiM=
+	b=h6VsxCAAGQ3HpFKy27qg2G7cweMNJoKcrN747IA7tcn2HI+kIlg7AWgNlTnMdJIQy
+	 wBRNrZNFy7pKzLA5pqublNa3SpWGUMp04vySif1Teki2KTwLcy6lQXl9JEGP5H/1Qb
+	 P5ruxm3YHe4tCC5hC1pKnzLix90h2YlKL0M/1Bys=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728367AbfBWVF3 (ORCPT
+        id S1728751AbfBWVcC (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 23 Feb 2019 16:05:29 -0500
-Received: from mail.kernel.org ([198.145.29.99]:40580 "EHLO mail.kernel.org"
+        Sat, 23 Feb 2019 16:32:02 -0500
+Received: from mail.kernel.org ([198.145.29.99]:40592 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728317AbfBWVF2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 23 Feb 2019 16:05:28 -0500
+        id S1728359AbfBWVF3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 23 Feb 2019 16:05:29 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 67E5B206B6;
-        Sat, 23 Feb 2019 21:05:26 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id B23AB20855;
+        Sat, 23 Feb 2019 21:05:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1550955927;
-        bh=/domX6QGodOOIjnWM5HQCqszFzXqc2YX701h0tejA4w=;
+        s=default; t=1550955928;
+        bh=VUKeMSV75Rz9V5KKmRvEDog5lDNxkXc5ddb8aNs6viE=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=NzH2Ep9zzluv/VJI/bbBdcgGBCj6hFYEXJ9blVZFzVRLk5MBBHJ70wJEWNXHfYuOe
-         whshYl3vee5e/9uBZjeXGTQwy3M6XNsmPvjpM9k2thj73cKNXS7/qZIYhdQH2Qvfml
-         wwsc63HfNZWi2CPH/JWtEg4uhoIn0UgtcXjROBS4=
+        b=l6Y079ma5y1QEDRvpNFxaPpkgCQmL8F7jxyrocKBy+9QbHSeKvxDNQTjo3FJACxuW
+         6Xz3SukE9INxyAs8kyCP4e4bfh4+0x+Cai6T0ADjPjQAVTqrj5880K9J990D85cvhT
+         u9jysXIXkRvMndoNqrls03IfapbD/eSBqljAGEDU=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Florian Westphal <fw@strlen.de>,
+Cc:     Fernando Fernandez Mancera <ffmancera@riseup.net>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
         Sasha Levin <sashal@kernel.org>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.20 37/72] netfilter: ebtables: compat: un-break 32bit setsockopt when no rules are present
-Date:   Sat, 23 Feb 2019 16:03:47 -0500
-Message-Id: <20190223210422.199966-37-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.20 38/72] netfilter: nfnetlink_osf: add missing fmatch check
+Date:   Sat, 23 Feb 2019 16:03:48 -0500
+Message-Id: <20190223210422.199966-38-sashal@kernel.org>
 X-Mailer: git-send-email 2.19.1
 In-Reply-To: <20190223210422.199966-1-sashal@kernel.org>
 References: <20190223210422.199966-1-sashal@kernel.org>
@@ -59,48 +59,59 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+From: Fernando Fernandez Mancera <ffmancera@riseup.net>
 
-[ Upstream commit 2035f3ff8eaa29cfb5c8e2160b0f6e85eeb21a95 ]
+[ Upstream commit 1a6a0951fc009f6d9fe8ebea2d2417d80d54097b ]
 
-Unlike ip(6)tables ebtables only counts user-defined chains.
+When we check the tcp options of a packet and it doesn't match the current
+fingerprint, the tcp packet option pointer must be restored to its initial
+value in order to do the proper tcp options check for the next fingerprint.
 
-The effect is that a 32bit ebtables binary on a 64bit kernel can do
-'ebtables -N FOO' only after adding at least one rule, else the request
-fails with -EINVAL.
+Here we can see an example.
+Assumming the following fingerprint base with two lines:
 
-This is a similar fix as done in
-3f1e53abff84 ("netfilter: ebtables: don't attempt to allocate 0-sized compat array").
+S10:64:1:60:M*,S,T,N,W6:      Linux:3.0::Linux 3.0
+S20:64:1:60:M*,S,T,N,W7:      Linux:4.19:arch:Linux 4.1
 
-Fixes: 7d7d7e02111e9 ("netfilter: compat: reject huge allocation requests")
-Reported-by: Francesco Ruggeri <fruggeri@arista.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Where TCP options are the last field in the OS signature, all of them overlap
+except by the last one, ie. 'W6' versus 'W7'.
+
+In case a packet for Linux 4.19 kicks in, the osf finds no matching because the
+TCP options pointer is updated after checking for the TCP options in the first
+line.
+
+Therefore, reset pointer back to where it should be.
+
+Fixes: 11eeef41d5f6 ("netfilter: passive OS fingerprint xtables match")
+Signed-off-by: Fernando Fernandez Mancera <ffmancera@riseup.net>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- net/bridge/netfilter/ebtables.c | 9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ net/netfilter/nfnetlink_osf.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
-index 5e55cef0cec39..6693e209efe80 100644
---- a/net/bridge/netfilter/ebtables.c
-+++ b/net/bridge/netfilter/ebtables.c
-@@ -2293,9 +2293,12 @@ static int compat_do_replace(struct net *net, void __user *user,
+diff --git a/net/netfilter/nfnetlink_osf.c b/net/netfilter/nfnetlink_osf.c
+index 6f41dd74729d9..1f1d90c1716b5 100644
+--- a/net/netfilter/nfnetlink_osf.c
++++ b/net/netfilter/nfnetlink_osf.c
+@@ -66,6 +66,7 @@ static bool nf_osf_match_one(const struct sk_buff *skb,
+ 			     int ttl_check,
+ 			     struct nf_osf_hdr_ctx *ctx)
+ {
++	const __u8 *optpinit = ctx->optp;
+ 	unsigned int check_WSS = 0;
+ 	int fmatch = FMATCH_WRONG;
+ 	int foptsize, optnum;
+@@ -155,6 +156,9 @@ static bool nf_osf_match_one(const struct sk_buff *skb,
+ 		}
+ 	}
  
- 	xt_compat_lock(NFPROTO_BRIDGE);
- 
--	ret = xt_compat_init_offsets(NFPROTO_BRIDGE, tmp.nentries);
--	if (ret < 0)
--		goto out_unlock;
-+	if (tmp.nentries) {
-+		ret = xt_compat_init_offsets(NFPROTO_BRIDGE, tmp.nentries);
-+		if (ret < 0)
-+			goto out_unlock;
-+	}
++	if (fmatch != FMATCH_OK)
++		ctx->optp = optpinit;
 +
- 	ret = compat_copy_entries(entries_tmp, tmp.entries_size, &state);
- 	if (ret < 0)
- 		goto out_unlock;
+ 	return fmatch == FMATCH_OK;
+ }
+ 
 -- 
 2.19.1
 
