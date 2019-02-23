@@ -4,40 +4,41 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.2 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7D612C43381
-	for <netfilter-devel@archiver.kernel.org>; Sat, 23 Feb 2019 21:13:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 67079C10F18
+	for <netfilter-devel@archiver.kernel.org>; Sat, 23 Feb 2019 21:15:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4B09E20651
-	for <netfilter-devel@archiver.kernel.org>; Sat, 23 Feb 2019 21:13:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3579520675
+	for <netfilter-devel@archiver.kernel.org>; Sat, 23 Feb 2019 21:15:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1550956405;
-	bh=D4GLoDbhDpYPgEAKqxbJTvF9uYgDNcErvVJczgVwb3E=;
+	s=default; t=1550956502;
+	bh=10cr7PejezyuovDhyFTA/LxItolyjHELA1dLVH+nphY=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=VwDiOxWBg5ZB4c2JoSaVfGj1kYtguTQ+hi2v6I9zomOVpt9VidTimkNXH68soeA2W
-	 28G7SpuujMavd7yRqZMrVzIxof3FIcG8RNfE4i+VooePDib8y5pSNKwbOBoUdPnARe
-	 hjC7vUJGpdSrRPX77cEtmhVa3CeuXDlT1VozfCsA=
+	b=ppg8aVrnEyDs8jQJx2MFIF/FVenqfRqEMNqLNTl2VfrXHU4vqdW/SGxql/W360NLV
+	 uY8I88G4dchUtS6S0fLediecx+ZUocJJoupmR21srx3e+WBKsTNzETX84gcGLxKzUL
+	 cJElkpXU8YmguT1Ya/12f0BHbCcYhPQhHkmVQu/Q=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730054AbfBWVNR (ORCPT
+        id S1730088AbfBWVPB (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 23 Feb 2019 16:13:17 -0500
-Received: from mail.kernel.org ([198.145.29.99]:48304 "EHLO mail.kernel.org"
+        Sat, 23 Feb 2019 16:15:01 -0500
+Received: from mail.kernel.org ([198.145.29.99]:47254 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730048AbfBWVLm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 23 Feb 2019 16:11:42 -0500
+        id S1729872AbfBWVK5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 23 Feb 2019 16:10:57 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id B078D2086C;
-        Sat, 23 Feb 2019 21:11:40 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id BB75C20861;
+        Sat, 23 Feb 2019 21:10:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1550956301;
-        bh=D4GLoDbhDpYPgEAKqxbJTvF9uYgDNcErvVJczgVwb3E=;
+        s=default; t=1550956256;
+        bh=10cr7PejezyuovDhyFTA/LxItolyjHELA1dLVH+nphY=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=oPfZqAxpDsMT9syJrf8hi+5sFys+NEfwO+FyS6+EwncTrg0zyyVLRqEkDBFJeqZAc
-         80Yb2fDH/aIM1NWO3MMbHhfWWmVkaEMR5oYlojYCEe06pGHvq021CLEaqqtR8gzZnc
-         KplXHgLRPXlqusmnrc5etrINAFX+vAgu51Qxy9dg=
+        b=woJWwH4A5CDUSWwX2sXVi27FiVFhLLfUT1+/SmbjhZ/LuLrCnaGWqY4qe341Sf04R
+         o9frrmHwJ+D5HWxBVsxF2xg493B2MCwPpFBf1C4zyslgg3/+Cg7kBVSH5pYbdTMXeu
+         QvYCBTyhbu30RU70qdJ0puf74ytuyClNMz4pdt8c=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     ZhangXiaoxu <zhangxiaoxu5@huawei.com>,
@@ -45,12 +46,12 @@ Cc:     ZhangXiaoxu <zhangxiaoxu5@huawei.com>,
         Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org,
         lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
         coreteam@netfilter.org
-Subject: [PATCH AUTOSEL 3.18 04/18] ipvs: Fix signed integer overflow when setsockopt timeout
-Date:   Sat, 23 Feb 2019 16:11:21 -0500
-Message-Id: <20190223211135.203082-4-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.4 05/26] ipvs: Fix signed integer overflow when setsockopt timeout
+Date:   Sat, 23 Feb 2019 16:10:26 -0500
+Message-Id: <20190223211047.202725-5-sashal@kernel.org>
 X-Mailer: git-send-email 2.19.1
-In-Reply-To: <20190223211135.203082-1-sashal@kernel.org>
-References: <20190223211135.203082-1-sashal@kernel.org>
+In-Reply-To: <20190223211047.202725-1-sashal@kernel.org>
+References: <20190223211047.202725-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-Patchwork-Hint: Ignore
 Content-Transfer-Encoding: 8bit
@@ -122,10 +123,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 12 insertions(+)
 
 diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index 9b1452e8e868f..444a0cb33e979 100644
+index 3167ec76903a2..56c62b65923f1 100644
 --- a/net/netfilter/ipvs/ip_vs_ctl.c
 +++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -2182,6 +2182,18 @@ static int ip_vs_set_timeout(struct net *net, struct ip_vs_timeout_user *u)
+@@ -2217,6 +2217,18 @@ static int ip_vs_set_timeout(struct netns_ipvs *ipvs, struct ip_vs_timeout_user
  		  u->tcp_fin_timeout,
  		  u->udp_timeout);
  
@@ -143,7 +144,7 @@ index 9b1452e8e868f..444a0cb33e979 100644
 +
  #ifdef CONFIG_IP_VS_PROTO_TCP
  	if (u->tcp_timeout) {
- 		pd = ip_vs_proto_data_get(net, IPPROTO_TCP);
+ 		pd = ip_vs_proto_data_get(ipvs, IPPROTO_TCP);
 -- 
 2.19.1
 
