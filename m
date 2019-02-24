@@ -1,174 +1,95 @@
-Return-Path: <SRS0=cwGx=Q6=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=+wqM=Q7=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.2 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 16DCFC4360F
-	for <netfilter-devel@archiver.kernel.org>; Sat, 23 Feb 2019 21:34:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E59C1C43381
+	for <netfilter-devel@archiver.kernel.org>; Sun, 24 Feb 2019 14:37:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id DAC4D20661
-	for <netfilter-devel@archiver.kernel.org>; Sat, 23 Feb 2019 21:34:35 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1550957675;
-	bh=iqXW3z7SXbyz+MFAlQfrgqROqWsBrSwuiPdbatg+CqA=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=S1hE6fZpF4YppJuAYyNdtDG7pVh+eFuibgzMf2CyBCBJ8GI6HYCC05JOJI0gaCCp3
-	 XIlHZGe8l6F0bJ2K5MqlwxZQcn5tTc+nImbOU3uRzSDWCw7GU2W5tRQ+6vNYAJeydL
-	 FTU/YHladDtdYIyXdJ50uQnKWu3ryVAwTX8ioh9Y=
+	by mail.kernel.org (Postfix) with ESMTP id B703420663
+	for <netfilter-devel@archiver.kernel.org>; Sun, 24 Feb 2019 14:37:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728000AbfBWVEd (ORCPT
+        id S1728128AbfBXOhy (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 23 Feb 2019 16:04:33 -0500
-Received: from mail.kernel.org ([198.145.29.99]:39634 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727959AbfBWVEc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 23 Feb 2019 16:04:32 -0500
-Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 7C3BE206B6;
-        Sat, 23 Feb 2019 21:04:30 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1550955871;
-        bh=iqXW3z7SXbyz+MFAlQfrgqROqWsBrSwuiPdbatg+CqA=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=FaRdf3zViFvxvP0E7Fd2DfWiklf4FG5EbYuzFgTZPuDTFp0aOClDk95kR34v8NctU
-         0CtL6UP1IIZ3jVomJD44iw6dfsGEEAzvhJbwAGy+RnZjxkN2H/S/4MEuNoRGzQuhZX
-         3czY7kkWv7QNb6cdzHMBJmHrahVt0cH71IgQ0eAs=
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Florian Westphal <fw@strlen.de>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Sasha Levin <sashal@kernel.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.20 05/72] netfilter: nft_compat: use refcnt_t type for nft_xt reference count
-Date:   Sat, 23 Feb 2019 16:03:15 -0500
-Message-Id: <20190223210422.199966-5-sashal@kernel.org>
-X-Mailer: git-send-email 2.19.1
-In-Reply-To: <20190223210422.199966-1-sashal@kernel.org>
-References: <20190223210422.199966-1-sashal@kernel.org>
+        Sun, 24 Feb 2019 09:37:54 -0500
+Received: from ja.ssi.bg ([178.16.129.10]:39404 "EHLO ja.ssi.bg"
+        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1725956AbfBXOhy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 24 Feb 2019 09:37:54 -0500
+Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
+        by ja.ssi.bg (8.15.2/8.15.2) with ESMTP id x1OEbjEt012645;
+        Sun, 24 Feb 2019 16:37:46 +0200
+Date:   Sun, 24 Feb 2019 16:37:45 +0200 (EET)
+From:   Julian Anastasov <ja@ssi.bg>
+To:     Phil Sutter <phil@nwl.cc>
+cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+Subject: Re: [iptables PATCH 1/3] extensions: Fix ipvs vproto parsing
+In-Reply-To: <20190221190932.16281-1-phil@nwl.cc>
+Message-ID: <alpine.LFD.2.21.1902241634020.5707@ja.home.ssi.bg>
+References: <20190221190932.16281-1-phil@nwl.cc>
+User-Agent: Alpine 2.21 (LFD 202 2017-01-01)
 MIME-Version: 1.0
-X-Patchwork-Hint: Ignore
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
 
-[ Upstream commit 12c44aba6618b7f6c437076e5722237190f6cd5f ]
+	Hello,
 
-Using standard integer type was fine while all operations on it were
-guarded by the nftnl subsys mutex.
+On Thu, 21 Feb 2019, Phil Sutter wrote:
 
-This isn't true anymore:
-1. transactions are guarded only by a pernet mutex, so concurrent
-   rule manipulation in different netns is racy
-2. the ->destroy hook runs from a work queue after the transaction
-   mutex has been released already.
+> This was broken by integration into guided option parser:
+> 
+> * Make 'vproto' option XTTYPE_PROTOCOL, otherwise its arguments are
+>   parsed as garbage only.
+> 
+> * Drop O_VPROTO case from ipvs_mt_parse(), due to XTOPT_POINTER() and
+>   above change there is nothing to do for it in there.
+> 
+> Fixes: 372203af4c70f ("libxt_ipvs: use guided option parser")
+> Signed-off-by: Phil Sutter <phil@nwl.cc>
 
-cpu0                           cpu1 (net 1)        cpu2 (net 2)
- kworker
-    nft_compat->destroy        nft_compat->init    nft_compat->init
-      if (--nft_xt->ref == 0)   nft_xt->ref++        nft_xt->ref++
+	The 3 patches look good to me, thanks!
 
-Switch to refcount_t.  Doing this however only fixes a minor aspect,
-nft_compat also performs linked-list operations in an unsafe way.
+Reviewed-by: Julian Anastasov <ja@ssi.bg>
 
-This is addressed in the next two patches.
+> ---
+>  extensions/libxt_ipvs.c | 5 +----
+>  1 file changed, 1 insertion(+), 4 deletions(-)
+> 
+> diff --git a/extensions/libxt_ipvs.c b/extensions/libxt_ipvs.c
+> index a6c57a030d2c6..fe98fef951686 100644
+> --- a/extensions/libxt_ipvs.c
+> +++ b/extensions/libxt_ipvs.c
+> @@ -27,7 +27,7 @@ enum {
+>  static const struct xt_option_entry ipvs_mt_opts[] = {
+>  	{.name = "ipvs", .id = O_IPVS, .type = XTTYPE_NONE,
+>  	 .flags = XTOPT_INVERT},
+> -	{.name = "vproto", .id = O_VPROTO, .type = XTTYPE_STRING,
+> +	{.name = "vproto", .id = O_VPROTO, .type = XTTYPE_PROTOCOL,
+>  	 .flags = XTOPT_INVERT | XTOPT_PUT, XTOPT_POINTER(s, l4proto)},
+>  	{.name = "vaddr", .id = O_VADDR, .type = XTTYPE_HOSTMASK,
+>  	 .flags = XTOPT_INVERT},
+> @@ -69,9 +69,6 @@ static void ipvs_mt_parse(struct xt_option_call *cb)
+>  
+>  	xtables_option_parse(cb);
+>  	switch (cb->entry->id) {
+> -	case O_VPROTO:
+> -		data->l4proto = cb->val.protocol;
+> -		break;
+>  	case O_VADDR:
+>  		memcpy(&data->vaddr, &cb->val.haddr, sizeof(cb->val.haddr));
+>  		memcpy(&data->vmask, &cb->val.hmask, sizeof(cb->val.hmask));
+> -- 
+> 2.20.1
 
-Fixes: f102d66b335a ("netfilter: nf_tables: use dedicated mutex to guard transactions")
-Fixes: 0935d5588400 ("netfilter: nf_tables: asynchronous release")
-Reported-by: Taehee Yoo <ap420073@gmail.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- net/netfilter/nft_compat.c | 16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+Regards
 
-diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
-index 7334e0b80a5ef..acc85acad31bd 100644
---- a/net/netfilter/nft_compat.c
-+++ b/net/netfilter/nft_compat.c
-@@ -26,7 +26,7 @@
- struct nft_xt {
- 	struct list_head	head;
- 	struct nft_expr_ops	ops;
--	unsigned int		refcnt;
-+	refcount_t		refcnt;
- 
- 	/* Unlike other expressions, ops doesn't have static storage duration.
- 	 * nft core assumes they do.  We use kfree_rcu so that nft core can
-@@ -45,7 +45,7 @@ struct nft_xt_match_priv {
- 
- static bool nft_xt_put(struct nft_xt *xt)
- {
--	if (--xt->refcnt == 0) {
-+	if (refcount_dec_and_test(&xt->refcnt)) {
- 		list_del(&xt->head);
- 		kfree_rcu(xt, rcu_head);
- 		return true;
-@@ -273,7 +273,7 @@ nft_target_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
- 		return -EINVAL;
- 
- 	nft_xt = container_of(expr->ops, struct nft_xt, ops);
--	nft_xt->refcnt++;
-+	refcount_inc(&nft_xt->refcnt);
- 	return 0;
- }
- 
-@@ -486,7 +486,7 @@ __nft_match_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
- 		return ret;
- 
- 	nft_xt = container_of(expr->ops, struct nft_xt, ops);
--	nft_xt->refcnt++;
-+	refcount_inc(&nft_xt->refcnt);
- 	return 0;
- }
- 
-@@ -789,7 +789,7 @@ nft_match_select_ops(const struct nft_ctx *ctx,
- 		goto err;
- 	}
- 
--	nft_match->refcnt = 0;
-+	refcount_set(&nft_match->refcnt, 0);
- 	nft_match->ops.type = &nft_match_type;
- 	nft_match->ops.eval = nft_match_eval;
- 	nft_match->ops.init = nft_match_init;
-@@ -893,7 +893,7 @@ nft_target_select_ops(const struct nft_ctx *ctx,
- 		goto err;
- 	}
- 
--	nft_target->refcnt = 0;
-+	refcount_set(&nft_target->refcnt, 0);
- 	nft_target->ops.type = &nft_target_type;
- 	nft_target->ops.size = NFT_EXPR_SIZE(XT_ALIGN(target->targetsize));
- 	nft_target->ops.init = nft_target_init;
-@@ -964,7 +964,7 @@ static void __exit nft_compat_module_exit(void)
- 	list_for_each_entry_safe(xt, next, &nft_target_list, head) {
- 		struct xt_target *target = xt->ops.data;
- 
--		if (WARN_ON_ONCE(xt->refcnt))
-+		if (WARN_ON_ONCE(refcount_read(&xt->refcnt)))
- 			continue;
- 		module_put(target->me);
- 		kfree(xt);
-@@ -973,7 +973,7 @@ static void __exit nft_compat_module_exit(void)
- 	list_for_each_entry_safe(xt, next, &nft_match_list, head) {
- 		struct xt_match *match = xt->ops.data;
- 
--		if (WARN_ON_ONCE(xt->refcnt))
-+		if (WARN_ON_ONCE(refcount_read(&xt->refcnt)))
- 			continue;
- 		module_put(match->me);
- 		kfree(xt);
--- 
-2.19.1
-
+--
+Julian Anastasov <ja@ssi.bg>
