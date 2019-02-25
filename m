@@ -2,122 +2,205 @@ Return-Path: <SRS0=WVDP=RA=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,USER_AGENT_MUTT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+	SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E0AA0C10F00
-	for <netfilter-devel@archiver.kernel.org>; Mon, 25 Feb 2019 15:28:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 92A3EC43381
+	for <netfilter-devel@archiver.kernel.org>; Mon, 25 Feb 2019 15:56:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A4D9520663
-	for <netfilter-devel@archiver.kernel.org>; Mon, 25 Feb 2019 15:28:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5B52F20684
+	for <netfilter-devel@archiver.kernel.org>; Mon, 25 Feb 2019 15:56:00 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="i/WTl/+i"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="VotUtxNd"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727567AbfBYP2X (ORCPT
+        id S1727663AbfBYP4A (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 25 Feb 2019 10:28:23 -0500
-Received: from mail-qt1-f196.google.com ([209.85.160.196]:41915 "EHLO
-        mail-qt1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727467AbfBYP2X (ORCPT
+        Mon, 25 Feb 2019 10:56:00 -0500
+Received: from mail-yw1-f66.google.com ([209.85.161.66]:34760 "EHLO
+        mail-yw1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727505AbfBYPz7 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 25 Feb 2019 10:28:23 -0500
-Received: by mail-qt1-f196.google.com with SMTP id v10so10886987qtp.8;
-        Mon, 25 Feb 2019 07:28:22 -0800 (PST)
+        Mon, 25 Feb 2019 10:55:59 -0500
+Received: by mail-yw1-f66.google.com with SMTP id u205so3842268ywe.1
+        for <netfilter-devel@vger.kernel.org>; Mon, 25 Feb 2019 07:55:59 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to:user-agent;
-        bh=sETiJ0Bam3ddJeRURAxkJZJKKX6x5tkCk2N7Yioi+Hs=;
-        b=i/WTl/+iROAGW+Qnbj8A71foVtHtRdK9J8Z8hRR14kBOKR257UZt7CAVqgMLU30BbT
-         SIAYaleECLRcwSXZ1wh4MAl1grAtXIhSk6hNE02tIarZwy9OIzd6w9undu2brcyR3s2N
-         1BPqAtPG+DY6zT523buSrsL8Hun46gcWhd4Qb5G+w4SxcHzFJR+bQBlF8uRHV9xe1Hnk
-         2IgTnfTdedl5+3lpm8sorgkvuqJ0CzdAym6nletAqpwDan32jG4KIyAgqemXtLE3eRyc
-         NdnJHbJY1GyPlpxHqpbAfKX0x7fXKps3x6EgcuhE7UZp2nsozU78EQGihibiIvbc37JC
-         DZAw==
+        h=subject:to:references:from:message-id:date:user-agent:mime-version
+         :in-reply-to:content-language:content-transfer-encoding;
+        bh=JuHzxIzA4nno7qZ8p5YjSNnIR1+HjLxz1iwSU0b00FQ=;
+        b=VotUtxNdPkuvhkwT9EwlnM9hNY8XWBzMUvH2Aqqg26BqCGVsyNHu+ZMStw2dVd+F9S
+         Uyh5dIF8d7pfHrkQYAgH6ZYZ+xJ30yFLzsDY1LkufyQPoik3lfj6jQMA+A/eyYSPe/u+
+         rGwTcok2AlbJgafQ/twr28jEjTFSCZYvMNyZEJA71YYmitkIXVVjCQk8gd/Qv0fBnKYe
+         NX9w6bgXRj0YLfZkgCOKSBlLkj/qliW9kpN2A4Vq6x8nep0IQjk56hlisNGLP6su4Y5c
+         JIHAGbtxuidNj4Wj37bJRAFHxtgZfEbp0D0NJoLtvkJTFio8T3rwwVZuHqUszeb90Oa1
+         aySQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to:user-agent;
-        bh=sETiJ0Bam3ddJeRURAxkJZJKKX6x5tkCk2N7Yioi+Hs=;
-        b=gLGABGhRYQAqenXRE5loh1QCnFzjQiekCB8rDWcfmuuTjs43xSx2viinh0TWtc1Xqu
-         Jc+vgqiPVXYDzYxV4JGYSrpd4wsjLCIPmS7N76LjjzHa4/XFDXkYAfM/PMMlIoVYQPwr
-         po2+uzIIE3GiaHFR2tyNU0YoSxTu8biDXmlzxzSh0D6BkM4AS6ilFxWBBjOJeN3QlmAX
-         9BT391At18y/qqN3UYb5/ckUNQKJOJ7CX/uZgsLbfh3npGLQAcCJsjIYkiYr41suCZA9
-         NEjFxWteywrpX2SU9G1i/fYFCuKt2jN6ZcA3/zSNUqzg5/PFi+HNE09+gP3T/M7aDA48
-         aywQ==
-X-Gm-Message-State: AHQUAua5MDu7rPBYf77r5aQUMkMKPFm3ULQQGm28th7FpFZlpPrYW+Qp
-        BGupM2IayYhdsJAxDxQasFw=
-X-Google-Smtp-Source: AHgI3IbAqxlA/UgdLUzzdUGkzygOxRvgmXp+MIasn5nYIe9eXiU4X9Wg8xEGX8JCQ8qJB8KvOv/UNg==
-X-Received: by 2002:ac8:3f98:: with SMTP id d24mr13913995qtk.219.1551108501878;
-        Mon, 25 Feb 2019 07:28:21 -0800 (PST)
-Received: from localhost.localdomain ([2001:1284:f013:ef72:88cc:5639:1ccc:5537])
-        by smtp.gmail.com with ESMTPSA id n17sm3965113qke.89.2019.02.25.07.28.20
-        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Mon, 25 Feb 2019 07:28:20 -0800 (PST)
-Received: by localhost.localdomain (Postfix, from userid 1000)
-        id 686EF180B5B; Mon, 25 Feb 2019 12:28:18 -0300 (-03)
-Date:   Mon, 25 Feb 2019 12:28:18 -0300
-From:   Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
-To:     Xin Long <lucien.xin@gmail.com>
-Cc:     network dev <netdev@vger.kernel.org>,
-        netfilter-devel@vger.kernel.org,
-        Neil Horman <nhorman@tuxdriver.com>, pablo@netfilter.org
-Subject: Re: [PATCH net] ipvs: get sctphdr by sctphoff in sctp_csum_check
-Message-ID: <20190225152818.GV13621@localhost.localdomain>
-References: <cd1c829cfd9ee916e57c51f6879947f0f88c1eb1.1551094063.git.lucien.xin@gmail.com>
+        h=x-gm-message-state:subject:to:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-language
+         :content-transfer-encoding;
+        bh=JuHzxIzA4nno7qZ8p5YjSNnIR1+HjLxz1iwSU0b00FQ=;
+        b=lKyRjz25witoYmhafxM9UPmfliesyvmdqlxNPUQAC00gF0zMAJs0ci8nZg4K18StdN
+         j6Xy73NQ++k21IkPNBCNr27M7uBWaEi2+F6o2dcrq7+9eXJ1sZgO/eu3u5sHBxU29+SU
+         6vxGfDCcmnTqdz6eldFEJJBPEzaNbrUtSoXj+wTVNhM7fHBpz9bVju9s+NRMU73/4oIn
+         1pNsjpBHA0mEl5SpqquqS1ifYGwtmmdMHg5G4NO4+up5qM/evkFFUfAMnPTz4aiEerp9
+         93KY5mq4SL7PQi5aFRNg6cVGda/bCqnYltIWtgjarMpNlfZbXFKeLzUMBQu/k+h1ve0W
+         LJQQ==
+X-Gm-Message-State: AHQUAuYoogDzhoA3tMAN1GSIoEOE+seXMHeVMkb4MBc2aFSpYHzM2j/y
+        PPyO21chiZRzctU0eOCRZCnqX96I
+X-Google-Smtp-Source: AHgI3IaACA2QgaeNiNpOpxQvajyKyDEg20iGySBH5ZhrLkLb5CQOyN5Aopj/W3lyfFn28iu5BHLemA==
+X-Received: by 2002:a81:3a0b:: with SMTP id h11mr3569856ywa.325.1551110158588;
+        Mon, 25 Feb 2019 07:55:58 -0800 (PST)
+Received: from [192.168.88.60] (216.sub-166-144-35.myvzw.com. [166.144.35.216])
+        by smtp.gmail.com with ESMTPSA id y204sm3512429ywg.66.2019.02.25.07.55.56
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Mon, 25 Feb 2019 07:55:57 -0800 (PST)
+Subject: =?UTF-8?B?UmU6IOetlOWkjTog562U5aSNOiBbUEFUQ0hdIG5ldGZpbHRlcjogZm9y?=
+ =?UTF-8?Q?ce_access_of_RCU_protected_data_in_nft=5fupdate=5fchain=5fstats?=
+To:     "Li,Rongqing" <lirongqing@baidu.com>,
+        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+References: <1551059920-14120-1-git-send-email-lirongqing@baidu.com>
+ <4818220f-1c66-df00-e397-4efbeba82665@gmail.com>
+ <b8ca2a794fdf4406a52ee4ecb78ef54b@baidu.com>
+ <cc982bdc-3639-490d-36a7-df32316313e2@gmail.com>
+ <3614110dd296453db887938bb07f3aa6@baidu.com>
+From:   Eric Dumazet <eric.dumazet@gmail.com>
+Message-ID: <071a3554-442b-59cd-74ff-7bbc21c7a9e1@gmail.com>
+Date:   Mon, 25 Feb 2019 07:55:55 -0800
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:52.0) Gecko/20100101
+ Thunderbird/52.9.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <cd1c829cfd9ee916e57c51f6879947f0f88c1eb1.1551094063.git.lucien.xin@gmail.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <3614110dd296453db887938bb07f3aa6@baidu.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Feb 25, 2019 at 07:27:43PM +0800, Xin Long wrote:
-> sctp_csum_check() is called by sctp_s/dnat_handler() where it calls
-> skb_make_writable() to ensure sctphdr to be linearized.
-> 
-> So there's no need to get sctphdr by calling skb_header_pointer()
-> in sctp_csum_check().
-> 
-> Signed-off-by: Xin Long <lucien.xin@gmail.com>
 
-Reviewed-by: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
 
-> ---
->  net/netfilter/ipvs/ip_vs_proto_sctp.c | 7 ++-----
->  1 file changed, 2 insertions(+), 5 deletions(-)
+On 02/24/2019 10:00 PM, Li,Rongqing wrote:
 > 
-> diff --git a/net/netfilter/ipvs/ip_vs_proto_sctp.c b/net/netfilter/ipvs/ip_vs_proto_sctp.c
-> index b0cd7d0..0ecf241 100644
-> --- a/net/netfilter/ipvs/ip_vs_proto_sctp.c
-> +++ b/net/netfilter/ipvs/ip_vs_proto_sctp.c
-> @@ -183,7 +183,7 @@ static int
->  sctp_csum_check(int af, struct sk_buff *skb, struct ip_vs_protocol *pp)
+> 
+>> -----邮件原件-----
+>> 发件人: Eric Dumazet [mailto:eric.dumazet@gmail.com]
+>> 发送时间: 2019年2月25日 12:11
+>> 收件人: Li,Rongqing <lirongqing@baidu.com>; netfilter-devel@vger.kernel.org
+>> 主题: Re: 答复: [PATCH] netfilter: force access of RCU protected data in
+>> nft_update_chain_stats
+>>
+>>
+>>
+>> On 02/24/2019 08:03 PM, Li,Rongqing wrote:
+>>>
+>>>
+>>>> -----邮件原件-----
+>>>> 发件人: Eric Dumazet [mailto:eric.dumazet@gmail.com]
+>>>> 发送时间: 2019年2月25日 11:50
+>>>> 收件人: Li,Rongqing <lirongqing@baidu.com>;
+>>>> netfilter-devel@vger.kernel.org
+>>>> 主题: Re: [PATCH] netfilter: force access of RCU protected data in
+>>>> nft_update_chain_stats
+>>>>
+>>>>
+>>>>
+>>>> On 02/24/2019 05:58 PM, Li RongQing wrote:
+>>>>> basechain->stats is rcu protected data, cannot assure that
+>>>>> twice accesses have the same result, so dereference it once.
+>>>>>
+>>>>> basechain->stats is allocated by percpu allocater, if it is not
+>>>>> basechain->NULL,
+>>>>> its percpu variable does not need to be checked with NULL
+>>>>>
+>>>>> Signed-off-by: Zhang Yu <zhangyu31@baidu.com>
+>>>>> Signed-off-by: Li RongQing <lirongqing@baidu.com>
+>>>>> ---
+>>>>>  net/netfilter/nf_tables_core.c | 18 +++++++++---------
+>>>>>  1 file changed, 9 insertions(+), 9 deletions(-)
+>>>>>
+>>>>> diff --git a/net/netfilter/nf_tables_core.c
+>>>>> b/net/netfilter/nf_tables_core.c index 2a00aef7b6d4..9be622c76a62
+>>>>> 100644
+>>>>> --- a/net/netfilter/nf_tables_core.c
+>>>>> +++ b/net/netfilter/nf_tables_core.c
+>>>>> @@ -98,20 +98,20 @@ static noinline void
+>>>>> nft_update_chain_stats(const
+>>>> struct nft_chain *chain,
+>>>>>  					    const struct nft_pktinfo *pkt)  {
+>>>>>  	struct nft_base_chain *base_chain;
+>>>>> -	struct nft_stats *stats;
+>>>>> +	struct nft_stats *stats, *pstat;
+>>>>>
+>>>>>  	base_chain = nft_base_chain(chain);
+>>>>> -	if (!rcu_access_pointer(base_chain->stats))
+>>>>> +
+>>>>> +	stats = rcu_dereference(base_chain->stats);
+>>>>
+>>>> This looks bogus to me.
+>>>>
+>>>> Where is the needed rcu_read_lock() before rcu_dereference() ?
+>>>>
+>>>
+>>> Ok, I will check it carefully.
+>>>
+>>>> This rcu_access_pointer() test is fine, and avoids a
+>>>> local_bh_disable()/local_bh_enable()
+>>>> if they are not needed.
+>>>
+>>>
+>>>
+>>> But it can not assure that rcu_dereference(base_chain->stats) returns NULL
+>> since nft_chain_stats_replace, should we check it again, other than check the
+>> returning of this_cpu_ptr?
+>>>
+>>
+>> Sorry I do not understand your concern.
+> 
+> 
+>     [RFC] netfilter: check the result of dereferencing base_chain->stats
+>     
+>     check the result of dereferencing base_chain->stats, instead of
+>     result of this_cpu_ptr
+>     
+>     base_chain->stats maybe change to NULL when a chain is updated,
+>     a NULL counter can be attached
+>     
+>     and we do not need to check returning of this_cpu_ptr since
+>     base_chain->stats is allocated by percpu allocator if it is
+>     non-NULL, this_cpu_ptr returns a valid value
+> 
+> diff --git a/net/netfilter/nf_tables_core.c b/net/netfilter/nf_tables_core.c
+> index 2a00aef7b6d4..ed8a382d1012 100644
+> --- a/net/netfilter/nf_tables_core.c
+> +++ b/net/netfilter/nf_tables_core.c
+> @@ -98,15 +98,16 @@ static noinline void nft_update_chain_stats(const struct nft_chain *chain,
+>                                             const struct nft_pktinfo *pkt)
 >  {
->  	unsigned int sctphoff;
-> -	struct sctphdr *sh, _sctph;
-> +	struct sctphdr *sh;
->  	__le32 cmp, val;
+>         struct nft_base_chain *base_chain;
+> -       struct nft_stats *stats;
+> +       struct nft_stats *stats, *pstats;
+
+OK but then make sure to add proper sparse annotations  ( aka __percpu )
+
 >  
->  #ifdef CONFIG_IP_VS_IPV6
-> @@ -193,10 +193,7 @@ sctp_csum_check(int af, struct sk_buff *skb, struct ip_vs_protocol *pp)
->  #endif
->  		sctphoff = ip_hdrlen(skb);
+>         base_chain = nft_base_chain(chain);
+>         if (!rcu_access_pointer(base_chain->stats))
+>                 return;
 >  
-> -	sh = skb_header_pointer(skb, sctphoff, sizeof(_sctph), &_sctph);
-> -	if (sh == NULL)
-> -		return 0;
-> -
-> +	sh = (struct sctphdr *)(skb->data + sctphoff);
->  	cmp = sh->checksum;
->  	val = sctp_compute_cksum(skb, sctphoff);
->  
-> -- 
-> 2.1.0
+>         local_bh_disable();
+> -       stats = this_cpu_ptr(rcu_dereference(base_chain->stats));
+> -       if (stats) {
+> +       pstats = rcu_dereference(base_chain->stats);
+> +       if (pstats) {
+
+if (likely(pstats)) {
+
+> +               stats = this_cpu_ptr(pstats);
+>                 u64_stats_update_begin(&stats->syncp);
+>                 stats->pkts++;
+>                 stats->bytes += pkt->skb->len;
 > 
