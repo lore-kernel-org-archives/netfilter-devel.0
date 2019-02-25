@@ -2,142 +2,92 @@ Return-Path: <SRS0=WVDP=RA=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 630CAC43381
-	for <netfilter-devel@archiver.kernel.org>; Mon, 25 Feb 2019 04:10:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2CE97C43381
+	for <netfilter-devel@archiver.kernel.org>; Mon, 25 Feb 2019 04:20:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2D5582084D
-	for <netfilter-devel@archiver.kernel.org>; Mon, 25 Feb 2019 04:10:52 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="TbSDaXDq"
+	by mail.kernel.org (Postfix) with ESMTP id 03C0920989
+	for <netfilter-devel@archiver.kernel.org>; Mon, 25 Feb 2019 04:20:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728460AbfBYEKv (ORCPT
+        id S1728482AbfBYEUf (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 24 Feb 2019 23:10:51 -0500
-Received: from mail-pl1-f196.google.com ([209.85.214.196]:39527 "EHLO
-        mail-pl1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728434AbfBYEKv (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 24 Feb 2019 23:10:51 -0500
-Received: by mail-pl1-f196.google.com with SMTP id b65so814699plb.6
-        for <netfilter-devel@vger.kernel.org>; Sun, 24 Feb 2019 20:10:51 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=subject:to:references:from:message-id:date:user-agent:mime-version
-         :in-reply-to:content-language:content-transfer-encoding;
-        bh=0Z86nBH0vT5F3Fy4eA2TqyjG1bWoyZXiBKRu4VLLmyA=;
-        b=TbSDaXDqdTvf1QuOFBVZg1I2cP2Kr0sTmGlG73UuHkoWpGichuo+oJCRjpN5ifGw7+
-         WbpxYHLzPpzUvNO7GMXr57fCeZ2iSUMYadg5WWRUv2IX0DpAjnY0iS0MZFGVZYsE6jqm
-         ZDoipaHe5PRq/CyYVvq1C7BVzKmARU43fGlYVFnb7gCzHoAZzbYQd4d51Lr/0d6VGZDY
-         1ek2OVCVk7EyjCtlZVORtUbYdsBD2VBXwTvNdgqIMblpFtcu75xlrZVED3i3D0GB/0KB
-         EzDHNCYKLlDGZW1zzSEnBAOmmbuvXB+QUBgNphv3i4aHZT8JZsPz2dEkL8tRHCnsRFem
-         0l5A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-language
-         :content-transfer-encoding;
-        bh=0Z86nBH0vT5F3Fy4eA2TqyjG1bWoyZXiBKRu4VLLmyA=;
-        b=lW+eU7P0yH/u9bi4Y5jMiOOvool/ZlUmb9gwTd0CWXS+8435LF/wp2+rxxYOYeuN0J
-         RYKYZdHPbp+8FKj9Z0dMGQKzAQNUu600zS3U9r7DM9Yan64T07nKFbasxc8S0JliKnoA
-         lVT8IEw2hhxGosnV+EWTV9pZrlQRVTT0YTj64GMnmPw39s74Wqt7VCzIs7TEtNepF1KZ
-         PrfVBOd24NNMRMX4I/zMLU7aU7+yNuUpTkRnrHu1h68B9YzFn/kYtOLOTYOKhPPRvqRc
-         zQ2Z4jSaBnj0m6O/X0YaMLRtDZnrWBa6/rl1tyHqdJcc14HNYppOCrFTREd6uqQYLkcI
-         +knw==
-X-Gm-Message-State: AHQUAuZBeGxA0R5x840gSLCZup0Pn6Q4f2aR4yXF+FdBSpttiWyRwRod
-        Q8h1vEAXDWOyGeqDrh8nc/t9ZzzW
-X-Google-Smtp-Source: AHgI3IbnUt9UibieJFpkV2L1PtEJQK5oKJKJ23XFWsicEp0MjHE08YVLlKVHcehhDbrgMxFm6sf0Qg==
-X-Received: by 2002:a17:902:b101:: with SMTP id q1mr18400213plr.296.1551067850605;
-        Sun, 24 Feb 2019 20:10:50 -0800 (PST)
-Received: from [192.168.86.235] (c-73-241-150-70.hsd1.ca.comcast.net. [73.241.150.70])
-        by smtp.gmail.com with ESMTPSA id n1sm19131922pfi.123.2019.02.24.20.10.49
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Sun, 24 Feb 2019 20:10:49 -0800 (PST)
-Subject: =?UTF-8?Q?Re:_=e7=ad=94=e5=a4=8d:_[PATCH]_netfilter:_force_access_o?=
- =?UTF-8?Q?f_RCU_protected_data_in_nft=5fupdate=5fchain=5fstats?=
-To:     "Li,Rongqing" <lirongqing@baidu.com>,
+        Sun, 24 Feb 2019 23:20:35 -0500
+Received: from mx23.baidu.com ([61.135.165.120]:40118 "EHLO baidu.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1728473AbfBYEUf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 24 Feb 2019 23:20:35 -0500
+X-Greylist: delayed 916 seconds by postgrey-1.27 at vger.kernel.org; Sun, 24 Feb 2019 23:20:33 EST
+Received: from USDC-Mail-CAS03.internal.baidu.com (unknown [172.19.44.141])
+        by Forcepoint Email with ESMTPS id CF39446813D6B;
+        Mon, 25 Feb 2019 12:05:14 +0800 (CST)
+Received: from BC-Mail-Ex14.internal.baidu.com (172.31.40.50) by
+ USDC-Mail-CAS03.internal.baidu.com (172.19.44.141) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
+ 15.1.1531.3; Sun, 24 Feb 2019 20:05:11 -0800
+Received: from BC-Mail-Ex13.internal.baidu.com (172.31.40.49) by
+ BC-Mail-Ex14.internal.baidu.com (172.31.40.50) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
+ 15.1.1531.3; Mon, 25 Feb 2019 12:05:09 +0800
+Received: from BC-Mail-Ex13.internal.baidu.com ([172.31.40.49]) by
+ Bc-Mail-Ex13.internal.baidu.com ([172.31.40.49]) with mapi id 15.01.1531.010;
+ Mon, 25 Feb 2019 12:05:09 +0800
+From:   "Li,Rongqing" <lirongqing@baidu.com>
+To:     Eric Dumazet <eric.dumazet@gmail.com>,
         "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-References: <1551059920-14120-1-git-send-email-lirongqing@baidu.com>
- <4818220f-1c66-df00-e397-4efbeba82665@gmail.com>
- <b8ca2a794fdf4406a52ee4ecb78ef54b@baidu.com>
-From:   Eric Dumazet <eric.dumazet@gmail.com>
-Message-ID: <cc982bdc-3639-490d-36a7-df32316313e2@gmail.com>
-Date:   Sun, 24 Feb 2019 20:10:48 -0800
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:52.0) Gecko/20100101
- Thunderbird/52.9.1
+Subject: =?utf-8?B?562U5aSNOiBbUEFUQ0hdW25mLW5leHRdIG5ldGZpbHRlcjogVXNlIFJDVSBw?=
+ =?utf-8?Q?rimitives_under_RCU_protected_data?=
+Thread-Topic: [PATCH][nf-next] netfilter: Use RCU primitives under RCU
+ protected data
+Thread-Index: AQHUzL2Ti9jl5srMdEaf3oC7Bye7b6Xv5NGQ
+Date:   Mon, 25 Feb 2019 04:05:09 +0000
+Message-ID: <06d08b4aff314d1481b75707bd9d4a03@baidu.com>
+References: <1551065562-26220-1-git-send-email-lirongqing@baidu.com>
+ <2963a108-e8ae-e8d6-8e5a-d4605c432e72@gmail.com>
+In-Reply-To: <2963a108-e8ae-e8d6-8e5a-d4605c432e72@gmail.com>
+Accept-Language: zh-CN, en-US
+Content-Language: zh-CN
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+x-originating-ip: [172.24.150.12]
+x-baidu-bdmsfe-datecheck: 1_BC-Mail-Ex14_2019-02-25 12:05:09:755
+x-baidu-bdmsfe-viruscheck: BC-Mail-Ex14_GRAY_Inside_WithoutAtta_2019-02-25
+ 12:05:09:740
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-In-Reply-To: <b8ca2a794fdf4406a52ee4ecb78ef54b@baidu.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+X-Baidu-BdMsfe-DateCheck: 1_USDC-Mail-CAS03_2019-02-24 20:05:14:180
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-
-
-On 02/24/2019 08:03 PM, Li,Rongqing wrote:
-> 
-> 
->> -----邮件原件-----
->> 发件人: Eric Dumazet [mailto:eric.dumazet@gmail.com]
->> 发送时间: 2019年2月25日 11:50
->> 收件人: Li,Rongqing <lirongqing@baidu.com>; netfilter-devel@vger.kernel.org
->> 主题: Re: [PATCH] netfilter: force access of RCU protected data in
->> nft_update_chain_stats
->>
->>
->>
->> On 02/24/2019 05:58 PM, Li RongQing wrote:
->>> basechain->stats is rcu protected data, cannot assure that
->>> twice accesses have the same result, so dereference it once.
->>>
->>> basechain->stats is allocated by percpu allocater, if it is not NULL,
->>> its percpu variable does not need to be checked with NULL
->>>
->>> Signed-off-by: Zhang Yu <zhangyu31@baidu.com>
->>> Signed-off-by: Li RongQing <lirongqing@baidu.com>
->>> ---
->>>  net/netfilter/nf_tables_core.c | 18 +++++++++---------
->>>  1 file changed, 9 insertions(+), 9 deletions(-)
->>>
->>> diff --git a/net/netfilter/nf_tables_core.c
->>> b/net/netfilter/nf_tables_core.c index 2a00aef7b6d4..9be622c76a62
->>> 100644
->>> --- a/net/netfilter/nf_tables_core.c
->>> +++ b/net/netfilter/nf_tables_core.c
->>> @@ -98,20 +98,20 @@ static noinline void nft_update_chain_stats(const
->> struct nft_chain *chain,
->>>  					    const struct nft_pktinfo *pkt)  {
->>>  	struct nft_base_chain *base_chain;
->>> -	struct nft_stats *stats;
->>> +	struct nft_stats *stats, *pstat;
->>>
->>>  	base_chain = nft_base_chain(chain);
->>> -	if (!rcu_access_pointer(base_chain->stats))
->>> +
->>> +	stats = rcu_dereference(base_chain->stats);
->>
->> This looks bogus to me.
->>
->> Where is the needed rcu_read_lock() before rcu_dereference() ?
->>
-> 
-> Ok, I will check it carefully.
-> 
->> This rcu_access_pointer() test is fine, and avoids a
->> local_bh_disable()/local_bh_enable()
->> if they are not needed.
-> 
-> 
-> 
-> But it can not assure that rcu_dereference(base_chain->stats) returns NULL since nft_chain_stats_replace, should we check it again, other than check the returning of this_cpu_ptr?
-> 
-
-Sorry I do not understand your concern.
-
+DQoNCj4gLS0tLS3pgq7ku7bljp/ku7YtLS0tLQ0KPiDlj5Hku7bkuro6IEVyaWMgRHVtYXpldCBb
+bWFpbHRvOmVyaWMuZHVtYXpldEBnbWFpbC5jb21dDQo+IOWPkemAgeaXtumXtDogMjAxOeW5tDLm
+nIgyNeaXpSAxMTo1Mw0KPiDmlLbku7bkuro6IExpLFJvbmdxaW5nIDxsaXJvbmdxaW5nQGJhaWR1
+LmNvbT47IG5ldGZpbHRlci1kZXZlbEB2Z2VyLmtlcm5lbC5vcmcNCj4g5Li76aKYOiBSZTogW1BB
+VENIXVtuZi1uZXh0XSBuZXRmaWx0ZXI6IFVzZSBSQ1UgcHJpbWl0aXZlcyB1bmRlciBSQ1UgcHJv
+dGVjdGVkDQo+IGRhdGENCj4gDQo+IA0KPiANCj4gT24gMDIvMjQvMjAxOSAwNzozMiBQTSwgTGkg
+Um9uZ1Fpbmcgd3JvdGU6DQo+ID4gVGhpcyBwb2ludGVyIGlzIFJDVSBwcm90ZWN0ZWQsIHNvIHBy
+b3BlciBwcmltaXRpdmVzIHNob3VsZCBiZSB1c2VkLg0KPiA+DQo+ID4gU2lnbmVkLW9mZi1ieTog
+WmhhbmcgWXUgPHpoYW5neXUzMUBiYWlkdS5jb20+DQo+ID4gU2lnbmVkLW9mZi1ieTogTGkgUm9u
+Z1FpbmcgPGxpcm9uZ3FpbmdAYmFpZHUuY29tPg0KPiA+IC0tLQ0KPiA+ICBuZXQvbmV0ZmlsdGVy
+L3h0X0NULmMgfCA2ICsrKy0tLQ0KPiA+ICAxIGZpbGUgY2hhbmdlZCwgMyBpbnNlcnRpb25zKCsp
+LCAzIGRlbGV0aW9ucygtKQ0KPiA+DQo+ID4gZGlmZiAtLWdpdCBhL25ldC9uZXRmaWx0ZXIveHRf
+Q1QuYyBiL25ldC9uZXRmaWx0ZXIveHRfQ1QuYyBpbmRleA0KPiA+IDBmYTg2M2Y1NzU3NS4uMjZk
+ZWU4YmJhMzI2IDEwMDY0NA0KPiA+IC0tLSBhL25ldC9uZXRmaWx0ZXIveHRfQ1QuYw0KPiA+ICsr
+KyBiL25ldC9uZXRmaWx0ZXIveHRfQ1QuYw0KPiA+IEBAIC05OSw3ICs5OSw3IEBAIHh0X2N0X3Nl
+dF9oZWxwZXIoc3RydWN0IG5mX2Nvbm4gKmN0LCBjb25zdCBjaGFyDQo+ICpoZWxwZXJfbmFtZSwN
+Cj4gPiAgCQlyZXR1cm4gLUVOT01FTTsNCj4gPiAgCX0NCj4gPg0KPiA+IC0JaGVscC0+aGVscGVy
+ID0gaGVscGVyOw0KPiA+ICsJUkNVX0lOSVRfUE9JTlRFUihoZWxwLT5oZWxwZXIsIGhlbHBlcik7
+DQo+ID4gIAlyZXR1cm4gMDsNCj4gPiAgfQ0KPiA+DQo+ID4gQEAgLTI3NCw3ICsyNzQsNyBAQCBz
+dGF0aWMgaW50IHh0X2N0X3RnX2NoZWNrKGNvbnN0IHN0cnVjdA0KPiA+IHh0X3RnY2hrX3BhcmFt
+ICpwYXIsDQo+ID4gIGVycjQ6DQo+ID4gIAloZWxwID0gbmZjdF9oZWxwKGN0KTsNCj4gPiAgCWlm
+IChoZWxwKQ0KPiA+IC0JCW5mX2Nvbm50cmFja19oZWxwZXJfcHV0KGhlbHAtPmhlbHBlcik7DQo+
+ID4gKwkJbmZfY29ubnRyYWNrX2hlbHBlcl9wdXQocmN1X2RlcmVmZXJlbmNlKGhlbHAtPmhlbHBl
+cikpOw0KPiANCj4gQXJlIHlvdSBzdXJlIGl0IGlzIG9rLCBoYXZlIHlvdSB0ZXN0ZWQgeW91ciBw
+YXRjaCA/DQo+IA0KPiBXaGVyZSBpcyB0aGUgcmN1X3JlYWRfbG9jaygpID8NCj4gDQo+IENPTkZJ
+R19QUk9WRV9SQ1U9eSAgd2lsbCBsaWtlbHkgZ2l2ZSBhIHNwbGF0IGhlcmUuDQo+IA0KDQpUaGFu
+a3MsICBJIHdpbGwgdGVzdCBpdCBhcyB5b3VyIHN1Z2dlc3Rpb24NCg0KLVJvbmdRaW5nDQoNCg0K
