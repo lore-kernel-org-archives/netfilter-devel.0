@@ -6,29 +6,29 @@ X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9EFFDC10F00
-	for <netfilter-devel@archiver.kernel.org>; Mon, 25 Feb 2019 13:13:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 32D2CC4360F
+	for <netfilter-devel@archiver.kernel.org>; Mon, 25 Feb 2019 13:13:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6A42120652
-	for <netfilter-devel@archiver.kernel.org>; Mon, 25 Feb 2019 13:13:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0D21E20652
+	for <netfilter-devel@archiver.kernel.org>; Mon, 25 Feb 2019 13:13:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727160AbfBYNNw (ORCPT
+        id S1727162AbfBYNNw (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Mon, 25 Feb 2019 08:13:52 -0500
-Received: from mail.us.es ([193.147.175.20]:59562 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:59570 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727072AbfBYNNv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 25 Feb 2019 08:13:51 -0500
+        id S1727156AbfBYNNw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 25 Feb 2019 08:13:52 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 2C50453AA37
+        by mail.us.es (Postfix) with ESMTP id BAD0A53AA39
         for <netfilter-devel@vger.kernel.org>; Mon, 25 Feb 2019 14:13:50 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 197BDDA85E
+        by antivirus1-rhel7.int (Postfix) with ESMTP id ABB8BDA878
         for <netfilter-devel@vger.kernel.org>; Mon, 25 Feb 2019 14:13:50 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 0E1C2DA84E; Mon, 25 Feb 2019 14:13:50 +0100 (CET)
+        id 9BEF3DA7F4; Mon, 25 Feb 2019 14:13:50 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 1BC31DA85E;
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A572DDA846;
         Mon, 25 Feb 2019 14:13:48 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
@@ -36,15 +36,15 @@ Received: from 192.168.1.97 (192.168.1.97)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id E6ED54265A2F;
-        Mon, 25 Feb 2019 14:13:47 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPA id 83C094265A2F;
+        Mon, 25 Feb 2019 14:13:48 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     fw@strlen.de
-Subject: [PATCH nf 2/3] netfilter: nft_set_hash: bogus element self comparison from deactivation path
-Date:   Mon, 25 Feb 2019 14:13:42 +0100
-Message-Id: <20190225131343.8080-2-pablo@netfilter.org>
+Subject: [PATCH nf 3/3] netfilter: nft_set_hash: remove nft_hash_key()
+Date:   Mon, 25 Feb 2019 14:13:43 +0100
+Message-Id: <20190225131343.8080-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20190225131343.8080-1-pablo@netfilter.org>
 References: <20190225131343.8080-1-pablo@netfilter.org>
@@ -54,30 +54,50 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Use the element from the loop iteration, not the same element we want to
-deactivate otherwise this branch always evaluates true.
+hashtable is never used for 2-byte keys, remove nft_hash_key().
 
-Fixes: 6c03ae210ce3 ("netfilter: nft_set_hash: add non-resizable hashtable implementation")
+Fixes: e240cd0df481 ("netfilter: nf_tables: place all set backends in one single module")
 Reported-by: Florian Westphal <fw@strlen.de>
 Tested-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_set_hash.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/netfilter/nft_set_hash.c | 13 ++-----------
+ 1 file changed, 2 insertions(+), 11 deletions(-)
 
 diff --git a/net/netfilter/nft_set_hash.c b/net/netfilter/nft_set_hash.c
-index 8d5611634a56..f4da3677bdfc 100644
+index f4da3677bdfc..03df08801e28 100644
 --- a/net/netfilter/nft_set_hash.c
 +++ b/net/netfilter/nft_set_hash.c
-@@ -541,7 +541,7 @@ static void *nft_hash_deactivate(const struct net *net,
+@@ -442,15 +442,6 @@ static void *nft_hash_get(const struct net *net, const struct nft_set *set,
+ 	return ERR_PTR(-ENOENT);
+ }
  
- 	hash = nft_jhash(set, priv, &this->ext);
- 	hlist_for_each_entry(he, &priv->table[hash], node) {
--		if (!memcmp(nft_set_ext_key(&this->ext), &elem->key.val,
-+		if (!memcmp(nft_set_ext_key(&he->ext), &elem->key.val,
- 			    set->klen) &&
+-/* nft_hash_select_ops() makes sure key size can be either 2 or 4 bytes . */
+-static inline u32 nft_hash_key(const u32 *key, u32 klen)
+-{
+-	if (klen == 4)
+-		return *key;
+-
+-	return *(u16 *)key;
+-}
+-
+ static bool nft_hash_lookup_fast(const struct net *net,
+ 				 const struct nft_set *set,
+ 				 const u32 *key, const struct nft_set_ext **ext)
+@@ -460,11 +451,11 @@ static bool nft_hash_lookup_fast(const struct net *net,
+ 	const struct nft_hash_elem *he;
+ 	u32 hash, k1, k2;
+ 
+-	k1 = nft_hash_key(key, set->klen);
++	k1 = *key;
+ 	hash = jhash_1word(k1, priv->seed);
+ 	hash = reciprocal_scale(hash, priv->buckets);
+ 	hlist_for_each_entry_rcu(he, &priv->table[hash], node) {
+-		k2 = nft_hash_key(nft_set_ext_key(&he->ext)->data, set->klen);
++		k2 = *(u32 *)nft_set_ext_key(&he->ext)->data;
+ 		if (k1 == k2 &&
  		    nft_set_elem_active(&he->ext, genmask)) {
- 			nft_set_elem_change_active(net, set, &he->ext);
+ 			*ext = &he->ext;
 -- 
 2.11.0
 
