@@ -1,100 +1,86 @@
-Return-Path: <SRS0=WVDP=RA=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=SqQQ=RB=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_PASS,USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EF965C43381
-	for <netfilter-devel@archiver.kernel.org>; Mon, 25 Feb 2019 20:21:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B629FC43381
+	for <netfilter-devel@archiver.kernel.org>; Tue, 26 Feb 2019 00:21:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CC7BB20842
-	for <netfilter-devel@archiver.kernel.org>; Mon, 25 Feb 2019 20:21:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7B87B2184D
+	for <netfilter-devel@archiver.kernel.org>; Tue, 26 Feb 2019 00:21:19 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1551140479;
+	bh=X51vj5EVI/oOsso7M7I8E5Rl0eYPknjI1XH43zy0SpY=;
+	h=From:To:Cc:Subject:Date:List-ID:From;
+	b=ovwfN/eiHtepwpmYTAg+XCE359Zg5w8PNH5livpw0u1Dg0nRoSFVTkjLahGuQoBKv
+	 iBIc+WBFyJFf/bplPlV4S8bN6NQ4DmrvJCZwSWBrzkIwC5uj8VjE/AGCwB9ZcHoTto
+	 mSuxKwM45G3lyYoqz1ircttny1onpANMiigrqEq4=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727230AbfBYUVj (ORCPT
+        id S1729595AbfBZAVR (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 25 Feb 2019 15:21:39 -0500
-Received: from ja.ssi.bg ([178.16.129.10]:55006 "EHLO ja.ssi.bg"
-        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1727021AbfBYUVj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 25 Feb 2019 15:21:39 -0500
-Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
-        by ja.ssi.bg (8.15.2/8.15.2) with ESMTP id x1PKJwWJ005616;
-        Mon, 25 Feb 2019 22:19:59 +0200
-Date:   Mon, 25 Feb 2019 22:19:58 +0200 (EET)
-From:   Julian Anastasov <ja@ssi.bg>
-To:     Xin Long <lucien.xin@gmail.com>
-cc:     network dev <netdev@vger.kernel.org>,
-        netfilter-devel@vger.kernel.org,
-        Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>,
-        Neil Horman <nhorman@tuxdriver.com>, pablo@netfilter.org,
-        Simon Horman <horms@verge.net.au>, lvs-devel@vger.kernel.org
-Subject: Re: [PATCH net] ipvs: get sctphdr by sctphoff in sctp_csum_check
-In-Reply-To: <cd1c829cfd9ee916e57c51f6879947f0f88c1eb1.1551094063.git.lucien.xin@gmail.com>
-Message-ID: <alpine.LFD.2.21.1902252213460.3472@ja.home.ssi.bg>
-References: <cd1c829cfd9ee916e57c51f6879947f0f88c1eb1.1551094063.git.lucien.xin@gmail.com>
-User-Agent: Alpine 2.21 (LFD 202 2017-01-01)
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+        Mon, 25 Feb 2019 19:21:17 -0500
+Received: from mail.kernel.org ([198.145.29.99]:54578 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727551AbfBZAVQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 25 Feb 2019 19:21:16 -0500
+Received: from kenny.it.cumulusnetworks.com. (fw.cumulusnetworks.com [216.129.126.126])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 32F852184D;
+        Tue, 26 Feb 2019 00:21:15 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1551140475;
+        bh=X51vj5EVI/oOsso7M7I8E5Rl0eYPknjI1XH43zy0SpY=;
+        h=From:To:Cc:Subject:Date:From;
+        b=u4bWwPILiOgBFeOd6d02R+8G4Y8MzvYHH4WF9sn+8tEIXA3d4L7djyAGtbjjDfygf
+         du7NzNv/15Pki8BJaxmk+ZXklJLB4oqUsYz6cX3yVABEW2/9E5UsfCgBdcA4RiS3uB
+         xjZDJFMb/7yK7nUGok1sEb3MRB5SLUx/tTCbQlbY=
+From:   David Ahern <dsahern@kernel.org>
+To:     pablo@netfilter.org
+Cc:     netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        David Ahern <dsahern@gmail.com>
+Subject: [PATCH net] netfilter: bridge: Don't sabotage nf_hook calls for an l3mdev slave
+Date:   Mon, 25 Feb 2019 16:21:14 -0800
+Message-Id: <20190226002114.2245-1-dsahern@kernel.org>
+X-Mailer: git-send-email 2.11.0
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+From: David Ahern <dsahern@gmail.com>
 
-	Hello,
+Followup to a173f066c7cf ("netfilter: bridge: Don't sabotage nf_hook
+calls from an l3mdev"). Some packets (e.g., ndisc) do not have the skb
+device flipped to the l3mdev (e.g., VRF) device. Update ip_sabotage_in
+to not drop packets for slave devices too. Currently, neighbor
+solicitation packets for 'dev -> bridge (addr) -> vrf' setups are getting
+dropped. This patch enables IPv6 communications for bridges with an
+address that are enslaved to a VRF.
 
-On Mon, 25 Feb 2019, Xin Long wrote:
+Fixes: 73e20b761acf ("net: vrf: Add support for PREROUTING rules on vrf device")
+Signed-off-by: David Ahern <dsahern@gmail.com>
+---
+ net/bridge/br_netfilter_hooks.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-> sctp_csum_check() is called by sctp_s/dnat_handler() where it calls
-> skb_make_writable() to ensure sctphdr to be linearized.
-> 
-> So there's no need to get sctphdr by calling skb_header_pointer()
-> in sctp_csum_check().
-> 
-> Signed-off-by: Xin Long <lucien.xin@gmail.com>
+diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
+index c93c35bb73dd..8ab222babc98 100644
+--- a/net/bridge/br_netfilter_hooks.c
++++ b/net/bridge/br_netfilter_hooks.c
+@@ -831,7 +831,8 @@ static unsigned int ip_sabotage_in(void *priv,
+ 	struct nf_bridge_info *nf_bridge = nf_bridge_info_get(skb);
+ 
+ 	if (nf_bridge && !nf_bridge->in_prerouting &&
+-	    !netif_is_l3_master(skb->dev)) {
++	    !netif_is_l3_master(skb->dev) &&
++	    !netif_is_l3_slave(skb->dev)) {
+ 		state->okfn(state->net, state->sk, skb);
+ 		return NF_STOLEN;
+ 	}
+-- 
+2.11.0
 
-	Looks good to me, thanks!
-
-Acked-by: Julian Anastasov <ja@ssi.bg>
-
-	I guess, it is for the nf-next/net-next tree because it just
-eliminates a duplicate check.
-
-> ---
->  net/netfilter/ipvs/ip_vs_proto_sctp.c | 7 ++-----
->  1 file changed, 2 insertions(+), 5 deletions(-)
-> 
-> diff --git a/net/netfilter/ipvs/ip_vs_proto_sctp.c b/net/netfilter/ipvs/ip_vs_proto_sctp.c
-> index b0cd7d0..0ecf241 100644
-> --- a/net/netfilter/ipvs/ip_vs_proto_sctp.c
-> +++ b/net/netfilter/ipvs/ip_vs_proto_sctp.c
-> @@ -183,7 +183,7 @@ static int
->  sctp_csum_check(int af, struct sk_buff *skb, struct ip_vs_protocol *pp)
->  {
->  	unsigned int sctphoff;
-> -	struct sctphdr *sh, _sctph;
-> +	struct sctphdr *sh;
->  	__le32 cmp, val;
->  
->  #ifdef CONFIG_IP_VS_IPV6
-> @@ -193,10 +193,7 @@ sctp_csum_check(int af, struct sk_buff *skb, struct ip_vs_protocol *pp)
->  #endif
->  		sctphoff = ip_hdrlen(skb);
->  
-> -	sh = skb_header_pointer(skb, sctphoff, sizeof(_sctph), &_sctph);
-> -	if (sh == NULL)
-> -		return 0;
-> -
-> +	sh = (struct sctphdr *)(skb->data + sctphoff);
->  	cmp = sh->checksum;
->  	val = sctp_compute_cksum(skb, sctphoff);
->  
-> -- 
-> 2.1.0
-
-Regards
-
---
-Julian Anastasov <ja@ssi.bg>
