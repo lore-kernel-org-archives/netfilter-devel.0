@@ -2,85 +2,103 @@ Return-Path: <SRS0=SqQQ=RB=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_PASS,URIBL_BLOCKED autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B629FC43381
-	for <netfilter-devel@archiver.kernel.org>; Tue, 26 Feb 2019 00:21:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A2C7AC43381
+	for <netfilter-devel@archiver.kernel.org>; Tue, 26 Feb 2019 00:27:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7B87B2184D
-	for <netfilter-devel@archiver.kernel.org>; Tue, 26 Feb 2019 00:21:19 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1551140479;
-	bh=X51vj5EVI/oOsso7M7I8E5Rl0eYPknjI1XH43zy0SpY=;
-	h=From:To:Cc:Subject:Date:List-ID:From;
-	b=ovwfN/eiHtepwpmYTAg+XCE359Zg5w8PNH5livpw0u1Dg0nRoSFVTkjLahGuQoBKv
-	 iBIc+WBFyJFf/bplPlV4S8bN6NQ4DmrvJCZwSWBrzkIwC5uj8VjE/AGCwB9ZcHoTto
-	 mSuxKwM45G3lyYoqz1ircttny1onpANMiigrqEq4=
+	by mail.kernel.org (Postfix) with ESMTP id 7BCE02184E
+	for <netfilter-devel@archiver.kernel.org>; Tue, 26 Feb 2019 00:27:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729595AbfBZAVR (ORCPT
+        id S1729403AbfBZA1z (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 25 Feb 2019 19:21:17 -0500
-Received: from mail.kernel.org ([198.145.29.99]:54578 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727551AbfBZAVQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 25 Feb 2019 19:21:16 -0500
-Received: from kenny.it.cumulusnetworks.com. (fw.cumulusnetworks.com [216.129.126.126])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        Mon, 25 Feb 2019 19:27:55 -0500
+Received: from mail.ngtech.co.il ([84.95.212.160]:48986 "EHLO
+        mail.ngtech.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728953AbfBZA1z (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 25 Feb 2019 19:27:55 -0500
+X-Greylist: delayed 422 seconds by postgrey-1.27 at vger.kernel.org; Mon, 25 Feb 2019 19:27:54 EST
+Received: from ELIEZERLAP1 (unknown [10.0.0.75])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 32F852184D;
-        Tue, 26 Feb 2019 00:21:15 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1551140475;
-        bh=X51vj5EVI/oOsso7M7I8E5Rl0eYPknjI1XH43zy0SpY=;
-        h=From:To:Cc:Subject:Date:From;
-        b=u4bWwPILiOgBFeOd6d02R+8G4Y8MzvYHH4WF9sn+8tEIXA3d4L7djyAGtbjjDfygf
-         du7NzNv/15Pki8BJaxmk+ZXklJLB4oqUsYz6cX3yVABEW2/9E5UsfCgBdcA4RiS3uB
-         xjZDJFMb/7yK7nUGok1sEb3MRB5SLUx/tTCbQlbY=
-From:   David Ahern <dsahern@kernel.org>
-To:     pablo@netfilter.org
-Cc:     netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        David Ahern <dsahern@gmail.com>
-Subject: [PATCH net] netfilter: bridge: Don't sabotage nf_hook calls for an l3mdev slave
-Date:   Mon, 25 Feb 2019 16:21:14 -0800
-Message-Id: <20190226002114.2245-1-dsahern@kernel.org>
-X-Mailer: git-send-email 2.11.0
+        by mail.ngtech.co.il (Postfix) with ESMTPSA id D23F3607B1F0;
+        Tue, 26 Feb 2019 02:20:51 +0200 (IST)
+From:   <eliezer@ngtech.co.il>
+To:     "'Jozsef Kadlecsik'" <kadlec@blackhole.kfki.hu>
+Cc:     <netfilter@vger.kernel.org>, <netfilter-devel@vger.kernel.org>
+References: <alpine.DEB.2.20.1812111334220.25036@blackhole.kfki.hu>
+In-Reply-To: <alpine.DEB.2.20.1812111334220.25036@blackhole.kfki.hu>
+Subject: RE: [ANNOUNCE] ipset 7.1 released
+Date:   Tue, 26 Feb 2019 02:20:50 +0200
+Message-ID: <01cd01d4cd69$20d81800$62884800$@ngtech.co.il>
+MIME-Version: 1.0
+Content-Type: text/plain;
+        charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+X-Mailer: Microsoft Outlook 16.0
+Content-Language: en-us
+Thread-Index: AQFsYD5OTZeF5i0g5D9yG98D1m+qNqbCEVKw
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: David Ahern <dsahern@gmail.com>
+Can you refer me to an example to what it would be usefull fo
+ansible,chef,puppet?
+Do you mean that it would be easier to configure ipset with them?
 
-Followup to a173f066c7cf ("netfilter: bridge: Don't sabotage nf_hook
-calls from an l3mdev"). Some packets (e.g., ndisc) do not have the skb
-device flipped to the l3mdev (e.g., VRF) device. Update ip_sabotage_in
-to not drop packets for slave devices too. Currently, neighbor
-solicitation packets for 'dev -> bridge (addr) -> vrf' setups are getting
-dropped. This patch enables IPv6 communications for bridges with an
-address that are enslaved to a VRF.
+Thanks,
+Eliezer
 
-Fixes: 73e20b761acf ("net: vrf: Add support for PREROUTING rules on vrf device")
-Signed-off-by: David Ahern <dsahern@gmail.com>
----
- net/bridge/br_netfilter_hooks.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+----
+Eliezer Croitoru
+Linux System Administrator
+Mobile: +972-5-28704261
+Email: eliezer@ngtech.co.il
 
-diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
-index c93c35bb73dd..8ab222babc98 100644
---- a/net/bridge/br_netfilter_hooks.c
-+++ b/net/bridge/br_netfilter_hooks.c
-@@ -831,7 +831,8 @@ static unsigned int ip_sabotage_in(void *priv,
- 	struct nf_bridge_info *nf_bridge = nf_bridge_info_get(skb);
- 
- 	if (nf_bridge && !nf_bridge->in_prerouting &&
--	    !netif_is_l3_master(skb->dev)) {
-+	    !netif_is_l3_master(skb->dev) &&
-+	    !netif_is_l3_slave(skb->dev)) {
- 		state->okfn(state->net, state->sk, skb);
- 		return NF_STOLEN;
- 	}
--- 
-2.11.0
+
+-----Original Message-----
+From: netfilter-owner@vger.kernel.org <netfilter-owner@vger.kernel.org> On
+Behalf Of Jozsef Kadlecsik
+Sent: Tuesday, December 11, 2018 14:44
+To: netfilter@vger.kernel.org; netfilter-devel@vger.kernel.org
+Subject: [ANNOUNCE] ipset 7.1 released
+
+Hi,
+
+I'm happy to announce ipset 7.1. Besides the usual bugfixes there's a new 
+feature: sorting is implemented for the hash types of the sets, which is 
+useful for config management systems (ansible, chef, puppet, etc.).
+
+Userspace changes:
+  - Add compatibility support for strscpy()
+  - Correct the manpage about the sort option
+  - Add missing functions to libipset.map
+  - configure.ac: Fix build regression on RHEL/CentOS/SL
+    (Serhey Popovych)
+  - Implement sorting for hash types in the ipset tool
+  - Fix to list/save into file specified by option
+    (reported by Isaac Good)
+Kernel part changes:
+  - netfilter/ipset: replace a strncpy() with strscpy() (Qian Cai)
+  - netfilter: ipset: fix ip_set_byindex function (Florent Fourcot)
+  - netfilter: ipset: do not call ipset_nest_end after nla_nest_cancel
+    (Pan Bian)
+  - Correct workaround in patch "Fix calling ip_set() macro at dumping"
+
+You can download the source code of ipset from:
+        http://ipset.netfilter.org
+        ftp://ftp.netfilter.org/pub/ipset/
+        git://git.netfilter.org/ipset.git
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
 
