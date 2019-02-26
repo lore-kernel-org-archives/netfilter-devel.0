@@ -2,63 +2,97 @@ Return-Path: <SRS0=SqQQ=RB=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 61AE2C43381
-	for <netfilter-devel@archiver.kernel.org>; Tue, 26 Feb 2019 09:10:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C44EDC43381
+	for <netfilter-devel@archiver.kernel.org>; Tue, 26 Feb 2019 09:14:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 39C6A213A2
-	for <netfilter-devel@archiver.kernel.org>; Tue, 26 Feb 2019 09:10:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9A7342173C
+	for <netfilter-devel@archiver.kernel.org>; Tue, 26 Feb 2019 09:14:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727080AbfBZJKx (ORCPT
+        id S1727067AbfBZJON (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 26 Feb 2019 04:10:53 -0500
-Received: from nimbus.fidion.de ([62.146.2.206]:51478 "EHLO nimbus.fidion.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725941AbfBZJKw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 26 Feb 2019 04:10:52 -0500
-Received: (qmail 30004 invoked from network); 26 Feb 2019 09:10:48 -0000
-Received: from nimbus.fidion.de (HELO ?192.168.42.88?) (flo@62.146.2.206)
-  by nimbus.intra.fidion.de with ESMTPA; 26 Feb 2019 09:10:48 -0000
-Subject: Re: [PATCH] netfilter: nf_conntrack_amanda: add support for STATE
- streams
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-References: <a01c1d2d-d55d-c55b-c39d-2b35c070bcae@fidion.de>
- <20190215143902.ga5e2pljilncvqcu@salvia>
- <ecf05928-0258-f835-6ea2-f6bb73a83481@fidion.de>
- <20190218095336.2u54jnsn3mmxoq5q@salvia>
- <767a3554-3a6f-651d-44d7-7b309a29688f@fidion.de>
- <20190218124245.s3b5zoysnu7gtloy@salvia>
-From:   Florian Tham <tham@fidion.de>
-Openpgp: preference=signencrypt
-Message-ID: <5ed5cbb2-d083-ef70-7ca6-6c0ca7cb8062@fidion.de>
-Date:   Tue, 26 Feb 2019 10:10:48 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.5.0
-MIME-Version: 1.0
-In-Reply-To: <20190218124245.s3b5zoysnu7gtloy@salvia>
-Content-Type: text/plain; charset=utf-8
-Content-Language: de-DE
-Content-Transfer-Encoding: 7bit
+        Tue, 26 Feb 2019 04:14:13 -0500
+Received: from mx133-tc.baidu.com ([61.135.168.133]:27651 "EHLO
+        tc-sys-mailedm06.tc.baidu.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1725941AbfBZJON (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 26 Feb 2019 04:14:13 -0500
+Received: from localhost (cp01-cos-dev01.cp01.baidu.com [10.92.119.46])
+        by tc-sys-mailedm06.tc.baidu.com (Postfix) with ESMTP id 44677263C003;
+        Tue, 26 Feb 2019 17:13:56 +0800 (CST)
+From:   Li RongQing <lirongqing@baidu.com>
+To:     netfilter-devel@vger.kernel.org, eric.dumazet@gmail.com
+Subject: [PATCH][v2] netfilter: check the result of dereferencing base_chain->stats
+Date:   Tue, 26 Feb 2019 17:13:56 +0800
+Message-Id: <1551172436-5233-1-git-send-email-lirongqing@baidu.com>
+X-Mailer: git-send-email 1.7.1
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello Pablo,
+check the result of dereferencing base_chain->stats, instead of
+result of this_cpu_ptr with NULL
 
-On 2/18/19 1:42 PM, Pablo Neira Ayuso wrote:
->> After I set max_expected to 4, the backup completes successfully.
-> 
-> Then, the new protocol version needs to set up more than 3
-> expectations in parallel. Please, document this in your patch
-> description.
+base_chain->stats maybe be changed to NULL when a chain is
+updated and a new NULL counter can be attached
 
-I did so in my reply to this message on Feb. 18. Does this work for you,
-or is there anything else I can do?
+and we do not need to check returning of this_cpu_ptr since
+base_chain->stats is from percpu allocator if it is non-NULL,
+this_cpu_ptr returns a valid value
 
-Best regards,
+and fix two sparse error by replacing rcu_access_pointer and
+rcu_dereference with READ_ONCE under rcu_read_lock
 
-Florian
+Thanks for Eric's help to finish this patch
+
+Fixes: 009240940e84c1 ("netfilter: nf_tables: don't assume chain stats are set when jumplabel is set")
+Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
+Signed-off-by: Zhang Yu <zhangyu31@baidu.com>
+Signed-off-by: Li RongQing <lirongqing@baidu.com>
+---
+ v1 -->v2: move the dereferencing under bh disable context, and fix two sparse
+
+ net/netfilter/nf_tables_core.c | 14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
+
+diff --git a/net/netfilter/nf_tables_core.c b/net/netfilter/nf_tables_core.c
+index 2a00aef7b6d4..7dfbc6746846 100644
+--- a/net/netfilter/nf_tables_core.c
++++ b/net/netfilter/nf_tables_core.c
+@@ -98,21 +98,23 @@ static noinline void nft_update_chain_stats(const struct nft_chain *chain,
+ 					    const struct nft_pktinfo *pkt)
+ {
+ 	struct nft_base_chain *base_chain;
++	struct nft_stats __percpu *pstats;
+ 	struct nft_stats *stats;
+ 
+ 	base_chain = nft_base_chain(chain);
+-	if (!rcu_access_pointer(base_chain->stats))
+-		return;
+ 
+-	local_bh_disable();
+-	stats = this_cpu_ptr(rcu_dereference(base_chain->stats));
+-	if (stats) {
++	rcu_read_lock();
++	pstats = READ_ONCE(base_chain->stats);
++	if (pstats) {
++		local_bh_disable();
++		stats = this_cpu_ptr(pstats);
+ 		u64_stats_update_begin(&stats->syncp);
+ 		stats->pkts++;
+ 		stats->bytes += pkt->skb->len;
+ 		u64_stats_update_end(&stats->syncp);
++		local_bh_enable();
+ 	}
+-	local_bh_enable();
++	rcu_read_unlock();
+ }
+ 
+ struct nft_jumpstack {
+-- 
+2.16.2
+
