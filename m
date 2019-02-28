@@ -4,41 +4,40 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+	SPF_PASS,USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E02BC10F0B
-	for <netfilter-devel@archiver.kernel.org>; Thu, 28 Feb 2019 15:20:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B2E08C43381
+	for <netfilter-devel@archiver.kernel.org>; Thu, 28 Feb 2019 15:24:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2F03E206B8
-	for <netfilter-devel@archiver.kernel.org>; Thu, 28 Feb 2019 15:20:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8009F20C01
+	for <netfilter-devel@archiver.kernel.org>; Thu, 28 Feb 2019 15:24:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1551367216;
-	bh=STwgZ71JiIHnrqxcauUnRhITt+r5/YLxN4LvvIz6lOc=;
+	s=default; t=1551367443;
+	bh=8Xb1XaB/ZPyo4bQ7DbLlNnol79Sol05RYW3dpiKA13Y=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=Dx+H3ZwZ7mZ24wrkSH1cblttfgQPc75R3kp1wNgDOyT5KohcDaxhz37EANjqDheIp
-	 4Vo652Zkw9FMv6LxFQXdVLKuP7b58buN3y8ZV7m4EyPbpsWq72tBWAdU4N8OwXMVO5
-	 zfg9/n1B7oF3UuQp63k71PwcqZCl01zHBoPBw3KQ=
+	b=Jnxg7cO2xRj4nUnVSR7dxgwr5c53xddANDphX0777sJBDlEHtYJn6c2fGzahMU3xQ
+	 JyPoubfAc4wtbcelRPGbbf1ae8v7FswaReR7ZHVy0gKKFhl8c1lG0/FZwdJRcwA5QK
+	 5P6uQ6J2n9uFLE5UGDxzlKH9myZyGw1ufcNkV3d8=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731381AbfB1PUN (ORCPT
+        id S2388589AbfB1PXz (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 28 Feb 2019 10:20:13 -0500
-Received: from mail.kernel.org ([198.145.29.99]:49860 "EHLO mail.kernel.org"
+        Thu, 28 Feb 2019 10:23:55 -0500
+Received: from mail.kernel.org ([198.145.29.99]:46604 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388319AbfB1POv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 28 Feb 2019 10:14:51 -0500
+        id S2388326AbfB1PM5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 28 Feb 2019 10:12:57 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id B360D2184A;
-        Thu, 28 Feb 2019 15:14:49 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 83BD2218C3;
+        Thu, 28 Feb 2019 15:12:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1551366890;
-        bh=STwgZ71JiIHnrqxcauUnRhITt+r5/YLxN4LvvIz6lOc=;
+        s=default; t=1551366776;
+        bh=8Xb1XaB/ZPyo4bQ7DbLlNnol79Sol05RYW3dpiKA13Y=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=NB/xeeGZKQpvBRJc0xLvdMtmQ8HQDvmLq8ofIFR27aApaFHhQBLrbdqGcc1rQGK0u
-         h+2KgVaIktKphtSRUZnVGOIBggixY8+PWOj5FuElkMhaBHFTYo8SN/AHMpWFtkTASi
-         aAF0tzIjbnTjv3gasA/p4QxHOQJxfEb1oVtqtdjk=
+        b=WZL8zuSwHNTijdtYr8GnuRrER04DnfsUeWQnvPPLfI7iIOaYllmajWJHAd+3ETPCf
+         fwmM7wPRBTd0CnYYTmwQzxG5EvNt6x/9zZHJy9EH8NrIq6kO2GI5XF4kcDTrMt3A7N
+         bXzXZVnTh1xeZU0lcBZu+1ibRRUPGOG16/OIbrfs=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Martynas Pumputis <martynas@weave.works>,
@@ -47,12 +46,12 @@ Cc:     Martynas Pumputis <martynas@weave.works>,
         Sasha Levin <sashal@kernel.org>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.14 27/36] netfilter: nf_nat: skip nat clash resolution for same-origin entries
-Date:   Thu, 28 Feb 2019 10:13:28 -0500
-Message-Id: <20190228151337.12176-27-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 46/64] netfilter: nf_nat: skip nat clash resolution for same-origin entries
+Date:   Thu, 28 Feb 2019 10:10:47 -0500
+Message-Id: <20190228151105.11277-46-sashal@kernel.org>
 X-Mailer: git-send-email 2.19.1
-In-Reply-To: <20190228151337.12176-1-sashal@kernel.org>
-References: <20190228151337.12176-1-sashal@kernel.org>
+In-Reply-To: <20190228151105.11277-1-sashal@kernel.org>
+References: <20190228151105.11277-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-Patchwork-Hint: Ignore
 Content-Transfer-Encoding: 8bit
@@ -100,10 +99,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 16 insertions(+)
 
 diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index b793b55d14885..f07357ba96299 100644
+index 277d02a8cac8c..895171a2e1f18 100644
 --- a/net/netfilter/nf_conntrack_core.c
 +++ b/net/netfilter/nf_conntrack_core.c
-@@ -869,6 +869,22 @@ nf_conntrack_tuple_taken(const struct nf_conntrack_tuple *tuple,
+@@ -1007,6 +1007,22 @@ nf_conntrack_tuple_taken(const struct nf_conntrack_tuple *tuple,
  		}
  
  		if (nf_ct_key_equal(h, tuple, zone, net)) {
