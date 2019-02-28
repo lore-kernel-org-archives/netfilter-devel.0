@@ -6,38 +6,38 @@ X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
 	SPF_PASS,USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B2E08C43381
-	for <netfilter-devel@archiver.kernel.org>; Thu, 28 Feb 2019 15:24:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D7114C43381
+	for <netfilter-devel@archiver.kernel.org>; Thu, 28 Feb 2019 15:29:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8009F20C01
-	for <netfilter-devel@archiver.kernel.org>; Thu, 28 Feb 2019 15:24:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A70BF20C01
+	for <netfilter-devel@archiver.kernel.org>; Thu, 28 Feb 2019 15:29:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1551367443;
-	bh=8Xb1XaB/ZPyo4bQ7DbLlNnol79Sol05RYW3dpiKA13Y=;
+	s=default; t=1551367792;
+	bh=GANYQMmRV03+mlWdKJI4olu/VHaSWEiOWhSRTQkJaUE=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=Jnxg7cO2xRj4nUnVSR7dxgwr5c53xddANDphX0777sJBDlEHtYJn6c2fGzahMU3xQ
-	 JyPoubfAc4wtbcelRPGbbf1ae8v7FswaReR7ZHVy0gKKFhl8c1lG0/FZwdJRcwA5QK
-	 5P6uQ6J2n9uFLE5UGDxzlKH9myZyGw1ufcNkV3d8=
+	b=W/FaODTIppBNId3aJF4QCfqSW/B9pjkRgOG1WiASoVN1Zolfqw7iw2GczUhPcmXjI
+	 j0uT3UcqUmpj+1OD0zU/EKYzr3I39qJX6uHniY0y2DePkE8ha59IzCV9GR/y+gRTT7
+	 l96A8RRP/EAj0cDHD2VZ1vB92M8dcPpAWDQwzrWk=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388589AbfB1PXz (ORCPT
+        id S2387686AbfB1PKW (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 28 Feb 2019 10:23:55 -0500
-Received: from mail.kernel.org ([198.145.29.99]:46604 "EHLO mail.kernel.org"
+        Thu, 28 Feb 2019 10:10:22 -0500
+Received: from mail.kernel.org ([198.145.29.99]:43060 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388326AbfB1PM5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 28 Feb 2019 10:12:57 -0500
+        id S2387679AbfB1PKV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 28 Feb 2019 10:10:21 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 83BD2218C3;
-        Thu, 28 Feb 2019 15:12:55 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 158C2218C3;
+        Thu, 28 Feb 2019 15:10:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1551366776;
-        bh=8Xb1XaB/ZPyo4bQ7DbLlNnol79Sol05RYW3dpiKA13Y=;
+        s=default; t=1551366620;
+        bh=GANYQMmRV03+mlWdKJI4olu/VHaSWEiOWhSRTQkJaUE=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=WZL8zuSwHNTijdtYr8GnuRrER04DnfsUeWQnvPPLfI7iIOaYllmajWJHAd+3ETPCf
-         fwmM7wPRBTd0CnYYTmwQzxG5EvNt6x/9zZHJy9EH8NrIq6kO2GI5XF4kcDTrMt3A7N
-         bXzXZVnTh1xeZU0lcBZu+1ibRRUPGOG16/OIbrfs=
+        b=JXmO+g8YQmww+RTyjHQeStqN2Rvzmpwfvxn76ekbwj/dR75Ykf1EaZ5T/MvA0pF8W
+         dufJS2ZSVv8LORelia3DPcWduePU68kRP99Up0dF/2LTtKTN3hOzj0MdUuG/GGCDlU
+         QRFZW8RfOuXS/HLpmUsksHILMKM+wddZeglWgWE8=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Martynas Pumputis <martynas@weave.works>,
@@ -46,12 +46,12 @@ Cc:     Martynas Pumputis <martynas@weave.works>,
         Sasha Levin <sashal@kernel.org>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.19 46/64] netfilter: nf_nat: skip nat clash resolution for same-origin entries
-Date:   Thu, 28 Feb 2019 10:10:47 -0500
-Message-Id: <20190228151105.11277-46-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.20 59/81] netfilter: nf_nat: skip nat clash resolution for same-origin entries
+Date:   Thu, 28 Feb 2019 10:07:51 -0500
+Message-Id: <20190228150813.10256-59-sashal@kernel.org>
 X-Mailer: git-send-email 2.19.1
-In-Reply-To: <20190228151105.11277-1-sashal@kernel.org>
-References: <20190228151105.11277-1-sashal@kernel.org>
+In-Reply-To: <20190228150813.10256-1-sashal@kernel.org>
+References: <20190228150813.10256-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-Patchwork-Hint: Ignore
 Content-Transfer-Encoding: 8bit
@@ -99,7 +99,7 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 16 insertions(+)
 
 diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 277d02a8cac8c..895171a2e1f18 100644
+index e92e749aff53e..830b1328fe975 100644
 --- a/net/netfilter/nf_conntrack_core.c
 +++ b/net/netfilter/nf_conntrack_core.c
 @@ -1007,6 +1007,22 @@ nf_conntrack_tuple_taken(const struct nf_conntrack_tuple *tuple,
