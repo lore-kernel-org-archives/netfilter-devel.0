@@ -1,75 +1,102 @@
 Return-Path: <SRS0=zt5D=RD=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
-X-Spam-Level: **
-X-Spam-Status: No, score=2.2 required=3.0 tests=CHARSET_FARAWAY_HEADER,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Level: 
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E5C0C43381
-	for <netfilter-devel@archiver.kernel.org>; Thu, 28 Feb 2019 01:30:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 46094C43381
+	for <netfilter-devel@archiver.kernel.org>; Thu, 28 Feb 2019 05:13:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 36A012186A
-	for <netfilter-devel@archiver.kernel.org>; Thu, 28 Feb 2019 01:30:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 119F5205C9
+	for <netfilter-devel@archiver.kernel.org>; Thu, 28 Feb 2019 05:13:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730341AbfB1BaV (ORCPT
+        id S1730263AbfB1FNl (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 27 Feb 2019 20:30:21 -0500
-Received: from mx22.baidu.com ([220.181.50.185]:57606 "EHLO baidu.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1730234AbfB1BaV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 27 Feb 2019 20:30:21 -0500
-Received: from M1-MAIL-EX15.internal.baidu.com (unknown [10.44.89.55])
-        by Forcepoint Email with ESMTPS id DC8BEF5A36893;
-        Thu, 28 Feb 2019 09:29:42 +0800 (CST)
-Received: from BC-Mail-Ex13.internal.baidu.com (172.31.40.49) by
- M1-MAIL-EX15.internal.baidu.com (10.44.89.55) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
- 15.1.1531.3; Thu, 28 Feb 2019 09:29:43 +0800
-Received: from BC-Mail-Ex13.internal.baidu.com ([172.31.40.49]) by
- Bc-Mail-Ex13.internal.baidu.com ([172.31.40.49]) with mapi id 15.01.1531.010;
- Thu, 28 Feb 2019 09:29:43 +0800
-From:   "Li,Rongqing" <lirongqing@baidu.com>
-To:     Thomas Gleixner <tglx@linutronix.de>
-CC:     "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "sboyd@kernel.org" <sboyd@kernel.org>,
-        "john.stultz@linaro.org" <john.stultz@linaro.org>
-Subject: =?gb2312?B?tPC4tDogW1BBVENIXSB0aW1lOiBJbnRyb2R1Y2UgamlmZmllczY0X3RvX21z?=
- =?gb2312?Q?ecs()?=
-Thread-Topic: [PATCH] time: Introduce jiffies64_to_msecs()
-Thread-Index: AQHUzo4ecMmHTWKYM0yt/4PZZN+rLKX0bPEw
-Date:   Thu, 28 Feb 2019 01:29:43 +0000
-Message-ID: <11fc9ad74dbe48dbb0df93e12a1dde4b@baidu.com>
-References: <1551260313-2926-1-git-send-email-lirongqing@baidu.com>
- <alpine.DEB.2.21.1902271217110.1857@nanos.tec.linutronix.de>
-In-Reply-To: <alpine.DEB.2.21.1902271217110.1857@nanos.tec.linutronix.de>
-Accept-Language: zh-CN, en-US
-Content-Language: zh-CN
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-x-originating-ip: [172.24.150.40]
-x-baidu-bdmsfe-datecheck: 1_M1-MAIL-EX15_2019-02-28 09:29:44:039
-x-baidu-bdmsfe-viruscheck: M1-MAIL-EX15_GRAY_Inside_WithoutAtta_2019-02-28
- 09:29:44:023
-Content-Type: text/plain; charset="gb2312"
-Content-Transfer-Encoding: base64
-MIME-Version: 1.0
+        Thu, 28 Feb 2019 00:13:41 -0500
+Received: from mx137-tc.baidu.com ([61.135.168.137]:33502 "EHLO
+        tc-sys-mailedm05.tc.baidu.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1725899AbfB1FNl (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 28 Feb 2019 00:13:41 -0500
+Received: from localhost (cp01-cos-dev01.cp01.baidu.com [10.92.119.46])
+        by tc-sys-mailedm05.tc.baidu.com (Postfix) with ESMTP id F3AF31EBA004;
+        Thu, 28 Feb 2019 13:13:26 +0800 (CST)
+From:   Li RongQing <lirongqing@baidu.com>
+To:     netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
+        sboyd@kernel.org, tglx@linutronix.de, john.stultz@linaro.org
+Subject: [PATCH][v2] time: Introduce jiffies64_to_msecs()
+Date:   Thu, 28 Feb 2019 13:13:26 +0800
+Message-Id: <1551330806-12502-1-git-send-email-lirongqing@baidu.com>
+X-Mailer: git-send-email 1.7.1
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-DQoNCj4gLS0tLS3Tyrz+1K28/i0tLS0tDQo+ILeivP7IyzogVGhvbWFzIEdsZWl4bmVyIFttYWls
-dG86dGdseEBsaW51dHJvbml4LmRlXQ0KPiC3osvNyrG85DogMjAxOcTqMtTCMjfI1SAxOToxOA0K
-PiDK1bz+yMs6IExpLFJvbmdxaW5nIDxsaXJvbmdxaW5nQGJhaWR1LmNvbT4NCj4gs63LzTogbmV0
-ZmlsdGVyLWRldmVsQHZnZXIua2VybmVsLm9yZzsgbGludXgta2VybmVsQHZnZXIua2VybmVsLm9y
-ZzsNCj4gc2JveWRAa2VybmVsLm9yZzsgam9obi5zdHVsdHpAbGluYXJvLm9yZw0KPiDW98ziOiBS
-ZTogW1BBVENIXSB0aW1lOiBJbnRyb2R1Y2UgamlmZmllczY0X3RvX21zZWNzKCkNCj4gDQo+IE9u
-IFdlZCwgMjcgRmViIDIwMTksIExpIFJvbmdRaW5nIHdyb3RlOg0KPiANCj4gPiB0aGVyZSBpcyBh
-IHNpbWlsYXIgaGVscGVyIGluIG5ldC9uZXRmaWx0ZXIvbmZfdGFibGVzX2FwaS5jLCB0aGlzIG1h
-eWJlDQo+ID4gYmVjb21lIGEgY29tbW9uIHJlcXVlc3Qgc29tZWRheS4NCj4gDQo+IE1heWJlIGlz
-IG5vdCBhIHJlYWxseSBnb29kIGp1c3RpZmljYXRpb24gZm9yIGFkZGluZyB0aGF0LiBBdCBsZWFz
-dCB5b3Ugc2hvdWxkDQo+IHByb3ZpZGUgYSBwYXRjaCB3aGljaCByZXBsYWNlcyB0aGUgaW5zdGFu
-Y2UgaW4gdGhlIG5ldGZpbHRlciBjb2RlLg0KPiANCj4gVGhhbmtzLA0KPiANCg0KDQpPSywgSSB3
-aWxsIHNlbmQgVjINCg0KVGhhbmtzDQotcm9uZ3FpbmcNCg0K
+there is a similar helper in net/netfilter/nf_tables_api.c,
+this maybe become a common request someday, so move it to
+time.c
+
+Signed-off-by: Zhang Yu <zhangyu31@baidu.com>
+Signed-off-by: Li RongQing <lirongqing@baidu.com>
+---
+ v1-->v2: using jiffies64_to_msecs in nf_tables_api.c
+
+ include/linux/jiffies.h       |  1 +
+ kernel/time/time.c            | 10 ++++++++++
+ net/netfilter/nf_tables_api.c |  4 +---
+ 3 files changed, 12 insertions(+), 3 deletions(-)
+
+diff --git a/include/linux/jiffies.h b/include/linux/jiffies.h
+index fa928242567d..1b6d31da7cbc 100644
+--- a/include/linux/jiffies.h
++++ b/include/linux/jiffies.h
+@@ -297,6 +297,7 @@ static inline u64 jiffies_to_nsecs(const unsigned long j)
+ }
+ 
+ extern u64 jiffies64_to_nsecs(u64 j);
++extern u64 jiffies64_to_msecs(u64 j);
+ 
+ extern unsigned long __msecs_to_jiffies(const unsigned int m);
+ #if HZ <= MSEC_PER_SEC && !(MSEC_PER_SEC % HZ)
+diff --git a/kernel/time/time.c b/kernel/time/time.c
+index 2edb5088a70b..0083eb711fb7 100644
+--- a/kernel/time/time.c
++++ b/kernel/time/time.c
+@@ -719,6 +719,16 @@ u64 jiffies64_to_nsecs(u64 j)
+ }
+ EXPORT_SYMBOL(jiffies64_to_nsecs);
+ 
++u64 jiffies64_to_msecs(const u64 j)
++{
++#if HZ <= MSEC_PER_SEC && !(MSEC_PER_SEC % HZ)
++	return (MSEC_PER_SEC / HZ) * j;
++#else
++	return div_u64(j * HZ_TO_MSEC_NUM, HZ_TO_MSEC_DEN);
++#endif
++}
++EXPORT_SYMBOL(jiffies64_to_msecs);
++
+ /**
+  * nsecs_to_jiffies64 - Convert nsecs in u64 to jiffies64
+  *
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index e1a88ba2249e..8763b2798788 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -3184,9 +3184,7 @@ static int nf_msecs_to_jiffies64(const struct nlattr *nla, u64 *result)
+ 
+ static __be64 nf_jiffies64_to_msecs(u64 input)
+ {
+-	u64 ms = jiffies64_to_nsecs(input);
+-
+-	return cpu_to_be64(div_u64(ms, NSEC_PER_MSEC));
++	return cpu_to_be64(jiffies64_to_msecs(input));
+ }
+ 
+ static int nf_tables_fill_set(struct sk_buff *skb, const struct nft_ctx *ctx,
+-- 
+2.16.2
+
