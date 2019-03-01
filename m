@@ -1,130 +1,112 @@
-Return-Path: <SRS0=zt5D=RD=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=xc7Z=RE=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D7114C43381
-	for <netfilter-devel@archiver.kernel.org>; Thu, 28 Feb 2019 15:29:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8BB90C43381
+	for <netfilter-devel@archiver.kernel.org>; Fri,  1 Mar 2019 05:59:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A70BF20C01
-	for <netfilter-devel@archiver.kernel.org>; Thu, 28 Feb 2019 15:29:52 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1551367792;
-	bh=GANYQMmRV03+mlWdKJI4olu/VHaSWEiOWhSRTQkJaUE=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=W/FaODTIppBNId3aJF4QCfqSW/B9pjkRgOG1WiASoVN1Zolfqw7iw2GczUhPcmXjI
-	 j0uT3UcqUmpj+1OD0zU/EKYzr3I39qJX6uHniY0y2DePkE8ha59IzCV9GR/y+gRTT7
-	 l96A8RRP/EAj0cDHD2VZ1vB92M8dcPpAWDQwzrWk=
+	by mail.kernel.org (Postfix) with ESMTP id 5A77D20854
+	for <netfilter-devel@archiver.kernel.org>; Fri,  1 Mar 2019 05:59:18 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="c4yCENa+"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387686AbfB1PKW (ORCPT
+        id S1725982AbfCAF7K (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 28 Feb 2019 10:10:22 -0500
-Received: from mail.kernel.org ([198.145.29.99]:43060 "EHLO mail.kernel.org"
+        Fri, 1 Mar 2019 00:59:10 -0500
+Received: from m12-11.163.com ([220.181.12.11]:44105 "EHLO m12-11.163.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2387679AbfB1PKV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 28 Feb 2019 10:10:21 -0500
-Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 158C2218C3;
-        Thu, 28 Feb 2019 15:10:18 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1551366620;
-        bh=GANYQMmRV03+mlWdKJI4olu/VHaSWEiOWhSRTQkJaUE=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=JXmO+g8YQmww+RTyjHQeStqN2Rvzmpwfvxn76ekbwj/dR75Ykf1EaZ5T/MvA0pF8W
-         dufJS2ZSVv8LORelia3DPcWduePU68kRP99Up0dF/2LTtKTN3hOzj0MdUuG/GGCDlU
-         QRFZW8RfOuXS/HLpmUsksHILMKM+wddZeglWgWE8=
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Martynas Pumputis <martynas@weave.works>,
-        Florian Westphal <fw@strlen.de>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Sasha Levin <sashal@kernel.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.20 59/81] netfilter: nf_nat: skip nat clash resolution for same-origin entries
-Date:   Thu, 28 Feb 2019 10:07:51 -0500
-Message-Id: <20190228150813.10256-59-sashal@kernel.org>
-X-Mailer: git-send-email 2.19.1
-In-Reply-To: <20190228150813.10256-1-sashal@kernel.org>
-References: <20190228150813.10256-1-sashal@kernel.org>
-MIME-Version: 1.0
-X-Patchwork-Hint: Ignore
-Content-Transfer-Encoding: 8bit
+        id S1725931AbfCAF7K (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 1 Mar 2019 00:59:10 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
+        s=s110527; h=From:Subject:Date:Message-Id; bh=tUOcAXbC57tewSd2Ua
+        HB7li6S8FsNoFf+1c7U8KA+CA=; b=c4yCENa+R1ix9ZCJLSAsNAifQJJoD6UZH+
+        BR80lUsDrMnFx4tgCKsMNYYsOuw30kmJARh9SjDGNJ5p/g/T4VGQwxuPs1RPRuzw
+        KPau58SSgqgKX+PkjERf3cF9L6dA/W9kEguYzbkZzqkJUX4j/lcXLyjmN7QJMbak
+        kUZC+qtis=
+Received: from localhost.localdomain (unknown [111.231.88.23])
+        by smtp7 (Coremail) with SMTP id C8CowACnRAqWyXhcUuxTHw--.49115S2;
+        Fri, 01 Mar 2019 13:56:48 +0800 (CST)
+From:   Su Yanjun <suyanjun218@163.com>
+To:     pablo@netfilter.org, kadlec@blackhole.kfki.hu, fw@strlen.de,
+        davem@davemloft.net, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Cc:     suyj.fnst@cn.fujitsu.com, suyanjun218@163.com
+Subject: [PATCH] netfilter: nf_ct_helper: Fix possible panic when nf_conntrack_helper_unregister is used in an unloadable module
+Date:   Fri,  1 Mar 2019 13:56:06 +0800
+Message-Id: <1551419766-1039-1-git-send-email-suyanjun218@163.com>
+X-Mailer: git-send-email 2.7.4
+X-CM-TRANSID: C8CowACnRAqWyXhcUuxTHw--.49115S2
+X-Coremail-Antispam: 1Uf129KBjvJXoW7Cr47ZryDXrWrWFykXFW5Wrg_yoW8Cw4fpw
+        1Sg343tw1kJFsYyws7uw4xZ3W8trZ3ZF45Xrn3JFyfZw4Dtw1DuFWfKrW7WFW5Jr4fJrnF
+        yw1Yvw13Aa4kAaDanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+        9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x07boOzsUUUUU=
+X-Originating-IP: [111.231.88.23]
+X-CM-SenderInfo: pvx1t0xmxqjiqy6rljoofrz/1tbiTgBqy1UC8p9ojQAAsw
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Martynas Pumputis <martynas@weave.works>
+From: Su Yanjun <suyj.fnst@cn.fujitsu.com>
 
-[ Upstream commit 4e35c1cb9460240e983a01745b5f29fe3a4d8e39 ]
+Because nf_conntrack_helper_unregister maybe used in an unloadable module,
+it uses 'synchronize_rcu' which may cause kernel panic.
 
-It is possible that two concurrent packets originating from the same
-socket of a connection-less protocol (e.g. UDP) can end up having
-different IP_CT_DIR_REPLY tuples which results in one of the packets
-being dropped.
+According to the artical:
+RCU and Unloadable Modules
+https://lwn.net/Articles/217484/
 
-To illustrate this, consider the following simplified scenario:
+When we have a heavy rcu callback load, then some of the callbacks might be
+deferred in order to allow other processing to proceed. sychnorize_rcu does
+not wait rcu callback complete and module may be unloaded before callback
+done.
 
-1. Packet A and B are sent at the same time from two different threads
-   by same UDP socket.  No matching conntrack entry exists yet.
-   Both packets cause allocation of a new conntrack entry.
-2. get_unique_tuple gets called for A.  No clashing entry found.
-   conntrack entry for A is added to main conntrack table.
-3. get_unique_tuple is called for B and will find that the reply
-   tuple of B is already taken by A.
-   It will allocate a new UDP source port for B to resolve the clash.
-4. conntrack entry for B cannot be added to main conntrack table
-   because its ORIGINAL direction is clashing with A and the REPLY
-   directions of A and B are not the same anymore due to UDP source
-   port reallocation done in step 3.
+This patch uses rcu_barrier instead of synchronize_rcu will prevent this
+situation.
 
-This patch modifies nf_conntrack_tuple_taken so it doesn't consider
-colliding reply tuples if the IP_CT_DIR_ORIGINAL tuples are equal.
-
-[ Florian: simplify patch to not use .allow_clash setting
-  and always ignore identical flows ]
-
-Signed-off-by: Martynas Pumputis <martynas@weave.works>
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
+Signed-off-by: Su Yanjun <suyj.fnst@cn.fujitsu.com>
 ---
- net/netfilter/nf_conntrack_core.c | 16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+ net/netfilter/nf_conntrack_helper.c | 11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index e92e749aff53e..830b1328fe975 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -1007,6 +1007,22 @@ nf_conntrack_tuple_taken(const struct nf_conntrack_tuple *tuple,
- 		}
+diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
+index 274baf1..0ee9378 100644
+--- a/net/netfilter/nf_conntrack_helper.c
++++ b/net/netfilter/nf_conntrack_helper.c
+@@ -397,8 +397,15 @@ void nf_conntrack_helper_unregister(struct nf_conntrack_helper *me)
  
- 		if (nf_ct_key_equal(h, tuple, zone, net)) {
-+			/* Tuple is taken already, so caller will need to find
-+			 * a new source port to use.
-+			 *
-+			 * Only exception:
-+			 * If the *original tuples* are identical, then both
-+			 * conntracks refer to the same flow.
-+			 * This is a rare situation, it can occur e.g. when
-+			 * more than one UDP packet is sent from same socket
-+			 * in different threads.
-+			 *
-+			 * Let nf_ct_resolve_clash() deal with this later.
-+			 */
-+			if (nf_ct_tuple_equal(&ignored_conntrack->tuplehash[IP_CT_DIR_ORIGINAL].tuple,
-+					      &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple))
-+				continue;
-+
- 			NF_CT_STAT_INC_ATOMIC(net, found);
- 			rcu_read_unlock();
- 			return 1;
+ 	/* Make sure every nothing is still using the helper unless its a
+ 	 * connection in the hash.
++	 *
++	 * 'synchronize_rcu' may have problem when rcu callback function
++	 * is used in unloadable modules. Use rcu_barrier instead, so that
++	 * it will wait until rcu callback completes before modules are
++	 * unloaded.
++	 * More detail about rcu_barrier please see:
++	 * https://lwn.net/Articles/217484/
+ 	 */
+-	synchronize_rcu();
++	rcu_barrier();
+ 
+ 	nf_ct_expect_iterate_destroy(expect_iter_me, NULL);
+ 	nf_ct_iterate_destroy(unhelp, me);
+@@ -406,7 +413,7 @@ void nf_conntrack_helper_unregister(struct nf_conntrack_helper *me)
+ 	/* Maybe someone has gotten the helper already when unhelp above.
+ 	 * So need to wait it.
+ 	 */
+-	synchronize_rcu();
++	rcu_barrier();
+ }
+ EXPORT_SYMBOL_GPL(nf_conntrack_helper_unregister);
+ 
 -- 
-2.19.1
+2.7.4
+
 
