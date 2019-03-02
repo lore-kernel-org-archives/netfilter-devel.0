@@ -6,29 +6,29 @@ X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 134D3C43381
-	for <netfilter-devel@archiver.kernel.org>; Sat,  2 Mar 2019 18:36:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 21E5FC4360F
+	for <netfilter-devel@archiver.kernel.org>; Sat,  2 Mar 2019 18:36:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E901020838
-	for <netfilter-devel@archiver.kernel.org>; Sat,  2 Mar 2019 18:36:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 00B5220838
+	for <netfilter-devel@archiver.kernel.org>; Sat,  2 Mar 2019 18:36:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727543AbfCBSgp (ORCPT
+        id S1727383AbfCBSgs (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 2 Mar 2019 13:36:45 -0500
-Received: from mail.us.es ([193.147.175.20]:36114 "EHLO mail.us.es"
+        Sat, 2 Mar 2019 13:36:48 -0500
+Received: from mail.us.es ([193.147.175.20]:36098 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727381AbfCBSg1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 2 Mar 2019 13:36:27 -0500
+        id S1727339AbfCBSg0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 2 Mar 2019 13:36:26 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id E965E1361BA
+        by mail.us.es (Postfix) with ESMTP id 2A7321361B7
         for <netfilter-devel@vger.kernel.org>; Sat,  2 Mar 2019 19:36:24 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id D5D3BDA86A
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 18A87DA85D
         for <netfilter-devel@vger.kernel.org>; Sat,  2 Mar 2019 19:36:24 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id CA267DA844; Sat,  2 Mar 2019 19:36:24 +0100 (CET)
+        id 0E275DA7F4; Sat,  2 Mar 2019 19:36:24 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id E8804DA844;
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 16D89DA856;
         Sat,  2 Mar 2019 19:36:22 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
@@ -36,15 +36,15 @@ Received: from 192.168.1.97 (192.168.1.97)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (unknown [31.4.223.53])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 8C8674265A2F;
-        Sat,  2 Mar 2019 19:36:22 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPA id BC8BD4265A2F;
+        Sat,  2 Mar 2019 19:36:21 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 14/29] netfilter: remove unneeded switch fall-through
-Date:   Sat,  2 Mar 2019 19:35:58 +0100
-Message-Id: <20190302183613.3159-5-pablo@netfilter.org>
+Subject: [PATCH 13/29] netfilter: conntrack: avoid same-timeout update
+Date:   Sat,  2 Mar 2019 19:35:57 +0100
+Message-Id: <20190302183613.3159-4-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20190302183613.3159-1-pablo@netfilter.org>
 References: <20190302183613.3159-1-pablo@netfilter.org>
@@ -54,42 +54,83 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Li RongQing <lirongqing@baidu.com>
+From: Florian Westphal <fw@strlen.de>
 
-Empty case is fine and does not switch fall-through
+No need to dirty a cache line if timeout is unchanged.
+Also, WARN() is useless here: we crash on 'skb->len' access
+if skb is NULL.
 
-Signed-off-by: Li RongQing <lirongqing@baidu.com>
+Last, ct->timeout is u32, not 'unsigned long' so adapt the
+function prototype accordingly.
+
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_nat_core.c    | 2 +-
- net/netfilter/nf_tables_core.c | 1 -
- 2 files changed, 1 insertion(+), 2 deletions(-)
+ include/net/netfilter/nf_conntrack.h | 10 +++++-----
+ net/netfilter/nf_conntrack_core.c    |  9 ++++-----
+ 2 files changed, 9 insertions(+), 10 deletions(-)
 
-diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
-index 11acd7367623..af7dc6537758 100644
---- a/net/netfilter/nf_nat_core.c
-+++ b/net/netfilter/nf_nat_core.c
-@@ -240,7 +240,7 @@ static bool l4proto_in_range(const struct nf_conntrack_tuple *tuple,
- 	__be16 port;
+diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
+index b5aac5ae5129..5ee7b30b4917 100644
+--- a/include/net/netfilter/nf_conntrack.h
++++ b/include/net/netfilter/nf_conntrack.h
+@@ -190,23 +190,23 @@ bool nf_ct_get_tuplepr(const struct sk_buff *skb, unsigned int nhoff,
  
- 	switch (tuple->dst.protonum) {
--	case IPPROTO_ICMP: /* fallthrough */
-+	case IPPROTO_ICMP:
- 	case IPPROTO_ICMPV6:
- 		return ntohs(tuple->src.u.icmp.id) >= ntohs(min->icmp.id) &&
- 		       ntohs(tuple->src.u.icmp.id) <= ntohs(max->icmp.id);
-diff --git a/net/netfilter/nf_tables_core.c b/net/netfilter/nf_tables_core.c
-index 2a00aef7b6d4..e56a94dff34e 100644
---- a/net/netfilter/nf_tables_core.c
-+++ b/net/netfilter/nf_tables_core.c
-@@ -221,7 +221,6 @@ nft_do_chain(struct nft_pktinfo *pkt, void *priv)
- 		chain = regs.verdict.chain;
- 		goto do_chain;
- 	case NFT_CONTINUE:
--		/* fall through */
- 	case NFT_RETURN:
- 		nft_trace_packet(&info, chain, rule,
- 				 NFT_TRACETYPE_RETURN);
+ void __nf_ct_refresh_acct(struct nf_conn *ct, enum ip_conntrack_info ctinfo,
+ 			  const struct sk_buff *skb,
+-			  unsigned long extra_jiffies, int do_acct);
++			  u32 extra_jiffies, bool do_acct);
+ 
+ /* Refresh conntrack for this many jiffies and do accounting */
+ static inline void nf_ct_refresh_acct(struct nf_conn *ct,
+ 				      enum ip_conntrack_info ctinfo,
+ 				      const struct sk_buff *skb,
+-				      unsigned long extra_jiffies)
++				      u32 extra_jiffies)
+ {
+-	__nf_ct_refresh_acct(ct, ctinfo, skb, extra_jiffies, 1);
++	__nf_ct_refresh_acct(ct, ctinfo, skb, extra_jiffies, true);
+ }
+ 
+ /* Refresh conntrack for this many jiffies */
+ static inline void nf_ct_refresh(struct nf_conn *ct,
+ 				 const struct sk_buff *skb,
+-				 unsigned long extra_jiffies)
++				 u32 extra_jiffies)
+ {
+-	__nf_ct_refresh_acct(ct, 0, skb, extra_jiffies, 0);
++	__nf_ct_refresh_acct(ct, 0, skb, extra_jiffies, false);
+ }
+ 
+ /* kill conntrack and do accounting */
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 4a9107e4a69c..ff9313c579b4 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -1751,11 +1751,9 @@ EXPORT_SYMBOL_GPL(nf_conntrack_alter_reply);
+ void __nf_ct_refresh_acct(struct nf_conn *ct,
+ 			  enum ip_conntrack_info ctinfo,
+ 			  const struct sk_buff *skb,
+-			  unsigned long extra_jiffies,
+-			  int do_acct)
++			  u32 extra_jiffies,
++			  bool do_acct)
+ {
+-	WARN_ON(!skb);
+-
+ 	/* Only update if this is not a fixed timeout */
+ 	if (test_bit(IPS_FIXED_TIMEOUT_BIT, &ct->status))
+ 		goto acct;
+@@ -1764,7 +1762,8 @@ void __nf_ct_refresh_acct(struct nf_conn *ct,
+ 	if (nf_ct_is_confirmed(ct))
+ 		extra_jiffies += nfct_time_stamp;
+ 
+-	ct->timeout = extra_jiffies;
++	if (ct->timeout != extra_jiffies)
++		ct->timeout = extra_jiffies;
+ acct:
+ 	if (do_acct)
+ 		nf_ct_acct_update(ct, ctinfo, skb->len);
 -- 
 2.11.0
 
