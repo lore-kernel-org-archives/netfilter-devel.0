@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 866C8C43381
-	for <netfilter-devel@archiver.kernel.org>; Sun,  3 Mar 2019 14:03:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C229C4360F
+	for <netfilter-devel@archiver.kernel.org>; Sun,  3 Mar 2019 14:32:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 453A620823
-	for <netfilter-devel@archiver.kernel.org>; Sun,  3 Mar 2019 14:03:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4464020836
+	for <netfilter-devel@archiver.kernel.org>; Sun,  3 Mar 2019 14:32:46 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=online.net header.i=@online.net header.b="i9hWakTw"
+	dkim=pass (1024-bit key) header.d=online.net header.i=@online.net header.b="Sr7WMwqs"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726285AbfCCODt (ORCPT
+        id S1726360AbfCCOcp (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 3 Mar 2019 09:03:49 -0500
-Received: from bounce-1.online.net ([62.210.16.43]:57954 "EHLO
+        Sun, 3 Mar 2019 09:32:45 -0500
+Received: from bounce-1.online.net ([62.210.16.43]:37542 "EHLO
         bounce-1.online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726221AbfCCODs (ORCPT
+        with ESMTP id S1726241AbfCCOco (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 3 Mar 2019 09:03:48 -0500
+        Sun, 3 Mar 2019 09:32:44 -0500
 Received: from [62.210.16.40] (helo=smtpauth-dc2-1.online.net)
         by bounce-dc2-1.online.net with esmtpa (Exim 4.82)
         (envelope-from <alban.vidal@zordhak.fr>)
-        id 1h0RDH-0006uX-63
-        for netfilter-devel@vger.kernel.org; Sun, 03 Mar 2019 14:31:31 +0100
+        id 1h0RDL-0006ub-QW
+        for netfilter-devel@vger.kernel.org; Sun, 03 Mar 2019 14:31:35 +0100
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=online.net; s=folays2;
-        h=Content-Transfer-Encoding:Content-Type:In-Reply-To:MIME-Version:Date:Message-ID:References:Cc:To:Subject:From; bh=v64qv8kF/HFPQvDKdayB/JKasNhFDOj1MYueeYLq4ao=;
-        b=i9hWakTwmFDBZKseL+DaUup0xe33KaA7Wqvl8BpovLM9zGiMjjm1fIMe89dRUyPlJDlMwAzc6/m+cAFcZ242GzmFkm2Hs7b38LHF8UYPvPMRY8c+0O9SNQPFJWMMWcZOWboIQDcSuyeaHC+dRdKfpZPNTnPQpCFiI+lcZhD1dvY=;
+        h=Content-Transfer-Encoding:Content-Type:In-Reply-To:MIME-Version:Date:Message-ID:References:Cc:To:Subject:From; bh=eXv4YJvkkgLLD/YU2qABM7u5pwceW0efe2XtdrtVSxE=;
+        b=Sr7WMwqsq5oluPYPTsCPXwC1Sw2a9V9y5WQC6I7JQiaq9mWbuv+XABf1uNGUIx2n/PRGIV9JUIqYPvclzf8rroBQ1jTIoIQ6QjOHYwNacC3A2jaXitS26K03koPTp40VS+oyPAICeaT6UqTfVB/N0P9zDAnlDZlplKMV9UcVn9U=;
 Received: from [90.22.161.100] (helo=[192.168.0.157])
         by smtpauth-dc2-1.online.net with esmtpsa (TLS1.2:RSA_AES_128_CBC_SHA1:128)
         (Exim 4.82)
         (envelope-from <alban.vidal@zordhak.fr>)
-        id 1h0RDG-0007lg-BH; Sun, 03 Mar 2019 14:31:30 +0100
+        id 1h0RDK-0007mn-CP; Sun, 03 Mar 2019 14:31:34 +0100
 From:   Alban Vidal <alban.vidal@zordhak.fr>
-Subject: [PATCH v4 1/2] iptables-save: add option to show zeroed counters when
- saving rulesets
+Subject: [PATCH v4 2/2] xtables-save: implement showing zeroed chain counters
+ when saving rulesets
 To:     netfilter-devel@vger.kernel.org
 Cc:     ao2@ao2.it, Alban VIDAL <alban.vidal@zordhak.fr>
 References: <20190217235554.4647-1-alban.vidal@zordhak.fr>
@@ -86,8 +86,8 @@ Autocrypt: addr=alban.vidal@zordhak.fr; prefer-encrypt=mutual; keydata=
  VVJI3TCoDOCFDxB61KTZTVp85j1YGYSYZr+fqKMUcD19J6OWq+2LIx9Mjjh5VAZmxuxgEfb9
  EcUaZ+119uyGeLysTEIN1+edHIHINYmpCyBMC0NEDgyre1bZofD5H89WKJpYdQZ55mZEqJm/
  Rw9UVVJY9eBDe2e/WBP7+rsCmZVfO5fORfFiJ95DO3zQuvLDmL+y1xSVbJHei1yTA+i2F0kj 3XJT
-Message-ID: <9179b69f-3253-97a8-2dd1-f88c745068d3@zordhak.fr>
-Date:   Sun, 3 Mar 2019 14:31:30 +0100
+Message-ID: <7c14e91c-4b8b-a7f6-9c4a-9d668d508790@zordhak.fr>
+Date:   Sun, 3 Mar 2019 14:31:32 +0100
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
  Thunderbird/60.5.1
 MIME-Version: 1.0
@@ -96,144 +96,207 @@ Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Content-Language: fr-FR
 X-auth-smtp-user: alban.vidal@zordhak.fr
-X-online-auth-user: FLEX_bVN5SUc2b3VNNktrVWtDbQ==wrSfy7pF0ANK9pVsl1G+XhYfzw9Pfw==
-X-online-auth-smtp: FLEX_bUVLU21NOEFDUXNtd1E2aw==aEHtJwly/jjHMqBEZkRle8lSpwgpZjfaaoRf7Ht5kA==
-X-online-bounce-smtp: FLEX_T3VXb3drRVdtb0VzOGtVQw==5nJN+E5REci+LOXN0yEDO7KMqgv358dEJJLLkIQQGw==
+X-online-auth-user: FLEX_SXc2cTZPbXFzV29rR01TQQ==Y4Z4l5EEb7XuIQFQSvYA+ECfzKyY3A==
+X-online-auth-smtp: FLEX_S0dHTThFNndDVUcyb1VRSQ==baCPVkuM8TvY3gSPLvrK/2+1vqhmCAXxOtHce+Qx+A==
+X-online-bounce-smtp: FLEX_U3lvVVFDMjhxVThzS0NJMA==LvXts+VP+BR0v+GcnMZ53fRhO0fjBmqPTkNJ0O/JEg==
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Alban VIDAL <alban.vidal@zordhak.fr>
+From: Antonio Ospite <ao2@ao2.it>
 
-Add a new '-Z' (or '--zero') option to iptables-save to show zeroed
-counters for chains when saving rulesets.
+Add a new FMT_ZEROED_CHAIN_COUNTS and use it in the save_chain()
+callbacks to implement the '-Z' option for xtables-save as well.
 
-This option is particularly useful when using a version control system
-(like git) to track the saved iptables rules, to minimize the delta
-between different ruleset versions.
+Having zeroed chain counters is particularly useful when using a version
+control system (like git) to track the saved iptables rules, to minimize
+the delta between different ruleset versions.
 
-The option is also added to xtables-save to keep compatibility on the
-command line, however the functionality is not implemented yet.
-
-Reviewed-by: Antonio Ospite <ao2@ao2.it>
-Signed-off-by: Alban VIDAL <alban.vidal@zordhak.fr>
+Signed-off-by: Antonio Ospite <ao2@ao2.it>
 ---
-iptables/iptables-save.8.in | 7 +++++--
-iptables/iptables-save.c | 12 ++++++++++--
-iptables/xtables-save.c | 7 +++++--
-3 files changed, 20 insertions(+), 6 deletions(-)
+include/xtables.h | 1 +
+iptables/nft-arp.c | 3 ++-
+iptables/nft-bridge.c | 3 ++-
+iptables/nft-shared.c | 8 +++++++-
+iptables/nft-shared.h | 6 ++++--
+iptables/nft.c | 4 ++--
+iptables/nft.h | 2 +-
+iptables/xtables-save.c | 9 +++++----
+8 files changed, 24 insertions(+), 12 deletions(-)
 
-diff --git a/iptables/iptables-save.8.in b/iptables/iptables-save.8.in
-index 51e11f3..76ea4ee 100644
---- a/iptables/iptables-save.8.in
-+++ b/iptables/iptables-save.8.in
-@@ -24,10 +24,10 @@ iptables-save \(em dump iptables rules
-ip6tables-save \(em dump iptables rules
-.SH SYNOPSIS
-\fBiptables\-save\fP [\fB\-M\fP \fImodprobe\fP] [\fB\-c\fP]
--[\fB\-t\fP \fItable\fP] [\fB\-f\fP \fIfilename\fP]
-+[\fB\-Z\fP] [\fB\-t\fP \fItable\fP] [\fB\-f\fP \fIfilename\fP]
-.P
-\fBip6tables\-save\fP [\fB\-M\fP \fImodprobe\fP] [\fB\-c\fP]
--[\fB\-t\fP \fItable\fP] [\fB\-f\fP \fIfilename\fP]
-+[\fB\-Z\fP] [\fB\-t\fP \fItable\fP] [\fB\-f\fP \fIfilename\fP]
-.SH DESCRIPTION
-.PP
-.B iptables-save
-@@ -47,6 +47,9 @@ will log to STDOUT.
-\fB\-c\fR, \fB\-\-counters\fR
-include the current values of all packet and byte counters in the output
-.TP
-+\fB\-Z\fR, \fB\-\-zero\fR
-+Display zero packet and byte chain counters when saving the ruleset.
-+.TP
-\fB\-t\fR, \fB\-\-table\fR \fItablename\fP
-restrict output to only one table. If not specified, output includes all
-available tables.
-diff --git a/iptables/iptables-save.c b/iptables/iptables-save.c
-index 826cb1e..d20bf85 100644
---- a/iptables/iptables-save.c
-+++ b/iptables/iptables-save.c
-@@ -23,10 +23,12 @@
-#include "xshared.h"
-static int show_counters;
-+static bool display_zero_counters;
-static const struct option options[] = {
-{.name = "counters", .has_arg = false, .val = 'c'},
-{.name = "dump", .has_arg = false, .val = 'd'},
-+ {.name = "zero", .has_arg = false, .val = 'Z'},
-{.name = "table", .has_arg = true, .val = 't'},
-{.name = "modprobe", .has_arg = true, .val = 'M'},
-{.name = "file", .has_arg = true, .val = 'f'},
-@@ -104,6 +106,10 @@ static int do_output(struct iptables_save_cb *cb,
-const char *tablename)
-struct xt_counters count;
-printf("%s ", cb->ops->get_policy(chain, &count, h));
-+ if (display_zero_counters) {
-+ count.pcnt = 0;
-+ count.bcnt = 0;
+diff --git a/include/xtables.h b/include/xtables.h
+index 4aa084a..0aaca74 100644
+--- a/include/xtables.h
++++ b/include/xtables.h
+@@ -550,6 +550,7 @@ extern void xtables_save_string(const char *value);
+#define FMT_LINENUMBERS 0x0100
+#define FMT_EBT_SAVE 0x0200
+#define FMT_C_COUNTS 0x0400
++#define FMT_ZEROED_CHAIN_COUNTS 0x0800
+#define FMT_PRINT_RULE (FMT_NOCOUNTS | FMT_OPTIONS | FMT_VIA \
+| FMT_NUMERIC | FMT_NOTABLE)
+diff --git a/iptables/nft-arp.c b/iptables/nft-arp.c
+index 637da42..4ec2287 100644
+--- a/iptables/nft-arp.c
++++ b/iptables/nft-arp.c
+@@ -679,7 +679,8 @@ out:
+return ret;
+}
+-static void nft_arp_save_chain(const struct nftnl_chain *c, const char
+*policy)
++static void nft_arp_save_chain(const struct nftnl_chain *c, const char
+*policy,
++ unsigned int format)
+{
+const char *chain = nftnl_chain_get_str(c, NFTNL_CHAIN_NAME);
+diff --git a/iptables/nft-bridge.c b/iptables/nft-bridge.c
+index ddfbee1..10b1dda 100644
+--- a/iptables/nft-bridge.c
++++ b/iptables/nft-bridge.c
+@@ -502,7 +502,8 @@ static void nft_bridge_print_rule(struct nftnl_rule
+*r, unsigned int num,
+}
+static void nft_bridge_save_chain(const struct nftnl_chain *c,
+- const char *policy)
++ const char *policy,
++ unsigned int format)
+{
+const char *chain = nftnl_chain_get_str(c, NFTNL_CHAIN_NAME);
+diff --git a/iptables/nft-shared.c b/iptables/nft-shared.c
+index 1c09277..0b7d380 100644
+--- a/iptables/nft-shared.c
++++ b/iptables/nft-shared.c
+@@ -832,12 +832,18 @@ void save_counters(const void *data)
+(unsigned long long)cs->counters.bcnt);
+}
+-void nft_ipv46_save_chain(const struct nftnl_chain *c, const char *policy)
++void nft_ipv46_save_chain(const struct nftnl_chain *c, const char *policy,
++ unsigned int format)
+{
+const char *chain = nftnl_chain_get_str(c, NFTNL_CHAIN_NAME);
+uint64_t pkts = nftnl_chain_get_u64(c, NFTNL_CHAIN_PACKETS);
+uint64_t bytes = nftnl_chain_get_u64(c, NFTNL_CHAIN_BYTES);
++ if (format & FMT_ZEROED_CHAIN_COUNTS) {
++ pkts = 0;
++ bytes = 0;
 + }
-printf("[%llu:%llu]\n",
-(unsigned long long)count.pcnt,
-(unsigned long long)count.bcnt);
-@@ -137,7 +143,7 @@ do_iptables_save(struct iptables_save_cb *cb, int
-argc, char *argv[])
-FILE *file = NULL;
-int ret, c;
-- while ((c = getopt_long(argc, argv, "bcdt:M:f:V", options, NULL)) != -1) {
-+ while ((c = getopt_long(argc, argv, "bcdZt:M:f:V", options, NULL)) !=
--1) {
-switch (c) {
-case 'b':
-fprintf(stderr, "-b/--binary option is not implemented\n");
-@@ -145,7 +151,9 @@ do_iptables_save(struct iptables_save_cb *cb, int
-argc, char *argv[])
-case 'c':
-show_counters = 1;
-break;
--
-+ case 'Z':
-+ display_zero_counters = true;
-+ break;
-case 't':
-/* Select specific table. */
-tablename = optarg;
++
+printf(":%s %s [%"PRIu64":%"PRIu64"]\n",
+chain, policy ?: "-", pkts, bytes);
+}
+diff --git a/iptables/nft-shared.h b/iptables/nft-shared.h
+index 019c1f2..0603c6b 100644
+--- a/iptables/nft-shared.h
++++ b/iptables/nft-shared.h
+@@ -93,7 +93,8 @@ struct nft_family_ops {
+unsigned int format);
+void (*save_rule)(const void *data, unsigned int format);
+void (*save_counters)(const void *data);
+- void (*save_chain)(const struct nftnl_chain *c, const char *policy);
++ void (*save_chain)(const struct nftnl_chain *c, const char *policy,
++ unsigned int format);
+void (*proto_parse)(struct iptables_command_state *cs,
+struct xtables_args *args);
+void (*post_parse)(int command, struct iptables_command_state *cs,
+@@ -156,7 +157,8 @@ void save_rule_details(const struct
+iptables_command_state *cs,
+const char *outiface,
+unsigned const char *outiface_mask);
+void save_counters(const void *data);
+-void nft_ipv46_save_chain(const struct nftnl_chain *c, const char *policy);
++void nft_ipv46_save_chain(const struct nftnl_chain *c, const char *policy,
++ unsigned int format);
+void save_matches_and_target(const struct iptables_command_state *cs,
+bool goto_flag, const void *fw,
+unsigned int format);
+diff --git a/iptables/nft.c b/iptables/nft.c
+index a297d98..e1fd802 100644
+--- a/iptables/nft.c
++++ b/iptables/nft.c
+@@ -1507,7 +1507,7 @@ static const char *policy_name[NF_ACCEPT+1] = {
+[NF_ACCEPT] = "ACCEPT",
+};
+-int nft_chain_save(struct nft_handle *h, struct nftnl_chain_list *list)
++int nft_chain_save(struct nft_handle *h, struct nftnl_chain_list *list,
+unsigned int format)
+{
+struct nftnl_chain_list_iter *iter;
+struct nft_family_ops *ops;
+@@ -1541,7 +1541,7 @@ int nft_chain_save(struct nft_handle *h, struct
+nftnl_chain_list *list)
+}
+if (ops->save_chain)
+- ops->save_chain(c, policy);
++ ops->save_chain(c, policy, format);
+c = nftnl_chain_list_iter_next(iter);
+}
+diff --git a/iptables/nft.h b/iptables/nft.h
+index 56dc207..25f6dcf 100644
+--- a/iptables/nft.h
++++ b/iptables/nft.h
+@@ -84,7 +84,7 @@ struct nftnl_chain;
+int nft_chain_set(struct nft_handle *h, const char *table, const char
+*chain, const char *policy, const struct xt_counters *counters);
+struct nftnl_chain_list *nft_chain_list_get(struct nft_handle *h,
+const char *table);
+-int nft_chain_save(struct nft_handle *h, struct nftnl_chain_list *list);
++int nft_chain_save(struct nft_handle *h, struct nftnl_chain_list *list,
+unsigned int format);
+int nft_chain_user_add(struct nft_handle *h, const char *chain, const
+char *table);
+int nft_chain_user_del(struct nft_handle *h, const char *chain, const
+char *table, bool verbose);
+int nft_chain_user_flush(struct nft_handle *h, struct nftnl_chain_list
+*list,
 diff --git a/iptables/xtables-save.c b/iptables/xtables-save.c
-index 87ebb91..cee9137 100644
+index cee9137..59ad89b 100644
 --- a/iptables/xtables-save.c
 +++ b/iptables/xtables-save.c
-@@ -35,6 +35,7 @@ static const struct option options[] = {
+@@ -30,6 +30,7 @@
+#define prog_vers xtables_globals.program_version
+static bool show_counters = false;
++static bool display_zero_counters = false;
+static const struct option options[] = {
 {.name = "counters", .has_arg = false, .val = 'c'},
-{.name = "version", .has_arg = false, .val = 'V'},
-{.name = "dump", .has_arg = false, .val = 'd'},
-+ {.name = "zero", .has_arg = false, .val = 'Z'},
-{.name = "table", .has_arg = true, .val = 't'},
-{.name = "modprobe", .has_arg = true, .val = 'M'},
-{.name = "file", .has_arg = true, .val = 'f'},
-@@ -141,7 +142,7 @@ xtables_save_main(int family, const char *progname,
+@@ -86,7 +87,7 @@ __do_output(struct nft_handle *h, const char
+*tablename, bool counters)
+/* Dump out chain names first,
+* thereby preventing dependency conflicts */
+- nft_chain_save(h, chain_list);
++ nft_chain_save(h, chain_list, display_zero_counters ?
+FMT_ZEROED_CHAIN_COUNTS : 0);
+nft_rule_save(h, tablename, counters ? 0 : FMT_NOCOUNTS);
+now = time(NULL);
+@@ -151,7 +152,7 @@ xtables_save_main(int family, const char *progname,
 int argc, char *argv[])
-exit(1);
-}
-- while ((c = getopt_long(argc, argv, "bcdt:M:f:46V", options, NULL)) !=
--1) {
-+ while ((c = getopt_long(argc, argv, "bcdZt:M:f:46V", options, NULL))
-!= -1) {
-switch (c) {
-case 'b':
-fprintf(stderr, "-b/--binary option is not implemented\n");
-@@ -149,7 +150,9 @@ xtables_save_main(int family, const char *progname,
-int argc, char *argv[])
-case 'c':
 show_counters = true;
 break;
--
-+ case 'Z':
-+ fprintf(stderr, "-Z/--zero option is not implemented yet\n");
-+ break;
+case 'Z':
+- fprintf(stderr, "-Z/--zero option is not implemented yet\n");
++ display_zero_counters = true;
+break;
 case 't':
 /* Select specific table. */
-tablename = optarg;
+@@ -278,7 +279,7 @@ static int __ebt_save(struct nft_handle *h, const
+char *tablename, bool counters
+/* Dump out chain names first,
+* thereby preventing dependency conflicts */
+- nft_chain_save(h, chain_list);
++ nft_chain_save(h, chain_list, display_zero_counters ?
+FMT_ZEROED_CHAIN_COUNTS : 0);
+nft_rule_save(h, tablename, format);
+printf("\n");
+return 0;
+@@ -405,7 +406,7 @@ int xtables_arp_save_main(int argc, char **argv)
+}
+printf("*filter\n");
+- nft_chain_save(&h, nft_chain_list_get(&h, "filter"));
++ nft_chain_save(&h, nft_chain_list_get(&h, "filter"),
+display_zero_counters ? FMT_ZEROED_CHAIN_COUNTS : 0);
+nft_rule_save(&h, "filter", show_counters ? 0 : FMT_NOCOUNTS);
+printf("\n");
+nft_fini(&h);
 
 -- 
 2.20.1
