@@ -2,49 +2,46 @@ Return-Path: <SRS0=/MqZ=RG=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.0 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EF637C43381
-	for <netfilter-devel@archiver.kernel.org>; Sun,  3 Mar 2019 13:52:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 866C8C43381
+	for <netfilter-devel@archiver.kernel.org>; Sun,  3 Mar 2019 14:03:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6B87420836
-	for <netfilter-devel@archiver.kernel.org>; Sun,  3 Mar 2019 13:52:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 453A620823
+	for <netfilter-devel@archiver.kernel.org>; Sun,  3 Mar 2019 14:03:49 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=policy reason="signing key too small" (768-bit key) header.d=online.net header.i=@online.net header.b="vHl9ooXd";
-	dkim=pass (1024-bit key) header.d=online.net header.i=@online.net header.b="UvQ+FOLW"
+	dkim=pass (1024-bit key) header.d=online.net header.i=@online.net header.b="i9hWakTw"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726297AbfCCNw2 (ORCPT
+        id S1726285AbfCCODt (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 3 Mar 2019 08:52:28 -0500
-Received: from bounce-2.online.net ([62.210.16.44]:59858 "EHLO
-        bounce-2.online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726186AbfCCNw1 (ORCPT
+        Sun, 3 Mar 2019 09:03:49 -0500
+Received: from bounce-1.online.net ([62.210.16.43]:57954 "EHLO
+        bounce-1.online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726221AbfCCODs (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 3 Mar 2019 08:52:27 -0500
-X-Greylist: delayed 1257 seconds by postgrey-1.27 at vger.kernel.org; Sun, 03 Mar 2019 08:52:26 EST
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=online.net; s=folays;
-        h=Content-Transfer-Encoding:Content-Type:MIME-Version:Date:Message-ID:Cc:To:Subject:From; bh=/vQEAYiFlYyVkjw+oUYKJczeOeD8/BAZD4co+VGzU+g=;
-        b=vHl9ooXda770s9t36vloqJqwS9Gh0pFMnobWMkHIrfCafYrE2rkMcdJjAU0dNjgTwvZDNhtjLpdOaTAFJKcbyB+RduEKxD68TxiHSQN4j315hzrwz9s0IronOxFEUUwP;
+        Sun, 3 Mar 2019 09:03:48 -0500
 Received: from [62.210.16.40] (helo=smtpauth-dc2-1.online.net)
-        by bounce-dc2-2.online.net with esmtpa (Exim 4.82)
+        by bounce-dc2-1.online.net with esmtpa (Exim 4.82)
         (envelope-from <alban.vidal@zordhak.fr>)
-        id 1h0RDF-0008R3-J3
-        for netfilter-devel@vger.kernel.org; Sun, 03 Mar 2019 14:31:29 +0100
+        id 1h0RDH-0006uX-63
+        for netfilter-devel@vger.kernel.org; Sun, 03 Mar 2019 14:31:31 +0100
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=online.net; s=folays2;
-        h=Content-Transfer-Encoding:Content-Type:MIME-Version:Date:Message-ID:Cc:To:Subject:From; bh=/vQEAYiFlYyVkjw+oUYKJczeOeD8/BAZD4co+VGzU+g=;
-        b=UvQ+FOLW8tP3DZgQJPzTrN95gAIgja97ZHWThpPlRyQeIkOdcGrkAHXPUm9NkPgW5z8oVh+l3LZ8yqEV8sqAL6AVlvbMhazpxEc9TnPpJjlokKR14GfdsfKvl4sv9JCrPooO+0C4vEV1lD5TzGUgvgjjSaqDlAtDdh3ezy0xgO4=;
+        h=Content-Transfer-Encoding:Content-Type:In-Reply-To:MIME-Version:Date:Message-ID:References:Cc:To:Subject:From; bh=v64qv8kF/HFPQvDKdayB/JKasNhFDOj1MYueeYLq4ao=;
+        b=i9hWakTwmFDBZKseL+DaUup0xe33KaA7Wqvl8BpovLM9zGiMjjm1fIMe89dRUyPlJDlMwAzc6/m+cAFcZ242GzmFkm2Hs7b38LHF8UYPvPMRY8c+0O9SNQPFJWMMWcZOWboIQDcSuyeaHC+dRdKfpZPNTnPQpCFiI+lcZhD1dvY=;
 Received: from [90.22.161.100] (helo=[192.168.0.157])
         by smtpauth-dc2-1.online.net with esmtpsa (TLS1.2:RSA_AES_128_CBC_SHA1:128)
         (Exim 4.82)
         (envelope-from <alban.vidal@zordhak.fr>)
-        id 1h0RD8-0007j8-Vq; Sun, 03 Mar 2019 14:31:23 +0100
+        id 1h0RDG-0007lg-BH; Sun, 03 Mar 2019 14:31:30 +0100
 From:   Alban Vidal <alban.vidal@zordhak.fr>
-Subject: [PATCH v4 0/2] iptables-save,xtables-save: add option to show zeroed
- counters when saving rulesets
+Subject: [PATCH v4 1/2] iptables-save: add option to show zeroed counters when
+ saving rulesets
 To:     netfilter-devel@vger.kernel.org
 Cc:     ao2@ao2.it, Alban VIDAL <alban.vidal@zordhak.fr>
+References: <20190217235554.4647-1-alban.vidal@zordhak.fr>
 Openpgp: id=AE48C0F59B1998A06292A69996BD4FF64E709FDE
 Autocrypt: addr=alban.vidal@zordhak.fr; prefer-encrypt=mutual; keydata=
  mQINBFksKiMBEADFkYWx/zBdCf8KXAhCBVSsS+JW+0cbYExvLaRQDL+MD4cmCKvY/ybNWGBR
@@ -89,18 +86,19 @@ Autocrypt: addr=alban.vidal@zordhak.fr; prefer-encrypt=mutual; keydata=
  VVJI3TCoDOCFDxB61KTZTVp85j1YGYSYZr+fqKMUcD19J6OWq+2LIx9Mjjh5VAZmxuxgEfb9
  EcUaZ+119uyGeLysTEIN1+edHIHINYmpCyBMC0NEDgyre1bZofD5H89WKJpYdQZ55mZEqJm/
  Rw9UVVJY9eBDe2e/WBP7+rsCmZVfO5fORfFiJ95DO3zQuvLDmL+y1xSVbJHei1yTA+i2F0kj 3XJT
-Message-ID: <3561ac85-acaa-6618-0f7a-8c6daad45d07@zordhak.fr>
-Date:   Sun, 3 Mar 2019 14:31:22 +0100
+Message-ID: <9179b69f-3253-97a8-2dd1-f88c745068d3@zordhak.fr>
+Date:   Sun, 3 Mar 2019 14:31:30 +0100
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
  Thunderbird/60.5.1
 MIME-Version: 1.0
+In-Reply-To: <20190217235554.4647-1-alban.vidal@zordhak.fr>
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Content-Language: fr-FR
 X-auth-smtp-user: alban.vidal@zordhak.fr
-X-online-auth-user: FLEX_RTZFV01vSW9TNnVFc3NHSw==XvU6wbCSxYR/g7df1ckn7jpH+jP+dQ==
-X-online-auth-smtp: FLEX_a1cyTTZHOEFVVzRJd2ttcQ==3gEC8xGud6nhbmUkys95fMT6heg0L5pDz3UvuHRvvA==
-X-online-bounce-smtp: FLEX_T29XVzZPbXFtc000bUFVUw==k06YmLMEQqW5F015U+lEiXGWtPkeet9g5ypZ2XbNHw==
+X-online-auth-user: FLEX_bVN5SUc2b3VNNktrVWtDbQ==wrSfy7pF0ANK9pVsl1G+XhYfzw9Pfw==
+X-online-auth-smtp: FLEX_bUVLU21NOEFDUXNtd1E2aw==aEHtJwly/jjHMqBEZkRle8lSpwgpZjfaaoRf7Ht5kA==
+X-online-bounce-smtp: FLEX_T3VXb3drRVdtb0VzOGtVQw==5nJN+E5REci+LOXN0yEDO7KMqgv358dEJJLLkIQQGw==
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
@@ -108,34 +106,134 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Alban VIDAL <alban.vidal@zordhak.fr>
 
-Dear Netfilter developers,
+Add a new '-Z' (or '--zero') option to iptables-save to show zeroed
+counters for chains when saving rulesets.
 
-Please find two patch in next emails to add option in iptables-save and
-xtables-save to show zeroed counters for chains when saving rulesets.
+This option is particularly useful when using a version control system
+(like git) to track the saved iptables rules, to minimize the delta
+between different ruleset versions.
 
-Best regards,
-Alban
+The option is also added to xtables-save to keep compatibility on the
+command line, however the functionality is not implemented yet.
 
+Reviewed-by: Antonio Ospite <ao2@ao2.it>
+Signed-off-by: Alban VIDAL <alban.vidal@zordhak.fr>
 ---
-
-Alban VIDAL (1):
-iptables-save: add option to show zeroed counters when saving rulesets
-
-Antonio Ospite (1):
-xtables-save: implement showing zeroed chain counters when saving
-rulesets
-
-include/xtables.h | 1 +
 iptables/iptables-save.8.in | 7 +++++--
 iptables/iptables-save.c | 12 ++++++++++--
-iptables/nft-arp.c | 3 ++-
-iptables/nft-bridge.c | 3 ++-
-iptables/nft-shared.c | 8 +++++++-
-iptables/nft-shared.h | 6 ++++--
-iptables/nft.c | 4 ++--
-iptables/nft.h | 2 +-
-iptables/xtables-save.c | 14 +++++++++-----
-10 files changed, 43 insertions(+), 17 deletions(-)
+iptables/xtables-save.c | 7 +++++--
+3 files changed, 20 insertions(+), 6 deletions(-)
+
+diff --git a/iptables/iptables-save.8.in b/iptables/iptables-save.8.in
+index 51e11f3..76ea4ee 100644
+--- a/iptables/iptables-save.8.in
++++ b/iptables/iptables-save.8.in
+@@ -24,10 +24,10 @@ iptables-save \(em dump iptables rules
+ip6tables-save \(em dump iptables rules
+.SH SYNOPSIS
+\fBiptables\-save\fP [\fB\-M\fP \fImodprobe\fP] [\fB\-c\fP]
+-[\fB\-t\fP \fItable\fP] [\fB\-f\fP \fIfilename\fP]
++[\fB\-Z\fP] [\fB\-t\fP \fItable\fP] [\fB\-f\fP \fIfilename\fP]
+.P
+\fBip6tables\-save\fP [\fB\-M\fP \fImodprobe\fP] [\fB\-c\fP]
+-[\fB\-t\fP \fItable\fP] [\fB\-f\fP \fIfilename\fP]
++[\fB\-Z\fP] [\fB\-t\fP \fItable\fP] [\fB\-f\fP \fIfilename\fP]
+.SH DESCRIPTION
+.PP
+.B iptables-save
+@@ -47,6 +47,9 @@ will log to STDOUT.
+\fB\-c\fR, \fB\-\-counters\fR
+include the current values of all packet and byte counters in the output
+.TP
++\fB\-Z\fR, \fB\-\-zero\fR
++Display zero packet and byte chain counters when saving the ruleset.
++.TP
+\fB\-t\fR, \fB\-\-table\fR \fItablename\fP
+restrict output to only one table. If not specified, output includes all
+available tables.
+diff --git a/iptables/iptables-save.c b/iptables/iptables-save.c
+index 826cb1e..d20bf85 100644
+--- a/iptables/iptables-save.c
++++ b/iptables/iptables-save.c
+@@ -23,10 +23,12 @@
+#include "xshared.h"
+static int show_counters;
++static bool display_zero_counters;
+static const struct option options[] = {
+{.name = "counters", .has_arg = false, .val = 'c'},
+{.name = "dump", .has_arg = false, .val = 'd'},
++ {.name = "zero", .has_arg = false, .val = 'Z'},
+{.name = "table", .has_arg = true, .val = 't'},
+{.name = "modprobe", .has_arg = true, .val = 'M'},
+{.name = "file", .has_arg = true, .val = 'f'},
+@@ -104,6 +106,10 @@ static int do_output(struct iptables_save_cb *cb,
+const char *tablename)
+struct xt_counters count;
+printf("%s ", cb->ops->get_policy(chain, &count, h));
++ if (display_zero_counters) {
++ count.pcnt = 0;
++ count.bcnt = 0;
++ }
+printf("[%llu:%llu]\n",
+(unsigned long long)count.pcnt,
+(unsigned long long)count.bcnt);
+@@ -137,7 +143,7 @@ do_iptables_save(struct iptables_save_cb *cb, int
+argc, char *argv[])
+FILE *file = NULL;
+int ret, c;
+- while ((c = getopt_long(argc, argv, "bcdt:M:f:V", options, NULL)) != -1) {
++ while ((c = getopt_long(argc, argv, "bcdZt:M:f:V", options, NULL)) !=
+-1) {
+switch (c) {
+case 'b':
+fprintf(stderr, "-b/--binary option is not implemented\n");
+@@ -145,7 +151,9 @@ do_iptables_save(struct iptables_save_cb *cb, int
+argc, char *argv[])
+case 'c':
+show_counters = 1;
+break;
+-
++ case 'Z':
++ display_zero_counters = true;
++ break;
+case 't':
+/* Select specific table. */
+tablename = optarg;
+diff --git a/iptables/xtables-save.c b/iptables/xtables-save.c
+index 87ebb91..cee9137 100644
+--- a/iptables/xtables-save.c
++++ b/iptables/xtables-save.c
+@@ -35,6 +35,7 @@ static const struct option options[] = {
+{.name = "counters", .has_arg = false, .val = 'c'},
+{.name = "version", .has_arg = false, .val = 'V'},
+{.name = "dump", .has_arg = false, .val = 'd'},
++ {.name = "zero", .has_arg = false, .val = 'Z'},
+{.name = "table", .has_arg = true, .val = 't'},
+{.name = "modprobe", .has_arg = true, .val = 'M'},
+{.name = "file", .has_arg = true, .val = 'f'},
+@@ -141,7 +142,7 @@ xtables_save_main(int family, const char *progname,
+int argc, char *argv[])
+exit(1);
+}
+- while ((c = getopt_long(argc, argv, "bcdt:M:f:46V", options, NULL)) !=
+-1) {
++ while ((c = getopt_long(argc, argv, "bcdZt:M:f:46V", options, NULL))
+!= -1) {
+switch (c) {
+case 'b':
+fprintf(stderr, "-b/--binary option is not implemented\n");
+@@ -149,7 +150,9 @@ xtables_save_main(int family, const char *progname,
+int argc, char *argv[])
+case 'c':
+show_counters = true;
+break;
+-
++ case 'Z':
++ fprintf(stderr, "-Z/--zero option is not implemented yet\n");
++ break;
+case 't':
+/* Select specific table. */
+tablename = optarg;
 
 -- 
 2.20.1
