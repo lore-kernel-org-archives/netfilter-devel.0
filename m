@@ -2,54 +2,75 @@ Return-Path: <SRS0=Cmqr=RH=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-2.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED,USER_AGENT_MUTT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3E8AAC10F03
-	for <netfilter-devel@archiver.kernel.org>; Mon,  4 Mar 2019 06:21:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F900C43381
+	for <netfilter-devel@archiver.kernel.org>; Mon,  4 Mar 2019 12:43:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1C3F720815
-	for <netfilter-devel@archiver.kernel.org>; Mon,  4 Mar 2019 06:21:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 66B7B20815
+	for <netfilter-devel@archiver.kernel.org>; Mon,  4 Mar 2019 12:43:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726038AbfCDGVg (ORCPT
+        id S1726592AbfCDMnP (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 4 Mar 2019 01:21:36 -0500
-Received: from shards.monkeyblade.net ([23.128.96.9]:57820 "EHLO
-        shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725550AbfCDGVg (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 4 Mar 2019 01:21:36 -0500
-Received: from localhost (unknown [IPv6:2601:601:9f80:35cd::3d5])
-        (using TLSv1 with cipher AES256-SHA (256/256 bits))
-        (Client did not present a certificate)
-        (Authenticated sender: davem-davemloft)
-        by shards.monkeyblade.net (Postfix) with ESMTPSA id 981F514F121EB;
-        Sun,  3 Mar 2019 22:21:35 -0800 (PST)
-Date:   Sun, 03 Mar 2019 22:21:34 -0800 (PST)
-Message-Id: <20190303.222134.471817312445600368.davem@davemloft.net>
-To:     netdev@vger.kernel.org
-CC:     bpf@vger.kernel.org, linux-wireless@vger.kernel.org,
+        Mon, 4 Mar 2019 07:43:15 -0500
+Received: from orbyte.nwl.cc ([151.80.46.58]:53512 "EHLO orbyte.nwl.cc"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726354AbfCDMnO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 4 Mar 2019 07:43:14 -0500
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.91)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1h0mw3-0007ra-8T; Mon, 04 Mar 2019 13:43:11 +0100
+Date:   Mon, 4 Mar 2019 13:43:11 +0100
+From:   Phil Sutter <phil@nwl.cc>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
         netfilter-devel@vger.kernel.org
-Subject: net-next is CLOSED
-From:   David Miller <davem@davemloft.net>
-X-Mailer: Mew version 6.8 on Emacs 26.1
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-X-Greylist: Sender succeeded SMTP AUTH, not delayed by milter-greylist-4.5.12 (shards.monkeyblade.net [149.20.54.216]); Sun, 03 Mar 2019 22:21:35 -0800 (PST)
+Subject: Re: [iptables PATCH 5/5] iptables-test: Make use of sample
+ connlabel.conf
+Message-ID: <20190304124311.GM2478@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Florian Westphal <fw@strlen.de>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+References: <20190219193953.29066-1-phil@nwl.cc>
+ <20190219193953.29066-6-phil@nwl.cc>
+ <20190303210302.r6sppucmnrwg66gg@breakpoint.cc>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190303210302.r6sppucmnrwg66gg@breakpoint.cc>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Hi,
 
-Please only bug fixes as we progress through the merge window.
+On Sun, Mar 03, 2019 at 10:03:02PM +0100, Florian Westphal wrote:
+> Phil Sutter <phil@nwl.cc> wrote:
+> 
+> Sorry for being late.
 
-I'll announce when net-next is open again.
+No worries, it is not urgent.
 
-Follow me on social media:
+> > +@cp -f extensions/libxt_connlabel.conf.test extensions/libxt_connlabel.conf.tmp
+> >  -m connlabel --label "bit40";=;OK
+> >  -m connlabel ! --label "bit40";=;OK
+> >  -m connlabel --label "bit41" --set;=;OK
+> >  -m connlabel ! --label "bit41" --set;=;OK
+> >  -m connlabel --label "bit128";;FAIL
+> 
+> Maybe we should forget about the label names and just tests
+> -m connlabel --label 127
+> 
+> i.e., parse the numeric value instead of providing a fake
+> one.  I agree that temporary replace of hosts one is bad.
 
-https://twitter.com/davem_dokebi
+Fine with me as well. Obviously this would reduce code coverage of
+tests, although not much since libnetfilter_conntrack is used for label
+map lookup.
 
-Thank you.
+Cheers, Phil
