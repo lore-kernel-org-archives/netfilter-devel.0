@@ -2,111 +2,91 @@ Return-Path: <SRS0=Cmqr=RH=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CD5F7C43381
-	for <netfilter-devel@archiver.kernel.org>; Mon,  4 Mar 2019 20:10:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 99034C43381
+	for <netfilter-devel@archiver.kernel.org>; Mon,  4 Mar 2019 20:40:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9A22420830
-	for <netfilter-devel@archiver.kernel.org>; Mon,  4 Mar 2019 20:10:12 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="KLloo1sv"
+	by mail.kernel.org (Postfix) with ESMTP id 6138520823
+	for <netfilter-devel@archiver.kernel.org>; Mon,  4 Mar 2019 20:40:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726101AbfCDUKM (ORCPT
+        id S1726469AbfCDUkk (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 4 Mar 2019 15:10:12 -0500
-Received: from mail-pg1-f194.google.com ([209.85.215.194]:39409 "EHLO
-        mail-pg1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726054AbfCDUKM (ORCPT
+        Mon, 4 Mar 2019 15:40:40 -0500
+Received: from mout.kundenserver.de ([212.227.17.10]:55217 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726101AbfCDUkk (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 4 Mar 2019 15:10:12 -0500
-Received: by mail-pg1-f194.google.com with SMTP id h8so3843854pgp.6
-        for <netfilter-devel@vger.kernel.org>; Mon, 04 Mar 2019 12:10:11 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=reply-to:subject:from:to:references:message-id:date:user-agent
-         :mime-version:in-reply-to:content-language:content-transfer-encoding;
-        bh=PrSwq+CGZSMe8eOaYRL/53U3ivqlhy7r4fnhJhz8Xic=;
-        b=KLloo1svcZZR+MQg20/NUgfhp8SpeYTu+jbUw45Pw5LKBQa1L4uTyZ0MPLziIH3C52
-         7st4xQXv8l0UEoLxNTBAxEZtr7mIwCYw1i8hmTif2jDZdZMku2hLL9n7+hQ570OKExRD
-         dK4WaYeYFdm5d7/edMMNGkMl45VdpaTRNw5muwyzTKqkrD5Ss6zOJtq4Y9YT1FEUXI6A
-         +eULlh5AKtkZVWmPk3gq7jlwro7JZoHA2NfXu6IaTpxMkrQIyyAoMJcV832aN2D0Q3gW
-         sXJpOorgqSBLyRDFlJqW6IV13CotgLgq3ZwKJqk/CP95atq/3Bzw/Jq2UOJYc422Jk5z
-         eyaA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:reply-to:subject:from:to:references:message-id
-         :date:user-agent:mime-version:in-reply-to:content-language
-         :content-transfer-encoding;
-        bh=PrSwq+CGZSMe8eOaYRL/53U3ivqlhy7r4fnhJhz8Xic=;
-        b=c1dzJ92k63/8w13xeUWcqVHb6WUD/SdAtco9PA8xQw8Ejd1jZwxUQu/iEWApObiP+S
-         6QwxHn9psHUkVX1+w1ieBV2Rab5MuzBD0O6Vw5ZsEATcTsAF3H/2LaXpTK9debURfM4H
-         FgXyEh6lK7iJ8AXFRO9I1KngdwCNFhXYYL3cx3RXhlQ6HRfBJpiw/JU5xvF2TAqMg6z8
-         uFetS/nvxvSr/igJOQ9JToqAL4Dh0f2SkL5WJC2g6Cj4owfjjO48VZMwb06FWDpVvpJE
-         hUP+LVviMn9OZHU3rReJlG+MInQONVzczA4q0Iovla240mOxJ3N3oiJVG7xWa+TFJtEG
-         QlpQ==
-X-Gm-Message-State: APjAAAX+h1HDk26f+83DphOLSjRh5bhunItc5uFgT8xyRvqcNdARhp5w
-        HTYe45aYUJFYnzOWvJXLeXBn1bJc
-X-Google-Smtp-Source: APXvYqwfoIyHrPBlYR6+qTSQE+wkYg7fKCiCyrRVKrKY/mTuSiEQuZrqMcfWCqb8VobSp7ux8xathA==
-X-Received: by 2002:a63:5720:: with SMTP id l32mr20152813pgb.268.1551730210769;
-        Mon, 04 Mar 2019 12:10:10 -0800 (PST)
-Received: from mua.localhost (99-7-172-215.lightspeed.snmtca.sbcglobal.net. [99.7.172.215])
-        by smtp.gmail.com with ESMTPSA id w17sm10285265pfn.63.2019.03.04.12.10.09
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 04 Mar 2019 12:10:10 -0800 (PST)
-Reply-To: pgnet.dev@gmail.com
-Subject: Re: xtables-addons build fail with linux 5.0: "error: implicit
- declaration of function 'do_gettimeofday'; did you mean 'do_settimeofday64'?"
-From:   PGNet Dev <pgnet.dev@gmail.com>
-To:     netfilter-devel@vger.kernel.org
-References: <c4382224-6bfa-3604-28c4-4ab1ea61e943@gmail.com>
- <7604c2e7-e477-028f-d0cd-2b57a56c08b1@gmail.com>
-Message-ID: <24a74393-c0ef-72ae-88df-81734c27f699@gmail.com>
-Date:   Mon, 4 Mar 2019 12:10:08 -0800
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.5.2
+        Mon, 4 Mar 2019 15:40:40 -0500
+Received: from wuerfel.lan ([109.192.41.194]) by mrelayeu.kundenserver.de
+ (mreue106 [212.227.15.145]) with ESMTPA (Nemesis) id
+ 1M8xsm-1gvyQi1a6Q-0066QL; Mon, 04 Mar 2019 21:40:22 +0100
+From:   Arnd Bergmann <arnd@arndb.de>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>
+Cc:     Arnd Bergmann <arnd@arndb.de>,
+        =?UTF-8?q?M=C3=A1t=C3=A9=20Eckl?= <ecklm94@gmail.com>,
+        Fernando Fernandez Mancera <ffmancera@riseup.net>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] netfilter: nf_conntrack_sip: fix IPV6 dependency
+Date:   Mon,  4 Mar 2019 21:40:12 +0100
+Message-Id: <20190304204019.2142770-1-arnd@arndb.de>
+X-Mailer: git-send-email 2.20.0
 MIME-Version: 1.0
-In-Reply-To: <7604c2e7-e477-028f-d0cd-2b57a56c08b1@gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+X-Provags-ID: V03:K1:AqACvfLz5KyJslLuX6CJ+n57xkzbsTQoy30Pi/s2JNSW8Yfo4QH
+ zU9Y52zixx4e3Q1eAXnKlxI9aNmKDhvCJXP6WDq7u4Q4Qq6xdEyDSNPdHNM0WsqFKu3usj4
+ kUx9h7UG8J2eHi7rtdlR2pCz/ntZf2+Sqa3xKTU1NbNowYKqbmlr1ADcEiaXjC9REbLO0F7
+ RIAYbHa9nwvQws1YNstxg==
+X-UI-Out-Filterresults: notjunk:1;V03:K0:y/hHEmpsu/U=:A6ZOLaqW9UArD0P/Z5PJG7
+ IQ49Shbw+ESgBxck2nLWOHQ3zvLK1q0xH/NFl1W6tdZqZMGjYDNsL7zyVMgutCMaPKsV81DK/
+ rjp4eoexuFb64ED1AEZQuxT/3tm0sjAv2h2ptClStmdW5cXWuEkg2Nj6ob0gxl0+Wa7UQspNC
+ yNYiHlS7XJMhUA3JfbwzVm89qlEIjwSi83M/tmdwH74EwAiqrL8dL4Lb9p8/Qh9RScTwFsO8G
+ bVhbY79bkcfzN7O2AjtINlNyQey+6VCfPPcwbev9XHdJ4QYtKprFWtPfe31EHxD5Jc77rQO0C
+ i6e7FQbluy64vBr+X4CHP7wVcVaXKVtpK769BgFidAO+mpy1cuEHc5LVhSLi4OrSRSjB9C6Cl
+ WuaBzcD2BoL86C2W5XFwhUV7NtZ2bQbrUgoGQj2XK2I2/OFG7rTLZeSirqyVegqSnWtHoBFc+
+ 1TCfFMoaMJSQK1cBqWJwiqFUof0zyoY769Yehede8FRox44ghKOpRy+OuNVyGzNlgvuewCPOL
+ psYchzBgW5sDb0PEC9N8hmOoF07vS26pCs2n3szWj4EclYxjKAynjkAhNILVTJyP5cen0AAN/
+ eVnL7chXhqLKu03jg/ZTGSPwdvVM1BR4gANu9ZTKiUN8gnW/bGUftC53Ko84mNyvOj7t9KFKM
+ szmd4Y+aLkM1ZEmPhuwjMNt+s6d1cxBkKQajDi6o7srAPAruvQZWLmh2u65Yf0AOjNvCVdLvS
+ WBnW/oFt7q3WxhAU+YGpXeOFAOGfIYtHtY/BMQ==
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-this patch,
+With CONFIG_IPV6=m and CONFIG_NF_CONNTRACK_SIP=y, we now get a link failure:
 
-  https://bugzilla.opensuse.org/show_bug.cgi?id=1127790#c3
+net/netfilter/nf_conntrack_sip.o: In function `process_sdp':
+nf_conntrack_sip.c:(.text+0x4344): undefined reference to `ip6_route_output_flags'
 
---------
-diff -ur xtables-addons-3.2.ORIG/extensions/xt_SYSRQ.c xtables-addons-3.2/extensions/xt_SYSRQ.c
---- xtables-addons-3.2.ORIG/extensions/xt_SYSRQ.c	2018-09-07 06:04:28.000000000 -0700
-+++ xtables-addons-3.2/extensions/xt_SYSRQ.c	2019-03-04 12:01:16.426428277 -0800
-@@ -314,7 +314,7 @@
- static int __init sysrq_crypto_init(void)
- {
- #if defined(WITH_CRYPTO)
--	struct timeval now;
-+	struct timespec64 now;
- 	int ret;
+Fix this by adding a dependency that forces CONFIG_NF_CONNTRACK_SIP to be =m
+when CONFIG_IPV6=m, as we already do for several other drivers with a similar
+requirement.
+
+Fixes: a3419ce3356c ("netfilter: nf_conntrack_sip: add sip_external_media logic")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+ net/netfilter/Kconfig | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index d43ffb09939b..964bc317ad0a 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -333,6 +333,7 @@ config NF_CONNTRACK_SANE
  
- 	sysrq_tfm = crypto_alloc_shash(sysrq_hash, 0, 0);
-@@ -339,7 +339,10 @@
- 		    sizeof(sysrq_password), GFP_KERNEL);
- 	if (sysrq_digest_password == NULL)
- 		goto fail;
--	do_gettimeofday(&now);
-+/* https://github.com/torvalds/linux/blob/master/Documentation/core-api/timekeeping.rst
-+ * https://gitlab.com/snippets/1799795
-+ */
-+	ktime_get_real_ts64(&now);
- 	sysrq_seqno = now.tv_sec;
- 	return 0;
---------
+ config NF_CONNTRACK_SIP
+ 	tristate "SIP protocol support"
++	depends on IPV6 || IPV6=n
+ 	default m if NETFILTER_ADVANCED=n
+ 	help
+ 	  SIP is an application-layer control protocol that can establish,
+-- 
+2.20.0
 
-appears to enable an ok build.
