@@ -1,92 +1,90 @@
-Return-Path: <SRS0=Cmqr=RH=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=Q+IM=RI=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 99034C43381
-	for <netfilter-devel@archiver.kernel.org>; Mon,  4 Mar 2019 20:40:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 02028C43381
+	for <netfilter-devel@archiver.kernel.org>; Tue,  5 Mar 2019 08:23:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6138520823
-	for <netfilter-devel@archiver.kernel.org>; Mon,  4 Mar 2019 20:40:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C3CCD206DD
+	for <netfilter-devel@archiver.kernel.org>; Tue,  5 Mar 2019 08:23:42 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="vHJfps1y"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726469AbfCDUkk (ORCPT
+        id S1726179AbfCEIXm (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 4 Mar 2019 15:40:40 -0500
-Received: from mout.kundenserver.de ([212.227.17.10]:55217 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726101AbfCDUkk (ORCPT
+        Tue, 5 Mar 2019 03:23:42 -0500
+Received: from mail-it1-f193.google.com ([209.85.166.193]:52577 "EHLO
+        mail-it1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725818AbfCEIXm (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 4 Mar 2019 15:40:40 -0500
-Received: from wuerfel.lan ([109.192.41.194]) by mrelayeu.kundenserver.de
- (mreue106 [212.227.15.145]) with ESMTPA (Nemesis) id
- 1M8xsm-1gvyQi1a6Q-0066QL; Mon, 04 Mar 2019 21:40:22 +0100
-From:   Arnd Bergmann <arnd@arndb.de>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>
-Cc:     Arnd Bergmann <arnd@arndb.de>,
-        =?UTF-8?q?M=C3=A1t=C3=A9=20Eckl?= <ecklm94@gmail.com>,
-        Fernando Fernandez Mancera <ffmancera@riseup.net>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] netfilter: nf_conntrack_sip: fix IPV6 dependency
-Date:   Mon,  4 Mar 2019 21:40:12 +0100
-Message-Id: <20190304204019.2142770-1-arnd@arndb.de>
-X-Mailer: git-send-email 2.20.0
+        Tue, 5 Mar 2019 03:23:42 -0500
+Received: by mail-it1-f193.google.com with SMTP id g17so2937283ita.2
+        for <netfilter-devel@vger.kernel.org>; Tue, 05 Mar 2019 00:23:41 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=G0YBZ24VUDqnzCInxvNY/uc8SPKs0E0RDSq5IkaIrSo=;
+        b=vHJfps1yeLi2OAzGJp2JbWLnOj1SQFcYOZPdAVKVJM5M9lq2k91PQB0tqH622C/Xwy
+         s21DhURFzIkm0eutxmXR/tYXCOou47w3AgdiIxT1IhH+1joHuLAFzZTDhlQ0itIZzHQw
+         jUjIilPs0E7sCN/b2EXqSqA8EFriHfO1PapUiKQjrOJLWTnTGveMegaaG/azI6b9ulZp
+         yUkz2K3a9VcDvka49ew/wBNEZbpatGKiM0qGdCnpLFYGjDaOG5maZx9Qrq+jd6y2PtmK
+         SjZ1OGvtzu0ILgoJFEf2BJGfNw3xOre6dW09ijC31mAVzZQrGJxr1CJcT+BK/xpuYpmJ
+         OK7g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=G0YBZ24VUDqnzCInxvNY/uc8SPKs0E0RDSq5IkaIrSo=;
+        b=Vk1fCXcdaw1hVfYID+N/UNYGpD0AYEZt8FRU6WSmlj8AyTtZrpubKVg7GA+flqksq5
+         zWl6spSdcFM0xidvTCICAokJDIQ2F+gI/g5XPEVXXW6dHMJvag2b0FFg80B6GTFSZFhX
+         YC9CxQ7kcu+KVJHkV4h3pxzv3nUpbJGHwksiZ3SXKCE+tYjsimf2xVZcOSOfw4aiTA9g
+         MfyInvNyAOO4OZacO5NgbcyOohr7bpAkM2KpfVlBv/Byu4/xhsY71VP+mq+rwpt3vR5L
+         IFAyezWaZl6orT+b4+7pzvbgpdaFyiEqa98sy92XWHqcZKkOJiSXZGsSOL5+FDL/65Hc
+         mcpA==
+X-Gm-Message-State: APjAAAXTV/FWvbsuvGKtMvkZKi4FlLZraP9AtrC8H5P3cSlshUi45Gj9
+        fdZw5OrTsyA44Xr03KIdwzUVT3tLoVW49iGcElhQ2pA1
+X-Google-Smtp-Source: APXvYqyQyd1bqzq3T5Kc9JDsjjwFMOCxZUqP/RH9KPPHYKATVhG7/4gbt6PzOt6QAuo1cJt219vjechNTnFAC+iJyC4=
+X-Received: by 2002:a24:ee8c:: with SMTP id b134mr1884128iti.7.1551774221002;
+ Tue, 05 Mar 2019 00:23:41 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Provags-ID: V03:K1:AqACvfLz5KyJslLuX6CJ+n57xkzbsTQoy30Pi/s2JNSW8Yfo4QH
- zU9Y52zixx4e3Q1eAXnKlxI9aNmKDhvCJXP6WDq7u4Q4Qq6xdEyDSNPdHNM0WsqFKu3usj4
- kUx9h7UG8J2eHi7rtdlR2pCz/ntZf2+Sqa3xKTU1NbNowYKqbmlr1ADcEiaXjC9REbLO0F7
- RIAYbHa9nwvQws1YNstxg==
-X-UI-Out-Filterresults: notjunk:1;V03:K0:y/hHEmpsu/U=:A6ZOLaqW9UArD0P/Z5PJG7
- IQ49Shbw+ESgBxck2nLWOHQ3zvLK1q0xH/NFl1W6tdZqZMGjYDNsL7zyVMgutCMaPKsV81DK/
- rjp4eoexuFb64ED1AEZQuxT/3tm0sjAv2h2ptClStmdW5cXWuEkg2Nj6ob0gxl0+Wa7UQspNC
- yNYiHlS7XJMhUA3JfbwzVm89qlEIjwSi83M/tmdwH74EwAiqrL8dL4Lb9p8/Qh9RScTwFsO8G
- bVhbY79bkcfzN7O2AjtINlNyQey+6VCfPPcwbev9XHdJ4QYtKprFWtPfe31EHxD5Jc77rQO0C
- i6e7FQbluy64vBr+X4CHP7wVcVaXKVtpK769BgFidAO+mpy1cuEHc5LVhSLi4OrSRSjB9C6Cl
- WuaBzcD2BoL86C2W5XFwhUV7NtZ2bQbrUgoGQj2XK2I2/OFG7rTLZeSirqyVegqSnWtHoBFc+
- 1TCfFMoaMJSQK1cBqWJwiqFUof0zyoY769Yehede8FRox44ghKOpRy+OuNVyGzNlgvuewCPOL
- psYchzBgW5sDb0PEC9N8hmOoF07vS26pCs2n3szWj4EclYxjKAynjkAhNILVTJyP5cen0AAN/
- eVnL7chXhqLKu03jg/ZTGSPwdvVM1BR4gANu9ZTKiUN8gnW/bGUftC53Ko84mNyvOj7t9KFKM
- szmd4Y+aLkM1ZEmPhuwjMNt+s6d1cxBkKQajDi6o7srAPAruvQZWLmh2u65Yf0AOjNvCVdLvS
- WBnW/oFt7q3WxhAU+YGpXeOFAOGfIYtHtY/BMQ==
+References: <20190301104331.GA26805@nebula> <20190301110000.ofmenn5hjxf4nvb4@breakpoint.cc>
+In-Reply-To: <20190301110000.ofmenn5hjxf4nvb4@breakpoint.cc>
+From:   Karuna Grewal <karunagrewal98@gmail.com>
+Date:   Tue, 5 Mar 2019 13:53:29 +0530
+Message-ID: <CAHRz_yZ4esKR2TJ=9AqtYbc5awDaNKHW6iuLXVLFZcuFAWLW1Q@mail.gmail.com>
+Subject: Re: [PATCH] netfilter: nft_meta: Extend support for NFT_META_TSTAMP_NS
+To:     Florian Westphal <fw@strlen.de>
+Cc:     netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-With CONFIG_IPV6=m and CONFIG_NF_CONNTRACK_SIP=y, we now get a link failure:
+On Fri, Mar 1, 2019 at 4:30 PM Florian Westphal <fw@strlen.de> wrote:
+>
+> Karuna Grewal <karunagrewal98@gmail.com> wrote:
+> > Meta evaluation function is extended to suport NFT_META_TSTAMP_NS option
+> > by exposing the 64 bit timestamp of the packet to two 32 bit registers.
 
-net/netfilter/nf_conntrack_sip.o: In function `process_sdp':
-nf_conntrack_sip.c:(.text+0x4344): undefined reference to `ip6_route_output_flags'
-
-Fix this by adding a dependency that forces CONFIG_NF_CONNTRACK_SIP to be =m
-when CONFIG_IPV6=m, as we already do for several other drivers with a similar
-requirement.
-
-Fixes: a3419ce3356c ("netfilter: nf_conntrack_sip: add sip_external_media logic")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- net/netfilter/Kconfig | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index d43ffb09939b..964bc317ad0a 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -333,6 +333,7 @@ config NF_CONNTRACK_SANE
- 
- config NF_CONNTRACK_SIP
- 	tristate "SIP protocol support"
-+	depends on IPV6 || IPV6=n
- 	default m if NETFILTER_ADVANCED=n
- 	help
- 	  SIP is an application-layer control protocol that can establish,
--- 
-2.20.0
-
+> Other than this, this patch looks good.  Please consider sending v3 once
+> you have nftables patches ready as well.
+I've a doubt in the nftables implementation for implementing the `-m
+time` support. I'm unable to get a proper idea of where the start and
+stop time comparison with the dest register's value takes place.
+From my understanding of implementation, I've noticed that after
+parsing the rule and the meta expression is allocated, expression's
+primary evaluation function is invoked.
+Meanwhile, the kernel has the nft_meta_get_eval  function setting the
+register with the relevant field and in nf_tables_core.h  the
+registering of different nft_expr_types is accomplished.
+Could someone please give me some pointers about where this processing
+of the data set in the meta registers takes place?
+Thanks
+Karuna
