@@ -2,96 +2,142 @@ Return-Path: <SRS0=WT5G=RJ=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 61728C43381
-	for <netfilter-devel@archiver.kernel.org>; Wed,  6 Mar 2019 02:24:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3635CC43381
+	for <netfilter-devel@archiver.kernel.org>; Wed,  6 Mar 2019 10:05:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2DCA420675
-	for <netfilter-devel@archiver.kernel.org>; Wed,  6 Mar 2019 02:24:36 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="T8qNJffR"
+	by mail.kernel.org (Postfix) with ESMTP id 0E0BF20657
+	for <netfilter-devel@archiver.kernel.org>; Wed,  6 Mar 2019 10:05:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728926AbfCFCYg (ORCPT
+        id S1730052AbfCFKFq (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 5 Mar 2019 21:24:36 -0500
-Received: from mail-ot1-f45.google.com ([209.85.210.45]:36124 "EHLO
-        mail-ot1-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726347AbfCFCYg (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 5 Mar 2019 21:24:36 -0500
-Received: by mail-ot1-f45.google.com with SMTP id v62so9372732otb.3
-        for <netfilter-devel@vger.kernel.org>; Tue, 05 Mar 2019 18:24:35 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:from:date:message-id:subject:to;
-        bh=hJJcFPlxVH3ySQuQdXh4fahyCMeO39RLqRQvnBIas3Q=;
-        b=T8qNJffRRJhcU409TbdfT2f1/S6IGEyy3IgGwgA7WjiDHcOaYAP5UE3g4p5HAQwtM+
-         PEWYX3nkHEE47C0wmwyDhRnPmAiPgRMe1PphbV3w2zp/aOGQh7T1uwIz6G5k02B6cWrX
-         QM6xyQ++O2krnpfLcCjWVpNgePtBCnjiuAL4n2R6EIbX4Y0E6ot2+w5zH5AUTMIwQZdU
-         uo/NVJBQg1A5IoTJ88Bqk455wldOhhkm1EoGwQMWXo4T1gWBv7czyLp+TI6N1sF1Uy57
-         4SFjE5czJE3dU+UXI2UtoNWj4bZQqGNPsdsErvaPXKB6OSi2vDUcTO7NRsUd5c3wSr3i
-         tAiA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:from:date:message-id:subject:to;
-        bh=hJJcFPlxVH3ySQuQdXh4fahyCMeO39RLqRQvnBIas3Q=;
-        b=T7Wxwr/18Mi7iTUmD/A418Rr3CsdDeR5pC99/qtKdUskqfertiFSAodfnBnh+SXOWA
-         t2v41JfnLFEcxTm6raqgD+LFiI7Hm7cPUtsZVW09hWSqAfgjW97d6qMRpq+RLaBPWuPX
-         W9UGpv/n3WM8BXPYnqPxE3vcLxjjyI9k0Zt2y1oWVXpkqVDLkLCeiaV6N1S4dO2GozrS
-         REhy4lEnWtQDhQhv/IVMksbI0rzBUQzoDJVjVc1bPxjlHeaf6lK5jQyPIbvm0k1WksIm
-         HCXL6kVa0LSMZQLK1xA2g9x2gNc8ogvR43VooTiWYXh0hMY+odecCZ+BKCo0XKMBCwlP
-         rijQ==
-X-Gm-Message-State: APjAAAVdDZQfnCbWnOsQlIJEgC1ux59Z6UBIDcZoRk6SL4vkTrCd/a9S
-        wTHJiiZ6PsKIrhDrNXnrbRaFYh8XtLUvJrCpT6YZpX8=
-X-Google-Smtp-Source: APXvYqzHoP2p/ZV2CKH/3rcxSdBMR4KeSHG4XNDxb8qf0bl/MY4SsdskFBZYQAktY3n2yRr4uMnIRLksG5UB+9WBARA=
-X-Received: by 2002:a9d:6553:: with SMTP id q19mr2837239otl.21.1551839075080;
- Tue, 05 Mar 2019 18:24:35 -0800 (PST)
-MIME-Version: 1.0
-From:   satya phanisree <phanisree1998@gmail.com>
-Date:   Wed, 6 Mar 2019 07:54:21 +0530
-Message-ID: <CAJv4CxY1NHej0ohcQhnqcwBRgvFnXo82=Q=gnhZqAtu01SS_kQ@mail.gmail.com>
-Subject: Netfilter
+        Wed, 6 Mar 2019 05:05:46 -0500
+Received: from mail.us.es ([193.147.175.20]:49412 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726596AbfCFKFq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 6 Mar 2019 05:05:46 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id CF2A9152161
+        for <netfilter-devel@vger.kernel.org>; Wed,  6 Mar 2019 11:05:41 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 81AB9BAAB8
+        for <netfilter-devel@vger.kernel.org>; Wed,  6 Mar 2019 11:05:41 +0100 (CET)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 8DAEDFC396; Wed,  6 Mar 2019 11:05:40 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 86008FA5AC;
+        Wed,  6 Mar 2019 11:05:31 +0100 (CET)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Wed, 06 Mar 2019 11:05:31 +0100 (CET)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from salvia.here (sys.soleta.eu [212.170.55.40])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id 578264265A5C;
+        Wed,  6 Mar 2019 11:05:31 +0100 (CET)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Cc:     fw@strlen.de
+Subject: [PATCH nft 1/2,v2] segtree: remove dummy debug_octx
+Date:   Wed,  6 Mar 2019 11:05:27 +0100
+Message-Id: <20190306100527.26940-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.11.0
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi ,
+Breaks custom-defined configuration in library mode, ie. user may want
+to store output in a file, instead of stderr.
 
-    We are looking at trying to retrieve the complete conntrack table
-using libnetfilter_conntrack API's. But when we used the below
-sequence of API's we see that the call back register is getting called
-once for every entery in the conntrack table. The sequence of API's we
-have used is as follows :
+Fixes: 35f6cd327c2e ("src: Pass stateless, numeric, ip2name and handle variables as structure members.")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+v2: Rebase on top of git HEAD, rework on top of Florian's fix.
 
+ include/expression.h | 3 ++-
+ src/rule.c           | 9 ++++++---
+ src/segtree.c        | 7 ++-----
+ 3 files changed, 10 insertions(+), 9 deletions(-)
 
+diff --git a/include/expression.h b/include/expression.h
+index b681b67f96f4..6d72f64c4fea 100644
+--- a/include/expression.h
++++ b/include/expression.h
+@@ -455,7 +455,8 @@ extern struct expr *set_expr_alloc(const struct location *loc,
+ 				   const struct set *set);
+ extern int set_to_intervals(struct list_head *msgs, struct set *set,
+ 			    struct expr *init, bool add,
+-			    unsigned int debug_mask, bool merge);
++			    unsigned int debug_mask, bool merge,
++			    struct output_ctx *octx);
+ extern void interval_map_decompose(struct expr *set);
+ 
+ extern struct expr *get_set_intervals(const struct set *set,
+diff --git a/src/rule.c b/src/rule.c
+index a3b2dbdb98a3..dc75c7cd5fb0 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -1445,7 +1445,8 @@ static int do_add_setelems(struct netlink_ctx *ctx, struct cmd *cmd,
+ 
+ 	if (set->flags & NFT_SET_INTERVAL &&
+ 	    set_to_intervals(ctx->msgs, set, init, true,
+-			     ctx->nft->debug_mask, set->automerge) < 0)
++			     ctx->nft->debug_mask, set->automerge,
++			     &ctx->nft->output) < 0)
+ 		return -1;
+ 
+ 	return __do_add_setelems(ctx, set, init, flags);
+@@ -1459,7 +1460,8 @@ static int do_add_set(struct netlink_ctx *ctx, const struct cmd *cmd,
+ 	if (set->init != NULL) {
+ 		if (set->flags & NFT_SET_INTERVAL &&
+ 		    set_to_intervals(ctx->msgs, set, set->init, true,
+-				     ctx->nft->debug_mask, set->automerge) < 0)
++				     ctx->nft->debug_mask, set->automerge,
++				     &ctx->nft->output) < 0)
+ 			return -1;
+ 	}
+ 	if (mnl_nft_set_add(ctx, cmd, flags) < 0)
+@@ -1556,7 +1558,8 @@ static int do_delete_setelems(struct netlink_ctx *ctx, struct cmd *cmd)
+ 
+ 	if (set->flags & NFT_SET_INTERVAL &&
+ 	    set_to_intervals(ctx->msgs, set, expr, false,
+-			     ctx->nft->debug_mask, set->automerge) < 0)
++			     ctx->nft->debug_mask, set->automerge,
++			     &ctx->nft->output) < 0)
+ 		return -1;
+ 
+ 	if (mnl_nft_setelem_del(ctx, cmd) < 0)
+diff --git a/src/segtree.c b/src/segtree.c
+index e3a2f48c2238..b23ccc501771 100644
+--- a/src/segtree.c
++++ b/src/segtree.c
+@@ -566,7 +566,7 @@ static void set_insert_interval(struct expr *set, struct seg_tree *tree,
+ 
+ int set_to_intervals(struct list_head *errs, struct set *set,
+ 		     struct expr *init, bool add, unsigned int debug_mask,
+-		     bool merge)
++		     bool merge, struct output_ctx *octx)
+ {
+ 	struct elementary_interval *ei, *next;
+ 	struct output_ctx debug_octx;
+@@ -590,10 +590,7 @@ int set_to_intervals(struct list_head *errs, struct set *set,
+ 	}
+ 
+ 	if (segtree_debug(tree.debug_mask)) {
+-		memset(&debug_octx, 0, sizeof(debug_octx));
+-		debug_octx.output_fp = stderr;
+-		debug_octx.error_fp = stderr;
+-		expr_print(init, &debug_octx);
++		expr_print(init, octx);
+ 		pr_gmp_debug("\n");
+ 	}
+ 
+-- 
+2.11.0
 
-cb
-..........
-..........
-    nfct_snprintf ();<=====returns one entry from conntrack table
-..........
-..........
-
-
-main
-
-        nfct_callback_register ( ); <===== NFCT_T_ALL to fetch all the enteries
-        ret = nfct_query ();
-........
-........
-
-
-
-Is there a away for me to get the whole conntrack table in a single
-invocation of single callback function ? So that the cb function not
-called multiple times?
-
-
-Thanks and Regards,
