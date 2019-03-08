@@ -2,90 +2,141 @@ Return-Path: <SRS0=0Xdd=RL=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.5 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_PASS,USER_AGENT_MUTT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4106BC43381
-	for <netfilter-devel@archiver.kernel.org>; Fri,  8 Mar 2019 16:52:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C04CC43381
+	for <netfilter-devel@archiver.kernel.org>; Fri,  8 Mar 2019 17:25:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0A92B208E4
-	for <netfilter-devel@archiver.kernel.org>; Fri,  8 Mar 2019 16:52:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F2B5820851
+	for <netfilter-devel@archiver.kernel.org>; Fri,  8 Mar 2019 17:25:54 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="IdUcNIkG"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="g7sZPfQj"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727001AbfCHQwY (ORCPT
+        id S1726581AbfCHRZy (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 8 Mar 2019 11:52:24 -0500
-Received: from mail-wm1-f45.google.com ([209.85.128.45]:36622 "EHLO
-        mail-wm1-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726990AbfCHQwY (ORCPT
+        Fri, 8 Mar 2019 12:25:54 -0500
+Received: from mail-pf1-f176.google.com ([209.85.210.176]:43653 "EHLO
+        mail-pf1-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726249AbfCHRZy (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 8 Mar 2019 11:52:24 -0500
-Received: by mail-wm1-f45.google.com with SMTP id j125so13043403wmj.1
-        for <netfilter-devel@vger.kernel.org>; Fri, 08 Mar 2019 08:52:23 -0800 (PST)
+        Fri, 8 Mar 2019 12:25:54 -0500
+Received: by mail-pf1-f176.google.com with SMTP id q17so14610151pfh.10
+        for <netfilter-devel@vger.kernel.org>; Fri, 08 Mar 2019 09:25:53 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=qCKygBQCUpNS5P/JDpkW2DXSP6Bm4cP0NVIOldUyTZ8=;
-        b=IdUcNIkGDmbmsvflun+maEjCASyVnQ25dAQq47phcFwSed1kJYKnVeSz7mkkAiseRR
-         jQkAJUbyXm7cFTNz4zNMIohjLiZZ98334a8oF6pW4xKmEHS6d7MzqbqisudOYzn7O5I1
-         WVTrLJ5YiMRGWeGkFwqeU/wHGih3+MGasyicy1wGmyux/NSZa1FX+BYT2fj/165VYTHD
-         EzHRn9QWKL+X0FyMifWxCxnrsEHqnCVLNGZngbleHWce9/WlhFmweBQTLEWVtC3wAvO4
-         y5posIkPqTh5Lvy7ioJrZAkx3GocpxyNvIzgBbUOeaL6SWTzH/I3HtLx9GohO7xN4Ssb
-         4lqA==
+        d=gmail.com; s=20161025;
+        h=date:from:to:cc:subject:message-id:mime-version:content-description
+         :content-disposition:user-agent;
+        bh=IBb1uIZIsFaa3W4BhOz7TP/w4PWyaKYGtyDZsxFhQfs=;
+        b=g7sZPfQj3E9SnJPt9FQj+uHbTneYSgnYSjizqdPcVzweXzPYQvezkQKMJdMF6+KVlG
+         nmFClEQQMhwyVuv78uGc/bNXOErVH9UXBRyAHD2odSg8QL01fUSl34m2KutThwZjrkgp
+         rFSKpMq5NYW0mOuJDD6f9j288+LSCAB9Dy4wwBNwGkbSIUxhziwZ3HdV6uJa2X2YGoZT
+         v9leMScXiNsIddMFISh+Ygx/6OT24qqcefUiTxqlkI6qRd0wZYGWaTZJDWLDFXaJb2dt
+         4+BPNxxLdRM/2laR2X6gTa6T6oK/vADlE9fG2ROs02jY1NeBNtEURX88gJahjgFK/ttU
+         fWyA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=qCKygBQCUpNS5P/JDpkW2DXSP6Bm4cP0NVIOldUyTZ8=;
-        b=G416at8r7HAT6uFoj8TQlLVXCElc73iWVtbQ+JvgMZ+0ANsCNWluGS27slpJAupzCv
-         RW603HRaztyO+wGfrcd/hC+Z6M1cSNprciuJTjZfmTnRMhWd6OCE23AiEM7fEpmrxAzF
-         c+LBKUwYwf4aGs2qVGQQ8Kp1tWHFOlCrL5fMpcd8s6Klh/I50cJSG7YblFuNrtRRDwjB
-         yknc+v2mfaiZdIbyEfmuE9/yY+DvUUJiXtHIun+MEuRjKHFmA7845Ie7mYhm+g6zGA2F
-         MSfQal83rv6nae37dWLA5wsyher+yUARNJQ498eDvyMmRbmR4uuCJATy2gr/1E6ORkVj
-         H6hQ==
-X-Gm-Message-State: APjAAAXN9iIR12rNnTErCUE9v+v6dkZqlNPWWofcAA4X5X8bJE1RVt4s
-        N50xg4i4h+j8hRs0rgNyh5m5eGIMzZle2zRoTopSkrMK
-X-Google-Smtp-Source: APXvYqzttkrEVJjjqDyxa/zfOqclVkyYUolMG2iZXFVPTcinuPAf+JQ9kcgfKFSQwj0ZURE/j01V0MJCRnkixtiCfh4=
-X-Received: by 2002:a1c:80c4:: with SMTP id b187mr9273234wmd.23.1552063942102;
- Fri, 08 Mar 2019 08:52:22 -0800 (PST)
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:mime-version
+         :content-description:content-disposition:user-agent;
+        bh=IBb1uIZIsFaa3W4BhOz7TP/w4PWyaKYGtyDZsxFhQfs=;
+        b=HqwyjOAiy2fOmsIr5+HPaQlFt2JDc487w/bkRouU58gZbLe4V9IfUo70DTSpjxvLA7
+         MaAXifzPe+1xYNQpUzUL9EGrecCw6WpOz96sPXKLZEZjUUC7Ox1xAnUfaJ470AI+AX/V
+         Klvba3UAN8NVnDOlGFVwNtiGz5pEXEa1d0v3UJRmQm7EzCmjSjFHIcZu+blmllM5cGGa
+         7joZehOxSW8Fqp2aHs3x+O16FV3yqtajEZcBzGVH8Zi7LTR83lENQQcD1DsW1CD0zjbw
+         l+WAFj5FI6K+gfJsQergSiekOiK0r0AmO9LO+iAKycUCS5hpE4mCLoSm0L+yM93DZUJk
+         cfjg==
+X-Gm-Message-State: APjAAAWeMrXnP/kAoSrTOuG7wELkHhQRJwRTTu4hZ3BGPMYwNv7rPBBy
+        ekylZW1lQ1hpjl4O1MgAtFTkddT/
+X-Google-Smtp-Source: APXvYqwDGJXuGaQEXIGuaG+SgieJ9uNf5jiuPQpCkhPsS89KTPOkndnsV0sPpf+vP5Jb3ALacXo+1A==
+X-Received: by 2002:a17:902:9a88:: with SMTP id w8mr20012587plp.8.1552065953462;
+        Fri, 08 Mar 2019 09:25:53 -0800 (PST)
+Received: from nebula ([103.210.49.131])
+        by smtp.gmail.com with ESMTPSA id h63sm29821638pfd.148.2019.03.08.09.25.50
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-SHA bits=128/128);
+        Fri, 08 Mar 2019 09:25:52 -0800 (PST)
+Date:   Fri, 8 Mar 2019 22:55:47 +0530
+From:   Karuna Grewal <karunagrewal98@gmail.com>
+To:     fw@strlen.de
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [PATCHv3] netfilter: nft_meta: Extend support for NFT_META_TSTAMP_NS
+Message-ID: <20190308172547.GA21197@nebula>
 MIME-Version: 1.0
-References: <1551330806-12502-1-git-send-email-lirongqing@baidu.com> <20190308155543.si2nqqm6j2otq27r@salvia>
-In-Reply-To: <20190308155543.si2nqqm6j2otq27r@salvia>
-From:   John Stultz <john.stultz@linaro.org>
-Date:   Fri, 8 Mar 2019 08:52:10 -0800
-Message-ID: <CALAqxLVZUOM=KXRADi8kQ6XB+AgsdVfYVg_LfzxAcgmAP6hjgg@mail.gmail.com>
-Subject: Re: [PATCH][v2] time: Introduce jiffies64_to_msecs()
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Thomas Gleixner <tglx@linutronix.de>,
-        Li RongQing <lirongqing@baidu.com>,
-        netfilter-devel@vger.kernel.org,
-        lkml <linux-kernel@vger.kernel.org>,
-        Stephen Boyd <sboyd@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Description: v3 timestamp patch
+Content-Disposition: inline
+User-Agent: Mutt/1.9.4 (2018-02-28)
+X-Cyberoam-smtpxy-version: 1.0.6.3
+X-Cyberoam-AV-Policy: default
+X-CTCH-PVer:  0000001
+X-CTCH-Spam:  Unknown
+X-CTCH-VOD:  Unknown
+X-CTCH-Flags:  0
+X-CTCH-RefID:  str=0001.0A090203.5C82A5A0.0022,ss=1,re=0.000,recu=0.000,reip=0.000,cl=1,cld=1,fgs=0
+X-CTCH-Score:  0.000
+X-CTCH-ScoreCust:  0.000
+X-CTCH-Rules:  
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Mar 8, 2019 at 7:55 AM Pablo Neira Ayuso <pablo@netfilter.org> wrote:
->
-> On Thu, Feb 28, 2019 at 01:13:26PM +0800, Li RongQing wrote:
-> > there is a similar helper in net/netfilter/nf_tables_api.c,
-> > this maybe become a common request someday, so move it to
-> > time.c
-> >
-> > Signed-off-by: Zhang Yu <zhangyu31@baidu.com>
-> > Signed-off-by: Li RongQing <lirongqing@baidu.com>
->
-> Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
->
-> This is touching kernel/time.c bits, which is far from my realm.
->
-> What should I do with this? I can just place it in nf-next.git if I
-> get an ACK to do so. Otherwise, please just take this if this looks
-> good to you.
+Meta evaluation function is extended to suport NFT_META_TSTAMP_NS option
+by exposing the 64 bit timestamp of the packet to two 32 bit registers.
 
-Acked-by: John Stultz <john.stultz@linaro.org>
+Signed-off-by: Karuna Grewal <karunagrewal98@gmail.com>
+---
+ include/uapi/linux/netfilter/nf_tables.h | 2 ++
+ net/netfilter/nft_meta.c                 | 8 ++++++++
+ 2 files changed, 10 insertions(+)
+
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index a66c8de006cc..100398d406a0 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -793,6 +793,7 @@ enum nft_exthdr_attributes {
+  * @NFT_META_SECPATH: boolean, secpath_exists (!!skb->sp)
+  * @NFT_META_IIFKIND: packet input interface kind name (dev->rtnl_link_ops->kind)
+  * @NFT_META_OIFKIND: packet output interface kind name (dev->rtnl_link_ops->kind)
++ * @NFT_META_TSTAMP_NS: packet arriavl time (skb->tstamp)
+  */
+ enum nft_meta_keys {
+ 	NFT_META_LEN,
+@@ -823,6 +824,7 @@ enum nft_meta_keys {
+ 	NFT_META_SECPATH,
+ 	NFT_META_IIFKIND,
+ 	NFT_META_OIFKIND,
++	NFT_META_TSTAMP_NS,
+ };
+ 
+ /**
+diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
+index 987d2d6ce624..6b40373e20e8 100644
+--- a/net/netfilter/nft_meta.c
++++ b/net/netfilter/nft_meta.c
+@@ -254,6 +254,11 @@ void nft_meta_get_eval(const struct nft_expr *expr,
+ 			goto err;
+ 		strncpy((char *)dest, out->rtnl_link_ops->kind, IFNAMSIZ);
+ 		break;
++	case NFT_META_TSTAMP_NS:
++		if (skb->tstamp == 0)
++			__net_timestamp((struct sk_buff *)skb);
++		*((u64*)dest) = ktime_to_ns(skb->tstamp);
++		break;
+ 	default:
+ 		WARN_ON(1);
+ 		goto err;
+@@ -371,6 +376,9 @@ static int nft_meta_get_init(const struct nft_ctx *ctx,
+ 		len = IFNAMSIZ;
+ 		break;
+ #endif
++	case NFT_META_TSTAMP_NS:
++		len = sizeof(u64);
++		break;
+ 	default:
+ 		return -EOPNOTSUPP;
+ 	}
+-- 
+2.17.1
+
