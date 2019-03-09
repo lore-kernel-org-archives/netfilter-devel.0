@@ -6,32 +6,32 @@ X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AF9E7C43381
-	for <netfilter-devel@archiver.kernel.org>; Sat,  9 Mar 2019 10:51:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 01FACC43381
+	for <netfilter-devel@archiver.kernel.org>; Sat,  9 Mar 2019 10:56:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8522120851
-	for <netfilter-devel@archiver.kernel.org>; Sat,  9 Mar 2019 10:51:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C8DE420851
+	for <netfilter-devel@archiver.kernel.org>; Sat,  9 Mar 2019 10:56:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726443AbfCIKvJ (ORCPT
+        id S1726257AbfCIK4N (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 9 Mar 2019 05:51:09 -0500
-Received: from orbyte.nwl.cc ([151.80.46.58]:37592 "EHLO orbyte.nwl.cc"
+        Sat, 9 Mar 2019 05:56:13 -0500
+Received: from orbyte.nwl.cc ([151.80.46.58]:37608 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726164AbfCIKvJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 9 Mar 2019 05:51:09 -0500
-Received: from localhost ([::1]:50682 helo=tatos)
+        id S1726233AbfCIK4N (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 9 Mar 2019 05:56:13 -0500
+Received: from localhost ([::1]:50698 helo=tatos)
         by orbyte.nwl.cc with esmtp (Exim 4.91)
         (envelope-from <phil@nwl.cc>)
-        id 1h2ZZL-0007MM-Ap; Sat, 09 Mar 2019 11:51:07 +0100
+        id 1h2ZeG-0007rX-5G; Sat, 09 Mar 2019 11:56:12 +0100
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [libnetfilter_conntrack PATCH] Rename 'qa' directory to 'tests'
-Date:   Sat,  9 Mar 2019 11:51:00 +0100
-Message-Id: <20190309105100.6299-1-phil@nwl.cc>
+Subject: [libnetfilter_conntrack PATCH v2] Rename 'qa' directory to 'tests'
+Date:   Sat,  9 Mar 2019 11:56:05 +0100
+Message-Id: <20190309105605.12543-1-phil@nwl.cc>
 X-Mailer: git-send-email 2.21.0
-In-Reply-To: <20190308181231.2bgpj5ladgnhr5up@salvia>
-References: <20190308181231.2bgpj5ladgnhr5up@salvia>
+In-Reply-To: <20190309105100.6299-1-phil@nwl.cc>
+References: <20190309105100.6299-1-phil@nwl.cc>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -45,7 +45,11 @@ common name instead.
 Suggested-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
+Changes since v1:
+- Add needed changes to configure.ac missed in previous patch.
+---
  Makefile.am                        | 2 +-
+ configure.ac                       | 4 ++--
  {qa => tests}/.gitignore           | 0
  {qa => tests}/Makefile.am          | 0
  {qa => tests}/ct_echo_event.c      | 0
@@ -62,7 +66,7 @@ Signed-off-by: Phil Sutter <phil@nwl.cc>
  {qa => tests}/test_api.c           | 0
  {qa => tests}/test_connlabel.c     | 2 +-
  {qa => tests}/test_filter.c        | 0
- 17 files changed, 2 insertions(+), 2 deletions(-)
+ 18 files changed, 4 insertions(+), 4 deletions(-)
  rename {qa => tests}/.gitignore (100%)
  rename {qa => tests}/Makefile.am (100%)
  rename {qa => tests}/ct_echo_event.c (100%)
@@ -93,6 +97,28 @@ index baa98ade1a5ec..1a53c1086a508 100644
  
  man_MANS = #nfnetlink_conntrack.3 nfnetlink_conntrack.7
  
+diff --git a/configure.ac b/configure.ac
+index 6304543eca7cd..6940c3894e570 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -31,7 +31,7 @@ PKG_CHECK_MODULES([LIBMNL], [libmnl >= 1.0.3])
+ AC_CHECK_HEADERS(arpa/inet.h)
+ dnl Check for inet_ntop
+ AC_CHECK_FUNCS(inet_ntop)
+-dnl Check for setns used in qa
++dnl Check for setns used in tests
+ AC_CHECK_FUNCS(setns)
+ dnl Again, some systems have it, but not IPv6
+ if test "$ac_cv_func_inet_ntop" = "yes" ; then
+@@ -66,7 +66,7 @@ fi
+ 
+ dnl Output the makefile
+ AC_CONFIG_FILES([Makefile src/Makefile include/Makefile utils/Makefile
+-	examples/Makefile qa/Makefile include/libnetfilter_conntrack/Makefile
++	examples/Makefile tests/Makefile include/libnetfilter_conntrack/Makefile
+ 	include/internal/Makefile src/conntrack/Makefile src/expect/Makefile
+ 	libnetfilter_conntrack.pc doxygen.cfg])
+ AC_OUTPUT
 diff --git a/qa/.gitignore b/tests/.gitignore
 similarity index 100%
 rename from qa/.gitignore
