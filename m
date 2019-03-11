@@ -6,266 +6,94 @@ X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 89D7FC43381
-	for <netfilter-devel@archiver.kernel.org>; Mon, 11 Mar 2019 12:16:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B4DF4C4360F
+	for <netfilter-devel@archiver.kernel.org>; Mon, 11 Mar 2019 12:16:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 53CEE2075C
-	for <netfilter-devel@archiver.kernel.org>; Mon, 11 Mar 2019 12:16:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 850D02075C
+	for <netfilter-devel@archiver.kernel.org>; Mon, 11 Mar 2019 12:16:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727125AbfCKMQD (ORCPT
+        id S1727125AbfCKMQh (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 11 Mar 2019 08:16:03 -0400
-Received: from mail.us.es ([193.147.175.20]:33286 "EHLO mail.us.es"
+        Mon, 11 Mar 2019 08:16:37 -0400
+Received: from mail.us.es ([193.147.175.20]:33768 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726977AbfCKMQD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 11 Mar 2019 08:16:03 -0400
+        id S1726977AbfCKMQh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 11 Mar 2019 08:16:37 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id CB5F9243943
-        for <netfilter-devel@vger.kernel.org>; Mon, 11 Mar 2019 13:15:59 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 0412E243958
+        for <netfilter-devel@vger.kernel.org>; Mon, 11 Mar 2019 13:16:35 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id B46A6DA87C
-        for <netfilter-devel@vger.kernel.org>; Mon, 11 Mar 2019 13:15:59 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id DE989BAAB2
+        for <netfilter-devel@vger.kernel.org>; Mon, 11 Mar 2019 13:16:34 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id B3693DA87A; Mon, 11 Mar 2019 13:15:59 +0100 (CET)
+        id C7967BAAB1; Mon, 11 Mar 2019 13:16:34 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 9D77DDA85D;
-        Mon, 11 Mar 2019 13:15:56 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id B02FEDA44E;
+        Mon, 11 Mar 2019 13:16:31 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 11 Mar 2019 13:15:56 +0100 (CET)
+ Mon, 11 Mar 2019 13:16:29 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 6DB6C4265A50;
-        Mon, 11 Mar 2019 13:15:56 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPA id 87E054265A2F;
+        Mon, 11 Mar 2019 13:16:31 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Cc:     vaclav.zindulka@tlapnet.cz, fw@strlen.de
-Subject: [PATCH nf,v4] netfilter: nf_tables: bogus EBUSY when deleting set after flush
-Date:   Mon, 11 Mar 2019 13:15:51 +0100
-Message-Id: <20190311121552.21865-1-pablo@netfilter.org>
+Cc:     dan.carpenter@oracle.com
+Subject: [PATCH nf] netfilter: nf_tables: use-after-free in dynamic operations
+Date:   Mon, 11 Mar 2019 13:16:27 +0100
+Message-Id: <20190311121627.22033-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Set deletion after flush coming in the same batch results in EBUSY. Add
-set use counter to track the number of references to this set from
-rules. We cannot rely on the list of bindings for this since such list
-is still populated from the preparation phase.
+Smatch reports:
 
-Reported-by: Václav Zindulka <vaclav.zindulka@tlapnet.cz>
+       net/netfilter/nf_tables_api.c:2167 nf_tables_expr_destroy()
+        error: dereferencing freed memory 'expr->ops'
+
+net/netfilter/nf_tables_api.c
+    2162 static void nf_tables_expr_destroy(const struct nft_ctx *ctx,
+    2163                                   struct nft_expr *expr)
+    2164 {
+    2165        if (expr->ops->destroy)
+    2166                expr->ops->destroy(ctx, expr);
+                                                ^^^^
+--> 2167        module_put(expr->ops->type->owner);
+                           ^^^^^^^^^
+    2168 }
+
+Smatch says there are three functions which free expr->ops.
+
+Fixes: b8e204006340 ("netfilter: nft_compat: use .release_ops and remove list of extension")
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-v4: add nf_tables_deactivate_set(), add WARN_ON to nft_set_destroy() to
-    check for clean use counter. Properly decrement counter for abort and
-    release paths.
+ net/netfilter/nf_tables_api.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
- include/net/netfilter/nf_tables.h |  6 ++++++
- net/netfilter/nf_tables_api.c     | 28 +++++++++++++++++++++++++++-
- net/netfilter/nft_dynset.c        | 13 +++++++++----
- net/netfilter/nft_lookup.c        | 13 +++++++++----
- net/netfilter/nft_objref.c        | 13 +++++++++----
- 5 files changed, 60 insertions(+), 13 deletions(-)
-
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index ed0687b0e0f4..3e9ab643eedf 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -382,6 +382,7 @@ void nft_unregister_set(struct nft_set_type *type);
-  * 	@dtype: data type (verdict or numeric type defined by userspace)
-  * 	@objtype: object type (see NFT_OBJECT_* definitions)
-  * 	@size: maximum set size
-+ *	@use: number of rules references to this set
-  * 	@nelems: number of elements
-  * 	@ndeact: number of deactivated elements queued for removal
-  *	@timeout: default timeout value in jiffies
-@@ -407,6 +408,7 @@ struct nft_set {
- 	u32				dtype;
- 	u32				objtype;
- 	u32				size;
-+	u32				use;
- 	atomic_t			nelems;
- 	u32				ndeact;
- 	u64				timeout;
-@@ -467,6 +469,10 @@ struct nft_set_binding {
- 	u32				flags;
- };
- 
-+enum nft_trans_phase;
-+void nf_tables_deactivate_set(const struct nft_ctx *ctx, struct nft_set *set,
-+			      struct nft_set_binding *binding,
-+			      enum nft_trans_phase phase);
- int nf_tables_bind_set(const struct nft_ctx *ctx, struct nft_set *set,
- 		       struct nft_set_binding *binding);
- void nf_tables_unbind_set(const struct nft_ctx *ctx, struct nft_set *set,
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 1333bf97dc26..9c22865fbe39 100644
+index 9c22865fbe39..9199c61be64c 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -3672,6 +3672,9 @@ static int nf_tables_newset(struct net *net, struct sock *nlsk,
- 
- static void nft_set_destroy(struct nft_set *set)
+@@ -2162,9 +2162,11 @@ static int nf_tables_newexpr(const struct nft_ctx *ctx,
+ static void nf_tables_expr_destroy(const struct nft_ctx *ctx,
+ 				   struct nft_expr *expr)
  {
-+	if (WARN_ON(set->use > 0))
-+		return;
++	const struct nft_expr_type *type = expr->ops->type;
 +
- 	set->ops->destroy(set);
- 	module_put(to_set_type(set->ops)->owner);
- 	kfree(set->name);
-@@ -3712,7 +3715,7 @@ static int nf_tables_delset(struct net *net, struct sock *nlsk,
- 		NL_SET_BAD_ATTR(extack, attr);
- 		return PTR_ERR(set);
- 	}
--	if (!list_empty(&set->bindings) ||
-+	if (set->use ||
- 	    (nlh->nlmsg_flags & NLM_F_NONREC && atomic_read(&set->nelems) > 0)) {
- 		NL_SET_BAD_ATTR(extack, attr);
- 		return -EBUSY;
-@@ -3742,6 +3745,9 @@ int nf_tables_bind_set(const struct nft_ctx *ctx, struct nft_set *set,
- 	struct nft_set_binding *i;
- 	struct nft_set_iter iter;
- 
-+	if (set->use == UINT_MAX)
-+		return -EOVERFLOW;
-+
- 	if (!list_empty(&set->bindings) && nft_set_is_anonymous(set))
- 		return -EBUSY;
- 
-@@ -3769,11 +3775,31 @@ int nf_tables_bind_set(const struct nft_ctx *ctx, struct nft_set *set,
- 	binding->chain = ctx->chain;
- 	list_add_tail_rcu(&binding->list, &set->bindings);
- 	nft_set_trans_bind(ctx, set);
-+	set->use++;
- 
- 	return 0;
- }
- EXPORT_SYMBOL_GPL(nf_tables_bind_set);
- 
-+void nf_tables_deactivate_set(const struct nft_ctx *ctx, struct nft_set *set,
-+			      struct nft_set_binding *binding,
-+			      enum nft_trans_phase phase)
-+{
-+	switch (phase) {
-+	case NFT_TRANS_PREPARE:
-+		set->use--;
-+		return;
-+	case NFT_TRANS_ABORT:
-+	case NFT_TRANS_RELEASE:
-+		set->use--;
-+		/* fall through */
-+	default:
-+		nf_tables_unbind_set(ctx, set, binding,
-+				     phase == NFT_TRANS_COMMIT);
-+	}
-+}
-+EXPORT_SYMBOL_GPL(nf_tables_deactivate_set);
-+
- void nf_tables_unbind_set(const struct nft_ctx *ctx, struct nft_set *set,
- 			  struct nft_set_binding *binding, bool event)
- {
-diff --git a/net/netfilter/nft_dynset.c b/net/netfilter/nft_dynset.c
-index a8a74a16f9c4..e461007558e8 100644
---- a/net/netfilter/nft_dynset.c
-+++ b/net/netfilter/nft_dynset.c
-@@ -240,11 +240,15 @@ static void nft_dynset_deactivate(const struct nft_ctx *ctx,
- {
- 	struct nft_dynset *priv = nft_expr_priv(expr);
- 
--	if (phase == NFT_TRANS_PREPARE)
--		return;
-+	nf_tables_deactivate_set(ctx, priv->set, &priv->binding, phase);
-+}
-+
-+static void nft_dynset_activate(const struct nft_ctx *ctx,
-+				const struct nft_expr *expr)
-+{
-+	struct nft_dynset *priv = nft_expr_priv(expr);
- 
--	nf_tables_unbind_set(ctx, priv->set, &priv->binding,
--			     phase == NFT_TRANS_COMMIT);
-+	priv->set->use++;
+ 	if (expr->ops->destroy)
+ 		expr->ops->destroy(ctx, expr);
+-	module_put(expr->ops->type->owner);
++	module_put(type->owner);
  }
  
- static void nft_dynset_destroy(const struct nft_ctx *ctx,
-@@ -292,6 +296,7 @@ static const struct nft_expr_ops nft_dynset_ops = {
- 	.eval		= nft_dynset_eval,
- 	.init		= nft_dynset_init,
- 	.destroy	= nft_dynset_destroy,
-+	.activate	= nft_dynset_activate,
- 	.deactivate	= nft_dynset_deactivate,
- 	.dump		= nft_dynset_dump,
- };
-diff --git a/net/netfilter/nft_lookup.c b/net/netfilter/nft_lookup.c
-index 14496da5141d..161c3451a747 100644
---- a/net/netfilter/nft_lookup.c
-+++ b/net/netfilter/nft_lookup.c
-@@ -127,11 +127,15 @@ static void nft_lookup_deactivate(const struct nft_ctx *ctx,
- {
- 	struct nft_lookup *priv = nft_expr_priv(expr);
- 
--	if (phase == NFT_TRANS_PREPARE)
--		return;
-+	nf_tables_deactivate_set(ctx, priv->set, &priv->binding, phase);
-+}
-+
-+static void nft_lookup_activate(const struct nft_ctx *ctx,
-+				const struct nft_expr *expr)
-+{
-+	struct nft_lookup *priv = nft_expr_priv(expr);
- 
--	nf_tables_unbind_set(ctx, priv->set, &priv->binding,
--			     phase == NFT_TRANS_COMMIT);
-+	priv->set->use++;
- }
- 
- static void nft_lookup_destroy(const struct nft_ctx *ctx,
-@@ -222,6 +226,7 @@ static const struct nft_expr_ops nft_lookup_ops = {
- 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_lookup)),
- 	.eval		= nft_lookup_eval,
- 	.init		= nft_lookup_init,
-+	.activate	= nft_lookup_activate,
- 	.deactivate	= nft_lookup_deactivate,
- 	.destroy	= nft_lookup_destroy,
- 	.dump		= nft_lookup_dump,
-diff --git a/net/netfilter/nft_objref.c b/net/netfilter/nft_objref.c
-index 79ef074c18ca..457a9ceb46af 100644
---- a/net/netfilter/nft_objref.c
-+++ b/net/netfilter/nft_objref.c
-@@ -162,11 +162,15 @@ static void nft_objref_map_deactivate(const struct nft_ctx *ctx,
- {
- 	struct nft_objref_map *priv = nft_expr_priv(expr);
- 
--	if (phase == NFT_TRANS_PREPARE)
--		return;
-+	nf_tables_deactivate_set(ctx, priv->set, &priv->binding, phase);
-+}
-+
-+static void nft_objref_map_activate(const struct nft_ctx *ctx,
-+				    const struct nft_expr *expr)
-+{
-+	struct nft_objref_map *priv = nft_expr_priv(expr);
- 
--	nf_tables_unbind_set(ctx, priv->set, &priv->binding,
--			     phase == NFT_TRANS_COMMIT);
-+	priv->set->use++;
- }
- 
- static void nft_objref_map_destroy(const struct nft_ctx *ctx,
-@@ -183,6 +187,7 @@ static const struct nft_expr_ops nft_objref_map_ops = {
- 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_objref_map)),
- 	.eval		= nft_objref_map_eval,
- 	.init		= nft_objref_map_init,
-+	.activate	= nft_objref_map_activate,
- 	.deactivate	= nft_objref_map_deactivate,
- 	.destroy	= nft_objref_map_destroy,
- 	.dump		= nft_objref_map_dump,
+ struct nft_expr *nft_expr_init(const struct nft_ctx *ctx,
 -- 
 2.11.0
 
