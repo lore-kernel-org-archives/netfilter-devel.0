@@ -4,41 +4,41 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A788C10F06
-	for <netfilter-devel@archiver.kernel.org>; Mon, 11 Mar 2019 20:03:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AB907C43381
+	for <netfilter-devel@archiver.kernel.org>; Mon, 11 Mar 2019 20:05:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3D60C2087C
-	for <netfilter-devel@archiver.kernel.org>; Mon, 11 Mar 2019 20:03:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7E8292087C
+	for <netfilter-devel@archiver.kernel.org>; Mon, 11 Mar 2019 20:05:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1552334587;
-	bh=Qqw5E0jowqj2BSqx8AnJtPT+6VfE8ziDEpX7XBXDxYo=;
+	s=default; t=1552334754;
+	bh=nKQ0Wpl3rjO6c9rZDH2Ap7zWn8031qnb0bb6M1iYOlM=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=UIlITRqV+0O+bxRGVCEFNk6LY+93iHvxwzAXAgi4/Ws8nOxrtKQyLfX482IZld8Z5
-	 zxqVxO7EY5MxNO0RVE87VQ44k0QWIBDMa5tLArpPLf50o0hjrqm27R1XfrrtzpkUsx
-	 27uBdtfzf2mkISSrAqWlkmRevv3D5GbaK6PsAMls=
+	b=X6eSVztxgvUK6dZZUxbB+eqqbW0Jd8VCw9E97AGd3ayiDdN1BtsPaRbE72dlg6itk
+	 E9YZboKgIGnIIhv6Z/sBs5s09NKT222C2QURXIwj88JHbUFeYXCXYcOpJYG6va0uDb
+	 5O9HxpZv/QV77OVWoAw1at/D35VOSgcAWIddDGnc=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729650AbfCKUDG (ORCPT
+        id S1728542AbfCKT54 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 11 Mar 2019 16:03:06 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36284 "EHLO mail.kernel.org"
+        Mon, 11 Mar 2019 15:57:56 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35314 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729446AbfCKT6w (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 11 Mar 2019 15:58:52 -0400
+        id S1728457AbfCKT5z (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 11 Mar 2019 15:57:55 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 1EB6E2084F;
-        Mon, 11 Mar 2019 19:58:50 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id D494321738;
+        Mon, 11 Mar 2019 19:57:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1552334331;
-        bh=Qqw5E0jowqj2BSqx8AnJtPT+6VfE8ziDEpX7XBXDxYo=;
+        s=default; t=1552334274;
+        bh=nKQ0Wpl3rjO6c9rZDH2Ap7zWn8031qnb0bb6M1iYOlM=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=k/aVJjVF3MX+2pzeuZsZLY9s0v4mZacay0bDmy+JYl7gRhRgRF7wkSv3k37lCC0dt
-         uvdlC3EJixyCn8bHSLTRDKZtDuGuHLMWKcDvIxvjHsWlTYhAZq7iAGgJQh5AF4C6cE
-         LppGPKg9q46DdUeszipR7r2++wPG2IsJPPBQoHvM=
+        b=BwvOp5ZybRp6X7CMERqXqkpJ3TuSy8eiLdw7na4D4DzDPnTwFw0OHIwbuLkLwRgk/
+         +7DN3SITIOuzX+799OfVc7MHrcXgXALd/PL1CyMj47EcGPuDJKDovqRmF7YUVhW3hu
+         GUf2DnVIB4JVhLBqXCbtS3ZHK9Dc5SFMWpuGg+Yc=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Andrea Claudi <aclaudi@redhat.com>,
@@ -46,12 +46,12 @@ Cc:     Andrea Claudi <aclaudi@redhat.com>,
         Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org,
         lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
         coreteam@netfilter.org
-Subject: [PATCH AUTOSEL 4.14 17/27] ipvs: fix dependency on nf_defrag_ipv6
-Date:   Mon, 11 Mar 2019 15:58:14 -0400
-Message-Id: <20190311195824.139043-17-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 30/44] ipvs: fix dependency on nf_defrag_ipv6
+Date:   Mon, 11 Mar 2019 15:56:46 -0400
+Message-Id: <20190311195700.138462-30-sashal@kernel.org>
 X-Mailer: git-send-email 2.19.1
-In-Reply-To: <20190311195824.139043-1-sashal@kernel.org>
-References: <20190311195824.139043-1-sashal@kernel.org>
+In-Reply-To: <20190311195700.138462-1-sashal@kernel.org>
+References: <20190311195700.138462-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-Patchwork-Hint: Ignore
 Content-Transfer-Encoding: 8bit
@@ -87,7 +87,7 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  3 files changed, 15 insertions(+), 6 deletions(-)
 
 diff --git a/net/netfilter/ipvs/Kconfig b/net/netfilter/ipvs/Kconfig
-index b32fb0dbe237..3f8e490d1133 100644
+index cad48d07c818..8401cefd9f65 100644
 --- a/net/netfilter/ipvs/Kconfig
 +++ b/net/netfilter/ipvs/Kconfig
 @@ -29,6 +29,7 @@ config	IP_VS_IPV6
@@ -99,10 +99,10 @@ index b32fb0dbe237..3f8e490d1133 100644
  	  Add IPv6 support to IPVS.
  
 diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-index 1bd53b1e7672..4278f5c947ab 100644
+index 7ca926a03b81..3f963ea22277 100644
 --- a/net/netfilter/ipvs/ip_vs_core.c
 +++ b/net/netfilter/ipvs/ip_vs_core.c
-@@ -1524,14 +1524,12 @@ ip_vs_try_to_schedule(struct netns_ipvs *ipvs, int af, struct sk_buff *skb,
+@@ -1536,14 +1536,12 @@ ip_vs_try_to_schedule(struct netns_ipvs *ipvs, int af, struct sk_buff *skb,
  		/* sorry, all this trouble for a no-hit :) */
  		IP_VS_DBG_PKT(12, af, pp, skb, iph->off,
  			      "ip_vs_in: packet continues traversal as normal");
@@ -122,7 +122,7 @@ index 1bd53b1e7672..4278f5c947ab 100644
  		return 0;
  	}
 diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index 2f45c3ce77ef..a683d7f52bcb 100644
+index 518364f4abcc..3bcc4b222a82 100644
 --- a/net/netfilter/ipvs/ip_vs_ctl.c
 +++ b/net/netfilter/ipvs/ip_vs_ctl.c
 @@ -43,6 +43,7 @@
@@ -133,7 +133,7 @@ index 2f45c3ce77ef..a683d7f52bcb 100644
  #endif
  #include <net/route.h>
  #include <net/sock.h>
-@@ -888,6 +889,7 @@ ip_vs_new_dest(struct ip_vs_service *svc, struct ip_vs_dest_user_kern *udest,
+@@ -895,6 +896,7 @@ ip_vs_new_dest(struct ip_vs_service *svc, struct ip_vs_dest_user_kern *udest,
  {
  	struct ip_vs_dest *dest;
  	unsigned int atype, i;
@@ -141,7 +141,7 @@ index 2f45c3ce77ef..a683d7f52bcb 100644
  
  	EnterFunction(2);
  
-@@ -898,6 +900,10 @@ ip_vs_new_dest(struct ip_vs_service *svc, struct ip_vs_dest_user_kern *udest,
+@@ -905,6 +907,10 @@ ip_vs_new_dest(struct ip_vs_service *svc, struct ip_vs_dest_user_kern *udest,
  			atype & IPV6_ADDR_LINKLOCAL) &&
  			!__ip_vs_addr_is_local_v6(svc->ipvs->net, &udest->addr.in6))
  			return -EINVAL;
@@ -152,7 +152,7 @@ index 2f45c3ce77ef..a683d7f52bcb 100644
  	} else
  #endif
  	{
-@@ -1221,6 +1227,10 @@ ip_vs_add_service(struct netns_ipvs *ipvs, struct ip_vs_service_user_kern *u,
+@@ -1228,6 +1234,10 @@ ip_vs_add_service(struct netns_ipvs *ipvs, struct ip_vs_service_user_kern *u,
  			ret = -EINVAL;
  			goto out_err;
  		}
