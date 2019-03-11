@@ -2,248 +2,150 @@ Return-Path: <SRS0=8PdD=RO=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1CC07C43381
-	for <netfilter-devel@archiver.kernel.org>; Mon, 11 Mar 2019 15:15:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CE5A8C43381
+	for <netfilter-devel@archiver.kernel.org>; Mon, 11 Mar 2019 16:18:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id DFCF8206BA
-	for <netfilter-devel@archiver.kernel.org>; Mon, 11 Mar 2019 15:15:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 966702084F
+	for <netfilter-devel@archiver.kernel.org>; Mon, 11 Mar 2019 16:18:52 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=riseup.net header.i=@riseup.net header.b="SKckMcwW"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="jB2UkAAD"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727346AbfCKPPe (ORCPT
+        id S1727118AbfCKQSw (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 11 Mar 2019 11:15:34 -0400
-Received: from mx1.riseup.net ([198.252.153.129]:50776 "EHLO mx1.riseup.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726977AbfCKPPe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 11 Mar 2019 11:15:34 -0400
-Received: from bell.riseup.net (bell-pn.riseup.net [10.0.1.178])
-        (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
-        (Client CN "*.riseup.net", Issuer "COMODO RSA Domain Validation Secure Server CA" (verified OK))
-        by mx1.riseup.net (Postfix) with ESMTPS id E09901A0C73
-        for <netfilter-devel@vger.kernel.org>; Mon, 11 Mar 2019 08:15:33 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=riseup.net; s=squak;
-        t=1552317334; bh=7CofRtLHpxYv4ZfUKwrDiaxOLAeYY3ctWLiK3hSsC5M=;
-        h=From:To:Cc:Subject:Date:From;
-        b=SKckMcwW07CY3YZAmz3NLoiGoYDFVT5SaSba2ca1/VAEHWKWNqjdGNlP4pju3S/FJ
-         Z21Q+hOrbzszAvrAEU3ydPCYvlkoxAlGjIxoPdQ3fX6zje3kpLSzGuuYWWqGPdX5wW
-         SL6lQvUMQW3EhvfOjXnQqTmayCOxsjo4qQkZxGZc=
-X-Riseup-User-ID: 9698115989338125BC978B0D19BEEAF7B9352A887FE08A70F0D2CDB388DB8199
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-         by bell.riseup.net (Postfix) with ESMTPSA id 116EC221BF3;
-        Mon, 11 Mar 2019 08:15:32 -0700 (PDT)
-From:   Fernando Fernandez Mancera <ffmancera@riseup.net>
+        Mon, 11 Mar 2019 12:18:52 -0400
+Received: from mail-wm1-f68.google.com ([209.85.128.68]:35978 "EHLO
+        mail-wm1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726641AbfCKQSv (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 11 Mar 2019 12:18:51 -0400
+Received: by mail-wm1-f68.google.com with SMTP id j125so4935592wmj.1
+        for <netfilter-devel@vger.kernel.org>; Mon, 11 Mar 2019 09:18:50 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id;
+        bh=l8CFE7I7U3ylhXAuZk5H3zaljuSQPrY0TuBPgXuwitk=;
+        b=jB2UkAADMkKuJDH6SYZe6ktHTchm7NnH6AtGcvzYZa2bbqImKDAweHqKjTaalhF+6B
+         E3xUe86RuGDDncyu6KmPQG5BISJm8FN4le3SH8ol1o5BM8hQvppa5d2mc4zwl4O410B3
+         0n5xfE9NVHetoiDncgImcbJXC5G6ngu4JRlJ4DBWIxgPwykjqAZcDdFeciHEci30qXjn
+         7hFuy1qGq0jmAaynNKK2KqhVvVn4HdvvfDDBn2bHU3ZRQ3VVv+jGyRyv9eCOMuem8vIj
+         JYLNvkK7zSyabiS2y3kM4gKz8+dgvoSHNx41ARYSy07HYHUaAyRt60jk1JwxlDQCbKqp
+         6ERA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id;
+        bh=l8CFE7I7U3ylhXAuZk5H3zaljuSQPrY0TuBPgXuwitk=;
+        b=NmLuNvxHF5CRQOSmr5pxE9HuShPKOXBPEFuOOcMitZPjhVK7Y5kk0/pCzv7OZKIWB4
+         9jCSWxa23JOCZ6q3eVyJNR/1gOgFIhTHpcIZk/17V6oBPJgleDqNTbIuod37arQA+PcQ
+         3hxhohJ/H42pqk9QvZomiKkGEVQbDGkv9uUIe8dAyUbPeVCTtscMgGx1vikeW3urotWU
+         SDS5Epyb9C5+a7WtSQnwD5iAh3x+07V1zh9Tasc3kkSNvpd5g/HO8dtPzGtgs00ojC+g
+         65ojzQw3g1lLtHYghfVgOUjvBac21LfkffCCmo/1n0elG2GmtZBwkoDwbQXHrNOqEBlC
+         g8EA==
+X-Gm-Message-State: APjAAAUH0BXg/wrILAym/7LEsQa44v3iFpZK0sNXaVLXl69q/hSW1GK1
+        nOA3FIdBAs9hjLESIdFGoQJZEy1P
+X-Google-Smtp-Source: APXvYqyKsUtloddxfy5u7WSc0Nmy4YGfLQ1EeKJ5jnUu5c/HPbqqW4UIt8U8PwnPML++v5E0TaHWdQ==
+X-Received: by 2002:a1c:230e:: with SMTP id j14mr347633wmj.9.1552321129086;
+        Mon, 11 Mar 2019 09:18:49 -0700 (PDT)
+Received: from cplx1037.edegem.eu.thmulti.com ([2001:4158:f012:230:2a10:7bff:fec5:6f08])
+        by smtp.gmail.com with ESMTPSA id l130sm18923274wmf.13.2019.03.11.09.18.47
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-SHA bits=128/128);
+        Mon, 11 Mar 2019 09:18:48 -0700 (PDT)
+From:   Alin Nastac <alin.nastac@gmail.com>
+X-Google-Original-From: Alin Nastac <alin.nastac@technicolor.com>
 To:     netfilter-devel@vger.kernel.org
-Cc:     Fernando Fernandez Mancera <ffmancera@riseup.net>
-Subject: [PATCH nf-next v2] netfilter: nft_osf: Add version option support
-Date:   Mon, 11 Mar 2019 16:15:27 +0100
-Message-Id: <20190311151527.17912-1-ffmancera@riseup.net>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Cc:     Arnd Bergmann <arnd@arndb.de>,
+        =?UTF-8?q?M=C3=A1t=C3=A9=20Eckl?= <ecklm94@gmail.com>
+Subject: [PATCH] netfilter: nf_conntrack_sip: remove direct dependency on IPv6
+Date:   Mon, 11 Mar 2019 17:18:42 +0100
+Message-Id: <1552321122-23626-1-git-send-email-alin.nastac@technicolor.com>
+X-Mailer: git-send-email 2.7.4
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Add version option support to the nftables "osf" expression.
+From: Alin Nastac <alin.nastac@gmail.com>
 
-Signed-off-by: Fernando Fernandez Mancera <ffmancera@riseup.net>
----
-v1: initial patch
-v2: flags type is now u32 and using snprintf() instead of strlcat()
----
- include/linux/netfilter/nfnetlink_osf.h  | 11 ++++++---
- include/uapi/linux/netfilter/nf_tables.h |  6 +++++
- net/netfilter/nfnetlink_osf.c            | 14 +++++------
- net/netfilter/nft_osf.c                  | 30 ++++++++++++++++++++----
- 4 files changed, 46 insertions(+), 15 deletions(-)
+Previous implementation was not usable with CONFIG_IPV6=m.
 
-diff --git a/include/linux/netfilter/nfnetlink_osf.h b/include/linux/netfilter/nfnetlink_osf.h
-index c6000046c966..788613f36935 100644
---- a/include/linux/netfilter/nfnetlink_osf.h
-+++ b/include/linux/netfilter/nfnetlink_osf.h
-@@ -21,13 +21,18 @@ struct nf_osf_finger {
- 	struct nf_osf_user_finger	finger;
- };
+Signed-off-by: Alin Nastac <alin.nastac@gmail.com>
+---
+ net/netfilter/nf_conntrack_sip.c | 37 ++++++++++++++++---------------------
+ 1 file changed, 16 insertions(+), 21 deletions(-)
+
+diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
+index f067c6b..39fcc1e 100644
+--- a/net/netfilter/nf_conntrack_sip.c
++++ b/net/netfilter/nf_conntrack_sip.c
+@@ -20,9 +20,9 @@
+ #include <linux/udp.h>
+ #include <linux/tcp.h>
+ #include <linux/netfilter.h>
++#include <linux/netfilter_ipv4.h>
++#include <linux/netfilter_ipv6.h>
  
-+struct nf_osf_data {
-+	const char *genre;
-+	const char *version;
-+};
+-#include <net/route.h>
+-#include <net/ip6_route.h>
+ #include <net/netfilter/nf_conntrack.h>
+ #include <net/netfilter/nf_conntrack_core.h>
+ #include <net/netfilter/nf_conntrack_expect.h>
+@@ -871,38 +871,33 @@ static int set_expected_rtp_rtcp(struct sk_buff *skb, unsigned int protoff,
+ 	} else if (sip_external_media) {
+ 		struct net_device *dev = skb_dst(skb)->dev;
+ 		struct net *net = dev_net(dev);
+-		struct rtable *rt;
+-		struct flowi4 fl4 = {};
+-#if IS_ENABLED(CONFIG_IPV6)
+-		struct flowi6 fl6 = {};
+-#endif
++		struct flowi fl;
+ 		struct dst_entry *dst = NULL;
+ 
++		memset(&fl, 0, sizeof(fl));
 +
- bool nf_osf_match(const struct sk_buff *skb, u_int8_t family,
- 		  int hooknum, struct net_device *in, struct net_device *out,
- 		  const struct nf_osf_info *info, struct net *net,
- 		  const struct list_head *nf_osf_fingers);
+ 		switch (nf_ct_l3num(ct)) {
+ 			case NFPROTO_IPV4:
+-				fl4.daddr = daddr->ip;
+-				rt = ip_route_output_key(net, &fl4);
+-				if (!IS_ERR(rt))
+-					dst = &rt->dst;
++				fl.u.ip4.daddr = daddr->ip;
++				nf_ip_route(net, &dst, &fl, false);
+ 				break;
  
--const char *nf_osf_find(const struct sk_buff *skb,
--			const struct list_head *nf_osf_fingers,
--			const int ttl_check);
-+bool nf_osf_find(const struct sk_buff *skb,
-+		 const struct list_head *nf_osf_fingers,
-+		 const int ttl_check, struct nf_osf_data *data);
+-#if IS_ENABLED(CONFIG_IPV6)
+ 			case NFPROTO_IPV6:
+-				fl6.daddr = daddr->in6;
+-				dst = ip6_route_output(net, NULL, &fl6);
+-				if (dst->error) {
+-					dst_release(dst);
+-					dst = NULL;
+-				}
++				fl.u.ip6.daddr = daddr->in6;
++				nf_ip6_route(net, &dst, &fl, false);
+ 				break;
+-#endif
+ 		}
  
- #endif /* _NFOSF_H */
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index a66c8de006cc..061bb3eb20c3 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -1522,15 +1522,21 @@ enum nft_flowtable_hook_attributes {
-  *
-  * @NFTA_OSF_DREG: destination register (NLA_U32: nft_registers)
-  * @NFTA_OSF_TTL: Value of the TTL osf option (NLA_U8)
-+ * @NFTA_OSF_FLAGS: flags (NLA_U32)
-  */
- enum nft_osf_attributes {
- 	NFTA_OSF_UNSPEC,
- 	NFTA_OSF_DREG,
- 	NFTA_OSF_TTL,
-+	NFTA_OSF_FLAGS,
- 	__NFTA_OSF_MAX,
- };
- #define NFTA_OSF_MAX (__NFTA_OSF_MAX - 1)
- 
-+enum nft_osf_flags {
-+	NFT_OSF_F_VERSION = (1 << 0),
-+};
+ 		/* Don't predict any conntracks when media endpoint is reachable
+ 		 * through the same interface as the signalling peer.
+ 		 */
+-		if (dst && dst->dev == dev)
+-			return NF_ACCEPT;
++		if (dst) {
++			bool external_media = (dst->dev == dev);
 +
- /**
-  * enum nft_device_attributes - nf_tables device netlink attributes
-  *
-diff --git a/net/netfilter/nfnetlink_osf.c b/net/netfilter/nfnetlink_osf.c
-index 1f1d90c1716b..7b827bcb412c 100644
---- a/net/netfilter/nfnetlink_osf.c
-+++ b/net/netfilter/nfnetlink_osf.c
-@@ -255,9 +255,9 @@ nf_osf_match(const struct sk_buff *skb, u_int8_t family,
- }
- EXPORT_SYMBOL_GPL(nf_osf_match);
- 
--const char *nf_osf_find(const struct sk_buff *skb,
--			const struct list_head *nf_osf_fingers,
--			const int ttl_check)
-+bool nf_osf_find(const struct sk_buff *skb,
-+		 const struct list_head *nf_osf_fingers,
-+		 const int ttl_check, struct nf_osf_data *data)
- {
- 	const struct iphdr *ip = ip_hdr(skb);
- 	const struct nf_osf_user_finger *f;
-@@ -265,24 +265,24 @@ const char *nf_osf_find(const struct sk_buff *skb,
- 	const struct nf_osf_finger *kf;
- 	struct nf_osf_hdr_ctx ctx;
- 	const struct tcphdr *tcp;
--	const char *genre = NULL;
- 
- 	memset(&ctx, 0, sizeof(ctx));
- 
- 	tcp = nf_osf_hdr_ctx_init(&ctx, skb, ip, opts);
- 	if (!tcp)
--		return NULL;
-+		return false;
- 
- 	list_for_each_entry_rcu(kf, &nf_osf_fingers[ctx.df], finger_entry) {
- 		f = &kf->finger;
- 		if (!nf_osf_match_one(skb, f, ttl_check, &ctx))
- 			continue;
- 
--		genre = f->genre;
-+		data->genre = f->genre;
-+		data->version = f->version;
- 		break;
++			dst_release(dst);
++			if (external_media)
++				return NF_ACCEPT;
++		}
  	}
  
--	return genre;
-+	return true;
- }
- EXPORT_SYMBOL_GPL(nf_osf_find);
- 
-diff --git a/net/netfilter/nft_osf.c b/net/netfilter/nft_osf.c
-index b13618c764ec..87b60d6617ef 100644
---- a/net/netfilter/nft_osf.c
-+++ b/net/netfilter/nft_osf.c
-@@ -7,11 +7,13 @@
- struct nft_osf {
- 	enum nft_registers	dreg:8;
- 	u8			ttl;
-+	u32			flags;
- };
- 
- static const struct nla_policy nft_osf_policy[NFTA_OSF_MAX + 1] = {
- 	[NFTA_OSF_DREG]		= { .type = NLA_U32 },
- 	[NFTA_OSF_TTL]		= { .type = NLA_U8 },
-+	[NFTA_OSF_FLAGS]	= { .type = NLA_U32 },
- };
- 
- static void nft_osf_eval(const struct nft_expr *expr, struct nft_regs *regs,
-@@ -20,9 +22,10 @@ static void nft_osf_eval(const struct nft_expr *expr, struct nft_regs *regs,
- 	struct nft_osf *priv = nft_expr_priv(expr);
- 	u32 *dest = &regs->data[priv->dreg];
- 	struct sk_buff *skb = pkt->skb;
-+	char os_match[NFT_OSF_MAXGENRELEN + 1];
- 	const struct tcphdr *tcp;
-+	struct nf_osf_data data;
- 	struct tcphdr _tcph;
--	const char *os_name;
- 
- 	tcp = skb_header_pointer(skb, ip_hdrlen(skb),
- 				 sizeof(struct tcphdr), &_tcph);
-@@ -35,11 +38,17 @@ static void nft_osf_eval(const struct nft_expr *expr, struct nft_regs *regs,
- 		return;
- 	}
- 
--	os_name = nf_osf_find(skb, nf_osf_fingers, priv->ttl);
--	if (!os_name)
-+	if (!nf_osf_find(skb, nf_osf_fingers, priv->ttl, &data)) {
- 		strncpy((char *)dest, "unknown", NFT_OSF_MAXGENRELEN);
--	else
--		strncpy((char *)dest, os_name, NFT_OSF_MAXGENRELEN);
-+	} else {
-+		if (priv->flags & NFT_OSF_F_VERSION)
-+			snprintf(os_match, NFT_OSF_MAXGENRELEN, "%s:%s",
-+				 data.genre, data.version);
-+		else
-+			strlcpy(os_match, data.genre, NFT_OSF_MAXGENRELEN);
-+
-+		strncpy((char *)dest, os_match, NFT_OSF_MAXGENRELEN);
-+	}
- }
- 
- static int nft_osf_init(const struct nft_ctx *ctx,
-@@ -47,6 +56,7 @@ static int nft_osf_init(const struct nft_ctx *ctx,
- 			const struct nlattr * const tb[])
- {
- 	struct nft_osf *priv = nft_expr_priv(expr);
-+	u32 flags;
- 	int err;
- 	u8 ttl;
- 
-@@ -57,6 +67,13 @@ static int nft_osf_init(const struct nft_ctx *ctx,
- 		priv->ttl = ttl;
- 	}
- 
-+	if (tb[NFTA_OSF_FLAGS]) {
-+		flags = ntohl(nla_get_be32(tb[NFTA_OSF_FLAGS]));
-+		if (flags != NFT_OSF_F_VERSION)
-+			return -EINVAL;
-+		priv->flags = flags;
-+	}
-+
- 	priv->dreg = nft_parse_register(tb[NFTA_OSF_DREG]);
- 	err = nft_validate_register_store(ctx, priv->dreg, NULL,
- 					  NFT_DATA_VALUE, NFT_OSF_MAXGENRELEN);
-@@ -73,6 +90,9 @@ static int nft_osf_dump(struct sk_buff *skb, const struct nft_expr *expr)
- 	if (nla_put_u8(skb, NFTA_OSF_TTL, priv->ttl))
- 		goto nla_put_failure;
- 
-+	if (nla_put_be32(skb, NFTA_OSF_FLAGS, ntohl(priv->flags)))
-+		goto nla_put_failure;
-+
- 	if (nft_dump_register(skb, NFTA_OSF_DREG, priv->dreg))
- 		goto nla_put_failure;
- 
+ 	/* We need to check whether the registration exists before attempting
 -- 
-2.20.1
+2.7.4
 
