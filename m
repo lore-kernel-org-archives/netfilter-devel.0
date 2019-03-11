@@ -6,44 +6,42 @@ X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
 	SIGNED_OFF_BY,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EAE39C43381
-	for <netfilter-devel@archiver.kernel.org>; Mon, 11 Mar 2019 15:14:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B97CFC43381
+	for <netfilter-devel@archiver.kernel.org>; Mon, 11 Mar 2019 15:15:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B9C8D2084F
-	for <netfilter-devel@archiver.kernel.org>; Mon, 11 Mar 2019 15:14:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 89539206BA
+	for <netfilter-devel@archiver.kernel.org>; Mon, 11 Mar 2019 15:15:06 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=riseup.net header.i=@riseup.net header.b="MTY5k6Gx"
+	dkim=pass (1024-bit key) header.d=riseup.net header.i=@riseup.net header.b="WvcDWdEp"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727412AbfCKPOh (ORCPT
+        id S1727346AbfCKPPG (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 11 Mar 2019 11:14:37 -0400
-Received: from mx1.riseup.net ([198.252.153.129]:50426 "EHLO mx1.riseup.net"
+        Mon, 11 Mar 2019 11:15:06 -0400
+Received: from mx1.riseup.net ([198.252.153.129]:50624 "EHLO mx1.riseup.net"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727387AbfCKPOh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 11 Mar 2019 11:14:37 -0400
-Received: from bell.riseup.net (bell-pn.riseup.net [10.0.1.178])
+        id S1727216AbfCKPPG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 11 Mar 2019 11:15:06 -0400
+Received: from capuchin.riseup.net (capuchin-pn.riseup.net [10.0.1.176])
         (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
         (Client CN "*.riseup.net", Issuer "COMODO RSA Domain Validation Secure Server CA" (verified OK))
-        by mx1.riseup.net (Postfix) with ESMTPS id 6EDB31A058B
-        for <netfilter-devel@vger.kernel.org>; Mon, 11 Mar 2019 08:14:36 -0700 (PDT)
+        by mx1.riseup.net (Postfix) with ESMTPS id 678701A5EB5
+        for <netfilter-devel@vger.kernel.org>; Mon, 11 Mar 2019 08:15:05 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=riseup.net; s=squak;
-        t=1552317276; bh=lX+lgXsalpU2JSfSDeRVGe+jQe+Hw8XnSPry7Y/HP84=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=MTY5k6GxyM9d4FMoA0QJDNlYaTnvy2t0eByDimNFVgt6sG2PPvs+3rNCzW6/bw4Rs
-         sYfocXUiFf7WaL2RTSCDExKrWZZ6hPj17oqLShSC0fZdcy2PFYKB6fdcWkEsRe7AbM
-         lkLRQ5VdOwLI8yLA/YTdQEzJi/u3gXkDfDquK95U=
-X-Riseup-User-ID: CC94E2014263CDF85E038D3D0A59FD9A438419B3201F588D1851454E61FD39A7
+        t=1552317305; bh=lcCEIVR8KU/sJEGcf9nuMIXsay450k8dwz4LpOvcKjA=;
+        h=From:To:Cc:Subject:Date:From;
+        b=WvcDWdEpXhPBz1QxkST+hSJu3F4eKoctNuWdnzDzI9qlLfU5rvkVtYPxjTBJyx0HJ
+         WqPsGBLpckkE/6rtaUXYaadEMNWc8MYsQ6Mz4AdnLyYFi0uCcD+CvP6G69Dj6oexty
+         aufj5dTPEapjdCeCyqBRjvWLDD2tkp+ZouFEah2s=
+X-Riseup-User-ID: 558392604D802AD3800A09B6A9F2C856EC690ABAF90F7539EB8BECDFB7388907
 Received: from [127.0.0.1] (localhost [127.0.0.1])
-         by bell.riseup.net (Postfix) with ESMTPSA id 9681F221C5D;
-        Mon, 11 Mar 2019 08:14:35 -0700 (PDT)
+         by capuchin.riseup.net (Postfix) with ESMTPSA id 846941202A8;
+        Mon, 11 Mar 2019 08:15:04 -0700 (PDT)
 From:   Fernando Fernandez Mancera <ffmancera@riseup.net>
 To:     netfilter-devel@vger.kernel.org
 Cc:     Fernando Fernandez Mancera <ffmancera@riseup.net>
-Subject: [PATCH nft v2 6/6] files: pf.os: merge the signatures spllited by version
-Date:   Mon, 11 Mar 2019 16:14:17 +0100
-Message-Id: <20190311151417.17772-6-ffmancera@riseup.net>
-In-Reply-To: <20190311151417.17772-1-ffmancera@riseup.net>
-References: <20190311151417.17772-1-ffmancera@riseup.net>
+Subject: [PATCH libnftnl v2] expr: osf: add version option support
+Date:   Mon, 11 Mar 2019 16:14:56 +0100
+Message-Id: <20190311151456.17845-1-ffmancera@riseup.net>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -51,122 +49,116 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-In order to be able to identify the OS version we need to merge the signatures
-split by version. eg.
-
-65535:64:1:60:M*,N,W1,N,N,T:	FreeBSD:4.7-4.11::FreeBSD 4.7-5.2
-65535:64:1:60:M*,N,W1,N,N,T:	FreeBSD:5.0-5.2::FreeBSD 4.7-5.2
-
-65535:64:1:60:M*,N,W1,N,N,T:	FreeBSD:4.7-5.2::FreeBSD 4.7-5.2
-
 Signed-off-by: Fernando Fernandez Mancera <ffmancera@riseup.net>
 ---
 v1: initial patch
-v2: flags type is now u32
+v2: flags type is now uint32_t
 ---
- files/osf/pf.os | 40 ++++++++++++++--------------------------
- 1 file changed, 14 insertions(+), 26 deletions(-)
+ include/libnftnl/expr.h             |  1 +
+ include/linux/netfilter/nf_tables.h |  2 ++
+ src/expr/osf.c                      | 17 +++++++++++++++++
+ 3 files changed, 20 insertions(+)
 
-diff --git a/files/osf/pf.os b/files/osf/pf.os
-index 7612d76..35cbb47 100644
---- a/files/osf/pf.os
-+++ b/files/osf/pf.os
-@@ -201,12 +201,9 @@
- 45046:64:0:44:M*:		AIX:4.3::AIX 4.3
- 16384:64:0:44:M512:		AIX:4.3:2-3:AIX 4.3.2 and earlier
+diff --git a/include/libnftnl/expr.h b/include/libnftnl/expr.h
+index 3d99d24..b2f8d75 100644
+--- a/include/libnftnl/expr.h
++++ b/include/libnftnl/expr.h
+@@ -280,6 +280,7 @@ enum {
+ enum {
+ 	NFTNL_EXPR_OSF_DREG	= NFTNL_EXPR_BASE,
+ 	NFTNL_EXPR_OSF_TTL,
++	NFTNL_EXPR_OSF_FLAGS,
+ };
  
--16384:64:0:60:M512,N,W%2,N,N,T:		AIX:4.3:3:AIX 4.3.3-5.2
--16384:64:0:60:M512,N,W%2,N,N,T:		AIX:5.1-5.2::AIX 4.3.3-5.2
--32768:64:0:60:M512,N,W%2,N,N,T:		AIX:4.3:3:AIX 4.3.3-5.2
--32768:64:0:60:M512,N,W%2,N,N,T:		AIX:5.1-5.2::AIX 4.3.3-5.2
--65535:64:0:60:M512,N,W%2,N,N,T:		AIX:4.3:3:AIX 4.3.3-5.2
--65535:64:0:60:M512,N,W%2,N,N,T:		AIX:5.1-5.2::AIX 4.3.3-5.2
-+16384:64:0:60:M512,N,W%2,N,N,T:		AIX:4.3-5.2:3:AIX 4.3.3-5.2
-+32768:64:0:60:M512,N,W%2,N,N,T:		AIX:4.3-5.2:3:AIX 4.3.3-5.2
-+65535:64:0:60:M512,N,W%2,N,N,T:		AIX:4.3-5-2:3:AIX 4.3.3-5.2
- 65535:64:0:64:M*,N,W1,N,N,T,N,N,S:	AIX:5.3:ML1:AIX 5.3 ML1
+ enum {
+diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
+index ac6de5e..fd38cdc 100644
+--- a/include/linux/netfilter/nf_tables.h
++++ b/include/linux/netfilter/nf_tables.h
+@@ -940,11 +940,13 @@ enum nft_socket_keys {
+  *
+  * @NFTA_OSF_DREG: destination register (NLA_U32)
+  * @NFTA_OSF_TTL: Value of the TTL osf option (NLA_U8)
++ * @NFTA_OSF_FLAGS: flags (NLA_U32)
+  */
+ enum nft_osf_attributes {
+ 	NFTA_OSF_UNSPEC,
+ 	NFTA_OSF_DREG,
+ 	NFTA_OSF_TTL,
++	NFTA_OSF_FLAGS,
+ 	__NFTA_OSF_MAX,
+ };
+ #define NFTA_OSF_MAX (__NFTA_OSF_MAX - 1)
+diff --git a/src/expr/osf.c b/src/expr/osf.c
+index 52da21f..98d0df9 100644
+--- a/src/expr/osf.c
++++ b/src/expr/osf.c
+@@ -15,6 +15,7 @@
+ struct nftnl_expr_osf {
+ 	enum nft_registers	dreg;
+ 	uint8_t			ttl;
++	uint32_t		flags;
+ };
  
- # ----------------- Linux -------------------
-@@ -224,8 +221,7 @@ S4:64:1:60:M1360,S,T,N,W0:	Linux:google::Linux (Google crawlbot)
+ static int nftnl_expr_osf_set(struct nftnl_expr *e, uint16_t type,
+@@ -29,6 +30,9 @@ static int nftnl_expr_osf_set(struct nftnl_expr *e, uint16_t type,
+ 	case NFTNL_EXPR_OSF_TTL:
+ 		memcpy(&osf->ttl, data, sizeof(osf->ttl));
+ 		break;
++	case NFTNL_EXPR_OSF_FLAGS:
++		memcpy(&osf->flags, data, sizeof(osf->flags));
++		break;
+ 	}
+ 	return 0;
+ }
+@@ -46,6 +50,9 @@ nftnl_expr_osf_get(const struct nftnl_expr *e, uint16_t type,
+ 	case NFTNL_EXPR_OSF_TTL:
+ 		*data_len = sizeof(osf->ttl);
+ 		return &osf->ttl;
++	case NFTNL_EXPR_OSF_FLAGS:
++		*data_len = sizeof(osf->flags);
++		return &osf->flags;
+ 	}
+ 	return NULL;
+ }
+@@ -60,6 +67,7 @@ static int nftnl_expr_osf_cb(const struct nlattr *attr, void *data)
  
- S2:64:1:60:M*,S,T,N,W0:		Linux:2.4::Linux 2.4 (big boy)
- S3:64:1:60:M*,S,T,N,W0:		Linux:2.4:.18-21:Linux 2.4.18 and newer
--S4:64:1:60:M*,S,T,N,W0:		Linux:2.4::Linux 2.4/2.6 <= 2.6.7
--S4:64:1:60:M*,S,T,N,W0:		Linux:2.6:.1-7:Linux 2.4/2.6 <= 2.6.7
-+S4:64:1:60:M*,S,T,N,W0:		Linux:2.4/2.6::Linux 2.4/2.6 <= 2.6.7
+ 	switch(type) {
+ 	case NFTNL_EXPR_OSF_DREG:
++	case NFTNL_EXPR_OSF_FLAGS:
+ 		if (mnl_attr_validate(attr, MNL_TYPE_U32) < 0)
+ 			abi_breakage();
+ 		break;
+@@ -68,6 +76,7 @@ static int nftnl_expr_osf_cb(const struct nlattr *attr, void *data)
+ 		if (mnl_attr_validate(attr, MNL_TYPE_U8) < 0)
+ 			abi_breakage();
+ 		break;
++
+ 	}
  
- S4:64:1:60:M*,S,T,N,W5:		Linux:2.6::Linux 2.6 (newer, 1)
- S4:64:1:60:M*,S,T,N,W6:		Linux:2.6::Linux 2.6 (newer, 2)
-@@ -271,9 +267,7 @@ S22:64:1:52:M*,N,N,S,N,W0:	Linux:2.2:ts:Linux 2.2 w/o timestamps
+ 	tb[type] = attr;
+@@ -83,6 +92,9 @@ nftnl_expr_osf_build(struct nlmsghdr *nlh, const struct nftnl_expr *e)
+ 		mnl_attr_put_u32(nlh, NFTNL_EXPR_OSF_DREG, htonl(osf->dreg));
+ 	if (e->flags & (1 << NFTNL_EXPR_OSF_TTL))
+ 		mnl_attr_put_u8(nlh, NFTNL_EXPR_OSF_TTL, osf->ttl);
++	if (e->flags & (1 << NFTNL_EXPR_OSF_FLAGS))
++		if (osf->flags)
++			mnl_attr_put_u32(nlh, NFTNL_EXPR_OSF_FLAGS, htonl(osf->flags));
+ }
  
- # ----------------- FreeBSD -----------------
+ static int
+@@ -104,6 +116,11 @@ nftnl_expr_osf_parse(struct nftnl_expr *e, struct nlattr *attr)
+ 		e->flags |= (1 << NFTNL_EXPR_OSF_TTL);
+ 	}
  
--16384:64:1:44:M*:		FreeBSD:2.0-2.2::FreeBSD 2.0-4.2
--16384:64:1:44:M*:		FreeBSD:3.0-3.5::FreeBSD 2.0-4.2
--16384:64:1:44:M*:		FreeBSD:4.0-4.2::FreeBSD 2.0-4.2
-+16384:64:1:44:M*:		FreeBSD:2.0-4.2::FreeBSD 2.0-4.2
- 16384:64:1:60:M*,N,W0,N,N,T:	FreeBSD:4.4::FreeBSD 4.4
++	if (tb[NFTA_OSF_FLAGS]) {
++		osf->flags = ntohl(mnl_attr_get_u32(tb[NFTA_OSF_FLAGS]));
++		e->flags |= (1 << NFTNL_EXPR_OSF_FLAGS);
++	}
++
+ 	return 0;
+ }
  
- 1024:64:1:60:M*,N,W0,N,N,T:	FreeBSD:4.4::FreeBSD 4.4
-@@ -281,12 +275,9 @@ S22:64:1:52:M*,N,N,S,N,W0:	Linux:2.2:ts:Linux 2.2 w/o timestamps
- 57344:64:1:44:M*:		FreeBSD:4.6-4.8:noRFC1323:FreeBSD 4.6-4.8 (no RFC1323)
- 57344:64:1:60:M*,N,W0,N,N,T:	FreeBSD:4.6-4.9::FreeBSD 4.6-4.9
- 
--32768:64:1:60:M*,N,W0,N,N,T:	FreeBSD:4.8-4.11::FreeBSD 4.8-5.1 (or MacOS X)
--32768:64:1:60:M*,N,W0,N,N,T:	FreeBSD:5.0-5.1::FreeBSD 4.8-5.1 (or MacOS X)
--65535:64:1:60:M*,N,W0,N,N,T:	FreeBSD:4.8-4.11::FreeBSD 4.8-5.2 (or MacOS X)
--65535:64:1:60:M*,N,W0,N,N,T:	FreeBSD:5.0-5.2::FreeBSD 4.8-5.2 (or MacOS X)
--65535:64:1:60:M*,N,W1,N,N,T:	FreeBSD:4.7-4.11::FreeBSD 4.7-5.2
--65535:64:1:60:M*,N,W1,N,N,T:	FreeBSD:5.0-5.2::FreeBSD 4.7-5.2
-+32768:64:1:60:M*,N,W0,N,N,T:	FreeBSD:4.8-5.1::FreeBSD 4.8-5.1 (or MacOS X)
-+65535:64:1:60:M*,N,W0,N,N,T:	FreeBSD:4.8-5.2::FreeBSD 4.8-5.2 (or MacOS X)
-+65535:64:1:60:M*,N,W1,N,N,T:	FreeBSD:4.7-5.2::FreeBSD 4.7-5.2
- 
- 65535:64:1:60:M*,N,W6,S,T:	FreeBSD:9.0-12.0::FreeBSD 9.0 - 12.0
- 
-@@ -378,8 +369,7 @@ S34:64:1:52:M*,N,W0,N,N,S:		Solaris:10:beta:Solaris 10 (beta)
- # S2:255:1:48:M*,W0,E:.:MacOS:8.6 classic
- 
- # XXX some of these use EOL too
--16616:255:1:48:M*,W0:			MacOS:7.3-7.6:OTTCP:MacOS 7.3-8.6 (OTTCP)
--16616:255:1:48:M*,W0:			MacOS:8.0-8.6:OTTCP:MacOS 7.3-8.6 (OTTCP)
-+16616:255:1:48:M*,W0:			MacOS:7.3-8.6:OTTCP:MacOS 7.3-8.6 (OTTCP)
- 16616:255:1:48:M*,N,N,N:		MacOS:8.1-8.6:OTTCP:MacOS 8.1-8.6 (OTTCP)
- 32768:255:1:48:M*,W0,N:			MacOS:9.0-9.2::MacOS 9.0-9.2
- 65535:255:1:48:M*,N,N,N,N:		MacOS:9.1::MacOS 9.1 (OT 2.7.4)
-@@ -515,8 +505,7 @@ S8:64:0:44:M512:		NeXTSTEP:3.3::NeXTSTEP 3.3
- 
- # ------------------ OS/400 -----------------
- 
--8192:64:1:60:M1440,N,W0,N,N,T:	OS/400:VR4::OS/400 VR4/R5
--8192:64:1:60:M1440,N,W0,N,N,T:	OS/400:VR5::OS/400 VR4/R5
-+8192:64:1:60:M1440,N,W0,N,N,T:	OS/400:VR4-VR5::OS/400 VR4/R5
- 4096:64:1:60:M1440,N,W0,N,N,T:	OS/400:V4R5:CF67032:OS/400 V4R5 + CF67032
- 
- # XXX quirk
-@@ -532,9 +521,9 @@ S16:64:0:44:M512:		QNX:::QNX demodisk
- 
- # ------------------ Novell -----------------
- 
--16384:128:1:44:M1460:		Novell:NetWare:5.0:Novel Netware 5.0
--6144:128:1:44:M1460:		Novell:IntranetWare:4.11:Novell IntranetWare 4.11
--6144:128:1:44:M1368:		Novell:BorderManager::Novell BorderManager ?
-+16384:128:1:44:M1460:		Novell:NW:5.0:Novel Netware 5.0
-+6144:128:1:44:M1460:		Novell:IW:4.11:Novell IntranetWare 4.11
-+6144:128:1:44:M1368:		Novell:BM::Novell BorderManager ?
- 
- 6144:128:1:52:M*,W0,N,S,N,N:	Novell:Netware:6:Novell Netware 6 SP3
- 
-@@ -637,8 +626,7 @@ S1:255:1:60:M1460,S,T,N,W0:		LookSmart:ZyBorg::LookSmart ZyBorg
- # ----------- Embedded systems --------------
- 
- S9:255:0:44:M536:			PalmOS:Tungsten:C:PalmOS Tungsten C
--S5:255:0:44:M536:			PalmOS:3::PalmOS 3/4
--S5:255:0:44:M536:			PalmOS:4::PalmOS 3/4
-+S5:255:0:44:M536:			PalmOS:3-4::PalmOS 3/4
- S4:255:0:44:M536:			PalmOS:3:5:PalmOS 3.5
- 2948:255:0:44:M536:			PalmOS:3:5:PalmOS 3.5.3 (Handera)
- S29:255:0:44:M536:			PalmOS:5::PalmOS 5.0
 -- 
 2.20.1
 
