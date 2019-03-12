@@ -2,94 +2,67 @@ Return-Path: <SRS0=/pLU=RP=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,
-	UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 06101C43381
-	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Mar 2019 11:32:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 25638C43381
+	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Mar 2019 17:59:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D14762075C
-	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Mar 2019 11:32:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 028D92173C
+	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Mar 2019 17:59:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726008AbfCLLc5 (ORCPT
+        id S1727128AbfCLR7i (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 12 Mar 2019 07:32:57 -0400
-Received: from mail.us.es ([193.147.175.20]:44618 "EHLO mail.us.es"
+        Tue, 12 Mar 2019 13:59:38 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:45768 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725811AbfCLLc5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 12 Mar 2019 07:32:57 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 63866114812
-        for <netfilter-devel@vger.kernel.org>; Tue, 12 Mar 2019 12:32:55 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 5093EDA38C
-        for <netfilter-devel@vger.kernel.org>; Tue, 12 Mar 2019 12:32:55 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 43061DA3F6; Tue, 12 Mar 2019 12:32:55 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id C48B1DA86A
-        for <netfilter-devel@vger.kernel.org>; Tue, 12 Mar 2019 12:32:52 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 12 Mar 2019 12:32:52 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from salvia.here (sys.soleta.eu [212.170.55.40])
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id A5D5C4265A4E
-        for <netfilter-devel@vger.kernel.org>; Tue, 12 Mar 2019 12:32:52 +0100 (CET)
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft] tests: shell: bogus ENOENT on element deletion in interval set
-Date:   Tue, 12 Mar 2019 12:32:47 +0100
-Message-Id: <20190312113247.9127-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.11.0
-X-Virus-Scanned: ClamAV using ClamSMTP
+        id S1727960AbfCLRNc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 12 Mar 2019 13:13:32 -0400
+Received: from localhost ([::1]:58858 helo=tatos)
+        by orbyte.nwl.cc with esmtp (Exim 4.91)
+        (envelope-from <phil@nwl.cc>)
+        id 1h3ky2-0000ZL-OE; Tue, 12 Mar 2019 18:13:30 +0100
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [ebtables PATCH] Adjust .gitignore to renamed files
+Date:   Tue, 12 Mar 2019 18:13:27 +0100
+Message-Id: <20190312171327.26523-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.21.0
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Fixes: 6218f812d894f ("ebtables: legacy renaming")
+Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- tests/shell/testcases/transactions/0047set_0 | 26 ++++++++++++++++++++++++++
- 1 file changed, 26 insertions(+)
- create mode 100755 tests/shell/testcases/transactions/0047set_0
+ .gitignore | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/tests/shell/testcases/transactions/0047set_0 b/tests/shell/testcases/transactions/0047set_0
-new file mode 100755
-index 000000000000..0a2723115452
---- /dev/null
-+++ b/tests/shell/testcases/transactions/0047set_0
-@@ -0,0 +1,26 @@
-+#!/bin/bash
-+
-+RULESET='add table ip filter
-+add map ip filter group_10060 { type ipv4_addr : classid; flags interval; }
-+add element ip filter group_10060 { 10.1.26.2/32 : "1:0xbbf8" }
-+add element ip filter group_10060 { 10.1.26.3/32 : "1:0xc1ad" }
-+add element ip filter group_10060 { 10.1.26.4/32 : "1:0xb2d7" }
-+add element ip filter group_10060 { 10.1.26.5/32 : "1:0xf705" }
-+add element ip filter group_10060 { 10.1.26.6/32 : "1:0xb895" }
-+add element ip filter group_10060 { 10.1.26.7/32 : "1:0xec4c" }
-+add element ip filter group_10060 { 10.1.26.8/32 : "1:0xde78" }
-+add element ip filter group_10060 { 10.1.26.9/32 : "1:0xb4f3" }
-+add element ip filter group_10060 { 10.1.26.10/32 : "1:0xdec6" }
-+add element ip filter group_10060 { 10.1.26.11/32 : "1:0xb4c0" }
-+add element ip filter group_10060 { 10.1.26.12/32 : "1:0xb4a2" }
-+add element ip filter group_10060 { 10.1.26.13/32 : "1:0xa8ab" }
-+add element ip filter group_10060 { 10.1.26.14/32 : "1:0xb3c1" }'
-+
-+set -e
-+$NFT -f - <<< "$RULESET"
-+
-+RULESET='delete element ip filter group_10060 { 10.1.26.13/32 }
-+delete element ip filter group_10060 { 10.1.26.14/32 }
-+delete element ip filter group_10060 { 10.1.26.12/32 }'
-+
-+$NFT -f - <<< "$RULESET"
+diff --git a/.gitignore b/.gitignore
+index c1fae5463a355..9940c85762fa0 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -17,11 +17,11 @@ Makefile.in
+ /libtool
+ /stamp-h1
+ 
+-/ebtables
++/ebtables-legacy
+ /ebtables-config
+-/ebtables-restore
+-/ebtables-save
+-/ebtables.8
++/ebtables-legacy-restore
++/ebtables-legacy-save
++/ebtables-legacy.8
+ /ebtablesd
+ /ebtablesu
+ /static
 -- 
-2.11.0
+2.21.0
 
