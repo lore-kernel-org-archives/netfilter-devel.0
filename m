@@ -2,139 +2,93 @@ Return-Path: <SRS0=/pLU=RP=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_PASS,
-	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 345D1C10F00
-	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Mar 2019 11:01:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A5C5C43381
+	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Mar 2019 11:24:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 047F620883
-	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Mar 2019 11:01:19 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="J4VrlApu"
+	by mail.kernel.org (Postfix) with ESMTP id 41B16206BA
+	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Mar 2019 11:24:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725894AbfCLLBR (ORCPT
+        id S1726415AbfCLLYh (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 12 Mar 2019 07:01:17 -0400
-Received: from mail-wr1-f67.google.com ([209.85.221.67]:34031 "EHLO
-        mail-wr1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725844AbfCLLBQ (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 12 Mar 2019 07:01:16 -0400
-Received: by mail-wr1-f67.google.com with SMTP id f14so2209984wrg.1;
-        Tue, 12 Mar 2019 04:01:15 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=qTlhrCT1sQy6dNry2H9q/HH4UWiJvbJVrdaTsmxUUec=;
-        b=J4VrlApu1d3svEunM45Dn7uv17Bg6L2HobT4Tr9QKlfDrNYUvHWOljhuJKqiuJO+qO
-         7ncZ3bvidyr8/eiMHJdeWt+9nRO2yZ/0rErDQPWVzmk2xkJnggdp/CzLBIhRPvAGMwKN
-         bsiA14lbAH4MJwl95DNxzZ2KGg/q6K3pEJAjl9EVWpXGSkHiCsPAzShmfTjdil8hIXlm
-         6C5KWOCI2mgavsm0npWmDVTZ4I1m0PIeJAE5UblT59Put9qmMlmQsbvQMQm3G8xr5g9Y
-         Br48WJGlP6ktHgNpH3VLVAlt/Vej7mX8PCFuoVYtkmV+ropoWS/IL86Sa6lJfYdfC9Fg
-         d6tA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=qTlhrCT1sQy6dNry2H9q/HH4UWiJvbJVrdaTsmxUUec=;
-        b=TZvYDEDrCFKd3rAvdDBRYK90dp/DngvAVVmAjBm3gg0K+dkTAsD+Ok8INZeYyRmmrl
-         M2tmwhDhhoWb6vh/AMdP9mcBKeBlIO2P+c34ZvgYp1BeCs/9N5iCPGAgbmY2CDjkKiic
-         M3pTfmb8qLL899E3e/Skp6IN/QDhF+EvLmxXtEldSpis5uDZU4CILQH9UrlVGLIULoKo
-         FNjeBhOQ2EIFpPP4mhryGeY3r7TMlreVjteZSKHQVwlc5EZVpbyEnXCCXModM0/9OcBf
-         mJHpkYrj6MvYR4ghwCbL2SgKFX0tgfAf9QjR8ApSd+FsejMnx4IsdM82ATYV7jIO2EYz
-         92hQ==
-X-Gm-Message-State: APjAAAX6Gsjr7Y3Nk7gnmT3V0854PuAYOJFiQ+HpkOS0TN1kVnWISJ9v
-        CI6XksCh4JoVnvslgkhkxPFpGImmsIKBrptl55U=
-X-Google-Smtp-Source: APXvYqzvXKsUi0hXIPzXARwlpIgdwwLlaJA7M8AZGRr3/zw6CwHzvZDwx+ZACycYP4JpnSEvzpR+d58vqvn/b9h/Lr8=
-X-Received: by 2002:a5d:6288:: with SMTP id k8mr25076717wru.173.1552388474676;
- Tue, 12 Mar 2019 04:01:14 -0700 (PDT)
+        Tue, 12 Mar 2019 07:24:37 -0400
+Received: from mail.us.es ([193.147.175.20]:37020 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725792AbfCLLYh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 12 Mar 2019 07:24:37 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 8B150F2782
+        for <netfilter-devel@vger.kernel.org>; Tue, 12 Mar 2019 12:24:34 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 78827DA87D
+        for <netfilter-devel@vger.kernel.org>; Tue, 12 Mar 2019 12:24:34 +0100 (CET)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 77493DA87B; Tue, 12 Mar 2019 12:24:34 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 5DB6EDA796;
+        Tue, 12 Mar 2019 12:24:32 +0100 (CET)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Tue, 12 Mar 2019 12:24:32 +0100 (CET)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from salvia.here (sys.soleta.eu [212.170.55.40])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id 33D1C4265A2F;
+        Tue, 12 Mar 2019 12:24:32 +0100 (CET)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     vaclav.zindulka@tlapnet.cz
+Subject: [PATCH nf] netfilter: nft_set_rbtree: check for inactive element after flag mismatch
+Date:   Tue, 12 Mar 2019 12:24:28 +0100
+Message-Id: <20190312112428.25260-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.11.0
 MIME-Version: 1.0
-References: <740683890e28e93c1b2e940a28089ca10f006b7f.1551601041.git.lucien.xin@gmail.com>
- <20190308155049.by7f4uzjxqnf3xu7@salvia> <CADvbK_djd5ckv3nTROsmHNdr0Z5ULt7MF3MXtNYAO58mo+po7Q@mail.gmail.com>
- <20190309092434.oflik6j57yrhpkh5@breakpoint.cc> <20190311110752.GA30241@hmswarspite.think-freely.org>
- <CADvbK_dUUyECm57EPmqHyQnh-mkVNz5u-0MCrhtpo80PCr51fA@mail.gmail.com> <20190312094846.r2pgi3pevvmdv33l@salvia>
-In-Reply-To: <20190312094846.r2pgi3pevvmdv33l@salvia>
-From:   Xin Long <lucien.xin@gmail.com>
-Date:   Tue, 12 Mar 2019 19:01:03 +0800
-Message-ID: <CADvbK_fwjDmnsHyA1=nTFE0h0z6XVjBXFq1BrVFQOgRLY6FL1A@mail.gmail.com>
-Subject: Re: [PATCH net] netfilter: set skb transport_header before calling sctp_compute_cksum
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Neil Horman <nhorman@tuxdriver.com>,
-        Florian Westphal <fw@strlen.de>,
-        network dev <netdev@vger.kernel.org>,
-        netfilter-devel@vger.kernel.org,
-        Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Mar 12, 2019 at 5:49 PM Pablo Neira Ayuso <pablo@netfilter.org> wrote:
->
-> On Tue, Mar 12, 2019 at 04:39:46PM +0800, Xin Long wrote:
-> > On Mon, Mar 11, 2019 at 7:08 PM Neil Horman <nhorman@tuxdriver.com> wrote:
-> > >
-> > > On Sat, Mar 09, 2019 at 10:24:34AM +0100, Florian Westphal wrote:
-> > > > Xin Long <lucien.xin@gmail.com> wrote:
-> > > > >   https://marc.info/?l=linux-netdev&m=155109395226858&w=2
-> > > > > But from sctp side, Neil preferred sctp_hdr().
-> > > > >
-> > > > > We need to either add skb_set_transport_header() in sctp_s/dnat_handler()
-> > > > > and sctp_manip_pkt(), or bring that patch back?
-> > > > >
-> > > > > Now it seems not good to set skb->transport_header in netfilter code.
-> > > >
-> > > > I think its fine, but I wonder why we need to do it.
-> > > >
-> > > > Since 21d1196a35f5686c4323e42a62fdb4b23b0ab4a3 ipv4 input path sets
-> > > > transport header before netfilter.  The only problem is that linear
-> > > > access is illegal without may_pull checks, but in this case the
-> > > > make_writable call takes care of this already.
-> > > >
-> > > Yes, this.  It seems to me we should be setting the transport header prior to
-> > > ever getting into the netfilter code, which does imply that we need the may_pull
-> > > check to linearize enough of the packet to do so, just like tcp and udp do.
-> > >
-> > > > So, why was this patch needed?
-> >
-> > The issue was reported when going to nf_conntrack by br_netfilter's
-> > bridge-nf-call-iptables, which could be:
-> >
-> > br_prerouting->inet_prerouting->
-> > br_forward->inet_forward->
-> > br_postrouting->inet_postrouting
->
-> Can you fix this from br_netfilter then? ie. set the transport header
-> before prerouting to emulate the IP stack behaviour.
-diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
-index 9d34de6..22afa56 100644
---- a/net/bridge/br_netfilter_hooks.c
-+++ b/net/bridge/br_netfilter_hooks.c
-@@ -502,6 +502,7 @@ static unsigned int br_nf_pre_routing(void *priv,
-  nf_bridge->ipv4_daddr = ip_hdr(skb)->daddr;
+Otherwise, we hit bogus ENOENT when removing elements.
 
-  skb->protocol = htons(ETH_P_IP);
-+ skb->transport_header = skb->network_header + ip_hdr(skb)->ihl * 4;
+Fixes: e701001e7cbe ("netfilter: nft_rbtree: allow adjacent intervals with dynamic updates")
+Reported-by: Václav Zindulka <vaclav.zindulka@tlapnet.cz>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nft_set_rbtree.c | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-  NF_HOOK(NFPROTO_IPV4, NF_INET_PRE_ROUTING, state->net, state->sk, skb,
-  skb->dev, NULL,
-diff --git a/net/bridge/br_netfilter_ipv6.c b/net/bridge/br_netfilter_ipv6.c
-index 564710f..e88d664 100644
---- a/net/bridge/br_netfilter_ipv6.c
-+++ b/net/bridge/br_netfilter_ipv6.c
-@@ -235,6 +235,8 @@ unsigned int br_nf_pre_routing_ipv6(void *priv,
-  nf_bridge->ipv6_daddr = ipv6_hdr(skb)->daddr;
+diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
+index fa61208371f8..321a0036fdf5 100644
+--- a/net/netfilter/nft_set_rbtree.c
++++ b/net/netfilter/nft_set_rbtree.c
+@@ -308,10 +308,6 @@ static void *nft_rbtree_deactivate(const struct net *net,
+ 		else if (d > 0)
+ 			parent = parent->rb_right;
+ 		else {
+-			if (!nft_set_elem_active(&rbe->ext, genmask)) {
+-				parent = parent->rb_left;
+-				continue;
+-			}
+ 			if (nft_rbtree_interval_end(rbe) &&
+ 			    !nft_rbtree_interval_end(this)) {
+ 				parent = parent->rb_left;
+@@ -320,6 +316,9 @@ static void *nft_rbtree_deactivate(const struct net *net,
+ 				   nft_rbtree_interval_end(this)) {
+ 				parent = parent->rb_right;
+ 				continue;
++			} else if (!nft_set_elem_active(&rbe->ext, genmask)) {
++				parent = parent->rb_left;
++				continue;
+ 			}
+ 			nft_rbtree_flush(net, set, rbe);
+ 			return rbe;
+-- 
+2.11.0
 
-  skb->protocol = htons(ETH_P_IPV6);
-+ skb->transport_header = skb->network_header + sizeof(struct ipv6hdr);
-+
-  NF_HOOK(NFPROTO_IPV6, NF_INET_PRE_ROUTING, state->net, state->sk, skb,
-  skb->dev, NULL,
-  br_nf_pre_routing_finish_ipv6);
-
-Looks more reasonable, it's also safe after br_validate_ipv4/6(). Thanks.
