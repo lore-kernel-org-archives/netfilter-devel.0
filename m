@@ -2,63 +2,63 @@ Return-Path: <SRS0=/pLU=RP=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.5 required=3.0 tests=DKIM_ADSP_CUSTOM_MED,
-	DKIM_INVALID,DKIM_SIGNED,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+X-Spam-Status: No, score=-8.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
 	SPF_PASS,USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 48FC6C43381
-	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Mar 2019 06:58:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2DB3AC10F00
+	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Mar 2019 07:12:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0B7312171F
-	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Mar 2019 06:58:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E19D2214AE
+	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Mar 2019 07:12:35 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="G9s2MZ3v"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="NaRTbkxX"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727384AbfCLG6s (ORCPT
+        id S1727038AbfCLHM3 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 12 Mar 2019 02:58:48 -0400
-Received: from mail-pg1-f193.google.com ([209.85.215.193]:34955 "EHLO
-        mail-pg1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727303AbfCLG6q (ORCPT
+        Tue, 12 Mar 2019 03:12:29 -0400
+Received: from mail-pf1-f196.google.com ([209.85.210.196]:44385 "EHLO
+        mail-pf1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726614AbfCLHM2 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 12 Mar 2019 02:58:46 -0400
-Received: by mail-pg1-f193.google.com with SMTP id e17so1117940pgd.2;
-        Mon, 11 Mar 2019 23:58:45 -0700 (PDT)
+        Tue, 12 Mar 2019 03:12:28 -0400
+Received: by mail-pf1-f196.google.com with SMTP id a3so1141343pff.11;
+        Tue, 12 Mar 2019 00:12:28 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:mime-version
          :content-transfer-encoding;
         bh=DITBBTDueFMwgO9c43r4QUnl5fmEGfsFdxK6pS4NikQ=;
-        b=G9s2MZ3vaLoDkFwdaFR3YRLiQmWbMq51AaDFVahT4YmghTysQGLytVDJxOvU1TYmqE
-         sjrpUPX10RMN1v2YfefOR/xhriqzuIxmHYUL49v/BzbXSEJI+GuJep0fCJfxAy0Y/LkJ
-         MQp98LZCCQGzqKT4B9McHbJh9YEwrAy9tsxqDMVSEc3PDJcIRE2CvS1QSOdnJlWhYg6X
-         oO3sGt0cfOTMQuSFVWp3hPTmix3Fs1Z0JV/6XOlSPTwiiMWeLMIuSyYROWFkLYVvfVD2
-         Ar8sHMXpLUWLsNyrAQo/A7TjmcvNqmMNATzFGbAcsGraSX5tkaqxw55aotQC/toZIyjm
-         RGmQ==
+        b=NaRTbkxXSNxzdQTO9Nz4CCC82K4WzcFVl8VbOYZXMwBWymJZudJBC/DufVjx2rHYnK
+         X/R2ugk0+0iy2vWL12iBWx2dYGRBsTY/eOzM+gWER7ACihezeDTUlpXblHP/kWCBOijH
+         QIhIiIKzjrw822GiIjbVR0bIqZBCZtMd3uJIVYd28S4PXUE8Cfz7OPa3JiF3+NyvohyZ
+         BIG/Uf+gpAD8rIX1B4Z71d2c/00FOFGYNSI6zbqihTuVnjO5TNyZoC1X4b8K/Vwd81pi
+         BUP+KPqbC5PVC9mcS4QQ/XMHEV/TksUd+Sc2Tw+TSr+afHCxCQu784PGTsuKmEVffiTz
+         x9BQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
          :content-transfer-encoding;
         bh=DITBBTDueFMwgO9c43r4QUnl5fmEGfsFdxK6pS4NikQ=;
-        b=B03wx5UFcFtrim7CPmAnvj0v1JPtiRakASsAZUSAStG1Bkf62Fp+AR7dzcpEJqBu/h
-         39yjqqD6LotwSFnVQHQZdDCQ/Z5JsFGyt9L8P2dktE5i3VqavKOQ9RP/j6yK3abo/fps
-         2rhQPmI3LV6KWcv8XrKNi6rj5g4vdq5lzHmun1Zelm/8k4j8Wf525GvsEKnwL4o1zJis
-         E+1vTDONAiA+UAN3NJXci8nQBWVO3B19JJ5QafmnVJEIRkrpIMU+NYFTWnXwhVcB7PzD
-         YVgJwZ7EukCQ/eBA2YEEO5SfHDhklMkhRxNNPPZ5DZs/GUA6D7rZy8H5N5r3qVbGYS59
-         jKsw==
-X-Gm-Message-State: APjAAAWXzVLl/DhAbEmx6XKJSxza7FB5+Rj4NXDr1WmRbsMFVTtX0npu
-        mGEFqMXRLbCluZxPgialuA==
-X-Google-Smtp-Source: APXvYqw7at1dWthONyoJAZjx9ja9nkMG3En7GZYw6PTQSU0m40p577AkjsB7R4ZGkrl4XQRBi98hpA==
-X-Received: by 2002:a17:902:6b81:: with SMTP id p1mr38781502plk.106.1552373925173;
-        Mon, 11 Mar 2019 23:58:45 -0700 (PDT)
+        b=TFYJCu/jARM3qc+Zh7IlGjNL1ZHiqt+Z57Lqk1cj+ld+rYFPAA96GxuOnBXcEwYrIY
+         k1QfzwCTz4eOitHdu9zP6E+8iviJza/l/uEebpaGXCRx22IISIEdWmVlYdctF7SHsykh
+         CTjmEsQzbjXRfkNPzhYZE0EQn8Ng34Lu9cx3U1KSoNqKkeG30CAI+o2ybbY12swbGIwK
+         aWwSzjOhnHidG/HinRqbtlhxNPiNE5G7ragNYLvqpRFLVBTco3vc+RBi64VJW6P9zlt7
+         9l/z4j7mCJ4G4S8IrA2C945hXmvREh2D43/QwPBZzw9VL0dr0olJTmgd8EacNcvqa+a3
+         OiiA==
+X-Gm-Message-State: APjAAAX88Jochwa1BSUUG0Yfry/wlLL41CrpL2mGHNWiE7wcrRnuQIIL
+        A4AKKp3CxmMsZJ091u/oLe+aewxNKyOH
+X-Google-Smtp-Source: APXvYqym8k5rm0KL4CDhTRpcrsQds6wJEmM+pYOyg/NWpgey1fXZujCluFq5EGUMSaqItyI+5zFgfw==
+X-Received: by 2002:aa7:82d7:: with SMTP id f23mr37414417pfn.114.1552374747583;
+        Tue, 12 Mar 2019 00:12:27 -0700 (PDT)
 Received: from localhost ([2001:19f0:7001:54c5:5400:1ff:fec8:7fc2])
-        by smtp.gmail.com with ESMTPSA id j9sm12485031pfc.67.2019.03.11.23.58.43
+        by smtp.gmail.com with ESMTPSA id j4sm11333564pfn.132.2019.03.12.00.12.26
         (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Mon, 11 Mar 2019 23:58:44 -0700 (PDT)
+        Tue, 12 Mar 2019 00:12:26 -0700 (PDT)
 From:   Jacky Hu <hengqing.hu@gmail.com>
+To:     hengqing.hu@gmail.com
 Cc:     jacky.hu@walmart.com, jason.niesz@walmart.com,
-        Jacky Hu <hengqing.hu@gmail.com>,
         Wensong Zhang <wensong@linux-vs.org>,
         Simon Horman <horms@verge.net.au>,
         Julian Anastasov <ja@ssi.bg>,
@@ -69,12 +69,11 @@ Cc:     jacky.hu@walmart.com, jason.niesz@walmart.com,
         lvs-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org
 Subject: [PATCH] ipvs: allow tunneling with gue encapsulation
-Date:   Tue, 12 Mar 2019 14:58:35 +0800
-Message-Id: <20190312065835.19251-1-hengqing.hu@gmail.com>
+Date:   Tue, 12 Mar 2019 15:12:18 +0800
+Message-Id: <20190312071218.21905-1-hengqing.hu@gmail.com>
 X-Mailer: git-send-email 2.21.0
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-To:     unlisted-recipients:; (no To-header on input)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
