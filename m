@@ -3,32 +3,32 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4314EC43381
-	for <netfilter-devel@archiver.kernel.org>; Wed, 13 Mar 2019 19:46:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 75020C43381
+	for <netfilter-devel@archiver.kernel.org>; Wed, 13 Mar 2019 19:46:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1FE16213A2
-	for <netfilter-devel@archiver.kernel.org>; Wed, 13 Mar 2019 19:46:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3EF98213A2
+	for <netfilter-devel@archiver.kernel.org>; Wed, 13 Mar 2019 19:46:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727079AbfCMTqp (ORCPT
+        id S1727073AbfCMTqv (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 13 Mar 2019 15:46:45 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:48594 "EHLO orbyte.nwl.cc"
+        Wed, 13 Mar 2019 15:46:51 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:48600 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726328AbfCMTqo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 13 Mar 2019 15:46:44 -0400
-Received: from localhost ([::1]:33452 helo=tatos)
+        id S1726927AbfCMTqu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 13 Mar 2019 15:46:50 -0400
+Received: from localhost ([::1]:33458 helo=tatos)
         by orbyte.nwl.cc with esmtp (Exim 4.91)
         (envelope-from <phil@nwl.cc>)
-        id 1h49pq-0001B9-Uk; Wed, 13 Mar 2019 20:46:43 +0100
+        id 1h49pw-0001BV-B4; Wed, 13 Mar 2019 20:46:48 +0100
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH 6/6] xtables-save: Point at existing man page in help text
-Date:   Wed, 13 Mar 2019 20:46:17 +0100
-Message-Id: <20190313194617.31071-7-phil@nwl.cc>
+Subject: [iptables PATCH 1/6] doc: Add arptables-nft man pages
+Date:   Wed, 13 Mar 2019 20:46:12 +0100
+Message-Id: <20190313194617.31071-2-phil@nwl.cc>
 X-Mailer: git-send-email 2.21.0
 In-Reply-To: <20190313194617.31071-1-phil@nwl.cc>
 References: <20190313194617.31071-1-phil@nwl.cc>
@@ -39,45 +39,481 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+These are 1:1 copies from legacy arptables repository.
+
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- iptables/xtables-save.c | 9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ iptables/Makefile.am             |   3 +
+ iptables/arptables-nft-restore.8 |  41 ++++
+ iptables/arptables-nft-save.8    |  37 ++++
+ iptables/arptables-nft.8         | 352 +++++++++++++++++++++++++++++++
+ 4 files changed, 433 insertions(+)
+ create mode 100644 iptables/arptables-nft-restore.8
+ create mode 100644 iptables/arptables-nft-save.8
+ create mode 100644 iptables/arptables-nft.8
 
-diff --git a/iptables/xtables-save.c b/iptables/xtables-save.c
-index 87ebb913f33b7..2cc5a7c7540be 100644
---- a/iptables/xtables-save.c
-+++ b/iptables/xtables-save.c
-@@ -187,7 +187,8 @@ xtables_save_main(int family, const char *progname, int argc, char *argv[])
- 			exit(0);
- 		default:
- 			fprintf(stderr,
--				"Look at manual page `xtables-save.8' for more information.\n");
-+				"Look at manual page `%s.8' for more information.\n",
-+				prog_name);
- 			exit(1);
- 		}
- 	}
-@@ -333,7 +334,8 @@ int xtables_eb_save_main(int argc_, char *argv_[])
- 			exit(0);
- 		default:
- 			fprintf(stderr,
--				"Look at manual page `xtables-save.8' for more information.\n");
-+				"Look at manual page `%s.8' for more information.\n",
-+				prog_name);
- 			exit(1);
- 		}
- 	}
-@@ -380,7 +382,8 @@ int xtables_arp_save_main(int argc, char **argv)
- 			exit(0);
- 		default:
- 			fprintf(stderr,
--				"Look at manual page `xtables-save.8' for more information.\n");
-+				"Look at manual page `%s.8' for more information.\n",
-+				prog_name);
- 			exit(1);
- 		}
- 	}
+diff --git a/iptables/Makefile.am b/iptables/Makefile.am
+index bfaf5e29685e5..c0f657eb02713 100644
+--- a/iptables/Makefile.am
++++ b/iptables/Makefile.am
+@@ -62,6 +62,9 @@ man_MANS         = iptables.8 iptables-restore.8 iptables-save.8 \
+                    xtables-nft.8 xtables-translate.8 xtables-legacy.8 \
+                    iptables-translate.8 ip6tables-translate.8 \
+                    xtables-monitor.8
++if ENABLE_NFTABLES
++man_MANS	+= arptables-nft.8 arptables-nft-restore.8 arptables-nft-save.8
++endif
+ CLEANFILES       = iptables.8 xtables-monitor.8 \
+ 		   iptables-translate.8 ip6tables-translate.8 \
+ 		   xtables-config-parser.c xtables-config-syntax.c
+diff --git a/iptables/arptables-nft-restore.8 b/iptables/arptables-nft-restore.8
+new file mode 100644
+index 0000000000000..4f2f623673415
+--- /dev/null
++++ b/iptables/arptables-nft-restore.8
+@@ -0,0 +1,41 @@
++.TH ARPTABLES-RESTORE 8 "Nov 07, 2013" "" ""
++.\"
++.\" Man page written by Jesper Dangaard Brouer <brouer@redhat.com> based on a
++.\" Man page written by Harald Welte <laforge@gnumonks.org>
++.\" It is based on the iptables-restore man page.
++.\"
++.\"	This program is free software; you can redistribute it and/or modify
++.\"	it under the terms of the GNU General Public License as published by
++.\"	the Free Software Foundation; either version 2 of the License, or
++.\"	(at your option) any later version.
++.\"
++.\"	This program is distributed in the hope that it will be useful,
++.\"	but WITHOUT ANY WARRANTY; without even the implied warranty of
++.\"	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++.\"	GNU General Public License for more details.
++.\"
++.\"	You should have received a copy of the GNU General Public License
++.\"	along with this program; if not, write to the Free Software
++.\"	Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++.\"
++.\"
++.SH NAME
++arptables-restore \(em Restore ARP Tables
++.SH SYNOPSIS
++\fBarptables\-restore
++.SH DESCRIPTION
++.PP
++.B arptables-restore
++is used to restore ARP Tables from data specified on STDIN or
++via a file as first argument.
++Use I/O redirection provided by your shell to read from a file
++.TP
++.B arptables-restore
++flushes (deletes) all previous contents of the respective ARP Table.
++.SH BUGS
++None known as of arptables-0.0.4 release
++.SH AUTHOR
++Jesper Dangaard Brouer <brouer@redhat.com>
++.SH SEE ALSO
++\fBarptables\-save\fP(8), \fBarptables\fP(8)
++.PP
+diff --git a/iptables/arptables-nft-save.8 b/iptables/arptables-nft-save.8
+new file mode 100644
+index 0000000000000..34791a9c087f0
+--- /dev/null
++++ b/iptables/arptables-nft-save.8
+@@ -0,0 +1,37 @@
++.TH ARPTABLES-SAVE 8 "Nov 07, 2013" "" ""
++.\"
++.\" Man page written by Jesper Dangaard Brouer <brouer@redhat.com> based on a
++.\" Man page written by Harald Welte <laforge@gnumonks.org>
++.\" It is based on the iptables-save man page.
++.\"
++.\"	This program is free software; you can redistribute it and/or modify
++.\"	it under the terms of the GNU General Public License as published by
++.\"	the Free Software Foundation; either version 2 of the License, or
++.\"	(at your option) any later version.
++.\"
++.\"	This program is distributed in the hope that it will be useful,
++.\"	but WITHOUT ANY WARRANTY; without even the implied warranty of
++.\"	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++.\"	GNU General Public License for more details.
++.\"
++.\"	You should have received a copy of the GNU General Public License
++.\"	along with this program; if not, write to the Free Software
++.\"	Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++.\"
++.\"
++.SH NAME
++arptables-save \(em dump arptables rules to stdout
++.SH SYNOPSIS
++\fBarptables\-save
++.SH DESCRIPTION
++.PP
++.B arptables-save
++is used to dump the contents of an ARP Table in easily parseable format
++to STDOUT. Use I/O-redirection provided by your shell to write to a file.
++.SH BUGS
++None known as of arptables-0.0.4 release
++.SH AUTHOR
++Jesper Dangaard Brouer <brouer@redhat.com>
++.SH SEE ALSO
++\fBarptables\-restore\fP(8), \fBarptables\fP(8)
++.PP
+diff --git a/iptables/arptables-nft.8 b/iptables/arptables-nft.8
+new file mode 100644
+index 0000000000000..3ce99e3757004
+--- /dev/null
++++ b/iptables/arptables-nft.8
+@@ -0,0 +1,352 @@
++.TH ARPTABLES 8  "June 2018"
++.\"
++.\" Man page originally written by Jochen Friedrich <jochen@scram.de>,
++.\" maintained by Bart De Schuymer.
++.\" It is based on the iptables man page.
++.\"
++.\" Iptables page by Herve Eychenne March 2000.
++.\"
++.\"     This program is free software; you can redistribute it and/or modify
++.\"     it under the terms of the GNU General Public License as published by
++.\"     the Free Software Foundation; either version 2 of the License, or
++.\"     (at your option) any later version.
++.\"
++.\"     This program is distributed in the hope that it will be useful,
++.\"     but WITHOUT ANY WARRANTY; without even the implied warranty of
++.\"     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++.\"     GNU General Public License for more details.
++.\"
++.\"     You should have received a copy of the GNU General Public License
++.\"     along with this program; if not, write to the Free Software
++.\"     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++.\"
++.\"
++.SH NAME
++arptables \- ARP table administration (legacy)
++.SH SYNOPSIS
++.BR "arptables " [ "-t table" ] " -" [ AD ] " chain rule-specification " [ options ]
++.br
++.BR "arptables " [ "-t table" ] " -" [ RI ] " chain rulenum rule-specification " [ options ]
++.br
++.BR "arptables " [ "-t table" ] " -D chain rulenum " [ options ]
++.br
++.BR "arptables " [ "-t table" ] " -" [ "LFZ" ] " " [ chain ] " " [ options ]
++.br
++.BR "arptables " [ "-t table" ] " -" [ "NX" ] " chain"
++.br
++.BR "arptables " [ "-t table" ] " -E old-chain-name new-chain-name"
++.br
++.BR "arptables " [ "-t table" ] " -P chain target " [ options ]
++
++.SH LEGACY
++This tool uses the old xtables/setsockopt framework, and is a legacy version
++of arptables. That means that a new, more modern tool exists with the same
++functionality using the nf_tables framework and you are encouraged to migrate now.
++The new binaries (formerly known as -compat) uses the same syntax and
++semantics than this legacy one.
++
++You can still use this legacy tool. You should probably get some specific
++information from your Linux distribution or vendor.
++More docs are available at https://wiki.nftables.org
++
++.SH DESCRIPTION
++.B arptables
++is a user space tool, it is used to set up and maintain the
++tables of ARP rules in the Linux kernel. These rules inspect
++the ARP frames which they see.
++.B arptables
++is analogous to the
++.B iptables
++user space tool, but
++.B arptables
++is less complicated.
++
++.SS CHAINS
++The kernel table is used to divide functionality into
++different sets of rules. Each set of rules is called a chain.
++Each chain is an ordered list of rules that can match ARP frames. If a
++rule matches an ARP frame, then a processing specification tells
++what to do with that matching frame. The processing specification is
++called a 'target'. However, if the frame does not match the current
++rule in the chain, then the next rule in the chain is examined and so forth.
++The user can create new (user-defined) chains which can be used as the 'target' of a rule.
++
++.SS TARGETS
++A firewall rule specifies criteria for an ARP frame and a frame
++processing specification called a target.  When a frame matches a rule,
++then the next action performed by the kernel is specified by the target.
++The target can be one of these values:
++.IR ACCEPT ,
++.IR DROP ,
++.IR CONTINUE ,
++.IR RETURN ,
++an 'extension' (see below) or a user-defined chain.
++.PP
++.I ACCEPT
++means to let the frame through.
++.I DROP
++means the frame has to be dropped.
++.I CONTINUE
++means the next rule has to be checked. This can be handy to know how many
++frames pass a certain point in the chain or to log those frames.
++.I RETURN
++means stop traversing this chain and resume at the next rule in the
++previous (calling) chain.
++For the extension targets please see the
++.B "TARGET EXTENSIONS"
++section of this man page.
++.SS TABLES
++There is only one ARP table in the Linux
++kernel.  The table is
++.BR filter.
++You can drop the '-t filter' argument to the arptables command.
++The -t argument must be the
++first argument on the arptables command line, if used.
++.TP
++.B "-t, --table"
++.br
++.BR filter ,
++is the only table and contains two (Linux kernels 2.4.X) or three (Linux kernels 2.6.0 and later) built-in chains:
++.B INPUT 
++(for frames destined for the host), 
++.B OUTPUT 
++(for locally-generated frames) and
++.B FORWARD
++(for frames being forwarded by the bridge code). The
++.B FORWARD
++chain doesn't exist in Linux 2.4.X kernels.
++.br
++.br
++.SH ARPTABLES COMMAND LINE ARGUMENTS
++After the initial arptables command line argument, the remaining
++arguments can be divided into several different groups.  These groups
++are commands, miscellaneous commands, rule-specifications, match-extensions,
++and watcher-extensions.
++.SS COMMANDS
++The arptables command arguments specify the actions to perform on the table
++defined with the -t argument.  If you do not use the -t argument to name
++a table, the commands apply to the default filter table.
++With the exception of the
++.B "-Z"
++command, only one command may be used on the command line at a time.
++.TP
++.B "-A, --append"
++Append a rule to the end of the selected chain.
++.TP
++.B "-D, --delete"
++Delete the specified rule from the selected chain. There are two ways to
++use this command. The first is by specifying an interval of rule numbers
++to delete, syntax: start_nr[:end_nr]. Using negative numbers is allowed, for more
++details about using negative numbers, see the -I command. The second usage is by
++specifying the complete rule as it would have been specified when it was added.
++.TP
++.B "-I, --insert"
++Insert the specified rule into the selected chain at the specified rule number.
++If the current number of rules equals N, then the specified number can be
++between -N and N+1. For a positive number i, it holds that i and i-N-1 specify the
++same place in the chain where the rule should be inserted. The number 0 specifies
++the place past the last rule in the chain and using this number is therefore
++equivalent with using the -A command.
++.TP
++.B "-R, --replace"
++Replaces the specified rule into the selected chain at the specified rule number.
++If the current number of rules equals N, then the specified number can be
++between 1 and N. i specifies the place in the chain where the rule should be replaced.
++.TP
++.B "-P, --policy"
++Set the policy for the chain to the given target. The policy can be
++.BR ACCEPT ", " DROP " or " RETURN .
++.TP
++.B "-F, --flush"
++Flush the selected chain. If no chain is selected, then every chain will be
++flushed. Flushing the chain does not change the policy of the
++chain, however.
++.TP
++.B "-Z, --zero"
++Set the counters of the selected chain to zero. If no chain is selected, all the counters
++are set to zero. The
++.B "-Z"
++command can be used in conjunction with the 
++.B "-L"
++command.
++When both the
++.B "-Z"
++and
++.B "-L"
++commands are used together in this way, the rule counters are printed on the screen
++before they are set to zero.
++.TP
++.B "-L, --list"
++List all rules in the selected chain. If no chain is selected, all chains
++are listed.
++.TP
++.B "-N, --new-chain"
++Create a new user-defined chain with the given name. The number of
++user-defined chains is unlimited. A user-defined chain name has maximum
++length of 31 characters.
++.TP
++.B "-X, --delete-chain"
++Delete the specified user-defined chain. There must be no remaining references
++to the specified chain, otherwise
++.B arptables
++will refuse to delete it. If no chain is specified, all user-defined
++chains that aren't referenced will be removed.
++.TP
++.B "-E, --rename-chain"
++Rename the specified chain to a new name.  Besides renaming a user-defined
++chain, you may rename a standard chain name to a name that suits your
++taste. For example, if you like PREBRIDGING more than PREROUTING,
++then you can use the -E command to rename the PREROUTING chain. If you do
++rename one of the standard
++.B arptables
++chain names, please be sure to mention
++this fact should you post a question on the
++.B arptables
++mailing lists.
++It would be wise to use the standard name in your post. Renaming a standard
++.B arptables
++chain in this fashion has no effect on the structure or function
++of the
++.B arptables
++kernel table.
++
++.SS MISCELLANOUS COMMANDS
++.TP
++.B "-V, --version"
++Show the version of the arptables userspace program.
++.TP
++.B "-h, --help"
++Give a brief description of the command syntax.
++.TP
++.BR "-j, --jump " "\fItarget\fP"
++The target of the rule. This is one of the following values:
++.BR ACCEPT ,
++.BR DROP ,
++.BR CONTINUE ,
++.BR RETURN ,
++a target extension (see
++.BR "TARGET EXTENSIONS" ")"
++or a user-defined chain name.
++.TP
++.BI "-c, --set-counters " "PKTS BYTES"
++This enables the administrator to initialize the packet and byte
++counters of a rule (during
++.B INSERT,
++.B APPEND,
++.B REPLACE
++operations).
++
++.SS RULE-SPECIFICATIONS
++The following command line arguments make up a rule specification (as used 
++in the add and delete commands). A "!" option before the specification 
++inverts the test for that specification. Apart from these standard rule 
++specifications there are some other command line arguments of interest.
++.TP
++.BR "-s, --source-ip " "[!] \fIaddress\fP[/\fImask]\fP"
++The Source IP specification.
++.TP 
++.BR "-d, --destination-ip " "[!] \fIaddress\fP[/\fImask]\fP"
++The Destination IP specification.
++.TP 
++.BR "--source-mac " "[!] \fIaddress\fP[/\fImask\fP]"
++The source mac address. Both mask and address are written as 6 hexadecimal
++numbers separated by colons.
++.TP
++.BR "--destination-mac " "[!] \fIaddress\fP[/\fImask\fP]"
++The destination mac address. Both mask and address are written as 6 hexadecimal
++numbers separated by colons.
++.TP 
++.BR "-i, --in-interface " "[!] \fIname\fP"
++The interface via which a frame is received (for the
++.BR INPUT " and " FORWARD
++chains). The flag
++.B --in-if
++is an alias for this option.
++.TP
++.BR "-o, --out-interface " "[!] \fIname\fP"
++The interface via which a frame is going to be sent (for the
++.BR OUTPUT " and " FORWARD
++chains). The flag
++.B --out-if
++is an alias for this option.
++.TP
++.BR "-l, --h-length " "\fIlength\fP[/\fImask\fP]"
++The hardware length (nr of bytes)
++.TP
++.BR "--opcode " "\fIcode\fP[/\fImask\fP]
++The operation code (2 bytes). Available values are:
++.BR 1 = Request
++.BR 2 = Reply
++.BR 3 = Request_Reverse
++.BR 4 = Reply_Reverse
++.BR 5 = DRARP_Request
++.BR 6 = DRARP_Reply
++.BR 7 = DRARP_Error
++.BR 8 = InARP_Request
++.BR 9 = ARP_NAK .
++.TP
++.BR "--h-type " "\fItype\fP[/\fImask\fP]"
++The hardware type (2 bytes, hexadecimal). Available values are:
++.BR 1 = Ethernet .
++.TP
++.BR "--proto-type " "\fItype\fP[/\fImask\fP]"
++The protocol type (2 bytes). Available values are:
++.BR 0x800 = IPv4 .
++
++.SS TARGET-EXTENSIONS
++.B arptables
++extensions are precompiled into the userspace tool. So there is no need
++to explicitly load them with a -m option like in
++.BR iptables .
++However, these
++extensions deal with functionality supported by supplemental kernel modules.
++.SS mangle
++.TP
++.BR "--mangle-ip-s IP address"
++Mangles Source IP Address to given value.
++.TP
++.BR "--mangle-ip-d IP address"
++Mangles Destination IP Address to given value.
++.TP
++.BR "--mangle-mac-s MAC address"
++Mangles Source MAC Address to given value.
++.TP
++.BR "--mangle-mac-d MAC address"
++Mangles Destination MAC Address to given value.
++.TP
++.BR "--mangle-target target "
++Target of ARP mangle operation
++.BR "" ( DROP ", " CONTINUE " or " ACCEPT " -- default is " ACCEPT ).
++.SS CLASSIFY
++This  module  allows you to set the skb->priority value (and thus clas-
++sify the packet into a specific CBQ class).
++
++.TP
++.BR "--set-class major:minor"
++
++Set the major and minor  class  value.  The  values  are  always
++interpreted as hexadecimal even if no 0x prefix is given.
++
++.SS MARK
++This  module  allows you to set the skb->mark value (and thus classify
++the packet by the mark in u32)
++
++.TP
++.BR "--set-mark mark"
++Set the mark value. The  values  are  always
++interpreted as hexadecimal even if no 0x prefix is given
++
++.TP
++.BR "--and-mark mark"
++Binary AND the mark with bits.
++
++.TP
++.BR "--or-mark mark"
++Binary OR the mark with bits.
++
++.SH MAILINGLISTS
++.BR "" "See " http://netfilter.org/mailinglists.html
++.SH SEE ALSO
++.BR iptables "(8), " ebtables "(8), " arp "(8), " rarp "(8), " ifconfig "(8), " route (8)
++.PP
++.BR "" "See " http://ebtables.sf.net
 -- 
 2.21.0
 
