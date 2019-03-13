@@ -2,112 +2,95 @@ Return-Path: <SRS0=37vH=RQ=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_MUTT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-8.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_MUTT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 692E1C43381
-	for <netfilter-devel@archiver.kernel.org>; Wed, 13 Mar 2019 11:27:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1906CC10F03
+	for <netfilter-devel@archiver.kernel.org>; Wed, 13 Mar 2019 11:34:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3AC092147C
-	for <netfilter-devel@archiver.kernel.org>; Wed, 13 Mar 2019 11:27:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DC9FE2147C
+	for <netfilter-devel@archiver.kernel.org>; Wed, 13 Mar 2019 11:34:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725883AbfCML1f (ORCPT
+        id S1726011AbfCMLeN (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 13 Mar 2019 07:27:35 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:47670 "EHLO orbyte.nwl.cc"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725864AbfCML1f (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 13 Mar 2019 07:27:35 -0400
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.91)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1h422n-0005A4-Vz; Wed, 13 Mar 2019 12:27:34 +0100
-Date:   Wed, 13 Mar 2019 12:27:33 +0100
-From:   Phil Sutter <phil@nwl.cc>
-To:     Fernando Fernandez Mancera <ffmancera@riseup.net>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft v2 1/6] osf: add version fingerprint support
-Message-ID: <20190313112733.GL4851@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Fernando Fernandez Mancera <ffmancera@riseup.net>,
-        netfilter-devel@vger.kernel.org
-References: <20190311151417.17772-1-ffmancera@riseup.net>
- <20190313094424.GA11433@orbyte.nwl.cc>
- <b1d98d09-3cf7-3de1-1fb3-479244da560b@riseup.net>
+        Wed, 13 Mar 2019 07:34:13 -0400
+Received: from charlotte.tuxdriver.com ([70.61.120.58]:38699 "EHLO
+        smtp.tuxdriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725868AbfCMLeN (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 13 Mar 2019 07:34:13 -0400
+Received: from cpe-2606-a000-111b-405a-9816-2c85-c514-8f7a.dyn6.twc.com ([2606:a000:111b:405a:9816:2c85:c514:8f7a] helo=localhost)
+        by smtp.tuxdriver.com with esmtpsa (TLSv1:AES256-SHA:256)
+        (Exim 4.63)
+        (envelope-from <nhorman@tuxdriver.com>)
+        id 1h4299-0006FL-Fz; Wed, 13 Mar 2019 07:34:10 -0400
+Date:   Wed, 13 Mar 2019 07:33:33 -0400
+From:   Neil Horman <nhorman@tuxdriver.com>
+To:     Xin Long <lucien.xin@gmail.com>
+Cc:     network dev <netdev@vger.kernel.org>,
+        netfilter-devel@vger.kernel.org,
+        Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>,
+        pablo@netfilter.org, fw@strlen.de
+Subject: Re: [PATCH net] netfilter: bridge: set skb transport_header before
+ entering NF_INET_PRE_ROUTING
+Message-ID: <20190313113333.GB16434@hmswarspite.think-freely.org>
+References: <35febf82503a4126b5ba28b02a0ca6e8f37a2765.1552466009.git.lucien.xin@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <b1d98d09-3cf7-3de1-1fb3-479244da560b@riseup.net>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <35febf82503a4126b5ba28b02a0ca6e8f37a2765.1552466009.git.lucien.xin@gmail.com>
+User-Agent: Mutt/1.11.3 (2019-02-01)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Mar 13, 2019 at 11:14:04AM +0100, Fernando Fernandez Mancera wrote:
-> Hi Phil,
+On Wed, Mar 13, 2019 at 04:33:29PM +0800, Xin Long wrote:
+> Since Commit 21d1196a35f5 ("ipv4: set transport header earlier"),
+> skb->transport_header has been always set before entering INET
+> netfilter. This patch is to set skb->transport_header for bridge
+> before entering INET netfilter by bridge-nf-call-iptables.
 > 
-> On 3/13/19 10:44 AM, Phil Sutter wrote:
-> > Hi Fernando,
-> > 
-> > On Mon, Mar 11, 2019 at 04:14:12PM +0100, Fernando Fernandez Mancera wrote:
-> >> Add support for version fingerprint in "osf" expression. Example:
-> >>
-> >> table ip foo {
-> >> 	chain bar {
-> >> 		type filter hook input priority filter; policy accept;
-> >> 		osf ttl skip name "Linux"
-> >> 		osf ttl skip name version "Linux:4.20"
-> >> 	}
-> >> }
-> > 
-> > The syntax seems overly complicated to me, although I'm not really
-> > familiar with OSF so may lack background knowledge. Any reason why you
-> > didn't go with 'osf ttl skip name "Linux" version "4.20"' instead?
-> > 
+> It also fixes an issue that sctp_error() couldn't compute a right
+> csum due to unset skb->transport_header.
 > 
-> You are right, 'osf ttl skip name "Linux" version "4.20"' was my first
-> thought but in compilation time the parser applies shift-reduce to the
-> expression.. I decided 'osf ttl skip name version "Linux:4.20"' to avoid
-> a complex workaround in the parser.
-
-Shift/reduce warnings often require voodoo to fix, but it's not
-impossible. :)
-
-Regarding my suggestion, I see that this string is actually the
-right-hand-side of a relational expression. To implement what I had in
-mind you would have to turn osf expression into a statement.
-
-> The fingerprints database syntax is "genre:version:subtype:details" so
-> the nft 'osf' expression syntax is like the original one.
-
-Can we deduce required flags from the given string on RHS? I.e. by
-looking at the amount of semi-colons and the number of characters
-between them? I'm assuming the syntax works like "genre::subtype" and
-"genre:::details" to omit certain parts, is that correct?
-
-> > Also with regards to your patch to json_parser, I guess you should
-> > introduce an enum for flag values, something like:
-> > 
-> > | enum osf_flags {
-> > | 	OSF_FLAG_INVALID = 0x0,
-> > | 	OSF_FLAG_VERSION = 0x1
-> > | };
-> > | 
-> > | const char *osf_flag_names[] = {
-> > | 	[OSF_VERSION] = "version"
-> > | };
-> > 
-> > What do you think?
-> > 
+> Fixes: e6d8b64b34aa ("net: sctp: fix and consolidate SCTP checksumming code")
+> Reported-by: Li Shuang <shuali@redhat.com>
+> Suggested-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> Signed-off-by: Xin Long <lucien.xin@gmail.com>
+> ---
+>  net/bridge/br_netfilter_hooks.c | 1 +
+>  net/bridge/br_netfilter_ipv6.c  | 2 ++
+>  2 files changed, 3 insertions(+)
 > 
-> This patch already introduces an enum for flags values, you can find it
-> below. Do you think we need another one? Sorry if I am misunderstanding
-> you. Thanks!
-
-Oh, I missed that one. My concern is how the index of values in
-osf_flags array defined in osf_expr_json() and osf_flag_parse() is
-relevant although it doesn't seem so when only looking at the array
-definition.
-
-Cheers, Phil
+> diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
+> index c93c35b..4d09a33 100644
+> --- a/net/bridge/br_netfilter_hooks.c
+> +++ b/net/bridge/br_netfilter_hooks.c
+> @@ -502,6 +502,7 @@ static unsigned int br_nf_pre_routing(void *priv,
+>  	nf_bridge->ipv4_daddr = ip_hdr(skb)->daddr;
+>  
+>  	skb->protocol = htons(ETH_P_IP);
+> +	skb->transport_header = skb->network_header + ip_hdr(skb)->ihl * 4;
+>  
+>  	NF_HOOK(NFPROTO_IPV4, NF_INET_PRE_ROUTING, state->net, state->sk, skb,
+>  		skb->dev, NULL,
+> diff --git a/net/bridge/br_netfilter_ipv6.c b/net/bridge/br_netfilter_ipv6.c
+> index 564710f..e88d664 100644
+> --- a/net/bridge/br_netfilter_ipv6.c
+> +++ b/net/bridge/br_netfilter_ipv6.c
+> @@ -235,6 +235,8 @@ unsigned int br_nf_pre_routing_ipv6(void *priv,
+>  	nf_bridge->ipv6_daddr = ipv6_hdr(skb)->daddr;
+>  
+>  	skb->protocol = htons(ETH_P_IPV6);
+> +	skb->transport_header = skb->network_header + sizeof(struct ipv6hdr);
+> +
+>  	NF_HOOK(NFPROTO_IPV6, NF_INET_PRE_ROUTING, state->net, state->sk, skb,
+>  		skb->dev, NULL,
+>  		br_nf_pre_routing_finish_ipv6);
+> -- 
+> 2.1.0
+> 
+> 
+Acked-by: Neil Horman <nhorman@tuxdriver.com>
