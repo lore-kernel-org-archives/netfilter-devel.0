@@ -2,138 +2,304 @@ Return-Path: <SRS0=37vH=RQ=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B96FC43381
-	for <netfilter-devel@archiver.kernel.org>; Wed, 13 Mar 2019 16:46:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 09AC7C10F03
+	for <netfilter-devel@archiver.kernel.org>; Wed, 13 Mar 2019 19:20:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 464D8206DF
-	for <netfilter-devel@archiver.kernel.org>; Wed, 13 Mar 2019 16:46:02 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=riseup.net header.i=@riseup.net header.b="U7nYUpve"
+	by mail.kernel.org (Postfix) with ESMTP id D07B82075C
+	for <netfilter-devel@archiver.kernel.org>; Wed, 13 Mar 2019 19:20:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726142AbfCMQqB (ORCPT
+        id S1729012AbfCMTUY (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 13 Mar 2019 12:46:01 -0400
-Received: from mx1.riseup.net ([198.252.153.129]:50642 "EHLO mx1.riseup.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725856AbfCMQqB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 13 Mar 2019 12:46:01 -0400
-Received: from bell.riseup.net (bell-pn.riseup.net [10.0.1.178])
-        (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
-        (Client CN "*.riseup.net", Issuer "COMODO RSA Domain Validation Secure Server CA" (verified OK))
-        by mx1.riseup.net (Postfix) with ESMTPS id 8627E1A55BA;
-        Wed, 13 Mar 2019 09:46:00 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=riseup.net; s=squak;
-        t=1552495560; bh=3pU1aDhzlKfyeUv0OPAx6csTvr20RQkMITppST8DnqE=;
-        h=Subject:To:References:Cc:From:Date:In-Reply-To:From;
-        b=U7nYUpveFOsKbRgiSSM12PcS3LOT6cLsPBQy4ltrBRnhCVbGxgkYYQImzUqgvZxAo
-         ZsWr49MUKL7mR1D+AVqu7tDeRJZkpktp8oTYUEfJF4zsihKZe8dwOdJU17XwfpCZGi
-         68XXx4pKi7IiTGAO5w32BRFuK2JfIOvVttOAsgPU=
-X-Riseup-User-ID: C77077FA6770E89B5887791D59D9D822E1B1ED9BB9D1B56D0318B213BBBC9BFF
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-         by bell.riseup.net (Postfix) with ESMTPSA id 3CD22222132;
-        Wed, 13 Mar 2019 09:45:59 -0700 (PDT)
-Subject: Re: [PATCH nft v2 1/6] osf: add version fingerprint support
-To:     Phil Sutter <phil@nwl.cc>, Pablo Neira Ayuso <pablo@netfilter.org>
-References: <20190311151417.17772-1-ffmancera@riseup.net>
- <20190313094424.GA11433@orbyte.nwl.cc>
- <b1d98d09-3cf7-3de1-1fb3-479244da560b@riseup.net>
- <20190313112733.GL4851@orbyte.nwl.cc>
- <d71d6bf0-6371-8198-e07a-e454d27c6928@riseup.net>
- <20190313150634.GM4851@orbyte.nwl.cc>
- <2b070950-1441-ae1b-fe52-72dc7bc4455e@riseup.net>
- <20190313153455.GN4851@orbyte.nwl.cc>
-Cc:     netfilter-devel@vger.kernel.org
-From:   Fernando Fernandez Mancera <ffmancera@riseup.net>
-Openpgp: preference=signencrypt
-Message-ID: <fa72537e-adf8-29fb-6b8b-ebe30cd9bfc6@riseup.net>
-Date:   Wed, 13 Mar 2019 17:46:06 +0100
+        Wed, 13 Mar 2019 15:20:24 -0400
+Received: from ja.ssi.bg ([178.16.129.10]:33412 "EHLO ja.ssi.bg"
+        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1728059AbfCMTUX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 13 Mar 2019 15:20:23 -0400
+Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
+        by ja.ssi.bg (8.15.2/8.15.2) with ESMTP id x2DJJcZb003076;
+        Wed, 13 Mar 2019 21:19:38 +0200
+Date:   Wed, 13 Mar 2019 21:19:38 +0200 (EET)
+From:   Julian Anastasov <ja@ssi.bg>
+To:     Jacky Hu <hengqing.hu@gmail.com>
+cc:     jacky.hu@walmart.com, jason.niesz@walmart.com,
+        Wensong Zhang <wensong@linux-vs.org>,
+        Simon Horman <horms@verge.net.au>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
+        lvs-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+Subject: Re: [PATCH] ipvs: allow tunneling with gue encapsulation
+In-Reply-To: <20190312071218.21905-1-hengqing.hu@gmail.com>
+Message-ID: <alpine.LFD.2.21.1903132048350.2385@ja.home.ssi.bg>
+References: <20190312071218.21905-1-hengqing.hu@gmail.com>
+User-Agent: Alpine 2.21 (LFD 202 2017-01-01)
 MIME-Version: 1.0
-In-Reply-To: <20190313153455.GN4851@orbyte.nwl.cc>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US-large
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 3/13/19 4:34 PM, Phil Sutter wrote:
-> On Wed, Mar 13, 2019 at 04:22:27PM +0100, Fernando Fernandez Mancera wrote:
->> On 3/13/19 4:06 PM, Phil Sutter wrote:
->>> Hi Fernando,
->>>
->>> On Wed, Mar 13, 2019 at 03:15:51PM +0100, Fernando Fernandez Mancera wrote:
->>>> On 3/13/19 12:27 PM, Phil Sutter wrote:
->>>>> On Wed, Mar 13, 2019 at 11:14:04AM +0100, Fernando Fernandez Mancera wrote:
->>>>>> Hi Phil,
->>>>>>
->>>>>> On 3/13/19 10:44 AM, Phil Sutter wrote:
->>>>>>> Hi Fernando,
->>>>>>>
->>>>>>> On Mon, Mar 11, 2019 at 04:14:12PM +0100, Fernando Fernandez Mancera wrote:
->>>>>>>> Add support for version fingerprint in "osf" expression. Example:
->>>>>>>>
->>>>>>>> table ip foo {
->>>>>>>> 	chain bar {
->>>>>>>> 		type filter hook input priority filter; policy accept;
->>>>>>>> 		osf ttl skip name "Linux"
->>>>>>>> 		osf ttl skip name version "Linux:4.20"
->>>>>>>> 	}
->>>>>>>> }
->>>>>>>
->>>>>>> The syntax seems overly complicated to me, although I'm not really
->>>>>>> familiar with OSF so may lack background knowledge. Any reason why you
->>>>>>> didn't go with 'osf ttl skip name "Linux" version "4.20"' instead?
->>>>>>>
->>>>>>
->>>>>> You are right, 'osf ttl skip name "Linux" version "4.20"' was my first
->>>>>> thought but in compilation time the parser applies shift-reduce to the
->>>>>> expression.. I decided 'osf ttl skip name version "Linux:4.20"' to avoid
->>>>>> a complex workaround in the parser.
->>>>>
->>>>> Shift/reduce warnings often require voodoo to fix, but it's not
->>>>> impossible. :)
->>>>>
->>>>> Regarding my suggestion, I see that this string is actually the
->>>>> right-hand-side of a relational expression. To implement what I had in
->>>>> mind you would have to turn osf expression into a statement.
->>>>>
->>>>>> The fingerprints database syntax is "genre:version:subtype:details" so
->>>>>> the nft 'osf' expression syntax is like the original one.
->>>>>
->>>>> Can we deduce required flags from the given string on RHS? I.e. by
->>>>> looking at the amount of semi-colons and the number of characters
->>>>> between them? I'm assuming the syntax works like "genre::subtype" and
->>>>> "genre:::details" to omit certain parts, is that correct?
->>>>>
->>>>
->>>> Yes that is correct. We can do that if you think it is more suitable. Do
->>>> we all agree then?
->>>
->>> I think reducing redundancy is always a good thing. Only having to
->>> specify the string and extracting the required info from it would make
->>> it easier for users I guess.
->>>
->>> That whole string is sent to the kernel, right? So it wouldn't make
->>> sense to split the fields it is made up from into separate properties in
->>> JSON, correct?
->>>
->>> Thanks, Phil
->>>
->>
->> Yes, that makes sense. In this case, we don't need flags support anymore
->> so it reduces the patch series. Should we continue with the
->> implementation of the flags support or just forget about it until needed
->> again?
-> 
-> What other flags do you have in mind?
-> 
-> Cheers, Phil
-> 
 
-Maybe in the future we could need them for logging. But we can ignore it
-right now.
+	Hello,
+
+On Tue, 12 Mar 2019, Jacky Hu wrote:
+
+> ipip packets are blocked in some public cloud environments, this patch
+> allows gue encapsulation with the tunneling method, which would make
+> tunneling working in those environments.
+> 
+> Signed-off-by: Jacky Hu <hengqing.hu@gmail.com>
+> ---
+>  include/uapi/linux/ip_vs.h      | 17 +++++++-
+>  net/netfilter/ipvs/ip_vs_ctl.c  |  4 +-
+>  net/netfilter/ipvs/ip_vs_xmit.c | 71 ++++++++++++++++++++++++++++++++-
+>  3 files changed, 87 insertions(+), 5 deletions(-)
+> 
+> diff --git a/include/uapi/linux/ip_vs.h b/include/uapi/linux/ip_vs.h
+> index 1c916b2f89dc..6637e45b93f4 100644
+> --- a/include/uapi/linux/ip_vs.h
+> +++ b/include/uapi/linux/ip_vs.h
+> @@ -96,13 +96,25 @@
+>  #define IP_VS_CONN_F_TEMPLATE	0x1000		/* template, not connection */
+>  #define IP_VS_CONN_F_ONE_PACKET	0x2000		/* forward only one packet */
+>  
+> +/* tunneling with gue */
+> +#define IP_VS_CONN_F_GUE	0x0008
+> +
+> +/* gue destination port bit 0 */
+> +#define IP_VS_CONN_F_GUE_PORT_LSB	0x4000
+> +
+> +/* gue destination port bit 1-15 */
+> +#define IP_VS_CONN_F_GUE_PORT_MSB	0xFFFFE0000
+> +
+>  /* Initial bits allowed in backup server */
+>  #define IP_VS_CONN_F_BACKUP_MASK (IP_VS_CONN_F_FWD_MASK | \
+>  				  IP_VS_CONN_F_NOOUTPUT | \
+>  				  IP_VS_CONN_F_INACTIVE | \
+>  				  IP_VS_CONN_F_SEQ_MASK | \
+>  				  IP_VS_CONN_F_NO_CPORT | \
+> -				  IP_VS_CONN_F_TEMPLATE \
+> +				  IP_VS_CONN_F_TEMPLATE | \
+> +				  IP_VS_CONN_F_GUE | \
+> +				  IP_VS_CONN_F_GUE_PORT_MSB | \
+> +				  IP_VS_CONN_F_GUE_PORT_LSB \
+>  				 )
+>  
+>  /* Bits allowed to update in backup server */
+> @@ -116,6 +128,9 @@
+>  #define IP_VS_CONN_F_DEST_MASK (IP_VS_CONN_F_FWD_MASK | \
+>  				IP_VS_CONN_F_ONE_PACKET | \
+>  				IP_VS_CONN_F_NFCT | \
+> +				IP_VS_CONN_F_GUE | \
+> +				IP_VS_CONN_F_GUE_PORT_MSB | \
+> +				IP_VS_CONN_F_GUE_PORT_LSB | \
+>  				0)
+
+	It would be better to not touch these flags. The backup
+sync server simply ignores the forwarding method by applying the
+IP_VS_CONN_F_BACKUP_UPD_MASK mask. The real server is found only
+by daddr+dport. It would be enough to provide any new non-default
+parameters as optional IPVS_DEST_ATTR_xxx attributes. By this way,
+we can later add more tunneling methods.
+
+>  #define IP_VS_SCHEDNAME_MAXLEN	16
+> diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+> index 432141f04af3..cecfb52cdea4 100644
+> --- a/net/netfilter/ipvs/ip_vs_ctl.c
+> +++ b/net/netfilter/ipvs/ip_vs_ctl.c
+> @@ -3169,7 +3169,7 @@ static int ip_vs_genl_fill_dest(struct sk_buff *skb, struct ip_vs_dest *dest)
+>  	    nla_put_be16(skb, IPVS_DEST_ATTR_PORT, dest->port) ||
+>  	    nla_put_u32(skb, IPVS_DEST_ATTR_FWD_METHOD,
+>  			(atomic_read(&dest->conn_flags) &
+> -			 IP_VS_CONN_F_FWD_MASK)) ||
+> +			 IP_VS_CONN_F_DEST_MASK)) ||
+>  	    nla_put_u32(skb, IPVS_DEST_ATTR_WEIGHT,
+>  			atomic_read(&dest->weight)) ||
+>  	    nla_put_u32(skb, IPVS_DEST_ATTR_U_THRESH, dest->u_threshold) ||
+
+	We can add the new attributes in this function.
+
+> @@ -3305,7 +3305,7 @@ static int ip_vs_genl_parse_dest(struct ip_vs_dest_user_kern *udest,
+>  			return -EINVAL;
+>  
+>  		udest->conn_flags = nla_get_u32(nla_fwd)
+> -				    & IP_VS_CONN_F_FWD_MASK;
+> +				    & IP_VS_CONN_F_DEST_MASK;
+>  		udest->weight = nla_get_u32(nla_weight);
+>  		udest->u_threshold = nla_get_u32(nla_u_thresh);
+>  		udest->l_threshold = nla_get_u32(nla_l_thresh);
+
+	Here too.
+
+	Also, note that __ip_vs_update_dest() can update the forwarding
+methods, so we should be able to switch them between any method.
+
+> diff --git a/net/netfilter/ipvs/ip_vs_xmit.c b/net/netfilter/ipvs/ip_vs_xmit.c
+> index 473cce2a5231..2667b587b91d 100644
+> --- a/net/netfilter/ipvs/ip_vs_xmit.c
+> +++ b/net/netfilter/ipvs/ip_vs_xmit.c
+> @@ -32,6 +32,7 @@
+>  #include <linux/slab.h>
+>  #include <linux/tcp.h>                  /* for tcphdr */
+>  #include <net/ip.h>
+> +#include <net/gue.h>
+>  #include <net/tcp.h>                    /* for csum_tcpudp_magic */
+>  #include <net/udp.h>
+>  #include <net/icmp.h>                   /* for icmp_send */
+> @@ -989,6 +990,42 @@ static inline int __tun_gso_type_mask(int encaps_af, int orig_af)
+>  	}
+>  }
+>  
+> +static int
+> +__build_gue_header(struct net *net, struct sk_buff *skb,
+> +		   struct ip_vs_conn *cp, __u8 *next_protocol)
+> +{
+> +	__be16 dport;
+> +	__be16 sport;
+> +	struct udphdr  *udph;	/* Our new UDP header */
+> +	struct guehdr  *gueh;	/* Our new GUE header */
+> +
+> +	skb_push(skb, sizeof(struct guehdr));
+> +
+> +	gueh = (struct guehdr *)skb->data;
+> +
+> +	gueh->control = 0;
+> +	gueh->version = 0;
+> +	gueh->hlen = 0;
+> +	gueh->flags = 0;
+> +	gueh->proto_ctype = *next_protocol;
+> +
+> +	skb_push(skb, sizeof(struct udphdr));
+> +	skb_reset_transport_header(skb);
+> +
+> +	udph = udp_hdr(skb);
+> +
+> +	dport = htons(((cp->flags >> 16) & 0xFFFE) | ((cp->flags >> 14) & 1));
+> +	sport = udp_flow_src_port(net, skb, 0, 0, false);
+> +	udph->dest = dport;
+> +	udph->source = sport;
+> +	udph->len = htons(skb->len);
+> +	udph->check = 0;
+> +
+> +	*next_protocol = IPPROTO_UDP;
+> +
+> +	return 0;
+> +}
+> +
+>  /*
+>   *   IP Tunneling transmitter
+>   *
+> @@ -1025,6 +1062,8 @@ ip_vs_tunnel_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
+>  	struct iphdr  *iph;			/* Our new IP header */
+>  	unsigned int max_headroom;		/* The extra header space needed */
+>  	int ret, local;
+> +	bool gue = false;
+> +	int type;
+>  
+>  	EnterFunction(10);
+>  
+> @@ -1041,11 +1080,16 @@ ip_vs_tunnel_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
+>  	rt = skb_rtable(skb);
+>  	tdev = rt->dst.dev;
+>  
+
+	Then, in this func we should drop traffic when cp->dest is NULL
+because we will not know the actual tunneling method. But it can happen
+only on misconfigured backup servers, so this is not a big problem.
+
+	Now, the parameters should be available in cp->dest.
+
+> +	gue = (bool)(cp->flags & IP_VS_CONN_F_GUE);
+> +
+>  	/*
+>  	 * Okay, now see if we can stuff it in the buffer as-is.
+>  	 */
+>  	max_headroom = LL_RESERVED_SPACE(tdev) + sizeof(struct iphdr);
+>  
+> +	if (gue)
+> +		max_headroom += sizeof(struct udphdr) + sizeof(struct guehdr);
+> +
+>  	/* We only care about the df field if sysctl_pmtu_disc(ipvs) is set */
+>  	dfp = sysctl_pmtu_disc(ipvs) ? &df : NULL;
+>  	skb = ip_vs_prepare_tunneled_skb(skb, cp->af, max_headroom,
+> @@ -1054,11 +1098,19 @@ ip_vs_tunnel_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
+>  	if (IS_ERR(skb))
+>  		goto tx_error;
+>  
+> -	if (iptunnel_handle_offloads(skb, __tun_gso_type_mask(AF_INET, cp->af)))
+> +	if (gue)
+> +		type = SKB_GSO_UDP_TUNNEL;
+> +	else
+> +		type = __tun_gso_type_mask(AF_INET, cp->af);
+> +
+> +	if (iptunnel_handle_offloads(skb, type))
+>  		goto tx_error;
+>  
+>  	skb->transport_header = skb->network_header;
+>  
+> +	if (gue)
+> +		__build_gue_header(dev_net(tdev), skb, cp, &next_protocol);
+> +
+>  	skb_push(skb, sizeof(struct iphdr));
+>  	skb_reset_network_header(skb);
+>  	memset(&(IPCB(skb)->opt), 0, sizeof(IPCB(skb)->opt));
+> @@ -1112,6 +1164,8 @@ ip_vs_tunnel_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
+>  	struct ipv6hdr  *iph;		/* Our new IP header */
+>  	unsigned int max_headroom;	/* The extra header space needed */
+>  	int ret, local;
+> +	bool gue = false;
+> +	int type;
+>  
+>  	EnterFunction(10);
+>  
+> @@ -1129,22 +1183,35 @@ ip_vs_tunnel_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
+>  	rt = (struct rt6_info *) skb_dst(skb);
+>  	tdev = rt->dst.dev;
+>  
+> +	gue = (bool)(cp->flags & IP_VS_CONN_F_GUE);
+> +
+>  	/*
+>  	 * Okay, now see if we can stuff it in the buffer as-is.
+>  	 */
+>  	max_headroom = LL_RESERVED_SPACE(tdev) + sizeof(struct ipv6hdr);
+>  
+> +	if (gue)
+> +		max_headroom += sizeof(struct udphdr) + sizeof(struct guehdr);
+> +
+>  	skb = ip_vs_prepare_tunneled_skb(skb, cp->af, max_headroom,
+>  					 &next_protocol, &payload_len,
+>  					 &dsfield, &ttl, NULL);
+>  	if (IS_ERR(skb))
+>  		goto tx_error;
+>  
+> -	if (iptunnel_handle_offloads(skb, __tun_gso_type_mask(AF_INET6, cp->af)))
+> +	if (gue)
+> +		type = SKB_GSO_UDP_TUNNEL;
+> +	else
+> +		type = __tun_gso_type_mask(AF_INET6, cp->af);
+> +
+> +	if (iptunnel_handle_offloads(skb, type))
+>  		goto tx_error;
+>  
+>  	skb->transport_header = skb->network_header;
+>  
+> +	if (gue)
+> +		__build_gue_header(dev_net(tdev), skb, cp, &next_protocol);
+> +
+>  	skb_push(skb, sizeof(struct ipv6hdr));
+>  	skb_reset_network_header(skb);
+>  	memset(&(IPCB(skb)->opt), 0, sizeof(IPCB(skb)->opt));
+> -- 
+> 2.21.0
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
