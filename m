@@ -6,45 +6,45 @@ X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D21FC43381
-	for <netfilter-devel@archiver.kernel.org>; Thu, 14 Mar 2019 10:17:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 08D04C43381
+	for <netfilter-devel@archiver.kernel.org>; Thu, 14 Mar 2019 10:18:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 116882064A
-	for <netfilter-devel@archiver.kernel.org>; Thu, 14 Mar 2019 10:17:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D2C602064A
+	for <netfilter-devel@archiver.kernel.org>; Thu, 14 Mar 2019 10:18:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726809AbfCNKRJ (ORCPT
+        id S1727122AbfCNKSQ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 14 Mar 2019 06:17:09 -0400
-Received: from mail.us.es ([193.147.175.20]:48364 "EHLO mail.us.es"
+        Thu, 14 Mar 2019 06:18:16 -0400
+Received: from mail.us.es ([193.147.175.20]:50642 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726736AbfCNKRJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 14 Mar 2019 06:17:09 -0400
+        id S1726697AbfCNKSQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 14 Mar 2019 06:18:16 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 2ECFB1F4B90
-        for <netfilter-devel@vger.kernel.org>; Thu, 14 Mar 2019 11:17:07 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 813251F4B84
+        for <netfilter-devel@vger.kernel.org>; Thu, 14 Mar 2019 11:18:14 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id F18B1FC5F7
-        for <netfilter-devel@vger.kernel.org>; Thu, 14 Mar 2019 11:17:06 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 6D544DA86E
+        for <netfilter-devel@vger.kernel.org>; Thu, 14 Mar 2019 11:18:14 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 2A8937E4D5; Thu, 14 Mar 2019 11:15:46 +0100 (CET)
+        id 6B0AEDA864; Thu, 14 Mar 2019 11:18:14 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 9C804BAABE;
-        Thu, 14 Mar 2019 11:15:42 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id B022FDA86F;
+        Thu, 14 Mar 2019 11:18:11 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Thu, 14 Mar 2019 11:15:42 +0100 (CET)
+ Thu, 14 Mar 2019 11:18:11 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 6FBC84265A50;
-        Thu, 14 Mar 2019 11:15:42 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPA id 7B3974265A4C;
+        Thu, 14 Mar 2019 11:18:11 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     nevola@gmail.com
 Subject: [PATCH nft] parser_bison: no need for statement separator for ct object commands
-Date:   Thu, 14 Mar 2019 11:15:38 +0100
-Message-Id: <20190314101538.28699-1-pablo@netfilter.org>
+Date:   Thu, 14 Mar 2019 11:18:08 +0100
+Message-Id: <20190314101808.5231-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
