@@ -2,136 +2,185 @@ Return-Path: <SRS0=rsEJ=RR=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8AAAAC43381
-	for <netfilter-devel@archiver.kernel.org>; Thu, 14 Mar 2019 03:20:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 298CDC43381
+	for <netfilter-devel@archiver.kernel.org>; Thu, 14 Mar 2019 03:26:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6226D20854
-	for <netfilter-devel@archiver.kernel.org>; Thu, 14 Mar 2019 03:20:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DEC2A20854
+	for <netfilter-devel@archiver.kernel.org>; Thu, 14 Mar 2019 03:26:12 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="f1VlkMgU"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726774AbfCNDUk (ORCPT
+        id S1726512AbfCND0M (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 13 Mar 2019 23:20:40 -0400
-Received: from mail.cn.fujitsu.com ([183.91.158.132]:5278 "EHLO
-        heian.cn.fujitsu.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1726339AbfCNDUk (ORCPT
+        Wed, 13 Mar 2019 23:26:12 -0400
+Received: from mail-pf1-f169.google.com ([209.85.210.169]:37485 "EHLO
+        mail-pf1-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726418AbfCND0M (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 13 Mar 2019 23:20:40 -0400
-X-IronPort-AV: E=Sophos;i="5.58,476,1544457600"; 
-   d="scan'208";a="56729303"
-Received: from unknown (HELO cn.fujitsu.com) ([10.167.33.5])
-  by heian.cn.fujitsu.com with ESMTP; 14 Mar 2019 11:20:38 +0800
-Received: from G08CNEXCHPEKD03.g08.fujitsu.local (unknown [10.167.33.85])
-        by cn.fujitsu.com (Postfix) with ESMTP id A29424C8B051;
-        Thu, 14 Mar 2019 11:20:15 +0800 (CST)
-Received: from [10.167.226.33] (10.167.226.33) by
- G08CNEXCHPEKD03.g08.fujitsu.local (10.167.33.89) with Microsoft SMTP Server
- (TLS) id 14.3.408.0; Thu, 14 Mar 2019 11:20:39 +0800
-From:   "Su Yanjun <suyj.fnst@cn.fujitsu.com>" <suyj.fnst@cn.fujitsu.com>
-Subject: Re: [PATCH] netfilter: nf_ct_helper: Fix possible panic when
- nf_conntrack_helper_unregister is used in an unloadable module
-To:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Su Yanjun <suyanjun218@163.com>
-CC:     <kadlec@blackhole.kfki.hu>, <fw@strlen.de>, <davem@davemloft.net>,
-        <netfilter-devel@vger.kernel.org>, <coreteam@netfilter.org>,
-        <netdev@vger.kernel.org>, <linux-kernel@vger.kernel.org>
-References: <1551419766-1039-1-git-send-email-suyanjun218@163.com>
- <20190308155934.vfx2ah4k4guqvhyu@salvia>
-Message-ID: <94c12f0d-a558-4719-a339-cded8d614b66@cn.fujitsu.com>
-Date:   Thu, 14 Mar 2019 11:20:36 +0800
-User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:60.0) Gecko/20100101
- Thunderbird/60.3.3
-MIME-Version: 1.0
-In-Reply-To: <20190308155934.vfx2ah4k4guqvhyu@salvia>
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.167.226.33]
-X-yoursite-MailScanner-ID: A29424C8B051.A943C
-X-yoursite-MailScanner: Found to be clean
-X-yoursite-MailScanner-From: suyj.fnst@cn.fujitsu.com
+        Wed, 13 Mar 2019 23:26:12 -0400
+Received: by mail-pf1-f169.google.com with SMTP id s22so2862473pfh.4
+        for <netfilter-devel@vger.kernel.org>; Wed, 13 Mar 2019 20:26:11 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id;
+        bh=Oo93hlr/FmWERkmE4Zf4+cQhNKerLS/s8gUSd8pzdUU=;
+        b=f1VlkMgUYVE4E113be4/L5VYy3n/1R5IwS6n8tx7S58oD1lNWZACPpHUgDefAVGB0S
+         NQtuGed4F09v1FC98A15oEFIpqd5iB6BtWIdqyYS58hcD+YVQJRdSiI6lT3Numo7syir
+         HVXTQ1gZ8uqfR9+7UENGPQnz9Lu33/J2+PK20ga9w8TnzJ6C3AZrhcEwPoero6sqLyWV
+         zKCGc22Z9FyLNoqMVdnkJQD7WNfLezjDU+5HrSackDSu/AqJrqXJd+pecYPnkq2cSROs
+         QXo41JLVVPbKWxRDG8zdROiNOFAebnhnUj5YMRnCMjZUSmIG8RcW2serH8aYmu1BfZeI
+         Zj0A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id;
+        bh=Oo93hlr/FmWERkmE4Zf4+cQhNKerLS/s8gUSd8pzdUU=;
+        b=UPq4GFWS/hLt8IdDIsnp/is5GSLEb4l1D7FAQw3v4v9B+pXNa1KZ5LP4uKXz9y/4hD
+         XBegXxvnZLOvBd6LySWQ0vJZuXQKf8aX9vgrKGbnQSGH56VRLCuqaWgx+rgLEt11jMVz
+         gEJRRtwNG4fsPGb9ePADnX8xkGb/v/UeNEmBiji4iIceu2tO8JBw0kglP519L1rOmo0i
+         5cpZtSkJfD6tZ7w/o+MzDwK8rE6lS54kQvlrKLHY7IAFNhLHcHpTGreVRDY56KWCdvvW
+         excXqqrBxoFNd7yoQh0GLVZ0E0MDMe92RCt6WihIOPnY5eYGTbYkYR8Nsft71ba3UiKa
+         HCFQ==
+X-Gm-Message-State: APjAAAURX+fEhcOPKpQpNJrUH645MeoeoRH68v5T1DqeoBH6UWejrJln
+        MhZfWsKdArb8ouQy66X7S98=
+X-Google-Smtp-Source: APXvYqxoxzQZC9c4uc2PKwE639cWbEac+f+1l0JzZ+bls/tMedjO5PVLWZA/WpbZIngKBf2Qdcz8tQ==
+X-Received: by 2002:aa7:8491:: with SMTP id u17mr11177745pfn.128.1552533971069;
+        Wed, 13 Mar 2019 20:26:11 -0700 (PDT)
+Received: from localhost ([124.206.234.161])
+        by smtp.gmail.com with ESMTPSA id p2sm28295252pfi.95.2019.03.13.20.26.09
+        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
+        Wed, 13 Mar 2019 20:26:10 -0700 (PDT)
+From:   xiao ruizhu <katrina.xiaorz@gmail.com>
+To:     pablo@netfilter.org, kadlec@blackhole.kfki.hu, fw@strlen.de,
+        davem@davemloft.net, netfilter-devel@vger.kernel.org
+Cc:     xiao ruizhu <katrina.xiaorz@gmail.com>
+Subject: [PATCH v2] netfilter: nf_conntrack_sip: fix rtcp expectation clash
+Date:   Thu, 14 Mar 2019 11:28:44 +0800
+Message-Id: <1552534124-31407-1-git-send-email-katrina.xiaorz@gmail.com>
+X-Mailer: git-send-email 1.9.1
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+An unexpected RTCP expectation clash happens in the following scenario.
 
-On 2019/3/8 23:59, Pablo Neira Ayuso wrote:
-> On Fri, Mar 01, 2019 at 01:56:06PM +0800, Su Yanjun wrote:
->> From: Su Yanjun<suyj.fnst@cn.fujitsu.com>
->>
->> Because nf_conntrack_helper_unregister maybe used in an unloadable module,
->> it uses 'synchronize_rcu' which may cause kernel panic.
->>
->> According to the artical:
->> RCU and Unloadable Modules
->> https://lwn.net/Articles/217484/
->>
->> When we have a heavy rcu callback load, then some of the callbacks might be
->> deferred in order to allow other processing to proceed. sychnorize_rcu does
->> not wait rcu callback complete and module may be unloaded before callback
->> done.
->>
->> This patch uses rcu_barrier instead of synchronize_rcu will prevent this
->> situation.
->>
->> Signed-off-by: Su Yanjun<suyj.fnst@cn.fujitsu.com>
->> ---
->>   net/netfilter/nf_conntrack_helper.c | 11 +++++++++--
->>   1 file changed, 9 insertions(+), 2 deletions(-)
->>
->> diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
->> index 274baf1..0ee9378 100644
->> --- a/net/netfilter/nf_conntrack_helper.c
->> +++ b/net/netfilter/nf_conntrack_helper.c
->> @@ -397,8 +397,15 @@ void nf_conntrack_helper_unregister(struct nf_conntrack_helper *me)
->>   
->>   	/* Make sure every nothing is still using the helper unless its a
->>   	 * connection in the hash.
->> +	 *
->> +	 * 'synchronize_rcu' may have problem when rcu callback function
->> +	 * is used in unloadable modules. Use rcu_barrier instead, so that
->> +	 * it will wait until rcu callback completes before modules are
->> +	 * unloaded.
->> +	 * More detail about rcu_barrier please see:
->> +	 *https://lwn.net/Articles/217484/
->>   	 */
->> -	synchronize_rcu();
->> +	rcu_barrier();
-> Are you sure this is correct?
->
-> IIRC rcu_barrier() makes sure no pending callback is still waiting in
-> the queue to run. We have don't use call_rcu() in this code, which is
-> what rcu_barrier() is meant for.
->
-> Please correct me if I'm mistaken.
->
-> Thanks!
+           |      INVITE SDP (g711A g739 telephone-event)      |
+      5060 |<--------------------------------------------------|5060
+           |                 100 Trying                        |
+      5060 |-------------------------------------------------->|5060
+  S        |  183 Session Progress SDP (g711A telephone-event) |
+      5060 |-------------------------------------------------->|5060
+  E        |                    PRACK                          |      C
+     50601 |<--------------------------------------------------|5060
+  R        |                  200 OK (PRACK)                   |      P
+     50601 |-------------------------------------------------->|5060
+  V        |                  200 OK (INVITE)                  |      E
+      5060 |-------------------------------------------------->|5060
+  E        |                      ACK                          |
+     50601 |<--------------------------------------------------|5060
+  R        |                                                   |
+           |<------------------ RTP stream ------------------->|
+           |                                                   |
+           |                 INVITE SDP (t38)                  |
+     50601 |-------------------------------------------------->|5060
 
-The issue is not whether your module invokes|call_rcu()|,
-but rather whether the corresponding RCU callback invokes a function that is in a module.
-For unloadable modules, **rcu_barrier** make the code more robust than synchronize_rcu.
+With a certain configuration in the CPE, SIP messages "183 with SDP" and
+"re-INVITE with SDP t38" in the scenario will trigger the ALG to create
+expectations for RTP and RTCP.
 
-Thanks
-Su
+It is okay to create RTP&RTCP expectations for "183", whose master
+connection source port is 5060, and destination port is 5060.
 
->>   
->>   	nf_ct_expect_iterate_destroy(expect_iter_me, NULL);
->>   	nf_ct_iterate_destroy(unhelp, me);
->> @@ -406,7 +413,7 @@ void nf_conntrack_helper_unregister(struct nf_conntrack_helper *me)
->>   	/* Maybe someone has gotten the helper already when unhelp above.
->>   	 * So need to wait it.
->>   	 */
->> -	synchronize_rcu();
->> +	rcu_barrier();
->>   }
->>   EXPORT_SYMBOL_GPL(nf_conntrack_helper_unregister);
->>   
->> -- 
->> 2.7.4
->>
->>
+In this "183" message, port in Contact header changes to 50601 (from the
+original 5060). So the following requests e.g. PRACK are sent to port
+50601. It has a different master connection (let call 2nd master
+connection) from the original INVITE (let call 1st master connection) due
+to the port difference.
 
+When "re-INVITE with SDP t38" arrives to create RTP&RTCP expectations,
+current ALG implementation will firstly check whether there is a RTP
+expectation with the same tuples already exists for a different master
+connection. If yes, it will skip RTP&RTCP expects creation; otherwise it
+will create a new RTP&RTCP expectation pairs.
+
+In the scenario above, there is RTP stream but no RTCP stream for the 1st
+master connection, so the RTP expectation created upon "183" is cleared,
+and RTCP expectation created for the 1st master connection retains.
+
+Basing on current ALG implementation, it only checks RTP expectation
+existence but not for RTCP. So when "re-INVITE with SDP t38" arrives, it
+will continue to create a new RTP&RTCP expectation pairs for the 2nd master
+connection, which will result in a detection of expectation clash for RTCP
+(same tuples and different master), and then a failure in processing of
+that re-INVITE.
+
+The fixing here is to check both RTP and RTCP expectation existence before
+creation. When there is an old expectation with same tuples for a different
+master, release the old expectation. Then a new one will be created for the
+current master.
+
+Signed-off-by: xiao ruizhu <katrina.xiaorz@gmail.com>
+---
+Changes in v2:
+- add a comment on release_conflicting_expect functionality
+- move local variable errp to the beginning of the block
+v1:
+- original patch
+---
+ net/netfilter/nf_conntrack_sip.c | 24 +++++++++++++++++++++++-
+ 1 file changed, 23 insertions(+), 1 deletion(-)
+
+diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
+index f067c6b..4398a53 100644
+--- a/net/netfilter/nf_conntrack_sip.c
++++ b/net/netfilter/nf_conntrack_sip.c
+@@ -799,6 +799,23 @@ static int ct_sip_parse_sdp_addr(const struct nf_conn *ct, const char *dptr,
+ 	return 1;
+ }
+ 
++/* Remove conflicting expect created by sip helper for another master
++ * conntrack, most likely related to this master.
++ */
++static void release_conflicting_expect(const struct nf_conn *ct,
++				       const struct nf_conntrack_expect *expect,
++				       const enum sip_expectation_classes class)
++{
++	struct nf_conntrack_expect *exp;
++	struct net *net = nf_ct_net(ct);
++
++	exp = __nf_ct_expect_find(net, nf_ct_zone(ct), &expect->tuple);
++	if (exp && exp->master != ct &&
++	    nfct_help(exp->master)->helper == nfct_help(ct)->helper &&
++	    exp->class == class)
++		nf_ct_unexpect_related(exp);
++}
++
+ static int refresh_signalling_expectation(struct nf_conn *ct,
+ 					  union nf_inet_addr *addr,
+ 					  u8 proto, __be16 port,
+@@ -980,11 +997,16 @@ static int set_expected_rtp_rtcp(struct sk_buff *skb, unsigned int protoff,
+ 				       datalen, rtp_exp, rtcp_exp,
+ 				       mediaoff, medialen, daddr);
+ 	else {
++		int errp;
++
++		release_conflicting_expect(ct, rtp_exp, class);
++		release_conflicting_expect(ct, rtcp_exp, class);
++
+ 		/* -EALREADY handling works around end-points that send
+ 		 * SDP messages with identical port but different media type,
+ 		 * we pretend expectation was set up.
+ 		 */
+-		int errp = nf_ct_expect_related(rtp_exp);
++		errp = nf_ct_expect_related(rtp_exp);
+ 
+ 		if (errp == 0 || errp == -EALREADY) {
+ 			int errcp = nf_ct_expect_related(rtcp_exp);
+-- 
+1.9.1
 
