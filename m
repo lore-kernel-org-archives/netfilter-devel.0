@@ -6,27 +6,27 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B29C9C10F00
-	for <netfilter-devel@archiver.kernel.org>; Fri, 15 Mar 2019 18:34:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 304ECC10F00
+	for <netfilter-devel@archiver.kernel.org>; Fri, 15 Mar 2019 18:34:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8FDC3218D3
-	for <netfilter-devel@archiver.kernel.org>; Fri, 15 Mar 2019 18:34:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 09B9F218A1
+	for <netfilter-devel@archiver.kernel.org>; Fri, 15 Mar 2019 18:34:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726855AbfCOSdy (ORCPT
+        id S1727000AbfCOSeX (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 15 Mar 2019 14:33:54 -0400
-Received: from mx1.redhat.com ([209.132.183.28]:57926 "EHLO mx1.redhat.com"
+        Fri, 15 Mar 2019 14:34:23 -0400
+Received: from mx1.redhat.com ([209.132.183.28]:54358 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725922AbfCOSdy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 15 Mar 2019 14:33:54 -0400
+        id S1726213AbfCOSeW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 15 Mar 2019 14:34:22 -0400
 Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.phx2.redhat.com [10.5.11.16])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mx1.redhat.com (Postfix) with ESMTPS id B8C19306D327;
-        Fri, 15 Mar 2019 18:33:52 +0000 (UTC)
+        by mx1.redhat.com (Postfix) with ESMTPS id 7378A300375B;
+        Fri, 15 Mar 2019 18:34:21 +0000 (UTC)
 Received: from madcap2.tricolour.ca (ovpn-112-22.phx2.redhat.com [10.3.112.22])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 26B6451723;
-        Fri, 15 Mar 2019 18:33:37 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 68D8F5C205;
+        Fri, 15 Mar 2019 18:34:11 +0000 (UTC)
 From:   Richard Guy Briggs <rgb@redhat.com>
 To:     containers@lists.linux-foundation.org, linux-api@vger.kernel.org,
         Linux-Audit Mailing List <linux-audit@redhat.com>,
@@ -36,92 +36,165 @@ Cc:     Paul Moore <paul@paul-moore.com>, sgrubb@redhat.com,
         omosnace@redhat.com, dhowells@redhat.com, simo@redhat.com,
         eparis@parisplace.org, serge@hallyn.com, ebiederm@xmission.com,
         nhorman@tuxdriver.com, Richard Guy Briggs <rgb@redhat.com>
-Subject: [PATCH ghak90 V5 03/10] audit: read container ID of a process
-Date:   Fri, 15 Mar 2019 14:29:51 -0400
-Message-Id: <25543e3db4d8f3853119f92c09a60664555249a2.1552665316.git.rgb@redhat.com>
+Subject: [PATCH ghak90 V5 05/10] audit: add containerid support for ptrace and signals
+Date:   Fri, 15 Mar 2019 14:29:53 -0400
+Message-Id: <a5a612bff629574cf4b678e7c7a9315e0e60a27c.1552665316.git.rgb@redhat.com>
 In-Reply-To: <cover.1552665316.git.rgb@redhat.com>
 References: <cover.1552665316.git.rgb@redhat.com>
 In-Reply-To: <cover.1552665316.git.rgb@redhat.com>
 References: <cover.1552665316.git.rgb@redhat.com>
 X-Scanned-By: MIMEDefang 2.79 on 10.5.11.16
-X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.5.16 (mx1.redhat.com [10.5.110.47]); Fri, 15 Mar 2019 18:33:53 +0000 (UTC)
+X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.5.16 (mx1.redhat.com [10.5.110.44]); Fri, 15 Mar 2019 18:34:21 +0000 (UTC)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Add support for reading the audit container identifier from the proc
-filesystem.
-
-This is a read from the proc entry of the form
-/proc/PID/audit_containerid where PID is the process ID of the task
-whose audit container identifier is sought.
-
-The read expects up to a u64 value (unset: 18446744073709551615).
-
-This read requires CAP_AUDIT_CONTROL.
+Add audit container identifier support to ptrace and signals.  In
+particular, the "ref" field provides a way to label the auxiliary record
+to which it is associated.
 
 Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
 Acked-by: Serge Hallyn <serge@hallyn.com>
+Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
 ---
- fs/proc/base.c | 23 +++++++++++++++++++++--
- 1 file changed, 21 insertions(+), 2 deletions(-)
+ include/linux/audit.h |  1 +
+ kernel/audit.c        |  2 ++
+ kernel/audit.h        |  2 ++
+ kernel/auditsc.c      | 23 +++++++++++++++++------
+ 4 files changed, 22 insertions(+), 6 deletions(-)
 
-diff --git a/fs/proc/base.c b/fs/proc/base.c
-index 2505c46c8701..0b833cbdf5b6 100644
---- a/fs/proc/base.c
-+++ b/fs/proc/base.c
-@@ -1295,6 +1295,24 @@ static ssize_t proc_sessionid_read(struct file * file, char __user * buf,
- 	.llseek		= generic_file_llseek,
+diff --git a/include/linux/audit.h b/include/linux/audit.h
+index 43438192ca2a..ebd6625ca80e 100644
+--- a/include/linux/audit.h
++++ b/include/linux/audit.h
+@@ -35,6 +35,7 @@ struct audit_sig_info {
+ 	uid_t		uid;
+ 	pid_t		pid;
+ 	char		ctx[0];
++	u64		cid;
  };
  
-+static ssize_t proc_contid_read(struct file *file, char __user *buf,
-+				  size_t count, loff_t *ppos)
-+{
-+	struct inode *inode = file_inode(file);
-+	struct task_struct *task = get_proc_task(inode);
-+	ssize_t length;
-+	char tmpbuf[TMPBUFLEN*2];
-+
-+	if (!task)
-+		return -ESRCH;
-+	/* if we don't have caps, reject */
-+	if (!capable(CAP_AUDIT_CONTROL))
-+		return -EPERM;
-+	length = scnprintf(tmpbuf, TMPBUFLEN*2, "%llu", audit_get_contid(task));
-+	put_task_struct(task);
-+	return simple_read_from_buffer(buf, count, ppos, tmpbuf, length);
-+}
-+
- static ssize_t proc_contid_write(struct file *file, const char __user *buf,
- 				   size_t count, loff_t *ppos)
- {
-@@ -1325,6 +1343,7 @@ static ssize_t proc_contid_write(struct file *file, const char __user *buf,
+ struct audit_buffer;
+diff --git a/kernel/audit.c b/kernel/audit.c
+index 8cc0e88d7f2a..cfa659b3f6c4 100644
+--- a/kernel/audit.c
++++ b/kernel/audit.c
+@@ -138,6 +138,7 @@ struct audit_net {
+ kuid_t		audit_sig_uid = INVALID_UID;
+ pid_t		audit_sig_pid = -1;
+ u32		audit_sig_sid = 0;
++u64		audit_sig_cid = AUDIT_CID_UNSET;
+ 
+ /* Records can be lost in several ways:
+    0) [suppressed in audit_alloc]
+@@ -1515,6 +1516,7 @@ static int audit_receive_msg(struct sk_buff *skb, struct nlmsghdr *nlh)
+ 			memcpy(sig_data->ctx, ctx, len);
+ 			security_release_secctx(ctx, len);
+ 		}
++		sig_data->cid = audit_sig_cid;
+ 		audit_send_reply(skb, seq, AUDIT_SIGNAL_INFO, 0, 0,
+ 				 sig_data, sizeof(*sig_data) + len);
+ 		kfree(sig_data);
+diff --git a/kernel/audit.h b/kernel/audit.h
+index c00e2ee3c6b3..c5ac6436317e 100644
+--- a/kernel/audit.h
++++ b/kernel/audit.h
+@@ -148,6 +148,7 @@ struct audit_context {
+ 	kuid_t		    target_uid;
+ 	unsigned int	    target_sessionid;
+ 	u32		    target_sid;
++	u64		    target_cid;
+ 	char		    target_comm[TASK_COMM_LEN];
+ 
+ 	struct audit_tree_refs *trees, *first_trees;
+@@ -344,6 +345,7 @@ extern void audit_filter_inodes(struct task_struct *tsk,
+ extern pid_t audit_sig_pid;
+ extern kuid_t audit_sig_uid;
+ extern u32 audit_sig_sid;
++extern u64 audit_sig_cid;
+ 
+ extern int audit_filter(int msgtype, unsigned int listtype);
+ 
+diff --git a/kernel/auditsc.c b/kernel/auditsc.c
+index a8c8b44b954d..f04e115df5dc 100644
+--- a/kernel/auditsc.c
++++ b/kernel/auditsc.c
+@@ -113,6 +113,7 @@ struct audit_aux_data_pids {
+ 	kuid_t			target_uid[AUDIT_AUX_PIDS];
+ 	unsigned int		target_sessionid[AUDIT_AUX_PIDS];
+ 	u32			target_sid[AUDIT_AUX_PIDS];
++	u64			target_cid[AUDIT_AUX_PIDS];
+ 	char 			target_comm[AUDIT_AUX_PIDS][TASK_COMM_LEN];
+ 	int			pid_count;
+ };
+@@ -1514,7 +1515,7 @@ static void audit_log_exit(void)
+ 	for (aux = context->aux_pids; aux; aux = aux->next) {
+ 		struct audit_aux_data_pids *axs = (void *)aux;
+ 
+-		for (i = 0; i < axs->pid_count; i++)
++		for (i = 0; i < axs->pid_count; i++) {
+ 			if (audit_log_pid_context(context, axs->target_pid[i],
+ 						  axs->target_auid[i],
+ 						  axs->target_uid[i],
+@@ -1522,14 +1523,20 @@ static void audit_log_exit(void)
+ 						  axs->target_sid[i],
+ 						  axs->target_comm[i]))
+ 				call_panic = 1;
++			audit_log_contid(context, axs->target_cid[i]);
++		}
+ 	}
+ 
+-	if (context->target_pid &&
+-	    audit_log_pid_context(context, context->target_pid,
+-				  context->target_auid, context->target_uid,
+-				  context->target_sessionid,
+-				  context->target_sid, context->target_comm))
++	if (context->target_pid) {
++		if (audit_log_pid_context(context, context->target_pid,
++					  context->target_auid,
++					  context->target_uid,
++					  context->target_sessionid,
++					  context->target_sid,
++					  context->target_comm))
+ 			call_panic = 1;
++		audit_log_contid(context, context->target_cid);
++	}
+ 
+ 	if (context->pwd.dentry && context->pwd.mnt) {
+ 		ab = audit_log_start(context, GFP_KERNEL, AUDIT_CWD);
+@@ -2360,6 +2367,7 @@ void __audit_ptrace(struct task_struct *t)
+ 	context->target_uid = task_uid(t);
+ 	context->target_sessionid = audit_get_sessionid(t);
+ 	security_task_getsecid(t, &context->target_sid);
++	context->target_cid = audit_get_contid(t);
+ 	memcpy(context->target_comm, t->comm, TASK_COMM_LEN);
  }
  
- static const struct file_operations proc_contid_operations = {
-+	.read		= proc_contid_read,
- 	.write		= proc_contid_write,
- 	.llseek		= generic_file_llseek,
- };
-@@ -3039,7 +3058,7 @@ static int proc_stack_depth(struct seq_file *m, struct pid_namespace *ns,
- #ifdef CONFIG_AUDIT
- 	REG("loginuid",   S_IWUSR|S_IRUGO, proc_loginuid_operations),
- 	REG("sessionid",  S_IRUGO, proc_sessionid_operations),
--	REG("audit_containerid", S_IWUSR, proc_contid_operations),
-+	REG("audit_containerid", S_IWUSR|S_IRUSR, proc_contid_operations),
- #endif
- #ifdef CONFIG_FAULT_INJECTION
- 	REG("make-it-fail", S_IRUGO|S_IWUSR, proc_fault_inject_operations),
-@@ -3428,7 +3447,7 @@ static int proc_tid_comm_permission(struct inode *inode, int mask)
- #ifdef CONFIG_AUDIT
- 	REG("loginuid",  S_IWUSR|S_IRUGO, proc_loginuid_operations),
- 	REG("sessionid",  S_IRUGO, proc_sessionid_operations),
--	REG("audit_containerid", S_IWUSR, proc_contid_operations),
-+	REG("audit_containerid", S_IWUSR|S_IRUSR, proc_contid_operations),
- #endif
- #ifdef CONFIG_FAULT_INJECTION
- 	REG("make-it-fail", S_IRUGO|S_IWUSR, proc_fault_inject_operations),
+@@ -2387,6 +2395,7 @@ int audit_signal_info(int sig, struct task_struct *t)
+ 		else
+ 			audit_sig_uid = uid;
+ 		security_task_getsecid(current, &audit_sig_sid);
++		audit_sig_cid = audit_get_contid(current);
+ 	}
+ 
+ 	if (!audit_signals || audit_dummy_context())
+@@ -2400,6 +2409,7 @@ int audit_signal_info(int sig, struct task_struct *t)
+ 		ctx->target_uid = t_uid;
+ 		ctx->target_sessionid = audit_get_sessionid(t);
+ 		security_task_getsecid(t, &ctx->target_sid);
++		ctx->target_cid = audit_get_contid(t);
+ 		memcpy(ctx->target_comm, t->comm, TASK_COMM_LEN);
+ 		return 0;
+ 	}
+@@ -2421,6 +2431,7 @@ int audit_signal_info(int sig, struct task_struct *t)
+ 	axp->target_uid[axp->pid_count] = t_uid;
+ 	axp->target_sessionid[axp->pid_count] = audit_get_sessionid(t);
+ 	security_task_getsecid(t, &axp->target_sid[axp->pid_count]);
++	axp->target_cid[axp->pid_count] = audit_get_contid(t);
+ 	memcpy(axp->target_comm[axp->pid_count], t->comm, TASK_COMM_LEN);
+ 	axp->pid_count++;
+ 
 -- 
 1.8.3.1
 
