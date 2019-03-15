@@ -1,95 +1,102 @@
-Return-Path: <SRS0=rsEJ=RR=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=WWTr=RS=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_NEOMUTT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.5 required=3.0 tests=FAKE_REPLY_C,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_MUTT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D65BC43381
-	for <netfilter-devel@archiver.kernel.org>; Thu, 14 Mar 2019 20:13:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 49019C43381
+	for <netfilter-devel@archiver.kernel.org>; Fri, 15 Mar 2019 10:03:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 32148217F5
-	for <netfilter-devel@archiver.kernel.org>; Thu, 14 Mar 2019 20:13:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1751A2184C
+	for <netfilter-devel@archiver.kernel.org>; Fri, 15 Mar 2019 10:03:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727126AbfCNUNO (ORCPT
+        id S1728763AbfCOKDh (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 14 Mar 2019 16:13:14 -0400
-Received: from mail.us.es ([193.147.175.20]:36294 "EHLO mail.us.es"
+        Fri, 15 Mar 2019 06:03:37 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:52634 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726444AbfCNUNO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 14 Mar 2019 16:13:14 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 5CA0B154E86
-        for <netfilter-devel@vger.kernel.org>; Thu, 14 Mar 2019 21:13:12 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 4AC6CDA85D
-        for <netfilter-devel@vger.kernel.org>; Thu, 14 Mar 2019 21:13:12 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 4921BDA856; Thu, 14 Mar 2019 21:13:12 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 36DECDA85E;
-        Thu, 14 Mar 2019 21:13:10 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Thu, 14 Mar 2019 21:13:10 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (sys.soleta.eu [212.170.55.40])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 141964265A5F;
-        Thu, 14 Mar 2019 21:13:10 +0100 (CET)
-Date:   Thu, 14 Mar 2019 21:13:09 +0100
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Phil Sutter <phil@nwl.cc>,
+        id S1728107AbfCOKDh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 15 Mar 2019 06:03:37 -0400
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.91)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1h4jgb-0003bC-SL; Fri, 15 Mar 2019 11:03:33 +0100
+Date:   Fri, 15 Mar 2019 11:03:33 +0100
+From:   Phil Sutter <phil@nwl.cc>
+To:     Fernando Fernandez Mancera <ffmancera@riseup.net>,
+        Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft v2 1/6] osf: add version fingerprint support
+Message-ID: <20190315100333.GD3511@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
         Fernando Fernandez Mancera <ffmancera@riseup.net>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
         netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft v2 1/6] osf: add version fingerprint supportg
-Message-ID: <20190314201309.iqdyb7icreyyhhke@salvia>
-References: <20190313112733.GL4851@orbyte.nwl.cc>
- <d71d6bf0-6371-8198-e07a-e454d27c6928@riseup.net>
- <20190313150634.GM4851@orbyte.nwl.cc>
- <2b070950-1441-ae1b-fe52-72dc7bc4455e@riseup.net>
- <20190313153455.GN4851@orbyte.nwl.cc>
- <fa72537e-adf8-29fb-6b8b-ebe30cd9bfc6@riseup.net>
- <e61257f6-4281-d450-0f41-6891a8744e96@riseup.net>
- <20190314135840.4j6b436zmaqe5akv@salvia>
- <20190314173454.GA19244@orbyte.nwl.cc>
- <20190314200737.erhjrhoaciclapsn@salvia>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20190314200737.erhjrhoaciclapsn@salvia>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20190314201309.iqdyb7icreyyhhke@salvia>
+ <20190314200737.erhjrhoaciclapsn@salvia>
+ <27D82259-F921-48E0-A718-A08E2BCCAACD@riseup.net>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Hi,
+
+Batching messages here since I'm apparently too slow in replying. :)
+
+On Thu, Mar 14, 2019 at 07:24:23PM +0100, Fernando Fernandez Mancera wrote:
+> El 14 de marzo de 2019 18:34:54 CET, Phil Sutter <phil@nwl.cc> escribió:
+> >On Thu, Mar 14, 2019 at 02:58:40PM +0100, Pablo Neira Ayuso wrote:
+> >> On Thu, Mar 14, 2019 at 12:14:23PM +0100, Fernando Fernandez Mancera
+> >wrote:
+> >> > I have been thinking more about this today. I don't know how access
+> >to
+> >> > the right-hand-side string from the kernel if it is possible. Sorry
+> >if
+> >> > the question is very dumb, but I may lack experience with the nft
+> >> > registers and RHS data of an expression.
+> >> 
+> >> I think you can hide flags from json, which is what Phil suggests, I
+> >> mean, just infer version flags from the syntax, ie. if
+> >> "genre::version" is used, then set of the version flag.
+> >> 
+> >> I think Phil is not suggesting kernel changes.
+> 
+> That makes sense to me.
+
+In general, I think we should not deviate too much in both APIs. Also, a
+bit more complicated syntax is less of a problem in JSON, while OTOH I
+think spending a few extra cycles on keeping CLI syntax as simple as
+possible is worth doing.
+
+> >Assuming the above is correct, my suggestion of making the flag option
+> >implicit does not quite hold, at least not without painful
+> >postprocessing of relational statement in userspace.
+> >
+> >Right now this all seems to me like enabling multiple comparisons
+> >within
+> >a single relational, i.e. one for genre and the other for version.
+> >Nftables doesn't quite do such things. E.g. matching on two TCP header
+> >fields requires two relationals, e.g. 'tcp dport 22 tcp sport > 1024'.
+> >Internally then, these two statements may be combined into a single
+> >payload match if suitable.
+> 
+> I think in this case we can't do that. In my opinion it doesn't make sense to evaluate only the version without the OS genre. Do you agree? Thanks!
+
+Well, I guess we could but the question is indeed if we want to. In
+general, I tend to leave the decision what makes sense and what not to
+the user. Although a bit sloppy, something like 'osf version "XP"' might
+be a valuable shortcut for some.
+
 On Thu, Mar 14, 2019 at 09:07:37PM +0100, Pablo Neira Ayuso wrote:
 > On Thu, Mar 14, 2019 at 06:34:54PM +0100, Phil Sutter wrote:
-> > Hi,
-> > 
-> > On Thu, Mar 14, 2019 at 02:58:40PM +0100, Pablo Neira Ayuso wrote:
-> > > Hi,
-> > > 
-> > > On Thu, Mar 14, 2019 at 12:14:23PM +0100, Fernando Fernandez Mancera wrote:
-> > > > Hi,
-> > > > 
-> > > > I have been thinking more about this today. I don't know how access to
-> > > > the right-hand-side string from the kernel if it is possible. Sorry if
-> > > > the question is very dumb, but I may lack experience with the nft
-> > > > registers and RHS data of an expression.
-> > > 
-> > > I think you can hide flags from json, which is what Phil suggests, I
-> > > mean, just infer version flags from the syntax, ie. if
-> > > "genre::version" is used, then set of the version flag.
-> > > 
-> > > I think Phil is not suggesting kernel changes.
-> > 
+[...]
 > > Actually I'm still in the process of understanding how all this works.
 > > What I got so far is (correct me if I'm wrong): osf expr does the
 > > fingerprinting and returns a string which relational expr compares to
@@ -126,7 +133,17 @@ On Thu, Mar 14, 2019 at 09:07:37PM +0100, Pablo Neira Ayuso wrote:
 > The osf engine actually _already_ finds a precise matching, ie. genre
 > + version, since the fingerprint is per genre + version. But you can
 > just decide to match on the genre (eg. linux).
-> 
+
+The problem we're facing IMO is that nft_cmp is limited to a simple
+memcmp(). This demands LHS to know what RHS contains. I'm not implying
+it would be a good idea, but imagine nft_cmp could handle wildcards, we
+could use "linux:*" to match on genre only, "linux:4.0:*" to match on
+genre and version and even "linux:4.*" to match genre and major version
+number.
+
+Actually we might be able to implement the above by setting 'len' field
+correctly.
+
 > > Applying the same logic to osf expression, we would implement 'osf name
 > > foo osf version 3.141' and add 'osf_try_merge()' routine to
 > > 'rule_postprocess()' which tries to combine the two statements.
@@ -143,25 +160,53 @@ On Thu, Mar 14, 2019 at 09:07:37PM +0100, Pablo Neira Ayuso wrote:
 > This only requires changes to the userspace nftables side, if you
 > prefer this syntax, which is what I understand you would like to see,
 > right?
+
+Not quite. I like how osf is an expression, not a statement. This makes
+things like 'osf name != "Linux"' possible. What I didn't like was how
+the proposed extension requires users to input redundant info:
+
+| osf name version "Linux:4.20"
+
+RHS contains the version number, so LHS should not need to have
+"version" explicitly stated.
+
+On Thu, Mar 14, 2019 at 09:13:09PM +0100, Pablo Neira Ayuso wrote:
+[...]
+> I think we could even extend this later on to match things like:
 > 
-> The use of the colon, which comes from the pf.os file:
+> # Popular cluster config scripts disable timestamps and
+> # selective ACK:
+> S4:64:1:48:M1460,N,W0:          Linux:2.4:cluster:Linux 2.4 in cluster
+>                                 ^^^^^^^^^^^^^^^^^
+> Then, do:
 > 
-> 512:64:0:44:M*:                 Linux:2.0:3x:Linux 2.0.3x
->                                 ^^^^^^^^^
+>         os gente "Linux:2.4:cluster"
 > 
-> Then, this allows us to match for "Linux:2.0".
+> by adding a new flag to match the "Subtype" field (according to the
+> file description in pf.os).
 
-I think we could even extend this later on to match things like:
+In an ideal world, we could match on any (combination of) fields in the
+database. I am aware this is probably over-engineering. :)
 
-# Popular cluster config scripts disable timestamps and
-# selective ACK:
-S4:64:1:48:M1460,N,W0:          Linux:2.4:cluster:Linux 2.4 in cluster
-                                ^^^^^^^^^^^^^^^^^
-Then, do:
+What we could do though with little effort is to make use of the OS info
+structure in database by making use of nft_cmp comparing only the first
+'len' bytes of data in registers. My idea would be that:
 
-        os gente "Linux:2.4:cluster"
+* 'osf' expression always returns "full" data, i.e.: "OS:VER:SUB"
+* nft_cmp compares that string to RHS up to RHS length
 
-by adding a new flag to match the "Subtype" field (according to the
-file description in pf.os).
+So let's assume DB lookup returns "Windows:2003:AS:", then:
 
-Thanks!
+osf name "Windows" -> match
+osf name "Windows:" -> match
+osf name "Windows:XP:" -> no match
+osf name "Windows:2000:" -> no match
+osf name "Windows:200" -> match
+
+So we have optional version match and even a poor-man's wildcard
+functionality. Specifying the trailing semi-colon implicitly causes an
+exact match on the last field.
+
+What do you think?
+
+Cheers, Phil
