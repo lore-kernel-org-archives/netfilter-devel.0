@@ -2,270 +2,140 @@ Return-Path: <SRS0=WWTr=RS=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_MUTT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B925C43381
-	for <netfilter-devel@archiver.kernel.org>; Fri, 15 Mar 2019 10:55:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3FB4CC10F00
+	for <netfilter-devel@archiver.kernel.org>; Fri, 15 Mar 2019 11:10:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5AC6D21871
-	for <netfilter-devel@archiver.kernel.org>; Fri, 15 Mar 2019 10:55:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1A743218AC
+	for <netfilter-devel@archiver.kernel.org>; Fri, 15 Mar 2019 11:10:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728963AbfCOKzK (ORCPT
+        id S1728990AbfCOLK3 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 15 Mar 2019 06:55:10 -0400
-Received: from mail.us.es ([193.147.175.20]:35740 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728948AbfCOKzJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 15 Mar 2019 06:55:09 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id AF516F26FA
-        for <netfilter-devel@vger.kernel.org>; Fri, 15 Mar 2019 11:55:06 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 956B2DA84E
-        for <netfilter-devel@vger.kernel.org>; Fri, 15 Mar 2019 11:55:06 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 92C52DA797; Fri, 15 Mar 2019 11:55:06 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id B5D30DA84E;
-        Fri, 15 Mar 2019 11:55:02 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Fri, 15 Mar 2019 11:55:02 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from salvia.here (sys.soleta.eu [212.170.55.40])
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 8FCBE4265A2F;
-        Fri, 15 Mar 2019 11:55:02 +0100 (CET)
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     vaclav.zindulka@tlapnet.cz
-Subject: [PATCH nft] src: file descriptor leak in include_file()
-Date:   Fri, 15 Mar 2019 11:54:59 +0100
-Message-Id: <20190315105459.15066-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.11.0
+        Fri, 15 Mar 2019 07:10:29 -0400
+Received: from charlotte.tuxdriver.com ([70.61.120.58]:32903 "EHLO
+        smtp.tuxdriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727405AbfCOLK3 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 15 Mar 2019 07:10:29 -0400
+Received: from cpe-2606-a000-111b-405a-9816-2c85-c514-8f7a.dyn6.twc.com ([2606:a000:111b:405a:9816:2c85:c514:8f7a] helo=localhost)
+        by smtp.tuxdriver.com with esmtpsa (TLSv1:AES256-SHA:256)
+        (Exim 4.63)
+        (envelope-from <nhorman@tuxdriver.com>)
+        id 1h4kj5-0001jH-BG; Fri, 15 Mar 2019 07:10:19 -0400
+Date:   Fri, 15 Mar 2019 07:09:42 -0400
+From:   Neil Horman <nhorman@tuxdriver.com>
+To:     Xin Long <lucien.xin@gmail.com>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        network dev <netdev@vger.kernel.org>,
+        netfilter-devel@vger.kernel.org,
+        Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
+Subject: Re: [PATCH net] netfilter: bridge: set skb transport_header before
+ entering NF_INET_PRE_ROUTING
+Message-ID: <20190315110942.GA16380@hmswarspite.think-freely.org>
+References: <35febf82503a4126b5ba28b02a0ca6e8f37a2765.1552466009.git.lucien.xin@gmail.com>
+ <20190313113333.GB16434@hmswarspite.think-freely.org>
+ <20190313115948.zhnov5ze6rdttm7k@breakpoint.cc>
+ <20190314141905.6xzrxwtlrs5k7nsp@salvia>
+ <CADvbK_dqH7PyG6M=aHEEGPyEnw1ZLXSstsrxN11yjDpZYzEVzg@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CADvbK_dqH7PyG6M=aHEEGPyEnw1ZLXSstsrxN11yjDpZYzEVzg@mail.gmail.com>
+User-Agent: Mutt/1.11.3 (2019-02-01)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-File that contains the ruleset is never closed, track open files through
-the nft_ctx object and close them accordingly.
+On Thu, Mar 14, 2019 at 10:41:41PM +0800, Xin Long wrote:
+> On Thu, Mar 14, 2019 at 10:19 PM Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> >
+> > On Wed, Mar 13, 2019 at 12:59:48PM +0100, Florian Westphal wrote:
+> > > Neil Horman <nhorman@tuxdriver.com> wrote:
+> > > > On Wed, Mar 13, 2019 at 04:33:29PM +0800, Xin Long wrote:
+> > > > > Since Commit 21d1196a35f5 ("ipv4: set transport header earlier"),
+> > > > > skb->transport_header has been always set before entering INET
+> > > > > netfilter. This patch is to set skb->transport_header for bridge
+> > > > > before entering INET netfilter by bridge-nf-call-iptables.
+> > > > >
+> > > > > It also fixes an issue that sctp_error() couldn't compute a right
+> > > > > csum due to unset skb->transport_header.
+> > > > >
+> > > > > Fixes: e6d8b64b34aa ("net: sctp: fix and consolidate SCTP checksumming code")
+> > > > > Reported-by: Li Shuang <shuali@redhat.com>
+> > > > > Suggested-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> > > > > Signed-off-by: Xin Long <lucien.xin@gmail.com>
+> > > > > ---
+> > > > >  net/bridge/br_netfilter_hooks.c | 1 +
+> > > > >  net/bridge/br_netfilter_ipv6.c  | 2 ++
+> > > > >  2 files changed, 3 insertions(+)
+> > > > >
+> > > > > diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
+> > > > > index c93c35b..4d09a33 100644
+> > > > > --- a/net/bridge/br_netfilter_hooks.c
+> > > > > +++ b/net/bridge/br_netfilter_hooks.c
+> > > > > @@ -502,6 +502,7 @@ static unsigned int br_nf_pre_routing(void *priv,
+> > > > >   nf_bridge->ipv4_daddr = ip_hdr(skb)->daddr;
+> > > > >
+> > > > >   skb->protocol = htons(ETH_P_IP);
+> > > > > + skb->transport_header = skb->network_header + ip_hdr(skb)->ihl * 4;
+> > > > >
+> > > > >   NF_HOOK(NFPROTO_IPV4, NF_INET_PRE_ROUTING, state->net, state->sk, skb,
+> > > > >           skb->dev, NULL,
+> > > > > diff --git a/net/bridge/br_netfilter_ipv6.c b/net/bridge/br_netfilter_ipv6.c
+> > > > > index 564710f..e88d664 100644
+> > > > > --- a/net/bridge/br_netfilter_ipv6.c
+> > > > > +++ b/net/bridge/br_netfilter_ipv6.c
+> > > > > @@ -235,6 +235,8 @@ unsigned int br_nf_pre_routing_ipv6(void *priv,
+> > > > >   nf_bridge->ipv6_daddr = ipv6_hdr(skb)->daddr;
+> > > > >
+> > > > >   skb->protocol = htons(ETH_P_IPV6);
+> > > > > + skb->transport_header = skb->network_header + sizeof(struct ipv6hdr);
+> > > > > +
+> > > > >   NF_HOOK(NFPROTO_IPV6, NF_INET_PRE_ROUTING, state->net, state->sk, skb,
+> > > > >           skb->dev, NULL,
+> > > > >           br_nf_pre_routing_finish_ipv6);
+> > > > > --
+> > > > > 2.1.0
+> > > > >
+> > > > >
+> > > > Acked-by: Neil Horman <nhorman@tuxdriver.com>
+> > >
+> > > Acked-by: Florian Westphal <fw@strlen.de>
+> > >
+> > > ... because this fixes discrepancy of normal stack vs. bridge path.
+> > >
+> > > However, I think we still need a fix for the ipv6 case as
+> > > there is no guarantee ipv6 nexthdr will be the sctp one.
+> > >
+> > > We already pass the sctp offset as argument to sctp_compute_cksum(),
+> > > why can't we just replace sctp_hdr(skb) with skb->data + dataoff, as
+> > > Xin Long originally suggested?
+> > >
+> > > IOW, whats the problem with
+> > > https://marc.info/?l=linux-netdev&m=155109395226858&w=2 ?
+> >
+> > That patch looks fine too.
+> >
+> > > (In theory conntrack can also inspect transport header inside icmp error
+> > >  messages like pkttoobig and so on,
+> > >  although this won't be the case here as we can't validate csum anyway
+> > >  if the packet isn't complete).
+> > >
+> > > Just pointing out that we can't rely on skb transport header being
+> > > "correct" in all cases from netfilter point of view.
+> >
+> > Indeed.
+> Hi Neil,
+> 
+> It seems we should bring that patch back, otherwize we will have to add
+> a special sctp csum computing function for Netfilter?
+> 
+Fine.
+Neil
 
-Reported-by: Václav Zindulka <vaclav.zindulka@tlapnet.cz>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/nftables.h |  3 +++
- include/parser.h   |  7 ++++---
- src/libnftables.c  |  6 +++---
- src/scanner.l      | 36 ++++++++++++++++++++----------------
- 4 files changed, 30 insertions(+), 22 deletions(-)
-
-diff --git a/include/nftables.h b/include/nftables.h
-index 5c0292615b3f..b17a16a4adef 100644
---- a/include/nftables.h
-+++ b/include/nftables.h
-@@ -86,6 +86,8 @@ struct nft_cache {
- struct mnl_socket;
- struct parser_state;
- 
-+#define MAX_INCLUDE_DEPTH	16
-+
- struct nft_ctx {
- 	struct mnl_socket	*nf_sock;
- 	char			**include_paths;
-@@ -99,6 +101,7 @@ struct nft_ctx {
- 	struct parser_state	*state;
- 	void			*scanner;
- 	void			*json_root;
-+	FILE			*f[MAX_INCLUDE_DEPTH];
- };
- 
- enum nftables_exit_codes {
-diff --git a/include/parser.h b/include/parser.h
-index ea41ca038a02..bd2d08c8b7c6 100644
---- a/include/parser.h
-+++ b/include/parser.h
-@@ -3,8 +3,8 @@
- 
- #include <list.h>
- #include <rule.h> // FIXME
-+#include <nftables.h>
- 
--#define MAX_INCLUDE_DEPTH		16
- #define TABSIZE				8
- 
- #define YYLTYPE				struct location
-@@ -36,9 +36,10 @@ extern void parser_init(struct nft_ctx *nft, struct parser_state *state,
- extern int nft_parse(struct nft_ctx *ctx, void *, struct parser_state *state);
- 
- extern void *scanner_init(struct parser_state *state);
--extern void scanner_destroy(void *scanner);
-+extern void scanner_destroy(struct nft_ctx *nft, void *scanner);
- 
--extern int scanner_read_file(void *scanner, const char *filename,
-+extern int scanner_read_file(struct nft_ctx *nft, void *scanner,
-+			     const char *filename,
- 			     const struct location *loc);
- extern int scanner_include_file(struct nft_ctx *ctx, void *scanner,
- 				const char *filename,
-diff --git a/src/libnftables.c b/src/libnftables.c
-index 2271d270fd57..62ddb0dd5991 100644
---- a/src/libnftables.c
-+++ b/src/libnftables.c
-@@ -364,7 +364,7 @@ static int nft_parse_bison_filename(struct nft_ctx *nft, const char *filename,
- 
- 	parser_init(nft, nft->state, msgs, cmds);
- 	nft->scanner = scanner_init(nft->state);
--	if (scanner_read_file(nft->scanner, filename, &internal_location) < 0)
-+	if (scanner_read_file(nft, nft->scanner, filename, &internal_location) < 0)
- 		return -1;
- 
- 	ret = nft_parse(nft, nft->scanner, nft->state);
-@@ -405,7 +405,7 @@ err:
- 	}
- 	iface_cache_release();
- 	if (nft->scanner) {
--		scanner_destroy(nft->scanner);
-+		scanner_destroy(nft, nft->scanner);
- 		nft->scanner = NULL;
- 	}
- 	free(nlbuf);
-@@ -449,7 +449,7 @@ err:
- 	}
- 	iface_cache_release();
- 	if (nft->scanner) {
--		scanner_destroy(nft->scanner);
-+		scanner_destroy(nft, nft->scanner);
- 		nft->scanner = NULL;
- 	}
- 
-diff --git a/src/scanner.l b/src/scanner.l
-index 6f83aa1198cc..0de635f5bdc9 100644
---- a/src/scanner.l
-+++ b/src/scanner.l
-@@ -659,19 +659,17 @@ static void scanner_pop_buffer(yyscan_t scanner)
- 	state->indesc = &state->indescs[--state->indesc_idx - 1];
- }
- 
--static struct error_record *scanner_push_file(void *scanner, const char *filename,
--					      FILE *f, const struct location *loc)
-+static struct error_record *scanner_push_file(struct nft_ctx *nft, void *scanner,
-+					      const char *filename, const struct location *loc)
- {
- 	struct parser_state *state = yyget_extra(scanner);
- 	YY_BUFFER_STATE b;
- 
--	if (state->indesc_idx == MAX_INCLUDE_DEPTH) {
--		fclose(f);
-+	if (state->indesc_idx == MAX_INCLUDE_DEPTH)
- 		return error(loc, "Include nested too deeply, max %u levels",
- 			     MAX_INCLUDE_DEPTH);
--	}
- 
--	b = yy_create_buffer(f, YY_BUF_SIZE, scanner);
-+	b = yy_create_buffer(nft->f[state->indesc_idx], YY_BUF_SIZE, scanner);
- 	yypush_buffer_state(b, scanner);
- 
- 	state->indesc = &state->indescs[state->indesc_idx++];
-@@ -683,8 +681,8 @@ static struct error_record *scanner_push_file(void *scanner, const char *filenam
- 	return NULL;
- }
- 
--static int include_file(void *scanner, const char *filename,
--			const struct location *loc)
-+static int include_file(struct nft_ctx *nft, void *scanner,
-+			const char *filename, const struct location *loc)
- {
- 	struct parser_state *state = yyget_extra(scanner);
- 	struct error_record *erec;
-@@ -696,8 +694,9 @@ static int include_file(void *scanner, const char *filename,
- 			     filename, strerror(errno));
- 		goto err;
- 	}
-+	nft->f[state->indesc_idx] = f;
- 
--	erec = scanner_push_file(scanner, filename, f, loc);
-+	erec = scanner_push_file(nft, scanner, filename, loc);
- 	if (erec != NULL)
- 		goto err;
- 	return 0;
-@@ -706,7 +705,7 @@ err:
- 	return -1;
- }
- 
--static int include_glob(void *scanner, const char *pattern,
-+static int include_glob(struct nft_ctx *nft, void *scanner, const char *pattern,
- 			const struct location *loc)
- {
- 	struct parser_state *state = yyget_extra(scanner);
-@@ -770,7 +769,7 @@ static int include_glob(void *scanner, const char *pattern,
- 			if (len == 0 || path[len - 1] == '/')
- 				continue;
- 
--			ret = include_file(scanner, path, loc);
-+			ret = include_file(nft, scanner, path, loc);
- 			if (ret != 0)
- 				goto err;
- 		}
-@@ -804,10 +803,10 @@ err:
- 	return -1;
- }
- 
--int scanner_read_file(void *scanner, const char *filename,
-+int scanner_read_file(struct nft_ctx *nft, void *scanner, const char *filename,
- 		      const struct location *loc)
- {
--	return include_file(scanner, filename, loc);
-+	return include_file(nft, scanner, filename, loc);
- }
- 
- static bool search_in_include_path(const char *filename)
-@@ -837,7 +836,7 @@ int scanner_include_file(struct nft_ctx *nft, void *scanner,
- 				return -1;
- 			}
- 
--			ret = include_glob(scanner, buf, loc);
-+			ret = include_glob(nft, scanner, buf, loc);
- 
- 			/* error was already handled */
- 			if (ret == -1)
-@@ -852,7 +851,7 @@ int scanner_include_file(struct nft_ctx *nft, void *scanner,
- 		}
- 	} else {
- 		/* an absolute path (starts with '/') */
--		ret = include_glob(scanner, filename, loc);
-+		ret = include_glob(nft, scanner, filename, loc);
- 	}
- 
- 	/* handle the case where no file was found */
-@@ -897,7 +896,7 @@ void *scanner_init(struct parser_state *state)
- 	return scanner;
- }
- 
--void scanner_destroy(void *scanner)
-+void scanner_destroy(struct nft_ctx *nft, void *scanner)
- {
- 	struct parser_state *state = yyget_extra(scanner);
- 
-@@ -909,6 +908,11 @@ void scanner_destroy(void *scanner)
- 			inpdesc->name = NULL;
- 		}
- 		yypop_buffer_state(scanner);
-+
-+		if (nft->f[state->indesc_idx]) {
-+			fclose(nft->f[state->indesc_idx]);
-+			nft->f[state->indesc_idx] = NULL;
-+		}
- 	} while (state->indesc_idx--);
- 
- 	yylex_destroy(scanner);
--- 
-2.11.0
 
