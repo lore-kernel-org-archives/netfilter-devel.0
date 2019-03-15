@@ -2,226 +2,274 @@ Return-Path: <SRS0=WWTr=RS=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_NEOMUTT autolearn=ham
+X-Spam-Status: No, score=-6.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_PASS autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C825FC43381
-	for <netfilter-devel@archiver.kernel.org>; Fri, 15 Mar 2019 17:13:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 590E2C4360F
+	for <netfilter-devel@archiver.kernel.org>; Fri, 15 Mar 2019 18:33:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9735A218D0
-	for <netfilter-devel@archiver.kernel.org>; Fri, 15 Mar 2019 17:13:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 23A43218A1
+	for <netfilter-devel@archiver.kernel.org>; Fri, 15 Mar 2019 18:33:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728364AbfCORNe (ORCPT
+        id S1726316AbfCOSdO (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 15 Mar 2019 13:13:34 -0400
-Received: from mail.us.es ([193.147.175.20]:53928 "EHLO mail.us.es"
+        Fri, 15 Mar 2019 14:33:14 -0400
+Received: from mx1.redhat.com ([209.132.183.28]:59560 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726880AbfCORNe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 15 Mar 2019 13:13:34 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id EEFDB24394A
-        for <netfilter-devel@vger.kernel.org>; Fri, 15 Mar 2019 18:13:31 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id DA21FDA864
-        for <netfilter-devel@vger.kernel.org>; Fri, 15 Mar 2019 18:13:31 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id CE3A1DA84E; Fri, 15 Mar 2019 18:13:31 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 96926DA84E;
-        Fri, 15 Mar 2019 18:13:28 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Fri, 15 Mar 2019 18:13:28 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (sys.soleta.eu [212.170.55.40])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        id S1725922AbfCOSdO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 15 Mar 2019 14:33:14 -0400
+Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.phx2.redhat.com [10.5.11.16])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 7109D4265A4E;
-        Fri, 15 Mar 2019 18:13:28 +0100 (CET)
-Date:   Fri, 15 Mar 2019 18:13:28 +0100
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Phil Sutter <phil@nwl.cc>,
-        Fernando Fernandez Mancera <ffmancera@riseup.net>,
-        netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft v2 1/6] osf: add version fingerprint support
-Message-ID: <20190315171328.c5xgazye2hattjxr@salvia>
-References: <20190314201309.iqdyb7icreyyhhke@salvia>
- <20190314200737.erhjrhoaciclapsn@salvia>
- <27D82259-F921-48E0-A718-A08E2BCCAACD@riseup.net>
- <20190315100333.GD3511@orbyte.nwl.cc>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190315100333.GD3511@orbyte.nwl.cc>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+        by mx1.redhat.com (Postfix) with ESMTPS id 4B6DDC0467E4;
+        Fri, 15 Mar 2019 18:33:11 +0000 (UTC)
+Received: from madcap2.tricolour.ca (ovpn-112-22.phx2.redhat.com [10.3.112.22])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id CE1D85C21F;
+        Fri, 15 Mar 2019 18:32:44 +0000 (UTC)
+From:   Richard Guy Briggs <rgb@redhat.com>
+To:     containers@lists.linux-foundation.org, linux-api@vger.kernel.org,
+        Linux-Audit Mailing List <linux-audit@redhat.com>,
+        linux-fsdevel@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+Cc:     Paul Moore <paul@paul-moore.com>, sgrubb@redhat.com,
+        omosnace@redhat.com, dhowells@redhat.com, simo@redhat.com,
+        eparis@parisplace.org, serge@hallyn.com, ebiederm@xmission.com,
+        nhorman@tuxdriver.com, Richard Guy Briggs <rgb@redhat.com>
+Subject: [PATCH ghak90 V5 00/10] audit: implement container identifier
+Date:   Fri, 15 Mar 2019 14:29:48 -0400
+Message-Id: <cover.1552665316.git.rgb@redhat.com>
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.16
+X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.5.16 (mx1.redhat.com [10.5.110.31]); Fri, 15 Mar 2019 18:33:13 +0000 (UTC)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Mar 15, 2019 at 11:03:33AM +0100, Phil Sutter wrote:
-[...]
-> On Thu, Mar 14, 2019 at 09:07:37PM +0100, Pablo Neira Ayuso wrote:
-> [...]
-> > The osf expression returns a string with the OS genre, and if thev
-> > version flag is set on, it appends the version to this string, ie.
-> > genre + version.
-> > 
-> > This allows us to build maps, ie.
-> > 
-> >         meta mark set osf genre { "linux" : 0x10, "windows" : 0x20, "macos" : 0x40 }
-> > 
-> > But, with this new version, you could also do:
-> > 
-> >         meta mark set osf genre { "linux::4.0" : 0x11, "linux::3.0" : 0x12, ...}
-> > 
-> > and so on.
-> > 
-> > So I see this version thing as a extended matching.
-> > 
-> > The osf engine actually _already_ finds a precise matching, ie. genre
-> > + version, since the fingerprint is per genre + version. But you can
-> > just decide to match on the genre (eg. linux).
-> 
-> The problem we're facing IMO is that nft_cmp is limited to a simple
-> memcmp(). This demands LHS to know what RHS contains. I'm not implying
-> it would be a good idea, but imagine nft_cmp could handle wildcards, we
-> could use "linux:*" to match on genre only, "linux:4.0:*" to match on
-> genre and version and even "linux:4.*" to match genre and major version
-> number.
->
-> Actually we might be able to implement the above by setting 'len' field
-> correctly.
+Implement kernel audit container identifier.
 
-The wildcard at the end of the string already works out of the box
-via:
+This patchset is a fifth based on the proposal document (V3)
+posted:
+	https://www.redhat.com/archives/linux-audit/2018-January/msg00014.html
 
-        iifname eth\*
+The first patch was the last patch from ghak81 that was absorbed into
+this patchset since its primary justification is the rest of this
+patchset.
 
-The wildcard matching is generic, so it can be used from any string
-datatype, including the osf expression.
+The second patch implements the proc fs write to set the audit container
+identifier of a process, emitting an AUDIT_CONTAINER_OP record to announce the
+registration of that audit container identifier on that process.  This patch
+requires userspace support for record acceptance and proper type
+display.
 
-> > > Applying the same logic to osf expression, we would implement 'osf name
-> > > foo osf version 3.141' and add 'osf_try_merge()' routine to
-> > > 'rule_postprocess()' which tries to combine the two statements.
-> > > Obviously, this is quite a bit of extra work, not sure if feasible.
-> > 
-> > I think the discussion here is the syntax, ie.
-> > 
-> >         osf genre "Linux::4.10"
-> > 
-> > vs.
-> > 
-> >         osf genre "Linux" version "4.10"
-> > 
-> > This only requires changes to the userspace nftables side, if you
-> > prefer this syntax, which is what I understand you would like to see,
-> > right?
-> 
-> Not quite. I like how osf is an expression, not a statement. This makes
-> things like 'osf name != "Linux"' possible. What I didn't like was how
-> the proposed extension requires users to input redundant info:
-> 
-> | osf name version "Linux:4.20"
-> 
-> RHS contains the version number, so LHS should not need to have
-> "version" explicitly stated.
+The third implements reading the audit container identifier from the proc
+filesystem for debugging.  This patch wasn't planned for upstream
+inclusion but is starting to become more likely.
 
-I see, then part of your discussion is focused on this syntax:
+The fourth implements the auxiliary record AUDIT_CONTAINER if an
+audit container identifier is associated with an event.  This patch
+requires userspace support for proper type display.
 
-        osf name version "Linux:4.20"
+The 5th adds signal and ptrace support.
 
-in order to remove the "version" keyword there and make it more
-compact.
+The 6th creates a local audit context to be able to bind a standalone
+record with a locally created auxiliary record.
 
-> On Thu, Mar 14, 2019 at 09:13:09PM +0100, Pablo Neira Ayuso wrote:
-> [...]
-> > I think we could even extend this later on to match things like:
-> > 
-> > # Popular cluster config scripts disable timestamps and
-> > # selective ACK:
-> > S4:64:1:48:M1460,N,W0:          Linux:2.4:cluster:Linux 2.4 in cluster
-> >                                 ^^^^^^^^^^^^^^^^^
-> > Then, do:
-> > 
-> >         os gente "Linux:2.4:cluster"
-> > 
-> > by adding a new flag to match the "Subtype" field (according to the
-> > file description in pf.os).
-> 
-> In an ideal world, we could match on any (combination of) fields in the
-> database. I am aware this is probably over-engineering. :)
+The 7th patch adds audit container identifier records to the user
+standalone records.
 
-We can probably achieve this with a more advance nft_cmp expression,
-that allows us to do some sort of limited regex matching. But I agree
-in that adding this only for the osf expression is probably too much.
-I don't like regex, they will use it for layer-7, and users do not
-understand the computational complexity of the regular expressions
-(they can easily ruin performance by adding a few expression that need
-to be search all over the packet payload).
+The 8th adds audit container identifier filtering to the exit,
+exclude and user lists.  This patch adds the AUDIT_CONTID field and
+requires auditctl userspace support for the --contid option.
 
-Anyway, this is a different topic :-).
+The 9th adds network namespace audit container identifier labelling
+based on member tasks' audit container identifier labels.
 
-> What we could do though with little effort is to make use of the OS info
-> structure in database by making use of nft_cmp comparing only the first
-> 'len' bytes of data in registers. My idea would be that:
-> 
-> * 'osf' expression always returns "full" data, i.e.: "OS:VER:SUB"
-> * nft_cmp compares that string to RHS up to RHS length
-> 
-> So let's assume DB lookup returns "Windows:2003:AS:", then:
-> 
-> osf name "Windows" -> match
-> osf name "Windows:" -> match
-> osf name "Windows:XP:" -> no match
-> osf name "Windows:2000:" -> no match
-> osf name "Windows:200" -> match
-> 
-> So we have optional version match and even a poor-man's wildcard
-> functionality. Specifying the trailing semi-colon implicitly causes an
-> exact match on the last field.
-> 
-> What do you think?
+The 10th adds audit container identifier support to standalone netfilter
+records that don't have a task context and lists each container to which
+that net namespace belongs.
 
-Hm, if we follow this path, this would need a bit more work, note
-that:
+Example: Set an audit container identifier of 123456 to the "sleep" task:
 
-* nft userspace currently compares 16 bytes for the string case,
-  according to what I see via --debug=mnl.
+  sleep 2&  
+  child=$!
+  echo 123456 > /proc/$child/audit_containerid; echo $?
+  ausearch -ts recent -m container_op
+  echo child:$child contid:$( cat /proc/$child/audit_containerid)
 
-* When the string is less than 16 bytes, it assumes it is a wildcard
-  matching and the end of the string.
+This should produce a record such as:
 
-* Kernel would need to inconditionally build the OS:version string.
+  type=CONTAINER_OP msg=audit(2018-06-06 12:39:29.636:26949) : op=set opid=2209 old-contid=18446744073709551615 contid=123456 pid=628 auid=root uid=root tty=ttyS0 ses=1 subj=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023 comm=bash exe=/usr/bin/bash res=yes 
 
-* We may need to ask users to break existing osf ruleset so they
-  explicitly add the wildcard at the end, ie.
 
-        osf name "Windows\*"
-        osf name "Linux:4.\*"
+Example: Set a filter on an audit container identifier 123459 on /tmp/tmpcontainerid:
 
-And the kernel would have no notion of what userspace is willing to
-match.
+  contid=123459
+  key=tmpcontainerid
+  auditctl -a exit,always -F dir=/tmp -F perm=wa -F contid=$contid -F key=$key
+  perl -e "sleep 1; open(my \$tmpfile, '>', \"/tmp/$key\"); close(\$tmpfile);" &
+  child=$!
+  echo $contid > /proc/$child/audit_containerid
+  sleep 2
+  ausearch -i -ts recent -k $key
+  auditctl -d exit,always -F dir=/tmp -F perm=wa -F contid=$contid -F key=$key
+  rm -f /tmp/$key
 
-If the problem is the syntax, not the NFT_OSF_F_VERSION flags, we
-could explore this syntax:
+This should produce an event such as:
 
-        osf genre "Linux"
-        osf version "Linux:4.20"
+  type=CONTAINER_ID msg=audit(2018-06-06 12:46:31.707:26953) : contid=123459 
+  type=PROCTITLE msg=audit(2018-06-06 12:46:31.707:26953) : proctitle=perl -e sleep 1; open(my $tmpfile, '>', "/tmp/tmpcontainerid"); close($tmpfile); 
+  type=PATH msg=audit(2018-06-06 12:46:31.707:26953) : item=1 name=/tmp/tmpcontainerid inode=25656 dev=00:26 mode=file,644 ouid=root ogid=root rdev=00:00 obj=unconfined_u:object_r:user_tmp_t:s0 nametype=CREATE cap_fp=none cap_fi=none cap_fe=0 cap_fver=0 
+  type=PATH msg=audit(2018-06-06 12:46:31.707:26953) : item=0 name=/tmp/ inode=8985 dev=00:26 mode=dir,sticky,777 ouid=root ogid=root rdev=00:00 obj=system_u:object_r:tmp_t:s0 nametype=PARENT cap_fp=none cap_fi=none cap_fe=0 cap_fver=0 
+  type=CWD msg=audit(2018-06-06 12:46:31.707:26953) : cwd=/root 
+  type=SYSCALL msg=audit(2018-06-06 12:46:31.707:26953) : arch=x86_64 syscall=openat success=yes exit=3 a0=0xffffffffffffff9c a1=0x5621f2b81900 a2=O_WRONLY|O_CREAT|O_TRUNC a3=0x1b6 items=2 ppid=628 pid=2232 auid=root uid=root gid=root euid=root suid=root fsuid=root egid=root sgid=root fsgid=root tty=ttyS0 ses=1 comm=perl exe=/usr/bin/perl subj=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023 key=tmpcontainerid 
 
-then, in the future (if ever needed) add subtypes:
+Example: Test multiple containers on one netns:
 
-        osf subtype "Linux:2.4:cluster"
+  sleep 5 &
+  child1=$!
+  containerid1=123451
+  echo $containerid1 > /proc/$child1/audit_containerid
+  sleep 5 &
+  child2=$!
+  containerid2=123452
+  echo $containerid2 > /proc/$child2/audit_containerid
+  iptables -I INPUT -i lo -p icmp --icmp-type echo-request -j AUDIT --type accept
+  iptables -I INPUT  -t mangle -i lo -p icmp --icmp-type echo-request -j MARK --set-mark 0x12345555
+  sleep 1;
+  bash -c "ping -q -c 1 127.0.0.1 >/dev/null 2>&1"
+  sleep 1;
+  ausearch -i -m NETFILTER_PKT -ts boot|grep mark=0x12345555
+  ausearch -i -m NETFILTER_PKT -ts boot|grep contid=|grep $containerid1|grep $containerid2
 
-With flags in place, we would have a bit of knowledge of what the user
-is doing vs. matching part of a string.
+This should produce an event such as:
 
-Note that this would still allow you to do wildcard matching, ie:
+  type=NETFILTER_PKT msg=audit(03/15/2019 14:16:13.369:244) : mark=0x12345555 saddr=127.0.0.1 daddr=127.0.0.1 proto=icmp 
+  type=CONTAINER_ID msg=audit(03/15/2019 14:16:13.369:244) : contid=123452,123451
 
-        osf version "Linux:4.\*"
 
-Thanks!
+Includes the last patch of https://github.com/linux-audit/audit-kernel/issues/81
+See the github issue for the kernel code https://github.com/linux-audit/audit-kernel/issues/90
+See: https://github.com/linux-audit/audit-userspace/issues/40
+See: https://github.com/linux-audit/audit-testsuite/issues/64
+See: https://github.com/linux-audit/audit-kernel/wiki/RFE-Audit-Container-ID
+
+Changelog:
+
+v5
+- address loginuid and sessionid syscall scope in ghak104
+- address audit_context in CONFIG_AUDIT vs CONFIG_AUDITSYSCALL in ghak105
+- remove tty patch, addressed in ghak106
+- rebase on audit/next v5.0-rc1
+  w/ghak59/ghak104/ghak103/ghak100/ghak107/ghak105/ghak106/ghak105sup
+- update CONTAINER_ID to CONTAINER_OP in patch description
+- move audit_context in audit_task_info to CONFIG_AUDITSYSCALL
+- move audit_alloc() and audit_free() out of CONFIG_AUDITSYSCALL and into
+  CONFIG_AUDIT and create audit_{alloc,free}_syscall
+- use plain kmem_cache_alloc() rather than kmem_cache_zalloc() in audit_alloc()
+- fix audit_get_contid() declaration type error
+- move audit_set_contid() from auditsc.c to audit.c
+- audit_log_contid() returns void
+- audit_log_contid() handed contid rather than tsk
+- switch from AUDIT_CONTAINER to AUDIT_CONTAINER_ID for aux record
+- move audit_log_contid(tsk/contid) & audit_contid_set(tsk)/audit_contid_valid(contid)
+- switch from tsk to current
+- audit_alloc_local() calls audit_log_lost() on failure to allocate a context
+- add AUDIT_USER* non-syscall contid record
+- cosmetic cleanup double parens, goto out on err
+- ditch audit_get_ns_contid_list_lock(), fix aunet lock race
+- switch from all-cpu read spinlock to rcu, keep spinlock for write
+- update audit_alloc_local() to use ktime_get_coarse_real_ts64()
+- add nft_log support
+- add call from do_exit() in audit_free() to remove contid from netns
+- relegate AUDIT_CONTAINER ref= field (was op=) to debug patch
+
+v4
+- preface set with ghak81:"collect audit task parameters"
+- add shallyn and sgrubb acks
+- rename feature bitmap macro
+- rename cid_valid() to audit_contid_valid()
+- rename AUDIT_CONTAINER_ID to AUDIT_CONTAINER_OP
+- delete audit_get_contid_list() from headers
+- move work into inner if, delete "found"
+- change netns contid list function names
+- move exports for audit_log_contid audit_alloc_local audit_free_context to non-syscall patch
+- list contids CSV
+- pass in gfp flags to audit_alloc_local() (fix audit_alloc_context callers)
+- use "local" in lieu of abusing in_syscall for auditsc_get_stamp()
+- read_lock(&tasklist_lock) around children and thread check
+- task_lock(tsk) should be taken before first check of tsk->audit
+- add spin lock to contid list in aunet
+- restrict /proc read to CAP_AUDIT_CONTROL
+- remove set again prohibition and inherited flag
+- delete contidion spelling fix from patchset, send to netdev/linux-wireless
+
+v3
+- switched from containerid in task_struct to audit_task_info (depends on ghak81)
+- drop INVALID_CID in favour of only AUDIT_CID_UNSET
+- check for !audit_task_info, throw -ENOPROTOOPT on set
+- changed -EPERM to -EEXIST for parent check
+- return AUDIT_CID_UNSET if !audit_enabled
+- squash child/thread check patch into AUDIT_CONTAINER_ID patch
+- changed -EPERM to -EBUSY for child check
+- separate child and thread checks, use -EALREADY for latter
+- move addition of op= from ptrace/signal patch to AUDIT_CONTAINER patch
+- fix && to || bashism in ptrace/signal patch
+- uninline and export function for audit_free_context()
+- drop CONFIG_CHANGE, FEATURE_CHANGE, ANOM_ABEND, ANOM_SECCOMP patches
+- move audit_enabled check (xt_AUDIT)
+- switched from containerid list in struct net to net_generic's struct audit_net
+- move containerid list iteration into audit (xt_AUDIT)
+- create function to move namespace switch into audit
+- switched /proc/PID/ entry from containerid to audit_containerid
+- call kzalloc with GFP_ATOMIC on in_atomic() in audit_alloc_context()
+- call kzalloc with GFP_ATOMIC on in_atomic() in audit_log_container_info()
+- use xt_net(par) instead of sock_net(skb->sk) to get net
+- switched record and field names: initial CONTAINER_ID, aux CONTAINER, field CONTID
+- allow to set own contid
+- open code audit_set_containerid
+- add contid inherited flag
+- ccontainerid and pcontainerid eliminated due to inherited flag
+- change name of container list funcitons
+- rename containerid to contid
+- convert initial container record to syscall aux
+- fix spelling mistake of contidion in net/rfkill/core.c to avoid contid name collision
+
+v2
+- add check for children and threads
+- add network namespace container identifier list
+- add NETFILTER_PKT audit container identifier logging
+- patch description and documentation clean-up and example
+- reap unused ppid
+
+Richard Guy Briggs (10):
+  audit: collect audit task parameters
+  audit: add container id
+  audit: read container ID of a process
+  audit: log container info of syscalls
+  audit: add containerid support for ptrace and signals
+  audit: add support for non-syscall auxiliary records
+  audit: add containerid support for user records
+  audit: add containerid filtering
+  audit: add support for containerid to network namespaces
+  audit: NETFILTER_PKT: record each container ID associated with a netNS
+
+ fs/proc/base.c             |  55 +++++++++
+ include/linux/audit.h      | 107 +++++++++++++---
+ include/linux/sched.h      |   7 +-
+ include/uapi/linux/audit.h |   8 +-
+ init/init_task.c           |   3 +-
+ init/main.c                |   2 +
+ kernel/audit.c             | 300 +++++++++++++++++++++++++++++++++++++++++++--
+ kernel/audit.h             |   9 ++
+ kernel/auditfilter.c       |  47 +++++++
+ kernel/auditsc.c           |  89 ++++++++++----
+ kernel/fork.c              |   1 -
+ kernel/nsproxy.c           |   4 +
+ net/netfilter/nft_log.c    |  11 +-
+ net/netfilter/xt_AUDIT.c   |  11 +-
+ 14 files changed, 592 insertions(+), 62 deletions(-)
+
+-- 
+1.8.3.1
+
