@@ -2,211 +2,270 @@ Return-Path: <SRS0=WWTr=RS=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.5 required=3.0 tests=FAKE_REPLY_C,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_MUTT
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 49019C43381
-	for <netfilter-devel@archiver.kernel.org>; Fri, 15 Mar 2019 10:03:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B925C43381
+	for <netfilter-devel@archiver.kernel.org>; Fri, 15 Mar 2019 10:55:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1751A2184C
-	for <netfilter-devel@archiver.kernel.org>; Fri, 15 Mar 2019 10:03:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5AC6D21871
+	for <netfilter-devel@archiver.kernel.org>; Fri, 15 Mar 2019 10:55:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728763AbfCOKDh (ORCPT
+        id S1728963AbfCOKzK (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 15 Mar 2019 06:03:37 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:52634 "EHLO orbyte.nwl.cc"
+        Fri, 15 Mar 2019 06:55:10 -0400
+Received: from mail.us.es ([193.147.175.20]:35740 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728107AbfCOKDh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 15 Mar 2019 06:03:37 -0400
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.91)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1h4jgb-0003bC-SL; Fri, 15 Mar 2019 11:03:33 +0100
-Date:   Fri, 15 Mar 2019 11:03:33 +0100
-From:   Phil Sutter <phil@nwl.cc>
-To:     Fernando Fernandez Mancera <ffmancera@riseup.net>,
-        Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft v2 1/6] osf: add version fingerprint support
-Message-ID: <20190315100333.GD3511@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Fernando Fernandez Mancera <ffmancera@riseup.net>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
+        id S1728948AbfCOKzJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 15 Mar 2019 06:55:09 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id AF516F26FA
+        for <netfilter-devel@vger.kernel.org>; Fri, 15 Mar 2019 11:55:06 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 956B2DA84E
+        for <netfilter-devel@vger.kernel.org>; Fri, 15 Mar 2019 11:55:06 +0100 (CET)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 92C52DA797; Fri, 15 Mar 2019 11:55:06 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id B5D30DA84E;
+        Fri, 15 Mar 2019 11:55:02 +0100 (CET)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Fri, 15 Mar 2019 11:55:02 +0100 (CET)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from salvia.here (sys.soleta.eu [212.170.55.40])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id 8FCBE4265A2F;
+        Fri, 15 Mar 2019 11:55:02 +0100 (CET)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     vaclav.zindulka@tlapnet.cz
+Subject: [PATCH nft] src: file descriptor leak in include_file()
+Date:   Fri, 15 Mar 2019 11:54:59 +0100
+Message-Id: <20190315105459.15066-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.11.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <20190314201309.iqdyb7icreyyhhke@salvia>
- <20190314200737.erhjrhoaciclapsn@salvia>
- <27D82259-F921-48E0-A718-A08E2BCCAACD@riseup.net>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi,
+File that contains the ruleset is never closed, track open files through
+the nft_ctx object and close them accordingly.
 
-Batching messages here since I'm apparently too slow in replying. :)
+Reported-by: Václav Zindulka <vaclav.zindulka@tlapnet.cz>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/nftables.h |  3 +++
+ include/parser.h   |  7 ++++---
+ src/libnftables.c  |  6 +++---
+ src/scanner.l      | 36 ++++++++++++++++++++----------------
+ 4 files changed, 30 insertions(+), 22 deletions(-)
 
-On Thu, Mar 14, 2019 at 07:24:23PM +0100, Fernando Fernandez Mancera wrote:
-> El 14 de marzo de 2019 18:34:54 CET, Phil Sutter <phil@nwl.cc> escribió:
-> >On Thu, Mar 14, 2019 at 02:58:40PM +0100, Pablo Neira Ayuso wrote:
-> >> On Thu, Mar 14, 2019 at 12:14:23PM +0100, Fernando Fernandez Mancera
-> >wrote:
-> >> > I have been thinking more about this today. I don't know how access
-> >to
-> >> > the right-hand-side string from the kernel if it is possible. Sorry
-> >if
-> >> > the question is very dumb, but I may lack experience with the nft
-> >> > registers and RHS data of an expression.
-> >> 
-> >> I think you can hide flags from json, which is what Phil suggests, I
-> >> mean, just infer version flags from the syntax, ie. if
-> >> "genre::version" is used, then set of the version flag.
-> >> 
-> >> I think Phil is not suggesting kernel changes.
-> 
-> That makes sense to me.
+diff --git a/include/nftables.h b/include/nftables.h
+index 5c0292615b3f..b17a16a4adef 100644
+--- a/include/nftables.h
++++ b/include/nftables.h
+@@ -86,6 +86,8 @@ struct nft_cache {
+ struct mnl_socket;
+ struct parser_state;
+ 
++#define MAX_INCLUDE_DEPTH	16
++
+ struct nft_ctx {
+ 	struct mnl_socket	*nf_sock;
+ 	char			**include_paths;
+@@ -99,6 +101,7 @@ struct nft_ctx {
+ 	struct parser_state	*state;
+ 	void			*scanner;
+ 	void			*json_root;
++	FILE			*f[MAX_INCLUDE_DEPTH];
+ };
+ 
+ enum nftables_exit_codes {
+diff --git a/include/parser.h b/include/parser.h
+index ea41ca038a02..bd2d08c8b7c6 100644
+--- a/include/parser.h
++++ b/include/parser.h
+@@ -3,8 +3,8 @@
+ 
+ #include <list.h>
+ #include <rule.h> // FIXME
++#include <nftables.h>
+ 
+-#define MAX_INCLUDE_DEPTH		16
+ #define TABSIZE				8
+ 
+ #define YYLTYPE				struct location
+@@ -36,9 +36,10 @@ extern void parser_init(struct nft_ctx *nft, struct parser_state *state,
+ extern int nft_parse(struct nft_ctx *ctx, void *, struct parser_state *state);
+ 
+ extern void *scanner_init(struct parser_state *state);
+-extern void scanner_destroy(void *scanner);
++extern void scanner_destroy(struct nft_ctx *nft, void *scanner);
+ 
+-extern int scanner_read_file(void *scanner, const char *filename,
++extern int scanner_read_file(struct nft_ctx *nft, void *scanner,
++			     const char *filename,
+ 			     const struct location *loc);
+ extern int scanner_include_file(struct nft_ctx *ctx, void *scanner,
+ 				const char *filename,
+diff --git a/src/libnftables.c b/src/libnftables.c
+index 2271d270fd57..62ddb0dd5991 100644
+--- a/src/libnftables.c
++++ b/src/libnftables.c
+@@ -364,7 +364,7 @@ static int nft_parse_bison_filename(struct nft_ctx *nft, const char *filename,
+ 
+ 	parser_init(nft, nft->state, msgs, cmds);
+ 	nft->scanner = scanner_init(nft->state);
+-	if (scanner_read_file(nft->scanner, filename, &internal_location) < 0)
++	if (scanner_read_file(nft, nft->scanner, filename, &internal_location) < 0)
+ 		return -1;
+ 
+ 	ret = nft_parse(nft, nft->scanner, nft->state);
+@@ -405,7 +405,7 @@ err:
+ 	}
+ 	iface_cache_release();
+ 	if (nft->scanner) {
+-		scanner_destroy(nft->scanner);
++		scanner_destroy(nft, nft->scanner);
+ 		nft->scanner = NULL;
+ 	}
+ 	free(nlbuf);
+@@ -449,7 +449,7 @@ err:
+ 	}
+ 	iface_cache_release();
+ 	if (nft->scanner) {
+-		scanner_destroy(nft->scanner);
++		scanner_destroy(nft, nft->scanner);
+ 		nft->scanner = NULL;
+ 	}
+ 
+diff --git a/src/scanner.l b/src/scanner.l
+index 6f83aa1198cc..0de635f5bdc9 100644
+--- a/src/scanner.l
++++ b/src/scanner.l
+@@ -659,19 +659,17 @@ static void scanner_pop_buffer(yyscan_t scanner)
+ 	state->indesc = &state->indescs[--state->indesc_idx - 1];
+ }
+ 
+-static struct error_record *scanner_push_file(void *scanner, const char *filename,
+-					      FILE *f, const struct location *loc)
++static struct error_record *scanner_push_file(struct nft_ctx *nft, void *scanner,
++					      const char *filename, const struct location *loc)
+ {
+ 	struct parser_state *state = yyget_extra(scanner);
+ 	YY_BUFFER_STATE b;
+ 
+-	if (state->indesc_idx == MAX_INCLUDE_DEPTH) {
+-		fclose(f);
++	if (state->indesc_idx == MAX_INCLUDE_DEPTH)
+ 		return error(loc, "Include nested too deeply, max %u levels",
+ 			     MAX_INCLUDE_DEPTH);
+-	}
+ 
+-	b = yy_create_buffer(f, YY_BUF_SIZE, scanner);
++	b = yy_create_buffer(nft->f[state->indesc_idx], YY_BUF_SIZE, scanner);
+ 	yypush_buffer_state(b, scanner);
+ 
+ 	state->indesc = &state->indescs[state->indesc_idx++];
+@@ -683,8 +681,8 @@ static struct error_record *scanner_push_file(void *scanner, const char *filenam
+ 	return NULL;
+ }
+ 
+-static int include_file(void *scanner, const char *filename,
+-			const struct location *loc)
++static int include_file(struct nft_ctx *nft, void *scanner,
++			const char *filename, const struct location *loc)
+ {
+ 	struct parser_state *state = yyget_extra(scanner);
+ 	struct error_record *erec;
+@@ -696,8 +694,9 @@ static int include_file(void *scanner, const char *filename,
+ 			     filename, strerror(errno));
+ 		goto err;
+ 	}
++	nft->f[state->indesc_idx] = f;
+ 
+-	erec = scanner_push_file(scanner, filename, f, loc);
++	erec = scanner_push_file(nft, scanner, filename, loc);
+ 	if (erec != NULL)
+ 		goto err;
+ 	return 0;
+@@ -706,7 +705,7 @@ err:
+ 	return -1;
+ }
+ 
+-static int include_glob(void *scanner, const char *pattern,
++static int include_glob(struct nft_ctx *nft, void *scanner, const char *pattern,
+ 			const struct location *loc)
+ {
+ 	struct parser_state *state = yyget_extra(scanner);
+@@ -770,7 +769,7 @@ static int include_glob(void *scanner, const char *pattern,
+ 			if (len == 0 || path[len - 1] == '/')
+ 				continue;
+ 
+-			ret = include_file(scanner, path, loc);
++			ret = include_file(nft, scanner, path, loc);
+ 			if (ret != 0)
+ 				goto err;
+ 		}
+@@ -804,10 +803,10 @@ err:
+ 	return -1;
+ }
+ 
+-int scanner_read_file(void *scanner, const char *filename,
++int scanner_read_file(struct nft_ctx *nft, void *scanner, const char *filename,
+ 		      const struct location *loc)
+ {
+-	return include_file(scanner, filename, loc);
++	return include_file(nft, scanner, filename, loc);
+ }
+ 
+ static bool search_in_include_path(const char *filename)
+@@ -837,7 +836,7 @@ int scanner_include_file(struct nft_ctx *nft, void *scanner,
+ 				return -1;
+ 			}
+ 
+-			ret = include_glob(scanner, buf, loc);
++			ret = include_glob(nft, scanner, buf, loc);
+ 
+ 			/* error was already handled */
+ 			if (ret == -1)
+@@ -852,7 +851,7 @@ int scanner_include_file(struct nft_ctx *nft, void *scanner,
+ 		}
+ 	} else {
+ 		/* an absolute path (starts with '/') */
+-		ret = include_glob(scanner, filename, loc);
++		ret = include_glob(nft, scanner, filename, loc);
+ 	}
+ 
+ 	/* handle the case where no file was found */
+@@ -897,7 +896,7 @@ void *scanner_init(struct parser_state *state)
+ 	return scanner;
+ }
+ 
+-void scanner_destroy(void *scanner)
++void scanner_destroy(struct nft_ctx *nft, void *scanner)
+ {
+ 	struct parser_state *state = yyget_extra(scanner);
+ 
+@@ -909,6 +908,11 @@ void scanner_destroy(void *scanner)
+ 			inpdesc->name = NULL;
+ 		}
+ 		yypop_buffer_state(scanner);
++
++		if (nft->f[state->indesc_idx]) {
++			fclose(nft->f[state->indesc_idx]);
++			nft->f[state->indesc_idx] = NULL;
++		}
+ 	} while (state->indesc_idx--);
+ 
+ 	yylex_destroy(scanner);
+-- 
+2.11.0
 
-In general, I think we should not deviate too much in both APIs. Also, a
-bit more complicated syntax is less of a problem in JSON, while OTOH I
-think spending a few extra cycles on keeping CLI syntax as simple as
-possible is worth doing.
-
-> >Assuming the above is correct, my suggestion of making the flag option
-> >implicit does not quite hold, at least not without painful
-> >postprocessing of relational statement in userspace.
-> >
-> >Right now this all seems to me like enabling multiple comparisons
-> >within
-> >a single relational, i.e. one for genre and the other for version.
-> >Nftables doesn't quite do such things. E.g. matching on two TCP header
-> >fields requires two relationals, e.g. 'tcp dport 22 tcp sport > 1024'.
-> >Internally then, these two statements may be combined into a single
-> >payload match if suitable.
-> 
-> I think in this case we can't do that. In my opinion it doesn't make sense to evaluate only the version without the OS genre. Do you agree? Thanks!
-
-Well, I guess we could but the question is indeed if we want to. In
-general, I tend to leave the decision what makes sense and what not to
-the user. Although a bit sloppy, something like 'osf version "XP"' might
-be a valuable shortcut for some.
-
-On Thu, Mar 14, 2019 at 09:07:37PM +0100, Pablo Neira Ayuso wrote:
-> On Thu, Mar 14, 2019 at 06:34:54PM +0100, Phil Sutter wrote:
-[...]
-> > Actually I'm still in the process of understanding how all this works.
-> > What I got so far is (correct me if I'm wrong): osf expr does the
-> > fingerprinting and returns a string which relational expr compares to
-> > right-hand side. This new version flag defines whether osf expr adds the
-> > version to returned string or not.
-> > 
-> > Assuming the above is correct, my suggestion of making the flag option
-> > implicit does not quite hold, at least not without painful
-> > postprocessing of relational statement in userspace.
-> > 
-> > Right now this all seems to me like enabling multiple comparisons within
-> > a single relational, i.e. one for genre and the other for version.
-> > Nftables doesn't quite do such things. E.g. matching on two TCP header
-> > fields requires two relationals, e.g. 'tcp dport 22 tcp sport > 1024'.
-> > Internally then, these two statements may be combined into a single
-> > payload match if suitable.
-> 
-> The osf expression returns a string with the OS genre, and if the
-> version flag is set on, it appends the version to this string, ie.
-> genre + version.
-> 
-> This allows us to build maps, ie.
-> 
->         meta mark set osf genre { "linux" : 0x10, "windows" : 0x20, "macos" : 0x40 }
-> 
-> But, with this new version, you could also do:
-> 
->         meta mark set osf genre { "linux::4.0" : 0x11, "linux::3.0" : 0x12, ...}
-> 
-> and so on.
-> 
-> So I see this version thing as a extended matching.
-> 
-> The osf engine actually _already_ finds a precise matching, ie. genre
-> + version, since the fingerprint is per genre + version. But you can
-> just decide to match on the genre (eg. linux).
-
-The problem we're facing IMO is that nft_cmp is limited to a simple
-memcmp(). This demands LHS to know what RHS contains. I'm not implying
-it would be a good idea, but imagine nft_cmp could handle wildcards, we
-could use "linux:*" to match on genre only, "linux:4.0:*" to match on
-genre and version and even "linux:4.*" to match genre and major version
-number.
-
-Actually we might be able to implement the above by setting 'len' field
-correctly.
-
-> > Applying the same logic to osf expression, we would implement 'osf name
-> > foo osf version 3.141' and add 'osf_try_merge()' routine to
-> > 'rule_postprocess()' which tries to combine the two statements.
-> > Obviously, this is quite a bit of extra work, not sure if feasible.
-> 
-> I think the discussion here is the syntax, ie.
-> 
->         osf genre "Linux::4.10"
-> 
-> vs.
-> 
->         osf genre "Linux" version "4.10"
-> 
-> This only requires changes to the userspace nftables side, if you
-> prefer this syntax, which is what I understand you would like to see,
-> right?
-
-Not quite. I like how osf is an expression, not a statement. This makes
-things like 'osf name != "Linux"' possible. What I didn't like was how
-the proposed extension requires users to input redundant info:
-
-| osf name version "Linux:4.20"
-
-RHS contains the version number, so LHS should not need to have
-"version" explicitly stated.
-
-On Thu, Mar 14, 2019 at 09:13:09PM +0100, Pablo Neira Ayuso wrote:
-[...]
-> I think we could even extend this later on to match things like:
-> 
-> # Popular cluster config scripts disable timestamps and
-> # selective ACK:
-> S4:64:1:48:M1460,N,W0:          Linux:2.4:cluster:Linux 2.4 in cluster
->                                 ^^^^^^^^^^^^^^^^^
-> Then, do:
-> 
->         os gente "Linux:2.4:cluster"
-> 
-> by adding a new flag to match the "Subtype" field (according to the
-> file description in pf.os).
-
-In an ideal world, we could match on any (combination of) fields in the
-database. I am aware this is probably over-engineering. :)
-
-What we could do though with little effort is to make use of the OS info
-structure in database by making use of nft_cmp comparing only the first
-'len' bytes of data in registers. My idea would be that:
-
-* 'osf' expression always returns "full" data, i.e.: "OS:VER:SUB"
-* nft_cmp compares that string to RHS up to RHS length
-
-So let's assume DB lookup returns "Windows:2003:AS:", then:
-
-osf name "Windows" -> match
-osf name "Windows:" -> match
-osf name "Windows:XP:" -> no match
-osf name "Windows:2000:" -> no match
-osf name "Windows:200" -> match
-
-So we have optional version match and even a poor-man's wildcard
-functionality. Specifying the trailing semi-colon implicitly causes an
-exact match on the last field.
-
-What do you think?
-
-Cheers, Phil
