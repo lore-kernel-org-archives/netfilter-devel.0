@@ -3,74 +3,277 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E183C43381
-	for <netfilter-devel@archiver.kernel.org>; Fri, 15 Mar 2019 16:22:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B8FC0C43381
+	for <netfilter-devel@archiver.kernel.org>; Fri, 15 Mar 2019 16:26:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 33AF7218A1
-	for <netfilter-devel@archiver.kernel.org>; Fri, 15 Mar 2019 16:22:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 87435218A1
+	for <netfilter-devel@archiver.kernel.org>; Fri, 15 Mar 2019 16:26:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729499AbfCOQWu (ORCPT
+        id S1729396AbfCOQ04 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 15 Mar 2019 12:22:50 -0400
-Received: from mail.us.es ([193.147.175.20]:40472 "EHLO mail.us.es"
+        Fri, 15 Mar 2019 12:26:56 -0400
+Received: from mail.us.es ([193.147.175.20]:41334 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726632AbfCOQWu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 15 Mar 2019 12:22:50 -0400
+        id S1729130AbfCOQ04 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 15 Mar 2019 12:26:56 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 319DB243941
-        for <netfilter-devel@vger.kernel.org>; Fri, 15 Mar 2019 17:22:48 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 739C3243956
+        for <netfilter-devel@vger.kernel.org>; Fri, 15 Mar 2019 17:26:52 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 1C02CDA797
-        for <netfilter-devel@vger.kernel.org>; Fri, 15 Mar 2019 17:22:48 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 523B2DA876
+        for <netfilter-devel@vger.kernel.org>; Fri, 15 Mar 2019 17:26:52 +0100 (CET)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 1B3FCDA796; Fri, 15 Mar 2019 17:22:48 +0100 (CET)
+        id 83524F733A; Fri, 15 Mar 2019 17:26:43 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 2CBB3DA863;
-        Fri, 15 Mar 2019 17:22:46 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 55531F7323;
+        Fri, 15 Mar 2019 17:26:41 +0100 (CET)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Fri, 15 Mar 2019 17:22:46 +0100 (CET)
+ Fri, 15 Mar 2019 17:26:41 +0100 (CET)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 02F3D4265A2F;
-        Fri, 15 Mar 2019 17:22:45 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPA id 2CE684265A4E;
+        Fri, 15 Mar 2019 17:26:41 +0100 (CET)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Cc:     fw@strlen.de
-Subject: [PATCH] netfilter: nft_redir: module autoload with ip4
-Date:   Fri, 15 Mar 2019 17:22:43 +0100
-Message-Id: <20190315162243.24279-1-pablo@netfilter.org>
+Cc:     vaclav.zindulka@tlapnet.cz
+Subject: [PATCH nft,v2] src: file descriptor leak in include_file()
+Date:   Fri, 15 Mar 2019 17:26:38 +0100
+Message-Id: <20190315162638.17921-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-AF_INET4 does not exist.
+File that contains the ruleset is never closed, track open files through
+the nft_ctx object and close them accordingly.
 
-Fixes: c78efc99c750 ("netfilter: nf_tables: nat: merge nft_redir protocol specific modules)"
+Reported-by: Václav Zindulka <vaclav.zindulka@tlapnet.cz>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_redir.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+v2: skip a few redundant scanner parameters in functions
 
-diff --git a/net/netfilter/nft_redir.c b/net/netfilter/nft_redir.c
-index f8092926f704..a340cd8a751b 100644
---- a/net/netfilter/nft_redir.c
-+++ b/net/netfilter/nft_redir.c
-@@ -233,5 +233,5 @@ module_exit(nft_redir_module_exit);
+ include/nftables.h |  3 +++
+ include/parser.h   |  6 +++---
+ src/libnftables.c  |  6 +++---
+ src/scanner.l      | 42 +++++++++++++++++++++++-------------------
+ 4 files changed, 32 insertions(+), 25 deletions(-)
+
+diff --git a/include/nftables.h b/include/nftables.h
+index 5c0292615b3f..b17a16a4adef 100644
+--- a/include/nftables.h
++++ b/include/nftables.h
+@@ -86,6 +86,8 @@ struct nft_cache {
+ struct mnl_socket;
+ struct parser_state;
  
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Arturo Borrero Gonzalez <arturo@debian.org>");
--MODULE_ALIAS_NFT_AF_EXPR(AF_INET4, "redir");
-+MODULE_ALIAS_NFT_AF_EXPR(AF_INET, "redir");
- MODULE_ALIAS_NFT_AF_EXPR(AF_INET6, "redir");
++#define MAX_INCLUDE_DEPTH	16
++
+ struct nft_ctx {
+ 	struct mnl_socket	*nf_sock;
+ 	char			**include_paths;
+@@ -99,6 +101,7 @@ struct nft_ctx {
+ 	struct parser_state	*state;
+ 	void			*scanner;
+ 	void			*json_root;
++	FILE			*f[MAX_INCLUDE_DEPTH];
+ };
+ 
+ enum nftables_exit_codes {
+diff --git a/include/parser.h b/include/parser.h
+index ea41ca038a02..8e57899eb1a3 100644
+--- a/include/parser.h
++++ b/include/parser.h
+@@ -3,8 +3,8 @@
+ 
+ #include <list.h>
+ #include <rule.h> // FIXME
++#include <nftables.h>
+ 
+-#define MAX_INCLUDE_DEPTH		16
+ #define TABSIZE				8
+ 
+ #define YYLTYPE				struct location
+@@ -36,9 +36,9 @@ extern void parser_init(struct nft_ctx *nft, struct parser_state *state,
+ extern int nft_parse(struct nft_ctx *ctx, void *, struct parser_state *state);
+ 
+ extern void *scanner_init(struct parser_state *state);
+-extern void scanner_destroy(void *scanner);
++extern void scanner_destroy(struct nft_ctx *nft);
+ 
+-extern int scanner_read_file(void *scanner, const char *filename,
++extern int scanner_read_file(struct nft_ctx *nft, const char *filename,
+ 			     const struct location *loc);
+ extern int scanner_include_file(struct nft_ctx *ctx, void *scanner,
+ 				const char *filename,
+diff --git a/src/libnftables.c b/src/libnftables.c
+index 2271d270fd57..199dbc97b801 100644
+--- a/src/libnftables.c
++++ b/src/libnftables.c
+@@ -364,7 +364,7 @@ static int nft_parse_bison_filename(struct nft_ctx *nft, const char *filename,
+ 
+ 	parser_init(nft, nft->state, msgs, cmds);
+ 	nft->scanner = scanner_init(nft->state);
+-	if (scanner_read_file(nft->scanner, filename, &internal_location) < 0)
++	if (scanner_read_file(nft, filename, &internal_location) < 0)
+ 		return -1;
+ 
+ 	ret = nft_parse(nft, nft->scanner, nft->state);
+@@ -405,7 +405,7 @@ err:
+ 	}
+ 	iface_cache_release();
+ 	if (nft->scanner) {
+-		scanner_destroy(nft->scanner);
++		scanner_destroy(nft);
+ 		nft->scanner = NULL;
+ 	}
+ 	free(nlbuf);
+@@ -449,7 +449,7 @@ err:
+ 	}
+ 	iface_cache_release();
+ 	if (nft->scanner) {
+-		scanner_destroy(nft->scanner);
++		scanner_destroy(nft);
+ 		nft->scanner = NULL;
+ 	}
+ 
+diff --git a/src/scanner.l b/src/scanner.l
+index 6f83aa1198cc..558bf9209853 100644
+--- a/src/scanner.l
++++ b/src/scanner.l
+@@ -659,19 +659,17 @@ static void scanner_pop_buffer(yyscan_t scanner)
+ 	state->indesc = &state->indescs[--state->indesc_idx - 1];
+ }
+ 
+-static struct error_record *scanner_push_file(void *scanner, const char *filename,
+-					      FILE *f, const struct location *loc)
++static struct error_record *scanner_push_file(struct nft_ctx *nft, void *scanner,
++					      const char *filename, const struct location *loc)
+ {
+ 	struct parser_state *state = yyget_extra(scanner);
+ 	YY_BUFFER_STATE b;
+ 
+-	if (state->indesc_idx == MAX_INCLUDE_DEPTH) {
+-		fclose(f);
++	if (state->indesc_idx == MAX_INCLUDE_DEPTH)
+ 		return error(loc, "Include nested too deeply, max %u levels",
+ 			     MAX_INCLUDE_DEPTH);
+-	}
+ 
+-	b = yy_create_buffer(f, YY_BUF_SIZE, scanner);
++	b = yy_create_buffer(nft->f[state->indesc_idx], YY_BUF_SIZE, scanner);
+ 	yypush_buffer_state(b, scanner);
+ 
+ 	state->indesc = &state->indescs[state->indesc_idx++];
+@@ -683,8 +681,8 @@ static struct error_record *scanner_push_file(void *scanner, const char *filenam
+ 	return NULL;
+ }
+ 
+-static int include_file(void *scanner, const char *filename,
+-			const struct location *loc)
++static int include_file(struct nft_ctx *nft, void *scanner,
++			const char *filename, const struct location *loc)
+ {
+ 	struct parser_state *state = yyget_extra(scanner);
+ 	struct error_record *erec;
+@@ -696,8 +694,9 @@ static int include_file(void *scanner, const char *filename,
+ 			     filename, strerror(errno));
+ 		goto err;
+ 	}
++	nft->f[state->indesc_idx] = f;
+ 
+-	erec = scanner_push_file(scanner, filename, f, loc);
++	erec = scanner_push_file(nft, scanner, filename, loc);
+ 	if (erec != NULL)
+ 		goto err;
+ 	return 0;
+@@ -706,7 +705,7 @@ err:
+ 	return -1;
+ }
+ 
+-static int include_glob(void *scanner, const char *pattern,
++static int include_glob(struct nft_ctx *nft, void *scanner, const char *pattern,
+ 			const struct location *loc)
+ {
+ 	struct parser_state *state = yyget_extra(scanner);
+@@ -770,7 +769,7 @@ static int include_glob(void *scanner, const char *pattern,
+ 			if (len == 0 || path[len - 1] == '/')
+ 				continue;
+ 
+-			ret = include_file(scanner, path, loc);
++			ret = include_file(nft, scanner, path, loc);
+ 			if (ret != 0)
+ 				goto err;
+ 		}
+@@ -804,10 +803,10 @@ err:
+ 	return -1;
+ }
+ 
+-int scanner_read_file(void *scanner, const char *filename,
++int scanner_read_file(struct nft_ctx *nft, const char *filename,
+ 		      const struct location *loc)
+ {
+-	return include_file(scanner, filename, loc);
++	return include_file(nft, nft->scanner, filename, loc);
+ }
+ 
+ static bool search_in_include_path(const char *filename)
+@@ -837,7 +836,7 @@ int scanner_include_file(struct nft_ctx *nft, void *scanner,
+ 				return -1;
+ 			}
+ 
+-			ret = include_glob(scanner, buf, loc);
++			ret = include_glob(nft, scanner, buf, loc);
+ 
+ 			/* error was already handled */
+ 			if (ret == -1)
+@@ -852,7 +851,7 @@ int scanner_include_file(struct nft_ctx *nft, void *scanner,
+ 		}
+ 	} else {
+ 		/* an absolute path (starts with '/') */
+-		ret = include_glob(scanner, filename, loc);
++		ret = include_glob(nft, scanner, filename, loc);
+ 	}
+ 
+ 	/* handle the case where no file was found */
+@@ -897,9 +896,9 @@ void *scanner_init(struct parser_state *state)
+ 	return scanner;
+ }
+ 
+-void scanner_destroy(void *scanner)
++void scanner_destroy(struct nft_ctx *nft)
+ {
+-	struct parser_state *state = yyget_extra(scanner);
++	struct parser_state *state = yyget_extra(nft->scanner);
+ 
+ 	do {
+ 		struct input_descriptor *inpdesc =
+@@ -908,8 +907,13 @@ void scanner_destroy(void *scanner)
+ 			xfree(inpdesc->name);
+ 			inpdesc->name = NULL;
+ 		}
+-		yypop_buffer_state(scanner);
++		yypop_buffer_state(nft->scanner);
++
++		if (nft->f[state->indesc_idx]) {
++			fclose(nft->f[state->indesc_idx]);
++			nft->f[state->indesc_idx] = NULL;
++		}
+ 	} while (state->indesc_idx--);
+ 
+-	yylex_destroy(scanner);
++	yylex_destroy(nft->scanner);
+ }
 -- 
 2.11.0
 
