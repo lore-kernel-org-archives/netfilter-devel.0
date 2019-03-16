@@ -2,166 +2,181 @@ Return-Path: <SRS0=RSCw=RT=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.5 required=3.0
-	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_MUTT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_MUTT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EB07FC43381
-	for <netfilter-devel@archiver.kernel.org>; Sat, 16 Mar 2019 22:45:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CF37AC43381
+	for <netfilter-devel@archiver.kernel.org>; Sat, 16 Mar 2019 22:59:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B954E2190A
-	for <netfilter-devel@archiver.kernel.org>; Sat, 16 Mar 2019 22:45:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 970132186A
+	for <netfilter-devel@archiver.kernel.org>; Sat, 16 Mar 2019 22:59:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726666AbfCPWpV (ORCPT
+        id S1727080AbfCPW7Z (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 16 Mar 2019 18:45:21 -0400
-Received: from charlotte.tuxdriver.com ([70.61.120.58]:44045 "EHLO
-        smtp.tuxdriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726562AbfCPWpV (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 16 Mar 2019 18:45:21 -0400
-Received: from cpe-2606-a000-111b-405a-9816-2c85-c514-8f7a.dyn6.twc.com ([2606:a000:111b:405a:9816:2c85:c514:8f7a] helo=localhost)
-        by smtp.tuxdriver.com with esmtpsa (TLSv1:AES256-SHA:256)
-        (Exim 4.63)
-        (envelope-from <nhorman@tuxdriver.com>)
-        id 1h5I39-0006Wx-41; Sat, 16 Mar 2019 18:45:12 -0400
-Date:   Sat, 16 Mar 2019 18:44:37 -0400
-From:   Neil Horman <nhorman@tuxdriver.com>
-To:     Richard Guy Briggs <rgb@redhat.com>
-Cc:     containers@lists.linux-foundation.org, linux-api@vger.kernel.org,
-        Linux-Audit Mailing List <linux-audit@redhat.com>,
-        linux-fsdevel@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        Paul Moore <paul@paul-moore.com>, sgrubb@redhat.com,
-        omosnace@redhat.com, dhowells@redhat.com, simo@redhat.com,
-        eparis@parisplace.org, serge@hallyn.com, ebiederm@xmission.com
-Subject: Re: [PATCH ghak90 V5 04/10] audit: log container info of syscalls
-Message-ID: <20190316224437.GA4119@hmswarspite.think-freely.org>
-References: <cover.1552665316.git.rgb@redhat.com>
- <85fcd0a81adef25cb60b2e479bbb380e76dbf999.1552665316.git.rgb@redhat.com>
+        Sat, 16 Mar 2019 18:59:25 -0400
+Received: from mga17.intel.com ([192.55.52.151]:33869 "EHLO mga17.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726573AbfCPW7Y (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 16 Mar 2019 18:59:24 -0400
+X-Amp-Result: UNKNOWN
+X-Amp-Original-Verdict: FILE UNKNOWN
+X-Amp-File-Uploaded: False
+Received: from orsmga002.jf.intel.com ([10.7.209.21])
+  by fmsmga107.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 16 Mar 2019 15:59:23 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.58,487,1544515200"; 
+   d="scan'208";a="142653565"
+Received: from lkp-server01.sh.intel.com (HELO lkp-server01) ([10.239.97.150])
+  by orsmga002.jf.intel.com with ESMTP; 16 Mar 2019 15:59:20 -0700
+Received: from kbuild by lkp-server01 with local (Exim 4.89)
+        (envelope-from <lkp@intel.com>)
+        id 1h5IGt-0005m8-L7; Sun, 17 Mar 2019 06:59:19 +0800
+Date:   Sun, 17 Mar 2019 06:58:58 +0800
+From:   kbuild test robot <lkp@intel.com>
+To:     Jacky Hu <hengqing.hu@gmail.com>
+Cc:     kbuild-all@01.org, hengqing.hu@gmail.com, jacky.hu@walmart.com,
+        jason.niesz@walmart.com, "David S. Miller" <davem@davemloft.net>,
+        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        Wensong Zhang <wensong@linux-vs.org>,
+        Simon Horman <horms@verge.net.au>,
+        Julian Anastasov <ja@ssi.bg>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org,
+        lvs-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+Subject: Re: [PATCH v2] ipvs: allow tunneling with gue encapsulation
+Message-ID: <201903170616.OmhwLbww%lkp@intel.com>
+References: <20190316060635.2594-1-hengqing.hu@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <85fcd0a81adef25cb60b2e479bbb380e76dbf999.1552665316.git.rgb@redhat.com>
-User-Agent: Mutt/1.11.3 (2019-02-01)
+In-Reply-To: <20190316060635.2594-1-hengqing.hu@gmail.com>
+User-Agent: Mutt/1.5.23 (2014-03-12)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Mar 15, 2019 at 02:29:52PM -0400, Richard Guy Briggs wrote:
-> Create a new audit record AUDIT_CONTAINER_ID to document the audit
-> container identifier of a process if it is present.
-> 
-> Called from audit_log_exit(), syscalls are covered.
-> 
-> A sample raw event:
-> type=SYSCALL msg=audit(1519924845.499:257): arch=c000003e syscall=257 success=yes exit=3 a0=ffffff9c a1=56374e1cef30 a2=241 a3=1b6 items=2 ppid=606 pid=635 auid=0 uid=0 gid=0 euid=0 suid=0 fsuid=0 egid=0 sgid=0 fsgid=0 tty=pts0 ses=3 comm="bash" exe="/usr/bin/bash" subj=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023 key="tmpcontainerid"
-> type=CWD msg=audit(1519924845.499:257): cwd="/root"
-> type=PATH msg=audit(1519924845.499:257): item=0 name="/tmp/" inode=13863 dev=00:27 mode=041777 ouid=0 ogid=0 rdev=00:00 obj=system_u:object_r:tmp_t:s0 nametype= PARENT cap_fp=0 cap_fi=0 cap_fe=0 cap_fver=0
-> type=PATH msg=audit(1519924845.499:257): item=1 name="/tmp/tmpcontainerid" inode=17729 dev=00:27 mode=0100644 ouid=0 ogid=0 rdev=00:00 obj=unconfined_u:object_r:user_tmp_t:s0 nametype=CREATE cap_fp=0 cap_fi=0 cap_fe=0 cap_fver=0
-> type=PROCTITLE msg=audit(1519924845.499:257): proctitle=62617368002D6300736C65657020313B206563686F2074657374203E202F746D702F746D70636F6E7461696E65726964
-> type=CONTAINER_ID msg=audit(1519924845.499:257): contid=123458
-> 
-> See: https://github.com/linux-audit/audit-kernel/issues/90
-> See: https://github.com/linux-audit/audit-userspace/issues/51
-> See: https://github.com/linux-audit/audit-testsuite/issues/64
-> See: https://github.com/linux-audit/audit-kernel/wiki/RFE-Audit-Container-ID
-> Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
-> Acked-by: Serge Hallyn <serge@hallyn.com>
-> Acked-by: Steve Grubb <sgrubb@redhat.com>
-> Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
-> ---
->  include/linux/audit.h      |  5 +++++
->  include/uapi/linux/audit.h |  1 +
->  kernel/audit.c             | 21 +++++++++++++++++++++
->  kernel/auditsc.c           |  2 ++
->  4 files changed, 29 insertions(+)
-> 
-> diff --git a/include/linux/audit.h b/include/linux/audit.h
-> index 301337776193..43438192ca2a 100644
-> --- a/include/linux/audit.h
-> +++ b/include/linux/audit.h
-> @@ -199,6 +199,8 @@ static inline u64 audit_get_contid(struct task_struct *tsk)
->  	return tsk->audit->contid;
->  }
->  
-> +extern void audit_log_contid(struct audit_context *context, u64 contid);
-> +
->  extern u32 audit_enabled;
->  #else /* CONFIG_AUDIT */
->  static inline int audit_alloc(struct task_struct *task)
-> @@ -265,6 +267,9 @@ static inline u64 audit_get_contid(struct task_struct *tsk)
->  	return AUDIT_CID_UNSET;
->  }
->  
-> +static inline void audit_log_contid(struct audit_context *context, u64 contid)
-> +{ }
-> +
->  #define audit_enabled AUDIT_OFF
->  #endif /* CONFIG_AUDIT */
->  
-> diff --git a/include/uapi/linux/audit.h b/include/uapi/linux/audit.h
-> index d475cf3b4d7f..a6383e28b2c8 100644
-> --- a/include/uapi/linux/audit.h
-> +++ b/include/uapi/linux/audit.h
-> @@ -115,6 +115,7 @@
->  #define AUDIT_REPLACE		1329	/* Replace auditd if this packet unanswerd */
->  #define AUDIT_KERN_MODULE	1330	/* Kernel Module events */
->  #define AUDIT_FANOTIFY		1331	/* Fanotify access decision */
-> +#define AUDIT_CONTAINER_ID	1332	/* Container ID */
->  
->  #define AUDIT_AVC		1400	/* SE Linux avc denial or grant */
->  #define AUDIT_SELINUX_ERR	1401	/* Internal SE Linux Errors */
-> diff --git a/kernel/audit.c b/kernel/audit.c
-> index b5c702abeb42..8cc0e88d7f2a 100644
-> --- a/kernel/audit.c
-> +++ b/kernel/audit.c
-> @@ -2127,6 +2127,27 @@ void audit_log_session_info(struct audit_buffer *ab)
->  	audit_log_format(ab, "auid=%u ses=%u", auid, sessionid);
->  }
->  
-> +/*
-> + * audit_log_contid - report container info
-> + * @context: task or local context for record
-> + * @contid: container ID to report
-> + */
-> +void audit_log_contid(struct audit_context *context, u64 contid)
-> +{
-> +	struct audit_buffer *ab;
-> +
-> +	if (!audit_contid_valid(contid))
-> +		return;
-> +	/* Generate AUDIT_CONTAINER_ID record with container ID */
-> +	ab = audit_log_start(context, GFP_KERNEL, AUDIT_CONTAINER_ID);
-> +	if (!ab)
-> +		return;
-> +	audit_log_format(ab, "contid=%llu", contid);
-> +	audit_log_end(ab);
-> +	return;
-> +}
-> +EXPORT_SYMBOL(audit_log_contid);
-> +
->  void audit_log_key(struct audit_buffer *ab, char *key)
->  {
->  	audit_log_format(ab, " key=");
-> diff --git a/kernel/auditsc.c b/kernel/auditsc.c
-> index 8090eff7868d..a8c8b44b954d 100644
-> --- a/kernel/auditsc.c
-> +++ b/kernel/auditsc.c
-> @@ -1548,6 +1548,8 @@ static void audit_log_exit(void)
->  
->  	audit_log_proctitle();
->  
-> +	audit_log_contid(context, audit_get_contid(current));
-> +
->  	/* Send end of event record to help user space know we are finished */
->  	ab = audit_log_start(context, GFP_KERNEL, AUDIT_EOE);
->  	if (ab)
-> -- 
-> 1.8.3.1
-> 
-> 
-Acked-by: Neil Horman <nhorman@tuxdriver.com>
+Hi Jacky,
 
+Thank you for the patch! Perhaps something to improve:
+
+[auto build test WARNING on ipvs-next/master]
+[also build test WARNING on v5.0 next-20190306]
+[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
+
+url:    https://github.com/0day-ci/linux/commits/Jacky-Hu/ipvs-allow-tunneling-with-gue-encapsulation/20190317-042939
+base:   https://git.kernel.org/pub/scm/linux/kernel/git/horms/ipvs-next.git master
+reproduce:
+        # apt-get install sparse
+        make ARCH=x86_64 allmodconfig
+        make C=1 CF='-fdiagnostic-prefix -D__CHECK_ENDIAN__'
+
+
+sparse warnings: (new ones prefixed by >>)
+
+>> net/netfilter/ipvs/ip_vs_ctl.c:835:42: sparse: incorrect type in argument 2 (different base types) @@    expected int [signed] i @@    got restricted __be1int [signed] i @@
+   net/netfilter/ipvs/ip_vs_ctl.c:835:42:    expected int [signed] i
+   net/netfilter/ipvs/ip_vs_ctl.c:835:42:    got restricted __be16 [usertype] tun_port
+   net/netfilter/ipvs/ip_vs_ctl.c:1175:44: sparse: expression using sizeof(void)
+>> net/netfilter/ipvs/ip_vs_ctl.c:3329:41: sparse: incorrect type in assignment (different base types) @@    expected restricted __be16 [usertype] tun_port @@    got 16 [usertype] tun_port @@
+   net/netfilter/ipvs/ip_vs_ctl.c:3329:41:    expected restricted __be16 [usertype] tun_port
+   net/netfilter/ipvs/ip_vs_ctl.c:3329:41:    got unsigned short
+   net/netfilter/ipvs/ip_vs_ctl.c:1291:27: sparse: dereference of noderef expression
+
+vim +835 net/netfilter/ipvs/ip_vs_ctl.c
+
+   805	
+   806	/*
+   807	 *	Update a destination in the given service
+   808	 */
+   809	static void
+   810	__ip_vs_update_dest(struct ip_vs_service *svc, struct ip_vs_dest *dest,
+   811			    struct ip_vs_dest_user_kern *udest, int add)
+   812	{
+   813		struct netns_ipvs *ipvs = svc->ipvs;
+   814		struct ip_vs_service *old_svc;
+   815		struct ip_vs_scheduler *sched;
+   816		int conn_flags;
+   817	
+   818		/* We cannot modify an address and change the address family */
+   819		BUG_ON(!add && udest->af != dest->af);
+   820	
+   821		if (add && udest->af != svc->af)
+   822			ipvs->mixed_address_family_dests++;
+   823	
+   824		/* keep the last_weight with latest non-0 weight */
+   825		if (add || udest->weight != 0)
+   826			atomic_set(&dest->last_weight, udest->weight);
+   827	
+   828		/* set the weight and the flags */
+   829		atomic_set(&dest->weight, udest->weight);
+   830		conn_flags = udest->conn_flags & IP_VS_CONN_F_DEST_MASK;
+   831		conn_flags |= IP_VS_CONN_F_INACTIVE;
+   832	
+   833		/* set the tunnel info */
+   834		atomic_set(&dest->tun_type, udest->tun_type);
+ > 835		atomic_set(&dest->tun_port, udest->tun_port);
+   836	
+   837		/* set the IP_VS_CONN_F_NOOUTPUT flag if not masquerading/NAT */
+   838		if ((conn_flags & IP_VS_CONN_F_FWD_MASK) != IP_VS_CONN_F_MASQ) {
+   839			conn_flags |= IP_VS_CONN_F_NOOUTPUT;
+   840		} else {
+   841			/*
+   842			 *    Put the real service in rs_table if not present.
+   843			 *    For now only for NAT!
+   844			 */
+   845			ip_vs_rs_hash(ipvs, dest);
+   846			/* FTP-NAT requires conntrack for mangling */
+   847			if (svc->port == FTPPORT)
+   848				ip_vs_register_conntrack(svc);
+   849		}
+   850		atomic_set(&dest->conn_flags, conn_flags);
+   851	
+   852		/* bind the service */
+   853		old_svc = rcu_dereference_protected(dest->svc, 1);
+   854		if (!old_svc) {
+   855			__ip_vs_bind_svc(dest, svc);
+   856		} else {
+   857			if (old_svc != svc) {
+   858				ip_vs_zero_stats(&dest->stats);
+   859				__ip_vs_bind_svc(dest, svc);
+   860				__ip_vs_svc_put(old_svc, true);
+   861			}
+   862		}
+   863	
+   864		/* set the dest status flags */
+   865		dest->flags |= IP_VS_DEST_F_AVAILABLE;
+   866	
+   867		if (udest->u_threshold == 0 || udest->u_threshold > dest->u_threshold)
+   868			dest->flags &= ~IP_VS_DEST_F_OVERLOAD;
+   869		dest->u_threshold = udest->u_threshold;
+   870		dest->l_threshold = udest->l_threshold;
+   871	
+   872		dest->af = udest->af;
+   873	
+   874		spin_lock_bh(&dest->dst_lock);
+   875		__ip_vs_dst_cache_reset(dest);
+   876		spin_unlock_bh(&dest->dst_lock);
+   877	
+   878		if (add) {
+   879			ip_vs_start_estimator(svc->ipvs, &dest->stats);
+   880			list_add_rcu(&dest->n_list, &svc->destinations);
+   881			svc->num_dests++;
+   882			sched = rcu_dereference_protected(svc->scheduler, 1);
+   883			if (sched && sched->add_dest)
+   884				sched->add_dest(svc, dest);
+   885		} else {
+   886			sched = rcu_dereference_protected(svc->scheduler, 1);
+   887			if (sched && sched->upd_dest)
+   888				sched->upd_dest(svc, dest);
+   889		}
+   890	}
+   891	
+
+---
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
