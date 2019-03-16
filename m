@@ -7,72 +7,72 @@ X-Spam-Status: No, score=-8.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
 	SPF_PASS,USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 536BDC43381
-	for <netfilter-devel@archiver.kernel.org>; Sat, 16 Mar 2019 06:07:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CC941C43381
+	for <netfilter-devel@archiver.kernel.org>; Sat, 16 Mar 2019 07:20:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 075CB218D0
-	for <netfilter-devel@archiver.kernel.org>; Sat, 16 Mar 2019 06:06:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 857EB218E0
+	for <netfilter-devel@archiver.kernel.org>; Sat, 16 Mar 2019 07:20:42 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="CiEYAYNp"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ab4B0HYN"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725970AbfCPGGy (ORCPT
+        id S1726618AbfCPHUR (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 16 Mar 2019 02:06:54 -0400
-Received: from mail-pg1-f196.google.com ([209.85.215.196]:45555 "EHLO
-        mail-pg1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725879AbfCPGGy (ORCPT
+        Sat, 16 Mar 2019 03:20:17 -0400
+Received: from mail-pf1-f195.google.com ([209.85.210.195]:34550 "EHLO
+        mail-pf1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725908AbfCPHUR (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 16 Mar 2019 02:06:54 -0400
-Received: by mail-pg1-f196.google.com with SMTP id 125so7863134pgc.12;
-        Fri, 15 Mar 2019 23:06:53 -0700 (PDT)
+        Sat, 16 Mar 2019 03:20:17 -0400
+Received: by mail-pf1-f195.google.com with SMTP id v64so7872121pfb.1;
+        Sat, 16 Mar 2019 00:20:16 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:mime-version
          :content-transfer-encoding;
-        bh=IWpaJYdzs3B2aCAoo45V/yz77usHnIUihf40NWutgn4=;
-        b=CiEYAYNpIUpGMuOFWDYZEcbv1NonL8xHjZmLMytDNcB97B/50UmAcYXCyQ156jUqsi
-         xvaYG1KcLM2AJkouzfPaGKw4Hyr7cDKzG2KpSLa0Rk66E25EstmZO2jhMe+0dBJY/KW1
-         otvTAvKI11kNcENpkIvTAEMm+siq4wsfjOAiMVj4UZXNK4rDftMDXtkmr6OIM8Tm6QcR
-         CGgndZTFffcaQSFbn6CbZC3d5mrByvEW8BO1woob85VDAs1kG1h7GglPNBF2nm66AAoZ
-         w+PQ7bmxNZ0zF9c9v1Qtlhxl5pLPb+fYzUXqjHdSm3K0xA1nOD9hzRsKaqjzuwrpES3U
-         cVtg==
+        bh=KX48vGF/vUvl6LQsjst8ZJ5JsYca9JC37bwXx5bNbuY=;
+        b=ab4B0HYN/+fAly/O0CFC3K6lmSGejxwD5PSZEDss6q5TuWrk+om5Hz5+FaEPU6ozEl
+         pHudZn51axcCSIo1W8rUVpUmQXGeh9lH9JMcKMmMZ7MAefHGRRvas1OEvij4v6fT/LCU
+         lfFqNvVfctVniRXWRFROnjAaNgn/qyg72Wr/+pr7/nnPjqRHu2JVcPCPwW3/YiiTdInI
+         tEKO0THwHe6rnRKV6vuWaQmcQUNih7Lfjf76cqRM35Ohr/b81OsmjvisRzeSJxOXiTDI
+         lzUz9jaErUw28i26t6DBwOruExhzsQXlP3ErOeYEKbEuYO4hFGMiy5urfrQGU98PoXk1
+         sqZA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
          :content-transfer-encoding;
-        bh=IWpaJYdzs3B2aCAoo45V/yz77usHnIUihf40NWutgn4=;
-        b=IXEhOYCiojJ9KYpiOffwK36EaEYOOjrqJd5Vva/003wcNb6gtxDNAaY4OCxB60LFTv
-         SKF7ldSqs0hR31rETH0aPV9BHpgIB4FkqnHvZ1c7firUnZLeuXuKNdGxXXlVc3a3Io/G
-         zzBLYuIGr01mEWGlQBtZfRK0PuAED/mpBYqh+CFa4BOdECOWE+GxkrRtXOHP5pkjo1gj
-         n4HEC2Xo+I6ND4al+e6CbTnG22UVRc2nrR9+mzsMf385YQsJJxItRY/9ClvEqtQIPke9
-         8jPtxVm3yIhPzfFB1nzjHbCrt/bScEPC1lTF2NJefCHTgQIjd6Od73EYIG46JxF8iY1B
-         AZpw==
-X-Gm-Message-State: APjAAAUyB3fiKlqCyvACzKHVNRCS1MBDuKYSwt+68D0ILNh98bbwZrxp
-        G+L/boaBgEeB4mvRj0zojg==
-X-Google-Smtp-Source: APXvYqwbnPbCS96RSmXpCdtIG1XxYfc/DXJSva/mm6l5vTFz8td/w8a8xCJtiPXHAJXTKmvHD9X0Jg==
-X-Received: by 2002:a62:54c5:: with SMTP id i188mr7801428pfb.188.1552716413335;
-        Fri, 15 Mar 2019 23:06:53 -0700 (PDT)
+        bh=KX48vGF/vUvl6LQsjst8ZJ5JsYca9JC37bwXx5bNbuY=;
+        b=lHCfWtW5N+zYnhLJtlgg2NQiOuii5+xggY0YD3+YHj0/etS6RpTiq5hgeQD22+tzRo
+         xY93jdgCycM9tjLRg8FNQ1lIAWtHRBIOaLiqk8XqiUEtosmAtxHTq4B5lLRBbMj5Dgs6
+         HfwEsBWefa1oGnN1ty6p8LBPEgJdyjfNCaNdm0NnahGTIWPC+Bn4he/shf9SNNiDEi/P
+         iqRoMGNUTDp7cUYdo2iRKfsLJ1Bl2XcnxgPXENOgf8/9Ik3A1tzf92uPf6pJ9F6ybm40
+         +vSHK9RR6/EKIsz60yEQGpmxw/HvG+8vXOvoNzpJnP/BkF3BDanGBewNsnjCtRuVTlyP
+         nLXw==
+X-Gm-Message-State: APjAAAVXZ29NJ5+s+Ixdrm6uorxU9nygU+UeEJ+W7v3ZafMhsKPB0FTt
+        GiUfd+Tgn4bgyDhkR0/G4g==
+X-Google-Smtp-Source: APXvYqw/YxGTVwnNKlpuA3uD9sM6flGAHi8+d83Le3CISyPzirIutMdC8fAuRT8CXKIIhzZ+j6oavQ==
+X-Received: by 2002:a17:902:112c:: with SMTP id d41mr8479044pla.177.1552720816243;
+        Sat, 16 Mar 2019 00:20:16 -0700 (PDT)
 Received: from localhost ([2001:19f0:7001:54c5:5400:1ff:fec8:7fc2])
-        by smtp.gmail.com with ESMTPSA id a1sm4663955pgt.11.2019.03.15.23.06.51
+        by smtp.gmail.com with ESMTPSA id 195sm5197643pfc.50.2019.03.16.00.20.14
         (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Fri, 15 Mar 2019 23:06:52 -0700 (PDT)
+        Sat, 16 Mar 2019 00:20:14 -0700 (PDT)
 From:   Jacky Hu <hengqing.hu@gmail.com>
 To:     hengqing.hu@gmail.com
 Cc:     jacky.hu@walmart.com, jason.niesz@walmart.com,
-        "David S. Miller" <davem@davemloft.net>,
-        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
         Wensong Zhang <wensong@linux-vs.org>,
         Simon Horman <horms@verge.net.au>,
         Julian Anastasov <ja@ssi.bg>,
+        "David S. Miller" <davem@davemloft.net>,
+        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
         Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
         Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org,
         lvs-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-Subject: [PATCH v2] ipvs: allow tunneling with gue encapsulation
-Date:   Sat, 16 Mar 2019 14:06:33 +0800
-Message-Id: <20190316060635.2594-1-hengqing.hu@gmail.com>
+Subject: [PATCH v3] ipvs: allow tunneling with gue encapsulation
+Date:   Sat, 16 Mar 2019 15:20:07 +0800
+Message-Id: <20190316072009.2247-1-hengqing.hu@gmail.com>
 X-Mailer: git-send-email 2.21.0
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -88,10 +88,10 @@ tunneling working in those environments.
 Signed-off-by: Jacky Hu <hengqing.hu@gmail.com>
 ---
  include/net/ip_vs.h             |  5 ++
- include/uapi/linux/ip_vs.h      | 17 +++++++
- net/netfilter/ipvs/ip_vs_ctl.c  | 20 +++++++-
- net/netfilter/ipvs/ip_vs_xmit.c | 85 +++++++++++++++++++++++++++++++--
- 4 files changed, 122 insertions(+), 5 deletions(-)
+ include/uapi/linux/ip_vs.h      | 17 ++++++
+ net/netfilter/ipvs/ip_vs_ctl.c  | 20 ++++++-
+ net/netfilter/ipvs/ip_vs_xmit.c | 93 +++++++++++++++++++++++++++++++--
+ 4 files changed, 130 insertions(+), 5 deletions(-)
 
 diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
 index a0d2e0bb9a94..56c1770b00fe 100644
@@ -230,7 +230,7 @@ index 432141f04af3..48509b03a5ea 100644
  
  	return 0;
 diff --git a/net/netfilter/ipvs/ip_vs_xmit.c b/net/netfilter/ipvs/ip_vs_xmit.c
-index 473cce2a5231..3efb46a14163 100644
+index 473cce2a5231..e748c5605b04 100644
 --- a/net/netfilter/ipvs/ip_vs_xmit.c
 +++ b/net/netfilter/ipvs/ip_vs_xmit.c
 @@ -32,6 +32,7 @@
@@ -301,7 +301,7 @@ index 473cce2a5231..3efb46a14163 100644
  		goto tx_error;
  	if (local)
  		return ip_vs_send_or_cont(NFPROTO_IPV4, skb, cp, 1);
-@@ -1046,6 +1084,13 @@ ip_vs_tunnel_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
+@@ -1046,6 +1084,14 @@ ip_vs_tunnel_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
  	 */
  	max_headroom = LL_RESERVED_SPACE(tdev) + sizeof(struct iphdr);
  
@@ -310,21 +310,24 @@ index 473cce2a5231..3efb46a14163 100644
 +	switch (tun_type) {
 +	case IP_VS_CONN_F_TUNNEL_TYPE_GUE:
 +		max_headroom += sizeof(struct udphdr) + sizeof(struct guehdr);
++		break;
 +	}
 +
  	/* We only care about the df field if sysctl_pmtu_disc(ipvs) is set */
  	dfp = sysctl_pmtu_disc(ipvs) ? &df : NULL;
  	skb = ip_vs_prepare_tunneled_skb(skb, cp->af, max_headroom,
-@@ -1054,11 +1099,23 @@ ip_vs_tunnel_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
+@@ -1054,11 +1100,26 @@ ip_vs_tunnel_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
  	if (IS_ERR(skb))
  		goto tx_error;
  
 -	if (iptunnel_handle_offloads(skb, __tun_gso_type_mask(AF_INET, cp->af)))
 +	switch (tun_type) {
-+	case IP_VS_CONN_F_TUNNEL_TYPE_IPIP:
-+		gso_type = __tun_gso_type_mask(AF_INET, cp->af);
 +	case IP_VS_CONN_F_TUNNEL_TYPE_GUE:
 +		gso_type = SKB_GSO_UDP_TUNNEL;
++		break;
++	default:
++		gso_type = __tun_gso_type_mask(AF_INET, cp->af);
++		break;
 +	}
 +
 +	if (iptunnel_handle_offloads(skb, gso_type))
@@ -335,12 +338,13 @@ index 473cce2a5231..3efb46a14163 100644
 +	switch (tun_type) {
 +	case IP_VS_CONN_F_TUNNEL_TYPE_GUE:
 +		__build_gue_header(dev_net(tdev), skb, cp, &next_protocol);
++		break;
 +	}
 +
  	skb_push(skb, sizeof(struct iphdr));
  	skb_reset_network_header(skb);
  	memset(&(IPCB(skb)->opt), 0, sizeof(IPCB(skb)->opt));
-@@ -1112,6 +1169,7 @@ ip_vs_tunnel_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
+@@ -1112,6 +1173,7 @@ ip_vs_tunnel_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
  	struct ipv6hdr  *iph;		/* Our new IP header */
  	unsigned int max_headroom;	/* The extra header space needed */
  	int ret, local;
@@ -348,7 +352,7 @@ index 473cce2a5231..3efb46a14163 100644
  
  	EnterFunction(10);
  
-@@ -1121,7 +1179,7 @@ ip_vs_tunnel_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
+@@ -1121,7 +1183,7 @@ ip_vs_tunnel_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
  				      IP_VS_RT_MODE_LOCAL |
  				      IP_VS_RT_MODE_NON_LOCAL |
  				      IP_VS_RT_MODE_TUNNEL);
@@ -357,7 +361,7 @@ index 473cce2a5231..3efb46a14163 100644
  		goto tx_error;
  	if (local)
  		return ip_vs_send_or_cont(NFPROTO_IPV6, skb, cp, 1);
-@@ -1134,17 +1192,36 @@ ip_vs_tunnel_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
+@@ -1134,17 +1196,40 @@ ip_vs_tunnel_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
  	 */
  	max_headroom = LL_RESERVED_SPACE(tdev) + sizeof(struct ipv6hdr);
  
@@ -366,6 +370,7 @@ index 473cce2a5231..3efb46a14163 100644
 +	switch (tun_type) {
 +	case IP_VS_CONN_F_TUNNEL_TYPE_GUE:
 +		max_headroom += sizeof(struct udphdr) + sizeof(struct guehdr);
++		break;
 +	}
 +
  	skb = ip_vs_prepare_tunneled_skb(skb, cp->af, max_headroom,
@@ -376,10 +381,12 @@ index 473cce2a5231..3efb46a14163 100644
  
 -	if (iptunnel_handle_offloads(skb, __tun_gso_type_mask(AF_INET6, cp->af)))
 +	switch (tun_type) {
-+	case IP_VS_CONN_F_TUNNEL_TYPE_IPIP:
-+		gso_type = __tun_gso_type_mask(AF_INET, cp->af);
 +	case IP_VS_CONN_F_TUNNEL_TYPE_GUE:
 +		gso_type = SKB_GSO_UDP_TUNNEL;
++		break;
++	default:
++		gso_type = __tun_gso_type_mask(AF_INET, cp->af);
++		break;
 +	}
 +
 +	if (iptunnel_handle_offloads(skb, gso_type))
@@ -390,6 +397,7 @@ index 473cce2a5231..3efb46a14163 100644
 +	switch (tun_type) {
 +	case IP_VS_CONN_F_TUNNEL_TYPE_GUE:
 +		__build_gue_header(dev_net(tdev), skb, cp, &next_protocol);
++		break;
 +	}
 +
  	skb_push(skb, sizeof(struct ipv6hdr));
