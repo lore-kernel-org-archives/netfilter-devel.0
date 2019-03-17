@@ -2,79 +2,83 @@ Return-Path: <SRS0=LKNA=RU=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,
+	UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C85EC43381
-	for <netfilter-devel@archiver.kernel.org>; Sun, 17 Mar 2019 17:10:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D9C79C43381
+	for <netfilter-devel@archiver.kernel.org>; Sun, 17 Mar 2019 17:27:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6069F2082F
-	for <netfilter-devel@archiver.kernel.org>; Sun, 17 Mar 2019 17:10:56 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=riseup.net header.i=@riseup.net header.b="Aawe8I73"
+	by mail.kernel.org (Postfix) with ESMTP id ADFC920872
+	for <netfilter-devel@archiver.kernel.org>; Sun, 17 Mar 2019 17:27:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726717AbfCQRK4 (ORCPT
+        id S1727139AbfCQR1R (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 17 Mar 2019 13:10:56 -0400
-Received: from mx1.riseup.net ([198.252.153.129]:56320 "EHLO mx1.riseup.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726446AbfCQRKz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 17 Mar 2019 13:10:55 -0400
-Received: from bell.riseup.net (bell-pn.riseup.net [10.0.1.178])
-        (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
-        (Client CN "*.riseup.net", Issuer "COMODO RSA Domain Validation Secure Server CA" (verified OK))
-        by mx1.riseup.net (Postfix) with ESMTPS id 973AD1A1627;
-        Sun, 17 Mar 2019 10:10:54 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=riseup.net; s=squak;
-        t=1552842655; bh=XxKmQwVdgMKSAjX9pDnG1wswNVodWPXkIID/56jhVOc=;
-        h=Subject:To:Cc:References:From:Date:In-Reply-To:From;
-        b=Aawe8I732T+HDDFzvfikzFO9Ak/g7z4TdtQ82MTHjh3mp+O6Gb7jj0QJZygGN1No7
-         HN7lSoIPywM8uVP1g0uZD4v+wkSd5R5i7zVj58NKhPrC/VDLL9JDbMjyJ2fwJgXVmS
-         JBj3hFONiuKXHBrAdXKaj4MHQq6pkh+njcJnl+Y4=
-X-Riseup-User-ID: 020A19009AE3DC2A1AE4D76630AFE6CE92DD5F624326CAEFD1719DE716E6A0F9
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-         by bell.riseup.net (Postfix) with ESMTPSA id AB94D222CC1;
-        Sun, 17 Mar 2019 10:10:52 -0700 (PDT)
-Subject: Re: [PATCH nft v2 1/6] osf: add version fingerprint support
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
-References: <20190314201309.iqdyb7icreyyhhke@salvia>
- <20190314200737.erhjrhoaciclapsn@salvia>
- <27D82259-F921-48E0-A718-A08E2BCCAACD@riseup.net>
- <20190315100333.GD3511@orbyte.nwl.cc>
- <20190315171328.c5xgazye2hattjxr@salvia>
- <1eb195ad-028e-5760-c4c8-1062441231c9@riseup.net>
- <20190316090559.yky2tctzfzhyjs6g@salvia>
-From:   Fernando Fernandez Mancera <ffmancera@riseup.net>
-Openpgp: preference=signencrypt
-Message-ID: <218d665e-0662-6d5e-cc1e-b2c4aefd5833@riseup.net>
-Date:   Sun, 17 Mar 2019 18:10:59 +0100
+        Sun, 17 Mar 2019 13:27:17 -0400
+Received: from youngberry.canonical.com ([91.189.89.112]:52350 "EHLO
+        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726576AbfCQR1R (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 17 Mar 2019 13:27:17 -0400
+Received: from 1.general.cking.uk.vpn ([10.172.193.212] helo=localhost)
+        by youngberry.canonical.com with esmtpsa (TLS1.0:RSA_AES_256_CBC_SHA1:32)
+        (Exim 4.76)
+        (envelope-from <colin.king@canonical.com>)
+        id 1h5ZYx-0007Dy-6E; Sun, 17 Mar 2019 17:27:07 +0000
+From:   Colin King <colin.king@canonical.com>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>,
+        "David S . Miller" <davem@davemloft.net>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org
+Cc:     kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] netfilter: nf_tables: remove unused parameter ctx
+Date:   Sun, 17 Mar 2019 17:27:06 +0000
+Message-Id: <20190317172706.26050-1-colin.king@canonical.com>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
-In-Reply-To: <20190316090559.yky2tctzfzhyjs6g@salvia>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US-large
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+From: Colin Ian King <colin.king@canonical.com>
 
+Function nf_tables_set_desc_parse parameter ctx is not being used
+so remove it as it is redundant.
 
-On 3/16/19 10:05 AM, Pablo Neira Ayuso wrote:
-> On Fri, Mar 15, 2019 at 09:21:56PM +0100, Fernando Fernandez Mancera wrote:
-> [...]
->> We can hide the flags for the json support if needed by counting the
->> numbers of colons.
-> 
-> No need to parse colons, we can map:
-> 
->         osf genre
->         osf version
-> 
-> to json, I think.
-> 
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+---
+ net/netfilter/nf_tables_api.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-Yes, you are right. Then, if everyone agree I can start to work on these
-changes. Thanks! :-)
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index faf6bd10a19f..e9d6f4c32a03 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -3434,8 +3434,7 @@ static int nf_tables_getset(struct net *net, struct sock *nlsk,
+ 	return err;
+ }
+ 
+-static int nf_tables_set_desc_parse(const struct nft_ctx *ctx,
+-				    struct nft_set_desc *desc,
++static int nf_tables_set_desc_parse(struct nft_set_desc *desc,
+ 				    const struct nlattr *nla)
+ {
+ 	struct nlattr *da[NFTA_SET_DESC_MAX + 1];
+@@ -3561,7 +3560,7 @@ static int nf_tables_newset(struct net *net, struct sock *nlsk,
+ 		policy = ntohl(nla_get_be32(nla[NFTA_SET_POLICY]));
+ 
+ 	if (nla[NFTA_SET_DESC] != NULL) {
+-		err = nf_tables_set_desc_parse(&ctx, &desc, nla[NFTA_SET_DESC]);
++		err = nf_tables_set_desc_parse(&desc, nla[NFTA_SET_DESC]);
+ 		if (err < 0)
+ 			return err;
+ 	}
+-- 
+2.20.1
+
