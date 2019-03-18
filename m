@@ -2,138 +2,184 @@ Return-Path: <SRS0=5Ubq=RV=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.3 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+X-Spam-Status: No, score=-5.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,USER_AGENT_MUTT autolearn=ham autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DDA72C43381
-	for <netfilter-devel@archiver.kernel.org>; Mon, 18 Mar 2019 09:47:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E99FC43381
+	for <netfilter-devel@archiver.kernel.org>; Mon, 18 Mar 2019 10:20:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id ACC162075C
-	for <netfilter-devel@archiver.kernel.org>; Mon, 18 Mar 2019 09:47:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2293D2082F
+	for <netfilter-devel@archiver.kernel.org>; Mon, 18 Mar 2019 10:20:13 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="V/+gXrTf"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="PQ5q78bj"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728099AbfCRJrw (ORCPT
+        id S1727505AbfCRKUM (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 18 Mar 2019 05:47:52 -0400
-Received: from mail-pf1-f182.google.com ([209.85.210.182]:46989 "EHLO
-        mail-pf1-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727777AbfCRJrw (ORCPT
+        Mon, 18 Mar 2019 06:20:12 -0400
+Received: from mail-qk1-f176.google.com ([209.85.222.176]:41491 "EHLO
+        mail-qk1-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727470AbfCRKUJ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 18 Mar 2019 05:47:52 -0400
-Received: by mail-pf1-f182.google.com with SMTP id s23so10868075pfe.13
-        for <netfilter-devel@vger.kernel.org>; Mon, 18 Mar 2019 02:47:51 -0700 (PDT)
+        Mon, 18 Mar 2019 06:20:09 -0400
+Received: by mail-qk1-f176.google.com with SMTP id o129so9242866qke.8;
+        Mon, 18 Mar 2019 03:20:08 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
-        h=date:from:to:cc:subject:message-id:mime-version:content-description
-         :content-disposition:user-agent;
-        bh=Eu+Ktlc6lSZemU8vuAm64gENu/t28Lr9soShJaEOI6Y=;
-        b=V/+gXrTf7JhvDlvU5Im3CN71Tr8jk0Brr0Xv++M1y3f/2Y0nESH8XJjUgJ7uM+pfwT
-         D6o5Rk0JjWkbD1TNFtdoaSNr4XKyOV1bc3MA8t+cs/BmN9YUZGwm48NkaCH8xYEOEFN4
-         JrsBeXLcqkscOSkuS0AjPXSRFtL8pqpSOiFWdBal6aUIhfdC/0/OrmR8eLF8Mx9pF1k4
-         HrCv6JFlXNXorYD/gv6w5HooLwGrEMv7vTO5SvN17vyzftJuQdtIDEEUNYOBKPBLJJHn
-         N9tJt/ueedl12AFoRta2qtHMigZPo9UuD5wqGFJN0KSHbPaIpfHcVZDWXHz34su7YkFL
-         QtOg==
+        h=mime-version:from:date:message-id:subject:to;
+        bh=sSHqRW7sJKxqIa/v0+CX4jlRjlbd5klDL0lzlrn1kVI=;
+        b=PQ5q78bjhrLXk6K55wKqwpV5ngCfWQPvw7paEtEoxxQlh33ZLal91JOXpaXf6mJMvK
+         5kh4s2zKUdhgdRlmyvqCSX1ZnDdW3Iy+8LbFNPNb3eyzqnCrXE8sTNRfDLtzY59ih+bB
+         h4HR2SqmHhTKxq48VTyP9cq//kOVDYLgFWqVNJ/zueCVbUVwG6556CuMtTqR4fZDnvDk
+         EjubTnMAvaD2yJFCLBlAf7WmhKnKZsfqu3YaGck1iBYCG6ZbJeRhQpLeDa/mcYZgfIzU
+         XWM6rNR8iiio75GB+uvHEr/4pEXL1lElO4w4mHhEmeOHCOcOn8FY0ZhvzWvKZKFSoPdO
+         fTEA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:mime-version
-         :content-description:content-disposition:user-agent;
-        bh=Eu+Ktlc6lSZemU8vuAm64gENu/t28Lr9soShJaEOI6Y=;
-        b=WT2y4wMARSYI66tXoB67oKTeDu7VeQxm1C2070y88cCGKDMgU5sa+h1YtFzBtzmLdC
-         gOMTsD38J9k6Q+o/0k1sAf+0eSWz5mN7HJ6SmklDZyyX0TzKSXsg34MetvSlcTzQV5Kz
-         sadou7hYOlDn/doJDKSpNKqcA077131/fdhXf5fM6fdLvN7rIenELaLvEzEDXrS4RJRz
-         2pSmTqO78kVAsHIJJhGcCxITdzC3Aq9XHOYSBFAVDFh5PybdDGftsYEKrsJdpMNCorbs
-         e+QrqFpB/rSk2uR1Bg62Kx3OxyicLiz6AN6K5tC5VODyV/XeEnOpDjd6YLLed27U0J7R
-         tDlg==
-X-Gm-Message-State: APjAAAVXy1JCSWAHsiaMTCzNaP5IUZMknXJ0byPn8iOy9tWzuQVpBIiA
-        CxJbdcNMeC7cITz5i37QYYK35n9f4mA=
-X-Google-Smtp-Source: APXvYqyweTZ2qw8dJD8Vp5+2eUubtU24NLDtbntOSYnyDcxf+70fLgzBC4dD4mNT3Rk9kxp9St/XJw==
-X-Received: by 2002:a62:a10c:: with SMTP id b12mr18038818pff.234.1552902471086;
-        Mon, 18 Mar 2019 02:47:51 -0700 (PDT)
-Received: from nebula ([103.210.49.131])
-        by smtp.gmail.com with ESMTPSA id l28sm24876021pfi.186.2019.03.18.02.47.48
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-SHA bits=128/128);
-        Mon, 18 Mar 2019 02:47:50 -0700 (PDT)
-Date:   Mon, 18 Mar 2019 15:17:45 +0530
-From:   Karuna Grewal <karunagrewal98@gmail.com>
-To:     pablo@netfilter.org, fw@strlen.de
-Cc:     netfilter-devel@vger.kernel.org
-Subject: [nftables] tests/py: Add Test for `meta time`
-Message-ID: <20190318094745.GA4394@nebula>
+        h=x-gm-message-state:mime-version:from:date:message-id:subject:to;
+        bh=sSHqRW7sJKxqIa/v0+CX4jlRjlbd5klDL0lzlrn1kVI=;
+        b=rMKAJuCkh6jIFK/xOF3xR5wmxHO2o70etg0WTAy1eNFzVkUsF+HwI0HuGWjEI+HGG7
+         3+y4VDPP3xwoX3SlEY2Gar6AMJZUzZkSoPULCRMVa+OFERBTEZId2Z+Lz9NEzdkJK96o
+         0ToJFbmjt0FIanuiUIa+WSUHcvC/E3Ej1rfiEYfa/79BGpnB6llAMAgvZ0/m7RRGxRHr
+         Xeyy0t+s53CcK0+1O6CuCTIy3v4u88c3ZiE86HH1M8KpRr37csXvIm/bEPHy2ulBAZJc
+         p30UyfY/UOvqEiprS7MTcB6RDkxEIOtAHbhiVaYffGJ/1wj+13kKlWb+0mA7Ax4tfUNw
+         dUOA==
+X-Gm-Message-State: APjAAAWZfNUG+N87qFRV8Ywk8iUNjJrWhTL9bVP+okWE8cj9KlKrwBiS
+        7eNkNccK6Z4fJVeWX/ZDnS8CBjyjVr3qf63u/dE02AKM
+X-Google-Smtp-Source: APXvYqzAJRG0zlWjKYb19utcjEqUGBxgrQnQ/jfMX1aJ8JfnT/V33GgvkhKhnO8tcmq7hDLkQfEannPjIX7mYLY8/qc=
+X-Received: by 2002:a37:5e82:: with SMTP id s124mr12584280qkb.156.1552904407606;
+ Mon, 18 Mar 2019 03:20:07 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Description: test-meta-time
-Content-Disposition: inline
-User-Agent: Mutt/1.9.4 (2018-02-28)
-X-Cyberoam-smtpxy-version: 1.0.6.3
-X-Cyberoam-AV-Policy: default
-X-CTCH-PVer:  0000001
-X-CTCH-Spam:  Unknown
-X-CTCH-VOD:  Unknown
-X-CTCH-Flags:  0
-X-CTCH-RefID:  str=0001.0A150207.5C8F6946.0007,ss=1,re=0.000,recu=0.000,reip=0.000,cl=1,cld=1,fgs=0
-X-CTCH-Score:  0.000
-X-CTCH-ScoreCust:  0.000
-X-CTCH-Rules:  
+From:   Laura Garcia <nevola@gmail.com>
+Date:   Mon, 18 Mar 2019 11:19:56 +0100
+Message-ID: <CAF90-WiG3FOzNkFV+v=5O=hJevNoj44pk=kTVZP=mgr22=WwzA@mail.gmail.com>
+Subject: [ANNOUNCE] nftlb 0.4 release
+To:     Mail List - Netfilter <netfilter@vger.kernel.org>,
+        Netfilter Development Mailing list 
+        <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Signed-off-by: Karuna Grewal <karunagrewal98@gmail.com>
----
- tests/py/any/meta.t         |  3 +++
- tests/py/any/meta.t.json    | 12 ++++++++++++
- tests/py/any/meta.t.payload |  5 +++++
- 3 files changed, 20 insertions(+)
+Hi!
 
-diff --git a/tests/py/any/meta.t b/tests/py/any/meta.t
-index d69b8b4e..3d23dc75 100644
---- a/tests/py/any/meta.t
-+++ b/tests/py/any/meta.t
-@@ -205,3 +205,6 @@ meta iif . meta oif vmap { "lo" . "lo" : drop };ok;iif . oif vmap { "lo" . "lo"
- 
- meta random eq 1;ok;meta random 1
- meta random gt 1000000;ok;meta random > 1000000
-+
-+meta time 100;ok;meta timestamp 1m40s
-+meta time ;fail
-diff --git a/tests/py/any/meta.t.json b/tests/py/any/meta.t.json
-index 2cf91cda..faef4e26 100644
---- a/tests/py/any/meta.t.json
-+++ b/tests/py/any/meta.t.json
-@@ -2499,3 +2499,15 @@
-     }
- ]
- 
-+# meta time 100
-+[
-+    {
-+        "match": {
-+            "left": {
-+                "meta": { "key": "time" }
-+            },
-+            "op": "==",
-+            "right": 100
-+        }
-+    }
-+]
-\ No newline at end of file
-diff --git a/tests/py/any/meta.t.payload b/tests/py/any/meta.t.payload
-index b32770f5..71c68e42 100644
---- a/tests/py/any/meta.t.payload
-+++ b/tests/py/any/meta.t.payload
-@@ -1021,3 +1021,8 @@ ip test-ip4 input
-   [ meta load priority => reg 1 ]
-   [ cmp eq reg 1 0x87654321 ]
- 
-+# meta time 100
-+ip test-ip4 input
-+  [ meta load timestamp => reg 1 ]
-+  [ cmp eq reg 1 0x00000064 ]
-+
--- 
-2.17.1
+I'm honored to present
 
+    nftlb 0.4
+
+nftlb stands for nftables load balancer, a user space tool
+that builds a complete load balancer and traffic distributor
+using the nft infrastructure.
+
+nftlb is a nftables rules manager that creates virtual services
+for load balancing at layer 2, layer 3 and layer 4, minimizing
+the number of rules and using structures to match efficiently the
+packets. It comes with an easy JSON API service to control,
+to monitor and to automate the configuration.
+
+Most important changes in this version are:
+* Security Policies per virtual service including:
+ - White and blacklisting
+ - Queuing packets to user space
+ - TCP flow validation
+ - Maximum of established connections
+ - TCP resets per second allowed
+ - Limit of new connections per service
+* Configurable hashing parameters based on source/destination ip
+address, source/destination port, source/destination MAC address, or
+combinations of them.
+* Configurable persistence for client-backend affinity with a timeout
+based on source/destination ip address, source/destination port,
+source/destination MAC address, or combinations of them.
+
+For further details, please refer to the official repository:
+
+https://github.com/zevenet/nftlb
+
+You can download this tool from:
+
+https://github.com/zevenet/nftlb/releases/tag/v0.4
+
+Happy load balancing!
+
+--
+Detailed changelog:
+
+New features
+- farms: add persistence between client and backend during a timeout
+- policies: support of security policies per virtual service
+- farms: support of queuing packets to user space per service
+- farms: support of tcp flow validation per service
+- farms: support of max established connections per virtual service
+per source address
+- farms: support of tcp resets per second allowed per virtual service
+per source address
+- farms: support of new connections limit per second per virtual
+service and optional burst
+- farms: add configurable hashing parameters
+- src: support of delete all farms at once
+
+Improvements
+- nft: refactor farm rules generation code
+- server: add long body support
+- config: parsing json values hardening
+- nft: fix helpers rules according to protocol
+- readme: update the new parameter tcp-strict to avoid bogus tcp attacks
+- farms: enable mac discovery for stateless dnat
+- main: hide the key parameter when the process is running for security reasons
+- nft: separate services by interface name for ingress modes
+- farms: force the network data reload when changing the virtual ip
+- farm: set masquerade if source addr is empty
+- nft: add prerouting filter chain for marking and helpers
+- buffer: remove debug messages
+- farm: set default scheduler parameter for hash algorithm only
+- config: use string keys as much as possible
+- readme: add stateless nat mode option
+- tests: allow launch of one single test without service
+- buffer: fix code identation
+- backends: only actionable if the backend is available
+- backends: declare actionable functions
+- buffer: support of scalable buffer
+- backends: enable restart of backends after configuration
+- nft: apply reset action per farm and backends
+- nft: generalize actions for add or deletion postrouting elements
+- farms: rename farm source-addr attribute instead of src-addr
+- config: print marks in hex format
+- tests: support to launch tests through web api
+- build: move -lev to LDADD
+- build: move preprocessor flags to CPPFLAGS
+
+Bugfixes
+- config: return error when an object has not been selected
+- backends: avoid go to config_error after setting dnat ip addresses
+- nft: fix stateless dnat rules when the input and output interfaces
+are different
+- nft: fix service name for stateless nat
+- backend: fix backend validation during automated mac address request
+- network: protect double free in handle
+- server: fix double free segfault
+- backends: fix backend validation when applying dsr mode
+- farms: strim virtual interfaces for ingress chains
+- nft: fix add element filter rules in reload
+- nft: fix stateless dnat rules actions
+- nft: avoid the use of filter chain and backend marks for ingress
+- nft: avoid empty rules in filter chain when there is no backends
+- backends: apply reload if changing the state of a backend
+- nft: fix skb mark insertion from ct mark in filter chain
+- nft: fix flush and delete chain filter
+- nft: fix delete filter service and chain
+- nft: fix delete elements from filter chain
+- nft: avoid rules generation if there is no backend available
+- backends: fix backend availability for ingress modes
+- logs: fix set log level at startup
+- objects: avoid buffer copy overlap
+- buffer: fix typo in error message
+- backends: fix backend going down
+- Remove config.h file from .gitignore
+- src: fix string copy sizes
+- src: add a cleanup parsing structures to avoid null objects references
+- config: fix farm mark json dump
+- server: fix parse input body that produces buffer parsing error
