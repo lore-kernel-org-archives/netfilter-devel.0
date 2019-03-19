@@ -6,56 +6,85 @@ X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_NEOMUTT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1C459C43381
-	for <netfilter-devel@archiver.kernel.org>; Tue, 19 Mar 2019 07:50:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 92C8AC43381
+	for <netfilter-devel@archiver.kernel.org>; Tue, 19 Mar 2019 11:06:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id EB47220989
-	for <netfilter-devel@archiver.kernel.org>; Tue, 19 Mar 2019 07:50:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6C84120857
+	for <netfilter-devel@archiver.kernel.org>; Tue, 19 Mar 2019 11:06:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726573AbfCSHuk (ORCPT
+        id S1727474AbfCSLG2 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 19 Mar 2019 03:50:40 -0400
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:49904 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726465AbfCSHuk (ORCPT
+        Tue, 19 Mar 2019 07:06:28 -0400
+Received: from ganesha.gnumonks.org ([213.95.27.120]:50123 "EHLO
+        ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727210AbfCSLG2 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 19 Mar 2019 03:50:40 -0400
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.89)
-        (envelope-from <fw@strlen.de>)
-        id 1h69WA-0002M1-Bl; Tue, 19 Mar 2019 08:50:38 +0100
-Date:   Tue, 19 Mar 2019 08:50:38 +0100
-From:   Florian Westphal <fw@strlen.de>
-To:     Karuna Grewal <karunagrewal98@gmail.com>
-Cc:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-Subject: Re: [nftables] tests/py: Add Test for `meta time`
-Message-ID: <20190319075038.3t2jvc3vcje55h6k@breakpoint.cc>
-References: <20190318094745.GA4394@nebula>
- <CAHRz_yZMsP2RQPu=8pTigq8SrYz9xYSef3S_d4ORAMkkYDEv4Q@mail.gmail.com>
- <20190318105545.qz5oddbjah4qc4fa@breakpoint.cc>
- <CAHRz_yYk_Yq5+Tp1J1jT2rVT0pHWjH37-F8Rdi1XCLWj79J6rg@mail.gmail.com>
- <20190318220923.5v64yccan6shhpnq@breakpoint.cc>
- <CAHRz_yY=yrrMJS98s6cq9sRP_nrSNrv5kKCPxKT+BAj_GGS5hw@mail.gmail.com>
- <20190319071705.lyjjd3dqz2zwc6vm@breakpoint.cc>
- <CAHRz_yZe8j_83vTjYXbBHME69Qd=X0XfoR-5A81KoqKqWKP53g@mail.gmail.com>
+        Tue, 19 Mar 2019 07:06:28 -0400
+Received: from [195.39.71.253] (helo=gnumonks.org)
+        by ganesha.gnumonks.org with esmtpsa (TLS1.2:ECDHE_RSA_AES_256_GCM_SHA384:256)
+        (Exim 4.84_2)
+        (envelope-from <pablo@gnumonks.org>)
+        id 1h6CZd-0006kI-6S; Tue, 19 Mar 2019 12:06:27 +0100
+Date:   Tue, 19 Mar 2019 12:06:24 +0100
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Phil Sutter <phil@nwl.cc>,
+        Fernando Fernandez Mancera <ffmancera@riseup.net>,
+        netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft v2 1/6] osf: add version fingerprint support
+Message-ID: <20190319110624.dy7wqatdtrxy3452@salvia>
+References: <20190314201309.iqdyb7icreyyhhke@salvia>
+ <20190314200737.erhjrhoaciclapsn@salvia>
+ <27D82259-F921-48E0-A718-A08E2BCCAACD@riseup.net>
+ <20190315100333.GD3511@orbyte.nwl.cc>
+ <20190315171328.c5xgazye2hattjxr@salvia>
+ <20190318174243.GT4851@orbyte.nwl.cc>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CAHRz_yZe8j_83vTjYXbBHME69Qd=X0XfoR-5A81KoqKqWKP53g@mail.gmail.com>
+In-Reply-To: <20190318174243.GT4851@orbyte.nwl.cc>
 User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Karuna Grewal <karunagrewal98@gmail.com> wrote:
-> Thanks. I checked that in the userspace the enum nft_meta_keys has
-> additional values as compared to the linux 5.0.2 's nft_meta_keys but
-> this isn't the case with the nf-next.
-> I'll run the tests again with the nf-next kernel tree.
-> Also, does this mean that I should stick to the nf-next kernel tree
-> instead of the latest kernel release itself?
+Hi Phil,
 
-nf-next lags behind at the moment, it will catch up soon.
+On Mon, Mar 18, 2019 at 06:42:43PM +0100, Phil Sutter wrote:
+> On Fri, Mar 15, 2019 at 06:13:28PM +0100, Pablo Neira Ayuso wrote:
+[...]
+> > * Kernel would need to inconditionally build the OS:version string.
+> 
+> Yes, exactly. nft_osf.c would return "OS:version:subtype:opt" and
+> nft_cmp.c will do the right thing if nft_cmp_expr->len is set to RHS
+> length.
 
-So, meanwhile you can use nf or even linus tree until nf-next is
-back in sync.
+Problem are sets. They need a fixed size for the string, or we would
+need to adjust the size to the largest string in the set. In case of
+dynamic sets, this boils down to the maximum string length since we
+don't know what the length of future element would be.
+
+> > * We may need to ask users to break existing osf ruleset so they
+> >   explicitly add the wildcard at the end, ie.
+> > 
+> >         osf name "Windows\*"
+> >         osf name "Linux:4.\*"
+> 
+> Not if cmp expr len is set correctly.
+
+cmp expr len is set correctly using the wildcard.
+
+I think we should aim to make this work fine with sets and maps. The
+wildcard cannot be used from there, where exact matches are needed. We
+should encourage users to use osf with sets and maps.
+
+> > then, in the future (if ever needed) add subtypes:
+> > 
+> >         osf subtype "Linux:2.4:cluster"
+> 
+> IMHO this is still redundant: RHS contains <something>:<something>, user
+> wants to match on OS and version. RHS contains <sth>:<sth>:<sth>, user
+> wants to match on OS, version and subtype.
+
+This is not possible with dynamic sets, there the set may be empty so
+we do not know how many colons will be used :-)
