@@ -2,74 +2,86 @@ Return-Path: <SRS0=OoGW=RW=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 26F9AC4360F
-	for <netfilter-devel@archiver.kernel.org>; Tue, 19 Mar 2019 14:40:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BB582C43381
+	for <netfilter-devel@archiver.kernel.org>; Tue, 19 Mar 2019 15:16:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 00C142173C
-	for <netfilter-devel@archiver.kernel.org>; Tue, 19 Mar 2019 14:40:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9718420850
+	for <netfilter-devel@archiver.kernel.org>; Tue, 19 Mar 2019 15:16:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726876AbfCSOku (ORCPT
+        id S1727196AbfCSPQn (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 19 Mar 2019 10:40:50 -0400
-Received: from szxga07-in.huawei.com ([45.249.212.35]:44158 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726612AbfCSOku (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 19 Mar 2019 10:40:50 -0400
-Received: from DGGEMS407-HUB.china.huawei.com (unknown [172.30.72.58])
-        by Forcepoint Email with ESMTP id 2A5E5CC1D6BFA3BF465D;
-        Tue, 19 Mar 2019 22:40:46 +0800 (CST)
-Received: from localhost (10.177.31.96) by DGGEMS407-HUB.china.huawei.com
- (10.3.19.207) with Microsoft SMTP Server id 14.3.408.0; Tue, 19 Mar 2019
- 22:40:35 +0800
-From:   Yue Haibing <yuehaibing@huawei.com>
-To:     <davem@davemloft.net>, <pablo@netfilter.org>,
-        <kadlec@blackhole.kfki.hu>, <fw@strlen.de>
-CC:     <linux-kernel@vger.kernel.org>, <netdev@vger.kernel.org>,
-        <coreteam@netfilter.org>, <netfilter-devel@vger.kernel.org>,
-        YueHaibing <yuehaibing@huawei.com>
-Subject: [PATCH net-next] netfilter: nft_redir: Make nft_redir_dump static
-Date:   Tue, 19 Mar 2019 22:40:21 +0800
-Message-ID: <20190319144021.21720-1-yuehaibing@huawei.com>
-X-Mailer: git-send-email 2.10.2.windows.1
-MIME-Version: 1.0
-Content-Type: text/plain
-X-Originating-IP: [10.177.31.96]
-X-CFilter-Loop: Reflected
+        Tue, 19 Mar 2019 11:16:43 -0400
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:46171 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726839AbfCSPQn (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 19 Mar 2019 11:16:43 -0400
+Received: from kresse.hi.pengutronix.de ([2001:67c:670:100:1d::2a])
+        by metis.ext.pengutronix.de with esmtp (Exim 4.89)
+        (envelope-from <l.stach@pengutronix.de>)
+        id 1h6GTp-0004uw-GL; Tue, 19 Mar 2019 16:16:41 +0100
+Message-ID: <1553008601.4806.7.camel@pengutronix.de>
+Subject: Re: [PATCH] xtables-legacy: add missing config.h include
+From:   Lucas Stach <l.stach@pengutronix.de>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Date:   Tue, 19 Mar 2019 16:16:41 +0100
+In-Reply-To: <20190318154214.snghtdepv4h3e4k4@salvia>
+References: <20190308143709.27721-1-l.stach@pengutronix.de>
+         <20190318154214.snghtdepv4h3e4k4@salvia>
+Content-Type: text/plain; charset="UTF-8"
+X-Mailer: Evolution 3.22.6-1+deb9u1 
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
+X-SA-Exim-Connect-IP: 2001:67c:670:100:1d::2a
+X-SA-Exim-Mail-From: l.stach@pengutronix.de
+X-SA-Exim-Scanned: No (on metis.ext.pengutronix.de); SAEximRunCond expanded to false
+X-PTX-Original-Recipient: netfilter-devel@vger.kernel.org
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: YueHaibing <yuehaibing@huawei.com>
+Hi Pablo,
 
-Fix sparse warning:
+Am Montag, den 18.03.2019, 16:42 +0100 schrieb Pablo Neira Ayuso:
+> Hi Lucas,
+> 
+> I can blindly take this, since I guess you're fixing a problem there.
+> 
+> I guess it's a compilation issue with some specific toolchain? Because
+> I cannot reproduce this here.
 
-net/netfilter/nft_redir.c:85:5:
- warning: symbol 'nft_redir_dump' was not declared. Should it be static?
+This fixes a IPv4 only build, where this file would have references to
+functions that aren't built in this case. I'm not sure how it ends up
+with ENABLE_IPV6 defined without the config.h include, but since this
+was clearly missing and fixed my issue, I didn't bother tracking down
+the chain.
 
-Signed-off-by: YueHaibing <yuehaibing@huawei.com>
----
- net/netfilter/nft_redir.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Regards,
+Lucas
 
-diff --git a/net/netfilter/nft_redir.c b/net/netfilter/nft_redir.c
-index a340cd8..02f4b4a 100644
---- a/net/netfilter/nft_redir.c
-+++ b/net/netfilter/nft_redir.c
-@@ -82,7 +82,7 @@ static int nft_redir_init(const struct nft_ctx *ctx,
- 	return nf_ct_netns_get(ctx->net, ctx->family);
- }
- 
--int nft_redir_dump(struct sk_buff *skb, const struct nft_expr *expr)
-+static int nft_redir_dump(struct sk_buff *skb, const struct nft_expr *expr)
- {
- 	const struct nft_redir *priv = nft_expr_priv(expr);
- 
--- 
-2.7.4
-
-
+> Thanks!
+> 
+> On Fri, Mar 08, 2019 at 03:37:09PM +0100, Lucas Stach wrote:
+> > > > Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
+> > ---
+> >  iptables/xtables-legacy-multi.c | 1 +
+> >  1 file changed, 1 insertion(+)
+> > 
+> > diff --git a/iptables/xtables-legacy-multi.c b/iptables/xtables-legacy-multi.c
+> > index e68814dd082e..3b7905ff76b1 100644
+> > --- a/iptables/xtables-legacy-multi.c
+> > +++ b/iptables/xtables-legacy-multi.c
+> > @@ -1,3 +1,4 @@
+> > +#include <config.h>
+> >  #include <stdio.h>
+> >  #include <stdlib.h>
+> >  #include <string.h>
+> > -- 
+> > 2.20.1
+> > 
