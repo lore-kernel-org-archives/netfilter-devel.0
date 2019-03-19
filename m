@@ -7,29 +7,29 @@ X-Spam-Status: No, score=-7.9 required=3.0 tests=DATE_IN_PAST_06_12,
 	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 57444C43381
-	for <netfilter-devel@archiver.kernel.org>; Wed, 20 Mar 2019 07:06:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BB15CC43381
+	for <netfilter-devel@archiver.kernel.org>; Wed, 20 Mar 2019 07:06:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 328A72146E
-	for <netfilter-devel@archiver.kernel.org>; Wed, 20 Mar 2019 07:06:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8885B2146E
+	for <netfilter-devel@archiver.kernel.org>; Wed, 20 Mar 2019 07:06:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726969AbfCTHGL (ORCPT
+        id S1727109AbfCTHG0 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 20 Mar 2019 03:06:11 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:36628 "EHLO orbyte.nwl.cc"
+        Wed, 20 Mar 2019 03:06:26 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:36634 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726611AbfCTHGL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 20 Mar 2019 03:06:11 -0400
-Received: from localhost ([::1]:49718 helo=tatos)
+        id S1726611AbfCTHG0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 20 Mar 2019 03:06:26 -0400
+Received: from localhost ([::1]:49724 helo=tatos)
         by orbyte.nwl.cc with esmtp (Exim 4.91)
         (envelope-from <phil@nwl.cc>)
-        id 1h6VIf-00025v-Cy; Wed, 20 Mar 2019 08:06:09 +0100
+        id 1h6VIv-00026T-2T; Wed, 20 Mar 2019 08:06:25 +0100
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [ebtables PATCH 2/3] Allow customizing lockfile location at configure time
-Date:   Tue, 19 Mar 2019 20:09:37 +0100
-Message-Id: <20190319190938.20751-3-phil@nwl.cc>
+Subject: [ebtables PATCH 1/3] extensions: Drop Makefile
+Date:   Tue, 19 Mar 2019 20:09:36 +0100
+Message-Id: <20190319190938.20751-2-phil@nwl.cc>
 X-Mailer: git-send-email 2.21.0
 In-Reply-To: <20190319190938.20751-1-phil@nwl.cc>
 References: <20190319190938.20751-1-phil@nwl.cc>
@@ -40,90 +40,52 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Users may pass LOCKFILE=/some/path/to/file when calling configure to
-make libebtc use that path for its lockfile.
-
-To simplify things, drop LOCKDIR completely and instead call dirname()
-when trying to create the parent directory.
-
-Given that we always define LOCKFILE via compiler flag, drop the
-fallback define from libebtc.c.
+Sources contained in there are built from toplevel Makefile.am. This
+seems like a leftover from commit 131920089dc21 ("build: move to
+automake").
 
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- Makefile.am  | 4 +---
- configure.ac | 3 +++
- libebtc.c    | 7 ++-----
- 3 files changed, 6 insertions(+), 8 deletions(-)
+ extensions/Makefile | 30 ------------------------------
+ 1 file changed, 30 deletions(-)
+ delete mode 100644 extensions/Makefile
 
-diff --git a/Makefile.am b/Makefile.am
-index 59ae595ee16de..53fcbadbca7b4 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -5,8 +5,6 @@
- PROGNAME = ${PACKAGE_NAME}
- PROGVERSION = ${PACKAGE_VERSION}
- PROGDATE = December\ 2011
--LOCKDIR = /var/lib/ebtables
--LOCKFILE = ${LOCKDIR}/lock
- INITDIR = /etc/rc.d/init.d
- initddir = ${INITDIR}
- sysconfigdir = ${sysconfdir}/sysconfig
-@@ -21,7 +19,7 @@ AM_CPPFLAGS = ${regular_CPPFLAGS} -I${top_srcdir}/include \
- 	-DPROGVERSION=\"${PACKAGE_VERSION}\" -DPROGNAME=\"${PACKAGE_NAME}\" \
- 	-DPROGDATE=\"${PROGDATE}\" \
- 	-D_PATH_ETHERTYPES=\"${sysconfdir}/ethertypes\" \
--	-DLOCKFILE=\"${LOCKFILE}\" -DLOCKDIR=\"${LOCKDIR}\" \
-+	-DLOCKFILE=\"${LOCKFILE}\" \
- 	-DEBTD_ARGC_MAX=${EBTD_ARGC_MAX} -DEBTD_CMDLINE_MAXLN=${EBTD_CMDLINE_MAXLN} \
- 	-DEBTD_PIPE=\"${PIPE}\" -DEBTD_PIPE_DIR=\"${PIPE_DIR}\"
- AM_CFLAGS = ${regular_CFLAGS}
-diff --git a/configure.ac b/configure.ac
-index a3bc3c93a279f..00d97734ff9a9 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -10,6 +10,9 @@ AC_DISABLE_STATIC
- m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
- AM_PROG_LIBTOOL
- 
-+AC_ARG_VAR([LOCKFILE], [Custom libebtc lockfile path (default: /var/lib/ebtables/lock)])
-+AS_IF([test "x$LOCKFILE" = x], [LOCKFILE="/var/lib/ebtables/lock"])
-+
- regular_CFLAGS="-Wall -Wunused"
- regular_CPPFLAGS=""
- case "$host" in
-diff --git a/libebtc.c b/libebtc.c
-index 92fd76485c723..f2a2b500ea751 100644
---- a/libebtc.c
-+++ b/libebtc.c
-@@ -36,6 +36,7 @@
- #include <sys/stat.h>
- #include <sys/types.h>
- #include <errno.h>
-+#include <libgen.h>
- 
- static void decrease_chain_jumps(struct ebt_u_replace *replace);
- static int iterate_entries(struct ebt_u_replace *replace, int type);
-@@ -134,10 +135,6 @@ void ebt_list_extensions()
- 	}
- }
- 
--#ifndef LOCKFILE
--#define LOCKDIR "/var/lib/ebtables"
--#define LOCKFILE LOCKDIR"/lock"
--#endif
- int use_lockfd;
- /* Returns 0 on success, -1 when the file is locked by another process
-  * or -2 on any other error. */
-@@ -148,7 +145,7 @@ static int lock_file()
- retry:
- 	fd = open(LOCKFILE, O_CREAT, 00600);
- 	if (fd < 0) {
--		if (try == 1 || mkdir(LOCKDIR, 00700))
-+		if (try == 1 || mkdir(dirname(LOCKFILE), 00700))
- 			return -2;
- 		try = 1;
- 		goto retry;
+diff --git a/extensions/Makefile b/extensions/Makefile
+deleted file mode 100644
+index daa11fce36e5e..0000000000000
+--- a/extensions/Makefile
++++ /dev/null
+@@ -1,30 +0,0 @@
+-#! /usr/bin/make
+-
+-EXT_FUNC+=802_3 nat arp arpreply ip ip6 standard log redirect vlan mark_m mark \
+-          pkttype stp among limit ulog nflog string
+-EXT_TABLES+=filter nat broute
+-EXT_OBJS+=$(foreach T,$(EXT_FUNC), extensions/ebt_$(T).o)
+-EXT_OBJS+=$(foreach T,$(EXT_TABLES), extensions/ebtable_$(T).o)
+-EXT_LIBS+=$(foreach T,$(EXT_FUNC), extensions/libebt_$(T).so)
+-EXT_LIBS+=$(foreach T,$(EXT_TABLES), extensions/libebtable_$(T).so)
+-EXT_LIBSI+=$(foreach T,$(EXT_FUNC), -lebt_$(T))
+-EXT_LIBSI+=$(foreach T,$(EXT_TABLES), -lebtable_$(T))
+-
+-extensions/ebt_%.so: extensions/ebt_%.o
+-	$(CC) $(LDFLAGS) -shared -o $@ -lc $<
+-
+-extensions/libebt_%.so: extensions/ebt_%.so
+-	mv $< $@
+-
+-extensions/ebtable_%.so: extensions/ebtable_%.o
+-	$(CC) $(LDFLAGS) -shared -o $@ -lc $<
+-
+-extensions/libebtable_%.so: extensions/ebtable_%.so
+-	mv $< $@
+-
+-extensions/ebt_%.o: extensions/ebt_%.c include/ebtables_u.h
+-	$(CC) $(CFLAGS) $(CFLAGS_SH_LIB) $(PROGSPECS) -c -o $@ $< -I$(KERNEL_INCLUDES)
+-
+-extensions/ebtable_%.o: extensions/ebtable_%.c
+-	$(CC) $(CFLAGS) $(CFLAGS_SH_LIB) $(PROGSPECS) -c -o $@ $< -I$(KERNEL_INCLUDES)
+-
 -- 
 2.21.0
 
