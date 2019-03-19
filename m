@@ -4,81 +4,72 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C1352C43381
-	for <netfilter-devel@archiver.kernel.org>; Tue, 19 Mar 2019 14:03:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 26F9AC4360F
+	for <netfilter-devel@archiver.kernel.org>; Tue, 19 Mar 2019 14:40:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 99D462075E
-	for <netfilter-devel@archiver.kernel.org>; Tue, 19 Mar 2019 14:03:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 00C142173C
+	for <netfilter-devel@archiver.kernel.org>; Tue, 19 Mar 2019 14:40:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727218AbfCSODl (ORCPT
+        id S1726876AbfCSOku (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 19 Mar 2019 10:03:41 -0400
-Received: from mail.us.es ([193.147.175.20]:55926 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726573AbfCSODl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 19 Mar 2019 10:03:41 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id D122C210561
-        for <netfilter-devel@vger.kernel.org>; Tue, 19 Mar 2019 15:03:38 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id AF2A1FC5E3
-        for <netfilter-devel@vger.kernel.org>; Tue, 19 Mar 2019 15:03:38 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id AB427FC5F2; Tue, 19 Mar 2019 15:03:38 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id AAD3FFC5E3
-        for <netfilter-devel@vger.kernel.org>; Tue, 19 Mar 2019 15:03:36 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 19 Mar 2019 15:03:36 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from salvia.here (unknown [195.39.71.253])
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 73A164265A4E
-        for <netfilter-devel@vger.kernel.org>; Tue, 19 Mar 2019 15:03:35 +0100 (CET)
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf] netfilter: nf_flowtable: remove duplicated transition in diagram
-Date:   Tue, 19 Mar 2019 15:03:31 +0100
-Message-Id: <20190319140331.31977-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.11.0
-X-Virus-Scanned: ClamAV using ClamSMTP
+        Tue, 19 Mar 2019 10:40:50 -0400
+Received: from szxga07-in.huawei.com ([45.249.212.35]:44158 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1726612AbfCSOku (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 19 Mar 2019 10:40:50 -0400
+Received: from DGGEMS407-HUB.china.huawei.com (unknown [172.30.72.58])
+        by Forcepoint Email with ESMTP id 2A5E5CC1D6BFA3BF465D;
+        Tue, 19 Mar 2019 22:40:46 +0800 (CST)
+Received: from localhost (10.177.31.96) by DGGEMS407-HUB.china.huawei.com
+ (10.3.19.207) with Microsoft SMTP Server id 14.3.408.0; Tue, 19 Mar 2019
+ 22:40:35 +0800
+From:   Yue Haibing <yuehaibing@huawei.com>
+To:     <davem@davemloft.net>, <pablo@netfilter.org>,
+        <kadlec@blackhole.kfki.hu>, <fw@strlen.de>
+CC:     <linux-kernel@vger.kernel.org>, <netdev@vger.kernel.org>,
+        <coreteam@netfilter.org>, <netfilter-devel@vger.kernel.org>,
+        YueHaibing <yuehaibing@huawei.com>
+Subject: [PATCH net-next] netfilter: nft_redir: Make nft_redir_dump static
+Date:   Tue, 19 Mar 2019 22:40:21 +0800
+Message-ID: <20190319144021.21720-1-yuehaibing@huawei.com>
+X-Mailer: git-send-email 2.10.2.windows.1
+MIME-Version: 1.0
+Content-Type: text/plain
+X-Originating-IP: [10.177.31.96]
+X-CFilter-Loop: Reflected
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-No direct transition from prerouting to forward hook, routing lookup
-needs to happen first.
+From: YueHaibing <yuehaibing@huawei.com>
 
-Fixes: 19b351f16fd9 ("netfilter: add flowtable documentation")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Fix sparse warning:
+
+net/netfilter/nft_redir.c:85:5:
+ warning: symbol 'nft_redir_dump' was not declared. Should it be static?
+
+Signed-off-by: YueHaibing <yuehaibing@huawei.com>
 ---
- Documentation/networking/nf_flowtable.txt | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ net/netfilter/nft_redir.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/Documentation/networking/nf_flowtable.txt b/Documentation/networking/nf_flowtable.txt
-index 54128c50d508..ca2136c76042 100644
---- a/Documentation/networking/nf_flowtable.txt
-+++ b/Documentation/networking/nf_flowtable.txt
-@@ -44,10 +44,10 @@ including the Netfilter hooks and the flowtable fastpath bypass.
-      /         \    /          \     |Routing |   /            \
-   -->  ingress  ---> prerouting ---> |decision|   | postrouting |--> neigh_xmit
-      \_________/    \__________/     ----------   \____________/          ^
--       |      ^          |               |               ^                |
--   flowtable  |          |          ____\/___            |                |
--       |      |          |         /         \           |                |
--    __\/___   |          --------->| forward |------------                |
-+       |      ^                          |               ^                |
-+   flowtable  |                     ____\/___            |                |
-+       |      |                    /         \           |                |
-+    __\/___   |                    | forward |------------                |
-     |-----|   |                    \_________/                            |
-     |-----|   |                 'flow offload' rule                       |
-     |-----|   |                   adds entry to                           |
+diff --git a/net/netfilter/nft_redir.c b/net/netfilter/nft_redir.c
+index a340cd8..02f4b4a 100644
+--- a/net/netfilter/nft_redir.c
++++ b/net/netfilter/nft_redir.c
+@@ -82,7 +82,7 @@ static int nft_redir_init(const struct nft_ctx *ctx,
+ 	return nf_ct_netns_get(ctx->net, ctx->family);
+ }
+ 
+-int nft_redir_dump(struct sk_buff *skb, const struct nft_expr *expr)
++static int nft_redir_dump(struct sk_buff *skb, const struct nft_expr *expr)
+ {
+ 	const struct nft_redir *priv = nft_expr_priv(expr);
+ 
 -- 
-2.11.0
+2.7.4
+
 
