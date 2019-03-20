@@ -2,107 +2,101 @@ Return-Path: <SRS0=0f1v=RX=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_MUTT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-5.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 97BE2C43381
-	for <netfilter-devel@archiver.kernel.org>; Wed, 20 Mar 2019 13:46:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 04DA8C43381
+	for <netfilter-devel@archiver.kernel.org>; Wed, 20 Mar 2019 17:46:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6F33F21850
-	for <netfilter-devel@archiver.kernel.org>; Wed, 20 Mar 2019 13:46:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C5FE32184D
+	for <netfilter-devel@archiver.kernel.org>; Wed, 20 Mar 2019 17:46:24 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="KAIFbxk9"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726939AbfCTNq6 (ORCPT
+        id S1727075AbfCTRqY (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 20 Mar 2019 09:46:58 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:37366 "EHLO orbyte.nwl.cc"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726065AbfCTNq5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 20 Mar 2019 09:46:57 -0400
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.91)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1h6bYU-0001HJ-Tq; Wed, 20 Mar 2019 14:46:54 +0100
-Date:   Wed, 20 Mar 2019 14:46:54 +0100
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Fernando Fernandez Mancera <ffmancera@riseup.net>,
-        netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft v2 1/6] osf: add version fingerprint support
-Message-ID: <20190320134654.GD4851@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Fernando Fernandez Mancera <ffmancera@riseup.net>,
-        netfilter-devel@vger.kernel.org
-References: <20190314201309.iqdyb7icreyyhhke@salvia>
- <20190314200737.erhjrhoaciclapsn@salvia>
- <27D82259-F921-48E0-A718-A08E2BCCAACD@riseup.net>
- <20190315100333.GD3511@orbyte.nwl.cc>
- <20190315171328.c5xgazye2hattjxr@salvia>
- <20190318174243.GT4851@orbyte.nwl.cc>
- <20190319110624.dy7wqatdtrxy3452@salvia>
+        Wed, 20 Mar 2019 13:46:24 -0400
+Received: from mail-it1-f193.google.com ([209.85.166.193]:51555 "EHLO
+        mail-it1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726971AbfCTRqY (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 20 Mar 2019 13:46:24 -0400
+Received: by mail-it1-f193.google.com with SMTP id e24so173591itl.1
+        for <netfilter-devel@vger.kernel.org>; Wed, 20 Mar 2019 10:46:23 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=41xLks7oVSuKzSw5hgsxqYtNfhOWq8kXPBCt5sn5LSw=;
+        b=KAIFbxk9yNSnt38tMfBn8LhG22AruFfLrXPkbe8wWNAmnudVE5T0NEiifKHgCIL6i2
+         PN/fkp74dmA4rXJYOJX6LTtlzz/zHL2LQ0uqtwXtX47oh+1zjetwGxj+2tgS1KR47Ps1
+         j/+v04+ui3uXK16pZ0YidyXjg5RCeVALxl+FDkreh6kSqnddAEu7LkRyDqQ8eHIGJ0gH
+         +REbpB4HkorV8D8ZBfGTXn0h3pF/QGBEyOshNA9x7pRy3h6oHerh4Dn/lQ9mtFR8pbV8
+         Sr2PoPe52VesC/UN9c60WT9yaRTqkWg87PqRkArWLS9QbpMon2x/4elMxo1/XkEiZCN8
+         GcNg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=41xLks7oVSuKzSw5hgsxqYtNfhOWq8kXPBCt5sn5LSw=;
+        b=JR3BTPUWfYvsVYcwk6iU0PaBbk0WXxUBGFzGjkbM53XXgDZ3mjmPgVXjtcYd1kKKXG
+         1adA2GYbglkW5QVwfjvNrhFJY0FdGswb9T3km7uW1UgXDANwnzANEkeeH4Zy9xQVNHR0
+         LQ5P3uPjI9/fGiYb4it8th9IivfDdeea8c/nsR/lDDvVVnneBoV+K4OWQTlubXPVZUhi
+         o6OxOu/zbgqsjxkaU5OAFddEtv4pJidokglBtfm8sF8PmOgYH3zto//RG2U4teUJWyuz
+         l692jz5vpgpfF8VSLdpKgQ4ubUVEShL/yKru+pq6x1+vKG1LHpy8v6VOXBzIcGRGu7uD
+         DkTQ==
+X-Gm-Message-State: APjAAAUsiMxU3btIXJWfqzbrbZ5bb6N9OeJz/RPSJrA9obRt7bObxDws
+        RSxvGkJJJ4huzTTkTSZNbKReNwZvVxwOVzQNg8c=
+X-Google-Smtp-Source: APXvYqwY7Fpar2vxL19K7RQ23BvwvArvVM84MD4qWPoWUZdnxUhxucVnBheWfpASUb9qlYT8QJ/L+4gX7gyn8TBh01I=
+X-Received: by 2002:a24:4fc3:: with SMTP id c186mr6280230itb.71.1553103983327;
+ Wed, 20 Mar 2019 10:46:23 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190319110624.dy7wqatdtrxy3452@salvia>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+References: <20190301104331.GA26805@nebula> <20190301110000.ofmenn5hjxf4nvb4@breakpoint.cc>
+ <CAHRz_yZ4esKR2TJ=9AqtYbc5awDaNKHW6iuLXVLFZcuFAWLW1Q@mail.gmail.com> <20190305101225.u72vgdapppkl24ce@breakpoint.cc>
+In-Reply-To: <20190305101225.u72vgdapppkl24ce@breakpoint.cc>
+From:   Karuna Grewal <karunagrewal98@gmail.com>
+Date:   Wed, 20 Mar 2019 23:16:11 +0530
+Message-ID: <CAHRz_ybqUaoKyV7OaVWAYqqpnKf2p=1tTsBCdA1NKQ0aTevr4w@mail.gmail.com>
+Subject: Re: [PATCH] netfilter: nft_meta: Extend support for NFT_META_TSTAMP_NS
+To:     Florian Westphal <fw@strlen.de>
+Cc:     netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Mar 19, 2019 at 12:06:24PM +0100, Pablo Neira Ayuso wrote:
-> Hi Phil,
-> 
-> On Mon, Mar 18, 2019 at 06:42:43PM +0100, Phil Sutter wrote:
-> > On Fri, Mar 15, 2019 at 06:13:28PM +0100, Pablo Neira Ayuso wrote:
-> [...]
-> > > * Kernel would need to inconditionally build the OS:version string.
-> > 
-> > Yes, exactly. nft_osf.c would return "OS:version:subtype:opt" and
-> > nft_cmp.c will do the right thing if nft_cmp_expr->len is set to RHS
-> > length.
-> 
-> Problem are sets. They need a fixed size for the string, or we would
-> need to adjust the size to the largest string in the set. In case of
-> dynamic sets, this boils down to the maximum string length since we
-> don't know what the length of future element would be.
+On Tue, Mar 5, 2019 at 3:42 PM Florian Westphal <fw@strlen.de> wrote:
+>
+> Karuna Grewal <karunagrewal98@gmail.com> wrote:
+> > I've a doubt in the nftables implementation for implementing the `-m
+> > time` support.
+>
+> Full -m time is complicated, do not worry about this yet.
+>
+> > I'm unable to get a proper idea of where the start and
+> > stop time comparison with the dest register's value takes place.
+>
+> Via the nftables evaluation loop.  You only need to worry about placing
+> the value (timestamp) in the dst register (on kernel side), so your
+> patch looks pretty complete aside from the missing 'break'.
+>
+> Its userspace (nftables) responsibility to tell kernel to do something
+> with the register, such as a compare or range.
+>
+> Have a look at
+> http://git.netfilter.org/nftables/commit/src/meta.c?id=512795a673f999fb04b84dbbbe41174e9c581430
+>
+> It should be enough to follow this approach, adding e.g.
+> META_TEMPLATE("timestamp", ..
+>
+> we have TYPE_TIME already, even though its a relative one, it
+> would/should work for a quick prototype.
 
-I knew there's a rub! :)
-
-> > > * We may need to ask users to break existing osf ruleset so they
-> > >   explicitly add the wildcard at the end, ie.
-> > > 
-> > >         osf name "Windows\*"
-> > >         osf name "Linux:4.\*"
-> > 
-> > Not if cmp expr len is set correctly.
-> 
-> cmp expr len is set correctly using the wildcard.
-> 
-> I think we should aim to make this work fine with sets and maps. The
-> wildcard cannot be used from there, where exact matches are needed. We
-> should encourage users to use osf with sets and maps.
-> 
-> > > then, in the future (if ever needed) add subtypes:
-> > > 
-> > >         osf subtype "Linux:2.4:cluster"
-> > 
-> > IMHO this is still redundant: RHS contains <something>:<something>, user
-> > wants to match on OS and version. RHS contains <sth>:<sth>:<sth>, user
-> > wants to match on OS, version and subtype.
-> 
-> This is not possible with dynamic sets, there the set may be empty so
-> we do not know how many colons will be used :-)
-
-Speaking of sets, it would be awesome if we could support something
-like:
-
-| osf genre { "Linux:2.4", "Windows" }
-
-i.e., having elements with varying "granularity". Do you think that's
-feasible? If so, how could we support that? Maybe using a concatenation
-like:
-
-| osf name . osf version { "Linux" . "2.4", "Windows" . "*" }
-
-Cheers, Phil
+I had sent the patch for this basic case of simply comparing one timestamp.
+As the startdate and stopdate options need to implemented completely,
+should I make use of an interval
+or is using two different tokens viz. START_TSTAMP and STOP_TSTAMP the
+preferred option.
