@@ -2,86 +2,91 @@ Return-Path: <SRS0=0f1v=RX=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B0CD4C43381
-	for <netfilter-devel@archiver.kernel.org>; Wed, 20 Mar 2019 10:30:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 055D9C43381
+	for <netfilter-devel@archiver.kernel.org>; Wed, 20 Mar 2019 10:35:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 29DBA2184D
-	for <netfilter-devel@archiver.kernel.org>; Wed, 20 Mar 2019 10:30:11 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=tlapnet.cz header.i=@tlapnet.cz header.b="GpuzwmKc"
+	by mail.kernel.org (Postfix) with ESMTP id D3E642186A
+	for <netfilter-devel@archiver.kernel.org>; Wed, 20 Mar 2019 10:35:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727103AbfCTKaL (ORCPT
+        id S1727741AbfCTKfj (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 20 Mar 2019 06:30:11 -0400
-Received: from mail-yw1-f50.google.com ([209.85.161.50]:35118 "EHLO
-        mail-yw1-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726692AbfCTKaK (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 20 Mar 2019 06:30:10 -0400
-Received: by mail-yw1-f50.google.com with SMTP id d132so1572225ywa.2
-        for <netfilter-devel@vger.kernel.org>; Wed, 20 Mar 2019 03:30:10 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=tlapnet.cz; s=google;
-        h=mime-version:from:date:message-id:subject:to;
-        bh=JQRP6jmohGsNxyve9cESxTMud6JayCXEgRRd7scg4u0=;
-        b=GpuzwmKcp3k1jzQgetf07fCVFxqpls1VS6YIFNnHrTyqYG3Z+QdKp0tLZ+Y8gXdhJT
-         /J7x1zGHEmUGY/nKp0XcQmuWpYgDal5HDKCnIA973CtQ4HkzZBdmil14KufrgRee65X2
-         X6cdtUtbpjeUF1NWWEzr4cIEPZjONFpfSUrpoYQkTJvEv9A+3SH/6rW3wz4QsIrqpsPq
-         cR29K050vZz7sThTwY827dU3iO+gxhOveUfnDP6pc0HqQFP/Ktbcm3nN2YNa2O+WQVrF
-         XKYKsa4JmHOd1Sa7LJQ2Z3txv5K2MhA4N+rnQK/2B7AvVJo9fX2dI+MqedKmDyCyjveu
-         Yv8Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:from:date:message-id:subject:to;
-        bh=JQRP6jmohGsNxyve9cESxTMud6JayCXEgRRd7scg4u0=;
-        b=pjQ2lb3BwcwJBpG48x3GUkhiPKwhZNVi22I2lg6OY8nPc0W9K4TrpSwCmjEn3jN2Hh
-         5AQj6qu/CPmA61wf0FRXQ3S9RDgLUYVpIK/I6Qtzul8H+HYBKKXSb1Cagg1Kp5bJn9wM
-         24VPXXSITN5t0GcQhluZ31yhCiMUrprLkNj7pK0JRv3ev/J3a04GgzP9uiDxSWTpZKlN
-         yPZ7y7QgJg/VnsHiIQRYE8C/fpWtC93NR7gm8mGvnsvO2Ew1u6HTHDGhtZgYG3di4d2d
-         CQQLmYJcwAqwBopBmIqSnR0mLSwQW3/i7RAohIXJS5Px/BDbyZR9eMhxOKCKM8NstQcz
-         oJSw==
-X-Gm-Message-State: APjAAAXI5QJhvu9O9UkdVtEWr75xZLpay9993tQu9mM7NM5ezctD6+rz
-        CboZXhiVUn9Tl4cE9eczz7RZvAUVvqx+A0ce1UilbzAzOviROw==
-X-Google-Smtp-Source: APXvYqw4pihtrHY9R8G7p1kUnkVxG/LhqItTkLLMmxUfzMNkKgGY8YWr9y2PUmSxwEOTlGPNeB0yq65YmN03zaaX4mM=
-X-Received: by 2002:a0d:cc4d:: with SMTP id o74mr6159176ywd.415.1553077809347;
- Wed, 20 Mar 2019 03:30:09 -0700 (PDT)
-MIME-Version: 1.0
-From:   =?UTF-8?Q?V=C3=A1clav_Zindulka?= <vaclav.zindulka@tlapnet.cz>
-Date:   Wed, 20 Mar 2019 11:29:58 +0100
-Message-ID: <CANxWus9H+sTaE2Rn=jqc++DqF17EPGKCGDa-TYpoXy1fiMcx1w@mail.gmail.com>
-Subject: a2x - unsupported parameter
-To:     Netfilter-devel Nftables <netfilter-devel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+        Wed, 20 Mar 2019 06:35:39 -0400
+Received: from mail.us.es ([193.147.175.20]:36112 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727708AbfCTKfj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 20 Mar 2019 06:35:39 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id DF43F67B88
+        for <netfilter-devel@vger.kernel.org>; Wed, 20 Mar 2019 11:35:36 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C229F17B3AE
+        for <netfilter-devel@vger.kernel.org>; Wed, 20 Mar 2019 11:35:36 +0100 (CET)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id B593A17B3AC; Wed, 20 Mar 2019 11:35:36 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 6C15E17B3AC
+        for <netfilter-devel@vger.kernel.org>; Wed, 20 Mar 2019 11:35:35 +0100 (CET)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Wed, 20 Mar 2019 11:35:35 +0100 (CET)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from salvia.hhotels.local (148.160.broadband14.iol.cz [90.181.160.148])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id 2D7AE4265A2F
+        for <netfilter-devel@vger.kernel.org>; Wed, 20 Mar 2019 11:35:35 +0100 (CET)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nft 1/2] src: use 'flow add' syntax
+Date:   Wed, 20 Mar 2019 11:35:29 +0100
+Message-Id: <20190320103530.23974-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.11.0
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi,
+As discussed during NFWS 2018. Old syntax is stilled allowed.
 
-I've noticed a2x being new dependency of nftables. I've installed it
-and now I'm getting warnings during doc make. It generates without
-problems so it is not real problem.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/ct.c           | 2 +-
+ src/parser_bison.y | 4 ++++
+ 2 files changed, 5 insertions(+), 1 deletion(-)
 
-Making all in doc
-make[2]: Entering directory '/usr/local/src/shaperd/extras/nftables/doc'
-  GEN      nft.8
-  GEN      libnftables.3
-  GEN      libnftables-json.5
-a2x: WARNING: --destination-dir option is only applicable to HTML based outputs
-a2x: WARNING: --destination-dir option is only applicable to HTML based outputs
-a2x: WARNING: --destination-dir option is only applicable to HTML based outputs
-make[2]: Leaving directory '/usr/local/src/shaperd/extras/nftables/doc'
+diff --git a/src/ct.c b/src/ct.c
+index e77c3201eb5d..ca31f49850d4 100644
+--- a/src/ct.c
++++ b/src/ct.c
+@@ -481,7 +481,7 @@ struct stmt *notrack_stmt_alloc(const struct location *loc)
+ static void flow_offload_stmt_print(const struct stmt *stmt,
+ 				    struct output_ctx *octx)
+ {
+-	printf("flow offload @%s", stmt->flow.table_name);
++	printf("flow add @%s", stmt->flow.table_name);
+ }
+ 
+ static const struct stmt_ops flow_offload_stmt_ops = {
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index 48e44e5adc40..65b3fb3ebac2 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -3915,6 +3915,10 @@ meta_stmt		:	META	meta_key	SET	stmt_expr
+ 			{
+ 				$$ = flow_offload_stmt_alloc(&@$, $4);
+ 			}
++			|	FLOW	ADD	AT string
++			{
++				$$ = flow_offload_stmt_alloc(&@$, $4);
++			}
+ 			;
+ 
+ socket_expr		:	SOCKET	socket_key
+-- 
+2.11.0
 
-It is good improvement to have docs built automatically. I remember
-some problems a few weeks ago with building it.
-
-Thank you
-----
-S pozdravem / Best Regards
-
-Vaclav Zindulka
