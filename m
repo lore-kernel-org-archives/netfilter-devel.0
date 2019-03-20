@@ -2,97 +2,83 @@ Return-Path: <SRS0=0f1v=RX=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_MUTT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DF023C43381
-	for <netfilter-devel@archiver.kernel.org>; Wed, 20 Mar 2019 07:40:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 631F2C43381
+	for <netfilter-devel@archiver.kernel.org>; Wed, 20 Mar 2019 08:09:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B5F1C2184D
-	for <netfilter-devel@archiver.kernel.org>; Wed, 20 Mar 2019 07:40:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3C1EA2146E
+	for <netfilter-devel@archiver.kernel.org>; Wed, 20 Mar 2019 08:09:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726802AbfCTHk6 (ORCPT
+        id S1727663AbfCTIJg (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 20 Mar 2019 03:40:58 -0400
-Received: from mail.us.es ([193.147.175.20]:58786 "EHLO mail.us.es"
+        Wed, 20 Mar 2019 04:09:36 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:36752 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725942AbfCTHk6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 20 Mar 2019 03:40:58 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id A2464E2D86
-        for <netfilter-devel@vger.kernel.org>; Wed, 20 Mar 2019 08:40:55 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 8B409132C8C
-        for <netfilter-devel@vger.kernel.org>; Wed, 20 Mar 2019 08:40:55 +0100 (CET)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 808DF132C89; Wed, 20 Mar 2019 08:40:55 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 8EE9A132C8B
-        for <netfilter-devel@vger.kernel.org>; Wed, 20 Mar 2019 08:40:53 +0100 (CET)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 20 Mar 2019 08:40:53 +0100 (CET)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from salvia.hhotels.local (148.160.broadband14.iol.cz [90.181.160.148])
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 5F8294265A4E
-        for <netfilter-devel@vger.kernel.org>; Wed, 20 Mar 2019 08:40:53 +0100 (CET)
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next] netfilter: nf_flowtable: skip device lookup from interface index
-Date:   Wed, 20 Mar 2019 08:40:47 +0100
-Message-Id: <20190320074047.7754-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.11.0
-X-Virus-Scanned: ClamAV using ClamSMTP
+        id S1727304AbfCTIJg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 20 Mar 2019 04:09:36 -0400
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.91)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1h6WHt-00036R-LG; Wed, 20 Mar 2019 09:09:25 +0100
+Date:   Wed, 20 Mar 2019 09:09:25 +0100
+From:   Phil Sutter <phil@nwl.cc>
+To:     Jan Engelhardt <jengelh@inai.de>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Thomas Graf <tgraf@infradead.org>,
+        James Czyzak <czyzak2@linux.vnet.ibm.com>,
+        Tom Callaway <spot@fedoraproject.org>,
+        Netfilter Developer Mailing List 
+        <netfilter-devel@vger.kernel.org>
+Subject: Re: [ebtables PATCH 3/3] extensions: Add AUDIT target
+Message-ID: <20190320080925.GY4851@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Jan Engelhardt <jengelh@inai.de>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Thomas Graf <tgraf@infradead.org>,
+        James Czyzak <czyzak2@linux.vnet.ibm.com>,
+        Tom Callaway <spot@fedoraproject.org>,
+        Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+References: <20190319190938.20751-1-phil@nwl.cc>
+ <20190319190938.20751-4-phil@nwl.cc>
+ <nycvar.YFH.7.76.1903192026550.7166@n3.vanv.qr>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <nycvar.YFH.7.76.1903192026550.7166@n3.vanv.qr>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Use the output device from the route that we cache in the flowtable
-entry.
+Hi Jan,
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_flow_table_ip.c | 10 ++--------
- 1 file changed, 2 insertions(+), 8 deletions(-)
+On Tue, Mar 19, 2019 at 08:44:12PM +0100, Jan Engelhardt wrote:
+> On Tuesday 2019-03-19 20:09, Phil Sutter wrote:
+> 
+> >This is a barn find from Fedora package, actually spooking around in
+> >various places in the internet. No idea who wrote it, but it seems to be
+> >used. So add it for the time being.
+> 
+> Not sure, but I added some people in the Cc that may know more (and the 
+> hope is that the ibm address still delivers).
+> 
+> 
+>  * xt_AUDIT made its appearance around January 2011 
+>    https://lwn.net/Articles/423402/ (tgraf@)
+> 
+>  * "ebtables --audit-type" made an appearence in the audit-test code 
+>    repository https://sourceforge.net/p/audit-test/code/ref/master/ in 
+>    June 2011 (czyzak@). This means that ebt_audit existed in some form
+>    at that time already.
+> 
+>  * Fedora ebtables (only) gained the patch 2013-March-21 (spot@)
 
-diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
-index 1d291a51cd45..6452550d187f 100644
---- a/net/netfilter/nf_flow_table_ip.c
-+++ b/net/netfilter/nf_flow_table_ip.c
-@@ -235,13 +235,10 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
- 	if (tuplehash == NULL)
- 		return NF_ACCEPT;
- 
--	outdev = dev_get_by_index_rcu(state->net, tuplehash->tuple.oifidx);
--	if (!outdev)
--		return NF_ACCEPT;
--
- 	dir = tuplehash->tuple.dir;
- 	flow = container_of(tuplehash, struct flow_offload, tuplehash[dir]);
- 	rt = (struct rtable *)flow->tuplehash[dir].tuple.dst_cache;
-+	outdev = rt->dst.dev;
- 
- 	if (unlikely(nf_flow_exceeds_mtu(skb, flow->tuplehash[dir].tuple.mtu)) &&
- 	    (ip_hdr(skb)->frag_off & htons(IP_DF)) != 0)
-@@ -452,13 +449,10 @@ nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
- 	if (tuplehash == NULL)
- 		return NF_ACCEPT;
- 
--	outdev = dev_get_by_index_rcu(state->net, tuplehash->tuple.oifidx);
--	if (!outdev)
--		return NF_ACCEPT;
--
- 	dir = tuplehash->tuple.dir;
- 	flow = container_of(tuplehash, struct flow_offload, tuplehash[dir]);
- 	rt = (struct rt6_info *)flow->tuplehash[dir].tuple.dst_cache;
-+	outdev = rt->dst.dev;
- 
- 	if (unlikely(nf_flow_exceeds_mtu(skb, flow->tuplehash[dir].tuple.mtu)))
- 		return NF_ACCEPT;
--- 
-2.11.0
+Thanks a lot for your historic research. In RHEL, ebtables got AUDIT
+support with bz#642394 (private). Thomas provided the patch, so
+hopefully he either wrote it or knows where it came from.
+
+Thanks, Phil
 
