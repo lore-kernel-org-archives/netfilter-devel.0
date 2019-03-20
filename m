@@ -2,83 +2,86 @@ Return-Path: <SRS0=0f1v=RX=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_MUTT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 631F2C43381
-	for <netfilter-devel@archiver.kernel.org>; Wed, 20 Mar 2019 08:09:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B0CD4C43381
+	for <netfilter-devel@archiver.kernel.org>; Wed, 20 Mar 2019 10:30:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3C1EA2146E
-	for <netfilter-devel@archiver.kernel.org>; Wed, 20 Mar 2019 08:09:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 29DBA2184D
+	for <netfilter-devel@archiver.kernel.org>; Wed, 20 Mar 2019 10:30:11 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=tlapnet.cz header.i=@tlapnet.cz header.b="GpuzwmKc"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727663AbfCTIJg (ORCPT
+        id S1727103AbfCTKaL (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 20 Mar 2019 04:09:36 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:36752 "EHLO orbyte.nwl.cc"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727304AbfCTIJg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 20 Mar 2019 04:09:36 -0400
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.91)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1h6WHt-00036R-LG; Wed, 20 Mar 2019 09:09:25 +0100
-Date:   Wed, 20 Mar 2019 09:09:25 +0100
-From:   Phil Sutter <phil@nwl.cc>
-To:     Jan Engelhardt <jengelh@inai.de>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Thomas Graf <tgraf@infradead.org>,
-        James Czyzak <czyzak2@linux.vnet.ibm.com>,
-        Tom Callaway <spot@fedoraproject.org>,
-        Netfilter Developer Mailing List 
-        <netfilter-devel@vger.kernel.org>
-Subject: Re: [ebtables PATCH 3/3] extensions: Add AUDIT target
-Message-ID: <20190320080925.GY4851@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Jan Engelhardt <jengelh@inai.de>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Thomas Graf <tgraf@infradead.org>,
-        James Czyzak <czyzak2@linux.vnet.ibm.com>,
-        Tom Callaway <spot@fedoraproject.org>,
-        Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-References: <20190319190938.20751-1-phil@nwl.cc>
- <20190319190938.20751-4-phil@nwl.cc>
- <nycvar.YFH.7.76.1903192026550.7166@n3.vanv.qr>
+        Wed, 20 Mar 2019 06:30:11 -0400
+Received: from mail-yw1-f50.google.com ([209.85.161.50]:35118 "EHLO
+        mail-yw1-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726692AbfCTKaK (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 20 Mar 2019 06:30:10 -0400
+Received: by mail-yw1-f50.google.com with SMTP id d132so1572225ywa.2
+        for <netfilter-devel@vger.kernel.org>; Wed, 20 Mar 2019 03:30:10 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=tlapnet.cz; s=google;
+        h=mime-version:from:date:message-id:subject:to;
+        bh=JQRP6jmohGsNxyve9cESxTMud6JayCXEgRRd7scg4u0=;
+        b=GpuzwmKcp3k1jzQgetf07fCVFxqpls1VS6YIFNnHrTyqYG3Z+QdKp0tLZ+Y8gXdhJT
+         /J7x1zGHEmUGY/nKp0XcQmuWpYgDal5HDKCnIA973CtQ4HkzZBdmil14KufrgRee65X2
+         X6cdtUtbpjeUF1NWWEzr4cIEPZjONFpfSUrpoYQkTJvEv9A+3SH/6rW3wz4QsIrqpsPq
+         cR29K050vZz7sThTwY827dU3iO+gxhOveUfnDP6pc0HqQFP/Ktbcm3nN2YNa2O+WQVrF
+         XKYKsa4JmHOd1Sa7LJQ2Z3txv5K2MhA4N+rnQK/2B7AvVJo9fX2dI+MqedKmDyCyjveu
+         Yv8Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:from:date:message-id:subject:to;
+        bh=JQRP6jmohGsNxyve9cESxTMud6JayCXEgRRd7scg4u0=;
+        b=pjQ2lb3BwcwJBpG48x3GUkhiPKwhZNVi22I2lg6OY8nPc0W9K4TrpSwCmjEn3jN2Hh
+         5AQj6qu/CPmA61wf0FRXQ3S9RDgLUYVpIK/I6Qtzul8H+HYBKKXSb1Cagg1Kp5bJn9wM
+         24VPXXSITN5t0GcQhluZ31yhCiMUrprLkNj7pK0JRv3ev/J3a04GgzP9uiDxSWTpZKlN
+         yPZ7y7QgJg/VnsHiIQRYE8C/fpWtC93NR7gm8mGvnsvO2Ew1u6HTHDGhtZgYG3di4d2d
+         CQQLmYJcwAqwBopBmIqSnR0mLSwQW3/i7RAohIXJS5Px/BDbyZR9eMhxOKCKM8NstQcz
+         oJSw==
+X-Gm-Message-State: APjAAAXI5QJhvu9O9UkdVtEWr75xZLpay9993tQu9mM7NM5ezctD6+rz
+        CboZXhiVUn9Tl4cE9eczz7RZvAUVvqx+A0ce1UilbzAzOviROw==
+X-Google-Smtp-Source: APXvYqw4pihtrHY9R8G7p1kUnkVxG/LhqItTkLLMmxUfzMNkKgGY8YWr9y2PUmSxwEOTlGPNeB0yq65YmN03zaaX4mM=
+X-Received: by 2002:a0d:cc4d:: with SMTP id o74mr6159176ywd.415.1553077809347;
+ Wed, 20 Mar 2019 03:30:09 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <nycvar.YFH.7.76.1903192026550.7166@n3.vanv.qr>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+From:   =?UTF-8?Q?V=C3=A1clav_Zindulka?= <vaclav.zindulka@tlapnet.cz>
+Date:   Wed, 20 Mar 2019 11:29:58 +0100
+Message-ID: <CANxWus9H+sTaE2Rn=jqc++DqF17EPGKCGDa-TYpoXy1fiMcx1w@mail.gmail.com>
+Subject: a2x - unsupported parameter
+To:     Netfilter-devel Nftables <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Jan,
+Hi,
 
-On Tue, Mar 19, 2019 at 08:44:12PM +0100, Jan Engelhardt wrote:
-> On Tuesday 2019-03-19 20:09, Phil Sutter wrote:
-> 
-> >This is a barn find from Fedora package, actually spooking around in
-> >various places in the internet. No idea who wrote it, but it seems to be
-> >used. So add it for the time being.
-> 
-> Not sure, but I added some people in the Cc that may know more (and the 
-> hope is that the ibm address still delivers).
-> 
-> 
->  * xt_AUDIT made its appearance around January 2011 
->    https://lwn.net/Articles/423402/ (tgraf@)
-> 
->  * "ebtables --audit-type" made an appearence in the audit-test code 
->    repository https://sourceforge.net/p/audit-test/code/ref/master/ in 
->    June 2011 (czyzak@). This means that ebt_audit existed in some form
->    at that time already.
-> 
->  * Fedora ebtables (only) gained the patch 2013-March-21 (spot@)
+I've noticed a2x being new dependency of nftables. I've installed it
+and now I'm getting warnings during doc make. It generates without
+problems so it is not real problem.
 
-Thanks a lot for your historic research. In RHEL, ebtables got AUDIT
-support with bz#642394 (private). Thomas provided the patch, so
-hopefully he either wrote it or knows where it came from.
+Making all in doc
+make[2]: Entering directory '/usr/local/src/shaperd/extras/nftables/doc'
+  GEN      nft.8
+  GEN      libnftables.3
+  GEN      libnftables-json.5
+a2x: WARNING: --destination-dir option is only applicable to HTML based outputs
+a2x: WARNING: --destination-dir option is only applicable to HTML based outputs
+a2x: WARNING: --destination-dir option is only applicable to HTML based outputs
+make[2]: Leaving directory '/usr/local/src/shaperd/extras/nftables/doc'
 
-Thanks, Phil
+It is good improvement to have docs built automatically. I remember
+some problems a few weeks ago with building it.
 
+Thank you
+----
+S pozdravem / Best Regards
+
+Vaclav Zindulka
