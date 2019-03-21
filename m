@@ -3,34 +3,36 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-6.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F0592C43381
-	for <netfilter-devel@archiver.kernel.org>; Thu, 21 Mar 2019 11:55:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 24143C43381
+	for <netfilter-devel@archiver.kernel.org>; Thu, 21 Mar 2019 12:25:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C3B9D218FD
-	for <netfilter-devel@archiver.kernel.org>; Thu, 21 Mar 2019 11:55:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EFB84218D8
+	for <netfilter-devel@archiver.kernel.org>; Thu, 21 Mar 2019 12:25:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727874AbfCULzC (ORCPT
+        id S1728111AbfCUMZo (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 21 Mar 2019 07:55:02 -0400
-Received: from a3.inai.de ([88.198.85.195]:52430 "EHLO a3.inai.de"
+        Thu, 21 Mar 2019 08:25:44 -0400
+Received: from a3.inai.de ([88.198.85.195]:53996 "EHLO a3.inai.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726551AbfCULzC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 21 Mar 2019 07:55:02 -0400
+        id S1728091AbfCUMZo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 21 Mar 2019 08:25:44 -0400
 Received: by a3.inai.de (Postfix, from userid 65534)
-        id B32DBE15C9C; Thu, 21 Mar 2019 12:54:59 +0100 (CET)
+        id 137E1E15C9C; Thu, 21 Mar 2019 13:25:42 +0100 (CET)
 Received: from a4.inai.de (a4.inai.de [IPv6:2a01:4f8:222:6c9::f8])
-        by a3.inai.de (Postfix) with ESMTP id 361903BAB1E2;
-        Thu, 21 Mar 2019 12:54:56 +0100 (CET)
+        by a3.inai.de (Postfix) with ESMTP id C4B843BAB1E2;
+        Thu, 21 Mar 2019 13:25:39 +0100 (CET)
 From:   Jan Engelhardt <jengelh@inai.de>
 To:     netfilter-devel@vger.kernel.org
-Cc:     eric@regit.org
-Subject: [PATCH] build: adjust configure for postgresql 11
-Date:   Thu, 21 Mar 2019 12:54:56 +0100
-Message-Id: <20190321115456.24137-1-jengelh@inai.de>
+Cc:     erig@regit.org
+Subject: [PATCH] build: adjust configure for postgresql 10/11
+Date:   Thu, 21 Mar 2019 13:25:39 +0100
+Message-Id: <20190321122539.6530-1-jengelh@inai.de>
 X-Mailer: git-send-email 2.21.0
+In-Reply-To: <20190321115456.24137-1-jengelh@inai.de>
+References: <20190321115456.24137-1-jengelh@inai.de>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -38,27 +40,27 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-At least in openSUSE, PostgreSQL 11 no longer ships the pg_config
-program. Instead, there is has been a pkg-config file around for a
-while (also in pg10), so make use of that, by default.
+The openSUSE PostgreSQL 11 no longer ships the pg_config program.
+Instead, there exists a .pc file (likewise in pg10), so make use of
+that, by default.
 
 The old --with-pgsql-inc and --with-pgsql-lib option are going away
 and replaced by the standardized mechanisms pkg-config.m4 has in
-store for when there is no .pc file:
+store for when there is no .pc file or an unusual location:
 
-	./configure pgsql_CFLAGS="-I/opt/pgsql/include" \
+	./configure --with-pgsql pgsql_CFLAGS="-I/opt/pgsql/include" \
 	pgsql_LIBS="-L/opt/pgsql/lib -lpq"
 ---
- acinclude.m4             | 77 +---------------------------------------
- configure.ac             |  9 +++--
- output/pgsql/Makefile.am |  4 +--
- 3 files changed, 7 insertions(+), 83 deletions(-)
+ acinclude.m4             | 84 ++++------------------------------------
+ configure.ac             | 12 +-----
+ output/pgsql/Makefile.am |  4 +-
+ 3 files changed, 12 insertions(+), 88 deletions(-)
 
 diff --git a/acinclude.m4 b/acinclude.m4
-index 8388c45..3813c6c 100644
+index 8388c45..3b8b982 100644
 --- a/acinclude.m4
 +++ b/acinclude.m4
-@@ -14,82 +14,7 @@ dnl @license AllPermissive
+@@ -14,82 +14,14 @@ dnl @license AllPermissive
  
  AC_DEFUN([CT_CHECK_POSTGRES_DB], [
  
@@ -138,27 +140,36 @@ index 8388c45..3813c6c 100644
 -fi
 -
 -fi
-+PKG_CHECK_MODULES([pgsql], [libpq])
++AC_ARG_WITH([pgsql], [AS_HELP_STRING([--without-pgsql], [Build without pgsql output plugin [default=test]])],
++	[want_pgsql="$withval"], [want_pgsql=auto])
++enable_pgsql=no
++AS_IF([test "$want_pgsql" = "auto"], [
++        PKG_CHECK_MODULES([pgsql], [libpq], [enable_pgsql=yes], [:])
++], [test "$want_pgsql" != "no"], [
++	PKG_CHECK_MODULES([pgsql], [libpq], [enable_pgsql=yes])
++])
  
  ])
  
 diff --git a/configure.ac b/configure.ac
-index 3aa0624..da46e09 100644
+index 3aa0624..794cbbb 100644
 --- a/configure.ac
 +++ b/configure.ac
-@@ -86,12 +86,11 @@ AC_ARG_WITH([pgsql], AS_HELP_STRING([--without-pgsql], [Build without postgresql
- AS_IF([test "x$with_pgsql" != "xno"], [
- 	CT_CHECK_POSTGRES_DB()
- ])
+@@ -82,16 +82,8 @@ if [! test "x$enable_nfacct" = "xyes"]; then
+ 	enable_nfacct="no"
+ fi
+ 
+-AC_ARG_WITH([pgsql], AS_HELP_STRING([--without-pgsql], [Build without postgresql output plugin [default=test]]))
+-AS_IF([test "x$with_pgsql" != "xno"], [
+-	CT_CHECK_POSTGRES_DB()
+-])
 -AM_CONDITIONAL(HAVE_PGSQL, test "x$PQLIBPATH" != "x")
 -if test "x$PQLIBPATH" != "x"; then
 -	enable_pgsql="yes"
 -else
 -	enable_pgsql="no"
-+enable_pgsql="no"
-+if test "x$pgsql_CFLAGS" != "x" || test "x$pgsql_LIBS" != "x"; then
-+	enable_pgsql=yes
- fi
+-fi
++CT_CHECK_POSTGRES_DB()
 +AM_CONDITIONAL([HAVE_PGSQL], [test "$enable_pgsql" = yes])
  
  AC_ARG_WITH([mysql], AS_HELP_STRING([--without-mysql], [Build without mysql output plugin [default=test]]))
