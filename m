@@ -3,75 +3,58 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_NEOMUTT autolearn=ham
+	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED,USER_AGENT_NEOMUTT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6669CC43381
-	for <netfilter-devel@archiver.kernel.org>; Thu, 21 Mar 2019 08:32:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3595CC43381
+	for <netfilter-devel@archiver.kernel.org>; Thu, 21 Mar 2019 08:45:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 40F05218B0
-	for <netfilter-devel@archiver.kernel.org>; Thu, 21 Mar 2019 08:32:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0F701218D3
+	for <netfilter-devel@archiver.kernel.org>; Thu, 21 Mar 2019 08:45:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727946AbfCUIct (ORCPT
+        id S1727853AbfCUIpT (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 21 Mar 2019 04:32:49 -0400
-Received: from ganesha.gnumonks.org ([213.95.27.120]:55461 "EHLO
-        ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727874AbfCUIct (ORCPT
+        Thu, 21 Mar 2019 04:45:19 -0400
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:34616 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726523AbfCUIpT (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 21 Mar 2019 04:32:49 -0400
-Received: from 148.160.broadband14.iol.cz ([90.181.160.148] helo=gnumonks.org)
-        by ganesha.gnumonks.org with esmtpsa (TLS1.2:ECDHE_RSA_AES_256_GCM_SHA384:256)
-        (Exim 4.84_2)
-        (envelope-from <pablo@gnumonks.org>)
-        id 1h6t81-0003ki-Ve; Thu, 21 Mar 2019 09:32:47 +0100
-Date:   Thu, 21 Mar 2019 09:32:45 +0100
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
+        Thu, 21 Mar 2019 04:45:19 -0400
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.89)
+        (envelope-from <fw@strlen.de>)
+        id 1h6tK8-0004Fy-7W; Thu, 21 Mar 2019 09:45:16 +0100
+Date:   Thu, 21 Mar 2019 09:45:16 +0100
+From:   Florian Westphal <fw@strlen.de>
 To:     Phil Sutter <phil@nwl.cc>,
-        Fernando Fernandez Mancera <ffmancera@riseup.net>,
+        Karuna Grewal <karunagrewal98@gmail.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
         netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft v2 1/6] osf: add version fingerprint support
-Message-ID: <20190321083245.lndl3sjq47pajaza@salvia>
-References: <20190314201309.iqdyb7icreyyhhke@salvia>
- <20190314200737.erhjrhoaciclapsn@salvia>
- <27D82259-F921-48E0-A718-A08E2BCCAACD@riseup.net>
- <20190315100333.GD3511@orbyte.nwl.cc>
- <20190315171328.c5xgazye2hattjxr@salvia>
- <20190318174243.GT4851@orbyte.nwl.cc>
- <20190319110624.dy7wqatdtrxy3452@salvia>
- <20190320134654.GD4851@orbyte.nwl.cc>
+Subject: Re: Implementing Deletion of Set Elements in Rulesets
+Message-ID: <20190321084516.6qmr23meelir7uc3@breakpoint.cc>
+References: <CAHRz_yZQ8JYq90BCTKoN7SsivWpXMsGiFz2WkmxbX2S2aVj81Q@mail.gmail.com>
+ <20190321082304.GH4851@orbyte.nwl.cc>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20190320134654.GD4851@orbyte.nwl.cc>
+In-Reply-To: <20190321082304.GH4851@orbyte.nwl.cc>
 User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Mar 20, 2019 at 02:46:54PM +0100, Phil Sutter wrote:
-[...]
-> Speaking of sets, it would be awesome if we could support something
-> like:
+Phil Sutter <phil@nwl.cc> wrote:
+> Hi Karuna,
 > 
-> | osf genre { "Linux:2.4", "Windows" }
-
-We can support something like this:
-
-        osf version { "Linux:2.4", "Windows\*" }
-
-where the wildcard specifies any Windows version.
-
-We need a new set type though, to deal with strings.
-
-> i.e., having elements with varying "granularity". Do you think that's
-> feasible? If so, how could we support that? Maybe using a concatenation
-> like:
+> On Thu, Mar 21, 2019 at 11:57:15AM +0530, Karuna Grewal wrote:
+> > I'm trying to implement  "deletion of set elements in ruleset". For
+> > which I wanted to understand the way existing set operations are
+> > implemented.
 > 
-> | osf name . osf version { "Linux" . "2.4", "Windows" . "*" }
+> What are you trying to achieve? Anonymous sets are immutable by design.
+> If you want to add/delete set elements, you can create a named set and
+> reference that from rules. See nftables wiki[1] for examples of usage.
 
-Not sure we want this level of granularity. Matching the version
-without no OS genre does not look useful when I look at how the osf
-engine works. I'd prefer we go for the first approach you have
-mentioned here above.
+This is about deletion of elements from the packet path in dynamic
+sets, see https://people.netfilter.org/pablo/nf-ideas-2019.txt, 1.4 .
