@@ -2,106 +2,107 @@ Return-Path: <SRS0=rW9L=RY=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_NEOMUTT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.5 required=3.0 tests=FAKE_REPLY_C,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_MUTT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A400FC43381
-	for <netfilter-devel@archiver.kernel.org>; Thu, 21 Mar 2019 10:56:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A85D6C43381
+	for <netfilter-devel@archiver.kernel.org>; Thu, 21 Mar 2019 11:08:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7BCA5218FD
-	for <netfilter-devel@archiver.kernel.org>; Thu, 21 Mar 2019 10:56:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 818D2218B0
+	for <netfilter-devel@archiver.kernel.org>; Thu, 21 Mar 2019 11:08:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728014AbfCUK4N (ORCPT
+        id S1727883AbfCULIF (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 21 Mar 2019 06:56:13 -0400
-Received: from ganesha.gnumonks.org ([213.95.27.120]:48987 "EHLO
-        ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727928AbfCUK4M (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 21 Mar 2019 06:56:12 -0400
-Received: from [195.39.71.253] (helo=gnumonks.org)
-        by ganesha.gnumonks.org with esmtpsa (TLS1.2:ECDHE_RSA_AES_256_GCM_SHA384:256)
-        (Exim 4.84_2)
-        (envelope-from <pablo@gnumonks.org>)
-        id 1h6vMl-00042A-Mj; Thu, 21 Mar 2019 11:56:10 +0100
-Date:   Thu, 21 Mar 2019 11:56:07 +0100
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     xiao ruizhu <katrina.xiaorz@gmail.com>
-Cc:     kadlec@blackhole.kfki.hu, fw@strlen.de, davem@davemloft.net,
+        Thu, 21 Mar 2019 07:08:05 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:39610 "EHLO orbyte.nwl.cc"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727859AbfCULIF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 21 Mar 2019 07:08:05 -0400
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.91)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1h6vYI-0007YQ-EN; Thu, 21 Mar 2019 12:08:02 +0100
+Date:   Thu, 21 Mar 2019 12:08:02 +0100
+From:   Phil Sutter <phil@nwl.cc>
+To:     Karuna Grewal <karunagrewal98@gmail.com>,
+        Florian Westphal <fw@strlen.de>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
         netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH v2] netfilter: nf_conntrack_sip: fix rtcp expectation
- clash
-Message-ID: <20190321105607.dwj3wtxe32cenglo@salvia>
-References: <1552534124-31407-1-git-send-email-katrina.xiaorz@gmail.com>
+Subject: Re: Implementing Deletion of Set Elements in Rulesets
+Message-ID: <20190321110802.GI4851@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Karuna Grewal <karunagrewal98@gmail.com>,
+        Florian Westphal <fw@strlen.de>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <1552534124-31407-1-git-send-email-katrina.xiaorz@gmail.com>
-User-Agent: NeoMutt/20170113 (1.7.2)
+In-Reply-To: <20190321084516.6qmr23meelir7uc3@breakpoint.cc>
+ <CAHRz_yZQ8JYq90BCTKoN7SsivWpXMsGiFz2WkmxbX2S2aVj81Q@mail.gmail.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi,
+On Thu, Mar 21, 2019 at 09:45:16AM +0100, Florian Westphal wrote:
+> This is about deletion of elements from the packet path in dynamic
+> sets, see https://people.netfilter.org/pablo/nf-ideas-2019.txt, 1.4 .
 
-On Thu, Mar 14, 2019 at 11:28:44AM +0800, xiao ruizhu wrote:
-> diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
-> index f067c6b..4398a53 100644
-> --- a/net/netfilter/nf_conntrack_sip.c
-> +++ b/net/netfilter/nf_conntrack_sip.c
-> @@ -799,6 +799,23 @@ static int ct_sip_parse_sdp_addr(const struct nf_conn *ct, const char *dptr,
->  	return 1;
->  }
->  
-> +/* Remove conflicting expect created by sip helper for another master
-> + * conntrack, most likely related to this master.
+Ah, thanks for the pointer! Obviously I confused dynamic with anonymous
+in Karuna's mail.
 
-Hm, this comment is confusing. Code here that checks that master is
-not the same, however, this suggests this is likely the same master,
-however, it is related to a different master?
+On Thu, Mar 21, 2019 at 11:57:15AM +0530, Karuna Grewal wrote:
+> I'm trying to implement  "deletion of set elements in ruleset". For
+> which I wanted to understand the way existing set operations are
+> implemented.
+> While grepping through the code I have noticed that the implementation
+> has some parts in the kernel, libnftnl 's dynset and the userspace's
+> netlink_(de)linearize .
+> I'm unable to get  a clear view of how the control flow goes from the
+> userspace's `evaluate` to the kernel's `nft_dynset.c`  in case of the
+> set operations.
+> Can someone please share some pointers in this direction?
+> Also how does the `set_stmt_alloc` in nftables's statement.c relate to
+> the `set_evaluate` in evaluate.c ?
 
-More comments related to the code changes below.
+I don't quite see where you're stuck. So here's a bit of generic
+code-flow explanation, maybe it helps:
 
-> + */
-> +static void release_conflicting_expect(const struct nf_conn *ct,
-> +				       const struct nf_conntrack_expect *expect,
-> +				       const enum sip_expectation_classes class)
-> +{
-> +	struct nf_conntrack_expect *exp;
-> +	struct net *net = nf_ct_net(ct);
-> +
+- User calls 'nft' with some command
+- Arguments are parsed in scanner.l/parser_bison.y, resulting in a
+  struct cmd instance
+- Last step of parsing is to call cmd_evaluate() (see
+  parser_bison.y:799)
+- Assuming the command was:
+  'nft add rule ip test testchain update @testset { ip saddr timeout 1m }'
+  code flows like this:
+  - cmd_evaluate_add()
+    - case CMD_OBJ_RULE
+      - rule_evaluate()
+        - stmt_evaluate()
+          - case STMT_SET
+            - stmt_evaluate_set()
+            - ...
+      - rule_postprocess()
+	- payload_try_merge() (probably noop in this case)
+- If evaluation succeeds (most of it is sanitization checking), command
+  is appended to list in state->cmds
+- After parsing has finished, code continues in
+  nft_run_cmd_from_buffer() of libnftables.c
+  - nft_netlink()
+    - do_command()
+      - do_command_add()
+        - case CMD_OBJ_RULE
+          - mnl_nft_rule_add() this converts the rule into a netlink
+            message which is appended to batch buffer
+    - mnl_batch_talk() this submits the batch to kernel
 
-We need to hold the nf_conntrack_expect_lock here, two CPUs may race
-to destroy this expectation, unlikely but possible still.
+My guess is that you over-estimate evaluation stage. The real work is
+done by do_command() as this turns parser output into netlink messages.
 
-> +	exp = __nf_ct_expect_find(net, nf_ct_zone(ct), &expect->tuple);
-> +	if (exp && exp->master != ct &&
-> +	    nfct_help(exp->master)->helper == nfct_help(ct)->helper &&
-> +	    exp->class == class)
+I'll skip kernel side for now, hopefully user space is more clear now.
+Feel free to follow-up with further questions.
 
-I'd suggest you place this into a funcion that we can reuse from
-set_expected_rtp_rtcp(), eg.
-
-static bool
-nf_ct_sip_expect_exists(const struct nf_conntrack_expect *expect,
-                        const struct nf_conn *ct)
-{
-        return (exp && exp->master != ct &&
-                nfct_help(exp->master)->helper == nfct_help(ct)->helper &&
-                exp->class == class);
-}
-
-So we can reuse it from L927 in set_expected_rtp_rtcp()?
-
-> +		nf_ct_unexpect_related(exp);
-
-Use nf_ct_remove_expect() instead of nf_ct_unexpect_related(), while
-holding the spinlock.
-
-And a more general question: Given the scenario you describe is quite
-specific, is it not possible to handle this case from
-process_sip_response() -> process_prack_response().
-
-Thanks !
+Cheers, Phil
