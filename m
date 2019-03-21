@@ -2,82 +2,81 @@ Return-Path: <SRS0=rW9L=RY=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_NEOMUTT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_PASS,URIBL_BLOCKED
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C4228C43381
-	for <netfilter-devel@archiver.kernel.org>; Thu, 21 Mar 2019 16:57:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 627DBC43381
+	for <netfilter-devel@archiver.kernel.org>; Thu, 21 Mar 2019 17:07:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9D2BE21902
-	for <netfilter-devel@archiver.kernel.org>; Thu, 21 Mar 2019 16:57:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3173F218B0
+	for <netfilter-devel@archiver.kernel.org>; Thu, 21 Mar 2019 17:07:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728409AbfCUQ5P (ORCPT
+        id S1728480AbfCURHZ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 21 Mar 2019 12:57:15 -0400
-Received: from ganesha.gnumonks.org ([213.95.27.120]:44285 "EHLO
-        ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727823AbfCUQ5P (ORCPT
+        Thu, 21 Mar 2019 13:07:25 -0400
+Received: from shards.monkeyblade.net ([23.128.96.9]:50434 "EHLO
+        shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725985AbfCURHY (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 21 Mar 2019 12:57:15 -0400
-Received: from 148.160.broadband14.iol.cz ([90.181.160.148] helo=gnumonks.org)
-        by ganesha.gnumonks.org with esmtpsa (TLS1.2:ECDHE_RSA_AES_256_GCM_SHA384:256)
-        (Exim 4.84_2)
-        (envelope-from <pablo@gnumonks.org>)
-        id 1h710B-0000zU-UX; Thu, 21 Mar 2019 17:57:13 +0100
-Date:   Thu, 21 Mar 2019 17:57:11 +0100
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Phil Sutter <phil@nwl.cc>,
-        Fernando Fernandez Mancera <ffmancera@riseup.net>,
-        netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft v2 1/6] osf: add version fingerprint support
-Message-ID: <20190321165711.is2jcq3b4yzty6fy@salvia>
-References: <27D82259-F921-48E0-A718-A08E2BCCAACD@riseup.net>
- <20190315100333.GD3511@orbyte.nwl.cc>
- <20190315171328.c5xgazye2hattjxr@salvia>
- <20190318174243.GT4851@orbyte.nwl.cc>
- <20190319110624.dy7wqatdtrxy3452@salvia>
- <20190320134654.GD4851@orbyte.nwl.cc>
- <20190321083245.lndl3sjq47pajaza@salvia>
- <20190321111515.GJ4851@orbyte.nwl.cc>
- <20190321111818.uqmioy5jk4kbamru@salvia>
- <20190321140656.GL4851@orbyte.nwl.cc>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190321140656.GL4851@orbyte.nwl.cc>
-User-Agent: NeoMutt/20170113 (1.7.2)
+        Thu, 21 Mar 2019 13:07:24 -0400
+Received: from localhost (unknown [IPv6:2601:601:9f80:35cd::3d5])
+        (using TLSv1 with cipher AES256-SHA (256/256 bits))
+        (Client did not present a certificate)
+        (Authenticated sender: davem-davemloft)
+        by shards.monkeyblade.net (Postfix) with ESMTPSA id 88FDE133E976A;
+        Thu, 21 Mar 2019 10:07:24 -0700 (PDT)
+Date:   Thu, 21 Mar 2019 10:07:23 -0700 (PDT)
+Message-Id: <20190321.100723.783685956469717987.davem@davemloft.net>
+To:     pablo@netfilter.org
+Cc:     netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+Subject: Re: [PATCH 0/9] Netfilter fixes for net
+From:   David Miller <davem@davemloft.net>
+In-Reply-To: <20190321112845.10627-1-pablo@netfilter.org>
+References: <20190321112845.10627-1-pablo@netfilter.org>
+X-Mailer: Mew version 6.8 on Emacs 26.1
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+X-Greylist: Sender succeeded SMTP AUTH, not delayed by milter-greylist-4.5.12 (shards.monkeyblade.net [149.20.54.216]); Thu, 21 Mar 2019 10:07:24 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Phil,
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Thu, 21 Mar 2019 12:28:36 +0100
 
-On Thu, Mar 21, 2019 at 03:06:56PM +0100, Phil Sutter wrote:
-[...]
-> I was talking about the "osf name . osf version" part. If not optimized,
-> each osf expression would perform a database lookup and return different
-> parts of the fingerprint.
+> The following patchset contains Netfilter fixes for your net tree:
 > 
-> Or did I miss your point?
+> 1) Remove a direct dependency with IPv6 introduced by the
+>    sip_external_media feature, from Alin Nastac.
+> 
+> 2) Fix bogus ENOENT when removing interval elements from set.
+> 
+> 3) Set transport_header from br_netfilter to mimic the stack
+>    behaviour, this partially fixes a checksum validation bug
+>    from the SCTP connection tracking, from Xin Long.
+> 
+> 4) Fix undefined reference to symbol in xt_TEE, due to missing
+>    Kconfig dependencies, from Arnd Bergmann.
+> 
+> 5) Check for NULL in skb_header_pointer() calls in ip6t_shr,
+>    from Kangjie Lu.
+> 
+> 6) Fix bogus EBUSY when removing an existing conntrack helper from
+>    a transaction.
+> 
+> 7) Fix module autoload of the redirect extension.
+> 
+> 8) Remove duplicated transition in flowtable diagram in the existing
+>    documentation.
+> 
+> 9) Missing .release_ops call from error path in newrule() which
+>    results module refcount leak, from Taehee Yoo.
+> 
+> You can pull these changes from:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
 
-Oops, sorry. I misunderstood.
-
-I don't think we should split this in two separated selectors.
-Matching on 'osf version' alone itself does not make sense to me.
-
-I think it's useful to match on:
-
-* genre
-* genre:version
-* genre:version:subtype
-
-anything else for this, I don't have a use case.
-
-We can achieve something similar to what you suggest in your 'osf name
-. osf version' example via:
-
-        osf version {  "Linux:2.4", "Windows\*" }
-
-Thanks!
+Pulled, thanks.
