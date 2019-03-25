@@ -2,99 +2,468 @@ Return-Path: <SRS0=irZF=R4=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_MUTT autolearn=ham autolearn_force=no
+X-Spam-Status: No, score=-8.8 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_PASS,USER_AGENT_NEOMUTT autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EFEBAC43381
-	for <netfilter-devel@archiver.kernel.org>; Mon, 25 Mar 2019 10:44:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 30D95C43381
+	for <netfilter-devel@archiver.kernel.org>; Mon, 25 Mar 2019 10:46:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C3BF82085A
-	for <netfilter-devel@archiver.kernel.org>; Mon, 25 Mar 2019 10:44:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EAB6C2085A
+	for <netfilter-devel@archiver.kernel.org>; Mon, 25 Mar 2019 10:46:52 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=verge.net.au header.i=@verge.net.au header.b="e5xxNrvG"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730713AbfCYKop (ORCPT
+        id S1730781AbfCYKqr (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 25 Mar 2019 06:44:45 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:49620 "EHLO orbyte.nwl.cc"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730633AbfCYKop (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 25 Mar 2019 06:44:45 -0400
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.91)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1h8N5t-0006Rc-IB; Mon, 25 Mar 2019 11:44:41 +0100
-Date:   Mon, 25 Mar 2019 11:44:41 +0100
-From:   Phil Sutter <phil@nwl.cc>
-To:     Karuna Grewal <karunagrewal98@gmail.com>
-Cc:     Florian Westphal <fw@strlen.de>,
+        Mon, 25 Mar 2019 06:46:47 -0400
+Received: from kirsty.vergenet.net ([202.4.237.240]:36227 "EHLO
+        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729727AbfCYKqq (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 25 Mar 2019 06:46:46 -0400
+Received: from reginn.horms.nl (watermunt.horms.nl [80.127.179.77])
+        by kirsty.vergenet.net (Postfix) with ESMTPA id D1C0C25B82D;
+        Mon, 25 Mar 2019 21:46:41 +1100 (AEDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=verge.net.au; s=mail;
+        t=1553510802; bh=lAeHvGuHRK4670l/zjhBiu7h+uQWrd+fh+2t9qcrB88=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=e5xxNrvGfRAFd5d2AeklKPKtSFH7SFu4gi/tHx0n5cHJx3rj+pKdxpfj+u8Egq+Zy
+         4Sih0IPi/9auoAmiUGqAk0F/p8yBS/8XWYhss/duZK8VitLL1LPcY/vK04CfvIfRw6
+         x0/hZrmBuzYVPdL/A6sztExcnrIZ1WbujUuRYFtQ=
+Received: by reginn.horms.nl (Postfix, from userid 7100)
+        id 2079F940563; Mon, 25 Mar 2019 11:46:40 +0100 (CET)
+Date:   Mon, 25 Mar 2019 11:46:40 +0100
+From:   Simon Horman <horms@verge.net.au>
+To:     Jacky Hu <hengqing.hu@gmail.com>
+Cc:     jacky.hu@walmart.com, jason.niesz@walmart.com,
+        "David S. Miller" <davem@davemloft.net>,
+        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        Wensong Zhang <wensong@linux-vs.org>,
+        Julian Anastasov <ja@ssi.bg>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-Subject: Re: Implementing Deletion of Set Elements in Rulesets
-Message-ID: <20190325104441.GQ4851@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Karuna Grewal <karunagrewal98@gmail.com>,
-        Florian Westphal <fw@strlen.de>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-References: <20190321084516.6qmr23meelir7uc3@breakpoint.cc>
- <CAHRz_yZQ8JYq90BCTKoN7SsivWpXMsGiFz2WkmxbX2S2aVj81Q@mail.gmail.com>
- <20190321110802.GI4851@orbyte.nwl.cc>
- <CAHRz_yazsKDFYfsVemDLd4av3M+3k6MJnctvFYYMjDD7q2zSMA@mail.gmail.com>
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org,
+        lvs-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+Subject: Re: [PATCH v5] ipvs: allow tunneling with gue encapsulation
+Message-ID: <20190325104639.guok6lrmn6vwg3e6@verge.net.au>
+References: <20190319052656.23933-1-hengqing.hu@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CAHRz_yazsKDFYfsVemDLd4av3M+3k6MJnctvFYYMjDD7q2zSMA@mail.gmail.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <20190319052656.23933-1-hengqing.hu@gmail.com>
+Organisation: Horms Solutions BV
+User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sat, Mar 23, 2019 at 11:10:24PM +0530, Karuna Grewal wrote:
-> Thanks a lot Phil. This was lucid indeed. I still have a few more doubts:
-> * what's the purpose of  a context (netlink or eval)?
+On Tue, Mar 19, 2019 at 01:26:55PM +0800, Jacky Hu wrote:
+> ipip packets are blocked in some public cloud environments, this patch
+> allows gue encapsulation with the tunneling method, which would make
+> tunneling working in those environments.
+> 
+> Signed-off-by: Jacky Hu <hengqing.hu@gmail.com>
+> ---
+>  include/net/ip_vs.h             |   5 ++
+>  include/uapi/linux/ip_vs.h      |  11 +++
+>  net/netfilter/ipvs/ip_vs_ctl.c  |  43 ++++++++++-
+>  net/netfilter/ipvs/ip_vs_xmit.c | 124 ++++++++++++++++++++++++++++++--
+>  4 files changed, 178 insertions(+), 5 deletions(-)
+> 
+> diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
+> index a0d2e0bb9a94..cdc7b621930d 100644
+> --- a/include/net/ip_vs.h
+> +++ b/include/net/ip_vs.h
+> @@ -603,6 +603,9 @@ struct ip_vs_dest_user_kern {
+>  
+>  	/* Address family of addr */
+>  	u16			af;
+> +
+> +	u16			tun_type;	/* tunnel type */
+> +	__be16			tun_port;	/* tunnel port */
+>  };
+>  
+>  
+> @@ -663,6 +666,8 @@ struct ip_vs_dest {
+>  	atomic_t		conn_flags;	/* flags to copy to conn */
+>  	atomic_t		weight;		/* server weight */
+>  	atomic_t		last_weight;	/* server latest weight */
+> +	__u16			tun_type;	/* tunnel type */
+> +	__be16			tun_port;	/* tunnel port */
+>  
+>  	refcount_t		refcnt;		/* reference counter */
+>  	struct ip_vs_stats      stats;          /* statistics */
+> diff --git a/include/uapi/linux/ip_vs.h b/include/uapi/linux/ip_vs.h
+> index 1c916b2f89dc..e34f436fc79d 100644
+> --- a/include/uapi/linux/ip_vs.h
+> +++ b/include/uapi/linux/ip_vs.h
+> @@ -124,6 +124,13 @@
+>  
+>  #define IP_VS_PEDATA_MAXLEN     255
+>  
+> +/* Tunnel types */
+> +enum {
+> +	IP_VS_CONN_F_TUNNEL_TYPE_IPIP = 0,	/* IPIP */
+> +	IP_VS_CONN_F_TUNNEL_TYPE_GUE,		/* GUE */
+> +	IP_VS_CONN_F_TUNNEL_TYPE_MAX,
+> +};
+> +
+>  /*
+>   *	The struct ip_vs_service_user and struct ip_vs_dest_user are
+>   *	used to set IPVS rules through setsockopt.
+> @@ -392,6 +399,10 @@ enum {
+>  
+>  	IPVS_DEST_ATTR_STATS64,		/* nested attribute for dest stats */
+>  
+> +	IPVS_DEST_ATTR_TUN_TYPE,	/* tunnel type */
+> +
+> +	IPVS_DEST_ATTR_TUN_PORT,	/* tunnel port */
+> +
+>  	__IPVS_DEST_ATTR_MAX,
+>  };
+>  
+> diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+> index 432141f04af3..ddee6266b78b 100644
+> --- a/net/netfilter/ipvs/ip_vs_ctl.c
+> +++ b/net/netfilter/ipvs/ip_vs_ctl.c
+> @@ -830,6 +830,10 @@ __ip_vs_update_dest(struct ip_vs_service *svc, struct ip_vs_dest *dest,
+>  	conn_flags = udest->conn_flags & IP_VS_CONN_F_DEST_MASK;
+>  	conn_flags |= IP_VS_CONN_F_INACTIVE;
+>  
+> +	/* set the tunnel info */
+> +	dest->tun_type = udest->tun_type;
+> +	dest->tun_port = udest->tun_port;
+> +
+>  	/* set the IP_VS_CONN_F_NOOUTPUT flag if not masquerading/NAT */
+>  	if ((conn_flags & IP_VS_CONN_F_FWD_MASK) != IP_VS_CONN_F_MASQ) {
+>  		conn_flags |= IP_VS_CONN_F_NOOUTPUT;
+> @@ -980,6 +984,17 @@ ip_vs_add_dest(struct ip_vs_service *svc, struct ip_vs_dest_user_kern *udest)
+>  		return -ERANGE;
+>  	}
+>  
+> +	switch (udest->tun_type) {
+> +	case IP_VS_CONN_F_TUNNEL_TYPE_GUE:
 
-Contexts provide context. ;)
-E.g. nft_ctx holds application information like configured output/error
-file descriptors.
-In general, these context structures are used to provide data to
-functions further down in the call stack without the need for excessive
-amounts of function parameters or use of global variables (which should
-be avoided for obvious reasons).
-If you want to know more about where and how they are used, look up what
-fields are contained in each context struct and where they are
-instantiated.
+Given that tun_type check acts on an integer, as opposed to an enum,
+I don't see that using a switch statement gives us much here,
+and throughout the patch, other than extra verbosity.
 
-> * What is the purpose of the cache being used after the netlink message has
-> been already sent to the kernel?
+Did you consider simply using an if statement?
 
-Cache belongs to nft_ctx, which is created by the application. The
-application may run multiple commands so keeping the cache after a
-commit to kernel is useful. I think it is used from echo callback as
-well, although I can't find an example right now.
-
-> * Could you please explain a bit about the kernel interaction once the
-> netlink message is sent esp. which structures store the data which was
-> carried by the message from userpace. I'm aware of the concept of hooks
-> being registered and thereon the processing is handled by the netfilter
-> code but I'm not completely clear about how the netlink message gets
-> handled internally.
-
-Libnftables objects (struct rule, struct chain, etc.) are converted into
-libnftnl objects (struct nftnl_rule, struct nftnl_chain, etc.) within
-libnftables. In libnftnl, there are *_build_payload() functions which
-serialize libnftnl objects into a netlink message identified by an
-instance of struct nlmsghdr.
-
-Netlink messages contain a static header (see struct nlmsghdr) and an
-arbitrary amount of attributes of the form [len, type, data]. Libnftnl
-uses libmnl to append those attributes to a message. In order to find
-out where and how a given netlink message is handled in the kernel, the
-quickest way is often to grep for some attribute type definition.
-
-One caveat with nlmsg attributes is that libnftnl and kernel have
-distinct ones. E.g. NFTNL_TABLE_NAME in libnftnl corresponds with
-NFTA_TABLE_NAME in kernel. See *_build_payload() functions in libnftnl
-for details, but in general NFTNL_FOO corresponds with NFTA_FOO in
-kernel.
-
-Cheers, Phil
+> +		if (udest->tun_port == 0) {
+> +			pr_err("%s(): tunnel port is zero\n", __func__);
+> +			return -EINVAL;
+> +		}
+> +		break;
+> +	default:
+> +		break;
+> +	}
+> +
+>  	ip_vs_addr_copy(udest->af, &daddr, &udest->addr);
+>  
+>  	/* We use function that requires RCU lock */
+> @@ -1044,6 +1059,17 @@ ip_vs_edit_dest(struct ip_vs_service *svc, struct ip_vs_dest_user_kern *udest)
+>  		return -ERANGE;
+>  	}
+>  
+> +	switch (udest->tun_type) {
+> +	case IP_VS_CONN_F_TUNNEL_TYPE_GUE:
+> +		if (udest->tun_port == 0) {
+> +			pr_err("%s(): tunnel port is zero\n", __func__);
+> +			return -EINVAL;
+> +		}
+> +		break;
+> +	default:
+> +		break;
+> +	}
+> +
+>  	ip_vs_addr_copy(udest->af, &daddr, &udest->addr);
+>  
+>  	/* We use function that requires RCU lock */
+> @@ -2310,6 +2336,7 @@ static void ip_vs_copy_udest_compat(struct ip_vs_dest_user_kern *udest,
+>  	udest->u_threshold	= udest_compat->u_threshold;
+>  	udest->l_threshold	= udest_compat->l_threshold;
+>  	udest->af		= AF_INET;
+> +	udest->tun_type		= IP_VS_CONN_F_TUNNEL_TYPE_IPIP;
+>  }
+>  
+>  static int
+> @@ -2869,6 +2896,8 @@ static const struct nla_policy ip_vs_dest_policy[IPVS_DEST_ATTR_MAX + 1] = {
+>  	[IPVS_DEST_ATTR_PERSIST_CONNS]	= { .type = NLA_U32 },
+>  	[IPVS_DEST_ATTR_STATS]		= { .type = NLA_NESTED },
+>  	[IPVS_DEST_ATTR_ADDR_FAMILY]	= { .type = NLA_U16 },
+> +	[IPVS_DEST_ATTR_TUN_TYPE]	= { .type = NLA_U8 },
+> +	[IPVS_DEST_ATTR_TUN_PORT]	= { .type = NLA_U16 },
+>  };
+>  
+>  static int ip_vs_genl_fill_stats(struct sk_buff *skb, int container_type,
+> @@ -3172,6 +3201,10 @@ static int ip_vs_genl_fill_dest(struct sk_buff *skb, struct ip_vs_dest *dest)
+>  			 IP_VS_CONN_F_FWD_MASK)) ||
+>  	    nla_put_u32(skb, IPVS_DEST_ATTR_WEIGHT,
+>  			atomic_read(&dest->weight)) ||
+> +	    nla_put_u8(skb, IPVS_DEST_ATTR_TUN_TYPE,
+> +		       dest->tun_type) ||
+> +	    nla_put_be16(skb, IPVS_DEST_ATTR_TUN_PORT,
+> +			 dest->tun_port) ||
+>  	    nla_put_u32(skb, IPVS_DEST_ATTR_U_THRESH, dest->u_threshold) ||
+>  	    nla_put_u32(skb, IPVS_DEST_ATTR_L_THRESH, dest->l_threshold) ||
+>  	    nla_put_u32(skb, IPVS_DEST_ATTR_ACTIVE_CONNS,
+> @@ -3294,12 +3327,14 @@ static int ip_vs_genl_parse_dest(struct ip_vs_dest_user_kern *udest,
+>  	/* If a full entry was requested, check for the additional fields */
+>  	if (full_entry) {
+>  		struct nlattr *nla_fwd, *nla_weight, *nla_u_thresh,
+> -			      *nla_l_thresh;
+> +			      *nla_l_thresh, *nla_tun_type, *nla_tun_port;
+>  
+>  		nla_fwd		= attrs[IPVS_DEST_ATTR_FWD_METHOD];
+>  		nla_weight	= attrs[IPVS_DEST_ATTR_WEIGHT];
+>  		nla_u_thresh	= attrs[IPVS_DEST_ATTR_U_THRESH];
+>  		nla_l_thresh	= attrs[IPVS_DEST_ATTR_L_THRESH];
+> +		nla_tun_type	= attrs[IPVS_DEST_ATTR_TUN_TYPE];
+> +		nla_tun_port	= attrs[IPVS_DEST_ATTR_TUN_PORT];
+>  
+>  		if (!(nla_fwd && nla_weight && nla_u_thresh && nla_l_thresh))
+>  			return -EINVAL;
+> @@ -3309,6 +3344,12 @@ static int ip_vs_genl_parse_dest(struct ip_vs_dest_user_kern *udest,
+>  		udest->weight = nla_get_u32(nla_weight);
+>  		udest->u_threshold = nla_get_u32(nla_u_thresh);
+>  		udest->l_threshold = nla_get_u32(nla_l_thresh);
+> +
+> +		if (nla_tun_type)
+> +			udest->tun_type = nla_get_u8(nla_tun_type);
+> +
+> +		if (nla_tun_port)
+> +			udest->tun_port = nla_get_be16(nla_tun_port);
+>  	}
+>  
+>  	return 0;
+> diff --git a/net/netfilter/ipvs/ip_vs_xmit.c b/net/netfilter/ipvs/ip_vs_xmit.c
+> index 473cce2a5231..730e108b9f36 100644
+> --- a/net/netfilter/ipvs/ip_vs_xmit.c
+> +++ b/net/netfilter/ipvs/ip_vs_xmit.c
+> @@ -32,6 +32,7 @@
+>  #include <linux/slab.h>
+>  #include <linux/tcp.h>                  /* for tcphdr */
+>  #include <net/ip.h>
+> +#include <net/gue.h>
+>  #include <net/tcp.h>                    /* for csum_tcpudp_magic */
+>  #include <net/udp.h>
+>  #include <net/icmp.h>                   /* for icmp_send */
+> @@ -382,6 +383,15 @@ __ip_vs_get_out_rt(struct netns_ipvs *ipvs, int skb_af, struct sk_buff *skb,
+>  		mtu = dst_mtu(&rt->dst);
+>  	} else {
+>  		mtu = dst_mtu(&rt->dst) - sizeof(struct iphdr);
+> +		if (!dest)
+> +			goto err_put;
+> +		switch (dest->tun_type) {
+> +		case IP_VS_CONN_F_TUNNEL_TYPE_GUE:
+> +			mtu -= sizeof(struct udphdr) + sizeof(struct guehdr);
+> +			break;
+> +		default:
+> +			break;
+> +		}
+>  		if (mtu < 68) {
+>  			IP_VS_DBG_RL("%s(): mtu less than 68\n", __func__);
+>  			goto err_put;
+> @@ -533,6 +543,15 @@ __ip_vs_get_out_rt_v6(struct netns_ipvs *ipvs, int skb_af, struct sk_buff *skb,
+>  		mtu = dst_mtu(&rt->dst);
+>  	else {
+>  		mtu = dst_mtu(&rt->dst) - sizeof(struct ipv6hdr);
+> +		if (!dest)
+> +			goto err_put;
+> +		switch (dest->tun_type) {
+> +		case IP_VS_CONN_F_TUNNEL_TYPE_GUE:
+> +			mtu -= sizeof(struct udphdr) + sizeof(struct guehdr);
+> +			break;
+> +		default:
+> +			break;
+> +		}
+>  		if (mtu < IPV6_MIN_MTU) {
+>  			IP_VS_DBG_RL("%s(): mtu less than %d\n", __func__,
+>  				     IPV6_MIN_MTU);
+> @@ -989,6 +1008,41 @@ static inline int __tun_gso_type_mask(int encaps_af, int orig_af)
+>  	}
+>  }
+>  
+> +static int
+> +ipvs_gue_encap(struct net *net, struct sk_buff *skb,
+> +	       struct ip_vs_conn *cp, __u8 *next_protocol)
+> +{
+> +	__be16 dport;
+> +	__be16 sport = udp_flow_src_port(net, skb, 0, 0, false);
+> +	struct udphdr  *udph;	/* Our new UDP header */
+> +	struct guehdr  *gueh;	/* Our new GUE header */
+> +
+> +	skb_push(skb, sizeof(struct guehdr));
+> +
+> +	gueh = (struct guehdr *)skb->data;
+> +
+> +	gueh->control = 0;
+> +	gueh->version = 0;
+> +	gueh->hlen = 0;
+> +	gueh->flags = 0;
+> +	gueh->proto_ctype = *next_protocol;
+> +
+> +	skb_push(skb, sizeof(struct udphdr));
+> +	skb_reset_transport_header(skb);
+> +
+> +	udph = udp_hdr(skb);
+> +
+> +	dport = cp->dest->tun_port;
+> +	udph->dest = dport;
+> +	udph->source = sport;
+> +	udph->len = htons(skb->len);
+> +	udph->check = 0;
+> +
+> +	*next_protocol = IPPROTO_UDP;
+> +
+> +	return 0;
+> +}
+> +
+>  /*
+>   *   IP Tunneling transmitter
+>   *
+> @@ -1025,6 +1079,7 @@ ip_vs_tunnel_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
+>  	struct iphdr  *iph;			/* Our new IP header */
+>  	unsigned int max_headroom;		/* The extra header space needed */
+>  	int ret, local;
+> +	int tun_type, gso_type;
+>  
+>  	EnterFunction(10);
+>  
+> @@ -1046,6 +1101,16 @@ ip_vs_tunnel_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
+>  	 */
+>  	max_headroom = LL_RESERVED_SPACE(tdev) + sizeof(struct iphdr);
+>  
+> +	tun_type = cp->dest->tun_type;
+> +
+> +	switch (tun_type) {
+> +	case IP_VS_CONN_F_TUNNEL_TYPE_GUE:
+> +		max_headroom += sizeof(struct udphdr) + sizeof(struct guehdr);
+> +		break;
+> +	default:
+> +		break;
+> +	}
+> +
+>  	/* We only care about the df field if sysctl_pmtu_disc(ipvs) is set */
+>  	dfp = sysctl_pmtu_disc(ipvs) ? &df : NULL;
+>  	skb = ip_vs_prepare_tunneled_skb(skb, cp->af, max_headroom,
+> @@ -1054,11 +1119,30 @@ ip_vs_tunnel_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
+>  	if (IS_ERR(skb))
+>  		goto tx_error;
+>  
+> -	if (iptunnel_handle_offloads(skb, __tun_gso_type_mask(AF_INET, cp->af)))
+> +	switch (tun_type) {
+> +	case IP_VS_CONN_F_TUNNEL_TYPE_GUE:
+> +		gso_type = SKB_GSO_UDP_TUNNEL;
+> +		break;
+> +	default:
+> +		gso_type = __tun_gso_type_mask(AF_INET, cp->af);
+> +		break;
+> +	}
+> +
+> +	if (iptunnel_handle_offloads(skb, gso_type))
+>  		goto tx_error;
+>  
+>  	skb->transport_header = skb->network_header;
+>  
+> +	skb_set_inner_ipproto(skb, next_protocol);
+> +
+> +	switch (tun_type) {
+> +	case IP_VS_CONN_F_TUNNEL_TYPE_GUE:
+> +		ipvs_gue_encap(net, skb, cp, &next_protocol);
+> +		break;
+> +	default:
+> +		break;
+> +	}
+> +
+>  	skb_push(skb, sizeof(struct iphdr));
+>  	skb_reset_network_header(skb);
+>  	memset(&(IPCB(skb)->opt), 0, sizeof(IPCB(skb)->opt));
+> @@ -1102,6 +1186,8 @@ int
+>  ip_vs_tunnel_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
+>  		     struct ip_vs_protocol *pp, struct ip_vs_iphdr *ipvsh)
+>  {
+> +	struct netns_ipvs *ipvs = cp->ipvs;
+> +	struct net *net = ipvs->net;
+>  	struct rt6_info *rt;		/* Route to the other host */
+>  	struct in6_addr saddr;		/* Source for tunnel */
+>  	struct net_device *tdev;	/* Device to other host */
+> @@ -1112,10 +1198,11 @@ ip_vs_tunnel_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
+>  	struct ipv6hdr  *iph;		/* Our new IP header */
+>  	unsigned int max_headroom;	/* The extra header space needed */
+>  	int ret, local;
+> +	int tun_type, gso_type;
+>  
+>  	EnterFunction(10);
+>  
+> -	local = __ip_vs_get_out_rt_v6(cp->ipvs, cp->af, skb, cp->dest,
+> +	local = __ip_vs_get_out_rt_v6(ipvs, cp->af, skb, cp->dest,
+>  				      &cp->daddr.in6,
+>  				      &saddr, ipvsh, 1,
+>  				      IP_VS_RT_MODE_LOCAL |
+> @@ -1134,17 +1221,46 @@ ip_vs_tunnel_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
+>  	 */
+>  	max_headroom = LL_RESERVED_SPACE(tdev) + sizeof(struct ipv6hdr);
+>  
+> +	tun_type = cp->dest->tun_type;
+> +
+> +	switch (tun_type) {
+> +	case IP_VS_CONN_F_TUNNEL_TYPE_GUE:
+> +		max_headroom += sizeof(struct udphdr) + sizeof(struct guehdr);
+> +		break;
+> +	default:
+> +		break;
+> +	}
+> +
+>  	skb = ip_vs_prepare_tunneled_skb(skb, cp->af, max_headroom,
+>  					 &next_protocol, &payload_len,
+>  					 &dsfield, &ttl, NULL);
+>  	if (IS_ERR(skb))
+>  		goto tx_error;
+>  
+> -	if (iptunnel_handle_offloads(skb, __tun_gso_type_mask(AF_INET6, cp->af)))
+> +	switch (tun_type) {
+> +	case IP_VS_CONN_F_TUNNEL_TYPE_GUE:
+> +		gso_type = SKB_GSO_UDP_TUNNEL;
+> +		break;
+> +	default:
+> +		gso_type = __tun_gso_type_mask(AF_INET6, cp->af);
+> +		break;
+> +	}
+> +
+> +	if (iptunnel_handle_offloads(skb, gso_type))
+>  		goto tx_error;
+>  
+>  	skb->transport_header = skb->network_header;
+>  
+> +	skb_set_inner_ipproto(skb, next_protocol);
+> +
+> +	switch (tun_type) {
+> +	case IP_VS_CONN_F_TUNNEL_TYPE_GUE:
+> +		ipvs_gue_encap(net, skb, cp, &next_protocol);
+> +		break;
+> +	default:
+> +		break;
+> +	}
+> +
+>  	skb_push(skb, sizeof(struct ipv6hdr));
+>  	skb_reset_network_header(skb);
+>  	memset(&(IPCB(skb)->opt), 0, sizeof(IPCB(skb)->opt));
+> @@ -1167,7 +1283,7 @@ ip_vs_tunnel_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
+>  
+>  	ret = ip_vs_tunnel_xmit_prepare(skb, cp);
+>  	if (ret == NF_ACCEPT)
+> -		ip6_local_out(cp->ipvs->net, skb->sk, skb);
+> +		ip6_local_out(net, skb->sk, skb);
+>  	else if (ret == NF_DROP)
+>  		kfree_skb(skb);
+>  
+> -- 
+> 2.21.0
+> 
