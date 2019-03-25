@@ -2,104 +2,119 @@ Return-Path: <SRS0=irZF=R4=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_PASS,USER_AGENT_MUTT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 11FF3C43381
-	for <netfilter-devel@archiver.kernel.org>; Mon, 25 Mar 2019 13:54:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B8ADFC10F03
+	for <netfilter-devel@archiver.kernel.org>; Mon, 25 Mar 2019 14:39:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id DDD632082F
-	for <netfilter-devel@archiver.kernel.org>; Mon, 25 Mar 2019 13:54:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 84B4B20879
+	for <netfilter-devel@archiver.kernel.org>; Mon, 25 Mar 2019 14:39:12 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=sysclose.org header.i=fbl@sysclose.org header.b="QJcGnqyM"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729207AbfCYNxz (ORCPT
+        id S1726237AbfCYOjK (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 25 Mar 2019 09:53:55 -0400
-Received: from mout.kundenserver.de ([212.227.17.24]:59045 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726136AbfCYNxz (ORCPT
+        Mon, 25 Mar 2019 10:39:10 -0400
+Received: from sender-of-o51.zoho.com ([135.84.80.216]:21144 "EHLO
+        sender-of-o51.zoho.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726166AbfCYOjK (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 25 Mar 2019 09:53:55 -0400
-Received: from wuerfel.lan ([149.172.19.189]) by mrelayeu.kundenserver.de
- (mreue107 [212.227.15.145]) with ESMTPA (Nemesis) id
- 1Ml76o-1ggnzL0AV2-00lXoq; Mon, 25 Mar 2019 14:53:39 +0100
-From:   Arnd Bergmann <arnd@arndb.de>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>
-Cc:     Arnd Bergmann <arnd@arndb.de>, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH] netfilter: nat: avoid unused-variable warning
-Date:   Mon, 25 Mar 2019 14:53:05 +0100
-Message-Id: <20190325135336.2107801-1-arnd@arndb.de>
-X-Mailer: git-send-email 2.20.0
+        Mon, 25 Mar 2019 10:39:10 -0400
+ARC-Seal: i=1; a=rsa-sha256; t=1553524742; cv=none; 
+        d=zoho.com; s=zohoarc; 
+        b=ga2z1wlUGey/MdCxKlYB0d+OREpvx8uIlFinYDNcAWJOCV683y2Q/FKuSzOoV7GfRt44U/Cf/mxA5NYDtaGUEXB8FDJiUuYR4SxHIYAw0J0sLqRjpxm+gBaFNKTydtT8CxSvh8YbP2X6KDgopP0GAJQy09Qm7pRgwqUGxJiLHko=
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zoho.com; s=zohoarc; 
+        t=1553524742; h=Content-Type:Cc:Date:From:In-Reply-To:MIME-Version:Message-ID:References:Subject:To:ARC-Authentication-Results; 
+        bh=CvZ40L+BUtgbeSNj/bs7PAxnfE80iSDoJLwBGkTpsoM=; 
+        b=Ewo/uhOv7Z98VZR9B5HC1z5q20OZxbtvvaVZbvS8wXuBkKj5Le4WibrdpTYDHyuFxIf5aY113RFTO3LBfB9jeBjyXWNNsyr8gaKXK1tj6SGT1YrTs8wnVKc1bea812A23B+df4vf9/SkfiqAwP2MacVHKaghPrWTTUikdrt7X7g=
+ARC-Authentication-Results: i=1; mx.zoho.com;
+        dkim=pass  header.i=sysclose.org;
+        spf=pass  smtp.mailfrom=fbl@sysclose.org;
+        dmarc=pass header.from=<fbl@sysclose.org> header.from=<fbl@sysclose.org>
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1553524742;
+        s=zoho; d=sysclose.org; i=fbl@sysclose.org;
+        h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:Content-Type:In-Reply-To;
+        l=1578; bh=CvZ40L+BUtgbeSNj/bs7PAxnfE80iSDoJLwBGkTpsoM=;
+        b=QJcGnqyMs7kXPJzZxxbILQEBe7cSyw0aYOOHgXeqBjSA2+jBPPasmrHWlU3GUUIR
+        zgVxGSp7iGlE+Ra7VfinkFiSglldga+M5cZE0Wwx6XJIubaxla2Vsq3XIfo24ngg7IS
+        2Yl5Z+yVIlii1nyexkmHnXu+kzdxntMY3yxLBvL0=
+Received: from localhost (177.183.215.126 [177.183.215.126]) by mx.zohomail.com
+        with SMTPS id 155352473507040.58492287840795; Mon, 25 Mar 2019 07:38:55 -0700 (PDT)
+Date:   Mon, 25 Mar 2019 11:38:51 -0300
+From:   Flavio Leitner <fbl@sysclose.org>
+To:     Pravin Shelar <pshelar@ovn.org>
+Cc:     Linux Kernel Network Developers <netdev@vger.kernel.org>,
+        Joe Stringer <joe@ovn.org>, ovs dev <dev@openvswitch.org>,
+        netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH net-next] openvswitch: add seqadj extension when NAT is
+ used.
+Message-ID: <20190325143851.GA5037@p50>
+References: <20190321165224.24118-1-fbl@sysclose.org>
+ <CAOrHB_CActmZPWipq6chM0SXAkTsODuHFyVMTdL8idCjB-Vecw@mail.gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Provags-ID: V03:K1:CGJ0DOJHsCwmbLDcOAlalRstVPVwDxhUsFCatOpujVLgwDkeK2v
- Tot09vijRNlCuZvLQ3bwqjKoLejfq+f4RwK7e6GdTOPLH5DJ/ORLCrYDoJz+90+DshdTbaF
- /EXmLVJuIqL+tRAyZtncx9b0OMAR6bzScGwimnjcXDNafZgOGDQGyfYXJwRvjtFcotiX0UM
- ONZmrp5t7GuVs+x6utpbQ==
-X-UI-Out-Filterresults: notjunk:1;V03:K0:ql8aJH6eo+c=:+QYhOVLgoGQ4+J6Dp2PaqJ
- lLiyQJ3CEA2OY8WNLEPyo7yOVTq1PKtbuCzUdInyEBF49Y0L6MILrHSgGpsqUM7PSZL9LIlkI
- R2SeitHC59sl4aLUGgXr3Zc6oJxp6A7xelbr2UGbUt1j7HLaNbtUoxGu5CMtUHQ85ckyr0dbp
- 6oOpBLA+5pPXGCkf4h7HC7bNrfeI1wIj5VAaA3zkyvknakodyHrCBe07cIFwoaHAzhQnIYkvC
- 1yucP/jcfrQz9d4I+lkS/m759ZrJhlv5dZJWP90llHm1SjfwIPDse1SCq9iiuhpzPUnYpsYT/
- fDjTm9KA47ASvf1SKnQPSdk+NEXOIBpqsHn8QbUPm6MaMxkLwIGnirNakX5oOBx86RKvJRHDI
- nPLkAH5A1CAJcWsg0vLAJP6h1ICal0R8/YS/uEH7TZUQf3Rj69tHWmudl615Wrxf+vxa1yyMr
- 4lVLjKmr4rRHMa4uqDl5+aKST315S4EogaDRKquD3W7JIDCony/pvvZKiKKqRUBgg8vpJUzCJ
- dt823DqAjLbchvg4x5qbh8zfVHWf28OVGGAnrBl6wMwhvDpzvao53+bT8TcuQ4djRjTs3sj6c
- k88WX5vBXOEzrfTBHuZRZkpdP5E5ZTW5hAWJ9wn9IxsfqZ1iSJPKSKfQpncsg//dDezPpGL9p
- 91Jx3VSdE0JL+8oqy8n1zxrsyrats0jnf9iBpoe/6uuId9vxAM4tJuNhws4bW5XRK3Ln5jwvD
- lpMiOnqYw3cLTWrOyJfgzWnUPxSUQrrITc6/nA==
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAOrHB_CActmZPWipq6chM0SXAkTsODuHFyVMTdL8idCjB-Vecw@mail.gmail.com>
+User-Agent: Mutt/1.11.3 (2019-02-01)
+X-ZohoMailClient: External
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-masq_refcnt6 was added at the start of the file, but it is
-only used in the option IPv6 section of the file, causing
-a harmless compiler warning if IPv6 is disabled:
+On Sat, Mar 23, 2019 at 12:32:37PM -0700, Pravin Shelar wrote:
+> On Thu, Mar 21, 2019 at 9:52 AM Flavio Leitner <fbl@sysclose.org> wrote:
+> >
+> > When the conntrack is initialized, there is no helper attached
+> > yet so the nat info initialization (nf_nat_setup_info) skips
+> > adding the seqadj ext.
+> >
+> > A helper is attached later when the conntrack is not confirmed
+> > but is going to be committed. In this case, if NAT is needed then
+> > adds the seqadj ext as well.
+> >
+> > Fixes: 16ec3d4fbb96 ("openvswitch: Fix cached ct with helper.")
+> > Signed-off-by: Flavio Leitner <fbl@sysclose.org>
+> > ---
+> >  net/openvswitch/conntrack.c | 5 +++++
+> >  1 file changed, 5 insertions(+)
+> >
+> I am not able to apply this patch.
 
-net/netfilter/nf_nat_masquerade.c:15:21: error: 'masq_refcnt6' defined but not used [-Werror=unused-variable]
- static unsigned int masq_refcnt6 __read_mostly;
+This is for Davem net-next. I got the patch from ML and it worked for
+me.
 
-Move the variable next to the user to avoid that warning.
 
-Fixes: 46f7487e161b ("netfilter: nat: don't register device notifier twice")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-----
-This is an older patch stack, for some reason I seem to have never
-sent it, and I can't find any indication of anyone else sending
-a similar fix, so sending this out now.
+> > diff --git a/net/openvswitch/conntrack.c b/net/openvswitch/conntrack.c
+> > index 1b6896896fff..a7664515c943 100644
+> > --- a/net/openvswitch/conntrack.c
+> > +++ b/net/openvswitch/conntrack.c
+> > @@ -990,6 +990,11 @@ static int __ovs_ct_lookup(struct net *net, struct sw_flow_key *key,
+> >                                                             GFP_ATOMIC);
+> >                         if (err)
+> >                                 return err;
+> > +
+> > +                       if (info->nat && nfct_help(ct) && !nfct_seqadj(ct)) {
+> Given helper is just assigned, is nfct_help() check required here?
 
-If it's already fixed upstream, please ignore.
----
- net/netfilter/nf_nat_masquerade.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+I tried to be very clear, but you're right that it's not required.
+I will post a v2 removing that.
+Thanks
+fbl
 
-diff --git a/net/netfilter/nf_nat_masquerade.c b/net/netfilter/nf_nat_masquerade.c
-index d85c4d902e7b..878a73b4f65c 100644
---- a/net/netfilter/nf_nat_masquerade.c
-+++ b/net/netfilter/nf_nat_masquerade.c
-@@ -12,7 +12,6 @@
- 
- static DEFINE_MUTEX(masq_mutex);
- static unsigned int masq_refcnt4 __read_mostly;
--static unsigned int masq_refcnt6 __read_mostly;
- 
- unsigned int
- nf_nat_masquerade_ipv4(struct sk_buff *skb, unsigned int hooknum,
-@@ -322,6 +321,8 @@ static struct notifier_block masq_inet6_notifier = {
- 	.notifier_call	= masq_inet6_event,
- };
- 
-+static unsigned int masq_refcnt6 __read_mostly;
-+
- int nf_nat_masquerade_ipv6_register_notifier(void)
- {
- 	int ret = 0;
--- 
-2.20.0
+> 
+> > +                               if (!nfct_seqadj_ext_add(ct))
+> > +                                       return -EINVAL;
+> > +                       }
+> >                 }
+> >
+> >                 /* Call the helper only if:
+> > --
+> > 2.20.1
+> >
+> >
+> >
 
