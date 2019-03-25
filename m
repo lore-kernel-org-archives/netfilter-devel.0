@@ -1,210 +1,197 @@
-Return-Path: <SRS0=KLq8=R3=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=irZF=R4=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-5.7 required=3.0 tests=FROM_LOCAL_HEX,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0862DC43381
-	for <netfilter-devel@archiver.kernel.org>; Sun, 24 Mar 2019 14:23:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 61859C4360F
+	for <netfilter-devel@archiver.kernel.org>; Mon, 25 Mar 2019 08:02:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C1B54222EC
-	for <netfilter-devel@archiver.kernel.org>; Sun, 24 Mar 2019 14:23:49 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=darbyshire-bryant.me.uk header.i=@darbyshire-bryant.me.uk header.b="j2CaG/+O"
+	by mail.kernel.org (Postfix) with ESMTP id 3987420830
+	for <netfilter-devel@archiver.kernel.org>; Mon, 25 Mar 2019 08:02:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726889AbfCXOXt (ORCPT
+        id S1729922AbfCYICG (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 24 Mar 2019 10:23:49 -0400
-Received: from mail-eopbgr10040.outbound.protection.outlook.com ([40.107.1.40]:55364
-        "EHLO EUR02-HE1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726317AbfCXOXt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 24 Mar 2019 10:23:49 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
- d=darbyshire-bryant.me.uk; s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=CHftDF4w5RCnOXzXChHBG1D+N/F+aXgMPUNBVgoJQ9g=;
- b=j2CaG/+OnRIWUvVcBGv+/n9fLAwhNw8I7M+ZUOPlUTNXoBm5kF7NWFt+3NOWZPlmtrhZwyjVK9BCoy3uYYWPMiV2/Cbje3iaAOqw6wx/VWel5x8wOjWzOIIFIHfRKArfjij5zfHZXHYQZHU3qTwM+NlBGwkfm7aipD9UzYKhnQU=
-Received: from VI1PR0302MB2750.eurprd03.prod.outlook.com (10.171.105.143) by
- VI1PR0302MB2590.eurprd03.prod.outlook.com (10.171.104.11) with Microsoft SMTP
- Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.1730.16; Sun, 24 Mar 2019 14:23:45 +0000
-Received: from VI1PR0302MB2750.eurprd03.prod.outlook.com
- ([fe80::a8fc:70f:5750:d2d8]) by VI1PR0302MB2750.eurprd03.prod.outlook.com
- ([fe80::a8fc:70f:5750:d2d8%9]) with mapi id 15.20.1730.019; Sun, 24 Mar 2019
- 14:23:45 +0000
-From:   Kevin 'ldir' Darbyshire-Bryant <ldir@darbyshire-bryant.me.uk>
-To:     "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-CC:     Kevin 'ldir' Darbyshire-Bryant <ldir@darbyshire-bryant.me.uk>
-Subject: [PATCH 1/1] netfilter: connmark: introduce savedscp
-Thread-Topic: [PATCH 1/1] netfilter: connmark: introduce savedscp
-Thread-Index: AQHU4k0wbxhUbO7O10G3RjU1k8f4WQ==
-Date:   Sun, 24 Mar 2019 14:23:45 +0000
-Message-ID: <20190324142314.92539-2-ldir@darbyshire-bryant.me.uk>
-References: <20190324142314.92539-1-ldir@darbyshire-bryant.me.uk>
-In-Reply-To: <20190324142314.92539-1-ldir@darbyshire-bryant.me.uk>
-Accept-Language: en-GB, en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-x-clientproxiedby: VI1PR0501CA0012.eurprd05.prod.outlook.com
- (2603:10a6:800:92::22) To VI1PR0302MB2750.eurprd03.prod.outlook.com
- (2603:10a6:800:e2::15)
-authentication-results: spf=none (sender IP is )
- smtp.mailfrom=ldir@darbyshire-bryant.me.uk; 
-x-ms-exchange-messagesentrepresentingtype: 1
-x-mailer: git-send-email 2.17.2 (Apple Git-113)
-x-originating-ip: [2a02:c7f:1240:ee00::dc83]
-x-ms-publictraffictype: Email
-x-ms-office365-filtering-correlation-id: 47dda4d4-2fd9-43ca-af9b-08d6b0645278
-x-microsoft-antispam: BCL:0;PCL:0;RULEID:(2390118)(7020095)(4652040)(7021145)(8989299)(4534185)(7022145)(4603075)(4627221)(201702281549075)(8990200)(7048125)(7024125)(7027125)(7023125)(5600127)(711020)(4605104)(2017052603328)(7153060)(7193020);SRVR:VI1PR0302MB2590;
-x-ms-traffictypediagnostic: VI1PR0302MB2590:
-x-microsoft-antispam-prvs: <VI1PR0302MB2590DA2640E80028626F555DC95D0@VI1PR0302MB2590.eurprd03.prod.outlook.com>
-x-forefront-prvs: 09860C2161
-x-forefront-antispam-report: SFV:NSPM;SFS:(10009020)(136003)(376002)(396003)(39830400003)(346002)(366004)(199004)(189003)(2351001)(486006)(105586002)(186003)(11346002)(446003)(2616005)(5640700003)(68736007)(2906002)(106356001)(6486002)(50226002)(6436002)(2501003)(97736004)(256004)(74482002)(81166006)(8676002)(81156014)(53936002)(14444005)(46003)(71200400001)(71190400001)(476003)(107886003)(6512007)(316002)(99286004)(25786009)(6506007)(386003)(86362001)(7736002)(52116002)(76176011)(4326008)(14454004)(1076003)(508600001)(6116002)(6916009)(5660300002)(8936002)(102836004)(36756003)(305945005);DIR:OUT;SFP:1101;SCL:1;SRVR:VI1PR0302MB2590;H:VI1PR0302MB2750.eurprd03.prod.outlook.com;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;A:1;MX:1;
-received-spf: None (protection.outlook.com: darbyshire-bryant.me.uk does not
- designate permitted sender hosts)
-x-ms-exchange-senderadcheck: 1
-x-microsoft-antispam-message-info: XEbe73hfa7RkvguUOzZqd7J9FQccNhYf/kiwbv88GyyFLbFU9rPhyB+BxeK7Q3bdAKcAo0yxAtfdp0ktj4nHTTXupKNYTzOY8d6EtT3fzZ4w+nJQCRfpXARPjqmwVD8kR6Gt3OwvZFyKSsEeJi/CGHZ+8uwxeUWUGs1V6c8qP1gZePHIUfNVWkaoUZlgjDEJcBkAVA9Ym89R8dgyGDPLbeS+gsSQkMRWw5GolJqtKlZxuJI+EVX3MrfHKm2U6OdoZsGUzrJGdXAU6oN9KVHI44BCWYRjXtRode2tTLGPArSgOplbdFMSkGdsw3W39rxwzZhZy+I77hxMITszmlDT1DEzLrlIjAlp2mUGBQPI9YWApmhJb5yymrN/8G2cn7kakPuW9DzNwlD+MiOh3BnKAZ5+N54i75mauQ7jtVdRfiM=
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+        Mon, 25 Mar 2019 04:02:06 -0400
+Received: from mail-io1-f72.google.com ([209.85.166.72]:54017 "EHLO
+        mail-io1-f72.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729859AbfCYICF (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 25 Mar 2019 04:02:05 -0400
+Received: by mail-io1-f72.google.com with SMTP id w11so7227497iom.20
+        for <netfilter-devel@vger.kernel.org>; Mon, 25 Mar 2019 01:02:05 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:date:message-id:subject:from:to;
+        bh=dVZIxEfXukrD5ihgyOeTyg/2nUQwrj0xIEaYunjoTWc=;
+        b=H96AY6LdGBttnv9N+zc4krT5Gc1OeZQAc8Id8bhRO3YZ25YB+E8eEpqGKxPLXr1tEo
+         T66XLz5PwvODiffWO8atbvw/wzIvXYXGxm1oqLTz5yTC136G3V+AwQSQSR1hvPJJOiVn
+         5Umu6NyNB8aaV15qOpN0fl4/tiPSSM3+6vtRjpMzWnh2KsMgMsg2iIrmgSBjuYZxcoMt
+         MsbNdAFjW0Hxe7wF2HD7u3qhN2gCvwRzqIEbDWH/s44xPIqHC9U0a9xWASAIsKqJ6ZmR
+         GVH4wzxnHox4TwDs0zjCQAC5cMOIzVuaPuZrjDSMwFwwVI7QZWUrOQKlYejYi71uP60v
+         oLFQ==
+X-Gm-Message-State: APjAAAUE9iBIA6Bj2uX9DU/pV25L54e+wvh7N4IwI53rV1VtgFNXS+ud
+        MJfSDOyWkZQlsba9Xlf0PBrrJSGWkRN0Xu9DLwsO3NE9hTVN
+X-Google-Smtp-Source: APXvYqw6p4CmPLZawh/6VHBFQ2ri2a2d6Xsjg2vD2NXXV2ea4PepaZNZ2wJpho05PQi1Y8ePpSA/PIMbpM9KwixOj/Bwh3LpJcwj
 MIME-Version: 1.0
-X-OriginatorOrg: darbyshire-bryant.me.uk
-X-MS-Exchange-CrossTenant-Network-Message-Id: 47dda4d4-2fd9-43ca-af9b-08d6b0645278
-X-MS-Exchange-CrossTenant-originalarrivaltime: 24 Mar 2019 14:23:45.3348
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: 9151708b-c553-406f-8e56-694f435154a4
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: VI1PR0302MB2590
+X-Received: by 2002:a6b:c995:: with SMTP id z143mr14356829iof.74.1553500924863;
+ Mon, 25 Mar 2019 01:02:04 -0700 (PDT)
+Date:   Mon, 25 Mar 2019 01:02:04 -0700
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <000000000000c8f45a0584e69ea9@google.com>
+Subject: KASAN: use-after-free Read in seccomp_notify_release (2)
+From:   syzbot <syzbot+b562969adb2e04af3442@syzkaller.appspotmail.com>
+To:     ast@kernel.org, bpf@vger.kernel.org, coreteam@netfilter.org,
+        daniel@iogearbox.net, davem@davemloft.net, fw@strlen.de,
+        kadlec@blackhole.kfki.hu, kafai@fb.com, keescook@chromium.org,
+        linux-kernel@vger.kernel.org, luto@amacapital.net,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        pablo@netfilter.org, songliubraving@fb.com,
+        syzkaller-bugs@googlegroups.com, wad@chromium.org, wenxu@ucloud.cn,
+        yhs@fb.com
+Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-savedscp is a method of storing the DSCP of an ip packet into conntrack
-mark.  In combination with a suitable tc filter action (conndscp but may
-end up being integrated into connmark) DSCP values are able to be stored
-on egress and restored on ingress across links that otherwise alter or
-bleach DSCP.
+Hello,
 
-This is useful for qdiscs such as CAKE which are able to shape according
-to policies based on DSCP.
+syzbot found the following crash on:
 
-Ingress classification is traditionally a challenging task since
-iptables rules haven't yet run and tc filter/eBPF programs are pre-NAT
-lookups, hence are unable to see internal IPv4 addresses as used on the
-typical home masquerading gateway.
+HEAD commit:    1bdd3dbf Merge tag 'io_uring-20190323' of git://git.kernel..
+git tree:       upstream
+console output: https://syzkaller.appspot.com/x/log.txt?x=12ae5b93200000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=9a31fb246de2a622
+dashboard link: https://syzkaller.appspot.com/bug?extid=b562969adb2e04af3442
+compiler:       gcc (GCC) 9.0.0 20181231 (experimental)
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=162ca25d200000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=1733b53b200000
 
-The ingress problem is solved by the tc filter, but the tc people didn't
-like the idea of tc setting conntrack mark values, though they are ok
-with reading conntrack values and hence restoring DSCP from conntrack
-marks.
+The bug was bisected to:
 
-x_tables CONNMARK with the new savedscp action solves the problem of
-storing the DSCP to the conntrack mark.
+commit a799aea0988ea0d1b1f263e996fdad2f6133c680
+Author: wenxu <wenxu@ucloud.cn>
+Date:   Wed Jan 9 02:40:11 2019 +0000
 
-It accepts 2 parameters.  The mark is a 32bit value with usually one
-bit set.  This bit is set when savedscp saves the DSCP to the mark.
-This is useful to implement a 'one shot'
-iptables based classification where the 'complicated' iptables rules are
-only run once to classify the connection on initial (egress) packet and
-subsequent packets are all marked/restored with the same DSCP.  A mark
-of zero disables the setting of a status bit/s.
+     netfilter: nft_flow_offload: Fix reverse route lookup
 
-The mask is a 32bit value of at least 6 contiguous bits and represents
-the area where the DSCP will be stored.
+bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=10dcc517200000
+final crash:    https://syzkaller.appspot.com/x/report.txt?x=12dcc517200000
+console output: https://syzkaller.appspot.com/x/log.txt?x=14dcc517200000
 
-e.g.
+IMPORTANT: if you fix the bug, please add the following tag to the commit:
+Reported-by: syzbot+b562969adb2e04af3442@syzkaller.appspotmail.com
+Fixes: a799aea0988e ("netfilter: nft_flow_offload: Fix reverse route  
+lookup")
 
-iptables -A QOS_MARK_eth0 -t mangle -j CONNMARK --savedscp-mark 0x01000000/=
-0xfc000000
+==================================================================
+BUG: KASAN: use-after-free in __lock_acquire+0x2d5e/0x3fb0  
+kernel/locking/lockdep.c:3573
+Read of size 8 at addr ffff8880a621d080 by task syz-executor365/8267
 
-Would store the DSCP in the top 6 bits of the 32bit mark field, and use
-the LSB of the top byte as the 'DSCP has been stored' marker.
+CPU: 0 PID: 8267 Comm: syz-executor365 Not tainted 5.1.0-rc1+ #35
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS  
+Google 01/01/2011
+Call Trace:
+  __dump_stack lib/dump_stack.c:77 [inline]
+  dump_stack+0x172/0x1f0 lib/dump_stack.c:113
+  print_address_description.cold+0x7c/0x20d mm/kasan/report.c:187
+  kasan_report.cold+0x1b/0x40 mm/kasan/report.c:317
+  __asan_report_load8_noabort+0x14/0x20 mm/kasan/generic_report.c:132
+  __lock_acquire+0x2d5e/0x3fb0 kernel/locking/lockdep.c:3573
+  lock_acquire+0x16f/0x3f0 kernel/locking/lockdep.c:4211
+  __mutex_lock_common kernel/locking/mutex.c:925 [inline]
+  __mutex_lock+0xf7/0x1310 kernel/locking/mutex.c:1072
+  mutex_lock_nested+0x16/0x20 kernel/locking/mutex.c:1087
+  seccomp_notify_release+0x62/0x280 kernel/seccomp.c:984
+  __fput+0x2e5/0x8d0 fs/file_table.c:278
+  ____fput+0x16/0x20 fs/file_table.c:309
+  task_work_run+0x14a/0x1c0 kernel/task_work.c:113
+  tracehook_notify_resume include/linux/tracehook.h:188 [inline]
+  exit_to_usermode_loop+0x273/0x2c0 arch/x86/entry/common.c:166
+  prepare_exit_to_usermode arch/x86/entry/common.c:197 [inline]
+  syscall_return_slowpath arch/x86/entry/common.c:268 [inline]
+  do_syscall_64+0x52d/0x610 arch/x86/entry/common.c:293
+  entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x405621
+Code: 75 14 b8 03 00 00 00 0f 05 48 3d 01 f0 ff ff 0f 83 04 19 00 00 c3 48  
+83 ec 08 e8 6a fc ff ff 48 89 04 24 b8 03 00 00 00 0f 05 <48> 8b 3c 24 48  
+89 c2 e8 b3 fc ff ff 48 89 d0 48 83 c4 08 48 3d 01
+RSP: 002b:00007ffe1ebba1e0 EFLAGS: 00000293 ORIG_RAX: 0000000000000003
+RAX: 0000000000000000 RBX: 0000000000000004 RCX: 0000000000405621
+RDX: 0000000000000000 RSI: 0000000000000080 RDI: 0000000000000003
+RBP: 0000000000000064 R08: 00007f28ae4ca700 R09: 0000000000000000
+R10: 00007ffe1ebba1f0 R11: 0000000000000293 R12: 00000000006dbc30
+R13: 0000000000000002 R14: 00000000006dbc3c R15: 000000000000002d
 
-Signed-off-by: Kevin Darbyshire-Bryant <ldir@darbyshire-bryant.me.uk>
+Allocated by task 8278:
+  save_stack+0x45/0xd0 mm/kasan/common.c:75
+  set_track mm/kasan/common.c:87 [inline]
+  __kasan_kmalloc mm/kasan/common.c:497 [inline]
+  __kasan_kmalloc.constprop.0+0xcf/0xe0 mm/kasan/common.c:470
+  kasan_kmalloc+0x9/0x10 mm/kasan/common.c:511
+  kmem_cache_alloc_trace+0x151/0x760 mm/slab.c:3621
+  kmalloc include/linux/slab.h:545 [inline]
+  kzalloc include/linux/slab.h:740 [inline]
+  seccomp_prepare_filter kernel/seccomp.c:453 [inline]
+  seccomp_prepare_user_filter kernel/seccomp.c:493 [inline]
+  seccomp_set_mode_filter kernel/seccomp.c:1262 [inline]
+  do_seccomp+0x743/0x2250 kernel/seccomp.c:1376
+  __do_sys_seccomp kernel/seccomp.c:1395 [inline]
+  __se_sys_seccomp kernel/seccomp.c:1392 [inline]
+  __x64_sys_seccomp+0x73/0xb0 kernel/seccomp.c:1392
+  do_syscall_64+0x103/0x610 arch/x86/entry/common.c:290
+  entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+Freed by task 8278:
+  save_stack+0x45/0xd0 mm/kasan/common.c:75
+  set_track mm/kasan/common.c:87 [inline]
+  __kasan_slab_free+0x102/0x150 mm/kasan/common.c:459
+  kasan_slab_free+0xe/0x10 mm/kasan/common.c:467
+  __cache_free mm/slab.c:3498 [inline]
+  kfree+0xcf/0x230 mm/slab.c:3821
+  seccomp_filter_free kernel/seccomp.c:567 [inline]
+  seccomp_filter_free kernel/seccomp.c:563 [inline]
+  seccomp_set_mode_filter kernel/seccomp.c:1317 [inline]
+  do_seccomp+0xb00/0x2250 kernel/seccomp.c:1376
+  __do_sys_seccomp kernel/seccomp.c:1395 [inline]
+  __se_sys_seccomp kernel/seccomp.c:1392 [inline]
+  __x64_sys_seccomp+0x73/0xb0 kernel/seccomp.c:1392
+  do_syscall_64+0x103/0x610 arch/x86/entry/common.c:290
+  entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+The buggy address belongs to the object at ffff8880a621d000
+  which belongs to the cache kmalloc-192 of size 192
+The buggy address is located 128 bytes inside of
+  192-byte region [ffff8880a621d000, ffff8880a621d0c0)
+The buggy address belongs to the page:
+page:ffffea0002988740 count:1 mapcount:0 mapping:ffff88812c3f0040 index:0x0
+flags: 0x1fffc0000000200(slab)
+raw: 01fffc0000000200 ffffea0002981048 ffffea0002988048 ffff88812c3f0040
+raw: 0000000000000000 ffff8880a621d000 0000000100000010 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+  ffff8880a621cf80: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+  ffff8880a621d000: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+> ffff8880a621d080: fb fb fb fb fb fb fb fb fc fc fc fc fc fc fc fc
+                    ^
+  ffff8880a621d100: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  ffff8880a621d180: 00 00 fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+==================================================================
+
+
 ---
- include/uapi/linux/netfilter/xt_connmark.h |  3 ++-
- net/netfilter/xt_connmark.c                | 30 ++++++++++++++++++++++
- 2 files changed, 32 insertions(+), 1 deletion(-)
+This bug is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
 
-diff --git a/include/uapi/linux/netfilter/xt_connmark.h b/include/uapi/linu=
-x/netfilter/xt_connmark.h
-index 1aa5c955ee1e..24272cac2d37 100644
---- a/include/uapi/linux/netfilter/xt_connmark.h
-+++ b/include/uapi/linux/netfilter/xt_connmark.h
-@@ -16,7 +16,8 @@
- enum {
- 	XT_CONNMARK_SET =3D 0,
- 	XT_CONNMARK_SAVE,
--	XT_CONNMARK_RESTORE
-+	XT_CONNMARK_RESTORE,
-+	XT_CONNMARK_SAVEDSCP
- };
-=20
- enum {
-diff --git a/net/netfilter/xt_connmark.c b/net/netfilter/xt_connmark.c
-index 29c38aa7f726..de8dc707ac5b 100644
---- a/net/netfilter/xt_connmark.c
-+++ b/net/netfilter/xt_connmark.c
-@@ -42,6 +42,7 @@ connmark_tg_shift(struct sk_buff *skb, const struct xt_co=
-nnmark_tginfo2 *info)
- 	u_int32_t new_targetmark;
- 	struct nf_conn *ct;
- 	u_int32_t newmark;
-+	u8 dscp;
-=20
- 	ct =3D nf_ct_get(skb, &ctinfo);
- 	if (ct =3D=3D NULL)
-@@ -74,6 +75,34 @@ connmark_tg_shift(struct sk_buff *skb, const struct xt_c=
-onnmark_tginfo2 *info)
- 			nf_conntrack_event_cache(IPCT_MARK, ct);
- 		}
- 		break;
-+	case XT_CONNMARK_SAVEDSCP:
-+		if (!info->ctmask)
-+			goto out;
-+
-+		if (skb->protocol =3D=3D htons(ETH_P_IP)) {
-+			if (skb->len < sizeof(struct iphdr))
-+				goto out;
-+
-+			dscp =3D ipv4_get_dsfield(ip_hdr(skb)) >> 2;
-+
-+		} else if (skb->protocol =3D=3D htons(ETH_P_IPV6)) {
-+			if (skb->len < sizeof(struct ipv6hdr))
-+				goto out;
-+
-+			dscp =3D ipv6_get_dsfield(ipv6_hdr(skb)) >> 2;
-+
-+		} else { /* protocol doesn't have diffserv - get out! */
-+			goto out;
-+		}
-+
-+		newmark =3D (ct->mark & ~info->ctmask) ^
-+			  (info->ctmark | (dscp << info->shift_bits));
-+
-+		if (ct->mark !=3D newmark) {
-+			ct->mark =3D newmark;
-+			nf_conntrack_event_cache(IPCT_MARK, ct);
-+		}
-+		break;
- 	case XT_CONNMARK_RESTORE:
- 		new_targetmark =3D (ct->mark & info->ctmask);
- 		if (info->shift_dir =3D=3D D_SHIFT_RIGHT)
-@@ -86,6 +115,7 @@ connmark_tg_shift(struct sk_buff *skb, const struct xt_c=
-onnmark_tginfo2 *info)
- 		skb->mark =3D newmark;
- 		break;
- 	}
-+out:
- 	return XT_CONTINUE;
- }
-=20
---=20
-2.17.2 (Apple Git-113)
-
+syzbot will keep track of this bug report. See:
+https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+For information about bisection process see: https://goo.gl/tpsmEJ#bisection
+syzbot can test patches for this bug, for details see:
+https://goo.gl/tpsmEJ#testing-patches
