@@ -2,124 +2,431 @@ Return-Path: <SRS0=49hf=R5=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_PASS,USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 71343C43381
-	for <netfilter-devel@archiver.kernel.org>; Tue, 26 Mar 2019 07:47:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B786C43381
+	for <netfilter-devel@archiver.kernel.org>; Tue, 26 Mar 2019 10:31:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4C1F320828
-	for <netfilter-devel@archiver.kernel.org>; Tue, 26 Mar 2019 07:47:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0BC9E20830
+	for <netfilter-devel@archiver.kernel.org>; Tue, 26 Mar 2019 10:31:43 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="SCTHy7BN"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731088AbfCZHrY (ORCPT
+        id S1731179AbfCZKbf (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 26 Mar 2019 03:47:24 -0400
-Received: from ja.ssi.bg ([178.16.129.10]:53716 "EHLO ja.ssi.bg"
-        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1725535AbfCZHrY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 26 Mar 2019 03:47:24 -0400
-Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
-        by ja.ssi.bg (8.15.2/8.15.2) with ESMTP id x2Q7k7hv002750;
-        Tue, 26 Mar 2019 09:46:07 +0200
-Date:   Tue, 26 Mar 2019 09:46:07 +0200 (EET)
-From:   Julian Anastasov <ja@ssi.bg>
-To:     Jacky Hu <hengqing.hu@gmail.com>
-cc:     jacky.hu@walmart.com, jason.niesz@walmart.com,
+        Tue, 26 Mar 2019 06:31:35 -0400
+Received: from mail-pf1-f195.google.com ([209.85.210.195]:39067 "EHLO
+        mail-pf1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726111AbfCZKbf (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 26 Mar 2019 06:31:35 -0400
+Received: by mail-pf1-f195.google.com with SMTP id i17so7878458pfo.6;
+        Tue, 26 Mar 2019 03:31:34 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=nFQFrkINyRQj448nfGmUyBh55tfODOT/wDRz3rFDKE8=;
+        b=SCTHy7BNh7G+maR+nG+/I0VIiW3lWw0SCFY+JLIUFxrw5FjesWWaBCbCGFDpyXu2Ab
+         i3eVUMTclXUpyvfl/We7pPtDew2PsN68jOeufbHYjJ0FFkRT7hZ8Jzz3X2GEnNwpFtt2
+         UUNuisZU0wKzeWXdOOopzB/NYOGpACoTvVSY5RkjY4o3XURE4IOcTsBW7zcIFwRfZrZ/
+         9aHJDkLpB5Qe9ymZyn8pg2BM5Nsu+R/vSTavwDzHq6RrGIe+ja1h1bUh6664GmtvL37X
+         H89aAy4+e29NoOjWTcSrO1QU9T+gLEze3c3EowMuZrJwganDcJucU4GUWHJdfe0fYsne
+         TDLA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=nFQFrkINyRQj448nfGmUyBh55tfODOT/wDRz3rFDKE8=;
+        b=Tac9RSB+i6142h996VWetgo07P+W7i+PyMHkBsvWI5J6cMYEqZyM+XIx3petyjg4ms
+         u8YK0hZR1jAuLV2HVhG4RsJ2hd9qhFGCpkkbEcp7gnKQx1KfDh6LiXIyzKZE4IeJEsnh
+         /4xIhFNtOETXZNKnDSXiCMJKcvCNTZysF5zIVuc10iTCVggvu8xzkU4Sv1lrmP1P53Rk
+         GrzQ9LLiKh75QCXq6LR/icu1rF0TPD2KVPycF/RMPm6Na8S/HxpuNhHIEjTBAYVvTfCN
+         C4mNvzyr88tcuXLJvuNG6nAS53wBcnC6v91mxoS6ll5rkjzTK+DxtEY/Ttmr/cfV9pAI
+         N9jA==
+X-Gm-Message-State: APjAAAWRFRq5L5sxTCHc8+d9vfRPcoqpNPlL9XljKnidUb7uC+uTVVc/
+        64qjQyhYtgyLL6cwzxcEkg==
+X-Google-Smtp-Source: APXvYqw6ducunXs8tMwafq7HtPKTBSDctIsly9ho3nDLLeOnm+W2sZ/zvYZx+twlcXaErdo9k9Lc4Q==
+X-Received: by 2002:a62:6490:: with SMTP id y138mr15435806pfb.230.1553596293812;
+        Tue, 26 Mar 2019 03:31:33 -0700 (PDT)
+Received: from localhost (2.172.220.35.bc.googleusercontent.com. [35.220.172.2])
+        by smtp.gmail.com with ESMTPSA id a9sm1289692pfo.17.2019.03.26.03.31.30
+        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+        Tue, 26 Mar 2019 03:31:32 -0700 (PDT)
+From:   Jacky Hu <hengqing.hu@gmail.com>
+To:     hengqing.hu@gmail.com
+Cc:     jacky.hu@walmart.com, jason.niesz@walmart.com,
         "David S. Miller" <davem@davemloft.net>,
         Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
         Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
         Wensong Zhang <wensong@linux-vs.org>,
         Simon Horman <horms@verge.net.au>,
+        Julian Anastasov <ja@ssi.bg>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
         Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
         Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org,
         lvs-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-Subject: Re: [PATCH v6] ipvs: allow tunneling with gue encapsulation
-In-Reply-To: <20190326012831.352-1-hengqing.hu@gmail.com>
-Message-ID: <alpine.LFD.2.21.1903260930270.2201@ja.home.ssi.bg>
-References: <20190326012831.352-1-hengqing.hu@gmail.com>
-User-Agent: Alpine 2.21 (LFD 202 2017-01-01)
+Subject: [PATCH v7] ipvs: allow tunneling with gue encapsulation
+Date:   Tue, 26 Mar 2019 18:31:21 +0800
+Message-Id: <20190326103121.31083-1-hengqing.hu@gmail.com>
+X-Mailer: git-send-email 2.21.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+ipip packets are blocked in some public cloud environments, this patch
+allows gue encapsulation with the tunneling method, which would make
+tunneling working in those environments.
 
-	Hello,
+Signed-off-by: Jacky Hu <hengqing.hu@gmail.com>
+---
+ include/net/ip_vs.h             |  5 ++
+ include/uapi/linux/ip_vs.h      | 11 +++++
+ net/netfilter/ipvs/ip_vs_ctl.c  | 35 +++++++++++++-
+ net/netfilter/ipvs/ip_vs_xmit.c | 84 +++++++++++++++++++++++++++++++--
+ 4 files changed, 130 insertions(+), 5 deletions(-)
 
-On Tue, 26 Mar 2019, Jacky Hu wrote:
+diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
+index 047f9a5ccaad..2ac40135b576 100644
+--- a/include/net/ip_vs.h
++++ b/include/net/ip_vs.h
+@@ -600,6 +600,9 @@ struct ip_vs_dest_user_kern {
+ 
+ 	/* Address family of addr */
+ 	u16			af;
++
++	u16			tun_type;	/* tunnel type */
++	__be16			tun_port;	/* tunnel port */
+ };
+ 
+ 
+@@ -660,6 +663,8 @@ struct ip_vs_dest {
+ 	atomic_t		conn_flags;	/* flags to copy to conn */
+ 	atomic_t		weight;		/* server weight */
+ 	atomic_t		last_weight;	/* server latest weight */
++	__u16			tun_type;	/* tunnel type */
++	__be16			tun_port;	/* tunnel port */
+ 
+ 	refcount_t		refcnt;		/* reference counter */
+ 	struct ip_vs_stats      stats;          /* statistics */
+diff --git a/include/uapi/linux/ip_vs.h b/include/uapi/linux/ip_vs.h
+index 1c916b2f89dc..e34f436fc79d 100644
+--- a/include/uapi/linux/ip_vs.h
++++ b/include/uapi/linux/ip_vs.h
+@@ -124,6 +124,13 @@
+ 
+ #define IP_VS_PEDATA_MAXLEN     255
+ 
++/* Tunnel types */
++enum {
++	IP_VS_CONN_F_TUNNEL_TYPE_IPIP = 0,	/* IPIP */
++	IP_VS_CONN_F_TUNNEL_TYPE_GUE,		/* GUE */
++	IP_VS_CONN_F_TUNNEL_TYPE_MAX,
++};
++
+ /*
+  *	The struct ip_vs_service_user and struct ip_vs_dest_user are
+  *	used to set IPVS rules through setsockopt.
+@@ -392,6 +399,10 @@ enum {
+ 
+ 	IPVS_DEST_ATTR_STATS64,		/* nested attribute for dest stats */
+ 
++	IPVS_DEST_ATTR_TUN_TYPE,	/* tunnel type */
++
++	IPVS_DEST_ATTR_TUN_PORT,	/* tunnel port */
++
+ 	__IPVS_DEST_ATTR_MAX,
+ };
+ 
+diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+index 053cd96b9c76..328683452229 100644
+--- a/net/netfilter/ipvs/ip_vs_ctl.c
++++ b/net/netfilter/ipvs/ip_vs_ctl.c
+@@ -831,6 +831,10 @@ __ip_vs_update_dest(struct ip_vs_service *svc, struct ip_vs_dest *dest,
+ 	conn_flags = udest->conn_flags & IP_VS_CONN_F_DEST_MASK;
+ 	conn_flags |= IP_VS_CONN_F_INACTIVE;
+ 
++	/* set the tunnel info */
++	dest->tun_type = udest->tun_type;
++	dest->tun_port = udest->tun_port;
++
+ 	/* set the IP_VS_CONN_F_NOOUTPUT flag if not masquerading/NAT */
+ 	if ((conn_flags & IP_VS_CONN_F_FWD_MASK) != IP_VS_CONN_F_MASQ) {
+ 		conn_flags |= IP_VS_CONN_F_NOOUTPUT;
+@@ -987,6 +991,13 @@ ip_vs_add_dest(struct ip_vs_service *svc, struct ip_vs_dest_user_kern *udest)
+ 		return -ERANGE;
+ 	}
+ 
++	if (udest->tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GUE) {
++		if (udest->tun_port == 0) {
++			pr_err("%s(): tunnel port is zero\n", __func__);
++			return -EINVAL;
++		}
++	}
++
+ 	ip_vs_addr_copy(udest->af, &daddr, &udest->addr);
+ 
+ 	/* We use function that requires RCU lock */
+@@ -1051,6 +1062,13 @@ ip_vs_edit_dest(struct ip_vs_service *svc, struct ip_vs_dest_user_kern *udest)
+ 		return -ERANGE;
+ 	}
+ 
++	if (udest->tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GUE) {
++		if (udest->tun_port == 0) {
++			pr_err("%s(): tunnel port is zero\n", __func__);
++			return -EINVAL;
++		}
++	}
++
+ 	ip_vs_addr_copy(udest->af, &daddr, &udest->addr);
+ 
+ 	/* We use function that requires RCU lock */
+@@ -2333,6 +2351,7 @@ static void ip_vs_copy_udest_compat(struct ip_vs_dest_user_kern *udest,
+ 	udest->u_threshold	= udest_compat->u_threshold;
+ 	udest->l_threshold	= udest_compat->l_threshold;
+ 	udest->af		= AF_INET;
++	udest->tun_type		= IP_VS_CONN_F_TUNNEL_TYPE_IPIP;
+ }
+ 
+ static int
+@@ -2890,6 +2909,8 @@ static const struct nla_policy ip_vs_dest_policy[IPVS_DEST_ATTR_MAX + 1] = {
+ 	[IPVS_DEST_ATTR_PERSIST_CONNS]	= { .type = NLA_U32 },
+ 	[IPVS_DEST_ATTR_STATS]		= { .type = NLA_NESTED },
+ 	[IPVS_DEST_ATTR_ADDR_FAMILY]	= { .type = NLA_U16 },
++	[IPVS_DEST_ATTR_TUN_TYPE]	= { .type = NLA_U8 },
++	[IPVS_DEST_ATTR_TUN_PORT]	= { .type = NLA_U16 },
+ };
+ 
+ static int ip_vs_genl_fill_stats(struct sk_buff *skb, int container_type,
+@@ -3193,6 +3214,10 @@ static int ip_vs_genl_fill_dest(struct sk_buff *skb, struct ip_vs_dest *dest)
+ 			 IP_VS_CONN_F_FWD_MASK)) ||
+ 	    nla_put_u32(skb, IPVS_DEST_ATTR_WEIGHT,
+ 			atomic_read(&dest->weight)) ||
++	    nla_put_u8(skb, IPVS_DEST_ATTR_TUN_TYPE,
++		       dest->tun_type) ||
++	    nla_put_be16(skb, IPVS_DEST_ATTR_TUN_PORT,
++			 dest->tun_port) ||
+ 	    nla_put_u32(skb, IPVS_DEST_ATTR_U_THRESH, dest->u_threshold) ||
+ 	    nla_put_u32(skb, IPVS_DEST_ATTR_L_THRESH, dest->l_threshold) ||
+ 	    nla_put_u32(skb, IPVS_DEST_ATTR_ACTIVE_CONNS,
+@@ -3315,12 +3340,14 @@ static int ip_vs_genl_parse_dest(struct ip_vs_dest_user_kern *udest,
+ 	/* If a full entry was requested, check for the additional fields */
+ 	if (full_entry) {
+ 		struct nlattr *nla_fwd, *nla_weight, *nla_u_thresh,
+-			      *nla_l_thresh;
++			      *nla_l_thresh, *nla_tun_type, *nla_tun_port;
+ 
+ 		nla_fwd		= attrs[IPVS_DEST_ATTR_FWD_METHOD];
+ 		nla_weight	= attrs[IPVS_DEST_ATTR_WEIGHT];
+ 		nla_u_thresh	= attrs[IPVS_DEST_ATTR_U_THRESH];
+ 		nla_l_thresh	= attrs[IPVS_DEST_ATTR_L_THRESH];
++		nla_tun_type	= attrs[IPVS_DEST_ATTR_TUN_TYPE];
++		nla_tun_port	= attrs[IPVS_DEST_ATTR_TUN_PORT];
+ 
+ 		if (!(nla_fwd && nla_weight && nla_u_thresh && nla_l_thresh))
+ 			return -EINVAL;
+@@ -3330,6 +3357,12 @@ static int ip_vs_genl_parse_dest(struct ip_vs_dest_user_kern *udest,
+ 		udest->weight = nla_get_u32(nla_weight);
+ 		udest->u_threshold = nla_get_u32(nla_u_thresh);
+ 		udest->l_threshold = nla_get_u32(nla_l_thresh);
++
++		if (nla_tun_type)
++			udest->tun_type = nla_get_u8(nla_tun_type);
++
++		if (nla_tun_port)
++			udest->tun_port = nla_get_be16(nla_tun_port);
+ 	}
+ 
+ 	return 0;
+diff --git a/net/netfilter/ipvs/ip_vs_xmit.c b/net/netfilter/ipvs/ip_vs_xmit.c
+index 175349fcf91f..8d6f94b67772 100644
+--- a/net/netfilter/ipvs/ip_vs_xmit.c
++++ b/net/netfilter/ipvs/ip_vs_xmit.c
+@@ -32,6 +32,7 @@
+ #include <linux/slab.h>
+ #include <linux/tcp.h>                  /* for tcphdr */
+ #include <net/ip.h>
++#include <net/gue.h>
+ #include <net/tcp.h>                    /* for csum_tcpudp_magic */
+ #include <net/udp.h>
+ #include <net/icmp.h>                   /* for icmp_send */
+@@ -382,6 +383,10 @@ __ip_vs_get_out_rt(struct netns_ipvs *ipvs, int skb_af, struct sk_buff *skb,
+ 		mtu = dst_mtu(&rt->dst);
+ 	} else {
+ 		mtu = dst_mtu(&rt->dst) - sizeof(struct iphdr);
++		if (!dest)
++			goto err_put;
++		if (dest->tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GUE)
++			mtu -= sizeof(struct udphdr) + sizeof(struct guehdr);
+ 		if (mtu < 68) {
+ 			IP_VS_DBG_RL("%s(): mtu less than 68\n", __func__);
+ 			goto err_put;
+@@ -533,6 +538,10 @@ __ip_vs_get_out_rt_v6(struct netns_ipvs *ipvs, int skb_af, struct sk_buff *skb,
+ 		mtu = dst_mtu(&rt->dst);
+ 	else {
+ 		mtu = dst_mtu(&rt->dst) - sizeof(struct ipv6hdr);
++		if (!dest)
++			goto err_put;
++		if (dest->tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GUE)
++			mtu -= sizeof(struct udphdr) + sizeof(struct guehdr);
+ 		if (mtu < IPV6_MIN_MTU) {
+ 			IP_VS_DBG_RL("%s(): mtu less than %d\n", __func__,
+ 				     IPV6_MIN_MTU);
+@@ -989,6 +998,41 @@ static inline int __tun_gso_type_mask(int encaps_af, int orig_af)
+ 	}
+ }
+ 
++static int
++ipvs_gue_encap(struct net *net, struct sk_buff *skb,
++	       struct ip_vs_conn *cp, __u8 *next_protocol)
++{
++	__be16 dport;
++	__be16 sport = udp_flow_src_port(net, skb, 0, 0, false);
++	struct udphdr  *udph;	/* Our new UDP header */
++	struct guehdr  *gueh;	/* Our new GUE header */
++
++	skb_push(skb, sizeof(struct guehdr));
++
++	gueh = (struct guehdr *)skb->data;
++
++	gueh->control = 0;
++	gueh->version = 0;
++	gueh->hlen = 0;
++	gueh->flags = 0;
++	gueh->proto_ctype = *next_protocol;
++
++	skb_push(skb, sizeof(struct udphdr));
++	skb_reset_transport_header(skb);
++
++	udph = udp_hdr(skb);
++
++	dport = cp->dest->tun_port;
++	udph->dest = dport;
++	udph->source = sport;
++	udph->len = htons(skb->len);
++	udph->check = 0;
++
++	*next_protocol = IPPROTO_UDP;
++
++	return 0;
++}
++
+ /*
+  *   IP Tunneling transmitter
+  *
+@@ -1025,6 +1069,7 @@ ip_vs_tunnel_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
+ 	struct iphdr  *iph;			/* Our new IP header */
+ 	unsigned int max_headroom;		/* The extra header space needed */
+ 	int ret, local;
++	int tun_type, gso_type;
+ 
+ 	EnterFunction(10);
+ 
+@@ -1046,6 +1091,11 @@ ip_vs_tunnel_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
+ 	 */
+ 	max_headroom = LL_RESERVED_SPACE(tdev) + sizeof(struct iphdr);
+ 
++	tun_type = cp->dest->tun_type;
++
++	if (tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GUE)
++		max_headroom += sizeof(struct udphdr) + sizeof(struct guehdr);
++
+ 	/* We only care about the df field if sysctl_pmtu_disc(ipvs) is set */
+ 	dfp = sysctl_pmtu_disc(ipvs) ? &df : NULL;
+ 	skb = ip_vs_prepare_tunneled_skb(skb, cp->af, max_headroom,
+@@ -1054,11 +1104,20 @@ ip_vs_tunnel_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
+ 	if (IS_ERR(skb))
+ 		goto tx_error;
+ 
+-	if (iptunnel_handle_offloads(skb, __tun_gso_type_mask(AF_INET, cp->af)))
++	gso_type = __tun_gso_type_mask(AF_INET, cp->af);
++	if (tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GUE)
++		gso_type |= SKB_GSO_UDP_TUNNEL;
++
++	if (iptunnel_handle_offloads(skb, gso_type))
+ 		goto tx_error;
+ 
+ 	skb->transport_header = skb->network_header;
+ 
++	skb_set_inner_ipproto(skb, next_protocol);
++
++	if (tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GUE)
++		ipvs_gue_encap(net, skb, cp, &next_protocol);
++
+ 	skb_push(skb, sizeof(struct iphdr));
+ 	skb_reset_network_header(skb);
+ 	memset(&(IPCB(skb)->opt), 0, sizeof(IPCB(skb)->opt));
+@@ -1102,6 +1161,8 @@ int
+ ip_vs_tunnel_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
+ 		     struct ip_vs_protocol *pp, struct ip_vs_iphdr *ipvsh)
+ {
++	struct netns_ipvs *ipvs = cp->ipvs;
++	struct net *net = ipvs->net;
+ 	struct rt6_info *rt;		/* Route to the other host */
+ 	struct in6_addr saddr;		/* Source for tunnel */
+ 	struct net_device *tdev;	/* Device to other host */
+@@ -1112,10 +1173,11 @@ ip_vs_tunnel_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
+ 	struct ipv6hdr  *iph;		/* Our new IP header */
+ 	unsigned int max_headroom;	/* The extra header space needed */
+ 	int ret, local;
++	int tun_type, gso_type;
+ 
+ 	EnterFunction(10);
+ 
+-	local = __ip_vs_get_out_rt_v6(cp->ipvs, cp->af, skb, cp->dest,
++	local = __ip_vs_get_out_rt_v6(ipvs, cp->af, skb, cp->dest,
+ 				      &cp->daddr.in6,
+ 				      &saddr, ipvsh, 1,
+ 				      IP_VS_RT_MODE_LOCAL |
+@@ -1134,17 +1196,31 @@ ip_vs_tunnel_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
+ 	 */
+ 	max_headroom = LL_RESERVED_SPACE(tdev) + sizeof(struct ipv6hdr);
+ 
++	tun_type = cp->dest->tun_type;
++
++	if (tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GUE)
++		max_headroom += sizeof(struct udphdr) + sizeof(struct guehdr);
++
+ 	skb = ip_vs_prepare_tunneled_skb(skb, cp->af, max_headroom,
+ 					 &next_protocol, &payload_len,
+ 					 &dsfield, &ttl, NULL);
+ 	if (IS_ERR(skb))
+ 		goto tx_error;
+ 
+-	if (iptunnel_handle_offloads(skb, __tun_gso_type_mask(AF_INET6, cp->af)))
++	gso_type = __tun_gso_type_mask(AF_INET6, cp->af);
++	if (tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GUE)
++		gso_type |= SKB_GSO_UDP_TUNNEL;
++
++	if (iptunnel_handle_offloads(skb, gso_type))
+ 		goto tx_error;
+ 
+ 	skb->transport_header = skb->network_header;
+ 
++	skb_set_inner_ipproto(skb, next_protocol);
++
++	if (tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GUE)
++		ipvs_gue_encap(net, skb, cp, &next_protocol);
++
+ 	skb_push(skb, sizeof(struct ipv6hdr));
+ 	skb_reset_network_header(skb);
+ 	memset(&(IPCB(skb)->opt), 0, sizeof(IPCB(skb)->opt));
+@@ -1167,7 +1243,7 @@ ip_vs_tunnel_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
+ 
+ 	ret = ip_vs_tunnel_xmit_prepare(skb, cp);
+ 	if (ret == NF_ACCEPT)
+-		ip6_local_out(cp->ipvs->net, skb->sk, skb);
++		ip6_local_out(net, skb->sk, skb);
+ 	else if (ret == NF_DROP)
+ 		kfree_skb(skb);
+ 
+-- 
+2.21.0
 
-> ipip packets are blocked in some public cloud environments, this patch
-> allows gue encapsulation with the tunneling method, which would make
-> tunneling working in those environments.
-> 
-> Signed-off-by: Jacky Hu <hengqing.hu@gmail.com>
-> ---
->  include/net/ip_vs.h             |  5 ++
->  include/uapi/linux/ip_vs.h      | 11 +++++
->  net/netfilter/ipvs/ip_vs_ctl.c  | 35 +++++++++++++-
->  net/netfilter/ipvs/ip_vs_xmit.c | 86 +++++++++++++++++++++++++++++++--
->  4 files changed, 132 insertions(+), 5 deletions(-)
-> 
-
-> diff --git a/net/netfilter/ipvs/ip_vs_xmit.c b/net/netfilter/ipvs/ip_vs_xmit.c
-> index 473cce2a5231..36819c2fabf1 100644
-> --- a/net/netfilter/ipvs/ip_vs_xmit.c
-> +++ b/net/netfilter/ipvs/ip_vs_xmit.c
-
-> @@ -1054,11 +1104,21 @@ ip_vs_tunnel_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
->  	if (IS_ERR(skb))
->  		goto tx_error;
->  
-> -	if (iptunnel_handle_offloads(skb, __tun_gso_type_mask(AF_INET, cp->af)))
-> +	if (tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GUE)
-> +		gso_type = SKB_GSO_UDP_TUNNEL;
-> +	else
-> +		gso_type = __tun_gso_type_mask(AF_INET, cp->af);
-
-	Looks like we should request the IP segmentation. Looking
-at skb_udp_tunnel_segment() we call the proper gso_inner_segment
-handler but ipip_gso_segment() still requires its bit in gso_type.
-So, in both functions we should do:
-
-	gso_type = __tun_gso_type_mask();
-	if (tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GUE)
-		gso_type |= SKB_GSO_UDP_TUNNEL;
-
-	Probably, it can be tested with local client sending large
-TCP packets...
-
-> @@ -1134,17 +1197,32 @@ ip_vs_tunnel_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
->  	 */
->  	max_headroom = LL_RESERVED_SPACE(tdev) + sizeof(struct ipv6hdr);
->  
-> +	tun_type = cp->dest->tun_type;
-> +
-> +	if (tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GUE)
-> +		max_headroom += sizeof(struct udphdr) + sizeof(struct guehdr);
-> +
->  	skb = ip_vs_prepare_tunneled_skb(skb, cp->af, max_headroom,
->  					 &next_protocol, &payload_len,
->  					 &dsfield, &ttl, NULL);
->  	if (IS_ERR(skb))
->  		goto tx_error;
->  
-> -	if (iptunnel_handle_offloads(skb, __tun_gso_type_mask(AF_INET6, cp->af)))
-> +	if (tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GUE)
-> +		gso_type = SKB_GSO_UDP_TUNNEL;
-> +	else
-> +		gso_type = __tun_gso_type_mask(AF_INET6, cp->af);
-
-	Here too
-
-> +	if (iptunnel_handle_offloads(skb, gso_type))
->  		goto tx_error;
-
-Regards
-
---
-Julian Anastasov <ja@ssi.bg>
