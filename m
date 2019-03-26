@@ -6,65 +6,77 @@ X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7CDBAC43381
-	for <netfilter-devel@archiver.kernel.org>; Tue, 26 Mar 2019 12:06:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 394E4C43381
+	for <netfilter-devel@archiver.kernel.org>; Tue, 26 Mar 2019 12:14:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4EB992075C
-	for <netfilter-devel@archiver.kernel.org>; Tue, 26 Mar 2019 12:06:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 00EED2075E
+	for <netfilter-devel@archiver.kernel.org>; Tue, 26 Mar 2019 12:14:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726266AbfCZMGg (ORCPT
+        id S1730133AbfCZMOz (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 26 Mar 2019 08:06:36 -0400
-Received: from mx58.baidu.com ([61.135.168.58]:12400 "EHLO
-        tc-sys-mailedm04.tc.baidu.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726261AbfCZMGf (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 26 Mar 2019 08:06:35 -0400
-Received: from localhost (cp01-cos-dev01.cp01.baidu.com [10.92.119.46])
-        by tc-sys-mailedm04.tc.baidu.com (Postfix) with ESMTP id B4576236C006
-        for <netfilter-devel@vger.kernel.org>; Tue, 26 Mar 2019 20:06:20 +0800 (CST)
-From:   Li RongQing <lirongqing@baidu.com>
+        Tue, 26 Mar 2019 08:14:55 -0400
+Received: from mail.us.es ([193.147.175.20]:41754 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725776AbfCZMOz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 26 Mar 2019 08:14:55 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 48CFD190F63
+        for <netfilter-devel@vger.kernel.org>; Tue, 26 Mar 2019 13:14:53 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 336C4DA54D
+        for <netfilter-devel@vger.kernel.org>; Tue, 26 Mar 2019 13:14:53 +0100 (CET)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 28914DA87E; Tue, 26 Mar 2019 13:14:53 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C01E6DA864
+        for <netfilter-devel@vger.kernel.org>; Tue, 26 Mar 2019 13:14:49 +0100 (CET)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Tue, 26 Mar 2019 13:14:46 +0100 (CET)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from salvia.here (sys.soleta.eu [212.170.55.40])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id 9933D4265A5F
+        for <netfilter-devel@vger.kernel.org>; Tue, 26 Mar 2019 13:14:49 +0100 (CET)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH][nf-next] netfilter: optimize nf_inet_addr_cmp
-Date:   Tue, 26 Mar 2019 20:06:20 +0800
-Message-Id: <1553601980-5016-1-git-send-email-lirongqing@baidu.com>
-X-Mailer: git-send-email 1.7.1
+Subject: [PATCH nft] evaluate: skip binary transfer for named sets
+Date:   Tue, 26 Mar 2019 13:14:45 +0100
+Message-Id: <20190326121445.22801-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.11.0
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-optimize nf_inet_addr_cmp by 64bit xor computation
-similar to ipv6_addr_equal()
+May be empty, content might be yet unknown, we can do any transfer in
+this case.
 
-Signed-off-by: Yuan Linsi <yuanlinsi01@baidu.com>
-Signed-off-by: Li RongQing <lirongqing@baidu.com>
+Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1327
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/linux/netfilter.h | 7 +++++++
- 1 file changed, 7 insertions(+)
+Will try to scratch time to make a test for this, otherwise anyone sending
+patches to extend to coverage for this, it would be great.
 
-diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
-index 72cb19c3db6a..4e0145ea033e 100644
---- a/include/linux/netfilter.h
-+++ b/include/linux/netfilter.h
-@@ -24,10 +24,17 @@ static inline int NF_DROP_GETERR(int verdict)
- static inline int nf_inet_addr_cmp(const union nf_inet_addr *a1,
- 				   const union nf_inet_addr *a2)
- {
-+#if defined(CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS) && BITS_PER_LONG == 64
-+	const unsigned long *ul1 = (const unsigned long *)a1;
-+	const unsigned long *ul2 = (const unsigned long *)a2;
+ src/evaluate.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 54afc3340186..94377da99335 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -1606,6 +1606,9 @@ static int __binop_transfer(struct eval_ctx *ctx,
+ 		}
+ 		break;
+ 	case EXPR_SET_REF:
++		if (!((*right)->set->flags & NFT_SET_ANONYMOUS))
++			return 0;
 +
-+	return ((ul1[0] ^ ul2[0]) | (ul1[1] ^ ul2[1])) == 0UL;
-+#else
- 	return a1->all[0] == a2->all[0] &&
- 	       a1->all[1] == a2->all[1] &&
- 	       a1->all[2] == a2->all[2] &&
- 	       a1->all[3] == a2->all[3];
-+#endif
- }
- 
- static inline void nf_inet_addr_mask(const union nf_inet_addr *a1,
+ 		return __binop_transfer(ctx, left, &(*right)->set->init);
+ 	default:
+ 		return 0;
 -- 
-2.16.2
+2.11.0
 
