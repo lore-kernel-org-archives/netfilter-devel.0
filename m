@@ -1,37 +1,79 @@
-Return-Path: <SRS0=irZF=R4=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=49hf=R5=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_PASS,USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D724C43381
-	for <netfilter-devel@archiver.kernel.org>; Mon, 25 Mar 2019 22:21:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 23696C43381
+	for <netfilter-devel@archiver.kernel.org>; Tue, 26 Mar 2019 01:28:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2EA2920811
-	for <netfilter-devel@archiver.kernel.org>; Mon, 25 Mar 2019 22:21:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DB91B20848
+	for <netfilter-devel@archiver.kernel.org>; Tue, 26 Mar 2019 01:28:56 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Tmn2GS6p"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729681AbfCYWVM (ORCPT
+        id S1730597AbfCZB2t (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 25 Mar 2019 18:21:12 -0400
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:58550 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726217AbfCYWVL (ORCPT
+        Mon, 25 Mar 2019 21:28:49 -0400
+Received: from mail-pl1-f193.google.com ([209.85.214.193]:38763 "EHLO
+        mail-pl1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727427AbfCZB2t (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 25 Mar 2019 18:21:11 -0400
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.89)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1h8Xxq-00075T-EV; Mon, 25 Mar 2019 23:21:06 +0100
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     luca.moro@synacktiv.com, Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf 2/2] netfilter: conntrack: don't set related state for different outer address
-Date:   Mon, 25 Mar 2019 23:11:54 +0100
-Message-Id: <20190325221154.6874-2-fw@strlen.de>
-X-Mailer: git-send-email 2.19.2
-In-Reply-To: <20190325221154.6874-1-fw@strlen.de>
-References: <20190325221154.6874-1-fw@strlen.de>
+        Mon, 25 Mar 2019 21:28:49 -0400
+Received: by mail-pl1-f193.google.com with SMTP id g37so806813plb.5;
+        Mon, 25 Mar 2019 18:28:49 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=mjIksmoJHldu4r3elFF4DNaJTzO8qlMYe9qH6SWV8aU=;
+        b=Tmn2GS6pDmtDaBJ0rKOMUXv3elXrCS2MSmFvLzCt+ZypdzrnBzKawL3vg0MgEStZtw
+         vl4ENbH7Tkrm4OaY9johuYioJygeTzgvaYK675UYO0wP1+hLxyxgByomAnccSLXajJmA
+         gxhzagSnWJFDK+NDf7QGr08t+mDgKT4Zmqz5MCVLTCvANZwpgWYB95NDirsCzjrxJ2EI
+         5K4CSBge4miDjQQgf4VU9ECjIPcarvltc9hVUsBRMLPVkdMl1Uev8bd/rJURSfjSMP87
+         g8hg7PMuFmXaCgY2muL+qA7hxQTVJMcWx9pVbRJ1MN7KkmqWsPN0dHCtFgiibwl9i+o+
+         Ving==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=mjIksmoJHldu4r3elFF4DNaJTzO8qlMYe9qH6SWV8aU=;
+        b=o0xpyXeYUNt0P5e8sBjukBkkBa9B+4Un6IuajYyKvly5BX8PH/eOMe4/gd+sPXgoFM
+         f7Vy6FZmKCPpxOBrRyVuj8SiHcxKlHHXyDNZWOYqLJPzCFxm0cCgyz84rPR8JOU1yvFd
+         VNvx1kXmCsca5KD285rdRyhSmDq8DUZbyA2mEFdCF4GogBAhBxXILRymnAFLKBszWfEE
+         IxpKpd0ToxvTLqU95bi0/6KPIdjg8Mo87sZUZt5rL7SxG8Pe8iQXGprtY/RzgqbZ909G
+         avfb70MTmJe5WMOfomcvI5bz4QKFc66nhjvfWyozF4GhCnQ/HjrW0Y13CJrFl2hdZ3DU
+         BpZw==
+X-Gm-Message-State: APjAAAWJCU3NXOgPK2AwRI9f5fpSLIO+badn9FtknDcUd/D4xOXj3o6S
+        T9FhqJd8zqdNe7st0jcQEg==
+X-Google-Smtp-Source: APXvYqwiicG/nZgqXwUI+8FNqW/9Gr3ffqKPTReCzqWhcsU3KjDmHr7ajm9ncxrfMvz8wEaeora0yQ==
+X-Received: by 2002:a17:902:2f:: with SMTP id 44mr28461786pla.139.1553563728485;
+        Mon, 25 Mar 2019 18:28:48 -0700 (PDT)
+Received: from localhost (2.172.220.35.bc.googleusercontent.com. [35.220.172.2])
+        by smtp.gmail.com with ESMTPSA id c134sm23987785pfc.87.2019.03.25.18.28.43
+        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+        Mon, 25 Mar 2019 18:28:46 -0700 (PDT)
+From:   Jacky Hu <hengqing.hu@gmail.com>
+To:     hengqing.hu@gmail.com
+Cc:     jacky.hu@walmart.com, jason.niesz@walmart.com,
+        "David S. Miller" <davem@davemloft.net>,
+        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        Wensong Zhang <wensong@linux-vs.org>,
+        Simon Horman <horms@verge.net.au>,
+        Julian Anastasov <ja@ssi.bg>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org,
+        lvs-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+Subject: [PATCH v6] ipvs: allow tunneling with gue encapsulation
+Date:   Tue, 26 Mar 2019 09:28:31 +0800
+Message-Id: <20190326012831.352-1-hengqing.hu@gmail.com>
+X-Mailer: git-send-email 2.21.0
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -39,296 +81,354 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Luca Moro says:
- ------
-The issue lies in the filtering of ICMP and ICMPv6 errors that include an
-inner IP datagram.
-For these packets, icmp_error_message() extract the ICMP error and inner
-layer to search of a known state.
-If a state is found the packet is tagged as related (IP_CT_RELATED).
+ipip packets are blocked in some public cloud environments, this patch
+allows gue encapsulation with the tunneling method, which would make
+tunneling working in those environments.
 
-The problem is that there is no correlation check between the inner and
-outer layer of the packet.
-So one can encapsulate an error with an inner layer matching a known state,
-while its outer layer is directed to a filtered host.
-In this case the whole packet will be tagged as related.
-This has various implications from a rule bypass (if a rule to related
-trafic is allow), to a known state oracle.
-
-Unfortunately, we could not find a real statement in a RFC on how this case
-should be filtered.
-The closest we found is RFC5927 (Section 4.3) but it is not very clear.
-
-A possible fix would be to check that the inner IP source is the same than
-the outer destination.
-
-We believed this kind of attack was not documented yet, so we started to
-write a blog post about it.
-You can find it attached to this mail (sorry for the extract quality).
-It contains more technical details, PoC and discussion about the identified
-behavior.
-We discovered later that
-https://www.gont.com.ar/papers/filtering-of-icmp-error-messages.pdf
-described a similar attack concept in 2004 but without the stateful
-filtering in mind.
- -----
-
-This implements above suggested fix:
-In icmp(v6) error handler, take outer destination address, then pass
-that into the common function that does the "related" association.
-
-After obtaining the nf_conn of the matching inner-headers connection,
-check that the destination address of the opposite direction tuple
-is the same as the outer address and only set RELATED if thats the case.
-
-Reported-by: Luca Moro <luca.moro@synacktiv.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Jacky Hu <hengqing.hu@gmail.com>
 ---
- include/net/netfilter/nf_conntrack_l4proto.h |  6 ++
- net/netfilter/nf_conntrack_proto_icmp.c      | 93 +++++++++++++++-----
- net/netfilter/nf_conntrack_proto_icmpv6.c    | 52 ++---------
- 3 files changed, 84 insertions(+), 67 deletions(-)
+ include/net/ip_vs.h             |  5 ++
+ include/uapi/linux/ip_vs.h      | 11 +++++
+ net/netfilter/ipvs/ip_vs_ctl.c  | 35 +++++++++++++-
+ net/netfilter/ipvs/ip_vs_xmit.c | 86 +++++++++++++++++++++++++++++++--
+ 4 files changed, 132 insertions(+), 5 deletions(-)
 
-diff --git a/include/net/netfilter/nf_conntrack_l4proto.h b/include/net/netfilter/nf_conntrack_l4proto.h
-index 778087591983..a49edfdf47e8 100644
---- a/include/net/netfilter/nf_conntrack_l4proto.h
-+++ b/include/net/netfilter/nf_conntrack_l4proto.h
-@@ -75,6 +75,12 @@ bool nf_conntrack_invert_icmp_tuple(struct nf_conntrack_tuple *tuple,
- bool nf_conntrack_invert_icmpv6_tuple(struct nf_conntrack_tuple *tuple,
- 				      const struct nf_conntrack_tuple *orig);
+diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
+index a0d2e0bb9a94..cdc7b621930d 100644
+--- a/include/net/ip_vs.h
++++ b/include/net/ip_vs.h
+@@ -603,6 +603,9 @@ struct ip_vs_dest_user_kern {
  
-+int nf_conntrack_inet_error(struct nf_conn *tmpl, struct sk_buff *skb,
-+			    unsigned int dataoff,
-+			    const struct nf_hook_state *state,
-+			    u8 l4proto,
-+			    union nf_inet_addr *outer_daddr);
+ 	/* Address family of addr */
+ 	u16			af;
 +
- int nf_conntrack_icmpv4_error(struct nf_conn *tmpl,
- 			      struct sk_buff *skb,
- 			      unsigned int dataoff,
-diff --git a/net/netfilter/nf_conntrack_proto_icmp.c b/net/netfilter/nf_conntrack_proto_icmp.c
-index 7df477996b16..9becac953587 100644
---- a/net/netfilter/nf_conntrack_proto_icmp.c
-+++ b/net/netfilter/nf_conntrack_proto_icmp.c
-@@ -103,49 +103,94 @@ int nf_conntrack_icmp_packet(struct nf_conn *ct,
- 	return NF_ACCEPT;
- }
++	u16			tun_type;	/* tunnel type */
++	__be16			tun_port;	/* tunnel port */
+ };
  
--/* Returns conntrack if it dealt with ICMP, and filled in skb fields */
--static int
--icmp_error_message(struct nf_conn *tmpl, struct sk_buff *skb,
--		   const struct nf_hook_state *state)
-+/* Check inner header is related to any of the existing connections */
-+int nf_conntrack_inet_error(struct nf_conn *tmpl, struct sk_buff *skb,
-+			    unsigned int dataoff,
-+			    const struct nf_hook_state *state,
-+			    u8 l4proto, union nf_inet_addr *outer_daddr)
- {
- 	struct nf_conntrack_tuple innertuple, origtuple;
- 	const struct nf_conntrack_tuple_hash *h;
- 	const struct nf_conntrack_zone *zone;
- 	enum ip_conntrack_info ctinfo;
- 	struct nf_conntrack_zone tmp;
-+	union nf_inet_addr *ct_daddr;
-+	enum ip_conntrack_dir dir;
-+	struct nf_conn *ct;
  
- 	WARN_ON(skb_nfct(skb));
- 	zone = nf_ct_zone_tmpl(tmpl, skb, &tmp);
+@@ -663,6 +666,8 @@ struct ip_vs_dest {
+ 	atomic_t		conn_flags;	/* flags to copy to conn */
+ 	atomic_t		weight;		/* server weight */
+ 	atomic_t		last_weight;	/* server latest weight */
++	__u16			tun_type;	/* tunnel type */
++	__be16			tun_port;	/* tunnel port */
  
- 	/* Are they talking about one of our connections? */
--	if (!nf_ct_get_tuplepr(skb,
--			       skb_network_offset(skb) + ip_hdrlen(skb)
--						       + sizeof(struct icmphdr),
--			       PF_INET, state->net, &origtuple)) {
--		pr_debug("icmp_error_message: failed to get tuple\n");
-+	if (!nf_ct_get_tuplepr(skb, dataoff,
-+			       state->pf, state->net, &origtuple))
- 		return -NF_ACCEPT;
--	}
+ 	refcount_t		refcnt;		/* reference counter */
+ 	struct ip_vs_stats      stats;          /* statistics */
+diff --git a/include/uapi/linux/ip_vs.h b/include/uapi/linux/ip_vs.h
+index 1c916b2f89dc..e34f436fc79d 100644
+--- a/include/uapi/linux/ip_vs.h
++++ b/include/uapi/linux/ip_vs.h
+@@ -124,6 +124,13 @@
  
- 	/* Ordinarily, we'd expect the inverted tupleproto, but it's
- 	   been preserved inside the ICMP. */
--	if (!nf_ct_invert_tuple(&innertuple, &origtuple)) {
--		pr_debug("icmp_error_message: no match\n");
-+	if (!nf_ct_invert_tuple(&innertuple, &origtuple))
- 		return -NF_ACCEPT;
--	}
--
--	ctinfo = IP_CT_RELATED;
+ #define IP_VS_PEDATA_MAXLEN     255
  
- 	h = nf_conntrack_find_get(state->net, zone, &innertuple);
--	if (!h) {
--		pr_debug("icmp_error_message: no match\n");
-+	if (!h)
-+		return -NF_ACCEPT;
++/* Tunnel types */
++enum {
++	IP_VS_CONN_F_TUNNEL_TYPE_IPIP = 0,	/* IPIP */
++	IP_VS_CONN_F_TUNNEL_TYPE_GUE,		/* GUE */
++	IP_VS_CONN_F_TUNNEL_TYPE_MAX,
++};
 +
-+	/* Consider: A -> T (=This machine) -> B
-+	 *   Conntrack entry will look like this:
-+	 *      Original:  A->B
-+	 *      Reply:     B->T (SNAT case) OR A
-+	 *
-+	 * When this function runs, we got packet that looks like this:
-+	 * iphdr|icmphdr|inner_iphdr|l4header (tcp, udp, ..).
-+	 *
-+	 * Above nf_conntrack_find_get() makes lookup based on inner_hdr,
-+	 * so we should expect that destination of the found connection
-+	 * matches outer header destination address.
-+	 *
-+	 * In above example, we can consider these two cases:
-+	 *  1. Error coming in reply direction from B or M (middle box) to
-+	 *     T (SNAT case) or A.
-+	 *     Inner saddr will be B, dst will be T or A.
-+	 *     The found conntrack will be reply tuple (B->T/A).
-+	 *  2. Error coming in original direction from A or M to B.
-+	 *     Inner saddr will be A, inner daddr will be B.
-+	 *     The found conntrack will be original tuple (A->B).
-+	 *
-+	 * In both cases, conntrack[dir].dst == inner.dst.
-+	 *
-+	 * A bogus packet could look like this:
-+	 *   Inner: B->T
-+	 *   Outer: B->X (other machine reachable by T).
-+	 *
-+	 * In this case, lookup yields connection A->B and will
-+	 * set packet from B->X as *RELATED*, even though no connection
-+	 * from X was ever seen.
-+	 */
-+	ct = nf_ct_tuplehash_to_ctrack(h);
-+	dir = NF_CT_DIRECTION(h);
-+	ct_daddr = &ct->tuplehash[dir].tuple.dst.u3;
-+	if (!nf_inet_addr_cmp(outer_daddr, ct_daddr)) {
-+		if (state->pf == AF_INET) {
-+			nf_l4proto_log_invalid(skb, state->net, state->pf,
-+					       l4proto,
-+					       "outer daddr %pI4 != inner %pI4",
-+					       &outer_daddr->ip, &ct_daddr->ip);
-+		} else if (state->pf == AF_INET6) {
-+			nf_l4proto_log_invalid(skb, state->net, state->pf,
-+					       l4proto,
-+					       "outer daddr %pI6 != inner %pI6",
-+					       &outer_daddr->ip6, &ct_daddr->ip6);
-+		}
-+		nf_ct_put(ct);
- 		return -NF_ACCEPT;
+ /*
+  *	The struct ip_vs_service_user and struct ip_vs_dest_user are
+  *	used to set IPVS rules through setsockopt.
+@@ -392,6 +399,10 @@ enum {
+ 
+ 	IPVS_DEST_ATTR_STATS64,		/* nested attribute for dest stats */
+ 
++	IPVS_DEST_ATTR_TUN_TYPE,	/* tunnel type */
++
++	IPVS_DEST_ATTR_TUN_PORT,	/* tunnel port */
++
+ 	__IPVS_DEST_ATTR_MAX,
+ };
+ 
+diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+index 432141f04af3..89700d52b7e6 100644
+--- a/net/netfilter/ipvs/ip_vs_ctl.c
++++ b/net/netfilter/ipvs/ip_vs_ctl.c
+@@ -830,6 +830,10 @@ __ip_vs_update_dest(struct ip_vs_service *svc, struct ip_vs_dest *dest,
+ 	conn_flags = udest->conn_flags & IP_VS_CONN_F_DEST_MASK;
+ 	conn_flags |= IP_VS_CONN_F_INACTIVE;
+ 
++	/* set the tunnel info */
++	dest->tun_type = udest->tun_type;
++	dest->tun_port = udest->tun_port;
++
+ 	/* set the IP_VS_CONN_F_NOOUTPUT flag if not masquerading/NAT */
+ 	if ((conn_flags & IP_VS_CONN_F_FWD_MASK) != IP_VS_CONN_F_MASQ) {
+ 		conn_flags |= IP_VS_CONN_F_NOOUTPUT;
+@@ -980,6 +984,13 @@ ip_vs_add_dest(struct ip_vs_service *svc, struct ip_vs_dest_user_kern *udest)
+ 		return -ERANGE;
  	}
  
--	if (NF_CT_DIRECTION(h) == IP_CT_DIR_REPLY)
-+	ctinfo = IP_CT_RELATED;
-+	if (dir == IP_CT_DIR_REPLY)
- 		ctinfo += IP_CT_IS_REPLY;
- 
- 	/* Update skb to refer to this connection */
--	nf_ct_set(skb, nf_ct_tuplehash_to_ctrack(h), ctinfo);
-+	nf_ct_set(skb, ct, ctinfo);
- 	return NF_ACCEPT;
- }
- 
-@@ -162,11 +207,12 @@ int nf_conntrack_icmpv4_error(struct nf_conn *tmpl,
- 			      struct sk_buff *skb, unsigned int dataoff,
- 			      const struct nf_hook_state *state)
- {
-+	union nf_inet_addr outer_daddr;
- 	const struct icmphdr *icmph;
- 	struct icmphdr _ih;
- 
- 	/* Not enough header? */
--	icmph = skb_header_pointer(skb, ip_hdrlen(skb), sizeof(_ih), &_ih);
-+	icmph = skb_header_pointer(skb, dataoff, sizeof(_ih), &_ih);
- 	if (icmph == NULL) {
- 		icmp_error_log(skb, state, "short packet");
- 		return -NF_ACCEPT;
-@@ -199,7 +245,12 @@ int nf_conntrack_icmpv4_error(struct nf_conn *tmpl,
- 	    icmph->type != ICMP_REDIRECT)
- 		return NF_ACCEPT;
- 
--	return icmp_error_message(tmpl, skb, state);
-+	memset(&outer_daddr, 0, sizeof(outer_daddr));
-+	outer_daddr.ip = ip_hdr(skb)->daddr;
++	if (udest->tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GUE) {
++		if (udest->tun_port == 0) {
++			pr_err("%s(): tunnel port is zero\n", __func__);
++			return -EINVAL;
++		}
++	}
 +
-+	dataoff += sizeof(*icmph);
-+	return nf_conntrack_inet_error(tmpl, skb, dataoff, state,
-+				       IPPROTO_ICMP, &outer_daddr);
+ 	ip_vs_addr_copy(udest->af, &daddr, &udest->addr);
+ 
+ 	/* We use function that requires RCU lock */
+@@ -1044,6 +1055,13 @@ ip_vs_edit_dest(struct ip_vs_service *svc, struct ip_vs_dest_user_kern *udest)
+ 		return -ERANGE;
+ 	}
+ 
++	if (udest->tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GUE) {
++		if (udest->tun_port == 0) {
++			pr_err("%s(): tunnel port is zero\n", __func__);
++			return -EINVAL;
++		}
++	}
++
+ 	ip_vs_addr_copy(udest->af, &daddr, &udest->addr);
+ 
+ 	/* We use function that requires RCU lock */
+@@ -2310,6 +2328,7 @@ static void ip_vs_copy_udest_compat(struct ip_vs_dest_user_kern *udest,
+ 	udest->u_threshold	= udest_compat->u_threshold;
+ 	udest->l_threshold	= udest_compat->l_threshold;
+ 	udest->af		= AF_INET;
++	udest->tun_type		= IP_VS_CONN_F_TUNNEL_TYPE_IPIP;
  }
  
- #if IS_ENABLED(CONFIG_NF_CT_NETLINK)
-diff --git a/net/netfilter/nf_conntrack_proto_icmpv6.c b/net/netfilter/nf_conntrack_proto_icmpv6.c
-index bec4a3211658..c63ee3612855 100644
---- a/net/netfilter/nf_conntrack_proto_icmpv6.c
-+++ b/net/netfilter/nf_conntrack_proto_icmpv6.c
-@@ -123,51 +123,6 @@ int nf_conntrack_icmpv6_packet(struct nf_conn *ct,
- 	return NF_ACCEPT;
+ static int
+@@ -2869,6 +2888,8 @@ static const struct nla_policy ip_vs_dest_policy[IPVS_DEST_ATTR_MAX + 1] = {
+ 	[IPVS_DEST_ATTR_PERSIST_CONNS]	= { .type = NLA_U32 },
+ 	[IPVS_DEST_ATTR_STATS]		= { .type = NLA_NESTED },
+ 	[IPVS_DEST_ATTR_ADDR_FAMILY]	= { .type = NLA_U16 },
++	[IPVS_DEST_ATTR_TUN_TYPE]	= { .type = NLA_U8 },
++	[IPVS_DEST_ATTR_TUN_PORT]	= { .type = NLA_U16 },
+ };
+ 
+ static int ip_vs_genl_fill_stats(struct sk_buff *skb, int container_type,
+@@ -3172,6 +3193,10 @@ static int ip_vs_genl_fill_dest(struct sk_buff *skb, struct ip_vs_dest *dest)
+ 			 IP_VS_CONN_F_FWD_MASK)) ||
+ 	    nla_put_u32(skb, IPVS_DEST_ATTR_WEIGHT,
+ 			atomic_read(&dest->weight)) ||
++	    nla_put_u8(skb, IPVS_DEST_ATTR_TUN_TYPE,
++		       dest->tun_type) ||
++	    nla_put_be16(skb, IPVS_DEST_ATTR_TUN_PORT,
++			 dest->tun_port) ||
+ 	    nla_put_u32(skb, IPVS_DEST_ATTR_U_THRESH, dest->u_threshold) ||
+ 	    nla_put_u32(skb, IPVS_DEST_ATTR_L_THRESH, dest->l_threshold) ||
+ 	    nla_put_u32(skb, IPVS_DEST_ATTR_ACTIVE_CONNS,
+@@ -3294,12 +3319,14 @@ static int ip_vs_genl_parse_dest(struct ip_vs_dest_user_kern *udest,
+ 	/* If a full entry was requested, check for the additional fields */
+ 	if (full_entry) {
+ 		struct nlattr *nla_fwd, *nla_weight, *nla_u_thresh,
+-			      *nla_l_thresh;
++			      *nla_l_thresh, *nla_tun_type, *nla_tun_port;
+ 
+ 		nla_fwd		= attrs[IPVS_DEST_ATTR_FWD_METHOD];
+ 		nla_weight	= attrs[IPVS_DEST_ATTR_WEIGHT];
+ 		nla_u_thresh	= attrs[IPVS_DEST_ATTR_U_THRESH];
+ 		nla_l_thresh	= attrs[IPVS_DEST_ATTR_L_THRESH];
++		nla_tun_type	= attrs[IPVS_DEST_ATTR_TUN_TYPE];
++		nla_tun_port	= attrs[IPVS_DEST_ATTR_TUN_PORT];
+ 
+ 		if (!(nla_fwd && nla_weight && nla_u_thresh && nla_l_thresh))
+ 			return -EINVAL;
+@@ -3309,6 +3336,12 @@ static int ip_vs_genl_parse_dest(struct ip_vs_dest_user_kern *udest,
+ 		udest->weight = nla_get_u32(nla_weight);
+ 		udest->u_threshold = nla_get_u32(nla_u_thresh);
+ 		udest->l_threshold = nla_get_u32(nla_l_thresh);
++
++		if (nla_tun_type)
++			udest->tun_type = nla_get_u8(nla_tun_type);
++
++		if (nla_tun_port)
++			udest->tun_port = nla_get_be16(nla_tun_port);
+ 	}
+ 
+ 	return 0;
+diff --git a/net/netfilter/ipvs/ip_vs_xmit.c b/net/netfilter/ipvs/ip_vs_xmit.c
+index 473cce2a5231..36819c2fabf1 100644
+--- a/net/netfilter/ipvs/ip_vs_xmit.c
++++ b/net/netfilter/ipvs/ip_vs_xmit.c
+@@ -32,6 +32,7 @@
+ #include <linux/slab.h>
+ #include <linux/tcp.h>                  /* for tcphdr */
+ #include <net/ip.h>
++#include <net/gue.h>
+ #include <net/tcp.h>                    /* for csum_tcpudp_magic */
+ #include <net/udp.h>
+ #include <net/icmp.h>                   /* for icmp_send */
+@@ -382,6 +383,10 @@ __ip_vs_get_out_rt(struct netns_ipvs *ipvs, int skb_af, struct sk_buff *skb,
+ 		mtu = dst_mtu(&rt->dst);
+ 	} else {
+ 		mtu = dst_mtu(&rt->dst) - sizeof(struct iphdr);
++		if (!dest)
++			goto err_put;
++		if (dest->tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GUE)
++			mtu -= sizeof(struct udphdr) + sizeof(struct guehdr);
+ 		if (mtu < 68) {
+ 			IP_VS_DBG_RL("%s(): mtu less than 68\n", __func__);
+ 			goto err_put;
+@@ -533,6 +538,10 @@ __ip_vs_get_out_rt_v6(struct netns_ipvs *ipvs, int skb_af, struct sk_buff *skb,
+ 		mtu = dst_mtu(&rt->dst);
+ 	else {
+ 		mtu = dst_mtu(&rt->dst) - sizeof(struct ipv6hdr);
++		if (!dest)
++			goto err_put;
++		if (dest->tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GUE)
++			mtu -= sizeof(struct udphdr) + sizeof(struct guehdr);
+ 		if (mtu < IPV6_MIN_MTU) {
+ 			IP_VS_DBG_RL("%s(): mtu less than %d\n", __func__,
+ 				     IPV6_MIN_MTU);
+@@ -989,6 +998,41 @@ static inline int __tun_gso_type_mask(int encaps_af, int orig_af)
+ 	}
  }
  
--static int
--icmpv6_error_message(struct net *net, struct nf_conn *tmpl,
--		     struct sk_buff *skb,
--		     unsigned int icmp6off)
--{
--	struct nf_conntrack_tuple intuple, origtuple;
--	const struct nf_conntrack_tuple_hash *h;
--	enum ip_conntrack_info ctinfo;
--	struct nf_conntrack_zone tmp;
--
--	WARN_ON(skb_nfct(skb));
--
--	/* Are they talking about one of our connections? */
--	if (!nf_ct_get_tuplepr(skb,
--			       skb_network_offset(skb)
--				+ sizeof(struct ipv6hdr)
--				+ sizeof(struct icmp6hdr),
--			       PF_INET6, net, &origtuple)) {
--		pr_debug("icmpv6_error: Can't get tuple\n");
--		return -NF_ACCEPT;
--	}
--
--	/* Ordinarily, we'd expect the inverted tupleproto, but it's
--	   been preserved inside the ICMP. */
--	if (!nf_ct_invert_tuple(&intuple, &origtuple)) {
--		pr_debug("icmpv6_error: Can't invert tuple\n");
--		return -NF_ACCEPT;
--	}
--
--	ctinfo = IP_CT_RELATED;
--
--	h = nf_conntrack_find_get(net, nf_ct_zone_tmpl(tmpl, skb, &tmp),
--				  &intuple);
--	if (!h) {
--		pr_debug("icmpv6_error: no match\n");
--		return -NF_ACCEPT;
--	} else {
--		if (NF_CT_DIRECTION(h) == IP_CT_DIR_REPLY)
--			ctinfo += IP_CT_IS_REPLY;
--	}
--
--	/* Update skb to refer to this connection */
--	nf_ct_set(skb, nf_ct_tuplehash_to_ctrack(h), ctinfo);
--	return NF_ACCEPT;
--}
++static int
++ipvs_gue_encap(struct net *net, struct sk_buff *skb,
++	       struct ip_vs_conn *cp, __u8 *next_protocol)
++{
++	__be16 dport;
++	__be16 sport = udp_flow_src_port(net, skb, 0, 0, false);
++	struct udphdr  *udph;	/* Our new UDP header */
++	struct guehdr  *gueh;	/* Our new GUE header */
++
++	skb_push(skb, sizeof(struct guehdr));
++
++	gueh = (struct guehdr *)skb->data;
++
++	gueh->control = 0;
++	gueh->version = 0;
++	gueh->hlen = 0;
++	gueh->flags = 0;
++	gueh->proto_ctype = *next_protocol;
++
++	skb_push(skb, sizeof(struct udphdr));
++	skb_reset_transport_header(skb);
++
++	udph = udp_hdr(skb);
++
++	dport = cp->dest->tun_port;
++	udph->dest = dport;
++	udph->source = sport;
++	udph->len = htons(skb->len);
++	udph->check = 0;
++
++	*next_protocol = IPPROTO_UDP;
++
++	return 0;
++}
++
+ /*
+  *   IP Tunneling transmitter
+  *
+@@ -1025,6 +1069,7 @@ ip_vs_tunnel_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
+ 	struct iphdr  *iph;			/* Our new IP header */
+ 	unsigned int max_headroom;		/* The extra header space needed */
+ 	int ret, local;
++	int tun_type, gso_type;
  
- static void icmpv6_error_log(const struct sk_buff *skb,
- 			     const struct nf_hook_state *state,
-@@ -182,6 +137,7 @@ int nf_conntrack_icmpv6_error(struct nf_conn *tmpl,
- 			      unsigned int dataoff,
- 			      const struct nf_hook_state *state)
+ 	EnterFunction(10);
+ 
+@@ -1046,6 +1091,11 @@ ip_vs_tunnel_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
+ 	 */
+ 	max_headroom = LL_RESERVED_SPACE(tdev) + sizeof(struct iphdr);
+ 
++	tun_type = cp->dest->tun_type;
++
++	if (tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GUE)
++		max_headroom += sizeof(struct udphdr) + sizeof(struct guehdr);
++
+ 	/* We only care about the df field if sysctl_pmtu_disc(ipvs) is set */
+ 	dfp = sysctl_pmtu_disc(ipvs) ? &df : NULL;
+ 	skb = ip_vs_prepare_tunneled_skb(skb, cp->af, max_headroom,
+@@ -1054,11 +1104,21 @@ ip_vs_tunnel_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
+ 	if (IS_ERR(skb))
+ 		goto tx_error;
+ 
+-	if (iptunnel_handle_offloads(skb, __tun_gso_type_mask(AF_INET, cp->af)))
++	if (tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GUE)
++		gso_type = SKB_GSO_UDP_TUNNEL;
++	else
++		gso_type = __tun_gso_type_mask(AF_INET, cp->af);
++
++	if (iptunnel_handle_offloads(skb, gso_type))
+ 		goto tx_error;
+ 
+ 	skb->transport_header = skb->network_header;
+ 
++	skb_set_inner_ipproto(skb, next_protocol);
++
++	if (tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GUE)
++		ipvs_gue_encap(net, skb, cp, &next_protocol);
++
+ 	skb_push(skb, sizeof(struct iphdr));
+ 	skb_reset_network_header(skb);
+ 	memset(&(IPCB(skb)->opt), 0, sizeof(IPCB(skb)->opt));
+@@ -1102,6 +1162,8 @@ int
+ ip_vs_tunnel_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
+ 		     struct ip_vs_protocol *pp, struct ip_vs_iphdr *ipvsh)
  {
-+	union nf_inet_addr outer_daddr;
- 	const struct icmp6hdr *icmp6h;
- 	struct icmp6hdr _ih;
- 	int type;
-@@ -210,7 +166,11 @@ int nf_conntrack_icmpv6_error(struct nf_conn *tmpl,
- 	if (icmp6h->icmp6_type >= 128)
- 		return NF_ACCEPT;
++	struct netns_ipvs *ipvs = cp->ipvs;
++	struct net *net = ipvs->net;
+ 	struct rt6_info *rt;		/* Route to the other host */
+ 	struct in6_addr saddr;		/* Source for tunnel */
+ 	struct net_device *tdev;	/* Device to other host */
+@@ -1112,10 +1174,11 @@ ip_vs_tunnel_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
+ 	struct ipv6hdr  *iph;		/* Our new IP header */
+ 	unsigned int max_headroom;	/* The extra header space needed */
+ 	int ret, local;
++	int tun_type, gso_type;
  
--	return icmpv6_error_message(state->net, tmpl, skb, dataoff);
-+	memcpy(&outer_daddr.ip6, &ipv6_hdr(skb)->daddr,
-+	       sizeof(outer_daddr.ip6));
-+	dataoff += sizeof(*icmp6h);
-+	return nf_conntrack_inet_error(tmpl, skb, dataoff, state,
-+				       IPPROTO_ICMPV6, &outer_daddr);
- }
+ 	EnterFunction(10);
  
- #if IS_ENABLED(CONFIG_NF_CT_NETLINK)
+-	local = __ip_vs_get_out_rt_v6(cp->ipvs, cp->af, skb, cp->dest,
++	local = __ip_vs_get_out_rt_v6(ipvs, cp->af, skb, cp->dest,
+ 				      &cp->daddr.in6,
+ 				      &saddr, ipvsh, 1,
+ 				      IP_VS_RT_MODE_LOCAL |
+@@ -1134,17 +1197,32 @@ ip_vs_tunnel_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
+ 	 */
+ 	max_headroom = LL_RESERVED_SPACE(tdev) + sizeof(struct ipv6hdr);
+ 
++	tun_type = cp->dest->tun_type;
++
++	if (tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GUE)
++		max_headroom += sizeof(struct udphdr) + sizeof(struct guehdr);
++
+ 	skb = ip_vs_prepare_tunneled_skb(skb, cp->af, max_headroom,
+ 					 &next_protocol, &payload_len,
+ 					 &dsfield, &ttl, NULL);
+ 	if (IS_ERR(skb))
+ 		goto tx_error;
+ 
+-	if (iptunnel_handle_offloads(skb, __tun_gso_type_mask(AF_INET6, cp->af)))
++	if (tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GUE)
++		gso_type = SKB_GSO_UDP_TUNNEL;
++	else
++		gso_type = __tun_gso_type_mask(AF_INET6, cp->af);
++
++	if (iptunnel_handle_offloads(skb, gso_type))
+ 		goto tx_error;
+ 
+ 	skb->transport_header = skb->network_header;
+ 
++	skb_set_inner_ipproto(skb, next_protocol);
++
++	if (tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GUE)
++		ipvs_gue_encap(net, skb, cp, &next_protocol);
++
+ 	skb_push(skb, sizeof(struct ipv6hdr));
+ 	skb_reset_network_header(skb);
+ 	memset(&(IPCB(skb)->opt), 0, sizeof(IPCB(skb)->opt));
+@@ -1167,7 +1245,7 @@ ip_vs_tunnel_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
+ 
+ 	ret = ip_vs_tunnel_xmit_prepare(skb, cp);
+ 	if (ret == NF_ACCEPT)
+-		ip6_local_out(cp->ipvs->net, skb->sk, skb);
++		ip6_local_out(net, skb->sk, skb);
+ 	else if (ret == NF_DROP)
+ 		kfree_skb(skb);
+ 
 -- 
-2.19.2
+2.21.0
 
