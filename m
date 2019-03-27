@@ -7,29 +7,29 @@ X-Spam-Status: No, score=-6.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B1D63C43381
-	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Mar 2019 08:20:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1ED43C43381
+	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Mar 2019 08:20:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 89AFB2075D
-	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Mar 2019 08:20:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DED2F2075D
+	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Mar 2019 08:20:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732461AbfC0IUm (ORCPT
+        id S1726241AbfC0IUq (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 27 Mar 2019 04:20:42 -0400
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:38840 "EHLO
+        Wed, 27 Mar 2019 04:20:46 -0400
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:38846 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726237AbfC0IUm (ORCPT
+        by vger.kernel.org with ESMTP id S1725827AbfC0IUq (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 27 Mar 2019 04:20:42 -0400
+        Wed, 27 Mar 2019 04:20:46 -0400
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.89)
         (envelope-from <fw@breakpoint.cc>)
-        id 1h93nc-0002bW-6T; Wed, 27 Mar 2019 09:20:40 +0100
+        id 1h93ng-0002bm-Fr; Wed, 27 Mar 2019 09:20:44 +0100
 From:   Florian Westphal <fw@strlen.de>
 To:     <netfilter-devel@vger.kernel.org>
 Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next 4/6] netfilter: nft_masq: add inet support
-Date:   Wed, 27 Mar 2019 09:22:27 +0100
-Message-Id: <20190327082229.29399-5-fw@strlen.de>
+Subject: [PATCH nf-next 5/6] netfilter: nft_redir: add inet support
+Date:   Wed, 27 Mar 2019 09:22:28 +0100
+Message-Id: <20190327082229.29399-6-fw@strlen.de>
 X-Mailer: git-send-email 2.19.2
 In-Reply-To: <20190327082229.29399-1-fw@strlen.de>
 References: <20190327082229.29399-1-fw@strlen.de>
@@ -40,112 +40,100 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This allows use of a single masquerade rule in nat inet family
-to handle both ipv4 and ipv6.
+allows to redirect both ipv4 and ipv6 with a single rule in an
+inet nat table.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nft_masq.c | 64 ++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 64 insertions(+)
+ net/netfilter/nft_redir.c | 61 +++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 61 insertions(+)
 
-diff --git a/net/netfilter/nft_masq.c b/net/netfilter/nft_masq.c
-index bee156eaa400..35a1794acf4c 100644
---- a/net/netfilter/nft_masq.c
-+++ b/net/netfilter/nft_masq.c
-@@ -218,6 +218,61 @@ static inline int nft_masq_module_init_ipv6(void) { return 0; }
- static inline void nft_masq_module_exit_ipv6(void) {}
+diff --git a/net/netfilter/nft_redir.c b/net/netfilter/nft_redir.c
+index f8092926f704..14deb40dad75 100644
+--- a/net/netfilter/nft_redir.c
++++ b/net/netfilter/nft_redir.c
+@@ -202,6 +202,55 @@ static struct nft_expr_type nft_redir_ipv6_type __read_mostly = {
+ };
  #endif
  
 +#ifdef CONFIG_NF_TABLES_INET
-+static void nft_masq_inet_eval(const struct nft_expr *expr,
-+			       struct nft_regs *regs,
-+			       const struct nft_pktinfo *pkt)
++static void nft_redir_inet_eval(const struct nft_expr *expr,
++				struct nft_regs *regs,
++				const struct nft_pktinfo *pkt)
 +{
 +	switch (nft_pf(pkt)) {
 +	case NFPROTO_IPV4:
-+		return nft_masq_ipv4_eval(expr, regs, pkt);
++		return nft_redir_ipv4_eval(expr, regs, pkt);
 +	case NFPROTO_IPV6:
-+		return nft_masq_ipv6_eval(expr, regs, pkt);
++		return nft_redir_ipv6_eval(expr, regs, pkt);
 +	}
 +
 +	WARN_ON_ONCE(1);
 +}
 +
 +static void
-+nft_masq_inet_destroy(const struct nft_ctx *ctx, const struct nft_expr *expr)
++nft_redir_inet_destroy(const struct nft_ctx *ctx, const struct nft_expr *expr)
 +{
 +	nf_ct_netns_put(ctx->net, NFPROTO_INET);
 +}
 +
-+static struct nft_expr_type nft_masq_inet_type;
-+static const struct nft_expr_ops nft_masq_inet_ops = {
-+	.type		= &nft_masq_inet_type,
-+	.size		= NFT_EXPR_SIZE(sizeof(struct nft_masq)),
-+	.eval		= nft_masq_inet_eval,
-+	.init		= nft_masq_init,
-+	.destroy	= nft_masq_inet_destroy,
-+	.dump		= nft_masq_dump,
-+	.validate	= nft_masq_validate,
++static struct nft_expr_type nft_redir_inet_type;
++static const struct nft_expr_ops nft_redir_inet_ops = {
++	.type		= &nft_redir_inet_type,
++	.size		= NFT_EXPR_SIZE(sizeof(struct nft_redir)),
++	.eval		= nft_redir_inet_eval,
++	.init		= nft_redir_init,
++	.destroy	= nft_redir_inet_destroy,
++	.dump		= nft_redir_dump,
++	.validate	= nft_redir_validate,
 +};
 +
-+static struct nft_expr_type nft_masq_inet_type __read_mostly = {
++static struct nft_expr_type nft_redir_inet_type __read_mostly = {
 +	.family		= NFPROTO_INET,
-+	.name		= "masq",
-+	.ops		= &nft_masq_inet_ops,
-+	.policy		= nft_masq_policy,
++	.name		= "redir",
++	.ops		= &nft_redir_inet_ops,
++	.policy		= nft_redir_policy,
 +	.maxattr	= NFTA_MASQ_MAX,
 +	.owner		= THIS_MODULE,
 +};
 +
-+static int __init nft_masq_module_init_inet(void)
++static int __init nft_redir_module_init_inet(void)
 +{
-+	return nft_register_expr(&nft_masq_inet_type);
-+}
-+
-+static void nft_masq_module_exit_inet(void)
-+{
-+	nft_unregister_expr(&nft_masq_inet_type);
++	return nft_register_expr(&nft_redir_inet_type);
 +}
 +#else
-+static inline int nft_masq_module_init_inet(void) { return 0; }
-+static inline void nft_masq_module_exit_inet(void) {}
++static inline int nft_redir_module_init_inet(void) { return 0; }
 +#endif
 +
- static int __init nft_masq_module_init(void)
+ static int __init nft_redir_module_init(void)
  {
- 	int ret;
-@@ -226,8 +281,15 @@ static int __init nft_masq_module_init(void)
- 	if (ret < 0)
- 		return ret;
+ 	int ret = nft_register_expr(&nft_redir_ipv4_type);
+@@ -217,6 +266,15 @@ static int __init nft_redir_module_init(void)
+ 	}
+ #endif
  
-+	ret = nft_masq_module_init_inet();
++	ret = nft_redir_module_init_inet();
 +	if (ret < 0) {
-+		nft_masq_module_exit_ipv6();
++		nft_unregister_expr(&nft_redir_ipv4_type);
++#ifdef CONFIG_NF_TABLES_IPV6
++		nft_unregister_expr(&nft_redir_ipv6_type);
++#endif
 +		return ret;
 +	}
 +
- 	ret = nft_register_expr(&nft_masq_ipv4_type);
- 	if (ret < 0) {
-+		nft_masq_module_exit_inet();
- 		nft_masq_module_exit_ipv6();
- 		return ret;
- 	}
-@@ -235,6 +297,7 @@ static int __init nft_masq_module_init(void)
- 	ret = nf_nat_masquerade_ipv4_register_notifier();
- 	if (ret < 0) {
- 		nft_masq_module_exit_ipv6();
-+		nft_masq_module_exit_inet();
- 		nft_unregister_expr(&nft_masq_ipv4_type);
- 		return ret;
- 	}
-@@ -245,6 +308,7 @@ static int __init nft_masq_module_init(void)
- static void __exit nft_masq_module_exit(void)
- {
- 	nft_masq_module_exit_ipv6();
-+	nft_masq_module_exit_inet();
- 	nft_unregister_expr(&nft_masq_ipv4_type);
- 	nf_nat_masquerade_ipv4_unregister_notifier();
+ 	return ret;
  }
+ 
+@@ -226,6 +284,9 @@ static void __exit nft_redir_module_exit(void)
+ #ifdef CONFIG_NF_TABLES_IPV6
+ 	nft_unregister_expr(&nft_redir_ipv6_type);
+ #endif
++#ifdef CONFIG_NF_TABLES_INET
++	nft_unregister_expr(&nft_redir_inet_type);
++#endif
+ }
+ 
+ module_init(nft_redir_module_init);
 -- 
 2.19.2
 
