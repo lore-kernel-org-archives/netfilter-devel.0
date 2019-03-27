@@ -2,105 +2,152 @@ Return-Path: <SRS0=34lc=R6=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_MUTT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E676BC4360F
-	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Mar 2019 15:34:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BF90FC43381
+	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Mar 2019 18:25:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B43982087C
-	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Mar 2019 15:34:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 92DE620651
+	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Mar 2019 18:25:10 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1553711110;
+	bh=Q5VuFx8ChnjXZzrp1+G3zQ1fBA3ppzlC66ysuEtKtZQ=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=Y2UhUwnHBp/urv7zGhflm8BI2vhYrSCAWBtK8aaw3ygRl8agsZBPeZIVGq52s+aGy
+	 FlX89qjaLgOmz2sgLkT1yE4exXIU6fUIfNhCw1ed9u0v3vkWL3mkRcxfCpyI6XJz42
+	 AGbctzP/PnNhLMB8020oMMeOauAsoTvkAnNDh6WI=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727158AbfC0PeY (ORCPT
+        id S2404115AbfC0SZJ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 27 Mar 2019 11:34:24 -0400
-Received: from peace.netnation.com ([204.174.223.2]:59078 "EHLO
-        peace.netnation.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726159AbfC0PeX (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 27 Mar 2019 11:34:23 -0400
-Received: from sim by peace.netnation.com with local (Exim 4.84_2)
-        (envelope-from <sim@hostway.ca>)
-        id 1h9AZL-0000s1-2T; Wed, 27 Mar 2019 08:34:23 -0700
-Date:   Wed, 27 Mar 2019 08:34:23 -0700
-From:   Simon Kirby <sim@hostway.ca>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        lvs-devel@vger.kernel.org
-Subject: Re: Inability to IPVS DR with nft dnat since 9971a514ed26
-Message-ID: <20190327153422.GA1161@hostway.ca>
-References: <20190327062650.GA10700@hostway.ca>
- <20190327093027.gmflo27icuhr326p@breakpoint.cc>
+        Wed, 27 Mar 2019 14:25:09 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44126 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2404109AbfC0SZH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 27 Mar 2019 14:25:07 -0400
+Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id B42902063F;
+        Wed, 27 Mar 2019 18:25:05 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1553711106;
+        bh=Q5VuFx8ChnjXZzrp1+G3zQ1fBA3ppzlC66ysuEtKtZQ=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=xHPe/Uq1BnQXCbpmCLKTggqSI7DnIFq4BaEW+8v/mu+Iz4WJUv93CaX49c9PX0mUq
+         eWaWvyWAA+sAtHQTh4iFuffTR3xyrVPd/jSI9UFI/fGMq7OD3OArxgrP0QwR0ZzKn0
+         NO9t0vkyft9VbEmW5IcfPS84hGk13DBWIGvg1Mxs=
+From:   Sasha Levin <sashal@kernel.org>
+To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc:     Florian Westphal <fw@strlen.de>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Sasha Levin <sashal@kernel.org>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org
+Subject: [PATCH AUTOSEL 4.4 57/63] netfilter: physdev: relax br_netfilter dependency
+Date:   Wed, 27 Mar 2019 14:23:17 -0400
+Message-Id: <20190327182323.18577-57-sashal@kernel.org>
+X-Mailer: git-send-email 2.19.1
+In-Reply-To: <20190327182323.18577-1-sashal@kernel.org>
+References: <20190327182323.18577-1-sashal@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190327093027.gmflo27icuhr326p@breakpoint.cc>
-User-Agent: Mutt/1.5.23 (2014-03-12)
+X-Patchwork-Hint: Ignore
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Mar 27, 2019 at 10:30:27AM +0100, Florian Westphal wrote:
+From: Florian Westphal <fw@strlen.de>
 
-> > I bisected this to 9971a514ed2697e542f3984a6162eac54bb1da98 ("netfilter:
-> > nf_nat: add nat type hooks to nat core").
-> > 
-> > It should be pretty easy to see this with a minimal setup:
-> > 
-> > /etc/nftables.conf:
-> > 
-> > table ip nat {
-> >     chain prerouting {
-> > 		type nat hook prerouting priority 0;
-> > 
-> > 		ip daddr $ext_ip dnat to $vip
-> > 	}
-> > 	chain postrouting {
-> > 		type nat hook postrouting priority 100;
-> > 
-> > 		# In theory this hook no longer needed since this commit,
-> > 		# but we also need to do some unrelated snatting.
-> > 	}
-> > }
-> > 
-> > /etc/sysctl.conf:
-> > 	
-> > net.ipv4.conf.all.accept_local = 1
-> > net.ipv4.vs.conntrack = 1
-> > 
-> > IPVS DR setup:
-> > 
-> > ipvsadm -A -t $vip:80 -s wrr
-> > ipvsadm -a -t $vip:80 -r $real_ip:80 -g -w 100
-> 
-> I have a hard time figuring out how to expand $ext_ip, $vip and $real_ip,
-> and where to place those addresses on the nft machine.
+[ Upstream commit 8e2f311a68494a6677c1724bdcb10bada21af37c ]
 
-$ext_ip is something reachable from the "outside"; it just has to be
-something which can get to the nft box that isn't the real server or the
-same host. We have a public IP in this case.
+Following command:
+  iptables -D FORWARD -m physdev ...
+causes connectivity loss in some setups.
 
-$vip is something that is on the local LAN "behind" the nft box. In our
-case this is an rfc1918 IP address.
+Reason is that iptables userspace will probe kernel for the module revision
+of the physdev patch, and physdev has an artificial dependency on
+br_netfilter (xt_physdev use makes no sense unless a br_netfilter module
+is loaded).
 
-$real_ip is on the same subnet as the $vip and is just a way for IPVS to
-resolve the neighbor of one of the real servers in order to forward the
-packet. With this example configuration, IPVS is basically equivalent to:
+This causes the "phydev" module to be loaded, which in turn enables the
+"call-iptables" infrastructure.
 
-ip route add $vip via $real_ip
+bridged packets might then get dropped by the iptables ruleset.
 
-Except that it hooks the input path because $vip is expected to be bound
-locally...and normally you have multiple real servers and some algorithm
-selected for balancing. So, I guess I didn't mention that, and you also
-need to bind $vip to the nft box, and also to the real server if you
-want it to actually be able to respond.
+The better fix would be to change the "call-iptables" defaults to 0 and
+enforce explicit setting to 1, but that breaks backwards compatibility.
 
-"LVS-HOWTO" has info on how to set up LVS-DR. The only difference here is
-that we're using it in a relatively new (2009) configuration where "DR"
-(Direct Return) mode is actually symmetric and replying back to the nft
-box (symmetric) instead of directly to a separate router. This lets NAT
-actually work since it can see traffic in both directions.
+This does the next best thing: add a request_module call to checkentry.
+This was a stray '-D ... -m physdev' won't activate br_netfilter
+anymore.
 
-Simon-
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ include/net/netfilter/br_netfilter.h | 1 -
+ net/bridge/br_netfilter_hooks.c      | 5 -----
+ net/netfilter/xt_physdev.c           | 9 +++++++--
+ 3 files changed, 7 insertions(+), 8 deletions(-)
+
+diff --git a/include/net/netfilter/br_netfilter.h b/include/net/netfilter/br_netfilter.h
+index e8d1448425a7..b1d0d46344e2 100644
+--- a/include/net/netfilter/br_netfilter.h
++++ b/include/net/netfilter/br_netfilter.h
+@@ -42,7 +42,6 @@ static inline struct rtable *bridge_parent_rtable(const struct net_device *dev)
+ }
+ 
+ struct net_device *setup_pre_routing(struct sk_buff *skb);
+-void br_netfilter_enable(void);
+ 
+ #if IS_ENABLED(CONFIG_IPV6)
+ int br_validate_ipv6(struct net *net, struct sk_buff *skb);
+diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
+index 6def85d75b1d..93b5525bcccf 100644
+--- a/net/bridge/br_netfilter_hooks.c
++++ b/net/bridge/br_netfilter_hooks.c
+@@ -873,11 +873,6 @@ static const struct nf_br_ops br_ops = {
+ 	.br_dev_xmit_hook =	br_nf_dev_xmit,
+ };
+ 
+-void br_netfilter_enable(void)
+-{
+-}
+-EXPORT_SYMBOL_GPL(br_netfilter_enable);
+-
+ /* For br_nf_post_routing, we need (prio = NF_BR_PRI_LAST), because
+  * br_dev_queue_push_xmit is called afterwards */
+ static struct nf_hook_ops br_nf_ops[] __read_mostly = {
+diff --git a/net/netfilter/xt_physdev.c b/net/netfilter/xt_physdev.c
+index 1caaccbc306c..7e4063621960 100644
+--- a/net/netfilter/xt_physdev.c
++++ b/net/netfilter/xt_physdev.c
+@@ -96,8 +96,7 @@ physdev_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ static int physdev_mt_check(const struct xt_mtchk_param *par)
+ {
+ 	const struct xt_physdev_info *info = par->matchinfo;
+-
+-	br_netfilter_enable();
++	static bool brnf_probed __read_mostly;
+ 
+ 	if (!(info->bitmask & XT_PHYSDEV_OP_MASK) ||
+ 	    info->bitmask & ~XT_PHYSDEV_OP_MASK)
+@@ -113,6 +112,12 @@ static int physdev_mt_check(const struct xt_mtchk_param *par)
+ 		if (par->hook_mask & (1 << NF_INET_LOCAL_OUT))
+ 			return -EINVAL;
+ 	}
++
++	if (!brnf_probed) {
++		brnf_probed = true;
++		request_module("br_netfilter");
++	}
++
+ 	return 0;
+ }
+ 
+-- 
+2.19.1
+
