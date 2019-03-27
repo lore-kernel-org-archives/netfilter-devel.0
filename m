@@ -2,196 +2,356 @@ Return-Path: <SRS0=34lc=R6=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.0 required=3.0
+X-Spam-Status: No, score=-12.0 required=3.0
 	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_NEOMUTT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_PASS autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 19F73C4360F
-	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Mar 2019 22:10:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D569C10F00
+	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Mar 2019 22:42:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D77A7206BA
-	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Mar 2019 22:10:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 664E321741
+	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Mar 2019 22:42:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727910AbfC0WK2 (ORCPT
+        id S1726059AbfC0WmX (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 27 Mar 2019 18:10:28 -0400
-Received: from mx1.redhat.com ([209.132.183.28]:56674 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725972AbfC0WK1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 27 Mar 2019 18:10:27 -0400
-Received: from smtp.corp.redhat.com (int-mx05.intmail.prod.int.phx2.redhat.com [10.5.11.15])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mx1.redhat.com (Postfix) with ESMTPS id 1EF68CD4A8;
-        Wed, 27 Mar 2019 22:10:27 +0000 (UTC)
-Received: from madcap2.tricolour.ca (ovpn-112-19.phx2.redhat.com [10.3.112.19])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id DD6E8182D0;
-        Wed, 27 Mar 2019 22:10:15 +0000 (UTC)
-Date:   Wed, 27 Mar 2019 18:10:13 -0400
-From:   Richard Guy Briggs <rgb@redhat.com>
-To:     Ondrej Mosnacek <omosnace@redhat.com>
-Cc:     nhorman@tuxdriver.com, linux-api@vger.kernel.org,
-        containers@lists.linux-foundation.org,
-        LKML <linux-kernel@vger.kernel.org>,
-        David Howells <dhowells@redhat.com>,
-        Linux-Audit Mailing List <linux-audit@redhat.com>,
-        netfilter-devel@vger.kernel.org,
-        "Eric W . Biederman" <ebiederm@xmission.com>,
-        Simo Sorce <simo@redhat.com>, netdev@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, Eric Paris <eparis@parisplace.org>,
-        "Serge E. Hallyn" <serge@hallyn.com>
-Subject: Re: [PATCH ghak90 V5 04/10] audit: log container info of syscalls
-Message-ID: <20190327221012.42vjkifdfifuaczi@madcap2.tricolour.ca>
-References: <cover.1552665316.git.rgb@redhat.com>
- <85fcd0a81adef25cb60b2e479bbb380e76dbf999.1552665316.git.rgb@redhat.com>
- <CAFqZXNvM+d_MKGVykLtcHkwwZhO_UOYACJQu-92tEOvkk7uMrQ@mail.gmail.com>
+        Wed, 27 Mar 2019 18:42:23 -0400
+Received: from mail-ot1-f66.google.com ([209.85.210.66]:34396 "EHLO
+        mail-ot1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728017AbfC0WmX (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 27 Mar 2019 18:42:23 -0400
+Received: by mail-ot1-f66.google.com with SMTP id k21so15150378otf.1
+        for <netfilter-devel@vger.kernel.org>; Wed, 27 Mar 2019 15:42:22 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=HhoKwWUSsbGUQXGhb5Y44OTpUzNGHTNz2H73hSmFYoM=;
+        b=T/Mdr0jBjbfEI3IQZGUz5NLKuV5rkJAMvf+CbfGokZryBgsTZmoqPDmcPKiGR6/EtY
+         R1Fa1XcsX32CNiTr92/f0AUZ8K4vNwrVY4Z9SQyHAG4Na+EC8wf7WabNQKIZTH35BU46
+         O1p3WbQF0lxQrBGCA2qFZUL1M1xsfHD/P95kJv0uqN3KMZfvSLp5ViDrt62KxNVUUATs
+         tYaJaY101xxlyHOgVCGXkQY69C5PxT5snT62yvkTDD/UOKwskST0fX8yRsO5pD3koUvq
+         xvWiV5hxc8pOYQBN+LW5V2fJv6aw6s+qChA2bP5CJ+0UXqsBr0q2csHOvw3nJGYxdi9d
+         GjMA==
+X-Gm-Message-State: APjAAAXOuQ0ErrNEGIat156BZY5wowah/cfeNDitWUnTgM/2Za3sgmDH
+        Aos4nyg8HHd+jv5gOqUkIU5HAYEfVQzYturT97Q4KA==
+X-Google-Smtp-Source: APXvYqx0LZvI0R9dFJSRwskNz5Uw37Ll1aM5lRtd17XuFVZq/j/FG6pv4VsqVjZAIYNqYTPRtfjchAXLSgKo/9aLqYY=
+X-Received: by 2002:a9d:1b2f:: with SMTP id l44mr10000045otl.217.1553726542246;
+ Wed, 27 Mar 2019 15:42:22 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAFqZXNvM+d_MKGVykLtcHkwwZhO_UOYACJQu-92tEOvkk7uMrQ@mail.gmail.com>
-User-Agent: NeoMutt/20180716
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.15
-X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.5.16 (mx1.redhat.com [10.5.110.38]); Wed, 27 Mar 2019 22:10:27 +0000 (UTC)
+References: <cover.1552665316.git.rgb@redhat.com> <27473c84a274c64871cfa8e3636deaf05603c978.1552665316.git.rgb@redhat.com>
+In-Reply-To: <27473c84a274c64871cfa8e3636deaf05603c978.1552665316.git.rgb@redhat.com>
+From:   Ondrej Mosnacek <omosnace@redhat.com>
+Date:   Wed, 27 Mar 2019 23:42:11 +0100
+Message-ID: <CAFqZXNskwTub5Bm_HZqr02VPB4s79CcgAVX8VE2vQYP07-qssg@mail.gmail.com>
+Subject: Re: [PATCH ghak90 V5 09/10] audit: add support for containerid to
+ network namespaces
+To:     Richard Guy Briggs <rgb@redhat.com>
+Cc:     containers@lists.linux-foundation.org, linux-api@vger.kernel.org,
+        Linux-Audit Mailing List <linux-audit@redhat.com>,
+        linux-fsdevel@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        Paul Moore <paul@paul-moore.com>,
+        Steve Grubb <sgrubb@redhat.com>,
+        David Howells <dhowells@redhat.com>,
+        Simo Sorce <simo@redhat.com>,
+        Eric Paris <eparis@parisplace.org>,
+        "Serge E. Hallyn" <serge@hallyn.com>,
+        "Eric W . Biederman" <ebiederm@xmission.com>, nhorman@tuxdriver.com
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 2019-03-27 22:01, Ondrej Mosnacek wrote:
-> On Fri, Mar 15, 2019 at 7:34 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> > Create a new audit record AUDIT_CONTAINER_ID to document the audit
-> > container identifier of a process if it is present.
-> >
-> > Called from audit_log_exit(), syscalls are covered.
-> >
-> > A sample raw event:
-> > type=SYSCALL msg=audit(1519924845.499:257): arch=c000003e syscall=257 success=yes exit=3 a0=ffffff9c a1=56374e1cef30 a2=241 a3=1b6 items=2 ppid=606 pid=635 auid=0 uid=0 gid=0 euid=0 suid=0 fsuid=0 egid=0 sgid=0 fsgid=0 tty=pts0 ses=3 comm="bash" exe="/usr/bin/bash" subj=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023 key="tmpcontainerid"
-> > type=CWD msg=audit(1519924845.499:257): cwd="/root"
-> > type=PATH msg=audit(1519924845.499:257): item=0 name="/tmp/" inode=13863 dev=00:27 mode=041777 ouid=0 ogid=0 rdev=00:00 obj=system_u:object_r:tmp_t:s0 nametype= PARENT cap_fp=0 cap_fi=0 cap_fe=0 cap_fver=0
-> > type=PATH msg=audit(1519924845.499:257): item=1 name="/tmp/tmpcontainerid" inode=17729 dev=00:27 mode=0100644 ouid=0 ogid=0 rdev=00:00 obj=unconfined_u:object_r:user_tmp_t:s0 nametype=CREATE cap_fp=0 cap_fi=0 cap_fe=0 cap_fver=0
-> > type=PROCTITLE msg=audit(1519924845.499:257): proctitle=62617368002D6300736C65657020313B206563686F2074657374203E202F746D702F746D70636F6E7461696E65726964
-> > type=CONTAINER_ID msg=audit(1519924845.499:257): contid=123458
-> >
-> > See: https://github.com/linux-audit/audit-kernel/issues/90
-> > See: https://github.com/linux-audit/audit-userspace/issues/51
-> > See: https://github.com/linux-audit/audit-testsuite/issues/64
-> > See: https://github.com/linux-audit/audit-kernel/wiki/RFE-Audit-Container-ID
-> > Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
-> > Acked-by: Serge Hallyn <serge@hallyn.com>
-> > Acked-by: Steve Grubb <sgrubb@redhat.com>
-> > Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
-> 
-> Barring one minor nit below,
-> 
-> Reviewed-by: Ondrej Mosnacek <omosnace@redhat.com>
-> 
-> > ---
-> >  include/linux/audit.h      |  5 +++++
-> >  include/uapi/linux/audit.h |  1 +
-> >  kernel/audit.c             | 21 +++++++++++++++++++++
-> >  kernel/auditsc.c           |  2 ++
-> >  4 files changed, 29 insertions(+)
-> >
-> > diff --git a/include/linux/audit.h b/include/linux/audit.h
-> > index 301337776193..43438192ca2a 100644
-> > --- a/include/linux/audit.h
-> > +++ b/include/linux/audit.h
-> > @@ -199,6 +199,8 @@ static inline u64 audit_get_contid(struct task_struct *tsk)
-> >         return tsk->audit->contid;
-> >  }
-> >
-> > +extern void audit_log_contid(struct audit_context *context, u64 contid);
-> > +
-> >  extern u32 audit_enabled;
-> >  #else /* CONFIG_AUDIT */
-> >  static inline int audit_alloc(struct task_struct *task)
-> > @@ -265,6 +267,9 @@ static inline u64 audit_get_contid(struct task_struct *tsk)
-> >         return AUDIT_CID_UNSET;
-> >  }
-> >
-> > +static inline void audit_log_contid(struct audit_context *context, u64 contid)
-> > +{ }
-> > +
-> >  #define audit_enabled AUDIT_OFF
-> >  #endif /* CONFIG_AUDIT */
-> >
-> > diff --git a/include/uapi/linux/audit.h b/include/uapi/linux/audit.h
-> > index d475cf3b4d7f..a6383e28b2c8 100644
-> > --- a/include/uapi/linux/audit.h
-> > +++ b/include/uapi/linux/audit.h
-> > @@ -115,6 +115,7 @@
-> >  #define AUDIT_REPLACE          1329    /* Replace auditd if this packet unanswerd */
-> >  #define AUDIT_KERN_MODULE      1330    /* Kernel Module events */
-> >  #define AUDIT_FANOTIFY         1331    /* Fanotify access decision */
-> > +#define AUDIT_CONTAINER_ID     1332    /* Container ID */
-> >
-> >  #define AUDIT_AVC              1400    /* SE Linux avc denial or grant */
-> >  #define AUDIT_SELINUX_ERR      1401    /* Internal SE Linux Errors */
-> > diff --git a/kernel/audit.c b/kernel/audit.c
-> > index b5c702abeb42..8cc0e88d7f2a 100644
-> > --- a/kernel/audit.c
-> > +++ b/kernel/audit.c
-> > @@ -2127,6 +2127,27 @@ void audit_log_session_info(struct audit_buffer *ab)
-> >         audit_log_format(ab, "auid=%u ses=%u", auid, sessionid);
-> >  }
-> >
-> > +/*
-> > + * audit_log_contid - report container info
-> > + * @context: task or local context for record
-> > + * @contid: container ID to report
-> > + */
-> > +void audit_log_contid(struct audit_context *context, u64 contid)
-> > +{
-> > +       struct audit_buffer *ab;
-> > +
-> > +       if (!audit_contid_valid(contid))
-> > +               return;
-> > +       /* Generate AUDIT_CONTAINER_ID record with container ID */
-> > +       ab = audit_log_start(context, GFP_KERNEL, AUDIT_CONTAINER_ID);
-> > +       if (!ab)
-> > +               return;
-> > +       audit_log_format(ab, "contid=%llu", contid);
-> 
-> Just realized that you *might* get a compiler/static checker warning
-> since u64 could technically be something else than unsigned long long
-> on some arches... maybe this is not case in the kernel, but might be
-> safer to cast it to unsigned long long before passing to
-> audit_log_format(). Possibly there are similar occurrences in previous
-> (later) patches that I didn't (won't) notice.
+On Fri, Mar 15, 2019 at 7:35 PM Richard Guy Briggs <rgb@redhat.com> wrote:
+> Audit events could happen in a network namespace outside of a task
+> context due to packets received from the net that trigger an auditing
+> rule prior to being associated with a running task.  The network
+> namespace could be in use by multiple containers by association to the
+> tasks in that network namespace.  We still want a way to attribute
+> these events to any potential containers.  Keep a list per network
+> namespace to track these audit container identifiiers.
+>
+> Add/increment the audit container identifier on:
+> - initial setting of the audit container identifier via /proc
+> - clone/fork call that inherits an audit container identifier
+> - unshare call that inherits an audit container identifier
+> - setns call that inherits an audit container identifier
+> Delete/decrement the audit container identifier on:
+> - an inherited audit container identifier dropped when child set
+> - process exit
+> - unshare call that drops a net namespace
+> - setns call that drops a net namespace
+>
+> See: https://github.com/linux-audit/audit-kernel/issues/92
+> See: https://github.com/linux-audit/audit-testsuite/issues/64
+> See: https://github.com/linux-audit/audit-kernel/wiki/RFE-Audit-Container-ID
+> Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
+> ---
+>  include/linux/audit.h | 19 ++++++++++++
+>  kernel/audit.c        | 86 +++++++++++++++++++++++++++++++++++++++++++++++++--
+>  kernel/nsproxy.c      |  4 +++
+>  3 files changed, 106 insertions(+), 3 deletions(-)
+>
+> diff --git a/include/linux/audit.h b/include/linux/audit.h
+> index fa19fa408931..70255c2dfb9f 100644
+> --- a/include/linux/audit.h
+> +++ b/include/linux/audit.h
+> @@ -27,6 +27,7 @@
+>  #include <linux/ptrace.h>
+>  #include <linux/namei.h>  /* LOOKUP_* */
+>  #include <uapi/linux/audit.h>
+> +#include <linux/refcount.h>
+>
+>  #define AUDIT_INO_UNSET ((unsigned long)-1)
+>  #define AUDIT_DEV_UNSET ((dev_t)-1)
+> @@ -99,6 +100,13 @@ struct audit_task_info {
+>
+>  extern struct audit_task_info init_struct_audit;
+>
+> +struct audit_contid {
+> +       struct list_head        list;
+> +       u64                     id;
+> +       refcount_t              refcount;
 
-Ok, since it is guaranteed to be at least 64 bits, a cast won't truncate
-it.
+Hm, since we only ever touch the refcount under a spinlock, I wonder
+if we could just make it a regular unsigned int (we don't need the
+atomicity guarantees). OTOH, refcount_t comes with some extra overflow
+checking, so it's probably better to leave it as is...
 
-> > +       audit_log_end(ab);
-> > +       return;
-> > +}
-> > +EXPORT_SYMBOL(audit_log_contid);
-> > +
-> >  void audit_log_key(struct audit_buffer *ab, char *key)
-> >  {
-> >         audit_log_format(ab, " key=");
-> > diff --git a/kernel/auditsc.c b/kernel/auditsc.c
-> > index 8090eff7868d..a8c8b44b954d 100644
-> > --- a/kernel/auditsc.c
-> > +++ b/kernel/auditsc.c
-> > @@ -1548,6 +1548,8 @@ static void audit_log_exit(void)
-> >
-> >         audit_log_proctitle();
-> >
-> > +       audit_log_contid(context, audit_get_contid(current));
-> > +
-> >         /* Send end of event record to help user space know we are finished */
-> >         ab = audit_log_start(context, GFP_KERNEL, AUDIT_EOE);
-> >         if (ab)
-> 
-> Ondrej Mosnacek <omosnace at redhat dot com>
+> +       struct rcu_head         rcu;
+> +};
+> +
+>  extern int is_audit_feature_set(int which);
+>
+>  extern int __init audit_register_class(int class, unsigned *list);
+> @@ -202,6 +210,10 @@ static inline u64 audit_get_contid(struct task_struct *tsk)
+>  }
+>
+>  extern void audit_log_contid(struct audit_context *context, u64 contid);
+> +extern void audit_netns_contid_add(struct net *net, u64 contid);
+> +extern void audit_netns_contid_del(struct net *net, u64 contid);
+> +extern void audit_switch_task_namespaces(struct nsproxy *ns,
+> +                                        struct task_struct *p);
+>
+>  extern u32 audit_enabled;
+>  #else /* CONFIG_AUDIT */
+> @@ -271,6 +283,13 @@ static inline u64 audit_get_contid(struct task_struct *tsk)
+>
+>  static inline void audit_log_contid(struct audit_context *context, u64 contid)
+>  { }
+> +static inline void audit_netns_contid_add(struct net *net, u64 contid)
+> +{ }
+> +static inline void audit_netns_contid_del(struct net *net, u64 contid)
+> +{ }
+> +static inline void audit_switch_task_namespaces(struct nsproxy *ns,
+> +                                               struct task_struct *p)
+> +{ }
+>
+>  #define audit_enabled AUDIT_OFF
+>  #endif /* CONFIG_AUDIT */
+> diff --git a/kernel/audit.c b/kernel/audit.c
+> index cf448599ef34..7fa3194f5342 100644
+> --- a/kernel/audit.c
+> +++ b/kernel/audit.c
+> @@ -72,6 +72,7 @@
+>  #include <linux/freezer.h>
+>  #include <linux/pid_namespace.h>
+>  #include <net/netns/generic.h>
+> +#include <net/net_namespace.h>
+>
+>  #include "audit.h"
+>
+> @@ -99,9 +100,13 @@
+>  /**
+>   * struct audit_net - audit private network namespace data
+>   * @sk: communication socket
+> + * @contid_list: audit container identifier list
+> + * @contid_list_lock audit container identifier list lock
+>   */
+>  struct audit_net {
+>         struct sock *sk;
+> +       struct list_head contid_list;
+> +       spinlock_t contid_list_lock;
+>  };
+>
+>  /**
+> @@ -275,8 +280,11 @@ struct audit_task_info init_struct_audit = {
+>  void audit_free(struct task_struct *tsk)
+>  {
+>         struct audit_task_info *info = tsk->audit;
+> +       struct nsproxy *ns = tsk->nsproxy;
+>
+>         audit_free_syscall(tsk);
+> +       if (ns)
+> +               audit_netns_contid_del(ns->net_ns, audit_get_contid(tsk));
+>         /* Freeing the audit_task_info struct must be performed after
+>          * audit_log_exit() due to need for loginuid and sessionid.
+>          */
+> @@ -376,6 +384,73 @@ static struct sock *audit_get_sk(const struct net *net)
+>         return aunet->sk;
+>  }
+>
+> +void audit_netns_contid_add(struct net *net, u64 contid)
+> +{
+> +       struct audit_net *aunet = net_generic(net, audit_net_id);
+> +       struct list_head *contid_list = &aunet->contid_list;
+> +       struct audit_contid *cont;
+> +
+> +       if (!audit_contid_valid(contid))
+> +               return;
+> +       if (!aunet)
+> +               return;
+> +       spin_lock(&aunet->contid_list_lock);
+> +       if (!list_empty(contid_list))
+> +               list_for_each_entry_rcu(cont, contid_list, list)
+> +                       if (cont->id == contid) {
+> +                               refcount_inc(&cont->refcount);
+> +                               goto out;
+> +                       }
+> +       cont = kmalloc(sizeof(struct audit_contid), GFP_ATOMIC);
+> +       if (cont) {
+> +               INIT_LIST_HEAD(&cont->list);
+> +               cont->id = contid;
+> +               refcount_set(&cont->refcount, 1);
+> +               list_add_rcu(&cont->list, contid_list);
+> +       }
+> +out:
+> +       spin_unlock(&aunet->contid_list_lock);
+> +}
+> +
+> +void audit_netns_contid_del(struct net *net, u64 contid)
+> +{
+> +       struct audit_net *aunet;
+> +       struct list_head *contid_list;
+> +       struct audit_contid *cont = NULL;
+> +
+> +       if (!net)
+> +               return;
+> +       if (!audit_contid_valid(contid))
+> +               return;
+> +       aunet = net_generic(net, audit_net_id);
+> +       if (!aunet)
+> +               return;
+> +       contid_list = &aunet->contid_list;
+> +       spin_lock(&aunet->contid_list_lock);
+> +       if (!list_empty(contid_list))
+> +               list_for_each_entry_rcu(cont, contid_list, list)
+> +                       if (cont->id == contid) {
+> +                               if (refcount_dec_and_test(&cont->refcount)) {
+> +                                       list_del_rcu(&cont->list);
+> +                                       kfree_rcu(cont, rcu);
+> +                               }
+> +                               break;
+> +                       }
+> +       spin_unlock(&aunet->contid_list_lock);
+> +}
+> +
+> +void audit_switch_task_namespaces(struct nsproxy *ns, struct task_struct *p)
+> +{
+> +       u64 contid = audit_get_contid(p);
+> +       struct nsproxy *new = p->nsproxy;
+> +
+> +       if (!audit_contid_valid(contid))
+> +               return;
+> +       audit_netns_contid_del(ns->net_ns, contid);
+> +       if (new)
+> +               audit_netns_contid_add(new->net_ns, contid);
+> +}
+> +
+>  void audit_panic(const char *message)
+>  {
+>         switch (audit_failure) {
+> @@ -1619,7 +1694,6 @@ static int __net_init audit_net_init(struct net *net)
+>                 .flags  = NL_CFG_F_NONROOT_RECV,
+>                 .groups = AUDIT_NLGRP_MAX,
+>         };
+> -
+>         struct audit_net *aunet = net_generic(net, audit_net_id);
+>
+>         aunet->sk = netlink_kernel_create(net, NETLINK_AUDIT, &cfg);
+> @@ -1628,7 +1702,8 @@ static int __net_init audit_net_init(struct net *net)
+>                 return -ENOMEM;
+>         }
+>         aunet->sk->sk_sndtimeo = MAX_SCHEDULE_TIMEOUT;
+> -
+> +       INIT_LIST_HEAD(&aunet->contid_list);
+> +       spin_lock_init(&aunet->contid_list_lock);
+>         return 0;
+>  }
+>
+> @@ -2380,6 +2455,7 @@ int audit_set_contid(struct task_struct *task, u64 contid)
+>         uid_t uid;
+>         struct tty_struct *tty;
+>         char comm[sizeof(current->comm)];
+> +       struct net *net = task->nsproxy->net_ns;
+>
+>         task_lock(task);
+>         /* Can't set if audit disabled */
+> @@ -2401,8 +2477,12 @@ int audit_set_contid(struct task_struct *task, u64 contid)
+>         else if (!(thread_group_leader(task) && thread_group_empty(task)))
+>                 rc = -EALREADY;
+>         read_unlock(&tasklist_lock);
+> -       if (!rc)
+> +       if (!rc) {
+> +               if (audit_contid_valid(oldcontid))
+> +                       audit_netns_contid_del(net, oldcontid);
+>                 task->audit->contid = contid;
+> +               audit_netns_contid_add(net, contid);
+> +       }
+>         task_unlock(task);
+>
+>         if (!audit_enabled)
+> diff --git a/kernel/nsproxy.c b/kernel/nsproxy.c
+> index f6c5d330059a..718b1201ae70 100644
+> --- a/kernel/nsproxy.c
+> +++ b/kernel/nsproxy.c
+> @@ -27,6 +27,7 @@
+>  #include <linux/syscalls.h>
+>  #include <linux/cgroup.h>
+>  #include <linux/perf_event.h>
+> +#include <linux/audit.h>
+>
+>  static struct kmem_cache *nsproxy_cachep;
+>
+> @@ -140,6 +141,7 @@ int copy_namespaces(unsigned long flags, struct task_struct *tsk)
+>         struct nsproxy *old_ns = tsk->nsproxy;
+>         struct user_namespace *user_ns = task_cred_xxx(tsk, user_ns);
+>         struct nsproxy *new_ns;
+> +       u64 contid = audit_get_contid(tsk);
+>
+>         if (likely(!(flags & (CLONE_NEWNS | CLONE_NEWUTS | CLONE_NEWIPC |
+>                               CLONE_NEWPID | CLONE_NEWNET |
+> @@ -167,6 +169,7 @@ int copy_namespaces(unsigned long flags, struct task_struct *tsk)
+>                 return  PTR_ERR(new_ns);
+>
+>         tsk->nsproxy = new_ns;
+> +       audit_netns_contid_add(new_ns->net_ns, contid);
+>         return 0;
+>  }
+>
+> @@ -224,6 +227,7 @@ void switch_task_namespaces(struct task_struct *p, struct nsproxy *new)
+>         ns = p->nsproxy;
+>         p->nsproxy = new;
+>         task_unlock(p);
+> +       audit_switch_task_namespaces(ns, p);
 
-- RGB
+Since we call audit_switch_task_namespaces() after task_unlock(),
+could there be a potential race condition? I'm not going to dive too
+much into this now, because it's getting late here, but on first look
+it seems like p->nsproxy could change under our hands before we fetch
+it in audit_switch_task_namespaces()...
 
---
-Richard Guy Briggs <rgb@redhat.com>
-Sr. S/W Engineer, Kernel Security, Base Operating Systems
-Remote, Ottawa, Red Hat Canada
-IRC: rgb, SunRaycer
-Voice: +1.647.777.2635, Internal: (81) 32635
+>
+>         if (ns && atomic_dec_and_test(&ns->count))
+>                 free_nsproxy(ns);
+> --
+> 1.8.3.1
+>
+
+-- 
+Ondrej Mosnacek <omosnace at redhat dot com>
+Software Engineer, Security Technologies
+Red Hat, Inc.
