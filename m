@@ -4,44 +4,45 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2779FC10F11
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 245A6C4360F
 	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Mar 2019 10:43:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5161321738
-	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Mar 2019 10:38:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 161E42147C
+	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Mar 2019 10:38:05 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=riseup.net header.i=@riseup.net header.b="hp2S9fCu"
+	dkim=pass (1024-bit key) header.d=riseup.net header.i=@riseup.net header.b="baJn99yK"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1733089AbfC0KiG (ORCPT
+        id S1732995AbfC0KiE (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 27 Mar 2019 06:38:06 -0400
-Received: from mx1.riseup.net ([198.252.153.129]:55534 "EHLO mx1.riseup.net"
+        Wed, 27 Mar 2019 06:38:04 -0400
+Received: from mx1.riseup.net ([198.252.153.129]:55522 "EHLO mx1.riseup.net"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727557AbfC0KiF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 27 Mar 2019 06:38:05 -0400
+        id S1727557AbfC0KiE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 27 Mar 2019 06:38:04 -0400
 Received: from capuchin.riseup.net (capuchin-pn.riseup.net [10.0.1.176])
         (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
         (Client CN "*.riseup.net", Issuer "COMODO RSA Domain Validation Secure Server CA" (verified OK))
-        by mx1.riseup.net (Postfix) with ESMTPS id 249721A64FF
-        for <netfilter-devel@vger.kernel.org>; Wed, 27 Mar 2019 03:38:05 -0700 (PDT)
+        by mx1.riseup.net (Postfix) with ESMTPS id 9EEFA1A64FF
+        for <netfilter-devel@vger.kernel.org>; Wed, 27 Mar 2019 03:38:03 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=riseup.net; s=squak;
-        t=1553683085; bh=t2zNXC8jxqKtNOdpWvaqEsDK3ix5QeQ0rurYMf+3Gsw=;
+        t=1553683083; bh=/Yo7n35opzz2tW+oXv1aXXzLmA93bksSoZSGmm27u5A=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=hp2S9fCupWHjf47P2LE5J9MB3DE+Ztir82+9GNRZV9gJCOijGq23h31C7RC+e3cur
-         Saku4f3k16EvZuGsoGfIewh2VbP2+1eu4GO41+DjL8fUxthe7/OjqmDZLaNlyVphjw
-         QY4MOCa2Bspg6iQkvndtT8cHZSNJWS/ATiHd8j0g=
-X-Riseup-User-ID: 701AF8D5DBEE2E00C68BA934D10380F96D373C600AA12E7159127B6F99AB8541
+        b=baJn99yKqzVWLY3ofq+KyGfB+Be0rK3UOgTjO0zDfZNP2O70HBMkwhtJ3vSqJ6i4U
+         9MuejZ+sUaNA9sa8O/6kgfrFI1S4teXiXlCRTFRKc2m+XaM7rOumapsKswXO3LUYCV
+         SEpk2YGabCk1uycO/2uXB+u4J4JHKkwovY8pGJZE=
+X-Riseup-User-ID: 027A305015ACAE1A095CE8A7C82A107E28E0B5E7AEA07C8BEE7B458CBF0B8494
 Received: from [127.0.0.1] (localhost [127.0.0.1])
-         by capuchin.riseup.net (Postfix) with ESMTPSA id 43E441205E8;
-        Wed, 27 Mar 2019 03:38:04 -0700 (PDT)
+         by capuchin.riseup.net (Postfix) with ESMTPSA id CB3B91205E8;
+        Wed, 27 Mar 2019 03:38:02 -0700 (PDT)
 From:   Fernando Fernandez Mancera <ffmancera@riseup.net>
 To:     netfilter-devel@vger.kernel.org
 Cc:     Fernando Fernandez Mancera <ffmancera@riseup.net>
-Subject: [PATCH 4/6 nft v3] doc: add osf version option to man page
-Date:   Wed, 27 Mar 2019 11:37:59 +0100
-Message-Id: <20190327103801.2049-4-ffmancera@riseup.net>
+Subject: [PATCH 3/6 nft v3] tests: py: add osf tests with versions
+Date:   Wed, 27 Mar 2019 11:37:58 +0100
+Message-Id: <20190327103801.2049-3-ffmancera@riseup.net>
 In-Reply-To: <20190327103801.2049-1-ffmancera@riseup.net>
 References: <20190327103801.2049-1-ffmancera@riseup.net>
 MIME-Version: 1.0
@@ -53,22 +54,142 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 Signed-off-by: Fernando Fernandez Mancera <ffmancera@riseup.net>
 ---
- doc/primary-expression.txt | 2 ++
- 1 file changed, 2 insertions(+)
+ tests/py/inet/osf.t         |  4 +++
+ tests/py/inet/osf.t.json    | 15 +++++++++
+ tests/py/inet/osf.t.payload | 66 +++++++++++++++++++++++++++++++++++++
+ 3 files changed, 85 insertions(+)
 
-diff --git a/doc/primary-expression.txt b/doc/primary-expression.txt
-index d819b24..a62ed00 100644
---- a/doc/primary-expression.txt
-+++ b/doc/primary-expression.txt
-@@ -219,6 +219,8 @@ and others) from packets with the SYN bit set.
- |ttl|
- Do TTL checks on the packet to determine the operating system.|
- string
-+|version|
-+Do OS version checks on the packet.|
- |name|
- Name of the OS signature to match. All signatures can be found at pf.os file.
- Use "unknown" for OS signatures that the expression could not detect.|
+diff --git a/tests/py/inet/osf.t b/tests/py/inet/osf.t
+index fd5d9ed..c828541 100644
+--- a/tests/py/inet/osf.t
++++ b/tests/py/inet/osf.t
+@@ -7,8 +7,12 @@
+ osf name "Linux";ok
+ osf ttl loose name "Linux";ok
+ osf ttl skip name "Linux";ok
++osf ttl skip version "Linux:3.0";ok
++osf ttl skip version "morethan:sixteenbytes";fail
+ osf ttl nottl name "Linux";fail
+ osf name "morethansixteenbytes";fail
+ osf name ;fail
+ osf name { "Windows", "MacOs" };ok
++osf version { "Windows:XP", "MacOs:Sierra" };ok
+ ct mark set osf name map { "Windows" : 0x00000001, "MacOs" : 0x00000002 };ok
++ct mark set osf version map { "Windows:XP" : 0x00000003, "MacOs:Sierra" : 0x00000004 };ok
+diff --git a/tests/py/inet/osf.t.json b/tests/py/inet/osf.t.json
+index 452f302..a2e7449 100644
+--- a/tests/py/inet/osf.t.json
++++ b/tests/py/inet/osf.t.json
+@@ -45,6 +45,21 @@
+     }
+ ]
+ 
++# osf name version "Linux:3.0"
++[
++    {
++        "match": {
++            "left": {
++                "osf": {
++                    "key": "version"
++                }
++            },
++            "op": "==",
++            "right": "Linux:3.0"
++        }
++    }
++]
++
+ # osf name { "Windows", "MacOs" }
+ [
+     {
+diff --git a/tests/py/inet/osf.t.payload b/tests/py/inet/osf.t.payload
+index 9b8f0bc..6f5fba3 100644
+--- a/tests/py/inet/osf.t.payload
++++ b/tests/py/inet/osf.t.payload
+@@ -43,6 +43,21 @@ inet osfinet osfchain
+   [ osf dreg 1 ]
+   [ cmp eq reg 1 0x756e694c 0x00000078 0x00000000 0x00000000 ]
+ 
++# osf ttl skip version "Linux:3.0"
++ip osfip osfchain
++  [ osf dreg 1 ]
++  [ cmp eq reg 1 0x756e694c 0x2e333a78 0x00000030 0x00000000 ]
++
++# osf ttl skip version "Linux:3.0"
++ip6 osfip6 osfchain
++  [ osf dreg 1 ]
++  [ cmp eq reg 1 0x756e694c 0x2e333a78 0x00000030 0x00000000 ]
++
++# osf ttl skip version "Linux:3.0"
++inet osfinet osfchain
++  [ osf dreg 1 ]
++  [ cmp eq reg 1 0x756e694c 0x2e333a78 0x00000030 0x00000000 ]
++
+ # osf name { "Windows", "MacOs" }
+ __set%d osfip 3 size 2
+ __set%d osfip 0
+@@ -67,6 +82,30 @@ inet osfinet osfchain
+   [ osf dreg 1 ]
+   [ lookup reg 1 set __set%d ]
+ 
++# osf version { "Windows:XP", "MacOs:Sierra" }
++__set%d osfip 3 size 2
++__set%d osfip 0
++	element 646e6957 3a73776f 00005058 00000000  : 0 [end]	element 4f63614d 69533a73 61727265 00000000  : 0 [end]
++ip osfip osfchain
++  [ osf dreg 1 ]
++  [ lookup reg 1 set __set%d ]
++
++# osf version { "Windows:XP", "MacOs:Sierra" }
++__set%d osfip6 3 size 2
++__set%d osfip6 0
++	element 646e6957 3a73776f 00005058 00000000  : 0 [end]	element 4f63614d 69533a73 61727265 00000000  : 0 [end]
++ip6 osfip6 osfchain
++  [ osf dreg 1 ]
++  [ lookup reg 1 set __set%d ]
++
++# osf version { "Windows:XP", "MacOs:Sierra" }
++__set%d osfinet 3 size 2
++__set%d osfinet 0
++	element 646e6957 3a73776f 00005058 00000000  : 0 [end]	element 4f63614d 69533a73 61727265 00000000  : 0 [end]
++inet osfinet osfchain
++  [ osf dreg 1 ]
++  [ lookup reg 1 set __set%d ]
++
+ # ct mark set osf name map { "Windows" : 0x00000001, "MacOs" : 0x00000002 }
+ __map%d osfip b size 2
+ __map%d osfip 0
+@@ -93,3 +132,30 @@ inet osfinet osfchain
+   [ osf dreg 1 ]
+   [ lookup reg 1 set __map%d dreg 1 ]
+   [ ct set mark with reg 1 ]
++
++# ct mark set osf version map { "Windows:XP" : 0x00000003, "MacOs:Sierra" : 0x00000004 }
++__map%d osfip b size 2
++__map%d osfip 0
++	element 646e6957 3a73776f 00005058 00000000  : 00000003 0 [end]	element 4f63614d 69533a73 61727265 00000000  : 00000004 0 [end]
++ip osfip osfchain
++  [ osf dreg 1 ]
++  [ lookup reg 1 set __map%d dreg 1 ]
++  [ ct set mark with reg 1 ]
++
++# ct mark set osf version map { "Windows:XP" : 0x00000003, "MacOs:Sierra" : 0x00000004 }
++__map%d osfip6 b size 2
++__map%d osfip6 0
++	element 646e6957 3a73776f 00005058 00000000  : 00000003 0 [end]	element 4f63614d 69533a73 61727265 00000000  : 00000004 0 [end]
++ip6 osfip6 osfchain
++  [ osf dreg 1 ]
++  [ lookup reg 1 set __map%d dreg 1 ]
++  [ ct set mark with reg 1 ]
++
++# ct mark set osf version map { "Windows:XP" : 0x00000003, "MacOs:Sierra" : 0x00000004 }
++__map%d osfinet b size 2
++__map%d osfinet 0
++	element 646e6957 3a73776f 00005058 00000000  : 00000003 0 [end]	element 4f63614d 69533a73 61727265 00000000  : 00000004 0 [end]
++inet osfinet osfchain
++  [ osf dreg 1 ]
++  [ lookup reg 1 set __map%d dreg 1 ]
++  [ ct set mark with reg 1 ]
 -- 
 2.20.1
 
