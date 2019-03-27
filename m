@@ -2,191 +2,475 @@ Return-Path: <SRS0=34lc=R6=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-12.0 required=3.0
+	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_PASS autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 034A6C43381
-	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Mar 2019 19:33:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 02387C43381
+	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Mar 2019 20:34:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C8DB42075C
-	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Mar 2019 19:33:15 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1553715195;
-	bh=Pnka2KWCFbN+CL3GfPF+gtjWz7b5RKVBpofK6u/R8E8=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=IWICMJ5rz0adAq9GOe0vSHgBAvfF/do0ehtmsCehBXwl/6O5/OASvqj9QPavyQxgh
-	 yZPp2uOetqsjcSqFlyQ7mOTaw/+qKnj3/Jw8TKLt6TS+CCErQLCExYktaNFXUuw99P
-	 E2ssWaQCJoCo7u9naMwkabpqMalqEptvE5BpvFcE=
+	by mail.kernel.org (Postfix) with ESMTP id C5EFE20700
+	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Mar 2019 20:34:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732146AbfC0TdI (ORCPT
+        id S1727483AbfC0Ud4 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 27 Mar 2019 15:33:08 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42498 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730874AbfC0SCe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 27 Mar 2019 14:02:34 -0400
-Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 7784F217D7;
-        Wed, 27 Mar 2019 18:02:32 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1553709753;
-        bh=Pnka2KWCFbN+CL3GfPF+gtjWz7b5RKVBpofK6u/R8E8=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=qlmzwNQUvj+sQ8OwTMIoNF7VOenjAZPXYXJFscCDeTe9BylS00ZWUxQZWAKAjm7Wq
-         ALcGsfk3DwbT5Q0bvGGtYbXNpe8uCRSu8IjmlMHua5wqIo+3lrA3j86VivwBuBT21Q
-         rovPoVt0GUKd05HglLtsUi8JsHigZfKJdWbzSZHE=
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Sasha Levin <sashal@kernel.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.0 020/262] netfilter: nf_tables: fix set double-free in abort path
-Date:   Wed, 27 Mar 2019 13:57:55 -0400
-Message-Id: <20190327180158.10245-20-sashal@kernel.org>
-X-Mailer: git-send-email 2.19.1
-In-Reply-To: <20190327180158.10245-1-sashal@kernel.org>
-References: <20190327180158.10245-1-sashal@kernel.org>
+        Wed, 27 Mar 2019 16:33:56 -0400
+Received: from mail-oi1-f196.google.com ([209.85.167.196]:46982 "EHLO
+        mail-oi1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726149AbfC0Udz (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 27 Mar 2019 16:33:55 -0400
+Received: by mail-oi1-f196.google.com with SMTP id x188so13982884oia.13
+        for <netfilter-devel@vger.kernel.org>; Wed, 27 Mar 2019 13:33:55 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=G+PM9nDsPldQwbUC+yL/nZFNQ8BoVx95FHOJRGpus4U=;
+        b=J+PBRALVZa9jPC9xvFJiI54lD81pzmlHdufJPtL/r9g8twkZZxo9S3W2cyQPmDxHAD
+         SlLmirhb/RHwWe4nZGa4UrqlyF4BROHBvDtKrTfRB+dp7FT6cDDtkArb0g0nEn/6fU6+
+         UkBcMAZv1vdIkehnKJPbKTBv93dbGkfh5zS++AVxYs66aeaa/sJILT+eyguVUQYIvlIR
+         d1W/fRdE8UGfEqc4/yN+vSt+Y0RYtA66odM3ofF6r6JKQ9pyKKgAvQ3T/au49oG45+wm
+         31FwTqbxE0kcI572Vg9prpKq/dMW61H2eNdhAxUfcn3qgQmSd78H7eMVHfh9WuD4iDXb
+         ARXQ==
+X-Gm-Message-State: APjAAAW3KML4EylnieJpc8IJ2ibT+1syD21Rf180sjT1a2OppOAfQMuJ
+        wNLT3ydh+qMq0Ac9Dce2KRHSCuQ3819K/ijy+3fdBg==
+X-Google-Smtp-Source: APXvYqxU1dtlHujbKlh2cZAcZUYaL0gr45wjWVF/QXGZE1yGGT5DauYtIRmsdHIkfgbZ30S7wJ902Y2qr+ctyQNwzwI=
+X-Received: by 2002:aca:c4d6:: with SMTP id u205mr10700183oif.26.1553718834942;
+ Wed, 27 Mar 2019 13:33:54 -0700 (PDT)
 MIME-Version: 1.0
-X-Patchwork-Hint: Ignore
-Content-Transfer-Encoding: 8bit
+References: <cover.1552665316.git.rgb@redhat.com> <76b039ef21de18f8b36af9c15f9d3fb7fd94ab21.1552665316.git.rgb@redhat.com>
+In-Reply-To: <76b039ef21de18f8b36af9c15f9d3fb7fd94ab21.1552665316.git.rgb@redhat.com>
+From:   Ondrej Mosnacek <omosnace@redhat.com>
+Date:   Wed, 27 Mar 2019 21:33:44 +0100
+Message-ID: <CAFqZXNsct8yLwHSyAK5rdaOPLLJJS=1R+WyNsWKj0DKiT9_wGQ@mail.gmail.com>
+Subject: Re: [PATCH ghak90 V5 01/10] audit: collect audit task parameters
+To:     Richard Guy Briggs <rgb@redhat.com>
+Cc:     containers@lists.linux-foundation.org, linux-api@vger.kernel.org,
+        Linux-Audit Mailing List <linux-audit@redhat.com>,
+        linux-fsdevel@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        Paul Moore <paul@paul-moore.com>,
+        Steve Grubb <sgrubb@redhat.com>,
+        David Howells <dhowells@redhat.com>,
+        Simo Sorce <simo@redhat.com>,
+        Eric Paris <eparis@parisplace.org>,
+        "Serge E. Hallyn" <serge@hallyn.com>,
+        "Eric W . Biederman" <ebiederm@xmission.com>, nhorman@tuxdriver.com
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+On Fri, Mar 15, 2019 at 7:33 PM Richard Guy Briggs <rgb@redhat.com> wrote:
+> The audit-related parameters in struct task_struct should ideally be
+> collected together and accessed through a standard audit API.
+>
+> Collect the existing loginuid, sessionid and audit_context together in a
+> new struct audit_task_info called "audit" in struct task_struct.
+>
+> Use kmem_cache to manage this pool of memory.
+> Un-inline audit_free() to be able to always recover that memory.
+>
+> Please see the upstream github issue
+> https://github.com/linux-audit/audit-kernel/issues/81
+> but that issue has been closed with this patch included with
+> https://github.com/linux-audit/audit-kernel/issues/90
+>
+> Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
 
-[ Upstream commit 40ba1d9b4d19796afc9b7ece872f5f3e8f5e2c13 ]
+Reviewed-by: Ondrej Mosnacek <omosnace@redhat.com>
 
-The abort path can cause a double-free of an anonymous set.
-Added-and-to-be-aborted rule looks like this:
 
-udp dport { 137, 138 } drop
+> ---
+>  include/linux/audit.h | 49 +++++++++++++++++++++++------------
+>  include/linux/sched.h |  7 +----
+>  init/init_task.c      |  3 +--
+>  init/main.c           |  2 ++
+>  kernel/audit.c        | 71 +++++++++++++++++++++++++++++++++++++++++++++++++--
+>  kernel/audit.h        |  5 ++++
+>  kernel/auditsc.c      | 26 ++++++++++---------
+>  kernel/fork.c         |  1 -
+>  8 files changed, 124 insertions(+), 40 deletions(-)
+>
+> diff --git a/include/linux/audit.h b/include/linux/audit.h
+> index 1e69d9fe16da..bde346e73f0c 100644
+> --- a/include/linux/audit.h
+> +++ b/include/linux/audit.h
+> @@ -86,6 +86,16 @@ struct audit_field {
+>         u32                             op;
+>  };
+>
+> +struct audit_task_info {
+> +       kuid_t                  loginuid;
+> +       unsigned int            sessionid;
+> +#ifdef CONFIG_AUDITSYSCALL
+> +       struct audit_context    *ctx;
+> +#endif
+> +};
+> +
+> +extern struct audit_task_info init_struct_audit;
+> +
+>  extern int is_audit_feature_set(int which);
+>
+>  extern int __init audit_register_class(int class, unsigned *list);
+> @@ -122,6 +132,9 @@ struct audit_field {
+>  #ifdef CONFIG_AUDIT
+>  /* These are defined in audit.c */
+>                                 /* Public API */
+> +extern int  audit_alloc(struct task_struct *task);
+> +extern void audit_free(struct task_struct *task);
+> +extern void __init audit_task_init(void);
+>  extern __printf(4, 5)
+>  void audit_log(struct audit_context *ctx, gfp_t gfp_mask, int type,
+>                const char *fmt, ...);
+> @@ -164,16 +177,28 @@ extern void                   audit_log_key(struct audit_buffer *ab,
+>
+>  static inline kuid_t audit_get_loginuid(struct task_struct *tsk)
+>  {
+> -       return tsk->loginuid;
+> +       if (!tsk->audit)
+> +               return INVALID_UID;
+> +       return tsk->audit->loginuid;
+>  }
+>
+>  static inline unsigned int audit_get_sessionid(struct task_struct *tsk)
+>  {
+> -       return tsk->sessionid;
+> +       if (!tsk->audit)
+> +               return AUDIT_SID_UNSET;
+> +       return tsk->audit->sessionid;
+>  }
+>
+>  extern u32 audit_enabled;
+>  #else /* CONFIG_AUDIT */
+> +static inline int audit_alloc(struct task_struct *task)
+> +{
+> +       return 0;
+> +}
+> +static inline void audit_free(struct task_struct *task)
+> +{ }
+> +static inline void __init audit_task_init(void)
+> +{ }
+>  static inline __printf(4, 5)
+>  void audit_log(struct audit_context *ctx, gfp_t gfp_mask, int type,
+>                const char *fmt, ...)
+> @@ -239,8 +264,6 @@ static inline unsigned int audit_get_sessionid(struct task_struct *tsk)
+>
+>  /* These are defined in auditsc.c */
+>                                 /* Public API */
+> -extern int  audit_alloc(struct task_struct *task);
+> -extern void __audit_free(struct task_struct *task);
+>  extern void __audit_syscall_entry(int major, unsigned long a0, unsigned long a1,
+>                                   unsigned long a2, unsigned long a3);
+>  extern void __audit_syscall_exit(int ret_success, long ret_value);
+> @@ -263,12 +286,14 @@ extern void audit_seccomp_actions_logged(const char *names,
+>
+>  static inline void audit_set_context(struct task_struct *task, struct audit_context *ctx)
+>  {
+> -       task->audit_context = ctx;
+> +       task->audit->ctx = ctx;
+>  }
+>
+>  static inline struct audit_context *audit_context(void)
+>  {
+> -       return current->audit_context;
+> +       if (!current->audit)
+> +               return NULL;
+> +       return current->audit->ctx;
+>  }
+>
+>  static inline bool audit_dummy_context(void)
+> @@ -276,11 +301,7 @@ static inline bool audit_dummy_context(void)
+>         void *p = audit_context();
+>         return !p || *(int *)p;
+>  }
+> -static inline void audit_free(struct task_struct *task)
+> -{
+> -       if (unlikely(task->audit_context))
+> -               __audit_free(task);
+> -}
+> +
+>  static inline void audit_syscall_entry(int major, unsigned long a0,
+>                                        unsigned long a1, unsigned long a2,
+>                                        unsigned long a3)
+> @@ -470,12 +491,6 @@ static inline void audit_fanotify(unsigned int response)
+>  extern int audit_n_rules;
+>  extern int audit_signals;
+>  #else /* CONFIG_AUDITSYSCALL */
+> -static inline int audit_alloc(struct task_struct *task)
+> -{
+> -       return 0;
+> -}
+> -static inline void audit_free(struct task_struct *task)
+> -{ }
+>  static inline void audit_syscall_entry(int major, unsigned long a0,
+>                                        unsigned long a1, unsigned long a2,
+>                                        unsigned long a3)
+> diff --git a/include/linux/sched.h b/include/linux/sched.h
+> index 765119df759a..6850d1e48ace 100644
+> --- a/include/linux/sched.h
+> +++ b/include/linux/sched.h
+> @@ -31,7 +31,6 @@
+>  #include <linux/rseq.h>
+>
+>  /* task_struct member predeclarations (sorted alphabetically): */
+> -struct audit_context;
+>  struct backing_dev_info;
+>  struct bio_list;
+>  struct blk_plug;
+> @@ -886,11 +885,7 @@ struct task_struct {
+>         struct callback_head            *task_works;
+>
+>  #ifdef CONFIG_AUDIT
+> -#ifdef CONFIG_AUDITSYSCALL
+> -       struct audit_context            *audit_context;
+> -#endif
+> -       kuid_t                          loginuid;
+> -       unsigned int                    sessionid;
+> +       struct audit_task_info          *audit;
+>  #endif
+>         struct seccomp                  seccomp;
+>
+> diff --git a/init/init_task.c b/init/init_task.c
+> index 39c3109acc1a..f9685e1edda1 100644
+> --- a/init/init_task.c
+> +++ b/init/init_task.c
+> @@ -122,8 +122,7 @@ struct task_struct init_task
+>         .thread_group   = LIST_HEAD_INIT(init_task.thread_group),
+>         .thread_node    = LIST_HEAD_INIT(init_signals.thread_head),
+>  #ifdef CONFIG_AUDIT
+> -       .loginuid       = INVALID_UID,
+> -       .sessionid      = AUDIT_SID_UNSET,
+> +       .audit          = &init_struct_audit,
+>  #endif
+>  #ifdef CONFIG_PERF_EVENTS
+>         .perf_event_mutex = __MUTEX_INITIALIZER(init_task.perf_event_mutex),
+> diff --git a/init/main.c b/init/main.c
+> index e2e80ca3165a..8a1c36625d12 100644
+> --- a/init/main.c
+> +++ b/init/main.c
+> @@ -92,6 +92,7 @@
+>  #include <linux/rodata_test.h>
+>  #include <linux/jump_label.h>
+>  #include <linux/mem_encrypt.h>
+> +#include <linux/audit.h>
+>
+>  #include <asm/io.h>
+>  #include <asm/bugs.h>
+> @@ -727,6 +728,7 @@ asmlinkage __visible void __init start_kernel(void)
+>         nsfs_init();
+>         cpuset_init();
+>         cgroup_init();
+> +       audit_task_init();
+>         taskstats_init_early();
+>         delayacct_init();
+>
+> diff --git a/kernel/audit.c b/kernel/audit.c
+> index c89ea48c70a6..67498c5690bb 100644
+> --- a/kernel/audit.c
+> +++ b/kernel/audit.c
+> @@ -215,6 +215,73 @@ struct audit_reply {
+>         struct sk_buff *skb;
+>  };
+>
+> +static struct kmem_cache *audit_task_cache;
+> +
+> +void __init audit_task_init(void)
+> +{
+> +       audit_task_cache = kmem_cache_create("audit_task",
+> +                                            sizeof(struct audit_task_info),
+> +                                            0, SLAB_PANIC, NULL);
+> +}
+> +
+> +/**
+> + * audit_alloc - allocate an audit info block for a task
+> + * @tsk: task
+> + *
+> + * Call audit_alloc_syscall to filter on the task information and
+> + * allocate a per-task audit context if necessary.  This is called from
+> + * copy_process, so no lock is needed.
+> + */
+> +int audit_alloc(struct task_struct *tsk)
+> +{
+> +       int ret = 0;
+> +       struct audit_task_info *info;
+> +
+> +       info = kmem_cache_alloc(audit_task_cache, GFP_KERNEL);
+> +       if (!info) {
+> +               ret = -ENOMEM;
+> +               goto out;
+> +       }
+> +       info->loginuid = audit_get_loginuid(current);
+> +       info->sessionid = audit_get_sessionid(current);
+> +       tsk->audit = info;
+> +
+> +       ret = audit_alloc_syscall(tsk);
+> +       if (ret) {
+> +               tsk->audit = NULL;
+> +               kmem_cache_free(audit_task_cache, info);
+> +       }
+> +out:
+> +       return ret;
+> +}
+> +
+> +struct audit_task_info init_struct_audit = {
+> +       .loginuid = INVALID_UID,
+> +       .sessionid = AUDIT_SID_UNSET,
+> +#ifdef CONFIG_AUDITSYSCALL
+> +       .ctx = NULL,
+> +#endif
+> +};
+> +
+> +/**
+> + * audit_free - free per-task audit info
+> + * @tsk: task whose audit info block to free
+> + *
+> + * Called from copy_process and do_exit
+> + */
+> +void audit_free(struct task_struct *tsk)
+> +{
+> +       struct audit_task_info *info = tsk->audit;
+> +
+> +       audit_free_syscall(tsk);
+> +       /* Freeing the audit_task_info struct must be performed after
+> +        * audit_log_exit() due to need for loginuid and sessionid.
+> +        */
+> +       info = tsk->audit;
+> +       tsk->audit = NULL;
+> +       kmem_cache_free(audit_task_cache, info);
+> +}
+> +
+>  /**
+>   * auditd_test_task - Check to see if a given task is an audit daemon
+>   * @task: the task to check
+> @@ -2266,8 +2333,8 @@ int audit_set_loginuid(kuid_t loginuid)
+>                         sessionid = (unsigned int)atomic_inc_return(&session_id);
+>         }
+>
+> -       current->sessionid = sessionid;
+> -       current->loginuid = loginuid;
+> +       current->audit->sessionid = sessionid;
+> +       current->audit->loginuid = loginuid;
+>  out:
+>         audit_log_set_loginuid(oldloginuid, loginuid, oldsessionid, sessionid, rc);
+>         return rc;
+> diff --git a/kernel/audit.h b/kernel/audit.h
+> index 958d5b8fc1b3..c00e2ee3c6b3 100644
+> --- a/kernel/audit.h
+> +++ b/kernel/audit.h
+> @@ -264,6 +264,8 @@ extern void audit_log_d_path_exe(struct audit_buffer *ab,
+>  extern unsigned int audit_serial(void);
+>  extern int auditsc_get_stamp(struct audit_context *ctx,
+>                               struct timespec64 *t, unsigned int *serial);
+> +extern int audit_alloc_syscall(struct task_struct *tsk);
+> +extern void audit_free_syscall(struct task_struct *tsk);
+>
+>  extern void audit_put_watch(struct audit_watch *watch);
+>  extern void audit_get_watch(struct audit_watch *watch);
+> @@ -305,6 +307,9 @@ extern void audit_filter_inodes(struct task_struct *tsk,
+>  extern struct list_head *audit_killed_trees(void);
+>  #else /* CONFIG_AUDITSYSCALL */
+>  #define auditsc_get_stamp(c, t, s) 0
+> +#define audit_alloc_syscall(t) 0
+> +#define audit_free_syscall(t) {}
+> +
+>  #define audit_put_watch(w) {}
+>  #define audit_get_watch(w) {}
+>  #define audit_to_watch(k, p, l, o) (-EINVAL)
+> diff --git a/kernel/auditsc.c b/kernel/auditsc.c
+> index d1eab1d4a930..8090eff7868d 100644
+> --- a/kernel/auditsc.c
+> +++ b/kernel/auditsc.c
+> @@ -885,23 +885,25 @@ static inline struct audit_context *audit_alloc_context(enum audit_state state)
+>         return context;
+>  }
+>
+> -/**
+> - * audit_alloc - allocate an audit context block for a task
+> +/*
+> + * audit_alloc_syscall - allocate an audit context block for a task
+>   * @tsk: task
+>   *
+>   * Filter on the task information and allocate a per-task audit context
+>   * if necessary.  Doing so turns on system call auditing for the
+> - * specified task.  This is called from copy_process, so no lock is
+> - * needed.
+> + * specified task.  This is called from copy_process via audit_alloc, so
+> + * no lock is needed.
+>   */
+> -int audit_alloc(struct task_struct *tsk)
+> +int audit_alloc_syscall(struct task_struct *tsk)
+>  {
+>         struct audit_context *context;
+>         enum audit_state     state;
+>         char *key = NULL;
+>
+> -       if (likely(!audit_ever_enabled))
+> +       if (likely(!audit_ever_enabled)) {
+> +               audit_set_context(tsk, NULL);
+>                 return 0; /* Return if not auditing. */
+> +       }
+>
+>         state = audit_filter_task(tsk, &key);
+>         if (state == AUDIT_DISABLED) {
+> @@ -911,7 +913,7 @@ int audit_alloc(struct task_struct *tsk)
+>
+>         if (!(context = audit_alloc_context(state))) {
+>                 kfree(key);
+> -               audit_log_lost("out of memory in audit_alloc");
+> +               audit_log_lost("out of memory in audit_alloc_syscall");
+>                 return -ENOMEM;
+>         }
+>         context->filterkey = key;
+> @@ -1555,14 +1557,15 @@ static void audit_log_exit(void)
+>  }
+>
+>  /**
+> - * __audit_free - free a per-task audit context
+> + * audit_free_syscall - free per-task audit context info
+>   * @tsk: task whose audit context block to free
+>   *
+> - * Called from copy_process and do_exit
+> + * Called from audit_free
+>   */
+> -void __audit_free(struct task_struct *tsk)
+> +void audit_free_syscall(struct task_struct *tsk)
+>  {
+> -       struct audit_context *context = tsk->audit_context;
+> +       struct audit_task_info *info = tsk->audit;
+> +       struct audit_context *context = info->ctx;
+>
+>         if (!context)
+>                 return;
+> @@ -1585,7 +1588,6 @@ void __audit_free(struct task_struct *tsk)
+>                 if (context->current_state == AUDIT_RECORD_CONTEXT)
+>                         audit_log_exit();
+>         }
+> -
+>         audit_set_context(tsk, NULL);
+>         audit_free_context(context);
+>  }
+> diff --git a/kernel/fork.c b/kernel/fork.c
+> index a60459947f18..1107bd8b8ad8 100644
+> --- a/kernel/fork.c
+> +++ b/kernel/fork.c
+> @@ -1836,7 +1836,6 @@ static __latent_entropy struct task_struct *copy_process(
+>         p->start_time = ktime_get_ns();
+>         p->real_start_time = ktime_get_boot_ns();
+>         p->io_context = NULL;
+> -       audit_set_context(p, NULL);
+>         cgroup_fork(p);
+>  #ifdef CONFIG_NUMA
+>         p->mempolicy = mpol_dup(p->mempolicy);
+> --
+> 1.8.3.1
+>
 
-The to-be-aborted transaction list looks like this:
 
-newset
-newsetelem
-newsetelem
-rule
-
-This gets walked in reverse order, so first pass disables the rule, the
-set elements, then the set.
-
-After synchronize_rcu(), we then destroy those in same order: rule, set
-element, set element, newset.
-
-Problem is that the anonymous set has already been bound to the rule, so
-the rule (lookup expression destructor) already frees the set, when then
-cause use-after-free when trying to delete the elements from this set,
-then try to free the set again when handling the newset expression.
-
-Rule releases the bound set in first place from the abort path, this
-causes the use-after-free on set element removal when undoing the new
-element transactions. To handle this, skip new element transaction if
-set is bound from the abort path.
-
-This is still causes the use-after-free on set element removal.  To
-handle this, remove transaction from the list when the set is already
-bound.
-
-Joint work with Florian Westphal.
-
-Fixes: f6ac85858976 ("netfilter: nf_tables: unbind set in rule from commit path")
-Bugzilla: https://bugzilla.netfilter.org/show_bug.cgi?id=1325
-Acked-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- include/net/netfilter/nf_tables.h |  6 ++----
- net/netfilter/nf_tables_api.c     | 17 +++++++++++------
- 2 files changed, 13 insertions(+), 10 deletions(-)
-
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index b4984bbbe157..3d58acf94dd2 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -416,7 +416,8 @@ struct nft_set {
- 	unsigned char			*udata;
- 	/* runtime data below here */
- 	const struct nft_set_ops	*ops ____cacheline_aligned;
--	u16				flags:14,
-+	u16				flags:13,
-+					bound:1,
- 					genmask:2;
- 	u8				klen;
- 	u8				dlen;
-@@ -1329,15 +1330,12 @@ struct nft_trans_rule {
- struct nft_trans_set {
- 	struct nft_set			*set;
- 	u32				set_id;
--	bool				bound;
- };
- 
- #define nft_trans_set(trans)	\
- 	(((struct nft_trans_set *)trans->data)->set)
- #define nft_trans_set_id(trans)	\
- 	(((struct nft_trans_set *)trans->data)->set_id)
--#define nft_trans_set_bound(trans)	\
--	(((struct nft_trans_set *)trans->data)->bound)
- 
- struct nft_trans_chain {
- 	bool				update;
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 4893f248dfdc..e1724f9d8b9d 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -127,7 +127,7 @@ static void nft_set_trans_bind(const struct nft_ctx *ctx, struct nft_set *set)
- 	list_for_each_entry_reverse(trans, &net->nft.commit_list, list) {
- 		if (trans->msg_type == NFT_MSG_NEWSET &&
- 		    nft_trans_set(trans) == set) {
--			nft_trans_set_bound(trans) = true;
-+			set->bound = true;
- 			break;
- 		}
- 	}
-@@ -6617,8 +6617,7 @@ static void nf_tables_abort_release(struct nft_trans *trans)
- 		nf_tables_rule_destroy(&trans->ctx, nft_trans_rule(trans));
- 		break;
- 	case NFT_MSG_NEWSET:
--		if (!nft_trans_set_bound(trans))
--			nft_set_destroy(nft_trans_set(trans));
-+		nft_set_destroy(nft_trans_set(trans));
- 		break;
- 	case NFT_MSG_NEWSETELEM:
- 		nft_set_elem_destroy(nft_trans_elem_set(trans),
-@@ -6691,8 +6690,11 @@ static int __nf_tables_abort(struct net *net)
- 			break;
- 		case NFT_MSG_NEWSET:
- 			trans->ctx.table->use--;
--			if (!nft_trans_set_bound(trans))
--				list_del_rcu(&nft_trans_set(trans)->list);
-+			if (nft_trans_set(trans)->bound) {
-+				nft_trans_destroy(trans);
-+				break;
-+			}
-+			list_del_rcu(&nft_trans_set(trans)->list);
- 			break;
- 		case NFT_MSG_DELSET:
- 			trans->ctx.table->use++;
-@@ -6700,8 +6702,11 @@ static int __nf_tables_abort(struct net *net)
- 			nft_trans_destroy(trans);
- 			break;
- 		case NFT_MSG_NEWSETELEM:
-+			if (nft_trans_elem_set(trans)->bound) {
-+				nft_trans_destroy(trans);
-+				break;
-+			}
- 			te = (struct nft_trans_elem *)trans->data;
--
- 			te->set->ops->remove(net, te->set, &te->elem);
- 			atomic_dec(&te->set->nelems);
- 			break;
--- 
-2.19.1
-
+--
+Ondrej Mosnacek <omosnace at redhat dot com>
+Software Engineer, Security Technologies
+Red Hat, Inc.
