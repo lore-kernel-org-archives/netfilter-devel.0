@@ -3,49 +3,49 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9D2ECC10F00
-	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Mar 2019 21:17:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C227C10F00
+	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Mar 2019 21:23:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6C15520700
-	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Mar 2019 21:17:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 43F6B21734
+	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Mar 2019 21:23:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728734AbfC0VR0 (ORCPT
+        id S1729020AbfC0VXB (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 27 Mar 2019 17:17:26 -0400
-Received: from mail-ot1-f66.google.com ([209.85.210.66]:37473 "EHLO
-        mail-ot1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727772AbfC0VRZ (ORCPT
+        Wed, 27 Mar 2019 17:23:01 -0400
+Received: from mail-oi1-f196.google.com ([209.85.167.196]:36195 "EHLO
+        mail-oi1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728162AbfC0VXB (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 27 Mar 2019 17:17:25 -0400
-Received: by mail-ot1-f66.google.com with SMTP id c16so16331804otn.4
-        for <netfilter-devel@vger.kernel.org>; Wed, 27 Mar 2019 14:17:24 -0700 (PDT)
+        Wed, 27 Mar 2019 17:23:01 -0400
+Received: by mail-oi1-f196.google.com with SMTP id t206so14082965oib.3
+        for <netfilter-devel@vger.kernel.org>; Wed, 27 Mar 2019 14:23:00 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=BBdzqCeQMHcoqYr9jcZnmkytQeItgBZTai/slYi5Ggo=;
-        b=iKNBzxifTmsusJ/XU43QWE0TqFhciEVPoOc37HaAxTB422I5VQwrlus6os8B9LP+zz
-         yCKMdcpwbx/pTDhM0Tj6IK5EX2b/lfDxiTftw/mbU2SU+BACSYjchAj5oW/Oc4WSjpyu
-         7jzzwIQ7IX6PJymLQWObib5UA+XMHXzZ11hwgkeoXCxznGrE8yE7EweW7AVAE6rTuZlG
-         1CGRmx1nhMwYH6hrcbMUr+Hwf0fWytPqijIMq4O3GACZHy8ApDYudAL296UCoKhHCqB0
-         p7FU4oQq+EWmt3BZXG5abnkHEKfyjJ6yLHEZmF/teDLxjT53OaIJHhyiqWhCQeRqc7b+
-         /xDg==
-X-Gm-Message-State: APjAAAVod3nGy4bVf3rNSl18FY/d3ZB13w3anns3hb8V2h7zdILnOv+p
-        ZMsBbsT0tcpIGa0AU2/0JNUHSdF2mHBKzexLEPTGpQ==
-X-Google-Smtp-Source: APXvYqxH+fh3Qdeqpl93FpTbEiYOcb/qwPkDG3ZAgBVvK28We2rhKiqhTEj7ULdHWqanYb5h6V9bWc8rLG9z2Xx7uBU=
-X-Received: by 2002:a9d:1b2f:: with SMTP id l44mr9765053otl.217.1553721444358;
- Wed, 27 Mar 2019 14:17:24 -0700 (PDT)
+        bh=xA+J9+qxpjYrvLlBENyd15g25TWUXawOHVU0GWnQ7iI=;
+        b=ZhQ1JeJxH7hvztUtHM8xNIM9QBWtEG3e0Y0CAUOG7IUJGniQqnKx0JBPPK+zNkv3cr
+         we/TUkkj04ZzhiyubN5gJYhK3QfA8Ta/SIfJGgJ8yHzf6r3/sbC85HLAuBKcl2eacCon
+         3NDK/UtQ3iOG/xwN3oXqxiaxnfj6dAbIB7u3U0QC/8vl8NfMlr3s30wWkdg18sR/Mgid
+         xSFM/105dp38MUv/uI2NxVGGfWtpNL+qg695IFPIs0Xk95BNQdUbuk8URD9gqoFqlXUM
+         dWL7wD/XnUaROu5u5JqrWQhaVGPnnBPqaKUmSmsKf0Pix761iLFwldoyfE4P1IyBy8LE
+         n/kw==
+X-Gm-Message-State: APjAAAUsGXT1zc7V524p8lfL96/K4xhOLeOjlXJH4qvkyE9Pu3Lp5Six
+        /hoBBJ1s3omvOE/xO7A0qJgRrl996O3JEn7CYkNTCA==
+X-Google-Smtp-Source: APXvYqzremYJFwcMf7BNHxK7Vhhh/+PUKR1Sws7vRhnuVJd98dQQg30XsS/jzIQjWNaVXGhT9cZf920u8HzC/3D11fY=
+X-Received: by 2002:aca:5747:: with SMTP id l68mr21535254oib.103.1553721780041;
+ Wed, 27 Mar 2019 14:23:00 -0700 (PDT)
 MIME-Version: 1.0
-References: <cover.1552665316.git.rgb@redhat.com> <a5a612bff629574cf4b678e7c7a9315e0e60a27c.1552665316.git.rgb@redhat.com>
-In-Reply-To: <a5a612bff629574cf4b678e7c7a9315e0e60a27c.1552665316.git.rgb@redhat.com>
+References: <cover.1552665316.git.rgb@redhat.com> <700e4313571f86cc0cdcb7310fbe060f02c7c2db.1552665316.git.rgb@redhat.com>
+In-Reply-To: <700e4313571f86cc0cdcb7310fbe060f02c7c2db.1552665316.git.rgb@redhat.com>
 From:   Ondrej Mosnacek <omosnace@redhat.com>
-Date:   Wed, 27 Mar 2019 22:17:13 +0100
-Message-ID: <CAFqZXNuMjvds9OKoj--zgn5j8CGuW55ZGhTPHtKGb+ZOR6B2-A@mail.gmail.com>
-Subject: Re: [PATCH ghak90 V5 05/10] audit: add containerid support for ptrace
- and signals
+Date:   Wed, 27 Mar 2019 22:22:49 +0100
+Message-ID: <CAFqZXNukuKkiVrw1Svm17dqkBAWW=dShwEzW89AZanWSQyZZBQ@mail.gmail.com>
+Subject: Re: [PATCH ghak90 V5 06/10] audit: add support for non-syscall
+ auxiliary records
 To:     Richard Guy Briggs <rgb@redhat.com>
 Cc:     containers@lists.linux-foundation.org, linux-api@vger.kernel.org,
         Linux-Audit Mailing List <linux-audit@redhat.com>,
@@ -65,159 +65,140 @@ List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
 On Fri, Mar 15, 2019 at 7:34 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> Add audit container identifier support to ptrace and signals.  In
-> particular, the "ref" field provides a way to label the auxiliary record
-> to which it is associated.
+> Standalone audit records have the timestamp and serial number generated
+> on the fly and as such are unique, making them standalone.  This new
+> function audit_alloc_local() generates a local audit context that will
+> be used only for a standalone record and its auxiliary record(s).  The
+> context is discarded immediately after the local associated records are
+> produced.
 >
 > Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
 > Acked-by: Serge Hallyn <serge@hallyn.com>
-> Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
+
+Reviewed-by: Ondrej Mosnacek <omosnace@redhat.com>
+
 > ---
->  include/linux/audit.h |  1 +
->  kernel/audit.c        |  2 ++
->  kernel/audit.h        |  2 ++
->  kernel/auditsc.c      | 23 +++++++++++++++++------
->  4 files changed, 22 insertions(+), 6 deletions(-)
+>  include/linux/audit.h |  8 ++++++++
+>  kernel/audit.h        |  1 +
+>  kernel/auditsc.c      | 35 ++++++++++++++++++++++++++++++-----
+>  3 files changed, 39 insertions(+), 5 deletions(-)
 >
 > diff --git a/include/linux/audit.h b/include/linux/audit.h
-> index 43438192ca2a..ebd6625ca80e 100644
+> index ebd6625ca80e..6db5aba7cc01 100644
 > --- a/include/linux/audit.h
 > +++ b/include/linux/audit.h
-> @@ -35,6 +35,7 @@ struct audit_sig_info {
->         uid_t           uid;
->         pid_t           pid;
->         char            ctx[0];
-> +       u64             cid;
->  };
-
-It seems like this structure implicitly defines the format of some
-message that is sent to userspace... If so, how will userspace detect
-that a new format (including the cid) is being used? Even assuming the
-fixed order as pointed out by Neil, the message still seems to be
-variable-sized so userspace cannot even use the length to infer that.
-Am I missing something here? (I hope I am :)
-
+> @@ -285,6 +285,8 @@ static inline void audit_log_contid(struct audit_context *context, u64 contid)
 >
->  struct audit_buffer;
-> diff --git a/kernel/audit.c b/kernel/audit.c
-> index 8cc0e88d7f2a..cfa659b3f6c4 100644
-> --- a/kernel/audit.c
-> +++ b/kernel/audit.c
-> @@ -138,6 +138,7 @@ struct audit_net {
->  kuid_t         audit_sig_uid = INVALID_UID;
->  pid_t          audit_sig_pid = -1;
->  u32            audit_sig_sid = 0;
-> +u64            audit_sig_cid = AUDIT_CID_UNSET;
->
->  /* Records can be lost in several ways:
->     0) [suppressed in audit_alloc]
-> @@ -1515,6 +1516,7 @@ static int audit_receive_msg(struct sk_buff *skb, struct nlmsghdr *nlh)
->                         memcpy(sig_data->ctx, ctx, len);
->                         security_release_secctx(ctx, len);
->                 }
-> +               sig_data->cid = audit_sig_cid;
->                 audit_send_reply(skb, seq, AUDIT_SIGNAL_INFO, 0, 0,
->                                  sig_data, sizeof(*sig_data) + len);
->                 kfree(sig_data);
+>  /* These are defined in auditsc.c */
+>                                 /* Public API */
+> +extern struct audit_context *audit_alloc_local(gfp_t gfpflags);
+> +extern void audit_free_context(struct audit_context *context);
+>  extern void __audit_syscall_entry(int major, unsigned long a0, unsigned long a1,
+>                                   unsigned long a2, unsigned long a3);
+>  extern void __audit_syscall_exit(int ret_success, long ret_value);
+> @@ -512,6 +514,12 @@ static inline void audit_fanotify(unsigned int response)
+>  extern int audit_n_rules;
+>  extern int audit_signals;
+>  #else /* CONFIG_AUDITSYSCALL */
+> +static inline struct audit_context *audit_alloc_local(gfp_t gfpflags)
+> +{
+> +       return NULL;
+> +}
+> +static inline void audit_free_context(struct audit_context *context)
+> +{ }
+>  static inline void audit_syscall_entry(int major, unsigned long a0,
+>                                        unsigned long a1, unsigned long a2,
+>                                        unsigned long a3)
 > diff --git a/kernel/audit.h b/kernel/audit.h
-> index c00e2ee3c6b3..c5ac6436317e 100644
+> index c5ac6436317e..2a1a8b8a8019 100644
 > --- a/kernel/audit.h
 > +++ b/kernel/audit.h
-> @@ -148,6 +148,7 @@ struct audit_context {
->         kuid_t              target_uid;
->         unsigned int        target_sessionid;
->         u32                 target_sid;
-> +       u64                 target_cid;
->         char                target_comm[TASK_COMM_LEN];
->
->         struct audit_tree_refs *trees, *first_trees;
-> @@ -344,6 +345,7 @@ extern void audit_filter_inodes(struct task_struct *tsk,
->  extern pid_t audit_sig_pid;
->  extern kuid_t audit_sig_uid;
->  extern u32 audit_sig_sid;
-> +extern u64 audit_sig_cid;
->
->  extern int audit_filter(int msgtype, unsigned int listtype);
->
+> @@ -111,6 +111,7 @@ struct audit_proctitle {
+>  struct audit_context {
+>         int                 dummy;      /* must be the first element */
+>         int                 in_syscall; /* 1 if task is in a syscall */
+> +       bool                local;      /* local context needed */
+>         enum audit_state    state, current_state;
+>         unsigned int        serial;     /* serial number for record */
+>         int                 major;      /* syscall number */
 > diff --git a/kernel/auditsc.c b/kernel/auditsc.c
-> index a8c8b44b954d..f04e115df5dc 100644
+> index f04e115df5dc..aa5d13b4fbbb 100644
 > --- a/kernel/auditsc.c
 > +++ b/kernel/auditsc.c
-> @@ -113,6 +113,7 @@ struct audit_aux_data_pids {
->         kuid_t                  target_uid[AUDIT_AUX_PIDS];
->         unsigned int            target_sessionid[AUDIT_AUX_PIDS];
->         u32                     target_sid[AUDIT_AUX_PIDS];
-> +       u64                     target_cid[AUDIT_AUX_PIDS];
->         char                    target_comm[AUDIT_AUX_PIDS][TASK_COMM_LEN];
->         int                     pid_count;
->  };
-> @@ -1514,7 +1515,7 @@ static void audit_log_exit(void)
->         for (aux = context->aux_pids; aux; aux = aux->next) {
->                 struct audit_aux_data_pids *axs = (void *)aux;
->
-> -               for (i = 0; i < axs->pid_count; i++)
-> +               for (i = 0; i < axs->pid_count; i++) {
->                         if (audit_log_pid_context(context, axs->target_pid[i],
->                                                   axs->target_auid[i],
->                                                   axs->target_uid[i],
-> @@ -1522,14 +1523,20 @@ static void audit_log_exit(void)
->                                                   axs->target_sid[i],
->                                                   axs->target_comm[i]))
->                                 call_panic = 1;
-> +                       audit_log_contid(context, axs->target_cid[i]);
-> +               }
+> @@ -872,11 +872,13 @@ static inline void audit_free_aux(struct audit_context *context)
 >         }
->
-> -       if (context->target_pid &&
-> -           audit_log_pid_context(context, context->target_pid,
-> -                                 context->target_auid, context->target_uid,
-> -                                 context->target_sessionid,
-> -                                 context->target_sid, context->target_comm))
-> +       if (context->target_pid) {
-> +               if (audit_log_pid_context(context, context->target_pid,
-> +                                         context->target_auid,
-> +                                         context->target_uid,
-> +                                         context->target_sessionid,
-> +                                         context->target_sid,
-> +                                         context->target_comm))
->                         call_panic = 1;
-> +               audit_log_contid(context, context->target_cid);
-> +       }
->
->         if (context->pwd.dentry && context->pwd.mnt) {
->                 ab = audit_log_start(context, GFP_KERNEL, AUDIT_CWD);
-> @@ -2360,6 +2367,7 @@ void __audit_ptrace(struct task_struct *t)
->         context->target_uid = task_uid(t);
->         context->target_sessionid = audit_get_sessionid(t);
->         security_task_getsecid(t, &context->target_sid);
-> +       context->target_cid = audit_get_contid(t);
->         memcpy(context->target_comm, t->comm, TASK_COMM_LEN);
 >  }
 >
-> @@ -2387,6 +2395,7 @@ int audit_signal_info(int sig, struct task_struct *t)
->                 else
->                         audit_sig_uid = uid;
->                 security_task_getsecid(current, &audit_sig_sid);
-> +               audit_sig_cid = audit_get_contid(current);
->         }
+> -static inline struct audit_context *audit_alloc_context(enum audit_state state)
+> +static inline struct audit_context *audit_alloc_context(enum audit_state state,
+> +                                                       gfp_t gfpflags)
+>  {
+>         struct audit_context *context;
 >
->         if (!audit_signals || audit_dummy_context())
-> @@ -2400,6 +2409,7 @@ int audit_signal_info(int sig, struct task_struct *t)
->                 ctx->target_uid = t_uid;
->                 ctx->target_sessionid = audit_get_sessionid(t);
->                 security_task_getsecid(t, &ctx->target_sid);
-> +               ctx->target_cid = audit_get_contid(t);
->                 memcpy(ctx->target_comm, t->comm, TASK_COMM_LEN);
+> -       context = kzalloc(sizeof(*context), GFP_KERNEL);
+> +       /* We can be called in atomic context via audit_tg() */
+> +       context = kzalloc(sizeof(*context), gfpflags);
+>         if (!context)
+>                 return NULL;
+>         context->state = state;
+> @@ -912,7 +914,8 @@ int audit_alloc_syscall(struct task_struct *tsk)
 >                 return 0;
 >         }
-> @@ -2421,6 +2431,7 @@ int audit_signal_info(int sig, struct task_struct *t)
->         axp->target_uid[axp->pid_count] = t_uid;
->         axp->target_sessionid[axp->pid_count] = audit_get_sessionid(t);
->         security_task_getsecid(t, &axp->target_sid[axp->pid_count]);
-> +       axp->target_cid[axp->pid_count] = audit_get_contid(t);
->         memcpy(axp->target_comm[axp->pid_count], t->comm, TASK_COMM_LEN);
->         axp->pid_count++;
 >
+> -       if (!(context = audit_alloc_context(state))) {
+> +       context = audit_alloc_context(state, GFP_KERNEL);
+> +       if (!context) {
+>                 kfree(key);
+>                 audit_log_lost("out of memory in audit_alloc_syscall");
+>                 return -ENOMEM;
+> @@ -924,8 +927,29 @@ int audit_alloc_syscall(struct task_struct *tsk)
+>         return 0;
+>  }
+>
+> -static inline void audit_free_context(struct audit_context *context)
+> +struct audit_context *audit_alloc_local(gfp_t gfpflags)
+>  {
+> +       struct audit_context *context = NULL;
+> +
+> +       if (!audit_ever_enabled)
+> +               goto out; /* Return if not auditing. */
+> +       context = audit_alloc_context(AUDIT_RECORD_CONTEXT, gfpflags);
+> +       if (!context) {
+> +               audit_log_lost("out of memory in audit_alloc_local");
+> +               goto out;
+> +       }
+> +       context->serial = audit_serial();
+> +       ktime_get_coarse_real_ts64(&context->ctime);
+> +       context->local = true;
+> +out:
+> +       return context;
+> +}
+> +EXPORT_SYMBOL(audit_alloc_local);
+> +
+> +void audit_free_context(struct audit_context *context)
+> +{
+> +       if (!context)
+> +               return;
+>         audit_free_names(context);
+>         unroll_tree_refs(context, NULL, 0);
+>         free_tree_refs(context);
+> @@ -935,6 +959,7 @@ static inline void audit_free_context(struct audit_context *context)
+>         audit_proctitle_free(context);
+>         kfree(context);
+>  }
+> +EXPORT_SYMBOL(audit_free_context);
+>
+>  static int audit_log_pid_context(struct audit_context *context, pid_t pid,
+>                                  kuid_t auid, kuid_t uid, unsigned int sessionid,
+> @@ -2163,7 +2188,7 @@ void __audit_inode_child(struct inode *parent,
+>  int auditsc_get_stamp(struct audit_context *ctx,
+>                        struct timespec64 *t, unsigned int *serial)
+>  {
+> -       if (!ctx->in_syscall)
+> +       if (!ctx->in_syscall && !ctx->local)
+>                 return 0;
+>         if (!ctx->serial)
+>                 ctx->serial = audit_serial();
 > --
 > 1.8.3.1
 >
