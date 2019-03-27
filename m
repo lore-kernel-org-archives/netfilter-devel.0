@@ -4,40 +4,41 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F00EC43381
-	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Mar 2019 18:39:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CF07BC43381
+	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Mar 2019 18:47:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0F9FC2070B
-	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Mar 2019 18:39:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A228F205C9
+	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Mar 2019 18:47:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1553711986;
-	bh=9YRjuhdtB1PxUyqwoabw9ijXRUckDqwaR+G7mVZR54A=;
+	s=default; t=1553712424;
+	bh=BY5vyQWNAcUSAxrSk6eGzpXGswr2lrBtVSiAhSEF8Vs=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=oWGfIFRwVrr0Tj9SSac3Yna+JU2wDESVd0+ck1Ci+AaNTQHrThoGSQ6PmQIUZIWB6
-	 2Ta4MqA+51A3gPPX+3VQHAdGKnmHS/IQiuJxLI6zXkvzPhBwSnR1AtMwSS6p4HfAiJ
-	 Q6JezuWTRwCs2SX+0H6hmLgzaFp32GFpqMBKxq/c=
+	b=RmT73hoGHofSBtYr27HTLEg7C2hVswZt5SK8CoFFeh8K4Ticv8Z0MMtpwhCyuXZHL
+	 KES/JgvmpXPR83Z31piU4DyB82cfDR/8YYg1Vmbl8ZyP7Xv/62R1d+/ULPOstxlTVF
+	 rYKeykjPb92j6YBCJArJ9eRaUAVLcJL5gEKWc4F8=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2403915AbfC0Sje (ORCPT
+        id S2391163AbfC0Sqx (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 27 Mar 2019 14:39:34 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41296 "EHLO mail.kernel.org"
+        Wed, 27 Mar 2019 14:46:53 -0400
+Received: from mail.kernel.org ([198.145.29.99]:37660 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2391233AbfC0SXE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 27 Mar 2019 14:23:04 -0400
+        id S2390877AbfC0SUQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 27 Mar 2019 14:20:16 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 6E69620449;
-        Wed, 27 Mar 2019 18:23:02 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id D737D21855;
+        Wed, 27 Mar 2019 18:20:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1553710983;
-        bh=9YRjuhdtB1PxUyqwoabw9ijXRUckDqwaR+G7mVZR54A=;
+        s=default; t=1553710814;
+        bh=BY5vyQWNAcUSAxrSk6eGzpXGswr2lrBtVSiAhSEF8Vs=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=UIm6ppeJxO9ZtSSGknoD/DiiFfbXpHFDYXkI89J0QiMp5QTB//SzQNrVET4d+a0aU
-         V2jqV1GYvkvYp7dJWDL1JZ7eISeHbQ9JCmy2+Hu5E0rBidBc86Nq3yJM+2ej9VG0Ck
-         ipMDynQudQNqzrmu0YgM7SCR5k38HvfY6lZv/Cl4=
+        b=w+CTP0U+nv+qrCypI4FNjcFS9l1dVJh/9+n5XX+WXrmNO+2LzXCyv2hywmnQrX7/h
+         vPmuLBJaQcYg5wSStzO1iQ/F/onPdeFZijTtC473ATzJSMiR//CAn90YCZrVGd9BAg
+         O3+zdf0HkyNXG9SnLlcpO0sPbpDSa+m6eGtZcpYs=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Florian Westphal <fw@strlen.de>,
@@ -45,12 +46,12 @@ Cc:     Florian Westphal <fw@strlen.de>,
         Sasha Levin <sashal@kernel.org>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.9 77/87] netfilter: physdev: relax br_netfilter dependency
-Date:   Wed, 27 Mar 2019 14:20:30 -0400
-Message-Id: <20190327182040.17444-77-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.14 110/123] netfilter: physdev: relax br_netfilter dependency
+Date:   Wed, 27 Mar 2019 14:16:14 -0400
+Message-Id: <20190327181628.15899-110-sashal@kernel.org>
 X-Mailer: git-send-email 2.19.1
-In-Reply-To: <20190327182040.17444-1-sashal@kernel.org>
-References: <20190327182040.17444-1-sashal@kernel.org>
+In-Reply-To: <20190327181628.15899-1-sashal@kernel.org>
+References: <20190327181628.15899-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-Patchwork-Hint: Ignore
 Content-Transfer-Encoding: 8bit
@@ -94,10 +95,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  3 files changed, 7 insertions(+), 8 deletions(-)
 
 diff --git a/include/net/netfilter/br_netfilter.h b/include/net/netfilter/br_netfilter.h
-index 0b0c35c37125..238d1b83a45a 100644
+index 74af19c3a8f7..a4ba601b5d04 100644
 --- a/include/net/netfilter/br_netfilter.h
 +++ b/include/net/netfilter/br_netfilter.h
-@@ -48,7 +48,6 @@ static inline struct rtable *bridge_parent_rtable(const struct net_device *dev)
+@@ -49,7 +49,6 @@ static inline struct rtable *bridge_parent_rtable(const struct net_device *dev)
  }
  
  struct net_device *setup_pre_routing(struct sk_buff *skb);
@@ -106,10 +107,10 @@ index 0b0c35c37125..238d1b83a45a 100644
  #if IS_ENABLED(CONFIG_IPV6)
  int br_validate_ipv6(struct net *net, struct sk_buff *skb);
 diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
-index 7e42c0d1f55b..38865deab3ac 100644
+index 3f3859b8d49f..5fd283d9929e 100644
 --- a/net/bridge/br_netfilter_hooks.c
 +++ b/net/bridge/br_netfilter_hooks.c
-@@ -878,11 +878,6 @@ static const struct nf_br_ops br_ops = {
+@@ -881,11 +881,6 @@ static const struct nf_br_ops br_ops = {
  	.br_dev_xmit_hook =	br_nf_dev_xmit,
  };
  
@@ -120,7 +121,7 @@ index 7e42c0d1f55b..38865deab3ac 100644
 -
  /* For br_nf_post_routing, we need (prio = NF_BR_PRI_LAST), because
   * br_dev_queue_push_xmit is called afterwards */
- static struct nf_hook_ops br_nf_ops[] __read_mostly = {
+ static const struct nf_hook_ops br_nf_ops[] = {
 diff --git a/net/netfilter/xt_physdev.c b/net/netfilter/xt_physdev.c
 index bb33598e4530..ec247d8370e8 100644
 --- a/net/netfilter/xt_physdev.c
