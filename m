@@ -2,35 +2,51 @@ Return-Path: <SRS0=34lc=R6=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.0 required=3.0
+X-Spam-Status: No, score=-12.0 required=3.0
 	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_NEOMUTT
+	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BA59AC43381
-	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Mar 2019 20:44:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EC1E6C43381
+	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Mar 2019 21:01:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7C3C92075E
-	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Mar 2019 20:44:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B8E7D2075E
+	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Mar 2019 21:01:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727888AbfC0Uoc (ORCPT
+        id S1727917AbfC0VBh convert rfc822-to-8bit (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 27 Mar 2019 16:44:32 -0400
-Received: from mx1.redhat.com ([209.132.183.28]:57192 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726275AbfC0Uoc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 27 Mar 2019 16:44:32 -0400
-Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.13])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mx1.redhat.com (Postfix) with ESMTPS id 2C0A17D0D8;
-        Wed, 27 Mar 2019 20:44:31 +0000 (UTC)
-Received: from madcap2.tricolour.ca (ovpn-112-19.phx2.redhat.com [10.3.112.19])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id CDC3160852;
-        Wed, 27 Mar 2019 20:44:20 +0000 (UTC)
-Date:   Wed, 27 Mar 2019 16:44:17 -0400
-From:   Richard Guy Briggs <rgb@redhat.com>
-To:     Ondrej Mosnacek <omosnace@redhat.com>
+        Wed, 27 Mar 2019 17:01:37 -0400
+Received: from mail-ot1-f65.google.com ([209.85.210.65]:44137 "EHLO
+        mail-ot1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726176AbfC0VBh (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 27 Mar 2019 17:01:37 -0400
+Received: by mail-ot1-f65.google.com with SMTP id d24so1756565otl.11
+        for <netfilter-devel@vger.kernel.org>; Wed, 27 Mar 2019 14:01:36 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc:content-transfer-encoding;
+        bh=KyWMT72QpTjh8B+u6lkMcMuIFku7xc3OOfsK0AVbxx0=;
+        b=M7VrpYbGjwLVJqZImCbt3YKovuL/SdasecS7Lmk/pfe3S4oIQEHoFTdTjs8re8ZiBu
+         0Z6M2IAbAkopU7jnWZJUQG4mgZAhzy0Ox+mvJ0MBlm+8SzSnuvn4HaJ4KQTKrM1u07jD
+         NPSbm/moTFwFYmxlLufkF1lPB6xftRlqDLijaM2CF6DBGaa9S5KCnhGDxfnZ++1KDKD6
+         9Nlmm7sNwLwtgtY1BLgPCGAtbjLCSSjXcaxAT5PNAfjLqC3pknEUg2A42QP14pxXA26n
+         2xrMcodEO8tu3Bz5LLDeMGrvZ8rwK3VKNQzeIhDasNE66TZL6gBATbq1k9d6wkBL59m0
+         sLiQ==
+X-Gm-Message-State: APjAAAW056S/jlcFNIL3PEk2ounnSpP2gbAvhGTjrdHQIsA7v0WzfgcW
+        Fy5ASW1CdkGeKJVCZ1S10ao3eIVKYcOTtYWmBF7Lgw==
+X-Google-Smtp-Source: APXvYqxrbEEdzf3vvl6goaGdpmnQUyouycHHgjn8UXxpq8GIvCkT3DI2gu0RSE4GDSjzJgAD+8+MArgulGQny8/OwkU=
+X-Received: by 2002:a9d:6e17:: with SMTP id e23mr15768244otr.65.1553720496480;
+ Wed, 27 Mar 2019 14:01:36 -0700 (PDT)
+MIME-Version: 1.0
+References: <cover.1552665316.git.rgb@redhat.com> <85fcd0a81adef25cb60b2e479bbb380e76dbf999.1552665316.git.rgb@redhat.com>
+In-Reply-To: <85fcd0a81adef25cb60b2e479bbb380e76dbf999.1552665316.git.rgb@redhat.com>
+From:   Ondrej Mosnacek <omosnace@redhat.com>
+Date:   Wed, 27 Mar 2019 22:01:25 +0100
+Message-ID: <CAFqZXNvM+d_MKGVykLtcHkwwZhO_UOYACJQu-92tEOvkk7uMrQ@mail.gmail.com>
+Subject: Re: [PATCH ghak90 V5 04/10] audit: log container info of syscalls
+To:     Richard Guy Briggs <rgb@redhat.com>
 Cc:     containers@lists.linux-foundation.org, linux-api@vger.kernel.org,
         Linux-Audit Mailing List <linux-audit@redhat.com>,
         linux-fsdevel@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
@@ -42,321 +58,141 @@ Cc:     containers@lists.linux-foundation.org, linux-api@vger.kernel.org,
         Eric Paris <eparis@parisplace.org>,
         "Serge E. Hallyn" <serge@hallyn.com>,
         "Eric W . Biederman" <ebiederm@xmission.com>, nhorman@tuxdriver.com
-Subject: Re: [PATCH ghak90 V5 02/10] audit: add container id
-Message-ID: <20190327204417.xnpmba43g6m3g4sx@madcap2.tricolour.ca>
-References: <cover.1552665316.git.rgb@redhat.com>
- <19917968bb133ff644258b95dcbff522a83a2af1.1552665316.git.rgb@redhat.com>
- <CAFqZXNtyzb8LVghoKEwYDC2vkZVbytcEahwpP49_QDR+tM=PNQ@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAFqZXNtyzb8LVghoKEwYDC2vkZVbytcEahwpP49_QDR+tM=PNQ@mail.gmail.com>
-User-Agent: NeoMutt/20180716
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.13
-X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.5.16 (mx1.redhat.com [10.5.110.26]); Wed, 27 Mar 2019 20:44:31 +0000 (UTC)
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 2019-03-27 21:38, Ondrej Mosnacek wrote:
-> On Fri, Mar 15, 2019 at 7:33 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> > Implement the proc fs write to set the audit container identifier of a
-> > process, emitting an AUDIT_CONTAINER_OP record to document the event.
-> >
-> > This is a write from the container orchestrator task to a proc entry of
-> > the form /proc/PID/audit_containerid where PID is the process ID of the
-> > newly created task that is to become the first task in a container, or
-> > an additional task added to a container.
-> >
-> > The write expects up to a u64 value (unset: 18446744073709551615).
-> >
-> > The writer must have capability CAP_AUDIT_CONTROL.
-> >
-> > This will produce a record such as this:
-> >   type=CONTAINER_OP msg=audit(2018-06-06 12:39:29.636:26949) : op=set opid=2209 old-contid=18446744073709551615 contid=123456 pid=628 auid=root uid=root tty=ttyS0 ses=1 subj=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023 comm=bash exe=/usr/bin/bash res=yes
-> >
-> > The "op" field indicates an initial set.  The "pid" to "ses" fields are
-> > the orchestrator while the "opid" field is the object's PID, the process
-> > being "contained".  Old and new audit container identifier values are
-> > given in the "contid" fields, while res indicates its success.
-> >
-> > It is not permitted to unset the audit container identifier.
-> > A child inherits its parent's audit container identifier.
-> >
-> > See: https://github.com/linux-audit/audit-kernel/issues/90
-> > See: https://github.com/linux-audit/audit-userspace/issues/51
-> > See: https://github.com/linux-audit/audit-testsuite/issues/64
-> > See: https://github.com/linux-audit/audit-kernel/wiki/RFE-Audit-Container-ID
-> >
-> > Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
-> > Acked-by: Serge Hallyn <serge@hallyn.com>
-> > Acked-by: Steve Grubb <sgrubb@redhat.com>
-> > Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
-> 
-> Note that you have duplicate Signed-off here ^^
+On Fri, Mar 15, 2019 at 7:34 PM Richard Guy Briggs <rgb@redhat.com> wrote:
+> Create a new audit record AUDIT_CONTAINER_ID to document the audit
+> container identifier of a process if it is present.
+>
+> Called from audit_log_exit(), syscalls are covered.
+>
+> A sample raw event:
+> type=SYSCALL msg=audit(1519924845.499:257): arch=c000003e syscall=257 success=yes exit=3 a0=ffffff9c a1=56374e1cef30 a2=241 a3=1b6 items=2 ppid=606 pid=635 auid=0 uid=0 gid=0 euid=0 suid=0 fsuid=0 egid=0 sgid=0 fsgid=0 tty=pts0 ses=3 comm="bash" exe="/usr/bin/bash" subj=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023 key="tmpcontainerid"
+> type=CWD msg=audit(1519924845.499:257): cwd="/root"
+> type=PATH msg=audit(1519924845.499:257): item=0 name="/tmp/" inode=13863 dev=00:27 mode=041777 ouid=0 ogid=0 rdev=00:00 obj=system_u:object_r:tmp_t:s0 nametype= PARENT cap_fp=0 cap_fi=0 cap_fe=0 cap_fver=0
+> type=PATH msg=audit(1519924845.499:257): item=1 name="/tmp/tmpcontainerid" inode=17729 dev=00:27 mode=0100644 ouid=0 ogid=0 rdev=00:00 obj=unconfined_u:object_r:user_tmp_t:s0 nametype=CREATE cap_fp=0 cap_fi=0 cap_fe=0 cap_fver=0
+> type=PROCTITLE msg=audit(1519924845.499:257): proctitle=62617368002D6300736C65657020313B206563686F2074657374203E202F746D702F746D70636F6E7461696E65726964
+> type=CONTAINER_ID msg=audit(1519924845.499:257): contid=123458
+>
+> See: https://github.com/linux-audit/audit-kernel/issues/90
+> See: https://github.com/linux-audit/audit-userspace/issues/51
+> See: https://github.com/linux-audit/audit-testsuite/issues/64
+> See: https://github.com/linux-audit/audit-kernel/wiki/RFE-Audit-Container-ID
+> Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
+> Acked-by: Serge Hallyn <serge@hallyn.com>
+> Acked-by: Steve Grubb <sgrubb@redhat.com>
+> Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
 
-Yeah, I caught a few of those for v6 and a number of other formatting
-issues.
+Barring one minor nit below,
 
-> Took me a while to understand the flow in audit_set_contid(), but once
-> understood it all made perfect sense, so:
-> 
-> Reviewed-by: Ondrej Mosnacek <omosnace@redhat.com>
-> 
-> 
-> > ---
-> >  fs/proc/base.c             | 36 ++++++++++++++++++++++++
-> >  include/linux/audit.h      | 25 +++++++++++++++++
-> >  include/uapi/linux/audit.h |  2 ++
-> >  kernel/audit.c             | 68 ++++++++++++++++++++++++++++++++++++++++++++++
-> >  4 files changed, 131 insertions(+)
-> >
-> > diff --git a/fs/proc/base.c b/fs/proc/base.c
-> > index a23651ce6960..2505c46c8701 100644
-> > --- a/fs/proc/base.c
-> > +++ b/fs/proc/base.c
-> > @@ -1294,6 +1294,40 @@ static ssize_t proc_sessionid_read(struct file * file, char __user * buf,
-> >         .read           = proc_sessionid_read,
-> >         .llseek         = generic_file_llseek,
-> >  };
-> > +
-> > +static ssize_t proc_contid_write(struct file *file, const char __user *buf,
-> > +                                  size_t count, loff_t *ppos)
-> > +{
-> > +       struct inode *inode = file_inode(file);
-> > +       u64 contid;
-> > +       int rv;
-> > +       struct task_struct *task = get_proc_task(inode);
-> > +
-> > +       if (!task)
-> > +               return -ESRCH;
-> > +       if (*ppos != 0) {
-> > +               /* No partial writes. */
-> > +               put_task_struct(task);
-> > +               return -EINVAL;
-> > +       }
-> > +
-> > +       rv = kstrtou64_from_user(buf, count, 10, &contid);
-> > +       if (rv < 0) {
-> > +               put_task_struct(task);
-> > +               return rv;
-> > +       }
-> > +
-> > +       rv = audit_set_contid(task, contid);
-> > +       put_task_struct(task);
-> > +       if (rv < 0)
-> > +               return rv;
-> > +       return count;
-> > +}
-> > +
-> > +static const struct file_operations proc_contid_operations = {
-> > +       .write          = proc_contid_write,
-> > +       .llseek         = generic_file_llseek,
-> > +};
-> >  #endif
-> >
-> >  #ifdef CONFIG_FAULT_INJECTION
-> > @@ -3005,6 +3039,7 @@ static int proc_stack_depth(struct seq_file *m, struct pid_namespace *ns,
-> >  #ifdef CONFIG_AUDIT
-> >         REG("loginuid",   S_IWUSR|S_IRUGO, proc_loginuid_operations),
-> >         REG("sessionid",  S_IRUGO, proc_sessionid_operations),
-> > +       REG("audit_containerid", S_IWUSR, proc_contid_operations),
-> >  #endif
-> >  #ifdef CONFIG_FAULT_INJECTION
-> >         REG("make-it-fail", S_IRUGO|S_IWUSR, proc_fault_inject_operations),
-> > @@ -3393,6 +3428,7 @@ static int proc_tid_comm_permission(struct inode *inode, int mask)
-> >  #ifdef CONFIG_AUDIT
-> >         REG("loginuid",  S_IWUSR|S_IRUGO, proc_loginuid_operations),
-> >         REG("sessionid",  S_IRUGO, proc_sessionid_operations),
-> > +       REG("audit_containerid", S_IWUSR, proc_contid_operations),
-> >  #endif
-> >  #ifdef CONFIG_FAULT_INJECTION
-> >         REG("make-it-fail", S_IRUGO|S_IWUSR, proc_fault_inject_operations),
-> > diff --git a/include/linux/audit.h b/include/linux/audit.h
-> > index bde346e73f0c..301337776193 100644
-> > --- a/include/linux/audit.h
-> > +++ b/include/linux/audit.h
-> > @@ -89,6 +89,7 @@ struct audit_field {
-> >  struct audit_task_info {
-> >         kuid_t                  loginuid;
-> >         unsigned int            sessionid;
-> > +       u64                     contid;
-> >  #ifdef CONFIG_AUDITSYSCALL
-> >         struct audit_context    *ctx;
-> >  #endif
-> > @@ -189,6 +190,15 @@ static inline unsigned int audit_get_sessionid(struct task_struct *tsk)
-> >         return tsk->audit->sessionid;
-> >  }
-> >
-> > +extern int audit_set_contid(struct task_struct *tsk, u64 contid);
-> > +
-> > +static inline u64 audit_get_contid(struct task_struct *tsk)
-> > +{
-> > +       if (!tsk->audit)
-> > +               return AUDIT_CID_UNSET;
-> > +       return tsk->audit->contid;
-> > +}
-> > +
-> >  extern u32 audit_enabled;
-> >  #else /* CONFIG_AUDIT */
-> >  static inline int audit_alloc(struct task_struct *task)
-> > @@ -250,6 +260,11 @@ static inline unsigned int audit_get_sessionid(struct task_struct *tsk)
-> >         return AUDIT_SID_UNSET;
-> >  }
-> >
-> > +static inline u64 audit_get_contid(struct task_struct *tsk)
-> > +{
-> > +       return AUDIT_CID_UNSET;
-> > +}
-> > +
-> >  #define audit_enabled AUDIT_OFF
-> >  #endif /* CONFIG_AUDIT */
-> >
-> > @@ -606,6 +621,16 @@ static inline bool audit_loginuid_set(struct task_struct *tsk)
-> >         return uid_valid(audit_get_loginuid(tsk));
-> >  }
-> >
-> > +static inline bool audit_contid_valid(u64 contid)
-> > +{
-> > +       return contid != AUDIT_CID_UNSET;
-> > +}
-> > +
-> > +static inline bool audit_contid_set(struct task_struct *tsk)
-> > +{
-> > +       return audit_contid_valid(audit_get_contid(tsk));
-> > +}
-> > +
-> >  static inline void audit_log_string(struct audit_buffer *ab, const char *buf)
-> >  {
-> >         audit_log_n_string(ab, buf, strlen(buf));
-> > diff --git a/include/uapi/linux/audit.h b/include/uapi/linux/audit.h
-> > index 36a7e3f18e69..d475cf3b4d7f 100644
-> > --- a/include/uapi/linux/audit.h
-> > +++ b/include/uapi/linux/audit.h
-> > @@ -71,6 +71,7 @@
-> >  #define AUDIT_TTY_SET          1017    /* Set TTY auditing status */
-> >  #define AUDIT_SET_FEATURE      1018    /* Turn an audit feature on or off */
-> >  #define AUDIT_GET_FEATURE      1019    /* Get which features are enabled */
-> > +#define AUDIT_CONTAINER_OP     1020    /* Define the container id and information */
-> >
-> >  #define AUDIT_FIRST_USER_MSG   1100    /* Userspace messages mostly uninteresting to kernel */
-> >  #define AUDIT_USER_AVC         1107    /* We filter this differently */
-> > @@ -471,6 +472,7 @@ struct audit_tty_status {
-> >
-> >  #define AUDIT_UID_UNSET (unsigned int)-1
-> >  #define AUDIT_SID_UNSET ((unsigned int)-1)
-> > +#define AUDIT_CID_UNSET ((u64)-1)
-> >
-> >  /* audit_rule_data supports filter rules with both integer and string
-> >   * fields.  It corresponds with AUDIT_ADD_RULE, AUDIT_DEL_RULE and
-> > diff --git a/kernel/audit.c b/kernel/audit.c
-> > index 67498c5690bb..b5c702abeb42 100644
-> > --- a/kernel/audit.c
-> > +++ b/kernel/audit.c
-> > @@ -244,6 +244,7 @@ int audit_alloc(struct task_struct *tsk)
-> >         }
-> >         info->loginuid = audit_get_loginuid(current);
-> >         info->sessionid = audit_get_sessionid(current);
-> > +       info->contid = audit_get_contid(current);
-> >         tsk->audit = info;
-> >
-> >         ret = audit_alloc_syscall(tsk);
-> > @@ -258,6 +259,7 @@ int audit_alloc(struct task_struct *tsk)
-> >  struct audit_task_info init_struct_audit = {
-> >         .loginuid = INVALID_UID,
-> >         .sessionid = AUDIT_SID_UNSET,
-> > +       .contid = AUDIT_CID_UNSET,
-> >  #ifdef CONFIG_AUDITSYSCALL
-> >         .ctx = NULL,
-> >  #endif
-> > @@ -2341,6 +2343,72 @@ int audit_set_loginuid(kuid_t loginuid)
-> >  }
-> >
-> >  /**
-> > + * audit_set_contid - set current task's audit contid
-> > + * @contid: contid value
-> > + *
-> > + * Returns 0 on success, -EPERM on permission failure.
-> > + *
-> > + * Called (set) from fs/proc/base.c::proc_contid_write().
-> > + */
-> > +int audit_set_contid(struct task_struct *task, u64 contid)
-> > +{
-> > +       u64 oldcontid;
-> > +       int rc = 0;
-> > +       struct audit_buffer *ab;
-> > +       uid_t uid;
-> > +       struct tty_struct *tty;
-> > +       char comm[sizeof(current->comm)];
-> > +
-> > +       task_lock(task);
-> > +       /* Can't set if audit disabled */
-> > +       if (!task->audit) {
-> > +               task_unlock(task);
-> > +               return -ENOPROTOOPT;
-> > +       }
-> > +       oldcontid = audit_get_contid(task);
-> > +       read_lock(&tasklist_lock);
-> > +       /* Don't allow the audit containerid to be unset */
-> > +       if (!audit_contid_valid(contid))
-> > +               rc = -EINVAL;
-> > +       /* if we don't have caps, reject */
-> > +       else if (!capable(CAP_AUDIT_CONTROL))
-> > +               rc = -EPERM;
-> > +       /* if task has children or is not single-threaded, deny */
-> > +       else if (!list_empty(&task->children))
-> > +               rc = -EBUSY;
-> > +       else if (!(thread_group_leader(task) && thread_group_empty(task)))
-> > +               rc = -EALREADY;
-> > +       read_unlock(&tasklist_lock);
-> > +       if (!rc)
-> > +               task->audit->contid = contid;
-> > +       task_unlock(task);
-> > +
-> > +       if (!audit_enabled)
-> > +               return rc;
-> > +
-> > +       ab = audit_log_start(audit_context(), GFP_KERNEL, AUDIT_CONTAINER_OP);
-> > +       if (!ab)
-> > +               return rc;
-> > +
-> > +       uid = from_kuid(&init_user_ns, task_uid(current));
-> > +       tty = audit_get_tty();
-> > +       audit_log_format(ab, "op=set opid=%d old-contid=%llu contid=%llu pid=%d uid=%u auid=%u tty=%s ses=%u",
-> > +                        task_tgid_nr(task), oldcontid, contid,
-> > +                        task_tgid_nr(current), uid,
-> > +                        from_kuid(&init_user_ns, audit_get_loginuid(current)),
-> > +                        tty ? tty_name(tty) : "(none)",
-> > +                        audit_get_sessionid(current));
-> > +       audit_put_tty(tty);
-> > +       audit_log_task_context(ab);
-> > +       audit_log_format(ab, " comm=");
-> > +       audit_log_untrustedstring(ab, get_task_comm(comm, current));
-> > +       audit_log_d_path_exe(ab, current->mm);
-> > +       audit_log_format(ab, " res=%d", !rc);
-> > +       audit_log_end(ab);
-> > +       return rc;
-> > +}
-> > +
-> > +/**
-> >   * audit_log_end - end one audit record
-> >   * @ab: the audit_buffer
-> >   *
-> > --
-> > 1.8.3.1
-> >
-> 
+Reviewed-by: Ondrej Mosnacek <omosnace@redhat.com>
+
+> ---
+>  include/linux/audit.h      |  5 +++++
+>  include/uapi/linux/audit.h |  1 +
+>  kernel/audit.c             | 21 +++++++++++++++++++++
+>  kernel/auditsc.c           |  2 ++
+>  4 files changed, 29 insertions(+)
+>
+> diff --git a/include/linux/audit.h b/include/linux/audit.h
+> index 301337776193..43438192ca2a 100644
+> --- a/include/linux/audit.h
+> +++ b/include/linux/audit.h
+> @@ -199,6 +199,8 @@ static inline u64 audit_get_contid(struct task_struct *tsk)
+>         return tsk->audit->contid;
+>  }
+>
+> +extern void audit_log_contid(struct audit_context *context, u64 contid);
+> +
+>  extern u32 audit_enabled;
+>  #else /* CONFIG_AUDIT */
+>  static inline int audit_alloc(struct task_struct *task)
+> @@ -265,6 +267,9 @@ static inline u64 audit_get_contid(struct task_struct *tsk)
+>         return AUDIT_CID_UNSET;
+>  }
+>
+> +static inline void audit_log_contid(struct audit_context *context, u64 contid)
+> +{ }
+> +
+>  #define audit_enabled AUDIT_OFF
+>  #endif /* CONFIG_AUDIT */
+>
+> diff --git a/include/uapi/linux/audit.h b/include/uapi/linux/audit.h
+> index d475cf3b4d7f..a6383e28b2c8 100644
+> --- a/include/uapi/linux/audit.h
+> +++ b/include/uapi/linux/audit.h
+> @@ -115,6 +115,7 @@
+>  #define AUDIT_REPLACE          1329    /* Replace auditd if this packet unanswerd */
+>  #define AUDIT_KERN_MODULE      1330    /* Kernel Module events */
+>  #define AUDIT_FANOTIFY         1331    /* Fanotify access decision */
+> +#define AUDIT_CONTAINER_ID     1332    /* Container ID */
+>
+>  #define AUDIT_AVC              1400    /* SE Linux avc denial or grant */
+>  #define AUDIT_SELINUX_ERR      1401    /* Internal SE Linux Errors */
+> diff --git a/kernel/audit.c b/kernel/audit.c
+> index b5c702abeb42..8cc0e88d7f2a 100644
+> --- a/kernel/audit.c
+> +++ b/kernel/audit.c
+> @@ -2127,6 +2127,27 @@ void audit_log_session_info(struct audit_buffer *ab)
+>         audit_log_format(ab, "auid=%u ses=%u", auid, sessionid);
+>  }
+>
+> +/*
+> + * audit_log_contid - report container info
+> + * @context: task or local context for record
+> + * @contid: container ID to report
+> + */
+> +void audit_log_contid(struct audit_context *context, u64 contid)
+> +{
+> +       struct audit_buffer *ab;
+> +
+> +       if (!audit_contid_valid(contid))
+> +               return;
+> +       /* Generate AUDIT_CONTAINER_ID record with container ID */
+> +       ab = audit_log_start(context, GFP_KERNEL, AUDIT_CONTAINER_ID);
+> +       if (!ab)
+> +               return;
+> +       audit_log_format(ab, "contid=%llu", contid);
+
+Just realized that you *might* get a compiler/static checker warning
+since u64 could technically be something else than unsigned long long
+on some arches... maybe this is not case in the kernel, but might be
+safer to cast it to unsigned long long before passing to
+audit_log_format(). Possibly there are similar occurrences in previous
+(later) patches that I didn't (won't) notice.
+
+> +       audit_log_end(ab);
+> +       return;
+> +}
+> +EXPORT_SYMBOL(audit_log_contid);
+> +
+>  void audit_log_key(struct audit_buffer *ab, char *key)
+>  {
+>         audit_log_format(ab, " key=");
+> diff --git a/kernel/auditsc.c b/kernel/auditsc.c
+> index 8090eff7868d..a8c8b44b954d 100644
+> --- a/kernel/auditsc.c
+> +++ b/kernel/auditsc.c
+> @@ -1548,6 +1548,8 @@ static void audit_log_exit(void)
+>
+>         audit_log_proctitle();
+>
+> +       audit_log_contid(context, audit_get_contid(current));
+> +
+>         /* Send end of event record to help user space know we are finished */
+>         ab = audit_log_start(context, GFP_KERNEL, AUDIT_EOE);
+>         if (ab)
 > --
-> Ondrej Mosnacek <omosnace at redhat dot com>
-> Software Engineer, Security Technologies
-> Red Hat, Inc.
+> 1.8.3.1
+>
 
-- RGB
 
---
-Richard Guy Briggs <rgb@redhat.com>
-Sr. S/W Engineer, Kernel Security, Base Operating Systems
-Remote, Ottawa, Red Hat Canada
-IRC: rgb, SunRaycer
-Voice: +1.647.777.2635, Internal: (81) 32635
+-- 
+Ondrej Mosnacek <omosnace at redhat dot com>
+Software Engineer, Security Technologies
+Red Hat, Inc.
