@@ -7,51 +7,51 @@ X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 93113C43381
-	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Mar 2019 18:49:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 476B0C43381
+	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Mar 2019 18:57:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5B077205C9
-	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Mar 2019 18:49:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 16F6A205C9
+	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Mar 2019 18:57:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1553712586;
-	bh=YboIJ9xGZYQ8MqdF0ODplfNKwJID2H5wwXNyblJ9Swk=;
+	s=default; t=1553713076;
+	bh=+pt+jysDc9BWgzBbynweO7JYhpU2QoR8sSZYeNqVIUc=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=E0VDmJOq7AanqOsLczgnT5h453Qop3aDGMQSLJIGy7UzrOSYzU49DgnGOKwpw4knl
-	 +Hz0lyKwzHkxm7xmTJZ81gkoN+LffjR1u/zzBrM+p97flJ+IPFCwmEI7J3lNeRqyP/
-	 2uZyl/C0knWvHNT1dLLz8ioaLrOi11fg7sNR6C00=
+	b=mBRR9btvQeX2PLKjTfwlL+eXFUOJBCpI2/6rLErm4eJ5/n3dmVl7g0UKXzyMQzdUk
+	 5fdVTBG2Rf18XNWYboztDz6G/9QD8nF+CosCJWLLk3jt9kdHruhb9JmmzeajV92HGm
+	 JNiFmZqPDBQcTY7sGZfDaFkitbenXR8mHbAixbKc=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2390545AbfC0SSf (ORCPT
+        id S1729173AbfC0S5q (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 27 Mar 2019 14:18:35 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35570 "EHLO mail.kernel.org"
+        Wed, 27 Mar 2019 14:57:46 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59538 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2390537AbfC0SSe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 27 Mar 2019 14:18:34 -0400
+        id S2389896AbfC0SPu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 27 Mar 2019 14:15:50 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 55CE720449;
-        Wed, 27 Mar 2019 18:18:32 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id AA90F21741;
+        Wed, 27 Mar 2019 18:15:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1553710713;
-        bh=YboIJ9xGZYQ8MqdF0ODplfNKwJID2H5wwXNyblJ9Swk=;
+        s=default; t=1553710549;
+        bh=+pt+jysDc9BWgzBbynweO7JYhpU2QoR8sSZYeNqVIUc=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=uzDQy3gZ3mIoGM36HJMMv5IL0kzyR4OuMGJk+W6G15NFtDaZayN38xFz2m0W+WOiK
-         n7WQWBVjZW7NmCmTY7qHg3VX/xgRQR6nXF28B5JplIS2u0Pi9CBhRQFa9UZFlIjlFj
-         VDm0bdNwsy7o5e3HdG2s5xDbUwsZUx38nUm2vuzg=
+        b=pjdIYzxexL1scG3PU/vCPFAYgtBZqW21V0HREjFcQB2mATp3pHQ82sMsESMgpCAxg
+         vV2qPQdjmoNU81lEWdOc6RoZcoN6mzdHXRx0vFa3AQPEa7c7U4IlwXUcd2V9cg876R
+         NA9C91ZB+PVImlusrBN/SSaAPpRcM9wqmRRoCsPM=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Chieh-Min Wang <chiehminw@synology.com>,
+Cc:     Florian Westphal <fw@strlen.de>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
         Sasha Levin <sashal@kernel.org>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.14 070/123] netfilter: conntrack: fix cloned unconfirmed skb->_nfct race in __nf_conntrack_confirm
-Date:   Wed, 27 Mar 2019 14:15:34 -0400
-Message-Id: <20190327181628.15899-70-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 171/192] netfilter: physdev: relax br_netfilter dependency
+Date:   Wed, 27 Mar 2019 14:10:03 -0400
+Message-Id: <20190327181025.13507-171-sashal@kernel.org>
 X-Mailer: git-send-email 2.19.1
-In-Reply-To: <20190327181628.15899-1-sashal@kernel.org>
-References: <20190327181628.15899-1-sashal@kernel.org>
+In-Reply-To: <20190327181025.13507-1-sashal@kernel.org>
+References: <20190327181025.13507-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-Patchwork-Hint: Ignore
 Content-Transfer-Encoding: 8bit
@@ -60,130 +60,95 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Chieh-Min Wang <chiehminw@synology.com>
+From: Florian Westphal <fw@strlen.de>
 
-[ Upstream commit 13f5251fd17088170c18844534682d9cab5ff5aa ]
+[ Upstream commit 8e2f311a68494a6677c1724bdcb10bada21af37c ]
 
-For bridge(br_flood) or broadcast/multicast packets, they could clone
-skb with unconfirmed conntrack which break the rule that unconfirmed
-skb->_nfct is never shared.  With nfqueue running on my system, the race
-can be easily reproduced with following warning calltrace:
+Following command:
+  iptables -D FORWARD -m physdev ...
+causes connectivity loss in some setups.
 
-[13257.707525] CPU: 0 PID: 12132 Comm: main Tainted: P        W       4.4.60 #7744
-[13257.707568] Hardware name: Qualcomm (Flattened Device Tree)
-[13257.714700] [<c021f6dc>] (unwind_backtrace) from [<c021bce8>] (show_stack+0x10/0x14)
-[13257.720253] [<c021bce8>] (show_stack) from [<c0449e10>] (dump_stack+0x94/0xa8)
-[13257.728240] [<c0449e10>] (dump_stack) from [<c022a7e0>] (warn_slowpath_common+0x94/0xb0)
-[13257.735268] [<c022a7e0>] (warn_slowpath_common) from [<c022a898>] (warn_slowpath_null+0x1c/0x24)
-[13257.743519] [<c022a898>] (warn_slowpath_null) from [<c06ee450>] (__nf_conntrack_confirm+0xa8/0x618)
-[13257.752284] [<c06ee450>] (__nf_conntrack_confirm) from [<c0772670>] (ipv4_confirm+0xb8/0xfc)
-[13257.761049] [<c0772670>] (ipv4_confirm) from [<c06e7a60>] (nf_iterate+0x48/0xa8)
-[13257.769725] [<c06e7a60>] (nf_iterate) from [<c06e7af0>] (nf_hook_slow+0x30/0xb0)
-[13257.777108] [<c06e7af0>] (nf_hook_slow) from [<c07f20b4>] (br_nf_post_routing+0x274/0x31c)
-[13257.784486] [<c07f20b4>] (br_nf_post_routing) from [<c06e7a60>] (nf_iterate+0x48/0xa8)
-[13257.792556] [<c06e7a60>] (nf_iterate) from [<c06e7af0>] (nf_hook_slow+0x30/0xb0)
-[13257.800458] [<c06e7af0>] (nf_hook_slow) from [<c07e5580>] (br_forward_finish+0x94/0xa4)
-[13257.808010] [<c07e5580>] (br_forward_finish) from [<c07f22ac>] (br_nf_forward_finish+0x150/0x1ac)
-[13257.815736] [<c07f22ac>] (br_nf_forward_finish) from [<c06e8df0>] (nf_reinject+0x108/0x170)
-[13257.824762] [<c06e8df0>] (nf_reinject) from [<c06ea854>] (nfqnl_recv_verdict+0x3d8/0x420)
-[13257.832924] [<c06ea854>] (nfqnl_recv_verdict) from [<c06e940c>] (nfnetlink_rcv_msg+0x158/0x248)
-[13257.841256] [<c06e940c>] (nfnetlink_rcv_msg) from [<c06e5564>] (netlink_rcv_skb+0x54/0xb0)
-[13257.849762] [<c06e5564>] (netlink_rcv_skb) from [<c06e4ec8>] (netlink_unicast+0x148/0x23c)
-[13257.858093] [<c06e4ec8>] (netlink_unicast) from [<c06e5364>] (netlink_sendmsg+0x2ec/0x368)
-[13257.866348] [<c06e5364>] (netlink_sendmsg) from [<c069fb8c>] (sock_sendmsg+0x34/0x44)
-[13257.874590] [<c069fb8c>] (sock_sendmsg) from [<c06a03dc>] (___sys_sendmsg+0x1ec/0x200)
-[13257.882489] [<c06a03dc>] (___sys_sendmsg) from [<c06a11c8>] (__sys_sendmsg+0x3c/0x64)
-[13257.890300] [<c06a11c8>] (__sys_sendmsg) from [<c0209b40>] (ret_fast_syscall+0x0/0x34)
+Reason is that iptables userspace will probe kernel for the module revision
+of the physdev patch, and physdev has an artificial dependency on
+br_netfilter (xt_physdev use makes no sense unless a br_netfilter module
+is loaded).
 
-The original code just triggered the warning but do nothing. It will
-caused the shared conntrack moves to the dying list and the packet be
-droppped (nf_ct_resolve_clash returns NF_DROP for dying conntrack).
+This causes the "phydev" module to be loaded, which in turn enables the
+"call-iptables" infrastructure.
 
-- Reproduce steps:
+bridged packets might then get dropped by the iptables ruleset.
 
-+----------------------------+
-|          br0(bridge)       |
-|                            |
-+-+---------+---------+------+
-  | eth0|   | eth1|   | eth2|
-  |     |   |     |   |     |
-  +--+--+   +--+--+   +---+-+
-     |         |          |
-     |         |          |
-  +--+-+     +-+--+    +--+-+
-  | PC1|     | PC2|    | PC3|
-  +----+     +----+    +----+
+The better fix would be to change the "call-iptables" defaults to 0 and
+enforce explicit setting to 1, but that breaks backwards compatibility.
 
-iptables -A FORWARD -m mark --mark 0x1000000/0x1000000 -j NFQUEUE --queue-num 100 --queue-bypass
+This does the next best thing: add a request_module call to checkentry.
+This was a stray '-D ... -m physdev' won't activate br_netfilter
+anymore.
 
-ps: Our nfq userspace program will set mark on packets whose connection
-has already been processed.
-
-PC1 sends broadcast packets simulated by hping3:
-
-hping3 --rand-source --udp 192.168.1.255 -i u100
-
-- Broadcast racing flow chart is as follow:
-
-br_handle_frame
-  BR_HOOK(NFPROTO_BRIDGE, NF_BR_PRE_ROUTING, br_handle_frame_finish)
-  // skb->_nfct (unconfirmed conntrack) is constructed at PRE_ROUTING stage
-  br_handle_frame_finish
-    // check if this packet is broadcast
-    br_flood_forward
-      br_flood
-        list_for_each_entry_rcu(p, &br->port_list, list) // iterate through each port
-          maybe_deliver
-            deliver_clone
-              skb = skb_clone(skb)
-              __br_forward
-                BR_HOOK(NFPROTO_BRIDGE, NF_BR_FORWARD,...)
-                // queue in our nfq and received by our userspace program
-                // goto __nf_conntrack_confirm with process context on CPU 1
-    br_pass_frame_up
-      BR_HOOK(NFPROTO_BRIDGE, NF_BR_LOCAL_IN,...)
-      // goto __nf_conntrack_confirm with softirq context on CPU 0
-
-Because conntrack confirm can happen at both INPUT and POSTROUTING
-stage.  So with NFQUEUE running, skb->_nfct with the same unconfirmed
-conntrack could race on different core.
-
-This patch fixes a repeating kernel splat, now it is only displayed
-once.
-
-Signed-off-by: Chieh-Min Wang <chiehminw@synology.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- net/netfilter/nf_conntrack_core.c | 14 +++++++++++---
- 1 file changed, 11 insertions(+), 3 deletions(-)
+ include/net/netfilter/br_netfilter.h | 1 -
+ net/bridge/br_netfilter_hooks.c      | 5 -----
+ net/netfilter/xt_physdev.c           | 9 +++++++--
+ 3 files changed, 7 insertions(+), 8 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index f07357ba9629..06520bf30f29 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -763,10 +763,18 @@ __nf_conntrack_confirm(struct sk_buff *skb)
- 	 * REJECT will give spurious warnings here.
- 	 */
+diff --git a/include/net/netfilter/br_netfilter.h b/include/net/netfilter/br_netfilter.h
+index 74af19c3a8f7..a4ba601b5d04 100644
+--- a/include/net/netfilter/br_netfilter.h
++++ b/include/net/netfilter/br_netfilter.h
+@@ -49,7 +49,6 @@ static inline struct rtable *bridge_parent_rtable(const struct net_device *dev)
+ }
  
--	/* No external references means no one else could have
--	 * confirmed us.
-+	/* Another skb with the same unconfirmed conntrack may
-+	 * win the race. This may happen for bridge(br_flood)
-+	 * or broadcast/multicast packets do skb_clone with
-+	 * unconfirmed conntrack.
- 	 */
--	WARN_ON(nf_ct_is_confirmed(ct));
-+	if (unlikely(nf_ct_is_confirmed(ct))) {
-+		WARN_ON_ONCE(1);
-+		nf_conntrack_double_unlock(hash, reply_hash);
-+		local_bh_enable();
-+		return NF_DROP;
+ struct net_device *setup_pre_routing(struct sk_buff *skb);
+-void br_netfilter_enable(void);
+ 
+ #if IS_ENABLED(CONFIG_IPV6)
+ int br_validate_ipv6(struct net *net, struct sk_buff *skb);
+diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
+index e07a7e62c705..3b0a03b92080 100644
+--- a/net/bridge/br_netfilter_hooks.c
++++ b/net/bridge/br_netfilter_hooks.c
+@@ -884,11 +884,6 @@ static const struct nf_br_ops br_ops = {
+ 	.br_dev_xmit_hook =	br_nf_dev_xmit,
+ };
+ 
+-void br_netfilter_enable(void)
+-{
+-}
+-EXPORT_SYMBOL_GPL(br_netfilter_enable);
+-
+ /* For br_nf_post_routing, we need (prio = NF_BR_PRI_LAST), because
+  * br_dev_queue_push_xmit is called afterwards */
+ static const struct nf_hook_ops br_nf_ops[] = {
+diff --git a/net/netfilter/xt_physdev.c b/net/netfilter/xt_physdev.c
+index 9d6d67b953ac..05f00fb20b04 100644
+--- a/net/netfilter/xt_physdev.c
++++ b/net/netfilter/xt_physdev.c
+@@ -96,8 +96,7 @@ physdev_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ static int physdev_mt_check(const struct xt_mtchk_param *par)
+ {
+ 	const struct xt_physdev_info *info = par->matchinfo;
+-
+-	br_netfilter_enable();
++	static bool brnf_probed __read_mostly;
+ 
+ 	if (!(info->bitmask & XT_PHYSDEV_OP_MASK) ||
+ 	    info->bitmask & ~XT_PHYSDEV_OP_MASK)
+@@ -111,6 +110,12 @@ static int physdev_mt_check(const struct xt_mtchk_param *par)
+ 		if (par->hook_mask & (1 << NF_INET_LOCAL_OUT))
+ 			return -EINVAL;
+ 	}
++
++	if (!brnf_probed) {
++		brnf_probed = true;
++		request_module("br_netfilter");
 +	}
 +
- 	pr_debug("Confirming conntrack %p\n", ct);
- 	/* We have to check the DYING flag after unlink to prevent
- 	 * a race against nf_ct_get_next_corpse() possibly called from
+ 	return 0;
+ }
+ 
 -- 
 2.19.1
 
