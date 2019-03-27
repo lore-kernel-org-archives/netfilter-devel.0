@@ -6,29 +6,29 @@ X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A1FB6C43381
-	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Mar 2019 08:20:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C11DCC43381
+	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Mar 2019 08:20:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 63E282075D
-	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Mar 2019 08:20:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 906532075D
+	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Mar 2019 08:20:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726379AbfC0IUf (ORCPT
+        id S1726320AbfC0IUj (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 27 Mar 2019 04:20:35 -0400
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:38832 "EHLO
+        Wed, 27 Mar 2019 04:20:39 -0400
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:38834 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726283AbfC0IUe (ORCPT
+        by vger.kernel.org with ESMTP id S1726237AbfC0IUj (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 27 Mar 2019 04:20:34 -0400
+        Wed, 27 Mar 2019 04:20:39 -0400
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.89)
         (envelope-from <fw@breakpoint.cc>)
-        id 1h93nT-0002b4-3Q; Wed, 27 Mar 2019 09:20:31 +0100
+        id 1h93nX-0002bJ-Iy; Wed, 27 Mar 2019 09:20:35 +0100
 From:   Florian Westphal <fw@strlen.de>
 To:     <netfilter-devel@vger.kernel.org>
 Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next 2/6] netfilter: nf_tables: merge route type into core
-Date:   Wed, 27 Mar 2019 09:22:25 +0100
-Message-Id: <20190327082229.29399-3-fw@strlen.de>
+Subject: [PATCH nf-next 3/6] netfilter: replace NF_NAT_NEEDED with IS_ENABLED(CONFIG_NF_NAT)
+Date:   Wed, 27 Mar 2019 09:22:26 +0100
+Message-Id: <20190327082229.29399-4-fw@strlen.de>
 X-Mailer: git-send-email 2.19.2
 In-Reply-To: <20190327082229.29399-1-fw@strlen.de>
 References: <20190327082229.29399-1-fw@strlen.de>
@@ -39,576 +39,250 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-very little code, so it really doesn't make sense to have extra
-modules or even a kconfig knob for this.
-
-Merge them and make functionality available unconditionally.
-The merge makes inet family route support trivial, so add it
-as well here.
-
-Before:
-   text	   data	    bss	    dec	    hex	filename
-    835	    832	      0	   1667	    683 nft_chain_route_ipv4.ko
-    870	    832	      0	   1702	    6a6	nft_chain_route_ipv6.ko
- 111568	   2556	    529	 114653	  1bfdd	nf_tables.ko
-
-After:
-   text	   data	    bss	    dec	    hex	filename
- 113133	   2556	    529	 116218	  1c5fa	nf_tables.ko
+NF_NAT_NEEDED is true whenever nat support for either ipv4 or ipv6 is
+enabled.  Now that the af-specific nat configuration switches have been
+removed, IS_ENABLED(CONFIG_NF_NAT) has the same effect.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/linux/netfilter_ipv6.h            |  15 ++
- include/net/netfilter/nf_tables.h         |   2 +
- net/ipv4/netfilter/Kconfig                |   8 -
- net/ipv4/netfilter/Makefile               |   1 -
- net/ipv4/netfilter/nft_chain_route_ipv4.c |  89 ------------
- net/ipv6/netfilter/Kconfig                |   8 -
- net/ipv6/netfilter/Makefile               |   1 -
- net/ipv6/netfilter/nft_chain_route_ipv6.c |  91 ------------
- net/netfilter/Makefile                    |   3 +-
- net/netfilter/nf_nat_proto.c              |  16 +-
- net/netfilter/nf_tables_api.c             |   2 +
- net/netfilter/nft_chain_route.c           | 169 ++++++++++++++++++++++
- 12 files changed, 191 insertions(+), 214 deletions(-)
- delete mode 100644 net/ipv4/netfilter/nft_chain_route_ipv4.c
- delete mode 100644 net/ipv6/netfilter/nft_chain_route_ipv6.c
- create mode 100644 net/netfilter/nft_chain_route.c
+ include/linux/netfilter.h                   |  2 +-
+ include/net/netfilter/nf_conntrack_expect.h |  2 +-
+ net/netfilter/Kconfig                       |  5 -----
+ net/netfilter/nf_conntrack_expect.c         |  2 +-
+ net/netfilter/nf_conntrack_netlink.c        | 16 ++++++++--------
+ net/netfilter/nf_conntrack_sip.c            |  2 +-
+ net/openvswitch/conntrack.c                 | 18 +++++++++---------
+ 7 files changed, 21 insertions(+), 26 deletions(-)
 
-diff --git a/include/linux/netfilter_ipv6.h b/include/linux/netfilter_ipv6.h
-index 471e9467105b..12113e502656 100644
---- a/include/linux/netfilter_ipv6.h
-+++ b/include/linux/netfilter_ipv6.h
-@@ -87,6 +87,21 @@ static inline int nf_ip6_route(struct net *net, struct dst_entry **dst,
+diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
+index 72cb19c3db6a..09c71df8ccfe 100644
+--- a/include/linux/netfilter.h
++++ b/include/linux/netfilter.h
+@@ -360,7 +360,7 @@ extern struct nf_nat_hook __rcu *nf_nat_hook;
+ static inline void
+ nf_nat_decode_session(struct sk_buff *skb, struct flowi *fl, u_int8_t family)
+ {
+-#ifdef CONFIG_NF_NAT_NEEDED
++#if IS_ENABLED(CONFIG_NF_NAT)
+ 	struct nf_nat_hook *nat_hook;
+ 
+ 	rcu_read_lock();
+diff --git a/include/net/netfilter/nf_conntrack_expect.h b/include/net/netfilter/nf_conntrack_expect.h
+index 006e430d1cdf..93ce6b0daaba 100644
+--- a/include/net/netfilter/nf_conntrack_expect.h
++++ b/include/net/netfilter/nf_conntrack_expect.h
+@@ -48,7 +48,7 @@ struct nf_conntrack_expect {
+ 	/* Expectation class */
+ 	unsigned int class;
+ 
+-#ifdef CONFIG_NF_NAT_NEEDED
++#if IS_ENABLED(CONFIG_NF_NAT)
+ 	union nf_inet_addr saved_addr;
+ 	/* This is the original per-proto part, used to map the
+ 	 * expected connection the way the recipient expects. */
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index d43ffb09939b..8d42566b2735 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -404,11 +404,6 @@ config NF_NAT
+ 	  forms of full Network Address Port Translation. This can be
+ 	  controlled by iptables, ip6tables or nft.
+ 
+-config NF_NAT_NEEDED
+-	bool
+-	depends on NF_NAT
+-	default y
+-
+ config NF_NAT_AMANDA
+ 	tristate
+ 	depends on NF_CONNTRACK && NF_NAT
+diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
+index 334d6e5b7762..59c18804a10a 100644
+--- a/net/netfilter/nf_conntrack_expect.c
++++ b/net/netfilter/nf_conntrack_expect.c
+@@ -336,7 +336,7 @@ void nf_ct_expect_init(struct nf_conntrack_expect *exp, unsigned int class,
+ 
+ 	exp->tuple.dst.u.all = *dst;
+ 
+-#ifdef CONFIG_NF_NAT_NEEDED
++#if IS_ENABLED(CONFIG_NF_NAT)
+ 	memset(&exp->saved_addr, 0, sizeof(exp->saved_addr));
+ 	memset(&exp->saved_proto, 0, sizeof(exp->saved_proto));
+ #endif
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index 66c596d287a5..32fe3060375a 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -45,7 +45,7 @@
+ #include <net/netfilter/nf_conntrack_timestamp.h>
+ #include <net/netfilter/nf_conntrack_labels.h>
+ #include <net/netfilter/nf_conntrack_synproxy.h>
+-#ifdef CONFIG_NF_NAT_NEEDED
++#if IS_ENABLED(CONFIG_NF_NAT)
+ #include <net/netfilter/nf_nat.h>
+ #include <net/netfilter/nf_nat_helper.h>
+ #endif
+@@ -655,7 +655,7 @@ static size_t ctnetlink_nlmsg_size(const struct nf_conn *ct)
+ 	       + nla_total_size(0) /* CTA_HELP */
+ 	       + nla_total_size(NF_CT_HELPER_NAME_LEN) /* CTA_HELP_NAME */
+ 	       + ctnetlink_secctx_size(ct)
+-#ifdef CONFIG_NF_NAT_NEEDED
++#if IS_ENABLED(CONFIG_NF_NAT)
+ 	       + 2 * nla_total_size(0) /* CTA_NAT_SEQ_ADJ_ORIG|REPL */
+ 	       + 6 * nla_total_size(sizeof(u_int32_t)) /* CTA_NAT_SEQ_OFFSET */
+ #endif
+@@ -1494,7 +1494,7 @@ static int ctnetlink_get_ct_unconfirmed(struct net *net, struct sock *ctnl,
+ 	return -EOPNOTSUPP;
  }
  
- int ip6_route_me_harder(struct net *net, struct sk_buff *skb);
-+
-+static inline int nf_ip6_route_me_harder(struct net *net, struct sk_buff *skb)
-+{
-+#if IS_MODULE(CONFIG_IPV6)
-+	const struct nf_ipv6_ops *v6_ops = nf_get_ipv6_ops();
-+
-+	if (!v6_ops)
-+		return -EHOSTUNREACH;
-+
-+	return v6_ops->route_me_harder(net, skb);
-+#else
-+	return ip6_route_me_harder(net, skb);
-+#endif
-+}
-+
- __sum16 nf_ip6_checksum(struct sk_buff *skb, unsigned int hook,
- 			unsigned int dataoff, u_int8_t protocol);
+-#ifdef CONFIG_NF_NAT_NEEDED
++#if IS_ENABLED(CONFIG_NF_NAT)
+ static int
+ ctnetlink_parse_nat_setup(struct nf_conn *ct,
+ 			  enum nf_nat_manip_type manip,
+@@ -1586,7 +1586,7 @@ ctnetlink_change_status(struct nf_conn *ct, const struct nlattr * const cda[])
+ static int
+ ctnetlink_setup_nat(struct nf_conn *ct, const struct nlattr * const cda[])
+ {
+-#ifdef CONFIG_NF_NAT_NEEDED
++#if IS_ENABLED(CONFIG_NF_NAT)
+ 	int ret;
  
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 3e9ab643eedf..55dff3ab44c7 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -1411,4 +1411,6 @@ struct nft_trans_flowtable {
- int __init nft_chain_filter_init(void);
- void nft_chain_filter_fini(void);
+ 	if (!cda[CTA_NAT_DST] && !cda[CTA_NAT_SRC])
+@@ -2369,7 +2369,7 @@ ctnetlink_glue_build_size(const struct nf_conn *ct)
+ 	       + nla_total_size(0) /* CTA_HELP */
+ 	       + nla_total_size(NF_CT_HELPER_NAME_LEN) /* CTA_HELP_NAME */
+ 	       + ctnetlink_secctx_size(ct)
+-#ifdef CONFIG_NF_NAT_NEEDED
++#if IS_ENABLED(CONFIG_NF_NAT)
+ 	       + 2 * nla_total_size(0) /* CTA_NAT_SEQ_ADJ_ORIG|REPL */
+ 	       + 6 * nla_total_size(sizeof(u_int32_t)) /* CTA_NAT_SEQ_OFFSET */
+ #endif
+@@ -2699,7 +2699,7 @@ ctnetlink_exp_dump_expect(struct sk_buff *skb,
+ 	struct nf_conn *master = exp->master;
+ 	long timeout = ((long)exp->timeout.expires - (long)jiffies) / HZ;
+ 	struct nf_conn_help *help;
+-#ifdef CONFIG_NF_NAT_NEEDED
++#if IS_ENABLED(CONFIG_NF_NAT)
+ 	struct nlattr *nest_parms;
+ 	struct nf_conntrack_tuple nat_tuple = {};
+ #endif
+@@ -2717,7 +2717,7 @@ ctnetlink_exp_dump_expect(struct sk_buff *skb,
+ 				 CTA_EXPECT_MASTER) < 0)
+ 		goto nla_put_failure;
  
-+void __init nft_chain_route_init(void);
-+void nft_chain_route_fini(void);
- #endif /* _NET_NF_TABLES_H */
-diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
-index c98391d49200..ea688832fc4e 100644
---- a/net/ipv4/netfilter/Kconfig
-+++ b/net/ipv4/netfilter/Kconfig
-@@ -27,14 +27,6 @@ config NF_TABLES_IPV4
+-#ifdef CONFIG_NF_NAT_NEEDED
++#if IS_ENABLED(CONFIG_NF_NAT)
+ 	if (!nf_inet_addr_cmp(&exp->saved_addr, &any_addr) ||
+ 	    exp->saved_proto.all) {
+ 		nest_parms = nla_nest_start(skb, CTA_EXPECT_NAT | NLA_F_NESTED);
+@@ -3180,7 +3180,7 @@ ctnetlink_parse_expect_nat(const struct nlattr *attr,
+ 			   struct nf_conntrack_expect *exp,
+ 			   u_int8_t u3)
+ {
+-#ifdef CONFIG_NF_NAT_NEEDED
++#if IS_ENABLED(CONFIG_NF_NAT)
+ 	struct nlattr *tb[CTA_EXPECT_NAT_MAX+1];
+ 	struct nf_conntrack_tuple nat_tuple = {};
+ 	int err;
+diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
+index f067c6b50857..6b2044beef0c 100644
+--- a/net/netfilter/nf_conntrack_sip.c
++++ b/net/netfilter/nf_conntrack_sip.c
+@@ -933,7 +933,7 @@ static int set_expected_rtp_rtcp(struct sk_buff *skb, unsigned int protoff,
+ 		    nfct_help(exp->master)->helper != nfct_help(ct)->helper ||
+ 		    exp->class != class)
+ 			break;
+-#ifdef CONFIG_NF_NAT_NEEDED
++#if IS_ENABLED(CONFIG_NF_NAT)
+ 		if (!direct_rtp &&
+ 		    (!nf_inet_addr_cmp(&exp->saved_addr, &exp->tuple.dst.u3) ||
+ 		     exp->saved_proto.udp.port != exp->tuple.dst.u.udp.port) &&
+diff --git a/net/openvswitch/conntrack.c b/net/openvswitch/conntrack.c
+index 51080004677e..89158d2114e6 100644
+--- a/net/openvswitch/conntrack.c
++++ b/net/openvswitch/conntrack.c
+@@ -28,7 +28,7 @@
+ #include <net/netfilter/ipv6/nf_defrag_ipv6.h>
+ #include <net/ipv6_frag.h>
  
- if NF_TABLES_IPV4
+-#ifdef CONFIG_NF_NAT_NEEDED
++#if IS_ENABLED(CONFIG_NF_NAT)
+ #include <net/netfilter/nf_nat.h>
+ #endif
  
--config NFT_CHAIN_ROUTE_IPV4
--	tristate "IPv4 nf_tables route chain support"
--	help
--	  This option enables the "route" chain for IPv4 in nf_tables. This
--	  chain type is used to force packet re-routing after mangling header
--	  fields such as the source, destination, type of service and
--	  the packet mark.
--
- config NFT_REJECT_IPV4
- 	select NF_REJECT_IPV4
- 	default NFT_REJECT
-diff --git a/net/ipv4/netfilter/Makefile b/net/ipv4/netfilter/Makefile
-index e241f5188ebe..2cfdda7b109f 100644
---- a/net/ipv4/netfilter/Makefile
-+++ b/net/ipv4/netfilter/Makefile
-@@ -24,7 +24,6 @@ nf_nat_snmp_basic-y := nf_nat_snmp_basic.asn1.o nf_nat_snmp_basic_main.o
- $(obj)/nf_nat_snmp_basic_main.o: $(obj)/nf_nat_snmp_basic.asn1.h
- obj-$(CONFIG_NF_NAT_SNMP_BASIC) += nf_nat_snmp_basic.o
- 
--obj-$(CONFIG_NFT_CHAIN_ROUTE_IPV4) += nft_chain_route_ipv4.o
- obj-$(CONFIG_NFT_REJECT_IPV4) += nft_reject_ipv4.o
- obj-$(CONFIG_NFT_FIB_IPV4) += nft_fib_ipv4.o
- obj-$(CONFIG_NFT_DUP_IPV4) += nft_dup_ipv4.o
-diff --git a/net/ipv4/netfilter/nft_chain_route_ipv4.c b/net/ipv4/netfilter/nft_chain_route_ipv4.c
-deleted file mode 100644
-index 7d82934c46f4..000000000000
---- a/net/ipv4/netfilter/nft_chain_route_ipv4.c
-+++ /dev/null
-@@ -1,89 +0,0 @@
--/*
-- * Copyright (c) 2008 Patrick McHardy <kaber@trash.net>
-- * Copyright (c) 2012 Pablo Neira Ayuso <pablo@netfilter.org>
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- */
--
--#include <linux/module.h>
--#include <linux/init.h>
--#include <linux/list.h>
--#include <linux/skbuff.h>
--#include <linux/netlink.h>
--#include <linux/netfilter.h>
--#include <linux/netfilter_ipv4.h>
--#include <linux/netfilter/nfnetlink.h>
--#include <linux/netfilter/nf_tables.h>
--#include <net/netfilter/nf_tables.h>
--#include <net/netfilter/nf_tables_ipv4.h>
--#include <net/route.h>
--#include <net/ip.h>
--
--static unsigned int nf_route_table_hook(void *priv,
--					struct sk_buff *skb,
--					const struct nf_hook_state *state)
--{
--	unsigned int ret;
--	struct nft_pktinfo pkt;
--	u32 mark;
--	__be32 saddr, daddr;
--	u_int8_t tos;
--	const struct iphdr *iph;
--	int err;
--
--	nft_set_pktinfo(&pkt, skb, state);
--	nft_set_pktinfo_ipv4(&pkt, skb);
--
--	mark = skb->mark;
--	iph = ip_hdr(skb);
--	saddr = iph->saddr;
--	daddr = iph->daddr;
--	tos = iph->tos;
--
--	ret = nft_do_chain(&pkt, priv);
--	if (ret != NF_DROP && ret != NF_STOLEN) {
--		iph = ip_hdr(skb);
--
--		if (iph->saddr != saddr ||
--		    iph->daddr != daddr ||
--		    skb->mark != mark ||
--		    iph->tos != tos) {
--			err = ip_route_me_harder(state->net, skb, RTN_UNSPEC);
--			if (err < 0)
--				ret = NF_DROP_ERR(err);
--		}
--	}
--	return ret;
--}
--
--static const struct nft_chain_type nft_chain_route_ipv4 = {
--	.name		= "route",
--	.type		= NFT_CHAIN_T_ROUTE,
--	.family		= NFPROTO_IPV4,
--	.owner		= THIS_MODULE,
--	.hook_mask	= (1 << NF_INET_LOCAL_OUT),
--	.hooks		= {
--		[NF_INET_LOCAL_OUT]	= nf_route_table_hook,
--	},
--};
--
--static int __init nft_chain_route_init(void)
--{
--	nft_register_chain_type(&nft_chain_route_ipv4);
--
--	return 0;
--}
--
--static void __exit nft_chain_route_exit(void)
--{
--	nft_unregister_chain_type(&nft_chain_route_ipv4);
--}
--
--module_init(nft_chain_route_init);
--module_exit(nft_chain_route_exit);
--
--MODULE_LICENSE("GPL");
--MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
--MODULE_ALIAS_NFT_CHAIN(AF_INET, "route");
-diff --git a/net/ipv6/netfilter/Kconfig b/net/ipv6/netfilter/Kconfig
-index ddc99a1653aa..3de3adb1a0c9 100644
---- a/net/ipv6/netfilter/Kconfig
-+++ b/net/ipv6/netfilter/Kconfig
-@@ -23,14 +23,6 @@ config NF_TABLES_IPV6
- 
- if NF_TABLES_IPV6
- 
--config NFT_CHAIN_ROUTE_IPV6
--	tristate "IPv6 nf_tables route chain support"
--	help
--	  This option enables the "route" chain for IPv6 in nf_tables. This
--	  chain type is used to force packet re-routing after mangling header
--	  fields such as the source, destination, flowlabel, hop-limit and
--	  the packet mark.
--
- config NFT_REJECT_IPV6
- 	select NF_REJECT_IPV6
- 	default NFT_REJECT
-diff --git a/net/ipv6/netfilter/Makefile b/net/ipv6/netfilter/Makefile
-index 3853c648ebaa..93aff604b243 100644
---- a/net/ipv6/netfilter/Makefile
-+++ b/net/ipv6/netfilter/Makefile
-@@ -27,7 +27,6 @@ obj-$(CONFIG_NF_REJECT_IPV6) += nf_reject_ipv6.o
- obj-$(CONFIG_NF_DUP_IPV6) += nf_dup_ipv6.o
- 
- # nf_tables
--obj-$(CONFIG_NFT_CHAIN_ROUTE_IPV6) += nft_chain_route_ipv6.o
- obj-$(CONFIG_NFT_REJECT_IPV6) += nft_reject_ipv6.o
- obj-$(CONFIG_NFT_DUP_IPV6) += nft_dup_ipv6.o
- obj-$(CONFIG_NFT_FIB_IPV6) += nft_fib_ipv6.o
-diff --git a/net/ipv6/netfilter/nft_chain_route_ipv6.c b/net/ipv6/netfilter/nft_chain_route_ipv6.c
-deleted file mode 100644
-index da3f1f8cb325..000000000000
---- a/net/ipv6/netfilter/nft_chain_route_ipv6.c
-+++ /dev/null
-@@ -1,91 +0,0 @@
--/*
-- * Copyright (c) 2008 Patrick McHardy <kaber@trash.net>
-- * Copyright (c) 2012 Pablo Neira Ayuso <pablo@netfilter.org>
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- *
-- * Development of this code funded by Astaro AG (http://www.astaro.com/)
-- */
--
--#include <linux/module.h>
--#include <linux/init.h>
--#include <linux/list.h>
--#include <linux/skbuff.h>
--#include <linux/netlink.h>
--#include <linux/netfilter.h>
--#include <linux/netfilter_ipv6.h>
--#include <linux/netfilter/nfnetlink.h>
--#include <linux/netfilter/nf_tables.h>
--#include <net/netfilter/nf_tables.h>
--#include <net/netfilter/nf_tables_ipv6.h>
--#include <net/route.h>
--
--static unsigned int nf_route_table_hook(void *priv,
--					struct sk_buff *skb,
--					const struct nf_hook_state *state)
--{
--	unsigned int ret;
--	struct nft_pktinfo pkt;
--	struct in6_addr saddr, daddr;
--	u_int8_t hop_limit;
--	u32 mark, flowlabel;
--	int err;
--
--	nft_set_pktinfo(&pkt, skb, state);
--	nft_set_pktinfo_ipv6(&pkt, skb);
--
--	/* save source/dest address, mark, hoplimit, flowlabel, priority */
--	memcpy(&saddr, &ipv6_hdr(skb)->saddr, sizeof(saddr));
--	memcpy(&daddr, &ipv6_hdr(skb)->daddr, sizeof(daddr));
--	mark = skb->mark;
--	hop_limit = ipv6_hdr(skb)->hop_limit;
--
--	/* flowlabel and prio (includes version, which shouldn't change either */
--	flowlabel = *((u32 *)ipv6_hdr(skb));
--
--	ret = nft_do_chain(&pkt, priv);
--	if (ret != NF_DROP && ret != NF_STOLEN &&
--	    (memcmp(&ipv6_hdr(skb)->saddr, &saddr, sizeof(saddr)) ||
--	     memcmp(&ipv6_hdr(skb)->daddr, &daddr, sizeof(daddr)) ||
--	     skb->mark != mark ||
--	     ipv6_hdr(skb)->hop_limit != hop_limit ||
--	     flowlabel != *((u_int32_t *)ipv6_hdr(skb)))) {
--		err = ip6_route_me_harder(state->net, skb);
--		if (err < 0)
--			ret = NF_DROP_ERR(err);
--	}
--
--	return ret;
--}
--
--static const struct nft_chain_type nft_chain_route_ipv6 = {
--	.name		= "route",
--	.type		= NFT_CHAIN_T_ROUTE,
--	.family		= NFPROTO_IPV6,
--	.owner		= THIS_MODULE,
--	.hook_mask	= (1 << NF_INET_LOCAL_OUT),
--	.hooks		= {
--		[NF_INET_LOCAL_OUT]	= nf_route_table_hook,
--	},
--};
--
--static int __init nft_chain_route_init(void)
--{
--	nft_register_chain_type(&nft_chain_route_ipv6);
--
--	return 0;
--}
--
--static void __exit nft_chain_route_exit(void)
--{
--	nft_unregister_chain_type(&nft_chain_route_ipv6);
--}
--
--module_init(nft_chain_route_init);
--module_exit(nft_chain_route_exit);
--
--MODULE_LICENSE("GPL");
--MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
--MODULE_ALIAS_NFT_CHAIN(AF_INET6, "route");
-diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index 4894a85cdd0b..afbf475e02b2 100644
---- a/net/netfilter/Makefile
-+++ b/net/netfilter/Makefile
-@@ -77,7 +77,8 @@ obj-$(CONFIG_NF_DUP_NETDEV)	+= nf_dup_netdev.o
- nf_tables-objs := nf_tables_core.o nf_tables_api.o nft_chain_filter.o \
- 		  nf_tables_trace.o nft_immediate.o nft_cmp.o nft_range.o \
- 		  nft_bitwise.o nft_byteorder.o nft_payload.o nft_lookup.o \
--		  nft_dynset.o nft_meta.o nft_rt.o nft_exthdr.o
-+		  nft_dynset.o nft_meta.o nft_rt.o nft_exthdr.o \
-+		  nft_chain_route.o
- 
- nf_tables_set-objs := nf_tables_set_core.o \
- 		      nft_set_hash.o nft_set_bitmap.o nft_set_rbtree.o
-diff --git a/net/netfilter/nf_nat_proto.c b/net/netfilter/nf_nat_proto.c
-index 606d0a740615..84f5c90a7f21 100644
---- a/net/netfilter/nf_nat_proto.c
-+++ b/net/netfilter/nf_nat_proto.c
-@@ -926,20 +926,6 @@ nf_nat_ipv6_out(void *priv, struct sk_buff *skb,
- 	return ret;
+@@ -73,7 +73,7 @@ struct ovs_conntrack_info {
+ 	u32 eventmask;              /* Mask of 1 << IPCT_*. */
+ 	struct md_mark mark;
+ 	struct md_labels labels;
+-#ifdef CONFIG_NF_NAT_NEEDED
++#if IS_ENABLED(CONFIG_NF_NAT)
+ 	struct nf_nat_range2 range;  /* Only present for SRC NAT and DST NAT. */
+ #endif
+ };
+@@ -719,7 +719,7 @@ static bool skb_nfct_cached(struct net *net,
+ 	return ct_executed;
  }
  
--static int nat_route_me_harder(struct net *net, struct sk_buff *skb)
--{
--#ifdef CONFIG_IPV6_MODULE
--	const struct nf_ipv6_ops *v6_ops = nf_get_ipv6_ops();
--
--	if (!v6_ops)
--		return -EHOSTUNREACH;
--
--	return v6_ops->route_me_harder(net, skb);
--#else
--	return ip6_route_me_harder(net, skb);
--#endif
--}
--
- static unsigned int
- nf_nat_ipv6_local_fn(void *priv, struct sk_buff *skb,
- 		     const struct nf_hook_state *state)
-@@ -959,7 +945,7 @@ nf_nat_ipv6_local_fn(void *priv, struct sk_buff *skb,
+-#ifdef CONFIG_NF_NAT_NEEDED
++#if IS_ENABLED(CONFIG_NF_NAT)
+ /* Modelled after nf_nat_ipv[46]_fn().
+  * range is only used for new, uninitialized NAT state.
+  * Returns either NF_ACCEPT or NF_DROP.
+@@ -901,7 +901,7 @@ static int ovs_ct_nat(struct net *net, struct sw_flow_key *key,
  
- 		if (!nf_inet_addr_cmp(&ct->tuplehash[dir].tuple.dst.u3,
- 				      &ct->tuplehash[!dir].tuple.src.u3)) {
--			err = nat_route_me_harder(state->net, skb);
-+			err = nf_ip6_route_me_harder(state->net, skb);
- 			if (err < 0)
- 				ret = NF_DROP_ERR(err);
- 		}
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 513f93118604..add79908a715 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -7531,6 +7531,7 @@ static int __init nf_tables_module_init(void)
- 	if (err < 0)
- 		goto err5;
- 
-+	nft_chain_route_init();
  	return err;
- err5:
- 	rhltable_destroy(&nft_objname_ht);
-@@ -7550,6 +7551,7 @@ static void __exit nf_tables_module_exit(void)
- 	nfnetlink_subsys_unregister(&nf_tables_subsys);
- 	unregister_netdevice_notifier(&nf_tables_flowtable_notifier);
- 	nft_chain_filter_fini();
-+	nft_chain_route_fini();
- 	unregister_pernet_subsys(&nf_tables_net_ops);
- 	cancel_work_sync(&trans_destroy_work);
- 	rcu_barrier();
-diff --git a/net/netfilter/nft_chain_route.c b/net/netfilter/nft_chain_route.c
-new file mode 100644
-index 000000000000..8826bbe71136
---- /dev/null
-+++ b/net/netfilter/nft_chain_route.c
-@@ -0,0 +1,169 @@
-+// SPDX-License-Identifier: GPL-2.0
-+
-+#include <linux/skbuff.h>
-+#include <linux/netfilter.h>
-+#include <linux/netfilter_ipv4.h>
-+#include <linux/netfilter_ipv6.h>
-+#include <linux/netfilter/nfnetlink.h>
-+#include <linux/netfilter/nf_tables.h>
-+#include <net/netfilter/nf_tables.h>
-+#include <net/netfilter/nf_tables_ipv4.h>
-+#include <net/netfilter/nf_tables_ipv6.h>
-+#include <net/route.h>
-+#include <net/ip.h>
-+
-+#ifdef CONFIG_NF_TABLES_IPV4
-+static unsigned int nf_route_table_hook4(void *priv,
-+					 struct sk_buff *skb,
-+					 const struct nf_hook_state *state)
-+{
-+	const struct iphdr *iph;
-+	struct nft_pktinfo pkt;
-+	__be32 saddr, daddr;
-+	unsigned int ret;
-+	u32 mark;
-+	int err;
-+	u8 tos;
-+
-+	nft_set_pktinfo(&pkt, skb, state);
-+	nft_set_pktinfo_ipv4(&pkt, skb);
-+
-+	mark = skb->mark;
-+	iph = ip_hdr(skb);
-+	saddr = iph->saddr;
-+	daddr = iph->daddr;
-+	tos = iph->tos;
-+
-+	ret = nft_do_chain(&pkt, priv);
-+	if (ret == NF_ACCEPT) {
-+		iph = ip_hdr(skb);
-+
-+		if (iph->saddr != saddr ||
-+		    iph->daddr != daddr ||
-+		    skb->mark != mark ||
-+		    iph->tos != tos) {
-+			err = ip_route_me_harder(state->net, skb, RTN_UNSPEC);
-+			if (err < 0)
-+				ret = NF_DROP_ERR(err);
-+		}
-+	}
-+	return ret;
-+}
-+
-+static const struct nft_chain_type nft_chain_route_ipv4 = {
-+	.name		= "route",
-+	.type		= NFT_CHAIN_T_ROUTE,
-+	.family		= NFPROTO_IPV4,
-+	.hook_mask	= (1 << NF_INET_LOCAL_OUT),
-+	.hooks		= {
-+		[NF_INET_LOCAL_OUT]	= nf_route_table_hook4,
-+	},
-+};
-+#endif
-+
-+#ifdef CONFIG_NF_TABLES_IPV6
-+static unsigned int nf_route_table_hook6(void *priv,
-+					 struct sk_buff *skb,
-+					 const struct nf_hook_state *state)
-+{
-+	struct in6_addr saddr, daddr;
-+	struct nft_pktinfo pkt;
-+	u32 mark, flowlabel;
-+	unsigned int ret;
-+	u8 hop_limit;
-+	int err;
-+
-+	nft_set_pktinfo(&pkt, skb, state);
-+	nft_set_pktinfo_ipv6(&pkt, skb);
-+
-+	/* save source/dest address, mark, hoplimit, flowlabel, priority */
-+	memcpy(&saddr, &ipv6_hdr(skb)->saddr, sizeof(saddr));
-+	memcpy(&daddr, &ipv6_hdr(skb)->daddr, sizeof(daddr));
-+	mark = skb->mark;
-+	hop_limit = ipv6_hdr(skb)->hop_limit;
-+
-+	/* flowlabel and prio (includes version, which shouldn't change either)*/
-+	flowlabel = *((u32 *)ipv6_hdr(skb));
-+
-+	ret = nft_do_chain(&pkt, priv);
-+	if (ret == NF_ACCEPT &&
-+	    (memcmp(&ipv6_hdr(skb)->saddr, &saddr, sizeof(saddr)) ||
-+	     memcmp(&ipv6_hdr(skb)->daddr, &daddr, sizeof(daddr)) ||
-+	     skb->mark != mark ||
-+	     ipv6_hdr(skb)->hop_limit != hop_limit ||
-+	     flowlabel != *((u32 *)ipv6_hdr(skb)))) {
-+		err = nf_ip6_route_me_harder(state->net, skb);
-+		if (err < 0)
-+			ret = NF_DROP_ERR(err);
-+	}
-+
-+	return ret;
-+}
-+
-+static const struct nft_chain_type nft_chain_route_ipv6 = {
-+	.name		= "route",
-+	.type		= NFT_CHAIN_T_ROUTE,
-+	.family		= NFPROTO_IPV6,
-+	.hook_mask	= (1 << NF_INET_LOCAL_OUT),
-+	.hooks		= {
-+		[NF_INET_LOCAL_OUT]	= nf_route_table_hook6,
-+	},
-+};
-+#endif
-+
-+#ifdef CONFIG_NF_TABLES_INET
-+static unsigned int nf_route_table_inet(void *priv,
-+					struct sk_buff *skb,
-+					const struct nf_hook_state *state)
-+{
-+	struct nft_pktinfo pkt;
-+
-+	switch (state->pf) {
-+	case NFPROTO_IPV4:
-+		return nf_route_table_hook4(priv, skb, state);
-+	case NFPROTO_IPV6:
-+		return nf_route_table_hook6(priv, skb, state);
-+	default:
-+		nft_set_pktinfo(&pkt, skb, state);
-+		break;
-+	}
-+
-+	return nft_do_chain(&pkt, priv);
-+}
-+
-+static const struct nft_chain_type nft_chain_route_inet = {
-+	.name		= "route",
-+	.type		= NFT_CHAIN_T_ROUTE,
-+	.family		= NFPROTO_INET,
-+	.hook_mask	= (1 << NF_INET_LOCAL_OUT),
-+	.hooks		= {
-+		[NF_INET_LOCAL_OUT]	= nf_route_table_inet,
-+	},
-+};
-+#endif
-+
-+void __init nft_chain_route_init(void)
-+{
-+#ifdef CONFIG_NF_TABLES_IPV6
-+	nft_register_chain_type(&nft_chain_route_ipv6);
-+#endif
-+#ifdef CONFIG_NF_TABLES_IPV4
-+	nft_register_chain_type(&nft_chain_route_ipv4);
-+#endif
-+#ifdef CONFIG_NF_TABLES_INET
-+	nft_register_chain_type(&nft_chain_route_inet);
-+#endif
-+}
-+
-+void __exit nft_chain_route_fini(void)
-+{
-+#ifdef CONFIG_NF_TABLES_IPV6
-+	nft_unregister_chain_type(&nft_chain_route_ipv6);
-+#endif
-+#ifdef CONFIG_NF_TABLES_IPV4
-+	nft_unregister_chain_type(&nft_chain_route_ipv4);
-+#endif
-+#ifdef CONFIG_NF_TABLES_INET
-+	nft_unregister_chain_type(&nft_chain_route_inet);
-+#endif
-+}
+ }
+-#else /* !CONFIG_NF_NAT_NEEDED */
++#else /* !CONFIG_NF_NAT */
+ static int ovs_ct_nat(struct net *net, struct sw_flow_key *key,
+ 		      const struct ovs_conntrack_info *info,
+ 		      struct sk_buff *skb, struct nf_conn *ct,
+@@ -1322,7 +1322,7 @@ static int ovs_ct_add_helper(struct ovs_conntrack_info *info, const char *name,
+ 	return 0;
+ }
+ 
+-#ifdef CONFIG_NF_NAT_NEEDED
++#if IS_ENABLED(CONFIG_NF_NAT)
+ static int parse_nat(const struct nlattr *attr,
+ 		     struct ovs_conntrack_info *info, bool log)
+ {
+@@ -1459,7 +1459,7 @@ static const struct ovs_ct_len_tbl ovs_ct_attr_lens[OVS_CT_ATTR_MAX + 1] = {
+ 				    .maxlen = sizeof(struct md_labels) },
+ 	[OVS_CT_ATTR_HELPER]	= { .minlen = 1,
+ 				    .maxlen = NF_CT_HELPER_NAME_LEN },
+-#ifdef CONFIG_NF_NAT_NEEDED
++#if IS_ENABLED(CONFIG_NF_NAT)
+ 	/* NAT length is checked when parsing the nested attributes. */
+ 	[OVS_CT_ATTR_NAT]	= { .minlen = 0, .maxlen = INT_MAX },
+ #endif
+@@ -1537,7 +1537,7 @@ static int parse_ct(const struct nlattr *attr, struct ovs_conntrack_info *info,
+ 				return -EINVAL;
+ 			}
+ 			break;
+-#ifdef CONFIG_NF_NAT_NEEDED
++#if IS_ENABLED(CONFIG_NF_NAT)
+ 		case OVS_CT_ATTR_NAT: {
+ 			int err = parse_nat(a, info, log);
+ 
+@@ -1650,7 +1650,7 @@ int ovs_ct_copy_action(struct net *net, const struct nlattr *attr,
+ 	return err;
+ }
+ 
+-#ifdef CONFIG_NF_NAT_NEEDED
++#if IS_ENABLED(CONFIG_NF_NAT)
+ static bool ovs_ct_nat_to_attr(const struct ovs_conntrack_info *info,
+ 			       struct sk_buff *skb)
+ {
+@@ -1752,7 +1752,7 @@ int ovs_ct_action_to_attr(const struct ovs_conntrack_info *ct_info,
+ 	    nla_put_u32(skb, OVS_CT_ATTR_EVENTMASK, ct_info->eventmask))
+ 		return -EMSGSIZE;
+ 
+-#ifdef CONFIG_NF_NAT_NEEDED
++#if IS_ENABLED(CONFIG_NF_NAT)
+ 	if (ct_info->nat && !ovs_ct_nat_to_attr(ct_info, skb))
+ 		return -EMSGSIZE;
+ #endif
 -- 
 2.19.2
 
