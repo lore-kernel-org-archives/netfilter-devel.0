@@ -2,388 +2,112 @@ Return-Path: <SRS0=YYk6=R7=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.0 required=3.0
-	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_PASS autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.6 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT,
+	USER_IN_DEF_DKIM_WL autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F0DA3C43381
-	for <netfilter-devel@archiver.kernel.org>; Thu, 28 Mar 2019 08:02:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 29F25C43381
+	for <netfilter-devel@archiver.kernel.org>; Thu, 28 Mar 2019 09:47:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B4ECA20700
-	for <netfilter-devel@archiver.kernel.org>; Thu, 28 Mar 2019 08:02:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E55722082F
+	for <netfilter-devel@archiver.kernel.org>; Thu, 28 Mar 2019 09:47:32 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="hlAdO3Te"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726445AbfC1IB4 (ORCPT
+        id S1726252AbfC1Jr0 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 28 Mar 2019 04:01:56 -0400
-Received: from mail-ot1-f66.google.com ([209.85.210.66]:45356 "EHLO
-        mail-ot1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726348AbfC1IB4 (ORCPT
+        Thu, 28 Mar 2019 05:47:26 -0400
+Received: from mail-yw1-f74.google.com ([209.85.161.74]:33713 "EHLO
+        mail-yw1-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725948AbfC1Jr0 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 28 Mar 2019 04:01:56 -0400
-Received: by mail-ot1-f66.google.com with SMTP id e5so17430199otk.12
-        for <netfilter-devel@vger.kernel.org>; Thu, 28 Mar 2019 01:01:56 -0700 (PDT)
+        Thu, 28 Mar 2019 05:47:26 -0400
+Received: by mail-yw1-f74.google.com with SMTP id p73so27796432ywp.0
+        for <netfilter-devel@vger.kernel.org>; Thu, 28 Mar 2019 02:47:25 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20161025;
+        h=date:message-id:mime-version:subject:from:to:cc;
+        bh=PrdnojL0zNQoe9yv6bzdApgTnVotyfhuA2MDCedM0dE=;
+        b=hlAdO3TeMVPxzooaKuKsEVekuaCXHhfyyvGuIHlz2B/6YtkMEiLRfPye7rw9OqTFja
+         soZOuzB4bgcYAQ/SfMjQORNcyATifHJ9/OANyUHstvFyc3cV1bltrVsSZRjkkJ9NaDn+
+         QrZ12BjE7eLKbStjDw9A6rWz9YUMDB7qtNSZF4HAo2bBHMzEGSDWGZunL3jU4y3CJUAx
+         UCnzvJtyIzphyNyrzo1SH7a7XfC5H7q4ktXtY0Q+AjHbvSvyyjneeJMP4m84Lc1Ae7xo
+         AXjO6m5EK3dgNgDUr/61pugG98l6V3FDgrLh94rXHEjr6UZlFVjSWnvM4du6FZcNDz8b
+         q1hw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=k+XP/msPMDDWMCufBD0fyJKy9ImxuB36vWQ+fBMq17A=;
-        b=KYqPiFOyN0n4WC71kug/9erYOLSPqvC+246GR8adKcZfAcfXz9ATaEQwDEUoI0YXvs
-         GXAO4uRt/Bg8hvoA8fslaxOStwIdNVPiSQBanlJu8nBIiaJ4swOFRacxOLetqj6kOp3q
-         A6AKEGUsH6aAO/cMGCzuRWUL5kq/TMeWso4yfiGdqrygtUhcJyTgHd/ijLSnouvrumfw
-         d5+QxFGsy+siH0ii9oxQ9BUd3ZxAgiNATuwWEkcUVBWu8dc25LtbfM72kXdIPKsQVks8
-         zZUzI5cYzYTKAhIjRyyi8yZ/jjzz1G8fKupuvA/oB3H0405+UUKTCw0eT8w32DHtOG5z
-         0s3g==
-X-Gm-Message-State: APjAAAXf8bVEOCW1RTShoinl6thDFS/JxR2bx13skEmRjYuunscaEKy+
-        s9XUzChIKq4ZxrjGWvtWGJOVi4EIkpTVIwIS4PjClg==
-X-Google-Smtp-Source: APXvYqyJj/GyXevuZQZifrRH/0rzp8n5Ac9tuOqdxyxyAhBedgKuwbLPza02IGf4bVHkSBO0gbiKnSS2mOJkw+N6Xao=
-X-Received: by 2002:a9d:6e17:: with SMTP id e23mr17357515otr.65.1553760115607;
- Thu, 28 Mar 2019 01:01:55 -0700 (PDT)
-MIME-Version: 1.0
-References: <cover.1552665316.git.rgb@redhat.com> <27473c84a274c64871cfa8e3636deaf05603c978.1552665316.git.rgb@redhat.com>
- <CAFqZXNskwTub5Bm_HZqr02VPB4s79CcgAVX8VE2vQYP07-qssg@mail.gmail.com> <20190328011202.6raixwzdimn5b4zk@madcap2.tricolour.ca>
-In-Reply-To: <20190328011202.6raixwzdimn5b4zk@madcap2.tricolour.ca>
-From:   Ondrej Mosnacek <omosnace@redhat.com>
-Date:   Thu, 28 Mar 2019 09:01:44 +0100
-Message-ID: <CAFqZXNsqh7sAgKOEnA-d5BjDs3VK3iFc3L-9NqyMkS5Nyns4PQ@mail.gmail.com>
-Subject: Re: [PATCH ghak90 V5 09/10] audit: add support for containerid to
- network namespaces
-To:     Richard Guy Briggs <rgb@redhat.com>
-Cc:     nhorman@tuxdriver.com, linux-api@vger.kernel.org,
-        containers@lists.linux-foundation.org,
-        LKML <linux-kernel@vger.kernel.org>,
-        David Howells <dhowells@redhat.com>,
-        Linux-Audit Mailing List <linux-audit@redhat.com>,
-        netfilter-devel@vger.kernel.org,
-        "Eric W . Biederman" <ebiederm@xmission.com>,
-        Simo Sorce <simo@redhat.com>, netdev@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, Eric Paris <eparis@parisplace.org>,
-        "Serge E. Hallyn" <serge@hallyn.com>
+        h=x-gm-message-state:date:message-id:mime-version:subject:from:to:cc;
+        bh=PrdnojL0zNQoe9yv6bzdApgTnVotyfhuA2MDCedM0dE=;
+        b=HH3YVn46IZZay+enw7cugPIErZ9f80MJ3R8vJsohNWASWfteO3z/X109woLCK6xxlt
+         knf+wSOywa53wFSPJu18EdPdMfRc1MzpC2fJY7yfq+C/Tob+cloe6p2AIGuC1Ws/CtJG
+         fc4B23saHn15GBaqboKZjOE/MHHZo4koIJzUjLX1IhRwm9IlGcjS+fNrr84hLrZF9Re+
+         X5oBw8594PTOuFJPJ3nrq9Ed0DXxMtiiht4nF8wczPdT83sp/wYpJ8uC4WNsVE9RHHwH
+         rmeELMTbghbXCp7xHL37vpFzyWEPVB4d43BKO97bKvX9uYYliM0euAukgKTj7QaCJ9B6
+         TmKQ==
+X-Gm-Message-State: APjAAAVmuAUJwEC8kccqf+9eBcvlzreJauubyCCAW3+EF79HEcN37JK6
+        +shVMQ1fc9g+tR4CpunzewDYYITNUYI=
+X-Google-Smtp-Source: APXvYqxsQ7En9OXB3LyGsmsuM8MZOWYtY2ZpjwLWX9XrpjsRZ/wdxttwh3R/gIsWXzHUaRf2l2sLb87EAaA=
+X-Received: by 2002:a0d:cd81:: with SMTP id p123mr2208089ywd.13.1553766445230;
+ Thu, 28 Mar 2019 02:47:25 -0700 (PDT)
+Date:   Thu, 28 Mar 2019 10:47:20 +0100
+Message-Id: <20190328094720.25399-1-glider@google.com>
+Mime-Version: 1.0
+X-Mailer: git-send-email 2.21.0.392.gf8f6787159e-goog
+Subject: [PATCH] netfilter: conntrack: initialize ct->timeout
+From:   Alexander Potapenko <glider@google.com>
+To:     pablo@netfilter.org, kadlec@blackhole.kfki.hu, fw@strlen.de,
+        davem@davemloft.net
+Cc:     linux-kernel@vger.kernel.org, dvyukov@google.com,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Mar 28, 2019 at 2:12 AM Richard Guy Briggs <rgb@redhat.com> wrote:
-> On 2019-03-27 23:42, Ondrej Mosnacek wrote:
-> > On Fri, Mar 15, 2019 at 7:35 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> > > Audit events could happen in a network namespace outside of a task
-> > > context due to packets received from the net that trigger an auditing
-> > > rule prior to being associated with a running task.  The network
-> > > namespace could be in use by multiple containers by association to the
-> > > tasks in that network namespace.  We still want a way to attribute
-> > > these events to any potential containers.  Keep a list per network
-> > > namespace to track these audit container identifiiers.
-> > >
-> > > Add/increment the audit container identifier on:
-> > > - initial setting of the audit container identifier via /proc
-> > > - clone/fork call that inherits an audit container identifier
-> > > - unshare call that inherits an audit container identifier
-> > > - setns call that inherits an audit container identifier
-> > > Delete/decrement the audit container identifier on:
-> > > - an inherited audit container identifier dropped when child set
-> > > - process exit
-> > > - unshare call that drops a net namespace
-> > > - setns call that drops a net namespace
-> > >
-> > > See: https://github.com/linux-audit/audit-kernel/issues/92
-> > > See: https://github.com/linux-audit/audit-testsuite/issues/64
-> > > See: https://github.com/linux-audit/audit-kernel/wiki/RFE-Audit-Container-ID
-> > > Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
-> > > ---
-> > >  include/linux/audit.h | 19 ++++++++++++
-> > >  kernel/audit.c        | 86 +++++++++++++++++++++++++++++++++++++++++++++++++--
-> > >  kernel/nsproxy.c      |  4 +++
-> > >  3 files changed, 106 insertions(+), 3 deletions(-)
-> > >
-> > > diff --git a/include/linux/audit.h b/include/linux/audit.h
-> > > index fa19fa408931..70255c2dfb9f 100644
-> > > --- a/include/linux/audit.h
-> > > +++ b/include/linux/audit.h
-> > > @@ -27,6 +27,7 @@
-> > >  #include <linux/ptrace.h>
-> > >  #include <linux/namei.h>  /* LOOKUP_* */
-> > >  #include <uapi/linux/audit.h>
-> > > +#include <linux/refcount.h>
-> > >
-> > >  #define AUDIT_INO_UNSET ((unsigned long)-1)
-> > >  #define AUDIT_DEV_UNSET ((dev_t)-1)
-> > > @@ -99,6 +100,13 @@ struct audit_task_info {
-> > >
-> > >  extern struct audit_task_info init_struct_audit;
-> > >
-> > > +struct audit_contid {
-> > > +       struct list_head        list;
-> > > +       u64                     id;
-> > > +       refcount_t              refcount;
-> >
-> > Hm, since we only ever touch the refcount under a spinlock, I wonder
-> > if we could just make it a regular unsigned int (we don't need the
-> > atomicity guarantees). OTOH, refcount_t comes with some extra overflow
-> > checking, so it's probably better to leave it as is...
->
-> Since the update is done using rcu-safe methods, do we even need the
-> spin_lock?  Neil?  Paul?
->
-> > > +       struct rcu_head         rcu;
-> > > +};
-> > > +
-> > >  extern int is_audit_feature_set(int which);
-> > >
-> > >  extern int __init audit_register_class(int class, unsigned *list);
-> > > @@ -202,6 +210,10 @@ static inline u64 audit_get_contid(struct task_struct *tsk)
-> > >  }
-> > >
-> > >  extern void audit_log_contid(struct audit_context *context, u64 contid);
-> > > +extern void audit_netns_contid_add(struct net *net, u64 contid);
-> > > +extern void audit_netns_contid_del(struct net *net, u64 contid);
-> > > +extern void audit_switch_task_namespaces(struct nsproxy *ns,
-> > > +                                        struct task_struct *p);
-> > >
-> > >  extern u32 audit_enabled;
-> > >  #else /* CONFIG_AUDIT */
-> > > @@ -271,6 +283,13 @@ static inline u64 audit_get_contid(struct task_struct *tsk)
-> > >
-> > >  static inline void audit_log_contid(struct audit_context *context, u64 contid)
-> > >  { }
-> > > +static inline void audit_netns_contid_add(struct net *net, u64 contid)
-> > > +{ }
-> > > +static inline void audit_netns_contid_del(struct net *net, u64 contid)
-> > > +{ }
-> > > +static inline void audit_switch_task_namespaces(struct nsproxy *ns,
-> > > +                                               struct task_struct *p)
-> > > +{ }
-> > >
-> > >  #define audit_enabled AUDIT_OFF
-> > >  #endif /* CONFIG_AUDIT */
-> > > diff --git a/kernel/audit.c b/kernel/audit.c
-> > > index cf448599ef34..7fa3194f5342 100644
-> > > --- a/kernel/audit.c
-> > > +++ b/kernel/audit.c
-> > > @@ -72,6 +72,7 @@
-> > >  #include <linux/freezer.h>
-> > >  #include <linux/pid_namespace.h>
-> > >  #include <net/netns/generic.h>
-> > > +#include <net/net_namespace.h>
-> > >
-> > >  #include "audit.h"
-> > >
-> > > @@ -99,9 +100,13 @@
-> > >  /**
-> > >   * struct audit_net - audit private network namespace data
-> > >   * @sk: communication socket
-> > > + * @contid_list: audit container identifier list
-> > > + * @contid_list_lock audit container identifier list lock
-> > >   */
-> > >  struct audit_net {
-> > >         struct sock *sk;
-> > > +       struct list_head contid_list;
-> > > +       spinlock_t contid_list_lock;
-> > >  };
-> > >
-> > >  /**
-> > > @@ -275,8 +280,11 @@ struct audit_task_info init_struct_audit = {
-> > >  void audit_free(struct task_struct *tsk)
-> > >  {
-> > >         struct audit_task_info *info = tsk->audit;
-> > > +       struct nsproxy *ns = tsk->nsproxy;
-> > >
-> > >         audit_free_syscall(tsk);
-> > > +       if (ns)
-> > > +               audit_netns_contid_del(ns->net_ns, audit_get_contid(tsk));
-> > >         /* Freeing the audit_task_info struct must be performed after
-> > >          * audit_log_exit() due to need for loginuid and sessionid.
-> > >          */
-> > > @@ -376,6 +384,73 @@ static struct sock *audit_get_sk(const struct net *net)
-> > >         return aunet->sk;
-> > >  }
-> > >
-> > > +void audit_netns_contid_add(struct net *net, u64 contid)
-> > > +{
-> > > +       struct audit_net *aunet = net_generic(net, audit_net_id);
-> > > +       struct list_head *contid_list = &aunet->contid_list;
-> > > +       struct audit_contid *cont;
-> > > +
-> > > +       if (!audit_contid_valid(contid))
-> > > +               return;
-> > > +       if (!aunet)
-> > > +               return;
-> > > +       spin_lock(&aunet->contid_list_lock);
-> > > +       if (!list_empty(contid_list))
-> > > +               list_for_each_entry_rcu(cont, contid_list, list)
-> > > +                       if (cont->id == contid) {
-> > > +                               refcount_inc(&cont->refcount);
-> > > +                               goto out;
-> > > +                       }
-> > > +       cont = kmalloc(sizeof(struct audit_contid), GFP_ATOMIC);
-> > > +       if (cont) {
-> > > +               INIT_LIST_HEAD(&cont->list);
-> > > +               cont->id = contid;
-> > > +               refcount_set(&cont->refcount, 1);
-> > > +               list_add_rcu(&cont->list, contid_list);
-> > > +       }
-> > > +out:
-> > > +       spin_unlock(&aunet->contid_list_lock);
-> > > +}
-> > > +
-> > > +void audit_netns_contid_del(struct net *net, u64 contid)
-> > > +{
-> > > +       struct audit_net *aunet;
-> > > +       struct list_head *contid_list;
-> > > +       struct audit_contid *cont = NULL;
-> > > +
-> > > +       if (!net)
-> > > +               return;
-> > > +       if (!audit_contid_valid(contid))
-> > > +               return;
-> > > +       aunet = net_generic(net, audit_net_id);
-> > > +       if (!aunet)
-> > > +               return;
-> > > +       contid_list = &aunet->contid_list;
-> > > +       spin_lock(&aunet->contid_list_lock);
-> > > +       if (!list_empty(contid_list))
-> > > +               list_for_each_entry_rcu(cont, contid_list, list)
-> > > +                       if (cont->id == contid) {
-> > > +                               if (refcount_dec_and_test(&cont->refcount)) {
-> > > +                                       list_del_rcu(&cont->list);
-> > > +                                       kfree_rcu(cont, rcu);
-> > > +                               }
-> > > +                               break;
-> > > +                       }
-> > > +       spin_unlock(&aunet->contid_list_lock);
-> > > +}
-> > > +
-> > > +void audit_switch_task_namespaces(struct nsproxy *ns, struct task_struct *p)
-> > > +{
-> > > +       u64 contid = audit_get_contid(p);
-> > > +       struct nsproxy *new = p->nsproxy;
-> > > +
-> > > +       if (!audit_contid_valid(contid))
-> > > +               return;
-> > > +       audit_netns_contid_del(ns->net_ns, contid);
-> > > +       if (new)
-> > > +               audit_netns_contid_add(new->net_ns, contid);
-> > > +}
-> > > +
-> > >  void audit_panic(const char *message)
-> > >  {
-> > >         switch (audit_failure) {
-> > > @@ -1619,7 +1694,6 @@ static int __net_init audit_net_init(struct net *net)
-> > >                 .flags  = NL_CFG_F_NONROOT_RECV,
-> > >                 .groups = AUDIT_NLGRP_MAX,
-> > >         };
-> > > -
-> > >         struct audit_net *aunet = net_generic(net, audit_net_id);
-> > >
-> > >         aunet->sk = netlink_kernel_create(net, NETLINK_AUDIT, &cfg);
-> > > @@ -1628,7 +1702,8 @@ static int __net_init audit_net_init(struct net *net)
-> > >                 return -ENOMEM;
-> > >         }
-> > >         aunet->sk->sk_sndtimeo = MAX_SCHEDULE_TIMEOUT;
-> > > -
-> > > +       INIT_LIST_HEAD(&aunet->contid_list);
-> > > +       spin_lock_init(&aunet->contid_list_lock);
-> > >         return 0;
-> > >  }
-> > >
-> > > @@ -2380,6 +2455,7 @@ int audit_set_contid(struct task_struct *task, u64 contid)
-> > >         uid_t uid;
-> > >         struct tty_struct *tty;
-> > >         char comm[sizeof(current->comm)];
-> > > +       struct net *net = task->nsproxy->net_ns;
-> > >
-> > >         task_lock(task);
-> > >         /* Can't set if audit disabled */
-> > > @@ -2401,8 +2477,12 @@ int audit_set_contid(struct task_struct *task, u64 contid)
-> > >         else if (!(thread_group_leader(task) && thread_group_empty(task)))
-> > >                 rc = -EALREADY;
-> > >         read_unlock(&tasklist_lock);
-> > > -       if (!rc)
-> > > +       if (!rc) {
-> > > +               if (audit_contid_valid(oldcontid))
-> > > +                       audit_netns_contid_del(net, oldcontid);
-> > >                 task->audit->contid = contid;
-> > > +               audit_netns_contid_add(net, contid);
-> > > +       }
-> > >         task_unlock(task);
-> > >
-> > >         if (!audit_enabled)
-> > > diff --git a/kernel/nsproxy.c b/kernel/nsproxy.c
-> > > index f6c5d330059a..718b1201ae70 100644
-> > > --- a/kernel/nsproxy.c
-> > > +++ b/kernel/nsproxy.c
-> > > @@ -27,6 +27,7 @@
-> > >  #include <linux/syscalls.h>
-> > >  #include <linux/cgroup.h>
-> > >  #include <linux/perf_event.h>
-> > > +#include <linux/audit.h>
-> > >
-> > >  static struct kmem_cache *nsproxy_cachep;
-> > >
-> > > @@ -140,6 +141,7 @@ int copy_namespaces(unsigned long flags, struct task_struct *tsk)
-> > >         struct nsproxy *old_ns = tsk->nsproxy;
-> > >         struct user_namespace *user_ns = task_cred_xxx(tsk, user_ns);
-> > >         struct nsproxy *new_ns;
-> > > +       u64 contid = audit_get_contid(tsk);
-> > >
-> > >         if (likely(!(flags & (CLONE_NEWNS | CLONE_NEWUTS | CLONE_NEWIPC |
-> > >                               CLONE_NEWPID | CLONE_NEWNET |
-> > > @@ -167,6 +169,7 @@ int copy_namespaces(unsigned long flags, struct task_struct *tsk)
-> > >                 return  PTR_ERR(new_ns);
-> > >
-> > >         tsk->nsproxy = new_ns;
-> > > +       audit_netns_contid_add(new_ns->net_ns, contid);
-> > >         return 0;
-> > >  }
-> > >
-> > > @@ -224,6 +227,7 @@ void switch_task_namespaces(struct task_struct *p, struct nsproxy *new)
-> > >         ns = p->nsproxy;
-> > >         p->nsproxy = new;
-> > >         task_unlock(p);
-> > > +       audit_switch_task_namespaces(ns, p);
-> >
-> > Since we call audit_switch_task_namespaces() after task_unlock(),
-> > could there be a potential race condition? I'm not going to dive too
-> > much into this now, because it's getting late here, but on first look
-> > it seems like p->nsproxy could change under our hands before we fetch
-> > it in audit_switch_task_namespaces()...
->
-> The rules are defined in include/linux/nsproxy.h.
->
-> Since the callers (sys_setns, do_exit, copy_process error path) are all
-> current or handing it a dead task and we are not writing nsproxy or its
-> pointers, which is only allowed by current anyway, we don't need the
-> lock.
+KMSAN started reporting an error when accessing ct->timeout for the
+first time without initialization:
 
-I see, so the task lock is taken during the swap only to protect
-against races with other tasks reading this task's nsproxy... makes
-sense. Thanks for clarifying!
+ BUG: KMSAN: uninit-value in __nf_ct_refresh_acct+0x1ae/0x470 net/netfilter/nf_conntrack_core.c:1765
+ ...
+ dump_stack+0x173/0x1d0 lib/dump_stack.c:113
+ kmsan_report+0x131/0x2a0 mm/kmsan/kmsan.c:624
+ __msan_warning+0x7a/0xf0 mm/kmsan/kmsan_instr.c:310
+ __nf_ct_refresh_acct+0x1ae/0x470 net/netfilter/nf_conntrack_core.c:1765
+ nf_ct_refresh_acct ./include/net/netfilter/nf_conntrack.h:201
+ nf_conntrack_udp_packet+0xb44/0x1040 net/netfilter/nf_conntrack_proto_udp.c:122
+ nf_conntrack_handle_packet net/netfilter/nf_conntrack_core.c:1605
+ nf_conntrack_in+0x1250/0x26c9 net/netfilter/nf_conntrack_core.c:1696
+ ...
+ Uninit was created at:
+ kmsan_save_stack_with_flags mm/kmsan/kmsan.c:205
+ kmsan_internal_poison_shadow+0x92/0x150 mm/kmsan/kmsan.c:159
+ kmsan_kmalloc+0xa9/0x130 mm/kmsan/kmsan_hooks.c:173
+ kmem_cache_alloc+0x554/0xb10 mm/slub.c:2789
+ __nf_conntrack_alloc+0x16f/0x690 net/netfilter/nf_conntrack_core.c:1342
+ init_conntrack+0x6cb/0x2490 net/netfilter/nf_conntrack_core.c:1421
 
-The refcount/spinlock issue is not blocking (and could be addressed in
-a follow-up patch later), so:
+Signed-off-by: Alexander Potapenko <glider@google.com>
+Fixes: cc16921351d8ba1 ("netfilter: conntrack: avoid same-timeout update")
+Cc: Florian Westphal <fw@strlen.de>
+---
+ net/netfilter/nf_conntrack_core.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-Reviewed-by: Ondrej Mosnacek <omosnace@redhat.com>
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 82bfbeef46af..a137d4e7f218 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -1350,6 +1350,7 @@ __nf_conntrack_alloc(struct net *net,
+ 	/* save hash for reusing when confirming */
+ 	*(unsigned long *)(&ct->tuplehash[IP_CT_DIR_REPLY].hnnode.pprev) = hash;
+ 	ct->status = 0;
++	ct->timeout = 0;
+ 	write_pnet(&ct->ct_net, net);
+ 	memset(&ct->__nfct_init_offset[0], 0,
+ 	       offsetof(struct nf_conn, proto) -
+-- 
+2.21.0.392.gf8f6787159e-goog
 
->
-> > >
-> > >         if (ns && atomic_dec_and_test(&ns->count))
-> > >                 free_nsproxy(ns);
-> > > --
-> > > 1.8.3.1
-> >
-> > Ondrej Mosnacek <omosnace at redhat dot com>
->
-> - RGB
->
-> --
-> Richard Guy Briggs <rgb@redhat.com>
-> Sr. S/W Engineer, Kernel Security, Base Operating Systems
-> Remote, Ottawa, Red Hat Canada
-> IRC: rgb, SunRaycer
-> Voice: +1.647.777.2635, Internal: (81) 32635
-
---
-Ondrej Mosnacek <omosnace at redhat dot com>
-Software Engineer, Security Technologies
-Red Hat, Inc.
