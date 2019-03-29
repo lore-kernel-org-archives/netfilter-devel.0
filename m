@@ -2,117 +2,124 @@ Return-Path: <SRS0=SelT=SA=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-13.5 required=3.0
+	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_MUTT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 00702C10F05
-	for <netfilter-devel@archiver.kernel.org>; Fri, 29 Mar 2019 10:59:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B509C10F05
+	for <netfilter-devel@archiver.kernel.org>; Fri, 29 Mar 2019 14:50:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CCAD7217F5
-	for <netfilter-devel@archiver.kernel.org>; Fri, 29 Mar 2019 10:59:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 150BA2184C
+	for <netfilter-devel@archiver.kernel.org>; Fri, 29 Mar 2019 14:50:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728800AbfC2K7t (ORCPT
+        id S1729607AbfC2OuH (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 29 Mar 2019 06:59:49 -0400
-Received: from s3.sipsolutions.net ([144.76.43.62]:53508 "EHLO
-        sipsolutions.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727788AbfC2K7t (ORCPT
+        Fri, 29 Mar 2019 10:50:07 -0400
+Received: from charlotte.tuxdriver.com ([70.61.120.58]:42957 "EHLO
+        smtp.tuxdriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729435AbfC2OuG (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 29 Mar 2019 06:59:49 -0400
-Received: by sipsolutions.net with esmtpsa (TLS1.2:ECDHE_RSA_AES_256_GCM_SHA384:256)
-        (Exim 4.92-RC5)
-        (envelope-from <johannes@sipsolutions.net>)
-        id 1h9pEh-0004en-5h; Fri, 29 Mar 2019 11:59:47 +0100
-Message-ID: <f882918e408247a4e0e8d0007feead5bbf311003.camel@sipsolutions.net>
-Subject: Re: [PATCH RFC 4/4] netfilter: nf_tables: add netlink description
-From:   Johannes Berg <johannes@sipsolutions.net>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-Cc:     netdev@vger.kernel.org
-Date:   Fri, 29 Mar 2019 11:59:46 +0100
-In-Reply-To: <20180207013713.2432-5-pablo@netfilter.org>
-References: <20180207013713.2432-1-pablo@netfilter.org>
-         <20180207013713.2432-5-pablo@netfilter.org>
-Content-Type: text/plain; charset="UTF-8"
-X-Mailer: Evolution 3.28.5 (3.28.5-2.fc28) 
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+        Fri, 29 Mar 2019 10:50:06 -0400
+Received: from cpe-2606-a000-111b-405a-9816-2c85-c514-8f7a.dyn6.twc.com ([2606:a000:111b:405a:9816:2c85:c514:8f7a] helo=localhost)
+        by smtp.tuxdriver.com with esmtpsa (TLSv1:AES256-SHA:256)
+        (Exim 4.63)
+        (envelope-from <nhorman@tuxdriver.com>)
+        id 1h9spR-0005o5-Es; Fri, 29 Mar 2019 10:50:01 -0400
+Date:   Fri, 29 Mar 2019 10:49:27 -0400
+From:   Neil Horman <nhorman@tuxdriver.com>
+To:     Richard Guy Briggs <rgb@redhat.com>
+Cc:     Ondrej Mosnacek <omosnace@redhat.com>, linux-api@vger.kernel.org,
+        containers@lists.linux-foundation.org,
+        LKML <linux-kernel@vger.kernel.org>,
+        David Howells <dhowells@redhat.com>,
+        Linux-Audit Mailing List <linux-audit@redhat.com>,
+        netfilter-devel@vger.kernel.org,
+        "Eric W . Biederman" <ebiederm@xmission.com>,
+        Simo Sorce <simo@redhat.com>, netdev@vger.kernel.org,
+        linux-fsdevel@vger.kernel.org, Eric Paris <eparis@parisplace.org>,
+        "Serge E. Hallyn" <serge@hallyn.com>
+Subject: Re: [PATCH ghak90 V5 09/10] audit: add support for containerid to
+ network namespaces
+Message-ID: <20190328112100.GA11558@hmswarspite.think-freely.org>
+References: <cover.1552665316.git.rgb@redhat.com>
+ <27473c84a274c64871cfa8e3636deaf05603c978.1552665316.git.rgb@redhat.com>
+ <CAFqZXNskwTub5Bm_HZqr02VPB4s79CcgAVX8VE2vQYP07-qssg@mail.gmail.com>
+ <20190328011202.6raixwzdimn5b4zk@madcap2.tricolour.ca>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190328011202.6raixwzdimn5b4zk@madcap2.tricolour.ca>
+User-Agent: Mutt/1.11.3 (2019-02-01)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, 2018-02-07 at 02:37 +0100, Pablo Neira Ayuso wrote:
+On Wed, Mar 27, 2019 at 09:12:02PM -0400, Richard Guy Briggs wrote:
+> On 2019-03-27 23:42, Ondrej Mosnacek wrote:
+> > On Fri, Mar 15, 2019 at 7:35 PM Richard Guy Briggs <rgb@redhat.com> wrote:
+> > > Audit events could happen in a network namespace outside of a task
+> > > context due to packets received from the net that trigger an auditing
+> > > rule prior to being associated with a running task.  The network
+> > > namespace could be in use by multiple containers by association to the
+> > > tasks in that network namespace.  We still want a way to attribute
+> > > these events to any potential containers.  Keep a list per network
+> > > namespace to track these audit container identifiiers.
+> > >
+> > > Add/increment the audit container identifier on:
+> > > - initial setting of the audit container identifier via /proc
+> > > - clone/fork call that inherits an audit container identifier
+> > > - unshare call that inherits an audit container identifier
+> > > - setns call that inherits an audit container identifier
+> > > Delete/decrement the audit container identifier on:
+> > > - an inherited audit container identifier dropped when child set
+> > > - process exit
+> > > - unshare call that drops a net namespace
+> > > - setns call that drops a net namespace
+> > >
+> > > See: https://github.com/linux-audit/audit-kernel/issues/92
+> > > See: https://github.com/linux-audit/audit-testsuite/issues/64
+> > > See: https://github.com/linux-audit/audit-kernel/wiki/RFE-Audit-Container-ID
+> > > Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
+> > > ---
+> > >  include/linux/audit.h | 19 ++++++++++++
+> > >  kernel/audit.c        | 86 +++++++++++++++++++++++++++++++++++++++++++++++++--
+> > >  kernel/nsproxy.c      |  4 +++
+> > >  3 files changed, 106 insertions(+), 3 deletions(-)
+> > >
+> > > diff --git a/include/linux/audit.h b/include/linux/audit.h
+> > > index fa19fa408931..70255c2dfb9f 100644
+> > > --- a/include/linux/audit.h
+> > > +++ b/include/linux/audit.h
+> > > @@ -27,6 +27,7 @@
+> > >  #include <linux/ptrace.h>
+> > >  #include <linux/namei.h>  /* LOOKUP_* */
+> > >  #include <uapi/linux/audit.h>
+> > > +#include <linux/refcount.h>
+> > >
+> > >  #define AUDIT_INO_UNSET ((unsigned long)-1)
+> > >  #define AUDIT_DEV_UNSET ((dev_t)-1)
+> > > @@ -99,6 +100,13 @@ struct audit_task_info {
+> > >
+> > >  extern struct audit_task_info init_struct_audit;
+> > >
+> > > +struct audit_contid {
+> > > +       struct list_head        list;
+> > > +       u64                     id;
+> > > +       refcount_t              refcount;
+> > 
+> > Hm, since we only ever touch the refcount under a spinlock, I wonder
+> > if we could just make it a regular unsigned int (we don't need the
+> > atomicity guarantees). OTOH, refcount_t comes with some extra overflow
+> > checking, so it's probably better to leave it as is...
 > 
-> +static const struct nl_desc_attr nft_nldesc_table_attrs[NFTA_TABLE_MAX + 1] = {
-> +	NLDESC_ATTR_STRING(NFTA_TABLE_NAME, NFT_NAME_MAXLEN - 1),
-> +	NLDESC_ATTR_U32_MAX(NFTA_TABLE_FLAGS, NFT_TABLE_F_DORMANT),
-> +	NLDESC_ATTR_U32(NFTA_TABLE_USE),
-> +	NLDESC_ATTR_U64(NFTA_TABLE_HANDLE),
-> +	NLDESC_ATTR_PAD(NFTA_TABLE_PAD),
-> +};
-
-This part I don't really like so much. Yes, it's >1yo, so we didn't have
-all the stuff at the time.
-
-But this is _lots_ of code, and most of it is already encoded in the
-nla_policy for all those attributes. I think we really need to find a
-way to unify the two sets of data.
-
-I'd actually be happy to *just* expose the policy with all its nested
-elements/objects in there. That'd probably be also almost enough for
-you? And that way you don't need to maintain the same descriptions twice
-(and we *will* get it wrong if we do that).
-
-For genl sub-families, I'd also say that the whole thing could be
-exposed within the genl family, so I think we'd want to express this as
-some kind of helper logic to export the policy data.
-
-I'm not entirely sure what the whole story with your "objects" is
-though. Aren't those just nested attributes of sort?
-
-I see e.g.
-
+> Since the update is done using rcu-safe methods, do we even need the
+> spin_lock?  Neil?  Paul?
 > 
-> +static const struct nl_desc_attr nft_nldesc_set_desc_attrs[NFTA_SET_DESC_MAX + 1] = {
-> +       NLDESC_ATTR_U32(NFTA_SET_DESC_SIZE),
-> +};
+Yes, we do.  Rcu-safe methods only apply to read side operations, we still need
+traditional mutual exclusion on the write side of the operation.  That is to say
+we need to protect the list against multiple writers at the same time, and for
+that we need a spin lock.
 
-This is policy data - like I said above we should unify the two.
-
-> +static const struct nl_desc_obj nft_nldesc_set_desc[] = {
-> +       NLDESC_OBJ(NFT_SET_DESC, nft_nldesc_set_desc_attrs, NFTA_SET_DESC_MAX),
-
-This is some kind of "object", which I'm not sure I understand, but
-NFTA_SET_DESC_MAX is just the policy data of what the max attribute is
-for this thing.
-
-> +static const struct nl_desc_attr nft_nldesc_set_attrs[NFTA_SET_MAX + 1] = {
-...
-> +       NLDESC_ATTR_NESTED(NFTA_SET_DESC, nft_nldesc_set_desc),
-
-and here this is again just a policy thing, more or less.
-
-So it seems to me that without even having an object enum, we'd get the
-same kind of data by
-
-struct nla_policy nft_policy_set_desc[NFTA_SET_DESC_MAX + 1] = {
-	[NFTA_SET_DESC_SIZE] = { .type = NLA_U32 },
-};
-
-struct nla_policy nft_policy_set[NFTA_SET_MAX + 1] = {
-	[NFTA_SET_DESC] = NLA_POLICY_NESTED(nft_policy_set_desc),
-};
-
-Except we don't have an "object ID" (and obviously also that we can use
-the same data to actually parse/validate messages, and so don't end up
-with bad situations of nldesc saying one thing and the policy another.)
-
-
-
-So ... Assuming I write some code to expose the policy (which I plan on
-doing), what would this still be able to expose in addition?
-
-johannes
-
+Neil
