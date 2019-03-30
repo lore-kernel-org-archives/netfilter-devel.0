@@ -7,48 +7,47 @@ X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A46C1C43381
-	for <netfilter-devel@archiver.kernel.org>; Sat, 30 Mar 2019 01:40:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 58997C43381
+	for <netfilter-devel@archiver.kernel.org>; Sat, 30 Mar 2019 01:40:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 74323217F5
-	for <netfilter-devel@archiver.kernel.org>; Sat, 30 Mar 2019 01:40:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 289E32183F
+	for <netfilter-devel@archiver.kernel.org>; Sat, 30 Mar 2019 01:40:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1553910003;
-	bh=HCVAH2sr7l+ULzYinwOBQaGwyD8hEINZPE5Ym4L4tk8=;
+	s=default; t=1553910057;
+	bh=vBo4IsUezcIL3tubt4Tz4uuwzErRkyJ7COzUFCRa5Cw=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=H81s+KHGjJC7xN4aR1JQVdgw/L+iI5rg4+1Bu9gslEFGvQUHefD0wq6wwjfglxkY2
-	 gdMBNBbnxMG14KXfKALRPVyHHrVPAPluXvQFjMqD30epgd30IT0HBnlqrYicmMCFRG
-	 CsqIIo+AhKGGBwDUeMEVDEPHeyb7fVDLuZWl9Jok=
+	b=FVBdIM+Gp472av2rN4Y/yyK/Bo+fUNX2mSsqaEkq5dceE5bkFiY2wAuGODEfOjaYf
+	 fCg2ZZe1c6OV8TPD4Yn55Jw4NFHocDgvZKV9gEjbMszx3yeAMmL7qS2xZmqL0TBkK+
+	 o4oGrJQNbe9VLZX/xpkK+QA4W+Ugd1oO8GKO5QxM=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731415AbfC3Bj4 (ORCPT
+        id S1731034AbfC3Bku (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 29 Mar 2019 21:39:56 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36560 "EHLO mail.kernel.org"
+        Fri, 29 Mar 2019 21:40:50 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35894 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731033AbfC3B3j (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 29 Mar 2019 21:29:39 -0400
+        id S1730680AbfC3B3G (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 29 Mar 2019 21:29:06 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 67DEE217F5;
-        Sat, 30 Mar 2019 01:29:37 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 8CA38218FD;
+        Sat, 30 Mar 2019 01:29:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1553909378;
-        bh=HCVAH2sr7l+ULzYinwOBQaGwyD8hEINZPE5Ym4L4tk8=;
+        s=default; t=1553909345;
+        bh=vBo4IsUezcIL3tubt4Tz4uuwzErRkyJ7COzUFCRa5Cw=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=2PfNlS2kkorLghQrjGAckBxott3S6/yCPXgw4Kt+mJzXGL5mr4ulBO0pcYpwU0INV
-         dm+S44ftZkKholE+Ix+fmxqdww7Pe2J2p9kVKwOmTcXZjtb0YNLe4yqBn8RMwsEKzl
-         QX8TeZxU/7iBNnMj84wJ6JZXgawnfJ+VnY1ft610=
+        b=YdGQFAURrfVVjCAT1S2mybRT6KACNkNkhtohd6kF6nL03rxmxZA/VaTDbIk4VVurO
+         l7+zfrOerWq8BnKLHa5YLNUPgZVsvX8yRI0mbgTHbFruALMcAJl/sAoOh6N08WsSgg
+         ZGKCTcRVjYzzq+RmHOBKZ8/VXEy3d6GOJ6qAtLgc=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Taehee Yoo <ap420073@gmail.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>, Tejun Heo <tj@kernel.org>,
         Sasha Levin <sashal@kernel.org>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, bpf@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.19 22/57] netfilter: nf_flow_table: remove flowtable hook flush routine in netns exit routine
-Date:   Fri, 29 Mar 2019 21:28:15 -0400
-Message-Id: <20190330012854.32212-22-sashal@kernel.org>
+        netdev@vger.kernel.org
+Subject: [PATCH AUTOSEL 4.19 09/57] netfilter: xt_cgroup: shrink size of v2 path
+Date:   Fri, 29 Mar 2019 21:28:02 -0400
+Message-Id: <20190330012854.32212-9-sashal@kernel.org>
 X-Mailer: git-send-email 2.19.1
 In-Reply-To: <20190330012854.32212-1-sashal@kernel.org>
 References: <20190330012854.32212-1-sashal@kernel.org>
@@ -61,91 +60,158 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Taehee Yoo <ap420073@gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-[ Upstream commit b7f1a16d29b2e28d3dcbb070511bd703e306281b ]
+[ Upstream commit 0d704967f4a49cc2212350b3e4a8231f8b4283ed ]
 
-When device is unregistered, flowtable flush routine is called
-by notifier_call(nf_tables_flowtable_event). and exit callback of
-nftables pernet_operation(nf_tables_exit_net) also has flowtable flush
-routine. but when network namespace is destroyed, both notifier_call
-and pernet_operation are called. hence flowtable flush routine in
-pernet_operation is unnecessary.
+cgroup v2 path field is PATH_MAX which is too large, this is placing too
+much pressure on memory allocation for people with many rules doing
+cgroup v1 classid matching, side effects of this are bug reports like:
 
-test commands:
-   %ip netns add vm1
-   %ip netns exec vm1 nft add table ip filter
-   %ip netns exec vm1 nft add flowtable ip filter w \
-	{ hook ingress priority 0\; devices = { lo }\; }
-   %ip netns del vm1
+https://bugzilla.kernel.org/show_bug.cgi?id=200639
 
-splat looks like:
-[  265.187019] WARNING: CPU: 0 PID: 87 at net/netfilter/core.c:309 nf_hook_entry_head+0xc7/0xf0
-[  265.187112] Modules linked in: nf_flow_table_ipv4 nf_flow_table nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 nf_tables nfnetlink ip_tables x_tables
-[  265.187390] CPU: 0 PID: 87 Comm: kworker/u4:2 Not tainted 4.19.0-rc3+ #5
-[  265.187453] Workqueue: netns cleanup_net
-[  265.187514] RIP: 0010:nf_hook_entry_head+0xc7/0xf0
-[  265.187546] Code: 8d 81 68 03 00 00 5b c3 89 d0 83 fa 04 48 8d 84 c7 e8 11 00 00 76 81 0f 0b 31 c0 e9 78 ff ff ff 0f 0b 48 83 c4 08 31 c0 5b c3 <0f> 0b 31 c0 e9 65 ff ff ff 0f 0b 31 c0 e9 5c ff ff ff 48 89 0c 24
-[  265.187573] RSP: 0018:ffff88011546f098 EFLAGS: 00010246
-[  265.187624] RAX: ffffffff8d90e135 RBX: 1ffff10022a8de1c RCX: 0000000000000000
-[  265.187645] RDX: 0000000000000000 RSI: 0000000000000005 RDI: ffff880116298040
-[  265.187645] RBP: ffff88010ea4c1a8 R08: 0000000000000000 R09: 0000000000000000
-[  265.187645] R10: ffff88011546f1d8 R11: ffffed0022c532c1 R12: ffff88010ea4c1d0
-[  265.187645] R13: 0000000000000005 R14: dffffc0000000000 R15: ffff88010ea4c1c4
-[  265.187645] FS:  0000000000000000(0000) GS:ffff88011b200000(0000) knlGS:0000000000000000
-[  265.187645] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[  265.187645] CR2: 00007fdfb8d00000 CR3: 0000000057a16000 CR4: 00000000001006f0
-[  265.187645] Call Trace:
-[  265.187645]  __nf_unregister_net_hook+0xca/0x5d0
-[  265.187645]  ? nf_hook_entries_free.part.3+0x80/0x80
-[  265.187645]  ? save_trace+0x300/0x300
-[  265.187645]  nf_unregister_net_hooks+0x2e/0x40
-[  265.187645]  nf_tables_exit_net+0x479/0x1340 [nf_tables]
-[  265.187645]  ? find_held_lock+0x39/0x1c0
-[  265.187645]  ? nf_tables_abort+0x30/0x30 [nf_tables]
-[  265.187645]  ? inet_frag_destroy_rcu+0xd0/0xd0
-[  265.187645]  ? trace_hardirqs_on+0x93/0x210
-[  265.187645]  ? __bpf_trace_preemptirq_template+0x10/0x10
-[  265.187645]  ? inet_frag_destroy_rcu+0xd0/0xd0
-[  265.187645]  ? inet_frag_destroy_rcu+0xd0/0xd0
-[  265.187645]  ? __mutex_unlock_slowpath+0x17f/0x740
-[  265.187645]  ? wait_for_completion+0x710/0x710
-[  265.187645]  ? bucket_table_free+0xb2/0x1f0
-[  265.187645]  ? nested_table_free+0x130/0x130
-[  265.187645]  ? __lock_is_held+0xb4/0x140
-[  265.187645]  ops_exit_list.isra.10+0x94/0x140
-[  265.187645]  cleanup_net+0x45b/0x900
-[ ... ]
+This patch registers a new revision that shrinks the cgroup path to 512
+bytes, which is the same approach we follow in similar extensions that
+have a path field.
 
-This WARNING means that hook unregisteration is failed because
-all flowtables hooks are already unregistered by notifier_call.
-
-Network namespace exit routine guarantees that all devices will be
-unregistered first. then, other exit callbacks of pernet_operations
-are called. so that removing flowtable flush routine in exit callback of
-pernet_operation(nf_tables_exit_net) doesn't make flowtable leak.
-
-Signed-off-by: Taehee Yoo <ap420073@gmail.com>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Acked-by: Tejun Heo <tj@kernel.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- net/netfilter/nf_tables_api.c | 3 ---
- 1 file changed, 3 deletions(-)
+ include/uapi/linux/netfilter/xt_cgroup.h | 16 ++++++
+ net/netfilter/xt_cgroup.c                | 72 ++++++++++++++++++++++++
+ 2 files changed, 88 insertions(+)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 7d424fd27025..c06393fc716d 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -7203,9 +7203,6 @@ static void __nft_release_tables(struct net *net)
+diff --git a/include/uapi/linux/netfilter/xt_cgroup.h b/include/uapi/linux/netfilter/xt_cgroup.h
+index e96dfa1b34f7..b74e370d6133 100644
+--- a/include/uapi/linux/netfilter/xt_cgroup.h
++++ b/include/uapi/linux/netfilter/xt_cgroup.h
+@@ -22,4 +22,20 @@ struct xt_cgroup_info_v1 {
+ 	void		*priv __attribute__((aligned(8)));
+ };
  
- 		list_for_each_entry(chain, &table->chains, list)
- 			nf_tables_unregister_hook(net, table, chain);
--		list_for_each_entry(flowtable, &table->flowtables, list)
--			nf_unregister_net_hooks(net, flowtable->ops,
--						flowtable->ops_len);
- 		/* No packets are walking on these chains anymore. */
- 		ctx.table = table;
- 		list_for_each_entry(chain, &table->chains, list) {
++#define XT_CGROUP_PATH_MAX	512
++
++struct xt_cgroup_info_v2 {
++	__u8		has_path;
++	__u8		has_classid;
++	__u8		invert_path;
++	__u8		invert_classid;
++	union {
++		char	path[XT_CGROUP_PATH_MAX];
++		__u32	classid;
++	};
++
++	/* kernel internal data */
++	void		*priv __attribute__((aligned(8)));
++};
++
+ #endif /* _UAPI_XT_CGROUP_H */
+diff --git a/net/netfilter/xt_cgroup.c b/net/netfilter/xt_cgroup.c
+index 5d92e1781980..5cb1ecb29ea4 100644
+--- a/net/netfilter/xt_cgroup.c
++++ b/net/netfilter/xt_cgroup.c
+@@ -68,6 +68,38 @@ static int cgroup_mt_check_v1(const struct xt_mtchk_param *par)
+ 	return 0;
+ }
+ 
++static int cgroup_mt_check_v2(const struct xt_mtchk_param *par)
++{
++	struct xt_cgroup_info_v2 *info = par->matchinfo;
++	struct cgroup *cgrp;
++
++	if ((info->invert_path & ~1) || (info->invert_classid & ~1))
++		return -EINVAL;
++
++	if (!info->has_path && !info->has_classid) {
++		pr_info("xt_cgroup: no path or classid specified\n");
++		return -EINVAL;
++	}
++
++	if (info->has_path && info->has_classid) {
++		pr_info_ratelimited("path and classid specified\n");
++		return -EINVAL;
++	}
++
++	info->priv = NULL;
++	if (info->has_path) {
++		cgrp = cgroup_get_from_path(info->path);
++		if (IS_ERR(cgrp)) {
++			pr_info_ratelimited("invalid path, errno=%ld\n",
++					    PTR_ERR(cgrp));
++			return -EINVAL;
++		}
++		info->priv = cgrp;
++	}
++
++	return 0;
++}
++
+ static bool
+ cgroup_mt_v0(const struct sk_buff *skb, struct xt_action_param *par)
+ {
+@@ -99,6 +131,24 @@ static bool cgroup_mt_v1(const struct sk_buff *skb, struct xt_action_param *par)
+ 			info->invert_classid;
+ }
+ 
++static bool cgroup_mt_v2(const struct sk_buff *skb, struct xt_action_param *par)
++{
++	const struct xt_cgroup_info_v2 *info = par->matchinfo;
++	struct sock_cgroup_data *skcd = &skb->sk->sk_cgrp_data;
++	struct cgroup *ancestor = info->priv;
++	struct sock *sk = skb->sk;
++
++	if (!sk || !sk_fullsock(sk) || !net_eq(xt_net(par), sock_net(sk)))
++		return false;
++
++	if (ancestor)
++		return cgroup_is_descendant(sock_cgroup_ptr(skcd), ancestor) ^
++			info->invert_path;
++	else
++		return (info->classid == sock_cgroup_classid(skcd)) ^
++			info->invert_classid;
++}
++
+ static void cgroup_mt_destroy_v1(const struct xt_mtdtor_param *par)
+ {
+ 	struct xt_cgroup_info_v1 *info = par->matchinfo;
+@@ -107,6 +157,14 @@ static void cgroup_mt_destroy_v1(const struct xt_mtdtor_param *par)
+ 		cgroup_put(info->priv);
+ }
+ 
++static void cgroup_mt_destroy_v2(const struct xt_mtdtor_param *par)
++{
++	struct xt_cgroup_info_v2 *info = par->matchinfo;
++
++	if (info->priv)
++		cgroup_put(info->priv);
++}
++
+ static struct xt_match cgroup_mt_reg[] __read_mostly = {
+ 	{
+ 		.name		= "cgroup",
+@@ -134,6 +192,20 @@ static struct xt_match cgroup_mt_reg[] __read_mostly = {
+ 				  (1 << NF_INET_POST_ROUTING) |
+ 				  (1 << NF_INET_LOCAL_IN),
+ 	},
++	{
++		.name		= "cgroup",
++		.revision	= 2,
++		.family		= NFPROTO_UNSPEC,
++		.checkentry	= cgroup_mt_check_v2,
++		.match		= cgroup_mt_v2,
++		.matchsize	= sizeof(struct xt_cgroup_info_v2),
++		.usersize	= offsetof(struct xt_cgroup_info_v2, priv),
++		.destroy	= cgroup_mt_destroy_v2,
++		.me		= THIS_MODULE,
++		.hooks		= (1 << NF_INET_LOCAL_OUT) |
++				  (1 << NF_INET_POST_ROUTING) |
++				  (1 << NF_INET_LOCAL_IN),
++	},
+ };
+ 
+ static int __init cgroup_mt_init(void)
 -- 
 2.19.1
 
