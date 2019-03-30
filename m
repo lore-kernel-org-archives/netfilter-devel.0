@@ -1,199 +1,217 @@
-Return-Path: <SRS0=SelT=SA=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=fRNh=SB=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.5 required=3.0
-	tests=HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SIGNED_OFF_BY,SPF_PASS,USER_AGENT_MUTT autolearn=unavailable
+X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2EE66C10F05
-	for <netfilter-devel@archiver.kernel.org>; Fri, 29 Mar 2019 14:51:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9F876C4360F
+	for <netfilter-devel@archiver.kernel.org>; Sat, 30 Mar 2019 01:37:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id F22432183F
-	for <netfilter-devel@archiver.kernel.org>; Fri, 29 Mar 2019 14:51:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6F87C217F5
+	for <netfilter-devel@archiver.kernel.org>; Sat, 30 Mar 2019 01:37:45 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1553909865;
+	bh=cgWWA4NdB4H980FSIjqAM4q10d158oVXZcb0Y/IiNRg=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=n1gzWhcdf7wm/e9OHDFn+wqgv+AfnbqSxMgvxhHSTlDHVGkm/9rlYKjeRQzin9/6D
+	 ZwXgMKAvQdhsNu5AsSNSG5+hSU1K89VVNey4VnwNyPbjxIhVa4qGs99R86q26ktIkP
+	 5RoO/MFr03OrKjIi/I5HbT06D/P2UEpSkGPu1Yw8=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729482AbfC2Ou7 (ORCPT
+        id S1731658AbfC3Baa (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 29 Mar 2019 10:50:59 -0400
-Received: from charlotte.tuxdriver.com ([70.61.120.58]:43001 "EHLO
-        smtp.tuxdriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728869AbfC2Ou7 (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 29 Mar 2019 10:50:59 -0400
-Received: from cpe-2606-a000-111b-405a-9816-2c85-c514-8f7a.dyn6.twc.com ([2606:a000:111b:405a:9816:2c85:c514:8f7a] helo=localhost)
-        by smtp.tuxdriver.com with esmtpsa (TLSv1:AES256-SHA:256)
-        (Exim 4.63)
-        (envelope-from <nhorman@tuxdriver.com>)
-        id 1h9sqD-0005om-Ei; Fri, 29 Mar 2019 10:50:48 -0400
-Date:   Fri, 29 Mar 2019 10:50:17 -0400
-From:   Neil Horman <nhorman@tuxdriver.com>
-To:     Richard Guy Briggs <rgb@redhat.com>
-Cc:     Paul Moore <paul@paul-moore.com>,
-        Ondrej Mosnacek <omosnace@redhat.com>,
-        linux-api@vger.kernel.org, containers@lists.linux-foundation.org,
-        LKML <linux-kernel@vger.kernel.org>,
-        David Howells <dhowells@redhat.com>,
-        Linux-Audit Mailing List <linux-audit@redhat.com>,
-        netfilter-devel@vger.kernel.org,
-        "Eric W . Biederman" <ebiederm@xmission.com>,
-        Simo Sorce <simo@redhat.com>, netdev@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, Eric Paris <eparis@parisplace.org>,
-        "Serge E. Hallyn" <serge@hallyn.com>
-Subject: Re: [PATCH ghak90 V5 09/10] audit: add support for containerid to
- network namespaces
-Message-ID: <20190329120403.GA30213@hmswarspite.think-freely.org>
-References: <cover.1552665316.git.rgb@redhat.com>
- <27473c84a274c64871cfa8e3636deaf05603c978.1552665316.git.rgb@redhat.com>
- <CAFqZXNskwTub5Bm_HZqr02VPB4s79CcgAVX8VE2vQYP07-qssg@mail.gmail.com>
- <20190328011202.6raixwzdimn5b4zk@madcap2.tricolour.ca>
- <CAHC9VhQYVSrX1Ng7hZejkGSq6ZXtqi+SKmpARASJ4P2_2i3-4w@mail.gmail.com>
- <20190328214023.qpszfvxbrjlldmmt@madcap2.tricolour.ca>
+        Fri, 29 Mar 2019 21:30:30 -0400
+Received: from mail.kernel.org ([198.145.29.99]:37724 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1731626AbfC3Ba3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 29 Mar 2019 21:30:29 -0400
+Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 571D1217F5;
+        Sat, 30 Mar 2019 01:30:27 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1553909428;
+        bh=cgWWA4NdB4H980FSIjqAM4q10d158oVXZcb0Y/IiNRg=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=XQtZOGe+637WoDW5PKyAq3uMPjHxs/6lK1Kvp1W7Yf4IoJxAKPpCb3ZqLOqbRTnBt
+         Xg3xgJ9YYo7A+7ufTwoZB5EP0GjGRi8qQ2jDxMjkX8xupBATJ9UFGkeoX1Wao9jw76
+         INvm8MuAWDl51YVIJ4M6bnAlHEGe3+/BsldzXvo0=
+From:   Sasha Levin <sashal@kernel.org>
+To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>, Tejun Heo <tj@kernel.org>,
+        Sasha Levin <sashal@kernel.org>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org
+Subject: [PATCH AUTOSEL 4.14 06/37] netfilter: xt_cgroup: shrink size of v2 path
+Date:   Fri, 29 Mar 2019 21:29:49 -0400
+Message-Id: <20190330013020.379-6-sashal@kernel.org>
+X-Mailer: git-send-email 2.19.1
+In-Reply-To: <20190330013020.379-1-sashal@kernel.org>
+References: <20190330013020.379-1-sashal@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190328214023.qpszfvxbrjlldmmt@madcap2.tricolour.ca>
-User-Agent: Mutt/1.11.3 (2019-02-01)
+X-stable: review
+X-Patchwork-Hint: Ignore
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Mar 28, 2019 at 05:40:23PM -0400, Richard Guy Briggs wrote:
-> On 2019-03-28 11:46, Paul Moore wrote:
-> > On Wed, Mar 27, 2019 at 9:12 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> > >
-> > > On 2019-03-27 23:42, Ondrej Mosnacek wrote:
-> > > > On Fri, Mar 15, 2019 at 7:35 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> > > > > Audit events could happen in a network namespace outside of a task
-> > > > > context due to packets received from the net that trigger an auditing
-> > > > > rule prior to being associated with a running task.  The network
-> > > > > namespace could be in use by multiple containers by association to the
-> > > > > tasks in that network namespace.  We still want a way to attribute
-> > > > > these events to any potential containers.  Keep a list per network
-> > > > > namespace to track these audit container identifiiers.
-> > > > >
-> > > > > Add/increment the audit container identifier on:
-> > > > > - initial setting of the audit container identifier via /proc
-> > > > > - clone/fork call that inherits an audit container identifier
-> > > > > - unshare call that inherits an audit container identifier
-> > > > > - setns call that inherits an audit container identifier
-> > > > > Delete/decrement the audit container identifier on:
-> > > > > - an inherited audit container identifier dropped when child set
-> > > > > - process exit
-> > > > > - unshare call that drops a net namespace
-> > > > > - setns call that drops a net namespace
-> > > > >
-> > > > > See: https://github.com/linux-audit/audit-kernel/issues/92
-> > > > > See: https://github.com/linux-audit/audit-testsuite/issues/64
-> > > > > See: https://github.com/linux-audit/audit-kernel/wiki/RFE-Audit-Container-ID
-> > > > > Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
-> > > > > ---
-> > > > >  include/linux/audit.h | 19 ++++++++++++
-> > > > >  kernel/audit.c        | 86 +++++++++++++++++++++++++++++++++++++++++++++++++--
-> > > > >  kernel/nsproxy.c      |  4 +++
-> > > > >  3 files changed, 106 insertions(+), 3 deletions(-)
-> > > > >
-> > > > > diff --git a/include/linux/audit.h b/include/linux/audit.h
-> > > > > index fa19fa408931..70255c2dfb9f 100644
-> > > > > --- a/include/linux/audit.h
-> > > > > +++ b/include/linux/audit.h
-> > > > > @@ -27,6 +27,7 @@
-> > > > >  #include <linux/ptrace.h>
-> > > > >  #include <linux/namei.h>  /* LOOKUP_* */
-> > > > >  #include <uapi/linux/audit.h>
-> > > > > +#include <linux/refcount.h>
-> > > > >
-> > > > >  #define AUDIT_INO_UNSET ((unsigned long)-1)
-> > > > >  #define AUDIT_DEV_UNSET ((dev_t)-1)
-> > > > > @@ -99,6 +100,13 @@ struct audit_task_info {
-> > > > >
-> > > > >  extern struct audit_task_info init_struct_audit;
-> > > > >
-> > > > > +struct audit_contid {
-> > > > > +       struct list_head        list;
-> > > > > +       u64                     id;
-> > > > > +       refcount_t              refcount;
-> > > >
-> > > > Hm, since we only ever touch the refcount under a spinlock, I wonder
-> > > > if we could just make it a regular unsigned int (we don't need the
-> > > > atomicity guarantees). OTOH, refcount_t comes with some extra overflow
-> > > > checking, so it's probably better to leave it as is...
-> > >
-> > > Since the update is done using rcu-safe methods, do we even need the
-> > > spin_lock?  Neil?  Paul?
-> > 
-> > As discussed, the refcount field is protected against simultaneous
-> > writes by the spinlock that protects additions/removals from the list
-> > as a whole so I don't believe the refcount_t atomicity is critical in
-> > this regard.
-> > 
-> > Where it gets tricky, and I can't say I'm 100% confident on my answer
-> > here, is if refcount was a regular int and we wanted to access it
-> > outside of a spinlock (to be clear, it doesn't look like this patch
-> > currently does this).  With RCU, if refcount was a regular int
-> > (unsigned or otherwise), I believe it would be possible for different
-> > threads of execution to potentially see different values of refcount
-> > (assuming one thread was adding/removing from the list).  Using a
-> > refcount_t would protect against this, alternatively, taking the
-> > spinlock should also protect against this.
-> 
-> Ok, from the above it isn't clear to me if you are happy with the
-> current code or would prefer any changes, or from below that you still
-> need to work it through to make a pronouncement.  It sounds to me you
-> would be ok with *either* spinlock *or* refcount_t, but don't see the
-> need for both.
-> 
-I'll reiterate I think we should keep the refcount type just as it is, not for
-safetys sake, but for readability and convienience.
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-Because the refcount currently only is used on add and delete operations
-(implying it is only read in paths where its also modified), we need to
-guarantee atomicity against multiple parallel writes.  We already have that
-guarantee because every path in which we call
-refcount_set/refcount_inc/refcount_dec_and_test occurs under the protection of
-the list spin lock, and so from that standpoint we don't need the additional
-guarantees offered by the refcount_t type.
+[ Upstream commit 0d704967f4a49cc2212350b3e4a8231f8b4283ed ]
 
-However, if it were to be converted to an int type, we would have to replace the
-refcount_dec_and_test call with this:
-if (x == 0)
-   warn_on_underflow
-   return
-x -= 1;
-if (x == 0)
-   preform_operations_to_free_list_entry
+cgroup v2 path field is PATH_MAX which is too large, this is placing too
+much pressure on memory allocation for people with many rules doing
+cgroup v1 classid matching, side effects of this are bug reports like:
 
-I find refcount_dec_and_test to be far easier to read and maintain, and you
-still have to do all of this under the protection of a spin lock, to protect
-against multiple writes.  And if you ever find that you are adding a pure read
-side query of the refcount, you would need to hold the spin lock there as well,
-instead of just using the available refcount_read api call
+https://bugzilla.kernel.org/show_bug.cgi?id=200639
 
-Yeah, you would save a few cycles if you didn't use an atomic type here, but
-we're only talking about paths from user space making system calls executing
-here (no high volume per packet receive paths or anything), and these paths have
-already taken a few locks (the list lock, the task lock, etc), so eliminating
-this one atomic isn't going to amount to anything.  Lets leave it as it is and
-buy ourselves the extra code readability.
+This patch registers a new revision that shrinks the cgroup path to 512
+bytes, which is the same approach we follow in similar extensions that
+have a path field.
 
-Neil
+Cc: Tejun Heo <tj@kernel.org>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Acked-by: Tejun Heo <tj@kernel.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ include/uapi/linux/netfilter/xt_cgroup.h | 16 ++++++
+ net/netfilter/xt_cgroup.c                | 72 ++++++++++++++++++++++++
+ 2 files changed, 88 insertions(+)
 
-> > As we all know, RCU can be tricky at times, so I may be off on the
-> > above; if I am, please provide an explanation so I (and likely others
-> > as well) can learn a little bit more. :)
-> > 
-> > -- 
-> > paul moore
-> > www.paul-moore.com
-> 
-> - RGB
-> 
-> --
-> Richard Guy Briggs <rgb@redhat.com>
-> Sr. S/W Engineer, Kernel Security, Base Operating Systems
-> Remote, Ottawa, Red Hat Canada
-> IRC: rgb, SunRaycer
-> Voice: +1.647.777.2635, Internal: (81) 32635
-> 
-> 
+diff --git a/include/uapi/linux/netfilter/xt_cgroup.h b/include/uapi/linux/netfilter/xt_cgroup.h
+index e96dfa1b34f7..b74e370d6133 100644
+--- a/include/uapi/linux/netfilter/xt_cgroup.h
++++ b/include/uapi/linux/netfilter/xt_cgroup.h
+@@ -22,4 +22,20 @@ struct xt_cgroup_info_v1 {
+ 	void		*priv __attribute__((aligned(8)));
+ };
+ 
++#define XT_CGROUP_PATH_MAX	512
++
++struct xt_cgroup_info_v2 {
++	__u8		has_path;
++	__u8		has_classid;
++	__u8		invert_path;
++	__u8		invert_classid;
++	union {
++		char	path[XT_CGROUP_PATH_MAX];
++		__u32	classid;
++	};
++
++	/* kernel internal data */
++	void		*priv __attribute__((aligned(8)));
++};
++
+ #endif /* _UAPI_XT_CGROUP_H */
+diff --git a/net/netfilter/xt_cgroup.c b/net/netfilter/xt_cgroup.c
+index 891f4e7e8ea7..db18c0177b0f 100644
+--- a/net/netfilter/xt_cgroup.c
++++ b/net/netfilter/xt_cgroup.c
+@@ -66,6 +66,38 @@ static int cgroup_mt_check_v1(const struct xt_mtchk_param *par)
+ 	return 0;
+ }
+ 
++static int cgroup_mt_check_v2(const struct xt_mtchk_param *par)
++{
++	struct xt_cgroup_info_v2 *info = par->matchinfo;
++	struct cgroup *cgrp;
++
++	if ((info->invert_path & ~1) || (info->invert_classid & ~1))
++		return -EINVAL;
++
++	if (!info->has_path && !info->has_classid) {
++		pr_info("xt_cgroup: no path or classid specified\n");
++		return -EINVAL;
++	}
++
++	if (info->has_path && info->has_classid) {
++		pr_info_ratelimited("path and classid specified\n");
++		return -EINVAL;
++	}
++
++	info->priv = NULL;
++	if (info->has_path) {
++		cgrp = cgroup_get_from_path(info->path);
++		if (IS_ERR(cgrp)) {
++			pr_info_ratelimited("invalid path, errno=%ld\n",
++					    PTR_ERR(cgrp));
++			return -EINVAL;
++		}
++		info->priv = cgrp;
++	}
++
++	return 0;
++}
++
+ static bool
+ cgroup_mt_v0(const struct sk_buff *skb, struct xt_action_param *par)
+ {
+@@ -95,6 +127,24 @@ static bool cgroup_mt_v1(const struct sk_buff *skb, struct xt_action_param *par)
+ 			info->invert_classid;
+ }
+ 
++static bool cgroup_mt_v2(const struct sk_buff *skb, struct xt_action_param *par)
++{
++	const struct xt_cgroup_info_v2 *info = par->matchinfo;
++	struct sock_cgroup_data *skcd = &skb->sk->sk_cgrp_data;
++	struct cgroup *ancestor = info->priv;
++	struct sock *sk = skb->sk;
++
++	if (!sk || !sk_fullsock(sk) || !net_eq(xt_net(par), sock_net(sk)))
++		return false;
++
++	if (ancestor)
++		return cgroup_is_descendant(sock_cgroup_ptr(skcd), ancestor) ^
++			info->invert_path;
++	else
++		return (info->classid == sock_cgroup_classid(skcd)) ^
++			info->invert_classid;
++}
++
+ static void cgroup_mt_destroy_v1(const struct xt_mtdtor_param *par)
+ {
+ 	struct xt_cgroup_info_v1 *info = par->matchinfo;
+@@ -103,6 +153,14 @@ static void cgroup_mt_destroy_v1(const struct xt_mtdtor_param *par)
+ 		cgroup_put(info->priv);
+ }
+ 
++static void cgroup_mt_destroy_v2(const struct xt_mtdtor_param *par)
++{
++	struct xt_cgroup_info_v2 *info = par->matchinfo;
++
++	if (info->priv)
++		cgroup_put(info->priv);
++}
++
+ static struct xt_match cgroup_mt_reg[] __read_mostly = {
+ 	{
+ 		.name		= "cgroup",
+@@ -130,6 +188,20 @@ static struct xt_match cgroup_mt_reg[] __read_mostly = {
+ 				  (1 << NF_INET_POST_ROUTING) |
+ 				  (1 << NF_INET_LOCAL_IN),
+ 	},
++	{
++		.name		= "cgroup",
++		.revision	= 2,
++		.family		= NFPROTO_UNSPEC,
++		.checkentry	= cgroup_mt_check_v2,
++		.match		= cgroup_mt_v2,
++		.matchsize	= sizeof(struct xt_cgroup_info_v2),
++		.usersize	= offsetof(struct xt_cgroup_info_v2, priv),
++		.destroy	= cgroup_mt_destroy_v2,
++		.me		= THIS_MODULE,
++		.hooks		= (1 << NF_INET_LOCAL_OUT) |
++				  (1 << NF_INET_POST_ROUTING) |
++				  (1 << NF_INET_LOCAL_IN),
++	},
+ };
+ 
+ static int __init cgroup_mt_init(void)
+-- 
+2.19.1
+
