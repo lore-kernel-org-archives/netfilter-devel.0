@@ -2,65 +2,35 @@ Return-Path: <SRS0=mHk2=SD=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-14.0 required=3.0
+	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_NEOMUTT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A9B5AC43381
-	for <netfilter-devel@archiver.kernel.org>; Mon,  1 Apr 2019 18:57:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 957C3C43381
+	for <netfilter-devel@archiver.kernel.org>; Mon,  1 Apr 2019 20:42:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6DF00206DD
-	for <netfilter-devel@archiver.kernel.org>; Mon,  1 Apr 2019 18:57:56 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=paul-moore-com.20150623.gappssmtp.com header.i=@paul-moore-com.20150623.gappssmtp.com header.b="VmoLYqOd"
+	by mail.kernel.org (Postfix) with ESMTP id 61ACC20857
+	for <netfilter-devel@archiver.kernel.org>; Mon,  1 Apr 2019 20:42:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729134AbfDAS5x (ORCPT
+        id S1726900AbfDAUmV (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 1 Apr 2019 14:57:53 -0400
-Received: from mail-lj1-f193.google.com ([209.85.208.193]:43208 "EHLO
-        mail-lj1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728863AbfDAS5w (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 1 Apr 2019 14:57:52 -0400
-Received: by mail-lj1-f193.google.com with SMTP id f18so9186690lja.10
-        for <netfilter-devel@vger.kernel.org>; Mon, 01 Apr 2019 11:57:51 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=paul-moore-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=OG3K/weV3XtavI0+FRqMauSdv1yTiVdKp7cI8yqJMVI=;
-        b=VmoLYqOd9sBOa4qVc2Cv+v3SS9L2pZl7L12WgBXrhIoQb1aTyxkfrpGy+r8R01SHxs
-         u+g7rMqwp6TxxoKZ6XtBADWzBw9O7IMCTeSuFnvhHOcPkM4pWJg8kbJVssXLPx1zgP8p
-         Zxks+WxnpFjUiJgsLTYoU2/e2ZtgaMxYc65XLh4rq+7zRkfMC7xYa6mLIInd6NKA90VK
-         vGr98dRfked97bwGv4K+HF/bupiA6ZKklTfx6mpoiwEHAH1uAMBpcCBjt15ty/BjqeJT
-         M1ehNf+gSoo7PIr0N5uLwEmwyi3KkkFSr0Y8JllO41ZMahAnJv0hmOqd19lqtw5s60Qr
-         Cu2Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=OG3K/weV3XtavI0+FRqMauSdv1yTiVdKp7cI8yqJMVI=;
-        b=FB1/wyk7JJCtuebQWD8bNczjltp4n1nqxOotZ4QNXFb/rzM3FPN1UTXfTn364cT2AO
-         2yvx6oRGkOurwXxdYYLydvIozkv0PDSKp48q0hC7ie3G6bcif0A34EGuaLH/0pdQogBd
-         MGQ9a+ITtxAkRYimJYPCN+QYrK+Ycy1M/Udh3fa/Oa0gNCOXqxpZVNBJplR20D+Uz6eK
-         4ExoNA8WZ1LOX+H9Lj5k0OcNjA+mjyNQADFsCtTKgFG5MtpX5BYHjSnMMO5QhdM02Rwc
-         dXCpl+fMyZZrNG1Mg1B6ON/VIQsZ21OPWE75RGML6HrYa+6AyRH681GKlJSami3Flno6
-         p+Bg==
-X-Gm-Message-State: APjAAAU1C13oI1/Jo2aJzykPkoqFVzNtWN03yeFh6I6znWl0ogVAQd0I
-        73uQeV6UvQZHFzgPibXyCuAkKkO02ABA/mk52ei0
-X-Google-Smtp-Source: APXvYqzZTCmYYMmiZzBrxg5Ye2yEkEkTVeBsjiuhi46ic7qvkKj57eiftzomk3wmRubyS/f37cBTe/S79dQ8UA9Nlag=
-X-Received: by 2002:a2e:7114:: with SMTP id m20mr4729758ljc.120.1554145070271;
- Mon, 01 Apr 2019 11:57:50 -0700 (PDT)
-MIME-Version: 1.0
-References: <cover.1552665316.git.rgb@redhat.com> <700e4313571f86cc0cdcb7310fbe060f02c7c2db.1552665316.git.rgb@redhat.com>
- <CAHC9VhRWUvG6DwiPn4o+vt=fgGfY+JmG8m78M8CeyGYxF2yRXQ@mail.gmail.com> <20190401174432.fjnvotpvdrfujoy7@madcap2.tricolour.ca>
-In-Reply-To: <20190401174432.fjnvotpvdrfujoy7@madcap2.tricolour.ca>
-From:   Paul Moore <paul@paul-moore.com>
-Date:   Mon, 1 Apr 2019 14:57:39 -0400
-Message-ID: <CAHC9VhTL=zSQ2tO440w+vvX3TPsGtwqL6dWwUHVe0WnHVKqVpA@mail.gmail.com>
-Subject: Re: [PATCH ghak90 V5 06/10] audit: add support for non-syscall
- auxiliary records
-To:     Richard Guy Briggs <rgb@redhat.com>
+        Mon, 1 Apr 2019 16:42:21 -0400
+Received: from mx1.redhat.com ([209.132.183.28]:48480 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726725AbfDAUmV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 1 Apr 2019 16:42:21 -0400
+Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.13])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mx1.redhat.com (Postfix) with ESMTPS id 85F6C88306;
+        Mon,  1 Apr 2019 20:42:19 +0000 (UTC)
+Received: from madcap2.tricolour.ca (ovpn-112-19.phx2.redhat.com [10.3.112.19])
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id 0C23B60856;
+        Mon,  1 Apr 2019 20:41:59 +0000 (UTC)
+Date:   Mon, 1 Apr 2019 16:41:57 -0400
+From:   Richard Guy Briggs <rgb@redhat.com>
+To:     Paul Moore <paul@paul-moore.com>
 Cc:     containers@lists.linux-foundation.org, linux-api@vger.kernel.org,
         Linux-Audit Mailing List <linux-audit@redhat.com>,
         linux-fsdevel@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
@@ -69,77 +39,196 @@ Cc:     containers@lists.linux-foundation.org, linux-api@vger.kernel.org,
         simo@redhat.com, Eric Paris <eparis@parisplace.org>,
         Serge Hallyn <serge@hallyn.com>, ebiederm@xmission.com,
         nhorman@tuxdriver.com
-Content-Type: text/plain; charset="UTF-8"
+Subject: Re: [PATCH ghak90 V5 09/10] audit: add support for containerid to
+ network namespaces
+Message-ID: <20190401204157.l43sdfa57vp47onx@madcap2.tricolour.ca>
+References: <cover.1552665316.git.rgb@redhat.com>
+ <27473c84a274c64871cfa8e3636deaf05603c978.1552665316.git.rgb@redhat.com>
+ <CAHC9VhQpk6cFZckQH+LQmQmirVzLm_GH57ZD3-76y-59G=DocQ@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAHC9VhQpk6cFZckQH+LQmQmirVzLm_GH57ZD3-76y-59G=DocQ@mail.gmail.com>
+User-Agent: NeoMutt/20180716
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.13
+X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.5.16 (mx1.redhat.com [10.5.110.28]); Mon, 01 Apr 2019 20:42:20 +0000 (UTC)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Apr 1, 2019 at 1:44 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> On 2019-04-01 10:49, Paul Moore wrote:
-> > On Fri, Mar 15, 2019 at 2:34 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> > > Standalone audit records have the timestamp and serial number generated
-> > > on the fly and as such are unique, making them standalone.  This new
-> > > function audit_alloc_local() generates a local audit context that will
-> > > be used only for a standalone record and its auxiliary record(s).  The
-> > > context is discarded immediately after the local associated records are
-> > > produced.
-> > >
-> > > Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
-> > > Acked-by: Serge Hallyn <serge@hallyn.com>
-> > > ---
-> > >  include/linux/audit.h |  8 ++++++++
-> > >  kernel/audit.h        |  1 +
-> > >  kernel/auditsc.c      | 35 ++++++++++++++++++++++++++++++-----
-> > >  3 files changed, 39 insertions(+), 5 deletions(-)
+On 2019-04-01 10:50, Paul Moore wrote:
+> On Fri, Mar 15, 2019 at 2:35 PM Richard Guy Briggs <rgb@redhat.com> wrote:
+> > Audit events could happen in a network namespace outside of a task
+> > context due to packets received from the net that trigger an auditing
+> > rule prior to being associated with a running task.  The network
+> > namespace could be in use by multiple containers by association to the
+> > tasks in that network namespace.  We still want a way to attribute
+> > these events to any potential containers.  Keep a list per network
+> > namespace to track these audit container identifiiers.
 > >
-> > ...
+> > Add/increment the audit container identifier on:
+> > - initial setting of the audit container identifier via /proc
+> > - clone/fork call that inherits an audit container identifier
+> > - unshare call that inherits an audit container identifier
+> > - setns call that inherits an audit container identifier
+> > Delete/decrement the audit container identifier on:
+> > - an inherited audit container identifier dropped when child set
+> > - process exit
+> > - unshare call that drops a net namespace
+> > - setns call that drops a net namespace
 > >
-> > > diff --git a/include/linux/audit.h b/include/linux/audit.h
-> > > index ebd6625ca80e..6db5aba7cc01 100644
-> > > --- a/include/linux/audit.h
-> > > +++ b/include/linux/audit.h
-> > > @@ -285,6 +285,8 @@ static inline void audit_log_contid(struct audit_context *context, u64 contid)
-> > >
-> > >  /* These are defined in auditsc.c */
-> > >                                 /* Public API */
-> > > +extern struct audit_context *audit_alloc_local(gfp_t gfpflags);
-> > > +extern void audit_free_context(struct audit_context *context);
-> > >  extern void __audit_syscall_entry(int major, unsigned long a0, unsigned long a1,
-> > >                                   unsigned long a2, unsigned long a3);
-> > >  extern void __audit_syscall_exit(int ret_success, long ret_value);
-> > > @@ -512,6 +514,12 @@ static inline void audit_fanotify(unsigned int response)
-> > >  extern int audit_n_rules;
-> > >  extern int audit_signals;
-> > >  #else /* CONFIG_AUDITSYSCALL */
-> > > +static inline struct audit_context *audit_alloc_local(gfp_t gfpflags)
-> > > +{
-> > > +       return NULL;
-> > > +}
-> > > +static inline void audit_free_context(struct audit_context *context)
-> > > +{ }
-> > >  static inline void audit_syscall_entry(int major, unsigned long a0,
-> > >                                        unsigned long a1, unsigned long a2,
-> > >                                        unsigned long a3)
-> > > diff --git a/kernel/audit.h b/kernel/audit.h
-> > > index c5ac6436317e..2a1a8b8a8019 100644
-> > > --- a/kernel/audit.h
-> > > +++ b/kernel/audit.h
-> > > @@ -111,6 +111,7 @@ struct audit_proctitle {
-> > >  struct audit_context {
-> > >         int                 dummy;      /* must be the first element */
-> > >         int                 in_syscall; /* 1 if task is in a syscall */
-> > > +       bool                local;      /* local context needed */
+> > See: https://github.com/linux-audit/audit-kernel/issues/92
+> > See: https://github.com/linux-audit/audit-testsuite/issues/64
+> > See: https://github.com/linux-audit/audit-kernel/wiki/RFE-Audit-Container-ID
+> > Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
+> > ---
+> >  include/linux/audit.h | 19 ++++++++++++
+> >  kernel/audit.c        | 86 +++++++++++++++++++++++++++++++++++++++++++++++++--
+> >  kernel/nsproxy.c      |  4 +++
+> >  3 files changed, 106 insertions(+), 3 deletions(-)
+> 
+> ...
+> 
+> > diff --git a/kernel/audit.c b/kernel/audit.c
+> > index cf448599ef34..7fa3194f5342 100644
+> > --- a/kernel/audit.c
+> > +++ b/kernel/audit.c
+> > @@ -72,6 +72,7 @@
+> >  #include <linux/freezer.h>
+> >  #include <linux/pid_namespace.h>
+> >  #include <net/netns/generic.h>
+> > +#include <net/net_namespace.h>
 > >
-> > It's very possible I've missed it, but "local" never gets used in any
-> > meaningful way in this patchset does it?
->
-> It is used in audit_alloc_local() to signal to audit_get_stamp() that in
-> absence of a syscall flag, check for a local flag to continue rather
-> than return.
+> >  #include "audit.h"
+> >
+> > @@ -99,9 +100,13 @@
+> >  /**
+> >   * struct audit_net - audit private network namespace data
+> >   * @sk: communication socket
+> > + * @contid_list: audit container identifier list
+> > + * @contid_list_lock audit container identifier list lock
+> >   */
+> >  struct audit_net {
+> >         struct sock *sk;
+> > +       struct list_head contid_list;
+> > +       spinlock_t contid_list_lock;
+> >  };
+> >
+> >  /**
+> > @@ -275,8 +280,11 @@ struct audit_task_info init_struct_audit = {
+> >  void audit_free(struct task_struct *tsk)
+> >  {
+> >         struct audit_task_info *info = tsk->audit;
+> > +       struct nsproxy *ns = tsk->nsproxy;
+> >
+> >         audit_free_syscall(tsk);
+> > +       if (ns)
+> > +               audit_netns_contid_del(ns->net_ns, audit_get_contid(tsk));
+> >         /* Freeing the audit_task_info struct must be performed after
+> >          * audit_log_exit() due to need for loginuid and sessionid.
+> >          */
+> > @@ -376,6 +384,73 @@ static struct sock *audit_get_sk(const struct net *net)
+> >         return aunet->sk;
+> >  }
+> >
+> > +void audit_netns_contid_add(struct net *net, u64 contid)
+> > +{
+> > +       struct audit_net *aunet = net_generic(net, audit_net_id);
+> > +       struct list_head *contid_list = &aunet->contid_list;
+> > +       struct audit_contid *cont;
+> > +
+> > +       if (!audit_contid_valid(contid))
+> > +               return;
+> > +       if (!aunet)
+> > +               return;
+> 
+> We should move the contid_list assignment below this check, or decide
+> that aunet is always going to valid (?) and get rid of this check
+> completely.
 
-I'm guessing you meant auditsc_get_stamp()?  If so, okay.
+Yes, we should move the contid_list assignment below the aunet check.
+At this point, testing has revlealed that audit_netns_contid_del() is
+being called very infrequently (very early) with invalid net or aunet
+which is why its code has been re-arranged to safeguard against it.  So
+far, audit_netns_contid_add() has not had this problem, but I'd feel
+safer leaving the check in and to make that check relevant (rather than
+the contid_list assignment panicing) I'll move that assignment.
 
--- 
-paul moore
-www.paul-moore.com
+> > +       spin_lock(&aunet->contid_list_lock);
+> > +       if (!list_empty(contid_list))
+> 
+> We don't need the list_empty() check here do we?  I think we can just
+> call list_for_each_entry_rcu(), yes?
+
+Yes, you appear to be correct.  The examples in auditfilter.c and
+auditsc.c are stale since the original optimizations they were
+protecting are no longer present, but the practice was copied by several
+maintainers since.  I'll fix this and address the others seperately.
+
+> > +               list_for_each_entry_rcu(cont, contid_list, list)
+> > +                       if (cont->id == contid) {
+> > +                               refcount_inc(&cont->refcount);
+> > +                               goto out;
+> > +                       }
+> > +       cont = kmalloc(sizeof(struct audit_contid), GFP_ATOMIC);
+> 
+> If you had to guess, what do you think is going to be more common:
+> bumping the refcount of an existing entry in the list, or adding a new
+> entry?  I'm asking because I always get a little nervous when doing
+> allocations while holding a spinlock.  Yes, you are doing it with
+> GFP_ATOMIC, but it still seems like something to try and avoid if this
+> is going to approach 50%.  However, if the new entry is rare then the
+> extra work of always doing the allocation before taking the lock and
+> then freeing it afterwards might be a bad tradeoff.
+> 
+> My gut feeling says we might do about as many allocations as refcount
+> bumps, but I could be thinking about this wrong.
+
+I'm sure we could find extreme use cases in both directions.  One
+extreme is one task per container.  The other extreme is a distro
+container where all processes for an entire O/S running in a container
+just use the refcount.  The former seems more likely at this point.  We
+break even at two tasks per container.
+
+I'm willing to switch this over to alloc/dealloc and use GFP_KERNEL
+which will inevitably make some kernel maintainers happier and others
+cringe.  This could be a good candidate for kmem_cache since it is a
+fixed size.
+
+> Moving the allocation outside the spinlock might also open the door to
+> doing this as GFP_KERNEL, which is a good thing, but I haven't looked
+> at the callers to see if that is possible (it may not be).  That's an
+> exercise left to the patch author (if he hasn't done that already).
+
+Switching to GFP_KERNEL is certainly preferable.  None of the callers
+will have a problem with that.
+
+> > +       if (cont) {
+> > +               INIT_LIST_HEAD(&cont->list);
+> 
+> Unless there is some guidance that INIT_LIST_HEAD() should be used
+> regardless, you shouldn't need to call this here since list_add_rcu()
+> will take care of any list.h related initialization.
+
+I see enough examples without that suggest it isn't necessary.  I'll
+remove it.
+
+> > +               cont->id = contid;
+> > +               refcount_set(&cont->refcount, 1);
+> > +               list_add_rcu(&cont->list, contid_list);
+> > +       }
+> > +out:
+> > +       spin_unlock(&aunet->contid_list_lock);
+> > +}
+> 
+> paul moore
+
+- RGB
+
+--
+Richard Guy Briggs <rgb@redhat.com>
+Sr. S/W Engineer, Kernel Security, Base Operating Systems
+Remote, Ottawa, Red Hat Canada
+IRC: rgb, SunRaycer
+Voice: +1.647.777.2635, Internal: (81) 32635
