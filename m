@@ -2,212 +2,240 @@ Return-Path: <SRS0=mHk2=SD=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_MUTT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 65B2EC43381
-	for <netfilter-devel@archiver.kernel.org>; Mon,  1 Apr 2019 11:11:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F0B9C43381
+	for <netfilter-devel@archiver.kernel.org>; Mon,  1 Apr 2019 12:38:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3F14820870
-	for <netfilter-devel@archiver.kernel.org>; Mon,  1 Apr 2019 11:11:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C82F620830
+	for <netfilter-devel@archiver.kernel.org>; Mon,  1 Apr 2019 12:38:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726708AbfDALLI (ORCPT
+        id S1726617AbfDAMiT (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 1 Apr 2019 07:11:08 -0400
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:55376 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725882AbfDALLH (ORCPT
+        Mon, 1 Apr 2019 08:38:19 -0400
+Received: from relay3-d.mail.gandi.net ([217.70.183.195]:48673 "EHLO
+        relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726284AbfDAMiT (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 1 Apr 2019 07:11:07 -0400
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.89)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1hAuqG-00031F-RI; Mon, 01 Apr 2019 13:11:05 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf] netfilter: ctnetlink: don't use conntrack/expect object addresses as id
-Date:   Mon,  1 Apr 2019 13:08:54 +0200
-Message-Id: <20190401110854.19894-1-fw@strlen.de>
-X-Mailer: git-send-email 2.21.0
+        Mon, 1 Apr 2019 08:38:19 -0400
+X-Originating-IP: 196.1.0.21
+Received: from logan-ThinkPad-X230-Tablet (unknown [196.1.0.21])
+        (Authenticated sender: logan@cyberstorm.mu)
+        by relay3-d.mail.gandi.net (Postfix) with ESMTPSA id 6A3C660005
+        for <netfilter-devel@vger.kernel.org>; Mon,  1 Apr 2019 12:38:15 +0000 (UTC)
+Date:   Mon, 1 Apr 2019 16:38:10 +0400
+From:   Loganaden Velvindron <logan@cyberstorm.mu>
+To:     netfilter-devel@vger.kernel.org
+Subject: [nftables v1] Add support for
+ https://www.ietf.org/id/draft-ietf-tsvwg-le-phb-10.txt which is close to
+ being published as an RFC.
+Message-ID: <20190401123810.GA5048@logan-ThinkPad-X230-Tablet>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+User-Agent: Mutt/1.9.4 (2018-02-28)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-else, we leak the addresses to userspace via ctnetlink events
-and dumps.
-
-Compute an ID on demand based on the immutable parts of nf_conn struct.
-
-Another advantage compared to using an address is that there is no
-immediate re-use of the same ID in case the conntrack entry is freed and
-reallocated again immediately.
-
-Fixes: 3583240249ef ("[NETFILTER]: nf_conntrack_expect: kill unique ID")
-Fixes: 7f85f914721f ("[NETFILTER]: nf_conntrack: kill unique ID")
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Loganaden Velvindron <logan@cyberstorm.mu>
 ---
- include/net/netfilter/nf_conntrack.h |  2 ++
- net/netfilter/nf_conntrack_core.c    | 39 ++++++++++++++++++++++++++++
- net/netfilter/nf_conntrack_netlink.c | 37 ++++++++++++++++++++++----
- 3 files changed, 73 insertions(+), 5 deletions(-)
+ src/proto.c                     | 1 +
+ tests/py/ip/ip.t                | 2 +-
+ tests/py/ip/ip.t.json           | 3 ++-
+ tests/py/ip/ip.t.json.output    | 3 ++-
+ tests/py/ip/ip.t.payload        | 2 +-
+ tests/py/ip/ip.t.payload.bridge | 2 +-
+ tests/py/ip/ip.t.payload.inet   | 2 +-
+ tests/py/ip/ip.t.payload.netdev | 2 +-
+ tests/py/ip6/ip6.t              | 2 +-
+ tests/py/ip6/ip6.t.json         | 3 ++-
+ tests/py/ip6/ip6.t.payload.inet | 2 +-
+ tests/py/ip6/ip6.t.payload.ip6  | 2 +-
+ 12 files changed, 15 insertions(+), 11 deletions(-)
 
-diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
-index 5ee7b30b4917..d2bc733a2ef1 100644
---- a/include/net/netfilter/nf_conntrack.h
-+++ b/include/net/netfilter/nf_conntrack.h
-@@ -316,6 +316,8 @@ struct nf_conn *nf_ct_tmpl_alloc(struct net *net,
- 				 gfp_t flags);
- void nf_ct_tmpl_free(struct nf_conn *tmpl);
+diff --git a/src/proto.c b/src/proto.c
+index f68fb68..9a7f77b 100644
+--- a/src/proto.c
++++ b/src/proto.c
+@@ -571,6 +571,7 @@ static const struct symbol_table dscp_type_tbl = {
+ 	.base		= BASE_HEXADECIMAL,
+ 	.symbols	= {
+ 		SYMBOL("cs0",	0x00),
++		SYMBOL("le",	0x01),
+ 		SYMBOL("cs1",	0x08),
+ 		SYMBOL("cs2",	0x10),
+ 		SYMBOL("cs3",	0x18),
+diff --git a/tests/py/ip/ip.t b/tests/py/ip/ip.t
+index 0421d01..dc6b173 100644
+--- a/tests/py/ip/ip.t
++++ b/tests/py/ip/ip.t
+@@ -28,7 +28,7 @@ ip dscp cs1;ok
+ ip dscp != cs1;ok
+ ip dscp 0x38;ok;ip dscp cs7
+ ip dscp != 0x20;ok;ip dscp != cs4
+-ip dscp {cs0, cs1, cs2, cs3, cs4, cs5, cs6, cs7, af11, af12, af13, af21, af22, af23, af31, af32, af33, af41, af42, af43, ef};ok
++ip dscp {cs0, le, cs1, cs2, cs3, cs4, cs5, cs6, cs7, af11, af12, af13, af21, af22, af23, af31, af32, af33, af41, af42, af43, ef};ok
+ - ip dscp {0x08, 0x10, 0x18, 0x20, 0x28, 0x30, 0x38, 0x00, 0x0a, 0x0c, 0x0e, 0x12, 0x14, 0x16, 0x1a, 0x1c, 0x1e, 0x22, 0x24, 0x26, 0x2e};ok
+ ip dscp != {cs0, cs3};ok
+ ip dscp vmap { cs1 : continue , cs4 : accept } counter;ok
+diff --git a/tests/py/ip/ip.t.json b/tests/py/ip/ip.t.json
+index 3131ab7..69e8d02 100644
+--- a/tests/py/ip/ip.t.json
++++ b/tests/py/ip/ip.t.json
+@@ -62,7 +62,7 @@
+     }
+ ]
  
-+u32 nf_ct_get_id(const struct nf_conn *ct);
-+
- static inline void
- nf_ct_set(struct sk_buff *skb, struct nf_conn *ct, enum ip_conntrack_info info)
- {
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 82bfbeef46af..be899f2713e0 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -25,6 +25,7 @@
- #include <linux/slab.h>
- #include <linux/random.h>
- #include <linux/jhash.h>
-+#include <linux/siphash.h>
- #include <linux/err.h>
- #include <linux/percpu.h>
- #include <linux/moduleparam.h>
-@@ -449,6 +450,44 @@ nf_ct_invert_tuple(struct nf_conntrack_tuple *inverse,
- }
- EXPORT_SYMBOL_GPL(nf_ct_invert_tuple);
+-# ip dscp {cs0, cs1, cs2, cs3, cs4, cs5, cs6, cs7, af11, af12, af13, af21, af22, af23, af31, af32, af33, af41, af42, af43, ef}
++# ip dscp {cs0, le, cs1, cs2, cs3, cs4, cs5, cs6, cs7, af11, af12, af13, af21, af22, af23, af31, af32, af33, af41, af42, af43, ef}
+ [
+     {
+         "match": {
+@@ -76,6 +76,7 @@
+             "right": {
+                 "set": [
+                     "cs0",
++                    "le",
+                     "cs1",
+                     "cs2",
+                     "cs3",
+diff --git a/tests/py/ip/ip.t.json.output b/tests/py/ip/ip.t.json.output
+index b201cda..ae6e838 100644
+--- a/tests/py/ip/ip.t.json.output
++++ b/tests/py/ip/ip.t.json.output
+@@ -30,7 +30,7 @@
+     }
+ ]
  
-+/* Generate a almost-unique pseudo-id for a given conntrack.
-+ *
-+ * intentionally doesn't re-use any of the seeds used for hash
-+ * table location, we assume id gets exposed to userspace.
-+ *
-+ * Following nf_conn items do not change throughout lifetime
-+ * of the nf_conn after it has been committed to main hash table:
-+ *
-+ * 1. nf_conn address
-+ * 2. nf_conn->ext address
-+ * 3. nf_conn->master address (normally NULL)
-+ * 4. tuple
-+ * 5. the associated net namespace
-+ */
-+u32 nf_ct_get_id(const struct nf_conn *ct)
-+{
-+	static __read_mostly siphash_key_t ct_id_seed;
-+	unsigned long a, b, c, d;
-+
-+	net_get_random_once(&ct_id_seed, sizeof(ct_id_seed));
-+
-+	a = (unsigned long)ct;
-+	b = (unsigned long)ct->master ^ net_hash_mix(nf_ct_net(ct));
-+	c = (unsigned long)ct->ext;
-+
-+#ifdef CONFIG_64BIT
-+	d = siphash(&ct->tuplehash, sizeof(ct->tuplehash), &ct_id_seed);
-+
-+	return siphash_4u64((u64)a, (u64)b, (u64)c, (u64)d, &ct_id_seed);
-+#else
-+	d = hsiphash(&ct->tuplehash, sizeof(ct->tuplehash), &ct_id_seed);
-+
-+	return siphash_4u32((u32)a, (u32)b, (u32)c, (u32)d, &ct_id_seed);
-+#endif
-+
-+}
-+EXPORT_SYMBOL_GPL(nf_ct_get_id);
-+
- static void
- clean_from_lists(struct nf_conn *ct)
- {
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 66c596d287a5..f80fce25c673 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -29,6 +29,7 @@
- #include <linux/spinlock.h>
- #include <linux/interrupt.h>
- #include <linux/slab.h>
-+#include <linux/siphash.h>
+-# ip dscp {cs0, cs1, cs2, cs3, cs4, cs5, cs6, cs7, af11, af12, af13, af21, af22, af23, af31, af32, af33, af41, af42, af43, ef}
++# ip dscp {cs0, le, cs1, cs2, cs3, cs4, cs5, cs6, cs7, af11, af12, af13, af21, af22, af23, af31, af32, af33, af41, af42, af43, ef}
+ [
+     {
+         "match": {
+@@ -44,6 +44,7 @@
+             "right": {
+                 "set": [
+                     "cs0",
++                    "le",
+                     "cs1",
+                     "af11",
+                     "af12",
+diff --git a/tests/py/ip/ip.t.payload b/tests/py/ip/ip.t.payload
+index d627b22..37d4ef8 100644
+--- a/tests/py/ip/ip.t.payload
++++ b/tests/py/ip/ip.t.payload
+@@ -22,7 +22,7 @@ ip test-ip4 input
+   [ bitwise reg 1 = (reg=1 & 0x000000fc ) ^ 0x00000000 ]
+   [ cmp neq reg 1 0x00000080 ]
  
- #include <linux/netfilter.h>
- #include <net/netlink.h>
-@@ -485,7 +486,9 @@ static int ctnetlink_dump_ct_synproxy(struct sk_buff *skb, struct nf_conn *ct)
+-# ip dscp {cs0, cs1, cs2, cs3, cs4, cs5, cs6, cs7, af11, af12, af13, af21, af22, af23, af31, af32, af33, af41, af42, af43, ef}
++# ip dscp {cs0, le, cs1, cs2, cs3, cs4, cs5, cs6, cs7, af11, af12, af13, af21, af22, af23, af31, af32, af33, af41, af42, af43, ef}
+ __set%d test-ip4 3
+ __set%d test-ip4 0
+         element 00000020  : 0 [end]     element 00000040  : 0 [end]     element 00000060  : 0 [end]     element 00000080  : 0 [end]    element 000000a0  : 0 [end]      element 000000c0  : 0 [end]     element 000000e0  : 0 [end]     element 00000000  : 0 [end]     element 00000028  : 0 [end]     element 00000030  : 0 [end]     element 00000038  : 0 [end]     element 00000048  : 0 [end]     element 00000050  : 0 [end]     element 00000058  : 0 [end]     element 00000068  : 0 [end]     element 00000070  : 0 [end]     element 00000078  : 0 [end]     element 00000088  : 0 [end]     element 00000090  : 0 [end]     element 00000098  : 0 [end]     element 000000b8  : 0 [end]
+diff --git a/tests/py/ip/ip.t.payload.bridge b/tests/py/ip/ip.t.payload.bridge
+index ad1d0aa..40c98de 100644
+--- a/tests/py/ip/ip.t.payload.bridge
++++ b/tests/py/ip/ip.t.payload.bridge
+@@ -30,7 +30,7 @@ bridge test-bridge input
+   [ bitwise reg 1 = (reg=1 & 0x000000fc ) ^ 0x00000000 ]
+   [ cmp neq reg 1 0x00000080 ]
  
- static int ctnetlink_dump_id(struct sk_buff *skb, const struct nf_conn *ct)
- {
--	if (nla_put_be32(skb, CTA_ID, htonl((unsigned long)ct)))
-+	__be32 id = (__force __be32)nf_ct_get_id(ct);
-+
-+	if (nla_put_be32(skb, CTA_ID, id))
- 		goto nla_put_failure;
- 	return 0;
+-# ip dscp {cs0, cs1, cs2, cs3, cs4, cs5, cs6, cs7, af11, af12, af13, af21, af22, af23, af31, af32, af33, af41, af42, af43, ef}
++# ip dscp {cs0, le, cs1, cs2, cs3, cs4, cs5, cs6, cs7, af11, af12, af13, af21, af22, af23, af31, af32, af33, af41, af42, af43, ef}
+ __set%d test-bridge 3 size 21
+ __set%d test-bridge 0
+ 	element 00000000  : 0 [end]	element 00000020  : 0 [end]	element 00000040  : 0 [end]	element 00000060  : 0 [end]	element 00000080  : 0 [end]	element 000000a0  : 0 [end]	element 000000c0  : 0 [end]	element 000000e0  : 0 [end]	element 00000028  : 0 [end]	element 00000030  : 0 [end]	element 00000038  : 0 [end]	element 00000048  : 0 [end]	element 00000050  : 0 [end]	element 00000058  : 0 [end]	element 00000068  : 0 [end]	element 00000070  : 0 [end]	element 00000078  : 0 [end]	element 00000088  : 0 [end]	element 00000090  : 0 [end]	element 00000098  : 0 [end]	element 000000b8  : 0 [end]
+diff --git a/tests/py/ip/ip.t.payload.inet b/tests/py/ip/ip.t.payload.inet
+index b9cb28a..9f1f451 100644
+--- a/tests/py/ip/ip.t.payload.inet
++++ b/tests/py/ip/ip.t.payload.inet
+@@ -30,7 +30,7 @@ inet test-inet input
+   [ bitwise reg 1 = (reg=1 & 0x000000fc ) ^ 0x00000000 ]
+   [ cmp neq reg 1 0x00000080 ]
  
-@@ -1286,8 +1289,9 @@ static int ctnetlink_del_conntrack(struct net *net, struct sock *ctnl,
- 	}
+-# ip dscp {cs0, cs1, cs2, cs3, cs4, cs5, cs6, cs7, af11, af12, af13, af21, af22, af23, af31, af32, af33, af41, af42, af43, ef}
++# ip dscp {cs0, le, cs1, cs2, cs3, cs4, cs5, cs6, cs7, af11, af12, af13, af21, af22, af23, af31, af32, af33, af41, af42, af43, ef}
+ __set%d test-inet 3
+ __set%d test-inet 0
+         element 00000020  : 0 [end]     element 00000040  : 0 [end]     element 00000060  : 0 [end]     element 00000080  : 0 [end]    element 000000a0  : 0 [end]      element 000000c0  : 0 [end]     element 000000e0  : 0 [end]     element 00000000  : 0 [end]     element 00000028  : 0 [end]     element 00000030  : 0 [end]     element 00000038  : 0 [end]     element 00000048  : 0 [end]     element 00000050  : 0 [end]     element 00000058  : 0 [end]     element 00000068  : 0 [end]     element 00000070  : 0 [end]     element 00000078  : 0 [end]     element 00000088  : 0 [end]     element 00000090  : 0 [end]     element 00000098  : 0 [end]     element 000000b8  : 0 [end]
+diff --git a/tests/py/ip/ip.t.payload.netdev b/tests/py/ip/ip.t.payload.netdev
+index 588e5ca..ef87bad 100644
+--- a/tests/py/ip/ip.t.payload.netdev
++++ b/tests/py/ip/ip.t.payload.netdev
+@@ -775,7 +775,7 @@ netdev test-netdev ingress
+   [ bitwise reg 1 = (reg=1 & 0x000000fc ) ^ 0x00000000 ]
+   [ cmp neq reg 1 0x00000080 ]
  
- 	if (cda[CTA_ID]) {
--		u_int32_t id = ntohl(nla_get_be32(cda[CTA_ID]));
--		if (id != (u32)(unsigned long)ct) {
-+		__be32 id = nla_get_be32(cda[CTA_ID]);
-+
-+		if (id != (__force __be32)nf_ct_get_id(ct)) {
- 			nf_ct_put(ct);
- 			return -ENOENT;
- 		}
-@@ -2692,6 +2696,28 @@ static int ctnetlink_exp_dump_mask(struct sk_buff *skb,
+-# ip dscp {cs0, cs1, cs2, cs3, cs4, cs5, cs6, cs7, af11, af12, af13, af21, af22, af23, af31, af32, af33, af41, af42, af43, ef}
++# ip dscp {cs0, le, cs1, cs2, cs3, cs4, cs5, cs6, cs7, af11, af12, af13, af21, af22, af23, af31, af32, af33, af41, af42, af43, ef}
+ __set%d test-netdev 3
+ __set%d test-netdev 0
+ 	element 00000000  : 0 [end]	element 00000020  : 0 [end]	element 00000040  : 0 [end]	element 00000060  : 0 [end]	element 00000080  : 0 [end]	element 000000a0  : 0 [end]	element 000000c0  : 0 [end]	element 000000e0  : 0 [end]	element 00000028  : 0 [end]	element 00000030  : 0 [end]	element 00000038  : 0 [end]	element 00000048  : 0 [end]	element 00000050  : 0 [end]	element 00000058  : 0 [end]	element 00000068  : 0 [end]	element 00000070  : 0 [end]	element 00000078  : 0 [end]	element 00000088  : 0 [end]	element 00000090  : 0 [end]	element 00000098  : 0 [end]	element 000000b8  : 0 [end]
+diff --git a/tests/py/ip6/ip6.t b/tests/py/ip6/ip6.t
+index 8210d22..a266fdd 100644
+--- a/tests/py/ip6/ip6.t
++++ b/tests/py/ip6/ip6.t
+@@ -14,7 +14,7 @@ ip6 dscp cs1;ok
+ ip6 dscp != cs1;ok
+ ip6 dscp 0x38;ok;ip6 dscp cs7
+ ip6 dscp != 0x20;ok;ip6 dscp != cs4
+-ip6 dscp {cs0, cs1, cs2, cs3, cs4, cs5, cs6, cs7, af11, af12, af13, af21, af22, af23, af31, af32, af33, af41, af42, af43, ef};ok
++ip6 dscp {cs0, le, cs1, cs2, cs3, cs4, cs5, cs6, cs7, af11, af12, af13, af21, af22, af23, af31, af32, af33, af41, af42, af43, ef};ok
+ ip6 dscp vmap { 0x04 : accept, 0x3f : continue } counter;ok
  
- static const union nf_inet_addr any_addr;
+ ip6 flowlabel 22;ok
+diff --git a/tests/py/ip6/ip6.t.json b/tests/py/ip6/ip6.t.json
+index f898240..a46c2b1 100644
+--- a/tests/py/ip6/ip6.t.json
++++ b/tests/py/ip6/ip6.t.json
+@@ -62,7 +62,7 @@
+     }
+ ]
  
-+static __be32 nf_expect_get_id(const struct nf_conntrack_expect *exp)
-+{
-+	static __read_mostly siphash_key_t exp_id_seed;
-+	unsigned long a, b, c, d;
-+
-+	net_get_random_once(&exp_id_seed, sizeof(exp_id_seed));
-+
-+	a = (unsigned long)exp;
-+	b = (unsigned long)exp->helper;
-+	c = (unsigned long)exp->master;
-+#ifdef CONFIG_64BIT
-+	d = siphash(&exp->tuple, sizeof(exp->tuple), &exp_id_seed);
-+
-+	return (__force __be32)siphash_4u64((u64)a, (u64)b, (u64)c, (u64)d, &exp_id_seed);
-+#else
-+	d = hsiphash(&exp->tuple, sizeof(exp->tuple), &exp_id_seed);
-+
-+	return (__force __be32)siphash_4u32((u32)a, (u32)b, (u32)c, (u32)d, &exp_id_seed);
-+#endif
-+}
-+EXPORT_SYMBOL_GPL(nf_ct_get_id);
-+
- static int
- ctnetlink_exp_dump_expect(struct sk_buff *skb,
- 			  const struct nf_conntrack_expect *exp)
-@@ -2739,7 +2765,7 @@ ctnetlink_exp_dump_expect(struct sk_buff *skb,
- 	}
- #endif
- 	if (nla_put_be32(skb, CTA_EXPECT_TIMEOUT, htonl(timeout)) ||
--	    nla_put_be32(skb, CTA_EXPECT_ID, htonl((unsigned long)exp)) ||
-+	    nla_put_be32(skb, CTA_EXPECT_ID, nf_expect_get_id(exp)) ||
- 	    nla_put_be32(skb, CTA_EXPECT_FLAGS, htonl(exp->flags)) ||
- 	    nla_put_be32(skb, CTA_EXPECT_CLASS, htonl(exp->class)))
- 		goto nla_put_failure;
-@@ -3044,7 +3070,8 @@ static int ctnetlink_get_expect(struct net *net, struct sock *ctnl,
+-# ip6 dscp {cs0, cs1, cs2, cs3, cs4, cs5, cs6, cs7, af11, af12, af13, af21, af22, af23, af31, af32, af33, af41, af42, af43, ef}
++# ip6 dscp {cs0, le, cs1, cs2, cs3, cs4, cs5, cs6, cs7, af11, af12, af13, af21, af22, af23, af31, af32, af33, af41, af42, af43, ef}
+ [
+     {
+         "match": {
+@@ -76,6 +76,7 @@
+             "right": {
+                 "set": [
+                     "cs0",
++                    "le",
+                     "cs1",
+                     "cs2",
+                     "cs3",
+diff --git a/tests/py/ip6/ip6.t.payload.inet b/tests/py/ip6/ip6.t.payload.inet
+index d015c8e..ada1c5f 100644
+--- a/tests/py/ip6/ip6.t.payload.inet
++++ b/tests/py/ip6/ip6.t.payload.inet
+@@ -30,7 +30,7 @@ inet test-inet input
+   [ bitwise reg 1 = (reg=1 & 0x0000c00f ) ^ 0x00000000 ]
+   [ cmp neq reg 1 0x00000008 ]
  
- 	if (cda[CTA_EXPECT_ID]) {
- 		__be32 id = nla_get_be32(cda[CTA_EXPECT_ID]);
--		if (ntohl(id) != (u32)(unsigned long)exp) {
-+
-+		if (id != nf_expect_get_id(exp)) {
- 			nf_ct_expect_put(exp);
- 			return -ENOENT;
- 		}
+-# ip6 dscp {cs0, cs1, cs2, cs3, cs4, cs5, cs6, cs7, af11, af12, af13, af21, af22, af23, af31, af32, af33, af41, af42, af43, ef}
++# ip6 dscp {cs0, le, cs1, cs2, cs3, cs4, cs5, cs6, cs7, af11, af12, af13, af21, af22, af23, af31, af32, af33, af41, af42, af43, ef}
+ __set%d test-inet 3
+ __set%d test-inet 0
+         element 00000000  : 0 [end]     element 00000002  : 0 [end]     element 00000004  : 0 [end]     element 00000006  : 0 [end]    element 00000008  : 0 [end]      element 0000000a  : 0 [end]     element 0000000c  : 0 [end]     element 0000000e  : 0 [end]     element 00008002  : 0 [end]     element 00000003  : 0 [end]     element 00008003  : 0 [end]     element 00008004  : 0 [end]     element 00000005  : 0 [end]     element 00008005  : 0 [end]     element 00008006  : 0 [end]     element 00000007  : 0 [end]     element 00008007  : 0 [end]     element 00008008  : 0 [end]     element 00000009  : 0 [end]     element 00008009  : 0 [end]     element 0000800b  : 0 [end]
+diff --git a/tests/py/ip6/ip6.t.payload.ip6 b/tests/py/ip6/ip6.t.payload.ip6
+index b2e8363..efab255 100644
+--- a/tests/py/ip6/ip6.t.payload.ip6
++++ b/tests/py/ip6/ip6.t.payload.ip6
+@@ -22,7 +22,7 @@ ip6 test-ip6 input
+   [ bitwise reg 1 = (reg=1 & 0x0000c00f ) ^ 0x00000000 ]
+   [ cmp neq reg 1 0x00000008 ]
+ 
+-# ip6 dscp {cs0, cs1, cs2, cs3, cs4, cs5, cs6, cs7, af11, af12, af13, af21, af22, af23, af31, af32, af33, af41, af42, af43, ef}
++# ip6 dscp {cs0, le, cs1, cs2, cs3, cs4, cs5, cs6, cs7, af11, af12, af13, af21, af22, af23, af31, af32, af33, af41, af42, af43, ef}
+ __set%d test-ip6 3
+ __set%d test-ip6 0
+         element 00000002  : 0 [end]     element 00000004  : 0 [end]     element 00000006  : 0 [end]     element 00000008  : 0 [end]    element 0000000a  : 0 [end]      element 0000000c  : 0 [end]     element 0000000e  : 0 [end]     element 00000000  : 0 [end]     element 00008002  : 0 [end]     element 00000003  : 0 [end]     element 00008003  : 0 [end]     element 00008004  : 0 [end]     element 00000005  : 0 [end]     element 00008005  : 0 [end]     element 00008006  : 0 [end]     element 00000007  : 0 [end]     element 00008007  : 0 [end]     element 00008008  : 0 [end]     element 00000009  : 0 [end]     element 00008009  : 0 [end]     element 0000800b  : 0 [end]
 -- 
-2.21.0
+2.17.1
 
