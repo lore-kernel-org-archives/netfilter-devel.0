@@ -2,221 +2,217 @@ Return-Path: <SRS0=UyK1=SE=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.5 required=3.0
-	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_MUTT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_PASS,USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D8792C10F0B
-	for <netfilter-devel@archiver.kernel.org>; Tue,  2 Apr 2019 11:32:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BB397C10F00
+	for <netfilter-devel@archiver.kernel.org>; Tue,  2 Apr 2019 12:57:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A9F4720856
-	for <netfilter-devel@archiver.kernel.org>; Tue,  2 Apr 2019 11:32:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8013720883
+	for <netfilter-devel@archiver.kernel.org>; Tue,  2 Apr 2019 12:57:02 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="QLlcVD0t"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730543AbfDBLcm (ORCPT
+        id S1730539AbfDBM45 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 2 Apr 2019 07:32:42 -0400
-Received: from charlotte.tuxdriver.com ([70.61.120.58]:53279 "EHLO
-        smtp.tuxdriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729925AbfDBLcm (ORCPT
+        Tue, 2 Apr 2019 08:56:57 -0400
+Received: from mail-it1-f196.google.com ([209.85.166.196]:53908 "EHLO
+        mail-it1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730213AbfDBM44 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 2 Apr 2019 07:32:42 -0400
-Received: from cpe-2606-a000-111b-405a-9816-2c85-c514-8f7a.dyn6.twc.com ([2606:a000:111b:405a:9816:2c85:c514:8f7a] helo=localhost)
-        by smtp.tuxdriver.com with esmtpsa (TLSv1:AES256-SHA:256)
-        (Exim 4.63)
-        (envelope-from <nhorman@tuxdriver.com>)
-        id 1hBHeN-0004RZ-CU; Tue, 02 Apr 2019 07:32:32 -0400
-Date:   Tue, 2 Apr 2019 07:31:50 -0400
-From:   Neil Horman <nhorman@tuxdriver.com>
-To:     Paul Moore <paul@paul-moore.com>
-Cc:     Richard Guy Briggs <rgb@redhat.com>,
-        containers@lists.linux-foundation.org, linux-api@vger.kernel.org,
-        Linux-Audit Mailing List <linux-audit@redhat.com>,
-        linux-fsdevel@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        sgrubb@redhat.com, omosnace@redhat.com, dhowells@redhat.com,
-        simo@redhat.com, Eric Paris <eparis@parisplace.org>,
-        Serge Hallyn <serge@hallyn.com>, ebiederm@xmission.com
-Subject: Re: [PATCH ghak90 V5 09/10] audit: add support for containerid to
- network namespaces
-Message-ID: <20190402113150.GA17593@hmswarspite.think-freely.org>
-References: <cover.1552665316.git.rgb@redhat.com>
- <27473c84a274c64871cfa8e3636deaf05603c978.1552665316.git.rgb@redhat.com>
- <CAHC9VhQpk6cFZckQH+LQmQmirVzLm_GH57ZD3-76y-59G=DocQ@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAHC9VhQpk6cFZckQH+LQmQmirVzLm_GH57ZD3-76y-59G=DocQ@mail.gmail.com>
-User-Agent: Mutt/1.11.3 (2019-02-01)
+        Tue, 2 Apr 2019 08:56:56 -0400
+Received: by mail-it1-f196.google.com with SMTP id y204so4848309itf.3;
+        Tue, 02 Apr 2019 05:56:55 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id;
+        bh=UXcY3+LQuritg/1xQjWkFlbv9Xw0iZ9vOAGOhx2mF2c=;
+        b=QLlcVD0tgGVoQTJwlyV4nMg3eG6Kn57gTZrRNhMPh8H1StL69Toc9DvkleKV9pUFts
+         XfPV+hR8onhDGzMAxrhpm+9YfZHHa3BiJDxSt+w8zv/2VVqF4N668XYTmp25VLw63IBj
+         tqeyYMCswQeIROwJtVjIExeEQG/M6dSAkJqVpEKUz8AgfQsutMkE2Qw0Y6XksSmmfPjx
+         NJGdZ4sz/ZexQdikNhS31LXWu+cs3qBhiSNUpJoHUlY9sE6doDnJvckbv95ep4ZmOrVH
+         T+3Jknpn64bjSmVPSNYnS9yXxGcBoQFBE6TqY3MjDKDmJfnmeb893PVDOUYdI1Bq3o1o
+         hEsg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id;
+        bh=UXcY3+LQuritg/1xQjWkFlbv9Xw0iZ9vOAGOhx2mF2c=;
+        b=YCJjCNjC7KQNDpI2NGkztRZc2j1669UCJkfsErDB/wUoPQ+9qU7Cya5LjjgE9hxcDY
+         vDg34E3trAO0bsxEAnq/VI3IOpj9LU9uTXdw1F2Jj+i2a1efTVRp11cjyu57qlUAiYtX
+         lfU8fZXZDV76veA04KPGGdGaT3HA6mgTb3XnEZbV3Om5m0gvdeSVuKkvIln91JWCzo7Y
+         x+gwZ6aDU8hy4iOjPDTee0ujr4kAuiO/aqOXxPsK5J1Bku/KdwQFVZQ4nLF4YM8ictAQ
+         wKjKfeO1EenXdnv5fN6V/BX+HcYKztb/xdr7jRNji5xvXCOySo4y/QpfvLtfuhux0FjA
+         ctbw==
+X-Gm-Message-State: APjAAAWFF+r+Q/R6Ec3luIxvxzc9aLtrufOk/vDD7fby9yTUs3fOIHHR
+        7qoqmooH+m1Vn2CfWOFELw==
+X-Google-Smtp-Source: APXvYqzjsQD9eQEAgsVD0F9wwBU0pOOGihJo/94I6vN4xMPDGsfMVuTpLhhKI986D+lFJpxKwMW/iw==
+X-Received: by 2002:a24:59c1:: with SMTP id p184mr20168itb.158.1554209815462;
+        Tue, 02 Apr 2019 05:56:55 -0700 (PDT)
+Received: from ip-172-31-35-247.us-east-2.compute.internal (ec2-52-15-165-154.us-east-2.compute.amazonaws.com. [52.15.165.154])
+        by smtp.gmail.com with ESMTPSA id x25sm5744948ioh.63.2019.04.02.05.56.54
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Tue, 02 Apr 2019 05:56:54 -0700 (PDT)
+From:   Rundong Ge <rdong.ge@gmail.com>
+To:     pablo@netfilter.org
+Cc:     kadlec@blackhole.kfki.hu, fw@strlen.de, roopa@cumulusnetworks.com,
+        nikolay@cumulusnetworks.com, davem@davemloft.net,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        bridge@lists.linux-foundation.org, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org, rdong.ge@gmail.com
+Subject: [PATCH] netfilter:bridge: Hold bridge dev for fake_rtable to avoid  the dangling pointer
+Date:   Tue,  2 Apr 2019 12:56:09 +0000
+Message-Id: <20190402125609.30313-1-rdong.ge@gmail.com>
+X-Mailer: git-send-email 2.17.1
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Apr 01, 2019 at 10:50:03AM -0400, Paul Moore wrote:
-> On Fri, Mar 15, 2019 at 2:35 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> > Audit events could happen in a network namespace outside of a task
-> > context due to packets received from the net that trigger an auditing
-> > rule prior to being associated with a running task.  The network
-> > namespace could be in use by multiple containers by association to the
-> > tasks in that network namespace.  We still want a way to attribute
-> > these events to any potential containers.  Keep a list per network
-> > namespace to track these audit container identifiiers.
-> >
-> > Add/increment the audit container identifier on:
-> > - initial setting of the audit container identifier via /proc
-> > - clone/fork call that inherits an audit container identifier
-> > - unshare call that inherits an audit container identifier
-> > - setns call that inherits an audit container identifier
-> > Delete/decrement the audit container identifier on:
-> > - an inherited audit container identifier dropped when child set
-> > - process exit
-> > - unshare call that drops a net namespace
-> > - setns call that drops a net namespace
-> >
-> > See: https://github.com/linux-audit/audit-kernel/issues/92
-> > See: https://github.com/linux-audit/audit-testsuite/issues/64
-> > See: https://github.com/linux-audit/audit-kernel/wiki/RFE-Audit-Container-ID
-> > Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
-> > ---
-> >  include/linux/audit.h | 19 ++++++++++++
-> >  kernel/audit.c        | 86 +++++++++++++++++++++++++++++++++++++++++++++++++--
-> >  kernel/nsproxy.c      |  4 +++
-> >  3 files changed, 106 insertions(+), 3 deletions(-)
-> 
-> ...
-> 
-> > diff --git a/kernel/audit.c b/kernel/audit.c
-> > index cf448599ef34..7fa3194f5342 100644
-> > --- a/kernel/audit.c
-> > +++ b/kernel/audit.c
-> > @@ -72,6 +72,7 @@
-> >  #include <linux/freezer.h>
-> >  #include <linux/pid_namespace.h>
-> >  #include <net/netns/generic.h>
-> > +#include <net/net_namespace.h>
-> >
-> >  #include "audit.h"
-> >
-> > @@ -99,9 +100,13 @@
-> >  /**
-> >   * struct audit_net - audit private network namespace data
-> >   * @sk: communication socket
-> > + * @contid_list: audit container identifier list
-> > + * @contid_list_lock audit container identifier list lock
-> >   */
-> >  struct audit_net {
-> >         struct sock *sk;
-> > +       struct list_head contid_list;
-> > +       spinlock_t contid_list_lock;
-> >  };
-> >
-> >  /**
-> > @@ -275,8 +280,11 @@ struct audit_task_info init_struct_audit = {
-> >  void audit_free(struct task_struct *tsk)
-> >  {
-> >         struct audit_task_info *info = tsk->audit;
-> > +       struct nsproxy *ns = tsk->nsproxy;
-> >
-> >         audit_free_syscall(tsk);
-> > +       if (ns)
-> > +               audit_netns_contid_del(ns->net_ns, audit_get_contid(tsk));
-> >         /* Freeing the audit_task_info struct must be performed after
-> >          * audit_log_exit() due to need for loginuid and sessionid.
-> >          */
-> > @@ -376,6 +384,73 @@ static struct sock *audit_get_sk(const struct net *net)
-> >         return aunet->sk;
-> >  }
-> >
-> > +void audit_netns_contid_add(struct net *net, u64 contid)
-> > +{
-> > +       struct audit_net *aunet = net_generic(net, audit_net_id);
-> > +       struct list_head *contid_list = &aunet->contid_list;
-> > +       struct audit_contid *cont;
-> > +
-> > +       if (!audit_contid_valid(contid))
-> > +               return;
-> > +       if (!aunet)
-> > +               return;
-> 
-> We should move the contid_list assignment below this check, or decide
-> that aunet is always going to valid (?) and get rid of this check
-> completely.
-> 
-I'm not sure why that would be needed.  Finding the net_id list is an operation
-of a map relating net namespaces to lists, not contids to lists.  We could do
-it, sure, but since they're unrelated operations, I don't think we experience
-any slowdowns from doing it this way.
+Problem:
+When bridge-nf-call-iptables is enabled, skb_dst(skb) of packets that
+in the nfqueue may be a dangling pointer if user delete the bridge.
+Because packets go through the br_nf_pre_routing_finish will set the dst
+pointer to the br->fake_rtable. But the br struct will be freed
+without the reference check for these skbs.
 
-> > +       spin_lock(&aunet->contid_list_lock);
-> > +       if (!list_empty(contid_list))
-> 
-> We don't need the list_empty() check here do we?  I think we can just
-> call list_for_each_entry_rcu(), yes?
-> 
-This is true, the list_empty check is redundant, and the for loop will fall
-through if the list is empty.
+User impact:
+Kernel panic may happen when user delete the bridge if there are
+continuous traffics go through the nfqueue.
+Here is a panic in my device which using kernel v3.10.
 
-> > +               list_for_each_entry_rcu(cont, contid_list, list)
-> > +                       if (cont->id == contid) {
-> > +                               refcount_inc(&cont->refcount);
-> > +                               goto out;
-> > +                       }
-> > +       cont = kmalloc(sizeof(struct audit_contid), GFP_ATOMIC);
-> 
-> If you had to guess, what do you think is going to be more common:
-> bumping the refcount of an existing entry in the list, or adding a new
-> entry?  I'm asking because I always get a little nervous when doing
-> allocations while holding a spinlock.  Yes, you are doing it with
-> GFP_ATOMIC, but it still seems like something to try and avoid if this
-> is going to approach 50%.  However, if the new entry is rare then the
-> extra work of always doing the allocation before taking the lock and
-> then freeing it afterwards might be a bad tradeoff.
-> 
-I think this is another way of asking, will multiple processes exist in the same
-network namespace?  That is to say, will we expect a process to create a net
-namespace, and then have other processes enter that namespace (thereby
-triggering multiple calls to audit_netns_contid_add with the same net pointer
-and cont id).  Given that the kubernetes notion of a pod is almost by definition
-multiple containers sharing a network namespace, I think the answer is that we
-will be strongly biased towards the refcount_inc case, rather than the kmalloc
-case.  I could be wrong, but I think this is likely already in the optimized
-order.
+general protection fault: 0000 1 SMP
+task: ffff880158418000 ti: ffff88011aeec000 task.ti: ffff88011aeec000
+RIP: 0010:[<ffffffff8133a83f>] [<ffffffff8133a83f>]
+ __percpu_counter_add+0xf/0x70
+RSP: 0000:ffff88017fc83e20 EFLAGS: 00010206
+RAX: ffff88011aeeffd8 RBX: ff0b900200000080 RCX: ffff88017fc901a0
+RDX: 0000000000000020 RSI: ffffffffffffffff RDI: ff0b900200000080
+RBP: ffff88017fc83e38 R08: ffff88015b5b1100 R09: ffff88017fc901a0
+R10: 0000000000000000 R11: ffff88017fc83da0 R12: 0000000bfd80400a
+R13: ffffffffffffffff R14: 0000000000000000 R15: ffff88017fc901c0
+FS: 00007fcfe17d2700(0000) GS:ffff88017fc80000(0000) knlGS:0000000000000000
+CS: 0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007fa3fbdf0ec0 CR3: 0000000159eba000 CR4: 00000000003407e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+Stack:
+ffff88015b5b1100 0000000bfd80400a ff0b900200000000 ffff88017fc83e60
+ffffffff8157be3a ffffffff81a3a580 000000000000000a 0000000000000000
+ffff88017fc83e70 ffffffff8157c0be ffff88017fc83ed0 ffffffff8113977d
+Call Trace:
+<IRQ>
+[<ffffffff8157be3a>] dst_destroy+0xfa/0x120
+[<ffffffff8157c0be>] dst_destroy_rcu+0xe/0x20
+[<ffffffff8113977d>] rcu_process_callbacks+0x1dd/0x550
+[<ffffffff8108f2cf>] __do_softirq+0xef/0x280
+[<ffffffff816b1adc>] call_softirq+0x1c/0x30
+[<ffffffff8102d365>] do_softirq+0x65/0xa0
+[<ffffffff8108f665>] irq_exit+0x115/0x120
+[<ffffffff816b2755>] smp_apic_timer_interrupt+0x45/0x60
+[<ffffffff816b0c9d>] apic_timer_interrupt+0x6d/0x80
+<EOI>
+[<ffffffff816b016b>] ? sysret_audit+0x17/0x21
+RIP [<ffffffff8133a83f>] __percpu_counter_add+0xf/0x70
+RSP <ffff88017fc83e20>
 
-> My gut feeling says we might do about as many allocations as refcount
-> bumps, but I could be thinking about this wrong.
-> 
-> Moving the allocation outside the spinlock might also open the door to
-> doing this as GFP_KERNEL, which is a good thing, but I haven't looked
-> at the callers to see if that is possible (it may not be).  That's an
-> exercise left to the patch author (if he hasn't done that already).
-> 
-> > +       if (cont) {
-> > +               INIT_LIST_HEAD(&cont->list);
-> 
-> Unless there is some guidance that INIT_LIST_HEAD() should be used
-> regardless, you shouldn't need to call this here since list_add_rcu()
-> will take care of any list.h related initialization.
-> 
-There is a corner case that needs it.  list_add_rcu has a check that gets
-called, __list_add_valid.  Its a noop in the regular case, but if
-CONFIG_DEBUG_LIST is defined, its a check to ensure that the next and prev
-pointers getting passed in aren't set to detectable corrupt values.  If we pass
-in garbage, we can get transient false positives on that check, so we need to
-set the list pointers to known good values before hand, either by using kzalloc,
-or INIT_LIST_HEAD, as has been done here.  Given that we expressly set every
-field of this structure, I think this is the right approach, as it uses the list
-macro to expressly set the list values to their proper state.
+Solution:
+Hold the bridge dev until there is no dst reference.
 
-> > +               cont->id = contid;
-> > +               refcount_set(&cont->refcount, 1);
-> > +               list_add_rcu(&cont->list, contid_list);
-> > +       }
-> > +out:
-> > +       spin_unlock(&aunet->contid_list_lock);
-> > +}
-> 
-> -- 
-> paul moore
-> www.paul-moore.com
-> 
+Signed-off-by: Rundong Ge <rdong.ge@gmail.com>
+---
+ net/bridge/br_if.c              |  3 +++
+ net/bridge/br_netfilter_hooks.c |  3 ++-
+ net/bridge/br_netfilter_ipv6.c  |  3 ++-
+ net/bridge/br_nf_core.c         |  1 +
+ net/core/dst.c                  | 13 ++++++++++++-
+ 5 files changed, 20 insertions(+), 3 deletions(-)
+
+diff --git a/net/bridge/br_if.c b/net/bridge/br_if.c
+index 41f0a69..21948bd 100644
+--- a/net/bridge/br_if.c
++++ b/net/bridge/br_if.c
+@@ -384,6 +384,9 @@ void br_dev_delete(struct net_device *dev, struct list_head *head)
+ 	cancel_delayed_work_sync(&br->gc_work);
+ 
+ 	br_sysfs_delbr(br->dev);
++#if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
++	dst_release(&br->fake_rtable.dst);
++#endif
+ 	unregister_netdevice_queue(br->dev, head);
+ }
+ 
+diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
+index 22afa56..3683f0f 100644
+--- a/net/bridge/br_netfilter_hooks.c
++++ b/net/bridge/br_netfilter_hooks.c
+@@ -401,7 +401,8 @@ static int br_nf_pre_routing_finish(struct net *net, struct sock *sk, struct sk_
+ 			kfree_skb(skb);
+ 			return 0;
+ 		}
+-		skb_dst_set_noref(skb, &rt->dst);
++		skb_dst_set(skb, &rt->dst);
++		dst_hold(&rt->dst);
+ 	}
+ 
+ 	skb->dev = nf_bridge->physindev;
+diff --git a/net/bridge/br_netfilter_ipv6.c b/net/bridge/br_netfilter_ipv6.c
+index e88d664..425b11a 100644
+--- a/net/bridge/br_netfilter_ipv6.c
++++ b/net/bridge/br_netfilter_ipv6.c
+@@ -201,7 +201,8 @@ static int br_nf_pre_routing_finish_ipv6(struct net *net, struct sock *sk, struc
+ 			kfree_skb(skb);
+ 			return 0;
+ 		}
+-		skb_dst_set_noref(skb, &rt->dst);
++		skb_dst_set(skb, &rt->dst);
++		dst_hold(&rt->dst);
+ 	}
+ 
+ 	skb->dev = nf_bridge->physindev;
+diff --git a/net/bridge/br_nf_core.c b/net/bridge/br_nf_core.c
+index 8e2d7cf..6543c3c 100644
+--- a/net/bridge/br_nf_core.c
++++ b/net/bridge/br_nf_core.c
+@@ -81,6 +81,7 @@ void br_netfilter_rtable_init(struct net_bridge *br)
+ 	dst_init_metrics(&rt->dst, br_dst_default_metrics, true);
+ 	rt->dst.flags	= DST_NOXFRM | DST_FAKE_RTABLE;
+ 	rt->dst.ops = &fake_dst_ops;
++	dev_hold(br->dev);
+ }
+ 
+ int __init br_nf_core_init(void)
+diff --git a/net/core/dst.c b/net/core/dst.c
+index a263309..0e6f2a2 100644
+--- a/net/core/dst.c
++++ b/net/core/dst.c
+@@ -186,13 +186,24 @@ void dst_release(struct dst_entry *dst)
+ {
+ 	if (dst) {
+ 		int newrefcnt;
++#if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
++		unsigned short fakertable = dst->flags & DST_FAKE_RTABLE;
++#endif
+ 
+ 		newrefcnt = atomic_dec_return(&dst->__refcnt);
+ 		if (unlikely(newrefcnt < 0))
+ 			net_warn_ratelimited("%s: dst:%p refcnt:%d\n",
+ 					     __func__, dst, newrefcnt);
+-		if (!newrefcnt)
++		if (!newrefcnt) {
++#if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
++			if (fakertable) {
++				if (dst->dev)
++					dev_put(dst->dev);
++				return;
++			}
++#endif
+ 			call_rcu(&dst->rcu_head, dst_destroy_rcu);
++		}
+ 	}
+ }
+ EXPORT_SYMBOL(dst_release);
+-- 
+1.8.3.1
+
