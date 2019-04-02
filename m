@@ -2,91 +2,201 @@ Return-Path: <SRS0=UyK1=SE=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.5 required=3.0
+	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_MUTT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3DF34C4360F
-	for <netfilter-devel@archiver.kernel.org>; Tue,  2 Apr 2019 13:36:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1498FC10F00
+	for <netfilter-devel@archiver.kernel.org>; Tue,  2 Apr 2019 14:29:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0C08E20883
-	for <netfilter-devel@archiver.kernel.org>; Tue,  2 Apr 2019 13:36:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D9EC820857
+	for <netfilter-devel@archiver.kernel.org>; Tue,  2 Apr 2019 14:29:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729309AbfDBNgw (ORCPT
+        id S1730527AbfDBO3S (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 2 Apr 2019 09:36:52 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:42164 "EHLO orbyte.nwl.cc"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728105AbfDBNgw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 2 Apr 2019 09:36:52 -0400
-Received: from localhost ([::1]:55254 helo=tatos)
-        by orbyte.nwl.cc with esmtp (Exim 4.91)
-        (envelope-from <phil@nwl.cc>)
-        id 1hBJat-0004EN-H8; Tue, 02 Apr 2019 15:36:51 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: [nft PATCH] man: nft.8: Add minimal description of (v)map statements
-Date:   Tue,  2 Apr 2019 15:36:42 +0200
-Message-Id: <20190402133642.6422-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.21.0
+        Tue, 2 Apr 2019 10:29:18 -0400
+Received: from charlotte.tuxdriver.com ([70.61.120.58]:55506 "EHLO
+        smtp.tuxdriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725778AbfDBO3S (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 2 Apr 2019 10:29:18 -0400
+Received: from cpe-2606-a000-111b-405a-9816-2c85-c514-8f7a.dyn6.twc.com ([2606:a000:111b:405a:9816:2c85:c514:8f7a] helo=localhost)
+        by smtp.tuxdriver.com with esmtpsa (TLSv1:AES256-SHA:256)
+        (Exim 4.63)
+        (envelope-from <nhorman@tuxdriver.com>)
+        id 1hBKPT-0005ya-LZ; Tue, 02 Apr 2019 10:29:10 -0400
+Date:   Tue, 2 Apr 2019 10:28:39 -0400
+From:   Neil Horman <nhorman@tuxdriver.com>
+To:     Paul Moore <paul@paul-moore.com>
+Cc:     Richard Guy Briggs <rgb@redhat.com>,
+        containers@lists.linux-foundation.org, linux-api@vger.kernel.org,
+        Linux-Audit Mailing List <linux-audit@redhat.com>,
+        linux-fsdevel@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        sgrubb@redhat.com, omosnace@redhat.com, dhowells@redhat.com,
+        simo@redhat.com, Eric Paris <eparis@parisplace.org>,
+        Serge Hallyn <serge@hallyn.com>, ebiederm@xmission.com
+Subject: Re: [PATCH ghak90 V5 09/10] audit: add support for containerid to
+ network namespaces
+Message-ID: <20190402142839.GC17593@hmswarspite.think-freely.org>
+References: <cover.1552665316.git.rgb@redhat.com>
+ <27473c84a274c64871cfa8e3636deaf05603c978.1552665316.git.rgb@redhat.com>
+ <CAHC9VhQpk6cFZckQH+LQmQmirVzLm_GH57ZD3-76y-59G=DocQ@mail.gmail.com>
+ <20190402113150.GA17593@hmswarspite.think-freely.org>
+ <CAHC9VhRW86NamkX9FcsHEYg_DJehCCAnANUqB8+gv=dxpBkd6w@mail.gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAHC9VhRW86NamkX9FcsHEYg_DJehCCAnANUqB8+gv=dxpBkd6w@mail.gmail.com>
+User-Agent: Mutt/1.11.3 (2019-02-01)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Although quite useful, these were missing in man page. Content loosely
-based on wiki documentation.
+On Tue, Apr 02, 2019 at 09:31:49AM -0400, Paul Moore wrote:
+> On Tue, Apr 2, 2019 at 7:32 AM Neil Horman <nhorman@tuxdriver.com> wrote:
+> > On Mon, Apr 01, 2019 at 10:50:03AM -0400, Paul Moore wrote:
+> > > On Fri, Mar 15, 2019 at 2:35 PM Richard Guy Briggs <rgb@redhat.com> wrote:
+> > > > Audit events could happen in a network namespace outside of a task
+> > > > context due to packets received from the net that trigger an auditing
+> > > > rule prior to being associated with a running task.  The network
+> > > > namespace could be in use by multiple containers by association to the
+> > > > tasks in that network namespace.  We still want a way to attribute
+> > > > these events to any potential containers.  Keep a list per network
+> > > > namespace to track these audit container identifiiers.
+> > > >
+> > > > Add/increment the audit container identifier on:
+> > > > - initial setting of the audit container identifier via /proc
+> > > > - clone/fork call that inherits an audit container identifier
+> > > > - unshare call that inherits an audit container identifier
+> > > > - setns call that inherits an audit container identifier
+> > > > Delete/decrement the audit container identifier on:
+> > > > - an inherited audit container identifier dropped when child set
+> > > > - process exit
+> > > > - unshare call that drops a net namespace
+> > > > - setns call that drops a net namespace
+> > > >
+> > > > See: https://github.com/linux-audit/audit-kernel/issues/92
+> > > > See: https://github.com/linux-audit/audit-testsuite/issues/64
+> > > > See: https://github.com/linux-audit/audit-kernel/wiki/RFE-Audit-Container-ID
+> > > > Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
+> > > > ---
+> > > >  include/linux/audit.h | 19 ++++++++++++
+> > > >  kernel/audit.c        | 86 +++++++++++++++++++++++++++++++++++++++++++++++++--
+> > > >  kernel/nsproxy.c      |  4 +++
+> > > >  3 files changed, 106 insertions(+), 3 deletions(-)
+> > >
+> > > ...
+> > >
+> > > > diff --git a/kernel/audit.c b/kernel/audit.c
+> > > > index cf448599ef34..7fa3194f5342 100644
+> > > > --- a/kernel/audit.c
+> > > > +++ b/kernel/audit.c
+> > > > @@ -72,6 +72,7 @@
+> > > >  #include <linux/freezer.h>
+> > > >  #include <linux/pid_namespace.h>
+> > > >  #include <net/netns/generic.h>
+> > > > +#include <net/net_namespace.h>
+> > > >
+> > > >  #include "audit.h"
+> > > >
+> > > > @@ -99,9 +100,13 @@
+> > > >  /**
+> > > >   * struct audit_net - audit private network namespace data
+> > > >   * @sk: communication socket
+> > > > + * @contid_list: audit container identifier list
+> > > > + * @contid_list_lock audit container identifier list lock
+> > > >   */
+> > > >  struct audit_net {
+> > > >         struct sock *sk;
+> > > > +       struct list_head contid_list;
+> > > > +       spinlock_t contid_list_lock;
+> > > >  };
+> > > >
+> > > >  /**
+> > > > @@ -275,8 +280,11 @@ struct audit_task_info init_struct_audit = {
+> > > >  void audit_free(struct task_struct *tsk)
+> > > >  {
+> > > >         struct audit_task_info *info = tsk->audit;
+> > > > +       struct nsproxy *ns = tsk->nsproxy;
+> > > >
+> > > >         audit_free_syscall(tsk);
+> > > > +       if (ns)
+> > > > +               audit_netns_contid_del(ns->net_ns, audit_get_contid(tsk));
+> > > >         /* Freeing the audit_task_info struct must be performed after
+> > > >          * audit_log_exit() due to need for loginuid and sessionid.
+> > > >          */
+> > > > @@ -376,6 +384,73 @@ static struct sock *audit_get_sk(const struct net *net)
+> > > >         return aunet->sk;
+> > > >  }
+> > > >
+> > > > +void audit_netns_contid_add(struct net *net, u64 contid)
+> > > > +{
+> > > > +       struct audit_net *aunet = net_generic(net, audit_net_id);
+> > > > +       struct list_head *contid_list = &aunet->contid_list;
+> > > > +       struct audit_contid *cont;
+> > > > +
+> > > > +       if (!audit_contid_valid(contid))
+> > > > +               return;
+> > > > +       if (!aunet)
+> > > > +               return;
+> > >
+> > > We should move the contid_list assignment below this check, or decide
+> > > that aunet is always going to valid (?) and get rid of this check
+> > > completely.
+> > >
+> > I'm not sure why that would be needed.  Finding the net_id list is an operation
+> > of a map relating net namespaces to lists, not contids to lists.  We could do
+> > it, sure, but since they're unrelated operations, I don't think we experience
+> > any slowdowns from doing it this way.
+> 
+> In the first line of the function, when aunet is declared, it is also
+> assigned a value using net_generic():
+> 
+>   struct audit_net *aunet = net_generic(net, audit_net_id);
+> 
+> Later in the function there is check to see if aunet is NULL, yet on
+> the second line of the function (before the NULL check), there is this
+> line of code:
+> 
+>   struct list_head *contid_list = &aunet->contid_list;
+> 
+> ... which could result in the dereference of a NULL pointer if aunet
+> is NULL.  My suggestion was either to move this assignment below the
+> aunet-NULL check or decide that aunet was always going to be valid
+> (e.g. non-NULL) and do away with the aunet-NULL check completely.
+> Richard has since replied that the aunet-NULL check has been
+> demonstrated to be necessary so the proper thing to do would be to
+> move the assignment.  I believe that is what Richard is planning on
+> doing.
+> 
+oh, I'm sorry, you're right, I was looking at the contid tests not the list
+tests.
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- doc/statements.txt | 34 ++++++++++++++++++++++++++++++++++
- 1 file changed, 34 insertions(+)
+Neil
 
-diff --git a/doc/statements.txt b/doc/statements.txt
-index 0687f53f83076..754040bca20d7 100644
---- a/doc/statements.txt
-+++ b/doc/statements.txt
-@@ -564,3 +564,37 @@ nft list set ip filter blackhole
- # manually add two addresses to the set:
- nft add element filter blackhole { 10.2.3.4, 10.23.1.42 }
- -----------------------------------------------
-+
-+MAP STATEMENT
-+~~~~~~~~~~~~~
-+The map statement is used to lookup data based on some specific input key.
-+
-+[verse]
-+'expression' *map* *{* 'key' *:* 'value' [*,* 'key' *:* 'value' ...] *}*
-+
-+.Using the map statement
-+------------------------
-+# select DNAT target based on TCP dport:
-+# connections to port 80 are redirected to 192.168.1.100,
-+# connections to port 8888 are redirected to 192.168.1.101
-+nft add rule ip nat prerouting dnat tcp dport map { 80 : 192.168.1.100, 8888 : 192.168.1.101 }
-+
-+# source address based SNAT:
-+# packets from net 192.168.1.0/24 will appear as originating from 10.0.0.1,
-+# packets from net 192.168.2.0/24 will appear as originating from 10.0.0.2
-+nft add rule ip nat postrouting snat to ip saddr map { 192.168.1.0/24 : 10.0.0.1, 192.168.2.0/24 : 10.0.0.2 }
-+------------------------
-+
-+VMAP STATEMENT
-+~~~~~~~~~~~~~~
-+The verdict map (vmap) statement works analogous to the map statement, but
-+contains verdicts as values.
-+
-+[verse]
-+'expression' *vmap* *{* 'key' *:* 'verdict' [*,* 'key' *:* 'verdict' ...] *}*
-+
-+.Using the vmap statement
-+-------------------------
-+# jump to different chains depending on layer 4 protocol type:
-+nft add rule ip filter input ip protocol vmap { tcp : jump tcp-chain, udp : jump udp-chain , icmp : jump icmp-chain }
-+------------------------
--- 
-2.21.0
-
+> > > > +       if (cont) {
+> > > > +               INIT_LIST_HEAD(&cont->list);
+> > >
+> > > Unless there is some guidance that INIT_LIST_HEAD() should be used
+> > > regardless, you shouldn't need to call this here since list_add_rcu()
+> > > will take care of any list.h related initialization.
+> >
+> > There is a corner case that needs it.  list_add_rcu has a check that gets
+> > called, __list_add_valid.  Its a noop in the regular case, but if
+> > CONFIG_DEBUG_LIST is defined, its a check to ensure that the next and prev
+> > pointers getting passed in aren't set to detectable corrupt values.  If we pass
+> > in garbage, we can get transient false positives on that check, so we need to
+> > set the list pointers to known good values before hand, either by using kzalloc,
+> > or INIT_LIST_HEAD, as has been done here.  Given that we expressly set every
+> > field of this structure, I think this is the right approach, as it uses the list
+> > macro to expressly set the list values to their proper state.
+> 
+> Good to know, thanks.
+> 
+> -- 
+> paul moore
+> www.paul-moore.com
+> 
