@@ -2,116 +2,246 @@ Return-Path: <SRS0=21Bs=SF=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9E673C10F06
-	for <netfilter-devel@archiver.kernel.org>; Wed,  3 Apr 2019 15:40:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0581CC10F06
+	for <netfilter-devel@archiver.kernel.org>; Wed,  3 Apr 2019 15:40:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6916B2054F
-	for <netfilter-devel@archiver.kernel.org>; Wed,  3 Apr 2019 15:40:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C7B682054F
+	for <netfilter-devel@archiver.kernel.org>; Wed,  3 Apr 2019 15:40:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726756AbfDCPkK (ORCPT
+        id S1726942AbfDCPkO (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 3 Apr 2019 11:40:10 -0400
-Received: from mail.us.es ([193.147.175.20]:56646 "EHLO mail.us.es"
+        Wed, 3 Apr 2019 11:40:14 -0400
+Received: from mail.us.es ([193.147.175.20]:56696 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726264AbfDCPkK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 3 Apr 2019 11:40:10 -0400
+        id S1726882AbfDCPkN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 3 Apr 2019 11:40:13 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 3051D172C8E
-        for <netfilter-devel@vger.kernel.org>; Wed,  3 Apr 2019 17:40:08 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 25623172C90
+        for <netfilter-devel@vger.kernel.org>; Wed,  3 Apr 2019 17:40:10 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 1FA6DDA713
-        for <netfilter-devel@vger.kernel.org>; Wed,  3 Apr 2019 17:40:08 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 148C5DA70C
+        for <netfilter-devel@vger.kernel.org>; Wed,  3 Apr 2019 17:40:10 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 12563DA78C; Wed,  3 Apr 2019 17:40:08 +0200 (CEST)
+        id 13DDDDA709; Wed,  3 Apr 2019 17:40:10 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id D821EDA70B;
-        Wed,  3 Apr 2019 17:40:05 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id B4B91DA716;
+        Wed,  3 Apr 2019 17:40:07 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 03 Apr 2019 17:40:04 +0200 (CEST)
+ Wed, 03 Apr 2019 17:40:07 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 949AF4265A31;
-        Wed,  3 Apr 2019 17:40:05 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 705EA4265A31;
+        Wed,  3 Apr 2019 17:40:07 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     fw@strlen.de, eric.dumazet@gmail.com, davem@davemloft.net,
         netdev@vger.kernel.org
-Subject: [PATCH net-next,RFC 0/8] connection tracking support for bridge
-Date:   Wed,  3 Apr 2019 17:39:53 +0200
-Message-Id: <20190403154001.8177-1-pablo@netfilter.org>
+Subject: [PATCH net-next,RFC 2/8] net: ipv4: add skbuff fraglist split iterator
+Date:   Wed,  3 Apr 2019 17:39:55 +0200
+Message-Id: <20190403154001.8177-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
+In-Reply-To: <20190403154001.8177-1-pablo@netfilter.org>
+References: <20190403154001.8177-1-pablo@netfilter.org>
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi,
+This patch adds skbuff fraglist split iterator. The API consists of:
 
-This patchset provides native connection tracking support for bridge,
-*this is work-in-progress RFC*.
+* ip_fraglist_init(), that initializes the internal state of the
+  fraglist iterator.
+* ip_fraglist_prepare(), that restores the IPv4 and transport headers
+  on the fragment.
+* ip_fraglist_next(), that retrieves the fragment from the fraglist and
+  updates the internal state of the iterator to point to the next
+  fragment in the fraglist.
 
-ebtables has a very limited feature-set compared to iptables, among them
-no connection tracking support. Long time ago, to overcome this
-limitation, someone came up with the bridge netfilter infrastructure -
-the `br_netfilter' kernel module. This module steals frames from bridge
-prerouting hook, mangle them to make them look like IPv4 packets to
-make iptables happy, eg. by attaching a fake dst object, then inject
-them into the IP hooks, then take them back into the bridge frame layout
-to call the bridge routines. Going back and forth through all the
-netfilter IP and bridge hooks, not nice. In turn, this `br_netfilter'
-infrastructure has been allowing users to use iptables, conntrack and
-NAT for bridged frames, instead of ebtables. An iptables extension
-called 'physdev' was introduced at the time to match on the bridge
-interface as a way to expose some of the semantics behind this emulation
-layer.
+The ip_fraglist_iter object stores the internal state of the iterator.
 
-However, along time, many design problems uncovered with this
-`br_netfilter' emulation, becoming a common topic of discussion.
+This code has been extracted from ip_do_fragment(). Symbols are also
+exported to allow to reuse this iterator from the bridge codepath for
+refragmentation.
 
-This patchset is an initial step to introduce a replacement for this
-`br_netfilter' emulation layer by introducing one of the missing
-features that makes users turn on this `br_netfilter' emulation layer.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/net/ip.h     | 23 ++++++++++++++
+ net/ipv4/ip_output.c | 88 ++++++++++++++++++++++++++++++++--------------------
+ 2 files changed, 78 insertions(+), 33 deletions(-)
 
-This patchset includes updates to expose two new refragmentation APIs in
-order to reuse them from the bridge. The existing ip_do_fragment() calls
-rely on dst objects that are not available from there, this function
-also triggers refragmentation where the maximum fragment size is larger
-than the device MTU, altering fragments geometry in that case, something
-that a bridge should not do, among other things. I think this new
-refragment infrastructure could be reused by folks with codebase away
-from the classic IP stack, eg. OVS.
-
-Comments welcome, thanks.
-
-Pablo Neira Ayuso (8):
-  net: use kfree_skb_list() from ip_do_fragment()
-  net: ipv4: add skbuff fraglist split iterator
-  net: ipv6: add skbuff fraglist split iterator
-  net: ipv4: split skbuff into fragments transformer
-  net: ipv6: split skbuff into fragments transformer
-  net: ipv4: place cb handling away from fraglist iterator
-  net: ipv4: place cb handling away from fragment transformer
-  netfilter: bridge: add basic conntrack support
-
- include/net/ip.h                           |  39 +++
- include/net/ipv6.h                         |  44 +++
- net/bridge/br_private.h                    |   2 +-
- net/bridge/netfilter/Kconfig               |  14 +
- net/bridge/netfilter/Makefile              |   3 +
- net/bridge/netfilter/nf_conntrack_bridge.c | 411 +++++++++++++++++++++++++++++
- net/ipv4/ip_output.c                       | 314 +++++++++++++---------
- net/ipv6/ip6_output.c                      | 315 +++++++++++++---------
- 8 files changed, 884 insertions(+), 258 deletions(-)
- create mode 100644 net/bridge/netfilter/nf_conntrack_bridge.c
-
+diff --git a/include/net/ip.h b/include/net/ip.h
+index aa09ae5f01a5..cc3d83680f4f 100644
+--- a/include/net/ip.h
++++ b/include/net/ip.h
+@@ -165,6 +165,29 @@ int ip_output(struct net *net, struct sock *sk, struct sk_buff *skb);
+ int ip_mc_output(struct net *net, struct sock *sk, struct sk_buff *skb);
+ int ip_do_fragment(struct net *net, struct sock *sk, struct sk_buff *skb,
+ 		   int (*output)(struct net *, struct sock *, struct sk_buff *));
++
++struct ip_fraglist_iter {
++	struct sk_buff	*frag_list;
++	struct sk_buff	*frag;
++	struct iphdr	*iph;
++	int		offset;
++	unsigned int	hlen;
++};
++
++void ip_fraglist_init(struct sk_buff *skb, struct iphdr *iph,
++		      unsigned int hlen, struct ip_fraglist_iter *iter);
++void ip_fraglist_prepare(struct sk_buff *skb, struct ip_fraglist_iter *iter);
++
++static inline struct sk_buff *ip_fraglist_next(struct ip_fraglist_iter *iter)
++{
++	struct sk_buff *skb = iter->frag;
++
++	iter->frag = skb->next;
++	skb_mark_not_on_list(skb);
++
++	return skb;
++}
++
+ void ip_send_check(struct iphdr *ip);
+ int __ip_local_out(struct net *net, struct sock *sk, struct sk_buff *skb);
+ int ip_local_out(struct net *net, struct sock *sk, struct sk_buff *skb);
+diff --git a/net/ipv4/ip_output.c b/net/ipv4/ip_output.c
+index 10b35328cfbc..d53fa795feb4 100644
+--- a/net/ipv4/ip_output.c
++++ b/net/ipv4/ip_output.c
+@@ -562,6 +562,54 @@ static int ip_fragment(struct net *net, struct sock *sk, struct sk_buff *skb,
+ 	return ip_do_fragment(net, sk, skb, output);
+ }
+ 
++void ip_fraglist_init(struct sk_buff *skb, struct iphdr *iph,
++		      unsigned int hlen, struct ip_fraglist_iter *iter)
++{
++	unsigned int first_len = skb_pagelen(skb);
++
++	iter->frag_list = skb_shinfo(skb)->frag_list;
++	iter->frag = iter->frag_list;
++	skb_frag_list_init(skb);
++
++	iter->offset = 0;
++	iter->iph = iph;
++	iter->hlen = hlen;
++
++	skb->data_len = first_len - skb_headlen(skb);
++	skb->len = first_len;
++	iph->tot_len = htons(first_len);
++	iph->frag_off = htons(IP_MF);
++	ip_send_check(iph);
++}
++EXPORT_SYMBOL(ip_fraglist_init);
++
++void ip_fraglist_prepare(struct sk_buff *skb, struct ip_fraglist_iter *iter)
++{
++	unsigned int hlen = iter->hlen;
++	struct iphdr *iph = iter->iph;
++	struct sk_buff *frag;
++
++	frag = iter->frag;
++	frag->ip_summed = CHECKSUM_NONE;
++	skb_reset_transport_header(frag);
++	__skb_push(frag, hlen);
++	skb_reset_network_header(frag);
++	memcpy(skb_network_header(frag), iph, hlen);
++	iter->iph = ip_hdr(frag);
++	iph = iter->iph;
++	iph->tot_len = htons(frag->len);
++	ip_copy_metadata(frag, skb);
++	if (iter->offset == 0)
++		ip_options_fragment(frag);
++	iter->offset += skb->len - hlen;
++	iph->frag_off = htons(iter->offset >> 3);
++	if (frag->next)
++		iph->frag_off |= htons(IP_MF);
++	/* Ready, complete checksum */
++	ip_send_check(iph);
++}
++EXPORT_SYMBOL(ip_fraglist_prepare);
++
+ /*
+  *	This IP datagram is too large to be sent in one piece.  Break it up into
+  *	smaller pieces (each of size equal to IP header plus
+@@ -579,6 +627,7 @@ int ip_do_fragment(struct net *net, struct sock *sk, struct sk_buff *skb,
+ 	int offset;
+ 	__be16 not_last_frag;
+ 	struct rtable *rt = skb_rtable(skb);
++	struct ip_fraglist_iter iter;
+ 	int err = 0;
+ 
+ 	/* for offloaded checksums cleanup checksum before fragmentation */
+@@ -643,49 +692,22 @@ int ip_do_fragment(struct net *net, struct sock *sk, struct sk_buff *skb,
+ 		}
+ 
+ 		/* Everything is OK. Generate! */
+-
+-		err = 0;
+-		offset = 0;
+-		frag = skb_shinfo(skb)->frag_list;
+-		skb_frag_list_init(skb);
+-		skb->data_len = first_len - skb_headlen(skb);
+-		skb->len = first_len;
+-		iph->tot_len = htons(first_len);
+-		iph->frag_off = htons(IP_MF);
+-		ip_send_check(iph);
++		ip_fraglist_init(skb, iph, hlen, &iter);
+ 
+ 		for (;;) {
+ 			/* Prepare header of the next frame,
+ 			 * before previous one went down. */
+-			if (frag) {
+-				frag->ip_summed = CHECKSUM_NONE;
+-				skb_reset_transport_header(frag);
+-				__skb_push(frag, hlen);
+-				skb_reset_network_header(frag);
+-				memcpy(skb_network_header(frag), iph, hlen);
+-				iph = ip_hdr(frag);
+-				iph->tot_len = htons(frag->len);
+-				ip_copy_metadata(frag, skb);
+-				if (offset == 0)
+-					ip_options_fragment(frag);
+-				offset += skb->len - hlen;
+-				iph->frag_off = htons(offset>>3);
+-				if (frag->next)
+-					iph->frag_off |= htons(IP_MF);
+-				/* Ready, complete checksum */
+-				ip_send_check(iph);
+-			}
++			if (iter.frag)
++				ip_fraglist_prepare(skb, &iter);
+ 
+ 			err = output(net, sk, skb);
+ 
+ 			if (!err)
+ 				IP_INC_STATS(net, IPSTATS_MIB_FRAGCREATES);
+-			if (err || !frag)
++			if (err || !iter.frag)
+ 				break;
+ 
+-			skb = frag;
+-			frag = skb->next;
+-			skb_mark_not_on_list(skb);
++			skb = ip_fraglist_next(&iter);
+ 		}
+ 
+ 		if (err == 0) {
+@@ -693,7 +715,7 @@ int ip_do_fragment(struct net *net, struct sock *sk, struct sk_buff *skb,
+ 			return 0;
+ 		}
+ 
+-		kfree_skb_list(frag);
++		kfree_skb_list(iter.frag_list);
+ 
+ 		IP_INC_STATS(net, IPSTATS_MIB_FRAGFAILS);
+ 		return err;
 -- 
 2.11.0
 
