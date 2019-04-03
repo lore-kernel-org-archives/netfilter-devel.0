@@ -2,157 +2,116 @@ Return-Path: <SRS0=21Bs=SF=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.8 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_NEOMUTT autolearn=ham autolearn_force=no
+X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BF017C4360F
-	for <netfilter-devel@archiver.kernel.org>; Wed,  3 Apr 2019 08:18:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9E673C10F06
+	for <netfilter-devel@archiver.kernel.org>; Wed,  3 Apr 2019 15:40:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8D12921473
-	for <netfilter-devel@archiver.kernel.org>; Wed,  3 Apr 2019 08:18:36 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=verge.net.au header.i=@verge.net.au header.b="U8D0urXS"
+	by mail.kernel.org (Postfix) with ESMTP id 6916B2054F
+	for <netfilter-devel@archiver.kernel.org>; Wed,  3 Apr 2019 15:40:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728892AbfDCISg (ORCPT
+        id S1726756AbfDCPkK (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 3 Apr 2019 04:18:36 -0400
-Received: from kirsty.vergenet.net ([202.4.237.240]:34731 "EHLO
-        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725936AbfDCISf (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 3 Apr 2019 04:18:35 -0400
-Received: from reginn.horms.nl (watermunt.horms.nl [80.127.179.77])
-        by kirsty.vergenet.net (Postfix) with ESMTPA id 856B125B820;
-        Wed,  3 Apr 2019 19:18:32 +1100 (AEDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=verge.net.au; s=mail;
-        t=1554279512; bh=TATorOr4uhv9V4nQdt+Jcav/p7yNR4Kl3UzKo8QWOK4=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=U8D0urXSlPaM067qfC2nKdeCYuatVTzLEvkw3/pXWqcFprcRbueEUF6mrv8Z/vKWF
-         mTMUVDdlbRb9vupex9D93pdwU7alL5nyONiGB4mUNd0B2FRDRe0YMzi5ndAtyDpZi2
-         l0y35qCCoLpm5HaDujfKTl96d20f1GV7tEsI6U8c=
-Received: by reginn.horms.nl (Postfix, from userid 7100)
-        id 80DA5940361; Wed,  3 Apr 2019 10:18:30 +0200 (CEST)
-Date:   Wed, 3 Apr 2019 10:18:30 +0200
-From:   Simon Horman <horms@verge.net.au>
-To:     Julian Anastasov <ja@ssi.bg>
-Cc:     lvs-devel@vger.kernel.org, Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org, Jacky Hu <hengqing.hu@gmail.com>,
-        jacky.hu@walmart.com, jason.niesz@walmart.com
-Subject: Re: [PATCH net-next 1/3] ipvs: allow rs_table to contain different
- real server types
-Message-ID: <20190403081830.zeisy4kxyqamgmiv@verge.net.au>
-References: <20190331102621.7460-1-ja@ssi.bg>
- <20190331102621.7460-2-ja@ssi.bg>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190331102621.7460-2-ja@ssi.bg>
-Organisation: Horms Solutions BV
-User-Agent: NeoMutt/20170113 (1.7.2)
+        Wed, 3 Apr 2019 11:40:10 -0400
+Received: from mail.us.es ([193.147.175.20]:56646 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726264AbfDCPkK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 3 Apr 2019 11:40:10 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 3051D172C8E
+        for <netfilter-devel@vger.kernel.org>; Wed,  3 Apr 2019 17:40:08 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 1FA6DDA713
+        for <netfilter-devel@vger.kernel.org>; Wed,  3 Apr 2019 17:40:08 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 12563DA78C; Wed,  3 Apr 2019 17:40:08 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id D821EDA70B;
+        Wed,  3 Apr 2019 17:40:05 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Wed, 03 Apr 2019 17:40:04 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from salvia.here (sys.soleta.eu [212.170.55.40])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id 949AF4265A31;
+        Wed,  3 Apr 2019 17:40:05 +0200 (CEST)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     fw@strlen.de, eric.dumazet@gmail.com, davem@davemloft.net,
+        netdev@vger.kernel.org
+Subject: [PATCH net-next,RFC 0/8] connection tracking support for bridge
+Date:   Wed,  3 Apr 2019 17:39:53 +0200
+Message-Id: <20190403154001.8177-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.11.0
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Julian,
+Hi,
 
-On Sun, Mar 31, 2019 at 01:26:19PM +0300, Julian Anastasov wrote:
-> Before now rs_table was used only for NAT real servers.
-> Change it to allow TUN real severs from different types,
-> possibly hashed with different port key.
-> 
-> Signed-off-by: Julian Anastasov <ja@ssi.bg>
+This patchset provides native connection tracking support for bridge,
+*this is work-in-progress RFC*.
 
-This looks good to me, modulo some nits below.
+ebtables has a very limited feature-set compared to iptables, among them
+no connection tracking support. Long time ago, to overcome this
+limitation, someone came up with the bridge netfilter infrastructure -
+the `br_netfilter' kernel module. This module steals frames from bridge
+prerouting hook, mangle them to make them look like IPv4 packets to
+make iptables happy, eg. by attaching a fake dst object, then inject
+them into the IP hooks, then take them back into the bridge frame layout
+to call the bridge routines. Going back and forth through all the
+netfilter IP and bridge hooks, not nice. In turn, this `br_netfilter'
+infrastructure has been allowing users to use iptables, conntrack and
+NAT for bridged frames, instead of ebtables. An iptables extension
+called 'physdev' was introduced at the time to match on the bridge
+interface as a way to expose some of the semantics behind this emulation
+layer.
 
-> ---
->  include/net/ip_vs.h            |  3 +++
->  net/netfilter/ipvs/ip_vs_ctl.c | 43 +++++++++++++++++++++++++++-------
->  2 files changed, 38 insertions(+), 8 deletions(-)
-> 
-> diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
-> index 2ac40135b576..9a8ac8997e34 100644
-> --- a/include/net/ip_vs.h
-> +++ b/include/net/ip_vs.h
-> @@ -1497,6 +1497,9 @@ static inline int ip_vs_todrop(struct netns_ipvs *ipvs)
->  static inline int ip_vs_todrop(struct netns_ipvs *ipvs) { return 0; }
->  #endif
->  
-> +#define IP_VS_DFWD_METHOD(dest) (atomic_read(&(dest)->conn_flags) & \
-> +				 IP_VS_CONN_F_FWD_MASK)
-> +
->  /* ip_vs_fwd_tag returns the forwarding tag of the connection */
->  #define IP_VS_FWD_METHOD(cp)  (cp->flags & IP_VS_CONN_F_FWD_MASK)
->  
-> diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-> index 328683452229..7de90c00c8bd 100644
-> --- a/net/netfilter/ipvs/ip_vs_ctl.c
-> +++ b/net/netfilter/ipvs/ip_vs_ctl.c
-> @@ -515,15 +515,36 @@ static inline unsigned int ip_vs_rs_hashkey(int af,
->  static void ip_vs_rs_hash(struct netns_ipvs *ipvs, struct ip_vs_dest *dest)
->  {
->  	unsigned int hash;
-> +	__be16 port;
->  
->  	if (dest->in_rs_table)
->  		return;
->  
-> +	switch (IP_VS_DFWD_METHOD(dest)) {
-> +	case IP_VS_CONN_F_MASQ:
-> +		port = dest->port;
-> +		break;
-> +	case IP_VS_CONN_F_TUNNEL:
-> +		switch (dest->tun_type) {
-> +		case IP_VS_CONN_F_TUNNEL_TYPE_GUE:
-> +			port = dest->tun_port;
-> +			break;
-> +		case IP_VS_CONN_F_TUNNEL_TYPE_IPIP:
-> +			port = 0;
-> +			break;
-> +		default:
-> +			return;
-> +		}
-> +		break;
-> +	default:
-> +		return;
-> +	}
-> +
->  	/*
->  	 *	Hash by proto,addr,port,
->  	 *	which are the parameters of the real service.
->  	 */
-> -	hash = ip_vs_rs_hashkey(dest->af, &dest->addr, dest->port);
-> +	hash = ip_vs_rs_hashkey(dest->af, &dest->addr, port);
->  
->  	hlist_add_head_rcu(&dest->d_list, &ipvs->rs_table[hash]);
->  	dest->in_rs_table = 1;
-> @@ -555,7 +576,8 @@ bool ip_vs_has_real_service(struct netns_ipvs *ipvs, int af, __u16 protocol,
->  		if (dest->port == dport &&
->  		    dest->af == af &&
-  		    ip_vs_addr_equal(af, &dest->addr, daddr) &&
-> -		    (dest->protocol == protocol || dest->vfwmark)) {
-> +		    (dest->protocol == protocol || dest->vfwmark) &&
-> +		    (IP_VS_DFWD_METHOD(dest) == IP_VS_CONN_F_MASQ)) {
+However, along time, many design problems uncovered with this
+`br_netfilter' emulation, becoming a common topic of discussion.
 
-nit: there seem to be unnecessary () on the line above
+This patchset is an initial step to introduce a replacement for this
+`br_netfilter' emulation layer by introducing one of the missing
+features that makes users turn on this `br_netfilter' emulation layer.
 
->  			/* HIT */
->  			return true;
->  		}
-> @@ -585,7 +607,8 @@ struct ip_vs_dest *ip_vs_find_real_service(struct netns_ipvs *ipvs, int af,
->  		if (dest->port == dport &&
->  		    dest->af == af &&
->  		    ip_vs_addr_equal(af, &dest->addr, daddr) &&
-> -			(dest->protocol == protocol || dest->vfwmark)) {
-> +		    (dest->protocol == protocol || dest->vfwmark) &&
-> +		    (IP_VS_DFWD_METHOD(dest) == IP_VS_CONN_F_MASQ)) {
+This patchset includes updates to expose two new refragmentation APIs in
+order to reuse them from the bridge. The existing ip_do_fragment() calls
+rely on dst objects that are not available from there, this function
+also triggers refragmentation where the maximum fragment size is larger
+than the device MTU, altering fragments geometry in that case, something
+that a bridge should not do, among other things. I think this new
+refragment infrastructure could be reused by folks with codebase away
+from the classic IP stack, eg. OVS.
 
-ditto
+Comments welcome, thanks.
 
->  			/* HIT */
->  			return dest;
->  		}
+Pablo Neira Ayuso (8):
+  net: use kfree_skb_list() from ip_do_fragment()
+  net: ipv4: add skbuff fraglist split iterator
+  net: ipv6: add skbuff fraglist split iterator
+  net: ipv4: split skbuff into fragments transformer
+  net: ipv6: split skbuff into fragments transformer
+  net: ipv4: place cb handling away from fraglist iterator
+  net: ipv4: place cb handling away from fragment transformer
+  netfilter: bridge: add basic conntrack support
 
-...
+ include/net/ip.h                           |  39 +++
+ include/net/ipv6.h                         |  44 +++
+ net/bridge/br_private.h                    |   2 +-
+ net/bridge/netfilter/Kconfig               |  14 +
+ net/bridge/netfilter/Makefile              |   3 +
+ net/bridge/netfilter/nf_conntrack_bridge.c | 411 +++++++++++++++++++++++++++++
+ net/ipv4/ip_output.c                       | 314 +++++++++++++---------
+ net/ipv6/ip6_output.c                      | 315 +++++++++++++---------
+ 8 files changed, 884 insertions(+), 258 deletions(-)
+ create mode 100644 net/bridge/netfilter/nf_conntrack_bridge.c
+
+-- 
+2.11.0
+
