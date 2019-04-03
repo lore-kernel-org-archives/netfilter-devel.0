@@ -2,73 +2,89 @@ Return-Path: <SRS0=21Bs=SF=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED,USER_AGENT_NEOMUTT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 29367C4360F
-	for <netfilter-devel@archiver.kernel.org>; Wed,  3 Apr 2019 18:21:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D9C78C4360F
+	for <netfilter-devel@archiver.kernel.org>; Wed,  3 Apr 2019 20:43:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E111920700
-	for <netfilter-devel@archiver.kernel.org>; Wed,  3 Apr 2019 18:21:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A2D492084B
+	for <netfilter-devel@archiver.kernel.org>; Wed,  3 Apr 2019 20:43:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726183AbfDCSVM (ORCPT
+        id S1726206AbfDCUnv (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 3 Apr 2019 14:21:12 -0400
-Received: from ganesha.gnumonks.org ([213.95.27.120]:36293 "EHLO
-        ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726144AbfDCSVM (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 3 Apr 2019 14:21:12 -0400
-Received: from sys.soleta.eu ([212.170.55.40] helo=gnumonks.org)
-        by ganesha.gnumonks.org with esmtpsa (TLS1.2:ECDHE_RSA_AES_256_GCM_SHA384:256)
-        (Exim 4.84_2)
-        (envelope-from <pablo@gnumonks.org>)
-        id 1hBkVZ-0003K9-54; Wed, 03 Apr 2019 20:21:11 +0200
-Date:   Wed, 3 Apr 2019 20:21:08 +0200
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Alban Vidal <alban.vidal@zordhak.fr>
-Cc:     netfilter-devel@vger.kernel.org, ao2@ao2.it
-Subject: Re: [PATCH v4 1/2] iptables-save: add option to show zeroed counters
- when saving rulesets
-Message-ID: <20190403182108.dhfo54lhosmm7373@salvia>
-References: <20190217235554.4647-1-alban.vidal@zordhak.fr>
- <9179b69f-3253-97a8-2dd1-f88c745068d3@zordhak.fr>
+        Wed, 3 Apr 2019 16:43:51 -0400
+Received: from ja.ssi.bg ([178.16.129.10]:46452 "EHLO ja.ssi.bg"
+        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1726183AbfDCUnv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 3 Apr 2019 16:43:51 -0400
+Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
+        by ja.ssi.bg (8.15.2/8.15.2) with ESMTP id x33KhSS2005681;
+        Wed, 3 Apr 2019 23:43:28 +0300
+Date:   Wed, 3 Apr 2019 23:43:28 +0300 (EEST)
+From:   Julian Anastasov <ja@ssi.bg>
+To:     Simon Horman <horms@verge.net.au>
+cc:     Pablo Neira Ayuso <pablo@netfilter.org>, lvs-devel@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, Alex Gartrell <agartrell@fb.com>,
+        Jacky Hu <hengqing.hu@gmail.com>, jacky.hu@walmart.com,
+        jason.niesz@walmart.com
+Subject: Re: [PATCH net] ipvs: do not schedule icmp errors from tunnels
+In-Reply-To: <20190403074521.uijb34c6mo264nmg@verge.net.au>
+Message-ID: <alpine.LFD.2.21.1904032342290.3584@ja.home.ssi.bg>
+References: <20190331102452.7415-1-ja@ssi.bg> <20190403074521.uijb34c6mo264nmg@verge.net.au>
+User-Agent: Alpine 2.21 (LFD 202 2017-01-01)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <9179b69f-3253-97a8-2dd1-f88c745068d3@zordhak.fr>
-User-Agent: NeoMutt/20170113 (1.7.2)
+Content-Type: text/plain; charset=US-ASCII
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Alban,
 
-On Sun, Mar 03, 2019 at 02:31:30PM +0100, Alban Vidal wrote:
-> From: Alban VIDAL <alban.vidal@zordhak.fr>
+	Hello,
+
+On Wed, 3 Apr 2019, Simon Horman wrote:
+
+> On Sun, Mar 31, 2019 at 01:24:52PM +0300, Julian Anastasov wrote:
+> > We can receive ICMP errors from client or from
+> > tunneling real server. While the former can be
+> > scheduled to real server, the latter should
+> > not be scheduled, they are decapsulated only when
+> > existing connection is found.
+> > 
+> > Fixes: 6044eeffafbe ("ipvs: attempt to schedule icmp packets")
+> > Signed-off-by: Julian Anastasov <ja@ssi.bg>
 > 
-> Add a new '-Z' (or '--zero') option to iptables-save to show zeroed
-> counters for chains when saving rulesets.
+> Thanks Julian, I assume this is also relevant to -stable.
+
+	Yes
+
+> Pablo, please consider applying this to nf.
 > 
-> This option is particularly useful when using a version control system
-> (like git) to track the saved iptables rules, to minimize the delta
-> between different ruleset versions.
+> Signed-off-by: Simon Horman <horms@verge.net.au>
 > 
-> The option is also added to xtables-save to keep compatibility on the
-> command line, however the functionality is not implemented yet.
+> > ---
+> >  net/netfilter/ipvs/ip_vs_core.c | 2 +-
+> >  1 file changed, 1 insertion(+), 1 deletion(-)
+> > 
+> > diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+> > index 43bbaa32b1d6..14457551bcb4 100644
+> > --- a/net/netfilter/ipvs/ip_vs_core.c
+> > +++ b/net/netfilter/ipvs/ip_vs_core.c
+> > @@ -1678,7 +1678,7 @@ ip_vs_in_icmp(struct netns_ipvs *ipvs, struct sk_buff *skb, int *related,
+> >  	if (!cp) {
+> >  		int v;
+> >  
+> > -		if (!sysctl_schedule_icmp(ipvs))
+> > +		if (ipip || !sysctl_schedule_icmp(ipvs))
+> >  			return NF_ACCEPT;
+> >  
+> >  		if (!ip_vs_try_to_schedule(ipvs, AF_INET, skb, pd, &v, &cp, &ciph))
+> > -- 
+> > 2.17.1
 
-This patch does not apply, it seems your mail client has mangled the
-attachment.
+Regards
 
-I wonder if this -Z semantics for iptables-save might be confusing.
-Telling this because iptables -L -z makes an atomic list and reset, so
-first time shows the existing counter values, so next time you call
-iptables -L shows zeroed counters.
-
-Probably you can use -z (lowercase) --print-zero-counters, so we
-reserve -Z in case we ever need something similar in the future for
-iptables-save that matches the exact behaviour of iptables -L -Z.
-
-Thanks.
+--
+Julian Anastasov <ja@ssi.bg>
