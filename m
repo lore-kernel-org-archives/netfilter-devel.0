@@ -2,190 +2,196 @@ Return-Path: <SRS0=UjrQ=SG=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.8 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,USER_AGENT_NEOMUTT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C424FC4360F
-	for <netfilter-devel@archiver.kernel.org>; Thu,  4 Apr 2019 10:14:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DFD1FC4360F
+	for <netfilter-devel@archiver.kernel.org>; Thu,  4 Apr 2019 11:39:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 87D6520882
-	for <netfilter-devel@archiver.kernel.org>; Thu,  4 Apr 2019 10:14:30 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=verge.net.au header.i=@verge.net.au header.b="FSu6hNoC"
+	by mail.kernel.org (Postfix) with ESMTP id B453D206C0
+	for <netfilter-devel@archiver.kernel.org>; Thu,  4 Apr 2019 11:39:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729179AbfDDKOa (ORCPT
+        id S1728645AbfDDLjv (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 4 Apr 2019 06:14:30 -0400
-Received: from kirsty.vergenet.net ([202.4.237.240]:59225 "EHLO
-        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729125AbfDDKOZ (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 4 Apr 2019 06:14:25 -0400
-Received: from reginn.horms.nl (watermunt.horms.nl [80.127.179.77])
-        by kirsty.vergenet.net (Postfix) with ESMTPA id 887C525B809;
-        Thu,  4 Apr 2019 21:14:23 +1100 (AEDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=verge.net.au; s=mail;
-        t=1554372863; bh=HmstMBMC8ZRZ6RAi8GIyb89ttvcU7SaTP8UOsgj8dK4=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=FSu6hNoCl8jrowyGgcDQFWaV+Cw3306diEtFlN9gAgKEwAlaEG5gumrC9CJJhiJSB
-         MQlwJlsfAoJuEBSvk8CcLN4vPsQKIcwhBJTzChwikl/or7SadX19tWPtzn+c65/Z1/
-         2BcFYfSIZTk6UMRWNnW9a8FEoRnlx81G3empc+Mc=
-Received: by reginn.horms.nl (Postfix, from userid 7100)
-        id B54559402FD; Thu,  4 Apr 2019 12:14:21 +0200 (CEST)
-Date:   Thu, 4 Apr 2019 12:14:21 +0200
-From:   Simon Horman <horms@verge.net.au>
-To:     Julian Anastasov <ja@ssi.bg>
-Cc:     lvs-devel@vger.kernel.org, Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org, Jacky Hu <hengqing.hu@gmail.com>,
-        jacky.hu@walmart.com, jason.niesz@walmart.com
-Subject: Re: [PATCH net-next 3/3] ipvs: strip udp tunnel headers from icmp
- errors
-Message-ID: <20190404101421.izk7atydes3c53at@verge.net.au>
-References: <20190331102621.7460-1-ja@ssi.bg>
- <20190331102621.7460-4-ja@ssi.bg>
- <20190403081511.ltjmuudpxdz3xxmf@verge.net.au>
- <alpine.LFD.2.21.1904032352530.3584@ja.home.ssi.bg>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.21.1904032352530.3584@ja.home.ssi.bg>
-Organisation: Horms Solutions BV
-User-Agent: NeoMutt/20170113 (1.7.2)
+        Thu, 4 Apr 2019 07:39:51 -0400
+Received: from mail.us.es ([193.147.175.20]:58328 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726269AbfDDLjv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 4 Apr 2019 07:39:51 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 9F24E12BFF6
+        for <netfilter-devel@vger.kernel.org>; Thu,  4 Apr 2019 13:39:48 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 90DD8DA70C
+        for <netfilter-devel@vger.kernel.org>; Thu,  4 Apr 2019 13:39:48 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 8697EDA70B; Thu,  4 Apr 2019 13:39:48 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id F3E3ADA702;
+        Thu,  4 Apr 2019 13:39:45 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Thu, 04 Apr 2019 13:39:45 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from salvia.here (sys.soleta.eu [212.170.55.40])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id B605E40705C0;
+        Thu,  4 Apr 2019 13:39:45 +0200 (CEST)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     mirq-boogs@rere.qmqm.pl, ffmancera@riseup.net, arturo@debian.org
+Subject: [PATCH nft 1/2,v2] parser_bison: missing tproxy syntax with port only for inet family
+Date:   Thu,  4 Apr 2019 13:39:41 +0200
+Message-Id: <20190404113942.26263-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.11.0
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Apr 04, 2019 at 12:18:08AM +0300, Julian Anastasov wrote:
-> 
-> 	Hello,
-> 
-> On Wed, 3 Apr 2019, Simon Horman wrote:
-> 
-> > On Sun, Mar 31, 2019 at 01:26:21PM +0300, Julian Anastasov wrote:
-> > > Recognize UDP tunnels in received ICMP errors and
-> > > properly strip the tunnel headers. GUE is what we
-> > > have for now.
-> > > 
-> > > Signed-off-by: Julian Anastasov <ja@ssi.bg>
-> > > ---
-> > >  net/netfilter/ipvs/ip_vs_core.c | 58 +++++++++++++++++++++++++++++++++
-> > >  1 file changed, 58 insertions(+)
-> > > 
-> > > diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-> > > index 4447ee512b88..0b624e8e7982 100644
-> > > --- a/net/netfilter/ipvs/ip_vs_core.c
-> > > +++ b/net/netfilter/ipvs/ip_vs_core.c
-> > > @@ -39,6 +39,7 @@
-> > >  #include <net/tcp.h>
-> > >  #include <net/udp.h>
-> > >  #include <net/icmp.h>                   /* for icmp_send */
-> > > +#include <net/gue.h>
-> > >  #include <net/route.h>
-> > >  #include <net/ip6_checksum.h>
-> > >  #include <net/netns/generic.h>		/* net_generic() */
-> > > @@ -1579,6 +1580,34 @@ ip_vs_try_to_schedule(struct netns_ipvs *ipvs, int af, struct sk_buff *skb,
-> > >  	return 1;
-> > >  }
-> > >  
-> > > +/* Check the UDP tunnel and return its header length */
-> > > +static int ipvs_udp_decap(struct netns_ipvs *ipvs, struct sk_buff *skb,
-> > > +			  unsigned int offset, __u16 af, __be16 dport,
-> > > +			  const union nf_inet_addr *daddr, __u8 *proto)
-> > > +{
-> > > +	struct ip_vs_dest *dest = ip_vs_find_tunnel(ipvs, af, daddr, dport);
-> > > +
-> > > +	if (!dest)
-> > > +		goto unk;
-> > > +	if (dest->tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GUE) {
-> > > +		struct guehdr _gueh, *gueh;
-> > > +
-> > > +		gueh = skb_header_pointer(skb, offset, sizeof(_gueh), &_gueh);
-> > > +		if (!gueh)
-> > > +			goto unk;
-> > > +		if (gueh->control != 0 || gueh->version != 0)
-> > > +			goto unk;
-> > > +		/* Later we can support also IPPROTO_IPV6 */
-> > > +		if (gueh->proto_ctype != IPPROTO_IPIP)
-> > > +			goto unk;
-> > > +		*proto = gueh->proto_ctype;
-> > > +		return sizeof(struct guehdr) + (gueh->hlen << 2);
-> > 
-> > I think that the gue-specific portions of the above, which is most of
-> > ipvs_udp_decap() should be a separate helper which is part of net/gue.h or
-> > net/ipv4/fou.c - this seems to be a subset of the logic in gue_udp_recv().
-> 
-> 	Yes but fou.c strips the headers in all cases while
-> in IPVS we should do it only when connection is found because
-> we do not want to mess with non-IPVS traffic.
-> 
-> > 
-> > > +	}
-> > > +
-> > > +unk:
-> > > +	return -1;
-> > > +}
-> > > +
-> > >  /*
-> > >   *	Handle ICMP messages in the outside-to-inside direction (incoming).
-> > >   *	Find any that might be relevant, check against existing connections,
-> > > @@ -1658,8 +1687,37 @@ ip_vs_in_icmp(struct netns_ipvs *ipvs, struct sk_buff *skb, int *related,
-> > >  		if (cih == NULL)
-> > >  			return NF_ACCEPT; /* The packet looks wrong, ignore */
-> > >  		ipip = true;
-> > > +	} else if (cih->protocol == IPPROTO_UDP) {	/* Can be UDP encap */
-> > 
-> > Can we consider factoring out the logic in this else-if clause
-> > out into a function to avoid the use of goto?
-> 
-> 	We can even safely return NF_ACCEPT instead of the goto
-> 
-> > 
-> > > +		struct udphdr _udph, *udph;
-> > > +		__u8 iproto;
-> > > +		int ulen;
-> > > +
-> > > +		if (unlikely(cih->frag_off & htons(IP_OFFSET)))
-> > > +			return NF_ACCEPT;
-> > 
-> > I think a comment is warranted regarding the behaviour implemented
-> > for fragments.
-> 
-> 	I'll add in v2.
-> 
-> > 
-> > > +		/* Error for our tunnel must arrive at LOCAL_IN */
-> > > +		if (!(skb_rtable(skb)->rt_flags & RTCF_LOCAL))
-> > > +			return NF_ACCEPT;
-> > > +		offset2 = offset + cih->ihl * 4;
-> > > +		udph = skb_header_pointer(skb, offset2, sizeof(_udph), &_udph);
-> > > +		if (!udph)
-> > > +			goto check;
-> > 
-> > > +		offset2 += sizeof(struct udphdr);
-> > > +		ulen = ipvs_udp_decap(ipvs, skb, offset2, AF_INET, udph->dest,
-> > > +				      raddr, &iproto);
-> > > +		if (ulen < 0)
-> > > +			goto check;
-> > > +		/* Skip IP + UDP + ulen */
-> > > +		offset = offset2 + ulen;
-> > > +		/* Now we should be at the original IP header */
-> > > +		cih = skb_header_pointer(skb, offset, sizeof(_ciph), &_ciph);
-> > > +		if (cih && cih->version == 4 && cih->ihl >= 5 &&
-> > > +		    iproto == IPPROTO_IPIP)
-> > > +			ipip = true;
-> > > +		else
-> > > +			return NF_ACCEPT;
-> > 
-> > Skipping over tunnel headers and determining the inner IP protocol really
-> > feels like something that should be handled code common to other UDP
-> > encapsulation implementations.
-> 
-> 	We can easily add simple FOU in ipvs_udp_decap() by
-> returning 0 and correct *proto. Or you prefer to use common
-> code from other files to parse the headers? Currently, there
-> is no any GUE func that can be used for this.
+ # nft add rule inet filter divert ip daddr 0.0.0.0/0 meta l4proto tcp tproxy ip to :2000
+ Error: syntax error, unexpected colon
+ add rule inet filter divert ip daddr 0.0.0.0/0 meta l4proto tcp tproxy ip to :2000
+                                                                              ^
 
-My feeling is that using common code, even new common code, would
-be better.
+Syntax with no protocol for tproxy complains with:
+
+ # nft add rule inet filter divert ip daddr 0.0.0.0/0 meta l4proto tcp tproxy to :2000
+ Error: Conflicting network layer protocols.
+ add rule inet filter divert ip daddr 0.0.0.0/0 meta l4proto tcp tproxy to :2000
+                                                                 ^^^^^^^^^^^^^^^
+
+Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1310
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/parser_bison.y             |  6 ++++++
+ tests/py/inet/tproxy.t         |  5 +++--
+ tests/py/inet/tproxy.t.payload | 26 ++++++++++++++++++++++++++
+ tests/py/ip/tproxy.t           |  2 +-
+ tests/py/ip/tproxy.t.payload   |  8 ++++++++
+ tests/py/ip6/tproxy.t          |  2 +-
+ tests/py/ip6/tproxy.t.payload  |  7 +++++++
+ 7 files changed, 52 insertions(+), 4 deletions(-)
+
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index 65b3fb3ebac2..50642b4e02f4 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -2687,6 +2687,12 @@ tproxy_stmt		:	TPROXY TO stmt_expr
+ 				$$->tproxy.addr = $4;
+ 				$$->tproxy.port = $6;
+ 			}
++			|	TPROXY nf_key_proto	TO COLON stmt_expr
++			{
++				$$ = tproxy_stmt_alloc(&@$);
++				$$->tproxy.family = $2;
++				$$->tproxy.port = $5;
++			}
+ 			;
+ 
+ primary_stmt_expr	:	symbol_expr		{ $$ = $1; }
+diff --git a/tests/py/inet/tproxy.t b/tests/py/inet/tproxy.t
+index f80f77347b86..0ba78ef1826a 100644
+--- a/tests/py/inet/tproxy.t
++++ b/tests/py/inet/tproxy.t
+@@ -15,6 +15,7 @@ meta l4proto 6 tproxy ip6 to [2001:db8::1];ok
+ meta l4proto 17 tproxy ip6 to [2001:db8::1]:50080;ok
+ ip6 nexthdr 6 tproxy ip to 192.0.2.1;fail
+ 
+-meta l4proto 17 tproxy ip to :50080;fail
+-meta l4proto 17 tproxy ip6 to :50080;fail
++meta l4proto 17 tproxy ip to :50080;ok
++meta l4proto 17 tproxy ip6 to :50080;ok
+ meta l4proto 17 tproxy to :50080;ok
++ip daddr 0.0.0.0/0 meta l4proto tcp tproxy ip to :2000;ok
+diff --git a/tests/py/inet/tproxy.t.payload b/tests/py/inet/tproxy.t.payload
+index 4b18460d8b8d..8a6ba0365605 100644
+--- a/tests/py/inet/tproxy.t.payload
++++ b/tests/py/inet/tproxy.t.payload
+@@ -35,3 +35,29 @@ inet x y
+   [ immediate reg 1 0x0000a0c3 ]
+   [ tproxy port reg 1 ]
+ 
++# meta l4proto 17 tproxy ip to :50080
++inet x y 
++  [ meta load l4proto => reg 1 ]
++  [ cmp eq reg 1 0x00000011 ]
++  [ immediate reg 1 0x0000a0c3 ]
++  [ tproxy ip port reg 1 ]
++
++# meta l4proto 17 tproxy ip6 to :50080
++inet x y 
++  [ meta load l4proto => reg 1 ]
++  [ cmp eq reg 1 0x00000011 ]
++  [ immediate reg 1 0x0000a0c3 ]
++  [ tproxy ip6 port reg 1 ]
++
++# ip daddr 0.0.0.0/0 meta l4proto tcp tproxy ip to :2000
++inet x y 
++  [ meta load nfproto => reg 1 ]
++  [ cmp eq reg 1 0x00000002 ]
++  [ payload load 4b @ network header + 16 => reg 1 ]
++  [ bitwise reg 1 = (reg=1 & 0x00000000 ) ^ 0x00000000 ]
++  [ cmp eq reg 1 0x00000000 ]
++  [ meta load l4proto => reg 1 ]
++  [ cmp eq reg 1 0x00000006 ]
++  [ immediate reg 1 0x0000d007 ]
++  [ tproxy ip port reg 1 ]
++
+diff --git a/tests/py/ip/tproxy.t b/tests/py/ip/tproxy.t
+index dbd8f5e90a04..966898c037b2 100644
+--- a/tests/py/ip/tproxy.t
++++ b/tests/py/ip/tproxy.t
+@@ -11,4 +11,4 @@ meta l4proto 6 tproxy to 192.0.2.1:50080;ok
+ ip protocol 6 tproxy to :50080;ok
+ meta l4proto 17 tproxy ip to 192.0.2.1;ok;meta l4proto 17 tproxy to 192.0.2.1
+ meta l4proto 6 tproxy ip to 192.0.2.1:50080;ok;meta l4proto 6 tproxy to 192.0.2.1:50080
+-ip protocol 6 tproxy ip to :50080;fail
++ip protocol 6 tproxy ip to :50080;ok
+diff --git a/tests/py/ip/tproxy.t.payload b/tests/py/ip/tproxy.t.payload
+index 035651f48cb3..dfe830ec3715 100644
+--- a/tests/py/ip/tproxy.t.payload
++++ b/tests/py/ip/tproxy.t.payload
+@@ -34,3 +34,11 @@ ip x y
+   [ immediate reg 1 0x010200c0 ]
+   [ immediate reg 2 0x0000a0c3 ]
+   [ tproxy ip addr reg 1 port reg 2 ]
++
++# ip protocol 6 tproxy ip to :50080
++ip x y 
++  [ payload load 1b @ network header + 9 => reg 1 ]
++  [ cmp eq reg 1 0x00000006 ]
++  [ immediate reg 1 0x0000a0c3 ]
++  [ tproxy ip port reg 1 ]
++
+diff --git a/tests/py/ip6/tproxy.t b/tests/py/ip6/tproxy.t
+index 4e48d81f13cc..48fe4ca76505 100644
+--- a/tests/py/ip6/tproxy.t
++++ b/tests/py/ip6/tproxy.t
+@@ -11,4 +11,4 @@ meta l4proto 17 tproxy to [2001:db8::1]:50080;ok
+ meta l4proto 6 tproxy to :50080;ok
+ meta l4proto 6 tproxy ip6 to [2001:db8::1];ok;meta l4proto 6 tproxy to [2001:db8::1]
+ meta l4proto 17 tproxy ip6 to [2001:db8::1]:50080;ok;meta l4proto 17 tproxy to [2001:db8::1]:50080
+-meta l4proto 6 tproxy ip6 to :50080;fail
++meta l4proto 6 tproxy ip6 to :50080;ok
+diff --git a/tests/py/ip6/tproxy.t.payload b/tests/py/ip6/tproxy.t.payload
+index c78c8a1dd20a..9f28e80b4142 100644
+--- a/tests/py/ip6/tproxy.t.payload
++++ b/tests/py/ip6/tproxy.t.payload
+@@ -35,3 +35,10 @@ ip6 x y
+   [ immediate reg 2 0x0000a0c3 ]
+   [ tproxy ip6 addr reg 1 port reg 2 ]
+ 
++# meta l4proto 6 tproxy ip6 to :50080
++ip6 x y 
++  [ meta load l4proto => reg 1 ]
++  [ cmp eq reg 1 0x00000006 ]
++  [ immediate reg 1 0x0000a0c3 ]
++  [ tproxy ip6 port reg 1 ]
++
+-- 
+2.11.0
+
