@@ -6,50 +6,46 @@ X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_NEOMUTT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2DD9EC4360F
-	for <netfilter-devel@archiver.kernel.org>; Fri,  5 Apr 2019 10:02:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 03855C4360F
+	for <netfilter-devel@archiver.kernel.org>; Fri,  5 Apr 2019 10:46:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0305021738
-	for <netfilter-devel@archiver.kernel.org>; Fri,  5 Apr 2019 10:02:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C99772171F
+	for <netfilter-devel@archiver.kernel.org>; Fri,  5 Apr 2019 10:46:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730466AbfDEKCC (ORCPT
+        id S1730579AbfDEKqM (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 5 Apr 2019 06:02:02 -0400
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:39022 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1729820AbfDEKCC (ORCPT
+        Fri, 5 Apr 2019 06:46:12 -0400
+Received: from ganesha.gnumonks.org ([213.95.27.120]:53771 "EHLO
+        ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730283AbfDEKqM (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 5 Apr 2019 06:02:02 -0400
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.89)
-        (envelope-from <fw@strlen.de>)
-        id 1hCLfW-0004mm-Az; Fri, 05 Apr 2019 12:01:54 +0200
-Date:   Fri, 5 Apr 2019 12:01:54 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Dan Carpenter <dan.carpenter@oracle.com>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        kernel-janitors@vger.kernel.org
-Subject: Re: [PATCH] netfilter: nf_tables: prevent shift wrap in
- nft_chain_parse_hook()
-Message-ID: <20190405100154.ohc6kjfyysug7fpp@breakpoint.cc>
-References: <20190402133038.GA18575@kadam>
- <20190405083436.GT32613@kadam>
+        Fri, 5 Apr 2019 06:46:12 -0400
+Received: from sys.soleta.eu ([212.170.55.40] helo=gnumonks.org)
+        by ganesha.gnumonks.org with esmtpsa (TLS1.2:ECDHE_RSA_AES_256_GCM_SHA384:256)
+        (Exim 4.84_2)
+        (envelope-from <pablo@gnumonks.org>)
+        id 1hCMML-0003LR-7q; Fri, 05 Apr 2019 12:46:11 +0200
+Date:   Fri, 5 Apr 2019 12:46:08 +0200
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Sam Banks <sam.banks.nz@gmail.com>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: Typo in extensions/libxt_osf.man
+Message-ID: <20190405104608.4tn7esknyb5rqhdz@salvia>
+References: <CAMbLQsynsgPK_yue8BusSU6k7-NXgD2=9VaUMwPuVzR9G+ri2w@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20190405083436.GT32613@kadam>
+In-Reply-To: <CAMbLQsynsgPK_yue8BusSU6k7-NXgD2=9VaUMwPuVzR9G+ri2w@mail.gmail.com>
 User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Dan Carpenter <dan.carpenter@oracle.com> wrote:
-> 	if (hook->num > 31 || !(type->hook_mask & (1 << hook->num)))
+On Fri, Mar 22, 2019 at 12:22:47PM +1300, Sam Banks wrote:
+> Hi,
 > 
-> which seems like a slightly ugly magic number but it fixes the buffer
-> overflow.
+> I was browsing the iptables-extensions man page and spotted a typo in
+> the osf section. I've attached a patch which corrects it.
 
-You can use NF_MAX_HOOKS instead of 31.
+Applied, thanks.
