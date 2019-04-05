@@ -2,176 +2,120 @@ Return-Path: <SRS0=Hnfl=SH=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,UNPARSEABLE_RELAY,USER_AGENT_MUTT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E71B1C4360F
-	for <netfilter-devel@archiver.kernel.org>; Fri,  5 Apr 2019 02:06:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DCA63C4360F
+	for <netfilter-devel@archiver.kernel.org>; Fri,  5 Apr 2019 08:35:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8ACF52171F
-	for <netfilter-devel@archiver.kernel.org>; Fri,  5 Apr 2019 02:06:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A8167217D7
+	for <netfilter-devel@archiver.kernel.org>; Fri,  5 Apr 2019 08:35:11 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=paul-moore-com.20150623.gappssmtp.com header.i=@paul-moore-com.20150623.gappssmtp.com header.b="H+EapgdZ"
+	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="p4H5OXdS"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729641AbfDECGZ (ORCPT
+        id S1730103AbfDEIfL (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 4 Apr 2019 22:06:25 -0400
-Received: from mail-lj1-f193.google.com ([209.85.208.193]:41943 "EHLO
-        mail-lj1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728721AbfDECGY (ORCPT
+        Fri, 5 Apr 2019 04:35:11 -0400
+Received: from userp2130.oracle.com ([156.151.31.86]:39182 "EHLO
+        userp2130.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729792AbfDEIfK (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 4 Apr 2019 22:06:24 -0400
-Received: by mail-lj1-f193.google.com with SMTP id k8so3798330lja.8
-        for <netfilter-devel@vger.kernel.org>; Thu, 04 Apr 2019 19:06:23 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=paul-moore-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=i0SVqH/6Kj1962AGBZkuoEdnZ7+ADTw/XymJ0q2hSFA=;
-        b=H+EapgdZSZCqlG3kN0Iq1MJhAeBXcbDqnFBx7q55rD4K3WrpLrFwBtIqI2q9Ubuwzu
-         ugZd4giYCA0dRsnriQYGjnpRPjMoMt1d0R0WwQ8XaY9kyGJarhl/iGSa3pvZMu5T6KS+
-         ROXknsNRefhDEelGjOhvriMhw3ttCiZghJp7yuGel2dAgyYzHFcORnGH8WfcCQ+sEqdi
-         Mwx0pYwGOUzv4ioYomUM+J4cSpmI+WVj96bS+kKJ2C/S9hUGCXbs9aSXYSv+G54zeuua
-         GpVwMZ1eisfTvvyHNiCVxhwJYC3w+v5Iv0iTun53uqUafP/U6Ea+jf12EgZN1MSkGZVG
-         hYkg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=i0SVqH/6Kj1962AGBZkuoEdnZ7+ADTw/XymJ0q2hSFA=;
-        b=L6TX/MaLrHT+hAHa8iN/dM0r+5uVEczWqETmHm3rb0gvyf5TI8HZ7/YZAuecVtbyBE
-         hNqC4Iz8Exb58w4QPy2or3jnK9EF4hxAnBWhpzj1Jsl0Ihu6CLLMeAvsGqtsDwotr1zQ
-         l0KLi0NgLjdloNL2HjlKuffq36ppZMSCEdEotjzCjhW4ocPzIHVvGtlV0YAApz1Yon+c
-         WNhoHGHWoPrZtL2iZBMlXjeSXR+MCASwWGr99QD/kERkhoAeABaDJGmKUplGsR012NbP
-         JK9ZLOa0RTMmU1U1MBRVACdOmkKV82ZblOCXfJFkMashABDRQd0OpRUoxKZ27yUCFjD4
-         iv7Q==
-X-Gm-Message-State: APjAAAWHdthvTnBf0+2sD8ZnmnVY7EqpScE97/W69HT5QBCXQK54EQ23
-        yUsV9jBw348386W3oxVufJnCHym/u8mYqksmZ68q
-X-Google-Smtp-Source: APXvYqz1tmQ6IcFe3o4dwAvOVFLhNmdAmOTtRiltlBZUAtr14Q4HJPLUStR7tkdUCsbPmWZ0EBI0cBxSj9FeWT3NB8g=
-X-Received: by 2002:a05:651c:114:: with SMTP id a20mr5199822ljb.53.1554429982109;
- Thu, 04 Apr 2019 19:06:22 -0700 (PDT)
+        Fri, 5 Apr 2019 04:35:10 -0400
+Received: from pps.filterd (userp2130.oracle.com [127.0.0.1])
+        by userp2130.oracle.com (8.16.0.27/8.16.0.27) with SMTP id x358Y6H6040484;
+        Fri, 5 Apr 2019 08:34:51 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=date : from : to : cc
+ : subject : message-id : references : mime-version : content-type :
+ in-reply-to; s=corp-2018-07-02;
+ bh=aZA6nXEd1NSlJuXKjQ1Lm+rqqEs/N+GfF0azZRtkylM=;
+ b=p4H5OXdSgNiG9WNifpk2YyhVJMF4S6+70wn0G+0K0Kb/v7uzdkIm5xHd5/0maJwQjviB
+ rakiUFVEib9f/wOlPpO4ctamok9nSAO82ZsufwD+x5yzqvMzkupoGExPTkHvp2xD/Qcf
+ yoXqW34Q1SFl6p0cskWvLBaISvWV3sCfNCD1hTrPXLsWvEMq9B1rQkrI8H7v+WEIvGyr
+ RoZ+Sfytare78KY+fJwyKRCMaYzkaPcVTf8+s3DNsrpwiEdj1/x9ej/AdO9han1/th48
+ 1r9AZ8kCjN9y2SVMmbFweMXfmhKKwhP3ax/iU8/gX5mKiZBLTiUfry7UwPR8eS+KSfOe gw== 
+Received: from userp3020.oracle.com (userp3020.oracle.com [156.151.31.79])
+        by userp2130.oracle.com with ESMTP id 2rhyvtkhhj-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Fri, 05 Apr 2019 08:34:51 +0000
+Received: from pps.filterd (userp3020.oracle.com [127.0.0.1])
+        by userp3020.oracle.com (8.16.0.27/8.16.0.27) with SMTP id x358Xe6s156966;
+        Fri, 5 Apr 2019 08:34:51 GMT
+Received: from userv0121.oracle.com (userv0121.oracle.com [156.151.31.72])
+        by userp3020.oracle.com with ESMTP id 2rp3698c44-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Fri, 05 Apr 2019 08:34:50 +0000
+Received: from abhmp0008.oracle.com (abhmp0008.oracle.com [141.146.116.14])
+        by userv0121.oracle.com (8.14.4/8.13.8) with ESMTP id x358YjPx027118;
+        Fri, 5 Apr 2019 08:34:49 GMT
+Received: from kadam (/41.202.241.49)
+        by default (Oracle Beehive Gateway v4.0)
+        with ESMTP ; Fri, 05 Apr 2019 01:34:45 -0700
+Date:   Fri, 5 Apr 2019 11:34:37 +0300
+From:   Dan Carpenter <dan.carpenter@oracle.com>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        kernel-janitors@vger.kernel.org
+Subject: Re: [PATCH] netfilter: nf_tables: prevent shift wrap in
+ nft_chain_parse_hook()
+Message-ID: <20190405083436.GT32613@kadam>
+References: <20190402133038.GA18575@kadam>
 MIME-Version: 1.0
-References: <cover.1552665316.git.rgb@redhat.com> <27473c84a274c64871cfa8e3636deaf05603c978.1552665316.git.rgb@redhat.com>
- <CAHC9VhQpk6cFZckQH+LQmQmirVzLm_GH57ZD3-76y-59G=DocQ@mail.gmail.com>
- <20190402113150.GA17593@hmswarspite.think-freely.org> <20190404214006.jcgmjb4u6iobu42s@madcap2.tricolour.ca>
-In-Reply-To: <20190404214006.jcgmjb4u6iobu42s@madcap2.tricolour.ca>
-From:   Paul Moore <paul@paul-moore.com>
-Date:   Thu, 4 Apr 2019 22:06:10 -0400
-Message-ID: <CAHC9VhSf_7RH96dNhVhifs3uqEZf0Uq=Qi5TgqdVtUskiqYQ4Q@mail.gmail.com>
-Subject: Re: [PATCH ghak90 V5 09/10] audit: add support for containerid to
- network namespaces
-To:     Richard Guy Briggs <rgb@redhat.com>
-Cc:     Neil Horman <nhorman@tuxdriver.com>, linux-api@vger.kernel.org,
-        containers@lists.linux-foundation.org,
-        LKML <linux-kernel@vger.kernel.org>, dhowells@redhat.com,
-        Linux-Audit Mailing List <linux-audit@redhat.com>,
-        netfilter-devel@vger.kernel.org, ebiederm@xmission.com,
-        simo@redhat.com, netdev@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, Eric Paris <eparis@parisplace.org>,
-        Serge Hallyn <serge@hallyn.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190402133038.GA18575@kadam>
+User-Agent: Mutt/1.9.4 (2018-02-28)
+X-Proofpoint-Virus-Version: vendor=nai engine=5900 definitions=9217 signatures=668685
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 suspectscore=0 malwarescore=0
+ phishscore=0 bulkscore=0 spamscore=0 mlxscore=0 mlxlogscore=999
+ adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.0.1-1810050000 definitions=main-1904050064
+X-Proofpoint-Virus-Version: vendor=nai engine=5900 definitions=9217 signatures=668685
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 priorityscore=1501 malwarescore=0
+ suspectscore=0 phishscore=0 bulkscore=0 spamscore=0 clxscore=1015
+ lowpriorityscore=0 mlxscore=0 impostorscore=0 mlxlogscore=999 adultscore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.0.1-1810050000
+ definitions=main-1904050064
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Apr 4, 2019 at 5:40 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> On 2019-04-02 07:31, Neil Horman wrote:
-> > On Mon, Apr 01, 2019 at 10:50:03AM -0400, Paul Moore wrote:
-> > > On Fri, Mar 15, 2019 at 2:35 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> > > > Audit events could happen in a network namespace outside of a task
-> > > > context due to packets received from the net that trigger an auditing
-> > > > rule prior to being associated with a running task.  The network
-> > > > namespace could be in use by multiple containers by association to the
-> > > > tasks in that network namespace.  We still want a way to attribute
-> > > > these events to any potential containers.  Keep a list per network
-> > > > namespace to track these audit container identifiiers.
-> > > >
-> > > > Add/increment the audit container identifier on:
-> > > > - initial setting of the audit container identifier via /proc
-> > > > - clone/fork call that inherits an audit container identifier
-> > > > - unshare call that inherits an audit container identifier
-> > > > - setns call that inherits an audit container identifier
-> > > > Delete/decrement the audit container identifier on:
-> > > > - an inherited audit container identifier dropped when child set
-> > > > - process exit
-> > > > - unshare call that drops a net namespace
-> > > > - setns call that drops a net namespace
-> > > >
-> > > > See: https://github.com/linux-audit/audit-kernel/issues/92
-> > > > See: https://github.com/linux-audit/audit-testsuite/issues/64
-> > > > See: https://github.com/linux-audit/audit-kernel/wiki/RFE-Audit-Container-ID
-> > > > Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
-> > > > ---
-> > > >  include/linux/audit.h | 19 ++++++++++++
-> > > >  kernel/audit.c        | 86 +++++++++++++++++++++++++++++++++++++++++++++++++--
-> > > >  kernel/nsproxy.c      |  4 +++
-> > > >  3 files changed, 106 insertions(+), 3 deletions(-)
+On Tue, Apr 02, 2019 at 04:30:38PM +0300, Dan Carpenter wrote:
+> I believe that "hook->num" can be up to UINT_MAX so the shift has to
+> be unsigned or shifting more than 31 is undefined.  It's possible that
+> this leads to array overflow in nf_tables_addchain():
+> 
+> 	ops->hook	= hook.type->hooks[ops->hooknum];
+> 
+> Fixes: fe19c04ca137 ("netfilter: nf_tables: remove nhooks field from struct nft_af_info")
+> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+> ---
+>  net/netfilter/nf_tables_api.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+> index ef7772e976cc..b6e48fe7c776 100644
+> --- a/net/netfilter/nf_tables_api.c
+> +++ b/net/netfilter/nf_tables_api.c
+> @@ -1545,7 +1545,7 @@ static int nft_chain_parse_hook(struct net *net,
+>  		if (IS_ERR(type))
+>  			return PTR_ERR(type);
+>  	}
+> -	if (!(type->hook_mask & (1 << hook->num)))
+> +	if (!(type->hook_mask & (1U << hook->num)))
 
-...
+Ugh...  No this doesn't work.  It's still undefined behavoir even if we
+make it unsigned.  It has to be:
 
-> > > > +               list_for_each_entry_rcu(cont, contid_list, list)
-> > > > +                       if (cont->id == contid) {
-> > > > +                               refcount_inc(&cont->refcount);
-> > > > +                               goto out;
-> > > > +                       }
-> > > > +       cont = kmalloc(sizeof(struct audit_contid), GFP_ATOMIC);
-> > >
-> > > If you had to guess, what do you think is going to be more common:
-> > > bumping the refcount of an existing entry in the list, or adding a new
-> > > entry?  I'm asking because I always get a little nervous when doing
-> > > allocations while holding a spinlock.  Yes, you are doing it with
-> > > GFP_ATOMIC, but it still seems like something to try and avoid if this
-> > > is going to approach 50%.  However, if the new entry is rare then the
-> > > extra work of always doing the allocation before taking the lock and
-> > > then freeing it afterwards might be a bad tradeoff.
-> > >
-> > I think this is another way of asking, will multiple processes exist in the same
-> > network namespace?  That is to say, will we expect a process to create a net
-> > namespace, and then have other processes enter that namespace (thereby
-> > triggering multiple calls to audit_netns_contid_add with the same net pointer
-> > and cont id).  Given that the kubernetes notion of a pod is almost by definition
-> > multiple containers sharing a network namespace, I think the answer is that we
-> > will be strongly biased towards the refcount_inc case, rather than the kmalloc
-> > case.  I could be wrong, but I think this is likely already in the optimized
-> > order.
->
-> I had a stab at doing a GFP_KERNEL alloc before the spinlock and releasing it
-> after if it wasn't needed (in Patch#1 below).  I also went one step further and
-> converted it to kmem_cache (in Patch#2 below).
->
-> > > My gut feeling says we might do about as many allocations as refcount
-> > > bumps, but I could be thinking about this wrong.
-> > >
-> > > Moving the allocation outside the spinlock might also open the door to
-> > > doing this as GFP_KERNEL, which is a good thing, but I haven't looked
-> > > at the callers to see if that is possible (it may not be).  That's an
-> > > exercise left to the patch author (if he hasn't done that already).
->
-> Both appear to work, but after successfully running both the contid test and
-> audit_testsuite, once I start to push that test system a bit harder I end up
-> with a deadlock warning.
->
-> I am having trouble understanding why since it happens both without and with
-> the kmem_cache options, so it must be another part of the code that is
-> triggering it.  The task_lock is being held at this point in
-> audit_set_contid().  I haven't tried changing this alloc over to a GFP_ATOMIC
-> to see if that prevents it, just as a debugging check...
-> At this point, I'm inclined to leave it as it was without these two patches
-> since it works and there doesn't seem to be an obvious best way given the
-> uncertainty of the potential workloads.
+	if (hook->num > 31 || !(type->hook_mask & (1 << hook->num)))
 
-I'm definitely not a mm expert, but I wonder if you might be able to
-get this working using GFP_NOFS, but I see just now that they
-recommend you *not* use GFP_NOFS; even if this did solve the problem,
-it's probably not the right approach.
+which seems like a slightly ugly magic number but it fixes the buffer
+overflow.
 
-I'm okay with leaving it as-is with GFP_ATOMIC.  My original response
-to this was more of a question about optimizing for a given use case,
-having something that works is far more important.
+regards,
+dan carpenter
 
--- 
-paul moore
-www.paul-moore.com
