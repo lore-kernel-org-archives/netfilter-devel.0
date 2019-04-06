@@ -1,98 +1,118 @@
-Return-Path: <SRS0=Hnfl=SH=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=4CCp=SI=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-8.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,UNPARSEABLE_RELAY,USER_AGENT_MUTT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A68AFC4360F
-	for <netfilter-devel@archiver.kernel.org>; Fri,  5 Apr 2019 15:36:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E870C10F06
+	for <netfilter-devel@archiver.kernel.org>; Sat,  6 Apr 2019 05:27:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5A92121726
-	for <netfilter-devel@archiver.kernel.org>; Fri,  5 Apr 2019 15:36:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1893A2173C
+	for <netfilter-devel@archiver.kernel.org>; Sat,  6 Apr 2019 05:27:22 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=riseup.net header.i=@riseup.net header.b="pxXg5mXi"
+	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="kU5dV5wb"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731314AbfDEPg4 (ORCPT
+        id S1726310AbfDFF1V (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 5 Apr 2019 11:36:56 -0400
-Received: from mx1.riseup.net ([198.252.153.129]:50212 "EHLO mx1.riseup.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729987AbfDEPg4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 5 Apr 2019 11:36:56 -0400
-Received: from capuchin.riseup.net (capuchin-pn.riseup.net [10.0.1.176])
-        (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
-        (Client CN "*.riseup.net", Issuer "COMODO RSA Domain Validation Secure Server CA" (verified OK))
-        by mx1.riseup.net (Postfix) with ESMTPS id 3983D1B91F2
-        for <netfilter-devel@vger.kernel.org>; Fri,  5 Apr 2019 08:36:55 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=riseup.net; s=squak;
-        t=1554478615; bh=7bSjwC1RKemynA2fo5lSaQrLpIRNFvMb7flb5nVmhWE=;
-        h=From:To:Cc:Subject:Date:From;
-        b=pxXg5mXiFXehoT11uSIxHacDt/6ZKaMeCCLKgquRC/RHOvLL+3rfm/P/mW9KECjkx
-         Tl9TeMrVMI3Nv26k8dPf23LzsOY64XeGbUtT1mR+maaMaOEjnRvgoc82US5af4x68Y
-         VN+Ku9y4ORzbaiP406/6Om29X+QEAWMyfDcfxfqE=
-X-Riseup-User-ID: E96C83CEFE23909B12AA03A73432689DB16BF3D144846BAE5AE66F6D21F459AE
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-         by capuchin.riseup.net (Postfix) with ESMTPSA id 68A76120BC1;
-        Fri,  5 Apr 2019 08:36:54 -0700 (PDT)
-From:   Fernando Fernandez Mancera <ffmancera@riseup.net>
-To:     netfilter-devel@vger.kernel.org
-Cc:     Fernando Fernandez Mancera <ffmancera@riseup.net>
-Subject: [PATCH nft v2] doc: update nft list plural form parameters
-Date:   Fri,  5 Apr 2019 17:36:55 +0200
-Message-Id: <20190405153655.990-1-ffmancera@riseup.net>
+        Sat, 6 Apr 2019 01:27:21 -0400
+Received: from userp2130.oracle.com ([156.151.31.86]:42022 "EHLO
+        userp2130.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725290AbfDFF1U (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 6 Apr 2019 01:27:20 -0400
+Received: from pps.filterd (userp2130.oracle.com [127.0.0.1])
+        by userp2130.oracle.com (8.16.0.27/8.16.0.27) with SMTP id x365F3MD188295;
+        Sat, 6 Apr 2019 05:27:03 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=date : from : to : cc
+ : subject : message-id : mime-version : content-type : in-reply-to;
+ s=corp-2018-07-02; bh=Q2gYlnh069vO2f/dL2Z65Stz5BOFGSSFCPRM25/lNzQ=;
+ b=kU5dV5wb+iMyv2vVUsGCHGMo8ELCS13seVTPOaG6SO3/kOuxhLlfEa83PRrFMknNOj0W
+ +qCsgy5w85QQM7gSIh4cFcrgn6SujM0RD6qGr917REIKTouf7dLyH+bIbEtySOvKBoqR
+ ZaBT9obpPBuL2RYJR5HY/1/oV0H3VnKt7BEJwQdxD7TvAG9DxYV92OPmrsuVD6OXsjFR
+ aTH61FmkRF9hOFvSKppaf+AOqu469ZwJ7aEf+CrcZyW1Aa9Nw0ONi1miPkfqo1a7Gyjd
+ RJAotQJvykaUgQMJar8tCARF3KmZwbvvWeR4FloSiNMojwEApyHf5a4MuvXXWTztqvXe iw== 
+Received: from userp3030.oracle.com (userp3030.oracle.com [156.151.31.80])
+        by userp2130.oracle.com with ESMTP id 2rpkhsg4wr-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Sat, 06 Apr 2019 05:27:03 +0000
+Received: from pps.filterd (userp3030.oracle.com [127.0.0.1])
+        by userp3030.oracle.com (8.16.0.27/8.16.0.27) with SMTP id x365QJJv167608;
+        Sat, 6 Apr 2019 05:27:03 GMT
+Received: from userv0121.oracle.com (userv0121.oracle.com [156.151.31.72])
+        by userp3030.oracle.com with ESMTP id 2rph7rb0pn-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Sat, 06 Apr 2019 05:27:03 +0000
+Received: from abhmp0005.oracle.com (abhmp0005.oracle.com [141.146.116.11])
+        by userv0121.oracle.com (8.14.4/8.13.8) with ESMTP id x365R0q2032003;
+        Sat, 6 Apr 2019 05:27:01 GMT
+Received: from kadam (/41.202.241.49)
+        by default (Oracle Beehive Gateway v4.0)
+        with ESMTP ; Fri, 05 Apr 2019 22:27:00 -0700
+Date:   Sat, 6 Apr 2019 08:26:52 +0300
+From:   Dan Carpenter <dan.carpenter@oracle.com>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        kernel-janitors@vger.kernel.org
+Subject: [PATCH v2] netfilter: nf_tables: prevent shift wrap in
+ nft_chain_parse_hook()
+Message-ID: <20190406052652.GA20963@kadam>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190402133038.GA18575@kadam>
+X-Mailer: git-send-email haha only kidding
+User-Agent: Mutt/1.9.4 (2018-02-28)
+X-Proofpoint-Virus-Version: vendor=nai engine=5900 definitions=9218 signatures=668685
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 suspectscore=0 malwarescore=0
+ phishscore=0 bulkscore=0 spamscore=0 mlxscore=0 mlxlogscore=999
+ adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.0.1-1810050000 definitions=main-1904060036
+X-Proofpoint-Virus-Version: vendor=nai engine=5900 definitions=9218 signatures=668685
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 priorityscore=1501 malwarescore=0
+ suspectscore=0 phishscore=0 bulkscore=0 spamscore=0 clxscore=1015
+ lowpriorityscore=0 mlxscore=0 impostorscore=0 mlxlogscore=999 adultscore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.0.1-1810050000
+ definitions=main-1904060036
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Signed-off-by: Fernando Fernandez Mancera <ffmancera@riseup.net>
----
- doc/nft.txt | 6 ++++++
- 1 file changed, 6 insertions(+)
+I believe that "hook->num" can be up to UINT_MAX.  Shifting more than
+31 bits would is undefined in C but in practice it would lead to shift
+wrapping.  That would lead to an array overflow in nf_tables_addchain():
 
-diff --git a/doc/nft.txt b/doc/nft.txt
-index d162dad..127a703 100644
---- a/doc/nft.txt
-+++ b/doc/nft.txt
-@@ -256,6 +256,7 @@ TABLES
- [verse]
- {add | create} *table* ['family'] 'table' [ {flags 'flags'} ]
- {delete | list | flush} *table* ['family'] 'table'
-+list *tables*
- delete *table* ['family'] handle 'handle'
+	ops->hook       = hook.type->hooks[ops->hooknum];
+
+Fixes: fe19c04ca137 ("netfilter: nf_tables: remove nhooks field from struct nft_af_info")
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+---
+v2:  In my original fix I thought making shifts unsigned was defined in
+C but it's not.  My original patch didn't fix or change runtime at all.
+
+Thanks to Florian Westphal for his help on this.
+
+ net/netfilter/nf_tables_api.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index ef7772e976cc..1606eaa5ae0d 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -1545,7 +1545,7 @@ static int nft_chain_parse_hook(struct net *net,
+ 		if (IS_ERR(type))
+ 			return PTR_ERR(type);
+ 	}
+-	if (!(type->hook_mask & (1 << hook->num)))
++	if (hook->num > NF_MAX_HOOKS || !(type->hook_mask & (1 << hook->num)))
+ 		return -EOPNOTSUPP;
  
- Tables are containers for chains, sets and stateful objects. They are identified
-@@ -308,6 +309,7 @@ CHAINS
- [verse]
- {add | create} *chain* ['family'] 'table' 'chain' [ { type 'type' hook 'hook' [device 'device'] priority 'priority' ; [policy 'policy' ;] }]
- {delete | list | flush} *chain* ['family'] 'table' 'chain'
-+list *chains*
- delete *chain* ['family'] 'table' handle 'handle'
- rename *chain* ['family'] 'table' 'chain' 'newname'
- 
-@@ -486,6 +488,7 @@ section describes nft set syntax in more detail.
- add *set* ['family'] 'table' 'set' { type 'type' ; [flags 'flags' ;] [timeout 'timeout' ;] [gc-interval 'gc-interval' ;] [elements = { 'element'[,...]
- } ;] [size size ;] [policy policy ;] [auto-merge auto-merge ;] }
- {delete | list | flush} *set* ['family'] 'table' 'set'
-+list *sets*
- delete *set* ['family'] 'table' handle 'handle'
- {add | delete} *element* ['family'] 'table' 'set' { 'element'[,...] }
- 
-@@ -606,6 +609,9 @@ STATEFUL OBJECTS
- [verse]
- {add | delete | list | reset} type ['family'] 'table' 'object'
- delete type ['family'] 'table' handle 'handle'
-+list counters
-+list quotas
-+list meters
- 
- Stateful objects are attached to tables and are identified by an unique name.
- They group stateful information from rules, to reference them in rules the
+ 	if (type->type == NFT_CHAIN_T_NAT &&
 -- 
-2.20.1
+2.17.1
 
