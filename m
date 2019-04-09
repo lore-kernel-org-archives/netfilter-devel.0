@@ -2,34 +2,35 @@ Return-Path: <SRS0=jECH=SL=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_MUTT
+X-Spam-Status: No, score=-6.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_NEOMUTT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ACE13C282CE
-	for <netfilter-devel@archiver.kernel.org>; Tue,  9 Apr 2019 13:49:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F814C10F0E
+	for <netfilter-devel@archiver.kernel.org>; Tue,  9 Apr 2019 13:53:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 84CC32084B
-	for <netfilter-devel@archiver.kernel.org>; Tue,  9 Apr 2019 13:49:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6674E2084B
+	for <netfilter-devel@archiver.kernel.org>; Tue,  9 Apr 2019 13:53:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726461AbfDINtb (ORCPT
+        id S1726460AbfDINxV (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 9 Apr 2019 09:49:31 -0400
-Received: from charlotte.tuxdriver.com ([70.61.120.58]:32966 "EHLO
-        smtp.tuxdriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726001AbfDINtb (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 9 Apr 2019 09:49:31 -0400
-Received: from cpe-2606-a000-111b-405a-0-0-0-188a.dyn6.twc.com ([2606:a000:111b:405a::188a] helo=localhost)
-        by smtp.tuxdriver.com with esmtpsa (TLSv1:AES256-SHA:256)
-        (Exim 4.63)
-        (envelope-from <nhorman@tuxdriver.com>)
-        id 1hDr7p-00012u-Dr; Tue, 09 Apr 2019 09:49:23 -0400
-Date:   Tue, 9 Apr 2019 09:48:52 -0400
-From:   Neil Horman <nhorman@tuxdriver.com>
+        Tue, 9 Apr 2019 09:53:21 -0400
+Received: from mx1.redhat.com ([209.132.183.28]:10228 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726112AbfDINxV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 9 Apr 2019 09:53:21 -0400
+Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.phx2.redhat.com [10.5.11.16])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mx1.redhat.com (Postfix) with ESMTPS id C0F7A307D978;
+        Tue,  9 Apr 2019 13:53:20 +0000 (UTC)
+Received: from madcap2.tricolour.ca (ovpn-112-16.phx2.redhat.com [10.3.112.16])
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id 1B89C5C28D;
+        Tue,  9 Apr 2019 13:53:06 +0000 (UTC)
+Date:   Tue, 9 Apr 2019 09:53:04 -0400
+From:   Richard Guy Briggs <rgb@redhat.com>
 To:     Paul Moore <paul@paul-moore.com>
 Cc:     Ondrej Mosnacek <omosnace@redhat.com>,
-        Richard Guy Briggs <rgb@redhat.com>,
         containers@lists.linux-foundation.org, linux-api@vger.kernel.org,
         Linux-Audit Mailing List <linux-audit@redhat.com>,
         linux-fsdevel@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
@@ -39,10 +40,10 @@ Cc:     Ondrej Mosnacek <omosnace@redhat.com>,
         Simo Sorce <simo@redhat.com>,
         Eric Paris <eparis@parisplace.org>,
         "Serge E. Hallyn" <serge@hallyn.com>,
-        "Eric W . Biederman" <ebiederm@xmission.com>
+        "Eric W . Biederman" <ebiederm@xmission.com>, nhorman@tuxdriver.com
 Subject: Re: [PATCH ghak90 V6 05/10] audit: add contid support for signalling
  the audit daemon
-Message-ID: <20190409134852.GB15660@hmswarspite.think-freely.org>
+Message-ID: <20190409135304.rgkcpgya6h3ciphy@madcap2.tricolour.ca>
 References: <cover.1554732921.git.rgb@redhat.com>
  <baa5f3c6d4aa7f9fec903ebb51949f3ac743d067.1554732921.git.rgb@redhat.com>
  <CAFqZXNvZTb-OrCHugEc2TrW57EX_f_+absARpR1bUBN3_uavdQ@mail.gmail.com>
@@ -51,15 +52,16 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 In-Reply-To: <CAHC9VhRbxefdpTX5ct+1=uccv9b2GH+imDPPbB90RBWSjMcgbA@mail.gmail.com>
-User-Agent: Mutt/1.11.3 (2019-02-01)
+User-Agent: NeoMutt/20180716
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.16
+X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.5.16 (mx1.redhat.com [10.5.110.48]); Tue, 09 Apr 2019 13:53:21 +0000 (UTC)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Apr 09, 2019 at 09:40:58AM -0400, Paul Moore wrote:
+On 2019-04-09 09:40, Paul Moore wrote:
 > On Tue, Apr 9, 2019 at 8:58 AM Ondrej Mosnacek <omosnace@redhat.com> wrote:
-> >
 > > On Tue, Apr 9, 2019 at 5:40 AM Richard Guy Briggs <rgb@redhat.com> wrote:
 > > > Add audit container identifier support to the action of signalling the
 > > > audit daemon.
@@ -93,16 +95,27 @@ On Tue, Apr 09, 2019 at 09:40:58AM -0400, Paul Moore wrote:
 > by adding version fields and similar things, there are still so many
 > (so very many) problems with the audit kernel/userspace interface that
 > still need to be addressed.
-> 
 
-Agreed, this change as-is is in keeping with the message structure that audit
-has today, and so is ok with me, but the long term goal should be a conversion
-to netlink attributes for all audit messages.  Thats a big undertaking and
-should be addressed separately though.
+While this particular message type is used very infrequently, adding a
+version field to every message type strikes me as a huge overhead for
+the small likelihood of the format needing to change.
 
-Neil
+I'd prefer to just key it off the AUDIT_FEATURE_BITMAP or some other
+easily detectable change in this distinguishing feature, such as the
+presence of /proc/self/audit_containerid, which is what I've done in the
+accompanying userspace patchset that I'm preparing to post that works
+with this change.
 
-> -- 
+Neil, you are right that netlink has useful mechanisms to help with this
+sort of thing, but we're not quite there yet.
+
 > paul moore
-> www.paul-moore.com
-> 
+
+- RGB
+
+--
+Richard Guy Briggs <rgb@redhat.com>
+Sr. S/W Engineer, Kernel Security, Base Operating Systems
+Remote, Ottawa, Red Hat Canada
+IRC: rgb, SunRaycer
+Voice: +1.647.777.2635, Internal: (81) 32635
