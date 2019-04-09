@@ -1,150 +1,452 @@
-Return-Path: <SRS0=Xgm7=SK=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=jECH=SL=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,
-	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.0 required=3.0
+	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_PASS autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 71A0CC10F13
-	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Apr 2019 23:17:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2AE35C10F14
+	for <netfilter-devel@archiver.kernel.org>; Tue,  9 Apr 2019 03:40:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 253E8206BA
-	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Apr 2019 23:17:24 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=darbyshire-bryant.me.uk header.i=@darbyshire-bryant.me.uk header.b="LhLp8omc"
+	by mail.kernel.org (Postfix) with ESMTP id 0401621841
+	for <netfilter-devel@archiver.kernel.org>; Tue,  9 Apr 2019 03:40:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726731AbfDHXRX (ORCPT
+        id S1727284AbfDIDkA (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 8 Apr 2019 19:17:23 -0400
-Received: from mail-eopbgr80058.outbound.protection.outlook.com ([40.107.8.58]:63207
-        "EHLO EUR04-VI1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726228AbfDHXRX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 8 Apr 2019 19:17:23 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
- d=darbyshire-bryant.me.uk; s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=a7w7ktIef9v12fQSxE46JgHYUbPTpBJJe1FDP1hx2MY=;
- b=LhLp8omcPbLMsTXuqKijEt8zmSoxgP5BgeEp9GIjGDVKo7ouWrbLxGzwF3E/WmnhbYX3sWYosBhheF+9Hxt7TB3/wn1xpwXXlqgArXzvJ0Qsg9+m94rxsO+9ptn+ZXB93nZb+RZZ0EKTAq4i6nUjKmgviHeSEsiBQlTpgaV4gXY=
-Received: from VI1PR0302MB2750.eurprd03.prod.outlook.com (10.171.105.143) by
- VI1PR0302MB2735.eurprd03.prod.outlook.com (10.171.105.140) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.1771.19; Mon, 8 Apr 2019 23:16:38 +0000
-Received: from VI1PR0302MB2750.eurprd03.prod.outlook.com
- ([fe80::b584:8ced:9d52:d88e]) by VI1PR0302MB2750.eurprd03.prod.outlook.com
- ([fe80::b584:8ced:9d52:d88e%5]) with mapi id 15.20.1771.016; Mon, 8 Apr 2019
- 23:16:38 +0000
-From:   Kevin 'ldir' Darbyshire-Bryant <ldir@darbyshire-bryant.me.uk>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-CC:     "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH 1/1] netfilter: connmark: introduce savedscp
-Thread-Topic: [PATCH 1/1] netfilter: connmark: introduce savedscp
-Thread-Index: AQHU4k0wbxhUbO7O10G3RjU1k8f4WaYy8x0AgAAKg4A=
-Date:   Mon, 8 Apr 2019 23:16:38 +0000
-Message-ID: <FEBDDE5A-DC07-4E41-84B3-C5033EB20CCE@darbyshire-bryant.me.uk>
-References: <20190324142314.92539-1-ldir@darbyshire-bryant.me.uk>
- <20190324142314.92539-2-ldir@darbyshire-bryant.me.uk>
- <20190408223900.jizstw6bhjwt2w63@salvia>
-In-Reply-To: <20190408223900.jizstw6bhjwt2w63@salvia>
-Accept-Language: en-GB, en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-authentication-results: spf=none (sender IP is )
- smtp.mailfrom=ldir@darbyshire-bryant.me.uk; 
-x-ms-exchange-messagesentrepresentingtype: 1
-x-originating-ip: [2a02:c7f:1240:ee00::dc83]
-x-ms-publictraffictype: Email
-x-ms-office365-filtering-correlation-id: 9ba70ad5-b105-498f-fce9-08d6bc7840ae
-x-microsoft-antispam: BCL:0;PCL:0;RULEID:(2390118)(7020095)(4652040)(7021145)(8989299)(4534185)(7022145)(4603075)(4627221)(201702281549075)(8990200)(7048125)(7024125)(7027125)(7023125)(5600139)(711020)(4605104)(2017052603328)(7193020);SRVR:VI1PR0302MB2735;
-x-ms-traffictypediagnostic: VI1PR0302MB2735:
-x-microsoft-antispam-prvs: <VI1PR0302MB2735460D1E1C1F8E7D144CDDC92C0@VI1PR0302MB2735.eurprd03.prod.outlook.com>
-x-forefront-prvs: 0001227049
-x-forefront-antispam-report: SFV:NSPM;SFS:(10009020)(346002)(39830400003)(396003)(136003)(366004)(376002)(199004)(189003)(36756003)(8676002)(8936002)(97736004)(46003)(486006)(11346002)(305945005)(86362001)(25786009)(5660300002)(7736002)(74482002)(99286004)(6116002)(71190400001)(68736007)(446003)(476003)(2616005)(229853002)(6916009)(83716004)(6436002)(71200400001)(6486002)(76176011)(53936002)(82746002)(256004)(4326008)(6512007)(508600001)(14444005)(53546011)(6246003)(102836004)(186003)(81156014)(316002)(81166006)(106356001)(14454004)(105586002)(6506007)(2906002)(33656002);DIR:OUT;SFP:1101;SCL:1;SRVR:VI1PR0302MB2735;H:VI1PR0302MB2750.eurprd03.prod.outlook.com;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;A:1;MX:1;
-received-spf: None (protection.outlook.com: darbyshire-bryant.me.uk does not
- designate permitted sender hosts)
-x-ms-exchange-senderadcheck: 1
-x-microsoft-antispam-message-info: S/ZhwJ95Zk/myJs0aKleuSs9cR3bvRL/AqEbso8vENb9deOxWi5KfZpUuvPY2r3L8+Yi7BcL1ZwLj4EiMdY2apTRtGPhXGtarPKy1l2lDjfJOkWHy7vy2oheX422S8Xq85HxCwX9YqFZNMSXMJPyJAMCKGSsjLc+5QielEz322+RpomGKtk54UVnwnLVtNHCyYmQleLRDQSXORakHc2FlyK2D6uDBR7taMJ/fbVXlGh3Qrm6hI9daSQ7sWWrwsROGtFqwRdOYiwG82KuDJ8rR5DFTPy7JcDwUxheqyXKyTbspHkSUQCSSQVy/rVHXtnTNmvNE479ScZTiNi1MWu1/ZPQhGGahx8I6b4qe1R4TOlvTpp1g4PdU2po8QVL4VxOU8epwtDg6Z+cIAruF4/uKOr1ssTKUwVuU10ISvinEVQ=
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <98E6103444ECD5449670D932F7437462@eurprd03.prod.outlook.com>
-Content-Transfer-Encoding: base64
-MIME-Version: 1.0
-X-OriginatorOrg: darbyshire-bryant.me.uk
-X-MS-Exchange-CrossTenant-Network-Message-Id: 9ba70ad5-b105-498f-fce9-08d6bc7840ae
-X-MS-Exchange-CrossTenant-originalarrivaltime: 08 Apr 2019 23:16:38.5700
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: 9151708b-c553-406f-8e56-694f435154a4
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: VI1PR0302MB2735
+        Mon, 8 Apr 2019 23:40:00 -0400
+Received: from mx1.redhat.com ([209.132.183.28]:58194 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726456AbfDIDj7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 8 Apr 2019 23:39:59 -0400
+Received: from smtp.corp.redhat.com (int-mx08.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mx1.redhat.com (Postfix) with ESMTPS id A46A4307EA8F;
+        Tue,  9 Apr 2019 03:39:58 +0000 (UTC)
+Received: from madcap2.tricolour.ca (ovpn-112-16.phx2.redhat.com [10.3.112.16])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 461C519C5A;
+        Tue,  9 Apr 2019 03:39:54 +0000 (UTC)
+From:   Richard Guy Briggs <rgb@redhat.com>
+To:     containers@lists.linux-foundation.org, linux-api@vger.kernel.org,
+        Linux-Audit Mailing List <linux-audit@redhat.com>,
+        linux-fsdevel@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+Cc:     Paul Moore <paul@paul-moore.com>, sgrubb@redhat.com,
+        omosnace@redhat.com, dhowells@redhat.com, simo@redhat.com,
+        eparis@parisplace.org, serge@hallyn.com, ebiederm@xmission.com,
+        nhorman@tuxdriver.com, Richard Guy Briggs <rgb@redhat.com>
+Subject: [PATCH ghak90 V6 01/10] audit: collect audit task parameters
+Date:   Mon,  8 Apr 2019 23:39:08 -0400
+Message-Id: <c80fe186477120fb3142b7b96ef8673bbc8fb737.1554732921.git.rgb@redhat.com>
+In-Reply-To: <cover.1554732921.git.rgb@redhat.com>
+References: <cover.1554732921.git.rgb@redhat.com>
+In-Reply-To: <cover.1554732921.git.rgb@redhat.com>
+References: <cover.1554732921.git.rgb@redhat.com>
+X-Scanned-By: MIMEDefang 2.84 on 10.5.11.23
+X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.5.16 (mx1.redhat.com [10.5.110.44]); Tue, 09 Apr 2019 03:39:59 +0000 (UTC)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-DQoNCj4gT24gOCBBcHIgMjAxOSwgYXQgMjM6MzksIFBhYmxvIE5laXJhIEF5dXNvIDxwYWJsb0Bu
-ZXRmaWx0ZXIub3JnPiB3cm90ZToNCj4gDQo+IEhpIEtldmluLA0KPiANCj4gT24gU3VuLCBNYXIg
-MjQsIDIwMTkgYXQgMDI6MjM6NDVQTSArMDAwMCwgS2V2aW4gJ2xkaXInIERhcmJ5c2hpcmUtQnJ5
-YW50IHdyb3RlOg0KPj4gc2F2ZWRzY3AgaXMgYSBtZXRob2Qgb2Ygc3RvcmluZyB0aGUgRFNDUCBv
-ZiBhbiBpcCBwYWNrZXQgaW50byBjb25udHJhY2sNCj4+IG1hcmsuICBJbiBjb21iaW5hdGlvbiB3
-aXRoIGEgc3VpdGFibGUgdGMgZmlsdGVyIGFjdGlvbiAoY29ubmRzY3AgYnV0IG1heQ0KPj4gZW5k
-IHVwIGJlaW5nIGludGVncmF0ZWQgaW50byBjb25ubWFyaykgRFNDUCB2YWx1ZXMgYXJlIGFibGUg
-dG8gYmUgc3RvcmVkDQo+PiBvbiBlZ3Jlc3MgYW5kIHJlc3RvcmVkIG9uIGluZ3Jlc3MgYWNyb3Nz
-IGxpbmtzIHRoYXQgb3RoZXJ3aXNlIGFsdGVyIG9yDQo+PiBibGVhY2ggRFNDUC4NCj4+IA0KPj4g
-VGhpcyBpcyB1c2VmdWwgZm9yIHFkaXNjcyBzdWNoIGFzIENBS0Ugd2hpY2ggYXJlIGFibGUgdG8g
-c2hhcGUgYWNjb3JkaW5nDQo+PiB0byBwb2xpY2llcyBiYXNlZCBvbiBEU0NQLg0KPj4gDQo+PiBJ
-bmdyZXNzIGNsYXNzaWZpY2F0aW9uIGlzIHRyYWRpdGlvbmFsbHkgYSBjaGFsbGVuZ2luZyB0YXNr
-IHNpbmNlDQo+PiBpcHRhYmxlcyBydWxlcyBoYXZlbid0IHlldCBydW4gYW5kIHRjIGZpbHRlci9l
-QlBGIHByb2dyYW1zIGFyZSBwcmUtTkFUDQo+PiBsb29rdXBzLCBoZW5jZSBhcmUgdW5hYmxlIHRv
-IHNlZSBpbnRlcm5hbCBJUHY0IGFkZHJlc3NlcyBhcyB1c2VkIG9uIHRoZQ0KPj4gdHlwaWNhbCBo
-b21lIG1hc3F1ZXJhZGluZyBnYXRld2F5Lg0KPj4gDQo+PiBUaGUgaW5ncmVzcyBwcm9ibGVtIGlz
-IHNvbHZlZCBieSB0aGUgdGMgZmlsdGVyLCBidXQgdGhlIHRjIHBlb3BsZSBkaWRuJ3QNCj4+IGxp
-a2UgdGhlIGlkZWEgb2YgdGMgc2V0dGluZyBjb25udHJhY2sgbWFyayB2YWx1ZXMsIHRob3VnaCB0
-aGV5IGFyZSBvaw0KPj4gd2l0aCByZWFkaW5nIGNvbm50cmFjayB2YWx1ZXMgYW5kIGhlbmNlIHJl
-c3RvcmluZyBEU0NQIGZyb20gY29ubnRyYWNrDQo+PiBtYXJrcy4NCj4+IA0KPj4geF90YWJsZXMg
-Q09OTk1BUksgd2l0aCB0aGUgbmV3IHNhdmVkc2NwIGFjdGlvbiBzb2x2ZXMgdGhlIHByb2JsZW0g
-b2YNCj4+IHN0b3JpbmcgdGhlIERTQ1AgdG8gdGhlIGNvbm50cmFjayBtYXJrLg0KPj4gDQo+PiBJ
-dCBhY2NlcHRzIDIgcGFyYW1ldGVycy4gIFRoZSBtYXJrIGlzIGEgMzJiaXQgdmFsdWUgd2l0aCB1
-c3VhbGx5IG9uZQ0KPj4gYml0IHNldC4gIFRoaXMgYml0IGlzIHNldCB3aGVuIHNhdmVkc2NwIHNh
-dmVzIHRoZSBEU0NQIHRvIHRoZSBtYXJrLg0KPj4gVGhpcyBpcyB1c2VmdWwgdG8gaW1wbGVtZW50
-IGEgJ29uZSBzaG90Jw0KPj4gaXB0YWJsZXMgYmFzZWQgY2xhc3NpZmljYXRpb24gd2hlcmUgdGhl
-ICdjb21wbGljYXRlZCcgaXB0YWJsZXMgcnVsZXMgYXJlDQo+PiBvbmx5IHJ1biBvbmNlIHRvIGNs
-YXNzaWZ5IHRoZSBjb25uZWN0aW9uIG9uIGluaXRpYWwgKGVncmVzcykgcGFja2V0IGFuZA0KPj4g
-c3Vic2VxdWVudCBwYWNrZXRzIGFyZSBhbGwgbWFya2VkL3Jlc3RvcmVkIHdpdGggdGhlIHNhbWUg
-RFNDUC4gIEEgbWFyaw0KPj4gb2YgemVybyBkaXNhYmxlcyB0aGUgc2V0dGluZyBvZiBhIHN0YXR1
-cyBiaXQvcy4NCj4+IA0KPj4gVGhlIG1hc2sgaXMgYSAzMmJpdCB2YWx1ZSBvZiBhdCBsZWFzdCA2
-IGNvbnRpZ3VvdXMgYml0cyBhbmQgcmVwcmVzZW50cw0KPj4gdGhlIGFyZWEgd2hlcmUgdGhlIERT
-Q1Agd2lsbCBiZSBzdG9yZWQuDQo+PiANCj4+IGUuZy4NCj4+IA0KPj4gaXB0YWJsZXMgLUEgUU9T
-X01BUktfZXRoMCAtdCBtYW5nbGUgLWogQ09OTk1BUksgLS1zYXZlZHNjcC1tYXJrIDB4MDEwMDAw
-MDAvMHhmYzAwMDAwMA0KPj4gDQo+PiBXb3VsZCBzdG9yZSB0aGUgRFNDUCBpbiB0aGUgdG9wIDYg
-Yml0cyBvZiB0aGUgMzJiaXQgbWFyayBmaWVsZCwgYW5kIHVzZQ0KPj4gdGhlIExTQiBvZiB0aGUg
-dG9wIGJ5dGUgYXMgdGhlICdEU0NQIGhhcyBiZWVuIHN0b3JlZCcgbWFya2VyLg0KPiANCj4gSSdk
-IHByZWZlciB3ZSBleHBsb3JlIGhvdyB0byBleHByZXNzIHRoaXMgaW4gbmZ0YWJsZXMsIEkgdGhp
-bmsgdGhlDQo+IG1haW4gcHJvYmxlbSBoZXJlIGlzIHRoYXQgd2UgZG8gbm90IHN1cHBvcnQgZm9y
-IGRhdGF0eXBlIGNvbXBhdGliaWxpdHkNCj4gLyBjYXN0aW5nIHlldCwgaGVuY2UgZHNjcCBjYW5u
-b3QgYmUgYXNzaWduIHRvIHRoZSBtYXJrLiBCdXQgd2Ugb25seQ0KPiBuZWVkIHRvIHVwZGF0ZSB1
-c2Vyc3BhY2UgY29kZSB0byBhY2hpZXZlIHRoaXMuDQo+IA0KPiBUaGFua3MuDQoNCkhpIFBhYmxv
-LA0KDQpUaGFua3MgZm9yIGdldHRpbmcgYmFjayB0byBtZS4gIEkga25vdyBub3RoaW5nIG9mIG5m
-dGFibGVzIHNvIHRoaXMgd2lsbCBiZQ0K4oCYaW50ZXJlc3RpbmfigJkuICBJIGhhdmUgYSB2MiBv
-ZiB0aGUgcGF0Y2ggd2l0aCBhIHZlcnkgbWlub3IgdHdlYWsgdGhhdCBJIHdpbGwNCnNlbmQgdG9t
-b3Jyb3cgYW5kIEkgYWxzbyBoYXZlIGEgdXNlcnNwYWNlIOKAmGlwdGFibGVz4oCZIHBhdGNoIHRo
-YXQgc2hvd3MgdGhlDQp1c2VyIHNpZGUgb2YgdGhpbmdzIGlmIGl0IHdpbGwgaGVscC4NCg0KRm9y
-IGF2b2lkYW5jZSBvZiBkb3VidCwgdGhlIHR3byB2YWx1ZXMgcGFzc2VkIGJ5IOKAlHNhdmVkc2Nw
-LW1hcmsgYXJlIGJvdGgNCjMyIGJpdCBiaXQgbWFza3MuICBPbmUgbXVzdCBiZSBhIGNvbnRpZ3Vv
-dXMgNiBiaXQgZmllbGQgYW5kIHNwZWNpZmllcyB3aGVyZQ0KaW4gdGhlIGNvbm5tYXJrIGZpZWxk
-IHRvIHN0b3JlIHRoYXQgcGFja2V04oCZcyBEU0NQIHZhbHVlLiAgSXQgZG9lcyBub3Qgc3BlY2lm
-eQ0KdGhlIERTQ1AgdmFsdWUgaXRzZWxmLg0KDQpUaGUgc2Vjb25kIHZhbHVlIGlzIGFnYWluICh1
-c3VhbGx5KSBhIHNpbmdsZSBiaXQgbWFzayBhbmQgc3BlY2lmaWVzIGEgYml0IGluDQp0aGUgY29u
-bm1hcmsgZmllbGQgdGhhdCBpcyBTRVQgYnkgdGhlIOKAlHNhdmVkc2NwLW1hcmsgYWN0aW9uLg0K
-DQpuZnRhYmxlcyB1c2Vyc3BhY2UgbXVzdCBhbHJlYWR5IGhhdmUgYSBtZXRob2Qgb2YgcGFzc2lu
-ZyAzMmJpdCBiaXRtYXNrcz8NCg0KZS5nLiBhIOKAmGRzY3BtYXNr4oCZIG9mIDB4ZmMwMDAwMDAg
-c3BlY2lmaWVzIHRvIHN0b3JlIHRoZSBwYWNrZXTigJlzIGRzY3AgZmllbGQgaW4NCnRoZSB0b3Ag
-NiBiaXRzIG9mIHRoZSBjb25udHJhY2sgY29ubm1hcms6DQoNCuKAlOKAlOKAlDB4RkPigJTigJTi
-gJTigJTigJTigJTigJTigJTigJQwMDAwMDAwLeKAlA0KfFRPUCA2IGJpdHMgfCB+fn5+fn5+fn5+
-fn5+DQrigJTigJTigJTigJTigJTigJTigJTigJTigJTigJTigJTigJTigJTigJTigJTigJTigJTi
-gJTigJQNCg0KICAgIF4NCiAgICB8IHNoaWZ0ZWQgYXMgcmVxdWlyZWQNCiAgICDigJTigJTigJTi
-gJQNCiAgICAgICAgfA0KLWRpZmZzZXJ2IGZpZWxkIC0NCnwgNiBiaXRzIERTQ1AgICB8DQotLS0t
-LS0tLS0tLS0tLS0tLQ0KDQpIb3BlZnVsbHkgSSBoYXZlIG5vdCBtaXN1bmRlcnN0b29kIHlvdXIg
-cG9pbnRzPyENCg0KDQpDaGVlcnMsDQoNCktldmluIEQtQg0KDQpncGc6IDAxMkMgQUNCMiAyOEM2
-IEM1M0UgOTc3NSAgOTEyMyBCM0EyIDM4OUIgOURFMiAzMzRBDQoNCg==
+The audit-related parameters in struct task_struct should ideally be
+collected together and accessed through a standard audit API.
+
+Collect the existing loginuid, sessionid and audit_context together in a
+new struct audit_task_info called "audit" in struct task_struct.
+
+Use kmem_cache to manage this pool of memory.
+Un-inline audit_free() to be able to always recover that memory.
+
+Please see the upstream github issue
+https://github.com/linux-audit/audit-kernel/issues/81
+
+Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
+Acked-by: Neil Horman <nhorman@tuxdriver.com>
+Reviewed-by: Ondrej Mosnacek <omosnace@redhat.com>
+---
+ include/linux/audit.h | 49 +++++++++++++++++++++++------------
+ include/linux/sched.h |  7 +----
+ init/init_task.c      |  3 +--
+ init/main.c           |  2 ++
+ kernel/audit.c        | 71 +++++++++++++++++++++++++++++++++++++++++++++++++--
+ kernel/audit.h        |  5 ++++
+ kernel/auditsc.c      | 26 ++++++++++---------
+ kernel/fork.c         |  1 -
+ 8 files changed, 124 insertions(+), 40 deletions(-)
+
+diff --git a/include/linux/audit.h b/include/linux/audit.h
+index 1e69d9fe16da..bde346e73f0c 100644
+--- a/include/linux/audit.h
++++ b/include/linux/audit.h
+@@ -86,6 +86,16 @@ struct audit_field {
+ 	u32				op;
+ };
+ 
++struct audit_task_info {
++	kuid_t			loginuid;
++	unsigned int		sessionid;
++#ifdef CONFIG_AUDITSYSCALL
++	struct audit_context	*ctx;
++#endif
++};
++
++extern struct audit_task_info init_struct_audit;
++
+ extern int is_audit_feature_set(int which);
+ 
+ extern int __init audit_register_class(int class, unsigned *list);
+@@ -122,6 +132,9 @@ struct audit_field {
+ #ifdef CONFIG_AUDIT
+ /* These are defined in audit.c */
+ 				/* Public API */
++extern int  audit_alloc(struct task_struct *task);
++extern void audit_free(struct task_struct *task);
++extern void __init audit_task_init(void);
+ extern __printf(4, 5)
+ void audit_log(struct audit_context *ctx, gfp_t gfp_mask, int type,
+ 	       const char *fmt, ...);
+@@ -164,16 +177,28 @@ extern void		    audit_log_key(struct audit_buffer *ab,
+ 
+ static inline kuid_t audit_get_loginuid(struct task_struct *tsk)
+ {
+-	return tsk->loginuid;
++	if (!tsk->audit)
++		return INVALID_UID;
++	return tsk->audit->loginuid;
+ }
+ 
+ static inline unsigned int audit_get_sessionid(struct task_struct *tsk)
+ {
+-	return tsk->sessionid;
++	if (!tsk->audit)
++		return AUDIT_SID_UNSET;
++	return tsk->audit->sessionid;
+ }
+ 
+ extern u32 audit_enabled;
+ #else /* CONFIG_AUDIT */
++static inline int audit_alloc(struct task_struct *task)
++{
++	return 0;
++}
++static inline void audit_free(struct task_struct *task)
++{ }
++static inline void __init audit_task_init(void)
++{ }
+ static inline __printf(4, 5)
+ void audit_log(struct audit_context *ctx, gfp_t gfp_mask, int type,
+ 	       const char *fmt, ...)
+@@ -239,8 +264,6 @@ static inline unsigned int audit_get_sessionid(struct task_struct *tsk)
+ 
+ /* These are defined in auditsc.c */
+ 				/* Public API */
+-extern int  audit_alloc(struct task_struct *task);
+-extern void __audit_free(struct task_struct *task);
+ extern void __audit_syscall_entry(int major, unsigned long a0, unsigned long a1,
+ 				  unsigned long a2, unsigned long a3);
+ extern void __audit_syscall_exit(int ret_success, long ret_value);
+@@ -263,12 +286,14 @@ extern void audit_seccomp_actions_logged(const char *names,
+ 
+ static inline void audit_set_context(struct task_struct *task, struct audit_context *ctx)
+ {
+-	task->audit_context = ctx;
++	task->audit->ctx = ctx;
+ }
+ 
+ static inline struct audit_context *audit_context(void)
+ {
+-	return current->audit_context;
++	if (!current->audit)
++		return NULL;
++	return current->audit->ctx;
+ }
+ 
+ static inline bool audit_dummy_context(void)
+@@ -276,11 +301,7 @@ static inline bool audit_dummy_context(void)
+ 	void *p = audit_context();
+ 	return !p || *(int *)p;
+ }
+-static inline void audit_free(struct task_struct *task)
+-{
+-	if (unlikely(task->audit_context))
+-		__audit_free(task);
+-}
++
+ static inline void audit_syscall_entry(int major, unsigned long a0,
+ 				       unsigned long a1, unsigned long a2,
+ 				       unsigned long a3)
+@@ -470,12 +491,6 @@ static inline void audit_fanotify(unsigned int response)
+ extern int audit_n_rules;
+ extern int audit_signals;
+ #else /* CONFIG_AUDITSYSCALL */
+-static inline int audit_alloc(struct task_struct *task)
+-{
+-	return 0;
+-}
+-static inline void audit_free(struct task_struct *task)
+-{ }
+ static inline void audit_syscall_entry(int major, unsigned long a0,
+ 				       unsigned long a1, unsigned long a2,
+ 				       unsigned long a3)
+diff --git a/include/linux/sched.h b/include/linux/sched.h
+index 1549584a1538..3e0699a26dab 100644
+--- a/include/linux/sched.h
++++ b/include/linux/sched.h
+@@ -32,7 +32,6 @@
+ #include <linux/rseq.h>
+ 
+ /* task_struct member predeclarations (sorted alphabetically): */
+-struct audit_context;
+ struct backing_dev_info;
+ struct bio_list;
+ struct blk_plug;
+@@ -873,11 +872,7 @@ struct task_struct {
+ 	struct callback_head		*task_works;
+ 
+ #ifdef CONFIG_AUDIT
+-#ifdef CONFIG_AUDITSYSCALL
+-	struct audit_context		*audit_context;
+-#endif
+-	kuid_t				loginuid;
+-	unsigned int			sessionid;
++	struct audit_task_info		*audit;
+ #endif
+ 	struct seccomp			seccomp;
+ 
+diff --git a/init/init_task.c b/init/init_task.c
+index c70ef656d0f4..32420485e54b 100644
+--- a/init/init_task.c
++++ b/init/init_task.c
+@@ -123,8 +123,7 @@ struct task_struct init_task
+ 	.thread_group	= LIST_HEAD_INIT(init_task.thread_group),
+ 	.thread_node	= LIST_HEAD_INIT(init_signals.thread_head),
+ #ifdef CONFIG_AUDIT
+-	.loginuid	= INVALID_UID,
+-	.sessionid	= AUDIT_SID_UNSET,
++	.audit		= &init_struct_audit,
+ #endif
+ #ifdef CONFIG_PERF_EVENTS
+ 	.perf_event_mutex = __MUTEX_INITIALIZER(init_task.perf_event_mutex),
+diff --git a/init/main.c b/init/main.c
+index 598e278b46f7..26b6c80f5b1d 100644
+--- a/init/main.c
++++ b/init/main.c
+@@ -92,6 +92,7 @@
+ #include <linux/rodata_test.h>
+ #include <linux/jump_label.h>
+ #include <linux/mem_encrypt.h>
++#include <linux/audit.h>
+ 
+ #include <asm/io.h>
+ #include <asm/bugs.h>
+@@ -734,6 +735,7 @@ asmlinkage __visible void __init start_kernel(void)
+ 	nsfs_init();
+ 	cpuset_init();
+ 	cgroup_init();
++	audit_task_init();
+ 	taskstats_init_early();
+ 	delayacct_init();
+ 
+diff --git a/kernel/audit.c b/kernel/audit.c
+index b96bf69183f4..3fb09783cd4a 100644
+--- a/kernel/audit.c
++++ b/kernel/audit.c
+@@ -215,6 +215,73 @@ struct audit_reply {
+ 	struct sk_buff *skb;
+ };
+ 
++static struct kmem_cache *audit_task_cache;
++
++void __init audit_task_init(void)
++{
++	audit_task_cache = kmem_cache_create("audit_task",
++					     sizeof(struct audit_task_info),
++					     0, SLAB_PANIC, NULL);
++}
++
++/**
++ * audit_alloc - allocate an audit info block for a task
++ * @tsk: task
++ *
++ * Call audit_alloc_syscall to filter on the task information and
++ * allocate a per-task audit context if necessary.  This is called from
++ * copy_process, so no lock is needed.
++ */
++int audit_alloc(struct task_struct *tsk)
++{
++	int ret = 0;
++	struct audit_task_info *info;
++
++	info = kmem_cache_alloc(audit_task_cache, GFP_KERNEL);
++	if (!info) {
++		ret = -ENOMEM;
++		goto out;
++	}
++	info->loginuid = audit_get_loginuid(current);
++	info->sessionid = audit_get_sessionid(current);
++	tsk->audit = info;
++
++	ret = audit_alloc_syscall(tsk);
++	if (ret) {
++		tsk->audit = NULL;
++		kmem_cache_free(audit_task_cache, info);
++	}
++out:
++	return ret;
++}
++
++struct audit_task_info init_struct_audit = {
++	.loginuid = INVALID_UID,
++	.sessionid = AUDIT_SID_UNSET,
++#ifdef CONFIG_AUDITSYSCALL
++	.ctx = NULL,
++#endif
++};
++
++/**
++ * audit_free - free per-task audit info
++ * @tsk: task whose audit info block to free
++ *
++ * Called from copy_process and do_exit
++ */
++void audit_free(struct task_struct *tsk)
++{
++	struct audit_task_info *info = tsk->audit;
++
++	audit_free_syscall(tsk);
++	/* Freeing the audit_task_info struct must be performed after
++	 * audit_log_exit() due to need for loginuid and sessionid.
++	 */
++	info = tsk->audit;
++	tsk->audit = NULL;
++	kmem_cache_free(audit_task_cache, info);
++}
++
+ /**
+  * auditd_test_task - Check to see if a given task is an audit daemon
+  * @task: the task to check
+@@ -2266,8 +2333,8 @@ int audit_set_loginuid(kuid_t loginuid)
+ 			sessionid = (unsigned int)atomic_inc_return(&session_id);
+ 	}
+ 
+-	current->sessionid = sessionid;
+-	current->loginuid = loginuid;
++	current->audit->sessionid = sessionid;
++	current->audit->loginuid = loginuid;
+ out:
+ 	audit_log_set_loginuid(oldloginuid, loginuid, oldsessionid, sessionid, rc);
+ 	return rc;
+diff --git a/kernel/audit.h b/kernel/audit.h
+index 958d5b8fc1b3..c00e2ee3c6b3 100644
+--- a/kernel/audit.h
++++ b/kernel/audit.h
+@@ -264,6 +264,8 @@ extern void audit_log_d_path_exe(struct audit_buffer *ab,
+ extern unsigned int audit_serial(void);
+ extern int auditsc_get_stamp(struct audit_context *ctx,
+ 			      struct timespec64 *t, unsigned int *serial);
++extern int audit_alloc_syscall(struct task_struct *tsk);
++extern void audit_free_syscall(struct task_struct *tsk);
+ 
+ extern void audit_put_watch(struct audit_watch *watch);
+ extern void audit_get_watch(struct audit_watch *watch);
+@@ -305,6 +307,9 @@ extern void audit_filter_inodes(struct task_struct *tsk,
+ extern struct list_head *audit_killed_trees(void);
+ #else /* CONFIG_AUDITSYSCALL */
+ #define auditsc_get_stamp(c, t, s) 0
++#define audit_alloc_syscall(t) 0
++#define audit_free_syscall(t) {}
++
+ #define audit_put_watch(w) {}
+ #define audit_get_watch(w) {}
+ #define audit_to_watch(k, p, l, o) (-EINVAL)
+diff --git a/kernel/auditsc.c b/kernel/auditsc.c
+index 98a98e6dca05..fd7ca983de4f 100644
+--- a/kernel/auditsc.c
++++ b/kernel/auditsc.c
+@@ -892,23 +892,25 @@ static inline struct audit_context *audit_alloc_context(enum audit_state state)
+ 	return context;
+ }
+ 
+-/**
+- * audit_alloc - allocate an audit context block for a task
++/*
++ * audit_alloc_syscall - allocate an audit context block for a task
+  * @tsk: task
+  *
+  * Filter on the task information and allocate a per-task audit context
+  * if necessary.  Doing so turns on system call auditing for the
+- * specified task.  This is called from copy_process, so no lock is
+- * needed.
++ * specified task.  This is called from copy_process via audit_alloc, so
++ * no lock is needed.
+  */
+-int audit_alloc(struct task_struct *tsk)
++int audit_alloc_syscall(struct task_struct *tsk)
+ {
+ 	struct audit_context *context;
+ 	enum audit_state     state;
+ 	char *key = NULL;
+ 
+-	if (likely(!audit_ever_enabled))
++	if (likely(!audit_ever_enabled)) {
++		audit_set_context(tsk, NULL);
+ 		return 0; /* Return if not auditing. */
++	}
+ 
+ 	state = audit_filter_task(tsk, &key);
+ 	if (state == AUDIT_DISABLED) {
+@@ -918,7 +920,7 @@ int audit_alloc(struct task_struct *tsk)
+ 
+ 	if (!(context = audit_alloc_context(state))) {
+ 		kfree(key);
+-		audit_log_lost("out of memory in audit_alloc");
++		audit_log_lost("out of memory in audit_alloc_syscall");
+ 		return -ENOMEM;
+ 	}
+ 	context->filterkey = key;
+@@ -1563,14 +1565,15 @@ static void audit_log_exit(void)
+ }
+ 
+ /**
+- * __audit_free - free a per-task audit context
++ * audit_free_syscall - free per-task audit context info
+  * @tsk: task whose audit context block to free
+  *
+- * Called from copy_process and do_exit
++ * Called from audit_free
+  */
+-void __audit_free(struct task_struct *tsk)
++void audit_free_syscall(struct task_struct *tsk)
+ {
+-	struct audit_context *context = tsk->audit_context;
++	struct audit_task_info *info = tsk->audit;
++	struct audit_context *context = info->ctx;
+ 
+ 	if (!context)
+ 		return;
+@@ -1593,7 +1596,6 @@ void __audit_free(struct task_struct *tsk)
+ 		if (context->current_state == AUDIT_RECORD_CONTEXT)
+ 			audit_log_exit();
+ 	}
+-
+ 	audit_set_context(tsk, NULL);
+ 	audit_free_context(context);
+ }
+diff --git a/kernel/fork.c b/kernel/fork.c
+index 9dcd18aa210b..9167a8f3edae 100644
+--- a/kernel/fork.c
++++ b/kernel/fork.c
+@@ -1834,7 +1834,6 @@ static __latent_entropy struct task_struct *copy_process(
+ 	posix_cpu_timers_init(p);
+ 
+ 	p->io_context = NULL;
+-	audit_set_context(p, NULL);
+ 	cgroup_fork(p);
+ #ifdef CONFIG_NUMA
+ 	p->mempolicy = mpol_dup(p->mempolicy);
+-- 
+1.8.3.1
+
