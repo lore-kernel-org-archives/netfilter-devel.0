@@ -6,103 +6,66 @@ X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 835B6C10F0E
-	for <netfilter-devel@archiver.kernel.org>; Tue,  9 Apr 2019 10:59:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CB6BFC10F0E
+	for <netfilter-devel@archiver.kernel.org>; Tue,  9 Apr 2019 12:21:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 57C442084F
-	for <netfilter-devel@archiver.kernel.org>; Tue,  9 Apr 2019 10:59:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 98BD920857
+	for <netfilter-devel@archiver.kernel.org>; Tue,  9 Apr 2019 12:21:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726463AbfDIK7p (ORCPT
+        id S1726461AbfDIMVc (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 9 Apr 2019 06:59:45 -0400
-Received: from mail.us.es ([193.147.175.20]:56386 "EHLO mail.us.es"
+        Tue, 9 Apr 2019 08:21:32 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:33812 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726112AbfDIK7p (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 9 Apr 2019 06:59:45 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 63DD74FFE0D
-        for <netfilter-devel@vger.kernel.org>; Tue,  9 Apr 2019 12:59:43 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 50585DA701
-        for <netfilter-devel@vger.kernel.org>; Tue,  9 Apr 2019 12:59:43 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 4F64EDA70C; Tue,  9 Apr 2019 12:59:43 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 437A0DA701;
-        Tue,  9 Apr 2019 12:59:41 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 09 Apr 2019 12:59:41 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from salvia.here (sys.soleta.eu [212.170.55.40])
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 0E17D4265A5B;
-        Tue,  9 Apr 2019 12:59:41 +0200 (CEST)
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     fw@strlen.de, arturo@netfilter.org, phil@nwl.cc
-Subject: [PATCH nft] evaluate: disallow anonymous set with empty elements
-Date:   Tue,  9 Apr 2019 12:59:36 +0200
-Message-Id: <20190409105936.23422-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.11.0
-X-Virus-Scanned: ClamAV using ClamSMTP
+        id S1726079AbfDIMVb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 9 Apr 2019 08:21:31 -0400
+Received: from localhost ([::1]:46902 helo=tatos)
+        by orbyte.nwl.cc with esmtp (Exim 4.91)
+        (envelope-from <phil@nwl.cc>)
+        id 1hDpko-0004SO-57; Tue, 09 Apr 2019 14:21:30 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [ebtables PATCH] Fix segfault with missing lockfile directory
+Date:   Tue,  9 Apr 2019 14:21:25 +0200
+Message-Id: <20190409122125.29658-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.21.0
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Restrict this, the brackets have explicit semantics since they tell the
-kernel to represent this value as a set, which is too costly. Set for
-one single element are overkill.
+Apparently, dirname() modifies the buffer passed to it. Given a
+read-only location, this leads to a segfault. Use a buffer initialized
+(and tailored) to the content of LOCKFILE macro at compile-time instead.
 
- # nft add rule x y ct state { established } counter
- Error: anonymous set with single element makes no sense, remove brackets wrapping this value
- add rule x y ct state { established } counter
-                       ^^^^^^^^^^^^^^^
-
-Instead, the preferred way to express this is:
-
- # nft add rule x y ct state established counter
-
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Fixes: f45756c1ca3b5 ("Allow customizing lockfile location at configure time")
+Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
-I know this may break stuff outthere, but probably it's still early to
-fix this. If we keep allowing this and transparently turn this into a
-value, people will likely never understand the bracket semantics.
-Brackets are not just syntaxic sugar.
+ libebtc.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
- src/evaluate.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
-
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 3a3f2468c826..aa42c69127a2 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -1253,8 +1253,11 @@ static int expr_evaluate_set_elem(struct eval_ctx *ctx, struct expr **expr)
- static int expr_evaluate_set(struct eval_ctx *ctx, struct expr **expr)
+diff --git a/libebtc.c b/libebtc.c
+index f2a2b500ea751..2a9ab87ac99c0 100644
+--- a/libebtc.c
++++ b/libebtc.c
+@@ -140,12 +140,13 @@ int use_lockfd;
+  * or -2 on any other error. */
+ static int lock_file()
  {
- 	struct expr *set = *expr, *i, *next;
-+	unsigned int count = 0;
++	char pathbuf[] = LOCKFILE;
+ 	int fd, try = 0;
  
- 	list_for_each_entry_safe(i, next, &set->expressions, list) {
-+		count++;
-+
- 		if (list_member_evaluate(ctx, &i) < 0)
- 			return -1;
- 
-@@ -1288,6 +1291,11 @@ static int expr_evaluate_set(struct eval_ctx *ctx, struct expr **expr)
- 			set->set_flags |= NFT_SET_INTERVAL;
- 	}
- 
-+	if (set->flags & NFT_SET_ANONYMOUS &&
-+	    count == 1)
-+		return expr_error(ctx->msgs, set,
-+				  "anonymous set with one single element makes no sense, remove brackets wrapping this value");
-+
- 	set->set_flags |= NFT_SET_CONSTANT;
- 
- 	set->dtype = ctx->ectx.dtype;
+ retry:
+ 	fd = open(LOCKFILE, O_CREAT, 00600);
+ 	if (fd < 0) {
+-		if (try == 1 || mkdir(dirname(LOCKFILE), 00700))
++		if (try == 1 || mkdir(dirname(pathbuf), 00700))
+ 			return -2;
+ 		try = 1;
+ 		goto retry;
 -- 
-2.11.0
+2.21.0
 
