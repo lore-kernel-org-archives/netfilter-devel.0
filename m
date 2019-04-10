@@ -2,155 +2,90 @@ Return-Path: <SRS0=tBTY=SM=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED,USER_AGENT_MUTT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 02151C10F14
-	for <netfilter-devel@archiver.kernel.org>; Wed, 10 Apr 2019 10:47:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 14FB7C10F14
+	for <netfilter-devel@archiver.kernel.org>; Wed, 10 Apr 2019 13:37:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C02BD20830
-	for <netfilter-devel@archiver.kernel.org>; Wed, 10 Apr 2019 10:47:53 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="j7/2Qn6p"
+	by mail.kernel.org (Postfix) with ESMTP id D840D2133D
+	for <netfilter-devel@archiver.kernel.org>; Wed, 10 Apr 2019 13:37:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730738AbfDJKru (ORCPT
+        id S1732069AbfDJNhy (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 10 Apr 2019 06:47:50 -0400
-Received: from mail-wm1-f54.google.com ([209.85.128.54]:38163 "EHLO
-        mail-wm1-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730706AbfDJKrt (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 10 Apr 2019 06:47:49 -0400
-Received: by mail-wm1-f54.google.com with SMTP id w15so2037872wmc.3;
-        Wed, 10 Apr 2019 03:47:48 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:from:date:message-id:subject:to;
-        bh=IlOlvllLCb4mFv3NHy4iq6nwncGuxZrWcuLR/98ZkyM=;
-        b=j7/2Qn6pkhSXM3IcQ+TQ+dX41h6pHiuntsMNSc3i+lqdbz0QX5PkHpSTe3aKLGCidk
-         NtQmwoOA7c2AzkXihIOa0X0wVobi88gMytCaIeKz56doSMPfWrNkYzKifQ8UytbuX5Rj
-         mwXM+vZGV3Ay8io2dGsByj90t/bA/sTa7xp7PcTNlBXyLQxFzThLHByyKQqHPr8Mu8Ar
-         TkBRiKC9JOhS0o7ynM8vYkx0gGuglDUyaNDRBAnDH60yNTWX1mF/mnU1tUhc/0E+k/XI
-         B67e+DP1W0fh5B+Eexf+JdjUJcMVM65m++Zl56YS4xzuSpQQTsldOl5jfn+LPp5H0SeI
-         JgLw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:from:date:message-id:subject:to;
-        bh=IlOlvllLCb4mFv3NHy4iq6nwncGuxZrWcuLR/98ZkyM=;
-        b=kEYaSMboJbe6ztKIIWXePIFNHQAcqIu3lCfZEqM5Pc78qEia1HnMooBZDJ/MSuAs5T
-         eV7qr5o7doHLBhI8Y+cHF7TNOThAIDqQBNGhm9OTimQQZXTon229Y4BkM7Zwe3xtQXcn
-         Vi9GpD6AzvasFNny9aclYKKlFOP9n+OpSslHgxydPXyhpx9GT8H8Wo7Xyi4mFnzyvmFi
-         dCvAJ6ZyqvZAmY08eFv1sgMmSMkLuwPdooVHX2nX7+wusbAq0vmQc59r8901CE6yEtLn
-         1UXg2FHa08VJkjadKhJxK5HQzSz3mV627PKLyB7Hf3D3/vexsHadKvZCazvpF6hyJI8K
-         +Ebw==
-X-Gm-Message-State: APjAAAV5bQPN2iK6SDt94NebH3v75SCRCtr0ZXlThY3vFgLekTua3PCh
-        hcbnJxX6irfOH9r1rFRteZZMH+5S0kqvRueiBcMn4UAf
-X-Google-Smtp-Source: APXvYqw0tlnY9HJQyuU1ngHs925ded9BJx1c462gJyRNXV+zATjqC6cg4vWpYqDSMq4YKMfIExk6orcU8M0zL4aznpc=
-X-Received: by 2002:a1c:5f42:: with SMTP id t63mr2259655wmb.94.1554893267631;
- Wed, 10 Apr 2019 03:47:47 -0700 (PDT)
+        Wed, 10 Apr 2019 09:37:54 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:40356 "EHLO orbyte.nwl.cc"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1732063AbfDJNhx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 10 Apr 2019 09:37:53 -0400
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.91)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1hEDQC-00020q-Pl; Wed, 10 Apr 2019 15:37:48 +0200
+Date:   Wed, 10 Apr 2019 15:37:48 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
+        arturo@netfilter.org
+Subject: Re: [PATCH nft] evaluate: disallow anonymous set with empty elements
+Message-ID: <20190410133748.GW4851@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
+        arturo@netfilter.org
+References: <20190409105936.23422-1-pablo@netfilter.org>
+ <20190409135925.GQ4851@orbyte.nwl.cc>
+ <20190409140326.zme4ik6ozqbnf544@breakpoint.cc>
+ <20190409231925.uancubapdemhdpqn@salvia>
 MIME-Version: 1.0
-From:   Naruto Nguyen <narutonguyen2018@gmail.com>
-Date:   Wed, 10 Apr 2019 17:47:35 +0700
-Message-ID: <CANpxKHGdbN6UYTw=r=r9=usZ3taX05ARpnAQ_StF4Zikcpp5WA@mail.gmail.com>
-Subject: ESTABLISHED tcp conntrack timeout
-To:     netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        netfilter@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190409231925.uancubapdemhdpqn@salvia>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello everyone,
+Hi,
 
-When duplicating tcp conntrack from main name space to another network
-namespace, I see that sometimes timeout value for an established tcp
-connection in another network namespace has been changed from 432000
-to 300 like below, even it is in ASSURED
+On Wed, Apr 10, 2019 at 01:19:25AM +0200, Pablo Neira Ayuso wrote:
+> On Tue, Apr 09, 2019 at 04:03:26PM +0200, Florian Westphal wrote:
+> > Phil Sutter <phil@nwl.cc> wrote:
+> > > Could we maybe find a middle ground where nft still does these
+> > > optimizations but prints warnings so users are notified? We might even
+> > > introduce -W flag to customize behaviour (-W all (default), -W error
+> > > (strict mode), -W none (suppress any non-fatal output on stderr)).
+> > 
+> > I like this proposal.
+> > 
+> > One of the broken tproxy test cases (it prints warning) does this:
+> > 
+> > ip daddr 0.0.0.0/0
+> 
+> Yes, sorry, that's my fault.
+> 
+> > .. and that is always true and could be removed.
+> > Different "problem" of course, but it shows that there is ample
+> > opportunity for pruning irrelevant expressions.
+> > 
+> > And breaking scripts every time we decide that something is
+> > "silly" is a bad decision, imo.
+> 
+> Agreed, this case is slightly bit corner case as they should _not_ be
+> doing enclosing single element in brackets in their scripts. But I get
+> your point, better adopt a more conservative approach ;-)
+> 
+> > I suspect users will complain about { 1.2.3.4 } being illegal
+> > "just because".
+> 
+> I'll explore the warning idea, it can be an initial step before we can
+> fully disallow this, so users don't complain about sudden breakage :-)
 
-03:05:53.773
-tcp      6 300 ESTABLISHED src=10.172.1.6 dst=11.35.4.5 sport=70752
-dport=7050 src=11.35.4.5 dst=10.172.1.6 sport=7050 dport=70752
-[ASSURED] mark=0 use=1
-03:05:56.018
-tcp      6 299 ESTABLISHED src=10.172.1.6 dst=11.35.4.5 sport=70752
-dport=7050 src=11.35.4.5 dst=10.172.1.6 sport=7050 dport=70752
-[ASSURED] mark=0 use=1
-03:05:58.267
-tcp      6 300 ESTABLISHED src=10.172.1.6 dst=11.35.4.5 sport=70752
-dport=7050 src=11.35.4.5 dst=10.172.1.6 sport=7050 dport=70752
-[ASSURED] mark=0 use=1
-03:06:00.511
-tcp      6 299 ESTABLISHED src=10.172.1.6 dst=11.35.4.5 sport=70752
-dport=7050 src=11.35.4.5 dst=10.172.1.6 sport=7050 dport=70752
-[ASSURED] mark=0 use=1
-03:06:02.767
-tcp      6 299 ESTABLISHED src=10.172.1.6 dst=11.35.4.5 sport=70752
-dport=7050 src=11.35.4.5 dst=10.172.1.6 sport=7050 dport=70752
-[ASSURED] mark=0 use=1
-03:06:05.024
-tcp      6 299 ESTABLISHED src=10.172.1.6 dst=11.35.4.5 sport=70752
-dport=7050 src=11.35.4.5 dst=10.172.1.6 sport=7050 dport=70752
-[ASSURED] mark=0 use=1
-03:06:07.318
-tcp      6 299 ESTABLISHED src=10.172.1.6 dst=11.35.4.5 sport=70752
-dport=7050 src=11.35.4.5 dst=10.172.1.6 sport=7050 dport=70752
-[ASSURED] mark=0 use=1
-03:06:09.578
-tcp      6 431999 ESTABLISHED src=10.172.1.6 dst=11.35.4.5 sport=70752
-dport=7050 src=11.35.4.5 dst=10.172.1.6 sport=7050 dport=70752
-[ASSURED] mark=0 use=1
-03:06:11.833
-tcp      6 299 ESTABLISHED src=10.172.1.6 dst=11.35.4.5 sport=70752
-dport=7050 src=11.35.4.5 dst=10.172.1.6 sport=7050 dport=70752
-[ASSURED] mark=0 use=1
-03:06:14.082
-tcp      6 299 ESTABLISHED src=10.172.1.6 dst=11.35.4.5 sport=70752
-dport=7050 src=11.35.4.5 dst=10.172.1.6 sport=7050 dport=70752
-[ASSURED] mark=0 use=1
-03:06:16.315
-tcp      6 299 ESTABLISHED src=10.172.1.6 dst=11.35.4.5 sport=70752
-dport=7050 src=11.35.4.5 dst=10.172.1.6 sport=7050 dport=70752
-[ASSURED] mark=0 use=1
-03:06:25.314
-tcp      6 431999 ESTABLISHED src=10.172.1.6 dst=11.35.4.5 sport=70752
-dport=7050 src=11.35.4.5 dst=10.172.1.6 sport=7050 dport=70752
-[ASSURED] mark=0 use=1
-03:06:27.571
-tcp      6 431999 ESTABLISHED src=10.172.1.6 dst=11.35.4.5 sport=70752
-dport=7050 src=11.35.4.5 dst=10.172.1.6 sport=7050 dport=70752
-[ASSURED] mark=0 use=1
-03:06:29.815
-tcp      6 431999 ESTABLISHED src=10.172.1.6 dst=11.35.4.5 sport=70752
-dport=7050 src=11.35.4.5 dst=10.172.1.6 sport=7050 dport=70752
-[ASSURED] mark=0 use=1
-03:06:32.065
+What I have in mind is "dumb" scripts collecting addresses and adding a
+rule matching them in an anonymous set. The case of just a single address
+needs additional code, not just an adjustment of the existing one. This
+is not so much a matter of bad design or missing education but one of
+effort and feasibility.
 
-In nf_conntrack_proto_tcp.c, I see that 2 constants have 5 mins set
-
-[TCP_CONNTRACK_RETRANS] = 5 MINS,
-[TCP_CONNTRACK_UNACK] = 5 MINS,
-
-and the code
-
-if (ct->proto.tcp.retrans >= tn->tcp_max_retrans &&
-       timeouts[new_state] > timeouts[TCP_CONNTRACK_RETRANS])
-       timeout = timeouts[TCP_CONNTRACK_RETRANS];
-else if ((ct->proto.tcp.seen[0].flags | ct->proto.tcp.seen[1].flags) &
-       IP_CT_TCP_FLAG_DATA_UNACKNOWLEDGED &&
-       timeouts[new_state] > timeouts[TCP_CONNTRACK_UNACK])
-       timeout = timeouts[TCP_CONNTRACK_UNACK];
-else
-       timeout = timeouts[new_state];
-
-but I am not sure this code cause the above issue. For the second
-TCP_CONNTRACK_UNACK, it only happens for [UNREPLIED] instead of
-[ASSURED]. Could you please let me know how the time out value can be
-changed for an established tcp connection and how to prevent this
-change?
-
-Thanks,
-Brs,
-Naruto
+Cheers, Phil
