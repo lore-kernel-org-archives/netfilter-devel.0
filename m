@@ -1,91 +1,141 @@
-Return-Path: <SRS0=tBTY=SM=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=iy/8=SN=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED,USER_AGENT_MUTT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_PASS,USER_AGENT_NEOMUTT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 14FB7C10F14
-	for <netfilter-devel@archiver.kernel.org>; Wed, 10 Apr 2019 13:37:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 065E3C10F13
+	for <netfilter-devel@archiver.kernel.org>; Thu, 11 Apr 2019 08:59:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D840D2133D
-	for <netfilter-devel@archiver.kernel.org>; Wed, 10 Apr 2019 13:37:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C39F02084D
+	for <netfilter-devel@archiver.kernel.org>; Thu, 11 Apr 2019 08:59:45 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="l6NFE1ZG"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732069AbfDJNhy (ORCPT
+        id S1726160AbfDKI7p (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 10 Apr 2019 09:37:54 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:40356 "EHLO orbyte.nwl.cc"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1732063AbfDJNhx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 10 Apr 2019 09:37:53 -0400
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.91)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1hEDQC-00020q-Pl; Wed, 10 Apr 2019 15:37:48 +0200
-Date:   Wed, 10 Apr 2019 15:37:48 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
-        arturo@netfilter.org
-Subject: Re: [PATCH nft] evaluate: disallow anonymous set with empty elements
-Message-ID: <20190410133748.GW4851@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
-        arturo@netfilter.org
-References: <20190409105936.23422-1-pablo@netfilter.org>
- <20190409135925.GQ4851@orbyte.nwl.cc>
- <20190409140326.zme4ik6ozqbnf544@breakpoint.cc>
- <20190409231925.uancubapdemhdpqn@salvia>
+        Thu, 11 Apr 2019 04:59:45 -0400
+Received: from mail-wr1-f68.google.com ([209.85.221.68]:40490 "EHLO
+        mail-wr1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726121AbfDKI7p (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 11 Apr 2019 04:59:45 -0400
+Received: by mail-wr1-f68.google.com with SMTP id h4so6238915wre.7
+        for <netfilter-devel@vger.kernel.org>; Thu, 11 Apr 2019 01:59:44 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=date:from:to:cc:subject:message-id:mime-version:content-disposition
+         :user-agent;
+        bh=v/FhiuQhTm0y3O3lV17XohvlXpKrrfIr0OfslA49Hms=;
+        b=l6NFE1ZGmTXOpJgZK7i6JPJOwBGpcXK4eX2FeCYwRdZCzgJSOfBT1KbAcsbR7WeA8Z
+         6S094MX2ikQRLQ7NW/jP095xUExaL9aCbkNwD5mISZE06lrvqQPbj0m9IOKbGjfabIKd
+         YWfsiFUownzURRQxXAw3WauvR5J7vl148wmlUmMXpjFjov3JIvKnBKZvxBbZPwmz1et/
+         JB1CJVBWqe0h3wAbB+LxaNn5lEFDFZM/WgZ3n2ytjgnP8DGNIR/cOEe/yBjgXVn66ppP
+         WSInjINXoelrTWk61oHwh9LSVcfsIr6ucUK2TMwbHWjgFy4n8nLdBrzp12c8lTisGZ0P
+         0tDQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:mime-version
+         :content-disposition:user-agent;
+        bh=v/FhiuQhTm0y3O3lV17XohvlXpKrrfIr0OfslA49Hms=;
+        b=JoDaIMyVGiiXV6eR76L6pj8uGYVWpuBQAfKcayTd770rV7/hITiS9MOChTZe5SwUqN
+         0y35ri1V4HFN303jSznyG0h1sbiyUAcZk/vg7qP+v2V6rULOhCVNKSPHQh4tep2wVmDd
+         qDcBdCQ/6TwRqptzGbSOJyJhNW/sRcUnDa27de52rUKhRpbEwgk+EPOwBeVZT5rL0HtA
+         fpSC9t/LcP+Dl28dXyaZNgmR0SNzm+eT0YGAbFQJOqfGsyha/3pGnWZG4znMarmrOx6N
+         8TgJp1oVVL89T/H7pLuAqgiRNAGF6l4iOUGvPdtg6PdAGk8Ia6x9FIEclHzEXdMaJZPx
+         WotQ==
+X-Gm-Message-State: APjAAAUD8RSMVjrsuRdn6P3++DTHGwlTJKjybQ45es3LA6DosnxKCOo3
+        hdiFXl1BYhFigbbDH6Sd8H2lLmVDBTY=
+X-Google-Smtp-Source: APXvYqwEEM9J7M5z/xkWHiZyDPocCR7jV4SbSKq4i0Pi7xVb5mzDEUi5md0fYzYWwmIdj1BqLO09jA==
+X-Received: by 2002:a5d:6050:: with SMTP id j16mr25803535wrt.253.1554973183274;
+        Thu, 11 Apr 2019 01:59:43 -0700 (PDT)
+Received: from nevthink ([82.213.198.93])
+        by smtp.gmail.com with ESMTPSA id v16sm70688500wro.48.2019.04.11.01.59.42
+        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+        Thu, 11 Apr 2019 01:59:42 -0700 (PDT)
+Date:   Thu, 11 Apr 2019 10:59:40 +0200
+From:   Laura Garcia Liebana <nevola@gmail.com>
+To:     netfilter-devel@vger.kernel.org
+Cc:     pablo@netfilter.org
+Subject: [PATCH nft] parser_json: fix segfault in translating string to nft
+ object
+Message-ID: <20190411085940.l47vszzffm4e3e3c@nevthink>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20190409231925.uancubapdemhdpqn@salvia>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi,
+A segmentation fault is produced when applying an input JSON file
+like the following:
 
-On Wed, Apr 10, 2019 at 01:19:25AM +0200, Pablo Neira Ayuso wrote:
-> On Tue, Apr 09, 2019 at 04:03:26PM +0200, Florian Westphal wrote:
-> > Phil Sutter <phil@nwl.cc> wrote:
-> > > Could we maybe find a middle ground where nft still does these
-> > > optimizations but prints warnings so users are notified? We might even
-> > > introduce -W flag to customize behaviour (-W all (default), -W error
-> > > (strict mode), -W none (suppress any non-fatal output on stderr)).
-> > 
-> > I like this proposal.
-> > 
-> > One of the broken tproxy test cases (it prints warning) does this:
-> > 
-> > ip daddr 0.0.0.0/0
-> 
-> Yes, sorry, that's my fault.
-> 
-> > .. and that is always true and could be removed.
-> > Different "problem" of course, but it shows that there is ample
-> > opportunity for pruning irrelevant expressions.
-> > 
-> > And breaking scripts every time we decide that something is
-> > "silly" is a bad decision, imo.
-> 
-> Agreed, this case is slightly bit corner case as they should _not_ be
-> doing enclosing single element in brackets in their scripts. But I get
-> your point, better adopt a more conservative approach ;-)
-> 
-> > I suspect users will complain about { 1.2.3.4 } being illegal
-> > "just because".
-> 
-> I'll explore the warning idea, it can be an initial step before we can
-> fully disallow this, so users don't complain about sudden breakage :-)
+{"nftables": [
+	{ "add":
+		{"map":
+			{"family": "ip",
+				"name": "persistencia",
+				"table": "nftlb",
+				"type": "ipv4_addr",
+				"map": "mark",
+				"size": 65535,
+				"flags": ["timeout"],
+				"timeout": 44
+			}
+		}
+	}
+]}
 
-What I have in mind is "dumb" scripts collecting addresses and adding a
-rule matching them in an anonymous set. The case of just a single address
-needs additional code, not just an adjustment of the existing one. This
-is not so much a matter of bad design or missing education but one of
-effort and feasibility.
+The captured error is:
 
-Cheers, Phil
+ Program received signal SIGSEGV, Segmentation fault.
+ #1  0x00007ffff7f734f9 in string_to_nft_object (str=0x55555555f410
+  "mark") at parser_json.c:2513
+ 2513			if (!strcmp(str, obj_tbl[i]))
+
+The obj_tbl array is allocated with the maximum element index even
+if lower indexes are not populated, so it produces null pointer
+items.
+
+This patch ensures that the maximum number of possible indexes
+but also the element is not comparing a null pointer.
+
+Signed-off-by: Laura Garcia Liebana <nevola@gmail.com>
+---
+ src/parser_json.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/src/parser_json.c b/src/parser_json.c
+index 827604b..d0eacb6 100644
+--- a/src/parser_json.c
++++ b/src/parser_json.c
+@@ -2500,17 +2500,18 @@ static struct cmd *json_parse_cmd_add_rule(struct json_ctx *ctx, json_t *root,
+ 
+ static int string_to_nft_object(const char *str)
+ {
+-	const char *obj_tbl[] = {
++	const char *obj_tbl[__NFT_OBJECT_MAX] = {
+ 		[NFT_OBJECT_COUNTER] = "counter",
+ 		[NFT_OBJECT_QUOTA] = "quota",
+ 		[NFT_OBJECT_CT_HELPER] = "ct helper",
+ 		[NFT_OBJECT_LIMIT] = "limit",
+ 		[NFT_OBJECT_SECMARK] = "secmark",
+ 	};
++
+ 	unsigned int i;
+ 
+-	for (i = 1; i < array_size(obj_tbl); i++) {
+-		if (!strcmp(str, obj_tbl[i]))
++	for (i = 0; i < NFT_OBJECT_MAX; i++) {
++		if (obj_tbl[i] && !strcmp(str, obj_tbl[i]))
+ 			return i;
+ 	}
+ 	return 0;
+-- 
+2.11.0
+
