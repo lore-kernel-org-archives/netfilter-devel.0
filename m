@@ -2,184 +2,145 @@ Return-Path: <SRS0=aNn+=SO=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1C6F6C10F0E
-	for <netfilter-devel@archiver.kernel.org>; Fri, 12 Apr 2019 09:12:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F88AC282CE
+	for <netfilter-devel@archiver.kernel.org>; Fri, 12 Apr 2019 11:56:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E4EBF2084D
-	for <netfilter-devel@archiver.kernel.org>; Fri, 12 Apr 2019 09:12:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 371242171F
+	for <netfilter-devel@archiver.kernel.org>; Fri, 12 Apr 2019 11:56:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726850AbfDLJMY (ORCPT
+        id S1726898AbfDLL40 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 12 Apr 2019 05:12:24 -0400
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:40726 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726616AbfDLJMY (ORCPT
+        Fri, 12 Apr 2019 07:56:26 -0400
+Received: from s3.sipsolutions.net ([144.76.43.62]:46674 "EHLO
+        sipsolutions.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726327AbfDLL40 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 12 Apr 2019 05:12:24 -0400
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.89)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1hEsEP-0007n0-Mm; Fri, 12 Apr 2019 11:12:21 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>, Jann Haber <jann.haber@selfnet.de>
-Subject: [PATCH nf] netfilter: nf_tables: delay chain policy update until transaction is complete
-Date:   Fri, 12 Apr 2019 11:09:25 +0200
-Message-Id: <20190412090925.8668-1-fw@strlen.de>
-X-Mailer: git-send-email 2.21.0
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        Fri, 12 Apr 2019 07:56:26 -0400
+Received: by sipsolutions.net with esmtpsa (TLS1.2:ECDHE_RSA_AES_256_GCM_SHA384:256)
+        (Exim 4.92)
+        (envelope-from <johannes@sipsolutions.net>)
+        id 1hEunA-0005gb-25; Fri, 12 Apr 2019 13:56:24 +0200
+Message-ID: <beb5d59393d8dbf466b0d728ca85842afb6cd039.camel@sipsolutions.net>
+Subject: Re: [PATCH RFC 4/4] netfilter: nf_tables: add netlink description
+From:   Johannes Berg <johannes@sipsolutions.net>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+Date:   Fri, 12 Apr 2019 13:56:22 +0200
+In-Reply-To: <20190411192647.xsnhno6gcf5fen5u@salvia>
+References: <20180207013713.2432-1-pablo@netfilter.org>
+         <20180207013713.2432-5-pablo@netfilter.org>
+         <f882918e408247a4e0e8d0007feead5bbf311003.camel@sipsolutions.net>
+         <20190411192647.xsnhno6gcf5fen5u@salvia>
+Content-Type: text/plain; charset="UTF-8"
+X-Mailer: Evolution 3.28.5 (3.28.5-2.fc28) 
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-When we process a long ruleset of the form
+Hi Pablo,
 
-chain input {
-   type filter hook input priority filter; policy drop;
-   ...
-}
+> I'm glad to receive feedback, even 1 year later :-)
 
-Then the base chain gets registered early on, we then continue to
-process/validate the next messages coming in the same transaction.
+:-)
 
-Problem is that if the base chain policy is 'drop', it will take effect
-immediately, which causes all traffic to get blocked until the
-transaction completes or is aborted.
+> > But this is _lots_ of code, and most of it is already encoded in the
+> > nla_policy for all those attributes. I think we really need to find a
+> > way to unify the two sets of data.
+> 
+> We could probably extract this from the nla_policy if we extend it. I
+> can have a look...
 
-Fix this by deferring the policy until the transaction has been
-processed and all of the rules have been flagged as active.
+Please do, and please have a look at the patch(es) I sent out regarding
+this. I think we've extended the policy enough that most of this is
+really there, and we can certainly add more to the policy.
 
-Reported-by: Jann Haber <jann.haber@selfnet.de>
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/nf_tables_api.c | 50 +++++++++++++++++++++++++++--------
- 1 file changed, 39 insertions(+), 11 deletions(-)
+For example, I am now considering allowing NLA_POLICY_RANGE(NLA_BINARY,
+...) to have an upper *and* lower length bound for an NLA_BINARY value,
+right now you can only have either of the two and we have uses cases
+where we need both.
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index ef7772e976cc..fc5da622a869 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -214,33 +214,33 @@ static int nft_deltable(struct nft_ctx *ctx)
- 	return err;
- }
- 
--static int nft_trans_chain_add(struct nft_ctx *ctx, int msg_type)
-+static struct nft_trans *nft_trans_chain_add(struct nft_ctx *ctx, int msg_type)
- {
- 	struct nft_trans *trans;
- 
- 	trans = nft_trans_alloc(ctx, msg_type, sizeof(struct nft_trans_chain));
- 	if (trans == NULL)
--		return -ENOMEM;
-+		return ERR_PTR(-ENOMEM);
- 
- 	if (msg_type == NFT_MSG_NEWCHAIN)
- 		nft_activate_next(ctx->net, ctx->chain);
- 
- 	list_add_tail(&trans->list, &ctx->net->nft.commit_list);
--	return 0;
-+	return trans;
- }
- 
- static int nft_delchain(struct nft_ctx *ctx)
- {
--	int err;
-+	struct nft_trans *trans;
- 
--	err = nft_trans_chain_add(ctx, NFT_MSG_DELCHAIN);
--	if (err < 0)
--		return err;
-+	trans = nft_trans_chain_add(ctx, NFT_MSG_DELCHAIN);
-+	if (IS_ERR(trans))
-+		return PTR_ERR(trans);
- 
- 	ctx->table->use--;
- 	nft_deactivate_next(ctx->net, ctx->chain);
- 
--	return err;
-+	return 0;
- }
- 
- static void nft_rule_expr_activate(const struct nft_ctx *ctx,
-@@ -1615,6 +1615,7 @@ static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 genmask,
- 	struct nft_base_chain *basechain;
- 	struct nft_stats __percpu *stats;
- 	struct net *net = ctx->net;
-+	struct nft_trans *trans;
- 	struct nft_chain *chain;
- 	struct nft_rule **rules;
- 	int err;
-@@ -1662,7 +1663,7 @@ static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 genmask,
- 		ops->dev	= hook.dev;
- 
- 		chain->flags |= NFT_BASE_CHAIN;
--		basechain->policy = policy;
-+		basechain->policy = NF_ACCEPT;
- 	} else {
- 		chain = kzalloc(sizeof(*chain), GFP_KERNEL);
- 		if (chain == NULL)
-@@ -1698,13 +1699,18 @@ static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 genmask,
- 	if (err)
- 		goto err2;
- 
--	err = nft_trans_chain_add(ctx, NFT_MSG_NEWCHAIN);
--	if (err < 0) {
-+	trans = nft_trans_chain_add(ctx, NFT_MSG_NEWCHAIN);
-+	if (IS_ERR(trans)) {
-+		err = PTR_ERR(trans);
- 		rhltable_remove(&table->chains_ht, &chain->rhlhead,
- 				nft_chain_ht_params);
- 		goto err2;
- 	}
- 
-+	nft_trans_chain_policy(trans) = -1;
-+	if (nft_is_base_chain(chain))
-+		nft_trans_chain_policy(trans) = policy;
-+
- 	table->use++;
- 	list_add_tail_rcu(&chain->list, &table->chains);
- 
-@@ -6311,6 +6317,27 @@ static int nf_tables_validate(struct net *net)
- 	return 0;
- }
- 
-+/* a drop policy has to be deferred until all rules have been activated,
-+ * otherwise a large ruleset that contains a drop-policy base chain will
-+ * cause all packets to get dropped until the full transaction has been
-+ * processed.
-+ *
-+ * We defer the drop policy until the transaction has been finalized.
-+ */
-+static void nft_chain_commit_drop_policy(struct nft_trans *trans)
-+{
-+	struct nft_base_chain *basechain;
-+
-+	if (nft_trans_chain_policy(trans) != NF_DROP)
-+		return;
-+
-+	if (!nft_is_base_chain(trans->ctx.chain))
-+		return;
-+
-+	basechain = nft_base_chain(trans->ctx.chain);
-+	basechain->policy = NF_DROP;
-+}
-+
- static void nft_chain_commit_update(struct nft_trans *trans)
- {
- 	struct nft_base_chain *basechain;
-@@ -6632,6 +6659,7 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
- 				nf_tables_chain_notify(&trans->ctx, NFT_MSG_NEWCHAIN);
- 				/* trans destroyed after rcu grace period */
- 			} else {
-+				nft_chain_commit_drop_policy(trans);
- 				nft_clear(net, trans->ctx.chain);
- 				nf_tables_chain_notify(&trans->ctx, NFT_MSG_NEWCHAIN);
- 				nft_trans_destroy(trans);
--- 
-2.21.0
+> > I'd actually be happy to *just* expose the policy with all its nested
+> > elements/objects in there. That'd probably be also almost enough for
+> > you?
+> 
+> Exposing commands is also important, I know of people poking for
+> commands to see if they are available or not.
+
+Alright, well, generic netlink already exposes the commands :-)
+
+> I think we should full description to userspace, not only policies.
+
+I guess the way I see it, they're all pieces of the puzzle. The policy
+is good for both code in the kernel and for exposing it. The command
+list is already exposed.
+
+What now we're missing, in a sense, is which commands take which
+attributes. This would actually *also* be a good thing for validation in
+the kernel, but I haven't really found a good way to encode it yet.
+Doing a bitmap isn't really feasible, and doing a list is difficult to
+type out.
+
+Perhaps if we do end up going with your code generation idea then we can
+do this more easily.
+
+> > Except we don't have an "object ID" (and obviously also that we can use
+> > the same data to actually parse/validate messages, and so don't end up
+> > with bad situations of nldesc saying one thing and the policy another.)
+> 
+> The object ID is needed by userspace, to build a flat table, and look
+> up for the nested IDs, to express the graph. We can probably place
+> this in the policy.
+
+I don't really understand the object ID.
+
+Say you have a top-level "filter" attribute (I'm completely making up
+things here).
+
+Now this filter "object" can have a number of attributes, and that's
+captured by the nested policy there?
+
+IOW - the code I wrote until now would expose
+
+policy 0: attribute filter: nested with attrs from policy 1
+policy 1: attribute abc: NLA_U8
+policy 1: attribute xyz: NLA_U32
+
+etc.
+
+> This would be incomplete, since commands are an essential part too,
+> and relation of attributes with commands are also too.
+
+Agree. Still, I think it solves much of the problem, like I said above -
+all are parts of the puzzle.
+
+With generic netlink we have a list of commands already. That should be
+easy to add elsewhere, though generic netlink has the advantage of
+having the list of commands (and their handlers) as *data*, which I
+think is expressed *code* in rtnetlink now? But that can either be fixed
+or you just carry a separate list of commands there.
+
+With the policy export I wrote we have the policy, and if you set it up
+properly with all the nested sub-policies for each attribute etc.
+
+So I agree - we're missing "this command uses these attributes", but
+again I don't think the object description is actually the right
+solution here, because you *also* want to enforce that in some way.
+
+I feel the generic netlink model where the command handlers etc. are not
+code but data is superior here because it lets us add things like that
+relatively easily, though of course we haven't actually done it now.
+
+
+So basically - my main concern with this bus description stuff you've
+done here is that it duplicates all the data and needs to be maintained
+separately from what should be the same data used for enforcement.
+
+johannes
 
