@@ -3,58 +3,56 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_NEOMUTT autolearn=unavailable
+	MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_NEOMUTT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B523EC282CE
-	for <netfilter-devel@archiver.kernel.org>; Sat, 13 Apr 2019 12:57:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A5BBAC10F11
+	for <netfilter-devel@archiver.kernel.org>; Sat, 13 Apr 2019 12:57:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8655E20848
-	for <netfilter-devel@archiver.kernel.org>; Sat, 13 Apr 2019 12:57:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7852F20848
+	for <netfilter-devel@archiver.kernel.org>; Sat, 13 Apr 2019 12:57:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726997AbfDMM52 (ORCPT
+        id S1727099AbfDMM5v (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 13 Apr 2019 08:57:28 -0400
-Received: from mail.us.es ([193.147.175.20]:51642 "EHLO mail.us.es"
+        Sat, 13 Apr 2019 08:57:51 -0400
+Received: from mail.us.es ([193.147.175.20]:51748 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726301AbfDMM52 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 13 Apr 2019 08:57:28 -0400
+        id S1726951AbfDMM5u (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 13 Apr 2019 08:57:50 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 91D92DC9BC
-        for <netfilter-devel@vger.kernel.org>; Sat, 13 Apr 2019 14:57:26 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 197B8DC9BB
+        for <netfilter-devel@vger.kernel.org>; Sat, 13 Apr 2019 14:57:49 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 7EBE1DA713
-        for <netfilter-devel@vger.kernel.org>; Sat, 13 Apr 2019 14:57:26 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 04B69DA706
+        for <netfilter-devel@vger.kernel.org>; Sat, 13 Apr 2019 14:57:49 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 6F2BCDA70C; Sat, 13 Apr 2019 14:57:26 +0200 (CEST)
+        id EE31FDA705; Sat, 13 Apr 2019 14:57:48 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 6EDA6DA703;
-        Sat, 13 Apr 2019 14:57:24 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id EF3C3DA703;
+        Sat, 13 Apr 2019 14:57:46 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Sat, 13 Apr 2019 14:57:24 +0200 (CEST)
+ Sat, 13 Apr 2019 14:57:46 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from us.es (sys.soleta.eu [212.170.55.40])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
         (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 4D9FF4265A31;
-        Sat, 13 Apr 2019 14:57:24 +0200 (CEST)
-Date:   Sat, 13 Apr 2019 14:57:23 +0200
+        by entrada.int (Postfix) with ESMTPSA id CA0FA4265A31;
+        Sat, 13 Apr 2019 14:57:46 +0200 (CEST)
+Date:   Sat, 13 Apr 2019 14:57:46 +0200
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Alexander Potapenko <glider@google.com>
-Cc:     kadlec@blackhole.kfki.hu, fw@strlen.de, davem@davemloft.net,
-        linux-kernel@vger.kernel.org, dvyukov@google.com,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org
-Subject: Re: [PATCH] netfilter: conntrack: initialize ct->timeout
-Message-ID: <20190413125723.qtbtwyhy6o5srla3@salvia>
-References: <20190328094720.25399-1-glider@google.com>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf] netfilter: ctnetlink: don't use conntrack/expect
+ object addresses as id
+Message-ID: <20190413125746.thgtwdbeehjijmfs@salvia>
+References: <20190401110854.19894-1-fw@strlen.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20190328094720.25399-1-glider@google.com>
+In-Reply-To: <20190401110854.19894-1-fw@strlen.de>
 User-Agent: NeoMutt/20170113 (1.7.2)
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -62,10 +60,14 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Mar 28, 2019 at 10:47:20AM +0100, Alexander Potapenko wrote:
-> KMSAN started reporting an error when accessing ct->timeout for the
-> first time without initialization:
+On Mon, Apr 01, 2019 at 01:08:54PM +0200, Florian Westphal wrote:
+> else, we leak the addresses to userspace via ctnetlink events
+> and dumps.
 > 
->  BUG: KMSAN: uninit-value in __nf_ct_refresh_acct+0x1ae/0x470 net/netfilter/nf_conntrack_core.c:1765
+> Compute an ID on demand based on the immutable parts of nf_conn struct.
+> 
+> Another advantage compared to using an address is that there is no
+> immediate re-use of the same ID in case the conntrack entry is freed and
+> reallocated again immediately.
 
 Applied, thanks.
