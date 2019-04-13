@@ -2,114 +2,114 @@ Return-Path: <SRS0=eJXe=SP=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,
+	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D8D3DC10F11
-	for <netfilter-devel@archiver.kernel.org>; Sat, 13 Apr 2019 04:03:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7DE62C10F14
+	for <netfilter-devel@archiver.kernel.org>; Sat, 13 Apr 2019 04:05:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9B66320869
-	for <netfilter-devel@archiver.kernel.org>; Sat, 13 Apr 2019 04:03:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4EE8D218C3
+	for <netfilter-devel@archiver.kernel.org>; Sat, 13 Apr 2019 04:05:55 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=canb.auug.org.au header.i=@canb.auug.org.au header.b="g3hH3jxm"
+	dkim=pass (2048-bit key) header.d=canb.auug.org.au header.i=@canb.auug.org.au header.b="BSyyCyfK"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725789AbfDMEDs (ORCPT
+        id S1727259AbfDMEFu (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 13 Apr 2019 00:03:48 -0400
-Received: from bilbo.ozlabs.org ([203.11.71.1]:46451 "EHLO ozlabs.org"
+        Sat, 13 Apr 2019 00:05:50 -0400
+Received: from bilbo.ozlabs.org ([203.11.71.1]:60475 "EHLO ozlabs.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725535AbfDMEDr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 13 Apr 2019 00:03:47 -0400
+        id S1726285AbfDMEFt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 13 Apr 2019 00:05:49 -0400
 Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange ECDHE (P-256) server-signature RSA-PSS (4096 bits) server-digest SHA256)
         (No client certificate requested)
-        by mail.ozlabs.org (Postfix) with ESMTPSA id 44h1Mz27T8z9s71;
-        Sat, 13 Apr 2019 14:03:42 +1000 (AEST)
+        by mail.ozlabs.org (Postfix) with ESMTPSA id 44h1QM3zntz9s4V;
+        Sat, 13 Apr 2019 14:05:47 +1000 (AEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=canb.auug.org.au;
-        s=201702; t=1555128225;
-        bh=iuGrqpeV+AQHpscD9oFWpa++C7nnsfEU6wyE4Mh12F4=;
-        h=Date:From:To:Cc:Subject:From;
-        b=g3hH3jxmAYpfCyb4P6d4KxglOKgkIUXkx4iHjMB2viemGpqeYuteryCcA0IJ3m6BB
-         TZY67vfSMXf/T1BQFQdDcb+Z5pricluU/7laJ6RT6sZRO+FbX6IfmfbMDzYbk7FVkE
-         H1m/jvzE+wPmlO4a9HLklCYrhQkoqEN+EDKktUMsf9ZCGGai6Ukj0WkFVGTi0xlvCE
-         PCqrrQTcI2A9PMkRFetiK0TPHOr0MjSWDFnkqwsKBRH5cI9yTa+9ERIyYe6yVgrxst
-         9LtayD1EWUohYB5VC6FtF0p+TYm86FT3PBD9bOg2F1Td1vfJGgokFnuLzwkpy888OP
-         lxKA1cjwl4EhA==
-Date:   Sat, 13 Apr 2019 14:03:36 +1000
+        s=201702; t=1555128347;
+        bh=f4pXpIm4O1dRRGPJUJojO1ITAE8mkoq4eCYYIU++Kr0=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+        b=BSyyCyfKQfZmwgPohswkHrGWvtNSbhvI2KW57VbHNhK0ZTRVYaeHe6WUtFtvzbN8U
+         78I7CxT97u9QqecXZXUsidvXqIszAA9PgpySkPBNiZ4M4y3HEDoy6hhFEB2N2C2G98
+         sybBAr11akZl1x6WZE1cW0qMYznFi0VTRkISBC2dTtVdHAfpl53VIrHU2vPZoAyRCd
+         dnQOnu3I2yAs+I+rm4DywX5WNUL7e9iU4s6a6O6T7/IySExbBj1LuKTwd3OsV8j7Ax
+         CMhpVig9bx+ylOkbKhr+KSoWP9ULJ+QL3D/LSoosn2Dgba+DcgmBGtQ/DpHwqvk2KY
+         62I0KXQbPXE+g==
+Date:   Sat, 13 Apr 2019 14:05:46 +1000
 From:   Stephen Rothwell <sfr@canb.auug.org.au>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        NetFilter <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>,
+To:     Florian Westphal <fw@strlen.de>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        NetFilter <netfilter-devel@vger.kernel.org>,
+        Linux Next Mailing List <linux-next@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
         "David S. Miller" <davem@davemloft.net>,
         Nikolay Aleksandrov <nikolay@cumulusnetworks.com>
-Subject: [PATCH netfilter-next] bridge: only include nf_queue.h if needed
-Message-ID: <20190413140336.1c77bfc1@canb.auug.org.au>
+Subject: Re: linux-next: build failure after merge of the netfilter-next
+ tree
+Message-ID: <20190413140546.081e8196@canb.auug.org.au>
+In-Reply-To: <20190412081527.vrym3czsko2lbqx7@breakpoint.cc>
+References: <20190412163720.576c6610@canb.auug.org.au>
+        <20190412081527.vrym3czsko2lbqx7@breakpoint.cc>
 MIME-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
- boundary="Sig_/2_Heq91rE2gKd.nbemAKTFG"; protocol="application/pgp-signature"
+ boundary="Sig_/4OamxP1cmijJi54GAt=fr7A"; protocol="application/pgp-signature"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
---Sig_/2_Heq91rE2gKd.nbemAKTFG
+--Sig_/4OamxP1cmijJi54GAt=fr7A
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: quoted-printable
 
-After merging the netfilter-next tree, today's linux-next build (powerpc
-ppc44x_defconfig) failed like this:
+Hi Florian,
 
-In file included from net/bridge/br_input.c:19:
-include/net/netfilter/nf_queue.h:16:23: error: field 'state' has incomplete=
- type
-  struct nf_hook_state state;
-                       ^~~~~
+On Fri, 12 Apr 2019 10:15:27 +0200 Florian Westphal <fw@strlen.de> wrote:
+>
+> Stephen Rothwell <sfr@canb.auug.org.au> wrote:
+> > After merging the netfilter tree, today's linux-next build (powerpc
+> > ppc44x_defconfig) failed like this:
+> >=20
+> > In file included from /home/sfr/next/next/net/bridge/br_input.c:19:
+> > /home/sfr/next/next/include/net/netfilter/nf_queue.h:16:23: error: fiel=
+d 'state'
+> >  has incomplete type
+> >   struct nf_hook_state state;
+> >                        ^~~~~
+> > Caused by commit
+> >=20
+> >   971502d77faa ("bridge: netfilter: unroll NF_HOOK helper in bridge inp=
+ut path")
+> >=20
+> > This build has CONFIG_NETFILTER not set.
+> >=20
+> > I have applied this patch for today: =20
+>=20
+> Can you submit this fix formally to netfilter-devel@vger.kernel.org?
 
-Fixes: 971502d77faa ("bridge: netfilter: unroll NF_HOOK helper in bridge in=
-put path")
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
----
- net/bridge/br_input.c | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/net/bridge/br_input.c b/net/bridge/br_input.c
-index e0aacfedcfe1..86dc46f6a68f 100644
---- a/net/bridge/br_input.c
-+++ b/net/bridge/br_input.c
-@@ -16,7 +16,9 @@
- #include <linux/netdevice.h>
- #include <linux/etherdevice.h>
- #include <linux/netfilter_bridge.h>
-+#ifdef CONFIG_NETFILTER_FAMILY_BRIDGE
- #include <net/netfilter/nf_queue.h>
-+#endif
- #include <linux/neighbour.h>
- #include <net/arp.h>
- #include <linux/export.h>
---=20
-2.20.1
+Done.  Though I was hoping someone might come up with a better solution
+(I don't particularly like conditional inclusions).
 
 --=20
 Cheers,
 Stephen Rothwell
 
---Sig_/2_Heq91rE2gKd.nbemAKTFG
+--Sig_/4OamxP1cmijJi54GAt=fr7A
 Content-Type: application/pgp-signature
 Content-Description: OpenPGP digital signature
 
 -----BEGIN PGP SIGNATURE-----
 
-iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAlyxX5gACgkQAVBC80lX
-0GzrHQf/ci5aTImHaEe/yzBhxm8N6qFYZymfOl1bQh3o+5ultUngUwVDHSgXvuPo
-WaMwYuXI1NinqZLY9aqzKrce2cNcYmZlqqXqsLbjOkLju3nOVJZeEn27Xod5SUVS
-BEypBw55ZAPvxUE5Sbu8h0BGk/Mgzaa73OOrLfTcNi/lM32ypv0CmWTjzINf3USa
-72M7g6PbvSuWBENp9NagsM1vSQXMWifvQeRNB80yJLJFPvb7g6PbNbwxnmnRlbe9
-CqKEmjfATPQDzUeETbXQK4J7//JWJqOL44w8i7Kn7rRWZNF6bixlECNvfY62UU+0
-dYRo2/hr4VjL6f0UyFEs7BHoWWLWLA==
-=5LtA
+iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAlyxYBoACgkQAVBC80lX
+0GwJfQf8D6+u8aTCymnS8gu6KTZkkJfslYj7/ErHQ1JiBE9sv6DI2jsith2+JsYW
+sFsR0d0XZOD7NB0yP/+nYO/0ujNqFR/brSHVtpSpLhNIiwFU+CC0kK/TfIWutsXd
+IDiTIpZz5gmDFn1qycipn/+57BY2PlT/7ZcXvzZOxABduE6/zhU+X/Y1y2j6BfIA
+HOiTKbaVamVrjZvVIoZxNhbns4Z4+ik7bUyjvTwX69DkkQS7Yfxp/Hz+GL6PcHm2
+0gC+DVAThVvXCmTd4g9jJgZFTXDw1yA6TcadiEkj1XFbAKimjw5EeYwA0+4UXFl0
+Eg1aWNwsKO27WiVYw5rAbi2JjX8lYQ==
+=ejU3
 -----END PGP SIGNATURE-----
 
---Sig_/2_Heq91rE2gKd.nbemAKTFG--
+--Sig_/4OamxP1cmijJi54GAt=fr7A--
