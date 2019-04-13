@@ -2,34 +2,58 @@ Return-Path: <SRS0=eJXe=SP=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B3D5C10F11
-	for <netfilter-devel@archiver.kernel.org>; Sat, 13 Apr 2019 21:29:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D563FC10F11
+	for <netfilter-devel@archiver.kernel.org>; Sat, 13 Apr 2019 22:45:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E457D2147A
-	for <netfilter-devel@archiver.kernel.org>; Sat, 13 Apr 2019 21:29:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 99DB9218C3
+	for <netfilter-devel@archiver.kernel.org>; Sat, 13 Apr 2019 22:45:03 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1555195503;
+	bh=8QSDTp9CjNirtU5GpGMiJzIZLOjbkJLPoXQuifAKaUo=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=CCTr8RVq1AzcqbE9WQXiLK7ibXw+J8F5n+eLzRDk8DwT3oimwCxX8CmSHfxlFw/MI
+	 JkwHOHGkHW2bqPUlh99fbNW7HDz8MYj13WKZkCgqJVGp19+F3Xf6HzS+za2KZkiKMo
+	 CnswuJgNXYDUna4FWvX8ig1WPoliZP+Rbq1+hkP4=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727178AbfDMV30 (ORCPT
+        id S1727325AbfDMWpC (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 13 Apr 2019 17:29:26 -0400
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:46392 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727042AbfDMV30 (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 13 Apr 2019 17:29:26 -0400
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.89)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1hFQDE-0000ny-JV; Sat, 13 Apr 2019 23:29:24 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf] netfilter: conntrack: fix build on 32bit arches
-Date:   Sat, 13 Apr 2019 23:24:21 +0200
-Message-Id: <20190413212421.31478-1-fw@strlen.de>
+        Sat, 13 Apr 2019 18:45:02 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57544 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727301AbfDMWo6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 13 Apr 2019 18:44:58 -0400
+Received: from sinanubuntu1604.mkjiurmyylmellclgttazegk5f.bx.internal.cloudapp.net (unknown [40.117.159.179])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-SHA256 (128/128 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id AF4CF21721;
+        Sat, 13 Apr 2019 22:44:56 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1555195497;
+        bh=8QSDTp9CjNirtU5GpGMiJzIZLOjbkJLPoXQuifAKaUo=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=BJ28aDLfYxbce4yt/gI3hs/o9KQ3+s82zOiZ0Fx+M+gLFGlI+rD/WlcGgDwE+Fueh
+         Yd6pxQEux+aUi4xNEGtJD3T9fOgRDzW5HNfTqhNBzVJkbVkNoe5oaY/mhon2W1AQKS
+         y7GDEzQhfsVkXho/KuseqfqE2O+j/jEfurAf1AQQ=
+From:   Sinan Kaya <okaya@kernel.org>
+To:     linux-kernel@vger.kernel.org
+Cc:     josh@joshtriplett.org, keescook@chromium.org,
+        Sinan Kaya <okaya@kernel.org>, Florian Westphal <fw@strlen.de>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        "David S. Miller" <davem@davemloft.net>,
+        netfilter-devel@vger.kernel.org (open list:NETFILTER),
+        coreteam@netfilter.org (open list:NETFILTER),
+        netdev@vger.kernel.org (open list:NETWORKING [GENERAL])
+Subject: [PATCH v5 5/5] net: Replace CONFIG_DEBUG_KERNEL with CONFIG_DEBUG_MISC
+Date:   Sat, 13 Apr 2019 22:44:38 +0000
+Message-Id: <20190413224438.10802-6-okaya@kernel.org>
 X-Mailer: git-send-email 2.21.0
+In-Reply-To: <20190413224438.10802-1-okaya@kernel.org>
+References: <20190413224438.10802-1-okaya@kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -37,63 +61,29 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-don't use hsiphash, it needs a hsiphash_key_t argument:
-error: passing argument 3 of 'hsiphash' from incompatible pointer type
+CONFIG_DEBUG_KERNEL should not impact code generation. Use the newly
+defined CONFIG_DEBUG_MISC instead to keep the current code.
 
-Reported-by: kbuild test robot <lkp@intel.com>
-Fixes: 862ae3a4a07e4c22 ("netfilter: ctnetlink: don't use conntrack/expect object addresses as id")
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Sinan Kaya <okaya@kernel.org>
+Acked-by: Florian Westphal <fw@strlen.de>
+Reviewed-by: Josh Triplett <josh@joshtriplett.org>
 ---
- Pablo, feel free to squash this with 862ae3a4a07e4c22.
+ net/netfilter/core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
- net/netfilter/nf_conntrack_core.c    | 8 ++------
- net/netfilter/nf_conntrack_netlink.c | 6 ++----
- 2 files changed, 4 insertions(+), 10 deletions(-)
-
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index a966e69d68d9..3c48d44d6fff 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -474,17 +474,13 @@ u32 nf_ct_get_id(const struct nf_conn *ct)
- 	a = (unsigned long)ct;
- 	b = (unsigned long)ct->master ^ net_hash_mix(nf_ct_net(ct));
- 	c = (unsigned long)ct->ext;
--
-+	d = (unsigned long)siphash(&ct->tuplehash, sizeof(ct->tuplehash),
-+				   &ct_id_seed);
- #ifdef CONFIG_64BIT
--	d = siphash(&ct->tuplehash, sizeof(ct->tuplehash), &ct_id_seed);
--
- 	return siphash_4u64((u64)a, (u64)b, (u64)c, (u64)d, &ct_id_seed);
- #else
--	d = hsiphash(&ct->tuplehash, sizeof(ct->tuplehash), &ct_id_seed);
--
- 	return siphash_4u32((u32)a, (u32)b, (u32)c, (u32)d, &ct_id_seed);
- #endif
--
- }
- EXPORT_SYMBOL_GPL(nf_ct_get_id);
+diff --git a/net/netfilter/core.c b/net/netfilter/core.c
+index 93aaec3a54ec..cac3bad47f5e 100644
+--- a/net/netfilter/core.c
++++ b/net/netfilter/core.c
+@@ -162,7 +162,7 @@ nf_hook_entries_grow(const struct nf_hook_entries *old,
  
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index f80fce25c673..805a277e456b 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -2706,13 +2706,11 @@ static __be32 nf_expect_get_id(const struct nf_conntrack_expect *exp)
- 	a = (unsigned long)exp;
- 	b = (unsigned long)exp->helper;
- 	c = (unsigned long)exp->master;
--#ifdef CONFIG_64BIT
--	d = siphash(&exp->tuple, sizeof(exp->tuple), &exp_id_seed);
-+	d = (unsigned long)siphash(&exp->tuple, sizeof(exp->tuple), &exp_id_seed);
- 
-+#ifdef CONFIG_64BIT
- 	return (__force __be32)siphash_4u64((u64)a, (u64)b, (u64)c, (u64)d, &exp_id_seed);
- #else
--	d = hsiphash(&exp->tuple, sizeof(exp->tuple), &exp_id_seed);
--
- 	return (__force __be32)siphash_4u32((u32)a, (u32)b, (u32)c, (u32)d, &exp_id_seed);
- #endif
- }
+ static void hooks_validate(const struct nf_hook_entries *hooks)
+ {
+-#ifdef CONFIG_DEBUG_KERNEL
++#ifdef CONFIG_DEBUG_MISC
+ 	struct nf_hook_ops **orig_ops;
+ 	int prio = INT_MIN;
+ 	size_t i = 0;
 -- 
 2.21.0
 
