@@ -2,71 +2,107 @@ Return-Path: <SRS0=eJXe=SP=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_NEOMUTT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E46A4C10F11
-	for <netfilter-devel@archiver.kernel.org>; Sat, 13 Apr 2019 23:03:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5AC21C10F11
+	for <netfilter-devel@archiver.kernel.org>; Sat, 13 Apr 2019 23:17:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BB642208E3
-	for <netfilter-devel@archiver.kernel.org>; Sat, 13 Apr 2019 23:03:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2C02820870
+	for <netfilter-devel@archiver.kernel.org>; Sat, 13 Apr 2019 23:17:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727070AbfDMXDl (ORCPT
+        id S1727113AbfDMXR1 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 13 Apr 2019 19:03:41 -0400
-Received: from mail.us.es ([193.147.175.20]:33836 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727042AbfDMXDl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 13 Apr 2019 19:03:41 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 01292E7B8C
-        for <netfilter-devel@vger.kernel.org>; Sun, 14 Apr 2019 01:03:39 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id E218DDA70B
-        for <netfilter-devel@vger.kernel.org>; Sun, 14 Apr 2019 01:03:38 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id D6D45DA70A; Sun, 14 Apr 2019 01:03:38 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id E251ADA705;
-        Sun, 14 Apr 2019 01:03:36 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Sun, 14 Apr 2019 01:03:36 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (sys.soleta.eu [212.170.55.40])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id BD9E54265A31;
-        Sun, 14 Apr 2019 01:03:36 +0200 (CEST)
-Date:   Sun, 14 Apr 2019 01:03:36 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf] netfilter: conntrack: fix build on 32bit arches
-Message-ID: <20190413230336.g242ouykfhozoagu@salvia>
-References: <20190413212421.31478-1-fw@strlen.de>
+        Sat, 13 Apr 2019 19:17:27 -0400
+Received: from mail-qt1-f196.google.com ([209.85.160.196]:35851 "EHLO
+        mail-qt1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727052AbfDMXR1 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 13 Apr 2019 19:17:27 -0400
+Received: by mail-qt1-f196.google.com with SMTP id s15so15363540qtn.3
+        for <netfilter-devel@vger.kernel.org>; Sat, 13 Apr 2019 16:17:27 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=Qigw1/fYpSP+rupwhsHk5zqSFeFLKdWOEKLPFdwdDuU=;
+        b=mcqebhkV9emRCr7yDyU+LjWVpm2LoN3T+eWNXDgTCjMmv2qyCVh4hwuv2TXfAA5IS0
+         luQf74neQg+50nNnnsLWSaVzT/o21cbYNnq+gPW1NJCO0yNvKKbyDWd39etVGZTPvX+l
+         xdTqeRj92R8uqdWKsxMvh+lQKJcNlvpIl/r0Jf+Jf58a/Je4hofCdWSBRCWO/WYiBizS
+         og/83vBdwATG52jRmQ2vg77eI2tlMpEyB/q/mBbhM7cm3NhzlWQjgR68+t9Th3fl2CAy
+         edhdn3FVCPxiOwcgvF0WlWg/Baq1w0eJ6DhTfnNAe1m29hAJa1WIuWDQyrnzh/W28KrJ
+         dbSQ==
+X-Gm-Message-State: APjAAAWaAfhQcoY2c8y1ffb8/EWuzJ1fq1rADy9Yk0waohYp1vffDo0M
+        snrfh8DWqRvhlOc7rJjKnfbZKw==
+X-Google-Smtp-Source: APXvYqxD8tPxDh0pBKbzA1VfGYFOloy1pfHR8Vuu7hsA65JIX0BmOC+0U+3NO7mTo6j+1z5L9E39xQ==
+X-Received: by 2002:aed:3aaa:: with SMTP id o39mr54808558qte.100.1555197446440;
+        Sat, 13 Apr 2019 16:17:26 -0700 (PDT)
+Received: from localhost ([177.183.215.126])
+        by smtp.gmail.com with ESMTPSA id n188sm25017212qkb.40.2019.04.13.16.17.25
+        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+        Sat, 13 Apr 2019 16:17:25 -0700 (PDT)
+From:   Flavio Leitner <fbl@redhat.com>
+To:     netdev@vger.kernel.org
+Cc:     Joe Stringer <joe@ovn.org>, Pravin B Shelar <pshelar@ovn.org>,
+        dev@openvswitch.org, netfilter-devel@vger.kernel.org,
+        Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH net-next v2 0/8] openvswitch: load and reference the NAT helper
+Date:   Sat, 13 Apr 2019 20:17:08 -0300
+Message-Id: <20190413231716.28711-1-fbl@redhat.com>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190413212421.31478-1-fw@strlen.de>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sat, Apr 13, 2019 at 11:24:21PM +0200, Florian Westphal wrote:
-> don't use hsiphash, it needs a hsiphash_key_t argument:
-> error: passing argument 3 of 'hsiphash' from incompatible pointer type
-> 
-> Reported-by: kbuild test robot <lkp@intel.com>
-> Fixes: 862ae3a4a07e4c22 ("netfilter: ctnetlink: don't use conntrack/expect object addresses as id")
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-> ---
->  Pablo, feel free to squash this with 862ae3a4a07e4c22.
+The request_module() is quite expensive and triggers the
+usermode helper in userspace. Instead, load only if the
+module is not present and keep module references to avoid
+problems.
 
-Squashed, thanks.
+The first patch standardize the module alias which is already
+there, but not in a formal way.
+
+The second patch adds an API to point to the NAT helper.
+
+The following patches will register each NAT helper using
+the new API.
+
+The last patch fixes openvswitch to use the new API to
+load and reference the NAT helper and also report an error
+if the operation fails.
+
+Flavio Leitner (8):
+  netfilter: use macros to create module aliases.
+  netfilter: add API to manage NAT helpers.
+  netfilter: nf_nat: register amanda NAT helper.
+  netfilter: nf_nat: register ftp NAT helper.
+  netfilter: nf_nat: register irc NAT helper.
+  netfilter: nf_nat: register sip NAT helper.
+  netfilter: nf_nat: register tftp NAT helper.
+  openvswitch: load and reference the NAT helper.
+
+ include/net/netfilter/nf_conntrack_helper.h | 24 +++++
+ net/ipv4/netfilter/nf_nat_h323.c            |  2 +-
+ net/ipv4/netfilter/nf_nat_pptp.c            |  2 +-
+ net/netfilter/nf_conntrack_amanda.c         |  8 +-
+ net/netfilter/nf_conntrack_ftp.c            | 13 +--
+ net/netfilter/nf_conntrack_helper.c         | 97 +++++++++++++++++++++
+ net/netfilter/nf_conntrack_irc.c            |  6 +-
+ net/netfilter/nf_conntrack_sane.c           | 12 +--
+ net/netfilter/nf_conntrack_sip.c            | 28 +++---
+ net/netfilter/nf_conntrack_tftp.c           | 18 ++--
+ net/netfilter/nf_nat_amanda.c               |  9 +-
+ net/netfilter/nf_nat_ftp.c                  |  9 +-
+ net/netfilter/nf_nat_irc.c                  |  9 +-
+ net/netfilter/nf_nat_sip.c                  |  9 +-
+ net/netfilter/nf_nat_tftp.c                 |  9 +-
+ net/openvswitch/conntrack.c                 | 26 ++++--
+ 16 files changed, 233 insertions(+), 48 deletions(-)
+
+-- 
+2.20.1
+
