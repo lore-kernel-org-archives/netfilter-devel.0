@@ -6,71 +6,59 @@ X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_NEOMUTT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BFBDDC10F11
-	for <netfilter-devel@archiver.kernel.org>; Sat, 13 Apr 2019 12:53:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DE314C10F11
+	for <netfilter-devel@archiver.kernel.org>; Sat, 13 Apr 2019 12:57:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9173220663
-	for <netfilter-devel@archiver.kernel.org>; Sat, 13 Apr 2019 12:53:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9A1F72082E
+	for <netfilter-devel@archiver.kernel.org>; Sat, 13 Apr 2019 12:57:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726833AbfDMMxb (ORCPT
+        id S1726946AbfDMM5G (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 13 Apr 2019 08:53:31 -0400
-Received: from mail.us.es ([193.147.175.20]:51194 "EHLO mail.us.es"
+        Sat, 13 Apr 2019 08:57:06 -0400
+Received: from mail.us.es ([193.147.175.20]:51572 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726207AbfDMMxa (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 13 Apr 2019 08:53:30 -0400
+        id S1726301AbfDMM5G (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 13 Apr 2019 08:57:06 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 1A893DC9BB
-        for <netfilter-devel@vger.kernel.org>; Sat, 13 Apr 2019 14:53:28 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 18B64DC9B9
+        for <netfilter-devel@vger.kernel.org>; Sat, 13 Apr 2019 14:57:04 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 0669CDA709
-        for <netfilter-devel@vger.kernel.org>; Sat, 13 Apr 2019 14:53:28 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 062FADA705
+        for <netfilter-devel@vger.kernel.org>; Sat, 13 Apr 2019 14:57:04 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id F035ADA705; Sat, 13 Apr 2019 14:53:27 +0200 (CEST)
+        id EFEABDA703; Sat, 13 Apr 2019 14:57:03 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 076A6DA705;
-        Sat, 13 Apr 2019 14:53:26 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 0C966DA701;
+        Sat, 13 Apr 2019 14:57:02 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Sat, 13 Apr 2019 14:53:26 +0200 (CEST)
+ Sat, 13 Apr 2019 14:57:02 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from us.es (sys.soleta.eu [212.170.55.40])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
         (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id DA31A4265A31;
-        Sat, 13 Apr 2019 14:53:25 +0200 (CEST)
-Date:   Sat, 13 Apr 2019 14:53:25 +0200
+        by entrada.int (Postfix) with ESMTPSA id D75E84265A31;
+        Sat, 13 Apr 2019 14:57:01 +0200 (CEST)
+Date:   Sat, 13 Apr 2019 14:57:01 +0200
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     Florian Westphal <fw@strlen.de>
 Cc:     netfilter-devel@vger.kernel.org, luca.moro@synacktiv.com
-Subject: Re: [PATCH nf 1/2] selftests: netfilter: check icmp pkttoobig errors
- are set as related
-Message-ID: <20190413125325.vga46jrfq3rdjknw@salvia>
+Subject: Re: [PATCH nf 2/2] netfilter: conntrack: don't set related state for
+ different outer address
+Message-ID: <20190413125701.lsrpcwbt52f2mflz@salvia>
 References: <20190325221154.6874-1-fw@strlen.de>
+ <20190325221154.6874-2-fw@strlen.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20190325221154.6874-1-fw@strlen.de>
+In-Reply-To: <20190325221154.6874-2-fw@strlen.de>
 User-Agent: NeoMutt/20170113 (1.7.2)
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
-
-On Mon, Mar 25, 2019 at 11:11:53PM +0100, Florian Westphal wrote:
-> When an icmp error such as pkttoobig is received, conntrack checks
-> if the "inner" header (header of packet that did not fit link mtu)
-> is matches an existing connection, and, if so, sets that packet as
-> being related to the conntrack entry it found.
-> 
-> It was recently reported that this "related" setting also works
-> if the inner header is from another, different connection (i.e.,
-> artificial/forged icmp error).
-> 
-> Add a test, followup patch will add additional "inner dst matches
-> outer dst in reverse direction" check before setting related state.
 
 Applied, thanks.
