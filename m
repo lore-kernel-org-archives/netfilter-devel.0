@@ -6,45 +6,45 @@ X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AC8B3C282DA
-	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Apr 2019 17:01:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 96BBDC10F12
+	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Apr 2019 17:01:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 77AD72075B
-	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Apr 2019 17:01:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 69FA82075B
+	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Apr 2019 17:01:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727944AbfDORBD (ORCPT
+        id S1727896AbfDORAq (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 15 Apr 2019 13:01:03 -0400
-Received: from mail.us.es ([193.147.175.20]:50458 "EHLO mail.us.es"
+        Mon, 15 Apr 2019 13:00:46 -0400
+Received: from mail.us.es ([193.147.175.20]:50470 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727890AbfDORAr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 15 Apr 2019 13:00:47 -0400
+        id S1727848AbfDORAq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 15 Apr 2019 13:00:46 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 93EEE1C4442
-        for <netfilter-devel@vger.kernel.org>; Mon, 15 Apr 2019 19:00:45 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id D0A8B1C4437
+        for <netfilter-devel@vger.kernel.org>; Mon, 15 Apr 2019 19:00:42 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 764A4DA712
-        for <netfilter-devel@vger.kernel.org>; Mon, 15 Apr 2019 19:00:45 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id B5B93DA709
+        for <netfilter-devel@vger.kernel.org>; Mon, 15 Apr 2019 19:00:42 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 75A3BDA711; Mon, 15 Apr 2019 19:00:45 +0200 (CEST)
+        id B5275DA707; Mon, 15 Apr 2019 19:00:42 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 41E74DA70E;
-        Mon, 15 Apr 2019 19:00:43 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 76D49DA703;
+        Mon, 15 Apr 2019 19:00:40 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 15 Apr 2019 19:00:43 +0200 (CEST)
+ Mon, 15 Apr 2019 19:00:40 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 177534265A31;
-        Mon, 15 Apr 2019 19:00:43 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 4286D4265A31;
+        Mon, 15 Apr 2019 19:00:40 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 17/22] netfilter: nf_nat_masquerade: unify ipv4/6 notifier registration
-Date:   Mon, 15 Apr 2019 19:00:23 +0200
-Message-Id: <20190415170028.3470-18-pablo@netfilter.org>
+Subject: [PATCH 12/22] kselftests: extend nft_nat with inet family based nat hooks
+Date:   Mon, 15 Apr 2019 19:00:18 +0200
+Message-Id: <20190415170028.3470-13-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20190415170028.3470-1-pablo@netfilter.org>
 References: <20190415170028.3470-1-pablo@netfilter.org>
@@ -56,277 +56,360 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Florian Westphal <fw@strlen.de>
 
-Only reason for having two different register functions was because of
-ipt_MASQUERADE and ip6t_MASQUERADE being two different modules.
+With older nft versions, this will cause:
+[..]
+PASS: ipv6 ping to ns1 was ip6 NATted to ns2
+/dev/stdin:4:30-31: Error: syntax error, unexpected to, expecting newline or semicolon
+                ip daddr 10.0.1.99 dnat ip to 10.0.2.99
+                                           ^^
+SKIP: inet nat tests
+PASS: ip IP masquerade for ns2
+[..]
 
-Previous patch merged those into xt_MASQUERADE, so we can merge this too.
+as there is currently no way to detect if nft will be able to parse
+the inet format.
+
+redirect and masquerade tests need to be skipped in this case for inet
+too because nft userspace has overzealous family check and rejects their
+use in the inet family.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_nat_masquerade.h |   6 +-
- net/netfilter/nf_nat_masquerade.c         | 101 +++++++++++-------------------
- net/netfilter/nft_masq.c                  |  16 +----
- net/netfilter/xt_MASQUERADE.c             |  16 +----
- 4 files changed, 44 insertions(+), 95 deletions(-)
+ tools/testing/selftests/netfilter/nft_nat.sh | 130 +++++++++++++++++++--------
+ 1 file changed, 94 insertions(+), 36 deletions(-)
 
-diff --git a/include/net/netfilter/nf_nat_masquerade.h b/include/net/netfilter/nf_nat_masquerade.h
-index cafe71822a53..54a14d643c34 100644
---- a/include/net/netfilter/nf_nat_masquerade.h
-+++ b/include/net/netfilter/nf_nat_masquerade.h
-@@ -9,13 +9,11 @@ nf_nat_masquerade_ipv4(struct sk_buff *skb, unsigned int hooknum,
- 		       const struct nf_nat_range2 *range,
- 		       const struct net_device *out);
+diff --git a/tools/testing/selftests/netfilter/nft_nat.sh b/tools/testing/selftests/netfilter/nft_nat.sh
+index 8ec76681605c..248905130d5d 100755
+--- a/tools/testing/selftests/netfilter/nft_nat.sh
++++ b/tools/testing/selftests/netfilter/nft_nat.sh
+@@ -6,6 +6,7 @@
+ # Kselftest framework requirement - SKIP code is 4.
+ ksft_skip=4
+ ret=0
++test_inet_nat=true
  
--int nf_nat_masquerade_ipv4_register_notifier(void);
--void nf_nat_masquerade_ipv4_unregister_notifier(void);
-+int nf_nat_masquerade_inet_register_notifiers(void);
-+void nf_nat_masquerade_inet_unregister_notifiers(void);
+ nft --version > /dev/null 2>&1
+ if [ $? -ne 0 ];then
+@@ -141,17 +142,24 @@ reset_counters()
  
- unsigned int
- nf_nat_masquerade_ipv6(struct sk_buff *skb, const struct nf_nat_range2 *range,
- 		       const struct net_device *out);
--int nf_nat_masquerade_ipv6_register_notifier(void);
--void nf_nat_masquerade_ipv6_unregister_notifier(void);
- 
- #endif /*_NF_NAT_MASQUERADE_H_ */
-diff --git a/net/netfilter/nf_nat_masquerade.c b/net/netfilter/nf_nat_masquerade.c
-index 10053e70f69d..8e8a65d46345 100644
---- a/net/netfilter/nf_nat_masquerade.c
-+++ b/net/netfilter/nf_nat_masquerade.c
-@@ -10,8 +10,7 @@
- #include <net/netfilter/nf_nat_masquerade.h>
- 
- static DEFINE_MUTEX(masq_mutex);
--static unsigned int masq_refcnt4 __read_mostly;
--static unsigned int masq_refcnt6 __read_mostly;
-+static unsigned int masq_refcnt __read_mostly;
- 
- unsigned int
- nf_nat_masquerade_ipv4(struct sk_buff *skb, unsigned int hooknum,
-@@ -136,56 +135,6 @@ static struct notifier_block masq_inet_notifier = {
- 	.notifier_call	= masq_inet_event,
- };
- 
--int nf_nat_masquerade_ipv4_register_notifier(void)
--{
--	int ret = 0;
--
--	mutex_lock(&masq_mutex);
--	if (WARN_ON_ONCE(masq_refcnt4 == UINT_MAX)) {
--		ret = -EOVERFLOW;
--		goto out_unlock;
--	}
--
--	/* check if the notifier was already set */
--	if (++masq_refcnt4 > 1)
--		goto out_unlock;
--
--	/* Register for device down reports */
--	ret = register_netdevice_notifier(&masq_dev_notifier);
--	if (ret)
--		goto err_dec;
--	/* Register IP address change reports */
--	ret = register_inetaddr_notifier(&masq_inet_notifier);
--	if (ret)
--		goto err_unregister;
--
--	mutex_unlock(&masq_mutex);
--	return ret;
--
--err_unregister:
--	unregister_netdevice_notifier(&masq_dev_notifier);
--err_dec:
--	masq_refcnt4--;
--out_unlock:
--	mutex_unlock(&masq_mutex);
--	return ret;
--}
--EXPORT_SYMBOL_GPL(nf_nat_masquerade_ipv4_register_notifier);
--
--void nf_nat_masquerade_ipv4_unregister_notifier(void)
--{
--	mutex_lock(&masq_mutex);
--	/* check if the notifier still has clients */
--	if (--masq_refcnt4 > 0)
--		goto out_unlock;
--
--	unregister_netdevice_notifier(&masq_dev_notifier);
--	unregister_inetaddr_notifier(&masq_inet_notifier);
--out_unlock:
--	mutex_unlock(&masq_mutex);
--}
--EXPORT_SYMBOL_GPL(nf_nat_masquerade_ipv4_unregister_notifier);
--
- #if IS_ENABLED(CONFIG_IPV6)
- static atomic_t v6_worker_count __read_mostly;
- 
-@@ -321,44 +270,68 @@ static struct notifier_block masq_inet6_notifier = {
- 	.notifier_call	= masq_inet6_event,
- };
- 
--int nf_nat_masquerade_ipv6_register_notifier(void)
-+static int nf_nat_masquerade_ipv6_register_notifier(void)
-+{
-+	return register_inet6addr_notifier(&masq_inet6_notifier);
-+}
-+#else
-+static inline int nf_nat_masquerade_ipv6_register_notifier(void) { return 0; }
-+#endif
+ test_local_dnat6()
+ {
++	local family=$1
+ 	local lret=0
++	local IPF=""
 +
-+int nf_nat_masquerade_inet_register_notifiers(void)
- {
- 	int ret = 0;
- 
- 	mutex_lock(&masq_mutex);
--	if (WARN_ON_ONCE(masq_refcnt6 == UINT_MAX)) {
-+	if (WARN_ON_ONCE(masq_refcnt == UINT_MAX)) {
- 		ret = -EOVERFLOW;
- 		goto out_unlock;
- 	}
- 
--	/* check if the notifier is already set */
--	if (++masq_refcnt6 > 1)
-+	/* check if the notifier was already set */
-+	if (++masq_refcnt > 1)
- 		goto out_unlock;
- 
--	ret = register_inet6addr_notifier(&masq_inet6_notifier);
-+	/* Register for device down reports */
-+	ret = register_netdevice_notifier(&masq_dev_notifier);
- 	if (ret)
- 		goto err_dec;
-+	/* Register IP address change reports */
-+	ret = register_inetaddr_notifier(&masq_inet_notifier);
-+	if (ret)
-+		goto err_unregister;
++	if [ $family = "inet" ];then
++		IPF="ip6"
++	fi
 +
-+	ret = nf_nat_masquerade_ipv6_register_notifier();
-+	if (ret)
-+		goto err_unreg_inet;
- 
- 	mutex_unlock(&masq_mutex);
- 	return ret;
-+err_unreg_inet:
-+	unregister_inetaddr_notifier(&masq_inet_notifier);
-+err_unregister:
-+	unregister_netdevice_notifier(&masq_dev_notifier);
- err_dec:
--	masq_refcnt6--;
-+	masq_refcnt--;
- out_unlock:
- 	mutex_unlock(&masq_mutex);
- 	return ret;
- }
--EXPORT_SYMBOL_GPL(nf_nat_masquerade_ipv6_register_notifier);
-+EXPORT_SYMBOL_GPL(nf_nat_masquerade_inet_register_notifiers);
- 
--void nf_nat_masquerade_ipv6_unregister_notifier(void)
-+void nf_nat_masquerade_inet_unregister_notifiers(void)
- {
- 	mutex_lock(&masq_mutex);
--	/* check if the notifier still has clients */
--	if (--masq_refcnt6 > 0)
-+	/* check if the notifiers still have clients */
-+	if (--masq_refcnt > 0)
- 		goto out_unlock;
- 
-+	unregister_netdevice_notifier(&masq_dev_notifier);
-+	unregister_inetaddr_notifier(&masq_inet_notifier);
-+#if IS_ENABLED(CONFIG_IPV6)
- 	unregister_inet6addr_notifier(&masq_inet6_notifier);
-+#endif
- out_unlock:
- 	mutex_unlock(&masq_mutex);
- }
--EXPORT_SYMBOL_GPL(nf_nat_masquerade_ipv6_unregister_notifier);
--#endif
-+EXPORT_SYMBOL_GPL(nf_nat_masquerade_inet_unregister_notifiers);
-diff --git a/net/netfilter/nft_masq.c b/net/netfilter/nft_masq.c
-index 0783a3e99bd7..86fd90085eaf 100644
---- a/net/netfilter/nft_masq.c
-+++ b/net/netfilter/nft_masq.c
-@@ -195,22 +195,12 @@ static struct nft_expr_type nft_masq_ipv6_type __read_mostly = {
- 
- static int __init nft_masq_module_init_ipv6(void)
- {
--	int ret = nft_register_expr(&nft_masq_ipv6_type);
--
--	if (ret)
--		return ret;
--
--	ret = nf_nat_masquerade_ipv6_register_notifier();
--	if (ret < 0)
--		nft_unregister_expr(&nft_masq_ipv6_type);
--
--	return ret;
-+	return nft_register_expr(&nft_masq_ipv6_type);
- }
- 
- static void nft_masq_module_exit_ipv6(void)
- {
- 	nft_unregister_expr(&nft_masq_ipv6_type);
--	nf_nat_masquerade_ipv6_unregister_notifier();
- }
- #else
- static inline int nft_masq_module_init_ipv6(void) { return 0; }
-@@ -293,7 +283,7 @@ static int __init nft_masq_module_init(void)
- 		return ret;
+ ip netns exec ns0 nft -f - <<EOF
+-table ip6 nat {
++table $family nat {
+ 	chain output {
+ 		type nat hook output priority 0; policy accept;
+-		ip6 daddr dead:1::99 dnat to dead:2::99
++		ip6 daddr dead:1::99 dnat $IPF to dead:2::99
  	}
- 
--	ret = nf_nat_masquerade_ipv4_register_notifier();
-+	ret = nf_nat_masquerade_inet_register_notifiers();
- 	if (ret < 0) {
- 		nft_masq_module_exit_ipv6();
- 		nft_masq_module_exit_inet();
-@@ -309,7 +299,7 @@ static void __exit nft_masq_module_exit(void)
- 	nft_masq_module_exit_ipv6();
- 	nft_masq_module_exit_inet();
- 	nft_unregister_expr(&nft_masq_ipv4_type);
--	nf_nat_masquerade_ipv4_unregister_notifier();
-+	nf_nat_masquerade_inet_unregister_notifiers();
  }
+ EOF
+ 	if [ $? -ne 0 ]; then
+-		echo "SKIP: Could not add add ip6 dnat hook"
++		echo "SKIP: Could not add add $family dnat hook"
+ 		return $ksft_skip
+ 	fi
  
- module_init(nft_masq_module_init);
-diff --git a/net/netfilter/xt_MASQUERADE.c b/net/netfilter/xt_MASQUERADE.c
-index 96d884718749..ece20d832adc 100644
---- a/net/netfilter/xt_MASQUERADE.c
-+++ b/net/netfilter/xt_MASQUERADE.c
-@@ -107,32 +107,20 @@ static int __init masquerade_tg_init(void)
- 	if (ret)
- 		return ret;
+@@ -201,7 +209,7 @@ EOF
+ 		fi
+ 	done
  
--	ret = nf_nat_masquerade_ipv4_register_notifier();
-+	ret = nf_nat_masquerade_inet_register_notifiers();
- 	if (ret) {
- 		xt_unregister_targets(masquerade_tg_reg,
- 				      ARRAY_SIZE(masquerade_tg_reg));
- 		return ret;
- 	}
+-	test $lret -eq 0 && echo "PASS: ipv6 ping to ns1 was NATted to ns2"
++	test $lret -eq 0 && echo "PASS: ipv6 ping to ns1 was $family NATted to ns2"
+ 	ip netns exec ns0 nft flush chain ip6 nat output
  
--#if IS_ENABLED(CONFIG_IPV6)
--	ret = nf_nat_masquerade_ipv6_register_notifier();
--	if (ret) {
--		xt_unregister_targets(masquerade_tg_reg,
--				      ARRAY_SIZE(masquerade_tg_reg));
--		nf_nat_masquerade_ipv4_unregister_notifier();
--		return ret;
--	}
--#endif
- 	return ret;
- }
+ 	return $lret
+@@ -209,15 +217,32 @@ EOF
  
- static void __exit masquerade_tg_exit(void)
+ test_local_dnat()
  {
- 	xt_unregister_targets(masquerade_tg_reg, ARRAY_SIZE(masquerade_tg_reg));
--	nf_nat_masquerade_ipv4_unregister_notifier();
--#if IS_ENABLED(CONFIG_IPV6)
--	nf_nat_masquerade_ipv6_unregister_notifier();
--#endif
-+	nf_nat_masquerade_inet_unregister_notifiers();
++	local family=$1
+ 	local lret=0
+-ip netns exec ns0 nft -f - <<EOF
+-table ip nat {
++	local IPF=""
++
++	if [ $family = "inet" ];then
++		IPF="ip"
++	fi
++
++ip netns exec ns0 nft -f - <<EOF 2>/dev/null
++table $family nat {
+ 	chain output {
+ 		type nat hook output priority 0; policy accept;
+-		ip daddr 10.0.1.99 dnat to 10.0.2.99
++		ip daddr 10.0.1.99 dnat $IPF to 10.0.2.99
+ 	}
+ }
+ EOF
++	if [ $? -ne 0 ]; then
++		if [ $family = "inet" ];then
++			echo "SKIP: inet nat tests"
++			test_inet_nat=false
++			return $ksft_skip
++		fi
++		echo "SKIP: Could not add add $family dnat hook"
++		return $ksft_skip
++	fi
++
+ 	# ping netns1, expect rewrite to netns2
+ 	ip netns exec ns0 ping -q -c 1 10.0.1.99 > /dev/null
+ 	if [ $? -ne 0 ]; then
+@@ -264,9 +289,9 @@ EOF
+ 		fi
+ 	done
+ 
+-	test $lret -eq 0 && echo "PASS: ping to ns1 was NATted to ns2"
++	test $lret -eq 0 && echo "PASS: ping to ns1 was $family NATted to ns2"
+ 
+-	ip netns exec ns0 nft flush chain ip nat output
++	ip netns exec ns0 nft flush chain $family nat output
+ 
+ 	reset_counters
+ 	ip netns exec ns0 ping -q -c 1 10.0.1.99 > /dev/null
+@@ -313,7 +338,7 @@ EOF
+ 		fi
+ 	done
+ 
+-	test $lret -eq 0 && echo "PASS: ping to ns1 OK after nat output chain flush"
++	test $lret -eq 0 && echo "PASS: ping to ns1 OK after $family nat output chain flush"
+ 
+ 	return $lret
+ }
+@@ -321,6 +346,7 @@ EOF
+ 
+ test_masquerade6()
+ {
++	local family=$1
+ 	local lret=0
+ 
+ 	ip netns exec ns0 sysctl net.ipv6.conf.all.forwarding=1 > /dev/null
+@@ -351,16 +377,21 @@ test_masquerade6()
+ 
+ # add masquerading rule
+ ip netns exec ns0 nft -f - <<EOF
+-table ip6 nat {
++table $family nat {
+ 	chain postrouting {
+ 		type nat hook postrouting priority 0; policy accept;
+ 		meta oif veth0 masquerade
+ 	}
+ }
+ EOF
++	if [ $? -ne 0 ]; then
++		echo "SKIP: Could not add add $family masquerade hook"
++		return $ksft_skip
++	fi
++
+ 	ip netns exec ns2 ping -q -c 1 dead:1::99 > /dev/null # ping ns2->ns1
+ 	if [ $? -ne 0 ] ; then
+-		echo "ERROR: cannot ping ns1 from ns2 with active ipv6 masquerading"
++		echo "ERROR: cannot ping ns1 from ns2 with active $family masquerading"
+ 		lret=1
+ 	fi
+ 
+@@ -397,19 +428,20 @@ EOF
+ 		fi
+ 	done
+ 
+-	ip netns exec ns0 nft flush chain ip6 nat postrouting
++	ip netns exec ns0 nft flush chain $family nat postrouting
+ 	if [ $? -ne 0 ]; then
+-		echo "ERROR: Could not flush ip6 nat postrouting" 1>&2
++		echo "ERROR: Could not flush $family nat postrouting" 1>&2
+ 		lret=1
+ 	fi
+ 
+-	test $lret -eq 0 && echo "PASS: IPv6 masquerade for ns2"
++	test $lret -eq 0 && echo "PASS: $family IPv6 masquerade for ns2"
+ 
+ 	return $lret
  }
  
- module_init(masquerade_tg_init);
+ test_masquerade()
+ {
++	local family=$1
+ 	local lret=0
+ 
+ 	ip netns exec ns0 sysctl net.ipv4.conf.veth0.forwarding=1 > /dev/null
+@@ -440,16 +472,21 @@ test_masquerade()
+ 
+ # add masquerading rule
+ ip netns exec ns0 nft -f - <<EOF
+-table ip nat {
++table $family nat {
+ 	chain postrouting {
+ 		type nat hook postrouting priority 0; policy accept;
+ 		meta oif veth0 masquerade
+ 	}
+ }
+ EOF
++	if [ $? -ne 0 ]; then
++		echo "SKIP: Could not add add $family masquerade hook"
++		return $ksft_skip
++	fi
++
+ 	ip netns exec ns2 ping -q -c 1 10.0.1.99 > /dev/null # ping ns2->ns1
+ 	if [ $? -ne 0 ] ; then
+-		echo "ERROR: cannot ping ns1 from ns2 with active ip masquerading"
++		echo "ERROR: cannot ping ns1 from ns2 with active $family masquerading"
+ 		lret=1
+ 	fi
+ 
+@@ -485,19 +522,20 @@ EOF
+ 		fi
+ 	done
+ 
+-	ip netns exec ns0 nft flush chain ip nat postrouting
++	ip netns exec ns0 nft flush chain $family nat postrouting
+ 	if [ $? -ne 0 ]; then
+-		echo "ERROR: Could not flush nat postrouting" 1>&2
++		echo "ERROR: Could not flush $family nat postrouting" 1>&2
+ 		lret=1
+ 	fi
+ 
+-	test $lret -eq 0 && echo "PASS: IP masquerade for ns2"
++	test $lret -eq 0 && echo "PASS: $family IP masquerade for ns2"
+ 
+ 	return $lret
+ }
+ 
+ test_redirect6()
+ {
++	local family=$1
+ 	local lret=0
+ 
+ 	ip netns exec ns0 sysctl net.ipv6.conf.all.forwarding=1 > /dev/null
+@@ -527,16 +565,21 @@ test_redirect6()
+ 
+ # add redirect rule
+ ip netns exec ns0 nft -f - <<EOF
+-table ip6 nat {
++table $family nat {
+ 	chain prerouting {
+ 		type nat hook prerouting priority 0; policy accept;
+ 		meta iif veth1 meta l4proto icmpv6 ip6 saddr dead:2::99 ip6 daddr dead:1::99 redirect
+ 	}
+ }
+ EOF
++	if [ $? -ne 0 ]; then
++		echo "SKIP: Could not add add $family redirect hook"
++		return $ksft_skip
++	fi
++
+ 	ip netns exec ns2 ping -q -c 1 dead:1::99 > /dev/null # ping ns2->ns1
+ 	if [ $? -ne 0 ] ; then
+-		echo "ERROR: cannot ping ns1 from ns2 with active ip6 redirect"
++		echo "ERROR: cannot ping ns1 from ns2 via ipv6 with active $family redirect"
+ 		lret=1
+ 	fi
+ 
+@@ -560,19 +603,20 @@ EOF
+ 		fi
+ 	done
+ 
+-	ip netns exec ns0 nft delete table ip6 nat
++	ip netns exec ns0 nft delete table $family nat
+ 	if [ $? -ne 0 ]; then
+-		echo "ERROR: Could not delete ip6 nat table" 1>&2
++		echo "ERROR: Could not delete $family nat table" 1>&2
+ 		lret=1
+ 	fi
+ 
+-	test $lret -eq 0 && echo "PASS: IPv6 redirection for ns2"
++	test $lret -eq 0 && echo "PASS: $family IPv6 redirection for ns2"
+ 
+ 	return $lret
+ }
+ 
+ test_redirect()
+ {
++	local family=$1
+ 	local lret=0
+ 
+ 	ip netns exec ns0 sysctl net.ipv4.conf.veth0.forwarding=1 > /dev/null
+@@ -603,16 +647,21 @@ test_redirect()
+ 
+ # add redirect rule
+ ip netns exec ns0 nft -f - <<EOF
+-table ip nat {
++table $family nat {
+ 	chain prerouting {
+ 		type nat hook prerouting priority 0; policy accept;
+ 		meta iif veth1 ip protocol icmp ip saddr 10.0.2.99 ip daddr 10.0.1.99 redirect
+ 	}
+ }
+ EOF
++	if [ $? -ne 0 ]; then
++		echo "SKIP: Could not add add $family redirect hook"
++		return $ksft_skip
++	fi
++
+ 	ip netns exec ns2 ping -q -c 1 10.0.1.99 > /dev/null # ping ns2->ns1
+ 	if [ $? -ne 0 ] ; then
+-		echo "ERROR: cannot ping ns1 from ns2 with active ip redirect"
++		echo "ERROR: cannot ping ns1 from ns2 with active $family ip redirect"
+ 		lret=1
+ 	fi
+ 
+@@ -637,13 +686,13 @@ EOF
+ 		fi
+ 	done
+ 
+-	ip netns exec ns0 nft delete table ip nat
++	ip netns exec ns0 nft delete table $family nat
+ 	if [ $? -ne 0 ]; then
+-		echo "ERROR: Could not delete nat table" 1>&2
++		echo "ERROR: Could not delete $family nat table" 1>&2
+ 		lret=1
+ 	fi
+ 
+-	test $lret -eq 0 && echo "PASS: IP redirection for ns2"
++	test $lret -eq 0 && echo "PASS: $family IP redirection for ns2"
+ 
+ 	return $lret
+ }
+@@ -746,16 +795,25 @@ if [ $ret -eq 0 ];then
+ fi
+ 
+ reset_counters
+-test_local_dnat
+-test_local_dnat6
++test_local_dnat ip
++test_local_dnat6 ip6
++reset_counters
++$test_inet_nat && test_local_dnat inet
++$test_inet_nat && test_local_dnat6 inet
+ 
+ reset_counters
+-test_masquerade
+-test_masquerade6
++test_masquerade ip
++test_masquerade6 ip6
++reset_counters
++$test_inet_nat && test_masquerade inet
++$test_inet_nat && test_masquerade6 inet
+ 
+ reset_counters
+-test_redirect
+-test_redirect6
++test_redirect ip
++test_redirect6 ip6
++reset_counters
++$test_inet_nat && test_redirect inet
++$test_inet_nat && test_redirect6 inet
+ 
+ for i in 0 1 2; do ip netns del ns$i;done
+ 
 -- 
 2.11.0
 
