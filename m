@@ -2,335 +2,97 @@ Return-Path: <SRS0=sICu=SR=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_NEOMUTT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EEEE6C10F0E
-	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Apr 2019 21:36:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3E16EC10F0E
+	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Apr 2019 23:08:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BE9382070D
-	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Apr 2019 21:36:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 101EF2084B
+	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Apr 2019 23:08:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728205AbfDOVgv (ORCPT
+        id S1727456AbfDOXIc (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 15 Apr 2019 17:36:51 -0400
-Received: from mail.us.es ([193.147.175.20]:48344 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728097AbfDOVg3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 15 Apr 2019 17:36:29 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 0568D2EFEBC
-        for <netfilter-devel@vger.kernel.org>; Mon, 15 Apr 2019 23:36:27 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id E978ADA716
-        for <netfilter-devel@vger.kernel.org>; Mon, 15 Apr 2019 23:36:26 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id E8ABDDA714; Mon, 15 Apr 2019 23:36:26 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 9BFE0DA701;
-        Mon, 15 Apr 2019 23:36:24 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 15 Apr 2019 23:36:24 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from salvia.here (sys.soleta.eu [212.170.55.40])
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 4F3A04265A31;
-        Mon, 15 Apr 2019 23:36:24 +0200 (CEST)
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     davem@davemloft.net, netdev@vger.kernel.org, fw@strlen.de,
-        nikolay@cumulusnetworks.com, roopa@cumulusnetworks.com,
-        herbert@gondor.apana.org.au
-Subject: [PATCH net-next 04/10] net: ipv6: split skbuff into fragments transformer
-Date:   Mon, 15 Apr 2019 23:36:05 +0200
-Message-Id: <20190415213611.21863-5-pablo@netfilter.org>
-X-Mailer: git-send-email 2.11.0
-In-Reply-To: <20190415213611.21863-1-pablo@netfilter.org>
-References: <20190415213611.21863-1-pablo@netfilter.org>
-X-Virus-Scanned: ClamAV using ClamSMTP
+        Mon, 15 Apr 2019 19:08:32 -0400
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:54056 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726751AbfDOXIc (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 15 Apr 2019 19:08:32 -0400
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.89)
+        (envelope-from <fw@strlen.de>)
+        id 1hGAiE-0006C2-7B; Tue, 16 Apr 2019 01:08:30 +0200
+Date:   Tue, 16 Apr 2019 01:08:30 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     Brett Mastbergen <bmastbergen@untangle.com>
+Cc:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
+        dmorris@untangle.com
+Subject: Re: dict: A netfilter expression for dictionary lookups
+Message-ID: <20190415230830.jsmatvfyn3fjrtec@breakpoint.cc>
+References: <20190328195857.GA24011@pinebook>
+ <20190411192248.7harez523hlkhh3e@breakpoint.cc>
+ <20190412141834.GA25271@pinebook>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190412141834.GA25271@pinebook>
+User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This patch exposes a new API to refragment a skbuff. The allows you to
-split either linear skbuff or force the refragmentation of an existing
-fraglist.
+Brett Mastbergen <bmastbergen@untangle.com> wrote:
+> This patch looks great.  That would greatly improve the usefulness of keying
+> off of the conntrack id.  If it gets accepted I can send a kernel patch and
+> an nft patch to support the ct id key.
 
-The API consists of:
+That would be really nice to have.
 
-* ip6_frag_init(), that initializes the internal state of the transformer.
-* ip6_frag_next(), that allows you to fetch the next fragment. This function
-  internally allocates the skbuff that represents the fragment, it pushes
-  the IPv6, and it also copies the payload for this fragment.
+> > > For a more in depth description of how things work I suggest reading the doc 
+> > > in the first link I posted, but below are a few simple examples of what is 
+> > > possible using dict expressions:
+> > > 
+> > > nft add rule ip filter forward dict sessions ct id application long_string 
+> > > NETFLIX reject 
+> > > 
+> > > If I were to describe that rule in plain English it would be:
+> > > 
+> > > For traffic passing through the ip filter table forward hook, use the 
+> > > conntrack id as a key to lookup an entry in the sessions table.  For that
+> > > entry check if it has an application field set to a string value of NETFLIX,
+> > > if so, reject the traffic.
+> > > 
+> > > How did that field get set to NETFLIX?  That is up to some other entity.  In 
+> > 
+> > Why isn't it possible to use the existing nftables set infrastructure
+> > for this?
+> > 
+> > The nft sets store arbitrary octets/bytes as keys, so we could at least
+> > from kernel side store arbitrary identifiers (strings, integers etc).
+> > 
+> 
+> I wanted to use the existing set infrastructure, but I ran into two issues
+> wrt to what we were trying to acheive:
+> 
+> 1.  As far as I can tell the current sets are only set up to hold elements
+> of a particular data type, where as we are storing elements of many different
+> types in a particular dictionary.
 
-The ip6_frag_state object stores the internal state of the splitter.
+Yes, a set is only one data type (They support combining types though).
 
-This code has been extracted from ip6_fragment(). Symbols are also
-exported to allow to reuse this transformer from the bridge codepath for
-refragmentation.
+> 2.  sets are associated with a particular table and therefore can only be
+> accessed by rules in that table.  If you want to associate some piece of
+> information with a particular connection and use it from rules in multiple
+> different tables, you'd have to populate it in a set in each of those tables.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/net/ipv6.h    |  19 ++++++
- net/ipv6/ip6_output.c | 183 +++++++++++++++++++++++++++++---------------------
- 2 files changed, 126 insertions(+), 76 deletions(-)
+Yes, but thats intentional, a table forms a namespace; so
+crossing it is not desireable.
 
-diff --git a/include/net/ipv6.h b/include/net/ipv6.h
-index acefbc718abe..21bb830e9679 100644
---- a/include/net/ipv6.h
-+++ b/include/net/ipv6.h
-@@ -179,6 +179,25 @@ static inline struct sk_buff *ip6_fraglist_next(struct ip6_fraglist_iter *iter)
- 	return skb;
- }
- 
-+struct ip6_frag_state {
-+	u8		*prevhdr;
-+	unsigned int	hlen;
-+	unsigned int	mtu;
-+	unsigned int	left;
-+	int		offset;
-+	int		ptr;
-+	int		hroom;
-+	int		troom;
-+	__be32		frag_id;
-+	u8		nexthdr;
-+};
-+
-+void ip6_frag_init(struct sk_buff *skb, unsigned int hlen, unsigned int mtu,
-+		   unsigned short needed_tailroom, int hdr_room, u8 *prevhdr,
-+		   u8 nexthdr, __be32 frag_id, struct ip6_frag_state *state);
-+struct sk_buff *ip6_frag_next(struct sk_buff *skb,
-+			      struct ip6_frag_state *state);
-+
- #define IP6_REPLY_MARK(net, mark) \
- 	((net)->ipv6.sysctl.fwmark_reflect ? (mark) : 0)
- 
-diff --git a/net/ipv6/ip6_output.c b/net/ipv6/ip6_output.c
-index 2567b22a888a..812a98b79ec6 100644
---- a/net/ipv6/ip6_output.c
-+++ b/net/ipv6/ip6_output.c
-@@ -659,6 +659,103 @@ void ip6_fraglist_prepare(struct sk_buff *skb,
- }
- EXPORT_SYMBOL(ip6_fraglist_prepare);
- 
-+void ip6_frag_init(struct sk_buff *skb, unsigned int hlen, unsigned int mtu,
-+		   unsigned short needed_tailroom, int hdr_room, u8 *prevhdr,
-+		   u8 nexthdr, __be32 frag_id, struct ip6_frag_state *state)
-+{
-+	state->prevhdr = prevhdr;
-+	state->nexthdr = nexthdr;
-+	state->frag_id = frag_id;
-+
-+	state->hlen = hlen;
-+	state->mtu = mtu;
-+
-+	state->left = skb->len - hlen;	/* Space per frame */
-+	state->ptr = hlen;		/* Where to start from */
-+
-+	state->hroom = hdr_room;
-+	state->troom = needed_tailroom;
-+
-+	state->offset = 0;
-+}
-+EXPORT_SYMBOL(ip6_frag_init);
-+
-+struct sk_buff *ip6_frag_next(struct sk_buff *skb, struct ip6_frag_state *state)
-+{
-+	u8 *prevhdr = state->prevhdr, *fragnexthdr_offset;
-+	struct sk_buff *frag;
-+	struct frag_hdr *fh;
-+	unsigned int len;
-+
-+	len = state->left;
-+	/* IF: it doesn't fit, use 'mtu' - the data space left */
-+	if (len > state->mtu)
-+		len = state->mtu;
-+	/* IF: we are not sending up to and including the packet end
-+	   then align the next start on an eight byte boundary */
-+	if (len < state->left)
-+		len &= ~7;
-+
-+	/* Allocate buffer */
-+	frag = alloc_skb(len + state->hlen + sizeof(struct frag_hdr) +
-+			 state->hroom + state->troom, GFP_ATOMIC);
-+	if (!frag)
-+		return ERR_PTR(-ENOMEM);
-+
-+	/*
-+	 *	Set up data on packet
-+	 */
-+
-+	ip6_copy_metadata(frag, skb);
-+	skb_reserve(frag, state->hroom);
-+	skb_put(frag, len + state->hlen + sizeof(struct frag_hdr));
-+	skb_reset_network_header(frag);
-+	fh = (struct frag_hdr *)(skb_network_header(frag) + state->hlen);
-+	frag->transport_header = (frag->network_header + state->hlen +
-+				  sizeof(struct frag_hdr));
-+
-+	/*
-+	 *	Charge the memory for the fragment to any owner
-+	 *	it might possess
-+	 */
-+	if (skb->sk)
-+		skb_set_owner_w(frag, skb->sk);
-+
-+	/*
-+	 *	Copy the packet header into the new buffer.
-+	 */
-+	skb_copy_from_linear_data(skb, skb_network_header(frag), state->hlen);
-+
-+	fragnexthdr_offset = skb_network_header(frag);
-+	fragnexthdr_offset += prevhdr - skb_network_header(skb);
-+	*fragnexthdr_offset = NEXTHDR_FRAGMENT;
-+
-+	/*
-+	 *	Build fragment header.
-+	 */
-+	fh->nexthdr = state->nexthdr;
-+	fh->reserved = 0;
-+	fh->identification = state->frag_id;
-+
-+	/*
-+	 *	Copy a block of the IP datagram.
-+	 */
-+	BUG_ON(skb_copy_bits(skb, state->ptr, skb_transport_header(frag),
-+			     len));
-+	state->left -= len;
-+
-+	fh->frag_off = htons(state->offset);
-+	if (state->left > 0)
-+		fh->frag_off |= htons(IP6_MF);
-+	ipv6_hdr(frag)->payload_len = htons(frag->len - sizeof(struct ipv6hdr));
-+
-+	state->ptr += len;
-+	state->offset += len;
-+
-+	return frag;
-+}
-+EXPORT_SYMBOL(ip6_frag_next);
-+
- int ip6_fragment(struct net *net, struct sock *sk, struct sk_buff *skb,
- 		 int (*output)(struct net *, struct sock *, struct sk_buff *))
- {
-@@ -666,11 +763,10 @@ int ip6_fragment(struct net *net, struct sock *sk, struct sk_buff *skb,
- 	struct rt6_info *rt = (struct rt6_info *)skb_dst(skb);
- 	struct ipv6_pinfo *np = skb->sk && !dev_recursion_level() ?
- 				inet6_sk(skb->sk) : NULL;
--	struct frag_hdr *fh;
--	unsigned int mtu, hlen, left, len, nexthdr_offset;
--	int hroom, troom;
-+	struct ip6_frag_state state;
-+	unsigned int mtu, hlen, nexthdr_offset;
-+	int hroom, err = 0;
- 	__be32 frag_id;
--	int ptr, offset = 0, err = 0;
- 	u8 *prevhdr, nexthdr = 0;
- 
- 	err = ip6_find_1stfragopt(skb, &prevhdr);
-@@ -792,91 +888,26 @@ int ip6_fragment(struct net *net, struct sock *sk, struct sk_buff *skb,
- 	}
- 
- slow_path:
--	left = skb->len - hlen;		/* Space per frame */
--	ptr = hlen;			/* Where to start from */
--
- 	/*
- 	 *	Fragment the datagram.
- 	 */
- 
--	troom = rt->dst.dev->needed_tailroom;
-+	ip6_frag_init(skb, hlen, mtu, rt->dst.dev->needed_tailroom,
-+		      LL_RESERVED_SPACE(rt->dst.dev), prevhdr, nexthdr, frag_id,
-+		      &state);
- 
- 	/*
- 	 *	Keep copying data until we run out.
- 	 */
--	while (left > 0)	{
--		u8 *fragnexthdr_offset;
--
--		len = left;
--		/* IF: it doesn't fit, use 'mtu' - the data space left */
--		if (len > mtu)
--			len = mtu;
--		/* IF: we are not sending up to and including the packet end
--		   then align the next start on an eight byte boundary */
--		if (len < left)	{
--			len &= ~7;
--		}
- 
--		/* Allocate buffer */
--		frag = alloc_skb(len + hlen + sizeof(struct frag_hdr) +
--				 hroom + troom, GFP_ATOMIC);
--		if (!frag) {
--			err = -ENOMEM;
-+	while (state.left > 0) {
-+		frag = ip6_frag_next(skb, &state);
-+		if (IS_ERR(frag)) {
-+			err = PTR_ERR(frag);
- 			goto fail;
- 		}
- 
- 		/*
--		 *	Set up data on packet
--		 */
--
--		ip6_copy_metadata(frag, skb);
--		skb_reserve(frag, hroom);
--		skb_put(frag, len + hlen + sizeof(struct frag_hdr));
--		skb_reset_network_header(frag);
--		fh = (struct frag_hdr *)(skb_network_header(frag) + hlen);
--		frag->transport_header = (frag->network_header + hlen +
--					  sizeof(struct frag_hdr));
--
--		/*
--		 *	Charge the memory for the fragment to any owner
--		 *	it might possess
--		 */
--		if (skb->sk)
--			skb_set_owner_w(frag, skb->sk);
--
--		/*
--		 *	Copy the packet header into the new buffer.
--		 */
--		skb_copy_from_linear_data(skb, skb_network_header(frag), hlen);
--
--		fragnexthdr_offset = skb_network_header(frag);
--		fragnexthdr_offset += prevhdr - skb_network_header(skb);
--		*fragnexthdr_offset = NEXTHDR_FRAGMENT;
--
--		/*
--		 *	Build fragment header.
--		 */
--		fh->nexthdr = nexthdr;
--		fh->reserved = 0;
--		fh->identification = frag_id;
--
--		/*
--		 *	Copy a block of the IP datagram.
--		 */
--		BUG_ON(skb_copy_bits(skb, ptr, skb_transport_header(frag),
--				     len));
--		left -= len;
--
--		fh->frag_off = htons(offset);
--		if (left > 0)
--			fh->frag_off |= htons(IP6_MF);
--		ipv6_hdr(frag)->payload_len = htons(frag->len -
--						    sizeof(struct ipv6hdr));
--
--		ptr += len;
--		offset += len;
--
--		/*
- 		 *	Put this fragment into the sending queue.
- 		 */
- 		err = output(net, sk, frag);
--- 
-2.11.0
+The idea is that different entities each can manage their own tables
+without clashing with chain or set names of another table.
 
+Still looking at dicts code, I am trying to understand where normal nft
+set infra can't be used (or is too cumbersome) to best understand how we
+can fit dicts ideas into nftables' architecture.
