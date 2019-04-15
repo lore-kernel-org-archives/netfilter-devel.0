@@ -6,45 +6,45 @@ X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AA55FC10F12
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2AE32C10F0E
 	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Apr 2019 17:00:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 72BEA2075B
-	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Apr 2019 17:00:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EE13A2075B
+	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Apr 2019 17:00:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727868AbfDORAp (ORCPT
+        id S1727858AbfDORAn (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 15 Apr 2019 13:00:45 -0400
-Received: from mail.us.es ([193.147.175.20]:50496 "EHLO mail.us.es"
+        Mon, 15 Apr 2019 13:00:43 -0400
+Received: from mail.us.es ([193.147.175.20]:50474 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727835AbfDORAo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 15 Apr 2019 13:00:44 -0400
+        id S1727812AbfDORAn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 15 Apr 2019 13:00:43 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 38D961C4436
-        for <netfilter-devel@vger.kernel.org>; Mon, 15 Apr 2019 19:00:41 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 0D66B1C4435
+        for <netfilter-devel@vger.kernel.org>; Mon, 15 Apr 2019 19:00:40 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 1EE99DA729
-        for <netfilter-devel@vger.kernel.org>; Mon, 15 Apr 2019 19:00:41 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id EE20CDA704
+        for <netfilter-devel@vger.kernel.org>; Mon, 15 Apr 2019 19:00:39 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 1E036DA709; Mon, 15 Apr 2019 19:00:41 +0200 (CEST)
+        id ED1FFDA716; Mon, 15 Apr 2019 19:00:39 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id C193CDA710;
-        Mon, 15 Apr 2019 19:00:38 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A5416DA704;
+        Mon, 15 Apr 2019 19:00:37 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 15 Apr 2019 19:00:38 +0200 (CEST)
+ Mon, 15 Apr 2019 19:00:37 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 9214D4265A31;
-        Mon, 15 Apr 2019 19:00:38 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 795104265A31;
+        Mon, 15 Apr 2019 19:00:37 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 09/22] netfilter: replace NF_NAT_NEEDED with IS_ENABLED(CONFIG_NF_NAT)
-Date:   Mon, 15 Apr 2019 19:00:15 +0200
-Message-Id: <20190415170028.3470-10-pablo@netfilter.org>
+Subject: [PATCH 07/22] netfilter: nat: add inet family nat support
+Date:   Mon, 15 Apr 2019 19:00:13 +0200
+Message-Id: <20190415170028.3470-8-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20190415170028.3470-1-pablo@netfilter.org>
 References: <20190415170028.3470-1-pablo@netfilter.org>
@@ -56,251 +56,331 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Florian Westphal <fw@strlen.de>
 
-NF_NAT_NEEDED is true whenever nat support for either ipv4 or ipv6 is
-enabled.  Now that the af-specific nat configuration switches have been
-removed, IS_ENABLED(CONFIG_NF_NAT) has the same effect.
+We need minimal support from the nat core for this, as we do not
+want to register additional base hooks.
+
+When an inet hook is registered, interally register ipv4 and ipv6
+hooks for them and unregister those when inet hooks are removed.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/linux/netfilter.h                   |  2 +-
- include/net/netfilter/nf_conntrack_expect.h |  2 +-
- net/netfilter/Kconfig                       |  5 -----
- net/netfilter/nf_conntrack_expect.c         |  2 +-
- net/netfilter/nf_conntrack_netlink.c        | 16 ++++++++--------
- net/netfilter/nf_conntrack_sip.c            |  2 +-
- net/openvswitch/conntrack.c                 | 18 +++++++++---------
- 7 files changed, 21 insertions(+), 26 deletions(-)
+ include/net/netfilter/nf_nat.h |  7 +++--
+ net/netfilter/nf_nat_core.c    | 16 +++++-------
+ net/netfilter/nf_nat_proto.c   | 43 ++++++++++++++++++++++++++-----
+ net/netfilter/nft_chain_nat.c  | 36 ++++++++++++++++++++++++++
+ net/netfilter/nft_nat.c        | 58 ++++++++++++++++++++++++++++++++++++++++--
+ 5 files changed, 141 insertions(+), 19 deletions(-)
 
-diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
-index 4e0145ea033e..a7252f3baeb0 100644
---- a/include/linux/netfilter.h
-+++ b/include/linux/netfilter.h
-@@ -367,7 +367,7 @@ extern struct nf_nat_hook __rcu *nf_nat_hook;
- static inline void
- nf_nat_decode_session(struct sk_buff *skb, struct flowi *fl, u_int8_t family)
- {
--#ifdef CONFIG_NF_NAT_NEEDED
-+#if IS_ENABLED(CONFIG_NF_NAT)
- 	struct nf_nat_hook *nat_hook;
- 
- 	rcu_read_lock();
-diff --git a/include/net/netfilter/nf_conntrack_expect.h b/include/net/netfilter/nf_conntrack_expect.h
-index 006e430d1cdf..93ce6b0daaba 100644
---- a/include/net/netfilter/nf_conntrack_expect.h
-+++ b/include/net/netfilter/nf_conntrack_expect.h
-@@ -48,7 +48,7 @@ struct nf_conntrack_expect {
- 	/* Expectation class */
- 	unsigned int class;
- 
--#ifdef CONFIG_NF_NAT_NEEDED
-+#if IS_ENABLED(CONFIG_NF_NAT)
- 	union nf_inet_addr saved_addr;
- 	/* This is the original per-proto part, used to map the
- 	 * expected connection the way the recipient expects. */
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index 6548271209a0..f4384c096d0d 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -404,11 +404,6 @@ config NF_NAT
- 	  forms of full Network Address Port Translation. This can be
- 	  controlled by iptables, ip6tables or nft.
- 
--config NF_NAT_NEEDED
--	bool
--	depends on NF_NAT
--	default y
--
- config NF_NAT_AMANDA
- 	tristate
- 	depends on NF_CONNTRACK && NF_NAT
-diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
-index 334d6e5b7762..59c18804a10a 100644
---- a/net/netfilter/nf_conntrack_expect.c
-+++ b/net/netfilter/nf_conntrack_expect.c
-@@ -336,7 +336,7 @@ void nf_ct_expect_init(struct nf_conntrack_expect *exp, unsigned int class,
- 
- 	exp->tuple.dst.u.all = *dst;
- 
--#ifdef CONFIG_NF_NAT_NEEDED
-+#if IS_ENABLED(CONFIG_NF_NAT)
- 	memset(&exp->saved_addr, 0, sizeof(exp->saved_addr));
- 	memset(&exp->saved_proto, 0, sizeof(exp->saved_proto));
+diff --git a/include/net/netfilter/nf_nat.h b/include/net/netfilter/nf_nat.h
+index cf332c4e0b32..423cda2c6542 100644
+--- a/include/net/netfilter/nf_nat.h
++++ b/include/net/netfilter/nf_nat.h
+@@ -69,9 +69,9 @@ static inline bool nf_nat_oif_changed(unsigned int hooknum,
  #endif
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 66c596d287a5..32fe3060375a 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -45,7 +45,7 @@
- #include <net/netfilter/nf_conntrack_timestamp.h>
- #include <net/netfilter/nf_conntrack_labels.h>
- #include <net/netfilter/nf_conntrack_synproxy.h>
--#ifdef CONFIG_NF_NAT_NEEDED
-+#if IS_ENABLED(CONFIG_NF_NAT)
- #include <net/netfilter/nf_nat.h>
- #include <net/netfilter/nf_nat_helper.h>
- #endif
-@@ -655,7 +655,7 @@ static size_t ctnetlink_nlmsg_size(const struct nf_conn *ct)
- 	       + nla_total_size(0) /* CTA_HELP */
- 	       + nla_total_size(NF_CT_HELPER_NAME_LEN) /* CTA_HELP_NAME */
- 	       + ctnetlink_secctx_size(ct)
--#ifdef CONFIG_NF_NAT_NEEDED
-+#if IS_ENABLED(CONFIG_NF_NAT)
- 	       + 2 * nla_total_size(0) /* CTA_NAT_SEQ_ADJ_ORIG|REPL */
- 	       + 6 * nla_total_size(sizeof(u_int32_t)) /* CTA_NAT_SEQ_OFFSET */
- #endif
-@@ -1494,7 +1494,7 @@ static int ctnetlink_get_ct_unconfirmed(struct net *net, struct sock *ctnl,
- 	return -EOPNOTSUPP;
  }
  
--#ifdef CONFIG_NF_NAT_NEEDED
-+#if IS_ENABLED(CONFIG_NF_NAT)
- static int
- ctnetlink_parse_nat_setup(struct nf_conn *ct,
- 			  enum nf_nat_manip_type manip,
-@@ -1586,7 +1586,7 @@ ctnetlink_change_status(struct nf_conn *ct, const struct nlattr * const cda[])
- static int
- ctnetlink_setup_nat(struct nf_conn *ct, const struct nlattr * const cda[])
- {
--#ifdef CONFIG_NF_NAT_NEEDED
-+#if IS_ENABLED(CONFIG_NF_NAT)
- 	int ret;
+-int nf_nat_register_fn(struct net *net, const struct nf_hook_ops *ops,
++int nf_nat_register_fn(struct net *net, u8 pf, const struct nf_hook_ops *ops,
+ 		       const struct nf_hook_ops *nat_ops, unsigned int ops_count);
+-void nf_nat_unregister_fn(struct net *net, const struct nf_hook_ops *ops,
++void nf_nat_unregister_fn(struct net *net, u8 pf, const struct nf_hook_ops *ops,
+ 			  unsigned int ops_count);
  
- 	if (!cda[CTA_NAT_DST] && !cda[CTA_NAT_SRC])
-@@ -2369,7 +2369,7 @@ ctnetlink_glue_build_size(const struct nf_conn *ct)
- 	       + nla_total_size(0) /* CTA_HELP */
- 	       + nla_total_size(NF_CT_HELPER_NAME_LEN) /* CTA_HELP_NAME */
- 	       + ctnetlink_secctx_size(ct)
--#ifdef CONFIG_NF_NAT_NEEDED
-+#if IS_ENABLED(CONFIG_NF_NAT)
- 	       + 2 * nla_total_size(0) /* CTA_NAT_SEQ_ADJ_ORIG|REPL */
- 	       + 6 * nla_total_size(sizeof(u_int32_t)) /* CTA_NAT_SEQ_OFFSET */
- #endif
-@@ -2699,7 +2699,7 @@ ctnetlink_exp_dump_expect(struct sk_buff *skb,
- 	struct nf_conn *master = exp->master;
- 	long timeout = ((long)exp->timeout.expires - (long)jiffies) / HZ;
- 	struct nf_conn_help *help;
--#ifdef CONFIG_NF_NAT_NEEDED
-+#if IS_ENABLED(CONFIG_NF_NAT)
- 	struct nlattr *nest_parms;
- 	struct nf_conntrack_tuple nat_tuple = {};
- #endif
-@@ -2717,7 +2717,7 @@ ctnetlink_exp_dump_expect(struct sk_buff *skb,
- 				 CTA_EXPECT_MASTER) < 0)
- 		goto nla_put_failure;
+ unsigned int nf_nat_packet(struct nf_conn *ct, enum ip_conntrack_info ctinfo,
+@@ -98,6 +98,9 @@ void nf_nat_ipv4_unregister_fn(struct net *net, const struct nf_hook_ops *ops);
+ int nf_nat_ipv6_register_fn(struct net *net, const struct nf_hook_ops *ops);
+ void nf_nat_ipv6_unregister_fn(struct net *net, const struct nf_hook_ops *ops);
  
--#ifdef CONFIG_NF_NAT_NEEDED
-+#if IS_ENABLED(CONFIG_NF_NAT)
- 	if (!nf_inet_addr_cmp(&exp->saved_addr, &any_addr) ||
- 	    exp->saved_proto.all) {
- 		nest_parms = nla_nest_start(skb, CTA_EXPECT_NAT | NLA_F_NESTED);
-@@ -3180,7 +3180,7 @@ ctnetlink_parse_expect_nat(const struct nlattr *attr,
- 			   struct nf_conntrack_expect *exp,
- 			   u_int8_t u3)
- {
--#ifdef CONFIG_NF_NAT_NEEDED
-+#if IS_ENABLED(CONFIG_NF_NAT)
- 	struct nlattr *tb[CTA_EXPECT_NAT_MAX+1];
- 	struct nf_conntrack_tuple nat_tuple = {};
- 	int err;
-diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
-index 39fcc1ed18f3..d5454d1031a3 100644
---- a/net/netfilter/nf_conntrack_sip.c
-+++ b/net/netfilter/nf_conntrack_sip.c
-@@ -928,7 +928,7 @@ static int set_expected_rtp_rtcp(struct sk_buff *skb, unsigned int protoff,
- 		    nfct_help(exp->master)->helper != nfct_help(ct)->helper ||
- 		    exp->class != class)
- 			break;
--#ifdef CONFIG_NF_NAT_NEEDED
-+#if IS_ENABLED(CONFIG_NF_NAT)
- 		if (!direct_rtp &&
- 		    (!nf_inet_addr_cmp(&exp->saved_addr, &exp->tuple.dst.u3) ||
- 		     exp->saved_proto.udp.port != exp->tuple.dst.u.udp.port) &&
-diff --git a/net/openvswitch/conntrack.c b/net/openvswitch/conntrack.c
-index 0be3ab5bde26..626629944450 100644
---- a/net/openvswitch/conntrack.c
-+++ b/net/openvswitch/conntrack.c
-@@ -29,7 +29,7 @@
- #include <net/netfilter/ipv6/nf_defrag_ipv6.h>
- #include <net/ipv6_frag.h>
- 
--#ifdef CONFIG_NF_NAT_NEEDED
-+#if IS_ENABLED(CONFIG_NF_NAT)
- #include <net/netfilter/nf_nat.h>
- #endif
- 
-@@ -75,7 +75,7 @@ struct ovs_conntrack_info {
- 	struct md_mark mark;
- 	struct md_labels labels;
- 	char timeout[CTNL_TIMEOUT_NAME_MAX];
--#ifdef CONFIG_NF_NAT_NEEDED
-+#if IS_ENABLED(CONFIG_NF_NAT)
- 	struct nf_nat_range2 range;  /* Only present for SRC NAT and DST NAT. */
- #endif
++int nf_nat_inet_register_fn(struct net *net, const struct nf_hook_ops *ops);
++void nf_nat_inet_unregister_fn(struct net *net, const struct nf_hook_ops *ops);
++
+ unsigned int
+ nf_nat_inet_fn(void *priv, struct sk_buff *skb,
+ 	       const struct nf_hook_state *state);
+diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
+index af7dc6537758..a9ec49edd7f4 100644
+--- a/net/netfilter/nf_nat_core.c
++++ b/net/netfilter/nf_nat_core.c
+@@ -1009,7 +1009,7 @@ static struct nf_ct_helper_expectfn follow_master_nat = {
+ 	.expectfn	= nf_nat_follow_master,
  };
-@@ -721,7 +721,7 @@ static bool skb_nfct_cached(struct net *net,
- 	return ct_executed;
+ 
+-int nf_nat_register_fn(struct net *net, const struct nf_hook_ops *ops,
++int nf_nat_register_fn(struct net *net, u8 pf, const struct nf_hook_ops *ops,
+ 		       const struct nf_hook_ops *orig_nat_ops, unsigned int ops_count)
+ {
+ 	struct nat_net *nat_net = net_generic(net, nat_net_id);
+@@ -1019,14 +1019,12 @@ int nf_nat_register_fn(struct net *net, const struct nf_hook_ops *ops,
+ 	struct nf_hook_ops *nat_ops;
+ 	int i, ret;
+ 
+-	if (WARN_ON_ONCE(ops->pf >= ARRAY_SIZE(nat_net->nat_proto_net)))
++	if (WARN_ON_ONCE(pf >= ARRAY_SIZE(nat_net->nat_proto_net)))
+ 		return -EINVAL;
+ 
+-	nat_proto_net = &nat_net->nat_proto_net[ops->pf];
++	nat_proto_net = &nat_net->nat_proto_net[pf];
+ 
+ 	for (i = 0; i < ops_count; i++) {
+-		if (WARN_ON(orig_nat_ops[i].pf != ops->pf))
+-			return -EINVAL;
+ 		if (orig_nat_ops[i].hooknum == hooknum) {
+ 			hooknum = i;
+ 			break;
+@@ -1086,8 +1084,8 @@ int nf_nat_register_fn(struct net *net, const struct nf_hook_ops *ops,
+ 	return ret;
  }
  
--#ifdef CONFIG_NF_NAT_NEEDED
-+#if IS_ENABLED(CONFIG_NF_NAT)
- /* Modelled after nf_nat_ipv[46]_fn().
-  * range is only used for new, uninitialized NAT state.
-  * Returns either NF_ACCEPT or NF_DROP.
-@@ -903,7 +903,7 @@ static int ovs_ct_nat(struct net *net, struct sw_flow_key *key,
+-void nf_nat_unregister_fn(struct net *net, const struct nf_hook_ops *ops,
+-		          unsigned int ops_count)
++void nf_nat_unregister_fn(struct net *net, u8 pf, const struct nf_hook_ops *ops,
++			  unsigned int ops_count)
+ {
+ 	struct nat_net *nat_net = net_generic(net, nat_net_id);
+ 	struct nf_nat_hooks_net *nat_proto_net;
+@@ -1096,10 +1094,10 @@ void nf_nat_unregister_fn(struct net *net, const struct nf_hook_ops *ops,
+ 	int hooknum = ops->hooknum;
+ 	int i;
  
- 	return err;
+-	if (ops->pf >= ARRAY_SIZE(nat_net->nat_proto_net))
++	if (pf >= ARRAY_SIZE(nat_net->nat_proto_net))
+ 		return;
+ 
+-	nat_proto_net = &nat_net->nat_proto_net[ops->pf];
++	nat_proto_net = &nat_net->nat_proto_net[pf];
+ 
+ 	mutex_lock(&nf_nat_proto_mutex);
+ 	if (WARN_ON(nat_proto_net->users == 0))
+diff --git a/net/netfilter/nf_nat_proto.c b/net/netfilter/nf_nat_proto.c
+index 62743da3004f..606d0a740615 100644
+--- a/net/netfilter/nf_nat_proto.c
++++ b/net/netfilter/nf_nat_proto.c
+@@ -725,7 +725,7 @@ nf_nat_ipv4_local_fn(void *priv, struct sk_buff *skb,
+ 	return ret;
  }
--#else /* !CONFIG_NF_NAT_NEEDED */
-+#else /* !CONFIG_NF_NAT */
- static int ovs_ct_nat(struct net *net, struct sw_flow_key *key,
- 		      const struct ovs_conntrack_info *info,
- 		      struct sk_buff *skb, struct nf_conn *ct,
-@@ -1330,7 +1330,7 @@ static int ovs_ct_add_helper(struct ovs_conntrack_info *info, const char *name,
+ 
+-static const struct nf_hook_ops nf_nat_ipv4_ops[] = {
++const struct nf_hook_ops nf_nat_ipv4_ops[] = {
+ 	/* Before packet filtering, change destination */
+ 	{
+ 		.hook		= nf_nat_ipv4_in,
+@@ -758,13 +758,14 @@ static const struct nf_hook_ops nf_nat_ipv4_ops[] = {
+ 
+ int nf_nat_ipv4_register_fn(struct net *net, const struct nf_hook_ops *ops)
+ {
+-	return nf_nat_register_fn(net, ops, nf_nat_ipv4_ops, ARRAY_SIZE(nf_nat_ipv4_ops));
++	return nf_nat_register_fn(net, ops->pf, ops, nf_nat_ipv4_ops,
++				  ARRAY_SIZE(nf_nat_ipv4_ops));
+ }
+ EXPORT_SYMBOL_GPL(nf_nat_ipv4_register_fn);
+ 
+ void nf_nat_ipv4_unregister_fn(struct net *net, const struct nf_hook_ops *ops)
+ {
+-	nf_nat_unregister_fn(net, ops, ARRAY_SIZE(nf_nat_ipv4_ops));
++	nf_nat_unregister_fn(net, ops->pf, ops, ARRAY_SIZE(nf_nat_ipv4_ops));
+ }
+ EXPORT_SYMBOL_GPL(nf_nat_ipv4_unregister_fn);
+ 
+@@ -977,7 +978,7 @@ nf_nat_ipv6_local_fn(void *priv, struct sk_buff *skb,
+ 	return ret;
+ }
+ 
+-static const struct nf_hook_ops nf_nat_ipv6_ops[] = {
++const struct nf_hook_ops nf_nat_ipv6_ops[] = {
+ 	/* Before packet filtering, change destination */
+ 	{
+ 		.hook		= nf_nat_ipv6_in,
+@@ -1010,14 +1011,44 @@ static const struct nf_hook_ops nf_nat_ipv6_ops[] = {
+ 
+ int nf_nat_ipv6_register_fn(struct net *net, const struct nf_hook_ops *ops)
+ {
+-	return nf_nat_register_fn(net, ops, nf_nat_ipv6_ops,
++	return nf_nat_register_fn(net, ops->pf, ops, nf_nat_ipv6_ops,
+ 				  ARRAY_SIZE(nf_nat_ipv6_ops));
+ }
+ EXPORT_SYMBOL_GPL(nf_nat_ipv6_register_fn);
+ 
+ void nf_nat_ipv6_unregister_fn(struct net *net, const struct nf_hook_ops *ops)
+ {
+-	nf_nat_unregister_fn(net, ops, ARRAY_SIZE(nf_nat_ipv6_ops));
++	nf_nat_unregister_fn(net, ops->pf, ops, ARRAY_SIZE(nf_nat_ipv6_ops));
+ }
+ EXPORT_SYMBOL_GPL(nf_nat_ipv6_unregister_fn);
+ #endif /* CONFIG_IPV6 */
++
++#if defined(CONFIG_NF_TABLES_INET) && IS_ENABLED(CONFIG_NFT_NAT)
++int nf_nat_inet_register_fn(struct net *net, const struct nf_hook_ops *ops)
++{
++	int ret;
++
++	if (WARN_ON_ONCE(ops->pf != NFPROTO_INET))
++		return -EINVAL;
++
++	ret = nf_nat_register_fn(net, NFPROTO_IPV6, ops, nf_nat_ipv6_ops,
++				 ARRAY_SIZE(nf_nat_ipv6_ops));
++	if (ret)
++		return ret;
++
++	ret = nf_nat_register_fn(net, NFPROTO_IPV4, ops, nf_nat_ipv4_ops,
++				 ARRAY_SIZE(nf_nat_ipv4_ops));
++	if (ret)
++		nf_nat_ipv6_unregister_fn(net, ops);
++
++	return ret;
++}
++EXPORT_SYMBOL_GPL(nf_nat_inet_register_fn);
++
++void nf_nat_inet_unregister_fn(struct net *net, const struct nf_hook_ops *ops)
++{
++	nf_nat_unregister_fn(net, NFPROTO_IPV4, ops, ARRAY_SIZE(nf_nat_ipv4_ops));
++	nf_nat_unregister_fn(net, NFPROTO_IPV6, ops, ARRAY_SIZE(nf_nat_ipv6_ops));
++}
++EXPORT_SYMBOL_GPL(nf_nat_inet_unregister_fn);
++#endif /* NFT INET NAT */
+diff --git a/net/netfilter/nft_chain_nat.c b/net/netfilter/nft_chain_nat.c
+index ee4852088d50..2f89bde3c61c 100644
+--- a/net/netfilter/nft_chain_nat.c
++++ b/net/netfilter/nft_chain_nat.c
+@@ -74,6 +74,36 @@ static const struct nft_chain_type nft_chain_nat_ipv6 = {
+ };
+ #endif
+ 
++#ifdef CONFIG_NF_TABLES_INET
++static int nft_nat_inet_reg(struct net *net, const struct nf_hook_ops *ops)
++{
++	return nf_nat_inet_register_fn(net, ops);
++}
++
++static void nft_nat_inet_unreg(struct net *net, const struct nf_hook_ops *ops)
++{
++	nf_nat_inet_unregister_fn(net, ops);
++}
++
++static const struct nft_chain_type nft_chain_nat_inet = {
++	.name		= "nat",
++	.type		= NFT_CHAIN_T_NAT,
++	.family		= NFPROTO_INET,
++	.hook_mask	= (1 << NF_INET_PRE_ROUTING) |
++			  (1 << NF_INET_LOCAL_IN) |
++			  (1 << NF_INET_LOCAL_OUT) |
++			  (1 << NF_INET_POST_ROUTING),
++	.hooks		= {
++		[NF_INET_PRE_ROUTING]	= nft_nat_do_chain,
++		[NF_INET_LOCAL_IN]	= nft_nat_do_chain,
++		[NF_INET_LOCAL_OUT]	= nft_nat_do_chain,
++		[NF_INET_POST_ROUTING]	= nft_nat_do_chain,
++	},
++	.ops_register		= nft_nat_inet_reg,
++	.ops_unregister		= nft_nat_inet_unreg,
++};
++#endif
++
+ static int __init nft_chain_nat_init(void)
+ {
+ #ifdef CONFIG_NF_TABLES_IPV6
+@@ -82,6 +112,9 @@ static int __init nft_chain_nat_init(void)
+ #ifdef CONFIG_NF_TABLES_IPV4
+ 	nft_register_chain_type(&nft_chain_nat_ipv4);
+ #endif
++#ifdef CONFIG_NF_TABLES_INET
++	nft_register_chain_type(&nft_chain_nat_inet);
++#endif
+ 
  	return 0;
  }
- 
--#ifdef CONFIG_NF_NAT_NEEDED
-+#if IS_ENABLED(CONFIG_NF_NAT)
- static int parse_nat(const struct nlattr *attr,
- 		     struct ovs_conntrack_info *info, bool log)
- {
-@@ -1467,7 +1467,7 @@ static const struct ovs_ct_len_tbl ovs_ct_attr_lens[OVS_CT_ATTR_MAX + 1] = {
- 				    .maxlen = sizeof(struct md_labels) },
- 	[OVS_CT_ATTR_HELPER]	= { .minlen = 1,
- 				    .maxlen = NF_CT_HELPER_NAME_LEN },
--#ifdef CONFIG_NF_NAT_NEEDED
-+#if IS_ENABLED(CONFIG_NF_NAT)
- 	/* NAT length is checked when parsing the nested attributes. */
- 	[OVS_CT_ATTR_NAT]	= { .minlen = 0, .maxlen = INT_MAX },
+@@ -94,6 +127,9 @@ static void __exit nft_chain_nat_exit(void)
+ #ifdef CONFIG_NF_TABLES_IPV6
+ 	nft_unregister_chain_type(&nft_chain_nat_ipv6);
  #endif
-@@ -1547,7 +1547,7 @@ static int parse_ct(const struct nlattr *attr, struct ovs_conntrack_info *info,
- 				return -EINVAL;
- 			}
- 			break;
--#ifdef CONFIG_NF_NAT_NEEDED
-+#if IS_ENABLED(CONFIG_NF_NAT)
- 		case OVS_CT_ATTR_NAT: {
- 			int err = parse_nat(a, info, log);
- 
-@@ -1677,7 +1677,7 @@ int ovs_ct_copy_action(struct net *net, const struct nlattr *attr,
- 	return err;
++#ifdef CONFIG_NF_TABLES_INET
++	nft_unregister_chain_type(&nft_chain_nat_inet);
++#endif
  }
  
--#ifdef CONFIG_NF_NAT_NEEDED
-+#if IS_ENABLED(CONFIG_NF_NAT)
- static bool ovs_ct_nat_to_attr(const struct ovs_conntrack_info *info,
- 			       struct sk_buff *skb)
- {
-@@ -1783,7 +1783,7 @@ int ovs_ct_action_to_attr(const struct ovs_conntrack_info *ct_info,
- 			return -EMSGSIZE;
- 	}
+ module_init(nft_chain_nat_init);
+diff --git a/net/netfilter/nft_nat.c b/net/netfilter/nft_nat.c
+index e93aed9bda88..d90d421826aa 100644
+--- a/net/netfilter/nft_nat.c
++++ b/net/netfilter/nft_nat.c
+@@ -140,7 +140,7 @@ static int nft_nat_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
+ 		return -EINVAL;
  
--#ifdef CONFIG_NF_NAT_NEEDED
-+#if IS_ENABLED(CONFIG_NF_NAT)
- 	if (ct_info->nat && !ovs_ct_nat_to_attr(ct_info, skb))
- 		return -EMSGSIZE;
- #endif
+ 	family = ntohl(nla_get_be32(tb[NFTA_NAT_FAMILY]));
+-	if (family != ctx->family)
++	if (ctx->family != NFPROTO_INET && ctx->family != family)
+ 		return -EOPNOTSUPP;
+ 
+ 	switch (family) {
+@@ -278,13 +278,67 @@ static struct nft_expr_type nft_nat_type __read_mostly = {
+ 	.owner          = THIS_MODULE,
+ };
+ 
++#ifdef CONFIG_NF_TABLES_INET
++static void nft_nat_inet_eval(const struct nft_expr *expr,
++			      struct nft_regs *regs,
++			      const struct nft_pktinfo *pkt)
++{
++	const struct nft_nat *priv = nft_expr_priv(expr);
++
++	if (priv->family == nft_pf(pkt))
++		nft_nat_eval(expr, regs, pkt);
++}
++
++static const struct nft_expr_ops nft_nat_inet_ops = {
++	.type           = &nft_nat_type,
++	.size           = NFT_EXPR_SIZE(sizeof(struct nft_nat)),
++	.eval           = nft_nat_inet_eval,
++	.init           = nft_nat_init,
++	.destroy        = nft_nat_destroy,
++	.dump           = nft_nat_dump,
++	.validate	= nft_nat_validate,
++};
++
++static struct nft_expr_type nft_inet_nat_type __read_mostly = {
++	.name           = "nat",
++	.family		= NFPROTO_INET,
++	.ops            = &nft_nat_inet_ops,
++	.policy         = nft_nat_policy,
++	.maxattr        = NFTA_NAT_MAX,
++	.owner          = THIS_MODULE,
++};
++
++static int nft_nat_inet_module_init(void)
++{
++	return nft_register_expr(&nft_inet_nat_type);
++}
++
++static void nft_nat_inet_module_exit(void)
++{
++	nft_unregister_expr(&nft_inet_nat_type);
++}
++#else
++static int nft_nat_inet_module_init(void) { return 0; }
++static void nft_nat_inet_module_exit(void) { }
++#endif
++
+ static int __init nft_nat_module_init(void)
+ {
+-	return nft_register_expr(&nft_nat_type);
++	int ret = nft_nat_inet_module_init();
++
++	if (ret)
++		return ret;
++
++	ret = nft_register_expr(&nft_nat_type);
++	if (ret)
++		nft_nat_inet_module_exit();
++
++	return ret;
+ }
+ 
+ static void __exit nft_nat_module_exit(void)
+ {
++	nft_nat_inet_module_exit();
+ 	nft_unregister_expr(&nft_nat_type);
+ }
+ 
 -- 
 2.11.0
 
