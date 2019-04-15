@@ -6,45 +6,45 @@ X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3841AC282DD
-	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Apr 2019 17:01:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A549C10F0E
+	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Apr 2019 17:01:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0FE1F2183F
-	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Apr 2019 17:01:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 13E672075B
+	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Apr 2019 17:01:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727955AbfDORBN (ORCPT
+        id S1727873AbfDORAp (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 15 Apr 2019 13:01:13 -0400
-Received: from mail.us.es ([193.147.175.20]:50438 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727864AbfDORAp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Mon, 15 Apr 2019 13:00:45 -0400
+Received: from mail.us.es ([193.147.175.20]:50452 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727826AbfDORAo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 15 Apr 2019 13:00:44 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 60D431C4440
-        for <netfilter-devel@vger.kernel.org>; Mon, 15 Apr 2019 19:00:44 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 95BE11C442E
+        for <netfilter-devel@vger.kernel.org>; Mon, 15 Apr 2019 19:00:43 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 4A7FBDA714
-        for <netfilter-devel@vger.kernel.org>; Mon, 15 Apr 2019 19:00:44 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 786D1DA712
+        for <netfilter-devel@vger.kernel.org>; Mon, 15 Apr 2019 19:00:43 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 48CF6DA70F; Mon, 15 Apr 2019 19:00:44 +0200 (CEST)
+        id 7681EDA705; Mon, 15 Apr 2019 19:00:43 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 2267EDA706;
-        Mon, 15 Apr 2019 19:00:42 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 11EB6DA71A;
+        Mon, 15 Apr 2019 19:00:41 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 15 Apr 2019 19:00:42 +0200 (CEST)
+ Mon, 15 Apr 2019 19:00:41 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id E89424265A31;
-        Mon, 15 Apr 2019 19:00:41 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id D3B6B4265A31;
+        Mon, 15 Apr 2019 19:00:40 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 15/22] netfilter: nf_nat: merge ip/ip6 masquerade headers
-Date:   Mon, 15 Apr 2019 19:00:21 +0200
-Message-Id: <20190415170028.3470-16-pablo@netfilter.org>
+Subject: [PATCH 13/22] netfilter: nft_osf: Add version option support
+Date:   Mon, 15 Apr 2019 19:00:19 +0200
+Message-Id: <20190415170028.3470-14-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20190415170028.3470-1-pablo@netfilter.org>
 References: <20190415170028.3470-1-pablo@netfilter.org>
@@ -54,145 +54,201 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+From: Fernando Fernandez Mancera <ffmancera@riseup.net>
 
-Both are now implemented by nf_nat_masquerade.c, so no need to keep
-different headers.
+Add version option support to the nftables "osf" expression.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Fernando Fernandez Mancera <ffmancera@riseup.net>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/ipv4/nf_nat_masquerade.h | 15 ---------------
- include/net/netfilter/ipv6/nf_nat_masquerade.h | 11 -----------
- include/net/netfilter/nf_nat_masquerade.h      | 21 +++++++++++++++++++++
- net/ipv4/netfilter/ipt_MASQUERADE.c            |  2 +-
- net/ipv6/netfilter/ip6t_MASQUERADE.c           |  2 +-
- net/netfilter/nf_nat_masquerade.c              |  3 +--
- net/netfilter/nft_masq.c                       |  3 +--
- 7 files changed, 25 insertions(+), 32 deletions(-)
- delete mode 100644 include/net/netfilter/ipv4/nf_nat_masquerade.h
- delete mode 100644 include/net/netfilter/ipv6/nf_nat_masquerade.h
- create mode 100644 include/net/netfilter/nf_nat_masquerade.h
+ include/linux/netfilter/nfnetlink_osf.h  | 11 ++++++++---
+ include/uapi/linux/netfilter/nf_tables.h |  6 ++++++
+ net/netfilter/nfnetlink_osf.c            | 14 +++++++-------
+ net/netfilter/nft_osf.c                  | 30 +++++++++++++++++++++++++-----
+ 4 files changed, 46 insertions(+), 15 deletions(-)
 
-diff --git a/include/net/netfilter/ipv4/nf_nat_masquerade.h b/include/net/netfilter/ipv4/nf_nat_masquerade.h
-deleted file mode 100644
-index 13d55206bb9f..000000000000
---- a/include/net/netfilter/ipv4/nf_nat_masquerade.h
-+++ /dev/null
-@@ -1,15 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 */
--#ifndef _NF_NAT_MASQUERADE_IPV4_H_
--#define _NF_NAT_MASQUERADE_IPV4_H_
--
--#include <net/netfilter/nf_nat.h>
--
--unsigned int
--nf_nat_masquerade_ipv4(struct sk_buff *skb, unsigned int hooknum,
--		       const struct nf_nat_range2 *range,
--		       const struct net_device *out);
--
--int nf_nat_masquerade_ipv4_register_notifier(void);
--void nf_nat_masquerade_ipv4_unregister_notifier(void);
--
--#endif /*_NF_NAT_MASQUERADE_IPV4_H_ */
-diff --git a/include/net/netfilter/ipv6/nf_nat_masquerade.h b/include/net/netfilter/ipv6/nf_nat_masquerade.h
-deleted file mode 100644
-index 2917bf95c437..000000000000
---- a/include/net/netfilter/ipv6/nf_nat_masquerade.h
-+++ /dev/null
-@@ -1,11 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 */
--#ifndef _NF_NAT_MASQUERADE_IPV6_H_
--#define _NF_NAT_MASQUERADE_IPV6_H_
--
--unsigned int
--nf_nat_masquerade_ipv6(struct sk_buff *skb, const struct nf_nat_range2 *range,
--		       const struct net_device *out);
--int nf_nat_masquerade_ipv6_register_notifier(void);
--void nf_nat_masquerade_ipv6_unregister_notifier(void);
--
--#endif /* _NF_NAT_MASQUERADE_IPV6_H_ */
-diff --git a/include/net/netfilter/nf_nat_masquerade.h b/include/net/netfilter/nf_nat_masquerade.h
-new file mode 100644
-index 000000000000..cafe71822a53
---- /dev/null
-+++ b/include/net/netfilter/nf_nat_masquerade.h
-@@ -0,0 +1,21 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+#ifndef _NF_NAT_MASQUERADE_H_
-+#define _NF_NAT_MASQUERADE_H_
-+
-+#include <net/netfilter/nf_nat.h>
-+
-+unsigned int
-+nf_nat_masquerade_ipv4(struct sk_buff *skb, unsigned int hooknum,
-+		       const struct nf_nat_range2 *range,
-+		       const struct net_device *out);
-+
-+int nf_nat_masquerade_ipv4_register_notifier(void);
-+void nf_nat_masquerade_ipv4_unregister_notifier(void);
-+
-+unsigned int
-+nf_nat_masquerade_ipv6(struct sk_buff *skb, const struct nf_nat_range2 *range,
-+		       const struct net_device *out);
-+int nf_nat_masquerade_ipv6_register_notifier(void);
-+void nf_nat_masquerade_ipv6_unregister_notifier(void);
-+
-+#endif /*_NF_NAT_MASQUERADE_H_ */
-diff --git a/net/ipv4/netfilter/ipt_MASQUERADE.c b/net/ipv4/netfilter/ipt_MASQUERADE.c
-index fd3f9e8a74da..0a2bffb6a0ad 100644
---- a/net/ipv4/netfilter/ipt_MASQUERADE.c
-+++ b/net/ipv4/netfilter/ipt_MASQUERADE.c
-@@ -22,7 +22,7 @@
- #include <linux/netfilter_ipv4.h>
- #include <linux/netfilter/x_tables.h>
- #include <net/netfilter/nf_nat.h>
--#include <net/netfilter/ipv4/nf_nat_masquerade.h>
-+#include <net/netfilter/nf_nat_masquerade.h>
+diff --git a/include/linux/netfilter/nfnetlink_osf.h b/include/linux/netfilter/nfnetlink_osf.h
+index c6000046c966..788613f36935 100644
+--- a/include/linux/netfilter/nfnetlink_osf.h
++++ b/include/linux/netfilter/nfnetlink_osf.h
+@@ -21,13 +21,18 @@ struct nf_osf_finger {
+ 	struct nf_osf_user_finger	finger;
+ };
  
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Netfilter Core Team <coreteam@netfilter.org>");
-diff --git a/net/ipv6/netfilter/ip6t_MASQUERADE.c b/net/ipv6/netfilter/ip6t_MASQUERADE.c
-index 29c7f1915a96..4a22343ed67a 100644
---- a/net/ipv6/netfilter/ip6t_MASQUERADE.c
-+++ b/net/ipv6/netfilter/ip6t_MASQUERADE.c
-@@ -19,7 +19,7 @@
- #include <net/netfilter/nf_nat.h>
- #include <net/addrconf.h>
- #include <net/ipv6.h>
--#include <net/netfilter/ipv6/nf_nat_masquerade.h>
-+#include <net/netfilter/nf_nat_masquerade.h>
++struct nf_osf_data {
++	const char *genre;
++	const char *version;
++};
++
+ bool nf_osf_match(const struct sk_buff *skb, u_int8_t family,
+ 		  int hooknum, struct net_device *in, struct net_device *out,
+ 		  const struct nf_osf_info *info, struct net *net,
+ 		  const struct list_head *nf_osf_fingers);
  
- static unsigned int
- masquerade_tg6(struct sk_buff *skb, const struct xt_action_param *par)
-diff --git a/net/netfilter/nf_nat_masquerade.c b/net/netfilter/nf_nat_masquerade.c
-index d85c4d902e7b..10053e70f69d 100644
---- a/net/netfilter/nf_nat_masquerade.c
-+++ b/net/netfilter/nf_nat_masquerade.c
-@@ -7,8 +7,7 @@
- #include <linux/netfilter_ipv4.h>
- #include <linux/netfilter_ipv6.h>
+-const char *nf_osf_find(const struct sk_buff *skb,
+-			const struct list_head *nf_osf_fingers,
+-			const int ttl_check);
++bool nf_osf_find(const struct sk_buff *skb,
++		 const struct list_head *nf_osf_fingers,
++		 const int ttl_check, struct nf_osf_data *data);
  
--#include <net/netfilter/ipv4/nf_nat_masquerade.h>
--#include <net/netfilter/ipv6/nf_nat_masquerade.h>
-+#include <net/netfilter/nf_nat_masquerade.h>
+ #endif /* _NFOSF_H */
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index a66c8de006cc..061bb3eb20c3 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -1522,15 +1522,21 @@ enum nft_flowtable_hook_attributes {
+  *
+  * @NFTA_OSF_DREG: destination register (NLA_U32: nft_registers)
+  * @NFTA_OSF_TTL: Value of the TTL osf option (NLA_U8)
++ * @NFTA_OSF_FLAGS: flags (NLA_U32)
+  */
+ enum nft_osf_attributes {
+ 	NFTA_OSF_UNSPEC,
+ 	NFTA_OSF_DREG,
+ 	NFTA_OSF_TTL,
++	NFTA_OSF_FLAGS,
+ 	__NFTA_OSF_MAX,
+ };
+ #define NFTA_OSF_MAX (__NFTA_OSF_MAX - 1)
  
- static DEFINE_MUTEX(masq_mutex);
- static unsigned int masq_refcnt4 __read_mostly;
-diff --git a/net/netfilter/nft_masq.c b/net/netfilter/nft_masq.c
-index 35a1794acf4c..0783a3e99bd7 100644
---- a/net/netfilter/nft_masq.c
-+++ b/net/netfilter/nft_masq.c
-@@ -14,8 +14,7 @@
- #include <linux/netfilter/nf_tables.h>
- #include <net/netfilter/nf_tables.h>
- #include <net/netfilter/nf_nat.h>
--#include <net/netfilter/ipv4/nf_nat_masquerade.h>
--#include <net/netfilter/ipv6/nf_nat_masquerade.h>
-+#include <net/netfilter/nf_nat_masquerade.h>
++enum nft_osf_flags {
++	NFT_OSF_F_VERSION = (1 << 0),
++};
++
+ /**
+  * enum nft_device_attributes - nf_tables device netlink attributes
+  *
+diff --git a/net/netfilter/nfnetlink_osf.c b/net/netfilter/nfnetlink_osf.c
+index 1f1d90c1716b..7b827bcb412c 100644
+--- a/net/netfilter/nfnetlink_osf.c
++++ b/net/netfilter/nfnetlink_osf.c
+@@ -255,9 +255,9 @@ nf_osf_match(const struct sk_buff *skb, u_int8_t family,
+ }
+ EXPORT_SYMBOL_GPL(nf_osf_match);
  
- struct nft_masq {
- 	u32			flags;
+-const char *nf_osf_find(const struct sk_buff *skb,
+-			const struct list_head *nf_osf_fingers,
+-			const int ttl_check)
++bool nf_osf_find(const struct sk_buff *skb,
++		 const struct list_head *nf_osf_fingers,
++		 const int ttl_check, struct nf_osf_data *data)
+ {
+ 	const struct iphdr *ip = ip_hdr(skb);
+ 	const struct nf_osf_user_finger *f;
+@@ -265,24 +265,24 @@ const char *nf_osf_find(const struct sk_buff *skb,
+ 	const struct nf_osf_finger *kf;
+ 	struct nf_osf_hdr_ctx ctx;
+ 	const struct tcphdr *tcp;
+-	const char *genre = NULL;
+ 
+ 	memset(&ctx, 0, sizeof(ctx));
+ 
+ 	tcp = nf_osf_hdr_ctx_init(&ctx, skb, ip, opts);
+ 	if (!tcp)
+-		return NULL;
++		return false;
+ 
+ 	list_for_each_entry_rcu(kf, &nf_osf_fingers[ctx.df], finger_entry) {
+ 		f = &kf->finger;
+ 		if (!nf_osf_match_one(skb, f, ttl_check, &ctx))
+ 			continue;
+ 
+-		genre = f->genre;
++		data->genre = f->genre;
++		data->version = f->version;
+ 		break;
+ 	}
+ 
+-	return genre;
++	return true;
+ }
+ EXPORT_SYMBOL_GPL(nf_osf_find);
+ 
+diff --git a/net/netfilter/nft_osf.c b/net/netfilter/nft_osf.c
+index b13618c764ec..87b60d6617ef 100644
+--- a/net/netfilter/nft_osf.c
++++ b/net/netfilter/nft_osf.c
+@@ -7,11 +7,13 @@
+ struct nft_osf {
+ 	enum nft_registers	dreg:8;
+ 	u8			ttl;
++	u32			flags;
+ };
+ 
+ static const struct nla_policy nft_osf_policy[NFTA_OSF_MAX + 1] = {
+ 	[NFTA_OSF_DREG]		= { .type = NLA_U32 },
+ 	[NFTA_OSF_TTL]		= { .type = NLA_U8 },
++	[NFTA_OSF_FLAGS]	= { .type = NLA_U32 },
+ };
+ 
+ static void nft_osf_eval(const struct nft_expr *expr, struct nft_regs *regs,
+@@ -20,9 +22,10 @@ static void nft_osf_eval(const struct nft_expr *expr, struct nft_regs *regs,
+ 	struct nft_osf *priv = nft_expr_priv(expr);
+ 	u32 *dest = &regs->data[priv->dreg];
+ 	struct sk_buff *skb = pkt->skb;
++	char os_match[NFT_OSF_MAXGENRELEN + 1];
+ 	const struct tcphdr *tcp;
++	struct nf_osf_data data;
+ 	struct tcphdr _tcph;
+-	const char *os_name;
+ 
+ 	tcp = skb_header_pointer(skb, ip_hdrlen(skb),
+ 				 sizeof(struct tcphdr), &_tcph);
+@@ -35,11 +38,17 @@ static void nft_osf_eval(const struct nft_expr *expr, struct nft_regs *regs,
+ 		return;
+ 	}
+ 
+-	os_name = nf_osf_find(skb, nf_osf_fingers, priv->ttl);
+-	if (!os_name)
++	if (!nf_osf_find(skb, nf_osf_fingers, priv->ttl, &data)) {
+ 		strncpy((char *)dest, "unknown", NFT_OSF_MAXGENRELEN);
+-	else
+-		strncpy((char *)dest, os_name, NFT_OSF_MAXGENRELEN);
++	} else {
++		if (priv->flags & NFT_OSF_F_VERSION)
++			snprintf(os_match, NFT_OSF_MAXGENRELEN, "%s:%s",
++				 data.genre, data.version);
++		else
++			strlcpy(os_match, data.genre, NFT_OSF_MAXGENRELEN);
++
++		strncpy((char *)dest, os_match, NFT_OSF_MAXGENRELEN);
++	}
+ }
+ 
+ static int nft_osf_init(const struct nft_ctx *ctx,
+@@ -47,6 +56,7 @@ static int nft_osf_init(const struct nft_ctx *ctx,
+ 			const struct nlattr * const tb[])
+ {
+ 	struct nft_osf *priv = nft_expr_priv(expr);
++	u32 flags;
+ 	int err;
+ 	u8 ttl;
+ 
+@@ -57,6 +67,13 @@ static int nft_osf_init(const struct nft_ctx *ctx,
+ 		priv->ttl = ttl;
+ 	}
+ 
++	if (tb[NFTA_OSF_FLAGS]) {
++		flags = ntohl(nla_get_be32(tb[NFTA_OSF_FLAGS]));
++		if (flags != NFT_OSF_F_VERSION)
++			return -EINVAL;
++		priv->flags = flags;
++	}
++
+ 	priv->dreg = nft_parse_register(tb[NFTA_OSF_DREG]);
+ 	err = nft_validate_register_store(ctx, priv->dreg, NULL,
+ 					  NFT_DATA_VALUE, NFT_OSF_MAXGENRELEN);
+@@ -73,6 +90,9 @@ static int nft_osf_dump(struct sk_buff *skb, const struct nft_expr *expr)
+ 	if (nla_put_u8(skb, NFTA_OSF_TTL, priv->ttl))
+ 		goto nla_put_failure;
+ 
++	if (nla_put_be32(skb, NFTA_OSF_FLAGS, ntohl(priv->flags)))
++		goto nla_put_failure;
++
+ 	if (nft_dump_register(skb, NFTA_OSF_DREG, priv->dreg))
+ 		goto nla_put_failure;
+ 
 -- 
 2.11.0
 
