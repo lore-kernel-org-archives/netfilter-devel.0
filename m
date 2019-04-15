@@ -2,33 +2,34 @@ Return-Path: <SRS0=sICu=SR=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,
+	UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 25BF4C282DA
-	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Apr 2019 21:36:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C5E7C10F0E
+	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Apr 2019 21:36:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id F32612070D
-	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Apr 2019 21:36:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 33A002070D
+	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Apr 2019 21:36:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727841AbfDOVgn (ORCPT
+        id S1728201AbfDOVgr (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 15 Apr 2019 17:36:43 -0400
-Received: from mail.us.es ([193.147.175.20]:48406 "EHLO mail.us.es"
+        Mon, 15 Apr 2019 17:36:47 -0400
+Received: from mail.us.es ([193.147.175.20]:48410 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728126AbfDOVgb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 15 Apr 2019 17:36:31 -0400
+        id S1728122AbfDOVga (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 15 Apr 2019 17:36:30 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 710632EFEC3
-        for <netfilter-devel@vger.kernel.org>; Mon, 15 Apr 2019 23:36:28 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 23B012EFEBD
+        for <netfilter-devel@vger.kernel.org>; Mon, 15 Apr 2019 23:36:29 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 55517DA709
-        for <netfilter-devel@vger.kernel.org>; Mon, 15 Apr 2019 23:36:28 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 1488ADA715
+        for <netfilter-devel@vger.kernel.org>; Mon, 15 Apr 2019 23:36:29 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 4AEB8DA701; Mon, 15 Apr 2019 23:36:28 +0200 (CEST)
+        id 13B58DA707; Mon, 15 Apr 2019 23:36:29 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 2CCC9DA712;
+        by antivirus1-rhel7.int (Postfix) with ESMTP id DF9CBDA711;
         Mon, 15 Apr 2019 23:36:26 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
@@ -36,17 +37,17 @@ Received: from 192.168.1.97 (192.168.1.97)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id D346D4265A31;
-        Mon, 15 Apr 2019 23:36:25 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 8F64D4265A31;
+        Mon, 15 Apr 2019 23:36:26 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, fw@strlen.de,
         nikolay@cumulusnetworks.com, roopa@cumulusnetworks.com,
         herbert@gondor.apana.org.au
-Subject: [PATCH net-next 06/10] net: ipv4: place cb handling away from fragment transformer
-Date:   Mon, 15 Apr 2019 23:36:07 +0200
-Message-Id: <20190415213611.21863-7-pablo@netfilter.org>
+Subject: [PATCH net-next 07/10] netfilter: nf_conntrack: allow to register bridge support
+Date:   Mon, 15 Apr 2019 23:36:08 +0200
+Message-Id: <20190415213611.21863-8-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20190415213611.21863-1-pablo@netfilter.org>
 References: <20190415213611.21863-1-pablo@netfilter.org>
@@ -56,80 +57,154 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Deal with the IPCB() area away from the fragment transformer.
-
-The bridge codebase has its own control buffer layout, move specific IP
-control buffer into function.
+This patch adds infrastructure to register and to unregister bridge
+support for conntrack module via nf_ct_bridge_register() and
+nf_ct_bridge_unregister().
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/ipv4/ip_output.c | 34 ++++++++++++++++++++++------------
- 1 file changed, 22 insertions(+), 12 deletions(-)
+ include/net/netfilter/nf_conntrack.h        |  1 +
+ include/net/netfilter/nf_conntrack_bridge.h | 13 ++++++
+ net/netfilter/nf_conntrack_proto.c          | 61 +++++++++++++++++++++++++++--
+ 3 files changed, 72 insertions(+), 3 deletions(-)
+ create mode 100644 include/net/netfilter/nf_conntrack_bridge.h
 
-diff --git a/net/ipv4/ip_output.c b/net/ipv4/ip_output.c
-index bf02c7d37acd..92ad57638b2f 100644
---- a/net/ipv4/ip_output.c
-+++ b/net/ipv4/ip_output.c
-@@ -632,6 +632,25 @@ void ip_frag_init(struct sk_buff *skb, unsigned int hlen,
+diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
+index 5ee7b30b4917..1a40bfc43f41 100644
+--- a/include/net/netfilter/nf_conntrack.h
++++ b/include/net/netfilter/nf_conntrack.h
+@@ -49,6 +49,7 @@ union nf_conntrack_expect_proto {
+ struct nf_conntrack_net {
+ 	unsigned int users4;
+ 	unsigned int users6;
++	unsigned int users_bridge;
+ };
+ 
+ #include <linux/types.h>
+diff --git a/include/net/netfilter/nf_conntrack_bridge.h b/include/net/netfilter/nf_conntrack_bridge.h
+new file mode 100644
+index 000000000000..3be1642e04f7
+--- /dev/null
++++ b/include/net/netfilter/nf_conntrack_bridge.h
+@@ -0,0 +1,13 @@
++#ifndef NF_CONNTRACK_BRIDGE_
++#define NF_CONNTRACK_BRIDGE_
++
++struct nf_ct_bridge_info {
++	struct nf_hook_ops	*ops;
++	unsigned int		ops_size;
++	struct module		*me;
++};
++
++void nf_ct_bridge_register(struct nf_ct_bridge_info *info);
++void nf_ct_bridge_unregister(struct nf_ct_bridge_info *info);
++
++#endif
+diff --git a/net/netfilter/nf_conntrack_proto.c b/net/netfilter/nf_conntrack_proto.c
+index b9403a266a2e..9abbf81f4d66 100644
+--- a/net/netfilter/nf_conntrack_proto.c
++++ b/net/netfilter/nf_conntrack_proto.c
+@@ -16,6 +16,7 @@
+ #include <net/netfilter/nf_conntrack.h>
+ #include <net/netfilter/nf_conntrack_l4proto.h>
+ #include <net/netfilter/nf_conntrack_core.h>
++#include <net/netfilter/nf_conntrack_bridge.h>
+ #include <net/netfilter/nf_log.h>
+ 
+ #include <linux/ip.h>
+@@ -442,12 +443,14 @@ static int nf_ct_tcp_fixup(struct nf_conn *ct, void *_nfproto)
+ 	return 0;
  }
- EXPORT_SYMBOL(ip_frag_init);
  
-+static void ip_frag_ipcb(struct sk_buff *from, struct sk_buff *to,
-+			 bool first_frag, struct ip_frag_state *state)
-+{
-+	/* Copy the flags to each fragment. */
-+	IPCB(to)->flags = IPCB(from)->flags;
++static struct nf_ct_bridge_info *nf_ct_bridge_info;
 +
-+	if (IPCB(from)->flags & IPSKB_FRAG_PMTU)
-+		state->iph->frag_off |= htons(IP_DF);
-+
-+	/* ANK: dirty, but effective trick. Upgrade options only if
-+	 * the segment to be fragmented was THE FIRST (otherwise,
-+	 * options are already fixed) and make it ONCE
-+	 * on the initial skb, so that all the following fragments
-+	 * will inherit fixed options.
-+	 */
-+	if (first_frag)
-+		ip_options_fragment(from);
-+}
-+
- struct sk_buff *ip_frag_next(struct sk_buff *skb, struct ip_frag_state *state)
+ static int nf_ct_netns_do_get(struct net *net, u8 nfproto)
  {
- 	unsigned int len = state->left;
-@@ -690,18 +709,6 @@ struct sk_buff *ip_frag_next(struct sk_buff *skb, struct ip_frag_state *state)
- 	iph = ip_hdr(skb2);
- 	iph->frag_off = htons((state->offset >> 3));
- 
--	if (IPCB(skb)->flags & IPSKB_FRAG_PMTU)
--		iph->frag_off |= htons(IP_DF);
+ 	struct nf_conntrack_net *cnet = net_generic(net, nf_conntrack_net_id);
+-	bool fixup_needed = false;
++	bool fixup_needed = false, retry = true;
+ 	int err = 0;
 -
--	/* ANK: dirty, but effective trick. Upgrade options only if
--	 * the segment to be fragmented was THE FIRST (otherwise,
--	 * options are already fixed) and make it ONCE
--	 * on the initial skb, so that all the following fragments
--	 * will inherit fixed options.
--	 */
--	if (state->offset == 0)
--		ip_options_fragment(skb);
--
- 	/*
- 	 *	Added AC : If we are fragmenting a fragment that's not the
- 	 *		   last fragment then keep MF on each bit
-@@ -851,11 +858,14 @@ int ip_do_fragment(struct net *net, struct sock *sk, struct sk_buff *skb,
- 	 */
++retry:
+ 	mutex_lock(&nf_ct_proto_mutex);
  
- 	while (state.left > 0) {
-+		bool first_frag = (state.offset == 0);
+ 	switch (nfproto) {
+@@ -487,6 +490,32 @@ static int nf_ct_netns_do_get(struct net *net, u8 nfproto)
+ 			fixup_needed = true;
+ 		break;
+ #endif
++	case NFPROTO_BRIDGE:
++		if (!nf_ct_bridge_info) {
++			if (!retry) {
++				err = -EPROTO;
++				goto out_unlock;
++			}
++			mutex_unlock(&nf_ct_proto_mutex);
++			request_module("nf_conntrack_bridge");
++			retry = false;
++			goto retry;
++		}
++		if (!try_module_get(nf_ct_bridge_info->me)) {
++			err = -EPROTO;
++			goto out_unlock;
++		}
++		cnet->users_bridge++;
++		if (cnet->users_bridge > 1)
++			goto out_unlock;
 +
- 		skb2 = ip_frag_next(skb, &state);
- 		if (IS_ERR(skb2)) {
- 			err = PTR_ERR(skb2);
- 			goto fail;
- 		}
-+		ip_frag_ipcb(skb, skb2, first_frag, &state);
++		err = nf_register_net_hooks(net, nf_ct_bridge_info->ops,
++					    nf_ct_bridge_info->ops_size);
++		if (err)
++			cnet->users_bridge = 0;
++		else
++			fixup_needed = true;
++		break;
+ 	default:
+ 		err = -EPROTO;
+ 		break;
+@@ -519,8 +548,16 @@ static void nf_ct_netns_do_put(struct net *net, u8 nfproto)
+ 						ARRAY_SIZE(ipv6_conntrack_ops));
+ 		break;
+ #endif
++	case NFPROTO_BRIDGE:
++		if (!nf_ct_bridge_info)
++			break;
++		if (cnet->users_bridge && (--cnet->users_bridge == 0))
++			nf_unregister_net_hooks(net, nf_ct_bridge_info->ops,
++						nf_ct_bridge_info->ops_size);
++
++		module_put(nf_ct_bridge_info->me);
++		break;
+ 	}
+-
+ 	mutex_unlock(&nf_ct_proto_mutex);
+ }
  
- 		/*
- 		 *	Put this fragment into the sending queue.
+@@ -560,6 +597,24 @@ void nf_ct_netns_put(struct net *net, uint8_t nfproto)
+ }
+ EXPORT_SYMBOL_GPL(nf_ct_netns_put);
+ 
++void nf_ct_bridge_register(struct nf_ct_bridge_info *info)
++{
++	WARN_ON(nf_ct_bridge_info);
++	mutex_lock(&nf_ct_proto_mutex);
++	nf_ct_bridge_info = info;
++	mutex_unlock(&nf_ct_proto_mutex);
++}
++EXPORT_SYMBOL_GPL(nf_ct_bridge_register);
++
++void nf_ct_bridge_unregister(struct nf_ct_bridge_info *info)
++{
++	WARN_ON(!nf_ct_bridge_info);
++	mutex_lock(&nf_ct_proto_mutex);
++	nf_ct_bridge_info = NULL;
++	mutex_unlock(&nf_ct_proto_mutex);
++}
++EXPORT_SYMBOL_GPL(nf_ct_bridge_unregister);
++
+ int nf_conntrack_proto_init(void)
+ {
+ 	int ret;
 -- 
 2.11.0
 
