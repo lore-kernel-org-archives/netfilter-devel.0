@@ -3,50 +3,50 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 84FC0C10F12
-	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Apr 2019 21:36:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 25BF4C282DA
+	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Apr 2019 21:36:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5666D2070D
-	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Apr 2019 21:36:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F32612070D
+	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Apr 2019 21:36:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728186AbfDOVgg (ORCPT
+        id S1727841AbfDOVgn (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 15 Apr 2019 17:36:36 -0400
-Received: from mail.us.es ([193.147.175.20]:48428 "EHLO mail.us.es"
+        Mon, 15 Apr 2019 17:36:43 -0400
+Received: from mail.us.es ([193.147.175.20]:48406 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728153AbfDOVgc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 15 Apr 2019 17:36:32 -0400
+        id S1728126AbfDOVgb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 15 Apr 2019 17:36:31 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id C8D172EFEB9
-        for <netfilter-devel@vger.kernel.org>; Mon, 15 Apr 2019 23:36:30 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 710632EFEC3
+        for <netfilter-devel@vger.kernel.org>; Mon, 15 Apr 2019 23:36:28 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id B89AEDA705
-        for <netfilter-devel@vger.kernel.org>; Mon, 15 Apr 2019 23:36:30 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 55517DA709
+        for <netfilter-devel@vger.kernel.org>; Mon, 15 Apr 2019 23:36:28 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id ADF73DA70E; Mon, 15 Apr 2019 23:36:30 +0200 (CEST)
+        id 4AEB8DA701; Mon, 15 Apr 2019 23:36:28 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 6CE26DA705;
-        Mon, 15 Apr 2019 23:36:28 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 2CCC9DA712;
+        Mon, 15 Apr 2019 23:36:26 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 15 Apr 2019 23:36:28 +0200 (CEST)
+ Mon, 15 Apr 2019 23:36:26 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 183FC4265A31;
-        Mon, 15 Apr 2019 23:36:28 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id D346D4265A31;
+        Mon, 15 Apr 2019 23:36:25 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, fw@strlen.de,
         nikolay@cumulusnetworks.com, roopa@cumulusnetworks.com,
         herbert@gondor.apana.org.au
-Subject: [PATCH net-next 09/10] netfilter: nf_conntrack_bridge: add support for IPv6
-Date:   Mon, 15 Apr 2019 23:36:10 +0200
-Message-Id: <20190415213611.21863-10-pablo@netfilter.org>
+Subject: [PATCH net-next 06/10] net: ipv4: place cb handling away from fragment transformer
+Date:   Mon, 15 Apr 2019 23:36:07 +0200
+Message-Id: <20190415213611.21863-7-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20190415213611.21863-1-pablo@netfilter.org>
 References: <20190415213611.21863-1-pablo@netfilter.org>
@@ -56,333 +56,80 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-br_defrag() and br_fragment() indirections are added in case of IPv6 support
-comes as a module, to avoid pulling innecessary dependencies in.
+Deal with the IPCB() area away from the fragment transformer.
 
-The new fraglist iterator and fragment transformer APIs is used to
-implement the refragmentation code.
+The bridge codebase has its own control buffer layout, move specific IP
+control buffer into function.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/linux/netfilter_ipv6.h             |  50 ++++++++++++
- net/bridge/netfilter/nf_conntrack_bridge.c |  59 +++++++++++++-
- net/ipv6/netfilter.c                       | 123 +++++++++++++++++++++++++++++
- 3 files changed, 230 insertions(+), 2 deletions(-)
+ net/ipv4/ip_output.c | 34 ++++++++++++++++++++++------------
+ 1 file changed, 22 insertions(+), 12 deletions(-)
 
-diff --git a/include/linux/netfilter_ipv6.h b/include/linux/netfilter_ipv6.h
-index 12113e502656..a21b8c9623ee 100644
---- a/include/linux/netfilter_ipv6.h
-+++ b/include/linux/netfilter_ipv6.h
-@@ -19,6 +19,7 @@ struct ip6_rt_info {
- };
- 
- struct nf_queue_entry;
-+struct nf_ct_bridge_frag_data;
- 
- /*
-  * Hook functions for ipv6 to allow xt_* modules to be built-in even
-@@ -39,6 +40,15 @@ struct nf_ipv6_ops {
- 	int (*fragment)(struct net *net, struct sock *sk, struct sk_buff *skb,
- 			int (*output)(struct net *, struct sock *, struct sk_buff *));
- 	int (*reroute)(struct sk_buff *skb, const struct nf_queue_entry *entry);
-+#if IS_MODULE(CONFIG_IPV6)
-+	int (*br_defrag)(struct net *net, struct sk_buff *skb, u32 user);
-+	int (*br_fragment)(struct net *net, struct sock *sk,
-+			   struct sk_buff *skb,
-+			   struct nf_ct_bridge_frag_data *data,
-+			   int (*output)(struct net *, struct sock *sk,
-+					 const struct nf_ct_bridge_frag_data *data,
-+					 struct sk_buff *));
-+#endif
- };
- 
- #ifdef CONFIG_NETFILTER
-@@ -86,6 +96,46 @@ static inline int nf_ip6_route(struct net *net, struct dst_entry **dst,
- #endif
+diff --git a/net/ipv4/ip_output.c b/net/ipv4/ip_output.c
+index bf02c7d37acd..92ad57638b2f 100644
+--- a/net/ipv4/ip_output.c
++++ b/net/ipv4/ip_output.c
+@@ -632,6 +632,25 @@ void ip_frag_init(struct sk_buff *skb, unsigned int hlen,
  }
+ EXPORT_SYMBOL(ip_frag_init);
  
-+static inline int nf_ipv6_br_defrag(struct net *net, struct sk_buff *skb,
-+				    u32 user)
++static void ip_frag_ipcb(struct sk_buff *from, struct sk_buff *to,
++			 bool first_frag, struct ip_frag_state *state)
 +{
-+#if IS_MODULE(CONFIG_IPV6)
-+	const struct nf_ipv6_ops *v6_ops = nf_get_ipv6_ops();
++	/* Copy the flags to each fragment. */
++	IPCB(to)->flags = IPCB(from)->flags;
 +
-+	if (!v6_ops)
-+		return 1;
++	if (IPCB(from)->flags & IPSKB_FRAG_PMTU)
++		state->iph->frag_off |= htons(IP_DF);
 +
-+	return v6_ops->br_defrag(net, skb, user);
-+#else
-+	return nf_ct_frag6_gather(net, skb, user);
-+#endif
-+}
-+
-+int br_ip6_fragment(struct net *net, struct sock *sk, struct sk_buff *skb,
-+		    struct nf_ct_bridge_frag_data *data,
-+		    int (*output)(struct net *, struct sock *sk,
-+				  const struct nf_ct_bridge_frag_data *data,
-+				  struct sk_buff *));
-+
-+static inline int nf_br_ip6_fragment(struct net *net, struct sock *sk,
-+				     struct sk_buff *skb,
-+				     struct nf_ct_bridge_frag_data *data,
-+				     int (*output)(struct net *, struct sock *sk,
-+						   const struct nf_ct_bridge_frag_data *data,
-+						   struct sk_buff *))
-+{
-+#if IS_MODULE(CONFIG_IPV6)
-+	const struct nf_ipv6_ops *v6_ops = nf_get_ipv6_ops();
-+
-+	if (!v6_ops)
-+		return 1;
-+
-+	return v6_ops->br_fragment(net, sk, skb, data, output);
-+#else
-+	return br_ip6_fragment(net, sk, skb, data, output);
-+#endif
-+}
-+
- int ip6_route_me_harder(struct net *net, struct sk_buff *skb);
- 
- static inline int nf_ip6_route_me_harder(struct net *net, struct sk_buff *skb)
-diff --git a/net/bridge/netfilter/nf_conntrack_bridge.c b/net/bridge/netfilter/nf_conntrack_bridge.c
-index 2571528ed582..b675cd7c1a82 100644
---- a/net/bridge/netfilter/nf_conntrack_bridge.c
-+++ b/net/bridge/netfilter/nf_conntrack_bridge.c
-@@ -163,6 +163,31 @@ static unsigned int nf_ct_br_defrag4(struct sk_buff *skb,
- 	return NF_STOLEN;
- }
- 
-+static unsigned int nf_ct_br_defrag6(struct sk_buff *skb,
-+				     const struct nf_hook_state *state)
-+{
-+	u16 zone_id = NF_CT_DEFAULT_ZONE_ID;
-+	enum ip_conntrack_info ctinfo;
-+	struct br_input_skb_cb cb;
-+	const struct nf_conn *ct;
-+	int err;
-+
-+	ct = nf_ct_get(skb, &ctinfo);
-+	if (ct)
-+		zone_id = nf_ct_zone_id(nf_ct_zone(ct), CTINFO2DIR(ctinfo));
-+
-+	br_skb_cb_save(skb, &cb, sizeof(struct inet6_skb_parm));
-+
-+	err = nf_ipv6_br_defrag(state->net, skb,
-+				IP_DEFRAG_CONNTRACK_BRIDGE_IN + zone_id);
-+	/* queued */
-+	if (err == -EINPROGRESS)
-+		return NF_STOLEN;
-+
-+	br_skb_cb_restore(skb, &cb, IP6CB(skb)->frag_max_size);
-+	return err == 0 ? NF_ACCEPT : NF_DROP;
-+}
-+
- static int nf_ct_br_ip_check(const struct sk_buff *skb)
- {
- 	const struct iphdr *iph;
-@@ -177,6 +202,23 @@ static int nf_ct_br_ip_check(const struct sk_buff *skb)
- 	len = ntohs(iph->tot_len);
- 	if (skb->len < nhoff + len ||
- 	    len < (iph->ihl * 4))
-+                return -1;
-+
-+	return 0;
-+}
-+
-+static int nf_ct_br_ipv6_check(const struct sk_buff *skb)
-+{
-+	const struct ipv6hdr *hdr;
-+	int nhoff, len;
-+
-+	nhoff = skb_network_offset(skb);
-+	hdr = ipv6_hdr(skb);
-+	if (hdr->version != 6)
-+		return -1;
-+
-+	len = ntohs(hdr->payload_len) + sizeof(struct ipv6hdr) + nhoff;
-+	if (skb->len < len)
- 		return -1;
- 
- 	return 0;
-@@ -212,7 +254,19 @@ static unsigned int nf_ct_bridge_pre(void *priv, struct sk_buff *skb,
- 		ret = nf_ct_br_defrag4(skb, &bridge_state);
- 		break;
- 	case htons(ETH_P_IPV6):
--		/* fall through */
-+		if (!pskb_may_pull(skb, sizeof(struct ipv6hdr)))
-+			return NF_ACCEPT;
-+
-+		len = sizeof(struct ipv6hdr) + ntohs(ipv6_hdr(skb)->payload_len);
-+		if (pskb_trim_rcsum(skb, len))
-+			return NF_ACCEPT;
-+
-+		if (nf_ct_br_ipv6_check(skb))
-+			return NF_ACCEPT;
-+
-+		bridge_state.pf = NFPROTO_IPV6;
-+		ret = nf_ct_br_defrag6(skb, &bridge_state);
-+		break;
- 	default:
- 		nf_ct_set(skb, NULL, IP_CT_UNTRACKED);
- 		return NF_ACCEPT;
-@@ -254,7 +308,8 @@ nf_ct_bridge_refrag(struct sk_buff *skb, const struct nf_hook_state *state,
- 		nf_br_ip_fragment(state->net, state->sk, skb, &data, output);
- 		break;
- 	case htons(ETH_P_IPV6):
--		return NF_ACCEPT;
-+		nf_br_ip6_fragment(state->net, state->sk, skb, &data, output);
-+		break;
- 	default:
- 		WARN_ON_ONCE(1);
- 		return NF_DROP;
-diff --git a/net/ipv6/netfilter.c b/net/ipv6/netfilter.c
-index 1240ccd57f39..c6665382acb5 100644
---- a/net/ipv6/netfilter.c
-+++ b/net/ipv6/netfilter.c
-@@ -16,6 +16,9 @@
- #include <net/ip6_route.h>
- #include <net/xfrm.h>
- #include <net/netfilter/nf_queue.h>
-+#include <net/netfilter/nf_conntrack_bridge.h>
-+#include <net/netfilter/ipv6/nf_defrag_ipv6.h>
-+#include "../bridge/br_private.h"
- 
- int ip6_route_me_harder(struct net *net, struct sk_buff *skb)
- {
-@@ -109,6 +112,122 @@ int __nf_ip6_route(struct net *net, struct dst_entry **dst,
- }
- EXPORT_SYMBOL_GPL(__nf_ip6_route);
- 
-+int br_ip6_fragment(struct net *net, struct sock *sk, struct sk_buff *skb,
-+		    struct nf_ct_bridge_frag_data *data,
-+		    int (*output)(struct net *, struct sock *sk,
-+				  const struct nf_ct_bridge_frag_data *data,
-+				  struct sk_buff *))
-+{
-+	int frag_max_size = BR_INPUT_SKB_CB(skb)->frag_max_size;
-+	struct ip6_frag_state state;
-+	u8 *prevhdr, nexthdr = 0;
-+	unsigned int mtu, hlen;
-+	int hroom, err = 0;
-+	__be32 frag_id;
-+
-+	err = ip6_find_1stfragopt(skb, &prevhdr);
-+	if (err < 0)
-+		goto blackhole;
-+	hlen = err;
-+	nexthdr = *prevhdr;
-+
-+	mtu = skb->dev->mtu;
-+	if (frag_max_size > mtu ||
-+	    frag_max_size < IPV6_MIN_MTU)
-+		goto blackhole;
-+
-+	mtu = frag_max_size;
-+	if (mtu < hlen + sizeof(struct frag_hdr) + 8)
-+		goto blackhole;
-+	mtu -= hlen + sizeof(struct frag_hdr);
-+
-+	frag_id = ipv6_select_ident(net, &ipv6_hdr(skb)->daddr,
-+				    &ipv6_hdr(skb)->saddr);
-+
-+	if (skb->ip_summed == CHECKSUM_PARTIAL &&
-+	    (err = skb_checksum_help(skb)))
-+		goto blackhole;
-+
-+	hroom = LL_RESERVED_SPACE(skb->dev);
-+	if (skb_has_frag_list(skb)) {
-+		unsigned int first_len = skb_pagelen(skb);
-+		struct ip6_fraglist_iter iter;
-+		struct sk_buff *frag2;
-+
-+		if (first_len - hlen > mtu ||
-+		    skb_headroom(skb) < (hroom + sizeof(struct frag_hdr)))
-+			goto blackhole;
-+
-+		if (skb_cloned(skb))
-+			goto slow_path;
-+
-+		skb_walk_frags(skb, frag2) {
-+			if (frag2->len > mtu ||
-+			    skb_headroom(frag2) < (hlen + hroom + sizeof(struct frag_hdr)))
-+				goto blackhole;
-+
-+			/* Partially cloned skb? */
-+			if (skb_shared(frag2))
-+				goto slow_path;
-+		}
-+
-+		err = ip6_fraglist_init(skb, hlen, prevhdr, nexthdr, frag_id,
-+					&iter);
-+		if (err < 0)
-+			goto blackhole;
-+
-+		for (;;) {
-+			/* Prepare header of the next frame,
-+			 * before previous one went down.
-+			 */
-+			if (iter.frag)
-+				ip6_fraglist_prepare(skb, &iter);
-+
-+			err = output(net, sk, data, skb);
-+			if (err || !iter.frag)
-+				break;
-+
-+			skb = ip6_fraglist_next(&iter);
-+		}
-+
-+		kfree(iter.tmp_hdr);
-+		if (!err)
-+			return 0;
-+
-+		kfree_skb_list(iter.frag_list);
-+		return err;
-+	}
-+slow_path:
-+	/* This is a linearized skbuff, the original geometry is lost for us.
-+	 * This may also be a clone skbuff, we could preserve the geometry for
-+	 * the copies but probably not worth the effort.
++	/* ANK: dirty, but effective trick. Upgrade options only if
++	 * the segment to be fragmented was THE FIRST (otherwise,
++	 * options are already fixed) and make it ONCE
++	 * on the initial skb, so that all the following fragments
++	 * will inherit fixed options.
 +	 */
-+	ip6_frag_init(skb, hlen, mtu, skb->dev->needed_tailroom,
-+		      LL_RESERVED_SPACE(skb->dev), prevhdr, nexthdr, frag_id,
-+		      &state);
-+
-+	while (state.left > 0) {
-+		struct sk_buff *skb2;
-+
-+		skb2 = ip6_frag_next(skb, &state);
-+		if (IS_ERR(skb2)) {
-+			err = PTR_ERR(skb2);
-+			goto blackhole;
-+		}
-+
-+		err = output(net, sk, data, skb2);
-+		if (err)
-+			goto blackhole;
-+	}
-+	consume_skb(skb);
-+	return err;
-+
-+blackhole:
-+	kfree_skb(skb);
-+	return 0;
++	if (first_frag)
++		ip_options_fragment(from);
 +}
-+EXPORT_SYMBOL_GPL(br_ip6_fragment);
 +
- static const struct nf_ipv6_ops ipv6ops = {
- #if IS_MODULE(CONFIG_IPV6)
- 	.chk_addr		= ipv6_chk_addr,
-@@ -119,6 +238,10 @@ static const struct nf_ipv6_ops ipv6ops = {
- 	.route_input		= ip6_route_input,
- 	.fragment		= ip6_fragment,
- 	.reroute		= nf_ip6_reroute,
-+#if IS_MODULE(CONFIG_NF_CONNTRACK_BRIDGE)
-+	.br_defrag		= nf_ct_frag6_gather,
-+	.br_fragment		= br_ip6_fragment,
-+#endif
- };
+ struct sk_buff *ip_frag_next(struct sk_buff *skb, struct ip_frag_state *state)
+ {
+ 	unsigned int len = state->left;
+@@ -690,18 +709,6 @@ struct sk_buff *ip_frag_next(struct sk_buff *skb, struct ip_frag_state *state)
+ 	iph = ip_hdr(skb2);
+ 	iph->frag_off = htons((state->offset >> 3));
  
- int __init ipv6_netfilter_init(void)
+-	if (IPCB(skb)->flags & IPSKB_FRAG_PMTU)
+-		iph->frag_off |= htons(IP_DF);
+-
+-	/* ANK: dirty, but effective trick. Upgrade options only if
+-	 * the segment to be fragmented was THE FIRST (otherwise,
+-	 * options are already fixed) and make it ONCE
+-	 * on the initial skb, so that all the following fragments
+-	 * will inherit fixed options.
+-	 */
+-	if (state->offset == 0)
+-		ip_options_fragment(skb);
+-
+ 	/*
+ 	 *	Added AC : If we are fragmenting a fragment that's not the
+ 	 *		   last fragment then keep MF on each bit
+@@ -851,11 +858,14 @@ int ip_do_fragment(struct net *net, struct sock *sk, struct sk_buff *skb,
+ 	 */
+ 
+ 	while (state.left > 0) {
++		bool first_frag = (state.offset == 0);
++
+ 		skb2 = ip_frag_next(skb, &state);
+ 		if (IS_ERR(skb2)) {
+ 			err = PTR_ERR(skb2);
+ 			goto fail;
+ 		}
++		ip_frag_ipcb(skb, skb2, first_frag, &state);
+ 
+ 		/*
+ 		 *	Put this fragment into the sending queue.
 -- 
 2.11.0
 
