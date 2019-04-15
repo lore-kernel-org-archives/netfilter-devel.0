@@ -3,48 +3,48 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2AE32C10F0E
-	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Apr 2019 17:00:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 31D23C10F0E
+	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Apr 2019 17:00:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id EE13A2075B
-	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Apr 2019 17:00:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0CA242075B
+	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Apr 2019 17:00:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727858AbfDORAn (ORCPT
+        id S1727910AbfDORAs (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 15 Apr 2019 13:00:43 -0400
+        Mon, 15 Apr 2019 13:00:48 -0400
 Received: from mail.us.es ([193.147.175.20]:50474 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727812AbfDORAn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 15 Apr 2019 13:00:43 -0400
+        id S1727901AbfDORAr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 15 Apr 2019 13:00:47 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 0D66B1C4435
-        for <netfilter-devel@vger.kernel.org>; Mon, 15 Apr 2019 19:00:40 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id A27121C4441
+        for <netfilter-devel@vger.kernel.org>; Mon, 15 Apr 2019 19:00:46 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id EE20CDA704
-        for <netfilter-devel@vger.kernel.org>; Mon, 15 Apr 2019 19:00:39 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 89726DA711
+        for <netfilter-devel@vger.kernel.org>; Mon, 15 Apr 2019 19:00:46 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id ED1FFDA716; Mon, 15 Apr 2019 19:00:39 +0200 (CEST)
+        id 88700DA710; Mon, 15 Apr 2019 19:00:46 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id A5416DA704;
-        Mon, 15 Apr 2019 19:00:37 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 650DEDA706;
+        Mon, 15 Apr 2019 19:00:44 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 15 Apr 2019 19:00:37 +0200 (CEST)
+ Mon, 15 Apr 2019 19:00:44 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 795104265A31;
-        Mon, 15 Apr 2019 19:00:37 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 388BF4265A31;
+        Mon, 15 Apr 2019 19:00:44 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 07/22] netfilter: nat: add inet family nat support
-Date:   Mon, 15 Apr 2019 19:00:13 +0200
-Message-Id: <20190415170028.3470-8-pablo@netfilter.org>
+Subject: [PATCH 19/22] bridge: reduce size of input cb to 16 bytes
+Date:   Mon, 15 Apr 2019 19:00:25 +0200
+Message-Id: <20190415170028.3470-20-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20190415170028.3470-1-pablo@netfilter.org>
 References: <20190415170028.3470-1-pablo@netfilter.org>
@@ -56,331 +56,154 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Florian Westphal <fw@strlen.de>
 
-We need minimal support from the nat core for this, as we do not
-want to register additional base hooks.
+Reduce size of br_input_skb_cb from 24 to 16 bytes by
+using bitfield for those values that can only be 0 or 1.
 
-When an inet hook is registered, interally register ipv4 and ipv6
-hooks for them and unregister those when inet hooks are removed.
+igmp is the igmp type value, so it needs to be at least u8.
+
+Furthermore, the bridge currently relies on step-by-step initialization
+of br_input_skb_cb fields as the skb passes through the stack.
+
+Explicitly zero out the bridge input cb instead, this avoids having to
+review/validate that no BR_INPUT_SKB_CB(skb)->foo test can see a
+'random' value from previous protocol cb.
+
+AFAICS all current fields are always set up before they are read again,
+so this is not a bug fix.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
+Acked-by: David S. Miller <davem@davemloft.net>
+Acked-by: Nikolay Aleksandrov <nikolay@cumulusnetworks.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_nat.h |  7 +++--
- net/netfilter/nf_nat_core.c    | 16 +++++-------
- net/netfilter/nf_nat_proto.c   | 43 ++++++++++++++++++++++++++-----
- net/netfilter/nft_chain_nat.c  | 36 ++++++++++++++++++++++++++
- net/netfilter/nft_nat.c        | 58 ++++++++++++++++++++++++++++++++++++++++--
- 5 files changed, 141 insertions(+), 19 deletions(-)
+ net/bridge/br_arp_nd_proxy.c | 18 +++++++++---------
+ net/bridge/br_input.c        |  2 ++
+ net/bridge/br_private.h      | 12 +++++-------
+ 3 files changed, 16 insertions(+), 16 deletions(-)
 
-diff --git a/include/net/netfilter/nf_nat.h b/include/net/netfilter/nf_nat.h
-index cf332c4e0b32..423cda2c6542 100644
---- a/include/net/netfilter/nf_nat.h
-+++ b/include/net/netfilter/nf_nat.h
-@@ -69,9 +69,9 @@ static inline bool nf_nat_oif_changed(unsigned int hooknum,
- #endif
- }
+diff --git a/net/bridge/br_arp_nd_proxy.c b/net/bridge/br_arp_nd_proxy.c
+index 724b474ade54..15116752365a 100644
+--- a/net/bridge/br_arp_nd_proxy.c
++++ b/net/bridge/br_arp_nd_proxy.c
+@@ -131,7 +131,7 @@ void br_do_proxy_suppress_arp(struct sk_buff *skb, struct net_bridge *br,
+ 	u8 *arpptr, *sha;
+ 	__be32 sip, tip;
  
--int nf_nat_register_fn(struct net *net, const struct nf_hook_ops *ops,
-+int nf_nat_register_fn(struct net *net, u8 pf, const struct nf_hook_ops *ops,
- 		       const struct nf_hook_ops *nat_ops, unsigned int ops_count);
--void nf_nat_unregister_fn(struct net *net, const struct nf_hook_ops *ops,
-+void nf_nat_unregister_fn(struct net *net, u8 pf, const struct nf_hook_ops *ops,
- 			  unsigned int ops_count);
+-	BR_INPUT_SKB_CB(skb)->proxyarp_replied = false;
++	BR_INPUT_SKB_CB(skb)->proxyarp_replied = 0;
  
- unsigned int nf_nat_packet(struct nf_conn *ct, enum ip_conntrack_info ctinfo,
-@@ -98,6 +98,9 @@ void nf_nat_ipv4_unregister_fn(struct net *net, const struct nf_hook_ops *ops);
- int nf_nat_ipv6_register_fn(struct net *net, const struct nf_hook_ops *ops);
- void nf_nat_ipv6_unregister_fn(struct net *net, const struct nf_hook_ops *ops);
- 
-+int nf_nat_inet_register_fn(struct net *net, const struct nf_hook_ops *ops);
-+void nf_nat_inet_unregister_fn(struct net *net, const struct nf_hook_ops *ops);
-+
- unsigned int
- nf_nat_inet_fn(void *priv, struct sk_buff *skb,
- 	       const struct nf_hook_state *state);
-diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
-index af7dc6537758..a9ec49edd7f4 100644
---- a/net/netfilter/nf_nat_core.c
-+++ b/net/netfilter/nf_nat_core.c
-@@ -1009,7 +1009,7 @@ static struct nf_ct_helper_expectfn follow_master_nat = {
- 	.expectfn	= nf_nat_follow_master,
- };
- 
--int nf_nat_register_fn(struct net *net, const struct nf_hook_ops *ops,
-+int nf_nat_register_fn(struct net *net, u8 pf, const struct nf_hook_ops *ops,
- 		       const struct nf_hook_ops *orig_nat_ops, unsigned int ops_count)
- {
- 	struct nat_net *nat_net = net_generic(net, nat_net_id);
-@@ -1019,14 +1019,12 @@ int nf_nat_register_fn(struct net *net, const struct nf_hook_ops *ops,
- 	struct nf_hook_ops *nat_ops;
- 	int i, ret;
- 
--	if (WARN_ON_ONCE(ops->pf >= ARRAY_SIZE(nat_net->nat_proto_net)))
-+	if (WARN_ON_ONCE(pf >= ARRAY_SIZE(nat_net->nat_proto_net)))
- 		return -EINVAL;
- 
--	nat_proto_net = &nat_net->nat_proto_net[ops->pf];
-+	nat_proto_net = &nat_net->nat_proto_net[pf];
- 
- 	for (i = 0; i < ops_count; i++) {
--		if (WARN_ON(orig_nat_ops[i].pf != ops->pf))
--			return -EINVAL;
- 		if (orig_nat_ops[i].hooknum == hooknum) {
- 			hooknum = i;
- 			break;
-@@ -1086,8 +1084,8 @@ int nf_nat_register_fn(struct net *net, const struct nf_hook_ops *ops,
- 	return ret;
- }
- 
--void nf_nat_unregister_fn(struct net *net, const struct nf_hook_ops *ops,
--		          unsigned int ops_count)
-+void nf_nat_unregister_fn(struct net *net, u8 pf, const struct nf_hook_ops *ops,
-+			  unsigned int ops_count)
- {
- 	struct nat_net *nat_net = net_generic(net, nat_net_id);
- 	struct nf_nat_hooks_net *nat_proto_net;
-@@ -1096,10 +1094,10 @@ void nf_nat_unregister_fn(struct net *net, const struct nf_hook_ops *ops,
- 	int hooknum = ops->hooknum;
- 	int i;
- 
--	if (ops->pf >= ARRAY_SIZE(nat_net->nat_proto_net))
-+	if (pf >= ARRAY_SIZE(nat_net->nat_proto_net))
+ 	if ((dev->flags & IFF_NOARP) ||
+ 	    !pskb_may_pull(skb, arp_hdr_len(dev)))
+@@ -161,7 +161,7 @@ void br_do_proxy_suppress_arp(struct sk_buff *skb, struct net_bridge *br,
+ 			return;
+ 		if (ipv4_is_zeronet(sip) || sip == tip) {
+ 			/* prevent flooding to neigh suppress ports */
+-			BR_INPUT_SKB_CB(skb)->proxyarp_replied = true;
++			BR_INPUT_SKB_CB(skb)->proxyarp_replied = 1;
+ 			return;
+ 		}
+ 	}
+@@ -181,7 +181,7 @@ void br_do_proxy_suppress_arp(struct sk_buff *skb, struct net_bridge *br,
+ 		/* its our local ip, so don't proxy reply
+ 		 * and don't forward to neigh suppress ports
+ 		 */
+-		BR_INPUT_SKB_CB(skb)->proxyarp_replied = true;
++		BR_INPUT_SKB_CB(skb)->proxyarp_replied = 1;
  		return;
+ 	}
  
--	nat_proto_net = &nat_net->nat_proto_net[ops->pf];
-+	nat_proto_net = &nat_net->nat_proto_net[pf];
+@@ -217,7 +217,7 @@ void br_do_proxy_suppress_arp(struct sk_buff *skb, struct net_bridge *br,
+ 			 */
+ 			if (replied ||
+ 			    br_opt_get(br, BROPT_NEIGH_SUPPRESS_ENABLED))
+-				BR_INPUT_SKB_CB(skb)->proxyarp_replied = true;
++				BR_INPUT_SKB_CB(skb)->proxyarp_replied = 1;
+ 		}
  
- 	mutex_lock(&nf_nat_proto_mutex);
- 	if (WARN_ON(nat_proto_net->users == 0))
-diff --git a/net/netfilter/nf_nat_proto.c b/net/netfilter/nf_nat_proto.c
-index 62743da3004f..606d0a740615 100644
---- a/net/netfilter/nf_nat_proto.c
-+++ b/net/netfilter/nf_nat_proto.c
-@@ -725,7 +725,7 @@ nf_nat_ipv4_local_fn(void *priv, struct sk_buff *skb,
- 	return ret;
- }
+ 		neigh_release(n);
+@@ -393,7 +393,7 @@ void br_do_suppress_nd(struct sk_buff *skb, struct net_bridge *br,
+ 	struct ipv6hdr *iphdr;
+ 	struct neighbour *n;
  
--static const struct nf_hook_ops nf_nat_ipv4_ops[] = {
-+const struct nf_hook_ops nf_nat_ipv4_ops[] = {
- 	/* Before packet filtering, change destination */
- 	{
- 		.hook		= nf_nat_ipv4_in,
-@@ -758,13 +758,14 @@ static const struct nf_hook_ops nf_nat_ipv4_ops[] = {
+-	BR_INPUT_SKB_CB(skb)->proxyarp_replied = false;
++	BR_INPUT_SKB_CB(skb)->proxyarp_replied = 0;
  
- int nf_nat_ipv4_register_fn(struct net *net, const struct nf_hook_ops *ops)
- {
--	return nf_nat_register_fn(net, ops, nf_nat_ipv4_ops, ARRAY_SIZE(nf_nat_ipv4_ops));
-+	return nf_nat_register_fn(net, ops->pf, ops, nf_nat_ipv4_ops,
-+				  ARRAY_SIZE(nf_nat_ipv4_ops));
- }
- EXPORT_SYMBOL_GPL(nf_nat_ipv4_register_fn);
+ 	if (p && (p->flags & BR_NEIGH_SUPPRESS))
+ 		return;
+@@ -401,7 +401,7 @@ void br_do_suppress_nd(struct sk_buff *skb, struct net_bridge *br,
+ 	if (msg->icmph.icmp6_type == NDISC_NEIGHBOUR_ADVERTISEMENT &&
+ 	    !msg->icmph.icmp6_solicited) {
+ 		/* prevent flooding to neigh suppress ports */
+-		BR_INPUT_SKB_CB(skb)->proxyarp_replied = true;
++		BR_INPUT_SKB_CB(skb)->proxyarp_replied = 1;
+ 		return;
+ 	}
  
- void nf_nat_ipv4_unregister_fn(struct net *net, const struct nf_hook_ops *ops)
- {
--	nf_nat_unregister_fn(net, ops, ARRAY_SIZE(nf_nat_ipv4_ops));
-+	nf_nat_unregister_fn(net, ops->pf, ops, ARRAY_SIZE(nf_nat_ipv4_ops));
- }
- EXPORT_SYMBOL_GPL(nf_nat_ipv4_unregister_fn);
+@@ -414,7 +414,7 @@ void br_do_suppress_nd(struct sk_buff *skb, struct net_bridge *br,
  
-@@ -977,7 +978,7 @@ nf_nat_ipv6_local_fn(void *priv, struct sk_buff *skb,
- 	return ret;
- }
+ 	if (ipv6_addr_any(saddr) || !ipv6_addr_cmp(saddr, daddr)) {
+ 		/* prevent flooding to neigh suppress ports */
+-		BR_INPUT_SKB_CB(skb)->proxyarp_replied = true;
++		BR_INPUT_SKB_CB(skb)->proxyarp_replied = 1;
+ 		return;
+ 	}
  
--static const struct nf_hook_ops nf_nat_ipv6_ops[] = {
-+const struct nf_hook_ops nf_nat_ipv6_ops[] = {
- 	/* Before packet filtering, change destination */
- 	{
- 		.hook		= nf_nat_ipv6_in,
-@@ -1010,14 +1011,44 @@ static const struct nf_hook_ops nf_nat_ipv6_ops[] = {
+@@ -432,7 +432,7 @@ void br_do_suppress_nd(struct sk_buff *skb, struct net_bridge *br,
+ 		/* its our own ip, so don't proxy reply
+ 		 * and don't forward to arp suppress ports
+ 		 */
+-		BR_INPUT_SKB_CB(skb)->proxyarp_replied = true;
++		BR_INPUT_SKB_CB(skb)->proxyarp_replied = 1;
+ 		return;
+ 	}
  
- int nf_nat_ipv6_register_fn(struct net *net, const struct nf_hook_ops *ops)
- {
--	return nf_nat_register_fn(net, ops, nf_nat_ipv6_ops,
-+	return nf_nat_register_fn(net, ops->pf, ops, nf_nat_ipv6_ops,
- 				  ARRAY_SIZE(nf_nat_ipv6_ops));
- }
- EXPORT_SYMBOL_GPL(nf_nat_ipv6_register_fn);
+@@ -465,7 +465,7 @@ void br_do_suppress_nd(struct sk_buff *skb, struct net_bridge *br,
+ 			 */
+ 			if (replied ||
+ 			    br_opt_get(br, BROPT_NEIGH_SUPPRESS_ENABLED))
+-				BR_INPUT_SKB_CB(skb)->proxyarp_replied = true;
++				BR_INPUT_SKB_CB(skb)->proxyarp_replied = 1;
+ 		}
+ 		neigh_release(n);
+ 	}
+diff --git a/net/bridge/br_input.c b/net/bridge/br_input.c
+index 5ea7e56119c1..e2f93e5c72da 100644
+--- a/net/bridge/br_input.c
++++ b/net/bridge/br_input.c
+@@ -227,6 +227,8 @@ rx_handler_result_t br_handle_frame(struct sk_buff **pskb)
+ 	if (!skb)
+ 		return RX_HANDLER_CONSUMED;
  
- void nf_nat_ipv6_unregister_fn(struct net *net, const struct nf_hook_ops *ops)
- {
--	nf_nat_unregister_fn(net, ops, ARRAY_SIZE(nf_nat_ipv6_ops));
-+	nf_nat_unregister_fn(net, ops->pf, ops, ARRAY_SIZE(nf_nat_ipv6_ops));
- }
- EXPORT_SYMBOL_GPL(nf_nat_ipv6_unregister_fn);
- #endif /* CONFIG_IPV6 */
++	memset(skb->cb, 0, sizeof(struct br_input_skb_cb));
 +
-+#if defined(CONFIG_NF_TABLES_INET) && IS_ENABLED(CONFIG_NFT_NAT)
-+int nf_nat_inet_register_fn(struct net *net, const struct nf_hook_ops *ops)
-+{
-+	int ret;
-+
-+	if (WARN_ON_ONCE(ops->pf != NFPROTO_INET))
-+		return -EINVAL;
-+
-+	ret = nf_nat_register_fn(net, NFPROTO_IPV6, ops, nf_nat_ipv6_ops,
-+				 ARRAY_SIZE(nf_nat_ipv6_ops));
-+	if (ret)
-+		return ret;
-+
-+	ret = nf_nat_register_fn(net, NFPROTO_IPV4, ops, nf_nat_ipv4_ops,
-+				 ARRAY_SIZE(nf_nat_ipv4_ops));
-+	if (ret)
-+		nf_nat_ipv6_unregister_fn(net, ops);
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(nf_nat_inet_register_fn);
-+
-+void nf_nat_inet_unregister_fn(struct net *net, const struct nf_hook_ops *ops)
-+{
-+	nf_nat_unregister_fn(net, NFPROTO_IPV4, ops, ARRAY_SIZE(nf_nat_ipv4_ops));
-+	nf_nat_unregister_fn(net, NFPROTO_IPV6, ops, ARRAY_SIZE(nf_nat_ipv6_ops));
-+}
-+EXPORT_SYMBOL_GPL(nf_nat_inet_unregister_fn);
-+#endif /* NFT INET NAT */
-diff --git a/net/netfilter/nft_chain_nat.c b/net/netfilter/nft_chain_nat.c
-index ee4852088d50..2f89bde3c61c 100644
---- a/net/netfilter/nft_chain_nat.c
-+++ b/net/netfilter/nft_chain_nat.c
-@@ -74,6 +74,36 @@ static const struct nft_chain_type nft_chain_nat_ipv6 = {
- };
+ 	p = br_port_get_rcu(skb->dev);
+ 	if (p->flags & BR_VLAN_TUNNEL) {
+ 		if (br_handle_ingress_vlan_tunnel(skb, p,
+diff --git a/net/bridge/br_private.h b/net/bridge/br_private.h
+index 7946aa3b6e09..e7110a6e2b7e 100644
+--- a/net/bridge/br_private.h
++++ b/net/bridge/br_private.h
+@@ -425,15 +425,13 @@ struct br_input_skb_cb {
+ 	struct net_device *brdev;
+ 
+ #ifdef CONFIG_BRIDGE_IGMP_SNOOPING
+-	int igmp;
+-	int mrouters_only;
++	u8 igmp;
++	u8 mrouters_only:1;
+ #endif
+-
+-	bool proxyarp_replied;
+-	bool src_port_isolated;
+-
++	u8 proxyarp_replied:1;
++	u8 src_port_isolated:1;
+ #ifdef CONFIG_BRIDGE_VLAN_FILTERING
+-	bool vlan_filtered;
++	u8 vlan_filtered:1;
  #endif
  
-+#ifdef CONFIG_NF_TABLES_INET
-+static int nft_nat_inet_reg(struct net *net, const struct nf_hook_ops *ops)
-+{
-+	return nf_nat_inet_register_fn(net, ops);
-+}
-+
-+static void nft_nat_inet_unreg(struct net *net, const struct nf_hook_ops *ops)
-+{
-+	nf_nat_inet_unregister_fn(net, ops);
-+}
-+
-+static const struct nft_chain_type nft_chain_nat_inet = {
-+	.name		= "nat",
-+	.type		= NFT_CHAIN_T_NAT,
-+	.family		= NFPROTO_INET,
-+	.hook_mask	= (1 << NF_INET_PRE_ROUTING) |
-+			  (1 << NF_INET_LOCAL_IN) |
-+			  (1 << NF_INET_LOCAL_OUT) |
-+			  (1 << NF_INET_POST_ROUTING),
-+	.hooks		= {
-+		[NF_INET_PRE_ROUTING]	= nft_nat_do_chain,
-+		[NF_INET_LOCAL_IN]	= nft_nat_do_chain,
-+		[NF_INET_LOCAL_OUT]	= nft_nat_do_chain,
-+		[NF_INET_POST_ROUTING]	= nft_nat_do_chain,
-+	},
-+	.ops_register		= nft_nat_inet_reg,
-+	.ops_unregister		= nft_nat_inet_unreg,
-+};
-+#endif
-+
- static int __init nft_chain_nat_init(void)
- {
- #ifdef CONFIG_NF_TABLES_IPV6
-@@ -82,6 +112,9 @@ static int __init nft_chain_nat_init(void)
- #ifdef CONFIG_NF_TABLES_IPV4
- 	nft_register_chain_type(&nft_chain_nat_ipv4);
- #endif
-+#ifdef CONFIG_NF_TABLES_INET
-+	nft_register_chain_type(&nft_chain_nat_inet);
-+#endif
- 
- 	return 0;
- }
-@@ -94,6 +127,9 @@ static void __exit nft_chain_nat_exit(void)
- #ifdef CONFIG_NF_TABLES_IPV6
- 	nft_unregister_chain_type(&nft_chain_nat_ipv6);
- #endif
-+#ifdef CONFIG_NF_TABLES_INET
-+	nft_unregister_chain_type(&nft_chain_nat_inet);
-+#endif
- }
- 
- module_init(nft_chain_nat_init);
-diff --git a/net/netfilter/nft_nat.c b/net/netfilter/nft_nat.c
-index e93aed9bda88..d90d421826aa 100644
---- a/net/netfilter/nft_nat.c
-+++ b/net/netfilter/nft_nat.c
-@@ -140,7 +140,7 @@ static int nft_nat_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
- 		return -EINVAL;
- 
- 	family = ntohl(nla_get_be32(tb[NFTA_NAT_FAMILY]));
--	if (family != ctx->family)
-+	if (ctx->family != NFPROTO_INET && ctx->family != family)
- 		return -EOPNOTSUPP;
- 
- 	switch (family) {
-@@ -278,13 +278,67 @@ static struct nft_expr_type nft_nat_type __read_mostly = {
- 	.owner          = THIS_MODULE,
- };
- 
-+#ifdef CONFIG_NF_TABLES_INET
-+static void nft_nat_inet_eval(const struct nft_expr *expr,
-+			      struct nft_regs *regs,
-+			      const struct nft_pktinfo *pkt)
-+{
-+	const struct nft_nat *priv = nft_expr_priv(expr);
-+
-+	if (priv->family == nft_pf(pkt))
-+		nft_nat_eval(expr, regs, pkt);
-+}
-+
-+static const struct nft_expr_ops nft_nat_inet_ops = {
-+	.type           = &nft_nat_type,
-+	.size           = NFT_EXPR_SIZE(sizeof(struct nft_nat)),
-+	.eval           = nft_nat_inet_eval,
-+	.init           = nft_nat_init,
-+	.destroy        = nft_nat_destroy,
-+	.dump           = nft_nat_dump,
-+	.validate	= nft_nat_validate,
-+};
-+
-+static struct nft_expr_type nft_inet_nat_type __read_mostly = {
-+	.name           = "nat",
-+	.family		= NFPROTO_INET,
-+	.ops            = &nft_nat_inet_ops,
-+	.policy         = nft_nat_policy,
-+	.maxattr        = NFTA_NAT_MAX,
-+	.owner          = THIS_MODULE,
-+};
-+
-+static int nft_nat_inet_module_init(void)
-+{
-+	return nft_register_expr(&nft_inet_nat_type);
-+}
-+
-+static void nft_nat_inet_module_exit(void)
-+{
-+	nft_unregister_expr(&nft_inet_nat_type);
-+}
-+#else
-+static int nft_nat_inet_module_init(void) { return 0; }
-+static void nft_nat_inet_module_exit(void) { }
-+#endif
-+
- static int __init nft_nat_module_init(void)
- {
--	return nft_register_expr(&nft_nat_type);
-+	int ret = nft_nat_inet_module_init();
-+
-+	if (ret)
-+		return ret;
-+
-+	ret = nft_register_expr(&nft_nat_type);
-+	if (ret)
-+		nft_nat_inet_module_exit();
-+
-+	return ret;
- }
- 
- static void __exit nft_nat_module_exit(void)
- {
-+	nft_nat_inet_module_exit();
- 	nft_unregister_expr(&nft_nat_type);
- }
- 
+ #ifdef CONFIG_NET_SWITCHDEV
 -- 
 2.11.0
 
