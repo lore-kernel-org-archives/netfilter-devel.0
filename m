@@ -2,96 +2,172 @@ Return-Path: <SRS0=sICu=SR=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C1FC1C10F0E
-	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Apr 2019 20:45:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A69FC10F12
+	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Apr 2019 21:36:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8E1BE205F4
-	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Apr 2019 20:45:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CC1682070D
+	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Apr 2019 21:36:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727339AbfDOUpj (ORCPT
+        id S1728054AbfDOVgY (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 15 Apr 2019 16:45:39 -0400
-Received: from mail5.windriver.com ([192.103.53.11]:57638 "EHLO mail5.wrs.com"
+        Mon, 15 Apr 2019 17:36:24 -0400
+Received: from mail.us.es ([193.147.175.20]:48220 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726609AbfDOUpj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 15 Apr 2019 16:45:39 -0400
-Received: from ALA-HCA.corp.ad.wrs.com (ala-hca.corp.ad.wrs.com [147.11.189.40])
-        by mail5.wrs.com (8.15.2/8.15.2) with ESMTPS id x3FKhmDp021097
-        (version=TLSv1 cipher=AES128-SHA bits=128 verify=FAIL);
-        Mon, 15 Apr 2019 13:44:34 -0700
-Received: from yow-cube1.wrs.com (128.224.56.98) by ALA-HCA.corp.ad.wrs.com
- (147.11.189.40) with Microsoft SMTP Server id 14.3.439.0; Mon, 15 Apr 2019
- 13:44:10 -0700
-From:   Paul Gortmaker <paul.gortmaker@windriver.com>
-To:     <netdev@vger.kernel.org>
-CC:     Paul Gortmaker <paul.gortmaker@windriver.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        "Florian Westphal" <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        <netfilter-devel@vger.kernel.org>, <coreteam@netfilter.org>
-Subject: [PATCH -next 3/3] netfilter: nf_tables: drop include of module.h from nf_tables.h
-Date:   Mon, 15 Apr 2019 16:43:16 -0400
-Message-ID: <1555360996-23684-4-git-send-email-paul.gortmaker@windriver.com>
-X-Mailer: git-send-email 2.7.4
-In-Reply-To: <1555360996-23684-1-git-send-email-paul.gortmaker@windriver.com>
-References: <1555360996-23684-1-git-send-email-paul.gortmaker@windriver.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+        id S1726696AbfDOVgX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 15 Apr 2019 17:36:23 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 2EB272EFEAF
+        for <netfilter-devel@vger.kernel.org>; Mon, 15 Apr 2019 23:36:21 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 193BEDA712
+        for <netfilter-devel@vger.kernel.org>; Mon, 15 Apr 2019 23:36:21 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 0EB36DA70C; Mon, 15 Apr 2019 23:36:21 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id D4512DA702;
+        Mon, 15 Apr 2019 23:36:18 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Mon, 15 Apr 2019 23:36:18 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from salvia.here (sys.soleta.eu [212.170.55.40])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id 846A24265A31;
+        Mon, 15 Apr 2019 23:36:18 +0200 (CEST)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     davem@davemloft.net, netdev@vger.kernel.org, fw@strlen.de,
+        nikolay@cumulusnetworks.com, roopa@cumulusnetworks.com,
+        herbert@gondor.apana.org.au
+Subject: [PATCH net-next 00/10] connection tracking support for bridge
+Date:   Mon, 15 Apr 2019 23:36:01 +0200
+Message-Id: <20190415213611.21863-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.11.0
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Ideally, header files under include/linux shouldn't be adding
-includes of other headers, in anticipation of their consumers,
-but just the headers needed for the header itself to pass
-parsing with CPP.
+Hi,
 
-The module.h is particularly bad in this sense, as it itself does
-include a whole bunch of other headers, due to the complexity of
-module support.
+This patchset add connection tracking support for the bridge family.
 
-Since nf_tables.h is not going into a module struct looking for
-specific fields, we can just let it know that module is a struct,
-just like about 60 other include/linux headers already do.
+Patches from 1 to 6 split the existing refragmentation codebase into
+smaller functions that allows us to build specific refragmentation
+routine for the bridge, motivations for this are:
 
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Cc: Florian Westphal <fw@strlen.de>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: netfilter-devel@vger.kernel.org
-Cc: coreteam@netfilter.org
-Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
----
- include/net/netfilter/nf_tables.h | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+* ip_do_fragment() assumes the skbuff is called from IP stack,
+  hence the control buffer area is assumed to have an IP_CB layout,
+  this forces to save and restore this area.
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 706f744f7308..5b8624ae4a27 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -2,7 +2,6 @@
- #ifndef _NET_NF_TABLES_H
- #define _NET_NF_TABLES_H
- 
--#include <linux/module.h>
- #include <linux/list.h>
- #include <linux/netfilter.h>
- #include <linux/netfilter/nfnetlink.h>
-@@ -13,6 +12,8 @@
- #include <net/netfilter/nf_flow_table.h>
- #include <net/netlink.h>
- 
-+struct module;
-+
- #define NFT_JUMP_STACK_SIZE	16
- 
- struct nft_pktinfo {
+* ip_do_fragment() assumes that a dst entry is attached to the
+  skbuff which is not the case from the bridge codebase. This would
+  force us to emulate a dst object.
+
+* ip_do_fragment() alters fragmentation geometry to make it fit into
+  the mtu. From the bridge, it is desiderable to leave geometry
+  untouched, simply drop packets if the maximum fragment size is larger
+  than the mtu. There are a few exceptions in this patchset though, such
+  as linearized skbuff (coming from conntrack helpers doing so) where
+  geometry is lost for us, and for cloned skbuffs, either due to port
+  flood or passed up for tap delivery.  For both cases, it should be
+  possible with a more code and the cost of introducing more complexity.
+
+These initial patches extract code from the existing refragmentation
+infrastructure that can be re-used to build a custom refragmentation
+routine that deals with the bridge specificities. This batch is composed
+of the following patches:
+
+* Patches 1/10 and 2/10 add the fraglist iterator. This infrastructure
+  extracts the code from ip_do_fragment() to split a fraglist into
+  fragments, then call the output callback for each fragmented skbuff.
+  The API consists of ip_fraglist_init() to start the iterator internal
+  state, then ip_fraglist_prepare() to restore restore the IPv4 header
+  in the fragment and, finally, ip_fraglist_next() to obtain the
+  fragmented skbuff from the fraglist. Similar API is introduced for
+  IPv6.
+
+* Patches 3/10 and 4/10 add the fragment transformer. This
+  infrastructure extracts the code from ip_do_fragment() to split a
+  linearized skbuff into fragmented skbuffs. This is also useful for the
+  skbuff clone case, needed in case of floods to multiple bridge ports
+  or when passing packets to the tap (ie. tcpdump), so this transformer
+  can also deal with fraglists. The API consists of ip6_frag_init() to
+  start the internal state of the transformer and ip6_frag_next() to build
+  and fetch a fragment.
+
+* Patches 5/10 and 6/10 move the IPCB specific code away from these two
+  new APIs, so it can be used from the bridge without saving and
+  restoring the control buffer area.
+
+After preparation patches, this batch adds the conntrack support for the
+bridge family:
+
+* Patch 7/10 adds infrastructure to register and to unregister the
+  nf_conntrack_bridge module via nf_ct_bridge_register() and
+  nf_ct_bridge_unregister(). This allows us to transparently reuse
+  the ct extension to match on the ct state without changes.
+
+* Patch 8/10 adds IPv4 conntrack support for bridge. This add the
+  nf_conntrack_bridge module which registers two hooks, one at
+  bridge prerouting and another at bridge postrouting. For traffic that
+  is being forwarded, a conntrack entry is created at bridge prerouting
+  and confirmed at bridge postrouting. ARP packets are explicitly
+  untracked. We also follow the "do not drop packets from conntrack", as
+  invalid packets can be just dropped via policy.
+
+* Patch 9/10 adds IPv6 support for conntrack bridge.
+
+* Patch 10/10 enables classic IPv4/IPv6 conntrack to deal with local
+  traffic, ie. when the bridge interface has an IP address, hence
+  packets are passed up to the IP stack for local handling are confirmed
+  by the classic IPv4/IPv6 conntrack hooks. This allows users to define
+  stateful filtering policies from the bridge prerouting chain. For
+  outgoing traffic, the recommended solution is to define the stateful
+  policy from the classic IPv4/IPv6 output hooks.
+
+Users can map different vlans to conntrack zones to avoid conflicts with
+overlapping conntrack entries via ruleset policy.
+
+Please, apply, thanks!
+
+Pablo Neira Ayuso (10):
+  net: ipv4: add skbuff fraglist split iterator
+  net: ipv6: add skbuff fraglist split iterator
+  net: ipv4: split skbuff into fragments transformer
+  net: ipv6: split skbuff into fragments transformer
+  net: ipv4: place cb handling away from fraglist iterator
+  net: ipv4: place cb handling away from fragment transformer
+  netfilter: nf_conntrack: allow to register bridge support
+  netfilter: bridge: add support for conntrack support
+  netfilter: nf_conntrack_bridge: add support for IPv6
+  netfilter: nf_conntrack_bridge: register inet conntrack for bridge
+
+ include/linux/netfilter_ipv6.h              |  50 ++++
+ include/net/ip.h                            |  39 +++
+ include/net/ipv6.h                          |  44 +++
+ include/net/netfilter/nf_conntrack.h        |   1 +
+ include/net/netfilter/nf_conntrack_bridge.h |  20 ++
+ include/net/netfilter/nf_conntrack_core.h   |   3 +
+ net/bridge/br_device.c                      |   1 +
+ net/bridge/br_private.h                     |   1 +
+ net/bridge/netfilter/Kconfig                |  14 +
+ net/bridge/netfilter/Makefile               |   3 +
+ net/bridge/netfilter/nf_conntrack_bridge.c  | 433 ++++++++++++++++++++++++++++
+ net/ipv4/ip_output.c                        | 309 ++++++++++++--------
+ net/ipv6/ip6_output.c                       | 315 +++++++++++---------
+ net/ipv6/netfilter.c                        | 123 ++++++++
+ net/netfilter/nf_conntrack_proto.c          | 126 ++++++--
+ 15 files changed, 1206 insertions(+), 276 deletions(-)
+ create mode 100644 include/net/netfilter/nf_conntrack_bridge.h
+ create mode 100644 net/bridge/netfilter/nf_conntrack_bridge.c
+
 -- 
-2.7.4
+2.11.0
 
