@@ -2,91 +2,88 @@ Return-Path: <SRS0=tvQP=ST=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_NEOMUTT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F097C282DA
-	for <netfilter-devel@archiver.kernel.org>; Wed, 17 Apr 2019 09:18:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 41F7EC282DA
+	for <netfilter-devel@archiver.kernel.org>; Wed, 17 Apr 2019 11:31:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CF20020835
-	for <netfilter-devel@archiver.kernel.org>; Wed, 17 Apr 2019 09:18:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1CB1D2073F
+	for <netfilter-devel@archiver.kernel.org>; Wed, 17 Apr 2019 11:31:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730926AbfDQJSf (ORCPT
+        id S1731975AbfDQLbA (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 17 Apr 2019 05:18:35 -0400
-Received: from szxga05-in.huawei.com ([45.249.212.191]:6755 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1727087AbfDQJSf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 17 Apr 2019 05:18:35 -0400
-Received: from DGGEMS408-HUB.china.huawei.com (unknown [172.30.72.60])
-        by Forcepoint Email with ESMTP id 101631DEAD168EB86EA5;
-        Wed, 17 Apr 2019 17:18:33 +0800 (CST)
-Received: from [127.0.0.1] (10.184.189.20) by DGGEMS408-HUB.china.huawei.com
- (10.3.19.208) with Microsoft SMTP Server id 14.3.408.0; Wed, 17 Apr 2019
- 17:18:26 +0800
-To:     <wensong@linux-vs.org>, <horms@verge.net.au>, <ja@ssi.bg>,
-        <pablo@netfilter.org>, <kadlec@blackhole.kfki.hu>, <fw@strlen.de>,
-        <davem@davemloft.net>, <netdev@vger.kernel.org>,
-        <lvs-devel@vger.kernel.org>, <netfilter-devel@vger.kernel.org>,
-        <coreteam@netfilter.org>, <linux-kernel@vger.kernel.org>
-From:   linmiaohe <linmiaohe@huawei.com>
-Subject: [PATCH] ipvs:set sock send/receive buffer correctly
-CC:     Mingfangsen <mingfangsen@huawei.com>, <liujie165@huawei.com>,
-        <linmiaohe@huawei.com>
-Message-ID: <501e5522-1d69-7c67-a1bc-fd8502d3b5d1@huawei.com>
-Date:   Wed, 17 Apr 2019 17:18:17 +0800
-User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:60.0) Gecko/20100101
- Thunderbird/60.5.1
+        Wed, 17 Apr 2019 07:31:00 -0400
+Received: from mail.us.es ([193.147.175.20]:49006 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1731659AbfDQLbA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 17 Apr 2019 07:31:00 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id B2FA211EB28
+        for <netfilter-devel@vger.kernel.org>; Wed, 17 Apr 2019 13:30:57 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 9ADEBDA711
+        for <netfilter-devel@vger.kernel.org>; Wed, 17 Apr 2019 13:30:57 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 985E3DA70C; Wed, 17 Apr 2019 13:30:57 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 81E05DA709;
+        Wed, 17 Apr 2019 13:30:55 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Wed, 17 Apr 2019 13:30:55 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (sys.soleta.eu [212.170.55.40])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 6101D4265A31;
+        Wed, 17 Apr 2019 13:30:55 +0200 (CEST)
+Date:   Wed, 17 Apr 2019 13:30:54 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Xiaozhou Liu <liuxiaozhou@bytedance.com>
+Cc:     fw@strlen.de, netfilter-devel@vger.kernel.org,
+        zhangyongsu@bytedance.com, wenxudong@bytedance.com
+Subject: Re: RFC: NAT's default behavior of forwarding un-NATed packets
+Message-ID: <20190417113054.nc3fetyoy2duywyg@salvia>
+References: <20190417080242.jas4vongrv5fivzx@bytedancedeMacBook-Air.local>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.184.189.20]
-X-CFilter-Loop: Reflected
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190417080242.jas4vongrv5fivzx@bytedancedeMacBook-Air.local>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Jie Liu <liujie165@huawei.com>
+On Wed, Apr 17, 2019 at 04:02:44PM +0800, Xiaozhou Liu wrote:
+> Hi,
+> 
+> We find that our SNAT sometimes forwards un-NATed packets out as-is. This
+> behavior confused us for a while until we saw this in
+> net/netfilter/nf_nat_core.c:
+> 
+>        ct = nf_ct_get(skb, &ctinfo);
+>        /* Can't track?  It's not due to stress, or conntrack would
+>         * have dropped it.  Hence it's the user's responsibilty to
+>         * packet filter it out, or implement conntrack/NAT for that
+>         * protocol. 8) --RR
+>         */
+>        if (!ct)
+>               return NF_ACCEPT;
+> 
+> The code and comment are very clear. So it is not kernel's responsibility,
+> at least in RR's point of view. We added filtering shortly afterwards.
+> 
+> But as normal users, we really want a NAT server which can work out of box as
+> expected from users' point of view. That said, if any packet that is bad (in
+> our case, orphaned SYN-ACK and FIN packets going out without getting a chance
+> to setup conntrack), it's better to drop them in kernel by default.
+> 
+> Is there any possibility to change this default behavior?
 
-If we set sysctl_wmem_max or sysctl_rmem_max larger than INT_MAX,
-the send/receive buffer of sock will be an negative value. Same as
-when the val is larger than INT_MAX/2.
-
-Fixes: 1c003b1580e2 ("ipvs: wakeup master thread")
-Reported-by: Qiang Ning <ningqiang1@huawei.com>
-Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
-Signed-off-by: Jie Liu <liujie165@huawei.com>
----
- net/netfilter/ipvs/ip_vs_sync.c | 10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
-
-diff --git a/net/netfilter/ipvs/ip_vs_sync.c b/net/netfilter/ipvs/ip_vs_sync.c
-index 2526be6b3d90..c0e4cbed6e74 100644
---- a/net/netfilter/ipvs/ip_vs_sync.c
-+++ b/net/netfilter/ipvs/ip_vs_sync.c
-@@ -1278,14 +1278,12 @@ static void set_sock_size(struct sock *sk, int mode, int val)
- 	/* setsockopt(sock, SOL_SOCKET, SO_RCVBUF, &val, sizeof(val)); */
- 	lock_sock(sk);
- 	if (mode) {
--		val = clamp_t(int, val, (SOCK_MIN_SNDBUF + 1) / 2,
--			      sysctl_wmem_max);
--		sk->sk_sndbuf = val * 2;
-+		val = min_t(u32, val, sysctl_wmem_max);
-+		sk->sk_sndbuf = max_t(int, val * 2, SOCK_MIN_SNDBUF);
- 		sk->sk_userlocks |= SOCK_SNDBUF_LOCK;
- 	} else {
--		val = clamp_t(int, val, (SOCK_MIN_RCVBUF + 1) / 2,
--			      sysctl_rmem_max);
--		sk->sk_rcvbuf = val * 2;
-+		val = min_t(u32, val, sysctl_rmem_max);
-+		sk->sk_rcvbuf = max_t(int, val * 2, SOCK_MIN_RCVBUF);
- 		sk->sk_userlocks |= SOCK_RCVBUF_LOCK;
- 	}
- 	release_sock(sk);
--- 
-2.19.1
-
-
+You can just drop invalid traffic via policy.
