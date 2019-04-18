@@ -2,175 +2,90 @@ Return-Path: <SRS0=/8pw=SU=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_NEOMUTT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D2BFCC10F0E
-	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Apr 2019 09:58:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C0CEEC10F0E
+	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Apr 2019 11:28:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 933EB2183F
-	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Apr 2019 09:58:54 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="PWJ00z+z"
+	by mail.kernel.org (Postfix) with ESMTP id 8FDB1217D7
+	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Apr 2019 11:28:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388593AbfDRJ6t (ORCPT
+        id S2388814AbfDRL2z (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 18 Apr 2019 05:58:49 -0400
-Received: from mail-vk1-f193.google.com ([209.85.221.193]:44895 "EHLO
-        mail-vk1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728074AbfDRJ6t (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 18 Apr 2019 05:58:49 -0400
-Received: by mail-vk1-f193.google.com with SMTP id q189so329718vkq.11;
-        Thu, 18 Apr 2019 02:58:48 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc:content-transfer-encoding;
-        bh=MDXx34Z4qA3a8kaTeqeuzWic43HgUDc8KSJFJYxiSAg=;
-        b=PWJ00z+z8JynYuz/jxo66kBeshN2b5sg9Co34vVNAbFBNzQHdY3fl+Dfopj6qqxb+q
-         TVbsAgRO70OTaxGfhpe2Rn2UV5lGv352nHNIFY/CQdOU//ItOfWYvu22ES/7Kjq3TLxT
-         g2+Bv1jrdViBSnNvWQfLQ9xHMb1lWcmDvgR5Y0VBidisVlNNR5lZTRccVWZfj+d24Vgl
-         HENZq9ZzdH5nCxMuzP+/BR2/f2feGkU5GaNeaAvT1QR0+Ec21+VNLfcuixfxjagk8duo
-         cFMfTWyLAwFc3FFq4ywGZt1hyYXp0V21psoU9hJ6ArMOq1jHMj5eESUW8kO9Q+ZZlBk5
-         mO9Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=MDXx34Z4qA3a8kaTeqeuzWic43HgUDc8KSJFJYxiSAg=;
-        b=IQ/PD9RKWV7fKkauWlVFX0W8Hu90RIezsjA/3+Ztg3uHzRPT1wZEcSWcB38YVs/XnJ
-         G+RYjEcRBnvMlg10z3op6Ubb+z4V7lSfgKcNnRq9RXimEjc0ViMqD9kL3dwlnrDB7z17
-         2hNNpsduTbLa+GFF7vTG5GXxdlCHNAa/+orYZ8cstE17MCgIz05d8p1GY8DtNUP+4HNF
-         wrFR8O8tXOgqxNpMKb39tYj8uIAo08NgCekAEQp5kDPVr2gOGxbPyIAL95jYyICBELes
-         eKVgOzYEK4xRB2XIy2KIMIA6spZj+JediTFQW5+gXhSvDpFBzw8LMCGbn/bXT6t8X0iO
-         Z9kg==
-X-Gm-Message-State: APjAAAWzhvUWP30OkgDCRWVEiY2De8iimhiHRbCG2JcT7CpwxT8p/Znz
-        Em5y2Ps7ImVb0YxzGQyMAQvTVqMBmAFlwBKPX0B5IYIeGQVR
-X-Google-Smtp-Source: APXvYqz2Me++RaRch0/OetAWJw17u7QptL2ZP09mQRttDEdaR4kChCNGF/GFBGWL6/hxKMgKnRV1Khr4yFArZ0qNi5M=
-X-Received: by 2002:a1f:954:: with SMTP id 81mr3040252vkj.88.1555581527893;
- Thu, 18 Apr 2019 02:58:47 -0700 (PDT)
+        Thu, 18 Apr 2019 07:28:55 -0400
+Received: from mail.us.es ([193.147.175.20]:35136 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2388375AbfDRL2y (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 18 Apr 2019 07:28:54 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id BE3041C442B
+        for <netfilter-devel@vger.kernel.org>; Thu, 18 Apr 2019 13:28:52 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id AE5FBDA70A
+        for <netfilter-devel@vger.kernel.org>; Thu, 18 Apr 2019 13:28:52 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id A3E55DA703; Thu, 18 Apr 2019 13:28:52 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 9CBA4DA704;
+        Thu, 18 Apr 2019 13:28:50 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Thu, 18 Apr 2019 13:28:50 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (sys.soleta.eu [212.170.55.40])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 7ABC64265A31;
+        Thu, 18 Apr 2019 13:28:50 +0200 (CEST)
+Date:   Thu, 18 Apr 2019 13:28:50 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     David Miller <davem@davemloft.net>
+Cc:     fbl@redhat.com, netdev@vger.kernel.org, joe@ovn.org,
+        pshelar@ovn.org, dev@openvswitch.org,
+        netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH net-next v3 0/4] openvswitch: load and reference the NAT
+ helper
+Message-ID: <20190418112850.6c4e4bolkype5vtf@salvia>
+References: <20190417144617.14922-1-fbl@redhat.com>
+ <20190417.232509.1761143873528182624.davem@davemloft.net>
 MIME-Version: 1.0
-References: <20190409065612.32652-1-rdong.ge@gmail.com>
-In-Reply-To: <20190409065612.32652-1-rdong.ge@gmail.com>
-From:   Rundong Ge <rdong.ge@gmail.com>
-Date:   Thu, 18 Apr 2019 17:58:37 +0800
-Message-ID: <CAN1LvyreYTmi2VeH=6_TmRKFpGpkv4sfeC1SOz5ykQR2HnSWXg@mail.gmail.com>
-Subject: Re: [PATCH] netfilter: fix dangling pointer access of fake_rtable
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     kadlec@blackhole.kfki.hu, fw@strlen.de,
-        Roopa Prabhu <roopa@cumulusnetworks.com>, davem@davemloft.net,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190417.232509.1761143873528182624.davem@davemloft.net>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-friendly ping
+On Wed, Apr 17, 2019 at 11:25:09PM -0700, David Miller wrote:
+> From: Flavio Leitner <fbl@redhat.com>
+> Date: Wed, 17 Apr 2019 11:46:13 -0300
+> 
+> > The request_module() is quite expensive and triggers the
+> > usermode helper in userspace. Instead, load only if the
+> > module is not present and keep module references to avoid
+> > problems.
+> > 
+> > The first patch standardize the module alias which is already
+> > there, but not in a formal way.
+> > 
+> > The second patch adds an API to point to the NAT helper.
+> > 
+> > The third patch will register each NAT helper using the
+> > new API.
+> > 
+> > The last patch fixes openvswitch to use the new API to
+> > load and reference the NAT helper and also report an error
+> > if the operation fails.
+> 
+> Netfilter folks, besides a review, I was wondering if you'd like
+> to take this series the netfilter tree since it's mostly changes
+> in that area?
 
-Rundong Ge <rdong.ge@gmail.com> =E4=BA=8E2019=E5=B9=B44=E6=9C=889=E6=97=A5=
-=E5=91=A8=E4=BA=8C =E4=B8=8B=E5=8D=882:56=E5=86=99=E9=81=93=EF=BC=9A
->
-> With  bridge-nf-call-iptables enabeled, Skbs go through the bridge
-> and enqueued between  <NF_BR_PRE_ROUTING,NF_BR_PRI_BRNF> and
-> <NF_BR_FORWARD,NF_BR_PRI_BRNF - 1> won't be flushed when bridge is
-> down. Then _skb_refdst of skbs in the nfqueue become dangling pointer.
->
-> Reproduce steps:
-> 1.Create a bridge on the box.
-> 2.echo 1 >/proc/sys/net/bridge/bridge-nf-call-iptables
-> 3.Add a netfilter hook function to queue the packets to nfqueuenum 0.
->   The hook point must between <NF_BR_PRE_ROUTING,NF_BR_PRI_BRNF> and
->   <NF_BR_FORWARD,NF_BR_PRI_BRNF - 1>.
-> 4.Add a userspace process "nfqueue_rcv" to continuously read and
->   set_verdict "NF_ACCEPT" to packets from queue 0.
-> 5.Continuosly ping client1 from client0
-> 6.Send "Ctrl + Z" to pause the "nfqueue_rcv" to simulate the queue
->   congestion.
-> 7.Using "ifconfig br0 down&&brctl delbr br0" to delete the bridge.
-> 8.At this time the _skb_refdst of skbs in the nfqueue become dangling
->   pointer. If we send "fg" to resume the "nfqueue_rcv", the kernel
->   may try to access the freed memory.
->
-> Debug log:
-> Here I add debug logs in "netdev_freemem" and "dst_release" to prove
-> the freed memory access. As the log shows, the "dst_release" accessed
-> bridge's fake_rtable after the bridge was freed.
->
-> Apr  8 22:25:14 raydon kernel: [62139.005062] netdev_freemem name:br0,
-> fake_rtable:000000009d76cef0
->
-> Apr  8 22:25:21 raydon kernel: [62145.967133] dst_release
-> dst:000000009d76cef0 dst->dev->name: =C5=99KU=C2=A1TH
->
-> Apr  8 22:25:21 raydon kernel: [62145.967154] dst_release
-> dst:000000009d76cef0 dst->dev->name: =C5=99KU=C2=A1TH
->
-> Apr  8 22:25:21 raydon kernel: [62145.967180] dst_release
-> dst:000000009d76cef0 dst->dev->name: =C5=99KU=C2=A1TH
->
-> Apr  8 22:25:21 raydon kernel: [62145.967197] dst_release
-> dst:000000009d76cef0 dst->dev->name: =C5=99KU=C2=A1TH
->
-> The reason why the hook point should be after <NF_BR_PRE_ROUTING,
-> NF_BR_PRI_BRNF> is skbs reference bridge's fake_rtable in
-> "br_nf_pre_routing_finish" hooked at <NF_BR_PRE_ROUTING,NF_BR_PRI_BRNF>.
->
-> And the reason why the hook point should be before <NF_BR_FORWARD,
-> NF_BR_PRI_BRNF - 1> is "br_nf_forward_ip" will set the state.out to
-> bridge dev. After this hook point, the "nfqnl_dev_drop" triggered by
-> the bridge's NETDEV_DOWN event can flush the queued skbs before
-> bridge's memory is freed, because the state.out now matches the
-> bridge's dev.
->
-> Signed-off-by: Rundong Ge <rdong.ge@gmail.com>
-> ---
->  net/netfilter/nfnetlink_queue.c | 24 ++++++++++++++++++------
->  1 file changed, 18 insertions(+), 6 deletions(-)
->
-> diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_qu=
-eue.c
-> index 0dcc359..57eb02d 100644
-> --- a/net/netfilter/nfnetlink_queue.c
-> +++ b/net/netfilter/nfnetlink_queue.c
-> @@ -905,13 +905,25 @@ static void free_entry(struct nf_queue_entry *entry=
-)
->  dev_cmp(struct nf_queue_entry *entry, unsigned long ifindex)
->  {
->  #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
-> -       int physinif, physoutif;
-> +       struct net_device *physindev, *physoutdev;
-> +       struct net_bridge_port *port;
->
-> -       physinif =3D nf_bridge_get_physinif(entry->skb);
-> -       physoutif =3D nf_bridge_get_physoutif(entry->skb);
-> -
-> -       if (physinif =3D=3D ifindex || physoutif =3D=3D ifindex)
-> -               return 1;
-> +       physindev =3D nf_bridge_get_physindev(entry->skb);
-> +       physoutdev =3D nf_bridge_get_physoutdev(entry->skb);
-> +       if (physindev) {
-> +               if (physindev->ifindex =3D=3D ifindex)
-> +                       return 1;
-> +               port =3D br_port_get_rcu(physindev);
-> +               if (port && port->br->dev->ifindex =3D=3D ifindex)
-> +                       return 1;
-> +       }
-> +       if (physoutdev) {
-> +               if (physoutdev->ifindex =3D=3D ifindex)
-> +                       return 1;
-> +               port =3D br_port_get_rcu(physoutdev);
-> +               if (port && port->br->dev->ifindex =3D=3D ifindex)
-> +                       return 1;
-> +       }
->  #endif
->         if (entry->state.in)
->                 if (entry->state.in->ifindex =3D=3D ifindex)
-> --
-> 1.8.3.1
->
+I'll place this in the nf-next tree, thanks.
