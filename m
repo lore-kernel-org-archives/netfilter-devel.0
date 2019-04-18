@@ -6,76 +6,69 @@ X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SPF_PASS autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 53A9CC282DC
-	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Apr 2019 02:17:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3EB08C10F14
+	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Apr 2019 06:25:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 23CB5217FA
-	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Apr 2019 02:17:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 16CBD214DA
+	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Apr 2019 06:25:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387886AbfDRCRu (ORCPT
+        id S2387990AbfDRGZK (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 17 Apr 2019 22:17:50 -0400
-Received: from szxga04-in.huawei.com ([45.249.212.190]:6640 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1729189AbfDRCRu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 17 Apr 2019 22:17:50 -0400
-Received: from DGGEMS401-HUB.china.huawei.com (unknown [172.30.72.59])
-        by Forcepoint Email with ESMTP id 6AEFC95D5B0A47E8B65E;
-        Thu, 18 Apr 2019 10:17:47 +0800 (CST)
-Received: from [127.0.0.1] (10.184.189.20) by DGGEMS401-HUB.china.huawei.com
- (10.3.19.201) with Microsoft SMTP Server id 14.3.408.0; Thu, 18 Apr 2019
- 10:17:40 +0800
-Subject: Re: [PATCH] ipvs:set sock send/receive buffer correctly
-To:     Eric Dumazet <eric.dumazet@gmail.com>, <wensong@linux-vs.org>,
-        <horms@verge.net.au>, <ja@ssi.bg>, <pablo@netfilter.org>,
-        <kadlec@blackhole.kfki.hu>, <fw@strlen.de>, <davem@davemloft.net>,
-        <netdev@vger.kernel.org>, <lvs-devel@vger.kernel.org>,
-        <netfilter-devel@vger.kernel.org>, <coreteam@netfilter.org>,
-        <linux-kernel@vger.kernel.org>
-CC:     Mingfangsen <mingfangsen@huawei.com>, <liujie165@huawei.com>
-References: <501e5522-1d69-7c67-a1bc-fd8502d3b5d1@huawei.com>
- <60c11e72-99eb-fcde-e130-a35ecdc1d2d1@gmail.com>
- <bbfcccf4-626b-1029-62a6-a82b79edacbb@huawei.com>
- <a8ed41f3-1576-cbf6-907a-f501b3df189e@gmail.com>
-From:   linmiaohe <linmiaohe@huawei.com>
-Message-ID: <99e42cf0-bb45-cc88-a6f6-aff1098745dd@huawei.com>
-Date:   Thu, 18 Apr 2019 10:17:32 +0800
-User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:60.0) Gecko/20100101
- Thunderbird/60.5.1
-MIME-Version: 1.0
-In-Reply-To: <a8ed41f3-1576-cbf6-907a-f501b3df189e@gmail.com>
-Content-Type: text/plain; charset="utf-8"
-Content-Language: en-US
+        Thu, 18 Apr 2019 02:25:10 -0400
+Received: from shards.monkeyblade.net ([23.128.96.9]:35558 "EHLO
+        shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726581AbfDRGZK (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 18 Apr 2019 02:25:10 -0400
+Received: from localhost (unknown [IPv6:2601:601:9f80:35cd::d71])
+        (using TLSv1 with cipher AES256-SHA (256/256 bits))
+        (Client did not present a certificate)
+        (Authenticated sender: davem-davemloft)
+        by shards.monkeyblade.net (Postfix) with ESMTPSA id 922F0103F5463;
+        Wed, 17 Apr 2019 23:25:09 -0700 (PDT)
+Date:   Wed, 17 Apr 2019 23:25:09 -0700 (PDT)
+Message-Id: <20190417.232509.1761143873528182624.davem@davemloft.net>
+To:     fbl@redhat.com
+Cc:     netdev@vger.kernel.org, joe@ovn.org, pshelar@ovn.org,
+        dev@openvswitch.org, netfilter-devel@vger.kernel.org,
+        pablo@netfilter.org
+Subject: Re: [PATCH net-next v3 0/4] openvswitch: load and reference the
+ NAT helper
+From:   David Miller <davem@davemloft.net>
+In-Reply-To: <20190417144617.14922-1-fbl@redhat.com>
+References: <20190417144617.14922-1-fbl@redhat.com>
+X-Mailer: Mew version 6.8 on Emacs 26.1
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.184.189.20]
-X-CFilter-Loop: Reflected
+X-Greylist: Sender succeeded SMTP AUTH, not delayed by milter-greylist-4.5.12 (shards.monkeyblade.net [149.20.54.216]); Wed, 17 Apr 2019 23:25:09 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+From: Flavio Leitner <fbl@redhat.com>
+Date: Wed, 17 Apr 2019 11:46:13 -0300
 
+> The request_module() is quite expensive and triggers the
+> usermode helper in userspace. Instead, load only if the
+> module is not present and keep module references to avoid
+> problems.
+> 
+> The first patch standardize the module alias which is already
+> there, but not in a formal way.
+> 
+> The second patch adds an API to point to the NAT helper.
+> 
+> The third patch will register each NAT helper using the
+> new API.
+> 
+> The last patch fixes openvswitch to use the new API to
+> load and reference the NAT helper and also report an error
+> if the operation fails.
 
-On 2019/4/18 10:02, Eric Dumazet wrote:
-> 
-> 
-> On 04/17/2019 06:45 PM, linmiaohe wrote:
->>
-> 
->> In fact, I just implemented this function with reference to
->> sock_setsockopt(). When val * 2 overflow, we will set the
->> buffer as SOCK_MIN_SNDBUF, just as sock_setsockopt() do.
->>
-> 
-> I do not think so.
-> 
-> Please check latest linux kernel, not some old version.
-> 
-> commit 4057765f2dee79cb92f9067909477303360be8d3    sock: consistent handling of extreme SO_SNDBUF/SO_RCVBUF values
-> 
-> .
-> 
+Netfilter folks, besides a review, I was wondering if you'd like
+to take this series the netfilter tree since it's mostly changes
+in that area?
 
-Thank you for your patience, you are right. My version is not the newest.
-I will update my patch according to the newest version. Thanks again.
-
+Thanks.
