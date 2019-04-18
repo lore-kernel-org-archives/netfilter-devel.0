@@ -1,61 +1,97 @@
-Return-Path: <SRS0=tvQP=ST=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=/8pw=SU=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED,USER_AGENT_NEOMUTT
+X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E6A2C282DD
-	for <netfilter-devel@archiver.kernel.org>; Wed, 17 Apr 2019 20:37:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7AECBC282DD
+	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Apr 2019 01:46:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 270D3217F4
-	for <netfilter-devel@archiver.kernel.org>; Wed, 17 Apr 2019 20:37:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4ABC1217FA
+	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Apr 2019 01:46:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731857AbfDQUhL (ORCPT
+        id S2387816AbfDRBqT (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 17 Apr 2019 16:37:11 -0400
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:37214 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1730374AbfDQUhL (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 17 Apr 2019 16:37:11 -0400
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.89)
-        (envelope-from <fw@strlen.de>)
-        id 1hGrIp-00067I-I8; Wed, 17 Apr 2019 22:37:07 +0200
-Date:   Wed, 17 Apr 2019 22:37:07 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Andrei Vagin <avagin@gmail.com>
-Cc:     Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-Subject: Re: [PATCH] netfilter: fix nf_l4proto_log_invalid to log invalid
- packets
-Message-ID: <20190417203707.vnyavz7hwns2a57q@breakpoint.cc>
-References: <20190417164944.1462-1-avagin@gmail.com>
+        Wed, 17 Apr 2019 21:46:19 -0400
+Received: from szxga04-in.huawei.com ([45.249.212.190]:6639 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1733067AbfDRBqS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 17 Apr 2019 21:46:18 -0400
+Received: from DGGEMS407-HUB.china.huawei.com (unknown [172.30.72.60])
+        by Forcepoint Email with ESMTP id ACA47F1AEAD17067CAD0;
+        Thu, 18 Apr 2019 09:46:14 +0800 (CST)
+Received: from [127.0.0.1] (10.184.189.20) by DGGEMS407-HUB.china.huawei.com
+ (10.3.19.207) with Microsoft SMTP Server id 14.3.408.0; Thu, 18 Apr 2019
+ 09:46:05 +0800
+Subject: Re: [PATCH] ipvs:set sock send/receive buffer correctly
+To:     Eric Dumazet <eric.dumazet@gmail.com>, <wensong@linux-vs.org>,
+        <horms@verge.net.au>, <ja@ssi.bg>, <pablo@netfilter.org>,
+        <kadlec@blackhole.kfki.hu>, <fw@strlen.de>, <davem@davemloft.net>,
+        <netdev@vger.kernel.org>, <lvs-devel@vger.kernel.org>,
+        <netfilter-devel@vger.kernel.org>, <coreteam@netfilter.org>,
+        <linux-kernel@vger.kernel.org>
+CC:     Mingfangsen <mingfangsen@huawei.com>, <liujie165@huawei.com>
+References: <501e5522-1d69-7c67-a1bc-fd8502d3b5d1@huawei.com>
+ <60c11e72-99eb-fcde-e130-a35ecdc1d2d1@gmail.com>
+From:   linmiaohe <linmiaohe@huawei.com>
+Message-ID: <bbfcccf4-626b-1029-62a6-a82b79edacbb@huawei.com>
+Date:   Thu, 18 Apr 2019 09:45:59 +0800
+User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:60.0) Gecko/20100101
+ Thunderbird/60.5.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190417164944.1462-1-avagin@gmail.com>
-User-Agent: NeoMutt/20170113 (1.7.2)
+In-Reply-To: <60c11e72-99eb-fcde-e130-a35ecdc1d2d1@gmail.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.184.189.20]
+X-CFilter-Loop: Reflected
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Andrei Vagin <avagin@gmail.com> wrote:
-> diff --git a/net/netfilter/nf_conntrack_proto.c b/net/netfilter/nf_conntrack_proto.c
-> index b9403a266a2e..37bb530d848f 100644
-> --- a/net/netfilter/nf_conntrack_proto.c
-> +++ b/net/netfilter/nf_conntrack_proto.c
-> @@ -55,7 +55,7 @@ void nf_l4proto_log_invalid(const struct sk_buff *skb,
->  	struct va_format vaf;
->  	va_list args;
->  
-> -	if (net->ct.sysctl_log_invalid != protonum ||
-> +	if (net->ct.sysctl_log_invalid != protonum &&
->  	    net->ct.sysctl_log_invalid != IPPROTO_RAW)
 
-Urgh, thanks for fixing this.
 
-Acked-by: Florian Westphal <fw@strlen.de>
+On 2019/4/17 21:18, Eric Dumazet wrote:
+> 
+> 
+> On 04/17/2019 02:18 AM, linmiaohe wrote:
+>> From: Jie Liu <liujie165@huawei.com>
+>>
+>> If we set sysctl_wmem_max or sysctl_rmem_max larger than INT_MAX,
+>> the send/receive buffer of sock will be an negative value. Same as
+>> when the val is larger than INT_MAX/2.
+>>
+>> Fixes: 1c003b1580e2 ("ipvs: wakeup master thread")
+>> Reported-by: Qiang Ning <ningqiang1@huawei.com>
+>> Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
+>> Signed-off-by: Jie Liu <liujie165@huawei.com>
+>> ---
+>>  net/netfilter/ipvs/ip_vs_sync.c | 10 ++++------
+>>  1 file changed, 4 insertions(+), 6 deletions(-)
+>>
+>> diff --git a/net/netfilter/ipvs/ip_vs_sync.c b/net/netfilter/ipvs/ip_vs_sync.c
+>> index 2526be6b3d90..c0e4cbed6e74 100644
+>> --- a/net/netfilter/ipvs/ip_vs_sync.c
+>> +++ b/net/netfilter/ipvs/ip_vs_sync.c
+>> @@ -1278,14 +1278,12 @@ static void set_sock_size(struct sock *sk, int mode, int val)
+>>  	/* setsockopt(sock, SOL_SOCKET, SO_RCVBUF, &val, sizeof(val)); */
+>>  	lock_sock(sk);
+>>  	if (mode) {
+>> -		val = clamp_t(int, val, (SOCK_MIN_SNDBUF + 1) / 2,
+>> -			      sysctl_wmem_max);
+>> -		sk->sk_sndbuf = val * 2;
+>> +		val = min_t(u32, val, sysctl_wmem_max);
+>> +		sk->sk_sndbuf = max_t(int, val * 2, SOCK_MIN_SNDBUF);
+> 
+> What prevents val * 2 to overflow ? 
+> 
+> Code in sock_setsockopt() looks quite different.
+> .
+> 
+In fact, I just implemented this function with reference to
+sock_setsockopt(). When val * 2 overflow, we will set the
+buffer as SOCK_MIN_SNDBUF, just as sock_setsockopt() do.
+
