@@ -2,51 +2,83 @@ Return-Path: <SRS0=/8pw=SU=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
+X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7AECBC282DD
-	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Apr 2019 01:46:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 028A4C282DC
+	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Apr 2019 02:02:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4ABC1217FA
-	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Apr 2019 01:46:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C49C92183E
+	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Apr 2019 02:02:21 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Z9I6BAym"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387816AbfDRBqT (ORCPT
+        id S2387534AbfDRCCP (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 17 Apr 2019 21:46:19 -0400
-Received: from szxga04-in.huawei.com ([45.249.212.190]:6639 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1733067AbfDRBqS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 17 Apr 2019 21:46:18 -0400
-Received: from DGGEMS407-HUB.china.huawei.com (unknown [172.30.72.60])
-        by Forcepoint Email with ESMTP id ACA47F1AEAD17067CAD0;
-        Thu, 18 Apr 2019 09:46:14 +0800 (CST)
-Received: from [127.0.0.1] (10.184.189.20) by DGGEMS407-HUB.china.huawei.com
- (10.3.19.207) with Microsoft SMTP Server id 14.3.408.0; Thu, 18 Apr 2019
- 09:46:05 +0800
+        Wed, 17 Apr 2019 22:02:15 -0400
+Received: from mail-pg1-f195.google.com ([209.85.215.195]:43732 "EHLO
+        mail-pg1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729189AbfDRCCO (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 17 Apr 2019 22:02:14 -0400
+Received: by mail-pg1-f195.google.com with SMTP id z9so400751pgu.10;
+        Wed, 17 Apr 2019 19:02:14 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=subject:to:cc:references:from:message-id:date:user-agent
+         :mime-version:in-reply-to:content-language:content-transfer-encoding;
+        bh=s6InVlmwhf7nDs3US5FW36FMkwSol+9ahSHqxp3m2yw=;
+        b=Z9I6BAymfGIMLS9r5mmp2sPOZsCGuZ+ND3z+VHRi98g3k3Lv8UtPuDqVwdMMMJPQoh
+         RQkO8hd+afXPWlK1RFtuSTNGEpZL09zqMnFkHfuGuS8xGKPLzmuAqyF4dKjhSY+A2DOo
+         i+B6vke8Mn66KdVOC1SFsgFV5Ul5TImSKnUIteE3d2bm0iboEsdoI5qUBsxUspo1dSEz
+         Vehxd/tiPJwSmivjpheCMwpARar9uHm0kNhRgrGJYZ9wKvDXz0tTjeKdo7iqiR3wBoDv
+         +0npKuOeH0oix3TWQnfqHUkgtuebPWga/3X+S6xPoPGYaXJkfjodLLylYnZl1JNKxvtd
+         +MAA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-language
+         :content-transfer-encoding;
+        bh=s6InVlmwhf7nDs3US5FW36FMkwSol+9ahSHqxp3m2yw=;
+        b=ppUv1L2RRaYmIK2oAPWZ2vF9sVHAIOz4l3EaRugp7dOteeD1oC74Nbnjp1wkm9j9Ft
+         miv1tUEIr9+dpSZNIoXF6CZYbPIJD9UG5TTwt2AbH/+Li31WfEebuyxGQWgNpMyL6669
+         3S2bRhy/mOrf0fZsoSH57UFawu5KBfkI/5AM0ahwW7EGrXXd2jF2oGXo9LELKu6YQyQM
+         3adrZFGbuz+dsUu/9YVt7QRH8iNDNV08Cbm6VtDeQ94cPViuWanMKbUN/jh8lFpGfXtZ
+         roYsRv13cGIUbAVBtQV/reKSD/u6gADsQRwTea/90C897aB+exDyQoXfQWMo6I/zdoZz
+         DRqw==
+X-Gm-Message-State: APjAAAXSiKOb1m2IZZ4MfoSHDVYi4cwuqfNc3jjFm9HxGwylJzloosn1
+        pPFc4HSbFOfAN9pOWZ32PAEwgVCo
+X-Google-Smtp-Source: APXvYqwFHX7KZMX9OZYlaWc3EGUFw4QfeRCZJinlfDyzoj0HIU53oJJS3C/l2DwGMODVrLZFPlh54g==
+X-Received: by 2002:aa7:914d:: with SMTP id 13mr93681451pfi.149.1555552934047;
+        Wed, 17 Apr 2019 19:02:14 -0700 (PDT)
+Received: from [192.168.86.235] (c-73-241-150-70.hsd1.ca.comcast.net. [73.241.150.70])
+        by smtp.gmail.com with ESMTPSA id i10sm688579pfj.7.2019.04.17.19.02.12
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 17 Apr 2019 19:02:13 -0700 (PDT)
 Subject: Re: [PATCH] ipvs:set sock send/receive buffer correctly
-To:     Eric Dumazet <eric.dumazet@gmail.com>, <wensong@linux-vs.org>,
-        <horms@verge.net.au>, <ja@ssi.bg>, <pablo@netfilter.org>,
-        <kadlec@blackhole.kfki.hu>, <fw@strlen.de>, <davem@davemloft.net>,
-        <netdev@vger.kernel.org>, <lvs-devel@vger.kernel.org>,
-        <netfilter-devel@vger.kernel.org>, <coreteam@netfilter.org>,
-        <linux-kernel@vger.kernel.org>
-CC:     Mingfangsen <mingfangsen@huawei.com>, <liujie165@huawei.com>
+To:     linmiaohe <linmiaohe@huawei.com>,
+        Eric Dumazet <eric.dumazet@gmail.com>, wensong@linux-vs.org,
+        horms@verge.net.au, ja@ssi.bg, pablo@netfilter.org,
+        kadlec@blackhole.kfki.hu, fw@strlen.de, davem@davemloft.net,
+        netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        linux-kernel@vger.kernel.org
+Cc:     Mingfangsen <mingfangsen@huawei.com>, liujie165@huawei.com
 References: <501e5522-1d69-7c67-a1bc-fd8502d3b5d1@huawei.com>
  <60c11e72-99eb-fcde-e130-a35ecdc1d2d1@gmail.com>
-From:   linmiaohe <linmiaohe@huawei.com>
-Message-ID: <bbfcccf4-626b-1029-62a6-a82b79edacbb@huawei.com>
-Date:   Thu, 18 Apr 2019 09:45:59 +0800
-User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:60.0) Gecko/20100101
- Thunderbird/60.5.1
+ <bbfcccf4-626b-1029-62a6-a82b79edacbb@huawei.com>
+From:   Eric Dumazet <eric.dumazet@gmail.com>
+Message-ID: <a8ed41f3-1576-cbf6-907a-f501b3df189e@gmail.com>
+Date:   Wed, 17 Apr 2019 19:02:11 -0700
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:52.0) Gecko/20100101
+ Thunderbird/52.9.1
 MIME-Version: 1.0
-In-Reply-To: <60c11e72-99eb-fcde-e130-a35ecdc1d2d1@gmail.com>
-Content-Type: text/plain; charset="utf-8"
+In-Reply-To: <bbfcccf4-626b-1029-62a6-a82b79edacbb@huawei.com>
+Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.184.189.20]
-X-CFilter-Loop: Reflected
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
@@ -54,44 +86,16 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 
 
-On 2019/4/17 21:18, Eric Dumazet wrote:
+On 04/17/2019 06:45 PM, linmiaohe wrote:
 > 
-> 
-> On 04/17/2019 02:18 AM, linmiaohe wrote:
->> From: Jie Liu <liujie165@huawei.com>
->>
->> If we set sysctl_wmem_max or sysctl_rmem_max larger than INT_MAX,
->> the send/receive buffer of sock will be an negative value. Same as
->> when the val is larger than INT_MAX/2.
->>
->> Fixes: 1c003b1580e2 ("ipvs: wakeup master thread")
->> Reported-by: Qiang Ning <ningqiang1@huawei.com>
->> Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
->> Signed-off-by: Jie Liu <liujie165@huawei.com>
->> ---
->>  net/netfilter/ipvs/ip_vs_sync.c | 10 ++++------
->>  1 file changed, 4 insertions(+), 6 deletions(-)
->>
->> diff --git a/net/netfilter/ipvs/ip_vs_sync.c b/net/netfilter/ipvs/ip_vs_sync.c
->> index 2526be6b3d90..c0e4cbed6e74 100644
->> --- a/net/netfilter/ipvs/ip_vs_sync.c
->> +++ b/net/netfilter/ipvs/ip_vs_sync.c
->> @@ -1278,14 +1278,12 @@ static void set_sock_size(struct sock *sk, int mode, int val)
->>  	/* setsockopt(sock, SOL_SOCKET, SO_RCVBUF, &val, sizeof(val)); */
->>  	lock_sock(sk);
->>  	if (mode) {
->> -		val = clamp_t(int, val, (SOCK_MIN_SNDBUF + 1) / 2,
->> -			      sysctl_wmem_max);
->> -		sk->sk_sndbuf = val * 2;
->> +		val = min_t(u32, val, sysctl_wmem_max);
->> +		sk->sk_sndbuf = max_t(int, val * 2, SOCK_MIN_SNDBUF);
-> 
-> What prevents val * 2 to overflow ? 
-> 
-> Code in sock_setsockopt() looks quite different.
-> .
-> 
-In fact, I just implemented this function with reference to
-sock_setsockopt(). When val * 2 overflow, we will set the
-buffer as SOCK_MIN_SNDBUF, just as sock_setsockopt() do.
 
+> In fact, I just implemented this function with reference to
+> sock_setsockopt(). When val * 2 overflow, we will set the
+> buffer as SOCK_MIN_SNDBUF, just as sock_setsockopt() do.
+> 
+
+I do not think so.
+
+Please check latest linux kernel, not some old version.
+
+commit 4057765f2dee79cb92f9067909477303360be8d3    sock: consistent handling of extreme SO_SNDBUF/SO_RCVBUF values
