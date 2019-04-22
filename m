@@ -2,69 +2,130 @@ Return-Path: <SRS0=3cJm=SY=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_NEOMUTT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.0 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_PASS
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F1275C282E1
-	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Apr 2019 08:38:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BDE48C282E2
+	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Apr 2019 09:16:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BD3FE20656
-	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Apr 2019 08:38:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8EB7B20674
+	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Apr 2019 09:16:26 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="UXFv+ty/"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727093AbfDVIiS (ORCPT
+        id S1727120AbfDVJQU (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 22 Apr 2019 04:38:18 -0400
-Received: from mail.us.es ([193.147.175.20]:43382 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726874AbfDVIiS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 22 Apr 2019 04:38:18 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 348C627F8D3
-        for <netfilter-devel@vger.kernel.org>; Mon, 22 Apr 2019 10:38:16 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 24D57DA737
-        for <netfilter-devel@vger.kernel.org>; Mon, 22 Apr 2019 10:38:16 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 204BADA713; Mon, 22 Apr 2019 10:38:16 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 1A813DA713;
-        Mon, 22 Apr 2019 10:38:14 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 22 Apr 2019 10:38:14 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (sys.soleta.eu [212.170.55.40])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id E748F4265A31;
-        Mon, 22 Apr 2019 10:38:13 +0200 (CEST)
-Date:   Mon, 22 Apr 2019 10:38:13 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Andrei Vagin <avagin@gmail.com>
-Cc:     Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-Subject: Re: [PATCH] netfilter: fix nf_l4proto_log_invalid to log invalid
- packets
-Message-ID: <20190422083813.jadafdr5mpwda2fe@salvia>
-References: <20190417164944.1462-1-avagin@gmail.com>
+        Mon, 22 Apr 2019 05:16:20 -0400
+Received: from mail-vs1-f68.google.com ([209.85.217.68]:40339 "EHLO
+        mail-vs1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726724AbfDVJQU (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 22 Apr 2019 05:16:20 -0400
+Received: by mail-vs1-f68.google.com with SMTP id f22so5883347vso.7;
+        Mon, 22 Apr 2019 02:16:19 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc:content-transfer-encoding;
+        bh=FGKzBtbWtSdMT4CQBSYq3CFTSOZD9sxtfUIsyvEVOMU=;
+        b=UXFv+ty/yvtRzOlUvVMN5M4XAywS79EK7vzcMvu7p20RoOzhiLZh+PJXSPtmHcQYtN
+         fwHGpBvP6fAliRdZ2g/mfmooKz/iouuWWNkJ+QuAwKhbRjU/FCKsXz5i0wXk1FxMjqE7
+         hZh4vWjhXqyDQUpBeXWqO8pKfAXTxpJ5fQKs9IgnnDrXjva6Z/nBPqJkZRYYkkm/bIi0
+         V0SLcPewxOInirsaJ4S22GdAkvE4NbOLiBbiZN6BRu7pUkPnomv7wOdPFj0tQkga9gqL
+         EKDcqtH/cyPCKzuV277yikhzFO1kwz2dRKpfO/kOhmtfMgmSExMKSvVlknXFCfJLYNzv
+         HY4w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc:content-transfer-encoding;
+        bh=FGKzBtbWtSdMT4CQBSYq3CFTSOZD9sxtfUIsyvEVOMU=;
+        b=mmSiR5MlnAxCZaGdU5ttk7cbxYmLqcFTnTPwLHAtWb48JPWMEqVQfC+a6CeHjGHIK/
+         oBQSwQFbN8b52grvjQcP3MlJtLKY/cu2/nwEXaZsF1ZB+EPGMzhuZ8gXdK7L9tCABC/B
+         QiYlutOOWUhbvYyicuDFoGqeL6cn27wA9quQuz3/eQmmcml4010mmmj/+PxZeSiw8hGJ
+         imYogeXn1w26uzJBr7eYWGyT480CWgwEzNmmRxAlqWKQVBefS7/2suQp8+XtAOyUkVtw
+         QXtFCXkh+IT9MUv88u7rlY4p2KREL/fbSc7brtY1fo05Uz4xhdhKsGr+ezMAAxVFobTt
+         rkhA==
+X-Gm-Message-State: APjAAAVw0icskHNBmSvOagw84xammJvG0ivdmkwlmqCBDdZ0C3fMx9lU
+        pK6fC8cJHE1YspCagoCM1mjH6Y7HFa+8PzKHhQ==
+X-Google-Smtp-Source: APXvYqyjfURkPVWRuOBTLlTWPvS+h7cQQfafSRORFM7X22mFuitRJE3p60ncOMw8uUNLdZALqfwkL7WcxFAipFD1xR8=
+X-Received: by 2002:a67:7404:: with SMTP id p4mr9559676vsc.45.1555924578833;
+ Mon, 22 Apr 2019 02:16:18 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190417164944.1462-1-avagin@gmail.com>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+References: <20190409065612.32652-1-rdong.ge@gmail.com> <20190422083339.ptkxqb66pombgy5g@salvia>
+In-Reply-To: <20190422083339.ptkxqb66pombgy5g@salvia>
+From:   Rundong Ge <rdong.ge@gmail.com>
+Date:   Mon, 22 Apr 2019 17:16:07 +0800
+Message-ID: <CAN1Lvyo1CVopsB7iV=e-dAN9JDFg-SmQ8g6H6RrgD7qACAd4hQ@mail.gmail.com>
+Subject: Re: [PATCH] netfilter: fix dangling pointer access of fake_rtable
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     kadlec@blackhole.kfki.hu, fw@strlen.de,
+        Roopa Prabhu <roopa@cumulusnetworks.com>, davem@davemloft.net,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Apr 17, 2019 at 09:49:44AM -0700, Andrei Vagin wrote:
-> It doesn't log a packet if sysctl_log_invalid isn't equal to protonum
-> OR sysctl_log_invalid isn't equal to IPPROTO_RAW. This sentence is
-> always true. I believe we need to replace OR to AND.
+br_nf_pre_routing will call the NF_INET_PRE_ROUTING hooks, at this
+time both entry->state.in and entry->state.out are not bridge device.
 
-Applied, thanks.
+NF_HOOK(NFPROTO_IPV4, NF_INET_PRE_ROUTING, state->net, state->sk, skb,
+skb->dev, NULL,
+br_nf_pre_routing_finish);
+
+Pablo Neira Ayuso <pablo@netfilter.org> =E4=BA=8E2019=E5=B9=B44=E6=9C=8822=
+=E6=97=A5=E5=91=A8=E4=B8=80 =E4=B8=8B=E5=8D=884:34=E5=86=99=E9=81=93=EF=BC=
+=9A
+>
+> On Tue, Apr 09, 2019 at 06:56:12AM +0000, Rundong Ge wrote:
+> [...]
+> > diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_=
+queue.c
+> > index 0dcc359..57eb02d 100644
+> > --- a/net/netfilter/nfnetlink_queue.c
+> > +++ b/net/netfilter/nfnetlink_queue.c
+> > @@ -905,13 +905,25 @@ static void free_entry(struct nf_queue_entry *ent=
+ry)
+> >  dev_cmp(struct nf_queue_entry *entry, unsigned long ifindex)
+> >  {
+> >  #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
+> > -     int physinif, physoutif;
+> > +     struct net_device *physindev, *physoutdev;
+> > +     struct net_bridge_port *port;
+> >
+> > -     physinif =3D nf_bridge_get_physinif(entry->skb);
+> > -     physoutif =3D nf_bridge_get_physoutif(entry->skb);
+> > -
+> > -     if (physinif =3D=3D ifindex || physoutif =3D=3D ifindex)
+> > -             return 1;
+> > +     physindev =3D nf_bridge_get_physindev(entry->skb);
+> > +     physoutdev =3D nf_bridge_get_physoutdev(entry->skb);
+> > +     if (physindev) {
+> > +             if (physindev->ifindex =3D=3D ifindex)
+> > +                     return 1;
+> > +             port =3D br_port_get_rcu(physindev);
+> > +             if (port && port->br->dev->ifindex =3D=3D ifindex)
+> > +                     return 1;
+> > +     }
+> > +     if (physoutdev) {
+> > +             if (physoutdev->ifindex =3D=3D ifindex)
+> > +                     return 1;
+> > +             port =3D br_port_get_rcu(physoutdev);
+> > +             if (port && port->br->dev->ifindex =3D=3D ifindex)
+> > +                     return 1;
+> > +     }
+>
+> Either entry->state.in and entry->state.out point to the bridge
+> device, after this #endif.
+>
+> >  #endif
+> >       if (entry->state.in)
+> >               if (entry->state.in->ifindex =3D=3D ifindex)
+> > --
+> > 1.8.3.1
+> >
