@@ -1,108 +1,109 @@
-Return-Path: <SRS0=ZoCe=SX=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=3cJm=SY=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS
+X-Spam-Status: No, score=-6.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_NEOMUTT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C7875C282E1
-	for <netfilter-devel@archiver.kernel.org>; Sun, 21 Apr 2019 18:48:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 73A26C282E2
+	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Apr 2019 08:34:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9F0382080D
-	for <netfilter-devel@archiver.kernel.org>; Sun, 21 Apr 2019 18:48:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4E62220656
+	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Apr 2019 08:34:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726102AbfDUSsr (ORCPT
+        id S1727168AbfDVIeE (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 21 Apr 2019 14:48:47 -0400
-Received: from ja.ssi.bg ([178.16.129.10]:38422 "EHLO ja.ssi.bg"
-        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1725767AbfDUSsr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 21 Apr 2019 14:48:47 -0400
-Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
-        by ja.ssi.bg (8.15.2/8.15.2) with ESMTP id x3LIm0bc026468;
-        Sun, 21 Apr 2019 21:48:01 +0300
-Date:   Sun, 21 Apr 2019 21:48:00 +0300 (EEST)
-From:   Julian Anastasov <ja@ssi.bg>
-To:     linmiaohe <linmiaohe@huawei.com>
-cc:     wensong@linux-vs.org, horms@verge.net.au, pablo@netfilter.org,
-        kadlec@blackhole.kfki.hu, fw@strlen.de, davem@davemloft.net,
-        netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        linux-kernel@vger.kernel.org, eric.dumazet@gmail.com,
-        Mingfangsen <mingfangsen@huawei.com>, liujie165@huawei.com
-Subject: Re: [PATCH v2] ipvs:set sock send/receive buffer correctly
-In-Reply-To: <7d0dbb46-09aa-0163-bfd9-169594489584@huawei.com>
-Message-ID: <alpine.LFD.2.21.1904212142540.2345@ja.home.ssi.bg>
-References: <7d0dbb46-09aa-0163-bfd9-169594489584@huawei.com>
-User-Agent: Alpine 2.21 (LFD 202 2017-01-01)
+        Mon, 22 Apr 2019 04:34:04 -0400
+Received: from mail.us.es ([193.147.175.20]:40324 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727096AbfDVIeE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 22 Apr 2019 04:34:04 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 38C9D27F8CF
+        for <netfilter-devel@vger.kernel.org>; Mon, 22 Apr 2019 10:34:02 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 2A4ECDA709
+        for <netfilter-devel@vger.kernel.org>; Mon, 22 Apr 2019 10:34:02 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 19E37DA714; Mon, 22 Apr 2019 10:34:02 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id D7CB7DA705;
+        Mon, 22 Apr 2019 10:33:59 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Mon, 22 Apr 2019 10:33:59 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (sys.soleta.eu [212.170.55.40])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id AD7F44265A31;
+        Mon, 22 Apr 2019 10:33:59 +0200 (CEST)
+Date:   Mon, 22 Apr 2019 10:33:59 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Rundong Ge <rdong.ge@gmail.com>
+Cc:     kadlec@blackhole.kfki.hu, fw@strlen.de, roopa@cumulusnetworks.com,
+        davem@davemloft.net, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] netfilter: fix dangling pointer access of fake_rtable
+Message-ID: <20190422083339.ptkxqb66pombgy5g@salvia>
+References: <20190409065612.32652-1-rdong.ge@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190409065612.32652-1-rdong.ge@gmail.com>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+On Tue, Apr 09, 2019 at 06:56:12AM +0000, Rundong Ge wrote:
+[...]
+> diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+> index 0dcc359..57eb02d 100644
+> --- a/net/netfilter/nfnetlink_queue.c
+> +++ b/net/netfilter/nfnetlink_queue.c
+> @@ -905,13 +905,25 @@ static void free_entry(struct nf_queue_entry *entry)
+>  dev_cmp(struct nf_queue_entry *entry, unsigned long ifindex)
+>  {
+>  #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
+> -	int physinif, physoutif;
+> +	struct net_device *physindev, *physoutdev;
+> +	struct net_bridge_port *port;
+>  
+> -	physinif = nf_bridge_get_physinif(entry->skb);
+> -	physoutif = nf_bridge_get_physoutif(entry->skb);
+> -
+> -	if (physinif == ifindex || physoutif == ifindex)
+> -		return 1;
+> +	physindev = nf_bridge_get_physindev(entry->skb);
+> +	physoutdev = nf_bridge_get_physoutdev(entry->skb);
+> +	if (physindev) {
+> +		if (physindev->ifindex == ifindex)
+> +			return 1;
+> +		port = br_port_get_rcu(physindev);
+> +		if (port && port->br->dev->ifindex == ifindex)
+> +			return 1;
+> +	}
+> +	if (physoutdev) {
+> +		if (physoutdev->ifindex == ifindex)
+> +			return 1;
+> +		port = br_port_get_rcu(physoutdev);
+> +		if (port && port->br->dev->ifindex == ifindex)
+> +			return 1;
+> +	}
 
-	Hello,
+Either entry->state.in and entry->state.out point to the bridge
+device, after this #endif.
 
-On Thu, 18 Apr 2019, linmiaohe wrote:
-
-> From: Jie Liu <liujie165@huawei.com>
-> 
-> If we set sysctl_wmem_max or sysctl_rmem_max larger than INT_MAX, the
-> send/receive buffer of sock will be an negative value. Same as when
-> the val is larger than INT_MAX/2.
-> 
-> Fixes: 1c003b1580e2 ("ipvs: wakeup master thread")
-> Reported-by: Qiang Ning <ningqiang1@huawei.com>
-> Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
-> Signed-off-by: Jie Liu <liujie165@huawei.com>
-
-	Looks good to me, thanks!
-
-Acked-by: Julian Anastasov <ja@ssi.bg>
-
-> ---
->  net/netfilter/ipvs/ip_vs_sync.c | 20 ++++++++++++++------
->  1 file changed, 14 insertions(+), 6 deletions(-)
-> 
-> diff --git a/net/netfilter/ipvs/ip_vs_sync.c b/net/netfilter/ipvs/ip_vs_sync.c
-> index 2526be6b3d90..760f3364d4a2 100644
-> --- a/net/netfilter/ipvs/ip_vs_sync.c
-> +++ b/net/netfilter/ipvs/ip_vs_sync.c
-> @@ -1278,14 +1278,22 @@ static void set_sock_size(struct sock *sk, int mode, int val)
->  	/* setsockopt(sock, SOL_SOCKET, SO_RCVBUF, &val, sizeof(val)); */
->  	lock_sock(sk);
->  	if (mode) {
-> -		val = clamp_t(int, val, (SOCK_MIN_SNDBUF + 1) / 2,
-> -			      sysctl_wmem_max);
-> -		sk->sk_sndbuf = val * 2;
-> +		val = min_t(u32, val, sysctl_wmem_max);
-> +
-> +		/* Ensure val * 2 fits into an int, to prevent max_t()
-> +		 * from treating it as a negative value.
-> +		 */
-> +		val = min_t(int, val, INT_MAX / 2);
-> +		sk->sk_sndbuf = max_t(int, val * 2, SOCK_MIN_SNDBUF);
->  		sk->sk_userlocks |= SOCK_SNDBUF_LOCK;
->  	} else {
-> -		val = clamp_t(int, val, (SOCK_MIN_RCVBUF + 1) / 2,
-> -			      sysctl_rmem_max);
-> -		sk->sk_rcvbuf = val * 2;
-> +		val = min_t(u32, val, sysctl_rmem_max);
-> +
-> +		/* Ensure val * 2 fits into an int, to prevent max_t()
-> +		 * from treating it as a negative value.
-> +		 */
-> +		val = min_t(int, val, INT_MAX / 2);
-> +		sk->sk_rcvbuf = max_t(int, val * 2, SOCK_MIN_RCVBUF);
->  		sk->sk_userlocks |= SOCK_RCVBUF_LOCK;
->  	}
->  	release_sock(sk);
+>  #endif
+>  	if (entry->state.in)
+>  		if (entry->state.in->ifindex == ifindex)
 > -- 
-
-Regards
-
---
-Julian Anastasov <ja@ssi.bg>
+> 1.8.3.1
+> 
