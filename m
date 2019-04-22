@@ -3,48 +3,48 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 971EAC282CE
-	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Apr 2019 20:48:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9CC59C282E1
+	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Apr 2019 20:48:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6D9AD206A3
-	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Apr 2019 20:48:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6FD70206A3
+	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Apr 2019 20:48:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730781AbfDVUsW (ORCPT
+        id S1731014AbfDVUsW (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Mon, 22 Apr 2019 16:48:22 -0400
-Received: from mail.us.es ([193.147.175.20]:46740 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:46726 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730767AbfDVUsO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 22 Apr 2019 16:48:14 -0400
+        id S1730721AbfDVUsN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 22 Apr 2019 16:48:13 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id A64A9443823
-        for <netfilter-devel@vger.kernel.org>; Mon, 22 Apr 2019 22:48:12 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 7DEC7443821
+        for <netfilter-devel@vger.kernel.org>; Mon, 22 Apr 2019 22:48:11 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 97A70DA702
-        for <netfilter-devel@vger.kernel.org>; Mon, 22 Apr 2019 22:48:12 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 6AF83DA708
+        for <netfilter-devel@vger.kernel.org>; Mon, 22 Apr 2019 22:48:11 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 8D61EDA70E; Mon, 22 Apr 2019 22:48:12 +0200 (CEST)
+        id 60AF5DA703; Mon, 22 Apr 2019 22:48:11 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 59D08DA702;
-        Mon, 22 Apr 2019 22:48:10 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 3CC20DA706;
+        Mon, 22 Apr 2019 22:48:09 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 22 Apr 2019 22:48:10 +0200 (CEST)
+ Mon, 22 Apr 2019 22:48:09 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 2FDE24265A32;
-        Mon, 22 Apr 2019 22:48:10 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 121A54265A32;
+        Mon, 22 Apr 2019 22:48:09 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 09/10] netfilter: never get/set skb->tstamp
-Date:   Mon, 22 Apr 2019 22:48:00 +0200
-Message-Id: <20190422204801.26321-10-pablo@netfilter.org>
+Subject: [PATCH 07/10] netfilter: nat: fix icmp id randomization
+Date:   Mon, 22 Apr 2019 22:47:58 +0200
+Message-Id: <20190422204801.26321-8-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20190422204801.26321-1-pablo@netfilter.org>
 References: <20190422204801.26321-1-pablo@netfilter.org>
@@ -56,116 +56,169 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Florian Westphal <fw@strlen.de>
 
-setting net.netfilter.nf_conntrack_timestamp=1 breaks xmit with fq
-scheduler.  skb->tstamp might be "refreshed" using ktime_get_real(),
-but fq expects CLOCK_MONOTONIC.
+Sven Auhagen reported that a 2nd ping request will fail if 'fully-random'
+mode is used.
 
-This patch removes all places in netfilter that check/set skb->tstamp:
+Reason is that if no proto information is given, min/max are both 0,
+so we set the icmp id to 0 instead of chosing a random value between
+0 and 65535.
 
-1. To fix the bogus "start" time seen with conntrack timestamping for
-   outgoing packets, never use skb->tstamp and always use current time.
-2. In nfqueue and nflog, only use skb->tstamp for incoming packets,
-   as determined by current hook (prerouting, input, forward).
-3. xt_time has to use system clock as well rather than skb->tstamp.
-   We could still use skb->tstamp for prerouting/input/foward, but
-   I see no advantage to make this conditional.
+Update test case as well to catch this, without fix this yields:
+[..]
+ERROR: cannot ping ns1 from ns2 with ip masquerade fully-random (attempt 2)
+ERROR: cannot ping ns1 from ns2 with ipv6 masquerade fully-random (attempt 2)
 
-Fixes: fb420d5d91c1 ("tcp/fq: move back to CLOCK_MONOTONIC")
-Cc: Eric Dumazet <edumazet@google.com>
-Reported-by: Michal Soltys <soltys@ziu.info>
+... becaus 2nd ping clashes with existing 'id 0' icmp conntrack and gets
+dropped.
+
+Fixes: 203f2e78200c27e ("netfilter: nat: remove l4proto->unique_tuple")
+Reported-by: Sven Auhagen <sven.auhagen@voleatech.de>
 Signed-off-by: Florian Westphal <fw@strlen.de>
-Acked-by: Eric Dumazet <edumazet@google.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_conntrack_core.c |  7 ++-----
- net/netfilter/nfnetlink_log.c     |  2 +-
- net/netfilter/nfnetlink_queue.c   |  2 +-
- net/netfilter/xt_time.c           | 23 ++++++++++++++---------
- 4 files changed, 18 insertions(+), 16 deletions(-)
+ net/netfilter/nf_nat_core.c                  | 11 ++++++---
+ tools/testing/selftests/netfilter/nft_nat.sh | 36 +++++++++++++++++++++-------
+ 2 files changed, 35 insertions(+), 12 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 3c48d44d6fff..2a714527cde1 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -1017,12 +1017,9 @@ __nf_conntrack_confirm(struct sk_buff *skb)
+diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
+index af7dc6537758..000952719adf 100644
+--- a/net/netfilter/nf_nat_core.c
++++ b/net/netfilter/nf_nat_core.c
+@@ -415,9 +415,14 @@ static void nf_nat_l4proto_unique_tuple(struct nf_conntrack_tuple *tuple,
+ 	case IPPROTO_ICMPV6:
+ 		/* id is same for either direction... */
+ 		keyptr = &tuple->src.u.icmp.id;
+-		min = range->min_proto.icmp.id;
+-		range_size = ntohs(range->max_proto.icmp.id) -
+-			     ntohs(range->min_proto.icmp.id) + 1;
++		if (!(range->flags & NF_NAT_RANGE_PROTO_SPECIFIED)) {
++			min = 0;
++			range_size = 65536;
++		} else {
++			min = ntohs(range->min_proto.icmp.id);
++			range_size = ntohs(range->max_proto.icmp.id) -
++				     ntohs(range->min_proto.icmp.id) + 1;
++		}
+ 		goto find_free_id;
+ #if IS_ENABLED(CONFIG_NF_CT_PROTO_GRE)
+ 	case IPPROTO_GRE:
+diff --git a/tools/testing/selftests/netfilter/nft_nat.sh b/tools/testing/selftests/netfilter/nft_nat.sh
+index 8ec76681605c..3194007cf8d1 100755
+--- a/tools/testing/selftests/netfilter/nft_nat.sh
++++ b/tools/testing/selftests/netfilter/nft_nat.sh
+@@ -321,6 +321,7 @@ EOF
  
- 	/* set conntrack timestamp, if enabled. */
- 	tstamp = nf_conn_tstamp_find(ct);
--	if (tstamp) {
--		if (skb->tstamp == 0)
--			__net_timestamp(skb);
-+	if (tstamp)
-+		tstamp->start = ktime_get_real_ns();
+ test_masquerade6()
+ {
++	local natflags=$1
+ 	local lret=0
  
--		tstamp->start = ktime_to_ns(skb->tstamp);
--	}
- 	/* Since the lookup is lockless, hash insertion must be done after
- 	 * starting the timer and setting the CONFIRMED bit. The RCU barriers
- 	 * guarantee that no other CPU can find the conntrack before the above
-diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
-index b1f9c5303f02..0b3347570265 100644
---- a/net/netfilter/nfnetlink_log.c
-+++ b/net/netfilter/nfnetlink_log.c
-@@ -540,7 +540,7 @@ __build_packet_message(struct nfnl_log_net *log,
- 			goto nla_put_failure;
+ 	ip netns exec ns0 sysctl net.ipv6.conf.all.forwarding=1 > /dev/null
+@@ -354,13 +355,13 @@ ip netns exec ns0 nft -f - <<EOF
+ table ip6 nat {
+ 	chain postrouting {
+ 		type nat hook postrouting priority 0; policy accept;
+-		meta oif veth0 masquerade
++		meta oif veth0 masquerade $natflags
  	}
+ }
+ EOF
+ 	ip netns exec ns2 ping -q -c 1 dead:1::99 > /dev/null # ping ns2->ns1
+ 	if [ $? -ne 0 ] ; then
+-		echo "ERROR: cannot ping ns1 from ns2 with active ipv6 masquerading"
++		echo "ERROR: cannot ping ns1 from ns2 with active ipv6 masquerade $natflags"
+ 		lret=1
+ 	fi
  
--	if (skb->tstamp) {
-+	if (hooknum <= NF_INET_FORWARD && skb->tstamp) {
- 		struct nfulnl_msg_packet_timestamp ts;
- 		struct timespec64 kts = ktime_to_timespec64(skb->tstamp);
- 		ts.sec = cpu_to_be64(kts.tv_sec);
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index 0dcc3592d053..e057b2961d31 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -582,7 +582,7 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
- 	if (nfqnl_put_bridge(entry, skb) < 0)
- 		goto nla_put_failure;
+@@ -397,19 +398,26 @@ EOF
+ 		fi
+ 	done
  
--	if (entskb->tstamp) {
-+	if (entry->state.hook <= NF_INET_FORWARD && entskb->tstamp) {
- 		struct nfqnl_msg_packet_timestamp ts;
- 		struct timespec64 kts = ktime_to_timespec64(entskb->tstamp);
++	ip netns exec ns2 ping -q -c 1 dead:1::99 > /dev/null # ping ns2->ns1
++	if [ $? -ne 0 ] ; then
++		echo "ERROR: cannot ping ns1 from ns2 with active ipv6 masquerade $natflags (attempt 2)"
++		lret=1
++	fi
++
+ 	ip netns exec ns0 nft flush chain ip6 nat postrouting
+ 	if [ $? -ne 0 ]; then
+ 		echo "ERROR: Could not flush ip6 nat postrouting" 1>&2
+ 		lret=1
+ 	fi
  
-diff --git a/net/netfilter/xt_time.c b/net/netfilter/xt_time.c
-index c13bcd0ab491..8dbb4d48f2ed 100644
---- a/net/netfilter/xt_time.c
-+++ b/net/netfilter/xt_time.c
-@@ -163,19 +163,24 @@ time_mt(const struct sk_buff *skb, struct xt_action_param *par)
- 	s64 stamp;
+-	test $lret -eq 0 && echo "PASS: IPv6 masquerade for ns2"
++	test $lret -eq 0 && echo "PASS: IPv6 masquerade $natflags for ns2"
  
- 	/*
--	 * We cannot use get_seconds() instead of __net_timestamp() here.
-+	 * We need real time here, but we can neither use skb->tstamp
-+	 * nor __net_timestamp().
-+	 *
-+	 * skb->tstamp and skb->skb_mstamp_ns overlap, however, they
-+	 * use different clock types (real vs monotonic).
-+	 *
- 	 * Suppose you have two rules:
--	 * 	1. match before 13:00
--	 * 	2. match after 13:00
-+	 *	1. match before 13:00
-+	 *	2. match after 13:00
-+	 *
- 	 * If you match against processing time (get_seconds) it
- 	 * may happen that the same packet matches both rules if
--	 * it arrived at the right moment before 13:00.
-+	 * it arrived at the right moment before 13:00, so it would be
-+	 * better to check skb->tstamp and set it via __net_timestamp()
-+	 * if needed.  This however breaks outgoing packets tx timestamp,
-+	 * and causes them to get delayed forever by fq packet scheduler.
- 	 */
--	if (skb->tstamp == 0)
--		__net_timestamp((struct sk_buff *)skb);
--
--	stamp = ktime_to_ns(skb->tstamp);
--	stamp = div_s64(stamp, NSEC_PER_SEC);
-+	stamp = get_seconds();
+ 	return $lret
+ }
  
- 	if (info->flags & XT_TIME_LOCAL_TZ)
- 		/* Adjust for local timezone */
+ test_masquerade()
+ {
++	local natflags=$1
+ 	local lret=0
+ 
+ 	ip netns exec ns0 sysctl net.ipv4.conf.veth0.forwarding=1 > /dev/null
+@@ -417,7 +425,7 @@ test_masquerade()
+ 
+ 	ip netns exec ns2 ping -q -c 1 10.0.1.99 > /dev/null # ping ns2->ns1
+ 	if [ $? -ne 0 ] ; then
+-		echo "ERROR: canot ping ns1 from ns2"
++		echo "ERROR: cannot ping ns1 from ns2 $natflags"
+ 		lret=1
+ 	fi
+ 
+@@ -443,13 +451,13 @@ ip netns exec ns0 nft -f - <<EOF
+ table ip nat {
+ 	chain postrouting {
+ 		type nat hook postrouting priority 0; policy accept;
+-		meta oif veth0 masquerade
++		meta oif veth0 masquerade $natflags
+ 	}
+ }
+ EOF
+ 	ip netns exec ns2 ping -q -c 1 10.0.1.99 > /dev/null # ping ns2->ns1
+ 	if [ $? -ne 0 ] ; then
+-		echo "ERROR: cannot ping ns1 from ns2 with active ip masquerading"
++		echo "ERROR: cannot ping ns1 from ns2 with active ip masquere $natflags"
+ 		lret=1
+ 	fi
+ 
+@@ -485,13 +493,19 @@ EOF
+ 		fi
+ 	done
+ 
++	ip netns exec ns2 ping -q -c 1 10.0.1.99 > /dev/null # ping ns2->ns1
++	if [ $? -ne 0 ] ; then
++		echo "ERROR: cannot ping ns1 from ns2 with active ip masquerade $natflags (attempt 2)"
++		lret=1
++	fi
++
+ 	ip netns exec ns0 nft flush chain ip nat postrouting
+ 	if [ $? -ne 0 ]; then
+ 		echo "ERROR: Could not flush nat postrouting" 1>&2
+ 		lret=1
+ 	fi
+ 
+-	test $lret -eq 0 && echo "PASS: IP masquerade for ns2"
++	test $lret -eq 0 && echo "PASS: IP masquerade $natflags for ns2"
+ 
+ 	return $lret
+ }
+@@ -750,8 +764,12 @@ test_local_dnat
+ test_local_dnat6
+ 
+ reset_counters
+-test_masquerade
+-test_masquerade6
++test_masquerade ""
++test_masquerade6 ""
++
++reset_counters
++test_masquerade "fully-random"
++test_masquerade6 "fully-random"
+ 
+ reset_counters
+ test_redirect
 -- 
 2.11.0
 
