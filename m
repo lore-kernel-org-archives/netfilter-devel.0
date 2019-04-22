@@ -6,52 +6,51 @@ X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
 	SPF_PASS,USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2BFE1C282CE
-	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Apr 2019 20:04:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 920F5C282CE
+	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Apr 2019 20:10:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E4B3D204EC
-	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Apr 2019 20:04:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 61C142064A
+	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Apr 2019 20:10:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1555963463;
-	bh=u/A/qeduHJvty0UNNiiEwnlbE7+QlX6u4fj0ynhjukI=;
+	s=default; t=1555963851;
+	bh=szBkXxqiqCEEnOvkzWxbI2WmligjzE5ZDcccd/LXTqk=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=KrwW6+LLDC6iux5sKK+mDPjdEkO1sLtWyOW9QK+t51PE2qrfb+fO0cx/31SZ9RicQ
-	 xWEH5wS7N8y7P/WatrIxdhzWEi1toNV119RmUeNKIMKV7ImCuPLRs/FwVQQhg+kzBc
-	 QWje9e4N2UBdB+i7L4ah6IvcP55b4nGckm/zxwCs=
+	b=UDBEhDfigUDLcNjuYTWGAqI7gK1xcmcjH0YxWXEOrrMM+V5cJt8USqY54dzggf5Jd
+	 HcrfLxDGnhbPjfJsI7rQiSIpxzwZQR4Hdghq6CKtRoiNdryLpK+3yIcCP3Nd0iiixW
+	 zUIFb9Id/F09MmaDKt3jgwHi1qgtqExkl2EFqQp8=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729800AbfDVTpi (ORCPT
+        id S1732574AbfDVUKi (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 22 Apr 2019 15:45:38 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47440 "EHLO mail.kernel.org"
+        Mon, 22 Apr 2019 16:10:38 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42870 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729791AbfDVTpi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 22 Apr 2019 15:45:38 -0400
+        id S1728848AbfDVTm3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 22 Apr 2019 15:42:29 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 5B9D9218DA;
-        Mon, 22 Apr 2019 19:45:36 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id C2AFA2075A;
+        Mon, 22 Apr 2019 19:42:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1555962337;
-        bh=u/A/qeduHJvty0UNNiiEwnlbE7+QlX6u4fj0ynhjukI=;
+        s=default; t=1555962148;
+        bh=szBkXxqiqCEEnOvkzWxbI2WmligjzE5ZDcccd/LXTqk=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=PRQVgy7t4OhUg5WS1G6ydi4TJSsIxVLJP3q8z6s6RB7Zv0dtGvP6RYo+ZoTYxV+Cr
-         g2cb9fQQJ7UCJsJ9UomTZv5sS3KS9Jvh4VSrS/vpb3b8wSRSkNRAXJv+QToMA8T8ZL
-         fgiJ0Mu2DnEEJTzNE0qUN1cWJjs6oMU1sjKV/dG4=
+        b=bRYqMi2pdZAZBs8ZTX5C1LtDCOnYaIZtSac6rcPtyR4+0O6Mj1W9iymvPdIgekZdw
+         SHKjpVUSw7WXQm7kUFKz68TpmmxVypNPEQ9+75woSgrH6ldjUQScxh3DmBgZy7JjV8
+         LS3rTphJnym355J+Kkt5ugv/eFJkHv9kznzt+vG0=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+Cc:     Kangjie Lu <kjlu@umn.edu>, Pablo Neira Ayuso <pablo@netfilter.org>,
         Sasha Levin <sashal@kernel.org>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.19 10/68] netfilter: nft_set_rbtree: check for inactive element after flag mismatch
-Date:   Mon, 22 Apr 2019 15:44:18 -0400
-Message-Id: <20190422194516.11634-10-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.0 19/98] netfilter: ip6t_srh: fix NULL pointer dereferences
+Date:   Mon, 22 Apr 2019 15:40:46 -0400
+Message-Id: <20190422194205.10404-19-sashal@kernel.org>
 X-Mailer: git-send-email 2.19.1
-In-Reply-To: <20190422194516.11634-1-sashal@kernel.org>
-References: <20190422194516.11634-1-sashal@kernel.org>
+In-Reply-To: <20190422194205.10404-1-sashal@kernel.org>
+References: <20190422194205.10404-1-sashal@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 X-stable: review
 X-Patchwork-Hint: Ignore
 Content-Transfer-Encoding: 8bit
@@ -60,45 +59,54 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Kangjie Lu <kjlu@umn.edu>
 
-[ Upstream commit 05b7639da55f5555b9866a1f4b7e8995232a6323 ]
+[ Upstream commit 6d65561f3d5ec933151939c543d006b79044e7a6 ]
 
-Otherwise, we hit bogus ENOENT when removing elements.
+skb_header_pointer may return NULL. The current code dereference
+its return values without a NULL check.
 
-Fixes: e701001e7cbe ("netfilter: nft_rbtree: allow adjacent intervals with dynamic updates")
-Reported-by: Václav Zindulka <vaclav.zindulka@tlapnet.cz>
+The fix inserts the checks to avoid NULL pointer dereferences.
+
+Fixes: 202a8ff545cc ("netfilter: add IPv6 segment routing header 'srh' match")
+Signed-off-by: Kangjie Lu <kjlu@umn.edu>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Sasha Levin (Microsoft) <sashal@kernel.org>
 ---
- net/netfilter/nft_set_rbtree.c | 7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ net/ipv6/netfilter/ip6t_srh.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
-index 0e5ec126f6ad..b3e75f9cb686 100644
---- a/net/netfilter/nft_set_rbtree.c
-+++ b/net/netfilter/nft_set_rbtree.c
-@@ -302,10 +302,6 @@ static void *nft_rbtree_deactivate(const struct net *net,
- 		else if (d > 0)
- 			parent = parent->rb_right;
- 		else {
--			if (!nft_set_elem_active(&rbe->ext, genmask)) {
--				parent = parent->rb_left;
--				continue;
--			}
- 			if (nft_rbtree_interval_end(rbe) &&
- 			    !nft_rbtree_interval_end(this)) {
- 				parent = parent->rb_left;
-@@ -314,6 +310,9 @@ static void *nft_rbtree_deactivate(const struct net *net,
- 				   nft_rbtree_interval_end(this)) {
- 				parent = parent->rb_right;
- 				continue;
-+			} else if (!nft_set_elem_active(&rbe->ext, genmask)) {
-+				parent = parent->rb_left;
-+				continue;
- 			}
- 			nft_rbtree_flush(net, set, rbe);
- 			return rbe;
+diff --git a/net/ipv6/netfilter/ip6t_srh.c b/net/ipv6/netfilter/ip6t_srh.c
+index 1059894a6f4c..4cb83fb69844 100644
+--- a/net/ipv6/netfilter/ip6t_srh.c
++++ b/net/ipv6/netfilter/ip6t_srh.c
+@@ -210,6 +210,8 @@ static bool srh1_mt6(const struct sk_buff *skb, struct xt_action_param *par)
+ 		psidoff = srhoff + sizeof(struct ipv6_sr_hdr) +
+ 			  ((srh->segments_left + 1) * sizeof(struct in6_addr));
+ 		psid = skb_header_pointer(skb, psidoff, sizeof(_psid), &_psid);
++		if (!psid)
++			return false;
+ 		if (NF_SRH_INVF(srhinfo, IP6T_SRH_INV_PSID,
+ 				ipv6_masked_addr_cmp(psid, &srhinfo->psid_msk,
+ 						     &srhinfo->psid_addr)))
+@@ -223,6 +225,8 @@ static bool srh1_mt6(const struct sk_buff *skb, struct xt_action_param *par)
+ 		nsidoff = srhoff + sizeof(struct ipv6_sr_hdr) +
+ 			  ((srh->segments_left - 1) * sizeof(struct in6_addr));
+ 		nsid = skb_header_pointer(skb, nsidoff, sizeof(_nsid), &_nsid);
++		if (!nsid)
++			return false;
+ 		if (NF_SRH_INVF(srhinfo, IP6T_SRH_INV_NSID,
+ 				ipv6_masked_addr_cmp(nsid, &srhinfo->nsid_msk,
+ 						     &srhinfo->nsid_addr)))
+@@ -233,6 +237,8 @@ static bool srh1_mt6(const struct sk_buff *skb, struct xt_action_param *par)
+ 	if (srhinfo->mt_flags & IP6T_SRH_LSID) {
+ 		lsidoff = srhoff + sizeof(struct ipv6_sr_hdr);
+ 		lsid = skb_header_pointer(skb, lsidoff, sizeof(_lsid), &_lsid);
++		if (!lsid)
++			return false;
+ 		if (NF_SRH_INVF(srhinfo, IP6T_SRH_INV_LSID,
+ 				ipv6_masked_addr_cmp(lsid, &srhinfo->lsid_msk,
+ 						     &srhinfo->lsid_addr)))
 -- 
 2.19.1
 
