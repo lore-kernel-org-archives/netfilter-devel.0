@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5EEF3C282CE
-	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Apr 2019 19:56:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 943E5C282CE
+	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Apr 2019 19:59:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2AF69204EC
-	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Apr 2019 19:56:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 61B47204EC
+	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Apr 2019 19:59:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1555962996;
-	bh=PNut+wlX2Y4S8hM2KiINdf9BYS4IcDNxtcGw2aKTh58=;
+	s=default; t=1555963179;
+	bh=6iIHsixbaiM8biE1TTNw1nkAoR8QvagLlrvdAv6i3i8=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=GTlA/UX0vaC+nE9mN/d5S2hVCmMWLd2lQaoPg9PXXXItt2p9TeIiNT/vutJMjnxaW
-	 AZRRCCJuDIsZZ6jw/oM4lP/RfNB5L819BPq8tBXpQXqpMvVaOWhkU1QJoBo9RRCOZV
-	 g8UAiQNEYvkRkWUoRwjRbPwCOWumCw1rckmRP5L0=
+	b=XIvp9y2zTE142MEuGVXTd5ZvQE7lczB6En5bXKTUwRTAG3mY9mgloO8seEOqRXFgA
+	 gJ8cBkXdLbAPAllhxcyvzdVF5pk5JA3rW096LROKlvg0mQVVmTntqu0ReSyjLkD4te
+	 GkqwQGrBZadTcgTp9PTnKuhF3LM7KZNHvNXrSgho=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730926AbfDVT43 (ORCPT
+        id S1730312AbfDVTrg (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 22 Apr 2019 15:56:29 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52530 "EHLO mail.kernel.org"
+        Mon, 22 Apr 2019 15:47:36 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50474 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730684AbfDVTs4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 22 Apr 2019 15:48:56 -0400
+        id S1730305AbfDVTrg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 22 Apr 2019 15:47:36 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 3E2A421907;
-        Mon, 22 Apr 2019 19:48:55 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 981A5218FD;
+        Mon, 22 Apr 2019 19:47:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1555962536;
-        bh=PNut+wlX2Y4S8hM2KiINdf9BYS4IcDNxtcGw2aKTh58=;
+        s=default; t=1555962455;
+        bh=6iIHsixbaiM8biE1TTNw1nkAoR8QvagLlrvdAv6i3i8=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=NfFvThqJ5jKfdn4qhP4wnnawOED5x5IXORZVm7DAwF1S5GH5KaTYyIyucMWHIwIfY
-         IDdZTc8YAZRYDfCcEAfrjFsM3S4D4d6Y0INhphNKUCY0nydLFX4xOSClyu3Mz4KfRE
-         Z0pN8Eo+nBmXHOjgXdSEWtte7NAsUclJT8wTfWL0=
+        b=FrS77HTmaCitDa6tjAyZx0ug7P30GwyCaFSUQiQQw3Ad3h++tzUTF46YwDJsd0Y6K
+         5da9eUwiO6rHtlXhfc/fbNbqaJ6g2fdb+A1qiOjiq09DdZ7gYG4KGFhNa/ukXY9tF9
+         p3Z+xZc4y26WejNnW8vS8deVg66ZzJsmJcW9gwZY=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Xin Long <lucien.xin@gmail.com>,
@@ -46,12 +46,12 @@ Cc:     Xin Long <lucien.xin@gmail.com>,
         Sasha Levin <sashal@kernel.org>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.9 05/29] netfilter: bridge: set skb transport_header before entering NF_INET_PRE_ROUTING
-Date:   Mon, 22 Apr 2019 15:48:24 -0400
-Message-Id: <20190422194848.13049-5-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.14 05/43] netfilter: bridge: set skb transport_header before entering NF_INET_PRE_ROUTING
+Date:   Mon, 22 Apr 2019 15:46:49 -0400
+Message-Id: <20190422194727.12495-5-sashal@kernel.org>
 X-Mailer: git-send-email 2.19.1
-In-Reply-To: <20190422194848.13049-1-sashal@kernel.org>
-References: <20190422194848.13049-1-sashal@kernel.org>
+In-Reply-To: <20190422194727.12495-1-sashal@kernel.org>
+References: <20190422194727.12495-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -87,7 +87,7 @@ Signed-off-by: Sasha Levin (Microsoft) <sashal@kernel.org>
  2 files changed, 3 insertions(+)
 
 diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
-index 38865deab3ac..0c96773d1829 100644
+index 5fd283d9929e..89936e0d55c9 100644
 --- a/net/bridge/br_netfilter_hooks.c
 +++ b/net/bridge/br_netfilter_hooks.c
 @@ -512,6 +512,7 @@ static unsigned int br_nf_pre_routing(void *priv,
@@ -99,7 +99,7 @@ index 38865deab3ac..0c96773d1829 100644
  	NF_HOOK(NFPROTO_IPV4, NF_INET_PRE_ROUTING, state->net, state->sk, skb,
  		skb->dev, NULL,
 diff --git a/net/bridge/br_netfilter_ipv6.c b/net/bridge/br_netfilter_ipv6.c
-index a1b57cb07f1e..8c08dd07419f 100644
+index 5811208863b7..09d5e0c7b3ba 100644
 --- a/net/bridge/br_netfilter_ipv6.c
 +++ b/net/bridge/br_netfilter_ipv6.c
 @@ -235,6 +235,8 @@ unsigned int br_nf_pre_routing_ipv6(void *priv,
