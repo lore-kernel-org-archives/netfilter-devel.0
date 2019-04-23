@@ -6,29 +6,29 @@ X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 771C9C10F14
-	for <netfilter-devel@archiver.kernel.org>; Tue, 23 Apr 2019 13:22:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9CB00C10F14
+	for <netfilter-devel@archiver.kernel.org>; Tue, 23 Apr 2019 13:22:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5074320645
-	for <netfilter-devel@archiver.kernel.org>; Tue, 23 Apr 2019 13:22:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 69BF820645
+	for <netfilter-devel@archiver.kernel.org>; Tue, 23 Apr 2019 13:22:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727703AbfDWNW0 (ORCPT
+        id S1727716AbfDWNWa (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 23 Apr 2019 09:22:26 -0400
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:57314 "EHLO
+        Tue, 23 Apr 2019 09:22:30 -0400
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:57318 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726421AbfDWNW0 (ORCPT
+        by vger.kernel.org with ESMTP id S1726421AbfDWNWa (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 23 Apr 2019 09:22:26 -0400
+        Tue, 23 Apr 2019 09:22:30 -0400
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.89)
         (envelope-from <fw@breakpoint.cc>)
-        id 1hIvNP-0000pP-CF; Tue, 23 Apr 2019 15:22:23 +0200
+        id 1hIvNT-0000pe-W6; Tue, 23 Apr 2019 15:22:28 +0200
 From:   Florian Westphal <fw@strlen.de>
 To:     <netfilter-devel@vger.kernel.org>
 Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH xtables-nft 2/6] xtables: add skip flag to objects
-Date:   Tue, 23 Apr 2019 15:16:21 +0200
-Message-Id: <20190423131625.23377-3-fw@strlen.de>
+Subject: [PATCH xtables-nft 3/6] xtables: add and use nft_build_cache
+Date:   Tue, 23 Apr 2019 15:16:22 +0200
+Message-Id: <20190423131625.23377-4-fw@strlen.de>
 X-Mailer: git-send-email 2.21.0
 In-Reply-To: <20190423131625.23377-1-fw@strlen.de>
 References: <20190423131625.23377-1-fw@strlen.de>
@@ -39,159 +39,95 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This will be used to skip transaction objects when committing to
-kernel.  This is needed for example when we restore a table that
-doesn't exist yet.  In such a case we would already build a flush
-operation so we can just enable it when we hit problem with the
-generation id and we find that the table/chain was already created
-in the mean time.
+Will be used with the "generation id" infrastructure.
+When we're told that the commit failed because someone else made
+changes, we can use this to re-initialize the cache and then
+revalidate the transaction list (e.g. to detect that we now have
+to flush the user-defined chain 'foo' that we wanted to create, but
+was added just now by someone else).
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- iptables/nft.c | 49 +++++++++++++++++++++++++++++++------------------
- 1 file changed, 31 insertions(+), 18 deletions(-)
+ iptables/nft.c             | 28 +++++++++++++++++++++++-----
+ iptables/nft.h             |  2 ++
+ iptables/xtables-restore.c |  5 +----
+ 3 files changed, 26 insertions(+), 9 deletions(-)
 
 diff --git a/iptables/nft.c b/iptables/nft.c
-index 16d7b7951969..1cef7a13c90d 100644
+index 1cef7a13c90d..4c9ce1a29383 100644
 --- a/iptables/nft.c
 +++ b/iptables/nft.c
-@@ -264,7 +264,8 @@ enum obj_action {
- 
- struct obj_update {
- 	struct list_head	head;
--	enum obj_update_type	type;
-+	enum obj_update_type	type:8;
-+	uint8_t			skip:1;
- 	unsigned int		seq;
- 	union {
- 		struct nftnl_table	*table;
-@@ -342,13 +343,13 @@ static int mnl_append_error(const struct nft_handle *h,
- 	return snprintf(buf, len, "%s: %s", errmsg, tcr);
- }
- 
--static int batch_add(struct nft_handle *h, enum obj_update_type type, void *ptr)
-+static struct obj_update *batch_add(struct nft_handle *h, enum obj_update_type type, void *ptr)
- {
- 	struct obj_update *obj;
- 
- 	obj = calloc(1, sizeof(struct obj_update));
- 	if (obj == NULL)
--		return -1;
-+		return NULL;
- 
- 	obj->ptr = ptr;
- 	obj->error.lineno = h->error.lineno;
-@@ -356,11 +357,12 @@ static int batch_add(struct nft_handle *h, enum obj_update_type type, void *ptr)
- 	list_add_tail(&obj->head, &h->obj_list);
- 	h->obj_list_num++;
- 
--	return 0;
-+	return obj;
- }
- 
--static int batch_table_add(struct nft_handle *h, enum obj_update_type type,
--			   struct nftnl_table *t)
-+static struct obj_update *
-+batch_table_add(struct nft_handle *h, enum obj_update_type type,
-+		struct nftnl_table *t)
- {
- 	return batch_add(h, type, t);
- }
-@@ -368,13 +370,13 @@ static int batch_table_add(struct nft_handle *h, enum obj_update_type type,
- static int batch_chain_add(struct nft_handle *h, enum obj_update_type type,
- 			   struct nftnl_chain *c)
- {
--	return batch_add(h, type, c);
-+	return batch_add(h, type, c) ? 0 : -1;
- }
- 
- static int batch_rule_add(struct nft_handle *h, enum obj_update_type type,
- 			  struct nftnl_rule *r)
- {
--	return batch_add(h, type, r);
-+	return batch_add(h, type, r) ? 0 : -1;
- }
- 
- const struct builtin_table xtables_ipv4[NFT_TABLE_MAX] = {
-@@ -609,7 +611,7 @@ static int nft_table_builtin_add(struct nft_handle *h,
- 
- 	nftnl_table_set(t, NFTNL_TABLE_NAME, (char *)_t->name);
- 
--	ret = batch_table_add(h, NFT_COMPAT_TABLE_ADD, t);
-+	ret = batch_table_add(h, NFT_COMPAT_TABLE_ADD, t) ? 0 : - 1;
- 
- 	return ret;
- }
-@@ -2000,9 +2002,10 @@ int nft_for_each_table(struct nft_handle *h,
+@@ -1486,6 +1486,28 @@ static int fetch_rule_cache(struct nft_handle *h)
  	return 0;
  }
  
--static int __nft_table_flush(struct nft_handle *h, const char *table)
-+static int __nft_table_flush(struct nft_handle *h, const char *table, bool exists)
++static void __nft_build_cache(struct nft_handle *h)
++{
++	fetch_chain_cache(h);
++	fetch_rule_cache(h);
++	h->have_cache = true;
++}
++
++
++void nft_build_cache(struct nft_handle *h)
++{
++	if (!h->have_cache)
++		__nft_build_cache(h);
++}
++
++void nft_rebuild_cache(struct nft_handle *h)
++{
++	if (!h->have_cache)
++		flush_chain_cache(h, NULL);
++
++	__nft_build_cache(h);
++}
++
+ struct nftnl_chain_list *nft_chain_list_get(struct nft_handle *h,
+ 					    const char *table)
  {
- 	const struct builtin_table *_t;
-+	struct obj_update *obj;
- 	struct nftnl_table *t;
+@@ -1495,11 +1517,7 @@ struct nftnl_chain_list *nft_chain_list_get(struct nft_handle *h,
+ 	if (!t)
+ 		return NULL;
  
- 	t = nftnl_table_alloc();
-@@ -2011,7 +2014,14 @@ static int __nft_table_flush(struct nft_handle *h, const char *table)
+-	if (!h->have_cache) {
+-		fetch_chain_cache(h);
+-		fetch_rule_cache(h);
+-		h->have_cache = true;
+-	}
++	nft_build_cache(h);
  
- 	nftnl_table_set_str(t, NFTNL_TABLE_NAME, table);
+ 	return h->table[t->type].chain_cache;
+ }
+diff --git a/iptables/nft.h b/iptables/nft.h
+index d428287b46ff..97c28b356a46 100644
+--- a/iptables/nft.h
++++ b/iptables/nft.h
+@@ -63,6 +63,8 @@ int mnl_talk(struct nft_handle *h, struct nlmsghdr *nlh,
+ 	     void *data);
+ int nft_init(struct nft_handle *h, const struct builtin_table *t);
+ void nft_fini(struct nft_handle *h);
++void nft_build_cache(struct nft_handle *h);
++void nft_rebuild_cache(struct nft_handle *h);
  
--	batch_table_add(h, NFT_COMPAT_TABLE_FLUSH, t);
-+	obj = batch_table_add(h, NFT_COMPAT_TABLE_FLUSH, t);
-+	if (!obj) {
-+		nftnl_table_free(t);
-+		return -1;
-+	}
-+
-+	if (!exists)
-+		obj->skip = 1;
+ /*
+  * Operations with tables.
+diff --git a/iptables/xtables-restore.c b/iptables/xtables-restore.c
+index b12ab6a60b3a..a6a331d39868 100644
+--- a/iptables/xtables-restore.c
++++ b/iptables/xtables-restore.c
+@@ -145,10 +145,7 @@ void xtables_restore_parse(struct nft_handle *h,
+ 			if (p->tablename && (strcmp(p->tablename, table) != 0))
+ 				continue;
  
- 	_t = nft_table_builtin_find(h, table);
- 	assert(_t);
-@@ -2027,6 +2037,7 @@ int nft_table_flush(struct nft_handle *h, const char *table)
- 	struct nftnl_table_list_iter *iter;
- 	struct nftnl_table_list *list;
- 	struct nftnl_table *t;
-+	bool exists = false;
- 	int ret = 0;
+-			/* Fixme: Needed to init chain cache.
+-			 * Should create explicit function to do this.
+-			 */
+-			nft_chain_list_get(h, table);
++			nft_build_cache(h);
  
- 	nft_fn = nft_table_flush;
-@@ -2048,17 +2059,15 @@ int nft_table_flush(struct nft_handle *h, const char *table)
- 		const char *table_name =
- 			nftnl_table_get_str(t, NFTNL_TABLE_NAME);
- 
--		if (strcmp(table_name, table) != 0)
--			goto next;
-+		if (strcmp(table_name, table) == 0) {
-+			exists = true;
-+			break;
-+		}
- 
--		ret = __nft_table_flush(h, table);
--		if (ret < 0)
--			goto err_table_iter;
--next:
- 		t = nftnl_table_list_iter_next(iter);
- 	}
- 
--err_table_iter:
-+	ret = __nft_table_flush(h, table, exists);
- 	nftnl_table_list_iter_destroy(iter);
- err_table_list:
- 	nftnl_table_list_free(list);
-@@ -2658,6 +2667,10 @@ static int nft_action(struct nft_handle *h, int action)
- 	mnl_batch_begin(h->batch, seq++);
- 
- 	list_for_each_entry(n, &h->obj_list, head) {
-+
-+		if (n->skip)
-+			continue;
-+
- 		n->seq = seq++;
- 		switch (n->type) {
- 		case NFT_COMPAT_TABLE_ADD:
+ 			if (h->noflush == 0) {
+ 				DEBUGP("Cleaning all chains of table '%s'\n",
 -- 
 2.21.0
 
