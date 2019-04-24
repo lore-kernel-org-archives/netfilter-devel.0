@@ -2,130 +2,193 @@ Return-Path: <SRS0=Os8a=S2=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B9E1EC10F11
-	for <netfilter-devel@archiver.kernel.org>; Wed, 24 Apr 2019 15:24:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C88EFC10F11
+	for <netfilter-devel@archiver.kernel.org>; Wed, 24 Apr 2019 21:34:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 88CA5218D3
-	for <netfilter-devel@archiver.kernel.org>; Wed, 24 Apr 2019 15:24:25 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="OTKNPqJy"
+	by mail.kernel.org (Postfix) with ESMTP id 9966720835
+	for <netfilter-devel@archiver.kernel.org>; Wed, 24 Apr 2019 21:34:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730700AbfDXPYZ (ORCPT
+        id S1731750AbfDXVe0 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 24 Apr 2019 11:24:25 -0400
-Received: from mail-pf1-f195.google.com ([209.85.210.195]:32849 "EHLO
-        mail-pf1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727995AbfDXPYZ (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 24 Apr 2019 11:24:25 -0400
-Received: by mail-pf1-f195.google.com with SMTP id h5so9489022pfo.0;
-        Wed, 24 Apr 2019 08:24:24 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=subject:to:cc:references:from:message-id:date:user-agent
-         :mime-version:in-reply-to:content-language:content-transfer-encoding;
-        bh=2/16R8gyl/4Jt68+YOJRddfp0JNVpMjs514ajsj6SXI=;
-        b=OTKNPqJy7h5GYprQDQN6Z4vsU+o1mvwurwt02Go9DFX9rhJeLtoz+CpjRJpxfTCKI2
-         yueMWQOGrhsG8Zd/qD0FGie9FwIiriUW2NcgdIQqE0wYeW7JyfBGKmfYdmJlzHfFvAEV
-         hRuRvrg/5b7mpLh2dXvySDo9mzSq240eyMATwgbor24kx6LsT3BuSR+i8A43ww0V9o9H
-         zmAMagpQ6E17IuDd0Ba/S8I1tDU2eT85Ku2jNOCSOShzNSfo+ePaRJFXMhUpPobBVoaQ
-         EbZTNh7dyrmCndsbu9VcQ+/Mr8Mlol9ckna7bDMz1Iq/r03QDN1zr142ZQB8xDFnF06O
-         pSWQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-language
-         :content-transfer-encoding;
-        bh=2/16R8gyl/4Jt68+YOJRddfp0JNVpMjs514ajsj6SXI=;
-        b=ox5zE6T5Jyvx4Ly2NBhWhuBg2fwd5qekbgo6IuGSv43lhzD1J7g1Ulpun8tPe0bYyG
-         zEfkujjB0+XKnCLud1S+x3pfm7sOmHZyahjw88+WOhl4Eh0CgnzAaJud64NpUwcmfR5O
-         SAz/yGundu9eGrOY3K5t9yyN9/Gd9NqxUKunqHEQWBHib3L7YRMG//33seMjhu5BDWE2
-         IpSvLDR99+Wn4LyTt9GWKCBnMO4b1i5iFrxYmVkAobZCD6IDXBKSuW1MkNRatrBHnams
-         61kIbPFueVuKS80rxkClgpEbJXXHkwUg9oh2adoCmrWI3TmtJRp7l+UGP3taJroNlR8N
-         S9zQ==
-X-Gm-Message-State: APjAAAV+aRBD4JXl/Sl3Qzwlw77dXS00IsTRsSX0wvAxbQYy7O+KNDTB
-        BEqyNYrEBK30q7gZjaAo4/c=
-X-Google-Smtp-Source: APXvYqykN155GPoHIgsUNbxEAJ9i4I+zBSXLD+gHWnbjC5Au08k1zgVwdPAli8WjF9dqw6BKf9+e7A==
-X-Received: by 2002:a65:6150:: with SMTP id o16mr7681166pgv.285.1556119464441;
-        Wed, 24 Apr 2019 08:24:24 -0700 (PDT)
-Received: from ?IPv6:2601:282:800:fd80:f02b:2058:cbd0:634d? ([2601:282:800:fd80:f02b:2058:cbd0:634d])
-        by smtp.googlemail.com with ESMTPSA id b2sm26877642pfo.150.2019.04.24.08.24.22
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Wed, 24 Apr 2019 08:24:23 -0700 (PDT)
-Subject: Re: [PATCH v2] net: netfilter: Fix ipv6 rp_filter dropping vrf
- packets by mistake
-To:     linmiaohe <linmiaohe@huawei.com>, pablo@netfilter.org,
-        kadlec@blackhole.kfki.hu, fw@strlen.de, davem@davemloft.net,
-        kuznet@ms2.inr.ac.ru, yoshfuji@linux-ipv6.org,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc:     Mingfangsen <mingfangsen@huawei.com>
-References: <7662b7eb-89a4-adac-1e46-2c09816641f2@huawei.com>
-From:   David Ahern <dsahern@gmail.com>
-Message-ID: <05222a41-c60b-0c05-6beb-26a143deea36@gmail.com>
-Date:   Wed, 24 Apr 2019 09:24:21 -0600
-User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:52.0)
- Gecko/20100101 Thunderbird/52.9.1
-MIME-Version: 1.0
-In-Reply-To: <7662b7eb-89a4-adac-1e46-2c09816641f2@huawei.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Wed, 24 Apr 2019 17:34:26 -0400
+Received: from mx2.suse.de ([195.135.220.15]:53440 "EHLO mx1.suse.de"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1731648AbfDXVeZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 24 Apr 2019 17:34:25 -0400
+X-Virus-Scanned: by amavisd-new at test-mx.suse.de
+Received: from relay2.suse.de (unknown [195.135.220.254])
+        by mx1.suse.de (Postfix) with ESMTP id 56F40AB87;
+        Wed, 24 Apr 2019 21:34:22 +0000 (UTC)
+Received: by unicorn.suse.cz (Postfix, from userid 1000)
+        id 44620E0143; Wed, 24 Apr 2019 23:34:21 +0200 (CEST)
+Message-Id: <cover.1556140270.git.mkubecek@suse.cz>
+From:   Michal Kubecek <mkubecek@suse.cz>
+Subject: [RFC PATCH net-next 0/3] make nla_nest_start() add NLA_F_NESTED flag
+To:     netdev@vger.kernel.org
+Cc:     "David S. Miller" <davem@davemloft.net>,
+        David Ahern <dsahern@gmail.com>,
+        Johannes Berg <johannes.berg@intel.com>,
+        Jiri Pirko <jiri@mellanox.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>,
+        netfilter-devel@vger.kernel.org
+Date:   Wed, 24 Apr 2019 23:34:21 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 4/24/19 3:12 AM, linmiaohe wrote:
-> From: Miaohe Lin <linmiaohe@huawei.com>
-> 
-> When firewall is enabled with rp_filter, vrf ipv6 packets
-> will be dropped because in device is vrf but out device
-> is an enslaved device. So rt->rt6i_idev->dev != dev and
-> maybe return false in func rpfilter_lookup_reverse6.
-> 
-> Here is the out message when I ping the peer:
-> ip vrf exec vrf1 ping 2013::2 -c 1
-> 1 packets transmitted, 0 received, 100% packet loss, time 0ms
-> 
-> The drop info in /var/log/message:
-> Apr 24 14:59:45 localhost kernel: [81316.158259] rpfilter_DROP: IN=vrf1
-> OUT= MAC=52:54:00:9e:dd:c1:52:54:00:4f:81:38:86:dd
-> SRC=2013:0000:0000:0000:0000:0000:0000:0002
-> DST=2013:0000:0000:0000:0000:0000:0000:0001 LEN=104 TC=0 HOPLIMIT=64
-> FLOWLBL=1032942 PROTO=ICMPv6 TYPE=129 CODE=0 ID=14943 SEQ=1
-> 
-> Signed-off-by: linmiaohe <linmiaohe@huawei.com>
-> ---
->  net/ipv6/netfilter/ip6t_rpfilter.c | 6 ++++++
->  1 file changed, 6 insertions(+)
-> 
-> diff --git a/net/ipv6/netfilter/ip6t_rpfilter.c b/net/ipv6/netfilter/ip6t_rpfilter.c
-> index c3c6b09acdc4..cf1070ab1252 100644
-> --- a/net/ipv6/netfilter/ip6t_rpfilter.c
-> +++ b/net/ipv6/netfilter/ip6t_rpfilter.c
-> @@ -73,6 +73,12 @@ static bool rpfilter_lookup_reverse6(struct net *net, const struct sk_buff *skb,
->  		goto out;
->  	}
-> 
-> +	if (netif_is_l3_master(dev)) {
-> +		dev = dev_get_by_index_rcu(dev_net(dev), IP6CB(skb)->iif);
-> +		if (!dev)
-> +			goto out;
-> +	}
-> +
->  	if (rt->rt6i_idev->dev == dev || (flags & XT_RPFILTER_LOOSE))
->  		ret = true;
->   out:
-> 
+One of the comments in recent review of the ethtool netlink series pointed
+out that proposed ethnl_nest_start() helper which adds NLA_F_NESTED to
+second argument of nla_nest_start() is not really specific to ethtool
+netlink code. That is hard to argue with as closer inspection revealed that
+exactly the same helper already exists in ipset code (except it's a macro
+rather than an inline function).
 
-What about the case where XT_RPFILTER_LOOSE is set? flowi6_oif needs to
-be set to the dev->ifindex if dev is an l3 master.
+Another observation was that even if NLA_F_NESTED flag was introduced in
+2007, only few netlink based interfaces set it in kernel generated messages
+and even many recently added APIs omit it. That is unfortunate as without
+the flag, message parsers not familiar with attribute semantics cannot
+recognize nested attributes and do not see message structure; this affects
+e.g. wireshark dissector or mnl_nlmsg_fprintf() from libmnl.
 
-And looking at the IPv4 version I do not see how it could be correct
-either. Have you tested it?
+This is why I'm suggesting to rename existing nla_nest_start() to different
+name (nla_nest_start_noflag) and reintroduce nla_nest_start() as a wrapper
+adding NLA_F_NESTED flag. This is implemented in first patch which is
+mostly generated by spatch. Second patch drops ipset helper macros which
+lose their purpose. Third patch cleans up minor coding style issues found
+by checkpatch.pl in first patch.
+
+If this approach is considered too intrusive, we can leave nla_nest_start()
+untouched and simply add a wrapper adding NLA_F_NESTED but that would
+probably preserve the state when even most new code doesn't set the flag.
+
+Michal Kubecek (3):
+  netlink: make nla_nest_start() add NLA_F_NESTED flag
+  ipset: drop ipset_nest_start() and ipset_nest_end()
+  net: fix two coding style issues
+
+ drivers/block/drbd/drbd_nl.c                |   8 +-
+ drivers/block/nbd.c                         |   4 +-
+ drivers/infiniband/core/nldev.c             |   9 +-
+ drivers/infiniband/hw/cxgb4/restrack.c      |   8 +-
+ drivers/net/bonding/bond_netlink.c          |   8 +-
+ drivers/net/ieee802154/mac802154_hwsim.c    |   6 +-
+ drivers/net/macsec.c                        |  27 +--
+ drivers/net/macvlan.c                       |   2 +-
+ drivers/net/team/team.c                     |   8 +-
+ drivers/net/wireless/ath/wil6210/cfg80211.c |   4 +-
+ include/linux/netfilter/ipset/ip_set.h      |  11 +-
+ include/net/netlink.h                       |  26 ++-
+ kernel/taskstats.c                          |   2 +-
+ net/8021q/vlan_netlink.c                    |   4 +-
+ net/bridge/br_mdb.c                         |  17 +-
+ net/bridge/br_netlink.c                     |   8 +-
+ net/bridge/br_netlink_tunnel.c              |   2 +-
+ net/core/devlink.c                          |  78 ++++----
+ net/core/lwt_bpf.c                          |   2 +-
+ net/core/lwtunnel.c                         |   2 +-
+ net/core/neighbour.c                        |   2 +-
+ net/core/rtnetlink.c                        |  48 ++---
+ net/dcb/dcbnl.c                             |  40 ++--
+ net/decnet/dn_table.c                       |   3 +-
+ net/ieee802154/nl802154.c                   |  34 ++--
+ net/ipv4/fib_semantics.c                    |   2 +-
+ net/ipv4/ipmr.c                             |   6 +-
+ net/ipv4/ipmr_base.c                        |   2 +-
+ net/ipv4/tcp_metrics.c                      |   2 +-
+ net/ipv6/addrconf.c                         |   2 +-
+ net/ipv6/route.c                            |   2 +-
+ net/ipv6/seg6_local.c                       |   2 +-
+ net/l2tp/l2tp_netlink.c                     |   4 +-
+ net/mpls/af_mpls.c                          |   2 +-
+ net/ncsi/ncsi-netlink.c                     |  12 +-
+ net/netfilter/ipset/ip_set_bitmap_gen.h     |  14 +-
+ net/netfilter/ipset/ip_set_hash_gen.h       |  14 +-
+ net/netfilter/ipset/ip_set_list_set.c       |  14 +-
+ net/netfilter/ipvs/ip_vs_ctl.c              |  10 +-
+ net/netfilter/nf_conntrack_netlink.c        |  40 ++--
+ net/netfilter/nf_conntrack_proto_dccp.c     |   2 +-
+ net/netfilter/nf_conntrack_proto_sctp.c     |   2 +-
+ net/netfilter/nf_conntrack_proto_tcp.c      |   2 +-
+ net/netfilter/nf_tables_api.c               |  29 +--
+ net/netfilter/nfnetlink_cthelper.c          |   7 +-
+ net/netfilter/nfnetlink_cttimeout.c         |   4 +-
+ net/netfilter/nfnetlink_queue.c             |   2 +-
+ net/netfilter/nft_ct.c                      |   2 +-
+ net/netfilter/nft_tunnel.c                  |   6 +-
+ net/netlabel/netlabel_cipso_v4.c            |  14 +-
+ net/netlabel/netlabel_mgmt.c                |   8 +-
+ net/netlink/genetlink.c                     |  12 +-
+ net/nfc/netlink.c                           |   4 +-
+ net/openvswitch/conntrack.c                 |   6 +-
+ net/openvswitch/datapath.c                  |   7 +-
+ net/openvswitch/flow_netlink.c              |  33 ++--
+ net/openvswitch/meter.c                     |   8 +-
+ net/openvswitch/vport-vxlan.c               |   2 +-
+ net/openvswitch/vport.c                     |   2 +-
+ net/packet/diag.c                           |   2 +-
+ net/sched/act_api.c                         |  14 +-
+ net/sched/act_ife.c                         |   2 +-
+ net/sched/act_pedit.c                       |   5 +-
+ net/sched/act_tunnel_key.c                  |   4 +-
+ net/sched/cls_api.c                         |   4 +-
+ net/sched/cls_basic.c                       |   2 +-
+ net/sched/cls_bpf.c                         |   2 +-
+ net/sched/cls_cgroup.c                      |   2 +-
+ net/sched/cls_flow.c                        |   2 +-
+ net/sched/cls_flower.c                      |   8 +-
+ net/sched/cls_fw.c                          |   2 +-
+ net/sched/cls_matchall.c                    |   2 +-
+ net/sched/cls_route.c                       |   2 +-
+ net/sched/cls_rsvp.h                        |   2 +-
+ net/sched/cls_tcindex.c                     |   2 +-
+ net/sched/cls_u32.c                         |   2 +-
+ net/sched/ematch.c                          |   4 +-
+ net/sched/sch_api.c                         |   2 +-
+ net/sched/sch_atm.c                         |   2 +-
+ net/sched/sch_cake.c                        |  10 +-
+ net/sched/sch_cbq.c                         |   4 +-
+ net/sched/sch_cbs.c                         |   2 +-
+ net/sched/sch_choke.c                       |   2 +-
+ net/sched/sch_codel.c                       |   2 +-
+ net/sched/sch_drr.c                         |   2 +-
+ net/sched/sch_dsmark.c                      |   4 +-
+ net/sched/sch_etf.c                         |   2 +-
+ net/sched/sch_fq.c                          |   2 +-
+ net/sched/sch_fq_codel.c                    |   2 +-
+ net/sched/sch_gred.c                        |   8 +-
+ net/sched/sch_hfsc.c                        |   2 +-
+ net/sched/sch_hhf.c                         |   2 +-
+ net/sched/sch_htb.c                         |   4 +-
+ net/sched/sch_ingress.c                     |   2 +-
+ net/sched/sch_mqprio.c                      |   4 +-
+ net/sched/sch_netem.c                       |   2 +-
+ net/sched/sch_pie.c                         |   2 +-
+ net/sched/sch_qfq.c                         |   2 +-
+ net/sched/sch_red.c                         |   2 +-
+ net/sched/sch_sfb.c                         |   2 +-
+ net/sched/sch_taprio.c                      |   7 +-
+ net/sched/sch_tbf.c                         |   2 +-
+ net/tipc/bearer.c                           |   8 +-
+ net/tipc/group.c                            |   2 +-
+ net/tipc/link.c                             |  12 +-
+ net/tipc/monitor.c                          |   4 +-
+ net/tipc/name_table.c                       |   4 +-
+ net/tipc/net.c                              |   2 +-
+ net/tipc/netlink_compat.c                   |  24 +--
+ net/tipc/node.c                             |   4 +-
+ net/tipc/socket.c                           |  10 +-
+ net/tipc/udp_media.c                        |   2 +-
+ net/wireless/nl80211.c                      | 192 +++++++++++---------
+ net/wireless/pmsr.c                         |  12 +-
+ 114 files changed, 565 insertions(+), 494 deletions(-)
+
+-- 
+2.21.0
+
