@@ -1,148 +1,95 @@
-Return-Path: <SRS0=M2Uw=SZ=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=Os8a=S2=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C43A3C282DD
-	for <netfilter-devel@archiver.kernel.org>; Tue, 23 Apr 2019 22:07:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BF0DAC282E1
+	for <netfilter-devel@archiver.kernel.org>; Wed, 24 Apr 2019 07:27:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8E4A221738
-	for <netfilter-devel@archiver.kernel.org>; Tue, 23 Apr 2019 22:07:00 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="dRPDTNZ5"
+	by mail.kernel.org (Postfix) with ESMTP id 8D92F20656
+	for <netfilter-devel@archiver.kernel.org>; Wed, 24 Apr 2019 07:27:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728299AbfDWWHA (ORCPT
+        id S1730021AbfDXH1p (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 23 Apr 2019 18:07:00 -0400
-Received: from mail-vs1-f67.google.com ([209.85.217.67]:41624 "EHLO
-        mail-vs1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728092AbfDWWG7 (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 23 Apr 2019 18:06:59 -0400
-Received: by mail-vs1-f67.google.com with SMTP id g187so9225637vsc.8
-        for <netfilter-devel@vger.kernel.org>; Tue, 23 Apr 2019 15:06:59 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=oSxIGA8gUh/Ki1zPwTNkG4y9fyDrsJ7jFAaFBs+VOkQ=;
-        b=dRPDTNZ5/nDge/MaqwsObHEqgu9g16gyDrl8IAYONtJplWS/Xx5TEe0TqTaTFIzEZt
-         c3OY5+TSWczXDV1AG8OkrStxr4Sm+zDEu43v8729egQzabMCIS6cEZ0p08RJZGPl3OHd
-         LHTAOacko1/529RbdqTQydTddkE8eMuhtYw+A=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=oSxIGA8gUh/Ki1zPwTNkG4y9fyDrsJ7jFAaFBs+VOkQ=;
-        b=YT5hvZCu212Z4gfpGPUrk8rOhgaR0CLc6xBcAl7Y+ZGai8ixD9aAvv3Lg+7RjPo3aa
-         X5gk6mvFgrRINEE4x7BhkYAhH6GUo8A6qChWj9po23DHGAWzf6Rt6rnr4luCYvpf2eAG
-         EgjyjKpWYDz/S0uZp/4e5G/yw3GXdI79IH+yCrrt4EPGtQgnlnhdqfJIDSKPBMVpGPfS
-         ijN04xNug2ZUFZpqPI/e+hLVDlNRvcUSKgA3ecrgnv+FZcUO5WXSmJcfxB7wcKny2NQL
-         1fRVQ06Sd+rXR8N/y7GDjfpnKBJJO6adozYaBeXMZp3+KwXhi0hLE3QXDUQ1Ihr6MlKP
-         b7GA==
-X-Gm-Message-State: APjAAAW27LFMJtS4V53y45h3zEP0hAhJ+ItLBoP7M+NYqhs0hFOvLmtK
-        /drClS9AjKZqQCvpM9+TgpW25fpmztY=
-X-Google-Smtp-Source: APXvYqzSKfclfFsfy27HPqlcWiwgFJ8Hjoyrlc8p9lQFJTeHZLOL6nsQ+Avshl2oHZa0h4O7EjI/2g==
-X-Received: by 2002:a67:78c3:: with SMTP id t186mr14955603vsc.113.1556057218635;
-        Tue, 23 Apr 2019 15:06:58 -0700 (PDT)
-Received: from mail-vs1-f44.google.com (mail-vs1-f44.google.com. [209.85.217.44])
-        by smtp.gmail.com with ESMTPSA id w184sm13189807vkd.0.2019.04.23.15.06.57
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_3 cipher=AEAD-AES128-GCM-SHA256 bits=128/128);
-        Tue, 23 Apr 2019 15:06:57 -0700 (PDT)
-Received: by mail-vs1-f44.google.com with SMTP id n4so9233190vsm.3
-        for <netfilter-devel@vger.kernel.org>; Tue, 23 Apr 2019 15:06:57 -0700 (PDT)
-X-Received: by 2002:a67:f849:: with SMTP id b9mr14860664vsp.188.1556057217005;
- Tue, 23 Apr 2019 15:06:57 -0700 (PDT)
+        Wed, 24 Apr 2019 03:27:45 -0400
+Received: from szxga06-in.huawei.com ([45.249.212.32]:58600 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1727054AbfDXH1o (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 24 Apr 2019 03:27:44 -0400
+Received: from DGGEMS403-HUB.china.huawei.com (unknown [172.30.72.59])
+        by Forcepoint Email with ESMTP id 0045E9AB8D0764E22B91;
+        Wed, 24 Apr 2019 15:27:39 +0800 (CST)
+Received: from [127.0.0.1] (10.184.189.20) by DGGEMS403-HUB.china.huawei.com
+ (10.3.19.203) with Microsoft SMTP Server id 14.3.439.0; Wed, 24 Apr 2019
+ 15:27:33 +0800
+To:     <pablo@netfilter.org>, <kadlec@blackhole.kfki.hu>, <fw@strlen.de>,
+        <davem@davemloft.net>, <kuznet@ms2.inr.ac.ru>,
+        <yoshfuji@linux-ipv6.org>, <netfilter-devel@vger.kernel.org>,
+        <coreteam@netfilter.org>, <netdev@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>
+CC:     Mingfangsen <mingfangsen@huawei.com>
+From:   linmiaohe <linmiaohe@huawei.com>
+Subject: [PATCH] net: netfilter: Fix ipv6 rp_filter dropping vrf packets by
+ mistake
+Message-ID: <094b7376-f796-71b6-7a81-28866b0f882b@huawei.com>
+Date:   Wed, 24 Apr 2019 15:27:30 +0800
+User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:60.0) Gecko/20100101
+ Thunderbird/60.5.1
 MIME-Version: 1.0
-References: <000000000000c8f45a0584e69ea9@google.com> <CAGXu5jLBd-u=ywxiEjmrLMj9TMRVnLOHHKfWKQ_fEosDFjPoog@mail.gmail.com>
- <20190423215127.GJ3758@cisco>
-In-Reply-To: <20190423215127.GJ3758@cisco>
-From:   Kees Cook <keescook@chromium.org>
-Date:   Tue, 23 Apr 2019 15:06:45 -0700
-X-Gmail-Original-Message-ID: <CAGXu5jLmfN2jT0+V0RDwVZjBEw2Vm6QVH1KR_gykFg_b+3Wu7w@mail.gmail.com>
-Message-ID: <CAGXu5jLmfN2jT0+V0RDwVZjBEw2Vm6QVH1KR_gykFg_b+3Wu7w@mail.gmail.com>
-Subject: Re: KASAN: use-after-free Read in seccomp_notify_release (2)
-To:     Tycho Andersen <tycho@tycho.ws>
-Cc:     Alexei Starovoitov <ast@kernel.org>, bpf@vger.kernel.org,
-        coreteam@netfilter.org, Daniel Borkmann <daniel@iogearbox.net>,
-        "David S. Miller" <davem@davemloft.net>,
-        Florian Westphal <fw@strlen.de>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Martin KaFai Lau <kafai@fb.com>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Andy Lutomirski <luto@amacapital.net>,
-        Network Development <netdev@vger.kernel.org>,
-        netfilter-devel@vger.kernel.org,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Song Liu <songliubraving@fb.com>,
-        syzkaller-bugs <syzkaller-bugs@googlegroups.com>,
-        Will Drewry <wad@chromium.org>, wenxu@ucloud.cn,
-        Yonghong Song <yhs@fb.com>,
-        syzbot <syzbot+b562969adb2e04af3442@syzkaller.appspotmail.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.184.189.20]
+X-CFilter-Loop: Reflected
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Apr 23, 2019 at 2:51 PM Tycho Andersen <tycho@tycho.ws> wrote:
->
-> On Tue, Apr 23, 2019 at 02:39:52PM -0700, Kees Cook wrote:
-> > On Mon, Mar 25, 2019 at 1:02 AM syzbot
-> > <syzbot+b562969adb2e04af3442@syzkaller.appspotmail.com> wrote:
-> > >
-> > > Hello,
-> > >
-> > > syzbot found the following crash on:
-> > >
-> > > HEAD commit:    1bdd3dbf Merge tag 'io_uring-20190323' of git://git.kernel..
-> > > git tree:       upstream
-> > > console output: https://syzkaller.appspot.com/x/log.txt?x=12ae5b93200000
-> > > kernel config:  https://syzkaller.appspot.com/x/.config?x=9a31fb246de2a622
-> > > dashboard link: https://syzkaller.appspot.com/bug?extid=b562969adb2e04af3442
-> > > compiler:       gcc (GCC) 9.0.0 20181231 (experimental)
-> > > syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=162ca25d200000
-> > > C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=1733b53b200000
-> > >
-> > > The bug was bisected to:
-> > >
-> > > commit a799aea0988ea0d1b1f263e996fdad2f6133c680
-> > > Author: wenxu <wenxu@ucloud.cn>
-> > > Date:   Wed Jan 9 02:40:11 2019 +0000
-> > >
-> > >      netfilter: nft_flow_offload: Fix reverse route lookup
-> >
-> > This bisection looks bogus?
-> >
-> > However, I _can_ trigger the problem on this kernel version with this
-> > config. (And not with Linus's latest tree.)
-> >
-> > The PoC is identical to the prior report[1] that we thought was fixed.
-> > Perhaps the fix didn't actually fix it? (I mean
-> > a811dc61559e0c8003f1086c2a4dc8e4d5ae4cb8) But it's been silent for 29
-> > days now, so I'm not sure what's going on.
-> >
-> > Tycho are you able to reproduce this on the older tree?
->
-> It looks like this case is using TSYNC and NEW_LISTENER together:
->
-> syscall(__NR_seccomp, 1, 0xb, 0x20000140);
+From: Miaohe Lin <linmiaohe@huawei.com>
 
-Ah, thanks. My eye-diff didn't work. :)
+When firewall is enabled with rp_filter, vrf ipv6 packets
+will be dropped because in device is vrf but out device
+is an enslaved device. So rt->rt6i_idev->dev != dev and
+maybe return false in func rpfilter_lookup_reverse6.
 
-> and I did fix a uaf with TSYNC and NEW_LISTENER in this series:
->
-> https://lore.kernel.org/lkml/20190306201413.14153-2-tycho@tycho.ws/T/#u
->
-> which seems like it's probably related. I don't think the above ever
-> got applied though?
+Here is the out message when I ping the peer:
+ip vrf exec vrf1 ping 2013::2 -c 1
+1 packets transmitted, 0 received, 100% packet loss, time 0ms
 
-Whoops, I lost this. Let me go dig that up. Thanks!
+The drop info in /var/log/message:
+Apr 24 14:59:45 localhost kernel: [81316.158259] rpfilter_DROP: IN=vrf1
+OUT= MAC=52:54:00:9e:dd:c1:52:54:00:4f:81:38:86:dd
+SRC=2013:0000:0000:0000:0000:0000:0000:0002
+DST=2013:0000:0000:0000:0000:0000:0000:0001 LEN=104 TC=0 HOPLIMIT=64
+FLOWLBL=1032942 PROTO=ICMPv6 TYPE=129 CODE=0 ID=14943 SEQ=1
 
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+---
+ net/ipv6/netfilter/ip6t_rpfilter.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/net/ipv6/netfilter/ip6t_rpfilter.c b/net/ipv6/netfilter/ip6t_rpfilter.c
+index c3c6b09acdc4..5cbc91f53736 100644
+--- a/net/ipv6/netfilter/ip6t_rpfilter.c
++++ b/net/ipv6/netfilter/ip6t_rpfilter.c
+@@ -73,6 +73,12 @@ static bool rpfilter_lookup_reverse6(struct net *net, const struct sk_buff *skb,
+ 		goto out;
+ 	}
+
++	if (netif_is_l3_master(dev)) {
++		dev = __dev_get_by_index(dev_net(dev), IP6CB(skb)->iif);
++		if (!dev)
++			goto out;
++	}
++
+ 	if (rt->rt6i_idev->dev == dev || (flags & XT_RPFILTER_LOOSE))
+ 		ret = true;
+  out:
 -- 
-Kees Cook
+2.19.1
+
+
