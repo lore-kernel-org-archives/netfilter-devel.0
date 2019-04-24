@@ -2,88 +2,124 @@ Return-Path: <SRS0=Os8a=S2=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED,USER_AGENT_NEOMUTT autolearn=ham
+X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D670FC10F11
-	for <netfilter-devel@archiver.kernel.org>; Wed, 24 Apr 2019 14:06:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 30F87C10F11
+	for <netfilter-devel@archiver.kernel.org>; Wed, 24 Apr 2019 14:48:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B1283218FE
-	for <netfilter-devel@archiver.kernel.org>; Wed, 24 Apr 2019 14:06:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F3403218FD
+	for <netfilter-devel@archiver.kernel.org>; Wed, 24 Apr 2019 14:48:55 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=untangle.com header.i=@untangle.com header.b="JMdomLpj"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727444AbfDXOGc (ORCPT
+        id S1731042AbfDXOsz (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 24 Apr 2019 10:06:32 -0400
-Received: from mail.us.es ([193.147.175.20]:42982 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725893AbfDXOGc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 24 Apr 2019 10:06:32 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id E06B2190F67
-        for <netfilter-devel@vger.kernel.org>; Wed, 24 Apr 2019 16:06:29 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id CFE3FDA70B
-        for <netfilter-devel@vger.kernel.org>; Wed, 24 Apr 2019 16:06:29 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id C594FDA701; Wed, 24 Apr 2019 16:06:29 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 8CDD4DA70B;
-        Wed, 24 Apr 2019 16:06:27 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 24 Apr 2019 16:06:27 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (sys.soleta.eu [212.170.55.40])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 6EBEE4265A31;
-        Wed, 24 Apr 2019 16:06:27 +0200 (CEST)
-Date:   Wed, 24 Apr 2019 16:06:27 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Ander Juaristi <a@juaristi.eus>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH] IPFIX output plugin
-Message-ID: <20190424140627.i22ta4pfe344idjr@salvia>
-References: <523542b5-d629-54d9-2a90-468a9cb3aba7@juaristi.eus>
- <20190408223030.g42guehdptu5lfxo@salvia>
- <ff9181aa-3027-f0a2-75a4-052a7792fc7c@juaristi.eus>
- <20190424140016.u66hritexbz4a6ha@salvia>
- <20190424140459.ixjqc3uj6voo254i@salvia>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20190424140459.ixjqc3uj6voo254i@salvia>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+        Wed, 24 Apr 2019 10:48:55 -0400
+Received: from mail-qt1-f196.google.com ([209.85.160.196]:46698 "EHLO
+        mail-qt1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1731852AbfDXOst (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 24 Apr 2019 10:48:49 -0400
+Received: by mail-qt1-f196.google.com with SMTP id w26so13775308qto.13
+        for <netfilter-devel@vger.kernel.org>; Wed, 24 Apr 2019 07:48:49 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=untangle.com; s=google;
+        h=from:to:subject:date:message-id;
+        bh=oyrOKYG3UnGfs8RtFrj+HOqvHjAAYdkKDQx9/ghtJoQ=;
+        b=JMdomLpjq+RxaqsRO7mlKwMuxGnA95R5Ae/AGUtmArm12up0tCJRG76y4ATtJcLUQU
+         17R9bISCE9WWpQHllRTSXliA86guQWa0wzmorP0Ycun2PRitIUBGQA6M1lqaw3WHycAC
+         ogHO/H9GJqSVb4M6MC0zaHlmysqVY6Vd0TQDI=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:subject:date:message-id;
+        bh=oyrOKYG3UnGfs8RtFrj+HOqvHjAAYdkKDQx9/ghtJoQ=;
+        b=SLL4M+cE/k+0fYrTiUs/+H6Kig/CBQmDciGy7IDIYfOuPseZArcF/gunH42cBmOJVY
+         4uYfaf/Z++XQ9okRpllAw4SeAqDEIj+w9TEYfu7u6+7HGM2Z7LbO9bWkemtQZhO7vSX1
+         ugDU1uIBv92rLQJr7xCGmhIx5WUdyQuTG9CY3YOKPgPHaRjgLpSe354MKXeaL1pwQ6Mk
+         7FTPXnyRfLQGiWRdwadGlaWa+qjF5xpdCt5TJKCAJDmfrj+wATlYES23krQZ6wRJcIx7
+         9qdVd/YXegeNNNCTM3eew7BvuHe9UbWMLwyp8cg9g5oPxYM61r8Ag+9QDLUq488xUHtj
+         B8LA==
+X-Gm-Message-State: APjAAAU/CJzoQ844ci1ejSOHFpt1RfHCrQA39kFjbtLhnLboU9yAzQfn
+        7EaL93JM4nMelAp/94Xznjw50sqXw7g=
+X-Google-Smtp-Source: APXvYqzzdG0eplTSY4xGB1IlDDJEdg9Vfh1JE9xjthCxhk4Byp0ykS3xzilkKoSB9opG+9wSjV4+Ww==
+X-Received: by 2002:a0c:d2f2:: with SMTP id x47mr25809405qvh.90.1556117328539;
+        Wed, 24 Apr 2019 07:48:48 -0700 (PDT)
+Received: from osboxes.example.com (cpe-74-137-94-90.kya.res.rr.com. [74.137.94.90])
+        by smtp.gmail.com with ESMTPSA id d41sm12058396qtd.90.2019.04.24.07.48.47
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 24 Apr 2019 07:48:48 -0700 (PDT)
+From:   Brett Mastbergen <bmastbergen@untangle.com>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH v2] netfilter: nft_ct: Add ct id support
+Date:   Wed, 24 Apr 2019 10:48:44 -0400
+Message-Id: <20190424144844.20345-1-bmastbergen@untangle.com>
+X-Mailer: git-send-email 2.11.0
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Apr 24, 2019 at 04:04:59PM +0200, Pablo Neira Ayuso wrote:
-> On Wed, Apr 24, 2019 at 04:00:16PM +0200, Pablo Neira Ayuso wrote:
-> > Hi Ander,
-> > 
-> > Please, don't top-post.
-> > 
-> > On Wed, Apr 24, 2019 at 03:39:02PM +0200, Ander Juaristi wrote:
-> > > I'm following up on this. I'd say this is complete and I don't plan to
-> > > introduce further significant changes. Maybe just small fixes. I attach two
-> > > patches, tell me if you'd rather have them as a single patch.
-> > 
-> > Please, send them via git-send-mail.
-> 
-> https://patchwork.ozlabs.org/project/netfilter-devel/list/
-> 
-> De esta manera, aparecerán aquí en patchwork :-)
+The 'id' key returns the unique id of the conntrack entry as returned
+by nf_ct_get_id()
 
-Sorry about this.
+v2: Add nfct_is_confirmed check
 
-I was telling Ander git-send-mail make patches show in patchwork.
-Otherwise, they don't show there.
+Signed-off-by: Brett Mastbergen <bmastbergen@untangle.com>
+---
+ include/uapi/linux/netfilter/nf_tables.h | 2 ++
+ net/netfilter/nft_ct.c                   | 8 ++++++++
+ 2 files changed, 10 insertions(+)
 
-Thanks.
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index 061bb3eb20c3..f0cf7b0f4f35 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -967,6 +967,7 @@ enum nft_socket_keys {
+  * @NFT_CT_SRC_IP6: conntrack layer 3 protocol source (IPv6 address)
+  * @NFT_CT_DST_IP6: conntrack layer 3 protocol destination (IPv6 address)
+  * @NFT_CT_TIMEOUT: connection tracking timeout policy assigned to conntrack
++ * @NFT_CT_ID: conntrack id
+  */
+ enum nft_ct_keys {
+ 	NFT_CT_STATE,
+@@ -993,6 +994,7 @@ enum nft_ct_keys {
+ 	NFT_CT_SRC_IP6,
+ 	NFT_CT_DST_IP6,
+ 	NFT_CT_TIMEOUT,
++	NFT_CT_ID,
+ 	__NFT_CT_MAX
+ };
+ #define NFT_CT_MAX		(__NFT_CT_MAX - 1)
+diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
+index 7b717fad6cdc..7706db36f8b9 100644
+--- a/net/netfilter/nft_ct.c
++++ b/net/netfilter/nft_ct.c
+@@ -178,6 +178,11 @@ static void nft_ct_get_eval(const struct nft_expr *expr,
+ 		return;
+ 	}
+ #endif
++	case NFT_CT_ID:
++		if (!nf_ct_is_confirmed(ct))
++			goto err;
++		*dest = nf_ct_get_id(ct);
++		return;
+ 	default:
+ 		break;
+ 	}
+@@ -479,6 +484,9 @@ static int nft_ct_get_init(const struct nft_ctx *ctx,
+ 		len = sizeof(u16);
+ 		break;
+ #endif
++	case NFT_CT_ID:
++		len = sizeof(u32);
++		break;
+ 	default:
+ 		return -EOPNOTSUPP;
+ 	}
+-- 
+2.11.0
+
