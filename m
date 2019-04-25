@@ -2,108 +2,139 @@ Return-Path: <SRS0=ai/f=S3=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.5 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_MUTT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A3A1C282E3
-	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Apr 2019 09:08:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 43900C10F03
+	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Apr 2019 10:07:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 48D6C217FA
-	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Apr 2019 09:08:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DD018206BA
+	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Apr 2019 10:07:58 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=resnulli-us.20150623.gappssmtp.com header.i=@resnulli-us.20150623.gappssmtp.com header.b="ClO0D8w/"
+	dkim=pass (2048-bit key) header.d=6wind.com header.i=@6wind.com header.b="AdHF5Uo1"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727184AbfDYJIu (ORCPT
+        id S1726200AbfDYKH6 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 25 Apr 2019 05:08:50 -0400
-Received: from mail-wr1-f66.google.com ([209.85.221.66]:41727 "EHLO
-        mail-wr1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726751AbfDYJIt (ORCPT
+        Thu, 25 Apr 2019 06:07:58 -0400
+Received: from mail-wm1-f65.google.com ([209.85.128.65]:35480 "EHLO
+        mail-wm1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726076AbfDYKH6 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 25 Apr 2019 05:08:49 -0400
-Received: by mail-wr1-f66.google.com with SMTP id c12so23039618wrt.8
-        for <netfilter-devel@vger.kernel.org>; Thu, 25 Apr 2019 02:08:48 -0700 (PDT)
+        Thu, 25 Apr 2019 06:07:58 -0400
+Received: by mail-wm1-f65.google.com with SMTP id y197so9708884wmd.0
+        for <netfilter-devel@vger.kernel.org>; Thu, 25 Apr 2019 03:07:57 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=resnulli-us.20150623.gappssmtp.com; s=20150623;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to:user-agent;
-        bh=8LZXN+8KU6xgMDFTMJ8Q2B9/CuRynw4V0u0ml9fm/c8=;
-        b=ClO0D8w/Us+bSJBvlXAo+SKmusDbeHQhGjnO3gQdqkzTnsoU34vdxsWZVJ6dzx/Fl8
-         K8cpTDOGFaJc2CQryUlMVqcLoBfHU0gBLBtAKgFgerNEwBXacfVjl4TljFsHUMmoiyG4
-         xul7Ol3WcTpCYwD5j5WNEdur1/os3RnY2oKNqV8ZmRVYwl7P3UakvWZvk4cMwZT9ycBg
-         t6/HuFNhvZSuMY+K09nLKP3qStiYV8vhVcdClItzK4VdHkvLsmdfBTqsBUjzQONK3yu1
-         1JeGWTIV2mqkMEz1vfUTvEMrhIvVaSTO/Q5PSbopJGjRCgwKSgBi2twM1iGgJ1ONcNAn
-         aS5w==
+        d=6wind.com; s=google;
+        h=reply-to:subject:to:cc:references:from:organization:message-id:date
+         :user-agent:mime-version:in-reply-to:content-language
+         :content-transfer-encoding;
+        bh=MVxB8kavRIR/UCaJf7Veev5Knu70ZTVlyGm9EnRwp6U=;
+        b=AdHF5Uo1y4mTPbnh4mvNUPCwkOxPcWgefWQO8Q44KTvx1AxUbrAw+02AFuY+dLHXHQ
+         +AhaLZRWh1eybfIv8FK77YsAYX9a3RsbnJpea2V+AKgtgRowxDxpR8TPXlv6zVbPQJrx
+         dg23sgr/Dabnaw1WatVTPZVUh87iCOywL8v9jexHyKp25Cd8SugLArgU6MrKdFd8uk59
+         Bi/1f45ntWySAE8bgxcJGC2oxV/rPm+x+Gug9Mv5hN0kXTbCOTIr/9N6LxMpar+8fDCr
+         e87t234+H5Bn5PuHwcmZQPHRcQZh8moDOF0rWOPEGzRRY732mHI9X/I0TDZrOoeQIYjT
+         vc5A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to:user-agent;
-        bh=8LZXN+8KU6xgMDFTMJ8Q2B9/CuRynw4V0u0ml9fm/c8=;
-        b=fnQrimeUFKnvgH06Ok6RsZnEvyuDiVRGfXTO7H6PhbOUpSv242gZ0pOrBeyky+rjsD
-         LpafRXPAl1Q8qOvmFyKJ3O4AEroox9SJB5Pxxq6o3krCezWdLDvdN+iWohpNzenGafrH
-         ZF6tsj9PG6Ea86xGGcs9vA4CUc/ET0sB9DBAMgpXOFnNFNUxfvPHsKxI0Why+gAN8Prk
-         6hwMin2eU5tWCgTfSVhFNl9zqDPIP6BRax+J6VPp30oM4xqclAH3Mv8Or7R4b/jFgf18
-         b4f4KUQrcLLeR4WQZsl51efviZbzcaMEAzrokht7klnWGRdmA8ua6V/iTrzCMY//rzXu
-         R33Q==
-X-Gm-Message-State: APjAAAVlK5pR+sif92j91LK1l7sg2SETNJxDOJX5btM7LdZW3ikWne0n
-        7Lwbh1zWlUYP2Xu1d/CZ9mAo3Q==
-X-Google-Smtp-Source: APXvYqxA/Qf5qIRMOWQaI6ds0SVbVZXPWJveWY03KiTcSvBsIVs4iYEkYLhNVqjPfvuO4k1hY9D6RQ==
-X-Received: by 2002:a05:6000:12c7:: with SMTP id l7mr23567228wrx.4.1556183327952;
-        Thu, 25 Apr 2019 02:08:47 -0700 (PDT)
-Received: from localhost (mail.chocen-mesto.cz. [85.163.43.2])
-        by smtp.gmail.com with ESMTPSA id r6sm15774477wmc.11.2019.04.25.02.08.47
-        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Thu, 25 Apr 2019 02:08:47 -0700 (PDT)
-Date:   Thu, 25 Apr 2019 11:08:46 +0200
-From:   Jiri Pirko <jiri@resnulli.us>
-To:     Michal Kubecek <mkubecek@suse.cz>
-Cc:     netdev@vger.kernel.org, "David S. Miller" <davem@davemloft.net>,
-        David Ahern <dsahern@gmail.com>,
-        Johannes Berg <johannes.berg@intel.com>,
-        Jiri Pirko <jiri@mellanox.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>,
-        netfilter-devel@vger.kernel.org
-Subject: Re: [RFC PATCH net-next 0/3] make nla_nest_start() add NLA_F_NESTED
- flag
-Message-ID: <20190425090846.GC3951@nanopsycho>
-References: <cover.1556140270.git.mkubecek@suse.cz>
+        h=x-gm-message-state:reply-to:subject:to:cc:references:from
+         :organization:message-id:date:user-agent:mime-version:in-reply-to
+         :content-language:content-transfer-encoding;
+        bh=MVxB8kavRIR/UCaJf7Veev5Knu70ZTVlyGm9EnRwp6U=;
+        b=hQyA1TAZuiAffA06do1PlnNzGxHG5Afpxykxr8MNOFllX253k5URAciKsZaZpKWSfR
+         QHx2S7ezdhQ2SuicHtvrDV7S4nSNyoEWeN/8kCruLBfi8mDgALkhsR8ly2wuqyKzRc3Y
+         t7Wvz79s1Zx+1SkdmO7RhBgbuZ8INIhe9VgNaKdwqploN4kTfvKd9/UoYHOPD0UXaa3g
+         La/gIzoITdbA+nrXnYvGpMBsQlk631v42qxnGlMIKsgrPkvHzh+Gi3vbuI+gLBgEei8R
+         coUAlmWqgmQGZp2jXNCxcmUGN9KBNWgoiPXstX5sr+PtpPZCCXJiJJlT5smJ9oFUoJZF
+         uVRQ==
+X-Gm-Message-State: APjAAAXalkFP1cmJ9j1PNx1/81m71EvckP22sqOZyp6+x86LkfGAE4hf
+        tN51p9eh4dMqTu5VnLQ4xPwvdNVKXfU=
+X-Google-Smtp-Source: APXvYqzuubi0TDdPPa+xXLgfqOaBGOAjqzB3hulQCylrl46csZfJNH1BIdvzBui1tsOPCCazrb5OZQ==
+X-Received: by 2002:a1c:acc8:: with SMTP id v191mr3054523wme.72.1556186876563;
+        Thu, 25 Apr 2019 03:07:56 -0700 (PDT)
+Received: from ?IPv6:2a01:e35:8b63:dc30:d4c0:843b:d436:a905? ([2a01:e35:8b63:dc30:d4c0:843b:d436:a905])
+        by smtp.gmail.com with ESMTPSA id t15sm23311814wmt.2.2019.04.25.03.07.55
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Thu, 25 Apr 2019 03:07:55 -0700 (PDT)
+Reply-To: nicolas.dichtel@6wind.com
+Subject: Re: [PATCH 07/31] netfilter: ctnetlink: Support L3 protocol-filter on
+ flush
+To:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org,
+        Kristian Evensen <kristian.evensen@gmail.com>
+Cc:     davem@davemloft.net, netdev@vger.kernel.org
+References: <20181008230125.2330-1-pablo@netfilter.org>
+ <20181008230125.2330-8-pablo@netfilter.org>
+From:   Nicolas Dichtel <nicolas.dichtel@6wind.com>
+Organization: 6WIND
+Message-ID: <33d60747-7550-1fba-a068-9b78aaedbc26@6wind.com>
+Date:   Thu, 25 Apr 2019 12:07:54 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.6.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <cover.1556140270.git.mkubecek@suse.cz>
-User-Agent: Mutt/1.11.3 (2019-02-01)
+In-Reply-To: <20181008230125.2330-8-pablo@netfilter.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: fr
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Wed, Apr 24, 2019 at 11:34:21PM CEST, mkubecek@suse.cz wrote:
->One of the comments in recent review of the ethtool netlink series pointed
->out that proposed ethnl_nest_start() helper which adds NLA_F_NESTED to
->second argument of nla_nest_start() is not really specific to ethtool
->netlink code. That is hard to argue with as closer inspection revealed that
->exactly the same helper already exists in ipset code (except it's a macro
->rather than an inline function).
->
->Another observation was that even if NLA_F_NESTED flag was introduced in
->2007, only few netlink based interfaces set it in kernel generated messages
->and even many recently added APIs omit it. That is unfortunate as without
->the flag, message parsers not familiar with attribute semantics cannot
->recognize nested attributes and do not see message structure; this affects
->e.g. wireshark dissector or mnl_nlmsg_fprintf() from libmnl.
->
->This is why I'm suggesting to rename existing nla_nest_start() to different
->name (nla_nest_start_noflag) and reintroduce nla_nest_start() as a wrapper
->adding NLA_F_NESTED flag. This is implemented in first patch which is
->mostly generated by spatch. Second patch drops ipset helper macros which
->lose their purpose. Third patch cleans up minor coding style issues found
->by checkpatch.pl in first patch.
->
->If this approach is considered too intrusive, we can leave nla_nest_start()
->untouched and simply add a wrapper adding NLA_F_NESTED but that would
->probably preserve the state when even most new code doesn't set the flag.
+Le 09/10/2018 à 01:01, Pablo Neira Ayuso a écrit :
+> From: Kristian Evensen <kristian.evensen@gmail.com>
+> 
+> The same connection mark can be set on flows belonging to different
+> address families. This commit adds support for filtering on the L3
+> protocol when flushing connection track entries. If no protocol is
+> specified, then all L3 protocols match.
+> 
+> In order to avoid code duplication and a redundant check, the protocol
+> comparison in ctnetlink_dump_table() has been removed. Instead, a filter
+> is created if the GET-message triggering the dump contains an address
+> family. ctnetlink_filter_match() is then used to compare the L3
+> protocols.
+> 
+> Signed-off-by: Kristian Evensen <kristian.evensen@gmail.com>
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> ---
+[snip] 					continue;
+> @@ -1213,12 +1219,12 @@ static int ctnetlink_flush_iterate(struct nf_conn *ct, void *data)
+>  
+>  static int ctnetlink_flush_conntrack(struct net *net,
+>  				     const struct nlattr * const cda[],
+> -				     u32 portid, int report)
+> +				     u32 portid, int report, u8 family)
+>  {
+>  	struct ctnetlink_filter *filter = NULL;
+>  
+> -	if (cda[CTA_MARK] && cda[CTA_MARK_MASK]) {
+> -		filter = ctnetlink_alloc_filter(cda);
+> +	if (family || (cda[CTA_MARK] && cda[CTA_MARK_MASK])) {
+Since this patch, there is a regression with 'conntrack -F', it does not flush
+anymore ipv6 conntrack entries.
+In fact, the conntrack tool set by default the family to AF_INET and forbid to
+set the family to something else (the '-f' option is not allowed for the command
+'flush').
 
-I like this. Long overdue...
+Any idea to fix this (without changing the conntrack tool) is welcomed.
+
+
+Regards,
+Nicolas
+
+> +		filter = ctnetlink_alloc_filter(cda, family);
+>  		if (IS_ERR(filter))
+>  			return PTR_ERR(filter);
+>  	}
+> @@ -1257,7 +1263,7 @@ static int ctnetlink_del_conntrack(struct net *net, struct sock *ctnl,
+>  	else {
+>  		return ctnetlink_flush_conntrack(net, cda,
+>  						 NETLINK_CB(skb).portid,
+> -						 nlmsg_report(nlh));
+> +						 nlmsg_report(nlh), u3);
+>  	}
+>  
+>  	if (err < 0)
+> 
