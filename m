@@ -2,37 +2,35 @@ Return-Path: <SRS0=ai/f=S3=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C0CFFC43219
-	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Apr 2019 14:05:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 726BAC43219
+	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Apr 2019 14:05:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B4CA9206BA
-	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Apr 2019 14:05:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 681C9206BA
+	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Apr 2019 14:05:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728004AbfDYOFN (ORCPT
+        id S1728382AbfDYOFT (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 25 Apr 2019 10:05:13 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:56028 "EHLO orbyte.nwl.cc"
+        Thu, 25 Apr 2019 10:05:19 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:56042 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726557AbfDYOFN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 25 Apr 2019 10:05:13 -0400
-Received: from localhost ([::1]:40878 helo=tatos)
+        id S1726557AbfDYOFS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 25 Apr 2019 10:05:18 -0400
+Received: from localhost ([::1]:40892 helo=tatos)
         by orbyte.nwl.cc with esmtp (Exim 4.91)
         (envelope-from <phil@nwl.cc>)
-        id 1hJezu-0000Ui-JD; Thu, 25 Apr 2019 16:05:10 +0200
+        id 1hJezz-0000VM-Sy; Thu, 25 Apr 2019 16:05:15 +0200
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org, Eric Leblond <eric@regit.org>,
         Eric Garver <e@erig.me>, Florian Westphal <fw@strlen.de>
-Subject: [nft PATCH RFC 2/2] tests/py: Support JSON validation
-Date:   Thu, 25 Apr 2019 16:05:02 +0200
-Message-Id: <20190425140502.22761-3-phil@nwl.cc>
+Subject: [nft PATCH RFC 0/2] JSON schema for nftables.py
+Date:   Thu, 25 Apr 2019 16:05:00 +0200
+Message-Id: <20190425140502.22761-1-phil@nwl.cc>
 X-Mailer: git-send-email 2.21.0
-In-Reply-To: <20190425140502.22761-1-phil@nwl.cc>
-References: <20190425140502.22761-1-phil@nwl.cc>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -40,91 +38,51 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Introduce a new flag -s/--schema to nft-test.py which enables validation
-of any JSON input and output against our schema.
+This is an initial implementation of support for jsonschema in
+nftables.py. The goal is to have a schema definition which may be used
+by users as well as our testsuite to make sure any JSON we accept or
+generate is valid.
 
-If validation was requested on command line, try to import traceback
-module. Upon validation errors, this provides more insight into what
-went wrong. If unavailable, simply continue without it.
+The added schema.json in patch 1 is very minimal for now - I have a more
+detailed version but it is not complete yet. Also it is quite large
+already, so for the sake of reviews the small one serves better.
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
+A few aspects of the implementation I'm unsure of:
+
+Keeping the schema in a "pure" JSON file makes things a bit complex: It
+has to be shipped as data file and loaded by the validator using
+json.load(). OTOH the content may be fed into json_verify and my editor
+provides nicer syntax highlighting. An alternative would be to name it
+schema.py, prefix the content with 'nftschema = ' and simply import it
+into nftables.py. I don't think inlining the content is a good option
+simply due to how large the file will get once definitions for all
+statements and expressions are in there.
+
+Introducing that SchemaValidator class is not really required, either.
+Though squeezing everything into json_validate() method felt clumsy.
+Also I wanted to avoid the explicit schema loading mentioned above upon
+each call to json_validate(), so having an instance of a validator class
+seemed like how one is supposed to do things in an object-oriented
+language.
+
+Note that SchemaValidator imports jsonschema upon instantiation. This
+may be a bad idea to begin with, but the intention is to not introduce a
+hard dependency on jsonschema in nftables.py. Same argument holds for
+conditional import of traceback module in nft-test.py, although
+validator errors are practically useless without it.
+
+Phil Sutter (2):
+  py: Implement JSON validation in nftables module
+  tests/py: Support JSON validation
+
+ py/Makefile.am       |  2 +-
+ py/nftables.py       | 30 ++++++++++++++++++++++++++++++
+ py/schema.json       | 17 +++++++++++++++++
+ py/setup.py          |  1 +
  tests/py/nft-test.py | 29 ++++++++++++++++++++++++++++-
- 1 file changed, 28 insertions(+), 1 deletion(-)
+ 5 files changed, 77 insertions(+), 2 deletions(-)
+ create mode 100644 py/schema.json
 
-diff --git a/tests/py/nft-test.py b/tests/py/nft-test.py
-index 1c0afd0ec0eb3..bc038629befd3 100755
---- a/tests/py/nft-test.py
-+++ b/tests/py/nft-test.py
-@@ -687,6 +687,14 @@ def json_dump_normalize(json_string, human_readable = False):
-     else:
-         return json.dumps(json_obj, sort_keys = True)
- 
-+def json_validate(json_string):
-+    json_obj = json.loads(json_string)
-+    try:
-+        nftables.json_validate(json_obj)
-+    except Exception:
-+        print_error("schema validation failed for input '%s'" % json_string)
-+        if not traceback is None:
-+            print_error(traceback.format_exc())
- 
- def rule_add(rule, filename, lineno, force_all_family_option, filename_path):
-     '''
-@@ -912,6 +920,9 @@ def rule_add(rule, filename, lineno, force_all_family_option, filename_path):
-                     "expr": json.loads(json_input),
-             }}}]})
- 
-+            if enable_json_schema:
-+                json_validate(cmd)
-+
-             json_old = nftables.set_json_output(True)
-             ret = execute_cmd(cmd, filename, lineno, payload_log, debug="netlink")
-             nftables.set_json_output(json_old)
-@@ -945,6 +956,9 @@ def rule_add(rule, filename, lineno, force_all_family_option, filename_path):
-             nftables.set_numeric_proto_output(numeric_proto_old)
-             nftables.set_stateless_output(stateless_old)
- 
-+            if enable_json_schema:
-+                json_validate(json_output)
-+
-             json_output = json.loads(json_output)
-             for item in json_output["nftables"]:
-                 if "rule" in item:
-@@ -1341,12 +1355,17 @@ def main():
-                         dest='enable_json',
-                         help='test JSON functionality as well')
- 
-+    parser.add_argument('-s', '--schema', action='store_true',
-+                        dest='enable_schema',
-+                        help='verify json input/output against schema')
-+
-     args = parser.parse_args()
--    global debug_option, need_fix_option, enable_json_option
-+    global debug_option, need_fix_option, enable_json_option, enable_json_schema
-     debug_option = args.debug
-     need_fix_option = args.need_fix_line
-     force_all_family_option = args.force_all_family
-     enable_json_option = args.enable_json
-+    enable_json_schema = args.enable_schema
-     specific_file = False
- 
-     signal.signal(signal.SIGINT, signal_handler)
-@@ -1367,6 +1386,14 @@ def main():
-     global nftables
-     nftables = Nftables(sofile = 'src/.libs/libnftables.so')
- 
-+    global traceback
-+    traceback = None
-+    if enable_json_schema:
-+        try:
-+            import traceback
-+        except:
-+            pass
-+
-     test_files = files_ok = run_total = 0
-     tests = passed = warnings = errors = 0
-     global log_file
 -- 
 2.21.0
 
