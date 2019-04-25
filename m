@@ -2,94 +2,115 @@ Return-Path: <SRS0=ai/f=S3=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED,USER_AGENT_NEOMUTT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B3F01C43218
-	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Apr 2019 15:41:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B4CE2C43218
+	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Apr 2019 16:35:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C3F842088F
-	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Apr 2019 15:41:49 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=6wind.com header.i=@6wind.com header.b="cQ18ZlCz"
+	by mail.kernel.org (Postfix) with ESMTP id 2B1BA20717
+	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Apr 2019 16:35:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727218AbfDYPlt (ORCPT
+        id S1728125AbfDYQfw (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 25 Apr 2019 11:41:49 -0400
-Received: from mail-wr1-f67.google.com ([209.85.221.67]:41925 "EHLO
-        mail-wr1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726058AbfDYPls (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 25 Apr 2019 11:41:48 -0400
-Received: by mail-wr1-f67.google.com with SMTP id c12so60674wrt.8
-        for <netfilter-devel@vger.kernel.org>; Thu, 25 Apr 2019 08:41:47 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=6wind.com; s=google;
-        h=reply-to:subject:from:to:cc:references:organization:message-id:date
-         :user-agent:mime-version:in-reply-to:content-language
-         :content-transfer-encoding;
-        bh=7/FOxH44YK0IXS/xPrKWOn7zKzhA8URyjbm5SJIfXPs=;
-        b=cQ18ZlCzQQ3Z6k8+9uvkH88C+KcXtaWU+Hcf/yqhxRYKrCRixroYY+KEALZJJz5/bp
-         Up31A+S13FxqEXI4JyZHzYs+uWqO5ZF4nyxaPK98sP/Gk1NYk3ZNlgAzjKY49KysqHqb
-         2ElZL43ri7h71aJ9RZMv7ySOPBIQuZoGP+gu0CdlNVODaYmDnejXreB6b1OeAJahkQnJ
-         vrmHFWMLepEIsmakBVlkUEoDaOnb6Ft8CXu/oni/UpBo9xyqU6kInCrfoSTIV28jyXVE
-         TrBsFJobSiu3ZJLBtCy1Ga+EYewTiolM2qDX68ERNCB98ykmJTQTyZ9Ikn94kMYwkYoO
-         Ou+g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:reply-to:subject:from:to:cc:references
-         :organization:message-id:date:user-agent:mime-version:in-reply-to
-         :content-language:content-transfer-encoding;
-        bh=7/FOxH44YK0IXS/xPrKWOn7zKzhA8URyjbm5SJIfXPs=;
-        b=nhE2zJJhwZowJwD8eJHYvSNq9wboXJ2IhwoyOydo/+akSYjJngUvQYnbnWz6wZm/Bq
-         LRniSb1cX5k2AZ0Cb/QQJsYsodQywwBADfZZUgQgqpp9j32xDQvqhjlOEBvGs3Sdj7a4
-         cG2cu/J/1ypEsnHlpCeX6pcnSJ5dt0mYQU7I4azKCej77r1Ul8jibHe9hUurCY1P/Gja
-         kPSF/0rND9j5n9xLxLWuqdYCw0wF0JB4mV52xMgDR/GXo8nIUQNDuR6n6n8oI9DT9Fuv
-         MZ1chlHqs+oeWtn5/RqbgBx+1kRySMyqqmbUiO3lcaX/cVCMC0aAtaQP7TXxhw97ESi1
-         mj3A==
-X-Gm-Message-State: APjAAAXOwty3m2pqe0DStZjOMoSw5WfuCbuzUP+X44eXC9cKHex8PKWJ
-        yd8FGE6hjrhZ1lwn8CTyFtxzzw==
-X-Google-Smtp-Source: APXvYqxGh6xu/gPoj2GZYbtatvCKMYMG+18sJ6mVJDDMqNdS1dptiMXU9an2v8sUsOoVeQaGI8vQpw==
-X-Received: by 2002:a05:6000:10cc:: with SMTP id b12mr1278640wrx.182.1556206906968;
-        Thu, 25 Apr 2019 08:41:46 -0700 (PDT)
-Received: from ?IPv6:2a01:e35:8b63:dc30:d4c0:843b:d436:a905? ([2a01:e35:8b63:dc30:d4c0:843b:d436:a905])
-        by smtp.gmail.com with ESMTPSA id w12sm54024182wrg.29.2019.04.25.08.41.45
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 25 Apr 2019 08:41:46 -0700 (PDT)
-Reply-To: nicolas.dichtel@6wind.com
-Subject: Re: [PATCH 07/31] netfilter: ctnetlink: Support L3 protocol-filter on
- flush
-From:   Nicolas Dichtel <nicolas.dichtel@6wind.com>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org,
-        Kristian Evensen <kristian.evensen@gmail.com>
-Cc:     davem@davemloft.net, netdev@vger.kernel.org
-References: <20181008230125.2330-1-pablo@netfilter.org>
- <20181008230125.2330-8-pablo@netfilter.org>
- <33d60747-7550-1fba-a068-9b78aaedbc26@6wind.com>
-Organization: 6WIND
-Message-ID: <09d0cd50-b64d-72c3-0aa1-82eb461bfa19@6wind.com>
-Date:   Thu, 25 Apr 2019 17:41:45 +0200
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.6.1
+        Thu, 25 Apr 2019 12:35:52 -0400
+Received: from mx1.redhat.com ([209.132.183.28]:45628 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725941AbfDYQfw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 25 Apr 2019 12:35:52 -0400
+Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.13])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mx1.redhat.com (Postfix) with ESMTPS id EE345C049E23;
+        Thu, 25 Apr 2019 16:35:50 +0000 (UTC)
+Received: from egarver.localdomain (ovpn-120-251.rdu2.redhat.com [10.10.120.251])
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id 9575460856;
+        Thu, 25 Apr 2019 16:35:48 +0000 (UTC)
+Date:   Thu, 25 Apr 2019 12:35:46 -0400
+From:   Eric Garver <eric@garver.life>
+To:     Phil Sutter <phil@nwl.cc>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org, Eric Leblond <eric@regit.org>,
+        Florian Westphal <fw@strlen.de>
+Subject: Re: [nft PATCH RFC 0/2] JSON schema for nftables.py
+Message-ID: <20190425163546.zpm7tfhpolyfmtoe@egarver.localdomain>
+Mail-Followup-To: Eric Garver <eric@garver.life>, Phil Sutter <phil@nwl.cc>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org, Eric Leblond <eric@regit.org>,
+        Florian Westphal <fw@strlen.de>
+References: <20190425140502.22761-1-phil@nwl.cc>
 MIME-Version: 1.0
-In-Reply-To: <33d60747-7550-1fba-a068-9b78aaedbc26@6wind.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: fr
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190425140502.22761-1-phil@nwl.cc>
+User-Agent: NeoMutt/20180716
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.13
+X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.5.16 (mx1.redhat.com [10.5.110.31]); Thu, 25 Apr 2019 16:35:51 +0000 (UTC)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Le 25/04/2019 à 12:07, Nicolas Dichtel a écrit :
-[snip]
-> In fact, the conntrack tool set by default the family to AF_INET and forbid to
-> set the family to something else (the '-f' option is not allowed for the command
-> 'flush').
-'conntrack -D -f ipv6' will do the job, but this is still a regression.
+Hi Phil,
 
+Thanks for working on this.
 
-Regards,
-Nicolas
+On Thu, Apr 25, 2019 at 04:05:00PM +0200, Phil Sutter wrote:
+> This is an initial implementation of support for jsonschema in
+> nftables.py. The goal is to have a schema definition which may be used
+> by users as well as our testsuite to make sure any JSON we accept or
+> generate is valid.
+> 
+> The added schema.json in patch 1 is very minimal for now - I have a more
+> detailed version but it is not complete yet. Also it is quite large
+> already, so for the sake of reviews the small one serves better.
+> 
+> A few aspects of the implementation I'm unsure of:
+> 
+> Keeping the schema in a "pure" JSON file makes things a bit complex: It
+> has to be shipped as data file and loaded by the validator using
+> json.load(). OTOH the content may be fed into json_verify and my editor
+> provides nicer syntax highlighting. An alternative would be to name it
+> schema.py, prefix the content with 'nftschema = ' and simply import it
+> into nftables.py. I don't think inlining the content is a good option
+> simply due to how large the file will get once definitions for all
+> statements and expressions are in there.
+
+I very much prefer the external JSON file. Other projects can then use
+it to validate the JSON they generate without going through libnftables.
+
+> Introducing that SchemaValidator class is not really required, either.
+> Though squeezing everything into json_validate() method felt clumsy.
+> Also I wanted to avoid the explicit schema loading mentioned above upon
+> each call to json_validate(), so having an instance of a validator class
+> seemed like how one is supposed to do things in an object-oriented
+> language.
+> 
+> Note that SchemaValidator imports jsonschema upon instantiation. This
+> may be a bad idea to begin with, but the intention is to not introduce a
+> hard dependency on jsonschema in nftables.py. Same argument holds for
+> conditional import of traceback module in nft-test.py, although
+> validator errors are practically useless without it.
+
+I agree with the optional jsonschema dependency.
+
+traceback is part of the python standard library. No reason to make it a
+conditional import unless you're worried about the cost of importing it.
+
+> 
+> Phil Sutter (2):
+>   py: Implement JSON validation in nftables module
+>   tests/py: Support JSON validation
+> 
+>  py/Makefile.am       |  2 +-
+>  py/nftables.py       | 30 ++++++++++++++++++++++++++++++
+>  py/schema.json       | 17 +++++++++++++++++
+>  py/setup.py          |  1 +
+>  tests/py/nft-test.py | 29 ++++++++++++++++++++++++++++-
+>  5 files changed, 77 insertions(+), 2 deletions(-)
+>  create mode 100644 py/schema.json
+> 
+> -- 
+> 2.21.0
+> 
