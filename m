@@ -2,87 +2,86 @@ Return-Path: <SRS0=ai/f=S3=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 726BAC43219
-	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Apr 2019 14:05:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 369FDC43218
+	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Apr 2019 15:00:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 681C9206BA
-	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Apr 2019 14:05:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 462992081C
+	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Apr 2019 15:00:12 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ZttyvoC7"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728382AbfDYOFT (ORCPT
+        id S1727775AbfDYPAL (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 25 Apr 2019 10:05:19 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:56042 "EHLO orbyte.nwl.cc"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726557AbfDYOFS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 25 Apr 2019 10:05:18 -0400
-Received: from localhost ([::1]:40892 helo=tatos)
-        by orbyte.nwl.cc with esmtp (Exim 4.91)
-        (envelope-from <phil@nwl.cc>)
-        id 1hJezz-0000VM-Sy; Thu, 25 Apr 2019 16:05:15 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, Eric Leblond <eric@regit.org>,
-        Eric Garver <e@erig.me>, Florian Westphal <fw@strlen.de>
-Subject: [nft PATCH RFC 0/2] JSON schema for nftables.py
-Date:   Thu, 25 Apr 2019 16:05:00 +0200
-Message-Id: <20190425140502.22761-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.21.0
+        Thu, 25 Apr 2019 11:00:11 -0400
+Received: from mail-ed1-f45.google.com ([209.85.208.45]:43185 "EHLO
+        mail-ed1-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727762AbfDYPAL (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 25 Apr 2019 11:00:11 -0400
+Received: by mail-ed1-f45.google.com with SMTP id j20so141979edq.10
+        for <netfilter-devel@vger.kernel.org>; Thu, 25 Apr 2019 08:00:10 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:from:date:message-id:subject:to;
+        bh=gMh+SzEKJei65OmHz5vb7PC0/lAvxPClu8CwAeFWjsQ=;
+        b=ZttyvoC7MF3SWT1TGNm3Ammr0O+q/JmaS52RnuF4w1GwGjzxnL41fvyvJUq1GHigmk
+         T+y/5qYtjbzblB+y7F/qZ9/8yIRXf5Fjgfur/3YgcQuk4KWfj8gmeJK8R//wSJlY/+qO
+         R9dZc/OLr5VCz40ETl+ZNc3Yjb87+odMV4UARrAfk2AIIF7WkYIbm28C4Rncu4oIJ1Xj
+         ZhLXRciS8/E8QVuYJL+sd3rUmvSEY61T8Z/gVeM3UkgpPFXxEkVL/MpshtOzKw/FfFWx
+         CrWG23iUXN5gtUdNXRBRvLXCc9IEB77MOfU8v/1m0xODgrYYhw7F8qA9Xb5M7jLU/OcR
+         9ZyQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:from:date:message-id:subject:to;
+        bh=gMh+SzEKJei65OmHz5vb7PC0/lAvxPClu8CwAeFWjsQ=;
+        b=f0ix/fJyC4ibQAOJ+/O3pIYAnIyjekBKych0YGNiep5vZNgot1uN8Mv6lj971TIuBU
+         dINgyLtPX9MNCmhclF9/PxZ/tgR5U9Ub+aFxU/80BLOauo9ZEpqWw4Asian1lgCp4Ry1
+         EKZ6QFAsNNraiLZEWOVuVOqQSyoV8/Foxk6xbBUd33AAi1y78JiSTaHLr47B1Dxgll2h
+         SJqUheSyB8mc3vY+Jg7RfQx6Ov7HktR3xbX/q9re601YUrR59FnbBngkXBIwx/Fnn3nZ
+         pLu0wVx/bPv0bgHxUNT5R3HNdgFfXRaq0NMaWwWpZRHPZIYySDeJZN43ycI8sigho32C
+         lP+A==
+X-Gm-Message-State: APjAAAUzdUSMCfMlSV59Jxx4LhFQ4n0sh9TM+HtTDAy3jbI2hwUcoacc
+        aPjuMxqQ9WJtP+1vIg/+dssgOqz9T/lTgpJqORYCXAwJRqE=
+X-Google-Smtp-Source: APXvYqwsi9taDca0P5xEE4xpY+S+JeSyjx1bEuyDwCY2jKlB0P3N8Xmh3+v94FoVvGMsjECM5HwDsXXCqPfzr9gsvag=
+X-Received: by 2002:a17:906:9a9:: with SMTP id q9mr12406486eje.171.1556204409756;
+ Thu, 25 Apr 2019 08:00:09 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+From:   Mojtaba <mespio@gmail.com>
+Date:   Thu, 25 Apr 2019 19:29:58 +0430
+Message-ID: <CABVi_ExMwpQHT57x_tv-1fx2kUgGBfy+k2R-Fbrbki=V-igwrw@mail.gmail.com>
+Subject: Issue related to conntrack while insert new rule with conntrack
+ command in linux
+To:     netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This is an initial implementation of support for jsonschema in
-nftables.py. The goal is to have a schema definition which may be used
-by users as well as our testsuite to make sure any JSON we accept or
-generate is valid.
+Hello all
+I read man conntrack document guide. That is great.
+I have a issue while i am working on it. For example i just want add
+new rule like this:
+conntrack -I -p udp -s 192.168.122.242 -d 192.168.122.103 --sport 5070
+--dport 5005 -r 192.168.122.1 -q 192.168.122.103 --reply-port-src 1111
+--reply-port-dst 2222 --timeout 30
 
-The added schema.json in patch 1 is very minimal for now - I have a more
-detailed version but it is not complete yet. Also it is quite large
-already, so for the sake of reviews the small one serves better.
+But it doen't work.
+if i insert these two rule in iptable, the same above rule will insert
+in conntrack table automatically and work correctly.
+iptables -t nat -A PREROUTING -i eth0 -p udp -s 192.168.122.242
+--dport 5005 -j DNAT --to 192.168.122.1:1111
 
-A few aspects of the implementation I'm unsure of:
+iptables -t nat -A POSTROUTING -p udp --dport 1111 -j SNAT --to
+192.168.122.103:2222
+Who can i solve this problem?
+With Best regards.Mojtaba
 
-Keeping the schema in a "pure" JSON file makes things a bit complex: It
-has to be shipped as data file and loaded by the validator using
-json.load(). OTOH the content may be fed into json_verify and my editor
-provides nicer syntax highlighting. An alternative would be to name it
-schema.py, prefix the content with 'nftschema = ' and simply import it
-into nftables.py. I don't think inlining the content is a good option
-simply due to how large the file will get once definitions for all
-statements and expressions are in there.
-
-Introducing that SchemaValidator class is not really required, either.
-Though squeezing everything into json_validate() method felt clumsy.
-Also I wanted to avoid the explicit schema loading mentioned above upon
-each call to json_validate(), so having an instance of a validator class
-seemed like how one is supposed to do things in an object-oriented
-language.
-
-Note that SchemaValidator imports jsonschema upon instantiation. This
-may be a bad idea to begin with, but the intention is to not introduce a
-hard dependency on jsonschema in nftables.py. Same argument holds for
-conditional import of traceback module in nft-test.py, although
-validator errors are practically useless without it.
-
-Phil Sutter (2):
-  py: Implement JSON validation in nftables module
-  tests/py: Support JSON validation
-
- py/Makefile.am       |  2 +-
- py/nftables.py       | 30 ++++++++++++++++++++++++++++++
- py/schema.json       | 17 +++++++++++++++++
- py/setup.py          |  1 +
- tests/py/nft-test.py | 29 ++++++++++++++++++++++++++++-
- 5 files changed, 77 insertions(+), 2 deletions(-)
- create mode 100644 py/schema.json
 
 -- 
-2.21.0
-
+--Mojtaba Esfandiari.S
