@@ -2,70 +2,107 @@ Return-Path: <SRS0=ai/f=S3=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F2986C10F03
-	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Apr 2019 13:00:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AD3F0C43219
+	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Apr 2019 13:44:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1A95120678
-	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Apr 2019 13:00:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8134B206C1
+	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Apr 2019 13:44:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728543AbfDYNAJ (ORCPT
+        id S1728025AbfDYNoQ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 25 Apr 2019 09:00:09 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:55886 "EHLO orbyte.nwl.cc"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727168AbfDYNAJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 25 Apr 2019 09:00:09 -0400
-Received: from localhost ([::1]:40744 helo=tatos)
-        by orbyte.nwl.cc with esmtp (Exim 4.91)
-        (envelope-from <phil@nwl.cc>)
-        id 1hJdyx-0007uP-Qw; Thu, 25 Apr 2019 15:00:07 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: [nft PATCH 1/4] tests: monitor: Adjust to changed events ordering
-Date:   Thu, 25 Apr 2019 14:59:40 +0200
-Message-Id: <20190425125943.15787-2-phil@nwl.cc>
-X-Mailer: git-send-email 2.21.0
-In-Reply-To: <20190425125943.15787-1-phil@nwl.cc>
-References: <20190425125943.15787-1-phil@nwl.cc>
+        Thu, 25 Apr 2019 09:44:16 -0400
+Received: from szxga04-in.huawei.com ([45.249.212.190]:7132 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1725900AbfDYNoP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 25 Apr 2019 09:44:15 -0400
+Received: from DGGEMS402-HUB.china.huawei.com (unknown [172.30.72.58])
+        by Forcepoint Email with ESMTP id 77AAD680724757E101C1;
+        Thu, 25 Apr 2019 21:44:12 +0800 (CST)
+Received: from [127.0.0.1] (10.184.189.20) by DGGEMS402-HUB.china.huawei.com
+ (10.3.19.202) with Microsoft SMTP Server id 14.3.439.0; Thu, 25 Apr 2019
+ 21:44:02 +0800
+To:     <pablo@netfilter.org>, <kadlec@blackhole.kfki.hu>, <fw@strlen.de>,
+        <davem@davemloft.net>, <kuznet@ms2.inr.ac.ru>,
+        <yoshfuji@linux-ipv6.org>, <netfilter-devel@vger.kernel.org>,
+        <coreteam@netfilter.org>, <netdev@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>, <dsahern@gmail.com>
+CC:     Mingfangsen <mingfangsen@huawei.com>
+From:   linmiaohe <linmiaohe@huawei.com>
+Subject: [PATCH v3] net: netfilter: Fix rpfilter dropping vrf packets by
+ mistake
+Message-ID: <212e4feb-39de-2627-9948-bbb117ff4d4e@huawei.com>
+Date:   Thu, 25 Apr 2019 21:43:53 +0800
+User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:60.0) Gecko/20100101
+ Thunderbird/60.5.1
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.184.189.20]
+X-CFilter-Loop: Reflected
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-When replacing a rule, kernel nowadays seems to report rule add event
-before rule delete one. Since both events belong to the same
-transaction, this is harmless per definition and merely needs adjustment
-in expected output.
+From: Miaohe Lin <linmiaohe@huawei.com>
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
+When firewalld is enabled with ipv4/ipv6 rpfilter, vrf
+ipv4/ipv6 packets will be dropped because in device is
+vrf but out device is an enslaved device. So failed with
+the check of the rpfilter.
+
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 ---
- tests/monitor/testcases/simple.t | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ net/ipv4/netfilter/ipt_rpfilter.c  |  1 +
+ net/ipv6/netfilter/ip6t_rpfilter.c | 10 +++++++++-
+ 2 files changed, 10 insertions(+), 1 deletion(-)
 
-diff --git a/tests/monitor/testcases/simple.t b/tests/monitor/testcases/simple.t
-index 78d8f8b04bd36..78fd6616eb074 100644
---- a/tests/monitor/testcases/simple.t
-+++ b/tests/monitor/testcases/simple.t
-@@ -18,10 +18,10 @@ O add rule ip t c counter packets 0 bytes 0 accept
- J {"add": {"rule": {"family": "ip", "table": "t", "chain": "c", "handle": 0, "expr": [{"counter": {"packets": 0, "bytes": 0}}, {"accept": null}]}}}
- 
- I replace rule ip t c handle 2 accept comment "foo bar"
--O delete rule ip t c handle 2
- O add rule ip t c accept comment "foo bar"
--J {"delete": {"rule": {"family": "ip", "table": "t", "chain": "c", "handle": 0, "expr": [{"accept": null}]}}}
-+O delete rule ip t c handle 2
- J {"add": {"rule": {"family": "ip", "table": "t", "chain": "c", "handle": 0, "comment": "foo bar", "expr": [{"accept": null}]}}}
-+J {"delete": {"rule": {"family": "ip", "table": "t", "chain": "c", "handle": 0, "expr": [{"accept": null}]}}}
- 
- I add counter ip t cnt
- O add counter ip t cnt { packets 0 bytes 0 }
+diff --git a/net/ipv4/netfilter/ipt_rpfilter.c b/net/ipv4/netfilter/ipt_rpfilter.c
+index 0b10d8812828..6e07cd0ecbec 100644
+--- a/net/ipv4/netfilter/ipt_rpfilter.c
++++ b/net/ipv4/netfilter/ipt_rpfilter.c
+@@ -81,6 +81,7 @@ static bool rpfilter_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ 	flow.flowi4_mark = info->flags & XT_RPFILTER_VALID_MARK ? skb->mark : 0;
+ 	flow.flowi4_tos = RT_TOS(iph->tos);
+ 	flow.flowi4_scope = RT_SCOPE_UNIVERSE;
++	flow.flowi4_oif = l3mdev_master_ifindex_rcu(xt_in(par));
+
+ 	return rpfilter_lookup_reverse(xt_net(par), &flow, xt_in(par), info->flags) ^ invert;
+ }
+diff --git a/net/ipv6/netfilter/ip6t_rpfilter.c b/net/ipv6/netfilter/ip6t_rpfilter.c
+index c3c6b09acdc4..a28c81322148 100644
+--- a/net/ipv6/netfilter/ip6t_rpfilter.c
++++ b/net/ipv6/netfilter/ip6t_rpfilter.c
+@@ -58,7 +58,9 @@ static bool rpfilter_lookup_reverse6(struct net *net, const struct sk_buff *skb,
+ 	if (rpfilter_addr_linklocal(&iph->saddr)) {
+ 		lookup_flags |= RT6_LOOKUP_F_IFACE;
+ 		fl6.flowi6_oif = dev->ifindex;
+-	} else if ((flags & XT_RPFILTER_LOOSE) == 0)
++	} else if (((flags & XT_RPFILTER_LOOSE) == 0) ||
++		   (netif_is_l3_master(dev)) ||
++		   (netif_is_l3_slave(dev)))
+ 		fl6.flowi6_oif = dev->ifindex;
+
+ 	rt = (void *)ip6_route_lookup(net, &fl6, skb, lookup_flags);
+@@ -73,6 +75,12 @@ static bool rpfilter_lookup_reverse6(struct net *net, const struct sk_buff *skb,
+ 		goto out;
+ 	}
+
++	if (netif_is_l3_master(dev)) {
++		dev = dev_get_by_index_rcu(dev_net(dev), IP6CB(skb)->iif);
++		if (!dev)
++			goto out;
++	}
++
+ 	if (rt->rt6i_idev->dev == dev || (flags & XT_RPFILTER_LOOSE))
+ 		ret = true;
+  out:
 -- 
-2.21.0
+2.19.1
+
 
