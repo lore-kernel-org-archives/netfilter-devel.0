@@ -2,107 +2,160 @@ Return-Path: <SRS0=ai/f=S3=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AD3F0C43219
-	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Apr 2019 13:44:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 74245C43218
+	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Apr 2019 14:05:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8134B206C1
-	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Apr 2019 13:44:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 64B85206BA
+	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Apr 2019 14:05:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728025AbfDYNoQ (ORCPT
+        id S1727775AbfDYOFK (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 25 Apr 2019 09:44:16 -0400
-Received: from szxga04-in.huawei.com ([45.249.212.190]:7132 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1725900AbfDYNoP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 25 Apr 2019 09:44:15 -0400
-Received: from DGGEMS402-HUB.china.huawei.com (unknown [172.30.72.58])
-        by Forcepoint Email with ESMTP id 77AAD680724757E101C1;
-        Thu, 25 Apr 2019 21:44:12 +0800 (CST)
-Received: from [127.0.0.1] (10.184.189.20) by DGGEMS402-HUB.china.huawei.com
- (10.3.19.202) with Microsoft SMTP Server id 14.3.439.0; Thu, 25 Apr 2019
- 21:44:02 +0800
-To:     <pablo@netfilter.org>, <kadlec@blackhole.kfki.hu>, <fw@strlen.de>,
-        <davem@davemloft.net>, <kuznet@ms2.inr.ac.ru>,
-        <yoshfuji@linux-ipv6.org>, <netfilter-devel@vger.kernel.org>,
-        <coreteam@netfilter.org>, <netdev@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>, <dsahern@gmail.com>
-CC:     Mingfangsen <mingfangsen@huawei.com>
-From:   linmiaohe <linmiaohe@huawei.com>
-Subject: [PATCH v3] net: netfilter: Fix rpfilter dropping vrf packets by
- mistake
-Message-ID: <212e4feb-39de-2627-9948-bbb117ff4d4e@huawei.com>
-Date:   Thu, 25 Apr 2019 21:43:53 +0800
-User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:60.0) Gecko/20100101
- Thunderbird/60.5.1
+        Thu, 25 Apr 2019 10:05:10 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:56012 "EHLO orbyte.nwl.cc"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726557AbfDYOFK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 25 Apr 2019 10:05:10 -0400
+Received: from localhost ([::1]:40864 helo=tatos)
+        by orbyte.nwl.cc with esmtp (Exim 4.91)
+        (envelope-from <phil@nwl.cc>)
+        id 1hJezp-0000UY-8q; Thu, 25 Apr 2019 16:05:05 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, Eric Leblond <eric@regit.org>,
+        Eric Garver <e@erig.me>, Florian Westphal <fw@strlen.de>
+Subject: [nft PATCH RFC 1/2] py: Implement JSON validation in nftables module
+Date:   Thu, 25 Apr 2019 16:05:01 +0200
+Message-Id: <20190425140502.22761-2-phil@nwl.cc>
+X-Mailer: git-send-email 2.21.0
+In-Reply-To: <20190425140502.22761-1-phil@nwl.cc>
+References: <20190425140502.22761-1-phil@nwl.cc>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.184.189.20]
-X-CFilter-Loop: Reflected
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Miaohe Lin <linmiaohe@huawei.com>
+Using jsonschema it is possible to validate any JSON input to make sure
+it formally conforms with libnftables JSON API requirements.
 
-When firewalld is enabled with ipv4/ipv6 rpfilter, vrf
-ipv4/ipv6 packets will be dropped because in device is
-vrf but out device is an enslaved device. So failed with
-the check of the rpfilter.
+Implement a simple validator class for use within a new Nftables class
+method 'json_validate' and ship a minimal schema definition along with
+the package.
 
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- net/ipv4/netfilter/ipt_rpfilter.c  |  1 +
- net/ipv6/netfilter/ip6t_rpfilter.c | 10 +++++++++-
- 2 files changed, 10 insertions(+), 1 deletion(-)
+ py/Makefile.am |  2 +-
+ py/nftables.py | 30 ++++++++++++++++++++++++++++++
+ py/schema.json | 17 +++++++++++++++++
+ py/setup.py    |  1 +
+ 4 files changed, 49 insertions(+), 1 deletion(-)
+ create mode 100644 py/schema.json
 
-diff --git a/net/ipv4/netfilter/ipt_rpfilter.c b/net/ipv4/netfilter/ipt_rpfilter.c
-index 0b10d8812828..6e07cd0ecbec 100644
---- a/net/ipv4/netfilter/ipt_rpfilter.c
-+++ b/net/ipv4/netfilter/ipt_rpfilter.c
-@@ -81,6 +81,7 @@ static bool rpfilter_mt(const struct sk_buff *skb, struct xt_action_param *par)
- 	flow.flowi4_mark = info->flags & XT_RPFILTER_VALID_MARK ? skb->mark : 0;
- 	flow.flowi4_tos = RT_TOS(iph->tos);
- 	flow.flowi4_scope = RT_SCOPE_UNIVERSE;
-+	flow.flowi4_oif = l3mdev_master_ifindex_rcu(xt_in(par));
-
- 	return rpfilter_lookup_reverse(xt_net(par), &flow, xt_in(par), info->flags) ^ invert;
- }
-diff --git a/net/ipv6/netfilter/ip6t_rpfilter.c b/net/ipv6/netfilter/ip6t_rpfilter.c
-index c3c6b09acdc4..a28c81322148 100644
---- a/net/ipv6/netfilter/ip6t_rpfilter.c
-+++ b/net/ipv6/netfilter/ip6t_rpfilter.c
-@@ -58,7 +58,9 @@ static bool rpfilter_lookup_reverse6(struct net *net, const struct sk_buff *skb,
- 	if (rpfilter_addr_linklocal(&iph->saddr)) {
- 		lookup_flags |= RT6_LOOKUP_F_IFACE;
- 		fl6.flowi6_oif = dev->ifindex;
--	} else if ((flags & XT_RPFILTER_LOOSE) == 0)
-+	} else if (((flags & XT_RPFILTER_LOOSE) == 0) ||
-+		   (netif_is_l3_master(dev)) ||
-+		   (netif_is_l3_slave(dev)))
- 		fl6.flowi6_oif = dev->ifindex;
-
- 	rt = (void *)ip6_route_lookup(net, &fl6, skb, lookup_flags);
-@@ -73,6 +75,12 @@ static bool rpfilter_lookup_reverse6(struct net *net, const struct sk_buff *skb,
- 		goto out;
- 	}
-
-+	if (netif_is_l3_master(dev)) {
-+		dev = dev_get_by_index_rcu(dev_net(dev), IP6CB(skb)->iif);
-+		if (!dev)
-+			goto out;
-+	}
+diff --git a/py/Makefile.am b/py/Makefile.am
+index 0963535d068dc..9fce7c9e54c38 100644
+--- a/py/Makefile.am
++++ b/py/Makefile.am
+@@ -1,4 +1,4 @@
+-EXTRA_DIST = setup.py __init__.py nftables.py
++EXTRA_DIST = setup.py __init__.py nftables.py schema.json
+ 
+ if HAVE_PYTHON
+ 
+diff --git a/py/nftables.py b/py/nftables.py
+index f07163573f9a6..e1955d98151ef 100644
+--- a/py/nftables.py
++++ b/py/nftables.py
+@@ -17,9 +17,24 @@
+ import json
+ from ctypes import *
+ import sys
++import os
+ 
+ NFTABLES_VERSION = "0.1"
+ 
++class SchemaValidator:
++    """Libnftables JSON validator using jsonschema"""
 +
- 	if (rt->rt6i_idev->dev == dev || (flags & XT_RPFILTER_LOOSE))
- 		ret = true;
-  out:
++    def __init__(self):
++        schema_path = os.path.join(os.path.dirname(__file__), "schema.json")
++        schema_file = file(schema_path)
++        self.schema = json.load(schema_file)
++        schema_file.close()
++        import jsonschema
++        self.jsonschema = jsonschema
++
++    def validate(self, json):
++        self.jsonschema.validate(instance=json, schema=self.schema)
++
+ class Nftables:
+     """A class representing libnftables interface"""
+ 
+@@ -46,6 +61,8 @@ class Nftables:
+         "numeric_symbol": (1 << 9),
+     }
+ 
++    validator = None
++
+     def __init__(self, sofile="libnftables.so"):
+         """Instantiate a new Nftables class object.
+ 
+@@ -375,3 +392,16 @@ class Nftables:
+         if len(output):
+             output = json.loads(output)
+         return (rc, output, error)
++
++    def json_validate(self, json_root):
++        """Validate JSON object against libnftables schema.
++
++        Accepts a hash object as input.
++
++        Returns True if JSON is valid, raises an exception otherwise.
++        """
++        if not self.validator:
++            self.validator = SchemaValidator()
++
++        self.validator.validate(json_root)
++        return True
+diff --git a/py/schema.json b/py/schema.json
+new file mode 100644
+index 0000000000000..6cb731a228bf4
+--- /dev/null
++++ b/py/schema.json
+@@ -0,0 +1,17 @@
++{
++	"$schema": "http://json-schema.org/schema#",
++	"id": "http://netfilter.org/nftables/ruleset-schema.json",
++	"description": "libnftables JSON API schema",
++
++	"type": "object",
++        "properties": {
++		"nftables": {
++			"type": "array",
++			"minitems": 0,
++			"items": {
++				"type": "object"
++			}
++		}
++	},
++	"required": [ "nftables" ]
++}
+diff --git a/py/setup.py b/py/setup.py
+index ef143c42a21b0..72fc8fd98b269 100755
+--- a/py/setup.py
++++ b/py/setup.py
+@@ -11,6 +11,7 @@ setup(name='nftables',
+       packages=['nftables'],
+       provides=['nftables'],
+       package_dir={'nftables':'.'},
++      package_data={'nftables':['schema.json']},
+       classifiers=[
+           'Development Status :: 4 - Beta',
+           'Environment :: Console',
 -- 
-2.19.1
-
+2.21.0
 
