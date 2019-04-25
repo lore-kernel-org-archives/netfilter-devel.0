@@ -2,125 +2,108 @@ Return-Path: <SRS0=ai/f=S3=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.5 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_MUTT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0EE07C10F03
-	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Apr 2019 07:22:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A3A1C282E3
+	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Apr 2019 09:08:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D9E49217D7
-	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Apr 2019 07:22:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 48D6C217FA
+	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Apr 2019 09:08:51 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=resnulli-us.20150623.gappssmtp.com header.i=@resnulli-us.20150623.gappssmtp.com header.b="ClO0D8w/"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730156AbfDYHWV (ORCPT
+        id S1727184AbfDYJIu (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 25 Apr 2019 03:22:21 -0400
-Received: from szxga06-in.huawei.com ([45.249.212.32]:54022 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1727435AbfDYHWU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 25 Apr 2019 03:22:20 -0400
-Received: from DGGEMS405-HUB.china.huawei.com (unknown [172.30.72.58])
-        by Forcepoint Email with ESMTP id 73B1DC3160BF9F590EBC;
-        Thu, 25 Apr 2019 15:22:17 +0800 (CST)
-Received: from [127.0.0.1] (10.184.189.20) by DGGEMS405-HUB.china.huawei.com
- (10.3.19.205) with Microsoft SMTP Server id 14.3.439.0; Thu, 25 Apr 2019
- 15:22:08 +0800
-Subject: Re: [PATCH v2] net: netfilter: Fix ipv6 rp_filter dropping vrf
- packets by mistake
-To:     David Ahern <dsahern@gmail.com>, <pablo@netfilter.org>,
-        <kadlec@blackhole.kfki.hu>, <fw@strlen.de>, <davem@davemloft.net>,
-        <kuznet@ms2.inr.ac.ru>, <yoshfuji@linux-ipv6.org>,
-        <netfilter-devel@vger.kernel.org>, <coreteam@netfilter.org>,
-        <netdev@vger.kernel.org>, <linux-kernel@vger.kernel.org>
-CC:     Mingfangsen <mingfangsen@huawei.com>
-References: <7662b7eb-89a4-adac-1e46-2c09816641f2@huawei.com>
- <05222a41-c60b-0c05-6beb-26a143deea36@gmail.com>
-From:   linmiaohe <linmiaohe@huawei.com>
-Message-ID: <58b71ee4-c665-4cff-a9fb-5af9d402e1ea@huawei.com>
-Date:   Thu, 25 Apr 2019 15:21:55 +0800
-User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:60.0) Gecko/20100101
- Thunderbird/60.5.1
+        Thu, 25 Apr 2019 05:08:50 -0400
+Received: from mail-wr1-f66.google.com ([209.85.221.66]:41727 "EHLO
+        mail-wr1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726751AbfDYJIt (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 25 Apr 2019 05:08:49 -0400
+Received: by mail-wr1-f66.google.com with SMTP id c12so23039618wrt.8
+        for <netfilter-devel@vger.kernel.org>; Thu, 25 Apr 2019 02:08:48 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=resnulli-us.20150623.gappssmtp.com; s=20150623;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to:user-agent;
+        bh=8LZXN+8KU6xgMDFTMJ8Q2B9/CuRynw4V0u0ml9fm/c8=;
+        b=ClO0D8w/Us+bSJBvlXAo+SKmusDbeHQhGjnO3gQdqkzTnsoU34vdxsWZVJ6dzx/Fl8
+         K8cpTDOGFaJc2CQryUlMVqcLoBfHU0gBLBtAKgFgerNEwBXacfVjl4TljFsHUMmoiyG4
+         xul7Ol3WcTpCYwD5j5WNEdur1/os3RnY2oKNqV8ZmRVYwl7P3UakvWZvk4cMwZT9ycBg
+         t6/HuFNhvZSuMY+K09nLKP3qStiYV8vhVcdClItzK4VdHkvLsmdfBTqsBUjzQONK3yu1
+         1JeGWTIV2mqkMEz1vfUTvEMrhIvVaSTO/Q5PSbopJGjRCgwKSgBi2twM1iGgJ1ONcNAn
+         aS5w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to:user-agent;
+        bh=8LZXN+8KU6xgMDFTMJ8Q2B9/CuRynw4V0u0ml9fm/c8=;
+        b=fnQrimeUFKnvgH06Ok6RsZnEvyuDiVRGfXTO7H6PhbOUpSv242gZ0pOrBeyky+rjsD
+         LpafRXPAl1Q8qOvmFyKJ3O4AEroox9SJB5Pxxq6o3krCezWdLDvdN+iWohpNzenGafrH
+         ZF6tsj9PG6Ea86xGGcs9vA4CUc/ET0sB9DBAMgpXOFnNFNUxfvPHsKxI0Why+gAN8Prk
+         6hwMin2eU5tWCgTfSVhFNl9zqDPIP6BRax+J6VPp30oM4xqclAH3Mv8Or7R4b/jFgf18
+         b4f4KUQrcLLeR4WQZsl51efviZbzcaMEAzrokht7klnWGRdmA8ua6V/iTrzCMY//rzXu
+         R33Q==
+X-Gm-Message-State: APjAAAVlK5pR+sif92j91LK1l7sg2SETNJxDOJX5btM7LdZW3ikWne0n
+        7Lwbh1zWlUYP2Xu1d/CZ9mAo3Q==
+X-Google-Smtp-Source: APXvYqxA/Qf5qIRMOWQaI6ds0SVbVZXPWJveWY03KiTcSvBsIVs4iYEkYLhNVqjPfvuO4k1hY9D6RQ==
+X-Received: by 2002:a05:6000:12c7:: with SMTP id l7mr23567228wrx.4.1556183327952;
+        Thu, 25 Apr 2019 02:08:47 -0700 (PDT)
+Received: from localhost (mail.chocen-mesto.cz. [85.163.43.2])
+        by smtp.gmail.com with ESMTPSA id r6sm15774477wmc.11.2019.04.25.02.08.47
+        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+        Thu, 25 Apr 2019 02:08:47 -0700 (PDT)
+Date:   Thu, 25 Apr 2019 11:08:46 +0200
+From:   Jiri Pirko <jiri@resnulli.us>
+To:     Michal Kubecek <mkubecek@suse.cz>
+Cc:     netdev@vger.kernel.org, "David S. Miller" <davem@davemloft.net>,
+        David Ahern <dsahern@gmail.com>,
+        Johannes Berg <johannes.berg@intel.com>,
+        Jiri Pirko <jiri@mellanox.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>,
+        netfilter-devel@vger.kernel.org
+Subject: Re: [RFC PATCH net-next 0/3] make nla_nest_start() add NLA_F_NESTED
+ flag
+Message-ID: <20190425090846.GC3951@nanopsycho>
+References: <cover.1556140270.git.mkubecek@suse.cz>
 MIME-Version: 1.0
-In-Reply-To: <05222a41-c60b-0c05-6beb-26a143deea36@gmail.com>
-Content-Type: text/plain; charset="utf-8"
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.184.189.20]
-X-CFilter-Loop: Reflected
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <cover.1556140270.git.mkubecek@suse.cz>
+User-Agent: Mutt/1.11.3 (2019-02-01)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Wed, Apr 24, 2019 at 11:34:21PM CEST, mkubecek@suse.cz wrote:
+>One of the comments in recent review of the ethtool netlink series pointed
+>out that proposed ethnl_nest_start() helper which adds NLA_F_NESTED to
+>second argument of nla_nest_start() is not really specific to ethtool
+>netlink code. That is hard to argue with as closer inspection revealed that
+>exactly the same helper already exists in ipset code (except it's a macro
+>rather than an inline function).
+>
+>Another observation was that even if NLA_F_NESTED flag was introduced in
+>2007, only few netlink based interfaces set it in kernel generated messages
+>and even many recently added APIs omit it. That is unfortunate as without
+>the flag, message parsers not familiar with attribute semantics cannot
+>recognize nested attributes and do not see message structure; this affects
+>e.g. wireshark dissector or mnl_nlmsg_fprintf() from libmnl.
+>
+>This is why I'm suggesting to rename existing nla_nest_start() to different
+>name (nla_nest_start_noflag) and reintroduce nla_nest_start() as a wrapper
+>adding NLA_F_NESTED flag. This is implemented in first patch which is
+>mostly generated by spatch. Second patch drops ipset helper macros which
+>lose their purpose. Third patch cleans up minor coding style issues found
+>by checkpatch.pl in first patch.
+>
+>If this approach is considered too intrusive, we can leave nla_nest_start()
+>untouched and simply add a wrapper adding NLA_F_NESTED but that would
+>probably preserve the state when even most new code doesn't set the flag.
 
-
-On 2019/4/24 23:24, David Ahern wrote:
-> On 4/24/19 3:12 AM, linmiaohe wrote:
->> From: Miaohe Lin <linmiaohe@huawei.com>
->>
->> When firewall is enabled with rp_filter, vrf ipv6 packets
->> will be dropped because in device is vrf but out device
->> is an enslaved device. So rt->rt6i_idev->dev != dev and
->> maybe return false in func rpfilter_lookup_reverse6.
->>
->> Here is the out message when I ping the peer:
->> ip vrf exec vrf1 ping 2013::2 -c 1
->> 1 packets transmitted, 0 received, 100% packet loss, time 0ms
->>
->> The drop info in /var/log/message:
->> Apr 24 14:59:45 localhost kernel: [81316.158259] rpfilter_DROP: IN=vrf1
->> OUT= MAC=52:54:00:9e:dd:c1:52:54:00:4f:81:38:86:dd
->> SRC=2013:0000:0000:0000:0000:0000:0000:0002
->> DST=2013:0000:0000:0000:0000:0000:0000:0001 LEN=104 TC=0 HOPLIMIT=64
->> FLOWLBL=1032942 PROTO=ICMPv6 TYPE=129 CODE=0 ID=14943 SEQ=1
->>
->> Signed-off-by: linmiaohe <linmiaohe@huawei.com>
->> ---
->>  net/ipv6/netfilter/ip6t_rpfilter.c | 6 ++++++
->>  1 file changed, 6 insertions(+)
->>
->> diff --git a/net/ipv6/netfilter/ip6t_rpfilter.c b/net/ipv6/netfilter/ip6t_rpfilter.c
->> index c3c6b09acdc4..cf1070ab1252 100644
->> --- a/net/ipv6/netfilter/ip6t_rpfilter.c
->> +++ b/net/ipv6/netfilter/ip6t_rpfilter.c
->> @@ -73,6 +73,12 @@ static bool rpfilter_lookup_reverse6(struct net *net, const struct sk_buff *skb,
->>  		goto out;
->>  	}
->>
->> +	if (netif_is_l3_master(dev)) {
->> +		dev = dev_get_by_index_rcu(dev_net(dev), IP6CB(skb)->iif);
->> +		if (!dev)
->> +			goto out;
->> +	}
->> +
->>  	if (rt->rt6i_idev->dev == dev || (flags & XT_RPFILTER_LOOSE))
->>  		ret = true;
->>   out:
->>
-> 
-> What about the case where XT_RPFILTER_LOOSE is set? flowi6_oif needs to
-> be set to the dev->ifindex if dev is an l3 master.
-> 
-
-Thanks, you are right. I miss the case when XT_RPFILTER_LOOSE is set. flowi6_oif
-needs to be set to the device ifindex if dev is an l3 master or l3 slave which
-looks like this in function rpfilter_lookup_reverse6:
-
-} else if ((flags & XT_RPFILTER_LOOSE) == 0) {
-	fl6.flowi6_oif = dev->ifindex;
-} else if (netif_is_l3_master(dev) || netif_is_l3_slave(dev))
-	fl6.flowi6_oif = dev->ifindex;
-
-> And looking at the IPv4 version I do not see how it could be correct
-> either. Have you tested it?
-> 
-> .
-> 
-
-I thought rp_filter is ok with ipv4 version because it works in my enviroment. But
-I forgot rp_filter func in my enviroment is provided by sysctl rather than iptables
-rpfilter. So I tested again and found we need to fix ipv4 version too.
-
-Thanks for your remind, I will fix all of these and send a patch v2 soon.
-Thanks.
-
+I like this. Long overdue...
