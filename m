@@ -3,32 +3,32 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E09EDC282E1
-	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Apr 2019 12:59:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 25CFDC10F03
+	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Apr 2019 13:00:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1519B20678
-	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Apr 2019 12:59:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4DBC820678
+	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Apr 2019 12:59:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727931AbfDYM7x (ORCPT
+        id S1728127AbfDYM77 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 25 Apr 2019 08:59:53 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:55862 "EHLO orbyte.nwl.cc"
+        Thu, 25 Apr 2019 08:59:59 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:55868 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726157AbfDYM7x (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 25 Apr 2019 08:59:53 -0400
-Received: from localhost ([::1]:40720 helo=tatos)
+        id S1726157AbfDYM77 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 25 Apr 2019 08:59:59 -0400
+Received: from localhost ([::1]:40726 helo=tatos)
         by orbyte.nwl.cc with esmtp (Exim 4.91)
         (envelope-from <phil@nwl.cc>)
-        id 1hJdyh-0007qy-SO; Thu, 25 Apr 2019 14:59:51 +0200
+        id 1hJdyn-0007rR-6p; Thu, 25 Apr 2019 14:59:57 +0200
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [nft PATCH 2/4] tests/py: Fix error messages in chain_delete()
-Date:   Thu, 25 Apr 2019 14:59:41 +0200
-Message-Id: <20190425125943.15787-3-phil@nwl.cc>
+Subject: [nft PATCH 3/4] parser_json: Fix typo in ct timeout policy parser
+Date:   Thu, 25 Apr 2019 14:59:42 +0200
+Message-Id: <20190425125943.15787-4-phil@nwl.cc>
 X-Mailer: git-send-email 2.21.0
 In-Reply-To: <20190425125943.15787-1-phil@nwl.cc>
 References: <20190425125943.15787-1-phil@nwl.cc>
@@ -39,37 +39,28 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Adding string and chain object is an illegal operation in Python.
-Instead concatenate with cmd string since that contains all required
-information already.
+Parser expects an object in policy property and json_is_object() returns
+true if given parameter is an object. The check was inverse by accident.
 
-Fixes: 820fd08b5f1d4 ("tests/py: Review print statements in nft-test.py")
+Fixes: c82a26ebf7e9f ("json: Add ct timeout support")
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- tests/py/nft-test.py | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ src/parser_json.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/tests/py/nft-test.py b/tests/py/nft-test.py
-index 5c7e28a070204..1c0afd0ec0eb3 100755
---- a/tests/py/nft-test.py
-+++ b/tests/py/nft-test.py
-@@ -310,14 +310,14 @@ def chain_delete(chain, table, filename=None, lineno=None):
-     cmd = "flush chain %s %s" % (table, chain)
-     ret = execute_cmd(cmd, filename, lineno)
-     if ret != 0:
--        reason = "I cannot flush this chain " + chain
-+        reason = "I cannot " + cmd
-         print_error(reason, filename, lineno)
-         return -1
+diff --git a/src/parser_json.c b/src/parser_json.c
+index 53017935eba53..01f340802bec9 100644
+--- a/src/parser_json.c
++++ b/src/parser_json.c
+@@ -2782,7 +2782,7 @@ static int json_parse_ct_timeout_policy(struct json_ctx *ctx,
+ 	if (!json_unpack(root, "{s:o}", "policy", &tmp))
+ 		return 0;
  
-     cmd = "delete chain %s %s" % (table, chain)
-     ret = execute_cmd(cmd, filename, lineno)
-     if ret != 0:
--        reason = cmd + "I cannot delete this chain " + chain
-+        reason = "I cannot " + cmd
-         print_error(reason, filename, lineno)
-         return -1
- 
+-	if (json_is_object(tmp)) {
++	if (!json_is_object(tmp)) {
+ 		json_error(ctx, "Invalid ct timeout policy.");
+ 		return 1;
+ 	}
 -- 
 2.21.0
 
