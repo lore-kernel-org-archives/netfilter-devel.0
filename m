@@ -2,124 +2,89 @@ Return-Path: <SRS0=OoQ/=S4=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED,USER_AGENT_MUTT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3327FC43218
-	for <netfilter-devel@archiver.kernel.org>; Fri, 26 Apr 2019 00:34:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 83B1BC43218
+	for <netfilter-devel@archiver.kernel.org>; Fri, 26 Apr 2019 07:45:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 143A5206C1
-	for <netfilter-devel@archiver.kernel.org>; Fri, 26 Apr 2019 00:34:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 54B372077B
+	for <netfilter-devel@archiver.kernel.org>; Fri, 26 Apr 2019 07:45:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730266AbfDZAed (ORCPT
+        id S1726144AbfDZHpr (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 25 Apr 2019 20:34:33 -0400
-Received: from mail.us.es ([193.147.175.20]:55210 "EHLO mail.us.es"
+        Fri, 26 Apr 2019 03:45:47 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:57902 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729734AbfDZAeA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 25 Apr 2019 20:34:00 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 5499BB4991
-        for <netfilter-devel@vger.kernel.org>; Fri, 26 Apr 2019 02:33:59 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 47346DA705
-        for <netfilter-devel@vger.kernel.org>; Fri, 26 Apr 2019 02:33:59 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 34D06DA702; Fri, 26 Apr 2019 02:33:59 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 22E64DA702;
-        Fri, 26 Apr 2019 02:33:57 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Fri, 26 Apr 2019 02:33:57 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from salvia.here (sys.soleta.eu [212.170.55.40])
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id BFA474265A31;
-        Fri, 26 Apr 2019 02:33:56 +0200 (CEST)
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     davem@davemloft.net, netdev@vger.kernel.org, jiri@mellanox.com,
-        john.hurley@netronome.com, jakub.kicinski@netronome.com,
-        ogerlitz@mellanox.com
-Subject: [PATCH net-next,RFC 2/9] net: sched: add tcf_block_cb_alloc()
-Date:   Fri, 26 Apr 2019 02:33:39 +0200
-Message-Id: <20190426003348.30745-3-pablo@netfilter.org>
-X-Mailer: git-send-email 2.11.0
-In-Reply-To: <20190426003348.30745-1-pablo@netfilter.org>
-References: <20190426003348.30745-1-pablo@netfilter.org>
-X-Virus-Scanned: ClamAV using ClamSMTP
+        id S1725893AbfDZHpr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 26 Apr 2019 03:45:47 -0400
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.91)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1hJvYG-0003pH-Cs; Fri, 26 Apr 2019 09:45:44 +0200
+Date:   Fri, 26 Apr 2019 09:45:44 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Eric Garver <eric@garver.life>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org, Eric Leblond <eric@regit.org>,
+        Florian Westphal <fw@strlen.de>
+Subject: Re: [nft PATCH RFC 0/2] JSON schema for nftables.py
+Message-ID: <20190426074544.GT31599@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>, Eric Garver <eric@garver.life>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org, Eric Leblond <eric@regit.org>,
+        Florian Westphal <fw@strlen.de>
+References: <20190425140502.22761-1-phil@nwl.cc>
+ <20190425163546.zpm7tfhpolyfmtoe@egarver.localdomain>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190425163546.zpm7tfhpolyfmtoe@egarver.localdomain>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Add a new helper function to allocate tcf_block_cb objects.
+Hi Eric,
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/net/pkt_cls.h |  2 ++
- net/sched/cls_api.c   | 23 +++++++++++++++++++----
- 2 files changed, 21 insertions(+), 4 deletions(-)
+On Thu, Apr 25, 2019 at 12:35:46PM -0400, Eric Garver wrote:
+> On Thu, Apr 25, 2019 at 04:05:00PM +0200, Phil Sutter wrote:
+[...]
+> > Keeping the schema in a "pure" JSON file makes things a bit complex: It
+> > has to be shipped as data file and loaded by the validator using
+> > json.load(). OTOH the content may be fed into json_verify and my editor
+> > provides nicer syntax highlighting. An alternative would be to name it
+> > schema.py, prefix the content with 'nftschema = ' and simply import it
+> > into nftables.py. I don't think inlining the content is a good option
+> > simply due to how large the file will get once definitions for all
+> > statements and expressions are in there.
+> 
+> I very much prefer the external JSON file. Other projects can then use
+> it to validate the JSON they generate without going through libnftables.
 
-diff --git a/include/net/pkt_cls.h b/include/net/pkt_cls.h
-index d5e7a1af346f..8ddfbe94e253 100644
---- a/include/net/pkt_cls.h
-+++ b/include/net/pkt_cls.h
-@@ -71,6 +71,8 @@ static inline struct Qdisc *tcf_block_q(struct tcf_block *block)
- 	return block->q;
- }
- 
-+struct tcf_block_cb *tcf_block_cb_alloc(tc_setup_cb_t *cb,
-+					void *cb_ident, void *cb_priv);
- void *tcf_block_cb_priv(struct tcf_block_cb *block_cb);
- struct tcf_block_cb *tcf_block_cb_lookup(struct tcf_block *block,
- 					 tc_setup_cb_t *cb, void *cb_ident);
-diff --git a/net/sched/cls_api.c b/net/sched/cls_api.c
-index 71ec0a34100d..ddfccf31aac9 100644
---- a/net/sched/cls_api.c
-+++ b/net/sched/cls_api.c
-@@ -749,6 +749,23 @@ unsigned int tcf_block_cb_decref(struct tcf_block_cb *block_cb)
- }
- EXPORT_SYMBOL(tcf_block_cb_decref);
- 
-+struct tcf_block_cb *tcf_block_cb_alloc(tc_setup_cb_t *cb,
-+					void *cb_ident, void *cb_priv)
-+{
-+	struct tcf_block_cb *block_cb;
-+
-+	block_cb = kzalloc(sizeof(*block_cb), GFP_KERNEL);
-+	if (!block_cb)
-+		return NULL;
-+
-+	block_cb->cb = cb;
-+	block_cb->cb_ident = cb_ident;
-+	block_cb->cb_priv = cb_priv;
-+
-+	return block_cb;
-+}
-+EXPORT_SYMBOL(tcf_block_cb_alloc);
-+
- struct tcf_block_cb *__tcf_block_cb_register(struct tcf_block *block,
- 					     tc_setup_cb_t *cb, void *cb_ident,
- 					     void *cb_priv,
-@@ -764,12 +781,10 @@ struct tcf_block_cb *__tcf_block_cb_register(struct tcf_block *block,
- 	if (err)
- 		return ERR_PTR(err);
- 
--	block_cb = kzalloc(sizeof(*block_cb), GFP_KERNEL);
-+	block_cb = tcf_block_cb_alloc(cb, cb_ident, cb_priv);
- 	if (!block_cb)
- 		return ERR_PTR(-ENOMEM);
--	block_cb->cb = cb;
--	block_cb->cb_ident = cb_ident;
--	block_cb->cb_priv = cb_priv;
-+
- 	list_add(&block_cb->list, &block->cb_list);
- 	return block_cb;
- }
--- 
-2.11.0
+Valid point, although the file will be hidden in
+/lib64/python2.7/site-packages/nftables/schema.json after installation.
 
+> > Introducing that SchemaValidator class is not really required, either.
+> > Though squeezing everything into json_validate() method felt clumsy.
+> > Also I wanted to avoid the explicit schema loading mentioned above upon
+> > each call to json_validate(), so having an instance of a validator class
+> > seemed like how one is supposed to do things in an object-oriented
+> > language.
+> > 
+> > Note that SchemaValidator imports jsonschema upon instantiation. This
+> > may be a bad idea to begin with, but the intention is to not introduce a
+> > hard dependency on jsonschema in nftables.py. Same argument holds for
+> > conditional import of traceback module in nft-test.py, although
+> > validator errors are practically useless without it.
+> 
+> I agree with the optional jsonschema dependency.
+> 
+> traceback is part of the python standard library. No reason to make it a
+> conditional import unless you're worried about the cost of importing it.
+
+Thanks for pointing this out! For the testsuite, unconditionally
+importing traceback should be perfectly fine.
+
+Thanks, Phil
