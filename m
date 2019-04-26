@@ -6,188 +6,62 @@ X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SPF_PASS autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 28AD7C43219
-	for <netfilter-devel@archiver.kernel.org>; Fri, 26 Apr 2019 09:13:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EA33DC43218
+	for <netfilter-devel@archiver.kernel.org>; Fri, 26 Apr 2019 09:24:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id ED71220675
-	for <netfilter-devel@archiver.kernel.org>; Fri, 26 Apr 2019 09:13:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C7DA92077B
+	for <netfilter-devel@archiver.kernel.org>; Fri, 26 Apr 2019 09:24:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726012AbfDZJNI (ORCPT
+        id S1726247AbfDZJY1 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 26 Apr 2019 05:13:08 -0400
-Received: from mx2.suse.de ([195.135.220.15]:51548 "EHLO mx1.suse.de"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1725935AbfDZJNH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 26 Apr 2019 05:13:07 -0400
-X-Virus-Scanned: by amavisd-new at test-mx.suse.de
-Received: from relay2.suse.de (unknown [195.135.220.254])
-        by mx1.suse.de (Postfix) with ESMTP id 22D3AAD0A;
-        Fri, 26 Apr 2019 09:13:04 +0000 (UTC)
-Received: by unicorn.suse.cz (Postfix, from userid 1000)
-        id 0BB94E0143; Fri, 26 Apr 2019 11:13:03 +0200 (CEST)
-Message-Id: <cover.1556269635.git.mkubecek@suse.cz>
-From:   Michal Kubecek <mkubecek@suse.cz>
-Subject: [PATCH net-next 0/3] make nla_nest_start() add NLA_F_NESTED flag
-To:     "David S. Miller" <davem@davemloft.net>
-Cc:     netdev@vger.kernel.org, David Ahern <dsahern@gmail.com>,
-        Johannes Berg <johannes.berg@intel.com>,
+        Fri, 26 Apr 2019 05:24:27 -0400
+Received: from s3.sipsolutions.net ([144.76.43.62]:54102 "EHLO
+        sipsolutions.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726169AbfDZJY0 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 26 Apr 2019 05:24:26 -0400
+Received: by sipsolutions.net with esmtpsa (TLS1.2:ECDHE_RSA_AES_256_GCM_SHA384:256)
+        (Exim 4.92)
+        (envelope-from <johannes@sipsolutions.net>)
+        id 1hJx5c-0007WZ-O9; Fri, 26 Apr 2019 11:24:16 +0200
+Message-ID: <1dcb87486a96785e3b9e6f337392aa904d977a0d.camel@sipsolutions.net>
+Subject: Re: [PATCH net-next 0/3] make nla_nest_start() add NLA_F_NESTED flag
+From:   Johannes Berg <johannes@sipsolutions.net>
+To:     Michal Kubecek <mkubecek@suse.cz>,
+        "David S. Miller" <davem@davemloft.net>
+Cc:     "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        David Ahern <dsahern@gmail.com>,
         Jiri Pirko <jiri@mellanox.com>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
         Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
         Florian Westphal <fw@strlen.de>,
-        netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org
-Date:   Fri, 26 Apr 2019 11:13:03 +0200 (CEST)
+        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Date:   Fri, 26 Apr 2019 11:24:15 +0200
+In-Reply-To: <cover.1556269635.git.mkubecek@suse.cz>
+References: <cover.1556269635.git.mkubecek@suse.cz>
+Content-Type: text/plain; charset="UTF-8"
+X-Mailer: Evolution 3.28.5 (3.28.5-2.fc28) 
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-One of the comments in recent review of the ethtool netlink series pointed
-out that proposed ethnl_nest_start() helper which adds NLA_F_NESTED to
-second argument of nla_nest_start() is not really specific to ethtool
-netlink code. That is hard to argue with as closer inspection revealed that
-exactly the same helper already exists in ipset code (except it's a macro
-rather than an inline function).
+On Fri, 2019-04-26 at 09:13 +0000, Michal Kubecek wrote:
 
-Another observation was that even if NLA_F_NESTED flag was introduced in
-2007, only few netlink based interfaces set it in kernel generated messages
-and even many recently added APIs omit it. That is unfortunate as without
-the flag, message parsers not familiar with attribute semantics cannot
-recognize nested attributes and do not see message structure; this affects
-e.g. wireshark dissector or mnl_nlmsg_fprintf() from libmnl.
+> Another observation was that even if NLA_F_NESTED flag was introduced in
+> 2007, only few netlink based interfaces set it in kernel generated messages
+> and even many recently added APIs omit it. That is unfortunate as without
+> the flag, message parsers not familiar with attribute semantics cannot
+> recognize nested attributes and do not see message structure; this affects
+> e.g. wireshark dissector or mnl_nlmsg_fprintf() from libmnl.
 
-This is why I'm suggesting to rename existing nla_nest_start() to different
-name (nla_nest_start_noflag) and reintroduce nla_nest_start() as a wrapper
-adding NLA_F_NESTED flag. This is implemented in first patch which is
-mostly generated by spatch. Second patch drops ipset helper macros which
-lose their purpose. Third patch cleans up minor coding style issues found
-by checkpatch.pl in first patch.
+Indeed.
 
-We could leave nla_nest_start() untouched and simply add a wrapper adding
-NLA_F_NESTED but that would probably preserve the state when even most new
-code doesn't set the flag.
+I wonder if we should also (start) enforcing that the userspace sender
+side sets this, if the policy is strict?
 
-Michal Kubecek (3):
-  netlink: make nla_nest_start() add NLA_F_NESTED flag
-  ipset: drop ipset_nest_start() and ipset_nest_end()
-  net: fix two coding style issues
-
- drivers/block/drbd/drbd_nl.c                |   8 +-
- drivers/block/nbd.c                         |   4 +-
- drivers/infiniband/core/nldev.c             |   9 +-
- drivers/infiniband/hw/cxgb4/restrack.c      |   8 +-
- drivers/net/bonding/bond_netlink.c          |   8 +-
- drivers/net/ieee802154/mac802154_hwsim.c    |   6 +-
- drivers/net/macsec.c                        |  27 +--
- drivers/net/macvlan.c                       |   2 +-
- drivers/net/team/team.c                     |   8 +-
- drivers/net/wireless/ath/wil6210/cfg80211.c |   4 +-
- include/linux/netfilter/ipset/ip_set.h      |  11 +-
- include/net/netlink.h                       |  26 ++-
- kernel/taskstats.c                          |   2 +-
- net/8021q/vlan_netlink.c                    |   4 +-
- net/bridge/br_mdb.c                         |  17 +-
- net/bridge/br_netlink.c                     |   8 +-
- net/bridge/br_netlink_tunnel.c              |   2 +-
- net/core/devlink.c                          |  78 ++++----
- net/core/lwt_bpf.c                          |   2 +-
- net/core/lwtunnel.c                         |   2 +-
- net/core/neighbour.c                        |   2 +-
- net/core/rtnetlink.c                        |  48 ++---
- net/dcb/dcbnl.c                             |  40 ++--
- net/decnet/dn_table.c                       |   3 +-
- net/ieee802154/nl802154.c                   |  34 ++--
- net/ipv4/fib_semantics.c                    |   2 +-
- net/ipv4/ipmr.c                             |   6 +-
- net/ipv4/ipmr_base.c                        |   2 +-
- net/ipv4/tcp_metrics.c                      |   2 +-
- net/ipv6/addrconf.c                         |   2 +-
- net/ipv6/route.c                            |   2 +-
- net/ipv6/seg6_local.c                       |   2 +-
- net/l2tp/l2tp_netlink.c                     |   4 +-
- net/mpls/af_mpls.c                          |   2 +-
- net/ncsi/ncsi-netlink.c                     |  12 +-
- net/netfilter/ipset/ip_set_bitmap_gen.h     |  14 +-
- net/netfilter/ipset/ip_set_hash_gen.h       |  14 +-
- net/netfilter/ipset/ip_set_list_set.c       |  14 +-
- net/netfilter/ipvs/ip_vs_ctl.c              |  10 +-
- net/netfilter/nf_conntrack_netlink.c        |  40 ++--
- net/netfilter/nf_conntrack_proto_dccp.c     |   2 +-
- net/netfilter/nf_conntrack_proto_sctp.c     |   2 +-
- net/netfilter/nf_conntrack_proto_tcp.c      |   2 +-
- net/netfilter/nf_tables_api.c               |  29 +--
- net/netfilter/nfnetlink_cthelper.c          |   7 +-
- net/netfilter/nfnetlink_cttimeout.c         |   4 +-
- net/netfilter/nfnetlink_queue.c             |   2 +-
- net/netfilter/nft_ct.c                      |   2 +-
- net/netfilter/nft_tunnel.c                  |   6 +-
- net/netlabel/netlabel_cipso_v4.c            |  14 +-
- net/netlabel/netlabel_mgmt.c                |   8 +-
- net/netlink/genetlink.c                     |  12 +-
- net/nfc/netlink.c                           |   4 +-
- net/openvswitch/conntrack.c                 |   6 +-
- net/openvswitch/datapath.c                  |   7 +-
- net/openvswitch/flow_netlink.c              |  33 ++--
- net/openvswitch/meter.c                     |   8 +-
- net/openvswitch/vport-vxlan.c               |   2 +-
- net/openvswitch/vport.c                     |   2 +-
- net/packet/diag.c                           |   2 +-
- net/sched/act_api.c                         |  14 +-
- net/sched/act_ife.c                         |   2 +-
- net/sched/act_pedit.c                       |   5 +-
- net/sched/act_tunnel_key.c                  |   4 +-
- net/sched/cls_api.c                         |   4 +-
- net/sched/cls_basic.c                       |   2 +-
- net/sched/cls_bpf.c                         |   2 +-
- net/sched/cls_cgroup.c                      |   2 +-
- net/sched/cls_flow.c                        |   2 +-
- net/sched/cls_flower.c                      |   8 +-
- net/sched/cls_fw.c                          |   2 +-
- net/sched/cls_matchall.c                    |   2 +-
- net/sched/cls_route.c                       |   2 +-
- net/sched/cls_rsvp.h                        |   2 +-
- net/sched/cls_tcindex.c                     |   2 +-
- net/sched/cls_u32.c                         |   2 +-
- net/sched/ematch.c                          |   4 +-
- net/sched/sch_api.c                         |   2 +-
- net/sched/sch_atm.c                         |   2 +-
- net/sched/sch_cake.c                        |  10 +-
- net/sched/sch_cbq.c                         |   4 +-
- net/sched/sch_cbs.c                         |   2 +-
- net/sched/sch_choke.c                       |   2 +-
- net/sched/sch_codel.c                       |   2 +-
- net/sched/sch_drr.c                         |   2 +-
- net/sched/sch_dsmark.c                      |   4 +-
- net/sched/sch_etf.c                         |   2 +-
- net/sched/sch_fq.c                          |   2 +-
- net/sched/sch_fq_codel.c                    |   2 +-
- net/sched/sch_gred.c                        |   8 +-
- net/sched/sch_hfsc.c                        |   2 +-
- net/sched/sch_hhf.c                         |   2 +-
- net/sched/sch_htb.c                         |   4 +-
- net/sched/sch_ingress.c                     |   2 +-
- net/sched/sch_mqprio.c                      |   4 +-
- net/sched/sch_netem.c                       |   2 +-
- net/sched/sch_pie.c                         |   2 +-
- net/sched/sch_qfq.c                         |   2 +-
- net/sched/sch_red.c                         |   2 +-
- net/sched/sch_sfb.c                         |   2 +-
- net/sched/sch_taprio.c                      |   7 +-
- net/sched/sch_tbf.c                         |   2 +-
- net/tipc/bearer.c                           |   8 +-
- net/tipc/group.c                            |   2 +-
- net/tipc/link.c                             |  12 +-
- net/tipc/monitor.c                          |   4 +-
- net/tipc/name_table.c                       |   4 +-
- net/tipc/net.c                              |   2 +-
- net/tipc/netlink_compat.c                   |  24 +--
- net/tipc/node.c                             |   4 +-
- net/tipc/socket.c                           |  10 +-
- net/tipc/udp_media.c                        |   2 +-
- net/wireless/nl80211.c                      | 192 +++++++++++---------
- net/wireless/pmsr.c                         |  12 +-
- 114 files changed, 565 insertions(+), 494 deletions(-)
-
--- 
-2.21.0
+johannes
 
