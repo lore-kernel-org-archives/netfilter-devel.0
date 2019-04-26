@@ -2,61 +2,64 @@ Return-Path: <SRS0=OoQ/=S4=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_NEOMUTT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_NEOMUTT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 61BA3C43218
-	for <netfilter-devel@archiver.kernel.org>; Fri, 26 Apr 2019 19:02:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 624D1C43218
+	for <netfilter-devel@archiver.kernel.org>; Fri, 26 Apr 2019 19:16:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4080E208CA
-	for <netfilter-devel@archiver.kernel.org>; Fri, 26 Apr 2019 19:02:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 409C320656
+	for <netfilter-devel@archiver.kernel.org>; Fri, 26 Apr 2019 19:16:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726329AbfDZTCR (ORCPT
+        id S1726385AbfDZTOp (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 26 Apr 2019 15:02:17 -0400
-Received: from mail.us.es ([193.147.175.20]:59020 "EHLO mail.us.es"
+        Fri, 26 Apr 2019 15:14:45 -0400
+Received: from mail.us.es ([193.147.175.20]:33800 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726252AbfDZTCR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 26 Apr 2019 15:02:17 -0400
+        id S1726310AbfDZTOo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 26 Apr 2019 15:14:44 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id B6DF211ED83
-        for <netfilter-devel@vger.kernel.org>; Fri, 26 Apr 2019 21:02:15 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 101CD11ED80
+        for <netfilter-devel@vger.kernel.org>; Fri, 26 Apr 2019 21:14:43 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id A884CDA702
-        for <netfilter-devel@vger.kernel.org>; Fri, 26 Apr 2019 21:02:15 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 010A8DA70A
+        for <netfilter-devel@vger.kernel.org>; Fri, 26 Apr 2019 21:14:43 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 9E5CBDA737; Fri, 26 Apr 2019 21:02:15 +0200 (CEST)
+        id E95D9DA702; Fri, 26 Apr 2019 21:14:42 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 99101DA703;
-        Fri, 26 Apr 2019 21:02:13 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id DB734DA701;
+        Fri, 26 Apr 2019 21:14:40 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Fri, 26 Apr 2019 21:02:13 +0200 (CEST)
+ Fri, 26 Apr 2019 21:14:40 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from us.es (sys.soleta.eu [212.170.55.40])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
         (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 76F684265A31;
-        Fri, 26 Apr 2019 21:02:13 +0200 (CEST)
-Date:   Fri, 26 Apr 2019 21:02:13 +0200
+        by entrada.int (Postfix) with ESMTPSA id B79044265A31;
+        Fri, 26 Apr 2019 21:14:40 +0200 (CEST)
+Date:   Fri, 26 Apr 2019 21:14:40 +0200
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Taehee Yoo <ap420073@gmail.com>
-Cc:     Florian Westphal <fw@strlen.de>,
-        Netfilter Developer Mailing List 
-        <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH nf 2/4] netfilter: nft_flow_offload: do not make
- un-established tcp flow_offload session.
-Message-ID: <20190426190213.2xkitf7layyw7kyq@salvia>
-References: <20190426165327.3533-1-ap420073@gmail.com>
- <20190426170346.yxkjrhgsh6snqzbs@salvia>
- <CAMArcTXA1-qXSWz7WNhqJ8=6bS-dxJ4KMBkgQD90pVDs1AP=RA@mail.gmail.com>
+To:     Jakub Kicinski <jakub.kicinski@netronome.com>
+Cc:     Jiri Pirko <jiri@resnulli.us>, netfilter-devel@vger.kernel.org,
+        davem@davemloft.net, netdev@vger.kernel.org, jiri@mellanox.com,
+        john.hurley@netronome.com, ogerlitz@mellanox.com
+Subject: Re: [PATCH net-next,RFC 0/9] net: sched: prepare to reuse per-block
+ callbacks from netfilter
+Message-ID: <20190426191440.meuab6yu3eh4zh5i@salvia>
+References: <20190426003348.30745-1-pablo@netfilter.org>
+ <20190426143258.GC2249@nanopsycho.orion>
+ <20190426162836.6hy7q42b6itckzff@salvia>
+ <20190426112956.7bbd2b87@cakuba.netronome.com>
+ <20190426184145.oioesc7eqy5p7sps@salvia>
+ <20190426115512.18263215@cakuba.netronome.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CAMArcTXA1-qXSWz7WNhqJ8=6bS-dxJ4KMBkgQD90pVDs1AP=RA@mail.gmail.com>
+In-Reply-To: <20190426115512.18263215@cakuba.netronome.com>
 User-Agent: NeoMutt/20170113 (1.7.2)
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -64,57 +67,31 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sat, Apr 27, 2019 at 02:48:15AM +0900, Taehee Yoo wrote:
-> On Sat, 27 Apr 2019 at 02:03, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> >
+On Fri, Apr 26, 2019 at 11:55:12AM -0700, Jakub Kicinski wrote:
+> On Fri, 26 Apr 2019 20:41:45 +0200, Pablo Neira Ayuso wrote:
+> > If netfilter supports for chain definitions like this:
+> > 
+> >         table x {
+> >                 chain y {
+> >                         type filter hook ingress devices = { eth0, eth1 } priority 0;
+> >                 }
+> >         }
+> > 
+> > Then the chain 'y' implicitly becomes the block for the 'eth0' and
+> > 'eth1' devices.
 > 
-> Hi Pablo!
-> Thank you for the review!
-> 
-> > On Sat, Apr 27, 2019 at 01:53:27AM +0900, Taehee Yoo wrote:
-> > > nft_flow_offload_eval() makes flow_offload session but it doesn't check
-> > > tcp state.
-> > > So, it can make un-ESTABLISHED tcp flow offload session such as SYN-RECV.
-> > > But, this is not a normal case.
-> > >
-> > > Fixes: a3c90f7a2323 ("netfilter: nf_tables: flow offload expression")
-> > > Signed-off-by: Taehee Yoo <ap420073@gmail.com>
-> > > ---
-> > >  net/netfilter/nft_flow_offload.c | 3 +++
-> > >  1 file changed, 3 insertions(+)
-> > >
-> > > diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
-> > > index ff50bc1b144f..8538ddf9c6bf 100644
-> > > --- a/net/netfilter/nft_flow_offload.c
-> > > +++ b/net/netfilter/nft_flow_offload.c
-> > > @@ -84,6 +84,9 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
-> > >
-> > >       switch (ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.protonum) {
-> > >       case IPPROTO_TCP:
-> > > +             if (ct->proto.tcp.state != TCP_CONNTRACK_ESTABLISHED)
-> > > +                     goto out;
-> >
-> > You can restrict this via policy:
-> >
-> >         ct status assured flow add @x
-> >
-> 
-> I think If we allow to make non-ESTABLISHED flow offload,
-> teardown code should be changed because teardown changes TCP status to
-> ESTABLISHED. How do you think about it?
+> Can there be more chains for those devices?  Or those will only run y
+> from netfilter perspective?
 
-Hm, right, the teardown fixup routine cannot then bogusly assumes the
-TCP established state if we create a TCP entry from the first packet,
-ie. the SYN_SENT state...
+In software, the existing control plane allows you to register as
+many chains as you want, that would allow to include 'eth0' and 'eth1'.
+However, But I don't have a usecase for this: One single chain should
+be enough given that the ingress hook is only used for filtering. We
+are inheriting this semantics from iptables, where multiple tables at
+different priorities (which specifies the order) make sense, such as
+'raw', 'mangle' and so on. At ingress, these don't make sense and a
+single chain with priority 0 should be enough.
 
-[...]
-> > And this would fix the flowtable infrastructure UDP traffic that only
-> > goes in one direction.
-> >
-> > We can document in the manpage a few examples for this.
-> 
-> I agree that flowtable infrastructure provides UDP one direction flow
-> offloading.
-
-OK, probably I can collapse your patch to mine. Let me think over the
-weekend.
+In case of hardware offload, I think we should just allow one single
+chain at ingress with 'eth0' and 'eth1', just like tc does. Just
+return EOPNOTSUPP.
