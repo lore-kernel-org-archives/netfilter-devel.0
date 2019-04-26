@@ -2,84 +2,80 @@ Return-Path: <SRS0=OoQ/=S4=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+X-Spam-Status: No, score=-3.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 68A25C43219
-	for <netfilter-devel@archiver.kernel.org>; Fri, 26 Apr 2019 15:00:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A81A8C43219
+	for <netfilter-devel@archiver.kernel.org>; Fri, 26 Apr 2019 15:04:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 39B75206E0
-	for <netfilter-devel@archiver.kernel.org>; Fri, 26 Apr 2019 15:00:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7705E206E0
+	for <netfilter-devel@archiver.kernel.org>; Fri, 26 Apr 2019 15:04:12 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="p+k3zXC+"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="AP8jW5Fm"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726289AbfDZPAS (ORCPT
+        id S1726669AbfDZPEG (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 26 Apr 2019 11:00:18 -0400
-Received: from mail-pf1-f193.google.com ([209.85.210.193]:45722 "EHLO
-        mail-pf1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726229AbfDZPAS (ORCPT
+        Fri, 26 Apr 2019 11:04:06 -0400
+Received: from mail-pl1-f194.google.com ([209.85.214.194]:34106 "EHLO
+        mail-pl1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726650AbfDZPEF (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 26 Apr 2019 11:00:18 -0400
-Received: by mail-pf1-f193.google.com with SMTP id e24so1847673pfi.12;
-        Fri, 26 Apr 2019 08:00:17 -0700 (PDT)
+        Fri, 26 Apr 2019 11:04:05 -0400
+Received: by mail-pl1-f194.google.com with SMTP id d5so1128613plr.1;
+        Fri, 26 Apr 2019 08:04:04 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=subject:to:cc:references:from:message-id:date:user-agent
          :mime-version:in-reply-to:content-language:content-transfer-encoding;
-        bh=A5Y+MEfrLrdu8cFgwukPbLeOMa8h8CDG6LEpPB89rIc=;
-        b=p+k3zXC+msVwPDiTh8ZFLz2dOtBlIVpVmkiMWJMLrbujSRqsiO1qH5CsQ6Fqj8uvWv
-         8saQw+waVQ242238j8bPgCHXA0ohHari7ghEBVdMaeNGGzNJAVMeESC96whtfP0Tmw/C
-         qFQn1p8G4XKbzOVOfYJMGf3DcA63NGtu1arxjhgFZNfWxfhcHj4ErdBBngFmUdiKmEAk
-         hU+CZFZROyJ8WVKIHalTVXwPT15QHT7im47RDFoot+Hxu9NNotgMMu1ZSbn2q8dgf/oP
-         T92/isg/gsPnkOSc1dJb3AIf+vNgvXrNFYmNV1fa6E0h0xygfCj+PBTiMLC35uJSEW5D
-         0UNQ==
+        bh=fb/xBqIG7b3xmw7+ysl/9XCImagWzKQtx156l6S5SYg=;
+        b=AP8jW5FmLfDgm7UcdcSI+8lNkxR4pzA9/AtIxYl5vYBwIhLmIsWar1eH/LgsEAP3R2
+         Dxw80XeDlIQFxbDJfEQa4XGeO3mYNWd35fAjvrjcWnNV4aYtUlQmkmfnAXHwuEIoOFpq
+         4l39U0oixhC1jWO+8ZlJeVTv3+0TiKKv7CKxyxRELphdLm0Ztg+jxMUBBaWf/PRtpt3q
+         /Bf3dqfOJpan708jC8L0TvnlgSiCea8WGaHhp56zwfmFNOjYkUVZ7i/Vfi09qpT9K04C
+         FTyQGUDqX9pHi+AO/7D2rS+ILUKHWySN5bz6mQ9HW7f/27vKe+xtquVSNDaPmqjhD72M
+         aHDA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:subject:to:cc:references:from:message-id:date
          :user-agent:mime-version:in-reply-to:content-language
          :content-transfer-encoding;
-        bh=A5Y+MEfrLrdu8cFgwukPbLeOMa8h8CDG6LEpPB89rIc=;
-        b=WYfqAkLK7RPjl1rYZnArEKP38bPdT1au55bRg5B7LWuFsbiLDUVYfo+GruSAcXr72e
-         pA4c/GqFf92sqhi5/L0hLavs/ohN7iWYCotQ9B4Wp1jPaY1nKWg3Lro/AFNdXoQBAUMN
-         oBf59F7GFlm9I2L0B9i+JNyDf2E4CemeRhx0Wp6uYRgvBIvV7pcTBBMFEXxRceIS++tn
-         d+aNssAFkMARLLsVAoKlGrp9FwGJQhtLbc12F8Lwqbb+oRXK/3jET407fSUpozTuXQil
-         aymrMgFHp7QHwQokGT109xXJ22pz5/FDVedP2it18je887HDumQmfMPlF3asMsChw8P3
-         c3hw==
-X-Gm-Message-State: APjAAAUHIpXsR6kUzHVofTJ03OSsqDtcSgVpAIj6oY2nb7QSnyyvfLr1
-        xTvlIW2aCTgBg0Wu3ETch2AU1owL
-X-Google-Smtp-Source: APXvYqxiR+Id+MWGuZ3Ujb9i4Tjd0ZnOAs81XzNPPfdZRya+E5UuH83bo9s6s/kqzm4/Ap7196sYCg==
-X-Received: by 2002:a63:b53:: with SMTP id a19mr861877pgl.216.1556290816618;
-        Fri, 26 Apr 2019 08:00:16 -0700 (PDT)
+        bh=fb/xBqIG7b3xmw7+ysl/9XCImagWzKQtx156l6S5SYg=;
+        b=nl/jzzrXGfwbPBQWpO4gK9WMDqH858fa0f0u14A8tvNH/RczTY0MAMKK1vCfzXyHnb
+         zoCiax+L9ABDhx6dDJlg4i/GKjLRid2SbviYiAY+auY5kcvVGk86HORE/fuag3dT2RPr
+         RC77+WBJBMx8VmPTJ/vqIkdRJv6TthpMewUpHHonINAMDsjk/PN8qj9MzDlTy26sqlim
+         dKZkGChpF0+q7MzMAGsoEijZ35PwcgpwYZTJhAfMO3t6PupE2wPN6dzZAFjlFg/wg6e8
+         +al7Y6NVC5gCD/6CVySiGs8xF6v8HJ9n9pXa74D1toqeDYQ031BTBb2JZ32Ixaiz7p3Q
+         KD4A==
+X-Gm-Message-State: APjAAAXyEpsmtUT+wC17T9+9j92dBHBoRrwxxMeUDNV4LFT3cPJx4zwZ
+        2KfgCPzp5QA/zIQOiZXkEamuqC5v
+X-Google-Smtp-Source: APXvYqywhygjVlJ5536G2sYrAtsETj76mRLhLOKmGp6WSJCCwtmfwDI7ZLQpH1wj1gED1MiEN1wakg==
+X-Received: by 2002:a17:902:5a3:: with SMTP id f32mr43702487plf.82.1556291043233;
+        Fri, 26 Apr 2019 08:04:03 -0700 (PDT)
 Received: from ?IPv6:2601:282:800:fd80:c824:60cf:2bea:8fbc? ([2601:282:800:fd80:c824:60cf:2bea:8fbc])
-        by smtp.googlemail.com with ESMTPSA id 4sm284982pfi.94.2019.04.26.08.00.14
+        by smtp.googlemail.com with ESMTPSA id x66sm61093803pfb.78.2019.04.26.08.04.00
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Fri, 26 Apr 2019 08:00:15 -0700 (PDT)
-Subject: Re: [PATCH net-next 0/3] make nla_nest_start() add NLA_F_NESTED flag
-To:     Johannes Berg <johannes@sipsolutions.net>,
-        Michal Kubecek <mkubecek@suse.cz>, netdev@vger.kernel.org
-Cc:     "David S. Miller" <davem@davemloft.net>,
+        Fri, 26 Apr 2019 08:04:01 -0700 (PDT)
+Subject: Re: [PATCH net-next 1/3] netlink: make nla_nest_start() add
+ NLA_F_NESTED flag
+To:     Michal Kubecek <mkubecek@suse.cz>,
+        "David S. Miller" <davem@davemloft.net>
+Cc:     netdev@vger.kernel.org, Johannes Berg <johannes.berg@intel.com>,
         Jiri Pirko <jiri@mellanox.com>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
         Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
         Florian Westphal <fw@strlen.de>,
-        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+        netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org
 References: <cover.1556269635.git.mkubecek@suse.cz>
- <1dcb87486a96785e3b9e6f337392aa904d977a0d.camel@sipsolutions.net>
- <20190426111954.GG26549@unicorn.suse.cz>
- <a3626aeca20280e8253b575fe72309b2009474a8.camel@sipsolutions.net>
- <20190426115629.GH26549@unicorn.suse.cz>
- <18db9ac8b398b215e3523dd5b79c7f86e21864ce.camel@sipsolutions.net>
+ <5278b013a953d4fb2e7944fc810f783d70ea52a5.1556269635.git.mkubecek@suse.cz>
 From:   David Ahern <dsahern@gmail.com>
-Message-ID: <47f6daf9-2d14-1566-8ed1-fb5d4dd57bf8@gmail.com>
-Date:   Fri, 26 Apr 2019 09:00:14 -0600
+Message-ID: <33d772e5-a2f4-c9a1-11df-27fa7baf8625@gmail.com>
+Date:   Fri, 26 Apr 2019 09:03:59 -0600
 User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:52.0)
  Gecko/20100101 Thunderbird/52.9.1
 MIME-Version: 1.0
-In-Reply-To: <18db9ac8b398b215e3523dd5b79c7f86e21864ce.camel@sipsolutions.net>
+In-Reply-To: <5278b013a953d4fb2e7944fc810f783d70ea52a5.1556269635.git.mkubecek@suse.cz>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
@@ -88,32 +84,34 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 4/26/19 6:17 AM, Johannes Berg wrote:
-> On Fri, 2019-04-26 at 13:56 +0200, Michal Kubecek wrote:
+On 4/26/19 3:13 AM, Michal Kubecek wrote:
+> Even if the NLA_F_NESTED flag was introduced more than 11 years ago, most
+> netlink based interfaces (including recently added ones) are still not
+> setting it in kernel generated messages. Without the flag, message parsers
+> not aware of attribute semantics (e.g. wireshark dissector or libmnl's
+> mnl_nlmsg_fprintf()) cannot recognize nested attributes and won't display
+> the structure of their contents.
 > 
->>>> I suppose we should, at least the part that attribute with NLA_NESTED
->>>> policy has NLA_F_NESTED flag. I'm not so sure about the opposite (i.e.
->>>> that attributes with other policies do not have the flag) as when I was
->>>> checking where kernel accesses nlattr::nla_type directly rather than
->>>> with nla_type(), I stumbled upon an attribute NL80211_ATTR_VENDOR_DATA
->>>> which has policy NLA_BINARY but is sometimes a nest, AFAICS.
->>>
->>> I guess anyway we can only do it for *new* things, not really for all
->>> existing attributes.
->>
->> Right... but what I wanted to say is that if there is already (at least)
->> one attribute which may or may not be a nest, depending on a context, we
->> should expect there may be also new attributes like that in the future.
+> Unfortunately we cannot just add the flag everywhere as there may be
+> userspace applications which check nlattr::nla_type directly rather than
+> through a helper masking out the flags. Therefore the patch renames
+> nla_nest_start() to nla_nest_start_noflag() and introduces nla_nest_start()
+> as a wrapper adding NLA_F_NESTED. The calls which add NLA_F_NESTED manually
+> are rewritten to use nla_nest_start().
 > 
-> Yeah, but we can handle that as we see it?
+> Except for changes in include/net/netlink.h, the patch was generated using
+> this semantic patch:
 > 
-> I just reposted my strict validation series - maybe we can right now, as
-> it's not released yet, quickly add an NL_VALIDATED_NESTED_FLAG or so to
-> it?
+> @@ expression E1, E2; @@
+> -nla_nest_start(E1, E2)
+> +nla_nest_start_noflag(E1, E2)
 > 
-> Do you want to take a stab at that? I have to go now, but I could check
-> in the next few days.
+> @@ expression E1, E2; @@
+> -nla_nest_start_noflag(E1, E2 | NLA_F_NESTED)
+> +nla_nest_start(E1, E2)
+> 
+> Signed-off-by: Michal Kubecek <mkubecek@suse.cz>
+> ---
 
-What is a valid use case for an attribute sometimes being a nest and
-sometimes not? That seems really weird to me (ie., wrong). They should
-be 2 separate attributes even if the backend processing is the same.
+
+Acked-by: David Ahern <dsahern@gmail.com>
