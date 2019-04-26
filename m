@@ -7,100 +7,115 @@ X-Spam-Status: No, score=-8.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
 	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 175AAC43218
-	for <netfilter-devel@archiver.kernel.org>; Fri, 26 Apr 2019 16:54:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9F485C43219
+	for <netfilter-devel@archiver.kernel.org>; Fri, 26 Apr 2019 16:55:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id DBA2B206E0
-	for <netfilter-devel@archiver.kernel.org>; Fri, 26 Apr 2019 16:54:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6C2AA206E0
+	for <netfilter-devel@archiver.kernel.org>; Fri, 26 Apr 2019 16:55:02 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="GvVhLH50"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="DKcgIQ3g"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726191AbfDZQy0 (ORCPT
+        id S1726154AbfDZQzC (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 26 Apr 2019 12:54:26 -0400
-Received: from mail-pf1-f193.google.com ([209.85.210.193]:32919 "EHLO
-        mail-pf1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725944AbfDZQy0 (ORCPT
+        Fri, 26 Apr 2019 12:55:02 -0400
+Received: from mail-pg1-f195.google.com ([209.85.215.195]:43622 "EHLO
+        mail-pg1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725944AbfDZQzC (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 26 Apr 2019 12:54:26 -0400
-Received: by mail-pf1-f193.google.com with SMTP id h5so2026308pfo.0
-        for <netfilter-devel@vger.kernel.org>; Fri, 26 Apr 2019 09:54:26 -0700 (PDT)
+        Fri, 26 Apr 2019 12:55:02 -0400
+Received: by mail-pg1-f195.google.com with SMTP id z9so1888743pgu.10
+        for <netfilter-devel@vger.kernel.org>; Fri, 26 Apr 2019 09:55:01 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id;
-        bh=N3QWncicWEyla2xGy7gOu964ZKLsMstNFxMAu578khQ=;
-        b=GvVhLH50mWhNQgvWlHFvmBum+BuTM9y8MrVXND1FUFh1cNjaHpmgC9CMBjCuKlqETL
-         1YB3MwXBkoqrHv4beXkIo3PHh6GJFQWAx1u5qDWJp/ye04xvIBUlwIMQEqwIB2RSFOVN
-         pItJhvKttMMP3tUHInskz5acZ/xxuUEK8ixAdB0QWRxKuPAl26/hKZbxbInnFUSGG69Q
-         EbUdY5ZY3X1m5PKUc7C5dxKbyUBBN7bE9+SJnY3X8a3t0v2Myf4cpnHkcN3eZDffNZOa
-         EbepzQMjlODC4NVvH56hN51drDzdWAkYjJ5mmCjZcFKU5T9+5Za1E1Yo8X6vvsXnbRNB
-         LxMQ==
+        bh=+6nu+8uFCOaoEB5+uwrvfiqZuNzWaOfnsjIQBHwXoyw=;
+        b=DKcgIQ3gVSiI5x5h4IvtNicGEKTrO8RF7KOZM2Mw9MopP+8DFQzBUi4txEkyDFk2Tk
+         4UzqxauLcMFNW70CaJ5QN72LF0onlRLWOkzx9NFcXUjfHKTHibRNZrfaaqxQOlkyXn0C
+         4DNF3GHVmYcVSu7j0wzPTeGZN7csSa2zmbX3c0d0KO+pHpGx5wuxWtH0YQFLeOY2ARGP
+         65aNyDIn/w7P1PrOqKoZKdgCIGXZQ3f9XntkPAff30mo1j4WiDpM3tE1xPnf62EeaxJQ
+         H0gAvXmlJ9Bv7woR6EizcU7GTsxblH9+svd/aWOz1yH8trsDuBywngzCuHXyiaEyDUJl
+         OUKw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id;
-        bh=N3QWncicWEyla2xGy7gOu964ZKLsMstNFxMAu578khQ=;
-        b=h6kOAjHpabtRr/mdHZZIAKB46Za0EIXESo0DqaYPkqbY9YtF0gsgp+R/P8S67BZukx
-         2BdQv6+Jv5L8wU8gdHSZrJbZ3ZyCEYOWiaHg2ed0+GfOHE7nQPzjGifDaAfQ7iRYQ3DR
-         pJu83gxvYa2O/X5flg8nJ37VwJ2PHIMFWQ7Q7BbMVwmguiWZuThfoJES8yxSTNK5j2xJ
-         r7wRrot2IeAXAY8V7EPgJ3VuXSWRXifCxRqMXyKvWs2Si77dmfYUEO7aVh5Rvll3fs/+
-         JQND6s6vYwulhDYM5ojTtt+rBRjTr7jEevXLPjUiGMxEBsyHbkA7OJeOqp6UfLlnbqaG
-         5ODA==
-X-Gm-Message-State: APjAAAWWjSKX0mwKaKljWMZvRbcS+h4AXdH8jKfGCN5s3J0fBtbqT9jC
-        cnkA76qD3EvNIkmTqSeJW5c=
-X-Google-Smtp-Source: APXvYqygEi1NjzG6PFdfYySW1lfSOvRd3jEaARdHRD943HGJnGf6Wx4W0I02hFN0QyADEJE33PJAtw==
-X-Received: by 2002:a63:e22:: with SMTP id d34mr39562799pgl.251.1556297666002;
-        Fri, 26 Apr 2019 09:54:26 -0700 (PDT)
+        bh=+6nu+8uFCOaoEB5+uwrvfiqZuNzWaOfnsjIQBHwXoyw=;
+        b=fvQ9tJOkoUK4iVu+8MDSTwaY2Y7L3FUjLyMObA4tnrASpQyGvpm1uFUtKupKLsMR99
+         DG5YKDHBUYiFbZb4y7UBFnOBcPg/ENkuiN9WPBbxlEceZI9UnkPHmwnbc1Gqvd4QTSIF
+         L2U7bVVg3Y6fSmZRRrV90uzpf8ygezP0XleMNdHdWpm/seXJvn5BSv/CDg9yklPFLUO2
+         5VQe2oWlguhQBtMNWNdARqPh6HimrI7eeDB4XN5FcRKrDGmgMCj4yGjPfi72LDU3Nx+N
+         k/73IzRTF7dus6g/G8+QuxlKfYzPeatyrQHp4yJdFfbI06Cvf9HItlQxDtfeXmtepYR9
+         G55A==
+X-Gm-Message-State: APjAAAVORdROgeKT4L5NV7SfAcQH5hzovspeXt9zqM2Fg2PlaEOPcoHg
+        nUCjgDLo+hjFRXDN1GgSi4w=
+X-Google-Smtp-Source: APXvYqzqY7ab/F8R8Fc5C27AjNvvU+Ol7NnOsdHJGCaGfirIImnKcvEDXuBW9AfuNAcRV1P8kvlC5Q==
+X-Received: by 2002:a63:ed4f:: with SMTP id m15mr45618992pgk.387.1556297701348;
+        Fri, 26 Apr 2019 09:55:01 -0700 (PDT)
 Received: from ap-To-be-filled-by-O-E-M.8.8.8.8 ([14.33.120.60])
-        by smtp.gmail.com with ESMTPSA id j5sm7829721pfg.186.2019.04.26.09.54.24
+        by smtp.gmail.com with ESMTPSA id h127sm37753207pgc.31.2019.04.26.09.54.59
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Fri, 26 Apr 2019 09:54:25 -0700 (PDT)
+        Fri, 26 Apr 2019 09:55:00 -0700 (PDT)
 From:   Taehee Yoo <ap420073@gmail.com>
-To:     pablo@netfilter.org, netfilter-devel@vger.kernel.org
+To:     pablo@netfilter.org, fw@strlen.de, netfilter-devel@vger.kernel.org
 Cc:     ap420073@gmail.com
-Subject: [PATCH nf 3/4] netfilter: nf_flow_table: check ttl value in flow offload data path
-Date:   Sat, 27 Apr 2019 01:54:16 +0900
-Message-Id: <20190426165416.3741-1-ap420073@gmail.com>
+Subject: [PATCH nf 4/4] netfilter: nf_flow_table: do not use deleted CT's flow offload
+Date:   Sat, 27 Apr 2019 01:54:54 +0900
+Message-Id: <20190426165454.3943-1-ap420073@gmail.com>
 X-Mailer: git-send-email 2.17.1
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-nf_flow_offload_ip_hook() and nf_flow_offload_ipv6_hook() do not check
-ttl value.
-So, ttl value overflow can occur.
+flow offload of CT can be deleted by the masquerade module. then,
+flow offload should be deleted too. but GC and data-path of flow offload
+do not check CT's status. hence they will be removed only by the timeout.
 
-Fixes: 97add9f0d66d ("netfilter: flow table support for IPv4")
-Fixes: 0995210753a2 ("netfilter: flow table support for IPv6")
+GC and data-path routine will check ct_general.use value.
+If that value is 1, it means that CT is removed from the list.
+So, GC will delete this and data-path do not use this.
+
 Signed-off-by: Taehee Yoo <ap420073@gmail.com>
 ---
- net/netfilter/nf_flow_table_ip.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+ net/netfilter/nf_flow_table_core.c | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
-index 1d291a51cd45..46022a2867d7 100644
---- a/net/netfilter/nf_flow_table_ip.c
-+++ b/net/netfilter/nf_flow_table_ip.c
-@@ -181,6 +181,9 @@ static int nf_flow_tuple_ip(struct sk_buff *skb, const struct net_device *dev,
- 	    iph->protocol != IPPROTO_UDP)
- 		return -1;
+diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
+index 7aabfd4b1e50..334eb561ae48 100644
+--- a/net/netfilter/nf_flow_table_core.c
++++ b/net/netfilter/nf_flow_table_core.c
+@@ -232,6 +232,7 @@ flow_offload_lookup(struct nf_flowtable *flow_table,
+ {
+ 	struct flow_offload_tuple_rhash *tuplehash;
+ 	struct flow_offload *flow;
++	struct flow_offload_entry *e;
+ 	int dir;
  
-+	if (iph->ttl <= 1)
-+		return -1;
-+
- 	thoff = iph->ihl * 4;
- 	if (!pskb_may_pull(skb, thoff + sizeof(*ports)))
- 		return -1;
-@@ -411,6 +414,9 @@ static int nf_flow_tuple_ipv6(struct sk_buff *skb, const struct net_device *dev,
- 	    ip6h->nexthdr != IPPROTO_UDP)
- 		return -1;
+ 	tuplehash = rhashtable_lookup(&flow_table->rhashtable, tuple,
+@@ -244,6 +245,10 @@ flow_offload_lookup(struct nf_flowtable *flow_table,
+ 	if (flow->flags & (FLOW_OFFLOAD_DYING | FLOW_OFFLOAD_TEARDOWN))
+ 		return NULL;
  
-+	if (ip6h->hop_limit <= 1)
-+		return -1;
++	e = container_of(flow, struct flow_offload_entry, flow);
++	if (unlikely(atomic_read(&e->ct->ct_general.use) == 1))
++		return NULL;
 +
- 	thoff = sizeof(*ip6h);
- 	if (!pskb_may_pull(skb, thoff + sizeof(*ports)))
- 		return -1;
+ 	return tuplehash;
+ }
+ EXPORT_SYMBOL_GPL(flow_offload_lookup);
+@@ -290,9 +295,12 @@ static inline bool nf_flow_has_expired(const struct flow_offload *flow)
+ static void nf_flow_offload_gc_step(struct flow_offload *flow, void *data)
+ {
+ 	struct nf_flowtable *flow_table = data;
++	struct flow_offload_entry *e;
+ 
++	e = container_of(flow, struct flow_offload_entry, flow);
+ 	if (nf_flow_has_expired(flow) ||
+-	    (flow->flags & (FLOW_OFFLOAD_DYING | FLOW_OFFLOAD_TEARDOWN)))
++	    (flow->flags & (FLOW_OFFLOAD_DYING | FLOW_OFFLOAD_TEARDOWN)) ||
++	    (atomic_read(&e->ct->ct_general.use) == 1))
+ 		flow_offload_del(flow_table, flow);
+ }
+ 
 -- 
 2.17.1
 
