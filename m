@@ -2,171 +2,118 @@ Return-Path: <SRS0=OoQ/=S4=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.5 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_MUTT
+X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 121FAC43218
-	for <netfilter-devel@archiver.kernel.org>; Fri, 26 Apr 2019 14:33:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 68A25C43219
+	for <netfilter-devel@archiver.kernel.org>; Fri, 26 Apr 2019 15:00:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D42102053B
-	for <netfilter-devel@archiver.kernel.org>; Fri, 26 Apr 2019 14:33:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 39B75206E0
+	for <netfilter-devel@archiver.kernel.org>; Fri, 26 Apr 2019 15:00:25 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=resnulli-us.20150623.gappssmtp.com header.i=@resnulli-us.20150623.gappssmtp.com header.b="JVfRhDre"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="p+k3zXC+"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726377AbfDZOdC (ORCPT
+        id S1726289AbfDZPAS (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 26 Apr 2019 10:33:02 -0400
-Received: from mail-wr1-f66.google.com ([209.85.221.66]:35236 "EHLO
-        mail-wr1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726224AbfDZOdC (ORCPT
+        Fri, 26 Apr 2019 11:00:18 -0400
+Received: from mail-pf1-f193.google.com ([209.85.210.193]:45722 "EHLO
+        mail-pf1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726229AbfDZPAS (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 26 Apr 2019 10:33:02 -0400
-Received: by mail-wr1-f66.google.com with SMTP id f7so4769858wrs.2
-        for <netfilter-devel@vger.kernel.org>; Fri, 26 Apr 2019 07:33:00 -0700 (PDT)
+        Fri, 26 Apr 2019 11:00:18 -0400
+Received: by mail-pf1-f193.google.com with SMTP id e24so1847673pfi.12;
+        Fri, 26 Apr 2019 08:00:17 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=resnulli-us.20150623.gappssmtp.com; s=20150623;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to:user-agent;
-        bh=f9T6vEbBThC5Ay0HeWiyWcgE38NI5BZC6QizXOaZOM0=;
-        b=JVfRhDreisQPenf7UtAn0Z2Se0SyU/dJZsfJDP2Y7h0n5E/Tup0Y8IjSOR2qeOIIvQ
-         2u8A0joEfdkGA91uwkGP7MFDWxiHbpNSgxqb26FfveAc/685t2CjpHu/XUm+rNgX0i5i
-         3wbcOes56TQiB73VxLLtr6v0aRNKTqtF4DdsuKnpApNQjpQZJy/cwOKozzw2tf9L6agX
-         Cvi84htjhH+tbEh1i7r1j4SR9yUQMSAZa/GkxB5fLMGlpeEpH3J3ctRBc+4UGCr3n0jN
-         65NaijlRdEeiqv7Ah/r9mrRRI9jLp7kpON6APOhGR0g6qiyATgMTCxMAALM5PSm9pi28
-         1vyA==
+        d=gmail.com; s=20161025;
+        h=subject:to:cc:references:from:message-id:date:user-agent
+         :mime-version:in-reply-to:content-language:content-transfer-encoding;
+        bh=A5Y+MEfrLrdu8cFgwukPbLeOMa8h8CDG6LEpPB89rIc=;
+        b=p+k3zXC+msVwPDiTh8ZFLz2dOtBlIVpVmkiMWJMLrbujSRqsiO1qH5CsQ6Fqj8uvWv
+         8saQw+waVQ242238j8bPgCHXA0ohHari7ghEBVdMaeNGGzNJAVMeESC96whtfP0Tmw/C
+         qFQn1p8G4XKbzOVOfYJMGf3DcA63NGtu1arxjhgFZNfWxfhcHj4ErdBBngFmUdiKmEAk
+         hU+CZFZROyJ8WVKIHalTVXwPT15QHT7im47RDFoot+Hxu9NNotgMMu1ZSbn2q8dgf/oP
+         T92/isg/gsPnkOSc1dJb3AIf+vNgvXrNFYmNV1fa6E0h0xygfCj+PBTiMLC35uJSEW5D
+         0UNQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to:user-agent;
-        bh=f9T6vEbBThC5Ay0HeWiyWcgE38NI5BZC6QizXOaZOM0=;
-        b=oq0uAqhQN7TEfCvOQE//C7PIfURT0q5T4+KTpw5B3LE/oMkWzQKOfPJU0tHEY+2iyU
-         ZRdmuGZogj0Vl3id6WeTR5c0ubalJkBUkLjpg+lT0/VDjuOgSPwMF/bePoazZRwiUzrl
-         d/HbbuwOXCsEPnnUu/aHRnzJUY1swSaTpgAEROE+X3A7qxH1DlhSxX4upIH3vZrt+Z6O
-         /agRTCBGiQK/CFegTzSq/FLwi9qSHRmQQoU8YledyKRB3crGwAA6dlFGX2k5vZi568f1
-         KmTKADvDCLle6ESPc5s3ji6JN1n3i2KDScmvy4xd3g5luJmsbEovktN8Yqdjl/JJwxrA
-         3BOA==
-X-Gm-Message-State: APjAAAVYe7UqAKlt1Ryjit3d9QER8HRdufcTj/7mNtWDpEcHBd/ELKM2
-        YOEykGkWKCxARKDslX85TyXx3w==
-X-Google-Smtp-Source: APXvYqwRJ0wC1rjuSG+HPjp/G+jSm8lAopfUdWMXVJfdgl+/xU88dGjQAK+hYsDXHRoeoQffYcNgWA==
-X-Received: by 2002:a5d:52ce:: with SMTP id r14mr31997894wrv.224.1556289179704;
-        Fri, 26 Apr 2019 07:32:59 -0700 (PDT)
-Received: from localhost (jirka.pirko.cz. [84.16.102.26])
-        by smtp.gmail.com with ESMTPSA id h84sm27904543wmf.15.2019.04.26.07.32.59
-        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Fri, 26 Apr 2019 07:32:59 -0700 (PDT)
-Date:   Fri, 26 Apr 2019 16:32:58 +0200
-From:   Jiri Pirko <jiri@resnulli.us>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org, jiri@mellanox.com,
-        john.hurley@netronome.com, jakub.kicinski@netronome.com,
-        ogerlitz@mellanox.com
-Subject: Re: [PATCH net-next,RFC 0/9] net: sched: prepare to reuse per-block
- callbacks from netfilter
-Message-ID: <20190426143258.GC2249@nanopsycho.orion>
-References: <20190426003348.30745-1-pablo@netfilter.org>
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-language
+         :content-transfer-encoding;
+        bh=A5Y+MEfrLrdu8cFgwukPbLeOMa8h8CDG6LEpPB89rIc=;
+        b=WYfqAkLK7RPjl1rYZnArEKP38bPdT1au55bRg5B7LWuFsbiLDUVYfo+GruSAcXr72e
+         pA4c/GqFf92sqhi5/L0hLavs/ohN7iWYCotQ9B4Wp1jPaY1nKWg3Lro/AFNdXoQBAUMN
+         oBf59F7GFlm9I2L0B9i+JNyDf2E4CemeRhx0Wp6uYRgvBIvV7pcTBBMFEXxRceIS++tn
+         d+aNssAFkMARLLsVAoKlGrp9FwGJQhtLbc12F8Lwqbb+oRXK/3jET407fSUpozTuXQil
+         aymrMgFHp7QHwQokGT109xXJ22pz5/FDVedP2it18je887HDumQmfMPlF3asMsChw8P3
+         c3hw==
+X-Gm-Message-State: APjAAAUHIpXsR6kUzHVofTJ03OSsqDtcSgVpAIj6oY2nb7QSnyyvfLr1
+        xTvlIW2aCTgBg0Wu3ETch2AU1owL
+X-Google-Smtp-Source: APXvYqxiR+Id+MWGuZ3Ujb9i4Tjd0ZnOAs81XzNPPfdZRya+E5UuH83bo9s6s/kqzm4/Ap7196sYCg==
+X-Received: by 2002:a63:b53:: with SMTP id a19mr861877pgl.216.1556290816618;
+        Fri, 26 Apr 2019 08:00:16 -0700 (PDT)
+Received: from ?IPv6:2601:282:800:fd80:c824:60cf:2bea:8fbc? ([2601:282:800:fd80:c824:60cf:2bea:8fbc])
+        by smtp.googlemail.com with ESMTPSA id 4sm284982pfi.94.2019.04.26.08.00.14
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Fri, 26 Apr 2019 08:00:15 -0700 (PDT)
+Subject: Re: [PATCH net-next 0/3] make nla_nest_start() add NLA_F_NESTED flag
+To:     Johannes Berg <johannes@sipsolutions.net>,
+        Michal Kubecek <mkubecek@suse.cz>, netdev@vger.kernel.org
+Cc:     "David S. Miller" <davem@davemloft.net>,
+        Jiri Pirko <jiri@mellanox.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>,
+        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+References: <cover.1556269635.git.mkubecek@suse.cz>
+ <1dcb87486a96785e3b9e6f337392aa904d977a0d.camel@sipsolutions.net>
+ <20190426111954.GG26549@unicorn.suse.cz>
+ <a3626aeca20280e8253b575fe72309b2009474a8.camel@sipsolutions.net>
+ <20190426115629.GH26549@unicorn.suse.cz>
+ <18db9ac8b398b215e3523dd5b79c7f86e21864ce.camel@sipsolutions.net>
+From:   David Ahern <dsahern@gmail.com>
+Message-ID: <47f6daf9-2d14-1566-8ed1-fb5d4dd57bf8@gmail.com>
+Date:   Fri, 26 Apr 2019 09:00:14 -0600
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:52.0)
+ Gecko/20100101 Thunderbird/52.9.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190426003348.30745-1-pablo@netfilter.org>
-User-Agent: Mutt/1.11.3 (2019-02-01)
+In-Reply-To: <18db9ac8b398b215e3523dd5b79c7f86e21864ce.camel@sipsolutions.net>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Fri, Apr 26, 2019 at 02:33:37AM CEST, pablo@netfilter.org wrote:
->Hi,
->
->This patchset aims to introduce changes to reuse the existing .ndo_setup_tc
->netdev operations from netfilter.
->
->The idea is to move tcf_block_cb to net/core/flow_offload.c and rename
->it to flow_block_cb. This object provides the minimal infrastructure to
->set up per-block callbacks that are called to offload policies to
->hardware.
->
->The tcf_block object is specific for TC to share policies between
->ingress devices. This object has a list of tcf_block_cb objects that are
->called to offload the policies to hardware. In netfilter, the idea is to
->store the list of tcf_block_cb objects in a chain that would be bound to
->several devices, eg.
->
->  chain x {
->	type filter hook ingress devices = { eth0, eth1 } priority 0;
->	...
->  }
->
+On 4/26/19 6:17 AM, Johannes Berg wrote:
+> On Fri, 2019-04-26 at 13:56 +0200, Michal Kubecek wrote:
+> 
+>>>> I suppose we should, at least the part that attribute with NLA_NESTED
+>>>> policy has NLA_F_NESTED flag. I'm not so sure about the opposite (i.e.
+>>>> that attributes with other policies do not have the flag) as when I was
+>>>> checking where kernel accesses nlattr::nla_type directly rather than
+>>>> with nla_type(), I stumbled upon an attribute NL80211_ATTR_VENDOR_DATA
+>>>> which has policy NLA_BINARY but is sometimes a nest, AFAICS.
+>>>
+>>> I guess anyway we can only do it for *new* things, not really for all
+>>> existing attributes.
+>>
+>> Right... but what I wanted to say is that if there is already (at least)
+>> one attribute which may or may not be a nest, depending on a context, we
+>> should expect there may be also new attributes like that in the future.
+> 
+> Yeah, but we can handle that as we see it?
+> 
+> I just reposted my strict validation series - maybe we can right now, as
+> it's not released yet, quickly add an NL_VALIDATED_NESTED_FLAG or so to
+> it?
+> 
+> Do you want to take a stab at that? I have to go now, but I could check
+> in the next few days.
 
-Do you have the follow-up patchset somewhere? I'm curius about your
-goal. Without that, it is hard to understand what you are getting at.
-
-
->Hence, this emulates the shared blocks available in TC that Jiri made.
->
->Note that the list of tcf_block_cb objects will be called to offload
->policies in this chain.
-
-So you are going to use chain_id (if there is anything like that) as
-block_index during offload, right?
-
-
->
->To reuse this infrastructure, I need remove the dependency with the
->tcf_block object and tc/cls_api (see .reoffload) that is called from the
->driver side, this patchset reworks the per-block callback infrastructure
->to set up the tcf_block_cb object from the driver, then convey the list
->of callbacks using the tc_block_offload object back to the core.
->
->            cls_api                         driver
->	TC_SETUP_BLOCK    ---------->  setup tcf_block_cb
->       tc_block_offload           add it to tc_block_offload->cb_list
->                                                |
->          register     <------------------------'
->         tcf_block_cb
->         ->reoffload
->
->Therefore, registration does not happen from drivers anymore, instead
->it is done from the core. The driver just sets up the tcf_block_cb
->object that wires up the connection between the offloaded block (chains
->in case of netfilter) and the driver.
->
->This patchset is compile tested only at this stage.
->
->Comments welcome, thanks.
->
->Pablo Neira Ayuso (9):
->  net: sched: move tcf_block_cb before indr_block
->  net: sched: add tcf_block_cb_alloc()
->  net: sched: add tcf_block_cb_free()
->  net: sched: add tcf_block_setup()
->  net: sched: add release callback to struct tcf_block_cb
->  net: sched: add tcf_setup_block_offload()
->  net: use tcf_block_setup() infrastructure
->  net: sched: remove tcf_block_cb_{register,unregister}()
->  net: cls_api: do not expose tcf_block to drivers
->
-> drivers/net/ethernet/broadcom/bnxt/bnxt.c          |  26 +-
-> drivers/net/ethernet/broadcom/bnxt/bnxt_vfr.c      |  28 +-
-> drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c    |  26 +-
-> drivers/net/ethernet/intel/i40e/i40e_main.c        |  26 +-
-> drivers/net/ethernet/intel/iavf/iavf_main.c        |  35 +-
-> drivers/net/ethernet/intel/igb/igb_main.c          |  23 +-
-> drivers/net/ethernet/intel/ixgbe/ixgbe_main.c      |  27 +-
-> drivers/net/ethernet/mellanox/mlx5/core/en_main.c  |  27 +-
-> drivers/net/ethernet/mellanox/mlx5/core/en_rep.c   |  59 +-
-> drivers/net/ethernet/mellanox/mlxsw/spectrum.c     |  64 ++-
-> drivers/net/ethernet/netronome/nfp/abm/cls.c       |  17 +-
-> drivers/net/ethernet/netronome/nfp/bpf/main.c      |  29 +-
-> .../net/ethernet/netronome/nfp/flower/offload.c    |  62 +--
-> drivers/net/ethernet/qlogic/qede/qede_main.c       |  23 +-
-> drivers/net/ethernet/stmicro/stmmac/stmmac_main.c  |  22 +-
-> drivers/net/netdevsim/netdev.c                     |  26 +-
-> include/net/pkt_cls.h                              |  29 +-
-> net/dsa/slave.c                                    |  15 +-
-> net/sched/cls_api.c                                | 598 ++++++++++++---------
-> 19 files changed, 528 insertions(+), 634 deletions(-)
->
->-- 
->2.11.0
+What is a valid use case for an attribute sometimes being a nest and
+sometimes not? That seems really weird to me (ie., wrong). They should
+be 2 separate attributes even if the backend processing is the same.
