@@ -2,146 +2,133 @@ Return-Path: <SRS0=Pnh4=S5=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+X-Spam-Status: No, score=-6.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2A8D6C43219
-	for <netfilter-devel@archiver.kernel.org>; Sat, 27 Apr 2019 09:01:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CD081C43218
+	for <netfilter-devel@archiver.kernel.org>; Sat, 27 Apr 2019 09:21:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id ED4C62077B
-	for <netfilter-devel@archiver.kernel.org>; Sat, 27 Apr 2019 09:01:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 98AB12087C
+	for <netfilter-devel@archiver.kernel.org>; Sat, 27 Apr 2019 09:21:28 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="vbCVtfy1"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="u5whrO0C"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726349AbfD0JBz (ORCPT
+        id S1726050AbfD0JV2 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 27 Apr 2019 05:01:55 -0400
-Received: from mail-ed1-f49.google.com ([209.85.208.49]:34683 "EHLO
-        mail-ed1-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725857AbfD0JBy (ORCPT
+        Sat, 27 Apr 2019 05:21:28 -0400
+Received: from mail-ot1-f67.google.com ([209.85.210.67]:34352 "EHLO
+        mail-ot1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725925AbfD0JV2 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 27 Apr 2019 05:01:54 -0400
-Received: by mail-ed1-f49.google.com with SMTP id a6so5129407edv.1
-        for <netfilter-devel@vger.kernel.org>; Sat, 27 Apr 2019 02:01:53 -0700 (PDT)
+        Sat, 27 Apr 2019 05:21:28 -0400
+Received: by mail-ot1-f67.google.com with SMTP id n13so1352631otk.1
+        for <netfilter-devel@vger.kernel.org>; Sat, 27 Apr 2019 02:21:27 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc:content-transfer-encoding;
-        bh=itXBdmPUHJ8v6scgZLgfmgaoc6nSGRAANT77sNdCmWY=;
-        b=vbCVtfy1QAvt/2qBUOFdUreqe7vG2OzcY00/Ha/nfyrcVcIJdmqqls7JcqFGEyap06
-         0SqwUTumm8ftAlYh/+CqAUI3Khx2zAsHJapnsSYmxg2aKeqQezslpOKAHkE2D8b9eRlv
-         IfUl66uIMtz08LAUxcCMFUTZ3kdji8DG35J7tL3fn/USywjknBqvXF2Yg8AZ7E4Xvn/W
-         n5m+PIbvYWWKaRe9/ljFqlQ/PcfScD2yQlHlp6lXu4S9xrHYJvGh1CzsD6QGDAMA3/OO
-         rWf2pTPR+XE4+c++6465CDwvqp4VXvgW1IYNZTByKIW55iRxsmtSkEYCT0e6TuN6QuMA
-         cJTg==
+         :cc;
+        bh=gyL/zScyuev+wSlc0/lsnXIGRkVxc2y8KKUZ0Ienmt4=;
+        b=u5whrO0CevLIx/InCUgzmEqeooIbjB3sr3WKE4qOOqLheTKOb58Ns9Cq4g9Hb7KYyV
+         Rw5EkZm6E524DCODgfxzhmaKPCun8mm1kFjt6fBfoWRVvWfQSsld8Dj28NTUWaBEAARL
+         rsreWD64FmPthdxpP4LZDv2P/+C12gL13Rc8Tmc9qVf/6N+gicJZy+amwe44ZuYsbc2q
+         DJo3YH+wkSfyfFwAKAGA8+XkkAUmh6PkeTEo6R8NgzUAeGPqJTHm3V3ceKeyqUf9RZiT
+         21ROVveHWOwpdUfcxBeaaHOLVG+QPs3Yw3MPkg4y91wsAtz8Om4ops4iN7U3KWuTEOWd
+         MwWA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=itXBdmPUHJ8v6scgZLgfmgaoc6nSGRAANT77sNdCmWY=;
-        b=gfvNpNMolMHp2BQmtpWH52sLKtL44dRtnzkXURll+JWQs9TzrtHIwLqJYR8/s7Gej4
-         /zFFiDZAHZ+hivCz53jmq5776Tjqi3jg1lLgQuVRw+zU0FHFpsKqEB2brkiWZ8chvTlS
-         Jp2KZ2Xxv0dIMv4gnGqvb9Y0hgCUTU475AGmDFZJUE/RCZhubYCc96LrRuEyI9kTj1F4
-         QWSj/MOugM93h2t12LI+HI3Slg45Gk/DEdsxOYzxkblg/jxewvpy4W364r24UBXLQs9B
-         BRw7Y9gdW/Kh+D/R8q697NRKyqv1WjBFu5UybSbOJUK2bx/1Bi50sKiJcRnALDtlGush
-         LqWQ==
-X-Gm-Message-State: APjAAAUyAYI65J982cLpKhjYh4PVK7u1HWiFM+MQ9aJkXZwbpmm1OY+d
-        qI3VT3oMka8lcqflYvOuyPZ9HeQ9YjhTCFNA4N7i2YMX5yc=
-X-Google-Smtp-Source: APXvYqwI9EsTPkZC4QZKXb2gZlUeXldrKzyciPpsEgmuecWSCKkCnIF+F5eWZMHrvs4KspKbp/LGGHZQ9kWWj4iPFiQ=
-X-Received: by 2002:a17:906:9a9:: with SMTP id q9mr17779747eje.171.1556355712191;
- Sat, 27 Apr 2019 02:01:52 -0700 (PDT)
+         :message-id:subject:to:cc;
+        bh=gyL/zScyuev+wSlc0/lsnXIGRkVxc2y8KKUZ0Ienmt4=;
+        b=R9201o8Rzs/IYz18SkaQBZMbjuz/ge3aaMgj8n5WZwS3hQniV5XKcOpbdbejSX1lsy
+         pQGoXCsPnnlxAa7/SBwO4xuY6/Pm5ORkGzaFUSKo1UPVpk6xn4foim1EZmNYacPdwyiL
+         I4YVwbJv0IZOFZ6eYwS8u7DUIcMRYJQBSbpWiaJLLvK91psWyoYDBFfcZc+eZPOGzqNb
+         ccHvFhW0QZyEtNn+4l/km2E7MODUfOVjXRmkFXwoF3/AbowUx099AzyOrfPXduXmbWcd
+         4Tva7L2kIqV5GZrZyIpFSGDdFRjY2mDqL/pZIaG2hzua6jbI3x3udOb8mvxUow1k6im0
+         eGjA==
+X-Gm-Message-State: APjAAAVvzAZPfpPaViyQf8K8z59nK5ljjxs6KtJDuGtoIiCQZHu8p9ie
+        ZcKen8GTYOBsZhVuw2o0GX8SO5VxuApWp/Arg0C/lg==
+X-Google-Smtp-Source: APXvYqyxHBboDmeT8HNM8dIDXxNHl3Cyo2idJD9k/Bp7ykAXe1ZtZ03sia8ZKy4KKimPmRadzrEpXJ46/h90om1DrT8=
+X-Received: by 2002:a9d:450a:: with SMTP id w10mr4939299ote.264.1556356887082;
+ Sat, 27 Apr 2019 02:21:27 -0700 (PDT)
 MIME-Version: 1.0
-References: <CABVi_ExMwpQHT57x_tv-1fx2kUgGBfy+k2R-Fbrbki=V-igwrw@mail.gmail.com>
- <CABVi_EwUrvJtE_iXodFXXVn5uqaVjh9fx1qFFqz5fCaLZiE28w@mail.gmail.com>
- <20190425224512.dz2fuwqrrq5hd2x6@salvia> <CABVi_EwbDf_tA8KdXU33nLgVdHpXNYPtqHGb5DadcL0tdVXAfQ@mail.gmail.com>
- <20190426193732.xk3aektc7fb4eg2h@salvia> <CABVi_Ex1KoK22m6cKsnCLaTC1gaFSUqX2a54m3H=dm8DZ9NFFQ@mail.gmail.com>
-In-Reply-To: <CABVi_Ex1KoK22m6cKsnCLaTC1gaFSUqX2a54m3H=dm8DZ9NFFQ@mail.gmail.com>
-From:   Mojtaba <mespio@gmail.com>
-Date:   Sat, 27 Apr 2019 13:31:40 +0430
-Message-ID: <CABVi_ExHXzWui4g9YZUx2PdnXXfc-OPv_UY++0rvy3ymurki5w@mail.gmail.com>
-Subject: Re: Issue related to conntrack while insert new rule with conntrack
- command in linux
+References: <20190426165327.3533-1-ap420073@gmail.com> <20190426170346.yxkjrhgsh6snqzbs@salvia>
+ <CAMArcTXA1-qXSWz7WNhqJ8=6bS-dxJ4KMBkgQD90pVDs1AP=RA@mail.gmail.com> <20190426190213.2xkitf7layyw7kyq@salvia>
+In-Reply-To: <20190426190213.2xkitf7layyw7kyq@salvia>
+From:   Taehee Yoo <ap420073@gmail.com>
+Date:   Sat, 27 Apr 2019 18:21:16 +0900
+Message-ID: <CAMArcTWN9pdHvrnJeW1qpCcUp86oisHQwYdQ4vsStq7vV733xQ@mail.gmail.com>
+Subject: Re: [PATCH nf 2/4] netfilter: nft_flow_offload: do not make
+ un-established tcp flow_offload session.
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
+Cc:     Florian Westphal <fw@strlen.de>,
+        Netfilter Developer Mailing List 
+        <netfilter-devel@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello Pablo,
-Just as better understanding, If i want to update using -U option, How
-can i do that?
-Suppose there is this rule in conntrack row:
-udp      17 29 src=3D192.168.122.242 dst=3D192.168.122.103 sport=3D5070
-dport=3D5005 [UNREPLIED] src=3D192.168.122.103 dst=3D192.168.122.242
-sport=3D5005 dport
-=3D5070 mark=3D0 use=3D1
-
-and i want to update it with this command:
-conntrack -U -p udp -s 192.168.122.242 -d 192.168.122.103 --sport 5070
---dport 5005 --dst-nat 192.168.122.1:1111 --src-nat
-192.168.122.103:2222 --timeout 30
-Actually it was not updated and this issue was raised:
-conntrack v1.4.2 (conntrack-tools): 0 flow entries have been updated.
-
-With Best Regards.Mojtaba
-
-On Sat, Apr 27, 2019 at 12:20 AM Mojtaba <mespio@gmail.com> wrote:
+On Sat, 27 Apr 2019 at 04:02, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
 >
-> Yes, it's perfect. I just forgot to enable ip_forwarding right now.
-> the problem was because of it.
-> I used this command and it works properly.
-> conntrack -I -p udp -s 192.168.122.242 -d 192.168.122.103 --sport 5070
-> --dport 5005 --dst-nat 192.168.122.1:1234 --src-nat
-> 192.168.122.103:2222 --timeout 30
->
-> That's great. Thank you so much Pablo.
-> With best regards
->
-> On Sat, Apr 27, 2019 at 12:07 AM Pablo Neira Ayuso <pablo@netfilter.org> =
-wrote:
-> >
-> > On Fri, Apr 26, 2019 at 11:53:29PM +0430, Mojtaba wrote:
-> > > Thanks again, It works correctly now. But how can i set  port 1111? I
-> > > have just tried like this command but i don=E2=80=99t work and i don'=
-t get any
-> > > packets on port 1111 in 192.168.122.1:
-> > > conntrack -I -p udp -s 192.168.122.242 -d 192.168.122.103 --sport 507=
-0
-> > > --dport 5005 --dst-nat 192.168.122.1:1234 --timeout 30
+> On Sat, Apr 27, 2019 at 02:48:15AM +0900, Taehee Yoo wrote:
+> > On Sat, 27 Apr 2019 at 02:03, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
 > > >
-> > > The packets that i got  on 192.168.122.1 are either port 5070 or port
-> > > 5005 like below:
-> > > 23:33:38.520746 IP 192.168.122.242.5070 > 192.168.122.103.5005: UDP, =
-length 12
-> > > 23:33:38.528807 IP 192.168.122.242.5070 > 192.168.122.103.5005: UDP, =
-length 12
-> > >
-> > >  Actually i would like get packet on 192.168.122.1 on port 1111 like
-> > > this. If i set the two rule of iptables in nat table, i could see the
-> > > packet on 192.168.122.1 like below,too
-> > > 23:33:38.528807 IP 192.168.122.103.2222 > 192.168.122.1.1111: UDP, le=
-ngth 12
-> > > 23:33:38.528807 IP 192.168.122.103.2222 > 192.168.122.1.1111: UDP, le=
-ngth 12
-> > >
-> > > So how can i set --src-nat to 192.168.122.103 and port 2222, too?
 > >
-> > Does this work?
+> > Hi Pablo!
+> > Thank you for the review!
 > >
-> > conntrack -I -p udp -s 192.168.122.242 -d 192.168.122.103 --sport 5070 =
---dport 5005 --dst-nat 192.168.122.1:1234 --timeout 30
+> > > On Sat, Apr 27, 2019 at 01:53:27AM +0900, Taehee Yoo wrote:
+> > > > nft_flow_offload_eval() makes flow_offload session but it doesn't check
+> > > > tcp state.
+> > > > So, it can make un-ESTABLISHED tcp flow offload session such as SYN-RECV.
+> > > > But, this is not a normal case.
+> > > >
+> > > > Fixes: a3c90f7a2323 ("netfilter: nf_tables: flow offload expression")
+> > > > Signed-off-by: Taehee Yoo <ap420073@gmail.com>
+> > > > ---
+> > > >  net/netfilter/nft_flow_offload.c | 3 +++
+> > > >  1 file changed, 3 insertions(+)
+> > > >
+> > > > diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
+> > > > index ff50bc1b144f..8538ddf9c6bf 100644
+> > > > --- a/net/netfilter/nft_flow_offload.c
+> > > > +++ b/net/netfilter/nft_flow_offload.c
+> > > > @@ -84,6 +84,9 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
+> > > >
+> > > >       switch (ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.protonum) {
+> > > >       case IPPROTO_TCP:
+> > > > +             if (ct->proto.tcp.state != TCP_CONNTRACK_ESTABLISHED)
+> > > > +                     goto out;
+> > >
+> > > You can restrict this via policy:
+> > >
+> > >         ct status assured flow add @x
+> > >
+> >
+> > I think If we allow to make non-ESTABLISHED flow offload,
+> > teardown code should be changed because teardown changes TCP status to
+> > ESTABLISHED. How do you think about it?
 >
+> Hm, right, the teardown fixup routine cannot then bogusly assumes the
+> TCP established state if we create a TCP entry from the first packet,
+> ie. the SYN_SENT state...
 >
+
+Thank you for sharing opinion.
+
+> [...]
+> > > And this would fix the flowtable infrastructure UDP traffic that only
+> > > goes in one direction.
+> > >
+> > > We can document in the manpage a few examples for this.
+> >
+> > I agree that flowtable infrastructure provides UDP one direction flow
+> > offloading.
 >
-> --
-> --Mojtaba Esfandiari.S
+> OK, probably I can collapse your patch to mine. Let me think over the
+> weekend.
 
-
-
---=20
---Mojtaba Esfandiari.S
+Okay, I will wait for your response!
