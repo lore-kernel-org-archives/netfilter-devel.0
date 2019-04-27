@@ -2,116 +2,110 @@ Return-Path: <SRS0=Pnh4=S5=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_PASS,
+	USER_AGENT_MUTT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CA97DC43218
-	for <netfilter-devel@archiver.kernel.org>; Sat, 27 Apr 2019 11:30:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 94474C4321A
+	for <netfilter-devel@archiver.kernel.org>; Sat, 27 Apr 2019 12:28:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8CC372087C
-	for <netfilter-devel@archiver.kernel.org>; Sat, 27 Apr 2019 11:30:22 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="g+Uva/8d"
+	by mail.kernel.org (Postfix) with ESMTP id 6740920C01
+	for <netfilter-devel@archiver.kernel.org>; Sat, 27 Apr 2019 12:28:06 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1556368086;
+	bh=vrMEILYXAPDIv9m/wqFQ1ACXIj9xGDu6gS6qJvnghxg=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=pGXFD2O2sESCw4Wub+Oyw+EykRRD7lI144dSkfPNwCAjxobpWX6GUivk+DqEvKwlD
+	 ptJq85tmAQBSHU7M1qkXu67c1eb54XagjkqbH7fJ8S1j1TE9W/P0RodXY2RS4bhzHK
+	 CYwP1jwgwCWbcoLHHPOZHvRBnJJP0FtRqe9ZGvpQ=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726004AbfD0LaW (ORCPT
+        id S1726442AbfD0M2F (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 27 Apr 2019 07:30:22 -0400
-Received: from mail-ed1-f44.google.com ([209.85.208.44]:33471 "EHLO
-        mail-ed1-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725977AbfD0LaV (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 27 Apr 2019 07:30:21 -0400
-Received: by mail-ed1-f44.google.com with SMTP id d55so3438300ede.0
-        for <netfilter-devel@vger.kernel.org>; Sat, 27 Apr 2019 04:30:20 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=Y8hDc/Tfxc2qYsqJ6R+s6bQuABMR3Wgpp5ReH1c1bGc=;
-        b=g+Uva/8dIQwOB22cZSWlUyj/O4izBbvCYslUnAWn91cGO+5x1YKrdOq38ceT27qd0m
-         Jmht7mDMAzwlxivHwbasDQGlD6dm3lCXZO2Pgk15Axl5C7gwMf6H8H+3KdeN+4YMmJJ1
-         7lgiprt8t+k2p8IK7t0KsxYRlnD4QpH3oTIp/6e5Y14bO7lt9Y4sKmnExgFa9U1karz1
-         q4qGn7sOIrXLraxKW2F8sK948m5qmRAaQrLgOVHLtyMS75aBtBx5wu+4ElSDGOUqR4Q8
-         lX3AU+PJMLQTX3HZ6fak4a0njO/0uxQ8JwGph/1uJ8ZgqwXkJFKxF9LnhxEKo42A4DqW
-         Lpgw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=Y8hDc/Tfxc2qYsqJ6R+s6bQuABMR3Wgpp5ReH1c1bGc=;
-        b=IbqEi7MMVPpAhOyO8mB4YWMRWkZfMfTQnBK9W234rMfxX58PWM/K/Guaf3+KdZv0hF
-         6wvCtq9iTVHxaSfc4KwH5sw+T7yxjs4kwYX20wkRTadBW8UZT7lN68PvsCheya+5my0U
-         GToZ6Yf6yeZhxkSkk2IuUM/DVuaVv0hknxhI/alrFrZhal6i6JhhCEfBPiFuhEaqmjKi
-         62u/PQaeIDt5Ak3qEIYDlqU/PxLZzUk2FbJDqj11nhy4SaejyMWYNleu8+QSWUYk5c8g
-         cboXRn9QpMjv9AXXRsvM0ZFIazhGBbqlCZu6rBkuMbuCSr6T6NVve8RZqzbeFEPOhWva
-         /3Fw==
-X-Gm-Message-State: APjAAAVf0LgFKiIieB2OVoXVxeSCeTr4dgRpaxhlZ9rWq1TTFC+UQjOF
-        s7Q0m88GjfxPyomn/Czx7op2DXgpd4DZuwOvIeM=
-X-Google-Smtp-Source: APXvYqyCvGG21O9JkOnXOUFDpgyEU1hy1Umi/isAMrlBdzK/y7QHJcxGBFugHtHpVrbXYpC9FaaUx2STIkys+rVmv6w=
-X-Received: by 2002:a50:cb4d:: with SMTP id h13mr17897496edi.110.1556364620020;
- Sat, 27 Apr 2019 04:30:20 -0700 (PDT)
-MIME-Version: 1.0
-References: <CABVi_ExMwpQHT57x_tv-1fx2kUgGBfy+k2R-Fbrbki=V-igwrw@mail.gmail.com>
- <CABVi_EwUrvJtE_iXodFXXVn5uqaVjh9fx1qFFqz5fCaLZiE28w@mail.gmail.com>
- <20190425224512.dz2fuwqrrq5hd2x6@salvia> <CABVi_EwbDf_tA8KdXU33nLgVdHpXNYPtqHGb5DadcL0tdVXAfQ@mail.gmail.com>
- <20190426193732.xk3aektc7fb4eg2h@salvia> <CABVi_Ex1KoK22m6cKsnCLaTC1gaFSUqX2a54m3H=dm8DZ9NFFQ@mail.gmail.com>
- <CABVi_ExHXzWui4g9YZUx2PdnXXfc-OPv_UY++0rvy3ymurki5w@mail.gmail.com> <20190427094323.enhkqeoeow4jgmlk@salvia>
-In-Reply-To: <20190427094323.enhkqeoeow4jgmlk@salvia>
-From:   Mojtaba <mespio@gmail.com>
-Date:   Sat, 27 Apr 2019 16:00:08 +0430
-Message-ID: <CABVi_EwEc1x9dspiVHUKjoikvcCUTBMFbknFbR-yg+DaBcpAXw@mail.gmail.com>
-Subject: Re: Issue related to conntrack while insert new rule with conntrack
- command in linux
+        Sat, 27 Apr 2019 08:28:05 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50616 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726345AbfD0M2F (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 27 Apr 2019 08:28:05 -0400
+Received: from localhost (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id E7022208C2;
+        Sat, 27 Apr 2019 12:28:03 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1556368084;
+        bh=vrMEILYXAPDIv9m/wqFQ1ACXIj9xGDu6gS6qJvnghxg=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=id1SaEc2Dt3TFcnXKND5RYhAxoFOYhRFek/5qNqKfxlJ5u2xF/+zY4JyH2D3UOVVc
+         QYIQGShP+Sg4TnBVn8ZJaBDgg62WXLYr2fxAlb8NT+4gmIlgzvM3o2+8dCvdrZRFoq
+         yjfTfJ/pAyFVanARFs6IdelpJi5hCTM3t1CJxfKU=
+Date:   Sat, 27 Apr 2019 08:28:02 -0400
+From:   Sasha Levin <sashal@kernel.org>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Cc:     stable@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        nevola@gmail.com
+Subject: Re: Netfilter fixes for 4.19 -stable
+Message-ID: <20190427122802.GC17719@sasha-vm>
+References: <20190426183219.7drkaomdhojwsc22@salvia>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Disposition: inline
+In-Reply-To: <20190426183219.7drkaomdhojwsc22@salvia>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Thanks Pablo,
-Actually i need this feature for redirect  RTP-media packet beetwen
-two service. I want to optimize resource consumption by using this
-feature.
-All things works right, But i should find the right place to insert
-this rule in my code, Otherwise if the service got the first packet
-from end-point while i don't insert the rule,yet. I will face with
-problem, becasue of the rule was inserted before.
-Thanks with regards. Mojtaba
-
-On Sat, Apr 27, 2019 at 2:13 PM Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+On Fri, Apr 26, 2019 at 08:32:19PM +0200, Pablo Neira Ayuso wrote:
+>Hi Sasha,
 >
-> On Sat, Apr 27, 2019 at 01:31:40PM +0430, Mojtaba wrote:
-> > Hello Pablo,
-> > Just as better understanding, If i want to update using -U option, How
-> > can i do that?
-> > Suppose there is this rule in conntrack row:
-> > udp      17 29 src=192.168.122.242 dst=192.168.122.103 sport=5070
-> > dport=5005 [UNREPLIED] src=192.168.122.103 dst=192.168.122.242
-> > sport=5005 dport
-> > =5070 mark=0 use=1
-> >
-> > and i want to update it with this command:
-> > conntrack -U -p udp -s 192.168.122.242 -d 192.168.122.103 --sport 5070
-> > --dport 5005 --dst-nat 192.168.122.1:1111 --src-nat
-> > 192.168.122.103:2222 --timeout 30
-> > Actually it was not updated and this issue was raised:
-> > conntrack v1.4.2 (conntrack-tools): 0 flow entries have been updated.
+>Via Laura Garcia.
 >
-> You cannot update an existing entry with NATs.
+>Could you cherry-pick the following netfilter fixes for 4.19 -stable?
 >
-> You can probably make your own libnetfilter_queue application that
-> allows you to create conntrack entries from packets. If you want to do
-> custom NAT handling some certain traffic. You will only need to pass
-> the first packet of the flow to userspace to set up the NAT mangling
-> you need.
+>https://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git/commit/net/netfilter/nft_compat.c?id=12c44aba6618b7f6c437076e5722237190f6cd5f
+>commit    12c44aba6618b7f6c437076e5722237190f6cd5f
+>netfilter: nft_compat: use refcnt_t type for nft_xt reference count
 >
-> I would need to learn more on your usecase for this.
+>https://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git/commit/net/netfilter/nft_compat.c?id=cf52572ebbd7189a1966c2b5fc34b97078cd1dce
+>commit    cf52572ebbd7189a1966c2b5fc34b97078cd1dce
+>netfilter: nft_compat: make lists per netns
+>
+>https://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git/commit/net/netfilter/nft_compat.c?id=b2e3d68d1251a051a620f9086e18f7ffa6833b5b
+>commit    b2e3d68d1251a051a620f9086e18f7ffa6833b5b
+>netfilter: nft_compat: destroy function must not have side effects
+>
+>https://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git/commit/net/netfilter/nf_tables_api.c?id=cd5125d8f51882279f50506bb9c7e5e89dc9bef3
+>commit    cd5125d8f51882279f50506bb9c7e5e89dc9bef3
+>netfilter: nf_tables: split set destruction in deactivate and destroy phase
+>
+>https://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git/commit/net/netfilter/nft_compat.c?id=f6ac8585897684374a19863fff21186a05805286
+>commit    f6ac8585897684374a19863fff21186a05805286
+>netfilter: nf_tables: unbind set in rule from commit path
+>
+>https://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git/commit/net/netfilter/nft_compat.c?id=947e492c0fc2132ae5fca081a9c2952ccaab0404
+>commit    947e492c0fc2132ae5fca081a9c2952ccaab0404
+>netfilter: nft_compat: don't use refcount_inc on newly allocated entry
+>
+>https://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git/commit/net/netfilter/nf_tables_api.c?id=b8e204006340b7aaf32bd2b9806c692f6e0cb38a
+>commit    b8e204006340b7aaf32bd2b9806c692f6e0cb38a
+>netfilter: nft_compat: use .release_ops and remove list of extension
+>
+>https://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git/commit/net/netfilter/nf_tables_api.c?id=40ba1d9b4d19796afc9b7ece872f5f3e8f5e2c13
+>commit    40ba1d9b4d19796afc9b7ece872f5f3e8f5e2c13
+>netfilter: nf_tables: fix set double-free in abort path
+>
+>https://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git/commit/net/netfilter/nf_tables_api.c?id=273fe3f1006ea5ebc63d6729e43e8e45e32b256a
+>commit    273fe3f1006ea5ebc63d6729e43e8e45e32b256a
+>netfilter: nf_tables: bogus EBUSY when deleting set after flush
+>
+>https://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git/commit/net/netfilter/nft_objref.c?id=8ffcd32f64633926163cdd07a7d295c500a947d1
+>commit    8ffcd32f64633926163cdd07a7d295c500a947d1
+>netfilter: nf_tables: bogus EBUSY in helper removal from transaction
 
+I've had to play a bit with the ordering, but queued them all up,
+thanks!
 
-
--- 
---Mojtaba Esfandiari.S
+--
+Thanks,
+Sasha
