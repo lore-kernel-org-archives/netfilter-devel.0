@@ -2,119 +2,116 @@ Return-Path: <SRS0=Pnh4=S5=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_NEOMUTT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BA44CC43218
-	for <netfilter-devel@archiver.kernel.org>; Sat, 27 Apr 2019 10:57:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CA97DC43218
+	for <netfilter-devel@archiver.kernel.org>; Sat, 27 Apr 2019 11:30:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8E6FA208CA
-	for <netfilter-devel@archiver.kernel.org>; Sat, 27 Apr 2019 10:57:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8CC372087C
+	for <netfilter-devel@archiver.kernel.org>; Sat, 27 Apr 2019 11:30:22 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="g+Uva/8d"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725942AbfD0K5q (ORCPT
+        id S1726004AbfD0LaW (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 27 Apr 2019 06:57:46 -0400
-Received: from mail.us.es ([193.147.175.20]:58376 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725912AbfD0K5p (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 27 Apr 2019 06:57:45 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id C7ABAB6C65
-        for <netfilter-devel@vger.kernel.org>; Sat, 27 Apr 2019 12:57:43 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id B9984DA706
-        for <netfilter-devel@vger.kernel.org>; Sat, 27 Apr 2019 12:57:43 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id AF2ABDA705; Sat, 27 Apr 2019 12:57:43 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id B876ADA706;
-        Sat, 27 Apr 2019 12:57:41 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Sat, 27 Apr 2019 12:57:41 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (sys.soleta.eu [212.170.55.40])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 982874265A32;
-        Sat, 27 Apr 2019 12:57:41 +0200 (CEST)
-Date:   Sat, 27 Apr 2019 12:57:41 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Johannes Berg <johannes@sipsolutions.net>
-Cc:     netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-Subject: Re: [PATCH RFC 4/4] netfilter: nf_tables: add netlink description
-Message-ID: <20190427105741.nfxy56bkr62hupml@salvia>
-References: <20190411192647.xsnhno6gcf5fen5u@salvia>
- <beb5d59393d8dbf466b0d728ca85842afb6cd039.camel@sipsolutions.net>
- <20190426164252.a2yxjxf3thotrqu3@salvia>
- <8a754fb122da038b540583708315e5782beefbd2.camel@sipsolutions.net>
- <5d2a03325b4121c2f91bc78bb0e44c3592af4220.camel@sipsolutions.net>
- <20190426180430.h5h7lqivx2qufuyi@salvia>
- <0c7f81c740a5670abfbc6249b58bbd318a24eaec.camel@sipsolutions.net>
- <20190426192054.4iedgasehywqzyx6@salvia>
- <a2e483388c096b6b4fb76db70b2068cae6279a40.camel@sipsolutions.net>
- <79a6e186763b199b3fd28ef0dc0e67b3698fea89.camel@sipsolutions.net>
+        Sat, 27 Apr 2019 07:30:22 -0400
+Received: from mail-ed1-f44.google.com ([209.85.208.44]:33471 "EHLO
+        mail-ed1-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725977AbfD0LaV (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 27 Apr 2019 07:30:21 -0400
+Received: by mail-ed1-f44.google.com with SMTP id d55so3438300ede.0
+        for <netfilter-devel@vger.kernel.org>; Sat, 27 Apr 2019 04:30:20 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=Y8hDc/Tfxc2qYsqJ6R+s6bQuABMR3Wgpp5ReH1c1bGc=;
+        b=g+Uva/8dIQwOB22cZSWlUyj/O4izBbvCYslUnAWn91cGO+5x1YKrdOq38ceT27qd0m
+         Jmht7mDMAzwlxivHwbasDQGlD6dm3lCXZO2Pgk15Axl5C7gwMf6H8H+3KdeN+4YMmJJ1
+         7lgiprt8t+k2p8IK7t0KsxYRlnD4QpH3oTIp/6e5Y14bO7lt9Y4sKmnExgFa9U1karz1
+         q4qGn7sOIrXLraxKW2F8sK948m5qmRAaQrLgOVHLtyMS75aBtBx5wu+4ElSDGOUqR4Q8
+         lX3AU+PJMLQTX3HZ6fak4a0njO/0uxQ8JwGph/1uJ8ZgqwXkJFKxF9LnhxEKo42A4DqW
+         Lpgw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=Y8hDc/Tfxc2qYsqJ6R+s6bQuABMR3Wgpp5ReH1c1bGc=;
+        b=IbqEi7MMVPpAhOyO8mB4YWMRWkZfMfTQnBK9W234rMfxX58PWM/K/Guaf3+KdZv0hF
+         6wvCtq9iTVHxaSfc4KwH5sw+T7yxjs4kwYX20wkRTadBW8UZT7lN68PvsCheya+5my0U
+         GToZ6Yf6yeZhxkSkk2IuUM/DVuaVv0hknxhI/alrFrZhal6i6JhhCEfBPiFuhEaqmjKi
+         62u/PQaeIDt5Ak3qEIYDlqU/PxLZzUk2FbJDqj11nhy4SaejyMWYNleu8+QSWUYk5c8g
+         cboXRn9QpMjv9AXXRsvM0ZFIazhGBbqlCZu6rBkuMbuCSr6T6NVve8RZqzbeFEPOhWva
+         /3Fw==
+X-Gm-Message-State: APjAAAVf0LgFKiIieB2OVoXVxeSCeTr4dgRpaxhlZ9rWq1TTFC+UQjOF
+        s7Q0m88GjfxPyomn/Czx7op2DXgpd4DZuwOvIeM=
+X-Google-Smtp-Source: APXvYqyCvGG21O9JkOnXOUFDpgyEU1hy1Umi/isAMrlBdzK/y7QHJcxGBFugHtHpVrbXYpC9FaaUx2STIkys+rVmv6w=
+X-Received: by 2002:a50:cb4d:: with SMTP id h13mr17897496edi.110.1556364620020;
+ Sat, 27 Apr 2019 04:30:20 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <79a6e186763b199b3fd28ef0dc0e67b3698fea89.camel@sipsolutions.net>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+References: <CABVi_ExMwpQHT57x_tv-1fx2kUgGBfy+k2R-Fbrbki=V-igwrw@mail.gmail.com>
+ <CABVi_EwUrvJtE_iXodFXXVn5uqaVjh9fx1qFFqz5fCaLZiE28w@mail.gmail.com>
+ <20190425224512.dz2fuwqrrq5hd2x6@salvia> <CABVi_EwbDf_tA8KdXU33nLgVdHpXNYPtqHGb5DadcL0tdVXAfQ@mail.gmail.com>
+ <20190426193732.xk3aektc7fb4eg2h@salvia> <CABVi_Ex1KoK22m6cKsnCLaTC1gaFSUqX2a54m3H=dm8DZ9NFFQ@mail.gmail.com>
+ <CABVi_ExHXzWui4g9YZUx2PdnXXfc-OPv_UY++0rvy3ymurki5w@mail.gmail.com> <20190427094323.enhkqeoeow4jgmlk@salvia>
+In-Reply-To: <20190427094323.enhkqeoeow4jgmlk@salvia>
+From:   Mojtaba <mespio@gmail.com>
+Date:   Sat, 27 Apr 2019 16:00:08 +0430
+Message-ID: <CABVi_EwEc1x9dspiVHUKjoikvcCUTBMFbknFbR-yg+DaBcpAXw@mail.gmail.com>
+Subject: Re: Issue related to conntrack while insert new rule with conntrack
+ command in linux
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Apr 26, 2019 at 09:46:33PM +0200, Johannes Berg wrote:
-> On Fri, 2019-04-26 at 21:37 +0200, Johannes Berg wrote:
-> 
-> > You're now thinking of the "policy ID" I assigned for the wire format as
-> > the object ID, but really that's not what it is. The object ID that
-> > you're looking for is the attribute type of the nested attribute.
-> > 
-> > So if you have
-> > 
-> > struct nla_policy nested_policy[...] = { ... };
-> > 
-> > struct nla_policy policy[...] = {
-> >     [MY_ATTR] = NLA_POLICY_NESTED(nested_policy),
-> > };
-> > 
-> So if we extend this, say like this:
-> 
-> struct nla_policy policy[...] = {
->     [MY_ATTR] = NLA_POLICY_NESTED(nested_policy),
->     [MY_OTHER_ATTR] = NLA_POLICY_NESTED(nested_policy),
-> };
-> 
-> then you could perhaps argue that having an object ID makes sense, and
-> assigning the same object ID to MY_ATTR and MY_OTHER_ATTR would make
-> sense?
-> 
-> Of course, my could would assign this the same (temporary) policy ID,
-> but there can be no reliance on the policy ID beyond what's needed at
-> runtime to map the attribute to the nested policy.
-> 
-> You still see at runtime that these have the same policy (since they
-> have the same policy ID), but at the same time presumably there was a
-> reason to have MY_ATTR and MY_OTHER_ATTR, so perhaps the semantics are
-> different even if the attributes are the same, as could perhaps be
-> expected if you have a SET and a CLEAR attribute (MY_ATTR and
-> MY_OTHER_ATTR respectively) and the contents you give has the same
-> policy, but different logic?
-> 
-> Basically, I just didn't consider this case to be significant enough to
-> manually and assign stable IDs of some sort, when we already have them
-> in the form of the attribute type.
+Thanks Pablo,
+Actually i need this feature for redirect  RTP-media packet beetwen
+two service. I want to optimize resource consumption by using this
+feature.
+All things works right, But i should find the right place to insert
+this rule in my code, Otherwise if the service got the first packet
+from end-point while i don't insert the rule,yet. I will face with
+problem, becasue of the rule was inserted before.
+Thanks with regards. Mojtaba
 
-But they all point to the same nested_policy, ie. these nested
-atributes represent instances of the same object class.
+On Sat, Apr 27, 2019 at 2:13 PM Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+>
+> On Sat, Apr 27, 2019 at 01:31:40PM +0430, Mojtaba wrote:
+> > Hello Pablo,
+> > Just as better understanding, If i want to update using -U option, How
+> > can i do that?
+> > Suppose there is this rule in conntrack row:
+> > udp      17 29 src=192.168.122.242 dst=192.168.122.103 sport=5070
+> > dport=5005 [UNREPLIED] src=192.168.122.103 dst=192.168.122.242
+> > sport=5005 dport
+> > =5070 mark=0 use=1
+> >
+> > and i want to update it with this command:
+> > conntrack -U -p udp -s 192.168.122.242 -d 192.168.122.103 --sport 5070
+> > --dport 5005 --dst-nat 192.168.122.1:1111 --src-nat
+> > 192.168.122.103:2222 --timeout 30
+> > Actually it was not updated and this issue was raised:
+> > conntrack v1.4.2 (conntrack-tools): 0 flow entries have been updated.
+>
+> You cannot update an existing entry with NATs.
+>
+> You can probably make your own libnetfilter_queue application that
+> allows you to create conntrack entries from packets. If you want to do
+> custom NAT handling some certain traffic. You will only need to pass
+> the first packet of the flow to userspace to set up the NAT mangling
+> you need.
+>
+> I would need to learn more on your usecase for this.
 
-I think this is meaningful to userspace in terms of providing a
-description of the interface, rather than making it look.
 
-Without the ID, it is not possible from userspace to see that MY_ATTR
-and MY_OTHER_ATTR refer to the same object, right?
+
+-- 
+--Mojtaba Esfandiari.S
