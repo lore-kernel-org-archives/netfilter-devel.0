@@ -2,75 +2,87 @@ Return-Path: <SRS0=bgPs=S7=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8873AC43219
-	for <netfilter-devel@archiver.kernel.org>; Mon, 29 Apr 2019 01:30:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D918FC43219
+	for <netfilter-devel@archiver.kernel.org>; Mon, 29 Apr 2019 10:19:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3CF3F20675
-	for <netfilter-devel@archiver.kernel.org>; Mon, 29 Apr 2019 01:30:25 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="BBwlR2Fk"
+	by mail.kernel.org (Postfix) with ESMTP id A63ED20656
+	for <netfilter-devel@archiver.kernel.org>; Mon, 29 Apr 2019 10:19:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726764AbfD2BaY (ORCPT
+        id S1727589AbfD2KTy (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 28 Apr 2019 21:30:24 -0400
-Received: from mail-ot1-f51.google.com ([209.85.210.51]:37266 "EHLO
-        mail-ot1-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726681AbfD2BaY (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 28 Apr 2019 21:30:24 -0400
-Received: by mail-ot1-f51.google.com with SMTP id r20so6124909otg.4
-        for <netfilter-devel@vger.kernel.org>; Sun, 28 Apr 2019 18:30:24 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:from:date:message-id:subject:to;
-        bh=KA4kQ1yNxYTd+A3wWslOopdNbOncTPtiPvVpUqG4PGA=;
-        b=BBwlR2FkSLJAQw0o6nbWbrI0uG5f+ZoERFog6aqMjhMPV+qu7cbQ/Mi5Jlt1ssgfnm
-         xyBfc04pVGyag0+hJdDcOL0OU3US9CA1b4DnM9GuChntbEQ7xWSup2Jo3iM1EfWIfTBU
-         23n5QIbJMUFpLoq0f7InszZuJBTfrb5oE2y/2CLgBh/VqljMWlykJNVqkxSBG4cETSzw
-         G7mdEw1wZwG3Ac10bWuD3ILJrSXSasDwLUgeYVuOAYu7LZef779i0muIHkrHaOFUMNU6
-         T2TaJUnvscooAeVJlp+IQLBsi65NcWlzRSYxH9pU/JWj02tMUFbxvXJPDjRDB6isMHiH
-         wjxQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:from:date:message-id:subject:to;
-        bh=KA4kQ1yNxYTd+A3wWslOopdNbOncTPtiPvVpUqG4PGA=;
-        b=ZXdDkDOBuXZg8ochELkbvHEs0pExWacfMKUUQCZ8J0sm+ST3WeuczSKtS1fnP4rOh2
-         MNswqmflDKORqUr17Q7KEzTVsRKernbM2o2wjQTtM1QHdUXxDqaf+KiWGsrl2QhfqYV5
-         L9NGbVrPTtmPTnrN2/DwJk8ym0WtwtOO8EhoZ4015GUihpAc0URY8dxdA5TGzC92vI6o
-         P9KlTsAhf8yarqoFiwk/nctvkhEkB9YK8MPgFKO3x4QE9N2ftQt3gUmfJUjJHdHCfx4G
-         DBBaIkdZjcV/DhCLyhMFE+sIl4W33ZFgNW0pDPcI8T1rMHBdROhSAaKTZEaSzgJ0wYwC
-         egZA==
-X-Gm-Message-State: APjAAAXzy3I0tMc4IIx4FjgrQgSbAJdYj4ywH/6XQL62VKOdRU3lugJM
-        a2fedns5xzEln0130Q0wwkroeNXomSxJl3tW+of9BdCBCPQ=
-X-Google-Smtp-Source: APXvYqxe3p1jRlx2xU6hd/O169Rvjjehoj+ADWPxZR9Wl/qilemgXg83u40N/3/mNq886RrIlZQnkwhWYp1DStpAWbc=
-X-Received: by 2002:a9d:58c5:: with SMTP id s5mr8536337oth.361.1556501423624;
- Sun, 28 Apr 2019 18:30:23 -0700 (PDT)
-MIME-Version: 1.0
-From:   Vijay Pasapuleti <vijaypas@gmail.com>
-Date:   Sun, 28 Apr 2019 20:30:13 -0500
-Message-ID: <CAC=w+U5PqMuz3nxdaWiTYwJf=Jfv6ErVEbYehXs2PDe+8A0-xg@mail.gmail.com>
-Subject: Netlink socket protocol NETLINK_NFLOG
+        Mon, 29 Apr 2019 06:19:54 -0400
+Received: from mail.us.es ([193.147.175.20]:51510 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727428AbfD2KTy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 29 Apr 2019 06:19:54 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 0DFE3E8626
+        for <netfilter-devel@vger.kernel.org>; Mon, 29 Apr 2019 12:19:52 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id F2881DA70A
+        for <netfilter-devel@vger.kernel.org>; Mon, 29 Apr 2019 12:19:51 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id E7655DA78D; Mon, 29 Apr 2019 12:19:51 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id F40C0DA705;
+        Mon, 29 Apr 2019 12:19:46 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Mon, 29 Apr 2019 12:19:46 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from salvia.here (sys.soleta.eu [212.170.55.40])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id C29474265A32;
+        Mon, 29 Apr 2019 12:19:46 +0200 (CEST)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Cc:     fw@strlen.de, ap420073@gmail.com
+Subject: [PATCH nf] netfilter: nft_flow_offload: add entry to flowtable after confirmation
+Date:   Mon, 29 Apr 2019 12:19:42 +0200
+Message-Id: <20190429101942.7861-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.11.0
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Is there anyway of getting NETLINK_NFLOG protocol to work in the
-4.1.16 kernel? Basically, I am wondering if there's a way to get ulogd
-(the older version -- not ulogd2) to work on the above kernel. It
-looks like net/netlink/af_netlink.c has support for NETLINK_NFLOG but
-the socket call from ulogd fails with 'unsupported protocol'.
+This is fixing flow offload for UDP traffic where packets only follow
+one single direction.
 
-h->fd = socket(PF_NETLINK, SOCK_RAW, NETLINK_NFLOG);
+The nf_ct_tcp_fixup() mechanism works fine in case that the offloaded
+entry remains in SYN_RECV state, given sequence tracking is reset and
+that conntrack handles syn+ack packets as a retransmission, ie.
 
+	sES + synack => sIG
 
-is the call that fails in libipulog.c.
+for reply traffic.
 
-Thanks in advance!
+Fixes: a3c90f7a2323 ("netfilter: nf_tables: flow offload expression")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nft_flow_offload.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
+index 6e6b9adf7d38..8968c7f5a72e 100644
+--- a/net/netfilter/nft_flow_offload.c
++++ b/net/netfilter/nft_flow_offload.c
+@@ -94,8 +94,7 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
+ 	if (help)
+ 		goto out;
+ 
+-	if (ctinfo == IP_CT_NEW ||
+-	    ctinfo == IP_CT_RELATED)
++	if (!nf_ct_is_confirmed(ct))
+ 		goto out;
+ 
+ 	if (test_and_set_bit(IPS_OFFLOAD_BIT, &ct->status))
+-- 
+2.11.0
+
