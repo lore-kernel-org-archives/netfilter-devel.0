@@ -2,123 +2,175 @@ Return-Path: <SRS0=bgPs=S7=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 99D9AC43219
-	for <netfilter-devel@archiver.kernel.org>; Mon, 29 Apr 2019 16:56:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 555AAC43219
+	for <netfilter-devel@archiver.kernel.org>; Mon, 29 Apr 2019 19:50:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 678692087B
-	for <netfilter-devel@archiver.kernel.org>; Mon, 29 Apr 2019 16:56:22 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="cKHiJA7f"
+	by mail.kernel.org (Postfix) with ESMTP id 1E785215EA
+	for <netfilter-devel@archiver.kernel.org>; Mon, 29 Apr 2019 19:50:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728752AbfD2Q4W (ORCPT
+        id S1729147AbfD2Tu0 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 29 Apr 2019 12:56:22 -0400
-Received: from mail-pf1-f194.google.com ([209.85.210.194]:45761 "EHLO
-        mail-pf1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728520AbfD2Q4W (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 29 Apr 2019 12:56:22 -0400
-Received: by mail-pf1-f194.google.com with SMTP id e24so5594077pfi.12
-        for <netfilter-devel@vger.kernel.org>; Mon, 29 Apr 2019 09:56:21 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id;
-        bh=RK+lm+KnQqAG7Z7lK8VmQ3QoP1mfZXV+RwWrycpDIBc=;
-        b=cKHiJA7fsxmPYiKXDV+4Af6GUqWAFaphtyqGVDCkzmHP/r/GRWdxOUqRgHT4f1M88F
-         t/4r7VwmKaIE774zBgWm8V3YnOgBT8b8+CmAABKWQCJsyWEUHvCf0WukljI/qM9M7pGW
-         hsU/ZyGAJePtpZQv0XzgppVJX/oUsyNVf7KOgnz7w+MG5j74UgBnJFSEK6ppVKRXZNhA
-         e1Lp4JaG/DnFSuzelRmeBYNIZvrnZVkTIHA60gQLFn5PdJA/TLj8EuOYsl5EW5LWzQ6F
-         A/hkkPnMufExo8or/pyneidV9d4DrCXWR6pCSEyTSehRcabNcCI+qmrZ7Mjum5K6EQLv
-         MjrQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id;
-        bh=RK+lm+KnQqAG7Z7lK8VmQ3QoP1mfZXV+RwWrycpDIBc=;
-        b=nAIxmpnFeQ694MnAt3gFb+uIN1dRGoUGKfg7v6ff+JQZZk5TZTwhNrVW4pFfzJEob6
-         oOBkUr5VezjngJAd6xg6Z8yT9HpZCWvqMUW2nfNxGNi4/omXUrhoBOxvbyfof1hjl68D
-         oWNmYlxi0B5DfDCst2zWEkZE6ne7bmRZOF/UT3fCP8iFC+ofzkLKqKgcH+MRbn2MDWue
-         Z3vL0BiS+HN6FptMmf7FSULC7pzzcnrm91rasOc76jtl+jp82SKBPoqdwjKoZ/1rBu7C
-         EFOl6G6hBUyvlwlD1kcz4kpHsLsFpoiBCRYJpnKNjgKJHUOMcg270oiLn2FFoHFTwT5C
-         Wqzg==
-X-Gm-Message-State: APjAAAWuNMCYQU5kskJtZ9Jv4WLgohcymzfDx37TCKUEKDKy5uUpOVK8
-        O2Ac0bkVMo2F1EvX5AS48ZsSLERn
-X-Google-Smtp-Source: APXvYqyzoQXb5uKnYX2WxsXzjK0ScQgQbO9ie47TWDtGkNdsBetq+avsEUK4/eHkjx2hDhELhYN0eA==
-X-Received: by 2002:a65:4247:: with SMTP id d7mr15469074pgq.114.1556556981355;
-        Mon, 29 Apr 2019 09:56:21 -0700 (PDT)
-Received: from ap-To-be-filled-by-O-E-M.8.8.8.8 ([14.33.120.60])
-        by smtp.gmail.com with ESMTPSA id h127sm48980466pgc.31.2019.04.29.09.56.19
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 29 Apr 2019 09:56:20 -0700 (PDT)
-From:   Taehee Yoo <ap420073@gmail.com>
-To:     pablo@netfilter.org, fw@strlen.de, netfilter-devel@vger.kernel.org
-Cc:     ap420073@gmail.com
-Subject: [PATCH nf v2 3/3] netfilter: nf_flow_table: do not use deleted CT's flow offload
-Date:   Tue, 30 Apr 2019 01:56:14 +0900
-Message-Id: <20190429165614.1506-1-ap420073@gmail.com>
-X-Mailer: git-send-email 2.17.1
+        Mon, 29 Apr 2019 15:50:26 -0400
+Received: from mail.us.es ([193.147.175.20]:41654 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1729054AbfD2Tu0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 29 Apr 2019 15:50:26 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 578F51031A7
+        for <netfilter-devel@vger.kernel.org>; Mon, 29 Apr 2019 21:50:24 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 46309DA713
+        for <netfilter-devel@vger.kernel.org>; Mon, 29 Apr 2019 21:50:24 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 42C98DA711; Mon, 29 Apr 2019 21:50:24 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 0914BDA706;
+        Mon, 29 Apr 2019 21:50:22 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Mon, 29 Apr 2019 21:50:22 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from salvia.here (sys.soleta.eu [212.170.55.40])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id BAA384265A31;
+        Mon, 29 Apr 2019 21:50:21 +0200 (CEST)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     davem@davemloft.net, netdev@vger.kernel.org,
+        nikolay@cumulusnetworks.com, roopa@cumulusnetworks.com
+Subject: [PATCH 0/9 net-next,v2] connection tracking support for bridge
+Date:   Mon, 29 Apr 2019 21:50:05 +0200
+Message-Id: <20190429195014.4724-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.11.0
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-flow offload of CT can be deleted by the masquerade module. then,
-flow offload should be deleted too. but GC and data-path of flow offload
-do not check CT's status. hence they will be removed only by the timeout.
+Hi,
 
-GC and data-path routine will check ct->status.
-If IPS_DYING_BIT is set, GC will delete CT and data-path routine
-do not use it.
+This patchset adds connection tracking support for the bridge family.
 
-Signed-off-by: Taehee Yoo <ap420073@gmail.com>
----
+Behaviour is similar to what users are used to in classic connection
+tracking: the new `nf_conntrack_bridge' module registers the bridge
+hooks on-demand in case that the policy relies on ct state information.
 
-v1 -> v2 : use IPS_DYING_BIT instead of ct->ct_general.use refcnt.
+Since we may see vlan / overlay packets, users can map different vlans /
+overlays to conntrack zones to avoid conflicts with overlapping
+conntrack entries via ruleset policy.
 
- net/netfilter/nf_flow_table_core.c | 10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+Patch 6 to 9 updates Netfilter codebase, more specifically:
 
-diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
-index 7aabfd4b1e50..50d04a718b41 100644
---- a/net/netfilter/nf_flow_table_core.c
-+++ b/net/netfilter/nf_flow_table_core.c
-@@ -232,6 +232,7 @@ flow_offload_lookup(struct nf_flowtable *flow_table,
- {
- 	struct flow_offload_tuple_rhash *tuplehash;
- 	struct flow_offload *flow;
-+	struct flow_offload_entry *e;
- 	int dir;
- 
- 	tuplehash = rhashtable_lookup(&flow_table->rhashtable, tuple,
-@@ -244,6 +245,10 @@ flow_offload_lookup(struct nf_flowtable *flow_table,
- 	if (flow->flags & (FLOW_OFFLOAD_DYING | FLOW_OFFLOAD_TEARDOWN))
- 		return NULL;
- 
-+	e = container_of(flow, struct flow_offload_entry, flow);
-+	if (unlikely(test_bit(IPS_DYING_BIT, &e->ct->status)))
-+		return NULL;
-+
- 	return tuplehash;
- }
- EXPORT_SYMBOL_GPL(flow_offload_lookup);
-@@ -290,9 +295,12 @@ static inline bool nf_flow_has_expired(const struct flow_offload *flow)
- static void nf_flow_offload_gc_step(struct flow_offload *flow, void *data)
- {
- 	struct nf_flowtable *flow_table = data;
-+	struct flow_offload_entry *e;
- 
-+	e = container_of(flow, struct flow_offload_entry, flow);
- 	if (nf_flow_has_expired(flow) ||
--	    (flow->flags & (FLOW_OFFLOAD_DYING | FLOW_OFFLOAD_TEARDOWN)))
-+	    (flow->flags & (FLOW_OFFLOAD_DYING | FLOW_OFFLOAD_TEARDOWN)) ||
-+	    (test_bit(IPS_DYING_BIT, &e->ct->status)))
- 		flow_offload_del(flow_table, flow);
- }
- 
+* Patch 6/9 adds infrastructure to register and to unregister the
+  nf_conntrack_bridge as a module via nf_ct_bridge_register() and
+  nf_ct_bridge_unregister(). This allows us to transparently the
+  existing ct extensions to match on the ct state with no changes.
+
+* Patch 7/9 adds IPv4 conntrack support for bridge. This add the
+  nf_conntrack_bridge module which registers two hooks, one at
+  bridge prerouting and another at bridge postrouting. For traffic that
+  is being forwarded, a conntrack entry is created at bridge prerouting
+  and confirmed at bridge postrouting. ARP packets are explicitly
+  untracked. We also follow the "do not drop packets from conntrack", as
+  invalid packets can be just dropped via policy.
+
+* Patch 8/9 adds IPv6 support for conntrack bridge.
+
+* Patch 9/9 enables classic IPv4/IPv6 conntrack to deal with local
+  traffic, ie. when the bridge interface has an IP address, hence
+  packets are passed up to the IP stack for local handling are confirmed
+  by the classic IPv4/IPv6 conntrack hooks. This allows users to define
+  stateful filtering policies from the bridge prerouting chain. For
+  outgoing traffic, the recommended solution is to define the stateful
+  policy from the classic IPv4/IPv6 output hooks.
+
+Then, patchset from 1 to 5 extract code from ip_do_fragment() in IPv4
+(as well as the equivalent function in IPv6) to reuse code to build a
+custom function to refragment traffic which:
+
+1) does not modify fragment geometry. There are few corner case
+   exceptions, such as linearized skbuffs (those coming from nfqueue
+   and a few ct helpers) and cloned skbuffs (port flooding in case
+   destination port is not yet known for this packet and also in case
+   of taps), in these cases geometry is lost for us.
+
+2) drops the packets in case maximum fragment seen is larger than mtu.
+
+3) does not assume the IPv4 control buffer layout.
+
+4) does not deal with sockets, the refragmentation codebase is only
+   exercised for forwarded/bridged traffic from the bridge prerouting
+   path, where no socket information is available, ie. not local
+   traffic.
+
+Reusing existing code would result in introducing a per-cpu area to pass
+extra parameters that classic ip_do_fragment() does not require. So this
+batch extracts code from the refragmentation core to share it with the
+new custom bridge refragmentation routine.
+
+More specifically, these patches are:
+
+* Patches 1/9 and 2/9 add the fraglist splitter. This infrastructure
+  extracts the code from ip_do_fragment() to split a fraglist into
+  fragments, then call the output callback for each fragmented skbuff.
+  The API consists of ip_fraglist_init() to start the iterator internal
+  state, then ip_fraglist_prepare() to restore restore the IPv4 header
+  in the fragment and, finally, ip_fraglist_next() to obtain the
+  fragmented skbuff from the fraglist. Similar API is introduced for
+  IPv6.
+
+* Patches 3/9 and 4/9 add the fragment transformer. This
+  infrastructure extracts the code from ip_do_fragment() to split a
+  linearized skbuff into fragmented skbuffs. This is also useful for the
+  skbuff clone case, needed in case of floods to multiple bridge ports
+  or when passing packets to the tap (ie. tcpdump), so this transformer
+  can also deal with fraglists. The API consists of ip6_frag_init() to
+  start the internal state of the transformer and ip6_frag_next() to build
+  and fetch a fragment.
+
+* Patches 5/9 moves the IPCB specific code away from these two
+  new APIs, so it can be used from the bridge without saving and
+  restoring the control buffer area.
+
+v2:
+* Fix English typos in patch descriptions.
+
+Pablo Neira Ayuso (9):
+  net: ipv4: add skbuff fraglist splitter
+  net: ipv6: add skbuff fraglist splitter
+  net: ipv4: split skbuff into fragments transformer
+  net: ipv6: split skbuff into fragments transformer
+  net: ipv4: place cb handling away from fragmentation iterators
+  netfilter: nf_conntrack: allow to register bridge support
+  netfilter: bridge: add connection tracking system
+  netfilter: nf_conntrack_bridge: add support for IPv6
+  netfilter: nf_conntrack_bridge: register inet conntrack for bridge
+
+ include/linux/netfilter_ipv6.h              |  50 ++++
+ include/net/ip.h                            |  39 +++
+ include/net/ipv6.h                          |  44 +++
+ include/net/netfilter/nf_conntrack.h        |   1 +
+ include/net/netfilter/nf_conntrack_bridge.h |  20 ++
+ include/net/netfilter/nf_conntrack_core.h   |   3 +
+ net/bridge/br_device.c                      |   1 +
+ net/bridge/br_private.h                     |   1 +
+ net/bridge/netfilter/Kconfig                |  14 +
+ net/bridge/netfilter/Makefile               |   3 +
+ net/bridge/netfilter/nf_conntrack_bridge.c  | 433 ++++++++++++++++++++++++++++
+ net/ipv4/ip_output.c                        | 309 ++++++++++++--------
+ net/ipv6/ip6_output.c                       | 315 +++++++++++---------
+ net/ipv6/netfilter.c                        | 123 ++++++++
+ net/netfilter/nf_conntrack_proto.c          | 126 ++++++--
+ 15 files changed, 1206 insertions(+), 276 deletions(-)
+ create mode 100644 include/net/netfilter/nf_conntrack_bridge.h
+ create mode 100644 net/bridge/netfilter/nf_conntrack_bridge.c
+
 -- 
-2.17.1
+2.11.0
 
