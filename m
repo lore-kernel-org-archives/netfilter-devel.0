@@ -6,30 +6,32 @@ X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 541F5C43219
-	for <netfilter-devel@archiver.kernel.org>; Tue, 30 Apr 2019 12:31:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B7DCEC43219
+	for <netfilter-devel@archiver.kernel.org>; Tue, 30 Apr 2019 12:51:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 23ADA2080C
-	for <netfilter-devel@archiver.kernel.org>; Tue, 30 Apr 2019 12:31:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8BD4E2075E
+	for <netfilter-devel@archiver.kernel.org>; Tue, 30 Apr 2019 12:51:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727141AbfD3Mbk (ORCPT
+        id S1727780AbfD3Mv2 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 30 Apr 2019 08:31:40 -0400
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:36692 "EHLO
+        Tue, 30 Apr 2019 08:51:28 -0400
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:36786 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726015AbfD3Mbk (ORCPT
+        by vger.kernel.org with ESMTP id S1726166AbfD3Mv1 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 30 Apr 2019 08:31:40 -0400
+        Tue, 30 Apr 2019 08:51:27 -0400
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.89)
         (envelope-from <fw@breakpoint.cc>)
-        id 1hLRv8-0006RX-MZ; Tue, 30 Apr 2019 14:31:38 +0200
+        id 1hLSEH-0006Yw-U8; Tue, 30 Apr 2019 14:51:26 +0200
 From:   Florian Westphal <fw@strlen.de>
 To:     <netfilter-devel@vger.kernel.org>
 Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf] netfilter: nf_tables: fix base chain stat rcu_dereference usage
-Date:   Tue, 30 Apr 2019 14:33:22 +0200
-Message-Id: <20190430123322.6744-1-fw@strlen.de>
+Subject: [PATCH nf] netfilter: nf_tables: fix oops during rule dump
+Date:   Tue, 30 Apr 2019 14:53:11 +0200
+Message-Id: <20190430125311.7267-1-fw@strlen.de>
 X-Mailer: git-send-email 2.21.0
+In-Reply-To: <netfilter-devel>
+References: <netfilter-devel>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -37,70 +39,102 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Following splat gets triggered when nfnetlink monitor is running while
-xtables-nft selftests are running:
+We can oops in nf_tables_fill_rule_info().
 
-net/netfilter/nf_tables_api.c:1272 suspicious rcu_dereference_check() usage!
-other info that might help us debug this:
+Its not possible to fetch previous element in rcu-protected lists
+when deletions are not prevented somehow: list_del_rcu poisons
+the ->prev pointer value.
 
-1 lock held by xtables-nft-mul/27006:
- #0: 00000000e0f85be9 (&net->nft.commit_mutex){+.+.}, at: nf_tables_valid_genid+0x1a/0x50
-Call Trace:
- nf_tables_fill_chain_info.isra.45+0x6cc/0x6e0
- nf_tables_chain_notify+0xf8/0x1a0
- nf_tables_commit+0x165c/0x1740
+Before rcu-conversion this was safe as dump operations did hold
+nfnetlink mutex.
 
-nf_tables_fill_chain_info() can be called both from dumps (rcu read locked)
-or from the transaction path if a userspace process subscribed to nftables
-notifications.
+Pass previous rule as argument, obtained by keeping a pointer to
+the previous rule during traversal.
 
-In the 'table dump' case, rcu_access_pointer() cannot be used: We do not
-hold transaction mutex so the pointer can be NULLed right after the check.
-Just unconditionally fetch the value, then have the helper return
-immediately if its NULL.
-
-In the notification case we don't hold the rcu read lock, but updates are
-prevented due to transaction mutex. Use rcu_dereference_check() to make lockdep
-aware of this.
-
+Fixes: d9adf22a291883 ("netfilter: nf_tables: use call_rcu in netlink dumps")
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nf_tables_api.c | 9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ net/netfilter/nf_tables_api.c | 20 +++++++++++---------
+ 1 file changed, 11 insertions(+), 9 deletions(-)
 
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 1606eaa5ae0d..aa5e7b00a581 100644
+index aa5e7b00a581..0969f9647927 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -1190,6 +1190,9 @@ static int nft_dump_stats(struct sk_buff *skb, struct nft_stats __percpu *stats)
- 	u64 pkts, bytes;
- 	int cpu;
+@@ -2261,13 +2261,13 @@ static int nf_tables_fill_rule_info(struct sk_buff *skb, struct net *net,
+ 				    u32 flags, int family,
+ 				    const struct nft_table *table,
+ 				    const struct nft_chain *chain,
+-				    const struct nft_rule *rule)
++				    const struct nft_rule *rule,
++				    const struct nft_rule *prule)
+ {
+ 	struct nlmsghdr *nlh;
+ 	struct nfgenmsg *nfmsg;
+ 	const struct nft_expr *expr, *next;
+ 	struct nlattr *list;
+-	const struct nft_rule *prule;
+ 	u16 type = nfnl_msg_type(NFNL_SUBSYS_NFTABLES, event);
  
-+	if (!stats)
-+		return 0;
-+
- 	memset(&total, 0, sizeof(total));
- 	for_each_possible_cpu(cpu) {
- 		cpu_stats = per_cpu_ptr(stats, cpu);
-@@ -1247,6 +1250,7 @@ static int nf_tables_fill_chain_info(struct sk_buff *skb, struct net *net,
- 	if (nft_is_base_chain(chain)) {
- 		const struct nft_base_chain *basechain = nft_base_chain(chain);
- 		const struct nf_hook_ops *ops = &basechain->ops;
-+		struct nft_stats __percpu *stats;
- 		struct nlattr *nest;
+ 	nlh = nlmsg_put(skb, portid, seq, type, sizeof(struct nfgenmsg), flags);
+@@ -2287,8 +2287,7 @@ static int nf_tables_fill_rule_info(struct sk_buff *skb, struct net *net,
+ 			 NFTA_RULE_PAD))
+ 		goto nla_put_failure;
  
- 		nest = nla_nest_start(skb, NFTA_CHAIN_HOOK);
-@@ -1268,8 +1272,9 @@ static int nf_tables_fill_chain_info(struct sk_buff *skb, struct net *net,
- 		if (nla_put_string(skb, NFTA_CHAIN_TYPE, basechain->type->name))
- 			goto nla_put_failure;
+-	if ((event != NFT_MSG_DELRULE) && (rule->list.prev != &chain->rules)) {
+-		prule = list_prev_entry(rule, list);
++	if (event != NFT_MSG_DELRULE && prule) {
+ 		if (nla_put_be64(skb, NFTA_RULE_POSITION,
+ 				 cpu_to_be64(prule->handle),
+ 				 NFTA_RULE_PAD))
+@@ -2335,7 +2334,7 @@ static void nf_tables_rule_notify(const struct nft_ctx *ctx,
  
--		if (rcu_access_pointer(basechain->stats) &&
--		    nft_dump_stats(skb, rcu_dereference(basechain->stats)))
-+		stats = rcu_dereference_check(basechain->stats,
-+					      lockdep_commit_lock_is_held(net));
-+		if (nft_dump_stats(skb, stats))
- 			goto nla_put_failure;
+ 	err = nf_tables_fill_rule_info(skb, ctx->net, ctx->portid, ctx->seq,
+ 				       event, 0, ctx->family, ctx->table,
+-				       ctx->chain, rule);
++				       ctx->chain, rule, NULL);
+ 	if (err < 0) {
+ 		kfree_skb(skb);
+ 		goto err;
+@@ -2360,12 +2359,13 @@ static int __nf_tables_dump_rules(struct sk_buff *skb,
+ 				  const struct nft_chain *chain)
+ {
+ 	struct net *net = sock_net(skb->sk);
++	const struct nft_rule *rule, *prule;
+ 	unsigned int s_idx = cb->args[0];
+-	const struct nft_rule *rule;
+ 
++	prule = NULL;
+ 	list_for_each_entry_rcu(rule, &chain->rules, list) {
+ 		if (!nft_is_active(net, rule))
+-			goto cont;
++			goto cont_skip;
+ 		if (*idx < s_idx)
+ 			goto cont;
+ 		if (*idx > s_idx) {
+@@ -2377,11 +2377,13 @@ static int __nf_tables_dump_rules(struct sk_buff *skb,
+ 					NFT_MSG_NEWRULE,
+ 					NLM_F_MULTI | NLM_F_APPEND,
+ 					table->family,
+-					table, chain, rule) < 0)
++					table, chain, rule, prule) < 0)
+ 			return 1;
+ 
+ 		nl_dump_check_consistent(cb, nlmsg_hdr(skb));
+ cont:
++		prule = rule;
++cont_skip:
+ 		(*idx)++;
  	}
+ 	return 0;
+@@ -2537,7 +2539,7 @@ static int nf_tables_getrule(struct net *net, struct sock *nlsk,
+ 
+ 	err = nf_tables_fill_rule_info(skb2, net, NETLINK_CB(skb).portid,
+ 				       nlh->nlmsg_seq, NFT_MSG_NEWRULE, 0,
+-				       family, table, chain, rule);
++				       family, table, chain, rule, NULL);
+ 	if (err < 0)
+ 		goto err;
  
 -- 
 2.21.0
