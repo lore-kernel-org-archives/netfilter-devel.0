@@ -2,140 +2,142 @@ Return-Path: <SRS0=Ro/3=TA=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B7DCEC43219
-	for <netfilter-devel@archiver.kernel.org>; Tue, 30 Apr 2019 12:51:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 32A82C04AA6
+	for <netfilter-devel@archiver.kernel.org>; Tue, 30 Apr 2019 13:03:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8BD4E2075E
-	for <netfilter-devel@archiver.kernel.org>; Tue, 30 Apr 2019 12:51:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 01DE521670
+	for <netfilter-devel@archiver.kernel.org>; Tue, 30 Apr 2019 13:03:50 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="COjeKP99"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727780AbfD3Mv2 (ORCPT
+        id S1727821AbfD3NDt (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 30 Apr 2019 08:51:28 -0400
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:36786 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726166AbfD3Mv1 (ORCPT
+        Tue, 30 Apr 2019 09:03:49 -0400
+Received: from mail-ot1-f65.google.com ([209.85.210.65]:32857 "EHLO
+        mail-ot1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726819AbfD3NDt (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 30 Apr 2019 08:51:27 -0400
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.89)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1hLSEH-0006Yw-U8; Tue, 30 Apr 2019 14:51:26 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf] netfilter: nf_tables: fix oops during rule dump
-Date:   Tue, 30 Apr 2019 14:53:11 +0200
-Message-Id: <20190430125311.7267-1-fw@strlen.de>
-X-Mailer: git-send-email 2.21.0
-In-Reply-To: <netfilter-devel>
-References: <netfilter-devel>
+        Tue, 30 Apr 2019 09:03:49 -0400
+Received: by mail-ot1-f65.google.com with SMTP id s11so7480411otp.0
+        for <netfilter-devel@vger.kernel.org>; Tue, 30 Apr 2019 06:03:49 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=OguJTAmrYmpGwm/YehMrXnagMAv2liHSExT8Lmu9qYY=;
+        b=COjeKP99cSP96WxlG2Wp7hARIWuIjDp/bO0UKCsAohWEiwD7oyaatN0e/9LLQXajDO
+         4aazjGlbPV63N4UGDpYMxe22LSq9eECsEFg0hTpbrVzHj4vlMsMzAp9cg151yZ3P3DP+
+         rq7e4CJiqycXjMDI2c8kvfvJ759sI6d6HL45LT3fE/4P4V+fTrowUbQe6zYVBncUn7m5
+         OlwwF3ek+0QyF2ZNchrf0/W2gPpps/pPI5nvTSmR7MLwokadQj37AH+QhVzU9R4fBY/E
+         JqZP3lFbqsRlddLc7T/T6lbu4pP9HnI+WWNjmowUqTANUXu3650CE+Ie9bE4/r38GbsS
+         ZP6g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=OguJTAmrYmpGwm/YehMrXnagMAv2liHSExT8Lmu9qYY=;
+        b=aaY2XKnqNoAVnicm2LajfEzrM1b8qnNALn3ZKS8RTyXluaw53OBaBpfE0e893F9SRk
+         bx0qNrDsx2ETGhYXo6NHtdOV40P8rp8V2ekFDMSzl0H0a2GK7nU+Bs/3TDPGUARH2etO
+         0nlhL8INMRraW9Vi4mApzMgerVbrmfKya7Nak5FfOPUl9vc6u7p6yy72nJaOW9iHgv84
+         o8mv3SzpCE2LPV9vOvABBQm5QWEXXimp0E4E2ZAGUlZ3b4QrI6iYGs7zLkd9vZkM6fol
+         hmzNg27iiRlMDwwkfsbDurHckmx1JRNHWbX8TtI7XU4vehP2wlLkNiVUDBK2YdfrYgGV
+         SbVw==
+X-Gm-Message-State: APjAAAWb4Z+K+tFLrCk10NLt8iw3t6UCGMlicp/zaxFcqA+QoTSd0G0U
+        /DwHclcOXfMw8eDtD4w3BW7I2wfmYVhibHcHWzLlUw==
+X-Google-Smtp-Source: APXvYqyOI8KqV0kdulbIQfF17jftovDRyDstmPMML8oiN8jyHHeHESYRH0NyHCCXaqS0eFiybMubqyj3oUooPQ1v+qY=
+X-Received: by 2002:a9d:5604:: with SMTP id e4mr24391528oti.336.1556629428830;
+ Tue, 30 Apr 2019 06:03:48 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20190429165614.1506-1-ap420073@gmail.com> <20190430115908.2heamxb6yenzh65s@salvia>
+In-Reply-To: <20190430115908.2heamxb6yenzh65s@salvia>
+From:   Taehee Yoo <ap420073@gmail.com>
+Date:   Tue, 30 Apr 2019 22:03:37 +0900
+Message-ID: <CAMArcTWJf3bXCeLaMAXiMsHSM7eZaqfZSzYKE5AvbzB8Xnoreg@mail.gmail.com>
+Subject: Re: [PATCH nf v2 3/3] netfilter: nf_flow_table: do not use deleted
+ CT's flow offload
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Florian Westphal <fw@strlen.de>,
+        Netfilter Developer Mailing List 
+        <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-We can oops in nf_tables_fill_rule_info().
+On Tue, 30 Apr 2019 at 20:59, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+>
+> On Tue, Apr 30, 2019 at 01:56:14AM +0900, Taehee Yoo wrote:
+> > flow offload of CT can be deleted by the masquerade module. then,
+> > flow offload should be deleted too. but GC and data-path of flow offload
+> > do not check CT's status. hence they will be removed only by the timeout.
+> >
+> > GC and data-path routine will check ct->status.
+> > If IPS_DYING_BIT is set, GC will delete CT and data-path routine
+> > do not use it.
+> >
+> > Signed-off-by: Taehee Yoo <ap420073@gmail.com>
+> > ---
+> >
+> > v1 -> v2 : use IPS_DYING_BIT instead of ct->ct_general.use refcnt.
+> >
+> >  net/netfilter/nf_flow_table_core.c | 10 +++++++++-
+> >  1 file changed, 9 insertions(+), 1 deletion(-)
+> >
+> > diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
+> > index 7aabfd4b1e50..50d04a718b41 100644
+> > --- a/net/netfilter/nf_flow_table_core.c
+> > +++ b/net/netfilter/nf_flow_table_core.c
+> > @@ -232,6 +232,7 @@ flow_offload_lookup(struct nf_flowtable *flow_table,
+> >  {
+> >       struct flow_offload_tuple_rhash *tuplehash;
+> >       struct flow_offload *flow;
+> > +     struct flow_offload_entry *e;
+> >       int dir;
+> >
+> >       tuplehash = rhashtable_lookup(&flow_table->rhashtable, tuple,
+> > @@ -244,6 +245,10 @@ flow_offload_lookup(struct nf_flowtable *flow_table,
+> >       if (flow->flags & (FLOW_OFFLOAD_DYING | FLOW_OFFLOAD_TEARDOWN))
+> >               return NULL;
+> >
+> > +     e = container_of(flow, struct flow_offload_entry, flow);
+> > +     if (unlikely(test_bit(IPS_DYING_BIT, &e->ct->status)))
+>
+> Please, send a new version of this patch that uses:
+>
+>         nf_ct_is_dying()
+>
+> Thanks.
+>
 
-Its not possible to fetch previous element in rcu-protected lists
-when deletions are not prevented somehow: list_del_rcu poisons
-the ->prev pointer value.
+Thank you for the review and I will send v3 patch for using nf_ct_is_dying()
 
-Before rcu-conversion this was safe as dump operations did hold
-nfnetlink mutex.
+Thank you again!
 
-Pass previous rule as argument, obtained by keeping a pointer to
-the previous rule during traversal.
-
-Fixes: d9adf22a291883 ("netfilter: nf_tables: use call_rcu in netlink dumps")
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/nf_tables_api.c | 20 +++++++++++---------
- 1 file changed, 11 insertions(+), 9 deletions(-)
-
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index aa5e7b00a581..0969f9647927 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -2261,13 +2261,13 @@ static int nf_tables_fill_rule_info(struct sk_buff *skb, struct net *net,
- 				    u32 flags, int family,
- 				    const struct nft_table *table,
- 				    const struct nft_chain *chain,
--				    const struct nft_rule *rule)
-+				    const struct nft_rule *rule,
-+				    const struct nft_rule *prule)
- {
- 	struct nlmsghdr *nlh;
- 	struct nfgenmsg *nfmsg;
- 	const struct nft_expr *expr, *next;
- 	struct nlattr *list;
--	const struct nft_rule *prule;
- 	u16 type = nfnl_msg_type(NFNL_SUBSYS_NFTABLES, event);
- 
- 	nlh = nlmsg_put(skb, portid, seq, type, sizeof(struct nfgenmsg), flags);
-@@ -2287,8 +2287,7 @@ static int nf_tables_fill_rule_info(struct sk_buff *skb, struct net *net,
- 			 NFTA_RULE_PAD))
- 		goto nla_put_failure;
- 
--	if ((event != NFT_MSG_DELRULE) && (rule->list.prev != &chain->rules)) {
--		prule = list_prev_entry(rule, list);
-+	if (event != NFT_MSG_DELRULE && prule) {
- 		if (nla_put_be64(skb, NFTA_RULE_POSITION,
- 				 cpu_to_be64(prule->handle),
- 				 NFTA_RULE_PAD))
-@@ -2335,7 +2334,7 @@ static void nf_tables_rule_notify(const struct nft_ctx *ctx,
- 
- 	err = nf_tables_fill_rule_info(skb, ctx->net, ctx->portid, ctx->seq,
- 				       event, 0, ctx->family, ctx->table,
--				       ctx->chain, rule);
-+				       ctx->chain, rule, NULL);
- 	if (err < 0) {
- 		kfree_skb(skb);
- 		goto err;
-@@ -2360,12 +2359,13 @@ static int __nf_tables_dump_rules(struct sk_buff *skb,
- 				  const struct nft_chain *chain)
- {
- 	struct net *net = sock_net(skb->sk);
-+	const struct nft_rule *rule, *prule;
- 	unsigned int s_idx = cb->args[0];
--	const struct nft_rule *rule;
- 
-+	prule = NULL;
- 	list_for_each_entry_rcu(rule, &chain->rules, list) {
- 		if (!nft_is_active(net, rule))
--			goto cont;
-+			goto cont_skip;
- 		if (*idx < s_idx)
- 			goto cont;
- 		if (*idx > s_idx) {
-@@ -2377,11 +2377,13 @@ static int __nf_tables_dump_rules(struct sk_buff *skb,
- 					NFT_MSG_NEWRULE,
- 					NLM_F_MULTI | NLM_F_APPEND,
- 					table->family,
--					table, chain, rule) < 0)
-+					table, chain, rule, prule) < 0)
- 			return 1;
- 
- 		nl_dump_check_consistent(cb, nlmsg_hdr(skb));
- cont:
-+		prule = rule;
-+cont_skip:
- 		(*idx)++;
- 	}
- 	return 0;
-@@ -2537,7 +2539,7 @@ static int nf_tables_getrule(struct net *net, struct sock *nlsk,
- 
- 	err = nf_tables_fill_rule_info(skb2, net, NETLINK_CB(skb).portid,
- 				       nlh->nlmsg_seq, NFT_MSG_NEWRULE, 0,
--				       family, table, chain, rule);
-+				       family, table, chain, rule, NULL);
- 	if (err < 0)
- 		goto err;
- 
--- 
-2.21.0
-
+> > +             return NULL;
+> > +
+> >       return tuplehash;
+> >  }
+> >  EXPORT_SYMBOL_GPL(flow_offload_lookup);
+> > @@ -290,9 +295,12 @@ static inline bool nf_flow_has_expired(const struct flow_offload *flow)
+> >  static void nf_flow_offload_gc_step(struct flow_offload *flow, void *data)
+> >  {
+> >       struct nf_flowtable *flow_table = data;
+> > +     struct flow_offload_entry *e;
+> >
+> > +     e = container_of(flow, struct flow_offload_entry, flow);
+> >       if (nf_flow_has_expired(flow) ||
+> > -         (flow->flags & (FLOW_OFFLOAD_DYING | FLOW_OFFLOAD_TEARDOWN)))
+> > +         (flow->flags & (FLOW_OFFLOAD_DYING | FLOW_OFFLOAD_TEARDOWN)) ||
+> > +         (test_bit(IPS_DYING_BIT, &e->ct->status)))
+> >               flow_offload_del(flow_table, flow);
+> >  }
+> >
+> > --
+> > 2.17.1
+> >
