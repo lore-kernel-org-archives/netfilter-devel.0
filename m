@@ -2,82 +2,162 @@ Return-Path: <SRS0=Ro/3=TA=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_NEOMUTT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 332D5C43219
-	for <netfilter-devel@archiver.kernel.org>; Tue, 30 Apr 2019 12:04:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 33B02C04AA6
+	for <netfilter-devel@archiver.kernel.org>; Tue, 30 Apr 2019 12:08:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 03EA02075E
-	for <netfilter-devel@archiver.kernel.org>; Tue, 30 Apr 2019 12:04:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0E7F5205ED
+	for <netfilter-devel@archiver.kernel.org>; Tue, 30 Apr 2019 12:08:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729518AbfD3Lmp (ORCPT
+        id S1727265AbfD3MIC (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 30 Apr 2019 07:42:45 -0400
-Received: from mail.us.es ([193.147.175.20]:46586 "EHLO mail.us.es"
+        Tue, 30 Apr 2019 08:08:02 -0400
+Received: from mail.us.es ([193.147.175.20]:36976 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729473AbfD3Lmp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 30 Apr 2019 07:42:45 -0400
+        id S1727574AbfD3MIB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 30 Apr 2019 08:08:01 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 438E79A7B3
-        for <netfilter-devel@vger.kernel.org>; Tue, 30 Apr 2019 13:42:43 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id DC26B11FBE3
+        for <netfilter-devel@vger.kernel.org>; Tue, 30 Apr 2019 14:07:59 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 3319CDA70F
-        for <netfilter-devel@vger.kernel.org>; Tue, 30 Apr 2019 13:42:43 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id CE216DA703
+        for <netfilter-devel@vger.kernel.org>; Tue, 30 Apr 2019 14:07:59 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 285ABDA710; Tue, 30 Apr 2019 13:42:43 +0200 (CEST)
+        id C3C26DA708; Tue, 30 Apr 2019 14:07:59 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 1578EDA710;
-        Tue, 30 Apr 2019 13:42:41 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 8A2BFDA705
+        for <netfilter-devel@vger.kernel.org>; Tue, 30 Apr 2019 14:07:57 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 30 Apr 2019 13:42:41 +0200 (CEST)
+ Tue, 30 Apr 2019 14:07:57 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (129.166.216.87.static.jazztel.es [87.216.166.129])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id D022D40705C1;
-        Tue, 30 Apr 2019 13:42:40 +0200 (CEST)
-Date:   Tue, 30 Apr 2019 13:42:40 +0200
+Received: from salvia.here (129.166.216.87.static.jazztel.es [87.216.166.129])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id 5DB1C4265A32
+        for <netfilter-devel@vger.kernel.org>; Tue, 30 Apr 2019 14:07:57 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Flavio Leitner <fbl@redhat.com>
-Cc:     netdev@vger.kernel.org, Joe Stringer <joe@ovn.org>,
-        Pravin B Shelar <pshelar@ovn.org>, dev@openvswitch.org,
-        netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH net-next v3 0/4] openvswitch: load and reference the NAT
- helper
-Message-ID: <20190430114240.bpqseexjjcr6s4ta@salvia>
-References: <20190417144617.14922-1-fbl@redhat.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190417144617.14922-1-fbl@redhat.com>
-User-Agent: NeoMutt/20170113 (1.7.2)
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH iptables,v2] xshared: check for maximum buffer length in add_param_to_argv()
+Date:   Tue, 30 Apr 2019 14:07:54 +0200
+Message-Id: <20190430120754.17453-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.11.0
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Apr 17, 2019 at 11:46:13AM -0300, Flavio Leitner wrote:
-> The request_module() is quite expensive and triggers the
-> usermode helper in userspace. Instead, load only if the
-> module is not present and keep module references to avoid
-> problems.
-> 
-> The first patch standardize the module alias which is already
-> there, but not in a formal way.
-> 
-> The second patch adds an API to point to the NAT helper.
-> 
-> The third patch will register each NAT helper using the
-> new API.
-> 
-> The last patch fixes openvswitch to use the new API to
-> load and reference the NAT helper and also report an error
-> if the operation fails.
+Bail out if we go over the boundary, based on patch from Sebastian.
 
-Series applied. Thanks Flavio.
+Reported-by: Sebastian Neef <contact@0day.work>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+v2: use xt_param_buf instead of xt_param, there's already a xt_params
+    object.
+
+ iptables/xshared.c | 46 ++++++++++++++++++++++++++++------------------
+ 1 file changed, 28 insertions(+), 18 deletions(-)
+
+diff --git a/iptables/xshared.c b/iptables/xshared.c
+index fb186fb1ac65..36a2ec5f193d 100644
+--- a/iptables/xshared.c
++++ b/iptables/xshared.c
+@@ -433,10 +433,24 @@ void save_argv(void)
+ 	}
+ }
+ 
++struct xt_param_buf {
++	char	buffer[1024];
++	int 	len;
++};
++
++static void add_param(struct xt_param_buf *param, const char *curchar)
++{
++	param->buffer[param->len++] = *curchar;
++	if (param->len >= sizeof(param->buffer))
++		xtables_error(PARAMETER_PROBLEM,
++			      "Parameter too long!");
++}
++
+ void add_param_to_argv(char *parsestart, int line)
+ {
+-	int quote_open = 0, escaped = 0, param_len = 0;
+-	char param_buffer[1024], *curchar;
++	int quote_open = 0, escaped = 0;
++	struct xt_param_buf param = {};
++	char *curchar;
+ 
+ 	/* After fighting with strtok enough, here's now
+ 	 * a 'real' parser. According to Rusty I'm now no
+@@ -445,7 +459,7 @@ void add_param_to_argv(char *parsestart, int line)
+ 	for (curchar = parsestart; *curchar; curchar++) {
+ 		if (quote_open) {
+ 			if (escaped) {
+-				param_buffer[param_len++] = *curchar;
++				add_param(&param, curchar);
+ 				escaped = 0;
+ 				continue;
+ 			} else if (*curchar == '\\') {
+@@ -455,7 +469,7 @@ void add_param_to_argv(char *parsestart, int line)
+ 				quote_open = 0;
+ 				*curchar = '"';
+ 			} else {
+-				param_buffer[param_len++] = *curchar;
++				add_param(&param, curchar);
+ 				continue;
+ 			}
+ 		} else {
+@@ -471,36 +485,32 @@ void add_param_to_argv(char *parsestart, int line)
+ 		case ' ':
+ 		case '\t':
+ 		case '\n':
+-			if (!param_len) {
++			if (!param.len) {
+ 				/* two spaces? */
+ 				continue;
+ 			}
+ 			break;
+ 		default:
+ 			/* regular character, copy to buffer */
+-			param_buffer[param_len++] = *curchar;
+-
+-			if (param_len >= sizeof(param_buffer))
+-				xtables_error(PARAMETER_PROBLEM,
+-					      "Parameter too long!");
++			add_param(&param, curchar);
+ 			continue;
+ 		}
+ 
+-		param_buffer[param_len] = '\0';
++		param.buffer[param.len] = '\0';
+ 
+ 		/* check if table name specified */
+-		if ((param_buffer[0] == '-' &&
+-		     param_buffer[1] != '-' &&
+-		     strchr(param_buffer, 't')) ||
+-		    (!strncmp(param_buffer, "--t", 3) &&
+-		     !strncmp(param_buffer, "--table", strlen(param_buffer)))) {
++		if ((param.buffer[0] == '-' &&
++		     param.buffer[1] != '-' &&
++		     strchr(param.buffer, 't')) ||
++		    (!strncmp(param.buffer, "--t", 3) &&
++		     !strncmp(param.buffer, "--table", strlen(param.buffer)))) {
+ 			xtables_error(PARAMETER_PROBLEM,
+ 				      "The -t option (seen in line %u) cannot be used in %s.\n",
+ 				      line, xt_params->program_name);
+ 		}
+ 
+-		add_argv(param_buffer, 0);
+-		param_len = 0;
++		add_argv(param.buffer, 0);
++		param.len = 0;
+ 	}
+ }
+ 
+-- 
+2.11.0
+
