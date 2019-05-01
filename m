@@ -2,74 +2,106 @@ Return-Path: <SRS0=QQeY=TB=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_MUTT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 03DB7C43219
-	for <netfilter-devel@archiver.kernel.org>; Wed,  1 May 2019 16:35:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5829BC43219
+	for <netfilter-devel@archiver.kernel.org>; Wed,  1 May 2019 22:50:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C83AE20835
-	for <netfilter-devel@archiver.kernel.org>; Wed,  1 May 2019 16:35:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1F8042081C
+	for <netfilter-devel@archiver.kernel.org>; Wed,  1 May 2019 22:50:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726513AbfEAQfN (ORCPT
+        id S1726139AbfEAWuv (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 1 May 2019 12:35:13 -0400
-Received: from mx1.redhat.com ([209.132.183.28]:56704 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726224AbfEAQfN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 1 May 2019 12:35:13 -0400
-Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.13])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mx1.redhat.com (Postfix) with ESMTPS id 559F23082E57;
-        Wed,  1 May 2019 16:35:13 +0000 (UTC)
-Received: from egarver.remote.csb (ovpn-122-125.rdu2.redhat.com [10.10.122.125])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 97AF060856;
-        Wed,  1 May 2019 16:35:12 +0000 (UTC)
-From:   Eric Garver <eric@garver.life>
-To:     netfilter-devel@vger.kernel.org
-Cc:     Phil Sutter <phil@nwl.cc>
-Subject: [PATCH nft] evaluate: force full cache update on rule index translation
-Date:   Wed,  1 May 2019 12:35:10 -0400
-Message-Id: <20190501163510.29723-1-eric@garver.life>
+        Wed, 1 May 2019 18:50:51 -0400
+Received: from gateway22.websitewelcome.com ([192.185.47.144]:46695 "EHLO
+        gateway22.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726126AbfEAWuv (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 1 May 2019 18:50:51 -0400
+X-Greylist: delayed 1500 seconds by postgrey-1.27 at vger.kernel.org; Wed, 01 May 2019 18:50:51 EDT
+Received: from cm12.websitewelcome.com (cm12.websitewelcome.com [100.42.49.8])
+        by gateway22.websitewelcome.com (Postfix) with ESMTP id E6A3E7409
+        for <netfilter-devel@vger.kernel.org>; Wed,  1 May 2019 17:01:14 -0500 (CDT)
+Received: from gator4166.hostgator.com ([108.167.133.22])
+        by cmsmtp with SMTP
+        id LxHuh5DFGiQerLxHuhksTO; Wed, 01 May 2019 17:01:14 -0500
+X-Authority-Reason: nr=8
+Received: from [189.250.119.203] (port=58416 helo=embeddedor)
+        by gator4166.hostgator.com with esmtpa (Exim 4.91)
+        (envelope-from <gustavo@embeddedor.com>)
+        id 1hLxHr-000EDy-Su; Wed, 01 May 2019 17:01:11 -0500
+Date:   Wed, 1 May 2019 17:01:08 -0500
+From:   "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>
+Cc:     netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+Subject: [PATCH][next] netfilter: xt_hashlimit: use struct_size() helper
+Message-ID: <20190501220108.GA30487@embeddedor>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.13
-X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.5.16 (mx1.redhat.com [10.5.110.46]); Wed, 01 May 2019 16:35:13 +0000 (UTC)
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+User-Agent: Mutt/1.9.4 (2018-02-28)
+X-AntiAbuse: This header was added to track abuse, please include it with any abuse report
+X-AntiAbuse: Primary Hostname - gator4166.hostgator.com
+X-AntiAbuse: Original Domain - vger.kernel.org
+X-AntiAbuse: Originator/Caller UID/GID - [47 12] / [47 12]
+X-AntiAbuse: Sender Address Domain - embeddedor.com
+X-BWhitelist: no
+X-Source-IP: 189.250.119.203
+X-Source-L: No
+X-Exim-ID: 1hLxHr-000EDy-Su
+X-Source: 
+X-Source-Args: 
+X-Source-Dir: 
+X-Source-Sender: (embeddedor) [189.250.119.203]:58416
+X-Source-Auth: gustavo@embeddedor.com
+X-Email-Count: 5
+X-Source-Cap: Z3V6aWRpbmU7Z3V6aWRpbmU7Z2F0b3I0MTY2Lmhvc3RnYXRvci5jb20=
+X-Local-Domain: yes
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-If we've done a partial fetch of the cache and the genid is the same the
-cache update will be skipped without fetching the rules. This causes the
-index to handle lookup to fail. To remedy the situation we flush the
-cache and force a full update.
+Make use of the struct_size() helper instead of an open-coded version
+in order to avoid any potential type mistakes, in particular in the
+context in which this code is being used.
 
-Fixes: 816d8c7659c1 ("Support 'add/insert rule index <IDX>'")
-Signed-off-by: Eric Garver <eric@garver.life>
+So, replace code of the following form:
+
+sizeof(struct xt_hashlimit_htable) + sizeof(struct hlist_head) * size
+
+with:
+
+struct_size(hinfo, hash, size)
+
+This code was detected with the help of Coccinelle.
+
+Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
 ---
- src/evaluate.c | 6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ net/netfilter/xt_hashlimit.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 3593eb80a6a6..a2585291e7c4 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -3182,7 +3182,11 @@ static int rule_translate_index(struct eval_ctx *ctx, struct rule *rule)
- 	struct rule *r;
- 	int ret;
- 
--	/* update cache with CMD_LIST so that rules are fetched, too */
-+	/* Update cache with CMD_LIST so that rules are fetched, too. The explicit
-+	 * release is necessary because the genid may be the same, in which case
-+	 * the update would be a no-op.
-+	 */
-+	cache_release(&ctx->nft->cache);
- 	ret = cache_update(ctx->nft, CMD_LIST, ctx->msgs);
- 	if (ret < 0)
- 		return ret;
+diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
+index 8d86e39d6280..a30536b17ee1 100644
+--- a/net/netfilter/xt_hashlimit.c
++++ b/net/netfilter/xt_hashlimit.c
+@@ -288,8 +288,7 @@ static int htable_create(struct net *net, struct hashlimit_cfg3 *cfg,
+ 			size = 16;
+ 	}
+ 	/* FIXME: don't use vmalloc() here or anywhere else -HW */
+-	hinfo = vmalloc(sizeof(struct xt_hashlimit_htable) +
+-	                sizeof(struct hlist_head) * size);
++	hinfo = vmalloc(struct_size(hinfo, hash, size));
+ 	if (hinfo == NULL)
+ 		return -ENOMEM;
+ 	*out_hinfo = hinfo;
 -- 
-2.20.1
+2.21.0
 
