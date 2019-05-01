@@ -6,68 +6,70 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DDE10C43219
-	for <netfilter-devel@archiver.kernel.org>; Wed,  1 May 2019 16:35:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 03DB7C43219
+	for <netfilter-devel@archiver.kernel.org>; Wed,  1 May 2019 16:35:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id ADF3920835
-	for <netfilter-devel@archiver.kernel.org>; Wed,  1 May 2019 16:35:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C83AE20835
+	for <netfilter-devel@archiver.kernel.org>; Wed,  1 May 2019 16:35:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726488AbfEAQfD (ORCPT
+        id S1726513AbfEAQfN (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 1 May 2019 12:35:03 -0400
-Received: from mx1.redhat.com ([209.132.183.28]:53958 "EHLO mx1.redhat.com"
+        Wed, 1 May 2019 12:35:13 -0400
+Received: from mx1.redhat.com ([209.132.183.28]:56704 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726224AbfEAQfD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 1 May 2019 12:35:03 -0400
-Received: from smtp.corp.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+        id S1726224AbfEAQfN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 1 May 2019 12:35:13 -0400
+Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.13])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mx1.redhat.com (Postfix) with ESMTPS id 400BE3082E57;
-        Wed,  1 May 2019 16:35:03 +0000 (UTC)
+        by mx1.redhat.com (Postfix) with ESMTPS id 559F23082E57;
+        Wed,  1 May 2019 16:35:13 +0000 (UTC)
 Received: from egarver.remote.csb (ovpn-122-125.rdu2.redhat.com [10.10.122.125])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 8EA1070C48;
-        Wed,  1 May 2019 16:35:02 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 97AF060856;
+        Wed,  1 May 2019 16:35:12 +0000 (UTC)
 From:   Eric Garver <eric@garver.life>
 To:     netfilter-devel@vger.kernel.org
 Cc:     Phil Sutter <phil@nwl.cc>
-Subject: [PATCH nft] py: fix missing decode/encode of strings
-Date:   Wed,  1 May 2019 12:35:00 -0400
-Message-Id: <20190501163500.29662-1-eric@garver.life>
+Subject: [PATCH nft] evaluate: force full cache update on rule index translation
+Date:   Wed,  1 May 2019 12:35:10 -0400
+Message-Id: <20190501163510.29723-1-eric@garver.life>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.12
-X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.5.16 (mx1.redhat.com [10.5.110.46]); Wed, 01 May 2019 16:35:03 +0000 (UTC)
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.13
+X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.5.16 (mx1.redhat.com [10.5.110.46]); Wed, 01 May 2019 16:35:13 +0000 (UTC)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-When calling ffi functions we need to convert from python strings to
-utf-8. Then convert back for any output we receive.
+If we've done a partial fetch of the cache and the genid is the same the
+cache update will be skipped without fetching the rules. This causes the
+index to handle lookup to fail. To remedy the situation we flush the
+cache and force a full update.
 
-Fixes: 586ad210368b7 ("libnftables: Implement JSON parser")
+Fixes: 816d8c7659c1 ("Support 'add/insert rule index <IDX>'")
 Signed-off-by: Eric Garver <eric@garver.life>
 ---
- py/nftables.py | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ src/evaluate.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff --git a/py/nftables.py b/py/nftables.py
-index f07163573f9a..dea417e587d6 100644
---- a/py/nftables.py
-+++ b/py/nftables.py
-@@ -352,9 +352,9 @@ class Nftables:
-         output -- a string containing output written to stdout
-         error  -- a string containing output written to stderr
-         """
--        rc = self.nft_run_cmd_from_buffer(self.__ctx, cmdline)
--        output = self.nft_ctx_get_output_buffer(self.__ctx)
--        error = self.nft_ctx_get_error_buffer(self.__ctx)
-+        rc = self.nft_run_cmd_from_buffer(self.__ctx, cmdline.encode("utf-8"))
-+        output = self.nft_ctx_get_output_buffer(self.__ctx).decode("utf-8")
-+        error = self.nft_ctx_get_error_buffer(self.__ctx).decode("utf-8")
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 3593eb80a6a6..a2585291e7c4 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -3182,7 +3182,11 @@ static int rule_translate_index(struct eval_ctx *ctx, struct rule *rule)
+ 	struct rule *r;
+ 	int ret;
  
-         return (rc, output, error)
- 
+-	/* update cache with CMD_LIST so that rules are fetched, too */
++	/* Update cache with CMD_LIST so that rules are fetched, too. The explicit
++	 * release is necessary because the genid may be the same, in which case
++	 * the update would be a no-op.
++	 */
++	cache_release(&ctx->nft->cache);
+ 	ret = cache_update(ctx->nft, CMD_LIST, ctx->msgs);
+ 	if (ret < 0)
+ 		return ret;
 -- 
 2.20.1
 
