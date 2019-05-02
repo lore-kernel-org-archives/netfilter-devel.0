@@ -2,117 +2,164 @@ Return-Path: <SRS0=YpbV=TC=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,
-	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED,USER_AGENT_NEOMUTT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BC6E4C43219
-	for <netfilter-devel@archiver.kernel.org>; Thu,  2 May 2019 07:28:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 32AA5C43219
+	for <netfilter-devel@archiver.kernel.org>; Thu,  2 May 2019 07:45:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 58A682081C
-	for <netfilter-devel@archiver.kernel.org>; Thu,  2 May 2019 07:28:48 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=6wind.com header.i=@6wind.com header.b="EPCdfGR0"
+	by mail.kernel.org (Postfix) with ESMTP id 004A020873
+	for <netfilter-devel@archiver.kernel.org>; Thu,  2 May 2019 07:45:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726264AbfEBH2s (ORCPT
+        id S1726189AbfEBHpC (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 2 May 2019 03:28:48 -0400
-Received: from mail-wr1-f66.google.com ([209.85.221.66]:33350 "EHLO
-        mail-wr1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726055AbfEBH2r (ORCPT
+        Thu, 2 May 2019 03:45:02 -0400
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:44094 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726055AbfEBHpC (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 2 May 2019 03:28:47 -0400
-Received: by mail-wr1-f66.google.com with SMTP id e28so1845438wra.0
-        for <netfilter-devel@vger.kernel.org>; Thu, 02 May 2019 00:28:46 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=6wind.com; s=google;
-        h=reply-to:subject:to:cc:references:from:organization:message-id:date
-         :user-agent:mime-version:in-reply-to:content-language
-         :content-transfer-encoding;
-        bh=qFic4ZCJHq3vK52L3neHzBnAuNqEWHD8/WodEeFmKUw=;
-        b=EPCdfGR07x/XReMXooZCRNQ1xr9mPc2lIqPeZIXxH/bM5yQ6pWgVJGMbqr8SJlwrrw
-         YUzXn4wQe731WM99IMPfq8Bb5FQqwrbzWA8UghmwEfX9+46BLXEqg+Vkf+yaCHPIKHij
-         VlTxD5iAis+GFz/Y7sgPeOCnAmJ/IYX1Ja6rJtAL50TLO0KJErRimC1uE6JcMNMPnnjj
-         15jnJaHE/cILH1GKg82No7AuvoU3tfg9R3foh65eEMgCmUFVBrgDUoOucYsGecOkXjdH
-         Gslvnbu23HhzjT8X8Vrt8r1lf2wW3YfQxv1pTqJpblLV3bKbGBYreRfh/2Z73x8nEyI1
-         pFEg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:reply-to:subject:to:cc:references:from
-         :organization:message-id:date:user-agent:mime-version:in-reply-to
-         :content-language:content-transfer-encoding;
-        bh=qFic4ZCJHq3vK52L3neHzBnAuNqEWHD8/WodEeFmKUw=;
-        b=W/FxiW+GDVtNBR5rXsnVUgM9NYeIDjR9u6e71aXWxUWLTKuI98y+MyTOEnhNsSZ9zh
-         sL71OshBgw3lRYmq0HohODaoK/VVHjnF+sxO/s5c5JLOUnDG8JjrC0mpC4InnU3c8CWb
-         uHTx9kxQsEDYVvFjewqaDVW9v0hyno3rIFh0EVEyDHnMSBNugwDfyzXNAczaUH2EsBK8
-         f0PA0fGjY0xXG8PHWD4SatJSodyBMt3CS7LC9qun+Cq8ATobYLXQEDjXZuSEN13dDldN
-         pFRUyQuoBbBd1dqXILtbWdRwX+w1XbdoJrg71kWVJI0yAabOdzoQvKoeP8cYLYMO5Ki5
-         wadw==
-X-Gm-Message-State: APjAAAU5SuJQyPUGkTsdA4sx2z+fQciFdhNamcRGGIezaaXyacg20mJs
-        xZmf9svDjeJMw91sebUNXOKrHQ==
-X-Google-Smtp-Source: APXvYqzuK+iNfWJu3+vrAFi9NAetVXJfc70FYtdC2USIBs/yvwJaWyLAN9gMDHkiJjJ29rkM95paHQ==
-X-Received: by 2002:adf:eb89:: with SMTP id t9mr1632853wrn.109.1556782125989;
-        Thu, 02 May 2019 00:28:45 -0700 (PDT)
-Received: from ?IPv6:2a01:e35:8b63:dc30:c51a:8579:612a:9e21? ([2a01:e35:8b63:dc30:c51a:8579:612a:9e21])
-        by smtp.gmail.com with ESMTPSA id r8sm21128163wrg.22.2019.05.02.00.28.44
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 02 May 2019 00:28:44 -0700 (PDT)
-Reply-To: nicolas.dichtel@6wind.com
-Subject: Re: [PATCH 07/31] netfilter: ctnetlink: Support L3 protocol-filter on
- flush
-To:     Kristian Evensen <kristian.evensen@gmail.com>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Netfilter Development Mailing list 
-        <netfilter-devel@vger.kernel.org>,
-        David Miller <davem@davemloft.net>,
-        Network Development <netdev@vger.kernel.org>
-References: <20181008230125.2330-1-pablo@netfilter.org>
- <20181008230125.2330-8-pablo@netfilter.org>
- <33d60747-7550-1fba-a068-9b78aaedbc26@6wind.com>
- <CAKfDRXjY9J1yHz1px6-gbmrEYJi9P9+16Mez+qzqhYLr9MtCQg@mail.gmail.com>
-From:   Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Organization: 6WIND
-Message-ID: <51b7d27b-a67e-e3c6-c574-01f50a860a5c@6wind.com>
-Date:   Thu, 2 May 2019 09:28:44 +0200
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.6.1
+        Thu, 2 May 2019 03:45:02 -0400
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.89)
+        (envelope-from <fw@strlen.de>)
+        id 1hM6Op-0002HO-9B; Thu, 02 May 2019 09:44:59 +0200
+Date:   Thu, 2 May 2019 09:44:59 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     =?iso-8859-15?Q?St=E9phane?= Veyret <sveyret@gmail.com>
+Cc:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
+        pablo@netfilter.org
+Subject: Re: Port triggering
+Message-ID: <20190502074459.pdpa52kpwnhag453@breakpoint.cc>
+References: <CAFs+hh5aHv_Xy2H2g9Bgsa-BYNY-uvE442Ws37vYtF484nZanQ@mail.gmail.com>
+ <20180309120324.GB19924@breakpoint.cc>
+ <CAFs+hh42HuoQh4Js7yyopVqofD-6YXkOVvrx=XjYm43igaaRLg@mail.gmail.com>
+ <20180312112547.GA8844@breakpoint.cc>
+ <CAFs+hh61B0+qx3uyr2TwKWCNKqPn5YgN33RjmOMafTESYsmyjQ@mail.gmail.com>
+ <20180312155357.GC8844@breakpoint.cc>
+ <CAFs+hh79dGTpW8OvUuGZ==YqVFXKs1q=NLE7oMnLjqJW5ZUHww@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <CAKfDRXjY9J1yHz1px6-gbmrEYJi9P9+16Mez+qzqhYLr9MtCQg@mail.gmail.com>
 Content-Type: text/plain; charset=utf-8
-Content-Language: fr
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAFs+hh79dGTpW8OvUuGZ==YqVFXKs1q=NLE7oMnLjqJW5ZUHww@mail.gmail.com>
+User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Le 01/05/2019 à 10:47, Kristian Evensen a écrit :
-> Hello,
+Stéphane Veyret <sveyret@gmail.com> wrote:
+> Le lun. 12 mars 2018 à 16:53, Florian Westphal <fw@strlen.de> a écrit :
+> > > > Something like:
+> > > >
+> > > > chain postrouting {
+> > > >         type filter hook postrouting priority 0;
+> > > >         # tell kernel to install an expectation
+> > > >         # arriving on udp ports 6970-7170
+> > > >         # expectation will follow whatever NAT transformation
+> > > >         # is active on master connection
+> > > >         # expectation is removed after 5 minutes
+> > > >         # (we could of course also allow to install an expectation
+> > > >         # for 'foreign' addresses as well but I don't think its needed
+> > > >         # yet
+> > > >         ip dport 554 ct expectation set udp dport 6970-7170 timeout 5m
+> > > > }
+> > >
+> > > It may be what I'm looking for. But I couldn't find any documentation
+> > > about this “ct expectation” command. Or do you mean I should create a
+> > > conntrack helper module for that?
+> >
+> > Right, this doesn't exist yet.
+> >
+> > I think we (you) should consider to extend net/netfilter/nft_ct.c, to
+> > support a new NFT_CT_EXPECT attribute in nft_ct_set_eval() function.
+> >
+> > This would then install a new expectation based on what userspace told
+> > us.
+> >
+> > You can look at
+> > net/netfilter/nf_conntrack_ftp.c
+> > and search for nf_ct_expect_alloc() to see where the ftp helper installs
+> > the expectation.
+> >
+> > The main difference would be that with nft_ct.c, most properties of
+> > the new expectation would be determined by netlink attributes which were
+> > set by the nftables ruleset.
 > 
-> On Thu, Apr 25, 2019 at 12:07 PM Nicolas Dichtel
-> <nicolas.dichtel@6wind.com> wrote:
->> Since this patch, there is a regression with 'conntrack -F', it does not flush
->> anymore ipv6 conntrack entries.
->> In fact, the conntrack tool set by default the family to AF_INET and forbid to
->> set the family to something else (the '-f' option is not allowed for the command
->> 'flush').
-> 
-> I am very sorry for my late reply and for the trouble my change has
-> caused. However, I am not sure if I agree that it triggers a
-> regression. Had conntrack for example not set any family and my change
-> caused only IPv4 entries to be flushed, then I agree it would have
-> been a regression. If you ask me, what my change has exposed is
-> incorrect API usage in conntrack. One could argue that since conntrack
-> explicitly sets the family to AF_INET, the fact that IPv6 entries also
-> has been flushed has been incorrect. However, if the general consensus
-> is that this is a regression, I am more than willing to help in
-> finding a solution (if I have anything to contribute :)).
-I understand your point, but this is a regression. Ignoring a field/attribute of
-a netlink message is part of the uAPI. This field exists for more than a decade
-(probably two), so you cannot just use it because nobody was using it. Just see
-all discussions about strict validation of netlink messages.
-Moreover, the conntrack tool exists also for ages and is an official tool.
+> Does this mean I should create a new structure containing expectation
+> data, as required by the nf_ct_expect_init function, and that I should
+> expect to find this structure at &regs->data[priv->sreg] in
+> nft_ct_set_eval?
 
+No, that would be too extreme.
 
-Regards,
-Nicolas
+I think all the information should be passed as individual netlink
+attributes.
+
+In mean time, we gained ability to set timeout policies and conntrack
+helpers via nft_ct, I think you can look at how they are implemented
+to get an idea of how to gather the data that gets passed to
+nf_ct_expect_init().
+
+1a64edf54f55d7956cf5a0d95898bc1f84f9b818
+netfilter: nft_ct: add helper set support
+and
+7e0b2b57f01d183e1c84114f1f2287737358d748
+netfilter: nft_ct: add ct timeout support
+
+table ip filter {
+       ct timeout customtimeout {
+               protocol tcp;
+               l3proto ip
+               policy = { established: 120, close: 20 }
+       }
+
+       chain output {
+               type filter hook output priority filter; policy accept;
+               ct timeout set "customtimeout"
+       }
+}
+
+table inet myhelpers {
+  ct helper ftp-standard {
+     type "ftp" protocol tcp
+  }
+  chain prerouting {
+      type filter hook prerouting priority 0;
+      tcp dport 21 ct helper set "ftp-standard"
+  }
+}
+
+So for expectations this might look like this:
+table inet foo {
+ ct expectation myexp {
+	protocol udp;
+	dport 6970-7170;
+	timeout 5m;
+	dmask 255.255.255.255;
+	smask 255.255.255.255;
+ }
+
+ ip dport 554 ct expectation set "myexp"
+}
+
+nft_ct object evaluation would call nf_ct_expect_alloc() based
+on current pkt->skb->_nfct and it would pass all info that is configured in
+'myexp' already to nf_ct_expect_init().
+
+The tuples to expect would be taken from pkt->skb->_nfct one.
+I think for initial implementation, smask/dmask isn't needed so we
+could just use the full expectet address.
+Later on, we could extend this to also allow sport, classes, and so on.
+
+Using the obect infrastructure allows to assign the expectation via maps,
+without extra code, for example:
+
+ct helper set tcp dport map {21 : "cthelp1", 2121 : "cthelp1" }
+ct expectation set ip protocol map { 6 : "tcpexpect" , ...
+
+> When all this is done, I will have to also update the nftables
+> command. Will I also need to update the nftables library?
+
+You will need to touch both libnftables and nftables.
+You can look at nft/libnftnl history for the helper and timeout support.
