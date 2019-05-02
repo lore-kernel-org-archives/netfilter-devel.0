@@ -1,107 +1,130 @@
-Return-Path: <SRS0=QQeY=TB=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=YpbV=TC=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_MUTT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.0 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5829BC43219
-	for <netfilter-devel@archiver.kernel.org>; Wed,  1 May 2019 22:50:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 51BECC43219
+	for <netfilter-devel@archiver.kernel.org>; Thu,  2 May 2019 06:45:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1F8042081C
-	for <netfilter-devel@archiver.kernel.org>; Wed,  1 May 2019 22:50:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 19EAD208C4
+	for <netfilter-devel@archiver.kernel.org>; Thu,  2 May 2019 06:45:06 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="A9DaJi/W"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726139AbfEAWuv (ORCPT
+        id S1726300AbfEBGpF (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 1 May 2019 18:50:51 -0400
-Received: from gateway22.websitewelcome.com ([192.185.47.144]:46695 "EHLO
-        gateway22.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726126AbfEAWuv (ORCPT
+        Thu, 2 May 2019 02:45:05 -0400
+Received: from mail-vs1-f43.google.com ([209.85.217.43]:39119 "EHLO
+        mail-vs1-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725772AbfEBGpF (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 1 May 2019 18:50:51 -0400
-X-Greylist: delayed 1500 seconds by postgrey-1.27 at vger.kernel.org; Wed, 01 May 2019 18:50:51 EDT
-Received: from cm12.websitewelcome.com (cm12.websitewelcome.com [100.42.49.8])
-        by gateway22.websitewelcome.com (Postfix) with ESMTP id E6A3E7409
-        for <netfilter-devel@vger.kernel.org>; Wed,  1 May 2019 17:01:14 -0500 (CDT)
-Received: from gator4166.hostgator.com ([108.167.133.22])
-        by cmsmtp with SMTP
-        id LxHuh5DFGiQerLxHuhksTO; Wed, 01 May 2019 17:01:14 -0500
-X-Authority-Reason: nr=8
-Received: from [189.250.119.203] (port=58416 helo=embeddedor)
-        by gator4166.hostgator.com with esmtpa (Exim 4.91)
-        (envelope-from <gustavo@embeddedor.com>)
-        id 1hLxHr-000EDy-Su; Wed, 01 May 2019 17:01:11 -0500
-Date:   Wed, 1 May 2019 17:01:08 -0500
-From:   "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>
-Cc:     netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-Subject: [PATCH][next] netfilter: xt_hashlimit: use struct_size() helper
-Message-ID: <20190501220108.GA30487@embeddedor>
+        Thu, 2 May 2019 02:45:05 -0400
+Received: by mail-vs1-f43.google.com with SMTP id g127so740463vsd.6
+        for <netfilter-devel@vger.kernel.org>; Wed, 01 May 2019 23:45:04 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc:content-transfer-encoding;
+        bh=3cgqssgyvZR1CboLIt4r3AgfpT6cFjGDc9UcN4vubXA=;
+        b=A9DaJi/WtZg5FW1qI9QwilLN1zc5WzDFMaOl13ofjxjAqjS2pWzzaowwktUrEUgUm8
+         +oAOS0H51XyuuhDSRnEZAJ18LsTLQnZMTmPlUkrRdUh6sDBWgfbr5DN+xLYLuVNqL1qC
+         UqR3ub+5wEDXAoT1WryZfXvM0inS0bPwGy3AiJG8P7VMAx1F86YI2kHcsydUQd8MsRoF
+         g4VeRZ9lbnkV8McE6EX5Eutb2roG8WF/Zm2pbMaJ6dbF1Hc6xPO9MVExsa2j9qE401Ab
+         yxkCd2OxttujXz+NvUcW3/OHy5F8UR0GEkef5rcuO/P2oBDexIJ5ZvGP12zf9Y0zcLVE
+         sIIg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc:content-transfer-encoding;
+        bh=3cgqssgyvZR1CboLIt4r3AgfpT6cFjGDc9UcN4vubXA=;
+        b=bMS+byVCf09hJAA4/YLLI4yApk7kV4oHYwqDI3i2kWS/lVxUFxryP5T48RNfSYaEKd
+         C5DeqKtlshP7bABpAFV0Uq5d7TfxWjP4uLV0hndTWmS/baMzZRvfWkb71ZV7n95J5WU/
+         mmlkUvmGyMGZM2rKOEzCDEXf+gyxCXpUPmn0lkYSs6Ewd97BsW5+oqUk5Xqtsn65e+wQ
+         wezXAHEpj78qiYA4UcSq6oMU0zmx6T6LBytFcQgh1541/3f+7nwS71X9WpoCME6YYnT8
+         KBkhNHbKvr0wp4HlH1A011oERFlum2l1pDtKV5GgBHozBAGvgHwgVIt+vIFp6xKdjNs8
+         Esfg==
+X-Gm-Message-State: APjAAAXHPn+8LzZ1u5qAjiXevLeEg1N7UEiGZcfo+mQF2WzAD5BWz6ru
+        W77P1QjsVp/rUbgPiv3RUxs9hhSBsJjmG/x9nfB7bqRc
+X-Google-Smtp-Source: APXvYqxZDfENj2Ro7l1OIhPtiJTCzcEEDBBiHv/oZD7GqxgSzG9Km8mCyBxlW2kHV8ki9g/0+4rzrukIc2xscc8JXlM=
+X-Received: by 2002:a67:f249:: with SMTP id y9mr1042933vsm.118.1556779504341;
+ Wed, 01 May 2019 23:45:04 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-User-Agent: Mutt/1.9.4 (2018-02-28)
-X-AntiAbuse: This header was added to track abuse, please include it with any abuse report
-X-AntiAbuse: Primary Hostname - gator4166.hostgator.com
-X-AntiAbuse: Original Domain - vger.kernel.org
-X-AntiAbuse: Originator/Caller UID/GID - [47 12] / [47 12]
-X-AntiAbuse: Sender Address Domain - embeddedor.com
-X-BWhitelist: no
-X-Source-IP: 189.250.119.203
-X-Source-L: No
-X-Exim-ID: 1hLxHr-000EDy-Su
-X-Source: 
-X-Source-Args: 
-X-Source-Dir: 
-X-Source-Sender: (embeddedor) [189.250.119.203]:58416
-X-Source-Auth: gustavo@embeddedor.com
-X-Email-Count: 5
-X-Source-Cap: Z3V6aWRpbmU7Z3V6aWRpbmU7Z2F0b3I0MTY2Lmhvc3RnYXRvci5jb20=
-X-Local-Domain: yes
+References: <CAFs+hh5aHv_Xy2H2g9Bgsa-BYNY-uvE442Ws37vYtF484nZanQ@mail.gmail.com>
+ <20180309120324.GB19924@breakpoint.cc> <CAFs+hh42HuoQh4Js7yyopVqofD-6YXkOVvrx=XjYm43igaaRLg@mail.gmail.com>
+ <20180312112547.GA8844@breakpoint.cc> <CAFs+hh61B0+qx3uyr2TwKWCNKqPn5YgN33RjmOMafTESYsmyjQ@mail.gmail.com>
+ <20180312155357.GC8844@breakpoint.cc>
+In-Reply-To: <20180312155357.GC8844@breakpoint.cc>
+From:   =?UTF-8?Q?St=C3=A9phane_Veyret?= <sveyret@gmail.com>
+Date:   Thu, 2 May 2019 08:44:52 +0200
+Message-ID: <CAFs+hh79dGTpW8OvUuGZ==YqVFXKs1q=NLE7oMnLjqJW5ZUHww@mail.gmail.com>
+Subject: Re: Port triggering
+To:     Florian Westphal <fw@strlen.de>
+Cc:     netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Make use of the struct_size() helper instead of an open-coded version
-in order to avoid any potential type mistakes, in particular in the
-context in which this code is being used.
+Hello Florian, hello all,
 
-So, replace code of the following form:
+More than a year has past since I asked all those questions about
+adding expectation attribute to nf_tables, and I finally have time to
+work on it. But I find it difficult to understand the way it is
+written, and therefore have questions. Here are the first ones (see
+below).
 
-sizeof(struct xt_hashlimit_htable) + sizeof(struct hlist_head) * size
+Le lun. 12 mars 2018 =C3=A0 16:53, Florian Westphal <fw@strlen.de> a =C3=A9=
+crit :
+> > > Something like:
+> > >
+> > > chain postrouting {
+> > >         type filter hook postrouting priority 0;
+> > >         # tell kernel to install an expectation
+> > >         # arriving on udp ports 6970-7170
+> > >         # expectation will follow whatever NAT transformation
+> > >         # is active on master connection
+> > >         # expectation is removed after 5 minutes
+> > >         # (we could of course also allow to install an expectation
+> > >         # for 'foreign' addresses as well but I don't think its neede=
+d
+> > >         # yet
+> > >         ip dport 554 ct expectation set udp dport 6970-7170 timeout 5=
+m
+> > > }
+> >
+> > It may be what I'm looking for. But I couldn't find any documentation
+> > about this =E2=80=9Cct expectation=E2=80=9D command. Or do you mean I s=
+hould create a
+> > conntrack helper module for that?
+>
+> Right, this doesn't exist yet.
+>
+> I think we (you) should consider to extend net/netfilter/nft_ct.c, to
+> support a new NFT_CT_EXPECT attribute in nft_ct_set_eval() function.
+>
+> This would then install a new expectation based on what userspace told
+> us.
+>
+> You can look at
+> net/netfilter/nf_conntrack_ftp.c
+> and search for nf_ct_expect_alloc() to see where the ftp helper installs
+> the expectation.
+>
+> The main difference would be that with nft_ct.c, most properties of
+> the new expectation would be determined by netlink attributes which were
+> set by the nftables ruleset.
 
-with:
+Does this mean I should create a new structure containing expectation
+data, as required by the nf_ct_expect_init function, and that I should
+expect to find this structure at &regs->data[priv->sreg] in
+nft_ct_set_eval?
+When all this is done, I will have to also update the nftables
+command. Will I also need to update the nftables library?
 
-struct_size(hinfo, hash, size)
-
-This code was detected with the help of Coccinelle.
-
-Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
----
- net/netfilter/xt_hashlimit.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
-
-diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
-index 8d86e39d6280..a30536b17ee1 100644
---- a/net/netfilter/xt_hashlimit.c
-+++ b/net/netfilter/xt_hashlimit.c
-@@ -288,8 +288,7 @@ static int htable_create(struct net *net, struct hashlimit_cfg3 *cfg,
- 			size = 16;
- 	}
- 	/* FIXME: don't use vmalloc() here or anywhere else -HW */
--	hinfo = vmalloc(sizeof(struct xt_hashlimit_htable) +
--	                sizeof(struct hlist_head) * size);
-+	hinfo = vmalloc(struct_size(hinfo, hash, size));
- 	if (hinfo == NULL)
- 		return -ENOMEM;
- 	*out_hinfo = hinfo;
--- 
-2.21.0
-
+Thank you.
