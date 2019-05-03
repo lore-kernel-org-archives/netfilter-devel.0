@@ -2,103 +2,83 @@ Return-Path: <SRS0=n11Q=TD=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_NEOMUTT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D4C7BC004C9
-	for <netfilter-devel@archiver.kernel.org>; Fri,  3 May 2019 07:14:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 47A47C43219
+	for <netfilter-devel@archiver.kernel.org>; Fri,  3 May 2019 10:19:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A7BF62075C
-	for <netfilter-devel@archiver.kernel.org>; Fri,  3 May 2019 07:14:23 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="fa08x6A8"
+	by mail.kernel.org (Postfix) with ESMTP id 16AE92075E
+	for <netfilter-devel@archiver.kernel.org>; Fri,  3 May 2019 10:19:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726559AbfECHOV (ORCPT
+        id S1726405AbfECKTy (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 3 May 2019 03:14:21 -0400
-Received: from mail-oi1-f195.google.com ([209.85.167.195]:35949 "EHLO
-        mail-oi1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725768AbfECHOV (ORCPT
+        Fri, 3 May 2019 06:19:54 -0400
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:50402 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726289AbfECKTy (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 3 May 2019 03:14:21 -0400
-Received: by mail-oi1-f195.google.com with SMTP id l203so3726839oia.3;
-        Fri, 03 May 2019 00:14:20 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=/deaAp4CFer9cuf3bUXndYrCg9KM5AsG3HholmAxoSk=;
-        b=fa08x6A8w0U4WW/LHPzr2TWva4sHEaByVVLQaLkVX9WT72ScgVL1qBC/t1HixV9P2g
-         ++1UHuZp9SBVDcY1Q2BKGj+3xt47MayS9yvnd3s60HloTIlqSFLb8HD5O1vCejcVPkXH
-         ZTwuGQSfFy96rXuUNyFTLPtjLOs4B5D5bwRJu9wFS1lJ1r4lO1SBXnYDNdWqBwQesSAO
-         c0eEJ0cAtg30xM6T8gFayvaStWyUbf8GyEgJpLPtIQcjy2h5ySunHEFNG68z3jvO7bqe
-         3S8bbOsbwWogx3Kt+cP8hiXePbgXM4JweRRe2tyJSCvDKgs0pZczV1sHPy5T35gkGCT1
-         2edQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=/deaAp4CFer9cuf3bUXndYrCg9KM5AsG3HholmAxoSk=;
-        b=gp9aOVgabIJzYcKqreK8rSOADr72vHc4+vm7yKP+cYEvflj1rVQo1cWrCkChheDt+e
-         0Bd2jt+B0JdWLTTKbNCq4Z9Sv4bIDKBmNfQsVYMAiQ7PjnY8MblAyZMDOryBf207duvY
-         I6KfFj9EbEqOd+8AkygMoUFU28RRzHsf/gm+iv05qZ/i54V+Qlp+yhnyeniwg2PWwy0G
-         O+xVuz77nOnxvlqDwGQ1FwGwqOEATudoBSBRY7Ou5n5Pwflo79F0f29PwczSFNLrx5uk
-         T62yUSE/49yQnhriXgEvgfjaZDSC1Ju9o3Tsc+NB6wKOzVD2qejzimSfhXHrG8pZd03o
-         vKVQ==
-X-Gm-Message-State: APjAAAXowJc2HpAXrM0hHpdVirpanETCMoMolBg3tzz7NIm4u6SeGFgI
-        07N1wY5wUuwBFuzUSnpuHyIoqEE4k0UpCJentr5qr8QY
-X-Google-Smtp-Source: APXvYqwAq5AdVJhs8TqQKehPpWPoW6E68GK05JMEWvumCgrFYugTyRUV+hTD9H4eK10CDHgmM8ZhFCO70JV6JnkoE8w=
-X-Received: by 2002:aca:b50b:: with SMTP id e11mr5031486oif.51.1556867660048;
- Fri, 03 May 2019 00:14:20 -0700 (PDT)
+        Fri, 3 May 2019 06:19:54 -0400
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.89)
+        (envelope-from <fw@strlen.de>)
+        id 1hMVIF-0002hV-Hy; Fri, 03 May 2019 12:19:51 +0200
+Date:   Fri, 3 May 2019 12:19:51 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
+Cc:     fw@strlen.de, pablo@netfilter.org, netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf] netfilter: nf_conntrack_h323: Remove deprecated
+ config check
+Message-ID: <20190503101951.6ep6uroxtvyrfz4f@breakpoint.cc>
+References: <1556853737-14697-1-git-send-email-subashab@codeaurora.org>
 MIME-Version: 1.0
-References: <20181008230125.2330-1-pablo@netfilter.org> <20181008230125.2330-8-pablo@netfilter.org>
- <33d60747-7550-1fba-a068-9b78aaedbc26@6wind.com> <CAKfDRXjY9J1yHz1px6-gbmrEYJi9P9+16Mez+qzqhYLr9MtCQg@mail.gmail.com>
- <51b7d27b-a67e-e3c6-c574-01f50a860a5c@6wind.com> <20190502074642.ph64t7uax73xuxeo@breakpoint.cc>
- <20190502113151.xcnutl2eedjkftsb@salvia> <627088b3-7134-2b9a-8be4-7c96d51a3b94@6wind.com>
- <20190502150637.6f7vqoxiheytg4le@salvia> <7c0e2fec-3bf8-9adc-2968-074e84f00bb4@6wind.com>
-In-Reply-To: <7c0e2fec-3bf8-9adc-2968-074e84f00bb4@6wind.com>
-From:   Kristian Evensen <kristian.evensen@gmail.com>
-Date:   Fri, 3 May 2019 09:14:09 +0200
-Message-ID: <CAKfDRXgTAcDUddtumR42p1XFSFEYCdYV69YXOG31sE9BtrnrAQ@mail.gmail.com>
-Subject: Re: [PATCH 07/31] netfilter: ctnetlink: Support L3 protocol-filter on flush
-To:     Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        Netfilter Development Mailing list 
-        <netfilter-devel@vger.kernel.org>,
-        David Miller <davem@davemloft.net>,
-        Network Development <netdev@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1556853737-14697-1-git-send-email-subashab@codeaurora.org>
+User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi,
+Subash Abhinov Kasiviswanathan <subashab@codeaurora.org> wrote:
+> CONFIG_NF_CONNTRACK_IPV6 has been deprecated so replace it with
+> a check for IPV6 instead.
 
-On Fri, May 3, 2019 at 9:02 AM Nicolas Dichtel
-<nicolas.dichtel@6wind.com> wrote:
-> >>> Let's use nfgenmsg->version for this. This is so far set to zero. We
-> >>> can just update userspace to set it to 1, so family is used.
-> >>>
-> >>> The version field in the kernel size is ignored so far, so this should
-> >>> be enough. So we avoid that extract netlink attribute.
-> >>
-> >> Why making such a hack? If any userspace app set this field (simply because it's
-> >> not initialized), it will show up a new regression.
-> >> What is the problem of adding another attribute?
-> >
-> > The version field was meant to deal with this case.
-> >
-> > It has been not unused so far because we had no good reason.
-> >
-> Fair point, agreed.
+Right, I missed this part somehow.
 
-Great that the discussion has reached a conclusion. I will prepare a
-fix based on the version-filed and submit it either later today or
-during the weekend. Sorry again for the problems my change caused.
+> Fixes: a0ae2562c6c4b2 ("netfilter: conntrack: remove l3proto abstraction")
+> Signed-off-by: Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
+> ---
+>  include/linux/netfilter_ipv6.h         | 2 +-
+>  net/netfilter/nf_conntrack_h323_main.c | 2 +-
+>  2 files changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/include/linux/netfilter_ipv6.h b/include/linux/netfilter_ipv6.h
+> index 12113e5..61f7ac9 100644
+> --- a/include/linux/netfilter_ipv6.h
+> +++ b/include/linux/netfilter_ipv6.h
+> @@ -25,7 +25,7 @@ struct ip6_rt_info {
+>   * if IPv6 is a module.
+>   */
+>  struct nf_ipv6_ops {
+> -#if IS_MODULE(CONFIG_IPV6)
+> +#if IS_ENABLED(CONFIG_IPV6)
 
-BR,
-Kristian
+I would prefer if we could keep this as IS_ENABLED().
+
+> diff --git a/net/netfilter/nf_conntrack_h323_main.c b/net/netfilter/nf_conntrack_h323_main.c
+> index 005589c..1c6769b 100644
+> --- a/net/netfilter/nf_conntrack_h323_main.c
+> +++ b/net/netfilter/nf_conntrack_h323_main.c
+> @@ -748,7 +748,7 @@ static int callforward_do_filter(struct net *net,
+>  		}
+>  		break;
+>  	}
+> -#if IS_ENABLED(CONFIG_NF_CONNTRACK_IPV6)
+> +#if IS_ENABLED(CONFIG_IPV6)
+>  	case AF_INET6: {
+>  		const struct nf_ipv6_ops *v6ops;
+>  		struct rt6_info *rt1, *rt2;
+
+This branch should use nf_ip6_route() instead of v6ops->route().
