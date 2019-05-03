@@ -2,183 +2,114 @@ Return-Path: <SRS0=n11Q=TD=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EF4CFC43219
-	for <netfilter-devel@archiver.kernel.org>; Fri,  3 May 2019 16:45:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ABDDEC43219
+	for <netfilter-devel@archiver.kernel.org>; Fri,  3 May 2019 17:03:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CA0682075C
-	for <netfilter-devel@archiver.kernel.org>; Fri,  3 May 2019 16:45:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7BE77206C3
+	for <netfilter-devel@archiver.kernel.org>; Fri,  3 May 2019 17:03:01 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=6wind.com header.i=@6wind.com header.b="O9wWGzQM"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727899AbfECQpa (ORCPT
+        id S1728727AbfECRC6 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 3 May 2019 12:45:30 -0400
-Received: from mail.us.es ([193.147.175.20]:41024 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726468AbfECQpa (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 3 May 2019 12:45:30 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 19D0EE3A07
-        for <netfilter-devel@vger.kernel.org>; Fri,  3 May 2019 18:45:28 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 0B936DA706
-        for <netfilter-devel@vger.kernel.org>; Fri,  3 May 2019 18:45:28 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 01312DA701; Fri,  3 May 2019 18:45:28 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id E0D63DA701;
-        Fri,  3 May 2019 18:45:25 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Fri, 03 May 2019 18:45:25 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from salvia.here (sys.soleta.eu [212.170.55.40])
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id BEBEA4265A31;
-        Fri,  3 May 2019 18:45:25 +0200 (CEST)
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     kristian.evensen@gmail.com
-Subject: [PATCH libnetfilter_conntrack] conntrack: api: use libmnl API to build the netlink headers
-Date:   Fri,  3 May 2019 18:45:22 +0200
-Message-Id: <20190503164522.28225-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.11.0
-X-Virus-Scanned: ClamAV using ClamSMTP
+        Fri, 3 May 2019 13:02:58 -0400
+Received: from mail-wr1-f65.google.com ([209.85.221.65]:41907 "EHLO
+        mail-wr1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728723AbfECRC6 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 3 May 2019 13:02:58 -0400
+Received: by mail-wr1-f65.google.com with SMTP id c12so8729855wrt.8
+        for <netfilter-devel@vger.kernel.org>; Fri, 03 May 2019 10:02:57 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=6wind.com; s=google;
+        h=reply-to:subject:to:references:from:organization:message-id:date
+         :user-agent:mime-version:in-reply-to:content-language
+         :content-transfer-encoding;
+        bh=XHu3vi/ZqBd+l2noJLxBp3bwgBHRvX081zEBCbj+QOk=;
+        b=O9wWGzQMYeqyhgSMnuAw8hfEh7pfboL00pDushOwy1Z0x6q9mzIuRzpKSsBy4KeUwi
+         NuCIqChDaychWvbdNyaxI8ZxqRUkMvmpfqCycyarlRuL0sF94/SDZsyy1PlMBq/up4NR
+         w9bDA+017Mv4COxYEViaxR49Zju1KKIaVOYB3fxdUDUM/xCc211vp7UP6teuxXpihG0Q
+         9YPP6yjLHouIbB3vzMXEwg+YcQYFSaZrrHteejIz09mrxSaVqf6GG4kZXWL69YiobgXZ
+         7eF90nqVnsMAUV8NdWjqyIaXGAJfKEtlnlMxsNT/nvvhxJ8d0KTBItRhtEXu78kRSUuI
+         4Hcg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:reply-to:subject:to:references:from:organization
+         :message-id:date:user-agent:mime-version:in-reply-to
+         :content-language:content-transfer-encoding;
+        bh=XHu3vi/ZqBd+l2noJLxBp3bwgBHRvX081zEBCbj+QOk=;
+        b=XVUIzo4s7Yg8CcUDpthLRZ/JWk/JHOwnpanGjCb7ZAt3wq6cRAAq8xWmTLfs1HaUKb
+         ZiYPvsMnkk/74Ufzv8hibZFuc3d7fQqfzM836taTREJWRK6B9Tm0uNUtNgASsNIkQfQ9
+         m5IzJdAZ9NXHXs3I2Eh2HeKC1K8cWUF88AEEerDHQAvWbYqmeDeT2Au1kcKC/zAat3/7
+         1L8kZDgENbiNL4pgSbK9ege9aVh4lUK7JAk4rUm9npgDuhvuUWrxR3EQUtOzV0oQPEqu
+         gEZo88INZjRAxjQqCKyBNrH9OM+ap6u0Inrpts4AiXcBqEne9PzwSoMb+wni/oGueqCd
+         ieQw==
+X-Gm-Message-State: APjAAAVwG03thrLyyn8AHiTr3OwXnRoVhCK5KHhQvERqpSA2robUBVNQ
+        4eyHCklezBv9hikvKQICEI65dA==
+X-Google-Smtp-Source: APXvYqxOlACsmTaIE6bN0dZPOMv9HzaPkwTdP+TiiJkNuPCDasZZN3i7ETepOvDZgtZcg0nPTnPkxg==
+X-Received: by 2002:adf:dcc7:: with SMTP id x7mr7588347wrm.197.1556902976646;
+        Fri, 03 May 2019 10:02:56 -0700 (PDT)
+Received: from ?IPv6:2a01:e35:8b63:dc30:657a:6ff4:4c9f:9842? ([2a01:e35:8b63:dc30:657a:6ff4:4c9f:9842])
+        by smtp.gmail.com with ESMTPSA id k206sm5122791wmk.16.2019.05.03.10.02.55
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Fri, 03 May 2019 10:02:55 -0700 (PDT)
+Reply-To: nicolas.dichtel@6wind.com
+Subject: Re: [PATCH] netfilter: ctnetlink: Resolve conntrack L3-protocol flush
+ regression
+To:     Kristian Evensen <kristian.evensen@gmail.com>,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        David Miller <davem@davemloft.net>
+References: <20190503154007.32495-1-kristian.evensen@gmail.com>
+From:   Nicolas Dichtel <nicolas.dichtel@6wind.com>
+Organization: 6WIND
+Message-ID: <0326116f-f163-5ae1-ce19-6a891323eb03@6wind.com>
+Date:   Fri, 3 May 2019 19:02:54 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.6.1
+MIME-Version: 1.0
+In-Reply-To: <20190503154007.32495-1-kristian.evensen@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: fr
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Replace libnfnetlink's nfnl_fill_hdr() by more modern libmnl code.
+Please, keep in CC all involved people.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-@Kristian: Before you keep looking at this code, git pull to refresh your
-           libnetfilter_conntrack clone. This is leaving you room to bump
-	   the version number.
+Le 03/05/2019 à 17:40, Kristian Evensen a écrit :
+> Commit 59c08c69c278 ("netfilter: ctnetlink: Support L3 protocol-filter
+> on flush") introduced a user-space regression when flushing connection
+> track entries. Before this commit, the nfgen_family field was not used
+> by the kernel and all entries were removed. Since this commit,
+> nfgen_family is used to filter out entries that should not be removed.
+> One example a broken tool is conntrack. conntrack always sets
+> nfgen_family to AF_INET, so after 59c08c69c278 only IPv4 entries were
+> removed with the -F parameter.
+> 
+> Pablo Neira Ayuso suggested using nfgenmsg->version to resolve the
+> regression, and this commit implements his suggestion. nfgenmsg->version
+> is so far set to zero, so it is well-suited to be used as a flag for
+> selecting old or new flush behavior. If version is 0, nfgen_family is
+> ignored and all entries are used. If user-space sets the version to one
+> (or any other value than 0), then the new behavior is used. As version
+> only can have two valid values, I chose not to add a new
+> NFNETLINK_VERSION-constant.
+> 
+> Fixes: 59c08c69c278 ("netfilter: ctnetlink: Support L3 protocol-filter
+> on flush")
+> 
+Please, don't break the fixes line and don't separate it from other tags with an
+empty line.
 
- src/conntrack/api.c | 33 ++++++++++++++++++++++++++++-----
- src/expect/api.c    | 25 +++++++++++++++++++++++--
- 2 files changed, 51 insertions(+), 7 deletions(-)
-
-diff --git a/src/conntrack/api.c b/src/conntrack/api.c
-index 3a1746e4c050..ffa5216ce8de 100644
---- a/src/conntrack/api.c
-+++ b/src/conntrack/api.c
-@@ -782,6 +782,24 @@ int nfct_build_conntrack(struct nfnl_subsys_handle *ssh,
- 	return __build_conntrack(ssh, req, size, type, flags, ct);
- }
- 
-+static void nfct_fill_hdr(struct nfnlhdr *req, uint16_t type, uint16_t flags,
-+			  uint8_t l3num, uint8_t version)
-+{
-+	char *buf = (char *)&req->nlh;
-+	struct nlmsghdr *nlh;
-+	struct nfgenmsg *nfh;
-+
-+	nlh = mnl_nlmsg_put_header(buf);
-+	nlh->nlmsg_type = (NFNL_SUBSYS_CTNETLINK << 8) | type;
-+	nlh->nlmsg_flags = NLM_F_REQUEST | flags;
-+	nlh->nlmsg_seq = 0;
-+
-+	nfh = mnl_nlmsg_put_extra_header(nlh, sizeof(struct nfgenmsg));
-+	nfh->nfgen_family = l3num;
-+	nfh->version = version;
-+	nfh->res_id = 0;
-+}
-+
- static int
- __build_query_ct(struct nfnl_subsys_handle *ssh,
- 		 const enum nf_conntrack_query qt,
-@@ -810,23 +828,28 @@ __build_query_ct(struct nfnl_subsys_handle *ssh,
- 		__build_conntrack(ssh, req, size, IPCTNL_MSG_CT_GET, NLM_F_REQUEST|NLM_F_ACK, data);
- 		break;
- 	case NFCT_Q_FLUSH:
--		nfnl_fill_hdr(ssh, &req->nlh, 0, *family, 0, IPCTNL_MSG_CT_DELETE, NLM_F_REQUEST|NLM_F_ACK);
-+		nfct_fill_hdr(req, IPCTNL_MSG_CT_DELETE, NLM_F_ACK, *family,
-+			      NFNETLINK_V0);
- 		break;
- 	case NFCT_Q_DUMP:
--		nfnl_fill_hdr(ssh, &req->nlh, 0, *family, 0, IPCTNL_MSG_CT_GET, NLM_F_REQUEST|NLM_F_DUMP);
-+		nfct_fill_hdr(req, IPCTNL_MSG_CT_GET, NLM_F_DUMP, *family,
-+			      NFNETLINK_V0);
- 		break;
- 	case NFCT_Q_DUMP_RESET:
--		nfnl_fill_hdr(ssh, &req->nlh, 0, *family, 0, IPCTNL_MSG_CT_GET_CTRZERO, NLM_F_REQUEST|NLM_F_DUMP);
-+		nfct_fill_hdr(req, IPCTNL_MSG_CT_GET_CTRZERO, NLM_F_DUMP,
-+			      *family, NFNETLINK_V0);
- 		break;
- 	case NFCT_Q_CREATE_UPDATE:
- 		__build_conntrack(ssh, req, size, IPCTNL_MSG_CT_NEW, NLM_F_REQUEST|NLM_F_CREATE|NLM_F_ACK, data);
- 		break;
- 	case NFCT_Q_DUMP_FILTER:
--		nfnl_fill_hdr(ssh, &req->nlh, 0, AF_UNSPEC, 0, IPCTNL_MSG_CT_GET, NLM_F_REQUEST|NLM_F_DUMP);
-+		nfct_fill_hdr(req, IPCTNL_MSG_CT_GET, NLM_F_DUMP, AF_UNSPEC,
-+			      NFNETLINK_V0);
- 		__build_filter_dump(req, size, data);
- 		break;
- 	case NFCT_Q_DUMP_FILTER_RESET:
--		nfnl_fill_hdr(ssh, &req->nlh, 0, AF_UNSPEC, 0, IPCTNL_MSG_CT_GET_CTRZERO, NLM_F_REQUEST|NLM_F_DUMP);
-+		nfct_fill_hdr(req, IPCTNL_MSG_CT_GET_CTRZERO, NLM_F_DUMP,
-+			      AF_UNSPEC, NFNETLINK_V0);
- 		__build_filter_dump(req, size, data);
- 		break;
- 	default:
-diff --git a/src/expect/api.c b/src/expect/api.c
-index b50a47f171c1..33099d8ed0ce 100644
---- a/src/expect/api.c
-+++ b/src/expect/api.c
-@@ -11,6 +11,7 @@
- #include <string.h> /* for memset */
- #include <errno.h>
- #include <assert.h>
-+#include <libmnl/libmnl.h>
- 
- #include "internal/internal.h"
- 
-@@ -515,6 +516,24 @@ int nfexp_build_expect(struct nfnl_subsys_handle *ssh,
- 	return __build_expect(ssh, req, size, type, flags, exp);
- }
- 
-+static void nfexp_fill_hdr(struct nfnlhdr *req, uint16_t type, uint16_t flags,
-+			   uint8_t l3num, uint8_t version)
-+{
-+	char *buf = (char *)&req->nlh;
-+	struct nlmsghdr *nlh;
-+	struct nfgenmsg *nfh;
-+
-+	nlh = mnl_nlmsg_put_header(buf);
-+	nlh->nlmsg_type = (NFNL_SUBSYS_CTNETLINK_EXP << 8) | type;
-+	nlh->nlmsg_flags = NLM_F_REQUEST | flags;
-+	nlh->nlmsg_seq = 0;
-+
-+	nfh = mnl_nlmsg_put_extra_header(nlh, sizeof(struct nfgenmsg));
-+	nfh->nfgen_family = l3num;
-+	nfh->version = version;
-+	nfh->res_id = 0;
-+}
-+
- static int
- __build_query_exp(struct nfnl_subsys_handle *ssh,
- 		  const enum nf_conntrack_query qt,
-@@ -543,10 +562,12 @@ __build_query_exp(struct nfnl_subsys_handle *ssh,
- 		__build_expect(ssh, req, size, IPCTNL_MSG_EXP_DELETE, NLM_F_REQUEST|NLM_F_ACK, data);
- 		break;
- 	case NFCT_Q_FLUSH:
--		nfnl_fill_hdr(ssh, &req->nlh, 0, *family, 0, IPCTNL_MSG_EXP_DELETE, NLM_F_REQUEST|NLM_F_ACK);
-+		nfexp_fill_hdr(req, IPCTNL_MSG_EXP_DELETE, NLM_F_ACK, *family,
-+			       NFNETLINK_V0);
- 		break;
- 	case NFCT_Q_DUMP:
--		nfnl_fill_hdr(ssh, &req->nlh, 0, *family, 0, IPCTNL_MSG_EXP_GET, NLM_F_REQUEST|NLM_F_DUMP);
-+		nfexp_fill_hdr(req, IPCTNL_MSG_EXP_GET, NLM_F_DUMP, *family,
-+			       NFNETLINK_V0);
- 		break;
- 	default:
- 		errno = ENOTSUP;
--- 
-2.11.0
-
+> Reported-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+> Suggested-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> Signed-off-by: Kristian Evensen <kristian.evensen@gmail.com>
+Tested-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
