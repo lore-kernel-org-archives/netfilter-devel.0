@@ -2,100 +2,96 @@ Return-Path: <SRS0=n11Q=TD=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_NEOMUTT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_NEOMUTT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CD05DC04AAA
-	for <netfilter-devel@archiver.kernel.org>; Fri,  3 May 2019 17:05:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 09442C43219
+	for <netfilter-devel@archiver.kernel.org>; Fri,  3 May 2019 17:20:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A96EA206C3
-	for <netfilter-devel@archiver.kernel.org>; Fri,  3 May 2019 17:05:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CD9152075C
+	for <netfilter-devel@archiver.kernel.org>; Fri,  3 May 2019 17:20:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728438AbfECRFO (ORCPT
+        id S1727818AbfECRUx (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 3 May 2019 13:05:14 -0400
-Received: from mail.us.es ([193.147.175.20]:45072 "EHLO mail.us.es"
+        Fri, 3 May 2019 13:20:53 -0400
+Received: from mx1.redhat.com ([209.132.183.28]:50948 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727243AbfECRFO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 3 May 2019 13:05:14 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id BE573E8623
-        for <netfilter-devel@vger.kernel.org>; Fri,  3 May 2019 19:05:12 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id AD2F8DA70C
-        for <netfilter-devel@vger.kernel.org>; Fri,  3 May 2019 19:05:12 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id A2CC5DA702; Fri,  3 May 2019 19:05:12 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 9990DDA704;
-        Fri,  3 May 2019 19:05:10 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Fri, 03 May 2019 19:05:10 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (sys.soleta.eu [212.170.55.40])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        id S1726724AbfECRUx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 3 May 2019 13:20:53 -0400
+Received: from smtp.corp.redhat.com (int-mx08.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 721414265A32;
-        Fri,  3 May 2019 19:05:10 +0200 (CEST)
-Date:   Fri, 3 May 2019 19:05:10 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Cc:     Kristian Evensen <kristian.evensen@gmail.com>,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        Florian Westphal <fw@strlen.de>,
-        David Miller <davem@davemloft.net>
-Subject: Re: [PATCH] netfilter: ctnetlink: Resolve conntrack L3-protocol
- flush regression
-Message-ID: <20190503170510.dn3z2363bsc5y4zp@salvia>
-References: <20190503154007.32495-1-kristian.evensen@gmail.com>
- <0326116f-f163-5ae1-ce19-6a891323eb03@6wind.com>
+        by mx1.redhat.com (Postfix) with ESMTPS id ED126C05681F;
+        Fri,  3 May 2019 17:20:52 +0000 (UTC)
+Received: from egarver.localdomain (ovpn-122-125.rdu2.redhat.com [10.10.122.125])
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id 2825016582;
+        Fri,  3 May 2019 17:20:49 +0000 (UTC)
+Date:   Fri, 3 May 2019 13:20:47 -0400
+From:   Eric Garver <eric@garver.life>
+To:     Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft] py: fix missing decode/encode of strings
+Message-ID: <20190503172047.n33zwid642x63pdn@egarver.localdomain>
+Mail-Followup-To: Eric Garver <eric@garver.life>, Phil Sutter <phil@nwl.cc>,
+        netfilter-devel@vger.kernel.org
+References: <20190501163500.29662-1-eric@garver.life>
+ <20190503155154.GM31599@orbyte.nwl.cc>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <0326116f-f163-5ae1-ce19-6a891323eb03@6wind.com>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+In-Reply-To: <20190503155154.GM31599@orbyte.nwl.cc>
+User-Agent: NeoMutt/20180716
+X-Scanned-By: MIMEDefang 2.84 on 10.5.11.23
+X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.5.16 (mx1.redhat.com [10.5.110.32]); Fri, 03 May 2019 17:20:53 +0000 (UTC)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, May 03, 2019 at 07:02:54PM +0200, Nicolas Dichtel wrote:
-> Please, keep in CC all involved people.
+On Fri, May 03, 2019 at 05:51:54PM +0200, Phil Sutter wrote:
+> Hi,
 > 
-> Le 03/05/2019 à 17:40, Kristian Evensen a écrit :
-> > Commit 59c08c69c278 ("netfilter: ctnetlink: Support L3 protocol-filter
-> > on flush") introduced a user-space regression when flushing connection
-> > track entries. Before this commit, the nfgen_family field was not used
-> > by the kernel and all entries were removed. Since this commit,
-> > nfgen_family is used to filter out entries that should not be removed.
-> > One example a broken tool is conntrack. conntrack always sets
-> > nfgen_family to AF_INET, so after 59c08c69c278 only IPv4 entries were
-> > removed with the -F parameter.
-> > 
-> > Pablo Neira Ayuso suggested using nfgenmsg->version to resolve the
-> > regression, and this commit implements his suggestion. nfgenmsg->version
-> > is so far set to zero, so it is well-suited to be used as a flag for
-> > selecting old or new flush behavior. If version is 0, nfgen_family is
-> > ignored and all entries are used. If user-space sets the version to one
-> > (or any other value than 0), then the new behavior is used. As version
-> > only can have two valid values, I chose not to add a new
-> > NFNETLINK_VERSION-constant.
-> > 
-> > Fixes: 59c08c69c278 ("netfilter: ctnetlink: Support L3 protocol-filter
-> > on flush")
-> > 
-> Please, don't break the fixes line and don't separate it from other tags with an
-> empty line.
+> On Wed, May 01, 2019 at 12:35:00PM -0400, Eric Garver wrote:
+> > When calling ffi functions we need to convert from python strings to
+> > utf-8. Then convert back for any output we receive.
+> 
+> So the problem is passing utf-8 encoded strings as command?
 
-Will fix this before applying, no worries.
+In python3 strings are unicode. But we need "bytes" when calling the
+ctypes function since it's imported with "c_char_p". This is what
+encode() is doing for us.
 
-> > Reported-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-> > Suggested-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> > Signed-off-by: Kristian Evensen <kristian.evensen@gmail.com>
-> Tested-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+    https://docs.python.org/3/library/ctypes.html#fundamental-data-types
+
+In python2 strings are a sequence of bytes already. I'll have to v2 to
+if we care about python2 support.
+
+> 
+> [...]
+> > -        rc = self.nft_run_cmd_from_buffer(self.__ctx, cmdline)
+> > -        output = self.nft_ctx_get_output_buffer(self.__ctx)
+> > -        error = self.nft_ctx_get_error_buffer(self.__ctx)
+> > +        rc = self.nft_run_cmd_from_buffer(self.__ctx, cmdline.encode("utf-8"))
+> > +        output = self.nft_ctx_get_output_buffer(self.__ctx).decode("utf-8")
+> > +        error = self.nft_ctx_get_error_buffer(self.__ctx).decode("utf-8")
+> 
+> Should the encoding be made configurable? I see encode() and decode()
+> parameters are optional, but as soon as I call them with a string
+> containing umlauts I get errors. So not sure if that would be an
+> alternative.
+
+I don't think so. Since we're calling system level stuff (nftables,
+kernel) I think utf-8 is what we want.
+
+Encoding with utf-8 does the right thing:
+
+python3:
+
+    >>> "ö".encode("utf-8")
+    >>> b'\xc3\xb6'
+
+python2:
+
+    >>> u"ö".encode("utf-8")
+    >>> '\xc3\xb6'
