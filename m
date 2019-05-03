@@ -6,92 +6,66 @@ X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_NEOMUTT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 09442C43219
-	for <netfilter-devel@archiver.kernel.org>; Fri,  3 May 2019 17:20:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 648B9C43219
+	for <netfilter-devel@archiver.kernel.org>; Fri,  3 May 2019 18:04:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CD9152075C
-	for <netfilter-devel@archiver.kernel.org>; Fri,  3 May 2019 17:20:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 271412081C
+	for <netfilter-devel@archiver.kernel.org>; Fri,  3 May 2019 18:04:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727818AbfECRUx (ORCPT
+        id S1727778AbfECSEK (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 3 May 2019 13:20:53 -0400
-Received: from mx1.redhat.com ([209.132.183.28]:50948 "EHLO mx1.redhat.com"
+        Fri, 3 May 2019 14:04:10 -0400
+Received: from mail.us.es ([193.147.175.20]:60042 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726724AbfECRUx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 3 May 2019 13:20:53 -0400
-Received: from smtp.corp.redhat.com (int-mx08.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        id S1727221AbfECSEK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 3 May 2019 14:04:10 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id CDEEC11EF41
+        for <netfilter-devel@vger.kernel.org>; Fri,  3 May 2019 20:04:08 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id BCC97DA709
+        for <netfilter-devel@vger.kernel.org>; Fri,  3 May 2019 20:04:08 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id B225FDA708; Fri,  3 May 2019 20:04:08 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id BA787DA702;
+        Fri,  3 May 2019 20:04:06 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Fri, 03 May 2019 20:04:06 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (sys.soleta.eu [212.170.55.40])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mx1.redhat.com (Postfix) with ESMTPS id ED126C05681F;
-        Fri,  3 May 2019 17:20:52 +0000 (UTC)
-Received: from egarver.localdomain (ovpn-122-125.rdu2.redhat.com [10.10.122.125])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id 2825016582;
-        Fri,  3 May 2019 17:20:49 +0000 (UTC)
-Date:   Fri, 3 May 2019 13:20:47 -0400
-From:   Eric Garver <eric@garver.life>
-To:     Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft] py: fix missing decode/encode of strings
-Message-ID: <20190503172047.n33zwid642x63pdn@egarver.localdomain>
-Mail-Followup-To: Eric Garver <eric@garver.life>, Phil Sutter <phil@nwl.cc>,
-        netfilter-devel@vger.kernel.org
-References: <20190501163500.29662-1-eric@garver.life>
- <20190503155154.GM31599@orbyte.nwl.cc>
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 968374265A31;
+        Fri,  3 May 2019 20:04:06 +0200 (CEST)
+Date:   Fri, 3 May 2019 20:04:06 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Phil Sutter <phil@nwl.cc>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [nft PATCH] use UDATA defines from libnftnl
+Message-ID: <20190503180406.uteyesoecy3hqcsq@salvia>
+References: <20190425125654.15125-1-phil@nwl.cc>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20190503155154.GM31599@orbyte.nwl.cc>
-User-Agent: NeoMutt/20180716
-X-Scanned-By: MIMEDefang 2.84 on 10.5.11.23
-X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.5.16 (mx1.redhat.com [10.5.110.32]); Fri, 03 May 2019 17:20:53 +0000 (UTC)
+In-Reply-To: <20190425125654.15125-1-phil@nwl.cc>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, May 03, 2019 at 05:51:54PM +0200, Phil Sutter wrote:
-> Hi,
+On Thu, Apr 25, 2019 at 02:56:54PM +0200, Phil Sutter wrote:
+> Userdata attribute names have been added to libnftnl, use them instead
+> of the local copy.
 > 
-> On Wed, May 01, 2019 at 12:35:00PM -0400, Eric Garver wrote:
-> > When calling ffi functions we need to convert from python strings to
-> > utf-8. Then convert back for any output we receive.
-> 
-> So the problem is passing utf-8 encoded strings as command?
+> While being at it, rename udata_get_comment() in netlink_delinearize.c
+> and the callback it uses since the function is specific to rules. Also
+> integrate the existence check for NFTNL_RULE_USERDATA into it along with
+> the call to nftnl_rule_get_data().
 
-In python3 strings are unicode. But we need "bytes" when calling the
-ctypes function since it's imported with "c_char_p". This is what
-encode() is doing for us.
-
-    https://docs.python.org/3/library/ctypes.html#fundamental-data-types
-
-In python2 strings are a sequence of bytes already. I'll have to v2 to
-if we care about python2 support.
-
-> 
-> [...]
-> > -        rc = self.nft_run_cmd_from_buffer(self.__ctx, cmdline)
-> > -        output = self.nft_ctx_get_output_buffer(self.__ctx)
-> > -        error = self.nft_ctx_get_error_buffer(self.__ctx)
-> > +        rc = self.nft_run_cmd_from_buffer(self.__ctx, cmdline.encode("utf-8"))
-> > +        output = self.nft_ctx_get_output_buffer(self.__ctx).decode("utf-8")
-> > +        error = self.nft_ctx_get_error_buffer(self.__ctx).decode("utf-8")
-> 
-> Should the encoding be made configurable? I see encode() and decode()
-> parameters are optional, but as soon as I call them with a string
-> containing umlauts I get errors. So not sure if that would be an
-> alternative.
-
-I don't think so. Since we're calling system level stuff (nftables,
-kernel) I think utf-8 is what we want.
-
-Encoding with utf-8 does the right thing:
-
-python3:
-
-    >>> "ö".encode("utf-8")
-    >>> b'\xc3\xb6'
-
-python2:
-
-    >>> u"ö".encode("utf-8")
-    >>> '\xc3\xb6'
+Applied, thanks Phil.
