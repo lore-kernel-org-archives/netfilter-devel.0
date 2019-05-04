@@ -2,86 +2,80 @@ Return-Path: <SRS0=Nn+d=TE=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_NEOMUTT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.0 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6FE8EC43219
-	for <netfilter-devel@archiver.kernel.org>; Sat,  4 May 2019 09:15:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7D0EDC04AAA
+	for <netfilter-devel@archiver.kernel.org>; Sat,  4 May 2019 11:00:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 382EC20675
-	for <netfilter-devel@archiver.kernel.org>; Sat,  4 May 2019 09:15:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 454672084A
+	for <netfilter-devel@archiver.kernel.org>; Sat,  4 May 2019 11:00:18 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="HbavCllm"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726346AbfEDJPH (ORCPT
+        id S1727053AbfEDK5h (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 4 May 2019 05:15:07 -0400
-Received: from kirsty.vergenet.net ([202.4.237.240]:36340 "EHLO
-        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725819AbfEDJPH (ORCPT
+        Sat, 4 May 2019 06:57:37 -0400
+Received: from mail-ot1-f65.google.com ([209.85.210.65]:37910 "EHLO
+        mail-ot1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725981AbfEDK5h (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 4 May 2019 05:15:07 -0400
-Received: from penelope.horms.nl (ip4dab7138.direct-adsl.nl [77.171.113.56])
-        by kirsty.vergenet.net (Postfix) with ESMTPA id B6F3825AD6B;
-        Sat,  4 May 2019 19:15:04 +1000 (AEST)
-Received: by penelope.horms.nl (Postfix, from userid 7100)
-        id AF15FE209AF; Sat,  4 May 2019 11:15:02 +0200 (CEST)
-Date:   Sat, 4 May 2019 11:15:02 +0200
-From:   Simon Horman <horms@verge.net.au>
-To:     Julian Anastasov <ja@ssi.bg>
-Cc:     lvs-devel@vger.kernel.org, Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org, Jacky Hu <hengqing.hu@gmail.com>,
-        jacky.hu@walmart.com, jason.niesz@walmart.com
-Subject: Re: [PATCH net-next 3/3] ipvs: strip udp tunnel headers from icmp
- errors
-Message-ID: <20190504091502.tsbugtmarfiztzqp@verge.net.au>
-References: <20190331102621.7460-1-ja@ssi.bg>
- <20190331102621.7460-4-ja@ssi.bg>
- <20190403081511.ltjmuudpxdz3xxmf@verge.net.au>
- <alpine.LFD.2.21.1904032352530.3584@ja.home.ssi.bg>
- <20190404101421.izk7atydes3c53at@verge.net.au>
- <alpine.LFD.2.21.1904061255490.4492@ja.home.ssi.bg>
- <20190408112825.mwba6nmjxtfaclb6@verge.net.au>
- <20190501133741.u5v3kva4shbudvfj@verge.net.au>
- <alpine.LFD.2.21.1905011701580.8180@ja.home.ssi.bg>
+        Sat, 4 May 2019 06:57:37 -0400
+Received: by mail-ot1-f65.google.com with SMTP id b1so7576115otp.5;
+        Sat, 04 May 2019 03:57:36 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=PtqbTcb72Q7KVyfWSiqnpI2Et59naldE4J83TTDiAbk=;
+        b=HbavCllmnSyLHIwTYPQZBvV+IexfpvZpAijOH7LH/3wbBSs+cd0OhiHxidH3xfGF3M
+         +C0iDYL4iQpte32qkK/ZBTbU2S48PIMmygYWABxE0Uu2rfvnpNkoPn0N+xkIBWN3zdgO
+         xwbgyZYq4RVJVKbAi4AMwvsZ+Qmvag7tJsYBD9lPbaVkbTjPJq3mNyIbrqdbWFxtTagO
+         xah72q7MWHLz87X2jcdimvx60ZTf37s49B6Ge8SocgFfihIRCe7JUXju5YIBtZ04ERKY
+         9jrwPIQ/JjiCCia6A5m3TlmNhiiprzWmqICBAjSFM+WQ7PifWfbEP+dZpoTit6lIqwPF
+         0Waw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=PtqbTcb72Q7KVyfWSiqnpI2Et59naldE4J83TTDiAbk=;
+        b=n2XCnJ0J8+I4phSE9oY6gAksZF7T/zQMUz2PepdXHqX9D44b7jS7av2yiLr9B5+Qhp
+         xrWU2eWcjMHQLuzDTk9p5L/OUbRMaLlZmnqdZG4hBsdqDfpQHj4+uPNgEwAbnkbl8fyc
+         2zRsuCkcHDF9j3faPLUaJF0hkdv8kGs1kTb/gFCrtOyOSKuHN7X7B5ba1uvRLjXxtjMo
+         8n8Y5LbgB0Ayotm2yUyzvGLP8Y9uHQH2KZeunKnVKd5bhjeIv1anZxZ5EG0pzb9rrUbY
+         rCKlV+SdPt6cCsAkB+NnkQcwj982I0PsduPiXKHz4hdH+YEF+t9fK62oaD/isfazygvd
+         GcDQ==
+X-Gm-Message-State: APjAAAV160VF4nnzA03WE6DggYkb/0PNvhPmvQSz8EQ2pdS+ofaG3gdG
+        ynelD4M8Yad2BaMP/85G8w1UL2/pYh/hppnuT/cGS7No
+X-Google-Smtp-Source: APXvYqxJusKgJURVXUVLzDE2XjKyLIJZvdJlVTmwtwordrYhDZcxPBU+rlwhXgx9E/7iP8tCkp2bpzWnGN1Iq6I1KRM=
+X-Received: by 2002:a9d:77d6:: with SMTP id w22mr9767065otl.154.1556967456419;
+ Sat, 04 May 2019 03:57:36 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.21.1905011701580.8180@ja.home.ssi.bg>
-Organisation: Horms Solutions BV
-User-Agent: NeoMutt/20170113 (1.7.2)
+References: <20190503154007.32495-1-kristian.evensen@gmail.com>
+ <0326116f-f163-5ae1-ce19-6a891323eb03@6wind.com> <20190503170510.dn3z2363bsc5y4zp@salvia>
+In-Reply-To: <20190503170510.dn3z2363bsc5y4zp@salvia>
+From:   Kristian Evensen <kristian.evensen@gmail.com>
+Date:   Sat, 4 May 2019 12:57:03 +0200
+Message-ID: <CAKfDRXiTy0dMko5=_H-gi5gtW6GHdSNhJYLf5+_=x1ZkUxe8kA@mail.gmail.com>
+Subject: Re: [PATCH] netfilter: ctnetlink: Resolve conntrack L3-protocol flush regression
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Nicolas Dichtel <nicolas.dichtel@6wind.com>,
+        Network Development <netdev@vger.kernel.org>,
+        Netfilter Development Mailing list 
+        <netfilter-devel@vger.kernel.org>, Florian Westphal <fw@strlen.de>,
+        David Miller <davem@davemloft.net>
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, May 01, 2019 at 05:07:16PM +0300, Julian Anastasov wrote:
-> 
-> 	Hello,
-> 
-> On Wed, 1 May 2019, Simon Horman wrote:
-> 
-> > > > > > 	We can easily add simple FOU in ipvs_udp_decap() by
-> > > > > > returning 0 and correct *proto. Or you prefer to use common
-> > > > > > code from other files to parse the headers? Currently, there
-> > > > > > is no any GUE func that can be used for this.
-> > > > > 
-> > > > > My feeling is that using common code, even new common code, would
-> > > > > be better.
-> > > > 
-> > > > 	Let me know If you prefer to add GUE code that we can use
-> > > > in this patchset, I can test it easily. I'll delay with v2 to
-> > > > incorporate any needed changes.
-> > > 
-> > > Thanks Julian,
-> > > 
-> > > yes, I would prefer that.
-> > 
-> > Thanks again Julian,
-> > 
-> > is a v2 of this series pending or am I mistaken somehow?
-> 
-> 	I thought you will have some separate patch that adds
-> code to be used in v2 but if you prefer I can release v2, so
-> that you can add followup patch[es] based on that.
+On Fri, May 3, 2019 at 7:05 PM Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> Will fix this before applying, no worries.
 
-Thanks, I think sending v2 would be best.
+Thanks for taking care of my mistake :)
+
+BR,
+Kristian
