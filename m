@@ -1,56 +1,87 @@
-Return-Path: <SRS0=n11Q=TD=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=Nn+d=TE=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_NEOMUTT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_NEOMUTT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A0E00C43219
-	for <netfilter-devel@archiver.kernel.org>; Fri,  3 May 2019 20:52:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6FE8EC43219
+	for <netfilter-devel@archiver.kernel.org>; Sat,  4 May 2019 09:15:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6EB0F2075C
-	for <netfilter-devel@archiver.kernel.org>; Fri,  3 May 2019 20:52:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 382EC20675
+	for <netfilter-devel@archiver.kernel.org>; Sat,  4 May 2019 09:15:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726376AbfECUwm (ORCPT
+        id S1726346AbfEDJPH (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 3 May 2019 16:52:42 -0400
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:52914 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726022AbfECUwl (ORCPT
+        Sat, 4 May 2019 05:15:07 -0400
+Received: from kirsty.vergenet.net ([202.4.237.240]:36340 "EHLO
+        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725819AbfEDJPH (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 3 May 2019 16:52:41 -0400
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.89)
-        (envelope-from <fw@strlen.de>)
-        id 1hMfAd-000608-5X; Fri, 03 May 2019 22:52:39 +0200
-Date:   Fri, 3 May 2019 22:52:39 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
-Cc:     fw@strlen.de, pablo@netfilter.org, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf v2] netfilter: nf_conntrack_h323: Remove deprecated
- config check
-Message-ID: <20190503205239.6buya377z7qwx5ov@breakpoint.cc>
-References: <1556908748-22202-1-git-send-email-subashab@codeaurora.org>
+        Sat, 4 May 2019 05:15:07 -0400
+Received: from penelope.horms.nl (ip4dab7138.direct-adsl.nl [77.171.113.56])
+        by kirsty.vergenet.net (Postfix) with ESMTPA id B6F3825AD6B;
+        Sat,  4 May 2019 19:15:04 +1000 (AEST)
+Received: by penelope.horms.nl (Postfix, from userid 7100)
+        id AF15FE209AF; Sat,  4 May 2019 11:15:02 +0200 (CEST)
+Date:   Sat, 4 May 2019 11:15:02 +0200
+From:   Simon Horman <horms@verge.net.au>
+To:     Julian Anastasov <ja@ssi.bg>
+Cc:     lvs-devel@vger.kernel.org, Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org, Jacky Hu <hengqing.hu@gmail.com>,
+        jacky.hu@walmart.com, jason.niesz@walmart.com
+Subject: Re: [PATCH net-next 3/3] ipvs: strip udp tunnel headers from icmp
+ errors
+Message-ID: <20190504091502.tsbugtmarfiztzqp@verge.net.au>
+References: <20190331102621.7460-1-ja@ssi.bg>
+ <20190331102621.7460-4-ja@ssi.bg>
+ <20190403081511.ltjmuudpxdz3xxmf@verge.net.au>
+ <alpine.LFD.2.21.1904032352530.3584@ja.home.ssi.bg>
+ <20190404101421.izk7atydes3c53at@verge.net.au>
+ <alpine.LFD.2.21.1904061255490.4492@ja.home.ssi.bg>
+ <20190408112825.mwba6nmjxtfaclb6@verge.net.au>
+ <20190501133741.u5v3kva4shbudvfj@verge.net.au>
+ <alpine.LFD.2.21.1905011701580.8180@ja.home.ssi.bg>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <1556908748-22202-1-git-send-email-subashab@codeaurora.org>
+In-Reply-To: <alpine.LFD.2.21.1905011701580.8180@ja.home.ssi.bg>
+Organisation: Horms Solutions BV
 User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Subash Abhinov Kasiviswanathan <subashab@codeaurora.org> wrote:
-> CONFIG_NF_CONNTRACK_IPV6 has been deprecated so replace it with
-> a check for IPV6 instead.
+On Wed, May 01, 2019 at 05:07:16PM +0300, Julian Anastasov wrote:
 > 
-> v1->v2: Use nf_ip6_route6() instead of v6ops->route() and keep
-> the IS_MODULE() in nf_ipv6_ops as mentioned by Florian so that
-> direct calls are used when IPV6 is builtin and indirect calls
-> are used only when IPV6 is a module.
+> 	Hello,
 > 
-> Fixes: a0ae2562c6c4b2 ("netfilter: conntrack: remove l3proto abstraction")
-> Signed-off-by: Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
+> On Wed, 1 May 2019, Simon Horman wrote:
+> 
+> > > > > > 	We can easily add simple FOU in ipvs_udp_decap() by
+> > > > > > returning 0 and correct *proto. Or you prefer to use common
+> > > > > > code from other files to parse the headers? Currently, there
+> > > > > > is no any GUE func that can be used for this.
+> > > > > 
+> > > > > My feeling is that using common code, even new common code, would
+> > > > > be better.
+> > > > 
+> > > > 	Let me know If you prefer to add GUE code that we can use
+> > > > in this patchset, I can test it easily. I'll delay with v2 to
+> > > > incorporate any needed changes.
+> > > 
+> > > Thanks Julian,
+> > > 
+> > > yes, I would prefer that.
+> > 
+> > Thanks again Julian,
+> > 
+> > is a v2 of this series pending or am I mistaken somehow?
+> 
+> 	I thought you will have some separate patch that adds
+> code to be used in v2 but if you prefer I can release v2, so
+> that you can add followup patch[es] based on that.
 
-Reviewed-by: Florian Westphal <fw@strlen.de>
+Thanks, I think sending v2 would be best.
