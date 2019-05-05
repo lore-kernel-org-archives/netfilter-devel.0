@@ -2,151 +2,81 @@ Return-Path: <SRS0=aMTL=TF=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.0 required=3.0
-	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PULL_REQUEST,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C4695C004C9
-	for <netfilter-devel@archiver.kernel.org>; Sun,  5 May 2019 23:33:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3983AC46460
+	for <netfilter-devel@archiver.kernel.org>; Sun,  5 May 2019 23:33:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 97AEF206DF
-	for <netfilter-devel@archiver.kernel.org>; Sun,  5 May 2019 23:33:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0A72F2082F
+	for <netfilter-devel@archiver.kernel.org>; Sun,  5 May 2019 23:33:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727928AbfEEXdP (ORCPT
+        id S1727997AbfEEXdR (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 5 May 2019 19:33:15 -0400
-Received: from mail.us.es ([193.147.175.20]:34064 "EHLO mail.us.es"
+        Sun, 5 May 2019 19:33:17 -0400
+Received: from mail.us.es ([193.147.175.20]:34080 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727628AbfEEXdP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 5 May 2019 19:33:15 -0400
+        id S1727628AbfEEXdQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 5 May 2019 19:33:16 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 128B811ED84
-        for <netfilter-devel@vger.kernel.org>; Mon,  6 May 2019 01:33:13 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 107A711ED89
+        for <netfilter-devel@vger.kernel.org>; Mon,  6 May 2019 01:33:15 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 02C2ADA70C
-        for <netfilter-devel@vger.kernel.org>; Mon,  6 May 2019 01:33:13 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id F2414DA708
+        for <netfilter-devel@vger.kernel.org>; Mon,  6 May 2019 01:33:14 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id EC7FBDA70A; Mon,  6 May 2019 01:33:12 +0200 (CEST)
+        id E7A6BDA704; Mon,  6 May 2019 01:33:14 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id CC94BDA704;
-        Mon,  6 May 2019 01:33:10 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id F2487DA70B;
+        Mon,  6 May 2019 01:33:12 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 06 May 2019 01:33:10 +0200 (CEST)
+ Mon, 06 May 2019 01:33:12 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 9D1544265A31;
-        Mon,  6 May 2019 01:33:10 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id BF3D44265A31;
+        Mon,  6 May 2019 01:33:12 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 00/12] Netfilter updates for net-next
-Date:   Mon,  6 May 2019 01:32:53 +0200
-Message-Id: <20190505233305.13650-1-pablo@netfilter.org>
+Subject: [PATCH 02/12] netfilter: nf_tables: fix implicit include of module.h
+Date:   Mon,  6 May 2019 01:32:55 +0200
+Message-Id: <20190505233305.13650-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
+In-Reply-To: <20190505233305.13650-1-pablo@netfilter.org>
+References: <20190505233305.13650-1-pablo@netfilter.org>
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi David,
+From: Paul Gortmaker <paul.gortmaker@windriver.com>
 
-The following batch contains Netfilter updates for net-next, they are:
+This file clearly uses modular infrastructure but does not call
+out the inclusion of <linux/module.h> explicitly.  We add that
+include explicitly here, so we can tidy up some header usage
+elsewhere w/o causing build breakage.
 
-1) Move nft_expr_clone() to nft_dynset, from Paul Gortmaker.
+Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_tables_set_core.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-2) Do not include module.h from net/netfilter/nf_tables.h,
-   also from Paul.
+diff --git a/net/netfilter/nf_tables_set_core.c b/net/netfilter/nf_tables_set_core.c
+index 814789644bd3..a9fce8d10051 100644
+--- a/net/netfilter/nf_tables_set_core.c
++++ b/net/netfilter/nf_tables_set_core.c
+@@ -1,4 +1,5 @@
+ /* SPDX-License-Identifier: GPL-2.0 */
++#include <linux/module.h>
+ #include <net/netfilter/nf_tables_core.h>
+ 
+ static int __init nf_tables_set_module_init(void)
+-- 
+2.11.0
 
-3) Restrict conntrack sysctl entries to boolean, from Tonghao Zhang.
-
-4) Several patches to add infrastructure to autoload NAT helper
-   modules from their respective conntrack helper, this also includes
-   the first client of this code in OVS, patches from Flavio Leitner.
-
-5) Add support to match for conntrack ID, from Brett Mastbergen.
-
-6) Spelling fix in connlabel, from Colin Ian King.
-
-7) Use struct_size() from hashlimit, from Gustavo A. R. Silva.
-
-8) Add optimized version of nf_inet_addr_mask(), from Li RongQing.
-
-You can pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git
-
-Thanks!
-
-----------------------------------------------------------------
-
-The following changes since commit 7a1d8390d015a13c42b1effa1f22fda0858fe6f9:
-
-  net: phy: micrel: make sure the factory test bit is cleared (2019-04-29 23:17:21 -0400)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git HEAD
-
-for you to fetch changes up to 522e4077e8dcdfc5b8e96469d3bc2324bc5d6466:
-
-  netfilter: slightly optimize nf_inet_addr_mask (2019-05-06 01:18:58 +0200)
-
-----------------------------------------------------------------
-Brett Mastbergen (1):
-      netfilter: nft_ct: Add ct id support
-
-Colin Ian King (1):
-      netfilter: connlabels: fix spelling mistake "trackling" -> "tracking"
-
-Flavio Leitner (4):
-      netfilter: use macros to create module aliases.
-      netfilter: add API to manage NAT helpers.
-      netfilter: nf_nat: register NAT helpers.
-      openvswitch: load and reference the NAT helper.
-
-Gustavo A. R. Silva (1):
-      netfilter: xt_hashlimit: use struct_size() helper
-
-Li RongQing (1):
-      netfilter: slightly optimize nf_inet_addr_mask
-
-Paul Gortmaker (3):
-      netfilter: nf_tables: relocate header content to consumer
-      netfilter: nf_tables: fix implicit include of module.h
-      netfilter: nf_tables: drop include of module.h from nf_tables.h
-
-Tonghao Zhang (1):
-      netfilter: conntrack: limit sysctl setting for boolean options
-
- include/linux/netfilter.h                   |  9 +++
- include/net/netfilter/nf_conntrack_helper.h | 24 ++++++++
- include/net/netfilter/nf_tables.h           | 20 +------
- include/net/netns/conntrack.h               |  6 +-
- include/uapi/linux/netfilter/nf_tables.h    |  2 +
- net/ipv4/netfilter/nf_nat_h323.c            |  2 +-
- net/ipv4/netfilter/nf_nat_pptp.c            |  2 +-
- net/netfilter/nf_conntrack_amanda.c         |  8 ++-
- net/netfilter/nf_conntrack_ftp.c            | 18 +++---
- net/netfilter/nf_conntrack_helper.c         | 86 +++++++++++++++++++++++++++++
- net/netfilter/nf_conntrack_irc.c            |  6 +-
- net/netfilter/nf_conntrack_sane.c           | 12 ++--
- net/netfilter/nf_conntrack_sip.c            | 28 +++++-----
- net/netfilter/nf_conntrack_standalone.c     | 48 +++++++++++-----
- net/netfilter/nf_conntrack_tftp.c           | 18 +++---
- net/netfilter/nf_nat_amanda.c               |  9 ++-
- net/netfilter/nf_nat_ftp.c                  |  9 ++-
- net/netfilter/nf_nat_irc.c                  |  9 ++-
- net/netfilter/nf_nat_sip.c                  |  9 ++-
- net/netfilter/nf_nat_tftp.c                 |  9 ++-
- net/netfilter/nf_tables_set_core.c          |  1 +
- net/netfilter/nft_ct.c                      |  8 +++
- net/netfilter/nft_dynset.c                  | 17 ++++++
- net/netfilter/xt_connlabel.c                |  2 +-
- net/netfilter/xt_hashlimit.c                |  3 +-
- net/openvswitch/conntrack.c                 | 26 +++++++--
- 26 files changed, 302 insertions(+), 89 deletions(-)
