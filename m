@@ -3,48 +3,48 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3BEFCC004C9
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5AE5BC46470
 	for <netfilter-devel@archiver.kernel.org>; Sun,  5 May 2019 23:33:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 15532206DF
+	by mail.kernel.org (Postfix) with ESMTP id 37ADB2082F
 	for <netfilter-devel@archiver.kernel.org>; Sun,  5 May 2019 23:33:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728047AbfEEXdv (ORCPT
+        id S1727959AbfEEXdQ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 5 May 2019 19:33:51 -0400
-Received: from mail.us.es ([193.147.175.20]:34106 "EHLO mail.us.es"
+        Sun, 5 May 2019 19:33:16 -0400
+Received: from mail.us.es ([193.147.175.20]:34072 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727740AbfEEXdS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 5 May 2019 19:33:18 -0400
+        id S1727802AbfEEXdQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 5 May 2019 19:33:16 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 7303811ED91
-        for <netfilter-devel@vger.kernel.org>; Mon,  6 May 2019 01:33:16 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 159DA11ED86
+        for <netfilter-devel@vger.kernel.org>; Mon,  6 May 2019 01:33:14 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 5E041DA709
-        for <netfilter-devel@vger.kernel.org>; Mon,  6 May 2019 01:33:16 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 033C6DA707
+        for <netfilter-devel@vger.kernel.org>; Mon,  6 May 2019 01:33:14 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 53B0CDA706; Mon,  6 May 2019 01:33:16 +0200 (CEST)
+        id ED21DDA704; Mon,  6 May 2019 01:33:13 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 48661DA702;
-        Mon,  6 May 2019 01:33:14 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id E1E7ADA702;
+        Mon,  6 May 2019 01:33:11 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 06 May 2019 01:33:14 +0200 (CEST)
+ Mon, 06 May 2019 01:33:11 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 1F8154265A31;
-        Mon,  6 May 2019 01:33:14 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id B86C44265A31;
+        Mon,  6 May 2019 01:33:11 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 04/12] netfilter: conntrack: limit sysctl setting for boolean options
-Date:   Mon,  6 May 2019 01:32:57 +0200
-Message-Id: <20190505233305.13650-5-pablo@netfilter.org>
+Subject: [PATCH 01/12] netfilter: nf_tables: relocate header content to consumer
+Date:   Mon,  6 May 2019 01:32:54 +0200
+Message-Id: <20190505233305.13650-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20190505233305.13650-1-pablo@netfilter.org>
 References: <20190505233305.13650-1-pablo@netfilter.org>
@@ -54,148 +54,87 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Tonghao Zhang <xiangxia.m.yue@gmail.com>
+From: Paul Gortmaker <paul.gortmaker@windriver.com>
 
-We use the zero and one to limit the boolean options setting.
-After this patch we only set 0 or 1 to boolean options for nf
-conntrack sysctl.
+The nf_tables.h header is used in a lot of files, but it turns out
+that there is only one actual user of nft_expr_clone().
 
-Signed-off-by: Tonghao Zhang <xiangxia.m.yue@gmail.com>
+Hence we relocate that function to be with the one consumer of it
+and avoid having to process it with CPP for all the other files.
+
+This will also enable a reduction in the other headers that the
+nf_tables.h itself has to include just to be stand-alone, hence
+a pending further significant reduction in the CPP content that
+needs to get processed for each netfilter file.
+
+Note that the explicit "inline" has been dropped as part of this
+relocation.  In similar changes to this, I believe Dave has asked
+this be done, so we free up gcc to make the choice of whether to
+inline or not.
+
+Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netns/conntrack.h           |  6 ++---
- net/netfilter/nf_conntrack_standalone.c | 48 ++++++++++++++++++++++-----------
- 2 files changed, 36 insertions(+), 18 deletions(-)
+ include/net/netfilter/nf_tables.h | 17 -----------------
+ net/netfilter/nft_dynset.c        | 17 +++++++++++++++++
+ 2 files changed, 17 insertions(+), 17 deletions(-)
 
-diff --git a/include/net/netns/conntrack.h b/include/net/netns/conntrack.h
-index f19b53130bf7..806454e767bf 100644
---- a/include/net/netns/conntrack.h
-+++ b/include/net/netns/conntrack.h
-@@ -24,9 +24,9 @@ struct nf_generic_net {
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index 2d5a0a1a87b8..706f744f7308 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -806,23 +806,6 @@ void nft_expr_destroy(const struct nft_ctx *ctx, struct nft_expr *expr);
+ int nft_expr_dump(struct sk_buff *skb, unsigned int attr,
+ 		  const struct nft_expr *expr);
  
- struct nf_tcp_net {
- 	unsigned int timeouts[TCP_CONNTRACK_TIMEOUT_MAX];
--	unsigned int tcp_loose;
--	unsigned int tcp_be_liberal;
--	unsigned int tcp_max_retrans;
-+	int tcp_loose;
-+	int tcp_be_liberal;
-+	int tcp_max_retrans;
+-static inline int nft_expr_clone(struct nft_expr *dst, struct nft_expr *src)
+-{
+-	int err;
+-
+-	if (src->ops->clone) {
+-		dst->ops = src->ops;
+-		err = src->ops->clone(dst, src);
+-		if (err < 0)
+-			return err;
+-	} else {
+-		memcpy(dst, src, src->ops->size);
+-	}
+-
+-	__module_get(src->ops->type->owner);
+-	return 0;
+-}
+-
+ /**
+  *	struct nft_rule - nf_tables rule
+  *
+diff --git a/net/netfilter/nft_dynset.c b/net/netfilter/nft_dynset.c
+index e461007558e8..8394560aa695 100644
+--- a/net/netfilter/nft_dynset.c
++++ b/net/netfilter/nft_dynset.c
+@@ -28,6 +28,23 @@ struct nft_dynset {
+ 	struct nft_set_binding		binding;
  };
  
- enum udp_conntrack {
-diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
-index c2ae14c720b4..e0d392cb3075 100644
---- a/net/netfilter/nf_conntrack_standalone.c
-+++ b/net/netfilter/nf_conntrack_standalone.c
-@@ -511,6 +511,8 @@ static void nf_conntrack_standalone_fini_proc(struct net *net)
- /* Log invalid packets of a given protocol */
- static int log_invalid_proto_min __read_mostly;
- static int log_invalid_proto_max __read_mostly = 255;
-+static int zero;
-+static int one = 1;
- 
- /* size the user *wants to set */
- static unsigned int nf_conntrack_htable_size_user __read_mostly;
-@@ -624,9 +626,11 @@ static struct ctl_table nf_ct_sysctl_table[] = {
- 	[NF_SYSCTL_CT_CHECKSUM] = {
- 		.procname	= "nf_conntrack_checksum",
- 		.data		= &init_net.ct.sysctl_checksum,
--		.maxlen		= sizeof(unsigned int),
-+		.maxlen		= sizeof(int),
- 		.mode		= 0644,
--		.proc_handler	= proc_dointvec,
-+		.proc_handler	= proc_dointvec_minmax,
-+		.extra1 	= &zero,
-+		.extra2 	= &one,
- 	},
- 	[NF_SYSCTL_CT_LOG_INVALID] = {
- 		.procname	= "nf_conntrack_log_invalid",
-@@ -647,33 +651,41 @@ static struct ctl_table nf_ct_sysctl_table[] = {
- 	[NF_SYSCTL_CT_ACCT] = {
- 		.procname	= "nf_conntrack_acct",
- 		.data		= &init_net.ct.sysctl_acct,
--		.maxlen		= sizeof(unsigned int),
-+		.maxlen		= sizeof(int),
- 		.mode		= 0644,
--		.proc_handler	= proc_dointvec,
-+		.proc_handler	= proc_dointvec_minmax,
-+		.extra1 	= &zero,
-+		.extra2 	= &one,
- 	},
- 	[NF_SYSCTL_CT_HELPER] = {
- 		.procname	= "nf_conntrack_helper",
- 		.data		= &init_net.ct.sysctl_auto_assign_helper,
--		.maxlen		= sizeof(unsigned int),
-+		.maxlen		= sizeof(int),
- 		.mode		= 0644,
--		.proc_handler	= proc_dointvec,
-+		.proc_handler	= proc_dointvec_minmax,
-+		.extra1 	= &zero,
-+		.extra2 	= &one,
- 	},
- #ifdef CONFIG_NF_CONNTRACK_EVENTS
- 	[NF_SYSCTL_CT_EVENTS] = {
- 		.procname	= "nf_conntrack_events",
- 		.data		= &init_net.ct.sysctl_events,
--		.maxlen		= sizeof(unsigned int),
-+		.maxlen		= sizeof(int),
- 		.mode		= 0644,
--		.proc_handler	= proc_dointvec,
-+		.proc_handler	= proc_dointvec_minmax,
-+		.extra1 	= &zero,
-+		.extra2 	= &one,
- 	},
- #endif
- #ifdef CONFIG_NF_CONNTRACK_TIMESTAMP
- 	[NF_SYSCTL_CT_TIMESTAMP] = {
- 		.procname	= "nf_conntrack_timestamp",
- 		.data		= &init_net.ct.sysctl_tstamp,
--		.maxlen		= sizeof(unsigned int),
-+		.maxlen		= sizeof(int),
- 		.mode		= 0644,
--		.proc_handler	= proc_dointvec,
-+		.proc_handler	= proc_dointvec_minmax,
-+		.extra1 	= &zero,
-+		.extra2 	= &one,
- 	},
- #endif
- 	[NF_SYSCTL_CT_PROTO_TIMEOUT_GENERIC] = {
-@@ -744,15 +756,19 @@ static struct ctl_table nf_ct_sysctl_table[] = {
- 	},
- 	[NF_SYSCTL_CT_PROTO_TCP_LOOSE] = {
- 		.procname	= "nf_conntrack_tcp_loose",
--		.maxlen		= sizeof(unsigned int),
-+		.maxlen		= sizeof(int),
- 		.mode		= 0644,
--		.proc_handler	= proc_dointvec,
-+		.proc_handler	= proc_dointvec_minmax,
-+		.extra1 	= &zero,
-+		.extra2 	= &one,
- 	},
- 	[NF_SYSCTL_CT_PROTO_TCP_LIBERAL] = {
- 		.procname       = "nf_conntrack_tcp_be_liberal",
--		.maxlen         = sizeof(unsigned int),
-+		.maxlen         = sizeof(int),
- 		.mode           = 0644,
--		.proc_handler   = proc_dointvec,
-+		.proc_handler	= proc_dointvec_minmax,
-+		.extra1 	= &zero,
-+		.extra2 	= &one,
- 	},
- 	[NF_SYSCTL_CT_PROTO_TCP_MAX_RETRANS] = {
- 		.procname	= "nf_conntrack_tcp_max_retrans",
-@@ -887,7 +903,9 @@ static struct ctl_table nf_ct_sysctl_table[] = {
- 		.procname	= "nf_conntrack_dccp_loose",
- 		.maxlen		= sizeof(int),
- 		.mode		= 0644,
--		.proc_handler	= proc_dointvec,
-+		.proc_handler	= proc_dointvec_minmax,
-+		.extra1 	= &zero,
-+		.extra2 	= &one,
- 	},
- #endif
- #ifdef CONFIG_NF_CT_PROTO_GRE
++static int nft_expr_clone(struct nft_expr *dst, struct nft_expr *src)
++{
++	int err;
++
++	if (src->ops->clone) {
++		dst->ops = src->ops;
++		err = src->ops->clone(dst, src);
++		if (err < 0)
++			return err;
++	} else {
++		memcpy(dst, src, src->ops->size);
++	}
++
++	__module_get(src->ops->type->owner);
++	return 0;
++}
++
+ static void *nft_dynset_new(struct nft_set *set, const struct nft_expr *expr,
+ 			    struct nft_regs *regs)
+ {
 -- 
 2.11.0
 
