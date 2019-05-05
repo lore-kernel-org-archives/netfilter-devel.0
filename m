@@ -6,45 +6,45 @@ X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 52DEEC004C9
-	for <netfilter-devel@archiver.kernel.org>; Sun,  5 May 2019 23:33:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 679CCC04AAB
+	for <netfilter-devel@archiver.kernel.org>; Sun,  5 May 2019 23:33:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 22C5B206DF
-	for <netfilter-devel@archiver.kernel.org>; Sun,  5 May 2019 23:33:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 39D1E206DF
+	for <netfilter-devel@archiver.kernel.org>; Sun,  5 May 2019 23:33:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728168AbfEEXdl (ORCPT
+        id S1728084AbfEEXdn (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 5 May 2019 19:33:41 -0400
-Received: from mail.us.es ([193.147.175.20]:34080 "EHLO mail.us.es"
+        Sun, 5 May 2019 19:33:43 -0400
+Received: from mail.us.es ([193.147.175.20]:34082 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728071AbfEEXdV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        id S1728063AbfEEXdV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Sun, 5 May 2019 19:33:21 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 733FD11ED8D
-        for <netfilter-devel@vger.kernel.org>; Mon,  6 May 2019 01:33:20 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id D4D5411ED97
+        for <netfilter-devel@vger.kernel.org>; Mon,  6 May 2019 01:33:19 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 60F44DA706
-        for <netfilter-devel@vger.kernel.org>; Mon,  6 May 2019 01:33:20 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C3536DA709
+        for <netfilter-devel@vger.kernel.org>; Mon,  6 May 2019 01:33:19 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 56C41DA703; Mon,  6 May 2019 01:33:20 +0200 (CEST)
+        id B905EDA705; Mon,  6 May 2019 01:33:19 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 4724FDA70A;
-        Mon,  6 May 2019 01:33:18 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id B425CDA707;
+        Mon,  6 May 2019 01:33:17 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 06 May 2019 01:33:18 +0200 (CEST)
+ Mon, 06 May 2019 01:33:17 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 163C24265A31;
-        Mon,  6 May 2019 01:33:18 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 8139E4265A31;
+        Mon,  6 May 2019 01:33:17 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 11/12] netfilter: xt_hashlimit: use struct_size() helper
-Date:   Mon,  6 May 2019 01:33:04 +0200
-Message-Id: <20190505233305.13650-12-pablo@netfilter.org>
+Subject: [PATCH 10/12] netfilter: connlabels: fix spelling mistake "trackling" -> "tracking"
+Date:   Mon,  6 May 2019 01:33:03 +0200
+Message-Id: <20190505233305.13650-11-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20190505233305.13650-1-pablo@netfilter.org>
 References: <20190505233305.13650-1-pablo@netfilter.org>
@@ -54,42 +54,30 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+From: Colin Ian King <colin.king@canonical.com>
 
-Make use of the struct_size() helper instead of an open-coded version
-in order to avoid any potential type mistakes, in particular in the
-context in which this code is being used.
+There is a spelling mistake in the module description. Fix this.
 
-So, replace code of the following form:
-
-sizeof(struct xt_hashlimit_htable) + sizeof(struct hlist_head) * size
-
-with:
-
-struct_size(hinfo, hash, size)
-
-This code was detected with the help of Coccinelle.
-
-Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+Reviewed-by: Mukesh Ojha <mojha@codeaurora.org>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/xt_hashlimit.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ net/netfilter/xt_connlabel.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
-index 8d86e39d6280..a30536b17ee1 100644
---- a/net/netfilter/xt_hashlimit.c
-+++ b/net/netfilter/xt_hashlimit.c
-@@ -288,8 +288,7 @@ static int htable_create(struct net *net, struct hashlimit_cfg3 *cfg,
- 			size = 16;
- 	}
- 	/* FIXME: don't use vmalloc() here or anywhere else -HW */
--	hinfo = vmalloc(sizeof(struct xt_hashlimit_htable) +
--	                sizeof(struct hlist_head) * size);
-+	hinfo = vmalloc(struct_size(hinfo, hash, size));
- 	if (hinfo == NULL)
- 		return -ENOMEM;
- 	*out_hinfo = hinfo;
+diff --git a/net/netfilter/xt_connlabel.c b/net/netfilter/xt_connlabel.c
+index 4fa4efd24353..893374ac3758 100644
+--- a/net/netfilter/xt_connlabel.c
++++ b/net/netfilter/xt_connlabel.c
+@@ -15,7 +15,7 @@
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Florian Westphal <fw@strlen.de>");
+-MODULE_DESCRIPTION("Xtables: add/match connection trackling labels");
++MODULE_DESCRIPTION("Xtables: add/match connection tracking labels");
+ MODULE_ALIAS("ipt_connlabel");
+ MODULE_ALIAS("ip6t_connlabel");
+ 
 -- 
 2.11.0
 
