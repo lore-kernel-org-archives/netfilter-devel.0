@@ -2,50 +2,49 @@ Return-Path: <SRS0=aMTL=TF=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,
-	UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AF9D2C004C9
-	for <netfilter-devel@archiver.kernel.org>; Sun,  5 May 2019 23:33:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 52DEEC004C9
+	for <netfilter-devel@archiver.kernel.org>; Sun,  5 May 2019 23:33:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8006B206DF
-	for <netfilter-devel@archiver.kernel.org>; Sun,  5 May 2019 23:33:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 22C5B206DF
+	for <netfilter-devel@archiver.kernel.org>; Sun,  5 May 2019 23:33:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727947AbfEEXdV (ORCPT
+        id S1728168AbfEEXdl (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 5 May 2019 19:33:21 -0400
-Received: from mail.us.es ([193.147.175.20]:34112 "EHLO mail.us.es"
+        Sun, 5 May 2019 19:33:41 -0400
+Received: from mail.us.es ([193.147.175.20]:34080 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728036AbfEEXdV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        id S1728071AbfEEXdV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Sun, 5 May 2019 19:33:21 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 5A49811ED85
-        for <netfilter-devel@vger.kernel.org>; Mon,  6 May 2019 01:33:18 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 733FD11ED8D
+        for <netfilter-devel@vger.kernel.org>; Mon,  6 May 2019 01:33:20 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 4AB6ADA70C
-        for <netfilter-devel@vger.kernel.org>; Mon,  6 May 2019 01:33:18 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 60F44DA706
+        for <netfilter-devel@vger.kernel.org>; Mon,  6 May 2019 01:33:20 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 40611DA709; Mon,  6 May 2019 01:33:18 +0200 (CEST)
+        id 56C41DA703; Mon,  6 May 2019 01:33:20 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 12316DA701;
-        Mon,  6 May 2019 01:33:16 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 4724FDA70A;
+        Mon,  6 May 2019 01:33:18 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 06 May 2019 01:33:16 +0200 (CEST)
+ Mon, 06 May 2019 01:33:18 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id D4D004265A31;
-        Mon,  6 May 2019 01:33:15 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 163C24265A31;
+        Mon,  6 May 2019 01:33:18 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 07/12] netfilter: nf_nat: register NAT helpers.
-Date:   Mon,  6 May 2019 01:33:00 +0200
-Message-Id: <20190505233305.13650-8-pablo@netfilter.org>
+Subject: [PATCH 11/12] netfilter: xt_hashlimit: use struct_size() helper
+Date:   Mon,  6 May 2019 01:33:04 +0200
+Message-Id: <20190505233305.13650-12-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20190505233305.13650-1-pablo@netfilter.org>
 References: <20190505233305.13650-1-pablo@netfilter.org>
@@ -55,210 +54,42 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Flavio Leitner <fbl@redhat.com>
+From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
 
-Register amanda, ftp, irc, sip and tftp NAT helpers.
+Make use of the struct_size() helper instead of an open-coded version
+in order to avoid any potential type mistakes, in particular in the
+context in which this code is being used.
 
-Signed-off-by: Flavio Leitner <fbl@redhat.com>
+So, replace code of the following form:
+
+sizeof(struct xt_hashlimit_htable) + sizeof(struct hlist_head) * size
+
+with:
+
+struct_size(hinfo, hash, size)
+
+This code was detected with the help of Coccinelle.
+
+Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_nat_amanda.c | 9 ++++++++-
- net/netfilter/nf_nat_ftp.c    | 9 ++++++++-
- net/netfilter/nf_nat_irc.c    | 9 ++++++++-
- net/netfilter/nf_nat_sip.c    | 9 +++++++--
- net/netfilter/nf_nat_tftp.c   | 9 ++++++++-
- 5 files changed, 39 insertions(+), 6 deletions(-)
+ net/netfilter/xt_hashlimit.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/net/netfilter/nf_nat_amanda.c b/net/netfilter/nf_nat_amanda.c
-index 6b729a897c5f..4e59416ea709 100644
---- a/net/netfilter/nf_nat_amanda.c
-+++ b/net/netfilter/nf_nat_amanda.c
-@@ -19,10 +19,15 @@
- #include <net/netfilter/nf_nat_helper.h>
- #include <linux/netfilter/nf_conntrack_amanda.h>
- 
-+#define NAT_HELPER_NAME "amanda"
-+
- MODULE_AUTHOR("Brian J. Murrell <netfilter@interlinx.bc.ca>");
- MODULE_DESCRIPTION("Amanda NAT helper");
- MODULE_LICENSE("GPL");
--MODULE_ALIAS_NF_NAT_HELPER("amanda");
-+MODULE_ALIAS_NF_NAT_HELPER(NAT_HELPER_NAME);
-+
-+static struct nf_conntrack_nat_helper nat_helper_amanda =
-+	NF_CT_NAT_HELPER_INIT(NAT_HELPER_NAME);
- 
- static unsigned int help(struct sk_buff *skb,
- 			 enum ip_conntrack_info ctinfo,
-@@ -74,6 +79,7 @@ static unsigned int help(struct sk_buff *skb,
- 
- static void __exit nf_nat_amanda_fini(void)
- {
-+	nf_nat_helper_unregister(&nat_helper_amanda);
- 	RCU_INIT_POINTER(nf_nat_amanda_hook, NULL);
- 	synchronize_rcu();
- }
-@@ -81,6 +87,7 @@ static void __exit nf_nat_amanda_fini(void)
- static int __init nf_nat_amanda_init(void)
- {
- 	BUG_ON(nf_nat_amanda_hook != NULL);
-+	nf_nat_helper_register(&nat_helper_amanda);
- 	RCU_INIT_POINTER(nf_nat_amanda_hook, help);
- 	return 0;
- }
-diff --git a/net/netfilter/nf_nat_ftp.c b/net/netfilter/nf_nat_ftp.c
-index 0e93b1f19432..0ea6b1bc52de 100644
---- a/net/netfilter/nf_nat_ftp.c
-+++ b/net/netfilter/nf_nat_ftp.c
-@@ -21,13 +21,18 @@
- #include <net/netfilter/nf_conntrack_expect.h>
- #include <linux/netfilter/nf_conntrack_ftp.h>
- 
-+#define NAT_HELPER_NAME "ftp"
-+
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Rusty Russell <rusty@rustcorp.com.au>");
- MODULE_DESCRIPTION("ftp NAT helper");
--MODULE_ALIAS_NF_NAT_HELPER("ftp");
-+MODULE_ALIAS_NF_NAT_HELPER(NAT_HELPER_NAME);
- 
- /* FIXME: Time out? --RR */
- 
-+static struct nf_conntrack_nat_helper nat_helper_ftp =
-+	NF_CT_NAT_HELPER_INIT(NAT_HELPER_NAME);
-+
- static int nf_nat_ftp_fmt_cmd(struct nf_conn *ct, enum nf_ct_ftp_type type,
- 			      char *buffer, size_t buflen,
- 			      union nf_inet_addr *addr, u16 port)
-@@ -124,6 +129,7 @@ static unsigned int nf_nat_ftp(struct sk_buff *skb,
- 
- static void __exit nf_nat_ftp_fini(void)
- {
-+	nf_nat_helper_unregister(&nat_helper_ftp);
- 	RCU_INIT_POINTER(nf_nat_ftp_hook, NULL);
- 	synchronize_rcu();
- }
-@@ -131,6 +137,7 @@ static void __exit nf_nat_ftp_fini(void)
- static int __init nf_nat_ftp_init(void)
- {
- 	BUG_ON(nf_nat_ftp_hook != NULL);
-+	nf_nat_helper_register(&nat_helper_ftp);
- 	RCU_INIT_POINTER(nf_nat_ftp_hook, nf_nat_ftp);
- 	return 0;
- }
-diff --git a/net/netfilter/nf_nat_irc.c b/net/netfilter/nf_nat_irc.c
-index 6c06e997395f..d87cbe5e03ec 100644
---- a/net/netfilter/nf_nat_irc.c
-+++ b/net/netfilter/nf_nat_irc.c
-@@ -23,10 +23,15 @@
- #include <net/netfilter/nf_conntrack_expect.h>
- #include <linux/netfilter/nf_conntrack_irc.h>
- 
-+#define NAT_HELPER_NAME "irc"
-+
- MODULE_AUTHOR("Harald Welte <laforge@gnumonks.org>");
- MODULE_DESCRIPTION("IRC (DCC) NAT helper");
- MODULE_LICENSE("GPL");
--MODULE_ALIAS_NF_NAT_HELPER("irc");
-+MODULE_ALIAS_NF_NAT_HELPER(NAT_HELPER_NAME);
-+
-+static struct nf_conntrack_nat_helper nat_helper_irc =
-+	NF_CT_NAT_HELPER_INIT(NAT_HELPER_NAME);
- 
- static unsigned int help(struct sk_buff *skb,
- 			 enum ip_conntrack_info ctinfo,
-@@ -96,6 +101,7 @@ static unsigned int help(struct sk_buff *skb,
- 
- static void __exit nf_nat_irc_fini(void)
- {
-+	nf_nat_helper_unregister(&nat_helper_irc);
- 	RCU_INIT_POINTER(nf_nat_irc_hook, NULL);
- 	synchronize_rcu();
- }
-@@ -103,6 +109,7 @@ static void __exit nf_nat_irc_fini(void)
- static int __init nf_nat_irc_init(void)
- {
- 	BUG_ON(nf_nat_irc_hook != NULL);
-+	nf_nat_helper_register(&nat_helper_irc);
- 	RCU_INIT_POINTER(nf_nat_irc_hook, help);
- 	return 0;
- }
-diff --git a/net/netfilter/nf_nat_sip.c b/net/netfilter/nf_nat_sip.c
-index f1f007d9484c..464387b3600f 100644
---- a/net/netfilter/nf_nat_sip.c
-+++ b/net/netfilter/nf_nat_sip.c
-@@ -24,11 +24,15 @@
- #include <net/netfilter/nf_conntrack_seqadj.h>
- #include <linux/netfilter/nf_conntrack_sip.h>
- 
-+#define NAT_HELPER_NAME "sip"
-+
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Christian Hentschel <chentschel@arnet.com.ar>");
- MODULE_DESCRIPTION("SIP NAT helper");
--MODULE_ALIAS_NF_NAT_HELPER("sip");
-+MODULE_ALIAS_NF_NAT_HELPER(NAT_HELPER_NAME);
- 
-+static struct nf_conntrack_nat_helper nat_helper_sip =
-+	NF_CT_NAT_HELPER_INIT(NAT_HELPER_NAME);
- 
- static unsigned int mangle_packet(struct sk_buff *skb, unsigned int protoff,
- 				  unsigned int dataoff,
-@@ -656,8 +660,8 @@ static struct nf_ct_helper_expectfn sip_nat = {
- 
- static void __exit nf_nat_sip_fini(void)
- {
-+	nf_nat_helper_unregister(&nat_helper_sip);
- 	RCU_INIT_POINTER(nf_nat_sip_hooks, NULL);
--
- 	nf_ct_helper_expectfn_unregister(&sip_nat);
- 	synchronize_rcu();
- }
-@@ -675,6 +679,7 @@ static const struct nf_nat_sip_hooks sip_hooks = {
- static int __init nf_nat_sip_init(void)
- {
- 	BUG_ON(nf_nat_sip_hooks != NULL);
-+	nf_nat_helper_register(&nat_helper_sip);
- 	RCU_INIT_POINTER(nf_nat_sip_hooks, &sip_hooks);
- 	nf_ct_helper_expectfn_register(&sip_nat);
- 	return 0;
-diff --git a/net/netfilter/nf_nat_tftp.c b/net/netfilter/nf_nat_tftp.c
-index dd3a835c111d..e633b3863e33 100644
---- a/net/netfilter/nf_nat_tftp.c
-+++ b/net/netfilter/nf_nat_tftp.c
-@@ -13,10 +13,15 @@
- #include <net/netfilter/nf_nat_helper.h>
- #include <linux/netfilter/nf_conntrack_tftp.h>
- 
-+#define NAT_HELPER_NAME "tftp"
-+
- MODULE_AUTHOR("Magnus Boden <mb@ozaba.mine.nu>");
- MODULE_DESCRIPTION("TFTP NAT helper");
- MODULE_LICENSE("GPL");
--MODULE_ALIAS_NF_NAT_HELPER("tftp");
-+MODULE_ALIAS_NF_NAT_HELPER(NAT_HELPER_NAME);
-+
-+static struct nf_conntrack_nat_helper nat_helper_tftp =
-+	NF_CT_NAT_HELPER_INIT(NAT_HELPER_NAME);
- 
- static unsigned int help(struct sk_buff *skb,
- 			 enum ip_conntrack_info ctinfo,
-@@ -37,6 +42,7 @@ static unsigned int help(struct sk_buff *skb,
- 
- static void __exit nf_nat_tftp_fini(void)
- {
-+	nf_nat_helper_unregister(&nat_helper_tftp);
- 	RCU_INIT_POINTER(nf_nat_tftp_hook, NULL);
- 	synchronize_rcu();
- }
-@@ -44,6 +50,7 @@ static void __exit nf_nat_tftp_fini(void)
- static int __init nf_nat_tftp_init(void)
- {
- 	BUG_ON(nf_nat_tftp_hook != NULL);
-+	nf_nat_helper_register(&nat_helper_tftp);
- 	RCU_INIT_POINTER(nf_nat_tftp_hook, help);
- 	return 0;
- }
+diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
+index 8d86e39d6280..a30536b17ee1 100644
+--- a/net/netfilter/xt_hashlimit.c
++++ b/net/netfilter/xt_hashlimit.c
+@@ -288,8 +288,7 @@ static int htable_create(struct net *net, struct hashlimit_cfg3 *cfg,
+ 			size = 16;
+ 	}
+ 	/* FIXME: don't use vmalloc() here or anywhere else -HW */
+-	hinfo = vmalloc(sizeof(struct xt_hashlimit_htable) +
+-	                sizeof(struct hlist_head) * size);
++	hinfo = vmalloc(struct_size(hinfo, hash, size));
+ 	if (hinfo == NULL)
+ 		return -ENOMEM;
+ 	*out_hinfo = hinfo;
 -- 
 2.11.0
 
