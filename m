@@ -1,140 +1,56 @@
-Return-Path: <SRS0=aMTL=TF=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=PEYv=TG=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_PASS autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5AE5BC46470
-	for <netfilter-devel@archiver.kernel.org>; Sun,  5 May 2019 23:33:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BDB14C04AAE
+	for <netfilter-devel@archiver.kernel.org>; Mon,  6 May 2019 04:35:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 37ADB2082F
-	for <netfilter-devel@archiver.kernel.org>; Sun,  5 May 2019 23:33:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9A1A22082F
+	for <netfilter-devel@archiver.kernel.org>; Mon,  6 May 2019 04:35:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727959AbfEEXdQ (ORCPT
+        id S1725828AbfEFEfk (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 5 May 2019 19:33:16 -0400
-Received: from mail.us.es ([193.147.175.20]:34072 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727802AbfEEXdQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 5 May 2019 19:33:16 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 159DA11ED86
-        for <netfilter-devel@vger.kernel.org>; Mon,  6 May 2019 01:33:14 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 033C6DA707
-        for <netfilter-devel@vger.kernel.org>; Mon,  6 May 2019 01:33:14 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id ED21DDA704; Mon,  6 May 2019 01:33:13 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id E1E7ADA702;
-        Mon,  6 May 2019 01:33:11 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 06 May 2019 01:33:11 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from salvia.here (sys.soleta.eu [212.170.55.40])
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id B86C44265A31;
-        Mon,  6 May 2019 01:33:11 +0200 (CEST)
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 01/12] netfilter: nf_tables: relocate header content to consumer
-Date:   Mon,  6 May 2019 01:32:54 +0200
-Message-Id: <20190505233305.13650-2-pablo@netfilter.org>
-X-Mailer: git-send-email 2.11.0
+        Mon, 6 May 2019 00:35:40 -0400
+Received: from shards.monkeyblade.net ([23.128.96.9]:59640 "EHLO
+        shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725710AbfEFEfj (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 6 May 2019 00:35:39 -0400
+Received: from localhost (unknown [IPv6:2601:601:9f80:35cd::3d8])
+        (using TLSv1 with cipher AES256-SHA (256/256 bits))
+        (Client did not present a certificate)
+        (Authenticated sender: davem-davemloft)
+        by shards.monkeyblade.net (Postfix) with ESMTPSA id 3D98A12D6BE80;
+        Sun,  5 May 2019 21:35:39 -0700 (PDT)
+Date:   Sun, 05 May 2019 21:35:35 -0700 (PDT)
+Message-Id: <20190505.213535.1219473423282339940.davem@davemloft.net>
+To:     pablo@netfilter.org
+Cc:     netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+Subject: Re: [PATCH 00/12] Netfilter updates for net-next
+From:   David Miller <davem@davemloft.net>
 In-Reply-To: <20190505233305.13650-1-pablo@netfilter.org>
 References: <20190505233305.13650-1-pablo@netfilter.org>
-X-Virus-Scanned: ClamAV using ClamSMTP
+X-Mailer: Mew version 6.8 on Emacs 26.1
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+X-Greylist: Sender succeeded SMTP AUTH, not delayed by milter-greylist-4.5.12 (shards.monkeyblade.net [149.20.54.216]); Sun, 05 May 2019 21:35:39 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Paul Gortmaker <paul.gortmaker@windriver.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Mon,  6 May 2019 01:32:53 +0200
 
-The nf_tables.h header is used in a lot of files, but it turns out
-that there is only one actual user of nft_expr_clone().
+> The following batch contains Netfilter updates for net-next, they are:
+ ...
+> You can pull these changes from:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git
 
-Hence we relocate that function to be with the one consumer of it
-and avoid having to process it with CPP for all the other files.
-
-This will also enable a reduction in the other headers that the
-nf_tables.h itself has to include just to be stand-alone, hence
-a pending further significant reduction in the CPP content that
-needs to get processed for each netfilter file.
-
-Note that the explicit "inline" has been dropped as part of this
-relocation.  In similar changes to this, I believe Dave has asked
-this be done, so we free up gcc to make the choice of whether to
-inline or not.
-
-Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/net/netfilter/nf_tables.h | 17 -----------------
- net/netfilter/nft_dynset.c        | 17 +++++++++++++++++
- 2 files changed, 17 insertions(+), 17 deletions(-)
-
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 2d5a0a1a87b8..706f744f7308 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -806,23 +806,6 @@ void nft_expr_destroy(const struct nft_ctx *ctx, struct nft_expr *expr);
- int nft_expr_dump(struct sk_buff *skb, unsigned int attr,
- 		  const struct nft_expr *expr);
- 
--static inline int nft_expr_clone(struct nft_expr *dst, struct nft_expr *src)
--{
--	int err;
--
--	if (src->ops->clone) {
--		dst->ops = src->ops;
--		err = src->ops->clone(dst, src);
--		if (err < 0)
--			return err;
--	} else {
--		memcpy(dst, src, src->ops->size);
--	}
--
--	__module_get(src->ops->type->owner);
--	return 0;
--}
--
- /**
-  *	struct nft_rule - nf_tables rule
-  *
-diff --git a/net/netfilter/nft_dynset.c b/net/netfilter/nft_dynset.c
-index e461007558e8..8394560aa695 100644
---- a/net/netfilter/nft_dynset.c
-+++ b/net/netfilter/nft_dynset.c
-@@ -28,6 +28,23 @@ struct nft_dynset {
- 	struct nft_set_binding		binding;
- };
- 
-+static int nft_expr_clone(struct nft_expr *dst, struct nft_expr *src)
-+{
-+	int err;
-+
-+	if (src->ops->clone) {
-+		dst->ops = src->ops;
-+		err = src->ops->clone(dst, src);
-+		if (err < 0)
-+			return err;
-+	} else {
-+		memcpy(dst, src, src->ops->size);
-+	}
-+
-+	__module_get(src->ops->type->owner);
-+	return 0;
-+}
-+
- static void *nft_dynset_new(struct nft_set *set, const struct nft_expr *expr,
- 			    struct nft_regs *regs)
- {
--- 
-2.11.0
-
+Pulled, thanks.
