@@ -7,48 +7,48 @@ X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	T_DKIMWL_WL_HIGH,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CB521C004C9
-	for <netfilter-devel@archiver.kernel.org>; Tue,  7 May 2019 05:52:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F0F45C004C9
+	for <netfilter-devel@archiver.kernel.org>; Tue,  7 May 2019 05:52:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8361B204FD
-	for <netfilter-devel@archiver.kernel.org>; Tue,  7 May 2019 05:52:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B8AAD2054F
+	for <netfilter-devel@archiver.kernel.org>; Tue,  7 May 2019 05:52:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1557208368;
-	bh=pJy2Eg34xnqknRoXNNqgNYUPSqT4D9lNmvVDhuy+jl4=;
+	s=default; t=1557208377;
+	bh=KwRV0uxZD+ee2/dxIQ+5k9LAHpPD+90ojoWl+cbZvzI=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=xVDUY9IZNAKbsOJv1yenZFhEYjgp97H7VUG/jj4RHM8IxOncirUzlALYr0qDuWHiC
-	 pQkJCe+5pv0yuei4Y8Mn/3Qexv+ukB95MgI04TFOGSOAu9FJeFsWyYOKPvOgy51sj9
-	 Hh8j7MIZh1I1R5Mg7E9VzTw0XZTUvxnnRgyCuBQ0=
+	b=bBdp+iXdzZ3gkuGpmQ2lvsvcIv9GyxBH4h+3AfCMFVjw+KzOF/9jDQgQMbekur7TT
+	 bFFZDYVSbyYEFEXOwhTtYVftKO2t+zY3gaF0kMFHIkAuGTJHHcS+AzrArt+aLYg0Ut
+	 NCps4Kn1TsmpnUqAzXVr+fbqdsvBmrLCmrbCHBUM=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728096AbfEGFjX (ORCPT
+        id S1728825AbfEGFjT (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 7 May 2019 01:39:23 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58936 "EHLO mail.kernel.org"
+        Tue, 7 May 2019 01:39:19 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58926 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728836AbfEGFjU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 7 May 2019 01:39:20 -0400
+        id S1728308AbfEGFjS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 7 May 2019 01:39:18 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id A67BE2087F;
-        Tue,  7 May 2019 05:39:18 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 1CE4A20675;
+        Tue,  7 May 2019 05:39:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1557207559;
-        bh=pJy2Eg34xnqknRoXNNqgNYUPSqT4D9lNmvVDhuy+jl4=;
+        s=default; t=1557207558;
+        bh=KwRV0uxZD+ee2/dxIQ+5k9LAHpPD+90ojoWl+cbZvzI=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=M2tMnz0F9v5OcA2SAaNXVC0XWeQUZfkS6i3tmzXX9vS4IG36pshFIQ1Vny+/I51Dw
-         srsW4JCAauiuAAbqS3yYXkeI7POsa0vJNbjh0jdp2flz9yPEqOcbeaYwZS3EHBjP2p
-         lerYjn3yTlj50eEeOUE4OqOpxRHOGUssmLnC4O1g=
+        b=y2Dzx517wDUtb84eDudQkxuUnKyqzVtzs4uz0at4Zz3pmCYJjfuWHngFUPzlRfucW
+         gtRjP56zyDGu0TlyqK0esbOsjdYGfk3P5riizUkKJJ0bkK8LMkvBdZbixpuI3ic+lF
+         Sua4GWXKhFvhUWZ010rCUf/vvQEUFm/oZnPtoP4w=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Florian Westphal <fw@strlen.de>,
+Cc:     Julian Anastasov <ja@ssi.bg>, Simon Horman <horms@verge.net.au>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
-        Sasha Levin <sashal@kernel.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.14 25/95] netfilter: ctnetlink: don't use conntrack/expect object addresses as id
-Date:   Tue,  7 May 2019 01:37:14 -0400
-Message-Id: <20190507053826.31622-25-sashal@kernel.org>
+        Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org,
+        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org
+Subject: [PATCH AUTOSEL 4.14 24/95] ipvs: do not schedule icmp errors from tunnels
+Date:   Tue,  7 May 2019 01:37:13 -0400
+Message-Id: <20190507053826.31622-24-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20190507053826.31622-1-sashal@kernel.org>
 References: <20190507053826.31622-1-sashal@kernel.org>
@@ -61,176 +61,38 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+From: Julian Anastasov <ja@ssi.bg>
 
-[ Upstream commit 3c79107631db1f7fd32cf3f7368e4672004a3010 ]
+[ Upstream commit 0261ea1bd1eb0da5c0792a9119b8655cf33c80a3 ]
 
-else, we leak the addresses to userspace via ctnetlink events
-and dumps.
+We can receive ICMP errors from client or from
+tunneling real server. While the former can be
+scheduled to real server, the latter should
+not be scheduled, they are decapsulated only when
+existing connection is found.
 
-Compute an ID on demand based on the immutable parts of nf_conn struct.
-
-Another advantage compared to using an address is that there is no
-immediate re-use of the same ID in case the conntrack entry is freed and
-reallocated again immediately.
-
-Fixes: 3583240249ef ("[NETFILTER]: nf_conntrack_expect: kill unique ID")
-Fixes: 7f85f914721f ("[NETFILTER]: nf_conntrack: kill unique ID")
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Fixes: 6044eeffafbe ("ipvs: attempt to schedule icmp packets")
+Signed-off-by: Julian Anastasov <ja@ssi.bg>
+Signed-off-by: Simon Horman <horms@verge.net.au>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- include/net/netfilter/nf_conntrack.h |  2 ++
- net/netfilter/nf_conntrack_core.c    | 35 ++++++++++++++++++++++++++++
- net/netfilter/nf_conntrack_netlink.c | 34 +++++++++++++++++++++++----
- 3 files changed, 66 insertions(+), 5 deletions(-)
+ net/netfilter/ipvs/ip_vs_core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
-index 792c3f6d30ce..93bbae8f9641 100644
---- a/include/net/netfilter/nf_conntrack.h
-+++ b/include/net/netfilter/nf_conntrack.h
-@@ -315,6 +315,8 @@ struct nf_conn *nf_ct_tmpl_alloc(struct net *net,
- 				 gfp_t flags);
- void nf_ct_tmpl_free(struct nf_conn *tmpl);
+diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+index 4278f5c947ab..d1c0378144f3 100644
+--- a/net/netfilter/ipvs/ip_vs_core.c
++++ b/net/netfilter/ipvs/ip_vs_core.c
+@@ -1635,7 +1635,7 @@ ip_vs_in_icmp(struct netns_ipvs *ipvs, struct sk_buff *skb, int *related,
+ 	if (!cp) {
+ 		int v;
  
-+u32 nf_ct_get_id(const struct nf_conn *ct);
-+
- static inline void
- nf_ct_set(struct sk_buff *skb, struct nf_conn *ct, enum ip_conntrack_info info)
- {
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 06520bf30f29..fa49a627b681 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -25,6 +25,7 @@
- #include <linux/slab.h>
- #include <linux/random.h>
- #include <linux/jhash.h>
-+#include <linux/siphash.h>
- #include <linux/err.h>
- #include <linux/percpu.h>
- #include <linux/moduleparam.h>
-@@ -300,6 +301,40 @@ nf_ct_invert_tuple(struct nf_conntrack_tuple *inverse,
- }
- EXPORT_SYMBOL_GPL(nf_ct_invert_tuple);
+-		if (!sysctl_schedule_icmp(ipvs))
++		if (ipip || !sysctl_schedule_icmp(ipvs))
+ 			return NF_ACCEPT;
  
-+/* Generate a almost-unique pseudo-id for a given conntrack.
-+ *
-+ * intentionally doesn't re-use any of the seeds used for hash
-+ * table location, we assume id gets exposed to userspace.
-+ *
-+ * Following nf_conn items do not change throughout lifetime
-+ * of the nf_conn after it has been committed to main hash table:
-+ *
-+ * 1. nf_conn address
-+ * 2. nf_conn->ext address
-+ * 3. nf_conn->master address (normally NULL)
-+ * 4. tuple
-+ * 5. the associated net namespace
-+ */
-+u32 nf_ct_get_id(const struct nf_conn *ct)
-+{
-+	static __read_mostly siphash_key_t ct_id_seed;
-+	unsigned long a, b, c, d;
-+
-+	net_get_random_once(&ct_id_seed, sizeof(ct_id_seed));
-+
-+	a = (unsigned long)ct;
-+	b = (unsigned long)ct->master ^ net_hash_mix(nf_ct_net(ct));
-+	c = (unsigned long)ct->ext;
-+	d = (unsigned long)siphash(&ct->tuplehash, sizeof(ct->tuplehash),
-+				   &ct_id_seed);
-+#ifdef CONFIG_64BIT
-+	return siphash_4u64((u64)a, (u64)b, (u64)c, (u64)d, &ct_id_seed);
-+#else
-+	return siphash_4u32((u32)a, (u32)b, (u32)c, (u32)d, &ct_id_seed);
-+#endif
-+}
-+EXPORT_SYMBOL_GPL(nf_ct_get_id);
-+
- static void
- clean_from_lists(struct nf_conn *ct)
- {
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 48dab1403b2c..c781c9a1a697 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -29,6 +29,7 @@
- #include <linux/spinlock.h>
- #include <linux/interrupt.h>
- #include <linux/slab.h>
-+#include <linux/siphash.h>
- 
- #include <linux/netfilter.h>
- #include <net/netlink.h>
-@@ -445,7 +446,9 @@ static int ctnetlink_dump_ct_seq_adj(struct sk_buff *skb, struct nf_conn *ct)
- 
- static int ctnetlink_dump_id(struct sk_buff *skb, const struct nf_conn *ct)
- {
--	if (nla_put_be32(skb, CTA_ID, htonl((unsigned long)ct)))
-+	__be32 id = (__force __be32)nf_ct_get_id(ct);
-+
-+	if (nla_put_be32(skb, CTA_ID, id))
- 		goto nla_put_failure;
- 	return 0;
- 
-@@ -1179,8 +1182,9 @@ static int ctnetlink_del_conntrack(struct net *net, struct sock *ctnl,
- 	ct = nf_ct_tuplehash_to_ctrack(h);
- 
- 	if (cda[CTA_ID]) {
--		u_int32_t id = ntohl(nla_get_be32(cda[CTA_ID]));
--		if (id != (u32)(unsigned long)ct) {
-+		__be32 id = nla_get_be32(cda[CTA_ID]);
-+
-+		if (id != (__force __be32)nf_ct_get_id(ct)) {
- 			nf_ct_put(ct);
- 			return -ENOENT;
- 		}
-@@ -2521,6 +2525,25 @@ static int ctnetlink_exp_dump_mask(struct sk_buff *skb,
- 
- static const union nf_inet_addr any_addr;
- 
-+static __be32 nf_expect_get_id(const struct nf_conntrack_expect *exp)
-+{
-+	static __read_mostly siphash_key_t exp_id_seed;
-+	unsigned long a, b, c, d;
-+
-+	net_get_random_once(&exp_id_seed, sizeof(exp_id_seed));
-+
-+	a = (unsigned long)exp;
-+	b = (unsigned long)exp->helper;
-+	c = (unsigned long)exp->master;
-+	d = (unsigned long)siphash(&exp->tuple, sizeof(exp->tuple), &exp_id_seed);
-+
-+#ifdef CONFIG_64BIT
-+	return (__force __be32)siphash_4u64((u64)a, (u64)b, (u64)c, (u64)d, &exp_id_seed);
-+#else
-+	return (__force __be32)siphash_4u32((u32)a, (u32)b, (u32)c, (u32)d, &exp_id_seed);
-+#endif
-+}
-+
- static int
- ctnetlink_exp_dump_expect(struct sk_buff *skb,
- 			  const struct nf_conntrack_expect *exp)
-@@ -2568,7 +2591,7 @@ ctnetlink_exp_dump_expect(struct sk_buff *skb,
- 	}
- #endif
- 	if (nla_put_be32(skb, CTA_EXPECT_TIMEOUT, htonl(timeout)) ||
--	    nla_put_be32(skb, CTA_EXPECT_ID, htonl((unsigned long)exp)) ||
-+	    nla_put_be32(skb, CTA_EXPECT_ID, nf_expect_get_id(exp)) ||
- 	    nla_put_be32(skb, CTA_EXPECT_FLAGS, htonl(exp->flags)) ||
- 	    nla_put_be32(skb, CTA_EXPECT_CLASS, htonl(exp->class)))
- 		goto nla_put_failure;
-@@ -2873,7 +2896,8 @@ static int ctnetlink_get_expect(struct net *net, struct sock *ctnl,
- 
- 	if (cda[CTA_EXPECT_ID]) {
- 		__be32 id = nla_get_be32(cda[CTA_EXPECT_ID]);
--		if (ntohl(id) != (u32)(unsigned long)exp) {
-+
-+		if (id != nf_expect_get_id(exp)) {
- 			nf_ct_expect_put(exp);
- 			return -ENOENT;
- 		}
+ 		if (!ip_vs_try_to_schedule(ipvs, AF_INET, skb, pd, &v, &cp, &ciph))
 -- 
 2.20.1
 
