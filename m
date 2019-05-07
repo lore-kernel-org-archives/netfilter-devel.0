@@ -2,96 +2,139 @@ Return-Path: <SRS0=SeaY=TH=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,
-	T_DKIMWL_WL_HIGH,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 03530C004C9
-	for <netfilter-devel@archiver.kernel.org>; Tue,  7 May 2019 06:04:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 32989C04AAB
+	for <netfilter-devel@archiver.kernel.org>; Tue,  7 May 2019 07:46:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B93B8205C9
-	for <netfilter-devel@archiver.kernel.org>; Tue,  7 May 2019 06:04:44 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1557209084;
-	bh=CdbYZwttP0Dk7wLa6pPFBPjW3l9RlCCWUUJXA3PirFI=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=ZgCtXiKbmD2KZD80s1cL6d+TVxP3IeZDpAW5EYSyVCP813ILftDEkfvyuyONeOS25
-	 fDsw8QJj0YCNxV85TRW6VJ5YcNcjV1Ur1BpzNTCL4U4kGnZSgJLj0/aouapnv7EvDb
-	 UIaW4NiKOXdlx4noFFE42TfFIWW9MkOKNJ6i4X0k=
+	by mail.kernel.org (Postfix) with ESMTP id 0A4D821019
+	for <netfilter-devel@archiver.kernel.org>; Tue,  7 May 2019 07:46:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726833AbfEGGE1 (ORCPT
+        id S1726725AbfEGHqS (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 7 May 2019 02:04:27 -0400
-Received: from mail.kernel.org ([198.145.29.99]:54770 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726723AbfEGFem (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 7 May 2019 01:34:42 -0400
-Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 52508206A3;
-        Tue,  7 May 2019 05:34:41 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1557207282;
-        bh=CdbYZwttP0Dk7wLa6pPFBPjW3l9RlCCWUUJXA3PirFI=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=DkOupZ69hKtq9jMfm7qOA80Vr5Y+WNnb0gJktsKeo85AV2eR4fYtNSxZJsiNLj655
-         xfEdqdGXS2K11Fll8sTu5Y3YChG5vr4jUQKaiE8uFTo0LvXrKoHhrvSM5yF6XTzjI7
-         4nyD4DFRFEeFJxJ5Wkte5kJU8CynPg0+RFWS7ZYc=
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Dan Carpenter <dan.carpenter@oracle.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Sasha Levin <sashal@kernel.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.0 64/99] netfilter: nf_tables: prevent shift wrap in nft_chain_parse_hook()
-Date:   Tue,  7 May 2019 01:31:58 -0400
-Message-Id: <20190507053235.29900-64-sashal@kernel.org>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20190507053235.29900-1-sashal@kernel.org>
-References: <20190507053235.29900-1-sashal@kernel.org>
+        Tue, 7 May 2019 03:46:18 -0400
+Received: from ja.ssi.bg ([178.16.129.10]:57926 "EHLO ja.ssi.bg"
+        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1726249AbfEGHqR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 7 May 2019 03:46:17 -0400
+Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
+        by ja.ssi.bg (8.15.2/8.15.2) with ESMTP id x477jXQC005216;
+        Tue, 7 May 2019 10:45:34 +0300
+Date:   Tue, 7 May 2019 10:45:33 +0300 (EEST)
+From:   Julian Anastasov <ja@ssi.bg>
+To:     hujunwei <hujunwei4@huawei.com>
+cc:     wensong@linux-vs.org, horms@verge.net.au, pablo@netfilter.org,
+        kadlec@blackhole.kfki.hu, fw@strlen.de, davem@davemloft.net,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        mingfangsen@huawei.com, wangxiaogang3@huawei.com,
+        zhangwenhao8@huawei.com
+Subject: Re: Subject: [PATCH netfilter] ipvs: Fix crash when ipv6 route
+ unreach
+In-Reply-To: <f40bae44-a4b1-868c-3572-3e89c4cadb6a@huawei.com>
+Message-ID: <alpine.LFD.2.21.1905071009060.3512@ja.home.ssi.bg>
+References: <f40bae44-a4b1-868c-3572-3e89c4cadb6a@huawei.com>
+User-Agent: Alpine 2.21 (LFD 202 2017-01-01)
 MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Dan Carpenter <dan.carpenter@oracle.com>
 
-[ Upstream commit 33d1c018179d0a30c39cc5f1682b77867282694b ]
+	Hello,
 
-I believe that "hook->num" can be up to UINT_MAX.  Shifting more than
-31 bits would is undefined in C but in practice it would lead to shift
-wrapping.  That would lead to an array overflow in nf_tables_addchain():
+On Tue, 7 May 2019, hujunwei wrote:
 
-	ops->hook       = hook.type->hooks[ops->hooknum];
+> From: Junwei Hu <hujunwei4@huawei.com>
+> 
+> When Tcp send RST packet in ipvs, crash occurs with the following
+> stack trace:
+> 
+> BUG: unable to handle kernel NULL pointer dereference at 0000000000000018
+> PID: 0 COMMAND: "swapper/2"
+> TASK: ffff9ec83889bf40  (1 of 4)  [THREAD_INFO: ffff9ec8388b0000]
+> CPU: 2  STATE: TASK_RUNNING (PANIC)
+>  [exception RIP: __ip_vs_get_out_rt_v6+1250]
+> RIP: ffffffffc0d566f2  RSP: ffff9ec83ed03c68  RFLAGS: 00010246
+> RAX: 0000000000000000  RBX: ffff9ec835e85000  RCX: 000000000005e1f9
+> RDX: 000000000005e1f8  RSI: 0000000000000200  RDI: ffff9ec83e801b00
+> RBP: ffff9ec83ed03cd8   R8: 000000000001bb40   R9: ffffffffc0d5673f
+> R10: ffff9ec83ed1bb40  R11: ffffe2d384d4fdc0  R12: ffff9ec7b7ad5900
+> R13: 0000000000000000  R14: 0000000000000007  R15: ffff9ec8353f7580
+> ORIG_RAX: ffffffffffffffff  CS: 0010  SS: 0018
+>  [ffff9ec83ed03ce0] ip_vs_fnat_xmit_v6 at ffffffffc0d5b42c [ip_vs]
+>  [ffff9ec83ed03d70] tcp_send_rst_ipv6 at ffffffffc0d6542a [ip_vs]
+>  [ffff9ec83ed03df8] tcp_conn_expire_handler at ffffffffc0d65823 [ip_vs]
+>  [ffff9ec83ed03e20] ip_vs_conn_expire at ffffffffc0d42373 [ip_vs]
+>  [ffff9ec83ed03e70] call_timer_fn at ffffffffae0a6b58
+>  [ffff9ec83ed03ea8] run_timer_softirq at ffffffffae0a904d
+>  [ffff9ec83ed03f20] __do_softirq at ffffffffae09fa85
+>  [ffff9ec83ed03f90] call_softirq at ffffffffae739dac
+>  [ffff9ec83ed03fa8] do_softirq at ffffffffae02e62b
+>  [ffff9ec83ed03fc0] irq_exit at ffffffffae09fe25
+>  [ffff9ec83ed03fd8] smp_apic_timer_interrupt at ffffffffae73b158
+>  [ffff9ec83ed03ff0] apic_timer_interrupt at ffffffffae737872
+> 
+> TCP connection timeout and send a RST packet, the skb is alloc
+> by alloc_skb, the pointer skb->dev and skb_dst(skb) is NULL,
+> however, ipv6 route unreach at that time, so go into err_unreach.
+> In err_unreach, crash occurs when skb->dev and skb_dst(skb) is NULL.
 
-Fixes: fe19c04ca137 ("netfilter: nf_tables: remove nhooks field from struct nft_af_info")
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- net/netfilter/nf_tables_api.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+	I guess, this is a modified IPVS module and the problem
+can not occur in mainline kernel. ip_vs_in() and ip_vs_out() already 
+have check for skb_dst(). May be you generate skb without attached
+route, so skb_dst is NULL. Also, note that decrement_ttl() has similar
+code.
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index e2aac80f9b7b..25c2b98b9a96 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -1502,7 +1502,7 @@ static int nft_chain_parse_hook(struct net *net,
- 		if (IS_ERR(type))
- 			return PTR_ERR(type);
- 	}
--	if (!(type->hook_mask & (1 << hook->num)))
-+	if (hook->num > NF_MAX_HOOKS || !(type->hook_mask & (1 << hook->num)))
- 		return -EOPNOTSUPP;
- 
- 	if (type->type == NFT_CHAIN_T_NAT &&
--- 
-2.20.1
+> The code is added by the following patch:
+> commit 326bf17ea5d4 ("ipvs: fix ipv6 route unreach panic")
+> because the ip6_link_failure function requires the skb->dev
+> in icmp6_send with that version.
+> 
+> This patch only fix the problem in specific scene, and icmp6_send in
+> current version is robust against null skb->dev by adding the
+> following patch.
+> commit 8d9336704521
+> ("ipv6: make icmp6_send() robust against null skb->dev")
+> 
+> So I delete the code, make __ip_vs_get_out_rt_v6() robust, when
+> skb->dev and skb_dst(skb) is NULL.
+> 
+> Fixes: 326bf17ea5d4 ("ipvs: fix ipv6 route unreach panic")
+> Signed-off-by: Junwei Hu <hujunwei4@huawei.com>
+> Reported-by: Wenhao Zhang <zhangwenhao8@huawei.com>
+> ---
+>  net/netfilter/ipvs/ip_vs_xmit.c | 7 -------
+>  1 file changed, 7 deletions(-)
+> 
+> diff --git a/net/netfilter/ipvs/ip_vs_xmit.c b/net/netfilter/ipvs/ip_vs_xmit.c
+> index 175349fcf91f..e2bb6c223396 100644
+> --- a/net/netfilter/ipvs/ip_vs_xmit.c
+> +++ b/net/netfilter/ipvs/ip_vs_xmit.c
+> @@ -561,13 +561,6 @@ __ip_vs_get_out_rt_v6(struct netns_ipvs *ipvs, int skb_af, struct sk_buff *skb,
+>  	return -1;
+> 
+>  err_unreach:
+> -	/* The ip6_link_failure function requires the dev field to be set
+> -	 * in order to get the net (further for the sake of fwmark
+> -	 * reflection).
+> -	 */
+> -	if (!skb->dev)
+> -		skb->dev = skb_dst(skb)->dev;
+> -
+>  	dst_link_failure(skb);
+>  	return -1;
+>  }
+> -- 
+> 2.21.GIT
 
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
