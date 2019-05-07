@@ -4,51 +4,51 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,
-	T_DKIMWL_WL_HIGH,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	T_DKIMWL_WL_HIGH,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D2EB5C004C9
-	for <netfilter-devel@archiver.kernel.org>; Tue,  7 May 2019 05:56:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 14221C04AAD
+	for <netfilter-devel@archiver.kernel.org>; Tue,  7 May 2019 05:57:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9B940205ED
-	for <netfilter-devel@archiver.kernel.org>; Tue,  7 May 2019 05:56:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D05FF2054F
+	for <netfilter-devel@archiver.kernel.org>; Tue,  7 May 2019 05:57:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1557208569;
-	bh=Mr/2++AK0yHkr642himO4kwv2kPh2SKci7S98rv3zsU=;
+	s=default; t=1557208653;
+	bh=/e5Rzz7OTo+vD5sjMdOifrw51uY0wJXphwAgI/IDy5g=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=T1S3as0+rsPGIY8oF75efGKUIo8KKHip5fJWU0C3sMBJf4V6GQBWgmd+6AFAozi6d
-	 z8ZUv0cu1TjCpzT5GBq5K+JoHD7ciDkLCzIL6aV1RhP90NwG6ZEoF0w+wlWK9XPpjs
-	 Ax/EzgT/9WQxdOxJyRyk4oDN6BlampwCKtOFuICs=
+	b=Ep4lsqF4ytxQ8cuRVb+7kixYffDpD3utmIxi8fLDs6A9nner8QQEhhjzKUNoMGt/v
+	 +HNGspqL14GXdLHkJ1prrrQJgYsCMln1MyXBIIQQlggfD26HcAh9Pgjvb2vAjBJxvE
+	 +BEBHRYQ9AkJF+OCKz6JULOzGx31CbQnnovAWNyg=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728695AbfEGF4C (ORCPT
+        id S1728636AbfEGF5d (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 7 May 2019 01:56:02 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57948 "EHLO mail.kernel.org"
+        Tue, 7 May 2019 01:57:33 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57370 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728519AbfEGFiI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 7 May 2019 01:38:08 -0400
+        id S1728335AbfEGFhh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 7 May 2019 01:37:37 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 0DB8621655;
-        Tue,  7 May 2019 05:38:06 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 7C91E205ED;
+        Tue,  7 May 2019 05:37:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1557207487;
-        bh=Mr/2++AK0yHkr642himO4kwv2kPh2SKci7S98rv3zsU=;
+        s=default; t=1557207456;
+        bh=/e5Rzz7OTo+vD5sjMdOifrw51uY0wJXphwAgI/IDy5g=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=Op8iNN4HXtfi6AOoeQKEoc/HHIHb2C4C/Hz2TW7psf/BXUG9TOgqZuQ5V8jfUHoX9
-         psknTrDTeVtd78S5eQgk4/YWNmuEl89s9Y66xszipxdy/LK72WDbGP77W5arO6tGoW
-         11mcmQDZ4Skmsh/x0IXn3Vn+GBXbp3XI4sL3M1P4=
+        b=A5KM7+jtqYMcvBqPzUif11sopmHYnUuUjikwTyKUi8eZkz2RdavfvZMhTscg0lqez
+         K/Eh3yiYk39h/Hy8btsf93Ss95h8BOjKm6EXTmpOxt3le8B33e92uL6ooO3d6DpIBo
+         Zf0tcx127WEgKJby3viBgtQqNsr7rbHPpFS3S3bg=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Taehee Yoo <ap420073@gmail.com>,
+Cc:     Andrei Vagin <avagin@gmail.com>, Florian Westphal <fw@strlen.de>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
-        Sasha Levin <alexander.levin@microsoft.com>,
+        Sasha Levin <sashal@kernel.org>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.19 71/81] netfilter: nf_tables: add missing ->release_ops() in error path of newrule()
-Date:   Tue,  7 May 2019 01:35:42 -0400
-Message-Id: <20190507053554.30848-71-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 52/81] netfilter: fix nf_l4proto_log_invalid to log invalid packets
+Date:   Tue,  7 May 2019 01:35:23 -0400
+Message-Id: <20190507053554.30848-52-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20190507053554.30848-1-sashal@kernel.org>
 References: <20190507053554.30848-1-sashal@kernel.org>
@@ -61,50 +61,37 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Taehee Yoo <ap420073@gmail.com>
+From: Andrei Vagin <avagin@gmail.com>
 
-[ Upstream commit b25a31bf0ca091aa8bdb9ab329b0226257568bbe ]
+[ Upstream commit d48668052b2603b6262459625c86108c493588dd ]
 
-->release_ops() callback releases resources and this is used in error path.
-If nf_tables_newrule() fails after ->select_ops(), it should release
-resources. but it can not call ->destroy() because that should be called
-after ->init().
-At this point, ->release_ops() should be used for releasing resources.
+It doesn't log a packet if sysctl_log_invalid isn't equal to protonum
+OR sysctl_log_invalid isn't equal to IPPROTO_RAW. This sentence is
+always true. I believe we need to replace OR to AND.
 
-Test commands:
-   modprobe -rv xt_tcpudp
-   iptables-nft -I INPUT -m tcp   <-- error command
-   lsmod
-
-Result:
-   Module                  Size  Used by
-   xt_tcpudp              20480  2      <-- it should be 0
-
-Fixes: b8e204006340 ("netfilter: nft_compat: use .release_ops and remove list of extension")
-Signed-off-by: Taehee Yoo <ap420073@gmail.com>
+Cc: Florian Westphal <fw@strlen.de>
+Fixes: c4f3db1595827 ("netfilter: conntrack: add and use nf_l4proto_log_invalid")
+Signed-off-by: Andrei Vagin <avagin@gmail.com>
+Acked-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Sasha Levin <alexander.levin@microsoft.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- net/netfilter/nf_tables_api.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ net/netfilter/nf_conntrack_proto.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index ef7ff13a7b99..ebfcfe1dcbdb 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -2719,8 +2719,11 @@ static int nf_tables_newrule(struct net *net, struct sock *nlsk,
- 	nf_tables_rule_release(&ctx, rule);
- err1:
- 	for (i = 0; i < n; i++) {
--		if (info[i].ops != NULL)
-+		if (info[i].ops) {
- 			module_put(info[i].ops->type->owner);
-+			if (info[i].ops->type->release_ops)
-+				info[i].ops->type->release_ops(info[i].ops);
-+		}
- 	}
- 	kvfree(info);
- 	return err;
+diff --git a/net/netfilter/nf_conntrack_proto.c b/net/netfilter/nf_conntrack_proto.c
+index 51c5d7eec0a3..e903ef9b96cf 100644
+--- a/net/netfilter/nf_conntrack_proto.c
++++ b/net/netfilter/nf_conntrack_proto.c
+@@ -86,7 +86,7 @@ void nf_l4proto_log_invalid(const struct sk_buff *skb,
+ 	struct va_format vaf;
+ 	va_list args;
+ 
+-	if (net->ct.sysctl_log_invalid != protonum ||
++	if (net->ct.sysctl_log_invalid != protonum &&
+ 	    net->ct.sysctl_log_invalid != IPPROTO_RAW)
+ 		return;
+ 
 -- 
 2.20.1
 
