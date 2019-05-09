@@ -6,29 +6,29 @@ X-Spam-Status: No, score=-8.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D7FA1C04AB1
-	for <netfilter-devel@archiver.kernel.org>; Thu,  9 May 2019 11:35:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 84C0CC04AB1
+	for <netfilter-devel@archiver.kernel.org>; Thu,  9 May 2019 11:35:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id AA1F520989
-	for <netfilter-devel@archiver.kernel.org>; Thu,  9 May 2019 11:35:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 60EDC20989
+	for <netfilter-devel@archiver.kernel.org>; Thu,  9 May 2019 11:35:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726680AbfEILft (ORCPT
+        id S1726683AbfEILf4 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 9 May 2019 07:35:49 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:35026 "EHLO orbyte.nwl.cc"
+        Thu, 9 May 2019 07:35:56 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:35032 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726054AbfEILft (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 9 May 2019 07:35:49 -0400
-Received: from localhost ([::1]:48116 helo=tatos)
+        id S1726054AbfEILf4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 9 May 2019 07:35:56 -0400
+Received: from localhost ([::1]:48122 helo=tatos)
         by orbyte.nwl.cc with esmtp (Exim 4.91)
         (envelope-from <phil@nwl.cc>)
-        id 1hOhL2-0000bg-6V; Thu, 09 May 2019 13:35:48 +0200
+        id 1hOhL7-0000cB-I8; Thu, 09 May 2019 13:35:53 +0200
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [nft PATCH 9/9] tests/py: Fix JSON expected output for icmpv6 code values
-Date:   Thu,  9 May 2019 13:35:45 +0200
-Message-Id: <20190509113545.4017-10-phil@nwl.cc>
+Subject: [nft PATCH 3/9] netlink: Fix printing of zero-length prefixes
+Date:   Thu,  9 May 2019 13:35:39 +0200
+Message-Id: <20190509113545.4017-4-phil@nwl.cc>
 X-Mailer: git-send-email 2.21.0
 In-Reply-To: <20190509113545.4017-1-phil@nwl.cc>
 References: <20190509113545.4017-1-phil@nwl.cc>
@@ -39,90 +39,47 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Reverse translation is happening for values which are known, even if
-they are part of a range. In contrast to standard output, this is OK
-because in JSON lower and upper bounds are properties and there is no
-ambiguity if names contain a dash.
+When delinearizing, an all-zero mask didn't qualify as prefix. Therefore
+a statement:
+
+| ip daddr 0.0.0.0/0
+
+would be printed as:
+
+| ip daddr & 0.0.0.0 == 0.0.0.0
+
+To fix this, expr_mask_is_prefix() must return true if the initial 1-bit
+search fails (the given value must be zero in this case). Additionally,
+a shortcut is needed in conversion algorithm of expr_mask_to_prefix()
+to not turn the zero prefix into a 1 by accident.
 
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- tests/py/ip6/icmpv6.t.json.output | 59 +++++++++++++++++++++++++++++++
- 1 file changed, 59 insertions(+)
+ src/netlink_delinearize.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/tests/py/ip6/icmpv6.t.json.output b/tests/py/ip6/icmpv6.t.json.output
-index 17032a03d80bd..3a1066211f56b 100644
---- a/tests/py/ip6/icmpv6.t.json.output
-+++ b/tests/py/ip6/icmpv6.t.json.output
-@@ -109,6 +109,24 @@
-     }
- ]
+diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
+index 2c9b0a32a932e..c018e78b02925 100644
+--- a/src/netlink_delinearize.c
++++ b/src/netlink_delinearize.c
+@@ -1734,6 +1734,8 @@ static unsigned int expr_mask_to_prefix(const struct expr *expr)
+ 	unsigned long n;
  
-+# icmpv6 code 3-66
-+[
-+    {
-+        "match": {
-+            "left": {
-+                "payload": {
-+                    "field": "code",
-+                    "protocol": "icmpv6"
-+                }
-+            },
-+	    "op": "==",
-+            "right": {
-+                "range": [ "addr-unreachable", 66 ]
-+            }
-+        }
-+    }
-+]
-+
- # icmpv6 code {5, 6, 7} accept
- [
-     {
-@@ -133,3 +151,44 @@
-         "accept": null
-     }
- ]
-+
-+# icmpv6 code { 3-66}
-+[
-+    {
-+        "match": {
-+            "left": {
-+                "payload": {
-+                    "field": "code",
-+                    "protocol": "icmpv6"
-+                }
-+            },
-+	    "op": "==",
-+            "right": {
-+                "set": [
-+                    { "range": [ "addr-unreachable", 66 ] }
-+                ]
-+            }
-+        }
-+    }
-+]
-+
-+# icmpv6 code != { 3-66}
-+[
-+    {
-+        "match": {
-+            "left": {
-+                "payload": {
-+                    "field": "code",
-+                    "protocol": "icmpv6"
-+                }
-+            },
-+            "op": "!=",
-+            "right": {
-+                "set": [
-+                    { "range": [ "addr-unreachable", 66 ] }
-+                ]
-+            }
-+        }
-+    }
-+]
-+
+ 	n = mpz_scan1(expr->value, 0);
++	if (n == ULONG_MAX)
++		return 0;
+ 	return mpz_scan0(expr->value, n + 1) - n;
+ }
+ 
+@@ -1744,7 +1746,7 @@ static bool expr_mask_is_prefix(const struct expr *expr)
+ 
+ 	n1 = mpz_scan1(expr->value, 0);
+ 	if (n1 == ULONG_MAX)
+-		return false;
++		return true;
+ 	n2 = mpz_scan0(expr->value, n1 + 1);
+ 	if (n2 < expr->len || n2 == ULONG_MAX)
+ 		return false;
 -- 
 2.21.0
 
