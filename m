@@ -6,29 +6,29 @@ X-Spam-Status: No, score=-8.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F063C04AB1
-	for <netfilter-devel@archiver.kernel.org>; Thu,  9 May 2019 11:36:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 59BDEC04AB1
+	for <netfilter-devel@archiver.kernel.org>; Thu,  9 May 2019 11:36:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2108320989
-	for <netfilter-devel@archiver.kernel.org>; Thu,  9 May 2019 11:36:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2954820989
+	for <netfilter-devel@archiver.kernel.org>; Thu,  9 May 2019 11:36:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726739AbfEILgR (ORCPT
+        id S1726513AbfEILgY (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 9 May 2019 07:36:17 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:35056 "EHLO orbyte.nwl.cc"
+        Thu, 9 May 2019 07:36:24 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:35062 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726084AbfEILgR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 9 May 2019 07:36:17 -0400
-Received: from localhost ([::1]:48146 helo=tatos)
+        id S1726084AbfEILgX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 9 May 2019 07:36:23 -0400
+Received: from localhost ([::1]:48152 helo=tatos)
         by orbyte.nwl.cc with esmtp (Exim 4.91)
         (envelope-from <phil@nwl.cc>)
-        id 1hOhLU-0000db-6f; Thu, 09 May 2019 13:36:16 +0200
+        id 1hOhLZ-0000dw-Iy; Thu, 09 May 2019 13:36:21 +0200
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [nft PATCH 1/9] json: Support nat in inet family
-Date:   Thu,  9 May 2019 13:35:37 +0200
-Message-Id: <20190509113545.4017-2-phil@nwl.cc>
+Subject: [nft PATCH 7/9] tests/py: Fix for ip dscp symbol "le"
+Date:   Thu,  9 May 2019 13:35:43 +0200
+Message-Id: <20190509113545.4017-8-phil@nwl.cc>
 X-Mailer: git-send-email 2.21.0
 In-Reply-To: <20190509113545.4017-1-phil@nwl.cc>
 References: <20190509113545.4017-1-phil@nwl.cc>
@@ -39,405 +39,127 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Add the missing bits to JSON parser, printer, man page and testsuite.
+In scanner.l, that name is defined as alternative to "<=" symbol. To
+avoid the clash, it must be quoted on input.
 
-Fixes: fbe27464dee45 ("src: add nat support for the inet family")
+Fixes: 55715486efba4 ("proto: support for draft-ietf-tsvwg-le-phb-10.txt")
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- doc/libnftables-json.adoc |   5 ++
- src/json.c                |   8 ++
- src/parser_json.c         |   7 +-
- tests/py/inet/dnat.t.json | 166 ++++++++++++++++++++++++++++++++++++++
- tests/py/inet/snat.t.json | 131 ++++++++++++++++++++++++++++++
- 5 files changed, 316 insertions(+), 1 deletion(-)
- create mode 100644 tests/py/inet/dnat.t.json
- create mode 100644 tests/py/inet/snat.t.json
+Note that nft still produces invalid output since it doesn't quote
+symbol table values.
+---
+ tests/py/ip/ip.t                | 2 +-
+ tests/py/ip/ip.t.json           | 2 +-
+ tests/py/ip/ip.t.payload        | 4 ++--
+ tests/py/ip6/ip6.t              | 2 +-
+ tests/py/ip6/ip6.t.json         | 2 +-
+ tests/py/ip6/ip6.t.payload.inet | 4 ++--
+ tests/py/ip6/ip6.t.payload.ip6  | 4 ++--
+ 7 files changed, 10 insertions(+), 10 deletions(-)
 
-diff --git a/doc/libnftables-json.adoc b/doc/libnftables-json.adoc
-index dbe5ac33d999e..429f530db913c 100644
---- a/doc/libnftables-json.adoc
-+++ b/doc/libnftables-json.adoc
-@@ -808,12 +808,14 @@ Duplicate a packet to a different destination.
- ____
- *{ "snat": {
- 	"addr":* 'EXPRESSION'*,
-+	"family":* 'STRING'*,
- 	"port":* 'EXPRESSION'*,
- 	"flags":* 'FLAGS'
- *}}*
+diff --git a/tests/py/ip/ip.t b/tests/py/ip/ip.t
+index dc6b173def36d..f224e1d21033c 100644
+--- a/tests/py/ip/ip.t
++++ b/tests/py/ip/ip.t
+@@ -28,7 +28,7 @@ ip dscp cs1;ok
+ ip dscp != cs1;ok
+ ip dscp 0x38;ok;ip dscp cs7
+ ip dscp != 0x20;ok;ip dscp != cs4
+-ip dscp {cs0, le, cs1, cs2, cs3, cs4, cs5, cs6, cs7, af11, af12, af13, af21, af22, af23, af31, af32, af33, af41, af42, af43, ef};ok
++ip dscp {cs0, "le", cs1, cs2, cs3, cs4, cs5, cs6, cs7, af11, af12, af13, af21, af22, af23, af31, af32, af33, af41, af42, af43, ef};ok
+ - ip dscp {0x08, 0x10, 0x18, 0x20, 0x28, 0x30, 0x38, 0x00, 0x0a, 0x0c, 0x0e, 0x12, 0x14, 0x16, 0x1a, 0x1c, 0x1e, 0x22, 0x24, 0x26, 0x2e};ok
+ ip dscp != {cs0, cs3};ok
+ ip dscp vmap { cs1 : continue , cs4 : accept } counter;ok
+diff --git a/tests/py/ip/ip.t.json b/tests/py/ip/ip.t.json
+index 69e8d02540b87..51bc15e71cd2f 100644
+--- a/tests/py/ip/ip.t.json
++++ b/tests/py/ip/ip.t.json
+@@ -62,7 +62,7 @@
+     }
+ ]
  
- *{ "dnat": {
- 	"addr":* 'EXPRESSION'*,
-+	"family":* 'STRING'*,
- 	"port":* 'EXPRESSION'*,
- 	"flags":* 'FLAGS'
- *}}*
-@@ -837,6 +839,9 @@ Perform Network Address Translation.
+-# ip dscp {cs0, le, cs1, cs2, cs3, cs4, cs5, cs6, cs7, af11, af12, af13, af21, af22, af23, af31, af32, af33, af41, af42, af43, ef}
++# ip dscp {cs0, "le", cs1, cs2, cs3, cs4, cs5, cs6, cs7, af11, af12, af13, af21, af22, af23, af31, af32, af33, af41, af42, af43, ef}
+ [
+     {
+         "match": {
+diff --git a/tests/py/ip/ip.t.payload b/tests/py/ip/ip.t.payload
+index 37d4ef85a8e97..f62ce823586d1 100644
+--- a/tests/py/ip/ip.t.payload
++++ b/tests/py/ip/ip.t.payload
+@@ -22,10 +22,10 @@ ip test-ip4 input
+   [ bitwise reg 1 = (reg=1 & 0x000000fc ) ^ 0x00000000 ]
+   [ cmp neq reg 1 0x00000080 ]
  
- *addr*::
- 	Address to translate to.
-+*family*::
-+	Family of *addr*, either *ip* or *ip6*. Required in *inet*
-+	table family.
- *port*::
- 	Port to translate to.
- *flags*::
-diff --git a/src/json.c b/src/json.c
-index 4900c02336b56..a8538bdca973b 100644
---- a/src/json.c
-+++ b/src/json.c
-@@ -1260,6 +1260,14 @@ json_t *nat_stmt_json(const struct stmt *stmt, struct output_ctx *octx)
- 	json_t *root = json_object();
- 	json_t *array = nat_flags_json(stmt->nat.flags);
+-# ip dscp {cs0, le, cs1, cs2, cs3, cs4, cs5, cs6, cs7, af11, af12, af13, af21, af22, af23, af31, af32, af33, af41, af42, af43, ef}
++# ip dscp {cs0, "le", cs1, cs2, cs3, cs4, cs5, cs6, cs7, af11, af12, af13, af21, af22, af23, af31, af32, af33, af41, af42, af43, ef}
+ __set%d test-ip4 3
+ __set%d test-ip4 0
+-        element 00000020  : 0 [end]     element 00000040  : 0 [end]     element 00000060  : 0 [end]     element 00000080  : 0 [end]    element 000000a0  : 0 [end]      element 000000c0  : 0 [end]     element 000000e0  : 0 [end]     element 00000000  : 0 [end]     element 00000028  : 0 [end]     element 00000030  : 0 [end]     element 00000038  : 0 [end]     element 00000048  : 0 [end]     element 00000050  : 0 [end]     element 00000058  : 0 [end]     element 00000068  : 0 [end]     element 00000070  : 0 [end]     element 00000078  : 0 [end]     element 00000088  : 0 [end]     element 00000090  : 0 [end]     element 00000098  : 0 [end]     element 000000b8  : 0 [end]
++	element 00000000  : 0 [end]	element 00000004  : 0 [end]	element 00000020  : 0 [end]	element 00000040  : 0 [end]	element 00000060  : 0 [end]	element 00000080  : 0 [end]	element 000000a0  : 0 [end]	element 000000c0  : 0 [end]	element 000000e0  : 0 [end]	element 00000028  : 0 [end]	element 00000030  : 0 [end]	element 00000038  : 0 [end]	element 00000048  : 0 [end]	element 00000050  : 0 [end]	element 00000058  : 0 [end]	element 00000068  : 0 [end]	element 00000070  : 0 [end]	element 00000078  : 0 [end]	element 00000088  : 0 [end]	element 00000090  : 0 [end]	element 00000098  : 0 [end]	element 000000b8  : 0 [end]
+ ip test-ip4 input
+   [ payload load 1b @ network header + 1 => reg 1 ]
+   [ bitwise reg 1 = (reg=1 & 0x000000fc ) ^ 0x00000000 ]
+diff --git a/tests/py/ip6/ip6.t b/tests/py/ip6/ip6.t
+index a266fddfb5783..985c21625691e 100644
+--- a/tests/py/ip6/ip6.t
++++ b/tests/py/ip6/ip6.t
+@@ -14,7 +14,7 @@ ip6 dscp cs1;ok
+ ip6 dscp != cs1;ok
+ ip6 dscp 0x38;ok;ip6 dscp cs7
+ ip6 dscp != 0x20;ok;ip6 dscp != cs4
+-ip6 dscp {cs0, le, cs1, cs2, cs3, cs4, cs5, cs6, cs7, af11, af12, af13, af21, af22, af23, af31, af32, af33, af41, af42, af43, ef};ok
++ip6 dscp {cs0, "le", cs1, cs2, cs3, cs4, cs5, cs6, cs7, af11, af12, af13, af21, af22, af23, af31, af32, af33, af41, af42, af43, ef};ok
+ ip6 dscp vmap { 0x04 : accept, 0x3f : continue } counter;ok
  
-+	switch (stmt->nat.family) {
-+	case NFPROTO_IPV4:
-+	case NFPROTO_IPV6:
-+		json_object_set_new(root, "family",
-+				    json_string(family2str(stmt->nat.family)));
-+		break;
-+	}
-+
- 	if (stmt->nat.addr)
- 		json_object_set_new(root, "addr",
- 				    expr_print_json(stmt->nat.addr, octx));
-diff --git a/src/parser_json.c b/src/parser_json.c
-index 315f247811567..0c4f5d913813a 100644
---- a/src/parser_json.c
-+++ b/src/parser_json.c
-@@ -1840,9 +1840,9 @@ static int nat_type_parse(const char *type)
- static struct stmt *json_parse_nat_stmt(struct json_ctx *ctx,
- 					const char *key, json_t *value)
- {
-+	int type, familyval;
- 	struct stmt *stmt;
- 	json_t *tmp;
--	int type;
+ ip6 flowlabel 22;ok
+diff --git a/tests/py/ip6/ip6.t.json b/tests/py/ip6/ip6.t.json
+index a46c2b1f50553..943f5411a9cc7 100644
+--- a/tests/py/ip6/ip6.t.json
++++ b/tests/py/ip6/ip6.t.json
+@@ -62,7 +62,7 @@
+     }
+ ]
  
- 	type = nat_type_parse(key);
- 	if (type < 0) {
-@@ -1850,7 +1850,12 @@ static struct stmt *json_parse_nat_stmt(struct json_ctx *ctx,
- 		return NULL;
- 	}
+-# ip6 dscp {cs0, le, cs1, cs2, cs3, cs4, cs5, cs6, cs7, af11, af12, af13, af21, af22, af23, af31, af32, af33, af41, af42, af43, ef}
++# ip6 dscp {cs0, "le", cs1, cs2, cs3, cs4, cs5, cs6, cs7, af11, af12, af13, af21, af22, af23, af31, af32, af33, af41, af42, af43, ef}
+ [
+     {
+         "match": {
+diff --git a/tests/py/ip6/ip6.t.payload.inet b/tests/py/ip6/ip6.t.payload.inet
+index ada1c5f020511..aafb027fdc424 100644
+--- a/tests/py/ip6/ip6.t.payload.inet
++++ b/tests/py/ip6/ip6.t.payload.inet
+@@ -30,10 +30,10 @@ inet test-inet input
+   [ bitwise reg 1 = (reg=1 & 0x0000c00f ) ^ 0x00000000 ]
+   [ cmp neq reg 1 0x00000008 ]
  
-+	familyval = json_parse_family(ctx, value);
-+	if (familyval < 0)
-+		return NULL;
-+
- 	stmt = nat_stmt_alloc(int_loc, type);
-+	stmt->nat.family = familyval;
+-# ip6 dscp {cs0, le, cs1, cs2, cs3, cs4, cs5, cs6, cs7, af11, af12, af13, af21, af22, af23, af31, af32, af33, af41, af42, af43, ef}
++# ip6 dscp {cs0, "le", cs1, cs2, cs3, cs4, cs5, cs6, cs7, af11, af12, af13, af21, af22, af23, af31, af32, af33, af41, af42, af43, ef}
+ __set%d test-inet 3
+ __set%d test-inet 0
+-        element 00000000  : 0 [end]     element 00000002  : 0 [end]     element 00000004  : 0 [end]     element 00000006  : 0 [end]    element 00000008  : 0 [end]      element 0000000a  : 0 [end]     element 0000000c  : 0 [end]     element 0000000e  : 0 [end]     element 00008002  : 0 [end]     element 00000003  : 0 [end]     element 00008003  : 0 [end]     element 00008004  : 0 [end]     element 00000005  : 0 [end]     element 00008005  : 0 [end]     element 00008006  : 0 [end]     element 00000007  : 0 [end]     element 00008007  : 0 [end]     element 00008008  : 0 [end]     element 00000009  : 0 [end]     element 00008009  : 0 [end]     element 0000800b  : 0 [end]
++	element 00000000  : 0 [end]	element 00004000  : 0 [end]	element 00000002  : 0 [end]	element 00000004  : 0 [end]	element 00000006  : 0 [end]	element 00000008  : 0 [end]	element 0000000a  : 0 [end]	element 0000000c  : 0 [end]	element 0000000e  : 0 [end]	element 00008002  : 0 [end]	element 00000003  : 0 [end]	element 00008003  : 0 [end]	element 00008004  : 0 [end]	element 00000005  : 0 [end]	element 00008005  : 0 [end]	element 00008006  : 0 [end]	element 00000007  : 0 [end]	element 00008007  : 0 [end]	element 00008008  : 0 [end]	element 00000009  : 0 [end]	element 00008009  : 0 [end]	element 0000800b  : 0 [end]
+ inet test-inet input 
+   [ meta load nfproto => reg 1 ]
+   [ cmp eq reg 1 0x0000000a ]
+diff --git a/tests/py/ip6/ip6.t.payload.ip6 b/tests/py/ip6/ip6.t.payload.ip6
+index efab25565d09b..632b222e1b43a 100644
+--- a/tests/py/ip6/ip6.t.payload.ip6
++++ b/tests/py/ip6/ip6.t.payload.ip6
+@@ -22,10 +22,10 @@ ip6 test-ip6 input
+   [ bitwise reg 1 = (reg=1 & 0x0000c00f ) ^ 0x00000000 ]
+   [ cmp neq reg 1 0x00000008 ]
  
- 	if (!json_unpack(value, "{s:o}", "addr", &tmp)) {
- 		stmt->nat.addr = json_parse_stmt_expr(ctx, tmp);
-diff --git a/tests/py/inet/dnat.t.json b/tests/py/inet/dnat.t.json
-new file mode 100644
-index 0000000000000..ac6dac620a85e
---- /dev/null
-+++ b/tests/py/inet/dnat.t.json
-@@ -0,0 +1,166 @@
-+# iifname "foo" tcp dport 80 redirect to :8080
-+[
-+    {
-+        "match": {
-+            "left": {
-+                "meta": {
-+                    "key": "iifname"
-+                }
-+            },
-+            "op": "==",
-+            "right": "foo"
-+        }
-+    },
-+    {
-+        "match": {
-+            "left": {
-+                "payload": {
-+                    "field": "dport",
-+                    "protocol": "tcp"
-+                }
-+            },
-+            "op": "==",
-+            "right": 80
-+        }
-+    },
-+    {
-+        "redirect": {
-+            "port": 8080
-+        }
-+    }
-+]
-+
-+# iifname "eth0" tcp dport 443 dnat ip to 192.168.3.2
-+[
-+    {
-+        "match": {
-+            "left": {
-+                "meta": {
-+                    "key": "iifname"
-+                }
-+            },
-+            "op": "==",
-+            "right": "eth0"
-+        }
-+    },
-+    {
-+        "match": {
-+            "left": {
-+                "payload": {
-+                    "field": "dport",
-+                    "protocol": "tcp"
-+                }
-+            },
-+            "op": "==",
-+            "right": 443
-+        }
-+    },
-+    {
-+        "dnat": {
-+            "addr": "192.168.3.2",
-+            "family": "ip"
-+        }
-+    }
-+]
-+
-+# iifname "eth0" tcp dport 443 dnat ip6 to [dead::beef]:4443
-+[
-+    {
-+        "match": {
-+            "left": {
-+                "meta": {
-+                    "key": "iifname"
-+                }
-+            },
-+            "op": "==",
-+            "right": "eth0"
-+        }
-+    },
-+    {
-+        "match": {
-+            "left": {
-+                "payload": {
-+                    "field": "dport",
-+                    "protocol": "tcp"
-+                }
-+            },
-+            "op": "==",
-+            "right": 443
-+        }
-+    },
-+    {
-+        "dnat": {
-+            "addr": "dead::beef",
-+            "family": "ip6",
-+            "port": 4443
-+        }
-+    }
-+]
-+
-+# dnat ip to ct mark map { 0x00000014 : 1.2.3.4}
-+[
-+    {
-+        "dnat": {
-+            "addr": {
-+                "map": {
-+                    "data": {
-+                        "set": [
-+                            [
-+                                20,
-+                                "1.2.3.4"
-+                            ]
-+                        ]
-+                    },
-+                    "key": {
-+                        "ct": {
-+                            "key": "mark"
-+                        }
-+                    }
-+                }
-+            },
-+            "family": "ip"
-+        }
-+    }
-+]
-+
-+# dnat ip to ct mark . ip daddr map { 0x00000014 . 1.1.1.1 : 1.2.3.4}
-+[
-+    {
-+        "dnat": {
-+            "addr": {
-+                "map": {
-+                    "data": {
-+                        "set": [
-+                            [
-+                                {
-+                                    "concat": [
-+                                        20,
-+                                        "1.1.1.1"
-+                                    ]
-+                                },
-+                                "1.2.3.4"
-+                            ]
-+                        ]
-+                    },
-+                    "key": {
-+                        "concat": [
-+                            {
-+                                "ct": {
-+                                    "key": "mark"
-+                                }
-+                            },
-+                            {
-+                                "payload": {
-+                                    "field": "daddr",
-+                                    "protocol": "ip"
-+                                }
-+                            }
-+                        ]
-+                    }
-+                }
-+            },
-+            "family": "ip"
-+        }
-+    }
-+]
-+
-diff --git a/tests/py/inet/snat.t.json b/tests/py/inet/snat.t.json
-new file mode 100644
-index 0000000000000..4671625dc06d9
---- /dev/null
-+++ b/tests/py/inet/snat.t.json
-@@ -0,0 +1,131 @@
-+# iifname "eth0" tcp dport 81 snat ip to 192.168.3.2
-+[
-+    {
-+        "match": {
-+            "left": {
-+                "meta": {
-+                    "key": "iifname"
-+                }
-+            },
-+            "op": "==",
-+            "right": "eth0"
-+        }
-+    },
-+    {
-+        "match": {
-+            "left": {
-+                "payload": {
-+                    "field": "dport",
-+                    "protocol": "tcp"
-+                }
-+            },
-+            "op": "==",
-+            "right": 81
-+        }
-+    },
-+    {
-+        "snat": {
-+            "addr": "192.168.3.2",
-+            "family": "ip"
-+        }
-+    }
-+]
-+
-+# iifname "eth0" tcp dport 81 ip saddr 10.1.1.1 snat to 192.168.3.2
-+[
-+    {
-+        "match": {
-+            "left": {
-+                "meta": {
-+                    "key": "iifname"
-+                }
-+            },
-+            "op": "==",
-+            "right": "eth0"
-+        }
-+    },
-+    {
-+        "match": {
-+            "left": {
-+                "payload": {
-+                    "field": "dport",
-+                    "protocol": "tcp"
-+                }
-+            },
-+            "op": "==",
-+            "right": 81
-+        }
-+    },
-+    {
-+        "match": {
-+            "left": {
-+                "payload": {
-+                    "field": "saddr",
-+                    "protocol": "ip"
-+                }
-+            },
-+            "op": "==",
-+            "right": "10.1.1.1"
-+        }
-+    },
-+    {
-+        "snat": {
-+            "addr": "192.168.3.2",
-+            "family": "ip"
-+        }
-+    }
-+]
-+
-+# iifname "eth0" tcp dport 81 snat ip6 to dead::beef
-+[
-+    {
-+        "match": {
-+            "left": {
-+                "meta": {
-+                    "key": "iifname"
-+                }
-+            },
-+            "op": "==",
-+            "right": "eth0"
-+        }
-+    },
-+    {
-+        "match": {
-+            "left": {
-+                "payload": {
-+                    "field": "dport",
-+                    "protocol": "tcp"
-+                }
-+            },
-+            "op": "==",
-+            "right": 81
-+        }
-+    },
-+    {
-+        "snat": {
-+            "addr": "dead::beef",
-+            "family": "ip6"
-+        }
-+    }
-+]
-+
-+# iifname "foo" masquerade random
-+[
-+    {
-+        "match": {
-+            "left": {
-+                "meta": {
-+                    "key": "iifname"
-+                }
-+            },
-+            "op": "==",
-+            "right": "foo"
-+        }
-+    },
-+    {
-+        "masquerade": {
-+            "flags": "random"
-+        }
-+    }
-+]
-+
+-# ip6 dscp {cs0, le, cs1, cs2, cs3, cs4, cs5, cs6, cs7, af11, af12, af13, af21, af22, af23, af31, af32, af33, af41, af42, af43, ef}
++# ip6 dscp {cs0, "le", cs1, cs2, cs3, cs4, cs5, cs6, cs7, af11, af12, af13, af21, af22, af23, af31, af32, af33, af41, af42, af43, ef}
+ __set%d test-ip6 3
+ __set%d test-ip6 0
+-        element 00000002  : 0 [end]     element 00000004  : 0 [end]     element 00000006  : 0 [end]     element 00000008  : 0 [end]    element 0000000a  : 0 [end]      element 0000000c  : 0 [end]     element 0000000e  : 0 [end]     element 00000000  : 0 [end]     element 00008002  : 0 [end]     element 00000003  : 0 [end]     element 00008003  : 0 [end]     element 00008004  : 0 [end]     element 00000005  : 0 [end]     element 00008005  : 0 [end]     element 00008006  : 0 [end]     element 00000007  : 0 [end]     element 00008007  : 0 [end]     element 00008008  : 0 [end]     element 00000009  : 0 [end]     element 00008009  : 0 [end]     element 0000800b  : 0 [end]
++	element 00000000  : 0 [end]	element 00004000  : 0 [end]	element 00000002  : 0 [end]	element 00000004  : 0 [end]	element 00000006  : 0 [end]	element 00000008  : 0 [end]	element 0000000a  : 0 [end]	element 0000000c  : 0 [end]	element 0000000e  : 0 [end]	element 00008002  : 0 [end]	element 00000003  : 0 [end]	element 00008003  : 0 [end]	element 00008004  : 0 [end]	element 00000005  : 0 [end]	element 00008005  : 0 [end]	element 00008006  : 0 [end]	element 00000007  : 0 [end]	element 00008007  : 0 [end]	element 00008008  : 0 [end]	element 00000009  : 0 [end]	element 00008009  : 0 [end]	element 0000800b  : 0 [end]
+ ip6 test-ip6 input
+   [ payload load 2b @ network header + 0 => reg 1 ]
+   [ bitwise reg 1 = (reg=1 & 0x0000c00f ) ^ 0x00000000 ]
 -- 
 2.21.0
 
