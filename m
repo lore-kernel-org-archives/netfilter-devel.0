@@ -8,62 +8,64 @@ X-Spam-Status: No, score=-8.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 23CE2C04A6B
-	for <netfilter-devel@archiver.kernel.org>; Fri, 10 May 2019 16:14:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1466CC04A6B
+	for <netfilter-devel@archiver.kernel.org>; Fri, 10 May 2019 16:14:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D6CDF2177B
-	for <netfilter-devel@archiver.kernel.org>; Fri, 10 May 2019 16:14:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C45E52070D
+	for <netfilter-devel@archiver.kernel.org>; Fri, 10 May 2019 16:14:06 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="nq5WZ83O"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="cjpJr5SK"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727492AbfEJQOE (ORCPT
+        id S1727502AbfEJQOG (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 10 May 2019 12:14:04 -0400
-Received: from mail-ed1-f49.google.com ([209.85.208.49]:46607 "EHLO
-        mail-ed1-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727262AbfEJQOE (ORCPT
+        Fri, 10 May 2019 12:14:06 -0400
+Received: from mail-ed1-f46.google.com ([209.85.208.46]:40798 "EHLO
+        mail-ed1-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727346AbfEJQOG (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 10 May 2019 12:14:04 -0400
-Received: by mail-ed1-f49.google.com with SMTP id f37so5789574edb.13
-        for <netfilter-devel@vger.kernel.org>; Fri, 10 May 2019 09:14:02 -0700 (PDT)
+        Fri, 10 May 2019 12:14:06 -0400
+Received: by mail-ed1-f46.google.com with SMTP id j12so5083087eds.7
+        for <netfilter-devel@vger.kernel.org>; Fri, 10 May 2019 09:14:03 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=gj5eDteJmErbwWaXWoD/CPhhOkZsHSSd/WCsPjdqqyQ=;
-        b=nq5WZ83OGfoor1jQtB1ZPZ/bBrVc+nXv6HD55rHqyK91mvMK4frQ1+tcGFGBGfnrgH
-         umINUTDt8nmPmzzvWP+EkGY5CiUOJxHLO8mAspXT8mI3Wp3PAVBbIBHI6KlfIk98GMFR
-         mvqHbSpLoLby5B7amlD+xGtBfmbXSv7gWeN4ZxdPZlX2pqrVAMruoRV9mWC801OkzML5
-         vAc04qG2gKazUJXZo5cgayJvgDKMKvjPRGAIvTrVXi5FRrv+aa/Y16Uuhsp8ZCuzaypO
-         IzO67EqqX5b1biqK8rFOw6kkqtTj2GldmkLedgUMTuVunmroxhF7an61cgsytA9rUAgb
-         tv2Q==
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=HPt1RnS65tAZ2F3WD8+1hjB3s1RjJv2bbkUnCuVkTNg=;
+        b=cjpJr5SKOYYWXt10IQxSiccnwNYxM7XvA9R2ORkwp2fq/ec2sGl+2EeLVU3LEKlgm0
+         Vb1faOEB3TzGSzjcDKGSZjh+3eDkn1BdYyopN6cp7J7SZHQy+MzIYGRyVjUhmcW7+lax
+         RI1LsaciZP83UdReH471035uirX2uO6d6UvP2A3VZ4G8+IZG7UbH0OkAWFYA5VQdcXwA
+         khTwAwTvbafN3nbvZd7hTvnZSPmcF28cQA0NO1KR1hh3TiSoEibu5ypDuD/U/IkuOpxe
+         jaDdYC+K1mf5ei4lYkOVVMb7Ntl7fNeOUG+0pyx58/DJ6gvzKYFU9ZkPamSjag8IG/jr
+         /sTA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=gj5eDteJmErbwWaXWoD/CPhhOkZsHSSd/WCsPjdqqyQ=;
-        b=gLsGDUS+ZTUvxKPo97yCcZ1VnzfDC23N9pnjLzLEgnkbtqvFS9O7wGRbgc3fWIFtj3
-         mUAOZyJ9Al12BaV5d/iUK1kkVJcGNbl4qsXJbJDOqFdYvGCU0atQ3WOw2ny7gGeJK9ic
-         9jkraqgXtnhsJUreZs+z8K1QZLsl1OWV7bC3qrk9EsXrYUi5kjC1CQX9H9nQHG3m5l0A
-         f42hBjHCb0gz/Bb6YSYEMbr8aN92AwCXpVIsd5mscVG89fdAWQKGuSw1dxXaBuNKweXs
-         Lt8olxOy2DxTWuwpRFPblrhjOER5dUpuIW5hC6keJFyJ7PgAc0gr5W4ESxRWJEsSxJGw
-         t7Xg==
-X-Gm-Message-State: APjAAAUo6jddMHKU7i7GRA8M3BLW5byFFuuxdYpOVVwQiYtB+Ywe9mU8
-        h1kdHKFYBFpialhUfZhVKjKyPoyZ
-X-Google-Smtp-Source: APXvYqwZrcbSCB3qlnWWSEtTIucSkfb72Xe+H5/GRtQQM12XxfMWKH7MwE/TDl2V0WPJHD7Szv9SVQ==
-X-Received: by 2002:a17:906:5d4:: with SMTP id t20mr9434420ejt.80.1557504841265;
-        Fri, 10 May 2019 09:14:01 -0700 (PDT)
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=HPt1RnS65tAZ2F3WD8+1hjB3s1RjJv2bbkUnCuVkTNg=;
+        b=hzShW/o9e9TgsWBl4bq5IJSQ7o6wOQAY50XQQGEiMSF5of+TobVaCVKgRXSoe0rtXW
+         MAwAU+3iajIz+rSSaB/IV6GNaMcqB91cnM1wimwgEZyuz/36pd1XNMN1Dhlk/AIBgcWe
+         IOI88GHj3j5rEU+uXOwGlKJ+MF1Mw++DH/I/HCRxm/Y6wCdqCXZchP2yqx+s/TjAUgCp
+         zO2+3jONZEmdhQgrtBGWwrhMnyAVJhhaWHEJznTiV3FagvViGtTjlmaqeeVQh6nUSq2e
+         7sb1K8Ku0kPHLf4fVhxIBtDCN/IRqGhFZ7/aKzTzOaafaoDdbpuvvIe56qOKHCXToySL
+         TvHQ==
+X-Gm-Message-State: APjAAAXMt4hTqO1s5SjLToRZyaxxrE38quXUHYjQVUuKlSMomKOYCn77
+        /aLYBLZhrMIP29z6+xzYEVx8UTsP
+X-Google-Smtp-Source: APXvYqz78eJbyRqnuJJNgnzs2BBgJiFOZnRzj+w49uO4Ln51YtHi0yC4yclX5/ZKnLxrVKOM7WNegg==
+X-Received: by 2002:a17:906:2db2:: with SMTP id g18mr3002106eji.79.1557504842488;
+        Fri, 10 May 2019 09:14:02 -0700 (PDT)
 Received: from VGer.neptura.lan (neptura.org. [88.174.209.153])
-        by smtp.gmail.com with ESMTPSA id o47sm1564220edc.37.2019.05.10.09.14.00
+        by smtp.gmail.com with ESMTPSA id o47sm1564220edc.37.2019.05.10.09.14.01
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Fri, 10 May 2019 09:14:00 -0700 (PDT)
+        Fri, 10 May 2019 09:14:01 -0700 (PDT)
 From:   =?UTF-8?q?St=C3=A9phane=20Veyret?= <sveyret@gmail.com>
 To:     netfilter-devel@vger.kernel.org
 Cc:     =?UTF-8?q?St=C3=A9phane=20Veyret?= <sveyret@gmail.com>
-Subject: [PATCH libnftnl,v1 1/2] src: add ct expectation support
-Date:   Fri, 10 May 2019 18:11:45 +0200
-Message-Id: <20190510161146.10518-1-sveyret@gmail.com>
+Subject: [PATCH libnftnl,v1 2/2] examples: add ct expectation examples
+Date:   Fri, 10 May 2019 18:11:46 +0200
+Message-Id: <20190510161146.10518-2-sveyret@gmail.com>
 X-Mailer: git-send-email 2.21.0
+In-Reply-To: <20190510161146.10518-1-sveyret@gmail.com>
+References: <20190510161146.10518-1-sveyret@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
@@ -72,109 +74,74 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Add support for ct expectation objects, used to define specific expectations.
+Add examples for ct expectations.
+
+Add, list and delete ct expectation objects from specified table.
+Add expectation object to rule.
 
 Signed-off-by: Stéphane Veyret <sveyret@gmail.com>
 ---
- include/libnftnl/object.h           |   7 +
- include/linux/netfilter/nf_tables.h |  13 +-
- include/obj.h                       |   7 +
- src/Makefile.am                     |   1 +
- src/obj/ct_expect.c                 | 193 ++++++++++++++++++++++++++++
- src/object.c                        |   1 +
- 6 files changed, 221 insertions(+), 1 deletion(-)
- create mode 100644 src/obj/ct_expect.c
+ examples/Makefile.am                   |  16 +++
+ examples/nft-ct-expectation-add.c      | 154 +++++++++++++++++++++++
+ examples/nft-ct-expectation-del.c      | 128 +++++++++++++++++++
+ examples/nft-ct-expectation-get.c      | 144 ++++++++++++++++++++++
+ examples/nft-rule-ct-expectation-add.c | 163 +++++++++++++++++++++++++
+ 5 files changed, 605 insertions(+)
+ create mode 100644 examples/nft-ct-expectation-add.c
+ create mode 100644 examples/nft-ct-expectation-del.c
+ create mode 100644 examples/nft-ct-expectation-get.c
+ create mode 100644 examples/nft-rule-ct-expectation-add.c
 
-diff --git a/include/libnftnl/object.h b/include/libnftnl/object.h
-index 4ce2230..dcb631c 100644
---- a/include/libnftnl/object.h
-+++ b/include/libnftnl/object.h
-@@ -70,6 +70,13 @@ enum {
- 	NFTNL_OBJ_CT_TIMEOUT_ARRAY,
- };
+diff --git a/examples/Makefile.am b/examples/Makefile.am
+index d044b90..db9164d 100644
+--- a/examples/Makefile.am
++++ b/examples/Makefile.am
+@@ -29,10 +29,14 @@ check_PROGRAMS = nft-table-add		\
+ 		 nft-flowtable-get	\
+ 		 nft-ruleset-get	\
+ 		 nft-compat-get 	\
++		 nft-ct-expectation-add \
++		 nft-ct-expectation-del \
++		 nft-ct-expectation-get \
+ 		 nft-ct-helper-add	\
+ 		 nft-ct-helper-get	\
+ 		 nft-ct-helper-del	\
+ 		 nft-rule-ct-helper-add \
++		 nft-rule-ct-expectation-add \
+ 		 nft-rule-ct-timeout-add
  
-+enum {
-+	NFTNL_OBJ_CT_EXPECT_L3PROTO = NFTNL_OBJ_BASE,
-+	NFTNL_OBJ_CT_EXPECT_L4PROTO,
-+	NFTNL_OBJ_CT_EXPECT_DPORT,
-+	NFTNL_OBJ_CT_EXPECT_TIMEOUT,
-+};
+ nft_table_add_SOURCES = nft-table-add.c
+@@ -122,6 +126,15 @@ nft_ruleset_get_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
+ nft_compat_get_SOURCES = nft-compat-get.c
+ nft_compat_get_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
+ 
++nft_ct_expectation_add_SOURCES = nft-ct-expectation-add.c
++nft_ct_expectation_add_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
 +
- enum {
- 	NFTNL_OBJ_LIMIT_RATE	= NFTNL_OBJ_BASE,
- 	NFTNL_OBJ_LIMIT_UNIT,
-diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
-index fd38cdc..59969f1 100644
---- a/include/linux/netfilter/nf_tables.h
-+++ b/include/linux/netfilter/nf_tables.h
-@@ -1429,6 +1429,16 @@ enum nft_ct_timeout_attributes {
- };
- #define NFTA_CT_TIMEOUT_MAX	(__NFTA_CT_TIMEOUT_MAX - 1)
- 
-+enum nft_ct_expectation_attributes {
-+	NFTA_CT_EXPECT_UNSPEC,
-+	NFTA_CT_EXPECT_L3PROTO,
-+	NFTA_CT_EXPECT_L4PROTO,
-+	NFTA_CT_EXPECT_DPORT,
-+	NFTA_CT_EXPECT_TIMEOUT,
-+	__NFTA_CT_EXPECT_MAX,
-+};
-+#define NFTA_CT_EXPECT_MAX	(__NFTA_CT_EXPECT_MAX - 1)
++nft_ct_expectation_del_SOURCES = nft-ct-expectation-del.c
++nft_ct_expectation_del_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
 +
- #define NFT_OBJECT_UNSPEC	0
- #define NFT_OBJECT_COUNTER	1
- #define NFT_OBJECT_QUOTA	2
-@@ -1438,7 +1448,8 @@ enum nft_ct_timeout_attributes {
- #define NFT_OBJECT_TUNNEL	6
- #define NFT_OBJECT_CT_TIMEOUT	7
- #define NFT_OBJECT_SECMARK	8
--#define __NFT_OBJECT_MAX	9
-+#define NFT_OBJECT_CT_EXPECT	9
-+#define __NFT_OBJECT_MAX	10
- #define NFT_OBJECT_MAX		(__NFT_OBJECT_MAX - 1)
++nft_ct_expectation_get_SOURCES = nft-ct-expectation-get.c
++nft_ct_expectation_get_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
++
+ nft_ct_helper_add_SOURCES = nft-ct-helper-add.c
+ nft_ct_helper_add_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
  
- /**
-diff --git a/include/obj.h b/include/obj.h
-index 35b5c40..f5935ab 100644
---- a/include/obj.h
-+++ b/include/obj.h
-@@ -42,6 +42,12 @@ struct nftnl_obj {
- 			uint8_t 	l4proto;
- 			uint32_t	timeout[NFTNL_CTTIMEOUT_ARRAY_MAX];
- 		} ct_timeout;
-+		struct nftnl_obj_ct_expect {
-+			uint16_t	l3proto;
-+			uint8_t		l4proto;
-+			uint16_t	dport;
-+			uint32_t	timeout;
-+		} ct_expect;
- 		struct nftnl_obj_limit {
- 			uint64_t	rate;
- 			uint64_t	unit;
-@@ -99,6 +105,7 @@ extern struct obj_ops obj_ops_counter;
- extern struct obj_ops obj_ops_quota;
- extern struct obj_ops obj_ops_ct_helper;
- extern struct obj_ops obj_ops_ct_timeout;
-+extern struct obj_ops obj_ops_ct_expect;
- extern struct obj_ops obj_ops_limit;
- extern struct obj_ops obj_ops_tunnel;
- extern struct obj_ops obj_ops_secmark;
-diff --git a/src/Makefile.am b/src/Makefile.am
-index 2d5873f..8f9c022 100644
---- a/src/Makefile.am
-+++ b/src/Makefile.am
-@@ -65,4 +65,5 @@ libnftnl_la_SOURCES = utils.c		\
- 		      obj/limit.c	\
- 		      obj/ct_timeout.c 	\
- 		      obj/secmark.c	\
-+		      obj/ct_expect.c 	\
- 		      libnftnl.map
-diff --git a/src/obj/ct_expect.c b/src/obj/ct_expect.c
+@@ -134,5 +147,8 @@ nft_ct_helper_del_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
+ nft_rule_ct_helper_add_SOURCES = nft-rule-ct-helper-add.c
+ nft_rule_ct_helper_add_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
+ 
++nft_rule_ct_expectation_add_SOURCES = nft-rule-ct-expectation-add.c
++nft_rule_ct_expectation_add_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
++
+ nft_rule_ct_timeout_add_SOURCES = nft-rule-ct-timeout-add.c
+ nft_rule_ct_timeout_add_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
+diff --git a/examples/nft-ct-expectation-add.c b/examples/nft-ct-expectation-add.c
 new file mode 100644
-index 0000000..16066c4
+index 0000000..eb46418
 --- /dev/null
-+++ b/src/obj/ct_expect.c
-@@ -0,0 +1,193 @@
++++ b/examples/nft-ct-expectation-add.c
+@@ -0,0 +1,154 @@
 +/*
 + * (C) 2019 by Stéphane Veyret <sveyret@gmail.com>
 + *
@@ -184,202 +151,604 @@ index 0000000..16066c4
 + * (at your option) any later version.
 + */
 +
-+#include <arpa/inet.h>
-+#include <errno.h>
++#include <time.h>
++#include <string.h>
++#include <netinet/in.h>
 +
++#include <linux/netfilter.h>
++
++#include <obj.h>
 +#include <libmnl/libmnl.h>
 +
-+#include "obj.h"
-+
-+static int nftnl_obj_ct_expect_set(struct nftnl_obj *e, uint16_t type,
-+				   const void *data, uint32_t data_len)
++static uint16_t parse_family(char *str, const char *option)
 +{
-+	struct nftnl_obj_ct_expect *exp = nftnl_obj_data(e);
-+
-+	switch (type) {
-+	case NFTNL_OBJ_CT_EXPECT_L3PROTO:
-+		memcpy(&exp->l3proto, data, sizeof(exp->l3proto));
-+		break;
-+	case NFTNL_OBJ_CT_EXPECT_L4PROTO:
-+		memcpy(&exp->l4proto, data, sizeof(exp->l4proto));
-+		break;
-+	case NFTNL_OBJ_CT_EXPECT_DPORT:
-+		memcpy(&exp->dport, data, sizeof(exp->dport));
-+		break;
-+	case NFTNL_OBJ_CT_EXPECT_TIMEOUT:
-+		memcpy(&exp->timeout, data, sizeof(exp->timeout));
-+		break;
-+	default:
-+		return -1;
++	if (strcmp(str, "ip") == 0)
++		return NFPROTO_IPV4;
++	else if (strcmp(str, "ip6") == 0)
++		return NFPROTO_IPV6;
++	else if (strcmp(str, "inet") == 0)
++		return NFPROTO_INET;
++	else if (strcmp(str, "arp") == 0)
++		return NFPROTO_INET;
++	else {
++		fprintf(stderr, "Unknown %s: ip, ip6, inet, arp\n", option);
++		exit(EXIT_FAILURE);
 +	}
-+	return 0;
 +}
 +
-+static const void *nftnl_obj_ct_expect_get(const struct nftnl_obj *e,
-+					   uint16_t type, uint32_t *data_len)
++static uint8_t parse_l4proto(char *str)
 +{
-+	struct nftnl_obj_ct_expect *exp = nftnl_obj_data(e);
-+
-+	switch (type) {
-+	case NFTNL_OBJ_CT_EXPECT_L3PROTO:
-+		*data_len = sizeof(exp->l3proto);
-+		return &exp->l3proto;
-+	case NFTNL_OBJ_CT_EXPECT_L4PROTO:
-+		*data_len = sizeof(exp->l4proto);
-+		return &exp->l4proto;
-+	case NFTNL_OBJ_CT_EXPECT_DPORT:
-+		*data_len = sizeof(exp->dport);
-+		return &exp->dport;
-+	case NFTNL_OBJ_CT_EXPECT_TIMEOUT:
-+		*data_len = sizeof(exp->timeout);
-+		return &exp->timeout;
++	if (strcmp(str, "udp") == 0)
++		return IPPROTO_UDP;
++	else if (strcmp(str, "tcp") == 0)
++		return IPPROTO_TCP;
++	else {
++		fprintf(stderr, "Unknown l4proto: tcp, udp\n");
++		exit(EXIT_FAILURE);
 +	}
-+	return NULL;
++	return IPPROTO_TCP;
 +}
 +
-+static int nftnl_obj_ct_expect_cb(const struct nlattr *attr, void *data)
++static struct nftnl_obj *obj_parse(int argc, char *argv[])
 +{
-+	int type = mnl_attr_get_type(attr);
-+	const struct nlattr **tb = data;
++	struct nftnl_obj *t;
++	uint16_t family, l3proto, dport;
++	uint8_t l4proto;
++	uint32_t timeout;
 +
-+	if (mnl_attr_type_valid(attr, NFTA_CT_EXPECT_MAX) < 0)
-+		return MNL_CB_OK;
-+
-+	switch (type) {
-+	case NFTA_CT_EXPECT_L3PROTO:
-+		if (mnl_attr_validate(attr, MNL_TYPE_U16) < 0)
-+			abi_breakage();
-+		break;
-+	case NFTA_CT_EXPECT_L4PROTO:
-+		if (mnl_attr_validate(attr, MNL_TYPE_U8) < 0)
-+			abi_breakage();
-+		break;
-+	case NFTA_CT_EXPECT_DPORT:
-+		if (mnl_attr_validate(attr, MNL_TYPE_U16) < 0)
-+			abi_breakage();
-+		break;
-+	case NFTA_CT_EXPECT_TIMEOUT:
-+		if (mnl_attr_validate(attr, MNL_TYPE_U32) < 0)
-+			abi_breakage();
-+		break;
++	t = nftnl_obj_alloc();
++	if (t == NULL) {
++			perror("OOM");
++			return NULL;
 +	}
 +
-+	tb[type] = attr;
++	family = parse_family(argv[1], "family");
++	nftnl_obj_set_u32(t, NFTNL_OBJ_FAMILY, family);
++	nftnl_obj_set_u32(t, NFTNL_OBJ_TYPE, NFT_OBJECT_CT_EXPECT);
++	nftnl_obj_set_str(t, NFTNL_OBJ_TABLE, argv[2]);
++	nftnl_obj_set_str(t, NFTNL_OBJ_NAME, argv[3]);
++
++	if (argc > 6) {
++		l3proto = parse_family(argv[6], "l3proto");
++		nftnl_obj_set_u16(t, NFTNL_OBJ_CT_EXPECT_L3PROTO, l3proto);
++	}
++	l4proto = parse_l4proto(argv[4]);
++	nftnl_obj_set_u8(t, NFTNL_OBJ_CT_EXPECT_L4PROTO, l4proto);
++	dport = strtol(argv[5], NULL, 10);
++	nftnl_obj_set_u16(t, NFTNL_OBJ_CT_EXPECT_DPORT, dport);
++	if (argc > 7) {
++		timeout = strtol(argv[7], NULL, 10);
++		nftnl_obj_set_u32(t, NFTNL_OBJ_CT_EXPECT_TIMEOUT, timeout);
++	}
++
++	return t;
++}
++
++int main(int argc, char *argv[])
++{
++	struct mnl_socket *nl;
++	char buf[MNL_SOCKET_BUFFER_SIZE];
++	struct nlmsghdr *nlh;
++	uint32_t portid, seq, obj_seq, family;
++	struct nftnl_obj *t;
++	struct mnl_nlmsg_batch *batch;
++	int ret;
++
++	if (argc < 6 || argc > 8) {
++		fprintf(stderr, "%s <family> <table> <name> <l4proto> <dport> [l3proto [timeout]]\n", argv[0]);
++		exit(EXIT_FAILURE);
++	}
++
++	t = obj_parse(argc, argv);
++	if (t == NULL) {
++		exit(EXIT_FAILURE);
++	}
++
++	seq = time(NULL);
++	batch = mnl_nlmsg_batch_start(buf, sizeof(buf));
++
++	nftnl_batch_begin(mnl_nlmsg_batch_current(batch), seq++);
++	mnl_nlmsg_batch_next(batch);
++
++	obj_seq = seq;
++	family = nftnl_obj_get_u32(t, NFTNL_OBJ_FAMILY);
++	nlh = nftnl_nlmsg_build_hdr(mnl_nlmsg_batch_current(batch),
++					NFT_MSG_NEWOBJ, family, NLM_F_ACK | NLM_F_CREATE, seq++);
++	nftnl_obj_nlmsg_build_payload(nlh, t);
++	nftnl_obj_free(t);
++	mnl_nlmsg_batch_next(batch);
++
++	nftnl_batch_end(mnl_nlmsg_batch_current(batch), seq++);
++	mnl_nlmsg_batch_next(batch);
++
++	nl = mnl_socket_open(NETLINK_NETFILTER);
++	if (nl == NULL) {
++		perror("mnl_socket_open");
++		exit(EXIT_FAILURE);
++	}
++
++	if (mnl_socket_bind(nl, 0, MNL_SOCKET_AUTOPID) < 0) {
++		perror("mnl_socket_bind");
++		exit(EXIT_FAILURE);
++	}
++	portid = mnl_socket_get_portid(nl);
++
++	if (mnl_socket_sendto(nl, mnl_nlmsg_batch_head(batch),
++				  mnl_nlmsg_batch_size(batch)) < 0) {
++		perror("mnl_socket_send");
++		exit(EXIT_FAILURE);
++	}
++
++	mnl_nlmsg_batch_stop(batch);
++
++	ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
++	while (ret > 0) {
++		ret = mnl_cb_run(buf, ret, obj_seq, portid, NULL, NULL);
++		if (ret <= 0)
++			break;
++		ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
++	}
++	if (ret == -1) {
++		perror("error");
++		exit(EXIT_FAILURE);
++	}
++	mnl_socket_close(nl);
++
++	return EXIT_SUCCESS;
++}
+diff --git a/examples/nft-ct-expectation-del.c b/examples/nft-ct-expectation-del.c
+new file mode 100644
+index 0000000..e38b8bd
+--- /dev/null
++++ b/examples/nft-ct-expectation-del.c
+@@ -0,0 +1,128 @@
++/*
++ * (C) 2019 by Stéphane Veyret <sveyret@gmail.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published
++ * by the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
++
++#include <stdlib.h>
++#include <time.h>
++#include <string.h>
++#include <netinet/in.h>
++
++#include <linux/netfilter.h>
++#include <linux/netfilter/nf_tables.h>
++
++#include <libmnl/libmnl.h>
++#include <libnftnl/object.h>
++
++static uint16_t parse_family(char *str, const char *option)
++{
++	if (strcmp(str, "ip") == 0)
++		return NFPROTO_IPV4;
++	else if (strcmp(str, "ip6") == 0)
++		return NFPROTO_IPV6;
++	else if (strcmp(str, "inet") == 0)
++		return NFPROTO_INET;
++	else if (strcmp(str, "arp") == 0)
++		return NFPROTO_INET;
++	else {
++		fprintf(stderr, "Unknown %s: ip, ip6, inet, arp\n", option);
++		exit(EXIT_FAILURE);
++	}
++}
++
++static struct nftnl_obj *obj_parse(int argc, char *argv[])
++{
++	struct nftnl_obj *t;
++	uint16_t family;
++
++	t = nftnl_obj_alloc();
++	if (t == NULL) {
++		perror("OOM");
++		return NULL;
++	}
++
++	family = parse_family(argv[1], "family");
++	nftnl_obj_set_u32(t, NFTNL_OBJ_FAMILY, family);
++	nftnl_obj_set_u32(t, NFTNL_OBJ_TYPE, NFT_OBJECT_CT_EXPECT);
++	nftnl_obj_set_str(t, NFTNL_OBJ_TABLE, argv[2]);
++	nftnl_obj_set_str(t, NFTNL_OBJ_NAME, argv[3]);
++
++	return t;
++}
++
++int main(int argc, char *argv[])
++{
++	struct mnl_socket *nl;
++	char buf[MNL_SOCKET_BUFFER_SIZE];
++	struct nlmsghdr *nlh;
++	uint32_t portid, seq, obj_seq, family;
++	struct nftnl_obj *t;
++	struct mnl_nlmsg_batch *batch;
++	int ret;
++
++	if (argc != 4) {
++		fprintf(stderr, "%s <family> <table> <name>\n", argv[0]);
++		exit(EXIT_FAILURE);
++	}
++
++	t = obj_parse(argc, argv);
++	if (t == NULL)
++		exit(EXIT_FAILURE);
++
++	seq = time(NULL);
++	batch = mnl_nlmsg_batch_start(buf, sizeof(buf));
++
++	nftnl_batch_begin(mnl_nlmsg_batch_current(batch), seq++);
++	mnl_nlmsg_batch_next(batch);
++
++	obj_seq = seq;
++	family = nftnl_obj_get_u32(t, NFTNL_OBJ_FAMILY);
++	nlh = nftnl_nlmsg_build_hdr(mnl_nlmsg_batch_current(batch),
++				    NFT_MSG_DELOBJ, family, NLM_F_ACK,
++				    seq++);
++	nftnl_obj_nlmsg_build_payload(nlh, t);
++	mnl_nlmsg_batch_next(batch);
++	nftnl_obj_free(t);
++
++	nftnl_batch_end(mnl_nlmsg_batch_current(batch), seq++);
++	mnl_nlmsg_batch_next(batch);
++
++	nl = mnl_socket_open(NETLINK_NETFILTER);
++	if (nl == NULL) {
++		perror("mnl_socket_open");
++		exit(EXIT_FAILURE);
++	}
++
++	if (mnl_socket_bind(nl, 0, MNL_SOCKET_AUTOPID) < 0) {
++		perror("mnl_socket_bind");
++		exit(EXIT_FAILURE);
++	}
++	portid = mnl_socket_get_portid(nl);
++
++	if (mnl_socket_sendto(nl, mnl_nlmsg_batch_head(batch),
++			      mnl_nlmsg_batch_size(batch)) < 0) {
++		perror("mnl_socket_send");
++		exit(EXIT_FAILURE);
++	}
++
++	mnl_nlmsg_batch_stop(batch);
++
++	ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
++	while (ret > 0) {
++		ret = mnl_cb_run(buf, ret, obj_seq, portid, NULL, NULL);
++		if (ret <= 0)
++			break;
++		ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
++	}
++	if (ret == -1) {
++		perror("error");
++		exit(EXIT_FAILURE);
++	}
++	mnl_socket_close(nl);
++
++	return EXIT_SUCCESS;
++}
+diff --git a/examples/nft-ct-expectation-get.c b/examples/nft-ct-expectation-get.c
+new file mode 100644
+index 0000000..405ba9a
+--- /dev/null
++++ b/examples/nft-ct-expectation-get.c
+@@ -0,0 +1,144 @@
++/*
++ * (C) 2019 by Stéphane Veyret <sveyret@gmail.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published
++ * by the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
++
++#include <stdlib.h>
++#include <time.h>
++#include <string.h>
++#include <netinet/in.h>
++
++#include <linux/netfilter.h>
++#include <linux/netfilter/nf_tables.h>
++
++#include <libmnl/libmnl.h>
++#include <libnftnl/object.h>
++
++static uint16_t parse_family(char *str, const char *option)
++{
++	if (strcmp(str, "ip") == 0)
++		return NFPROTO_IPV4;
++	else if (strcmp(str, "ip6") == 0)
++		return NFPROTO_IPV6;
++	else if (strcmp(str, "inet") == 0)
++		return NFPROTO_INET;
++	else if (strcmp(str, "arp") == 0)
++		return NFPROTO_INET;
++	else {
++		fprintf(stderr, "Unknown %s: ip, ip6, inet, arp\n", option);
++		exit(EXIT_FAILURE);
++	}
++}
++
++static struct nftnl_obj *obj_parse(int argc, char *argv[])
++{
++	struct nftnl_obj *t;
++	uint16_t family;
++
++	t = nftnl_obj_alloc();
++	if (t == NULL) {
++		perror("OOM");
++		return NULL;
++	}
++
++	family = parse_family(argv[1], "family");
++	nftnl_obj_set_u32(t, NFTNL_OBJ_FAMILY, family);
++	nftnl_obj_set_u32(t, NFTNL_OBJ_TYPE, NFT_OBJECT_CT_EXPECT);
++	nftnl_obj_set_str(t, NFTNL_OBJ_TABLE, argv[2]);
++
++	if (argc > 3)
++		nftnl_obj_set_str(t, NFTNL_OBJ_NAME, argv[3]);
++
++	return t;
++}
++
++static int obj_cb(const struct nlmsghdr *nlh, void *data)
++{
++	struct nftnl_obj *t;
++	char buf[4096];
++	uint32_t *type = data;
++
++	t = nftnl_obj_alloc();
++	if (t == NULL) {
++		perror("OOM");
++		goto err;
++	}
++
++	if (nftnl_obj_nlmsg_parse(nlh, t) < 0) {
++		perror("nftnl_obj_nlmsg_parse");
++		goto err_free;
++	}
++
++	nftnl_obj_snprintf(buf, sizeof(buf), t, *type, 0);
++	printf("%s\n", buf);
++
++err_free:
++	nftnl_obj_free(t);
++err:
 +	return MNL_CB_OK;
 +}
 +
-+static void
-+nftnl_obj_ct_expect_build(struct nlmsghdr *nlh, const struct nftnl_obj *e)
++int main(int argc, char *argv[])
 +{
-+	struct nftnl_obj_ct_expect *exp = nftnl_obj_data(e);
++	struct mnl_socket *nl;
++	char buf[MNL_SOCKET_BUFFER_SIZE];
++	struct nlmsghdr *nlh;
++	uint32_t portid, seq, family;
++	struct nftnl_obj *t;
++	int ret;
++	uint32_t type = NFTNL_OUTPUT_DEFAULT;
++	uint16_t flags = NLM_F_ACK;
 +
-+	if (e->flags & (1 << NFTNL_OBJ_CT_EXPECT_L3PROTO))
-+		mnl_attr_put_u16(nlh, NFTA_CT_EXPECT_L3PROTO, htons(exp->l3proto));
-+	if (e->flags & (1 << NFTNL_OBJ_CT_EXPECT_L4PROTO))
-+		mnl_attr_put_u8(nlh, NFTA_CT_EXPECT_L4PROTO, exp->l4proto);
-+	if (e->flags & (1 << NFTNL_OBJ_CT_EXPECT_DPORT))
-+		mnl_attr_put_u16(nlh, NFTA_CT_EXPECT_DPORT, htons(exp->dport));
-+	if (e->flags & (1 << NFTNL_OBJ_CT_EXPECT_TIMEOUT))
-+		mnl_attr_put_u32(nlh, NFTA_CT_EXPECT_TIMEOUT, exp->timeout);
++	if (argc < 3 || argc > 4) {
++		fprintf(stderr, "%s <family> <table> [<name>]\n", argv[0]);
++		return EXIT_FAILURE;
++	}
++
++	t = obj_parse(argc, argv);
++	if (t == NULL)
++		exit(EXIT_FAILURE);
++	family = nftnl_obj_get_u32(t, NFTNL_OBJ_FAMILY);
++
++	seq = time(NULL);
++	if (argc < 4)
++		flags = NLM_F_DUMP;
++	nlh = nftnl_nlmsg_build_hdr(buf, NFT_MSG_GETOBJ, family, flags, seq);
++	nftnl_obj_nlmsg_build_payload(nlh, t);
++	nftnl_obj_free(t);
++
++	nl = mnl_socket_open(NETLINK_NETFILTER);
++	if (nl == NULL) {
++		perror("mnl_socket_open");
++		exit(EXIT_FAILURE);
++	}
++
++	if (mnl_socket_bind(nl, 0, MNL_SOCKET_AUTOPID) < 0) {
++		perror("mnl_socket_bind");
++		exit(EXIT_FAILURE);
++	}
++	portid = mnl_socket_get_portid(nl);
++
++	if (mnl_socket_sendto(nl, nlh, nlh->nlmsg_len) < 0) {
++		perror("mnl_socket_send");
++		exit(EXIT_FAILURE);
++	}
++
++	ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
++	while (ret > 0) {
++		ret = mnl_cb_run(buf, ret, seq, portid, obj_cb, &type);
++		if (ret <= 0)
++			break;
++		ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
++	}
++	if (ret == -1) {
++		perror("error");
++		exit(EXIT_FAILURE);
++	}
++	mnl_socket_close(nl);
++
++	return EXIT_SUCCESS;
++}
+diff --git a/examples/nft-rule-ct-expectation-add.c b/examples/nft-rule-ct-expectation-add.c
+new file mode 100644
+index 0000000..794bb2c
+--- /dev/null
++++ b/examples/nft-rule-ct-expectation-add.c
+@@ -0,0 +1,163 @@
++/*
++ * (C) 2019 by Stéphane Veyret <sveyret@gmail.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published
++ * by the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
++
++#include <stdlib.h>
++#include <time.h>
++#include <string.h>
++#include <stddef.h>	/* for offsetof */
++#include <netinet/in.h>
++#include <netinet/ip.h>
++#include <netinet/tcp.h>
++#include <arpa/inet.h>
++#include <sys/types.h>
++#include <sys/socket.h>
++#include <errno.h>
++
++#include <linux/netfilter.h>
++#include <linux/netfilter/nfnetlink.h>
++#include <linux/netfilter/nf_tables.h>
++
++#include <libmnl/libmnl.h>
++#include <libnftnl/rule.h>
++#include <libnftnl/expr.h>
++
++static uint16_t parse_family(char *str, const char *option)
++{
++	if (strcmp(str, "ip") == 0)
++		return NFPROTO_IPV4;
++	else if (strcmp(str, "ip6") == 0)
++		return NFPROTO_IPV6;
++	else if (strcmp(str, "inet") == 0)
++		return NFPROTO_INET;
++	else if (strcmp(str, "arp") == 0)
++		return NFPROTO_INET;
++	else {
++		fprintf(stderr, "Unknown %s: ip, ip6, inet, arp\n", option);
++		exit(EXIT_FAILURE);
++	}
 +}
 +
-+static int
-+nftnl_obj_ct_expect_parse(struct nftnl_obj *e, struct nlattr *attr)
++static void add_ct_expect(struct nftnl_rule *r, const char *obj_name)
 +{
-+	struct nftnl_obj_ct_expect *exp = nftnl_obj_data(e);
-+	struct nlattr *tb[NFTA_CT_EXPECT_MAX + 1] = {};
++	struct nftnl_expr *e;
 +
-+	if (mnl_attr_parse_nested(attr, nftnl_obj_ct_expect_cb, tb) < 0)
-+		return -1;
++	e = nftnl_expr_alloc("objref");
++	if (e == NULL) {
++		perror("expr objref oom");
++		exit(EXIT_FAILURE);
++	}
++	nftnl_expr_set_str(e, NFTNL_EXPR_OBJREF_IMM_NAME, obj_name);
++	nftnl_expr_set_u32(e, NFTNL_EXPR_OBJREF_IMM_TYPE, NFT_OBJECT_CT_EXPECT);
 +
-+	if (tb[NFTA_CT_EXPECT_L3PROTO]) {
-+		exp->l3proto = ntohs(mnl_attr_get_u16(tb[NFTA_CT_EXPECT_L3PROTO]));
-+		e->flags |= (1 << NFTNL_OBJ_CT_EXPECT_L3PROTO);
-+	}
-+	if (tb[NFTA_CT_EXPECT_L4PROTO]) {
-+		exp->l4proto = mnl_attr_get_u8(tb[NFTA_CT_EXPECT_L4PROTO]);
-+		e->flags |= (1 << NFTNL_OBJ_CT_EXPECT_L4PROTO);
-+	}
-+	if (tb[NFTA_CT_EXPECT_DPORT]) {
-+		exp->dport = ntohs(mnl_attr_get_u16(tb[NFTA_CT_EXPECT_DPORT]));
-+		e->flags |= (1 << NFTNL_OBJ_CT_EXPECT_DPORT);
-+	}
-+	if (tb[NFTA_CT_EXPECT_TIMEOUT]) {
-+		exp->timeout = mnl_attr_get_u32(tb[NFTA_CT_EXPECT_TIMEOUT]);
-+		e->flags |= (1 << NFTNL_OBJ_CT_EXPECT_TIMEOUT);
-+	}
-+
-+	return 0;
++	nftnl_rule_add_expr(r, e);
 +}
 +
-+static int nftnl_obj_ct_expect_snprintf_default(char *buf, size_t len,
-+					       const struct nftnl_obj *e)
++static struct nftnl_rule *setup_rule(uint8_t family, const char *table,
++				   const char *chain, const char *handle, const char *obj_name)
 +{
-+	int ret = 0;
-+	int offset = 0, remain = len;
-+	struct nftnl_obj_ct_expect *exp = nftnl_obj_data(e);
++	struct nftnl_rule *r = NULL;
++	uint64_t handle_num;
 +
-+	if (e->flags & (1 << NFTNL_OBJ_CT_EXPECT_L3PROTO)) {
-+		ret = snprintf(buf + offset, len, "family %d ", exp->l3proto);
-+		SNPRINTF_BUFFER_SIZE(ret, remain, offset);
-+	}
-+	if (e->flags & (1 << NFTNL_OBJ_CT_EXPECT_L4PROTO)) {
-+		ret = snprintf(buf + offset, len, "protocol %d ", exp->l4proto);
-+		SNPRINTF_BUFFER_SIZE(ret, remain, offset);
-+	}
-+	if (e->flags & (1 << NFTNL_OBJ_CT_EXPECT_DPORT)) {
-+		ret = snprintf(buf + offset, len, "dport %d ", exp->dport);
-+		SNPRINTF_BUFFER_SIZE(ret, remain, offset);
-+	}
-+	if (e->flags & (1 << NFTNL_OBJ_CT_EXPECT_TIMEOUT)) {
-+		ret = snprintf(buf + offset, len, "timeout %d ", exp->timeout);
-+		SNPRINTF_BUFFER_SIZE(ret, remain, offset);
++	r = nftnl_rule_alloc();
++	if (r == NULL) {
++		perror("OOM");
++		exit(EXIT_FAILURE);
 +	}
 +
-+	buf[offset] = '\0';
-+	return offset;
++	nftnl_rule_set(r, NFTNL_RULE_TABLE, table);
++	nftnl_rule_set(r, NFTNL_RULE_CHAIN, chain);
++	nftnl_rule_set_u32(r, NFTNL_RULE_FAMILY, family);
++
++	if (handle != NULL) {
++		handle_num = atoll(handle);
++		nftnl_rule_set_u64(r, NFTNL_RULE_POSITION, handle_num);
++	}
++
++	add_ct_expect(r, obj_name);
++
++	return r;
 +}
 +
-+static int nftnl_obj_ct_expect_snprintf(char *buf, size_t len, uint32_t type,
-+				       uint32_t flags,
-+				       const struct nftnl_obj *e)
++int main(int argc, char *argv[])
 +{
-+	if (len)
-+		buf[0] = '\0';
++	struct mnl_socket *nl;
++	struct nftnl_rule *r;
++	struct nlmsghdr *nlh;
++	struct mnl_nlmsg_batch *batch;
++	uint8_t family;
++	char buf[MNL_SOCKET_BUFFER_SIZE];
++	uint32_t seq = time(NULL);
++	int ret;
 +
-+	switch (type) {
-+	case NFTNL_OUTPUT_DEFAULT:
-+		return nftnl_obj_ct_expect_snprintf_default(buf, len, e);
-+	case NFTNL_OUTPUT_JSON:
-+	default:
-+		break;
++	if (argc < 5 || argc > 6) {
++		fprintf(stderr,
++			"Usage: %s <family> <table> <chain> [<handle>] <name>\n",
++			argv[0]);
++		exit(EXIT_FAILURE);
 +	}
-+	return -1;
-+}
++	family = parse_family(argv[1], "family");
 +
-+struct obj_ops obj_ops_ct_expect = {
-+	.name		= "ct_expect",
-+	.type		= NFT_OBJECT_CT_EXPECT,
-+	.alloc_len	= sizeof(struct nftnl_obj_ct_expect),
-+	.max_attr	= NFTA_CT_EXPECT_MAX,
-+	.set		= nftnl_obj_ct_expect_set,
-+	.get		= nftnl_obj_ct_expect_get,
-+	.parse		= nftnl_obj_ct_expect_parse,
-+	.build		= nftnl_obj_ct_expect_build,
-+	.snprintf	= nftnl_obj_ct_expect_snprintf,
-+};
-diff --git a/src/object.c b/src/object.c
-index 5c8d183..23f8840 100644
---- a/src/object.c
-+++ b/src/object.c
-@@ -33,6 +33,7 @@ static struct obj_ops *obj_ops[__NFT_OBJECT_MAX] = {
- 	[NFT_OBJECT_TUNNEL]	= &obj_ops_tunnel,
- 	[NFT_OBJECT_CT_TIMEOUT] = &obj_ops_ct_timeout,
- 	[NFT_OBJECT_SECMARK]	= &obj_ops_secmark,
-+	[NFT_OBJECT_CT_EXPECT] = &obj_ops_ct_expect,
- };
- 
- static struct obj_ops *nftnl_obj_ops_lookup(uint32_t type)
++	if (argc != 6)
++		r = setup_rule(family, argv[2], argv[3], NULL, argv[4]);
++	else
++		r = setup_rule(family, argv[2], argv[3], argv[4], argv[5]);
++
++	nl = mnl_socket_open(NETLINK_NETFILTER);
++	if (nl == NULL) {
++		perror("mnl_socket_open");
++		exit(EXIT_FAILURE);
++	}
++
++	if (mnl_socket_bind(nl, 0, MNL_SOCKET_AUTOPID) < 0) {
++		perror("mnl_socket_bind");
++		exit(EXIT_FAILURE);
++	}
++
++	batch = mnl_nlmsg_batch_start(buf, sizeof(buf));
++
++	nftnl_batch_begin(mnl_nlmsg_batch_current(batch), seq++);
++	mnl_nlmsg_batch_next(batch);
++
++	nlh = nftnl_rule_nlmsg_build_hdr(mnl_nlmsg_batch_current(batch),
++		NFT_MSG_NEWRULE,
++		nftnl_rule_get_u32(r, NFTNL_RULE_FAMILY),
++		NLM_F_APPEND|NLM_F_CREATE|NLM_F_ACK, seq++);
++
++	nftnl_rule_nlmsg_build_payload(nlh, r);
++	nftnl_rule_free(r);
++	mnl_nlmsg_batch_next(batch);
++
++	nftnl_batch_end(mnl_nlmsg_batch_current(batch), seq++);
++	mnl_nlmsg_batch_next(batch);
++
++	ret = mnl_socket_sendto(nl, mnl_nlmsg_batch_head(batch),
++				mnl_nlmsg_batch_size(batch));
++	if (ret == -1) {
++		perror("mnl_socket_sendto");
++		exit(EXIT_FAILURE);
++	}
++
++	mnl_nlmsg_batch_stop(batch);
++
++	ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
++	if (ret == -1) {
++		perror("mnl_socket_recvfrom");
++		exit(EXIT_FAILURE);
++	}
++
++	ret = mnl_cb_run(buf, ret, 0, mnl_socket_get_portid(nl), NULL, NULL);
++	if (ret < 0) {
++		perror("mnl_cb_run");
++		exit(EXIT_FAILURE);
++	}
++
++	mnl_socket_close(nl);
++
++	return EXIT_SUCCESS;
++}
 -- 
 2.21.0
 
