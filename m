@@ -1,66 +1,63 @@
-Return-Path: <SRS0=owQB=TL=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=q8lh=TM=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F8C2C04AB1
-	for <netfilter-devel@archiver.kernel.org>; Sat, 11 May 2019 18:55:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7BCB0C04A6B
+	for <netfilter-devel@archiver.kernel.org>; Sun, 12 May 2019 07:59:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id EC86420881
-	for <netfilter-devel@archiver.kernel.org>; Sat, 11 May 2019 18:55:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 400852146F
+	for <netfilter-devel@archiver.kernel.org>; Sun, 12 May 2019 07:59:45 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="n4VCh4vf"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="At3I3J1c"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726038AbfEKSzK (ORCPT
+        id S1726232AbfELH7o (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 11 May 2019 14:55:10 -0400
-Received: from mail-vk1-f195.google.com ([209.85.221.195]:41744 "EHLO
-        mail-vk1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725911AbfEKSzK (ORCPT
+        Sun, 12 May 2019 03:59:44 -0400
+Received: from mail-vk1-f171.google.com ([209.85.221.171]:46505 "EHLO
+        mail-vk1-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726031AbfELH7o (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 11 May 2019 14:55:10 -0400
-Received: by mail-vk1-f195.google.com with SMTP id l73so2316212vkl.8
-        for <netfilter-devel@vger.kernel.org>; Sat, 11 May 2019 11:55:09 -0700 (PDT)
+        Sun, 12 May 2019 03:59:44 -0400
+Received: by mail-vk1-f171.google.com with SMTP id d77so2535755vke.13
+        for <netfilter-devel@vger.kernel.org>; Sun, 12 May 2019 00:59:43 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc:content-transfer-encoding;
-        bh=2HtUDG/anaYQG8BSeIxh1/Ee8o4t9gr/W0vIVbKJ68A=;
-        b=n4VCh4vfl7hsUCVfXVQ8uv1BUyIlkz0hRbgkQJkPYq9qxRqTCP/arjAWfqExBp+fx8
-         Vd5CBlpA3ka+L40KQjCzf4wA9Xeyd53knJPTPlsFI45pWp3XZL6O7ZLJ5+lV2Nu1dQ54
-         HMSecA2ZT7XpETFneSajzZisjCJFsXRxnbeG87uuqPT6w/y+ZBWdy/e6ZTrJKZ2CadRj
-         OyZNCLbOLrW3pc6BVclJ0EUI+t58DOa4Q7OXi2duNlnRThFYZslljaaLs0xKNVLu9nOX
-         sphK1k2Ti0R7bdnY+9FxzlpABw5mGb9blGWPviaCyKKYUWuSee7TgNslLw8JSMrLCxs+
-         TYXg==
+        h=mime-version:from:date:message-id:subject:to
+         :content-transfer-encoding;
+        bh=/8pjnN6LiWkRa+erINUX3KnzN1Tza7wnAPjkgE1kC9Q=;
+        b=At3I3J1cYCalXPhLXqPMmoLuBVNDEkD/6ENB0rtJzSJqBIOolKc/Cbzd1lRBxksJkJ
+         GBSy5/wFT0pbX9EzwNcusGU1uKVfkxmc0Qv/fpn2QrYEf1NmgJukY8KAb5jET5sinPYi
+         WKxDhl7yG6NiJzqI8fYiDpXhdHPriROGMg88N6F2kCkG3Ifi71iLXjIm4SuhXnyzujGF
+         neGplXoSjSbntxSdQKGgiIQda1myyOu8ZYwsFbhGGxOaR0KxoRmYPs7n22l1YRblseWC
+         8wcYp8Km4VLVAd96LVZMqyD2xL6PetkLpu+mWFoym6bZc/EHOMcVZABDcUt+2asWspg6
+         RQvQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=2HtUDG/anaYQG8BSeIxh1/Ee8o4t9gr/W0vIVbKJ68A=;
-        b=uF0dxB2YEIXctL5Zivc/Rc2ntEJyBx8eLjr2l39B6GKOWkaeP9jLhodoNXX/cAXGvg
-         pO0Rmv5zwb0ayFzY7mNhwhb7g/qUbB3BnmijyErhpUdTn66SVLSAC0Y/v0m7Vt/Li07W
-         Wz+FfWLLV6pDPcI3f8n/0oGEvjuZYl1J0cBJdMvXTx7nShlf/u7IeNK9nP2u4DPCSBEY
-         nnHFcfC4uaBwKyGYBiFyUXonxek8JZJT/3JeSaqyhKTexnCef/7ZZW+rJFSTd6MSQVOQ
-         aYI5iinyivAWKLf22f/SFQ6eZrclmkh22lT/yRtfkvRXgBXDGdGvZFaWeBrHVr9br8Df
-         c+kA==
-X-Gm-Message-State: APjAAAXkDtRNVC+7mp7gSic3SEx77Jdlp0j7GBQzOgaJUSs6a0ZnHRHf
-        jr/zfwSg/k/N9ZSyBXD9kQKffXniXZgrC5lg5ztV8Q==
-X-Google-Smtp-Source: APXvYqwAU66Ng+zr3og0kGMmfoYsxMIJapgRvtPbptfusdg9uhyvK49C3olsBNWYlyr4w7uNjtacsrkGtOJJRtpVNT8=
-X-Received: by 2002:a1f:a54f:: with SMTP id o76mr7396944vke.86.1557600908792;
- Sat, 11 May 2019 11:55:08 -0700 (PDT)
+        h=x-gm-message-state:mime-version:from:date:message-id:subject:to
+         :content-transfer-encoding;
+        bh=/8pjnN6LiWkRa+erINUX3KnzN1Tza7wnAPjkgE1kC9Q=;
+        b=lk3zdseAjYGmp7gKWzXR2BmtINSRPTyqVtQPkLlMxlT3x3+8QaZ1QEPZ+2z01OzIC0
+         cmW4xfVAlKd6x9AvSVERhKmx4wuaibJH5GP6Do0fMdlNPpMRd1/hOp2bJ9YfmNdRV/Pp
+         JYicj6Zgi56EAiTedDvy89tCdAMk4tL0+VoL7dsIXDoDoqnrfQ/aVZ1+GmflVbVhHCpa
+         F/FUKzJZTtjWzH7dZS8lJ03sKe5Wp8AfWbwz9Xm66y3v/e9XyzgYClEf85pg9ukBg/uU
+         jh5fnefU/H0Fuisl/4fV+8jLmNPXg1O/LFVsNhWlA5/b30cSD6DhJ+IuXu9gT/26v7vm
+         dM1g==
+X-Gm-Message-State: APjAAAX9hGyyeYsyYnJrck39yaWONbGp1OJr6HKu+cmA0+zGU+Z3di7M
+        9ANESmkyXe6VB/+vWPVjmqhhczSs2ehXEMGnxCsSoCP1
+X-Google-Smtp-Source: APXvYqwKkLkiX2cY1ihnZ98MgOwtkj7r/Y4C0jGu2GkJt/+hqIxgSyQzayx5DY+3wr+JFyyjQtrVycSrRd+5ABsWC2U=
+X-Received: by 2002:a1f:a54f:: with SMTP id o76mr8315100vke.86.1557647983113;
+ Sun, 12 May 2019 00:59:43 -0700 (PDT)
 MIME-Version: 1.0
-References: <20190505154016.3505-1-sveyret@gmail.com> <20190505225114.pwpwckz2oauskkrf@salvia>
-In-Reply-To: <20190505225114.pwpwckz2oauskkrf@salvia>
 From:   =?UTF-8?Q?St=C3=A9phane_Veyret?= <sveyret@gmail.com>
-Date:   Sat, 11 May 2019 20:54:57 +0200
-Message-ID: <CAFs+hh4Cq3kbJPVtn080KknAP5d3w8V5zcx9AGV800EN8d9G=w@mail.gmail.com>
-Subject: Re: [PATCH] netfilter: nft_ct: add ct expectations support
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
+Date:   Sun, 12 May 2019 09:59:32 +0200
+Message-ID: <CAFs+hh4ghFJqE=b+CXiVL9AguKr1MjZntuDvzYyqmDy5aGJPLw@mail.gmail.com>
+Subject: Undefined reference?
+To:     netfilter-devel@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -68,18 +65,24 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Pablo,
+Hello,
 
-Le lun. 6 mai 2019 =C3=A0 00:51, Pablo Neira Ayuso <pablo@netfilter.org> a =
-=C3=A9crit :
-> >       NFT_CT_TIMEOUT,
-> >       NFT_CT_ID,
-> > +     NFT_CT_EXPECT,
->
-> You don't this definition, or I don't find where this is used.
+I am currently trying to add a new feature to nftables. I made
+modifications on the kernel and updated a VM with this modified
+kernel. I then made modifications on libnftnl, make && make install it
+on this VM. I even made some tests which I managed to execute.
 
-As I told previously, I just copied the way timeout is built, and
-therefore, it seems that NFT_CT_TIMEOUT is not used too.
-But I actually saw today that these values are used in the =C2=AB nftables
-=C2=BB project. There is a copy of nf_tables.h there. Not sure it is a good
-idea to keep the variables in =C2=AB nftables =C2=BB and not in kernel.
+Now, I am trying to modify the nftables userspace tool. I had to set variab=
+les:
+LIBNFTNL_CFLAGS=3D"-g -O2"
+LIBNFTNL_LIBS=3D$HOME/libnftnl/src/.libs/libnftnl.so ./configure
+in order for configure to work, but it worked. But at linking time, I
+get the following error for each nftnl_* function:
+ld: ./.libs/libnftables.so: undefined reference to `nftnl_trace_free'
+
+I tried to set the LD_LIBRARY_PATH to /usr/local/lib but it did not
+change anything. Do you have an idea of what the problem is?
+
+Regards,
+
+St=C3=A9phane.
