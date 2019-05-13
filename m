@@ -2,112 +2,59 @@ Return-Path: <SRS0=R8c+=TN=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_PASS autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 01144C04AA7
-	for <netfilter-devel@archiver.kernel.org>; Mon, 13 May 2019 13:25:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E41E0C04AB1
+	for <netfilter-devel@archiver.kernel.org>; Mon, 13 May 2019 16:02:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D0837208C2
-	for <netfilter-devel@archiver.kernel.org>; Mon, 13 May 2019 13:25:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C01112084E
+	for <netfilter-devel@archiver.kernel.org>; Mon, 13 May 2019 16:02:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728472AbfEMNZw (ORCPT
+        id S1730283AbfEMQC0 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 13 May 2019 09:25:52 -0400
-Received: from szxga05-in.huawei.com ([45.249.212.191]:7748 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1728434AbfEMNZv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 13 May 2019 09:25:51 -0400
-Received: from DGGEMS411-HUB.china.huawei.com (unknown [172.30.72.59])
-        by Forcepoint Email with ESMTP id F099C31F1596DC0FA4C0;
-        Mon, 13 May 2019 21:25:31 +0800 (CST)
-Received: from [127.0.0.1] (10.184.189.20) by DGGEMS411-HUB.china.huawei.com
- (10.3.19.211) with Microsoft SMTP Server id 14.3.439.0; Mon, 13 May 2019
- 21:25:24 +0800
-Subject: Re: [PATCH v3] net: netfilter: Fix rpfilter dropping vrf packets by
- mistake
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-CC:     <kadlec@blackhole.kfki.hu>, <fw@strlen.de>, <davem@davemloft.net>,
-        <kuznet@ms2.inr.ac.ru>, <yoshfuji@linux-ipv6.org>,
-        <netfilter-devel@vger.kernel.org>, <coreteam@netfilter.org>,
-        <netdev@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <dsahern@gmail.com>, Mingfangsen <mingfangsen@huawei.com>
-References: <212e4feb-39de-2627-9948-bbb117ff4d4e@huawei.com>
- <20190513094203.atnko3xbim5hzb7y@salvia>
-From:   linmiaohe <linmiaohe@huawei.com>
-Message-ID: <e5083883-27c7-e210-0f94-d8177264bd84@huawei.com>
-Date:   Mon, 13 May 2019 21:25:09 +0800
-User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:60.0) Gecko/20100101
- Thunderbird/60.5.1
-MIME-Version: 1.0
-In-Reply-To: <20190513094203.atnko3xbim5hzb7y@salvia>
-Content-Type: text/plain; charset="utf-8"
-Content-Language: en-US
+        Mon, 13 May 2019 12:02:26 -0400
+Received: from shards.monkeyblade.net ([23.128.96.9]:39124 "EHLO
+        shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730274AbfEMQC0 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 13 May 2019 12:02:26 -0400
+Received: from localhost (unknown [IPv6:2601:601:9f80:35cd::3d8])
+        (using TLSv1 with cipher AES256-SHA (256/256 bits))
+        (Client did not present a certificate)
+        (Authenticated sender: davem-davemloft)
+        by shards.monkeyblade.net (Postfix) with ESMTPSA id 30A2A14E14FD8;
+        Mon, 13 May 2019 09:02:26 -0700 (PDT)
+Date:   Mon, 13 May 2019 09:02:25 -0700 (PDT)
+Message-Id: <20190513.090225.1322335894294749204.davem@davemloft.net>
+To:     pablo@netfilter.org
+Cc:     netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+Subject: Re: [PATCH 00/13] Netfilter fixes for net
+From:   David Miller <davem@davemloft.net>
+In-Reply-To: <20190513095630.32443-1-pablo@netfilter.org>
+References: <20190513095630.32443-1-pablo@netfilter.org>
+X-Mailer: Mew version 6.8 on Emacs 26.1
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.184.189.20]
-X-CFilter-Loop: Reflected
+X-Greylist: Sender succeeded SMTP AUTH, not delayed by milter-greylist-4.5.12 (shards.monkeyblade.net [149.20.54.216]); Mon, 13 May 2019 09:02:26 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Mon, 13 May 2019 11:56:17 +0200
 
+> The following patchset contains Netfilter fixes for net:
+ ...
+> This batch comes with a conflict that can be fixed with this patch:
 
-On 2019/5/13 17:42, Pablo Neira Ayuso wrote:
-> On Thu, Apr 25, 2019 at 09:43:53PM +0800, linmiaohe wrote:
->> From: Miaohe Lin <linmiaohe@huawei.com>
->>
->> When firewalld is enabled with ipv4/ipv6 rpfilter, vrf
->> ipv4/ipv6 packets will be dropped because in device is
->> vrf but out device is an enslaved device. So failed with
->> the check of the rpfilter.
->>
->> Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
->> ---
->>  net/ipv4/netfilter/ipt_rpfilter.c  |  1 +
->>  net/ipv6/netfilter/ip6t_rpfilter.c | 10 +++++++++-
->>  2 files changed, 10 insertions(+), 1 deletion(-)
->>
+Thanks for this.
+
+> You can pull these changes from:
 > 
-> Suggestion: Could you just call l3mdev_master_ifindex_rcu() when
-> invoking rpfilter_lookup_reverse6() ?
-> 
-> diff --git a/net/ipv6/netfilter/ip6t_rpfilter.c b/net/ipv6/netfilter/ip6t_rpfilter.c
-> index c3c6b09acdc4..ce64ff5d6fb6 100644
-> --- a/net/ipv6/netfilter/ip6t_rpfilter.c
-> +++ b/net/ipv6/netfilter/ip6t_rpfilter.c
-> @@ -101,7 +101,8 @@ static bool rpfilter_mt(const struct sk_buff *skb,
-> struct xt_action_param *par)
->         if (unlikely(saddrtype == IPV6_ADDR_ANY))
->                 return true ^ invert; /* not routable: forward path will drop it */
->  
-> -       return rpfilter_lookup_reverse6(xt_net(par), skb, xt_in(par),
-> +       return rpfilter_lookup_reverse6(xt_net(par), skb,
-> +                                       l3mdev_master_ifindex_rcu(xt_in(par)),
->                                         info->flags) ^ invert;
->  }
-> 
-> .
->     rpfilter_lookup_reverse6 requests struct net_device *dev as third argument, so
-what you really mean is this ?
- diff --git a/net/ipv6/netfilter/ip6t_rpfilter.c b/net/ipv6/netfilter/ip6t_rpfilter.c
- index c3c6b09acdc4..ce64ff5d6fb6 100644
- --- a/net/ipv6/netfilter/ip6t_rpfilter.c
- +++ b/net/ipv6/netfilter/ip6t_rpfilter.c
- @@ -101,7 +101,8 @@ static bool rpfilter_mt(const struct sk_buff *skb,
- struct xt_action_param *par)
-         if (unlikely(saddrtype == IPV6_ADDR_ANY))
-                 return true ^ invert; /* not routable: forward path will drop it */
+>   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
 
- -       return rpfilter_lookup_reverse6(xt_net(par), skb, xt_in(par),
- +       return rpfilter_lookup_reverse6(xt_net(par), skb,
- +                                       l3mdev_master_dev_rcu(xt_in(par)) ? : xt_in(par),
-                                         info->flags) ^ invert;
-  }
-    I'am sorry but I tested this. It doesn't work. When flags with XT_RPFILTER_LOOSE set,
-we need set fl6.flowi6_oif to complete fib lookup in an l3mdev domain. And we need
-enslaved network device to compute rpfilter rather than l3 master device.
-    Many thanks for your suggestion.
-    Best regards.
-
+Pulled, thanks again.
