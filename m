@@ -6,200 +6,86 @@ X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B911C04AB1
-	for <netfilter-devel@archiver.kernel.org>; Mon, 13 May 2019 09:56:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 89AC7C04AB1
+	for <netfilter-devel@archiver.kernel.org>; Mon, 13 May 2019 09:56:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 06D1D20989
-	for <netfilter-devel@archiver.kernel.org>; Mon, 13 May 2019 09:56:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5C4E720989
+	for <netfilter-devel@archiver.kernel.org>; Mon, 13 May 2019 09:56:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727458AbfEMJ4m (ORCPT
+        id S1728792AbfEMJ4s (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 13 May 2019 05:56:42 -0400
-Received: from mail.us.es ([193.147.175.20]:34116 "EHLO mail.us.es"
+        Mon, 13 May 2019 05:56:48 -0400
+Received: from mail.us.es ([193.147.175.20]:34240 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728126AbfEMJ4l (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 13 May 2019 05:56:41 -0400
+        id S1728796AbfEMJ4r (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 13 May 2019 05:56:47 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id DE6A64DE724
-        for <netfilter-devel@vger.kernel.org>; Mon, 13 May 2019 11:56:38 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id C94E04DE734
+        for <netfilter-devel@vger.kernel.org>; Mon, 13 May 2019 11:56:44 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id CAF62DA7A1
-        for <netfilter-devel@vger.kernel.org>; Mon, 13 May 2019 11:56:38 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id B9CC9DA715
+        for <netfilter-devel@vger.kernel.org>; Mon, 13 May 2019 11:56:44 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id BEDE7DA708; Mon, 13 May 2019 11:56:38 +0200 (CEST)
+        id AF756DA713; Mon, 13 May 2019 11:56:44 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 55320DA708;
-        Mon, 13 May 2019 11:56:36 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id B3703DA70B;
+        Mon, 13 May 2019 11:56:42 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 13 May 2019 11:56:36 +0200 (CEST)
+ Mon, 13 May 2019 11:56:42 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 270994265A32;
-        Mon, 13 May 2019 11:56:36 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 7EAF14265A31;
+        Mon, 13 May 2019 11:56:42 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 01/13] netfilter: nf_tables: delay chain policy update until transaction is complete
-Date:   Mon, 13 May 2019 11:56:18 +0200
-Message-Id: <20190513095630.32443-2-pablo@netfilter.org>
+Subject: [PATCH 12/13] netfilter: nf_tables: remove NFT_CT_TIMEOUT
+Date:   Mon, 13 May 2019 11:56:29 +0200
+Message-Id: <20190513095630.32443-13-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20190513095630.32443-1-pablo@netfilter.org>
 References: <20190513095630.32443-1-pablo@netfilter.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+Never used anywhere in the code.
 
-When we process a long ruleset of the form
-
-chain input {
-   type filter hook input priority filter; policy drop;
-   ...
-}
-
-Then the base chain gets registered early on, we then continue to
-process/validate the next messages coming in the same transaction.
-
-Problem is that if the base chain policy is 'drop', it will take effect
-immediately, which causes all traffic to get blocked until the
-transaction completes or is aborted.
-
-Fix this by deferring the policy until the transaction has been
-processed and all of the rules have been flagged as active.
-
-Reported-by: Jann Haber <jann.haber@selfnet.de>
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Fixes: 7e0b2b57f01d ("netfilter: nft_ct: add ct timeout support")
+Reported-by: Stéphane Veyret <sveyret@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c | 50 +++++++++++++++++++++++++++++++++----------
- 1 file changed, 39 insertions(+), 11 deletions(-)
+ include/uapi/linux/netfilter/nf_tables.h | 2 --
+ 1 file changed, 2 deletions(-)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 1606eaa5ae0d..f2e12ae50544 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -214,33 +214,33 @@ static int nft_deltable(struct nft_ctx *ctx)
- 	return err;
- }
- 
--static int nft_trans_chain_add(struct nft_ctx *ctx, int msg_type)
-+static struct nft_trans *nft_trans_chain_add(struct nft_ctx *ctx, int msg_type)
- {
- 	struct nft_trans *trans;
- 
- 	trans = nft_trans_alloc(ctx, msg_type, sizeof(struct nft_trans_chain));
- 	if (trans == NULL)
--		return -ENOMEM;
-+		return ERR_PTR(-ENOMEM);
- 
- 	if (msg_type == NFT_MSG_NEWCHAIN)
- 		nft_activate_next(ctx->net, ctx->chain);
- 
- 	list_add_tail(&trans->list, &ctx->net->nft.commit_list);
--	return 0;
-+	return trans;
- }
- 
- static int nft_delchain(struct nft_ctx *ctx)
- {
--	int err;
-+	struct nft_trans *trans;
- 
--	err = nft_trans_chain_add(ctx, NFT_MSG_DELCHAIN);
--	if (err < 0)
--		return err;
-+	trans = nft_trans_chain_add(ctx, NFT_MSG_DELCHAIN);
-+	if (IS_ERR(trans))
-+		return PTR_ERR(trans);
- 
- 	ctx->table->use--;
- 	nft_deactivate_next(ctx->net, ctx->chain);
- 
--	return err;
-+	return 0;
- }
- 
- static void nft_rule_expr_activate(const struct nft_ctx *ctx,
-@@ -1615,6 +1615,7 @@ static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 genmask,
- 	struct nft_base_chain *basechain;
- 	struct nft_stats __percpu *stats;
- 	struct net *net = ctx->net;
-+	struct nft_trans *trans;
- 	struct nft_chain *chain;
- 	struct nft_rule **rules;
- 	int err;
-@@ -1662,7 +1663,7 @@ static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 genmask,
- 		ops->dev	= hook.dev;
- 
- 		chain->flags |= NFT_BASE_CHAIN;
--		basechain->policy = policy;
-+		basechain->policy = NF_ACCEPT;
- 	} else {
- 		chain = kzalloc(sizeof(*chain), GFP_KERNEL);
- 		if (chain == NULL)
-@@ -1698,13 +1699,18 @@ static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 genmask,
- 	if (err)
- 		goto err2;
- 
--	err = nft_trans_chain_add(ctx, NFT_MSG_NEWCHAIN);
--	if (err < 0) {
-+	trans = nft_trans_chain_add(ctx, NFT_MSG_NEWCHAIN);
-+	if (IS_ERR(trans)) {
-+		err = PTR_ERR(trans);
- 		rhltable_remove(&table->chains_ht, &chain->rhlhead,
- 				nft_chain_ht_params);
- 		goto err2;
- 	}
- 
-+	nft_trans_chain_policy(trans) = -1;
-+	if (nft_is_base_chain(chain))
-+		nft_trans_chain_policy(trans) = policy;
-+
- 	table->use++;
- 	list_add_tail_rcu(&chain->list, &table->chains);
- 
-@@ -6311,6 +6317,27 @@ static int nf_tables_validate(struct net *net)
- 	return 0;
- }
- 
-+/* a drop policy has to be deferred until all rules have been activated,
-+ * otherwise a large ruleset that contains a drop-policy base chain will
-+ * cause all packets to get dropped until the full transaction has been
-+ * processed.
-+ *
-+ * We defer the drop policy until the transaction has been finalized.
-+ */
-+static void nft_chain_commit_drop_policy(struct nft_trans *trans)
-+{
-+	struct nft_base_chain *basechain;
-+
-+	if (nft_trans_chain_policy(trans) != NF_DROP)
-+		return;
-+
-+	if (!nft_is_base_chain(trans->ctx.chain))
-+		return;
-+
-+	basechain = nft_base_chain(trans->ctx.chain);
-+	basechain->policy = NF_DROP;
-+}
-+
- static void nft_chain_commit_update(struct nft_trans *trans)
- {
- 	struct nft_base_chain *basechain;
-@@ -6632,6 +6659,7 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
- 				nf_tables_chain_notify(&trans->ctx, NFT_MSG_NEWCHAIN);
- 				/* trans destroyed after rcu grace period */
- 			} else {
-+				nft_chain_commit_drop_policy(trans);
- 				nft_clear(net, trans->ctx.chain);
- 				nf_tables_chain_notify(&trans->ctx, NFT_MSG_NEWCHAIN);
- 				nft_trans_destroy(trans);
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index a66c8de006cc..92bb1e2b2425 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -966,7 +966,6 @@ enum nft_socket_keys {
+  * @NFT_CT_DST_IP: conntrack layer 3 protocol destination (IPv4 address)
+  * @NFT_CT_SRC_IP6: conntrack layer 3 protocol source (IPv6 address)
+  * @NFT_CT_DST_IP6: conntrack layer 3 protocol destination (IPv6 address)
+- * @NFT_CT_TIMEOUT: connection tracking timeout policy assigned to conntrack
+  */
+ enum nft_ct_keys {
+ 	NFT_CT_STATE,
+@@ -992,7 +991,6 @@ enum nft_ct_keys {
+ 	NFT_CT_DST_IP,
+ 	NFT_CT_SRC_IP6,
+ 	NFT_CT_DST_IP6,
+-	NFT_CT_TIMEOUT,
+ 	__NFT_CT_MAX
+ };
+ #define NFT_CT_MAX		(__NFT_CT_MAX - 1)
 -- 
 2.11.0
 
