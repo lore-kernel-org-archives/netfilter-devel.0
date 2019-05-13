@@ -5,56 +5,55 @@ X-Spam-Level:
 X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+	SPF_PASS,USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CE8D6C04AA7
-	for <netfilter-devel@archiver.kernel.org>; Mon, 13 May 2019 18:04:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B5637C04AA7
+	for <netfilter-devel@archiver.kernel.org>; Mon, 13 May 2019 18:18:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A5F5F208CA
-	for <netfilter-devel@archiver.kernel.org>; Mon, 13 May 2019 18:04:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8903D2085A
+	for <netfilter-devel@archiver.kernel.org>; Mon, 13 May 2019 18:18:09 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="gIf/diVY"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ZXGitZOP"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730414AbfEMSD6 (ORCPT
+        id S1726519AbfEMSSD (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 13 May 2019 14:03:58 -0400
-Received: from mail-pg1-f193.google.com ([209.85.215.193]:45022 "EHLO
-        mail-pg1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730110AbfEMSD6 (ORCPT
+        Mon, 13 May 2019 14:18:03 -0400
+Received: from mail-pf1-f194.google.com ([209.85.210.194]:40756 "EHLO
+        mail-pf1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726238AbfEMSSC (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 13 May 2019 14:03:58 -0400
-Received: by mail-pg1-f193.google.com with SMTP id z16so7142760pgv.11;
-        Mon, 13 May 2019 11:03:58 -0700 (PDT)
+        Mon, 13 May 2019 14:18:02 -0400
+Received: by mail-pf1-f194.google.com with SMTP id u17so7619522pfn.7;
+        Mon, 13 May 2019 11:18:02 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id;
-        bh=ntNFmfAba/mtS6B9QOAxkZnKC/SuijUpSJOLnJWUe5A=;
-        b=gIf/diVYLQfpHWD0bPwsMkLoCo/1aSXhQgBUgpK9jlngeTA1XXV5av+aM4OaFB/UWe
-         eRWGg9nFUKJp/afRbt6nwQCcMxEmkYgQFhmqHSm5Ciu+Kky2GEDIwVZmWs8O9TwP3/3K
-         Gw817R2tmS/YwyQDdqXGcMBWRW0WjAkF9/fGq44woj+ScRnsd3LPtFDKFOiqf2LQNNkE
-         tj14cqoVEv3yKvXaopgQ5hwrLCS4ejGojQX0dAT1CI8ji7WG5BdyUezJTLGuqwAJX7Kq
-         2RtRU5Lp0+yvKa5+25g6rR0qndigsOp1eQ9vIeNvG5JVRe8PUiz89iyOYrFKMgCbxfIZ
-         8trw==
+        bh=36+jOu0ht7tlgiHoNQcp7BrubpLdVyc37a54it2Dibs=;
+        b=ZXGitZOPho3Rn1Br7WqzAUhcPugupfAOS1g1jzI9C/k6MNnQupN8xXXyG+u0VPh2cA
+         GUr82NXumWYb0hK3RcK+eY9sKTgqlzeqB8ZwGIcXsYym2r2SDXO81LP+c1EmEkg6gw3s
+         +nlDb+JWMFLwvO+nGc5yzf0+1fumqZlCF6gTh6ZMeGCdD35pvbbz947hRNa1+IDnBZUa
+         RbGAlkvycYuJFjb/xxzL+SYVdgmx6aYl6nnlr1+XPQgrpXhIrWamIaPZgJvmCI6dgZk7
+         FWhbcFj9YBxMe+DfxDlXoYwj0N2bT3dbu5MkG3LDWE2QtFBPg1poreozaMIBgv3F9bMs
+         HOdQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id;
-        bh=ntNFmfAba/mtS6B9QOAxkZnKC/SuijUpSJOLnJWUe5A=;
-        b=kH1mZe6pnuUWd6x0RzTGn5y6eaBg+hBk15ecQ8N/lWFyxUAJzFJ3TG/Ii1ZZKn+pe7
-         RRDuZHk/MRYtVV6//fNLHUG0KCgqK72DSIsFKkdKjxiVRtPj9PIUj69sKxwbHybfENSG
-         /zatbhTbS6u02yV8daU1/JclRxPVPFPy9H6Yk89cboboDJjETpU8Q6EACuRTfv5zHVh+
-         5WZRd572+nKaQHDL4cx6QRxcUbhAm8vP93fhiqZu3ASFZEsJ2HtfplhB0UShWDZhXgu2
-         wtolyvaRanCnYQ6eo+mhLnVMSS1Vz2E9g3c3YBqBIZJPuysNnAIqKqoCGEbAFv7iKpYs
-         tjdg==
-X-Gm-Message-State: APjAAAW5/sUo5nCKt5dO4nXdRpvm/ED4OmygN8JyDCpRPMzg36TNtgUI
-        kxN+gkb3fC6fd9xOETljuZs79rnebBClFg==
-X-Google-Smtp-Source: APXvYqzjeQclPcaH8//c6qT10PD1AHbrExP8TVeAi7n4n7gf1ut02OR69C+9hxoCIbog8za5Wzt7nA==
-X-Received: by 2002:a65:448b:: with SMTP id l11mr32453167pgq.185.1557770637532;
-        Mon, 13 May 2019 11:03:57 -0700 (PDT)
+        bh=36+jOu0ht7tlgiHoNQcp7BrubpLdVyc37a54it2Dibs=;
+        b=bjjaVLOlKk9wB/WhIUcnJyOYUjB5ZjbgtmD/jZYgLNsQf5ov5jfASXr00Nzdjq9d10
+         sn3mtTCyGEolC4BnN24GK/CQHuK5lxTQinnrA+19GPPkpKYNG4p51Y6UQA7fj139fUjd
+         a9XRjbBxRdAr2ADIlm0+BgHSaKubg7EDs1zO79sC8zOzdxgCXbpHFJF7KE3a74dfPI0K
+         YEZz86BJh3J+IwXN4BH/6w+xU4IDLI0UqEIXlJI/YyzbocoYkVw0VwPGm5s6SIksgTVf
+         RfUXlZddY9S+pl8odevA37aDwokaKvUvOAs3e0ChfnwHxs8CdjixIblV+YkrWSosIvrx
+         OB6g==
+X-Gm-Message-State: APjAAAVGO1dk0jxTU0l1yufMNqElowwd3T3+DKxBumdMJYR77+LJuLBs
+        //zbbvQUJ+u8QnIoZETo+HB4LqHbRgb0RA==
+X-Google-Smtp-Source: APXvYqyT+RPYpysO9I0q51O/XMMsAZPo7tVSP5n8aXG0ZwVW929gbr4Muy5q7GpBDpTdubVwQnBhmQ==
+X-Received: by 2002:a63:6b06:: with SMTP id g6mr21891464pgc.346.1557771481734;
+        Mon, 13 May 2019 11:18:01 -0700 (PDT)
 Received: from localhost.localdomain ([122.179.175.43])
-        by smtp.googlemail.com with ESMTPSA id z6sm1076096pfr.135.2019.05.13.11.03.50
+        by smtp.googlemail.com with ESMTPSA id 140sm12257904pfw.123.2019.05.13.11.17.57
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 13 May 2019 11:03:56 -0700 (PDT)
+        Mon, 13 May 2019 11:18:00 -0700 (PDT)
 From:   Jagdish Motwani <j.k.motwani@gmail.com>
 To:     netdev@vger.kernel.org, Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     j.k.motwani@gmail.com,
@@ -64,21 +63,23 @@ Cc:     j.k.motwani@gmail.com,
         "David S. Miller" <davem@davemloft.net>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         linux-kernel@vger.kernel.org
-Subject: [PATCH net v2] netfilter: nf_queue:fix reinject verdict handling
-Date:   Mon, 13 May 2019 23:32:25 +0530
-Message-Id: <20190513180225.5186-1-j.k.motwani@gmail.com>
+Subject: [PATCH net v3] netfilter: nf_queue:fix reinject verdict handling
+Date:   Mon, 13 May 2019 23:47:40 +0530
+Message-Id: <20190513181740.5929-1-j.k.motwani@gmail.com>
 X-Mailer: git-send-email 2.9.5
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+From: Jagdish Motwani <jagdish.motwani@sophos.com>
+
 This patch fixes netfilter hook traversal when there are more than 1 hooks
 returning NF_QUEUE verdict. When the first queue reinjects the packet,
-'nf_reinject' starts traversing hooks with a proper hook_index. However, if it
-again receives a NF_QUEUE verdict (by some other netfilter hook), it queues the
-packet with a wrong hook_index. So, when the second queue reinjects the packet,
-it re-executes hooks in between.
+'nf_reinject' starts traversing hooks with a proper hook_index. However,
+if it again receives a NF_QUEUE verdict (by some other netfilter hook), it
+queues the packet with a wrong hook_index. So, when the second queue 
+reinjects the packet, it re-executes hooks in between.
 
 Fixes: 960632ece694 ("netfilter: convert hook list to an array")
 Signed-off-by: Jagdish Motwani <jagdish.motwani@sophos.com>
