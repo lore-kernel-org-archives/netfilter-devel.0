@@ -1,59 +1,110 @@
 Return-Path: <SRS0=MMpb=TO=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
-X-Spam-Level: *
-X-Spam-Status: No, score=1.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Level: 
+X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_NEOMUTT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F1B1DC04AB4
-	for <netfilter-devel@archiver.kernel.org>; Tue, 14 May 2019 09:46:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B3BE1C04AB4
+	for <netfilter-devel@archiver.kernel.org>; Tue, 14 May 2019 10:18:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C45582147A
-	for <netfilter-devel@archiver.kernel.org>; Tue, 14 May 2019 09:46:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 89BFA2085A
+	for <netfilter-devel@archiver.kernel.org>; Tue, 14 May 2019 10:18:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726394AbfENJqR (ORCPT
+        id S1726336AbfENKSH (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 14 May 2019 05:46:17 -0400
-Received: from ps440452.dreamhost.com ([205.196.210.232]:53590 "EHLO
-        a3.admdb.top" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726135AbfENJqR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 14 May 2019 05:46:17 -0400
-X-Greylist: delayed 9203 seconds by postgrey-1.27 at vger.kernel.org; Tue, 14 May 2019 05:46:16 EDT
-To:     netfilter-devel@vger.kernel.org
-From:   Martin Winkler <info@a3.admdb.top>
-Subject: Nachricht
-Date:   Tue, 14 May 2019 02:46:17 -0700
-Message-ID: <20190514_094617_087573.info@a3.admdb.top>
-X-Mailer: WEBMAIL
+        Tue, 14 May 2019 06:18:07 -0400
+Received: from mail.us.es ([193.147.175.20]:59152 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726211AbfENKSH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 14 May 2019 06:18:07 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id CF3FA1B694F
+        for <netfilter-devel@vger.kernel.org>; Tue, 14 May 2019 12:18:04 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id BEBBCDA717
+        for <netfilter-devel@vger.kernel.org>; Tue, 14 May 2019 12:18:04 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id B4288DA711; Tue, 14 May 2019 12:18:04 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id F26ADDA706;
+        Tue, 14 May 2019 12:18:01 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Tue, 14 May 2019 12:18:00 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (sys.soleta.eu [212.170.55.40])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id D1AFD4265A32;
+        Tue, 14 May 2019 12:18:01 +0200 (CEST)
+Date:   Tue, 14 May 2019 12:18:01 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     =?utf-8?B?6IKW55Ge54+g?= <katrina.xiaorz@gmail.com>
+Cc:     Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>, davem@davemloft.net,
+        alin.nastac@gmail.com, netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH v3] netfilter: nf_conntrack_sip: fix expectation clash
+Message-ID: <20190514101801.xregz4uqppy3lg7j@salvia>
+References: <20190321105607.dwj3wtxe32cenglo@salvia>
+ <1555317180-3074-1-git-send-email-katrina.xiaorz@gmail.com>
+ <20190513112631.zmrcyss5bqr53yo4@salvia>
+ <CAEorUYZe2mtLupMDkAOvMXZoH_NcUOKLR=K4atLC5dddHOs-MQ@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-Content-Type: text/plain; charset="utf-8"
-Mime-Version: 1.0
+In-Reply-To: <CAEorUYZe2mtLupMDkAOvMXZoH_NcUOKLR=K4atLC5dddHOs-MQ@mail.gmail.com>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Sehr geehrte Damen und Herren,
+Hi Xiao,
 
-nach unserem Besuch Ihrer Homepage möchten wir Ihnen ein Angebot von Produkten vorstellen, das Ihnen ermöglichen wird, den Verkauf Ihrer Produkte sowie Dienstleistungen deutlich zu erhöhen. 
+On Tue, May 14, 2019 at 03:45:13PM +0800, 肖瑞珠 wrote:
+> Hi Pablo,
+> 
+> Thanks very much for your reply.
+> 
+> >On Thu, May 13, 2019 at 07:26PM, Pablo Neira Ayuso <pablo@netfilter.org>
+> >wrote:
+> >
+> >I wonder if we can handle this from __nf_ct_expect_check() itself.
+> >
+> >We could just check if master mismatches, then return -EALREADY from
+> >there?
+> >
+> >Similar to 876c27314ce51, but catch the master mismatches case.
+> 
+> Thanks for your proposal. It is a neater solution.
 
-Die Datenbanken der Firmen sind in für Sie interessante und relevante Zielgruppen untergliedert. 
+OK, thanks for exploring this path and confirming this works!
 
-Die Firmenangaben beinhalten: Name der Firma, Ansprechpartner, E-mail Adresse, Tel. + Fax-Nr., PLZ, Ort, Straße etc. 
+Still one more question before we go: I wonder if we should enable
+this through flag, eg. extend nf_ct_expect_related() to take a flag
+that NFCT_EXP_F_MASTER_MISMATCH.
 
---
-1. Gesamtpaket 2019 DE 1 Mio. Firmenadressen ( 1 457 620 ) - 190 EUR ( bis zum 14.05.2019 ) 
-2. Gesamtpaket 2019 DE,AT,CH ( 1 747 921 ) - 240 EUR ( bis zum 14.05.2019 ) 
---
+This would change the behaviour for the other existing helpers, which
+would prevent them from creating expectations with the same tuple from
+different master conntracks.
 
-Die Verwendungsmöglichkeiten der Datenbanken sind praktisch unbegrenzt und Sie können durch Verwendung der von uns entwickelten 
-Programme des personalisierten Versendens von Angeboten u.ä. mittels E-mailing bzw. Fax effektive und sichere Werbekampagnen damit durchführen. 
+So I would just turn on this for SIP unless there is some reasoning
+here that turning it for all existing helpers is fine.
 
-Bitte informieren Sie sich über die weiteren Details einmal unverbindlich auf unseren Webseiten: 
+One more comment below.
 
-http://www.topdirect.net/?p=1
+> Please find the patch updated accordingly below.
 
-Mit freundlichen Grüßen
-Martin Winkler
+For some reason this patch is not showing in patchwork:
 
+https://patchwork.ozlabs.org/project/netfilter-devel/list/
+
+Would you resubmit via git send-mail?
+
+Thanks.
