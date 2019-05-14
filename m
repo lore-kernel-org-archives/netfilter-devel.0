@@ -6,41 +6,41 @@ X-Spam-Status: No, score=-6.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_NEOMUTT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BEBDDC04AB4
-	for <netfilter-devel@archiver.kernel.org>; Tue, 14 May 2019 23:03:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6BBBEC04AB4
+	for <netfilter-devel@archiver.kernel.org>; Tue, 14 May 2019 23:08:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 98D172084E
-	for <netfilter-devel@archiver.kernel.org>; Tue, 14 May 2019 23:03:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4533720879
+	for <netfilter-devel@archiver.kernel.org>; Tue, 14 May 2019 23:08:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726416AbfENXDi (ORCPT
+        id S1726622AbfENXIA (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 14 May 2019 19:03:38 -0400
-Received: from mail.us.es ([193.147.175.20]:51016 "EHLO mail.us.es"
+        Tue, 14 May 2019 19:08:00 -0400
+Received: from mail.us.es ([193.147.175.20]:52356 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726180AbfENXDh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 14 May 2019 19:03:37 -0400
+        id S1726330AbfENXH7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 14 May 2019 19:07:59 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 05A27F279E
-        for <netfilter-devel@vger.kernel.org>; Wed, 15 May 2019 01:03:35 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 0166CF279D
+        for <netfilter-devel@vger.kernel.org>; Wed, 15 May 2019 01:07:57 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id DEAC7DA781
-        for <netfilter-devel@vger.kernel.org>; Wed, 15 May 2019 01:03:34 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id E6A9DDA781
+        for <netfilter-devel@vger.kernel.org>; Wed, 15 May 2019 01:07:56 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id DC2B4DA712; Wed, 15 May 2019 01:03:34 +0200 (CEST)
+        id DAFEBDA717; Wed, 15 May 2019 01:07:56 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 52C05DA703;
-        Wed, 15 May 2019 01:03:32 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 76B67DA708;
+        Wed, 15 May 2019 01:07:54 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 15 May 2019 01:03:32 +0200 (CEST)
+ Wed, 15 May 2019 01:07:54 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from us.es (sys.soleta.eu [212.170.55.40])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
         (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 031CB4265A31;
-        Wed, 15 May 2019 01:03:32 +0200 (CEST)
-Date:   Wed, 15 May 2019 01:03:31 +0200
+        by entrada.int (Postfix) with ESMTPSA id 1C3104265A31;
+        Wed, 15 May 2019 01:07:54 +0200 (CEST)
+Date:   Wed, 15 May 2019 01:07:53 +0200
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     Jiri Pirko <jiri@resnulli.us>
@@ -59,16 +59,15 @@ Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
         Manish.Chopra@cavium.com, marcelo.leitner@gmail.com,
         mkubecek@suse.cz, venkatkumar.duvvuru@broadcom.com,
         julia.lawall@lip6.fr, john.fastabend@gmail.com
-Subject: Re: [PATCH net-next,RFC 2/2] netfilter: nf_tables: add hardware
- offload support
-Message-ID: <20190514230331.trlmwnfa2rcs7hjt@salvia>
+Subject: Re: [PATCH net-next,RFC 1/2] net: flow_offload: add flow_block_cb API
+Message-ID: <20190514230753.mb7iu4pbswrb4be7@salvia>
 References: <20190509163954.13703-1-pablo@netfilter.org>
- <20190509163954.13703-3-pablo@netfilter.org>
- <20190514170108.GC2584@nanopsycho>
+ <20190509163954.13703-2-pablo@netfilter.org>
+ <20190514145719.GE2238@nanopsycho>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20190514170108.GC2584@nanopsycho>
+In-Reply-To: <20190514145719.GE2238@nanopsycho>
 User-Agent: NeoMutt/20170113 (1.7.2)
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -76,60 +75,58 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, May 14, 2019 at 07:01:08PM +0200, Jiri Pirko wrote:
-> Thu, May 09, 2019 at 06:39:51PM CEST, pablo@netfilter.org wrote:
-> >This patch adds hardware offload support for nftables through the
-> >existing netdev_ops->ndo_setup_tc() interface, the TC_SETUP_CLSFLOWER
-> >classifier and the flow rule API. This hardware offload support is
-> >available for the NFPROTO_NETDEV family and the ingress hook.
+On Tue, May 14, 2019 at 04:57:19PM +0200, Jiri Pirko wrote:
+> Thu, May 09, 2019 at 06:39:50PM CEST, pablo@netfilter.org wrote:
+> >This patch renames:
 > >
-> >Each nftables expression has a new ->offload interface, that is used to
-> >populate the flow rule object that is attached to the transaction
-> >object.
+> >* struct tcf_block_cb to flow_block_cb.
+> >* struct tc_block_offload to flow_block_offload.
 > >
-> >There is a new per-table NFT_TABLE_F_HW flag, that is set on to offload
-> >an entire table, including all of its chains.
-> >
-> >This patch supports for basic metadata (layer 3 and 4 protocol numbers),
-> >5-tuple payload matching and the accept/drop actions; this also includes
-> >basechain hardware offload only.
+> >And it exposes the flow_block_cb API through net/flow_offload.h. This
+> >renames the existing codebase to adapt it to this name.
 > >
 > >Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 > 
 > [...]
 > 
-> >+static int nft_flow_offload_chain(struct nft_trans *trans,
-> >+				  enum flow_block_command cmd)
+> 	
+> >+
+> >+void *flow_block_cb_priv(struct flow_block_cb *block_cb)
 > >+{
-> >+	struct nft_chain *chain = trans->ctx.chain;
-> >+	struct netlink_ext_ack extack = {};
-> >+	struct flow_block_offload bo = {};
-> >+	struct nft_base_chain *basechain;
-> >+	struct net_device *dev;
-> >+	int err;
+> >+	return block_cb->cb_priv;
+> >+}
+> >+EXPORT_SYMBOL(flow_block_cb_priv);
 > >+
-> >+	if (!nft_is_base_chain(chain))
-> >+		return -EOPNOTSUPP;
-> >+
-> >+	basechain = nft_base_chain(chain);
-> >+	dev = basechain->ops.dev;
-> >+	if (!dev)
-> >+		return -EOPNOTSUPP;
-> >+
-> >+	bo.command = cmd;
-> >+	bo.binder_type = TCF_BLOCK_BINDER_TYPE_CLSACT_INGRESS;
-> >+	bo.block_index = (u32)trans->ctx.chain->handle;
-> >+	bo.extack = &extack;
-> >+	INIT_LIST_HEAD(&bo.cb_list);
-> >+
-> >+	err = dev->netdev_ops->ndo_setup_tc(dev, TC_SETUP_BLOCK, &bo);
+> >+LIST_HEAD(flow_block_cb_list);
+> >+EXPORT_SYMBOL(flow_block_cb_list);
 > 
-> Okay, so you pretend to be clsact-ingress-flower. That looks fine.
-> But how do you ensure that the real one does not bind a block on the
-> same device too?
+> I don't understand, why is this exported?
 
-I could store the interface index in the block_cb object, then use the
-tuple [ cb, cb_ident, ifindex ] to check if the block is already bound
-by when flow_block_cb_alloc() is called.
+Will stop exposing this in the next patchset version.
+
+> >+
+> >+struct flow_block_cb *flow_block_cb_lookup(u32 block_index, tc_setup_cb_t *cb,
+> >+					   void *cb_ident)
+> 
+> 2 namespaces may have the same block_index, yet it is completely
+> unrelated block. The cb_ident
+
+Yes, a struct netns parameter here for flow_block_cb_lookup() is
+needed. I will also add a possible_net_t field to store this in the
+flow_block_cb object so we can just stay with one single list for all
+net namespaces by now.
 
 Thanks.
+
+> >+{	struct flow_block_cb *block_cb;
+> >+
+> >+	list_for_each_entry(block_cb, &flow_block_cb_list, list)
+> >+		if (block_cb->block_index == block_index &&
+> >+		    block_cb->cb == cb &&
+> >+		    block_cb->cb_ident == cb_ident)
+> >+			return block_cb;
+> >+	return NULL;
+> >+}
+> >+EXPORT_SYMBOL(flow_block_cb_lookup);
+> 
+> [...]
