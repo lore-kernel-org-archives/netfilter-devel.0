@@ -2,136 +2,280 @@ Return-Path: <SRS0=MMpb=TO=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.5 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_MUTT autolearn=unavailable autolearn_force=no
+X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BC66DC04AB7
-	for <netfilter-devel@archiver.kernel.org>; Tue, 14 May 2019 14:57:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 064CFC04AB4
+	for <netfilter-devel@archiver.kernel.org>; Tue, 14 May 2019 15:25:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8E4102084E
-	for <netfilter-devel@archiver.kernel.org>; Tue, 14 May 2019 14:57:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C098520644
+	for <netfilter-devel@archiver.kernel.org>; Tue, 14 May 2019 15:25:51 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=resnulli-us.20150623.gappssmtp.com header.i=@resnulli-us.20150623.gappssmtp.com header.b="ep9j6gGE"
+	dkim=pass (1024-bit key) header.d=riseup.net header.i=@riseup.net header.b="nNkSbh3x"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726325AbfENO5W (ORCPT
+        id S1726261AbfENPZv (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 14 May 2019 10:57:22 -0400
-Received: from mail-wr1-f67.google.com ([209.85.221.67]:35202 "EHLO
-        mail-wr1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726013AbfENO5W (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 14 May 2019 10:57:22 -0400
-Received: by mail-wr1-f67.google.com with SMTP id w12so19615554wrp.2
-        for <netfilter-devel@vger.kernel.org>; Tue, 14 May 2019 07:57:21 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=resnulli-us.20150623.gappssmtp.com; s=20150623;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to:user-agent;
-        bh=G7His5KcVqi9kclJutiM1FAAK2hRmQuy58jfnCXc4K4=;
-        b=ep9j6gGEFfyteSBR+XYYyYtFle7zv+d93YY5K3kRvnvMlGhmotlnKETMYAXvJuPHrS
-         IQQMQId1okgrCeB+9Ztg9ERLhuWlnBxJlBhdK/w+evfGXZtammEMKLixEg/fpL5VhFYs
-         D75Yei3XPzZRbs0g9fYkcqRngSoDJ2CmXS/+L3u+v6lyUJejR+38sNoGS0hr6U9jLKeu
-         AnJMULKF6K12vnGqH1mgy9EvJTYEHHDm+9U9Mf+p/uro+uyXyyEhcdkL4jU/LN7X0RNV
-         weFxf4FeqNxzj50Cgg5Bh1rotSRaHNeY56NEOlEv2+VQGkc/z1jgSFe9Vz6XJYj78R39
-         NVpw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to:user-agent;
-        bh=G7His5KcVqi9kclJutiM1FAAK2hRmQuy58jfnCXc4K4=;
-        b=Rz01DiHJjLVUmm9S5Lje4N2HI7L6u2oy808FpQ5XO7uT3dW+TVCnq+OWRrY9+wpJXn
-         Ny5udxiUR1a8d8LD2z4zLSyvv/MwUdN6HNSBuu2ZMKGumfDjwWSKjpGVZfX+YjqMgDpD
-         VlQ5nIoskT557UY+jEEqmtEwNM0gIHzeC+fbzB0YHwC6gW5JmTwL2G/WWYOX7EkTFFip
-         J8+AKfoBK4k0Qx94l0cvRNgcy2QX91DSswWCtm9BiN5c4HyW2d5nFf6CnizRRenBtU/L
-         u8jTIgIBSRFvjq595c9MZNi3ae4DfAx5uyMKQXVsqALz1mJDvjFu6Y8by76JiV98wJ/V
-         b68g==
-X-Gm-Message-State: APjAAAVUOazL44nrDOfKnrBYCYYyurmqTa/4ocIzfbtN+JQBUPy1Y8Wt
-        JMAr2EmSh2mcBdjO50v4paHu9AEtJnk=
-X-Google-Smtp-Source: APXvYqxxEnhyLRJB/npVQgobjuw2ph6/BCHfLX2eTq6ePsh1GtYHQYm598iVM23FYSHcQ85gReFj+A==
-X-Received: by 2002:adf:edce:: with SMTP id v14mr18965373wro.94.1557845840705;
-        Tue, 14 May 2019 07:57:20 -0700 (PDT)
-Received: from localhost (ip-89-177-139-111.net.upcbroadband.cz. [89.177.139.111])
-        by smtp.gmail.com with ESMTPSA id d72sm1546097wmd.12.2019.05.14.07.57.20
-        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Tue, 14 May 2019 07:57:20 -0700 (PDT)
-Date:   Tue, 14 May 2019 16:57:19 +0200
-From:   Jiri Pirko <jiri@resnulli.us>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org, thomas.lendacky@amd.com,
-        f.fainelli@gmail.com, ariel.elior@cavium.com,
-        michael.chan@broadcom.com, santosh@chelsio.com,
-        madalin.bucur@nxp.com, yisen.zhuang@huawei.com,
-        salil.mehta@huawei.com, jeffrey.t.kirsher@intel.com,
-        tariqt@mellanox.com, saeedm@mellanox.com, jiri@mellanox.com,
-        idosch@mellanox.com, jakub.kicinski@netronome.com,
-        peppe.cavallaro@st.com, grygorii.strashko@ti.com, andrew@lunn.ch,
-        vivien.didelot@savoirfairelinux.com, alexandre.torgue@st.com,
-        joabreu@synopsys.com, linux-net-drivers@solarflare.com,
-        ganeshgr@chelsio.com, ogerlitz@mellanox.com,
-        Manish.Chopra@cavium.com, marcelo.leitner@gmail.com,
-        mkubecek@suse.cz, venkatkumar.duvvuru@broadcom.com,
-        julia.lawall@lip6.fr, john.fastabend@gmail.com
-Subject: Re: [PATCH net-next,RFC 1/2] net: flow_offload: add flow_block_cb API
-Message-ID: <20190514145719.GE2238@nanopsycho>
-References: <20190509163954.13703-1-pablo@netfilter.org>
- <20190509163954.13703-2-pablo@netfilter.org>
+        Tue, 14 May 2019 11:25:51 -0400
+Received: from mx1.riseup.net ([198.252.153.129]:39198 "EHLO mx1.riseup.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726179AbfENPZv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 14 May 2019 11:25:51 -0400
+Received: from bell.riseup.net (bell-pn.riseup.net [10.0.1.178])
+        (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+        (Client CN "*.riseup.net", Issuer "COMODO RSA Domain Validation Secure Server CA" (verified OK))
+        by mx1.riseup.net (Postfix) with ESMTPS id 164861A3E6E
+        for <netfilter-devel@vger.kernel.org>; Tue, 14 May 2019 08:25:50 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=riseup.net; s=squak;
+        t=1557847550; bh=fKfqWv+Em+cvSf/e8aOlkiHckngG/GfeH9t7ZM0ptDk=;
+        h=From:To:Cc:Subject:Date:From;
+        b=nNkSbh3x5sHfm5m1YqzbXFBX6vurqfMyNtNizSs51VEGE9jMEIKdqElqVwGRT45Z1
+         jNeFYFdN2xRh3Mo1GuHh3J0WsuxMUVs39b+CIOz96Ok9yKygRiYlVXb0O2VrGJsi7n
+         0qnYEStkhYmg1+zT6zUDxGJjPfAdtKagyT60mN3o=
+X-Riseup-User-ID: 42D97B5A6462516B020794EC69F64E9EA27149E9AED019AAF2FE8295E0D68632
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+         by bell.riseup.net (Postfix) with ESMTPSA id 48F37221BBC;
+        Tue, 14 May 2019 08:25:49 -0700 (PDT)
+From:   Fernando Fernandez Mancera <ffmancera@riseup.net>
+To:     netfilter-devel@vger.kernel.org
+Cc:     Fernando Fernandez Mancera <ffmancera@riseup.net>
+Subject: [PATCH 1/2 nft WIP v2] jump: Introduce chain_expr in jump statements
+Date:   Tue, 14 May 2019 17:25:41 +0200
+Message-Id: <20190514152542.23406-1-ffmancera@riseup.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190509163954.13703-2-pablo@netfilter.org>
-User-Agent: Mutt/1.11.3 (2019-02-01)
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Thu, May 09, 2019 at 06:39:50PM CEST, pablo@netfilter.org wrote:
->This patch renames:
->
->* struct tcf_block_cb to flow_block_cb.
->* struct tc_block_offload to flow_block_offload.
->
->And it exposes the flow_block_cb API through net/flow_offload.h. This
->renames the existing codebase to adapt it to this name.
->
->Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Now we can introduce expressions as a chain in jump and goto statements. This
+is going to be used to support variables as a chain in the following patches.
 
-[...]
+Signed-off-by: Fernando Fernandez Mancera <ffmancera@riseup.net>
+---
+ include/expression.h |  4 ++--
+ src/datatype.c       | 10 ++++++++--
+ src/evaluate.c       |  4 ++++
+ src/expression.c     | 11 ++++++-----
+ src/netlink.c        | 26 +++++++++++++++++++++-----
+ src/parser_bison.y   | 16 ++++++++++++----
+ 6 files changed, 53 insertions(+), 18 deletions(-)
 
-	
->+
->+void *flow_block_cb_priv(struct flow_block_cb *block_cb)
->+{
->+	return block_cb->cb_priv;
->+}
->+EXPORT_SYMBOL(flow_block_cb_priv);
->+
->+LIST_HEAD(flow_block_cb_list);
->+EXPORT_SYMBOL(flow_block_cb_list);
+diff --git a/include/expression.h b/include/expression.h
+index 6416ac0..ef41255 100644
+--- a/include/expression.h
++++ b/include/expression.h
+@@ -240,7 +240,7 @@ struct expr {
+ 		struct {
+ 			/* EXPR_VERDICT */
+ 			int			verdict;
+-			const char		*chain;
++			struct expr		*chain;
+ 		};
+ 		struct {
+ 			/* EXPR_VALUE */
+@@ -403,7 +403,7 @@ extern void relational_expr_pctx_update(struct proto_ctx *ctx,
+ 					const struct expr *expr);
+ 
+ extern struct expr *verdict_expr_alloc(const struct location *loc,
+-				       int verdict, const char *chain);
++				       int verdict, struct expr *chain);
+ 
+ extern struct expr *symbol_expr_alloc(const struct location *loc,
+ 				      enum symbol_types type, struct scope *scope,
+diff --git a/src/datatype.c b/src/datatype.c
+index ac9f2af..6aaf9ea 100644
+--- a/src/datatype.c
++++ b/src/datatype.c
+@@ -254,6 +254,8 @@ const struct datatype invalid_type = {
+ 
+ static void verdict_type_print(const struct expr *expr, struct output_ctx *octx)
+ {
++	char chain[NFT_CHAIN_MAXNAMELEN];
++
+ 	switch (expr->verdict) {
+ 	case NFT_CONTINUE:
+ 		nft_print(octx, "continue");
+@@ -262,10 +264,14 @@ static void verdict_type_print(const struct expr *expr, struct output_ctx *octx)
+ 		nft_print(octx, "break");
+ 		break;
+ 	case NFT_JUMP:
+-		nft_print(octx, "jump %s", expr->chain);
++		mpz_export_data(chain, expr->chain->value,
++				BYTEORDER_HOST_ENDIAN, NFT_CHAIN_MAXNAMELEN);
++		nft_print(octx, "jump %s", chain);
+ 		break;
+ 	case NFT_GOTO:
+-		nft_print(octx, "goto %s", expr->chain);
++		mpz_export_data(chain, expr->chain->value,
++				BYTEORDER_HOST_ENDIAN, NFT_CHAIN_MAXNAMELEN);
++		nft_print(octx, "goto %s", chain);
+ 		break;
+ 	case NFT_RETURN:
+ 		nft_print(octx, "return");
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 21d9e14..8394037 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -1947,6 +1947,10 @@ static int stmt_evaluate_verdict(struct eval_ctx *ctx, struct stmt *stmt)
+ 	case EXPR_VERDICT:
+ 		if (stmt->expr->verdict != NFT_CONTINUE)
+ 			stmt->flags |= STMT_F_TERMINAL;
++		if (stmt->expr->chain != NULL) {
++			if (expr_evaluate(ctx, &stmt->expr->chain) < 0)
++				return -1;
++		}
+ 		break;
+ 	case EXPR_MAP:
+ 		break;
+diff --git a/src/expression.c b/src/expression.c
+index eece12e..55a4ad7 100644
+--- a/src/expression.c
++++ b/src/expression.c
+@@ -207,17 +207,18 @@ static bool verdict_expr_cmp(const struct expr *e1, const struct expr *e2)
+ 
+ 	if ((e1->verdict == NFT_JUMP ||
+ 	     e1->verdict == NFT_GOTO) &&
+-	    strcmp(e1->chain, e2->chain))
+-		return false;
++	     (expr_basetype(e1) == expr_basetype(e2) &&
++	     !mpz_cmp(e1->value, e2->value)))
++		return true;
+ 
+-	return true;
++	return false;
+ }
+ 
+ static void verdict_expr_clone(struct expr *new, const struct expr *expr)
+ {
+ 	new->verdict = expr->verdict;
+ 	if (expr->chain != NULL)
+-		new->chain = xstrdup(expr->chain);
++		mpz_init_set(new->chain->value, expr->chain->value);
+ }
+ 
+ static void verdict_expr_destroy(struct expr *expr)
+@@ -236,7 +237,7 @@ static const struct expr_ops verdict_expr_ops = {
+ };
+ 
+ struct expr *verdict_expr_alloc(const struct location *loc,
+-				int verdict, const char *chain)
++				int verdict, struct expr *chain)
+ {
+ 	struct expr *expr;
+ 
+diff --git a/src/netlink.c b/src/netlink.c
+index c051ae6..ef12cb0 100644
+--- a/src/netlink.c
++++ b/src/netlink.c
+@@ -218,12 +218,17 @@ static void netlink_gen_constant_data(const struct expr *expr,
+ static void netlink_gen_verdict(const struct expr *expr,
+ 				struct nft_data_linearize *data)
+ {
++	char chain[NFT_CHAIN_MAXNAMELEN];
++
+ 	data->verdict = expr->verdict;
+ 
+ 	switch (expr->verdict) {
+ 	case NFT_JUMP:
+ 	case NFT_GOTO:
+-		snprintf(data->chain, NFT_CHAIN_MAXNAMELEN, "%s", expr->chain);
++		mpz_export_data(chain, expr->chain->value,
++				BYTEORDER_HOST_ENDIAN,
++				NFT_CHAIN_MAXNAMELEN);
++		snprintf(data->chain, NFT_CHAIN_MAXNAMELEN, "%s", chain);
+ 		data->chain[NFT_CHAIN_MAXNAMELEN-1] = '\0';
+ 		break;
+ 	}
+@@ -253,12 +258,15 @@ struct expr *netlink_alloc_value(const struct location *loc,
+ static struct expr *netlink_alloc_verdict(const struct location *loc,
+ 					  const struct nft_data_delinearize *nld)
+ {
+-	char *chain;
++	struct expr *chain;
+ 
+ 	switch (nld->verdict) {
+ 	case NFT_JUMP:
+ 	case NFT_GOTO:
+-		chain = xstrdup(nld->chain);
++		chain = constant_expr_alloc(loc, &string_type,
++					    BYTEORDER_HOST_ENDIAN,
++					    NFT_CHAIN_MAXNAMELEN *
++					    BITS_PER_BYTE, nld->chain);
+ 		break;
+ 	default:
+ 		chain = NULL;
+@@ -1153,14 +1161,22 @@ static void trace_print_expr(const struct nftnl_trace *nlt, unsigned int attr,
+ static void trace_print_verdict(const struct nftnl_trace *nlt,
+ 				 struct output_ctx *octx)
+ {
++	struct expr *chain_expr = NULL;
+ 	const char *chain = NULL;
+ 	unsigned int verdict;
+ 	struct expr *expr;
+ 
+ 	verdict = nftnl_trace_get_u32(nlt, NFTNL_TRACE_VERDICT);
+-	if (nftnl_trace_is_set(nlt, NFTNL_TRACE_JUMP_TARGET))
++	if (nftnl_trace_is_set(nlt, NFTNL_TRACE_JUMP_TARGET)) {
+ 		chain = xstrdup(nftnl_trace_get_str(nlt, NFTNL_TRACE_JUMP_TARGET));
+-	expr = verdict_expr_alloc(&netlink_location, verdict, chain);
++		chain_expr = constant_expr_alloc(&netlink_location,
++						 &string_type,
++						 BYTEORDER_HOST_ENDIAN,
++						 NFT_CHAIN_MAXNAMELEN
++						 * BITS_PER_BYTE,
++						 chain);
++	}
++	expr = verdict_expr_alloc(&netlink_location, verdict, chain_expr);
+ 
+ 	nft_print(octx, "verdict ");
+ 	expr_print(expr, octx);
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index 9e632c0..69b5773 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -618,8 +618,8 @@ int nft_lex(void *, void *, void *);
+ %type <stmt>			meter_stmt meter_stmt_alloc flow_stmt_legacy_alloc
+ %destructor { stmt_free($$); }	meter_stmt meter_stmt_alloc flow_stmt_legacy_alloc
+ 
+-%type <expr>			symbol_expr verdict_expr integer_expr variable_expr
+-%destructor { expr_free($$); }	symbol_expr verdict_expr integer_expr variable_expr
++%type <expr>			symbol_expr verdict_expr integer_expr variable_expr chain_expr
++%destructor { expr_free($$); }	symbol_expr verdict_expr integer_expr variable_expr chain_expr
+ %type <expr>			primary_expr shift_expr and_expr
+ %destructor { expr_free($$); }	primary_expr shift_expr and_expr
+ %type <expr>			exclusive_or_expr inclusive_or_expr
+@@ -3827,11 +3827,11 @@ verdict_expr		:	ACCEPT
+ 			{
+ 				$$ = verdict_expr_alloc(&@$, NFT_CONTINUE, NULL);
+ 			}
+-			|	JUMP			identifier
++			|	JUMP			chain_expr
+ 			{
+ 				$$ = verdict_expr_alloc(&@$, NFT_JUMP, $2);
+ 			}
+-			|	GOTO			identifier
++			|	GOTO			chain_expr
+ 			{
+ 				$$ = verdict_expr_alloc(&@$, NFT_GOTO, $2);
+ 			}
+@@ -3841,6 +3841,14 @@ verdict_expr		:	ACCEPT
+ 			}
+ 			;
+ 
++chain_expr		:	identifier
++			{
++				$$ = constant_expr_alloc(&@$, &string_type,
++							 BYTEORDER_HOST_ENDIAN,
++							 NFT_NAME_MAXLEN * BITS_PER_BYTE, $1);
++			}
++			;
++
+ meta_expr		:	META	meta_key
+ 			{
+ 				$$ = meta_expr_alloc(&@$, $2);
+-- 
+2.20.1
 
-I don't understand, why is this exported?
-
-
->+
->+struct flow_block_cb *flow_block_cb_lookup(u32 block_index, tc_setup_cb_t *cb,
->+					   void *cb_ident)
-
-2 namespaces may have the same block_index, yet it is completely
-unrelated block. The cb_ident
-
-
->+{	struct flow_block_cb *block_cb;
->+
->+	list_for_each_entry(block_cb, &flow_block_cb_list, list)
->+		if (block_cb->block_index == block_index &&
->+		    block_cb->cb == cb &&
->+		    block_cb->cb_ident == cb_ident)
->+			return block_cb;
->+	return NULL;
->+}
->+EXPORT_SYMBOL(flow_block_cb_lookup);
-
-[...]
