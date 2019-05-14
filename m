@@ -2,115 +2,150 @@ Return-Path: <SRS0=MMpb=TO=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.5 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,
+	USER_AGENT_MUTT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 74C3AC04AB4
-	for <netfilter-devel@archiver.kernel.org>; Tue, 14 May 2019 16:24:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EBFBAC04AB4
+	for <netfilter-devel@archiver.kernel.org>; Tue, 14 May 2019 17:01:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2BBCF2085A
-	for <netfilter-devel@archiver.kernel.org>; Tue, 14 May 2019 16:24:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BEC202084A
+	for <netfilter-devel@archiver.kernel.org>; Tue, 14 May 2019 17:01:13 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=riseup.net header.i=@riseup.net header.b="Qg0iXOTl"
+	dkim=pass (2048-bit key) header.d=resnulli-us.20150623.gappssmtp.com header.i=@resnulli-us.20150623.gappssmtp.com header.b="DBn77Du5"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726025AbfENQYg (ORCPT
+        id S1726338AbfENRBN (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 14 May 2019 12:24:36 -0400
-Received: from mx1.riseup.net ([198.252.153.129]:41508 "EHLO mx1.riseup.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725980AbfENQYg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 14 May 2019 12:24:36 -0400
-Received: from bell.riseup.net (bell-pn.riseup.net [10.0.1.178])
-        (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
-        (Client CN "*.riseup.net", Issuer "COMODO RSA Domain Validation Secure Server CA" (verified OK))
-        by mx1.riseup.net (Postfix) with ESMTPS id 188671A3467;
-        Tue, 14 May 2019 09:24:36 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=riseup.net; s=squak;
-        t=1557851076; bh=w/Rl8P6U72dn1/bcIlASHizcB0OownkotW7JDz+hZ0Y=;
-        h=Subject:To:References:From:Date:In-Reply-To:From;
-        b=Qg0iXOTli4j4YPERwtkc7fmoI99iD7TLLjs6FQDX4QGKwW7EF7Ekp6KFCuwYzYXNW
-         BgbwGbWYP+KCfZUtFSswMcZZD3x45WKJPM5PkKyOtWamWM3vb95UtBdQV0buJ/g63r
-         rQqkXrZcrhZR8vWmwhnMAMbMQfcYC6RVbmr+J6bc=
-X-Riseup-User-ID: 0F2C1FE95DDB47855B59929B2B9A5EF271837F3A61394392AA73E690D7E548FB
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-         by bell.riseup.net (Postfix) with ESMTPSA id 42B6F221C17;
-        Tue, 14 May 2019 09:24:35 -0700 (PDT)
-Subject: Re: [PATCH 2/2 nft WIP v2] jump: Allow jump to a variable when using
- nft input files
-To:     Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org,
-        Pablo Neira Ayuso <pablo@netfilter.org>
-References: <20190514152542.23406-1-ffmancera@riseup.net>
- <20190514152542.23406-2-ffmancera@riseup.net>
- <1772a0cf-6cd0-171f-8db0-038cd823ac9c@riseup.net>
- <20190514161719.GX4851@orbyte.nwl.cc>
-From:   Fernando Fernandez Mancera <ffmancera@riseup.net>
-Openpgp: preference=signencrypt
-Message-ID: <f39036b3-e82f-f0e7-369f-472c9935849f@riseup.net>
-Date:   Tue, 14 May 2019 18:24:48 +0200
+        Tue, 14 May 2019 13:01:13 -0400
+Received: from mail-lj1-f195.google.com ([209.85.208.195]:40293 "EHLO
+        mail-lj1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726036AbfENRBM (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 14 May 2019 13:01:12 -0400
+Received: by mail-lj1-f195.google.com with SMTP id d15so15001403ljc.7
+        for <netfilter-devel@vger.kernel.org>; Tue, 14 May 2019 10:01:11 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=resnulli-us.20150623.gappssmtp.com; s=20150623;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to:user-agent;
+        bh=M+asgOjKkxyJidGL/Vv7sfbCymMBgR+wKAqUoHiQtxQ=;
+        b=DBn77Du5EqyM2uvrG7eNPNaGA/tGHGSxA8hp3ANygkA973XM0lNus2cMRlzwlDI1Vs
+         6B5lPIMBoAobVSKlb3sHrqvhtG3QySxMFNeNZgcZ2AYY5sQn3NVdjVrH5ZvEZESxX6MU
+         bBWfK4seR2BkvMlCaRNR41y4ezetAKHIfA6LcpjpEZYIJxsrHd2ot6uMhUXdkbou8YDA
+         WvPj/8iY0LyBlF6+4e0RVUe6TX+wf/Nk3tHqaTDusW0lHQ8s1tNc1bAcRo2nkEi/YCP/
+         BKUtQh9CGohGpAQQ4Z3cRTud+07RkzCITxFuqaHf323bt1CeTqhSuAfOdBTy4AIAHW8R
+         8EGQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to:user-agent;
+        bh=M+asgOjKkxyJidGL/Vv7sfbCymMBgR+wKAqUoHiQtxQ=;
+        b=hUjWizzNJ1NkIZUAi58V04INiSLAmF3YR32k8azwZeRA4Ci+7bV/w6T/4GrqYOd6rI
+         fW3ZADaTSGpHZlRMm7M7fcJgT2yl2hTyqgv3Y1H6Bg7XTUdcwTxphugOycdtkGJLvrAi
+         8oftvS0xX69SPOiulvy+CrdIDTYr/i+Ipbgu3Fz4I2HnPwS05zLPwwqHdgUGoW1d4UPF
+         GrzB+hdw2mQiUoQyIfoDkDOhcUS0oahvo5q7RpTC8Pv03Bkr29rHWYQ324hKoqFailfm
+         M5kA7kLTgQ9yAH6Yfn48ij1YBC34AO8Ss7as+8/020gRTp32KbQyT7elmpa9RLLJvAIF
+         +ekg==
+X-Gm-Message-State: APjAAAV3DcGybOydmsn+lNfjRABqGLrw6PbXueJGCeOFDcL2WIhEbnjq
+        t2GKOHRjFNZfrDZNKwm4Zaeylg==
+X-Google-Smtp-Source: APXvYqyZO1556MZKXsal2lV5RL+zHNQ5YneIp2bnTiE535h27p9BAdsFS0cmUdvm/v9YvwPJBHwjAQ==
+X-Received: by 2002:a2e:568b:: with SMTP id k11mr17600632lje.124.1557853270761;
+        Tue, 14 May 2019 10:01:10 -0700 (PDT)
+Received: from localhost ([5.180.201.3])
+        by smtp.gmail.com with ESMTPSA id q26sm2413815lfd.54.2019.05.14.10.01.09
+        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+        Tue, 14 May 2019 10:01:10 -0700 (PDT)
+Date:   Tue, 14 May 2019 19:01:08 +0200
+From:   Jiri Pirko <jiri@resnulli.us>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org, thomas.lendacky@amd.com,
+        f.fainelli@gmail.com, ariel.elior@cavium.com,
+        michael.chan@broadcom.com, santosh@chelsio.com,
+        madalin.bucur@nxp.com, yisen.zhuang@huawei.com,
+        salil.mehta@huawei.com, jeffrey.t.kirsher@intel.com,
+        tariqt@mellanox.com, saeedm@mellanox.com, jiri@mellanox.com,
+        idosch@mellanox.com, jakub.kicinski@netronome.com,
+        peppe.cavallaro@st.com, grygorii.strashko@ti.com, andrew@lunn.ch,
+        vivien.didelot@savoirfairelinux.com, alexandre.torgue@st.com,
+        joabreu@synopsys.com, linux-net-drivers@solarflare.com,
+        ganeshgr@chelsio.com, ogerlitz@mellanox.com,
+        Manish.Chopra@cavium.com, marcelo.leitner@gmail.com,
+        mkubecek@suse.cz, venkatkumar.duvvuru@broadcom.com,
+        julia.lawall@lip6.fr, john.fastabend@gmail.com
+Subject: Re: [PATCH net-next,RFC 2/2] netfilter: nf_tables: add hardware
+ offload support
+Message-ID: <20190514170108.GC2584@nanopsycho>
+References: <20190509163954.13703-1-pablo@netfilter.org>
+ <20190509163954.13703-3-pablo@netfilter.org>
 MIME-Version: 1.0
-In-Reply-To: <20190514161719.GX4851@orbyte.nwl.cc>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US-large
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190509163954.13703-3-pablo@netfilter.org>
+User-Agent: Mutt/1.11.3 (2019-02-01)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Phil,
+Thu, May 09, 2019 at 06:39:51PM CEST, pablo@netfilter.org wrote:
+>This patch adds hardware offload support for nftables through the
+>existing netdev_ops->ndo_setup_tc() interface, the TC_SETUP_CLSFLOWER
+>classifier and the flow rule API. This hardware offload support is
+>available for the NFPROTO_NETDEV family and the ingress hook.
+>
+>Each nftables expression has a new ->offload interface, that is used to
+>populate the flow rule object that is attached to the transaction
+>object.
+>
+>There is a new per-table NFT_TABLE_F_HW flag, that is set on to offload
+>an entire table, including all of its chains.
+>
+>This patch supports for basic metadata (layer 3 and 4 protocol numbers),
+>5-tuple payload matching and the accept/drop actions; this also includes
+>basechain hardware offload only.
+>
+>Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
-On 5/14/19 6:17 PM, Phil Sutter wrote:
-> Hi Fernando,
-> 
-> On Tue, May 14, 2019 at 05:43:39PM +0200, Fernando Fernandez Mancera wrote:
->> This last patch does not work. The first one works fine with a string as
->> chain name.
->>
-> [...]
->> [...]
->> This error comes from symbol_parse() at expr_evaluate_symbol() after the
->> expr_evaluate() call added in the first patch.
-> 
-> Yes, symbol_expr is used only for symbolic constants, therefore
-> symbol_parse() is very restrictive.
-> 
-> [...]>>> diff --git a/src/parser_bison.y b/src/parser_bison.y
->>> index 69b5773..42fd71f 100644
->>> --- a/src/parser_bison.y
->>> +++ b/src/parser_bison.y
->>> @@ -3841,7 +3841,13 @@ verdict_expr		:	ACCEPT
->>>  			}
->>>  			;
->>>  
->>> -chain_expr		:	identifier
->>> +chain_expr		:	variable_expr
->>> +			{
->>> +				$$ = symbol_expr_alloc(&@$, SYMBOL_VALUE,
->>> +						       current_scope(state),
->>> +						       $1->sym->identifier);
->>> +			}
-> 
-> I didn't test it, but you can probably just drop the curly braces and
-> everything inside here. 'variable_expr' already turns into an
-> expression (a variable_expr, not symbol_expr), which is probably what
-> you want.
-> 
+[...]
 
-I tried that first and I got the same error. I have tried it again.. and
-I am getting the same error.
+>+static int nft_flow_offload_chain(struct nft_trans *trans,
+>+				  enum flow_block_command cmd)
+>+{
+>+	struct nft_chain *chain = trans->ctx.chain;
+>+	struct netlink_ext_ack extack = {};
+>+	struct flow_block_offload bo = {};
+>+	struct nft_base_chain *basechain;
+>+	struct net_device *dev;
+>+	int err;
+>+
+>+	if (!nft_is_base_chain(chain))
+>+		return -EOPNOTSUPP;
+>+
+>+	basechain = nft_base_chain(chain);
+>+	dev = basechain->ops.dev;
+>+	if (!dev)
+>+		return -EOPNOTSUPP;
+>+
+>+	bo.command = cmd;
+>+	bo.binder_type = TCF_BLOCK_BINDER_TYPE_CLSACT_INGRESS;
+>+	bo.block_index = (u32)trans->ctx.chain->handle;
+>+	bo.extack = &extack;
+>+	INIT_LIST_HEAD(&bo.cb_list);
+>+
+>+	err = dev->netdev_ops->ndo_setup_tc(dev, TC_SETUP_BLOCK, &bo);
 
-file.nft:1:15-17: Error: Can't parse symbolic netfilter verdict expressions
-define dest = ber
-              ^^^
+Okay, so you pretend to be clsact-ingress-flower. That looks fine.
+But how do you ensure that the real one does not bind a block on the
+same device too?
 
-Thanks! :-)
->>> +			|	identifier
->>>  			{
->>>  				$$ = constant_expr_alloc(&@$, &string_type,
->>>  							 BYTEORDER_HOST_ENDIAN,
->>>
->>
-> 
-> Cheers, Phil
-> 
+
+>+	if (err < 0)
+>+		return err;
+>+
+>+	list_splice(&bo.cb_list, &basechain->cb_list);
+>+	return 0;
+>+}
+>+
+
+[...]
