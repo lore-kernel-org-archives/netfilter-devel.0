@@ -2,109 +2,84 @@ Return-Path: <SRS0=MMpb=TO=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_NEOMUTT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_MUTT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B3BE1C04AB4
-	for <netfilter-devel@archiver.kernel.org>; Tue, 14 May 2019 10:18:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E19BC04AB4
+	for <netfilter-devel@archiver.kernel.org>; Tue, 14 May 2019 11:45:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 89BFA2085A
-	for <netfilter-devel@archiver.kernel.org>; Tue, 14 May 2019 10:18:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5755E20818
+	for <netfilter-devel@archiver.kernel.org>; Tue, 14 May 2019 11:45:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726336AbfENKSH (ORCPT
+        id S1726296AbfENLpG (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 14 May 2019 06:18:07 -0400
-Received: from mail.us.es ([193.147.175.20]:59152 "EHLO mail.us.es"
+        Tue, 14 May 2019 07:45:06 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:48012 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726211AbfENKSH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 14 May 2019 06:18:07 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id CF3FA1B694F
-        for <netfilter-devel@vger.kernel.org>; Tue, 14 May 2019 12:18:04 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id BEBBCDA717
-        for <netfilter-devel@vger.kernel.org>; Tue, 14 May 2019 12:18:04 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id B4288DA711; Tue, 14 May 2019 12:18:04 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id F26ADDA706;
-        Tue, 14 May 2019 12:18:01 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 14 May 2019 12:18:00 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (sys.soleta.eu [212.170.55.40])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id D1AFD4265A32;
-        Tue, 14 May 2019 12:18:01 +0200 (CEST)
-Date:   Tue, 14 May 2019 12:18:01 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     =?utf-8?B?6IKW55Ge54+g?= <katrina.xiaorz@gmail.com>
-Cc:     Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>, davem@davemloft.net,
-        alin.nastac@gmail.com, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH v3] netfilter: nf_conntrack_sip: fix expectation clash
-Message-ID: <20190514101801.xregz4uqppy3lg7j@salvia>
-References: <20190321105607.dwj3wtxe32cenglo@salvia>
- <1555317180-3074-1-git-send-email-katrina.xiaorz@gmail.com>
- <20190513112631.zmrcyss5bqr53yo4@salvia>
- <CAEorUYZe2mtLupMDkAOvMXZoH_NcUOKLR=K4atLC5dddHOs-MQ@mail.gmail.com>
+        id S1725893AbfENLpG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 14 May 2019 07:45:06 -0400
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.91)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1hQVrj-0007KG-Kc; Tue, 14 May 2019 13:45:03 +0200
+Date:   Tue, 14 May 2019 13:45:03 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+Subject: Re: [iptables PATCH] xtables: Fix typo in nft_rebuild_cache()
+Message-ID: <20190514114503.GV4851@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Florian Westphal <fw@strlen.de>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+References: <20190514085133.32674-1-phil@nwl.cc>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAEorUYZe2mtLupMDkAOvMXZoH_NcUOKLR=K4atLC5dddHOs-MQ@mail.gmail.com>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+In-Reply-To: <20190514085133.32674-1-phil@nwl.cc>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Xiao,
+Hi,
 
-On Tue, May 14, 2019 at 03:45:13PM +0800, 肖瑞珠 wrote:
-> Hi Pablo,
+On Tue, May 14, 2019 at 10:51:33AM +0200, Phil Sutter wrote:
+> Conditional cache flush logic was inverted.
 > 
-> Thanks very much for your reply.
+> Fixes: 862818ac3a0de ("xtables: add and use nft_build_cache")
+> Signed-off-by: Phil Sutter <phil@nwl.cc>
+> ---
+>  iptables/nft.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> >On Thu, May 13, 2019 at 07:26PM, Pablo Neira Ayuso <pablo@netfilter.org>
-> >wrote:
-> >
-> >I wonder if we can handle this from __nf_ct_expect_check() itself.
-> >
-> >We could just check if master mismatches, then return -EALREADY from
-> >there?
-> >
-> >Similar to 876c27314ce51, but catch the master mismatches case.
-> 
-> Thanks for your proposal. It is a neater solution.
+> diff --git a/iptables/nft.c b/iptables/nft.c
+> index 6354b7e8e72fe..83e0d9a69b37c 100644
+> --- a/iptables/nft.c
+> +++ b/iptables/nft.c
+> @@ -1541,7 +1541,7 @@ void nft_build_cache(struct nft_handle *h)
+>  
+>  void nft_rebuild_cache(struct nft_handle *h)
+>  {
+> -	if (!h->have_cache)
+> +	if (h->have_cache)
+>  		flush_chain_cache(h, NULL);
+>  
+>  	__nft_build_cache(h);
 
-OK, thanks for exploring this path and confirming this works!
+So with this change I broke your transaction reload logic. The problem
+is that data in h->obj_list potentially sits in cache, too. At least
+rules have to be there so insert with index works correctly. If the
+cache is flushed before regenerating the batch, use-after-free occurs
+which crashes the program.
 
-Still one more question before we go: I wonder if we should enable
-this through flag, eg. extend nf_ct_expect_related() to take a flag
-that NFCT_EXP_F_MASTER_MISMATCH.
+We need to either keep the old cache around or keep locally generated
+entries when flushing (which might require more intelligent cache
+update, too).
 
-This would change the behaviour for the other existing helpers, which
-would prevent them from creating expectations with the same tuple from
-different master conntracks.
+I also have a fix for your testcase, will submit that in a minute as
+well.
 
-So I would just turn on this for SIP unless there is some reasoning
-here that turning it for all existing helpers is fine.
-
-One more comment below.
-
-> Please find the patch updated accordingly below.
-
-For some reason this patch is not showing in patchwork:
-
-https://patchwork.ozlabs.org/project/netfilter-devel/list/
-
-Would you resubmit via git send-mail?
-
-Thanks.
+Cheers, Phil
