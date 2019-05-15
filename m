@@ -2,68 +2,66 @@ Return-Path: <SRS0=H0Uh=TP=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_NEOMUTT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_NEOMUTT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A669C04E53
-	for <netfilter-devel@archiver.kernel.org>; Wed, 15 May 2019 13:24:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 93059C04E53
+	for <netfilter-devel@archiver.kernel.org>; Wed, 15 May 2019 15:11:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E9EB720843
-	for <netfilter-devel@archiver.kernel.org>; Wed, 15 May 2019 13:24:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 65DD42084E
+	for <netfilter-devel@archiver.kernel.org>; Wed, 15 May 2019 15:11:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726635AbfEONYi (ORCPT
+        id S1727226AbfEOPL3 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 15 May 2019 09:24:38 -0400
-Received: from mx1.redhat.com ([209.132.183.28]:35876 "EHLO mx1.redhat.com"
+        Wed, 15 May 2019 11:11:29 -0400
+Received: from mail.us.es ([193.147.175.20]:54670 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726407AbfEONYi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 15 May 2019 09:24:38 -0400
-Received: from smtp.corp.redhat.com (int-mx07.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        id S1726754AbfEOPL2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 15 May 2019 11:11:28 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 41EDDFB44A
+        for <netfilter-devel@vger.kernel.org>; Wed, 15 May 2019 17:11:26 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 335B5DA705
+        for <netfilter-devel@vger.kernel.org>; Wed, 15 May 2019 17:11:26 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 28E29DA702; Wed, 15 May 2019 17:11:26 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 35B41DA705;
+        Wed, 15 May 2019 17:11:24 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Wed, 15 May 2019 17:11:24 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (sys.soleta.eu [212.170.55.40])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mx1.redhat.com (Postfix) with ESMTPS id 48AED30A01B0;
-        Wed, 15 May 2019 13:24:38 +0000 (UTC)
-Received: from egarver.localdomain (ovpn-123-218.rdu2.redhat.com [10.10.123.218])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id 998DC1001E61;
-        Wed, 15 May 2019 13:24:37 +0000 (UTC)
-Date:   Wed, 15 May 2019 09:24:36 -0400
-From:   Eric Garver <eric@garver.life>
-To:     netfilter-devel@vger.kernel.org
-Cc:     Phil Sutter <phil@nwl.cc>
-Subject: Re: [PATCH nft v2] evaluate: force full cache update on rule index
- translation
-Message-ID: <20190515132436.xpndwgt5qtruzxsm@egarver.localdomain>
-Mail-Followup-To: Eric Garver <eric@garver.life>,
-        netfilter-devel@vger.kernel.org, Phil Sutter <phil@nwl.cc>
-References: <20190506184038.17675-1-eric@garver.life>
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 0AFF84265A31;
+        Wed, 15 May 2019 17:11:24 +0200 (CEST)
+Date:   Wed, 15 May 2019 17:11:23 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Phil Sutter <phil@nwl.cc>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [iptables PATCH] xtables: Don't leak iter in error path of
+ __nft_chain_zero_counters()
+Message-ID: <20190515151123.wivk7unk2pts2ltf@salvia>
+References: <20190513171224.18222-1-phil@nwl.cc>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20190506184038.17675-1-eric@garver.life>
-User-Agent: NeoMutt/20180716
-X-Scanned-By: MIMEDefang 2.84 on 10.5.11.22
-X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.5.16 (mx1.redhat.com [10.5.110.43]); Wed, 15 May 2019 13:24:38 +0000 (UTC)
+In-Reply-To: <20190513171224.18222-1-phil@nwl.cc>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Pablo,
+On Mon, May 13, 2019 at 07:12:24PM +0200, Phil Sutter wrote:
+> If batch_rule_add() fails, this function leaked the rule iterator
+> object.
 
-On Mon, May 06, 2019 at 02:40:38PM -0400, Eric Garver wrote:
-> If we've done a partial fetch of the cache and the genid is the same the
-> cache update will be skipped without fetching the rules. This causes the
-> index to handle lookup to fail. To remedy the situation we flush the
-> cache and force a full update.
-> 
-> Fixes: 816d8c7659c1 ("Support 'add/insert rule index <IDX>'")
-> Signed-off-by: Eric Garver <eric@garver.life>
-[..]
-
-Please drop this patch. After discussing with Phil we should fix cache
-issues like this generically by considering the cache "cmd". I have a
-patch mostly ready - I'll try to post it today.
-
-Thanks.
-Eric.
+Applied, thanks Phil.
