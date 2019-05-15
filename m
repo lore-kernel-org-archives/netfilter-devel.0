@@ -3,160 +3,195 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_NEOMUTT
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 76858C04E87
-	for <netfilter-devel@archiver.kernel.org>; Wed, 15 May 2019 09:13:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 64841C04E87
+	for <netfilter-devel@archiver.kernel.org>; Wed, 15 May 2019 09:36:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 531432084A
-	for <netfilter-devel@archiver.kernel.org>; Wed, 15 May 2019 09:13:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 40E5421473
+	for <netfilter-devel@archiver.kernel.org>; Wed, 15 May 2019 09:36:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726124AbfEOJNn (ORCPT
+        id S1726441AbfEOJgr (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 15 May 2019 05:13:43 -0400
-Received: from mail.us.es ([193.147.175.20]:56096 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725933AbfEOJNm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 15 May 2019 05:13:42 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 7058B1031B3
-        for <netfilter-devel@vger.kernel.org>; Wed, 15 May 2019 11:13:37 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 59E97DA7EF
-        for <netfilter-devel@vger.kernel.org>; Wed, 15 May 2019 11:13:37 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id CFF50DA579; Wed, 15 May 2019 11:13:29 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id EE0E1DA708;
-        Wed, 15 May 2019 11:13:26 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 15 May 2019 11:13:26 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (sys.soleta.eu [212.170.55.40])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 8F52E4265A31;
-        Wed, 15 May 2019 11:13:26 +0200 (CEST)
-Date:   Wed, 15 May 2019 11:13:26 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Jiri Pirko <jiri@resnulli.us>
-Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org, thomas.lendacky@amd.com,
-        f.fainelli@gmail.com, ariel.elior@cavium.com,
-        michael.chan@broadcom.com, santosh@chelsio.com,
-        madalin.bucur@nxp.com, yisen.zhuang@huawei.com,
-        salil.mehta@huawei.com, jeffrey.t.kirsher@intel.com,
-        tariqt@mellanox.com, saeedm@mellanox.com, jiri@mellanox.com,
-        idosch@mellanox.com, jakub.kicinski@netronome.com,
-        peppe.cavallaro@st.com, grygorii.strashko@ti.com, andrew@lunn.ch,
-        vivien.didelot@savoirfairelinux.com, alexandre.torgue@st.com,
-        joabreu@synopsys.com, linux-net-drivers@solarflare.com,
-        ganeshgr@chelsio.com, ogerlitz@mellanox.com,
-        Manish.Chopra@cavium.com, marcelo.leitner@gmail.com,
-        mkubecek@suse.cz, venkatkumar.duvvuru@broadcom.com,
-        julia.lawall@lip6.fr, john.fastabend@gmail.com
-Subject: Re: [PATCH net-next,RFC 2/2] netfilter: nf_tables: add hardware
- offload support
-Message-ID: <20190515091326.x5m6433gyznsgd45@salvia>
-References: <20190509163954.13703-1-pablo@netfilter.org>
- <20190509163954.13703-3-pablo@netfilter.org>
- <20190514170108.GC2584@nanopsycho>
- <20190514230331.trlmwnfa2rcs7hjt@salvia>
+        Wed, 15 May 2019 05:36:47 -0400
+Received: from szxga05-in.huawei.com ([45.249.212.191]:8197 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1725977AbfEOJgq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 15 May 2019 05:36:46 -0400
+Received: from DGGEMS404-HUB.china.huawei.com (unknown [172.30.72.59])
+        by Forcepoint Email with ESMTP id 16B02876CAAD1739BACF;
+        Wed, 15 May 2019 17:36:44 +0800 (CST)
+Received: from localhost (10.177.31.96) by DGGEMS404-HUB.china.huawei.com
+ (10.3.19.204) with Microsoft SMTP Server id 14.3.439.0; Wed, 15 May 2019
+ 17:36:34 +0800
+From:   YueHaibing <yuehaibing@huawei.com>
+To:     <davem@davemloft.net>, <wensong@linux-vs.org>,
+        <horms@verge.net.au>, <ja@ssi.bg>, <pablo@netfilter.org>,
+        <kadlec@blackhole.kfki.hu>, <fw@strlen.de>
+CC:     <linux-kernel@vger.kernel.org>, <netdev@vger.kernel.org>,
+        <lvs-devel@vger.kernel.org>, <netfilter-devel@vger.kernel.org>,
+        <coreteam@netfilter.org>, YueHaibing <yuehaibing@huawei.com>
+Subject: [PATCH] ipvs: Fix use-after-free in ip_vs_in
+Date:   Wed, 15 May 2019 17:36:14 +0800
+Message-ID: <20190515093614.21176-1-yuehaibing@huawei.com>
+X-Mailer: git-send-email 2.10.2.windows.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190514230331.trlmwnfa2rcs7hjt@salvia>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Type: text/plain
+X-Originating-IP: [10.177.31.96]
+X-CFilter-Loop: Reflected
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, May 15, 2019 at 01:03:31AM +0200, Pablo Neira Ayuso wrote:
-> On Tue, May 14, 2019 at 07:01:08PM +0200, Jiri Pirko wrote:
-> > Thu, May 09, 2019 at 06:39:51PM CEST, pablo@netfilter.org wrote:
-> > >This patch adds hardware offload support for nftables through the
-> > >existing netdev_ops->ndo_setup_tc() interface, the TC_SETUP_CLSFLOWER
-> > >classifier and the flow rule API. This hardware offload support is
-> > >available for the NFPROTO_NETDEV family and the ingress hook.
-> > >
-> > >Each nftables expression has a new ->offload interface, that is used to
-> > >populate the flow rule object that is attached to the transaction
-> > >object.
-> > >
-> > >There is a new per-table NFT_TABLE_F_HW flag, that is set on to offload
-> > >an entire table, including all of its chains.
-> > >
-> > >This patch supports for basic metadata (layer 3 and 4 protocol numbers),
-> > >5-tuple payload matching and the accept/drop actions; this also includes
-> > >basechain hardware offload only.
-> > >
-> > >Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> > 
-> > [...]
-> > 
-> > >+static int nft_flow_offload_chain(struct nft_trans *trans,
-> > >+				  enum flow_block_command cmd)
-> > >+{
-> > >+	struct nft_chain *chain = trans->ctx.chain;
-> > >+	struct netlink_ext_ack extack = {};
-> > >+	struct flow_block_offload bo = {};
-> > >+	struct nft_base_chain *basechain;
-> > >+	struct net_device *dev;
-> > >+	int err;
-> > >+
-> > >+	if (!nft_is_base_chain(chain))
-> > >+		return -EOPNOTSUPP;
-> > >+
-> > >+	basechain = nft_base_chain(chain);
-> > >+	dev = basechain->ops.dev;
-> > >+	if (!dev)
-> > >+		return -EOPNOTSUPP;
-> > >+
-> > >+	bo.command = cmd;
-> > >+	bo.binder_type = TCF_BLOCK_BINDER_TYPE_CLSACT_INGRESS;
-> > >+	bo.block_index = (u32)trans->ctx.chain->handle;
-> > >+	bo.extack = &extack;
-> > >+	INIT_LIST_HEAD(&bo.cb_list);
-> > >+
-> > >+	err = dev->netdev_ops->ndo_setup_tc(dev, TC_SETUP_BLOCK, &bo);
-> > 
-> > Okay, so you pretend to be clsact-ingress-flower. That looks fine.
-> > But how do you ensure that the real one does not bind a block on the
-> > same device too?
-> 
-> I could store the interface index in the block_cb object, then use the
-> tuple [ cb, cb_ident, ifindex ] to check if the block is already bound
-> by when flow_block_cb_alloc() is called.
+BUG: KASAN: use-after-free in ip_vs_in.part.29+0xe8/0xd20 [ip_vs]
+Read of size 4 at addr ffff8881e9b26e2c by task sshd/5603
 
-Actually cb_ident would be sufficient. One possibility would be to
-extend flow_block_cb_alloc() to check for an existing binding.
+CPU: 0 PID: 5603 Comm: sshd Not tainted 4.19.39+ #30
+Hardware name: Red Hat KVM, BIOS 0.5.1 01/01/2011
+Call Trace:
+ dump_stack+0x71/0xab
+ print_address_description+0x6a/0x270
+ kasan_report+0x179/0x2c0
+ ? ip_vs_in.part.29+0xe8/0xd20 [ip_vs]
+ ip_vs_in.part.29+0xe8/0xd20 [ip_vs]
+ ? tcp_in_window+0xfe0/0xfe0 [nf_conntrack]
+ ? ip_vs_in_icmp+0xcc0/0xcc0 [ip_vs]
+ ? ipt_do_table+0x4f1/0xad0 [ip_tables]
+ ? ip_vs_out+0x126/0x8f0 [ip_vs]
+ ? common_interrupt+0xa/0xf
+ ip_vs_in+0xd8/0x170 [ip_vs]
+ ? ip_vs_in.part.29+0xd20/0xd20 [ip_vs]
+ ? nf_nat_ipv4_fn+0x21/0xc0 [nf_nat_ipv4]
+ ? nf_nat_packet+0x4b/0x90 [nf_nat]
+ ? nf_nat_ipv4_local_fn+0xf9/0x160 [nf_nat_ipv4]
+ ? ip_vs_remote_request4+0x50/0x50 [ip_vs]
+ nf_hook_slow+0x5f/0xe0
+ ? sock_write_iter+0x121/0x1c0
+ __ip_local_out+0x1d5/0x250
+ ? ip_finish_output+0x430/0x430
+ ? ip_forward_options+0x2d0/0x2d0
+ ? ip_copy_addrs+0x2d/0x40
+ ? __ip_queue_xmit+0x2ca/0x730
+ ip_local_out+0x19/0x60
+ __tcp_transmit_skb+0xba1/0x14f0
+ ? __tcp_select_window+0x330/0x330
+ ? pvclock_clocksource_read+0xd1/0x180
+ ? kvm_sched_clock_read+0xd/0x20
+ ? sched_clock+0x5/0x10
+ ? sched_clock_cpu+0x18/0x100
+ tcp_write_xmit+0x41f/0x1ed0
+ ? _copy_from_iter_full+0xca/0x340
+ __tcp_push_pending_frames+0x52/0x140
+ tcp_sendmsg_locked+0x787/0x1600
+ ? __wake_up_common_lock+0x80/0x130
+ ? tcp_sendpage+0x60/0x60
+ ? remove_wait_queue+0x84/0xb0
+ ? mutex_unlock+0x1d/0x40
+ ? n_tty_read+0x4f7/0xd20
+ ? check_stack_object+0x21/0x60
+ ? inet_sk_set_state+0xb0/0xb0
+ tcp_sendmsg+0x27/0x40
+ sock_sendmsg+0x6d/0x80
+ sock_write_iter+0x121/0x1c0
+ ? sock_sendmsg+0x80/0x80
+ ? ldsem_up_read+0x13/0x40
+ ? iov_iter_init+0x77/0xb0
+ __vfs_write+0x23e/0x370
+ ? kernel_read+0xa0/0xa0
+ ? do_vfs_ioctl+0x134/0x900
+ ? __set_current_blocked+0x7e/0x90
+ ? __audit_syscall_entry+0x18e/0x1f0
+ ? ktime_get_coarse_real_ts64+0x51/0x70
+ vfs_write+0xe7/0x230
+ ksys_write+0xa1/0x120
+ ? __ia32_sys_read+0x50/0x50
+ ? __audit_syscall_exit+0x3ce/0x450
+ do_syscall_64+0x73/0x200
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x7ff6f6147c60
+Code: 73 01 c3 48 8b 0d 28 12 2d 00 f7 d8 64 89 01 48 83 c8 ff c3 66 0f 1f 44 00 00 83 3d 5d 73 2d 00 00 75 10 b8 01 00 00 00 0f 05 <48> 3d 01 f0 ff ff 73 31 c3 48 83
+RSP: 002b:00007ffd772ead18 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 0000000000000034 RCX: 00007ff6f6147c60
+RDX: 0000000000000034 RSI: 000055df30a31270 RDI: 0000000000000003
+RBP: 000055df30a31270 R08: 0000000000000000 R09: 0000000000000000
+R10: 00007ffd772ead70 R11: 0000000000000246 R12: 00007ffd772ead74
+R13: 00007ffd772eae20 R14: 00007ffd772eae24 R15: 000055df2f12ddc0
 
-diff --git a/net/core/flow_offload.c b/net/core/flow_offload.c
-index cf984ef05609..44172014cebe 100644
---- a/net/core/flow_offload.c
-+++ b/net/core/flow_offload.c
-@@ -193,9 +193,15 @@ struct flow_block_cb *flow_block_cb_alloc(u32 block_index, tc_setup_cb_t *cb,
- {
-        struct flow_block_cb *block_cb;
+Allocated by task 6052:
+ kasan_kmalloc+0xa0/0xd0
+ __kmalloc+0x10a/0x220
+ ops_init+0x97/0x190
+ register_pernet_operations+0x1ac/0x360
+ register_pernet_subsys+0x24/0x40
+ 0xffffffffc0ea016d
+ do_one_initcall+0x8b/0x253
+ do_init_module+0xe3/0x335
+ load_module+0x2fc0/0x3890
+ __do_sys_finit_module+0x192/0x1c0
+ do_syscall_64+0x73/0x200
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+Freed by task 6067:
+ __kasan_slab_free+0x130/0x180
+ kfree+0x90/0x1a0
+ ops_free_list.part.7+0xa6/0xc0
+ unregister_pernet_operations+0x18b/0x1f0
+ unregister_pernet_subsys+0x1d/0x30
+ ip_vs_cleanup+0x1d/0xd2f [ip_vs]
+ __x64_sys_delete_module+0x20c/0x300
+ do_syscall_64+0x73/0x200
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+The buggy address belongs to the object at ffff8881e9b26600 which belongs to the cache kmalloc-4096 of size 4096
+The buggy address is located 2092 bytes inside of 4096-byte region [ffff8881e9b26600, ffff8881e9b27600)
+The buggy address belongs to the page:
+page:ffffea0007a6c800 count:1 mapcount:0 mapping:ffff888107c0e600 index:0x0 compound_mapcount: 0
+flags: 0x17ffffc0008100(slab|head)
+raw: 0017ffffc0008100 dead000000000100 dead000000000200 ffff888107c0e600
+raw: 0000000000000000 0000000080070007 00000001ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8881e9b26d00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8881e9b26d80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff8881e9b26e00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                                  ^
+ ffff8881e9b26e80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8881e9b26f00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+
+while unregistering ipvs module, ops_free_list calls
+__ip_vs_cleanup, then nf_unregister_net_hooks be called to
+do remove nf hook entries. It need a RCU period to finish,
+however net->ipvs is set to NULL immediately, which will
+trigger NULL pointer dereference when a packet is hooked
+and handled by ip_vs_in where net->ipvs is dereferenced.
+
+Another scene is ops_free_list call ops_free to free the
+net_generic directly while __ip_vs_cleanup finished, then
+calling ip_vs_in will triggers use-after-free.
+
+Reported-by: Hulk Robot <hulkci@huawei.com>
+Fixes: efe41606184e ("ipvs: convert to use pernet nf_hook api")
+Signed-off-by: YueHaibing <yuehaibing@huawei.com>
+---
+ net/netfilter/ipvs/ip_vs_core.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+index 1445755..33205db 100644
+--- a/net/netfilter/ipvs/ip_vs_core.c
++++ b/net/netfilter/ipvs/ip_vs_core.c
+@@ -2320,6 +2320,7 @@ static void __net_exit __ip_vs_cleanup(struct net *net)
+ 	ip_vs_control_net_cleanup(ipvs);
+ 	ip_vs_estimator_net_cleanup(ipvs);
+ 	IP_VS_DBG(2, "ipvs netns %d released\n", ipvs->gen);
++	synchronize_net();
+ 	net->ipvs = NULL;
+ }
  
-+       list_for_each_entry(block_cb, &flow_block_cb_list, list) {
-+               if (block_cb->cb == cb &&
-+                   block_cb->cb_ident == cb_ident)
-+                       return ERR_PTR(-EBUSY);
-+       }
-+
-        block_cb = kzalloc(sizeof(*block_cb), GFP_KERNEL);
-        if (!block_cb)
--               return NULL;
-+               return ERR_PTR(-ENOMEM);
- 
-        block_cb->cb = cb;
-        block_cb->cb_ident = cb_ident;
+-- 
+2.7.4
 
-Thanks.
+
