@@ -2,169 +2,217 @@ Return-Path: <SRS0=IJRP=TQ=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8FA95C04AAF
-	for <netfilter-devel@archiver.kernel.org>; Thu, 16 May 2019 14:42:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 58E00C04AAF
+	for <netfilter-devel@archiver.kernel.org>; Thu, 16 May 2019 18:21:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5913420675
-	for <netfilter-devel@archiver.kernel.org>; Thu, 16 May 2019 14:42:18 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=riseup.net header.i=@riseup.net header.b="iJ5rJbdN"
+	by mail.kernel.org (Postfix) with ESMTP id 350712082E
+	for <netfilter-devel@archiver.kernel.org>; Thu, 16 May 2019 18:21:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726857AbfEPOmS (ORCPT
+        id S1727837AbfEPSV1 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 16 May 2019 10:42:18 -0400
-Received: from mx1.riseup.net ([198.252.153.129]:53784 "EHLO mx1.riseup.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726742AbfEPOmR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 16 May 2019 10:42:17 -0400
-Received: from bell.riseup.net (bell-pn.riseup.net [10.0.1.178])
-        (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
-        (Client CN "*.riseup.net", Issuer "COMODO RSA Domain Validation Secure Server CA" (verified OK))
-        by mx1.riseup.net (Postfix) with ESMTPS id 19FDA1A482F;
-        Thu, 16 May 2019 07:42:17 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=riseup.net; s=squak;
-        t=1558017737; bh=+0noP5AkLqosCbOc6p+HzVeoUCZGzgDC4wsZdwFSiS4=;
-        h=Date:In-Reply-To:References:Subject:To:CC:From:From;
-        b=iJ5rJbdNPi3CqIIDiJ32APjka9lFAGa1E0ITDNczBRv8clOW88YiNA9OyfnGMcq1T
-         lXAJZbCnB+uCMH8F1m9Njb5KP0OofzfqvPDUeJGc+MEb/xHxWceRMY0o1HYGS+SsmG
-         h9zwqsoRAHzRLaRgT07Mxo4GDlvN9KkQHNOplI30=
-X-Riseup-User-ID: 15445029DC09105CFFBB98C9EDF4C1C536AD2FD7B9B1EB63C2B37B053C325570
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-         by bell.riseup.net (Postfix) with ESMTPSA id 0576C220128;
-        Thu, 16 May 2019 07:42:15 -0700 (PDT)
-Date:   Thu, 16 May 2019 16:42:08 +0200
-In-Reply-To: <20190516143942.tfjxdyi6vj66u3wn@salvia>
-References: <20190514211340.913-2-ffmancera@riseup.net> <20190515105850.GA4851@orbyte.nwl.cc> <347917dc-086b-998c-dd2f-b5e4a87b38b1@riseup.net> <20190515111232.lu3ifr72mlhfriqc@salvia> <20190515114617.GB4851@orbyte.nwl.cc> <20190515152132.267ryecqod3xenyj@salvia> <20190515192600.GC4851@orbyte.nwl.cc> <902d698b-a25c-0567-1338-b2d8c0bd91cb@riseup.net> <20190515203149.GD4851@orbyte.nwl.cc> <91e43f5d-c082-48d0-1fa0-fe2d18923dfa@riseup.net> <20190516143942.tfjxdyi6vj66u3wn@salvia>
+        Thu, 16 May 2019 14:21:27 -0400
+Received: from ja.ssi.bg ([178.16.129.10]:35382 "EHLO ja.ssi.bg"
+        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1726648AbfEPSV1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 16 May 2019 14:21:27 -0400
+Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
+        by ja.ssi.bg (8.15.2/8.15.2) with ESMTP id x4GIKjoZ004285;
+        Thu, 16 May 2019 21:20:45 +0300
+Date:   Thu, 16 May 2019 21:20:45 +0300 (EEST)
+From:   Julian Anastasov <ja@ssi.bg>
+To:     YueHaibing <yuehaibing@huawei.com>
+cc:     davem@davemloft.net, wensong@linux-vs.org, horms@verge.net.au,
+        pablo@netfilter.org, kadlec@blackhole.kfki.hu, fw@strlen.de,
+        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org
+Subject: Re: [PATCH] ipvs: Fix use-after-free in ip_vs_in
+In-Reply-To: <20190515093614.21176-1-yuehaibing@huawei.com>
+Message-ID: <alpine.LFD.2.21.1905162106550.3687@ja.home.ssi.bg>
+References: <20190515093614.21176-1-yuehaibing@huawei.com>
+User-Agent: Alpine 2.21 (LFD 202 2017-01-01)
 MIME-Version: 1.0
-Content-Type: text/plain;
- charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Subject: Re: [PATCH 2/2 nft] jump: Allow goto and jump to a variable using nft input files
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-CC:     Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
-From:   Fernando Fernandez Mancera <ffmancera@riseup.net>
-Message-ID: <5EFCF7BC-F139-4A15-9675-0A4FAF9A758D@riseup.net>
+Content-Type: text/plain; charset=US-ASCII
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-El 16 de mayo de 2019 16:39:42 CEST, Pablo Neira Ayuso <pablo@netfilter=2Eo=
-rg> escribi=C3=B3:
->On Thu, May 16, 2019 at 01:58:17PM +0200, Fernando Fernandez Mancera
->wrote:
->> Hi!
->>=20
->> On 5/15/19 10:31 PM, Phil Sutter wrote:
->> > Hi,
->> >=20
->> > On Wed, May 15, 2019 at 09:56:11PM +0200, Fernando Fernandez
->Mancera wrote:
->> >> Hi Phil,
->> >>
->> >> On 5/15/19 9:26 PM, Phil Sutter wrote:
->> >>> Hi Pablo,
->> >>>
->> >>> On Wed, May 15, 2019 at 05:21:32PM +0200, Pablo Neira Ayuso
->wrote:
->> >>>> On Wed, May 15, 2019 at 01:46:17PM +0200, Phil Sutter wrote>>
->[=2E=2E=2E]
->> >>>> '@<something>' is currently allowed, as any arbitrary string can
->be
->> >>>> placed in between strings - although in some way this is taking
->us
->> >>>> back to the quote debate that needs to be addressed=2E If we want
->to
->> >>>> disallow something enclosed in quotes then we'll have to apply
->this
->> >>>> function everywhere we allow variables=2E
->> >>>
->> >>> Oh, sorry=2E I put those ticks in there just to quote the value,
->not as
->> >>> part of the value=2E The intention was to point out that something
->like:
->> >>>
->> >>> | define foo =3D @set1
->> >>> | add rule ip t c jump $foo
->> >>>
->> >>> Might pass evaluation stage and since there is a special case for
->things
->> >>> starting with '@' in symbol_expr, the added rule would turn into
->> >>>
->> >>> | add rule ip t c jump set1
->> >>>
->> >>> We could detect this situation by checking expr->symtype=2E
->> >>>
->> >>
->> >> I agree about that=2E We could check if the symbol type is
->SYMBOL_VALUE=2E
->> >> But I am not sure about where should we do it, maybe in the
->parser?
->> >>
->> >>> On the other hand, can we maybe check if given string points to
->an
->> >>> *existing* chain in verdict_type_parse()? Or will that happen
->later
->> >>> anyway?
->> >>>
->> >>
->> >> It happens later, right now if the given string does not point to
->an
->> >> existing chain it returns the usual error for this situation=2E e=2E=
-g
->> >=20
->> > I just played around a bit and could provoke some segfaults:
->> >=20
->> > * define foo =3D @set1 (a set named 'set1' must exist)
->> > * define foo =3D { 1024 }
->> > * define foo =3D *
->> >=20
->> > I didn't check how we could avoid those=2E Maybe this is even
->follow-up
->> > work, but we should definitely try to address those eventually=2E
->> >=20
->>=20
->> I have been working on fixing this=2E I propose the following fix=2E
->>=20
->> diff --git a/src/evaluate=2Ec b/src/evaluate=2Ec
->> index 8394037=2E=2Eedab370 100644
->> --- a/src/evaluate=2Ec
->> +++ b/src/evaluate=2Ec
->> @@ -1950,6 +1950,12 @@ static int stmt_evaluate_verdict(struct
->eval_ctx
->> *ctx, struct stmt *stmt)
->>                 if (stmt->expr->chain !=3D NULL) {
->>                         if (expr_evaluate(ctx, &stmt->expr->chain) <
->0)
->>                                 return -1;
->> +                       if (stmt->expr->chain->etype !=3D EXPR_SYMBOL
->||
->> +                           stmt->expr->chain->symtype !=3D
->SYMBOL_VALUE) {
->> +                               BUG("invalid verdict chain expression
->%s\n",
->> +                                   expr_name(stmt->expr->chain));
->
->Instead of BUG(), I'd suggest you do proper error reporting=2E
->
 
-Ok=2E I will send a new patch series=2E Thanks=2E
+	Hello,
 
->> +                               return -1;
->> +                       }
->>                 }
->>                 break;
->>         case EXPR_MAP:
->>=20
->> That works for all the cases that you mentioned above=2E What do you
->think?
->>=20
->> Thanks :-)
->>=20
->> > Cheers, Phil
->> >=20
+On Wed, 15 May 2019, YueHaibing wrote:
 
+> BUG: KASAN: use-after-free in ip_vs_in.part.29+0xe8/0xd20 [ip_vs]
+> Read of size 4 at addr ffff8881e9b26e2c by task sshd/5603
+> 
+> CPU: 0 PID: 5603 Comm: sshd Not tainted 4.19.39+ #30
+> Hardware name: Red Hat KVM, BIOS 0.5.1 01/01/2011
+> Call Trace:
+>  dump_stack+0x71/0xab
+>  print_address_description+0x6a/0x270
+>  kasan_report+0x179/0x2c0
+>  ? ip_vs_in.part.29+0xe8/0xd20 [ip_vs]
+>  ip_vs_in.part.29+0xe8/0xd20 [ip_vs]
+>  ? tcp_in_window+0xfe0/0xfe0 [nf_conntrack]
+>  ? ip_vs_in_icmp+0xcc0/0xcc0 [ip_vs]
+>  ? ipt_do_table+0x4f1/0xad0 [ip_tables]
+>  ? ip_vs_out+0x126/0x8f0 [ip_vs]
+>  ? common_interrupt+0xa/0xf
+>  ip_vs_in+0xd8/0x170 [ip_vs]
+>  ? ip_vs_in.part.29+0xd20/0xd20 [ip_vs]
+>  ? nf_nat_ipv4_fn+0x21/0xc0 [nf_nat_ipv4]
+>  ? nf_nat_packet+0x4b/0x90 [nf_nat]
+>  ? nf_nat_ipv4_local_fn+0xf9/0x160 [nf_nat_ipv4]
+>  ? ip_vs_remote_request4+0x50/0x50 [ip_vs]
+>  nf_hook_slow+0x5f/0xe0
+>  ? sock_write_iter+0x121/0x1c0
+>  __ip_local_out+0x1d5/0x250
+>  ? ip_finish_output+0x430/0x430
+>  ? ip_forward_options+0x2d0/0x2d0
+>  ? ip_copy_addrs+0x2d/0x40
+>  ? __ip_queue_xmit+0x2ca/0x730
+>  ip_local_out+0x19/0x60
+>  __tcp_transmit_skb+0xba1/0x14f0
+>  ? __tcp_select_window+0x330/0x330
+>  ? pvclock_clocksource_read+0xd1/0x180
+>  ? kvm_sched_clock_read+0xd/0x20
+>  ? sched_clock+0x5/0x10
+>  ? sched_clock_cpu+0x18/0x100
+>  tcp_write_xmit+0x41f/0x1ed0
+>  ? _copy_from_iter_full+0xca/0x340
+>  __tcp_push_pending_frames+0x52/0x140
+>  tcp_sendmsg_locked+0x787/0x1600
+>  ? __wake_up_common_lock+0x80/0x130
+>  ? tcp_sendpage+0x60/0x60
+>  ? remove_wait_queue+0x84/0xb0
+>  ? mutex_unlock+0x1d/0x40
+>  ? n_tty_read+0x4f7/0xd20
+>  ? check_stack_object+0x21/0x60
+>  ? inet_sk_set_state+0xb0/0xb0
+>  tcp_sendmsg+0x27/0x40
+>  sock_sendmsg+0x6d/0x80
+>  sock_write_iter+0x121/0x1c0
+>  ? sock_sendmsg+0x80/0x80
+>  ? ldsem_up_read+0x13/0x40
+>  ? iov_iter_init+0x77/0xb0
+>  __vfs_write+0x23e/0x370
+>  ? kernel_read+0xa0/0xa0
+>  ? do_vfs_ioctl+0x134/0x900
+>  ? __set_current_blocked+0x7e/0x90
+>  ? __audit_syscall_entry+0x18e/0x1f0
+>  ? ktime_get_coarse_real_ts64+0x51/0x70
+>  vfs_write+0xe7/0x230
+>  ksys_write+0xa1/0x120
+>  ? __ia32_sys_read+0x50/0x50
+>  ? __audit_syscall_exit+0x3ce/0x450
+>  do_syscall_64+0x73/0x200
+>  entry_SYSCALL_64_after_hwframe+0x44/0xa9
+> RIP: 0033:0x7ff6f6147c60
+> Code: 73 01 c3 48 8b 0d 28 12 2d 00 f7 d8 64 89 01 48 83 c8 ff c3 66 0f 1f 44 00 00 83 3d 5d 73 2d 00 00 75 10 b8 01 00 00 00 0f 05 <48> 3d 01 f0 ff ff 73 31 c3 48 83
+> RSP: 002b:00007ffd772ead18 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
+> RAX: ffffffffffffffda RBX: 0000000000000034 RCX: 00007ff6f6147c60
+> RDX: 0000000000000034 RSI: 000055df30a31270 RDI: 0000000000000003
+> RBP: 000055df30a31270 R08: 0000000000000000 R09: 0000000000000000
+> R10: 00007ffd772ead70 R11: 0000000000000246 R12: 00007ffd772ead74
+> R13: 00007ffd772eae20 R14: 00007ffd772eae24 R15: 000055df2f12ddc0
+> 
+> Allocated by task 6052:
+>  kasan_kmalloc+0xa0/0xd0
+>  __kmalloc+0x10a/0x220
+>  ops_init+0x97/0x190
+>  register_pernet_operations+0x1ac/0x360
+>  register_pernet_subsys+0x24/0x40
+>  0xffffffffc0ea016d
+>  do_one_initcall+0x8b/0x253
+>  do_init_module+0xe3/0x335
+>  load_module+0x2fc0/0x3890
+>  __do_sys_finit_module+0x192/0x1c0
+>  do_syscall_64+0x73/0x200
+>  entry_SYSCALL_64_after_hwframe+0x44/0xa9
+> 
+> Freed by task 6067:
+>  __kasan_slab_free+0x130/0x180
+>  kfree+0x90/0x1a0
+>  ops_free_list.part.7+0xa6/0xc0
+>  unregister_pernet_operations+0x18b/0x1f0
+>  unregister_pernet_subsys+0x1d/0x30
+>  ip_vs_cleanup+0x1d/0xd2f [ip_vs]
+>  __x64_sys_delete_module+0x20c/0x300
+>  do_syscall_64+0x73/0x200
+>  entry_SYSCALL_64_after_hwframe+0x44/0xa9
+> 
+> The buggy address belongs to the object at ffff8881e9b26600 which belongs to the cache kmalloc-4096 of size 4096
+> The buggy address is located 2092 bytes inside of 4096-byte region [ffff8881e9b26600, ffff8881e9b27600)
+> The buggy address belongs to the page:
+> page:ffffea0007a6c800 count:1 mapcount:0 mapping:ffff888107c0e600 index:0x0 compound_mapcount: 0
+> flags: 0x17ffffc0008100(slab|head)
+> raw: 0017ffffc0008100 dead000000000100 dead000000000200 ffff888107c0e600
+> raw: 0000000000000000 0000000080070007 00000001ffffffff 0000000000000000
+> page dumped because: kasan: bad access detected
+> 
+> Memory state around the buggy address:
+>  ffff8881e9b26d00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>  ffff8881e9b26d80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+> >ffff8881e9b26e00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>                                   ^
+>  ffff8881e9b26e80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>  ffff8881e9b26f00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+> 
+> while unregistering ipvs module, ops_free_list calls
+> __ip_vs_cleanup, then nf_unregister_net_hooks be called to
+> do remove nf hook entries. It need a RCU period to finish,
+> however net->ipvs is set to NULL immediately, which will
+> trigger NULL pointer dereference when a packet is hooked
+> and handled by ip_vs_in where net->ipvs is dereferenced.
+> 
+> Another scene is ops_free_list call ops_free to free the
+> net_generic directly while __ip_vs_cleanup finished, then
+> calling ip_vs_in will triggers use-after-free.
+> 
+> Reported-by: Hulk Robot <hulkci@huawei.com>
+> Fixes: efe41606184e ("ipvs: convert to use pernet nf_hook api")
+> Signed-off-by: YueHaibing <yuehaibing@huawei.com>
+> ---
+>  net/netfilter/ipvs/ip_vs_core.c | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+> index 1445755..33205db 100644
+> --- a/net/netfilter/ipvs/ip_vs_core.c
+> +++ b/net/netfilter/ipvs/ip_vs_core.c
+> @@ -2320,6 +2320,7 @@ static void __net_exit __ip_vs_cleanup(struct net *net)
+>  	ip_vs_control_net_cleanup(ipvs);
+>  	ip_vs_estimator_net_cleanup(ipvs);
+>  	IP_VS_DBG(2, "ipvs netns %d released\n", ipvs->gen);
+> +	synchronize_net();
+
+	Grace period in net_exit handler should be avoided.
+It can be added to ip_vs_cleanup() but may be we have to
+reorder the operations, so that we can have single grace
+period. Note that ip_vs_conn_cleanup() already includes
+rcu_barrier() and we can use it to split the cleanups to
+two steps: 1: unregister hooks (__ip_vs_dev_cleanup) to
+stop traffic and 2: cleanups when traffic is stopped.
+
+	Note that the problem should be only when module
+is removed, the case with netns exit in cleanup_net()
+should not cause problem.
+
+	I'll have more time this weekend to reorganize the
+code...
+
+>  	net->ipvs = NULL;
+>  }
+>  
+> -- 
+> 2.7.4
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
