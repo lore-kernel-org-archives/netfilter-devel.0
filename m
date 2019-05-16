@@ -2,217 +2,152 @@ Return-Path: <SRS0=IJRP=TQ=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 58E00C04AAF
-	for <netfilter-devel@archiver.kernel.org>; Thu, 16 May 2019 18:21:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A358C04AAF
+	for <netfilter-devel@archiver.kernel.org>; Thu, 16 May 2019 18:54:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 350712082E
-	for <netfilter-devel@archiver.kernel.org>; Thu, 16 May 2019 18:21:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 282232082E
+	for <netfilter-devel@archiver.kernel.org>; Thu, 16 May 2019 18:54:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727837AbfEPSV1 (ORCPT
+        id S1726996AbfEPSya (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 16 May 2019 14:21:27 -0400
-Received: from ja.ssi.bg ([178.16.129.10]:35382 "EHLO ja.ssi.bg"
-        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726648AbfEPSV1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 16 May 2019 14:21:27 -0400
-Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
-        by ja.ssi.bg (8.15.2/8.15.2) with ESMTP id x4GIKjoZ004285;
-        Thu, 16 May 2019 21:20:45 +0300
-Date:   Thu, 16 May 2019 21:20:45 +0300 (EEST)
-From:   Julian Anastasov <ja@ssi.bg>
-To:     YueHaibing <yuehaibing@huawei.com>
-cc:     davem@davemloft.net, wensong@linux-vs.org, horms@verge.net.au,
-        pablo@netfilter.org, kadlec@blackhole.kfki.hu, fw@strlen.de,
-        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org
-Subject: Re: [PATCH] ipvs: Fix use-after-free in ip_vs_in
-In-Reply-To: <20190515093614.21176-1-yuehaibing@huawei.com>
-Message-ID: <alpine.LFD.2.21.1905162106550.3687@ja.home.ssi.bg>
-References: <20190515093614.21176-1-yuehaibing@huawei.com>
-User-Agent: Alpine 2.21 (LFD 202 2017-01-01)
+        Thu, 16 May 2019 14:54:30 -0400
+Received: from mx1.redhat.com ([209.132.183.28]:38566 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726529AbfEPSya (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 16 May 2019 14:54:30 -0400
+Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.phx2.redhat.com [10.5.11.16])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mx1.redhat.com (Postfix) with ESMTPS id DD6CC8F911;
+        Thu, 16 May 2019 18:54:21 +0000 (UTC)
+Received: from egarver.remote.csb (ovpn-126-19.rdu2.redhat.com [10.10.126.19])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 404F65C70A;
+        Thu, 16 May 2019 18:54:18 +0000 (UTC)
+From:   Eric Garver <eric@garver.life>
+To:     netfilter-devel@vger.kernel.org
+Cc:     Phil Sutter <phil@nwl.cc>
+Subject: [PATCH nft] src: update cache if cmd is more specific
+Date:   Thu, 16 May 2019 14:54:16 -0400
+Message-Id: <20190516185416.19018-1-eric@garver.life>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.16
+X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.5.16 (mx1.redhat.com [10.5.110.26]); Thu, 16 May 2019 18:54:28 +0000 (UTC)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+If we've done a partial fetch of the cache and the genid is the same the
+cache update will be skipped without fetching the needed items. This
+change flushes the cache if the new request is more specific than the
+current cache - forcing a cache update which includes the needed items.
 
-	Hello,
+Fixes: 816d8c7659c1 ("Support 'add/insert rule index <IDX>'")
+---
+# NFT=/usr/sbin/nft ./run-tests.sh ./testcases/cache/0003_cache_update_0                                                                                                                                                                                      
+I: using nft binary /usr/sbin/nft                                                                                                                                                                                                                                               
+                                                                                                                                                                                                                                                                                
+W: [FAILED]     ./testcases/cache/0003_cache_update_0: got 1
+Error: Could not process rule: No such file or directory                                                                                                                                                                                                                        
+add table ip t2; add chain ip t2 c
+                              ^^
+/dev/stdin:1:18-24: Error: Could not process rule: No such file or directory
+add rule ip t4 c index 0 drop
+                 ^^^^^^^
 
-On Wed, 15 May 2019, YueHaibing wrote:
+I: results: [OK] 0 [FAILED] 1 [TOTAL] 1
 
-> BUG: KASAN: use-after-free in ip_vs_in.part.29+0xe8/0xd20 [ip_vs]
-> Read of size 4 at addr ffff8881e9b26e2c by task sshd/5603
-> 
-> CPU: 0 PID: 5603 Comm: sshd Not tainted 4.19.39+ #30
-> Hardware name: Red Hat KVM, BIOS 0.5.1 01/01/2011
-> Call Trace:
->  dump_stack+0x71/0xab
->  print_address_description+0x6a/0x270
->  kasan_report+0x179/0x2c0
->  ? ip_vs_in.part.29+0xe8/0xd20 [ip_vs]
->  ip_vs_in.part.29+0xe8/0xd20 [ip_vs]
->  ? tcp_in_window+0xfe0/0xfe0 [nf_conntrack]
->  ? ip_vs_in_icmp+0xcc0/0xcc0 [ip_vs]
->  ? ipt_do_table+0x4f1/0xad0 [ip_tables]
->  ? ip_vs_out+0x126/0x8f0 [ip_vs]
->  ? common_interrupt+0xa/0xf
->  ip_vs_in+0xd8/0x170 [ip_vs]
->  ? ip_vs_in.part.29+0xd20/0xd20 [ip_vs]
->  ? nf_nat_ipv4_fn+0x21/0xc0 [nf_nat_ipv4]
->  ? nf_nat_packet+0x4b/0x90 [nf_nat]
->  ? nf_nat_ipv4_local_fn+0xf9/0x160 [nf_nat_ipv4]
->  ? ip_vs_remote_request4+0x50/0x50 [ip_vs]
->  nf_hook_slow+0x5f/0xe0
->  ? sock_write_iter+0x121/0x1c0
->  __ip_local_out+0x1d5/0x250
->  ? ip_finish_output+0x430/0x430
->  ? ip_forward_options+0x2d0/0x2d0
->  ? ip_copy_addrs+0x2d/0x40
->  ? __ip_queue_xmit+0x2ca/0x730
->  ip_local_out+0x19/0x60
->  __tcp_transmit_skb+0xba1/0x14f0
->  ? __tcp_select_window+0x330/0x330
->  ? pvclock_clocksource_read+0xd1/0x180
->  ? kvm_sched_clock_read+0xd/0x20
->  ? sched_clock+0x5/0x10
->  ? sched_clock_cpu+0x18/0x100
->  tcp_write_xmit+0x41f/0x1ed0
->  ? _copy_from_iter_full+0xca/0x340
->  __tcp_push_pending_frames+0x52/0x140
->  tcp_sendmsg_locked+0x787/0x1600
->  ? __wake_up_common_lock+0x80/0x130
->  ? tcp_sendpage+0x60/0x60
->  ? remove_wait_queue+0x84/0xb0
->  ? mutex_unlock+0x1d/0x40
->  ? n_tty_read+0x4f7/0xd20
->  ? check_stack_object+0x21/0x60
->  ? inet_sk_set_state+0xb0/0xb0
->  tcp_sendmsg+0x27/0x40
->  sock_sendmsg+0x6d/0x80
->  sock_write_iter+0x121/0x1c0
->  ? sock_sendmsg+0x80/0x80
->  ? ldsem_up_read+0x13/0x40
->  ? iov_iter_init+0x77/0xb0
->  __vfs_write+0x23e/0x370
->  ? kernel_read+0xa0/0xa0
->  ? do_vfs_ioctl+0x134/0x900
->  ? __set_current_blocked+0x7e/0x90
->  ? __audit_syscall_entry+0x18e/0x1f0
->  ? ktime_get_coarse_real_ts64+0x51/0x70
->  vfs_write+0xe7/0x230
->  ksys_write+0xa1/0x120
->  ? __ia32_sys_read+0x50/0x50
->  ? __audit_syscall_exit+0x3ce/0x450
->  do_syscall_64+0x73/0x200
->  entry_SYSCALL_64_after_hwframe+0x44/0xa9
-> RIP: 0033:0x7ff6f6147c60
-> Code: 73 01 c3 48 8b 0d 28 12 2d 00 f7 d8 64 89 01 48 83 c8 ff c3 66 0f 1f 44 00 00 83 3d 5d 73 2d 00 00 75 10 b8 01 00 00 00 0f 05 <48> 3d 01 f0 ff ff 73 31 c3 48 83
-> RSP: 002b:00007ffd772ead18 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
-> RAX: ffffffffffffffda RBX: 0000000000000034 RCX: 00007ff6f6147c60
-> RDX: 0000000000000034 RSI: 000055df30a31270 RDI: 0000000000000003
-> RBP: 000055df30a31270 R08: 0000000000000000 R09: 0000000000000000
-> R10: 00007ffd772ead70 R11: 0000000000000246 R12: 00007ffd772ead74
-> R13: 00007ffd772eae20 R14: 00007ffd772eae24 R15: 000055df2f12ddc0
-> 
-> Allocated by task 6052:
->  kasan_kmalloc+0xa0/0xd0
->  __kmalloc+0x10a/0x220
->  ops_init+0x97/0x190
->  register_pernet_operations+0x1ac/0x360
->  register_pernet_subsys+0x24/0x40
->  0xffffffffc0ea016d
->  do_one_initcall+0x8b/0x253
->  do_init_module+0xe3/0x335
->  load_module+0x2fc0/0x3890
->  __do_sys_finit_module+0x192/0x1c0
->  do_syscall_64+0x73/0x200
->  entry_SYSCALL_64_after_hwframe+0x44/0xa9
-> 
-> Freed by task 6067:
->  __kasan_slab_free+0x130/0x180
->  kfree+0x90/0x1a0
->  ops_free_list.part.7+0xa6/0xc0
->  unregister_pernet_operations+0x18b/0x1f0
->  unregister_pernet_subsys+0x1d/0x30
->  ip_vs_cleanup+0x1d/0xd2f [ip_vs]
->  __x64_sys_delete_module+0x20c/0x300
->  do_syscall_64+0x73/0x200
->  entry_SYSCALL_64_after_hwframe+0x44/0xa9
-> 
-> The buggy address belongs to the object at ffff8881e9b26600 which belongs to the cache kmalloc-4096 of size 4096
-> The buggy address is located 2092 bytes inside of 4096-byte region [ffff8881e9b26600, ffff8881e9b27600)
-> The buggy address belongs to the page:
-> page:ffffea0007a6c800 count:1 mapcount:0 mapping:ffff888107c0e600 index:0x0 compound_mapcount: 0
-> flags: 0x17ffffc0008100(slab|head)
-> raw: 0017ffffc0008100 dead000000000100 dead000000000200 ffff888107c0e600
-> raw: 0000000000000000 0000000080070007 00000001ffffffff 0000000000000000
-> page dumped because: kasan: bad access detected
-> 
-> Memory state around the buggy address:
->  ffff8881e9b26d00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
->  ffff8881e9b26d80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
-> >ffff8881e9b26e00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
->                                   ^
->  ffff8881e9b26e80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
->  ffff8881e9b26f00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
-> 
-> while unregistering ipvs module, ops_free_list calls
-> __ip_vs_cleanup, then nf_unregister_net_hooks be called to
-> do remove nf hook entries. It need a RCU period to finish,
-> however net->ipvs is set to NULL immediately, which will
-> trigger NULL pointer dereference when a packet is hooked
-> and handled by ip_vs_in where net->ipvs is dereferenced.
-> 
-> Another scene is ops_free_list call ops_free to free the
-> net_generic directly while __ip_vs_cleanup finished, then
-> calling ip_vs_in will triggers use-after-free.
-> 
-> Reported-by: Hulk Robot <hulkci@huawei.com>
-> Fixes: efe41606184e ("ipvs: convert to use pernet nf_hook api")
-> Signed-off-by: YueHaibing <yuehaibing@huawei.com>
-> ---
->  net/netfilter/ipvs/ip_vs_core.c | 1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-> index 1445755..33205db 100644
-> --- a/net/netfilter/ipvs/ip_vs_core.c
-> +++ b/net/netfilter/ipvs/ip_vs_core.c
-> @@ -2320,6 +2320,7 @@ static void __net_exit __ip_vs_cleanup(struct net *net)
->  	ip_vs_control_net_cleanup(ipvs);
->  	ip_vs_estimator_net_cleanup(ipvs);
->  	IP_VS_DBG(2, "ipvs netns %d released\n", ipvs->gen);
-> +	synchronize_net();
+# ./run-tests.sh ./testcases/cache/0003_cache_update_0                                                                                                                                                                                                        
+I: using nft binary ./../../src/nft                                                                                                                                                                                                                                             
+                                                                                                                                                                                                                                                                                
+I: [OK]         ./testcases/cache/0003_cache_update_0
+Error: No such file or directory; did you mean table 't' in family ip?                                                                                                                                                                                                          
+add table ip t2; add chain ip t2 c
+                              ^^
 
-	Grace period in net_exit handler should be avoided.
-It can be added to ip_vs_cleanup() but may be we have to
-reorder the operations, so that we can have single grace
-period. Note that ip_vs_conn_cleanup() already includes
-rcu_barrier() and we can use it to split the cleanups to
-two steps: 1: unregister hooks (__ip_vs_dev_cleanup) to
-stop traffic and 2: cleanups when traffic is stopped.
+I: results: [OK] 1 [FAILED] 0 [TOTAL] 1
+---
+ include/nftables.h                              |  1 +
+ src/rule.c                                      | 12 ++++++++++++
+ tests/shell/testcases/cache/0003_cache_update_0 | 14 ++++++++++++++
+ 3 files changed, 27 insertions(+)
 
-	Note that the problem should be only when module
-is removed, the case with netns exit in cleanup_net()
-should not cause problem.
+diff --git a/include/nftables.h b/include/nftables.h
+index b17a16a4adef..bb9bb2091716 100644
+--- a/include/nftables.h
++++ b/include/nftables.h
+@@ -81,6 +81,7 @@ struct nft_cache {
+ 	uint16_t		genid;
+ 	struct list_head	list;
+ 	uint32_t		seqnum;
++	uint32_t		cmd;
+ };
+ 
+ struct mnl_socket;
+diff --git a/src/rule.c b/src/rule.c
+index dc75c7cd5fb0..afe37cd90b1d 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -220,6 +220,15 @@ static int cache_init(struct netlink_ctx *ctx, enum cmd_ops cmd)
+ 	return 0;
+ }
+ 
++static int cache_needs_more(enum cmd_ops old_cmd, enum cmd_ops cmd)
++{
++	if (cmd == CMD_LIST && old_cmd != CMD_LIST)
++		return 1;
++	if (cmd == CMD_RESET && old_cmd != CMD_RESET)
++		return 1;
++	return 0;
++}
++
+ int cache_update(struct nft_ctx *nft, enum cmd_ops cmd, struct list_head *msgs)
+ {
+ 	uint16_t genid;
+@@ -235,6 +244,8 @@ int cache_update(struct nft_ctx *nft, enum cmd_ops cmd, struct list_head *msgs)
+ replay:
+ 	ctx.seqnum = cache->seqnum++;
+ 	genid = mnl_genid_get(&ctx);
++	if (cache->genid && cache_needs_more(cache->cmd, cmd))
++		cache_release(cache);
+ 	if (genid && genid == cache->genid)
+ 		return 0;
+ 	if (cache->genid)
+@@ -250,6 +261,7 @@ replay:
+ 		return -1;
+ 	}
+ 	cache->genid = genid;
++	cache->cmd = cmd;
+ 	return 0;
+ }
+ 
+diff --git a/tests/shell/testcases/cache/0003_cache_update_0 b/tests/shell/testcases/cache/0003_cache_update_0
+index deb45db2c43b..fa9b5df380a4 100755
+--- a/tests/shell/testcases/cache/0003_cache_update_0
++++ b/tests/shell/testcases/cache/0003_cache_update_0
+@@ -27,3 +27,17 @@ EOF
+ $NFT -i >/dev/null <<EOF
+ add table ip t3; add chain ip t c
+ EOF
++
++# The following test exposes a problem with incremental cache update when
++# reading commands from a file that add a rule using the "index" keyword.
++#
++# add rule ip t4 c meta l4proto icmp accept -> rule to reference in next step
++# add rule ip t4 c index 0 drop -> index 0 is not found due to rule cache not
++#                                  being updated
++$NFT -i >/dev/null <<EOF
++add table ip t4; add chain ip t4 c
++add rule ip t4 c meta l4proto icmp accept
++EOF
++$NFT -f - >/dev/null <<EOF
++add rule ip t4 c index 0 drop
++EOF
+-- 
+2.20.1
 
-	I'll have more time this weekend to reorganize the
-code...
-
->  	net->ipvs = NULL;
->  }
->  
-> -- 
-> 2.7.4
-
-Regards
-
---
-Julian Anastasov <ja@ssi.bg>
