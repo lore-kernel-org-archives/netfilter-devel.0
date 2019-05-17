@@ -6,30 +6,30 @@ X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 39964C04AB4
-	for <netfilter-devel@archiver.kernel.org>; Fri, 17 May 2019 20:18:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 390C9C46460
+	for <netfilter-devel@archiver.kernel.org>; Fri, 17 May 2019 20:18:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id EF7542082E
-	for <netfilter-devel@archiver.kernel.org>; Fri, 17 May 2019 20:18:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 15B392082E
+	for <netfilter-devel@archiver.kernel.org>; Fri, 17 May 2019 20:18:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727594AbfEQUSD (ORCPT
+        id S1727843AbfEQUSJ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 17 May 2019 16:18:03 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:56716 "EHLO orbyte.nwl.cc"
+        Fri, 17 May 2019 16:18:09 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:56726 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726460AbfEQUSD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 17 May 2019 16:18:03 -0400
-Received: from localhost ([::1]:41572 helo=tatos)
+        id S1727691AbfEQUSJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 17 May 2019 16:18:09 -0400
+Received: from localhost ([::1]:41582 helo=tatos)
         by orbyte.nwl.cc with esmtp (Exim 4.91)
         (envelope-from <phil@nwl.cc>)
-        id 1hRjIo-0004vA-Dx; Fri, 17 May 2019 22:18:02 +0200
+        id 1hRjIt-0004vc-UB; Fri, 17 May 2019 22:18:08 +0200
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     Eric Garver <e@erig.me>, netfilter-devel@vger.kernel.org,
         Jones Desougi <jones.desougi+netfilter@gmail.com>
-Subject: [nft PATCH v2 2/2] tests/py: Support JSON validation
-Date:   Fri, 17 May 2019 22:17:58 +0200
-Message-Id: <20190517201758.1576-3-phil@nwl.cc>
+Subject: [nft PATCH v2 1/2] py: Implement JSON validation in nftables module
+Date:   Fri, 17 May 2019 22:17:57 +0200
+Message-Id: <20190517201758.1576-2-phil@nwl.cc>
 X-Mailer: git-send-email 2.21.0
 In-Reply-To: <20190517201758.1576-1-phil@nwl.cc>
 References: <20190517201758.1576-1-phil@nwl.cc>
@@ -40,87 +40,122 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Introduce a new flag -s/--schema to nft-test.py which enables validation
-of any JSON input and output against our schema.
+Using jsonschema it is possible to validate any JSON input to make sure
+it formally conforms with libnftables JSON API requirements.
 
-Make use of traceback module to get more details if validation fails.
+Implement a simple validator class for use within a new Nftables class
+method 'json_validate' and ship a minimal schema definition along with
+the package.
 
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
-Changes since v1:
-- Adjust commit message to changes from RFC.
+ py/Makefile.am |  2 +-
+ py/nftables.py | 30 ++++++++++++++++++++++++++++++
+ py/schema.json | 17 +++++++++++++++++
+ py/setup.py    |  1 +
+ 4 files changed, 49 insertions(+), 1 deletion(-)
+ create mode 100644 py/schema.json
 
-Changes since RFC:
-- Import builtin traceback module unconditionally
----
- tests/py/nft-test.py | 21 ++++++++++++++++++++-
- 1 file changed, 20 insertions(+), 1 deletion(-)
-
-diff --git a/tests/py/nft-test.py b/tests/py/nft-test.py
-index 1c0afd0ec0eb3..d785f7ec74341 100755
---- a/tests/py/nft-test.py
-+++ b/tests/py/nft-test.py
-@@ -18,6 +18,7 @@ import os
- import argparse
- import signal
+diff --git a/py/Makefile.am b/py/Makefile.am
+index 0963535d068dc..9fce7c9e54c38 100644
+--- a/py/Makefile.am
++++ b/py/Makefile.am
+@@ -1,4 +1,4 @@
+-EXTRA_DIST = setup.py __init__.py nftables.py
++EXTRA_DIST = setup.py __init__.py nftables.py schema.json
+ 
+ if HAVE_PYTHON
+ 
+diff --git a/py/nftables.py b/py/nftables.py
+index 33cd2dfd736d4..db0f502b2951f 100644
+--- a/py/nftables.py
++++ b/py/nftables.py
+@@ -17,9 +17,24 @@
  import json
-+import traceback
+ from ctypes import *
+ import sys
++import os
  
- TESTS_PATH = os.path.dirname(os.path.abspath(__file__))
- sys.path.insert(0, os.path.join(TESTS_PATH, '../../py/'))
-@@ -687,6 +688,13 @@ def json_dump_normalize(json_string, human_readable = False):
-     else:
-         return json.dumps(json_obj, sort_keys = True)
+ NFTABLES_VERSION = "0.1"
  
-+def json_validate(json_string):
-+    json_obj = json.loads(json_string)
-+    try:
-+        nftables.json_validate(json_obj)
-+    except Exception:
-+        print_error("schema validation failed for input '%s'" % json_string)
-+        print_error(traceback.format_exc())
- 
- def rule_add(rule, filename, lineno, force_all_family_option, filename_path):
-     '''
-@@ -912,6 +920,9 @@ def rule_add(rule, filename, lineno, force_all_family_option, filename_path):
-                     "expr": json.loads(json_input),
-             }}}]})
- 
-+            if enable_json_schema:
-+                json_validate(cmd)
++class SchemaValidator:
++    """Libnftables JSON validator using jsonschema"""
 +
-             json_old = nftables.set_json_output(True)
-             ret = execute_cmd(cmd, filename, lineno, payload_log, debug="netlink")
-             nftables.set_json_output(json_old)
-@@ -945,6 +956,9 @@ def rule_add(rule, filename, lineno, force_all_family_option, filename_path):
-             nftables.set_numeric_proto_output(numeric_proto_old)
-             nftables.set_stateless_output(stateless_old)
- 
-+            if enable_json_schema:
-+                json_validate(json_output)
++    def __init__(self):
++        schema_path = os.path.join(os.path.dirname(__file__), "schema.json")
++        schema_file = file(schema_path)
++        self.schema = json.load(schema_file)
++        schema_file.close()
++        import jsonschema
++        self.jsonschema = jsonschema
 +
-             json_output = json.loads(json_output)
-             for item in json_output["nftables"]:
-                 if "rule" in item:
-@@ -1341,12 +1355,17 @@ def main():
-                         dest='enable_json',
-                         help='test JSON functionality as well')
- 
-+    parser.add_argument('-s', '--schema', action='store_true',
-+                        dest='enable_schema',
-+                        help='verify json input/output against schema')
++    def validate(self, json):
++        self.jsonschema.validate(instance=json, schema=self.schema)
 +
-     args = parser.parse_args()
--    global debug_option, need_fix_option, enable_json_option
-+    global debug_option, need_fix_option, enable_json_option, enable_json_schema
-     debug_option = args.debug
-     need_fix_option = args.need_fix_line
-     force_all_family_option = args.force_all_family
-     enable_json_option = args.enable_json
-+    enable_json_schema = args.enable_schema
-     specific_file = False
+ class Nftables:
+     """A class representing libnftables interface"""
  
-     signal.signal(signal.SIGINT, signal_handler)
+@@ -46,6 +61,8 @@ class Nftables:
+         "numeric_symbol": (1 << 9),
+     }
+ 
++    validator = None
++
+     def __init__(self, sofile="libnftables.so"):
+         """Instantiate a new Nftables class object.
+ 
+@@ -382,3 +399,16 @@ class Nftables:
+         if len(output):
+             output = json.loads(output)
+         return (rc, output, error)
++
++    def json_validate(self, json_root):
++        """Validate JSON object against libnftables schema.
++
++        Accepts a hash object as input.
++
++        Returns True if JSON is valid, raises an exception otherwise.
++        """
++        if not self.validator:
++            self.validator = SchemaValidator()
++
++        self.validator.validate(json_root)
++        return True
+diff --git a/py/schema.json b/py/schema.json
+new file mode 100644
+index 0000000000000..6cb731a228bf4
+--- /dev/null
++++ b/py/schema.json
+@@ -0,0 +1,17 @@
++{
++	"$schema": "http://json-schema.org/schema#",
++	"id": "http://netfilter.org/nftables/ruleset-schema.json",
++	"description": "libnftables JSON API schema",
++
++	"type": "object",
++        "properties": {
++		"nftables": {
++			"type": "array",
++			"minitems": 0,
++			"items": {
++				"type": "object"
++			}
++		}
++	},
++	"required": [ "nftables" ]
++}
+diff --git a/py/setup.py b/py/setup.py
+index ef143c42a21b0..72fc8fd98b269 100755
+--- a/py/setup.py
++++ b/py/setup.py
+@@ -11,6 +11,7 @@ setup(name='nftables',
+       packages=['nftables'],
+       provides=['nftables'],
+       package_dir={'nftables':'.'},
++      package_data={'nftables':['schema.json']},
+       classifiers=[
+           'Development Status :: 4 - Beta',
+           'Environment :: Console',
 -- 
 2.21.0
 
