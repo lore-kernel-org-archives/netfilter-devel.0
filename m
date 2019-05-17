@@ -6,33 +6,33 @@ X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 390C9C46460
-	for <netfilter-devel@archiver.kernel.org>; Fri, 17 May 2019 20:18:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 55254C04AB4
+	for <netfilter-devel@archiver.kernel.org>; Fri, 17 May 2019 23:00:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 15B392082E
-	for <netfilter-devel@archiver.kernel.org>; Fri, 17 May 2019 20:18:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2B3AE2087E
+	for <netfilter-devel@archiver.kernel.org>; Fri, 17 May 2019 23:00:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727843AbfEQUSJ (ORCPT
+        id S1727566AbfEQXAe (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 17 May 2019 16:18:09 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:56726 "EHLO orbyte.nwl.cc"
+        Fri, 17 May 2019 19:00:34 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:57022 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727691AbfEQUSJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 17 May 2019 16:18:09 -0400
-Received: from localhost ([::1]:41582 helo=tatos)
+        id S1726519AbfEQXAe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 17 May 2019 19:00:34 -0400
+Received: from localhost ([::1]:41880 helo=tatos)
         by orbyte.nwl.cc with esmtp (Exim 4.91)
         (envelope-from <phil@nwl.cc>)
-        id 1hRjIt-0004vc-UB; Fri, 17 May 2019 22:18:08 +0200
+        id 1hRlq4-0007FB-Gr; Sat, 18 May 2019 01:00:32 +0200
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     Eric Garver <e@erig.me>, netfilter-devel@vger.kernel.org,
-        Jones Desougi <jones.desougi+netfilter@gmail.com>
-Subject: [nft PATCH v2 1/2] py: Implement JSON validation in nftables module
-Date:   Fri, 17 May 2019 22:17:57 +0200
-Message-Id: <20190517201758.1576-2-phil@nwl.cc>
+        Florian Westphal <fw@strlen.de>
+Subject: [nft PATCH 3/3] src: Restore local entries after cache update
+Date:   Sat, 18 May 2019 01:00:33 +0200
+Message-Id: <20190517230033.25417-4-phil@nwl.cc>
 X-Mailer: git-send-email 2.21.0
-In-Reply-To: <20190517201758.1576-1-phil@nwl.cc>
-References: <20190517201758.1576-1-phil@nwl.cc>
+In-Reply-To: <20190517230033.25417-1-phil@nwl.cc>
+References: <20190517230033.25417-1-phil@nwl.cc>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -40,122 +40,111 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Using jsonschema it is possible to validate any JSON input to make sure
-it formally conforms with libnftables JSON API requirements.
+When batching up multiple commands, one may run into a situation where
+the current command requires a cache update while the previous ones
+didn't and that causes objects added by previous commands to be removed
+from cache. If the current or any following command references any of
+these objects, the command is rejected.
 
-Implement a simple validator class for use within a new Nftables class
-method 'json_validate' and ship a minimal schema definition along with
-the package.
+Resolve this by copying Florian's solution from iptables-nft: After
+droping the whole cache and populating it again with entries fetched
+from kernel, use the current list of commands to restore local entries
+again.
 
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- py/Makefile.am |  2 +-
- py/nftables.py | 30 ++++++++++++++++++++++++++++++
- py/schema.json | 17 +++++++++++++++++
- py/setup.py    |  1 +
- 4 files changed, 49 insertions(+), 1 deletion(-)
- create mode 100644 py/schema.json
+ src/rule.c | 71 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 71 insertions(+)
 
-diff --git a/py/Makefile.am b/py/Makefile.am
-index 0963535d068dc..9fce7c9e54c38 100644
---- a/py/Makefile.am
-+++ b/py/Makefile.am
-@@ -1,4 +1,4 @@
--EXTRA_DIST = setup.py __init__.py nftables.py
-+EXTRA_DIST = setup.py __init__.py nftables.py schema.json
+diff --git a/src/rule.c b/src/rule.c
+index 17bf5bbbe680c..4f015fc5354b7 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -220,6 +220,76 @@ static int cache_init(struct netlink_ctx *ctx, enum cmd_ops cmd)
+ 	return 0;
+ }
  
- if HAVE_PYTHON
- 
-diff --git a/py/nftables.py b/py/nftables.py
-index 33cd2dfd736d4..db0f502b2951f 100644
---- a/py/nftables.py
-+++ b/py/nftables.py
-@@ -17,9 +17,24 @@
- import json
- from ctypes import *
- import sys
-+import os
- 
- NFTABLES_VERSION = "0.1"
- 
-+class SchemaValidator:
-+    """Libnftables JSON validator using jsonschema"""
-+
-+    def __init__(self):
-+        schema_path = os.path.join(os.path.dirname(__file__), "schema.json")
-+        schema_file = file(schema_path)
-+        self.schema = json.load(schema_file)
-+        schema_file.close()
-+        import jsonschema
-+        self.jsonschema = jsonschema
-+
-+    def validate(self, json):
-+        self.jsonschema.validate(instance=json, schema=self.schema)
-+
- class Nftables:
-     """A class representing libnftables interface"""
- 
-@@ -46,6 +61,8 @@ class Nftables:
-         "numeric_symbol": (1 << 9),
-     }
- 
-+    validator = None
-+
-     def __init__(self, sofile="libnftables.so"):
-         """Instantiate a new Nftables class object.
- 
-@@ -382,3 +399,16 @@ class Nftables:
-         if len(output):
-             output = json.loads(output)
-         return (rc, output, error)
-+
-+    def json_validate(self, json_root):
-+        """Validate JSON object against libnftables schema.
-+
-+        Accepts a hash object as input.
-+
-+        Returns True if JSON is valid, raises an exception otherwise.
-+        """
-+        if not self.validator:
-+            self.validator = SchemaValidator()
-+
-+        self.validator.validate(json_root)
-+        return True
-diff --git a/py/schema.json b/py/schema.json
-new file mode 100644
-index 0000000000000..6cb731a228bf4
---- /dev/null
-+++ b/py/schema.json
-@@ -0,0 +1,17 @@
++static void cache_add_set_cmd(struct nft_ctx *nft, struct cmd *cmd)
 +{
-+	"$schema": "http://json-schema.org/schema#",
-+	"id": "http://netfilter.org/nftables/ruleset-schema.json",
-+	"description": "libnftables JSON API schema",
++	struct table *table;
 +
-+	"type": "object",
-+        "properties": {
-+		"nftables": {
-+			"type": "array",
-+			"minitems": 0,
-+			"items": {
-+				"type": "object"
-+			}
-+		}
-+	},
-+	"required": [ "nftables" ]
++	table = table_lookup(&cmd->handle, &nft->cache);
++	if (table == NULL)
++		return;
++
++	if (set_lookup(table, cmd->set->handle.set.name) == NULL)
++		set_add_hash(set_get(cmd->set), table);
 +}
-diff --git a/py/setup.py b/py/setup.py
-index ef143c42a21b0..72fc8fd98b269 100755
---- a/py/setup.py
-+++ b/py/setup.py
-@@ -11,6 +11,7 @@ setup(name='nftables',
-       packages=['nftables'],
-       provides=['nftables'],
-       package_dir={'nftables':'.'},
-+      package_data={'nftables':['schema.json']},
-       classifiers=[
-           'Development Status :: 4 - Beta',
-           'Environment :: Console',
++
++static void cache_add_chain_cmd(struct nft_ctx *nft, struct cmd *cmd)
++{
++	struct table *table;
++	struct chain *chain;
++
++	table = table_lookup(&cmd->handle, &nft->cache);
++	if (table == NULL)
++		return;
++
++	if (cmd->chain == NULL) {
++		if (chain_lookup(table, &cmd->handle) == NULL) {
++			chain = chain_alloc(NULL);
++			handle_merge(&chain->handle, &cmd->handle);
++			chain_add_hash(chain, table);
++		}
++		return;
++	}
++	if (chain_lookup(table, &cmd->chain->handle) == NULL)
++		chain_add_hash(chain_get(cmd->chain), table);
++}
++
++static void cache_add_table_cmd(struct nft_ctx *nft, struct cmd *cmd)
++{
++	struct table *table;
++
++	if (table_lookup(&cmd->handle, &nft->cache))
++		return;
++
++	if (cmd->table == NULL) {
++		table = table_alloc();
++		handle_merge(&table->handle, &cmd->handle);
++		table_add_hash(table, &nft->cache);
++	} else {
++		table_add_hash(table_get(cmd->table), &nft->cache);
++	}
++}
++
++static void cache_add_commands(struct nft_ctx *nft)
++{
++	struct cmd *cmd;
++
++	list_for_each_entry(cmd, &nft->cmds, list) {
++		switch (cmd->obj) {
++		case CMD_OBJ_SET:
++			cache_add_set_cmd(nft, cmd);
++			break;
++		case CMD_OBJ_CHAIN:
++			cache_add_chain_cmd(nft, cmd);
++			break;
++		case CMD_OBJ_TABLE:
++			cache_add_table_cmd(nft, cmd);
++			break;
++		default:
++			break;
++		}
++	}
++}
++
+ /* Return a "score" of how complete local cache will be if
+  * cache_init_objects() ran for given cmd. Higher value
+  * means more complete. */
+@@ -270,6 +340,7 @@ replay:
+ 	}
+ 	cache->genid = genid;
+ 	cache->cmd = cmd;
++	cache_add_commands(nft);
+ 	return 0;
+ }
+ 
 -- 
 2.21.0
 
