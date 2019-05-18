@@ -3,76 +3,54 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_NEOMUTT
-	autolearn=ham autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_NEOMUTT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6933EC04AAF
-	for <netfilter-devel@archiver.kernel.org>; Sat, 18 May 2019 20:45:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 527E6C04AAF
+	for <netfilter-devel@archiver.kernel.org>; Sat, 18 May 2019 21:45:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 496F420675
-	for <netfilter-devel@archiver.kernel.org>; Sat, 18 May 2019 20:45:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2F95620873
+	for <netfilter-devel@archiver.kernel.org>; Sat, 18 May 2019 21:45:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729325AbfERUpO (ORCPT
+        id S1729422AbfERVpB (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 18 May 2019 16:45:14 -0400
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:52556 "EHLO
+        Sat, 18 May 2019 17:45:01 -0400
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:52632 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1729316AbfERUpO (ORCPT
+        by vger.kernel.org with ESMTP id S1726671AbfERVpB (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 18 May 2019 16:45:14 -0400
+        Sat, 18 May 2019 17:45:01 -0400
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.89)
         (envelope-from <fw@strlen.de>)
-        id 1hS6Ce-0000S0-HF; Sat, 18 May 2019 22:45:12 +0200
-Date:   Sat, 18 May 2019 22:45:12 +0200
+        id 1hS78W-0000fF-9v; Sat, 18 May 2019 23:45:00 +0200
+Date:   Sat, 18 May 2019 23:45:00 +0200
 From:   Florian Westphal <fw@strlen.de>
-To:     Fernando Fernandez Mancera <ffmancera@riseup.net>
-Cc:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH 4/5 nf-next] netfilter: synproxy: extract IPv6 SYNPROXY
- infrastructure from ip6t_SYNPROXY
-Message-ID: <20190518204512.p2aah3b7ud7bzyzo@breakpoint.cc>
-References: <20190518182151.1231-1-ffmancera@riseup.net>
- <20190518182151.1231-5-ffmancera@riseup.net>
- <20190518202032.2bjv4e547kli56c6@breakpoint.cc>
- <0719D27E-7E34-4DD5-8D1A-7B34794F272E@riseup.net>
+To:     marcmicalizzi@gmail.com
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: nftables flow offload possible mtu handling issue
+Message-ID: <20190518214500.u6mf3oelw47i6nbi@breakpoint.cc>
+References: <013801d50ccd$77ef0600$67cd1200$@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-15
 Content-Disposition: inline
-In-Reply-To: <0719D27E-7E34-4DD5-8D1A-7B34794F272E@riseup.net>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <013801d50ccd$77ef0600$67cd1200$@gmail.com>
 User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Fernando Fernandez Mancera <ffmancera@riseup.net> wrote:
-> >If we would make it accessible via nf_ipv6_ops struct, then the
-> >dependency goes away and we could place ipv4 and ipv6 parts in a
-> >single module.
-> >
-> >Just saying, it would avoid adding extra modules.
-> 
-> This would be awesome but I am not sure if it is possible right now. I am going to try it and send a new patch series. Thank you  about this!
+marcmicalizzi@gmail.com <marcmicalizzi@gmail.com> wrote:
+> With flow offload between devices of differing mtus, there seems to be an
+> issue sending from through higher mtu to the lower mtu device.
+> I’m currently on 4.20 from the linux-arm mcbin branch, as it’s all I can get
+> running on my specific embedded platform.
 
-You would need to make something similar as
-commit 960587285a56ec3cafb4d1e6b25c19eced4d0bce first.
+Current assumptions:
+1. Flow offload can't deal with GRO skbs when MTU of oif is smaller,
+   as it bypasses the code in ip output that deals with this
 
-Let me know if you need help.
+2. flow offload expr should never offload connections that have
+   active helper and/or seqadj extension.
 
-> >We could then have
-> >
-> >nf_synproxy.ko  # shared code
-> >nft_synproxy.ko # nftables frontend
-> >xt_SYNPROXY.ko	# ip(6)tables frontends
-> 
-> In this case, ip6t_synproxy wouldn't need to select IPV6 Cookie module right? Thanks!
-
-No, it would not need to do this.
-
-Basically all the .c code would have
-
-#if IS_ENABLED(CONFIG_IPV6)
-ipv6-code here
-#endif
-
-where needed, so in case the kernel is built with CONFIG_IPV6=m|y, the
-functionality is available.
