@@ -1,64 +1,57 @@
-Return-Path: <SRS0=W6An=TR=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=bWeD=TS=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+X-Spam-Status: No, score=-2.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_MUTT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F028EC04AB4
-	for <netfilter-devel@archiver.kernel.org>; Fri, 17 May 2019 23:00:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A8ECC04E87
+	for <netfilter-devel@archiver.kernel.org>; Sat, 18 May 2019 07:36:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CC2522087E
-	for <netfilter-devel@archiver.kernel.org>; Fri, 17 May 2019 23:00:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2C5C02087E
+	for <netfilter-devel@archiver.kernel.org>; Sat, 18 May 2019 07:36:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728195AbfEQXAu (ORCPT
+        id S1728688AbfERHga (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 17 May 2019 19:00:50 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:57054 "EHLO orbyte.nwl.cc"
+        Sat, 18 May 2019 03:36:30 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:57980 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726519AbfEQXAu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 17 May 2019 19:00:50 -0400
-Received: from localhost ([::1]:41910 helo=tatos)
-        by orbyte.nwl.cc with esmtp (Exim 4.91)
-        (envelope-from <phil@nwl.cc>)
-        id 1hRlqK-0007GS-Pz; Sat, 18 May 2019 01:00:48 +0200
+        id S1726671AbfERHga (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 18 May 2019 03:36:30 -0400
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.91)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1hRttM-0002cd-3I; Sat, 18 May 2019 09:36:28 +0200
+Date:   Sat, 18 May 2019 09:36:28 +0200
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Eric Garver <e@erig.me>, netfilter-devel@vger.kernel.org,
-        Florian Westphal <fw@strlen.de>
-Subject: [nft PATCH 0/3] Resolve cache update woes
-Date:   Sat, 18 May 2019 01:00:30 +0200
-Message-Id: <20190517230033.25417-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.21.0
+Cc:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+Subject: Refcounts in libnftnl?
+Message-ID: <20190518073628.GH4851@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This series implements a fix for situations where a cache update removes
-local (still uncommitted) items from cache leading to spurious errors
-afterwards.
+Hi!
 
-The series is based on Eric's "src: update cache if cmd is more
-specific" patch which is still under review but resolves a distinct
-problem from the one addressed in this series.
+Probably the best way to fix for the segfaults caused by Florian's cache
+rebuild logic in iptables-nft is to introduce reference counts so we
+don't have to care about whether a given object is present only in cache
+or also in a batch job.
 
-The first patch improves Eric's patch a bit. If he's OK with my change,
-it may very well be just folded into his.
+Unlike nftables, iptables-nft code uses libnftnl data structures instead
+of its own ones.
 
-Phil Sutter (3):
-  src: Improve cache_needs_more() algorithm
-  libnftables: Keep list of commands in nft context
-  src: Restore local entries after cache update
+I wonder if it is OK to add refcounts to libnftnl types instead of
+implementing wrapper structures for everything in iptables-nft. What do
+you think?
 
- include/nftables.h |  1 +
- src/libnftables.c  | 21 +++++------
- src/rule.c         | 91 +++++++++++++++++++++++++++++++++++++++++++---
- 3 files changed, 96 insertions(+), 17 deletions(-)
-
--- 
-2.21.0
-
+Cheers, Phil
