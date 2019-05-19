@@ -2,109 +2,100 @@ Return-Path: <SRS0=6IYx=TT=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_NEOMUTT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 15190C04AB4
-	for <netfilter-devel@archiver.kernel.org>; Sun, 19 May 2019 21:06:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F9B1C04AB4
+	for <netfilter-devel@archiver.kernel.org>; Sun, 19 May 2019 21:12:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D0F3920657
-	for <netfilter-devel@archiver.kernel.org>; Sun, 19 May 2019 21:06:11 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=riseup.net header.i=@riseup.net header.b="UPae3iRi"
+	by mail.kernel.org (Postfix) with ESMTP id 33F8720675
+	for <netfilter-devel@archiver.kernel.org>; Sun, 19 May 2019 21:12:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729458AbfESVGL (ORCPT
+        id S1729044AbfESVMJ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 19 May 2019 17:06:11 -0400
-Received: from mx1.riseup.net ([198.252.153.129]:55836 "EHLO mx1.riseup.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726066AbfESVGL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 19 May 2019 17:06:11 -0400
-Received: from capuchin.riseup.net (capuchin-pn.riseup.net [10.0.1.176])
-        (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
-        (Client CN "*.riseup.net", Issuer "COMODO RSA Domain Validation Secure Server CA" (verified OK))
-        by mx1.riseup.net (Postfix) with ESMTPS id DB5481A02E0;
-        Sun, 19 May 2019 14:06:10 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=riseup.net; s=squak;
-        t=1558299970; bh=PhJCJ177Ypk7trwHyZvX/mBOLoPyRQ/so13vqHegqLc=;
-        h=Subject:To:Cc:References:From:Date:In-Reply-To:From;
-        b=UPae3iRitjHzu5g6oosFloGAZibS4krA/XAd+1aSjBR6XyElPb1RLU2yy85ep9alK
-         tY2tiwQpk0cVm45Cj0oKdbXPnLD+3KsHqzXI1yRKuAy+farcLiSRefs4gbU7mSc7in
-         lPZHtlBqzs8z0rcVyT72SP/LiWvCIV1faI3H+yys=
-X-Riseup-User-ID: 9CB218310B1A6D4478D0180872FE4A9DA00685E61784E387904E00193F79EBD2
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-         by capuchin.riseup.net (Postfix) with ESMTPSA id 3D95C120236;
-        Sun, 19 May 2019 14:06:10 -0700 (PDT)
-Subject: Re: [PATCH nf-next v2 3/4] netfilter: synproxy: extract SYNPROXY
- infrastructure from {ipt,ip6t}_SYNPROXY
-To:     Florian Westphal <fw@strlen.de>
+        Sun, 19 May 2019 17:12:09 -0400
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:54034 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726066AbfESVMJ (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 19 May 2019 17:12:09 -0400
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.89)
+        (envelope-from <fw@strlen.de>)
+        id 1hST6F-0004ph-2u; Sun, 19 May 2019 23:12:07 +0200
+Date:   Sun, 19 May 2019 23:12:07 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     Fernando Fernandez Mancera <ffmancera@riseup.net>
 Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf-next v2 2/4] netfilter: synproxy: remove module
+ dependency on IPv6 SYNPROXY
+Message-ID: <20190519211207.mi3mbgtjcsbijsve@breakpoint.cc>
 References: <20190519205259.2821-1-ffmancera@riseup.net>
- <20190519205259.2821-4-ffmancera@riseup.net>
- <20190519210038.sgd4byoow374dd7p@breakpoint.cc>
-From:   Fernando Fernandez Mancera <ffmancera@riseup.net>
-Openpgp: preference=signencrypt
-Message-ID: <fc356493-5708-ce6f-8f0f-8c2c621a1313@riseup.net>
-Date:   Sun, 19 May 2019 23:06:23 +0200
+ <20190519205259.2821-3-ffmancera@riseup.net>
 MIME-Version: 1.0
-In-Reply-To: <20190519210038.sgd4byoow374dd7p@breakpoint.cc>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US-large
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190519205259.2821-3-ffmancera@riseup.net>
+User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Florian,
+Fernando Fernandez Mancera <ffmancera@riseup.net> wrote:
+> This is a prerequisite for the new infrastructure module NF_SYNPROXY. The new
+> module is needed to avoid duplicated code for the SYNPROXY nftables support.
+> 
+> Signed-off-by: Fernando Fernandez Mancera <ffmancera@riseup.net>
+> ---
+>  include/linux/netfilter_ipv6.h | 3 +++
+>  net/ipv6/netfilter.c           | 1 +
+>  2 files changed, 4 insertions(+)
+> 
+> diff --git a/include/linux/netfilter_ipv6.h b/include/linux/netfilter_ipv6.h
+> index 12113e502656..f440aaade612 100644
+> --- a/include/linux/netfilter_ipv6.h
+> +++ b/include/linux/netfilter_ipv6.h
+> @@ -8,6 +8,7 @@
+>  #define __LINUX_IP6_NETFILTER_H
+>  
+>  #include <uapi/linux/netfilter_ipv6.h>
+> +#include <net/tcp.h>
+>  
+>  /* Extra routing may needed on local out, as the QUEUE target never returns
+>   * control to the table.
+> @@ -35,6 +36,8 @@ struct nf_ipv6_ops {
+>  	int (*route)(struct net *net, struct dst_entry **dst, struct flowi *fl,
+>  		     bool strict);
+>  #endif
+> +	u32 (*cookie_init_sequence)(const struct ipv6hdr *iph,
+> +				    const struct tcphdr *th, u16 *mssp);
 
-On 5/19/19 11:00 PM, Florian Westphal wrote:
-> Fernando Fernandez Mancera <ffmancera@riseup.net> wrote:
->> ---
->>  include/net/netfilter/nf_synproxy.h |  76 +++
->>  net/ipv4/netfilter/ipt_SYNPROXY.c   | 394 +------------
->>  net/ipv6/netfilter/ip6t_SYNPROXY.c  | 420 +-------------
->>  net/netfilter/nf_synproxy.c         | 819 ++++++++++++++++++++++++++++
->>  4 files changed, 910 insertions(+), 799 deletions(-)
->>  create mode 100644 include/net/netfilter/nf_synproxy.h
->>  create mode 100644 net/netfilter/nf_synproxy.c
->>
->> diff --git a/include/net/netfilter/nf_synproxy.h b/include/net/netfilter/nf_synproxy.h
->> new file mode 100644
->> index 000000000000..97fb12ea5092
->> --- /dev/null
->> +++ b/include/net/netfilter/nf_synproxy.h
->> +/* Hook operations used by {ip,nf}tables SYNPROXY support */
->> +const struct nf_hook_ops ipv4_synproxy_ops[] = {
->> +	{
->> +		.hook		= ipv4_synproxy_hook,
->> +		.pf		= NFPROTO_IPV4,
->> +		.hooknum	= NF_INET_LOCAL_IN,
->> +		.priority	= NF_IP_PRI_CONNTRACK_CONFIRM - 1,
->> +	},
->> +	{
->> +		.hook		= ipv4_synproxy_hook,
->> +		.pf		= NFPROTO_IPV4,
->> +		.hooknum	= NF_INET_POST_ROUTING,
->> +		.priority	= NF_IP_PRI_CONNTRACK_CONFIRM - 1,
->> +	},
->> +};
-> 
-> Can this be avoided?
-> 
-> This should only be placed in a single .c file, not in a header.
-> I also suspect this should be 'static const'.
-> 
-> Seems you can just move it to nf_synproxy.c, where its used.
-> 
+Could you place this above, in the #endif block?
 
-My fault, I thought it was used in ipt_SYNPROXY.c and ip6t_SYNPROXY.c.
-Sorry I am going to change this in a v3 among others changes suggested
-after reviews. Thanks!
+You will need to create a helper as well:
+static inline u32 nf_ipv6_cookie_init_sequence(const struct ipv6hdr *iph,
+					       const struct tcphdr *th,
+					       u16 *mssp)
+{
+#if IS_MODULE(CONFIG_IPV6)
+	const struct nf_ipv6_ops *v6_ops = nf_get_ipv6_ops();
 
->> +static const struct nf_hook_ops ipv6_synproxy_ops[] = {
-> 
-> likewise.
-> 
+	if (v6_ops)
+		return v6_ops->cookie_init_sequence(iph, th, mssp);
+#else
+	return __cookie_v6_init_sequence(iph, th, mssp);
+#endif
+}
+
+This way, when ipv6 is built-in, then we don't have the indirection
+if netfilter uses the nf_ipv6_cookie_init_sequence() helper.
+
+Also, can you check that if using CONFIG_IPV6=m then
+"modinfo nf_synproxy" won't list ipv6 as a a module depencency?
+
+If it does, there is another symbol that pulls in ipv6 (depmod will
+say which one).
+
+Thanks!
