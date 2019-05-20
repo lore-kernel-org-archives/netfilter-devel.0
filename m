@@ -2,70 +2,73 @@ Return-Path: <SRS0=v9tr=TU=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=0.1 required=3.0 tests=DATE_IN_PAST_06_12,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 06216C04E87
-	for <netfilter-devel@archiver.kernel.org>; Mon, 20 May 2019 18:32:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D7D84C04AAC
+	for <netfilter-devel@archiver.kernel.org>; Mon, 20 May 2019 19:08:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E503920657
-	for <netfilter-devel@archiver.kernel.org>; Mon, 20 May 2019 18:32:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B56AB20675
+	for <netfilter-devel@archiver.kernel.org>; Mon, 20 May 2019 19:08:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726026AbfETScV (ORCPT
+        id S1725772AbfETTIb (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 20 May 2019 14:32:21 -0400
-Received: from westpalmbeachmassagegroup.com ([45.35.221.60]:59693 "EHLO
-        wolfgangdigital.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1725995AbfETScV (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 20 May 2019 14:32:21 -0400
+        Mon, 20 May 2019 15:08:31 -0400
+Received: from mail.us.es ([193.147.175.20]:38338 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725536AbfETTIb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 20 May 2019 15:08:31 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 12FDCBAEE7
+        for <netfilter-devel@vger.kernel.org>; Mon, 20 May 2019 21:08:29 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 06E6DDA706
+        for <netfilter-devel@vger.kernel.org>; Mon, 20 May 2019 21:08:29 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id F0DF8DA704; Mon, 20 May 2019 21:08:28 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id DA7B5DA701;
+        Mon, 20 May 2019 21:08:26 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Mon, 20 May 2019 21:08:26 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from salvia.here (sys.soleta.eu [212.170.55.40])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id A71324265A31;
+        Mon, 20 May 2019 21:08:26 +0200 (CEST)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: Print your logo
-Message-ID: <0969d35c356f6774ba3efaa56f895688@esquire.com>
-Date:   Mon, 20 May 2019 14:22:48 +0200
-From:   "Heather" <heather@usblogo.space>
-Reply-To: flashdrive@aliyun.com
-MIME-Version: 1.0
-Content-Type: text/plain; format=flowed; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Cc:     phil@nwl.cc, fw@strlen.de
+Subject: [PATCH iptables 0/6] ERESTART fixes
+Date:   Mon, 20 May 2019 21:08:16 +0200
+Message-Id: <20190520190822.18873-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.11.0
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi,
+A batch of patches to fix concurrent updates via iptables-restore that
+result in ERESTART errors in iptables.
 
-I didn’t know if you had received my email from last week?
+Pablo Neira Ayuso (5):
+  nft: keep original cache in case of ERESTART
+  nft: don't skip table addition from ERESTART
+  nft: don't care about previous state in ERESTART
+  nft: do not retry on EINTR
+  nft: reset netlink sender buffer size of socket restart
 
-We manufacture ALL custom LOGO and branded products – over 300,000 to
-choose from.
+Phil Sutter (1):
+  xtables: Fix for explicit rule flushes
 
-The most asked about product that we make, is the custom printed USB flash
-drives!
-We can print your logo on them and load your digital images, videos and
-files!
+ iptables/nft.c | 79 ++++++++++++++++++++++++++++------------------------------
+ iptables/nft.h |  3 ++-
+ 2 files changed, 40 insertions(+), 42 deletions(-)
 
-Here is what we include:
--Any size memory you need: 64MB up to 128GB
--We will print your logo on both sides, just ask!
--Very Low Order Minimums
--Need them quickly?  Not a problem, we offer Rush Service
-
-Email over a copy of your logo and we will create a design mock up for you
-at no cost!
-
-Our higher memory sizes are a really good option right now!
-
-Pricing is low right now, so let us know what you need and we will get you
-a quick quote.
-
-We always offer great rates for schools and nonprofits as well.
-
-Let us know what you would like quoted?
-
-Regards,
-
-Heather Millons
-Custom USB Account Manager
+-- 
+2.11.0
 
