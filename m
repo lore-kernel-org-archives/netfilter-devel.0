@@ -4,47 +4,47 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 99FBAC04AAC
-	for <netfilter-devel@archiver.kernel.org>; Mon, 20 May 2019 12:27:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1EE20C04E87
+	for <netfilter-devel@archiver.kernel.org>; Mon, 20 May 2019 12:27:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7815C214AE
+	by mail.kernel.org (Postfix) with ESMTP id F242A21019
 	for <netfilter-devel@archiver.kernel.org>; Mon, 20 May 2019 12:27:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389388AbfETM07 (ORCPT
+        id S2389390AbfETM1A (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 20 May 2019 08:26:59 -0400
-Received: from mail.us.es ([193.147.175.20]:34242 "EHLO mail.us.es"
+        Mon, 20 May 2019 08:27:00 -0400
+Received: from mail.us.es ([193.147.175.20]:34226 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2389359AbfETM07 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        id S2389432AbfETM07 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Mon, 20 May 2019 08:26:59 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 83CFCDA707
-        for <netfilter-devel@vger.kernel.org>; Mon, 20 May 2019 14:26:57 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 647201D94A6
+        for <netfilter-devel@vger.kernel.org>; Mon, 20 May 2019 14:26:56 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 73BF6DA704
-        for <netfilter-devel@vger.kernel.org>; Mon, 20 May 2019 14:26:57 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 53C29DA710
+        for <netfilter-devel@vger.kernel.org>; Mon, 20 May 2019 14:26:56 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 69412DA702; Mon, 20 May 2019 14:26:57 +0200 (CEST)
+        id 49777DA705; Mon, 20 May 2019 14:26:56 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 6FCB6DA70F;
-        Mon, 20 May 2019 14:26:55 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 4B29CDA706;
+        Mon, 20 May 2019 14:26:54 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 20 May 2019 14:26:55 +0200 (CEST)
+ Mon, 20 May 2019 14:26:54 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 44BBC4265A5B;
-        Mon, 20 May 2019 14:26:55 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 1F42D4265A32;
+        Mon, 20 May 2019 14:26:54 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     phil@nwl.cc, fw@strlen.de
-Subject: [PATCH iptables 6/6] nft: ensure cache consistency
-Date:   Mon, 20 May 2019 14:26:46 +0200
-Message-Id: <20190520122646.17788-7-pablo@netfilter.org>
+Subject: [PATCH iptables 4/6] nft: add flush_cache()
+Date:   Mon, 20 May 2019 14:26:44 +0200
+Message-Id: <20190520122646.17788-5-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20190520122646.17788-1-pablo@netfilter.org>
 References: <20190520122646.17788-1-pablo@netfilter.org>
@@ -54,77 +54,71 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Check for generation ID before and after fetching the cache to ensure
-consistency.
+This new function takes a struct nft_cache as parameter.
+
+This patch also introduces __nft_table_builtin_find() which is required
+to look up for built-in tables without the nft_handle structure.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- iptables/nft.c | 22 ++++++++++++++++------
- 1 file changed, 16 insertions(+), 6 deletions(-)
+ iptables/nft.c | 30 +++++++++++++++++++-----------
+ 1 file changed, 19 insertions(+), 11 deletions(-)
 
 diff --git a/iptables/nft.c b/iptables/nft.c
-index 063637e22fb8..172beec9ae27 100644
+index b0a15e9b3f7c..8f6f7a41ff33 100644
 --- a/iptables/nft.c
 +++ b/iptables/nft.c
-@@ -63,7 +63,7 @@ static void *nft_fn;
- 
- static int genid_cb(const struct nlmsghdr *nlh, void *data)
- {
--	struct nft_handle *h = data;
-+	uint32_t *genid = data;
- 	struct nftnl_gen *gen;
- 
- 	gen = nftnl_gen_alloc();
-@@ -73,7 +73,7 @@ static int genid_cb(const struct nlmsghdr *nlh, void *data)
- 	if (nftnl_gen_nlmsg_parse(nlh, gen) < 0)
- 		goto out;
- 
--	h->nft_genid = nftnl_gen_get_u32(gen, NFTNL_GEN_ID);
-+	*genid = nftnl_gen_get_u32(gen, NFTNL_GEN_ID);
- 
- 	nftnl_gen_free(gen);
- 	return MNL_CB_STOP;
-@@ -82,13 +82,13 @@ out:
- 	return MNL_CB_ERROR;
+@@ -840,31 +840,39 @@ static int __flush_chain_cache(struct nftnl_chain *c, void *data)
+ 	return 0;
  }
  
--static int mnl_genid_get(struct nft_handle *h)
-+static int mnl_genid_get(struct nft_handle *h, uint32_t *genid)
+-static void flush_chain_cache(struct nft_handle *h, const char *tablename)
++static int flush_cache(struct nft_cache *c, const struct builtin_table *tables,
++		       const char *tablename)
  {
- 	char buf[MNL_SOCKET_BUFFER_SIZE];
- 	struct nlmsghdr *nlh;
+ 	const struct builtin_table *table;
+ 	int i;
  
- 	nlh = nftnl_nlmsg_build_hdr(buf, NFT_MSG_GETGEN, 0, 0, h->seq);
--	return mnl_talk(h, nlh, genid_cb, h);
-+	return mnl_talk(h, nlh, genid_cb, genid);
- }
+ 	if (tablename) {
+-		table = nft_table_builtin_find(h, tablename);
+-		if (!table || !h->cache->table[table->type].chains)
+-			return;
+-		nftnl_chain_list_foreach(h->cache->table[table->type].chains,
++		table = __nft_table_builtin_find(tables, tablename);
++		if (!table || !c->table[table->type].chains)
++			return 0;
++		nftnl_chain_list_foreach(c->table[table->type].chains,
+ 					 __flush_chain_cache, NULL);
+-		return;
++		return 0;
+ 	}
  
- int mnl_talk(struct nft_handle *h, struct nlmsghdr *nlh,
-@@ -1595,12 +1595,22 @@ static int fetch_rule_cache(struct nft_handle *h)
+ 	for (i = 0; i < NFT_TABLE_MAX; i++) {
+-		if (h->tables[i].name == NULL)
++		if (tables[i].name == NULL)
+ 			continue;
  
- static void __nft_build_cache(struct nft_handle *h)
- {
--	mnl_genid_get(h);
-+	uint32_t genid_start, genid_stop;
+-		if (!h->cache->table[i].chains)
++		if (!c->table[i].chains)
+ 			continue;
+ 
+-		nftnl_chain_list_free(h->cache->table[i].chains);
+-		h->cache->table[i].chains = NULL;
++		nftnl_chain_list_free(c->table[i].chains);
++		c->table[i].chains = NULL;
+ 	}
+-	h->have_cache = false;
 +
-+retry:
-+	mnl_genid_get(h, &genid_start);
- 	fetch_chain_cache(h);
- 	fetch_rule_cache(h);
- 	h->have_cache = true;
--}
-+	mnl_genid_get(h, &genid_stop);
- 
-+	if (genid_start != genid_stop) {
-+		flush_chain_cache(h, NULL);
-+		goto retry;
-+	}
-+
-+	h->nft_genid = genid_start;
++	return 1;
 +}
++
++static void flush_chain_cache(struct nft_handle *h, const char *tablename)
++{
++	if (flush_cache(h->cache, h->tables, tablename))
++		h->have_cache = false;
+ }
  
- void nft_build_cache(struct nft_handle *h)
- {
+ void nft_fini(struct nft_handle *h)
 -- 
 2.11.0
 
