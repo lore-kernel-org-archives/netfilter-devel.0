@@ -4,103 +4,101 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	USER_AGENT_NEOMUTT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7BFCEC46470
-	for <netfilter-devel@archiver.kernel.org>; Mon, 20 May 2019 12:27:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E3937C04AAC
+	for <netfilter-devel@archiver.kernel.org>; Mon, 20 May 2019 12:42:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5235121019
-	for <netfilter-devel@archiver.kernel.org>; Mon, 20 May 2019 12:27:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B83EF216FD
+	for <netfilter-devel@archiver.kernel.org>; Mon, 20 May 2019 12:42:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389436AbfETM06 (ORCPT
+        id S2390682AbfETMmQ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 20 May 2019 08:26:58 -0400
-Received: from mail.us.es ([193.147.175.20]:34214 "EHLO mail.us.es"
+        Mon, 20 May 2019 08:42:16 -0400
+Received: from mx1.redhat.com ([209.132.183.28]:63495 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2389355AbfETM05 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 20 May 2019 08:26:57 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id CC2361D94AA
-        for <netfilter-devel@vger.kernel.org>; Mon, 20 May 2019 14:26:55 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id BBA1BDA708
-        for <netfilter-devel@vger.kernel.org>; Mon, 20 May 2019 14:26:55 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id B0C09DA702; Mon, 20 May 2019 14:26:55 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id B8857DA705;
-        Mon, 20 May 2019 14:26:53 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 20 May 2019 14:26:53 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from salvia.here (sys.soleta.eu [212.170.55.40])
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 853084265A32;
-        Mon, 20 May 2019 14:26:53 +0200 (CEST)
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     phil@nwl.cc, fw@strlen.de
-Subject: [PATCH iptables 3/6] nft: add __nft_table_builtin_find()
-Date:   Mon, 20 May 2019 14:26:43 +0200
-Message-Id: <20190520122646.17788-4-pablo@netfilter.org>
-X-Mailer: git-send-email 2.11.0
-In-Reply-To: <20190520122646.17788-1-pablo@netfilter.org>
-References: <20190520122646.17788-1-pablo@netfilter.org>
-X-Virus-Scanned: ClamAV using ClamSMTP
+        id S2390124AbfETMmP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 20 May 2019 08:42:15 -0400
+Received: from smtp.corp.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mx1.redhat.com (Postfix) with ESMTPS id 265E588306;
+        Mon, 20 May 2019 12:42:14 +0000 (UTC)
+Received: from egarver.localdomain (ovpn-122-94.rdu2.redhat.com [10.10.122.94])
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id D9E7F60CD1;
+        Mon, 20 May 2019 12:42:09 +0000 (UTC)
+Date:   Mon, 20 May 2019 08:42:07 -0400
+From:   Eric Garver <eric@garver.life>
+To:     Phil Sutter <phil@nwl.cc>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
+Subject: Re: [nft PATCH 1/3] src: Improve cache_needs_more() algorithm
+Message-ID: <20190520124207.sgdrzok6uqoupzzp@egarver.localdomain>
+Mail-Followup-To: Eric Garver <eric@garver.life>, Phil Sutter <phil@nwl.cc>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
+References: <20190517230033.25417-1-phil@nwl.cc>
+ <20190517230033.25417-2-phil@nwl.cc>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190517230033.25417-2-phil@nwl.cc>
+User-Agent: NeoMutt/20180716
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.12
+X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.5.16 (mx1.redhat.com [10.5.110.28]); Mon, 20 May 2019 12:42:14 +0000 (UTC)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- iptables/nft.c | 18 ++++++++++++------
- 1 file changed, 12 insertions(+), 6 deletions(-)
+On Sat, May 18, 2019 at 01:00:31AM +0200, Phil Sutter wrote:
+> The old logic wasn't optimal: If e.g. current command was CMD_RESET and
+> old command was CMD_LIST, cache was already fully populated but still
+> refreshed.
+> 
+> Introduce a simple scoring system which reflects how
+> cache_init_objects() looks at the current command to decide if it is
+> finished already or not. Then use that in cache_needs_more(): If current
+> commands score is higher than old command's, cache needs an update.
+> 
+> Signed-off-by: Phil Sutter <phil@nwl.cc>
+> ---
+>  src/rule.c | 20 ++++++++++++++------
+>  1 file changed, 14 insertions(+), 6 deletions(-)
+> 
+> diff --git a/src/rule.c b/src/rule.c
+> index afe37cd90b1da..17bf5bbbe680c 100644
+> --- a/src/rule.c
+> +++ b/src/rule.c
+> @@ -220,13 +220,21 @@ static int cache_init(struct netlink_ctx *ctx, enum cmd_ops cmd)
+>  	return 0;
+>  }
+>  
+> -static int cache_needs_more(enum cmd_ops old_cmd, enum cmd_ops cmd)
+> +/* Return a "score" of how complete local cache will be if
+> + * cache_init_objects() ran for given cmd. Higher value
+> + * means more complete. */
+> +static int cache_completeness(enum cmd_ops cmd)
+>  {
+> -	if (cmd == CMD_LIST && old_cmd != CMD_LIST)
+> -		return 1;
+> -	if (cmd == CMD_RESET && old_cmd != CMD_RESET)
+> -		return 1;
+> -	return 0;
+> +	if (cmd == CMD_LIST)
+> +		return 3;
+> +	if (cmd != CMD_RESET)
+> +		return 2;
+> +	return 1;
+> +}
+> +
+> +static bool cache_needs_more(enum cmd_ops old_cmd, enum cmd_ops cmd)
+> +{
+> +	return cache_completeness(old_cmd) < cache_completeness(cmd);
+>  }
+>  
+>  int cache_update(struct nft_ctx *nft, enum cmd_ops cmd, struct list_head *msgs)
+> -- 
+> 2.21.0
 
-diff --git a/iptables/nft.c b/iptables/nft.c
-index 6c6cd787c06f..b0a15e9b3f7c 100644
---- a/iptables/nft.c
-+++ b/iptables/nft.c
-@@ -688,25 +688,31 @@ static void nft_chain_builtin_add(struct nft_handle *h,
- 	nftnl_chain_list_add_tail(c, h->cache->table[table->type].chains);
- }
- 
--/* find if built-in table already exists */
--const struct builtin_table *
--nft_table_builtin_find(struct nft_handle *h, const char *table)
-+static const struct builtin_table *
-+__nft_table_builtin_find(const struct builtin_table *tables, const char *table)
- {
- 	int i;
- 	bool found = false;
- 
- 	for (i = 0; i < NFT_TABLE_MAX; i++) {
--		if (h->tables[i].name == NULL)
-+		if (tables[i].name == NULL)
- 			continue;
- 
--		if (strcmp(h->tables[i].name, table) != 0)
-+		if (strcmp(tables[i].name, table) != 0)
- 			continue;
- 
- 		found = true;
- 		break;
- 	}
- 
--	return found ? &h->tables[i] : NULL;
-+	return found ? &tables[i] : NULL;
-+}
-+
-+/* find if built-in table already exists */
-+const struct builtin_table *
-+nft_table_builtin_find(struct nft_handle *h, const char *table)
-+{
-+	return __nft_table_builtin_find(h->tables, table);
- }
- 
- /* find if built-in chain already exists */
--- 
-2.11.0
-
+LGTM. Feel free to take my patch and fold it into this series.
