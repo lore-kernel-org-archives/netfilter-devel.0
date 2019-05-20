@@ -4,47 +4,47 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 74B44C04AAF
-	for <netfilter-devel@archiver.kernel.org>; Mon, 20 May 2019 12:26:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 52D42C04AAF
+	for <netfilter-devel@archiver.kernel.org>; Mon, 20 May 2019 12:27:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4925120815
-	for <netfilter-devel@archiver.kernel.org>; Mon, 20 May 2019 12:26:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 25F50214AE
+	for <netfilter-devel@archiver.kernel.org>; Mon, 20 May 2019 12:27:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389433AbfETM05 (ORCPT
+        id S2389389AbfETM1A (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 20 May 2019 08:26:57 -0400
-Received: from mail.us.es ([193.147.175.20]:34190 "EHLO mail.us.es"
+        Mon, 20 May 2019 08:27:00 -0400
+Received: from mail.us.es ([193.147.175.20]:34234 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2389429AbfETM04 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 20 May 2019 08:26:56 -0400
+        id S2389434AbfETM07 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 20 May 2019 08:26:59 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 90F34DA707
-        for <netfilter-devel@vger.kernel.org>; Mon, 20 May 2019 14:26:54 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 0FAF61D94A3
+        for <netfilter-devel@vger.kernel.org>; Mon, 20 May 2019 14:26:57 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 7F979DA70A
-        for <netfilter-devel@vger.kernel.org>; Mon, 20 May 2019 14:26:54 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id F3B55DA708
+        for <netfilter-devel@vger.kernel.org>; Mon, 20 May 2019 14:26:56 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 74EE4DA70E; Mon, 20 May 2019 14:26:54 +0200 (CEST)
+        id E9287DA703; Mon, 20 May 2019 14:26:56 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 599A0DA70A;
-        Mon, 20 May 2019 14:26:52 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id D6949DA70A;
+        Mon, 20 May 2019 14:26:54 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 20 May 2019 14:26:52 +0200 (CEST)
+ Mon, 20 May 2019 14:26:54 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 2BBEC4265A32;
-        Mon, 20 May 2019 14:26:52 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id ABB744265A5B;
+        Mon, 20 May 2019 14:26:54 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     phil@nwl.cc, fw@strlen.de
-Subject: [PATCH iptables 1/6] nft: add struct nft_cache
-Date:   Mon, 20 May 2019 14:26:41 +0200
-Message-Id: <20190520122646.17788-2-pablo@netfilter.org>
+Subject: [PATCH iptables 5/6] nft: cache table list
+Date:   Mon, 20 May 2019 14:26:45 +0200
+Message-Id: <20190520122646.17788-6-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20190520122646.17788-1-pablo@netfilter.org>
 References: <20190520122646.17788-1-pablo@netfilter.org>
@@ -54,167 +54,196 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Add new structure that encloses the cache and update the code to use it.
+nft_table_find() uses the table list cache to look up for existing
+tables.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- iptables/nft.c | 31 ++++++++++++++++---------------
- iptables/nft.h | 13 +++++++++----
- 2 files changed, 25 insertions(+), 19 deletions(-)
+ iptables/nft.c | 102 ++++++++++++++++++++++++++++++++-------------------------
+ iptables/nft.h |   1 +
+ 2 files changed, 58 insertions(+), 45 deletions(-)
 
 diff --git a/iptables/nft.c b/iptables/nft.c
-index dab1db59ec97..167237ab45b1 100644
+index 8f6f7a41ff33..063637e22fb8 100644
 --- a/iptables/nft.c
 +++ b/iptables/nft.c
-@@ -631,7 +631,7 @@ const struct builtin_table xtables_bridge[NFT_TABLE_MAX] = {
- static bool nft_table_initialized(const struct nft_handle *h,
- 				  enum nft_table_type type)
+@@ -865,12 +865,17 @@ static int flush_cache(struct nft_cache *c, const struct builtin_table *tables,
+ 		nftnl_chain_list_free(c->table[i].chains);
+ 		c->table[i].chains = NULL;
+ 	}
++	nftnl_table_list_free(c->tables);
++	c->tables = NULL;
+ 
+ 	return 1;
+ }
+ 
+ static void flush_chain_cache(struct nft_handle *h, const char *tablename)
  {
--	return h->table[type].initialized;
-+	return h->cache->table[type].initialized;
++	if (!h->have_cache)
++		return;
++
+ 	if (flush_cache(h->cache, h->tables, tablename))
+ 		h->have_cache = false;
+ }
+@@ -1350,6 +1355,53 @@ err:
+ 	return MNL_CB_OK;
  }
  
- static int nft_table_builtin_add(struct nft_handle *h,
-@@ -685,7 +685,7 @@ static void nft_chain_builtin_add(struct nft_handle *h,
- 		return;
++static int nftnl_table_list_cb(const struct nlmsghdr *nlh, void *data)
++{
++	struct nftnl_table *t;
++	struct nftnl_table_list *list = data;
++
++	t = nftnl_table_alloc();
++	if (t == NULL)
++		goto err;
++
++	if (nftnl_table_nlmsg_parse(nlh, t) < 0)
++		goto out;
++
++	nftnl_table_list_add_tail(t, list);
++
++	return MNL_CB_OK;
++out:
++	nftnl_table_free(t);
++err:
++	return MNL_CB_OK;
++}
++
++static int fetch_table_cache(struct nft_handle *h)
++{
++	char buf[16536];
++	struct nlmsghdr *nlh;
++	struct nftnl_table_list *list;
++	int ret;
++
++retry:
++	list = nftnl_table_list_alloc();
++	if (list == NULL)
++		return 0;
++
++	nlh = nftnl_rule_nlmsg_build_hdr(buf, NFT_MSG_GETTABLE, h->family,
++					NLM_F_DUMP, h->seq);
++
++	ret = mnl_talk(h, nlh, nftnl_table_list_cb, list);
++	if (ret < 0 && errno == EINTR) {
++		assert(nft_restart(h) >= 0);
++		nftnl_table_list_free(list);
++		goto retry;
++	}
++	h->cache->tables = list;
++
++	return 1;
++}
++
+ static int fetch_chain_cache(struct nft_handle *h)
+ {
+ 	char buf[16536];
+@@ -1357,6 +1409,8 @@ static int fetch_chain_cache(struct nft_handle *h)
+ 	int i, ret;
  
- 	batch_chain_add(h, NFT_COMPAT_CHAIN_ADD, c);
--	nftnl_chain_list_add_tail(c, h->table[table->type].chain_cache);
-+	nftnl_chain_list_add_tail(c, h->cache->table[table->type].chains);
+ retry:
++	fetch_table_cache(h);
++
+ 	for (i = 0; i < NFT_TABLE_MAX; i++) {
+ 		enum nft_table_type type = h->tables[i].type;
+ 
+@@ -1968,56 +2022,17 @@ int nft_chain_user_rename(struct nft_handle *h,const char *chain,
+ 	return ret == 0 ? 1 : 0;
  }
  
- /* find if built-in table already exists */
-@@ -763,7 +763,7 @@ static int nft_xt_builtin_init(struct nft_handle *h, const char *table)
+-static int nftnl_table_list_cb(const struct nlmsghdr *nlh, void *data)
+-{
+-	struct nftnl_table *t;
+-	struct nftnl_table_list *list = data;
+-
+-	t = nftnl_table_alloc();
+-	if (t == NULL)
+-		goto err;
+-
+-	if (nftnl_table_nlmsg_parse(nlh, t) < 0)
+-		goto out;
+-
+-	nftnl_table_list_add_tail(t, list);
+-
+-	return MNL_CB_OK;
+-out:
+-	nftnl_table_free(t);
+-err:
+-	return MNL_CB_OK;
+-}
+-
+ static struct nftnl_table_list *nftnl_table_list_get(struct nft_handle *h)
+ {
+-	char buf[16536];
+-	struct nlmsghdr *nlh;
+-	struct nftnl_table_list *list;
+-	int ret;
+-
+-retry:
+-	list = nftnl_table_list_alloc();
+-	if (list == NULL)
+-		return 0;
+-
+-	nlh = nftnl_rule_nlmsg_build_hdr(buf, NFT_MSG_GETTABLE, h->family,
+-					NLM_F_DUMP, h->seq);
+-
+-	ret = mnl_talk(h, nlh, nftnl_table_list_cb, list);
+-	if (ret < 0 && errno == EINTR) {
+-		assert(nft_restart(h) >= 0);
+-		nftnl_table_list_free(list);
+-		goto retry;
+-	}
++	nft_build_cache(h);
  
- 	nft_chain_builtin_init(h, t);
+-	return list;
++	return h->cache->tables;
+ }
  
--	h->table[t->type].initialized = true;
-+	h->cache->table[t->type].initialized = true;
+ bool nft_table_find(struct nft_handle *h, const char *tablename)
+ {
+-	struct nftnl_table_list *list;
+ 	struct nftnl_table_list_iter *iter;
++	struct nftnl_table_list *list;
+ 	struct nftnl_table *t;
+ 	bool ret = false;
  
+@@ -2043,7 +2058,6 @@ bool nft_table_find(struct nft_handle *h, const char *tablename)
+ 	}
+ 
+ 	nftnl_table_list_iter_destroy(iter);
+-	nftnl_table_list_free(list);
+ 
+ err:
+ 	return ret;
+@@ -2076,7 +2090,6 @@ int nft_for_each_table(struct nft_handle *h,
+ 	}
+ 
+ 	nftnl_table_list_iter_destroy(iter);
+-	nftnl_table_list_free(list);
  	return 0;
  }
-@@ -805,6 +805,7 @@ int nft_init(struct nft_handle *h, const struct builtin_table *t)
  
- 	h->portid = mnl_socket_get_portid(h->nl);
- 	h->tables = t;
-+	h->cache = &h->__cache;
- 
- 	INIT_LIST_HEAD(&h->obj_list);
- 	INIT_LIST_HEAD(&h->err_list);
-@@ -840,9 +841,9 @@ static void flush_chain_cache(struct nft_handle *h, const char *tablename)
- 
- 	if (tablename) {
- 		table = nft_table_builtin_find(h, tablename);
--		if (!table || !h->table[table->type].chain_cache)
-+		if (!table || !h->cache->table[table->type].chains)
- 			return;
--		nftnl_chain_list_foreach(h->table[table->type].chain_cache,
-+		nftnl_chain_list_foreach(h->cache->table[table->type].chains,
- 					 __flush_chain_cache, NULL);
- 		return;
- 	}
-@@ -851,11 +852,11 @@ static void flush_chain_cache(struct nft_handle *h, const char *tablename)
- 		if (h->tables[i].name == NULL)
- 			continue;
- 
--		if (!h->table[i].chain_cache)
-+		if (!h->cache->table[i].chains)
- 			continue;
- 
--		nftnl_chain_list_free(h->table[i].chain_cache);
--		h->table[i].chain_cache = NULL;
-+		nftnl_chain_list_free(h->cache->table[i].chains);
-+		h->cache->table[i].chains = NULL;
- 	}
- 	h->have_cache = false;
- }
-@@ -1326,7 +1327,7 @@ static int nftnl_chain_list_cb(const struct nlmsghdr *nlh, void *data)
- 	if (!t)
- 		goto out;
- 
--	nftnl_chain_list_add_tail(c, h->table[t->type].chain_cache);
-+	nftnl_chain_list_add_tail(c, h->cache->table[t->type].chains);
- 
- 	return MNL_CB_OK;
- out:
-@@ -1348,8 +1349,8 @@ retry:
- 		if (!h->tables[i].name)
- 			continue;
- 
--		h->table[type].chain_cache = nftnl_chain_list_alloc();
--		if (!h->table[type].chain_cache)
-+		h->cache->table[type].chains = nftnl_chain_list_alloc();
-+		if (!h->cache->table[type].chains)
- 			return -1;
- 	}
- 
-@@ -1517,7 +1518,7 @@ static int fetch_rule_cache(struct nft_handle *h)
- 		if (!h->tables[i].name)
- 			continue;
- 
--		if (nftnl_chain_list_foreach(h->table[type].chain_cache,
-+		if (nftnl_chain_list_foreach(h->cache->table[type].chains,
- 					     nft_rule_list_update, h))
- 			return -1;
- 	}
-@@ -1558,7 +1559,7 @@ struct nftnl_chain_list *nft_chain_list_get(struct nft_handle *h,
- 
- 	nft_build_cache(h);
- 
--	return h->table[t->type].chain_cache;
-+	return h->cache->table[t->type].chains;
- }
- 
- static const char *policy_name[NF_ACCEPT+1] = {
-@@ -2088,7 +2089,7 @@ static int __nft_table_flush(struct nft_handle *h, const char *table, bool exist
- 
- 	_t = nft_table_builtin_find(h, table);
- 	assert(_t);
--	h->table[_t->type].initialized = false;
-+	h->cache->table[_t->type].initialized = false;
- 
- 	flush_chain_cache(h, table);
- 
-@@ -3021,7 +3022,7 @@ static void nft_bridge_commit_prepare(struct nft_handle *h)
- 		if (!t->name)
- 			continue;
- 
--		list = h->table[t->type].chain_cache;
-+		list = h->cache->table[t->type].chains;
- 		if (!list)
- 			continue;
- 
+@@ -2148,7 +2161,6 @@ int nft_table_flush(struct nft_handle *h, const char *table)
+ 	ret = __nft_table_flush(h, table, exists);
+ 	nftnl_table_list_iter_destroy(iter);
+ err_table_list:
+-	nftnl_table_list_free(list);
+ err_out:
+ 	/* the core expects 1 for success and 0 for error */
+ 	return ret == 0 ? 1 : 0;
 diff --git a/iptables/nft.h b/iptables/nft.h
-index 23bd2b79884c..8292a2922d6a 100644
+index c137c5c6708d..dc0797d302b8 100644
 --- a/iptables/nft.h
 +++ b/iptables/nft.h
-@@ -27,6 +27,13 @@ struct builtin_table {
- 	struct builtin_chain chains[NF_INET_NUMHOOKS];
+@@ -28,6 +28,7 @@ struct builtin_table {
  };
  
-+struct nft_cache {
-+	struct {
-+		struct nftnl_chain_list *chains;
-+		bool			initialized;
-+	} table[NFT_TABLE_MAX];
-+};
-+
- struct nft_handle {
- 	int			family;
- 	struct mnl_socket	*nl;
-@@ -40,10 +47,8 @@ struct nft_handle {
- 	struct list_head	err_list;
- 	struct nft_family_ops	*ops;
- 	const struct builtin_table *tables;
--	struct {
--		struct nftnl_chain_list *chain_cache;
--		bool			initialized;
--	} table[NFT_TABLE_MAX];
-+	struct nft_cache	__cache;
-+	struct nft_cache	*cache;
- 	bool			have_cache;
- 	bool			restore;
- 	bool			noflush;
+ struct nft_cache {
++	struct nftnl_table_list		*tables;
+ 	struct {
+ 		struct nftnl_chain_list *chains;
+ 		bool			initialized;
 -- 
 2.11.0
 
