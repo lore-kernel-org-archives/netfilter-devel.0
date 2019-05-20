@@ -2,103 +2,87 @@ Return-Path: <SRS0=v9tr=TU=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_NEOMUTT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E3937C04AAC
-	for <netfilter-devel@archiver.kernel.org>; Mon, 20 May 2019 12:42:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AE3C2C04AAC
+	for <netfilter-devel@archiver.kernel.org>; Mon, 20 May 2019 12:45:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B83EF216FD
-	for <netfilter-devel@archiver.kernel.org>; Mon, 20 May 2019 12:42:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 84A1D20645
+	for <netfilter-devel@archiver.kernel.org>; Mon, 20 May 2019 12:45:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2390682AbfETMmQ (ORCPT
+        id S2389375AbfETM04 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 20 May 2019 08:42:16 -0400
-Received: from mx1.redhat.com ([209.132.183.28]:63495 "EHLO mx1.redhat.com"
+        Mon, 20 May 2019 08:26:56 -0400
+Received: from mail.us.es ([193.147.175.20]:34182 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2390124AbfETMmP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 20 May 2019 08:42:15 -0400
-Received: from smtp.corp.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mx1.redhat.com (Postfix) with ESMTPS id 265E588306;
-        Mon, 20 May 2019 12:42:14 +0000 (UTC)
-Received: from egarver.localdomain (ovpn-122-94.rdu2.redhat.com [10.10.122.94])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id D9E7F60CD1;
-        Mon, 20 May 2019 12:42:09 +0000 (UTC)
-Date:   Mon, 20 May 2019 08:42:07 -0400
-From:   Eric Garver <eric@garver.life>
-To:     Phil Sutter <phil@nwl.cc>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
-Subject: Re: [nft PATCH 1/3] src: Improve cache_needs_more() algorithm
-Message-ID: <20190520124207.sgdrzok6uqoupzzp@egarver.localdomain>
-Mail-Followup-To: Eric Garver <eric@garver.life>, Phil Sutter <phil@nwl.cc>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
-References: <20190517230033.25417-1-phil@nwl.cc>
- <20190517230033.25417-2-phil@nwl.cc>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190517230033.25417-2-phil@nwl.cc>
-User-Agent: NeoMutt/20180716
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.12
-X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.5.16 (mx1.redhat.com [10.5.110.28]); Mon, 20 May 2019 12:42:14 +0000 (UTC)
+        id S2389421AbfETM0z (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 20 May 2019 08:26:55 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 2CA141D94A5
+        for <netfilter-devel@vger.kernel.org>; Mon, 20 May 2019 14:26:53 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 1E1F7DA70D
+        for <netfilter-devel@vger.kernel.org>; Mon, 20 May 2019 14:26:53 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 13D5BDA705; Mon, 20 May 2019 14:26:53 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 01F11DA704;
+        Mon, 20 May 2019 14:26:51 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Mon, 20 May 2019 14:26:51 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from salvia.here (sys.soleta.eu [212.170.55.40])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id C15BF4265A31;
+        Mon, 20 May 2019 14:26:50 +0200 (CEST)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     phil@nwl.cc, fw@strlen.de
+Subject: [PATCH iptables 0/6] cache rework
+Date:   Mon, 20 May 2019 14:26:40 +0200
+Message-Id: <20190520122646.17788-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.11.0
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sat, May 18, 2019 at 01:00:31AM +0200, Phil Sutter wrote:
-> The old logic wasn't optimal: If e.g. current command was CMD_RESET and
-> old command was CMD_LIST, cache was already fully populated but still
-> refreshed.
-> 
-> Introduce a simple scoring system which reflects how
-> cache_init_objects() looks at the current command to decide if it is
-> finished already or not. Then use that in cache_needs_more(): If current
-> commands score is higher than old command's, cache needs an update.
-> 
-> Signed-off-by: Phil Sutter <phil@nwl.cc>
-> ---
->  src/rule.c | 20 ++++++++++++++------
->  1 file changed, 14 insertions(+), 6 deletions(-)
-> 
-> diff --git a/src/rule.c b/src/rule.c
-> index afe37cd90b1da..17bf5bbbe680c 100644
-> --- a/src/rule.c
-> +++ b/src/rule.c
-> @@ -220,13 +220,21 @@ static int cache_init(struct netlink_ctx *ctx, enum cmd_ops cmd)
->  	return 0;
->  }
->  
-> -static int cache_needs_more(enum cmd_ops old_cmd, enum cmd_ops cmd)
-> +/* Return a "score" of how complete local cache will be if
-> + * cache_init_objects() ran for given cmd. Higher value
-> + * means more complete. */
-> +static int cache_completeness(enum cmd_ops cmd)
->  {
-> -	if (cmd == CMD_LIST && old_cmd != CMD_LIST)
-> -		return 1;
-> -	if (cmd == CMD_RESET && old_cmd != CMD_RESET)
-> -		return 1;
-> -	return 0;
-> +	if (cmd == CMD_LIST)
-> +		return 3;
-> +	if (cmd != CMD_RESET)
-> +		return 2;
-> +	return 1;
-> +}
-> +
-> +static bool cache_needs_more(enum cmd_ops old_cmd, enum cmd_ops cmd)
-> +{
-> +	return cache_completeness(old_cmd) < cache_completeness(cmd);
->  }
->  
->  int cache_update(struct nft_ctx *nft, enum cmd_ops cmd, struct list_head *msgs)
-> -- 
-> 2.21.0
+This patchset updates the cache logic:
 
-LGTM. Feel free to take my patch and fold it into this series.
+* Update nft_table_list_get() to use a list of tables from the cache,
+  instead of listing them from the kernel.
+
+* Ensure cache consistency by checking for generation ID is consistent
+  when building up the cache.
+
+Without this, we may end up with an inconsistent cache, hence defeating
+the refresh transaction logic.
+
+The other patches are just a few preparation patches to allow to
+maintain the original cache and a cache that is refreshed everytime this
+hits ERESTART.
+
+My plan is to send another batch to revisit the refresh transaction
+logic after this patchset, since 0004-restore-race_0 still does not
+work after this.
+
+Pablo Neira Ayuso (6):
+  nft: add struct nft_cache
+  nft: statify nft_rebuild_cache()
+  nft: add __nft_table_builtin_find()
+  nft: add flush_cache()
+  nft: cache table list
+  nft: ensure cache consistency
+
+ iptables/nft.c | 195 ++++++++++++++++++++++++++++++++++-----------------------
+ iptables/nft.h |  15 +++--
+ 2 files changed, 126 insertions(+), 84 deletions(-)
+
+-- 
+2.11.0
+
