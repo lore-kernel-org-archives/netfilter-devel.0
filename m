@@ -2,407 +2,77 @@ Return-Path: <SRS0=lkya=TV=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_NEOMUTT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C77DC04AAF
-	for <netfilter-devel@archiver.kernel.org>; Tue, 21 May 2019 11:31:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6BFF9C04E87
+	for <netfilter-devel@archiver.kernel.org>; Tue, 21 May 2019 14:02:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 50B7C216B7
-	for <netfilter-devel@archiver.kernel.org>; Tue, 21 May 2019 11:31:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4000521743
+	for <netfilter-devel@archiver.kernel.org>; Tue, 21 May 2019 14:02:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727965AbfEULb3 (ORCPT
+        id S1728255AbfEUOCK (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 21 May 2019 07:31:29 -0400
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:35514 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726296AbfEULb2 (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 21 May 2019 07:31:28 -0400
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.89)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1hT2zN-0008UV-77; Tue, 21 May 2019 13:31:25 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     marcmicalizzi@gmail.com, Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf 5/5] selftests: netfilter: add flowtable test script
-Date:   Tue, 21 May 2019 13:24:34 +0200
-Message-Id: <20190521112434.11767-6-fw@strlen.de>
-X-Mailer: git-send-email 2.21.0
-In-Reply-To: <20190521112434.11767-1-fw@strlen.de>
-References: <20190521112434.11767-1-fw@strlen.de>
+        Tue, 21 May 2019 10:02:10 -0400
+Received: from mail.us.es ([193.147.175.20]:53366 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728053AbfEUOCK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 21 May 2019 10:02:10 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 9CDB5103255
+        for <netfilter-devel@vger.kernel.org>; Tue, 21 May 2019 16:02:06 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 8E687DA711
+        for <netfilter-devel@vger.kernel.org>; Tue, 21 May 2019 16:02:06 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 750DEDA718; Tue, 21 May 2019 16:02:06 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 59D4CDA707;
+        Tue, 21 May 2019 16:02:04 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Tue, 21 May 2019 16:02:04 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (unknown [31.4.195.4])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 208D24265A31;
+        Tue, 21 May 2019 16:02:04 +0200 (CEST)
+Date:   Tue, 21 May 2019 16:02:02 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Jagdish Motwani <j.k.motwani@gmail.com>
+Cc:     netdev@vger.kernel.org,
+        Jagdish Motwani <jagdish.motwani@sophos.com>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH net v3] netfilter: nf_queue:fix reinject verdict handling
+Message-ID: <20190521140202.yjqjygtw3l36pi6h@salvia>
+References: <20190513181740.5929-1-j.k.motwani@gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190513181740.5929-1-j.k.motwani@gmail.com>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Exercises 3 cases:
+On Mon, May 13, 2019 at 11:47:40PM +0530, Jagdish Motwani wrote:
+> From: Jagdish Motwani <jagdish.motwani@sophos.com>
+> 
+> This patch fixes netfilter hook traversal when there are more than 1 hooks
+> returning NF_QUEUE verdict. When the first queue reinjects the packet,
+> 'nf_reinject' starts traversing hooks with a proper hook_index. However,
+> if it again receives a NF_QUEUE verdict (by some other netfilter hook), it
+> queues the packet with a wrong hook_index. So, when the second queue 
+> reinjects the packet, it re-executes hooks in between.
 
-1. no pmtu discovery (need to frag)
-2. no PMTUd + NAT (don't flag packets as invalid from conntrack)
-3. PMTU + NAT (need to send icmp error)
-
-The first two cases make sure we handle fragments correctly, i.e.
-pass them to classic forwarding path.
-
-Third case checks we offload everything (in the test case,
-PMTUd will kick in so all packets should be within link mtu).
-
-Nftables rules will filter packets that are supposed to be
-handled by the fast-path.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- tools/testing/selftests/netfilter/Makefile    |   2 +-
- .../selftests/netfilter/nft_flowtable.sh      | 324 ++++++++++++++++++
- 2 files changed, 325 insertions(+), 1 deletion(-)
- create mode 100755 tools/testing/selftests/netfilter/nft_flowtable.sh
-
-diff --git a/tools/testing/selftests/netfilter/Makefile b/tools/testing/selftests/netfilter/Makefile
-index 3e6d1bcc2894..4144984ebee5 100644
---- a/tools/testing/selftests/netfilter/Makefile
-+++ b/tools/testing/selftests/netfilter/Makefile
-@@ -2,6 +2,6 @@
- # Makefile for netfilter selftests
- 
- TEST_PROGS := nft_trans_stress.sh nft_nat.sh bridge_brouter.sh \
--	conntrack_icmp_related.sh
-+	conntrack_icmp_related.sh nft_flowtable.sh
- 
- include ../lib.mk
-diff --git a/tools/testing/selftests/netfilter/nft_flowtable.sh b/tools/testing/selftests/netfilter/nft_flowtable.sh
-new file mode 100755
-index 000000000000..fe52488a6f72
---- /dev/null
-+++ b/tools/testing/selftests/netfilter/nft_flowtable.sh
-@@ -0,0 +1,324 @@
-+#!/bin/bash
-+# SPDX-License-Identifier: GPL-2.0
-+#
-+# This tests basic flowtable functionality.
-+# Creates following topology:
-+#
-+# Originator (MTU 9000) <-Router1-> MTU 1500 <-Router2-> Responder (MTU 2000)
-+# Router1 is the one doing flow offloading, Router2 has no special
-+# purpose other than having a link that is smaller than either Originator
-+# and responder, i.e. TCPMSS announced values are too large and will still
-+# result in fragmentation and/or PMTU discovery.
-+
-+# Kselftest framework requirement - SKIP code is 4.
-+ksft_skip=4
-+ret=0
-+
-+ns1in=""
-+ns2in=""
-+ns1out=""
-+ns2out=""
-+
-+log_netns=$(sysctl -n net.netfilter.nf_log_all_netns)
-+
-+nft --version > /dev/null 2>&1
-+if [ $? -ne 0 ];then
-+	echo "SKIP: Could not run test without nft tool"
-+	exit $ksft_skip
-+fi
-+
-+ip -Version > /dev/null 2>&1
-+if [ $? -ne 0 ];then
-+	echo "SKIP: Could not run test without ip tool"
-+	exit $ksft_skip
-+fi
-+
-+which nc > /dev/null 2>&1
-+if [ $? -ne 0 ];then
-+	echo "SKIP: Could not run test without nc (netcat)"
-+	exit $ksft_skip
-+fi
-+
-+ip netns add nsr1
-+if [ $? -ne 0 ];then
-+	echo "SKIP: Could not create net namespace"
-+	exit $ksft_skip
-+fi
-+
-+ip netns add ns1
-+ip netns add ns2
-+
-+ip netns add nsr2
-+
-+cleanup() {
-+	for i in 1 2; do
-+		ip netns del ns$i
-+		ip netns del nsr$i
-+	done
-+
-+	rm -f "$ns1in" "$ns1out"
-+	rm -f "$ns2in" "$ns2out"
-+
-+	[ $log_netns -eq 0 ] && sysctl -q net.netfilter.nf_log_all_netns=$log_netns
-+}
-+
-+trap cleanup EXIT
-+
-+sysctl -q net.netfilter.nf_log_all_netns=1
-+
-+ip link add veth0 netns nsr1 type veth peer name eth0 netns ns1
-+ip link add veth1 netns nsr1 type veth peer name veth0 netns nsr2
-+
-+ip link add veth1 netns nsr2 type veth peer name eth0 netns ns2
-+
-+for dev in lo veth0 veth1; do
-+  for i in 1 2; do
-+    ip -net nsr$i link set $dev up
-+  done
-+done
-+
-+ip -net nsr1 addr add 10.0.1.1/24 dev veth0
-+ip -net nsr1 addr add dead:1::1/64 dev veth0
-+
-+ip -net nsr2 addr add 10.0.2.1/24 dev veth1
-+ip -net nsr2 addr add dead:2::1/64 dev veth1
-+
-+# set different MTUs so we need to push packets coming from ns1 (large MTU)
-+# to ns2 (smaller MTU) to stack either to perform fragmentation (ip_no_pmtu_disc=1),
-+# or to do PTMU discovery (send ICMP error back to originator).
-+# ns2 is going via nsr2 with a smaller mtu, so that TCPMSS announced by both peers
-+# is NOT the lowest link mtu.
-+
-+ip -net nsr1 link set veth0 mtu 9000
-+ip -net ns1 link set eth0 mtu 9000
-+
-+ip -net nsr2 link set veth1 mtu 2000
-+ip -net ns2 link set eth0 mtu 2000
-+
-+# transfer-net between nsr1 and nsr2.
-+# these addresses are not used for connections.
-+ip -net nsr1 addr add 192.168.10.1/24 dev veth1
-+ip -net nsr1 addr add fee1:2::1/64 dev veth1
-+
-+ip -net nsr2 addr add 192.168.10.2/24 dev veth0
-+ip -net nsr2 addr add fee1:2::2/64 dev veth0
-+
-+for i in 1 2; do
-+  ip netns exec nsr$i sysctl net.ipv4.conf.veth0.forwarding=1 > /dev/null
-+  ip netns exec nsr$i sysctl net.ipv4.conf.veth1.forwarding=1 > /dev/null
-+
-+  ip -net ns$i link set lo up
-+  ip -net ns$i link set eth0 up
-+  ip -net ns$i addr add 10.0.$i.99/24 dev eth0
-+  ip -net ns$i route add default via 10.0.$i.1
-+  ip -net ns$i addr add dead:$i::99/64 dev eth0
-+  ip -net ns$i route add default via dead:$i::1
-+  ip netns exec ns$i sysctl net.ipv4.tcp_no_metrics_save=1 > /dev/null
-+
-+  # don't set ip DF bit for first two tests
-+  ip netns exec ns$i sysctl net.ipv4.ip_no_pmtu_disc=1 > /dev/null
-+done
-+
-+ip -net nsr1 route add default via 192.168.10.2
-+ip -net nsr2 route add default via 192.168.10.1
-+
-+ip netns exec nsr1 nft -f - <<EOF
-+table inet filter {
-+  flowtable f1 {
-+     hook ingress priority 0
-+     devices = { veth0, veth1 }
-+   }
-+
-+   chain forward {
-+      type filter hook forward priority 0; policy drop;
-+
-+      # flow offloaded? Tag ct with mark 1, so we can detect when it fails.
-+      meta oif "veth1" tcp dport 12345 flow offload @f1 counter
-+
-+      # use packet size to trigger 'should be offloaded by now'.
-+      # otherwise, if 'flow offload' expression never offloads, the
-+      # test will pass.
-+      tcp dport 12345 meta length gt 200 ct mark set 1 counter
-+
-+      # this turns off flow offloading internally, so expect packets again
-+      tcp flags fin,rst ct mark set 0 accept
-+
-+      # this allows large packets from responder, we need this as long
-+      # as PMTUd is off.
-+      # This rule is deleted for the last test, when we expect PMTUd
-+      # to kick in and ensure all packets meet mtu requirements.
-+      meta length gt 1500 accept comment something-to-grep-for
-+
-+      # next line blocks connection w.o. working offload.
-+      # we only do this for reverse dir, because we expect packets to
-+      # enter slow path due to MTU mismatch of veth0 and veth1.
-+      tcp sport 12345 ct mark 1 counter log prefix "mark failure " drop
-+
-+      ct state established,related accept
-+
-+      # for packets that we can't offload yet, i.e. SYN (any ct that is not confirmed)
-+      meta length lt 200 oif "veth1" tcp dport 12345 counter accept
-+
-+      meta nfproto ipv4 meta l4proto icmp accept
-+      meta nfproto ipv6 meta l4proto icmpv6 accept
-+   }
-+}
-+EOF
-+
-+if [ $? -ne 0 ]; then
-+	echo "SKIP: Could not load nft ruleset"
-+	exit $ksft_skip
-+fi
-+
-+# test basic connectivity
-+ip netns exec ns1 ping -c 1 -q 10.0.2.99 > /dev/null
-+if [ $? -ne 0 ];then
-+  echo "ERROR: ns1 cannot reach ns2" 1>&2
-+  bash
-+  exit 1
-+fi
-+
-+ip netns exec ns2 ping -c 1 -q 10.0.1.99 > /dev/null
-+if [ $? -ne 0 ];then
-+  echo "ERROR: ns2 cannot reach ns1" 1>&2
-+  exit 1
-+fi
-+
-+if [ $ret -eq 0 ];then
-+	echo "PASS: netns routing/connectivity: ns1 can reach ns2"
-+fi
-+
-+ns1in=$(mktemp)
-+ns1out=$(mktemp)
-+ns2in=$(mktemp)
-+ns2out=$(mktemp)
-+
-+make_file()
-+{
-+	name=$1
-+	who=$2
-+
-+	SIZE=$((RANDOM % (1024 * 8)))
-+	TSIZE=$((SIZE * 1024))
-+
-+	dd if=/dev/urandom of="$name" bs=1024 count=$SIZE 2> /dev/null
-+
-+	SIZE=$((RANDOM % 1024))
-+	SIZE=$((SIZE + 128))
-+	TSIZE=$((TSIZE + SIZE))
-+	dd if=/dev/urandom conf=notrunc of="$name" bs=1 count=$SIZE 2> /dev/null
-+}
-+
-+check_transfer()
-+{
-+	in=$1
-+	out=$2
-+	what=$3
-+
-+	cmp "$in" "$out" > /dev/null 2>&1
-+	if [ $? -ne 0 ] ;then
-+		echo "FAIL: file mismatch for $what" 1>&2
-+		ls -l "$in"
-+		ls -l "$out"
-+		return 1
-+	fi
-+
-+	return 0
-+}
-+
-+test_tcp_forwarding()
-+{
-+	local nsa=$1
-+	local nsb=$2
-+	local lret=0
-+
-+	ip netns exec $nsb nc -w 5 -l -p 12345 < "$ns2in" > "$ns2out" &
-+	lpid=$!
-+
-+	sleep 1
-+	ip netns exec $nsa nc -w 4 10.0.2.99 12345 < "$ns1in" > "$ns1out" &
-+	cpid=$!
-+
-+	sleep 3
-+
-+	kill $lpid
-+	kill $cpid
-+	wait
-+
-+	check_transfer "$ns1in" "$ns2out" "ns1 -> ns2"
-+	if [ $? -ne 0 ];then
-+		lret=1
-+	fi
-+
-+	check_transfer "$ns2in" "$ns1out" "ns1 <- ns2"
-+	if [ $? -ne 0 ];then
-+		lret=1
-+	fi
-+
-+	return $lret
-+}
-+
-+make_file "$ns1in" "ns1"
-+make_file "$ns2in" "ns2"
-+
-+# First test:
-+# No PMTU discovery, nsr1 is expected to fragment packets from ns1 to ns2 as needed.
-+test_tcp_forwarding ns1 ns2
-+if [ $? -eq 0 ] ;then
-+	echo "PASS: flow offloaded for ns1/ns2"
-+else
-+	echo "FAIL: flow offload for ns1/ns2:" 1>&2
-+	ip netns exec nsr1 nft list ruleset
-+	ret=1
-+fi
-+
-+# delete default route, i.e. ns2 won't be able to reach ns1 and
-+# will depend on ns1 being masqueraded in nsr1.
-+# expect ns1 has nsr1 address.
-+ip -net ns2 route del default via 10.0.2.1
-+ip -net ns2 route del default via dead:2::1
-+ip -net ns2 route add 192.168.10.1 via 10.0.2.1
-+
-+# Second test:
-+# Same, but with NAT enabled.
-+ip netns exec nsr1 nft -f - <<EOF
-+table ip nat {
-+   chain postrouting {
-+      type nat hook postrouting priority 0; policy accept;
-+      meta oifname "veth1" masquerade
-+   }
-+}
-+EOF
-+
-+test_tcp_forwarding ns1 ns2
-+
-+if [ $? -eq 0 ] ;then
-+	echo "PASS: flow offloaded for ns1/ns2 with NAT"
-+else
-+	echo "FAIL: flow offload for ns1/ns2 with NAT" 1>&2
-+	ip netns exec nsr1 nft list ruleset
-+	ret=1
-+fi
-+
-+# Third test:
-+# Same as second test, but with PMTU discovery enabled.
-+handle=$(ip netns exec nsr1 nft -a list table inet filter | grep something-to-grep-for | cut -d \# -f 2)
-+
-+ip netns exec nsr1 nft delete rule inet filter forward $handle
-+if [ $? -ne 0 ] ;then
-+	echo "FAIL: Could not delete large-packet accept rule"
-+	exit 1
-+fi
-+
-+ip netns exec ns1 sysctl net.ipv4.ip_no_pmtu_disc=0 > /dev/null
-+ip netns exec ns2 sysctl net.ipv4.ip_no_pmtu_disc=0 > /dev/null
-+
-+test_tcp_forwarding ns1 ns2
-+if [ $? -eq 0 ] ;then
-+	echo "PASS: flow offloaded for ns1/ns2 with NAT and pmtu discovery"
-+else
-+	echo "FAIL: flow offload for ns1/ns2 with NAT and pmtu discovery" 1>&2
-+	ip netns exec nsr1 nft list ruleset
-+fi
-+
-+exit $ret
--- 
-2.21.0
-
+Applied, thanks.
