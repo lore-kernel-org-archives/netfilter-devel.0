@@ -2,77 +2,70 @@ Return-Path: <SRS0=lkya=TV=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_NEOMUTT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3426BC04AAF
-	for <netfilter-devel@archiver.kernel.org>; Tue, 21 May 2019 17:43:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 534CDC04AAF
+	for <netfilter-devel@archiver.kernel.org>; Tue, 21 May 2019 18:11:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D593021019
-	for <netfilter-devel@archiver.kernel.org>; Tue, 21 May 2019 17:43:55 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=posteo.de header.i=@posteo.de header.b="Xsrl9xPU"
+	by mail.kernel.org (Postfix) with ESMTP id 3326B2173C
+	for <netfilter-devel@archiver.kernel.org>; Tue, 21 May 2019 18:11:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728183AbfEURnz (ORCPT
+        id S1729199AbfEUSLa (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 21 May 2019 13:43:55 -0400
-Received: from mout01.posteo.de ([185.67.36.65]:36931 "EHLO mout01.posteo.de"
+        Tue, 21 May 2019 14:11:30 -0400
+Received: from mail.us.es ([193.147.175.20]:49516 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727142AbfEURnz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 21 May 2019 13:43:55 -0400
-Received: from submission (posteo.de [89.146.220.130]) 
-        by mout01.posteo.de (Postfix) with ESMTPS id 9E9E016005D
-        for <netfilter-devel@vger.kernel.org>; Tue, 21 May 2019 19:43:53 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=posteo.de; s=2017;
-        t=1558460633; bh=kaRqxR8AbpmgcuPraXkWGyzgDPkpRk4qUZ/9Lmk+PJE=;
-        h=Date:From:To:Subject:From;
-        b=Xsrl9xPUHfMGD7ZzS95+KnKr86uxUnXAIwfVxZ8x64HBjcjt3otqB7OOieG5LULLl
-         SGgLDPYi/IwkzGsFzLXA5zL8tl1Br1qOm32AihxUlAlRBtYgrAYyJyqcH6eY8+RRLO
-         7ME4LzXWc68jUVuFl9QMKJex3XD47Swt54v8Vkzs0ed4/IhpQmYNbyep4ftkG4npG0
-         wB3rnrJyjwmq/XxdbR6tfRnlq6IJMCGUZ1gXER7Yyi3lkJO3C4G74Wjpa7MrtiQEaC
-         YOtN87ZCD7mCZD+Sw6e20q68ek83WW80wdc11TRK76mV7ZJ9GNbyTAsu6wnawMs2LE
-         Ni6d+/5OfepRg==
-Received: from customer (localhost [127.0.0.1])
-        by submission (posteo.de) with ESMTPSA id 457jmn0FNkz6tm7
-        for <netfilter-devel@vger.kernel.org>; Tue, 21 May 2019 19:43:53 +0200 (CEST)
+        id S1727969AbfEUSLa (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 21 May 2019 14:11:30 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 13FFEEA469
+        for <netfilter-devel@vger.kernel.org>; Tue, 21 May 2019 20:11:28 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 0555CDA709
+        for <netfilter-devel@vger.kernel.org>; Tue, 21 May 2019 20:11:28 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id ED2EEDA70E; Tue, 21 May 2019 20:11:27 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C9F37DA702;
+        Tue, 21 May 2019 20:11:25 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Tue, 21 May 2019 20:11:25 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (sys.soleta.eu [212.170.55.40])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id A47C54265A32;
+        Tue, 21 May 2019 20:11:25 +0200 (CEST)
+Date:   Tue, 21 May 2019 20:11:25 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Jeffrin Jose T <jeffrin@rajagiritech.edu.in>
+Cc:     fw@strlen.de, shuah@kernel.org, linux-kselftest@vger.kernel.org,
+        linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH v2] selftests: netfilter: missing error check when
+ setting up veth interface
+Message-ID: <20190521181125.anqj32v3gcwjxs3z@salvia>
+References: <20190515064405.3981-1-jeffrin@rajagiritech.edu.in>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
- format=flowed
-Content-Transfer-Encoding: quoted-printable
-Date:   Tue, 21 May 2019 19:43:52 +0200
-From:   =?UTF-8?Q?M=2E_Schr=C3=B6der?= <nfdev.moschroe@posteo.de>
-To:     netfilter-devel@vger.kernel.org
-Subject: progress on connection tracking for bridge family
-Message-ID: <20a4144f0516c947c1193fe7e37e09ce@posteo.net>
-X-Sender: nfdev.moschroe@posteo.de
-User-Agent: Posteo Webmail
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190515064405.3981-1-jeffrin@rajagiritech.edu.in>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello,
+On Wed, May 15, 2019 at 12:14:04PM +0530, Jeffrin Jose T wrote:
+> A test for  the basic NAT functionality uses ip command which
+> needs veth device.There is a condition where the kernel support
+> for veth is not compiled into the kernel and the test script
+> breaks.This patch contains code for reasonable error display
+> and correct code exit.
 
-I am currently setting up an IPS and would like to do so in-line using
-NFQ. Example:
-
-> add table bridge ips
-> add chain bridge ips brfwd { type filter hook forward priority 0;=20
-> policy drop; }
-> add rule bridge ips brfwd counter queue num 0
-
-Connection tracking with support for 'ct mark' would allow for
-bypassing the IPS early.
-
-I have seen that work is under way. Can any estimates be made as to when
-CT might officially land in the kernel?
-
-What steps would need to be taken/state needed to be reached for this to
-happen?
-
-Are there instructions on how to build a kernel with the preliminary
-patches applied?
-
-Kind regards
-M. Schr=C3=B6der
+Applied, thanks.
