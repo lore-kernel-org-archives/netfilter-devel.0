@@ -2,201 +2,70 @@ Return-Path: <SRS0=lkya=TV=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_NEOMUTT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_NEOMUTT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9E9C3C04E87
-	for <netfilter-devel@archiver.kernel.org>; Tue, 21 May 2019 15:18:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 07C72C04E87
+	for <netfilter-devel@archiver.kernel.org>; Tue, 21 May 2019 16:30:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7F99C217D7
-	for <netfilter-devel@archiver.kernel.org>; Tue, 21 May 2019 15:18:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D0BBB208C3
+	for <netfilter-devel@archiver.kernel.org>; Tue, 21 May 2019 16:30:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728500AbfEUPSM (ORCPT
+        id S1728897AbfEUQah (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 21 May 2019 11:18:12 -0400
-Received: from kirsty.vergenet.net ([202.4.237.240]:45758 "EHLO
-        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727969AbfEUPSL (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 21 May 2019 11:18:11 -0400
-Received: from reginn.horms.nl (watermunt.horms.nl [80.127.179.77])
-        by kirsty.vergenet.net (Postfix) with ESMTPA id 34F5625AD7A;
-        Wed, 22 May 2019 01:18:08 +1000 (AEST)
-Received: by reginn.horms.nl (Postfix, from userid 7100)
-        id 38869940553; Tue, 21 May 2019 17:18:06 +0200 (CEST)
-Date:   Tue, 21 May 2019 17:18:06 +0200
-From:   Simon Horman <horms@verge.net.au>
-To:     Julian Anastasov <ja@ssi.bg>
-Cc:     YueHaibing <yuehaibing@huawei.com>, davem@davemloft.net,
-        wensong@linux-vs.org, pablo@netfilter.org,
-        kadlec@blackhole.kfki.hu, fw@strlen.de,
+        Tue, 21 May 2019 12:30:37 -0400
+Received: from mail.us.es ([193.147.175.20]:39058 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728649AbfEUQah (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 21 May 2019 12:30:37 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 2FFA615C10A
+        for <netfilter-devel@vger.kernel.org>; Tue, 21 May 2019 18:30:34 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 213F1DA70C
+        for <netfilter-devel@vger.kernel.org>; Tue, 21 May 2019 18:30:34 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 0BED2DA714; Tue, 21 May 2019 18:30:34 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id F037FDA705;
+        Tue, 21 May 2019 18:30:31 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Tue, 21 May 2019 18:30:31 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (unknown [31.4.195.4])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id B0BDC4265A32;
+        Tue, 21 May 2019 18:30:31 +0200 (CEST)
+Date:   Tue, 21 May 2019 18:30:30 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     YueHaibing <yuehaibing@huawei.com>
+Cc:     davem@davemloft.net, wensong@linux-vs.org, horms@verge.net.au,
+        ja@ssi.bg, kadlec@blackhole.kfki.hu, fw@strlen.de,
         linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
         lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
         coreteam@netfilter.org
 Subject: Re: [PATCH v2] ipvs: Fix use-after-free in ip_vs_in
-Message-ID: <20190521151805.xidqtvohi4sfgaja@verge.net.au>
+Message-ID: <20190521163030.ly3mnllygtmfnx5d@salvia>
 References: <alpine.LFD.2.21.1905171015040.2233@ja.home.ssi.bg>
  <20190517143149.17016-1-yuehaibing@huawei.com>
- <alpine.LFD.2.21.1905191258160.2448@ja.home.ssi.bg>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.21.1905191258160.2448@ja.home.ssi.bg>
-Organisation: Horms Solutions BV
+In-Reply-To: <20190517143149.17016-1-yuehaibing@huawei.com>
 User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sun, May 19, 2019 at 01:09:24PM +0300, Julian Anastasov wrote:
-> 
-> 	Hello,
-> 
-> On Fri, 17 May 2019, YueHaibing wrote:
-> 
-> > BUG: KASAN: use-after-free in ip_vs_in.part.29+0xe8/0xd20 [ip_vs]
-> > Read of size 4 at addr ffff8881e9b26e2c by task sshd/5603
-> > 
-> > CPU: 0 PID: 5603 Comm: sshd Not tainted 4.19.39+ #30
-> > Hardware name: Red Hat KVM, BIOS 0.5.1 01/01/2011
-> > Call Trace:
-> >  dump_stack+0x71/0xab
-> >  print_address_description+0x6a/0x270
-> >  kasan_report+0x179/0x2c0
-> >  ip_vs_in.part.29+0xe8/0xd20 [ip_vs]
-> >  ip_vs_in+0xd8/0x170 [ip_vs]
-> >  nf_hook_slow+0x5f/0xe0
-> >  __ip_local_out+0x1d5/0x250
-> >  ip_local_out+0x19/0x60
-> >  __tcp_transmit_skb+0xba1/0x14f0
-> >  tcp_write_xmit+0x41f/0x1ed0
-> >  ? _copy_from_iter_full+0xca/0x340
-> >  __tcp_push_pending_frames+0x52/0x140
-> >  tcp_sendmsg_locked+0x787/0x1600
-> >  ? tcp_sendpage+0x60/0x60
-> >  ? inet_sk_set_state+0xb0/0xb0
-> >  tcp_sendmsg+0x27/0x40
-> >  sock_sendmsg+0x6d/0x80
-> >  sock_write_iter+0x121/0x1c0
-> >  ? sock_sendmsg+0x80/0x80
-> >  __vfs_write+0x23e/0x370
-> >  vfs_write+0xe7/0x230
-> >  ksys_write+0xa1/0x120
-> >  ? __ia32_sys_read+0x50/0x50
-> >  ? __audit_syscall_exit+0x3ce/0x450
-> >  do_syscall_64+0x73/0x200
-> >  entry_SYSCALL_64_after_hwframe+0x44/0xa9
-> > RIP: 0033:0x7ff6f6147c60
-> > Code: 73 01 c3 48 8b 0d 28 12 2d 00 f7 d8 64 89 01 48 83 c8 ff c3 66 0f 1f 44 00 00 83 3d 5d 73 2d 00 00 75 10 b8 01 00 00 00 0f 05 <48> 3d 01 f0 ff ff 73 31 c3 48 83
-> > RSP: 002b:00007ffd772ead18 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
-> > RAX: ffffffffffffffda RBX: 0000000000000034 RCX: 00007ff6f6147c60
-> > RDX: 0000000000000034 RSI: 000055df30a31270 RDI: 0000000000000003
-> > RBP: 000055df30a31270 R08: 0000000000000000 R09: 0000000000000000
-> > R10: 00007ffd772ead70 R11: 0000000000000246 R12: 00007ffd772ead74
-> > R13: 00007ffd772eae20 R14: 00007ffd772eae24 R15: 000055df2f12ddc0
-> > 
-> > Allocated by task 6052:
-> >  kasan_kmalloc+0xa0/0xd0
-> >  __kmalloc+0x10a/0x220
-> >  ops_init+0x97/0x190
-> >  register_pernet_operations+0x1ac/0x360
-> >  register_pernet_subsys+0x24/0x40
-> >  0xffffffffc0ea016d
-> >  do_one_initcall+0x8b/0x253
-> >  do_init_module+0xe3/0x335
-> >  load_module+0x2fc0/0x3890
-> >  __do_sys_finit_module+0x192/0x1c0
-> >  do_syscall_64+0x73/0x200
-> >  entry_SYSCALL_64_after_hwframe+0x44/0xa9
-> > 
-> > Freed by task 6067:
-> >  __kasan_slab_free+0x130/0x180
-> >  kfree+0x90/0x1a0
-> >  ops_free_list.part.7+0xa6/0xc0
-> >  unregister_pernet_operations+0x18b/0x1f0
-> >  unregister_pernet_subsys+0x1d/0x30
-> >  ip_vs_cleanup+0x1d/0xd2f [ip_vs]
-> >  __x64_sys_delete_module+0x20c/0x300
-> >  do_syscall_64+0x73/0x200
-> >  entry_SYSCALL_64_after_hwframe+0x44/0xa9
-> > 
-> > The buggy address belongs to the object at ffff8881e9b26600 which belongs to the cache kmalloc-4096 of size 4096
-> > The buggy address is located 2092 bytes inside of 4096-byte region [ffff8881e9b26600, ffff8881e9b27600)
-> > The buggy address belongs to the page:
-> > page:ffffea0007a6c800 count:1 mapcount:0 mapping:ffff888107c0e600 index:0x0 compound_mapcount: 0
-> > flags: 0x17ffffc0008100(slab|head)
-> > raw: 0017ffffc0008100 dead000000000100 dead000000000200 ffff888107c0e600
-> > raw: 0000000000000000 0000000080070007 00000001ffffffff 0000000000000000
-> > page dumped because: kasan: bad access detected
-> > 
-> > while unregistering ipvs module, ops_free_list calls
-> > __ip_vs_cleanup, then nf_unregister_net_hooks be called to
-> > do remove nf hook entries. It need a RCU period to finish,
-> > however net->ipvs is set to NULL immediately, which will
-> > trigger NULL pointer dereference when a packet is hooked
-> > and handled by ip_vs_in where net->ipvs is dereferenced.
-> > 
-> > Another scene is ops_free_list call ops_free to free the
-> > net_generic directly while __ip_vs_cleanup finished, then
-> > calling ip_vs_in will triggers use-after-free.
-> > 
-> > This patch moves nf_unregister_net_hooks from __ip_vs_cleanup()
-> > to __ip_vs_dev_cleanup(),  where rcu_barrier() is called by
-> > unregister_pernet_device -> unregister_pernet_operations,
-> > that will do the needed grace period.
-> > 
-> > Reported-by: Hulk Robot <hulkci@huawei.com>
-> > Fixes: efe41606184e ("ipvs: convert to use pernet nf_hook api")
-> > Suggested-by: Julian Anastasov <ja@ssi.bg>
-> > Signed-off-by: YueHaibing <yuehaibing@huawei.com>
-> 
-> 	Looks good to me, thanks!
-> 
-> Acked-by: Julian Anastasov <ja@ssi.bg>
-> 
-> 	It should restore the order of unregistrations before
-> the mentioned commit and to ensure grace period before stopping
-> the traffic and unregistering ipvs_core_ops where traffic is not
-> expected.
+On Fri, May 17, 2019 at 10:31:49PM +0800, YueHaibing wrote:
+> BUG: KASAN: use-after-free in ip_vs_in.part.29+0xe8/0xd20 [ip_vs]
+> Read of size 4 at addr ffff8881e9b26e2c by task sshd/5603
 
-Signed-off-by: Simon Horman <horms@verge.net.au>
-
-Pablo, could you consider applying this to nf?
-
-> 
-> > ---
-> > v2: fix by moving nf_unregister_net_hooks from __ip_vs_cleanup() to __ip_vs_dev_cleanup()
-> > ---
-> >  net/netfilter/ipvs/ip_vs_core.c | 2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > 
-> > diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-> > index 14457551bcb4..8ebf21149ec3 100644
-> > --- a/net/netfilter/ipvs/ip_vs_core.c
-> > +++ b/net/netfilter/ipvs/ip_vs_core.c
-> > @@ -2312,7 +2312,6 @@ static void __net_exit __ip_vs_cleanup(struct net *net)
-> >  {
-> >  	struct netns_ipvs *ipvs = net_ipvs(net);
-> >  
-> > -	nf_unregister_net_hooks(net, ip_vs_ops, ARRAY_SIZE(ip_vs_ops));
-> >  	ip_vs_service_net_cleanup(ipvs);	/* ip_vs_flush() with locks */
-> >  	ip_vs_conn_net_cleanup(ipvs);
-> >  	ip_vs_app_net_cleanup(ipvs);
-> > @@ -2327,6 +2326,7 @@ static void __net_exit __ip_vs_dev_cleanup(struct net *net)
-> >  {
-> >  	struct netns_ipvs *ipvs = net_ipvs(net);
-> >  	EnterFunction(2);
-> > +	nf_unregister_net_hooks(net, ip_vs_ops, ARRAY_SIZE(ip_vs_ops));
-> >  	ipvs->enable = 0;	/* Disable packet reception */
-> >  	smp_wmb();
-> >  	ip_vs_sync_net_cleanup(ipvs);
-> > -- 
-> > 2.20.1
-> 
-> Regards
-> 
-> --
-> Julian Anastasov <ja@ssi.bg>
-> 
+Applied, thanks.
