@@ -2,56 +2,106 @@ Return-Path: <SRS0=iiCe=TW=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_NEOMUTT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E952DC282CE
-	for <netfilter-devel@archiver.kernel.org>; Wed, 22 May 2019 21:23:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EBB72C282CE
+	for <netfilter-devel@archiver.kernel.org>; Wed, 22 May 2019 21:33:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8F4D820821
-	for <netfilter-devel@archiver.kernel.org>; Wed, 22 May 2019 21:23:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8846D20863
+	for <netfilter-devel@archiver.kernel.org>; Wed, 22 May 2019 21:33:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729483AbfEVVX5 (ORCPT
+        id S1729710AbfEVVdn (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 22 May 2019 17:23:57 -0400
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:44854 "EHLO
+        Wed, 22 May 2019 17:33:43 -0400
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:44902 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728958AbfEVVX5 (ORCPT
+        by vger.kernel.org with ESMTP id S1729691AbfEVVdn (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 22 May 2019 17:23:57 -0400
+        Wed, 22 May 2019 17:33:43 -0400
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.89)
-        (envelope-from <fw@strlen.de>)
-        id 1hTYiJ-0002ml-Mg; Wed, 22 May 2019 23:23:55 +0200
-Date:   Wed, 22 May 2019 23:23:55 +0200
+        (envelope-from <fw@breakpoint.cc>)
+        id 1hTYrl-0002ps-3e; Wed, 22 May 2019 23:33:41 +0200
 From:   Florian Westphal <fw@strlen.de>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft] src: support for arp sender and target ethernet and
- IPv4 addresses
-Message-ID: <20190522212355.q7fdb5adlmpdlykd@breakpoint.cc>
-References: <20190522211848.32403-1-pablo@netfilter.org>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf-next] netfilter: nf_tables: free base chain counters from worker
+Date:   Wed, 22 May 2019 23:35:11 +0200
+Message-Id: <20190522213511.21419-1-fw@strlen.de>
+X-Mailer: git-send-email 2.21.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190522211848.32403-1-pablo@netfilter.org>
-User-Agent: NeoMutt/20170113 (1.7.2)
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> +struct arp_hdr {
-> +	uint16_t	htype;
-> +	uint16_t	ptype;
-> +	uint8_t		hlen;
-> +	uint8_t		plen;
-> +	uint16_t	oper;
-> +	uint8_t		sha[6];
-> +	uint32_t	spa;
-> +	uint8_t		tha[6];
-> +	uint32_t	tpa;
-> +} __attribute__((__packed__));
+No need to use synchronize_rcu() here, just swap the two pointers
+and have the release occur from work queue after commit has completed.
 
-LGTM, I think hard-coding this for ethernet is fine.
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ net/netfilter/nf_tables_api.c | 26 ++++++++++----------------
+ 1 file changed, 10 insertions(+), 16 deletions(-)
+
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 4b5159936034..d444405211c5 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -1449,25 +1449,18 @@ static struct nft_stats __percpu *nft_stats_alloc(const struct nlattr *attr)
+ 	return newstats;
+ }
+ 
+-static void nft_chain_stats_replace(struct net *net,
+-				    struct nft_base_chain *chain,
+-				    struct nft_stats __percpu *newstats)
++static void nft_chain_stats_replace(struct nft_trans *trans)
+ {
+-	struct nft_stats __percpu *oldstats;
++	struct nft_base_chain *chain = nft_base_chain(trans->ctx.chain);
+ 
+-	if (newstats == NULL)
++	if (!nft_trans_chain_stats(trans))
+ 		return;
+ 
+-	if (rcu_access_pointer(chain->stats)) {
+-		oldstats = rcu_dereference_protected(chain->stats,
+-					lockdep_commit_lock_is_held(net));
+-		rcu_assign_pointer(chain->stats, newstats);
+-		synchronize_rcu();
+-		free_percpu(oldstats);
+-	} else {
+-		rcu_assign_pointer(chain->stats, newstats);
++	rcu_swap_protected(chain->stats, nft_trans_chain_stats(trans),
++			   lockdep_commit_lock_is_held(trans->ctx.net));
++
++	if (!nft_trans_chain_stats(trans))
+ 		static_branch_inc(&nft_counters_enabled);
+-	}
+ }
+ 
+ static void nf_tables_chain_free_chain_rules(struct nft_chain *chain)
+@@ -6362,9 +6355,9 @@ static void nft_chain_commit_update(struct nft_trans *trans)
+ 	if (!nft_is_base_chain(trans->ctx.chain))
+ 		return;
+ 
++	nft_chain_stats_replace(trans);
++
+ 	basechain = nft_base_chain(trans->ctx.chain);
+-	nft_chain_stats_replace(trans->ctx.net, basechain,
+-				nft_trans_chain_stats(trans));
+ 
+ 	switch (nft_trans_chain_policy(trans)) {
+ 	case NF_DROP:
+@@ -6381,6 +6374,7 @@ static void nft_commit_release(struct nft_trans *trans)
+ 		nf_tables_table_destroy(&trans->ctx);
+ 		break;
+ 	case NFT_MSG_NEWCHAIN:
++		free_percpu(nft_trans_chain_stats(trans));
+ 		kfree(nft_trans_chain_name(trans));
+ 		break;
+ 	case NFT_MSG_DELCHAIN:
+-- 
+2.21.0
+
