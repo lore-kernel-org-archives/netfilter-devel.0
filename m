@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F11AC282DE
-	for <netfilter-devel@archiver.kernel.org>; Thu, 23 May 2019 21:36:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 60980C282E1
+	for <netfilter-devel@archiver.kernel.org>; Thu, 23 May 2019 21:36:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5962B21773
-	for <netfilter-devel@archiver.kernel.org>; Thu, 23 May 2019 21:36:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3C1FC21773
+	for <netfilter-devel@archiver.kernel.org>; Thu, 23 May 2019 21:36:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388368AbfEWVgK (ORCPT
+        id S2388390AbfEWVgP (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 23 May 2019 17:36:10 -0400
-Received: from mail.us.es ([193.147.175.20]:46996 "EHLO mail.us.es"
+        Thu, 23 May 2019 17:36:15 -0400
+Received: from mail.us.es ([193.147.175.20]:46970 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388310AbfEWVgB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 23 May 2019 17:36:01 -0400
+        id S2388273AbfEWVf7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 23 May 2019 17:35:59 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id CDD68C1A7C
-        for <netfilter-devel@vger.kernel.org>; Thu, 23 May 2019 23:35:59 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id AD96DC1A73
+        for <netfilter-devel@vger.kernel.org>; Thu, 23 May 2019 23:35:57 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id C0659DA70E
-        for <netfilter-devel@vger.kernel.org>; Thu, 23 May 2019 23:35:59 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 9E38DDA70B
+        for <netfilter-devel@vger.kernel.org>; Thu, 23 May 2019 23:35:57 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id B5840DA70C; Thu, 23 May 2019 23:35:59 +0200 (CEST)
+        id 93DE4DA708; Thu, 23 May 2019 23:35:57 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id B2A30DA705;
-        Thu, 23 May 2019 23:35:57 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 5ECB8DA705;
+        Thu, 23 May 2019 23:35:55 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Thu, 23 May 2019 23:35:57 +0200 (CEST)
+ Thu, 23 May 2019 23:35:55 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 8ACDF4265A32;
-        Thu, 23 May 2019 23:35:57 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 2DF144265A32;
+        Thu, 23 May 2019 23:35:55 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 09/11] netfilter: nft_flow_offload: don't offload when sequence numbers need adjustment
-Date:   Thu, 23 May 2019 23:35:45 +0200
-Message-Id: <20190523213547.15523-10-pablo@netfilter.org>
+Subject: [PATCH 05/11] selftests: netfilter: missing error check when setting up veth interface
+Date:   Thu, 23 May 2019 23:35:41 +0200
+Message-Id: <20190523213547.15523-6-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20190523213547.15523-1-pablo@netfilter.org>
 References: <20190523213547.15523-1-pablo@netfilter.org>
@@ -55,49 +55,37 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+From: Jeffrin Jose T <jeffrin@rajagiritech.edu.in>
 
-We can't deal with tcp sequence number rewrite in flow_offload.
-While at it, simplify helper check, we only need to know if the extension
-is present, we don't need the helper data.
+A test for the basic NAT functionality uses ip command which needs veth
+device. There is a condition where the kernel support for veth is not
+compiled into the kernel and the test script breaks. This patch contains
+code for reasonable error display and correct code exit.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Jeffrin Jose T <jeffrin@rajagiritech.edu.in>
+Acked-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_flow_offload.c | 6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ tools/testing/selftests/netfilter/nft_nat.sh | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
-index bde63d9c3c4e..c97c03c3939a 100644
---- a/net/netfilter/nft_flow_offload.c
-+++ b/net/netfilter/nft_flow_offload.c
-@@ -12,7 +12,6 @@
- #include <net/netfilter/nf_conntrack_core.h>
- #include <linux/netfilter/nf_conntrack_common.h>
- #include <net/netfilter/nf_flow_table.h>
--#include <net/netfilter/nf_conntrack_helper.h>
+diff --git a/tools/testing/selftests/netfilter/nft_nat.sh b/tools/testing/selftests/netfilter/nft_nat.sh
+index 21159f5f3362..f102a65aa8b7 100755
+--- a/tools/testing/selftests/netfilter/nft_nat.sh
++++ b/tools/testing/selftests/netfilter/nft_nat.sh
+@@ -24,7 +24,11 @@ ip netns add ns0
+ ip netns add ns1
+ ip netns add ns2
  
- struct nft_flow_offload {
- 	struct nft_flowtable	*flowtable;
-@@ -67,7 +66,6 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
- {
- 	struct nft_flow_offload *priv = nft_expr_priv(expr);
- 	struct nf_flowtable *flowtable = &priv->flowtable->data;
--	const struct nf_conn_help *help;
- 	enum ip_conntrack_info ctinfo;
- 	struct nf_flow_route route;
- 	struct flow_offload *flow;
-@@ -93,8 +91,8 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
- 		goto out;
- 	}
+-ip link add veth0 netns ns0 type veth peer name eth0 netns ns1
++ip link add veth0 netns ns0 type veth peer name eth0 netns ns1 > /dev/null 2>&1
++if [ $? -ne 0 ];then
++    echo "SKIP: No virtual ethernet pair device support in kernel"
++    exit $ksft_skip
++fi
+ ip link add veth1 netns ns0 type veth peer name eth0 netns ns2
  
--	help = nfct_help(ct);
--	if (help)
-+	if (nf_ct_ext_exist(ct, NF_CT_EXT_HELPER) ||
-+	    ct->status & IPS_SEQ_ADJUST)
- 		goto out;
- 
- 	if (!nf_ct_is_confirmed(ct))
+ ip -net ns0 link set lo up
 -- 
 2.11.0
 
