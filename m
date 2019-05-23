@@ -2,131 +2,86 @@ Return-Path: <SRS0=SfI0=TX=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A950C282E1
-	for <netfilter-devel@archiver.kernel.org>; Thu, 23 May 2019 19:39:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 50FDFC282DD
+	for <netfilter-devel@archiver.kernel.org>; Thu, 23 May 2019 21:36:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5528820881
-	for <netfilter-devel@archiver.kernel.org>; Thu, 23 May 2019 19:39:25 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="QJn3d5d6"
+	by mail.kernel.org (Postfix) with ESMTP id 223FF21773
+	for <netfilter-devel@archiver.kernel.org>; Thu, 23 May 2019 21:36:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2390772AbfEWTjY (ORCPT
+        id S2388281AbfEWVf6 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 23 May 2019 15:39:24 -0400
-Received: from mail-pl1-f196.google.com ([209.85.214.196]:46423 "EHLO
-        mail-pl1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2390559AbfEWTjY (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 23 May 2019 15:39:24 -0400
-Received: by mail-pl1-f196.google.com with SMTP id r18so3135048pls.13
-        for <netfilter-devel@vger.kernel.org>; Thu, 23 May 2019 12:39:24 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=ODtJZkOMIQXDJ07If6u5vVfYLS8HO4jW6BccBOZirE4=;
-        b=QJn3d5d6d4KHKVjgIQOwrSiF+klknzTVaiKc4O/4hGsHVB6BL43pYerBsOEWXSN9VX
-         I2+Qe78lCW/q72UW8muxZLBP6Z9JWfr+BSKxZXDgoqOcOd5qJ+UpCU6nKGnCpTPlZTFd
-         L/AwWr1mQUxze/ZBSlo9jL1H05uTsoafQUyOGUpiaKLkh3cCepBACzuthJP3/1n0d4mZ
-         +mWjJFX/EjNA/RxAE+q3+z5pgzTKv/EV9wnl6NNGUKZrnAXYLqZL8vtrGcnq7gQzvcM7
-         XwNFFFulnaeqHMM6ymCrud0zKIa3sSpkECHkh8xjQr4YXap4QUAdFIU1vHDPbN58QKMv
-         eX+w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=ODtJZkOMIQXDJ07If6u5vVfYLS8HO4jW6BccBOZirE4=;
-        b=pNToLI+ATUrggj0IthAMP+3oc50yrIhYq5uEMqe2E5YENqhDL3FKnXqv08y9CyPM+q
-         krUBh7nLseyAfX6xDa+J2CeJ7kASeXy6I/8RwKY/1kbQ1TAHTAHKj5sq/xdrVJOUAAce
-         SEbS0meMV6VDXO3lw+H8V9rH9kVYnwt+GM6Kgy9cJT1abVQQLLVXClxzMOSrwsgi5Xjz
-         0DFphApBFdzhIFVz/P/R8omQEhLJ1NXI0kvYeCPrAgj8nWbTkvElwiID6TTYFZXN9n3K
-         mHCBK/KHeQhCfRrCTMGiq20+4OYDZysMpT8XdyusEVZy0zGqab578n6z8/kGSAA/tkBR
-         s8lg==
-X-Gm-Message-State: APjAAAU6U2l6xchcQEwvqjeF+M9GhJk33cYC5kIXE4msYzsf897JVeEn
-        YW2nujfi6Ro4NIg+lGKncOC8QsIsOCo=
-X-Google-Smtp-Source: APXvYqylDBQuiJjror+I1ac7XVmzetVLPDmcUVYftLGFS6v08PRnIP2JI7sFMpa5MQcNg1FMDprimA==
-X-Received: by 2002:a17:902:21:: with SMTP id 30mr84239411pla.302.1558640363250;
-        Thu, 23 May 2019 12:39:23 -0700 (PDT)
-Received: from localhost.localdomain ([2405:204:e08c:113f:3445:8a22:76d:1471])
-        by smtp.gmail.com with ESMTPSA id z4sm217711pfa.142.2019.05.23.12.39.20
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 23 May 2019 12:39:22 -0700 (PDT)
-From:   Shekhar Sharma <shekhar250198@gmail.com>
+        Thu, 23 May 2019 17:35:58 -0400
+Received: from mail.us.es ([193.147.175.20]:46944 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2388240AbfEWVf5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 23 May 2019 17:35:57 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id B8961C1A71
+        for <netfilter-devel@vger.kernel.org>; Thu, 23 May 2019 23:35:55 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A8C4FDA70A
+        for <netfilter-devel@vger.kernel.org>; Thu, 23 May 2019 23:35:55 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 9E516DA707; Thu, 23 May 2019 23:35:55 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 68F1FDA70A;
+        Thu, 23 May 2019 23:35:53 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Thu, 23 May 2019 23:35:53 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from salvia.here (sys.soleta.eu [212.170.55.40])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id 33F4A4265A32;
+        Thu, 23 May 2019 23:35:53 +0200 (CEST)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Cc:     Shekhar Sharma <shekhar250198@gmail.com>,
-        Eric Garver <eric@garver.life>
-Subject: Re: [PATCH nft v3]tests: py: fix python3.
-Date:   Fri, 24 May 2019 01:09:08 +0530
-Message-Id: <20190523193908.405176-1-shekhar250198@gmail.com>
-X-Mailer: git-send-email 2.21.0.windows.1
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Cc:     davem@davemloft.net, netdev@vger.kernel.org
+Subject: [PATCH 02/11] netfilter: nf_queue: fix reinject verdict handling
+Date:   Thu, 23 May 2019 23:35:38 +0200
+Message-Id: <20190523213547.15523-3-pablo@netfilter.org>
+X-Mailer: git-send-email 2.11.0
+In-Reply-To: <20190523213547.15523-1-pablo@netfilter.org>
+References: <20190523213547.15523-1-pablo@netfilter.org>
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Yes, the '\' can be removed, will remove it if I make any other changes in the future.
+From: Jagdish Motwani <jagdish.motwani@sophos.com>
 
-Thanks Eric, Pablo and Shivani for all your hints :-).
+This patch fixes netfilter hook traversal when there are more than 1 hooks
+returning NF_QUEUE verdict. When the first queue reinjects the packet,
+'nf_reinject' starts traversing hooks with a proper hook_index. However,
+if it again receives a NF_QUEUE verdict (by some other netfilter hook), it
+queues the packet with a wrong hook_index. So, when the second queue
+reinjects the packet, it re-executes hooks in between.
 
-Shekhar
+Fixes: 960632ece694 ("netfilter: convert hook list to an array")
+Signed-off-by: Jagdish Motwani <jagdish.motwani@sophos.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_queue.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-On Fri, May 24, 2019, 12:45 AM shekhar sharma <shekhar250198@gmail.com> wrote:
-Yes, the '\' can be removed, will remove it if I make any other changes in the future.
+diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
+index 9dc1d6e04946..b5b2be55ca82 100644
+--- a/net/netfilter/nf_queue.c
++++ b/net/netfilter/nf_queue.c
+@@ -255,6 +255,7 @@ static unsigned int nf_iterate(struct sk_buff *skb,
+ repeat:
+ 		verdict = nf_hook_entry_hookfn(hook, skb, state);
+ 		if (verdict != NF_ACCEPT) {
++			*index = i;
+ 			if (verdict != NF_REPEAT)
+ 				return verdict;
+ 			goto repeat;
+-- 
+2.11.0
 
-Thanks Eric, Pablo and Shivani for all your hints :-). 
-
-Shekhar 
-
-On Fri, May 24, 2019, 12:41 AM Eric Garver <eric@garver.life> wrote:
-On Thu, May 23, 2019 at 11:56:22PM +0530, Shekhar Sharma wrote:
-> This version of the patch converts the file into python3 and also uses
-> .format() method to make the print statments cleaner.
-> 
-> The version history of this topic is:
-> 
-> v1: conversion to py3 by changing print statements.
-> v2: adds the '__future__' package for compatibility with py2 and py3.
-> v3: solves the 'version' problem in argparse by adding a new argument.
-> v4: uses .format() method to make the print statements cleaner.
-> 
-> 
-> Signed-off-by: Shekhar Sharma <shekhar250198@gmail.com>
-> ---
-
-Acked-by: Eric Garver <eric@garver.life>
-
->  tests/py/nft-test.py | 47 ++++++++++++++++++++++++--------------------
->  1 file changed, 26 insertions(+), 21 deletions(-)
-> 
-> diff --git a/tests/py/nft-test.py b/tests/py/nft-test.py
-> index 1c0afd0e..ab26d08d 100755
-> --- a/tests/py/nft-test.py
-> +++ b/tests/py/nft-test.py
-[..]
-> @@ -1353,15 +1358,15 @@ def main():
->      signal.signal(signal.SIGTERM, signal_handler)
->  
->      if os.getuid() != 0:
-> -        print "You need to be root to run this, sorry"
-> +        print("You need to be root to run this, sorry")
->          return
->  
->      # Change working directory to repository root
->      os.chdir(TESTS_PATH + "/../..")
->  
->      if not os.path.exists('src/.libs/libnftables.so'):
-> -        print "The nftables library does not exist. " \
-> -              "You need to build the project."
-> +        print("The nftables library does not exist. " \
-> +              "You need to build the project.")
-
-nit: The trailing '\' can be removed now that the strings are inside
-parenthesis. I don't think it's worth rerolling the patch though.
