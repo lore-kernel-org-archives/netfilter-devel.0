@@ -6,29 +6,29 @@ X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 78348C282DD
-	for <netfilter-devel@archiver.kernel.org>; Thu, 23 May 2019 13:43:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E7BDEC282DD
+	for <netfilter-devel@archiver.kernel.org>; Thu, 23 May 2019 13:43:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5428220881
-	for <netfilter-devel@archiver.kernel.org>; Thu, 23 May 2019 13:43:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B9D3220881
+	for <netfilter-devel@archiver.kernel.org>; Thu, 23 May 2019 13:43:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730549AbfEWNn3 (ORCPT
+        id S1730601AbfEWNnd (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 23 May 2019 09:43:29 -0400
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:48818 "EHLO
+        Thu, 23 May 2019 09:43:33 -0400
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:48822 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1729698AbfEWNn3 (ORCPT
+        by vger.kernel.org with ESMTP id S1729698AbfEWNnd (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 23 May 2019 09:43:29 -0400
+        Thu, 23 May 2019 09:43:33 -0400
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.89)
         (envelope-from <fw@breakpoint.cc>)
-        id 1hTo0E-0007ir-4L; Thu, 23 May 2019 15:43:26 +0200
+        id 1hTo0I-0007j3-HZ; Thu, 23 May 2019 15:43:30 +0200
 From:   Florian Westphal <fw@strlen.de>
 To:     <netfilter-devel@vger.kernel.org>
 Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next 1/8] netfilter: bridge: convert skb_make_writable to skb_ensure_writable
-Date:   Thu, 23 May 2019 15:44:05 +0200
-Message-Id: <20190523134412.3295-2-fw@strlen.de>
+Subject: [PATCH nf-next 2/8] netfilter: ipvs: prefer skb_ensure_writable
+Date:   Thu, 23 May 2019 15:44:06 +0200
+Message-Id: <20190523134412.3295-3-fw@strlen.de>
 X-Mailer: git-send-email 2.21.0
 In-Reply-To: <20190523134412.3295-1-fw@strlen.de>
 References: <20190523134412.3295-1-fw@strlen.de>
@@ -39,100 +39,209 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Back in the day, skb_ensure_writable did not exist.  By now, both functions
-have the same precondition:
-
-I. skb_make_writable will test in this order:
-  1. wlen > skb->len -> error
-  2. if not cloned and wlen <= headlen -> OK
-  3. If cloned and wlen bytes of clone writeable -> OK
-
-After those checks, skb is either not cloned but needs to pull from
-nonlinear area, or writing to head would also alter data of another clone.
-
-In both cases skb_make_writable will then call __pskb_pull_tail, which will
-kmalloc a new memory area to use for skb->head.
-
-IOW, after successful skb_make_writable call, the requested length is in
-linear area and can be modified, even if skb was cloned.
-
-II. skb_ensure_writable will do this instead:
-   1. call pskb_may_pull.  This handles case 1 above.
-      After this, wlen is in linear area, but skb might be cloned.
-   2. return if skb is not cloned
-   3. return if wlen byte of clone are writeable.
-   4. fully copy the skb.
-
-So post-conditions are the same:
-*len bytes are writeable in linear area without altering any payload data
-of a clone, all header pointers might have been changed.
-
-Only differences are that skb_ensure_writable is in the core, whereas
-skb_make_writable lives in netfilter core and the inverted return value.
-skb_make_writable returns 0 on error, whereas skb_ensure_writable returns
-negative value.
-
-For the normal cases performance is similar:
-A. skb is not cloned and in linear area:
-   pskb_may_pull is inline helper, so neither function copies.
-B. skb is cloned, write is in linear area and clone is writeable:
-   both funcions return with step 3.
-
-This series removes skb_make_writable from the kernel.
-
-While at it, pass the needed value instead, its less confusing that way:
-There is no special-handling of "0-length" argument in either
-skb_make_writable or skb_ensure_writable.
-
-bridge already makes sure ethernet header is in linear area, only purpose
-of the make_writable() is is to copy skb->head in case of cloned skbs.
+It does the same thing, use it instead so we can remove skb_make_writable.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/bridge/netfilter/ebt_dnat.c     | 2 +-
- net/bridge/netfilter/ebt_redirect.c | 2 +-
- net/bridge/netfilter/ebt_snat.c     | 2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ net/netfilter/ipvs/ip_vs_app.c        |  4 ++--
+ net/netfilter/ipvs/ip_vs_core.c       |  4 ++--
+ net/netfilter/ipvs/ip_vs_ftp.c        |  4 ++--
+ net/netfilter/ipvs/ip_vs_proto_sctp.c |  4 ++--
+ net/netfilter/ipvs/ip_vs_proto_tcp.c  |  4 ++--
+ net/netfilter/ipvs/ip_vs_proto_udp.c  |  4 ++--
+ net/netfilter/ipvs/ip_vs_xmit.c       | 12 ++++++------
+ 7 files changed, 18 insertions(+), 18 deletions(-)
 
-diff --git a/net/bridge/netfilter/ebt_dnat.c b/net/bridge/netfilter/ebt_dnat.c
-index dfc86a0199da..b501384e4f40 100644
---- a/net/bridge/netfilter/ebt_dnat.c
-+++ b/net/bridge/netfilter/ebt_dnat.c
-@@ -21,7 +21,7 @@ ebt_dnat_tg(struct sk_buff *skb, const struct xt_action_param *par)
- 	const struct ebt_nat_info *info = par->targinfo;
- 	struct net_device *dev;
+diff --git a/net/netfilter/ipvs/ip_vs_app.c b/net/netfilter/ipvs/ip_vs_app.c
+index 7588aeaa605f..ba34ac25ee7b 100644
+--- a/net/netfilter/ipvs/ip_vs_app.c
++++ b/net/netfilter/ipvs/ip_vs_app.c
+@@ -363,7 +363,7 @@ static inline int app_tcp_pkt_out(struct ip_vs_conn *cp, struct sk_buff *skb,
+ 	struct tcphdr *th;
+ 	__u32 seq;
  
--	if (!skb_make_writable(skb, 0))
-+	if (skb_ensure_writable(skb, ETH_ALEN))
- 		return EBT_DROP;
+-	if (!skb_make_writable(skb, tcp_offset + sizeof(*th)))
++	if (skb_ensure_writable(skb, tcp_offset + sizeof(*th)))
+ 		return 0;
  
- 	ether_addr_copy(eth_hdr(skb)->h_dest, info->mac);
-diff --git a/net/bridge/netfilter/ebt_redirect.c b/net/bridge/netfilter/ebt_redirect.c
-index a7223eaf490b..ea09b83074f7 100644
---- a/net/bridge/netfilter/ebt_redirect.c
-+++ b/net/bridge/netfilter/ebt_redirect.c
-@@ -20,7 +20,7 @@ ebt_redirect_tg(struct sk_buff *skb, const struct xt_action_param *par)
- {
- 	const struct ebt_redirect_info *info = par->targinfo;
+ 	th = (struct tcphdr *)(skb_network_header(skb) + tcp_offset);
+@@ -440,7 +440,7 @@ static inline int app_tcp_pkt_in(struct ip_vs_conn *cp, struct sk_buff *skb,
+ 	struct tcphdr *th;
+ 	__u32 seq;
  
--	if (!skb_make_writable(skb, 0))
-+	if (skb_ensure_writable(skb, ETH_ALEN))
- 		return EBT_DROP;
+-	if (!skb_make_writable(skb, tcp_offset + sizeof(*th)))
++	if (skb_ensure_writable(skb, tcp_offset + sizeof(*th)))
+ 		return 0;
  
- 	if (xt_hooknum(par) != NF_BR_BROUTING)
-diff --git a/net/bridge/netfilter/ebt_snat.c b/net/bridge/netfilter/ebt_snat.c
-index 11cf9e9e9222..70c3c36be18a 100644
---- a/net/bridge/netfilter/ebt_snat.c
-+++ b/net/bridge/netfilter/ebt_snat.c
-@@ -21,7 +21,7 @@ ebt_snat_tg(struct sk_buff *skb, const struct xt_action_param *par)
- {
- 	const struct ebt_nat_info *info = par->targinfo;
+ 	th = (struct tcphdr *)(skb_network_header(skb) + tcp_offset);
+diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+index 14457551bcb4..7b437c57f93d 100644
+--- a/net/netfilter/ipvs/ip_vs_core.c
++++ b/net/netfilter/ipvs/ip_vs_core.c
+@@ -897,7 +897,7 @@ static int handle_response_icmp(int af, struct sk_buff *skb,
+ 	if (IPPROTO_TCP == protocol || IPPROTO_UDP == protocol ||
+ 	    IPPROTO_SCTP == protocol)
+ 		offset += 2 * sizeof(__u16);
+-	if (!skb_make_writable(skb, offset))
++	if (skb_ensure_writable(skb, offset))
+ 		goto out;
  
--	if (!skb_make_writable(skb, 0))
-+	if (skb_ensure_writable(skb, ETH_ALEN * 2))
- 		return EBT_DROP;
+ #ifdef CONFIG_IP_VS_IPV6
+@@ -1287,7 +1287,7 @@ handle_response(int af, struct sk_buff *skb, struct ip_vs_proto_data *pd,
  
- 	ether_addr_copy(eth_hdr(skb)->h_source, info->mac);
+ 	IP_VS_DBG_PKT(11, af, pp, skb, iph->off, "Outgoing packet");
+ 
+-	if (!skb_make_writable(skb, iph->len))
++	if (skb_ensure_writable(skb, iph->len))
+ 		goto drop;
+ 
+ 	/* mangle the packet */
+diff --git a/net/netfilter/ipvs/ip_vs_ftp.c b/net/netfilter/ipvs/ip_vs_ftp.c
+index fe69d46ff779..5cbefa927f09 100644
+--- a/net/netfilter/ipvs/ip_vs_ftp.c
++++ b/net/netfilter/ipvs/ip_vs_ftp.c
+@@ -273,7 +273,7 @@ static int ip_vs_ftp_out(struct ip_vs_app *app, struct ip_vs_conn *cp,
+ 		return 1;
+ 
+ 	/* Linear packets are much easier to deal with. */
+-	if (!skb_make_writable(skb, skb->len))
++	if (skb_ensure_writable(skb, skb->len))
+ 		return 0;
+ 
+ 	if (cp->app_data == (void *) IP_VS_FTP_PASV) {
+@@ -439,7 +439,7 @@ static int ip_vs_ftp_in(struct ip_vs_app *app, struct ip_vs_conn *cp,
+ 		return 1;
+ 
+ 	/* Linear packets are much easier to deal with. */
+-	if (!skb_make_writable(skb, skb->len))
++	if (skb_ensure_writable(skb, skb->len))
+ 		return 0;
+ 
+ 	data = data_start = ip_vs_ftp_data_ptr(skb, ipvsh);
+diff --git a/net/netfilter/ipvs/ip_vs_proto_sctp.c b/net/netfilter/ipvs/ip_vs_proto_sctp.c
+index b58ddb7dffd1..a0921adc31a9 100644
+--- a/net/netfilter/ipvs/ip_vs_proto_sctp.c
++++ b/net/netfilter/ipvs/ip_vs_proto_sctp.c
+@@ -101,7 +101,7 @@ sctp_snat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
+ #endif
+ 
+ 	/* csum_check requires unshared skb */
+-	if (!skb_make_writable(skb, sctphoff + sizeof(*sctph)))
++	if (skb_ensure_writable(skb, sctphoff + sizeof(*sctph)))
+ 		return 0;
+ 
+ 	if (unlikely(cp->app != NULL)) {
+@@ -148,7 +148,7 @@ sctp_dnat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
+ #endif
+ 
+ 	/* csum_check requires unshared skb */
+-	if (!skb_make_writable(skb, sctphoff + sizeof(*sctph)))
++	if (skb_ensure_writable(skb, sctphoff + sizeof(*sctph)))
+ 		return 0;
+ 
+ 	if (unlikely(cp->app != NULL)) {
+diff --git a/net/netfilter/ipvs/ip_vs_proto_tcp.c b/net/netfilter/ipvs/ip_vs_proto_tcp.c
+index 00ce07dda980..089ee592a955 100644
+--- a/net/netfilter/ipvs/ip_vs_proto_tcp.c
++++ b/net/netfilter/ipvs/ip_vs_proto_tcp.c
+@@ -163,7 +163,7 @@ tcp_snat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
+ 	oldlen = skb->len - tcphoff;
+ 
+ 	/* csum_check requires unshared skb */
+-	if (!skb_make_writable(skb, tcphoff+sizeof(*tcph)))
++	if (skb_ensure_writable(skb, tcphoff + sizeof(*tcph)))
+ 		return 0;
+ 
+ 	if (unlikely(cp->app != NULL)) {
+@@ -241,7 +241,7 @@ tcp_dnat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
+ 	oldlen = skb->len - tcphoff;
+ 
+ 	/* csum_check requires unshared skb */
+-	if (!skb_make_writable(skb, tcphoff+sizeof(*tcph)))
++	if (skb_ensure_writable(skb, tcphoff + sizeof(*tcph)))
+ 		return 0;
+ 
+ 	if (unlikely(cp->app != NULL)) {
+diff --git a/net/netfilter/ipvs/ip_vs_proto_udp.c b/net/netfilter/ipvs/ip_vs_proto_udp.c
+index 92c078abcb3e..de366aa3c03b 100644
+--- a/net/netfilter/ipvs/ip_vs_proto_udp.c
++++ b/net/netfilter/ipvs/ip_vs_proto_udp.c
+@@ -153,7 +153,7 @@ udp_snat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
+ 	oldlen = skb->len - udphoff;
+ 
+ 	/* csum_check requires unshared skb */
+-	if (!skb_make_writable(skb, udphoff+sizeof(*udph)))
++	if (skb_ensure_writable(skb, udphoff + sizeof(*udph)))
+ 		return 0;
+ 
+ 	if (unlikely(cp->app != NULL)) {
+@@ -236,7 +236,7 @@ udp_dnat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
+ 	oldlen = skb->len - udphoff;
+ 
+ 	/* csum_check requires unshared skb */
+-	if (!skb_make_writable(skb, udphoff+sizeof(*udph)))
++	if (skb_ensure_writable(skb, udphoff + sizeof(*udph)))
+ 		return 0;
+ 
+ 	if (unlikely(cp->app != NULL)) {
+diff --git a/net/netfilter/ipvs/ip_vs_xmit.c b/net/netfilter/ipvs/ip_vs_xmit.c
+index 8d6f94b67772..0b41d0504429 100644
+--- a/net/netfilter/ipvs/ip_vs_xmit.c
++++ b/net/netfilter/ipvs/ip_vs_xmit.c
+@@ -279,7 +279,7 @@ static inline bool decrement_ttl(struct netns_ipvs *ipvs,
+ 		}
+ 
+ 		/* don't propagate ttl change to cloned packets */
+-		if (!skb_make_writable(skb, sizeof(struct ipv6hdr)))
++		if (skb_ensure_writable(skb, sizeof(struct ipv6hdr)))
+ 			return false;
+ 
+ 		ipv6_hdr(skb)->hop_limit--;
+@@ -294,7 +294,7 @@ static inline bool decrement_ttl(struct netns_ipvs *ipvs,
+ 		}
+ 
+ 		/* don't propagate ttl change to cloned packets */
+-		if (!skb_make_writable(skb, sizeof(struct iphdr)))
++		if (skb_ensure_writable(skb, sizeof(struct iphdr)))
+ 			return false;
+ 
+ 		/* Decrease ttl */
+@@ -796,7 +796,7 @@ ip_vs_nat_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
+ 	}
+ 
+ 	/* copy-on-write the packet before mangling it */
+-	if (!skb_make_writable(skb, sizeof(struct iphdr)))
++	if (skb_ensure_writable(skb, sizeof(struct iphdr)))
+ 		goto tx_error;
+ 
+ 	if (skb_cow(skb, rt->dst.dev->hard_header_len))
+@@ -885,7 +885,7 @@ ip_vs_nat_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
+ 	}
+ 
+ 	/* copy-on-write the packet before mangling it */
+-	if (!skb_make_writable(skb, sizeof(struct ipv6hdr)))
++	if (skb_ensure_writable(skb, sizeof(struct ipv6hdr)))
+ 		goto tx_error;
+ 
+ 	if (skb_cow(skb, rt->dst.dev->hard_header_len))
+@@ -1404,7 +1404,7 @@ ip_vs_icmp_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
+ 	}
+ 
+ 	/* copy-on-write the packet before mangling it */
+-	if (!skb_make_writable(skb, offset))
++	if (skb_ensure_writable(skb, offset))
+ 		goto tx_error;
+ 
+ 	if (skb_cow(skb, rt->dst.dev->hard_header_len))
+@@ -1493,7 +1493,7 @@ ip_vs_icmp_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
+ 	}
+ 
+ 	/* copy-on-write the packet before mangling it */
+-	if (!skb_make_writable(skb, offset))
++	if (skb_ensure_writable(skb, offset))
+ 		goto tx_error;
+ 
+ 	if (skb_cow(skb, rt->dst.dev->hard_header_len))
 -- 
 2.21.0
 
