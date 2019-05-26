@@ -1,325 +1,452 @@
-Return-Path: <SRS0=62P+=TZ=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=0Qtg=T2=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-8.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C82E0C282CE
-	for <netfilter-devel@archiver.kernel.org>; Sat, 25 May 2019 13:33:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0536BC282E1
+	for <netfilter-devel@archiver.kernel.org>; Sun, 26 May 2019 06:49:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8EE612075D
-	for <netfilter-devel@archiver.kernel.org>; Sat, 25 May 2019 13:33:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BCE5D2075B
+	for <netfilter-devel@archiver.kernel.org>; Sun, 26 May 2019 06:49:24 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="qLQB/ALx"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="tcNECKj4"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726940AbfEYNdY (ORCPT
+        id S1726543AbfEZGtU (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 25 May 2019 09:33:24 -0400
-Received: from mail-wm1-f68.google.com ([209.85.128.68]:39198 "EHLO
-        mail-wm1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726884AbfEYNdY (ORCPT
+        Sun, 26 May 2019 02:49:20 -0400
+Received: from mail-pg1-f196.google.com ([209.85.215.196]:34230 "EHLO
+        mail-pg1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726444AbfEZGtU (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 25 May 2019 09:33:24 -0400
-Received: by mail-wm1-f68.google.com with SMTP id z23so7630221wma.4
-        for <netfilter-devel@vger.kernel.org>; Sat, 25 May 2019 06:33:21 -0700 (PDT)
+        Sun, 26 May 2019 02:49:20 -0400
+Received: by mail-pg1-f196.google.com with SMTP id h2so4254559pgg.1;
+        Sat, 25 May 2019 23:49:19 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:mime-version
          :content-transfer-encoding;
-        bh=AVpgxxiF8jXruobxkmOMHhd7JSjEPIoFDu6aTwOqNdE=;
-        b=qLQB/ALx0kkZJSkU+pZlinHEONv3eRvHEVJYmAR8+hR/s6BrtByLoC8B8rERC6yTXC
-         zWtkftHyMWatyXPyubvWY6LCi8y99m2tHxsFyHZCu+mC8UGHTW40+rJvmt4YZ9qW2Irm
-         XRLcmoyWwVyjoH1oQo+/k1/tGmerLRfOK0DpSu9tNDdr9w6uP5aHQSubf1q86owqZvyz
-         sSrBf/6GByhvOiAOMsMJMsCgJzZu1hHwq3j28Zlc/jXeTsgc2KXQBRV7FvfBrD55HNb1
-         7CSzNZf3FEA6rVzVWJPMiKOMJvmw3vGK3xn57T8UHRjAlAaTZxeZdeuMxuhYH7sCOs6V
-         FEQA==
+        bh=9Wd+rg1iuxhOjM4+J2HoOX4WKUM4unGvAPSEjWYl5T0=;
+        b=tcNECKj4ucu7VH/wGpyPGfAgrgjnMSj0+zy5t6Ufh5dMY0PWaV2sGdR1J/0LLNnA2e
+         Y9YBnn0btXOjkulJMYQKp0NuyJodOaWBRt4UIofZb8YjXkB4bqzM3qk3c/9KPnGTeBeO
+         20/CDR9nFpBeJeVdZDNUT+TzD4wJtERC8fOooeedOtGhlOvurRWsMD/GifCBzSntt+Vi
+         q3MofA93Wu7ru8ZtYY6E0854Ti1NV4YKIomR/YyDEyfgNhIUElyruVaRSlv9t6r6wa+b
+         EOD/j0albmvAvOyjCNnBvZTCzIVn0MxzCLV9NDHD8yJ1Fn23vKOFhZmKp+NUEtRspumL
+         LFDA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
          :content-transfer-encoding;
-        bh=AVpgxxiF8jXruobxkmOMHhd7JSjEPIoFDu6aTwOqNdE=;
-        b=HGpv0eGW/B/Cq2DIA7Oj8t3OS8hQ43Y+eNh1imHA2ipXybF2faj4Yd+FpP0ehdbUtI
-         8GUgJw4T5TxBuWdTDcxNSd/xCMkhBFfST2UGO9VfzHXPGPe3yKPdxXOjxynSn7yIg5ot
-         XA1PGZ8Az4pfGmLsIPtKanJoEgfTHsPzucicUJ+OHz97f8ES5Aj2212tQyZHOKs3vuF0
-         OdbGfTx9y0W/yRZmkNxuYdP8wrUnLxNPIwzAWNWCS6ecjRRvsP8WrJPO6sOuA9LUjJOI
-         l+1W3HpxP+Qh7RrrovJPCS1kqIBegMmFLNstnrR06H83e6wYw0INazooUrU34b8Ey5dD
-         3EDA==
-X-Gm-Message-State: APjAAAWF9TKK87ve0cASgquU+jd42nyVIRyf2VgwnkLL2bKfmWqFmizJ
-        Q211y7T+9gjio3MayvTyFEtl7sjs
-X-Google-Smtp-Source: APXvYqyQ3rOfpEbDmF/21w2mgX9GCs4mmYx+huODYYkBvwHYnKVDGdBM0nBvi6V6XxUeWcZx0hGjSg==
-X-Received: by 2002:a1c:f012:: with SMTP id a18mr3813768wmb.168.1558791200086;
-        Sat, 25 May 2019 06:33:20 -0700 (PDT)
-Received: from VGer.neptura.lan (neptura.org. [88.174.209.153])
-        by smtp.gmail.com with ESMTPSA id u2sm13905814wra.82.2019.05.25.06.33.18
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Sat, 25 May 2019 06:33:19 -0700 (PDT)
-From:   =?UTF-8?q?St=C3=A9phane=20Veyret?= <sveyret@gmail.com>
-To:     netfilter-devel@vger.kernel.org
-Cc:     =?UTF-8?q?St=C3=A9phane=20Veyret?= <sveyret@gmail.com>
-Subject: [PATCH nf-next v5] netfilter: nft_ct: add ct expectations support
-Date:   Sat, 25 May 2019 15:30:58 +0200
-Message-Id: <20190525133058.18001-1-sveyret@gmail.com>
+        bh=9Wd+rg1iuxhOjM4+J2HoOX4WKUM4unGvAPSEjWYl5T0=;
+        b=qXurClTN9gX36iQ3XKqugjBz6XJ1ehHQuaje9YFMvVwdf7rt04xU/myNDM/KiSTwKX
+         fzk2rDKRUJC+i9slbpuBERzSOygyc7ATwA7mpoYGD5gfUayzJetta4ogY3vA9arX9ssz
+         kOvV+tVdaNWJriBIOWVWWpWfAVT2M0IEIjOeKIncgbtGsCN5NdfTieRSkUlsM++Vdesf
+         oMjjZg3S/K/90jvmwFlTfL1IIFdQ2HH6Sj9gIwxsCsV7o74Si0oxXnGVR4n4suPz4g3Y
+         GgioXMV+ADFKUnMuei8sce+0+TOCzoRtcQzOezE8+CaJcDULJ7ScmsoHedmtTUNSB7Uv
+         50Gg==
+X-Gm-Message-State: APjAAAWEatolN4pc7YibZiPcDpWilPsj90iTwVV4Sx6wtHcLZM3HA2Ll
+        cKd58gA1WUrGh+WiP4QNkg==
+X-Google-Smtp-Source: APXvYqwZO2zDYVoEd/5ZH2DaoUolDlJ8AAJ+aEEhM0LgFfdtfhqvJXsyhN5sQhmF6adpE5hq3xq+dA==
+X-Received: by 2002:a17:90a:f992:: with SMTP id cq18mr21399031pjb.54.1558853359254;
+        Sat, 25 May 2019 23:49:19 -0700 (PDT)
+Received: from localhost ([2001:19f0:7001:54c5:5400:1ff:fec8:7fc2])
+        by smtp.gmail.com with ESMTPSA id n21sm7139246pff.92.2019.05.25.23.49.17
+        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+        Sat, 25 May 2019 23:49:18 -0700 (PDT)
+From:   Jacky Hu <hengqing.hu@gmail.com>
+To:     hengqing.hu@gmail.com
+Cc:     jacky.hu@walmart.com, jason.niesz@walmart.com,
+        Wensong Zhang <wensong@linux-vs.org>,
+        Simon Horman <horms@verge.net.au>,
+        Julian Anastasov <ja@ssi.bg>,
+        "David S. Miller" <davem@davemloft.net>,
+        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org,
+        lvs-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+Subject: [PATCH v2] ipvs: add checksum support for gue encapsulation
+Date:   Sun, 26 May 2019 14:48:19 +0800
+Message-Id: <20190526064819.16420-1-hengqing.hu@gmail.com>
 X-Mailer: git-send-email 2.21.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This patch allows to add, list and delete expectations via nft objref
-infrastructure and assigning these expectations via nft rule.
+Add checksum support for gue encapsulation with the tun_flags parameter,
+which could be one of the values below:
+IP_VS_TUNNEL_ENCAP_FLAG_NOCSUM
+IP_VS_TUNNEL_ENCAP_FLAG_CSUM
+IP_VS_TUNNEL_ENCAP_FLAG_REMCSUM
 
-This allows manual port triggering when no helper is defined to manage a
-specific protocol. For example, if I have an online game which protocol
-is based on initial connection to TCP port 9753 of the server, and where
-the server opens a connection to port 9876, I can set rules as follow:
-
-table ip filter {
-    ct expectation mygame {
-        protocol udp;
-        dport 9876;
-        timeout 2m;
-        size 1;
-    }
-
-    chain input {
-        type filter hook input priority 0; policy drop;
-        tcp dport 9753 ct expectation set "mygame";
-    }
-
-    chain output {
-        type filter hook output priority 0; policy drop;
-        udp dport 9876 ct status expected accept;
-    }
-}
-
-Signed-off-by: Stéphane Veyret <sveyret@gmail.com>
+Signed-off-by: Jacky Hu <hengqing.hu@gmail.com>
 ---
- include/uapi/linux/netfilter/nf_tables.h |  14 ++-
- net/netfilter/nft_ct.c                   | 138 ++++++++++++++++++++++-
- 2 files changed, 149 insertions(+), 3 deletions(-)
+v2->v1:
+  1) removed unnecessary changes to ip_vs_core.c
+  2) use correct nla_get/put function for tun_flags
+  3) use correct gue hdrlen for skb_push in ipvs_gue_encap
+  4) moved declaration of gue_hdrlen and gue_optlen
 
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index 505393c6e959..31a6b8f7ff73 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -1445,6 +1445,17 @@ enum nft_ct_timeout_timeout_attributes {
- };
- #define NFTA_CT_TIMEOUT_MAX	(__NFTA_CT_TIMEOUT_MAX - 1)
+ include/net/ip_vs.h             |   2 +
+ include/uapi/linux/ip_vs.h      |   7 ++
+ net/netfilter/ipvs/ip_vs_ctl.c  |  11 ++-
+ net/netfilter/ipvs/ip_vs_xmit.c | 142 ++++++++++++++++++++++++++++----
+ 4 files changed, 145 insertions(+), 17 deletions(-)
+
+diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
+index b01a94ebfc0e..cb1ad0cc5c7b 100644
+--- a/include/net/ip_vs.h
++++ b/include/net/ip_vs.h
+@@ -603,6 +603,7 @@ struct ip_vs_dest_user_kern {
  
-+enum nft_ct_expectation_attributes {
-+	NFTA_CT_EXPECT_UNSPEC,
-+	NFTA_CT_EXPECT_L3PROTO,
-+	NFTA_CT_EXPECT_L4PROTO,
-+	NFTA_CT_EXPECT_DPORT,
-+	NFTA_CT_EXPECT_TIMEOUT,
-+	NFTA_CT_EXPECT_SIZE,
-+	__NFTA_CT_EXPECT_MAX,
-+};
-+#define NFTA_CT_EXPECT_MAX	(__NFTA_CT_EXPECT_MAX - 1)
-+
- #define NFT_OBJECT_UNSPEC	0
- #define NFT_OBJECT_COUNTER	1
- #define NFT_OBJECT_QUOTA	2
-@@ -1454,7 +1465,8 @@ enum nft_ct_timeout_timeout_attributes {
- #define NFT_OBJECT_TUNNEL	6
- #define NFT_OBJECT_CT_TIMEOUT	7
- #define NFT_OBJECT_SECMARK	8
--#define __NFT_OBJECT_MAX	9
-+#define NFT_OBJECT_CT_EXPECT	9
-+#define __NFT_OBJECT_MAX	10
- #define NFT_OBJECT_MAX		(__NFT_OBJECT_MAX - 1)
- 
- /**
-diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
-index f043936763f3..f648aafc33da 100644
---- a/net/netfilter/nft_ct.c
-+++ b/net/netfilter/nft_ct.c
-@@ -24,6 +24,7 @@
- #include <net/netfilter/nf_conntrack_labels.h>
- #include <net/netfilter/nf_conntrack_timeout.h>
- #include <net/netfilter/nf_conntrack_l4proto.h>
-+#include <net/netfilter/nf_conntrack_expect.h>
- 
- struct nft_ct {
- 	enum nft_ct_keys	key:8;
-@@ -790,6 +791,131 @@ static struct nft_expr_type nft_notrack_type __read_mostly = {
- 	.owner		= THIS_MODULE,
+ 	u16			tun_type;	/* tunnel type */
+ 	__be16			tun_port;	/* tunnel port */
++	u16			tun_flags;	/* tunnel flags */
  };
  
-+struct nft_ct_expect_obj {
-+	u16		l3num;
-+	__be16		dport;
-+	u8		l4proto;
-+	u8		size;
-+	u32		timeout;
-+};
+ 
+@@ -665,6 +666,7 @@ struct ip_vs_dest {
+ 	atomic_t		last_weight;	/* server latest weight */
+ 	__u16			tun_type;	/* tunnel type */
+ 	__be16			tun_port;	/* tunnel port */
++	__u16			tun_flags;	/* tunnel flags */
+ 
+ 	refcount_t		refcnt;		/* reference counter */
+ 	struct ip_vs_stats      stats;          /* statistics */
+diff --git a/include/uapi/linux/ip_vs.h b/include/uapi/linux/ip_vs.h
+index e34f436fc79d..fa5cf8498474 100644
+--- a/include/uapi/linux/ip_vs.h
++++ b/include/uapi/linux/ip_vs.h
+@@ -131,6 +131,11 @@ enum {
+ 	IP_VS_CONN_F_TUNNEL_TYPE_MAX,
+ };
+ 
++/* Tunnel encapsulation flags */
++#define IP_VS_TUNNEL_ENCAP_FLAG_NOCSUM		(0)
++#define IP_VS_TUNNEL_ENCAP_FLAG_CSUM		(1<<0)
++#define IP_VS_TUNNEL_ENCAP_FLAG_REMCSUM		(1<<1)
 +
-+static int nft_ct_expect_obj_init(const struct nft_ctx *ctx,
-+				  const struct nlattr * const tb[],
-+				  struct nft_object *obj)
-+{
-+	struct nft_ct_expect_obj *priv = nft_obj_data(obj);
+ /*
+  *	The struct ip_vs_service_user and struct ip_vs_dest_user are
+  *	used to set IPVS rules through setsockopt.
+@@ -403,6 +408,8 @@ enum {
+ 
+ 	IPVS_DEST_ATTR_TUN_PORT,	/* tunnel port */
+ 
++	IPVS_DEST_ATTR_TUN_FLAGS,	/* tunnel flags */
 +
-+	if (!tb[NFTA_CT_EXPECT_L4PROTO] ||
-+	    !tb[NFTA_CT_EXPECT_DPORT] ||
-+	    !tb[NFTA_CT_EXPECT_TIMEOUT] ||
-+	    !tb[NFTA_CT_EXPECT_SIZE])
-+		return -EINVAL;
+ 	__IPVS_DEST_ATTR_MAX,
+ };
+ 
+diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+index d5847e06350f..ad19ac08622f 100644
+--- a/net/netfilter/ipvs/ip_vs_ctl.c
++++ b/net/netfilter/ipvs/ip_vs_ctl.c
+@@ -893,6 +893,7 @@ __ip_vs_update_dest(struct ip_vs_service *svc, struct ip_vs_dest *dest,
+ 	/* set the tunnel info */
+ 	dest->tun_type = udest->tun_type;
+ 	dest->tun_port = udest->tun_port;
++	dest->tun_flags = udest->tun_flags;
+ 
+ 	/* set the IP_VS_CONN_F_NOOUTPUT flag if not masquerading/NAT */
+ 	if ((conn_flags & IP_VS_CONN_F_FWD_MASK) != IP_VS_CONN_F_MASQ) {
+@@ -2967,6 +2968,7 @@ static const struct nla_policy ip_vs_dest_policy[IPVS_DEST_ATTR_MAX + 1] = {
+ 	[IPVS_DEST_ATTR_ADDR_FAMILY]	= { .type = NLA_U16 },
+ 	[IPVS_DEST_ATTR_TUN_TYPE]	= { .type = NLA_U8 },
+ 	[IPVS_DEST_ATTR_TUN_PORT]	= { .type = NLA_U16 },
++	[IPVS_DEST_ATTR_TUN_FLAGS]	= { .type = NLA_U16 },
+ };
+ 
+ static int ip_vs_genl_fill_stats(struct sk_buff *skb, int container_type,
+@@ -3273,6 +3275,8 @@ static int ip_vs_genl_fill_dest(struct sk_buff *skb, struct ip_vs_dest *dest)
+ 		       dest->tun_type) ||
+ 	    nla_put_be16(skb, IPVS_DEST_ATTR_TUN_PORT,
+ 			 dest->tun_port) ||
++	    nla_put_u16(skb, IPVS_DEST_ATTR_TUN_FLAGS,
++			dest->tun_flags) ||
+ 	    nla_put_u32(skb, IPVS_DEST_ATTR_U_THRESH, dest->u_threshold) ||
+ 	    nla_put_u32(skb, IPVS_DEST_ATTR_L_THRESH, dest->l_threshold) ||
+ 	    nla_put_u32(skb, IPVS_DEST_ATTR_ACTIVE_CONNS,
+@@ -3393,7 +3397,8 @@ static int ip_vs_genl_parse_dest(struct ip_vs_dest_user_kern *udest,
+ 	/* If a full entry was requested, check for the additional fields */
+ 	if (full_entry) {
+ 		struct nlattr *nla_fwd, *nla_weight, *nla_u_thresh,
+-			      *nla_l_thresh, *nla_tun_type, *nla_tun_port;
++			      *nla_l_thresh, *nla_tun_type, *nla_tun_port,
++			      *nla_tun_flags;
+ 
+ 		nla_fwd		= attrs[IPVS_DEST_ATTR_FWD_METHOD];
+ 		nla_weight	= attrs[IPVS_DEST_ATTR_WEIGHT];
+@@ -3401,6 +3406,7 @@ static int ip_vs_genl_parse_dest(struct ip_vs_dest_user_kern *udest,
+ 		nla_l_thresh	= attrs[IPVS_DEST_ATTR_L_THRESH];
+ 		nla_tun_type	= attrs[IPVS_DEST_ATTR_TUN_TYPE];
+ 		nla_tun_port	= attrs[IPVS_DEST_ATTR_TUN_PORT];
++		nla_tun_flags	= attrs[IPVS_DEST_ATTR_TUN_FLAGS];
+ 
+ 		if (!(nla_fwd && nla_weight && nla_u_thresh && nla_l_thresh))
+ 			return -EINVAL;
+@@ -3416,6 +3422,9 @@ static int ip_vs_genl_parse_dest(struct ip_vs_dest_user_kern *udest,
+ 
+ 		if (nla_tun_port)
+ 			udest->tun_port = nla_get_be16(nla_tun_port);
 +
-+	priv->l3num = ctx->family;
-+	if (tb[NFTA_CT_EXPECT_L3PROTO])
-+		priv->l3num = ntohs(nla_get_be16(tb[NFTA_CT_EXPECT_L3PROTO]));
-+
-+	priv->l4proto = nla_get_u8(tb[NFTA_CT_EXPECT_L4PROTO]);
-+	priv->dport = nla_get_be16(tb[NFTA_CT_EXPECT_DPORT]);
-+	priv->timeout = nla_get_u32(tb[NFTA_CT_EXPECT_TIMEOUT]);
-+	priv->size = nla_get_u8(tb[NFTA_CT_EXPECT_SIZE]);
-+
-+	return nf_ct_netns_get(ctx->net, ctx->family);
-+}
-+
-+static void nft_ct_expect_obj_destroy(const struct nft_ctx *ctx,
-+				       struct nft_object *obj)
-+{
-+	nf_ct_netns_put(ctx->net, ctx->family);
-+}
-+
-+static int nft_ct_expect_obj_dump(struct sk_buff *skb,
-+				  struct nft_object *obj, bool reset)
-+{
-+	const struct nft_ct_expect_obj *priv = nft_obj_data(obj);
-+
-+	if (nla_put_be16(skb, NFTA_CT_EXPECT_L3PROTO, htons(priv->l3num)) ||
-+	    nla_put_u8(skb, NFTA_CT_EXPECT_L4PROTO, priv->l4proto) ||
-+	    nla_put_be16(skb, NFTA_CT_EXPECT_DPORT, priv->dport) ||
-+	    nla_put_u32(skb, NFTA_CT_EXPECT_TIMEOUT, priv->timeout) ||
-+	    nla_put_u8(skb, NFTA_CT_EXPECT_SIZE, priv->size))
-+		return -1;
-+
-+	return 0;
-+}
-+
-+static void nft_ct_expect_obj_eval(struct nft_object *obj,
-+				   struct nft_regs *regs,
-+				   const struct nft_pktinfo *pkt)
-+{
-+	const struct nft_ct_expect_obj *priv = nft_obj_data(obj);
-+	struct nf_conntrack_expect *exp;
-+	enum ip_conntrack_info ctinfo;
-+	struct nf_conn_help *help;
-+	enum ip_conntrack_dir dir;
-+	u16 l3num = priv->l3num;
-+	struct nf_conn *ct;
-+
-+	ct = nf_ct_get(pkt->skb, &ctinfo);
-+	if (!ct || ctinfo == IP_CT_UNTRACKED) {
-+		regs->verdict.code = NFT_BREAK;
-+		return;
-+	}
-+	dir = CTINFO2DIR(ctinfo);
-+
-+	/* ct helper extention is required */
-+	help = nfct_help(ct);
-+	if (!help)
-+		help = nf_ct_helper_ext_add(ct, GFP_ATOMIC);
-+
-+	if (help->expecting[NF_CT_EXPECT_CLASS_DEFAULT] >= priv->size) {
-+		regs->verdict.code = NFT_BREAK;
-+		return;
-+	}
-+	if (l3num == NFPROTO_INET)
-+		l3num = nf_ct_l3num(ct);
-+
-+	exp = nf_ct_expect_alloc(ct);
-+	if (exp == NULL) {
-+		regs->verdict.code = NF_DROP;
-+		return;
-+	}
-+	nf_ct_expect_init(exp, NF_CT_EXPECT_CLASS_DEFAULT, l3num,
-+		          &ct->tuplehash[!dir].tuple.src.u3,
-+		          &ct->tuplehash[!dir].tuple.dst.u3,
-+		          priv->l4proto, NULL, &priv->dport);
-+	exp->timeout.expires = jiffies + priv->timeout * HZ;
-+	if (nf_ct_expect_related(exp) != 0)
-+		regs->verdict.code = NF_DROP;
-+}
-+
-+static const struct nla_policy nft_ct_expect_policy[NFTA_CT_EXPECT_MAX + 1] = {
-+	[NFTA_CT_EXPECT_L3PROTO]	= { .type = NLA_U16 },
-+	[NFTA_CT_EXPECT_L4PROTO]	= { .type = NLA_U8 },
-+	[NFTA_CT_EXPECT_DPORT]		= { .type = NLA_U16 },
-+	[NFTA_CT_EXPECT_TIMEOUT]	= { .type = NLA_U32 },
-+	[NFTA_CT_EXPECT_SIZE]		= { .type = NLA_U8 },
-+};
-+
-+static struct nft_object_type nft_ct_expect_obj_type;
-+
-+static const struct nft_object_ops nft_ct_expect_obj_ops = {
-+	.type		= &nft_ct_expect_obj_type,
-+	.size		= sizeof(struct nft_ct_expect_obj),
-+	.eval		= nft_ct_expect_obj_eval,
-+	.init		= nft_ct_expect_obj_init,
-+	.destroy	= nft_ct_expect_obj_destroy,
-+	.dump		= nft_ct_expect_obj_dump,
-+};
-+
-+static struct nft_object_type nft_ct_expect_obj_type __read_mostly = {
-+	.type		= NFT_OBJECT_CT_EXPECT,
-+	.ops		= &nft_ct_expect_obj_ops,
-+	.maxattr	= NFTA_CT_EXPECT_MAX,
-+	.policy		= nft_ct_expect_policy,
-+	.owner		= THIS_MODULE,
-+};
-+
- #ifdef CONFIG_NF_CONNTRACK_TIMEOUT
- static int
- nft_ct_timeout_parse_policy(void *timeouts,
-@@ -1173,17 +1299,23 @@ static int __init nft_ct_module_init(void)
- 	err = nft_register_obj(&nft_ct_helper_obj_type);
- 	if (err < 0)
- 		goto err2;
-+
-+	err = nft_register_obj(&nft_ct_expect_obj_type);
-+	if (err < 0)
-+		goto err3;
- #ifdef CONFIG_NF_CONNTRACK_TIMEOUT
- 	err = nft_register_obj(&nft_ct_timeout_obj_type);
- 	if (err < 0)
--		goto err3;
-+		goto err4;
- #endif
++		if (nla_tun_flags)
++			udest->tun_flags = nla_get_u16(nla_tun_flags);
+ 	}
+ 
  	return 0;
+diff --git a/net/netfilter/ipvs/ip_vs_xmit.c b/net/netfilter/ipvs/ip_vs_xmit.c
+index 8d6f94b67772..d3392b5b243f 100644
+--- a/net/netfilter/ipvs/ip_vs_xmit.c
++++ b/net/netfilter/ipvs/ip_vs_xmit.c
+@@ -40,6 +40,7 @@
+ #include <net/ipv6.h>
+ #include <net/ip6_route.h>
+ #include <net/ip_tunnels.h>
++#include <net/ip6_checksum.h>
+ #include <net/addrconf.h>
+ #include <linux/icmpv6.h>
+ #include <linux/netfilter.h>
+@@ -385,8 +386,13 @@ __ip_vs_get_out_rt(struct netns_ipvs *ipvs, int skb_af, struct sk_buff *skb,
+ 		mtu = dst_mtu(&rt->dst) - sizeof(struct iphdr);
+ 		if (!dest)
+ 			goto err_put;
+-		if (dest->tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GUE)
++		if (dest->tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GUE) {
+ 			mtu -= sizeof(struct udphdr) + sizeof(struct guehdr);
++			if ((dest->tun_flags &
++			     IP_VS_TUNNEL_ENCAP_FLAG_REMCSUM) &&
++			    skb->ip_summed == CHECKSUM_PARTIAL)
++				mtu -= GUE_PLEN_REMCSUM + GUE_LEN_PRIV;
++		}
+ 		if (mtu < 68) {
+ 			IP_VS_DBG_RL("%s(): mtu less than 68\n", __func__);
+ 			goto err_put;
+@@ -540,8 +546,13 @@ __ip_vs_get_out_rt_v6(struct netns_ipvs *ipvs, int skb_af, struct sk_buff *skb,
+ 		mtu = dst_mtu(&rt->dst) - sizeof(struct ipv6hdr);
+ 		if (!dest)
+ 			goto err_put;
+-		if (dest->tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GUE)
++		if (dest->tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GUE) {
+ 			mtu -= sizeof(struct udphdr) + sizeof(struct guehdr);
++			if ((dest->tun_flags &
++			     IP_VS_TUNNEL_ENCAP_FLAG_REMCSUM) &&
++			    skb->ip_summed == CHECKSUM_PARTIAL)
++				mtu -= GUE_PLEN_REMCSUM + GUE_LEN_PRIV;
++		}
+ 		if (mtu < IPV6_MIN_MTU) {
+ 			IP_VS_DBG_RL("%s(): mtu less than %d\n", __func__,
+ 				     IPV6_MIN_MTU);
+@@ -1006,17 +1017,55 @@ ipvs_gue_encap(struct net *net, struct sk_buff *skb,
+ 	__be16 sport = udp_flow_src_port(net, skb, 0, 0, false);
+ 	struct udphdr  *udph;	/* Our new UDP header */
+ 	struct guehdr  *gueh;	/* Our new GUE header */
++	size_t hdrlen, optlen = 0;
++	void *data;
++	bool need_priv = false;
++
++	if ((cp->dest->tun_flags & IP_VS_TUNNEL_ENCAP_FLAG_REMCSUM) &&
++	    skb->ip_summed == CHECKSUM_PARTIAL) {
++		optlen += GUE_PLEN_REMCSUM + GUE_LEN_PRIV;
++		need_priv = true;
++	}
  
- #ifdef CONFIG_NF_CONNTRACK_TIMEOUT
-+err4:
-+	nft_unregister_obj(&nft_ct_expect_obj_type);
-+#endif
- err3:
- 	nft_unregister_obj(&nft_ct_helper_obj_type);
--#endif
- err2:
- 	nft_unregister_expr(&nft_notrack_type);
- err1:
-@@ -1196,6 +1328,7 @@ static void __exit nft_ct_module_exit(void)
- #ifdef CONFIG_NF_CONNTRACK_TIMEOUT
- 	nft_unregister_obj(&nft_ct_timeout_obj_type);
- #endif
-+	nft_unregister_obj(&nft_ct_expect_obj_type);
- 	nft_unregister_obj(&nft_ct_helper_obj_type);
- 	nft_unregister_expr(&nft_notrack_type);
- 	nft_unregister_expr(&nft_ct_type);
-@@ -1210,3 +1343,4 @@ MODULE_ALIAS_NFT_EXPR("ct");
- MODULE_ALIAS_NFT_EXPR("notrack");
- MODULE_ALIAS_NFT_OBJ(NFT_OBJECT_CT_HELPER);
- MODULE_ALIAS_NFT_OBJ(NFT_OBJECT_CT_TIMEOUT);
-+MODULE_ALIAS_NFT_OBJ(NFT_OBJECT_CT_EXPECT);
+-	skb_push(skb, sizeof(struct guehdr));
++	hdrlen = sizeof(struct guehdr) + optlen;
++
++	skb_push(skb, hdrlen);
+ 
+ 	gueh = (struct guehdr *)skb->data;
+ 
+ 	gueh->control = 0;
+ 	gueh->version = 0;
+-	gueh->hlen = 0;
++	gueh->hlen = optlen >> 2;
+ 	gueh->flags = 0;
+ 	gueh->proto_ctype = *next_protocol;
+ 
++	data = &gueh[1];
++
++	if (need_priv) {
++		__be32 *flags = data;
++		u16 csum_start = skb_checksum_start_offset(skb);
++		__be16 *pd = data;
++
++		gueh->flags |= GUE_FLAG_PRIV;
++		*flags = 0;
++		data += GUE_LEN_PRIV;
++
++		if (csum_start < hdrlen)
++			return -EINVAL;
++
++		csum_start -= hdrlen;
++		pd[0] = htons(csum_start);
++		pd[1] = htons(csum_start + skb->csum_offset);
++
++		if (!skb_is_gso(skb)) {
++			skb->ip_summed = CHECKSUM_NONE;
++			skb->encapsulation = 0;
++		}
++
++		*flags |= GUE_PFLAG_REMCSUM;
++		data += GUE_PLEN_REMCSUM;
++	}
++
+ 	skb_push(skb, sizeof(struct udphdr));
+ 	skb_reset_transport_header(skb);
+ 
+@@ -1070,6 +1119,7 @@ ip_vs_tunnel_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
+ 	unsigned int max_headroom;		/* The extra header space needed */
+ 	int ret, local;
+ 	int tun_type, gso_type;
++	int tun_flags;
+ 
+ 	EnterFunction(10);
+ 
+@@ -1092,9 +1142,19 @@ ip_vs_tunnel_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
+ 	max_headroom = LL_RESERVED_SPACE(tdev) + sizeof(struct iphdr);
+ 
+ 	tun_type = cp->dest->tun_type;
++	tun_flags = cp->dest->tun_flags;
+ 
+-	if (tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GUE)
+-		max_headroom += sizeof(struct udphdr) + sizeof(struct guehdr);
++	if (tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GUE) {
++		size_t gue_hdrlen, gue_optlen = 0;
++
++		if ((tun_flags & IP_VS_TUNNEL_ENCAP_FLAG_REMCSUM) &&
++		    skb->ip_summed == CHECKSUM_PARTIAL) {
++			gue_optlen += GUE_PLEN_REMCSUM + GUE_LEN_PRIV;
++		}
++		gue_hdrlen = sizeof(struct guehdr) + gue_optlen;
++
++		max_headroom += sizeof(struct udphdr) + gue_hdrlen;
++	}
+ 
+ 	/* We only care about the df field if sysctl_pmtu_disc(ipvs) is set */
+ 	dfp = sysctl_pmtu_disc(ipvs) ? &df : NULL;
+@@ -1105,8 +1165,17 @@ ip_vs_tunnel_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
+ 		goto tx_error;
+ 
+ 	gso_type = __tun_gso_type_mask(AF_INET, cp->af);
+-	if (tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GUE)
+-		gso_type |= SKB_GSO_UDP_TUNNEL;
++	if (tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GUE) {
++		if ((tun_flags & IP_VS_TUNNEL_ENCAP_FLAG_CSUM) ||
++		    (tun_flags & IP_VS_TUNNEL_ENCAP_FLAG_REMCSUM))
++			gso_type |= SKB_GSO_UDP_TUNNEL_CSUM;
++		else
++			gso_type |= SKB_GSO_UDP_TUNNEL;
++		if ((tun_flags & IP_VS_TUNNEL_ENCAP_FLAG_REMCSUM) &&
++		    skb->ip_summed == CHECKSUM_PARTIAL) {
++			gso_type |= SKB_GSO_TUNNEL_REMCSUM;
++		}
++	}
+ 
+ 	if (iptunnel_handle_offloads(skb, gso_type))
+ 		goto tx_error;
+@@ -1115,8 +1184,19 @@ ip_vs_tunnel_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
+ 
+ 	skb_set_inner_ipproto(skb, next_protocol);
+ 
+-	if (tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GUE)
+-		ipvs_gue_encap(net, skb, cp, &next_protocol);
++	if (tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GUE) {
++		bool check = false;
++
++		if (ipvs_gue_encap(net, skb, cp, &next_protocol))
++			goto tx_error;
++
++		if ((tun_flags & IP_VS_TUNNEL_ENCAP_FLAG_CSUM) ||
++		    (tun_flags & IP_VS_TUNNEL_ENCAP_FLAG_REMCSUM))
++			check = true;
++
++		udp_set_csum(!check, skb, saddr, cp->daddr.ip, skb->len);
++	}
++
+ 
+ 	skb_push(skb, sizeof(struct iphdr));
+ 	skb_reset_network_header(skb);
+@@ -1174,6 +1254,7 @@ ip_vs_tunnel_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
+ 	unsigned int max_headroom;	/* The extra header space needed */
+ 	int ret, local;
+ 	int tun_type, gso_type;
++	int tun_flags;
+ 
+ 	EnterFunction(10);
+ 
+@@ -1197,9 +1278,19 @@ ip_vs_tunnel_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
+ 	max_headroom = LL_RESERVED_SPACE(tdev) + sizeof(struct ipv6hdr);
+ 
+ 	tun_type = cp->dest->tun_type;
++	tun_flags = cp->dest->tun_flags;
+ 
+-	if (tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GUE)
+-		max_headroom += sizeof(struct udphdr) + sizeof(struct guehdr);
++	if (tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GUE) {
++		size_t gue_hdrlen, gue_optlen = 0;
++
++		if ((tun_flags & IP_VS_TUNNEL_ENCAP_FLAG_REMCSUM) &&
++		    skb->ip_summed == CHECKSUM_PARTIAL) {
++			gue_optlen += GUE_PLEN_REMCSUM + GUE_LEN_PRIV;
++		}
++		gue_hdrlen = sizeof(struct guehdr) + gue_optlen;
++
++		max_headroom += sizeof(struct udphdr) + gue_hdrlen;
++	}
+ 
+ 	skb = ip_vs_prepare_tunneled_skb(skb, cp->af, max_headroom,
+ 					 &next_protocol, &payload_len,
+@@ -1208,8 +1299,17 @@ ip_vs_tunnel_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
+ 		goto tx_error;
+ 
+ 	gso_type = __tun_gso_type_mask(AF_INET6, cp->af);
+-	if (tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GUE)
+-		gso_type |= SKB_GSO_UDP_TUNNEL;
++	if (tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GUE) {
++		if ((tun_flags & IP_VS_TUNNEL_ENCAP_FLAG_CSUM) ||
++		    (tun_flags & IP_VS_TUNNEL_ENCAP_FLAG_REMCSUM))
++			gso_type |= SKB_GSO_UDP_TUNNEL_CSUM;
++		else
++			gso_type |= SKB_GSO_UDP_TUNNEL;
++		if ((tun_flags & IP_VS_TUNNEL_ENCAP_FLAG_REMCSUM) &&
++		    skb->ip_summed == CHECKSUM_PARTIAL) {
++			gso_type |= SKB_GSO_TUNNEL_REMCSUM;
++		}
++	}
+ 
+ 	if (iptunnel_handle_offloads(skb, gso_type))
+ 		goto tx_error;
+@@ -1218,8 +1318,18 @@ ip_vs_tunnel_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
+ 
+ 	skb_set_inner_ipproto(skb, next_protocol);
+ 
+-	if (tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GUE)
+-		ipvs_gue_encap(net, skb, cp, &next_protocol);
++	if (tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GUE) {
++		bool check = false;
++
++		if (ipvs_gue_encap(net, skb, cp, &next_protocol))
++			goto tx_error;
++
++		if ((tun_flags & IP_VS_TUNNEL_ENCAP_FLAG_CSUM) ||
++		    (tun_flags & IP_VS_TUNNEL_ENCAP_FLAG_REMCSUM))
++			check = true;
++
++		udp6_set_csum(!check, skb, &saddr, &cp->daddr.in6, skb->len);
++	}
+ 
+ 	skb_push(skb, sizeof(struct ipv6hdr));
+ 	skb_reset_network_header(skb);
 -- 
 2.21.0
 
