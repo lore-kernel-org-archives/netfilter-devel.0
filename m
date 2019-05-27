@@ -6,33 +6,30 @@ X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D5C5EC04AB3
-	for <netfilter-devel@archiver.kernel.org>; Mon, 27 May 2019 11:37:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 142B7C04AB3
+	for <netfilter-devel@archiver.kernel.org>; Mon, 27 May 2019 11:37:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B4EC920859
-	for <netfilter-devel@archiver.kernel.org>; Mon, 27 May 2019 11:37:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D7E3B20859
+	for <netfilter-devel@archiver.kernel.org>; Mon, 27 May 2019 11:37:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726140AbfE0LhB (ORCPT
+        id S1726175AbfE0LhI (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 27 May 2019 07:37:01 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:34822 "EHLO orbyte.nwl.cc"
+        Mon, 27 May 2019 07:37:08 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:34828 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725991AbfE0LhB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 27 May 2019 07:37:01 -0400
-Received: from localhost ([::1]:47908 helo=tatos)
+        id S1725991AbfE0LhI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 27 May 2019 07:37:08 -0400
+Received: from localhost ([::1]:47918 helo=tatos)
         by orbyte.nwl.cc with esmtp (Exim 4.91)
         (envelope-from <phil@nwl.cc>)
-        id 1hVDw3-0005oZ-8y; Mon, 27 May 2019 13:36:59 +0200
+        id 1hVDwA-0005pR-Ma; Mon, 27 May 2019 13:37:06 +0200
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, Eric Garver <e@erig.me>,
-        Jones Desougi <jones.desougi+netfilter@gmail.com>
-Subject: [nft PATCH v4 1/2] py: Implement JSON validation in nftables module
-Date:   Mon, 27 May 2019 13:36:41 +0200
-Message-Id: <20190527113642.8434-2-phil@nwl.cc>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [nft PATCH] parser_json: Fix and simplify verdict expression parsing
+Date:   Mon, 27 May 2019 13:37:00 +0200
+Message-Id: <20190527113700.8541-1-phil@nwl.cc>
 X-Mailer: git-send-email 2.21.0
-In-Reply-To: <20190527113642.8434-1-phil@nwl.cc>
-References: <20190527113642.8434-1-phil@nwl.cc>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -40,127 +37,77 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Using jsonschema it is possible to validate any JSON input to make sure
-it formally conforms with libnftables JSON API requirements.
+Parsing of the "target" property was flawed in two ways:
 
-Implement a simple validator class for use within a new Nftables class
-method 'json_validate' and ship a minimal schema definition along with
-the package.
+* The value was extracted twice. Drop the first unconditional one.
+* Expression allocation required since commit f1e8a129ee428 was broken,
+  The expression was allocated only if the property was not present.
 
+Fixes: f1e8a129ee428 ("src: Introduce chain_expr in jump and goto statements")
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
-Changes since v3:
-- Drop "id" property in schema.json for now.
+ src/parser_json.c | 25 +++++++++++++------------
+ 1 file changed, 13 insertions(+), 12 deletions(-)
 
-Changes since v2:
-- Replace file() as that is not supported by python3, instead use open()
-  and that fancy 'with' statement.
----
- py/Makefile.am |  2 +-
- py/nftables.py | 29 +++++++++++++++++++++++++++++
- py/schema.json | 16 ++++++++++++++++
- py/setup.py    |  1 +
- 4 files changed, 47 insertions(+), 1 deletion(-)
- create mode 100644 py/schema.json
-
-diff --git a/py/Makefile.am b/py/Makefile.am
-index 0963535d068dc..9fce7c9e54c38 100644
---- a/py/Makefile.am
-+++ b/py/Makefile.am
-@@ -1,4 +1,4 @@
--EXTRA_DIST = setup.py __init__.py nftables.py
-+EXTRA_DIST = setup.py __init__.py nftables.py schema.json
+diff --git a/src/parser_json.c b/src/parser_json.c
+index 19cdefd392014..4c7ee9911c42f 100644
+--- a/src/parser_json.c
++++ b/src/parser_json.c
+@@ -1053,13 +1053,22 @@ static struct expr *json_parse_range_expr(struct json_ctx *ctx,
+ 	return range_expr_alloc(int_loc, expr_low, expr_high);
+ }
  
- if HAVE_PYTHON
- 
-diff --git a/py/nftables.py b/py/nftables.py
-index 33cd2dfd736d4..81e57567c8024 100644
---- a/py/nftables.py
-+++ b/py/nftables.py
-@@ -17,9 +17,23 @@
- import json
- from ctypes import *
- import sys
-+import os
- 
- NFTABLES_VERSION = "0.1"
- 
-+class SchemaValidator:
-+    """Libnftables JSON validator using jsonschema"""
-+
-+    def __init__(self):
-+        schema_path = os.path.join(os.path.dirname(__file__), "schema.json")
-+        with open(schema_path, 'r') as schema_file:
-+            self.schema = json.load(schema_file)
-+        import jsonschema
-+        self.jsonschema = jsonschema
-+
-+    def validate(self, json):
-+        self.jsonschema.validate(instance=json, schema=self.schema)
-+
- class Nftables:
-     """A class representing libnftables interface"""
- 
-@@ -46,6 +60,8 @@ class Nftables:
-         "numeric_symbol": (1 << 9),
-     }
- 
-+    validator = None
-+
-     def __init__(self, sofile="libnftables.so"):
-         """Instantiate a new Nftables class object.
- 
-@@ -382,3 +398,16 @@ class Nftables:
-         if len(output):
-             output = json.loads(output)
-         return (rc, output, error)
-+
-+    def json_validate(self, json_root):
-+        """Validate JSON object against libnftables schema.
-+
-+        Accepts a hash object as input.
-+
-+        Returns True if JSON is valid, raises an exception otherwise.
-+        """
-+        if not self.validator:
-+            self.validator = SchemaValidator()
-+
-+        self.validator.validate(json_root)
-+        return True
-diff --git a/py/schema.json b/py/schema.json
-new file mode 100644
-index 0000000000000..460e21568f4ba
---- /dev/null
-+++ b/py/schema.json
-@@ -0,0 +1,16 @@
++static struct expr *json_alloc_chain_expr(const char *chain)
 +{
-+	"$schema": "http://json-schema.org/schema#",
-+	"description": "libnftables JSON API schema",
++	if (!chain)
++		return NULL;
 +
-+	"type": "object",
-+        "properties": {
-+		"nftables": {
-+			"type": "array",
-+			"minitems": 0,
-+			"items": {
-+				"type": "object"
-+			}
-+		}
-+	},
-+	"required": [ "nftables" ]
++	return constant_expr_alloc(int_loc, &string_type, BYTEORDER_HOST_ENDIAN,
++				   NFT_CHAIN_MAXNAMELEN * BITS_PER_BYTE, chain);
 +}
-diff --git a/py/setup.py b/py/setup.py
-index ef143c42a21b0..72fc8fd98b269 100755
---- a/py/setup.py
-+++ b/py/setup.py
-@@ -11,6 +11,7 @@ setup(name='nftables',
-       packages=['nftables'],
-       provides=['nftables'],
-       package_dir={'nftables':'.'},
-+      package_data={'nftables':['schema.json']},
-       classifiers=[
-           'Development Status :: 4 - Beta',
-           'Environment :: Console',
++
+ static struct expr *json_parse_verdict_expr(struct json_ctx *ctx,
+ 					    const char *type, json_t *root)
+ {
+ 	const struct {
+ 		int verdict;
+ 		const char *name;
+-		bool chain;
++		bool need_chain;
+ 	} verdict_tbl[] = {
+ 		{ NFT_CONTINUE, "continue", false },
+ 		{ NFT_JUMP, "jump", true },
+@@ -1068,27 +1077,19 @@ static struct expr *json_parse_verdict_expr(struct json_ctx *ctx,
+ 		{ NF_ACCEPT, "accept", false },
+ 		{ NF_DROP, "drop", false },
+ 	};
+-	struct expr *chain_expr = NULL;
+ 	const char *chain = NULL;
+ 	unsigned int i;
+ 
+-	json_unpack(root, "{s:s}", "target", &chain);
+-	if (!chain)
+-		chain_expr = constant_expr_alloc(int_loc, &string_type,
+-						 BYTEORDER_HOST_ENDIAN,
+-						 NFT_CHAIN_MAXNAMELEN *
+-						 BITS_PER_BYTE, chain);
+-
+ 	for (i = 0; i < array_size(verdict_tbl); i++) {
+ 		if (strcmp(type, verdict_tbl[i].name))
+ 			continue;
+ 
+-		if (verdict_tbl[i].chain &&
++		if (verdict_tbl[i].need_chain &&
+ 		    json_unpack_err(ctx, root, "{s:s}", "target", &chain))
+ 			return NULL;
+ 
+-		return verdict_expr_alloc(int_loc,
+-					  verdict_tbl[i].verdict, chain_expr);
++		return verdict_expr_alloc(int_loc, verdict_tbl[i].verdict,
++					  json_alloc_chain_expr(chain));
+ 	}
+ 	json_error(ctx, "Unknown verdict '%s'.", type);
+ 	return NULL;
 -- 
 2.21.0
 
