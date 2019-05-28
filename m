@@ -6,29 +6,29 @@ X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E447C04AB6
-	for <netfilter-devel@archiver.kernel.org>; Tue, 28 May 2019 21:03:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4222DC04AB6
+	for <netfilter-devel@archiver.kernel.org>; Tue, 28 May 2019 21:03:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3DE7121019
-	for <netfilter-devel@archiver.kernel.org>; Tue, 28 May 2019 21:03:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2139621019
+	for <netfilter-devel@archiver.kernel.org>; Tue, 28 May 2019 21:03:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727792AbfE1VDy (ORCPT
+        id S1727795AbfE1VD6 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 28 May 2019 17:03:54 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:38478 "EHLO orbyte.nwl.cc"
+        Tue, 28 May 2019 17:03:58 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:38486 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727701AbfE1VDx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 28 May 2019 17:03:53 -0400
-Received: from localhost ([::1]:51566 helo=tatos)
+        id S1727701AbfE1VD6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 28 May 2019 17:03:58 -0400
+Received: from localhost ([::1]:51574 helo=tatos)
         by orbyte.nwl.cc with esmtp (Exim 4.91)
         (envelope-from <phil@nwl.cc>)
-        id 1hVjGB-0002KX-Tj; Tue, 28 May 2019 23:03:52 +0200
+        id 1hVjGH-0002LB-8U; Tue, 28 May 2019 23:03:57 +0200
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org, Eric Garver <e@erig.me>
-Subject: [nft PATCH v4 2/7] libnftables: Keep list of commands in nft context
-Date:   Tue, 28 May 2019 23:03:18 +0200
-Message-Id: <20190528210323.14605-3-phil@nwl.cc>
+Subject: [nft PATCH v4 3/7] src: Make {table,chain}_not_found() public
+Date:   Tue, 28 May 2019 23:03:19 +0200
+Message-Id: <20190528210323.14605-4-phil@nwl.cc>
 X-Mailer: git-send-email 2.21.0
 In-Reply-To: <20190528210323.14605-1-phil@nwl.cc>
 References: <20190528210323.14605-1-phil@nwl.cc>
@@ -39,111 +39,46 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-To fix the pending issues with cache updates, the list of commands needs
-to be accessible from within cache_update(). In theory, there is a path
-via nft->state->cmds but that struct parser_state is used (and
-initialized) by bison parser only so that does not work with JSON
-parser.
-
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- include/nftables.h |  1 +
- src/libnftables.c  | 21 ++++++++++-----------
- 2 files changed, 11 insertions(+), 11 deletions(-)
+ include/rule.h | 3 +++
+ src/evaluate.c | 4 ++--
+ 2 files changed, 5 insertions(+), 2 deletions(-)
 
-diff --git a/include/nftables.h b/include/nftables.h
-index bb9bb2091716d..faacf26509104 100644
---- a/include/nftables.h
-+++ b/include/nftables.h
-@@ -102,6 +102,7 @@ struct nft_ctx {
- 	struct parser_state	*state;
- 	void			*scanner;
- 	void			*json_root;
-+	struct list_head	cmds;
- 	FILE			*f[MAX_INCLUDE_DEPTH];
- };
+diff --git a/include/rule.h b/include/rule.h
+index 8e70c129fcce0..61aa040a2e891 100644
+--- a/include/rule.h
++++ b/include/rule.h
+@@ -646,4 +646,7 @@ struct timeout_protocol {
+ extern struct timeout_protocol timeout_protocol[IPPROTO_MAX];
+ extern int timeout_str2num(uint16_t l4proto, struct timeout_state *ts);
  
-diff --git a/src/libnftables.c b/src/libnftables.c
-index 199dbc97b801c..f6ea668f6770a 100644
---- a/src/libnftables.c
-+++ b/src/libnftables.c
-@@ -143,6 +143,7 @@ struct nft_ctx *nft_ctx_new(uint32_t flags)
- 	nft_ctx_add_include_path(ctx, DEFAULT_INCLUDE_PATH);
- 	ctx->parser_max_errors	= 10;
- 	init_list_head(&ctx->cache.list);
-+	init_list_head(&ctx->cmds);
- 	ctx->flags = flags;
- 	ctx->output.output_fp = stdout;
- 	ctx->output.error_fp = stderr;
-@@ -342,7 +343,7 @@ static int nft_parse_bison_buffer(struct nft_ctx *nft, const char *buf,
- 	struct cmd *cmd;
- 	int ret;
++int table_not_found(struct eval_ctx *ctx);
++int chain_not_found(struct eval_ctx *ctx);
++
+ #endif /* NFTABLES_RULE_H */
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 55fb3b6131e04..09bb1fd37a301 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -166,7 +166,7 @@ static struct table *table_lookup_global(struct eval_ctx *ctx)
+ 	return table;
+ }
  
--	parser_init(nft, nft->state, msgs, cmds);
-+	parser_init(nft, nft->state, msgs, &nft->cmds);
- 	nft->scanner = scanner_init(nft->state);
- 	scanner_push_buffer(nft->scanner, &indesc_cmdline, buf);
- 
-@@ -381,7 +382,6 @@ int nft_run_cmd_from_buffer(struct nft_ctx *nft, const char *buf)
+-static int table_not_found(struct eval_ctx *ctx)
++int table_not_found(struct eval_ctx *ctx)
  {
- 	struct cmd *cmd, *next;
- 	LIST_HEAD(msgs);
--	LIST_HEAD(cmds);
- 	char *nlbuf;
- 	int rc = -EINVAL;
+ 	struct table *table;
  
-@@ -389,17 +389,17 @@ int nft_run_cmd_from_buffer(struct nft_ctx *nft, const char *buf)
- 	sprintf(nlbuf, "%s\n", buf);
+@@ -181,7 +181,7 @@ static int table_not_found(struct eval_ctx *ctx)
+ 			 family2str(table->handle.family));
+ }
  
- 	if (nft_output_json(&nft->output))
--		rc = nft_parse_json_buffer(nft, nlbuf, &msgs, &cmds);
-+		rc = nft_parse_json_buffer(nft, nlbuf, &msgs, &nft->cmds);
- 	if (rc == -EINVAL)
--		rc = nft_parse_bison_buffer(nft, nlbuf, &msgs, &cmds);
-+		rc = nft_parse_bison_buffer(nft, nlbuf, &msgs, &nft->cmds);
- 	if (rc)
- 		goto err;
- 
--	if (nft_netlink(nft, &cmds, &msgs, nft->nf_sock) != 0)
-+	if (nft_netlink(nft, &nft->cmds, &msgs, nft->nf_sock) != 0)
- 		rc = -1;
- err:
- 	erec_print_list(&nft->output, &msgs, nft->debug_mask);
--	list_for_each_entry_safe(cmd, next, &cmds, list) {
-+	list_for_each_entry_safe(cmd, next, &nft->cmds, list) {
- 		list_del(&cmd->list);
- 		cmd_free(cmd);
- 	}
-@@ -421,7 +421,6 @@ int nft_run_cmd_from_filename(struct nft_ctx *nft, const char *filename)
+-static int chain_not_found(struct eval_ctx *ctx)
++int chain_not_found(struct eval_ctx *ctx)
  {
- 	struct cmd *cmd, *next;
- 	LIST_HEAD(msgs);
--	LIST_HEAD(cmds);
- 	int rc;
- 
- 	rc = cache_update(nft, CMD_INVALID, &msgs);
-@@ -433,17 +432,17 @@ int nft_run_cmd_from_filename(struct nft_ctx *nft, const char *filename)
- 
- 	rc = -EINVAL;
- 	if (nft_output_json(&nft->output))
--		rc = nft_parse_json_filename(nft, filename, &msgs, &cmds);
-+		rc = nft_parse_json_filename(nft, filename, &msgs, &nft->cmds);
- 	if (rc == -EINVAL)
--		rc = nft_parse_bison_filename(nft, filename, &msgs, &cmds);
-+		rc = nft_parse_bison_filename(nft, filename, &msgs, &nft->cmds);
- 	if (rc)
- 		goto err;
- 
--	if (nft_netlink(nft, &cmds, &msgs, nft->nf_sock) != 0)
-+	if (nft_netlink(nft, &nft->cmds, &msgs, nft->nf_sock) != 0)
- 		rc = -1;
- err:
- 	erec_print_list(&nft->output, &msgs, nft->debug_mask);
--	list_for_each_entry_safe(cmd, next, &cmds, list) {
-+	list_for_each_entry_safe(cmd, next, &nft->cmds, list) {
- 		list_del(&cmd->list);
- 		cmd_free(cmd);
- 	}
+ 	const struct table *table;
+ 	struct chain *chain;
 -- 
 2.21.0
 
