@@ -2,36 +2,34 @@ Return-Path: <SRS0=QEZg=T4=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9E5E3C04AB6
-	for <netfilter-devel@archiver.kernel.org>; Tue, 28 May 2019 21:04:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E614C04AB6
+	for <netfilter-devel@archiver.kernel.org>; Tue, 28 May 2019 21:04:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7DC6B21019
-	for <netfilter-devel@archiver.kernel.org>; Tue, 28 May 2019 21:04:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 54F6E21019
+	for <netfilter-devel@archiver.kernel.org>; Tue, 28 May 2019 21:04:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727701AbfE1VEE (ORCPT
+        id S1727803AbfE1VEJ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 28 May 2019 17:04:04 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:38494 "EHLO orbyte.nwl.cc"
+        Tue, 28 May 2019 17:04:09 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:38502 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727273AbfE1VEE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 28 May 2019 17:04:04 -0400
-Received: from localhost ([::1]:51582 helo=tatos)
+        id S1727273AbfE1VEJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 28 May 2019 17:04:09 -0400
+Received: from localhost ([::1]:51590 helo=tatos)
         by orbyte.nwl.cc with esmtp (Exim 4.91)
         (envelope-from <phil@nwl.cc>)
-        id 1hVjGM-0002Lb-Hr; Tue, 28 May 2019 23:04:02 +0200
+        id 1hVjGR-0002Lz-RB; Tue, 28 May 2019 23:04:07 +0200
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org, Eric Garver <e@erig.me>
-Subject: [nft PATCH v4 6/7] src: Make cache_is_complete() public
-Date:   Tue, 28 May 2019 23:03:22 +0200
-Message-Id: <20190528210323.14605-7-phil@nwl.cc>
+Subject: [nft PATCH v4 0/7] Cache update fix && intra-transaction rule references
+Date:   Tue, 28 May 2019 23:03:16 +0200
+Message-Id: <20190528210323.14605-1-phil@nwl.cc>
 X-Mailer: git-send-email 2.21.0
-In-Reply-To: <20190528210323.14605-1-phil@nwl.cc>
-References: <20190528210323.14605-1-phil@nwl.cc>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -39,37 +37,54 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- include/rule.h | 1 +
- src/rule.c     | 2 +-
- 2 files changed, 2 insertions(+), 1 deletion(-)
+This series combines the two series submitted earlier since they became
+closely related in this iteration.
 
-diff --git a/include/rule.h b/include/rule.h
-index a7dd042d60e3f..aa8881d375b96 100644
---- a/include/rule.h
-+++ b/include/rule.h
-@@ -638,6 +638,7 @@ extern int cache_update(struct nft_ctx *ctx, enum cmd_ops cmd,
- extern void cache_flush(struct nft_ctx *ctx, enum cmd_ops cmd,
- 			struct list_head *msgs);
- extern void cache_release(struct nft_cache *cache);
-+extern bool cache_is_complete(struct nft_cache *cache, enum cmd_ops cmd);
- 
- struct timeout_protocol {
- 	uint32_t array_size;
-diff --git a/src/rule.c b/src/rule.c
-index dc2dd3628b17f..b00161e0e4350 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -232,7 +232,7 @@ static int cache_completeness(enum cmd_ops cmd)
- 	return 1;
- }
- 
--static bool cache_is_complete(struct nft_cache *cache, enum cmd_ops cmd)
-+bool cache_is_complete(struct nft_cache *cache, enum cmd_ops cmd)
- {
- 	return cache_completeness(cache->cmd) >= cache_completeness(cmd);
- }
+Patch 1 fixes a basic problem with cache_flush() after Eric's
+cache_needs_more() change.
+
+Patches 2, 3, 5 and 6 are requirements for patches 4 and 7 which are the
+interesting ones: Patch 4 restores needed cache entries from command
+list after a cache update. Patch 7 enables referencing a rule added by
+the same transaction from another new rule by further exploiting the
+logic added by patch 4.
+
+Changes since v2 of "Resolve cache update woes" and v1 of "Support
+intra-transaction rule references":
+
+- Adjust cache_release() just like cache_flush().
+- Split preparation work into separate patches.
+- Adjust cache_add_commands() for later reuse by rule reference code,
+  also add error handling in case kernel ruleset changes incompatibly.
+- Finally drop that workaround in tests/json_echo.
+- Introduce rule_cache_update() as requested.
+- Avoid fetching a full cache if the new rule does not contain any
+  reference.
+
+Phil Sutter (7):
+  src: Fix cache_flush() in cache_needs_more() logic
+  libnftables: Keep list of commands in nft context
+  src: Make {table,chain}_not_found() public
+  src: Restore local entries after cache update
+  rule: Introduce rule_lookup_by_index()
+  src: Make cache_is_complete() public
+  src: Support intra-transaction rule references
+
+ include/nftables.h                            |   1 +
+ include/rule.h                                |  12 ++
+ src/evaluate.c                                | 107 +++++++-----
+ src/libnftables.c                             |  21 ++-
+ src/mnl.c                                     |   4 +
+ src/rule.c                                    | 152 +++++++++++++++++-
+ tests/json_echo/run-test.py                   |   6 +-
+ .../shell/testcases/cache/0003_cache_update_0 |   7 +
+ .../shell/testcases/nft-f/0006action_object_0 |   2 +-
+ tests/shell/testcases/transactions/0024rule_0 |  17 ++
+ .../transactions/dumps/0024rule_0.nft         |   8 +
+ 11 files changed, 280 insertions(+), 57 deletions(-)
+ create mode 100755 tests/shell/testcases/transactions/0024rule_0
+ create mode 100644 tests/shell/testcases/transactions/dumps/0024rule_0.nft
+
 -- 
 2.21.0
 
