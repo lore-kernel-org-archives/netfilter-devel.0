@@ -2,540 +2,253 @@ Return-Path: <SRS0=QEZg=T4=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+X-Spam-Status: No, score=-8.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 59F7BC04AB3
-	for <netfilter-devel@archiver.kernel.org>; Tue, 28 May 2019 00:21:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F9E3C04AB3
+	for <netfilter-devel@archiver.kernel.org>; Tue, 28 May 2019 00:37:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 065C320717
-	for <netfilter-devel@archiver.kernel.org>; Tue, 28 May 2019 00:21:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 359F82075E
+	for <netfilter-devel@archiver.kernel.org>; Tue, 28 May 2019 00:37:08 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="de8wbaPL"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="P8KdVy0D"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727313AbfE1AV1 (ORCPT
+        id S1727556AbfE1AhH (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 27 May 2019 20:21:27 -0400
-Received: from mail-pf1-f195.google.com ([209.85.210.195]:41555 "EHLO
-        mail-pf1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727018AbfE1AV1 (ORCPT
+        Mon, 27 May 2019 20:37:07 -0400
+Received: from mail-pf1-f194.google.com ([209.85.210.194]:34959 "EHLO
+        mail-pf1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726979AbfE1AhH (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 27 May 2019 20:21:27 -0400
-Received: by mail-pf1-f195.google.com with SMTP id q17so5482428pfq.8
-        for <netfilter-devel@vger.kernel.org>; Mon, 27 May 2019 17:21:26 -0700 (PDT)
+        Mon, 27 May 2019 20:37:07 -0400
+Received: by mail-pf1-f194.google.com with SMTP id d126so8150746pfd.2
+        for <netfilter-devel@vger.kernel.org>; Mon, 27 May 2019 17:37:07 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id;
-        bh=J46rgwOcGH3Of6BIG/fs7IERwpy5STCfdMXIWf/IJkk=;
-        b=de8wbaPLqMY8mJXfC/mprKz5o6vW8aVnkNKPkXc0FfdVkivjuB+/3AQBimDUVzhiq/
-         yr9qs7qJhfPVxWIXB1IbJpn2rSmFfIyvrE4IisbpC0fr77EjiwTn5dZarrm9DxnHgjt/
-         zhePwzxaJITXsIoLXMd3kxBmNF2U42OhL04o1pVF1hzrNyLXiGMrLNEQ3bjzhv79PmRk
-         a20Ty2qLpX3QFeKhyLh/mNhWrvzjr+cXXQVJTk9S4P8AtsckfX1rfmzBTvuPTgRpqdIm
-         sRtqy3B11CJt6On8JIYPwpeSD76mJqCGXgC9WK+AAGA64pIbuF8FK9ReWkGR8Opyvek+
-         Uo8w==
+        bh=z2XkHZ10nDsnCSDYi5Plw2Z/B8Mw9lPeZMYmzDC94L4=;
+        b=P8KdVy0Doimq+It5MWfaKDjoY5Xrwbn8DBRoFZX18JBnAFVjDFbLuIVyXnw8dKsVv9
+         DKBKpWps8BXhSAjHi/qui1hZzHSvGlOtCJusAN3duylCF81mrFDsoCzFC56jgmU5Oy5r
+         kVBxqLaiQtnIF9DWdW2znOOKH1WlQtGlRXMEo0lDzE6O+d6nREtubwEzVRVskVXsNBCm
+         goRn2ZXvBR64bwNGhpMLvtfOViJjme7U4wLLssO0clHf1zJkbxeCDx0sg2m5j7+z82ny
+         xXRXMUeCq3zXYDnDcKecej7UZL98829x4iW0d0LnKwbsGesuAg8LAE/sj2H21DVyiJvQ
+         LarQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id;
-        bh=J46rgwOcGH3Of6BIG/fs7IERwpy5STCfdMXIWf/IJkk=;
-        b=qE1Y/qPkDwt5/QQlz2hdcsQWfpGSYH+veLWZma07vd5fPbjBhbxwUZHC7WLQ5Dq9Jy
-         IiccEvfvp2DF5ghFdhtjOPoi1nrDeEpKFre6C31g4kizEkEeQTuEb1+JGfJW5SY7QBPb
-         HZieRXGzYKvLYiK9bfGfDAQNmQ2clPj2BPPnLQlJtSwphzeMoKOhZge0qqxFKcRvijQZ
-         RD0UVZmKFIce+UDiYbDuOEPwVfGnTJ9d7ba9Q1iud6dH5+3UCjbyTLPIEHElQPoOcJLg
-         +/KtfWPHSei+h5VWZjL2NAoJp+c+cQpq7HC3c8UAxSfww7fuSExdQVq0h7z/0zNo0m6v
-         W3XQ==
-X-Gm-Message-State: APjAAAVQzVqBQS4G/lzd6cAG9HPcAc8+M3w1RiUJ3u62RP0Z0m4itSEb
-        IJygXFRArW5JDKh444yAegpPshoP
-X-Google-Smtp-Source: APXvYqzFFiorOHlMXKicS5cWA3qu+TdHlc94vLOUaz7kQ2WM5LXROf5NY62W73fpictK9nBSjLghYA==
-X-Received: by 2002:a63:ca4b:: with SMTP id o11mr43346895pgi.295.1559002885991;
-        Mon, 27 May 2019 17:21:25 -0700 (PDT)
+        bh=z2XkHZ10nDsnCSDYi5Plw2Z/B8Mw9lPeZMYmzDC94L4=;
+        b=nSddTlxKLiN1hdOsVwZAOoDekZnP996zKj261yuyjs8QKt5LXCeOGGNX1uXhJYgoW6
+         o0XSpb5M02em6JPFjfEd8gZudnBmuzePuDw4IMe96Q2FurNBCI68JK5zczcWMj1gHwxb
+         vASB28dIHQZP7gz07f3DwD+V9ykospYOD3CMdn9HokddZFFN35NTKutv0H3gQFqBZDYy
+         bfoDZAJIHE/YV9P3amufyk+JX54oAnd6BJjPYIMtnp+Diq89UBEz2XBPKKaObR6fPn4t
+         q7JZ+4LgUUDI8YMiC4hm1GAfZQjIKpRTGd96VuXxCKiciEFZ8WpZ0ipQQkN0S78aH1wB
+         UIaA==
+X-Gm-Message-State: APjAAAUhiFeaU/yXu2t0VXWG8pPUBcX0CLrJXhzWLyr9qRalZ22wwgYC
+        hNjTBHgkmlY0RgeYwq5D2efVAV0W
+X-Google-Smtp-Source: APXvYqwfDrEfCuBQUv1+3oZQnWtwAnFLwSn+9/PQn4HSGklVBU51FM6ebOAq+kgVjv0Wo0XqZp2vXA==
+X-Received: by 2002:a17:90a:2e89:: with SMTP id r9mr1794968pjd.117.1559003826394;
+        Mon, 27 May 2019 17:37:06 -0700 (PDT)
 Received: from localhost.localdomain ([2409:4043:98d:28c6:c0fb:3264:16ab:2dfa])
-        by smtp.gmail.com with ESMTPSA id d24sm525165pjv.24.2019.05.27.17.21.23
+        by smtp.gmail.com with ESMTPSA id w66sm13799805pfb.47.2019.05.27.17.37.04
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 27 May 2019 17:21:25 -0700 (PDT)
+        Mon, 27 May 2019 17:37:05 -0700 (PDT)
 From:   Shekhar Sharma <shekhar250198@gmail.com>
 To:     netfilter-devel@vger.kernel.org
 Cc:     Shekhar Sharma <shekhar250198@gmail.com>
-Subject: [PATCH nft v3]tests: py: add netns feature
-Date:   Tue, 28 May 2019 05:51:13 +0530
-Message-Id: <20190528002113.7233-1-shekhar250198@gmail.com>
+Subject: [PATCH nft v2]tests: json_echo: convert to py3
+Date:   Tue, 28 May 2019 06:06:53 +0530
+Message-Id: <20190528003653.7565-1-shekhar250198@gmail.com>
 X-Mailer: git-send-email 2.17.1
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This patch adds the netns feature to the 'nft-test.py' file.
-
-The version history of the patch is :
-v1: add the netns feature
-v2: use format() method to simplify print statements.
-v3: updated the shebang
+This patch converts the run-test.py file to run on both python3 and python2.
+The version history of the patch is:
+v1: modified print and other statments.
+v2: updated the shebang and order of import statements.
+ 
 
 Signed-off-by: Shekhar Sharma <shekhar250198@gmail.com>
 ---
- tests/py/nft-test.py | 131 ++++++++++++++++++++++++++++++-------------
- 1 file changed, 91 insertions(+), 40 deletions(-)
+ tests/json_echo/run-test.py | 45 +++++++++++++++++++------------------
+ 1 file changed, 23 insertions(+), 22 deletions(-)
 
-diff --git a/tests/py/nft-test.py b/tests/py/nft-test.py
-index 1c0afd0e..d2c61a25 100755
---- a/tests/py/nft-test.py
-+++ b/tests/py/nft-test.py
-@@ -1,4 +1,4 @@
+diff --git a/tests/json_echo/run-test.py b/tests/json_echo/run-test.py
+index 0132b139..dd7797fb 100755
+--- a/tests/json_echo/run-test.py
++++ b/tests/json_echo/run-test.py
+@@ -1,5 +1,6 @@
 -#!/usr/bin/python2
 +#!/usr/bin/python
- #
- # (C) 2014 by Ana Rey Botello <anarey@gmail.com>
- #
-@@ -13,6 +13,8 @@
- # Thanks to the Outreach Program for Women (OPW) for sponsoring this test
- # infrastructure.
  
 +from __future__ import print_function
-+
  import sys
  import os
- import argparse
-@@ -171,27 +173,31 @@ def print_differences_error(filename, lineno, cmd):
-     print_error(reason, filename, lineno)
- 
- 
--def table_exist(table, filename, lineno):
-+def table_exist(table, filename, lineno, netns):
-     '''
-     Exists a table.
-     '''
-     cmd = "list table %s" % table
-+    if netns:
-+        cmd = "ip netns exec ___nftables-container-test {}".format(cmd) 
-     ret = execute_cmd(cmd, filename, lineno)
- 
-     return True if (ret == 0) else False
- 
- 
--def table_flush(table, filename, lineno):
-+def table_flush(table, filename, lineno, netns):
-     '''
-     Flush a table.
-     '''
-     cmd = "flush table %s" % table
-+    if netns:
-+        cmd = "ip netns exec ___nftables-container-test {}".format(cmd)
-     execute_cmd(cmd, filename, lineno)
- 
-     return cmd
- 
- 
--def table_create(table, filename, lineno):
-+def table_create(table, filename, lineno, netns):
-     '''
-     Adds a table.
-     '''
-@@ -205,6 +211,8 @@ def table_create(table, filename, lineno):
- 
-     # We add a new table
-     cmd = "add table %s" % table
-+    if netns:
-+        cmd = "ip netns exec ___nftables-container-test {}".format(cmd)
-     ret = execute_cmd(cmd, filename, lineno)
- 
-     if ret != 0:
-@@ -233,7 +241,7 @@ def table_create(table, filename, lineno):
-     return 0
- 
- 
--def table_delete(table, filename=None, lineno=None):
-+def table_delete(table, filename=None, lineno=None, netns=0):
-     '''
-     Deletes a table.
-     '''
-@@ -243,6 +251,8 @@ def table_delete(table, filename=None, lineno=None):
-         return -1
- 
-     cmd = "delete table %s" % table
-+    if netns:
-+        cmd = "ip netns exec ___nftables-container-test {}".format(cmd)
-     ret = execute_cmd(cmd, filename, lineno)
-     if ret != 0:
-         reason = "%s: I cannot delete table %s. Giving up!" % (cmd, table)
-@@ -258,17 +268,19 @@ def table_delete(table, filename=None, lineno=None):
-     return 0
- 
- 
--def chain_exist(chain, table, filename):
-+def chain_exist(chain, table, filename, netns):
-     '''
-     Checks a chain
-     '''
-     cmd = "list chain %s %s" % (table, chain)
-+    if netns:
-+        cmd = "ip netns exec ___nftables-container-test {}".format(cmd)
-     ret = execute_cmd(cmd, filename, chain.lineno)
- 
-     return True if (ret == 0) else False
- 
- 
--def chain_create(chain, table, filename):
-+def chain_create(chain, table, filename, netns):
-     '''
-     Adds a chain
-     '''
-@@ -279,6 +291,9 @@ def chain_create(chain, table, filename):
-         return -1
- 
-     cmd = "add chain %s %s" % (table, chain)
-+    if netns:
-+
-+        cmd = "ip netns exec ___nftables-container-test {}".format(cmd)
-     if chain.config:
-         cmd += " { %s; }" % chain.config
- 
-@@ -297,7 +312,7 @@ def chain_create(chain, table, filename):
-     return 0
- 
- 
--def chain_delete(chain, table, filename=None, lineno=None):
-+def chain_delete(chain, table, filename=None, lineno=None, netns=0):
-     '''
-     Flushes and deletes a chain.
-     '''
-@@ -308,6 +323,8 @@ def chain_delete(chain, table, filename=None, lineno=None):
-         return -1
- 
-     cmd = "flush chain %s %s" % (table, chain)
-+    if netns:
-+        cmd = "ip netns exec ___nftables-container-test {}".format(cmd)
-     ret = execute_cmd(cmd, filename, lineno)
-     if ret != 0:
-         reason = "I cannot " + cmd
-@@ -315,6 +332,8 @@ def chain_delete(chain, table, filename=None, lineno=None):
-         return -1
- 
-     cmd = "delete chain %s %s" % (table, chain)
-+    if netns:
-+        cmd = "ip netns exec ___nftables-container-test {}".format(cmd)
-     ret = execute_cmd(cmd, filename, lineno)
-     if ret != 0:
-         reason = "I cannot " + cmd
-@@ -340,7 +359,7 @@ def chain_get_by_name(name):
-     return chain
- 
- 
--def set_add(s, test_result, filename, lineno):
-+def set_add(s, test_result, filename, lineno, netns):
-     '''
-     Adds a set.
-     '''
-@@ -362,6 +381,8 @@ def set_add(s, test_result, filename, lineno):
-             flags = "flags %s; " % flags
- 
-         cmd = "add set %s %s { type %s;%s %s}" % (table, s.name, s.type, s.timeout, flags)
-+        if netns:
-+            cmd = "ip netns exec ___nftables-container-test {}".format(cmd)
-         ret = execute_cmd(cmd, filename, lineno)
- 
-         if (ret == 0 and test_result == "fail") or \
-@@ -379,7 +400,7 @@ def set_add(s, test_result, filename, lineno):
-     return 0
- 
- 
--def set_add_elements(set_element, set_name, state, filename, lineno):
-+def set_add_elements(set_element, set_name, state, filename, lineno, netns):
-     '''
-     Adds elements to the set.
-     '''
-@@ -399,6 +420,8 @@ def set_add_elements(set_element, set_name, state, filename, lineno):
- 
-         element = ", ".join(set_element)
-         cmd = "add element %s %s { %s }" % (table, set_name, element)
-+        if netns:
-+            cmd = "ip netns exec ___nftables-container-test {}".format(cmd)
-         ret = execute_cmd(cmd, filename, lineno)
- 
-         if (state == "fail" and ret == 0) or (state == "ok" and ret != 0):
-@@ -416,12 +439,14 @@ def set_add_elements(set_element, set_name, state, filename, lineno):
- 
- 
- def set_delete_elements(set_element, set_name, table, filename=None,
--                        lineno=None):
-+                        lineno=None, netns=0):
-     '''
-     Deletes elements in a set.
-     '''
-     for element in set_element:
-         cmd = "delete element %s %s { %s }" % (table, set_name, element)
-+        if netns:
-+            cmd = "ip netns exec ___nftables-container-test {}".format(cmd)
-         ret = execute_cmd(cmd, filename, lineno)
-         if ret != 0:
-             reason = "I cannot delete element %s " \
-@@ -432,11 +457,11 @@ def set_delete_elements(set_element, set_name, table, filename=None,
-     return 0
- 
- 
--def set_delete(table, filename=None, lineno=None):
-+def set_delete(table, filename=None, lineno=None, netns=0):
-     '''
-     Deletes set and its content.
-     '''
--    for set_name in all_set.keys():
-+    for set_name in list(all_set.keys()):
-         # Check if exists the set
-         if not set_exist(set_name, table, filename, lineno):
-             reason = "The set %s does not exist, " \
-@@ -450,6 +475,8 @@ def set_delete(table, filename=None, lineno=None):
- 
-         # We delete the set.
-         cmd = "delete set %s %s" % (table, set_name)
-+        if netns:
-+            cmd = "ip netns exec ___nftables-container-test {}".format(cmd)
-         ret = execute_cmd(cmd, filename, lineno)
- 
-         # Check if the set still exists after I deleted it.
-@@ -461,21 +488,25 @@ def set_delete(table, filename=None, lineno=None):
-     return 0
- 
- 
--def set_exist(set_name, table, filename, lineno):
-+def set_exist(set_name, table, filename, lineno, netns):
-     '''
-     Check if the set exists.
-     '''
-     cmd = "list set %s %s" % (table, set_name)
-+    if netns:
-+        cmd = "ip netns exec ___nftables-container-test {}".format(cmd)
-     ret = execute_cmd(cmd, filename, lineno)
- 
-     return True if (ret == 0) else False
- 
- 
--def _set_exist(s, filename, lineno):
-+def _set_exist(s, filename, lineno, netns):
-     '''
-     Check if the set exists.
-     '''
-     cmd = "list set %s %s %s" % (s.family, s.table, s.name)
-+    if netns:
-+        cmd = "ip netns exec ___nftables-container-test {}".format(cmd)
-     ret = execute_cmd(cmd, filename, lineno)
- 
-     return True if (ret == 0) else False
-@@ -509,7 +540,7 @@ def set_check_element(rule1, rule2):
-     return cmp(rule1[end1:], rule2[end2:])
- 
- 
--def obj_add(o, test_result, filename, lineno):
-+def obj_add(o, test_result, filename, lineno, netns):
-     '''
-     Adds an object.
-     '''
-@@ -528,6 +559,8 @@ def obj_add(o, test_result, filename, lineno):
-             return -1
- 
-         cmd = "add %s %s %s %s" % (o.type, table, o.name, o.spcf)
-+        if netns:
-+            cmd = "ip netns exec ___nftables-container-test {}".format(cmd)
-         ret = execute_cmd(cmd, filename, lineno)
- 
-         if (ret == 0 and test_result == "fail") or \
-@@ -554,7 +587,7 @@ def obj_add(o, test_result, filename, lineno):
-         print_error(reason, filename, lineno)
-         return -1
- 
--def obj_delete(table, filename=None, lineno=None):
-+def obj_delete(table, filename=None, lineno=None, netns=0):
-     '''
-     Deletes object.
-     '''
-@@ -568,6 +601,8 @@ def obj_delete(table, filename=None, lineno=None):
- 
-         # We delete the object.
-         cmd = "delete %s %s %s" % (o.type, table, o.name)
-+        if netns:
-+            cmd = "ip netns exec ___nftables-container-test {}".format(cmd)
-         ret = execute_cmd(cmd, filename, lineno)
- 
-         # Check if the object still exists after I deleted it.
-@@ -579,21 +614,25 @@ def obj_delete(table, filename=None, lineno=None):
-     return 0
- 
- 
--def obj_exist(o, table, filename, lineno):
-+def obj_exist(o, table, filename, lineno, netns):
-     '''
-     Check if the object exists.
-     '''
-     cmd = "list %s %s %s" % (o.type, table, o.name)
-+    if netns:
-+        cmd = "ip netns exec ___nftables-container-test {}".format(cmd)
-     ret = execute_cmd(cmd, filename, lineno)
- 
-     return True if (ret == 0) else False
- 
- 
--def _obj_exist(o, filename, lineno):
-+def _obj_exist(o, filename, lineno, netns):
-     '''
-     Check if the object exists.
-     '''
-     cmd = "list %s %s %s %s" % (o.type, o.family, o.table, o.name)
-+    if netns:
-+        cmd = "ip netns exec ___nftables-container-test {}".format(cmd)
-     ret = execute_cmd(cmd, filename, lineno)
- 
-     return True if (ret == 0) else False
-@@ -688,7 +727,7 @@ def json_dump_normalize(json_string, human_readable = False):
-         return json.dumps(json_obj, sort_keys = True)
- 
- 
--def rule_add(rule, filename, lineno, force_all_family_option, filename_path):
-+def rule_add(rule, filename, lineno, force_all_family_option, filename_path, netns):
-     '''
-     Adds a rule
-     '''
-@@ -766,6 +805,8 @@ def rule_add(rule, filename, lineno, force_all_family_option, filename_path):
- 
-             # Add rule and check return code
-             cmd = "add rule %s %s %s" % (table, chain, rule[0])
-+            if netns:
-+                cmd = "ip netns exec ___nftables-container-test {}".format(cmd)
-             ret = execute_cmd(cmd, filename, lineno, payload_log, debug="netlink")
- 
-             state = rule[1].rstrip()
-@@ -862,6 +903,8 @@ def rule_add(rule, filename, lineno, force_all_family_option, filename_path):
- 
-                 # Add rule and check return code
-                 cmd = "add rule %s %s %s" % (table, chain, rule_output.rstrip())
-+                if netns:
-+                    cmd = "ip netns exec ___nftables-container-test {}".format(cmd)
-                 ret = execute_cmd(cmd, filename, lineno, payload_log, debug="netlink")
- 
-                 if ret != 0:
-@@ -946,6 +989,7 @@ def rule_add(rule, filename, lineno, force_all_family_option, filename_path):
-             nftables.set_stateless_output(stateless_old)
- 
-             json_output = json.loads(json_output)
-+
-             for item in json_output["nftables"]:
-                 if "rule" in item:
-                     del(item["rule"]["handle"])
-@@ -1002,9 +1046,9 @@ def execute_cmd(cmd, filename, lineno, stdout_log=False, debug=False):
-     :param debug: temporarily set these debug flags
-     '''
-     global log_file
--    print >> log_file, "command: %s" % cmd
-+    print("command: {}".format(cmd), file=log_file)
-     if debug_option:
--        print cmd
-+        print(cmd)
- 
-     if debug:
-         debug_old = nftables.get_debug()
-@@ -1193,12 +1237,14 @@ def run_test_file(filename, force_all_family_option, specific_file):
-     filename_path = os.path.join(TESTS_PATH, filename)
-     f = open(filename_path)
-     tests = passed = total_unit_run = total_warning = total_error = 0
-+    if netns:
-+        execute_cmd("ip netns add ___nftables-container-test", filename, 0)
- 
-     for lineno, line in enumerate(f):
-         sys.stdout.flush()
- 
-         if signal_received == 1:
--            print "\nSignal received. Cleaning up and Exitting..."
-+            print("\nSignal received. Cleaning up and Exitting...")
-             cleanup_on_exit()
-             sys.exit(0)
- 
-@@ -1305,14 +1351,15 @@ def run_test_file(filename, force_all_family_option, specific_file):
- 
-     if specific_file:
-         if force_all_family_option:
--            print print_result_all(filename, tests, total_warning, total_error,
--                                   total_unit_run)
-+            print(print_result_all(filename, tests, total_warning, total_error,
-+                                   total_unit_run))
-         else:
--            print print_result(filename, tests, total_warning, total_error)
-+            print(print_result(filename, tests, total_warning, total_error))
-     else:
-         if tests == passed and tests > 0:
--            print filename + ": " + Colors.GREEN + "OK" + Colors.ENDC
--
-+            print(filename + ": " + Colors.GREEN + "OK" + Colors.ENDC)
-+        if netns:
-+            execute_cmd("ip netns del ___nftables-container-test", filename, 0)
-     f.close()
-     del table_list[:]
-     del chain_list[:]
-@@ -1322,7 +1369,7 @@ def run_test_file(filename, force_all_family_option, specific_file):
- 
- 
- def main():
--    parser = argparse.ArgumentParser(description='Run nft tests', version='1.0')
-+    parser = argparse.ArgumentParser(description='Run nft tests')
- 
-     parser.add_argument('filenames', nargs='*', metavar='path/to/file.t',
-                         help='Run only these tests')
-@@ -1341,6 +1388,12 @@ def main():
-                         dest='enable_json',
-                         help='test JSON functionality as well')
- 
-+    parser.add_argument('-N', '--netns', action='store_true',
-+                        help='Test namespace path')
-+
-+    parser.add_argument('-v', '--version', action='version', version='1.0',
-+                        help='prints the version information')
-+
-     args = parser.parse_args()
-     global debug_option, need_fix_option, enable_json_option
-     debug_option = args.debug
-@@ -1353,15 +1406,15 @@ def main():
-     signal.signal(signal.SIGTERM, signal_handler)
- 
-     if os.getuid() != 0:
--        print "You need to be root to run this, sorry"
-+        print("You need to be root to run this, sorry")
-         return
- 
-     # Change working directory to repository root
-     os.chdir(TESTS_PATH + "/../..")
- 
-     if not os.path.exists('src/.libs/libnftables.so'):
--        print "The nftables library does not exist. " \
--              "You need to build the project."
-+        print("The nftables library does not exist. "
-+              "You need to build the project.")
-         return
- 
-     global nftables
-@@ -1411,18 +1464,16 @@ def main():
-             run_total += file_unit_run
- 
-     if test_files == 0:
--        print "No test files to run"
-+        print("No test files to run")
-     else:
-         if not specific_file:
-             if force_all_family_option:
--                print "%d test files, %d files passed, %d unit tests, " \
--                      "%d total executed, %d error, %d warning" \
--                      % (test_files, files_ok, tests, run_total, errors,
--                         warnings)
-+                print("{} test files, {} files passed, {} unit tests,".format(test_files, files_ok, tests))
-+                print("{} total executed, {} error, {} warning".format(run_total, errors, warnings))
-             else:
--                print "%d test files, %d files passed, %d unit tests, " \
--                      "%d error, %d warning" \
--                      % (test_files, files_ok, tests, errors, warnings)
-+                print("{} test files, {} files passed, {} unit tests".format(test_files, files_ok, tests))
-+                print("{} error, {} warning".format(errors, warnings))
-+
- 
- 
- if __name__ == '__main__':
+ import json
+@@ -13,8 +14,8 @@ from nftables import Nftables
+ os.chdir(TESTS_PATH + "/../..")
+ 
+ if not os.path.exists('src/.libs/libnftables.so'):
+-    print "The nftables library does not exist. " \
+-          "You need to build the project."
++    print("The nftables library does not exist. "
++          "You need to build the project.")
+     sys.exit(1)
+ 
+ nftables = Nftables(sofile = 'src/.libs/libnftables.so')
+@@ -79,26 +80,26 @@ add_quota = { "add": {
+ # helper functions
+ 
+ def exit_err(msg):
+-    print "Error: %s" % msg
++    print("Error: %s" %msg)
+     sys.exit(1)
+ 
+ def exit_dump(e, obj):
+-    print "FAIL: %s" % e
+-    print "Output was:"
++    print("FAIL: {}".format(e))
++    print("Output was:")
+     json.dumps(out, sort_keys = True, indent = 4, separators = (',', ': '))
+     sys.exit(1)
+ 
+ def do_flush():
+     rc, out, err = nftables.json_cmd({ "nftables": [flush_ruleset] })
+     if not rc is 0:
+-        exit_err("flush ruleset failed: %s" % err)
++        exit_err("flush ruleset failed: {}".format(err))
+ 
+ def do_command(cmd):
+     if not type(cmd) is list:
+         cmd = [cmd]
+     rc, out, err = nftables.json_cmd({ "nftables": cmd })
+     if not rc is 0:
+-        exit_err("command failed: %s" % err)
++        exit_err("command failed: {}".format(err))
+     return out
+ 
+ def do_list_ruleset():
+@@ -123,7 +124,7 @@ def get_handle(output, search):
+             if not k in data:
+                 continue
+             found = True
+-            for key in search[k].keys():
++            for key in list(search[k].keys()):
+                 if key == "handle":
+                     continue
+                 if not key in data[k] or search[k][key] != data[k][key]:
+@@ -140,7 +141,7 @@ def get_handle(output, search):
+ 
+ do_flush()
+ 
+-print "Adding table t"
++print("Adding table t")
+ out = do_command(add_table)
+ handle = get_handle(out, add_table["add"])
+ 
+@@ -152,7 +153,7 @@ if handle != handle_cmp:
+ 
+ add_table["add"]["table"]["handle"] = handle
+ 
+-print "Adding chain c"
++print("Adding chain c")
+ out = do_command(add_chain)
+ handle = get_handle(out, add_chain["add"])
+ 
+@@ -164,7 +165,7 @@ if handle != handle_cmp:
+ 
+ add_chain["add"]["chain"]["handle"] = handle
+ 
+-print "Adding set s"
++print("Adding set s")
+ out = do_command(add_set)
+ handle = get_handle(out, add_set["add"])
+ 
+@@ -176,7 +177,7 @@ if handle != handle_cmp:
+ 
+ add_set["add"]["set"]["handle"] = handle
+ 
+-print "Adding rule"
++print("Adding rule")
+ out = do_command(add_rule)
+ handle = get_handle(out, add_rule["add"])
+ 
+@@ -188,7 +189,7 @@ if handle != handle_cmp:
+ 
+ add_rule["add"]["rule"]["handle"] = handle
+ 
+-print "Adding counter"
++print("Adding counter")
+ out = do_command(add_counter)
+ handle = get_handle(out, add_counter["add"])
+ 
+@@ -200,7 +201,7 @@ if handle != handle_cmp:
+ 
+ add_counter["add"]["counter"]["handle"] = handle
+ 
+-print "Adding quota"
++print("Adding quota")
+ out = do_command(add_quota)
+ handle = get_handle(out, add_quota["add"])
+ 
+@@ -222,37 +223,37 @@ add_set["add"]["set"]["name"] = "s2"
+ add_counter["add"]["counter"]["name"] = "c2"
+ add_quota["add"]["quota"]["name"] = "q2"
+ 
+-print "Adding table t2"
++print("Adding table t2")
+ out = do_command(add_table)
+ handle = get_handle(out, add_table["add"])
+ if handle == add_table["add"]["table"]["handle"]:
+    exit_err("handle not changed in re-added table!")
+ 
+-print "Adding chain c2"
++print("Adding chain c2")
+ out = do_command(add_chain)
+ handle = get_handle(out, add_chain["add"])
+ if handle == add_chain["add"]["chain"]["handle"]:
+    exit_err("handle not changed in re-added chain!")
+ 
+-print "Adding set s2"
++print("Adding set s2")
+ out = do_command(add_set)
+ handle = get_handle(out, add_set["add"])
+ if handle == add_set["add"]["set"]["handle"]:
+    exit_err("handle not changed in re-added set!")
+ 
+-print "Adding rule again"
++print("Adding rule again")
+ out = do_command(add_rule)
+ handle = get_handle(out, add_rule["add"])
+ if handle == add_rule["add"]["rule"]["handle"]:
+    exit_err("handle not changed in re-added rule!")
+ 
+-print "Adding counter c2"
++print("Adding counter c2")
+ out = do_command(add_counter)
+ handle = get_handle(out, add_counter["add"])
+ if handle == add_counter["add"]["counter"]["handle"]:
+    exit_err("handle not changed in re-added counter!")
+ 
+-print "Adding quota q2"
++print("Adding quota q2")
+ out = do_command(add_quota)
+ handle = get_handle(out, add_quota["add"])
+ if handle == add_quota["add"]["quota"]["handle"]:
+@@ -269,7 +270,7 @@ add_quota["add"]["quota"]["name"] = "q"
+ 
+ do_flush()
+ 
+-print "doing multi add"
++print("doing multi add")
+ # XXX: Add table separately, otherwise this triggers cache bug
+ out = do_command(add_table)
+ thandle = get_handle(out, add_table["add"])
 -- 
 2.17.1
 
