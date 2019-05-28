@@ -6,29 +6,29 @@ X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BDB05C04AB6
-	for <netfilter-devel@archiver.kernel.org>; Tue, 28 May 2019 21:03:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E447C04AB6
+	for <netfilter-devel@archiver.kernel.org>; Tue, 28 May 2019 21:03:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9E9A021019
-	for <netfilter-devel@archiver.kernel.org>; Tue, 28 May 2019 21:03:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3DE7121019
+	for <netfilter-devel@archiver.kernel.org>; Tue, 28 May 2019 21:03:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727785AbfE1VDs (ORCPT
+        id S1727792AbfE1VDy (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 28 May 2019 17:03:48 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:38470 "EHLO orbyte.nwl.cc"
+        Tue, 28 May 2019 17:03:54 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:38478 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727701AbfE1VDr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 28 May 2019 17:03:47 -0400
-Received: from localhost ([::1]:51558 helo=tatos)
+        id S1727701AbfE1VDx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 28 May 2019 17:03:53 -0400
+Received: from localhost ([::1]:51566 helo=tatos)
         by orbyte.nwl.cc with esmtp (Exim 4.91)
         (envelope-from <phil@nwl.cc>)
-        id 1hVjG6-0002KL-CE; Tue, 28 May 2019 23:03:46 +0200
+        id 1hVjGB-0002KX-Tj; Tue, 28 May 2019 23:03:52 +0200
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org, Eric Garver <e@erig.me>
-Subject: [nft PATCH v4 5/7] rule: Introduce rule_lookup_by_index()
-Date:   Tue, 28 May 2019 23:03:21 +0200
-Message-Id: <20190528210323.14605-6-phil@nwl.cc>
+Subject: [nft PATCH v4 2/7] libnftables: Keep list of commands in nft context
+Date:   Tue, 28 May 2019 23:03:18 +0200
+Message-Id: <20190528210323.14605-3-phil@nwl.cc>
 X-Mailer: git-send-email 2.21.0
 In-Reply-To: <20190528210323.14605-1-phil@nwl.cc>
 References: <20190528210323.14605-1-phil@nwl.cc>
@@ -39,50 +39,111 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-In contrast to rule_lookup(), this function returns a chain's rule at a
-given index instead of by handle.
+To fix the pending issues with cache updates, the list of commands needs
+to be accessible from within cache_update(). In theory, there is a path
+via nft->state->cmds but that struct parser_state is used (and
+initialized) by bison parser only so that does not work with JSON
+parser.
 
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- include/rule.h |  2 ++
- src/rule.c     | 11 +++++++++++
- 2 files changed, 13 insertions(+)
+ include/nftables.h |  1 +
+ src/libnftables.c  | 21 ++++++++++-----------
+ 2 files changed, 11 insertions(+), 11 deletions(-)
 
-diff --git a/include/rule.h b/include/rule.h
-index 61aa040a2e891..a7dd042d60e3f 100644
---- a/include/rule.h
-+++ b/include/rule.h
-@@ -260,6 +260,8 @@ extern struct rule *rule_get(struct rule *rule);
- extern void rule_free(struct rule *rule);
- extern void rule_print(const struct rule *rule, struct output_ctx *octx);
- extern struct rule *rule_lookup(const struct chain *chain, uint64_t handle);
-+extern struct rule *rule_lookup_by_index(const struct chain *chain,
-+					 uint64_t index);
+diff --git a/include/nftables.h b/include/nftables.h
+index bb9bb2091716d..faacf26509104 100644
+--- a/include/nftables.h
++++ b/include/nftables.h
+@@ -102,6 +102,7 @@ struct nft_ctx {
+ 	struct parser_state	*state;
+ 	void			*scanner;
+ 	void			*json_root;
++	struct list_head	cmds;
+ 	FILE			*f[MAX_INCLUDE_DEPTH];
+ };
  
- /**
-  * struct set - nftables set
-diff --git a/src/rule.c b/src/rule.c
-index 78e0388e41e93..dc2dd3628b17f 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -716,6 +716,17 @@ struct rule *rule_lookup(const struct chain *chain, uint64_t handle)
- 	return NULL;
- }
+diff --git a/src/libnftables.c b/src/libnftables.c
+index 199dbc97b801c..f6ea668f6770a 100644
+--- a/src/libnftables.c
++++ b/src/libnftables.c
+@@ -143,6 +143,7 @@ struct nft_ctx *nft_ctx_new(uint32_t flags)
+ 	nft_ctx_add_include_path(ctx, DEFAULT_INCLUDE_PATH);
+ 	ctx->parser_max_errors	= 10;
+ 	init_list_head(&ctx->cache.list);
++	init_list_head(&ctx->cmds);
+ 	ctx->flags = flags;
+ 	ctx->output.output_fp = stdout;
+ 	ctx->output.error_fp = stderr;
+@@ -342,7 +343,7 @@ static int nft_parse_bison_buffer(struct nft_ctx *nft, const char *buf,
+ 	struct cmd *cmd;
+ 	int ret;
  
-+struct rule *rule_lookup_by_index(const struct chain *chain, uint64_t index)
-+{
-+	struct rule *rule;
-+
-+	list_for_each_entry(rule, &chain->rules, list) {
-+		if (!--index)
-+			return rule;
-+	}
-+	return NULL;
-+}
-+
- struct scope *scope_init(struct scope *scope, const struct scope *parent)
+-	parser_init(nft, nft->state, msgs, cmds);
++	parser_init(nft, nft->state, msgs, &nft->cmds);
+ 	nft->scanner = scanner_init(nft->state);
+ 	scanner_push_buffer(nft->scanner, &indesc_cmdline, buf);
+ 
+@@ -381,7 +382,6 @@ int nft_run_cmd_from_buffer(struct nft_ctx *nft, const char *buf)
  {
- 	scope->parent = parent;
+ 	struct cmd *cmd, *next;
+ 	LIST_HEAD(msgs);
+-	LIST_HEAD(cmds);
+ 	char *nlbuf;
+ 	int rc = -EINVAL;
+ 
+@@ -389,17 +389,17 @@ int nft_run_cmd_from_buffer(struct nft_ctx *nft, const char *buf)
+ 	sprintf(nlbuf, "%s\n", buf);
+ 
+ 	if (nft_output_json(&nft->output))
+-		rc = nft_parse_json_buffer(nft, nlbuf, &msgs, &cmds);
++		rc = nft_parse_json_buffer(nft, nlbuf, &msgs, &nft->cmds);
+ 	if (rc == -EINVAL)
+-		rc = nft_parse_bison_buffer(nft, nlbuf, &msgs, &cmds);
++		rc = nft_parse_bison_buffer(nft, nlbuf, &msgs, &nft->cmds);
+ 	if (rc)
+ 		goto err;
+ 
+-	if (nft_netlink(nft, &cmds, &msgs, nft->nf_sock) != 0)
++	if (nft_netlink(nft, &nft->cmds, &msgs, nft->nf_sock) != 0)
+ 		rc = -1;
+ err:
+ 	erec_print_list(&nft->output, &msgs, nft->debug_mask);
+-	list_for_each_entry_safe(cmd, next, &cmds, list) {
++	list_for_each_entry_safe(cmd, next, &nft->cmds, list) {
+ 		list_del(&cmd->list);
+ 		cmd_free(cmd);
+ 	}
+@@ -421,7 +421,6 @@ int nft_run_cmd_from_filename(struct nft_ctx *nft, const char *filename)
+ {
+ 	struct cmd *cmd, *next;
+ 	LIST_HEAD(msgs);
+-	LIST_HEAD(cmds);
+ 	int rc;
+ 
+ 	rc = cache_update(nft, CMD_INVALID, &msgs);
+@@ -433,17 +432,17 @@ int nft_run_cmd_from_filename(struct nft_ctx *nft, const char *filename)
+ 
+ 	rc = -EINVAL;
+ 	if (nft_output_json(&nft->output))
+-		rc = nft_parse_json_filename(nft, filename, &msgs, &cmds);
++		rc = nft_parse_json_filename(nft, filename, &msgs, &nft->cmds);
+ 	if (rc == -EINVAL)
+-		rc = nft_parse_bison_filename(nft, filename, &msgs, &cmds);
++		rc = nft_parse_bison_filename(nft, filename, &msgs, &nft->cmds);
+ 	if (rc)
+ 		goto err;
+ 
+-	if (nft_netlink(nft, &cmds, &msgs, nft->nf_sock) != 0)
++	if (nft_netlink(nft, &nft->cmds, &msgs, nft->nf_sock) != 0)
+ 		rc = -1;
+ err:
+ 	erec_print_list(&nft->output, &msgs, nft->debug_mask);
+-	list_for_each_entry_safe(cmd, next, &cmds, list) {
++	list_for_each_entry_safe(cmd, next, &nft->cmds, list) {
+ 		list_del(&cmd->list);
+ 		cmd_free(cmd);
+ 	}
 -- 
 2.21.0
 
