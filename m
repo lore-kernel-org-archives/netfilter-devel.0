@@ -6,29 +6,29 @@ X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4222DC04AB6
-	for <netfilter-devel@archiver.kernel.org>; Tue, 28 May 2019 21:03:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9E5E3C04AB6
+	for <netfilter-devel@archiver.kernel.org>; Tue, 28 May 2019 21:04:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2139621019
-	for <netfilter-devel@archiver.kernel.org>; Tue, 28 May 2019 21:03:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7DC6B21019
+	for <netfilter-devel@archiver.kernel.org>; Tue, 28 May 2019 21:04:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727795AbfE1VD6 (ORCPT
+        id S1727701AbfE1VEE (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 28 May 2019 17:03:58 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:38486 "EHLO orbyte.nwl.cc"
+        Tue, 28 May 2019 17:04:04 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:38494 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727701AbfE1VD6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 28 May 2019 17:03:58 -0400
-Received: from localhost ([::1]:51574 helo=tatos)
+        id S1727273AbfE1VEE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 28 May 2019 17:04:04 -0400
+Received: from localhost ([::1]:51582 helo=tatos)
         by orbyte.nwl.cc with esmtp (Exim 4.91)
         (envelope-from <phil@nwl.cc>)
-        id 1hVjGH-0002LB-8U; Tue, 28 May 2019 23:03:57 +0200
+        id 1hVjGM-0002Lb-Hr; Tue, 28 May 2019 23:04:02 +0200
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org, Eric Garver <e@erig.me>
-Subject: [nft PATCH v4 3/7] src: Make {table,chain}_not_found() public
-Date:   Tue, 28 May 2019 23:03:19 +0200
-Message-Id: <20190528210323.14605-4-phil@nwl.cc>
+Subject: [nft PATCH v4 6/7] src: Make cache_is_complete() public
+Date:   Tue, 28 May 2019 23:03:22 +0200
+Message-Id: <20190528210323.14605-7-phil@nwl.cc>
 X-Mailer: git-send-email 2.21.0
 In-Reply-To: <20190528210323.14605-1-phil@nwl.cc>
 References: <20190528210323.14605-1-phil@nwl.cc>
@@ -41,44 +41,35 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- include/rule.h | 3 +++
- src/evaluate.c | 4 ++--
- 2 files changed, 5 insertions(+), 2 deletions(-)
+ include/rule.h | 1 +
+ src/rule.c     | 2 +-
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/include/rule.h b/include/rule.h
-index 8e70c129fcce0..61aa040a2e891 100644
+index a7dd042d60e3f..aa8881d375b96 100644
 --- a/include/rule.h
 +++ b/include/rule.h
-@@ -646,4 +646,7 @@ struct timeout_protocol {
- extern struct timeout_protocol timeout_protocol[IPPROTO_MAX];
- extern int timeout_str2num(uint16_t l4proto, struct timeout_state *ts);
+@@ -638,6 +638,7 @@ extern int cache_update(struct nft_ctx *ctx, enum cmd_ops cmd,
+ extern void cache_flush(struct nft_ctx *ctx, enum cmd_ops cmd,
+ 			struct list_head *msgs);
+ extern void cache_release(struct nft_cache *cache);
++extern bool cache_is_complete(struct nft_cache *cache, enum cmd_ops cmd);
  
-+int table_not_found(struct eval_ctx *ctx);
-+int chain_not_found(struct eval_ctx *ctx);
-+
- #endif /* NFTABLES_RULE_H */
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 55fb3b6131e04..09bb1fd37a301 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -166,7 +166,7 @@ static struct table *table_lookup_global(struct eval_ctx *ctx)
- 	return table;
+ struct timeout_protocol {
+ 	uint32_t array_size;
+diff --git a/src/rule.c b/src/rule.c
+index dc2dd3628b17f..b00161e0e4350 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -232,7 +232,7 @@ static int cache_completeness(enum cmd_ops cmd)
+ 	return 1;
  }
  
--static int table_not_found(struct eval_ctx *ctx)
-+int table_not_found(struct eval_ctx *ctx)
+-static bool cache_is_complete(struct nft_cache *cache, enum cmd_ops cmd)
++bool cache_is_complete(struct nft_cache *cache, enum cmd_ops cmd)
  {
- 	struct table *table;
- 
-@@ -181,7 +181,7 @@ static int table_not_found(struct eval_ctx *ctx)
- 			 family2str(table->handle.family));
+ 	return cache_completeness(cache->cmd) >= cache_completeness(cmd);
  }
- 
--static int chain_not_found(struct eval_ctx *ctx)
-+int chain_not_found(struct eval_ctx *ctx)
- {
- 	const struct table *table;
- 	struct chain *chain;
 -- 
 2.21.0
 
