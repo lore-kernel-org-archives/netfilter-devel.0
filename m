@@ -2,86 +2,75 @@ Return-Path: <SRS0=QEZg=T4=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_NEOMUTT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 39DE1C04AB6
-	for <netfilter-devel@archiver.kernel.org>; Tue, 28 May 2019 09:43:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 77393C04AB6
+	for <netfilter-devel@archiver.kernel.org>; Tue, 28 May 2019 13:32:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1195D2075C
-	for <netfilter-devel@archiver.kernel.org>; Tue, 28 May 2019 09:43:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 48B1F20883
+	for <netfilter-devel@archiver.kernel.org>; Tue, 28 May 2019 13:32:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726526AbfE1Jny (ORCPT
+        id S1727057AbfE1NcZ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 28 May 2019 05:43:54 -0400
-Received: from a3.inai.de ([88.198.85.195]:40428 "EHLO a3.inai.de"
+        Tue, 28 May 2019 09:32:25 -0400
+Received: from mx1.redhat.com ([209.132.183.28]:56506 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726282AbfE1Jny (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 28 May 2019 05:43:54 -0400
-Received: by a3.inai.de (Postfix, from userid 65534)
-        id BDF3F3BACCB5; Tue, 28 May 2019 11:43:52 +0200 (CEST)
-Received: from a4.inai.de (a4.inai.de [IPv6:2a01:4f8:222:6c9::f8])
-        by a3.inai.de (Postfix) with ESMTP id 959723BB6EF6;
-        Tue, 28 May 2019 11:43:28 +0200 (CEST)
-From:   Jan Engelhardt <jengelh@inai.de>
-To:     fw@strlen.de
-Cc:     netfilter-devel@vger.kernel.org
-Subject: [PATCH 2/2] build: avoid unnecessary rebuild of iptables when rerunning configure
-Date:   Tue, 28 May 2019 11:43:27 +0200
-Message-Id: <20190528094327.20496-3-jengelh@inai.de>
-X-Mailer: git-send-email 2.21.0
-In-Reply-To: <20190528094327.20496-1-jengelh@inai.de>
-References: <20190528094327.20496-1-jengelh@inai.de>
+        id S1726620AbfE1NcY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 28 May 2019 09:32:24 -0400
+Received: from smtp.corp.redhat.com (int-mx05.intmail.prod.int.phx2.redhat.com [10.5.11.15])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mx1.redhat.com (Postfix) with ESMTPS id 0636F3087958;
+        Tue, 28 May 2019 13:32:16 +0000 (UTC)
+Received: from egarver.localdomain (ovpn-122-200.rdu2.redhat.com [10.10.122.200])
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id 7F6515D6A9;
+        Tue, 28 May 2019 13:32:07 +0000 (UTC)
+Date:   Tue, 28 May 2019 09:32:06 -0400
+From:   Eric Garver <eric@garver.life>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Shekhar Sharma <shekhar250198@gmail.com>,
+        netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft v4] tests: py: fix python3
+Message-ID: <20190528133206.swz6y52fc7c2pp2c@egarver.localdomain>
+Mail-Followup-To: Eric Garver <eric@garver.life>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Shekhar Sharma <shekhar250198@gmail.com>,
+        netfilter-devel@vger.kernel.org
+References: <20190523182622.386876-1-shekhar250198@gmail.com>
+ <20190524193600.mx434k2r6if4dzqd@salvia>
+ <20190524194605.y4gtny534yffs4hj@salvia>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190524194605.y4gtny534yffs4hj@salvia>
+User-Agent: NeoMutt/20180716
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.15
+X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.5.16 (mx1.redhat.com [10.5.110.45]); Tue, 28 May 2019 13:32:24 +0000 (UTC)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Running configure always touches xtables/xtables-version.h, which
-causes parts to rebuild even when the configuration has not changed.
-(`./configure; make; ./configure; make;`).
+On Fri, May 24, 2019 at 09:46:05PM +0200, Pablo Neira Ayuso wrote:
+> On Fri, May 24, 2019 at 09:36:00PM +0200, Pablo Neira Ayuso wrote:
+> > On Thu, May 23, 2019 at 11:56:22PM +0530, Shekhar Sharma wrote:
+> > > This version of the patch converts the file into python3 and also uses
+> > > .format() method to make the print statments cleaner.
+> > 
+> > Applied, thanks.
+> 
+> Hm.
+> 
+> I'm hitting this here after applying this:
+> 
+> # python nft-test.py
+> Traceback (most recent call last):
+>   File "nft-test.py", line 17, in <module>
+>     from nftables import Nftables
+> ImportError: No module named nftables
 
-This can be avoided if the AC_CONFIG_FILES mechanism is replaced by
-one that does a compare and leaves an existing xtables-version.h
-unmodified if the sed result stays the same when it re-runs.
-
-Signed-off-by: Jan Engelhardt <jengelh@inai.de>
----
- Makefile.am  | 8 ++++++--
- configure.ac | 1 -
- 2 files changed, 6 insertions(+), 3 deletions(-)
-
-diff --git a/Makefile.am b/Makefile.am
-index 799bf8b8..2e29bb5d 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -29,5 +29,9 @@ tarball:
- 	tar -C /tmp -cjf ${PACKAGE_TARNAME}-${PACKAGE_VERSION}.tar.bz2 --owner=root --group=root ${PACKAGE_TARNAME}-${PACKAGE_VERSION}/;
- 	rm -Rf /tmp/${PACKAGE_TARNAME}-${PACKAGE_VERSION};
- 
--config.status: extensions/GNUmakefile.in \
--	include/xtables-version.h.in
-+config.status: extensions/GNUmakefile.in
-+
-+include/xtables-version.h: include/xtables-version.h.in
-+	${AM_V_GEN} sed -e 's|@@libxtables_vmajor@@|${libxtables_vmajor}|g' <$< >include/.xtables-version.tmp; \
-+	cmp include/xtables-version.h include/.xtables-version.tmp || \
-+		mv include/.xtables-version.tmp include/xtables-version.h
-diff --git a/configure.ac b/configure.ac
-index c922f7a0..2767c911 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -245,7 +245,6 @@ AC_CONFIG_FILES([Makefile extensions/GNUmakefile include/Makefile
- 	libiptc/Makefile libiptc/libiptc.pc
- 	libiptc/libip4tc.pc libiptc/libip6tc.pc
- 	libxtables/Makefile utils/Makefile
--	include/xtables-version.h
- 	iptables/xtables-monitor.8
- 	utils/nfnl_osf.8
- 	utils/nfbpf_compile.8])
--- 
-2.21.0
-
+Did you build nftables --with-python-bin ? The error can occur if you
+built nftables against a different python version. e.g. built for
+python3, but the "python" executable is python2.
