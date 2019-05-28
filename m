@@ -6,29 +6,29 @@ X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E9AFC04AB6
-	for <netfilter-devel@archiver.kernel.org>; Tue, 28 May 2019 21:03:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BDB05C04AB6
+	for <netfilter-devel@archiver.kernel.org>; Tue, 28 May 2019 21:03:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E1BB2208CB
-	for <netfilter-devel@archiver.kernel.org>; Tue, 28 May 2019 21:03:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9E9A021019
+	for <netfilter-devel@archiver.kernel.org>; Tue, 28 May 2019 21:03:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727606AbfE1VDm (ORCPT
+        id S1727785AbfE1VDs (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 28 May 2019 17:03:42 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:38462 "EHLO orbyte.nwl.cc"
+        Tue, 28 May 2019 17:03:48 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:38470 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726683AbfE1VDm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 28 May 2019 17:03:42 -0400
-Received: from localhost ([::1]:51550 helo=tatos)
+        id S1727701AbfE1VDr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 28 May 2019 17:03:47 -0400
+Received: from localhost ([::1]:51558 helo=tatos)
         by orbyte.nwl.cc with esmtp (Exim 4.91)
         (envelope-from <phil@nwl.cc>)
-        id 1hVjG1-0002Jx-24; Tue, 28 May 2019 23:03:41 +0200
+        id 1hVjG6-0002KL-CE; Tue, 28 May 2019 23:03:46 +0200
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org, Eric Garver <e@erig.me>
-Subject: [nft PATCH v4 1/7] src: Fix cache_flush() in cache_needs_more() logic
-Date:   Tue, 28 May 2019 23:03:17 +0200
-Message-Id: <20190528210323.14605-2-phil@nwl.cc>
+Subject: [nft PATCH v4 5/7] rule: Introduce rule_lookup_by_index()
+Date:   Tue, 28 May 2019 23:03:21 +0200
+Message-Id: <20190528210323.14605-6-phil@nwl.cc>
 X-Mailer: git-send-email 2.21.0
 In-Reply-To: <20190528210323.14605-1-phil@nwl.cc>
 References: <20190528210323.14605-1-phil@nwl.cc>
@@ -39,44 +39,50 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Commit 34a20645d54fa enabled cache updates depending on command causing
-it. As a side-effect, this disabled measures in cache_flush() preventing
-a later cache update. Re-establish this by setting cache->cmd in
-addition to cache->genid after dropping cache entries.
+In contrast to rule_lookup(), this function returns a chain's rule at a
+given index instead of by handle.
 
-While being at it, set cache->cmd in cache_release() as well. This
-shouldn't be necessary since zeroing cache->genid should suffice for
-cache_update(), but better be consistent (and future-proof) here.
-
-Fixes: 34a20645d54fa ("src: update cache if cmd is more specific")
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
-Changes since v1:
-- Adjust cache_release() as well, just to make sure.
----
- src/rule.c | 3 +++
- 1 file changed, 3 insertions(+)
+ include/rule.h |  2 ++
+ src/rule.c     | 11 +++++++++++
+ 2 files changed, 13 insertions(+)
 
+diff --git a/include/rule.h b/include/rule.h
+index 61aa040a2e891..a7dd042d60e3f 100644
+--- a/include/rule.h
++++ b/include/rule.h
+@@ -260,6 +260,8 @@ extern struct rule *rule_get(struct rule *rule);
+ extern void rule_free(struct rule *rule);
+ extern void rule_print(const struct rule *rule, struct output_ctx *octx);
+ extern struct rule *rule_lookup(const struct chain *chain, uint64_t handle);
++extern struct rule *rule_lookup_by_index(const struct chain *chain,
++					 uint64_t index);
+ 
+ /**
+  * struct set - nftables set
 diff --git a/src/rule.c b/src/rule.c
-index 326edb5dd459a..966948cd7ae90 100644
+index 78e0388e41e93..dc2dd3628b17f 100644
 --- a/src/rule.c
 +++ b/src/rule.c
-@@ -299,12 +299,15 @@ void cache_flush(struct nft_ctx *nft, enum cmd_ops cmd, struct list_head *msgs)
- 
- 	__cache_flush(&cache->list);
- 	cache->genid = mnl_genid_get(&ctx);
-+	cache->cmd = CMD_LIST;
+@@ -716,6 +716,17 @@ struct rule *rule_lookup(const struct chain *chain, uint64_t handle)
+ 	return NULL;
  }
  
- void cache_release(struct nft_cache *cache)
- {
- 	__cache_flush(&cache->list);
- 	cache->genid = 0;
-+	cache->cmd = CMD_INVALID;
++struct rule *rule_lookup_by_index(const struct chain *chain, uint64_t index)
++{
++	struct rule *rule;
 +
- }
- 
- /* internal ID to uniquely identify a set in the batch */
++	list_for_each_entry(rule, &chain->rules, list) {
++		if (!--index)
++			return rule;
++	}
++	return NULL;
++}
++
+ struct scope *scope_init(struct scope *scope, const struct scope *parent)
+ {
+ 	scope->parent = parent;
 -- 
 2.21.0
 
