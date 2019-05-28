@@ -2,253 +2,120 @@ Return-Path: <SRS0=QEZg=T4=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F9E3C04AB3
-	for <netfilter-devel@archiver.kernel.org>; Tue, 28 May 2019 00:37:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1831EC04AB6
+	for <netfilter-devel@archiver.kernel.org>; Tue, 28 May 2019 07:04:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 359F82075E
-	for <netfilter-devel@archiver.kernel.org>; Tue, 28 May 2019 00:37:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B10502075B
+	for <netfilter-devel@archiver.kernel.org>; Tue, 28 May 2019 07:04:03 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="P8KdVy0D"
+	dkim=pass (1024-bit key) header.d=transip.nl header.i=@transip.nl header.b="LKOUg7U+"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727556AbfE1AhH (ORCPT
+        id S1727049AbfE1HED (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 27 May 2019 20:37:07 -0400
-Received: from mail-pf1-f194.google.com ([209.85.210.194]:34959 "EHLO
-        mail-pf1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726979AbfE1AhH (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 27 May 2019 20:37:07 -0400
-Received: by mail-pf1-f194.google.com with SMTP id d126so8150746pfd.2
-        for <netfilter-devel@vger.kernel.org>; Mon, 27 May 2019 17:37:07 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id;
-        bh=z2XkHZ10nDsnCSDYi5Plw2Z/B8Mw9lPeZMYmzDC94L4=;
-        b=P8KdVy0Doimq+It5MWfaKDjoY5Xrwbn8DBRoFZX18JBnAFVjDFbLuIVyXnw8dKsVv9
-         DKBKpWps8BXhSAjHi/qui1hZzHSvGlOtCJusAN3duylCF81mrFDsoCzFC56jgmU5Oy5r
-         kVBxqLaiQtnIF9DWdW2znOOKH1WlQtGlRXMEo0lDzE6O+d6nREtubwEzVRVskVXsNBCm
-         goRn2ZXvBR64bwNGhpMLvtfOViJjme7U4wLLssO0clHf1zJkbxeCDx0sg2m5j7+z82ny
-         xXRXMUeCq3zXYDnDcKecej7UZL98829x4iW0d0LnKwbsGesuAg8LAE/sj2H21DVyiJvQ
-         LarQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id;
-        bh=z2XkHZ10nDsnCSDYi5Plw2Z/B8Mw9lPeZMYmzDC94L4=;
-        b=nSddTlxKLiN1hdOsVwZAOoDekZnP996zKj261yuyjs8QKt5LXCeOGGNX1uXhJYgoW6
-         o0XSpb5M02em6JPFjfEd8gZudnBmuzePuDw4IMe96Q2FurNBCI68JK5zczcWMj1gHwxb
-         vASB28dIHQZP7gz07f3DwD+V9ykospYOD3CMdn9HokddZFFN35NTKutv0H3gQFqBZDYy
-         bfoDZAJIHE/YV9P3amufyk+JX54oAnd6BJjPYIMtnp+Diq89UBEz2XBPKKaObR6fPn4t
-         q7JZ+4LgUUDI8YMiC4hm1GAfZQjIKpRTGd96VuXxCKiciEFZ8WpZ0ipQQkN0S78aH1wB
-         UIaA==
-X-Gm-Message-State: APjAAAUhiFeaU/yXu2t0VXWG8pPUBcX0CLrJXhzWLyr9qRalZ22wwgYC
-        hNjTBHgkmlY0RgeYwq5D2efVAV0W
-X-Google-Smtp-Source: APXvYqwfDrEfCuBQUv1+3oZQnWtwAnFLwSn+9/PQn4HSGklVBU51FM6ebOAq+kgVjv0Wo0XqZp2vXA==
-X-Received: by 2002:a17:90a:2e89:: with SMTP id r9mr1794968pjd.117.1559003826394;
-        Mon, 27 May 2019 17:37:06 -0700 (PDT)
-Received: from localhost.localdomain ([2409:4043:98d:28c6:c0fb:3264:16ab:2dfa])
-        by smtp.gmail.com with ESMTPSA id w66sm13799805pfb.47.2019.05.27.17.37.04
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 27 May 2019 17:37:05 -0700 (PDT)
-From:   Shekhar Sharma <shekhar250198@gmail.com>
-To:     netfilter-devel@vger.kernel.org
-Cc:     Shekhar Sharma <shekhar250198@gmail.com>
-Subject: [PATCH nft v2]tests: json_echo: convert to py3
-Date:   Tue, 28 May 2019 06:06:53 +0530
-Message-Id: <20190528003653.7565-1-shekhar250198@gmail.com>
-X-Mailer: git-send-email 2.17.1
+        Tue, 28 May 2019 03:04:03 -0400
+Received: from mail-eopbgr60135.outbound.protection.outlook.com ([40.107.6.135]:27532
+        "EHLO EUR04-DB3-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1726203AbfE1HED (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 28 May 2019 03:04:03 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=transip.nl;
+ s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=93FYfH9CPYTOUIOA91OKTH/j+yPTkJwi16aC3qT3g5Y=;
+ b=LKOUg7U+bbVUFLOj/N9L1bDafnW7IlNBVf0rfSlYQX78GVp/XeFcw0SS0QEbnTGx/VySf8RDu9C6bU85qfW0BASfirAchXjXDmhSXgYrWrbC9rgAJWgBGBExlRX7xf3Pa5Mz12vU7AcrnbVsZiuNcJVzztpFQt5ZAXM57W6qCuo=
+Received: from AM0PR02MB5492.eurprd02.prod.outlook.com (10.255.29.141) by
+ AM0PR02MB4049.eurprd02.prod.outlook.com (20.177.43.225) with Microsoft SMTP
+ Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.1922.18; Tue, 28 May 2019 07:03:59 +0000
+Received: from AM0PR02MB5492.eurprd02.prod.outlook.com
+ ([fe80::8032:6f7c:6712:fdcd]) by AM0PR02MB5492.eurprd02.prod.outlook.com
+ ([fe80::8032:6f7c:6712:fdcd%6]) with mapi id 15.20.1922.021; Tue, 28 May 2019
+ 07:03:59 +0000
+From:   Robin Geuze <robing@transip.nl>
+To:     "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+Subject: [PATCH] conntrackd: Fix "Address Accept" filter case
+Thread-Topic: [PATCH] conntrackd: Fix "Address Accept" filter case
+Thread-Index: AQHVFSKmKzha36mmIUqp62mIzCyxuA==
+Date:   Tue, 28 May 2019 07:03:59 +0000
+Message-ID: <AM0PR02MB5492D0F9BEB5814637C7D5C3AA1E0@AM0PR02MB5492.eurprd02.prod.outlook.com>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+authentication-results: spf=none (sender IP is )
+ smtp.mailfrom=robing@transip.nl; 
+x-originating-ip: [2a01:7c8:7c8:f866:11::1003]
+x-ms-publictraffictype: Email
+x-ms-office365-filtering-correlation-id: d26b6bc1-fc67-4360-5f2f-08d6e33aa85b
+x-microsoft-antispam: BCL:0;PCL:0;RULEID:(2390118)(7020095)(4652040)(7021145)(8989299)(4534185)(7022145)(4603075)(4627221)(201702281549075)(8990200)(7048125)(7024125)(7027125)(7023125)(5600148)(711020)(4605104)(1401327)(2017052603328)(7193020);SRVR:AM0PR02MB4049;
+x-ms-traffictypediagnostic: AM0PR02MB4049:
+x-microsoft-antispam-prvs: <AM0PR02MB40499EF0D029A181EB19EB14AA1E0@AM0PR02MB4049.eurprd02.prod.outlook.com>
+x-ms-oob-tlc-oobclassifiers: OLM:2803;
+x-forefront-prvs: 00514A2FE6
+x-forefront-antispam-report: SFV:NSPM;SFS:(10019020)(376002)(396003)(136003)(366004)(346002)(39840400004)(199004)(189003)(55016002)(5640700003)(91956017)(66476007)(66556008)(64756008)(76116006)(73956011)(86362001)(66946007)(2906002)(305945005)(7696005)(6916009)(6116002)(66446008)(6506007)(102836004)(53936002)(25786009)(14454004)(68736007)(52536014)(5660300002)(74316002)(6436002)(71190400001)(508600001)(71200400001)(9686003)(186003)(74482002)(2501003)(256004)(46003)(316002)(7736002)(476003)(99286004)(8936002)(33656002)(486006)(81166006)(81156014)(2351001)(8676002);DIR:OUT;SFP:1102;SCL:1;SRVR:AM0PR02MB4049;H:AM0PR02MB5492.eurprd02.prod.outlook.com;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;A:1;MX:1;
+received-spf: None (protection.outlook.com: transip.nl does not designate
+ permitted sender hosts)
+x-ms-exchange-senderadcheck: 1
+x-microsoft-antispam-message-info: kH83kP5F1LPYXRGM1T9Zdsm/fkyXqO4kOF7285R0xqJf+ZulYac+keUzZmitBH4zMvwnTvBu0WzwFOTw2CWIb/xsdExahGtf5K6MMk58M2+hESu83F77RMTnHC9X7t5aZh1JHYfUil2i3NF9NymonSwkJsHKjS16tCGfgdpfZ4mZRqeFti6euvIg20IRd+dRdON8nK3xDd3I5r6SrARKBpmFpmQWzRvD555EKg6rkNZof05DZXfoateyIN5OHZSaLEg8zh97wlI11TLDRnuCRjH/0716vU546Ui8w1+SDqRHK2mcRi98RGAq2cXFYNhfNUS0BN6D2JWjqunc0UKNvFSf9gunNqt0+kU05eyfP7VL4VR1nb8liapYtn8ftY1bxjH3r7NkGJAqVG7GlwrSq+WkA5hIAyQZu0sIAQB0JM8=
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+X-OriginatorOrg: transip.nl
+X-MS-Exchange-CrossTenant-Network-Message-Id: d26b6bc1-fc67-4360-5f2f-08d6e33aa85b
+X-MS-Exchange-CrossTenant-originalarrivaltime: 28 May 2019 07:03:59.0993
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: a4e75c98-a80e-4605-9b02-f5c4db1859b9
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: robing@exchange.transip.nl
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: AM0PR02MB4049
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This patch converts the run-test.py file to run on both python3 and python2.
-The version history of the patch is:
-v1: modified print and other statments.
-v2: updated the shebang and order of import statements.
- 
-
-Signed-off-by: Shekhar Sharma <shekhar250198@gmail.com>
----
- tests/json_echo/run-test.py | 45 +++++++++++++++++++------------------
- 1 file changed, 23 insertions(+), 22 deletions(-)
-
-diff --git a/tests/json_echo/run-test.py b/tests/json_echo/run-test.py
-index 0132b139..dd7797fb 100755
---- a/tests/json_echo/run-test.py
-+++ b/tests/json_echo/run-test.py
-@@ -1,5 +1,6 @@
--#!/usr/bin/python2
-+#!/usr/bin/python
- 
-+from __future__ import print_function
- import sys
- import os
- import json
-@@ -13,8 +14,8 @@ from nftables import Nftables
- os.chdir(TESTS_PATH + "/../..")
- 
- if not os.path.exists('src/.libs/libnftables.so'):
--    print "The nftables library does not exist. " \
--          "You need to build the project."
-+    print("The nftables library does not exist. "
-+          "You need to build the project.")
-     sys.exit(1)
- 
- nftables = Nftables(sofile = 'src/.libs/libnftables.so')
-@@ -79,26 +80,26 @@ add_quota = { "add": {
- # helper functions
- 
- def exit_err(msg):
--    print "Error: %s" % msg
-+    print("Error: %s" %msg)
-     sys.exit(1)
- 
- def exit_dump(e, obj):
--    print "FAIL: %s" % e
--    print "Output was:"
-+    print("FAIL: {}".format(e))
-+    print("Output was:")
-     json.dumps(out, sort_keys = True, indent = 4, separators = (',', ': '))
-     sys.exit(1)
- 
- def do_flush():
-     rc, out, err = nftables.json_cmd({ "nftables": [flush_ruleset] })
-     if not rc is 0:
--        exit_err("flush ruleset failed: %s" % err)
-+        exit_err("flush ruleset failed: {}".format(err))
- 
- def do_command(cmd):
-     if not type(cmd) is list:
-         cmd = [cmd]
-     rc, out, err = nftables.json_cmd({ "nftables": cmd })
-     if not rc is 0:
--        exit_err("command failed: %s" % err)
-+        exit_err("command failed: {}".format(err))
-     return out
- 
- def do_list_ruleset():
-@@ -123,7 +124,7 @@ def get_handle(output, search):
-             if not k in data:
-                 continue
-             found = True
--            for key in search[k].keys():
-+            for key in list(search[k].keys()):
-                 if key == "handle":
-                     continue
-                 if not key in data[k] or search[k][key] != data[k][key]:
-@@ -140,7 +141,7 @@ def get_handle(output, search):
- 
- do_flush()
- 
--print "Adding table t"
-+print("Adding table t")
- out = do_command(add_table)
- handle = get_handle(out, add_table["add"])
- 
-@@ -152,7 +153,7 @@ if handle != handle_cmp:
- 
- add_table["add"]["table"]["handle"] = handle
- 
--print "Adding chain c"
-+print("Adding chain c")
- out = do_command(add_chain)
- handle = get_handle(out, add_chain["add"])
- 
-@@ -164,7 +165,7 @@ if handle != handle_cmp:
- 
- add_chain["add"]["chain"]["handle"] = handle
- 
--print "Adding set s"
-+print("Adding set s")
- out = do_command(add_set)
- handle = get_handle(out, add_set["add"])
- 
-@@ -176,7 +177,7 @@ if handle != handle_cmp:
- 
- add_set["add"]["set"]["handle"] = handle
- 
--print "Adding rule"
-+print("Adding rule")
- out = do_command(add_rule)
- handle = get_handle(out, add_rule["add"])
- 
-@@ -188,7 +189,7 @@ if handle != handle_cmp:
- 
- add_rule["add"]["rule"]["handle"] = handle
- 
--print "Adding counter"
-+print("Adding counter")
- out = do_command(add_counter)
- handle = get_handle(out, add_counter["add"])
- 
-@@ -200,7 +201,7 @@ if handle != handle_cmp:
- 
- add_counter["add"]["counter"]["handle"] = handle
- 
--print "Adding quota"
-+print("Adding quota")
- out = do_command(add_quota)
- handle = get_handle(out, add_quota["add"])
- 
-@@ -222,37 +223,37 @@ add_set["add"]["set"]["name"] = "s2"
- add_counter["add"]["counter"]["name"] = "c2"
- add_quota["add"]["quota"]["name"] = "q2"
- 
--print "Adding table t2"
-+print("Adding table t2")
- out = do_command(add_table)
- handle = get_handle(out, add_table["add"])
- if handle == add_table["add"]["table"]["handle"]:
-    exit_err("handle not changed in re-added table!")
- 
--print "Adding chain c2"
-+print("Adding chain c2")
- out = do_command(add_chain)
- handle = get_handle(out, add_chain["add"])
- if handle == add_chain["add"]["chain"]["handle"]:
-    exit_err("handle not changed in re-added chain!")
- 
--print "Adding set s2"
-+print("Adding set s2")
- out = do_command(add_set)
- handle = get_handle(out, add_set["add"])
- if handle == add_set["add"]["set"]["handle"]:
-    exit_err("handle not changed in re-added set!")
- 
--print "Adding rule again"
-+print("Adding rule again")
- out = do_command(add_rule)
- handle = get_handle(out, add_rule["add"])
- if handle == add_rule["add"]["rule"]["handle"]:
-    exit_err("handle not changed in re-added rule!")
- 
--print "Adding counter c2"
-+print("Adding counter c2")
- out = do_command(add_counter)
- handle = get_handle(out, add_counter["add"])
- if handle == add_counter["add"]["counter"]["handle"]:
-    exit_err("handle not changed in re-added counter!")
- 
--print "Adding quota q2"
-+print("Adding quota q2")
- out = do_command(add_quota)
- handle = get_handle(out, add_quota["add"])
- if handle == add_quota["add"]["quota"]["handle"]:
-@@ -269,7 +270,7 @@ add_quota["add"]["quota"]["name"] = "q"
- 
- do_flush()
- 
--print "doing multi add"
-+print("doing multi add")
- # XXX: Add table separately, otherwise this triggers cache bug
- out = do_command(add_table)
- thandle = get_handle(out, add_table["add"])
--- 
-2.17.1
-
+This fixes a bug in the Address Accept filter case where if you only specif=
+y either addresses or masks it would never match.=0A=
+=0A=
+Signed-off-by: Robin Geuze <robing@transip.nl>=0A=
+---=0A=
+  src/filter.c | 10 ++++++++--=0A=
+ 1 file changed, 8 insertions(+), 2 deletions(-)=0A=
+=0A=
+diff --git a/src/filter.c b/src/filter.c=0A=
+index 00a5e96..07b2e1d 100644=0A=
+--- a/src/filter.c=0A=
++++ b/src/filter.c=0A=
+@@ -335,16 +335,22 @@ ct_filter_check(struct ct_filter *f, const struct nf_=
+conntrack *ct)=0A=
+ 		switch(nfct_get_attr_u8(ct, ATTR_L3PROTO)) {=0A=
+ 		case AF_INET:=0A=
+ 			ret =3D vector_iterate(f->v, ct, __ct_filter_test_mask4);=0A=
+-			if (ret ^ f->logic[CT_FILTER_ADDRESS])=0A=
++			if (ret && f->logic[CT_FILTER_ADDRESS]) {=0A=
++				break;=0A=
++			} else if (ret && !f->logic[CT_FILTER_ADDRESS]) {=0A=
+ 				return 0;=0A=
++			}=0A=
+ 			ret =3D __ct_filter_test_ipv4(f, ct);=0A=
+ 			if (ret ^ f->logic[CT_FILTER_ADDRESS])=0A=
+ 				return 0;=0A=
+ 			break;=0A=
+ 		case AF_INET6:=0A=
+ 			ret =3D vector_iterate(f->v6, ct, __ct_filter_test_mask6);=0A=
+-			if (ret ^ f->logic[CT_FILTER_ADDRESS])=0A=
++			if (ret && f->logic[CT_FILTER_ADDRESS]) {=0A=
++				break;=0A=
++			} else if (ret && !f->logic[CT_FILTER_ADDRESS]) {=0A=
+ 				return 0;=0A=
++			}=0A=
+ 			ret =3D __ct_filter_test_ipv6(f, ct);=0A=
+ 			if (ret ^ f->logic[CT_FILTER_ADDRESS])=0A=
+ 				return 0;=0A=
+-- =0A=
+2.20.1=0A=
