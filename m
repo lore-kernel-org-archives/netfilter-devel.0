@@ -4,31 +4,31 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CF3FFC28CC1
-	for <netfilter-devel@archiver.kernel.org>; Wed, 29 May 2019 13:14:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 73DBDC28CC0
+	for <netfilter-devel@archiver.kernel.org>; Wed, 29 May 2019 13:14:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A56C9205F4
-	for <netfilter-devel@archiver.kernel.org>; Wed, 29 May 2019 13:14:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 529E5205F4
+	for <netfilter-devel@archiver.kernel.org>; Wed, 29 May 2019 13:14:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726881AbfE2NOA (ORCPT
+        id S1726897AbfE2NOF (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 29 May 2019 09:14:00 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:40266 "EHLO orbyte.nwl.cc"
+        Wed, 29 May 2019 09:14:05 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:40274 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726029AbfE2NOA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 29 May 2019 09:14:00 -0400
-Received: from localhost ([::1]:53354 helo=tatos)
+        id S1726029AbfE2NOF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 29 May 2019 09:14:05 -0400
+Received: from localhost ([::1]:53362 helo=tatos)
         by orbyte.nwl.cc with esmtp (Exim 4.91)
         (envelope-from <phil@nwl.cc>)
-        id 1hVyP0-0006wT-In; Wed, 29 May 2019 15:13:58 +0200
+        id 1hVyP5-0006ws-Tn; Wed, 29 May 2019 15:14:03 +0200
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org, Eric Garver <e@erig.me>
-Subject: [nft PATCH 3/4] mnl: Fix and simplify mnl_batch_talk()
-Date:   Wed, 29 May 2019 15:13:45 +0200
-Message-Id: <20190529131346.23659-4-phil@nwl.cc>
+Subject: [nft PATCH 1/4] mnl: Maximize socket receive buffer by default
+Date:   Wed, 29 May 2019 15:13:43 +0200
+Message-Id: <20190529131346.23659-2-phil@nwl.cc>
 X-Mailer: git-send-email 2.21.0
 In-Reply-To: <20190529131346.23659-1-phil@nwl.cc>
 References: <20190529131346.23659-1-phil@nwl.cc>
@@ -39,84 +39,97 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Use of select() after the first call to mnl_socket_recvfrom() was
-incorrect, FD_SET() was called after the call to select() returned. This
-effectively turned the FD_ISSET() check into a noop (always true
-condition).
+With --echo option, regular commands may receive large replies just like
+'nft monitor' does. Avoid buffer overruns and message loss by maximizing
+the global nf_sock's receive buffer size upon creating, not just when
+calling mnl_nft_event_listener.
 
-Rewrite the receive loop using mnl_nft_event_listener() as an example:
-
-* Combine the two calls to FD_ZERO(), FD_SET() and select() into one at
-  loop start.
-* Check ENOBUFS condition and warn the user, also upon other errors.
-* Continue on ENOBUFS, it is not a permanent error.
+Error reporting is tricky in nft_mnl_socket_open(), also being warned
+about failures during receive buffer increase adds little value to the
+user. So just fail silently instead.
 
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- src/mnl.c | 39 ++++++++++++++++++++++-----------------
- 1 file changed, 22 insertions(+), 17 deletions(-)
+ src/mnl.c | 41 +++++++++++++++++++++--------------------
+ 1 file changed, 21 insertions(+), 20 deletions(-)
 
 diff --git a/src/mnl.c b/src/mnl.c
-index 06280aa2cb50a..4fbfd059c0228 100644
+index 9bb712adfa3b5..2c5a26a5e3465 100644
 --- a/src/mnl.c
 +++ b/src/mnl.c
-@@ -299,34 +299,39 @@ int mnl_batch_talk(struct netlink_ctx *ctx, struct list_head *err_list)
- 	if (ret == -1)
- 		return -1;
+@@ -33,6 +33,26 @@
+ #include <utils.h>
+ #include <nftables.h>
  
--	FD_ZERO(&readfds);
--	FD_SET(fd, &readfds);
-+	while (true) {
-+		FD_ZERO(&readfds);
-+		FD_SET(fd, &readfds);
- 
--	/* receive and digest all the acknowledgments from the kernel. */
--	ret = select(fd+1, &readfds, NULL, NULL, &tv);
--	if (ret == -1)
--		return -1;
-+		/* receive and digest all the acknowledgments from the kernel. */
-+		ret = select(fd + 1, &readfds, NULL, NULL, &tv);
-+		if (ret < 0)
-+			return -1;
- 
--	while (ret > 0 && FD_ISSET(fd, &readfds)) {
--		struct nlmsghdr *nlh = (struct nlmsghdr *)rcv_buf;
-+		if (!FD_ISSET(fd, &readfds))
-+			break;
- 
- 		ret = mnl_socket_recvfrom(nl, rcv_buf, sizeof(rcv_buf));
--		if (ret == -1)
--			return -1;
-+		if (ret < 0) {
-+			if (errno == ENOBUFS) {
-+				nft_print(&ctx->nft->output,
-+					  "# ERROR: We lost some netlink events!\n");
-+				continue;
-+			}
-+			nft_print(&ctx->nft->output, "# ERROR: %s\n",
-+				  strerror(errno));
-+			err = ret;
-+			break;
-+		}
- 
- 		ret = mnl_cb_run(rcv_buf, ret, 0, portid, &netlink_echo_callback, ctx);
- 		/* Continue on error, make sure we get all acknowledgments */
- 		if (ret == -1) {
-+			struct nlmsghdr *nlh = (struct nlmsghdr *)rcv_buf;
++#define NFTABLES_NLEVENT_BUFSIZ	(1 << 24)
 +
- 			mnl_err_list_node_add(err_list, errno, nlh->nlmsg_seq);
- 			err = -1;
- 		}
--
--		ret = select(fd+1, &readfds, NULL, NULL, &tv);
--		if (ret == -1)
--			return -1;
--
--		FD_ZERO(&readfds);
--		FD_SET(fd, &readfds);
- 	}
- 	return err;
++static void maximize_recv_buffer(struct mnl_socket *nf_sock)
++{
++	unsigned int bufsiz = NFTABLES_NLEVENT_BUFSIZ;
++	int fd = mnl_socket_get_fd(nf_sock);
++
++	/* Set netlink socket buffer size to 16 Mbytes to reduce chances of
++	 * message loss due to ENOBUFS.
++	 */
++	if (setsockopt(fd, SOL_SOCKET, SO_RCVBUFFORCE,
++		       &bufsiz, sizeof(socklen_t)) < 0) {
++		/* If this doesn't work, try to reach the system wide maximum
++		 * (or whatever the user requested).
++		 */
++		setsockopt(fd, SOL_SOCKET, SO_RCVBUF,
++			   &bufsiz, sizeof(socklen_t));
++	}
++}
++
+ struct mnl_socket *nft_mnl_socket_open(void)
+ {
+ 	struct mnl_socket *nf_sock;
+@@ -44,6 +64,7 @@ struct mnl_socket *nft_mnl_socket_open(void)
+ 	if (fcntl(mnl_socket_get_fd(nf_sock), F_SETFL, O_NONBLOCK))
+ 		netlink_init_error();
+ 
++	maximize_recv_buffer(nf_sock);
+ 	return nf_sock;
  }
+ 
+@@ -1379,37 +1400,17 @@ int mnl_nft_flowtable_del(struct netlink_ctx *ctx, const struct cmd *cmd)
+ /*
+  * events
+  */
+-#define NFTABLES_NLEVENT_BUFSIZ	(1 << 24)
+ 
+ int mnl_nft_event_listener(struct mnl_socket *nf_sock, unsigned int debug_mask,
+ 			   struct output_ctx *octx,
+ 			   int (*cb)(const struct nlmsghdr *nlh, void *data),
+ 			   void *cb_data)
+ {
+-	/* Set netlink socket buffer size to 16 Mbytes to reduce chances of
+- 	 * message loss due to ENOBUFS.
+-	 */
+-	unsigned int bufsiz = NFTABLES_NLEVENT_BUFSIZ;
+ 	int fd = mnl_socket_get_fd(nf_sock);
+ 	char buf[NFT_NLMSG_MAXSIZE];
+ 	fd_set readfds;
+ 	int ret;
+ 
+-	ret = setsockopt(fd, SOL_SOCKET, SO_RCVBUFFORCE, &bufsiz,
+-			 sizeof(socklen_t));
+-	if (ret < 0) {
+-		/* If this doesn't work, try to reach the system wide maximum
+-		 * (or whatever the user requested).
+-		 */
+-		ret = setsockopt(fd, SOL_SOCKET, SO_RCVBUF, &bufsiz,
+-				 sizeof(socklen_t));
+-		if (ret < 0)
+-			nft_print(octx, "# Cannot increase netlink socket buffer size, expect message loss\n");
+-		else
+-			nft_print(octx, "# Cannot set up netlink socket buffer size to %u bytes, falling back to %u bytes\n",
+-				  NFTABLES_NLEVENT_BUFSIZ, bufsiz);
+-	}
+-
+ 	while (1) {
+ 		FD_ZERO(&readfds);
+ 		FD_SET(fd, &readfds);
 -- 
 2.21.0
 
