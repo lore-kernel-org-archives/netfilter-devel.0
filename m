@@ -2,249 +2,172 @@ Return-Path: <SRS0=BqdC=T5=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-6.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3AD7CC28CC1
-	for <netfilter-devel@archiver.kernel.org>; Wed, 29 May 2019 11:26:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A50C3C28CC0
+	for <netfilter-devel@archiver.kernel.org>; Wed, 29 May 2019 12:03:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1A89F20B1F
-	for <netfilter-devel@archiver.kernel.org>; Wed, 29 May 2019 11:26:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7B73C20644
+	for <netfilter-devel@archiver.kernel.org>; Wed, 29 May 2019 12:03:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726842AbfE2LZw (ORCPT
+        id S1726943AbfE2MDQ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 29 May 2019 07:25:52 -0400
-Received: from mail.us.es ([193.147.175.20]:52968 "EHLO mail.us.es"
+        Wed, 29 May 2019 08:03:16 -0400
+Received: from mx1.redhat.com ([209.132.183.28]:48080 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726816AbfE2LZv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 29 May 2019 07:25:51 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 91D2DC1B73
-        for <netfilter-devel@vger.kernel.org>; Wed, 29 May 2019 13:25:49 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 7B9E2DA709
-        for <netfilter-devel@vger.kernel.org>; Wed, 29 May 2019 13:25:49 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 70FE0DA710; Wed, 29 May 2019 13:25:49 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 342EDDA709;
-        Wed, 29 May 2019 13:25:47 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 29 May 2019 13:25:47 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from salvia.here (sys.soleta.eu [212.170.55.40])
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id E35CF4265A5B;
-        Wed, 29 May 2019 13:25:46 +0200 (CEST)
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     davem@davemloft.net, netdev@vger.kernel.org,
-        nikolay@cumulusnetworks.com, roopa@cumulusnetworks.com
-Subject: [PATCH net-next,v3 1/9] net: ipv4: add skbuff fraglist splitter
-Date:   Wed, 29 May 2019 13:25:31 +0200
-Message-Id: <20190529112539.2126-2-pablo@netfilter.org>
-X-Mailer: git-send-email 2.11.0
-In-Reply-To: <20190529112539.2126-1-pablo@netfilter.org>
-References: <20190529112539.2126-1-pablo@netfilter.org>
-X-Virus-Scanned: ClamAV using ClamSMTP
+        id S1725894AbfE2MDQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 29 May 2019 08:03:16 -0400
+Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.phx2.redhat.com [10.5.11.16])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mx1.redhat.com (Postfix) with ESMTPS id 7C04F3087926;
+        Wed, 29 May 2019 12:03:02 +0000 (UTC)
+Received: from localhost.localdomain (unknown [10.18.25.122])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 166216149A;
+        Wed, 29 May 2019 12:02:44 +0000 (UTC)
+Reply-To: dwalsh@redhat.com
+Subject: Re: [PATCH ghak90 V6 00/10] audit: implement container identifier
+To:     Richard Guy Briggs <rgb@redhat.com>,
+        Steve Grubb <sgrubb@redhat.com>
+Cc:     Paul Moore <paul@paul-moore.com>,
+        Neil Horman <nhorman@tuxdriver.com>,
+        containers@lists.linux-foundation.org, linux-api@vger.kernel.org,
+        Linux-Audit Mailing List <linux-audit@redhat.com>,
+        linux-fsdevel@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        omosnace@redhat.com, dhowells@redhat.com, simo@redhat.com,
+        Eric Paris <eparis@parisplace.org>,
+        Serge Hallyn <serge@hallyn.com>, ebiederm@xmission.com,
+        Mrunal Patel <mpatel@redhat.com>
+References: <cover.1554732921.git.rgb@redhat.com>
+ <509ea6b0-1ac8-b809-98c2-37c34dd98ca3@redhat.com>
+ <CAHC9VhRW9f6GbhvvfifbOzd9p=PgdB2gq1E7tACcaqvfb85Y8A@mail.gmail.com>
+ <3299293.RYyUlNkVNy@x2>
+ <20190529004352.vvicec7nnk6pvkwt@madcap2.tricolour.ca>
+From:   Daniel Walsh <dwalsh@redhat.com>
+Openpgp: preference=signencrypt
+Autocrypt: addr=dwalsh@redhat.com; prefer-encrypt=mutual; keydata=
+ mQENBFsaqOEBCADBSnZCZpi262vX8m7iL/OdHKP9G9dhS28FR60cjd8nMPqHDNhQJBjLMZra
+ 66L2cCIEhc4HEItail7KU1BckrMc4laFaxL8tLoVTKHZwb74n2OcAJ4FtgzkNNlB1XJvSwC/
+ 909uwt7cpDqwXpJvyP3t17iuklB1OY0EEjTDt9aU4+0QjHzV18L4Cpd9iQ4ksu+EHT+pjlBk
+ DdQB+hKoAjxPl11Eh6pZfrAcrNWpYBBk0A3XE9Jb6ghbmHWltNgVOsCa9GcswJHUEeFiOup6
+ J5DTv6Xzwt0t6QB8nIs+wDJH+VxqAXcrxscnAhViIfGGS2AtxzjnVOz/J+UZPaauIGXTABEB
+ AAG0LERhbmllbCBKIFdhbHNoIChGb3IgR2l0KSA8ZHdhbHNoQHJlZGhhdC5jb20+iQE4BBMB
+ AgAiBQJbGqjhAhsDBgsJCAcDAgYVCAIJCgsEFgIDAQIeAQIXgAAKCRCi35Adq+LAKHuJB/98
+ nZB5RmNjMWua4Ms8q5a1R9XWlDAb3mrST6JeL+uV/M0fa18e2Aw4/hi/WZHjAjoypLmcuaRx
+ GeCbC8iYdpfRDUG79Y956Qq+Vs8c6VfNDMY1mvtfb00eeTaYoOCu0Aa9LDeR9iLKh2g0RI+N
+ Zr3EU45RxZdacIs1v6mU8pGpyUq/FvuTGK9GzR9d1YeVCuSpQKN4ckHNZHJUXyk0vOZft1oO
+ nSgLqM9EDWA+yz1JLmRYwbNsim7IvfVOav5mCgnKzHcL2mLv8qCnMFZjoQV8aGny/W739Z3a
+ YJo1CdOg6zSu5SOvmq9idYrBRkwEtyLXss2oceTVBs0MxqQ/9mLPuQENBFsaqOEBCADDl2hl
+ bUpqJGgwt2eQvs0Z0DCx/7nn0hlLfEn4WAv2HqP25AjIRXUX31Mzu68C4QnsvNtY4zN+FGRC
+ EfUpYsjiL7vBYlRePhIohyMYU4RLp5eXFQKahHO/9Xlhe8mwueQNwYxNBPfMQ65U2AuqxpcS
+ scx4s5w208mhqHoKz6IB2LuKeflhYfH5Y1FNAtVGHfhg22xlcAdupPPcxGuS4fBEW6PD/SDf
+ Y4HT5iUHsyksQKjM0IFalqZ7YuLfXBl07OD2zU7WI9c3W0dwkvwIRjt3aD4iAah544uOLff+
+ BzfxWghXeo80S2a1WCL0S/2qR0NVct/ExaDWboYr/bKpTa/1ABEBAAGJAR8EGAECAAkFAlsa
+ qOECGwwACgkQot+QHaviwCi2hgf/XRvrt+VBmp1ZFxQAR9E6S7AtRT8KSytjFiqEC7TpOx3r
+ 2OZ4gZ3ZiW4TMW8hS7aYRgF1uYpLzl7BbrCfCHfAWEcXZ+uG8vayg8G/mLAcNlLY+JE76ATs
+ 53ziEY9R2Vb/wLMFd2nNBdqfwGcRH9N9VOej9vP76nCP01ZolY8Nms2hE383/+1Quxp5EedU
+ BN5W5l7x9riBJyqCA63hr4u8wNsTuQgrDyhm/U1IvYeLtMopgotjnIR3KiTKOElbppLeXW3w
+ EO/sQTPk+vQ4vcsJYY9Dnf1NlvHE4klj60GHjtjitsBEHzdE7s+J9FOxPmt8l+gMogGumKpN
+ Y4lO0pfTyg==
+Organization: Red Hat
+Message-ID: <31804653-7518-1a9c-83af-f6ce6a6ce408@redhat.com>
+Date:   Wed, 29 May 2019 08:02:43 -0400
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.6.1
+MIME-Version: 1.0
+In-Reply-To: <20190529004352.vvicec7nnk6pvkwt@madcap2.tricolour.ca>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.16
+X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.5.16 (mx1.redhat.com [10.5.110.45]); Wed, 29 May 2019 12:03:15 +0000 (UTC)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This patch adds the skbuff fraglist splitter. This API provides an
-iterator to transform the fraglist into single skbuff objects, it
-consists of:
+On 5/28/19 8:43 PM, Richard Guy Briggs wrote:
+> On 2019-05-28 19:00, Steve Grubb wrote:
+>> On Tuesday, May 28, 2019 6:26:47 PM EDT Paul Moore wrote:
+>>> On Tue, May 28, 2019 at 5:54 PM Daniel Walsh <dwalsh@redhat.com> wrote:
+>>>> On 4/22/19 9:49 AM, Paul Moore wrote:
+>>>>> On Mon, Apr 22, 2019 at 7:38 AM Neil Horman <nhorman@tuxdriver.com> 
+>> wrote:
+>>>>>> On Mon, Apr 08, 2019 at 11:39:07PM -0400, Richard Guy Briggs wrote:
+>>>>>>> Implement kernel audit container identifier.
+>>>>>> I'm sorry, I've lost track of this, where have we landed on it? Are we
+>>>>>> good for inclusion?
+>>>>> I haven't finished going through this latest revision, but unless
+>>>>> Richard made any significant changes outside of the feedback from the
+>>>>> v5 patchset I'm guessing we are "close".
+>>>>>
+>>>>> Based on discussions Richard and I had some time ago, I have always
+>>>>> envisioned the plan as being get the kernel patchset, tests, docs
+>>>>> ready (which Richard has been doing) and then run the actual
+>>>>> implemented API by the userland container folks, e.g. cri-o/lxc/etc.,
+>>>>> to make sure the actual implementation is sane from their perspective.
+>>>>> They've already seen the design, so I'm not expecting any real
+>>>>> surprises here, but sometimes opinions change when they have actual
+>>>>> code in front of them to play with and review.
+>>>>>
+>>>>> Beyond that, while the cri-o/lxc/etc. folks are looking it over,
+>>>>> whatever additional testing we can do would be a big win.  I'm
+>>>>> thinking I'll pull it into a separate branch in the audit tree
+>>>>> (audit/working-container ?) and include that in my secnext kernels
+>>>>> that I build/test on a regular basis; this is also a handy way to keep
+>>>>> it based against the current audit/next branch.  If any changes are
+>>>>> needed Richard can either chose to base those changes on audit/next or
+>>>>> the separate audit container ID branch; that's up to him.  I've done
+>>>>> this with other big changes in other trees, e.g. SELinux, and it has
+>>>>> worked well to get some extra testing in and keep the patchset "merge
+>>>>> ready" while others outside the subsystem look things over.
+>>>> Mrunal Patel (maintainer of CRI-O) and I have reviewed the API, and
+>>>> believe this is something we can work on in the container runtimes team
+>>>> to implement the container auditing code in CRI-O and Podman.
+>>> Thanks Dan.  If I pulled this into a branch and built you some test
+>>> kernels to play with, any idea how long it might take to get a proof
+>>> of concept working on the cri-o side?
+>> We'd need to merge user space patches and let them use that instead of the 
+>> raw interface. I'm not going to merge user space until we are pretty sure the 
+>> patch is going into the kernel.
+> I have an f29 test rpm of the userspace bits if that helps for testing:
+> 	http://people.redhat.com/~rbriggs/ghak90/git-1db7e21/
+>
+> Here's what it contains (minus the last patch):
+> 	https://github.com/linux-audit/audit-userspace/compare/master...rgbriggs:ghau40-containerid-filter.v7.0
+>
+>> -Steve
+>>
+>>> FWIW, I've also reached out to some of the LXC folks I know to get
+>>> their take on the API.  I think if we can get two different container
+>>> runtimes to give the API a thumbs-up then I think we are in good shape
+>>> with respect to the userspace interface.
+>>>
+>>> I just finished looking over the last of the pending audit kernel
+>>> patches that were queued waiting for the merge window to open so this
+>>> is next on my list to look at.  I plan to start doing that
+>>> tonight/tomorrow, and as long as the changes between v5/v6 are not
+>>> that big, it shouldn't take too long.
+> - RGB
+>
+> --
+> Richard Guy Briggs <rgb@redhat.com>
+> Sr. S/W Engineer, Kernel Security, Base Operating Systems
+> Remote, Ottawa, Red Hat Canada
+> IRC: rgb, SunRaycer
+> Voice: +1.647.777.2635, Internal: (81) 32635
 
-* ip_fraglist_init(), that initializes the internal state of the
-  fraglist splitter.
-* ip_fraglist_prepare(), that restores the IPv4 header on the
-  fragments.
-* ip_fraglist_next(), that retrieves the fragment from the fraglist and
-  it updates the internal state of the splitter to point to the next
-  fragment skbuff in the fraglist.
+Our current thoughts are to put the setting of the ID inside of conmon,
+and then launching the OCI Runtime.  In a perfect world this would
+happen in the OCI Runtime, but we have no controls over different OCI
+Runtimes. 
 
-The ip_fraglist_iter object stores the internal state of the iterator.
+By putting it into conmon, then CRI-O and Podman will automatically get
+the container id support.  After we have this we have to plumb it back
+up through the contianer engines to be able to easily report the link
+between the Container UUID and The Kernel Container Audit ID.
 
-This code has been extracted from ip_do_fragment(). Symbols are also
-exported to allow to reuse this iterator from the bridge codepath to
-build its own refragmentation routine by reusing the existing codebase.
-
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/net/ip.h     | 23 ++++++++++++++
- net/ipv4/ip_output.c | 88 ++++++++++++++++++++++++++++++++--------------------
- 2 files changed, 78 insertions(+), 33 deletions(-)
-
-diff --git a/include/net/ip.h b/include/net/ip.h
-index 2d3cce7c3e8a..be899677504b 100644
---- a/include/net/ip.h
-+++ b/include/net/ip.h
-@@ -165,6 +165,29 @@ int ip_output(struct net *net, struct sock *sk, struct sk_buff *skb);
- int ip_mc_output(struct net *net, struct sock *sk, struct sk_buff *skb);
- int ip_do_fragment(struct net *net, struct sock *sk, struct sk_buff *skb,
- 		   int (*output)(struct net *, struct sock *, struct sk_buff *));
-+
-+struct ip_fraglist_iter {
-+	struct sk_buff	*frag_list;
-+	struct sk_buff	*frag;
-+	struct iphdr	*iph;
-+	int		offset;
-+	unsigned int	hlen;
-+};
-+
-+void ip_fraglist_init(struct sk_buff *skb, struct iphdr *iph,
-+		      unsigned int hlen, struct ip_fraglist_iter *iter);
-+void ip_fraglist_prepare(struct sk_buff *skb, struct ip_fraglist_iter *iter);
-+
-+static inline struct sk_buff *ip_fraglist_next(struct ip_fraglist_iter *iter)
-+{
-+	struct sk_buff *skb = iter->frag;
-+
-+	iter->frag = skb->next;
-+	skb_mark_not_on_list(skb);
-+
-+	return skb;
-+}
-+
- void ip_send_check(struct iphdr *ip);
- int __ip_local_out(struct net *net, struct sock *sk, struct sk_buff *skb);
- int ip_local_out(struct net *net, struct sock *sk, struct sk_buff *skb);
-diff --git a/net/ipv4/ip_output.c b/net/ipv4/ip_output.c
-index bfd0ca554977..d03eb4ae0dd4 100644
---- a/net/ipv4/ip_output.c
-+++ b/net/ipv4/ip_output.c
-@@ -561,6 +561,54 @@ static int ip_fragment(struct net *net, struct sock *sk, struct sk_buff *skb,
- 	return ip_do_fragment(net, sk, skb, output);
- }
- 
-+void ip_fraglist_init(struct sk_buff *skb, struct iphdr *iph,
-+		      unsigned int hlen, struct ip_fraglist_iter *iter)
-+{
-+	unsigned int first_len = skb_pagelen(skb);
-+
-+	iter->frag_list = skb_shinfo(skb)->frag_list;
-+	iter->frag = iter->frag_list;
-+	skb_frag_list_init(skb);
-+
-+	iter->offset = 0;
-+	iter->iph = iph;
-+	iter->hlen = hlen;
-+
-+	skb->data_len = first_len - skb_headlen(skb);
-+	skb->len = first_len;
-+	iph->tot_len = htons(first_len);
-+	iph->frag_off = htons(IP_MF);
-+	ip_send_check(iph);
-+}
-+EXPORT_SYMBOL(ip_fraglist_init);
-+
-+void ip_fraglist_prepare(struct sk_buff *skb, struct ip_fraglist_iter *iter)
-+{
-+	unsigned int hlen = iter->hlen;
-+	struct iphdr *iph = iter->iph;
-+	struct sk_buff *frag;
-+
-+	frag = iter->frag;
-+	frag->ip_summed = CHECKSUM_NONE;
-+	skb_reset_transport_header(frag);
-+	__skb_push(frag, hlen);
-+	skb_reset_network_header(frag);
-+	memcpy(skb_network_header(frag), iph, hlen);
-+	iter->iph = ip_hdr(frag);
-+	iph = iter->iph;
-+	iph->tot_len = htons(frag->len);
-+	ip_copy_metadata(frag, skb);
-+	if (iter->offset == 0)
-+		ip_options_fragment(frag);
-+	iter->offset += skb->len - hlen;
-+	iph->frag_off = htons(iter->offset >> 3);
-+	if (frag->next)
-+		iph->frag_off |= htons(IP_MF);
-+	/* Ready, complete checksum */
-+	ip_send_check(iph);
-+}
-+EXPORT_SYMBOL(ip_fraglist_prepare);
-+
- /*
-  *	This IP datagram is too large to be sent in one piece.  Break it up into
-  *	smaller pieces (each of size equal to IP header plus
-@@ -578,6 +626,7 @@ int ip_do_fragment(struct net *net, struct sock *sk, struct sk_buff *skb,
- 	int offset;
- 	__be16 not_last_frag;
- 	struct rtable *rt = skb_rtable(skb);
-+	struct ip_fraglist_iter iter;
- 	int err = 0;
- 
- 	/* for offloaded checksums cleanup checksum before fragmentation */
-@@ -642,49 +691,22 @@ int ip_do_fragment(struct net *net, struct sock *sk, struct sk_buff *skb,
- 		}
- 
- 		/* Everything is OK. Generate! */
--
--		err = 0;
--		offset = 0;
--		frag = skb_shinfo(skb)->frag_list;
--		skb_frag_list_init(skb);
--		skb->data_len = first_len - skb_headlen(skb);
--		skb->len = first_len;
--		iph->tot_len = htons(first_len);
--		iph->frag_off = htons(IP_MF);
--		ip_send_check(iph);
-+		ip_fraglist_init(skb, iph, hlen, &iter);
- 
- 		for (;;) {
- 			/* Prepare header of the next frame,
- 			 * before previous one went down. */
--			if (frag) {
--				frag->ip_summed = CHECKSUM_NONE;
--				skb_reset_transport_header(frag);
--				__skb_push(frag, hlen);
--				skb_reset_network_header(frag);
--				memcpy(skb_network_header(frag), iph, hlen);
--				iph = ip_hdr(frag);
--				iph->tot_len = htons(frag->len);
--				ip_copy_metadata(frag, skb);
--				if (offset == 0)
--					ip_options_fragment(frag);
--				offset += skb->len - hlen;
--				iph->frag_off = htons(offset>>3);
--				if (frag->next)
--					iph->frag_off |= htons(IP_MF);
--				/* Ready, complete checksum */
--				ip_send_check(iph);
--			}
-+			if (iter.frag)
-+				ip_fraglist_prepare(skb, &iter);
- 
- 			err = output(net, sk, skb);
- 
- 			if (!err)
- 				IP_INC_STATS(net, IPSTATS_MIB_FRAGCREATES);
--			if (err || !frag)
-+			if (err || !iter.frag)
- 				break;
- 
--			skb = frag;
--			frag = skb->next;
--			skb_mark_not_on_list(skb);
-+			skb = ip_fraglist_next(&iter);
- 		}
- 
- 		if (err == 0) {
-@@ -692,7 +714,7 @@ int ip_do_fragment(struct net *net, struct sock *sk, struct sk_buff *skb,
- 			return 0;
- 		}
- 
--		kfree_skb_list(frag);
-+		kfree_skb_list(iter.frag_list);
- 
- 		IP_INC_STATS(net, IPSTATS_MIB_FRAGFAILS);
- 		return err;
--- 
-2.11.0
 
