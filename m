@@ -2,94 +2,167 @@ Return-Path: <SRS0=BqdC=T5=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_NEOMUTT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-12.0 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 34075C28CC0
-	for <netfilter-devel@archiver.kernel.org>; Wed, 29 May 2019 19:14:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 68931C28CC0
+	for <netfilter-devel@archiver.kernel.org>; Wed, 29 May 2019 22:15:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 081F5240EB
-	for <netfilter-devel@archiver.kernel.org>; Wed, 29 May 2019 19:14:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 404BD24283
+	for <netfilter-devel@archiver.kernel.org>; Wed, 29 May 2019 22:15:51 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=paul-moore-com.20150623.gappssmtp.com header.i=@paul-moore-com.20150623.gappssmtp.com header.b="WAja/FZQ"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726038AbfE2TOG (ORCPT
+        id S1726728AbfE2WPq (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 29 May 2019 15:14:06 -0400
-Received: from mail.us.es ([193.147.175.20]:59276 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725956AbfE2TOG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 29 May 2019 15:14:06 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id BBDC3BAE88
-        for <netfilter-devel@vger.kernel.org>; Wed, 29 May 2019 21:14:04 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id A9B77DA70A
-        for <netfilter-devel@vger.kernel.org>; Wed, 29 May 2019 21:14:04 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 9EFB9DA706; Wed, 29 May 2019 21:14:04 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 6DA65DA707;
-        Wed, 29 May 2019 21:14:02 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 29 May 2019 21:14:02 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (sys.soleta.eu [212.170.55.40])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 4C6E54265A5B;
-        Wed, 29 May 2019 21:14:02 +0200 (CEST)
-Date:   Wed, 29 May 2019 21:14:01 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Phil Sutter <phil@nwl.cc>
-Cc:     netfilter-devel@vger.kernel.org, Eric Garver <e@erig.me>
-Subject: Re: [nft PATCH 2/4] mnl: Increase receive buffer in mnl_batch_talk()
-Message-ID: <20190529191401.ec3hh6pfzxke76fp@salvia>
-References: <20190529131346.23659-1-phil@nwl.cc>
- <20190529131346.23659-3-phil@nwl.cc>
+        Wed, 29 May 2019 18:15:46 -0400
+Received: from mail-lj1-f193.google.com ([209.85.208.193]:44890 "EHLO
+        mail-lj1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726735AbfE2WPo (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 29 May 2019 18:15:44 -0400
+Received: by mail-lj1-f193.google.com with SMTP id e13so4052862ljl.11
+        for <netfilter-devel@vger.kernel.org>; Wed, 29 May 2019 15:15:43 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=paul-moore-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc:content-transfer-encoding;
+        bh=6zFd/+GKbjIaLT3OCgZNCCS2BROhgWZzYWnXfsPDAOI=;
+        b=WAja/FZQE2pFEgnKhl94IfcY8BDGBWqmDZ/K0LwYCwgZZCNgvoTkUHQRuwP3YNgoya
+         z1f4MJuRSEu/GyirKTd7ZxEucg9gwE45Fe167cp9Gbt6SxK1m/9DrrJu7NRrAZY32bla
+         4p+eAFjbcp/9ChooQBY5FdmhiTSlOm5fiQ0RSbq2XomUdeG6vZOenF9TaeHTaq3oDL83
+         qHIT7T9Tcnfjs24oWWuvmRTPwH/ItgW4sLZxfljRcoBxDQ9Bb5BU8OKhEHtCsIEsk1yT
+         MLqbkKb1a/gLfm9HlkJSnjDqX1VSLIKoT+vVxZCZOOatOa32W60AfV4fnv3pVeojRmLW
+         1+wQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc:content-transfer-encoding;
+        bh=6zFd/+GKbjIaLT3OCgZNCCS2BROhgWZzYWnXfsPDAOI=;
+        b=BN4TsvJYmbAlDE8rHzuwWK/Np552ieATLufHt1MrdiUxOse4gKbf2dA2p8AHwjRvud
+         nh0RLLGHdxE2FznD6GPRzLeofzZxhLtixQ7FTskMJkGT5jKFGDF5JsNyFQBY35vEdF/Q
+         fMMLWChuwgh+K8e5kkzIvdXC7quQdw7EXXxWUqX1EQN8D3pocEpfgpgWPQ0agWmSUcyt
+         NlkCWq3+S04jOMHwoRcTl72GEbr2VjpRxVdxd1WRD1HIa0FeqHMuHsNYEryudMH/SmAF
+         qLtg4wp4A4bp1+0BZI7evpauGWRcmUUUOyYIyKRBp85u8tsNlwnmdnmUQt+TtjGwHZM5
+         phGw==
+X-Gm-Message-State: APjAAAVqDyXGawiMK9r3dVIITRbqfOIEt7FW4hOd3tk/Zwco9/9I3oVD
+        MO5QZUL9UuDv+wDzviG/VUOMmb7zVpK25nRoZ6y6
+X-Google-Smtp-Source: APXvYqxr7bNBNEWEvitp9VD5magGhpRxnhpJ7GgxKw0cRkL8xChwhJX2izxpfcFyAxd9QA/po4PJvxe1rJlY+6u8D5I=
+X-Received: by 2002:a2e:92cc:: with SMTP id k12mr132567ljh.16.1559168142045;
+ Wed, 29 May 2019 15:15:42 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190529131346.23659-3-phil@nwl.cc>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+References: <cover.1554732921.git.rgb@redhat.com> <f4a49f7c949e5df80c339a3fe5c4c2303b12bf23.1554732921.git.rgb@redhat.com>
+In-Reply-To: <f4a49f7c949e5df80c339a3fe5c4c2303b12bf23.1554732921.git.rgb@redhat.com>
+From:   Paul Moore <paul@paul-moore.com>
+Date:   Wed, 29 May 2019 18:15:30 -0400
+Message-ID: <CAHC9VhRfQp-avV2rcEOvLCAXEz-MDZMp91UxU+BtvPkvWny9fQ@mail.gmail.com>
+Subject: Re: [PATCH ghak90 V6 04/10] audit: log container info of syscalls
+To:     Richard Guy Briggs <rgb@redhat.com>
+Cc:     containers@lists.linux-foundation.org, linux-api@vger.kernel.org,
+        Linux-Audit Mailing List <linux-audit@redhat.com>,
+        linux-fsdevel@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        sgrubb@redhat.com, omosnace@redhat.com, dhowells@redhat.com,
+        simo@redhat.com, Eric Paris <eparis@parisplace.org>,
+        Serge Hallyn <serge@hallyn.com>, ebiederm@xmission.com,
+        nhorman@tuxdriver.com
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, May 29, 2019 at 03:13:44PM +0200, Phil Sutter wrote:
-> Be prepared to receive larger messages for the same reason as in
-> nft_mnl_recv() and mnl_nft_event_listener().
-> 
-> Signed-off-by: Phil Sutter <phil@nwl.cc>
+On Mon, Apr 8, 2019 at 11:40 PM Richard Guy Briggs <rgb@redhat.com> wrote:
+>
+> Create a new audit record AUDIT_CONTAINER_ID to document the audit
+> container identifier of a process if it is present.
+>
+> Called from audit_log_exit(), syscalls are covered.
+>
+> A sample raw event:
+> type=3DSYSCALL msg=3Daudit(1519924845.499:257): arch=3Dc000003e syscall=
+=3D257 success=3Dyes exit=3D3 a0=3Dffffff9c a1=3D56374e1cef30 a2=3D241 a3=
+=3D1b6 items=3D2 ppid=3D606 pid=3D635 auid=3D0 uid=3D0 gid=3D0 euid=3D0 sui=
+d=3D0 fsuid=3D0 egid=3D0 sgid=3D0 fsgid=3D0 tty=3Dpts0 ses=3D3 comm=3D"bash=
+" exe=3D"/usr/bin/bash" subj=3Dunconfined_u:unconfined_r:unconfined_t:s0-s0=
+:c0.c1023 key=3D"tmpcontainerid"
+> type=3DCWD msg=3Daudit(1519924845.499:257): cwd=3D"/root"
+> type=3DPATH msg=3Daudit(1519924845.499:257): item=3D0 name=3D"/tmp/" inod=
+e=3D13863 dev=3D00:27 mode=3D041777 ouid=3D0 ogid=3D0 rdev=3D00:00 obj=3Dsy=
+stem_u:object_r:tmp_t:s0 nametype=3D PARENT cap_fp=3D0 cap_fi=3D0 cap_fe=3D=
+0 cap_fver=3D0
+> type=3DPATH msg=3Daudit(1519924845.499:257): item=3D1 name=3D"/tmp/tmpcon=
+tainerid" inode=3D17729 dev=3D00:27 mode=3D0100644 ouid=3D0 ogid=3D0 rdev=
+=3D00:00 obj=3Dunconfined_u:object_r:user_tmp_t:s0 nametype=3DCREATE cap_fp=
+=3D0 cap_fi=3D0 cap_fe=3D0 cap_fver=3D0
+> type=3DPROCTITLE msg=3Daudit(1519924845.499:257): proctitle=3D62617368002=
+D6300736C65657020313B206563686F2074657374203E202F746D702F746D70636F6E746169=
+6E65726964
+> type=3DCONTAINER_ID msg=3Daudit(1519924845.499:257): contid=3D123458
+>
+> Please see the github audit kernel issue for the main feature:
+>   https://github.com/linux-audit/audit-kernel/issues/90
+> Please see the github audit userspace issue for supporting additions:
+>   https://github.com/linux-audit/audit-userspace/issues/51
+> Please see the github audit testsuiite issue for the test case:
+>   https://github.com/linux-audit/audit-testsuite/issues/64
+> Please see the github audit wiki for the feature overview:
+>   https://github.com/linux-audit/audit-kernel/wiki/RFE-Audit-Container-ID
+> Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
+> Acked-by: Serge Hallyn <serge@hallyn.com>
+> Acked-by: Steve Grubb <sgrubb@redhat.com>
+> Acked-by: Neil Horman <nhorman@tuxdriver.com>
+> Reviewed-by: Ondrej Mosnacek <omosnace@redhat.com>
 > ---
->  src/mnl.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/src/mnl.c b/src/mnl.c
-> index 2c5a26a5e3465..06280aa2cb50a 100644
-> --- a/src/mnl.c
-> +++ b/src/mnl.c
-> @@ -287,7 +287,7 @@ int mnl_batch_talk(struct netlink_ctx *ctx, struct list_head *err_list)
->  {
->  	struct mnl_socket *nl = ctx->nft->nf_sock;
->  	int ret, fd = mnl_socket_get_fd(nl), portid = mnl_socket_get_portid(nl);
-> -	char rcv_buf[MNL_SOCKET_BUFFER_SIZE];
-> +	char rcv_buf[NFT_NLMSG_MAXSIZE];
+>  include/linux/audit.h      |  5 +++++
+>  include/uapi/linux/audit.h |  1 +
+>  kernel/audit.c             | 20 ++++++++++++++++++++
+>  kernel/auditsc.c           | 20 ++++++++++++++------
+>  4 files changed, 40 insertions(+), 6 deletions(-)
 
-Right, this needs to be done.
+...
 
-I think I need to enhance my code to estimate the buffer size, through
-number of commands and the average message size that is sent to the
-kernel. This can be extracted from the batch.
+> diff --git a/kernel/audit.c b/kernel/audit.c
+> index 182b0f2c183d..3e0af53f3c4d 100644
+> --- a/kernel/audit.c
+> +++ b/kernel/audit.c
+> @@ -2127,6 +2127,26 @@ void audit_log_session_info(struct audit_buffer *a=
+b)
+>         audit_log_format(ab, "auid=3D%u ses=3D%u", auid, sessionid);
+>  }
+>
+> +/*
+> + * audit_log_contid - report container info
+> + * @context: task or local context for record
+> + * @contid: container ID to report
+> + */
+> +void audit_log_contid(struct audit_context *context, u64 contid)
+> +{
+> +       struct audit_buffer *ab;
+> +
+> +       if (!audit_contid_valid(contid))
+> +               return;
+> +       /* Generate AUDIT_CONTAINER_ID record with container ID */
+> +       ab =3D audit_log_start(context, GFP_KERNEL, AUDIT_CONTAINER_ID);
+> +       if (!ab)
+> +               return;
+> +       audit_log_format(ab, "contid=3D%llu", (unsigned long long)contid)=
+;
 
->  	fd_set readfds;
->  	struct timeval tv = {
->  		.tv_sec		= 0,
-> -- 
-> 2.21.0
-> 
+We have a consistency problem regarding how to output the u64 contid
+values; this function uses an explicit cast, others do not.  According
+to Documentation/core-api/printk-formats.rst the recommendation for
+u64 is %llu (or %llx, if you want hex).  Looking quickly through the
+printk code this appears to still be correct.  I suggest we get rid of
+the cast (like it was in v5).
+
+> +       audit_log_end(ab);
+> +}
+> +EXPORT_SYMBOL(audit_log_contid);
+
+--
+paul moore
+www.paul-moore.com
