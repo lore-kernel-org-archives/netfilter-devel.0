@@ -6,29 +6,29 @@ X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 17EC4C28CC0
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C7FF9C28CC1
 	for <netfilter-devel@archiver.kernel.org>; Wed, 29 May 2019 18:44:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D8B4C23F61
-	for <netfilter-devel@archiver.kernel.org>; Wed, 29 May 2019 18:44:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id ADC2423F61
+	for <netfilter-devel@archiver.kernel.org>; Wed, 29 May 2019 18:44:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726012AbfE2Sor (ORCPT
+        id S1726038AbfE2Sos (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 29 May 2019 14:44:47 -0400
-Received: from mail.us.es ([193.147.175.20]:50660 "EHLO mail.us.es"
+        Wed, 29 May 2019 14:44:48 -0400
+Received: from mail.us.es ([193.147.175.20]:50668 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725956AbfE2Sor (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 29 May 2019 14:44:47 -0400
+        id S1725990AbfE2Sos (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 29 May 2019 14:44:48 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 5F5DABAEE8
-        for <netfilter-devel@vger.kernel.org>; Wed, 29 May 2019 20:44:45 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 323CCBAEEA
+        for <netfilter-devel@vger.kernel.org>; Wed, 29 May 2019 20:44:46 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 5000ADA707
-        for <netfilter-devel@vger.kernel.org>; Wed, 29 May 2019 20:44:45 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 1FDB7DA708
+        for <netfilter-devel@vger.kernel.org>; Wed, 29 May 2019 20:44:46 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 45179DA706; Wed, 29 May 2019 20:44:45 +0200 (CEST)
+        id 158E9DA707; Wed, 29 May 2019 20:44:46 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 526A7DA701;
+        by antivirus1-rhel7.int (Postfix) with ESMTP id F2061DA702;
         Wed, 29 May 2019 20:44:43 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
@@ -36,15 +36,15 @@ Received: from 192.168.1.97 (192.168.1.97)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 288274265A32;
+        by entrada.int (Postfix) with ESMTPA id CE0354265A32;
         Wed, 29 May 2019 20:44:43 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     phil@nwl.cc
-Subject: [PATCH nft 2/3] mnl: call mnl_set_sndbuffer() from mnl_batch_talk()
-Date:   Wed, 29 May 2019 20:44:35 +0200
-Message-Id: <20190529184436.7553-2-pablo@netfilter.org>
+Subject: [PATCH nft 3/3] mnl: estimate receiver buffer size based on the number of commands
+Date:   Wed, 29 May 2019 20:44:36 +0200
+Message-Id: <20190529184436.7553-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20190529184436.7553-1-pablo@netfilter.org>
 References: <20190529184436.7553-1-pablo@netfilter.org>
@@ -54,34 +54,90 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Instead of mnl_nft_socket_sendmsg(), just a cleanup.
+Set a receiver buffer size based on the number of commands, this is
+useful for the --echo option in order to avoid ENOBUFS errors, assume
+MNL_SOCKET_BUFFER_SIZE per echo message worst case.
 
+Reported-by: Phil Sutter <phil@nwl.cc>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- src/mnl.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/mnl.h     | 3 ++-
+ src/libnftables.c | 5 +++--
+ src/mnl.c         | 6 ++++--
+ 3 files changed, 9 insertions(+), 5 deletions(-)
 
+diff --git a/include/mnl.h b/include/mnl.h
+index c63a7e7fd73a..9f50c3da0f3a 100644
+--- a/include/mnl.h
++++ b/include/mnl.h
+@@ -25,7 +25,8 @@ bool mnl_batch_ready(struct nftnl_batch *batch);
+ void mnl_batch_reset(struct nftnl_batch *batch);
+ uint32_t mnl_batch_begin(struct nftnl_batch *batch, uint32_t seqnum);
+ void mnl_batch_end(struct nftnl_batch *batch, uint32_t seqnum);
+-int mnl_batch_talk(struct netlink_ctx *ctx, struct list_head *err_list);
++int mnl_batch_talk(struct netlink_ctx *ctx, struct list_head *err_list,
++		   uint32_t num_cmds);
+ 
+ int mnl_nft_rule_add(struct netlink_ctx *ctx, const struct cmd *cmd,
+ 		     unsigned int flags);
+diff --git a/src/libnftables.c b/src/libnftables.c
+index 199dbc97b801..a58b8ca9dcf6 100644
+--- a/src/libnftables.c
++++ b/src/libnftables.c
+@@ -21,7 +21,7 @@ static int nft_netlink(struct nft_ctx *nft,
+ 		       struct list_head *cmds, struct list_head *msgs,
+ 		       struct mnl_socket *nf_sock)
+ {
+-	uint32_t batch_seqnum, seqnum = 0;
++	uint32_t batch_seqnum, seqnum = 0, num_cmds = 0;
+ 	struct nftnl_batch *batch;
+ 	struct netlink_ctx ctx;
+ 	struct cmd *cmd;
+@@ -49,6 +49,7 @@ static int nft_netlink(struct nft_ctx *nft,
+ 					 strerror(errno));
+ 			goto out;
+ 		}
++		num_cmds++;
+ 	}
+ 	if (!nft->check)
+ 		mnl_batch_end(batch, mnl_seqnum_alloc(&seqnum));
+@@ -56,7 +57,7 @@ static int nft_netlink(struct nft_ctx *nft,
+ 	if (!mnl_batch_ready(batch))
+ 		goto out;
+ 
+-	ret = mnl_batch_talk(&ctx, &err_list);
++	ret = mnl_batch_talk(&ctx, &err_list, num_cmds);
+ 
+ 	list_for_each_entry_safe(err, tmp, &err_list, head) {
+ 		list_for_each_entry(cmd, cmds, list) {
 diff --git a/src/mnl.c b/src/mnl.c
-index 288a887df097..e623a1adccfc 100644
+index e623a1adccfc..e9419ce6cd76 100644
 --- a/src/mnl.c
 +++ b/src/mnl.c
-@@ -265,7 +265,6 @@ static ssize_t mnl_nft_socket_sendmsg(const struct netlink_ctx *ctx)
- 	};
- 	uint32_t i;
+@@ -278,19 +278,21 @@ static ssize_t mnl_nft_socket_sendmsg(const struct netlink_ctx *ctx)
+ 	return sendmsg(mnl_socket_get_fd(ctx->nft->nf_sock), &msg, 0);
+ }
  
--	mnl_set_sndbuffer(ctx->nft->nf_sock, ctx->batch);
- 	nftnl_batch_iovec(ctx->batch, iov, iov_len);
- 
- 	for (i = 0; i < iov_len; i++) {
-@@ -291,6 +290,8 @@ int mnl_batch_talk(struct netlink_ctx *ctx, struct list_head *err_list)
+-int mnl_batch_talk(struct netlink_ctx *ctx, struct list_head *err_list)
++int mnl_batch_talk(struct netlink_ctx *ctx, struct list_head *err_list,
++		   uint32_t num_cmds)
+ {
+ 	struct mnl_socket *nl = ctx->nft->nf_sock;
+ 	int ret, fd = mnl_socket_get_fd(nl), portid = mnl_socket_get_portid(nl);
+ 	char rcv_buf[MNL_SOCKET_BUFFER_SIZE];
+-	fd_set readfds;
+ 	struct timeval tv = {
+ 		.tv_sec		= 0,
+ 		.tv_usec	= 0
  	};
++	fd_set readfds;
  	int err = 0;
  
-+	mnl_set_sndbuffer(ctx->nft->nf_sock, ctx->batch);
-+
+ 	mnl_set_sndbuffer(ctx->nft->nf_sock, ctx->batch);
++	mnl_set_rcvbuffer(ctx->nft->nf_sock, num_cmds * MNL_SOCKET_BUFFER_SIZE);
+ 
  	ret = mnl_nft_socket_sendmsg(ctx);
  	if (ret == -1)
- 		return -1;
 -- 
 2.11.0
 
