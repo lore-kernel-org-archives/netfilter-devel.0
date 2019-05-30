@@ -2,159 +2,105 @@ Return-Path: <SRS0=kxmZ=T6=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.0 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_NEOMUTT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B9518C28CC3
-	for <netfilter-devel@archiver.kernel.org>; Thu, 30 May 2019 14:35:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 97E6AC28CC0
+	for <netfilter-devel@archiver.kernel.org>; Thu, 30 May 2019 14:43:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8F78725B1F
-	for <netfilter-devel@archiver.kernel.org>; Thu, 30 May 2019 14:35:09 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=paul-moore-com.20150623.gappssmtp.com header.i=@paul-moore-com.20150623.gappssmtp.com header.b="GWJCSp8E"
+	by mail.kernel.org (Postfix) with ESMTP id 77D7225B56
+	for <netfilter-devel@archiver.kernel.org>; Thu, 30 May 2019 14:43:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726842AbfE3OfI (ORCPT
+        id S1727623AbfE3Ong (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 30 May 2019 10:35:08 -0400
-Received: from mail-lf1-f68.google.com ([209.85.167.68]:45093 "EHLO
-        mail-lf1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726980AbfE3OfD (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 30 May 2019 10:35:03 -0400
-Received: by mail-lf1-f68.google.com with SMTP id m14so5185103lfp.12
-        for <netfilter-devel@vger.kernel.org>; Thu, 30 May 2019 07:35:01 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=paul-moore-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=BnDbzkkNEs3+qCAYM6PlcBSJ9muruAbc6zh0yrmMscI=;
-        b=GWJCSp8Ea5nLSw4PQsmUexLPU9ilEqisyppKzq55gGe0EXTU1gK81I2OupZcNpEfBp
-         FEt6cP3ID92EWi+7AOnBYGA0Ks7kMMHmIwuCOXSTnoWyt9G0QUg/qPKTyCr++U1Vj81z
-         OBD9bVbRccfpHrJSutlT+QxN7HGtO6iu7CDa5SLnoPR89ac3mi2LAiNOoxPv0PDN/hp4
-         l40+0DaiA/QQzBIUYu0FZHnaSsQni3VmtD1j1Ni4uJrquQC2ecy5KN+HQxdP9IoLrIqB
-         NQaPK9NrzK6KSr1mQCUVyOMXunHba1wxDCzenzD+grV8InLlZw+DV7yqW3qc0uFM5f2z
-         aTnQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=BnDbzkkNEs3+qCAYM6PlcBSJ9muruAbc6zh0yrmMscI=;
-        b=cu9qWY1N8kj0MNt/kc5D/JNU5sjjm99cJkKAryM+Q8x2h2/6gfBF9uxp3BVYsu8FQE
-         lQVaUDYgtwUz3tcAe9AoXID+C0U1v3RKYVSWnN59Rsy0wkAbuohM3BLjg2mnHmmZJmZ6
-         vFBp/OsmjxS40OaGzqLZDw+MO1zhAq01leOvaOZrvpa/oKtasSS+C3l1GtzOKPEbRObs
-         mx759nV+Vs5Wcqz3kM6XoA3iFBkuERDslVRRN1JcfZOAw9YNmk63zT4v5zseRkbFhbkW
-         OVg3I3JEiZyhMExGgJ9HjxOCAkCLfOPiri3fQgu9Wg9xCzjJZOCy84Fdt/VmFElT0yNs
-         Tv9w==
-X-Gm-Message-State: APjAAAVCEzx0mMSzUJFyjTdONjuvox/YG6+xbr+rEqGdZh1cIbQQGWmn
-        SJJqQPI2dJwXhI0N+jlE6Eq6KE/Ftv1hdq+RgH27
-X-Google-Smtp-Source: APXvYqwHC8RbjMH6lxvVIhsAzDm3HE9/Eadxhwf+Gs4Sub/2cYfUPJHXYxbbG9TWyQTvzlhVlUcV6s1iN4J/NfvvlRg=
-X-Received: by 2002:ac2:410a:: with SMTP id b10mr2250887lfi.175.1559226900658;
- Thu, 30 May 2019 07:35:00 -0700 (PDT)
+        Thu, 30 May 2019 10:43:36 -0400
+Received: from mail.us.es ([193.147.175.20]:42880 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727622AbfE3Onf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 30 May 2019 10:43:35 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 383F21B840C
+        for <netfilter-devel@vger.kernel.org>; Thu, 30 May 2019 16:43:32 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 291B2DA704
+        for <netfilter-devel@vger.kernel.org>; Thu, 30 May 2019 16:43:32 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 1EC50DA701; Thu, 30 May 2019 16:43:32 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id D34C3DA709;
+        Thu, 30 May 2019 16:43:29 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Thu, 30 May 2019 16:43:29 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (sys.soleta.eu [212.170.55.40])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id AEE7D4265A32;
+        Thu, 30 May 2019 16:43:29 +0200 (CEST)
+Date:   Thu, 30 May 2019 16:43:29 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Robin Geuze <robing@transip.nl>
+Cc:     "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH] conntrackd: Fix "Address Accept" filter case
+Message-ID: <20190530144329.76owimclaqyzqkmv@salvia>
+References: <AM0PR02MB5492D0F9BEB5814637C7D5C3AA1E0@AM0PR02MB5492.eurprd02.prod.outlook.com>
 MIME-Version: 1.0
-References: <cover.1554732921.git.rgb@redhat.com> <0785ee2644804f3ec6af1243cc0dcf89709c1fd4.1554732921.git.rgb@redhat.com>
- <CAHC9VhRV-0LSEcRvPO1uXtKdpEQsaLZnBV3T=zcMTZPN5ugz5w@mail.gmail.com> <20190530141951.iofimovrndap4npq@madcap2.tricolour.ca>
-In-Reply-To: <20190530141951.iofimovrndap4npq@madcap2.tricolour.ca>
-From:   Paul Moore <paul@paul-moore.com>
-Date:   Thu, 30 May 2019 10:34:49 -0400
-Message-ID: <CAHC9VhQhkzCtVOXhPL7BzaqvF0y+8gBQwhOo1EQDS2OUyZbV5g@mail.gmail.com>
-Subject: Re: [PATCH ghak90 V6 08/10] audit: add containerid filtering
-To:     Richard Guy Briggs <rgb@redhat.com>
-Cc:     containers@lists.linux-foundation.org, linux-api@vger.kernel.org,
-        Linux-Audit Mailing List <linux-audit@redhat.com>,
-        linux-fsdevel@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        sgrubb@redhat.com, omosnace@redhat.com, dhowells@redhat.com,
-        simo@redhat.com, Eric Paris <eparis@parisplace.org>,
-        Serge Hallyn <serge@hallyn.com>, ebiederm@xmission.com,
-        nhorman@tuxdriver.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <AM0PR02MB5492D0F9BEB5814637C7D5C3AA1E0@AM0PR02MB5492.eurprd02.prod.outlook.com>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, May 30, 2019 at 10:20 AM Richard Guy Briggs <rgb@redhat.com> wrote:
->
-> On 2019-05-29 18:16, Paul Moore wrote:
-> > On Mon, Apr 8, 2019 at 11:41 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> > >
-> > > Implement audit container identifier filtering using the AUDIT_CONTID
-> > > field name to send an 8-character string representing a u64 since the
-> > > value field is only u32.
-> > >
-> > > Sending it as two u32 was considered, but gathering and comparing two
-> > > fields was more complex.
-> > >
-> > > The feature indicator is AUDIT_FEATURE_BITMAP_CONTAINERID.
-> > >
-> > > Please see the github audit kernel issue for the contid filter feature:
-> > >   https://github.com/linux-audit/audit-kernel/issues/91
-> > > Please see the github audit userspace issue for filter additions:
-> > >   https://github.com/linux-audit/audit-userspace/issues/40
-> > > Please see the github audit testsuiite issue for the test case:
-> > >   https://github.com/linux-audit/audit-testsuite/issues/64
-> > > Please see the github audit wiki for the feature overview:
-> > >   https://github.com/linux-audit/audit-kernel/wiki/RFE-Audit-Container-ID
-> > > Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
-> > > Acked-by: Serge Hallyn <serge@hallyn.com>
-> > > Acked-by: Neil Horman <nhorman@tuxdriver.com>
-> > > Reviewed-by: Ondrej Mosnacek <omosnace@redhat.com>
-> > > ---
-> > >  include/linux/audit.h      |  1 +
-> > >  include/uapi/linux/audit.h |  5 ++++-
-> > >  kernel/audit.h             |  1 +
-> > >  kernel/auditfilter.c       | 47 ++++++++++++++++++++++++++++++++++++++++++++++
-> > >  kernel/auditsc.c           |  4 ++++
-> > >  5 files changed, 57 insertions(+), 1 deletion(-)
-> >
-> > ...
-> >
-> > > diff --git a/kernel/auditfilter.c b/kernel/auditfilter.c
-> > > index 63f8b3f26fab..407b5bb3b4c6 100644
-> > > --- a/kernel/auditfilter.c
-> > > +++ b/kernel/auditfilter.c
-> > > @@ -1206,6 +1224,31 @@ int audit_comparator(u32 left, u32 op, u32 right)
-> > >         }
-> > >  }
-> > >
-> > > +int audit_comparator64(u64 left, u32 op, u64 right)
-> > > +{
-> > > +       switch (op) {
-> > > +       case Audit_equal:
-> > > +               return (left == right);
-> > > +       case Audit_not_equal:
-> > > +               return (left != right);
-> > > +       case Audit_lt:
-> > > +               return (left < right);
-> > > +       case Audit_le:
-> > > +               return (left <= right);
-> > > +       case Audit_gt:
-> > > +               return (left > right);
-> > > +       case Audit_ge:
-> > > +               return (left >= right);
-> > > +       case Audit_bitmask:
-> > > +               return (left & right);
-> > > +       case Audit_bittest:
-> > > +               return ((left & right) == right);
-> > > +       default:
-> > > +               BUG();
-> >
-> > A little birdy mentioned the BUG() here as a potential issue and while
-> > I had ignored it in earlier patches because this is likely a
-> > cut-n-paste from another audit comparator function, I took a closer
-> > look this time.  It appears as though we will never have an invalid op
-> > value as audit_data_to_entry()/audit_to_op() ensure that the op value
-> > is a a known good value.  Removing the BUG() from all the audit
-> > comparators is a separate issue, but I think it would be good to
-> > remove it from this newly added comparator; keeping it so that we
-> > return "0" in the default case seems reasoanble.
->
-> Fair enough.  That BUG(); can be removed.
+On Tue, May 28, 2019 at 07:03:59AM +0000, Robin Geuze wrote:
+> This fixes a bug in the Address Accept filter case where if you only
+> specify either addresses or masks it would never match.
 
-Please send a fixup patch for this.
+Thanks Robin.
 
--- 
-paul moore
-www.paul-moore.com
+Would you post an example configuration that is broken? I would like
+to place it in the commit message.
+
+> Signed-off-by: Robin Geuze <robing@transip.nl>
+> ---
+>   src/filter.c | 10 ++++++++--
+>  1 file changed, 8 insertions(+), 2 deletions(-)
+> 
+> diff --git a/src/filter.c b/src/filter.c
+> index 00a5e96..07b2e1d 100644
+> --- a/src/filter.c
+> +++ b/src/filter.c
+> @@ -335,16 +335,22 @@ ct_filter_check(struct ct_filter *f, const struct nf_conntrack *ct)
+>  		switch(nfct_get_attr_u8(ct, ATTR_L3PROTO)) {
+>  		case AF_INET:
+>  			ret = vector_iterate(f->v, ct, __ct_filter_test_mask4);
+> -			if (ret ^ f->logic[CT_FILTER_ADDRESS])
+> +			if (ret && f->logic[CT_FILTER_ADDRESS]) {
+> +				break;
+> +			} else if (ret && !f->logic[CT_FILTER_ADDRESS]) {
+>  				return 0;
+> +			}
+>  			ret = __ct_filter_test_ipv4(f, ct);
+>  			if (ret ^ f->logic[CT_FILTER_ADDRESS])
+>  				return 0;
+>  			break;
+>  		case AF_INET6:
+>  			ret = vector_iterate(f->v6, ct, __ct_filter_test_mask6);
+> -			if (ret ^ f->logic[CT_FILTER_ADDRESS])
+> +			if (ret && f->logic[CT_FILTER_ADDRESS]) {
+> +				break;
+> +			} else if (ret && !f->logic[CT_FILTER_ADDRESS]) {
+>  				return 0;
+> +			}
+>  			ret = __ct_filter_test_ipv6(f, ct);
+>  			if (ret ^ f->logic[CT_FILTER_ADDRESS])
+>  				return 0;
+> -- 
+> 2.20.1
