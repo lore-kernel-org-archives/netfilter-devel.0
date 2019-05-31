@@ -7,62 +7,93 @@ X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DB1FAC04AB6
-	for <netfilter-devel@archiver.kernel.org>; Fri, 31 May 2019 09:10:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 17ABFC28CC3
+	for <netfilter-devel@archiver.kernel.org>; Fri, 31 May 2019 09:11:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BA0C926679
-	for <netfilter-devel@archiver.kernel.org>; Fri, 31 May 2019 09:10:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EEA9D26679
+	for <netfilter-devel@archiver.kernel.org>; Fri, 31 May 2019 09:11:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727053AbfEaJKp (ORCPT
+        id S1726809AbfEaJLf (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 31 May 2019 05:10:45 -0400
-Received: from m9784.mail.qiye.163.com ([220.181.97.84]:36170 "EHLO
-        m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726002AbfEaJKp (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 31 May 2019 05:10:45 -0400
-X-Greylist: delayed 461 seconds by postgrey-1.27 at vger.kernel.org; Fri, 31 May 2019 05:10:43 EDT
-Received: from 10-19-61-167.localdomain (unknown [123.59.132.129])
-        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id 1706941B73;
-        Fri, 31 May 2019 17:02:59 +0800 (CST)
-From:   wenxu@ucloud.cn
-To:     pablo@netfilter.org, netfilter-devel@vger.kernel.org
-Cc:     netdev@vger.kernel.org
-Subject: [PATCH net-next] netfilter: ipv6: fix compile err unknown field br_defrag and br_fragment
-Date:   Fri, 31 May 2019 17:02:55 +0800
-Message-Id: <1559293375-14385-1-git-send-email-wenxu@ucloud.cn>
-X-Mailer: git-send-email 1.8.3.1
-X-HM-Spam-Status: e1kIGBQJHllBWUlVSUNJQkJCQkJJSExLTUpZV1koWUFJQjdXWS1ZQUlXWQ
-        kOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6PBg6Qio*Mjg#DCIJNjdODQ4P
-        H00aCitVSlVKTk5CSUJISExCSUhMVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJSFVO
-        QlVKSElVSklCWVdZCAFZQUpMSEo3Bg++
-X-HM-Tid: 0a6b0d20c2612086kuqy1706941b73
+        Fri, 31 May 2019 05:11:35 -0400
+Received: from mail.us.es ([193.147.175.20]:59506 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726002AbfEaJLf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 31 May 2019 05:11:35 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id B0510103244
+        for <netfilter-devel@vger.kernel.org>; Fri, 31 May 2019 11:11:32 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A0F35DA707
+        for <netfilter-devel@vger.kernel.org>; Fri, 31 May 2019 11:11:32 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 95226DA717; Fri, 31 May 2019 11:11:32 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 564FCDA70E;
+        Fri, 31 May 2019 11:11:30 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Fri, 31 May 2019 11:11:30 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from salvia.here (sys.soleta.eu [212.170.55.40])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id E94844265A32;
+        Fri, 31 May 2019 11:11:29 +0200 (CEST)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     davem@davemloft.net, netdev@vger.kernel.org, wenxu@ucloud.cn,
+        sfr@canb.auug.org.au, yuehaibing@huawei.com, lkp@intel.com
+Subject: [PATCH] netfilter: nf_conntrack_bridge: fix CONFIG_IPV6=y
+Date:   Fri, 31 May 2019 11:11:24 +0200
+Message-Id: <20190531091124.26822-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.11.0
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: wenxu <wenxu@ucloud.cn>
+This patch fixes a few problems with CONFIG_IPV6=y and
+CONFIG_NF_CONNTRACK_BRIDGE=m:
 
-When CONFIG_IPV6 is not build with modules and CONIFG_NF_CONNTRACK_BRIDGE=m
-There will compile err:
+In file included from net/netfilter/utils.c:5:
+include/linux/netfilter_ipv6.h: In function 'nf_ipv6_br_defrag':
+include/linux/netfilter_ipv6.h:110:9: error: implicit declaration of function 'nf_ct_frag6_gather'; did you mean 'nf_ct_attach'? [-Werror=implicit-function-declaration]
+
+And these too:
+
 net/ipv6/netfilter.c:242:2: error: unknown field 'br_defrag' specified in initializer
-  .br_defrag  = nf_ct_frag6_gather,
 net/ipv6/netfilter.c:243:2: error: unknown field 'br_fragment' specified in initializer
-  .br_fragment  = br_ip6_fragment,
+
+This patch includes an original chunk from wenxu.
 
 Fixes: 764dd163ac92 ("netfilter: nf_conntrack_bridge: add support for IPv6")
-Signed-off-by: wenxu <wenxu@ucloud.cn>
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/ipv6/netfilter.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/netfilter_ipv6.h | 2 ++
+ net/ipv6/netfilter.c           | 2 +-
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
+diff --git a/include/linux/netfilter_ipv6.h b/include/linux/netfilter_ipv6.h
+index a21b8c9623ee..3a3dc4b1f0e7 100644
+--- a/include/linux/netfilter_ipv6.h
++++ b/include/linux/netfilter_ipv6.h
+@@ -96,6 +96,8 @@ static inline int nf_ip6_route(struct net *net, struct dst_entry **dst,
+ #endif
+ }
+ 
++#include <net/netfilter/ipv6/nf_defrag_ipv6.h>
++
+ static inline int nf_ipv6_br_defrag(struct net *net, struct sk_buff *skb,
+ 				    u32 user)
+ {
 diff --git a/net/ipv6/netfilter.c b/net/ipv6/netfilter.c
-index c666538..9530cc2 100644
+index c6665382acb5..9530cc280953 100644
 --- a/net/ipv6/netfilter.c
 +++ b/net/ipv6/netfilter.c
-@@ -238,7 +238,7 @@ int br_ip6_fragment(struct net *net, struct sock *sk, struct sk_buff *skb,
+@@ -238,7 +238,7 @@ static const struct nf_ipv6_ops ipv6ops = {
  	.route_input		= ip6_route_input,
  	.fragment		= ip6_fragment,
  	.reroute		= nf_ip6_reroute,
@@ -72,5 +103,5 @@ index c666538..9530cc2 100644
  	.br_fragment		= br_ip6_fragment,
  #endif
 -- 
-1.8.3.1
+2.11.0
 
