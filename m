@@ -2,198 +2,183 @@ Return-Path: <SRS0=7QpW=T7=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DF420C28CC3
-	for <netfilter-devel@archiver.kernel.org>; Fri, 31 May 2019 12:45:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DC8F2C04AB6
+	for <netfilter-devel@archiver.kernel.org>; Fri, 31 May 2019 12:55:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id AEE68268FC
-	for <netfilter-devel@archiver.kernel.org>; Fri, 31 May 2019 12:45:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6F5212691A
+	for <netfilter-devel@archiver.kernel.org>; Fri, 31 May 2019 12:55:27 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=paul-moore-com.20150623.gappssmtp.com header.i=@paul-moore-com.20150623.gappssmtp.com header.b="Oh5evWeB"
+	dkim=pass (1024-bit key) header.d=transip.nl header.i=@transip.nl header.b="IjYhbULN"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727188AbfEaMpB (ORCPT
+        id S1727112AbfEaMz1 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 31 May 2019 08:45:01 -0400
-Received: from mail-lj1-f194.google.com ([209.85.208.194]:45201 "EHLO
-        mail-lj1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726518AbfEaMpA (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 31 May 2019 08:45:00 -0400
-Received: by mail-lj1-f194.google.com with SMTP id r76so9464361lja.12
-        for <netfilter-devel@vger.kernel.org>; Fri, 31 May 2019 05:44:57 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=paul-moore-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=ZXDOKwkAEMBmiYSeMHCXxPtDvLwnxyJqoeUB0a+jAg8=;
-        b=Oh5evWeBS0FQ5+SDSVIYDoDosmFdUraAVQSeP13wAG0FfkUCyvKQpzKYfoQx/Fc9jG
-         lSaXqIOqwzoUzI3o8vBwZqtrK4OfHuaXvwJgEezHSUYUzDIRs8JkI5NH1zlR4cxWyQme
-         Jfit8Diw2UqqiuTc+FH74c11TZCrrrdmpj/o5+9/QDcaiVnDEyYq21nnWSIA465u/MU4
-         +qSUnOUm6rmASeEsGsXm0RP0/aMO/Wsm45X36MGxa7H5G8PkA5ZCJKY5x4qvxmWuxnO8
-         Qn1PWZvVAf7u20A+XXfB5qKWG2QcdBuOAtm661NoEzPCdGshFZqYQtHFr/60ieylKxGT
-         GHFA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=ZXDOKwkAEMBmiYSeMHCXxPtDvLwnxyJqoeUB0a+jAg8=;
-        b=RF8zfTkhbTJb6RzBQauUGz++GVb0QlleKUDMaWVto1tjw9LWHmAKB/dFjZ3AkMWPOr
-         3DDt5JmhFYpeR8ZnJEWwh5r2blyNywPNetcH/cyguzpyvdgIpaJnN97gdXfE6iXTYBc/
-         GQh2gl6npgQ7CSq8SD2BR5Zchk2fJocC5fpZSRL1oXJe41NesToWM8gcx9GYa5hGLZjc
-         ZcUvoQ76N5cfi1iy2LsyRn39Unz4i8gmqL+trUlVmBi0pbAxLgRjSzI+wr2t1hFY7lzo
-         6L3YKFFvLm0DKHttCrprwoJHCLhNRYJmb+yejapUhjT+agiujtT9jEqjglgzuGn7P72L
-         fnpg==
-X-Gm-Message-State: APjAAAXRb/zn5WuJiagl+RYh/3kcnuW5A/aAankynFbJxoA4yuZNqBhL
-        QUDQz6VyT0VJgU96QbeB6rFcNIJDNxDBwMjX/eud
-X-Google-Smtp-Source: APXvYqwRVVnGpDVdSGCj6R4r22cAjZvnCnlNYusSiD/sCSGkEdAyXXFr+krFA2m6K8I0tlJghON4fRG9yXZG4071sxQ=
-X-Received: by 2002:a2e:3e14:: with SMTP id l20mr5891599lja.40.1559306696964;
- Fri, 31 May 2019 05:44:56 -0700 (PDT)
+        Fri, 31 May 2019 08:55:27 -0400
+Received: from mail-eopbgr130117.outbound.protection.outlook.com ([40.107.13.117]:28386
+        "EHLO EUR01-HE1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1726518AbfEaMz1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 31 May 2019 08:55:27 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=transip.nl;
+ s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=RUWQ1n8TWmALvWPnkXHN2gc+n8eQlCR+6InfRPiPNes=;
+ b=IjYhbULNJrw1qB8P9CEFbCEdU8YmDTBqyhL57heIoMALodo+KCoMv6o431qOytox/mIiw1jV88mloRoARFvmMdNLcWGZdZJArSfXYqMKK3OqAAsg0h7kdNWd5d+I3q/idvj5K2TAcythar9LuQSKNXglhviyUVo4Ytbx5q071p4=
+Received: from AM0PR02MB5492.eurprd02.prod.outlook.com (10.255.29.141) by
+ AM0PR02MB3908.eurprd02.prod.outlook.com (20.177.43.74) with Microsoft SMTP
+ Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.1922.22; Fri, 31 May 2019 12:55:22 +0000
+Received: from AM0PR02MB5492.eurprd02.prod.outlook.com
+ ([fe80::8032:6f7c:6712:fdcd]) by AM0PR02MB5492.eurprd02.prod.outlook.com
+ ([fe80::8032:6f7c:6712:fdcd%6]) with mapi id 15.20.1922.021; Fri, 31 May 2019
+ 12:55:22 +0000
+From:   Robin Geuze <robing@transip.nl>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+CC:     "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH] conntrackd: Fix "Address Accept" filter case
+Thread-Topic: [PATCH] conntrackd: Fix "Address Accept" filter case
+Thread-Index: AQHVFSKmKzha36mmIUqp62mIzCyxuKaDwdGAgAFzTvo=
+Date:   Fri, 31 May 2019 12:55:22 +0000
+Message-ID: <AM0PR02MB54924197D9A4E4FA726BDABAAA190@AM0PR02MB5492.eurprd02.prod.outlook.com>
+References: <AM0PR02MB5492D0F9BEB5814637C7D5C3AA1E0@AM0PR02MB5492.eurprd02.prod.outlook.com>,<20190530144329.76owimclaqyzqkmv@salvia>
+In-Reply-To: <20190530144329.76owimclaqyzqkmv@salvia>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+authentication-results: spf=none (sender IP is )
+ smtp.mailfrom=robing@transip.nl; 
+x-originating-ip: [2a01:7c8:7c8:f866:12::1002]
+x-ms-publictraffictype: Email
+x-ms-office365-filtering-correlation-id: ac992b26-e762-424f-24e4-08d6e5c73e58
+x-microsoft-antispam: BCL:0;PCL:0;RULEID:(2390118)(7020095)(4652040)(7021145)(8989299)(5600148)(711020)(4605104)(1401327)(4534185)(7022145)(4603075)(4627221)(201702281549075)(8990200)(7048125)(7024125)(7027125)(7023125)(2017052603328)(7193020);SRVR:AM0PR02MB3908;
+x-ms-traffictypediagnostic: AM0PR02MB3908:
+x-microsoft-antispam-prvs: <AM0PR02MB39088A4634B0449D625EA254AA190@AM0PR02MB3908.eurprd02.prod.outlook.com>
+x-ms-oob-tlc-oobclassifiers: OLM:4502;
+x-forefront-prvs: 00540983E2
+x-forefront-antispam-report: SFV:NSPM;SFS:(10019020)(39840400004)(396003)(346002)(366004)(136003)(376002)(189003)(199004)(486006)(316002)(6916009)(256004)(66946007)(11346002)(446003)(6246003)(86362001)(9686003)(14454004)(2906002)(25786009)(46003)(66476007)(76116006)(33656002)(66556008)(5660300002)(52536014)(64756008)(66446008)(7736002)(305945005)(74482002)(73956011)(102836004)(55016002)(7696005)(68736007)(476003)(6506007)(186003)(229853002)(6116002)(76176011)(53936002)(71190400001)(74316002)(8676002)(99286004)(4326008)(81166006)(6436002)(508600001)(8936002)(81156014)(53546011)(71200400001);DIR:OUT;SFP:1102;SCL:1;SRVR:AM0PR02MB3908;H:AM0PR02MB5492.eurprd02.prod.outlook.com;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;MX:1;A:1;
+received-spf: None (protection.outlook.com: transip.nl does not designate
+ permitted sender hosts)
+x-ms-exchange-senderadcheck: 1
+x-microsoft-antispam-message-info: ecPb3EtkrfrBiCFbZvFhSxLv4g9fIEB8KMoASVNCazspUGysZoOcaUw8FvWh6x51RCwDacnpdXJ52bDvV1PxJD9x9v8/uqh8lM9fUinZ6xqVYdX2AQzYXXL7Gs4p0PrGU3n9DTYe6RCsCP0uNpQvwsoy2L8b+herBAh+JFAEMbzPcoHWz88tZBdFid+rEKkWdTXKgpOpnSboDhGLGtMjtqeVEgaQqlMGhwWAKWqGVSyQ3jijQzY6MZJMbXNWc2fSuWQX8aOBCZrNc1u2QKD26l9rRLg1PnBPHIFtSMPy6QT2kvippqZ3gn3yf3DfvZLxA5L2FbRO3ZgKzDi16mDdTXr1gvCynznilEjY5LiM0L9hMcWFalvCKKIHucoYsHXnj/bWJ/0vUfPHosNJv6QtuapKc3HhcEC3lXb/fn5d4kY=
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
-References: <20190529145742.GA8959@cisco> <CAHC9VhR4fudQanvZGYWMvCf7k2CU3q7e7n1Pi7hzC3v_zpVEdw@mail.gmail.com>
- <20190529153427.GB8959@cisco> <CAHC9VhSF3AjErX37+eeusJ7+XRw8yuPsmqBTRwc9EVoRBh_3Tw@mail.gmail.com>
- <20190529222835.GD8959@cisco> <CAHC9VhRS66VGtug3fq3RTGHDvfGmBJG6yRJ+iMxm3cxnNF-zJw@mail.gmail.com>
- <20190530170913.GA16722@mail.hallyn.com> <CAHC9VhThLiQzGYRUWmSuVfOC6QCDmA75BDB7Eg7V8HX4x7ymQg@mail.gmail.com>
- <20190530212900.GC5739@cisco> <CAHC9VhT5HPt9rCJoDutdvA3r1Y1GOHfpXe2eJ54atNC1=Vd8LA@mail.gmail.com>
- <20190531002058.tsddah4edcazkuzs@madcap2.tricolour.ca>
-In-Reply-To: <20190531002058.tsddah4edcazkuzs@madcap2.tricolour.ca>
-From:   Paul Moore <paul@paul-moore.com>
-Date:   Fri, 31 May 2019 08:44:45 -0400
-Message-ID: <CAHC9VhTrM1op_EH=YAn9pU8dMOr=jB-Ph4SxFeqGFskwLmFnCA@mail.gmail.com>
-Subject: Re: [PATCH ghak90 V6 02/10] audit: add container id
-To:     Richard Guy Briggs <rgb@redhat.com>
-Cc:     Tycho Andersen <tycho@tycho.ws>,
-        "Serge E. Hallyn" <serge@hallyn.com>,
-        containers@lists.linux-foundation.org, linux-api@vger.kernel.org,
-        Linux-Audit Mailing List <linux-audit@redhat.com>,
-        linux-fsdevel@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        sgrubb@redhat.com, omosnace@redhat.com, dhowells@redhat.com,
-        simo@redhat.com, Eric Paris <eparis@parisplace.org>,
-        ebiederm@xmission.com, nhorman@tuxdriver.com
-Content-Type: text/plain; charset="UTF-8"
+X-OriginatorOrg: transip.nl
+X-MS-Exchange-CrossTenant-Network-Message-Id: ac992b26-e762-424f-24e4-08d6e5c73e58
+X-MS-Exchange-CrossTenant-originalarrivaltime: 31 May 2019 12:55:22.5541
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: a4e75c98-a80e-4605-9b02-f5c4db1859b9
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: robing@exchange.transip.nl
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: AM0PR02MB3908
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, May 30, 2019 at 8:21 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> On 2019-05-30 19:26, Paul Moore wrote:
-> > On Thu, May 30, 2019 at 5:29 PM Tycho Andersen <tycho@tycho.ws> wrote:
-> > > On Thu, May 30, 2019 at 03:29:32PM -0400, Paul Moore wrote:
-> > > >
-> > > > [REMINDER: It is an "*audit* container ID" and not a general
-> > > > "container ID" ;)  Smiley aside, I'm not kidding about that part.]
-> > >
-> > > This sort of seems like a distinction without a difference; presumably
-> > > audit is going to want to differentiate between everything that people
-> > > in userspace call a container. So you'll have to support all this
-> > > insanity anyway, even if it's "not a container ID".
-> >
-> > That's not quite right.  Audit doesn't care about what a container is,
-> > or is not, it also doesn't care if the "audit container ID" actually
-> > matches the ID used by the container engine in userspace and I think
-> > that is a very important line to draw.  Audit is simply given a value
-> > which it calls the "audit container ID", it ensures that the value is
-> > inherited appropriately (e.g. children inherit their parent's audit
-> > container ID), and it uses the value in audit records to provide some
-> > additional context for log analysis.  The distinction isn't limited to
-> > the value itself, but also to how it is used; it is an "audit
-> > container ID" and not a "container ID" because this value is
-> > exclusively for use by the audit subsystem.  We are very intentionally
-> > not adding a generic container ID to the kernel.  If the kernel does
-> > ever grow a general purpose container ID we will be one of the first
-> > ones in line to make use of it, but we are not going to be the ones to
-> > generically add containers to the kernel.  Enough people already hate
-> > audit ;)
-> >
-> > > > I'm not interested in supporting/merging something that isn't useful;
-> > > > if this doesn't work for your use case then we need to figure out what
-> > > > would work.  It sounds like nested containers are much more common in
-> > > > the lxc world, can you elaborate a bit more on this?
-> > > >
-> > > > As far as the possible solutions you mention above, I'm not sure I
-> > > > like the per-userns audit container IDs, I'd much rather just emit the
-> > > > necessary tracking information via the audit record stream and let the
-> > > > log analysis tools figure it out.  However, the bigger question is how
-> > > > to limit (re)setting the audit container ID when you are in a non-init
-> > > > userns.  For reasons already mentioned, using capable() is a non
-> > > > starter for everything but the initial userns, and using ns_capable()
-> > > > is equally poor as it essentially allows any userns the ability to
-> > > > munge it's audit container ID (obviously not good).  It appears we
-> > > > need a different method for controlling access to the audit container
-> > > > ID.
-> > >
-> > > One option would be to make it a string, and have it be append only.
-> > > That should be safe with no checks.
-> > >
-> > > I know there was a long thread about what type to make this thing. I
-> > > think you could accomplish the append-only-ness with a u64 if you had
-> > > some rule about only allowing setting lower order bits than those that
-> > > are already set. With 4 bits for simplicity:
-> > >
-> > > 1100         # initial container id
-> > > 1100 -> 1011 # not allowed
-> > > 1100 -> 1101 # allowed, but now 1101 is set in stone since there are
-> > >              # no lower order bits left
-> > >
-> > > There are probably fancier ways to do it if you actually understand
-> > > math :)
-> >
-> >  ;)
-> >
-> > > Since userns nesting is limited to 32 levels (right now, IIRC), and
-> > > you have 64 bits, this might be reasonable. You could just teach
-> > > container engines to use the first say N bits for themselves, with a 1
-> > > bit for the barrier at the end.
-> >
-> > I like the creativity, but I worry that at some point these
-> > limitations are going to be raised (limits have a funny way of doing
-> > that over time) and we will be in trouble.  I say "trouble" because I
-> > want to be able to quickly do an audit container ID comparison and
-> > we're going to pay a penalty for these larger values (we'll need this
-> > when we add multiple auditd support and the requisite record routing).
-> >
-> > Thinking about this makes me also realize we probably need to think a
-> > bit longer about audit container ID conflicts between orchestrators.
-> > Right now we just take the value that is given to us by the
-> > orchestrator, but if we want to allow multiple container orchestrators
-> > to work without some form of cooperation in userspace (I think we have
-> > to assume the orchestrators will not talk to each other) we likely
-> > need to have some way to block reuse of an audit container ID.  We
-> > would either need to prevent the orchestrator from explicitly setting
-> > an audit container ID to a currently in use value, or instead generate
-> > the audit container ID in the kernel upon an event triggered by the
-> > orchestrator (e.g. a write to a /proc file).  I suspect we should
-> > start looking at the idr code, I think we will need to make use of it.
->
-> My first reaction to using the IDR code is that once an idr is given up,
-> it can be reused.  I suppose we request IDRs and then never give them up
-> to avoid reuse...
-
-I'm not sure we ever what to guarantee that an audit container ID
-won't be reused during the lifetime of the system, it is a discrete
-integer after all.  What I think we do want to guarantee is that we
-won't allow an unintentional audit container ID collision between
-different orchestrators; if a single orchestrator wants to reuse an
-audit container ID then that is its choice.
-
-> I already had some ideas of preventing an existing ID from being reused,
-
-Cool.  I only made the idr suggestion since it is used for PIDs and
-solves a very similar problem.
-
-> but that makes the practice of some container engines injecting
-> processes into existing containers difficult if not impossible.
-
-Yes, we'll need some provision to indicate which orchestrator
-"controls" that particular audit container ID, and allow that
-orchestrator to reuse that particular audit container ID (until all
-those containers disappear and the audit container ID is given back to
-the pool).
-
--- 
-paul moore
-www.paul-moore.com
+Hey Pablo,=0A=
+=0A=
+Broken cases (will never match):=0A=
+=0A=
+Filter From Usespace {=0A=
+    Address Accept {=0A=
+        IPv4_address 127.0.0.1=0A=
+    }=0A=
+}=0A=
+=0A=
+Filter From Usespace {=0A=
+    Address Accept {=0A=
+        IPv4_address 0.0.0.0/0=0A=
+    }=0A=
+}=0A=
+=0A=
+Only way to "make it work" with the old code (only matches 127.0.0.1):=0A=
+Filter From Usespace {=0A=
+    Address Accept {=0A=
+        IPv4_address 127.0.0.1=0A=
+        IPv4_address 0.0.0.0/0=0A=
+    }=0A=
+}=0A=
+=0A=
+Note: This only fixes the Userspace filtering. The Kernelspace filtering se=
+ems to have the same issue, but I haven't checked the code to see whether t=
+hat is really the case.=0A=
+=0A=
+From: Pablo Neira Ayuso <pablo@netfilter.org>=0A=
+Sent: Thursday, May 30, 2019 4:43 PM=0A=
+To: Robin Geuze=0A=
+Cc: netfilter-devel@vger.kernel.org=0A=
+Subject: Re: [PATCH] conntrackd: Fix "Address Accept" filter case=0A=
+=A0=0A=
+On Tue, May 28, 2019 at 07:03:59AM +0000, Robin Geuze wrote:=0A=
+> This fixes a bug in the Address Accept filter case where if you only=0A=
+> specify either addresses or masks it would never match.=0A=
+=0A=
+Thanks Robin.=0A=
+=0A=
+Would you post an example configuration that is broken? I would like=0A=
+to place it in the commit message.=0A=
+=0A=
+> Signed-off-by: Robin Geuze <robing@transip.nl>=0A=
+> ---=0A=
+>=A0=A0 src/filter.c | 10 ++++++++--=0A=
+>=A0 1 file changed, 8 insertions(+), 2 deletions(-)=0A=
+>=0A=
+> diff --git a/src/filter.c b/src/filter.c=0A=
+> index 00a5e96..07b2e1d 100644=0A=
+> --- a/src/filter.c=0A=
+> +++ b/src/filter.c=0A=
+> @@ -335,16 +335,22 @@ ct_filter_check(struct ct_filter *f, const struct n=
+f_conntrack *ct)=0A=
+>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 switch(nfct_get_attr_u8(ct, =
+ATTR_L3PROTO)) {=0A=
+>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 case AF_INET:=0A=
+>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 ret =
+=3D vector_iterate(f->v, ct, __ct_filter_test_mask4);=0A=
+> -=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 if (ret ^ f=
+->logic[CT_FILTER_ADDRESS])=0A=
+> +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 if (ret && =
+f->logic[CT_FILTER_ADDRESS]) {=0A=
+> +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0=A0=A0=A0 break;=0A=
+> +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 } else if (=
+ret && !f->logic[CT_FILTER_ADDRESS]) {=0A=
+>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0=A0=A0=A0=A0=A0=A0 return 0;=0A=
+> +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 }=0A=
+>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 ret =
+=3D __ct_filter_test_ipv4(f, ct);=0A=
+>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 if (=
+ret ^ f->logic[CT_FILTER_ADDRESS])=0A=
+>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0=A0=A0=A0=A0=A0=A0 return 0;=0A=
+>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 brea=
+k;=0A=
+>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 case AF_INET6:=0A=
+>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 ret =
+=3D vector_iterate(f->v6, ct, __ct_filter_test_mask6);=0A=
+> -=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 if (ret ^ f=
+->logic[CT_FILTER_ADDRESS])=0A=
+> +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 if (ret && =
+f->logic[CT_FILTER_ADDRESS]) {=0A=
+> +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0=A0=A0=A0 break;=0A=
+> +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 } else if (=
+ret && !f->logic[CT_FILTER_ADDRESS]) {=0A=
+>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0=A0=A0=A0=A0=A0=A0 return 0;=0A=
+> +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 }=0A=
+>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 ret =
+=3D __ct_filter_test_ipv6(f, ct);=0A=
+>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 if (=
+ret ^ f->logic[CT_FILTER_ADDRESS])=0A=
+>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0=A0=A0=A0=A0=A0=A0 return 0;=0A=
+> --=0A=
+> 2.20.1=0A=
