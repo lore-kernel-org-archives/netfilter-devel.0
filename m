@@ -4,49 +4,48 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 17ABFC28CC3
-	for <netfilter-devel@archiver.kernel.org>; Fri, 31 May 2019 09:11:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B752C28CC3
+	for <netfilter-devel@archiver.kernel.org>; Fri, 31 May 2019 09:15:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id EEA9D26679
-	for <netfilter-devel@archiver.kernel.org>; Fri, 31 May 2019 09:11:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5E15526691
+	for <netfilter-devel@archiver.kernel.org>; Fri, 31 May 2019 09:15:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726809AbfEaJLf (ORCPT
+        id S1726330AbfEaJPn (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 31 May 2019 05:11:35 -0400
-Received: from mail.us.es ([193.147.175.20]:59506 "EHLO mail.us.es"
+        Fri, 31 May 2019 05:15:43 -0400
+Received: from mail.us.es ([193.147.175.20]:34472 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726002AbfEaJLf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 31 May 2019 05:11:35 -0400
+        id S1726002AbfEaJPn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 31 May 2019 05:15:43 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id B0510103244
-        for <netfilter-devel@vger.kernel.org>; Fri, 31 May 2019 11:11:32 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 51B3410FB04
+        for <netfilter-devel@vger.kernel.org>; Fri, 31 May 2019 11:15:41 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id A0F35DA707
-        for <netfilter-devel@vger.kernel.org>; Fri, 31 May 2019 11:11:32 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 40C1FDA714
+        for <netfilter-devel@vger.kernel.org>; Fri, 31 May 2019 11:15:41 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 95226DA717; Fri, 31 May 2019 11:11:32 +0200 (CEST)
+        id 34F40DA704; Fri, 31 May 2019 11:15:41 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 564FCDA70E;
-        Fri, 31 May 2019 11:11:30 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id F3685DA707;
+        Fri, 31 May 2019 11:15:38 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Fri, 31 May 2019 11:11:30 +0200 (CEST)
+ Fri, 31 May 2019 11:15:38 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id E94844265A32;
-        Fri, 31 May 2019 11:11:29 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id A6D4D4265A32;
+        Fri, 31 May 2019 11:15:38 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Cc:     davem@davemloft.net, netdev@vger.kernel.org, wenxu@ucloud.cn,
-        sfr@canb.auug.org.au, yuehaibing@huawei.com, lkp@intel.com
-Subject: [PATCH] netfilter: nf_conntrack_bridge: fix CONFIG_IPV6=y
-Date:   Fri, 31 May 2019 11:11:24 +0200
-Message-Id: <20190531091124.26822-1-pablo@netfilter.org>
+Cc:     davem@davemloft.net, netdev@vger.kernel.org, sfr@canb.auug.org.au,
+        yuehaibing@huawei.com, lkp@intel.com, wenxu@ucloud.cn
+Subject: [PATCH net-next,v2] netfilter: nf_conntrack_bridge: fix CONFIG_IPV6=y
+Date:   Fri, 31 May 2019 11:15:26 +0200
+Message-Id: <20190531091526.1671-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -70,8 +69,14 @@ This patch includes an original chunk from wenxu.
 
 Fixes: 764dd163ac92 ("netfilter: nf_conntrack_bridge: add support for IPv6")
 Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Reported-by: Yuehaibing <yuehaibing@huawei.com>
+Reported-by: kbuild test robot <lkp@intel.com>
+Reported-by: wenxu <wenxu@ucloud.cn>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
+v2: Forgot to include "net-next" and added Reported-by to all people that have
+    reported problems.
+
  include/linux/netfilter_ipv6.h | 2 ++
  net/ipv6/netfilter.c           | 2 +-
  2 files changed, 3 insertions(+), 1 deletion(-)
