@@ -2,119 +2,170 @@ Return-Path: <SRS0=7QpW=T7=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_NEOMUTT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_MUTT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E717C04AB6
-	for <netfilter-devel@archiver.kernel.org>; Fri, 31 May 2019 18:40:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6971CC28CC3
+	for <netfilter-devel@archiver.kernel.org>; Fri, 31 May 2019 19:36:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0E96F26E04
-	for <netfilter-devel@archiver.kernel.org>; Fri, 31 May 2019 18:40:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 434AE26E66
+	for <netfilter-devel@archiver.kernel.org>; Fri, 31 May 2019 19:36:05 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="XNkEAsdR"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727057AbfEaSkj (ORCPT
+        id S1727303AbfEaTgD (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 31 May 2019 14:40:39 -0400
-Received: from mail.us.es ([193.147.175.20]:49318 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727005AbfEaSkj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 31 May 2019 14:40:39 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 98543190DC3
-        for <netfilter-devel@vger.kernel.org>; Fri, 31 May 2019 20:40:37 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 87140DA70E
-        for <netfilter-devel@vger.kernel.org>; Fri, 31 May 2019 20:40:37 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 7CE45DA70C; Fri, 31 May 2019 20:40:37 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 20F4DDA704;
-        Fri, 31 May 2019 20:40:35 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Fri, 31 May 2019 20:40:35 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (sys.soleta.eu [212.170.55.40])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id F3A2F4265A31;
-        Fri, 31 May 2019 20:40:34 +0200 (CEST)
-Date:   Fri, 31 May 2019 20:40:34 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Eric Garver <eric@garver.life>, netfilter-devel@vger.kernel.org,
-        phil@nwl.cc
-Subject: Re: [PATCH nft,v2 5/7] mnl: estimate receiver buffer size
-Message-ID: <20190531184034.ne5p3scrfooue3d6@salvia>
-References: <20190530105529.12657-1-pablo@netfilter.org>
- <20190530105529.12657-5-pablo@netfilter.org>
- <20190531181141.s2znspcdty5ihgvd@egarver.localdomain>
+        Fri, 31 May 2019 15:36:03 -0400
+Received: from mail-it1-f196.google.com ([209.85.166.196]:38865 "EHLO
+        mail-it1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726808AbfEaTgD (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 31 May 2019 15:36:03 -0400
+Received: by mail-it1-f196.google.com with SMTP id h9so2932475itk.3;
+        Fri, 31 May 2019 12:36:03 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:content-transfer-encoding:in-reply-to
+         :user-agent;
+        bh=I8pzWDsFT6+RuTnIe9x8s6+9s3G+oogH6IuABJnIxcw=;
+        b=XNkEAsdRqft03Il1tSzuYJNxjRp3wx7k5taZVA/KUGVj/chZo9GHI295E4uL2JU/lX
+         /XqF0sL4NaPNVV0pk5ayDw42l2DgxQ+9SvWarFJ29KGLKjsM9HNfR+iUbDRp6Md/FrTD
+         0iKzvT7oPJzE/WpUoIi/h3yLrG6UfWQ6rbk9Qmx1thOE8dTiDD5N1Sl4CnPmpDjsOP3D
+         1fEHe8SG0XvQamKZ8m6ZYXMStTdE9QWjWqmT0QohTVlfgZK7MxN+eqDNTxgDQ1nTNxB3
+         rQ+7qgJQrR+GNn3vrGEAoYB6XGvcAPIvM7S8oQ1J8/AfZ6WYxbuWAa9wBtW43IPJE60b
+         4Vug==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:content-transfer-encoding
+         :in-reply-to:user-agent;
+        bh=I8pzWDsFT6+RuTnIe9x8s6+9s3G+oogH6IuABJnIxcw=;
+        b=SSW7ef8aINf5JgeFsuW40EeVV0KUXtbYu6PIeZBkkiibNrs7m+JEnYF0sCZPW4j4HN
+         enOnVLBoRUZFc6ft33CfR/ziI9UF8WjJG9ohHv/YvXCulx46rd7EJeOnacrGF7zDcWE8
+         gVEHV0NpzlegGAgMw/Md3iQvec25ViizILpbVgg3tEiCU/hKu0c34WlsURIl/kMXrc41
+         1hTowdhf3y5rc6J0P1m4Rz7S9610tUR/DL1/JKpbWNW6w92oSWCUzDfYL4u7/YaJYqE1
+         Fu+X1dNrTJnQhgIMTf6JDm7+fN8R4qqT5FlIQ3KZi1lLXmmQMrnNX475ddszVVb2xuvB
+         GV+w==
+X-Gm-Message-State: APjAAAXuxVe8p2dXeOfguuCTtKHS456f82RMPboL1It12t9UQkvSjTQQ
+        SNVfZg2mkEDP+5vAgUjKhjWr6zM=
+X-Google-Smtp-Source: APXvYqx+VByXnINs/E+AangcN5AncgP87AhjZLT4lMeIs07gU1bPmZCJ154I+NpgBwS2q1IYOZlJdQ==
+X-Received: by 2002:a24:ee46:: with SMTP id b67mr3866231iti.87.1559331362724;
+        Fri, 31 May 2019 12:36:02 -0700 (PDT)
+Received: from ubuntu ([12.38.14.10])
+        by smtp.gmail.com with ESMTPSA id z17sm2210411iol.73.2019.05.31.12.36.01
+        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+        Fri, 31 May 2019 12:36:01 -0700 (PDT)
+Date:   Fri, 31 May 2019 15:35:58 -0400
+From:   Stephen Suryaputra <ssuryaextr@gmail.com>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+Subject: Re: [PATCH nf-next] netfilter: add support for matching IPv4 options
+Message-ID: <20190531193558.GB4276@ubuntu>
+References: <20190523093801.3747-1-ssuryaextr@gmail.com>
+ <20190531171101.5pttvxlbernhmlra@salvia>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
-In-Reply-To: <20190531181141.s2znspcdty5ihgvd@egarver.localdomain>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20190531171101.5pttvxlbernhmlra@salvia>
+User-Agent: Mutt/1.9.4 (2018-02-28)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, May 31, 2019 at 02:11:41PM -0400, Eric Garver wrote:
-> On Thu, May 30, 2019 at 12:55:27PM +0200, Pablo Neira Ayuso wrote:
-> > Set a receiver buffer size based on the number of commands and the
-> > average message size, this is useful for the --echo option in order to
-> > avoid ENOBUFS errors.
-> > 
-> > Double the estimated size is used to ensure enough receiver buffer
-> > space.
-> > 
-> > Skip buffer receiver logic if estimation is smaller than current buffer.
-> > 
-> > Reported-by: Phil Sutter <phil@nwl.cc>
-> > Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> > ---
-> [..]
-> > diff --git a/src/libnftables.c b/src/libnftables.c
-> > index 199dbc97b801..a58b8ca9dcf6 100644
-> > --- a/src/libnftables.c
-> > +++ b/src/libnftables.c
-> [..]
-> > @@ -308,14 +310,17 @@ int mnl_batch_talk(struct netlink_ctx *ctx, struct list_head *err_list)
-> >  		.tv_sec		= 0,
-> >  		.tv_usec	= 0
-> >  	};
-> > -	fd_set readfds;
-> >  	struct iovec iov[iov_len];
-> >  	struct msghdr msg = {};
-> > +	fd_set readfds;
-> >  	int err = 0;
-> >  
-> >  	mnl_set_sndbuffer(ctx->nft->nf_sock, ctx->batch);
-> >  
-> > -	mnl_nft_batch_to_msg(ctx, &msg, &snl, iov, iov_len);
-> > +	batch_size = mnl_nft_batch_to_msg(ctx, &msg, &snl, iov, iov_len);
-> > +	avg_msg_size = div_round_up(batch_size, num_cmds);
-> > +
-> > +	mnl_set_rcvbuffer(ctx->nft->nf_sock, num_cmds * avg_msg_size * 2);
+On Fri, May 31, 2019 at 07:11:01PM +0200, Pablo Neira Ayuso wrote:
+> > +/* find the offset to specified option or the header beyond the options
+> > + * if target < 0.
+> > + *
+> > + * Note that *offset is used as input/output parameter, and if it is not zero,
+> > + * then it must be a valid offset to an inner IPv4 header. This can be used
+> > + * to explore inner IPv4 header, eg. ICMP error messages.
 > 
-> I think this calculation is incorrect.
+> In other extension headers (IPv6 and TCP options) this offset is used
+> to match for a field inside the extension / option.
+> 
+> So this semantics you describe here are slightly different, right?
 
-Yes, see v4 of this patch:
+It is the same as the IPv6 one. The offset returned is the offset to the
+specific option (target) or the byte beyond the options if the target
+isn't specified (< 0).
 
-https://patchwork.ozlabs.org/patch/1107737/
+> Align parameters to parens when breaking too long lines.
+> Please, also break lines at 80 chars.
+> Please, define variables using reverse xmas tree, ie.
 
-> I'm still getting ENOBUFS with Phil's testcase and firewalld's
-> testsuite (large json blob). I changed the multiplier from 2 to 6
-> and it worked.
+OK on these.
 
-I just pushed out the patchset, the last version is using a multiplier
-of 4, I modified Phil's testcase to 100000 and it works fine. Please
-try the version upstream and let me know.
+> > +	optlen = iph->ihl * 4 - (int)sizeof(struct iphdr);
+> > +	if (optlen <= 0)
+> > +		return -ENOENT;
+> 
+> You could just:
+> 
+>                 return -1;
+> 
+> in all these errors in ipv4_find_option() since nft_exthdr_ipv4_eval()
+> does not use it.
 
-We can enhance this code by checking for ENOBUFS in _sendmsg(), extend
-the buffer size and retry. Then, we also need to update kernel code to
-abort the transaction in case NLM_F_ECHO flag is set on and we hit
-ENOBUFS.
+Yes, but I followed the pattern in ipv6_find_hdr().
+
+> I'd suggest:
+> 
+>                 if (!opt->srr)
+>                         break;
+> 
+> So you save one level of indentation below.
+> 
+> same here:
+> 
+>                 if (!opt->rr)
+>                         break;
+> 
+> and same thing for other extensions.
+
+OK on these.
+> 
+> > +	if (!found)
+> > +		target = -ENOENT;
+> > +	return target;
+> 
+> Hm, 'target' value is never used, right?
+
+Again, this follows ipv6_find_hdr().
+
+> This should also work for the NFPROTO_INET (inet tables), NFPROTO_BRIDGE
+> and the NFPROTO_NETDEV families.
+> 
+> I would turn this into:
+> 
+> 		if (ctx->family != NFPROTO_IPV6) {
+> 
+
+OK.
+
+> > +			if (tb[NFTA_EXTHDR_DREG])
+> > +				return &nft_exthdr_ipv4_ops;
+> > +		}
+> > +		break;
+> 
+> Then, from the _eval() path:
+> 
+> You have to replace iph->version == 4 check abive, you could use
+> skb->protocol instead, and check for htons(ETH_P_IP) packets.
+
+A bit lost. Did you mean this?
+
+static int ipv4_find_option(struct net *net, struct sk_buff *skb,
+»       »       »           unsigned int *offset, int target,
+»       »       »           unsigned short *fragoff, int *flags)
+{
+	...
+»       iph = skb_header_pointer(skb, *offset, sizeof(_iph), &_iph);
+»       if (!iph || skb->protocol != htons(ETH_P_IP))
+»       »       return -EBADMSG;
+
+Thank you.
