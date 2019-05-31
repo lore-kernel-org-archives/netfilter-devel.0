@@ -4,220 +4,311 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_NEOMUTT autolearn=ham autolearn_force=no
-	version=3.4.0
+	USER_AGENT_NEOMUTT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BE93BC04AB6
-	for <netfilter-devel@archiver.kernel.org>; Fri, 31 May 2019 16:56:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F0F48C04AB6
+	for <netfilter-devel@archiver.kernel.org>; Fri, 31 May 2019 17:11:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 941A226C9B
-	for <netfilter-devel@archiver.kernel.org>; Fri, 31 May 2019 16:56:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C7B0C26CDD
+	for <netfilter-devel@archiver.kernel.org>; Fri, 31 May 2019 17:11:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726700AbfEaQ4e (ORCPT
+        id S1726837AbfEaRLI (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 31 May 2019 12:56:34 -0400
-Received: from mx1.redhat.com ([209.132.183.28]:38254 "EHLO mx1.redhat.com"
+        Fri, 31 May 2019 13:11:08 -0400
+Received: from mail.us.es ([193.147.175.20]:58224 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726518AbfEaQ4e (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 31 May 2019 12:56:34 -0400
-Received: from smtp.corp.redhat.com (int-mx05.intmail.prod.int.phx2.redhat.com [10.5.11.15])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        id S1726518AbfEaRLI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 31 May 2019 13:11:08 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 3EE446D005
+        for <netfilter-devel@vger.kernel.org>; Fri, 31 May 2019 19:11:04 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 2E893DA70B
+        for <netfilter-devel@vger.kernel.org>; Fri, 31 May 2019 19:11:04 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 22F86DA705; Fri, 31 May 2019 19:11:04 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id F0795DA701;
+        Fri, 31 May 2019 19:11:01 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Fri, 31 May 2019 19:11:01 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (sys.soleta.eu [212.170.55.40])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mx1.redhat.com (Postfix) with ESMTPS id 409E2300414E;
-        Fri, 31 May 2019 16:56:32 +0000 (UTC)
-Received: from egarver.localdomain (ovpn-122-157.rdu2.redhat.com [10.10.122.157])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id C70DE1759D;
-        Fri, 31 May 2019 16:56:27 +0000 (UTC)
-Date:   Fri, 31 May 2019 12:56:25 -0400
-From:   Eric Garver <eric@garver.life>
-To:     Phil Sutter <phil@nwl.cc>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-Subject: Re: [nft PATCH v4 7/7] src: Support intra-transaction rule references
-Message-ID: <20190531165625.nxtgnokrxzgol2nk@egarver.localdomain>
-Mail-Followup-To: Eric Garver <eric@garver.life>, Phil Sutter <phil@nwl.cc>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-References: <20190528210323.14605-1-phil@nwl.cc>
- <20190528210323.14605-8-phil@nwl.cc>
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id CD7884265A31;
+        Fri, 31 May 2019 19:11:01 +0200 (CEST)
+Date:   Fri, 31 May 2019 19:11:01 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Stephen Suryaputra <ssuryaextr@gmail.com>
+Cc:     netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+Subject: Re: [PATCH nf-next] netfilter: add support for matching IPv4 options
+Message-ID: <20190531171101.5pttvxlbernhmlra@salvia>
+References: <20190523093801.3747-1-ssuryaextr@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20190528210323.14605-8-phil@nwl.cc>
-User-Agent: NeoMutt/20180716
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.15
-X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.5.16 (mx1.redhat.com [10.5.110.46]); Fri, 31 May 2019 16:56:32 +0000 (UTC)
+In-Reply-To: <20190523093801.3747-1-ssuryaextr@gmail.com>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Phil,
+Hi Stephen,
 
-This series is close. I see one more issue below.
+On Thu, May 23, 2019 at 05:38:01AM -0400, Stephen Suryaputra wrote:
+> This is the kernel change for the overall changes with this description:
+> Add capability to have rules matching IPv4 options. This is developed
+> mainly to support dropping of IP packets with loose and/or strict source
+> route route options. Nevertheless, the implementation include others and
+> ability to get specific fields in the option.
 
-On Tue, May 28, 2019 at 11:03:23PM +0200, Phil Sutter wrote:
-> A rule may be added before or after another one using index keyword. To
-> support for the other rule being added within the same batch, one has to
-> make use of NFTNL_RULE_ID and NFTNL_RULE_POSITION_ID attributes. This
-> patch does just that among a few more crucial things:
->
-> * Fetch full kernel ruleset upon encountering a rule which references
->   another one. Any earlier rule add/insert commands are then restored by
->   cache_add_commands().
->
-> * Avoid cache updates for rules not referencing another one, but make
->   sure cache is not treated as complete afterwards so a later rule with
->   reference will cause cache update and repopulation from command list.
->
-> * Reduce rule_translate_index() to its core code which is the actual
->   linking of rules and consequently rename the function. The removed
->   bits are pulled into the calling rule_evaluate() to reduce code
->   duplication in between cache inserts with and without rule reference.
->
-> * Pass the current command op to rule_evaluate() as indicator whether to
->   insert before or after a referenced rule or at beginning or end of
->   chain in cache. Exploit this from chain_evaluate() to avoid adding
->   the chain's rules a second time.
->
-> Light casts shadow though: It has been possible to reference another
-> rule of the same transaction via its *guessed* handle - this patch
-> removes that possibility.
->
-> Signed-off-by: Phil Sutter <phil@nwl.cc>
+Thanks for submitting your patch.
+
+> Signed-off-by: Stephen Suryaputra <ssuryaextr@gmail.com>
 > ---
-[..]
-> diff --git a/src/rule.c b/src/rule.c
-> index b00161e0e4350..0048a8e064523 100644
-> --- a/src/rule.c
-> +++ b/src/rule.c
-> @@ -293,6 +293,23 @@ static int cache_add_set_cmd(struct eval_ctx *ectx)
->  	return 0;
+>  include/net/inet_sock.h                  |   2 +-
+[...]
+>  net/ipv4/ip_options.c                    |   2 +
+
+Please, place the update of these two files (which are not netfilter
+specific) in a separated (initial) patch, we'll need an Acked-by: tag
+from the general networking maintainer to get this in. It will make
+things easier if this comes in a separated (initial) patch.
+
+More comments below.
+
+>  net/netfilter/nft_exthdr.c               | 136 +++++++++++++++++++++++
+>  4 files changed, 141 insertions(+), 1 deletion(-)
+> 
+[...]
+> diff --git a/net/netfilter/nft_exthdr.c b/net/netfilter/nft_exthdr.c
+> index a940c9fd9045..c4d47d274bbe 100644
+> --- a/net/netfilter/nft_exthdr.c
+> +++ b/net/netfilter/nft_exthdr.c
+> @@ -62,6 +62,128 @@ static void nft_exthdr_ipv6_eval(const struct nft_expr *expr,
+>  	regs->verdict.code = NFT_BREAK;
 >  }
->
-> +static int cache_add_rule_cmd(struct eval_ctx *ectx)
+>  
+> +/* find the offset to specified option or the header beyond the options
+> + * if target < 0.
+> + *
+> + * Note that *offset is used as input/output parameter, and if it is not zero,
+> + * then it must be a valid offset to an inner IPv4 header. This can be used
+> + * to explore inner IPv4 header, eg. ICMP error messages.
+
+In other extension headers (IPv6 and TCP options) this offset is used
+to match for a field inside the extension / option.
+
+So this semantics you describe here are slightly different, right?
+
+> + * If target header is found, its offset is set in *offset and return option
+> + * number. Otherwise, return negative error.
+> + *
+> + * If the first fragment doesn't contain the End of Options it is considered
+> + * invalid.
+> + */
+> +static int ipv4_find_option(struct net *net, struct sk_buff *skb, unsigned int *offset,
+> +		     int target, unsigned short *fragoff, int *flags)
+
+static int ipv4_find_option(struct net *net, struct sk_buff *skb,
+                            unsigned int *offset, int target,
+                            unsigned short *fragoff, int *flags)
+                            ^
+Align parameters to parens when breaking too long lines.
+
+Please, also break lines at 80 chars.
+
 > +{
-> +	struct table *table;
-> +	struct chain *chain;
+> +	unsigned char optbuf[sizeof(struct ip_options) + 41];
+> +	struct ip_options *opt = (struct ip_options *)optbuf;
+> +	struct iphdr *iph, _iph;
+> +	unsigned int start;
+> +	__be32 info;
+> +	int optlen;
+> +	bool found = false;
+
+Please, define variables using reverse xmas tree, ie.
+
+        unsigned char optbuf[sizeof(struct ip_options) + 41];
+        struct ip_options *opt = (struct ip_options *)optbuf;
+        struct iphdr *iph, _iph;
+        unsigned int start;
+        bool found = false;
+        __be32 info;
+        int optlen;
+
+From longest line to shortest one.
+
+> +	if (fragoff)
+> +		*fragoff = 0;
 > +
-> +	table = table_lookup(&ectx->cmd->rule->handle, &ectx->nft->cache);
-> +	if (!table)
-> +		return table_not_found(ectx);
+> +	if (!offset)
+> +		return -EINVAL;
+> +	if (!*offset)
+> +		*offset = skb_network_offset(skb);
 > +
-> +	chain = chain_lookup(table, &ectx->cmd->rule->handle);
-> +	if (!chain)
-> +		return chain_not_found(ectx);
+> +	iph = skb_header_pointer(skb, *offset, sizeof(_iph), &_iph);
+> +	if (!iph || iph->version != 4)
+> +		return -EBADMSG;
+> +	start = *offset + sizeof(struct iphdr);
 > +
-> +	rule_cache_update(ectx->cmd->op, chain, ectx->cmd->rule, NULL);
-> +	return 0;
-> +}
+> +	optlen = iph->ihl * 4 - (int)sizeof(struct iphdr);
+> +	if (optlen <= 0)
+> +		return -ENOENT;
+
+You could just:
+
+                return -1;
+
+in all these errors in ipv4_find_option() since nft_exthdr_ipv4_eval()
+does not use it.
+
+> +	memset(opt, 0, sizeof(struct ip_options));
+> +	/* Copy the options since __ip_options_compile() modifies
+> +	 * the options. Get one byte beyond the option for target < 0
+> +	 */
+> +	if (skb_copy_bits(skb, start, opt->__data, optlen + 1))
+> +		return -EBADMSG;
+> +	opt->optlen = optlen;
 > +
->  static int cache_add_commands(struct nft_ctx *nft, struct list_head *msgs)
->  {
->  	struct eval_ctx ectx = {
-> @@ -314,6 +331,11 @@ static int cache_add_commands(struct nft_ctx *nft, struct list_head *msgs)
->  				continue;
->  			ret = cache_add_set_cmd(&ectx);
->  			break;
-> +		case CMD_OBJ_RULE:
-> +			if (!cache_is_complete(&nft->cache, CMD_LIST))
-> +				continue;
-> +			ret = cache_add_rule_cmd(&ectx);
-> +			break;
->  		default:
->  			break;
->  		}
-> @@ -727,6 +749,37 @@ struct rule *rule_lookup_by_index(const struct chain *chain, uint64_t index)
->  	return NULL;
->  }
->
-> +void rule_cache_update(enum cmd_ops op, struct chain *chain,
-> +		       struct rule *rule, struct rule *ref)
-> +{
-> +	switch (op) {
-> +	case CMD_INSERT:
-> +		rule_get(rule);
-> +		if (ref)
-> +			list_add_tail(&rule->list, &ref->list);
-> +		else
-> +			list_add(&rule->list, &chain->rules);
+> +	if (__ip_options_compile(net, opt, NULL, &info))
+> +		return -EBADMSG;
+> +
+> +	switch (target) {
+> +	case IPOPT_SSRR:
+> +	case IPOPT_LSRR:
+> +		if (opt->srr) {
+
+I'd suggest:
+
+                if (!opt->srr)
+                        break;
+
+So you save one level of indentation below.
+
+> +			found = target == IPOPT_SSRR ? opt->is_strictroute :
+> +						       !opt->is_strictroute;
+> +			if (found)
+> +				*offset = opt->srr + start;
+> +		}
 > +		break;
-> +	case CMD_ADD:
-> +		rule_get(rule);
-> +		if (ref)
-> +			list_add(&rule->list, &ref->list);
-> +		else
-> +			list_add_tail(&rule->list, &chain->rules);
+> +	case IPOPT_RR:
+> +		if (opt->rr) {
+
+same here:
+
+                if (!opt->rr)
+                        break;
+
+and same thing for other extensions.
+
+> +			*offset = opt->rr + start;
+> +			found = true;
+> +		}
 > +		break;
-> +	case CMD_REPLACE:
-> +		rule_get(rule);
-> +		list_add(&rule->list, &ref->list);
-> +		/* fall through */
-> +	case CMD_DELETE:
-> +		list_del(&ref->list);
-> +		rule_free(ref);
+> +	case IPOPT_RA:
+> +		if (opt->router_alert) {
+> +			*offset = opt->router_alert + start;
+> +			found = true;
+> +		}
 > +		break;
 > +	default:
-> +		break;
+> +		/* Either not supported or not a specific search, treated as found */
+> +		found = true;
+> +		if (target < 0) {
+> +			if (opt->end) {
+> +				*offset = opt->end + start;
+> +				target = IPOPT_END;
+> +			} else {
+> +				/* Point to beyond the options. */
+> +				*offset = optlen + start;
+> +				target = opt->__data[optlen];
+> +			}
+> +		} else {
+> +			target = -EOPNOTSUPP;
+> +		}
 > +	}
+> +	if (!found)
+> +		target = -ENOENT;
+> +	return target;
+
+Hm, 'target' value is never used, right?
+
 > +}
+> +
+> +static void nft_exthdr_ipv4_eval(const struct nft_expr *expr,
+> +				 struct nft_regs *regs,
+> +				 const struct nft_pktinfo *pkt)
+> +{
+> +	struct nft_exthdr *priv = nft_expr_priv(expr);
+> +	u32 *dest = &regs->data[priv->dreg];
+> +	struct sk_buff *skb = pkt->skb;
+> +	unsigned int offset = 0;
+> +	int err;
+> +
+> +	err = ipv4_find_option(nft_net(pkt), skb, &offset, priv->type, NULL, NULL);
+> +	if (priv->flags & NFT_EXTHDR_F_PRESENT) {
+> +		*dest = (err >= 0);
+> +		return;
+> +	} else if (err < 0) {
+> +		goto err;
+> +	}
+> +	offset += priv->offset;
+> +
+> +	dest[priv->len / NFT_REG32_SIZE] = 0;
+> +	if (skb_copy_bits(pkt->skb, offset, dest, priv->len) < 0)
+> +		goto err;
+> +	return;
+> +err:
+> +	regs->verdict.code = NFT_BREAK;
+> +}
+> +
+>  static void *
+>  nft_tcp_header_pointer(const struct nft_pktinfo *pkt,
+>  		       unsigned int len, void *buffer, unsigned int *tcphdr_len)
+> @@ -360,6 +482,14 @@ static const struct nft_expr_ops nft_exthdr_ipv6_ops = {
+>  	.dump		= nft_exthdr_dump,
+>  };
+>  
+> +static const struct nft_expr_ops nft_exthdr_ipv4_ops = {
+> +	.type		= &nft_exthdr_type,
+> +	.size		= NFT_EXPR_SIZE(sizeof(struct nft_exthdr)),
+> +	.eval		= nft_exthdr_ipv4_eval,
+> +	.init		= nft_exthdr_init,
+> +	.dump		= nft_exthdr_dump,
+> +};
+> +
+>  static const struct nft_expr_ops nft_exthdr_tcp_ops = {
+>  	.type		= &nft_exthdr_type,
+>  	.size		= NFT_EXPR_SIZE(sizeof(struct nft_exthdr)),
+> @@ -400,6 +530,12 @@ nft_exthdr_select_ops(const struct nft_ctx *ctx,
+>  		if (tb[NFTA_EXTHDR_DREG])
+>  			return &nft_exthdr_ipv6_ops;
+>  		break;
+> +	case NFT_EXTHDR_OP_IPV4:
+> +		if (ctx->family == NFPROTO_IPV4) {
 
-I'm seeing a NULL pointer dereferenced here. It occurs when we delete a rule
-and add a new rule using the "index" keyword in the same transaction/batch.
+This should also work for the NFPROTO_INET (inet tables), NFPROTO_BRIDGE
+and the NFPROTO_NETDEV families.
 
-FWIW, I've also got Pablo's recv buffer size patches applied.
+I would turn this into:
 
-# nft --handle list table inet foobar
-table inet foobar { # handle 4004
-        chain foo_chain { # handle 1
-                accept # handle 2
-                log # handle 3
-        }
-}
+		if (ctx->family != NFPROTO_IPV6) {
 
-# nft -f -
-delete rule inet foobar foo_chain handle 3
-add rule inet foobar foo_chain index 0 drop
-Segmentation fault (core dumped)
+> +			if (tb[NFTA_EXTHDR_DREG])
+> +				return &nft_exthdr_ipv4_ops;
+> +		}
+> +		break;
 
-# nft --handle list table inet foobar
-table inet foobar { # handle 4004
-        chain foo_chain { # handle 1
-                accept # handle 2
-                log # handle 3
-        }
-}
+Then, from the _eval() path:
 
+You have to replace iph->version == 4 check abive, you could use
+skb->protocol instead, and check for htons(ETH_P_IP) packets.
 
-(gdb) bt
-#0  0x00007f76d3d6b9b2 in rule_cache_update (op=CMD_DELETE, chain=0x1865d70, rule=0x0, ref=0x0) at rule.c:755
-#1  0x00007f76d3d6d16b in cache_add_rule_cmd (ectx=0x7fff51d96c00) at rule.c:309
-#2  cache_add_commands (msgs=0x7fff51dab4e0, nft=0x17fba20) at rule.c:337
-#3  cache_update (nft=0x17fba20, cmd=cmd@entry=CMD_LIST, msgs=0x7fff51dab4e0) at rule.c:381
-#4  0x00007f76d3d7a261 in rule_evaluate (ctx=0x17fc160, rule=0x180df30, op=CMD_ADD) at evaluate.c:3249
-#5  0x00007f76d3da423a in nft_parse (nft=nft@entry=0x17fba20, scanner=0x1824060, state=0x17fbb80) at parser_bison.y:799
-#6  0x00007f76d3d91324 in nft_parse_bison_filename (cmds=0x17fbae0, msgs=0x7fff51dab4e0, filename=0x7f76d3db8385 "/dev/stdin", nft=0x17fba20) at libnftables.c:380
-#7  nft_run_cmd_from_filename (nft=0x17fba20, filename=0x7f76d3db8385 "/dev/stdin", filename@entry=0x7fff51dac67d "-") at libnftables.c:446
-#8  0x0000000000401698 in main (argc=3, argv=0x7fff51dab658) at main.c:310
-
-(gdb) frame 1
-#1  0x00007f76d3d6d16b in cache_add_rule_cmd (ectx=0x7fff51d96c00) at rule.c:309
-309             rule_cache_update(ectx->cmd->op, chain, ectx->cmd->rule, NULL);
-
-(gdb) print *ectx
-$1 = {nft = 0x17fba20, msgs = 0x7fff51dab4e0, cmd = 0x1801730, table = 0x0, rule = 0x0, set = 0x0, stmt = 0x0, ectx = {dtype = 0x0, byteorder = BYTEORDER_INVALID, len = 0, maxval = 0}, pctx = {debug_mask = 0, family = 0, protocol = {{location = {indesc = 0x0, {{
-              token_offset = 0, line_offset = 0, first_line = 0, last_line = 0, first_column = 0, last_column = 0}, {nle = 0x0}}}, desc = 0x0, offset = 0}, {location = {indesc = 0x0, {{token_offset = 0, line_offset = 0, first_line = 0, last_line = 0, first_column = 0,
-              last_column = 0}, {nle = 0x0}}}, desc = 0x0, offset = 0}, {location = {indesc = 0x0, {{token_offset = 0, line_offset = 0, first_line = 0, last_line = 0, first_column = 0, last_column = 0}, {nle = 0x0}}}, desc = 0x0, offset = 0}, {location = {indesc = 0x0, {{
-              token_offset = 0, line_offset = 0, first_line = 0, last_line = 0, first_column = 0, last_column = 0}, {nle = 0x0}}}, desc = 0x0, offset = 0}}}}
-
-(gdb) print *ectx->cmd
-$2 = {list = {next = 0x17fbae0, prev = 0x17fbae0}, location = {indesc = 0x17fbb88, {{token_offset = 6, line_offset = 0, first_line = 1, last_line = 1, first_column = 1, last_column = 43}, {nle = 0x6}}}, op = CMD_DELETE, obj = CMD_OBJ_RULE, handle = {family = 1, table = {
-      location = {indesc = 0x17fbb88, {{token_offset = 23, line_offset = 0, first_line = 1, last_line = 1, first_column = 18, last_column = 23}, {nle = 0x17}}}, name = 0x18014c0 "foobar"}, chain = {location = {indesc = 0x17fbb88, {{token_offset = 33, line_offset = 0,
-            first_line = 1, last_line = 1, first_column = 25, last_column = 33}, {nle = 0x21}}}, name = 0x180a740 "foo_chain"}, set = {location = {indesc = 0x0, {{token_offset = 0, line_offset = 0, first_line = 0, last_line = 0, first_column = 0, last_column = 0}, {
-            nle = 0x0}}}, name = 0x0}, obj = {location = {indesc = 0x0, {{token_offset = 0, line_offset = 0, first_line = 0, last_line = 0, first_column = 0, last_column = 0}, {nle = 0x0}}}, name = 0x0}, flowtable = 0x0, handle = {location = {indesc = 0x17fbb88, {{
-            token_offset = 40, line_offset = 0, first_line = 1, last_line = 1, first_column = 35, last_column = 42}, {nle = 0x28}}}, id = 3}, position = {location = {indesc = 0x0, {{token_offset = 0, line_offset = 0, first_line = 0, last_line = 0, first_column = 0,
-            last_column = 0}, {nle = 0x0}}}, id = 0}, index = {location = {indesc = 0x0, {{token_offset = 0, line_offset = 0, first_line = 0, last_line = 0, first_column = 0, last_column = 0}, {nle = 0x0}}}, id = 0}, set_id = 0, rule_id = 0, position_id = 0}, seqnum = 0,
-  {data = 0x0, expr = 0x0, set = 0x0, rule = 0x0, chain = 0x0, table = 0x0, flowtable = 0x0, monitor = 0x0, markup = 0x0, object = 0x0}, arg = 0x0}
-
-(gdb) print ectx->cmd->rule
-$3 = (struct rule *) 0x0
+Thanks!
