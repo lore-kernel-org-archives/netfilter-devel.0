@@ -2,109 +2,114 @@ Return-Path: <SRS0=7QpW=T7=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_NEOMUTT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 41BDBC46470
-	for <netfilter-devel@archiver.kernel.org>; Fri, 31 May 2019 09:36:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 608E0C28CC2
+	for <netfilter-devel@archiver.kernel.org>; Fri, 31 May 2019 09:59:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2468D266ED
-	for <netfilter-devel@archiver.kernel.org>; Fri, 31 May 2019 09:36:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 435C026748
+	for <netfilter-devel@archiver.kernel.org>; Fri, 31 May 2019 09:59:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726461AbfEaJgW (ORCPT
+        id S1726593AbfEaJ77 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 31 May 2019 05:36:22 -0400
-Received: from m97188.mail.qiye.163.com ([220.181.97.188]:21683 "EHLO
-        m97188.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726232AbfEaJgW (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 31 May 2019 05:36:22 -0400
-Received: from [192.168.188.14] (unknown [120.132.1.226])
-        by m97188.mail.qiye.163.com (Hmail) with ESMTPA id A45779670D1;
-        Fri, 31 May 2019 17:36:16 +0800 (CST)
-Subject: Re: [PATCH net-next,v2] netfilter: nf_conntrack_bridge: fix
- CONFIG_IPV6=y
-To:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-Cc:     netdev@vger.kernel.org
-References: <20190531091526.1671-1-pablo@netfilter.org>
-From:   wenxu <wenxu@ucloud.cn>
-Message-ID: <73e16ff5-88b3-b856-ad08-dae2f600a8e5@ucloud.cn>
-Date:   Fri, 31 May 2019 17:36:15 +0800
-User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:60.0) Gecko/20100101
- Thunderbird/60.6.1
+        Fri, 31 May 2019 05:59:59 -0400
+Received: from mail.us.es ([193.147.175.20]:36274 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726515AbfEaJ76 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 31 May 2019 05:59:58 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 00666819A5
+        for <netfilter-devel@vger.kernel.org>; Fri, 31 May 2019 11:59:57 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id E4945DA714
+        for <netfilter-devel@vger.kernel.org>; Fri, 31 May 2019 11:59:56 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id D7486DA71A; Fri, 31 May 2019 11:59:56 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id CCFF9DA712;
+        Fri, 31 May 2019 11:59:54 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Fri, 31 May 2019 11:59:54 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (sys.soleta.eu [212.170.55.40])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id AA9D340705C6;
+        Fri, 31 May 2019 11:59:54 +0200 (CEST)
+Date:   Fri, 31 May 2019 11:59:54 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft,v3 2/7] mnl: mnl_set_rcvbuffer() skips buffer size
+ update if it is too small
+Message-ID: <20190531095954.p2yms677clmsbmv7@salvia>
+References: <20190530111246.14550-1-pablo@netfilter.org>
+ <20190531093012.GH31548@orbyte.nwl.cc>
 MIME-Version: 1.0
-In-Reply-To: <20190531091526.1671-1-pablo@netfilter.org>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
-X-HM-Spam-Status: e1kIGBQJHllBWVZKVU1KSEtLS0tITklDTkJOWVdZKFlBSUI3V1ktWUFJV1
-        kJDhceCFlBWTU0KTY6NyQpLjc#WQY+
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6PC46GDo6HzgyTSIRCBIVEjM6
-        STQaCi5VSlVKTk5CSUJOSExNQ0NOVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJS1VK
-        SElVSlVJSU1ZV1kIAVlBSE9ISTcG
-X-HM-Tid: 0a6b0d3f3da220bckuqya45779670d1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190531093012.GH31548@orbyte.nwl.cc>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-
-Signed-off-by: wenxu <wenxu@ucloud.cn>
-
-On 5/31/2019 5:15 PM, Pablo Neira Ayuso wrote:
-> This patch fixes a few problems with CONFIG_IPV6=y and
-> CONFIG_NF_CONNTRACK_BRIDGE=m:
->
-> In file included from net/netfilter/utils.c:5:
-> include/linux/netfilter_ipv6.h: In function 'nf_ipv6_br_defrag':
-> include/linux/netfilter_ipv6.h:110:9: error: implicit declaration of function 'nf_ct_frag6_gather'; did you mean 'nf_ct_attach'? [-Werror=implicit-function-declaration]
->
-> And these too:
->
-> net/ipv6/netfilter.c:242:2: error: unknown field 'br_defrag' specified in initializer
-> net/ipv6/netfilter.c:243:2: error: unknown field 'br_fragment' specified in initializer
->
-> This patch includes an original chunk from wenxu.
->
-> Fixes: 764dd163ac92 ("netfilter: nf_conntrack_bridge: add support for IPv6")
-> Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
-> Reported-by: Yuehaibing <yuehaibing@huawei.com>
-> Reported-by: kbuild test robot <lkp@intel.com>
-> Reported-by: wenxu <wenxu@ucloud.cn>
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> ---
-> v2: Forgot to include "net-next" and added Reported-by to all people that have
->     reported problems.
->
->  include/linux/netfilter_ipv6.h | 2 ++
->  net/ipv6/netfilter.c           | 2 +-
->  2 files changed, 3 insertions(+), 1 deletion(-)
->
-> diff --git a/include/linux/netfilter_ipv6.h b/include/linux/netfilter_ipv6.h
-> index a21b8c9623ee..3a3dc4b1f0e7 100644
-> --- a/include/linux/netfilter_ipv6.h
-> +++ b/include/linux/netfilter_ipv6.h
-> @@ -96,6 +96,8 @@ static inline int nf_ip6_route(struct net *net, struct dst_entry **dst,
->  #endif
->  }
->  
-> +#include <net/netfilter/ipv6/nf_defrag_ipv6.h>
-> +
->  static inline int nf_ipv6_br_defrag(struct net *net, struct sk_buff *skb,
->  				    u32 user)
+On Fri, May 31, 2019 at 11:30:12AM +0200, Phil Sutter wrote:
+> Hi Pablo,
+> 
+> On Thu, May 30, 2019 at 01:12:46PM +0200, Pablo Neira Ayuso wrote:
+> > Check for existing buffer size, if this is larger than the newer buffer
+> > size, skip this size update.
+> > 
+> > Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> > ---
+> > v3: 'len' variable was not properly set.
+> > 
+> >  src/mnl.c | 7 +++++++
+> >  1 file changed, 7 insertions(+)
+> > 
+> > diff --git a/src/mnl.c b/src/mnl.c
+> > index 288a887df097..2270a084ad29 100644
+> > --- a/src/mnl.c
+> > +++ b/src/mnl.c
+> > @@ -235,8 +235,15 @@ static void mnl_set_sndbuffer(const struct mnl_socket *nl,
+> >  
+> >  static int mnl_set_rcvbuffer(const struct mnl_socket *nl, size_t bufsiz)
+> >  {
+> > +	unsigned int cur_bufsiz;
+> > +	socklen_t len = sizeof(cur_bufsiz);
+> >  	int ret;
+> >  
+> > +	ret = getsockopt(mnl_socket_get_fd(nl), SOL_SOCKET, SO_RCVBUF,
+> > +			 &cur_bufsiz, &len);
+> > +	if (cur_bufsiz > bufsiz)
+> > +		return 0;
+> > +
+> 
+> For mnl_set_sndbuffer(), there is simply a global static variable
+> holding the last set value. Can't we use that here as well? I think of
+> something like:
+> 
+> + static unsigned int nlsndbufsiz;
+> 
+>  static int mnl_set_rcvbuffer(const struct mnl_socket *nl, size_t bufsiz)
 >  {
-> diff --git a/net/ipv6/netfilter.c b/net/ipv6/netfilter.c
-> index c6665382acb5..9530cc280953 100644
-> --- a/net/ipv6/netfilter.c
-> +++ b/net/ipv6/netfilter.c
-> @@ -238,7 +238,7 @@ static const struct nf_ipv6_ops ipv6ops = {
->  	.route_input		= ip6_route_input,
->  	.fragment		= ip6_fragment,
->  	.reroute		= nf_ip6_reroute,
-> -#if IS_MODULE(CONFIG_NF_CONNTRACK_BRIDGE)
-> +#if IS_MODULE(CONFIG_IPV6)
->  	.br_defrag		= nf_ct_frag6_gather,
->  	.br_fragment		= br_ip6_fragment,
->  #endif
+> +	socklen_t len = sizeof(nlsndbufsiz);
+>  	int ret;
+>  
+> +	if (!nlsndbufsiz)
+> +		ret = getsockopt(mnl_socket_get_fd(nl), SOL_SOCKET, SO_RCVBUF,
+> +				 &nlsndbufsiz, &len);
+> +	if (nlsndbufsiz >= bufsiz)
+> +		return 0;
+
+Yes, I'm going to send a v4 including this change you propose.
+
+Thanks!
