@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	SPF_PASS,T_DKIMWL_WL_HIGH,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F355C28CC3
-	for <netfilter-devel@archiver.kernel.org>; Sat,  1 Jun 2019 13:19:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C0618C28CC3
+	for <netfilter-devel@archiver.kernel.org>; Sat,  1 Jun 2019 13:34:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 24FAB2725F
-	for <netfilter-devel@archiver.kernel.org>; Sat,  1 Jun 2019 13:19:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9AB1027521
+	for <netfilter-devel@archiver.kernel.org>; Sat,  1 Jun 2019 13:34:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1559395185;
-	bh=el4UumI+dWZf9QEDr98NW9WMPFeWsO8jktub8fr2lCg=;
+	s=default; t=1559396069;
+	bh=y0YIx458h1pu2brSHcf1MnZn/W3uPgxIL1CV8IL7Z+g=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=qGvc8PbMMLQncLuqiKDlGszywzLiul6PpiAsxUl63WjNG4DtReigc0wlSCjRtCteN
-	 zs8EKmgeZ18ZIpaIz0PPXyf3RsyNxnAi+C9AXsCZoIc/j0mwEwl9cSmhkJG7o8Oz1D
-	 ew8YPWJKmq3Hz0Urmgp7f7mfaUJgqwn8oN8rWCMk=
+	b=eAB4fWrhZl4dKgdya15V5P4+/EqoBT7/kZB23WNLnsFJYuRFnuRHsEs6H0XDSrODs
+	 PkJPmeSgUH7rU7ABzu/L7XBHcoAaa+EsU/MXF0C5YTDByxB/BORLjDUqHAVCwPMmet
+	 Kc4sYm7IF3mtKpo4/Uc3dgDUdEiINVDTyNUCLTCY=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728214AbfFANTX (ORCPT
+        id S1729095AbfFANXn (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 1 Jun 2019 09:19:23 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46520 "EHLO mail.kernel.org"
+        Sat, 1 Jun 2019 09:23:43 -0400
+Received: from mail.kernel.org ([198.145.29.99]:53694 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728196AbfFANTV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 1 Jun 2019 09:19:21 -0400
+        id S1728215AbfFANXn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 1 Jun 2019 09:23:43 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id DC5F7272B3;
-        Sat,  1 Jun 2019 13:19:19 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 84B06240F2;
+        Sat,  1 Jun 2019 13:23:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1559395160;
-        bh=el4UumI+dWZf9QEDr98NW9WMPFeWsO8jktub8fr2lCg=;
+        s=default; t=1559395422;
+        bh=y0YIx458h1pu2brSHcf1MnZn/W3uPgxIL1CV8IL7Z+g=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=QcGxe4M+8DiBfPv77lKVhTxhyGyHy67VdLZsSEY65pFiriXs0FeNqFEWHyAB01kX0
-         mL/mJ899ZOuDEmIAi28py7HhIsPPkSiFv7eKlNs//ucZ2EMLeBkjQVJXuIAqSNCddv
-         ahIiqMPHiO//C0cI2LBtM2pvfNr5FxXljzAVN2XI=
+        b=vP8OXVBvwh/B5Wj3++vvhov2/qn+2NbbbOsMUKuQPnLT1D2xG+DqXX0JsIzZKxaBv
+         fzNM/DhhntOiKNERQcZKi3x77xqrvL4dOoqH/gm63Ct5VuQdaAqlki4+vwpu7a0sVW
+         fp9hD6MukAWgL5SVj0Xias6N0kC/UmRtnjY1NPkI=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Florian Westphal <fw@strlen.de>,
@@ -46,12 +46,12 @@ Cc:     Florian Westphal <fw@strlen.de>,
         Sasha Levin <sashal@kernel.org>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.1 072/186] netfilter: nf_tables: fix base chain stat rcu_dereference usage
-Date:   Sat,  1 Jun 2019 09:14:48 -0400
-Message-Id: <20190601131653.24205-72-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 054/141] netfilter: nf_tables: fix base chain stat rcu_dereference usage
+Date:   Sat,  1 Jun 2019 09:20:30 -0400
+Message-Id: <20190601132158.25821-54-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20190601131653.24205-1-sashal@kernel.org>
-References: <20190601131653.24205-1-sashal@kernel.org>
+In-Reply-To: <20190601132158.25821-1-sashal@kernel.org>
+References: <20190601132158.25821-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -99,10 +99,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 7 insertions(+), 2 deletions(-)
 
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 1606eaa5ae0da..aa5e7b00a581f 100644
+index ebfcfe1dcbdbb..29ff59dd99ace 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -1190,6 +1190,9 @@ static int nft_dump_stats(struct sk_buff *skb, struct nft_stats __percpu *stats)
+@@ -1142,6 +1142,9 @@ static int nft_dump_stats(struct sk_buff *skb, struct nft_stats __percpu *stats)
  	u64 pkts, bytes;
  	int cpu;
  
@@ -112,7 +112,7 @@ index 1606eaa5ae0da..aa5e7b00a581f 100644
  	memset(&total, 0, sizeof(total));
  	for_each_possible_cpu(cpu) {
  		cpu_stats = per_cpu_ptr(stats, cpu);
-@@ -1247,6 +1250,7 @@ static int nf_tables_fill_chain_info(struct sk_buff *skb, struct net *net,
+@@ -1199,6 +1202,7 @@ static int nf_tables_fill_chain_info(struct sk_buff *skb, struct net *net,
  	if (nft_is_base_chain(chain)) {
  		const struct nft_base_chain *basechain = nft_base_chain(chain);
  		const struct nf_hook_ops *ops = &basechain->ops;
@@ -120,7 +120,7 @@ index 1606eaa5ae0da..aa5e7b00a581f 100644
  		struct nlattr *nest;
  
  		nest = nla_nest_start(skb, NFTA_CHAIN_HOOK);
-@@ -1268,8 +1272,9 @@ static int nf_tables_fill_chain_info(struct sk_buff *skb, struct net *net,
+@@ -1220,8 +1224,9 @@ static int nf_tables_fill_chain_info(struct sk_buff *skb, struct net *net,
  		if (nla_put_string(skb, NFTA_CHAIN_TYPE, basechain->type->name))
  			goto nla_put_failure;
  
