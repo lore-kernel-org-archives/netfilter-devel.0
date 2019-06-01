@@ -2,58 +2,136 @@ Return-Path: <SRS0=MWc4=UA=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_NEOMUTT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
+	SPF_PASS,T_DKIMWL_WL_HIGH,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7AFE0C28CC3
-	for <netfilter-devel@archiver.kernel.org>; Sat,  1 Jun 2019 08:53:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F355C28CC3
+	for <netfilter-devel@archiver.kernel.org>; Sat,  1 Jun 2019 13:19:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5E54124A9B
-	for <netfilter-devel@archiver.kernel.org>; Sat,  1 Jun 2019 08:53:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 24FAB2725F
+	for <netfilter-devel@archiver.kernel.org>; Sat,  1 Jun 2019 13:19:45 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1559395185;
+	bh=el4UumI+dWZf9QEDr98NW9WMPFeWsO8jktub8fr2lCg=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=qGvc8PbMMLQncLuqiKDlGszywzLiul6PpiAsxUl63WjNG4DtReigc0wlSCjRtCteN
+	 zs8EKmgeZ18ZIpaIz0PPXyf3RsyNxnAi+C9AXsCZoIc/j0mwEwl9cSmhkJG7o8Oz1D
+	 ew8YPWJKmq3Hz0Urmgp7f7mfaUJgqwn8oN8rWCMk=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726773AbfFAIxi (ORCPT
+        id S1728214AbfFANTX (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 1 Jun 2019 04:53:38 -0400
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:35842 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726210AbfFAIxi (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 1 Jun 2019 04:53:38 -0400
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.89)
-        (envelope-from <fw@strlen.de>)
-        id 1hWzlf-0001Va-Q3; Sat, 01 Jun 2019 10:53:36 +0200
-Date:   Sat, 1 Jun 2019 10:53:35 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
+        Sat, 1 Jun 2019 09:19:23 -0400
+Received: from mail.kernel.org ([198.145.29.99]:46520 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728196AbfFANTV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 1 Jun 2019 09:19:21 -0400
+Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id DC5F7272B3;
+        Sat,  1 Jun 2019 13:19:19 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1559395160;
+        bh=el4UumI+dWZf9QEDr98NW9WMPFeWsO8jktub8fr2lCg=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=QcGxe4M+8DiBfPv77lKVhTxhyGyHy67VdLZsSEY65pFiriXs0FeNqFEWHyAB01kX0
+         mL/mJ899ZOuDEmIAi28py7HhIsPPkSiFv7eKlNs//ucZ2EMLeBkjQVJXuIAqSNCddv
+         ahIiqMPHiO//C0cI2LBtM2pvfNr5FxXljzAVN2XI=
+From:   Sasha Levin <sashal@kernel.org>
+To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Florian Westphal <fw@strlen.de>,
-        Stephen Suryaputra <ssuryaextr@gmail.com>,
-        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-Subject: Re: [PATCH nf-next] netfilter: add support for matching IPv4 options
-Message-ID: <20190601085335.axjlmtl23py6i4jo@breakpoint.cc>
-References: <20190523093801.3747-1-ssuryaextr@gmail.com>
- <20190531171101.5pttvxlbernhmlra@salvia>
- <20190531193558.GB4276@ubuntu>
- <20190601002230.bo6dhdf3lhlkknqq@salvia>
- <20190601082732.fpgrqtcj7i7g6wek@breakpoint.cc>
- <20190601084025.rheeejbn3clpgsmu@salvia>
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Sasha Levin <sashal@kernel.org>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org
+Subject: [PATCH AUTOSEL 5.1 072/186] netfilter: nf_tables: fix base chain stat rcu_dereference usage
+Date:   Sat,  1 Jun 2019 09:14:48 -0400
+Message-Id: <20190601131653.24205-72-sashal@kernel.org>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20190601131653.24205-1-sashal@kernel.org>
+References: <20190601131653.24205-1-sashal@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190601084025.rheeejbn3clpgsmu@salvia>
-User-Agent: NeoMutt/20170113 (1.7.2)
+X-stable: review
+X-Patchwork-Hint: Ignore
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > >         if (skb->protocol != htons(ETH_P_IP))
-> > >                 goto err;
-> > 
-> > Wouldn't it be preferable to just use nft_pf() != NFPROTO_IPV4?
-> 
-> Then IPv4 options extension won't work from bridge and netdev families
-> too, right?
+From: Florian Westphal <fw@strlen.de>
 
-Ah, right.
+[ Upstream commit edbd82c5fba009f68d20b5db585be1e667c605f6 ]
+
+Following splat gets triggered when nfnetlink monitor is running while
+xtables-nft selftests are running:
+
+net/netfilter/nf_tables_api.c:1272 suspicious rcu_dereference_check() usage!
+other info that might help us debug this:
+
+1 lock held by xtables-nft-mul/27006:
+ #0: 00000000e0f85be9 (&net->nft.commit_mutex){+.+.}, at: nf_tables_valid_genid+0x1a/0x50
+Call Trace:
+ nf_tables_fill_chain_info.isra.45+0x6cc/0x6e0
+ nf_tables_chain_notify+0xf8/0x1a0
+ nf_tables_commit+0x165c/0x1740
+
+nf_tables_fill_chain_info() can be called both from dumps (rcu read locked)
+or from the transaction path if a userspace process subscribed to nftables
+notifications.
+
+In the 'table dump' case, rcu_access_pointer() cannot be used: We do not
+hold transaction mutex so the pointer can be NULLed right after the check.
+Just unconditionally fetch the value, then have the helper return
+immediately if its NULL.
+
+In the notification case we don't hold the rcu read lock, but updates are
+prevented due to transaction mutex. Use rcu_dereference_check() to make lockdep
+aware of this.
+
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ net/netfilter/nf_tables_api.c | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
+
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 1606eaa5ae0da..aa5e7b00a581f 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -1190,6 +1190,9 @@ static int nft_dump_stats(struct sk_buff *skb, struct nft_stats __percpu *stats)
+ 	u64 pkts, bytes;
+ 	int cpu;
+ 
++	if (!stats)
++		return 0;
++
+ 	memset(&total, 0, sizeof(total));
+ 	for_each_possible_cpu(cpu) {
+ 		cpu_stats = per_cpu_ptr(stats, cpu);
+@@ -1247,6 +1250,7 @@ static int nf_tables_fill_chain_info(struct sk_buff *skb, struct net *net,
+ 	if (nft_is_base_chain(chain)) {
+ 		const struct nft_base_chain *basechain = nft_base_chain(chain);
+ 		const struct nf_hook_ops *ops = &basechain->ops;
++		struct nft_stats __percpu *stats;
+ 		struct nlattr *nest;
+ 
+ 		nest = nla_nest_start(skb, NFTA_CHAIN_HOOK);
+@@ -1268,8 +1272,9 @@ static int nf_tables_fill_chain_info(struct sk_buff *skb, struct net *net,
+ 		if (nla_put_string(skb, NFTA_CHAIN_TYPE, basechain->type->name))
+ 			goto nla_put_failure;
+ 
+-		if (rcu_access_pointer(basechain->stats) &&
+-		    nft_dump_stats(skb, rcu_dereference(basechain->stats)))
++		stats = rcu_dereference_check(basechain->stats,
++					      lockdep_commit_lock_is_held(net));
++		if (nft_dump_stats(skb, stats))
+ 			goto nla_put_failure;
+ 	}
+ 
+-- 
+2.20.1
+
