@@ -4,47 +4,48 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 00B98C28CC1
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 64B94C28CC3
 	for <netfilter-devel@archiver.kernel.org>; Sat,  1 Jun 2019 18:24:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D088E2771D
-	for <netfilter-devel@archiver.kernel.org>; Sat,  1 Jun 2019 18:24:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4BCC82771D
+	for <netfilter-devel@archiver.kernel.org>; Sat,  1 Jun 2019 18:24:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726786AbfFASYH (ORCPT
+        id S1726869AbfFASYL (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 1 Jun 2019 14:24:07 -0400
-Received: from mail.us.es ([193.147.175.20]:40018 "EHLO mail.us.es"
+        Sat, 1 Jun 2019 14:24:11 -0400
+Received: from mail.us.es ([193.147.175.20]:40066 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726710AbfFASYH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 1 Jun 2019 14:24:07 -0400
+        id S1726798AbfFASYK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 1 Jun 2019 14:24:10 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id A18D7B60EC
+        by mail.us.es (Postfix) with ESMTP id F080CB60FC
         for <netfilter-devel@vger.kernel.org>; Sat,  1 Jun 2019 20:24:00 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 794D5DA70E
+        by antivirus1-rhel7.int (Postfix) with ESMTP id D3AF8DA70D
         for <netfilter-devel@vger.kernel.org>; Sat,  1 Jun 2019 20:24:00 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 2E927FF122; Sat,  1 Jun 2019 20:23:53 +0200 (CEST)
+        id 68757FF2C9; Sat,  1 Jun 2019 20:23:57 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id BDD41DA712;
-        Sat,  1 Jun 2019 20:23:50 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 6A901FF151;
+        Sat,  1 Jun 2019 20:23:54 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Sat, 01 Jun 2019 20:23:50 +0200 (CEST)
+ Sat, 01 Jun 2019 20:23:54 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (unknown [31.4.178.197])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 64D6A4265A32;
-        Sat,  1 Jun 2019 20:23:50 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 0FBB54265A32;
+        Sat,  1 Jun 2019 20:23:53 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 04/15] netfilter: xt_owner: Add supplementary groups option
-Date:   Sat,  1 Jun 2019 20:23:29 +0200
-Message-Id: <20190601182340.2662-5-pablo@netfilter.org>
+Subject: [PATCH 09/15] netfilter: conntrack, nat: prefer skb_ensure_writable
+Date:   Sat,  1 Jun 2019 20:23:34 +0200
+Message-Id: <20190601182340.2662-10-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20190601182340.2662-1-pablo@netfilter.org>
 References: <20190601182340.2662-1-pablo@netfilter.org>
@@ -54,75 +55,188 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Lukasz Pawelczyk <l.pawelczyk@samsung.com>
+From: Florian Westphal <fw@strlen.de>
 
-The XT_OWNER_SUPPL_GROUPS flag causes GIDs specified with XT_OWNER_GID
-to be also checked in the supplementary groups of a process.
+like previous patches -- convert conntrack to use the core helper.
 
-f_cred->group_info cannot be modified during its lifetime and f_cred
-holds a reference to it so it's safe to use.
-
-Signed-off-by: Lukasz Pawelczyk <l.pawelczyk@samsung.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/uapi/linux/netfilter/xt_owner.h |  7 ++++---
- net/netfilter/xt_owner.c                | 23 ++++++++++++++++++++---
- 2 files changed, 24 insertions(+), 6 deletions(-)
+ net/netfilter/nf_conntrack_proto_sctp.c |  2 +-
+ net/netfilter/nf_conntrack_seqadj.c     |  4 ++--
+ net/netfilter/nf_nat_helper.c           |  4 ++--
+ net/netfilter/nf_nat_proto.c            | 24 ++++++++++++------------
+ 4 files changed, 17 insertions(+), 17 deletions(-)
 
-diff --git a/include/uapi/linux/netfilter/xt_owner.h b/include/uapi/linux/netfilter/xt_owner.h
-index fa3ad84957d5..9e98c09eda32 100644
---- a/include/uapi/linux/netfilter/xt_owner.h
-+++ b/include/uapi/linux/netfilter/xt_owner.h
-@@ -5,9 +5,10 @@
- #include <linux/types.h>
+diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
+index 5b8dde266412..07c5208a4ea0 100644
+--- a/net/netfilter/nf_conntrack_proto_sctp.c
++++ b/net/netfilter/nf_conntrack_proto_sctp.c
+@@ -339,7 +339,7 @@ static bool sctp_error(struct sk_buff *skb,
+ 	if (state->hook == NF_INET_PRE_ROUTING &&
+ 	    state->net->ct.sysctl_checksum &&
+ 	    skb->ip_summed == CHECKSUM_NONE) {
+-		if (!skb_make_writable(skb, dataoff + sizeof(struct sctphdr))) {
++		if (skb_ensure_writable(skb, dataoff + sizeof(*sh))) {
+ 			logmsg = "nf_ct_sctp: failed to read header ";
+ 			goto out_invalid;
+ 		}
+diff --git a/net/netfilter/nf_conntrack_seqadj.c b/net/netfilter/nf_conntrack_seqadj.c
+index dc21a43cd145..3066449f8bd8 100644
+--- a/net/netfilter/nf_conntrack_seqadj.c
++++ b/net/netfilter/nf_conntrack_seqadj.c
+@@ -126,7 +126,7 @@ static unsigned int nf_ct_sack_adjust(struct sk_buff *skb,
+ 	optoff = protoff + sizeof(struct tcphdr);
+ 	optend = protoff + tcph->doff * 4;
  
- enum {
--	XT_OWNER_UID    = 1 << 0,
--	XT_OWNER_GID    = 1 << 1,
--	XT_OWNER_SOCKET = 1 << 2,
-+	XT_OWNER_UID          = 1 << 0,
-+	XT_OWNER_GID          = 1 << 1,
-+	XT_OWNER_SOCKET       = 1 << 2,
-+	XT_OWNER_SUPPL_GROUPS = 1 << 3,
- };
+-	if (!skb_make_writable(skb, optend))
++	if (skb_ensure_writable(skb, optend))
+ 		return 0;
  
- struct xt_owner_match_info {
-diff --git a/net/netfilter/xt_owner.c b/net/netfilter/xt_owner.c
-index 46686fb73784..a8784502aca6 100644
---- a/net/netfilter/xt_owner.c
-+++ b/net/netfilter/xt_owner.c
-@@ -91,11 +91,28 @@ owner_mt(const struct sk_buff *skb, struct xt_action_param *par)
- 	}
+ 	tcph = (void *)skb->data + protoff;
+@@ -176,7 +176,7 @@ int nf_ct_seq_adjust(struct sk_buff *skb,
+ 	this_way  = &seqadj->seq[dir];
+ 	other_way = &seqadj->seq[!dir];
  
- 	if (info->match & XT_OWNER_GID) {
-+		unsigned int i, match = false;
- 		kgid_t gid_min = make_kgid(net->user_ns, info->gid_min);
- 		kgid_t gid_max = make_kgid(net->user_ns, info->gid_max);
--		if ((gid_gte(filp->f_cred->fsgid, gid_min) &&
--		     gid_lte(filp->f_cred->fsgid, gid_max)) ^
--		    !(info->invert & XT_OWNER_GID))
-+		struct group_info *gi = filp->f_cred->group_info;
-+
-+		if (gid_gte(filp->f_cred->fsgid, gid_min) &&
-+		    gid_lte(filp->f_cred->fsgid, gid_max))
-+			match = true;
-+
-+		if (!match && (info->match & XT_OWNER_SUPPL_GROUPS) && gi) {
-+			for (i = 0; i < gi->ngroups; ++i) {
-+				kgid_t group = gi->gid[i];
-+
-+				if (gid_gte(group, gid_min) &&
-+				    gid_lte(group, gid_max)) {
-+					match = true;
-+					break;
-+				}
-+			}
-+		}
-+
-+		if (match ^ !(info->invert & XT_OWNER_GID))
- 			return false;
- 	}
+-	if (!skb_make_writable(skb, protoff + sizeof(*tcph)))
++	if (skb_ensure_writable(skb, protoff + sizeof(*tcph)))
+ 		return 0;
  
+ 	tcph = (void *)skb->data + protoff;
+diff --git a/net/netfilter/nf_nat_helper.c b/net/netfilter/nf_nat_helper.c
+index ccc06f7539d7..03e8e2d79375 100644
+--- a/net/netfilter/nf_nat_helper.c
++++ b/net/netfilter/nf_nat_helper.c
+@@ -98,7 +98,7 @@ bool __nf_nat_mangle_tcp_packet(struct sk_buff *skb,
+ 	struct tcphdr *tcph;
+ 	int oldlen, datalen;
+ 
+-	if (!skb_make_writable(skb, skb->len))
++	if (skb_ensure_writable(skb, skb->len))
+ 		return false;
+ 
+ 	if (rep_len > match_len &&
+@@ -148,7 +148,7 @@ nf_nat_mangle_udp_packet(struct sk_buff *skb,
+ 	struct udphdr *udph;
+ 	int datalen, oldlen;
+ 
+-	if (!skb_make_writable(skb, skb->len))
++	if (skb_ensure_writable(skb, skb->len))
+ 		return false;
+ 
+ 	if (rep_len > match_len &&
+diff --git a/net/netfilter/nf_nat_proto.c b/net/netfilter/nf_nat_proto.c
+index 84f5c90a7f21..04a6c1ac2526 100644
+--- a/net/netfilter/nf_nat_proto.c
++++ b/net/netfilter/nf_nat_proto.c
+@@ -73,7 +73,7 @@ static bool udp_manip_pkt(struct sk_buff *skb,
+ 	struct udphdr *hdr;
+ 	bool do_csum;
+ 
+-	if (!skb_make_writable(skb, hdroff + sizeof(*hdr)))
++	if (skb_ensure_writable(skb, hdroff + sizeof(*hdr)))
+ 		return false;
+ 
+ 	hdr = (struct udphdr *)(skb->data + hdroff);
+@@ -91,7 +91,7 @@ static bool udplite_manip_pkt(struct sk_buff *skb,
+ #ifdef CONFIG_NF_CT_PROTO_UDPLITE
+ 	struct udphdr *hdr;
+ 
+-	if (!skb_make_writable(skb, hdroff + sizeof(*hdr)))
++	if (skb_ensure_writable(skb, hdroff + sizeof(*hdr)))
+ 		return false;
+ 
+ 	hdr = (struct udphdr *)(skb->data + hdroff);
+@@ -117,7 +117,7 @@ sctp_manip_pkt(struct sk_buff *skb,
+ 	if (skb->len >= hdroff + sizeof(*hdr))
+ 		hdrsize = sizeof(*hdr);
+ 
+-	if (!skb_make_writable(skb, hdroff + hdrsize))
++	if (skb_ensure_writable(skb, hdroff + hdrsize))
+ 		return false;
+ 
+ 	hdr = (struct sctphdr *)(skb->data + hdroff);
+@@ -158,7 +158,7 @@ tcp_manip_pkt(struct sk_buff *skb,
+ 	if (skb->len >= hdroff + sizeof(struct tcphdr))
+ 		hdrsize = sizeof(struct tcphdr);
+ 
+-	if (!skb_make_writable(skb, hdroff + hdrsize))
++	if (skb_ensure_writable(skb, hdroff + hdrsize))
+ 		return false;
+ 
+ 	hdr = (struct tcphdr *)(skb->data + hdroff);
+@@ -198,7 +198,7 @@ dccp_manip_pkt(struct sk_buff *skb,
+ 	if (skb->len >= hdroff + sizeof(struct dccp_hdr))
+ 		hdrsize = sizeof(struct dccp_hdr);
+ 
+-	if (!skb_make_writable(skb, hdroff + hdrsize))
++	if (skb_ensure_writable(skb, hdroff + hdrsize))
+ 		return false;
+ 
+ 	hdr = (struct dccp_hdr *)(skb->data + hdroff);
+@@ -232,7 +232,7 @@ icmp_manip_pkt(struct sk_buff *skb,
+ {
+ 	struct icmphdr *hdr;
+ 
+-	if (!skb_make_writable(skb, hdroff + sizeof(*hdr)))
++	if (skb_ensure_writable(skb, hdroff + sizeof(*hdr)))
+ 		return false;
+ 
+ 	hdr = (struct icmphdr *)(skb->data + hdroff);
+@@ -250,7 +250,7 @@ icmpv6_manip_pkt(struct sk_buff *skb,
+ {
+ 	struct icmp6hdr *hdr;
+ 
+-	if (!skb_make_writable(skb, hdroff + sizeof(*hdr)))
++	if (skb_ensure_writable(skb, hdroff + sizeof(*hdr)))
+ 		return false;
+ 
+ 	hdr = (struct icmp6hdr *)(skb->data + hdroff);
+@@ -278,7 +278,7 @@ gre_manip_pkt(struct sk_buff *skb,
+ 
+ 	/* pgreh includes two optional 32bit fields which are not required
+ 	 * to be there.  That's where the magic '8' comes from */
+-	if (!skb_make_writable(skb, hdroff + sizeof(*pgreh) - 8))
++	if (skb_ensure_writable(skb, hdroff + sizeof(*pgreh) - 8))
+ 		return false;
+ 
+ 	greh = (void *)skb->data + hdroff;
+@@ -350,7 +350,7 @@ static bool nf_nat_ipv4_manip_pkt(struct sk_buff *skb,
+ 	struct iphdr *iph;
+ 	unsigned int hdroff;
+ 
+-	if (!skb_make_writable(skb, iphdroff + sizeof(*iph)))
++	if (skb_ensure_writable(skb, iphdroff + sizeof(*iph)))
+ 		return false;
+ 
+ 	iph = (void *)skb->data + iphdroff;
+@@ -381,7 +381,7 @@ static bool nf_nat_ipv6_manip_pkt(struct sk_buff *skb,
+ 	int hdroff;
+ 	u8 nexthdr;
+ 
+-	if (!skb_make_writable(skb, iphdroff + sizeof(*ipv6h)))
++	if (skb_ensure_writable(skb, iphdroff + sizeof(*ipv6h)))
+ 		return false;
+ 
+ 	ipv6h = (void *)skb->data + iphdroff;
+@@ -565,7 +565,7 @@ int nf_nat_icmp_reply_translation(struct sk_buff *skb,
+ 
+ 	WARN_ON(ctinfo != IP_CT_RELATED && ctinfo != IP_CT_RELATED_REPLY);
+ 
+-	if (!skb_make_writable(skb, hdrlen + sizeof(*inside)))
++	if (skb_ensure_writable(skb, hdrlen + sizeof(*inside)))
+ 		return 0;
+ 	if (nf_ip_checksum(skb, hooknum, hdrlen, 0))
+ 		return 0;
+@@ -787,7 +787,7 @@ int nf_nat_icmpv6_reply_translation(struct sk_buff *skb,
+ 
+ 	WARN_ON(ctinfo != IP_CT_RELATED && ctinfo != IP_CT_RELATED_REPLY);
+ 
+-	if (!skb_make_writable(skb, hdrlen + sizeof(*inside)))
++	if (skb_ensure_writable(skb, hdrlen + sizeof(*inside)))
+ 		return 0;
+ 	if (nf_ip6_checksum(skb, hooknum, hdrlen, IPPROTO_ICMPV6))
+ 		return 0;
 -- 
 2.11.0
 
