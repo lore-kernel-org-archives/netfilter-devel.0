@@ -4,48 +4,47 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 809A7C28CC3
-	for <netfilter-devel@archiver.kernel.org>; Sat,  1 Jun 2019 18:24:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 70CC9C28CC1
+	for <netfilter-devel@archiver.kernel.org>; Sat,  1 Jun 2019 18:24:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 67F1D2777E
-	for <netfilter-devel@archiver.kernel.org>; Sat,  1 Jun 2019 18:24:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 528672777F
+	for <netfilter-devel@archiver.kernel.org>; Sat,  1 Jun 2019 18:24:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726939AbfFASY2 (ORCPT
+        id S1726835AbfFASYI (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 1 Jun 2019 14:24:28 -0400
-Received: from mail.us.es ([193.147.175.20]:40014 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726762AbfFASYI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Sat, 1 Jun 2019 14:24:08 -0400
+Received: from mail.us.es ([193.147.175.20]:40016 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726211AbfFASYH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 1 Jun 2019 14:24:07 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id DEE6CB60FB
+        by mail.us.es (Postfix) with ESMTP id 7B17FB60E4
         for <netfilter-devel@vger.kernel.org>; Sat,  1 Jun 2019 20:24:00 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id CB2A1DA709
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 592B9DA709
         for <netfilter-devel@vger.kernel.org>; Sat,  1 Jun 2019 20:24:00 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 849D5FF15D; Sat,  1 Jun 2019 20:23:56 +0200 (CEST)
+        id 1573BFF138; Sat,  1 Jun 2019 20:23:52 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id B32F1DA720;
-        Sat,  1 Jun 2019 20:23:53 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 4824FB7FEA;
+        Sat,  1 Jun 2019 20:23:49 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Sat, 01 Jun 2019 20:23:53 +0200 (CEST)
+ Sat, 01 Jun 2019 20:23:49 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (unknown [31.4.178.197])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 57C2F4265A32;
-        Sat,  1 Jun 2019 20:23:53 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id DAB594265A32;
+        Sat,  1 Jun 2019 20:23:48 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 08/15] netfilter: ipvs: prefer skb_ensure_writable
-Date:   Sat,  1 Jun 2019 20:23:33 +0200
-Message-Id: <20190601182340.2662-9-pablo@netfilter.org>
+Subject: [PATCH 02/15] ipvs: add function to find tunnels
+Date:   Sat,  1 Jun 2019 20:23:27 +0200
+Message-Id: <20190601182340.2662-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20190601182340.2662-1-pablo@netfilter.org>
 References: <20190601182340.2662-1-pablo@netfilter.org>
@@ -55,213 +54,111 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+From: Julian Anastasov <ja@ssi.bg>
 
-It does the same thing, use it instead so we can remove skb_make_writable.
+Add ip_vs_find_tunnel() to match tunnel headers
+by family, address and optional port. Use it to
+properly find the tunnel real server used in
+received ICMP errors.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Acked-by: Simon Horman <horms@verge.net.au>
+Signed-off-by: Julian Anastasov <ja@ssi.bg>
+Signed-off-by: Simon Horman <horms@verge.net.au>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/ipvs/ip_vs_app.c        |  4 ++--
- net/netfilter/ipvs/ip_vs_core.c       |  4 ++--
- net/netfilter/ipvs/ip_vs_ftp.c        |  4 ++--
- net/netfilter/ipvs/ip_vs_proto_sctp.c |  4 ++--
- net/netfilter/ipvs/ip_vs_proto_tcp.c  |  4 ++--
- net/netfilter/ipvs/ip_vs_proto_udp.c  |  4 ++--
- net/netfilter/ipvs/ip_vs_xmit.c       | 12 ++++++------
- 7 files changed, 18 insertions(+), 18 deletions(-)
+ include/net/ip_vs.h             |  3 +++
+ net/netfilter/ipvs/ip_vs_core.c |  8 ++++++++
+ net/netfilter/ipvs/ip_vs_ctl.c  | 29 +++++++++++++++++++++++++++++
+ 3 files changed, 40 insertions(+)
 
-diff --git a/net/netfilter/ipvs/ip_vs_app.c b/net/netfilter/ipvs/ip_vs_app.c
-index 7588aeaa605f..ba34ac25ee7b 100644
---- a/net/netfilter/ipvs/ip_vs_app.c
-+++ b/net/netfilter/ipvs/ip_vs_app.c
-@@ -363,7 +363,7 @@ static inline int app_tcp_pkt_out(struct ip_vs_conn *cp, struct sk_buff *skb,
- 	struct tcphdr *th;
- 	__u32 seq;
+diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
+index 9a8ac8997e34..b01a94ebfc0e 100644
+--- a/include/net/ip_vs.h
++++ b/include/net/ip_vs.h
+@@ -1404,6 +1404,9 @@ bool ip_vs_has_real_service(struct netns_ipvs *ipvs, int af, __u16 protocol,
+ struct ip_vs_dest *
+ ip_vs_find_real_service(struct netns_ipvs *ipvs, int af, __u16 protocol,
+ 			const union nf_inet_addr *daddr, __be16 dport);
++struct ip_vs_dest *ip_vs_find_tunnel(struct netns_ipvs *ipvs, int af,
++				     const union nf_inet_addr *daddr,
++				     __be16 tun_port);
  
--	if (!skb_make_writable(skb, tcp_offset + sizeof(*th)))
-+	if (skb_ensure_writable(skb, tcp_offset + sizeof(*th)))
- 		return 0;
- 
- 	th = (struct tcphdr *)(skb_network_header(skb) + tcp_offset);
-@@ -440,7 +440,7 @@ static inline int app_tcp_pkt_in(struct ip_vs_conn *cp, struct sk_buff *skb,
- 	struct tcphdr *th;
- 	__u32 seq;
- 
--	if (!skb_make_writable(skb, tcp_offset + sizeof(*th)))
-+	if (skb_ensure_writable(skb, tcp_offset + sizeof(*th)))
- 		return 0;
- 
- 	th = (struct tcphdr *)(skb_network_header(skb) + tcp_offset);
+ int ip_vs_use_count_inc(void);
+ void ip_vs_use_count_dec(void);
 diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-index d1d7b2483fd7..90adca9a5510 100644
+index 14457551bcb4..4447ee512b88 100644
 --- a/net/netfilter/ipvs/ip_vs_core.c
 +++ b/net/netfilter/ipvs/ip_vs_core.c
-@@ -898,7 +898,7 @@ static int handle_response_icmp(int af, struct sk_buff *skb,
- 	if (IPPROTO_TCP == protocol || IPPROTO_UDP == protocol ||
- 	    IPPROTO_SCTP == protocol)
- 		offset += 2 * sizeof(__u16);
--	if (!skb_make_writable(skb, offset))
-+	if (skb_ensure_writable(skb, offset))
- 		goto out;
+@@ -1598,6 +1598,7 @@ ip_vs_in_icmp(struct netns_ipvs *ipvs, struct sk_buff *skb, int *related,
+ 	struct ip_vs_proto_data *pd;
+ 	unsigned int offset, offset2, ihl, verdict;
+ 	bool ipip, new_cp = false;
++	union nf_inet_addr *raddr;
  
- #ifdef CONFIG_IP_VS_IPV6
-@@ -1288,7 +1288,7 @@ handle_response(int af, struct sk_buff *skb, struct ip_vs_proto_data *pd,
+ 	*related = 1;
  
- 	IP_VS_DBG_PKT(11, af, pp, skb, iph->off, "Outgoing packet");
+@@ -1636,15 +1637,22 @@ ip_vs_in_icmp(struct netns_ipvs *ipvs, struct sk_buff *skb, int *related,
+ 	cih = skb_header_pointer(skb, offset, sizeof(_ciph), &_ciph);
+ 	if (cih == NULL)
+ 		return NF_ACCEPT; /* The packet looks wrong, ignore */
++	raddr = (union nf_inet_addr *)&cih->daddr;
  
--	if (!skb_make_writable(skb, iph->len))
-+	if (skb_ensure_writable(skb, iph->len))
- 		goto drop;
+ 	/* Special case for errors for IPIP packets */
+ 	ipip = false;
+ 	if (cih->protocol == IPPROTO_IPIP) {
++		struct ip_vs_dest *dest;
++
+ 		if (unlikely(cih->frag_off & htons(IP_OFFSET)))
+ 			return NF_ACCEPT;
+ 		/* Error for our IPIP must arrive at LOCAL_IN */
+ 		if (!(skb_rtable(skb)->rt_flags & RTCF_LOCAL))
+ 			return NF_ACCEPT;
++		dest = ip_vs_find_tunnel(ipvs, AF_INET, raddr, 0);
++		/* Only for known tunnel */
++		if (!dest || dest->tun_type != IP_VS_CONN_F_TUNNEL_TYPE_IPIP)
++			return NF_ACCEPT;
+ 		offset += cih->ihl * 4;
+ 		cih = skb_header_pointer(skb, offset, sizeof(_ciph), &_ciph);
+ 		if (cih == NULL)
+diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+index 30b1a9f9c2e3..d5847e06350f 100644
+--- a/net/netfilter/ipvs/ip_vs_ctl.c
++++ b/net/netfilter/ipvs/ip_vs_ctl.c
+@@ -617,6 +617,35 @@ struct ip_vs_dest *ip_vs_find_real_service(struct netns_ipvs *ipvs, int af,
+ 	return NULL;
+ }
  
- 	/* mangle the packet */
-diff --git a/net/netfilter/ipvs/ip_vs_ftp.c b/net/netfilter/ipvs/ip_vs_ftp.c
-index fe69d46ff779..5cbefa927f09 100644
---- a/net/netfilter/ipvs/ip_vs_ftp.c
-+++ b/net/netfilter/ipvs/ip_vs_ftp.c
-@@ -273,7 +273,7 @@ static int ip_vs_ftp_out(struct ip_vs_app *app, struct ip_vs_conn *cp,
- 		return 1;
- 
- 	/* Linear packets are much easier to deal with. */
--	if (!skb_make_writable(skb, skb->len))
-+	if (skb_ensure_writable(skb, skb->len))
- 		return 0;
- 
- 	if (cp->app_data == (void *) IP_VS_FTP_PASV) {
-@@ -439,7 +439,7 @@ static int ip_vs_ftp_in(struct ip_vs_app *app, struct ip_vs_conn *cp,
- 		return 1;
- 
- 	/* Linear packets are much easier to deal with. */
--	if (!skb_make_writable(skb, skb->len))
-+	if (skb_ensure_writable(skb, skb->len))
- 		return 0;
- 
- 	data = data_start = ip_vs_ftp_data_ptr(skb, ipvsh);
-diff --git a/net/netfilter/ipvs/ip_vs_proto_sctp.c b/net/netfilter/ipvs/ip_vs_proto_sctp.c
-index b58ddb7dffd1..a0921adc31a9 100644
---- a/net/netfilter/ipvs/ip_vs_proto_sctp.c
-+++ b/net/netfilter/ipvs/ip_vs_proto_sctp.c
-@@ -101,7 +101,7 @@ sctp_snat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
- #endif
- 
- 	/* csum_check requires unshared skb */
--	if (!skb_make_writable(skb, sctphoff + sizeof(*sctph)))
-+	if (skb_ensure_writable(skb, sctphoff + sizeof(*sctph)))
- 		return 0;
- 
- 	if (unlikely(cp->app != NULL)) {
-@@ -148,7 +148,7 @@ sctp_dnat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
- #endif
- 
- 	/* csum_check requires unshared skb */
--	if (!skb_make_writable(skb, sctphoff + sizeof(*sctph)))
-+	if (skb_ensure_writable(skb, sctphoff + sizeof(*sctph)))
- 		return 0;
- 
- 	if (unlikely(cp->app != NULL)) {
-diff --git a/net/netfilter/ipvs/ip_vs_proto_tcp.c b/net/netfilter/ipvs/ip_vs_proto_tcp.c
-index 00ce07dda980..089ee592a955 100644
---- a/net/netfilter/ipvs/ip_vs_proto_tcp.c
-+++ b/net/netfilter/ipvs/ip_vs_proto_tcp.c
-@@ -163,7 +163,7 @@ tcp_snat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
- 	oldlen = skb->len - tcphoff;
- 
- 	/* csum_check requires unshared skb */
--	if (!skb_make_writable(skb, tcphoff+sizeof(*tcph)))
-+	if (skb_ensure_writable(skb, tcphoff + sizeof(*tcph)))
- 		return 0;
- 
- 	if (unlikely(cp->app != NULL)) {
-@@ -241,7 +241,7 @@ tcp_dnat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
- 	oldlen = skb->len - tcphoff;
- 
- 	/* csum_check requires unshared skb */
--	if (!skb_make_writable(skb, tcphoff+sizeof(*tcph)))
-+	if (skb_ensure_writable(skb, tcphoff + sizeof(*tcph)))
- 		return 0;
- 
- 	if (unlikely(cp->app != NULL)) {
-diff --git a/net/netfilter/ipvs/ip_vs_proto_udp.c b/net/netfilter/ipvs/ip_vs_proto_udp.c
-index 92c078abcb3e..de366aa3c03b 100644
---- a/net/netfilter/ipvs/ip_vs_proto_udp.c
-+++ b/net/netfilter/ipvs/ip_vs_proto_udp.c
-@@ -153,7 +153,7 @@ udp_snat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
- 	oldlen = skb->len - udphoff;
- 
- 	/* csum_check requires unshared skb */
--	if (!skb_make_writable(skb, udphoff+sizeof(*udph)))
-+	if (skb_ensure_writable(skb, udphoff + sizeof(*udph)))
- 		return 0;
- 
- 	if (unlikely(cp->app != NULL)) {
-@@ -236,7 +236,7 @@ udp_dnat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
- 	oldlen = skb->len - udphoff;
- 
- 	/* csum_check requires unshared skb */
--	if (!skb_make_writable(skb, udphoff+sizeof(*udph)))
-+	if (skb_ensure_writable(skb, udphoff + sizeof(*udph)))
- 		return 0;
- 
- 	if (unlikely(cp->app != NULL)) {
-diff --git a/net/netfilter/ipvs/ip_vs_xmit.c b/net/netfilter/ipvs/ip_vs_xmit.c
-index 8d6f94b67772..0b41d0504429 100644
---- a/net/netfilter/ipvs/ip_vs_xmit.c
-+++ b/net/netfilter/ipvs/ip_vs_xmit.c
-@@ -279,7 +279,7 @@ static inline bool decrement_ttl(struct netns_ipvs *ipvs,
- 		}
- 
- 		/* don't propagate ttl change to cloned packets */
--		if (!skb_make_writable(skb, sizeof(struct ipv6hdr)))
-+		if (skb_ensure_writable(skb, sizeof(struct ipv6hdr)))
- 			return false;
- 
- 		ipv6_hdr(skb)->hop_limit--;
-@@ -294,7 +294,7 @@ static inline bool decrement_ttl(struct netns_ipvs *ipvs,
- 		}
- 
- 		/* don't propagate ttl change to cloned packets */
--		if (!skb_make_writable(skb, sizeof(struct iphdr)))
-+		if (skb_ensure_writable(skb, sizeof(struct iphdr)))
- 			return false;
- 
- 		/* Decrease ttl */
-@@ -796,7 +796,7 @@ ip_vs_nat_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
- 	}
- 
- 	/* copy-on-write the packet before mangling it */
--	if (!skb_make_writable(skb, sizeof(struct iphdr)))
-+	if (skb_ensure_writable(skb, sizeof(struct iphdr)))
- 		goto tx_error;
- 
- 	if (skb_cow(skb, rt->dst.dev->hard_header_len))
-@@ -885,7 +885,7 @@ ip_vs_nat_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
- 	}
- 
- 	/* copy-on-write the packet before mangling it */
--	if (!skb_make_writable(skb, sizeof(struct ipv6hdr)))
-+	if (skb_ensure_writable(skb, sizeof(struct ipv6hdr)))
- 		goto tx_error;
- 
- 	if (skb_cow(skb, rt->dst.dev->hard_header_len))
-@@ -1404,7 +1404,7 @@ ip_vs_icmp_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
- 	}
- 
- 	/* copy-on-write the packet before mangling it */
--	if (!skb_make_writable(skb, offset))
-+	if (skb_ensure_writable(skb, offset))
- 		goto tx_error;
- 
- 	if (skb_cow(skb, rt->dst.dev->hard_header_len))
-@@ -1493,7 +1493,7 @@ ip_vs_icmp_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
- 	}
- 
- 	/* copy-on-write the packet before mangling it */
--	if (!skb_make_writable(skb, offset))
-+	if (skb_ensure_writable(skb, offset))
- 		goto tx_error;
- 
- 	if (skb_cow(skb, rt->dst.dev->hard_header_len))
++/* Find real service record by <af,addr,tun_port>.
++ * In case of multiple records with the same <af,addr,tun_port>, only
++ * the first found record is returned.
++ *
++ * To be called under RCU lock.
++ */
++struct ip_vs_dest *ip_vs_find_tunnel(struct netns_ipvs *ipvs, int af,
++				     const union nf_inet_addr *daddr,
++				     __be16 tun_port)
++{
++	struct ip_vs_dest *dest;
++	unsigned int hash;
++
++	/* Check for "full" addressed entries */
++	hash = ip_vs_rs_hashkey(af, daddr, tun_port);
++
++	hlist_for_each_entry_rcu(dest, &ipvs->rs_table[hash], d_list) {
++		if (dest->tun_port == tun_port &&
++		    dest->af == af &&
++		    ip_vs_addr_equal(af, &dest->addr, daddr) &&
++		    IP_VS_DFWD_METHOD(dest) == IP_VS_CONN_F_TUNNEL) {
++			/* HIT */
++			return dest;
++		}
++	}
++
++	return NULL;
++}
++
+ /* Lookup destination by {addr,port} in the given service
+  * Called under RCU lock.
+  */
 -- 
 2.11.0
 
