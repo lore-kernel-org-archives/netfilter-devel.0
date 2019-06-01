@@ -4,48 +4,47 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 64B94C28CC3
-	for <netfilter-devel@archiver.kernel.org>; Sat,  1 Jun 2019 18:24:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B58D2C28CC4
+	for <netfilter-devel@archiver.kernel.org>; Sat,  1 Jun 2019 18:24:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4BCC82771D
-	for <netfilter-devel@archiver.kernel.org>; Sat,  1 Jun 2019 18:24:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9C8B82775D
+	for <netfilter-devel@archiver.kernel.org>; Sat,  1 Jun 2019 18:24:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726869AbfFASYL (ORCPT
+        id S1726894AbfFASYP (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 1 Jun 2019 14:24:11 -0400
-Received: from mail.us.es ([193.147.175.20]:40066 "EHLO mail.us.es"
+        Sat, 1 Jun 2019 14:24:15 -0400
+Received: from mail.us.es ([193.147.175.20]:40078 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726798AbfFASYK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        id S1726828AbfFASYK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Sat, 1 Jun 2019 14:24:10 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id F080CB60FC
-        for <netfilter-devel@vger.kernel.org>; Sat,  1 Jun 2019 20:24:00 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 1EA9EFF130
+        for <netfilter-devel@vger.kernel.org>; Sat,  1 Jun 2019 20:24:01 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id D3AF8DA70D
-        for <netfilter-devel@vger.kernel.org>; Sat,  1 Jun 2019 20:24:00 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 0B97ADA70A
+        for <netfilter-devel@vger.kernel.org>; Sat,  1 Jun 2019 20:24:01 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 68757FF2C9; Sat,  1 Jun 2019 20:23:57 +0200 (CEST)
+        id A9120DA705; Sat,  1 Jun 2019 20:24:00 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 6A901FF151;
-        Sat,  1 Jun 2019 20:23:54 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 0458DDA702;
+        Sat,  1 Jun 2019 20:23:58 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Sat, 01 Jun 2019 20:23:54 +0200 (CEST)
+ Sat, 01 Jun 2019 20:23:57 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (unknown [31.4.178.197])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 0FBB54265A32;
-        Sat,  1 Jun 2019 20:23:53 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 9E13E4265A31;
+        Sat,  1 Jun 2019 20:23:57 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 09/15] netfilter: conntrack, nat: prefer skb_ensure_writable
-Date:   Sat,  1 Jun 2019 20:23:34 +0200
-Message-Id: <20190601182340.2662-10-pablo@netfilter.org>
+Subject: [PATCH 14/15] netfilter: replace skb_make_writable with skb_ensure_writable
+Date:   Sat,  1 Jun 2019 20:23:39 +0200
+Message-Id: <20190601182340.2662-15-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20190601182340.2662-1-pablo@netfilter.org>
 References: <20190601182340.2662-1-pablo@netfilter.org>
@@ -57,186 +56,134 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Florian Westphal <fw@strlen.de>
 
-like previous patches -- convert conntrack to use the core helper.
+This converts all remaining users and then removes skb_make_writable.
 
+Suggested-by: Daniel Borkmann <daniel@iogearbox.net>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_conntrack_proto_sctp.c |  2 +-
- net/netfilter/nf_conntrack_seqadj.c     |  4 ++--
- net/netfilter/nf_nat_helper.c           |  4 ++--
- net/netfilter/nf_nat_proto.c            | 24 ++++++++++++------------
- 4 files changed, 17 insertions(+), 17 deletions(-)
+ include/linux/netfilter.h        |  5 -----
+ net/netfilter/core.c             | 22 ----------------------
+ net/netfilter/nf_synproxy_core.c |  2 +-
+ net/netfilter/nfnetlink_queue.c  |  2 +-
+ net/netfilter/xt_DSCP.c          |  8 ++++----
+ 5 files changed, 6 insertions(+), 33 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
-index 5b8dde266412..07c5208a4ea0 100644
---- a/net/netfilter/nf_conntrack_proto_sctp.c
-+++ b/net/netfilter/nf_conntrack_proto_sctp.c
-@@ -339,7 +339,7 @@ static bool sctp_error(struct sk_buff *skb,
- 	if (state->hook == NF_INET_PRE_ROUTING &&
- 	    state->net->ct.sysctl_checksum &&
- 	    skb->ip_summed == CHECKSUM_NONE) {
--		if (!skb_make_writable(skb, dataoff + sizeof(struct sctphdr))) {
-+		if (skb_ensure_writable(skb, dataoff + sizeof(*sh))) {
- 			logmsg = "nf_ct_sctp: failed to read header ";
- 			goto out_invalid;
- 		}
-diff --git a/net/netfilter/nf_conntrack_seqadj.c b/net/netfilter/nf_conntrack_seqadj.c
-index dc21a43cd145..3066449f8bd8 100644
---- a/net/netfilter/nf_conntrack_seqadj.c
-+++ b/net/netfilter/nf_conntrack_seqadj.c
-@@ -126,7 +126,7 @@ static unsigned int nf_ct_sack_adjust(struct sk_buff *skb,
+diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
+index 996bc247ef6e..049aeb40fa35 100644
+--- a/include/linux/netfilter.h
++++ b/include/linux/netfilter.h
+@@ -336,11 +336,6 @@ int compat_nf_getsockopt(struct sock *sk, u_int8_t pf, int optval,
+ 		char __user *opt, int *len);
+ #endif
+ 
+-/* Call this before modifying an existing packet: ensures it is
+-   modifiable and linear to the point you care about (writable_len).
+-   Returns true or false. */
+-int skb_make_writable(struct sk_buff *skb, unsigned int writable_len);
+-
+ struct flowi;
+ struct nf_queue_entry;
+ 
+diff --git a/net/netfilter/core.c b/net/netfilter/core.c
+index b96fd3f54705..817a9e5d16e4 100644
+--- a/net/netfilter/core.c
++++ b/net/netfilter/core.c
+@@ -536,28 +536,6 @@ int nf_hook_slow(struct sk_buff *skb, struct nf_hook_state *state,
+ }
+ EXPORT_SYMBOL(nf_hook_slow);
+ 
+-
+-int skb_make_writable(struct sk_buff *skb, unsigned int writable_len)
+-{
+-	if (writable_len > skb->len)
+-		return 0;
+-
+-	/* Not exclusive use of packet?  Must copy. */
+-	if (!skb_cloned(skb)) {
+-		if (writable_len <= skb_headlen(skb))
+-			return 1;
+-	} else if (skb_clone_writable(skb, writable_len))
+-		return 1;
+-
+-	if (writable_len <= skb_headlen(skb))
+-		writable_len = 0;
+-	else
+-		writable_len -= skb_headlen(skb);
+-
+-	return !!__pskb_pull_tail(skb, writable_len);
+-}
+-EXPORT_SYMBOL(skb_make_writable);
+-
+ /* This needs to be compiled in any case to avoid dependencies between the
+  * nfnetlink_queue code and nf_conntrack.
+  */
+diff --git a/net/netfilter/nf_synproxy_core.c b/net/netfilter/nf_synproxy_core.c
+index 8ff4d22f10b2..3d58a9e93e5a 100644
+--- a/net/netfilter/nf_synproxy_core.c
++++ b/net/netfilter/nf_synproxy_core.c
+@@ -196,7 +196,7 @@ unsigned int synproxy_tstamp_adjust(struct sk_buff *skb,
  	optoff = protoff + sizeof(struct tcphdr);
- 	optend = protoff + tcph->doff * 4;
+ 	optend = protoff + th->doff * 4;
  
 -	if (!skb_make_writable(skb, optend))
 +	if (skb_ensure_writable(skb, optend))
  		return 0;
  
- 	tcph = (void *)skb->data + protoff;
-@@ -176,7 +176,7 @@ int nf_ct_seq_adjust(struct sk_buff *skb,
- 	this_way  = &seqadj->seq[dir];
- 	other_way = &seqadj->seq[!dir];
+ 	while (optoff < optend) {
+diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+index 27dac47b29c2..831f57008d78 100644
+--- a/net/netfilter/nfnetlink_queue.c
++++ b/net/netfilter/nfnetlink_queue.c
+@@ -863,7 +863,7 @@ nfqnl_mangle(void *data, int data_len, struct nf_queue_entry *e, int diff)
+ 		}
+ 		skb_put(e->skb, diff);
+ 	}
+-	if (!skb_make_writable(e->skb, data_len))
++	if (skb_ensure_writable(e->skb, data_len))
+ 		return -ENOMEM;
+ 	skb_copy_to_linear_data(e->skb, data, data_len);
+ 	e->skb->ip_summed = CHECKSUM_NONE;
+diff --git a/net/netfilter/xt_DSCP.c b/net/netfilter/xt_DSCP.c
+index 098ed851b7a7..30d554d6c213 100644
+--- a/net/netfilter/xt_DSCP.c
++++ b/net/netfilter/xt_DSCP.c
+@@ -34,7 +34,7 @@ dscp_tg(struct sk_buff *skb, const struct xt_action_param *par)
+ 	u_int8_t dscp = ipv4_get_dsfield(ip_hdr(skb)) >> XT_DSCP_SHIFT;
  
--	if (!skb_make_writable(skb, protoff + sizeof(*tcph)))
-+	if (skb_ensure_writable(skb, protoff + sizeof(*tcph)))
- 		return 0;
+ 	if (dscp != dinfo->dscp) {
+-		if (!skb_make_writable(skb, sizeof(struct iphdr)))
++		if (skb_ensure_writable(skb, sizeof(struct iphdr)))
+ 			return NF_DROP;
  
- 	tcph = (void *)skb->data + protoff;
-diff --git a/net/netfilter/nf_nat_helper.c b/net/netfilter/nf_nat_helper.c
-index ccc06f7539d7..03e8e2d79375 100644
---- a/net/netfilter/nf_nat_helper.c
-+++ b/net/netfilter/nf_nat_helper.c
-@@ -98,7 +98,7 @@ bool __nf_nat_mangle_tcp_packet(struct sk_buff *skb,
- 	struct tcphdr *tcph;
- 	int oldlen, datalen;
+ 		ipv4_change_dsfield(ip_hdr(skb),
+@@ -52,7 +52,7 @@ dscp_tg6(struct sk_buff *skb, const struct xt_action_param *par)
+ 	u_int8_t dscp = ipv6_get_dsfield(ipv6_hdr(skb)) >> XT_DSCP_SHIFT;
  
--	if (!skb_make_writable(skb, skb->len))
-+	if (skb_ensure_writable(skb, skb->len))
- 		return false;
+ 	if (dscp != dinfo->dscp) {
+-		if (!skb_make_writable(skb, sizeof(struct ipv6hdr)))
++		if (skb_ensure_writable(skb, sizeof(struct ipv6hdr)))
+ 			return NF_DROP;
  
- 	if (rep_len > match_len &&
-@@ -148,7 +148,7 @@ nf_nat_mangle_udp_packet(struct sk_buff *skb,
- 	struct udphdr *udph;
- 	int datalen, oldlen;
+ 		ipv6_change_dsfield(ipv6_hdr(skb),
+@@ -82,7 +82,7 @@ tos_tg(struct sk_buff *skb, const struct xt_action_param *par)
+ 	nv   = (orig & ~info->tos_mask) ^ info->tos_value;
  
--	if (!skb_make_writable(skb, skb->len))
-+	if (skb_ensure_writable(skb, skb->len))
- 		return false;
+ 	if (orig != nv) {
+-		if (!skb_make_writable(skb, sizeof(struct iphdr)))
++		if (skb_ensure_writable(skb, sizeof(struct iphdr)))
+ 			return NF_DROP;
+ 		iph = ip_hdr(skb);
+ 		ipv4_change_dsfield(iph, 0, nv);
+@@ -102,7 +102,7 @@ tos_tg6(struct sk_buff *skb, const struct xt_action_param *par)
+ 	nv   = (orig & ~info->tos_mask) ^ info->tos_value;
  
- 	if (rep_len > match_len &&
-diff --git a/net/netfilter/nf_nat_proto.c b/net/netfilter/nf_nat_proto.c
-index 84f5c90a7f21..04a6c1ac2526 100644
---- a/net/netfilter/nf_nat_proto.c
-+++ b/net/netfilter/nf_nat_proto.c
-@@ -73,7 +73,7 @@ static bool udp_manip_pkt(struct sk_buff *skb,
- 	struct udphdr *hdr;
- 	bool do_csum;
- 
--	if (!skb_make_writable(skb, hdroff + sizeof(*hdr)))
-+	if (skb_ensure_writable(skb, hdroff + sizeof(*hdr)))
- 		return false;
- 
- 	hdr = (struct udphdr *)(skb->data + hdroff);
-@@ -91,7 +91,7 @@ static bool udplite_manip_pkt(struct sk_buff *skb,
- #ifdef CONFIG_NF_CT_PROTO_UDPLITE
- 	struct udphdr *hdr;
- 
--	if (!skb_make_writable(skb, hdroff + sizeof(*hdr)))
-+	if (skb_ensure_writable(skb, hdroff + sizeof(*hdr)))
- 		return false;
- 
- 	hdr = (struct udphdr *)(skb->data + hdroff);
-@@ -117,7 +117,7 @@ sctp_manip_pkt(struct sk_buff *skb,
- 	if (skb->len >= hdroff + sizeof(*hdr))
- 		hdrsize = sizeof(*hdr);
- 
--	if (!skb_make_writable(skb, hdroff + hdrsize))
-+	if (skb_ensure_writable(skb, hdroff + hdrsize))
- 		return false;
- 
- 	hdr = (struct sctphdr *)(skb->data + hdroff);
-@@ -158,7 +158,7 @@ tcp_manip_pkt(struct sk_buff *skb,
- 	if (skb->len >= hdroff + sizeof(struct tcphdr))
- 		hdrsize = sizeof(struct tcphdr);
- 
--	if (!skb_make_writable(skb, hdroff + hdrsize))
-+	if (skb_ensure_writable(skb, hdroff + hdrsize))
- 		return false;
- 
- 	hdr = (struct tcphdr *)(skb->data + hdroff);
-@@ -198,7 +198,7 @@ dccp_manip_pkt(struct sk_buff *skb,
- 	if (skb->len >= hdroff + sizeof(struct dccp_hdr))
- 		hdrsize = sizeof(struct dccp_hdr);
- 
--	if (!skb_make_writable(skb, hdroff + hdrsize))
-+	if (skb_ensure_writable(skb, hdroff + hdrsize))
- 		return false;
- 
- 	hdr = (struct dccp_hdr *)(skb->data + hdroff);
-@@ -232,7 +232,7 @@ icmp_manip_pkt(struct sk_buff *skb,
- {
- 	struct icmphdr *hdr;
- 
--	if (!skb_make_writable(skb, hdroff + sizeof(*hdr)))
-+	if (skb_ensure_writable(skb, hdroff + sizeof(*hdr)))
- 		return false;
- 
- 	hdr = (struct icmphdr *)(skb->data + hdroff);
-@@ -250,7 +250,7 @@ icmpv6_manip_pkt(struct sk_buff *skb,
- {
- 	struct icmp6hdr *hdr;
- 
--	if (!skb_make_writable(skb, hdroff + sizeof(*hdr)))
-+	if (skb_ensure_writable(skb, hdroff + sizeof(*hdr)))
- 		return false;
- 
- 	hdr = (struct icmp6hdr *)(skb->data + hdroff);
-@@ -278,7 +278,7 @@ gre_manip_pkt(struct sk_buff *skb,
- 
- 	/* pgreh includes two optional 32bit fields which are not required
- 	 * to be there.  That's where the magic '8' comes from */
--	if (!skb_make_writable(skb, hdroff + sizeof(*pgreh) - 8))
-+	if (skb_ensure_writable(skb, hdroff + sizeof(*pgreh) - 8))
- 		return false;
- 
- 	greh = (void *)skb->data + hdroff;
-@@ -350,7 +350,7 @@ static bool nf_nat_ipv4_manip_pkt(struct sk_buff *skb,
- 	struct iphdr *iph;
- 	unsigned int hdroff;
- 
--	if (!skb_make_writable(skb, iphdroff + sizeof(*iph)))
-+	if (skb_ensure_writable(skb, iphdroff + sizeof(*iph)))
- 		return false;
- 
- 	iph = (void *)skb->data + iphdroff;
-@@ -381,7 +381,7 @@ static bool nf_nat_ipv6_manip_pkt(struct sk_buff *skb,
- 	int hdroff;
- 	u8 nexthdr;
- 
--	if (!skb_make_writable(skb, iphdroff + sizeof(*ipv6h)))
-+	if (skb_ensure_writable(skb, iphdroff + sizeof(*ipv6h)))
- 		return false;
- 
- 	ipv6h = (void *)skb->data + iphdroff;
-@@ -565,7 +565,7 @@ int nf_nat_icmp_reply_translation(struct sk_buff *skb,
- 
- 	WARN_ON(ctinfo != IP_CT_RELATED && ctinfo != IP_CT_RELATED_REPLY);
- 
--	if (!skb_make_writable(skb, hdrlen + sizeof(*inside)))
-+	if (skb_ensure_writable(skb, hdrlen + sizeof(*inside)))
- 		return 0;
- 	if (nf_ip_checksum(skb, hooknum, hdrlen, 0))
- 		return 0;
-@@ -787,7 +787,7 @@ int nf_nat_icmpv6_reply_translation(struct sk_buff *skb,
- 
- 	WARN_ON(ctinfo != IP_CT_RELATED && ctinfo != IP_CT_RELATED_REPLY);
- 
--	if (!skb_make_writable(skb, hdrlen + sizeof(*inside)))
-+	if (skb_ensure_writable(skb, hdrlen + sizeof(*inside)))
- 		return 0;
- 	if (nf_ip6_checksum(skb, hooknum, hdrlen, IPPROTO_ICMPV6))
- 		return 0;
+ 	if (orig != nv) {
+-		if (!skb_make_writable(skb, sizeof(struct iphdr)))
++		if (skb_ensure_writable(skb, sizeof(struct iphdr)))
+ 			return NF_DROP;
+ 		iph = ipv6_hdr(skb);
+ 		ipv6_change_dsfield(iph, 0, nv);
 -- 
 2.11.0
 
