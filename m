@@ -2,104 +2,181 @@ Return-Path: <SRS0=MWc4=UA=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_MUTT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CBE66C28CC3
-	for <netfilter-devel@archiver.kernel.org>; Sat,  1 Jun 2019 15:19:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BD9F0C28CC1
+	for <netfilter-devel@archiver.kernel.org>; Sat,  1 Jun 2019 18:24:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A484C27285
-	for <netfilter-devel@archiver.kernel.org>; Sat,  1 Jun 2019 15:19:38 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="RKmKfTKD"
+	by mail.kernel.org (Postfix) with ESMTP id 98FED2771D
+	for <netfilter-devel@archiver.kernel.org>; Sat,  1 Jun 2019 18:24:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726531AbfFAPTg (ORCPT
+        id S1726634AbfFASYF (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 1 Jun 2019 11:19:36 -0400
-Received: from mail-ot1-f65.google.com ([209.85.210.65]:39334 "EHLO
-        mail-ot1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726149AbfFAPTg (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 1 Jun 2019 11:19:36 -0400
-Received: by mail-ot1-f65.google.com with SMTP id k24so7047639otn.6;
-        Sat, 01 Jun 2019 08:19:36 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to:user-agent;
-        bh=DZ8EqvDyWqIwxw5uZ651sYBJbgvZFIAJoCrfZ/Kg7Zw=;
-        b=RKmKfTKDV3iutmhvFK0woxtRH6yzeEaHjsVmyQmmyw2v07giiLuwhYhbp3nC5EGgzl
-         gWoDbiHRlqBV9fWVmwLbOXiOQvDveID+y1ARlftv2J7y140cy8o6sYdeC8Cbx68MmW8J
-         YY1YnJNXHAPf9zRMB4bcNKJ+lGKbE7jmgBEexvTcgDgoMPrVvHY9NOUscrkviNlVk91v
-         r/GFI+LKSXXvUbZy5d+8sxVlhfxL4XQ1ffnlVEBvpTXOIc3ybLrMiXsLDnNr13fhFwRl
-         Fq5xxmcnMEpEe3Ov03+TdfiVRK7MxDURbdjj7vG3T/2Q2Zw6WlUpA1+tyxbR4eg0riI4
-         /s4Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to:user-agent;
-        bh=DZ8EqvDyWqIwxw5uZ651sYBJbgvZFIAJoCrfZ/Kg7Zw=;
-        b=YQXNumHYoDN7hRAXlXbW4Mk3zvgQhuDU0OPaPpCWrBDf08TPL2aMrdy89pBWj2UIBc
-         VAvhoLzMLLyrhsKq48F/t3+z+IGRnwbjJmD960eH9Fln5INXQ+myG5fjGGxNuYH731RD
-         vMiwuTSd6x7jU36RQZU7XmGz4cR7hXceqpBzXDhxlCJpBxAh7UYRPEYp6jh7xns6F69h
-         sgMVFnkxBpbIWmeg4Pac2loNdjpu1PfK18wCkuRmjvVLF5vc0jbLathZLtP7kKn0d60k
-         bincLSON/2nAPRH4KDcayfIoW1troMVWRqvI0RGaNqzByrLGTWBDH7C9wKqW7ulNnZUX
-         R7VQ==
-X-Gm-Message-State: APjAAAUvzlkVFeXawSwgf3CKgypNiyts6OMgmTKUuThFZHAtEWK2t/3p
-        z6wVRQWgZrkbp3gq3tY6IRp3vt8=
-X-Google-Smtp-Source: APXvYqz87YY3UNw+GPNxnK8eKWjApCu8nRLf7NND4TafvxCLm5EqKiQNzc0fvFPNqVKaBy2rPjK2rw==
-X-Received: by 2002:a9d:7312:: with SMTP id e18mr5711785otk.148.1559402375857;
-        Sat, 01 Jun 2019 08:19:35 -0700 (PDT)
-Received: from ubuntu (99-149-127-125.lightspeed.rlghnc.sbcglobal.net. [99.149.127.125])
-        by smtp.gmail.com with ESMTPSA id r14sm3125038otk.72.2019.06.01.08.19.34
-        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Sat, 01 Jun 2019 08:19:34 -0700 (PDT)
-Date:   Sat, 1 Jun 2019 11:04:29 -0400
-From:   Stephen Suryaputra <ssuryaextr@gmail.com>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-Subject: Re: [PATCH nf-next] netfilter: add support for matching IPv4 options
-Message-ID: <20190601150429.GA16560@ubuntu>
-References: <20190523093801.3747-1-ssuryaextr@gmail.com>
- <20190531171101.5pttvxlbernhmlra@salvia>
- <20190531193558.GB4276@ubuntu>
- <20190601002230.bo6dhdf3lhlkknqq@salvia>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190601002230.bo6dhdf3lhlkknqq@salvia>
-User-Agent: Mutt/1.9.4 (2018-02-28)
+        Sat, 1 Jun 2019 14:24:05 -0400
+Received: from mail.us.es ([193.147.175.20]:39992 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726149AbfFASYE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 1 Jun 2019 14:24:04 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 50355B60DF
+        for <netfilter-devel@vger.kernel.org>; Sat,  1 Jun 2019 20:24:00 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 3086DDA701
+        for <netfilter-devel@vger.kernel.org>; Sat,  1 Jun 2019 20:24:00 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 73694FF134; Sat,  1 Jun 2019 20:23:51 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 80F19B7FE0;
+        Sat,  1 Jun 2019 20:23:48 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Sat, 01 Jun 2019 20:23:48 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from salvia.here (unknown [31.4.178.197])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id 0FCB84265A32;
+        Sat,  1 Jun 2019 20:23:47 +0200 (CEST)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     davem@davemloft.net, netdev@vger.kernel.org
+Subject: [PATCH 01/15] ipvs: allow rs_table to contain different real server types
+Date:   Sat,  1 Jun 2019 20:23:26 +0200
+Message-Id: <20190601182340.2662-2-pablo@netfilter.org>
+X-Mailer: git-send-email 2.11.0
+In-Reply-To: <20190601182340.2662-1-pablo@netfilter.org>
+References: <20190601182340.2662-1-pablo@netfilter.org>
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sat, Jun 01, 2019 at 02:22:30AM +0200, Pablo Neira Ayuso wrote:
-> > It is the same as the IPv6 one. The offset returned is the offset to the
-> > specific option (target) or the byte beyond the options if the target
-> > isn't specified (< 0).
-> 
-> Thanks for explaining. So you are using ipv6_find_hdr() as reference,
-> but not sure this offset parameter is useful for this patchset since
-> this is always set to zero, do you have plans to use this in a follow
-> up patchset?
+From: Julian Anastasov <ja@ssi.bg>
 
-I developed this patchset to suit my employer needs and there is no plan
-for a follow up patchset, however I think non-zero offset might be useful
-in the future for tunneled packets.
+Before now rs_table was used only for NAT real servers.
+Change it to allow TUN real severs from different types,
+possibly hashed with different port key.
 
-> I mean, you make this check upfront from the _eval() path, ie.
-> 
-> static void nft_exthdr_ipv4_eval(const struct nft_expr *expr,
->                                  ...
-> {
->         ...
-> 
->         if (skb->protocol != htons(ETH_P_IP))
->                 goto err;
+Signed-off-by: Julian Anastasov <ja@ssi.bg>
+Signed-off-by: Simon Horman <horms@verge.net.au>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/net/ip_vs.h            |  3 +++
+ net/netfilter/ipvs/ip_vs_ctl.c | 43 ++++++++++++++++++++++++++++++++++--------
+ 2 files changed, 38 insertions(+), 8 deletions(-)
 
-Got it.
+diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
+index 2ac40135b576..9a8ac8997e34 100644
+--- a/include/net/ip_vs.h
++++ b/include/net/ip_vs.h
+@@ -1497,6 +1497,9 @@ static inline int ip_vs_todrop(struct netns_ipvs *ipvs)
+ static inline int ip_vs_todrop(struct netns_ipvs *ipvs) { return 0; }
+ #endif
+ 
++#define IP_VS_DFWD_METHOD(dest) (atomic_read(&(dest)->conn_flags) & \
++				 IP_VS_CONN_F_FWD_MASK)
++
+ /* ip_vs_fwd_tag returns the forwarding tag of the connection */
+ #define IP_VS_FWD_METHOD(cp)  (cp->flags & IP_VS_CONN_F_FWD_MASK)
+ 
+diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+index 0e887159425c..30b1a9f9c2e3 100644
+--- a/net/netfilter/ipvs/ip_vs_ctl.c
++++ b/net/netfilter/ipvs/ip_vs_ctl.c
+@@ -515,15 +515,36 @@ static inline unsigned int ip_vs_rs_hashkey(int af,
+ static void ip_vs_rs_hash(struct netns_ipvs *ipvs, struct ip_vs_dest *dest)
+ {
+ 	unsigned int hash;
++	__be16 port;
+ 
+ 	if (dest->in_rs_table)
+ 		return;
+ 
++	switch (IP_VS_DFWD_METHOD(dest)) {
++	case IP_VS_CONN_F_MASQ:
++		port = dest->port;
++		break;
++	case IP_VS_CONN_F_TUNNEL:
++		switch (dest->tun_type) {
++		case IP_VS_CONN_F_TUNNEL_TYPE_GUE:
++			port = dest->tun_port;
++			break;
++		case IP_VS_CONN_F_TUNNEL_TYPE_IPIP:
++			port = 0;
++			break;
++		default:
++			return;
++		}
++		break;
++	default:
++		return;
++	}
++
+ 	/*
+ 	 *	Hash by proto,addr,port,
+ 	 *	which are the parameters of the real service.
+ 	 */
+-	hash = ip_vs_rs_hashkey(dest->af, &dest->addr, dest->port);
++	hash = ip_vs_rs_hashkey(dest->af, &dest->addr, port);
+ 
+ 	hlist_add_head_rcu(&dest->d_list, &ipvs->rs_table[hash]);
+ 	dest->in_rs_table = 1;
+@@ -555,7 +576,8 @@ bool ip_vs_has_real_service(struct netns_ipvs *ipvs, int af, __u16 protocol,
+ 		if (dest->port == dport &&
+ 		    dest->af == af &&
+ 		    ip_vs_addr_equal(af, &dest->addr, daddr) &&
+-		    (dest->protocol == protocol || dest->vfwmark)) {
++		    (dest->protocol == protocol || dest->vfwmark) &&
++		    IP_VS_DFWD_METHOD(dest) == IP_VS_CONN_F_MASQ) {
+ 			/* HIT */
+ 			return true;
+ 		}
+@@ -585,7 +607,8 @@ struct ip_vs_dest *ip_vs_find_real_service(struct netns_ipvs *ipvs, int af,
+ 		if (dest->port == dport &&
+ 		    dest->af == af &&
+ 		    ip_vs_addr_equal(af, &dest->addr, daddr) &&
+-			(dest->protocol == protocol || dest->vfwmark)) {
++		    (dest->protocol == protocol || dest->vfwmark) &&
++		    IP_VS_DFWD_METHOD(dest) == IP_VS_CONN_F_MASQ) {
+ 			/* HIT */
+ 			return dest;
+ 		}
+@@ -831,6 +854,13 @@ __ip_vs_update_dest(struct ip_vs_service *svc, struct ip_vs_dest *dest,
+ 	conn_flags = udest->conn_flags & IP_VS_CONN_F_DEST_MASK;
+ 	conn_flags |= IP_VS_CONN_F_INACTIVE;
+ 
++	/* Need to rehash? */
++	if ((udest->conn_flags & IP_VS_CONN_F_FWD_MASK) !=
++	    IP_VS_DFWD_METHOD(dest) ||
++	    udest->tun_type != dest->tun_type ||
++	    udest->tun_port != dest->tun_port)
++		ip_vs_rs_unhash(dest);
++
+ 	/* set the tunnel info */
+ 	dest->tun_type = udest->tun_type;
+ 	dest->tun_port = udest->tun_port;
+@@ -839,16 +869,13 @@ __ip_vs_update_dest(struct ip_vs_service *svc, struct ip_vs_dest *dest,
+ 	if ((conn_flags & IP_VS_CONN_F_FWD_MASK) != IP_VS_CONN_F_MASQ) {
+ 		conn_flags |= IP_VS_CONN_F_NOOUTPUT;
+ 	} else {
+-		/*
+-		 *    Put the real service in rs_table if not present.
+-		 *    For now only for NAT!
+-		 */
+-		ip_vs_rs_hash(ipvs, dest);
+ 		/* FTP-NAT requires conntrack for mangling */
+ 		if (svc->port == FTPPORT)
+ 			ip_vs_register_conntrack(svc);
+ 	}
+ 	atomic_set(&dest->conn_flags, conn_flags);
++	/* Put the real service in rs_table if not present. */
++	ip_vs_rs_hash(ipvs, dest);
+ 
+ 	/* bind the service */
+ 	old_svc = rcu_dereference_protected(dest->svc, 1);
+-- 
+2.11.0
 
-Thanks.
