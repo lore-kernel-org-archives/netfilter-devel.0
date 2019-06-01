@@ -4,47 +4,48 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 70CC9C28CC1
-	for <netfilter-devel@archiver.kernel.org>; Sat,  1 Jun 2019 18:24:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AE4C1C28CC1
+	for <netfilter-devel@archiver.kernel.org>; Sat,  1 Jun 2019 18:24:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 528672777F
-	for <netfilter-devel@archiver.kernel.org>; Sat,  1 Jun 2019 18:24:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 814092777F
+	for <netfilter-devel@archiver.kernel.org>; Sat,  1 Jun 2019 18:24:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726835AbfFASYI (ORCPT
+        id S1726830AbfFASYI (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Sat, 1 Jun 2019 14:24:08 -0400
-Received: from mail.us.es ([193.147.175.20]:40016 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:40024 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726211AbfFASYH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        id S1726716AbfFASYH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Sat, 1 Jun 2019 14:24:07 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 7B17FB60E4
+        by mail.us.es (Postfix) with ESMTP id B2F75B60EF
         for <netfilter-devel@vger.kernel.org>; Sat,  1 Jun 2019 20:24:00 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 592B9DA709
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 9C6C9DA70F
         for <netfilter-devel@vger.kernel.org>; Sat,  1 Jun 2019 20:24:00 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 1573BFF138; Sat,  1 Jun 2019 20:23:52 +0200 (CEST)
+        id 16EA1FF12F; Sat,  1 Jun 2019 20:23:54 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 4824FB7FEA;
-        Sat,  1 Jun 2019 20:23:49 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 87F01FF136;
+        Sat,  1 Jun 2019 20:23:51 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Sat, 01 Jun 2019 20:23:49 +0200 (CEST)
+ Sat, 01 Jun 2019 20:23:51 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (unknown [31.4.178.197])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id DAB594265A32;
-        Sat,  1 Jun 2019 20:23:48 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 22EC64265A32;
+        Sat,  1 Jun 2019 20:23:51 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 02/15] ipvs: add function to find tunnels
-Date:   Sat,  1 Jun 2019 20:23:27 +0200
-Message-Id: <20190601182340.2662-3-pablo@netfilter.org>
+Subject: [PATCH 05/15] netfilter: nf_flow_table: remove unnecessary variable in flow_offload_tuple
+Date:   Sat,  1 Jun 2019 20:23:30 +0200
+Message-Id: <20190601182340.2662-6-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20190601182340.2662-1-pablo@netfilter.org>
 References: <20190601182340.2662-1-pablo@netfilter.org>
@@ -54,111 +55,42 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Julian Anastasov <ja@ssi.bg>
+From: Taehee Yoo <ap420073@gmail.com>
 
-Add ip_vs_find_tunnel() to match tunnel headers
-by family, address and optional port. Use it to
-properly find the tunnel real server used in
-received ICMP errors.
+The oifidx in the struct flow_offload_tuple is not used anymore.
 
-Signed-off-by: Julian Anastasov <ja@ssi.bg>
-Signed-off-by: Simon Horman <horms@verge.net.au>
+Signed-off-by: Taehee Yoo <ap420073@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/ip_vs.h             |  3 +++
- net/netfilter/ipvs/ip_vs_core.c |  8 ++++++++
- net/netfilter/ipvs/ip_vs_ctl.c  | 29 +++++++++++++++++++++++++++++
- 3 files changed, 40 insertions(+)
+ include/net/netfilter/nf_flow_table.h | 2 --
+ net/netfilter/nf_flow_table_core.c    | 1 -
+ 2 files changed, 3 deletions(-)
 
-diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
-index 9a8ac8997e34..b01a94ebfc0e 100644
---- a/include/net/ip_vs.h
-+++ b/include/net/ip_vs.h
-@@ -1404,6 +1404,9 @@ bool ip_vs_has_real_service(struct netns_ipvs *ipvs, int af, __u16 protocol,
- struct ip_vs_dest *
- ip_vs_find_real_service(struct netns_ipvs *ipvs, int af, __u16 protocol,
- 			const union nf_inet_addr *daddr, __be16 dport);
-+struct ip_vs_dest *ip_vs_find_tunnel(struct netns_ipvs *ipvs, int af,
-+				     const union nf_inet_addr *daddr,
-+				     __be16 tun_port);
+diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
+index 3e370cb36263..d8c187936bec 100644
+--- a/include/net/netfilter/nf_flow_table.h
++++ b/include/net/netfilter/nf_flow_table.h
+@@ -53,8 +53,6 @@ struct flow_offload_tuple {
+ 	u8				l4proto;
+ 	u8				dir;
  
- int ip_vs_use_count_inc(void);
- void ip_vs_use_count_dec(void);
-diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-index 14457551bcb4..4447ee512b88 100644
---- a/net/netfilter/ipvs/ip_vs_core.c
-+++ b/net/netfilter/ipvs/ip_vs_core.c
-@@ -1598,6 +1598,7 @@ ip_vs_in_icmp(struct netns_ipvs *ipvs, struct sk_buff *skb, int *related,
- 	struct ip_vs_proto_data *pd;
- 	unsigned int offset, offset2, ihl, verdict;
- 	bool ipip, new_cp = false;
-+	union nf_inet_addr *raddr;
+-	int				oifidx;
+-
+ 	u16				mtu;
  
- 	*related = 1;
+ 	struct dst_entry		*dst_cache;
+diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
+index 948b4ebbe3fb..e3d797252a98 100644
+--- a/net/netfilter/nf_flow_table_core.c
++++ b/net/netfilter/nf_flow_table_core.c
+@@ -53,7 +53,6 @@ flow_offload_fill_dir(struct flow_offload *flow, struct nf_conn *ct,
+ 	ft->dst_port = ctt->dst.u.tcp.port;
  
-@@ -1636,15 +1637,22 @@ ip_vs_in_icmp(struct netns_ipvs *ipvs, struct sk_buff *skb, int *related,
- 	cih = skb_header_pointer(skb, offset, sizeof(_ciph), &_ciph);
- 	if (cih == NULL)
- 		return NF_ACCEPT; /* The packet looks wrong, ignore */
-+	raddr = (union nf_inet_addr *)&cih->daddr;
- 
- 	/* Special case for errors for IPIP packets */
- 	ipip = false;
- 	if (cih->protocol == IPPROTO_IPIP) {
-+		struct ip_vs_dest *dest;
-+
- 		if (unlikely(cih->frag_off & htons(IP_OFFSET)))
- 			return NF_ACCEPT;
- 		/* Error for our IPIP must arrive at LOCAL_IN */
- 		if (!(skb_rtable(skb)->rt_flags & RTCF_LOCAL))
- 			return NF_ACCEPT;
-+		dest = ip_vs_find_tunnel(ipvs, AF_INET, raddr, 0);
-+		/* Only for known tunnel */
-+		if (!dest || dest->tun_type != IP_VS_CONN_F_TUNNEL_TYPE_IPIP)
-+			return NF_ACCEPT;
- 		offset += cih->ihl * 4;
- 		cih = skb_header_pointer(skb, offset, sizeof(_ciph), &_ciph);
- 		if (cih == NULL)
-diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index 30b1a9f9c2e3..d5847e06350f 100644
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -617,6 +617,35 @@ struct ip_vs_dest *ip_vs_find_real_service(struct netns_ipvs *ipvs, int af,
- 	return NULL;
+ 	ft->iifidx = other_dst->dev->ifindex;
+-	ft->oifidx = dst->dev->ifindex;
+ 	ft->dst_cache = dst;
  }
  
-+/* Find real service record by <af,addr,tun_port>.
-+ * In case of multiple records with the same <af,addr,tun_port>, only
-+ * the first found record is returned.
-+ *
-+ * To be called under RCU lock.
-+ */
-+struct ip_vs_dest *ip_vs_find_tunnel(struct netns_ipvs *ipvs, int af,
-+				     const union nf_inet_addr *daddr,
-+				     __be16 tun_port)
-+{
-+	struct ip_vs_dest *dest;
-+	unsigned int hash;
-+
-+	/* Check for "full" addressed entries */
-+	hash = ip_vs_rs_hashkey(af, daddr, tun_port);
-+
-+	hlist_for_each_entry_rcu(dest, &ipvs->rs_table[hash], d_list) {
-+		if (dest->tun_port == tun_port &&
-+		    dest->af == af &&
-+		    ip_vs_addr_equal(af, &dest->addr, daddr) &&
-+		    IP_VS_DFWD_METHOD(dest) == IP_VS_CONN_F_TUNNEL) {
-+			/* HIT */
-+			return dest;
-+		}
-+	}
-+
-+	return NULL;
-+}
-+
- /* Lookup destination by {addr,port} in the given service
-  * Called under RCU lock.
-  */
 -- 
 2.11.0
 
