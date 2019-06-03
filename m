@@ -2,83 +2,115 @@ Return-Path: <SRS0=Me6e=UC=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_NEOMUTT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.0 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9CE31C04AB5
-	for <netfilter-devel@archiver.kernel.org>; Mon,  3 Jun 2019 14:14:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D72C4C282CE
+	for <netfilter-devel@archiver.kernel.org>; Mon,  3 Jun 2019 16:01:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 72A9124C39
-	for <netfilter-devel@archiver.kernel.org>; Mon,  3 Jun 2019 14:14:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B138F2768A
+	for <netfilter-devel@archiver.kernel.org>; Mon,  3 Jun 2019 16:01:42 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=paul-moore-com.20150623.gappssmtp.com header.i=@paul-moore-com.20150623.gappssmtp.com header.b="RAknaK6H"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728585AbfFCOOE (ORCPT
+        id S1728963AbfFCQBi (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 3 Jun 2019 10:14:04 -0400
-Received: from mail.us.es ([193.147.175.20]:40088 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728062AbfFCOOD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 3 Jun 2019 10:14:03 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 56563FC418
-        for <netfilter-devel@vger.kernel.org>; Mon,  3 Jun 2019 16:14:00 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 358B4DA712
-        for <netfilter-devel@vger.kernel.org>; Mon,  3 Jun 2019 16:14:00 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 2B049DA710; Mon,  3 Jun 2019 16:14:00 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 08453DA702;
-        Mon,  3 Jun 2019 16:13:58 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 03 Jun 2019 16:13:58 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (sys.soleta.eu [212.170.55.40])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id DCAC44265A2F;
-        Mon,  3 Jun 2019 16:13:57 +0200 (CEST)
-Date:   Mon, 3 Jun 2019 16:13:57 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     davem@davemloft.net
-Cc:     wenxu@ucloud.cn, netfilter-devel@vger.kernel.org,
-        netdev@vger.kernel.org
-Subject: Re: [PATCH net-next v2] netfilter: ipv6: Fix undefined symbol
- nf_ct_frag6_gather
-Message-ID: <20190603141357.3pf6y55sf3elw654@salvia>
-References: <1559483366-12371-1-git-send-email-wenxu@ucloud.cn>
- <20190603092128.47omjnvbqxzealst@salvia>
+        Mon, 3 Jun 2019 12:01:38 -0400
+Received: from mail-lf1-f66.google.com ([209.85.167.66]:46829 "EHLO
+        mail-lf1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728364AbfFCQBh (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 3 Jun 2019 12:01:37 -0400
+Received: by mail-lf1-f66.google.com with SMTP id l26so14000604lfh.13
+        for <netfilter-devel@vger.kernel.org>; Mon, 03 Jun 2019 09:01:36 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=paul-moore-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=wwAb+fjZakb4SE3XBU2vDo+/FsY9YcZ27a86p6XEaAs=;
+        b=RAknaK6HJEQ5zkQCebN0zIeweiFarG87mqZWgTXpU/mJYEt/DEie3H3GUrpMAkizhf
+         DAjrek0lkfPev895ypNRKOioKwTHoHppJhQCGVAq+NcSFX9QQKad4aQE4NgXUszbotod
+         HpqE5XLtyZaVR5/qdNcdgb7ceGwsUQvR666euqtSsqc3OmniQ2styCZ5A6fa8wFzmYab
+         XQWs/R8Zv9uWMeeBYycMepmlBwpgKHulJsqz5096zetgsMifJSoInjVF+zauJ7Lcd+ZK
+         poQFphqqutbXYOSTji0TJpFkZiZboByLaWGvrwJDqBIG4csRSA2uepIebTq5Rhzk3wDG
+         LSOw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=wwAb+fjZakb4SE3XBU2vDo+/FsY9YcZ27a86p6XEaAs=;
+        b=KR8yfvcyfQkA4Ksvat5VtHaGd6kwRLf9/ND4eQUoxqMPBkeOdMwC6tsbEZVh/NHF8n
+         NC75CBcwv8mEh/kNWCVLDEwujyQHz9sT7SxQi4zwgEi4kXxM8VM8LLESBzWJ6EVuML37
+         ymYceQ9RZWxgV6ix8nJJMUHhMSMhdFrM4pJh/Rlxsqme9cxi8xSuqjnofRqNTLWphW5O
+         6yw+5ivhzZjLdMKsfTuMVZsQjmYs6bHBDdM770pr91YU3aGa3SDPN/4YB9x88akxSp39
+         1N7wpp71f6db9RQ4ntD880WRl4yMXE6BorqNi+v2eAfxLTwtHXzQi5cSRZzXWN4/1ZR2
+         qu7Q==
+X-Gm-Message-State: APjAAAVIwbcTsYpQ4gacsz4QFLW++U2jtlEHw9RAikn3Nahps/4NSUFZ
+        3PFsQrMCc5yb1wb9GQ9QhyI2uWPSOVbu/gwQ9V8K
+X-Google-Smtp-Source: APXvYqzF84jTm/2bsJE8Z7872PStSoK3LKry51awtLL9AllXtZ9eS6eWxt9+Bys/+Qo1UsfILlV7LgRg51RsyxVhV98=
+X-Received: by 2002:ac2:446b:: with SMTP id y11mr9514878lfl.158.1559577695379;
+ Mon, 03 Jun 2019 09:01:35 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190603092128.47omjnvbqxzealst@salvia>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+References: <fadb320e38a899441fcc693bbbc822a3b57f1a46.1559239558.git.rgb@redhat.com>
+In-Reply-To: <fadb320e38a899441fcc693bbbc822a3b57f1a46.1559239558.git.rgb@redhat.com>
+From:   Paul Moore <paul@paul-moore.com>
+Date:   Mon, 3 Jun 2019 12:01:24 -0400
+Message-ID: <CAHC9VhQZuOXiK4yj4xeRwGF_qepeg7qDL02GDdYhwTNRLRdmPA@mail.gmail.com>
+Subject: Re: [PATCH ghak90 V6] fixup! audit: add containerid filtering
+To:     Richard Guy Briggs <rgb@redhat.com>
+Cc:     containers@lists.linux-foundation.org, linux-api@vger.kernel.org,
+        Linux-Audit Mailing List <linux-audit@redhat.com>,
+        linux-fsdevel@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        sgrubb@redhat.com, omosnace@redhat.com, dhowells@redhat.com,
+        simo@redhat.com, Eric Paris <eparis@parisplace.org>,
+        Serge Hallyn <serge@hallyn.com>, ebiederm@xmission.com,
+        nhorman@tuxdriver.com
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Jun 03, 2019 at 11:21:28AM +0200, Pablo Neira Ayuso wrote:
-> On Sun, Jun 02, 2019 at 09:49:26PM +0800, wenxu@ucloud.cn wrote:
-> > From: wenxu <wenxu@ucloud.cn>
-> > 
-> > CONFIG_NETFILTER=m and CONFIG_NF_DEFRAG_IPV6 is not set
+On Fri, May 31, 2019 at 1:54 PM Richard Guy Briggs <rgb@redhat.com> wrote:
+>
+> Remove the BUG() call since we will never have an invalid op value as
+> audit_data_to_entry()/audit_to_op() ensure that the op value is a a
+> known good value.
+>
+> Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
+> ---
+>  kernel/auditfilter.c | 1 -
+>  1 file changed, 1 deletion(-)
 
-Just noted that this should be:
+Thanks for sending this out.  However, in light of the discussion in
+the patchset's cover letter it looks like we need to better support
+nested container orchestrators which is likely going to require some
+non-trivial changes to the kernel/userspace API.  Because of this I'm
+going to hold off pulling these patches into a "working" branch,
+hopefully the next revision of these patches will solve the nested
+orchestrator issue enough that we can continue to move forward with
+testing.
 
-CONFIG_IPV6=m
+> diff --git a/kernel/auditfilter.c b/kernel/auditfilter.c
+> index 407b5bb3b4c6..385a114a1254 100644
+> --- a/kernel/auditfilter.c
+> +++ b/kernel/auditfilter.c
+> @@ -1244,7 +1244,6 @@ int audit_comparator64(u64 left, u32 op, u64 right)
+>         case Audit_bittest:
+>                 return ((left & right) == right);
+>         default:
+> -               BUG();
+>                 return 0;
+>         }
+>  }
+> --
+> 1.8.3.1
+>
 
-> > ERROR: "nf_ct_frag6_gather" [net/ipv6/ipv6.ko] undefined!
-> > 
-> > Fixes: c9bb6165a16e ("netfilter: nf_conntrack_bridge: fix CONFIG_IPV6=y")
-> > Reported-by: kbuild test robot <lkp@intel.com>
-> > Signed-off-by: wenxu <wenxu@ucloud.cn>
-> 
-> Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
-nf-next is already in sync with net-next, so I can apply this patch
-here, as an alternative path.
+-- 
+paul moore
+www.paul-moore.com
