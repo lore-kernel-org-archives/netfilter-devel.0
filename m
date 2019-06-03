@@ -2,115 +2,155 @@ Return-Path: <SRS0=Me6e=UC=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-6.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_NEOMUTT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D72C4C282CE
-	for <netfilter-devel@archiver.kernel.org>; Mon,  3 Jun 2019 16:01:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D0EA3C04AB5
+	for <netfilter-devel@archiver.kernel.org>; Mon,  3 Jun 2019 16:59:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B138F2768A
-	for <netfilter-devel@archiver.kernel.org>; Mon,  3 Jun 2019 16:01:42 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=paul-moore-com.20150623.gappssmtp.com header.i=@paul-moore-com.20150623.gappssmtp.com header.b="RAknaK6H"
+	by mail.kernel.org (Postfix) with ESMTP id B4DCC25521
+	for <netfilter-devel@archiver.kernel.org>; Mon,  3 Jun 2019 16:59:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728963AbfFCQBi (ORCPT
+        id S1726551AbfFCQ7X (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 3 Jun 2019 12:01:38 -0400
-Received: from mail-lf1-f66.google.com ([209.85.167.66]:46829 "EHLO
-        mail-lf1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728364AbfFCQBh (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 3 Jun 2019 12:01:37 -0400
-Received: by mail-lf1-f66.google.com with SMTP id l26so14000604lfh.13
-        for <netfilter-devel@vger.kernel.org>; Mon, 03 Jun 2019 09:01:36 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=paul-moore-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=wwAb+fjZakb4SE3XBU2vDo+/FsY9YcZ27a86p6XEaAs=;
-        b=RAknaK6HJEQ5zkQCebN0zIeweiFarG87mqZWgTXpU/mJYEt/DEie3H3GUrpMAkizhf
-         DAjrek0lkfPev895ypNRKOioKwTHoHppJhQCGVAq+NcSFX9QQKad4aQE4NgXUszbotod
-         HpqE5XLtyZaVR5/qdNcdgb7ceGwsUQvR666euqtSsqc3OmniQ2styCZ5A6fa8wFzmYab
-         XQWs/R8Zv9uWMeeBYycMepmlBwpgKHulJsqz5096zetgsMifJSoInjVF+zauJ7Lcd+ZK
-         poQFphqqutbXYOSTji0TJpFkZiZboByLaWGvrwJDqBIG4csRSA2uepIebTq5Rhzk3wDG
-         LSOw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=wwAb+fjZakb4SE3XBU2vDo+/FsY9YcZ27a86p6XEaAs=;
-        b=KR8yfvcyfQkA4Ksvat5VtHaGd6kwRLf9/ND4eQUoxqMPBkeOdMwC6tsbEZVh/NHF8n
-         NC75CBcwv8mEh/kNWCVLDEwujyQHz9sT7SxQi4zwgEi4kXxM8VM8LLESBzWJ6EVuML37
-         ymYceQ9RZWxgV6ix8nJJMUHhMSMhdFrM4pJh/Rlxsqme9cxi8xSuqjnofRqNTLWphW5O
-         6yw+5ivhzZjLdMKsfTuMVZsQjmYs6bHBDdM770pr91YU3aGa3SDPN/4YB9x88akxSp39
-         1N7wpp71f6db9RQ4ntD880WRl4yMXE6BorqNi+v2eAfxLTwtHXzQi5cSRZzXWN4/1ZR2
-         qu7Q==
-X-Gm-Message-State: APjAAAVIwbcTsYpQ4gacsz4QFLW++U2jtlEHw9RAikn3Nahps/4NSUFZ
-        3PFsQrMCc5yb1wb9GQ9QhyI2uWPSOVbu/gwQ9V8K
-X-Google-Smtp-Source: APXvYqzF84jTm/2bsJE8Z7872PStSoK3LKry51awtLL9AllXtZ9eS6eWxt9+Bys/+Qo1UsfILlV7LgRg51RsyxVhV98=
-X-Received: by 2002:ac2:446b:: with SMTP id y11mr9514878lfl.158.1559577695379;
- Mon, 03 Jun 2019 09:01:35 -0700 (PDT)
+        Mon, 3 Jun 2019 12:59:23 -0400
+Received: from mail.us.es ([193.147.175.20]:36258 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725856AbfFCQ7W (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 3 Jun 2019 12:59:22 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 9E458DA738
+        for <netfilter-devel@vger.kernel.org>; Mon,  3 Jun 2019 18:59:20 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 8EA3CDA70B
+        for <netfilter-devel@vger.kernel.org>; Mon,  3 Jun 2019 18:59:20 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 8431ADA709; Mon,  3 Jun 2019 18:59:20 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 52073DA701;
+        Mon,  3 Jun 2019 18:59:18 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Mon, 03 Jun 2019 18:59:18 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (sys.soleta.eu [212.170.55.40])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 3138B4265A2F;
+        Mon,  3 Jun 2019 18:59:18 +0200 (CEST)
+Date:   Mon, 3 Jun 2019 18:59:17 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Eric Garver <eric@garver.life>, Phil Sutter <phil@nwl.cc>,
+        netfilter-devel@vger.kernel.org
+Subject: Re: [nft PATCH v4 7/7] src: Support intra-transaction rule references
+Message-ID: <20190603165917.pnub5grz3eaixdwt@salvia>
+References: <20190528210323.14605-1-phil@nwl.cc>
+ <20190528210323.14605-8-phil@nwl.cc>
+ <20190531165625.nxtgnokrxzgol2nk@egarver.localdomain>
 MIME-Version: 1.0
-References: <fadb320e38a899441fcc693bbbc822a3b57f1a46.1559239558.git.rgb@redhat.com>
-In-Reply-To: <fadb320e38a899441fcc693bbbc822a3b57f1a46.1559239558.git.rgb@redhat.com>
-From:   Paul Moore <paul@paul-moore.com>
-Date:   Mon, 3 Jun 2019 12:01:24 -0400
-Message-ID: <CAHC9VhQZuOXiK4yj4xeRwGF_qepeg7qDL02GDdYhwTNRLRdmPA@mail.gmail.com>
-Subject: Re: [PATCH ghak90 V6] fixup! audit: add containerid filtering
-To:     Richard Guy Briggs <rgb@redhat.com>
-Cc:     containers@lists.linux-foundation.org, linux-api@vger.kernel.org,
-        Linux-Audit Mailing List <linux-audit@redhat.com>,
-        linux-fsdevel@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        sgrubb@redhat.com, omosnace@redhat.com, dhowells@redhat.com,
-        simo@redhat.com, Eric Paris <eparis@parisplace.org>,
-        Serge Hallyn <serge@hallyn.com>, ebiederm@xmission.com,
-        nhorman@tuxdriver.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190531165625.nxtgnokrxzgol2nk@egarver.localdomain>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, May 31, 2019 at 1:54 PM Richard Guy Briggs <rgb@redhat.com> wrote:
->
-> Remove the BUG() call since we will never have an invalid op value as
-> audit_data_to_entry()/audit_to_op() ensure that the op value is a a
-> known good value.
->
-> Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
-> ---
->  kernel/auditfilter.c | 1 -
->  1 file changed, 1 deletion(-)
+On Fri, May 31, 2019 at 12:56:25PM -0400, Eric Garver wrote:
+> [..]
+> > diff --git a/src/rule.c b/src/rule.c
+> > index b00161e0e4350..0048a8e064523 100644
+> > --- a/src/rule.c
+> > +++ b/src/rule.c
+> > @@ -293,6 +293,23 @@ static int cache_add_set_cmd(struct eval_ctx *ectx)
+> >  	return 0;
+> >  }
+> >
+> > +static int cache_add_rule_cmd(struct eval_ctx *ectx)
+> > +{
+> > +	struct table *table;
+> > +	struct chain *chain;
+> > +
+> > +	table = table_lookup(&ectx->cmd->rule->handle, &ectx->nft->cache);
+> > +	if (!table)
+> > +		return table_not_found(ectx);
+> > +
+> > +	chain = chain_lookup(table, &ectx->cmd->rule->handle);
+> > +	if (!chain)
+> > +		return chain_not_found(ectx);
+> > +
+> > +	rule_cache_update(ectx->cmd->op, chain, ectx->cmd->rule, NULL);
+> > +	return 0;
+> > +}
+> > +
+> >  static int cache_add_commands(struct nft_ctx *nft, struct list_head *msgs)
+> >  {
+> >  	struct eval_ctx ectx = {
+> > @@ -314,6 +331,11 @@ static int cache_add_commands(struct nft_ctx *nft, struct list_head *msgs)
+> >  				continue;
+> >  			ret = cache_add_set_cmd(&ectx);
+> >  			break;
+> > +		case CMD_OBJ_RULE:
+> > +			if (!cache_is_complete(&nft->cache, CMD_LIST))
+> > +				continue;
+> > +			ret = cache_add_rule_cmd(&ectx);
+> > +			break;
+> >  		default:
+> >  			break;
+> >  		}
+> > @@ -727,6 +749,37 @@ struct rule *rule_lookup_by_index(const struct chain *chain, uint64_t index)
+> >  	return NULL;
+> >  }
+> >
+> > +void rule_cache_update(enum cmd_ops op, struct chain *chain,
+> > +		       struct rule *rule, struct rule *ref)
+> > +{
+> > +	switch (op) {
+> > +	case CMD_INSERT:
+> > +		rule_get(rule);
+> > +		if (ref)
+> > +			list_add_tail(&rule->list, &ref->list);
+> > +		else
+> > +			list_add(&rule->list, &chain->rules);
+> > +		break;
+> > +	case CMD_ADD:
+> > +		rule_get(rule);
+> > +		if (ref)
+> > +			list_add(&rule->list, &ref->list);
+> > +		else
+> > +			list_add_tail(&rule->list, &chain->rules);
+> > +		break;
+> > +	case CMD_REPLACE:
+> > +		rule_get(rule);
+> > +		list_add(&rule->list, &ref->list);
+> > +		/* fall through */
+> > +	case CMD_DELETE:
+> > +		list_del(&ref->list);
+> > +		rule_free(ref);
+> > +		break;
+> > +	default:
+> > +		break;
+> > +	}
+> > +}
+> 
+> I'm seeing a NULL pointer dereferenced here. It occurs when we delete a rule
+> and add a new rule using the "index" keyword in the same transaction/batch.
 
-Thanks for sending this out.  However, in light of the discussion in
-the patchset's cover letter it looks like we need to better support
-nested container orchestrators which is likely going to require some
-non-trivial changes to the kernel/userspace API.  Because of this I'm
-going to hold off pulling these patches into a "working" branch,
-hopefully the next revision of these patches will solve the nested
-orchestrator issue enough that we can continue to move forward with
-testing.
+I think we need two new things here:
 
-> diff --git a/kernel/auditfilter.c b/kernel/auditfilter.c
-> index 407b5bb3b4c6..385a114a1254 100644
-> --- a/kernel/auditfilter.c
-> +++ b/kernel/auditfilter.c
-> @@ -1244,7 +1244,6 @@ int audit_comparator64(u64 left, u32 op, u64 right)
->         case Audit_bittest:
->                 return ((left & right) == right);
->         default:
-> -               BUG();
->                 return 0;
->         }
->  }
-> --
-> 1.8.3.1
->
+#1 We need a new initial step, before evalution, to calculate the cache
+   completeness level. This means, we interate over the batch to see what
+   kind of completeness is needed. Then, cache is fetched only once, at
+   the beginning of the batch processing. Ensure that cache is
+   consistent from that step.
 
-
--- 
-paul moore
-www.paul-moore.com
+#2 Update the cache incrementally: Add new objects from the evaluation
+   phase. If RESTART is hit, then release the cache, and restart the
+   evaluation. Probably we don't need to restart the evaluation, just
+   a function to refresh the batch, ie. check if several objects are
+   there.
