@@ -2,118 +2,198 @@ Return-Path: <SRS0=Me6e=UC=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.9 required=3.0 tests=DATE_IN_PAST_24_48,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_MUTT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C0D0C28CC6
-	for <netfilter-devel@archiver.kernel.org>; Mon,  3 Jun 2019 19:03:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 98BBCC28D17
+	for <netfilter-devel@archiver.kernel.org>; Mon,  3 Jun 2019 20:24:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 16F7725087
-	for <netfilter-devel@archiver.kernel.org>; Mon,  3 Jun 2019 19:03:30 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Oi5KdP6v"
+	by mail.kernel.org (Postfix) with ESMTP id 7B7D326E54
+	for <netfilter-devel@archiver.kernel.org>; Mon,  3 Jun 2019 20:24:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726416AbfFCTD2 (ORCPT
+        id S1726807AbfFCUYr (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 3 Jun 2019 15:03:28 -0400
-Received: from mail-pg1-f193.google.com ([209.85.215.193]:41439 "EHLO
-        mail-pg1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726136AbfFCTD2 (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 3 Jun 2019 15:03:28 -0400
-Received: by mail-pg1-f193.google.com with SMTP id 83so1987776pgg.8;
-        Mon, 03 Jun 2019 12:03:27 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to:user-agent;
-        bh=wj5NBkAskXIdMm5GMMxhnc//aB+trWbWwghMhqblI2g=;
-        b=Oi5KdP6vFXTiYCX5YhmOC3z8WoM6HCJWm357pcq084Y65/vLtlIavRu0bTtmA03LCH
-         k2qwxAA28Oi1+xxfwX+ChVcL7olkP60O50eO4Ame/QKmtzmnusqj/BM0/PVVYIuYw5cP
-         QIlri+jhZt1Y/4MhFrsU6U1CIWo6R51wBnn4sKNyKgadcLQbl7Lh4kZW10mTkAr3hbwU
-         A6LGRMUP5JM+Tz+NuGn1ffFAcMGPOdajqIsXmC8KVPV544/Jb+oLuzXwan3BX3KNf4k9
-         USXPIyNK4ROvyDNO3dzpI/MZIvTyk5eBJxjMrgTEM22BPYjJ3moiHFp0iBm8bBMfs4nk
-         8EFQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to:user-agent;
-        bh=wj5NBkAskXIdMm5GMMxhnc//aB+trWbWwghMhqblI2g=;
-        b=q5ut3vMeGaLloXXuA/2gNT8Hb0LplOT8XNtRlV6BLLjjQ7MvIknu/lCwwImpYlxE6m
-         P+Z8QAMeb3IASfT3K//cmQFqklwVPw8TAWwRdWMUUbamz62gdAWvwJj6xhiYqIHjl9IC
-         c8oXTlmQ3XJlrFLTBiZj4CU6pdCnScivVhfmk0FigtgftkidM8y0DPBaSNwgHS7S3xwq
-         jHcQa70hs90asWaI9F2llYXEi/bCoiW8YZ0MH5/uArYA62WYejUqkki+uu4DZE+PV0vm
-         yxky69GITs4Nh/Xscf8YnjI1Tilhsb8X/1fFTO1LxJfJNVX9fd/eg7NhB9uN+ESCWJzK
-         d7RA==
-X-Gm-Message-State: APjAAAWD/4lpKR1DxfeX7i/E6GSZCkBwq1qdWRMI/iwxDy/wCAgBCD9u
-        hn1AShY7H7yBKbSNbW4TBOrYXQsLwA==
-X-Google-Smtp-Source: APXvYqyIta7FKNgPtn64HcmLdHNwehlQynEnE1Dk1kGzqGOQQCu36STH4240jpC6lIhNyw469JE7Uw==
-X-Received: by 2002:a17:90a:216f:: with SMTP id a102mr17291210pje.29.1559588607271;
-        Mon, 03 Jun 2019 12:03:27 -0700 (PDT)
-Received: from ubuntu (99-149-127-125.lightspeed.rlghnc.sbcglobal.net. [99.149.127.125])
-        by smtp.gmail.com with ESMTPSA id s12sm3394529pjp.10.2019.06.03.12.03.23
-        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Mon, 03 Jun 2019 12:03:26 -0700 (PDT)
-Date:   Sat, 1 Jun 2019 22:27:06 -0400
-From:   Stephen Suryaputra <ssuryaextr@gmail.com>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-Subject: Re: [PATCH nf-next] netfilter: add support for matching IPv4 options
-Message-ID: <20190602022706.GA24477@ubuntu>
-References: <20190523093801.3747-1-ssuryaextr@gmail.com>
- <20190531171101.5pttvxlbernhmlra@salvia>
- <20190531193558.GB4276@ubuntu>
- <20190601002230.bo6dhdf3lhlkknqq@salvia>
- <20190601150429.GA16560@ubuntu>
- <20190603123006.urztqvxyxcm7w3av@salvia>
+        Mon, 3 Jun 2019 16:24:47 -0400
+Received: from mx1.redhat.com ([209.132.183.28]:51268 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725956AbfFCUYq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 3 Jun 2019 16:24:46 -0400
+Received: from smtp.corp.redhat.com (int-mx08.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mx1.redhat.com (Postfix) with ESMTPS id 697D9306E33B;
+        Mon,  3 Jun 2019 20:24:39 +0000 (UTC)
+Received: from x2.localnet (ovpn-122-112.rdu2.redhat.com [10.10.122.112])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id DC03E19936;
+        Mon,  3 Jun 2019 20:24:23 +0000 (UTC)
+From:   Steve Grubb <sgrubb@redhat.com>
+To:     Paul Moore <paul@paul-moore.com>
+Cc:     Richard Guy Briggs <rgb@redhat.com>,
+        Tycho Andersen <tycho@tycho.ws>,
+        "Serge E. Hallyn" <serge@hallyn.com>,
+        containers@lists.linux-foundation.org, linux-api@vger.kernel.org,
+        Linux-Audit Mailing List <linux-audit@redhat.com>,
+        linux-fsdevel@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        omosnace@redhat.com, dhowells@redhat.com, simo@redhat.com,
+        Eric Paris <eparis@parisplace.org>, ebiederm@xmission.com,
+        nhorman@tuxdriver.com
+Subject: Re: [PATCH ghak90 V6 02/10] audit: add container id
+Date:   Mon, 03 Jun 2019 16:24:23 -0400
+Message-ID: <97478582.yP93vGJyqj@x2>
+Organization: Red Hat
+In-Reply-To: <CAHC9VhTrM1op_EH=YAn9pU8dMOr=jB-Ph4SxFeqGFskwLmFnCA@mail.gmail.com>
+References: <20190529145742.GA8959@cisco> <20190531002058.tsddah4edcazkuzs@madcap2.tricolour.ca> <CAHC9VhTrM1op_EH=YAn9pU8dMOr=jB-Ph4SxFeqGFskwLmFnCA@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190603123006.urztqvxyxcm7w3av@salvia>
-User-Agent: Mutt/1.9.4 (2018-02-28)
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
+X-Scanned-By: MIMEDefang 2.84 on 10.5.11.23
+X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.5.16 (mx1.redhat.com [10.5.110.49]); Mon, 03 Jun 2019 20:24:46 +0000 (UTC)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Jun 03, 2019 at 02:30:06PM +0200, Pablo Neira Ayuso wrote:
-> > I developed this patchset to suit my employer needs and there is no plan
-> > for a follow up patchset, however I think non-zero offset might be useful
-> > in the future for tunneled packets.
+Hello Paul,
+
+I am curious about this. We seemed to be close to getting this patch pulled 
+in. A lot of people are waiting for it. Can you summarize what you think the 
+patches need and who we think needs to do it? I'm lost. Does LXC people need 
+to propose something? Does Richard? Someone else? Who's got the ball?
+
+Thank,
+-Steve
+
+On Friday, May 31, 2019 8:44:45 AM EDT Paul Moore wrote:
+> On Thu, May 30, 2019 at 8:21 PM Richard Guy Briggs <rgb@redhat.com> wrote:
+> > On 2019-05-30 19:26, Paul Moore wrote:
+> > > On Thu, May 30, 2019 at 5:29 PM Tycho Andersen <tycho@tycho.ws> wrote:
+> > > > On Thu, May 30, 2019 at 03:29:32PM -0400, Paul Moore wrote:
+> > > > > [REMINDER: It is an "*audit* container ID" and not a general
+> > > > > "container ID" ;)  Smiley aside, I'm not kidding about that part.]
+> > > > 
+> > > > This sort of seems like a distinction without a difference;
+> > > > presumably
+> > > > audit is going to want to differentiate between everything that
+> > > > people
+> > > > in userspace call a container. So you'll have to support all this
+> > > > insanity anyway, even if it's "not a container ID".
+> > > 
+> > > That's not quite right.  Audit doesn't care about what a container is,
+> > > or is not, it also doesn't care if the "audit container ID" actually
+> > > matches the ID used by the container engine in userspace and I think
+> > > that is a very important line to draw.  Audit is simply given a value
+> > > which it calls the "audit container ID", it ensures that the value is
+> > > inherited appropriately (e.g. children inherit their parent's audit
+> > > container ID), and it uses the value in audit records to provide some
+> > > additional context for log analysis.  The distinction isn't limited to
+> > > the value itself, but also to how it is used; it is an "audit
+> > > container ID" and not a "container ID" because this value is
+> > > exclusively for use by the audit subsystem.  We are very intentionally
+> > > not adding a generic container ID to the kernel.  If the kernel does
+> > > ever grow a general purpose container ID we will be one of the first
+> > > ones in line to make use of it, but we are not going to be the ones to
+> > > generically add containers to the kernel.  Enough people already hate
+> > > audit ;)
+> > > 
+> > > > > I'm not interested in supporting/merging something that isn't
+> > > > > useful;
+> > > > > if this doesn't work for your use case then we need to figure out
+> > > > > what
+> > > > > would work.  It sounds like nested containers are much more common
+> > > > > in
+> > > > > the lxc world, can you elaborate a bit more on this?
+> > > > > 
+> > > > > As far as the possible solutions you mention above, I'm not sure I
+> > > > > like the per-userns audit container IDs, I'd much rather just emit
+> > > > > the
+> > > > > necessary tracking information via the audit record stream and let
+> > > > > the
+> > > > > log analysis tools figure it out.  However, the bigger question is
+> > > > > how
+> > > > > to limit (re)setting the audit container ID when you are in a
+> > > > > non-init
+> > > > > userns.  For reasons already mentioned, using capable() is a non
+> > > > > starter for everything but the initial userns, and using
+> > > > > ns_capable()
+> > > > > is equally poor as it essentially allows any userns the ability to
+> > > > > munge it's audit container ID (obviously not good).  It appears we
+> > > > > need a different method for controlling access to the audit
+> > > > > container
+> > > > > ID.
+> > > > 
+> > > > One option would be to make it a string, and have it be append only.
+> > > > That should be safe with no checks.
+> > > > 
+> > > > I know there was a long thread about what type to make this thing. I
+> > > > think you could accomplish the append-only-ness with a u64 if you had
+> > > > some rule about only allowing setting lower order bits than those
+> > > > that
+> > > > are already set. With 4 bits for simplicity:
+> > > > 
+> > > > 1100         # initial container id
+> > > > 1100 -> 1011 # not allowed
+> > > > 1100 -> 1101 # allowed, but now 1101 is set in stone since there are
+> > > > 
+> > > >              # no lower order bits left
+> > > > 
+> > > > There are probably fancier ways to do it if you actually understand
+> > > > math :)
+> > >  
+> > >  ;)
+> > >  
+> > > > Since userns nesting is limited to 32 levels (right now, IIRC), and
+> > > > you have 64 bits, this might be reasonable. You could just teach
+> > > > container engines to use the first say N bits for themselves, with a
+> > > > 1
+> > > > bit for the barrier at the end.
+> > > 
+> > > I like the creativity, but I worry that at some point these
+> > > limitations are going to be raised (limits have a funny way of doing
+> > > that over time) and we will be in trouble.  I say "trouble" because I
+> > > want to be able to quickly do an audit container ID comparison and
+> > > we're going to pay a penalty for these larger values (we'll need this
+> > > when we add multiple auditd support and the requisite record routing).
+> > > 
+> > > Thinking about this makes me also realize we probably need to think a
+> > > bit longer about audit container ID conflicts between orchestrators.
+> > > Right now we just take the value that is given to us by the
+> > > orchestrator, but if we want to allow multiple container orchestrators
+> > > to work without some form of cooperation in userspace (I think we have
+> > > to assume the orchestrators will not talk to each other) we likely
+> > > need to have some way to block reuse of an audit container ID.  We
+> > > would either need to prevent the orchestrator from explicitly setting
+> > > an audit container ID to a currently in use value, or instead generate
+> > > the audit container ID in the kernel upon an event triggered by the
+> > > orchestrator (e.g. a write to a /proc file).  I suspect we should
+> > > start looking at the idr code, I think we will need to make use of it.
+> > 
+> > My first reaction to using the IDR code is that once an idr is given up,
+> > it can be reused.  I suppose we request IDRs and then never give them up
+> > to avoid reuse...
 > 
-> For tunneled traffic, we can store the network offset in the
-> nft_pktinfo object. Then, add a new extension to update this network
-> offset to point to the network offset inside the tunnel header, and
-> use this pkt->network_offset everywhere.
+> I'm not sure we ever what to guarantee that an audit container ID
+> won't be reused during the lifetime of the system, it is a discrete
+> integer after all.  What I think we do want to guarantee is that we
+> won't allow an unintentional audit container ID collision between
+> different orchestrators; if a single orchestrator wants to reuse an
+> audit container ID then that is its choice.
+> 
+> > I already had some ideas of preventing an existing ID from being reused,
+> 
+> Cool.  I only made the idr suggestion since it is used for PIDs and
+> solves a very similar problem.
+> 
+> > but that makes the practice of some container engines injecting
+> > processes into existing containers difficult if not impossible.
+> 
+> Yes, we'll need some provision to indicate which orchestrator
+> "controls" that particular audit container ID, and allow that
+> orchestrator to reuse that particular audit container ID (until all
+> those containers disappear and the audit container ID is given back to
+> the pool).
 
-OK. I'm changing so that offset isn't being used as input. But, it's
-still being passed as reference for output. See further response
-below...
 
-> I think this new IPv4 options extension should use priv->offset to
-> match fields inside the IPv4 option specifically, just like in the
-> IPv6 extensions and TCP options do. If you look on how the
-> priv->offset is used in the existing code, this offset points to
-> values that the specific option field conveys.
 
-I believe that's what I have coded:
 
-	err = ipv4_find_option(nft_net(pkt), skb, &offset, priv->type, NULL, NULL);
-	if (priv->flags & NFT_EXTHDR_F_PRESENT) {
-		*dest = (err >= 0);
-		return;
-	} else if (err < 0) {
-		goto err;
-	}
-	offset += priv->offset;
-
-offset is returned as the offset where it matches the sought priv->type
-then priv->offset is added to get to the right field between the offset.
-
-If this is satisfactory, I can submit v2 of the kernel patch.
-
-Thanks,
-
-Stephen.
