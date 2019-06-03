@@ -2,198 +2,117 @@ Return-Path: <SRS0=Me6e=UC=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 98BBCC28D17
-	for <netfilter-devel@archiver.kernel.org>; Mon,  3 Jun 2019 20:24:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3DB26C04AB5
+	for <netfilter-devel@archiver.kernel.org>; Mon,  3 Jun 2019 21:43:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7B7D326E54
-	for <netfilter-devel@archiver.kernel.org>; Mon,  3 Jun 2019 20:24:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1EEB425E44
+	for <netfilter-devel@archiver.kernel.org>; Mon,  3 Jun 2019 21:43:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726807AbfFCUYr (ORCPT
+        id S1726503AbfFCVn1 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 3 Jun 2019 16:24:47 -0400
-Received: from mx1.redhat.com ([209.132.183.28]:51268 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725956AbfFCUYq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 3 Jun 2019 16:24:46 -0400
-Received: from smtp.corp.redhat.com (int-mx08.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mx1.redhat.com (Postfix) with ESMTPS id 697D9306E33B;
-        Mon,  3 Jun 2019 20:24:39 +0000 (UTC)
-Received: from x2.localnet (ovpn-122-112.rdu2.redhat.com [10.10.122.112])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id DC03E19936;
-        Mon,  3 Jun 2019 20:24:23 +0000 (UTC)
-From:   Steve Grubb <sgrubb@redhat.com>
-To:     Paul Moore <paul@paul-moore.com>
-Cc:     Richard Guy Briggs <rgb@redhat.com>,
-        Tycho Andersen <tycho@tycho.ws>,
-        "Serge E. Hallyn" <serge@hallyn.com>,
-        containers@lists.linux-foundation.org, linux-api@vger.kernel.org,
-        Linux-Audit Mailing List <linux-audit@redhat.com>,
-        linux-fsdevel@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+        Mon, 3 Jun 2019 17:43:27 -0400
+Received: from ja.ssi.bg ([178.16.129.10]:55560 "EHLO ja.ssi.bg"
+        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1726102AbfFCVn1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 3 Jun 2019 17:43:27 -0400
+Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
+        by ja.ssi.bg (8.15.2/8.15.2) with ESMTP id x53LWMvZ008943;
+        Tue, 4 Jun 2019 00:32:22 +0300
+Date:   Tue, 4 Jun 2019 00:32:22 +0300 (EEST)
+From:   Julian Anastasov <ja@ssi.bg>
+To:     syzbot <syzbot+722da59ccb264bc19910@syzkaller.appspotmail.com>
+cc:     coreteam@netfilter.org, "David S. Miller" <davem@davemloft.net>,
+        fw@strlen.de, kadlec@blackhole.kfki.hu,
+        linux-kernel <linux-kernel@vger.kernel.org>,
         netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        omosnace@redhat.com, dhowells@redhat.com, simo@redhat.com,
-        Eric Paris <eparis@parisplace.org>, ebiederm@xmission.com,
-        nhorman@tuxdriver.com
-Subject: Re: [PATCH ghak90 V6 02/10] audit: add container id
-Date:   Mon, 03 Jun 2019 16:24:23 -0400
-Message-ID: <97478582.yP93vGJyqj@x2>
-Organization: Red Hat
-In-Reply-To: <CAHC9VhTrM1op_EH=YAn9pU8dMOr=jB-Ph4SxFeqGFskwLmFnCA@mail.gmail.com>
-References: <20190529145742.GA8959@cisco> <20190531002058.tsddah4edcazkuzs@madcap2.tricolour.ca> <CAHC9VhTrM1op_EH=YAn9pU8dMOr=jB-Ph4SxFeqGFskwLmFnCA@mail.gmail.com>
+        pablo@netfilter.org, syzkaller-bugs@googlegroups.com,
+        lvs-devel@vger.kernel.org
+Subject: Re: memory leak in nf_hook_entries_grow
+In-Reply-To: <0000000000002b2262058a70001d@google.com>
+Message-ID: <alpine.LFD.2.21.1906040021510.3876@ja.home.ssi.bg>
+References: <0000000000002b2262058a70001d@google.com>
+User-Agent: Alpine 2.21 (LFD 202 2017-01-01)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
-X-Scanned-By: MIMEDefang 2.84 on 10.5.11.23
-X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.5.16 (mx1.redhat.com [10.5.110.49]); Mon, 03 Jun 2019 20:24:46 +0000 (UTC)
+Content-Type: text/plain; charset=US-ASCII
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello Paul,
 
-I am curious about this. We seemed to be close to getting this patch pulled 
-in. A lot of people are waiting for it. Can you summarize what you think the 
-patches need and who we think needs to do it? I'm lost. Does LXC people need 
-to propose something? Does Richard? Someone else? Who's got the ball?
+	Hello,
 
-Thank,
--Steve
+On Mon, 3 Jun 2019, syzbot wrote:
 
-On Friday, May 31, 2019 8:44:45 AM EDT Paul Moore wrote:
-> On Thu, May 30, 2019 at 8:21 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> > On 2019-05-30 19:26, Paul Moore wrote:
-> > > On Thu, May 30, 2019 at 5:29 PM Tycho Andersen <tycho@tycho.ws> wrote:
-> > > > On Thu, May 30, 2019 at 03:29:32PM -0400, Paul Moore wrote:
-> > > > > [REMINDER: It is an "*audit* container ID" and not a general
-> > > > > "container ID" ;)  Smiley aside, I'm not kidding about that part.]
-> > > > 
-> > > > This sort of seems like a distinction without a difference;
-> > > > presumably
-> > > > audit is going to want to differentiate between everything that
-> > > > people
-> > > > in userspace call a container. So you'll have to support all this
-> > > > insanity anyway, even if it's "not a container ID".
-> > > 
-> > > That's not quite right.  Audit doesn't care about what a container is,
-> > > or is not, it also doesn't care if the "audit container ID" actually
-> > > matches the ID used by the container engine in userspace and I think
-> > > that is a very important line to draw.  Audit is simply given a value
-> > > which it calls the "audit container ID", it ensures that the value is
-> > > inherited appropriately (e.g. children inherit their parent's audit
-> > > container ID), and it uses the value in audit records to provide some
-> > > additional context for log analysis.  The distinction isn't limited to
-> > > the value itself, but also to how it is used; it is an "audit
-> > > container ID" and not a "container ID" because this value is
-> > > exclusively for use by the audit subsystem.  We are very intentionally
-> > > not adding a generic container ID to the kernel.  If the kernel does
-> > > ever grow a general purpose container ID we will be one of the first
-> > > ones in line to make use of it, but we are not going to be the ones to
-> > > generically add containers to the kernel.  Enough people already hate
-> > > audit ;)
-> > > 
-> > > > > I'm not interested in supporting/merging something that isn't
-> > > > > useful;
-> > > > > if this doesn't work for your use case then we need to figure out
-> > > > > what
-> > > > > would work.  It sounds like nested containers are much more common
-> > > > > in
-> > > > > the lxc world, can you elaborate a bit more on this?
-> > > > > 
-> > > > > As far as the possible solutions you mention above, I'm not sure I
-> > > > > like the per-userns audit container IDs, I'd much rather just emit
-> > > > > the
-> > > > > necessary tracking information via the audit record stream and let
-> > > > > the
-> > > > > log analysis tools figure it out.  However, the bigger question is
-> > > > > how
-> > > > > to limit (re)setting the audit container ID when you are in a
-> > > > > non-init
-> > > > > userns.  For reasons already mentioned, using capable() is a non
-> > > > > starter for everything but the initial userns, and using
-> > > > > ns_capable()
-> > > > > is equally poor as it essentially allows any userns the ability to
-> > > > > munge it's audit container ID (obviously not good).  It appears we
-> > > > > need a different method for controlling access to the audit
-> > > > > container
-> > > > > ID.
-> > > > 
-> > > > One option would be to make it a string, and have it be append only.
-> > > > That should be safe with no checks.
-> > > > 
-> > > > I know there was a long thread about what type to make this thing. I
-> > > > think you could accomplish the append-only-ness with a u64 if you had
-> > > > some rule about only allowing setting lower order bits than those
-> > > > that
-> > > > are already set. With 4 bits for simplicity:
-> > > > 
-> > > > 1100         # initial container id
-> > > > 1100 -> 1011 # not allowed
-> > > > 1100 -> 1101 # allowed, but now 1101 is set in stone since there are
-> > > > 
-> > > >              # no lower order bits left
-> > > > 
-> > > > There are probably fancier ways to do it if you actually understand
-> > > > math :)
-> > >  
-> > >  ;)
-> > >  
-> > > > Since userns nesting is limited to 32 levels (right now, IIRC), and
-> > > > you have 64 bits, this might be reasonable. You could just teach
-> > > > container engines to use the first say N bits for themselves, with a
-> > > > 1
-> > > > bit for the barrier at the end.
-> > > 
-> > > I like the creativity, but I worry that at some point these
-> > > limitations are going to be raised (limits have a funny way of doing
-> > > that over time) and we will be in trouble.  I say "trouble" because I
-> > > want to be able to quickly do an audit container ID comparison and
-> > > we're going to pay a penalty for these larger values (we'll need this
-> > > when we add multiple auditd support and the requisite record routing).
-> > > 
-> > > Thinking about this makes me also realize we probably need to think a
-> > > bit longer about audit container ID conflicts between orchestrators.
-> > > Right now we just take the value that is given to us by the
-> > > orchestrator, but if we want to allow multiple container orchestrators
-> > > to work without some form of cooperation in userspace (I think we have
-> > > to assume the orchestrators will not talk to each other) we likely
-> > > need to have some way to block reuse of an audit container ID.  We
-> > > would either need to prevent the orchestrator from explicitly setting
-> > > an audit container ID to a currently in use value, or instead generate
-> > > the audit container ID in the kernel upon an event triggered by the
-> > > orchestrator (e.g. a write to a /proc file).  I suspect we should
-> > > start looking at the idr code, I think we will need to make use of it.
-> > 
-> > My first reaction to using the IDR code is that once an idr is given up,
-> > it can be reused.  I suppose we request IDRs and then never give them up
-> > to avoid reuse...
+> Hello,
 > 
-> I'm not sure we ever what to guarantee that an audit container ID
-> won't be reused during the lifetime of the system, it is a discrete
-> integer after all.  What I think we do want to guarantee is that we
-> won't allow an unintentional audit container ID collision between
-> different orchestrators; if a single orchestrator wants to reuse an
-> audit container ID then that is its choice.
+> syzbot found the following crash on:
 > 
-> > I already had some ideas of preventing an existing ID from being reused,
+> HEAD commit:    3ab4436f Merge tag 'nfsd-5.2-1' of git://linux-nfs.org/~bf..
+> git tree:       upstream
+> console output: https://syzkaller.appspot.com/x/log.txt?x=15feaf82a00000
+> kernel config:  https://syzkaller.appspot.com/x/.config?x=50393f7bfe444ff6
+> dashboard link: https://syzkaller.appspot.com/bug?extid=722da59ccb264bc19910
+> compiler:       gcc (GCC) 9.0.0 20181231 (experimental)
+> syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=12f02772a00000
+> C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=1657b80ea00000
 > 
-> Cool.  I only made the idr suggestion since it is used for PIDs and
-> solves a very similar problem.
+> IMPORTANT: if you fix the bug, please add the following tag to the commit:
+> Reported-by: syzbot+722da59ccb264bc19910@syzkaller.appspotmail.com
 > 
-> > but that makes the practice of some container engines injecting
-> > processes into existing containers difficult if not impossible.
+> 035][ T7273] IPVS: ftp: loaded support on port[0] = 21
+> BUG: memory leak
+> unreferenced object 0xffff88810acd8a80 (size 96):
+>  comm "syz-executor073", pid 7254, jiffies 4294950560 (age 22.250s)
+>  hex dump (first 32 bytes):
+>    02 00 00 00 00 00 00 00 50 8b bb 82 ff ff ff ff  ........P.......
+>    00 00 00 00 00 00 00 00 00 77 bb 82 ff ff ff ff  .........w......
+>  backtrace:
+>    [<0000000013db61f1>] kmemleak_alloc_recursive include/linux/kmemleak.h:55
+>    [inline]
+>    [<0000000013db61f1>] slab_post_alloc_hook mm/slab.h:439 [inline]
+>    [<0000000013db61f1>] slab_alloc_node mm/slab.c:3269 [inline]
+>    [<0000000013db61f1>] kmem_cache_alloc_node_trace+0x15b/0x2a0 mm/slab.c:3597
+>    [<000000001a27307d>] __do_kmalloc_node mm/slab.c:3619 [inline]
+>    [<000000001a27307d>] __kmalloc_node+0x38/0x50 mm/slab.c:3627
+>    [<0000000025054add>] kmalloc_node include/linux/slab.h:590 [inline]
+>    [<0000000025054add>] kvmalloc_node+0x4a/0xd0 mm/util.c:431
+>    [<0000000050d1bc00>] kvmalloc include/linux/mm.h:637 [inline]
+>    [<0000000050d1bc00>] kvzalloc include/linux/mm.h:645 [inline]
+>    [<0000000050d1bc00>] allocate_hook_entries_size+0x3b/0x60
+>    net/netfilter/core.c:61
+>    [<00000000e8abe142>] nf_hook_entries_grow+0xae/0x270
+>    net/netfilter/core.c:128
+>    [<000000004b94797c>] __nf_register_net_hook+0x9a/0x170
+>    net/netfilter/core.c:337
+>    [<00000000d1545cbc>] nf_register_net_hook+0x34/0xc0
+>    net/netfilter/core.c:464
+>    [<00000000876c9b55>] nf_register_net_hooks+0x53/0xc0
+>    net/netfilter/core.c:480
+>    [<000000002ea868e0>] __ip_vs_init+0xe8/0x170
+>    net/netfilter/ipvs/ip_vs_core.c:2280
+
+	After commit "ipvs: Fix use-after-free in ip_vs_in" we planned
+to call nf_register_net_hooks() only when rule is created but this
+is net-next material and we should not leave leak in the error path.
+I'll post a patch that adds .init handler for ipvs_core_dev_ops, so
+that nf_register_net_hooks() is called there.
+
+> ---
+> This bug is generated by a bot. It may contain errors.
+> See https://goo.gl/tpsmEJ for more information about syzbot.
+> syzbot engineers can be reached at syzkaller@googlegroups.com.
 > 
-> Yes, we'll need some provision to indicate which orchestrator
-> "controls" that particular audit container ID, and allow that
-> orchestrator to reuse that particular audit container ID (until all
-> those containers disappear and the audit container ID is given back to
-> the pool).
+> syzbot will keep track of this bug report. See:
+> https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+> syzbot can test patches for this bug, for details see:
+> https://goo.gl/tpsmEJ#testing-patches
 
+Regards
 
-
-
+--
+Julian Anastasov <ja@ssi.bg>
