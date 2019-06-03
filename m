@@ -2,96 +2,91 @@ Return-Path: <SRS0=Me6e=UC=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_NEOMUTT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C2BFC28CC6
-	for <netfilter-devel@archiver.kernel.org>; Mon,  3 Jun 2019 09:40:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AD67EC28CC6
+	for <netfilter-devel@archiver.kernel.org>; Mon,  3 Jun 2019 12:30:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0E6C628020
-	for <netfilter-devel@archiver.kernel.org>; Mon,  3 Jun 2019 09:40:35 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=6wind.com header.i=@6wind.com header.b="Inh5mDIJ"
+	by mail.kernel.org (Postfix) with ESMTP id 911A6280FA
+	for <netfilter-devel@archiver.kernel.org>; Mon,  3 Jun 2019 12:30:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727762AbfFCJke (ORCPT
+        id S1726820AbfFCMaO (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 3 Jun 2019 05:40:34 -0400
-Received: from mail-wm1-f44.google.com ([209.85.128.44]:40814 "EHLO
-        mail-wm1-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726341AbfFCJke (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 3 Jun 2019 05:40:34 -0400
-Received: by mail-wm1-f44.google.com with SMTP id u16so5053803wmc.5
-        for <netfilter-devel@vger.kernel.org>; Mon, 03 Jun 2019 02:40:33 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=6wind.com; s=google;
-        h=reply-to:subject:to:cc:references:from:organization:message-id:date
-         :user-agent:mime-version:in-reply-to:content-language
-         :content-transfer-encoding;
-        bh=GYzaKSryFkfhjuQK88NWJ7iWek8zyptGyqPn6HQSwRc=;
-        b=Inh5mDIJpwsrVxoeUPthxQgdKt1/nP6Ct2FFAZSRLdJc1MpHeGVLL+bPZFzCWefgj4
-         i+bu74xi9q81WrjTB0Jx4GJ8YQ19TR5/CzjT/qt8hLQKNwp0mjfHlOJfNM2gc0pRhmyp
-         vkN42zewivEPqJyC6k0mid9cPt0VUmpkMQLixFY2Ya5TuFbX9McI0MeCQNF5jRs8D2uZ
-         4nQ/z9qGk0ZVX07eLmfzNlAUygNh2gCMhgLmpWpGVNncJhgS0o3XMIGuhlg4PprGdaH7
-         F7xyF9ez5JB3N2KwU8554qiHqx/C6VSt4vIvkgz2UU7GwRXo3aZxm1OMIw/st3AXeC5t
-         7URQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:reply-to:subject:to:cc:references:from
-         :organization:message-id:date:user-agent:mime-version:in-reply-to
-         :content-language:content-transfer-encoding;
-        bh=GYzaKSryFkfhjuQK88NWJ7iWek8zyptGyqPn6HQSwRc=;
-        b=Tuumzo9GU6OMyod3k5Pc2X56gPN3lt7B3R6+AIblJLKowbHp6IrVb72miSoUyizd8K
-         wLzC9nAvDdMqF+sylhU+dEm8vLiKWuA2JpVxqi9WHf3ufeDWHzzl6fnxHpRu0LYTGYtz
-         IT5Du3DG3p5PchgfYaoBoMyImDgDSw0vpgk5e+cGGRNuus8PKsGeT84MwI7syMGY4y5d
-         hIP03VVJK0wCib3twypxli8Ys9AYFGiBBkBaj9DsDOotxpXLQzAqt1Gxili3tNztAvFO
-         7mldW0WpAGf2Lg39V+nA8HtanU/5vPUIVOcHyuh3KFQlYvVr5Nkh3w+2YvKRwSZCrC7B
-         dNxA==
-X-Gm-Message-State: APjAAAUHf1mWXXtQDQN+f1vIHxIYVrF5lI/qygWM+nMameKVadsDWT27
-        cPd9UXsj9hlisrz9uJOYMtzOBFinsYk=
-X-Google-Smtp-Source: APXvYqzpibE5/yen1M9IS5VlYp6wLU4wAqO4UMZbIPlWsWN+kVyLhUgh/cfYoF61+/eCAobVNxHx+g==
-X-Received: by 2002:a7b:c001:: with SMTP id c1mr13660426wmb.49.1559554831965;
-        Mon, 03 Jun 2019 02:40:31 -0700 (PDT)
-Received: from [10.16.0.69] (host.78.145.23.62.rev.coltfrance.com. [62.23.145.78])
-        by smtp.gmail.com with ESMTPSA id y12sm6457970wrr.3.2019.06.03.02.40.31
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 03 Jun 2019 02:40:31 -0700 (PDT)
-Reply-To: nicolas.dichtel@6wind.com
-Subject: Re: nftables release
-To:     Florian Westphal <fw@strlen.de>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel <netfilter-devel@vger.kernel.org>
-References: <65ec483a-b8d7-530b-373f-6dcdd5f668c6@6wind.com>
- <20190530211628.lxufmb3gqizywkxe@breakpoint.cc>
-From:   Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Organization: 6WIND
-Message-ID: <9b87afde-8ae5-2d06-f90e-e085dc797ade@6wind.com>
-Date:   Mon, 3 Jun 2019 11:40:30 +0200
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.7.0
+        Mon, 3 Jun 2019 08:30:14 -0400
+Received: from mail.us.es ([193.147.175.20]:51526 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726315AbfFCMaN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 3 Jun 2019 08:30:13 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id E7687C1A65
+        for <netfilter-devel@vger.kernel.org>; Mon,  3 Jun 2019 14:30:09 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id D5EB2DA70D
+        for <netfilter-devel@vger.kernel.org>; Mon,  3 Jun 2019 14:30:09 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id CB907DA70B; Mon,  3 Jun 2019 14:30:09 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A2996DA702;
+        Mon,  3 Jun 2019 14:30:07 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Mon, 03 Jun 2019 14:30:07 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (129.166.216.87.static.jazztel.es [87.216.166.129])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 666604265A2F;
+        Mon,  3 Jun 2019 14:30:07 +0200 (CEST)
+Date:   Mon, 3 Jun 2019 14:30:06 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Stephen Suryaputra <ssuryaextr@gmail.com>
+Cc:     netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+Subject: Re: [PATCH nf-next] netfilter: add support for matching IPv4 options
+Message-ID: <20190603123006.urztqvxyxcm7w3av@salvia>
+References: <20190523093801.3747-1-ssuryaextr@gmail.com>
+ <20190531171101.5pttvxlbernhmlra@salvia>
+ <20190531193558.GB4276@ubuntu>
+ <20190601002230.bo6dhdf3lhlkknqq@salvia>
+ <20190601150429.GA16560@ubuntu>
 MIME-Version: 1.0
-In-Reply-To: <20190530211628.lxufmb3gqizywkxe@breakpoint.cc>
-Content-Type: text/plain; charset=utf-8
-Content-Language: fr
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190601150429.GA16560@ubuntu>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Le 30/05/2019 à 23:16, Florian Westphal a écrit :
-> Nicolas Dichtel <nicolas.dichtel@6wind.com> wrote:
->> Hi,
->>
->> is there any plan to release an official version of the nftables user-space utility?
->> The last one (v0.9.0) is now one year old ;-)
+On Sat, Jun 01, 2019 at 11:04:29AM -0400, Stephen Suryaputra wrote:
+> On Sat, Jun 01, 2019 at 02:22:30AM +0200, Pablo Neira Ayuso wrote:
+> > > It is the same as the IPv6 one. The offset returned is the offset to the
+> > > specific option (target) or the byte beyond the options if the target
+> > > isn't specified (< 0).
+> > 
+> > Thanks for explaining. So you are using ipv6_find_hdr() as reference,
+> > but not sure this offset parameter is useful for this patchset since
+> > this is always set to zero, do you have plans to use this in a follow
+> > up patchset?
 > 
-> There are a few bugs that are sorted out right now,
-> a new release should happen soon once that is resolved.
-> 
-Ok, thank you for the answer.
+> I developed this patchset to suit my employer needs and there is no plan
+> for a follow up patchset, however I think non-zero offset might be useful
+> in the future for tunneled packets.
 
+For tunneled traffic, we can store the network offset in the
+nft_pktinfo object. Then, add a new extension to update this network
+offset to point to the network offset inside the tunnel header, and
+use this pkt->network_offset everywhere.
 
-Regards,
-Nicolas
+I think this new IPv4 options extension should use priv->offset to
+match fields inside the IPv4 option specifically, just like in the
+IPv6 extensions and TCP options do. If you look on how the
+priv->offset is used in the existing code, this offset points to
+values that the specific option field conveys.
+
+Thanks.
