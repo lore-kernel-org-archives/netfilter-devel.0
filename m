@@ -2,183 +2,72 @@ Return-Path: <SRS0=ghWo=UD=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_NEOMUTT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 35B39C282CE
-	for <netfilter-devel@archiver.kernel.org>; Tue,  4 Jun 2019 12:15:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 669EAC28CC6
+	for <netfilter-devel@archiver.kernel.org>; Tue,  4 Jun 2019 13:26:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 16BD9218CD
-	for <netfilter-devel@archiver.kernel.org>; Tue,  4 Jun 2019 12:15:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 40B8324291
+	for <netfilter-devel@archiver.kernel.org>; Tue,  4 Jun 2019 13:26:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727409AbfFDMPt (ORCPT
+        id S1727352AbfFDN0K (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 4 Jun 2019 08:15:49 -0400
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:49170 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726994AbfFDMPt (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 4 Jun 2019 08:15:49 -0400
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.89)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1hY8Lz-0006N0-2W; Tue, 04 Jun 2019 14:15:47 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next] netfilter: conntrack: small conntrack lookup optimization
-Date:   Tue,  4 Jun 2019 14:14:04 +0200
-Message-Id: <20190604121404.30351-1-fw@strlen.de>
-X-Mailer: git-send-email 2.21.0
+        Tue, 4 Jun 2019 09:26:10 -0400
+Received: from mail.us.es ([193.147.175.20]:36488 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727033AbfFDN0J (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 4 Jun 2019 09:26:09 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 1708DFB363
+        for <netfilter-devel@vger.kernel.org>; Tue,  4 Jun 2019 15:26:08 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 066C4DA70C
+        for <netfilter-devel@vger.kernel.org>; Tue,  4 Jun 2019 15:26:08 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id EFD96DA704; Tue,  4 Jun 2019 15:26:07 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id D2514DA702;
+        Tue,  4 Jun 2019 15:26:05 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Tue, 04 Jun 2019 15:26:05 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (sys.soleta.eu [212.170.55.40])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id AEC084265A32;
+        Tue,  4 Jun 2019 15:26:05 +0200 (CEST)
+Date:   Tue, 4 Jun 2019 15:26:05 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Guillaume Nault <gnault@redhat.com>
+Cc:     netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        Peter Oskolkov <posk@google.com>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>
+Subject: Re: [PATCH net] netfilter: ipv6: nf_defrag: fix leakage of unqueued
+ fragments
+Message-ID: <20190604132605.jlhxljrzaqkw4f2j@salvia>
+References: <51d82a9bd6312e51a56ccae54e00452a0ef957dd.1559480671.git.gnault@redhat.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <51d82a9bd6312e51a56ccae54e00452a0ef957dd.1559480671.git.gnault@redhat.com>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-____nf_conntrack_find() performs checks on the conntrack objects in
-this order:
+On Sun, Jun 02, 2019 at 03:13:47PM +0200, Guillaume Nault wrote:
+> With commit 997dd9647164 ("net: IP6 defrag: use rbtrees in
+> nf_conntrack_reasm.c"), nf_ct_frag6_reasm() is now called from
+> nf_ct_frag6_queue(). With this change, nf_ct_frag6_queue() can fail
+> after the skb has been added to the fragment queue and
+> nf_ct_frag6_gather() was adapted to handle this case.
 
-1. if (nf_ct_is_expired(ct))
-
-This fetches ct->timeout, in third cache line.
-
-The hnnode that is used to store the list pointers resides in the first
-(origin) or second (reply tuple) cache lines.
-
-This test rarely passes, but its necessary to reap obsolete entries.
-
-2. if (nf_ct_is_dying(ct))
-
-This fetches ct->status, also in third cache line.
-
-The test is useless, and can be removed:
-  Consider:
-     cpu0                                           cpu1
-    ct = ____nf_conntrack_find()
-    atomic_inc_not_zero(ct) -> ok
-    nf_ct_key_equal -> ok
-    is_dying -> DYING bit not set, ok
-                                                    set_bit(ct, DYING);
-						    ... unhash ... etc.
-    return ct
-    -> returning a ct with dying bit set, despite
-    having a test for it.
-
-This (unlikely) case is fine - refcount prevents ct from getting free'd.
-
-3. if (nf_ct_key_equal(h, tuple, zone, net))
-
-nf_ct_key_equal checks in following order:
-
-1. Tuple equal (first or second cacheline)
-2. Zone equal (third cacheline)
-3. confirmed bit set (->status, third cacheline)
-4. net namespace match (third cacheline).
-
-Swapping "timeout" and "cpu" places timeout in the first cacheline.
-This has two advantages:
-
-1. For a conntrack that won't even match the original tuple,
-   we will now only fetch the first and maybe the second cacheline
-   instead of always accessing the 3rd one as well.
-
-2.  in case of TCP ct->timeout changes frequently because we
-    reduce/increase it when there are packets outstanding in the network.
-
-The first cacheline contains both the reference count and the ct spinlock,
-i.e. moving timeout there avoids writes to 3rd cacheline.
-
-The restart sequence in __nf_conntrack_find() is removed, if we found a
-candidate, but then fail to increment the refcount or discover the tuple
-has changed (object recycling), just pretend we did not find an entry.
-
-A second lookup won't find anything until another CPU adds a new conntrack
-with identical tuple into the hash table, which is very unlikely.
-
-We have the confirmation-time checks (when we hold hash lock) that deal
-with identical entries and even perform clash resolution in some cases.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- include/net/netfilter/nf_conntrack.h |  7 +++----
- net/netfilter/nf_conntrack_core.c    | 25 +++++++++++++------------
- 2 files changed, 16 insertions(+), 16 deletions(-)
-
-diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
-index 5cb19ce454d1..c86657d99630 100644
---- a/include/net/netfilter/nf_conntrack.h
-+++ b/include/net/netfilter/nf_conntrack.h
-@@ -70,7 +70,8 @@ struct nf_conn {
- 	struct nf_conntrack ct_general;
- 
- 	spinlock_t	lock;
--	u16		cpu;
-+	/* jiffies32 when this ct is considered dead */
-+	u32 timeout;
- 
- #ifdef CONFIG_NF_CONNTRACK_ZONES
- 	struct nf_conntrack_zone zone;
-@@ -82,9 +83,7 @@ struct nf_conn {
- 	/* Have we seen traffic both ways yet? (bitset) */
- 	unsigned long status;
- 
--	/* jiffies32 when this ct is considered dead */
--	u32 timeout;
--
-+	u16		cpu;
- 	possible_net_t ct_net;
- 
- #if IS_ENABLED(CONFIG_NF_NAT)
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 98f8262f84d2..83143bccb2e7 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -752,9 +752,6 @@ ____nf_conntrack_find(struct net *net, const struct nf_conntrack_zone *zone,
- 			continue;
- 		}
- 
--		if (nf_ct_is_dying(ct))
--			continue;
--
- 		if (nf_ct_key_equal(h, tuple, zone, net))
- 			return h;
- 	}
-@@ -780,20 +777,24 @@ __nf_conntrack_find_get(struct net *net, const struct nf_conntrack_zone *zone,
- 	struct nf_conn *ct;
- 
- 	rcu_read_lock();
--begin:
-+
- 	h = ____nf_conntrack_find(net, zone, tuple, hash);
- 	if (h) {
-+		/* We have a candidate that matches the tuple we're interested
-+		 * in, try to obtain a reference and re-check tuple
-+		 */
- 		ct = nf_ct_tuplehash_to_ctrack(h);
--		if (unlikely(nf_ct_is_dying(ct) ||
--			     !atomic_inc_not_zero(&ct->ct_general.use)))
--			h = NULL;
--		else {
--			if (unlikely(!nf_ct_key_equal(h, tuple, zone, net))) {
--				nf_ct_put(ct);
--				goto begin;
--			}
-+		if (likely(atomic_inc_not_zero(&ct->ct_general.use))) {
-+			if (likely(nf_ct_key_equal(h, tuple, zone, net)))
-+				goto found;
-+
-+			/* TYPESAFE_BY_RCU recycled the candidate */
-+			nf_ct_put(ct);
- 		}
-+
-+		h = NULL;
- 	}
-+found:
- 	rcu_read_unlock();
- 
- 	return h;
--- 
-2.21.0
-
+Applied, thanks.
