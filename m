@@ -2,151 +2,149 @@ Return-Path: <SRS0=ghWo=UD=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DE6F2C282CE
-	for <netfilter-devel@archiver.kernel.org>; Tue,  4 Jun 2019 18:44:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B9264C282CE
+	for <netfilter-devel@archiver.kernel.org>; Tue,  4 Jun 2019 18:57:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6B3F72075B
-	for <netfilter-devel@archiver.kernel.org>; Tue,  4 Jun 2019 18:44:31 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b="B5cQETlz"
+	by mail.kernel.org (Postfix) with ESMTP id 93A482075C
+	for <netfilter-devel@archiver.kernel.org>; Tue,  4 Jun 2019 18:57:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726399AbfFDSob (ORCPT
+        id S1726460AbfFDS5F (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 4 Jun 2019 14:44:31 -0400
-Received: from smtp-out.kfki.hu ([148.6.0.48]:50527 "EHLO smtp-out.kfki.hu"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725933AbfFDSob (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 4 Jun 2019 14:44:31 -0400
-X-Greylist: delayed 615 seconds by postgrey-1.27 at vger.kernel.org; Tue, 04 Jun 2019 14:44:30 EDT
-Received: from localhost (localhost [127.0.0.1])
-        by smtp2.kfki.hu (Postfix) with ESMTP id 91D64CC0104;
-        Tue,  4 Jun 2019 20:34:13 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        blackhole.kfki.hu; h=mime-version:user-agent:references
-        :message-id:in-reply-to:from:from:date:date:received:received
-        :received; s=20151130; t=1559673250; x=1561487651; bh=nM34Cvskyu
-        wdt2g5GxnlM0hjhnRJ3M7sBf30FrWjSr8=; b=B5cQETlziAxTdLZMg7g52AyKL2
-        sEgaIhc/MuaWjLW09h6oUv/2I5kzlEEgBBfqRp0PGt3Hqp5YfMIL1oxlxprJRDAf
-        MLEM2ja1RPRVQ2A43lcRY1eJ/QCLoUr/hKRXiW02VI8v/PiOH0i19WqtP4BGnV7o
-        8SSyDr0jSy3LHiwu8=
-X-Virus-Scanned: Debian amavisd-new at smtp2.kfki.hu
-Received: from smtp2.kfki.hu ([127.0.0.1])
-        by localhost (smtp2.kfki.hu [127.0.0.1]) (amavisd-new, port 10026)
-        with ESMTP; Tue,  4 Jun 2019 20:34:10 +0200 (CEST)
-Received: from blackhole.kfki.hu (blackhole.kfki.hu [148.6.240.2])
-        by smtp2.kfki.hu (Postfix) with ESMTP id 5F819CC0102;
-        Tue,  4 Jun 2019 20:34:10 +0200 (CEST)
-Received: by blackhole.kfki.hu (Postfix, from userid 1000)
-        id 21AD222026; Tue,  4 Jun 2019 20:34:10 +0200 (CEST)
-Date:   Tue, 4 Jun 2019 20:34:10 +0200 (CEST)
-From:   Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-To:     Stefano Brivio <sbrivio@redhat.com>
-cc:     NOYB <JunkYardMail1@Frontier.com>, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH] ipset: Fix memory accounting for hash types on resize
-In-Reply-To: <70ff6b512f8a6e9fc70a0e2b001d6278d31a1c96.1558884459.git.sbrivio@redhat.com>
-Message-ID: <alpine.DEB.2.20.1906042033170.17677@blackhole.kfki.hu>
-References: <70ff6b512f8a6e9fc70a0e2b001d6278d31a1c96.1558884459.git.sbrivio@redhat.com>
-User-Agent: Alpine 2.20 (DEB 67 2015-01-07)
+        Tue, 4 Jun 2019 14:57:05 -0400
+Received: from ja.ssi.bg ([178.16.129.10]:58294 "EHLO ja.ssi.bg"
+        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1725933AbfFDS5E (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 4 Jun 2019 14:57:04 -0400
+Received: from ja.home.ssi.bg (localhost.localdomain [127.0.0.1])
+        by ja.ssi.bg (8.15.2/8.15.2) with ESMTP id x54IupHT016861;
+        Tue, 4 Jun 2019 21:56:51 +0300
+Received: (from root@localhost)
+        by ja.home.ssi.bg (8.15.2/8.15.2/Submit) id x54IunQf016860;
+        Tue, 4 Jun 2019 21:56:49 +0300
+From:   Julian Anastasov <ja@ssi.bg>
+To:     Simon Horman <horms@verge.net.au>
+Cc:     lvs-devel@vger.kernel.org, Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+Subject: [PATCH net] ipvs: defer hook registration to avoid leaks
+Date:   Tue,  4 Jun 2019 21:56:35 +0300
+Message-Id: <20190604185635.16823-1-ja@ssi.bg>
+X-Mailer: git-send-email 2.21.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Stefano,
+syzkaller reports for memory leak when registering hooks [1]
 
-On Sun, 26 May 2019, Stefano Brivio wrote:
+As we moved the nf_unregister_net_hooks() call into
+__ip_vs_dev_cleanup(), defer the nf_register_net_hooks()
+call, so that hooks are allocated and freed from same
+pernet_operations (ipvs_core_dev_ops).
 
-> If a fresh array block is allocated during resize, the current in-memory
-> set size should be increased by the size of the block, not replaced by it.
-> 
-> Before the fix, adding entries to a hash set type, leading to a table
-> resize, caused an inconsistent memory size to be reported. This becomes
-> more obvious when swapping sets with similar sizes:
-> 
->   # cat hash_ip_size.sh
->   #!/bin/sh
->   FAIL_RETRIES=10
-> 
->   tries=0
->   while [ ${tries} -lt ${FAIL_RETRIES} ]; do
->   	ipset create t1 hash:ip
->   	for i in `seq 1 4345`; do
->   		ipset add t1 1.2.$((i / 255)).$((i % 255))
->   	done
->   	t1_init="$(ipset list t1|sed -n 's/Size in memory: \(.*\)/\1/p')"
-> 
->   	ipset create t2 hash:ip
->   	for i in `seq 1 4360`; do
->   		ipset add t2 1.2.$((i / 255)).$((i % 255))
->   	done
->   	t2_init="$(ipset list t2|sed -n 's/Size in memory: \(.*\)/\1/p')"
-> 
->   	ipset swap t1 t2
->   	t1_swap="$(ipset list t1|sed -n 's/Size in memory: \(.*\)/\1/p')"
->   	t2_swap="$(ipset list t2|sed -n 's/Size in memory: \(.*\)/\1/p')"
-> 
->   	ipset destroy t1
->   	ipset destroy t2
->   	tries=$((tries + 1))
-> 
->   	if [ ${t1_init} -lt 10000 ] || [ ${t2_init} -lt 10000 ]; then
->   		echo "FAIL after ${tries} tries:"
->   		echo "T1 size ${t1_init}, after swap ${t1_swap}"
->   		echo "T2 size ${t2_init}, after swap ${t2_swap}"
->   		exit 1
->   	fi
->   done
->   echo "PASS"
->   # echo -n 'func hash_ip4_resize +p' > /sys/kernel/debug/dynamic_debug/control
->   # ./hash_ip_size.sh
->   [ 2035.018673] attempt to resize set t1 from 10 to 11, t 00000000fe6551fa
->   [ 2035.078583] set t1 resized from 10 (00000000fe6551fa) to 11 (00000000172a0163)
->   [ 2035.080353] Table destroy by resize 00000000fe6551fa
->   FAIL after 4 tries:
->   T1 size 9064, after swap 71128
->   T2 size 71128, after swap 9064
-> 
-> Reported-by: NOYB <JunkYardMail1@Frontier.com>
-> Fixes: 9e41f26a505c ("netfilter: ipset: Count non-static extension memory for userspace")
-> Signed-off-by: Stefano Brivio <sbrivio@redhat.com>
+[1]
+BUG: memory leak
+unreferenced object 0xffff88810acd8a80 (size 96):
+ comm "syz-executor073", pid 7254, jiffies 4294950560 (age 22.250s)
+ hex dump (first 32 bytes):
+   02 00 00 00 00 00 00 00 50 8b bb 82 ff ff ff ff  ........P.......
+   00 00 00 00 00 00 00 00 00 77 bb 82 ff ff ff ff  .........w......
+ backtrace:
+   [<0000000013db61f1>] kmemleak_alloc_recursive include/linux/kmemleak.h:55 [inline]
+   [<0000000013db61f1>] slab_post_alloc_hook mm/slab.h:439 [inline]
+   [<0000000013db61f1>] slab_alloc_node mm/slab.c:3269 [inline]
+   [<0000000013db61f1>] kmem_cache_alloc_node_trace+0x15b/0x2a0 mm/slab.c:3597
+   [<000000001a27307d>] __do_kmalloc_node mm/slab.c:3619 [inline]
+   [<000000001a27307d>] __kmalloc_node+0x38/0x50 mm/slab.c:3627
+   [<0000000025054add>] kmalloc_node include/linux/slab.h:590 [inline]
+   [<0000000025054add>] kvmalloc_node+0x4a/0xd0 mm/util.c:431
+   [<0000000050d1bc00>] kvmalloc include/linux/mm.h:637 [inline]
+   [<0000000050d1bc00>] kvzalloc include/linux/mm.h:645 [inline]
+   [<0000000050d1bc00>] allocate_hook_entries_size+0x3b/0x60 net/netfilter/core.c:61
+   [<00000000e8abe142>] nf_hook_entries_grow+0xae/0x270 net/netfilter/core.c:128
+   [<000000004b94797c>] __nf_register_net_hook+0x9a/0x170 net/netfilter/core.c:337
+   [<00000000d1545cbc>] nf_register_net_hook+0x34/0xc0 net/netfilter/core.c:464
+   [<00000000876c9b55>] nf_register_net_hooks+0x53/0xc0 net/netfilter/core.c:480
+   [<000000002ea868e0>] __ip_vs_init+0xe8/0x170 net/netfilter/ipvs/ip_vs_core.c:2280
+   [<000000002eb2d451>] ops_init+0x4c/0x140 net/core/net_namespace.c:130
+   [<000000000284ec48>] setup_net+0xde/0x230 net/core/net_namespace.c:316
+   [<00000000a70600fa>] copy_net_ns+0xf0/0x1e0 net/core/net_namespace.c:439
+   [<00000000ff26c15e>] create_new_namespaces+0x141/0x2a0 kernel/nsproxy.c:107
+   [<00000000b103dc79>] copy_namespaces+0xa1/0xe0 kernel/nsproxy.c:165
+   [<000000007cc008a2>] copy_process.part.0+0x11fd/0x2150 kernel/fork.c:2035
+   [<00000000c344af7c>] copy_process kernel/fork.c:1800 [inline]
+   [<00000000c344af7c>] _do_fork+0x121/0x4f0 kernel/fork.c:2369
 
-Excellent, thanks! Patch is applied in ipset git tree and a new release is 
-on the way.
+Reported-by: syzbot+722da59ccb264bc19910@syzkaller.appspotmail.com
+Fixes: 719c7d563c17 ("ipvs: Fix use-after-free in ip_vs_in")
+Signed-off-by: Julian Anastasov <ja@ssi.bg>
+---
+ net/netfilter/ipvs/ip_vs_core.c | 21 ++++++++++++++-------
+ 1 file changed, 14 insertions(+), 7 deletions(-)
 
-Best regards,
-Jozsef
-
-> ---
->  net/netfilter/ipset/ip_set_hash_gen.h | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
-> index 01d51f775f12..623e0d675725 100644
-> --- a/net/netfilter/ipset/ip_set_hash_gen.h
-> +++ b/net/netfilter/ipset/ip_set_hash_gen.h
-> @@ -625,7 +625,7 @@ mtype_resize(struct ip_set *set, bool retried)
->  					goto cleanup;
->  				}
->  				m->size = AHASH_INIT_SIZE;
-> -				extsize = ext_size(AHASH_INIT_SIZE, dsize);
-> +				extsize += ext_size(AHASH_INIT_SIZE, dsize);
->  				RCU_INIT_POINTER(hbucket(t, key), m);
->  			} else if (m->pos >= m->size) {
->  				struct hbucket *ht;
-> -- 
-> 2.20.1
-> 
-> 
-
+diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+index 8ebf21149ec3..e72b51157cbb 100644
+--- a/net/netfilter/ipvs/ip_vs_core.c
++++ b/net/netfilter/ipvs/ip_vs_core.c
+@@ -2250,7 +2250,6 @@ static const struct nf_hook_ops ip_vs_ops[] = {
+ static int __net_init __ip_vs_init(struct net *net)
+ {
+ 	struct netns_ipvs *ipvs;
+-	int ret;
+ 
+ 	ipvs = net_generic(net, ip_vs_net_id);
+ 	if (ipvs == NULL)
+@@ -2282,17 +2281,11 @@ static int __net_init __ip_vs_init(struct net *net)
+ 	if (ip_vs_sync_net_init(ipvs) < 0)
+ 		goto sync_fail;
+ 
+-	ret = nf_register_net_hooks(net, ip_vs_ops, ARRAY_SIZE(ip_vs_ops));
+-	if (ret < 0)
+-		goto hook_fail;
 -
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+ 	return 0;
+ /*
+  * Error handling
+  */
+ 
+-hook_fail:
+-	ip_vs_sync_net_cleanup(ipvs);
+ sync_fail:
+ 	ip_vs_conn_net_cleanup(ipvs);
+ conn_fail:
+@@ -2322,6 +2315,19 @@ static void __net_exit __ip_vs_cleanup(struct net *net)
+ 	net->ipvs = NULL;
+ }
+ 
++static int __net_init __ip_vs_dev_init(struct net *net)
++{
++	int ret;
++
++	ret = nf_register_net_hooks(net, ip_vs_ops, ARRAY_SIZE(ip_vs_ops));
++	if (ret < 0)
++		goto hook_fail;
++	return 0;
++
++hook_fail:
++	return ret;
++}
++
+ static void __net_exit __ip_vs_dev_cleanup(struct net *net)
+ {
+ 	struct netns_ipvs *ipvs = net_ipvs(net);
+@@ -2341,6 +2347,7 @@ static struct pernet_operations ipvs_core_ops = {
+ };
+ 
+ static struct pernet_operations ipvs_core_dev_ops = {
++	.init = __ip_vs_dev_init,
+ 	.exit = __ip_vs_dev_cleanup,
+ };
+ 
+-- 
+2.21.0
+
