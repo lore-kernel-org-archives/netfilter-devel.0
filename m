@@ -1,118 +1,77 @@
-Return-Path: <SRS0=Me6e=UC=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=ghWo=UD=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_MUTT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3DB26C04AB5
-	for <netfilter-devel@archiver.kernel.org>; Mon,  3 Jun 2019 21:43:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7DC8AC282CE
+	for <netfilter-devel@archiver.kernel.org>; Tue,  4 Jun 2019 07:17:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1EEB425E44
-	for <netfilter-devel@archiver.kernel.org>; Mon,  3 Jun 2019 21:43:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5247324A8F
+	for <netfilter-devel@archiver.kernel.org>; Tue,  4 Jun 2019 07:17:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726503AbfFCVn1 (ORCPT
+        id S1726819AbfFDHR6 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 3 Jun 2019 17:43:27 -0400
-Received: from ja.ssi.bg ([178.16.129.10]:55560 "EHLO ja.ssi.bg"
-        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726102AbfFCVn1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 3 Jun 2019 17:43:27 -0400
-Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
-        by ja.ssi.bg (8.15.2/8.15.2) with ESMTP id x53LWMvZ008943;
-        Tue, 4 Jun 2019 00:32:22 +0300
-Date:   Tue, 4 Jun 2019 00:32:22 +0300 (EEST)
-From:   Julian Anastasov <ja@ssi.bg>
-To:     syzbot <syzbot+722da59ccb264bc19910@syzkaller.appspotmail.com>
-cc:     coreteam@netfilter.org, "David S. Miller" <davem@davemloft.net>,
-        fw@strlen.de, kadlec@blackhole.kfki.hu,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        pablo@netfilter.org, syzkaller-bugs@googlegroups.com,
-        lvs-devel@vger.kernel.org
-Subject: Re: memory leak in nf_hook_entries_grow
-In-Reply-To: <0000000000002b2262058a70001d@google.com>
-Message-ID: <alpine.LFD.2.21.1906040021510.3876@ja.home.ssi.bg>
-References: <0000000000002b2262058a70001d@google.com>
-User-Agent: Alpine 2.21 (LFD 202 2017-01-01)
+        Tue, 4 Jun 2019 03:17:58 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:55330 "EHLO orbyte.nwl.cc"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726589AbfFDHR6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 4 Jun 2019 03:17:58 -0400
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.91)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1hY3hi-0008Mc-V2; Tue, 04 Jun 2019 09:17:54 +0200
+Date:   Tue, 4 Jun 2019 09:17:54 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Eric Garver <eric@garver.life>, netfilter-devel@vger.kernel.org
+Subject: Re: [nft PATCH v4 7/7] src: Support intra-transaction rule references
+Message-ID: <20190604071754.GO31548@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Eric Garver <eric@garver.life>, netfilter-devel@vger.kernel.org
+References: <20190528210323.14605-1-phil@nwl.cc>
+ <20190528210323.14605-8-phil@nwl.cc>
+ <20190531165625.nxtgnokrxzgol2nk@egarver.localdomain>
+ <20190603165917.pnub5grz3eaixdwt@salvia>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190603165917.pnub5grz3eaixdwt@salvia>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Hi,
 
-	Hello,
+On Mon, Jun 03, 2019 at 06:59:17PM +0200, Pablo Neira Ayuso wrote:
+> On Fri, May 31, 2019 at 12:56:25PM -0400, Eric Garver wrote:
+[...]
+> > I'm seeing a NULL pointer dereferenced here. It occurs when we delete a rule
+> > and add a new rule using the "index" keyword in the same transaction/batch.
 
-On Mon, 3 Jun 2019, syzbot wrote:
+Yes, cache population for rule delete command was completely broken. I
+missed that cmd->rule is NULL in that case, sorry for the mess.
 
-> Hello,
+> I think we need two new things here:
 > 
-> syzbot found the following crash on:
+> #1 We need a new initial step, before evalution, to calculate the cache
+>    completeness level. This means, we interate over the batch to see what
+>    kind of completeness is needed. Then, cache is fetched only once, at
+>    the beginning of the batch processing. Ensure that cache is
+>    consistent from that step.
 > 
-> HEAD commit:    3ab4436f Merge tag 'nfsd-5.2-1' of git://linux-nfs.org/~bf..
-> git tree:       upstream
-> console output: https://syzkaller.appspot.com/x/log.txt?x=15feaf82a00000
-> kernel config:  https://syzkaller.appspot.com/x/.config?x=50393f7bfe444ff6
-> dashboard link: https://syzkaller.appspot.com/bug?extid=722da59ccb264bc19910
-> compiler:       gcc (GCC) 9.0.0 20181231 (experimental)
-> syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=12f02772a00000
-> C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=1657b80ea00000
-> 
-> IMPORTANT: if you fix the bug, please add the following tag to the commit:
-> Reported-by: syzbot+722da59ccb264bc19910@syzkaller.appspotmail.com
-> 
-> 035][ T7273] IPVS: ftp: loaded support on port[0] = 21
-> BUG: memory leak
-> unreferenced object 0xffff88810acd8a80 (size 96):
->  comm "syz-executor073", pid 7254, jiffies 4294950560 (age 22.250s)
->  hex dump (first 32 bytes):
->    02 00 00 00 00 00 00 00 50 8b bb 82 ff ff ff ff  ........P.......
->    00 00 00 00 00 00 00 00 00 77 bb 82 ff ff ff ff  .........w......
->  backtrace:
->    [<0000000013db61f1>] kmemleak_alloc_recursive include/linux/kmemleak.h:55
->    [inline]
->    [<0000000013db61f1>] slab_post_alloc_hook mm/slab.h:439 [inline]
->    [<0000000013db61f1>] slab_alloc_node mm/slab.c:3269 [inline]
->    [<0000000013db61f1>] kmem_cache_alloc_node_trace+0x15b/0x2a0 mm/slab.c:3597
->    [<000000001a27307d>] __do_kmalloc_node mm/slab.c:3619 [inline]
->    [<000000001a27307d>] __kmalloc_node+0x38/0x50 mm/slab.c:3627
->    [<0000000025054add>] kmalloc_node include/linux/slab.h:590 [inline]
->    [<0000000025054add>] kvmalloc_node+0x4a/0xd0 mm/util.c:431
->    [<0000000050d1bc00>] kvmalloc include/linux/mm.h:637 [inline]
->    [<0000000050d1bc00>] kvzalloc include/linux/mm.h:645 [inline]
->    [<0000000050d1bc00>] allocate_hook_entries_size+0x3b/0x60
->    net/netfilter/core.c:61
->    [<00000000e8abe142>] nf_hook_entries_grow+0xae/0x270
->    net/netfilter/core.c:128
->    [<000000004b94797c>] __nf_register_net_hook+0x9a/0x170
->    net/netfilter/core.c:337
->    [<00000000d1545cbc>] nf_register_net_hook+0x34/0xc0
->    net/netfilter/core.c:464
->    [<00000000876c9b55>] nf_register_net_hooks+0x53/0xc0
->    net/netfilter/core.c:480
->    [<000000002ea868e0>] __ip_vs_init+0xe8/0x170
->    net/netfilter/ipvs/ip_vs_core.c:2280
+> #2 Update the cache incrementally: Add new objects from the evaluation
+>    phase. If RESTART is hit, then release the cache, and restart the
+>    evaluation. Probably we don't need to restart the evaluation, just
+>    a function to refresh the batch, ie. check if several objects are
+>    there.
 
-	After commit "ipvs: Fix use-after-free in ip_vs_in" we planned
-to call nf_register_net_hooks() only when rule is created but this
-is net-next material and we should not leave leak in the error path.
-I'll post a patch that adds .init handler for ipvs_core_dev_ops, so
-that nf_register_net_hooks() is called there.
+I don't understand this but please wait a day or two before jumping in.
+I'm currently working on fixing the problem above and some more I found
+along the way.
 
-> ---
-> This bug is generated by a bot. It may contain errors.
-> See https://goo.gl/tpsmEJ for more information about syzbot.
-> syzbot engineers can be reached at syzkaller@googlegroups.com.
-> 
-> syzbot will keep track of this bug report. See:
-> https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
-> syzbot can test patches for this bug, for details see:
-> https://goo.gl/tpsmEJ#testing-patches
-
-Regards
-
---
-Julian Anastasov <ja@ssi.bg>
+Cheers, Phil
