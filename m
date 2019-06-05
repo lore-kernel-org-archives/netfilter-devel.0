@@ -2,108 +2,70 @@ Return-Path: <SRS0=tNyb=UE=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_NEOMUTT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E92AC282DE
-	for <netfilter-devel@archiver.kernel.org>; Wed,  5 Jun 2019 05:54:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DB01AC282DE
+	for <netfilter-devel@archiver.kernel.org>; Wed,  5 Jun 2019 08:35:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 12FC52075B
-	for <netfilter-devel@archiver.kernel.org>; Wed,  5 Jun 2019 05:54:59 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="AcGL0wK4"
+	by mail.kernel.org (Postfix) with ESMTP id AF9FF2075B
+	for <netfilter-devel@archiver.kernel.org>; Wed,  5 Jun 2019 08:35:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726263AbfFEFy6 (ORCPT
+        id S1726795AbfFEIfm (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 5 Jun 2019 01:54:58 -0400
-Received: from mail-vs1-f65.google.com ([209.85.217.65]:46708 "EHLO
-        mail-vs1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725268AbfFEFy6 (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 5 Jun 2019 01:54:58 -0400
-Received: by mail-vs1-f65.google.com with SMTP id l125so14969071vsl.13
-        for <netfilter-devel@vger.kernel.org>; Tue, 04 Jun 2019 22:54:58 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :content-transfer-encoding;
-        bh=LKoZuQ3dNK2fDxRZPZ8QaCaHUjlG3SvUae3M3xAnVm0=;
-        b=AcGL0wK47Oy2YPmJNP8WqzfsN44D2uEutUbJGpoEhI1B2qp0JnBnqxCR5DlPIQ4HBj
-         zGTXbABMjNceKgKthSv36NqdFtra0N9aqd4hn5k6btGozVUv1Wp4yH8FqgkGiQqPlr+1
-         PA6pBxtZDaGTPmQkXzZp4Pw+j3vInnJYRBHxf7rG/0/6Yn+WTl6yboI5sGznEJ2fbdea
-         WAyEsU9zVNIyPzS/J6OGjn3O6sLPS2mn/sdyn991FjuK3atdztG6nLLh3D6bHnEZxzci
-         pMOUq8cHyKFtvKRZMJkGlEMjf24lFVh7yQ1CkUAyYhxIgECmyrRilbVVrkc6SWj02Xg7
-         I1sg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:content-transfer-encoding;
-        bh=LKoZuQ3dNK2fDxRZPZ8QaCaHUjlG3SvUae3M3xAnVm0=;
-        b=Pbgr5xVrar311CU5WvYgTz5IE84KBCVVccBsUyb/pLjg1TEOJYBXWtVFWce8Tpqe44
-         o7SbQguxhPyLMjzDILEp+1S0uIe10zJeI2Br6tvPZ7BAKu1obEutQkg/4I/Q13HZJhJP
-         yj6CvR+ffSk8VF2wlD/lSo+lStCNAzRiV5txUOWQYxLM1JToD3izBN6a6RJK5yQiNH8T
-         hOLiEsOTvazwi/P18++pEsH2pCtXPpJiojxErxSEU0MADhSR7TyvlLv5yqRObH/EovGt
-         2T7kyZR5gSmtcEQDQcyzMRmUH0+28LKog0yL3MjfioNnuyh+8wxA3ki4pWBTr5FTwdkU
-         X79g==
-X-Gm-Message-State: APjAAAUV3k1VWFE+qJsrbidYa5u8btkWlCH3gbZz+j0qbSS4wzcfhi3l
-        YajtU+Bb/DFysbS4QMGLu/4FeqpY84v4sY98QCQbDg==
-X-Google-Smtp-Source: APXvYqzgZ97eOLIi4Wq2iog3WFdmt4A7PQ4GBPG3EJ1DPtTLlB67NIjbcdXLAHDaEi6UPlbBOaKOb4N/RPZHAEvbY3E=
-X-Received: by 2002:a67:7a0a:: with SMTP id v10mr8796790vsc.203.1559714097551;
- Tue, 04 Jun 2019 22:54:57 -0700 (PDT)
-MIME-Version: 1.0
-References: <20190531165145.12123-1-sveyret@gmail.com>
-In-Reply-To: <20190531165145.12123-1-sveyret@gmail.com>
-From:   =?UTF-8?Q?St=C3=A9phane_Veyret?= <sveyret@gmail.com>
-Date:   Wed, 5 Jun 2019 07:54:46 +0200
-Message-ID: <CAFs+hh4n3nY5WSFyChinVcGw7PNM6CghwWOdqxJuiM-xOTk0xw@mail.gmail.com>
+        Wed, 5 Jun 2019 04:35:42 -0400
+Received: from mail.us.es ([193.147.175.20]:59314 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726793AbfFEIfm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 5 Jun 2019 04:35:42 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 14A2DDA705
+        for <netfilter-devel@vger.kernel.org>; Wed,  5 Jun 2019 10:35:40 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 02565DA70B
+        for <netfilter-devel@vger.kernel.org>; Wed,  5 Jun 2019 10:35:40 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 018BBDA705; Wed,  5 Jun 2019 10:35:40 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id E3BB8DA706;
+        Wed,  5 Jun 2019 10:35:37 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Wed, 05 Jun 2019 10:35:37 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (sys.soleta.eu [212.170.55.40])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id C3C2040705C3;
+        Wed,  5 Jun 2019 10:35:37 +0200 (CEST)
+Date:   Wed, 5 Jun 2019 10:35:37 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     =?iso-8859-1?Q?St=E9phane?= Veyret <sveyret@gmail.com>
+Cc:     netfilter-devel@vger.kernel.org
 Subject: Re: [PATCH libnftnl v4 0/2] add ct expectation support
-To:     netfilter-devel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Message-ID: <20190605083537.nsfbwavpcnjugzzu@salvia>
+References: <20190531165145.12123-1-sveyret@gmail.com>
+ <CAFs+hh4n3nY5WSFyChinVcGw7PNM6CghwWOdqxJuiM-xOTk0xw@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAFs+hh4n3nY5WSFyChinVcGw7PNM6CghwWOdqxJuiM-xOTk0xw@mail.gmail.com>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Pablo,
+On Wed, Jun 05, 2019 at 07:54:46AM +0200, Stéphane Veyret wrote:
+> Hi Pablo,
+> 
+> Is this enough for you to test the “netfilter: nft_ct: add ct
+> expectations support” patch or would you like me to also send the nft
+> patch ?
 
-Is this enough for you to test the =E2=80=9Cnetfilter: nft_ct: add ct
-expectations support=E2=80=9D patch or would you like me to also send the n=
-ft
-patch ?
-
-Le ven. 31 mai 2019 =C3=A0 18:53, St=C3=A9phane Veyret <sveyret@gmail.com> =
-a =C3=A9crit :
->
-> Please find here the second part of the ct expectation support.
-> When needed, please ask me for the third part: nft patch.
->
-> St=C3=A9phane Veyret (2):
->   src: add ct expectation support
->   examples: add ct expectation examples
->
->  examples/Makefile.am                   |  16 ++
->  examples/nft-ct-expectation-add.c      | 153 ++++++++++++++++++
->  examples/nft-ct-expectation-del.c      | 126 +++++++++++++++
->  examples/nft-ct-expectation-get.c      | 142 +++++++++++++++++
->  examples/nft-rule-ct-expectation-add.c | 163 +++++++++++++++++++
->  include/libnftnl/object.h              |   8 +
->  include/linux/netfilter/nf_tables.h    |  14 +-
->  include/obj.h                          |   8 +
->  src/Makefile.am                        |   1 +
->  src/obj/ct_expect.c                    | 213 +++++++++++++++++++++++++
->  src/object.c                           |   1 +
->  11 files changed, 844 insertions(+), 1 deletion(-)
->  create mode 100644 examples/nft-ct-expectation-add.c
->  create mode 100644 examples/nft-ct-expectation-del.c
->  create mode 100644 examples/nft-ct-expectation-get.c
->  create mode 100644 examples/nft-rule-ct-expectation-add.c
->  create mode 100644 src/obj/ct_expect.c
->
-> --
-> 2.21.0
->
-
-St=C3=A9phane Veyret
+Please, submit this too, thanks.
