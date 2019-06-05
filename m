@@ -2,187 +2,100 @@ Return-Path: <SRS0=tNyb=UE=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_NEOMUTT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F90AC28D18
-	for <netfilter-devel@archiver.kernel.org>; Wed,  5 Jun 2019 16:47:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B1172C28CC5
+	for <netfilter-devel@archiver.kernel.org>; Wed,  5 Jun 2019 17:05:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7251B20866
-	for <netfilter-devel@archiver.kernel.org>; Wed,  5 Jun 2019 16:47:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 904FD206C3
+	for <netfilter-devel@archiver.kernel.org>; Wed,  5 Jun 2019 17:05:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728791AbfFEQrN (ORCPT
+        id S1728768AbfFERFq (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 5 Jun 2019 12:47:13 -0400
-Received: from mail.us.es ([193.147.175.20]:58404 "EHLO mail.us.es"
+        Wed, 5 Jun 2019 13:05:46 -0400
+Received: from mail.us.es ([193.147.175.20]:37318 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728263AbfFEQrD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 5 Jun 2019 12:47:03 -0400
+        id S1728729AbfFERFq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 5 Jun 2019 13:05:46 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id C4EA5FB44F
-        for <netfilter-devel@vger.kernel.org>; Wed,  5 Jun 2019 18:47:00 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 7B38EFB448
+        for <netfilter-devel@vger.kernel.org>; Wed,  5 Jun 2019 19:05:44 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id B58C2DA711
-        for <netfilter-devel@vger.kernel.org>; Wed,  5 Jun 2019 18:47:00 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 6AD42DA709
+        for <netfilter-devel@vger.kernel.org>; Wed,  5 Jun 2019 19:05:44 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id AB3E3DA70F; Wed,  5 Jun 2019 18:47:00 +0200 (CEST)
+        id 605B0DA705; Wed,  5 Jun 2019 19:05:44 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 8D1CDDA707;
-        Wed,  5 Jun 2019 18:46:58 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id DA531DA706;
+        Wed,  5 Jun 2019 19:05:41 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 05 Jun 2019 18:46:58 +0200 (CEST)
+ Wed, 05 Jun 2019 19:05:41 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from salvia.here (sys.soleta.eu [212.170.55.40])
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 5F9494265A31;
-        Wed,  5 Jun 2019 18:46:58 +0200 (CEST)
+Received: from us.es (sys.soleta.eu [212.170.55.40])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id B6AD94265A2F;
+        Wed,  5 Jun 2019 19:05:41 +0200 (CEST)
+Date:   Wed, 5 Jun 2019 19:05:41 +0200
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     phil@nwl.cc, fw@strlen.de
-Subject: [PATCH nft 3/4] src: Display parser and evaluate errors in one shot
-Date:   Wed,  5 Jun 2019 18:46:51 +0200
-Message-Id: <20190605164652.20199-4-pablo@netfilter.org>
-X-Mailer: git-send-email 2.11.0
-In-Reply-To: <20190605164652.20199-1-pablo@netfilter.org>
-References: <20190605164652.20199-1-pablo@netfilter.org>
+To:     Phil Sutter <phil@nwl.cc>
+Cc:     netfilter-devel@vger.kernel.org, Eric Garver <e@erig.me>
+Subject: Re: [nft PATCH v5 00/10] Cache update fix && intra-transaction rule
+ references
+Message-ID: <20190605170541.g4mhpsn7k72qyeso@salvia>
+References: <20190604173158.1184-1-phil@nwl.cc>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190604173158.1184-1-phil@nwl.cc>
+User-Agent: NeoMutt/20170113 (1.7.2)
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This patch restores 61236968b7a1 ("parser: evaluate commands immediately
-after parsing") following a different approach.
+Hi Phil,
 
-In this patch, the evaluation phase is done if the parsing phase fails,
-hence the user gets parsing and evaluation errors in one shot, which is
-the purpose of 61236968b7a1.
+Thanks a lot for working on this, I have a few comments.
 
-Note that evaluation errors are now shown after parser errors, the example
-available in 61236968b7a1 displays with this patch the following error:
+On Tue, Jun 04, 2019 at 07:31:48PM +0200, Phil Sutter wrote:
+> Next round of combined cache update fix and intra-transaction rule
+> reference support.
 
- # nft -f /tmp/bad.nft
- /tmp/bad.nft:3:32-32: Error: syntax error, unexpected newline
- add rule filter input tcp dport
-                                ^
- /tmp/bad.nft:5:37-41: Error: syntax error, unexpected dport, expecting end of file or newline or semicolon
- add rule filter input tcp dport tcp dport
-                                     ^^^^^
- /tmp/bad.nft:4:33-35: Error: datatype mismatch, expected internet network service, expression has type Internet protocol
- add rule filter input tcp dport tcp
-                       ~~~~~~~~~ ^^^
+Patch 1 looks good.
 
-So evaluation pointing to line 4 happens after line error reporting
-generated by the parser that points to line 3, while 61236968b7a1 was
-showing errors per line in order. As a future work, we can sort the
-error reporting list to restore exactly the same behaviour.
+> Patch 2 is new, it avoids accidential cache updates when committing a
+> transaction containing flush ruleset command and kernel ruleset has
+> changed meanwhile.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- src/libnftables.c | 22 ++++++++++++++++------
- src/parser_json.c |  9 ---------
- 2 files changed, 16 insertions(+), 15 deletions(-)
+Patch 2: Could you provide an example scenario for this new patch?
 
-diff --git a/src/libnftables.c b/src/libnftables.c
-index 8720fe2bebaf..f459ecd50e45 100644
---- a/src/libnftables.c
-+++ b/src/libnftables.c
-@@ -400,11 +400,11 @@ static int nft_evaluate(struct nft_ctx *nft, struct list_head *msgs,
- 
- int nft_run_cmd_from_buffer(struct nft_ctx *nft, const char *buf)
- {
-+	int rc = -EINVAL, parser_rc;
- 	struct cmd *cmd, *next;
- 	LIST_HEAD(msgs);
- 	LIST_HEAD(cmds);
- 	char *nlbuf;
--	int rc = -EINVAL;
- 
- 	nlbuf = xzalloc(strlen(buf) + 2);
- 	sprintf(nlbuf, "%s\n", buf);
-@@ -413,13 +413,18 @@ int nft_run_cmd_from_buffer(struct nft_ctx *nft, const char *buf)
- 		rc = nft_parse_json_buffer(nft, nlbuf, &msgs, &cmds);
- 	if (rc == -EINVAL)
- 		rc = nft_parse_bison_buffer(nft, nlbuf, &msgs, &cmds);
--	if (rc)
--		goto err;
-+
-+	parser_rc = rc;
- 
- 	rc = nft_evaluate(nft, &msgs, &cmds);
- 	if (rc < 0)
- 		goto err;
- 
-+	if (parser_rc) {
-+		rc = parser_rc;
-+		goto err;
-+	}
-+
- 	if (nft_netlink(nft, &cmds, &msgs, nft->nf_sock) != 0)
- 		rc = -1;
- err:
-@@ -445,9 +450,9 @@ err:
- int nft_run_cmd_from_filename(struct nft_ctx *nft, const char *filename)
- {
- 	struct cmd *cmd, *next;
-+	int rc, parser_rc;
- 	LIST_HEAD(msgs);
- 	LIST_HEAD(cmds);
--	int rc;
- 
- 	rc = cache_update(nft, CMD_INVALID, &msgs);
- 	if (rc < 0)
-@@ -461,13 +466,18 @@ int nft_run_cmd_from_filename(struct nft_ctx *nft, const char *filename)
- 		rc = nft_parse_json_filename(nft, filename, &msgs, &cmds);
- 	if (rc == -EINVAL)
- 		rc = nft_parse_bison_filename(nft, filename, &msgs, &cmds);
--	if (rc)
--		goto err;
-+
-+	parser_rc = rc;
- 
- 	rc = nft_evaluate(nft, &msgs, &cmds);
- 	if (rc < 0)
- 		goto err;
- 
-+	if (parser_rc) {
-+		rc = parser_rc;
-+		goto err;
-+	}
-+
- 	if (nft_netlink(nft, &cmds, &msgs, nft->nf_sock) != 0)
- 		rc = -1;
- err:
-diff --git a/src/parser_json.c b/src/parser_json.c
-index 5532ead36c6a..081cf5da7f39 100644
---- a/src/parser_json.c
-+++ b/src/parser_json.c
-@@ -3390,10 +3390,6 @@ static json_t *seqnum_to_json(const uint32_t seqnum)
- 
- static int __json_parse(struct json_ctx *ctx)
- {
--	struct eval_ctx ectx = {
--		.nft = ctx->nft,
--		.msgs = ctx->msgs,
--	};
- 	json_t *tmp, *value;
- 	size_t index;
- 
-@@ -3435,11 +3431,6 @@ static int __json_parse(struct json_ctx *ctx)
- 
- 		list_add_tail(&cmd->list, &list);
- 
--		if (cmd_evaluate(&ectx, cmd) < 0) {
--			cmd_free(cmd);
--			json_error(ctx, "Evaluating command at index %zd failed.", index);
--			return -1;
--		}
- 		list_splice_tail(&list, ctx->cmds);
- 
- 		if (nft_output_echo(&ctx->nft->output))
--- 
-2.11.0
+> Patch 3 is also new: If a transaction fails in kernel, local cache is
+> incorrect - drop it.
 
+Patch 3 looks good!
+
+Regarding patches 4, 5 and 6. I think we can skip them if we follow
+the approach described by [1], given there is only one single
+cache_update() call after that patchset, we don't need to do the
+"Restore local entries after cache update" logic.
+
+[1] https://marc.info/?l=netfilter-devel&m=155975322308042&w=2
+
+> Patch 9 is a new requirement for patch 10 due to relocation of new
+> functions.
+> 
+> Patch 10 was changed, changelog included.
+
+Patch 10 looks fine. However, as said, I would like to avoid the patch
+dependencies 4, 5 and 6, they are adding more cache_update() calls and
+I think we should go in the opposite direction to end up with a more
+simple approach.
+
+Thanks!
