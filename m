@@ -2,70 +2,144 @@ Return-Path: <SRS0=A3Nh=UF=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_NEOMUTT
+X-Spam-Status: No, score=-8.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 869AFC28EB3
-	for <netfilter-devel@archiver.kernel.org>; Thu,  6 Jun 2019 09:52:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 124C9C46460
+	for <netfilter-devel@archiver.kernel.org>; Thu,  6 Jun 2019 11:42:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5FEDE2083E
-	for <netfilter-devel@archiver.kernel.org>; Thu,  6 Jun 2019 09:52:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DF5A5206E0
+	for <netfilter-devel@archiver.kernel.org>; Thu,  6 Jun 2019 11:42:16 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=brauner.io header.i=@brauner.io header.b="Pbsrk9Yj"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728049AbfFFJwq (ORCPT
+        id S1728590AbfFFLmP (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 6 Jun 2019 05:52:46 -0400
-Received: from mail.us.es ([193.147.175.20]:58996 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727829AbfFFJwp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 6 Jun 2019 05:52:45 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 05B7DC328E
-        for <netfilter-devel@vger.kernel.org>; Thu,  6 Jun 2019 11:52:44 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id EA063DA70F
-        for <netfilter-devel@vger.kernel.org>; Thu,  6 Jun 2019 11:52:43 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id DFB0ADA707; Thu,  6 Jun 2019 11:52:43 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id C8058DA707;
-        Thu,  6 Jun 2019 11:52:41 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Thu, 06 Jun 2019 11:52:41 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (sys.soleta.eu [212.170.55.40])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id A522E4265A2F;
-        Thu,  6 Jun 2019 11:52:41 +0200 (CEST)
-Date:   Thu, 6 Jun 2019 11:52:41 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     wenxu@ucloud.cn
-Cc:     davem@davemloft.net, netfilter-devel@vger.kernel.org,
-        netdev@vger.kernel.org
-Subject: Re: [PATCH net-next v2] netfilter: ipv6: Fix undefined symbol
- nf_ct_frag6_gather
-Message-ID: <20190606095241.v4luefpx4vzg45rz@salvia>
-References: <1559483366-12371-1-git-send-email-wenxu@ucloud.cn>
+        Thu, 6 Jun 2019 07:42:15 -0400
+Received: from mail-wm1-f67.google.com ([209.85.128.67]:52139 "EHLO
+        mail-wm1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728054AbfFFLmP (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 6 Jun 2019 07:42:15 -0400
+Received: by mail-wm1-f67.google.com with SMTP id f10so2104979wmb.1
+        for <netfilter-devel@vger.kernel.org>; Thu, 06 Jun 2019 04:42:13 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=brauner.io; s=google;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=E0BCMKFWF3BD02Wd5RuR4571i9W2UxPN4NomtaxiJf8=;
+        b=Pbsrk9Yj+GWVwYq8M7w1YrRXhvtlv6vWVu9wGO2ulnTXBApJWfu1qhBJU0w4egcivp
+         K12s6a/oKV2js5QGMSzGu0vPgGV/5c+RQd6VxfGpmcDorv19Dq7DhPPIHwS3bPmxcuyM
+         UdxNtuOGe+3vOJwB4afLc4ZS2BYoGJJAV8Ju9z/TZ09ziEqbSZUQ4suyfinpyUIPts0H
+         XCXSbRovSubvBnslVaq/5i4yJ+rn8B3odZtsmGPE6tw0GnoXiDhtGNanBl/M0Lcudl2o
+         WpfZhJ6ZnmLyrOfhSc2CQfNndf/b6w0szz3r0n85RC/lf0QoISyWmUu17iQeg/corFiZ
+         5j/g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=E0BCMKFWF3BD02Wd5RuR4571i9W2UxPN4NomtaxiJf8=;
+        b=gr2o5Smh4mTRBNaYiy2QfN3XAsw214ndq+ehPooPZNBrJeEYd1N9F0CfBOKApyIlYT
+         nOgyfZwVlA8ejKzfcuD8YJTHHhWysWhAjTzxPvfl0oftJwOKGYuh5l69Vo1BgzwOiK65
+         1vUm6nrorq8CtQRRZLnO0aELBLrT7zOR88ArUw0UEQTjAzd2cGUsItc5fU8VKF+zajqR
+         nD9K6I/0E8i1nNvqDZKONTJnS5eU6VnGzDxN3VL385F/hBhX0GaCLr4T364snwYvC02S
+         0Sq892kXfpWzOmcrwJec36vZPjswFmC4rJeIH7xGcsH7E/Ivw7Ztmr3/UgPyMAUcT7Kt
+         k+VQ==
+X-Gm-Message-State: APjAAAXZIzOhWNjHSZZHbgEGrUvV1p3lb8JndEgKHsQ4qvY4MkJT4BJj
+        iF3i27b/GptPW5NDwWSeMMenYw==
+X-Google-Smtp-Source: APXvYqxPNSN0F6j5VkPbbj4cfFbydvLOz8MNaSzEUt0WLzskObgGKwkz+sN84m1QBV8OzBFbM7gHLA==
+X-Received: by 2002:a1c:a00f:: with SMTP id j15mr16010739wme.167.1559821332413;
+        Thu, 06 Jun 2019 04:42:12 -0700 (PDT)
+Received: from localhost.localdomain (p548C9938.dip0.t-ipconnect.de. [84.140.153.56])
+        by smtp.gmail.com with ESMTPSA id 95sm2002583wrk.70.2019.06.06.04.42.10
+        (version=TLS1_3 cipher=AEAD-AES256-GCM-SHA384 bits=256/256);
+        Thu, 06 Jun 2019 04:42:11 -0700 (PDT)
+From:   Christian Brauner <christian@brauner.io>
+To:     davem@davemloft.net, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        bridge@lists.linux-foundation.org
+Cc:     tyhicks@canonical.com, pablo@netfilter.org,
+        kadlec@blackhole.kfki.hu, fw@strlen.de, roopa@cumulusnetworks.com,
+        nikolay@cumulusnetworks.com, linux-kernel@vger.kernel.org,
+        richardrose@google.com, vapier@chromium.org, bhthompson@google.com,
+        smbarber@chromium.org, joelhockey@chromium.org,
+        ueberall@themenzentrisch.de,
+        Christian Brauner <christian@brauner.io>
+Subject: [PATCH RESEND net-next 0/2] br_netfilter: enable in non-initial netns
+Date:   Thu,  6 Jun 2019 13:41:40 +0200
+Message-Id: <20190606114142.15972-1-christian@brauner.io>
+X-Mailer: git-send-email 2.21.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1559483366-12371-1-git-send-email-wenxu@ucloud.cn>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sun, Jun 02, 2019 at 09:49:26PM +0800, wenxu@ucloud.cn wrote:
-> From: wenxu <wenxu@ucloud.cn>
-> 
-> CONFIG_NETFILTER=m and CONFIG_NF_DEFRAG_IPV6 is not set
-> 
-> ERROR: "nf_ct_frag6_gather" [net/ipv6/ipv6.ko] undefined!
+Hey everyone,
 
-Applied to nf-next, thanks.
+This is another resend of the same patch series. I have received so many
+requests, pings, and questions that I would really like to push for this
+again.
+
+Over time I have seen multiple reports by users who want to run applications
+(Kubernetes e.g. via [1]) that require the br_netfilter module in
+non-initial network namespaces. There are *a lot* of issues for this. A
+shortlist including ChromeOS and other big users is found below under
+[2]! Even non-devs already tried to get more traction on this by
+commenting on the patchset (cf. [3]).
+
+Currently, the /proc/sys/net/bridge folder is only created in the
+initial network namespace. This patch series ensures that the
+/proc/sys/net/bridge folder is available in each network namespace if
+the module is loaded and disappears from all network namespaces when the
+module is unloaded.
+The patch series also makes the sysctls:
+
+bridge-nf-call-arptables
+bridge-nf-call-ip6tables
+bridge-nf-call-iptables
+bridge-nf-filter-pppoe-tagged
+bridge-nf-filter-vlan-tagged
+bridge-nf-pass-vlan-input-dev
+
+apply per network namespace. This unblocks some use-cases where users
+would like to e.g. not do bridge filtering for bridges in a specific
+network namespace while doing so for bridges located in another network
+namespace.
+The netfilter rules are afaict already per network namespace so it
+should be safe for users to specify whether a bridge device inside their
+network namespace is supposed to go through iptables et al. or not.
+Also, this can already be done by setting an option for each individual
+bridge via Netlink. It should also be possible to do this for all
+bridges in a network namespace via sysctls.
+
+Thanks!
+Christian
+
+[1]: https://github.com/zimmertr/Bootstrap-Kubernetes-with-Ansible
+[2]: https://bugs.chromium.org/p/chromium/issues/detail?id=878034 
+     https://github.com/lxc/lxd/issues/5193
+     https://discuss.linuxcontainers.org/t/bridge-nf-call-iptables-and-swap-error-on-lxd-with-kubeadm/2204
+     https://github.com/lxc/lxd/issues/3306
+     https://gitlab.com/gitlab-org/gitlab-runner/issues/3705
+     https://ubuntuforums.org/showthread.php?t=2415032
+     https://medium.com/@thomaszimmerman93/hi-im-unable-to-get-kubeadm-init-to-run-due-to-br-netfilter-not-being-loaded-within-the-5642a4ccfece
+[3]: https://lkml.org/lkml/2019/3/7/365
+
+Christian Brauner (2):
+  br_netfilter: add struct netns_brnf
+  br_netfilter: namespace bridge netfilter sysctls
+
+ include/net/net_namespace.h          |   3 +
+ include/net/netfilter/br_netfilter.h |   3 +-
+ include/net/netns/netfilter.h        |  16 +++
+ net/bridge/br_netfilter_hooks.c      | 166 ++++++++++++++++++---------
+ net/bridge/br_netfilter_ipv6.c       |   2 +-
+ 5 files changed, 134 insertions(+), 56 deletions(-)
+
+-- 
+2.21.0
+
