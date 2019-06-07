@@ -1,4 +1,4 @@
-Return-Path: <SRS0=A3Nh=UF=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=PuwI=UG=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
@@ -6,85 +6,96 @@ X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
 	SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 05552C04AB5
-	for <netfilter-devel@archiver.kernel.org>; Thu,  6 Jun 2019 21:48:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 950CBC04AB5
+	for <netfilter-devel@archiver.kernel.org>; Fri,  7 Jun 2019 00:36:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BEC0120B7C
-	for <netfilter-devel@archiver.kernel.org>; Thu,  6 Jun 2019 21:48:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 69FD9206DF
+	for <netfilter-devel@archiver.kernel.org>; Fri,  7 Jun 2019 00:36:20 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=funio.com header.i=@funio.com header.b="bzLGKUSW"
+	dkim=pass (1024-bit key) header.d=riseup.net header.i=@riseup.net header.b="AOxsa03C"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727215AbfFFVsa (ORCPT
+        id S1728199AbfFGAgU (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 6 Jun 2019 17:48:30 -0400
-Received: from mail-wr1-f68.google.com ([209.85.221.68]:39101 "EHLO
-        mail-wr1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726947AbfFFVsa (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 6 Jun 2019 17:48:30 -0400
-Received: by mail-wr1-f68.google.com with SMTP id x4so129739wrt.6
-        for <netfilter-devel@vger.kernel.org>; Thu, 06 Jun 2019 14:48:29 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=funio.com; s=google;
-        h=mime-version:subject:from:in-reply-to:date:cc
-         :content-transfer-encoding:message-id:references:to;
-        bh=1+Kx1mCeFK/NwmXQOQjumuFvK0Kejc+jzL9BXAXAyyI=;
-        b=bzLGKUSWzBaQVJ0lxuYO7S6ZqxPZYmVrMi1AjAEk70Be9hIKnf5BrTNoxzKXEjNG7i
-         tj20vW3DnvBtV2eulovtMpC74iFxcpETuijVS/QQUmQJm7aoVhrs2jQO0vIvjrtWkfVC
-         Fnak1F0P7FCNIxnhREWia3jRUHNxCTEK0Gwn0=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:subject:from:in-reply-to:date:cc
-         :content-transfer-encoding:message-id:references:to;
-        bh=1+Kx1mCeFK/NwmXQOQjumuFvK0Kejc+jzL9BXAXAyyI=;
-        b=goZcKydJ5PLh2+hy6IIL2ANfhaOy4PobpYapFfVp418XeldSGHMtDWhxVX3Pwfqqz+
-         90rO7Wsb161EW5DAyAtoRnAGVN1bgeVWbVvYtE1G5qgZcQMkHpoud6OnPPYk9PqjT4JZ
-         bkbd2lBrN5vgD9Prl9Ao9ZvOTxgYCnLxSwluZmBdp5nfNjr0LB/KUNKnYw0NAv9ewiU3
-         apbgtXq2j4zyl+7bws1FhzdghKoYVLKctxadmKSVdPufF9nom+Zvb9qj13Exaahze7sY
-         0pPEjEmrFdASIHGwuPUs9uLH/3v1k2Klff6YJ5Mc0usuVpuKOli383T+OsQCdCMMifyC
-         RhoQ==
-X-Gm-Message-State: APjAAAUQM+Re+SRtYdDJt7bU4GL6Fs/uI+h6tE2jTSkZxbNPbo6AHWmF
-        W3C6fbs7MA/QQMNrep5Ido0y9g==
-X-Google-Smtp-Source: APXvYqwci/yC+F8EX5NmH+JEGbPK19PtjO20CU8sUxj4c+fkytSPUdyGRfW9gi840LvBhjqceSh6Dw==
-X-Received: by 2002:a5d:5607:: with SMTP id l7mr28102660wrv.228.1559857709142;
-        Thu, 06 Jun 2019 14:48:29 -0700 (PDT)
-Received: from macfun.corp.internap.com ([72.55.158.120])
-        by smtp.gmail.com with ESMTPSA id u25sm133714wmc.3.2019.06.06.14.48.27
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 06 Jun 2019 14:48:28 -0700 (PDT)
-Content-Type: text/plain;
-        charset=us-ascii
-Mime-Version: 1.0 (Mac OS X Mail 11.5 \(3445.9.1\))
-Subject: Re: How to use concatenation ipv4_addr . inet_proto . inet_service
-From:   Vladimir Khailenko <vkhailenko@funio.com>
-In-Reply-To: <20190606205627.uw7i62z5hgaupkyn@breakpoint.cc>
-Date:   Thu, 6 Jun 2019 17:48:26 -0400
-Cc:     netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
-Content-Transfer-Encoding: quoted-printable
-Message-Id: <04A425C2-3BAA-48E3-B7C2-CAC8E943CB22@funio.com>
-References: <33D76666-7E5E-47A3-BBCB-F4FB29BA2311@funio.com>
- <20190606205627.uw7i62z5hgaupkyn@breakpoint.cc>
-To:     Florian Westphal <fw@strlen.de>
-X-Mailer: Apple Mail (2.3445.9.1)
+        Thu, 6 Jun 2019 20:36:20 -0400
+Received: from mx1.riseup.net ([198.252.153.129]:58360 "EHLO mx1.riseup.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725784AbfFGAgT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 6 Jun 2019 20:36:19 -0400
+Received: from bell.riseup.net (bell-pn.riseup.net [10.0.1.178])
+        (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+        (Client CN "*.riseup.net", Issuer "COMODO RSA Domain Validation Secure Server CA" (verified OK))
+        by mx1.riseup.net (Postfix) with ESMTPS id 163641A1CE1
+        for <netfilter-devel@vger.kernel.org>; Thu,  6 Jun 2019 17:36:19 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=riseup.net; s=squak;
+        t=1559867779; bh=eqi3xlNq8QK5YhRjjsZaHXgc5kDSDjYGhExAWW4h69E=;
+        h=From:To:Cc:Subject:Date:From;
+        b=AOxsa03CoMp+yjaeESibXJcNohb6vlol7BlwyJdD5l3sAFdKPAq+iDVMfP9H5eSJE
+         F5IN1fzr2IiAjaQIDfAqE08YCWF6Hv93HKYF/Yo4BfUA+9NyMQ5P+KBjSQ+uLUP1hW
+         LEROZRjZlDyzfbg2DiMw3L9CTfjieMLupHxnCdBo=
+X-Riseup-User-ID: 49D0FF1ADDC383287376F5184BE784856E714B2F06E46730424B00C19D7F743B
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+         by bell.riseup.net (Postfix) with ESMTPSA id 4C85D222229;
+        Thu,  6 Jun 2019 17:36:18 -0700 (PDT)
+From:   Fernando Fernandez Mancera <ffmancera@riseup.net>
+To:     netfilter-devel@vger.kernel.org
+Cc:     Fernando Fernandez Mancera <ffmancera@riseup.net>
+Subject: [PATCH nf-next v4 0/3] Extract SYNPROXY infrastructure
+Date:   Fri,  7 Jun 2019 02:36:00 +0200
+Message-Id: <20190607003603.7758-1-ffmancera@riseup.net>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Yes, when I wrote "It works" - it means "no error has been throwed".
+The patch series have been tested by enabling iptables and ip6tables SYNPROXY.
+All the modules loaded as expected.
 
-Perhaps, it would be better to implement something like "... ip daddr . =
-ip protocol . protocol dport @xyz ..."
+$ lsmod | grep synproxy
+Only IPv4:
+ipt_SYNPROXY           16384  1
+nf_synproxy_core       24576  1 ipt_SYNPROXY
+nf_conntrack          159744  5 xt_conntrack,xt_state,ipt_SYNPROXY,nf_synproxy_core,xt_CT
+x_tables               49152  7 xt_conntrack,nft_compat,xt_state,xt_tcpudp,ipt_SYNPROXY,xt_CT,ip_tables
 
-As workaround we can use (in most cases it is the preferable way):
-"... ip daddr . tcp dport @xyz_tcp ..."
-"... ip daddr . udp dport @xyz_udp ..."
+Only IPv6:
+ip6t_SYNPROXY          16384  1
+nf_synproxy_core       24576  1 ip6t_SYNPROXY
+nf_conntrack          159744  4 ip6t_SYNPROXY,xt_conntrack,xt_state,nf_synproxy_core
+x_tables               49152  6 ip6t_SYNPROXY,xt_conntrack,nft_compat,xt_state,xt_tcpudp,ip_tables
 
-But because DNS has TCP extension for big answers - we should repeat =
-same rules ("1.2.3.4 . 53") in both sets.
+IPv4 and IPv6:
+ip6t_SYNPROXY          16384  1
+ipt_SYNPROXY           16384  1
+nf_synproxy_core       24576  2 ip6t_SYNPROXY,ipt_SYNPROXY
+nf_conntrack          159744  6 ip6t_SYNPROXY,xt_conntrack,xt_state,ipt_SYNPROXY,nf_synproxy_core,xt_CT
+x_tables               49152  8 ip6t_SYNPROXY,xt_conntrack,nft_compat,xt_state,xt_tcpudp,ipt_SYNPROXY,xt_CT,ip_tables
 
-It is really funny: you can create a set with concatenated =
-ip:proto:port, but you can not use it :)
+v1: Initial patch
+v2: Unify nf_synproxy_ipv4 and nf_synproxy_ipv6 into nf_synproxy
+v3: Remove synproxy_cookie dependency
+v4: Remove another synproxy_cookie, unify nf_synproxy into nf_synproxy_core so now we are using a single module. 
 
-Vladimir Khailenko
+Fernando Fernandez Mancera (3):
+  netfilter: synproxy: add common uapi for SYNPROXY infrastructure
+  netfilter: synproxy: remove module dependency on IPv6 SYNPROXY
+  netfilter: synproxy: extract SYNPROXY infrastructure from
+    {ipt,ip6t}_SYNPROXY
+
+ include/linux/netfilter_ipv6.h                |  36 +
+ include/net/netfilter/nf_conntrack_synproxy.h |  13 +-
+ include/net/netfilter/nf_synproxy.h           |  46 +
+ include/uapi/linux/netfilter/nf_SYNPROXY.h    |  19 +
+ include/uapi/linux/netfilter/xt_SYNPROXY.h    |  18 +-
+ net/ipv4/netfilter/ipt_SYNPROXY.c             | 394 +-------
+ net/ipv6/netfilter.c                          |   2 +
+ net/ipv6/netfilter/ip6t_SYNPROXY.c            | 420 +-------
+ net/netfilter/nf_synproxy_core.c              | 897 +++++++++++++++++-
+ 9 files changed, 987 insertions(+), 858 deletions(-)
+ create mode 100644 include/net/netfilter/nf_synproxy.h
+ create mode 100644 include/uapi/linux/netfilter/nf_SYNPROXY.h
+
+-- 
+2.20.1
 
