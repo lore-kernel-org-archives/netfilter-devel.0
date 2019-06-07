@@ -2,100 +2,146 @@ Return-Path: <SRS0=PuwI=UG=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_NEOMUTT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E6488C2BCA1
-	for <netfilter-devel@archiver.kernel.org>; Fri,  7 Jun 2019 14:37:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 18F74C468BC
+	for <netfilter-devel@archiver.kernel.org>; Fri,  7 Jun 2019 14:43:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C32A920657
-	for <netfilter-devel@archiver.kernel.org>; Fri,  7 Jun 2019 14:37:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F02652083D
+	for <netfilter-devel@archiver.kernel.org>; Fri,  7 Jun 2019 14:43:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728700AbfFGOhi (ORCPT
+        id S1728897AbfFGOns (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 7 Jun 2019 10:37:38 -0400
-Received: from mail.us.es ([193.147.175.20]:49336 "EHLO mail.us.es"
+        Fri, 7 Jun 2019 10:43:48 -0400
+Received: from mail.us.es ([193.147.175.20]:51516 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728486AbfFGOhi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 7 Jun 2019 10:37:38 -0400
+        id S1728782AbfFGOns (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 7 Jun 2019 10:43:48 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 624B2BAE8E
-        for <netfilter-devel@vger.kernel.org>; Fri,  7 Jun 2019 16:37:36 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 809D4BAEA7
+        for <netfilter-devel@vger.kernel.org>; Fri,  7 Jun 2019 16:43:46 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 54E20DA702
-        for <netfilter-devel@vger.kernel.org>; Fri,  7 Jun 2019 16:37:36 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 6FF17DA702
+        for <netfilter-devel@vger.kernel.org>; Fri,  7 Jun 2019 16:43:46 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 4A7ABDA705; Fri,  7 Jun 2019 16:37:36 +0200 (CEST)
+        id 6DB98DA709; Fri,  7 Jun 2019 16:43:46 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 48560DA702;
-        Fri,  7 Jun 2019 16:37:34 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id EEC13DA706;
+        Fri,  7 Jun 2019 16:43:43 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Fri, 07 Jun 2019 16:37:34 +0200 (CEST)
+ Fri, 07 Jun 2019 16:43:43 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from salvia.here (sys.soleta.eu [212.170.55.40])
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 2764A4265A2F;
-        Fri,  7 Jun 2019 16:37:34 +0200 (CEST)
+Received: from us.es (sys.soleta.eu [212.170.55.40])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id B92C34265A2F;
+        Fri,  7 Jun 2019 16:43:43 +0200 (CEST)
+Date:   Fri, 7 Jun 2019 16:43:43 +0200
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     l.pawelczyk@samsung.com
-Subject: [PATCH nf-next] netfilter: xt_owner: bail out with EINVAL in case of unsupported flags
-Date:   Fri,  7 Jun 2019 16:37:30 +0200
-Message-Id: <20190607143730.18661-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.11.0
+To:     Christian Brauner <christian@brauner.io>
+Cc:     Stephen Hemminger <stephen@networkplumber.org>,
+        davem@davemloft.net, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        bridge@lists.linux-foundation.org, tyhicks@canonical.com,
+        kadlec@blackhole.kfki.hu, fw@strlen.de, roopa@cumulusnetworks.com,
+        nikolay@cumulusnetworks.com, linux-kernel@vger.kernel.org,
+        richardrose@google.com, vapier@chromium.org, bhthompson@google.com,
+        smbarber@chromium.org, joelhockey@chromium.org,
+        ueberall@themenzentrisch.de
+Subject: Re: [PATCH RESEND net-next 1/2] br_netfilter: add struct netns_brnf
+Message-ID: <20190607144343.nzdlnuo4csllcy7q@salvia>
+References: <20190606114142.15972-1-christian@brauner.io>
+ <20190606114142.15972-2-christian@brauner.io>
+ <20190606081440.61ea1c62@hermes.lan>
+ <20190606151937.mdpalfk7urvv74ub@brauner.io>
+ <20190606163035.x7rvqdwubxiai5t6@salvia>
+ <20190607132516.q3zwmzrynvqo7mzn@brauner.io>
+ <20190607142858.vgkljqohn34rxhe2@salvia>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190607142858.vgkljqohn34rxhe2@salvia>
+User-Agent: NeoMutt/20170113 (1.7.2)
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Reject flags that are not supported with EINVAL.
+On Fri, Jun 07, 2019 at 04:28:58PM +0200, Pablo Neira Ayuso wrote:
+> On Fri, Jun 07, 2019 at 03:25:16PM +0200, Christian Brauner wrote:
+> > On Thu, Jun 06, 2019 at 06:30:35PM +0200, Pablo Neira Ayuso wrote:
+> > > On Thu, Jun 06, 2019 at 05:19:39PM +0200, Christian Brauner wrote:
+> > > > On Thu, Jun 06, 2019 at 08:14:40AM -0700, Stephen Hemminger wrote:
+> > > > > On Thu,  6 Jun 2019 13:41:41 +0200
+> > > > > Christian Brauner <christian@brauner.io> wrote:
+> > > > > 
+> > > > > > +struct netns_brnf {
+> > > > > > +#ifdef CONFIG_SYSCTL
+> > > > > > +	struct ctl_table_header *ctl_hdr;
+> > > > > > +#endif
+> > > > > > +
+> > > > > > +	/* default value is 1 */
+> > > > > > +	int call_iptables;
+> > > > > > +	int call_ip6tables;
+> > > > > > +	int call_arptables;
+> > > > > > +
+> > > > > > +	/* default value is 0 */
+> > > > > > +	int filter_vlan_tagged;
+> > > > > > +	int filter_pppoe_tagged;
+> > > > > > +	int pass_vlan_indev;
+> > > > > > +};
+> > > > > 
+> > > > > Do you really need to waste four bytes for each
+> > > > > flag value. If you use a u8 that would work just as well.
+> > > > 
+> > > > I think we had discussed something like this but the problem why we
+> > > > can't do this stems from how the sysctl-table stuff is implemented.
+> > > > I distinctly remember that it couldn't be done with a flag due to that.
+> > > 
+> > > Could you define a pernet_operations object? I mean, define the id and size
+> > > fields, then pass it to register_pernet_subsys() for registration.
+> > > Similar to what we do in net/ipv4/netfilter/ipt_CLUSTER.c, see
+> > > clusterip_net_ops and clusterip_pernet() for instance.
+> > 
+> > Hm, I don't think that would work. The sysctls for br_netfilter are
+> > located in /proc/sys/net/bridge under /proc/sys/net which is tightly
+> > integrated with the sysctls infrastructure for all of net/ and all the
+> > folder underneath it including "core", "ipv4" and "ipv6".
+> > I don't think creating and managing files manually in /proc/sys/net is
+> > going to fly. It also doesn't seem very wise from a consistency and
+> > complexity pov. I'm also not sure if this would work at all wrt to file
+> > creation and reference counting if there are two different ways of
+> > managing them in the same subfolder...
+> > (clusterip creates files manually underneath /proc/net which probably is
+> > the reason why it gets away with it.)
+> 
+> br_netfilter is now a module, and br_netfilter_hooks.c is part of it
+> IIRC, this file registers these sysctl entries from the module __init
+> path.
+> 
+> It would be a matter of adding a new .init callback to the existing
+> brnf_net_ops object in br_netfilter_hooks.c. Then, call
+> register_net_sysctl() from this .init callback to register the sysctl
+> entries per netns.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-A bit late for ea6cc2fd8a2b ("netfilter: xt_owner: Add supplementary
-groups option"). Old kernel will ignore this new flag, so better bail
-out for future flags. We can also request a backport to be send to
--stable kernels to deal with this new supplementary group support.
-Otherwise, we have to go for a new revision.
+Actually, this is what you patch is doing...
 
- include/uapi/linux/netfilter/xt_owner.h | 5 +++++
- net/netfilter/xt_owner.c                | 3 +++
- 2 files changed, 8 insertions(+)
+> There is already a brnf_net area that you can reuse for this purpose,
+> to place these pernetns flags...
+> 
+> struct brnf_net {
+>         bool enabled;
+> };
+> 
+> which is going to be glad to have more fields (under the #ifdef
+> CONFIG_SYSCTL) there.
 
-diff --git a/include/uapi/linux/netfilter/xt_owner.h b/include/uapi/linux/netfilter/xt_owner.h
-index 9e98c09eda32..5108df4d0313 100644
---- a/include/uapi/linux/netfilter/xt_owner.h
-+++ b/include/uapi/linux/netfilter/xt_owner.h
-@@ -11,6 +11,11 @@ enum {
- 	XT_OWNER_SUPPL_GROUPS = 1 << 3,
- };
- 
-+#define XT_OWNER_MASK	(XT_OWNER_UID | 	\
-+			 XT_OWNER_GID | 	\
-+			 XT_OWNER_SOCKET |	\
-+			 XT_OWNER_SUPPL_GROUPS)
-+
- struct xt_owner_match_info {
- 	__u32 uid_min, uid_max;
- 	__u32 gid_min, gid_max;
-diff --git a/net/netfilter/xt_owner.c b/net/netfilter/xt_owner.c
-index a8784502aca6..ee597fdc5db7 100644
---- a/net/netfilter/xt_owner.c
-+++ b/net/netfilter/xt_owner.c
-@@ -25,6 +25,9 @@ static int owner_check(const struct xt_mtchk_param *par)
- 	struct xt_owner_match_info *info = par->matchinfo;
- 	struct net *net = par->net;
- 
-+	if (info->match & ~XT_OWNER_MASK)
-+		return -EINVAL;
-+
- 	/* Only allow the common case where the userns of the writer
- 	 * matches the userns of the network namespace.
- 	 */
--- 
-2.11.0
+... except that struct brnf_net is not used to store the ctl_table.
 
+So what I'm propose should be result in a small update to your patch 2/2.
