@@ -3,62 +3,73 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_NEOMUTT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BEC28C468BE
-	for <netfilter-devel@archiver.kernel.org>; Fri,  7 Jun 2019 17:25:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 96187C2BCA1
+	for <netfilter-devel@archiver.kernel.org>; Fri,  7 Jun 2019 21:59:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A2B81207E0
-	for <netfilter-devel@archiver.kernel.org>; Fri,  7 Jun 2019 17:25:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5CF7F20868
+	for <netfilter-devel@archiver.kernel.org>; Fri,  7 Jun 2019 21:59:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729284AbfFGRZ6 (ORCPT
+        id S1730440AbfFGV7m (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 7 Jun 2019 13:25:58 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:36002 "EHLO orbyte.nwl.cc"
+        Fri, 7 Jun 2019 17:59:42 -0400
+Received: from mail.us.es ([193.147.175.20]:35848 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728752AbfFGRZ5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 7 Jun 2019 13:25:57 -0400
-Received: from localhost ([::1]:49092 helo=tatos)
-        by orbyte.nwl.cc with esmtp (Exim 4.91)
-        (envelope-from <phil@nwl.cc>)
-        id 1hZIcm-0006zD-Aq; Fri, 07 Jun 2019 19:25:56 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: [nft PATCH 0/4] Some fixes and minor improvements in tests/
-Date:   Fri,  7 Jun 2019 19:25:23 +0200
-Message-Id: <20190607172527.22177-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.21.0
+        id S1729577AbfFGV7m (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 7 Jun 2019 17:59:42 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id BF99880768
+        for <netfilter-devel@vger.kernel.org>; Fri,  7 Jun 2019 23:59:39 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id AC029DA701
+        for <netfilter-devel@vger.kernel.org>; Fri,  7 Jun 2019 23:59:39 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id A1B4DDA703; Fri,  7 Jun 2019 23:59:39 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 98512DA701;
+        Fri,  7 Jun 2019 23:59:37 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Fri, 07 Jun 2019 23:59:37 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (sys.soleta.eu [212.170.55.40])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 78A1E4265A2F;
+        Fri,  7 Jun 2019 23:59:37 +0200 (CEST)
+Date:   Fri, 7 Jun 2019 23:59:37 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Phil Sutter <phil@nwl.cc>
+Cc:     Eric Garver <e@erig.me>, netfilter-devel@vger.kernel.org
+Subject: Re: [nft PATCH v6 0/5] Support intra-transaction rule references
+Message-ID: <20190607215937.vrs6ljvgnlagvm27@salvia>
+References: <20190607172121.21752-1-phil@nwl.cc>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190607172121.21752-1-phil@nwl.cc>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This series mostly adds missing bits and changes to JSON equivalents in
-tests/py to avoid errors when running the suite with -j flag.
+On Fri, Jun 07, 2019 at 07:21:16PM +0200, Phil Sutter wrote:
+> After Pablo's evaluation sequence rework, this series (formerly fixing
+> cache updates as well) has shrunken considerably:
+> 
+> Patch 1 contains a proper fix for that workaround in
+> evaluate_cache_add().
+> 
+> Patch 2 removes the cache-related workaround in tests/json_echo.
+> 
+> Patches 3 and 4 contain prerequisites for the last one, which actually
+> implements the support for referencing rules of the same transation with
+> 'index' keyword.
 
-In addition to that, patch 3 fixes awk syntax in 0028delete_handle_0
-test of tests/shell suite. Patch 4 improves the diff output upon dump
-errors in same suite by printing unified diffs instead of normal ones.
-
-Phil Sutter (4):
-  tests/py: Fix JSON equivalents
-  tests/py: Add missing arp.t JSON equivalents
-  tests/shell: Fix warning from awk call
-  tests/shell: Print unified diffs in dump errors
-
- tests/py/any/ct.t.json                        |  35 ++++--
- tests/py/any/ct.t.json.output                 |  21 +++-
- tests/py/any/meta.t.json                      | 110 +++++++-----------
- tests/py/arp/arp.t.json                       |  64 ++++++++++
- tests/py/arp/arp.t.json.output                |  14 +--
- tests/shell/run-tests.sh                      |   2 +-
- .../shell/testcases/sets/0028delete_handle_0  |   2 +-
- 7 files changed, 158 insertions(+), 90 deletions(-)
-
--- 
-2.21.0
-
+Series applied, thanks Phil.
