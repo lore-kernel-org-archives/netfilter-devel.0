@@ -2,146 +2,74 @@ Return-Path: <SRS0=PuwI=UG=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_NEOMUTT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 18F74C468BC
-	for <netfilter-devel@archiver.kernel.org>; Fri,  7 Jun 2019 14:43:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B88CC2BCA1
+	for <netfilter-devel@archiver.kernel.org>; Fri,  7 Jun 2019 17:21:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id F02652083D
-	for <netfilter-devel@archiver.kernel.org>; Fri,  7 Jun 2019 14:43:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7A504206E0
+	for <netfilter-devel@archiver.kernel.org>; Fri,  7 Jun 2019 17:21:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728897AbfFGOns (ORCPT
+        id S1731172AbfFGRVc (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 7 Jun 2019 10:43:48 -0400
-Received: from mail.us.es ([193.147.175.20]:51516 "EHLO mail.us.es"
+        Fri, 7 Jun 2019 13:21:32 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:35922 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728782AbfFGOns (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 7 Jun 2019 10:43:48 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 809D4BAEA7
-        for <netfilter-devel@vger.kernel.org>; Fri,  7 Jun 2019 16:43:46 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 6FF17DA702
-        for <netfilter-devel@vger.kernel.org>; Fri,  7 Jun 2019 16:43:46 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 6DB98DA709; Fri,  7 Jun 2019 16:43:46 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id EEC13DA706;
-        Fri,  7 Jun 2019 16:43:43 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Fri, 07 Jun 2019 16:43:43 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (sys.soleta.eu [212.170.55.40])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id B92C34265A2F;
-        Fri,  7 Jun 2019 16:43:43 +0200 (CEST)
-Date:   Fri, 7 Jun 2019 16:43:43 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Christian Brauner <christian@brauner.io>
-Cc:     Stephen Hemminger <stephen@networkplumber.org>,
-        davem@davemloft.net, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        bridge@lists.linux-foundation.org, tyhicks@canonical.com,
-        kadlec@blackhole.kfki.hu, fw@strlen.de, roopa@cumulusnetworks.com,
-        nikolay@cumulusnetworks.com, linux-kernel@vger.kernel.org,
-        richardrose@google.com, vapier@chromium.org, bhthompson@google.com,
-        smbarber@chromium.org, joelhockey@chromium.org,
-        ueberall@themenzentrisch.de
-Subject: Re: [PATCH RESEND net-next 1/2] br_netfilter: add struct netns_brnf
-Message-ID: <20190607144343.nzdlnuo4csllcy7q@salvia>
-References: <20190606114142.15972-1-christian@brauner.io>
- <20190606114142.15972-2-christian@brauner.io>
- <20190606081440.61ea1c62@hermes.lan>
- <20190606151937.mdpalfk7urvv74ub@brauner.io>
- <20190606163035.x7rvqdwubxiai5t6@salvia>
- <20190607132516.q3zwmzrynvqo7mzn@brauner.io>
- <20190607142858.vgkljqohn34rxhe2@salvia>
+        id S1729829AbfFGRVc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 7 Jun 2019 13:21:32 -0400
+Received: from localhost ([::1]:49012 helo=tatos)
+        by orbyte.nwl.cc with esmtp (Exim 4.91)
+        (envelope-from <phil@nwl.cc>)
+        id 1hZIYT-0006t7-M9; Fri, 07 Jun 2019 19:21:29 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Eric Garver <e@erig.me>, netfilter-devel@vger.kernel.org
+Subject: [nft PATCH v6 4/5] src: Make cache_is_complete() public
+Date:   Fri,  7 Jun 2019 19:21:20 +0200
+Message-Id: <20190607172121.21752-5-phil@nwl.cc>
+X-Mailer: git-send-email 2.21.0
+In-Reply-To: <20190607172121.21752-1-phil@nwl.cc>
+References: <20190607172121.21752-1-phil@nwl.cc>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190607142858.vgkljqohn34rxhe2@salvia>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Jun 07, 2019 at 04:28:58PM +0200, Pablo Neira Ayuso wrote:
-> On Fri, Jun 07, 2019 at 03:25:16PM +0200, Christian Brauner wrote:
-> > On Thu, Jun 06, 2019 at 06:30:35PM +0200, Pablo Neira Ayuso wrote:
-> > > On Thu, Jun 06, 2019 at 05:19:39PM +0200, Christian Brauner wrote:
-> > > > On Thu, Jun 06, 2019 at 08:14:40AM -0700, Stephen Hemminger wrote:
-> > > > > On Thu,  6 Jun 2019 13:41:41 +0200
-> > > > > Christian Brauner <christian@brauner.io> wrote:
-> > > > > 
-> > > > > > +struct netns_brnf {
-> > > > > > +#ifdef CONFIG_SYSCTL
-> > > > > > +	struct ctl_table_header *ctl_hdr;
-> > > > > > +#endif
-> > > > > > +
-> > > > > > +	/* default value is 1 */
-> > > > > > +	int call_iptables;
-> > > > > > +	int call_ip6tables;
-> > > > > > +	int call_arptables;
-> > > > > > +
-> > > > > > +	/* default value is 0 */
-> > > > > > +	int filter_vlan_tagged;
-> > > > > > +	int filter_pppoe_tagged;
-> > > > > > +	int pass_vlan_indev;
-> > > > > > +};
-> > > > > 
-> > > > > Do you really need to waste four bytes for each
-> > > > > flag value. If you use a u8 that would work just as well.
-> > > > 
-> > > > I think we had discussed something like this but the problem why we
-> > > > can't do this stems from how the sysctl-table stuff is implemented.
-> > > > I distinctly remember that it couldn't be done with a flag due to that.
-> > > 
-> > > Could you define a pernet_operations object? I mean, define the id and size
-> > > fields, then pass it to register_pernet_subsys() for registration.
-> > > Similar to what we do in net/ipv4/netfilter/ipt_CLUSTER.c, see
-> > > clusterip_net_ops and clusterip_pernet() for instance.
-> > 
-> > Hm, I don't think that would work. The sysctls for br_netfilter are
-> > located in /proc/sys/net/bridge under /proc/sys/net which is tightly
-> > integrated with the sysctls infrastructure for all of net/ and all the
-> > folder underneath it including "core", "ipv4" and "ipv6".
-> > I don't think creating and managing files manually in /proc/sys/net is
-> > going to fly. It also doesn't seem very wise from a consistency and
-> > complexity pov. I'm also not sure if this would work at all wrt to file
-> > creation and reference counting if there are two different ways of
-> > managing them in the same subfolder...
-> > (clusterip creates files manually underneath /proc/net which probably is
-> > the reason why it gets away with it.)
-> 
-> br_netfilter is now a module, and br_netfilter_hooks.c is part of it
-> IIRC, this file registers these sysctl entries from the module __init
-> path.
-> 
-> It would be a matter of adding a new .init callback to the existing
-> brnf_net_ops object in br_netfilter_hooks.c. Then, call
-> register_net_sysctl() from this .init callback to register the sysctl
-> entries per netns.
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ include/rule.h | 1 +
+ src/rule.c     | 2 +-
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
-Actually, this is what you patch is doing...
+diff --git a/include/rule.h b/include/rule.h
+index 87b440b63ba5c..8ccdc2e1c143f 100644
+--- a/include/rule.h
++++ b/include/rule.h
+@@ -639,6 +639,7 @@ extern int cache_update(struct nft_ctx *ctx, enum cmd_ops cmd,
+ extern void cache_flush(struct nft_ctx *ctx, enum cmd_ops cmd,
+ 			struct list_head *msgs);
+ extern void cache_release(struct nft_cache *cache);
++extern bool cache_is_complete(struct nft_cache *cache, enum cmd_ops cmd);
+ 
+ struct timeout_protocol {
+ 	uint32_t array_size;
+diff --git a/src/rule.c b/src/rule.c
+index 20fe6f3758cbc..ad549b1eee8ac 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -232,7 +232,7 @@ static int cache_completeness(enum cmd_ops cmd)
+ 	return 1;
+ }
+ 
+-static bool cache_is_complete(struct nft_cache *cache, enum cmd_ops cmd)
++bool cache_is_complete(struct nft_cache *cache, enum cmd_ops cmd)
+ {
+ 	return cache_completeness(cache->cmd) >= cache_completeness(cmd);
+ }
+-- 
+2.21.0
 
-> There is already a brnf_net area that you can reuse for this purpose,
-> to place these pernetns flags...
-> 
-> struct brnf_net {
->         bool enabled;
-> };
-> 
-> which is going to be glad to have more fields (under the #ifdef
-> CONFIG_SYSCTL) there.
-
-... except that struct brnf_net is not used to store the ctl_table.
-
-So what I'm propose should be result in a small update to your patch 2/2.
