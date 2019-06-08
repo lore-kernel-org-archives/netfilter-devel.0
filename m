@@ -1,71 +1,97 @@
-Return-Path: <SRS0=PuwI=UG=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=8SyO=UH=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_NEOMUTT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
+	SPF_PASS,T_DKIMWL_WL_HIGH,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ABCECC2BCA1
-	for <netfilter-devel@archiver.kernel.org>; Fri,  7 Jun 2019 22:06:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B32D9C28CC5
+	for <netfilter-devel@archiver.kernel.org>; Sat,  8 Jun 2019 11:40:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7B79620868
-	for <netfilter-devel@archiver.kernel.org>; Fri,  7 Jun 2019 22:06:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 89CA9208C0
+	for <netfilter-devel@archiver.kernel.org>; Sat,  8 Jun 2019 11:40:08 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1559994008;
+	bh=h+QUakoU+HdW32HnreeJ/QiRKJe0ncSfFd/UrRS5s2I=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=fgoJ2fXT1+FTY7Z1NqwP73tYfcA+TJTYy5dtXKy2nx3LNUZEWqUYBSOMm16zAOVag
+	 vmfzwGAyMHpS0CFUaEonz53Pe4cCq9XQXT70crI8bmY8chdX3rwugUGP/QbcBXVEaD
+	 BFPckOt9bH5bbLra6dvMyKTeVri7yxpOCW+hxMHk=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730467AbfFGWGQ (ORCPT
+        id S1727290AbfFHLkH (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 7 Jun 2019 18:06:16 -0400
-Received: from mail.us.es ([193.147.175.20]:36710 "EHLO mail.us.es"
+        Sat, 8 Jun 2019 07:40:07 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57182 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726754AbfFGWGQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 7 Jun 2019 18:06:16 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id D623980764
-        for <netfilter-devel@vger.kernel.org>; Sat,  8 Jun 2019 00:06:13 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id B7778DA701
-        for <netfilter-devel@vger.kernel.org>; Sat,  8 Jun 2019 00:06:13 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id ACEB6DA704; Sat,  8 Jun 2019 00:06:13 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id BEA2EDA701;
-        Sat,  8 Jun 2019 00:06:11 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Sat, 08 Jun 2019 00:06:11 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (sys.soleta.eu [212.170.55.40])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        id S1727266AbfFHLkG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 8 Jun 2019 07:40:06 -0400
+Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 9E9CD4265A2F;
-        Sat,  8 Jun 2019 00:06:11 +0200 (CEST)
-Date:   Sat, 8 Jun 2019 00:06:11 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Phil Sutter <phil@nwl.cc>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [nft PATCH 0/4] Some fixes and minor improvements in tests/
-Message-ID: <20190607220611.nvqsyz4njxdc2j5j@salvia>
-References: <20190607172527.22177-1-phil@nwl.cc>
+        by mail.kernel.org (Postfix) with ESMTPSA id 37B03214DA;
+        Sat,  8 Jun 2019 11:40:04 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1559994005;
+        bh=h+QUakoU+HdW32HnreeJ/QiRKJe0ncSfFd/UrRS5s2I=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=c/giqCMPnnnt/KKwG2/Eo6nf5fNEjahXmrO08J8YvDYe0V0LqxaXwdAElES9aiFHW
+         cvcP+fiy5CMkTHIOrXQ5OA6If+vFa8phiNLc1uAPTeNZ4hjzzTWArx29YCWskjhSZ3
+         1e1rq5gXKz1367P2KorBgIESba7kJ3u1qp4TbpiQ=
+From:   Sasha Levin <sashal@kernel.org>
+To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc:     Jagdish Motwani <jagdish.motwani@sophos.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Sasha Levin <sashal@kernel.org>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org
+Subject: [PATCH AUTOSEL 5.1 11/70] netfilter: nf_queue: fix reinject verdict handling
+Date:   Sat,  8 Jun 2019 07:38:50 -0400
+Message-Id: <20190608113950.8033-11-sashal@kernel.org>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20190608113950.8033-1-sashal@kernel.org>
+References: <20190608113950.8033-1-sashal@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190607172527.22177-1-phil@nwl.cc>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+X-stable: review
+X-Patchwork-Hint: Ignore
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-i
-On Fri, Jun 07, 2019 at 07:25:23PM +0200, Phil Sutter wrote:
-> This series mostly adds missing bits and changes to JSON equivalents in
-> tests/py to avoid errors when running the suite with -j flag.
-> 
-> In addition to that, patch 3 fixes awk syntax in 0028delete_handle_0
-> test of tests/shell suite. Patch 4 improves the diff output upon dump
-> errors in same suite by printing unified diffs instead of normal ones.
+From: Jagdish Motwani <jagdish.motwani@sophos.com>
 
-Applied, thanks Phil.
+[ Upstream commit 946c0d8e6ed43dae6527e878d0077c1e11015db0 ]
+
+This patch fixes netfilter hook traversal when there are more than 1 hooks
+returning NF_QUEUE verdict. When the first queue reinjects the packet,
+'nf_reinject' starts traversing hooks with a proper hook_index. However,
+if it again receives a NF_QUEUE verdict (by some other netfilter hook), it
+queues the packet with a wrong hook_index. So, when the second queue
+reinjects the packet, it re-executes hooks in between.
+
+Fixes: 960632ece694 ("netfilter: convert hook list to an array")
+Signed-off-by: Jagdish Motwani <jagdish.motwani@sophos.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ net/netfilter/nf_queue.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
+index a36a77bae1d6..5b86574e7b89 100644
+--- a/net/netfilter/nf_queue.c
++++ b/net/netfilter/nf_queue.c
+@@ -254,6 +254,7 @@ static unsigned int nf_iterate(struct sk_buff *skb,
+ repeat:
+ 		verdict = nf_hook_entry_hookfn(hook, skb, state);
+ 		if (verdict != NF_ACCEPT) {
++			*index = i;
+ 			if (verdict != NF_REPEAT)
+ 				return verdict;
+ 			goto repeat;
+-- 
+2.20.1
+
