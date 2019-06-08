@@ -2,168 +2,111 @@ Return-Path: <SRS0=8SyO=UH=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS,T_DKIMWL_WL_HIGH,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D2721C468BD
-	for <netfilter-devel@archiver.kernel.org>; Sat,  8 Jun 2019 11:55:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 30BE8C28CC5
+	for <netfilter-devel@archiver.kernel.org>; Sat,  8 Jun 2019 17:34:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id ACD4A21537
-	for <netfilter-devel@archiver.kernel.org>; Sat,  8 Jun 2019 11:55:36 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1559994936;
-	bh=Anl24wVRwQz/64PnpnLUW8+rHvTzsBxXk1v9M9lAXgQ=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=BvUg9vyxSAgg68eapm/dZL77d1hQRoRh0uXjALINC7KlvSMP2RCnBlLUGa+/yiHaI
-	 tbPIxZAxyK6Bz2bIt3k5Kl4ae5c44ypAT9s4Uyx7OiyowMUjRf2HRkKcu+2D2AOG7o
-	 dAry5ixDhOxpfQy/aJWSQB/+UOfPv8ZVxaWCuvPQ=
+	by mail.kernel.org (Postfix) with ESMTP id 096B42146E
+	for <netfilter-devel@archiver.kernel.org>; Sat,  8 Jun 2019 17:34:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727987AbfFHLz1 (ORCPT
+        id S1727220AbfFHReW (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 8 Jun 2019 07:55:27 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57122 "EHLO mail.kernel.org"
+        Sat, 8 Jun 2019 13:34:22 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:38586 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727243AbfFHLkD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 8 Jun 2019 07:40:03 -0400
-Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 5B1AE214C6;
-        Sat,  8 Jun 2019 11:40:01 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1559994002;
-        bh=Anl24wVRwQz/64PnpnLUW8+rHvTzsBxXk1v9M9lAXgQ=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=eyTqEfRTZJS8+Vy407O46uKdqO/Xl6xz2WPeM/XhiPSwRX6L/DQS3ciAtMFCpbbfI
-         XiUbdhux9TJCTSWdVbs/ZC/VeohO0dIaHaQv8w8N2N0idNrqIeaOFefYw2B0gfVDiu
-         PCHdLUtYlVVnUSGglJ5OnbuM42TBxwZjI52oDUOM=
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Florian Westphal <fw@strlen.de>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Sasha Levin <sashal@kernel.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.1 09/70] netfilter: nf_tables: fix oops during rule dump
-Date:   Sat,  8 Jun 2019 07:38:48 -0400
-Message-Id: <20190608113950.8033-9-sashal@kernel.org>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20190608113950.8033-1-sashal@kernel.org>
-References: <20190608113950.8033-1-sashal@kernel.org>
+        id S1727202AbfFHReW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 8 Jun 2019 13:34:22 -0400
+Received: from localhost ([::1]:51676 helo=tatos)
+        by orbyte.nwl.cc with esmtp (Exim 4.91)
+        (envelope-from <phil@nwl.cc>)
+        id 1hZfER-0003n6-Mn; Sat, 08 Jun 2019 19:34:19 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [iptables PATCH] xtables-restore: Fix program names in help texts
+Date:   Sat,  8 Jun 2019 19:34:13 +0200
+Message-Id: <20190608173413.25509-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.21.0
 MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
 Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+Avoid referring to wrong or even non-existent commands:
 
-[ Upstream commit 2c82c7e724ff51cab78e1afd5c2aaa31994fe41e ]
+* When calling xtables_restore_main(), pass the actual program name
+  taken from argv[0].
+* Use 'prog_name' in unknown parameter and help output instead of
+  'xtables-restore' which probably doesn't exist.
+* While being at it, fix false whitespace in help text.
 
-We can oops in nf_tables_fill_rule_info().
-
-Its not possible to fetch previous element in rcu-protected lists
-when deletions are not prevented somehow: list_del_rcu poisons
-the ->prev pointer value.
-
-Before rcu-conversion this was safe as dump operations did hold
-nfnetlink mutex.
-
-Pass previous rule as argument, obtained by keeping a pointer to
-the previous rule during traversal.
-
-Fixes: d9adf22a291883 ("netfilter: nf_tables: use call_rcu in netlink dumps")
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
+Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- net/netfilter/nf_tables_api.c | 20 +++++++++++---------
- 1 file changed, 11 insertions(+), 9 deletions(-)
+ iptables/xtables-restore.c | 13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 1606eaa5ae0d..041a81185c6a 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -2256,13 +2256,13 @@ static int nf_tables_fill_rule_info(struct sk_buff *skb, struct net *net,
- 				    u32 flags, int family,
- 				    const struct nft_table *table,
- 				    const struct nft_chain *chain,
--				    const struct nft_rule *rule)
-+				    const struct nft_rule *rule,
-+				    const struct nft_rule *prule)
- {
- 	struct nlmsghdr *nlh;
- 	struct nfgenmsg *nfmsg;
- 	const struct nft_expr *expr, *next;
- 	struct nlattr *list;
--	const struct nft_rule *prule;
- 	u16 type = nfnl_msg_type(NFNL_SUBSYS_NFTABLES, event);
- 
- 	nlh = nlmsg_put(skb, portid, seq, type, sizeof(struct nfgenmsg), flags);
-@@ -2282,8 +2282,7 @@ static int nf_tables_fill_rule_info(struct sk_buff *skb, struct net *net,
- 			 NFTA_RULE_PAD))
- 		goto nla_put_failure;
- 
--	if ((event != NFT_MSG_DELRULE) && (rule->list.prev != &chain->rules)) {
--		prule = list_prev_entry(rule, list);
-+	if (event != NFT_MSG_DELRULE && prule) {
- 		if (nla_put_be64(skb, NFTA_RULE_POSITION,
- 				 cpu_to_be64(prule->handle),
- 				 NFTA_RULE_PAD))
-@@ -2330,7 +2329,7 @@ static void nf_tables_rule_notify(const struct nft_ctx *ctx,
- 
- 	err = nf_tables_fill_rule_info(skb, ctx->net, ctx->portid, ctx->seq,
- 				       event, 0, ctx->family, ctx->table,
--				       ctx->chain, rule);
-+				       ctx->chain, rule, NULL);
- 	if (err < 0) {
- 		kfree_skb(skb);
- 		goto err;
-@@ -2355,12 +2354,13 @@ static int __nf_tables_dump_rules(struct sk_buff *skb,
- 				  const struct nft_chain *chain)
- {
- 	struct net *net = sock_net(skb->sk);
-+	const struct nft_rule *rule, *prule;
- 	unsigned int s_idx = cb->args[0];
--	const struct nft_rule *rule;
- 
-+	prule = NULL;
- 	list_for_each_entry_rcu(rule, &chain->rules, list) {
- 		if (!nft_is_active(net, rule))
--			goto cont;
-+			goto cont_skip;
- 		if (*idx < s_idx)
- 			goto cont;
- 		if (*idx > s_idx) {
-@@ -2372,11 +2372,13 @@ static int __nf_tables_dump_rules(struct sk_buff *skb,
- 					NFT_MSG_NEWRULE,
- 					NLM_F_MULTI | NLM_F_APPEND,
- 					table->family,
--					table, chain, rule) < 0)
-+					table, chain, rule, prule) < 0)
- 			return 1;
- 
- 		nl_dump_check_consistent(cb, nlmsg_hdr(skb));
- cont:
-+		prule = rule;
-+cont_skip:
- 		(*idx)++;
+diff --git a/iptables/xtables-restore.c b/iptables/xtables-restore.c
+index 86f6a3af971f0..2ef42fabc6f45 100644
+--- a/iptables/xtables-restore.c
++++ b/iptables/xtables-restore.c
+@@ -7,6 +7,7 @@
+ #include "config.h"
+ #include <getopt.h>
+ #include <errno.h>
++#include <libgen.h>
+ #include <stdbool.h>
+ #include <string.h>
+ #include <stdio.h>
+@@ -51,7 +52,7 @@ static void print_usage(const char *name, const char *version)
+ 			"	   [ --help ]\n"
+ 			"	   [ --noflush ]\n"
+ 			"	   [ --table=<TABLE> ]\n"
+-			"          [ --modprobe=<command> ]\n"
++			"	   [ --modprobe=<command> ]\n"
+ 			"	   [ --ipv4 ]\n"
+ 			"	   [ --ipv6 ]\n", name);
+ }
+@@ -361,8 +362,7 @@ xtables_restore_main(int family, const char *progname, int argc, char *argv[])
+ 				p.testing = 1;
+ 				break;
+ 			case 'h':
+-				print_usage("xtables-restore",
+-					    PACKAGE_VERSION);
++				print_usage(prog_name, PACKAGE_VERSION);
+ 				exit(0);
+ 			case 'n':
+ 				h.noflush = 1;
+@@ -387,7 +387,8 @@ xtables_restore_main(int family, const char *progname, int argc, char *argv[])
+ 				break;
+ 			default:
+ 				fprintf(stderr,
+-					"Try `xtables-restore -h' for more information.\n");
++					"Try `%s -h' for more information.\n",
++					prog_name);
+ 				exit(1);
+ 		}
  	}
- 	return 0;
-@@ -2532,7 +2534,7 @@ static int nf_tables_getrule(struct net *net, struct sock *nlsk,
+@@ -443,13 +444,13 @@ xtables_restore_main(int family, const char *progname, int argc, char *argv[])
  
- 	err = nf_tables_fill_rule_info(skb2, net, NETLINK_CB(skb).portid,
- 				       nlh->nlmsg_seq, NFT_MSG_NEWRULE, 0,
--				       family, table, chain, rule);
-+				       family, table, chain, rule, NULL);
- 	if (err < 0)
- 		goto err;
+ int xtables_ip4_restore_main(int argc, char *argv[])
+ {
+-	return xtables_restore_main(NFPROTO_IPV4, "iptables-restore",
++	return xtables_restore_main(NFPROTO_IPV4, basename(*argv),
+ 				    argc, argv);
+ }
+ 
+ int xtables_ip6_restore_main(int argc, char *argv[])
+ {
+-	return xtables_restore_main(NFPROTO_IPV6, "ip6tables-restore",
++	return xtables_restore_main(NFPROTO_IPV6, basename(*argv),
+ 				    argc, argv);
+ }
  
 -- 
-2.20.1
+2.21.0
 
