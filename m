@@ -2,145 +2,199 @@ Return-Path: <SRS0=E6gp=UJ=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_NEOMUTT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_NEOMUTT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A884C468C1
-	for <netfilter-devel@archiver.kernel.org>; Mon, 10 Jun 2019 09:44:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9664BC282DD
+	for <netfilter-devel@archiver.kernel.org>; Mon, 10 Jun 2019 10:34:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id DF2F72082E
-	for <netfilter-devel@archiver.kernel.org>; Mon, 10 Jun 2019 09:44:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 69088206BA
+	for <netfilter-devel@archiver.kernel.org>; Mon, 10 Jun 2019 10:34:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389103AbfFJJoi (ORCPT
+        id S2389466AbfFJKer (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 10 Jun 2019 05:44:38 -0400
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:40142 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S2387977AbfFJJoi (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 10 Jun 2019 05:44:38 -0400
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.89)
-        (envelope-from <fw@strlen.de>)
-        id 1haGqv-0001lH-Bq; Mon, 10 Jun 2019 11:44:33 +0200
-Date:   Mon, 10 Jun 2019 11:44:33 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     wenxu@ucloud.cn
-Cc:     pablo@netfilter.org, netfilter-devel@vger.kernel.org,
-        netdev@vger.kernel.org
-Subject: Re: [PATCH] netfilter: nft_paylaod: add base type
- NFT_PAYLOAD_LL_HEADER_NO_TAG
-Message-ID: <20190610094433.3wjmpfiph7iwguan@breakpoint.cc>
-References: <1560151280-28908-1-git-send-email-wenxu@ucloud.cn>
+        Mon, 10 Jun 2019 06:34:47 -0400
+Received: from mail.us.es ([193.147.175.20]:46358 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2389407AbfFJKeq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 10 Jun 2019 06:34:46 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 0F72B6D4ED
+        for <netfilter-devel@vger.kernel.org>; Mon, 10 Jun 2019 12:34:44 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id F3CA3DA718
+        for <netfilter-devel@vger.kernel.org>; Mon, 10 Jun 2019 12:34:43 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id E9592DA701; Mon, 10 Jun 2019 12:34:43 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C0701DA70C;
+        Mon, 10 Jun 2019 12:34:28 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Mon, 10 Jun 2019 12:33:47 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (sys.soleta.eu [212.170.55.40])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 4F1B6406B68B;
+        Mon, 10 Jun 2019 12:34:23 +0200 (CEST)
+Date:   Mon, 10 Jun 2019 12:34:17 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Lukasz Pawelczyk <l.pawelczyk@samsung.com>
+Cc:     Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Lukasz Pawelczyk <havner@gmail.com>
+Subject: Re: [PATCH v4] extensions: libxt_owner: Add supplementary groups
+ option
+Message-ID: <20190610103417.jg7xnaprczu2kkq2@salvia>
+References: <CGME20190610094353eucas1p29eb71e82aa621c1e387513571a78710b@eucas1p2.samsung.com>
+ <20190610094238.24904-1-l.pawelczyk@samsung.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <1560151280-28908-1-git-send-email-wenxu@ucloud.cn>
+In-Reply-To: <20190610094238.24904-1-l.pawelczyk@samsung.com>
 User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-wenxu@ucloud.cn <wenxu@ucloud.cn> wrote:
-> From: wenxu <wenxu@ucloud.cn>
+On Mon, Jun 10, 2019 at 11:42:38AM +0200, Lukasz Pawelczyk wrote:
+> The --suppl-groups option causes GIDs specified with --gid-owner to be
+> also checked in the supplementary groups of a process.
+
+Could you also extend iptables/extensions/libxt_owner.t ?
+
+Thanks.
+
+> Signed-off-by: Lukasz Pawelczyk <l.pawelczyk@samsung.com>
+> ---
 > 
-> nft add rule bridge firewall rule-100-ingress ip protocol icmp drop
-
-nft --debug=netlink add rule bridge firewall rule-100-ingress ip protocol icmp drop
-bridge firewall rule-100-ingress
-  [ payload load 2b @ link header + 12 => reg 1 ]
-  [ cmp eq reg 1 0x00000008 ]
-  [ payload load 1b @ network header + 9 => reg 1 ]
-  [ cmp eq reg 1 0x00000001 ]
-  [ immediate reg 0 drop ]
-
-so problem is that nft inserts a dependency on the ethernet protocol
-type (0x800).
-
-But when vlan is involved, that will fail to compare.
-
-It would also fail for qinq etc.
-
-Because of vlan tag offload, the rule about will probably already work
-just fine when nft userspace is patched to insert the dependency based
-on 'meta protocol'.  Can you see if this patch works?
-
-Subject: Change bridge l3 dependency to meta protocol
-
-This examines skb->protocol instead of ethernet header type, which
-might be different when vlan is involved.
-
-nft payload expression will re-insert the vlan tag so ether type
-will not be ETH_P_IP.
-
----
- src/meta.c    |  6 +++++-
- src/payload.c | 20 ++++++++++++++++++++
- 2 files changed, 25 insertions(+), 1 deletion(-)
-
-diff --git a/src/meta.c b/src/meta.c
-index 583e790ff47d..1e8964eb48c4 100644
---- a/src/meta.c
-+++ b/src/meta.c
-@@ -539,7 +539,11 @@ static void meta_expr_pctx_update(struct proto_ctx *ctx,
- 		proto_ctx_update(ctx, PROTO_BASE_TRANSPORT_HDR, &expr->location, desc);
- 		break;
- 	case NFT_META_PROTOCOL:
--		if (h->base < PROTO_BASE_NETWORK_HDR && ctx->family != NFPROTO_NETDEV)
-+		if (h->base != PROTO_BASE_LL_HDR)
-+			return;
-+
-+		if (ctx->family != NFPROTO_NETDEV &&
-+		    ctx->family != NFPROTO_BRIDGE)
- 			return;
- 
- 		desc = proto_find_upper(h->desc, ntohs(mpz_get_uint16(right->value)));
-diff --git a/src/payload.c b/src/payload.c
-index 6a8118ece890..c99bb2f69977 100644
---- a/src/payload.c
-+++ b/src/payload.c
-@@ -18,6 +18,7 @@
- #include <net/if_arp.h>
- #include <arpa/inet.h>
- #include <linux/netfilter.h>
-+#include <linux/if_ether.h>
- 
- #include <rule.h>
- #include <expression.h>
-@@ -307,6 +308,19 @@ payload_gen_special_dependency(struct eval_ctx *ctx, const struct expr *expr)
- 	return NULL;
- }
- 
-+static const struct proto_desc proto_metaeth = {
-+	.name		= "ethmeta",
-+	.base		= PROTO_BASE_LL_HDR,
-+	.protocols	= {
-+		PROTO_LINK(__constant_htons(ETH_P_IP),	 &proto_ip),
-+		PROTO_LINK(__constant_htons(ETH_P_ARP),	 &proto_arp),
-+		PROTO_LINK(__constant_htons(ETH_P_IPV6), &proto_ip6),
-+	},
-+	.templates	= {
-+		[0]	= PROTO_META_TEMPLATE("protocol", &ethertype_type, NFT_META_PROTOCOL, 16),
-+	},
-+};
-+
- /**
-  * payload_gen_dependency - generate match expression on payload dependency
-  *
-@@ -369,6 +383,12 @@ int payload_gen_dependency(struct eval_ctx *ctx, const struct expr *expr,
- 				  "no %s protocol specified",
- 				  proto_base_names[expr->payload.base - 1]);
- 
-+	if (ctx->pctx.family == NFPROTO_BRIDGE && desc == &proto_eth) {
-+		if (expr->payload.desc == &proto_ip ||
-+		    expr->payload.desc == &proto_ip6)
-+			desc = &proto_metaeth;
-+	}
-+
- 	return payload_add_dependency(ctx, desc, expr->payload.desc, expr, res);
- }
- 
--- 
-2.21.0
-
+> Changes from v3:
+>  - removed XTOPT_INVERT from O_SUPPL_GROUPS,
+>    it wasn't meant to be invertable
+>     
+> Changes from v2:
+>  - XT_SUPPL_GROUPS -> XT_OWNER_SUPPL_GROUPS
+>     
+> Changes from v1:
+>  - complementary -> supplementary
+>  - manual (iptables-extensions)
+> 
+>  extensions/libxt_owner.c           | 24 +++++++++++++++++-------
+>  extensions/libxt_owner.man         |  4 ++++
+>  include/linux/netfilter/xt_owner.h |  7 ++++---
+>  3 files changed, 25 insertions(+), 10 deletions(-)
+> 
+> diff --git a/extensions/libxt_owner.c b/extensions/libxt_owner.c
+> index 87e4df31..1702b478 100644
+> --- a/extensions/libxt_owner.c
+> +++ b/extensions/libxt_owner.c
+> @@ -56,6 +56,7 @@ enum {
+>  	O_PROCESS,
+>  	O_SESSION,
+>  	O_COMM,
+> +	O_SUPPL_GROUPS,
+>  };
+>  
+>  static void owner_mt_help_v0(void)
+> @@ -87,7 +88,8 @@ static void owner_mt_help(void)
+>  "owner match options:\n"
+>  "[!] --uid-owner userid[-userid]      Match local UID\n"
+>  "[!] --gid-owner groupid[-groupid]    Match local GID\n"
+> -"[!] --socket-exists                  Match if socket exists\n");
+> +"[!] --socket-exists                  Match if socket exists\n"
+> +"    --suppl-groups                   Also match supplementary groups set with --gid-owner\n");
+>  }
+>  
+>  #define s struct ipt_owner_info
+> @@ -131,6 +133,7 @@ static const struct xt_option_entry owner_mt_opts[] = {
+>  	 .flags = XTOPT_INVERT},
+>  	{.name = "socket-exists", .id = O_SOCK_EXISTS, .type = XTTYPE_NONE,
+>  	 .flags = XTOPT_INVERT},
+> +	{.name = "suppl-groups", .id = O_SUPPL_GROUPS, .type = XTTYPE_NONE},
+>  	XTOPT_TABLEEND,
+>  };
+>  
+> @@ -275,6 +278,11 @@ static void owner_mt_parse(struct xt_option_call *cb)
+>  			info->invert |= XT_OWNER_SOCKET;
+>  		info->match |= XT_OWNER_SOCKET;
+>  		break;
+> +	case O_SUPPL_GROUPS:
+> +		if (!(info->match & XT_OWNER_GID))
+> +			xtables_param_act(XTF_BAD_VALUE, "owner", "--suppl-groups", "you need to use --gid-owner first");
+> +		info->match |= XT_OWNER_SUPPL_GROUPS;
+> +		break;
+>  	}
+>  }
+>  
+> @@ -455,9 +463,10 @@ static void owner_mt_print(const void *ip, const struct xt_entry_match *match,
+>  {
+>  	const struct xt_owner_match_info *info = (void *)match->data;
+>  
+> -	owner_mt_print_item(info, "owner socket exists", XT_OWNER_SOCKET, numeric);
+> -	owner_mt_print_item(info, "owner UID match",     XT_OWNER_UID,    numeric);
+> -	owner_mt_print_item(info, "owner GID match",     XT_OWNER_GID,    numeric);
+> +	owner_mt_print_item(info, "owner socket exists", XT_OWNER_SOCKET,       numeric);
+> +	owner_mt_print_item(info, "owner UID match",     XT_OWNER_UID,          numeric);
+> +	owner_mt_print_item(info, "owner GID match",     XT_OWNER_GID,          numeric);
+> +	owner_mt_print_item(info, "incl. suppl. groups", XT_OWNER_SUPPL_GROUPS, numeric);
+>  }
+>  
+>  static void
+> @@ -487,9 +496,10 @@ static void owner_mt_save(const void *ip, const struct xt_entry_match *match)
+>  {
+>  	const struct xt_owner_match_info *info = (void *)match->data;
+>  
+> -	owner_mt_print_item(info, "--socket-exists",  XT_OWNER_SOCKET, true);
+> -	owner_mt_print_item(info, "--uid-owner",      XT_OWNER_UID,    true);
+> -	owner_mt_print_item(info, "--gid-owner",      XT_OWNER_GID,    true);
+> +	owner_mt_print_item(info, "--socket-exists",  XT_OWNER_SOCKET,       true);
+> +	owner_mt_print_item(info, "--uid-owner",      XT_OWNER_UID,          true);
+> +	owner_mt_print_item(info, "--gid-owner",      XT_OWNER_GID,          true);
+> +	owner_mt_print_item(info, "--suppl-groups",   XT_OWNER_SUPPL_GROUPS, true);
+>  }
+>  
+>  static int
+> diff --git a/extensions/libxt_owner.man b/extensions/libxt_owner.man
+> index 49b58cee..e2479865 100644
+> --- a/extensions/libxt_owner.man
+> +++ b/extensions/libxt_owner.man
+> @@ -15,5 +15,9 @@ given user. You may also specify a numerical UID, or an UID range.
+>  Matches if the packet socket's file structure is owned by the given group.
+>  You may also specify a numerical GID, or a GID range.
+>  .TP
+> +\fB\-\-suppl\-groups\fP
+> +Causes group(s) specified with \fB\-\-gid-owner\fP to be also checked in the
+> +supplementary groups of a process.
+> +.TP
+>  [\fB!\fP] \fB\-\-socket\-exists\fP
+>  Matches if the packet is associated with a socket.
+> diff --git a/include/linux/netfilter/xt_owner.h b/include/linux/netfilter/xt_owner.h
+> index 20817617..e7731dcc 100644
+> --- a/include/linux/netfilter/xt_owner.h
+> +++ b/include/linux/netfilter/xt_owner.h
+> @@ -4,9 +4,10 @@
+>  #include <linux/types.h>
+>  
+>  enum {
+> -	XT_OWNER_UID    = 1 << 0,
+> -	XT_OWNER_GID    = 1 << 1,
+> -	XT_OWNER_SOCKET = 1 << 2,
+> +	XT_OWNER_UID          = 1 << 0,
+> +	XT_OWNER_GID          = 1 << 1,
+> +	XT_OWNER_SOCKET       = 1 << 2,
+> +	XT_OWNER_SUPPL_GROUPS = 1 << 3,
+>  };
+>  
+>  struct xt_owner_match_info {
+> -- 
+> 2.20.1
+> 
