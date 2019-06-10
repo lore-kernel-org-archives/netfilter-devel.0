@@ -2,134 +2,84 @@ Return-Path: <SRS0=E6gp=UJ=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_NEOMUTT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B8B6C31E42
-	for <netfilter-devel@archiver.kernel.org>; Mon, 10 Jun 2019 15:51:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B58CC31E40
+	for <netfilter-devel@archiver.kernel.org>; Mon, 10 Jun 2019 17:25:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0E4E120859
-	for <netfilter-devel@archiver.kernel.org>; Mon, 10 Jun 2019 15:51:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 143BF20820
+	for <netfilter-devel@archiver.kernel.org>; Mon, 10 Jun 2019 17:25:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2391291AbfFJPvC (ORCPT
+        id S2387606AbfFJRZU (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 10 Jun 2019 11:51:02 -0400
-Received: from mail.us.es ([193.147.175.20]:43934 "EHLO mail.us.es"
+        Mon, 10 Jun 2019 13:25:20 -0400
+Received: from mail.us.es ([193.147.175.20]:58836 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2390356AbfFJPvC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 10 Jun 2019 11:51:02 -0400
+        id S1727674AbfFJRZS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 10 Jun 2019 13:25:18 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 82D08E7B80
-        for <netfilter-devel@vger.kernel.org>; Mon, 10 Jun 2019 17:51:00 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 29D40C1A06
+        for <netfilter-devel@vger.kernel.org>; Mon, 10 Jun 2019 19:25:16 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 74226DA705
-        for <netfilter-devel@vger.kernel.org>; Mon, 10 Jun 2019 17:51:00 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 19920DA708
+        for <netfilter-devel@vger.kernel.org>; Mon, 10 Jun 2019 19:25:16 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 698B7DA707; Mon, 10 Jun 2019 17:51:00 +0200 (CEST)
+        id 18E83DA704; Mon, 10 Jun 2019 19:25:16 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 2E72FDA705;
-        Mon, 10 Jun 2019 17:50:56 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 1F3A7DA706;
+        Mon, 10 Jun 2019 19:25:14 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 10 Jun 2019 17:50:56 +0200 (CEST)
+ Mon, 10 Jun 2019 19:25:14 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (sys.soleta.eu [212.170.55.40])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 08DCF4265A32;
-        Mon, 10 Jun 2019 17:50:55 +0200 (CEST)
-Date:   Mon, 10 Jun 2019 17:50:55 +0200
+Received: from salvia.here (sys.soleta.eu [212.170.55.40])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id EAA3A4265A31;
+        Mon, 10 Jun 2019 19:25:13 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Stephen Suryaputra <ssuryaextr@gmail.com>
-Cc:     netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-Subject: Re: [PATCH nf-next] netfilter: add support for matching IPv4 options
-Message-ID: <20190610155055.a3o7yx25j3jlwzgs@salvia>
-References: <20190523093801.3747-1-ssuryaextr@gmail.com>
- <20190531171101.5pttvxlbernhmlra@salvia>
- <20190531193558.GB4276@ubuntu>
- <20190601002230.bo6dhdf3lhlkknqq@salvia>
- <20190601150429.GA16560@ubuntu>
- <20190603123006.urztqvxyxcm7w3av@salvia>
- <20190602022706.GA24477@ubuntu>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190602022706.GA24477@ubuntu>
-User-Agent: NeoMutt/20170113 (1.7.2)
+To:     netfilter-devel@vger.kernel.org
+Cc:     ffmancera@riseup.net
+Subject: [PATCH nft] parser_bison: free chain name after creating constant expression
+Date:   Mon, 10 Jun 2019 19:25:10 +0200
+Message-Id: <20190610172510.3224-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.11.0
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sat, Jun 01, 2019 at 10:27:06PM -0400, Stephen Suryaputra wrote:
-> On Mon, Jun 03, 2019 at 02:30:06PM +0200, Pablo Neira Ayuso wrote:
-> > > I developed this patchset to suit my employer needs and there is no plan
-> > > for a follow up patchset, however I think non-zero offset might be useful
-> > > in the future for tunneled packets.
-> > 
-> > For tunneled traffic, we can store the network offset in the
-> > nft_pktinfo object. Then, add a new extension to update this network
-> > offset to point to the network offset inside the tunnel header, and
-> > use this pkt->network_offset everywhere.
-> 
-> OK. I'm changing so that offset isn't being used as input. But, it's
-> still being passed as reference for output. See further response
-> below...
-> 
-> > I think this new IPv4 options extension should use priv->offset to
-> > match fields inside the IPv4 option specifically, just like in the
-> > IPv6 extensions and TCP options do. If you look on how the
-> > priv->offset is used in the existing code, this offset points to
-> > values that the specific option field conveys.
-> 
-> I believe that's what I have coded:
-> 
-> 	err = ipv4_find_option(nft_net(pkt), skb, &offset, priv->type, NULL, NULL);
-> 	if (priv->flags & NFT_EXTHDR_F_PRESENT) {
-> 		*dest = (err >= 0);
-> 		return;
-> 	} else if (err < 0) {
-> 		goto err;
-> 	}
-> 	offset += priv->offset;
-> 
-> offset is returned as the offset where it matches the sought priv->type
-> then priv->offset is added to get to the right field between the offset.
+==2330== 2 bytes in 1 blocks are definitely lost in loss record 1 of 1
+==2330==    at 0x4C2BBAF: malloc (vg_replace_malloc.c:299)
+==2330==    by 0x583D3B9: strdup (strdup.c:42)
+==2330==    by 0x4E7966D: xstrdup (utils.c:75)
+==2330==    by 0x4E9C283: nft_lex (scanner.l:626)
+==2330==    by 0x4E8E3C2: nft_parse (parser_bison.c:5297)
+==2330==    by 0x4E7EAB2: nft_parse_bison_filename (libnftables.c:374)
+==2330==    by 0x4E7EAB2: nft_run_cmd_from_filename (libnftables.c:475)
+==2330==    by 0x109A53: main (main.c:310)
 
-I see, thanks for explaining.
+Fixes: f1e8a129ee42 ("src: Introduce chain_expr in jump and goto statements")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/parser_bison.y | 1 +
+ 1 file changed, 1 insertion(+)
 
-I got me confused when I read this:
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index 5ffb5cc22145..97a48f38af0c 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -3826,6 +3826,7 @@ chain_expr		:	variable_expr
+ 							 BYTEORDER_HOST_ENDIAN,
+ 							 strlen($1) * BITS_PER_BYTE,
+ 							 $1);
++				xfree($1);
+ 			}
+ 			;
+ 
+-- 
+2.11.0
 
-+ * Note that *offset is used as input/output parameter, and if it is not zero,
-+ * then it must be a valid offset to an inner IPv4 header. This can be used
-+ * to explore inner IPv4 header, eg. ICMP error messages.
-
-I thought this is how the new extension for nftables is working. Not
-the function.
-
-And then, this chunk:
-
-+       if (!offset)
-+               return -EINVAL;
-
-This never happens, right? offset is always set.
-
-+       if (!*offset)
-+               *offset = skb_network_offset(skb);
-
-So this is not needed either.
-
-I would remove those, you can add more code to ipv4_find_option()
-later on as you get more clients in the networking tree. I'd suggest,
-better remove code that is not used yet, then introduce it once
-needed.
-
-> If this is satisfactory, I can submit v2 of the kernel patch.
-
-Please do so, so you get more feedback (if needed) and we move on :-)
-
-Thanks!
