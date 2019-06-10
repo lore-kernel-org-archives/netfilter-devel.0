@@ -1,75 +1,115 @@
-Return-Path: <SRS0=ECng=UI=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=E6gp=UJ=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_NEOMUTT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ED144C28EBD
-	for <netfilter-devel@archiver.kernel.org>; Sun,  9 Jun 2019 18:29:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E1AD0C468BC
+	for <netfilter-devel@archiver.kernel.org>; Mon, 10 Jun 2019 07:21:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D545720673
-	for <netfilter-devel@archiver.kernel.org>; Sun,  9 Jun 2019 18:29:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C504E20833
+	for <netfilter-devel@archiver.kernel.org>; Mon, 10 Jun 2019 07:21:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729668AbfFIS25 (ORCPT
+        id S2387938AbfFJHV0 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 9 Jun 2019 14:28:57 -0400
-Received: from mail.us.es ([193.147.175.20]:47340 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729684AbfFIS25 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 9 Jun 2019 14:28:57 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 4CD7819D8AF
-        for <netfilter-devel@vger.kernel.org>; Sun,  9 Jun 2019 20:28:55 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 3CB5CDA705
-        for <netfilter-devel@vger.kernel.org>; Sun,  9 Jun 2019 20:28:55 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 325B6DA702; Sun,  9 Jun 2019 20:28:55 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 377A0DA705;
-        Sun,  9 Jun 2019 20:28:53 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Sun, 09 Jun 2019 20:28:53 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (sys.soleta.eu [212.170.55.40])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 17AF54265A2F;
-        Sun,  9 Jun 2019 20:28:53 +0200 (CEST)
-Date:   Sun, 9 Jun 2019 20:28:52 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Phil Sutter <phil@nwl.cc>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [iptables PATCH] xtables-restore: Fix program names in help texts
-Message-ID: <20190609182852.lv3y5zi5j4an5atz@salvia>
-References: <20190608173413.25509-1-phil@nwl.cc>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190608173413.25509-1-phil@nwl.cc>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+        Mon, 10 Jun 2019 03:21:26 -0400
+Received: from m9785.mail.qiye.163.com ([220.181.97.85]:3680 "EHLO
+        m9785.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2387541AbfFJHV0 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 10 Jun 2019 03:21:26 -0400
+Received: from localhost.localdomain (unknown [123.59.132.129])
+        by m9785.mail.qiye.163.com (Hmail) with ESMTPA id 31DE95C19D9;
+        Mon, 10 Jun 2019 15:21:21 +0800 (CST)
+From:   wenxu@ucloud.cn
+To:     pablo@netfilter.org, netfilter-devel@vger.kernel.org
+Cc:     netdev@vger.kernel.org
+Subject: [PATCH] netfilter: nft_paylaod: add base type NFT_PAYLOAD_LL_HEADER_NO_TAG
+Date:   Mon, 10 Jun 2019 15:21:20 +0800
+Message-Id: <1560151280-28908-1-git-send-email-wenxu@ucloud.cn>
+X-Mailer: git-send-email 1.8.3.1
+X-HM-Spam-Status: e1kIGBQJHllBWUlVSE9JS0tLS0tMTUlCSEJZV1koWUFJQjdXWS1ZQUlXWQ
+        kOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
+X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6Nhg6Fww6Ajg9SR5DGBFNCDQ4
+        NwEaCjdVSlVKTk1LSk5KSUNKSUxKVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJSFVO
+        QlVKSElVSklCWVdZCAFZQUhKSk43Bg++
+X-HM-Tid: 0a6b40434e412087kuqy31de95c19d9
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sat, Jun 08, 2019 at 07:34:13PM +0200, Phil Sutter wrote:
-> Avoid referring to wrong or even non-existent commands:
-> 
-> * When calling xtables_restore_main(), pass the actual program name
->   taken from argv[0].
-> * Use 'prog_name' in unknown parameter and help output instead of
->   'xtables-restore' which probably doesn't exist.
-> * While being at it, fix false whitespace in help text.
+From: wenxu <wenxu@ucloud.cn>
 
-Applied, thanks Phil.
+nft add rule bridge firewall rule-100-ingress ip protocol icmp drop
 
-Probably we can also address iptables-save output, it says:
+The rule like above "ip protocol icmp", the packet will not be
+matched, It tracelate base=NFT_PAYLOAD_LL_HEADER off=12 &&
+base=NFT_PAYLOAD_NETWORK_HEADER  off=11
+if the packet contained with tag info. But the user don't care about
+the vlan tag.
 
-# Generated by xtables-save ...
+Signed-off-by: wenxu <wenxu@ucloud.cn>
+---
+ include/uapi/linux/netfilter/nf_tables.h |  2 ++
+ net/netfilter/nft_payload.c              | 10 +++++++++-
+ 2 files changed, 11 insertions(+), 1 deletion(-)
+
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index 505393c..345787f 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -673,11 +673,13 @@ enum nft_dynset_attributes {
+  * @NFT_PAYLOAD_LL_HEADER: link layer header
+  * @NFT_PAYLOAD_NETWORK_HEADER: network header
+  * @NFT_PAYLOAD_TRANSPORT_HEADER: transport header
++ * @NFT_PAYLOAD_LL_HEADER_NO_TAG: link layer header ignore vlan tag
+  */
+ enum nft_payload_bases {
+ 	NFT_PAYLOAD_LL_HEADER,
+ 	NFT_PAYLOAD_NETWORK_HEADER,
+ 	NFT_PAYLOAD_TRANSPORT_HEADER,
++	NFT_PAYLOAD_LL_HEADER_NO_TAG,
+ };
+ 
+ /**
+diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
+index 1465b7d..3cc7398 100644
+--- a/net/netfilter/nft_payload.c
++++ b/net/netfilter/nft_payload.c
+@@ -93,6 +93,12 @@ void nft_payload_eval(const struct nft_expr *expr,
+ 		}
+ 		offset = skb_mac_header(skb) - skb->data;
+ 		break;
++	case NFT_PAYLOAD_LL_HEADER_NO_TAG:
++		if (!skb_mac_header_was_set(skb))
++			goto err;
++
++		offset = skb_mac_header(skb) - skb->data;
++		break;
+ 	case NFT_PAYLOAD_NETWORK_HEADER:
+ 		offset = skb_network_offset(skb);
+ 		break;
+@@ -403,6 +409,7 @@ static int nft_payload_set_dump(struct sk_buff *skb, const struct nft_expr *expr
+ 	case NFT_PAYLOAD_LL_HEADER:
+ 	case NFT_PAYLOAD_NETWORK_HEADER:
+ 	case NFT_PAYLOAD_TRANSPORT_HEADER:
++	case NFT_PAYLOAD_LL_HEADER_NO_TAG:
+ 		break;
+ 	default:
+ 		return ERR_PTR(-EOPNOTSUPP);
+@@ -421,7 +428,8 @@ static int nft_payload_set_dump(struct sk_buff *skb, const struct nft_expr *expr
+ 	len    = ntohl(nla_get_be32(tb[NFTA_PAYLOAD_LEN]));
+ 
+ 	if (len <= 4 && is_power_of_2(len) && IS_ALIGNED(offset, len) &&
+-	    base != NFT_PAYLOAD_LL_HEADER)
++	    base != NFT_PAYLOAD_LL_HEADER &&
++	    base != NFT_PAYLOAD_LL_HEADER_NO_TAG)
+ 		return &nft_payload_fast_ops;
+ 	else
+ 		return &nft_payload_ops;
+-- 
+1.8.3.1
+
