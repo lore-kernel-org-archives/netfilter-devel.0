@@ -2,247 +2,113 @@ Return-Path: <SRS0=E6gp=UJ=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,T_DKIMWL_WL_HIGH,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C0F6FC282DD
-	for <netfilter-devel@archiver.kernel.org>; Mon, 10 Jun 2019 10:59:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0569DC282DD
+	for <netfilter-devel@archiver.kernel.org>; Mon, 10 Jun 2019 11:14:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8B58D2082E
-	for <netfilter-devel@archiver.kernel.org>; Mon, 10 Jun 2019 10:59:17 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b="nbzrkE02"
+	by mail.kernel.org (Postfix) with ESMTP id D4FBD206C3
+	for <netfilter-devel@archiver.kernel.org>; Mon, 10 Jun 2019 11:14:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388982AbfFJK7L (ORCPT
+        id S2388703AbfFJLOy (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 10 Jun 2019 06:59:11 -0400
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:37095 "EHLO
-        mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2388912AbfFJK7J (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 10 Jun 2019 06:59:09 -0400
-Received: from eucas1p1.samsung.com (unknown [182.198.249.206])
-        by mailout1.w1.samsung.com (KnoxPortal) with ESMTP id 20190610105907euoutp018862148ba186a1d3e702b073ff2dcfa9~m0TVNgn0R2551425514euoutp01U;
-        Mon, 10 Jun 2019 10:59:07 +0000 (GMT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 mailout1.w1.samsung.com 20190610105907euoutp018862148ba186a1d3e702b073ff2dcfa9~m0TVNgn0R2551425514euoutp01U
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=samsung.com;
-        s=mail20170921; t=1560164347;
-        bh=SZN1jAvGLhSZcXrWgUQqJNUghsrz3iYdLa7AMt7GaZ8=;
-        h=From:To:Cc:Subject:Date:References:From;
-        b=nbzrkE02SyOaI+WP67e1NFC7wa4JCkLz0GFId5/WtAGLDvathQiWs/9KMAwbRM93R
-         GogCfqlPZGQiqd4+kcAjmDq0rzjeuiKQ94qMCPsDpSBCK5uFZQJyigOtS7l7sBBteo
-         QQF4go2VmAxYZevr90J+/Vjp1e1mVN2vJfsOL/dg=
-Received: from eusmges3new.samsung.com (unknown [203.254.199.245]) by
-        eucas1p1.samsung.com (KnoxPortal) with ESMTP id
-        20190610105907eucas1p13961f94895443a2e8db6d91a8e37c7ce~m0TU0U0-60492804928eucas1p1d;
-        Mon, 10 Jun 2019 10:59:07 +0000 (GMT)
-Received: from eucas1p1.samsung.com ( [182.198.249.206]) by
-        eusmges3new.samsung.com (EUCPMTA) with SMTP id 78.82.04325.BF73EFC5; Mon, 10
-        Jun 2019 11:59:07 +0100 (BST)
-Received: from eusmgms1.samsung.com (unknown [182.198.249.179]) by
-        eucas1p1.samsung.com (KnoxPortal) with ESMTP id
-        20190610105906eucas1p1a1e124ea55dd97bc7400b5504002e41c~m0TUFVDDX2573325733eucas1p1i;
-        Mon, 10 Jun 2019 10:59:06 +0000 (GMT)
-X-AuditID: cbfec7f5-b75ff700000010e5-ce-5cfe37fb69d8
-Received: from eusync3.samsung.com ( [203.254.199.213]) by
-        eusmgms1.samsung.com (EUCPMTA) with SMTP id F8.CB.04146.AF73EFC5; Mon, 10
-        Jun 2019 11:59:06 +0100 (BST)
-Received: from amdc2143.DIGITAL.local ([106.120.51.59]) by
-        eusync3.samsung.com (Oracle Communications Messaging Server 7.0.5.31.0 64bit
-        (built May  5 2014)) with ESMTPA id <0PSV00JQDQIFQV10@eusync3.samsung.com>;
-        Mon, 10 Jun 2019 11:59:06 +0100 (BST)
-From:   Lukasz Pawelczyk <l.pawelczyk@samsung.com>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc:     Lukasz Pawelczyk <havner@gmail.com>,
-        Lukasz Pawelczyk <l.pawelczyk@samsung.com>
-Subject: [PATCH v5] extensions: libxt_owner: Add supplementary groups option
-Date:   Mon, 10 Jun 2019 12:58:56 +0200
-Message-id: <20190610105856.31754-1-l.pawelczyk@samsung.com>
-X-Mailer: git-send-email 2.20.1
-MIME-version: 1.0
-Content-transfer-encoding: 8bit
-X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFrrKIsWRmVeSWpSXmKPExsWy7djPc7q/zf/FGOzewGrxd2c7s8Wc8y0s
-        Ftt6VzNa/H+tY3G5bxqzxZlJC5ksLu+aw2ZxbIGYxYR1p1gspr+5yuzA5XG6aSOLx5aVN5k8
-        ds66y+7x9vcJJo++LasYPQ59X8Dq8XmTXAB7FJdNSmpOZllqkb5dAlfG0083WAsOaVXMe/CK
-        pYFxplIXIyeHhICJxPmWmUxdjFwcQgIrGCXu/HjJCuF8ZpR48v8SM0zVjKtTmCESyxglljxt
-        ZQNJCAn8Z5RoWmkKYrMJGEh8v7AXrEhEYDqTxJqGV4wgCWaBUIlzj9aDTRIW8JE4tWcHmM0i
-        oCrxrOkwSxcjBwevgI1E74JEiGXyEud717GD2LwCghI/Jt9jgRgjL3HwynMWkPkSAhvYJPbt
-        6mODaHCR+Lj1PJQtI9HZcZAJZKaEQLXEyTMVEPUdjBIbX8xmhKixlvg8aQszxFA+iUnbpjND
-        1PNKdLQJQZgeEn1XIiFejJX43b6cdQKj5CwkF81CctECRqZVjOKppcW56anFxnmp5XrFibnF
-        pXnpesn5uZsYgZF9+t/xrzsY9/1JOsQowMGoxMN7wP5vjBBrYllxZe4hRgkOZiUR3hVS/2KE
-        eFMSK6tSi/Lji0pzUosPMUpzsCiJ81YzPIgWEkhPLEnNTk0tSC2CyTJxcEo1MF5xOZT2bUqx
-        lZRDwtKYvcmuspMvR/HedlpwyOrGxBvXv6tUfLec6zDlN1P9+wUbE4MzGC8Zc3/Mn/3ce3po
-        x9uvr6e2RfeX3Lhi4T1jQXPFrjnVR1nToyedkLOJSWeNlvWrfD3N/FV98JeTxXfDHmiX/NiS
-        yjjXRP291u0NEXXXzk/LyrIQbVRiKc5INNRiLipOBACgrmeh6AIAAA==
-X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFtrKLMWRmVeSWpSXmKPExsVy+t/xq7q/zP/FGBx7Jmvxd2c7s8Wc8y0s
-        Ftt6VzNa/H+tY3G5bxqzxZlJC5ksLu+aw2ZxbIGYxYR1p1gspr+5yuzA5XG6aSOLx5aVN5k8
-        ds66y+7x9vcJJo++LasYPQ59X8Dq8XmTXAB7FJdNSmpOZllqkb5dAlfG0083WAsOaVXMe/CK
-        pYFxplIXIyeHhICJxIyrU5i7GLk4hASWMEq0XZ3GBOE0MklMnv+eBaSKTcBA4vuFvcwgtojA
-        dCaJP7OEQWxmgVCJazOmg8WFBXwkTu3ZAWazCKhKPGs6DNTLwcErYCPRuyARYpm8xPnedewg
-        Nq+AoMSPyfdYIMbISxy88pxlAiPPLCSpWUhSCxiZVjGKpJYW56bnFhvqFSfmFpfmpesl5+du
-        YgQG5rZjPzfvYLy0MfgQowAHoxIP7wH7vzFCrIllxZW5hxglOJiVRHhXSP2LEeJNSaysSi3K
-        jy8qzUktPsQozcGiJM7bIXAwRkggPbEkNTs1tSC1CCbLxMEp1cDYeUD8Vv3Eu2Js0mlbSjxn
-        THA4Yud4y782aUf3Do5wdodVH3/MNTB3k5qVsbxYbMrKL/kP63I87r5j+arMzGy3V3O3k5DJ
-        TUvdQ6tzDIpnzGY0Oh5wUFfvbr/AHDvfqclrP+1u2l//PGxX9dGKhD0bD91csHbrRvX2e+Us
-        yUIcu60vb2k5wbZaiaU4I9FQi7moOBEAX1LTR0gCAAA=
-X-CMS-MailID: 20190610105906eucas1p1a1e124ea55dd97bc7400b5504002e41c
-CMS-TYPE: 201P
-X-CMS-RootMailID: 20190610105906eucas1p1a1e124ea55dd97bc7400b5504002e41c
-References: <CGME20190610105906eucas1p1a1e124ea55dd97bc7400b5504002e41c@eucas1p1.samsung.com>
+        Mon, 10 Jun 2019 07:14:54 -0400
+Received: from mail.us.es ([193.147.175.20]:44220 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2388504AbfFJLOy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 10 Jun 2019 07:14:54 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 79258F27A9
+        for <netfilter-devel@vger.kernel.org>; Mon, 10 Jun 2019 13:14:52 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 064EADA70A
+        for <netfilter-devel@vger.kernel.org>; Mon, 10 Jun 2019 13:14:52 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id EFF13DA712; Mon, 10 Jun 2019 13:14:51 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id B7E76DA703;
+        Mon, 10 Jun 2019 13:14:49 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Mon, 10 Jun 2019 13:14:49 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from salvia.here (sys.soleta.eu [212.170.55.40])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id 97484406B681;
+        Mon, 10 Jun 2019 13:14:49 +0200 (CEST)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     ffmancera@riseup.net
+Subject: [PATCH nft] src: invalid read when importing chain name
+Date:   Mon, 10 Jun 2019 13:14:46 +0200
+Message-Id: <20190610111446.3166-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.11.0
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The --suppl-groups option causes GIDs specified with --gid-owner to be
-also checked in the supplementary groups of a process.
+Use strlen(), otherwise mpz_import_data() reads too much beyond the real
+chain string.
 
-Signed-off-by: Lukasz Pawelczyk <l.pawelczyk@samsung.com>
+==2759== Invalid read of size 1
+==2759==    at 0x67D68D6: __gmpz_import (in /usr/lib/x86_64-linux-gnu/libgmp.so.10.3.2)
+==2759==    by 0x4E79467: mpz_import_data (gmputil.c:133)
+==2759==    by 0x4E60A12: constant_expr_alloc (expression.c:375)
+==2759==    by 0x4E8ED65: nft_parse (parser_bison.y:3825)
+==2759==    by 0x4E7E850: nft_parse_bison_buffer (libnftables.c:357)
+==2759==    by 0x4E7E850: nft_run_cmd_from_buffer (libnftables.c:424)
+==2759==    by 0x1095D4: main (in /home/pablo/asuntos/netfilter/nftables-bugs/nft7/a.out)
+==2759==  Address 0x6ee1b4a is 0 bytes after a block of size 10 alloc'd
+==2759==    at 0x4C2BBAF: malloc (vg_replace_malloc.c:299)
+==2759==    by 0x59FD3B9: strdup (strdup.c:42)
+==2759==    by 0x4E7963D: xstrdup (utils.c:75)
+==2759==    by 0x4E9C233: nft_lex (scanner.l:626)
+==2759==    by 0x4E8E382: nft_parse (parser_bison.c:5297)
+==2759==    by 0x4E7E850: nft_parse_bison_buffer (libnftables.c:357)
+==2759==    by 0x4E7E850: nft_run_cmd_from_buffer (libnftables.c:424)
+
+Fixes: f1e8a129ee42 ("src: Introduce chain_expr in jump and goto statements")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
+ src/netlink.c      | 4 ++--
+ src/parser_bison.y | 4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-Changes from v4:
- - unit tests added
-    
-Changes from v3:
- - removed XTOPT_INVERT from O_SUPPL_GROUPS,
-   it wasn't meant to be invertable
-    
-Changes from v2:
- - XT_SUPPL_GROUPS -> XT_OWNER_SUPPL_GROUPS
-    
-Changes from v1:
- - complementary -> supplementary
- - manual (iptables-extensions)
-
-extensions/libxt_owner.c           | 24 +++++++++++++++++-------
- extensions/libxt_owner.man         |  4 ++++
- extensions/libxt_owner.t           |  4 ++++
- include/linux/netfilter/xt_owner.h |  7 ++++---
- 4 files changed, 29 insertions(+), 10 deletions(-)
-
-diff --git a/extensions/libxt_owner.c b/extensions/libxt_owner.c
-index 87e4df31..1702b478 100644
---- a/extensions/libxt_owner.c
-+++ b/extensions/libxt_owner.c
-@@ -56,6 +56,7 @@ enum {
- 	O_PROCESS,
- 	O_SESSION,
- 	O_COMM,
-+	O_SUPPL_GROUPS,
- };
- 
- static void owner_mt_help_v0(void)
-@@ -87,7 +88,8 @@ static void owner_mt_help(void)
- "owner match options:\n"
- "[!] --uid-owner userid[-userid]      Match local UID\n"
- "[!] --gid-owner groupid[-groupid]    Match local GID\n"
--"[!] --socket-exists                  Match if socket exists\n");
-+"[!] --socket-exists                  Match if socket exists\n"
-+"    --suppl-groups                   Also match supplementary groups set with --gid-owner\n");
- }
- 
- #define s struct ipt_owner_info
-@@ -131,6 +133,7 @@ static const struct xt_option_entry owner_mt_opts[] = {
- 	 .flags = XTOPT_INVERT},
- 	{.name = "socket-exists", .id = O_SOCK_EXISTS, .type = XTTYPE_NONE,
- 	 .flags = XTOPT_INVERT},
-+	{.name = "suppl-groups", .id = O_SUPPL_GROUPS, .type = XTTYPE_NONE},
- 	XTOPT_TABLEEND,
- };
- 
-@@ -275,6 +278,11 @@ static void owner_mt_parse(struct xt_option_call *cb)
- 			info->invert |= XT_OWNER_SOCKET;
- 		info->match |= XT_OWNER_SOCKET;
+diff --git a/src/netlink.c b/src/netlink.c
+index ef12cb016b1d..e9779684ac09 100644
+--- a/src/netlink.c
++++ b/src/netlink.c
+@@ -265,8 +265,8 @@ static struct expr *netlink_alloc_verdict(const struct location *loc,
+ 	case NFT_GOTO:
+ 		chain = constant_expr_alloc(loc, &string_type,
+ 					    BYTEORDER_HOST_ENDIAN,
+-					    NFT_CHAIN_MAXNAMELEN *
+-					    BITS_PER_BYTE, nld->chain);
++					    strlen(nld->chain) * BITS_PER_BYTE,
++					    nld->chain);
  		break;
-+	case O_SUPPL_GROUPS:
-+		if (!(info->match & XT_OWNER_GID))
-+			xtables_param_act(XTF_BAD_VALUE, "owner", "--suppl-groups", "you need to use --gid-owner first");
-+		info->match |= XT_OWNER_SUPPL_GROUPS;
-+		break;
- 	}
- }
+ 	default:
+ 		chain = NULL;
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index 8026708ed859..5ffb5cc22145 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -3824,8 +3824,8 @@ chain_expr		:	variable_expr
+ 			{
+ 				$$ = constant_expr_alloc(&@$, &string_type,
+ 							 BYTEORDER_HOST_ENDIAN,
+-							 NFT_CHAIN_MAXNAMELEN *
+-							 BITS_PER_BYTE, $1);
++							 strlen($1) * BITS_PER_BYTE,
++							 $1);
+ 			}
+ 			;
  
-@@ -455,9 +463,10 @@ static void owner_mt_print(const void *ip, const struct xt_entry_match *match,
- {
- 	const struct xt_owner_match_info *info = (void *)match->data;
- 
--	owner_mt_print_item(info, "owner socket exists", XT_OWNER_SOCKET, numeric);
--	owner_mt_print_item(info, "owner UID match",     XT_OWNER_UID,    numeric);
--	owner_mt_print_item(info, "owner GID match",     XT_OWNER_GID,    numeric);
-+	owner_mt_print_item(info, "owner socket exists", XT_OWNER_SOCKET,       numeric);
-+	owner_mt_print_item(info, "owner UID match",     XT_OWNER_UID,          numeric);
-+	owner_mt_print_item(info, "owner GID match",     XT_OWNER_GID,          numeric);
-+	owner_mt_print_item(info, "incl. suppl. groups", XT_OWNER_SUPPL_GROUPS, numeric);
- }
- 
- static void
-@@ -487,9 +496,10 @@ static void owner_mt_save(const void *ip, const struct xt_entry_match *match)
- {
- 	const struct xt_owner_match_info *info = (void *)match->data;
- 
--	owner_mt_print_item(info, "--socket-exists",  XT_OWNER_SOCKET, true);
--	owner_mt_print_item(info, "--uid-owner",      XT_OWNER_UID,    true);
--	owner_mt_print_item(info, "--gid-owner",      XT_OWNER_GID,    true);
-+	owner_mt_print_item(info, "--socket-exists",  XT_OWNER_SOCKET,       true);
-+	owner_mt_print_item(info, "--uid-owner",      XT_OWNER_UID,          true);
-+	owner_mt_print_item(info, "--gid-owner",      XT_OWNER_GID,          true);
-+	owner_mt_print_item(info, "--suppl-groups",   XT_OWNER_SUPPL_GROUPS, true);
- }
- 
- static int
-diff --git a/extensions/libxt_owner.man b/extensions/libxt_owner.man
-index 49b58cee..e2479865 100644
---- a/extensions/libxt_owner.man
-+++ b/extensions/libxt_owner.man
-@@ -15,5 +15,9 @@ given user. You may also specify a numerical UID, or an UID range.
- Matches if the packet socket's file structure is owned by the given group.
- You may also specify a numerical GID, or a GID range.
- .TP
-+\fB\-\-suppl\-groups\fP
-+Causes group(s) specified with \fB\-\-gid-owner\fP to be also checked in the
-+supplementary groups of a process.
-+.TP
- [\fB!\fP] \fB\-\-socket\-exists\fP
- Matches if the packet is associated with a socket.
-diff --git a/extensions/libxt_owner.t b/extensions/libxt_owner.t
-index aec30b65..2779e5c1 100644
---- a/extensions/libxt_owner.t
-+++ b/extensions/libxt_owner.t
-@@ -8,5 +8,9 @@
- -m owner --uid-owner 0-10 --gid-owner 0-10;=;OK
- -m owner ! --uid-owner root;-m owner ! --uid-owner 0;OK
- -m owner --socket-exists;=;OK
-+-m owner --gid-owner 0-10 --suppl-groups;=;OK
-+-m owner --suppl-groups --gid-owner 0-10;;FAIL
-+-m owner --gid-owner 0-10 ! --suppl-groups;;FAIL
-+-m owner --suppl-groups;;FAIL
- :INPUT
- -m owner --uid-owner root;;FAIL
-diff --git a/include/linux/netfilter/xt_owner.h b/include/linux/netfilter/xt_owner.h
-index 20817617..e7731dcc 100644
---- a/include/linux/netfilter/xt_owner.h
-+++ b/include/linux/netfilter/xt_owner.h
-@@ -4,9 +4,10 @@
- #include <linux/types.h>
- 
- enum {
--	XT_OWNER_UID    = 1 << 0,
--	XT_OWNER_GID    = 1 << 1,
--	XT_OWNER_SOCKET = 1 << 2,
-+	XT_OWNER_UID          = 1 << 0,
-+	XT_OWNER_GID          = 1 << 1,
-+	XT_OWNER_SOCKET       = 1 << 2,
-+	XT_OWNER_SUPPL_GROUPS = 1 << 3,
- };
- 
- struct xt_owner_match_info {
 -- 
-2.20.1
+2.11.0
 
