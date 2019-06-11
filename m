@@ -1,130 +1,162 @@
 Return-Path: <SRS0=Jws3=UK=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
-X-Spam-Level: *
-X-Spam-Status: No, score=1.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FSL_HELO_FAKE,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	T_DKIMWL_WL_HIGH,USER_AGENT_MUTT autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Level: 
+X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A1F21C4321B
-	for <netfilter-devel@archiver.kernel.org>; Tue, 11 Jun 2019 01:06:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E4E6C4321D
+	for <netfilter-devel@archiver.kernel.org>; Tue, 11 Jun 2019 03:01:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7954820896
-	for <netfilter-devel@archiver.kernel.org>; Tue, 11 Jun 2019 01:06:22 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1560215182;
-	bh=H0wYscaX4spAKhGwci+faRMeUtvVux/Cx2QS70lGKnE=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=pXNC5/taHAzWRk1IcAlzVBeCvCqHG0DHyhK7ulE1WfygrRLUBqj5wex5+XmvW9cTX
-	 TpSUr7/r3hiTjNIT5HZzjVWIE6d8IeovVIjFe5q0rLfG6/MHy2cCho9AIlrjuo43n6
-	 pE9r0jmVOw0KrSK1YjF3KR17yqOna5xWsqVbGNno=
+	by mail.kernel.org (Postfix) with ESMTP id 4E07420820
+	for <netfilter-devel@archiver.kernel.org>; Tue, 11 Jun 2019 03:01:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389936AbfFKBGR (ORCPT
+        id S2390963AbfFKDBU (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 10 Jun 2019 21:06:17 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46912 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388845AbfFKBGR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 10 Jun 2019 21:06:17 -0400
-Received: from gmail.com (unknown [104.132.1.77])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id E3ED120652;
-        Tue, 11 Jun 2019 01:06:14 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1560215175;
-        bh=H0wYscaX4spAKhGwci+faRMeUtvVux/Cx2QS70lGKnE=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=rEyFSdOSUyrnB/z7NmdFYurOWXuJ7MHD7xEX757FtCUPczPNs+aDBKovF9B3zz15z
-         e19Evp6mG8ida9dvAJ97iPzj206qBUt7s3S0nFJbzq112/aUhMubeTZk92l6Wxh0+I
-         fyT18NKDuKkZS5mTQVTw65KE7HYmk3GV4pkFuRcQ=
-Date:   Mon, 10 Jun 2019 18:06:13 -0700
-From:   Eric Biggers <ebiggers@kernel.org>
-To:     syzbot <syzbot+7e2e50c8adfccd2e5041@syzkaller.appspotmail.com>
-Cc:     coreteam@netfilter.org, davem@davemloft.net, fw@strlen.de,
-        horms@verge.net.au, ja@ssi.bg, kadlec@blackhole.kfki.hu,
-        linux-kernel@vger.kernel.org, lvs-devel@vger.kernel.org,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        pablo@netfilter.org, syzkaller-bugs@googlegroups.com,
-        wensong@linux-vs.org
-Subject: Re: memory leak in start_sync_thread
-Message-ID: <20190611010612.GD220379@gmail.com>
-References: <0000000000006d7e520589f6d3a9@google.com>
+        Mon, 10 Jun 2019 23:01:20 -0400
+Received: from m9784.mail.qiye.163.com ([220.181.97.84]:17407 "EHLO
+        m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2390717AbfFKDBT (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 10 Jun 2019 23:01:19 -0400
+Received: from [192.168.188.14] (unknown [120.132.1.226])
+        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id E09B7418CF;
+        Tue, 11 Jun 2019 11:01:14 +0800 (CST)
+Subject: Re: [PATCH] netfilter: nft_paylaod: add base type
+ NFT_PAYLOAD_LL_HEADER_NO_TAG
+To:     Florian Westphal <fw@strlen.de>
+Cc:     pablo@netfilter.org, netfilter-devel@vger.kernel.org,
+        netdev@vger.kernel.org
+References: <1560151280-28908-1-git-send-email-wenxu@ucloud.cn>
+ <20190610094433.3wjmpfiph7iwguan@breakpoint.cc>
+From:   wenxu <wenxu@ucloud.cn>
+Message-ID: <bb562dd3-f02b-e6d3-beea-b5fea9a2e432@ucloud.cn>
+Date:   Tue, 11 Jun 2019 11:01:13 +0800
+User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:60.0) Gecko/20100101
+ Thunderbird/60.7.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <0000000000006d7e520589f6d3a9@google.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <20190610094433.3wjmpfiph7iwguan@breakpoint.cc>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
+X-HM-Spam-Status: e1kIGBQJHllBWVZKVUhOTEtLS0lISkxPSUNNWVdZKFlBSUI3V1ktWUFJV1
+        kJDhceCFlBWTU0KTY6NyQpLjc#WQY+
+X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6MFE6Szo5Ezg6CB0#PQ0jEzEc
+        PSIaFDVVSlVKTk1LSUlJS0xOSUpMVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJS1VK
+        SElVSlVJSU1ZV1kIAVlBT0NKSjcG
+X-HM-Tid: 0a6b447b88ae2086kuqye09b7418cf
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, May 28, 2019 at 11:28:05AM -0700, syzbot wrote:
-> Hello,
-> 
-> syzbot found the following crash on:
-> 
-> HEAD commit:    cd6c84d8 Linux 5.2-rc2
-> git tree:       upstream
-> console output: https://syzkaller.appspot.com/x/log.txt?x=132bd44aa00000
-> kernel config:  https://syzkaller.appspot.com/x/.config?x=64479170dcaf0e11
-> dashboard link: https://syzkaller.appspot.com/bug?extid=7e2e50c8adfccd2e5041
-> compiler:       gcc (GCC) 9.0.0 20181231 (experimental)
-> syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=114b1354a00000
-> C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=14b7ad26a00000
-> 
-> IMPORTANT: if you fix the bug, please add the following tag to the commit:
-> Reported-by: syzbot+7e2e50c8adfccd2e5041@syzkaller.appspotmail.com
-> 
-> d started: state = MASTER, mcast_ifn = syz_tun, syncid = 0, id = 0
-> BUG: memory leak
-> unreferenced object 0xffff8881206bf700 (size 32):
->   comm "syz-executor761", pid 7268, jiffies 4294943441 (age 20.470s)
->   hex dump (first 32 bytes):
->     00 40 7c 09 81 88 ff ff 80 45 b8 21 81 88 ff ff  .@|......E.!....
->     00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
->   backtrace:
->     [<0000000057619e23>] kmemleak_alloc_recursive
-> include/linux/kmemleak.h:55 [inline]
->     [<0000000057619e23>] slab_post_alloc_hook mm/slab.h:439 [inline]
->     [<0000000057619e23>] slab_alloc mm/slab.c:3326 [inline]
->     [<0000000057619e23>] kmem_cache_alloc_trace+0x13d/0x280 mm/slab.c:3553
->     [<0000000086ce5479>] kmalloc include/linux/slab.h:547 [inline]
->     [<0000000086ce5479>] start_sync_thread+0x5d2/0xe10
-> net/netfilter/ipvs/ip_vs_sync.c:1862
->     [<000000001a9229cc>] do_ip_vs_set_ctl+0x4c5/0x780
-> net/netfilter/ipvs/ip_vs_ctl.c:2402
->     [<00000000ece457c8>] nf_sockopt net/netfilter/nf_sockopt.c:106 [inline]
->     [<00000000ece457c8>] nf_setsockopt+0x4c/0x80
-> net/netfilter/nf_sockopt.c:115
->     [<00000000942f62d4>] ip_setsockopt net/ipv4/ip_sockglue.c:1258 [inline]
->     [<00000000942f62d4>] ip_setsockopt+0x9b/0xb0 net/ipv4/ip_sockglue.c:1238
->     [<00000000a56a8ffd>] udp_setsockopt+0x4e/0x90 net/ipv4/udp.c:2616
->     [<00000000fa895401>] sock_common_setsockopt+0x38/0x50
-> net/core/sock.c:3130
->     [<0000000095eef4cf>] __sys_setsockopt+0x98/0x120 net/socket.c:2078
->     [<000000009747cf88>] __do_sys_setsockopt net/socket.c:2089 [inline]
->     [<000000009747cf88>] __se_sys_setsockopt net/socket.c:2086 [inline]
->     [<000000009747cf88>] __x64_sys_setsockopt+0x26/0x30 net/socket.c:2086
->     [<00000000ded8ba80>] do_syscall_64+0x76/0x1a0
-> arch/x86/entry/common.c:301
->     [<00000000893b4ac8>] entry_SYSCALL_64_after_hwframe+0x44/0xa9
-> 
+Hi Florian,
 
-The bug is that ownership of some memory is passed to a kthread started by
-kthread_run(), but the kthread can be stopped before it actually executes the
-threadfn.  See the code in kernel/kthread.c:
 
-        ret = -EINTR;
-        if (!test_bit(KTHREAD_SHOULD_STOP, &self->flags)) {
-                cgroup_kthread_ready();
-                __kthread_parkme(self);
-                ret = threadfn(data);
-        }
+Thx,  the patch is work!
 
-So, apparently the thread parameters must always be owned by the owner of the
-kthread, not by the kthread itself.  It seems like this would be a common
-mistake in kernel code; I'm surprised this doesn't come up more...
 
-- Eric
+Br
+
+wenxu
+
+On 6/10/2019 5:44 PM, Florian Westphal wrote:
+> wenxu@ucloud.cn <wenxu@ucloud.cn> wrote:
+>> From: wenxu <wenxu@ucloud.cn>
+>>
+>> nft add rule bridge firewall rule-100-ingress ip protocol icmp drop
+> nft --debug=netlink add rule bridge firewall rule-100-ingress ip protocol icmp drop
+> bridge firewall rule-100-ingress
+>   [ payload load 2b @ link header + 12 => reg 1 ]
+>   [ cmp eq reg 1 0x00000008 ]
+>   [ payload load 1b @ network header + 9 => reg 1 ]
+>   [ cmp eq reg 1 0x00000001 ]
+>   [ immediate reg 0 drop ]
+>
+> so problem is that nft inserts a dependency on the ethernet protocol
+> type (0x800).
+>
+> But when vlan is involved, that will fail to compare.
+>
+> It would also fail for qinq etc.
+>
+> Because of vlan tag offload, the rule about will probably already work
+> just fine when nft userspace is patched to insert the dependency based
+> on 'meta protocol'.  Can you see if this patch works?
+>
+> Subject: Change bridge l3 dependency to meta protocol
+>
+> This examines skb->protocol instead of ethernet header type, which
+> might be different when vlan is involved.
+>
+> nft payload expression will re-insert the vlan tag so ether type
+> will not be ETH_P_IP.
+>
+> ---
+>  src/meta.c    |  6 +++++-
+>  src/payload.c | 20 ++++++++++++++++++++
+>  2 files changed, 25 insertions(+), 1 deletion(-)
+>
+> diff --git a/src/meta.c b/src/meta.c
+> index 583e790ff47d..1e8964eb48c4 100644
+> --- a/src/meta.c
+> +++ b/src/meta.c
+> @@ -539,7 +539,11 @@ static void meta_expr_pctx_update(struct proto_ctx *ctx,
+>  		proto_ctx_update(ctx, PROTO_BASE_TRANSPORT_HDR, &expr->location, desc);
+>  		break;
+>  	case NFT_META_PROTOCOL:
+> -		if (h->base < PROTO_BASE_NETWORK_HDR && ctx->family != NFPROTO_NETDEV)
+> +		if (h->base != PROTO_BASE_LL_HDR)
+> +			return;
+> +
+> +		if (ctx->family != NFPROTO_NETDEV &&
+> +		    ctx->family != NFPROTO_BRIDGE)
+>  			return;
+>  
+>  		desc = proto_find_upper(h->desc, ntohs(mpz_get_uint16(right->value)));
+> diff --git a/src/payload.c b/src/payload.c
+> index 6a8118ece890..c99bb2f69977 100644
+> --- a/src/payload.c
+> +++ b/src/payload.c
+> @@ -18,6 +18,7 @@
+>  #include <net/if_arp.h>
+>  #include <arpa/inet.h>
+>  #include <linux/netfilter.h>
+> +#include <linux/if_ether.h>
+>  
+>  #include <rule.h>
+>  #include <expression.h>
+> @@ -307,6 +308,19 @@ payload_gen_special_dependency(struct eval_ctx *ctx, const struct expr *expr)
+>  	return NULL;
+>  }
+>  
+> +static const struct proto_desc proto_metaeth = {
+> +	.name		= "ethmeta",
+> +	.base		= PROTO_BASE_LL_HDR,
+> +	.protocols	= {
+> +		PROTO_LINK(__constant_htons(ETH_P_IP),	 &proto_ip),
+> +		PROTO_LINK(__constant_htons(ETH_P_ARP),	 &proto_arp),
+> +		PROTO_LINK(__constant_htons(ETH_P_IPV6), &proto_ip6),
+> +	},
+> +	.templates	= {
+> +		[0]	= PROTO_META_TEMPLATE("protocol", &ethertype_type, NFT_META_PROTOCOL, 16),
+> +	},
+> +};
+> +
+>  /**
+>   * payload_gen_dependency - generate match expression on payload dependency
+>   *
+> @@ -369,6 +383,12 @@ int payload_gen_dependency(struct eval_ctx *ctx, const struct expr *expr,
+>  				  "no %s protocol specified",
+>  				  proto_base_names[expr->payload.base - 1]);
+>  
+> +	if (ctx->pctx.family == NFPROTO_BRIDGE && desc == &proto_eth) {
+> +		if (expr->payload.desc == &proto_ip ||
+> +		    expr->payload.desc == &proto_ip6)
+> +			desc = &proto_metaeth;
+> +	}
+> +
+>  	return payload_add_dependency(ctx, desc, expr->payload.desc, expr, res);
+>  }
+>  
