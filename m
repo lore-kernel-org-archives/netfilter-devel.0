@@ -2,95 +2,127 @@ Return-Path: <SRS0=Jws3=UK=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_NEOMUTT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 906A7C4321A
-	for <netfilter-devel@archiver.kernel.org>; Tue, 11 Jun 2019 18:59:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 22D32C0650E
+	for <netfilter-devel@archiver.kernel.org>; Tue, 11 Jun 2019 19:53:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6B14F2183E
-	for <netfilter-devel@archiver.kernel.org>; Tue, 11 Jun 2019 18:59:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 067D92173C
+	for <netfilter-devel@archiver.kernel.org>; Tue, 11 Jun 2019 19:53:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2392178AbfFKS7W (ORCPT
+        id S2405742AbfFKTxe (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 11 Jun 2019 14:59:22 -0400
-Received: from mx1.redhat.com ([209.132.183.28]:38098 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388630AbfFKS7W (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 11 Jun 2019 14:59:22 -0400
-Received: from smtp.corp.redhat.com (int-mx08.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mx1.redhat.com (Postfix) with ESMTPS id C7D392F8BF0;
-        Tue, 11 Jun 2019 18:59:13 +0000 (UTC)
-Received: from egarver.localdomain (ovpn-124-94.rdu2.redhat.com [10.10.124.94])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id CC47C1972B;
-        Tue, 11 Jun 2019 18:59:10 +0000 (UTC)
-Date:   Tue, 11 Jun 2019 14:59:09 -0400
-From:   Eric Garver <eric@garver.life>
-To:     Shekhar Sharma <shekhar250198@gmail.com>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH iptables v1] iptables-test: fix python3
-Message-ID: <20190611185909.lxxmgw5zbmqgq2ek@egarver.localdomain>
-Mail-Followup-To: Eric Garver <eric@garver.life>,
-        Shekhar Sharma <shekhar250198@gmail.com>,
-        netfilter-devel@vger.kernel.org
-References: <20190606195058.4411-1-shekhar250198@gmail.com>
+        Tue, 11 Jun 2019 15:53:34 -0400
+Received: from ja.ssi.bg ([178.16.129.10]:52482 "EHLO ja.ssi.bg"
+        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+        id S2404282AbfFKTxe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 11 Jun 2019 15:53:34 -0400
+Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
+        by ja.ssi.bg (8.15.2/8.15.2) with ESMTP id x5BJqsE6005588;
+        Tue, 11 Jun 2019 22:52:54 +0300
+Date:   Tue, 11 Jun 2019 22:52:54 +0300 (EEST)
+From:   Julian Anastasov <ja@ssi.bg>
+To:     Eric Biggers <ebiggers@kernel.org>
+cc:     syzbot <syzbot+7e2e50c8adfccd2e5041@syzkaller.appspotmail.com>,
+        coreteam@netfilter.org, davem@davemloft.net, fw@strlen.de,
+        horms@verge.net.au, kadlec@blackhole.kfki.hu,
+        linux-kernel@vger.kernel.org, lvs-devel@vger.kernel.org,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        pablo@netfilter.org, syzkaller-bugs@googlegroups.com,
+        wensong@linux-vs.org
+Subject: Re: memory leak in start_sync_thread
+In-Reply-To: <20190611010612.GD220379@gmail.com>
+Message-ID: <alpine.LFD.2.21.1906112239410.3387@ja.home.ssi.bg>
+References: <0000000000006d7e520589f6d3a9@google.com> <20190611010612.GD220379@gmail.com>
+User-Agent: Alpine 2.21 (LFD 202 2017-01-01)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190606195058.4411-1-shekhar250198@gmail.com>
-User-Agent: NeoMutt/20180716
-X-Scanned-By: MIMEDefang 2.84 on 10.5.11.23
-X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.5.16 (mx1.redhat.com [10.5.110.38]); Tue, 11 Jun 2019 18:59:21 +0000 (UTC)
+Content-Type: text/plain; charset=US-ASCII
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Jun 07, 2019 at 01:20:58AM +0530, Shekhar Sharma wrote:
-> This patch converts the 'iptables-test.py' file (iptables/iptables-test.py) to run on
-> both python 2 and python3.
+
+	Hello,
+
+On Mon, 10 Jun 2019, Eric Biggers wrote:
+
+> On Tue, May 28, 2019 at 11:28:05AM -0700, syzbot wrote:
+> > Hello,
+> > 
+> > syzbot found the following crash on:
+> > 
+> > HEAD commit:    cd6c84d8 Linux 5.2-rc2
+> > git tree:       upstream
+> > console output: https://syzkaller.appspot.com/x/log.txt?x=132bd44aa00000
+> > kernel config:  https://syzkaller.appspot.com/x/.config?x=64479170dcaf0e11
+> > dashboard link: https://syzkaller.appspot.com/bug?extid=7e2e50c8adfccd2e5041
+> > compiler:       gcc (GCC) 9.0.0 20181231 (experimental)
+> > syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=114b1354a00000
+> > C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=14b7ad26a00000
+> > 
+> > IMPORTANT: if you fix the bug, please add the following tag to the commit:
+> > Reported-by: syzbot+7e2e50c8adfccd2e5041@syzkaller.appspotmail.com
+> > 
+> > d started: state = MASTER, mcast_ifn = syz_tun, syncid = 0, id = 0
+> > BUG: memory leak
+> > unreferenced object 0xffff8881206bf700 (size 32):
+> >   comm "syz-executor761", pid 7268, jiffies 4294943441 (age 20.470s)
+> >   hex dump (first 32 bytes):
+> >     00 40 7c 09 81 88 ff ff 80 45 b8 21 81 88 ff ff  .@|......E.!....
+> >     00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+> >   backtrace:
+> >     [<0000000057619e23>] kmemleak_alloc_recursive
+> > include/linux/kmemleak.h:55 [inline]
+> >     [<0000000057619e23>] slab_post_alloc_hook mm/slab.h:439 [inline]
+> >     [<0000000057619e23>] slab_alloc mm/slab.c:3326 [inline]
+> >     [<0000000057619e23>] kmem_cache_alloc_trace+0x13d/0x280 mm/slab.c:3553
+> >     [<0000000086ce5479>] kmalloc include/linux/slab.h:547 [inline]
+> >     [<0000000086ce5479>] start_sync_thread+0x5d2/0xe10
+> > net/netfilter/ipvs/ip_vs_sync.c:1862
+> >     [<000000001a9229cc>] do_ip_vs_set_ctl+0x4c5/0x780
+> > net/netfilter/ipvs/ip_vs_ctl.c:2402
+> >     [<00000000ece457c8>] nf_sockopt net/netfilter/nf_sockopt.c:106 [inline]
+> >     [<00000000ece457c8>] nf_setsockopt+0x4c/0x80
+> > net/netfilter/nf_sockopt.c:115
+> >     [<00000000942f62d4>] ip_setsockopt net/ipv4/ip_sockglue.c:1258 [inline]
+> >     [<00000000942f62d4>] ip_setsockopt+0x9b/0xb0 net/ipv4/ip_sockglue.c:1238
+> >     [<00000000a56a8ffd>] udp_setsockopt+0x4e/0x90 net/ipv4/udp.c:2616
+> >     [<00000000fa895401>] sock_common_setsockopt+0x38/0x50
+> > net/core/sock.c:3130
+> >     [<0000000095eef4cf>] __sys_setsockopt+0x98/0x120 net/socket.c:2078
+> >     [<000000009747cf88>] __do_sys_setsockopt net/socket.c:2089 [inline]
+> >     [<000000009747cf88>] __se_sys_setsockopt net/socket.c:2086 [inline]
+> >     [<000000009747cf88>] __x64_sys_setsockopt+0x26/0x30 net/socket.c:2086
+> >     [<00000000ded8ba80>] do_syscall_64+0x76/0x1a0
+> > arch/x86/entry/common.c:301
+> >     [<00000000893b4ac8>] entry_SYSCALL_64_after_hwframe+0x44/0xa9
+> > 
 > 
+> The bug is that ownership of some memory is passed to a kthread started by
+> kthread_run(), but the kthread can be stopped before it actually executes the
+> threadfn.  See the code in kernel/kthread.c:
 > 
-> Signed-off-by: Shekhar Sharma <shekhar250198@gmail.com>
-> ---
->  iptables-test.py | 43 ++++++++++++++++++++++---------------------
->  1 file changed, 22 insertions(+), 21 deletions(-)
+>         ret = -EINTR;
+>         if (!test_bit(KTHREAD_SHOULD_STOP, &self->flags)) {
+>                 cgroup_kthread_ready();
+>                 __kthread_parkme(self);
+>                 ret = threadfn(data);
+>         }
 > 
-> diff --git a/iptables-test.py b/iptables-test.py
-> index 532dee7..8018b65 100755
-> --- a/iptables-test.py
-> +++ b/iptables-test.py
-[..]
-> @@ -79,7 +80,7 @@ def run_test(iptables, rule, rule_save, res, filename, lineno, netns):
->  
->      cmd = iptables + " -A " + rule
->      if netns:
-> -            cmd = "ip netns exec ____iptables-container-test " + EXECUTEABLE + " " + cmd
-> +            cmd = "ip netns exec ____iptables-container-test " + EXECUTEABLE + "  {}".format(cmd)
+> So, apparently the thread parameters must always be owned by the owner of the
+> kthread, not by the kthread itself.  It seems like this would be a common
+> mistake in kernel code; I'm surprised this doesn't come up more...
 
-This is a bogus change. No reason to switch to format() when we're just
-concatenating strings. Many occurrences of this in the patch.
+	Thanks! It explains the problem. It was not obvious from the
+fact that only tinfo was reported as a leak, nothing for tinfo->sock.
 
-I think you only need to fix the print statements.
+	Moving sock_release to owner complicates the locking but
+I'll try to fix it in the following days...
 
->  
->      ret = execute_cmd(cmd, filename, lineno)
->  
-[..]
-> @@ -365,9 +366,9 @@ def main():
->              passed += file_passed
->              test_files += 1
->  
-> -    print ("%d test files, %d unit tests, %d passed" %
-> -           (test_files, tests, passed))
-> +    print("{} test files, {} unit tests, {} passed".format(test_files, tests, passed))
->  
->  
->  if __name__ == '__main__':
->      main()
-> +
+Regards
 
-Bogus new line.
+--
+Julian Anastasov <ja@ssi.bg>
