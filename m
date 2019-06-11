@@ -6,44 +6,44 @@ X-Spam-Status: No, score=-8.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B5810C4321A
-	for <netfilter-devel@archiver.kernel.org>; Tue, 11 Jun 2019 15:46:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 65EE2C06508
+	for <netfilter-devel@archiver.kernel.org>; Tue, 11 Jun 2019 16:59:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8BA3F2080A
-	for <netfilter-devel@archiver.kernel.org>; Tue, 11 Jun 2019 15:46:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3EE752086A
+	for <netfilter-devel@archiver.kernel.org>; Tue, 11 Jun 2019 16:59:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2405384AbfFKPqT (ORCPT
+        id S2404099AbfFKQ7z (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 11 Jun 2019 11:46:19 -0400
-Received: from mail.us.es ([193.147.175.20]:47292 "EHLO mail.us.es"
+        Tue, 11 Jun 2019 12:59:55 -0400
+Received: from mail.us.es ([193.147.175.20]:45654 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2405359AbfFKPqT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 11 Jun 2019 11:46:19 -0400
+        id S2387767AbfFKQ7y (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 11 Jun 2019 12:59:54 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 0008081A01
-        for <netfilter-devel@vger.kernel.org>; Tue, 11 Jun 2019 17:46:15 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 0B09E6CB61
+        for <netfilter-devel@vger.kernel.org>; Tue, 11 Jun 2019 18:59:51 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id E49AEDA708
-        for <netfilter-devel@vger.kernel.org>; Tue, 11 Jun 2019 17:46:15 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id EF2A5DA705
+        for <netfilter-devel@vger.kernel.org>; Tue, 11 Jun 2019 18:59:50 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id DA500DA703; Tue, 11 Jun 2019 17:46:15 +0200 (CEST)
+        id E4BF1DA706; Tue, 11 Jun 2019 18:59:50 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id C6492DA705
-        for <netfilter-devel@vger.kernel.org>; Tue, 11 Jun 2019 17:46:13 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 9956FDA705
+        for <netfilter-devel@vger.kernel.org>; Tue, 11 Jun 2019 18:59:48 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 11 Jun 2019 17:46:13 +0200 (CEST)
+ Tue, 11 Jun 2019 18:59:48 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id AED7E4265A32
-        for <netfilter-devel@vger.kernel.org>; Tue, 11 Jun 2019 17:46:13 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 80D824265A31
+        for <netfilter-devel@vger.kernel.org>; Tue, 11 Jun 2019 18:59:48 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft] src: add reference counter for dynamic datatypes
-Date:   Tue, 11 Jun 2019 17:46:10 +0200
-Message-Id: <20190611154610.3967-1-pablo@netfilter.org>
+Subject: [PATCH nft,v2] src: add reference counter for dynamic datatypes
+Date:   Tue, 11 Jun 2019 18:59:43 +0200
+Message-Id: <20190611165943.32752-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -61,6 +61,8 @@ following paths:
 * set_expr_alloc(), for implicit set/maps and update statement from the
   packet path.
 * set_ref_expr_alloc(), for set and map references via @.
+* expr_evaluate_set_elem(), when elements are added and they refer to
+  the set datatype, ie. add element command.
 
 ==28352== 1,350 (440 direct, 910 indirect) bytes in 5 blocks are definitely lost in loss recor 3 of 3
 ==28352==    at 0x4C2BBAF: malloc (vg_replace_malloc.c:299)
@@ -83,11 +85,14 @@ Remove DTYPE_F_CLONE flag, which is replaced by proper reference counter.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
+v2: deal with expr_evaluate_set_elem() path too.
+
  include/datatype.h |  6 ++++--
  src/datatype.c     | 38 ++++++++++++++++++++++++++++----------
+ src/evaluate.c     |  4 ++--
  src/expression.c   | 11 ++++++-----
  src/netlink.c      |  2 +-
- 4 files changed, 39 insertions(+), 18 deletions(-)
+ 5 files changed, 41 insertions(+), 20 deletions(-)
 
 diff --git a/include/datatype.h b/include/datatype.h
 index 14ece282902c..5765c1ba7502 100644
@@ -207,6 +212,28 @@ index 1d5ed6f798de..94abc91d8112 100644
  }
  
  static struct error_record *time_unit_parse(const struct location *loc,
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 39101b486b2f..6018c96edefe 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -1239,7 +1239,7 @@ static int expr_evaluate_set_elem(struct eval_ctx *ctx, struct expr **expr)
+ 		}
+ 	}
+ 
+-	elem->dtype = elem->key->dtype;
++	elem->dtype = datatype_get(elem->key->dtype);
+ 	elem->len   = elem->key->len;
+ 	elem->flags = elem->key->flags;
+ 	return 0;
+@@ -1285,7 +1285,7 @@ static int expr_evaluate_set(struct eval_ctx *ctx, struct expr **expr)
+ 
+ 	set->set_flags |= NFT_SET_CONSTANT;
+ 
+-	set->dtype = ctx->ectx.dtype;
++	set->dtype = datatype_get(ctx->ectx.dtype);
+ 	set->len   = ctx->ectx.len;
+ 	set->flags |= EXPR_F_CONSTANT;
+ 	return 0;
 diff --git a/src/expression.c b/src/expression.c
 index ef694f2a194d..d1cfb24681d9 100644
 --- a/src/expression.c
