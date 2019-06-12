@@ -2,724 +2,2423 @@ Return-Path: <SRS0=I0Q5=UL=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 54C44C31E46
-	for <netfilter-devel@archiver.kernel.org>; Wed, 12 Jun 2019 18:14:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E9C4EC31E48
+	for <netfilter-devel@archiver.kernel.org>; Wed, 12 Jun 2019 18:39:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0F85E20B7C
-	for <netfilter-devel@archiver.kernel.org>; Wed, 12 Jun 2019 18:14:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 82334206E0
+	for <netfilter-devel@archiver.kernel.org>; Wed, 12 Jun 2019 18:39:50 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1560364790;
+	bh=ByZFIX55tPDfcYlVyXhXzbtz+GJlPzUlpi1jtHZsgIc=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=epTk4qVwxzOkIMf0fc+TGV544/K8G0S2XonEvT/Fip0l04ayEsVLA9IsPp/mKvriJ
+	 8yxQhiUQ7kdJiWf6NCE/E+ldECoXG0Rf7A2zSyw3fHqzoASY+ddGvN0mmeZgokoOjl
+	 HO8N5P3B/aquTfvOvEg6X2pBEpUx2cVRWYGSXPZw=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726378AbfFLSN7 (ORCPT
+        id S1727874AbfFLSin (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 12 Jun 2019 14:13:59 -0400
-Received: from mail.us.es ([193.147.175.20]:39134 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725497AbfFLSN7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 12 Jun 2019 14:13:59 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 1F7DFB60C1
-        for <netfilter-devel@vger.kernel.org>; Wed, 12 Jun 2019 20:13:49 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 09671DA704
-        for <netfilter-devel@vger.kernel.org>; Wed, 12 Jun 2019 20:13:49 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id F3136DA707; Wed, 12 Jun 2019 20:13:48 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 5B2EADA703
-        for <netfilter-devel@vger.kernel.org>; Wed, 12 Jun 2019 20:13:46 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 12 Jun 2019 20:13:46 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from salvia.here (unknown [31.4.223.99])
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 1AD064265A2F
-        for <netfilter-devel@vger.kernel.org>; Wed, 12 Jun 2019 20:13:45 +0200 (CEST)
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH 1/2 nft,v4] src: add reference counter for dynamic datatypes
-Date:   Wed, 12 Jun 2019 20:13:39 +0200
-Message-Id: <20190612181340.31166-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.11.0
-X-Virus-Scanned: ClamAV using ClamSMTP
+        Wed, 12 Jun 2019 14:38:43 -0400
+Received: from bombadil.infradead.org ([198.137.202.133]:45714 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727768AbfFLSim (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 12 Jun 2019 14:38:42 -0400
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=bombadil.20170209; h=Sender:Content-Transfer-Encoding:
+        MIME-Version:References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:
+        Reply-To:Content-Type:Content-ID:Content-Description:Resent-Date:Resent-From:
+        Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
+        List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
+        bh=cVpdj9g3nfutWCkO4qap0oOXWR198VYaPZkxAl4x/vo=; b=k86d+c3dbWABBWg7wcoV51wuIS
+        SGZOXoXLdPD+loPFKb8S8cnM72DyToMAlYM2f+W7lFjnayRkjwmuz4/j6fyAVIaOQ40Fp8RaQiO4g
+        QiqbwzkjpLeB4QyK6nKHQQ1FS9UI+QcNPmQjaG+FigP13RcDbYCizA+Z67Ka1wQ0hioMQVnI6uyyg
+        5IMwnVtVA1tboBLMJKLATG3C4Rt9B4j3j1tobDT5iN31Jgvxw+gwtg4pY2XToUTvOIt6mMA4KWDbd
+        UlUkwAYsZ9HpaEQLtAHj9cxBP4jQ30c1fAw8py/HnhzO7Hzyei5l6hvtBfes5ePFfQmcn7pLBFf/9
+        VtP+QPYg==;
+Received: from 201.86.169.251.dynamic.adsl.gvt.net.br ([201.86.169.251] helo=bombadil.infradead.org)
+        by bombadil.infradead.org with esmtpsa (Exim 4.92 #3 (Red Hat Linux))
+        id 1hb88s-0006Ya-UV; Wed, 12 Jun 2019 18:38:40 +0000
+Received: from mchehab by bombadil.infradead.org with local (Exim 4.92)
+        (envelope-from <mchehab@bombadil.infradead.org>)
+        id 1hb88q-0002Bg-CM; Wed, 12 Jun 2019 15:38:36 -0300
+From:   Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To:     Linux Doc Mailing List <linux-doc@vger.kernel.org>
+Cc:     Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
+        Vadim Pasternak <vadimp@mellanox.com>,
+        Jacek Anaszewski <jacek.anaszewski@gmail.com>,
+        Pavel Machek <pavel@ucw.cz>, Dan Murphy <dmurphy@ti.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        linux-leds@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, netdev@vger.kernel.org
+Subject: [PATCH v1 22/31] docs: leds: convert to ReST
+Date:   Wed, 12 Jun 2019 15:38:25 -0300
+Message-Id: <ccad10454866a6f3130f37c3027175c0f36aee0f.1560364494.git.mchehab+samsung@kernel.org>
+X-Mailer: git-send-email 2.21.0
+In-Reply-To: <cover.1560364493.git.mchehab+samsung@kernel.org>
+References: <cover.1560364493.git.mchehab+samsung@kernel.org>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-There are two datatypes are using runtime datatype allocation:
+Rename the leds documentation files to ReST, add an
+index for them and adjust in order to produce a nice html
+output via the Sphinx build system.
 
-* Concatenations.
-* Integer, that require byteorder adjustment.
+At its new index.rst, let's add a :orphan: while this is not linked to
+the main index.rst file, in order to avoid build warnings.
 
-From the evaluation / postprocess step, transformations are common,
-hence expressions may end up fetching (infering) datatypes from an
-existing one.
-
-This patch adds a reference counter to release the dynamic datatype
-object when it is shared.
-
-The API includes the following helper functions:
-
-* datatype_set(expr, datatype), to assign a datatype to an expression.
-  This helper already deals with reference counting for dynamic
-  datatypes. This also drops the reference counter of any previous
-  datatype (to deal with the datatype replacement case).
-
-* datatype_get(datatype) bumps the reference counter. This function also
-  deals with nul-pointers, that occurs when the datatype is unset.
-
-* datatype_free() drops the reference counter, and it also releases the
-  datatype if there are not more clients of it.
-
-Rule of thumb is: The reference counter of any newly allocated datatype
-is set to zero.
-
-This patch also updates every spot to use datatype_set() for non-dynamic
-datatypes, for consistency. In this case, the helper just makes an
-simple assignment.
-
-Note that expr_alloc() has been updated to call datatype_get() on the
-datatype that is assigned to this new expression. Moreover, expr_free()
-calls datatype_free().
-
-This fixes valgrind reports like this one:
-
-==28352== 1,350 (440 direct, 910 indirect) bytes in 5 blocks are definitely lost in loss recor 3 of 3
-==28352==    at 0x4C2BBAF: malloc (vg_replace_malloc.c:299)
-==28352==    by 0x4E79558: xmalloc (utils.c:36)
-==28352==    by 0x4E7963D: xzalloc (utils.c:65)
-==28352==    by 0x4E6029B: dtype_alloc (datatype.c:1073)
-==28352==    by 0x4E6029B: concat_type_alloc (datatype.c:1127)
-==28352==    by 0x4E6D3B3: netlink_delinearize_set (netlink.c:578)
-==28352==    by 0x4E6D68E: list_set_cb (netlink.c:648)
-==28352==    by 0x5D74023: nftnl_set_list_foreach (set.c:780)
-==28352==    by 0x4E6D6F3: netlink_list_sets (netlink.c:669)
-==28352==    by 0x4E5A7A3: cache_init_objects (rule.c:159)
-==28352==    by 0x4E5A7A3: cache_init (rule.c:216)
-==28352==    by 0x4E5A7A3: cache_update (rule.c:266)
-==28352==    by 0x4E7E0EE: nft_evaluate (libnftables.c:388)
-==28352==    by 0x4E7EADD: nft_run_cmd_from_filename (libnftables.c:479)
-==28352==    by 0x109A53: main (main.c:310)
-
-This patch also removes the DTYPE_F_CLONE flag which is broken and not
-needed anymore since proper reference counting is in place.
-
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 ---
-v4: - merge datatype: add datatype_set() to this patch.
-    - do not set refcnt = 1 for dtype_clone() and dtype_alloc(),
-      do this from datatype_set().
-    - use datatype_set() everywhere.
-    - drop reference to previous datatype, in case of replacing datatype.
+ Documentation/laptops/thinkpad-acpi.txt       |   4 +-
+ Documentation/leds/index.rst                  |  25 ++
+ .../leds/{leds-blinkm.txt => leds-blinkm.rst} |  64 ++---
+ ...s-class-flash.txt => leds-class-flash.rst} |  49 ++--
+ .../leds/{leds-class.txt => leds-class.rst}   |  15 +-
+ .../leds/{leds-lm3556.txt => leds-lm3556.rst} | 100 ++++++--
+ .../leds/{leds-lp3944.txt => leds-lp3944.rst} |  23 +-
+ Documentation/leds/leds-lp5521.rst            | 115 +++++++++
+ Documentation/leds/leds-lp5521.txt            | 101 --------
+ Documentation/leds/leds-lp5523.rst            | 147 ++++++++++++
+ Documentation/leds/leds-lp5523.txt            | 130 ----------
+ Documentation/leds/leds-lp5562.rst            | 137 +++++++++++
+ Documentation/leds/leds-lp5562.txt            | 120 ----------
+ Documentation/leds/leds-lp55xx.rst            | 224 ++++++++++++++++++
+ Documentation/leds/leds-lp55xx.txt            | 194 ---------------
+ Documentation/leds/leds-mlxcpld.rst           | 118 +++++++++
+ Documentation/leds/leds-mlxcpld.txt           | 110 ---------
+ ...edtrig-oneshot.txt => ledtrig-oneshot.rst} |  11 +-
+ ...ig-transient.txt => ledtrig-transient.rst} |  63 +++--
+ ...edtrig-usbport.txt => ledtrig-usbport.rst} |  11 +-
+ Documentation/leds/{uleds.txt => uleds.rst}   |   5 +-
+ MAINTAINERS                                   |   2 +-
+ drivers/leds/trigger/Kconfig                  |   2 +-
+ drivers/leds/trigger/ledtrig-transient.c      |   2 +-
+ net/netfilter/Kconfig                         |   2 +-
+ 25 files changed, 996 insertions(+), 778 deletions(-)
+ create mode 100644 Documentation/leds/index.rst
+ rename Documentation/leds/{leds-blinkm.txt => leds-blinkm.rst} (57%)
+ rename Documentation/leds/{leds-class-flash.txt => leds-class-flash.rst} (74%)
+ rename Documentation/leds/{leds-class.txt => leds-class.rst} (92%)
+ rename Documentation/leds/{leds-lm3556.txt => leds-lm3556.rst} (70%)
+ rename Documentation/leds/{leds-lp3944.txt => leds-lp3944.rst} (78%)
+ create mode 100644 Documentation/leds/leds-lp5521.rst
+ delete mode 100644 Documentation/leds/leds-lp5521.txt
+ create mode 100644 Documentation/leds/leds-lp5523.rst
+ delete mode 100644 Documentation/leds/leds-lp5523.txt
+ create mode 100644 Documentation/leds/leds-lp5562.rst
+ delete mode 100644 Documentation/leds/leds-lp5562.txt
+ create mode 100644 Documentation/leds/leds-lp55xx.rst
+ delete mode 100644 Documentation/leds/leds-lp55xx.txt
+ create mode 100644 Documentation/leds/leds-mlxcpld.rst
+ delete mode 100644 Documentation/leds/leds-mlxcpld.txt
+ rename Documentation/leds/{ledtrig-oneshot.txt => ledtrig-oneshot.rst} (90%)
+ rename Documentation/leds/{ledtrig-transient.txt => ledtrig-transient.rst} (81%)
+ rename Documentation/leds/{ledtrig-usbport.txt => ledtrig-usbport.rst} (86%)
+ rename Documentation/leds/{uleds.txt => uleds.rst} (95%)
 
- include/datatype.h        |  7 +++++--
- include/expression.h      |  2 +-
- src/ct.c                  |  6 +++---
- src/datatype.c            | 45 +++++++++++++++++++++++++++++++++++----------
- src/evaluate.c            | 37 +++++++++++++++++++------------------
- src/expression.c          | 13 +++++++------
- src/exthdr.c              |  4 ++--
- src/netlink.c             |  7 ++++---
- src/netlink_delinearize.c | 20 ++++++++++----------
- src/parser_bison.y        |  6 +++---
- src/parser_json.c         |  3 +--
- src/rt.c                  |  4 ++--
- src/rule.c                |  2 +-
- src/tcpopt.c              |  4 ++--
- 14 files changed, 95 insertions(+), 65 deletions(-)
-
-diff --git a/include/datatype.h b/include/datatype.h
-index 14ece282902c..23f45ab7d6eb 100644
---- a/include/datatype.h
-+++ b/include/datatype.h
-@@ -117,12 +117,10 @@ struct expr;
-  *
-  * @DTYPE_F_ALLOC:		datatype is dynamically allocated
-  * @DTYPE_F_PREFIX:		preferred representation for ranges is a prefix
-- * @DTYPE_F_CLONE:		this is an instance from original datatype
-  */
- enum datatype_flags {
- 	DTYPE_F_ALLOC		= (1 << 0),
- 	DTYPE_F_PREFIX		= (1 << 1),
--	DTYPE_F_CLONE		= (1 << 2),
- };
+diff --git a/Documentation/laptops/thinkpad-acpi.txt b/Documentation/laptops/thinkpad-acpi.txt
+index 6cced88de6da..75ef063622d2 100644
+--- a/Documentation/laptops/thinkpad-acpi.txt
++++ b/Documentation/laptops/thinkpad-acpi.txt
+@@ -679,7 +679,7 @@ status as "unknown". The available commands are:
+ sysfs notes:
  
- /**
-@@ -140,6 +138,7 @@ enum datatype_flags {
-  * @print:	function to print a constant of this type
-  * @parse:	function to parse a symbol and return an expression
-  * @sym_tbl:	symbol table for this type
-+ * @refcnt:	reference counter (only for DTYPE_F_ALLOC)
-  */
- struct datatype {
- 	uint32_t			type;
-@@ -158,10 +157,14 @@ struct datatype {
- 	struct error_record		*(*parse)(const struct expr *sym,
- 						  struct expr **res);
- 	const struct symbol_table	*sym_tbl;
-+	unsigned int			refcnt;
- };
+ The ThinkLight sysfs interface is documented by the LED class
+-documentation, in Documentation/leds/leds-class.txt.  The ThinkLight LED name
++documentation, in Documentation/leds/leds-class.rst.  The ThinkLight LED name
+ is "tpacpi::thinklight".
  
- extern const struct datatype *datatype_lookup(enum datatypes type);
- extern const struct datatype *datatype_lookup_byname(const char *name);
-+extern struct datatype *datatype_get(const struct datatype *dtype);
-+extern void datatype_set(struct expr *expr, const struct datatype *dtype);
-+extern void datatype_free(const struct datatype *dtype);
+ Due to limitations in the sysfs LED class, if the status of the ThinkLight
+@@ -779,7 +779,7 @@ All of the above can be turned on and off and can be made to blink.
+ sysfs notes:
  
- extern struct error_record *symbol_parse(const struct expr *sym,
- 					 struct expr **res);
-diff --git a/include/expression.h b/include/expression.h
-index ef4125549214..4de53682754b 100644
---- a/include/expression.h
-+++ b/include/expression.h
-@@ -415,7 +415,7 @@ static inline void symbol_expr_set_type(struct expr *expr,
- 					const struct datatype *dtype)
- {
- 	if (expr->etype == EXPR_SYMBOL)
--		expr->dtype = dtype;
-+		datatype_set(expr, dtype);
- }
+ The ThinkPad LED sysfs interface is described in detail by the LED class
+-documentation, in Documentation/leds/leds-class.txt.
++documentation, in Documentation/leds/leds-class.rst.
  
- struct expr *variable_expr_alloc(const struct location *loc,
-diff --git a/src/ct.c b/src/ct.c
-index 2256ce322291..72346cd54338 100644
---- a/src/ct.c
-+++ b/src/ct.c
-@@ -413,10 +413,10 @@ void ct_expr_update_type(struct proto_ctx *ctx, struct expr *expr)
- 	case NFT_CT_SRC:
- 	case NFT_CT_DST:
- 		if (desc == &proto_ip) {
--			expr->dtype = &ipaddr_type;
-+			datatype_set(expr, &ipaddr_type);
- 			expr->ct.nfproto = NFPROTO_IPV4;
- 		} else if (desc == &proto_ip6) {
--			expr->dtype = &ip6addr_type;
-+			datatype_set(expr, &ip6addr_type);
- 			expr->ct.nfproto = NFPROTO_IPV6;
- 		}
- 
-@@ -426,7 +426,7 @@ void ct_expr_update_type(struct proto_ctx *ctx, struct expr *expr)
- 	case NFT_CT_PROTO_DST:
- 		if (desc == NULL)
- 			break;
--		expr->dtype = &inet_service_type;
-+		datatype_set(expr, &inet_service_type);
- 		break;
- 	default:
- 		break;
-diff --git a/src/datatype.c b/src/datatype.c
-index 1d5ed6f798de..c04fc0c6badf 100644
---- a/src/datatype.c
-+++ b/src/datatype.c
-@@ -1076,6 +1076,25 @@ static struct datatype *dtype_alloc(void)
- 	return dtype;
- }
- 
-+struct datatype *datatype_get(const struct datatype *ptr)
-+{
-+	struct datatype *dtype = (struct datatype *)ptr;
+ The LEDs are named (in LED ID order, from 0 to 12):
+ "tpacpi::power", "tpacpi:orange:batt", "tpacpi:green:batt",
+diff --git a/Documentation/leds/index.rst b/Documentation/leds/index.rst
+new file mode 100644
+index 000000000000..9885f7c1b75d
+--- /dev/null
++++ b/Documentation/leds/index.rst
+@@ -0,0 +1,25 @@
++:orphan:
 +
-+	if (!dtype)
-+		return NULL;
-+	if (!(dtype->flags & DTYPE_F_ALLOC))
-+		return dtype;
++====
++LEDs
++====
 +
-+	dtype->refcnt++;
-+	return dtype;
-+}
++.. toctree::
++   :maxdepth: 1
 +
-+void datatype_set(struct expr *expr, const struct datatype *dtype)
-+{
-+	datatype_free(expr->dtype);
-+	expr->dtype = datatype_get(dtype);
-+}
++   leds-class
++   leds-class-flash
++   ledtrig-oneshot
++   ledtrig-transient
++   ledtrig-usbport
 +
- static struct datatype *dtype_clone(const struct datatype *orig_dtype)
- {
- 	struct datatype *dtype;
-@@ -1084,18 +1103,25 @@ static struct datatype *dtype_clone(const struct datatype *orig_dtype)
- 	*dtype = *orig_dtype;
- 	dtype->name = xstrdup(orig_dtype->name);
- 	dtype->desc = xstrdup(orig_dtype->desc);
--	dtype->flags = DTYPE_F_ALLOC | DTYPE_F_CLONE;
-+	dtype->flags = DTYPE_F_ALLOC;
- 
- 	return dtype;
- }
- 
--static void dtype_free(const struct datatype *dtype)
-+void datatype_free(const struct datatype *ptr)
- {
--	if (dtype->flags & DTYPE_F_ALLOC) {
--		xfree(dtype->name);
--		xfree(dtype->desc);
--		xfree(dtype);
--	}
-+	struct datatype *dtype = (struct datatype *)ptr;
++   uleds
 +
-+	if (!dtype)
-+		return;
-+	if (!(dtype->flags & DTYPE_F_ALLOC))
-+		return;
-+	if (--dtype->refcnt > 0)
-+		return;
++   leds-blinkm
++   leds-lm3556
++   leds-lp3944
++   leds-lp5521
++   leds-lp5523
++   leds-lp5562
++   leds-lp55xx
++   leds-mlxcpld
+diff --git a/Documentation/leds/leds-blinkm.txt b/Documentation/leds/leds-blinkm.rst
+similarity index 57%
+rename from Documentation/leds/leds-blinkm.txt
+rename to Documentation/leds/leds-blinkm.rst
+index 9dd92f4cf4e1..c74b5bc877b1 100644
+--- a/Documentation/leds/leds-blinkm.txt
++++ b/Documentation/leds/leds-blinkm.rst
+@@ -1,3 +1,7 @@
++==================
++Leds BlinkM driver
++==================
 +
-+	xfree(dtype->name);
-+	xfree(dtype->desc);
-+	xfree(dtype);
- }
+ The leds-blinkm driver supports the devices of the BlinkM family.
  
- const struct datatype *concat_type_alloc(uint32_t type)
-@@ -1137,7 +1163,7 @@ const struct datatype *concat_type_alloc(uint32_t type)
+ They are RGB-LED modules driven by a (AT)tiny microcontroller and
+@@ -14,35 +18,36 @@ The interface this driver provides is 2-fold:
+ a) LED class interface for use with triggers
+ ############################################
  
- void concat_type_destroy(const struct datatype *dtype)
- {
--	dtype_free(dtype);
-+	datatype_free(dtype);
- }
+-The registration follows the scheme:
+-blinkm-<i2c-bus-nr>-<i2c-device-nr>-<color>
++The registration follows the scheme::
  
- const struct datatype *set_datatype_alloc(const struct datatype *orig_dtype,
-@@ -1157,8 +1183,7 @@ const struct datatype *set_datatype_alloc(const struct datatype *orig_dtype,
+-$ ls -h /sys/class/leds/blinkm-6-*
+-/sys/class/leds/blinkm-6-9-blue:
+-brightness  device  max_brightness  power  subsystem  trigger  uevent
++  blinkm-<i2c-bus-nr>-<i2c-device-nr>-<color>
  
- void set_datatype_destroy(const struct datatype *dtype)
- {
--	if (dtype && dtype->flags & DTYPE_F_CLONE)
--		dtype_free(dtype);
-+	datatype_free(dtype);
- }
+-/sys/class/leds/blinkm-6-9-green:
+-brightness  device  max_brightness  power  subsystem  trigger  uevent
++  $ ls -h /sys/class/leds/blinkm-6-*
++  /sys/class/leds/blinkm-6-9-blue:
++  brightness  device  max_brightness  power  subsystem  trigger  uevent
  
- static struct error_record *time_unit_parse(const struct location *loc,
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 39101b486b2f..4a06c7e8f673 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -70,7 +70,7 @@ static void key_fix_dtype_byteorder(struct expr *key)
- 	if (dtype->byteorder == key->byteorder)
- 		return;
- 
--	key->dtype = set_datatype_alloc(dtype, key->byteorder);
-+	datatype_set(key, set_datatype_alloc(dtype, key->byteorder));
- 	if (dtype->flags & DTYPE_F_ALLOC)
- 		concat_type_destroy(dtype);
- }
-@@ -229,7 +229,7 @@ static int expr_evaluate_symbol(struct eval_ctx *ctx, struct expr **expr)
- 
- 	switch ((*expr)->symtype) {
- 	case SYMBOL_VALUE:
--		(*expr)->dtype = ctx->ectx.dtype;
-+		datatype_set(*expr, ctx->ectx.dtype);
- 		erec = symbol_parse(*expr, &new);
- 		if (erec != NULL) {
- 			erec_queue(erec, ctx->msgs);
-@@ -312,7 +312,7 @@ static int expr_evaluate_string(struct eval_ctx *ctx, struct expr **exprp)
- 
- 	prefix = prefix_expr_alloc(&expr->location, value,
- 				   datalen * BITS_PER_BYTE);
--	prefix->dtype = ctx->ectx.dtype;
-+	datatype_set(prefix, ctx->ectx.dtype);
- 	prefix->flags |= EXPR_F_CONSTANT;
- 	prefix->byteorder = BYTEORDER_HOST_ENDIAN;
- 
-@@ -489,7 +489,7 @@ static int __expr_evaluate_exthdr(struct eval_ctx *ctx, struct expr **exprp)
- 	struct expr *expr = *exprp;
- 
- 	if (expr->exthdr.flags & NFT_EXTHDR_F_PRESENT)
--		expr->dtype = &boolean_type;
-+		datatype_set(expr, &boolean_type);
- 
- 	if (expr_evaluate_primary(ctx, exprp) < 0)
- 		return -1;
-@@ -915,7 +915,7 @@ static int expr_evaluate_range(struct eval_ctx *ctx, struct expr **expr)
- 		return expr_error(ctx->msgs, range,
- 				  "Range has zero or negative size");
- 
--	range->dtype = left->dtype;
-+	datatype_set(range, left->dtype);
- 	range->flags |= EXPR_F_CONSTANT;
- 	return 0;
- }
-@@ -1172,7 +1172,7 @@ static int expr_evaluate_concat(struct eval_ctx *ctx, struct expr **expr,
- 	}
- 
- 	(*expr)->flags |= flags;
--	(*expr)->dtype = concat_type_alloc(ntype);
-+	datatype_set(*expr, concat_type_alloc(ntype));
- 	(*expr)->len   = (*expr)->dtype->size;
- 
- 	if (off > 0)
-@@ -1239,7 +1239,7 @@ static int expr_evaluate_set_elem(struct eval_ctx *ctx, struct expr **expr)
- 		}
- 	}
- 
--	elem->dtype = elem->key->dtype;
-+	datatype_set(elem, elem->key->dtype);
- 	elem->len   = elem->key->len;
- 	elem->flags = elem->key->flags;
- 	return 0;
-@@ -1285,7 +1285,7 @@ static int expr_evaluate_set(struct eval_ctx *ctx, struct expr **expr)
- 
- 	set->set_flags |= NFT_SET_CONSTANT;
- 
--	set->dtype = ctx->ectx.dtype;
-+	datatype_set(set, ctx->ectx.dtype);
- 	set->len   = ctx->ectx.len;
- 	set->flags |= EXPR_F_CONSTANT;
- 	return 0;
-@@ -1311,15 +1311,16 @@ static int expr_evaluate_map(struct eval_ctx *ctx, struct expr **expr)
- 	switch (map->mappings->etype) {
- 	case EXPR_SET:
- 		key = constant_expr_alloc(&map->location,
--				 ctx->ectx.dtype,
--				 ctx->ectx.byteorder,
--				 ctx->ectx.len, NULL);
-+					  ctx->ectx.dtype,
-+					  ctx->ectx.byteorder,
-+					  ctx->ectx.len, NULL);
- 
- 		mappings = implicit_set_declaration(ctx, "__map%d",
- 						    key,
- 						    mappings);
--		mappings->set->datatype = set_datatype_alloc(ectx.dtype,
--							     ectx.byteorder);
-+		mappings->set->datatype =
-+			datatype_get(set_datatype_alloc(ectx.dtype,
-+							ectx.byteorder));
- 		mappings->set->datalen  = ectx.len;
- 
- 		map->mappings = mappings;
-@@ -1356,7 +1357,7 @@ static int expr_evaluate_map(struct eval_ctx *ctx, struct expr **expr)
- 					 map->mappings->set->key->dtype->desc,
- 					 map->map->dtype->desc);
- 
--	map->dtype = map->mappings->set->datatype;
-+	datatype_set(map, map->mappings->set->datatype);
- 	map->flags |= EXPR_F_CONSTANT;
- 
- 	/* Data for range lookups needs to be in big endian order */
-@@ -1413,7 +1414,7 @@ static void expr_dtype_integer_compatible(struct eval_ctx *ctx,
- 	if (ctx->ectx.dtype &&
- 	    ctx->ectx.dtype->basetype == &integer_type &&
- 	    ctx->ectx.len == 4 * BITS_PER_BYTE) {
--		expr->dtype = ctx->ectx.dtype;
-+		datatype_set(expr, ctx->ectx.dtype);
- 		expr->len   = ctx->ectx.len;
- 	}
- }
-@@ -1554,7 +1555,7 @@ static void binop_transfer_handle_lhs(struct expr **expr)
- 	case OP_LSHIFT:
- 	case OP_XOR:
- 		tmp = expr_get(left->left);
--		tmp->dtype = left->dtype;
-+		datatype_set(tmp, left->dtype);
- 		expr_free(left);
- 		*expr = tmp;
- 		break;
-@@ -1745,7 +1746,7 @@ static int expr_evaluate_fib(struct eval_ctx *ctx, struct expr **exprp)
- 
- 	if (expr->flags & EXPR_F_BOOLEAN) {
- 		expr->fib.flags |= NFTA_FIB_F_PRESENT;
--		expr->dtype = &boolean_type;
-+		datatype_set(expr, &boolean_type);
- 	}
- 	return expr_evaluate_primary(ctx, exprp);
- }
-@@ -2965,7 +2966,7 @@ static int stmt_evaluate_objref_map(struct eval_ctx *ctx, struct stmt *stmt)
- 					 map->mappings->set->key->dtype->desc,
- 					 map->map->dtype->desc);
- 
--	map->dtype = map->mappings->set->datatype;
-+	datatype_set(map, map->mappings->set->datatype);
- 	map->flags |= EXPR_F_CONSTANT;
- 
- 	/* Data for range lookups needs to be in big endian order */
-diff --git a/src/expression.c b/src/expression.c
-index ef694f2a194d..5d0b4f82cae4 100644
---- a/src/expression.c
-+++ b/src/expression.c
-@@ -44,7 +44,7 @@ struct expr *expr_alloc(const struct location *loc, enum expr_types etype,
- 
- 	expr = xzalloc(sizeof(*expr));
- 	expr->location  = *loc;
--	expr->dtype	= dtype;
-+	expr->dtype	= datatype_get(dtype);
- 	expr->etype	= etype;
- 	expr->byteorder	= byteorder;
- 	expr->len	= len;
-@@ -57,8 +57,8 @@ struct expr *expr_clone(const struct expr *expr)
- {
- 	struct expr *new;
- 
--	new = expr_alloc(&expr->location, expr->etype, expr->dtype,
--			 expr->byteorder, expr->len);
-+	new = expr_alloc(&expr->location, expr->etype,
-+			 expr->dtype, expr->byteorder, expr->len);
- 	new->flags = expr->flags;
- 	new->op    = expr->op;
- 	expr_ops(expr)->clone(new, expr);
-@@ -86,6 +86,8 @@ void expr_free(struct expr *expr)
- 	if (--expr->refcnt > 0)
- 		return;
- 
-+	datatype_free(expr->dtype);
+-/sys/class/leds/blinkm-6-9-red:
+-brightness  device  max_brightness  power  subsystem  trigger  uevent
++  /sys/class/leds/blinkm-6-9-green:
++  brightness  device  max_brightness  power  subsystem  trigger  uevent
 +
- 	/* EXPR_INVALID expressions lack ->ops structure.
- 	 * This happens for compound types.
- 	 */
-@@ -165,7 +167,7 @@ void expr_set_type(struct expr *expr, const struct datatype *dtype,
- 	if (ops->set_type)
- 		ops->set_type(expr, dtype, byteorder);
- 	else {
--		expr->dtype	= dtype;
-+		datatype_set(expr, dtype);
- 		expr->byteorder	= byteorder;
- 	}
- }
-@@ -803,7 +805,6 @@ void compound_expr_remove(struct expr *compound, struct expr *expr)
++  /sys/class/leds/blinkm-6-9-red:
++  brightness  device  max_brightness  power  subsystem  trigger  uevent
  
- static void concat_expr_destroy(struct expr *expr)
- {
--	concat_type_destroy(expr->dtype);
- 	compound_expr_destroy(expr);
- }
+ (same is /sys/bus/i2c/devices/6-0009/leds)
  
-@@ -936,7 +937,7 @@ struct expr *set_expr_alloc(const struct location *loc, const struct set *set)
- 		return set_expr;
+ We can control the colors separated into red, green and blue and
+ assign triggers on each color.
  
- 	set_expr->set_flags = set->flags;
--	set_expr->dtype = set->key->dtype;
-+	datatype_set(set_expr, set->key->dtype);
+-E.g.:
++E.g.::
  
- 	return set_expr;
- }
-diff --git a/src/exthdr.c b/src/exthdr.c
-index 0cd031980073..c9c2bf503508 100644
---- a/src/exthdr.c
-+++ b/src/exthdr.c
-@@ -206,9 +206,9 @@ void exthdr_init_raw(struct expr *expr, uint8_t type,
-  out:
- 	expr->exthdr.tmpl = tmpl;
- 	if (flags & NFT_EXTHDR_F_PRESENT)
--		expr->dtype = &boolean_type;
-+		datatype_set(expr, &boolean_type);
- 	else
--		expr->dtype = tmpl->dtype;
-+		datatype_set(expr, tmpl->dtype);
- }
+-$ cat blinkm-6-9-blue/brightness
+-05
++  $ cat blinkm-6-9-blue/brightness
++  05
  
- static unsigned int mask_length(const struct expr *mask)
-diff --git a/src/netlink.c b/src/netlink.c
-index 7a4312498ce8..a6d81b4f6424 100644
---- a/src/netlink.c
-+++ b/src/netlink.c
-@@ -617,7 +617,8 @@ struct set *netlink_delinearize_set(struct netlink_ctx *ctx,
- 	set->objtype = objtype;
+-$ echo 200 > blinkm-6-9-blue/brightness
+-$
++  $ echo 200 > blinkm-6-9-blue/brightness
++  $
  
- 	if (datatype)
--		set->datatype = set_datatype_alloc(datatype, databyteorder);
-+		set->datatype = datatype_get(set_datatype_alloc(datatype,
-+								databyteorder));
- 	else
- 		set->datatype = NULL;
+-$ modprobe ledtrig-heartbeat
+-$ echo heartbeat > blinkm-6-9-green/trigger
+-$
++  $ modprobe ledtrig-heartbeat
++  $ echo heartbeat > blinkm-6-9-green/trigger
++  $
  
-@@ -767,7 +768,7 @@ int netlink_delinearize_setelem(struct nftnl_set_elem *nlse,
- 		flags = nftnl_set_elem_get_u32(nlse, NFTNL_SET_ELEM_FLAGS);
  
- 	key = netlink_alloc_value(&netlink_location, &nld);
--	key->dtype	= set->key->dtype;
-+	datatype_set(key, set->key->dtype);
- 	key->byteorder	= set->key->byteorder;
- 	if (set->key->dtype->subtypes)
- 		key = netlink_parse_concat_elem(set->key->dtype, key);
-@@ -811,7 +812,7 @@ int netlink_delinearize_setelem(struct nftnl_set_elem *nlse,
- 		data = netlink_alloc_data(&netlink_location, &nld,
- 					  set->datatype->type == TYPE_VERDICT ?
- 					  NFT_REG_VERDICT : NFT_REG_1);
--		data->dtype = set->datatype;
-+		datatype_set(data, set->datatype);
- 		data->byteorder = set->datatype->byteorder;
- 		if (data->byteorder == BYTEORDER_HOST_ENDIAN)
- 			mpz_switch_byteorder(data->value, data->len / BITS_PER_BYTE);
-diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
-index 0270e1fd7067..6576687ce627 100644
---- a/src/netlink_delinearize.c
-+++ b/src/netlink_delinearize.c
-@@ -1389,7 +1389,7 @@ static void netlink_parse_objref(struct netlink_parse_ctx *ctx,
- 		nld.value = nftnl_expr_get(nle, NFTNL_EXPR_OBJREF_IMM_NAME,
- 					   &nld.len);
- 		expr = netlink_alloc_value(&netlink_location, &nld);
--		expr->dtype = &string_type;
-+		datatype_set(expr, &string_type);
- 		expr->byteorder = BYTEORDER_HOST_ENDIAN;
- 	} else if (nftnl_expr_is_set(nle, NFTNL_EXPR_OBJREF_SET_SREG)) {
- 		struct expr *left, *right;
-@@ -2064,7 +2064,7 @@ static void expr_postprocess(struct rule_pp_ctx *ctx, struct expr **exprp)
+ b) Sysfs group to control rgb, fade, hsb, scripts ...
+@@ -52,29 +57,28 @@ This extended interface is available as folder blinkm
+ in the sysfs folder of the I2C device.
+ E.g. below /sys/bus/i2c/devices/6-0009/blinkm
  
- 			ntype = concat_subtype_add(ntype, i->dtype->type);
- 		}
--		expr->dtype = concat_type_alloc(ntype);
-+		datatype_set(expr, concat_type_alloc(ntype));
- 		break;
- 	}
- 	case EXPR_UNARY:
-@@ -2165,7 +2165,7 @@ static void stmt_reject_postprocess(struct rule_pp_ctx *rctx)
- 	switch (rctx->pctx.family) {
- 	case NFPROTO_IPV4:
- 		stmt->reject.family = rctx->pctx.family;
--		stmt->reject.expr->dtype = &icmp_code_type;
-+		datatype_set(stmt->reject.expr, &icmp_code_type);
- 		if (stmt->reject.type == NFT_REJECT_TCP_RST &&
- 		    payload_dependency_exists(&rctx->pdctx,
- 					      PROTO_BASE_TRANSPORT_HDR))
-@@ -2173,7 +2173,7 @@ static void stmt_reject_postprocess(struct rule_pp_ctx *rctx)
- 		break;
- 	case NFPROTO_IPV6:
- 		stmt->reject.family = rctx->pctx.family;
--		stmt->reject.expr->dtype = &icmpv6_code_type;
-+		datatype_set(stmt->reject.expr, &icmpv6_code_type);
- 		if (stmt->reject.type == NFT_REJECT_TCP_RST &&
- 		    payload_dependency_exists(&rctx->pdctx,
- 					      PROTO_BASE_TRANSPORT_HDR))
-@@ -2181,7 +2181,7 @@ static void stmt_reject_postprocess(struct rule_pp_ctx *rctx)
- 		break;
- 	case NFPROTO_INET:
- 		if (stmt->reject.type == NFT_REJECT_ICMPX_UNREACH) {
--			stmt->reject.expr->dtype = &icmpx_code_type;
-+			datatype_set(stmt->reject.expr, &icmpx_code_type);
- 			break;
- 		}
- 		base = rctx->pctx.protocol[PROTO_BASE_LL_HDR].desc;
-@@ -2189,17 +2189,17 @@ static void stmt_reject_postprocess(struct rule_pp_ctx *rctx)
- 		protocol = proto_find_num(base, desc);
- 		switch (protocol) {
- 		case NFPROTO_IPV4:
--			stmt->reject.expr->dtype = &icmp_code_type;
-+			datatype_set(stmt->reject.expr, &icmp_code_type);
- 			break;
- 		case NFPROTO_IPV6:
--			stmt->reject.expr->dtype = &icmpv6_code_type;
-+			datatype_set(stmt->reject.expr, &icmpv6_code_type);
- 			break;
- 		}
- 		stmt->reject.family = protocol;
- 		break;
- 	case NFPROTO_BRIDGE:
- 		if (stmt->reject.type == NFT_REJECT_ICMPX_UNREACH) {
--			stmt->reject.expr->dtype = &icmpx_code_type;
-+			datatype_set(stmt->reject.expr, &icmpx_code_type);
- 			break;
- 		}
- 		base = rctx->pctx.protocol[PROTO_BASE_LL_HDR].desc;
-@@ -2208,11 +2208,11 @@ static void stmt_reject_postprocess(struct rule_pp_ctx *rctx)
- 		switch (protocol) {
- 		case __constant_htons(ETH_P_IP):
- 			stmt->reject.family = NFPROTO_IPV4;
--			stmt->reject.expr->dtype = &icmp_code_type;
-+			datatype_set(stmt->reject.expr, &icmp_code_type);
- 			break;
- 		case __constant_htons(ETH_P_IPV6):
- 			stmt->reject.family = NFPROTO_IPV6;
--			stmt->reject.expr->dtype = &icmpv6_code_type;
-+			datatype_set(stmt->reject.expr, &icmpv6_code_type);
- 			break;
- 		default:
- 			break;
-diff --git a/src/parser_bison.y b/src/parser_bison.y
-index 97a48f38af0c..1c0b60cf40fd 100644
---- a/src/parser_bison.y
-+++ b/src/parser_bison.y
-@@ -2598,7 +2598,7 @@ reject_opts		:       /* empty */
- 					symbol_expr_alloc(&@$, SYMBOL_VALUE,
- 							  current_scope(state),
- 							  $4);
--				$<stmt>0->reject.expr->dtype = &icmp_code_type;
-+				datatype_set($<stmt>0->reject.expr, &icmp_code_type);
- 				xfree($4);
- 			}
- 			|	WITH	ICMP6	TYPE	STRING
-@@ -2609,7 +2609,7 @@ reject_opts		:       /* empty */
- 					symbol_expr_alloc(&@$, SYMBOL_VALUE,
- 							  current_scope(state),
- 							  $4);
--				$<stmt>0->reject.expr->dtype = &icmpv6_code_type;
-+				datatype_set($<stmt>0->reject.expr, &icmpv6_code_type);
- 				xfree($4);
- 			}
- 			|	WITH	ICMPX	TYPE	STRING
-@@ -2619,7 +2619,7 @@ reject_opts		:       /* empty */
- 					symbol_expr_alloc(&@$, SYMBOL_VALUE,
- 							  current_scope(state),
- 							  $4);
--				$<stmt>0->reject.expr->dtype = &icmpx_code_type;
-+				datatype_set($<stmt>0->reject.expr, &icmpx_code_type);
- 				xfree($4);
- 			}
- 			|	WITH	TCP	RESET
-diff --git a/src/parser_json.c b/src/parser_json.c
-index ac110f16fe81..af7701fcc240 100644
---- a/src/parser_json.c
-+++ b/src/parser_json.c
-@@ -1966,8 +1966,7 @@ static struct stmt *json_parse_reject_stmt(struct json_ctx *ctx,
- 			stmt_free(stmt);
- 			return NULL;
- 		}
--		if (dtype)
--			stmt->reject.expr->dtype = dtype;
-+		datatype_set(stmt->reject.expr, dtype);
- 	}
- 	return stmt;
- }
-diff --git a/src/rt.c b/src/rt.c
-index 090831fe42a9..3ad77bcdda4d 100644
---- a/src/rt.c
-+++ b/src/rt.c
-@@ -148,10 +148,10 @@ void rt_expr_update_type(struct proto_ctx *ctx, struct expr *expr)
- 	case NFT_RT_NEXTHOP4:
- 		desc = ctx->protocol[PROTO_BASE_NETWORK_HDR].desc;
- 		if (desc == &proto_ip)
--			expr->dtype = &ipaddr_type;
-+			datatype_set(expr, &ipaddr_type);
- 		else if (desc == &proto_ip6) {
- 			expr->rt.key++;
--			expr->dtype = &ip6addr_type;
-+			datatype_set(expr, &ip6addr_type);
- 		}
- 		expr->len = expr->dtype->size;
- 		break;
-diff --git a/src/rule.c b/src/rule.c
-index ad549b1eee8a..7eb89a00b85b 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -341,7 +341,7 @@ struct set *set_clone(const struct set *set)
- 	new_set->gc_int		= set->gc_int;
- 	new_set->timeout	= set->timeout;
- 	new_set->key		= expr_clone(set->key);
--	new_set->datatype	= set->datatype;
-+	new_set->datatype	= datatype_get(set->datatype);
- 	new_set->datalen	= set->datalen;
- 	new_set->objtype	= set->objtype;
- 	new_set->policy		= set->policy;
-diff --git a/src/tcpopt.c b/src/tcpopt.c
-index 6920ff945590..ec305d9466d5 100644
---- a/src/tcpopt.c
-+++ b/src/tcpopt.c
-@@ -218,9 +218,9 @@ void tcpopt_init_raw(struct expr *expr, uint8_t type, unsigned int offset,
- 			continue;
+-$ ls -h /sys/bus/i2c/devices/6-0009/blinkm/
+-blue  green  red  test
++  $ ls -h /sys/bus/i2c/devices/6-0009/blinkm/
++  blue  green  red  test
  
- 		if (flags & NFT_EXTHDR_F_PRESENT)
--			expr->dtype = &boolean_type;
-+			datatype_set(expr, &boolean_type);
- 		else
--			expr->dtype = tmpl->dtype;
-+			datatype_set(expr, tmpl->dtype);
- 		expr->exthdr.tmpl = tmpl;
- 		expr->exthdr.op   = NFT_EXTHDR_OP_TCPOPT;
- 		break;
+ Currently supported is just setting red, green, blue
+ and a test sequence.
+ 
+-E.g.:
++E.g.::
+ 
+-$ cat *
+-00
+-00
+-00
+-#Write into test to start test sequence!#
++  $ cat *
++  00
++  00
++  00
++  #Write into test to start test sequence!#
+ 
+-$ echo 1 > test
+-$
++  $ echo 1 > test
++  $
+ 
+-$ echo 255 > red
+-$
++  $ echo 255 > red
++  $
+ 
+ 
+ 
+ as of 6/2012
+ 
+ dl9pf <at> gmx <dot> de
+-
+diff --git a/Documentation/leds/leds-class-flash.txt b/Documentation/leds/leds-class-flash.rst
+similarity index 74%
+rename from Documentation/leds/leds-class-flash.txt
+rename to Documentation/leds/leds-class-flash.rst
+index 8da3c6f4b60b..6ec12c5a1a0e 100644
+--- a/Documentation/leds/leds-class-flash.txt
++++ b/Documentation/leds/leds-class-flash.rst
+@@ -1,9 +1,9 @@
+-
++==============================
+ Flash LED handling under Linux
+ ==============================
+ 
+ Some LED devices provide two modes - torch and flash. In the LED subsystem
+-those modes are supported by LED class (see Documentation/leds/leds-class.txt)
++those modes are supported by LED class (see Documentation/leds/leds-class.rst)
+ and LED Flash class respectively. The torch mode related features are enabled
+ by default and the flash ones only if a driver declares it by setting
+ LED_DEV_CAP_FLASH flag.
+@@ -14,6 +14,7 @@ registered in the LED subsystem with led_classdev_flash_register function.
+ 
+ Following sysfs attributes are exposed for controlling flash LED devices:
+ (see Documentation/ABI/testing/sysfs-class-led-flash)
++
+ 	- flash_brightness
+ 	- max_flash_brightness
+ 	- flash_timeout
+@@ -31,30 +32,46 @@ be defined in the kernel config.
+ 
+ The driver must call the v4l2_flash_init function to get registered in the
+ V4L2 subsystem. The function takes six arguments:
+-- dev       : flash device, e.g. an I2C device
+-- of_node   : of_node of the LED, may be NULL if the same as device's
+-- fled_cdev : LED flash class device to wrap
+-- iled_cdev : LED flash class device representing indicator LED associated with
+-	      fled_cdev, may be NULL
+-- ops : V4L2 specific ops
+-	* external_strobe_set - defines the source of the flash LED strobe -
++
++- dev:
++	flash device, e.g. an I2C device
++- of_node:
++	of_node of the LED, may be NULL if the same as device's
++- fled_cdev:
++	LED flash class device to wrap
++- iled_cdev:
++	LED flash class device representing indicator LED associated with
++	fled_cdev, may be NULL
++- ops:
++	V4L2 specific ops
++
++	* external_strobe_set
++		defines the source of the flash LED strobe -
+ 		V4L2_CID_FLASH_STROBE control or external source, typically
+ 		a sensor, which makes it possible to synchronise the flash
+ 		strobe start with exposure start,
+-	* intensity_to_led_brightness and led_brightness_to_intensity - perform
++	* intensity_to_led_brightness and led_brightness_to_intensity
++		perform
+ 		enum led_brightness <-> V4L2 intensity conversion in a device
+ 		specific manner - they can be used for devices with non-linear
+ 		LED current scale.
+-- config : configuration for V4L2 Flash sub-device
+-	* dev_name - the name of the media entity, unique in the system,
+-	* flash_faults - bitmask of flash faults that the LED flash class
++- config:
++	configuration for V4L2 Flash sub-device
++
++	* dev_name
++		the name of the media entity, unique in the system,
++	* flash_faults
++		bitmask of flash faults that the LED flash class
+ 		device can report; corresponding LED_FAULT* bit definitions are
+ 		available in <linux/led-class-flash.h>,
+-	* torch_intensity - constraints for the LED in TORCH mode
++	* torch_intensity
++		constraints for the LED in TORCH mode
+ 		in microamperes,
+-	* indicator_intensity - constraints for the indicator LED
++	* indicator_intensity
++		constraints for the indicator LED
+ 		in microamperes,
+-	* has_external_strobe - determines whether the flash strobe source
++	* has_external_strobe
++		determines whether the flash strobe source
+ 		can be switched to external,
+ 
+ On remove the v4l2_flash_release function has to be called, which takes one
+diff --git a/Documentation/leds/leds-class.txt b/Documentation/leds/leds-class.rst
+similarity index 92%
+rename from Documentation/leds/leds-class.txt
+rename to Documentation/leds/leds-class.rst
+index 8b39cc6b03ee..df0120a1ee3c 100644
+--- a/Documentation/leds/leds-class.txt
++++ b/Documentation/leds/leds-class.rst
+@@ -1,4 +1,4 @@
+-
++========================
+ LED handling under Linux
+ ========================
+ 
+@@ -43,7 +43,7 @@ LED Device Naming
+ 
+ Is currently of the form:
+ 
+-"devicename:colour:function"
++	"devicename:colour:function"
+ 
+ There have been calls for LED properties such as colour to be exported as
+ individual led class attributes. As a solution which doesn't incur as much
+@@ -57,9 +57,12 @@ Brightness setting API
+ 
+ LED subsystem core exposes following API for setting brightness:
+ 
+-    - led_set_brightness : it is guaranteed not to sleep, passing LED_OFF stops
++    - led_set_brightness:
++		it is guaranteed not to sleep, passing LED_OFF stops
+ 		blinking,
+-    - led_set_brightness_sync : for use cases when immediate effect is desired -
++
++    - led_set_brightness_sync:
++		for use cases when immediate effect is desired -
+ 		it can block the caller for the time required for accessing
+ 		device registers and can sleep, passing LED_OFF stops hardware
+ 		blinking, returns -EBUSY if software blink fallback is enabled.
+@@ -70,7 +73,7 @@ LED registration API
+ 
+ A driver wanting to register a LED classdev for use by other drivers /
+ userspace needs to allocate and fill a led_classdev struct and then call
+-[devm_]led_classdev_register. If the non devm version is used the driver
++`[devm_]led_classdev_register`. If the non devm version is used the driver
+ must call led_classdev_unregister from its remove function before
+ free-ing the led_classdev struct.
+ 
+@@ -94,7 +97,7 @@ with brightness value LED_OFF, which should stop any software
+ timers that may have been required for blinking.
+ 
+ The blink_set() function should choose a user friendly blinking value
+-if it is called with *delay_on==0 && *delay_off==0 parameters. In this
++if it is called with `*delay_on==0` && `*delay_off==0` parameters. In this
+ case the driver should give back the chosen value through delay_on and
+ delay_off parameters to the leds subsystem.
+ 
+diff --git a/Documentation/leds/leds-lm3556.txt b/Documentation/leds/leds-lm3556.rst
+similarity index 70%
+rename from Documentation/leds/leds-lm3556.txt
+rename to Documentation/leds/leds-lm3556.rst
+index 62278e871b50..1ef17d7d800e 100644
+--- a/Documentation/leds/leds-lm3556.txt
++++ b/Documentation/leds/leds-lm3556.rst
+@@ -1,68 +1,118 @@
++========================
+ Kernel driver for lm3556
+ ========================
+ 
+-*Texas Instrument:
+- 1.5 A Synchronous Boost LED Flash Driver w/ High-Side Current Source
++* Texas Instrument:
++  1.5 A Synchronous Boost LED Flash Driver w/ High-Side Current Source
+ * Datasheet: http://www.national.com/ds/LM/LM3556.pdf
+ 
+ Authors:
+-	Daniel Jeong
++      - Daniel Jeong
++
+ 	Contact:Daniel Jeong(daniel.jeong-at-ti.com, gshark.jeong-at-gmail.com)
+ 
+ Description
+ -----------
+ There are 3 functions in LM3556, Flash, Torch and Indicator.
+ 
+-FLASH MODE
++Flash Mode
++^^^^^^^^^^
++
+ In Flash Mode, the LED current source(LED) provides 16 target current levels
+ from 93.75 mA to 1500 mA.The Flash currents are adjusted via the CURRENT
+ CONTROL REGISTER(0x09).Flash mode is activated by the ENABLE REGISTER(0x0A),
+ or by pulling the STROBE pin HIGH.
++
+ LM3556 Flash can be controlled through sys/class/leds/flash/brightness file
++
+ * if STROBE pin is enabled, below example control brightness only, and
+-ON / OFF will be controlled by STROBE pin.
++  ON / OFF will be controlled by STROBE pin.
+ 
+ Flash Example:
+-OFF     : #echo 0 > sys/class/leds/flash/brightness
+-93.75 mA: #echo 1 > sys/class/leds/flash/brightness
+-... .....
+-1500  mA: #echo 16 > sys/class/leds/flash/brightness
+ 
+-TORCH MODE
++OFF::
++
++	#echo 0 > sys/class/leds/flash/brightness
++
++93.75 mA::
++
++	#echo 1 > sys/class/leds/flash/brightness
++
++...
++
++1500  mA::
++
++	#echo 16 > sys/class/leds/flash/brightness
++
++Torch Mode
++^^^^^^^^^^
++
+ In Torch Mode, the current source(LED) is programmed via the CURRENT CONTROL
+ REGISTER(0x09).Torch Mode is activated by the ENABLE REGISTER(0x0A) or by the
+ hardware TORCH input.
++
+ LM3556 torch can be controlled through sys/class/leds/torch/brightness file.
+ * if TORCH pin is enabled, below example control brightness only,
+ and ON / OFF will be controlled by TORCH pin.
+ 
+ Torch Example:
+-OFF     : #echo 0 > sys/class/leds/torch/brightness
+-46.88 mA: #echo 1 > sys/class/leds/torch/brightness
+-... .....
+-375 mA  : #echo 8 > sys/class/leds/torch/brightness
+ 
+-INDICATOR MODE
++OFF::
++
++	#echo 0 > sys/class/leds/torch/brightness
++
++46.88 mA::
++
++	#echo 1 > sys/class/leds/torch/brightness
++
++...
++
++375 mA::
++
++	#echo 8 > sys/class/leds/torch/brightness
++
++Indicator Mode
++^^^^^^^^^^^^^^
++
+ Indicator pattern can be set through sys/class/leds/indicator/pattern file,
+ and 4 patterns are pre-defined in indicator_pattern array.
++
+ According to N-lank, Pulse time and N Period values, different pattern wiill
+ be generated.If you want new patterns for your own device, change
+ indicator_pattern array with your own values and INDIC_PATTERN_SIZE.
++
+ Please refer datasheet for more detail about N-Blank, Pulse time and N Period.
+ 
+ Indicator pattern example:
+-pattern 0: #echo 0 > sys/class/leds/indicator/pattern
+-....
+-pattern 3: #echo 3 > sys/class/leds/indicator/pattern
++
++pattern 0::
++
++	#echo 0 > sys/class/leds/indicator/pattern
++
++...
++
++pattern 3::
++
++	#echo 3 > sys/class/leds/indicator/pattern
+ 
+ Indicator brightness can be controlled through
+ sys/class/leds/indicator/brightness file.
+ 
+ Example:
+-OFF      : #echo 0 > sys/class/leds/indicator/brightness
+-5.86 mA  : #echo 1 > sys/class/leds/indicator/brightness
+-........
+-46.875mA : #echo 8 > sys/class/leds/indicator/brightness
++
++OFF::
++
++	#echo 0 > sys/class/leds/indicator/brightness
++
++5.86 mA::
++
++	#echo 1 > sys/class/leds/indicator/brightness
++
++...
++
++46.875mA::
++
++	#echo 8 > sys/class/leds/indicator/brightness
+ 
+ Notes
+ -----
+@@ -70,7 +120,8 @@ Driver expects it is registered using the i2c_board_info mechanism.
+ To register the chip at address 0x63 on specific adapter, set the platform data
+ according to include/linux/platform_data/leds-lm3556.h, set the i2c board info
+ 
+-Example:
++Example::
++
+ 	static struct i2c_board_info board_i2c_ch4[] __initdata = {
+ 		{
+ 			 I2C_BOARD_INFO(LM3556_NAME, 0x63),
+@@ -80,6 +131,7 @@ Example:
+ 
+ and register it in the platform init function
+ 
+-Example:
++Example::
++
+ 	board_register_i2c_bus(4, 400,
+ 				board_i2c_ch4, ARRAY_SIZE(board_i2c_ch4));
+diff --git a/Documentation/leds/leds-lp3944.txt b/Documentation/leds/leds-lp3944.rst
+similarity index 78%
+rename from Documentation/leds/leds-lp3944.txt
+rename to Documentation/leds/leds-lp3944.rst
+index e88ac3b60c08..c2f87dc1a3a9 100644
+--- a/Documentation/leds/leds-lp3944.txt
++++ b/Documentation/leds/leds-lp3944.rst
+@@ -1,14 +1,20 @@
++====================
+ Kernel driver lp3944
+ ====================
+ 
+   * National Semiconductor LP3944 Fun-light Chip
++
+     Prefix: 'lp3944'
++
+     Addresses scanned: None (see the Notes section below)
+-    Datasheet: Publicly available at the National Semiconductor website
+-               http://www.national.com/pf/LP/LP3944.html
++
++    Datasheet:
++
++	Publicly available at the National Semiconductor website
++	http://www.national.com/pf/LP/LP3944.html
+ 
+ Authors:
+-        Antonio Ospite <ospite@studenti.unina.it>
++	Antonio Ospite <ospite@studenti.unina.it>
+ 
+ 
+ Description
+@@ -19,8 +25,11 @@ is used as a led controller.
+ 
+ The DIM modes are used to set _blink_ patterns for leds, the pattern is
+ specified supplying two parameters:
+-  - period: from 0s to 1.6s
+-  - duty cycle: percentage of the period the led is on, from 0 to 100
++
++  - period:
++	from 0s to 1.6s
++  - duty cycle:
++	percentage of the period the led is on, from 0 to 100
+ 
+ Setting a led in DIM0 or DIM1 mode makes it blink according to the pattern.
+ See the datasheet for details.
+@@ -35,7 +44,7 @@ The chip is used mainly in embedded contexts, so this driver expects it is
+ registered using the i2c_board_info mechanism.
+ 
+ To register the chip at address 0x60 on adapter 0, set the platform data
+-according to include/linux/leds-lp3944.h, set the i2c board info:
++according to include/linux/leds-lp3944.h, set the i2c board info::
+ 
+ 	static struct i2c_board_info a910_i2c_board_info[] __initdata = {
+ 		{
+@@ -44,7 +53,7 @@ according to include/linux/leds-lp3944.h, set the i2c board info:
+ 		},
+ 	};
+ 
+-and register it in the platform init function
++and register it in the platform init function::
+ 
+ 	i2c_register_board_info(0, a910_i2c_board_info,
+ 			ARRAY_SIZE(a910_i2c_board_info));
+diff --git a/Documentation/leds/leds-lp5521.rst b/Documentation/leds/leds-lp5521.rst
+new file mode 100644
+index 000000000000..0432615b083d
+--- /dev/null
++++ b/Documentation/leds/leds-lp5521.rst
+@@ -0,0 +1,115 @@
++========================
++Kernel driver for lp5521
++========================
++
++* National Semiconductor LP5521 led driver chip
++* Datasheet: http://www.national.com/pf/LP/LP5521.html
++
++Authors: Mathias Nyman, Yuri Zaporozhets, Samu Onkalo
++
++Contact: Samu Onkalo (samu.p.onkalo-at-nokia.com)
++
++Description
++-----------
++
++LP5521 can drive up to 3 channels. Leds can be controlled directly via
++the led class control interface. Channels have generic names:
++lp5521:channelx, where x is 0 .. 2
++
++All three channels can be also controlled using the engine micro programs.
++More details of the instructions can be found from the public data sheet.
++
++LP5521 has the internal program memory for running various LED patterns.
++There are two ways to run LED patterns.
++
++1) Legacy interface - enginex_mode and enginex_load
++   Control interface for the engines:
++
++   x is 1 .. 3
++
++   enginex_mode:
++	disabled, load, run
++   enginex_load:
++	store program (visible only in engine load mode)
++
++  Example (start to blink the channel 2 led)::
++
++	cd   /sys/class/leds/lp5521:channel2/device
++	echo "load" > engine3_mode
++	echo "037f4d0003ff6000" > engine3_load
++	echo "run" > engine3_mode
++
++  To stop the engine::
++
++	echo "disabled" > engine3_mode
++
++2) Firmware interface - LP55xx common interface
++
++For the details, please refer to 'firmware' section in leds-lp55xx.txt
++
++sysfs contains a selftest entry.
++
++The test communicates with the chip and checks that
++the clock mode is automatically set to the requested one.
++
++Each channel has its own led current settings.
++
++- /sys/class/leds/lp5521:channel0/led_current - RW
++- /sys/class/leds/lp5521:channel0/max_current - RO
++
++Format: 10x mA i.e 10 means 1.0 mA
++
++example platform data::
++
++  static struct lp55xx_led_config lp5521_led_config[] = {
++	  {
++		.name = "red",
++		  .chan_nr        = 0,
++		  .led_current    = 50,
++		.max_current    = 130,
++	  }, {
++		.name = "green",
++		  .chan_nr        = 1,
++		  .led_current    = 0,
++		.max_current    = 130,
++	  }, {
++		.name = "blue",
++		  .chan_nr        = 2,
++		  .led_current    = 0,
++		.max_current    = 130,
++	  }
++  };
++
++  static int lp5521_setup(void)
++  {
++	/* setup HW resources */
++  }
++
++  static void lp5521_release(void)
++  {
++	/* Release HW resources */
++  }
++
++  static void lp5521_enable(bool state)
++  {
++	/* Control of chip enable signal */
++  }
++
++  static struct lp55xx_platform_data lp5521_platform_data = {
++	  .led_config     = lp5521_led_config,
++	  .num_channels   = ARRAY_SIZE(lp5521_led_config),
++	  .clock_mode     = LP55XX_CLOCK_EXT,
++	  .setup_resources   = lp5521_setup,
++	  .release_resources = lp5521_release,
++	  .enable            = lp5521_enable,
++  };
++
++Note:
++  chan_nr can have values between 0 and 2.
++  The name of each channel can be configurable.
++  If the name field is not defined, the default name will be set to 'xxxx:channelN'
++  (XXXX : pdata->label or i2c client name, N : channel number)
++
++
++If the current is set to 0 in the platform data, that channel is
++disabled and it is not visible in the sysfs.
+diff --git a/Documentation/leds/leds-lp5521.txt b/Documentation/leds/leds-lp5521.txt
+deleted file mode 100644
+index d08d8c179f85..000000000000
+--- a/Documentation/leds/leds-lp5521.txt
++++ /dev/null
+@@ -1,101 +0,0 @@
+-Kernel driver for lp5521
+-========================
+-
+-* National Semiconductor LP5521 led driver chip
+-* Datasheet: http://www.national.com/pf/LP/LP5521.html
+-
+-Authors: Mathias Nyman, Yuri Zaporozhets, Samu Onkalo
+-Contact: Samu Onkalo (samu.p.onkalo-at-nokia.com)
+-
+-Description
+------------
+-
+-LP5521 can drive up to 3 channels. Leds can be controlled directly via
+-the led class control interface. Channels have generic names:
+-lp5521:channelx, where x is 0 .. 2
+-
+-All three channels can be also controlled using the engine micro programs.
+-More details of the instructions can be found from the public data sheet.
+-
+-LP5521 has the internal program memory for running various LED patterns.
+-There are two ways to run LED patterns.
+-
+-1) Legacy interface - enginex_mode and enginex_load
+-  Control interface for the engines:
+-  x is 1 .. 3
+-  enginex_mode : disabled, load, run
+-  enginex_load : store program (visible only in engine load mode)
+-
+-  Example (start to blink the channel 2 led):
+-  cd   /sys/class/leds/lp5521:channel2/device
+-  echo "load" > engine3_mode
+-  echo "037f4d0003ff6000" > engine3_load
+-  echo "run" > engine3_mode
+-
+-  To stop the engine:
+-  echo "disabled" > engine3_mode
+-
+-2) Firmware interface - LP55xx common interface
+-  For the details, please refer to 'firmware' section in leds-lp55xx.txt
+-
+-sysfs contains a selftest entry.
+-The test communicates with the chip and checks that
+-the clock mode is automatically set to the requested one.
+-
+-Each channel has its own led current settings.
+-/sys/class/leds/lp5521:channel0/led_current - RW
+-/sys/class/leds/lp5521:channel0/max_current - RO
+-Format: 10x mA i.e 10 means 1.0 mA
+-
+-example platform data:
+-
+-Note: chan_nr can have values between 0 and 2.
+-The name of each channel can be configurable.
+-If the name field is not defined, the default name will be set to 'xxxx:channelN'
+-(XXXX : pdata->label or i2c client name, N : channel number)
+-
+-static struct lp55xx_led_config lp5521_led_config[] = {
+-        {
+-		.name = "red",
+-                .chan_nr        = 0,
+-                .led_current    = 50,
+-		.max_current    = 130,
+-        }, {
+-		.name = "green",
+-                .chan_nr        = 1,
+-                .led_current    = 0,
+-		.max_current    = 130,
+-        }, {
+-		.name = "blue",
+-                .chan_nr        = 2,
+-                .led_current    = 0,
+-		.max_current    = 130,
+-        }
+-};
+-
+-static int lp5521_setup(void)
+-{
+-	/* setup HW resources */
+-}
+-
+-static void lp5521_release(void)
+-{
+-	/* Release HW resources */
+-}
+-
+-static void lp5521_enable(bool state)
+-{
+-	/* Control of chip enable signal */
+-}
+-
+-static struct lp55xx_platform_data lp5521_platform_data = {
+-        .led_config     = lp5521_led_config,
+-        .num_channels   = ARRAY_SIZE(lp5521_led_config),
+-        .clock_mode     = LP55XX_CLOCK_EXT,
+-        .setup_resources   = lp5521_setup,
+-        .release_resources = lp5521_release,
+-        .enable            = lp5521_enable,
+-};
+-
+-If the current is set to 0 in the platform data, that channel is
+-disabled and it is not visible in the sysfs.
+diff --git a/Documentation/leds/leds-lp5523.rst b/Documentation/leds/leds-lp5523.rst
+new file mode 100644
+index 000000000000..7d7362a1dd57
+--- /dev/null
++++ b/Documentation/leds/leds-lp5523.rst
+@@ -0,0 +1,147 @@
++========================
++Kernel driver for lp5523
++========================
++
++* National Semiconductor LP5523 led driver chip
++* Datasheet: http://www.national.com/pf/LP/LP5523.html
++
++Authors: Mathias Nyman, Yuri Zaporozhets, Samu Onkalo
++Contact: Samu Onkalo (samu.p.onkalo-at-nokia.com)
++
++Description
++-----------
++LP5523 can drive up to 9 channels. Leds can be controlled directly via
++the led class control interface.
++The name of each channel is configurable in the platform data - name and label.
++There are three options to make the channel name.
++
++a) Define the 'name' in the platform data
++
++To make specific channel name, then use 'name' platform data.
++
++- /sys/class/leds/R1               (name: 'R1')
++- /sys/class/leds/B1               (name: 'B1')
++
++b) Use the 'label' with no 'name' field
++
++For one device name with channel number, then use 'label'.
++- /sys/class/leds/RGB:channelN     (label: 'RGB', N: 0 ~ 8)
++
++c) Default
++
++If both fields are NULL, 'lp5523' is used by default.
++- /sys/class/leds/lp5523:channelN  (N: 0 ~ 8)
++
++LP5523 has the internal program memory for running various LED patterns.
++There are two ways to run LED patterns.
++
++1) Legacy interface - enginex_mode, enginex_load and enginex_leds
++
++  Control interface for the engines:
++
++  x is 1 .. 3
++
++  enginex_mode:
++	disabled, load, run
++  enginex_load:
++	microcode load
++  enginex_leds:
++	led mux control
++
++  ::
++
++	cd /sys/class/leds/lp5523:channel2/device
++	echo "load" > engine3_mode
++	echo "9d80400004ff05ff437f0000" > engine3_load
++	echo "111111111" > engine3_leds
++	echo "run" > engine3_mode
++
++  To stop the engine::
++
++	echo "disabled" > engine3_mode
++
++2) Firmware interface - LP55xx common interface
++
++For the details, please refer to 'firmware' section in leds-lp55xx.txt
++
++LP5523 has three master faders. If a channel is mapped to one of
++the master faders, its output is dimmed based on the value of the master
++fader.
++
++For example::
++
++  echo "123000123" > master_fader_leds
++
++creates the following channel-fader mappings::
++
++  channel 0,6 to master_fader1
++  channel 1,7 to master_fader2
++  channel 2,8 to master_fader3
++
++Then, to have 25% of the original output on channel 0,6::
++
++  echo 64 > master_fader1
++
++To have 0% of the original output (i.e. no output) channel 1,7::
++
++  echo 0 > master_fader2
++
++To have 100% of the original output (i.e. no dimming) on channel 2,8::
++
++  echo 255 > master_fader3
++
++To clear all master fader controls::
++
++  echo "000000000" > master_fader_leds
++
++Selftest uses always the current from the platform data.
++
++Each channel contains led current settings.
++- /sys/class/leds/lp5523:channel2/led_current - RW
++- /sys/class/leds/lp5523:channel2/max_current - RO
++
++Format: 10x mA i.e 10 means 1.0 mA
++
++Example platform data::
++
++	static struct lp55xx_led_config lp5523_led_config[] = {
++		{
++			.name		= "D1",
++			.chan_nr        = 0,
++			.led_current    = 50,
++			.max_current    = 130,
++		},
++	...
++		{
++			.chan_nr        = 8,
++			.led_current    = 50,
++			.max_current    = 130,
++		}
++	};
++
++	static int lp5523_setup(void)
++	{
++		/* Setup HW resources */
++	}
++
++	static void lp5523_release(void)
++	{
++		/* Release HW resources */
++	}
++
++	static void lp5523_enable(bool state)
++	{
++		/* Control chip enable signal */
++	}
++
++	static struct lp55xx_platform_data lp5523_platform_data = {
++		.led_config     = lp5523_led_config,
++		.num_channels   = ARRAY_SIZE(lp5523_led_config),
++		.clock_mode     = LP55XX_CLOCK_EXT,
++		.setup_resources   = lp5523_setup,
++		.release_resources = lp5523_release,
++		.enable            = lp5523_enable,
++	};
++
++Note
++  chan_nr can have values between 0 and 8.
+diff --git a/Documentation/leds/leds-lp5523.txt b/Documentation/leds/leds-lp5523.txt
+deleted file mode 100644
+index 0961a060fc4d..000000000000
+--- a/Documentation/leds/leds-lp5523.txt
++++ /dev/null
+@@ -1,130 +0,0 @@
+-Kernel driver for lp5523
+-========================
+-
+-* National Semiconductor LP5523 led driver chip
+-* Datasheet: http://www.national.com/pf/LP/LP5523.html
+-
+-Authors: Mathias Nyman, Yuri Zaporozhets, Samu Onkalo
+-Contact: Samu Onkalo (samu.p.onkalo-at-nokia.com)
+-
+-Description
+------------
+-LP5523 can drive up to 9 channels. Leds can be controlled directly via
+-the led class control interface.
+-The name of each channel is configurable in the platform data - name and label.
+-There are three options to make the channel name.
+-
+-a) Define the 'name' in the platform data
+-To make specific channel name, then use 'name' platform data.
+-/sys/class/leds/R1               (name: 'R1')
+-/sys/class/leds/B1               (name: 'B1')
+-
+-b) Use the 'label' with no 'name' field
+-For one device name with channel number, then use 'label'.
+-/sys/class/leds/RGB:channelN     (label: 'RGB', N: 0 ~ 8)
+-
+-c) Default
+-If both fields are NULL, 'lp5523' is used by default.
+-/sys/class/leds/lp5523:channelN  (N: 0 ~ 8)
+-
+-LP5523 has the internal program memory for running various LED patterns.
+-There are two ways to run LED patterns.
+-
+-1) Legacy interface - enginex_mode, enginex_load and enginex_leds
+-  Control interface for the engines:
+-  x is 1 .. 3
+-  enginex_mode : disabled, load, run
+-  enginex_load : microcode load
+-  enginex_leds : led mux control
+-
+-  cd /sys/class/leds/lp5523:channel2/device
+-  echo "load" > engine3_mode
+-  echo "9d80400004ff05ff437f0000" > engine3_load
+-  echo "111111111" > engine3_leds
+-  echo "run" > engine3_mode
+-
+-  To stop the engine:
+-  echo "disabled" > engine3_mode
+-
+-2) Firmware interface - LP55xx common interface
+-  For the details, please refer to 'firmware' section in leds-lp55xx.txt
+-
+-LP5523 has three master faders. If a channel is mapped to one of
+-the master faders, its output is dimmed based on the value of the master
+-fader.
+-
+-For example,
+-
+-  echo "123000123" > master_fader_leds
+-
+-creates the following channel-fader mappings:
+-
+-  channel 0,6 to master_fader1
+-  channel 1,7 to master_fader2
+-  channel 2,8 to master_fader3
+-
+-Then, to have 25% of the original output on channel 0,6:
+-
+-  echo 64 > master_fader1
+-
+-To have 0% of the original output (i.e. no output) channel 1,7:
+-
+-  echo 0 > master_fader2
+-
+-To have 100% of the original output (i.e. no dimming) on channel 2,8:
+-
+-  echo 255 > master_fader3
+-
+-To clear all master fader controls:
+-
+-  echo "000000000" > master_fader_leds
+-
+-Selftest uses always the current from the platform data.
+-
+-Each channel contains led current settings.
+-/sys/class/leds/lp5523:channel2/led_current - RW
+-/sys/class/leds/lp5523:channel2/max_current - RO
+-Format: 10x mA i.e 10 means 1.0 mA
+-
+-Example platform data:
+-
+-Note - chan_nr can have values between 0 and 8.
+-
+-static struct lp55xx_led_config lp5523_led_config[] = {
+-        {
+-		.name		= "D1",
+-                .chan_nr        = 0,
+-                .led_current    = 50,
+-		.max_current    = 130,
+-        },
+-...
+-        {
+-                .chan_nr        = 8,
+-                .led_current    = 50,
+-		.max_current    = 130,
+-        }
+-};
+-
+-static int lp5523_setup(void)
+-{
+-	/* Setup HW resources */
+-}
+-
+-static void lp5523_release(void)
+-{
+-	/* Release HW resources */
+-}
+-
+-static void lp5523_enable(bool state)
+-{
+-	/* Control chip enable signal */
+-}
+-
+-static struct lp55xx_platform_data lp5523_platform_data = {
+-        .led_config     = lp5523_led_config,
+-        .num_channels   = ARRAY_SIZE(lp5523_led_config),
+-        .clock_mode     = LP55XX_CLOCK_EXT,
+-        .setup_resources   = lp5523_setup,
+-        .release_resources = lp5523_release,
+-        .enable            = lp5523_enable,
+-};
+diff --git a/Documentation/leds/leds-lp5562.rst b/Documentation/leds/leds-lp5562.rst
+new file mode 100644
+index 000000000000..79bbb2487ff6
+--- /dev/null
++++ b/Documentation/leds/leds-lp5562.rst
+@@ -0,0 +1,137 @@
++========================
++Kernel driver for lp5562
++========================
++
++* TI LP5562 LED Driver
++
++Author: Milo(Woogyom) Kim <milo.kim@ti.com>
++
++Description
++===========
++
++  LP5562 can drive up to 4 channels. R/G/B and White.
++  LEDs can be controlled directly via the led class control interface.
++
++  All four channels can be also controlled using the engine micro programs.
++  LP5562 has the internal program memory for running various LED patterns.
++  For the details, please refer to 'firmware' section in leds-lp55xx.txt
++
++Device attribute
++================
++
++engine_mux
++  3 Engines are allocated in LP5562, but the number of channel is 4.
++  Therefore each channel should be mapped to the engine number.
++
++  Value: RGB or W
++
++  This attribute is used for programming LED data with the firmware interface.
++  Unlike the LP5521/LP5523/55231, LP5562 has unique feature for the engine mux,
++  so additional sysfs is required
++
++  LED Map
++
++  ===== === ===============================
++  Red   ... Engine 1 (fixed)
++  Green ... Engine 2 (fixed)
++  Blue  ... Engine 3 (fixed)
++  White ... Engine 1 or 2 or 3 (selective)
++  ===== === ===============================
++
++How to load the program data using engine_mux
++=============================================
++
++  Before loading the LP5562 program data, engine_mux should be written between
++  the engine selection and loading the firmware.
++  Engine mux has two different mode, RGB and W.
++  RGB is used for loading RGB program data, W is used for W program data.
++
++  For example, run blinking green channel pattern::
++
++    echo 2 > /sys/bus/i2c/devices/xxxx/select_engine     # 2 is for green channel
++    echo "RGB" > /sys/bus/i2c/devices/xxxx/engine_mux    # engine mux for RGB
++    echo 1 > /sys/class/firmware/lp5562/loading
++    echo "4000600040FF6000" > /sys/class/firmware/lp5562/data
++    echo 0 > /sys/class/firmware/lp5562/loading
++    echo 1 > /sys/bus/i2c/devices/xxxx/run_engine
++
++  To run a blinking white pattern::
++
++    echo 1 or 2 or 3 > /sys/bus/i2c/devices/xxxx/select_engine
++    echo "W" > /sys/bus/i2c/devices/xxxx/engine_mux
++    echo 1 > /sys/class/firmware/lp5562/loading
++    echo "4000600040FF6000" > /sys/class/firmware/lp5562/data
++    echo 0 > /sys/class/firmware/lp5562/loading
++    echo 1 > /sys/bus/i2c/devices/xxxx/run_engine
++
++How to load the predefined patterns
++===================================
++
++  Please refer to 'leds-lp55xx.txt"
++
++Setting Current of Each Channel
++===============================
++
++  Like LP5521 and LP5523/55231, LP5562 provides LED current settings.
++  The 'led_current' and 'max_current' are used.
++
++Example of Platform data
++========================
++
++::
++
++	static struct lp55xx_led_config lp5562_led_config[] = {
++		{
++			.name 		= "R",
++			.chan_nr	= 0,
++			.led_current	= 20,
++			.max_current	= 40,
++		},
++		{
++			.name 		= "G",
++			.chan_nr	= 1,
++			.led_current	= 20,
++			.max_current	= 40,
++		},
++		{
++			.name 		= "B",
++			.chan_nr	= 2,
++			.led_current	= 20,
++			.max_current	= 40,
++		},
++		{
++			.name 		= "W",
++			.chan_nr	= 3,
++			.led_current	= 20,
++			.max_current	= 40,
++		},
++	};
++
++	static int lp5562_setup(void)
++	{
++		/* setup HW resources */
++	}
++
++	static void lp5562_release(void)
++	{
++		/* Release HW resources */
++	}
++
++	static void lp5562_enable(bool state)
++	{
++		/* Control of chip enable signal */
++	}
++
++	static struct lp55xx_platform_data lp5562_platform_data = {
++		.led_config     = lp5562_led_config,
++		.num_channels   = ARRAY_SIZE(lp5562_led_config),
++		.setup_resources   = lp5562_setup,
++		.release_resources = lp5562_release,
++		.enable            = lp5562_enable,
++	};
++
++To configure the platform specific data, lp55xx_platform_data structure is used
++
++
++If the current is set to 0 in the platform data, that channel is
++disabled and it is not visible in the sysfs.
+diff --git a/Documentation/leds/leds-lp5562.txt b/Documentation/leds/leds-lp5562.txt
+deleted file mode 100644
+index 5a823ff6b393..000000000000
+--- a/Documentation/leds/leds-lp5562.txt
++++ /dev/null
+@@ -1,120 +0,0 @@
+-Kernel driver for LP5562
+-========================
+-
+-* TI LP5562 LED Driver
+-
+-Author: Milo(Woogyom) Kim <milo.kim@ti.com>
+-
+-Description
+-
+-  LP5562 can drive up to 4 channels. R/G/B and White.
+-  LEDs can be controlled directly via the led class control interface.
+-
+-  All four channels can be also controlled using the engine micro programs.
+-  LP5562 has the internal program memory for running various LED patterns.
+-  For the details, please refer to 'firmware' section in leds-lp55xx.txt
+-
+-Device attribute: engine_mux
+-
+-  3 Engines are allocated in LP5562, but the number of channel is 4.
+-  Therefore each channel should be mapped to the engine number.
+-  Value : RGB or W
+-
+-  This attribute is used for programming LED data with the firmware interface.
+-  Unlike the LP5521/LP5523/55231, LP5562 has unique feature for the engine mux,
+-  so additional sysfs is required.
+-
+-  LED Map
+-  Red   ... Engine 1 (fixed)
+-  Green ... Engine 2 (fixed)
+-  Blue  ... Engine 3 (fixed)
+-  White ... Engine 1 or 2 or 3 (selective)
+-
+-How to load the program data using engine_mux
+-
+-  Before loading the LP5562 program data, engine_mux should be written between
+-  the engine selection and loading the firmware.
+-  Engine mux has two different mode, RGB and W.
+-  RGB is used for loading RGB program data, W is used for W program data.
+-
+-  For example, run blinking green channel pattern,
+-  echo 2 > /sys/bus/i2c/devices/xxxx/select_engine     # 2 is for green channel
+-  echo "RGB" > /sys/bus/i2c/devices/xxxx/engine_mux    # engine mux for RGB
+-  echo 1 > /sys/class/firmware/lp5562/loading
+-  echo "4000600040FF6000" > /sys/class/firmware/lp5562/data
+-  echo 0 > /sys/class/firmware/lp5562/loading
+-  echo 1 > /sys/bus/i2c/devices/xxxx/run_engine
+-
+-  To run a blinking white pattern,
+-  echo 1 or 2 or 3 > /sys/bus/i2c/devices/xxxx/select_engine
+-  echo "W" > /sys/bus/i2c/devices/xxxx/engine_mux
+-  echo 1 > /sys/class/firmware/lp5562/loading
+-  echo "4000600040FF6000" > /sys/class/firmware/lp5562/data
+-  echo 0 > /sys/class/firmware/lp5562/loading
+-  echo 1 > /sys/bus/i2c/devices/xxxx/run_engine
+-
+-How to load the predefined patterns
+-
+-  Please refer to 'leds-lp55xx.txt"
+-
+-Setting Current of Each Channel
+-
+-  Like LP5521 and LP5523/55231, LP5562 provides LED current settings.
+-  The 'led_current' and 'max_current' are used.
+-
+-(Example of Platform data)
+-
+-To configure the platform specific data, lp55xx_platform_data structure is used.
+-
+-static struct lp55xx_led_config lp5562_led_config[] = {
+-	{
+-		.name 		= "R",
+-		.chan_nr	= 0,
+-		.led_current	= 20,
+-		.max_current	= 40,
+-	},
+-	{
+-		.name 		= "G",
+-		.chan_nr	= 1,
+-		.led_current	= 20,
+-		.max_current	= 40,
+-	},
+-	{
+-		.name 		= "B",
+-		.chan_nr	= 2,
+-		.led_current	= 20,
+-		.max_current	= 40,
+-	},
+-	{
+-		.name 		= "W",
+-		.chan_nr	= 3,
+-		.led_current	= 20,
+-		.max_current	= 40,
+-	},
+-};
+-
+-static int lp5562_setup(void)
+-{
+-	/* setup HW resources */
+-}
+-
+-static void lp5562_release(void)
+-{
+-	/* Release HW resources */
+-}
+-
+-static void lp5562_enable(bool state)
+-{
+-	/* Control of chip enable signal */
+-}
+-
+-static struct lp55xx_platform_data lp5562_platform_data = {
+-        .led_config     = lp5562_led_config,
+-        .num_channels   = ARRAY_SIZE(lp5562_led_config),
+-        .setup_resources   = lp5562_setup,
+-        .release_resources = lp5562_release,
+-        .enable            = lp5562_enable,
+-};
+-
+-If the current is set to 0 in the platform data, that channel is
+-disabled and it is not visible in the sysfs.
+diff --git a/Documentation/leds/leds-lp55xx.rst b/Documentation/leds/leds-lp55xx.rst
+new file mode 100644
+index 000000000000..632e41cec0b5
+--- /dev/null
++++ b/Documentation/leds/leds-lp55xx.rst
+@@ -0,0 +1,224 @@
++=================================================
++LP5521/LP5523/LP55231/LP5562/LP8501 Common Driver
++=================================================
++
++Authors: Milo(Woogyom) Kim <milo.kim@ti.com>
++
++Description
++-----------
++LP5521, LP5523/55231, LP5562 and LP8501 have common features as below.
++
++  Register access via the I2C
++  Device initialization/deinitialization
++  Create LED class devices for multiple output channels
++  Device attributes for user-space interface
++  Program memory for running LED patterns
++
++The LP55xx common driver provides these features using exported functions.
++
++  lp55xx_init_device() / lp55xx_deinit_device()
++  lp55xx_register_leds() / lp55xx_unregister_leds()
++  lp55xx_regsister_sysfs() / lp55xx_unregister_sysfs()
++
++( Driver Structure Data )
++
++In lp55xx common driver, two different data structure is used.
++
++* lp55xx_led
++    control multi output LED channels such as led current, channel index.
++* lp55xx_chip
++    general chip control such like the I2C and platform data.
++
++For example, LP5521 has maximum 3 LED channels.
++LP5523/55231 has 9 output channels::
++
++  lp55xx_chip for LP5521 ... lp55xx_led #1
++			     lp55xx_led #2
++			     lp55xx_led #3
++
++  lp55xx_chip for LP5523 ... lp55xx_led #1
++			     lp55xx_led #2
++				   .
++				   .
++			     lp55xx_led #9
++
++( Chip Dependent Code )
++
++To support device specific configurations, special structure
++'lpxx_device_config' is used.
++
++  - Maximum number of channels
++  - Reset command, chip enable command
++  - Chip specific initialization
++  - Brightness control register access
++  - Setting LED output current
++  - Program memory address access for running patterns
++  - Additional device specific attributes
++
++( Firmware Interface )
++
++LP55xx family devices have the internal program memory for running
++various LED patterns.
++
++This pattern data is saved as a file in the user-land or
++hex byte string is written into the memory through the I2C.
++
++LP55xx common driver supports the firmware interface.
++
++LP55xx chips have three program engines.
++
++To load and run the pattern, the programming sequence is following.
++
++  (1) Select an engine number (1/2/3)
++  (2) Mode change to load
++  (3) Write pattern data into selected area
++  (4) Mode change to run
++
++The LP55xx common driver provides simple interfaces as below.
++
++select_engine:
++	Select which engine is used for running program
++run_engine:
++	Start program which is loaded via the firmware interface
++firmware:
++	Load program data
++
++In case of LP5523, one more command is required, 'enginex_leds'.
++It is used for selecting LED output(s) at each engine number.
++In more details, please refer to 'leds-lp5523.txt'.
++
++For example, run blinking pattern in engine #1 of LP5521::
++
++	echo 1 > /sys/bus/i2c/devices/xxxx/select_engine
++	echo 1 > /sys/class/firmware/lp5521/loading
++	echo "4000600040FF6000" > /sys/class/firmware/lp5521/data
++	echo 0 > /sys/class/firmware/lp5521/loading
++	echo 1 > /sys/bus/i2c/devices/xxxx/run_engine
++
++For example, run blinking pattern in engine #3 of LP55231
++
++Two LEDs are configured as pattern output channels::
++
++	echo 3 > /sys/bus/i2c/devices/xxxx/select_engine
++	echo 1 > /sys/class/firmware/lp55231/loading
++	echo "9d0740ff7e0040007e00a0010000" > /sys/class/firmware/lp55231/data
++	echo 0 > /sys/class/firmware/lp55231/loading
++	echo "000001100" > /sys/bus/i2c/devices/xxxx/engine3_leds
++	echo 1 > /sys/bus/i2c/devices/xxxx/run_engine
++
++To start blinking patterns in engine #2 and #3 simultaneously::
++
++	for idx in 2 3
++	do
++	echo $idx > /sys/class/leds/red/device/select_engine
++	sleep 0.1
++	echo 1 > /sys/class/firmware/lp5521/loading
++	echo "4000600040FF6000" > /sys/class/firmware/lp5521/data
++	echo 0 > /sys/class/firmware/lp5521/loading
++	done
++	echo 1 > /sys/class/leds/red/device/run_engine
++
++Here is another example for LP5523.
++
++Full LED strings are selected by 'engine2_leds'::
++
++	echo 2 > /sys/bus/i2c/devices/xxxx/select_engine
++	echo 1 > /sys/class/firmware/lp5523/loading
++	echo "9d80400004ff05ff437f0000" > /sys/class/firmware/lp5523/data
++	echo 0 > /sys/class/firmware/lp5523/loading
++	echo "111111111" > /sys/bus/i2c/devices/xxxx/engine2_leds
++	echo 1 > /sys/bus/i2c/devices/xxxx/run_engine
++
++As soon as 'loading' is set to 0, registered callback is called.
++Inside the callback, the selected engine is loaded and memory is updated.
++To run programmed pattern, 'run_engine' attribute should be enabled.
++
++The pattern sequence of LP8501 is similar to LP5523.
++
++However pattern data is specific.
++
++Ex 1) Engine 1 is used::
++
++	echo 1 > /sys/bus/i2c/devices/xxxx/select_engine
++	echo 1 > /sys/class/firmware/lp8501/loading
++	echo "9d0140ff7e0040007e00a001c000" > /sys/class/firmware/lp8501/data
++	echo 0 > /sys/class/firmware/lp8501/loading
++	echo 1 > /sys/bus/i2c/devices/xxxx/run_engine
++
++Ex 2) Engine 2 and 3 are used at the same time::
++
++	echo 2 > /sys/bus/i2c/devices/xxxx/select_engine
++	sleep 1
++	echo 1 > /sys/class/firmware/lp8501/loading
++	echo "9d0140ff7e0040007e00a001c000" > /sys/class/firmware/lp8501/data
++	echo 0 > /sys/class/firmware/lp8501/loading
++	sleep 1
++	echo 3 > /sys/bus/i2c/devices/xxxx/select_engine
++	sleep 1
++	echo 1 > /sys/class/firmware/lp8501/loading
++	echo "9d0340ff7e0040007e00a001c000" > /sys/class/firmware/lp8501/data
++	echo 0 > /sys/class/firmware/lp8501/loading
++	sleep 1
++	echo 1 > /sys/class/leds/d1/device/run_engine
++
++( 'run_engine' and 'firmware_cb' )
++
++The sequence of running the program data is common.
++
++But each device has own specific register addresses for commands.
++
++To support this, 'run_engine' and 'firmware_cb' are configurable in each driver.
++
++run_engine:
++	Control the selected engine
++firmware_cb:
++	The callback function after loading the firmware is done.
++
++	Chip specific commands for loading and updating program memory.
++
++( Predefined pattern data )
++
++Without the firmware interface, LP55xx driver provides another method for
++loading a LED pattern. That is 'predefined' pattern.
++
++A predefined pattern is defined in the platform data and load it(or them)
++via the sysfs if needed.
++
++To use the predefined pattern concept, 'patterns' and 'num_patterns' should be
++configured.
++
++Example of predefined pattern data::
++
++  /* mode_1: blinking data */
++  static const u8 mode_1[] = {
++		0x40, 0x00, 0x60, 0x00, 0x40, 0xFF, 0x60, 0x00,
++		};
++
++  /* mode_2: always on */
++  static const u8 mode_2[] = { 0x40, 0xFF, };
++
++  struct lp55xx_predef_pattern board_led_patterns[] = {
++	{
++		.r = mode_1,
++		.size_r = ARRAY_SIZE(mode_1),
++	},
++	{
++		.b = mode_2,
++		.size_b = ARRAY_SIZE(mode_2),
++	},
++  }
++
++  struct lp55xx_platform_data lp5562_pdata = {
++  ...
++	.patterns      = board_led_patterns,
++	.num_patterns  = ARRAY_SIZE(board_led_patterns),
++  };
++
++Then, mode_1 and mode_2 can be run via through the sysfs::
++
++  echo 1 > /sys/bus/i2c/devices/xxxx/led_pattern    # red blinking LED pattern
++  echo 2 > /sys/bus/i2c/devices/xxxx/led_pattern    # blue LED always on
++
++To stop running pattern::
++
++  echo 0 > /sys/bus/i2c/devices/xxxx/led_pattern
+diff --git a/Documentation/leds/leds-lp55xx.txt b/Documentation/leds/leds-lp55xx.txt
+deleted file mode 100644
+index e23fa91ea722..000000000000
+--- a/Documentation/leds/leds-lp55xx.txt
++++ /dev/null
+@@ -1,194 +0,0 @@
+-LP5521/LP5523/LP55231/LP5562/LP8501 Common Driver
+-=================================================
+-
+-Authors: Milo(Woogyom) Kim <milo.kim@ti.com>
+-
+-Description
+------------
+-LP5521, LP5523/55231, LP5562 and LP8501 have common features as below.
+-
+-  Register access via the I2C
+-  Device initialization/deinitialization
+-  Create LED class devices for multiple output channels
+-  Device attributes for user-space interface
+-  Program memory for running LED patterns
+-
+-The LP55xx common driver provides these features using exported functions.
+-  lp55xx_init_device() / lp55xx_deinit_device()
+-  lp55xx_register_leds() / lp55xx_unregister_leds()
+-  lp55xx_regsister_sysfs() / lp55xx_unregister_sysfs()
+-
+-( Driver Structure Data )
+-
+-In lp55xx common driver, two different data structure is used.
+-
+-o lp55xx_led
+-  control multi output LED channels such as led current, channel index.
+-o lp55xx_chip
+-  general chip control such like the I2C and platform data.
+-
+-For example, LP5521 has maximum 3 LED channels.
+-LP5523/55231 has 9 output channels.
+-
+-lp55xx_chip for LP5521 ... lp55xx_led #1
+-                           lp55xx_led #2
+-                           lp55xx_led #3
+-
+-lp55xx_chip for LP5523 ... lp55xx_led #1
+-                           lp55xx_led #2
+-                                 .
+-                                 .
+-                           lp55xx_led #9
+-
+-( Chip Dependent Code )
+-
+-To support device specific configurations, special structure
+-'lpxx_device_config' is used.
+-
+-  Maximum number of channels
+-  Reset command, chip enable command
+-  Chip specific initialization
+-  Brightness control register access
+-  Setting LED output current
+-  Program memory address access for running patterns
+-  Additional device specific attributes
+-
+-( Firmware Interface )
+-
+-LP55xx family devices have the internal program memory for running
+-various LED patterns.
+-This pattern data is saved as a file in the user-land or
+-hex byte string is written into the memory through the I2C.
+-LP55xx common driver supports the firmware interface.
+-
+-LP55xx chips have three program engines.
+-To load and run the pattern, the programming sequence is following.
+-  (1) Select an engine number (1/2/3)
+-  (2) Mode change to load
+-  (3) Write pattern data into selected area
+-  (4) Mode change to run
+-
+-The LP55xx common driver provides simple interfaces as below.
+-select_engine : Select which engine is used for running program
+-run_engine    : Start program which is loaded via the firmware interface
+-firmware      : Load program data
+-
+-In case of LP5523, one more command is required, 'enginex_leds'.
+-It is used for selecting LED output(s) at each engine number.
+-In more details, please refer to 'leds-lp5523.txt'.
+-
+-For example, run blinking pattern in engine #1 of LP5521
+-echo 1 > /sys/bus/i2c/devices/xxxx/select_engine
+-echo 1 > /sys/class/firmware/lp5521/loading
+-echo "4000600040FF6000" > /sys/class/firmware/lp5521/data
+-echo 0 > /sys/class/firmware/lp5521/loading
+-echo 1 > /sys/bus/i2c/devices/xxxx/run_engine
+-
+-For example, run blinking pattern in engine #3 of LP55231
+-Two LEDs are configured as pattern output channels.
+-echo 3 > /sys/bus/i2c/devices/xxxx/select_engine
+-echo 1 > /sys/class/firmware/lp55231/loading
+-echo "9d0740ff7e0040007e00a0010000" > /sys/class/firmware/lp55231/data
+-echo 0 > /sys/class/firmware/lp55231/loading
+-echo "000001100" > /sys/bus/i2c/devices/xxxx/engine3_leds
+-echo 1 > /sys/bus/i2c/devices/xxxx/run_engine
+-
+-To start blinking patterns in engine #2 and #3 simultaneously,
+-for idx in 2 3
+-do
+-  echo $idx > /sys/class/leds/red/device/select_engine
+-  sleep 0.1
+-  echo 1 > /sys/class/firmware/lp5521/loading
+-  echo "4000600040FF6000" > /sys/class/firmware/lp5521/data
+-  echo 0 > /sys/class/firmware/lp5521/loading
+-done
+-echo 1 > /sys/class/leds/red/device/run_engine
+-
+-Here is another example for LP5523.
+-Full LED strings are selected by 'engine2_leds'.
+-echo 2 > /sys/bus/i2c/devices/xxxx/select_engine
+-echo 1 > /sys/class/firmware/lp5523/loading
+-echo "9d80400004ff05ff437f0000" > /sys/class/firmware/lp5523/data
+-echo 0 > /sys/class/firmware/lp5523/loading
+-echo "111111111" > /sys/bus/i2c/devices/xxxx/engine2_leds
+-echo 1 > /sys/bus/i2c/devices/xxxx/run_engine
+-
+-As soon as 'loading' is set to 0, registered callback is called.
+-Inside the callback, the selected engine is loaded and memory is updated.
+-To run programmed pattern, 'run_engine' attribute should be enabled.
+-
+-The pattern sequence of LP8501 is similar to LP5523.
+-However pattern data is specific.
+-Ex 1) Engine 1 is used
+-echo 1 > /sys/bus/i2c/devices/xxxx/select_engine
+-echo 1 > /sys/class/firmware/lp8501/loading
+-echo "9d0140ff7e0040007e00a001c000" > /sys/class/firmware/lp8501/data
+-echo 0 > /sys/class/firmware/lp8501/loading
+-echo 1 > /sys/bus/i2c/devices/xxxx/run_engine
+-
+-Ex 2) Engine 2 and 3 are used at the same time
+-echo 2 > /sys/bus/i2c/devices/xxxx/select_engine
+-sleep 1
+-echo 1 > /sys/class/firmware/lp8501/loading
+-echo "9d0140ff7e0040007e00a001c000" > /sys/class/firmware/lp8501/data
+-echo 0 > /sys/class/firmware/lp8501/loading
+-sleep 1
+-echo 3 > /sys/bus/i2c/devices/xxxx/select_engine
+-sleep 1
+-echo 1 > /sys/class/firmware/lp8501/loading
+-echo "9d0340ff7e0040007e00a001c000" > /sys/class/firmware/lp8501/data
+-echo 0 > /sys/class/firmware/lp8501/loading
+-sleep 1
+-echo 1 > /sys/class/leds/d1/device/run_engine
+-
+-( 'run_engine' and 'firmware_cb' )
+-The sequence of running the program data is common.
+-But each device has own specific register addresses for commands.
+-To support this, 'run_engine' and 'firmware_cb' are configurable in each driver.
+-run_engine  : Control the selected engine
+-firmware_cb : The callback function after loading the firmware is done.
+-              Chip specific commands for loading and updating program memory.
+-
+-( Predefined pattern data )
+-
+-Without the firmware interface, LP55xx driver provides another method for
+-loading a LED pattern. That is 'predefined' pattern.
+-A predefined pattern is defined in the platform data and load it(or them)
+-via the sysfs if needed.
+-To use the predefined pattern concept, 'patterns' and 'num_patterns' should be
+-configured.
+-
+-  Example of predefined pattern data:
+-
+-  /* mode_1: blinking data */
+-  static const u8 mode_1[] = {
+-		0x40, 0x00, 0x60, 0x00, 0x40, 0xFF, 0x60, 0x00,
+-		};
+-
+-  /* mode_2: always on */
+-  static const u8 mode_2[] = { 0x40, 0xFF, };
+-
+-  struct lp55xx_predef_pattern board_led_patterns[] = {
+-	{
+-		.r = mode_1,
+-		.size_r = ARRAY_SIZE(mode_1),
+-	},
+-	{
+-		.b = mode_2,
+-		.size_b = ARRAY_SIZE(mode_2),
+-	},
+-  }
+-
+-  struct lp55xx_platform_data lp5562_pdata = {
+-  ...
+-	.patterns      = board_led_patterns,
+-	.num_patterns  = ARRAY_SIZE(board_led_patterns),
+-  };
+-
+-Then, mode_1 and mode_2 can be run via through the sysfs.
+-
+-  echo 1 > /sys/bus/i2c/devices/xxxx/led_pattern    # red blinking LED pattern
+-  echo 2 > /sys/bus/i2c/devices/xxxx/led_pattern    # blue LED always on
+-
+-To stop running pattern,
+-  echo 0 > /sys/bus/i2c/devices/xxxx/led_pattern
+diff --git a/Documentation/leds/leds-mlxcpld.rst b/Documentation/leds/leds-mlxcpld.rst
+new file mode 100644
+index 000000000000..528582429e0b
+--- /dev/null
++++ b/Documentation/leds/leds-mlxcpld.rst
+@@ -0,0 +1,118 @@
++=======================================
++Kernel driver for Mellanox systems LEDs
++=======================================
++
++Provide system LED support for the nex Mellanox systems:
++"msx6710", "msx6720", "msb7700", "msn2700", "msx1410",
++"msn2410", "msb7800", "msn2740", "msn2100".
++
++Description
++-----------
++Driver provides the following LEDs for the systems "msx6710", "msx6720",
++"msb7700", "msn2700", "msx1410", "msn2410", "msb7800", "msn2740":
++
++  - mlxcpld:fan1:green
++  - mlxcpld:fan1:red
++  - mlxcpld:fan2:green
++  - mlxcpld:fan2:red
++  - mlxcpld:fan3:green
++  - mlxcpld:fan3:red
++  - mlxcpld:fan4:green
++  - mlxcpld:fan4:red
++  - mlxcpld:psu:green
++  - mlxcpld:psu:red
++  - mlxcpld:status:green
++  - mlxcpld:status:red
++
++ "status"
++  - CPLD reg offset: 0x20
++  - Bits [3:0]
++
++ "psu"
++  - CPLD reg offset: 0x20
++  - Bits [7:4]
++
++ "fan1"
++  - CPLD reg offset: 0x21
++  - Bits [3:0]
++
++ "fan2"
++  - CPLD reg offset: 0x21
++  - Bits [7:4]
++
++ "fan3"
++  - CPLD reg offset: 0x22
++  - Bits [3:0]
++
++ "fan4"
++  - CPLD reg offset: 0x22
++  - Bits [7:4]
++
++ Color mask for all the above LEDs:
++
++  [bit3,bit2,bit1,bit0] or
++  [bit7,bit6,bit5,bit4]:
++
++	- [0,0,0,0] = LED OFF
++	- [0,1,0,1] = Red static ON
++	- [1,1,0,1] = Green static ON
++	- [0,1,1,0] = Red blink 3Hz
++	- [1,1,1,0] = Green blink 3Hz
++	- [0,1,1,1] = Red blink 6Hz
++	- [1,1,1,1] = Green blink 6Hz
++
++Driver provides the following LEDs for the system "msn2100":
++
++  - mlxcpld:fan:green
++  - mlxcpld:fan:red
++  - mlxcpld:psu1:green
++  - mlxcpld:psu1:red
++  - mlxcpld:psu2:green
++  - mlxcpld:psu2:red
++  - mlxcpld:status:green
++  - mlxcpld:status:red
++  - mlxcpld:uid:blue
++
++ "status"
++  - CPLD reg offset: 0x20
++  - Bits [3:0]
++
++ "fan"
++  - CPLD reg offset: 0x21
++  - Bits [3:0]
++
++ "psu1"
++  - CPLD reg offset: 0x23
++  - Bits [3:0]
++
++ "psu2"
++  - CPLD reg offset: 0x23
++  - Bits [7:4]
++
++ "uid"
++  - CPLD reg offset: 0x24
++  - Bits [3:0]
++
++ Color mask for all the above LEDs, excepted uid:
++
++  [bit3,bit2,bit1,bit0] or
++  [bit7,bit6,bit5,bit4]:
++
++	- [0,0,0,0] = LED OFF
++	- [0,1,0,1] = Red static ON
++	- [1,1,0,1] = Green static ON
++	- [0,1,1,0] = Red blink 3Hz
++	- [1,1,1,0] = Green blink 3Hz
++	- [0,1,1,1] = Red blink 6Hz
++	- [1,1,1,1] = Green blink 6Hz
++
++ Color mask for uid LED:
++  [bit3,bit2,bit1,bit0]:
++
++	- [0,0,0,0] = LED OFF
++	- [1,1,0,1] = Blue static ON
++	- [1,1,1,0] = Blue blink 3Hz
++	- [1,1,1,1] = Blue blink 6Hz
++
++Driver supports HW blinking at 3Hz and 6Hz frequency (50% duty cycle).
++For 3Hz duty cylce is about 167 msec, for 6Hz is about 83 msec.
+diff --git a/Documentation/leds/leds-mlxcpld.txt b/Documentation/leds/leds-mlxcpld.txt
+deleted file mode 100644
+index a0e8fd457117..000000000000
+--- a/Documentation/leds/leds-mlxcpld.txt
++++ /dev/null
+@@ -1,110 +0,0 @@
+-Kernel driver for Mellanox systems LEDs
+-=======================================
+-
+-Provide system LED support for the nex Mellanox systems:
+-"msx6710", "msx6720", "msb7700", "msn2700", "msx1410",
+-"msn2410", "msb7800", "msn2740", "msn2100".
+-
+-Description
+------------
+-Driver provides the following LEDs for the systems "msx6710", "msx6720",
+-"msb7700", "msn2700", "msx1410", "msn2410", "msb7800", "msn2740":
+-  mlxcpld:fan1:green
+-  mlxcpld:fan1:red
+-  mlxcpld:fan2:green
+-  mlxcpld:fan2:red
+-  mlxcpld:fan3:green
+-  mlxcpld:fan3:red
+-  mlxcpld:fan4:green
+-  mlxcpld:fan4:red
+-  mlxcpld:psu:green
+-  mlxcpld:psu:red
+-  mlxcpld:status:green
+-  mlxcpld:status:red
+-
+- "status"
+-  CPLD reg offset: 0x20
+-  Bits [3:0]
+-
+- "psu"
+-  CPLD reg offset: 0x20
+-  Bits [7:4]
+-
+- "fan1"
+-  CPLD reg offset: 0x21
+-  Bits [3:0]
+-
+- "fan2"
+-  CPLD reg offset: 0x21
+-  Bits [7:4]
+-
+- "fan3"
+-  CPLD reg offset: 0x22
+-  Bits [3:0]
+-
+- "fan4"
+-  CPLD reg offset: 0x22
+-  Bits [7:4]
+-
+- Color mask for all the above LEDs:
+-  [bit3,bit2,bit1,bit0] or
+-  [bit7,bit6,bit5,bit4]:
+-	[0,0,0,0] = LED OFF
+-	[0,1,0,1] = Red static ON
+-	[1,1,0,1] = Green static ON
+-	[0,1,1,0] = Red blink 3Hz
+-	[1,1,1,0] = Green blink 3Hz
+-	[0,1,1,1] = Red blink 6Hz
+-	[1,1,1,1] = Green blink 6Hz
+-
+-Driver provides the following LEDs for the system "msn2100":
+-  mlxcpld:fan:green
+-  mlxcpld:fan:red
+-  mlxcpld:psu1:green
+-  mlxcpld:psu1:red
+-  mlxcpld:psu2:green
+-  mlxcpld:psu2:red
+-  mlxcpld:status:green
+-  mlxcpld:status:red
+-  mlxcpld:uid:blue
+-
+- "status"
+-  CPLD reg offset: 0x20
+-  Bits [3:0]
+-
+- "fan"
+-  CPLD reg offset: 0x21
+-  Bits [3:0]
+-
+- "psu1"
+-  CPLD reg offset: 0x23
+-  Bits [3:0]
+-
+- "psu2"
+-  CPLD reg offset: 0x23
+-  Bits [7:4]
+-
+- "uid"
+-  CPLD reg offset: 0x24
+-  Bits [3:0]
+-
+- Color mask for all the above LEDs, excepted uid:
+-  [bit3,bit2,bit1,bit0] or
+-  [bit7,bit6,bit5,bit4]:
+-	[0,0,0,0] = LED OFF
+-	[0,1,0,1] = Red static ON
+-	[1,1,0,1] = Green static ON
+-	[0,1,1,0] = Red blink 3Hz
+-	[1,1,1,0] = Green blink 3Hz
+-	[0,1,1,1] = Red blink 6Hz
+-	[1,1,1,1] = Green blink 6Hz
+-
+- Color mask for uid LED:
+-  [bit3,bit2,bit1,bit0]:
+-	[0,0,0,0] = LED OFF
+-	[1,1,0,1] = Blue static ON
+-	[1,1,1,0] = Blue blink 3Hz
+-	[1,1,1,1] = Blue blink 6Hz
+-
+-Driver supports HW blinking at 3Hz and 6Hz frequency (50% duty cycle).
+-For 3Hz duty cylce is about 167 msec, for 6Hz is about 83 msec.
+diff --git a/Documentation/leds/ledtrig-oneshot.txt b/Documentation/leds/ledtrig-oneshot.rst
+similarity index 90%
+rename from Documentation/leds/ledtrig-oneshot.txt
+rename to Documentation/leds/ledtrig-oneshot.rst
+index fe57474a12e2..69fa3ea1d554 100644
+--- a/Documentation/leds/ledtrig-oneshot.txt
++++ b/Documentation/leds/ledtrig-oneshot.rst
+@@ -1,3 +1,4 @@
++====================
+ One-shot LED Trigger
+ ====================
+ 
+@@ -17,27 +18,27 @@ additional "invert" property specifies if the LED has to stay off (normal) or
+ on (inverted) when not rearmed.
+ 
+ The trigger can be activated from user space on led class devices as shown
+-below:
++below::
+ 
+   echo oneshot > trigger
+ 
+ This adds sysfs attributes to the LED that are documented in:
+ Documentation/ABI/testing/sysfs-class-led-trigger-oneshot
+ 
+-Example use-case: network devices, initialization:
++Example use-case: network devices, initialization::
+ 
+   echo oneshot > trigger # set trigger for this led
+   echo 33 > delay_on     # blink at 1 / (33 + 33) Hz on continuous traffic
+   echo 33 > delay_off
+ 
+-interface goes up:
++interface goes up::
+ 
+   echo 1 > invert # set led as normally-on, turn the led on
+ 
+-packet received/transmitted:
++packet received/transmitted::
+ 
+   echo 1 > shot # led starts blinking, ignored if already blinking
+ 
+-interface goes down
++interface goes down::
+ 
+   echo 0 > invert # set led as normally-off, turn the led off
+diff --git a/Documentation/leds/ledtrig-transient.txt b/Documentation/leds/ledtrig-transient.rst
+similarity index 81%
+rename from Documentation/leds/ledtrig-transient.txt
+rename to Documentation/leds/ledtrig-transient.rst
+index 3bd38b487df1..d921dc830cd0 100644
+--- a/Documentation/leds/ledtrig-transient.txt
++++ b/Documentation/leds/ledtrig-transient.rst
+@@ -1,3 +1,4 @@
++=====================
+ LED Transient Trigger
+ =====================
+ 
+@@ -62,12 +63,13 @@ non-transient state. When driver gets suspended, irrespective of the transient
+ state, the LED state changes to LED_OFF.
+ 
+ Transient trigger can be enabled and disabled from user space on led class
+-devices, that support this trigger as shown below:
++devices, that support this trigger as shown below::
+ 
+-echo transient > trigger
+-echo none > trigger
++	echo transient > trigger
++	echo none > trigger
+ 
+-NOTE: Add a new property trigger state to control the state.
++NOTE:
++	Add a new property trigger state to control the state.
+ 
+ This trigger exports three properties, activate, state, and duration. When
+ transient trigger is activated these properties are set to default values.
+@@ -79,7 +81,8 @@ transient trigger is activated these properties are set to default values.
+ - state allows user to specify a transient state to be held for the specified
+   duration.
+ 
+-	activate - one shot timer activate mechanism.
++	activate
++	      - one shot timer activate mechanism.
+ 		1 when activated, 0 when deactivated.
+ 		default value is zero when transient trigger is enabled,
+ 		to allow duration to be set.
+@@ -89,12 +92,14 @@ transient trigger is activated these properties are set to default values.
+ 		deactivated state indicates that there is no active timer
+ 		running.
+ 
+-	duration - one shot timer value. When activate is set, duration value
++	duration
++	      - one shot timer value. When activate is set, duration value
+ 		is used to start a timer that runs once. This value doesn't
+ 		get changed by the trigger unless user does a set via
+ 		echo new_value > duration
+ 
+-	state - transient state to be held. It has two values 0 or 1. 0 maps
++	state
++	      - transient state to be held. It has two values 0 or 1. 0 maps
+ 		to LED_OFF and 1 maps to LED_FULL. The specified state is
+ 		held for the duration of the one shot timer and then the
+ 		state gets changed to the non-transient state which is the
+@@ -114,39 +119,49 @@ When timer expires activate goes back to deactivated state, duration is left
+ at the set value to be used when activate is set at a future time. This will
+ allow user app to set the time once and activate it to run it once for the
+ specified value as needed. When timer expires, state is restored to the
+-non-transient state which is the inverse of the transient state.
++non-transient state which is the inverse of the transient state:
+ 
+-	echo 1 > activate - starts timer = duration when duration is not 0.
+-	echo 0 > activate - cancels currently running timer.
+-	echo n > duration - stores timer value to be used upon next
+-                            activate. Currently active timer if
+-                            any, continues to run for the specified time.
+-	echo 0 > duration - stores timer value to be used upon next
+-                            activate. Currently active timer if any,
+-                            continues to run for the specified time.
+-	echo 1 > state    - stores desired transient state LED_FULL to be
++	=================   ===============================================
++	echo 1 > activate   starts timer = duration when duration is not 0.
++	echo 0 > activate   cancels currently running timer.
++	echo n > duration   stores timer value to be used upon next
++			    activate. Currently active timer if
++			    any, continues to run for the specified time.
++	echo 0 > duration   stores timer value to be used upon next
++			    activate. Currently active timer if any,
++			    continues to run for the specified time.
++	echo 1 > state      stores desired transient state LED_FULL to be
+ 			    held for the specified duration.
+-	echo 0 > state    - stores desired transient state LED_OFF to be
++	echo 0 > state      stores desired transient state LED_OFF to be
+ 			    held for the specified duration.
++	=================   ===============================================
++
++What is not supported
++=====================
+ 
+-What is not supported:
+-======================
+ - Timer activation is one shot and extending and/or shortening the timer
+   is not supported.
+ 
+-Example use-case 1:
++Examples
++========
++
++use-case 1::
++
+ 	echo transient > trigger
+ 	echo n > duration
+ 	echo 1 > state
+-repeat the following step as needed:
++
++repeat the following step as needed::
++
+ 	echo 1 > activate - start timer = duration to run once
+ 	echo 1 > activate - start timer = duration to run once
+ 	echo none > trigger
+ 
+ This trigger is intended to be used for for the following example use cases:
++
+  - Control of vibrate (phones, tablets etc.) hardware by user space app.
+  - Use of LED by user space app as activity indicator.
+  - Use of LED by user space app as a kind of watchdog indicator -- as
+-       long as the app is alive, it can keep the LED illuminated, if it dies
+-       the LED will be extinguished automatically.
++   long as the app is alive, it can keep the LED illuminated, if it dies
++   the LED will be extinguished automatically.
+  - Use by any user space app that needs a transient GPIO output.
+diff --git a/Documentation/leds/ledtrig-usbport.txt b/Documentation/leds/ledtrig-usbport.rst
+similarity index 86%
+rename from Documentation/leds/ledtrig-usbport.txt
+rename to Documentation/leds/ledtrig-usbport.rst
+index 69f54bfb4789..37c2505bfd57 100644
+--- a/Documentation/leds/ledtrig-usbport.txt
++++ b/Documentation/leds/ledtrig-usbport.rst
+@@ -1,3 +1,4 @@
++====================
+ USB port LED trigger
+ ====================
+ 
+@@ -10,14 +11,18 @@ listed as separated entries in a "ports" subdirectory. Selecting is handled by
+ echoing "1" to a chosen port.
+ 
+ Please note that this trigger allows selecting multiple USB ports for a single
+-LED. This can be useful in two cases:
++LED.
++
++This can be useful in two cases:
+ 
+ 1) Device with single USB LED and few physical ports
++====================================================
+ 
+ In such a case LED will be turned on as long as there is at least one connected
+ USB device.
+ 
+ 2) Device with a physical port handled by few controllers
++=========================================================
+ 
+ Some devices may have one controller per PHY standard. E.g. USB 3.0 physical
+ port may be handled by ohci-platform, ehci-platform and xhci-hcd. If there is
+@@ -25,14 +30,14 @@ only one LED user will most likely want to assign ports from all 3 hubs.
+ 
+ 
+ This trigger can be activated from user space on led class devices as shown
+-below:
++below::
+ 
+   echo usbport > trigger
+ 
+ This adds sysfs attributes to the LED that are documented in:
+ Documentation/ABI/testing/sysfs-class-led-trigger-usbport
+ 
+-Example use-case:
++Example use-case::
+ 
+   echo usbport > trigger
+   echo 1 > ports/usb1-port1
+diff --git a/Documentation/leds/uleds.txt b/Documentation/leds/uleds.rst
+similarity index 95%
+rename from Documentation/leds/uleds.txt
+rename to Documentation/leds/uleds.rst
+index 13e375a580f9..83221098009c 100644
+--- a/Documentation/leds/uleds.txt
++++ b/Documentation/leds/uleds.rst
+@@ -1,3 +1,4 @@
++==============
+ Userspace LEDs
+ ==============
+ 
+@@ -10,12 +11,12 @@ Usage
+ 
+ When the driver is loaded, a character device is created at /dev/uleds. To
+ create a new LED class device, open /dev/uleds and write a uleds_user_dev
+-structure to it (found in kernel public header file linux/uleds.h).
++structure to it (found in kernel public header file linux/uleds.h)::
+ 
+     #define LED_MAX_NAME_SIZE 64
+ 
+     struct uleds_user_dev {
+-        char name[LED_MAX_NAME_SIZE];
++	char name[LED_MAX_NAME_SIZE];
+     };
+ 
+ A new LED class device will be created with the name given. The name can be
+diff --git a/MAINTAINERS b/MAINTAINERS
+index f8f2394f9e84..73000e7d7f19 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -10172,7 +10172,7 @@ L:	linux-leds@vger.kernel.org
+ S:	Supported
+ F:	drivers/leds/leds-mlxcpld.c
+ F:	drivers/leds/leds-mlxreg.c
+-F:	Documentation/leds/leds-mlxcpld.txt
++F:	Documentation/leds/leds-mlxcpld.rst
+ 
+ MELLANOX PLATFORM DRIVER
+ M:	Vadim Pasternak <vadimp@mellanox.com>
+diff --git a/drivers/leds/trigger/Kconfig b/drivers/leds/trigger/Kconfig
+index 7fa9d174a40c..ce9429ca6dde 100644
+--- a/drivers/leds/trigger/Kconfig
++++ b/drivers/leds/trigger/Kconfig
+@@ -15,7 +15,7 @@ config LEDS_TRIGGER_TIMER
+ 	  This allows LEDs to be controlled by a programmable timer
+ 	  via sysfs. Some LED hardware can be programmed to start
+ 	  blinking the LED without any further software interaction.
+-	  For more details read Documentation/leds/leds-class.txt.
++	  For more details read Documentation/leds/leds-class.rst.
+ 
+ 	  If unsure, say Y.
+ 
+diff --git a/drivers/leds/trigger/ledtrig-transient.c b/drivers/leds/trigger/ledtrig-transient.c
+index a80bb82aacc2..80635183fac8 100644
+--- a/drivers/leds/trigger/ledtrig-transient.c
++++ b/drivers/leds/trigger/ledtrig-transient.c
+@@ -3,7 +3,7 @@
+ // LED Kernel Transient Trigger
+ //
+ // Transient trigger allows one shot timer activation. Please refer to
+-// Documentation/leds/ledtrig-transient.txt for details
++// Documentation/leds/ledtrig-transient.rst for details
+ // Copyright (C) 2012 Shuah Khan <shuahkhan@gmail.com>
+ //
+ // Based on Richard Purdie's ledtrig-timer.c and Atsushi Nemoto's
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index dd2af7be3eea..1837734ce85b 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -906,7 +906,7 @@ config NETFILTER_XT_TARGET_LED
+ 	    echo netfilter-ssh > /sys/class/leds/<ledname>/trigger
+ 
+ 	  For more information on the LEDs available on your system, see
+-	  Documentation/leds/leds-class.txt
++	  Documentation/leds/leds-class.rst
+ 
+ config NETFILTER_XT_TARGET_LOG
+ 	tristate "LOG target support"
 -- 
-2.11.0
-
+2.21.0
 
