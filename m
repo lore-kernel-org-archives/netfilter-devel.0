@@ -7,57 +7,57 @@ X-Spam-Status: No, score=-6.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
 	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 60E24C31E46
-	for <netfilter-devel@archiver.kernel.org>; Wed, 12 Jun 2019 07:55:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6CE28C31E46
+	for <netfilter-devel@archiver.kernel.org>; Wed, 12 Jun 2019 08:01:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2DAA72080A
-	for <netfilter-devel@archiver.kernel.org>; Wed, 12 Jun 2019 07:55:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3E76920684
+	for <netfilter-devel@archiver.kernel.org>; Wed, 12 Jun 2019 08:01:17 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="oeUu2eff"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="j16n253R"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731578AbfFLHzF (ORCPT
+        id S1729611AbfFLIBR (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 12 Jun 2019 03:55:05 -0400
-Received: from mail-oi1-f196.google.com ([209.85.167.196]:33266 "EHLO
-        mail-oi1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725791AbfFLHzE (ORCPT
+        Wed, 12 Jun 2019 04:01:17 -0400
+Received: from mail-ot1-f67.google.com ([209.85.210.67]:33274 "EHLO
+        mail-ot1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726554AbfFLIBQ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 12 Jun 2019 03:55:04 -0400
-Received: by mail-oi1-f196.google.com with SMTP id q186so11013437oia.0
-        for <netfilter-devel@vger.kernel.org>; Wed, 12 Jun 2019 00:55:04 -0700 (PDT)
+        Wed, 12 Jun 2019 04:01:16 -0400
+Received: by mail-ot1-f67.google.com with SMTP id p4so11337366oti.0
+        for <netfilter-devel@vger.kernel.org>; Wed, 12 Jun 2019 01:01:16 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to;
-        bh=XJ6oMEekNQty6RTP73MtGN2MSTySfGhKawvkeC0Y23A=;
-        b=oeUu2eff94mHdtATKVUVdPKjLaq4yUocKCsxALKssRGymf2x2J41p/k98UZ1lATyvy
-         4rK7UsvB3hYDVMPU5ecOkcoF5cFgNamOrST1x5wTdb6VTfSsgIfRjMdU5mCHAGxdcth9
-         lf8RPTQJa18xpJRTrMpLMTbudMehya/3ZE/125LkW1YL3lh0NVtleavw9ZO0zleTk+XV
-         J9VbyzwK/2LSAfzy+7Mxiuolruls+lY3Yy9ZwKBUZCL/ebLMaCyXR4uwql0GMsiml3DE
-         29dGwK3wbATQ+7kGjyawj00jY+mvK+V6kEs8DmfUw+UBt8iNqMIceBuMJLOcT8AWC+N7
-         KjEQ==
+        bh=J2cAogpfaPGIaHRHN0xoOE0K2iJA5JOX/TpIZv8P7zk=;
+        b=j16n253RyC13xPEnnOJcRG7WJRGc9g72tQH1luNnX/xDVjyRskZmknLlxWlcQAmyWt
+         PFYJ5QAEXHZvuHD6PKVd8lu1pl67/WJ4mEQXULMziqBi5c0a/lKq0UHVpE7NnwwrW7Yc
+         zAe3u9VKB0HYcao5hgWjbO586SzDuov3DHsj8q6jOqc9Shx0Zx7tuZuyz5aoBU/pATy/
+         obB3D8iXQKDEXnx/vvEUz2NP966lfMkXPjNhJeDMgW7SS2OTMVW5G6OZ3BF4YtZsxokD
+         BxrvjjvLGxdPVDcQk6MkznvWJhC2p42k2B4qLiQV8ERDJ4hkyQOTZBEMPo8AiQGoR4/4
+         azdA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to;
-        bh=XJ6oMEekNQty6RTP73MtGN2MSTySfGhKawvkeC0Y23A=;
-        b=tMdVyHO19hkO0nHrK+48ZvAKWZYEaWllZfFjFatqPq482EUkWHflIiDoZ1kI64o8Ws
-         p5xpklmVzsy05neN7pDtjtLKO1RovS96z+mxn4fef2fS+lPekuz5hMdhv++mYmsB3Pkf
-         uRRqSREoCwBS1km/xAns4c5oiYCmXBDWzmh9ALibkTu6AIj+ObgsW1os2k95swWLa//U
-         KpStT3wZwGPQ7oSj+A+TWIuPuc5LF+Sw4LdZlmyn2K5X1Mn09v1fiw0bplxbAwHsr0yJ
-         iJgl3UYYpQMmf6A6D/5RU6XtJaDTgYi1JvYSmbpF2sv7uCwSOtqCmHSUJ5/lhEGk9LnC
-         WaaQ==
-X-Gm-Message-State: APjAAAX9hMf4/bbg9GxmJx13U1lrF9cVDtdYVTBlDGcVBtx6mhFMw8NY
-        VYvi7Txum6J5uGS4aav00/3JyAoW+vHWvfuVtuegng==
-X-Google-Smtp-Source: APXvYqwqAnUe0v8KbzJIR4KFgSiJZ/lwr4yzyznp6SWegqq5nLViv5pUiMbob60Bcm99nKppbTmKyHd+3LxnPaT1eB8=
-X-Received: by 2002:aca:4f4a:: with SMTP id d71mr19005503oib.20.1560326103973;
- Wed, 12 Jun 2019 00:55:03 -0700 (PDT)
+        bh=J2cAogpfaPGIaHRHN0xoOE0K2iJA5JOX/TpIZv8P7zk=;
+        b=DXtEq9YAPeuMWaeHIixBvcKVrduHDikES/fSuB7OuBYWyJZWeTOKpZDs/bRuq+/zR6
+         ZuGrFXmCBjz11begf7JNpdM2d+HE8cgt4+2X7auScsdT8o/90NRD9ns8ybvGDJnv4KUN
+         dYZ5bPSoSQJdS80wUZxlPcVKtDG0aa3wkEym67nPOVpTLRliW58Qkm4e/RwblY9Ffg3j
+         C7zpDw0ag+pc+K4xutoOcf/4C6cozTm5watqTEnNtKJBxU0EAAjOvIMnHL85ngAniAgI
+         jTIK9mwfc0q1FTvrVmYrBX+bw3jY3IBrrAmqKiwiRDBOFcd1OdhCa+dRzDpMfsmvYPTZ
+         drBA==
+X-Gm-Message-State: APjAAAVTlaSDhPAww2GXtwq+NaaFKxJufOVldnO7ZzHQJXjjAfmrWX/C
+        IaybV2A5bLVheLFeU7c+sEybzh5lHnkL2dLEwYE62w==
+X-Google-Smtp-Source: APXvYqwbXcEI0c3yyNWg3FlvFDPVO6O7Svb6bAPVjrWG3LMewAMb0LxlLRo4IYXIffUltprKTfNRTxnXbl+S8qwQ2Tc=
+X-Received: by 2002:a9d:2f26:: with SMTP id h35mr39458232otb.183.1560326475912;
+ Wed, 12 Jun 2019 01:01:15 -0700 (PDT)
 MIME-Version: 1.0
-References: <20190609181738.10074-1-shekhar250198@gmail.com> <20190611153935.kwyfchvpngrdfng4@egarver.localdomain>
-In-Reply-To: <20190611153935.kwyfchvpngrdfng4@egarver.localdomain>
+References: <20190609181849.10131-1-shekhar250198@gmail.com> <20190611184746.i5sg64gr4u2quiw5@egarver.localdomain>
+In-Reply-To: <20190611184746.i5sg64gr4u2quiw5@egarver.localdomain>
 From:   shekhar sharma <shekhar250198@gmail.com>
-Date:   Wed, 12 Jun 2019 13:24:52 +0530
-Message-ID: <CAN9XX2oK1SHDqspu6u_Fp86DB5DQ-UcXrG07gU7gXKy2zdvqzw@mail.gmail.com>
-Subject: Re: [PATCH nft v6 1/2]tests: py: conversion to python3
+Date:   Wed, 12 Jun 2019 13:31:04 +0530
+Message-ID: <CAN9XX2odx5Anac9wjWRvwz84XJ4ES_8QFRUgtS7dWiKW=gdHrw@mail.gmail.com>
+Subject: Re: [PATCH nft v6 2/2]tests: py: add netns feature
 To:     Eric Garver <eric@garver.life>,
         Shekhar Sharma <shekhar250198@gmail.com>,
         Netfilter Development Mailing list 
@@ -68,74 +68,73 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Jun 11, 2019 at 9:09 PM Eric Garver <eric@garver.life> wrote:
+On Wed, Jun 12, 2019 at 12:17 AM Eric Garver <eric@garver.life> wrote:
 >
-> On Sun, Jun 09, 2019 at 11:47:38PM +0530, Shekhar Sharma wrote:
-> > This patch converts the 'nft-test.py' file to run on both python 2 and python3.
+> On Sun, Jun 09, 2019 at 11:48:49PM +0530, Shekhar Sharma wrote:
+> > This patch adds the netns feature to the 'nft-test.py' file.
 > >
 > > Signed-off-by: Shekhar Sharma <shekhar250198@gmail.com>
 > > ---
->
-> A couple nits below, but otherwise
->
-> Acked-by: Eric Garver <eric@garver.life>
->
-> > The version hystory of this patch is:
-> > v1:conversion to py3 by changing the print statements.
-> > v2:add the '__future__' package for compatibility with py2 and py3.
-> > v3:solves the 'version' problem in argparse by adding a new argument.
-> > v4:uses .format() method to make print statements clearer.
-> > v5:updated the shebang and corrected the sequence of import statements.
-> > v6:resent the same with small changes
+> > The version history of the patch is :
+> > v1: add the netns feature
+> > v2: use format() method to simplify print statements.
+> > v3: updated the shebang
+> > v4: resent the same with small changes
 > >
-> >  tests/py/nft-test.py | 42 ++++++++++++++++++++++--------------------
-> >  1 file changed, 22 insertions(+), 20 deletions(-)
+> >  tests/py/nft-test.py | 98 ++++++++++++++++++++++++++++++++++++--------
+> >  1 file changed, 80 insertions(+), 18 deletions(-)
 > >
 > > diff --git a/tests/py/nft-test.py b/tests/py/nft-test.py
-> > index 09d00dba..4e18ae54 100755
+> > index 4e18ae54..c9f65dc5 100755
 > > --- a/tests/py/nft-test.py
 > > +++ b/tests/py/nft-test.py
-> > @@ -1,4 +1,4 @@
-> > -#!/usr/bin/python2
-> > +#!/usr/bin/python
->
-> nit: I think this shebang is more correct as it allows virtualenvs
->
->   #!/usr/bin/env python
->
-> But we can always call the tests with an explicit interpreter
->
->   # .../my/bin/python ./nft-test.py
->
-Sure, I will update it and post the patch.
-
-> >  #
-> >  # (C) 2014 by Ana Rey Botello <anarey@gmail.com>
-> >  #
 > [..]
-> > @@ -1358,6 +1359,10 @@ def main():
-> >      parser.add_argument('-s', '--schema', action='store_true',
-> >                          dest='enable_schema',
-> >                          help='verify json input/output against schema')
+> > @@ -245,6 +251,8 @@ def table_delete(table, filename=None, lineno=None):
+> >          return -1
+> >
+> >      cmd = "delete table %s" % table
+> > +    if netns:
+> > +        cmd = "ip netns exec ___nftables-container-test {}".format(cmd)
+>
+> Can we pass the netns name via the netns argument? Then we don't have to
+> have instances of ___nftables-container-test in the command literals.
+OK.
+
+> Just make netns part of your string format. You can also change the
+> default arg value to "".
+>
+Should i keep the default value in all the occurrences (in those
+functions as well where no other default arguments are used? )
+
+> Please fix all occurrences.
+>
+> >      ret = execute_cmd(cmd, filename, lineno)
+> >      if ret != 0:
+> >          reason = "%s: I cannot delete table %s. Giving up!" % (cmd, table)
+> [..]
+> > @@ -1208,6 +1262,9 @@ def run_test_file(filename, force_all_family_option, specific_file):
+> >      filename_path = os.path.join(TESTS_PATH, filename)
+> >      f = open(filename_path)
+> >      tests = passed = total_unit_run = total_warning = total_error = 0
+> > +    if netns:
+> > +        execute_cmd("ip netns add ___nftables-container-test", filename, 0)
 > > +
 >
-> nit: This adds a line with a tab, which both git-am and flake8 complain
-> about.
+> netns is not defined here.
 >
-Will remove it.
-
-> > +    parser.add_argument('-v', '--version', action='version',
-> > +                        version='1.0',
-> > +                        help='print the version information')
 > >
-> >      args = parser.parse_args()
-> >      global debug_option, need_fix_option, enable_json_option, enable_json_schema
-> > @@ -1372,15 +1377,15 @@ def main():
-> [..]
+> >      for lineno, line in enumerate(f):
+> >          sys.stdout.flush()
+> > @@ -1327,6 +1384,8 @@ def run_test_file(filename, force_all_family_option, specific_file):
+> >      else:
+> >          if tests == passed and tests > 0:
+> >              print(filename + ": " + Colors.GREEN + "OK" + Colors.ENDC)
+> > +        if netns:
+> > +            execute_cmd("ip netns del ___nftables-container-test", filename, 0)
+>
+> netns is not defined here.
 
-Since i have to update and resend the netns patch, i think i will make
-changes for these nits in that.
-Is it okay? or should i send a separate patch?
+Sorry, will correct that.
 
 Thanks!
 Shekhar
