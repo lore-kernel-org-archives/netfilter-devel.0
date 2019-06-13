@@ -2,64 +2,69 @@ Return-Path: <SRS0=MXD6=UM=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_MUTT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_NEOMUTT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AEA57C31E4A
-	for <netfilter-devel@archiver.kernel.org>; Thu, 13 Jun 2019 15:07:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C91E9C31E45
+	for <netfilter-devel@archiver.kernel.org>; Thu, 13 Jun 2019 15:33:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 91C31207E0
-	for <netfilter-devel@archiver.kernel.org>; Thu, 13 Jun 2019 15:07:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AA2D92082C
+	for <netfilter-devel@archiver.kernel.org>; Thu, 13 Jun 2019 15:33:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387546AbfFMPHF (ORCPT
+        id S1729064AbfFMPdi (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 13 Jun 2019 11:07:05 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:51092 "EHLO orbyte.nwl.cc"
+        Thu, 13 Jun 2019 11:33:38 -0400
+Received: from mail.us.es ([193.147.175.20]:58826 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1732621AbfFMPHE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 13 Jun 2019 11:07:04 -0400
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.91)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1hbRJd-0006jr-4a; Thu, 13 Jun 2019 17:07:01 +0200
-Date:   Thu, 13 Jun 2019 17:07:01 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Nicolas Dichtel <nicolas.dichtel@6wind.com>,
-        Florian Westphal <fw@strlen.de>,
-        netfilter-devel <netfilter-devel@vger.kernel.org>
-Subject: Re: nftables release
-Message-ID: <20190613150701.GM31548@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Nicolas Dichtel <nicolas.dichtel@6wind.com>,
-        Florian Westphal <fw@strlen.de>,
-        netfilter-devel <netfilter-devel@vger.kernel.org>
-References: <65ec483a-b8d7-530b-373f-6dcdd5f668c6@6wind.com>
- <20190530211628.lxufmb3gqizywkxe@breakpoint.cc>
+        id S1728378AbfFMKlT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 13 Jun 2019 06:41:19 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id CF70111F022
+        for <netfilter-devel@vger.kernel.org>; Thu, 13 Jun 2019 12:41:17 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C102CDA709
+        for <netfilter-devel@vger.kernel.org>; Thu, 13 Jun 2019 12:41:17 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id B6788DA706; Thu, 13 Jun 2019 12:41:17 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id B5766DA704;
+        Thu, 13 Jun 2019 12:41:15 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Thu, 13 Jun 2019 12:41:15 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (sys.soleta.eu [212.170.55.40])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 9232B4265A32;
+        Thu, 13 Jun 2019 12:41:15 +0200 (CEST)
+Date:   Thu, 13 Jun 2019 12:41:15 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Phil Sutter <phil@nwl.cc>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [nft PATCH] monitor: Accept -j flag
+Message-ID: <20190613104115.yquqdhrafi4pdwjx@salvia>
+References: <20190612172737.26214-1-phil@nwl.cc>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20190530211628.lxufmb3gqizywkxe@breakpoint.cc>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <20190612172737.26214-1-phil@nwl.cc>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi,
-
-On Thu, May 30, 2019 at 11:16:28PM +0200, Florian Westphal wrote:
-> Nicolas Dichtel <nicolas.dichtel@6wind.com> wrote:
-> > Hi,
-> > 
-> > is there any plan to release an official version of the nftables user-space utility?
-> > The last one (v0.9.0) is now one year old ;-)
+On Wed, Jun 12, 2019 at 07:27:37PM +0200, Phil Sutter wrote:
+> Make 'nft -j monitor' equal to 'nft monitor json' and change
+> documentation to use only the first variant since that is more intuitive
+> and also consistent with other commands.
 > 
-> There are a few bugs that are sorted out right now,
-> a new release should happen soon once that is resolved.
+> While being at it, drop references to XML from monitor section - it was
+> never supported.
 
-From my side things seem fine meanwhile. Are there concrete plans
-already?
-
-Cheers, Phil
+Applied, thanks Phil.
