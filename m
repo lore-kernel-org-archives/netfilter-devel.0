@@ -2,167 +2,74 @@ Return-Path: <SRS0=6ZhO=UO=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BE91AC31E47
-	for <netfilter-devel@archiver.kernel.org>; Sat, 15 Jun 2019 12:14:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 826F9C31E50
+	for <netfilter-devel@archiver.kernel.org>; Sat, 15 Jun 2019 13:10:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9E09921473
-	for <netfilter-devel@archiver.kernel.org>; Sat, 15 Jun 2019 12:14:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3D4B621473
+	for <netfilter-devel@archiver.kernel.org>; Sat, 15 Jun 2019 13:10:32 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="d6gihAVi"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726675AbfFOMO3 (ORCPT
+        id S1726327AbfFONKc (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 15 Jun 2019 08:14:29 -0400
-Received: from m97179.mail.qiye.163.com ([220.181.97.179]:42625 "EHLO
-        m97179.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725446AbfFOMO2 (ORCPT
+        Sat, 15 Jun 2019 09:10:32 -0400
+Received: from mail-vs1-f68.google.com ([209.85.217.68]:37325 "EHLO
+        mail-vs1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725944AbfFONKb (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 15 Jun 2019 08:14:28 -0400
-Received: from localhost.localdomain (unknown [123.59.132.129])
-        by m97179.mail.qiye.163.com (Hmail) with ESMTPA id D34E2E00D7F;
-        Sat, 15 Jun 2019 20:14:22 +0800 (CST)
-From:   wenxu@ucloud.cn
-To:     pablo@netfilter.org, fw@strlen.de
-Cc:     netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-Subject: [PATCH net-next] netfilter: bridge: add nft_bridge_pvid to tag the default pvid for non-tagged packet
-Date:   Sat, 15 Jun 2019 20:14:21 +0800
-Message-Id: <1560600861-8848-1-git-send-email-wenxu@ucloud.cn>
-X-Mailer: git-send-email 1.8.3.1
-X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZSVVJQ0hCQkJCSkJDQkpITVlXWShZQU
-        lCN1dZLVlBSVdZCQ4XHghZQVk1NCk2OjckKS43PlkG
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6Mk06Hjo4Czg*MhI3SzoMOAJD
-        DwoKCy1VSlVKTk1LTUtLQ01JQk1LVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJSFVO
-        QlVKSElVSklCWVdZCAFZQU9NTk83Bg++
-X-HM-Tid: 0a6b5b0f60a320bdkuqyd34e2e00d7f
+        Sat, 15 Jun 2019 09:10:31 -0400
+Received: by mail-vs1-f68.google.com with SMTP id v6so3484760vsq.4
+        for <netfilter-devel@vger.kernel.org>; Sat, 15 Jun 2019 06:10:31 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :content-transfer-encoding;
+        bh=JvQErW2S1udSTD8W0nTzqgcFzkx7AuoJDZc6dXCKJN0=;
+        b=d6gihAViOoDzMtD+O+j56a9JU0yTVMsJyuN24C3X1UXDAd1xP13CIr7wzkENDSZpBb
+         6mjwTCyiQO5Efdp/7GdmouIkWXmcwj0Ve/ij+ToagycMD3p89zwR26eXg//hzDr5wfwe
+         v/X+iCb4nFbOpLoMGHaVlv9Nxikzu+NWVU4vwN8mo3Gn1BN3PE0B/kN3aimM7rmBm8l8
+         6Uhn5HRy6g8Fg894Qx6vRiicciyPfKDoYEjlUwbeIxwXRYeszHD1QnjEMKCXqgIuazdO
+         lDJpw4qB0FMBOMs2XLrggbwtNgVH5WlrEsp/2lu4wIdnGll7Ubj24MIcpi22F+MPPoOA
+         F3rg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:content-transfer-encoding;
+        bh=JvQErW2S1udSTD8W0nTzqgcFzkx7AuoJDZc6dXCKJN0=;
+        b=BBdO97FdQp9kRlqyq5tF6+QtdRGEW55jnLGnuApWL23kpDsHpZ1Bo/ATwfxcbKtSRe
+         9HHEmfzSYF5pj5vcFzfVVgbkdL/sXNlYH5m5Ddq3zZ6P7dq078IjlouuZ7QgdWYWD5V6
+         ee7uFcdHlFYSjp4052IqFK8P1XNg9ronIYQlK8gUKbgEjBSNRYaL5eiebk1L6kLCtq1y
+         GzXaEqG9OU+pTIlAQ9jKIXyQ7TcoR2ruEzPpNeeegsQXJ107pP58BY9R89Dgd+w4vH3U
+         iryh9BHPIoa61VFEcXsMi8dwrHUzRZxbZrmI54O8NSyPSCXLnENH506ERQrUuQPXB/pv
+         kUTA==
+X-Gm-Message-State: APjAAAWet1WWNhkeQUdK1FhojRTIhdrdBfnSBWVwGkV1cRA89TYsCgP5
+        KJfF/j1/n4g3a+K/3uGSvyECmdvFPnY2eRX5iaitQA==
+X-Google-Smtp-Source: APXvYqxzXbNo4v9nPv2AOSLaCIzO8mC+IAQxD2VXLAs326C7wE5t88MaKDzSGW2E/xuMkXnvvZ6zFRYGI4Z3ex8DokY=
+X-Received: by 2002:a67:eb87:: with SMTP id e7mr44646819vso.118.1560604230422;
+ Sat, 15 Jun 2019 06:10:30 -0700 (PDT)
+MIME-Version: 1.0
+References: <20190605092818.13844-1-sveyret@gmail.com>
+In-Reply-To: <20190605092818.13844-1-sveyret@gmail.com>
+From:   =?UTF-8?Q?St=C3=A9phane_Veyret?= <sveyret@gmail.com>
+Date:   Sat, 15 Jun 2019 15:10:19 +0200
+Message-ID: <CAFs+hh7wVDZ3B=4WeshN8JQgav-HP3z0qSwZYnEpNPU2aBnz+Q@mail.gmail.com>
+Subject: Re: [PATCH nftables v4 0/1] add ct expectation support
+To:     netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: wenxu <wenxu@ucloud.cn>
+Hi,
 
-bridge vlan add dev veth1 vid 200 pvid untagged
-bridge vlan add dev veth2 vid 200 pvid untagged
+I was wondering if you had everything needed for code review of the
+conntrack expectation support=E2=80=A6
 
-nft add table bridge firewall
-nft add chain bridge firewall zones { type filter hook prerouting priority - 300 \; }
-nft add rule bridge firewall zones counter ct zone set vlan id map { 100 : 1, 200 : 2 }
-
-As above set the bridge port with pvid, the received packet don't contain
-the vlan tag which means the packet should belong to vlan 200 through pvid.
-With this pacth user can set the pvid in the prerouting hook before set zone id and
-conntrack. So the conntrack can only base on vlan id and map the vlan id to zone id
-in the prerouting hook.
-
-Signed-off-by: wenxu <wenxu@ucloud.cn>
----
- net/bridge/netfilter/Kconfig           |  6 ++++
- net/bridge/netfilter/Makefile          |  1 +
- net/bridge/netfilter/nft_bridge_pvid.c | 63 ++++++++++++++++++++++++++++++++++
- 3 files changed, 70 insertions(+)
- create mode 100644 net/bridge/netfilter/nft_bridge_pvid.c
-
-diff --git a/net/bridge/netfilter/Kconfig b/net/bridge/netfilter/Kconfig
-index f4fb0b9..61f2a31 100644
---- a/net/bridge/netfilter/Kconfig
-+++ b/net/bridge/netfilter/Kconfig
-@@ -33,6 +33,12 @@ config NF_CONNTRACK_BRIDGE
- 
- 	  To compile it as a module, choose M here.  If unsure, say N.
- 
-+config NFT_BRIDGE_PVID
-+	tristate "Netfilter nf_tables bridge pvid support"
-+	depends on BRIDGE_VLAN_FILTERING
-+	help
-+	  Add support to add vlan-pvid tag for non-tagged packets.
-+
- endif # NF_TABLES_BRIDGE
- 
- menuconfig BRIDGE_NF_EBTABLES
-diff --git a/net/bridge/netfilter/Makefile b/net/bridge/netfilter/Makefile
-index 9d77673..e0d6c59 100644
---- a/net/bridge/netfilter/Makefile
-+++ b/net/bridge/netfilter/Makefile
-@@ -4,6 +4,7 @@
- #
- 
- obj-$(CONFIG_NFT_BRIDGE_REJECT)  += nft_reject_bridge.o
-+obj-$(CONFIG_NFT_BRIDGE_PVID)  += nft_bridge_pvid.o
- 
- # connection tracking
- obj-$(CONFIG_NF_CONNTRACK_BRIDGE) += nf_conntrack_bridge.o
-diff --git a/net/bridge/netfilter/nft_bridge_pvid.c b/net/bridge/netfilter/nft_bridge_pvid.c
-new file mode 100644
-index 0000000..93a4d38
---- /dev/null
-+++ b/net/bridge/netfilter/nft_bridge_pvid.c
-@@ -0,0 +1,63 @@
-+// SPDX-License-Identifier: GPL-2.0
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/module.h>
-+#include <linux/netfilter_bridge.h>
-+#include <net/netfilter/nf_tables.h>
-+#include "../br_private.h"
-+
-+static void nft_bridge_pvid_eval(const struct nft_expr *expr,
-+				 struct nft_regs *regs,
-+				 const struct nft_pktinfo *pkt)
-+{
-+	struct sk_buff *skb = pkt->skb;
-+	struct net_bridge_port *p;
-+
-+	p = br_port_get_rtnl_rcu(skb->dev);
-+
-+	if (p && br_opt_get(p->br, BROPT_VLAN_ENABLED) &&
-+	    !skb_vlan_tag_present(skb)) {
-+		u16 pvid = br_get_pvid(nbp_vlan_group_rcu(p));
-+
-+		if (pvid)
-+			__vlan_hwaccel_put_tag(skb, p->br->vlan_proto, pvid);
-+	}
-+}
-+
-+static int nft_bridge_pvid_validate(const struct nft_ctx *ctx,
-+				    const struct nft_expr *expr,
-+				    const struct nft_data **data)
-+{
-+	return nft_chain_validate_hooks(ctx->chain, 1 << NF_BR_PRE_ROUTING);
-+}
-+
-+static struct nft_expr_type nft_bridge_pvid_type;
-+static const struct nft_expr_ops nft_bridge_pvid_ops = {
-+	.type		= &nft_bridge_pvid_type,
-+	.size		= NFT_EXPR_SIZE(0),
-+	.eval		= nft_bridge_pvid_eval,
-+	.validate	= nft_bridge_pvid_validate,
-+};
-+
-+static struct nft_expr_type nft_bridge_pvid_type __read_mostly = {
-+	.family		= NFPROTO_BRIDGE,
-+	.name		= "pvid",
-+	.ops		= &nft_bridge_pvid_ops,
-+	.owner		= THIS_MODULE,
-+};
-+
-+static int __init nft_bridge_pvid_module_init(void)
-+{
-+	return nft_register_expr(&nft_bridge_pvid_type);
-+}
-+
-+static void __exit nft_bridge_pvid_module_exit(void)
-+{
-+	nft_unregister_expr(&nft_bridge_pvid_type);
-+}
-+
-+module_init(nft_bridge_pvid_module_init);
-+module_exit(nft_bridge_pvid_module_exit);
-+
-+MODULE_LICENSE("GPL");
-+MODULE_ALIAS_NFT_AF_EXPR(AF_BRIDGE, "pvid");
--- 
-1.8.3.1
-
+St=C3=A9phane.
