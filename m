@@ -2,99 +2,107 @@ Return-Path: <SRS0=CDuC=UQ=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_MUTT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D662EC31E5C
-	for <netfilter-devel@archiver.kernel.org>; Mon, 17 Jun 2019 16:46:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B0AE8C31E5B
+	for <netfilter-devel@archiver.kernel.org>; Mon, 17 Jun 2019 17:18:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B0BF420863
-	for <netfilter-devel@archiver.kernel.org>; Mon, 17 Jun 2019 16:46:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 91C5E20657
+	for <netfilter-devel@archiver.kernel.org>; Mon, 17 Jun 2019 17:18:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727783AbfFQQqC (ORCPT
+        id S1728467AbfFQRSu (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 17 Jun 2019 12:46:02 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:33508 "EHLO orbyte.nwl.cc"
+        Mon, 17 Jun 2019 13:18:50 -0400
+Received: from mail.us.es ([193.147.175.20]:55824 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726005AbfFQQqB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 17 Jun 2019 12:46:01 -0400
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.91)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1hculb-0002HT-W4; Mon, 17 Jun 2019 18:46:00 +0200
-Date:   Mon, 17 Jun 2019 18:45:59 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, fw@strlen.de
-Subject: Re: [PATCH nft 3/5] src: add cache level flags
-Message-ID: <20190617164559.GV31548@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org, fw@strlen.de
-References: <20190617122518.10486-1-pablo@netfilter.org>
- <20190617122518.10486-3-pablo@netfilter.org>
- <20190617161104.GT31548@orbyte.nwl.cc>
- <20190617162840.pqeyndnjwh4amzwx@salvia>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190617162840.pqeyndnjwh4amzwx@salvia>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+        id S1728356AbfFQRSu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 17 Jun 2019 13:18:50 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id DEE3C303D03
+        for <netfilter-devel@vger.kernel.org>; Mon, 17 Jun 2019 19:18:47 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id D0334DA706
+        for <netfilter-devel@vger.kernel.org>; Mon, 17 Jun 2019 19:18:47 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id C5BB1DA704; Mon, 17 Jun 2019 19:18:47 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C9FDFDA703;
+        Mon, 17 Jun 2019 19:18:45 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Mon, 17 Jun 2019 19:18:45 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from salvia.here (sys.soleta.eu [212.170.55.40])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id 9AC414265A31;
+        Mon, 17 Jun 2019 19:18:45 +0200 (CEST)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     phil@nwl.cc, fw@strlen.de
+Subject: [PATCH nft,v2 1/5] src: remove useless parameter from cache_flush()
+Date:   Mon, 17 Jun 2019 19:18:38 +0200
+Message-Id: <20190617171842.1227-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.11.0
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Jun 17, 2019 at 06:28:40PM +0200, Pablo Neira Ayuso wrote:
-> On Mon, Jun 17, 2019 at 06:11:04PM +0200, Phil Sutter wrote:
-> > Hi,
-> > 
-> > On Mon, Jun 17, 2019 at 02:25:16PM +0200, Pablo Neira Ayuso wrote:
-> > [...]
-> > > -int cache_evaluate(struct nft_ctx *nft, struct list_head *cmds)
-> > > +unsigned int cache_evaluate(struct nft_ctx *nft, struct list_head *cmds)
-> > >  {
-> > > -	unsigned int echo_completeness = CMD_INVALID;
-> > > -	unsigned int completeness = CMD_INVALID;
-> > > +	unsigned int flags = NFT_CACHE_EMPTY;
-> > >  	struct cmd *cmd;
-> > >  
-> > >  	list_for_each_entry(cmd, cmds, list) {
-> > >  		switch (cmd->op) {
-> > >  		case CMD_ADD:
-> > >  		case CMD_INSERT:
-> > > -		case CMD_REPLACE:
-> > > -			if (nft_output_echo(&nft->output))
-> > > -				echo_completeness = cmd->op;
-> > > -
-> > > +			flags |= NFT_CACHE_TABLE |
-> > > +				 NFT_CACHE_CHAIN |
-> > > +				 NFT_CACHE_SET |
-> > > +				 NFT_CACHE_FLOWTABLE |
-> > > +				 NFT_CACHE_OBJECT;
-> > 
-> > This means we start fetching the cache for simple 'add rule' commands
-> > again, right?
-> 
-> We need these for references to sets, eg.
-> 
->         add rule x y ip saddr @x
-> 
-> same for other flowtable and object.
+Command type is never used in cache_flush().
 
-Oh, right. I got that wrong - old code is always fetching the above
-items unless there's no ruleset in kernel (i.e., returned genid is 0).
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+v2: no changes.
 
-I confused that with fetching rules which at some point started to
-happen by accident with my changes.
+ include/rule.h | 3 +--
+ src/evaluate.c | 2 +-
+ src/rule.c     | 2 +-
+ 3 files changed, 3 insertions(+), 4 deletions(-)
 
-> We should not use NFT_CACHE_RULE in this case, if this is what you
-> suggest.
+diff --git a/include/rule.h b/include/rule.h
+index b41825d000d6..299485ffeeaa 100644
+--- a/include/rule.h
++++ b/include/rule.h
+@@ -639,8 +639,7 @@ extern int do_command(struct netlink_ctx *ctx, struct cmd *cmd);
+ extern int cache_evaluate(struct nft_ctx *nft, struct list_head *cmds);
+ extern int cache_update(struct nft_ctx *ctx, enum cmd_ops cmd,
+ 			struct list_head *msgs);
+-extern void cache_flush(struct nft_ctx *ctx, enum cmd_ops cmd,
+-			struct list_head *msgs);
++extern void cache_flush(struct nft_ctx *ctx, struct list_head *msgs);
+ extern void cache_release(struct nft_cache *cache);
+ extern bool cache_is_complete(struct nft_cache *cache, enum cmd_ops cmd);
+ 
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 70c7e597f3b0..73a4be339ce1 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -3682,7 +3682,7 @@ static int cmd_evaluate_flush(struct eval_ctx *ctx, struct cmd *cmd)
+ 
+ 	switch (cmd->obj) {
+ 	case CMD_OBJ_RULESET:
+-		cache_flush(ctx->nft, cmd->op, ctx->msgs);
++		cache_flush(ctx->nft, ctx->msgs);
+ 		break;
+ 	case CMD_OBJ_TABLE:
+ 		/* Flushing a table does not empty the sets in the table nor remove
+diff --git a/src/rule.c b/src/rule.c
+index 0c0fd07ec70c..4407b0b0ceaa 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -297,7 +297,7 @@ static void __cache_flush(struct list_head *table_list)
+ 	}
+ }
+ 
+-void cache_flush(struct nft_ctx *nft, enum cmd_ops cmd, struct list_head *msgs)
++void cache_flush(struct nft_ctx *nft, struct list_head *msgs)
+ {
+ 	struct netlink_ctx ctx = {
+ 		.list		= LIST_HEAD_INIT(ctx.list),
+-- 
+2.11.0
 
-No, quite the opposite: I thought we could get by without fetching
-anything from kernel at all.
-
-Yet now I wonder why the handle guessing stops working, because the
-above can't be the cause of it.
-
-Cheers, Phil
