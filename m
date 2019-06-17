@@ -2,47 +2,47 @@ Return-Path: <SRS0=CDuC=UQ=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+X-Spam-Status: No, score=-4.0 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 29893C31E57
-	for <netfilter-devel@archiver.kernel.org>; Mon, 17 Jun 2019 10:32:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CA176C31E57
+	for <netfilter-devel@archiver.kernel.org>; Mon, 17 Jun 2019 10:33:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id EC8FD2084D
-	for <netfilter-devel@archiver.kernel.org>; Mon, 17 Jun 2019 10:32:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8B0CD2084D
+	for <netfilter-devel@archiver.kernel.org>; Mon, 17 Jun 2019 10:33:10 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=riseup.net header.i=@riseup.net header.b="aYWSCnA/"
+	dkim=pass (1024-bit key) header.d=riseup.net header.i=@riseup.net header.b="B4E9OohE"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727696AbfFQKcy (ORCPT
+        id S1727013AbfFQKdK (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 17 Jun 2019 06:32:54 -0400
-Received: from mx1.riseup.net ([198.252.153.129]:39710 "EHLO mx1.riseup.net"
+        Mon, 17 Jun 2019 06:33:10 -0400
+Received: from mx1.riseup.net ([198.252.153.129]:39840 "EHLO mx1.riseup.net"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726091AbfFQKcy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 17 Jun 2019 06:32:54 -0400
+        id S1726091AbfFQKdK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 17 Jun 2019 06:33:10 -0400
 Received: from bell.riseup.net (bell-pn.riseup.net [10.0.1.178])
         (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
         (Client CN "*.riseup.net", Issuer "COMODO RSA Domain Validation Secure Server CA" (verified OK))
-        by mx1.riseup.net (Postfix) with ESMTPS id C3DB61A1EBF
-        for <netfilter-devel@vger.kernel.org>; Mon, 17 Jun 2019 03:32:53 -0700 (PDT)
+        by mx1.riseup.net (Postfix) with ESMTPS id 968B21A7E04
+        for <netfilter-devel@vger.kernel.org>; Mon, 17 Jun 2019 03:33:09 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=riseup.net; s=squak;
-        t=1560767573; bh=I5OzXmZ3G9L9dTudKIYz75O7MV921EpqkroVOke4rmU=;
+        t=1560767589; bh=GK0V/0tDQwSjy/K6McWT6r9KN+83N5D/qXhQJKt875k=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=aYWSCnA/EBOzpyATodPAKk0q/dSXCSXmEfsQXobv++Idmfp/y3otuG0MSm/atlqDx
-         onqCy3CQI/3iCd78yjB2QWYZxHHgVxItHJbMFgUtJH34DsG3y2I1dEhjNSCbs2Z2HN
-         9Al6M0B6ZE9kf2f6mupz20MkaDtRI2Hg5CLfc+ME=
-X-Riseup-User-ID: 26BBDB4D4ACED3794BCF377EE03D321BB80D0FF075D3CE9E0166C23CA66E326E
+        b=B4E9OohESTWI9pNPwRZEsQK8+gt/osNwwDeoNtEYtxZPjoqH2dAcbCJ4Cl80WCUVq
+         kXCy54XtmLcLjNUNGKITwbDuUW/qOiZ7kyypNIg1E+F+NCiqg0hwjX6NvImoeva6dP
+         YK1M6RVhASrrCmlcIoigMl8Wj6RdCdwAX1zu3JOs=
+X-Riseup-User-ID: B17814BA79AFC129859F78467C8D6BA1F9CB6F3CCEBA1EC7CFC4A2D3AEC3CA20
 Received: from [127.0.0.1] (localhost [127.0.0.1])
-         by bell.riseup.net (Postfix) with ESMTPSA id C9B59223585;
-        Mon, 17 Jun 2019 03:32:52 -0700 (PDT)
+         by bell.riseup.net (Postfix) with ESMTPSA id C7948223585;
+        Mon, 17 Jun 2019 03:33:08 -0700 (PDT)
 From:   Fernando Fernandez Mancera <ffmancera@riseup.net>
 To:     netfilter-devel@vger.kernel.org
 Cc:     Fernando Fernandez Mancera <ffmancera@riseup.net>
-Subject: [PATCH nf-next WIP] netfilter: nf_tables: Add SYNPROXY support
-Date:   Mon, 17 Jun 2019 12:32:35 +0200
-Message-Id: <20190617103234.1357-2-ffmancera@riseup.net>
+Subject: [PATCH nft WIP] src: introduce SYNPROXY matching
+Date:   Mon, 17 Jun 2019 12:32:37 +0200
+Message-Id: <20190617103234.1357-3-ffmancera@riseup.net>
 In-Reply-To: <20190617103234.1357-1-ffmancera@riseup.net>
 References: <20190617103234.1357-1-ffmancera@riseup.net>
 MIME-Version: 1.0
@@ -52,45 +52,59 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Add SYNPROXY module support in nf_tables. It preserves the behaviour of the
-SYNPROXY target of iptables but structured in a different way to propose
-improvements in the future.
-
 Signed-off-by: Fernando Fernandez Mancera <ffmancera@riseup.net>
 ---
- include/uapi/linux/netfilter/nf_SYNPROXY.h |   4 +
- include/uapi/linux/netfilter/nf_tables.h   |  16 +
- net/netfilter/Kconfig                      |  11 +
- net/netfilter/Makefile                     |   1 +
- net/netfilter/nft_synproxy.c               | 328 +++++++++++++++++++++
- 5 files changed, 360 insertions(+)
- create mode 100644 net/netfilter/nft_synproxy.c
+ include/linux/netfilter/nf_SYNPROXY.h | 23 ++++++++++++
+ include/linux/netfilter/nf_tables.h   | 16 +++++++++
+ include/statement.h                   | 11 ++++++
+ src/evaluate.c                        | 16 +++++++++
+ src/netlink_delinearize.c             | 17 +++++++++
+ src/netlink_linearize.c               | 17 +++++++++
+ src/parser_bison.y                    | 48 +++++++++++++++++++++++++
+ src/scanner.l                         |  6 ++++
+ src/statement.c                       | 50 +++++++++++++++++++++++++++
+ 9 files changed, 204 insertions(+)
+ create mode 100644 include/linux/netfilter/nf_SYNPROXY.h
 
-diff --git a/include/uapi/linux/netfilter/nf_SYNPROXY.h b/include/uapi/linux/netfilter/nf_SYNPROXY.h
-index 068d1b3a6f06..0e7c39191819 100644
---- a/include/uapi/linux/netfilter/nf_SYNPROXY.h
-+++ b/include/uapi/linux/netfilter/nf_SYNPROXY.h
-@@ -9,6 +9,10 @@
- #define NF_SYNPROXY_OPT_SACK_PERM	0x04
- #define NF_SYNPROXY_OPT_TIMESTAMP	0x08
- #define NF_SYNPROXY_OPT_ECN		0x10
+diff --git a/include/linux/netfilter/nf_SYNPROXY.h b/include/linux/netfilter/nf_SYNPROXY.h
+new file mode 100644
+index 0000000..0e7c391
+--- /dev/null
++++ b/include/linux/netfilter/nf_SYNPROXY.h
+@@ -0,0 +1,23 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++#ifndef _NF_SYNPROXY_H
++#define _NF_SYNPROXY_H
++
++#include <linux/types.h>
++
++#define NF_SYNPROXY_OPT_MSS		0x01
++#define NF_SYNPROXY_OPT_WSCALE		0x02
++#define NF_SYNPROXY_OPT_SACK_PERM	0x04
++#define NF_SYNPROXY_OPT_TIMESTAMP	0x08
++#define NF_SYNPROXY_OPT_ECN		0x10
 +#define NF_SYNPROXY_FLAGMASK		(NF_SYNPROXY_OPT_MSS | \
 +					 NF_SYNPROXY_OPT_WSCALE | \
 +					 NF_SYNPROXY_OPT_SACK_PERM | \
 +					 NF_SYNPROXY_OPT_TIMESTAMP)
- 
- struct nf_synproxy_info {
- 	__u8	options;
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index 505393c6e959..f225f237f98a 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -1537,6 +1537,22 @@ enum nft_osf_flags {
- 	NFT_OSF_F_VERSION = (1 << 0),
++
++struct nf_synproxy_info {
++	__u8	options;
++	__u8	wscale;
++	__u16	mss;
++};
++
++#endif /* _NF_SYNPROXY_H */
+diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
+index 7bdb234..d9ccf3f 100644
+--- a/include/linux/netfilter/nf_tables.h
++++ b/include/linux/netfilter/nf_tables.h
+@@ -1529,6 +1529,22 @@ enum nft_osf_attributes {
  };
+ #define NFTA_OSF_MAX (__NFTA_OSF_MAX - 1)
  
 +/**
-+ * enum nft_synproxy_attributes - nf_tables synproxy expression
++ * enum nft_synproxy_attributes - nftables synproxy expression
 + * netlink attributes
 + *
 + * @NFTA_SYNPROXY_MSS: mss value sent to the backend (NLA_U16)
@@ -108,374 +122,329 @@ index 505393c6e959..f225f237f98a 100644
  /**
   * enum nft_device_attributes - nf_tables device netlink attributes
   *
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index 21025c2c605b..d59742408d9b 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -651,6 +651,17 @@ config NFT_TPROXY
- 	help
- 	  This makes transparent proxy support available in nftables.
+diff --git a/include/statement.h b/include/statement.h
+index 91d6e0e..f789ced 100644
+--- a/include/statement.h
++++ b/include/statement.h
+@@ -203,6 +203,14 @@ struct map_stmt {
  
-+config NFT_SYNPROXY
-+	tristate "Netfilter nf_tables SYNPROXY expression support"
-+	depends on NF_CONNTRACK && NETFILTER_ADVANCED
-+	select NETFILTER_SYNPROXY
-+	select SYN_COOKIES
-+	help
-+	  The SYNPROXY expression allows you to intercept TCP connections and
-+	  establish them using syncookies before they are passed on to the
-+	  server. This allows to avoid conntrack and server resource usage
-+	  during SYN-flood attacks.
-+
- if NF_TABLES_NETDEV
+ extern struct stmt *map_stmt_alloc(const struct location *loc);
  
- config NF_DUP_NETDEV
-diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index 72cca6b48960..deada20975ff 100644
---- a/net/netfilter/Makefile
-+++ b/net/netfilter/Makefile
-@@ -110,6 +110,7 @@ obj-$(CONFIG_NFT_SOCKET)	+= nft_socket.o
- obj-$(CONFIG_NFT_OSF)		+= nft_osf.o
- obj-$(CONFIG_NFT_TPROXY)	+= nft_tproxy.o
- obj-$(CONFIG_NFT_XFRM)		+= nft_xfrm.o
-+obj-$(CONFIG_NFT_SYNPROXY)	+= nft_synproxy.o
++struct synproxy_stmt {
++	uint16_t	mss;
++	uint8_t		wscale;
++	uint32_t	flags;
++};
++
++extern struct stmt *synproxy_stmt_alloc(const struct location *loc);
++
+ struct meter_stmt {
+ 	struct expr		*set;
+ 	struct expr		*key;
+@@ -270,6 +278,7 @@ extern struct stmt *xt_stmt_alloc(const struct location *loc);
+  * @STMT_FLOW_OFFLOAD:	flow offload statement
+  * @STMT_CONNLIMIT:	connection limit statement
+  * @STMT_MAP:		map statement
++ * @STMT_SYNPROXY:	synproxy statement
+  */
+ enum stmt_types {
+ 	STMT_INVALID,
+@@ -297,6 +306,7 @@ enum stmt_types {
+ 	STMT_FLOW_OFFLOAD,
+ 	STMT_CONNLIMIT,
+ 	STMT_MAP,
++	STMT_SYNPROXY,
+ };
  
- obj-$(CONFIG_NFT_NAT)		+= nft_chain_nat.o
+ /**
+@@ -361,6 +371,7 @@ struct stmt {
+ 		struct objref_stmt	objref;
+ 		struct flow_stmt	flow;
+ 		struct map_stmt		map;
++		struct synproxy_stmt	synproxy;
+ 	};
+ };
  
-diff --git a/net/netfilter/nft_synproxy.c b/net/netfilter/nft_synproxy.c
-new file mode 100644
-index 000000000000..e94e0a1c1722
---- /dev/null
-+++ b/net/netfilter/nft_synproxy.c
-@@ -0,0 +1,328 @@
-+// SPDX-License-Identifier: GPL-2.0
-+
-+#include <linux/types.h>
-+
-+#include <net/ip.h>
-+#include <net/tcp.h>
-+#include <net/netlink.h>
-+
-+#include <net/netfilter/nf_tables.h>
-+#include <net/netfilter/nf_conntrack.h>
-+#include <net/netfilter/nf_conntrack_ecache.h>
-+#include <net/netfilter/nf_conntrack_extend.h>
-+#include <net/netfilter/nf_conntrack_seqadj.h>
-+#include <net/netfilter/nf_conntrack_synproxy.h>
-+#include <net/netfilter/nf_synproxy.h>
-+
-+#include <linux/netfilter/nf_tables.h>
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 39101b4..04692b8 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -17,6 +17,7 @@
+ #include <linux/netfilter.h>
+ #include <linux/netfilter_arp.h>
+ #include <linux/netfilter/nf_tables.h>
 +#include <linux/netfilter/nf_SYNPROXY.h>
-+
-+struct nft_synproxy {
-+	u16			mss;
-+	u8			wscale;
-+	u32			flags;
-+};
-+
-+static const struct nla_policy nft_synproxy_policy[NFTA_SYNPROXY_MAX + 1] = {
-+	[NFTA_SYNPROXY_MSS]		= { .type = NLA_U16 },
-+	[NFTA_SYNPROXY_WSCALE]		= { .type = NLA_U8 },
-+	[NFTA_SYNPROXY_FLAGS]		= { .type = NLA_U32 },
-+};
-+
-+static struct nf_synproxy_info create_synproxy_info(struct nft_synproxy *expr)
+ #include <linux/netfilter_ipv4.h>
+ #include <netinet/ip_icmp.h>
+ #include <netinet/icmp6.h>
+@@ -2704,6 +2705,19 @@ static int stmt_evaluate_tproxy(struct eval_ctx *ctx, struct stmt *stmt)
+ 	return 0;
+ }
+ 
++static int stmt_evaluate_synproxy(struct eval_ctx *ctx, struct stmt *stmt)
 +{
-+	struct nf_synproxy_info info;
-+
-+	info.options = expr->flags;
-+	info.wscale = expr->wscale;
-+	info.mss = expr->mss;
-+
-+	return info;
-+}
-+
-+static void nft_synproxy_eval_v4(const struct nft_expr *expr,
-+				 struct nft_regs *regs,
-+				 const struct nft_pktinfo *pkt)
-+{
-+	struct nft_synproxy *priv = nft_expr_priv(expr);
-+	struct nf_synproxy_info info = create_synproxy_info(priv);
-+	struct synproxy_options opts = {};
-+	struct net *net = nft_net(pkt);
-+	struct synproxy_net *snet = synproxy_pernet(net);
-+	struct sk_buff *skb = pkt->skb;
-+	int thoff = pkt->xt.thoff;
-+	const struct tcphdr *tcp;
-+	struct tcphdr _tcph;
-+
-+	if (nf_ip_checksum(skb, nft_hook(pkt), thoff, IPPROTO_TCP)) {
-+		regs->verdict.code = NF_DROP;
-+		return;
-+	}
-+
-+	tcp = skb_header_pointer(skb, ip_hdrlen(skb),
-+				 sizeof(struct tcphdr), &_tcph);
-+	if (!tcp) {
-+		regs->verdict.code = NF_DROP;
-+		return;
-+	}
-+
-+	if (!synproxy_parse_options(skb, thoff, tcp, &opts)) {
-+		regs->verdict.code = NF_DROP;
-+		return;
-+	}
-+
-+	if (tcp->syn) {
-+		/* Initial SYN from client */
-+		this_cpu_inc(snet->stats->syn_received);
-+
-+		if (tcp->ece && tcp->cwr)
-+			opts.options |= NF_SYNPROXY_OPT_ECN;
-+
-+		opts.options &= priv->flags;
-+		if (opts.options & NF_SYNPROXY_OPT_TIMESTAMP)
-+			synproxy_init_timestamp_cookie(&info, &opts);
-+		else
-+			opts.options &= ~(NF_SYNPROXY_OPT_WSCALE |
-+					  NF_SYNPROXY_OPT_SACK_PERM |
-+					  NF_SYNPROXY_OPT_ECN);
-+
-+		synproxy_send_client_synack(net, skb, tcp, &opts);
-+		consume_skb(skb);
-+		regs->verdict.code = NF_STOLEN;
-+		return;
-+	} else if (tcp->ack) {
-+		/* ACK from client */
-+		if (synproxy_recv_client_ack(net, skb, tcp, &opts,
-+					     ntohl(tcp->seq))) {
-+			consume_skb(skb);
-+			regs->verdict.code = NF_STOLEN;
-+		} else {
-+			regs->verdict.code = NF_DROP;
-+		}
-+		return;
-+	}
-+
-+	regs->verdict.code = NFT_CONTINUE;
-+}
-+
-+#if IS_ENABLED(CONFIG_NF_TABLES_IPV6)
-+static void nft_synproxy_eval_v6(const struct nft_expr *expr,
-+				 struct nft_regs *regs,
-+				 const struct nft_pktinfo *pkt)
-+{
-+	struct nft_synproxy *priv = nft_expr_priv(expr);
-+	struct nf_synproxy_info info = create_synproxy_info(priv);
-+	struct synproxy_options opts = {};
-+	struct net *net = nft_net(pkt);
-+	struct synproxy_net *snet = synproxy_pernet(net);
-+	struct sk_buff *skb = pkt->skb;
-+	int thoff = pkt->xt.thoff;
-+	const struct tcphdr *tcp;
-+	struct tcphdr _tcph;
-+
-+	if (nf_ip_checksum(skb, nft_hook(pkt), thoff, IPPROTO_TCP)) {
-+		regs->verdict.code = NF_DROP;
-+		return;
-+	}
-+
-+	tcp = skb_header_pointer(skb, ip_hdrlen(skb),
-+				 sizeof(struct tcphdr), &_tcph);
-+	if (!tcp) {
-+		regs->verdict.code = NF_DROP;
-+		return;
-+	}
-+
-+	if (!synproxy_parse_options(skb, thoff, tcp, &opts)) {
-+		regs->verdict.code = NF_DROP;
-+		return;
-+	}
-+
-+	if (tcp->syn) {
-+		/* Initial SYN from client */
-+		this_cpu_inc(snet->stats->syn_received);
-+
-+		if (tcp->ece && tcp->cwr)
-+			opts.options |= NF_SYNPROXY_OPT_ECN;
-+
-+		opts.options &= priv->flags;
-+		if (opts.options & NF_SYNPROXY_OPT_TIMESTAMP)
-+			synproxy_init_timestamp_cookie(&info, &opts);
-+		else
-+			opts.options &= ~(NF_SYNPROXY_OPT_WSCALE |
-+					  NF_SYNPROXY_OPT_SACK_PERM |
-+					  NF_SYNPROXY_OPT_ECN);
-+
-+		synproxy_send_client_synack_ipv6(net, skb, tcp, &opts);
-+		consume_skb(skb);
-+		regs->verdict.code = NF_STOLEN;
-+		return;
-+	} else if (tcp->ack) {
-+		/* ACK from client */
-+		if (synproxy_recv_client_ack_ipv6(net, skb, tcp, &opts,
-+						  ntohl(tcp->seq))) {
-+			consume_skb(skb);
-+			regs->verdict.code = NF_STOLEN;
-+		} else {
-+			regs->verdict.code = NF_DROP;
-+		}
-+		return;
-+	}
-+
-+	regs->verdict.code = NFT_CONTINUE;
-+}
-+#endif /* IPv6 support */
-+
-+static void nft_synproxy_eval(const struct nft_expr *expr,
-+			      struct nft_regs *regs,
-+			      const struct nft_pktinfo *pkt)
-+{
-+	switch (nft_pf(pkt)) {
-+	case NFPROTO_IPV4:
-+		nft_synproxy_eval_v4(expr, regs, pkt);
-+		return;
-+#if IS_ENABLED(CONFIG_NF_TABLES_IPV6)
-+	case NFPROTO_IPV6:
-+		nft_synproxy_eval_v6(expr, regs, pkt);
-+		return;
-+#endif
-+	}
-+	regs->verdict.code = NFT_BREAK;
-+}
-+
-+static int nft_synproxy_init(const struct nft_ctx *ctx,
-+			     const struct nft_expr *expr,
-+			     const struct nlattr * const tb[])
-+{
-+	struct synproxy_net *snet = synproxy_pernet(ctx->net);
-+	struct nft_synproxy *priv = nft_expr_priv(expr);
-+	u32 flags;
-+	int err;
-+
-+	err = nf_ct_netns_get(ctx->net, ctx->family);
-+	if (err)
-+		goto nf_ct_failure;
-+
-+	switch (ctx->family) {
-+	case NFPROTO_IPV4:
-+		err = nf_synproxy_ipv4_init(snet, ctx->net);
-+		if (err)
-+			goto nf_ct_failure;
-+		snet->hook_ref4++;
-+		break;
-+	case NFPROTO_IPV6:
-+		err = nf_synproxy_ipv6_init(snet, ctx->net);
-+		if (err)
-+			goto nf_ct_failure;
-+		snet->hook_ref6++;
-+		break;
-+	case NFPROTO_INET:
-+		err = nf_synproxy_ipv4_init(snet, ctx->net);
-+		if (err)
-+			goto nf_ct_failure;
-+		err = nf_synproxy_ipv6_init(snet, ctx->net);
-+		if (err)
-+			goto nf_ct_failure;
-+		snet->hook_ref4++;
-+		snet->hook_ref6++;
-+		break;
-+	}
-+
-+	if (tb[NFTA_SYNPROXY_MSS])
-+		priv->mss = ntohs(nla_get_be16(tb[NFTA_SYNPROXY_MSS]));
-+	if (tb[NFTA_SYNPROXY_WSCALE])
-+		priv->wscale = nla_get_u8(tb[NFTA_SYNPROXY_WSCALE]);
-+	if (tb[NFTA_SYNPROXY_FLAGS]) {
-+		flags = ntohl(nla_get_be32(tb[NFTA_SYNPROXY_FLAGS]));
-+		if (flags != 0 && (flags & NF_SYNPROXY_FLAGMASK) == 0)
-+			return -EINVAL;
-+		priv->flags = flags;
-+	}
-+	return 0;
-+
-+nf_ct_failure:
-+	nf_ct_netns_put(ctx->net, ctx->family);
-+	return err;
-+}
-+
-+static void nft_synproxy_destroy(const struct nft_ctx *ctx,
-+				 const struct nft_expr *expr)
-+{
-+	struct synproxy_net *snet = synproxy_pernet(ctx->net);
-+
-+	switch (ctx->family) {
-+	case NFPROTO_IPV4:
-+		nf_synproxy_ipv4_fini(snet, ctx->net);
-+		break;
-+	case NFPROTO_IPV6:
-+		nf_synproxy_ipv6_fini(snet, ctx->net);
-+		break;
-+	case NFPROTO_INET:
-+		nf_synproxy_ipv4_fini(snet, ctx->net);
-+		nf_synproxy_ipv6_fini(snet, ctx->net);
-+		break;
-+	}
-+	nf_ct_netns_put(ctx->net, ctx->family);
-+}
-+
-+static int nft_synproxy_dump(struct sk_buff *skb, const struct nft_expr *expr)
-+{
-+	const struct nft_synproxy *priv = nft_expr_priv(expr);
-+
-+	if (nla_put_be16(skb, NFTA_SYNPROXY_MSS, ntohs(priv->mss)))
-+		goto nla_put_failure;
-+
-+	if (nla_put_u8(skb, NFTA_SYNPROXY_WSCALE, priv->wscale))
-+		goto nla_put_failure;
-+
-+	if (nla_put_be32(skb, NFTA_SYNPROXY_FLAGS, ntohl(priv->flags)))
-+		goto nla_put_failure;
++	printf("Values of the synproxy expr: %u %u\n", stmt->synproxy.mss, stmt->synproxy.wscale);
++	if (stmt->synproxy.flags != 0 &&
++	    !(stmt->synproxy.flags & (NF_SYNPROXY_OPT_MSS |
++				      NF_SYNPROXY_OPT_WSCALE |
++				      NF_SYNPROXY_OPT_TIMESTAMP |
++				      NF_SYNPROXY_OPT_SACK_PERM)))
++		return stmt_error(ctx, stmt, "This flags are not supported for SYNPROXY");
 +
 +	return 0;
-+
-+nla_put_failure:
-+	return -1;
 +}
 +
-+static int nft_synproxy_validate(const struct nft_ctx *ctx,
-+				 const struct nft_expr *expr,
-+				 const struct nft_data **data)
+ static int stmt_evaluate_dup(struct eval_ctx *ctx, struct stmt *stmt)
+ {
+ 	int err;
+@@ -3048,6 +3062,8 @@ int stmt_evaluate(struct eval_ctx *ctx, struct stmt *stmt)
+ 		return stmt_evaluate_objref(ctx, stmt);
+ 	case STMT_MAP:
+ 		return stmt_evaluate_map(ctx, stmt);
++	case STMT_SYNPROXY:
++		return stmt_evaluate_synproxy(ctx, stmt);
+ 	default:
+ 		BUG("unknown statement type %s\n", stmt->ops->name);
+ 	}
+diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
+index 0270e1f..2785325 100644
+--- a/src/netlink_delinearize.c
++++ b/src/netlink_delinearize.c
+@@ -1010,6 +1010,22 @@ out_err:
+ 	xfree(stmt);
+ }
+ 
++static void netlink_parse_synproxy(struct netlink_parse_ctx *ctx,
++				   const struct location *loc,
++				   const struct nftnl_expr *nle)
 +{
-+	return nft_chain_validate_hooks(ctx->chain, (1 << NF_INET_LOCAL_IN) |
-+						    (1 << NF_INET_FORWARD));
++	struct stmt *stmt;
++
++	stmt = synproxy_stmt_alloc(loc);
++	stmt->synproxy.mss = nftnl_expr_get_u16(nle, NFTNL_EXPR_SYNPROXY_MSS);
++	stmt->synproxy.wscale = nftnl_expr_get_u8(nle,
++						  NFTNL_EXPR_SYNPROXY_WSCALE);
++	stmt->synproxy.flags = nftnl_expr_get_u32(nle,
++						  NFTNL_EXPR_SYNPROXY_FLAGS);
++
++	ctx->stmt = stmt;
 +}
 +
-+static struct nft_expr_type nft_synproxy_type;
-+static const struct nft_expr_ops nft_synproxy_ops = {
-+	.eval		= nft_synproxy_eval,
-+	.size		= NFT_EXPR_SIZE(sizeof(struct nft_synproxy)),
-+	.init		= nft_synproxy_init,
-+	.destroy	= nft_synproxy_destroy,
-+	.dump		= nft_synproxy_dump,
-+	.type		= &nft_synproxy_type,
-+	.validate	= nft_synproxy_validate,
-+};
+ static void netlink_parse_tproxy(struct netlink_parse_ctx *ctx,
+ 			      const struct location *loc,
+ 			      const struct nftnl_expr *nle)
+@@ -1476,6 +1492,7 @@ static const struct {
+ 	{ .name = "tcpopt",	.parse = netlink_parse_exthdr },
+ 	{ .name = "flow_offload", .parse = netlink_parse_flow_offload },
+ 	{ .name = "xfrm",	.parse = netlink_parse_xfrm },
++	{ .name = "synproxy",	.parse = netlink_parse_synproxy },
+ };
+ 
+ static int netlink_parse_expr(const struct nftnl_expr *nle,
+diff --git a/src/netlink_linearize.c b/src/netlink_linearize.c
+index 2c6aa64..498326d 100644
+--- a/src/netlink_linearize.c
++++ b/src/netlink_linearize.c
+@@ -1141,6 +1141,21 @@ static void netlink_gen_tproxy_stmt(struct netlink_linearize_ctx *ctx,
+ 	nftnl_rule_add_expr(ctx->nlr, nle);
+ }
+ 
++static void netlink_gen_synproxy_stmt(struct netlink_linearize_ctx *ctx,
++				      const struct stmt *stmt)
++{
++	struct nftnl_expr *nle;
 +
-+static struct nft_expr_type nft_synproxy_type __read_mostly = {
-+	.ops		= &nft_synproxy_ops,
++	nle = alloc_nft_expr("synproxy");
++	nftnl_expr_set_u16(nle, NFTNL_EXPR_SYNPROXY_MSS, stmt->synproxy.mss);
++	nftnl_expr_set_u8(nle, NFTNL_EXPR_SYNPROXY_WSCALE,
++			  stmt->synproxy.wscale);
++	nftnl_expr_set_u32(nle, NFTNL_EXPR_SYNPROXY_FLAGS,
++			   stmt->synproxy.flags);
++
++	nftnl_rule_add_expr(ctx->nlr, nle);
++}
++
+ static void netlink_gen_dup_stmt(struct netlink_linearize_ctx *ctx,
+ 				 const struct stmt *stmt)
+ {
+@@ -1382,6 +1397,8 @@ static void netlink_gen_stmt(struct netlink_linearize_ctx *ctx,
+ 		return netlink_gen_nat_stmt(ctx, stmt);
+ 	case STMT_TPROXY:
+ 		return netlink_gen_tproxy_stmt(ctx, stmt);
++	case STMT_SYNPROXY:
++		return netlink_gen_synproxy_stmt(ctx, stmt);
+ 	case STMT_DUP:
+ 		return netlink_gen_dup_stmt(ctx, stmt);
+ 	case STMT_QUEUE:
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index 97a48f3..61e0888 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -23,6 +23,7 @@
+ #include <linux/netfilter/nf_nat.h>
+ #include <linux/netfilter/nf_log.h>
+ #include <linux/netfilter/nfnetlink_osf.h>
++#include <linux/netfilter/nf_SYNPROXY.h>
+ #include <linux/xfrm.h>
+ #include <netinet/ip_icmp.h>
+ #include <netinet/icmp6.h>
+@@ -200,6 +201,12 @@ int nft_lex(void *, void *, void *);
+ 
+ %token OSF			"osf"
+ 
++%token SYNPROXY			"synproxy"
++%token MSS			"mss"
++%token WSCALE			"wscale"
++%token TIMESTAMP		"timestamp"
++%token SACKPERM			"sack-perm"
++
+ %token HOOK			"hook"
+ %token DEVICE			"device"
+ %token DEVICES			"devices"
+@@ -601,6 +608,9 @@ int nft_lex(void *, void *, void *);
+ %type <val>			nf_nat_flags nf_nat_flag offset_opt
+ %type <stmt>			tproxy_stmt
+ %destructor { stmt_free($$); }	tproxy_stmt
++%type <stmt>			synproxy_stmt synproxy_stmt_alloc
++%destructor { stmt_free($$); }	synproxy_stmt synproxy_stmt_alloc
++
+ 
+ %type <stmt>			queue_stmt queue_stmt_alloc
+ %destructor { stmt_free($$); }	queue_stmt queue_stmt_alloc
+@@ -2245,6 +2255,7 @@ stmt			:	verdict_stmt
+ 			|	fwd_stmt
+ 			|	set_stmt
+ 			|	map_stmt
++			|	synproxy_stmt
+ 			;
+ 
+ verdict_stmt		:	verdict_expr
+@@ -2675,6 +2686,43 @@ tproxy_stmt		:	TPROXY TO stmt_expr
+ 			}
+ 			;
+ 
++synproxy_stmt		:	synproxy_stmt_alloc
++			|	synproxy_stmt_alloc	synproxy_args
++			;
++
++synproxy_stmt_alloc	:	SYNPROXY
++			{
++				$$ = synproxy_stmt_alloc(&@$);
++			}
++			;
++
++synproxy_args		:	synproxy_arg
++			{
++				$<stmt>$	= $<stmt>0;
++			}
++			|	synproxy_args	synproxy_arg
++			;
++
++synproxy_arg		:	MSS	NUM
++			{
++				$<stmt>0->synproxy.mss = $2;
++				$<stmt>0->synproxy.flags |= NF_SYNPROXY_OPT_MSS;
++			}
++			|	WSCALE	NUM
++			{
++				$<stmt>0->synproxy.wscale = $2;
++				$<stmt>0->synproxy.flags |= NF_SYNPROXY_OPT_WSCALE;
++			}
++			|	TIMESTAMP
++			{
++				$<stmt>0->synproxy.flags |= NF_SYNPROXY_OPT_TIMESTAMP;
++			}
++			|	SACKPERM
++			{
++				$<stmt>0->synproxy.flags |= NF_SYNPROXY_OPT_SACK_PERM;
++			}
++			;
++
+ primary_stmt_expr	:	symbol_expr		{ $$ = $1; }
+ 			|	integer_expr		{ $$ = $1; }
+ 			|	boolean_expr		{ $$ = $1; }
+diff --git a/src/scanner.l b/src/scanner.l
+index d1f6e87..e990cc6 100644
+--- a/src/scanner.l
++++ b/src/scanner.l
+@@ -543,6 +543,12 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
+ 
+ "osf"			{ return OSF; }
+ 
++"synproxy"		{ return SYNPROXY; }
++"mss"			{ return MSS; }
++"wscale"		{ return WSCALE; }
++"timestamp"		{ return TIMESTAMP; }
++"sack-perm"		{ return SACKPERM; }
++
+ "notrack"		{ return NOTRACK; }
+ 
+ "options"		{ return OPTIONS; }
+diff --git a/src/statement.c b/src/statement.c
+index a9e8b3a..3489e3e 100644
+--- a/src/statement.c
++++ b/src/statement.c
+@@ -29,6 +29,7 @@
+ #include <netinet/in.h>
+ #include <linux/netfilter/nf_nat.h>
+ #include <linux/netfilter/nf_log.h>
++#include <linux/netfilter/nf_SYNPROXY.h>
+ 
+ struct stmt *stmt_alloc(const struct location *loc,
+ 			const struct stmt_ops *ops)
+@@ -877,3 +878,52 @@ struct stmt *xt_stmt_alloc(const struct location *loc)
+ {
+ 	return stmt_alloc(loc, &xt_stmt_ops);
+ }
++
++static const char *synproxy_sack_to_str(const uint32_t flags)
++{
++	if (flags & NF_SYNPROXY_OPT_SACK_PERM)
++		return " sack-perm";
++
++	return "";
++}
++
++static const char *synproxy_timestamp_to_str(const uint32_t flags)
++{
++	if (flags & NF_SYNPROXY_OPT_TIMESTAMP)
++		return " timestamp";
++
++	return "";
++}
++
++static void synproxy_stmt_print(const struct stmt *stmt,
++				struct output_ctx *octx)
++{
++	uint32_t flags = stmt->synproxy.flags;
++	const char *ts_str = synproxy_timestamp_to_str(flags);
++	const char *sack_str = synproxy_sack_to_str(flags);
++
++	if (flags & (NF_SYNPROXY_OPT_MSS | NF_SYNPROXY_OPT_WSCALE))
++		nft_print(octx, "synproxy mss %u wscale %u%s%s",
++			  stmt->synproxy.mss, stmt->synproxy.wscale,
++			  ts_str, sack_str);
++	else if (flags & NF_SYNPROXY_OPT_MSS)
++		nft_print(octx, "synproxy mss %u%s%s", stmt->synproxy.mss,
++			  ts_str, sack_str);
++	else if (flags & NF_SYNPROXY_OPT_WSCALE)
++		nft_print(octx, "synproxy wscale %u%s%s", stmt->synproxy.wscale,
++			  ts_str, sack_str);
++	else
++		nft_print(octx, "synproxy%s%s", ts_str, sack_str);
++
++}
++
++static const struct stmt_ops synproxy_stmt_ops = {
++	.type		= STMT_SYNPROXY,
 +	.name		= "synproxy",
-+	.owner		= THIS_MODULE,
-+	.policy		= nft_synproxy_policy,
-+	.maxattr	= NFTA_OSF_MAX,
++	.print		= synproxy_stmt_print,
 +};
 +
-+static int __init nft_synproxy_module_init(void)
++struct stmt *synproxy_stmt_alloc(const struct location *loc)
 +{
-+	return nft_register_expr(&nft_synproxy_type);
++	return stmt_alloc(loc, &synproxy_stmt_ops);
 +}
-+
-+static void __exit nft_synproxy_module_exit(void)
-+{
-+	return nft_unregister_expr(&nft_synproxy_type);
-+}
-+
-+module_init(nft_synproxy_module_init);
-+module_exit(nft_synproxy_module_exit);
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Fernando Fernandez <ffmancera@riseup.net>");
-+MODULE_ALIAS_NFT_EXPR("synproxy");
 -- 
 2.20.1
 
