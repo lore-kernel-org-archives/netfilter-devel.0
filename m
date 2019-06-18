@@ -2,104 +2,70 @@ Return-Path: <SRS0=xYYy=UR=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_NEOMUTT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 12408C31E5D
-	for <netfilter-devel@archiver.kernel.org>; Tue, 18 Jun 2019 14:27:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B55F3C31E5B
+	for <netfilter-devel@archiver.kernel.org>; Tue, 18 Jun 2019 14:31:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id EA35D213F2
-	for <netfilter-devel@archiver.kernel.org>; Tue, 18 Jun 2019 14:27:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8F19C21479
+	for <netfilter-devel@archiver.kernel.org>; Tue, 18 Jun 2019 14:31:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729042AbfFRO1h (ORCPT
+        id S1729157AbfFRObL (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 18 Jun 2019 10:27:37 -0400
-Received: from m97179.mail.qiye.163.com ([220.181.97.179]:59553 "EHLO
-        m97179.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725919AbfFRO1g (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 18 Jun 2019 10:27:36 -0400
-Received: from [192.168.1.5] (unknown [116.234.3.233])
-        by m97179.mail.qiye.163.com (Hmail) with ESMTPA id 73226E01650;
-        Tue, 18 Jun 2019 22:27:23 +0800 (CST)
-Subject: Re: [PATCH] netfilter: nft_paylaod: add base type
- NFT_PAYLOAD_LL_HEADER_NO_TAG
-To:     Florian Westphal <fw@strlen.de>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-References: <1560151280-28908-1-git-send-email-wenxu@ucloud.cn>
- <20190610094433.3wjmpfiph7iwguan@breakpoint.cc>
- <20190617223004.tnqz2bl7qp63fcfy@salvia>
- <20190617224232.55hldt4bw2qcmnll@breakpoint.cc>
- <22ab95cb-9dca-1e48-4ca0-965d340e7d32@ucloud.cn>
- <20190618093748.dydodhngydfcfmeh@breakpoint.cc>
-From:   wenxu <wenxu@ucloud.cn>
-Message-ID: <591caf69-ba08-33b5-5330-8230779cc903@ucloud.cn>
-Date:   Tue, 18 Jun 2019 22:27:12 +0800
-User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:60.0) Gecko/20100101
- Thunderbird/60.6.1
+        Tue, 18 Jun 2019 10:31:11 -0400
+Received: from mx1.redhat.com ([209.132.183.28]:37578 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726047AbfFRObL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 18 Jun 2019 10:31:11 -0400
+Received: from smtp.corp.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mx1.redhat.com (Postfix) with ESMTPS id 2F8F3307D90E;
+        Tue, 18 Jun 2019 14:31:10 +0000 (UTC)
+Received: from egarver.localdomain (ovpn-121-240.rdu2.redhat.com [10.10.121.240])
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id 3A3F27BE64;
+        Tue, 18 Jun 2019 14:31:07 +0000 (UTC)
+Date:   Tue, 18 Jun 2019 10:31:06 -0400
+From:   Eric Garver <eric@garver.life>
+To:     Shekhar Sharma <shekhar250198@gmail.com>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft v7 1/2]tests:py: conversion to  python3
+Message-ID: <20190618143106.tgpedjytw74octms@egarver.localdomain>
+Mail-Followup-To: Eric Garver <eric@garver.life>,
+        Shekhar Sharma <shekhar250198@gmail.com>,
+        netfilter-devel@vger.kernel.org
+References: <20190614143144.10482-1-shekhar250198@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <20190618093748.dydodhngydfcfmeh@breakpoint.cc>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-X-HM-Spam-Status: e1kfGhgUHx5ZQUhXWQgYFAkeWUFZVkpVQ05KS0tLSkNCTENKSkJZV1koWU
-        FJQjdXWS1ZQUlXWQkOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6OUk6Eww5KTg5NhA5Sxk*AxgQ
-        LAoaCzBVSlVKTk1LQ01DS09ITE1JVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpKTVVJ
-        SE9VSFVJSEhZV1kIAVlBSEJKSTcG
-X-HM-Tid: 0a6b6afc3b9820bdkuqy73226e01650
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190614143144.10482-1-shekhar250198@gmail.com>
+User-Agent: NeoMutt/20180716
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.11
+X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.5.16 (mx1.redhat.com [10.5.110.48]); Tue, 18 Jun 2019 14:31:10 +0000 (UTC)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+On Fri, Jun 14, 2019 at 08:01:44PM +0530, Shekhar Sharma wrote:
+> This patch converts the 'nft-test.py' file to run on both python 2 and python3.
+> 
+> Signed-off-by: Shekhar Sharma <shekhar250198@gmail.com>
+> ---
+> The version hystory of this patch is:
+> v1:conversion to py3 by changing the print statements.
+> v2:add the '__future__' package for compatibility with py2 and py3.
+> v3:solves the 'version' problem in argparse by adding a new argument.
+> v4:uses .format() method to make print statements clearer.
+> v5:updated the shebang and corrected the sequence of import statements.
+> v6:resent the same with small changes
+> v7:resent with small changes
 
-在 2019/6/18 17:37, Florian Westphal 写道:
-> wenxu <wenxu@ucloud.cn> wrote:
->> On 6/18/2019 6:42 AM, Florian Westphal wrote:
->>> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
->>>>> Subject: Change bridge l3 dependency to meta protocol
->>>>>
->>>>> This examines skb->protocol instead of ethernet header type, which
->>>>> might be different when vlan is involved.
->>>>>  
->>>>> +	if (ctx->pctx.family == NFPROTO_BRIDGE && desc == &proto_eth) {
->>>>> +		if (expr->payload.desc == &proto_ip ||
->>>>> +		    expr->payload.desc == &proto_ip6)
->>>>> +			desc = &proto_metaeth;
->>>>> +	}i
->>>> Is this sufficient to restrict the matching? Is this still buggy from
->>>> ingress?
->>> This is what netdev family uses as well (skb->protocol i mean).
->>> I'm not sure it will work for output however (haven't checked).
->>>
->>>> I wonder if an explicit NFT_PAYLOAD_CHECK_VLAN flag would be useful in
->>>> the kernel, if so we could rename NFTA_PAYLOAD_CSUM_FLAGS to
->>>> NFTA_PAYLOAD_FLAGS and place it there. Just an idea.
->>> Another unresolved issue is presence of multiple vlan tags, so we might
->>> have to add yet another meta key to retrieve the l3 protocol in use
->> Maybe add a l3proto meta key can handle the multiple vlan tags case with the l3proto dependency.  It
->> should travese all the vlan tags and find the real l3 proto.
-> Yes, something like this.
->
-> We also need to audit netdev and bridge expressions (reject is known broken)
-> to handle vlans properly.
->
-> Still, switching nft to prefer skb->protocol instead of eth_hdr->type
-> for dependencies would be good as this doesn't need kernel changes and solves
-> the immediate problem of 'ip ...' not matching in case of vlan.
->
-> If you have time, could you check if using skb->protocol works for nft
-> bridge in output, i.e. does 'nft ip protocol icmp' match when its used
-> from bridge output path with meta protocol dependency with and without
-> vlan in use?
+"with small changes" is not helpful. In the future please list what was
+actually changed so reviewers know what to focus on.
 
-I just check the kernel codes and test with the output chain, the meta protocol dependency can
+Patch looks good though.
 
-also work in the outpu chain.
-
-But this patch can't resolve the multiple vlan tags, It need another meta l3proto which do care about
-
-how many vlan tags in the frame.
-
+Acked-by: Eric Garver <eric@garver.life>
