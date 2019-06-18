@@ -2,123 +2,114 @@ Return-Path: <SRS0=xYYy=UR=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_NEOMUTT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BB2B0C31E5D
-	for <netfilter-devel@archiver.kernel.org>; Tue, 18 Jun 2019 09:46:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 72501C31E51
+	for <netfilter-devel@archiver.kernel.org>; Tue, 18 Jun 2019 09:46:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9F4392070B
-	for <netfilter-devel@archiver.kernel.org>; Tue, 18 Jun 2019 09:46:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 43FAA2070B
+	for <netfilter-devel@archiver.kernel.org>; Tue, 18 Jun 2019 09:46:49 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Pc7Qh9WE"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729586AbfFRJqS (ORCPT
+        id S1729308AbfFRJqt (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 18 Jun 2019 05:46:18 -0400
-Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:51458 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1729308AbfFRJqR (ORCPT
+        Tue, 18 Jun 2019 05:46:49 -0400
+Received: from mail-ed1-f49.google.com ([209.85.208.49]:36783 "EHLO
+        mail-ed1-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729256AbfFRJqs (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 18 Jun 2019 05:46:17 -0400
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.89)
-        (envelope-from <fw@strlen.de>)
-        id 1hdAgv-0007OL-QD; Tue, 18 Jun 2019 11:46:13 +0200
-Date:   Tue, 18 Jun 2019 11:46:13 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Florian Westphal <fw@strlen.de>, wenxu@ucloud.cn,
-        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-Subject: Re: [PATCH] netfilter: nft_paylaod: add base type
- NFT_PAYLOAD_LL_HEADER_NO_TAG
-Message-ID: <20190618094613.ztbwcclgsq54vkop@breakpoint.cc>
-References: <1560151280-28908-1-git-send-email-wenxu@ucloud.cn>
- <20190610094433.3wjmpfiph7iwguan@breakpoint.cc>
- <20190617223004.tnqz2bl7qp63fcfy@salvia>
- <20190617224232.55hldt4bw2qcmnll@breakpoint.cc>
- <20190618093508.3c5jjmmmuz3m26uj@salvia>
+        Tue, 18 Jun 2019 05:46:48 -0400
+Received: by mail-ed1-f49.google.com with SMTP id k21so20774991edq.3
+        for <netfilter-devel@vger.kernel.org>; Tue, 18 Jun 2019 02:46:48 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to;
+        bh=qM1XgpG+KcqvehwEbabnC6fhDkTgTXaew/DjqZUh34A=;
+        b=Pc7Qh9WEGjLEE+I3XfNFDzWQGM81GIVS6bR2JNaiQ3bGYi2ySjoy+4cbU18DsDGT8X
+         MW7JuashEuEd/tVuNWeOddfvc6v+WKB7jwoGgWb6FpkrBdbBjJnYxBMZg8LixF2CWycf
+         togRy9FklugInlwkgPD5MgJ+OMWZmvCSWRpviLm9Nod7lgG4SVlk41TmhxHm89gaQXyJ
+         ieIjWu69c8StoNySq/eBC+VAiLpEy2UJemyNoAg2/R2wKQNko+TQeq3hPQzpKGnY/xUw
+         qhULbV1bNkOBwfoOx0Yna7EUFnXcy1xhcUWmigsVxBYiDxOGzRsQsrZ13LwdnIfRIOhI
+         uvbw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to;
+        bh=qM1XgpG+KcqvehwEbabnC6fhDkTgTXaew/DjqZUh34A=;
+        b=I9DFN1Hhp4GMAI0jLJTjwwCPwLYyI8KpPgGpzCWfQdh9ORDVvLRYn6hH6uZG6mx59p
+         nCll9Ac462Fsw3cuFNw+EH0fMxNdb9u3y5tqfR7Wa3D2psyBWrFiDpujwm+0KKB1Q/EI
+         nUaUZqNTfjVihobg/pRASlUnbAcdGcSX00zhMmZfv1mfNcV2QZzD9n6OjcA8CMs4o3PL
+         dUlswjuFjWWTG14T5XlCmjxKLBmA0AorbtRtGIGOQnBOgeBL61hXxe8h219FWC63jEG+
+         LYRQKxXeWvizOhWVNItl3zInMiDQ26CsTG6cAaL9/8fuL6319zSKobyiQTJnBC5GAcs6
+         xrdA==
+X-Gm-Message-State: APjAAAVa9R1E+KMf82HQYtCDPH265UX+gegGrv+sSTR2a5/lW5FEVpOg
+        9ApQ4qMa5wMSQFSAgoL3HBoPdXucrNeR9gf3sdbuWuwm
+X-Google-Smtp-Source: APXvYqyP3i27oGSBTOZoAeeWwxg+9fNeV7jpWOAZGtRsZ5ALrilLtn9P3NVhBfjt8dD0LE/NXMWxmsMHfQreztS8i+U=
+X-Received: by 2002:a17:906:553:: with SMTP id k19mr46546801eja.73.1560851207035;
+ Tue, 18 Jun 2019 02:46:47 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190618093508.3c5jjmmmuz3m26uj@salvia>
-User-Agent: NeoMutt/20170113 (1.7.2)
+References: <CABVi_Eyws89e+y_4tGJNybGRdL4AarHG6GkNB0d0MGgLABuv3w@mail.gmail.com>
+In-Reply-To: <CABVi_Eyws89e+y_4tGJNybGRdL4AarHG6GkNB0d0MGgLABuv3w@mail.gmail.com>
+From:   Mojtaba <mespio@gmail.com>
+Date:   Tue, 18 Jun 2019 14:16:35 +0430
+Message-ID: <CABVi_Exnp5vKSJOWwRhvKAPj3sYausMcR9=9AJEODksYvzHKPQ@mail.gmail.com>
+Subject: Re: working with libnetfilter_queue and linbetfilter_contrack
+To:     netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Tue, Jun 18, 2019 at 12:42:32AM +0200, Florian Westphal wrote:
-> > Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > > > Subject: Change bridge l3 dependency to meta protocol
-> > > > 
-> > > > This examines skb->protocol instead of ethernet header type, which
-> > > > might be different when vlan is involved.
-> > > >  
-> > > > +	if (ctx->pctx.family == NFPROTO_BRIDGE && desc == &proto_eth) {
-> > > > +		if (expr->payload.desc == &proto_ip ||
-> > > > +		    expr->payload.desc == &proto_ip6)
-> > > > +			desc = &proto_metaeth;
-> > > > +	}i
-> > > 
-> > > Is this sufficient to restrict the matching? Is this still buggy from
-> > > ingress?
-> > 
-> > This is what netdev family uses as well (skb->protocol i mean).
-> > I'm not sure it will work for output however (haven't checked).
-> 
-> You mean for locally generated traffic?
+Hello Everyone,
+Any idea?
 
-Yes.
+On Mon, Jun 17, 2019 at 2:12 PM Mojtaba <mespio@gmail.com> wrote:
+>
+> Hello Everyone,
+> I am working for a while on two projects (libnetfilter_queue and
+> linbetfilter_contrack) to get the decision of destined of packets that
+> arrived in our project. It greats to get the control of all packets.
+> But I confused a little.
+> In my solution i just want to forward all packets that are in the same
+> conditions (for example: all packets are received from specific
+> IP:PORT address) to another destination. I could add simply add new
+> rule in llinbetfilter_contrack list (like the samples that are exist
+> in linbetfilter_contrack/utility project).
+> But actually i want to use NFQUEUE to get all packets in my user-space
+> and then add new rule in linbetfilter_contrack list. In other words,
+> the verdict in my sulotions is not ACCEPT or DROP the packet, it
+> should add new rule in linbetfilter_contrack list if it is not exist.
+> Is it possible?
+> I am thinking about this, But  I am not sure it is correct or not?
+> For example:
+>
+> static int cb(struct nfq_q_handle *qh, struct nfgenmsg *nfmsg,
+>          struct nfq_data *nfa, void *data)
+> {
+>    uint32_t id = print_pkt(nfa);
+>    printf("entering callback\n");
+> if (not exist in list){
+> ct = nfct_new();
+>    if (ct == NULL) {
+>        perror("nfct_new");
+>    return 0;
+>   }
+> Add_to_list();
+> }
+> return;
+> }
+>
+>
+>
+> --
+> --Mojtaba Esfandiari.S
 
-> > > I wonder if an explicit NFT_PAYLOAD_CHECK_VLAN flag would be useful in
-> > > the kernel, if so we could rename NFTA_PAYLOAD_CSUM_FLAGS to
-> > > NFTA_PAYLOAD_FLAGS and place it there. Just an idea.
-> > 
-> > What would NFT_PAYLOAD_CHECK_VLAN do?
-> 
-> Similar to the checksum approach, it provides a hint to the kernel to
-> say that "I want to look at the vlan header" from the link layer.
 
-I see.  Its a bit of a furhter problem because tags can be nested,
-so we would have to provide a more dynamic approach, similar to tunnel
-matching (vlan header 0 id 42 vlan header 1 id 23' etc).
 
-> > What might be useful is an nft switch to turn off dependeny
-> > insertion, this would also avoid the problem (if users restrict the
-> > matching properly...).
-> 
-> Hm. How does this toggle would look like?
-
-nft --nodep add rule bridge filter input ip protocol icmp # broken, has false positives
-nft --nodep add rule bridge filter input ip version 4 ip protocol icmp # might work
-nft --nodep add rule bridge filter input meta protocol ip ip protocol icmp # might work too
-
-Its kind of I-Know-What-I-Am-Doing switch ...
-
-We can already do this with raw payload expressions but those aren't that user
-friendly.
-
-> > Another unresolved issue is presence of multiple vlan tags, so we might
-> > have to add yet another meta key to retrieve the l3 protocol in use
-> > 
-> > (the problem at hand was 'ip protocol icmp' not matching traffic inside
-> >  a vlan).
-> 
-> Could you describe this problem a bit more? Small example rule plus
-> scenario.
-
-It was what wenxu reported originally:
-
-nft add rule bridge filter forward ip protocol counter ..
-
-The rule only matches if the ip packet is contained in an ethernet frame
-without vlan tag -- and thats neither expected nor desirable.
-
-This rule works when using 'meta protocol ip' as dependency instead
-of ether type ip (what we do now), because VLAN stripping will fix/alter
-skb->protocol to the inner type when the VLAN tag gets removes.
-
-It will still fail in case there are several VLAN tags, so we might
-need another meta expression that can figure out the l3 protocol type.
-
-Does that make sense so far?
+-- 
+--Mojtaba Esfandiari.S
