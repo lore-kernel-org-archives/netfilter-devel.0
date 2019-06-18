@@ -2,104 +2,122 @@ Return-Path: <SRS0=xYYy=UR=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 53E6AC31E51
-	for <netfilter-devel@archiver.kernel.org>; Tue, 18 Jun 2019 13:39:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B89C1C31E51
+	for <netfilter-devel@archiver.kernel.org>; Tue, 18 Jun 2019 13:58:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2691720873
-	for <netfilter-devel@archiver.kernel.org>; Tue, 18 Jun 2019 13:39:52 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="RR5kFCOI"
+	by mail.kernel.org (Postfix) with ESMTP id 9897220873
+	for <netfilter-devel@archiver.kernel.org>; Tue, 18 Jun 2019 13:58:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727097AbfFRNjv (ORCPT
+        id S1729175AbfFRN6O (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 18 Jun 2019 09:39:51 -0400
-Received: from mail-ed1-f41.google.com ([209.85.208.41]:46235 "EHLO
-        mail-ed1-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725919AbfFRNjv (ORCPT
+        Tue, 18 Jun 2019 09:58:14 -0400
+Received: from youngberry.canonical.com ([91.189.89.112]:50382 "EHLO
+        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728845AbfFRN6N (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 18 Jun 2019 09:39:51 -0400
-Received: by mail-ed1-f41.google.com with SMTP id d4so21778145edr.13
-        for <netfilter-devel@vger.kernel.org>; Tue, 18 Jun 2019 06:39:50 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=oeybr7dI+Lu86DgNCbmW7iDxBrjLJYKLMpG8NqEkRpc=;
-        b=RR5kFCOIIf2+zfPvGRDZZNu1ydRPPFOcWnFF63wTcjjV6uivCYaPyXiFjVZBjk6SAE
-         TyBWls8rWFoD93xp+P8LWvZZrxrSSc1CdkNHG5j/kbuWhLinck9NAd7BlvZcPclPGC4S
-         f2SnLpU9ZIHfMV7c3ZB8GkOpubbvp2ernpmgPwFRBVRROspMzb3yGN9DRN4qk+a0Gf2e
-         vp+fBKMglexH+FDAo8wQTYme6/rdBtfv59GRitogfGG6QPPXzvt2phO+aNwcms+ADQBd
-         5edqxcLcgmqgrC6vsJ9aOD6R7oBxUxqTCEaDoflJKsHgodqJzpqY3UHnKO3RS632Jogk
-         EIVA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=oeybr7dI+Lu86DgNCbmW7iDxBrjLJYKLMpG8NqEkRpc=;
-        b=MGShYeAtqan/CXlueR6jox0V9QE2tM07RCkSmvlcovEBpS8GK/4aZNQOFMqv0iHeRL
-         3yrtTFynvxMoYJ+KAXpIUh3LnRJe1/D9W4uYmqLKKyt5/KkQjq0tbEREQ3vNg/nu7MYt
-         NUqSCIPudUsM94oN+6YciYRznI/FCI23wsXE8GhWALIkRj9ajQdiFpd34H/4g70IOyiC
-         gdlYPm/Li8UIv+HuihJyI8mn4qD5emDgCJPhQVjqLnDYM1gvkUm4uvtPL5fauCsKnozN
-         qsnzjaynOyxkm4o9JZb6JvOFQiIcK21277aENEtTMZFux050FVTiTg1l0SAYJ2s3PyJx
-         +D9w==
-X-Gm-Message-State: APjAAAW3c7zVKAQ+R2f5j8gsvDhy0YuvKT4rXHdJvrfL8WEHIy2njFA2
-        /7HscE9gnL/Do/uLUVZa4q3/ofhc0cUfW1nNHdk=
-X-Google-Smtp-Source: APXvYqxgH90Lobv1iJc/kDa0KxQYZetFRiR8N36OY1cAyz1HAIdB0dgLOQaOhIMy+sTRfcU24AgK5IIRzJXSV7rbxkg=
-X-Received: by 2002:a50:cac1:: with SMTP id f1mr123452900edi.97.1560865189884;
- Tue, 18 Jun 2019 06:39:49 -0700 (PDT)
+        Tue, 18 Jun 2019 09:58:13 -0400
+Received: from 1.general.cking.uk.vpn ([10.172.193.212])
+        by youngberry.canonical.com with esmtpsa (TLS1.0:RSA_AES_128_CBC_SHA1:16)
+        (Exim 4.76)
+        (envelope-from <colin.king@canonical.com>)
+        id 1hdEc5-0002hY-N1; Tue, 18 Jun 2019 13:57:29 +0000
+To:     =?UTF-8?Q?St=c3=a9phane_Veyret?= <sveyret@gmail.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org
+From:   Colin Ian King <colin.king@canonical.com>
+Openpgp: preference=signencrypt
+Autocrypt: addr=colin.king@canonical.com; prefer-encrypt=mutual; keydata=
+ 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
+Cc:     "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Subject: re: netfilter: nft_ct: add ct expectations support
+Message-ID: <dadf225f-3003-72ba-d7b5-e0467bb77ffc@canonical.com>
+Date:   Tue, 18 Jun 2019 14:57:29 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.7.1
 MIME-Version: 1.0
-References: <CABVi_Eyws89e+y_4tGJNybGRdL4AarHG6GkNB0d0MGgLABuv3w@mail.gmail.com>
- <20190618095021.doh6pc7gzah3bnra@breakpoint.cc> <CABVi_EyyV6jmB8SxuiUKpHzL9NwMLUA1TPk3X=SOq58BFdG9vA@mail.gmail.com>
- <20190618105613.qgfov6jmnov2ba3e@breakpoint.cc> <CABVi_ExMpOnaau6sroSXd=Zzc4=F6t0Hv5iCm16q0jxqp5Tjkg@mail.gmail.com>
- <20190618132350.phtpv2vhteplfj32@breakpoint.cc>
-In-Reply-To: <20190618132350.phtpv2vhteplfj32@breakpoint.cc>
-From:   Mojtaba <mespio@gmail.com>
-Date:   Tue, 18 Jun 2019 18:09:38 +0430
-Message-ID: <CABVi_Ey3cHVdnpzRFo_yPFKkPveXeia7WBV4S9iPxPotLkCpuQ@mail.gmail.com>
-Subject: Re: working with libnetfilter_queue and linbetfilter_contrack
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Thanks a lot.
-Then let me describe what i am doing.
-In VoIP networks, One of the ways to solve the one-way audio issue is
-TURN. In this case both endpoint have to send their media (voice as
-RTP) to server. In this conditions the server works as B2BUA. Because
-of the server is processing the media (get media from one hand and
-relay it to another hand), It usages a lot of resource of server. So I
-am implementing  a new module to do this in kernel level. I test this
-idea in my laboratory by adding conntrack entry manually in server and
-all things works great. But i need to get more  idea to do this
-project in best way and high performance, because the QoS very
-importance in VoIP networks. What is the best way? Let me know more
-about this.
-With Best Regards.Mojtaba
+Hi,
 
-On Tue, Jun 18, 2019 at 5:53 PM Florian Westphal <fw@strlen.de> wrote:
->
-> Mojtaba <mespio@gmail.com> wrote:
-> > Thanks Florian so much.
-> > According the last paragraf of email i get the best way is i should use
-> > libnetfilter_conntrack to insert a new conntrack entry in my userspace that
-> > is called from raw PREROUTING table as NQUEUE callback queue.
-> > Is it right underestanding?
->
-> Yes, but since you did not exactly say what you're trying to do
-> there might be better ways (ipvs, nft maps, etc).
->
-> Nfqueue is slow.
+Static analysis with Coverity on linux-next has found a potential issue
+with the following commit:
+
+commit 857b46027d6f91150797295752581b7155b9d0e1
+Author: Stéphane Veyret <sveyret@gmail.com>
+Date:   Sat May 25 15:30:58 2019 +0200
+
+    netfilter: nft_ct: add ct expectations support
 
 
+Specifically in function nft_ct_expect_obj_eval)() in the following code:
 
--- 
---Mojtaba Esfandiari.S
++       help = nfct_help(ct);
++       if (!help)
++               help = nf_ct_helper_ext_add(ct, GFP_ATOMIC);
++
++       if (help->expecting[NF_CT_EXPECT_CLASS_DEFAULT] >= priv->size) {
++               regs->verdict.code = NFT_BREAK;
++               return;
++       }
+
+
+The call to nf_ct_helper_ext_add can potentially return NULL, however,
+this is not being checked and pointer 'help' is being dereferenced even
+though it potentially can be null.
+
+Colin
+
