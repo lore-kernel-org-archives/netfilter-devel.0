@@ -6,45 +6,45 @@ X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 97F72C31E5B
-	for <netfilter-devel@archiver.kernel.org>; Tue, 18 Jun 2019 18:09:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 392B5C31E5B
+	for <netfilter-devel@archiver.kernel.org>; Tue, 18 Jun 2019 18:13:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 77E7C2063F
-	for <netfilter-devel@archiver.kernel.org>; Tue, 18 Jun 2019 18:09:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 22E96206B7
+	for <netfilter-devel@archiver.kernel.org>; Tue, 18 Jun 2019 18:13:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729964AbfFRSJd convert rfc822-to-8bit (ORCPT
+        id S1730197AbfFRSNs convert rfc822-to-8bit (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 18 Jun 2019 14:09:33 -0400
-Received: from mail-qt1-f194.google.com ([209.85.160.194]:35409 "EHLO
-        mail-qt1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727616AbfFRSJd (ORCPT
+        Tue, 18 Jun 2019 14:13:48 -0400
+Received: from mail-qt1-f193.google.com ([209.85.160.193]:37010 "EHLO
+        mail-qt1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727616AbfFRSNs (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 18 Jun 2019 14:09:33 -0400
-Received: by mail-qt1-f194.google.com with SMTP id d23so16552012qto.2;
-        Tue, 18 Jun 2019 11:09:32 -0700 (PDT)
+        Tue, 18 Jun 2019 14:13:48 -0400
+Received: by mail-qt1-f193.google.com with SMTP id y57so16576722qtk.4;
+        Tue, 18 Jun 2019 11:13:48 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc:content-transfer-encoding;
-        bh=oHj24vcv49o6J15KAKRxHCuXIYgSsjgYc3eEZOnK3fk=;
-        b=tQcQ69As5SqfD/1vGLzwiRL0F6PFGXWQQhGNNct46AHQt+KVM4kJkJe9eCC8QKDCSI
-         86ODxEiBpgThBMlpUbbX8a8HYRsNSR1QbarY89ZSs32miIK6arxCWhSLtfVK+NUj4Q93
-         z9z6BEOECw3ApM4+nO5WJgtZ3Y2g7u3wNQJ4aQdJMz7XxUysPfq5iwr3XgeGW0lmWJhm
-         Az5ti351J51onEikochzvgCFq7rnOEMSeGPkyCNl5jCbsUfRn25rGq7k+iUWmxCiE1MW
-         Zzrjkjmzn0QZvoJySk2SyyXK1BgLoxuVsA9lkbKJ3LiOe+3FMMjByU12ZIZ9ud9gcH63
-         VRsQ==
-X-Gm-Message-State: APjAAAWagJJy7Ek3waF9Wx6tlMnxlC9K4DeXk53jLHC/0r2tIBc/Kqpt
-        M/TFq0eBSxOvi888M5U6P1nukXOGws8Jl/3NJwg=
-X-Google-Smtp-Source: APXvYqzoeNQ+qNXk+Bqr/BBsWwStrS4xCx8wxHWRCYgGKPvM4hp6VttYyVgzD05adAZxSxyf/ZDZB37DLa0Eb9Zc8Eg=
-X-Received: by 2002:aed:2bc1:: with SMTP id e59mr81171140qtd.7.1560881371987;
- Tue, 18 Jun 2019 11:09:31 -0700 (PDT)
+        bh=w/xlY6xol5lf89nkUnLZ/jayARXa1aMFCE0hjokc+O8=;
+        b=fLyYW6ScU7Ty41H+HJz3Mqo4eNbbOaZNn8Q4cWeN21lBs7yww/p93LKHuKcMKK/sBV
+         yFGuHtHoWWU7UoJRcVITns1c9+aC+sJ4oj5BHBPQl3BqbfH6vdF/BdeXi6TerB+f7V1W
+         2DfZwK6uu009XdTIpgGRB7j/YlQspYDINv5/6oA7t50IxiCYKyB/wRQ5Cl6KLh60myTo
+         RQhh/g3YWK3RfJDEU3F5pY+oIB//camBwf/aq3/LJYGJfAboc8aoG4GXpxnsCUf4hP2s
+         HiwM2T8+NC/pZgpreIgrXyN+qJ7IBrYNJHETSuksq3h+bYL0qPAKXgrdLE0fjlnz+8IN
+         gYug==
+X-Gm-Message-State: APjAAAUQ3uiEjUqi/dMgGr9JkOXxRxbIL3/J9v8p7dIA93BDlZ02o7VJ
+        d6tprbA80ECoNuopnIOBqY50DpexU85tapwDebY=
+X-Google-Smtp-Source: APXvYqxWN9uiDpVCChCHyvJd6aLuZyuz/iLlNyW8I7/V9Xv1Z1pOi4MTh2sG9WE3hIzry6wiyeO2d389bmfue5+Cs/A=
+X-Received: by 2002:a0c:d941:: with SMTP id t1mr18022762qvj.176.1560881627568;
+ Tue, 18 Jun 2019 11:13:47 -0700 (PDT)
 MIME-Version: 1.0
 References: <20190304204019.2142770-1-arnd@arndb.de> <20190308160441.ler2hs44oaozoq7w@salvia>
- <CAF1oqRAuk7h2Z2iheq3Ze1vTMNWLf5HHn83fZt07hXA4nOPbAg@mail.gmail.com>
-In-Reply-To: <CAF1oqRAuk7h2Z2iheq3Ze1vTMNWLf5HHn83fZt07hXA4nOPbAg@mail.gmail.com>
+ <CAF1oqRAuk7h2Z2iheq3Ze1vTMNWLf5HHn83fZt07hXA4nOPbAg@mail.gmail.com> <CAK8P3a2Go0=9wMfOvdw+GGRNqNZ9c2TJy=jN6dB1VR3K8qz-rg@mail.gmail.com>
+In-Reply-To: <CAK8P3a2Go0=9wMfOvdw+GGRNqNZ9c2TJy=jN6dB1VR3K8qz-rg@mail.gmail.com>
 From:   Arnd Bergmann <arnd@arndb.de>
-Date:   Tue, 18 Jun 2019 20:09:15 +0200
-Message-ID: <CAK8P3a2Go0=9wMfOvdw+GGRNqNZ9c2TJy=jN6dB1VR3K8qz-rg@mail.gmail.com>
+Date:   Tue, 18 Jun 2019 20:13:31 +0200
+Message-ID: <CAK8P3a2wewn5fqK_EB=hCkSN3cXcZbG1i3cZewkz93PGmGDBnA@mail.gmail.com>
 Subject: Re: [PATCH] netfilter: nf_conntrack_sip: fix IPV6 dependency
 To:     =?UTF-8?B?QWxpbiBOxINzdGFj?= <alin.nastac@gmail.com>
 Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
@@ -63,29 +63,32 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Mar 8, 2019 at 5:23 PM Alin Năstac <alin.nastac@gmail.com> wrote:
-
-> On Fri, Mar 8, 2019 at 5:04 PM Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > On Mon, Mar 04, 2019 at 09:40:12PM +0100, Arnd Bergmann wrote:
-> > > With CONFIG_IPV6=m and CONFIG_NF_CONNTRACK_SIP=y, we now get a link failure:
+On Tue, Jun 18, 2019 at 8:09 PM Arnd Bergmann <arnd@arndb.de> wrote:
+> On Fri, Mar 8, 2019 at 5:23 PM Alin Năstac <alin.nastac@gmail.com> wrote:
+> > On Fri, Mar 8, 2019 at 5:04 PM Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > > On Mon, Mar 04, 2019 at 09:40:12PM +0100, Arnd Bergmann wrote:
+> > > > With CONFIG_IPV6=m and CONFIG_NF_CONNTRACK_SIP=y, we now get a link failure:
+> > > >
+> > > > net/netfilter/nf_conntrack_sip.o: In function `process_sdp':
+> > > > nf_conntrack_sip.c:(.text+0x4344): undefined reference to `ip6_route_output_flags'
 > > >
-> > > net/netfilter/nf_conntrack_sip.o: In function `process_sdp':
-> > > nf_conntrack_sip.c:(.text+0x4344): undefined reference to `ip6_route_output_flags'
+> > > I see. We can probably use nf_route() instead.
+> > >
+> > > Or if needed, use struct nf_ipv6_ops for this.
+> > >
+> > >         if (v6ops)
+> > >                 ret = v6ops->route_xyz(...);
+> > >
+> > > @Alin: Would you send us a patch to do so to fix a3419ce3356cf1f
+> > > netfilter: nf_conntrack_sip: add sip_external_media logic".
 > >
-> > I see. We can probably use nf_route() instead.
-> >
-> > Or if needed, use struct nf_ipv6_ops for this.
-> >
-> >         if (v6ops)
-> >                 ret = v6ops->route_xyz(...);
-> >
-> > @Alin: Would you send us a patch to do so to fix a3419ce3356cf1f
-> > netfilter: nf_conntrack_sip: add sip_external_media logic".
+> > nf_ip6_route(net, &dst, &fl6, false) seems to be appropriate.
+> > I'll send the patch Monday.
 >
-> nf_ip6_route(net, &dst, &fl6, false) seems to be appropriate.
-> I'll send the patch Monday.
+> I see the original bug I reported is still there. Can you send that patch
+> you had planned to do?
 
-I see the original bug I reported is still there. Can you send that patch
-you had planned to do?
+Hmm, I think I mixed up this patch with a different one that is missing.
+Please ignore my reply above.
 
-       Arnd
+      Arnd
