@@ -2,109 +2,114 @@ Return-Path: <SRS0=xYYy=UR=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_NEOMUTT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 99A74C31E51
-	for <netfilter-devel@archiver.kernel.org>; Tue, 18 Jun 2019 12:40:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A4A1BC31E60
+	for <netfilter-devel@archiver.kernel.org>; Tue, 18 Jun 2019 13:13:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 79F0320679
-	for <netfilter-devel@archiver.kernel.org>; Tue, 18 Jun 2019 12:40:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8506320873
+	for <netfilter-devel@archiver.kernel.org>; Tue, 18 Jun 2019 13:13:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728018AbfFRMk3 (ORCPT
+        id S1729163AbfFRNNK (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 18 Jun 2019 08:40:29 -0400
-Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:52294 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725913AbfFRMk3 (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 18 Jun 2019 08:40:29 -0400
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.89)
-        (envelope-from <fw@strlen.de>)
-        id 1hdDPW-00008L-R5; Tue, 18 Jun 2019 14:40:26 +0200
-Date:   Tue, 18 Jun 2019 14:40:26 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     =?utf-8?Q?=C4=B0brahim?= Ercan <ibrahim.metu@gmail.com>
-Cc:     Florian Westphal <fw@strlen.de>, netfilter@vger.kernel.org,
-        netfilter-devel@vger.kernel.org
-Subject: Re: Is this possible SYN Proxy bug?
-Message-ID: <20190618124026.4kvpdkbstdgaluij@breakpoint.cc>
-References: <CAK6Qs9mam2U6JdeBnkzX9sfdeWWkLx_+ZgHOTmYjSC2wKfg0cQ@mail.gmail.com>
- <20190618104041.unuonhmuvgnlty3l@breakpoint.cc>
- <CAK6Qs9kmxqOaCjgcBefPR-NKEdGKTcfKUL_tu09CQYp3OT5krA@mail.gmail.com>
- <20190618115905.6kd2hqg2hlbs5frc@breakpoint.cc>
- <CAK6Qs9mTkAaH9+RqzmtrbNps1=NtW4c8wtJy7Kjay=r7VSJwsQ@mail.gmail.com>
+        Tue, 18 Jun 2019 09:13:10 -0400
+Received: from mail.us.es ([193.147.175.20]:46804 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725955AbfFRNNJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 18 Jun 2019 09:13:09 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id EC467C04E2
+        for <netfilter-devel@vger.kernel.org>; Tue, 18 Jun 2019 15:13:01 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id DECEEDA707
+        for <netfilter-devel@vger.kernel.org>; Tue, 18 Jun 2019 15:13:01 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id D436EDA702; Tue, 18 Jun 2019 15:13:01 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id B2009DA702;
+        Tue, 18 Jun 2019 15:12:59 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Tue, 18 Jun 2019 15:12:59 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from salvia.here (sys.soleta.eu [212.170.55.40])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id 91D164265A2F;
+        Tue, 18 Jun 2019 15:12:59 +0200 (CEST)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     vaclav.zindulka@tlapnet.cz
+Subject: [PATCH nft] evaluate: allow get/list/flush dynamic sets and maps via list command
+Date:   Tue, 18 Jun 2019 15:12:56 +0200
+Message-Id: <20190618131256.7226-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.11.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAK6Qs9mTkAaH9+RqzmtrbNps1=NtW4c8wtJy7Kjay=r7VSJwsQ@mail.gmail.com>
-User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-İbrahim Ercan <ibrahim.metu@gmail.com> wrote:
-> On Tue, Jun 18, 2019 at 2:59 PM Florian Westphal <fw@strlen.de> wrote:
-> 
-> > >
-> > > I am confused. So this statement from manual page is just a illusion?
-> > > --mss maximum segment size
-> > >               Maximum segment size announced to clients. This must
-> > > match the backend.
-> >
-> > ?
-> >
-> > Your question was about MSS sent to server.
-> >
-> > Flow is this:
-> > Client          Synproxy         Server
-> > -> Syn, mss X
-> >     <-Synack,mss M
-> > -> ACK
-> >                      -> Syn, mss Y
-> >
-> > M is what you need to configure via --mss switch.
-> >
-> > Because Synproxy keeps no state, it can only send
-> > to real server the MSS that was encoded in syncookie (in synack)
-> > packet.  Therefore, X == Y only if the Value from client matches
-> > exactly one for the four values of the mss table, in all other
-> > cases Y is the next lowest available one.  In your case thats 536.
-> >
-> > > I don't understand why these restriction exist. Why can't we set mss
-> > > value same as what client send to us?
-> >
-> > We only have 2 bits out of the 32Bit Sequence number for MSS. Increasing
-> > mss state table reduces security margin of the cookie.
-> 
-> My question about both way actually. If you check out my tests, M is
-> also not correct. Client sends mss 1260 and syn proxy responds 1260
-> too although I set mss 1460 in iptables.
+Before:
 
-Does this patch fix the problem for you?
+ # nft list set ip filter untracked_unknown
+ Error: No such file or directory; did you mean set ‘untracked_unknown’ in table ip ‘filter’?
+ list set ip filter untracked_unknown
+                    ^^^^^^^^^^^^^^^^^
 
-diff --git a/net/ipv4/netfilter/ipt_SYNPROXY.c b/net/ipv4/netfilter/ipt_SYNPROXY.c
---- a/net/ipv4/netfilter/ipt_SYNPROXY.c
-+++ b/net/ipv4/netfilter/ipt_SYNPROXY.c
-@@ -286,6 +286,7 @@ synproxy_tg4(struct sk_buff *skb, const struct xt_action_param *par)
- 			opts.options |= XT_SYNPROXY_OPT_ECN;
+After:
+
+ # nft list set ip filter untracked_unknown
+ table ip filter {
+        set untracked_unknown {
+                type ipv4_addr . inet_service . ipv4_addr . inet_service . inet_proto
+                size 100000
+                flags dynamic,timeout
+        }
+ }
+
+Reported-by: Václav Zindulka <vaclav.zindulka@tlapnet.cz>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/evaluate.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 511f9f14bedd..07617a7c94cb 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -3520,7 +3520,7 @@ static int cmd_evaluate_get(struct eval_ctx *ctx, struct cmd *cmd)
+ 			return table_not_found(ctx);
  
- 		opts.options &= info->options;
-+		opts.mss = info->mss;
- 		if (opts.options & XT_SYNPROXY_OPT_TIMESTAMP)
- 			synproxy_init_timestamp_cookie(info, &opts);
- 		else
-diff --git a/net/ipv6/netfilter/ip6t_SYNPROXY.c b/net/ipv6/netfilter/ip6t_SYNPROXY.c
---- a/net/ipv6/netfilter/ip6t_SYNPROXY.c
-+++ b/net/ipv6/netfilter/ip6t_SYNPROXY.c
-@@ -300,6 +300,7 @@ synproxy_tg6(struct sk_buff *skb, const struct xt_action_param *par)
- 			opts.options |= XT_SYNPROXY_OPT_ECN;
+ 		set = set_lookup(table, cmd->handle.set.name);
+-		if (set == NULL || set->flags & (NFT_SET_MAP | NFT_SET_EVAL))
++		if (set == NULL || set->flags & NFT_SET_MAP)
+ 			return set_not_found(ctx, &ctx->cmd->handle.set.location,
+ 					     ctx->cmd->handle.set.name);
  
- 		opts.options &= info->options;
-+		opts.mss = info->mss;
- 		if (opts.options & XT_SYNPROXY_OPT_TIMESTAMP)
- 			synproxy_init_timestamp_cookie(info, &opts);
- 		else
+@@ -3587,7 +3587,7 @@ static int cmd_evaluate_list(struct eval_ctx *ctx, struct cmd *cmd)
+ 			return table_not_found(ctx);
+ 
+ 		set = set_lookup(table, cmd->handle.set.name);
+-		if (set == NULL || set->flags & (NFT_SET_MAP | NFT_SET_EVAL))
++		if (set == NULL || set->flags & NFT_SET_MAP)
+ 			return set_not_found(ctx, &ctx->cmd->handle.set.location,
+ 					     ctx->cmd->handle.set.name);
+ 
+@@ -3698,7 +3698,7 @@ static int cmd_evaluate_flush(struct eval_ctx *ctx, struct cmd *cmd)
+ 			return table_not_found(ctx);
+ 
+ 		set = set_lookup(table, cmd->handle.set.name);
+-		if (set == NULL || set->flags & (NFT_SET_MAP | NFT_SET_EVAL))
++		if (set == NULL || set->flags & NFT_SET_MAP)
+ 			return set_not_found(ctx, &ctx->cmd->handle.set.location,
+ 					     ctx->cmd->handle.set.name);
+ 
+-- 
+2.11.0
+
