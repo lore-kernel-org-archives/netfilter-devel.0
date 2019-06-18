@@ -6,87 +6,119 @@ X-Spam-Status: No, score=-2.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_NEOMUTT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2A1A2C31E5E
-	for <netfilter-devel@archiver.kernel.org>; Tue, 18 Jun 2019 09:37:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BB2B0C31E5D
+	for <netfilter-devel@archiver.kernel.org>; Tue, 18 Jun 2019 09:46:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 03A18206B7
-	for <netfilter-devel@archiver.kernel.org>; Tue, 18 Jun 2019 09:37:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9F4392070B
+	for <netfilter-devel@archiver.kernel.org>; Tue, 18 Jun 2019 09:46:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729582AbfFRJhy (ORCPT
+        id S1729586AbfFRJqS (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 18 Jun 2019 05:37:54 -0400
-Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:51402 "EHLO
+        Tue, 18 Jun 2019 05:46:18 -0400
+Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:51458 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1729256AbfFRJhx (ORCPT
+        by vger.kernel.org with ESMTP id S1729308AbfFRJqR (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 18 Jun 2019 05:37:53 -0400
+        Tue, 18 Jun 2019 05:46:17 -0400
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.89)
         (envelope-from <fw@strlen.de>)
-        id 1hdAYm-0007Jk-O4; Tue, 18 Jun 2019 11:37:48 +0200
-Date:   Tue, 18 Jun 2019 11:37:48 +0200
+        id 1hdAgv-0007OL-QD; Tue, 18 Jun 2019 11:46:13 +0200
+Date:   Tue, 18 Jun 2019 11:46:13 +0200
 From:   Florian Westphal <fw@strlen.de>
-To:     wenxu <wenxu@ucloud.cn>
-Cc:     Florian Westphal <fw@strlen.de>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Florian Westphal <fw@strlen.de>, wenxu@ucloud.cn,
         netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
 Subject: Re: [PATCH] netfilter: nft_paylaod: add base type
  NFT_PAYLOAD_LL_HEADER_NO_TAG
-Message-ID: <20190618093748.dydodhngydfcfmeh@breakpoint.cc>
+Message-ID: <20190618094613.ztbwcclgsq54vkop@breakpoint.cc>
 References: <1560151280-28908-1-git-send-email-wenxu@ucloud.cn>
  <20190610094433.3wjmpfiph7iwguan@breakpoint.cc>
  <20190617223004.tnqz2bl7qp63fcfy@salvia>
  <20190617224232.55hldt4bw2qcmnll@breakpoint.cc>
- <22ab95cb-9dca-1e48-4ca0-965d340e7d32@ucloud.cn>
+ <20190618093508.3c5jjmmmuz3m26uj@salvia>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <22ab95cb-9dca-1e48-4ca0-965d340e7d32@ucloud.cn>
+In-Reply-To: <20190618093508.3c5jjmmmuz3m26uj@salvia>
 User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-wenxu <wenxu@ucloud.cn> wrote:
-> On 6/18/2019 6:42 AM, Florian Westphal wrote:
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Tue, Jun 18, 2019 at 12:42:32AM +0200, Florian Westphal wrote:
 > > Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> >>> Subject: Change bridge l3 dependency to meta protocol
-> >>>
-> >>> This examines skb->protocol instead of ethernet header type, which
-> >>> might be different when vlan is involved.
-> >>>  
-> >>> +	if (ctx->pctx.family == NFPROTO_BRIDGE && desc == &proto_eth) {
-> >>> +		if (expr->payload.desc == &proto_ip ||
-> >>> +		    expr->payload.desc == &proto_ip6)
-> >>> +			desc = &proto_metaeth;
-> >>> +	}i
-> >> Is this sufficient to restrict the matching? Is this still buggy from
-> >> ingress?
+> > > > Subject: Change bridge l3 dependency to meta protocol
+> > > > 
+> > > > This examines skb->protocol instead of ethernet header type, which
+> > > > might be different when vlan is involved.
+> > > >  
+> > > > +	if (ctx->pctx.family == NFPROTO_BRIDGE && desc == &proto_eth) {
+> > > > +		if (expr->payload.desc == &proto_ip ||
+> > > > +		    expr->payload.desc == &proto_ip6)
+> > > > +			desc = &proto_metaeth;
+> > > > +	}i
+> > > 
+> > > Is this sufficient to restrict the matching? Is this still buggy from
+> > > ingress?
+> > 
 > > This is what netdev family uses as well (skb->protocol i mean).
 > > I'm not sure it will work for output however (haven't checked).
-> >
-> >> I wonder if an explicit NFT_PAYLOAD_CHECK_VLAN flag would be useful in
-> >> the kernel, if so we could rename NFTA_PAYLOAD_CSUM_FLAGS to
-> >> NFTA_PAYLOAD_FLAGS and place it there. Just an idea.
-> >
+> 
+> You mean for locally generated traffic?
+
+Yes.
+
+> > > I wonder if an explicit NFT_PAYLOAD_CHECK_VLAN flag would be useful in
+> > > the kernel, if so we could rename NFTA_PAYLOAD_CSUM_FLAGS to
+> > > NFTA_PAYLOAD_FLAGS and place it there. Just an idea.
+> > 
+> > What would NFT_PAYLOAD_CHECK_VLAN do?
+> 
+> Similar to the checksum approach, it provides a hint to the kernel to
+> say that "I want to look at the vlan header" from the link layer.
+
+I see.  Its a bit of a furhter problem because tags can be nested,
+so we would have to provide a more dynamic approach, similar to tunnel
+matching (vlan header 0 id 42 vlan header 1 id 23' etc).
+
+> > What might be useful is an nft switch to turn off dependeny
+> > insertion, this would also avoid the problem (if users restrict the
+> > matching properly...).
+> 
+> Hm. How does this toggle would look like?
+
+nft --nodep add rule bridge filter input ip protocol icmp # broken, has false positives
+nft --nodep add rule bridge filter input ip version 4 ip protocol icmp # might work
+nft --nodep add rule bridge filter input meta protocol ip ip protocol icmp # might work too
+
+Its kind of I-Know-What-I-Am-Doing switch ...
+
+We can already do this with raw payload expressions but those aren't that user
+friendly.
+
 > > Another unresolved issue is presence of multiple vlan tags, so we might
 > > have to add yet another meta key to retrieve the l3 protocol in use
+> > 
+> > (the problem at hand was 'ip protocol icmp' not matching traffic inside
+> >  a vlan).
 > 
-> Maybe add a l3proto meta key can handle the multiple vlan tags case with the l3proto dependency.  It
-> should travese all the vlan tags and find the real l3 proto.
+> Could you describe this problem a bit more? Small example rule plus
+> scenario.
 
-Yes, something like this.
+It was what wenxu reported originally:
 
-We also need to audit netdev and bridge expressions (reject is known broken)
-to handle vlans properly.
+nft add rule bridge filter forward ip protocol counter ..
 
-Still, switching nft to prefer skb->protocol instead of eth_hdr->type
-for dependencies would be good as this doesn't need kernel changes and solves
-the immediate problem of 'ip ...' not matching in case of vlan.
+The rule only matches if the ip packet is contained in an ethernet frame
+without vlan tag -- and thats neither expected nor desirable.
 
-If you have time, could you check if using skb->protocol works for nft
-bridge in output, i.e. does 'nft ip protocol icmp' match when its used
-from bridge output path with meta protocol dependency with and without
-vlan in use?
+This rule works when using 'meta protocol ip' as dependency instead
+of ether type ip (what we do now), because VLAN stripping will fix/alter
+skb->protocol to the inner type when the VLAN tag gets removes.
 
+It will still fail in case there are several VLAN tags, so we might
+need another meta expression that can figure out the l3 protocol type.
+
+Does that make sense so far?
