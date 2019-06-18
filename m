@@ -2,93 +2,84 @@ Return-Path: <SRS0=xYYy=UR=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
+X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 392B5C31E5B
-	for <netfilter-devel@archiver.kernel.org>; Tue, 18 Jun 2019 18:13:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CE13FC31E5B
+	for <netfilter-devel@archiver.kernel.org>; Tue, 18 Jun 2019 18:21:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 22E96206B7
-	for <netfilter-devel@archiver.kernel.org>; Tue, 18 Jun 2019 18:13:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A80552084A
+	for <netfilter-devel@archiver.kernel.org>; Tue, 18 Jun 2019 18:21:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730197AbfFRSNs convert rfc822-to-8bit (ORCPT
+        id S1729922AbfFRSVd (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 18 Jun 2019 14:13:48 -0400
-Received: from mail-qt1-f193.google.com ([209.85.160.193]:37010 "EHLO
-        mail-qt1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727616AbfFRSNs (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 18 Jun 2019 14:13:48 -0400
-Received: by mail-qt1-f193.google.com with SMTP id y57so16576722qtk.4;
-        Tue, 18 Jun 2019 11:13:48 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=w/xlY6xol5lf89nkUnLZ/jayARXa1aMFCE0hjokc+O8=;
-        b=fLyYW6ScU7Ty41H+HJz3Mqo4eNbbOaZNn8Q4cWeN21lBs7yww/p93LKHuKcMKK/sBV
-         yFGuHtHoWWU7UoJRcVITns1c9+aC+sJ4oj5BHBPQl3BqbfH6vdF/BdeXi6TerB+f7V1W
-         2DfZwK6uu009XdTIpgGRB7j/YlQspYDINv5/6oA7t50IxiCYKyB/wRQ5Cl6KLh60myTo
-         RQhh/g3YWK3RfJDEU3F5pY+oIB//camBwf/aq3/LJYGJfAboc8aoG4GXpxnsCUf4hP2s
-         HiwM2T8+NC/pZgpreIgrXyN+qJ7IBrYNJHETSuksq3h+bYL0qPAKXgrdLE0fjlnz+8IN
-         gYug==
-X-Gm-Message-State: APjAAAUQ3uiEjUqi/dMgGr9JkOXxRxbIL3/J9v8p7dIA93BDlZ02o7VJ
-        d6tprbA80ECoNuopnIOBqY50DpexU85tapwDebY=
-X-Google-Smtp-Source: APXvYqxWN9uiDpVCChCHyvJd6aLuZyuz/iLlNyW8I7/V9Xv1Z1pOi4MTh2sG9WE3hIzry6wiyeO2d389bmfue5+Cs/A=
-X-Received: by 2002:a0c:d941:: with SMTP id t1mr18022762qvj.176.1560881627568;
- Tue, 18 Jun 2019 11:13:47 -0700 (PDT)
+        Tue, 18 Jun 2019 14:21:33 -0400
+Received: from mx1.redhat.com ([209.132.183.28]:34404 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727616AbfFRSVd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 18 Jun 2019 14:21:33 -0400
+Received: from smtp.corp.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mx1.redhat.com (Postfix) with ESMTPS id 0F050804F2;
+        Tue, 18 Jun 2019 18:21:33 +0000 (UTC)
+Received: from egarver.remote.csb (ovpn-121-240.rdu2.redhat.com [10.10.121.240])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id E4EFE600D1;
+        Tue, 18 Jun 2019 18:21:31 +0000 (UTC)
+From:   Eric Garver <eric@garver.life>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        shekhar sharma <shekhar250198@gmail.com>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nft] nft-test.py: use tempfile module
+Date:   Tue, 18 Jun 2019 14:21:27 -0400
+Message-Id: <20190618182127.21110-1-eric@garver.life>
+In-Reply-To: <CAN9XX2pWQY0Rz2cGv7V=v8+g0mUTNGWS4pf0FJwScmrNpC5Kjg@mail.gmail.com>
+References: <CAN9XX2pWQY0Rz2cGv7V=v8+g0mUTNGWS4pf0FJwScmrNpC5Kjg@mail.gmail.com>
 MIME-Version: 1.0
-References: <20190304204019.2142770-1-arnd@arndb.de> <20190308160441.ler2hs44oaozoq7w@salvia>
- <CAF1oqRAuk7h2Z2iheq3Ze1vTMNWLf5HHn83fZt07hXA4nOPbAg@mail.gmail.com> <CAK8P3a2Go0=9wMfOvdw+GGRNqNZ9c2TJy=jN6dB1VR3K8qz-rg@mail.gmail.com>
-In-Reply-To: <CAK8P3a2Go0=9wMfOvdw+GGRNqNZ9c2TJy=jN6dB1VR3K8qz-rg@mail.gmail.com>
-From:   Arnd Bergmann <arnd@arndb.de>
-Date:   Tue, 18 Jun 2019 20:13:31 +0200
-Message-ID: <CAK8P3a2wewn5fqK_EB=hCkSN3cXcZbG1i3cZewkz93PGmGDBnA@mail.gmail.com>
-Subject: Re: [PATCH] netfilter: nf_conntrack_sip: fix IPV6 dependency
-To:     =?UTF-8?B?QWxpbiBOxINzdGFj?= <alin.nastac@gmail.com>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        =?UTF-8?B?TcOhdMOpIEVja2w=?= <ecklm94@gmail.com>,
-        Fernando Fernandez Mancera <ffmancera@riseup.net>,
-        netfilter-devel <netfilter-devel@vger.kernel.org>,
-        coreteam@netfilter.org, Networking <netdev@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 8bit
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.11
+X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.5.16 (mx1.redhat.com [10.5.110.27]); Tue, 18 Jun 2019 18:21:33 +0000 (UTC)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Jun 18, 2019 at 8:09 PM Arnd Bergmann <arnd@arndb.de> wrote:
-> On Fri, Mar 8, 2019 at 5:23 PM Alin Năstac <alin.nastac@gmail.com> wrote:
-> > On Fri, Mar 8, 2019 at 5:04 PM Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > > On Mon, Mar 04, 2019 at 09:40:12PM +0100, Arnd Bergmann wrote:
-> > > > With CONFIG_IPV6=m and CONFIG_NF_CONNTRACK_SIP=y, we now get a link failure:
-> > > >
-> > > > net/netfilter/nf_conntrack_sip.o: In function `process_sdp':
-> > > > nf_conntrack_sip.c:(.text+0x4344): undefined reference to `ip6_route_output_flags'
-> > >
-> > > I see. We can probably use nf_route() instead.
-> > >
-> > > Or if needed, use struct nf_ipv6_ops for this.
-> > >
-> > >         if (v6ops)
-> > >                 ret = v6ops->route_xyz(...);
-> > >
-> > > @Alin: Would you send us a patch to do so to fix a3419ce3356cf1f
-> > > netfilter: nf_conntrack_sip: add sip_external_media logic".
-> >
-> > nf_ip6_route(net, &dst, &fl6, false) seems to be appropriate.
-> > I'll send the patch Monday.
->
-> I see the original bug I reported is still there. Can you send that patch
-> you had planned to do?
+os.tmpfile() is not in python3.
+---
+ tests/py/nft-test.py | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-Hmm, I think I mixed up this patch with a different one that is missing.
-Please ignore my reply above.
+diff --git a/tests/py/nft-test.py b/tests/py/nft-test.py
+index f80517e67bfd..4da6fa650f6d 100755
+--- a/tests/py/nft-test.py
++++ b/tests/py/nft-test.py
+@@ -20,6 +20,7 @@ import argparse
+ import signal
+ import json
+ import traceback
++import tempfile
+ 
+ TESTS_PATH = os.path.dirname(os.path.abspath(__file__))
+ sys.path.insert(0, os.path.join(TESTS_PATH, '../../py/'))
+@@ -771,7 +772,7 @@ def rule_add(rule, filename, lineno, force_all_family_option, filename_path):
+             unit_tests += 1
+             table_flush(table, filename, lineno)
+ 
+-            payload_log = os.tmpfile()
++            payload_log = tempfile.TemporaryFile(mode="w+")
+ 
+             # Add rule and check return code
+             cmd = "add rule %s %s %s" % (table, chain, rule[0])
+@@ -911,7 +912,7 @@ def rule_add(rule, filename, lineno, force_all_family_option, filename_path):
+                               gotf.name, 1)
+ 
+             table_flush(table, filename, lineno)
+-            payload_log = os.tmpfile()
++            payload_log = tempfile.TemporaryFile(mode="w+")
+ 
+             # Add rule in JSON format
+             cmd = json.dumps({ "nftables": [{ "add": { "rule": {
+-- 
+2.20.1
 
-      Arnd
