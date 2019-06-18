@@ -3,76 +3,85 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-2.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_NEOMUTT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_NEOMUTT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BCB9AC31E51
-	for <netfilter-devel@archiver.kernel.org>; Tue, 18 Jun 2019 10:45:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 26645C31E51
+	for <netfilter-devel@archiver.kernel.org>; Tue, 18 Jun 2019 10:56:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 93B362080C
-	for <netfilter-devel@archiver.kernel.org>; Tue, 18 Jun 2019 10:45:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E99EC2070B
+	for <netfilter-devel@archiver.kernel.org>; Tue, 18 Jun 2019 10:56:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729552AbfFRKpx (ORCPT
+        id S1729329AbfFRK4P (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 18 Jun 2019 06:45:53 -0400
-Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:51688 "EHLO
+        Tue, 18 Jun 2019 06:56:15 -0400
+Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:51724 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1729098AbfFRKpv (ORCPT
+        by vger.kernel.org with ESMTP id S1726037AbfFRK4P (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 18 Jun 2019 06:45:51 -0400
+        Tue, 18 Jun 2019 06:56:15 -0400
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.89)
         (envelope-from <fw@strlen.de>)
-        id 1hdBca-0007ip-2a; Tue, 18 Jun 2019 12:45:48 +0200
-Date:   Tue, 18 Jun 2019 12:45:48 +0200
+        id 1hdBmf-0007ly-1Z; Tue, 18 Jun 2019 12:56:13 +0200
+Date:   Tue, 18 Jun 2019 12:56:13 +0200
 From:   Florian Westphal <fw@strlen.de>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Florian Westphal <fw@strlen.de>, wenxu@ucloud.cn,
-        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-Subject: Re: [PATCH] netfilter: nft_paylaod: add base type
- NFT_PAYLOAD_LL_HEADER_NO_TAG
-Message-ID: <20190618104548.xt5mee2iinx4ve6u@breakpoint.cc>
-References: <1560151280-28908-1-git-send-email-wenxu@ucloud.cn>
- <20190610094433.3wjmpfiph7iwguan@breakpoint.cc>
- <20190617223004.tnqz2bl7qp63fcfy@salvia>
- <20190617224232.55hldt4bw2qcmnll@breakpoint.cc>
- <20190618093508.3c5jjmmmuz3m26uj@salvia>
- <20190618094613.ztbwcclgsq54vkop@breakpoint.cc>
- <20190618100423.tirukx3ro2fl4khs@salvia>
+To:     Mojtaba <mespio@gmail.com>
+Cc:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+Subject: Re: working with libnetfilter_queue and linbetfilter_contrack
+Message-ID: <20190618105613.qgfov6jmnov2ba3e@breakpoint.cc>
+References: <CABVi_Eyws89e+y_4tGJNybGRdL4AarHG6GkNB0d0MGgLABuv3w@mail.gmail.com>
+ <20190618095021.doh6pc7gzah3bnra@breakpoint.cc>
+ <CABVi_EyyV6jmB8SxuiUKpHzL9NwMLUA1TPk3X=SOq58BFdG9vA@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20190618100423.tirukx3ro2fl4khs@salvia>
+In-Reply-To: <CABVi_EyyV6jmB8SxuiUKpHzL9NwMLUA1TPk3X=SOq58BFdG9vA@mail.gmail.com>
 User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Tue, Jun 18, 2019 at 11:46:13AM +0200, Florian Westphal wrote:
-> > Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> [...]
-> > > Could you describe this problem a bit more? Small example rule plus
-> > > scenario.
-> > 
-> > It was what wenxu reported originally:
-> > 
-> > nft add rule bridge filter forward ip protocol counter ..
-> > 
-> > The rule only matches if the ip packet is contained in an ethernet frame
-> > without vlan tag -- and thats neither expected nor desirable.
-> > 
-> > This rule works when using 'meta protocol ip' as dependency instead
-> > of ether type ip (what we do now), because VLAN stripping will fix/alter
-> > skb->protocol to the inner type when the VLAN tag gets removes.
-> > 
-> > It will still fail in case there are several VLAN tags, so we might
-> > need another meta expression that can figure out the l3 protocol type.
+Mojtaba <mespio@gmail.com> wrote:
+> Yes, For this reason, i should add conntrack entry before the kernel do in
+> my userspace project. Because i have to forward the packet to another
+> destination, i used --src-nat and --dst-nat options while adding new
+>  conntrack entry. Just like as obvious in below code:
+> nfct_set_attr_u8(ct, ATTR_L3PROTO, AF_INET);
+> nfct_set_attr_u32(ct, ATTR_IPV4_SRC, inet_addr("192.168.133.140"));
+> nfct_set_attr_u32(ct, ATTR_IPV4_DST, inet_addr("192.168.133.108"));
+> nfct_set_attr_u8(ct, ATTR_L4PROTO, IPPROTO_UDP);
+> nfct_set_attr_u16(ct, ATTR_PORT_SRC, htons(6000));
+> nfct_set_attr_u16(ct, ATTR_PORT_DST, htons(5005));
+> nfct_setobjopt(ct, NFCT_SOPT_SETUP_REPLY);
+> nfct_set_attr_u32(ct, ATTR_TIMEOUT, 60);
 > 
-> How would that new meta expression would look like?
+> *nfct_set_attr_u32(ct, ATTR_SNAT_IPV4,
+> inet_addr("192.168.133.108"));nfct_set_attr_u32(ct, ATTR_DNAT_IPV4,
+> inet_addr("192.168.133.150"));nfct_set_attr_u16(ct, ATTR_SNAT_PORT,
+> htons(5070));*
+> 
+> *nfct_set_attr_u16(ct, ATTR_DNAT_PORT, htons(6000));*
+> 
+> As far as i know, it is possible to delegate verdict of packets to
+> user-space, Here is the main point that is deriving me confused. Suppose i
+> used this rule in IPTABLE:
+> iptables -A INPUT -p udp --dport 5005  -j NQUEUE --queue-num 0
+> Then how we could make verdict to forward the packet to another
+> destination?
 
-I thought about extending nft_exthdr.c for L2, i.e. take
-ether->type, and then advance to next vlan header (if vlan type)
-until it either reaches skb network offset or an unknown type
-(which would then be considered the last/topmost one and the one
- carrying the l3 protocol number).
+You can't, INPUT is too late and NFQUEUE can't tell kernel to do nat.
+
+You could do what you want by placing NFQUEUE in raw PREROUTING,
+but in that case all packets would get queued to userspace because
+no conntrack information is available yet.
+
+But if you create the conntrack entry, then after accept verdict the
+kernel would find the conntrack entry in place and perform nat for it.
+
+It would be possible to extend nfnetlink_queue to also allow changing
+NAT properties of a conntrack entry provided the conntrack has not been
+confirmed yet but it would require kernel changes.
+
+So, best option afaics is to use libnetfilter_conntrack to insert
+a new conntrack entry from the nfq callback.
