@@ -2,65 +2,61 @@ Return-Path: <SRS0=xYYy=UR=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_NEOMUTT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_NEOMUTT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E0A03C31E5B
-	for <netfilter-devel@archiver.kernel.org>; Tue, 18 Jun 2019 15:33:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 82A1AC31E5D
+	for <netfilter-devel@archiver.kernel.org>; Tue, 18 Jun 2019 15:57:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BFC5A20673
-	for <netfilter-devel@archiver.kernel.org>; Tue, 18 Jun 2019 15:33:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 629E220873
+	for <netfilter-devel@archiver.kernel.org>; Tue, 18 Jun 2019 15:57:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729381AbfFRPdg (ORCPT
+        id S1729798AbfFRP5e (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 18 Jun 2019 11:33:36 -0400
-Received: from mail.us.es ([193.147.175.20]:46506 "EHLO mail.us.es"
+        Tue, 18 Jun 2019 11:57:34 -0400
+Received: from mail.us.es ([193.147.175.20]:57332 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729038AbfFRPdg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 18 Jun 2019 11:33:36 -0400
+        id S1729689AbfFRP53 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 18 Jun 2019 11:57:29 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 19B111176AA
-        for <netfilter-devel@vger.kernel.org>; Tue, 18 Jun 2019 17:33:34 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id E519C81A08
+        for <netfilter-devel@vger.kernel.org>; Tue, 18 Jun 2019 17:57:27 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 09A7EDA702
-        for <netfilter-devel@vger.kernel.org>; Tue, 18 Jun 2019 17:33:34 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id D5813DA70F
+        for <netfilter-devel@vger.kernel.org>; Tue, 18 Jun 2019 17:57:27 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id F344FDA708; Tue, 18 Jun 2019 17:33:33 +0200 (CEST)
+        id BCFA6DA715; Tue, 18 Jun 2019 17:57:27 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id DA552DA702;
-        Tue, 18 Jun 2019 17:33:31 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 70901DA701;
+        Tue, 18 Jun 2019 17:57:25 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 18 Jun 2019 17:33:31 +0200 (CEST)
+ Tue, 18 Jun 2019 17:57:25 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from us.es (sys.soleta.eu [212.170.55.40])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
         (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id B1AFE4265A2F;
-        Tue, 18 Jun 2019 17:33:31 +0200 (CEST)
-Date:   Tue, 18 Jun 2019 17:33:31 +0200
+        by entrada.int (Postfix) with ESMTPSA id 22F294265A2F;
+        Tue, 18 Jun 2019 17:57:25 +0200 (CEST)
+Date:   Tue, 18 Jun 2019 17:57:23 +0200
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     wenxu <wenxu@ucloud.cn>
-Cc:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
-        netdev@vger.kernel.org
-Subject: Re: [PATCH] netfilter: nft_paylaod: add base type
- NFT_PAYLOAD_LL_HEADER_NO_TAG
-Message-ID: <20190618153331.6u44cwxnaejuswqo@salvia>
-References: <1560151280-28908-1-git-send-email-wenxu@ucloud.cn>
- <20190610094433.3wjmpfiph7iwguan@breakpoint.cc>
- <20190617223004.tnqz2bl7qp63fcfy@salvia>
- <20190617224232.55hldt4bw2qcmnll@breakpoint.cc>
- <22ab95cb-9dca-1e48-4ca0-965d340e7d32@ucloud.cn>
- <20190618093748.dydodhngydfcfmeh@breakpoint.cc>
- <591caf69-ba08-33b5-5330-8230779cc903@ucloud.cn>
+To:     linmiaohe <linmiaohe@huawei.com>
+Cc:     kadlec@blackhole.kfki.hu, fw@strlen.de, davem@davemloft.net,
+        kuznet@ms2.inr.ac.ru, yoshfuji@linux-ipv6.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        dsahern@gmail.com, Mingfangsen <mingfangsen@huawei.com>
+Subject: Re: [PATCH v3] net: netfilter: Fix rpfilter dropping vrf packets by
+ mistake
+Message-ID: <20190618155723.m4l5mkpo4ecmcajt@salvia>
+References: <212e4feb-39de-2627-9948-bbb117ff4d4e@huawei.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <591caf69-ba08-33b5-5330-8230779cc903@ucloud.cn>
+In-Reply-To: <212e4feb-39de-2627-9948-bbb117ff4d4e@huawei.com>
 User-Agent: NeoMutt/20170113 (1.7.2)
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -68,53 +64,76 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Jun 18, 2019 at 10:27:12PM +0800, wenxu wrote:
+On Thu, Apr 25, 2019 at 09:43:53PM +0800, linmiaohe wrote:
+> From: Miaohe Lin <linmiaohe@huawei.com>
 > 
-> 在 2019/6/18 17:37, Florian Westphal 写道:
-> > wenxu <wenxu@ucloud.cn> wrote:
-> >> On 6/18/2019 6:42 AM, Florian Westphal wrote:
-> >>> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> >>>>> Subject: Change bridge l3 dependency to meta protocol
-> >>>>>
-> >>>>> This examines skb->protocol instead of ethernet header type, which
-> >>>>> might be different when vlan is involved.
-> >>>>>  
-> >>>>> +	if (ctx->pctx.family == NFPROTO_BRIDGE && desc == &proto_eth) {
-> >>>>> +		if (expr->payload.desc == &proto_ip ||
-> >>>>> +		    expr->payload.desc == &proto_ip6)
-> >>>>> +			desc = &proto_metaeth;
-> >>>>> +	}i
-> >>>> Is this sufficient to restrict the matching? Is this still buggy from
-> >>>> ingress?
-> >>> This is what netdev family uses as well (skb->protocol i mean).
-> >>> I'm not sure it will work for output however (haven't checked).
-> >>>
-> >>>> I wonder if an explicit NFT_PAYLOAD_CHECK_VLAN flag would be useful in
-> >>>> the kernel, if so we could rename NFTA_PAYLOAD_CSUM_FLAGS to
-> >>>> NFTA_PAYLOAD_FLAGS and place it there. Just an idea.
-> >>> Another unresolved issue is presence of multiple vlan tags, so we might
-> >>> have to add yet another meta key to retrieve the l3 protocol in use
-> >> Maybe add a l3proto meta key can handle the multiple vlan tags case with the l3proto dependency.  It
-> >> should travese all the vlan tags and find the real l3 proto.
-> > Yes, something like this.
-> >
-> > We also need to audit netdev and bridge expressions (reject is known broken)
-> > to handle vlans properly.
-> >
-> > Still, switching nft to prefer skb->protocol instead of eth_hdr->type
-> > for dependencies would be good as this doesn't need kernel changes and solves
-> > the immediate problem of 'ip ...' not matching in case of vlan.
-> >
-> > If you have time, could you check if using skb->protocol works for nft
-> > bridge in output, i.e. does 'nft ip protocol icmp' match when its used
-> > from bridge output path with meta protocol dependency with and without
-> > vlan in use?
+> When firewalld is enabled with ipv4/ipv6 rpfilter, vrf
+> ipv4/ipv6 packets will be dropped because in device is
+> vrf but out device is an enslaved device. So failed with
+> the check of the rpfilter.
 > 
-> I just check the kernel codes and test with the output chain, the
-> meta protocol dependency can also work in the outpu chain.
+> Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+> ---
+>  net/ipv4/netfilter/ipt_rpfilter.c  |  1 +
+>  net/ipv6/netfilter/ip6t_rpfilter.c | 10 +++++++++-
+>  2 files changed, 10 insertions(+), 1 deletion(-)
+> 
+> diff --git a/net/ipv4/netfilter/ipt_rpfilter.c b/net/ipv4/netfilter/ipt_rpfilter.c
+> index 0b10d8812828..6e07cd0ecbec 100644
+> --- a/net/ipv4/netfilter/ipt_rpfilter.c
+> +++ b/net/ipv4/netfilter/ipt_rpfilter.c
+> @@ -81,6 +81,7 @@ static bool rpfilter_mt(const struct sk_buff *skb, struct xt_action_param *par)
+>  	flow.flowi4_mark = info->flags & XT_RPFILTER_VALID_MARK ? skb->mark : 0;
+>  	flow.flowi4_tos = RT_TOS(iph->tos);
+>  	flow.flowi4_scope = RT_SCOPE_UNIVERSE;
+> +	flow.flowi4_oif = l3mdev_master_ifindex_rcu(xt_in(par));
+> 
+>  	return rpfilter_lookup_reverse(xt_net(par), &flow, xt_in(par), info->flags) ^ invert;
+>  }
+> diff --git a/net/ipv6/netfilter/ip6t_rpfilter.c b/net/ipv6/netfilter/ip6t_rpfilter.c
+> index c3c6b09acdc4..a28c81322148 100644
+> --- a/net/ipv6/netfilter/ip6t_rpfilter.c
+> +++ b/net/ipv6/netfilter/ip6t_rpfilter.c
+> @@ -58,7 +58,9 @@ static bool rpfilter_lookup_reverse6(struct net *net, const struct sk_buff *skb,
+>  	if (rpfilter_addr_linklocal(&iph->saddr)) {
+>  		lookup_flags |= RT6_LOOKUP_F_IFACE;
+>  		fl6.flowi6_oif = dev->ifindex;
+> -	} else if ((flags & XT_RPFILTER_LOOSE) == 0)
+> +	} else if (((flags & XT_RPFILTER_LOOSE) == 0) ||
+> +		   (netif_is_l3_master(dev)) ||
+> +		   (netif_is_l3_slave(dev)))
+>  		fl6.flowi6_oif = dev->ifindex;
+> 
+>  	rt = (void *)ip6_route_lookup(net, &fl6, skb, lookup_flags);
+> @@ -73,6 +75,12 @@ static bool rpfilter_lookup_reverse6(struct net *net, const struct sk_buff *skb,
+>  		goto out;
+>  	}
+> 
+> +	if (netif_is_l3_master(dev)) {
+> +		dev = dev_get_by_index_rcu(dev_net(dev), IP6CB(skb)->iif);
+> +		if (!dev)
+> +			goto out;
+> +	}
 
-OK.
+So, for the l3 device cases this makes:
 
-Florian, would you submit a patch, including a test for this?
+#1 ip6_route_lookup() to fetch the route, using the device in xt_in()
+   (the _LOOSE flag is ignored for the l3 device case).
+
+#2 If this is a l3dev master, then you make a global lookup for the
+   device using IP6CB(skb)->iif.
+
+#3 You check if route matches with the device, using the new device
+   from the lookup:
+
+   if (rt->rt6i_idev->dev == dev ...
+
+If there is no other way to fix this, OK, that's fair enough.
+
+Still this fix looks a bit tricky to me.
+
+And this assymmetric between the IPv4 and IPv6 codebase looks rare.
+
+Probably someone can explain me this in more detail? I'd appreciate.
 
 Thanks!
