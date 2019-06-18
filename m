@@ -2,132 +2,88 @@ Return-Path: <SRS0=xYYy=UR=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-2.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_NEOMUTT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D99FCC31E51
-	for <netfilter-devel@archiver.kernel.org>; Tue, 18 Jun 2019 09:51:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A09ECC31E51
+	for <netfilter-devel@archiver.kernel.org>; Tue, 18 Jun 2019 10:04:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A8A982070B
-	for <netfilter-devel@archiver.kernel.org>; Tue, 18 Jun 2019 09:51:26 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nfware-com.20150623.gappssmtp.com header.i=@nfware-com.20150623.gappssmtp.com header.b="kTeXw9ua"
+	by mail.kernel.org (Postfix) with ESMTP id 774532085A
+	for <netfilter-devel@archiver.kernel.org>; Tue, 18 Jun 2019 10:04:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729320AbfFRJv0 (ORCPT
+        id S1729095AbfFRKE2 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 18 Jun 2019 05:51:26 -0400
-Received: from mail-wr1-f67.google.com ([209.85.221.67]:41128 "EHLO
-        mail-wr1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729268AbfFRJv0 (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 18 Jun 2019 05:51:26 -0400
-Received: by mail-wr1-f67.google.com with SMTP id c2so13201832wrm.8
-        for <netfilter-devel@vger.kernel.org>; Tue, 18 Jun 2019 02:51:24 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=nfware-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=uSvNAj/7E9bdyAkRZvsr+LHqWu66xmk6gwC+bAPccvQ=;
-        b=kTeXw9uabxAQgF9GAzWZwnNai8+atKKtqGOHfgEtws9HDxrzJJcvAlpTJiZvO57wPw
-         9PeyuBWlb6V77wweTEXKqjqGkGaQVytjlEUt5sHYDxoUvfis9OyV0SkqYZSTY15BKEG7
-         o44YXnPX2Ih7dqB11kuI7t3lcVNOJAzAfeJTX2gpQ89jY5fpcDddSTm7Iy5Qvu/mRjSN
-         Rp7BQgOwzRDzsDa60Y5grD0ki5u1vdaVxoM2j6fj/TtmxIbeJSNE3vMxj1vdgSLm0hVb
-         Ni27ed77s5HSc4mhOFuXi2lh2YMsGUB+RGsHcO5NWG6SO4PVdPmNzOHaifsrgwe3WE7y
-         kooA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=uSvNAj/7E9bdyAkRZvsr+LHqWu66xmk6gwC+bAPccvQ=;
-        b=j7EZ2JyQdsbjkhgagvcuS3aXUe77qI/lXFKsB/hKXpjTS/SVOMJhK0WZ8GdukJf/UY
-         N5Wx6MJ7AR5tlhQPgdLQvyerzt1h8VRNhksE5DHqi9nw5GW+NgqSqnTPwOoL0Z0sYcV1
-         ZBvgp3tSNGbJTkQHQSaBf3bLKOdhfLxj3T4ivC97G0eTOZ7EZ62vGFXLD1gEZ3bWPa0C
-         Kr3UeDNSDCrFQkGH9vY4jNm/gAl2NW6NK/JrWusGQ1jXp9zs/PUGJyG+7Gc2TLgj9xHw
-         ETZyJOmiatB7r1t+/WdNSIBn7r9tuEOWBs5EqpEaFIYU8X1mEyd3bLZ6VJUNdG5FyD3i
-         qRHg==
-X-Gm-Message-State: APjAAAXswvMw8wiFrirrk1ZJF6FjgcRLIRwydm1CXpw0XCecNVNfqMeu
-        As37+gXhd374AmABRk3wKkUCGmZuu036Ai9r7Yeq18pslPRFMQ==
-X-Google-Smtp-Source: APXvYqxiO73ccuUcT6+LRN9yilblofcPoR85cb2ZKM8T8583QjBsGnD5Sy0l3vhdHzZNQM/2YNUAmeVw8El3DLNDmm8=
-X-Received: by 2002:a5d:6a90:: with SMTP id s16mr16488890wru.288.1560851483939;
- Tue, 18 Jun 2019 02:51:23 -0700 (PDT)
+        Tue, 18 Jun 2019 06:04:28 -0400
+Received: from mail.us.es ([193.147.175.20]:33938 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725934AbfFRKE2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 18 Jun 2019 06:04:28 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 23A7812BFF8
+        for <netfilter-devel@vger.kernel.org>; Tue, 18 Jun 2019 12:04:26 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 1331CDA70B
+        for <netfilter-devel@vger.kernel.org>; Tue, 18 Jun 2019 12:04:26 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 0799ADA717; Tue, 18 Jun 2019 12:04:26 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 0722CDA709;
+        Tue, 18 Jun 2019 12:04:24 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Tue, 18 Jun 2019 12:04:24 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (sys.soleta.eu [212.170.55.40])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id C588E4265A32;
+        Tue, 18 Jun 2019 12:04:23 +0200 (CEST)
+Date:   Tue, 18 Jun 2019 12:04:23 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     wenxu@ucloud.cn, netfilter-devel@vger.kernel.org,
+        netdev@vger.kernel.org
+Subject: Re: [PATCH] netfilter: nft_paylaod: add base type
+ NFT_PAYLOAD_LL_HEADER_NO_TAG
+Message-ID: <20190618100423.tirukx3ro2fl4khs@salvia>
+References: <1560151280-28908-1-git-send-email-wenxu@ucloud.cn>
+ <20190610094433.3wjmpfiph7iwguan@breakpoint.cc>
+ <20190617223004.tnqz2bl7qp63fcfy@salvia>
+ <20190617224232.55hldt4bw2qcmnll@breakpoint.cc>
+ <20190618093508.3c5jjmmmuz3m26uj@salvia>
+ <20190618094613.ztbwcclgsq54vkop@breakpoint.cc>
 MIME-Version: 1.0
-References: <20190605093240.23212-1-iryzhov@nfware.com> <20190617222507.tzizsd6dfxm6zozs@salvia>
-In-Reply-To: <20190617222507.tzizsd6dfxm6zozs@salvia>
-From:   Igor Ryzhov <iryzhov@nfware.com>
-Date:   Tue, 18 Jun 2019 12:51:13 +0300
-Message-ID: <CAF+s_Fx=b07S54_Nr7PpKjHYtwkf55Tw+WztZks5SZXtkxWLHg@mail.gmail.com>
-Subject: Re: [PATCH] netfilter: nf_conntrack_sip: fix ct_sip_walk_headers
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190618094613.ztbwcclgsq54vkop@breakpoint.cc>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Pablo,
+On Tue, Jun 18, 2019 at 11:46:13AM +0200, Florian Westphal wrote:
+> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+[...]
+> > Could you describe this problem a bit more? Small example rule plus
+> > scenario.
+> 
+> It was what wenxu reported originally:
+> 
+> nft add rule bridge filter forward ip protocol counter ..
+> 
+> The rule only matches if the ip packet is contained in an ethernet frame
+> without vlan tag -- and thats neither expected nor desirable.
+> 
+> This rule works when using 'meta protocol ip' as dependency instead
+> of ether type ip (what we do now), because VLAN stripping will fix/alter
+> skb->protocol to the inner type when the VLAN tag gets removes.
+> 
+> It will still fail in case there are several VLAN tags, so we might
+> need another meta expression that can figure out the l3 protocol type.
 
-This issue can be seen in the scenario when there are multiple
-Contact headers and the first one is using a hostname and other
-headers use IP addresses. In this case, ct_sip_walk_headers will
-work the following way:
-
-The first ct_sip_get_header call to will find the first Contact header
-but will return -1 as the header uses a hostname. But matchoff will
-be changed to the offset of this header. After that, dataoff should be
-set to matchoff, so that the next ct_sip_get_header call find the next
-Contact header. But instead of assigning dataoff to matchoff, it is
-incremented by it, which is not correct, as matchoff is an absolute
-value of the offset. So on the next call to the ct_sip_get_header,
-dataoff will be incorrect, and the next Contact header may not be
-found at all.
-
-Best regards,
-Igor
-
-
-On Tue, Jun 18, 2019 at 1:25 AM Pablo Neira Ayuso <pablo@netfilter.org> wrote:
->
-> On Wed, Jun 05, 2019 at 12:32:40PM +0300, Igor Ryzhov wrote:
-> > ct_sip_next_header and ct_sip_get_header return an absolute
-> > value of matchoff, not a shift from current dataoff.
-> > So dataoff should be assigned matchoff, not incremented by it.
->
-> Could we get a more detailed description of this bug? A description of
-> the simplified scenario / situation that help you found it would help
-> here.
->
-> Thanks.
->
-> > Signed-off-by: Igor Ryzhov <iryzhov@nfware.com>
-> > ---
-> >  net/netfilter/nf_conntrack_sip.c | 4 ++--
-> >  1 file changed, 2 insertions(+), 2 deletions(-)
-> >
-> > diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
-> > index c30c883c370b..966c5948f926 100644
-> > --- a/net/netfilter/nf_conntrack_sip.c
-> > +++ b/net/netfilter/nf_conntrack_sip.c
-> > @@ -480,7 +480,7 @@ static int ct_sip_walk_headers(const struct nf_conn *ct, const char *dptr,
-> >                               return ret;
-> >                       if (ret == 0)
-> >                               break;
-> > -                     dataoff += *matchoff;
-> > +                     dataoff = *matchoff;
-> >               }
-> >               *in_header = 0;
-> >       }
-> > @@ -492,7 +492,7 @@ static int ct_sip_walk_headers(const struct nf_conn *ct, const char *dptr,
-> >                       break;
-> >               if (ret == 0)
-> >                       return ret;
-> > -             dataoff += *matchoff;
-> > +             dataoff = *matchoff;
-> >       }
-> >
-> >       if (in_header)
-> > --
-> > 2.21.0
-> >
+How would that new meta expression would look like?
