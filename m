@@ -2,59 +2,59 @@ Return-Path: <SRS0=ZPov=US=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_NEOMUTT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_NEOMUTT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C6118C46477
-	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Jun 2019 16:50:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 12D6EC31E5B
+	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Jun 2019 17:03:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A53F9206E0
-	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Jun 2019 16:50:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E1C87217F4
+	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Jun 2019 17:02:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729142AbfFSQup (ORCPT
+        id S1727242AbfFSRC7 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 19 Jun 2019 12:50:45 -0400
-Received: from mail.us.es ([193.147.175.20]:52034 "EHLO mail.us.es"
+        Wed, 19 Jun 2019 13:02:59 -0400
+Received: from mail.us.es ([193.147.175.20]:56464 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726518AbfFSQuo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 19 Jun 2019 12:50:44 -0400
+        id S1726197AbfFSRC7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 19 Jun 2019 13:02:59 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 99A8DF278E
-        for <netfilter-devel@vger.kernel.org>; Wed, 19 Jun 2019 18:50:42 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 21461C1DF1
+        for <netfilter-devel@vger.kernel.org>; Wed, 19 Jun 2019 19:02:57 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 8A59FDA70B
-        for <netfilter-devel@vger.kernel.org>; Wed, 19 Jun 2019 18:50:42 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 12496DA703
+        for <netfilter-devel@vger.kernel.org>; Wed, 19 Jun 2019 19:02:57 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 7E61CDA713; Wed, 19 Jun 2019 18:50:42 +0200 (CEST)
+        id 075BFDA70A; Wed, 19 Jun 2019 19:02:57 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 715C0DA704;
-        Wed, 19 Jun 2019 18:50:40 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id E9381DA701;
+        Wed, 19 Jun 2019 19:02:54 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 19 Jun 2019 18:50:40 +0200 (CEST)
+ Wed, 19 Jun 2019 19:02:54 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from us.es (sys.soleta.eu [212.170.55.40])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
         (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 501424265A2F;
-        Wed, 19 Jun 2019 18:50:40 +0200 (CEST)
-Date:   Wed, 19 Jun 2019 18:50:39 +0200
+        by entrada.int (Postfix) with ESMTPSA id C2FDF4265A31;
+        Wed, 19 Jun 2019 19:02:54 +0200 (CEST)
+Date:   Wed, 19 Jun 2019 19:02:54 +0200
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Stephen Suryaputra <ssuryaextr@gmail.com>
-Cc:     netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-Subject: Re: [PATCH RESEND nf-next] netfilter: add support for matching IPv4
- options
-Message-ID: <20190619165039.yg3gzhkg2kvze5py@salvia>
-References: <20190611120912.3825-1-ssuryaextr@gmail.com>
- <20190618153112.jwomdzit6mdawssi@salvia>
- <20190618141355.GA5642@ubuntu>
+To:     wenxu@ucloud.cn
+Cc:     fw@strlen.de, netfilter-devel@vger.kernel.org,
+        netdev@vger.kernel.org
+Subject: Re: [PATCH 1/2 nf-next] netfilter: nft_meta: add NFT_META_BRI_PVID
+ support
+Message-ID: <20190619170254.an2aklx6abqh646l@salvia>
+References: <1560928585-18352-1-git-send-email-wenxu@ucloud.cn>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20190618141355.GA5642@ubuntu>
+In-Reply-To: <1560928585-18352-1-git-send-email-wenxu@ucloud.cn>
 User-Agent: NeoMutt/20170113 (1.7.2)
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -62,61 +62,89 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Jun 18, 2019 at 10:13:55AM -0400, Stephen Suryaputra wrote:
-> On Tue, Jun 18, 2019 at 05:31:12PM +0200, Pablo Neira Ayuso wrote:
-> > > +{
-> > > +	unsigned char optbuf[sizeof(struct ip_options) + 41];
-> > 
-> > In other parts of the kernel this is + 40:
-> > 
-> > net/ipv4/cipso_ipv4.c:  unsigned char optbuf[sizeof(struct ip_options) + 40];
-> > 
-> > here it is + 41.
-> >
-> > ...
-> >
-> > > +	/* Copy the options since __ip_options_compile() modifies
-> > > +	 * the options. Get one byte beyond the option for target < 0
-> > 
-> > How does this "one byte beyond the option" trick works?
+On Wed, Jun 19, 2019 at 03:16:24PM +0800, wenxu@ucloud.cn wrote:
+> From: wenxu <wenxu@ucloud.cn>
 > 
-> I used ipv6_find_hdr() as a reference. There if target is set to less
-> than 0, then the offset points to the byte beyond the extension header.
-> In this function, it points to the byte beyond the option. I wanted to
-> be as close as a working code as possible. Also, why +41 instead of +40.
+> nft add table bridge firewall
+> nft add chain bridge firewall zones { type filter hook prerouting priority - 300 \; }
+> nft add rule bridge firewall zones counter ct zone set vlan id map { 100 : 1, 200 : 2 }
 
-OK. But this is never used in this new extension, priv->type is always
-set. I mean, we already have a pointer to the transport header via
-nft_pktinfo->xt.thoff.
+> As above set the bridge port with pvid, the received packet don't contain
+> the vlan tag which means the packet should belong to vlan 200 through pvid.
+> With this pacth user can get the pvid of bridge ports: "meta brpvid"
 
-> > > +		if (opt->end) {
-> > > +			*offset = opt->end + start;
-> > > +			target = IPOPT_END;
-> > 
-> > May I ask, what's the purpose of IPOPT_END? :-)
+Would you also post the patches for nftables for review?
+
+Would you post an example on how you use "meta brpvid" in your
+ruleset? I don't see this is used in the example above,
+
+More comments below.
+
+> Signed-off-by: wenxu <wenxu@ucloud.cn>
+> ---
+>  include/uapi/linux/netfilter/nf_tables.h |  2 ++
+>  net/netfilter/nft_meta.c                 | 17 +++++++++++++++++
+>  2 files changed, 19 insertions(+)
 > 
-> My understanding is that in ipv6_find_hdr() if the nexthdr is
-> NEXTHDR_NONE, then that's the one being returned. The same here: target
-> is the return value.
+> diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+> index 31a6b8f..4a16124 100644
+> --- a/include/uapi/linux/netfilter/nf_tables.h
+> +++ b/include/uapi/linux/netfilter/nf_tables.h
+> @@ -793,6 +793,7 @@ enum nft_exthdr_attributes {
+>   * @NFT_META_SECPATH: boolean, secpath_exists (!!skb->sp)
+>   * @NFT_META_IIFKIND: packet input interface kind name (dev->rtnl_link_ops->kind)
+>   * @NFT_META_OIFKIND: packet output interface kind name (dev->rtnl_link_ops->kind)
+> + * @NFT_META_BRI_PVID: packet input bridge port pvid
+>   */
+>  enum nft_meta_keys {
+>  	NFT_META_LEN,
+> @@ -823,6 +824,7 @@ enum nft_meta_keys {
+>  	NFT_META_SECPATH,
+>  	NFT_META_IIFKIND,
+>  	NFT_META_OIFKIND,
+> +	NFT_META_BRI_PVID,
+>  };
+>  
+>  /**
+> diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
+> index 987d2d6..1fdb565 100644
+> --- a/net/netfilter/nft_meta.c
+> +++ b/net/netfilter/nft_meta.c
+> @@ -243,6 +243,18 @@ void nft_meta_get_eval(const struct nft_expr *expr,
+>  			goto err;
+>  		strncpy((char *)dest, p->br->dev->name, IFNAMSIZ);
+>  		return;
+> +	case NFT_META_BRI_PVID:
+> +		if (in == NULL || (p = br_port_get_rtnl_rcu(in)) == NULL)
+> +			goto err;
+> +		if (br_opt_get(p->br, BROPT_VLAN_ENABLED)) {
+> +			u16 pvid = br_get_pvid(nbp_vlan_group_rcu(p));
+> +
+> +			if (pvid) {
+> +				nft_reg_store16(dest, pvid);
 
-Code that falls under the default: case that deals with IPOPT_END is
-never exercised, right?
+I think you should store pvid into dest if pvid is zero too, right?
+You cannot assume destination register is set to zero.
 
-priv->type is always set to >= 0, so the opt->end never happens.
-Hence, we can remove the chunk in net/ipv4/ip_options.c.
-
-> > Apart from the above, this looks good to me.
+> +				return;
+> +			}
+> +		}
+> +		goto err;
+>  #endif
+>  	case NFT_META_IIFKIND:
+>  		if (in == NULL || in->rtnl_link_ops == NULL)
+> @@ -370,6 +382,11 @@ static int nft_meta_get_init(const struct nft_ctx *ctx,
+>  			return -EOPNOTSUPP;
+>  		len = IFNAMSIZ;
+>  		break;
+> +	case NFT_META_BRI_PVID:
+> +		if (ctx->family != NFPROTO_BRIDGE)
+> +			return -EOPNOTSUPP;
+> +		len = sizeof(u16);
+> +		break;
+>  #endif
+>  	default:
+>  		return -EOPNOTSUPP;
+> -- 
+> 1.8.3.1
 > 
-> AOK for other comments. I can spin another version.
-
-Please, do.
-
-Thanks for explaining. I understand motivation is to mimic
-ipv6_find_hdr() which is a good idea indeed... if this functions
-becomes used away from the netfilter tree at some point that would be
-a good pattern to extend it. However, so far - please correct me if
-I'm mistaken - for the requirements of nft_exthdr to support IPv4
-options, we don't seem to need it, so I would prefer to start with the
-bare minimum code that nft_exthdr needs, if possible.
-
-Thanks!
