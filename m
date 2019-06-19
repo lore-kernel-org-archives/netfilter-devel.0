@@ -2,120 +2,119 @@ Return-Path: <SRS0=ZPov=US=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_NEOMUTT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 50495C31E49
-	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Jun 2019 08:46:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 36AD9C31E49
+	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Jun 2019 09:27:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2E61B20823
-	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Jun 2019 08:46:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 04844206BF
+	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Jun 2019 09:27:02 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Tm2HLn5/"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731266AbfFSIqN (ORCPT
+        id S1731410AbfFSJ1B (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 19 Jun 2019 04:46:13 -0400
-Received: from mail.us.es ([193.147.175.20]:34234 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731136AbfFSIqM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 19 Jun 2019 04:46:12 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 67764BEBA4
-        for <netfilter-devel@vger.kernel.org>; Wed, 19 Jun 2019 10:46:10 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 52A9FDA71F
-        for <netfilter-devel@vger.kernel.org>; Wed, 19 Jun 2019 10:46:10 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 74F98DA78D; Wed, 19 Jun 2019 10:45:45 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id CBF92DA713;
-        Wed, 19 Jun 2019 10:45:42 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 19 Jun 2019 10:45:42 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (sys.soleta.eu [212.170.55.40])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id A75574265A2F;
-        Wed, 19 Jun 2019 10:45:42 +0200 (CEST)
-Date:   Wed, 19 Jun 2019 10:45:42 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     Simon Kirby <sim@hostway.ca>, netfilter@vger.kernel.org,
-        netfilter-devel <netfilter-devel@vger.kernel.org>
-Subject: Re: nft ct original oddity
-Message-ID: <20190619084542.p6myk7tpm7fozxoi@salvia>
-References: <20190618220508.twxiuzaxvtc7ya6u@hostway.ca>
- <20190619051010.aae7tvgptmgldawp@breakpoint.cc>
+        Wed, 19 Jun 2019 05:27:01 -0400
+Received: from mail-io1-f68.google.com ([209.85.166.68]:34491 "EHLO
+        mail-io1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726865AbfFSJ1B (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 19 Jun 2019 05:27:01 -0400
+Received: by mail-io1-f68.google.com with SMTP id k8so6437398iot.1;
+        Wed, 19 Jun 2019 02:27:00 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=QYASPS9gmPkEPb3xpWAp9nTgZ274vq0zsdir5tDgDcY=;
+        b=Tm2HLn5/IyE1UqWEI30QLZ4VRNMYO+UVtd83Rz+jvYIOK4ixOn6LRYVUsRAv0hoMhv
+         w8ORWEEuNeRR+SAliAYkTulbNW1syJCjwpecm2IiSCog35f+DEIelqoIUC+C/Ib5FMRn
+         AfanEjPLjnZDE4QtV9Be+zZSfHPweFDMNCrxH/m0SsNUTqZ/04C1oCeDE56pgkUiC/QX
+         0+KrgipHmuVjKnjmudEmu37Sd+Z6K9JRjfSCA6i3AqlqkRZVIcBJ/pWiyEDCibAMQAxv
+         WVoTgLqCrXdhjbzLSb9P4xEn7gG3PQuCs8g4xWIHac3XtFNQ1V3l/OwIH/33u7CwFomV
+         duzg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=QYASPS9gmPkEPb3xpWAp9nTgZ274vq0zsdir5tDgDcY=;
+        b=H8KpyJDweJJOdWwf11gnmnHMEAr4ej9j4ptIAofZri7enawX9AeKYzsMKpv5ckgO8+
+         rV2PP7s0FRav5P+i/2oVOvBvTO4nSjUx2ayBSEtouwH2RdwLpKGdoDrlzvSoxzNLGjZY
+         FgnVnCjKupKbxuvrsPEcJu4HjElO/Ap00yeHGRC827YnWmHE3GyDZgF8uDLe2jxTLs4M
+         p1UlGp3zPQRGq2p5z6HUQM2XS66hfC2axo7L+3cXLdcUjW5M4v/Jkb6MWKQt5sBKbDWM
+         aA0nv+U1wOL/pCu45i+vJpRgXzkPkX6Dj9Q7XYCWotfRztqy3mIcQAXGI332dEnPJSaY
+         HPVA==
+X-Gm-Message-State: APjAAAW6e9OfSPfFe1fjwvCFlP+XmuwW/lyfqqQcn3ns4QR1JQO8mC0G
+        sSW6AXxqCtwZTFO/A4cJtt+UkzGNnmdmRjXL07BNUEZfZrtn7g==
+X-Google-Smtp-Source: APXvYqwBLavC4njNXnnw8DfHCafH1xcOTzNvDrExVEVslwKmLxkZENmXg6l6jfTsr/+WrC3KztPhg7ljwBF9zAWvXhY=
+X-Received: by 2002:a02:85ef:: with SMTP id d102mr9401791jai.63.1560936420187;
+ Wed, 19 Jun 2019 02:27:00 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190619051010.aae7tvgptmgldawp@breakpoint.cc>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+References: <CAK6Qs9mam2U6JdeBnkzX9sfdeWWkLx_+ZgHOTmYjSC2wKfg0cQ@mail.gmail.com>
+ <20190618104041.unuonhmuvgnlty3l@breakpoint.cc> <CAK6Qs9kmxqOaCjgcBefPR-NKEdGKTcfKUL_tu09CQYp3OT5krA@mail.gmail.com>
+ <20190618115905.6kd2hqg2hlbs5frc@breakpoint.cc> <CAK6Qs9mTkAaH9+RqzmtrbNps1=NtW4c8wtJy7Kjay=r7VSJwsQ@mail.gmail.com>
+ <20190618124026.4kvpdkbstdgaluij@breakpoint.cc>
+In-Reply-To: <20190618124026.4kvpdkbstdgaluij@breakpoint.cc>
+From:   =?UTF-8?Q?=C4=B0brahim_Ercan?= <ibrahim.metu@gmail.com>
+Date:   Wed, 19 Jun 2019 12:26:48 +0300
+Message-ID: <CAK6Qs9nak4Aes9BXGsHC8SGGXmWGGrhPwAPQY5brFXtUzLkd-A@mail.gmail.com>
+Subject: Re: Is this possible SYN Proxy bug?
+To:     Florian Westphal <fw@strlen.de>
+Cc:     netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Jun 19, 2019 at 07:10:10AM +0200, Florian Westphal wrote:
-> Simon Kirby <sim@hostway.ca> wrote:
-> 
-> [ moving to nf-devel ]
-> 
-> > I accidentally wrote "ct original" instead of "ct direction original",
-> > and this broke "nft list ruleset":
-> > 
-> > # nft add set filter myset '{ type ipv4_addr; }'
-> > # nft insert rule filter input ct original ip daddr @myset
-> > # nft list ruleset
-> > nft: netlink_delinearize.c:124: netlink_parse_concat_expr: Assertion `consumed > 0' failed.
-> > Abort
-> 
-> Indeed.
-> 
-> This will fix the immediate problem:
-> 
-> diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
-> --- a/src/netlink_delinearize.c
-> +++ b/src/netlink_delinearize.c
-> @@ -329,7 +329,7 @@ static void netlink_parse_lookup(struct netlink_parse_ctx *ctx,
->                 return netlink_error(ctx, loc,
->                                      "Lookup expression has no left hand side");
->  
-> -       if (left->len < set->key->len) {
-> +       if (left->len && left->len < set->key->len) {
->                 expr_free(left);
->                 left = netlink_parse_concat_expr(ctx, loc, sreg, set->key->len);
->                 if (left == NULL)
-> 
-> Pablo, the problem is that ct->key is NFT_CT_SRC, so expr->len is 0, so
-> we try to parse a concat expression.  Its not until the evaluation step
-> before we will figure out from context that SRC is asking for an ipv4
-> address and update the type and expression length.
-> 
-> AFAICS the plan was to stop using NFT_CT_SRC and use NFT_CT_SRC_IP(6)
-> instead so we have type and length info available directly.
-> 
-> Was there a problem with it (inet family)?
+On Tue, Jun 18, 2019 at 3:40 PM Florian Westphal <fw@strlen.de> wrote:
+>
+> Does this patch fix the problem for you?
+>
+> diff --git a/net/ipv4/netfilter/ipt_SYNPROXY.c b/net/ipv4/netfilter/ipt_SYNPROXY.c
+> --- a/net/ipv4/netfilter/ipt_SYNPROXY.c
+> +++ b/net/ipv4/netfilter/ipt_SYNPROXY.c
+> @@ -286,6 +286,7 @@ synproxy_tg4(struct sk_buff *skb, const struct xt_action_param *par)
+>                         opts.options |= XT_SYNPROXY_OPT_ECN;
+>
+>                 opts.options &= info->options;
+> +               opts.mss = info->mss;
+>                 if (opts.options & XT_SYNPROXY_OPT_TIMESTAMP)
+>                         synproxy_init_timestamp_cookie(info, &opts);
+>                 else
+> diff --git a/net/ipv6/netfilter/ip6t_SYNPROXY.c b/net/ipv6/netfilter/ip6t_SYNPROXY.c
+> --- a/net/ipv6/netfilter/ip6t_SYNPROXY.c
+> +++ b/net/ipv6/netfilter/ip6t_SYNPROXY.c
+> @@ -300,6 +300,7 @@ synproxy_tg6(struct sk_buff *skb, const struct xt_action_param *par)
+>                         opts.options |= XT_SYNPROXY_OPT_ECN;
+>
+>                 opts.options &= info->options;
+> +               opts.mss = info->mss;
+>                 if (opts.options & XT_SYNPROXY_OPT_TIMESTAMP)
+>                         synproxy_init_timestamp_cookie(info, &opts);
+>                 else
 
-Right. In general, we need keys with fixed lengths, the NFT_CT_SRC
-approach where key is variable length is a problem for the set
-infrastructure, as you're describing.
+I applied this patch and did same test with same setup.
+On External interface mss value seems correct. But This time on
+internal interface firewall set mss value to 1460 on syn packet rather
+than 536.
+Here is samples.
 
-There's a fix for this here:
+External
+10.0.0.215.60812 > 10.0.1.213.80: Flags [S], seq 1275328749, win
+25200, options [mss 1260,sackOK,TS val 183998290 ecr 0,nop,wscale 7],
+length 0
+10.0.1.213.80 > 10.0.0.215.60812: Flags [S.], seq 584730658, ack
+1275328750, win 0, options [mss 1460,sackOK,TS val 193047 ecr
+183998290,nop,wscale 2], length 0
 
-https://patchwork.ozlabs.org/patch/883575/
-
-It requires kernel >= 4.17.
-
-I wanted to have netlink descriptions to deal with this case, but so
-far only probing is possible, and I would like not to open up for that
-path.
-
-I can just rebase, resubmit and merge it if you are fine with it.
-
-Thanks.
+Internal
+10.0.0.215.60812 > 10.0.1.213.80: Flags [S], seq 1275328749, win 197,
+options [mss 1460,sackOK,TS val 183998290 ecr 193047,nop,wscale 7],
+length 0
+10.0.1.213.80 > 10.0.0.215.60812: Flags [S.], seq 3022386930, ack
+1275328750, win 14480, options [mss 1460,sackOK,TS val 101024266 ecr
+183998290,nop,wscale 2], length 0
