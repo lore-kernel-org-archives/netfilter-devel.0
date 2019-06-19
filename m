@@ -2,70 +2,86 @@ Return-Path: <SRS0=ZPov=US=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_MUTT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_NEOMUTT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BB3DBC31E5E
-	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Jun 2019 12:31:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 22E22C31E49
+	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Jun 2019 12:53:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9492321530
-	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Jun 2019 12:31:59 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1560947519;
-	bh=OnbpzWSgbraukgT2WoGR2Gyjd60rQpN+yZ6T+ic5ujc=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=dbDHRouPSkgtFTHBduffYzBXXicD8Z4CcWyKul8F8BVzmcEOl7A93Un4mv/+5TnNt
-	 fG5YOBaxc4dX2UUQT9cK18aHlrpqQ8Wzcw4NB/Upf1oufSZA17WAH0O6wQS+Gh59Ag
-	 0L9SYv9mIIUE0unQCxHzJbbwz7XGJQvLbky4oJDs=
+	by mail.kernel.org (Postfix) with ESMTP id EA634208CB
+	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Jun 2019 12:53:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731678AbfFSMb6 (ORCPT
+        id S1727882AbfFSMxK (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 19 Jun 2019 08:31:58 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58984 "EHLO mail.kernel.org"
+        Wed, 19 Jun 2019 08:53:10 -0400
+Received: from mx1.redhat.com ([209.132.183.28]:15238 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731774AbfFSMb5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 19 Jun 2019 08:31:57 -0400
-Received: from localhost (83-86-89-107.cable.dynamic.v4.ziggo.nl [83.86.89.107])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        id S1727002AbfFSMxK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 19 Jun 2019 08:53:10 -0400
+Received: from smtp.corp.redhat.com (int-mx07.intmail.prod.int.phx2.redhat.com [10.5.11.22])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 2A3B52147A;
-        Wed, 19 Jun 2019 12:31:56 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1560947516;
-        bh=OnbpzWSgbraukgT2WoGR2Gyjd60rQpN+yZ6T+ic5ujc=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=zv8Mic1rNULY8bj79jLtlD4hcUl8X9Lh7UHxN718zgaALK/zJzX91ZxyrIYiScybT
-         W/5VlBtXzdsSgsgYx25sjcTWgk70Vi+djEnh/iEV1fjvy6IAZFE4gFghXanocIN6fz
-         s6yO5YdWJP1MpegP9oCJ+ZSHwGErVPAC4ZTqXfGo=
-Date:   Wed, 19 Jun 2019 14:31:54 +0200
-From:   Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+        by mx1.redhat.com (Postfix) with ESMTPS id E8BB930860A5;
+        Wed, 19 Jun 2019 12:52:57 +0000 (UTC)
+Received: from egarver.localdomain (ovpn-121-240.rdu2.redhat.com [10.10.121.240])
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id 308A31001925;
+        Wed, 19 Jun 2019 12:52:54 +0000 (UTC)
+Date:   Wed, 19 Jun 2019 08:52:54 -0400
+From:   Eric Garver <eric@garver.life>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: netfilter fix for -stable 5.1.x
-Message-ID: <20190619123154.GB23334@kroah.com>
-References: <20190618085900.gkq2omywmrduawia@salvia>
+Cc:     shekhar sharma <shekhar250198@gmail.com>,
+        netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft] nft-test.py: use tempfile module
+Message-ID: <20190619125254.atenkuzvn4xzar5q@egarver.localdomain>
+Mail-Followup-To: Eric Garver <eric@garver.life>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        shekhar sharma <shekhar250198@gmail.com>,
+        netfilter-devel@vger.kernel.org
+References: <CAN9XX2pWQY0Rz2cGv7V=v8+g0mUTNGWS4pf0FJwScmrNpC5Kjg@mail.gmail.com>
+ <20190618182127.21110-1-eric@garver.life>
+ <20190619103944.acxr3rw7cbj4eylh@salvia>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20190618085900.gkq2omywmrduawia@salvia>
-User-Agent: Mutt/1.12.1 (2019-06-15)
+In-Reply-To: <20190619103944.acxr3rw7cbj4eylh@salvia>
+User-Agent: NeoMutt/20180716
+X-Scanned-By: MIMEDefang 2.84 on 10.5.11.22
+X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.5.16 (mx1.redhat.com [10.5.110.44]); Wed, 19 Jun 2019 12:53:10 +0000 (UTC)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Jun 18, 2019 at 10:59:00AM +0200, Pablo Neira Ayuso wrote:
-> Hi Greg,
+On Wed, Jun 19, 2019 at 12:39:44PM +0200, Pablo Neira Ayuso wrote:
+> On Tue, Jun 18, 2019 at 02:21:27PM -0400, Eric Garver wrote:
+> > os.tmpfile() is not in python3.
 > 
-> Could you cherry-pick this fix into -stable 5.1.x?
+> If I apply:
 > 
-> commit 6bac76db1da3cb162c425d58ae421486f8e43955
-> Author: Florian Westphal <fw@strlen.de>
-> Date:   Mon May 20 13:48:10 2019 +0200
+> https://patchwork.ozlabs.org/patch/1116034/
 > 
->     netfilter: nat: fix udp checksum corruption
+> and this patch, it's getting better, but still I hit one problem:
+> 
+> # python3 nft-test.py
+> INFO: Log will be available at /tmp/nftables-test.log
+> any/fwd.t: OK
+> any/rt.t: OK
+> any/queue.t: OK
+> any/dup.t: OK
+> any/log.t: OK
+> Traceback (most recent call last):
+>   File "nft-test.py", line 1455, in <module>
+>     main()
+>   File "nft-test.py", line 1423, in main
+>     result = run_test_file(filename, force_all_family_option,
+> specific_file)
+>   File "nft-test.py", line 1291, in run_test_file
+>     filename_path)
+>   File "nft-test.py", line 846, in rule_add
+>     rule_output.rstrip()) != 0:
+>   File "nft-test.py", line 495, in set_check_element
+>     if (cmp(rule1[:pos1], rule2[:pos2]) != 0):
+> NameError: name 'cmp' is not defined
 
-Now applied, thanks.
-
-greg k-h
+I will post a short series today to address this as well.
