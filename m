@@ -3,56 +3,62 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-2.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_NEOMUTT autolearn=ham
-	autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_NEOMUTT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 832F2C31E49
-	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Jun 2019 11:10:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D3E3C31E49
+	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Jun 2019 11:17:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4FF3A208CB
-	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Jun 2019 11:10:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0E4612054F
+	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Jun 2019 11:17:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731615AbfFSLKa (ORCPT
+        id S1731473AbfFSLRR (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 19 Jun 2019 07:10:30 -0400
-Received: from mail.us.es ([193.147.175.20]:55380 "EHLO mail.us.es"
+        Wed, 19 Jun 2019 07:17:17 -0400
+Received: from mail.us.es ([193.147.175.20]:32972 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726826AbfFSLKa (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 19 Jun 2019 07:10:30 -0400
+        id S1727134AbfFSLRR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 19 Jun 2019 07:17:17 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id EA9CE190F74
-        for <netfilter-devel@vger.kernel.org>; Wed, 19 Jun 2019 13:10:27 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 0A8462519C3
+        for <netfilter-devel@vger.kernel.org>; Wed, 19 Jun 2019 13:17:15 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id DB60DDA707
-        for <netfilter-devel@vger.kernel.org>; Wed, 19 Jun 2019 13:10:27 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id EFEA0DA709
+        for <netfilter-devel@vger.kernel.org>; Wed, 19 Jun 2019 13:17:14 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id D0B5EDA706; Wed, 19 Jun 2019 13:10:27 +0200 (CEST)
+        id E0CCCDA71A; Wed, 19 Jun 2019 13:17:14 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id E34FFDA701;
-        Wed, 19 Jun 2019 13:10:25 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id E510BDA707;
+        Wed, 19 Jun 2019 13:17:12 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 19 Jun 2019 13:10:25 +0200 (CEST)
+ Wed, 19 Jun 2019 13:17:12 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from us.es (sys.soleta.eu [212.170.55.40])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
         (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id B72944265A2F;
-        Wed, 19 Jun 2019 13:10:25 +0200 (CEST)
-Date:   Wed, 19 Jun 2019 13:10:25 +0200
+        by entrada.int (Postfix) with ESMTPSA id B27494265A32;
+        Wed, 19 Jun 2019 13:17:12 +0200 (CEST)
+Date:   Wed, 19 Jun 2019 13:17:12 +0200
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     =?iso-8859-1?Q?St=E9phane?= Veyret <sveyret@gmail.com>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH libnftnl v4 0/2] add ct expectation support
-Message-ID: <20190619111025.bpel53wpij5eovxo@salvia>
-References: <20190531165145.12123-1-sveyret@gmail.com>
+To:     Lukasz Pawelczyk <l.pawelczyk@samsung.com>
+Cc:     Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Lukasz Pawelczyk <havner@gmail.com>
+Subject: Re: [PATCH v5] extensions: libxt_owner: Add supplementary groups
+ option
+Message-ID: <20190619111712.vcww4uxqk3k7aegq@salvia>
+References: <CGME20190610105906eucas1p1a1e124ea55dd97bc7400b5504002e41c@eucas1p1.samsung.com>
+ <20190610105856.31754-1-l.pawelczyk@samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20190531165145.12123-1-sveyret@gmail.com>
+In-Reply-To: <20190610105856.31754-1-l.pawelczyk@samsung.com>
 User-Agent: NeoMutt/20170113 (1.7.2)
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -60,8 +66,8 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, May 31, 2019 at 06:51:43PM +0200, Stéphane Veyret wrote:
-> Please find here the second part of the ct expectation support.
-> When needed, please ask me for the third part: nft patch.
+On Mon, Jun 10, 2019 at 12:58:56PM +0200, Lukasz Pawelczyk wrote:
+> The --suppl-groups option causes GIDs specified with --gid-owner to be
+> also checked in the supplementary groups of a process.
 
-Series for libnftnl applied, thanks Stephane.
+Applied, thanks.
