@@ -2,81 +2,161 @@ Return-Path: <SRS0=ZPov=US=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_NEOMUTT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C6382C31E49
-	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Jun 2019 05:10:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 635EEC31E49
+	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Jun 2019 06:50:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A5FBE20B1F
-	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Jun 2019 05:10:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 28C0B2084A
+	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Jun 2019 06:50:37 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="MTaw1kZV"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730398AbfFSFKN (ORCPT
+        id S1730758AbfFSGug (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 19 Jun 2019 01:10:13 -0400
-Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:56890 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725854AbfFSFKN (ORCPT
+        Wed, 19 Jun 2019 02:50:36 -0400
+Received: from mail-ed1-f68.google.com ([209.85.208.68]:36964 "EHLO
+        mail-ed1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725854AbfFSGug (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 19 Jun 2019 01:10:13 -0400
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.89)
-        (envelope-from <fw@strlen.de>)
-        id 1hdSrK-0005j6-FR; Wed, 19 Jun 2019 07:10:10 +0200
-Date:   Wed, 19 Jun 2019 07:10:10 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Simon Kirby <sim@hostway.ca>
-Cc:     netfilter@vger.kernel.org,
-        netfilter-devel <netfilter-devel@vger.kernel.org>
-Subject: Re: nft ct original oddity
-Message-ID: <20190619051010.aae7tvgptmgldawp@breakpoint.cc>
-References: <20190618220508.twxiuzaxvtc7ya6u@hostway.ca>
+        Wed, 19 Jun 2019 02:50:36 -0400
+Received: by mail-ed1-f68.google.com with SMTP id w13so25532709eds.4
+        for <netfilter-devel@vger.kernel.org>; Tue, 18 Jun 2019 23:50:35 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=+Qxmv6bTThH3GiHUEdHkY0cM3KiIKB6WcAc/1NTj1r4=;
+        b=MTaw1kZVbix4K7cLc5VG0oNdzLqMDC/FikHI/HlCYQKsaSdboirrAuo/uIXU2awBDk
+         ZvJ0q2Y5kylOJV/mmuYFD5stObkhv8YpXAODCJIUS/grE9fvr3baRTZ7Gopacl5ztUHi
+         88wASog1vpvm/m3/LviTLYi6Ev1+11+nRZYTUWwoxYVlp07Pt8QjEBYvZDkXdOhOk4QV
+         +5DudxWWhm5DV9n9A2TmVAsBA+f5+F6HY0rlmR4bFBcSB7FTW55QqljUFujYZgvpHaS4
+         LKug2bXDuZNeKla2Eyr/0Lwm+jctYiUtBjlRsPOZPEqYbKDF/lQQKDs6evrtYsaUGRW2
+         bFcQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=+Qxmv6bTThH3GiHUEdHkY0cM3KiIKB6WcAc/1NTj1r4=;
+        b=oqHhP3WtdERCOsXDN9G3KYyO5PgtQELCDLiusFWG2s8xe6AJJ3uBLVBL2xlimJf3K2
+         DIEm01ExNsjzPBu1aC0t/zfHBKBS7O92WjpWe7X3KqYEvDf7hZ+GK876LL5k22lAsI4w
+         GKg5GF9Hg9sSXPDMqJzSTBj6IG9Xz8hM45WZL0iaktHIaLoaYqxNbAEIpwrHMhs+9PKL
+         8MMgDarkeeMhl1Shg9JjyzGqFkY4YpMC6WRUfAXMrpgMuCVpImeCsvAjhFX7ptZyESgw
+         z1TqvsKd3opRUPQrYQrn8Mu/8MZGlPFLf8tyo7tQNEfUorCSjwsfUMEBVYjY6wh548IC
+         dCLQ==
+X-Gm-Message-State: APjAAAXnB0jGYe/cG4gMginDQ63C0kg2xHOYWSVc+hgbdOHgGqi0dhiW
+        eIe/NCfmOV3anaEjRd8+5VFUgjHtgw+RMF2U5h5RmR2mtvU=
+X-Google-Smtp-Source: APXvYqyMSnESCVf/6bXKTfsJgaFk/YZQDl9fscMtTgzoRVGXWUat2Ku2Vyk8GGm+b8uQH9mK7ZMWQXn9rC1J3+40KuQ=
+X-Received: by 2002:a50:92e1:: with SMTP id l30mr37606150eda.141.1560927034607;
+ Tue, 18 Jun 2019 23:50:34 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190618220508.twxiuzaxvtc7ya6u@hostway.ca>
-User-Agent: NeoMutt/20170113 (1.7.2)
+References: <CABVi_Eyws89e+y_4tGJNybGRdL4AarHG6GkNB0d0MGgLABuv3w@mail.gmail.com>
+ <20190618095021.doh6pc7gzah3bnra@breakpoint.cc> <CABVi_EyyV6jmB8SxuiUKpHzL9NwMLUA1TPk3X=SOq58BFdG9vA@mail.gmail.com>
+ <20190618105613.qgfov6jmnov2ba3e@breakpoint.cc> <CABVi_ExMpOnaau6sroSXd=Zzc4=F6t0Hv5iCm16q0jxqp5Tjkg@mail.gmail.com>
+ <20190618132350.phtpv2vhteplfj32@breakpoint.cc> <CABVi_Ey3cHVdnpzRFo_yPFKkPveXeia7WBV4S9iPxPotLkCpuQ@mail.gmail.com>
+ <20190618140036.ydorhtj5mvjfwemz@breakpoint.cc>
+In-Reply-To: <20190618140036.ydorhtj5mvjfwemz@breakpoint.cc>
+From:   Mojtaba <mespio@gmail.com>
+Date:   Wed, 19 Jun 2019 11:20:22 +0430
+Message-ID: <CABVi_Ex=NiC-XmJz5FRuRp919eivwhjvSL3_k-PV-+F_2zd9ZA@mail.gmail.com>
+Subject: Re: working with libnetfilter_queue and linbetfilter_contrack
+To:     Florian Westphal <fw@strlen.de>
+Cc:     netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Simon Kirby <sim@hostway.ca> wrote:
+Hello,
+Absolutely of course, i used exactly the same way in my test-case. I
+added 200 entry in libnetfilter_conntrack for 200 concurrent call. In
+reality i have to extract the address of media stream for both
+endpoints in SIP-Proxy server then send them to user-space project in
+another machine over TCP connection. Here is what i do in test-case
+project. I have to change conntrack_create_nat.c like below:
 
-[ moving to nf-devel ]
+int i = 10000;
+int end = 30000
+int MAX_CALL = 200;
+int j = 10000 + (MAX_CALL*4-4);
+while(i<=j) {
 
-> I accidentally wrote "ct original" instead of "ct direction original",
-> and this broke "nft list ruleset":
-> 
-> # nft add set filter myset '{ type ipv4_addr; }'
-> # nft insert rule filter input ct original ip daddr @myset
-> # nft list ruleset
-> nft: netlink_delinearize.c:124: netlink_parse_concat_expr: Assertion `consumed > 0' failed.
-> Abort
+   nfct_set_attr_u8(ct, ATTR_L3PROTO, AF_INET);
+   nfct_set_attr_u32(ct, ATTR_IPV4_SRC, inet_addr("192.168.133.140"));
+         //endpoint A
+   nfct_set_attr_u32(ct, ATTR_IPV4_DST, inet_addr("192.168.133.108"));
 
-Indeed.
+   //nfct_set_attr_u8(ct, ATTR_L4PROTO, IPPROTO_TCP);
+   nfct_set_attr_u8(ct, ATTR_L4PROTO, IPPROTO_UDP);
+   nfct_set_attr_u16(ct, ATTR_PORT_SRC, htons(6000));
+   nfct_set_attr_u16(ct, ATTR_PORT_DST, htons(i));
 
-This will fix the immediate problem:
+   nfct_setobjopt(ct, NFCT_SOPT_SETUP_REPLY);
 
-diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
---- a/src/netlink_delinearize.c
-+++ b/src/netlink_delinearize.c
-@@ -329,7 +329,7 @@ static void netlink_parse_lookup(struct netlink_parse_ctx *ctx,
-                return netlink_error(ctx, loc,
-                                     "Lookup expression has no left hand side");
- 
--       if (left->len < set->key->len) {
-+       if (left->len && left->len < set->key->len) {
-                expr_free(left);
-                left = netlink_parse_concat_expr(ctx, loc, sreg, set->key->len);
-                if (left == NULL)
+   //nfct_set_attr_u8(ct, ATTR_TCP_STATE, TCP_CONNTRACK_SYN_SENT);
+   nfct_set_attr_u32(ct, ATTR_TIMEOUT, 200);
 
-Pablo, the problem is that ct->key is NFT_CT_SRC, so expr->len is 0, so
-we try to parse a concat expression.  Its not until the evaluation step
-before we will figure out from context that SRC is asking for an ipv4
-address and update the type and expression length.
+   nfct_set_attr_u32(ct, ATTR_SNAT_IPV4, inet_addr("192.168.133.108"));
+   nfct_set_attr_u32(ct, ATTR_DNAT_IPV4,
+inet_addr("192.168.133.150"));               //endpoint B
 
-AFAICS the plan was to stop using NFT_CT_SRC and use NFT_CT_SRC_IP(6)
-instead so we have type and length info available directly.
+        nfct_set_attr_u16(ct, ATTR_SNAT_PORT, htons(i+2));
+        nfct_set_attr_u16(ct, ATTR_DNAT_PORT, htons(6000));
 
-Was there a problem with it (inet family)?
+   ret = nfct_query(h, NFCT_Q_CREATE, ct);
+   i+=4;
+   printf("TEST: create conntrack ");
+   if (ret == -1)
+      printf("(%d)(%s)\n", ret, strerror(errno));
+   else
+      printf("(OK)\n");
+}
+
+But I have to add  a rule in IPTABLE to not add any conntrack entry by
+kernel, because as soos as the callee answer the call(received 200OK
+SIP MESSAGE), it will start to send it's media (RTP).In this regards
+it would create conntrack entry sooner than user-space.
+iptables -A INPUT -p udp --dport 10000:30000 -j DROP
+Is it right table to deny adding any conntrack entry or not?
+Anyway i appreciate your guide. I was in dilemma to used
+libnetfilter_conntrack or libnetfilter_queue. Thanks
+WIth Best Regards.Mojtaba
+
+
+
+On Tue, Jun 18, 2019 at 6:30 PM Florian Westphal <fw@strlen.de> wrote:
+>
+> Mojtaba <mespio@gmail.com> wrote:
+> > Then let me describe what i am doing.
+> > In VoIP networks, One of the ways to solve the one-way audio issue is
+> > TURN. In this case both endpoint have to send their media (voice as
+> > RTP) to server. In this conditions the server works as B2BUA. Because
+> > of the server is processing the media (get media from one hand and
+> > relay it to another hand), It usages a lot of resource of server. So I
+> > am implementing  a new module to do this in kernel level. I test this
+> > idea in my laboratory by adding conntrack entry manually in server and
+> > all things works great. But i need to get more  idea to do this
+> > project in best way and high performance, because the QoS very
+> > importance in VoIP networks. What is the best way? Let me know more
+> > about this.
+>
+> In that case I wonder why you need nfqueue at all.
+>
+> Isn't it enough for the proxy to inject a conntrack entry with the
+> expected endpoint addresses of the media stream?
+>
+> I would expect that your proxy consumes/reads the sdp messages from
+> the client already, or are you doing that via nfqueue?
+>
+> I would probably use tproxy+normal socket api for the signalling
+> packets and insert conntrack entries for the rtp/media streams
+> via libnetfilter_conntrack, this way, the media streams stay in kernel.
+
+
+
+-- 
+--Mojtaba Esfandiari.S
