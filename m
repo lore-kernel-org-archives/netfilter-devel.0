@@ -2,116 +2,120 @@ Return-Path: <SRS0=ZPov=US=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_NEOMUTT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B8E84C31E5E
-	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Jun 2019 07:16:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 50495C31E49
+	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Jun 2019 08:46:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8F0AF21479
-	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Jun 2019 07:16:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2E61B20823
+	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Jun 2019 08:46:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731105AbfFSHQf (ORCPT
+        id S1731266AbfFSIqN (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 19 Jun 2019 03:16:35 -0400
-Received: from m9784.mail.qiye.163.com ([220.181.97.84]:28124 "EHLO
-        m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730999AbfFSHQe (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 19 Jun 2019 03:16:34 -0400
-Received: from localhost.localdomain (unknown [123.59.132.129])
-        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id 011D541A51;
-        Wed, 19 Jun 2019 15:16:25 +0800 (CST)
-From:   wenxu@ucloud.cn
-To:     pablo@netfilter.org, fw@strlen.de
-Cc:     netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-Subject: [PATCH 1/2 nf-next] netfilter: nft_meta: add NFT_META_BRI_PVID support
-Date:   Wed, 19 Jun 2019 15:16:24 +0800
-Message-Id: <1560928585-18352-1-git-send-email-wenxu@ucloud.cn>
-X-Mailer: git-send-email 1.8.3.1
-X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZSVVNTElCQkJDTkNDTk1JWVdZKFlBSU
-        I3V1ktWUFJV1kJDhceCFlBWTU0KTY6NyQpLjc#WQY+
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6Oio6Tio6Fjg3HBALNB4WDhQj
-        GVEaCzdVSlVKTk1LQklDTkNNS0xIVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJSFVO
-        QlVKSElVSklCWVdZCAFZQUhLTkI3Bg++
-X-HM-Tid: 0a6b6e9809352086kuqy011d541a51
+        Wed, 19 Jun 2019 04:46:13 -0400
+Received: from mail.us.es ([193.147.175.20]:34234 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1731136AbfFSIqM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 19 Jun 2019 04:46:12 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 67764BEBA4
+        for <netfilter-devel@vger.kernel.org>; Wed, 19 Jun 2019 10:46:10 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 52A9FDA71F
+        for <netfilter-devel@vger.kernel.org>; Wed, 19 Jun 2019 10:46:10 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 74F98DA78D; Wed, 19 Jun 2019 10:45:45 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id CBF92DA713;
+        Wed, 19 Jun 2019 10:45:42 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Wed, 19 Jun 2019 10:45:42 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (sys.soleta.eu [212.170.55.40])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id A75574265A2F;
+        Wed, 19 Jun 2019 10:45:42 +0200 (CEST)
+Date:   Wed, 19 Jun 2019 10:45:42 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     Simon Kirby <sim@hostway.ca>, netfilter@vger.kernel.org,
+        netfilter-devel <netfilter-devel@vger.kernel.org>
+Subject: Re: nft ct original oddity
+Message-ID: <20190619084542.p6myk7tpm7fozxoi@salvia>
+References: <20190618220508.twxiuzaxvtc7ya6u@hostway.ca>
+ <20190619051010.aae7tvgptmgldawp@breakpoint.cc>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190619051010.aae7tvgptmgldawp@breakpoint.cc>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: wenxu <wenxu@ucloud.cn>
+On Wed, Jun 19, 2019 at 07:10:10AM +0200, Florian Westphal wrote:
+> Simon Kirby <sim@hostway.ca> wrote:
+> 
+> [ moving to nf-devel ]
+> 
+> > I accidentally wrote "ct original" instead of "ct direction original",
+> > and this broke "nft list ruleset":
+> > 
+> > # nft add set filter myset '{ type ipv4_addr; }'
+> > # nft insert rule filter input ct original ip daddr @myset
+> > # nft list ruleset
+> > nft: netlink_delinearize.c:124: netlink_parse_concat_expr: Assertion `consumed > 0' failed.
+> > Abort
+> 
+> Indeed.
+> 
+> This will fix the immediate problem:
+> 
+> diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
+> --- a/src/netlink_delinearize.c
+> +++ b/src/netlink_delinearize.c
+> @@ -329,7 +329,7 @@ static void netlink_parse_lookup(struct netlink_parse_ctx *ctx,
+>                 return netlink_error(ctx, loc,
+>                                      "Lookup expression has no left hand side");
+>  
+> -       if (left->len < set->key->len) {
+> +       if (left->len && left->len < set->key->len) {
+>                 expr_free(left);
+>                 left = netlink_parse_concat_expr(ctx, loc, sreg, set->key->len);
+>                 if (left == NULL)
+> 
+> Pablo, the problem is that ct->key is NFT_CT_SRC, so expr->len is 0, so
+> we try to parse a concat expression.  Its not until the evaluation step
+> before we will figure out from context that SRC is asking for an ipv4
+> address and update the type and expression length.
+> 
+> AFAICS the plan was to stop using NFT_CT_SRC and use NFT_CT_SRC_IP(6)
+> instead so we have type and length info available directly.
+> 
+> Was there a problem with it (inet family)?
 
-nft add table bridge firewall
-nft add chain bridge firewall zones { type filter hook prerouting priority - 300 \; }
-nft add rule bridge firewall zones counter ct zone set vlan id map { 100 : 1, 200 : 2 }
+Right. In general, we need keys with fixed lengths, the NFT_CT_SRC
+approach where key is variable length is a problem for the set
+infrastructure, as you're describing.
 
-As above set the bridge port with pvid, the received packet don't contain
-the vlan tag which means the packet should belong to vlan 200 through pvid.
-With this pacth user can get the pvid of bridge ports: "meta brpvid"
+There's a fix for this here:
 
-Signed-off-by: wenxu <wenxu@ucloud.cn>
----
- include/uapi/linux/netfilter/nf_tables.h |  2 ++
- net/netfilter/nft_meta.c                 | 17 +++++++++++++++++
- 2 files changed, 19 insertions(+)
+https://patchwork.ozlabs.org/patch/883575/
 
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index 31a6b8f..4a16124 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -793,6 +793,7 @@ enum nft_exthdr_attributes {
-  * @NFT_META_SECPATH: boolean, secpath_exists (!!skb->sp)
-  * @NFT_META_IIFKIND: packet input interface kind name (dev->rtnl_link_ops->kind)
-  * @NFT_META_OIFKIND: packet output interface kind name (dev->rtnl_link_ops->kind)
-+ * @NFT_META_BRI_PVID: packet input bridge port pvid
-  */
- enum nft_meta_keys {
- 	NFT_META_LEN,
-@@ -823,6 +824,7 @@ enum nft_meta_keys {
- 	NFT_META_SECPATH,
- 	NFT_META_IIFKIND,
- 	NFT_META_OIFKIND,
-+	NFT_META_BRI_PVID,
- };
- 
- /**
-diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
-index 987d2d6..1fdb565 100644
---- a/net/netfilter/nft_meta.c
-+++ b/net/netfilter/nft_meta.c
-@@ -243,6 +243,18 @@ void nft_meta_get_eval(const struct nft_expr *expr,
- 			goto err;
- 		strncpy((char *)dest, p->br->dev->name, IFNAMSIZ);
- 		return;
-+	case NFT_META_BRI_PVID:
-+		if (in == NULL || (p = br_port_get_rtnl_rcu(in)) == NULL)
-+			goto err;
-+		if (br_opt_get(p->br, BROPT_VLAN_ENABLED)) {
-+			u16 pvid = br_get_pvid(nbp_vlan_group_rcu(p));
-+
-+			if (pvid) {
-+				nft_reg_store16(dest, pvid);
-+				return;
-+			}
-+		}
-+		goto err;
- #endif
- 	case NFT_META_IIFKIND:
- 		if (in == NULL || in->rtnl_link_ops == NULL)
-@@ -370,6 +382,11 @@ static int nft_meta_get_init(const struct nft_ctx *ctx,
- 			return -EOPNOTSUPP;
- 		len = IFNAMSIZ;
- 		break;
-+	case NFT_META_BRI_PVID:
-+		if (ctx->family != NFPROTO_BRIDGE)
-+			return -EOPNOTSUPP;
-+		len = sizeof(u16);
-+		break;
- #endif
- 	default:
- 		return -EOPNOTSUPP;
--- 
-1.8.3.1
+It requires kernel >= 4.17.
 
+I wanted to have netlink descriptions to deal with this case, but so
+far only probing is possible, and I would like not to open up for that
+path.
+
+I can just rebase, resubmit and merge it if you are fine with it.
+
+Thanks.
