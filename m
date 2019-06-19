@@ -2,102 +2,317 @@ Return-Path: <SRS0=ZPov=US=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_NEOMUTT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 91BDDC31E5D
-	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Jun 2019 17:46:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 49902C31E5B
+	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Jun 2019 17:54:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 796A02147A
-	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Jun 2019 17:46:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0DCFC215EA
+	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Jun 2019 17:54:34 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=riseup.net header.i=@riseup.net header.b="lXlMEjlb"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730014AbfFSRqs (ORCPT
+        id S1726175AbfFSRyd (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 19 Jun 2019 13:46:48 -0400
-Received: from mail.us.es ([193.147.175.20]:41376 "EHLO mail.us.es"
+        Wed, 19 Jun 2019 13:54:33 -0400
+Received: from mx1.riseup.net ([198.252.153.129]:36878 "EHLO mx1.riseup.net"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727458AbfFSRqs (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 19 Jun 2019 13:46:48 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 68CF4C1D50
-        for <netfilter-devel@vger.kernel.org>; Wed, 19 Jun 2019 19:46:46 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 5807ADA714
-        for <netfilter-devel@vger.kernel.org>; Wed, 19 Jun 2019 19:46:46 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 49CBDDA707; Wed, 19 Jun 2019 19:46:46 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 802E5DA704;
-        Wed, 19 Jun 2019 19:46:43 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 19 Jun 2019 19:46:43 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (sys.soleta.eu [212.170.55.40])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 5225C4265A2F;
-        Wed, 19 Jun 2019 19:46:43 +0200 (CEST)
-Date:   Wed, 19 Jun 2019 19:46:42 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Arnd Bergmann <arnd@arndb.de>
-Cc:     Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        Fernando Fernandez Mancera <ffmancera@riseup.net>,
-        wenxu <wenxu@ucloud.cn>, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, linux-kernel@vger.kernel.org,
-        netdev@vger.kernel.org
-Subject: Re: [PATCH] netfilter: synproxy: fix building syncookie calls
-Message-ID: <20190619174642.hvjvmfaptfdkmbpk@salvia>
-References: <20190619125500.1054426-1-arnd@arndb.de>
+        id S1726047AbfFSRyd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 19 Jun 2019 13:54:33 -0400
+Received: from capuchin.riseup.net (capuchin-pn.riseup.net [10.0.1.176])
+        (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+        (Client CN "*.riseup.net", Issuer "COMODO RSA Domain Validation Secure Server CA" (verified OK))
+        by mx1.riseup.net (Postfix) with ESMTPS id 6C8D81A31AF
+        for <netfilter-devel@vger.kernel.org>; Wed, 19 Jun 2019 10:54:32 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=riseup.net; s=squak;
+        t=1560966872; bh=bOW/NafferyALkls7zQC2DJSpYh+LMXjNLC6jWJaJds=;
+        h=From:To:Cc:Subject:Date:From;
+        b=lXlMEjlbSsb/LkYFE5oO8Rz97jECLcJ2YFFFe8RUtTWiJHNJZ7Yv6kctkEs3mnYQh
+         eFTqTz5RL17u3/7tEUTP1z2GkqvbNnl9ejmt55loQA6av1Ak4WFxOw5haSrk4Gwn1g
+         R3+vIjrNB2kQPlNh+jPAAEiXzos6aI1vL5nz4hZo=
+X-Riseup-User-ID: D822F09C7F18D3A0D25A1024328A8C6A3550580E512989394D8B2E2F005C7E42
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+         by capuchin.riseup.net (Postfix) with ESMTPSA id 4DCAA12002A;
+        Wed, 19 Jun 2019 10:54:31 -0700 (PDT)
+From:   Fernando Fernandez Mancera <ffmancera@riseup.net>
+To:     netfilter-devel@vger.kernel.org
+Cc:     Fernando Fernandez Mancera <ffmancera@riseup.net>
+Subject: [PATCH libnftnl] expr: add synproxy support
+Date:   Wed, 19 Jun 2019 19:53:50 +0200
+Message-Id: <20190619175351.1083-1-ffmancera@riseup.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190619125500.1054426-1-arnd@arndb.de>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Jun 19, 2019 at 02:54:36PM +0200, Arnd Bergmann wrote:
-> When either CONFIG_IPV6 or CONFIG_SYN_COOKIES are disabled, the kernel
-> fails to build:
-> 
-> include/linux/netfilter_ipv6.h:180:9: error: implicit declaration of function '__cookie_v6_init_sequence'
->       [-Werror,-Wimplicit-function-declaration]
->         return __cookie_v6_init_sequence(iph, th, mssp);
-> include/linux/netfilter_ipv6.h:194:9: error: implicit declaration of function '__cookie_v6_check'
->       [-Werror,-Wimplicit-function-declaration]
->         return __cookie_v6_check(iph, th, cookie);
-> net/ipv6/netfilter.c:237:26: error: use of undeclared identifier '__cookie_v6_init_sequence'; did you mean 'cookie_init_sequence'?
-> net/ipv6/netfilter.c:238:21: error: use of undeclared identifier '__cookie_v6_check'; did you mean '__cookie_v4_check'?
-> 
-> Fix the IS_ENABLED() checks to match the function declaration
-> and definitions for these.
+Signed-off-by: Fernando Fernandez Mancera <ffmancera@riseup.net>
+---
+ include/libnftnl/expr.h             |   6 +
+ include/linux/netfilter/nf_tables.h |  17 +++
+ src/Makefile.am                     |   1 +
+ src/expr/synproxy.c                 | 170 ++++++++++++++++++++++++++++
+ src/expr_ops.c                      |   2 +
+ 5 files changed, 196 insertions(+)
+ create mode 100644 src/expr/synproxy.c
 
-I made this:
-
-https://patchwork.ozlabs.org/patch/1117735/
-
-Basically it does:
-
-+#endif
-+#if IS_MODULE(CONFIG_IPV6) && defined(CONFIG_SYN_COOKIES)
-        .cookie_init_sequence   = __cookie_v6_init_sequence,
-        .cookie_v6_check        = __cookie_v6_check,
+diff --git a/include/libnftnl/expr.h b/include/libnftnl/expr.h
+index b2f8d75..3e0f5b0 100644
+--- a/include/libnftnl/expr.h
++++ b/include/libnftnl/expr.h
+@@ -291,6 +291,12 @@ enum {
+ 	NFTNL_EXPR_XFRM_SPNUM,
+ };
+ 
++enum {
++	NFTNL_EXPR_SYNPROXY_MSS	= NFTNL_EXPR_BASE,
++	NFTNL_EXPR_SYNPROXY_WSCALE,
++	NFTNL_EXPR_SYNPROXY_FLAGS,
++};
++
+ #ifdef __cplusplus
+ } /* extern "C" */
  #endif
+diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
+index fd38cdc..b7867ed 100644
+--- a/include/linux/netfilter/nf_tables.h
++++ b/include/linux/netfilter/nf_tables.h
+@@ -951,6 +951,23 @@ enum nft_osf_attributes {
+ };
+ #define NFTA_OSF_MAX (__NFTA_OSF_MAX - 1)
+ 
++/**
++ * enum nft_synproxy_attributes - nf_tables synproxy expression
++ * netlink attributes
++ *
++ * @NFTA_SYNPROXY_MSS: mss value sent to the backend (NLA_U16)
++ * @NFTA_SYNPROXY_WSCALE: wscale value sent to the backend (NLA_U8)
++ * @NFTA_SYNPROXY_FLAGS: flags (NLA_U32)
++ */
++enum nft_synproxy_attributes {
++	NFTA_SYNPROXY_UNSPEC,
++        NFTA_SYNPROXY_MSS,
++        NFTA_SYNPROXY_WSCALE,
++        NFTA_SYNPROXY_FLAGS,
++        __NFTA_SYNPROXY_MAX,
++};
++#define NFTA_SYNPROXY_MAX (__NFTA_SYNPROXY_MAX - 1)
++
+ /**
+  * enum nft_ct_keys - nf_tables ct expression keys
+  *
+diff --git a/src/Makefile.am b/src/Makefile.am
+index 2d5873f..d100a9e 100644
+--- a/src/Makefile.am
++++ b/src/Makefile.am
+@@ -58,6 +58,7 @@ libnftnl_la_SOURCES = utils.c		\
+ 		      expr/socket.c	\
+ 		      expr/osf.c	\
+ 		      expr/xfrm.c	\
++		      expr/synproxy.c	\
+ 		      obj/counter.c	\
+ 		      obj/ct_helper.c	\
+ 		      obj/quota.c	\
+diff --git a/src/expr/synproxy.c b/src/expr/synproxy.c
+new file mode 100644
+index 0000000..245f4fb
+--- /dev/null
++++ b/src/expr/synproxy.c
+@@ -0,0 +1,170 @@
++#include <stdio.h>
++#include <stdint.h>
++#include <string.h>
++#include <arpa/inet.h>
++#include <errno.h>
++#include <linux/netfilter/nf_tables.h>
++
++#include "internal.h"
++#include <libmnl/libmnl.h>
++#include <libnftnl/expr.h>
++#include <libnftnl/rule.h>
++
++struct nftnl_expr_synproxy {
++	uint16_t	mss;
++	uint8_t		wscale;
++	uint32_t	flags;
++};
++
++static int nftnl_expr_synproxy_set(struct nftnl_expr *e, uint16_t type,
++				   const void *data, uint32_t data_len)
++{
++	struct nftnl_expr_synproxy *synproxy = nftnl_expr_data(e);
++
++	switch(type) {
++	case NFTNL_EXPR_SYNPROXY_MSS:
++		memcpy(&synproxy->mss, data, sizeof(synproxy->mss));
++		break;
++	case NFTNL_EXPR_SYNPROXY_WSCALE:
++		memcpy(&synproxy->wscale, data, sizeof(synproxy->wscale));
++		break;
++	case NFTNL_EXPR_SYNPROXY_FLAGS:
++		memcpy(&synproxy->flags, data, sizeof(synproxy->flags));
++		break;
++	}
++	return 0;
++}
++
++static const void *
++nftnl_expr_synproxy_get(const struct nftnl_expr *e, uint16_t type,
++			uint32_t *data_len)
++{
++	struct nftnl_expr_synproxy *synproxy = nftnl_expr_data(e);
++
++	switch(type) {
++	case NFTNL_EXPR_SYNPROXY_MSS:
++		*data_len = sizeof(synproxy->mss);
++		return &synproxy->mss;
++	case NFTNL_EXPR_SYNPROXY_WSCALE:
++		*data_len = sizeof(synproxy->wscale);
++		return &synproxy->wscale;
++	case NFTNL_EXPR_SYNPROXY_FLAGS:
++		*data_len = sizeof(synproxy->flags);
++		return &synproxy->flags;
++	}
++	return NULL;
++}
++
++static int nftnl_expr_synproxy_cb(const struct nlattr *attr, void *data)
++{
++	const struct nlattr **tb = data;
++	int type = mnl_attr_get_type(attr);
++
++	if (mnl_attr_type_valid(attr, NFTA_SYNPROXY_MAX) < 0)
++		return MNL_CB_OK;
++
++	switch(type) {
++	case NFTNL_EXPR_SYNPROXY_MSS:
++		if (mnl_attr_validate(attr, MNL_TYPE_U16) < 0)
++			abi_breakage();
++		break;
++
++	case NFTNL_EXPR_SYNPROXY_WSCALE:
++		if (mnl_attr_validate(attr, MNL_TYPE_U8) < 0)
++			abi_breakage();
++		break;
++
++	case NFTNL_EXPR_SYNPROXY_FLAGS:
++		if (mnl_attr_validate(attr, MNL_TYPE_U32) < 0)
++			abi_breakage();
++		break;
++	}
++
++	tb[type] = attr;
++	return MNL_CB_OK;
++}
++
++static void
++nftnl_expr_synproxy_build(struct nlmsghdr *nlh, const struct nftnl_expr *e)
++{
++	struct nftnl_expr_synproxy *synproxy = nftnl_expr_data(e);
++
++	if (e->flags & (1 << NFTNL_EXPR_SYNPROXY_MSS))
++		mnl_attr_put_u16(nlh, NFTNL_EXPR_SYNPROXY_MSS,
++				 htons(synproxy->mss));
++	if (e->flags & (1 << NFTNL_EXPR_SYNPROXY_WSCALE))
++		mnl_attr_put_u8(nlh, NFTNL_EXPR_SYNPROXY_WSCALE,
++				synproxy->wscale);
++	if (e->flags & (1 << NFTNL_EXPR_SYNPROXY_FLAGS))
++		mnl_attr_put_u32(nlh, NFTNL_EXPR_SYNPROXY_FLAGS,
++				 htonl(synproxy->flags));
++}
++
++static int
++nftnl_expr_synproxy_parse(struct nftnl_expr *e, struct nlattr *attr)
++{
++	struct nftnl_expr_synproxy *synproxy = nftnl_expr_data(e);
++	struct nlattr *tb[NFTA_SYNPROXY_MAX + 1] = {};
++
++	if (mnl_attr_parse_nested(attr, nftnl_expr_synproxy_cb, tb) < 0)
++		return -1;
++
++	if (tb[NFTA_SYNPROXY_MSS]) {
++		synproxy->mss = ntohs(mnl_attr_get_u16(tb[NFTA_SYNPROXY_MSS]));
++		e->flags |= (1 << NFTNL_EXPR_SYNPROXY_MSS);
++	}
++
++	if (tb[NFTA_SYNPROXY_WSCALE]) {
++		synproxy->wscale = mnl_attr_get_u8(tb[NFTA_SYNPROXY_WSCALE]);
++		e->flags |= (1 << NFTNL_EXPR_SYNPROXY_WSCALE);
++	}
++
++	if (tb[NFTA_SYNPROXY_FLAGS]) {
++		synproxy->flags = ntohl(mnl_attr_get_u32(tb[NFTA_SYNPROXY_FLAGS]));
++		e->flags |= (1 << NFTNL_EXPR_SYNPROXY_FLAGS);
++	}
++
++	return 0;
++}
++
++static int nftnl_expr_synproxy_snprintf_default(char *buf, size_t size,
++						const struct nftnl_expr *e)
++{
++	struct nftnl_expr_synproxy *synproxy = nftnl_expr_data(e);
++	int ret, offset = 0, len = size;
++
++	if (e->flags & (1 << NFTNL_EXPR_SYNPROXY_MSS) &&
++	    e->flags & (1 << NFTNL_EXPR_SYNPROXY_WSCALE)) {
++		ret = snprintf(buf, len, "mss %u wscale %u ", synproxy->mss,
++			       synproxy->wscale);
++		SNPRINTF_BUFFER_SIZE(ret, len, offset);
++	}
++
++	return offset;
++}
++
++static int
++nftnl_expr_synproxy_snprintf(char *buf, size_t len, uint32_t type,
++			     uint32_t flags, const struct nftnl_expr *e)
++{
++	switch(type) {
++	case NFTNL_OUTPUT_DEFAULT:
++		return nftnl_expr_synproxy_snprintf_default(buf, len, e);
++	case NFTNL_OUTPUT_XML:
++	case NFTNL_OUTPUT_JSON:
++	default:
++		break;
++	}
++	return -1;
++}
++
++struct expr_ops expr_ops_synproxy = {
++	.name		= "synproxy",
++	.alloc_len	= sizeof(struct nftnl_expr_synproxy),
++	.max_attr	= NFTA_SYNPROXY_MAX,
++	.set		= nftnl_expr_synproxy_set,
++	.get		= nftnl_expr_synproxy_get,
++	.parse		= nftnl_expr_synproxy_parse,
++	.build		= nftnl_expr_synproxy_build,
++	.snprintf	= nftnl_expr_synproxy_snprintf,
++};
+diff --git a/src/expr_ops.c b/src/expr_ops.c
+index 051140f..9655e2f 100644
+--- a/src/expr_ops.c
++++ b/src/expr_ops.c
+@@ -40,6 +40,7 @@ extern struct expr_ops expr_ops_socket;
+ extern struct expr_ops expr_ops_tunnel;
+ extern struct expr_ops expr_ops_osf;
+ extern struct expr_ops expr_ops_xfrm;
++extern struct expr_ops expr_ops_synproxy;
+ 
+ static struct expr_ops expr_ops_notrack = {
+ 	.name	= "notrack",
+@@ -83,6 +84,7 @@ static struct expr_ops *expr_ops[] = {
+ 	&expr_ops_tunnel,
+ 	&expr_ops_osf,
+ 	&expr_ops_xfrm,
++	&expr_ops_synproxy,
+ 	NULL,
+ };
+ 
+-- 
+2.20.1
 
-If CONFIG_IPV6=n, then net/ipv6/netfilter.c is never compiled.
-
-Unless I'm missing anything, I'd prefer my patch because it's a bit
-less of ifdefs 8-)
-
-Thanks!
