@@ -2,95 +2,81 @@ Return-Path: <SRS0=ZPov=US=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_NEOMUTT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B0BCEC31E5E
-	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Jun 2019 03:47:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C6382C31E49
+	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Jun 2019 05:10:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8B79F21479
-	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Jun 2019 03:47:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A5FBE20B1F
+	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Jun 2019 05:10:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729050AbfFSDrc (ORCPT
+        id S1730398AbfFSFKN (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 18 Jun 2019 23:47:32 -0400
-Received: from m9785.mail.qiye.163.com ([220.181.97.85]:6399 "EHLO
-        m9785.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726047AbfFSDrb (ORCPT
+        Wed, 19 Jun 2019 01:10:13 -0400
+Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:56890 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725854AbfFSFKN (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 18 Jun 2019 23:47:31 -0400
-Received: from [192.168.188.14] (unknown [120.132.1.226])
-        by m9785.mail.qiye.163.com (Hmail) with ESMTPA id 73A925C194E;
-        Wed, 19 Jun 2019 11:47:26 +0800 (CST)
-Subject: Re: [PATCH net-next] netfilter: bridge: add nft_bridge_pvid to tag
- the default pvid for non-tagged packet
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     fw@strlen.de, netfilter-devel@vger.kernel.org,
-        netdev@vger.kernel.org
-References: <1560600861-8848-1-git-send-email-wenxu@ucloud.cn>
- <20190618164007.suuaa5zx2b242ey7@salvia>
-From:   wenxu <wenxu@ucloud.cn>
-Message-ID: <88cace34-c54e-dd2b-7045-197136a9a246@ucloud.cn>
-Date:   Wed, 19 Jun 2019 11:47:22 +0800
-User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:60.0) Gecko/20100101
- Thunderbird/60.7.0
+        Wed, 19 Jun 2019 01:10:13 -0400
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.89)
+        (envelope-from <fw@strlen.de>)
+        id 1hdSrK-0005j6-FR; Wed, 19 Jun 2019 07:10:10 +0200
+Date:   Wed, 19 Jun 2019 07:10:10 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     Simon Kirby <sim@hostway.ca>
+Cc:     netfilter@vger.kernel.org,
+        netfilter-devel <netfilter-devel@vger.kernel.org>
+Subject: Re: nft ct original oddity
+Message-ID: <20190619051010.aae7tvgptmgldawp@breakpoint.cc>
+References: <20190618220508.twxiuzaxvtc7ya6u@hostway.ca>
 MIME-Version: 1.0
-In-Reply-To: <20190618164007.suuaa5zx2b242ey7@salvia>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
-X-HM-Spam-Status: e1kfGhgUHx5ZQUhXWQgYFAkeWUFZVkpVSE5MS0tLSUhKTE9JQ01ZV1koWU
-        FJQjdXWS1ZQUlXWQkOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6PiI6Kxw4GTg9FBA#NhlJLBwe
-        DkkKCw9VSlVKTk1LQkpNS09NTUJNVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJS1VK
-        SElVSlVJSU1ZV1kIAVlBSU1JQjcG
-X-HM-Tid: 0a6b6dd8b30d2087kuqy73a925c194e
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190618220508.twxiuzaxvtc7ya6u@hostway.ca>
+User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Simon Kirby <sim@hostway.ca> wrote:
 
-On 6/19/2019 12:40 AM, Pablo Neira Ayuso wrote:
-> On Sat, Jun 15, 2019 at 08:14:21PM +0800, wenxu@ucloud.cn wrote:
-> [...]
->> +static void nft_bridge_pvid_eval(const struct nft_expr *expr,
->> +				 struct nft_regs *regs,
->> +				 const struct nft_pktinfo *pkt)
->> +{
->> +	struct sk_buff *skb = pkt->skb;
->> +	struct net_bridge_port *p;
->> +
->> +	p = br_port_get_rtnl_rcu(skb->dev);
->> +
->> +	if (p && br_opt_get(p->br, BROPT_VLAN_ENABLED) &&
->> +	    !skb_vlan_tag_present(skb)) {
->> +		u16 pvid = br_get_pvid(nbp_vlan_group_rcu(p));
->> +
->> +		if (pvid)
->> +			__vlan_hwaccel_put_tag(skb, p->br->vlan_proto, pvid);
-> I see two things here:
->
-> #1 Extend new NFT_META_BRIDGE_PVID nft_meta to fetch of 'pvid',
->    probably add net/bridge/netfilter/nft_meta_bridge.c for this.
-I can get this, it provide a bridge pvid (get meta). But why put it in
+[ moving to nf-devel ]
 
-nft_meta_bridge.c but not nft_meta.c?
+> I accidentally wrote "ct original" instead of "ct direction original",
+> and this broke "nft list ruleset":
+> 
+> # nft add set filter myset '{ type ipv4_addr; }'
+> # nft insert rule filter input ct original ip daddr @myset
+> # nft list ruleset
+> nft: netlink_delinearize.c:124: netlink_parse_concat_expr: Assertion `consumed > 0' failed.
+> Abort
 
->
-> #2 Extend nft_meta to allow to set the vlan tag via
->    __vlan_hwaccel_put_tag().
+Indeed.
 
-why there is also extend nft_meta?  So it's a set meta. Is "vlan id set"
+This will fix the immediate problem:
 
- not base on nft_payload ?
+diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
+--- a/src/netlink_delinearize.c
++++ b/src/netlink_delinearize.c
+@@ -329,7 +329,7 @@ static void netlink_parse_lookup(struct netlink_parse_ctx *ctx,
+                return netlink_error(ctx, loc,
+                                     "Lookup expression has no left hand side");
+ 
+-       if (left->len < set->key->len) {
++       if (left->len && left->len < set->key->len) {
+                expr_free(left);
+                left = netlink_parse_concat_expr(ctx, loc, sreg, set->key->len);
+                if (left == NULL)
 
->
-> If these two changes are in place, then it should be possible to set
-> skbuff vlan id based on the pvid, if this is what you need.
->
-> This would allow for:
->
->         vlan id set bridge pvid
->
+Pablo, the problem is that ct->key is NFT_CT_SRC, so expr->len is 0, so
+we try to parse a concat expression.  Its not until the evaluation step
+before we will figure out from context that SRC is asking for an ipv4
+address and update the type and expression length.
+
+AFAICS the plan was to stop using NFT_CT_SRC and use NFT_CT_SRC_IP(6)
+instead so we have type and length info available directly.
+
+Was there a problem with it (inet family)?
