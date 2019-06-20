@@ -2,210 +2,96 @@ Return-Path: <SRS0=UCdS=UT=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_NEOMUTT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_NEOMUTT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F3FAEC4646C
-	for <netfilter-devel@archiver.kernel.org>; Thu, 20 Jun 2019 13:15:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A34F9C43613
+	for <netfilter-devel@archiver.kernel.org>; Thu, 20 Jun 2019 13:39:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D6F40206E0
-	for <netfilter-devel@archiver.kernel.org>; Thu, 20 Jun 2019 13:15:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7F8CF206E0
+	for <netfilter-devel@archiver.kernel.org>; Thu, 20 Jun 2019 13:39:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731973AbfFTNPg (ORCPT
+        id S1726620AbfFTNjg (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 20 Jun 2019 09:15:36 -0400
-Received: from mail.us.es ([193.147.175.20]:56248 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731926AbfFTNPg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 20 Jun 2019 09:15:36 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 42F8EC1D52
-        for <netfilter-devel@vger.kernel.org>; Thu, 20 Jun 2019 15:15:34 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 33708DA70A
-        for <netfilter-devel@vger.kernel.org>; Thu, 20 Jun 2019 15:15:34 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 2895FDA708; Thu, 20 Jun 2019 15:15:34 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 16554DA702;
-        Thu, 20 Jun 2019 15:15:32 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Thu, 20 Jun 2019 15:15:32 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (sys.soleta.eu [212.170.55.40])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id E66D04265A2F;
-        Thu, 20 Jun 2019 15:15:31 +0200 (CEST)
-Date:   Thu, 20 Jun 2019 15:15:31 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Stephen Suryaputra <ssuryaextr@gmail.com>
-Cc:     netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-Subject: Re: [PATCH nfnext v4] netfilter: add support for matching IPv4
- options
-Message-ID: <20190620131531.26kkdnvcpwuemw2d@salvia>
-References: <20190620115140.3518-1-ssuryaextr@gmail.com>
+        Thu, 20 Jun 2019 09:39:36 -0400
+Received: from kirsty.vergenet.net ([202.4.237.240]:55106 "EHLO
+        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726491AbfFTNjg (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 20 Jun 2019 09:39:36 -0400
+Received: from reginn.horms.nl (watermunt.horms.nl [80.127.179.77])
+        by kirsty.vergenet.net (Postfix) with ESMTPA id 1FA8E25AD69;
+        Thu, 20 Jun 2019 23:39:34 +1000 (AEST)
+Received: by reginn.horms.nl (Postfix, from userid 7100)
+        id CD14094048B; Thu, 20 Jun 2019 15:39:31 +0200 (CEST)
+Date:   Thu, 20 Jun 2019 15:39:31 +0200
+From:   Simon Horman <horms@verge.net.au>
+To:     Julian Anastasov <ja@ssi.bg>
+Cc:     lvs-devel@vger.kernel.org, Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH net] ipvs: defer hook registration to avoid leaks
+Message-ID: <20190620133929.mzzeexyk7yaaslh5@verge.net.au>
+References: <20190604185635.16823-1-ja@ssi.bg>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20190620115140.3518-1-ssuryaextr@gmail.com>
+In-Reply-To: <20190604185635.16823-1-ja@ssi.bg>
+Organisation: Horms Solutions BV
 User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Jun 20, 2019 at 07:51:40AM -0400, Stephen Suryaputra wrote:
-[...]
-> diff --git a/net/netfilter/nft_exthdr.c b/net/netfilter/nft_exthdr.c
-> index a940c9fd9045..703269359dba 100644
-> --- a/net/netfilter/nft_exthdr.c
-> +++ b/net/netfilter/nft_exthdr.c
-> @@ -62,6 +62,103 @@ static void nft_exthdr_ipv6_eval(const struct nft_expr *expr,
->  	regs->verdict.code = NFT_BREAK;
->  }
->  
-> +/* find the offset to specified option.
-> + *
-> + * If target header is found, its offset is set in *offset and return option
-> + * number. Otherwise, return negative error.
-> + *
-> + * If the first fragment doesn't contain the End of Options it is considered
-> + * invalid.
-> + */
-> +static int ipv4_find_option(struct net *net, struct sk_buff *skb,
-> +			    unsigned int *offset, int target)
-> +{
-> +	unsigned char optbuf[sizeof(struct ip_options) + 40];
-> +	struct ip_options *opt = (struct ip_options *)optbuf;
-> +	struct iphdr *iph, _iph;
-> +	unsigned int start;
-> +	bool found = false;
-> +	__be32 info;
-> +	int optlen;
-> +
-> +	iph = skb_header_pointer(skb, 0, sizeof(_iph), &_iph);
-> +	if (!iph || iph->version != 4)
+On Tue, Jun 04, 2019 at 09:56:35PM +0300, Julian Anastasov wrote:
+> syzkaller reports for memory leak when registering hooks [1]
+> 
+> As we moved the nf_unregister_net_hooks() call into
+> __ip_vs_dev_cleanup(), defer the nf_register_net_hooks()
+> call, so that hooks are allocated and freed from same
+> pernet_operations (ipvs_core_dev_ops).
+> 
+> [1]
+> BUG: memory leak
+> unreferenced object 0xffff88810acd8a80 (size 96):
+>  comm "syz-executor073", pid 7254, jiffies 4294950560 (age 22.250s)
+>  hex dump (first 32 bytes):
+>    02 00 00 00 00 00 00 00 50 8b bb 82 ff ff ff ff  ........P.......
+>    00 00 00 00 00 00 00 00 00 77 bb 82 ff ff ff ff  .........w......
+>  backtrace:
+>    [<0000000013db61f1>] kmemleak_alloc_recursive include/linux/kmemleak.h:55 [inline]
+>    [<0000000013db61f1>] slab_post_alloc_hook mm/slab.h:439 [inline]
+>    [<0000000013db61f1>] slab_alloc_node mm/slab.c:3269 [inline]
+>    [<0000000013db61f1>] kmem_cache_alloc_node_trace+0x15b/0x2a0 mm/slab.c:3597
+>    [<000000001a27307d>] __do_kmalloc_node mm/slab.c:3619 [inline]
+>    [<000000001a27307d>] __kmalloc_node+0x38/0x50 mm/slab.c:3627
+>    [<0000000025054add>] kmalloc_node include/linux/slab.h:590 [inline]
+>    [<0000000025054add>] kvmalloc_node+0x4a/0xd0 mm/util.c:431
+>    [<0000000050d1bc00>] kvmalloc include/linux/mm.h:637 [inline]
+>    [<0000000050d1bc00>] kvzalloc include/linux/mm.h:645 [inline]
+>    [<0000000050d1bc00>] allocate_hook_entries_size+0x3b/0x60 net/netfilter/core.c:61
+>    [<00000000e8abe142>] nf_hook_entries_grow+0xae/0x270 net/netfilter/core.c:128
+>    [<000000004b94797c>] __nf_register_net_hook+0x9a/0x170 net/netfilter/core.c:337
+>    [<00000000d1545cbc>] nf_register_net_hook+0x34/0xc0 net/netfilter/core.c:464
+>    [<00000000876c9b55>] nf_register_net_hooks+0x53/0xc0 net/netfilter/core.c:480
+>    [<000000002ea868e0>] __ip_vs_init+0xe8/0x170 net/netfilter/ipvs/ip_vs_core.c:2280
+>    [<000000002eb2d451>] ops_init+0x4c/0x140 net/core/net_namespace.c:130
+>    [<000000000284ec48>] setup_net+0xde/0x230 net/core/net_namespace.c:316
+>    [<00000000a70600fa>] copy_net_ns+0xf0/0x1e0 net/core/net_namespace.c:439
+>    [<00000000ff26c15e>] create_new_namespaces+0x141/0x2a0 kernel/nsproxy.c:107
+>    [<00000000b103dc79>] copy_namespaces+0xa1/0xe0 kernel/nsproxy.c:165
+>    [<000000007cc008a2>] copy_process.part.0+0x11fd/0x2150 kernel/fork.c:2035
+>    [<00000000c344af7c>] copy_process kernel/fork.c:1800 [inline]
+>    [<00000000c344af7c>] _do_fork+0x121/0x4f0 kernel/fork.c:2369
+> 
+> Reported-by: syzbot+722da59ccb264bc19910@syzkaller.appspotmail.com
+> Fixes: 719c7d563c17 ("ipvs: Fix use-after-free in ip_vs_in")
+> Signed-off-by: Julian Anastasov <ja@ssi.bg>
 
-Nitpick: I think you can remove this check for iph->version != 4, if
-skb->protocol already points to ETH_P_IP, then this already has a
-valid IP version 4 header.
+Thanks Julian.
 
-> +		return -EBADMSG;
-> +	start = sizeof(struct iphdr);
-> +
-> +	optlen = iph->ihl * 4 - (int)sizeof(struct iphdr);
-> +	if (optlen <= 0)
-> +		return -ENOENT;
-> +
-> +	memset(opt, 0, sizeof(struct ip_options));
-> +	/* Copy the options since __ip_options_compile() modifies
-> +	 * the options.
-> +	 */
-> +	if (skb_copy_bits(skb, start, opt->__data, optlen))
-> +		return -EBADMSG;
-> +	opt->optlen = optlen;
-> +
-> +	if (__ip_options_compile(net, opt, NULL, &info))
-> +		return -EBADMSG;
-> +
-> +	switch (target) {
-> +	case IPOPT_SSRR:
-> +	case IPOPT_LSRR:
-> +		if (!opt->srr)
-> +			break;
-> +		found = target == IPOPT_SSRR ? opt->is_strictroute :
-> +					       !opt->is_strictroute;
-> +		if (found)
-> +			*offset = opt->srr + start;
-> +		break;
-> +	case IPOPT_RR:
-> +		if (!opt->rr)
-> +			break;
-> +		*offset = opt->rr + start;
-> +		found = true;
-> +		break;
-> +	case IPOPT_RA:
-> +		if (!opt->router_alert)
-> +			break;
-> +		*offset = opt->router_alert + start;
-> +		found = true;
-> +		break;
-> +	default:
-> +		return -EOPNOTSUPP;
-> +	}
-> +	return found ? target : -ENOENT;
-> +}
-> +
-> +static void nft_exthdr_ipv4_eval(const struct nft_expr *expr,
-> +				 struct nft_regs *regs,
-> +				 const struct nft_pktinfo *pkt)
-> +{
-> +	struct nft_exthdr *priv = nft_expr_priv(expr);
-> +	u32 *dest = &regs->data[priv->dreg];
-> +	struct sk_buff *skb = pkt->skb;
-> +	unsigned int offset;
-> +	int err;
-> +
-> +	if (skb->protocol != htons(ETH_P_IP))
-> +		goto err;
-> +
-> +	err = ipv4_find_option(nft_net(pkt), skb, &offset, priv->type);
-> +	if (priv->flags & NFT_EXTHDR_F_PRESENT) {
-> +		*dest = (err >= 0);
-> +		return;
-> +	} else if (err < 0) {
-> +		goto err;
-> +	}
-> +	offset += priv->offset;
-> +
-> +	dest[priv->len / NFT_REG32_SIZE] = 0;
-> +	if (skb_copy_bits(pkt->skb, offset, dest, priv->len) < 0)
-> +		goto err;
-> +	return;
-> +err:
-> +	regs->verdict.code = NFT_BREAK;
-> +}
-> +
->  static void *
->  nft_tcp_header_pointer(const struct nft_pktinfo *pkt,
->  		       unsigned int len, void *buffer, unsigned int *tcphdr_len)
-> @@ -360,6 +457,14 @@ static const struct nft_expr_ops nft_exthdr_ipv6_ops = {
->  	.dump		= nft_exthdr_dump,
->  };
->  
-> +static const struct nft_expr_ops nft_exthdr_ipv4_ops = {
-> +	.type		= &nft_exthdr_type,
-> +	.size		= NFT_EXPR_SIZE(sizeof(struct nft_exthdr)),
-> +	.eval		= nft_exthdr_ipv4_eval,
-> +	.init		= nft_exthdr_init,
+Pablo, please consider applying this to nf.
 
-Sorry, I just realized this one. Could you add a new
-nft_exthdr_ipv4_init() function?
+Acked-by: Simon Horman <horms@verge.net.au>
 
-The idea is if priv->type different from:
-
-IPOPT_SSRR
-IPOPT_LSRR
-IPOPT_RR
-IPOPT_RA
-
-are rejected with -EOPNOTSUPP.
-
-If anyone extends this to support for more options, old kernels with
-new nft binaries will result in EOPNOTSUPP for options that are not
-supported.
-
-The existing TCP options extension does not need this, since it
-matches any type. This IPv4 option extension is special, since we
-require the option parser to match on options.
-
-I can see you return -EOPNOTSUPP from _eval() path, but that is too
-late. It would be good to validate this from the control plane path.
-
-Thanks for your patience.
