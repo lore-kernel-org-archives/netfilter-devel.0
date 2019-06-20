@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-8.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5665CC48BE3
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3249BC48BE4
 	for <netfilter-devel@archiver.kernel.org>; Thu, 20 Jun 2019 19:49:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3CB11206BF
+	by mail.kernel.org (Postfix) with ESMTP id 183FB206BF
 	for <netfilter-devel@archiver.kernel.org>; Thu, 20 Jun 2019 19:49:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726837AbfFTTti (ORCPT
+        id S1726952AbfFTTtn (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 20 Jun 2019 15:49:38 -0400
+        Thu, 20 Jun 2019 15:49:43 -0400
 Received: from mail.us.es ([193.147.175.20]:54020 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726635AbfFTTth (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 20 Jun 2019 15:49:37 -0400
+        id S1726901AbfFTTtk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 20 Jun 2019 15:49:40 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 24E45B634C
-        for <netfilter-devel@vger.kernel.org>; Thu, 20 Jun 2019 21:49:35 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id E06AEB60E5
+        for <netfilter-devel@vger.kernel.org>; Thu, 20 Jun 2019 21:49:38 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 099ECDA707
-        for <netfilter-devel@vger.kernel.org>; Thu, 20 Jun 2019 21:49:35 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A3EB1DA706
+        for <netfilter-devel@vger.kernel.org>; Thu, 20 Jun 2019 21:49:38 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id E9C2BDA71A; Thu, 20 Jun 2019 21:49:34 +0200 (CEST)
+        id 9E825DA703; Thu, 20 Jun 2019 21:49:38 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 6B11EDA703;
-        Thu, 20 Jun 2019 21:49:32 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id D049FDA705;
+        Thu, 20 Jun 2019 21:49:35 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Thu, 20 Jun 2019 21:49:32 +0200 (CEST)
+ Thu, 20 Jun 2019 21:49:35 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 3B9FC4265A2F;
-        Thu, 20 Jun 2019 21:49:31 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 9215A4265A2F;
+        Thu, 20 Jun 2019 21:49:34 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netdev@vger.kernel.org
@@ -57,9 +57,9 @@ Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
         Manish.Chopra@cavium.com, marcelo.leitner@gmail.com,
         mkubecek@suse.cz, venkatkumar.duvvuru@broadcom.com,
         cphealy@gmail.com
-Subject: [PATCH net-next 03/12] net: sched: add tcf_block_cb_free()
-Date:   Thu, 20 Jun 2019 21:49:08 +0200
-Message-Id: <20190620194917.2298-4-pablo@netfilter.org>
+Subject: [PATCH net-next 05/12] net: sched: add release callback to struct tcf_block_cb
+Date:   Thu, 20 Jun 2019 21:49:10 +0200
+Message-Id: <20190620194917.2298-6-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20190620194917.2298-1-pablo@netfilter.org>
 References: <20190620194917.2298-1-pablo@netfilter.org>
@@ -69,55 +69,87 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Just a stub to release tcf_block_cb objects, follow up patch extends it
-to have a release callback in it for the private data.
+Call it on tcf_block_cb object to release the driver private block area.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/pkt_cls.h | 5 +++++
- net/sched/cls_api.c   | 6 ++++++
- 2 files changed, 11 insertions(+)
+ include/net/pkt_cls.h |  6 ++++--
+ net/sched/cls_api.c   | 10 ++++++++--
+ 2 files changed, 12 insertions(+), 4 deletions(-)
 
 diff --git a/include/net/pkt_cls.h b/include/net/pkt_cls.h
-index 276a17a3547b..2816297449ee 100644
+index 4fbed2ccfa6b..db4d32266a03 100644
 --- a/include/net/pkt_cls.h
 +++ b/include/net/pkt_cls.h
-@@ -74,6 +74,7 @@ static inline struct Qdisc *tcf_block_q(struct tcf_block *block)
+@@ -73,7 +73,8 @@ static inline struct Qdisc *tcf_block_q(struct tcf_block *block)
+ }
  
  struct tcf_block_cb *tcf_block_cb_alloc(tc_setup_cb_t *cb,
- 					void *cb_ident, void *cb_priv);
-+void tcf_block_cb_free(struct tcf_block_cb *block_cb);
- void *tcf_block_cb_priv(struct tcf_block_cb *block_cb);
- struct tcf_block_cb *tcf_block_cb_lookup(struct tcf_block *block,
- 					 tc_setup_cb_t *cb, void *cb_ident);
-@@ -158,6 +159,10 @@ tcf_block_cb_alloc(tc_setup_cb_t *cb, void *cb_ident, void *cb_priv)
+-					void *cb_ident, void *cb_priv);
++					void *cb_ident, void *cb_priv,
++					void (*release)(void *cb_priv));
+ void tcf_block_cb_free(struct tcf_block_cb *block_cb);
+ 
+ struct tc_block_offload;
+@@ -161,7 +162,8 @@ void tc_setup_cb_block_unregister(struct tcf_block *block, tc_setup_cb_t *cb,
+ }
+ 
+ static inline struct tcf_block_cb *
+-tcf_block_cb_alloc(tc_setup_cb_t *cb, void *cb_ident, void *cb_priv)
++tcf_block_cb_alloc(tc_setup_cb_t *cb, void *cb_ident, void *cb_priv,
++		   void (*release)(void *cb_priv))
+ {
  	return NULL;
  }
- 
-+static inline void tcf_block_cb_free(struct tcf_block_cb *block_cb)
-+{
-+}
-+
- static inline
- void *tcf_block_cb_priv(struct tcf_block_cb *block_cb)
- {
 diff --git a/net/sched/cls_api.c b/net/sched/cls_api.c
-index c01d825edab5..b86475ab8f63 100644
+index 78050d16ff74..707c2ae0a15f 100644
 --- a/net/sched/cls_api.c
 +++ b/net/sched/cls_api.c
-@@ -763,6 +763,12 @@ struct tcf_block_cb *tcf_block_cb_alloc(tc_setup_cb_t *cb,
- }
- EXPORT_SYMBOL(tcf_block_cb_alloc);
+@@ -713,6 +713,7 @@ struct tcf_block_cb {
+ 	struct list_head global_list;
+ 	struct list_head list;
+ 	tc_setup_cb_t *cb;
++	void (*release)(void *cb_priv);
+ 	void *cb_ident;
+ 	void *cb_priv;
+ 	unsigned int refcnt;
+@@ -750,7 +751,8 @@ unsigned int tcf_block_cb_decref(struct tcf_block_cb *block_cb)
+ EXPORT_SYMBOL(tcf_block_cb_decref);
  
-+void tcf_block_cb_free(struct tcf_block_cb *block_cb)
-+{
-+	kfree(block_cb);
-+}
-+EXPORT_SYMBOL(tcf_block_cb_free);
+ struct tcf_block_cb *tcf_block_cb_alloc(tc_setup_cb_t *cb,
+-					void *cb_ident, void *cb_priv)
++					void *cb_ident, void *cb_priv,
++					void (*release)(void *cb_priv))
+ {
+ 	struct tcf_block_cb *block_cb;
+ 
+@@ -760,6 +762,7 @@ struct tcf_block_cb *tcf_block_cb_alloc(tc_setup_cb_t *cb,
+ 
+ 	block_cb->cb = cb;
+ 	block_cb->cb_ident = cb_ident;
++	block_cb->release = release;
+ 	block_cb->cb_priv = cb_priv;
+ 
+ 	return block_cb;
+@@ -768,6 +771,9 @@ EXPORT_SYMBOL(tcf_block_cb_alloc);
+ 
+ void tcf_block_cb_free(struct tcf_block_cb *block_cb)
+ {
++	if (block_cb->release)
++		block_cb->release(block_cb->cb_priv);
 +
- struct tcf_block_cb *__tcf_block_cb_register(struct tcf_block *block,
- 					     tc_setup_cb_t *cb, void *cb_ident,
- 					     void *cb_priv,
+ 	kfree(block_cb);
+ }
+ EXPORT_SYMBOL(tcf_block_cb_free);
+@@ -801,7 +807,7 @@ struct tcf_block_cb *__tcf_block_cb_register(struct tcf_block *block,
+ 	if (err)
+ 		return ERR_PTR(err);
+ 
+-	block_cb = tcf_block_cb_alloc(cb, cb_ident, cb_priv);
++	block_cb = tcf_block_cb_alloc(cb, cb_ident, cb_priv, NULL);
+ 	if (!block_cb)
+ 		return ERR_PTR(-ENOMEM);
+ 
 -- 
 2.11.0
 
