@@ -2,85 +2,258 @@ Return-Path: <SRS0=UCdS=UT=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
+X-Spam-Status: No, score=-8.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B41B6C4646C
-	for <netfilter-devel@archiver.kernel.org>; Thu, 20 Jun 2019 11:39:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C493C48BE4
+	for <netfilter-devel@archiver.kernel.org>; Thu, 20 Jun 2019 11:52:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8DE182075E
-	for <netfilter-devel@archiver.kernel.org>; Thu, 20 Jun 2019 11:39:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3BC0A2080C
+	for <netfilter-devel@archiver.kernel.org>; Thu, 20 Jun 2019 11:52:08 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="DW7smYrl"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731747AbfFTLj1 (ORCPT
+        id S1731722AbfFTLwG (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 20 Jun 2019 07:39:27 -0400
-Received: from m97179.mail.qiye.163.com ([220.181.97.179]:52956 "EHLO
-        m97179.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726404AbfFTLj1 (ORCPT
+        Thu, 20 Jun 2019 07:52:06 -0400
+Received: from mail-pg1-f194.google.com ([209.85.215.194]:39054 "EHLO
+        mail-pg1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1731670AbfFTLwF (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 20 Jun 2019 07:39:27 -0400
-Received: from [192.168.1.3] (unknown [58.38.4.250])
-        by m97179.mail.qiye.163.com (Hmail) with ESMTPA id 7FE3AE014D0;
-        Thu, 20 Jun 2019 19:39:24 +0800 (CST)
-Subject: Re: [PATCH nf-next] netfilter: bridge: Fix non-untagged fragment
- packet
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     fw@strlen.de, netfilter-devel@vger.kernel.org,
-        netdev@vger.kernel.org
-References: <1560954907-20071-1-git-send-email-wenxu@ucloud.cn>
- <20190620104804.cbbodvw2llnt6qcl@salvia>
-From:   wenxu <wenxu@ucloud.cn>
-Message-ID: <eba0383f-9089-de4d-c87c-7429443a3014@ucloud.cn>
-Date:   Thu, 20 Jun 2019 19:39:13 +0800
-User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:60.0) Gecko/20100101
- Thunderbird/60.6.1
-MIME-Version: 1.0
-In-Reply-To: <20190620104804.cbbodvw2llnt6qcl@salvia>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-X-HM-Spam-Status: e1kfGhgUHx5ZQUhXWQgYFAkeWUFZVkpVTU9PS0tLT0pKS0hITUhZV1koWU
-        FJQjdXWS1ZQUlXWQkOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6PDY6SQw4UTg8OhcsHyMpMDcs
-        ORUKCUpVSlVKTk1KS0hLTE1PTEhMVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWU5DVUhD
-        VU9VSU5LWVdZCAFZQUlNSUs3Bg++
-X-HM-Tid: 0a6b74af287a20bdkuqy7fe3ae014d0
+        Thu, 20 Jun 2019 07:52:05 -0400
+Received: by mail-pg1-f194.google.com with SMTP id 196so1466487pgc.6;
+        Thu, 20 Jun 2019 04:52:05 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id;
+        bh=Z6qFnOPxGsxbBs0N1zHQ2cWMgLe8sCLq4jvA0AzCvtE=;
+        b=DW7smYrl6VnTxf+mDW+fMhUBEgw71IO+UEx+WeJv5RmKsCPtJVgcZTOZ6uzRK9cpg+
+         3F2GWDrvnFusDEEYOJfX/7wRA9gn4s3Y7+z8vwVcDOg1rWKRJACpXAofncOF/FpglibW
+         pD+ddsWMArLdOQeVchNjZYgGPPIdQc8luRwtMQwuDFybRye0LiaLmkNj4VFOTdUedv2L
+         kxkqPvoF3dXTORFvMwV/WFwKMtDrRXj4ZKm6XeRkJIKYpp1VFOYvkvZg0xokbieShECo
+         qXYCyIKaPsFUrSEG/PD7dKPUSNfQZOr/SWOGhSRhHf1VIBa8kEL04xPIvpFwDatAQVrp
+         D7tw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id;
+        bh=Z6qFnOPxGsxbBs0N1zHQ2cWMgLe8sCLq4jvA0AzCvtE=;
+        b=pQraYfvSKvU7l20ql+B+mNmyEQOzd6b/ClXwTFGbJw40QlG/7VqBf9PvXOkh8KY97k
+         EmcCCnWcORDuwx8cmz5KME+TRJtscthT3/Uxjpv2TjjKuc8qpXHQqIsgKuGypIAL5WFF
+         cx887Yz+u6vMBvs1wjuFyo85H+PWMAk8GV+9EIw3xT9OMx7GJ/o07Lgq//L2HU9ucRhe
+         Lsmz2yjek6PHFEgeAdGWngq7b6HjjeisJ7rA35UfN4XPWdQKOuQ0e/z947ibUvBNkoI3
+         32issgfMNZsMgHYoTHomEpdojNstgboAbhRuOfqUgNlyMNLjT9ko56lMpcRjNZHomsAI
+         COxg==
+X-Gm-Message-State: APjAAAWbhD9H85usDys4pe0PDuPmJkrK0FBtVxBrRB/xF7Xgn83IM0sR
+        BOk/PoZQffH5hu5ignhdTni8ag8UxA==
+X-Google-Smtp-Source: APXvYqyBR46+C8J5ufb+LcDaaLVeD8vQ3BWqbC3COAVNxMzLqA684j0K4yYzWKateXwAJRLxXAQZvQ==
+X-Received: by 2002:a65:5a42:: with SMTP id z2mr12830723pgs.421.1561031524630;
+        Thu, 20 Jun 2019 04:52:04 -0700 (PDT)
+Received: from ubuntu.extremenetworks.com ([12.38.14.8])
+        by smtp.gmail.com with ESMTPSA id x25sm21862942pfm.48.2019.06.20.04.52.01
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Thu, 20 Jun 2019 04:52:03 -0700 (PDT)
+From:   Stephen Suryaputra <ssuryaextr@gmail.com>
+To:     netfilter-devel@vger.kernel.org
+Cc:     netdev@vger.kernel.org, Stephen Suryaputra <ssuryaextr@gmail.com>
+Subject: [PATCH nfnext v4] netfilter: add support for matching IPv4 options
+Date:   Thu, 20 Jun 2019 07:51:40 -0400
+Message-Id: <20190620115140.3518-1-ssuryaextr@gmail.com>
+X-Mailer: git-send-email 2.17.1
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+This is the kernel change for the overall changes with this description:
+Add capability to have rules matching IPv4 options. This is developed
+mainly to support dropping of IP packets with loose and/or strict source
+route route options.
 
-在 2019/6/20 18:48, Pablo Neira Ayuso 写道:
-> On Wed, Jun 19, 2019 at 10:35:07PM +0800, wenxu@ucloud.cn wrote:
-> [...]
->> So if the first fragment packet don't contain vlan tag, all of the
->> remain should not contain vlan tag..
-> If I understand correctly, the problem is this:
->
-> * First fragment comes with no vlan tag.
-> * Second fragment comes with vlan tag.
->
-> If you have a vlan setup, you have to use ct zone to map the vlan id
-> to the corresponding ct zone.
->
-> nf_ct_br_defrag4() calls:
->
->         err = ip_defrag(state->net, skb,
->                                 IP_DEFRAG_CONNTRACK_BRIDGE_IN + zone_id);
->
-> if ct zones are used, first fragment will go to defrag queue
-> IP_DEFRAG_CONNTRACK_BRIDGE_IN + 0, while second fragment will go to
-> IP_DEFRAG_CONNTRACK_BRIDGE_IN + zone_id.
->
-> So they will go to different defrag queues.
->
-It's not correct.
+v2: Fix style issues. Make this work with NFPROTO_INET (inet tables),
+    NFPROTO_BRIDGE and the NFPROTO_NETDEV families. Check skb->protocol.
+    Remove ability to input IP header offset for ipv4_find_option()
+    function (all per Pablo Neira Ayuso).
+v3: Remove unused ipv4_find_option() arguments (per Pablo Neira Ayuso).
+v4: Change the code to not follow ipv6_find_hdr() and just do what are
+    needed to support source-route, record route and router alert (per
+    Pablo Neira Ayuso). Fix bugs that are introduced while addressing
+    review comments.
 
-The problem is both the first and second fragment comes with vlan tag (It's make sense).
+Signed-off-by: Stephen Suryaputra <ssuryaextr@gmail.com>
+---
+ include/uapi/linux/netfilter/nf_tables.h |   2 +
+ net/ipv4/ip_options.c                    |   1 +
+ net/netfilter/nft_exthdr.c               | 111 +++++++++++++++++++++++
+ 3 files changed, 114 insertions(+)
 
-After the defrag(in fast mode), the two skb chains to a one skb.  When the packet send to the veth1 port which with flags "untagged". So the only the first skb clear the vlan tag, but the second one also contain vlan tag.  In the refrag which also in the fast mode only split the chian skb.  So it leads the first skb with no vlan tag which is correct. But the second skb wit vlan tag which is not correct
-
-
-
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index 505393c6e959..168d741f42c5 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -730,10 +730,12 @@ enum nft_exthdr_flags {
+  *
+  * @NFT_EXTHDR_OP_IPV6: match against ipv6 extension headers
+  * @NFT_EXTHDR_OP_TCP: match against tcp options
++ * @NFT_EXTHDR_OP_IPV4: match against ipv4 options
+  */
+ enum nft_exthdr_op {
+ 	NFT_EXTHDR_OP_IPV6,
+ 	NFT_EXTHDR_OP_TCPOPT,
++	NFT_EXTHDR_OP_IPV4,
+ 	__NFT_EXTHDR_OP_MAX
+ };
+ #define NFT_EXTHDR_OP_MAX	(__NFT_EXTHDR_OP_MAX - 1)
+diff --git a/net/ipv4/ip_options.c b/net/ipv4/ip_options.c
+index 3db31bb9df50..ddaa01ec2bce 100644
+--- a/net/ipv4/ip_options.c
++++ b/net/ipv4/ip_options.c
+@@ -473,6 +473,7 @@ int __ip_options_compile(struct net *net,
+ 		*info = htonl((pp_ptr-iph)<<24);
+ 	return -EINVAL;
+ }
++EXPORT_SYMBOL(__ip_options_compile);
+ 
+ int ip_options_compile(struct net *net,
+ 		       struct ip_options *opt, struct sk_buff *skb)
+diff --git a/net/netfilter/nft_exthdr.c b/net/netfilter/nft_exthdr.c
+index a940c9fd9045..703269359dba 100644
+--- a/net/netfilter/nft_exthdr.c
++++ b/net/netfilter/nft_exthdr.c
+@@ -62,6 +62,103 @@ static void nft_exthdr_ipv6_eval(const struct nft_expr *expr,
+ 	regs->verdict.code = NFT_BREAK;
+ }
+ 
++/* find the offset to specified option.
++ *
++ * If target header is found, its offset is set in *offset and return option
++ * number. Otherwise, return negative error.
++ *
++ * If the first fragment doesn't contain the End of Options it is considered
++ * invalid.
++ */
++static int ipv4_find_option(struct net *net, struct sk_buff *skb,
++			    unsigned int *offset, int target)
++{
++	unsigned char optbuf[sizeof(struct ip_options) + 40];
++	struct ip_options *opt = (struct ip_options *)optbuf;
++	struct iphdr *iph, _iph;
++	unsigned int start;
++	bool found = false;
++	__be32 info;
++	int optlen;
++
++	iph = skb_header_pointer(skb, 0, sizeof(_iph), &_iph);
++	if (!iph || iph->version != 4)
++		return -EBADMSG;
++	start = sizeof(struct iphdr);
++
++	optlen = iph->ihl * 4 - (int)sizeof(struct iphdr);
++	if (optlen <= 0)
++		return -ENOENT;
++
++	memset(opt, 0, sizeof(struct ip_options));
++	/* Copy the options since __ip_options_compile() modifies
++	 * the options.
++	 */
++	if (skb_copy_bits(skb, start, opt->__data, optlen))
++		return -EBADMSG;
++	opt->optlen = optlen;
++
++	if (__ip_options_compile(net, opt, NULL, &info))
++		return -EBADMSG;
++
++	switch (target) {
++	case IPOPT_SSRR:
++	case IPOPT_LSRR:
++		if (!opt->srr)
++			break;
++		found = target == IPOPT_SSRR ? opt->is_strictroute :
++					       !opt->is_strictroute;
++		if (found)
++			*offset = opt->srr + start;
++		break;
++	case IPOPT_RR:
++		if (!opt->rr)
++			break;
++		*offset = opt->rr + start;
++		found = true;
++		break;
++	case IPOPT_RA:
++		if (!opt->router_alert)
++			break;
++		*offset = opt->router_alert + start;
++		found = true;
++		break;
++	default:
++		return -EOPNOTSUPP;
++	}
++	return found ? target : -ENOENT;
++}
++
++static void nft_exthdr_ipv4_eval(const struct nft_expr *expr,
++				 struct nft_regs *regs,
++				 const struct nft_pktinfo *pkt)
++{
++	struct nft_exthdr *priv = nft_expr_priv(expr);
++	u32 *dest = &regs->data[priv->dreg];
++	struct sk_buff *skb = pkt->skb;
++	unsigned int offset;
++	int err;
++
++	if (skb->protocol != htons(ETH_P_IP))
++		goto err;
++
++	err = ipv4_find_option(nft_net(pkt), skb, &offset, priv->type);
++	if (priv->flags & NFT_EXTHDR_F_PRESENT) {
++		*dest = (err >= 0);
++		return;
++	} else if (err < 0) {
++		goto err;
++	}
++	offset += priv->offset;
++
++	dest[priv->len / NFT_REG32_SIZE] = 0;
++	if (skb_copy_bits(pkt->skb, offset, dest, priv->len) < 0)
++		goto err;
++	return;
++err:
++	regs->verdict.code = NFT_BREAK;
++}
++
+ static void *
+ nft_tcp_header_pointer(const struct nft_pktinfo *pkt,
+ 		       unsigned int len, void *buffer, unsigned int *tcphdr_len)
+@@ -360,6 +457,14 @@ static const struct nft_expr_ops nft_exthdr_ipv6_ops = {
+ 	.dump		= nft_exthdr_dump,
+ };
+ 
++static const struct nft_expr_ops nft_exthdr_ipv4_ops = {
++	.type		= &nft_exthdr_type,
++	.size		= NFT_EXPR_SIZE(sizeof(struct nft_exthdr)),
++	.eval		= nft_exthdr_ipv4_eval,
++	.init		= nft_exthdr_init,
++	.dump		= nft_exthdr_dump,
++};
++
+ static const struct nft_expr_ops nft_exthdr_tcp_ops = {
+ 	.type		= &nft_exthdr_type,
+ 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_exthdr)),
+@@ -400,6 +505,12 @@ nft_exthdr_select_ops(const struct nft_ctx *ctx,
+ 		if (tb[NFTA_EXTHDR_DREG])
+ 			return &nft_exthdr_ipv6_ops;
+ 		break;
++	case NFT_EXTHDR_OP_IPV4:
++		if (ctx->family != NFPROTO_IPV6) {
++			if (tb[NFTA_EXTHDR_DREG])
++				return &nft_exthdr_ipv4_ops;
++		}
++		break;
+ 	}
+ 
+ 	return ERR_PTR(-EOPNOTSUPP);
+-- 
+2.17.1
 
