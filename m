@@ -2,88 +2,114 @@ Return-Path: <SRS0=QW5x=UU=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_NEOMUTT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5495EC43613
-	for <netfilter-devel@archiver.kernel.org>; Fri, 21 Jun 2019 11:10:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 032EAC43613
+	for <netfilter-devel@archiver.kernel.org>; Fri, 21 Jun 2019 11:47:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2BF5321530
-	for <netfilter-devel@archiver.kernel.org>; Fri, 21 Jun 2019 11:10:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CE17721530
+	for <netfilter-devel@archiver.kernel.org>; Fri, 21 Jun 2019 11:47:09 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=canb.auug.org.au header.i=@canb.auug.org.au header.b="uifGP4ZU"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726717AbfFULKZ (ORCPT
+        id S1726285AbfFULrG (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 21 Jun 2019 07:10:25 -0400
-Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:42310 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726218AbfFULKZ (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 21 Jun 2019 07:10:25 -0400
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.89)
-        (envelope-from <fw@strlen.de>)
-        id 1heHQz-0007LI-Kl; Fri, 21 Jun 2019 13:10:21 +0200
-Date:   Fri, 21 Jun 2019 13:10:21 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     =?utf-8?Q?=C4=B0brahim?= Ercan <ibrahim.metu@gmail.com>
-Cc:     Florian Westphal <fw@strlen.de>, netfilter@vger.kernel.org,
-        netfilter-devel@vger.kernel.org
-Subject: Re: Is this possible SYN Proxy bug?
-Message-ID: <20190621111021.2nqtvdq3qq2gbfqy@breakpoint.cc>
-References: <CAK6Qs9mam2U6JdeBnkzX9sfdeWWkLx_+ZgHOTmYjSC2wKfg0cQ@mail.gmail.com>
- <20190618104041.unuonhmuvgnlty3l@breakpoint.cc>
- <CAK6Qs9kmxqOaCjgcBefPR-NKEdGKTcfKUL_tu09CQYp3OT5krA@mail.gmail.com>
- <20190618115905.6kd2hqg2hlbs5frc@breakpoint.cc>
- <CAK6Qs9mTkAaH9+RqzmtrbNps1=NtW4c8wtJy7Kjay=r7VSJwsQ@mail.gmail.com>
- <20190618124026.4kvpdkbstdgaluij@breakpoint.cc>
- <CAK6Qs9nak4Aes9BXGsHC8SGGXmWGGrhPwAPQY5brFXtUzLkd-A@mail.gmail.com>
- <CAK6Qs9=E9r_hPB6QX+P5Dx+fGetM5pcgxBsrDt+XJBeZhUcimQ@mail.gmail.com>
+        Fri, 21 Jun 2019 07:47:06 -0400
+Received: from ozlabs.org ([203.11.71.1]:41701 "EHLO ozlabs.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726229AbfFULrG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 21 Jun 2019 07:47:06 -0400
+Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange ECDHE (P-256) server-signature RSA-PSS (4096 bits) server-digest SHA256)
+        (No client certificate requested)
+        by mail.ozlabs.org (Postfix) with ESMTPSA id 45VcNg3c3zz9s4V;
+        Fri, 21 Jun 2019 21:46:58 +1000 (AEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=canb.auug.org.au;
+        s=201702; t=1561117622;
+        bh=goiHVT1iUGD2l33DnwurL5bS+yBEy6KApwjMnYaTsxI=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+        b=uifGP4ZUU2wtxqOg71WdZY/0n9SJaAiVKPjelcqdNWENlsYIM7yRiDvDvfW3lhJgn
+         zhCiElpBSepXHeRVItdqY30osuxukgLccIbLlKLQ7A2wPTqX6B7iRI5YwIspV3udVa
+         qubXTugaHY92iLHAwJsKNzwQ+HtzeuJ6Lg4AkDjDpIsn0W08UJlvQGRUR9PncKYi0C
+         2a7OB6MpuXpwuYdnPTvItu6seQL06xYcV92zciL0t3E9ybIIb+eUBAot6BLSJ24kTR
+         hXE8UEKKbw+sM869plid4Y4NbXty2zd+SyizosVOMvVs0rD6JC/dklhK4W0VJC+tci
+         vEgFlDKzX6vOg==
+Date:   Fri, 21 Jun 2019 21:46:57 +1000
+From:   Stephen Rothwell <sfr@canb.auug.org.au>
+To:     Pavel Machek <pavel@ucw.cz>
+Cc:     pablo@netfilter.org, kadlec@blackhole.kfki.hu, fw@strlen.de,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        kernel list <linux-kernel@vger.kernel.org>
+Subject: Re: Next 20190620: fails to compile in netfilter on x86-32
+Message-ID: <20190621214657.1624e5a4@canb.auug.org.au>
+In-Reply-To: <20190621110311.GF24145@amd>
+References: <20190621110311.GF24145@amd>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAK6Qs9=E9r_hPB6QX+P5Dx+fGetM5pcgxBsrDt+XJBeZhUcimQ@mail.gmail.com>
-User-Agent: NeoMutt/20170113 (1.7.2)
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ boundary="Sig_/fB+x7BsJ7wdh58PHPD01xnZ"; protocol="application/pgp-signature"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-İbrahim Ercan <ibrahim.metu@gmail.com> wrote:
-> I modified your patch as below and now synproxy send mss values as it
-> should be. Soom I will test it on real environment.
-> I also have another question. When I don't provide --wscale option,
-> both client syn-ack an server syn packets have empty wscale. When I
-> don't provide --mss option, I realized firewall not set mss value on
-> client syn-ack, but it sets mss on server syn. Is that what suppose to
-> happen?
+--Sig_/fB+x7BsJ7wdh58PHPD01xnZ
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-The SYN sent to server should reflect/match the SYN received from
-client (mss might be smaller due to msstab encoding).
+Hi Pavel,
 
-> diff -rupN a/net/ipv4/netfilter/ipt_SYNPROXY.c
-> b/net/ipv4/netfilter/ipt_SYNPROXY.c
-> --- a/net/ipv4/netfilter/ipt_SYNPROXY.c       2019-06-19
-> 09:51:40.163633231 +0300
-> +++ b/net/ipv4/netfilter/ipt_SYNPROXY.c      2019-06-20 13:32:18.893025129 +0300
-> @@ -71,13 +71,13 @@ free_nskb:
->  static void
->  synproxy_send_client_synack(struct net *net,
->                             const struct sk_buff *skb, const struct tcphdr *th,
-> -                           const struct synproxy_options *opts)
-> +                           const struct synproxy_options *opts, const
-> u16 *client_mssinfo)
->  {
->         struct sk_buff *nskb;
->         struct iphdr *iph, *niph;
->         struct tcphdr *nth;
->         unsigned int tcp_hdr_size;
-> -       u16 mss = opts->mss;
-> +       u16 mss = *client_mssinfo;
+On Fri, 21 Jun 2019 13:03:11 +0200 Pavel Machek <pavel@ucw.cz> wrote:
+>
+> I get this during compilation:
+>=20
+>   CC      net/netfilter/core.o
+>   In file included from net/netfilter/core.c:19:0:
+>   ./include/linux/netfilter_ipv6.h: In function
+>   =E2=80=98nf_ipv6_cookie_init_sequence=E2=80=99:
+>   ./include/linux/netfilter_ipv6.h:174:2: error: implicit declaration
+>   of function =E2=80=98__cookie_v6_init_sequence=E2=80=99
+>   [-Werror=3Dimplicit-function-declaration]
+>     return __cookie_v6_init_sequence(iph, th, mssp);
+>       ^
+>       ./include/linux/netfilter_ipv6.h: In function
+>   =E2=80=98nf_cookie_v6_check=E2=80=99:
+>   ./include/linux/netfilter_ipv6.h:189:2: error: implicit declaration
+>   of function =E2=80=98__cookie_v6_check=E2=80=99
+>   [-Werror=3Dimplicit-function-declaration]
+>     return __cookie_v6_check(iph, th, cookie);
+>       ^
+>       cc1: some warnings being treated as errors
+>       scripts/Makefile.build:278: recipe for target
+>   'net/netfilter/core.o' failed
+>   make[2]: *** [net/netfilter/core.o] Error 1
+>   scripts/Makefile.build:498: recipe for target 'net/netfilter' failed
+>   make[1]: *** [net/netfilter] Error 2
+>=20
+> Is it known?
 
-Yes, something like this is needed, i.e. we need to pass two
-mss values -- one from info->mss ("server") that we need to
-place in the tcp options sent to client and one containing
-the clients mss that we should encode into the cookie.
+Yes, and should be fixed in next-20190621.
 
-I think you can pass "u16 client_mssinfo" instead of u16* pointer.
+--=20
+Cheers,
+Stephen Rothwell
+
+--Sig_/fB+x7BsJ7wdh58PHPD01xnZ
+Content-Type: application/pgp-signature
+Content-Description: OpenPGP digital signature
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAl0Mw7EACgkQAVBC80lX
+0Gx2Uwf+OcvRXbTwZiW7IssHj5zEYP+d7wkRVOWoTwGXiWVnlJRL6fRNH7rkYm6l
+z7OMiSWiccESjC5ZtRgIWPnBG9UGDzdRTTuQq9kxf2jsaMcOGsknX6v4CixMG74J
+ZB5lnsd/kpVQm3d8KQn1A3d6rsb4y9bvxuJFTXCOItzw0g1GDXz/cA6sZbHX7Tdl
+UBNGKeXg91RPxDT25pFudMukD8QcLG1MmToy95qWNRXmaVaAJD0izmyBMJgFddCL
+E8neM/A2VhWoMUGHI1gE67BSwu8SP6dzKOCJcrVfzr4PLeQs3JBu82mnADCp+V85
+XYHP/5YlIMr9IAJlUnlWXAMR2OzqtA==
+=xAad
+-----END PGP SIGNATURE-----
+
+--Sig_/fB+x7BsJ7wdh58PHPD01xnZ--
