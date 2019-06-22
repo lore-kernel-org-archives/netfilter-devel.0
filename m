@@ -1,607 +1,467 @@
-Return-Path: <SRS0=QW5x=UU=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=paks=UV=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+X-Spam-Status: No, score=-6.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E23FBC48BE0
-	for <netfilter-devel@archiver.kernel.org>; Fri, 21 Jun 2019 17:41:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E54BEC43613
+	for <netfilter-devel@archiver.kernel.org>; Sat, 22 Jun 2019 16:53:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A9B4521537
-	for <netfilter-devel@archiver.kernel.org>; Fri, 21 Jun 2019 17:41:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 963A0205F4
+	for <netfilter-devel@archiver.kernel.org>; Sat, 22 Jun 2019 16:53:03 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Weh4+RUX"
+	dkim=pass (1024-bit key) header.d=riseup.net header.i=@riseup.net header.b="IQZbtGJQ"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726596AbfFURlJ (ORCPT
+        id S1726353AbfFVQxD (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 21 Jun 2019 13:41:09 -0400
-Received: from mail-pf1-f195.google.com ([209.85.210.195]:33091 "EHLO
-        mail-pf1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726281AbfFURlI (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 21 Jun 2019 13:41:08 -0400
-Received: by mail-pf1-f195.google.com with SMTP id x15so3982109pfq.0
-        for <netfilter-devel@vger.kernel.org>; Fri, 21 Jun 2019 10:41:08 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id;
-        bh=Z1mL8GTrx6fd/MVZ1yoxodwSUtnBpmTPbj1B1Eq5kLQ=;
-        b=Weh4+RUXdXBFN7zVi8lMAhQ0YRAqMlmOf6O/b7qGAuh8XOW+295mh3RBemgbAv81kK
-         3ZJu93nFWoVabnwjNpwNeqISVLrXv4Exf0U9z9qNHGP4d9kNAKBpBVxeuid5/LjZNvUh
-         iVwRp9tm7QuVZbvFU2E0PQlaAd6+MVeY/mQxr6i8i8cdA6iiq3/bU4ykFwh6/UQafrg/
-         UzSmFlpbbbbMo/q2WtTX9ykC7YDl4oHg7RycbDCe7stX52ZQQODRl5GHfFdYMdFFbN6H
-         /bg6GHRKp5NBa6XqPGuhQnVmC1ZB5fndM1G9a2JEdiMTuM6+Rq5dugPKnctPI/EE5xaZ
-         FS0g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id;
-        bh=Z1mL8GTrx6fd/MVZ1yoxodwSUtnBpmTPbj1B1Eq5kLQ=;
-        b=oeNxWiwrmTusP63AdvoxYPExqJVQ8zxTXWIKEvsIBumb/+kUzaGhE23Lvl/JRWzJvW
-         j3tSIzoPXky1MEqEjrzBrD73mEnqWpT3lIQjhx/nUofmsFj0f4VkUIWY9ap85Q8SuvWP
-         GwqQhxUqoRYQ7qMSNe8/QPVokGN07VrCZy1CwwM7hZDUEphqicqvzNrqCMpzojSTSd43
-         agPcYS1Zo18DNGxCSqisa3ctGgrFjAdFYtVs543iqgJLd09Y/vFWYwJSDqbENrt42FXg
-         XSt/Ma8dDI5p3xfZFLWB9RBWzotspRQQfodT+zJVlrnBYp7FMFQgXB6/WXFtz9G/QZW4
-         lYoQ==
-X-Gm-Message-State: APjAAAXFXIEo9stthrbvmJEh0Ij6e+cXdbfbiJI8oYg9rPVmN/oFuT0I
-        3eOubOsBMvziI5z2iqRiyzi9VcsGh70=
-X-Google-Smtp-Source: APXvYqwq2E1GrQX+J1YSFLxzG3fQIXxWQ74yjRzLAIBjWJnRsuySq4DCpyRO8hmBs91dAwbq/HYbdA==
-X-Received: by 2002:a63:d0:: with SMTP id 199mr19758552pga.85.1561138867495;
-        Fri, 21 Jun 2019 10:41:07 -0700 (PDT)
-Received: from shekhar.domain.name ([117.199.27.38])
-        by smtp.gmail.com with ESMTPSA id h1sm4491377pfo.152.2019.06.21.10.41.05
-        (version=TLS1_3 cipher=AEAD-AES256-GCM-SHA384 bits=256/256);
-        Fri, 21 Jun 2019 10:41:07 -0700 (PDT)
-From:   Shekhar Sharma <shekhar250198@gmail.com>
+        Sat, 22 Jun 2019 12:53:03 -0400
+Received: from mx1.riseup.net ([198.252.153.129]:34678 "EHLO mx1.riseup.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726326AbfFVQxD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 22 Jun 2019 12:53:03 -0400
+Received: from capuchin.riseup.net (capuchin-pn.riseup.net [10.0.1.176])
+        (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+        (Client CN "*.riseup.net", Issuer "COMODO RSA Domain Validation Secure Server CA" (verified OK))
+        by mx1.riseup.net (Postfix) with ESMTPS id CF4311A1EBF
+        for <netfilter-devel@vger.kernel.org>; Sat, 22 Jun 2019 09:53:01 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=riseup.net; s=squak;
+        t=1561222381; bh=H/NMf7Z/JseWXFYuoR46MF51FGLJbLLklstKGCdrsTs=;
+        h=From:To:Cc:Subject:Date:From;
+        b=IQZbtGJQ1n6fvsSzBdDL2RIdM/l25x7CRWFgpYVmmNHOerAzCgN8t29qsJO9EAEun
+         6urP788C53yYfr2SwlvD4WZqvG0J4e8tMddoc8n9eFC1xiPZUx5fFASmv2fGIOaDR6
+         tUbejxKcmxvk8QeQMoEJucz4YQJh1WlQw/jwfIUE=
+X-Riseup-User-ID: 2722970594C84FE8F8E7F38E82FAA55CF87B80CB5C955112C381EB8804558B83
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+         by capuchin.riseup.net (Postfix) with ESMTPSA id F026D1203DC;
+        Sat, 22 Jun 2019 09:53:00 -0700 (PDT)
+From:   Fernando Fernandez Mancera <ffmancera@riseup.net>
 To:     netfilter-devel@vger.kernel.org
-Cc:     Shekhar Sharma <shekhar250198@gmail.com>
-Subject: [PATCH nft v9] tests: py: add netns feature
-Date:   Fri, 21 Jun 2019 23:10:53 +0530
-Message-Id: <20190621174053.4087-1-shekhar250198@gmail.com>
-X-Mailer: git-send-email 2.17.1
+Cc:     Fernando Fernandez Mancera <ffmancera@riseup.net>
+Subject: [PATCH nf-next v3] netfilter: nf_tables: Add SYNPROXY support
+Date:   Sat, 22 Jun 2019 18:52:36 +0200
+Message-Id: <20190622165235.2276-1-ffmancera@riseup.net>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This patch adds the netns feature to the nft-test.py file.
+Add SYNPROXY module support in nf_tables. It preserves the behaviour of the
+SYNPROXY target of iptables but structured in a different way to propose
+improvements in the future.
 
-Signed-off-by: Shekhar Sharma <shekhar250198@gmail.com>
+Signed-off-by: Fernando Fernandez Mancera <ffmancera@riseup.net>
 ---
-The global variable 'netns' stores the value of args.netns
-which is used as an argument in various functions.
- 
-The version history of the patch is :
-v1: add the netns feature
-v2: use format() method to simplify print statements.
-v3: updated the shebang
-v4: resent the same with small changes
-v5&v6: resent with small changes
-v7: netns commands changed for passing the netns name via netns argument.
-v8: correct typo error
-v9: use tempfile, replace cmp() and add a global variable 'netns' 
-    and store the args.netns value in it.
+v1: initial patch
+v2: add IPV6 module checks
+v3: move common eval parts into a function, reorder init function, remove the unnecessary headers and adapt the header to the rename patch
+--- 
+ include/net/netfilter/nf_conntrack_synproxy.h |   1 +
+ include/uapi/linux/netfilter/nf_SYNPROXY.h    |   4 +
+ include/uapi/linux/netfilter/nf_tables.h      |  17 +
+ net/netfilter/Kconfig                         |  11 +
+ net/netfilter/Makefile                        |   1 +
+ net/netfilter/nft_synproxy.c                  | 298 ++++++++++++++++++
+ 6 files changed, 332 insertions(+)
+ create mode 100644 net/netfilter/nft_synproxy.c
 
- tests/py/nft-test.py | 156 ++++++++++++++++++++++++++++++-------------
- 1 file changed, 111 insertions(+), 45 deletions(-)
-
-diff --git a/tests/py/nft-test.py b/tests/py/nft-test.py
-index 09d00dba..b9f8d8c9 100755
---- a/tests/py/nft-test.py
-+++ b/tests/py/nft-test.py
-@@ -1,4 +1,4 @@
--#!/usr/bin/python2
-+#!/usr/bin/env python
- #
- # (C) 2014 by Ana Rey Botello <anarey@gmail.com>
- #
-@@ -13,12 +13,14 @@
- # Thanks to the Outreach Program for Women (OPW) for sponsoring this test
- # infrastructure.
+diff --git a/include/net/netfilter/nf_conntrack_synproxy.h b/include/net/netfilter/nf_conntrack_synproxy.h
+index c5659dcf5b1a..8f00125b06f4 100644
+--- a/include/net/netfilter/nf_conntrack_synproxy.h
++++ b/include/net/netfilter/nf_conntrack_synproxy.h
+@@ -2,6 +2,7 @@
+ #ifndef _NF_CONNTRACK_SYNPROXY_H
+ #define _NF_CONNTRACK_SYNPROXY_H
  
-+from __future__ import print_function
- import sys
- import os
- import argparse
- import signal
- import json
- import traceback
-+import tempfile
++#include <net/netfilter/nf_conntrack_seqadj.h>
+ #include <net/netns/generic.h>
  
- TESTS_PATH = os.path.dirname(os.path.abspath(__file__))
- sys.path.insert(0, os.path.join(TESTS_PATH, '../../py/'))
-@@ -172,27 +174,31 @@ def print_differences_error(filename, lineno, cmd):
-     print_error(reason, filename, lineno)
+ struct nf_conn_synproxy {
+diff --git a/include/uapi/linux/netfilter/nf_SYNPROXY.h b/include/uapi/linux/netfilter/nf_SYNPROXY.h
+index 068d1b3a6f06..6f3791c8946f 100644
+--- a/include/uapi/linux/netfilter/nf_SYNPROXY.h
++++ b/include/uapi/linux/netfilter/nf_SYNPROXY.h
+@@ -9,6 +9,10 @@
+ #define NF_SYNPROXY_OPT_SACK_PERM	0x04
+ #define NF_SYNPROXY_OPT_TIMESTAMP	0x08
+ #define NF_SYNPROXY_OPT_ECN		0x10
++#define NF_SYNPROXY_OPT_MASK		(NF_SYNPROXY_OPT_MSS | \
++					 NF_SYNPROXY_OPT_WSCALE | \
++					 NF_SYNPROXY_OPT_SACK_PERM | \
++					 NF_SYNPROXY_OPT_TIMESTAMP)
  
+ struct nf_synproxy_info {
+ 	__u8	options;
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index c6c8ec5c7c00..302c25af17d7 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -1551,6 +1551,23 @@ enum nft_osf_flags {
+ 	NFT_OSF_F_VERSION = (1 << 0),
+ };
  
--def table_exist(table, filename, lineno):
-+def table_exist(table, filename, lineno, netns=""):
-     '''
-     Exists a table.
-     '''
-     cmd = "list table %s" % table
-+    if netns:
-+        cmd = "ip netns exec " + "{} {}".format(netns,cmd)
-     ret = execute_cmd(cmd, filename, lineno)
- 
-     return True if (ret == 0) else False
- 
- 
--def table_flush(table, filename, lineno):
-+def table_flush(table, filename, lineno, netns=""):
-     '''
-     Flush a table.
-     '''
-     cmd = "flush table %s" % table
-+    if netns:
-+        cmd = "ip netns exec " + "{} {}".format(netns, cmd)
-     execute_cmd(cmd, filename, lineno)
- 
-     return cmd
- 
- 
--def table_create(table, filename, lineno):
-+def table_create(table, filename, lineno, netns=""):
-     '''
-     Adds a table.
-     '''
-@@ -206,6 +212,8 @@ def table_create(table, filename, lineno):
- 
-     # We add a new table
-     cmd = "add table %s" % table
-+    if netns:
-+        cmd = "ip netns exec " + "{} {}".format(netns,cmd)
-     ret = execute_cmd(cmd, filename, lineno)
- 
-     if ret != 0:
-@@ -234,7 +242,7 @@ def table_create(table, filename, lineno):
-     return 0
- 
- 
--def table_delete(table, filename=None, lineno=None):
-+def table_delete(table, filename=None, lineno=None, netns=""):
-     '''
-     Deletes a table.
-     '''
-@@ -244,6 +252,8 @@ def table_delete(table, filename=None, lineno=None):
-         return -1
- 
-     cmd = "delete table %s" % table
-+    if netns:
-+        cmd = "ip netns exec " + "{} {}".format(netns,cmd)
-     ret = execute_cmd(cmd, filename, lineno)
-     if ret != 0:
-         reason = "%s: I cannot delete table %s. Giving up!" % (cmd, table)
-@@ -259,17 +269,19 @@ def table_delete(table, filename=None, lineno=None):
-     return 0
- 
- 
--def chain_exist(chain, table, filename):
-+def chain_exist(chain, table, filename, netns=""):
-     '''
-     Checks a chain
-     '''
-     cmd = "list chain %s %s" % (table, chain)
-+    if netns:
-+        cmd = "ip netns exec " + "{} {}".format(netns,cmd)
-     ret = execute_cmd(cmd, filename, chain.lineno)
- 
-     return True if (ret == 0) else False
- 
- 
--def chain_create(chain, table, filename):
-+def chain_create(chain, table, filename, netns=""):
-     '''
-     Adds a chain
-     '''
-@@ -280,6 +292,9 @@ def chain_create(chain, table, filename):
-         return -1
- 
-     cmd = "add chain %s %s" % (table, chain)
-+    if netns:
-+        cmd = "ip netns exec " + "{} {}".format(netns,cmd)
++/**
++ * enum nft_synproxy_attributes - nf_tables synproxy expression
++ * netlink attributes
++ *
++ * @NFTA_SYNPROXY_MSS: mss value sent to the backend (NLA_U16)
++ * @NFTA_SYNPROXY_WSCALE: wscale value sent to the backend (NLA_U8)
++ * @NFTA_SYNPROXY_FLAGS: flags (NLA_U32)
++ */
++enum nft_synproxy_attributes {
++	NFTA_SYNPROXY_UNSPEC,
++	NFTA_SYNPROXY_MSS,
++	NFTA_SYNPROXY_WSCALE,
++	NFTA_SYNPROXY_FLAGS,
++	__NFTA_SYNPROXY_MAX,
++};
++#define NFTA_SYNPROXY_MAX (__NFTA_SYNPROXY_MAX - 1)
 +
-     if chain.config:
-         cmd += " { %s; }" % chain.config
+ /**
+  * enum nft_device_attributes - nf_tables device netlink attributes
+  *
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index 21025c2c605b..d59742408d9b 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -651,6 +651,17 @@ config NFT_TPROXY
+ 	help
+ 	  This makes transparent proxy support available in nftables.
  
-@@ -298,7 +313,7 @@ def chain_create(chain, table, filename):
-     return 0
- 
- 
--def chain_delete(chain, table, filename=None, lineno=None):
-+def chain_delete(chain, table, filename=None, lineno=None, netns=""):
-     '''
-     Flushes and deletes a chain.
-     '''
-@@ -309,6 +324,9 @@ def chain_delete(chain, table, filename=None, lineno=None):
-         return -1
- 
-     cmd = "flush chain %s %s" % (table, chain)
-+    if netns:
-+        cmd = "ip netns exec " + "{} {}".format(netns,cmd)
++config NFT_SYNPROXY
++	tristate "Netfilter nf_tables SYNPROXY expression support"
++	depends on NF_CONNTRACK && NETFILTER_ADVANCED
++	select NETFILTER_SYNPROXY
++	select SYN_COOKIES
++	help
++	  The SYNPROXY expression allows you to intercept TCP connections and
++	  establish them using syncookies before they are passed on to the
++	  server. This allows to avoid conntrack and server resource usage
++	  during SYN-flood attacks.
 +
-     ret = execute_cmd(cmd, filename, lineno)
-     if ret != 0:
-         reason = "I cannot " + cmd
-@@ -316,6 +334,8 @@ def chain_delete(chain, table, filename=None, lineno=None):
-         return -1
+ if NF_TABLES_NETDEV
  
-     cmd = "delete chain %s %s" % (table, chain)
-+    if netns:
-+        cmd = "ip netns exec " + "{} {}".format(netns,cmd)
-     ret = execute_cmd(cmd, filename, lineno)
-     if ret != 0:
-         reason = "I cannot " + cmd
-@@ -341,7 +361,7 @@ def chain_get_by_name(name):
-     return chain
+ config NF_DUP_NETDEV
+diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
+index 72cca6b48960..deada20975ff 100644
+--- a/net/netfilter/Makefile
++++ b/net/netfilter/Makefile
+@@ -110,6 +110,7 @@ obj-$(CONFIG_NFT_SOCKET)	+= nft_socket.o
+ obj-$(CONFIG_NFT_OSF)		+= nft_osf.o
+ obj-$(CONFIG_NFT_TPROXY)	+= nft_tproxy.o
+ obj-$(CONFIG_NFT_XFRM)		+= nft_xfrm.o
++obj-$(CONFIG_NFT_SYNPROXY)	+= nft_synproxy.o
  
+ obj-$(CONFIG_NFT_NAT)		+= nft_chain_nat.o
  
--def set_add(s, test_result, filename, lineno):
-+def set_add(s, test_result, filename, lineno, netns=""):
-     '''
-     Adds a set.
-     '''
-@@ -363,6 +383,9 @@ def set_add(s, test_result, filename, lineno):
-             flags = "flags %s; " % flags
- 
-         cmd = "add set %s %s { type %s;%s %s}" % (table, s.name, s.type, s.timeout, flags)
-+        if netns:
-+            cmd = "ip netns exec " + "{} {}".format(netns,cmd)
+diff --git a/net/netfilter/nft_synproxy.c b/net/netfilter/nft_synproxy.c
+new file mode 100644
+index 000000000000..33c1318a7c6a
+--- /dev/null
++++ b/net/netfilter/nft_synproxy.c
+@@ -0,0 +1,298 @@
++// SPDX-License-Identifier: GPL-2.0
++#include <linux/types.h>
++#include <net/ip.h>
++#include <net/tcp.h>
++#include <net/netlink.h>
++#include <net/netfilter/nf_tables.h>
++#include <net/netfilter/nf_conntrack.h>
++#include <net/netfilter/nf_conntrack_synproxy.h>
++#include <net/netfilter/nf_synproxy.h>
++#include <linux/netfilter/nf_tables.h>
++#include <linux/netfilter/nf_synproxy.h>
 +
-         ret = execute_cmd(cmd, filename, lineno)
- 
-         if (ret == 0 and test_result == "fail") or \
-@@ -380,7 +403,7 @@ def set_add(s, test_result, filename, lineno):
-     return 0
- 
- 
--def set_add_elements(set_element, set_name, state, filename, lineno):
-+def set_add_elements(set_element, set_name, state, filename, lineno, netns=""):
-     '''
-     Adds elements to the set.
-     '''
-@@ -400,6 +423,9 @@ def set_add_elements(set_element, set_name, state, filename, lineno):
- 
-         element = ", ".join(set_element)
-         cmd = "add element %s %s { %s }" % (table, set_name, element)
-+        if netns:
-+            cmd = "ip netns exec " + "{} {}".format(netns,cmd)
++struct nft_synproxy {
++	struct nf_synproxy_info	info;
++};
 +
-         ret = execute_cmd(cmd, filename, lineno)
- 
-         if (state == "fail" and ret == 0) or (state == "ok" and ret != 0):
-@@ -417,12 +443,15 @@ def set_add_elements(set_element, set_name, state, filename, lineno):
- 
- 
- def set_delete_elements(set_element, set_name, table, filename=None,
--                        lineno=None):
-+                        lineno=None, netns=""):
-     '''
-     Deletes elements in a set.
-     '''
-     for element in set_element:
-         cmd = "delete element %s %s { %s }" % (table, set_name, element)
-+        if netns:
-+            cmd = "ip netns exec " + "{} {}".format(netns,cmd)
++static const struct nla_policy nft_synproxy_policy[NFTA_SYNPROXY_MAX + 1] = {
++	[NFTA_SYNPROXY_MSS]		= { .type = NLA_U16 },
++	[NFTA_SYNPROXY_WSCALE]		= { .type = NLA_U8 },
++	[NFTA_SYNPROXY_FLAGS]		= { .type = NLA_U32 },
++};
 +
-         ret = execute_cmd(cmd, filename, lineno)
-         if ret != 0:
-             reason = "I cannot delete element %s " \
-@@ -433,7 +462,7 @@ def set_delete_elements(set_element, set_name, table, filename=None,
-     return 0
- 
- 
--def set_delete(table, filename=None, lineno=None):
-+def set_delete(table, filename=None, lineno=None, netns=""):
-     '''
-     Deletes set and its content.
-     '''
-@@ -451,6 +480,9 @@ def set_delete(table, filename=None, lineno=None):
- 
-         # We delete the set.
-         cmd = "delete set %s %s" % (table, set_name)
-+        if netns:
-+            cmd = "ip netns exec " + "{} {}".format(netns,cmd)
++static void nft_synproxy_tcp_options(struct synproxy_options *opts,
++				     const struct tcphdr *tcp,
++				     struct synproxy_net *snet,
++				     struct nf_synproxy_info *info,
++				     struct nft_synproxy *priv)
++{
++	this_cpu_inc(snet->stats->syn_received);
++	if (tcp->ece && tcp->cwr)
++		opts->options |= NF_SYNPROXY_OPT_ECN;
 +
-         ret = execute_cmd(cmd, filename, lineno)
- 
-         # Check if the set still exists after I deleted it.
-@@ -462,21 +494,27 @@ def set_delete(table, filename=None, lineno=None):
-     return 0
- 
- 
--def set_exist(set_name, table, filename, lineno):
-+def set_exist(set_name, table, filename, lineno, netns=""):
-     '''
-     Check if the set exists.
-     '''
-     cmd = "list set %s %s" % (table, set_name)
-+    if netns:
-+        cmd = "ip netns exec " + "{} {}".format(netns,cmd)
++	opts->options &= priv->info.options;
++	if (opts->options & NF_SYNPROXY_OPT_TIMESTAMP)
++		synproxy_init_timestamp_cookie(info, opts);
++	else
++		opts->options &= ~(NF_SYNPROXY_OPT_WSCALE |
++				  NF_SYNPROXY_OPT_SACK_PERM |
++				  NF_SYNPROXY_OPT_ECN);
++}
 +
-     ret = execute_cmd(cmd, filename, lineno)
- 
-     return True if (ret == 0) else False
- 
- 
--def _set_exist(s, filename, lineno):
-+def _set_exist(s, filename, lineno, netns=""):
-     '''
-     Check if the set exists.
-     '''
-     cmd = "list set %s %s %s" % (s.family, s.table, s.name)
-+    if netns:
-+        cmd = "ip netns exec " + "{} {}".format(netns,cmd)
++static void nft_synproxy_eval_v4(const struct nft_expr *expr,
++				 struct nft_regs *regs,
++				 const struct nft_pktinfo *pkt,
++				 const struct tcphdr *tcp,
++				 struct tcphdr *_tcph,
++				 struct synproxy_options *opts)
++{
++	struct nft_synproxy *priv = nft_expr_priv(expr);
++	struct nf_synproxy_info info = priv->info;
++	struct net *net = nft_net(pkt);
++	struct synproxy_net *snet = synproxy_pernet(net);
++	struct sk_buff *skb = pkt->skb;
 +
-     ret = execute_cmd(cmd, filename, lineno)
- 
-     return True if (ret == 0) else False
-@@ -490,7 +528,7 @@ def set_check_element(rule1, rule2):
-     pos1 = rule1.find("{")
-     pos2 = rule2.find("{")
- 
--    if (cmp(rule1[:pos1], rule2[:pos2]) != 0):
-+    if ((((rule1[:pos1])>(rule2[:pos2]))-((rule1[:pos1])<(rule2[:pos2]))) != 0):
-         return ret;
- 
-     end1 = rule1.find("}")
-@@ -501,16 +539,16 @@ def set_check_element(rule1, rule2):
-         list2 = (rule2[pos2 + 1:end2].replace(" ", "")).split(",")
-         list1.sort()
-         list2.sort()
--        if cmp(list1, list2) == 0:
-+        if ((list1>list2) - (list1<list2)) == 0:
-             ret = 0
- 
-     if ret != 0:
-         return ret
- 
--    return cmp(rule1[end1:], rule2[end2:])
-+    return ((rule1[end1:] > rule2[end2:]) - (rule1[end1:] < rule2[end2:]))
- 
- 
--def obj_add(o, test_result, filename, lineno):
-+def obj_add(o, test_result, filename, lineno, netns=""):
-     '''
-     Adds an object.
-     '''
-@@ -529,6 +567,9 @@ def obj_add(o, test_result, filename, lineno):
-             return -1
- 
-         cmd = "add %s %s %s %s" % (o.type, table, o.name, o.spcf)
-+        if netns:
-+            cmd = "ip netns exec " + "{} {}".format(netns,cmd)
++	if (tcp->syn) {
++		/* Initial SYN from client */
++		nft_synproxy_tcp_options(opts, tcp, snet, &info, priv);
++		synproxy_send_client_synack(net, skb, tcp, opts);
++		consume_skb(skb);
++		regs->verdict.code = NF_STOLEN;
++		return;
++	} else if (tcp->ack) {
++		/* ACK from client */
++		if (synproxy_recv_client_ack(net, skb, tcp, opts,
++					     ntohl(tcp->seq))) {
++			consume_skb(skb);
++			regs->verdict.code = NF_STOLEN;
++		} else {
++			regs->verdict.code = NF_DROP;
++		}
++		return;
++	}
 +
-         ret = execute_cmd(cmd, filename, lineno)
- 
-         if (ret == 0 and test_result == "fail") or \
-@@ -555,7 +596,7 @@ def obj_add(o, test_result, filename, lineno):
-         print_error(reason, filename, lineno)
-         return -1
- 
--def obj_delete(table, filename=None, lineno=None):
-+def obj_delete(table, filename=None, lineno=None, netns=""):
-     '''
-     Deletes object.
-     '''
-@@ -569,6 +610,9 @@ def obj_delete(table, filename=None, lineno=None):
- 
-         # We delete the object.
-         cmd = "delete %s %s %s" % (o.type, table, o.name)
-+        if netns:
-+            cmd = "ip netns exec " + "{} {}".format(netns,cmd)
++	regs->verdict.code = NFT_CONTINUE;
++}
 +
-         ret = execute_cmd(cmd, filename, lineno)
- 
-         # Check if the object still exists after I deleted it.
-@@ -580,21 +624,27 @@ def obj_delete(table, filename=None, lineno=None):
-     return 0
- 
- 
--def obj_exist(o, table, filename, lineno):
-+def obj_exist(o, table, filename, lineno, netns=""):
-     '''
-     Check if the object exists.
-     '''
-     cmd = "list %s %s %s" % (o.type, table, o.name)
-+    if netns:
-+        cmd = "ip netns exec " + "{} {}".format(netns,cmd)
++#if IS_ENABLED(CONFIG_NF_TABLES_IPV6)
++static void nft_synproxy_eval_v6(const struct nft_expr *expr,
++				 struct nft_regs *regs,
++				 const struct nft_pktinfo *pkt,
++				 const struct tcphdr *tcp,
++				 struct tcphdr *_tcph,
++				 struct synproxy_options *opts)
++{
++	struct nft_synproxy *priv = nft_expr_priv(expr);
++	struct nf_synproxy_info info = priv->info;
++	struct net *net = nft_net(pkt);
++	struct synproxy_net *snet = synproxy_pernet(net);
++	struct sk_buff *skb = pkt->skb;
 +
-     ret = execute_cmd(cmd, filename, lineno)
- 
-     return True if (ret == 0) else False
- 
- 
--def _obj_exist(o, filename, lineno):
-+def _obj_exist(o, filename, lineno, netns=""):
-     '''
-     Check if the object exists.
-     '''
-     cmd = "list %s %s %s %s" % (o.type, o.family, o.table, o.name)
-+    if netns:
-+        cmd = "ip netns exec " + "{} {}".format(netns,cmd)
++	if (tcp->syn) {
++		/* Initial SYN from client */
++		nft_synproxy_tcp_options(opts, tcp, snet, &info, priv);
++		synproxy_send_client_synack_ipv6(net, skb, tcp, opts);
++		consume_skb(skb);
++		regs->verdict.code = NF_STOLEN;
++		return;
++	} else if (tcp->ack) {
++		/* ACK from client */
++		if (synproxy_recv_client_ack_ipv6(net, skb, tcp, opts,
++						  ntohl(tcp->seq))) {
++			consume_skb(skb);
++			regs->verdict.code = NF_STOLEN;
++		} else {
++			regs->verdict.code = NF_DROP;
++		}
++		return;
++	}
 +
-     ret = execute_cmd(cmd, filename, lineno)
- 
-     return True if (ret == 0) else False
-@@ -696,7 +746,7 @@ def json_validate(json_string):
-         print_error("schema validation failed for input '%s'" % json_string)
-         print_error(traceback.format_exc())
- 
--def rule_add(rule, filename, lineno, force_all_family_option, filename_path):
-+def rule_add(rule, filename, lineno, force_all_family_option, filename_path, netns=""):
-     '''
-     Adds a rule
-     '''
-@@ -770,10 +820,13 @@ def rule_add(rule, filename, lineno, force_all_family_option, filename_path):
-             unit_tests += 1
-             table_flush(table, filename, lineno)
- 
--            payload_log = os.tmpfile()
-+            payload_log = tempfile.TemporaryFile(mode="w+")
- 
-             # Add rule and check return code
-             cmd = "add rule %s %s %s" % (table, chain, rule[0])
-+            if netns:
-+                cmd = "ip netns exec " + "{} {}".format(netns,cmd)
++	regs->verdict.code = NFT_CONTINUE;
++}
++#endif /* CONFIG_NF_TABLES_IPV6*/
 +
-             ret = execute_cmd(cmd, filename, lineno, payload_log, debug="netlink")
- 
-             state = rule[1].rstrip()
-@@ -870,6 +923,9 @@ def rule_add(rule, filename, lineno, force_all_family_option, filename_path):
- 
-                 # Add rule and check return code
-                 cmd = "add rule %s %s %s" % (table, chain, rule_output.rstrip())
-+                if netns:
-+                    cmd = "ip netns exec " + "{} {}".format(netns,cmd)
++static void nft_synproxy_eval(const struct nft_expr *expr,
++			      struct nft_regs *regs,
++			      const struct nft_pktinfo *pkt)
++{
++	struct synproxy_options opts = {};
++	struct sk_buff *skb = pkt->skb;
++	int thoff = pkt->xt.thoff;
++	const struct tcphdr *tcp;
++	struct tcphdr _tcph;
 +
-                 ret = execute_cmd(cmd, filename, lineno, payload_log, debug="netlink")
- 
-                 if ret != 0:
-@@ -910,7 +966,7 @@ def rule_add(rule, filename, lineno, force_all_family_option, filename_path):
-                               gotf.name, 1)
- 
-             table_flush(table, filename, lineno)
--            payload_log = os.tmpfile()
-+            payload_log = tempfile.TemporaryFile(mode="w+")
- 
-             # Add rule in JSON format
-             cmd = json.dumps({ "nftables": [{ "add": { "rule": {
-@@ -1016,9 +1072,9 @@ def execute_cmd(cmd, filename, lineno, stdout_log=False, debug=False):
-     :param debug: temporarily set these debug flags
-     '''
-     global log_file
--    print >> log_file, "command: %s" % cmd
-+    print("command: {}".format(cmd),file=log_file)
-     if debug_option:
--        print cmd
-+        print(cmd)
- 
-     if debug:
-         debug_old = nftables.get_debug()
-@@ -1198,7 +1254,7 @@ def json_find_expected(json_log, rule):
-     return json_buffer
- 
- 
--def run_test_file(filename, force_all_family_option, specific_file):
-+def run_test_file(filename, force_all_family_option, specific_file,netns=""):
-     '''
-     Runs a test file
- 
-@@ -1207,12 +1263,14 @@ def run_test_file(filename, force_all_family_option, specific_file):
-     filename_path = os.path.join(TESTS_PATH, filename)
-     f = open(filename_path)
-     tests = passed = total_unit_run = total_warning = total_error = 0
-+    if netns:
-+        execute_cmd("ip netns add " + netns, filename, 0)
- 
-     for lineno, line in enumerate(f):
-         sys.stdout.flush()
- 
-         if signal_received == 1:
--            print "\nSignal received. Cleaning up and Exitting..."
-+            print("\nSignal received. Cleaning up and Exitting...")
-             cleanup_on_exit()
-             sys.exit(0)
- 
-@@ -1319,13 +1377,15 @@ def run_test_file(filename, force_all_family_option, specific_file):
- 
-     if specific_file:
-         if force_all_family_option:
--            print print_result_all(filename, tests, total_warning, total_error,
--                                   total_unit_run)
-+            print(print_result_all(filename, tests, total_warning, total_error,
-+                                   total_unit_run))
-         else:
--            print print_result(filename, tests, total_warning, total_error)
-+            print(print_result(filename, tests, total_warning, total_error))
-     else:
-         if tests == passed and tests > 0:
--            print filename + ": " + Colors.GREEN + "OK" + Colors.ENDC
-+            print(filename + ": " + Colors.GREEN + "OK" + Colors.ENDC)
-+        if netns:
-+            execute_cmd("ip netns del " + netns, filename, 0)
- 
-     f.close()
-     del table_list[:]
-@@ -1336,7 +1396,7 @@ def run_test_file(filename, force_all_family_option, specific_file):
- 
- 
- def main():
--    parser = argparse.ArgumentParser(description='Run nft tests', version='1.0')
-+    parser = argparse.ArgumentParser(description='Run nft tests')
- 
-     parser.add_argument('filenames', nargs='*', metavar='path/to/file.t',
-                         help='Run only these tests')
-@@ -1359,28 +1419,37 @@ def main():
-                         dest='enable_schema',
-                         help='verify json input/output against schema')
- 
-+    parser.add_argument('-N', '--netns', action='store_true',
-+			dest='netns',
-+                        help='Test namespace path')
++	tcp = skb_header_pointer(skb, pkt->xt.thoff,
++				 sizeof(struct tcphdr),
++				 &_tcph);
++	if (pkt->tprot != IPPROTO_TCP) {
++		regs->verdict.code = NFT_BREAK;
++		return;
++	}
 +
-+    parser.add_argument('-v', '--version', action='version',
-+                        version='1.0',
-+                        help='Print the version information')
++	if (nf_ip_checksum(skb, nft_hook(pkt), thoff, IPPROTO_TCP)) {
++		regs->verdict.code = NF_DROP;
++		return;
++	}
 +
-     args = parser.parse_args()
--    global debug_option, need_fix_option, enable_json_option, enable_json_schema
-+    global debug_option, need_fix_option, enable_json_option, enable_json_schema, netns
-     debug_option = args.debug
-     need_fix_option = args.need_fix_line
-     force_all_family_option = args.force_all_family
-     enable_json_option = args.enable_json
-     enable_json_schema = args.enable_schema
-+    netns = args.netns
-     specific_file = False
- 
-     signal.signal(signal.SIGINT, signal_handler)
-     signal.signal(signal.SIGTERM, signal_handler)
- 
-     if os.getuid() != 0:
--        print "You need to be root to run this, sorry"
-+        print("You need to be root to run this, sorry")
-         return
- 
-     # Change working directory to repository root
-     os.chdir(TESTS_PATH + "/../..")
- 
-     if not os.path.exists('src/.libs/libnftables.so'):
--        print "The nftables library does not exist. " \
--              "You need to build the project."
-+        print("The nftables library does not exist. "
-+              "You need to build the project.")
-         return
- 
-     if args.enable_schema and not args.enable_json:
-@@ -1434,18 +1503,15 @@ def main():
-             run_total += file_unit_run
- 
-     if test_files == 0:
--        print "No test files to run"
-+        print("No test files to run")
-     else:
-         if not specific_file:
-             if force_all_family_option:
--                print "%d test files, %d files passed, %d unit tests, " \
--                      "%d total executed, %d error, %d warning" \
--                      % (test_files, files_ok, tests, run_total, errors,
--                         warnings)
-+                print("{} test files, {} files passed, {} unit tests, ".format(test_files,files_ok,tests))
-+                print("{} total executed, {} error, {} warning".format(run_total, errors, warnings))
-             else:
--                print "%d test files, %d files passed, %d unit tests, " \
--                      "%d error, %d warning" \
--                      % (test_files, files_ok, tests, errors, warnings)
-+                print("{} test files, {} files passed, {} unit tests, ".format(test_files,files_ok,tests))
-+                print("{} error, {} warning".format(errors, warnings))
- 
- 
- if __name__ == '__main__':
++	if (!tcp) {
++		regs->verdict.code = NF_DROP;
++		return;
++	}
++
++	if (!synproxy_parse_options(skb, thoff, tcp, &opts)) {
++		regs->verdict.code = NF_DROP;
++		return;
++	}
++
++	switch (skb->protocol) {
++	case htons(ETH_P_IP):
++		nft_synproxy_eval_v4(expr, regs, pkt, tcp, &_tcph, &opts);
++		return;
++#if IS_ENABLED(CONFIG_NF_TABLES_IPV6)
++	case htons(ETH_P_IPV6):
++		nft_synproxy_eval_v6(expr, regs, pkt, tcp, &_tcph, &opts);
++		return;
++#endif
++	}
++	regs->verdict.code = NFT_BREAK;
++}
++
++static int nft_synproxy_init(const struct nft_ctx *ctx,
++			     const struct nft_expr *expr,
++			     const struct nlattr * const tb[])
++{
++	struct synproxy_net *snet = synproxy_pernet(ctx->net);
++	struct nft_synproxy *priv = nft_expr_priv(expr);
++	u32 flags;
++	int err;
++
++	if (tb[NFTA_SYNPROXY_MSS])
++		priv->info.mss = ntohs(nla_get_be16(tb[NFTA_SYNPROXY_MSS]));
++	if (tb[NFTA_SYNPROXY_WSCALE])
++		priv->info.wscale = nla_get_u8(tb[NFTA_SYNPROXY_WSCALE]);
++	if (tb[NFTA_SYNPROXY_FLAGS]) {
++		flags = ntohl(nla_get_be32(tb[NFTA_SYNPROXY_FLAGS]));
++		if (flags != 0 && (flags & NF_SYNPROXY_OPT_MASK) == 0)
++			return -EINVAL;
++		priv->info.options = flags;
++	}
++
++	err = nf_ct_netns_get(ctx->net, ctx->family);
++	if (err)
++		return err;
++
++	switch (ctx->family) {
++	case NFPROTO_IPV4:
++		err = nf_synproxy_ipv4_init(snet, ctx->net);
++		if (err)
++			goto nf_ct_failure;
++		snet->hook_ref4++;
++		break;
++#if IS_ENABLED(CONFIG_IPV6)
++	case NFPROTO_IPV6:
++		err = nf_synproxy_ipv6_init(snet, ctx->net);
++		if (err)
++			goto nf_ct_failure;
++		snet->hook_ref6++;
++		break;
++	case NFPROTO_INET:
++	case NFPROTO_BRIDGE:
++		err = nf_synproxy_ipv4_init(snet, ctx->net);
++		if (err)
++			goto nf_ct_failure;
++		err = nf_synproxy_ipv6_init(snet, ctx->net);
++		if (err)
++			goto nf_ct_failure;
++		snet->hook_ref4++;
++		snet->hook_ref6++;
++		break;
++#endif
++	}
++
++	return 0;
++
++nf_ct_failure:
++	nf_ct_netns_put(ctx->net, ctx->family);
++	return err;
++}
++
++static void nft_synproxy_destroy(const struct nft_ctx *ctx,
++				 const struct nft_expr *expr)
++{
++	struct synproxy_net *snet = synproxy_pernet(ctx->net);
++
++	switch (ctx->family) {
++	case NFPROTO_IPV4:
++		nf_synproxy_ipv4_fini(snet, ctx->net);
++		break;
++#if IS_ENABLED(CONFIG_IPV6)
++	case NFPROTO_IPV6:
++		nf_synproxy_ipv6_fini(snet, ctx->net);
++		break;
++	case NFPROTO_INET:
++		nf_synproxy_ipv4_fini(snet, ctx->net);
++		nf_synproxy_ipv6_fini(snet, ctx->net);
++		break;
++#endif
++	}
++	nf_ct_netns_put(ctx->net, ctx->family);
++}
++
++static int nft_synproxy_dump(struct sk_buff *skb, const struct nft_expr *expr)
++{
++	const struct nft_synproxy *priv = nft_expr_priv(expr);
++
++	if (nla_put_be16(skb, NFTA_SYNPROXY_MSS, ntohs(priv->info.mss)) ||
++	    nla_put_u8(skb, NFTA_SYNPROXY_WSCALE, priv->info.wscale) ||
++	    nla_put_be32(skb, NFTA_SYNPROXY_FLAGS, ntohl(priv->info.options)))
++		goto nla_put_failure;
++
++	return 0;
++
++nla_put_failure:
++	return -1;
++}
++
++static int nft_synproxy_validate(const struct nft_ctx *ctx,
++				 const struct nft_expr *expr,
++				 const struct nft_data **data)
++{
++	return nft_chain_validate_hooks(ctx->chain, (1 << NF_INET_LOCAL_IN) |
++						    (1 << NF_INET_FORWARD));
++}
++
++static struct nft_expr_type nft_synproxy_type;
++static const struct nft_expr_ops nft_synproxy_ops = {
++	.eval		= nft_synproxy_eval,
++	.size		= NFT_EXPR_SIZE(sizeof(struct nft_synproxy)),
++	.init		= nft_synproxy_init,
++	.destroy	= nft_synproxy_destroy,
++	.dump		= nft_synproxy_dump,
++	.type		= &nft_synproxy_type,
++	.validate	= nft_synproxy_validate,
++};
++
++static struct nft_expr_type nft_synproxy_type __read_mostly = {
++	.ops		= &nft_synproxy_ops,
++	.name		= "synproxy",
++	.owner		= THIS_MODULE,
++	.policy		= nft_synproxy_policy,
++	.maxattr	= NFTA_OSF_MAX,
++};
++
++static int __init nft_synproxy_module_init(void)
++{
++	return nft_register_expr(&nft_synproxy_type);
++}
++
++static void __exit nft_synproxy_module_exit(void)
++{
++	return nft_unregister_expr(&nft_synproxy_type);
++}
++
++module_init(nft_synproxy_module_init);
++module_exit(nft_synproxy_module_exit);
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Fernando Fernandez <ffmancera@riseup.net>");
++MODULE_ALIAS_NFT_EXPR("synproxy");
 -- 
-2.17.1
+2.20.1
 
