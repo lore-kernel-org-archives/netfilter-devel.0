@@ -2,177 +2,392 @@ Return-Path: <SRS0=O4lm=UX=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_NEOMUTT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F033C43613
-	for <netfilter-devel@archiver.kernel.org>; Mon, 24 Jun 2019 08:31:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CD023C43613
+	for <netfilter-devel@archiver.kernel.org>; Mon, 24 Jun 2019 09:45:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C68B72089F
-	for <netfilter-devel@archiver.kernel.org>; Mon, 24 Jun 2019 08:31:00 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="N5Ykrnmt"
+	by mail.kernel.org (Postfix) with ESMTP id 96BF72054F
+	for <netfilter-devel@archiver.kernel.org>; Mon, 24 Jun 2019 09:45:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727234AbfFXIbA (ORCPT
+        id S1728248AbfFXJpt (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 24 Jun 2019 04:31:00 -0400
-Received: from mail-ed1-f66.google.com ([209.85.208.66]:36948 "EHLO
-        mail-ed1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725916AbfFXIbA (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 24 Jun 2019 04:31:00 -0400
-Received: by mail-ed1-f66.google.com with SMTP id w13so20561322eds.4
-        for <netfilter-devel@vger.kernel.org>; Mon, 24 Jun 2019 01:30:58 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=Hx+Bn0+Q+jVyEjJWpM4D9PLyQXfCDuVrgz4MnCd4oRQ=;
-        b=N5YkrnmtovwiK3WWK1X4lzBBJb/py/Oa+JMOkw/AdUjY8cJ65ZXNYg6PwvkMYQPN9P
-         iU5XTKHNHJrOBaVjGjrYjnUZuVNunPxc5TPB2shXWf7BRc11/4EPy0IQ5nDzPavK/tK9
-         5Mn6UUSCjc4MALq5PeuGRriKMHVC4S6lG1kWO/QbcKX9X92drVlWLUyijrtbIbGAyXBd
-         l+A70cxElaj9G9PA0I/rABcO/qWf0Dq0OBwaqBAg5V4++Lq7b2PWsiaeWhnQ8Yi1mckr
-         uLZ3tu4a7P8Pa6uSQgd7lC/Jlkoyo/m/yqHWT3LxLrrjpWWCp1w/PdOsvB4GPLTfIK4i
-         u78g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=Hx+Bn0+Q+jVyEjJWpM4D9PLyQXfCDuVrgz4MnCd4oRQ=;
-        b=SX8xAGuxxNSf++1QhZykw28LPzsbuclIuztVL2eOLk/J3aLr98BgSXMq0SaYC6TDmt
-         D6pgb3ecND/DEipbXJmyPq5y/OrDDO3L/mQtnZp73R2MzF1DbVKY3o9qeCvcjYxfZroL
-         YezODJJUEldNDjy3VonyKEyAVB+H5Ljpas58jm+wUwPKuYLYgrVS8AGGVUcSA1StT6Aw
-         dHAlOrR00xA71uyqBnyB/Z8cufOL46JmPkXxDq/mP8fNz6QTJtDhG+o2zAbUbMSwIhKN
-         /snvZeSqAWljiX2Yn4hJCSnWYqyA23ZtgkQy6SIMHtlMouZcDEtnMq7mJsMrX0nGgmYi
-         Zd1A==
-X-Gm-Message-State: APjAAAVG73IXOoFcsEMPuzvIW72lcbPMtsBMe7PX0ZKgwvSEKnMQqLaD
-        9U6dKLXaJbK0S2qYdVGHbyOhEwlt9sIyxvoLNVKWc1S0Pxk=
-X-Google-Smtp-Source: APXvYqzbPB5a6D6uP4Ti4u5OL76Qr4q6pTpMmF2DtMDKCKauEjtA3n+6+ah8e/HD5wYRPukdsGdpJ2G6Iynmbyr2RsA=
-X-Received: by 2002:a50:95d3:: with SMTP id x19mr117972994eda.98.1561365057925;
- Mon, 24 Jun 2019 01:30:57 -0700 (PDT)
-MIME-Version: 1.0
-References: <CABVi_Eyws89e+y_4tGJNybGRdL4AarHG6GkNB0d0MGgLABuv3w@mail.gmail.com>
- <20190618095021.doh6pc7gzah3bnra@breakpoint.cc> <CABVi_EyyV6jmB8SxuiUKpHzL9NwMLUA1TPk3X=SOq58BFdG9vA@mail.gmail.com>
- <20190618105613.qgfov6jmnov2ba3e@breakpoint.cc> <CABVi_ExMpOnaau6sroSXd=Zzc4=F6t0Hv5iCm16q0jxqp5Tjkg@mail.gmail.com>
- <20190618132350.phtpv2vhteplfj32@breakpoint.cc> <CABVi_Ey3cHVdnpzRFo_yPFKkPveXeia7WBV4S9iPxPotLkCpuQ@mail.gmail.com>
- <20190618140036.ydorhtj5mvjfwemz@breakpoint.cc> <CABVi_Ex=NiC-XmJz5FRuRp919eivwhjvSL3_k-PV-+F_2zd9ZA@mail.gmail.com>
-In-Reply-To: <CABVi_Ex=NiC-XmJz5FRuRp919eivwhjvSL3_k-PV-+F_2zd9ZA@mail.gmail.com>
-From:   Mojtaba <mespio@gmail.com>
-Date:   Mon, 24 Jun 2019 13:00:44 +0430
-Message-ID: <CABVi_EyCAZ3jjH=accx_PDkiJ4MuvPJ1f9B1rz=NNVTzbOZwyA@mail.gmail.com>
-Subject: Re: working with libnetfilter_queue and linbetfilter_contrack
-To:     Florian Westphal <fw@strlen.de>
+        Mon, 24 Jun 2019 05:45:49 -0400
+Received: from mail.us.es ([193.147.175.20]:57084 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726481AbfFXJpt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 24 Jun 2019 05:45:49 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id B5FE911EF41
+        for <netfilter-devel@vger.kernel.org>; Mon, 24 Jun 2019 11:45:45 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A1C2BDA720
+        for <netfilter-devel@vger.kernel.org>; Mon, 24 Jun 2019 11:45:45 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 97645DA704; Mon, 24 Jun 2019 11:45:45 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A6D01DA704;
+        Mon, 24 Jun 2019 11:45:42 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Mon, 24 Jun 2019 11:45:42 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (sys.soleta.eu [212.170.55.40])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 7C94540705C3;
+        Mon, 24 Jun 2019 11:45:42 +0200 (CEST)
+Date:   Mon, 24 Jun 2019 11:45:42 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Fernando Fernandez Mancera <ffmancera@riseup.net>
 Cc:     netfilter-devel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Subject: Re: [PATCH nf-next v3] netfilter: nf_tables: Add SYNPROXY support
+Message-ID: <20190624094542.g5ljle3v5zm66eot@salvia>
+References: <20190622165235.2276-1-ffmancera@riseup.net>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190622165235.2276-1-ffmancera@riseup.net>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello,
-I appreciate your guide again,
-That works great. It would be a creative method to out of concern of
-one-way issue in VoIP networks. The new module based on this method
-would be released in Kamailio project as soon.
-Keeping an eye out for it.
-Thanks.
-With regards.Mojtaba
+On Sat, Jun 22, 2019 at 06:52:36PM +0200, Fernando Fernandez Mancera wrote:
+[...]
+> diff --git a/net/netfilter/nft_synproxy.c b/net/netfilter/nft_synproxy.c
+> new file mode 100644
+> index 000000000000..33c1318a7c6a
+> --- /dev/null
+> +++ b/net/netfilter/nft_synproxy.c
+> @@ -0,0 +1,298 @@
+> +// SPDX-License-Identifier: GPL-2.0
+> +#include <linux/types.h>
+> +#include <net/ip.h>
+> +#include <net/tcp.h>
+> +#include <net/netlink.h>
+> +#include <net/netfilter/nf_tables.h>
+> +#include <net/netfilter/nf_conntrack.h>
+> +#include <net/netfilter/nf_conntrack_synproxy.h>
+> +#include <net/netfilter/nf_synproxy.h>
+> +#include <linux/netfilter/nf_tables.h>
+> +#include <linux/netfilter/nf_synproxy.h>
+> +
+> +struct nft_synproxy {
+> +	struct nf_synproxy_info	info;
+> +};
+> +
+> +static const struct nla_policy nft_synproxy_policy[NFTA_SYNPROXY_MAX + 1] = {
+> +	[NFTA_SYNPROXY_MSS]		= { .type = NLA_U16 },
+> +	[NFTA_SYNPROXY_WSCALE]		= { .type = NLA_U8 },
+> +	[NFTA_SYNPROXY_FLAGS]		= { .type = NLA_U32 },
+> +};
+> +
+> +static void nft_synproxy_tcp_options(struct synproxy_options *opts,
+> +				     const struct tcphdr *tcp,
+> +				     struct synproxy_net *snet,
+> +				     struct nf_synproxy_info *info,
+> +				     struct nft_synproxy *priv)
+> +{
+> +	this_cpu_inc(snet->stats->syn_received);
+> +	if (tcp->ece && tcp->cwr)
+> +		opts->options |= NF_SYNPROXY_OPT_ECN;
+> +
+> +	opts->options &= priv->info.options;
+> +	if (opts->options & NF_SYNPROXY_OPT_TIMESTAMP)
+> +		synproxy_init_timestamp_cookie(info, opts);
+> +	else
+> +		opts->options &= ~(NF_SYNPROXY_OPT_WSCALE |
+> +				  NF_SYNPROXY_OPT_SACK_PERM |
+> +				  NF_SYNPROXY_OPT_ECN);
+> +}
+> +
+> +static void nft_synproxy_eval_v4(const struct nft_expr *expr,
+> +				 struct nft_regs *regs,
+> +				 const struct nft_pktinfo *pkt,
+> +				 const struct tcphdr *tcp,
+> +				 struct tcphdr *_tcph,
+> +				 struct synproxy_options *opts)
+> +{
+> +	struct nft_synproxy *priv = nft_expr_priv(expr);
+> +	struct nf_synproxy_info info = priv->info;
+> +	struct net *net = nft_net(pkt);
+> +	struct synproxy_net *snet = synproxy_pernet(net);
+> +	struct sk_buff *skb = pkt->skb;
+> +
+> +	if (tcp->syn) {
+> +		/* Initial SYN from client */
+> +		nft_synproxy_tcp_options(opts, tcp, snet, &info, priv);
+> +		synproxy_send_client_synack(net, skb, tcp, opts);
+> +		consume_skb(skb);
+> +		regs->verdict.code = NF_STOLEN;
+> +		return;
+> +	} else if (tcp->ack) {
+> +		/* ACK from client */
+> +		if (synproxy_recv_client_ack(net, skb, tcp, opts,
+> +					     ntohl(tcp->seq))) {
+> +			consume_skb(skb);
+> +			regs->verdict.code = NF_STOLEN;
+> +		} else {
+> +			regs->verdict.code = NF_DROP;
+> +		}
+> +		return;
+> +	}
+> +
+> +	regs->verdict.code = NFT_CONTINUE;
 
-On Wed, Jun 19, 2019 at 11:20 AM Mojtaba <mespio@gmail.com> wrote:
->
-> Hello,
-> Absolutely of course, i used exactly the same way in my test-case. I
-> added 200 entry in libnetfilter_conntrack for 200 concurrent call. In
-> reality i have to extract the address of media stream for both
-> endpoints in SIP-Proxy server then send them to user-space project in
-> another machine over TCP connection. Here is what i do in test-case
-> project. I have to change conntrack_create_nat.c like below:
->
-> int i = 10000;
-> int end = 30000
-> int MAX_CALL = 200;
-> int j = 10000 + (MAX_CALL*4-4);
-> while(i<=j) {
->
->    nfct_set_attr_u8(ct, ATTR_L3PROTO, AF_INET);
->    nfct_set_attr_u32(ct, ATTR_IPV4_SRC, inet_addr("192.168.133.140"));
->          //endpoint A
->    nfct_set_attr_u32(ct, ATTR_IPV4_DST, inet_addr("192.168.133.108"));
->
->    //nfct_set_attr_u8(ct, ATTR_L4PROTO, IPPROTO_TCP);
->    nfct_set_attr_u8(ct, ATTR_L4PROTO, IPPROTO_UDP);
->    nfct_set_attr_u16(ct, ATTR_PORT_SRC, htons(6000));
->    nfct_set_attr_u16(ct, ATTR_PORT_DST, htons(i));
->
->    nfct_setobjopt(ct, NFCT_SOPT_SETUP_REPLY);
->
->    //nfct_set_attr_u8(ct, ATTR_TCP_STATE, TCP_CONNTRACK_SYN_SENT);
->    nfct_set_attr_u32(ct, ATTR_TIMEOUT, 200);
->
->    nfct_set_attr_u32(ct, ATTR_SNAT_IPV4, inet_addr("192.168.133.108"));
->    nfct_set_attr_u32(ct, ATTR_DNAT_IPV4,
-> inet_addr("192.168.133.150"));               //endpoint B
->
->         nfct_set_attr_u16(ct, ATTR_SNAT_PORT, htons(i+2));
->         nfct_set_attr_u16(ct, ATTR_DNAT_PORT, htons(6000));
->
->    ret = nfct_query(h, NFCT_Q_CREATE, ct);
->    i+=4;
->    printf("TEST: create conntrack ");
->    if (ret == -1)
->       printf("(%d)(%s)\n", ret, strerror(errno));
->    else
->       printf("(OK)\n");
-> }
->
-> But I have to add  a rule in IPTABLE to not add any conntrack entry by
-> kernel, because as soos as the callee answer the call(received 200OK
-> SIP MESSAGE), it will start to send it's media (RTP).In this regards
-> it would create conntrack entry sooner than user-space.
-> iptables -A INPUT -p udp --dport 10000:30000 -j DROP
-> Is it right table to deny adding any conntrack entry or not?
-> Anyway i appreciate your guide. I was in dilemma to used
-> libnetfilter_conntrack or libnetfilter_queue. Thanks
-> WIth Best Regards.Mojtaba
->
->
->
-> On Tue, Jun 18, 2019 at 6:30 PM Florian Westphal <fw@strlen.de> wrote:
-> >
-> > Mojtaba <mespio@gmail.com> wrote:
-> > > Then let me describe what i am doing.
-> > > In VoIP networks, One of the ways to solve the one-way audio issue is
-> > > TURN. In this case both endpoint have to send their media (voice as
-> > > RTP) to server. In this conditions the server works as B2BUA. Because
-> > > of the server is processing the media (get media from one hand and
-> > > relay it to another hand), It usages a lot of resource of server. So I
-> > > am implementing  a new module to do this in kernel level. I test this
-> > > idea in my laboratory by adding conntrack entry manually in server and
-> > > all things works great. But i need to get more  idea to do this
-> > > project in best way and high performance, because the QoS very
-> > > importance in VoIP networks. What is the best way? Let me know more
-> > > about this.
-> >
-> > In that case I wonder why you need nfqueue at all.
-> >
-> > Isn't it enough for the proxy to inject a conntrack entry with the
-> > expected endpoint addresses of the media stream?
-> >
-> > I would expect that your proxy consumes/reads the sdp messages from
-> > the client already, or are you doing that via nfqueue?
-> >
-> > I would probably use tproxy+normal socket api for the signalling
-> > packets and insert conntrack entries for the rtp/media streams
-> > via libnetfilter_conntrack, this way, the media streams stay in kernel.
->
->
->
-> --
-> --Mojtaba Esfandiari.S
+No need for explicit NFT_CONTINUE, remove this line, this is the
+implicit verdict (ie. if no verdict is specified, code is set to
+NFT_CONTINUE).
 
+Then, you can remove the "return;" in the branch above.
 
+> +}
+> +
+> +#if IS_ENABLED(CONFIG_NF_TABLES_IPV6)
+> +static void nft_synproxy_eval_v6(const struct nft_expr *expr,
+> +				 struct nft_regs *regs,
+> +				 const struct nft_pktinfo *pkt,
+> +				 const struct tcphdr *tcp,
+> +				 struct tcphdr *_tcph,
+> +				 struct synproxy_options *opts)
+> +{
+> +	struct nft_synproxy *priv = nft_expr_priv(expr);
+> +	struct nf_synproxy_info info = priv->info;
+> +	struct net *net = nft_net(pkt);
+> +	struct synproxy_net *snet = synproxy_pernet(net);
+> +	struct sk_buff *skb = pkt->skb;
+> +
+> +	if (tcp->syn) {
+> +		/* Initial SYN from client */
+> +		nft_synproxy_tcp_options(opts, tcp, snet, &info, priv);
+> +		synproxy_send_client_synack_ipv6(net, skb, tcp, opts);
+> +		consume_skb(skb);
+> +		regs->verdict.code = NF_STOLEN;
+> +		return;
+> +	} else if (tcp->ack) {
+> +		/* ACK from client */
+> +		if (synproxy_recv_client_ack_ipv6(net, skb, tcp, opts,
+> +						  ntohl(tcp->seq))) {
+> +			consume_skb(skb);
+> +			regs->verdict.code = NF_STOLEN;
+> +		} else {
+> +			regs->verdict.code = NF_DROP;
+> +		}
+> +		return;
+> +	}
+> +
+> +	regs->verdict.code = NFT_CONTINUE;
 
--- 
---Mojtaba Esfandiari.S
+Same comment here.
+
+> +}
+> +#endif /* CONFIG_NF_TABLES_IPV6*/
+> +
+> +static void nft_synproxy_eval(const struct nft_expr *expr,
+> +			      struct nft_regs *regs,
+> +			      const struct nft_pktinfo *pkt)
+> +{
+> +	struct synproxy_options opts = {};
+> +	struct sk_buff *skb = pkt->skb;
+> +	int thoff = pkt->xt.thoff;
+> +	const struct tcphdr *tcp;
+> +	struct tcphdr _tcph;
+> +
+
+from here...
+
+> +	tcp = skb_header_pointer(skb, pkt->xt.thoff,
+> +				 sizeof(struct tcphdr),
+> +				 &_tcph);
+
+to here. Move this below...
+
+> +	if (pkt->tprot != IPPROTO_TCP) {
+> +		regs->verdict.code = NFT_BREAK;
+> +		return;
+> +	}
+> +
+> +	if (nf_ip_checksum(skb, nft_hook(pkt), thoff, IPPROTO_TCP)) {
+> +		regs->verdict.code = NF_DROP;
+> +		return;
+> +	}
+> +
+
+Here. Place error check close to function call.
+
+> +	if (!tcp) {
+> +		regs->verdict.code = NF_DROP;
+> +		return;
+> +	}
+> +
+> +	if (!synproxy_parse_options(skb, thoff, tcp, &opts)) {
+> +		regs->verdict.code = NF_DROP;
+> +		return;
+> +	}
+> +
+> +	switch (skb->protocol) {
+> +	case htons(ETH_P_IP):
+> +		nft_synproxy_eval_v4(expr, regs, pkt, tcp, &_tcph, &opts);
+> +		return;
+> +#if IS_ENABLED(CONFIG_NF_TABLES_IPV6)
+> +	case htons(ETH_P_IPV6):
+> +		nft_synproxy_eval_v6(expr, regs, pkt, tcp, &_tcph, &opts);
+> +		return;
+> +#endif
+> +	}
+> +	regs->verdict.code = NFT_BREAK;
+> +}
+> +
+> +static int nft_synproxy_init(const struct nft_ctx *ctx,
+> +			     const struct nft_expr *expr,
+> +			     const struct nlattr * const tb[])
+> +{
+> +	struct synproxy_net *snet = synproxy_pernet(ctx->net);
+> +	struct nft_synproxy *priv = nft_expr_priv(expr);
+> +	u32 flags;
+> +	int err;
+> +
+> +	if (tb[NFTA_SYNPROXY_MSS])
+> +		priv->info.mss = ntohs(nla_get_be16(tb[NFTA_SYNPROXY_MSS]));
+> +	if (tb[NFTA_SYNPROXY_WSCALE])
+> +		priv->info.wscale = nla_get_u8(tb[NFTA_SYNPROXY_WSCALE]);
+> +	if (tb[NFTA_SYNPROXY_FLAGS]) {
+> +		flags = ntohl(nla_get_be32(tb[NFTA_SYNPROXY_FLAGS]));
+> +		if (flags != 0 && (flags & NF_SYNPROXY_OPT_MASK) == 0)
+> +			return -EINVAL;
+> +		priv->info.options = flags;
+> +	}
+> +
+> +	err = nf_ct_netns_get(ctx->net, ctx->family);
+> +	if (err)
+> +		return err;
+> +
+> +	switch (ctx->family) {
+> +	case NFPROTO_IPV4:
+> +		err = nf_synproxy_ipv4_init(snet, ctx->net);
+> +		if (err)
+> +			goto nf_ct_failure;
+> +		snet->hook_ref4++;
+> +		break;
+> +#if IS_ENABLED(CONFIG_IPV6)
+> +	case NFPROTO_IPV6:
+> +		err = nf_synproxy_ipv6_init(snet, ctx->net);
+> +		if (err)
+> +			goto nf_ct_failure;
+> +		snet->hook_ref6++;
+> +		break;
+> +	case NFPROTO_INET:
+> +	case NFPROTO_BRIDGE:
+> +		err = nf_synproxy_ipv4_init(snet, ctx->net);
+> +		if (err)
+> +			goto nf_ct_failure;
+> +		err = nf_synproxy_ipv6_init(snet, ctx->net);
+> +		if (err)
+> +			goto nf_ct_failure;
+> +		snet->hook_ref4++;
+> +		snet->hook_ref6++;
+> +		break;
+> +#endif
+> +	}
+> +
+> +	return 0;
+> +
+> +nf_ct_failure:
+> +	nf_ct_netns_put(ctx->net, ctx->family);
+> +	return err;
+> +}
+> +
+> +static void nft_synproxy_destroy(const struct nft_ctx *ctx,
+> +				 const struct nft_expr *expr)
+> +{
+> +	struct synproxy_net *snet = synproxy_pernet(ctx->net);
+> +
+> +	switch (ctx->family) {
+> +	case NFPROTO_IPV4:
+> +		nf_synproxy_ipv4_fini(snet, ctx->net);
+> +		break;
+> +#if IS_ENABLED(CONFIG_IPV6)
+> +	case NFPROTO_IPV6:
+> +		nf_synproxy_ipv6_fini(snet, ctx->net);
+> +		break;
+> +	case NFPROTO_INET:
+
+missing
+        case NFPROTO_BRIDGE:
+
+> +		nf_synproxy_ipv4_fini(snet, ctx->net);
+> +		nf_synproxy_ipv6_fini(snet, ctx->net);
+> +		break;
+> +#endif
+> +	}
+> +	nf_ct_netns_put(ctx->net, ctx->family);
+> +}
+> +
+> +static int nft_synproxy_dump(struct sk_buff *skb, const struct nft_expr *expr)
+> +{
+> +	const struct nft_synproxy *priv = nft_expr_priv(expr);
+> +
+> +	if (nla_put_be16(skb, NFTA_SYNPROXY_MSS, ntohs(priv->info.mss)) ||
+> +	    nla_put_u8(skb, NFTA_SYNPROXY_WSCALE, priv->info.wscale) ||
+> +	    nla_put_be32(skb, NFTA_SYNPROXY_FLAGS, ntohl(priv->info.options)))
+> +		goto nla_put_failure;
+> +
+> +	return 0;
+> +
+> +nla_put_failure:
+> +	return -1;
+> +}
+> +
+> +static int nft_synproxy_validate(const struct nft_ctx *ctx,
+> +				 const struct nft_expr *expr,
+> +				 const struct nft_data **data)
+> +{
+> +	return nft_chain_validate_hooks(ctx->chain, (1 << NF_INET_LOCAL_IN) |
+> +						    (1 << NF_INET_FORWARD));
+> +}
+> +
+> +static struct nft_expr_type nft_synproxy_type;
+> +static const struct nft_expr_ops nft_synproxy_ops = {
+> +	.eval		= nft_synproxy_eval,
+> +	.size		= NFT_EXPR_SIZE(sizeof(struct nft_synproxy)),
+> +	.init		= nft_synproxy_init,
+> +	.destroy	= nft_synproxy_destroy,
+> +	.dump		= nft_synproxy_dump,
+> +	.type		= &nft_synproxy_type,
+> +	.validate	= nft_synproxy_validate,
+> +};
+> +
+> +static struct nft_expr_type nft_synproxy_type __read_mostly = {
+> +	.ops		= &nft_synproxy_ops,
+> +	.name		= "synproxy",
+> +	.owner		= THIS_MODULE,
+> +	.policy		= nft_synproxy_policy,
+> +	.maxattr	= NFTA_OSF_MAX,
+> +};
+> +
+> +static int __init nft_synproxy_module_init(void)
+> +{
+> +	return nft_register_expr(&nft_synproxy_type);
+> +}
+> +
+> +static void __exit nft_synproxy_module_exit(void)
+> +{
+> +	return nft_unregister_expr(&nft_synproxy_type);
+> +}
+> +
+> +module_init(nft_synproxy_module_init);
+> +module_exit(nft_synproxy_module_exit);
+> +
+> +MODULE_LICENSE("GPL");
+> +MODULE_AUTHOR("Fernando Fernandez <ffmancera@riseup.net>");
+> +MODULE_ALIAS_NFT_EXPR("synproxy");
+> -- 
+> 2.20.1
+> 
