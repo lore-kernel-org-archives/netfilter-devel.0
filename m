@@ -2,98 +2,177 @@ Return-Path: <SRS0=O4lm=UX=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F3AAC43613
-	for <netfilter-devel@archiver.kernel.org>; Mon, 24 Jun 2019 08:09:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F033C43613
+	for <netfilter-devel@archiver.kernel.org>; Mon, 24 Jun 2019 08:31:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D52432083D
-	for <netfilter-devel@archiver.kernel.org>; Mon, 24 Jun 2019 08:08:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C68B72089F
+	for <netfilter-devel@archiver.kernel.org>; Mon, 24 Jun 2019 08:31:00 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=riseup.net header.i=@riseup.net header.b="eBLtsyFn"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="N5Ykrnmt"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726731AbfFXII7 (ORCPT
+        id S1727234AbfFXIbA (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 24 Jun 2019 04:08:59 -0400
-Received: from mx1.riseup.net ([198.252.153.129]:53736 "EHLO mx1.riseup.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726481AbfFXII6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 24 Jun 2019 04:08:58 -0400
-Received: from bell.riseup.net (bell-pn.riseup.net [10.0.1.178])
-        (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
-        (Client CN "*.riseup.net", Issuer "COMODO RSA Domain Validation Secure Server CA" (verified OK))
-        by mx1.riseup.net (Postfix) with ESMTPS id 2613A1A2EDB;
-        Mon, 24 Jun 2019 01:08:58 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=riseup.net; s=squak;
-        t=1561363738; bh=lWEZ2mpB3X+5urNoc9c5AiaWz7D6SIhVEV/Bx61GaNw=;
-        h=Subject:To:Cc:References:From:Date:In-Reply-To:From;
-        b=eBLtsyFn6UIHrMD9bdyhWyNwU/I7Tpc90PtsotCtTG9rlyS5W34YhQMPvvo0dVvw6
-         RxPAT2KvKK5IktLG+bVCmwhzZCR6Lr5hfQ6/C4QtL2P4a54oguBxb40C2wYz4pa4dW
-         xiw0RWftEDF8VfDKjoCi3htOjH3HatEcQhIHs4kA=
-X-Riseup-User-ID: 9644F6437072A9F8D48F4E077D05E5BCAD7F49A3DD8AE23B8F50D1C28422F86C
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-         by bell.riseup.net (Postfix) with ESMTPSA id C3E3322229D;
-        Mon, 24 Jun 2019 01:08:56 -0700 (PDT)
-Subject: Re: Is this possible SYN Proxy bug?
-To:     =?UTF-8?Q?=c4=b0brahim_Ercan?= <ibrahim.metu@gmail.com>,
-        Florian Westphal <fw@strlen.de>
-Cc:     netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
-References: <CAK6Qs9mam2U6JdeBnkzX9sfdeWWkLx_+ZgHOTmYjSC2wKfg0cQ@mail.gmail.com>
- <20190618104041.unuonhmuvgnlty3l@breakpoint.cc>
- <CAK6Qs9kmxqOaCjgcBefPR-NKEdGKTcfKUL_tu09CQYp3OT5krA@mail.gmail.com>
- <20190618115905.6kd2hqg2hlbs5frc@breakpoint.cc>
- <CAK6Qs9mTkAaH9+RqzmtrbNps1=NtW4c8wtJy7Kjay=r7VSJwsQ@mail.gmail.com>
- <20190618124026.4kvpdkbstdgaluij@breakpoint.cc>
- <CAK6Qs9nak4Aes9BXGsHC8SGGXmWGGrhPwAPQY5brFXtUzLkd-A@mail.gmail.com>
- <CAK6Qs9=E9r_hPB6QX+P5Dx+fGetM5pcgxBsrDt+XJBeZhUcimQ@mail.gmail.com>
- <20190621111021.2nqtvdq3qq2gbfqy@breakpoint.cc>
- <CAK6Qs9m88cgpFPaVp2qfQsepgtoa02vap1wzkdkgaSuTMm_ELw@mail.gmail.com>
-From:   Fernando Fernandez Mancera <ffmancera@riseup.net>
-Openpgp: preference=signencrypt
-Message-ID: <dbf0c610-7177-a37d-2358-60f091d6f963@riseup.net>
-Date:   Mon, 24 Jun 2019 10:09:08 +0200
+        Mon, 24 Jun 2019 04:31:00 -0400
+Received: from mail-ed1-f66.google.com ([209.85.208.66]:36948 "EHLO
+        mail-ed1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725916AbfFXIbA (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 24 Jun 2019 04:31:00 -0400
+Received: by mail-ed1-f66.google.com with SMTP id w13so20561322eds.4
+        for <netfilter-devel@vger.kernel.org>; Mon, 24 Jun 2019 01:30:58 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=Hx+Bn0+Q+jVyEjJWpM4D9PLyQXfCDuVrgz4MnCd4oRQ=;
+        b=N5YkrnmtovwiK3WWK1X4lzBBJb/py/Oa+JMOkw/AdUjY8cJ65ZXNYg6PwvkMYQPN9P
+         iU5XTKHNHJrOBaVjGjrYjnUZuVNunPxc5TPB2shXWf7BRc11/4EPy0IQ5nDzPavK/tK9
+         5Mn6UUSCjc4MALq5PeuGRriKMHVC4S6lG1kWO/QbcKX9X92drVlWLUyijrtbIbGAyXBd
+         l+A70cxElaj9G9PA0I/rABcO/qWf0Dq0OBwaqBAg5V4++Lq7b2PWsiaeWhnQ8Yi1mckr
+         uLZ3tu4a7P8Pa6uSQgd7lC/Jlkoyo/m/yqHWT3LxLrrjpWWCp1w/PdOsvB4GPLTfIK4i
+         u78g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=Hx+Bn0+Q+jVyEjJWpM4D9PLyQXfCDuVrgz4MnCd4oRQ=;
+        b=SX8xAGuxxNSf++1QhZykw28LPzsbuclIuztVL2eOLk/J3aLr98BgSXMq0SaYC6TDmt
+         D6pgb3ecND/DEipbXJmyPq5y/OrDDO3L/mQtnZp73R2MzF1DbVKY3o9qeCvcjYxfZroL
+         YezODJJUEldNDjy3VonyKEyAVB+H5Ljpas58jm+wUwPKuYLYgrVS8AGGVUcSA1StT6Aw
+         dHAlOrR00xA71uyqBnyB/Z8cufOL46JmPkXxDq/mP8fNz6QTJtDhG+o2zAbUbMSwIhKN
+         /snvZeSqAWljiX2Yn4hJCSnWYqyA23ZtgkQy6SIMHtlMouZcDEtnMq7mJsMrX0nGgmYi
+         Zd1A==
+X-Gm-Message-State: APjAAAVG73IXOoFcsEMPuzvIW72lcbPMtsBMe7PX0ZKgwvSEKnMQqLaD
+        9U6dKLXaJbK0S2qYdVGHbyOhEwlt9sIyxvoLNVKWc1S0Pxk=
+X-Google-Smtp-Source: APXvYqzbPB5a6D6uP4Ti4u5OL76Qr4q6pTpMmF2DtMDKCKauEjtA3n+6+ah8e/HD5wYRPukdsGdpJ2G6Iynmbyr2RsA=
+X-Received: by 2002:a50:95d3:: with SMTP id x19mr117972994eda.98.1561365057925;
+ Mon, 24 Jun 2019 01:30:57 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <CAK6Qs9m88cgpFPaVp2qfQsepgtoa02vap1wzkdkgaSuTMm_ELw@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US-large
-Content-Transfer-Encoding: 8bit
+References: <CABVi_Eyws89e+y_4tGJNybGRdL4AarHG6GkNB0d0MGgLABuv3w@mail.gmail.com>
+ <20190618095021.doh6pc7gzah3bnra@breakpoint.cc> <CABVi_EyyV6jmB8SxuiUKpHzL9NwMLUA1TPk3X=SOq58BFdG9vA@mail.gmail.com>
+ <20190618105613.qgfov6jmnov2ba3e@breakpoint.cc> <CABVi_ExMpOnaau6sroSXd=Zzc4=F6t0Hv5iCm16q0jxqp5Tjkg@mail.gmail.com>
+ <20190618132350.phtpv2vhteplfj32@breakpoint.cc> <CABVi_Ey3cHVdnpzRFo_yPFKkPveXeia7WBV4S9iPxPotLkCpuQ@mail.gmail.com>
+ <20190618140036.ydorhtj5mvjfwemz@breakpoint.cc> <CABVi_Ex=NiC-XmJz5FRuRp919eivwhjvSL3_k-PV-+F_2zd9ZA@mail.gmail.com>
+In-Reply-To: <CABVi_Ex=NiC-XmJz5FRuRp919eivwhjvSL3_k-PV-+F_2zd9ZA@mail.gmail.com>
+From:   Mojtaba <mespio@gmail.com>
+Date:   Mon, 24 Jun 2019 13:00:44 +0430
+Message-ID: <CABVi_EyCAZ3jjH=accx_PDkiJ4MuvPJ1f9B1rz=NNVTzbOZwyA@mail.gmail.com>
+Subject: Re: working with libnetfilter_queue and linbetfilter_contrack
+To:     Florian Westphal <fw@strlen.de>
+Cc:     netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Ibrahim,
+Hello,
+I appreciate your guide again,
+That works great. It would be a creative method to out of concern of
+one-way issue in VoIP networks. The new module based on this method
+would be released in Kamailio project as soon.
+Keeping an eye out for it.
+Thanks.
+With regards.Mojtaba
 
-On 6/24/19 9:55 AM, İbrahim Ercan wrote:
-> On Fri, Jun 21, 2019 at 2:10 PM Florian Westphal <fw@strlen.de> wrote:
->>
->> Yes, something like this is needed, i.e. we need to pass two
->> mss values -- one from info->mss ("server") that we need to
->> place in the tcp options sent to client and one containing
->> the clients mss that we should encode into the cookie.
->>
->> I think you can pass "u16 client_mssinfo" instead of u16* pointer.
-> 
-> Hi Florian.
-> 
-> We tested fixed code on real environment and we are still getting some
-> errors. We have a customer using syn proxy in front of a point of sale
-> (POS) application and they reported that about %0.4 of connections are
-> erroneous.
-> When I examine traffic from pcap file, I saw connections opens
-> successfully but somehow something goes wrong after then.
-> If we deactivates syn proxy, problem goes away. So we are sure it is
-> caused by syn proxy.
-> How can I debug syn proxy further? Do you have any suggestion?
-> 
-> Regards.
-> 
+On Wed, Jun 19, 2019 at 11:20 AM Mojtaba <mespio@gmail.com> wrote:
+>
+> Hello,
+> Absolutely of course, i used exactly the same way in my test-case. I
+> added 200 entry in libnetfilter_conntrack for 200 concurrent call. In
+> reality i have to extract the address of media stream for both
+> endpoints in SIP-Proxy server then send them to user-space project in
+> another machine over TCP connection. Here is what i do in test-case
+> project. I have to change conntrack_create_nat.c like below:
+>
+> int i = 10000;
+> int end = 30000
+> int MAX_CALL = 200;
+> int j = 10000 + (MAX_CALL*4-4);
+> while(i<=j) {
+>
+>    nfct_set_attr_u8(ct, ATTR_L3PROTO, AF_INET);
+>    nfct_set_attr_u32(ct, ATTR_IPV4_SRC, inet_addr("192.168.133.140"));
+>          //endpoint A
+>    nfct_set_attr_u32(ct, ATTR_IPV4_DST, inet_addr("192.168.133.108"));
+>
+>    //nfct_set_attr_u8(ct, ATTR_L4PROTO, IPPROTO_TCP);
+>    nfct_set_attr_u8(ct, ATTR_L4PROTO, IPPROTO_UDP);
+>    nfct_set_attr_u16(ct, ATTR_PORT_SRC, htons(6000));
+>    nfct_set_attr_u16(ct, ATTR_PORT_DST, htons(i));
+>
+>    nfct_setobjopt(ct, NFCT_SOPT_SETUP_REPLY);
+>
+>    //nfct_set_attr_u8(ct, ATTR_TCP_STATE, TCP_CONNTRACK_SYN_SENT);
+>    nfct_set_attr_u32(ct, ATTR_TIMEOUT, 200);
+>
+>    nfct_set_attr_u32(ct, ATTR_SNAT_IPV4, inet_addr("192.168.133.108"));
+>    nfct_set_attr_u32(ct, ATTR_DNAT_IPV4,
+> inet_addr("192.168.133.150"));               //endpoint B
+>
+>         nfct_set_attr_u16(ct, ATTR_SNAT_PORT, htons(i+2));
+>         nfct_set_attr_u16(ct, ATTR_DNAT_PORT, htons(6000));
+>
+>    ret = nfct_query(h, NFCT_Q_CREATE, ct);
+>    i+=4;
+>    printf("TEST: create conntrack ");
+>    if (ret == -1)
+>       printf("(%d)(%s)\n", ret, strerror(errno));
+>    else
+>       printf("(OK)\n");
+> }
+>
+> But I have to add  a rule in IPTABLE to not add any conntrack entry by
+> kernel, because as soos as the callee answer the call(received 200OK
+> SIP MESSAGE), it will start to send it's media (RTP).In this regards
+> it would create conntrack entry sooner than user-space.
+> iptables -A INPUT -p udp --dport 10000:30000 -j DROP
+> Is it right table to deny adding any conntrack entry or not?
+> Anyway i appreciate your guide. I was in dilemma to used
+> libnetfilter_conntrack or libnetfilter_queue. Thanks
+> WIth Best Regards.Mojtaba
+>
+>
+>
+> On Tue, Jun 18, 2019 at 6:30 PM Florian Westphal <fw@strlen.de> wrote:
+> >
+> > Mojtaba <mespio@gmail.com> wrote:
+> > > Then let me describe what i am doing.
+> > > In VoIP networks, One of the ways to solve the one-way audio issue is
+> > > TURN. In this case both endpoint have to send their media (voice as
+> > > RTP) to server. In this conditions the server works as B2BUA. Because
+> > > of the server is processing the media (get media from one hand and
+> > > relay it to another hand), It usages a lot of resource of server. So I
+> > > am implementing  a new module to do this in kernel level. I test this
+> > > idea in my laboratory by adding conntrack entry manually in server and
+> > > all things works great. But i need to get more  idea to do this
+> > > project in best way and high performance, because the QoS very
+> > > importance in VoIP networks. What is the best way? Let me know more
+> > > about this.
+> >
+> > In that case I wonder why you need nfqueue at all.
+> >
+> > Isn't it enough for the proxy to inject a conntrack entry with the
+> > expected endpoint addresses of the media stream?
+> >
+> > I would expect that your proxy consumes/reads the sdp messages from
+> > the client already, or are you doing that via nfqueue?
+> >
+> > I would probably use tproxy+normal socket api for the signalling
+> > packets and insert conntrack entries for the rtp/media streams
+> > via libnetfilter_conntrack, this way, the media streams stay in kernel.
+>
+>
+>
+> --
+> --Mojtaba Esfandiari.S
 
-I am working on synproxy right now, I am going to test it in different
-environments and debug it. Please let me know if you have any
-recommended environment on mind.
 
-Thanks,
-Fernando.
+
+-- 
+--Mojtaba Esfandiari.S
