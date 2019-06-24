@@ -2,64 +2,82 @@ Return-Path: <SRS0=O4lm=UX=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_NEOMUTT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 37CCCC48BE9
-	for <netfilter-devel@archiver.kernel.org>; Mon, 24 Jun 2019 13:32:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 23FE4C43613
+	for <netfilter-devel@archiver.kernel.org>; Mon, 24 Jun 2019 15:12:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 172C7212F5
-	for <netfilter-devel@archiver.kernel.org>; Mon, 24 Jun 2019 13:32:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id ED4B520652
+	for <netfilter-devel@archiver.kernel.org>; Mon, 24 Jun 2019 15:12:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731163AbfFXNcp (ORCPT
+        id S1728417AbfFXPMk (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 24 Jun 2019 09:32:45 -0400
-Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:54006 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1729145AbfFXNcp (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 24 Jun 2019 09:32:45 -0400
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.89)
-        (envelope-from <fw@strlen.de>)
-        id 1hfP5O-0001Ry-Ty; Mon, 24 Jun 2019 15:32:42 +0200
-Date:   Mon, 24 Jun 2019 15:32:42 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     =?utf-8?Q?=C4=B0brahim?= Ercan <ibrahim.metu@gmail.com>
-Cc:     Florian Westphal <fw@strlen.de>, netfilter@vger.kernel.org,
-        netfilter-devel@vger.kernel.org
-Subject: Re: Is this possible SYN Proxy bug?
-Message-ID: <20190624133242.vobuzktcqthmiork@breakpoint.cc>
-References: <CAK6Qs9kmxqOaCjgcBefPR-NKEdGKTcfKUL_tu09CQYp3OT5krA@mail.gmail.com>
- <20190618115905.6kd2hqg2hlbs5frc@breakpoint.cc>
- <CAK6Qs9mTkAaH9+RqzmtrbNps1=NtW4c8wtJy7Kjay=r7VSJwsQ@mail.gmail.com>
- <20190618124026.4kvpdkbstdgaluij@breakpoint.cc>
- <CAK6Qs9nak4Aes9BXGsHC8SGGXmWGGrhPwAPQY5brFXtUzLkd-A@mail.gmail.com>
- <CAK6Qs9=E9r_hPB6QX+P5Dx+fGetM5pcgxBsrDt+XJBeZhUcimQ@mail.gmail.com>
- <20190621111021.2nqtvdq3qq2gbfqy@breakpoint.cc>
- <CAK6Qs9m88cgpFPaVp2qfQsepgtoa02vap1wzkdkgaSuTMm_ELw@mail.gmail.com>
- <20190624102006.t27x6ptnl647mcji@breakpoint.cc>
- <CAK6Qs9mYTbynefS-AT7N+FPo-hbFFGxEncrU_dvO6Yjc6OFG1g@mail.gmail.com>
+        Mon, 24 Jun 2019 11:12:40 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:51234 "EHLO orbyte.nwl.cc"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727454AbfFXPMk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 24 Jun 2019 11:12:40 -0400
+Received: from localhost ([::1]:36092 helo=tatos)
+        by orbyte.nwl.cc with esmtp (Exim 4.91)
+        (envelope-from <phil@nwl.cc>)
+        id 1hfQe6-0001zV-Pm; Mon, 24 Jun 2019 17:12:38 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [nft PATCH] files: Move netdev-ingress.nft to /etc/nftables as well
+Date:   Mon, 24 Jun 2019 17:12:38 +0200
+Message-Id: <20190624151238.4869-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.21.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAK6Qs9mYTbynefS-AT7N+FPo-hbFFGxEncrU_dvO6Yjc6OFG1g@mail.gmail.com>
-User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-İbrahim Ercan <ibrahim.metu@gmail.com> wrote:
-> > > When I examine traffic from pcap file, I saw connections opens
-> > > successfully but somehow something goes wrong after then.
-> >
-> > Do you have an example pcap of a connection stalling?
-> 
-> I will ready and send it to you soon. Can I send a file to this mail
-> list? Or should I send it directly your personal email?
+Commit 13535a3b40b62 ("files: restore base table skeletons") moved
+config skeletons back from examples/ to /etc/nftables/ directory, but
+ignored the fact that commit 6c9230e79339c ("nftables: rearrange files
+and examples") added a new file 'netdev-ingress.nft' which is referenced
+from 'all-in-one.nft' as well.
 
-You could pastebin tcpdump text mode, upload a file somewhere, create
-a bugzilla ticket on https://bugzilla.netfilter.org/ and attach the pcap
-there or send it to my personal email.
+Fixes: 13535a3b40b62 ("files: restore base table skeletons")
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ files/nftables/Makefile.am                      | 3 ++-
+ files/{examples => nftables}/netdev-ingress.nft | 2 +-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
+ rename files/{examples => nftables}/netdev-ingress.nft (87%)
+
+diff --git a/files/nftables/Makefile.am b/files/nftables/Makefile.am
+index f18156d844e5c..a93b7978f62d4 100644
+--- a/files/nftables/Makefile.am
++++ b/files/nftables/Makefile.am
+@@ -10,7 +10,8 @@ dist_pkgsysconf_DATA =	all-in-one.nft		\
+ 			ipv6-filter.nft		\
+ 			ipv6-mangle.nft		\
+ 			ipv6-nat.nft		\
+-			ipv6-raw.nft
++			ipv6-raw.nft		\
++			netdev-ingress.nft
+ 
+ install-data-hook:
+ 	${SED} -i 's|@sbindir[@]|${sbindir}/|g' ${DESTDIR}${pkgsysconfdir}/*.nft
+diff --git a/files/examples/netdev-ingress.nft b/files/nftables/netdev-ingress.nft
+similarity index 87%
+rename from files/examples/netdev-ingress.nft
+rename to files/nftables/netdev-ingress.nft
+index 2585d15493885..9e46b15a7e596 100755
+--- a/files/examples/netdev-ingress.nft
++++ b/files/nftables/netdev-ingress.nft
+@@ -1,4 +1,4 @@
+-#!/usr/sbin/nft -f
++#!@sbindir@nft -f
+ 
+ # mind the NIC, it must exists
+ table netdev filter {
+-- 
+2.21.0
+
