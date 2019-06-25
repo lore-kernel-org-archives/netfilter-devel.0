@@ -2,250 +2,131 @@ Return-Path: <SRS0=l45K=UY=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+X-Spam-Status: No, score=-3.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no
+	SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E950EC48BD4
-	for <netfilter-devel@archiver.kernel.org>; Tue, 25 Jun 2019 16:07:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C6CB4C48BD4
+	for <netfilter-devel@archiver.kernel.org>; Tue, 25 Jun 2019 16:16:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BFC112133F
-	for <netfilter-devel@archiver.kernel.org>; Tue, 25 Jun 2019 16:07:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6EA2B2080C
+	for <netfilter-devel@archiver.kernel.org>; Tue, 25 Jun 2019 16:16:33 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=yandex-team.ru header.i=@yandex-team.ru header.b="zdMjhoD1"
+	dkim=pass (2048-bit key) header.d=kaechele.ca header.i=@kaechele.ca header.b="TQWinRU5"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731670AbfFYQHL (ORCPT
+        id S1726605AbfFYQQd (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 25 Jun 2019 12:07:11 -0400
-Received: from secure28f.mail.yandex.net ([77.88.29.112]:49691 "EHLO
-        secure28f.mail.yandex.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726968AbfFYQHL (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 25 Jun 2019 12:07:11 -0400
-X-Greylist: delayed 430 seconds by postgrey-1.27 at vger.kernel.org; Tue, 25 Jun 2019 12:07:08 EDT
-Received: from secure28f.mail.yandex.net (localhost.localdomain [127.0.0.1])
-        by secure28f.mail.yandex.net (Yandex) with ESMTP id 7BAE431C1C5F;
-        Tue, 25 Jun 2019 18:59:56 +0300 (MSK)
-Received: from dynamic-red.dhcp.yndx.net (dynamic-red.dhcp.yndx.net [2a02:6b8:0:401:eef4:bbff:fe29:83c4])
-        by secure28f.mail.yandex.net (nwsmtp/Yandex) with ESMTPS id 8CrruufDXQ-xsWCNWSZ;
-        Tue, 25 Jun 2019 18:59:54 +0300
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (Client certificate not present)
-X-Yandex-Front: secure28f.mail.yandex.net
-X-Yandex-TimeMark: 1561478394.768
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yandex-team.ru; s=default;
-        t=1561478394; bh=j3Za4mwvXNVcqNaWOAH0WO4UYFFwM7tME+Ca1jP3/m0=;
-        h=Date:Message-ID:Cc:To:Subject:From;
-        b=zdMjhoD1ItE+n+mm0424Eh2c5rsUgNs0S4yXnHpec/RINRbh3pKznPMhwKGZA1RQO
-         OrxMd8r2BHN6auHwuIEqQ28kJsSnp3RpIu17KtfogJJLh9K56l0bMOPJ4KhKJlBRlJ
-         z6bWE/k9n35Pwb8JuAXWCu2AeRF75HU8kmevyW3Q=
-X-Yandex-Suid-Status: 1 0,1 0,1 0,1 0,1 0,1 0,1 0,1 0,1 0,1 0
-X-Yandex-Spam: 1
-X-Yandex-Envelope: aGVsbz1bSVB2NjoyYTAyOjZiODowOjQwMTplZWY0OmJiZmY6ZmUyOTo4M2M0XQptYWlsX2Zyb209dmZlZG9yZW5rb0B5YW5kZXgtdGVhbS5ydQpyY3B0X3RvPW5ldGZpbHRlci1kZXZlbEB2Z2VyLmtlcm5lbC5vcmcKcmNwdF90bz1sdnMtZGV2ZWxAdmdlci5rZXJuZWwub3JnCnJjcHRfdG89bmV0ZGV2QHZnZXIua2VybmVsLm9yZwpyY3B0X3RvPWRhdmVtQGRhdmVtbG9mdC5uZXQKcmNwdF90bz1md0BzdHJsZW4uZGUKcmNwdF90bz1rYWRsZWNAYmxhY2tob2xlLmtma2kuaHUKcmNwdF90bz1qYUBzc2kuYmcKcmNwdF90bz13ZW5zb25nQGxpbnV4LXZzLm9yZwpyY3B0X3RvPWtobGVibmlrb3ZAeWFuZGV4LXRlYW0ucnUKcmNwdF90bz1wYWJsb0BuZXRmaWx0ZXIub3JnCnJlbW90ZV9ob3N0PWR5bmFtaWMtcmVkLmRoY3AueW5keC5uZXQKcmVtb3RlX2lwPTJhMDI6NmI4OjA6NDAxOmVlZjQ6YmJmZjpmZTI5OjgzYzQK
-X-Yandex-Hint: bGFiZWw9U3lzdE1ldGthU086cGVvcGxlCmxhYmVsPVN5c3RNZXRrYVNPOnRydXN0XzYKbGFiZWw9U3lzdE1ldGthU086dF9wZW9wbGUKc2Vzc2lvbl9pZD04Q3JydXVmRFhRLXhzV0NOV1NaCmxhYmVsPXN5bWJvbDplbmNyeXB0ZWRfbGFiZWwKaXBmcm9tPTJhMDI6NmI4OjA6NDAxOmVlZjQ6YmJmZjpmZTI5OjgzYzQK
-From:   Vadim Fedorenko <vfedorenko@yandex-team.ru>
-Subject: [PATCH] ipvs: allow tunneling with gre encapsulation
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Konstantin Khlebnikov <khlebnikov@yandex-team.ru>,
-        Wensong Zhang <wensong@linux-vs.org>,
-        Julian Anastasov <ja@ssi.bg>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
-        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org
-Message-ID: <2caa3152-f90d-1ad6-3f98-b07960fed171@yandex-team.ru>
-Date:   Tue, 25 Jun 2019 18:59:54 +0300
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.7.1
+        Tue, 25 Jun 2019 12:16:33 -0400
+Received: from mail.fetzig.org ([54.39.219.108]:48138 "EHLO mail.fetzig.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726422AbfFYQQd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 25 Jun 2019 12:16:33 -0400
+Received: from authenticated-user (PRIMARY_HOSTNAME [PUBLIC_IP])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange ECDHE (P-384) server-signature RSA-PSS (2048 bits) server-digest SHA256)
+        (No client certificate requested)
+        (Authenticated sender: felix@fetzig.org)
+        by mail.fetzig.org (Postfix) with ESMTPSA id D466B80864;
+        Tue, 25 Jun 2019 12:16:30 -0400 (EDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kaechele.ca;
+        s=kaechele.ca-201608; t=1561479390;
+        bh=7QYrrw7/DTCMoH8nxpsCueBjCLJqYkxemNKpDBg1LyM=;
+        h=Subject:To:Cc:References:From:Date:In-Reply-To:From;
+        b=TQWinRU5mnw/d7B2lUM+12k2f+VZuuf+727mZCSqJoXkU773OtzVz6LyNoWdv2A/e
+         XbM5ve/EbLvqdV0n2ZvYjzn/eyG/SPknKCo10zLt4ZbyItc5k6wJ6+LcpKf3pU5k+i
+         4U2xVZHIhDrMPoyDsaNw6Qt6FG309taGU5Kk7OXjG26mMo3AoRgvEBfqVVwlVP+vdu
+         mDMsMPrlljxnpvDfDEaPss6R0fTSTBZ8HRW3CUrsKEKEWB9NpAXbB81sHJXJLDCoRy
+         g8rAN8VsRR/O+9jFV6zV8VaNh3if9mfdeyS6fqIEBmGudFjvaxJLHBPBlzp17LuocM
+         +PfnyvNLYQt6g==
+Subject: Re: [PATCH 08/13] netfilter: ctnetlink: Resolve conntrack L3-protocol
+ flush regression
+To:     Kristian Evensen <kristian.evensen@gmail.com>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Netfilter Development Mailing list 
+        <netfilter-devel@vger.kernel.org>
+References: <20190513095630.32443-1-pablo@netfilter.org>
+ <20190513095630.32443-9-pablo@netfilter.org>
+ <0a4e3cd2-82f7-8ad6-2403-9852e34c8ac3@kaechele.ca>
+ <20190624235816.vw6ahepdgvxhvdej@salvia>
+ <4367f30f-4602-a4b6-a96e-35d879cc7758@kaechele.ca>
+ <20190625080853.d6f523cimgg2u44v@salvia>
+ <0904a616-106c-91de-ed55-97973aa5c330@kaechele.ca>
+ <CAKfDRXjun=cVovtn70jxwTc9pa0hhDHUSdZjLHJC1Xw2AMG+rA@mail.gmail.com>
+ <04ab8f2d-2b50-8d99-2fa1-837b7acaf417@kaechele.ca>
+ <CAKfDRXiwRs5kkZi3AQd4nwqvWtukbrviihH+5s4iHkDfnuW93g@mail.gmail.com>
+From:   Felix Kaechele <felix@kaechele.ca>
+Message-ID: <25855f46-312b-b263-3cf7-7547e5ece264@kaechele.ca>
+Date:   Tue, 25 Jun 2019 12:16:30 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <CAKfDRXiwRs5kkZi3AQd4nwqvWtukbrviihH+5s4iHkDfnuW93g@mail.gmail.com>
+Content-Type: multipart/mixed;
+ boundary="------------984ECC2918AD5FED8C556427"
+Content-Language: de-DE
+X-Virus-Scanned: clamav-milter 0.101.2 at pandora.fk.cx
+X-Virus-Status: Clean
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-windows real servers can handle gre tunnels, this patch allows
-gre encapsulation with the tunneling method, thereby letting ipvs
-be load balancer for windows-based services
+This is a multi-part message in MIME format.
+--------------984ECC2918AD5FED8C556427
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Signed-off-by: Vadim Fedorenko <vfedorenko@yandex-team.ru>
----
-  include/uapi/linux/ip_vs.h      |  1 +
-  net/netfilter/ipvs/ip_vs_xmit.c | 76 +++++++++++++++++++++++++++++++++++++++++
-  2 files changed, 77 insertions(+)
+On 2019-06-25 11:08 a.m., Kristian Evensen wrote:
 
-diff --git a/include/uapi/linux/ip_vs.h b/include/uapi/linux/ip_vs.h
-index e4f1806..4102ddc 100644
---- a/include/uapi/linux/ip_vs.h
-+++ b/include/uapi/linux/ip_vs.h
-@@ -128,6 +128,7 @@
-  enum {
-  	IP_VS_CONN_F_TUNNEL_TYPE_IPIP = 0,	/* IPIP */
-  	IP_VS_CONN_F_TUNNEL_TYPE_GUE,		/* GUE */
-+	IP_VS_CONN_F_TUNNEL_TYPE_GRE,		/* GRE */
-  	IP_VS_CONN_F_TUNNEL_TYPE_MAX,
-  };
+> Pablos patch implements
+> the first thing that I wanted to try (only read and use version/family
+> when flushing), and I see that Nicolas has made some suggestions. If
+> you could first try Pablo's patch with Nicolas' changes, that would be
+> great as the change should revert behavior of delete back to how it
+> was before my change.
 
-diff --git a/net/netfilter/ipvs/ip_vs_xmit.c b/net/netfilter/ipvs/ip_vs_xmit.c
-index 71fc6d6..fad3f33 100644
---- a/net/netfilter/ipvs/ip_vs_xmit.c
-+++ b/net/netfilter/ipvs/ip_vs_xmit.c
-@@ -29,6 +29,7 @@
-  #include <linux/tcp.h>                  /* for tcphdr */
-  #include <net/ip.h>
-  #include <net/gue.h>
-+#include <net/gre.h>
-  #include <net/tcp.h>                    /* for csum_tcpudp_magic */
-  #include <net/udp.h>
-  #include <net/icmp.h>                   /* for icmp_send */
-@@ -389,6 +390,12 @@ static inline bool decrement_ttl(struct netns_ipvs *ipvs,
-  			    skb->ip_summed == CHECKSUM_PARTIAL)
-  				mtu -= GUE_PLEN_REMCSUM + GUE_LEN_PRIV;
-  		}
-+		if (dest->tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GRE) {
-+			__be16 tflags = 0;
-+			if (dest->tun_flags & IP_VS_TUNNEL_ENCAP_FLAG_CSUM)
-+				tflags |= TUNNEL_CSUM;
-+			mtu -= gre_calc_hlen(tflags);
-+		}
-  		if (mtu < 68) {
-  			IP_VS_DBG_RL("%s(): mtu less than 68\n", __func__);
-  			goto err_put;
-@@ -549,6 +556,12 @@ static inline bool decrement_ttl(struct netns_ipvs *ipvs,
-  			    skb->ip_summed == CHECKSUM_PARTIAL)
-  				mtu -= GUE_PLEN_REMCSUM + GUE_LEN_PRIV;
-  		}
-+		if (dest->tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GRE) {
-+			__be16 tflags = 0;
-+			if (dest->tun_flags & IP_VS_TUNNEL_ENCAP_FLAG_CSUM)
-+				tflags |= TUNNEL_CSUM;
-+			mtu -= gre_calc_hlen(tflags);
-+		}
-  		if (mtu < IPV6_MIN_MTU) {
-  			IP_VS_DBG_RL("%s(): mtu less than %d\n", __func__,
-  				     IPV6_MIN_MTU);
-@@ -1079,6 +1092,24 @@ static inline int __tun_gso_type_mask(int encaps_af, int 
-orig_af)
-  	return 0;
-  }
+Yes, these changes fix the issue for me.
 
-+static void
-+ipvs_gre_encap(struct net *net, struct sk_buff *skb,
-+	       struct ip_vs_conn *cp, __u8 *next_protocol)
-+{
-+	size_t hdrlen;
-+	__be16 tflags = 0;
-+	__be16 proto = *next_protocol == IPPROTO_IPIP ? htons(ETH_P_IP) : 
-htons(ETH_P_IPV6);
-+
-+	if (cp->dest->tun_flags & IP_VS_TUNNEL_ENCAP_FLAG_CSUM)
-+		tflags |= TUNNEL_CSUM;
-+
-+	hdrlen = gre_calc_hlen(tflags);
-+
-+	gre_build_header(skb, hdrlen, tflags, proto, 0, 0);
-+
-+	*next_protocol = IPPROTO_GRE;
-+}
-+
-  /*
-   *   IP Tunneling transmitter
-   *
-@@ -1153,6 +1184,18 @@ static inline int __tun_gso_type_mask(int encaps_af, int 
-orig_af)
-  		max_headroom += sizeof(struct udphdr) + gue_hdrlen;
-  	}
+I have attached the patch I used, which is probably the change that 
+Pablo initially intended.
 
-+	if (tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GRE) {
-+		size_t gre_hdrlen;
-+		__be16 tflags = 0;
-+
-+		if (tun_flags & IP_VS_TUNNEL_ENCAP_FLAG_CSUM)
-+			tflags |= TUNNEL_CSUM;
-+
-+		gre_hdrlen = gre_calc_hlen(tflags);
-+
-+		max_headroom += gre_hdrlen;
-+	}
-+
-  	/* We only care about the df field if sysctl_pmtu_disc(ipvs) is set */
-  	dfp = sysctl_pmtu_disc(ipvs) ? &df : NULL;
-  	skb = ip_vs_prepare_tunneled_skb(skb, cp->af, max_headroom,
-@@ -1174,6 +1217,13 @@ static inline int __tun_gso_type_mask(int encaps_af, int 
-orig_af)
-  		}
-  	}
+Thanks!
 
-+	if (tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GRE) {
-+		if (tun_flags & IP_VS_TUNNEL_ENCAP_FLAG_CSUM)
-+			gso_type |= SKB_GSO_GRE_CSUM;
-+		else
-+			gso_type |= SKB_GSO_GRE;
-+	}
-+
-  	if (iptunnel_handle_offloads(skb, gso_type))
-  		goto tx_error;
+Felix
 
-@@ -1194,6 +1244,9 @@ static inline int __tun_gso_type_mask(int encaps_af, int 
-orig_af)
-  		udp_set_csum(!check, skb, saddr, cp->daddr.ip, skb->len);
-  	}
+--------------984ECC2918AD5FED8C556427
+Content-Type: text/x-patch;
+ name="fix-conntrack-delete.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="fix-conntrack-delete.patch"
 
-+	if (tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GRE) {
-+		ipvs_gre_encap(net, skb, cp, &next_protocol);
-+	}
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index d2715b4d2e72..061bdab37b1a 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -1254,7 +1254,6 @@ static int ctnetlink_del_conntrack(struct net *net, struct sock *ctnl,
+ 	struct nf_conntrack_tuple tuple;
+ 	struct nf_conn *ct;
+ 	struct nfgenmsg *nfmsg = nlmsg_data(nlh);
+-	u_int8_t u3 = nfmsg->version ? nfmsg->nfgen_family : AF_UNSPEC;
+ 	struct nf_conntrack_zone zone;
+ 	int err;
+ 
+@@ -1264,11 +1263,13 @@ static int ctnetlink_del_conntrack(struct net *net, struct sock *ctnl,
+ 
+ 	if (cda[CTA_TUPLE_ORIG])
+ 		err = ctnetlink_parse_tuple(cda, &tuple, CTA_TUPLE_ORIG,
+-					    u3, &zone);
++					    nfmsg->nfgen_family, &zone);
+ 	else if (cda[CTA_TUPLE_REPLY])
+ 		err = ctnetlink_parse_tuple(cda, &tuple, CTA_TUPLE_REPLY,
+-					    u3, &zone);
++					    nfmsg->nfgen_family, &zone);
+ 	else {
++		u_int8_t u3 = nfmsg->version ? nfmsg->nfgen_family : AF_UNSPEC;
++
+ 		return ctnetlink_flush_conntrack(net, cda,
+ 						 NETLINK_CB(skb).portid,
+ 						 nlmsg_report(nlh), u3);
 
-  	skb_push(skb, sizeof(struct iphdr));
-  	skb_reset_network_header(skb);
-@@ -1289,6 +1342,18 @@ static inline int __tun_gso_type_mask(int encaps_af, int 
-orig_af)
-  		max_headroom += sizeof(struct udphdr) + gue_hdrlen;
-  	}
-
-+	if (tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GRE) {
-+		size_t gre_hdrlen;
-+		__be16 tflags = 0;
-+
-+		if (tun_flags & IP_VS_TUNNEL_ENCAP_FLAG_CSUM)
-+			tflags |= TUNNEL_CSUM;
-+
-+		gre_hdrlen = gre_calc_hlen(tflags);
-+
-+		max_headroom += gre_hdrlen;
-+	}
-+
-  	skb = ip_vs_prepare_tunneled_skb(skb, cp->af, max_headroom,
-  					 &next_protocol, &payload_len,
-  					 &dsfield, &ttl, NULL);
-@@ -1308,6 +1373,13 @@ static inline int __tun_gso_type_mask(int encaps_af, int 
-orig_af)
-  		}
-  	}
-
-+	if (tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GRE) {
-+		if (tun_flags & IP_VS_TUNNEL_ENCAP_FLAG_CSUM)
-+			gso_type |= SKB_GSO_GRE_CSUM;
-+		else
-+			gso_type |= SKB_GSO_GRE;
-+	}
-+
-  	if (iptunnel_handle_offloads(skb, gso_type))
-  		goto tx_error;
-
-@@ -1328,6 +1400,10 @@ static inline int __tun_gso_type_mask(int encaps_af, int 
-orig_af)
-  		udp6_set_csum(!check, skb, &saddr, &cp->daddr.in6, skb->len);
-  	}
-
-+	if (tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GRE) {
-+		ipvs_gre_encap(net, skb, cp, &next_protocol);
-+	}
-+
-  	skb_push(skb, sizeof(struct ipv6hdr));
-  	skb_reset_network_header(skb);
-  	memset(&(IPCB(skb)->opt), 0, sizeof(IPCB(skb)->opt));
--- 
-1.9.1
+--------------984ECC2918AD5FED8C556427--
