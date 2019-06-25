@@ -2,82 +2,139 @@ Return-Path: <SRS0=l45K=UY=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,UNPARSEABLE_RELAY autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D665C4646B
-	for <netfilter-devel@archiver.kernel.org>; Tue, 25 Jun 2019 03:02:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 60512C48BD5
+	for <netfilter-devel@archiver.kernel.org>; Tue, 25 Jun 2019 05:47:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4884D205C9
-	for <netfilter-devel@archiver.kernel.org>; Tue, 25 Jun 2019 03:02:45 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=kaechele.ca header.i=@kaechele.ca header.b="mlKgfqo4"
+	by mail.kernel.org (Postfix) with ESMTP id 381E620449
+	for <netfilter-devel@archiver.kernel.org>; Tue, 25 Jun 2019 05:47:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730662AbfFYDCp (ORCPT
+        id S1728415AbfFYFrZ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 24 Jun 2019 23:02:45 -0400
-Received: from mail.fetzig.org ([54.39.219.108]:43826 "EHLO mail.fetzig.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730654AbfFYDCo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 24 Jun 2019 23:02:44 -0400
-Received: from authenticated-user (PRIMARY_HOSTNAME [PUBLIC_IP])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange ECDHE (P-384) server-signature RSA-PSS (2048 bits) server-digest SHA256)
-        (No client certificate requested)
-        (Authenticated sender: felix@fetzig.org)
-        by mail.fetzig.org (Postfix) with ESMTPSA id 4ACEE8107C;
-        Mon, 24 Jun 2019 23:02:42 -0400 (EDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kaechele.ca;
-        s=kaechele.ca-201608; t=1561431762;
-        bh=K8Mmb0/02NQkOFBzxgJAfaACjjI1q3xuRj529hQALzo=;
-        h=Subject:To:Cc:References:From:Date:In-Reply-To:From;
-        b=mlKgfqo4jzuZ3o1ir/tYjD4XUGJC/OtLvOajJ4KYfpTh8kTuOPP7/7E64OKmShGhd
-         xPC1Ki3Pcs+Z6YjCBty1LHOtjNuWhsx4Crat7oUmQVowjfxs57wdHEMpHo/wnlwiDV
-         WJDt/Ha2aeWBEVgxMI0SQWEglEEvxHSJODCHm7gcItnCpxifdkSW+lTTX4mXj1lsJb
-         ffpcaAalePpYO9wANPhHM9Wgtyl0XFONFCbVHuKdJBhhRNLb/+MJ709GHUgikTW/kF
-         PZpJxztqqEdS6K48dWwTWbgGbYeSqo49nyVwaFs4LpjTBMGMRApVM9Brv4ib29u+44
-         rPg0wFXNz6iNA==
-Subject: Re: [PATCH 08/13] netfilter: ctnetlink: Resolve conntrack L3-protocol
- flush regression
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-References: <20190513095630.32443-1-pablo@netfilter.org>
- <20190513095630.32443-9-pablo@netfilter.org>
- <0a4e3cd2-82f7-8ad6-2403-9852e34c8ac3@kaechele.ca>
- <20190624235816.vw6ahepdgvxhvdej@salvia>
-From:   Felix Kaechele <felix@kaechele.ca>
-Message-ID: <4367f30f-4602-a4b6-a96e-35d879cc7758@kaechele.ca>
-Date:   Mon, 24 Jun 2019 23:02:40 -0400
-MIME-Version: 1.0
-In-Reply-To: <20190624235816.vw6ahepdgvxhvdej@salvia>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Language: en-CA
-Content-Transfer-Encoding: 7bit
-X-Virus-Scanned: clamav-milter 0.101.2 at pandora.fk.cx
-X-Virus-Status: Clean
+        Tue, 25 Jun 2019 01:47:25 -0400
+Received: from mx2.labristeknoloji.com ([91.93.128.220]:49496 "EHLO
+        mx2.labristeknoloji.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726533AbfFYFrZ (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 25 Jun 2019 01:47:25 -0400
+X-Greylist: delayed 314 seconds by postgrey-1.27 at vger.kernel.org; Tue, 25 Jun 2019 01:47:22 EDT
+From:   Ibrahim Ercan <ibrahim.ercan@labristeknoloji.com>
+To:     netfilter-devel@vger.kernel.org, fw@strlen.de,
+        ibrahim.metu@gmail.com
+Subject: [PATCH v2] netfilter: synproxy: erroneous TCP mss option fixed.
+Date:   Tue, 25 Jun 2019 08:42:04 +0300
+Message-Id: <1561441324-19193-1-git-send-email-ibrahim.ercan@labristeknoloji.com>
+In-Reply-To: <CAK6Qs9k_bdU9ZL4WRXBGYdtfnP_qhot0hzC=uMQG6C_pkz3+2w@mail.gmail.com>
+References: <CAK6Qs9k_bdU9ZL4WRXBGYdtfnP_qhot0hzC=uMQG6C_pkz3+2w@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 2019-06-24 7:58 p.m., Pablo Neira Ayuso wrote:
-> Could you give a try to this patch?
+Syn proxy isn't setting mss value correctly on client syn-ack packet.
+It was sending same mss value with client send instead of the value user set in iptables rule. This patch fix that wrong behavior by passing client mss information to synproxy_send_client_synack correctly.
 
-Hi there,
+Signed-off-by: Ibrahim Ercan <ibrahim.ercan@labristeknoloji.com>
+---
+ net/ipv4/netfilter/ipt_SYNPROXY.c  | 9 ++++++---
+ net/ipv6/netfilter/ip6t_SYNPROXY.c | 9 ++++++---
+ 2 files changed, 12 insertions(+), 6 deletions(-)
 
-unfortunately the patch didn't work for me.
+diff --git a/net/ipv4/netfilter/ipt_SYNPROXY.c b/net/ipv4/netfilter/ipt_SYNPROXY.c
+index 64d9563..e0bd504 100644
+--- a/net/ipv4/netfilter/ipt_SYNPROXY.c
++++ b/net/ipv4/netfilter/ipt_SYNPROXY.c
+@@ -69,13 +69,13 @@ synproxy_send_tcp(struct net *net,
+ static void
+ synproxy_send_client_synack(struct net *net,
+ 			    const struct sk_buff *skb, const struct tcphdr *th,
+-			    const struct synproxy_options *opts)
++			    const struct synproxy_options *opts, const u16 client_mssinfo)
+ {
+ 	struct sk_buff *nskb;
+ 	struct iphdr *iph, *niph;
+ 	struct tcphdr *nth;
+ 	unsigned int tcp_hdr_size;
+-	u16 mss = opts->mss;
++	u16 mss = client_mssinfo;
+ 
+ 	iph = ip_hdr(skb);
+ 
+@@ -264,6 +264,7 @@ synproxy_tg4(struct sk_buff *skb, const struct xt_action_param *par)
+ 	struct synproxy_net *snet = synproxy_pernet(net);
+ 	struct synproxy_options opts = {};
+ 	struct tcphdr *th, _th;
++	u16 client_mssinfo;
+ 
+ 	if (nf_ip_checksum(skb, xt_hooknum(par), par->thoff, IPPROTO_TCP))
+ 		return NF_DROP;
+@@ -283,6 +284,8 @@ synproxy_tg4(struct sk_buff *skb, const struct xt_action_param *par)
+ 			opts.options |= XT_SYNPROXY_OPT_ECN;
+ 
+ 		opts.options &= info->options;
++		client_mssinfo = opts.mss;
++		opts.mss = info->mss;
+ 		if (opts.options & XT_SYNPROXY_OPT_TIMESTAMP)
+ 			synproxy_init_timestamp_cookie(info, &opts);
+ 		else
+@@ -290,7 +293,7 @@ synproxy_tg4(struct sk_buff *skb, const struct xt_action_param *par)
+ 					  XT_SYNPROXY_OPT_SACK_PERM |
+ 					  XT_SYNPROXY_OPT_ECN);
+ 
+-		synproxy_send_client_synack(net, skb, th, &opts);
++		synproxy_send_client_synack(net, skb, th, &opts, client_mssinfo);
+ 		consume_skb(skb);
+ 		return NF_STOLEN;
+ 	} else if (th->ack && !(th->fin || th->rst || th->syn)) {
+diff --git a/net/ipv6/netfilter/ip6t_SYNPROXY.c b/net/ipv6/netfilter/ip6t_SYNPROXY.c
+index 41325d5..676de53 100644
+--- a/net/ipv6/netfilter/ip6t_SYNPROXY.c
++++ b/net/ipv6/netfilter/ip6t_SYNPROXY.c
+@@ -83,13 +83,13 @@ synproxy_send_tcp(struct net *net,
+ static void
+ synproxy_send_client_synack(struct net *net,
+ 			    const struct sk_buff *skb, const struct tcphdr *th,
+-			    const struct synproxy_options *opts)
++			    const struct synproxy_options *opts, const u16 client_mssinfo)
+ {
+ 	struct sk_buff *nskb;
+ 	struct ipv6hdr *iph, *niph;
+ 	struct tcphdr *nth;
+ 	unsigned int tcp_hdr_size;
+-	u16 mss = opts->mss;
++	u16 mss = client_mssinfo;
+ 
+ 	iph = ipv6_hdr(skb);
+ 
+@@ -278,6 +278,7 @@ synproxy_tg6(struct sk_buff *skb, const struct xt_action_param *par)
+ 	struct synproxy_net *snet = synproxy_pernet(net);
+ 	struct synproxy_options opts = {};
+ 	struct tcphdr *th, _th;
++	u16 client_mssinfo;
+ 
+ 	if (nf_ip6_checksum(skb, xt_hooknum(par), par->thoff, IPPROTO_TCP))
+ 		return NF_DROP;
+@@ -297,6 +298,8 @@ synproxy_tg6(struct sk_buff *skb, const struct xt_action_param *par)
+ 			opts.options |= XT_SYNPROXY_OPT_ECN;
+ 
+ 		opts.options &= info->options;
++		client_mssinfo = opts.mss;
++		opts.mss = info->mss;
+ 		if (opts.options & XT_SYNPROXY_OPT_TIMESTAMP)
+ 			synproxy_init_timestamp_cookie(info, &opts);
+ 		else
+@@ -304,7 +307,7 @@ synproxy_tg6(struct sk_buff *skb, const struct xt_action_param *par)
+ 					  XT_SYNPROXY_OPT_SACK_PERM |
+ 					  XT_SYNPROXY_OPT_ECN);
+ 
+-		synproxy_send_client_synack(net, skb, th, &opts);
++		synproxy_send_client_synack(net, skb, th, &opts, client_mssinfo);
+ 		consume_skb(skb);
+ 		return NF_STOLEN;
+ 
+-- 
+2.7.4
 
-I did some deeper digging and it seems that nf_conntrack_find_get within 
-ctnetlink_del_conntrack will not find the entry if the address family 
-for the delete query is AF_UNSPEC (due to nfmsg->version being 0) but 
-the conntrack entry was initially created with AF_INET as the address 
-family. I believe the tuples will have different hashes in this case and 
-my guess is that this is not accounted for in the code, i.e. that 
-AF_UNSPEC should match both AF_INET and AF_INET6. At the moment it seems 
-to match none instead.
-
-I could be wrong though, I'm not that familiar with the netfilter code.
-
-Regards,
-   Felix
