@@ -2,217 +2,250 @@ Return-Path: <SRS0=l45K=UY=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_NEOMUTT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 14F4EC48BD6
-	for <netfilter-devel@archiver.kernel.org>; Tue, 25 Jun 2019 16:00:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E950EC48BD4
+	for <netfilter-devel@archiver.kernel.org>; Tue, 25 Jun 2019 16:07:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E8B52208CB
-	for <netfilter-devel@archiver.kernel.org>; Tue, 25 Jun 2019 16:00:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BFC112133F
+	for <netfilter-devel@archiver.kernel.org>; Tue, 25 Jun 2019 16:07:12 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=yandex-team.ru header.i=@yandex-team.ru header.b="zdMjhoD1"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729134AbfFYQAm (ORCPT
+        id S1731670AbfFYQHL (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 25 Jun 2019 12:00:42 -0400
-Received: from rs07.intra2net.com ([85.214.138.66]:35294 "EHLO
-        rs07.intra2net.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728422AbfFYQAm (ORCPT
+        Tue, 25 Jun 2019 12:07:11 -0400
+Received: from secure28f.mail.yandex.net ([77.88.29.112]:49691 "EHLO
+        secure28f.mail.yandex.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726968AbfFYQHL (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 25 Jun 2019 12:00:42 -0400
-X-Greylist: delayed 327 seconds by postgrey-1.27 at vger.kernel.org; Tue, 25 Jun 2019 12:00:39 EDT
-Received: from mail.m.i2n (unknown [172.17.128.1])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by rs07.intra2net.com (Postfix) with ESMTPS id 956861500322;
-        Tue, 25 Jun 2019 17:55:11 +0200 (CEST)
-Received: from localhost (mail.m.i2n [127.0.0.1])
-        by localhost (Postfix) with ESMTP id 6061A88D;
-        Tue, 25 Jun 2019 17:55:11 +0200 (CEST)
-X-Virus-Scanned: by Intra2net Mail Security (AVE=8.3.54.50,VDF=8.16.17.142)
-Received: from localhost (storm.m.i2n [172.16.1.2])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.m.i2n (Postfix) with ESMTPS id 829515EF;
-        Tue, 25 Jun 2019 17:55:09 +0200 (CEST)
-Date:   Tue, 25 Jun 2019 17:55:09 +0200
-From:   Thomas Jarosch <thomas.jarosch@intra2net.com>
-To:     netdev@vger.kernel.org
-Cc:     netfilter-devel@vger.kernel.org,
-        Juliana Rodrigueiro <juliana.rodrigueiro@intra2net.com>
-Subject: 4.19: Traced deadlock during xfrm_user module load
-Message-ID: <20190625155509.pgcxwgclqx3lfxxr@intra2net.com>
+        Tue, 25 Jun 2019 12:07:11 -0400
+X-Greylist: delayed 430 seconds by postgrey-1.27 at vger.kernel.org; Tue, 25 Jun 2019 12:07:08 EDT
+Received: from secure28f.mail.yandex.net (localhost.localdomain [127.0.0.1])
+        by secure28f.mail.yandex.net (Yandex) with ESMTP id 7BAE431C1C5F;
+        Tue, 25 Jun 2019 18:59:56 +0300 (MSK)
+Received: from dynamic-red.dhcp.yndx.net (dynamic-red.dhcp.yndx.net [2a02:6b8:0:401:eef4:bbff:fe29:83c4])
+        by secure28f.mail.yandex.net (nwsmtp/Yandex) with ESMTPS id 8CrruufDXQ-xsWCNWSZ;
+        Tue, 25 Jun 2019 18:59:54 +0300
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (Client certificate not present)
+X-Yandex-Front: secure28f.mail.yandex.net
+X-Yandex-TimeMark: 1561478394.768
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yandex-team.ru; s=default;
+        t=1561478394; bh=j3Za4mwvXNVcqNaWOAH0WO4UYFFwM7tME+Ca1jP3/m0=;
+        h=Date:Message-ID:Cc:To:Subject:From;
+        b=zdMjhoD1ItE+n+mm0424Eh2c5rsUgNs0S4yXnHpec/RINRbh3pKznPMhwKGZA1RQO
+         OrxMd8r2BHN6auHwuIEqQ28kJsSnp3RpIu17KtfogJJLh9K56l0bMOPJ4KhKJlBRlJ
+         z6bWE/k9n35Pwb8JuAXWCu2AeRF75HU8kmevyW3Q=
+X-Yandex-Suid-Status: 1 0,1 0,1 0,1 0,1 0,1 0,1 0,1 0,1 0,1 0
+X-Yandex-Spam: 1
+X-Yandex-Envelope: aGVsbz1bSVB2NjoyYTAyOjZiODowOjQwMTplZWY0OmJiZmY6ZmUyOTo4M2M0XQptYWlsX2Zyb209dmZlZG9yZW5rb0B5YW5kZXgtdGVhbS5ydQpyY3B0X3RvPW5ldGZpbHRlci1kZXZlbEB2Z2VyLmtlcm5lbC5vcmcKcmNwdF90bz1sdnMtZGV2ZWxAdmdlci5rZXJuZWwub3JnCnJjcHRfdG89bmV0ZGV2QHZnZXIua2VybmVsLm9yZwpyY3B0X3RvPWRhdmVtQGRhdmVtbG9mdC5uZXQKcmNwdF90bz1md0BzdHJsZW4uZGUKcmNwdF90bz1rYWRsZWNAYmxhY2tob2xlLmtma2kuaHUKcmNwdF90bz1qYUBzc2kuYmcKcmNwdF90bz13ZW5zb25nQGxpbnV4LXZzLm9yZwpyY3B0X3RvPWtobGVibmlrb3ZAeWFuZGV4LXRlYW0ucnUKcmNwdF90bz1wYWJsb0BuZXRmaWx0ZXIub3JnCnJlbW90ZV9ob3N0PWR5bmFtaWMtcmVkLmRoY3AueW5keC5uZXQKcmVtb3RlX2lwPTJhMDI6NmI4OjA6NDAxOmVlZjQ6YmJmZjpmZTI5OjgzYzQK
+X-Yandex-Hint: bGFiZWw9U3lzdE1ldGthU086cGVvcGxlCmxhYmVsPVN5c3RNZXRrYVNPOnRydXN0XzYKbGFiZWw9U3lzdE1ldGthU086dF9wZW9wbGUKc2Vzc2lvbl9pZD04Q3JydXVmRFhRLXhzV0NOV1NaCmxhYmVsPXN5bWJvbDplbmNyeXB0ZWRfbGFiZWwKaXBmcm9tPTJhMDI6NmI4OjA6NDAxOmVlZjQ6YmJmZjpmZTI5OjgzYzQK
+From:   Vadim Fedorenko <vfedorenko@yandex-team.ru>
+Subject: [PATCH] ipvs: allow tunneling with gre encapsulation
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Konstantin Khlebnikov <khlebnikov@yandex-team.ru>,
+        Wensong Zhang <wensong@linux-vs.org>,
+        Julian Anastasov <ja@ssi.bg>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
+        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org
+Message-ID: <2caa3152-f90d-1ad6-3f98-b07960fed171@yandex-team.ru>
+Date:   Tue, 25 Jun 2019 18:59:54 +0300
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.7.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-User-Agent: NeoMutt/20180716
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi all,
+windows real servers can handle gre tunnels, this patch allows
+gre encapsulation with the tunneling method, thereby letting ipvs
+be load balancer for windows-based services
 
-we're in the process of upgrading to kernel 4.19 and hit
-a very rare lockup on boot during "xfrm_user" module load.
-The tested kernel was 4.19.55.
+Signed-off-by: Vadim Fedorenko <vfedorenko@yandex-team.ru>
+---
+  include/uapi/linux/ip_vs.h      |  1 +
+  net/netfilter/ipvs/ip_vs_xmit.c | 76 +++++++++++++++++++++++++++++++++++++++++
+  2 files changed, 77 insertions(+)
 
-When the strongswan IPsec service starts, it loads the xfrm_user module.
--> modprobe hangs forever. 
+diff --git a/include/uapi/linux/ip_vs.h b/include/uapi/linux/ip_vs.h
+index e4f1806..4102ddc 100644
+--- a/include/uapi/linux/ip_vs.h
++++ b/include/uapi/linux/ip_vs.h
+@@ -128,6 +128,7 @@
+  enum {
+  	IP_VS_CONN_F_TUNNEL_TYPE_IPIP = 0,	/* IPIP */
+  	IP_VS_CONN_F_TUNNEL_TYPE_GUE,		/* GUE */
++	IP_VS_CONN_F_TUNNEL_TYPE_GRE,		/* GRE */
+  	IP_VS_CONN_F_TUNNEL_TYPE_MAX,
+  };
 
-Also network services like ssh or apache stop responding,
-ICMP ping still works.
+diff --git a/net/netfilter/ipvs/ip_vs_xmit.c b/net/netfilter/ipvs/ip_vs_xmit.c
+index 71fc6d6..fad3f33 100644
+--- a/net/netfilter/ipvs/ip_vs_xmit.c
++++ b/net/netfilter/ipvs/ip_vs_xmit.c
+@@ -29,6 +29,7 @@
+  #include <linux/tcp.h>                  /* for tcphdr */
+  #include <net/ip.h>
+  #include <net/gue.h>
++#include <net/gre.h>
+  #include <net/tcp.h>                    /* for csum_tcpudp_magic */
+  #include <net/udp.h>
+  #include <net/icmp.h>                   /* for icmp_send */
+@@ -389,6 +390,12 @@ static inline bool decrement_ttl(struct netns_ipvs *ipvs,
+  			    skb->ip_summed == CHECKSUM_PARTIAL)
+  				mtu -= GUE_PLEN_REMCSUM + GUE_LEN_PRIV;
+  		}
++		if (dest->tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GRE) {
++			__be16 tflags = 0;
++			if (dest->tun_flags & IP_VS_TUNNEL_ENCAP_FLAG_CSUM)
++				tflags |= TUNNEL_CSUM;
++			mtu -= gre_calc_hlen(tflags);
++		}
+  		if (mtu < 68) {
+  			IP_VS_DBG_RL("%s(): mtu less than 68\n", __func__);
+  			goto err_put;
+@@ -549,6 +556,12 @@ static inline bool decrement_ttl(struct netns_ipvs *ipvs,
+  			    skb->ip_summed == CHECKSUM_PARTIAL)
+  				mtu -= GUE_PLEN_REMCSUM + GUE_LEN_PRIV;
+  		}
++		if (dest->tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GRE) {
++			__be16 tflags = 0;
++			if (dest->tun_flags & IP_VS_TUNNEL_ENCAP_FLAG_CSUM)
++				tflags |= TUNNEL_CSUM;
++			mtu -= gre_calc_hlen(tflags);
++		}
+  		if (mtu < IPV6_MIN_MTU) {
+  			IP_VS_DBG_RL("%s(): mtu less than %d\n", __func__,
+  				     IPV6_MIN_MTU);
+@@ -1079,6 +1092,24 @@ static inline int __tun_gso_type_mask(int encaps_af, int 
+orig_af)
+  	return 0;
+  }
 
-By chance we had magic sysRq enabled and were able to get some meaningful stack 
-traces. We've rebuilt the kernel with LOCKDEP + DEBUG_INFO + DEBUG_INFO_REDUCED, 
-but so far failed to reproduce the issue even when hammering the suspected 
-deadlock case. Though it's just hammering it for a few hours yet.
++static void
++ipvs_gre_encap(struct net *net, struct sk_buff *skb,
++	       struct ip_vs_conn *cp, __u8 *next_protocol)
++{
++	size_t hdrlen;
++	__be16 tflags = 0;
++	__be16 proto = *next_protocol == IPPROTO_IPIP ? htons(ETH_P_IP) : 
+htons(ETH_P_IPV6);
++
++	if (cp->dest->tun_flags & IP_VS_TUNNEL_ENCAP_FLAG_CSUM)
++		tflags |= TUNNEL_CSUM;
++
++	hdrlen = gre_calc_hlen(tflags);
++
++	gre_build_header(skb, hdrlen, tflags, proto, 0, 0);
++
++	*next_protocol = IPPROTO_GRE;
++}
++
+  /*
+   *   IP Tunneling transmitter
+   *
+@@ -1153,6 +1184,18 @@ static inline int __tun_gso_type_mask(int encaps_af, int 
+orig_af)
+  		max_headroom += sizeof(struct udphdr) + gue_hdrlen;
+  	}
 
-Preliminary analysis:
++	if (tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GRE) {
++		size_t gre_hdrlen;
++		__be16 tflags = 0;
++
++		if (tun_flags & IP_VS_TUNNEL_ENCAP_FLAG_CSUM)
++			tflags |= TUNNEL_CSUM;
++
++		gre_hdrlen = gre_calc_hlen(tflags);
++
++		max_headroom += gre_hdrlen;
++	}
++
+  	/* We only care about the df field if sysctl_pmtu_disc(ipvs) is set */
+  	dfp = sysctl_pmtu_disc(ipvs) ? &df : NULL;
+  	skb = ip_vs_prepare_tunneled_skb(skb, cp->af, max_headroom,
+@@ -1174,6 +1217,13 @@ static inline int __tun_gso_type_mask(int encaps_af, int 
+orig_af)
+  		}
+  	}
 
-"modprobe xfrm_user":
-    xfrm_user_init()
-        register_pernet_subsys()
-            -> grab pernet_ops_rwsem
-                ..
-                netlink_table_grab()
-                    calls schedule() as "nl_table_users" is non-zero
++	if (tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GRE) {
++		if (tun_flags & IP_VS_TUNNEL_ENCAP_FLAG_CSUM)
++			gso_type |= SKB_GSO_GRE_CSUM;
++		else
++			gso_type |= SKB_GSO_GRE;
++	}
++
+  	if (iptunnel_handle_offloads(skb, gso_type))
+  		goto tx_error;
 
+@@ -1194,6 +1244,9 @@ static inline int __tun_gso_type_mask(int encaps_af, int 
+orig_af)
+  		udp_set_csum(!check, skb, saddr, cp->daddr.ip, skb->len);
+  	}
 
-conntrack netlink related program "info_iponline" does this in parallel:
-    netlink_bind()
-        netlink_lock_table() -> increases "nl_table_users"
-            nfnetlink_bind()
-            # does not unlock the table as it's locked by netlink_bind()
-                __request_module()
-                    call_usermodehelper_exec()
-            
++	if (tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GRE) {
++		ipvs_gre_encap(net, skb, cp, &next_protocol);
++	}
 
-"modprobe nf_conntrack_netlink" runs and inits nf_conntrack_netlink:
-    ctnetlink_init()
-        register_pernet_subsys()
-            -> blocks on "pernet_ops_rwsem" thanks to xfrm_user module
-                -> schedule()
-                    -> deadlock forever
+  	skb_push(skb, sizeof(struct iphdr));
+  	skb_reset_network_header(skb);
+@@ -1289,6 +1342,18 @@ static inline int __tun_gso_type_mask(int encaps_af, int 
+orig_af)
+  		max_headroom += sizeof(struct udphdr) + gue_hdrlen;
+  	}
 
++	if (tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GRE) {
++		size_t gre_hdrlen;
++		__be16 tflags = 0;
++
++		if (tun_flags & IP_VS_TUNNEL_ENCAP_FLAG_CSUM)
++			tflags |= TUNNEL_CSUM;
++
++		gre_hdrlen = gre_calc_hlen(tflags);
++
++		max_headroom += gre_hdrlen;
++	}
++
+  	skb = ip_vs_prepare_tunneled_skb(skb, cp->af, max_headroom,
+  					 &next_protocol, &payload_len,
+  					 &dsfield, &ttl, NULL);
+@@ -1308,6 +1373,13 @@ static inline int __tun_gso_type_mask(int encaps_af, int 
+orig_af)
+  		}
+  	}
 
-Full stack traces:
++	if (tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GRE) {
++		if (tun_flags & IP_VS_TUNNEL_ENCAP_FLAG_CSUM)
++			gso_type |= SKB_GSO_GRE_CSUM;
++		else
++			gso_type |= SKB_GSO_GRE;
++	}
++
+  	if (iptunnel_handle_offloads(skb, gso_type))
+  		goto tx_error;
 
-strongswan starts on boot and loads "xfrm_user":
+@@ -1328,6 +1400,10 @@ static inline int __tun_gso_type_mask(int encaps_af, int 
+orig_af)
+  		udp6_set_csum(!check, skb, &saddr, &cp->daddr.in6, skb->len);
+  	}
 
-kernel: modprobe        D    0  3825   3762 0x80000080
-kernel: Call Trace:
-kernel: __schedule+0x188/0x4d0
-kernel: ? add_wait_queue_exclusive+0x4d/0x60
-kernel: schedule+0x21/0x70
-kernel: netlink_table_grab+0x9a/0xf0
-kernel: ? wake_up_q+0x60/0x60
-kernel: __netlink_kernel_create+0x15f/0x1e0
-kernel: xfrm_user_net_init+0x45/0x80 [xfrm_user]
-kernel: ? xfrm_user_net_exit+0x60/0x60 [xfrm_user]
-kernel: ops_init+0x68/0x100
-kernel: ? vprintk_emit+0x9e/0x1a0
-kernel: ? 0xf826c000
-kernel: ? xfrm_dump_sa+0x120/0x120 [xfrm_user]
-kernel: register_pernet_operations+0xef/0x1d0
-kernel: ? 0xf826c000
-kernel: register_pernet_subsys+0x1c/0x30
-kernel: xfrm_user_init+0x18/0x1000 [xfrm_user]
-kernel: do_one_initcall+0x44/0x190
-kernel: ? free_unref_page_commit+0x6a/0xd0
-kernel: do_init_module+0x46/0x1c0
-kernel: load_module+0x1dc1/0x2400
-kernel: sys_init_module+0xed/0x120
-kernel: do_fast_syscall_32+0x7a/0x200
-kernel: entry_SYSENTER_32+0x6b/0xbe
-
-
-Another program triggers a conntrack netlink operation in parallel:
-
-kernel: info_iponline   D    0  3787   3684 0x00000084
-kernel: Call Trace:
-kernel: __schedule+0x188/0x4d0
-kernel: schedule+0x21/0x70
-kernel: schedule_timeout+0x195/0x260
-kernel: ? wake_up_process+0xf/0x20
-kernel: ? insert_work+0x86/0xa0
-kernel: wait_for_common+0xe2/0x190
-kernel: ? wake_up_q+0x60/0x60
-kernel: wait_for_completion_killable+0x12/0x30
-kernel: call_usermodehelper_exec+0xda/0x170
-kernel: __request_module+0x115/0x2e0
-kernel: ? __wake_up_common_lock+0x7a/0xa0
-kernel: ? __wake_up+0xd/0x20
-kernel: nfnetlink_bind+0x28/0x53 [nfnetlink]
-kernel: netlink_bind+0x138/0x300
-kernel: ? netlink_setsockopt+0x320/0x320
-kernel: __sys_bind+0x65/0xb0
-kernel: ? __audit_syscall_exit+0x1fb/0x270
-kernel: ? __audit_syscall_entry+0xad/0xf0
-kernel: sys_socketcall+0x2f0/0x350
-kernel: ? _cond_resched+0x12/0x40
-kernel: do_fast_syscall_32+0x7a/0x200
-kernel: entry_SYSENTER_32+0x6b/0xbe
-
-
-This triggers a module load by the kernel:
-
-kernel: modprobe        D    0  3827   1578 0x80000080
-kernel: Call Trace:
-kernel: __schedule+0x188/0x4d0
-kernel: schedule+0x21/0x70
-kernel: rwsem_down_write_failed+0xf5/0x210
-kernel: ? 0xf8283000
-kernel: call_rwsem_down_write_failed+0x9/0xc
-kernel: down_write+0x18/0x30
-kernel: register_pernet_subsys+0x10/0x30
-kernel: ctnetlink_init+0x48/0x1000 [nf_conntrack_netlink]
-kernel: do_one_initcall+0x44/0x190
-kernel: ? free_unref_page_commit+0x6a/0xd0
-kernel: do_init_module+0x46/0x1c0
-kernel: load_module+0x1dc1/0x2400
-kernel: sys_init_module+0xed/0x120
-kernel: do_fast_syscall_32+0x7a/0x200
-kernel: entry_SYSENTER_32+0x6b/0xbe
-
-
-Other network related operations are deadlocked in netlink_table_grab():
-
-kernel: ntpd            D    0  3831   3830 0x00000080
-kernel: Call Trace:
-kernel: __schedule+0x188/0x4d0
-kernel: ? add_wait_queue_exclusive+0x4d/0x60
-kernel: schedule+0x21/0x70
-kernel: netlink_table_grab+0x9a/0xf0
-kernel: ? wake_up_q+0x60/0x60
-kernel: netlink_release+0x14e/0x460
-kernel: __sock_release+0x2d/0xb0
-kernel: sock_close+0xd/0x20
-kernel: __fput+0x93/0x1c0
-kernel: ____fput+0x8/0x10
-kernel: task_work_run+0x82/0xa0
-kernel: exit_to_usermode_loop+0x8d/0x90
-kernel: do_fast_syscall_32+0x1a7/0x200
-kernel: entry_SYSENTER_32+0x6b/0xbe
-
-
-The easy workaround for us is to load the conntrack netlink
-modules before starting strongswan. Since we use classic init,
-this works. In parallel booting systemd world, people might
-still hit the issue, so it's worth fixing.
-
-The related function netlink_create() unlocks the table
-before requesting modules and locks it afterwards again.
-
-We guess it's racy to call netlink_unlock_table()
-before doing the 
-    
-    err = nlk->netlink_bind(net, group + 1);
-    
-call in netlink_bind() ?
-
-
-What would be the best fix here?
-
-Best regards,
-Thomas Jarosch and Juliana Rodrigueiro
++	if (tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GRE) {
++		ipvs_gre_encap(net, skb, cp, &next_protocol);
++	}
++
+  	skb_push(skb, sizeof(struct ipv6hdr));
+  	skb_reset_network_header(skb);
+  	memset(&(IPCB(skb)->opt), 0, sizeof(IPCB(skb)->opt));
+-- 
+1.9.1
