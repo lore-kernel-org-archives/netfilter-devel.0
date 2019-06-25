@@ -4,47 +4,48 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-8.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 99609C4646B
-	for <netfilter-devel@archiver.kernel.org>; Tue, 25 Jun 2019 00:14:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 478BEC48BD3
+	for <netfilter-devel@archiver.kernel.org>; Tue, 25 Jun 2019 00:14:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7D51C2077C
-	for <netfilter-devel@archiver.kernel.org>; Tue, 25 Jun 2019 00:14:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2113F205ED
+	for <netfilter-devel@archiver.kernel.org>; Tue, 25 Jun 2019 00:14:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729392AbfFYAMv (ORCPT
+        id S1729253AbfFYAOh (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 24 Jun 2019 20:12:51 -0400
-Received: from mail.us.es ([193.147.175.20]:38014 "EHLO mail.us.es"
+        Mon, 24 Jun 2019 20:14:37 -0400
+Received: from mail.us.es ([193.147.175.20]:38026 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729305AbfFYAMt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 24 Jun 2019 20:12:49 -0400
+        id S1729347AbfFYAMv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 24 Jun 2019 20:12:51 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 330B2C04A8
-        for <netfilter-devel@vger.kernel.org>; Tue, 25 Jun 2019 02:12:48 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 7F7A2C04B8
+        for <netfilter-devel@vger.kernel.org>; Tue, 25 Jun 2019 02:12:49 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 1F1D9DA705
-        for <netfilter-devel@vger.kernel.org>; Tue, 25 Jun 2019 02:12:48 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 71209DA70B
+        for <netfilter-devel@vger.kernel.org>; Tue, 25 Jun 2019 02:12:49 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 14043DA702; Tue, 25 Jun 2019 02:12:48 +0200 (CEST)
+        id 66950DA709; Tue, 25 Jun 2019 02:12:49 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 00A83DA70D;
-        Tue, 25 Jun 2019 02:12:46 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 1A276DA704;
+        Tue, 25 Jun 2019 02:12:47 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 25 Jun 2019 02:12:46 +0200 (CEST)
+ Tue, 25 Jun 2019 02:12:47 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id CB4234265A2F;
-        Tue, 25 Jun 2019 02:12:45 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id E50F24265A2F;
+        Tue, 25 Jun 2019 02:12:46 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 10/26] netfilter: conntrack: small conntrack lookup optimization
-Date:   Tue, 25 Jun 2019 02:12:17 +0200
-Message-Id: <20190625001233.22057-11-pablo@netfilter.org>
+Subject: [PATCH 12/26] netfilter: bridge: port sysctls to use brnf_net
+Date:   Tue, 25 Jun 2019 02:12:19 +0200
+Message-Id: <20190625001233.22057-13-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20190625001233.22057-1-pablo@netfilter.org>
 References: <20190625001233.22057-1-pablo@netfilter.org>
@@ -54,151 +55,403 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+From: Christian Brauner <christian@brauner.io>
 
-____nf_conntrack_find() performs checks on the conntrack objects in
-this order:
+This ports the sysctls to use struct brnf_net.
 
-1. if (nf_ct_is_expired(ct))
+With this patch we make it possible to namespace the br_netfilter module in
+the following patch.
 
-This fetches ct->timeout, in third cache line.
-
-The hnnode that is used to store the list pointers resides in the first
-(origin) or second (reply tuple) cache lines.
-
-This test rarely passes, but its necessary to reap obsolete entries.
-
-2. if (nf_ct_is_dying(ct))
-
-This fetches ct->status, also in third cache line.
-
-The test is useless, and can be removed:
-  Consider:
-     cpu0                                           cpu1
-    ct = ____nf_conntrack_find()
-    atomic_inc_not_zero(ct) -> ok
-    nf_ct_key_equal -> ok
-    is_dying -> DYING bit not set, ok
-                                                    set_bit(ct, DYING);
-						    ... unhash ... etc.
-    return ct
-    -> returning a ct with dying bit set, despite
-    having a test for it.
-
-This (unlikely) case is fine - refcount prevents ct from getting free'd.
-
-3. if (nf_ct_key_equal(h, tuple, zone, net))
-
-nf_ct_key_equal checks in following order:
-
-1. Tuple equal (first or second cacheline)
-2. Zone equal (third cacheline)
-3. confirmed bit set (->status, third cacheline)
-4. net namespace match (third cacheline).
-
-Swapping "timeout" and "cpu" places timeout in the first cacheline.
-This has two advantages:
-
-1. For a conntrack that won't even match the original tuple,
-   we will now only fetch the first and maybe the second cacheline
-   instead of always accessing the 3rd one as well.
-
-2.  in case of TCP ct->timeout changes frequently because we
-    reduce/increase it when there are packets outstanding in the network.
-
-The first cacheline contains both the reference count and the ct spinlock,
-i.e. moving timeout there avoids writes to 3rd cacheline.
-
-The restart sequence in __nf_conntrack_find() is removed, if we found a
-candidate, but then fail to increment the refcount or discover the tuple
-has changed (object recycling), just pretend we did not find an entry.
-
-A second lookup won't find anything until another CPU adds a new conntrack
-with identical tuple into the hash table, which is very unlikely.
-
-We have the confirmation-time checks (when we hold hash lock) that deal
-with identical entries and even perform clash resolution in some cases.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Christian Brauner <christian.brauner@ubuntu.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_conntrack.h |  7 +++----
- net/netfilter/nf_conntrack_core.c    | 25 +++++++++++++------------
- 2 files changed, 16 insertions(+), 16 deletions(-)
+ include/net/netfilter/br_netfilter.h |   3 +-
+ net/bridge/br_netfilter_hooks.c      | 162 ++++++++++++++++++++++-------------
+ net/bridge/br_netfilter_ipv6.c       |   2 +-
+ 3 files changed, 107 insertions(+), 60 deletions(-)
 
-diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
-index 5cb19ce454d1..c86657d99630 100644
---- a/include/net/netfilter/nf_conntrack.h
-+++ b/include/net/netfilter/nf_conntrack.h
-@@ -70,7 +70,8 @@ struct nf_conn {
- 	struct nf_conntrack ct_general;
+diff --git a/include/net/netfilter/br_netfilter.h b/include/net/netfilter/br_netfilter.h
+index 89808ce293c4..302fcd3aade2 100644
+--- a/include/net/netfilter/br_netfilter.h
++++ b/include/net/netfilter/br_netfilter.h
+@@ -42,7 +42,8 @@ static inline struct rtable *bridge_parent_rtable(const struct net_device *dev)
+ 	return port ? &port->br->fake_rtable : NULL;
+ }
  
- 	spinlock_t	lock;
--	u16		cpu;
-+	/* jiffies32 when this ct is considered dead */
-+	u32 timeout;
+-struct net_device *setup_pre_routing(struct sk_buff *skb);
++struct net_device *setup_pre_routing(struct sk_buff *skb,
++				     const struct net *net);
  
- #ifdef CONFIG_NF_CONNTRACK_ZONES
- 	struct nf_conntrack_zone zone;
-@@ -82,9 +83,7 @@ struct nf_conn {
- 	/* Have we seen traffic both ways yet? (bitset) */
- 	unsigned long status;
+ #if IS_ENABLED(CONFIG_IPV6)
+ int br_validate_ipv6(struct net *net, struct sk_buff *skb);
+diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
+index 22afa566cbce..3c67754d8075 100644
+--- a/net/bridge/br_netfilter_hooks.c
++++ b/net/bridge/br_netfilter_hooks.c
+@@ -49,27 +49,24 @@
  
--	/* jiffies32 when this ct is considered dead */
--	u32 timeout;
+ static unsigned int brnf_net_id __read_mostly;
+ 
+-struct brnf_net {
+-	bool enabled;
+-};
 -
-+	u16		cpu;
- 	possible_net_t ct_net;
+ #ifdef CONFIG_SYSCTL
+ static struct ctl_table_header *brnf_sysctl_header;
+-static int brnf_call_iptables __read_mostly = 1;
+-static int brnf_call_ip6tables __read_mostly = 1;
+-static int brnf_call_arptables __read_mostly = 1;
+-static int brnf_filter_vlan_tagged __read_mostly;
+-static int brnf_filter_pppoe_tagged __read_mostly;
+-static int brnf_pass_vlan_indev __read_mostly;
+-#else
+-#define brnf_call_iptables 1
+-#define brnf_call_ip6tables 1
+-#define brnf_call_arptables 1
+-#define brnf_filter_vlan_tagged 0
+-#define brnf_filter_pppoe_tagged 0
+-#define brnf_pass_vlan_indev 0
+ #endif
  
- #if IS_ENABLED(CONFIG_NF_NAT)
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 2a714527cde1..2855a2e39fc4 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -752,9 +752,6 @@ ____nf_conntrack_find(struct net *net, const struct nf_conntrack_zone *zone,
- 			continue;
- 		}
++struct brnf_net {
++	bool enabled;
++
++	/* default value is 1 */
++	int call_iptables;
++	int call_ip6tables;
++	int call_arptables;
++
++	/* default value is 0 */
++	int filter_vlan_tagged;
++	int filter_pppoe_tagged;
++	int pass_vlan_indev;
++};
++
+ #define IS_IP(skb) \
+ 	(!skb_vlan_tag_present(skb) && skb->protocol == htons(ETH_P_IP))
  
--		if (nf_ct_is_dying(ct))
--			continue;
--
- 		if (nf_ct_key_equal(h, tuple, zone, net))
- 			return h;
+@@ -89,17 +86,28 @@ static inline __be16 vlan_proto(const struct sk_buff *skb)
+ 		return 0;
+ }
+ 
+-#define IS_VLAN_IP(skb) \
+-	(vlan_proto(skb) == htons(ETH_P_IP) && \
+-	 brnf_filter_vlan_tagged)
++static inline bool is_vlan_ip(const struct sk_buff *skb, const struct net *net)
++{
++	struct brnf_net *brnet = net_generic(net, brnf_net_id);
++
++	return vlan_proto(skb) == htons(ETH_P_IP) && brnet->filter_vlan_tagged;
++}
++
++static inline bool is_vlan_ipv6(const struct sk_buff *skb,
++				const struct net *net)
++{
++	struct brnf_net *brnet = net_generic(net, brnf_net_id);
+ 
+-#define IS_VLAN_IPV6(skb) \
+-	(vlan_proto(skb) == htons(ETH_P_IPV6) && \
+-	 brnf_filter_vlan_tagged)
++	return vlan_proto(skb) == htons(ETH_P_IPV6) &&
++	       brnet->filter_vlan_tagged;
++}
+ 
+-#define IS_VLAN_ARP(skb) \
+-	(vlan_proto(skb) == htons(ETH_P_ARP) &&	\
+-	 brnf_filter_vlan_tagged)
++static inline bool is_vlan_arp(const struct sk_buff *skb, const struct net *net)
++{
++	struct brnf_net *brnet = net_generic(net, brnf_net_id);
++
++	return vlan_proto(skb) == htons(ETH_P_ARP) && brnet->filter_vlan_tagged;
++}
+ 
+ static inline __be16 pppoe_proto(const struct sk_buff *skb)
+ {
+@@ -107,15 +115,23 @@ static inline __be16 pppoe_proto(const struct sk_buff *skb)
+ 			    sizeof(struct pppoe_hdr)));
+ }
+ 
+-#define IS_PPPOE_IP(skb) \
+-	(skb->protocol == htons(ETH_P_PPP_SES) && \
+-	 pppoe_proto(skb) == htons(PPP_IP) && \
+-	 brnf_filter_pppoe_tagged)
++static inline bool is_pppoe_ip(const struct sk_buff *skb, const struct net *net)
++{
++	struct brnf_net *brnet = net_generic(net, brnf_net_id);
++
++	return skb->protocol == htons(ETH_P_PPP_SES) &&
++	       pppoe_proto(skb) == htons(PPP_IP) && brnet->filter_pppoe_tagged;
++}
++
++static inline bool is_pppoe_ipv6(const struct sk_buff *skb,
++				 const struct net *net)
++{
++	struct brnf_net *brnet = net_generic(net, brnf_net_id);
+ 
+-#define IS_PPPOE_IPV6(skb) \
+-	(skb->protocol == htons(ETH_P_PPP_SES) && \
+-	 pppoe_proto(skb) == htons(PPP_IPV6) && \
+-	 brnf_filter_pppoe_tagged)
++	return skb->protocol == htons(ETH_P_PPP_SES) &&
++	       pppoe_proto(skb) == htons(PPP_IPV6) &&
++	       brnet->filter_pppoe_tagged;
++}
+ 
+ /* largest possible L2 header, see br_nf_dev_queue_xmit() */
+ #define NF_BRIDGE_MAX_MAC_HEADER_LENGTH (PPPOE_SES_HLEN + ETH_HLEN)
+@@ -412,12 +428,16 @@ static int br_nf_pre_routing_finish(struct net *net, struct sock *sk, struct sk_
+ 	return 0;
+ }
+ 
+-static struct net_device *brnf_get_logical_dev(struct sk_buff *skb, const struct net_device *dev)
++static struct net_device *brnf_get_logical_dev(struct sk_buff *skb,
++					       const struct net_device *dev,
++					       const struct net *net)
+ {
+ 	struct net_device *vlan, *br;
++	struct brnf_net *brnet = net_generic(net, brnf_net_id);
+ 
+ 	br = bridge_parent(dev);
+-	if (brnf_pass_vlan_indev == 0 || !skb_vlan_tag_present(skb))
++
++	if (brnet->pass_vlan_indev == 0 || !skb_vlan_tag_present(skb))
+ 		return br;
+ 
+ 	vlan = __vlan_find_dev_deep_rcu(br, skb->vlan_proto,
+@@ -427,7 +447,7 @@ static struct net_device *brnf_get_logical_dev(struct sk_buff *skb, const struct
+ }
+ 
+ /* Some common code for IPv4/IPv6 */
+-struct net_device *setup_pre_routing(struct sk_buff *skb)
++struct net_device *setup_pre_routing(struct sk_buff *skb, const struct net *net)
+ {
+ 	struct nf_bridge_info *nf_bridge = nf_bridge_info_get(skb);
+ 
+@@ -438,7 +458,7 @@ struct net_device *setup_pre_routing(struct sk_buff *skb)
+ 
+ 	nf_bridge->in_prerouting = 1;
+ 	nf_bridge->physindev = skb->dev;
+-	skb->dev = brnf_get_logical_dev(skb, skb->dev);
++	skb->dev = brnf_get_logical_dev(skb, skb->dev, net);
+ 
+ 	if (skb->protocol == htons(ETH_P_8021Q))
+ 		nf_bridge->orig_proto = BRNF_PROTO_8021Q;
+@@ -464,6 +484,7 @@ static unsigned int br_nf_pre_routing(void *priv,
+ 	struct net_bridge_port *p;
+ 	struct net_bridge *br;
+ 	__u32 len = nf_bridge_encap_header_len(skb);
++	struct brnf_net *brnet;
+ 
+ 	if (unlikely(!pskb_may_pull(skb, len)))
+ 		return NF_DROP;
+@@ -473,8 +494,10 @@ static unsigned int br_nf_pre_routing(void *priv,
+ 		return NF_DROP;
+ 	br = p->br;
+ 
+-	if (IS_IPV6(skb) || IS_VLAN_IPV6(skb) || IS_PPPOE_IPV6(skb)) {
+-		if (!brnf_call_ip6tables &&
++	brnet = net_generic(state->net, brnf_net_id);
++	if (IS_IPV6(skb) || is_vlan_ipv6(skb, state->net) ||
++	    is_pppoe_ipv6(skb, state->net)) {
++		if (!brnet->call_ip6tables &&
+ 		    !br_opt_get(br, BROPT_NF_CALL_IP6TABLES))
+ 			return NF_ACCEPT;
+ 
+@@ -482,10 +505,11 @@ static unsigned int br_nf_pre_routing(void *priv,
+ 		return br_nf_pre_routing_ipv6(priv, skb, state);
  	}
-@@ -780,20 +777,24 @@ __nf_conntrack_find_get(struct net *net, const struct nf_conntrack_zone *zone,
- 	struct nf_conn *ct;
  
- 	rcu_read_lock();
--begin:
-+
- 	h = ____nf_conntrack_find(net, zone, tuple, hash);
- 	if (h) {
-+		/* We have a candidate that matches the tuple we're interested
-+		 * in, try to obtain a reference and re-check tuple
-+		 */
- 		ct = nf_ct_tuplehash_to_ctrack(h);
--		if (unlikely(nf_ct_is_dying(ct) ||
--			     !atomic_inc_not_zero(&ct->ct_general.use)))
--			h = NULL;
--		else {
--			if (unlikely(!nf_ct_key_equal(h, tuple, zone, net))) {
--				nf_ct_put(ct);
--				goto begin;
--			}
-+		if (likely(atomic_inc_not_zero(&ct->ct_general.use))) {
-+			if (likely(nf_ct_key_equal(h, tuple, zone, net)))
-+				goto found;
-+
-+			/* TYPESAFE_BY_RCU recycled the candidate */
-+			nf_ct_put(ct);
- 		}
-+
-+		h = NULL;
+-	if (!brnf_call_iptables && !br_opt_get(br, BROPT_NF_CALL_IPTABLES))
++	if (!brnet->call_iptables && !br_opt_get(br, BROPT_NF_CALL_IPTABLES))
+ 		return NF_ACCEPT;
+ 
+-	if (!IS_IP(skb) && !IS_VLAN_IP(skb) && !IS_PPPOE_IP(skb))
++	if (!IS_IP(skb) && !is_vlan_ip(skb, state->net) &&
++	    !is_pppoe_ip(skb, state->net))
+ 		return NF_ACCEPT;
+ 
+ 	nf_bridge_pull_encap_header_rcsum(skb);
+@@ -495,7 +519,7 @@ static unsigned int br_nf_pre_routing(void *priv,
+ 
+ 	if (!nf_bridge_alloc(skb))
+ 		return NF_DROP;
+-	if (!setup_pre_routing(skb))
++	if (!setup_pre_routing(skb, state->net))
+ 		return NF_DROP;
+ 
+ 	nf_bridge = nf_bridge_info_get(skb);
+@@ -518,7 +542,7 @@ static int br_nf_forward_finish(struct net *net, struct sock *sk, struct sk_buff
+ 	struct nf_bridge_info *nf_bridge = nf_bridge_info_get(skb);
+ 	struct net_device *in;
+ 
+-	if (!IS_ARP(skb) && !IS_VLAN_ARP(skb)) {
++	if (!IS_ARP(skb) && !is_vlan_arp(skb, net)) {
+ 
+ 		if (skb->protocol == htons(ETH_P_IP))
+ 			nf_bridge->frag_max_size = IPCB(skb)->frag_max_size;
+@@ -573,9 +597,11 @@ static unsigned int br_nf_forward_ip(void *priv,
+ 	if (!parent)
+ 		return NF_DROP;
+ 
+-	if (IS_IP(skb) || IS_VLAN_IP(skb) || IS_PPPOE_IP(skb))
++	if (IS_IP(skb) || is_vlan_ip(skb, state->net) ||
++	    is_pppoe_ip(skb, state->net))
+ 		pf = NFPROTO_IPV4;
+-	else if (IS_IPV6(skb) || IS_VLAN_IPV6(skb) || IS_PPPOE_IPV6(skb))
++	else if (IS_IPV6(skb) || is_vlan_ipv6(skb, state->net) ||
++		 is_pppoe_ipv6(skb, state->net))
+ 		pf = NFPROTO_IPV6;
+ 	else
+ 		return NF_ACCEPT;
+@@ -606,7 +632,7 @@ static unsigned int br_nf_forward_ip(void *priv,
+ 		skb->protocol = htons(ETH_P_IPV6);
+ 
+ 	NF_HOOK(pf, NF_INET_FORWARD, state->net, NULL, skb,
+-		brnf_get_logical_dev(skb, state->in),
++		brnf_get_logical_dev(skb, state->in, state->net),
+ 		parent,	br_nf_forward_finish);
+ 
+ 	return NF_STOLEN;
+@@ -619,23 +645,25 @@ static unsigned int br_nf_forward_arp(void *priv,
+ 	struct net_bridge_port *p;
+ 	struct net_bridge *br;
+ 	struct net_device **d = (struct net_device **)(skb->cb);
++	struct brnf_net *brnet;
+ 
+ 	p = br_port_get_rcu(state->out);
+ 	if (p == NULL)
+ 		return NF_ACCEPT;
+ 	br = p->br;
+ 
+-	if (!brnf_call_arptables && !br_opt_get(br, BROPT_NF_CALL_ARPTABLES))
++	brnet = net_generic(state->net, brnf_net_id);
++	if (!brnet->call_arptables && !br_opt_get(br, BROPT_NF_CALL_ARPTABLES))
+ 		return NF_ACCEPT;
+ 
+ 	if (!IS_ARP(skb)) {
+-		if (!IS_VLAN_ARP(skb))
++		if (!is_vlan_arp(skb, state->net))
+ 			return NF_ACCEPT;
+ 		nf_bridge_pull_encap_header(skb);
  	}
-+found:
- 	rcu_read_unlock();
  
- 	return h;
+ 	if (arp_hdr(skb)->ar_pln != 4) {
+-		if (IS_VLAN_ARP(skb))
++		if (is_vlan_arp(skb, state->net))
+ 			nf_bridge_push_encap_header(skb);
+ 		return NF_ACCEPT;
+ 	}
+@@ -795,9 +823,11 @@ static unsigned int br_nf_post_routing(void *priv,
+ 	if (!realoutdev)
+ 		return NF_DROP;
+ 
+-	if (IS_IP(skb) || IS_VLAN_IP(skb) || IS_PPPOE_IP(skb))
++	if (IS_IP(skb) || is_vlan_ip(skb, state->net) ||
++	    is_pppoe_ip(skb, state->net))
+ 		pf = NFPROTO_IPV4;
+-	else if (IS_IPV6(skb) || IS_VLAN_IPV6(skb) || IS_PPPOE_IPV6(skb))
++	else if (IS_IPV6(skb) || is_vlan_ipv6(skb, state->net) ||
++		 is_pppoe_ipv6(skb, state->net))
+ 		pf = NFPROTO_IPV6;
+ 	else
+ 		return NF_ACCEPT;
+@@ -1025,53 +1055,59 @@ int brnf_sysctl_call_tables(struct ctl_table *ctl, int write,
+ static struct ctl_table brnf_table[] = {
+ 	{
+ 		.procname	= "bridge-nf-call-arptables",
+-		.data		= &brnf_call_arptables,
+ 		.maxlen		= sizeof(int),
+ 		.mode		= 0644,
+ 		.proc_handler	= brnf_sysctl_call_tables,
+ 	},
+ 	{
+ 		.procname	= "bridge-nf-call-iptables",
+-		.data		= &brnf_call_iptables,
+ 		.maxlen		= sizeof(int),
+ 		.mode		= 0644,
+ 		.proc_handler	= brnf_sysctl_call_tables,
+ 	},
+ 	{
+ 		.procname	= "bridge-nf-call-ip6tables",
+-		.data		= &brnf_call_ip6tables,
+ 		.maxlen		= sizeof(int),
+ 		.mode		= 0644,
+ 		.proc_handler	= brnf_sysctl_call_tables,
+ 	},
+ 	{
+ 		.procname	= "bridge-nf-filter-vlan-tagged",
+-		.data		= &brnf_filter_vlan_tagged,
+ 		.maxlen		= sizeof(int),
+ 		.mode		= 0644,
+ 		.proc_handler	= brnf_sysctl_call_tables,
+ 	},
+ 	{
+ 		.procname	= "bridge-nf-filter-pppoe-tagged",
+-		.data		= &brnf_filter_pppoe_tagged,
+ 		.maxlen		= sizeof(int),
+ 		.mode		= 0644,
+ 		.proc_handler	= brnf_sysctl_call_tables,
+ 	},
+ 	{
+ 		.procname	= "bridge-nf-pass-vlan-input-dev",
+-		.data		= &brnf_pass_vlan_indev,
+ 		.maxlen		= sizeof(int),
+ 		.mode		= 0644,
+ 		.proc_handler	= brnf_sysctl_call_tables,
+ 	},
+ 	{ }
+ };
++
++static inline void br_netfilter_sysctl_default(struct brnf_net *brnf)
++{
++	brnf->call_iptables = 1;
++	brnf->call_ip6tables = 1;
++	brnf->call_arptables = 1;
++	brnf->filter_vlan_tagged = 0;
++	brnf->filter_pppoe_tagged = 0;
++	brnf->pass_vlan_indev = 0;
++}
++
+ #endif
+ 
+ static int __init br_netfilter_init(void)
+ {
+ 	int ret;
++	struct brnf_net *brnet;
+ 
+ 	ret = register_pernet_subsys(&brnf_net_ops);
+ 	if (ret < 0)
+@@ -1084,6 +1120,16 @@ static int __init br_netfilter_init(void)
+ 	}
+ 
+ #ifdef CONFIG_SYSCTL
++	brnet = net_generic(&init_net, brnf_net_id);
++	brnf_table[0].data = &brnet->call_arptables;
++	brnf_table[1].data = &brnet->call_iptables;
++	brnf_table[2].data = &brnet->call_ip6tables;
++	brnf_table[3].data = &brnet->filter_vlan_tagged;
++	brnf_table[4].data = &brnet->filter_pppoe_tagged;
++	brnf_table[5].data = &brnet->pass_vlan_indev;
++
++	br_netfilter_sysctl_default(brnet);
++
+ 	brnf_sysctl_header = register_net_sysctl(&init_net, "net/bridge", brnf_table);
+ 	if (brnf_sysctl_header == NULL) {
+ 		printk(KERN_WARNING
+diff --git a/net/bridge/br_netfilter_ipv6.c b/net/bridge/br_netfilter_ipv6.c
+index e88d6641647b..d77304e4e31a 100644
+--- a/net/bridge/br_netfilter_ipv6.c
++++ b/net/bridge/br_netfilter_ipv6.c
+@@ -228,7 +228,7 @@ unsigned int br_nf_pre_routing_ipv6(void *priv,
+ 	nf_bridge = nf_bridge_alloc(skb);
+ 	if (!nf_bridge)
+ 		return NF_DROP;
+-	if (!setup_pre_routing(skb))
++	if (!setup_pre_routing(skb, state->net))
+ 		return NF_DROP;
+ 
+ 	nf_bridge = nf_bridge_info_get(skb);
 -- 
 2.11.0
 
