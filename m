@@ -2,92 +2,147 @@ Return-Path: <SRS0=l45K=UY=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_NEOMUTT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F32AC48BD4
-	for <netfilter-devel@archiver.kernel.org>; Tue, 25 Jun 2019 08:32:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8A750C48BD5
+	for <netfilter-devel@archiver.kernel.org>; Tue, 25 Jun 2019 08:51:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 128D0216C8
-	for <netfilter-devel@archiver.kernel.org>; Tue, 25 Jun 2019 08:32:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6E432215EA
+	for <netfilter-devel@archiver.kernel.org>; Tue, 25 Jun 2019 08:51:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729574AbfFYIcA (ORCPT
+        id S1730865AbfFYIvQ convert rfc822-to-8bit (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 25 Jun 2019 04:32:00 -0400
-Received: from mail.us.es ([193.147.175.20]:59816 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726702AbfFYIcA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 25 Jun 2019 04:32:00 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id C6F04C1A7E
-        for <netfilter-devel@vger.kernel.org>; Tue, 25 Jun 2019 10:31:57 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id A83B5114D8C
-        for <netfilter-devel@vger.kernel.org>; Tue, 25 Jun 2019 10:31:57 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id A6F72DA708; Tue, 25 Jun 2019 10:31:57 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 658AD1021A4;
-        Tue, 25 Jun 2019 10:31:55 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 25 Jun 2019 10:31:55 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (sys.soleta.eu [212.170.55.40])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id F20AF4265A2F;
-        Tue, 25 Jun 2019 10:31:54 +0200 (CEST)
-Date:   Tue, 25 Jun 2019 10:31:54 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Jiri Pirko <jiri@resnulli.us>
-Cc:     netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        davem@davemloft.net, thomas.lendacky@amd.com, f.fainelli@gmail.com,
-        ariel.elior@cavium.com, michael.chan@broadcom.com,
-        santosh@chelsio.com, madalin.bucur@nxp.com,
-        yisen.zhuang@huawei.com, salil.mehta@huawei.com,
-        jeffrey.t.kirsher@intel.com, tariqt@mellanox.com,
-        saeedm@mellanox.com, jiri@mellanox.com, idosch@mellanox.com,
-        jakub.kicinski@netronome.com, peppe.cavallaro@st.com,
-        grygorii.strashko@ti.com, andrew@lunn.ch,
-        vivien.didelot@savoirfairelinux.com, alexandre.torgue@st.com,
-        joabreu@synopsys.com, linux-net-drivers@solarflare.com,
-        ganeshgr@chelsio.com, ogerlitz@mellanox.com,
-        Manish.Chopra@cavium.com, marcelo.leitner@gmail.com,
-        mkubecek@suse.cz, venkatkumar.duvvuru@broadcom.com,
-        cphealy@gmail.com
-Subject: Re: [PATCH net-next 04/12] net: sched: add tcf_block_setup()
-Message-ID: <20190625083154.jfzhh22zsl3fu2ik@salvia>
-References: <20190620194917.2298-1-pablo@netfilter.org>
- <20190620194917.2298-5-pablo@netfilter.org>
- <20190621171603.GF2414@nanopsycho.orion>
+        Tue, 25 Jun 2019 04:51:16 -0400
+Received: from szxga03-in.huawei.com ([45.249.212.189]:6540 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1727770AbfFYIvP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 25 Jun 2019 04:51:15 -0400
+Received: from DGGEMM406-HUB.china.huawei.com (unknown [172.30.72.53])
+        by Forcepoint Email with ESMTP id 300846512F1C986639E3;
+        Tue, 25 Jun 2019 16:51:13 +0800 (CST)
+Received: from dggeme715-chm.china.huawei.com (10.1.199.111) by
+ DGGEMM406-HUB.china.huawei.com (10.3.20.214) with Microsoft SMTP Server (TLS)
+ id 14.3.439.0; Tue, 25 Jun 2019 16:51:12 +0800
+Received: from dggeme763-chm.china.huawei.com (10.3.19.109) by
+ dggeme715-chm.china.huawei.com (10.1.199.111) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
+ 15.1.1591.10; Tue, 25 Jun 2019 16:51:12 +0800
+Received: from dggeme763-chm.china.huawei.com ([10.6.66.36]) by
+ dggeme763-chm.china.huawei.com ([10.6.66.36]) with mapi id 15.01.1591.008;
+ Tue, 25 Jun 2019 16:51:12 +0800
+From:   linmiaohe <linmiaohe@huawei.com>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+CC:     "kadlec@blackhole.kfki.hu" <kadlec@blackhole.kfki.hu>,
+        "fw@strlen.de" <fw@strlen.de>,
+        "davem@davemloft.net" <davem@davemloft.net>,
+        "kuznet@ms2.inr.ac.ru" <kuznet@ms2.inr.ac.ru>,
+        "yoshfuji@linux-ipv6.org" <yoshfuji@linux-ipv6.org>,
+        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+        "coreteam@netfilter.org" <coreteam@netfilter.org>,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "dsahern@gmail.com" <dsahern@gmail.com>,
+        Mingfangsen <mingfangsen@huawei.com>
+Subject: Re: [PATCH v3] net: netfilter: Fix rpfilter dropping vrf packets by
+ mistake
+Thread-Topic: [PATCH v3] net: netfilter: Fix rpfilter dropping vrf packets by
+ mistake
+Thread-Index: AdUrMtZeJBRdmfpcd0eT0vsD259sjw==
+Date:   Tue, 25 Jun 2019 08:51:12 +0000
+Message-ID: <badbfdd3c6474994a481375dad2a51f3@huawei.com>
+Accept-Language: en-US
+Content-Language: zh-CN
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+x-originating-ip: [10.184.189.20]
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190621171603.GF2414@nanopsycho.orion>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+X-CFilter-Loop: Reflected
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Jun 21, 2019 at 07:16:03PM +0200, Jiri Pirko wrote:
-> Thu, Jun 20, 2019 at 09:49:09PM CEST, pablo@netfilter.org wrote:
-> 
-> [...]
-> 
-> > 
-> >+static LIST_HEAD(tcf_block_cb_list);
-> 
-> I still don't like the global list. Have to go throught the code more
-> carefully, but why you can't pass the priv/ctx from tc/netfilter. From
-> tc it would be tcf_block as it is now, from netfilter something else.
 
-This tcf_block_cb_list should go away at some point, once drivers know
-how to deal with multiple subsystems using the setup block
-infrastructure. As I said in my previous email, only one can set up
-the block at this stage, the ones coming later will hit busy.
+On Wed, Jun 19, 2019 at 09:49:04AM +0000, linmiaohe wrote:
+> 
+> On 2019/6/18 23:58, Pablo Neira Ayuso wrote:
+> > On Thu, Apr 25, 2019 at 09:43:53PM +0800, linmiaohe wrote:
+> >> From: Miaohe Lin <linmiaohe@huawei.com>
+> >>
+> >> When firewalld is enabled with ipv4/ipv6 rpfilter, vrf
+> >> ipv4/ipv6 packets will be dropped because in device is vrf but out 
+> >> device is an enslaved device. So failed with the check of the 
+> >> rpfilter.
+> >>
+> >> Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+> >> ---
+> >> --- a/net/ipv4/netfilter/ipt_rpfilter.c
+> >> +++ b/net/ipv4/netfilter/ipt_rpfilter.c
+> >> @@ -81,6 +81,7 @@ static bool rpfilter_mt(const struct sk_buff *skb, struct xt_action_param *par)
+> >>  	flow.flowi4_mark = info->flags & XT_RPFILTER_VALID_MARK ? skb->mark : 0;
+> >>  	flow.flowi4_tos = RT_TOS(iph->tos);
+> >>  	flow.flowi4_scope = RT_SCOPE_UNIVERSE;
+> >> +	flow.flowi4_oif = l3mdev_master_ifindex_rcu(xt_in(par));
+> >>
+> >>  	return rpfilter_lookup_reverse(xt_net(par), &flow, xt_in(par),
+> >> --- a/net/ipv6/netfilter/ip6t_rpfilter.c
+> >> +++ b/net/ipv6/netfilter/ip6t_rpfilter.c
+> >> @@ -58,7 +58,9 @@ static bool rpfilter_lookup_reverse6(struct net *net, const struct sk_buff *skb,
+> >>  	if (rpfilter_addr_linklocal(&iph->saddr)) {
+> >>  		lookup_flags |= RT6_LOOKUP_F_IFACE;
+> >>  		fl6.flowi6_oif = dev->ifindex;
+> >> -	} else if ((flags & XT_RPFILTER_LOOSE) == 0)
+> >> +	} else if (((flags & XT_RPFILTER_LOOSE) == 0) ||
+> >> +		   (netif_is_l3_master(dev)) ||
+> >> +		   (netif_is_l3_slave(dev)))
+> >>  		fl6.flowi6_oif = dev->ifindex;
+> >>
+> >>  	rt = (void *)ip6_route_lookup(net, &fl6, skb, lookup_flags); @@
+> >> -73,6 +75,12 @@ static bool rpfilter_lookup_reverse6(struct net *net, const struct sk_buff *skb,
+> >>  		goto out;
+> >>  	}
+> >>
+> >> +	if (netif_is_l3_master(dev)) {
+> >> +		dev = dev_get_by_index_rcu(dev_net(dev), IP6CB(skb)->iif);
+> >> +		if (!dev)
+> >> +			goto out;
+> >> +	}
+> > 
+> > So, for the l3 device cases this makes:
+> > 
+> > #1 ip6_route_lookup() to fetch the route, using the device in xt_in()
+> >    (the _LOOSE flag is ignored for the l3 device case).
+> > 
+> > #2 If this is a l3dev master, then you make a global lookup for the
+> >    device using IP6CB(skb)->iif.
+> > 
+> > #3 You check if route matches with the device, using the new device
+> >    from the lookup:
+> > 
+> >    if (rt->rt6i_idev->dev == dev ...
+> > 
+> > If there is no other way to fix this, OK, that's fair enough.
+> > 
+> > Still this fix looks a bit tricky to me.
+> > 
+> > And this assymmetric between the IPv4 and IPv6 codebase looks rare.
+> > 
+> > Probably someone can explain me this in more detail? I'd appreciate.
+> > 
+> > Thanks!
+> > 
+> Thanks for explaining.
+>
+> Something must be wrong in all these helper function logic because this new code logic is hard to follow for the IPv6 chunk...
+>
+> Can you explore a more readable fix?
+>
+> So I'm not inclined to quickly take this patch.
+>
+> Thanks.
+
+Thanks, I will try a more readable fix.
