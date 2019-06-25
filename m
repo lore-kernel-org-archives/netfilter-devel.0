@@ -4,48 +4,47 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-8.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5AB5DC4646C
-	for <netfilter-devel@archiver.kernel.org>; Tue, 25 Jun 2019 00:14:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E9357C4646C
+	for <netfilter-devel@archiver.kernel.org>; Tue, 25 Jun 2019 00:14:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3DF33205ED
-	for <netfilter-devel@archiver.kernel.org>; Tue, 25 Jun 2019 00:14:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C8D4D205ED
+	for <netfilter-devel@archiver.kernel.org>; Tue, 25 Jun 2019 00:14:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730020AbfFYAOj (ORCPT
+        id S1730070AbfFYAOl (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 24 Jun 2019 20:14:39 -0400
-Received: from mail.us.es ([193.147.175.20]:38020 "EHLO mail.us.es"
+        Mon, 24 Jun 2019 20:14:41 -0400
+Received: from mail.us.es ([193.147.175.20]:38026 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729346AbfFYAMu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 24 Jun 2019 20:12:50 -0400
+        id S1729254AbfFYAMs (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 24 Jun 2019 20:12:48 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id A4DAEC04B7
-        for <netfilter-devel@vger.kernel.org>; Tue, 25 Jun 2019 02:12:48 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id A786DC04B1
+        for <netfilter-devel@vger.kernel.org>; Tue, 25 Jun 2019 02:12:46 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 95BC4DA70A
-        for <netfilter-devel@vger.kernel.org>; Tue, 25 Jun 2019 02:12:48 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 992C8DA70E
+        for <netfilter-devel@vger.kernel.org>; Tue, 25 Jun 2019 02:12:46 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 8B7C0DA705; Tue, 25 Jun 2019 02:12:48 +0200 (CEST)
+        id 8C892DA708; Tue, 25 Jun 2019 02:12:46 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 93069DA70A;
-        Tue, 25 Jun 2019 02:12:46 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 5D4DADA708;
+        Tue, 25 Jun 2019 02:12:44 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 25 Jun 2019 02:12:46 +0200 (CEST)
+ Tue, 25 Jun 2019 02:12:44 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 5E0804265A2F;
-        Tue, 25 Jun 2019 02:12:46 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 32C094265A2F;
+        Tue, 25 Jun 2019 02:12:44 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 11/26] netfilter: xt_owner: bail out with EINVAL in case of unsupported flags
-Date:   Tue, 25 Jun 2019 02:12:18 +0200
-Message-Id: <20190625001233.22057-12-pablo@netfilter.org>
+Subject: [PATCH 07/26] ipset: Fix memory accounting for hash types on resize
+Date:   Tue, 25 Jun 2019 02:12:14 +0200
+Message-Id: <20190625001233.22057-8-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20190625001233.22057-1-pablo@netfilter.org>
 References: <20190625001233.22057-1-pablo@netfilter.org>
@@ -55,44 +54,79 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Reject flags that are not supported with EINVAL.
+From: Stefano Brivio <sbrivio@redhat.com>
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+If a fresh array block is allocated during resize, the current in-memory
+set size should be increased by the size of the block, not replaced by it.
+
+Before the fix, adding entries to a hash set type, leading to a table
+resize, caused an inconsistent memory size to be reported. This becomes
+more obvious when swapping sets with similar sizes:
+
+  # cat hash_ip_size.sh
+  #!/bin/sh
+  FAIL_RETRIES=10
+
+  tries=0
+  while [ ${tries} -lt ${FAIL_RETRIES} ]; do
+  	ipset create t1 hash:ip
+  	for i in `seq 1 4345`; do
+  		ipset add t1 1.2.$((i / 255)).$((i % 255))
+  	done
+  	t1_init="$(ipset list t1|sed -n 's/Size in memory: \(.*\)/\1/p')"
+
+  	ipset create t2 hash:ip
+  	for i in `seq 1 4360`; do
+  		ipset add t2 1.2.$((i / 255)).$((i % 255))
+  	done
+  	t2_init="$(ipset list t2|sed -n 's/Size in memory: \(.*\)/\1/p')"
+
+  	ipset swap t1 t2
+  	t1_swap="$(ipset list t1|sed -n 's/Size in memory: \(.*\)/\1/p')"
+  	t2_swap="$(ipset list t2|sed -n 's/Size in memory: \(.*\)/\1/p')"
+
+  	ipset destroy t1
+  	ipset destroy t2
+  	tries=$((tries + 1))
+
+  	if [ ${t1_init} -lt 10000 ] || [ ${t2_init} -lt 10000 ]; then
+  		echo "FAIL after ${tries} tries:"
+  		echo "T1 size ${t1_init}, after swap ${t1_swap}"
+  		echo "T2 size ${t2_init}, after swap ${t2_swap}"
+  		exit 1
+  	fi
+  done
+  echo "PASS"
+  # echo -n 'func hash_ip4_resize +p' > /sys/kernel/debug/dynamic_debug/control
+  # ./hash_ip_size.sh
+  [ 2035.018673] attempt to resize set t1 from 10 to 11, t 00000000fe6551fa
+  [ 2035.078583] set t1 resized from 10 (00000000fe6551fa) to 11 (00000000172a0163)
+  [ 2035.080353] Table destroy by resize 00000000fe6551fa
+  FAIL after 4 tries:
+  T1 size 9064, after swap 71128
+  T2 size 71128, after swap 9064
+
+Reported-by: NOYB <JunkYardMail1@Frontier.com>
+Fixes: 9e41f26a505c ("netfilter: ipset: Count non-static extension memory for userspace")
+Signed-off-by: Stefano Brivio <sbrivio@redhat.com>
+Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 ---
- include/uapi/linux/netfilter/xt_owner.h | 5 +++++
- net/netfilter/xt_owner.c                | 3 +++
- 2 files changed, 8 insertions(+)
+ net/netfilter/ipset/ip_set_hash_gen.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/include/uapi/linux/netfilter/xt_owner.h b/include/uapi/linux/netfilter/xt_owner.h
-index 9e98c09eda32..5108df4d0313 100644
---- a/include/uapi/linux/netfilter/xt_owner.h
-+++ b/include/uapi/linux/netfilter/xt_owner.h
-@@ -11,6 +11,11 @@ enum {
- 	XT_OWNER_SUPPL_GROUPS = 1 << 3,
- };
- 
-+#define XT_OWNER_MASK	(XT_OWNER_UID | 	\
-+			 XT_OWNER_GID | 	\
-+			 XT_OWNER_SOCKET |	\
-+			 XT_OWNER_SUPPL_GROUPS)
-+
- struct xt_owner_match_info {
- 	__u32 uid_min, uid_max;
- 	__u32 gid_min, gid_max;
-diff --git a/net/netfilter/xt_owner.c b/net/netfilter/xt_owner.c
-index a8784502aca6..ee597fdc5db7 100644
---- a/net/netfilter/xt_owner.c
-+++ b/net/netfilter/xt_owner.c
-@@ -25,6 +25,9 @@ static int owner_check(const struct xt_mtchk_param *par)
- 	struct xt_owner_match_info *info = par->matchinfo;
- 	struct net *net = par->net;
- 
-+	if (info->match & ~XT_OWNER_MASK)
-+		return -EINVAL;
-+
- 	/* Only allow the common case where the userns of the writer
- 	 * matches the userns of the network namespace.
- 	 */
+diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
+index 01d51f775f12..623e0d675725 100644
+--- a/net/netfilter/ipset/ip_set_hash_gen.h
++++ b/net/netfilter/ipset/ip_set_hash_gen.h
+@@ -625,7 +625,7 @@ mtype_resize(struct ip_set *set, bool retried)
+ 					goto cleanup;
+ 				}
+ 				m->size = AHASH_INIT_SIZE;
+-				extsize = ext_size(AHASH_INIT_SIZE, dsize);
++				extsize += ext_size(AHASH_INIT_SIZE, dsize);
+ 				RCU_INIT_POINTER(hbucket(t, key), m);
+ 			} else if (m->pos >= m->size) {
+ 				struct hbucket *ht;
 -- 
 2.11.0
 
