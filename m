@@ -2,81 +2,79 @@ Return-Path: <SRS0=TDc5=UZ=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_NEOMUTT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 97442C48BD6
-	for <netfilter-devel@archiver.kernel.org>; Wed, 26 Jun 2019 19:19:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AB0C6C48BD6
+	for <netfilter-devel@archiver.kernel.org>; Wed, 26 Jun 2019 20:44:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6F261208E3
-	for <netfilter-devel@archiver.kernel.org>; Wed, 26 Jun 2019 19:19:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7C641208E3
+	for <netfilter-devel@archiver.kernel.org>; Wed, 26 Jun 2019 20:44:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726429AbfFZTTt (ORCPT
+        id S1726320AbfFZUoN (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 26 Jun 2019 15:19:49 -0400
-Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:43100 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726104AbfFZTTt (ORCPT
+        Wed, 26 Jun 2019 16:44:13 -0400
+Received: from fnsib-smtp07.srv.cat ([46.16.61.68]:34764 "EHLO
+        fnsib-smtp07.srv.cat" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726239AbfFZUoN (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 26 Jun 2019 15:19:49 -0400
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.89)
-        (envelope-from <fw@strlen.de>)
-        id 1hgDSL-0005Y4-8x; Wed, 26 Jun 2019 21:19:45 +0200
-Date:   Wed, 26 Jun 2019 21:19:45 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     wenxu@ucloud.cn, pablo@netfilter.org,
-        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-Subject: Re: [PATCH 2/3 nf-next] netfilter:nf_flow_table: Support bridge type
- flow offload
-Message-ID: <20190626191945.2mktaqrcrfcrfc66@breakpoint.cc>
-References: <1561545148-11978-1-git-send-email-wenxu@ucloud.cn>
- <1561545148-11978-2-git-send-email-wenxu@ucloud.cn>
- <20190626183816.3ux3iifxaal4ffil@breakpoint.cc>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190626183816.3ux3iifxaal4ffil@breakpoint.cc>
-User-Agent: NeoMutt/20170113 (1.7.2)
+        Wed, 26 Jun 2019 16:44:13 -0400
+Received: from localhost.localdomain (unknown [47.62.206.189])
+        by fnsib-smtp07.srv.cat (Postfix) with ESMTPSA id 4625B819E;
+        Wed, 26 Jun 2019 22:44:09 +0200 (CEST)
+From:   Ander Juaristi <a@juaristi.eus>
+To:     netfilter-devel@vger.kernel.org
+Cc:     Ander Juaristi <a@juaristi.eus>
+Subject: [PATCH v2 2/7] nftables: meta: hour: Fix integer overflow error
+Date:   Wed, 26 Jun 2019 22:43:57 +0200
+Message-Id: <20190626204402.5257-2-a@juaristi.eus>
+X-Mailer: git-send-email 2.17.1
+In-Reply-To: <20190626204402.5257-1-a@juaristi.eus>
+References: <20190626204402.5257-1-a@juaristi.eus>
+Reply-To: a@juaristi.eus
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Florian Westphal <fw@strlen.de> wrote:
-> wenxu@ucloud.cn <wenxu@ucloud.cn> wrote:
-> > diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
-> > index 0016bb8..9af01ef 100644
-> > --- a/net/netfilter/nf_flow_table_ip.c
-> > +++ b/net/netfilter/nf_flow_table_ip.c
-> > -	neigh_xmit(NEIGH_ARP_TABLE, outdev, &nexthop, skb);
-> > +	if (family == NFPROTO_IPV4) {
-> > +		iph = ip_hdr(skb);
-> > +		ip_decrease_ttl(iph);
-> > +
-> > +		nexthop = rt_nexthop(rt, flow->tuplehash[!dir].tuple.src_v4.s_addr);
-> > +		skb_dst_set_noref(skb, &rt->dst);
-> > +		neigh_xmit(NEIGH_ARP_TABLE, outdev, &nexthop, skb);
-> > +	} else {
-> > +		const struct net_bridge_port *p;
-> > +
-> > +		if (vlan_tag && (p = br_port_get_rtnl_rcu(state->in)))
-> > +			__vlan_hwaccel_put_tag(skb, p->br->vlan_proto, vlan_tag);
-> > +		else
-> > +			__vlan_hwaccel_clear_tag(skb);
-> > +
-> > +		br_dev_queue_push_xmit(state->net, state->sk, skb);
-> 
-> Won't that result in a module dep on bridge?
-> 
-> Whats the idea with this patch?
-> 
-> Do you see a performance improvement when bypassing bridge layer? If so,
-> how much?
-> 
-> I just wonder if its really cheaper than not using bridge conntrack in
-> the first place :-)
+This patch fixes an overflow error that would happen when introducing edge times
+whose second representation is smaller than the value of the tm_gmtoff field, such
+as 00:00.
 
-Addendum: Did you look at the nftables fwd expression?  Maybe you can use
-it as a simpler way to speed things up?
+Signed-off-by: Ander Juaristi <a@juaristi.eus>
+---
+ src/meta.c | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
+
+diff --git a/src/meta.c b/src/meta.c
+index 31a86b2..39e551c 100644
+--- a/src/meta.c
++++ b/src/meta.c
+@@ -565,7 +565,7 @@ static void hour_type_print(const struct expr *expr, struct output_ctx *octx)
+ 		cur_tm = localtime(&ts);
+ 
+ 		if (cur_tm)
+-			seconds += cur_tm->tm_gmtoff;
++			seconds = (seconds + cur_tm->tm_gmtoff) % 86400;
+ 
+ 		__hour_type_print_r(0, 0, seconds, out);
+ 		nft_print(octx, "\"%s\"", out);
+@@ -616,8 +616,12 @@ convert:
+ 		result = tm.tm_hour * 3600 + tm.tm_min * 60 + tm.tm_sec;
+ 
+ 	/* Substract tm_gmtoff to get the current time */
+-	if (cur_tm)
+-		result -= cur_tm->tm_gmtoff;
++	if (cur_tm) {
++		if (result >= cur_tm->tm_gmtoff)
++			result -= cur_tm->tm_gmtoff;
++		else
++			result = 86400 - cur_tm->tm_gmtoff + result;
++	}
+ 
+ success:
+ 	*res = constant_expr_alloc(&sym->location, sym->dtype,
+-- 
+2.17.1
+
