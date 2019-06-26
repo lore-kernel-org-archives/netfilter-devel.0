@@ -2,73 +2,127 @@ Return-Path: <SRS0=TDc5=UZ=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_NEOMUTT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A2E2C48BD8
-	for <netfilter-devel@archiver.kernel.org>; Wed, 26 Jun 2019 12:57:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B974BC48BD6
+	for <netfilter-devel@archiver.kernel.org>; Wed, 26 Jun 2019 13:15:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2428F214DA
-	for <netfilter-devel@archiver.kernel.org>; Wed, 26 Jun 2019 12:57:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 95509214DA
+	for <netfilter-devel@archiver.kernel.org>; Wed, 26 Jun 2019 13:15:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727432AbfFZM5K (ORCPT
+        id S1726242AbfFZNPI (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 26 Jun 2019 08:57:10 -0400
-Received: from mail.us.es ([193.147.175.20]:34382 "EHLO mail.us.es"
+        Wed, 26 Jun 2019 09:15:08 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:56178 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727181AbfFZM5J (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 26 Jun 2019 08:57:09 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id DAF63B570B
-        for <netfilter-devel@vger.kernel.org>; Wed, 26 Jun 2019 14:57:06 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id CABE658F
-        for <netfilter-devel@vger.kernel.org>; Wed, 26 Jun 2019 14:57:06 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id BF8A8DA4D0; Wed, 26 Jun 2019 14:57:06 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id C6BDEDA4D1;
-        Wed, 26 Jun 2019 14:57:04 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 26 Jun 2019 14:57:04 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [31.4.197.76])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 97FE14265A32;
-        Wed, 26 Jun 2019 14:57:04 +0200 (CEST)
-Date:   Wed, 26 Jun 2019 14:57:03 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     wenxu <wenxu@ucloud.cn>
-Cc:     fw@strlen.de, netfilter-devel@vger.kernel.org,
-        netdev@vger.kernel.org
-Subject: Re: [PATCH nf-next v2 2/2] netfilter: nft_meta: Add
- NFT_META_BRI_VLAN support
-Message-ID: <20190626125703.5vg2z6xa4ciji6j6@salvia>
-References: <1560993460-25569-1-git-send-email-wenxu@ucloud.cn>
- <1560993460-25569-2-git-send-email-wenxu@ucloud.cn>
- <20190626102935.ztxcfb3kysvohzi3@salvia>
- <b037a0a9-4729-41ff-81bb-ca76c0e3fba9@ucloud.cn>
+        id S1726104AbfFZNPI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 26 Jun 2019 09:15:08 -0400
+Received: from localhost ([::1]:41036 helo=tatos)
+        by orbyte.nwl.cc with esmtp (Exim 4.91)
+        (envelope-from <phil@nwl.cc>)
+        id 1hg7lT-0006ir-5P; Wed, 26 Jun 2019 15:15:07 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [ebtables PATCH] Drop ebtables-config from repository
+Date:   Wed, 26 Jun 2019 15:15:06 +0200
+Message-Id: <20190626131506.30198-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.21.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <b037a0a9-4729-41ff-81bb-ca76c0e3fba9@ucloud.cn>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Jun 26, 2019 at 08:42:27PM +0800, wenxu wrote:
-> I agree with you, It's a more generic way to set the vlan tag not base on
-> 
-> any bridge. I will resubmit NFT_META_BRI_VLAN_PROTO and
-> 
-> NFT_META_VLAN patches
+This config was used by sysv init script, so is a leftover.
 
-Thank you very much.
+Fixes: b43f3ff0a6180 ("ebtables: drop sysvinit script")
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ .gitignore         |  1 -
+ Makefile.am        |  5 +----
+ ebtables-config.in | 37 -------------------------------------
+ 3 files changed, 1 insertion(+), 42 deletions(-)
+ delete mode 100644 ebtables-config.in
+
+diff --git a/.gitignore b/.gitignore
+index 9940c85762fa0..19ee9627b0c8e 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -18,7 +18,6 @@ Makefile.in
+ /stamp-h1
+ 
+ /ebtables-legacy
+-/ebtables-config
+ /ebtables-legacy-restore
+ /ebtables-legacy-save
+ /ebtables-legacy.8
+diff --git a/Makefile.am b/Makefile.am
+index 904de12773a84..b879941cfdd50 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -58,14 +58,11 @@ examples_ulog_test_ulog_SOURCES = examples/ulog/test_ulog.c getethertype.c
+ daemon: ebtablesd ebtablesu
+ exec: ebtables-legacy ebtables-legacy-restore
+ 
+-CLEANFILES = ebtables-legacy-save ebtables-config ebtables-legacy.8
++CLEANFILES = ebtables-legacy-save ebtables-legacy.8
+ 
+ ebtables-legacy-save: ebtables-save.in ${top_builddir}/config.status
+ 	${AM_V_GEN}sed -e 's![@]sbindir@!${sbindir}!g' <$< >$@
+ 
+-ebtables-config: ebtables-config.in ${top_builddir}/config.status
+-	${AM_V_GEN}sed -e 's![@]sysconfigdir@!${sysconfigdir}!g' <$< >$@
+-
+ ebtables-legacy.8: ebtables-legacy.8.in ${top_builddir}/config.status
+ 	${AM_V_GEN}sed -e 's![@]PACKAGE_VERSION!${PACKAGE_VERSION}!g' \
+ 		-e 's![@]PACKAGE_DATE@!${PROGDATE}!g' \
+diff --git a/ebtables-config.in b/ebtables-config.in
+deleted file mode 100644
+index 3a8990260a9c4..0000000000000
+--- a/ebtables-config.in
++++ /dev/null
+@@ -1,37 +0,0 @@
+-# Save (and possibly restore) in text format.
+-#   Value: yes|no,  default: yes
+-# Save the firewall rules in text format to __SYSCONFIG__/ebtables
+-# If EBTABLES_BINARY_FORMAT="no" then restoring the firewall rules
+-# is done using this text format.
+-EBTABLES_TEXT_FORMAT="yes"
+-
+-# Save (and restore) in binary format.
+-#   Value: yes|no,  default: yes
+-# Save (and restore) the firewall rules in binary format to (and from)
+-# __SYSCONFIG__/ebtables.<chain>. Enabling this option will make
+-# firewall initialisation a lot faster.
+-EBTABLES_BINARY_FORMAT="yes"
+-
+-# Unload modules on restart and stop
+-#   Value: yes|no,  default: yes
+-# This option has to be 'yes' to get to a sane state for a firewall
+-# restart or stop. Only set to 'no' if there are problems unloading netfilter
+-# modules.
+-EBTABLES_MODULES_UNLOAD="yes"
+-
+-# Save current firewall rules on stop.
+-#   Value: yes|no,  default: no
+-# Saves all firewall rules if firewall gets stopped
+-# (e.g. on system shutdown).
+-EBTABLES_SAVE_ON_STOP="no"
+-
+-# Save current firewall rules on restart.
+-#   Value: yes|no,  default: no
+-# Saves all firewall rules if firewall gets restarted.
+-EBTABLES_SAVE_ON_RESTART="no"
+-
+-# Save (and restore) rule counters.
+-#   Value: yes|no,  default: no
+-# Save rule counters when saving a kernel table to a file. If the
+-# rule counters were saved, they will be restored when restoring the table.
+-EBTABLES_SAVE_COUNTER="no"
+-- 
+2.21.0
+
