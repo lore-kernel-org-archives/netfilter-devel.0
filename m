@@ -1,111 +1,79 @@
-Return-Path: <SRS0=l45K=UY=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=TDc5=UZ=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,URIBL_BLOCKED
+X-Spam-Status: No, score=-2.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_NEOMUTT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A002CC48BD6
-	for <netfilter-devel@archiver.kernel.org>; Tue, 25 Jun 2019 20:49:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 81F40C48BD8
+	for <netfilter-devel@archiver.kernel.org>; Wed, 26 Jun 2019 09:01:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CECF8205ED
-	for <netfilter-devel@archiver.kernel.org>; Tue, 25 Jun 2019 20:49:09 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=kaechele.ca header.i=@kaechele.ca header.b="x/Di72ea"
+	by mail.kernel.org (Postfix) with ESMTP id 5D55920645
+	for <netfilter-devel@archiver.kernel.org>; Wed, 26 Jun 2019 09:01:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726420AbfFYUtJ (ORCPT
+        id S1726963AbfFZJBW (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 25 Jun 2019 16:49:09 -0400
-Received: from mail.fetzig.org ([54.39.219.108]:49808 "EHLO mail.fetzig.org"
+        Wed, 26 Jun 2019 05:01:22 -0400
+Received: from mail.us.es ([193.147.175.20]:48010 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726053AbfFYUtJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 25 Jun 2019 16:49:09 -0400
-Received: from authenticated-user (PRIMARY_HOSTNAME [PUBLIC_IP])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange ECDHE (P-384) server-signature RSA-PSS (2048 bits) server-digest SHA256)
+        id S1726157AbfFZJBW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 26 Jun 2019 05:01:22 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id DC8C4BAE8D
+        for <netfilter-devel@vger.kernel.org>; Wed, 26 Jun 2019 11:01:19 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id CE5E3114D9C
+        for <netfilter-devel@vger.kernel.org>; Wed, 26 Jun 2019 11:01:19 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id C3BD71021B2; Wed, 26 Jun 2019 11:01:19 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 73D4A6DA6D;
+        Wed, 26 Jun 2019 11:01:17 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Wed, 26 Jun 2019 11:01:17 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (sys.soleta.eu [212.170.55.40])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        (Authenticated sender: felix@fetzig.org)
-        by mail.fetzig.org (Postfix) with ESMTPSA id B637180DC9;
-        Tue, 25 Jun 2019 16:49:04 -0400 (EDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kaechele.ca;
-        s=kaechele.ca-201608; t=1561495744;
-        bh=dCxksBBzsaCgKtXRRX3HecLW6lV1bSdZfRbUBRHNV+I=;
-        h=From:To:Cc:Subject:Date:From;
-        b=x/Di72ea9Ios+Bxp5pPn9oNwELO9ns/ba36jHa81MbiNybsNKLP3aWXTtRvsxlroL
-         rTrJ7C9w4M1edhiXtvhj4wRni6Vqt+wCVWYGrOuE1RWYK0ZMVgMXGPT6LOG7qKODqX
-         UsGXBHurr9yZyzIpTwI7cSsh4Gvijkx8Vpqimfsrk6MvtjJZQGJS40IrJ+Ptgz5ryd
-         gWehxEQxex/sKMY/yF+Bu5vLA+/NV89QO8yyxsRZcsdg2jJFKAaIw3rSA7AsMBrloD
-         HeRxh9y5He5lvdLz+qal1jTSC1q6yk2P8A1kWdiXPG+bypTVw0Zi7KrVXprECZC+nm
-         /woP3QS77E88A==
-From:   Felix Kaechele <felix@kaechele.ca>
-To:     netfilter-devel@vger.kernel.org
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH] netfilter: ctnetlink: Fix regression in conntrack entry deletion
-Date:   Tue, 25 Jun 2019 16:48:59 -0400
-Message-Id: <20190625204859.28241-1-felix@kaechele.ca>
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 55B8B4265A5B;
+        Wed, 26 Jun 2019 11:01:17 +0200 (CEST)
+Date:   Wed, 26 Jun 2019 11:01:16 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     wenxu@ucloud.cn
+Cc:     fw@strlen.de, netfilter-devel@vger.kernel.org,
+        netdev@vger.kernel.org
+Subject: Re: [PATCH nf-next v2 1/2] netfilter: nft_meta: add
+ NFT_META_BRI_PVID support
+Message-ID: <20190626090116.3qjmlnd5egeifozq@salvia>
+References: <1560993460-25569-1-git-send-email-wenxu@ucloud.cn>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Virus-Scanned: clamav-milter 0.101.2 at pandora.fk.cx
-X-Virus-Status: Clean
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1560993460-25569-1-git-send-email-wenxu@ucloud.cn>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Commit f8e608982022 ("netfilter: ctnetlink: Resolve conntrack
-L3-protocol flush regression") introduced a regression in which deletion
-of conntrack entries would fail because the L3 protocol information
-is replaced by AF_UNSPEC. As a result the search for the entry to be
-deleted would turn up empty due to the tuple used to perform the search
-is now different from the tuple used to initially set up the entry.
+On Thu, Jun 20, 2019 at 09:17:39AM +0800, wenxu@ucloud.cn wrote:
+> From: wenxu <wenxu@ucloud.cn>
+> 
+> nft add table bridge firewall
+> nft add chain bridge firewall zones { type filter hook prerouting priority - 300 \; }
+> nft add rule bridge firewall zones counter ct zone set vlan id map { 100 : 1, 200 : 2 }
+> 
+> As above set the bridge port with pvid, the received packet don't contain
+> the vlan tag which means the packet should belong to vlan 200 through pvid.
+> With this pacth user can get the pvid of bridge ports.
+> 
+> So add the following rule for as the first rule in the chain of zones.
+> 
+> nft add rule bridge firewall zones counter meta brvlan set meta brpvid
 
-For flushing the conntrack table we do however want to keep the option
-for nfgenmsg->version to have a non-zero value to allow for newer
-user-space tools to request treatment under the new behavior. With that
-it is possible to independently flush tables for a defined L3 protocol.
-This was introduced with the enhancements in in commit 59c08c69c278
-("netfilter: ctnetlink: Support L3 protocol-filter on flush").
-
-Older user-space tools will retain the behavior of flushing all tables
-regardless of defined L3 protocol.
-
-Fixes: f8e608982022 ("netfilter: ctnetlink: Resolve conntrack L3-protocol flush regression")
-Suggested-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Felix Kaechele <felix@kaechele.ca>
----
- net/netfilter/nf_conntrack_netlink.c | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
-
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 7db79c1b8084..1b77444d5b52 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -1256,7 +1256,6 @@ static int ctnetlink_del_conntrack(struct net *net, struct sock *ctnl,
- 	struct nf_conntrack_tuple tuple;
- 	struct nf_conn *ct;
- 	struct nfgenmsg *nfmsg = nlmsg_data(nlh);
--	u_int8_t u3 = nfmsg->version ? nfmsg->nfgen_family : AF_UNSPEC;
- 	struct nf_conntrack_zone zone;
- 	int err;
- 
-@@ -1266,11 +1265,13 @@ static int ctnetlink_del_conntrack(struct net *net, struct sock *ctnl,
- 
- 	if (cda[CTA_TUPLE_ORIG])
- 		err = ctnetlink_parse_tuple(cda, &tuple, CTA_TUPLE_ORIG,
--					    u3, &zone);
-+					    nfmsg->nfgen_family, &zone);
- 	else if (cda[CTA_TUPLE_REPLY])
- 		err = ctnetlink_parse_tuple(cda, &tuple, CTA_TUPLE_REPLY,
--					    u3, &zone);
-+					    nfmsg->nfgen_family, &zone);
- 	else {
-+		u_int8_t u3 = nfmsg->version ? nfmsg->nfgen_family : AF_UNSPEC;
-+
- 		return ctnetlink_flush_conntrack(net, cda,
- 						 NETLINK_CB(skb).portid,
- 						 nlmsg_report(nlh), u3);
--- 
-2.21.0
-
+Applied, thanks.
