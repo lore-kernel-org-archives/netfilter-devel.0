@@ -4,506 +4,671 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-8.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_NEOMUTT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6417BC48BD3
-	for <netfilter-devel@archiver.kernel.org>; Wed, 26 Jun 2019 18:40:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C70D9C48BD6
+	for <netfilter-devel@archiver.kernel.org>; Wed, 26 Jun 2019 18:41:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2CE2320663
-	for <netfilter-devel@archiver.kernel.org>; Wed, 26 Jun 2019 18:40:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9191720663
+	for <netfilter-devel@archiver.kernel.org>; Wed, 26 Jun 2019 18:41:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726271AbfFZSkk (ORCPT
+        id S1726271AbfFZSlA (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 26 Jun 2019 14:40:40 -0400
-Received: from mail.us.es ([193.147.175.20]:47098 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726227AbfFZSki (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 26 Jun 2019 14:40:38 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id C7A2FE34CC
-        for <netfilter-devel@vger.kernel.org>; Wed, 26 Jun 2019 20:40:33 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id B5340DA801
-        for <netfilter-devel@vger.kernel.org>; Wed, 26 Jun 2019 20:40:33 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id AAC8A1021A8; Wed, 26 Jun 2019 20:40:33 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 55154DA704;
-        Wed, 26 Jun 2019 20:40:31 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 26 Jun 2019 20:40:31 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (barqueta.lsi.us.es [150.214.188.150])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 9568E4265A31;
-        Wed, 26 Jun 2019 20:40:30 +0200 (CEST)
-Date:   Wed, 26 Jun 2019 20:40:30 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     wenxu@ucloud.cn
-Cc:     fw@strlen.de, netfilter-devel@vger.kernel.org,
-        netdev@vger.kernel.org
-Subject: Re: [PATCH 2/3 nf-next] netfilter:nf_flow_table: Support bridge type
- flow offload
-Message-ID: <20190626184030.mt6mrj32hggysrid@salvia>
-References: <1561545148-11978-1-git-send-email-wenxu@ucloud.cn>
- <1561545148-11978-2-git-send-email-wenxu@ucloud.cn>
+        Wed, 26 Jun 2019 14:41:00 -0400
+Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:42862 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726227AbfFZSlA (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 26 Jun 2019 14:41:00 -0400
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.89)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1hgCql-0004Nl-Rk; Wed, 26 Jun 2019 20:40:55 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf v2] selftests: netfilter: add nfqueue test case
+Date:   Wed, 26 Jun 2019 20:42:34 +0200
+Message-Id: <20190626184234.3172-1-fw@strlen.de>
+X-Mailer: git-send-email 2.21.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1561545148-11978-2-git-send-email-wenxu@ucloud.cn>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Jun 26, 2019 at 06:32:27PM +0800, wenxu@ucloud.cn wrote:
-> From: wenxu <wenxu@ucloud.cn>
-> 
-> With nf_conntrack_bridge function. The bridge family can do
-> conntrack it self. The flow offload function based on the
-> conntrack. So the flow in the bridge wih conntrack can be
-> offloaded.
-> 
-> Signed-off-by: wenxu <wenxu@ucloud.cn>
-> ---
->  include/net/netfilter/nf_flow_table.h | 30 +++++++++++-
->  net/netfilter/nf_flow_table_core.c    | 53 ++++++++++++++++-----
->  net/netfilter/nf_flow_table_ip.c      | 41 +++++++++++++---
->  net/netfilter/nft_flow_offload.c      | 89 ++++++++++++++++++++++++++++++++---
->  4 files changed, 185 insertions(+), 28 deletions(-)
-> 
-> diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
-> index 968be64..9a0cf27 100644
-> --- a/include/net/netfilter/nf_flow_table.h
-> +++ b/include/net/netfilter/nf_flow_table.h
-> @@ -33,8 +33,22 @@ enum flow_offload_tuple_dir {
->  	FLOW_OFFLOAD_DIR_MAX = IP_CT_DIR_MAX
->  };
->  
-> +enum flow_offload_tuple_type {
-> +	FLOW_OFFLOAD_TYPE_INET,
-> +	FLOW_OFFLOAD_TYPE_BRIDGE,
-> +};
-> +
-> +struct dst_br_port {
-> +	struct net_device *dev;
-> +	u16	dst_vlan_tag;
-> +};
-> +
->  struct flow_offload_dst {
-> -	struct dst_entry		*dst_cache;
-> +	enum flow_offload_tuple_type type;
-> +	union {
-> +		struct dst_entry		*dst_cache;
-> +		struct dst_br_port		dst_port;
-> +	};
->  };
->  
->  struct flow_offload_tuple {
-> @@ -52,6 +66,7 @@ struct flow_offload_tuple {
->  	};
->  
->  	int				iifidx;
-> +	u16				vlan_tag;
->  
->  	u8				l3proto;
->  	u8				l4proto;
-> @@ -89,8 +104,19 @@ struct nf_flow_route {
->  	} tuple[FLOW_OFFLOAD_DIR_MAX];
->  };
->  
-> +struct nf_flow_forward {
-> +	struct {
-> +		struct dst_br_port	dst_port;
-> +		u16 vlan_tag;
-> +	} tuple[FLOW_OFFLOAD_DIR_MAX];
-> +};
-> +
->  struct nf_flow_data {
-> -	struct nf_flow_route route;
-> +	enum flow_offload_tuple_type type;
-> +	union {
-> +		struct nf_flow_route route;
-> +		struct nf_flow_forward forward;
-> +	};
->  };
->  
->  struct flow_offload *flow_offload_alloc(struct nf_conn *ct,
-> diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
-> index 125ce1c..19ee69c 100644
-> --- a/net/netfilter/nf_flow_table_core.c
-> +++ b/net/netfilter/nf_flow_table_core.c
-> @@ -29,16 +29,38 @@ struct flow_offload_entry {
->  {
->  	struct flow_offload_tuple *ft = &flow->tuplehash[dir].tuple;
->  	struct nf_conntrack_tuple *ctt = &ct->tuplehash[dir].tuple;
-> -	struct dst_entry *other_dst = date->route.tuple[!dir].dst;
-> -	struct dst_entry *dst = data->route.tuple[dir].dst;
->  
-> +	struct dst_entry *other_dst;
-> +	struct dst_entry *dst;
-> +	struct dst_br_port other_dst_port;
-> +	struct dst_br_port dst_port;
+Add a test case to check nf queue infrastructure.
+Could be extended in the future to also cover serialization of
+conntrack, uid and secctx attributes in nfqueue.
 
-Please, reverse xmas tree for variable definitions.
+For now, this checks that 'queue bypass' works, that a queue rule with
+no bypass option blocks traffic and that userspace receives the expected
+number of packets.
+For this we add two queues and hook all of
+prerouting/input/forward/output/postrouting.
 
-> +	if (data->type == FLOW_OFFLOAD_TYPE_BRIDGE) {
+Packets get queued twice with a dummy base chain in between:
+This passes with current nf tree, but reverting
+commit 946c0d8e6ed4 ("netfilter: nf_queue: fix reinject verdict handling")
+makes this trip (it processes 30 instead of expected 20 packets).
 
-Could you add functions for these?
+v2: update config file with queue and other options missing/needed for
+other tests.
 
-        nf_flow_fill_bridge_dst(...)
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ tools/testing/selftests/netfilter/.gitignore  |   1 +
+ tools/testing/selftests/netfilter/Makefile    |   5 +-
+ tools/testing/selftests/netfilter/config      |   6 +
+ tools/testing/selftests/netfilter/nf-queue.c  | 281 ++++++++++++++++++
+ .../testing/selftests/netfilter/nft_queue.sh  | 274 +++++++++++++++++
+ 5 files changed, 566 insertions(+), 1 deletion(-)
+ create mode 100644 tools/testing/selftests/netfilter/.gitignore
+ create mode 100644 tools/testing/selftests/netfilter/nf-queue.c
+ create mode 100755 tools/testing/selftests/netfilter/nft_queue.sh
 
-> +		other_dst_port = data->forward.tuple[!dir].dst_port;
-> +		dst_port = data->forward.tuple[dir].dst_port;
-> +
-> +		ft->iifidx = other_dst_port.dev->ifindex;
-> +		ft->dst.dst_port = dst_port;
-> +		ft->vlan_tag = data->forward.tuple[dir].vlan_tag;
-> +	} else {
+diff --git a/tools/testing/selftests/netfilter/.gitignore b/tools/testing/selftests/netfilter/.gitignore
+new file mode 100644
+index 000000000000..03c4a7b5d153
+--- /dev/null
++++ b/tools/testing/selftests/netfilter/.gitignore
+@@ -0,0 +1 @@
++nf-queue
+diff --git a/tools/testing/selftests/netfilter/Makefile b/tools/testing/selftests/netfilter/Makefile
+index 4144984ebee5..0f6f6530030d 100644
+--- a/tools/testing/selftests/netfilter/Makefile
++++ b/tools/testing/selftests/netfilter/Makefile
+@@ -2,6 +2,9 @@
+ # Makefile for netfilter selftests
+ 
+ TEST_PROGS := nft_trans_stress.sh nft_nat.sh bridge_brouter.sh \
+-	conntrack_icmp_related.sh nft_flowtable.sh
++	conntrack_icmp_related.sh nft_flowtable.sh nft_queue.sh
++
++LDLIBS = -lmnl
++TEST_GEN_FILES =  nf-queue
+ 
+ include ../lib.mk
+diff --git a/tools/testing/selftests/netfilter/config b/tools/testing/selftests/netfilter/config
+index 59caa8f71cd8..4faf2ce021d9 100644
+--- a/tools/testing/selftests/netfilter/config
++++ b/tools/testing/selftests/netfilter/config
+@@ -1,2 +1,8 @@
+ CONFIG_NET_NS=y
+ CONFIG_NF_TABLES_INET=y
++CONFIG_NFT_QUEUE=m
++CONFIG_NFT_NAT=m
++CONFIG_NFT_REDIR=m
++CONFIG_NFT_MASQ=m
++CONFIG_NFT_FLOW_OFFLOAD=m
++CONFIG_NF_CT_NETLINK=m
+diff --git a/tools/testing/selftests/netfilter/nf-queue.c b/tools/testing/selftests/netfilter/nf-queue.c
+new file mode 100644
+index 000000000000..897274bd6f4a
+--- /dev/null
++++ b/tools/testing/selftests/netfilter/nf-queue.c
+@@ -0,0 +1,281 @@
++// SPDX-License-Identifier: GPL-2.0
++
++#include <errno.h>
++#include <stdio.h>
++#include <stdint.h>
++#include <stdlib.h>
++#include <unistd.h>
++#include <string.h>
++#include <time.h>
++#include <arpa/inet.h>
++
++#include <libmnl/libmnl.h>
++#include <linux/netfilter.h>
++#include <linux/netfilter/nfnetlink.h>
++#include <linux/netfilter/nfnetlink_queue.h>
++
++static int parse_attr_cb(const struct nlattr *attr, void *data)
++{
++	const struct nlattr **tb = data;
++	int type = mnl_attr_get_type(attr);
++
++	/* skip unsupported attribute in user-space */
++	if (mnl_attr_type_valid(attr, NFQA_MAX) < 0)
++		return MNL_CB_OK;
++
++	switch (type) {
++	case NFQA_MARK:
++	case NFQA_IFINDEX_INDEV:
++	case NFQA_IFINDEX_OUTDEV:
++	case NFQA_IFINDEX_PHYSINDEV:
++	case NFQA_IFINDEX_PHYSOUTDEV:
++		if (mnl_attr_validate(attr, MNL_TYPE_U32) < 0) {
++			perror("mnl_attr_validate");
++			return MNL_CB_ERROR;
++		}
++		break;
++	case NFQA_TIMESTAMP:
++		if (mnl_attr_validate2(attr, MNL_TYPE_UNSPEC,
++		    sizeof(struct nfqnl_msg_packet_timestamp)) < 0) {
++			perror("mnl_attr_validate2");
++			return MNL_CB_ERROR;
++		}
++		break;
++	case NFQA_HWADDR:
++		if (mnl_attr_validate2(attr, MNL_TYPE_UNSPEC,
++		    sizeof(struct nfqnl_msg_packet_hw)) < 0) {
++			perror("mnl_attr_validate2");
++			return MNL_CB_ERROR;
++		}
++		break;
++	case NFQA_PAYLOAD:
++		break;
++	}
++	tb[type] = attr;
++	return MNL_CB_OK;
++}
++
++static unsigned int queue_stats[5];
++
++static int queue_cb(const struct nlmsghdr *nlh, void *data)
++{
++	struct nlattr *tb[NFQA_MAX+1] = { 0 };
++	struct nfqnl_msg_packet_hdr *ph = NULL;
++	uint32_t id = 0;
++
++	(void)data;
++
++	mnl_attr_parse(nlh, sizeof(struct nfgenmsg), parse_attr_cb, tb);
++	if (tb[NFQA_PACKET_HDR]) {
++		uint32_t skbinfo;
++
++		ph = mnl_attr_get_payload(tb[NFQA_PACKET_HDR]);
++		id = ntohl(ph->packet_id);
++
++		printf("packet hook=%u, hwproto 0x%x",
++			ntohs(ph->hw_protocol), ph->hook);
++
++		if (ph->hook >= 5) {
++			fprintf(stderr, "Unknown hook %d\n", ph->hook);
++			return MNL_CB_ERROR;
++		}
++
++		queue_stats[ph->hook]++;
++
++		skbinfo = 0;
++		if (tb[NFQA_SKB_INFO])
++			skbinfo = ntohl(mnl_attr_get_u32(tb[NFQA_SKB_INFO]));
++		if (skbinfo & NFQA_SKB_CSUMNOTREADY)
++			printf(" csumnotready");
++		if (skbinfo & NFQA_SKB_GSO)
++			printf(" gso");
++		if (skbinfo & NFQA_SKB_CSUM_NOTVERIFIED)
++			printf(" csumnotverified");
++
++		puts("");
++	}
++
++	return MNL_CB_OK + id;
++}
++
++static struct nlmsghdr *
++nfq_build_cfg_request(char *buf, uint8_t command, int queue_num)
++{
++	struct nlmsghdr *nlh = mnl_nlmsg_put_header(buf);
++	struct nfqnl_msg_config_cmd cmd = {
++		.command = command,
++		.pf = htons(AF_INET),
++	};
++	struct nfgenmsg *nfg;
++
++	nlh->nlmsg_type	= (NFNL_SUBSYS_QUEUE << 8) | NFQNL_MSG_CONFIG;
++	nlh->nlmsg_flags = NLM_F_REQUEST;
++
++	nfg = mnl_nlmsg_put_extra_header(nlh, sizeof(*nfg));
++
++	nfg->nfgen_family = AF_UNSPEC;
++	nfg->version = NFNETLINK_V0;
++	nfg->res_id = htons(queue_num);
++
++	mnl_attr_put(nlh, NFQA_CFG_CMD, sizeof(cmd), &cmd);
++
++	return nlh;
++}
++
++static struct nlmsghdr *
++nfq_build_cfg_params(char *buf, uint8_t mode, int range, int queue_num)
++{
++	struct nlmsghdr *nlh = mnl_nlmsg_put_header(buf);
++	struct nfqnl_msg_config_params params = {
++		.copy_range = htonl(range),
++		.copy_mode = mode,
++	};
++	struct nfgenmsg *nfg;
++
++	nlh->nlmsg_type	= (NFNL_SUBSYS_QUEUE << 8) | NFQNL_MSG_CONFIG;
++	nlh->nlmsg_flags = NLM_F_REQUEST;
++
++	nfg = mnl_nlmsg_put_extra_header(nlh, sizeof(*nfg));
++	nfg->nfgen_family = AF_UNSPEC;
++	nfg->version = NFNETLINK_V0;
++	nfg->res_id = htons(queue_num);
++
++	mnl_attr_put(nlh, NFQA_CFG_PARAMS, sizeof(params), &params);
++
++	return nlh;
++}
++
++static struct nlmsghdr *
++nfq_build_verdict(char *buf, int id, int queue_num, int verd)
++{
++	struct nfqnl_msg_verdict_hdr vh = {
++		.verdict = htonl(verd),
++		.id = htonl(id),
++	};
++	struct nlmsghdr *nlh;
++	struct nfgenmsg *nfg;
++
++	nlh = mnl_nlmsg_put_header(buf);
++	nlh->nlmsg_type = (NFNL_SUBSYS_QUEUE << 8) | NFQNL_MSG_VERDICT;
++	nlh->nlmsg_flags = NLM_F_REQUEST;
++	nfg = mnl_nlmsg_put_extra_header(nlh, sizeof(*nfg));
++	nfg->nfgen_family = AF_UNSPEC;
++	nfg->version = NFNETLINK_V0;
++	nfg->res_id = htons(queue_num);
++
++	mnl_attr_put(nlh, NFQA_VERDICT_HDR, sizeof(vh), &vh);
++
++	return nlh;
++}
++
++static int print_stats(void)
++{
++	unsigned int last, total;
++	int i, ret = 0;
++
++	total = 0;
++	last = queue_stats[0];
++
++	for (i = 0; i < 5; i++) {
++		if (last != queue_stats[i])
++			ret = 1;
++		printf("hook %d packets %08u\n", i, queue_stats[i]);
++		last = queue_stats[i];
++		total += last;
++	}
++
++	printf("%u packets total\n", total);
++	return ret;
++}
++
++int main(int argc, char *argv[])
++{
++	struct mnl_socket *nl;
++	char buf[MNL_SOCKET_BUFFER_SIZE];
++	struct nlmsghdr *nlh;
++	int ret;
++	unsigned int portid, queue_num;
++	uint32_t flags;
++	struct timeval tv;
++
++	if (argc != 2) {
++		printf("Usage: %s [queue_num]\n", argv[0]);
++		exit(EXIT_FAILURE);
++	}
++	queue_num = atoi(argv[1]);
++
++	nl = mnl_socket_open(NETLINK_NETFILTER);
++	if (nl == NULL) {
++		perror("mnl_socket_open");
++		exit(EXIT_FAILURE);
++	}
++
++	if (mnl_socket_bind(nl, 0, MNL_SOCKET_AUTOPID) < 0) {
++		perror("mnl_socket_bind");
++		exit(EXIT_FAILURE);
++	}
++	portid = mnl_socket_get_portid(nl);
++
++	nlh = nfq_build_cfg_request(buf, NFQNL_CFG_CMD_BIND, queue_num);
++
++	if (mnl_socket_sendto(nl, nlh, nlh->nlmsg_len) < 0) {
++		perror("mnl_socket_sendto");
++		exit(EXIT_FAILURE);
++	}
++
++	nlh = nfq_build_cfg_params(buf, NFQNL_COPY_PACKET, 0xFFFF, queue_num);
++
++	flags = NFQA_CFG_F_GSO | NFQA_CFG_F_UID_GID;
++	mnl_attr_put_u32(nlh, NFQA_CFG_FLAGS, htonl(flags));
++	mnl_attr_put_u32(nlh, NFQA_CFG_MASK, htonl(flags));
++
++	if (mnl_socket_sendto(nl, nlh, nlh->nlmsg_len) < 0) {
++		perror("mnl_socket_sendto");
++		exit(EXIT_FAILURE);
++	}
++
++
++	memset(&tv, 0, sizeof(tv));
++	tv.tv_sec = 3;
++	if (setsockopt(mnl_socket_get_fd(nl), SOL_SOCKET, SO_RCVTIMEO,
++			&tv, sizeof(tv))) {
++		perror("setsockopt(SO_RCVTIMEO)");
++		exit(EXIT_FAILURE);
++	}
++
++	ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
++	if (ret == -1) {
++		perror("mnl_socket_recvfrom");
++		exit(EXIT_FAILURE);
++	}
++	while (ret > 0) {
++		uint32_t id;
++
++		ret = mnl_cb_run(buf, ret, 0, portid, queue_cb, NULL);
++		if (ret < 0) {
++			perror("mnl_cb_run");
++			exit(EXIT_FAILURE);
++		}
++
++		id = ret - MNL_CB_OK;
++		nlh = nfq_build_verdict(buf, id, queue_num, NF_ACCEPT);
++		if (mnl_socket_sendto(nl, nlh, nlh->nlmsg_len) < 0) {
++			perror("mnl_socket_sendto");
++			exit(EXIT_FAILURE);
++		}
++
++		ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
++		if (ret == -1) {
++			if (errno == EAGAIN) {
++				ret = print_stats();
++				break;
++			}
++			perror("mnl_socket_recvfrom");
++			exit(EXIT_FAILURE);
++		}
++	}
++
++	mnl_socket_close(nl);
++
++	return ret;
++}
+diff --git a/tools/testing/selftests/netfilter/nft_queue.sh b/tools/testing/selftests/netfilter/nft_queue.sh
+new file mode 100755
+index 000000000000..3e271dcd6841
+--- /dev/null
++++ b/tools/testing/selftests/netfilter/nft_queue.sh
+@@ -0,0 +1,274 @@
++#!/bin/bash
++#
++# This tests nf_queue:
++# 1. can process packets from all hooks
++# 2. support running nfqueue from more than one base chain
++#
++# Kselftest framework requirement - SKIP code is 4.
++ksft_skip=4
++ret=0
++
++cleanup()
++{
++	for i in 1 2; do ip netns del ns$i;done
++	ip netns del nsrouter
++	rm -f "$TMPFILE0"
++	rm -f "$TMPFILE1"
++}
++
++nft --version > /dev/null 2>&1
++if [ $? -ne 0 ];then
++	echo "SKIP: Could not run test without nft tool"
++	exit $ksft_skip
++fi
++
++ip -Version > /dev/null 2>&1
++if [ $? -ne 0 ];then
++	echo "SKIP: Could not run test without ip tool"
++	exit $ksft_skip
++fi
++
++ip netns add nsrouter
++if [ $? -ne 0 ];then
++	echo "SKIP: Could not create net namespace"
++	exit $ksft_skip
++fi
++
++TMPFILE0=$(mktemp)
++TMPFILE1=$(mktemp)
++trap cleanup EXIT
++
++ip netns add ns1
++ip netns add ns2
++
++ip link add veth0 netns nsrouter type veth peer name eth0 netns ns1 > /dev/null 2>&1
++if [ $? -ne 0 ];then
++    echo "SKIP: No virtual ethernet pair device support in kernel"
++    exit $ksft_skip
++fi
++ip link add veth1 netns nsrouter type veth peer name eth0 netns ns2
++
++ip -net nsrouter link set lo up
++ip -net nsrouter link set veth0 up
++ip -net nsrouter addr add 10.0.1.1/24 dev veth0
++ip -net nsrouter addr add dead:1::1/64 dev veth0
++
++ip -net nsrouter link set veth1 up
++ip -net nsrouter addr add 10.0.2.1/24 dev veth1
++ip -net nsrouter addr add dead:2::1/64 dev veth1
++
++for i in 1 2; do
++  ip -net ns$i link set lo up
++  ip -net ns$i link set eth0 up
++  ip -net ns$i addr add 10.0.$i.99/24 dev eth0
++  ip -net ns$i route add default via 10.0.$i.1
++  ip -net ns$i addr add dead:$i::99/64 dev eth0
++  ip -net ns$i route add default via dead:$i::1
++done
++
++load_ruleset() {
++	local name=$1
++	local prio=$2
++
++ip netns exec nsrouter nft -f - <<EOF
++table inet $name {
++	chain nfq {
++		ip protocol icmp queue bypass
++		icmpv6 type { "echo-request", "echo-reply" } queue num 1 bypass
++	}
++	chain pre {
++		type filter hook prerouting priority $prio; policy accept;
++		jump nfq
++	}
++	chain input {
++		type filter hook input priority $prio; policy accept;
++		jump nfq
++	}
++	chain forward {
++		type filter hook forward priority $prio; policy accept;
++		jump nfq
++	}
++	chain output {
++		type filter hook output priority $prio; policy accept;
++		jump nfq
++	}
++	chain post {
++		type filter hook postrouting priority $prio; policy accept;
++		jump nfq
++	}
++}
++EOF
++}
++
++load_counter_ruleset() {
++	local prio=$1
++
++ip netns exec nsrouter nft -f - <<EOF
++table inet countrules {
++	chain pre {
++		type filter hook prerouting priority $prio; policy accept;
++		counter
++	}
++	chain input {
++		type filter hook input priority $prio; policy accept;
++		counter
++	}
++	chain forward {
++		type filter hook forward priority $prio; policy accept;
++		counter
++	}
++	chain output {
++		type filter hook output priority $prio; policy accept;
++		counter
++	}
++	chain post {
++		type filter hook postrouting priority $prio; policy accept;
++		counter
++	}
++}
++EOF
++}
++
++test_ping() {
++  ip netns exec ns1 ping -c 1 -q 10.0.2.99 > /dev/null
++  if [ $? -ne 0 ];then
++	return 1
++  fi
++
++  ip netns exec ns1 ping -c 1 -q dead:2::99 > /dev/null
++  if [ $? -ne 0 ];then
++	return 1
++  fi
++
++  return 0
++}
++
++test_ping_router() {
++  ip netns exec ns1 ping -c 1 -q 10.0.2.1 > /dev/null
++  if [ $? -ne 0 ];then
++	return 1
++  fi
++
++  ip netns exec ns1 ping -c 1 -q dead:2::1 > /dev/null
++  if [ $? -ne 0 ];then
++	return 1
++  fi
++
++  return 0
++}
++
++test_queue_blackhole() {
++	local proto=$1
++
++ip netns exec nsrouter nft -f - <<EOF
++table $proto blackh {
++	chain forward {
++	type filter hook forward priority 0; policy accept;
++		queue num 600
++	}
++}
++EOF
++	if [ $proto = "ip" ] ;then
++		ip netns exec ns1 ping -c 1 -q 10.0.2.99 > /dev/null
++		lret=$?
++	elif [ $proto = "ip6" ]; then
++		ip netns exec ns1 ping -c 1 -q dead:2::99 > /dev/null
++		lret=$?
++	else
++		lret=111
++	fi
++
++	# queue without bypass keyword should drop traffic if no listener exists.
++	if [ $lret -eq 0 ];then
++		echo "FAIL: $proto expected failure, got $lret" 1>&2
++		exit 1
++	fi
++
++	ip netns exec nsrouter nft delete table $proto blackh
++	if [ $? -ne 0 ] ;then
++	        echo "FAIL: $proto: Could not delete blackh table"
++	        exit 1
++	fi
++
++        echo "PASS: $proto: statement with no listener results in packet drop"
++}
++
++test_queue()
++{
++	local expected=$1
++	local last=""
++
++	# spawn nf-queue listeners
++	ip netns exec nsrouter ./nf-queue 0 > "$TMPFILE0" &
++	ip netns exec nsrouter ./nf-queue 1 > "$TMPFILE1" &
++	sleep 1
++	test_ping
++	ret=$?
++	if [ $ret -ne 0 ];then
++		echo "FAIL: netns routing/connectivity with active listener on queue $queue: $ret" 1>&2
++		exit $ret
++	fi
++
++	test_ping_router
++	ret=$?
++	if [ $ret -ne 0 ];then
++		echo "FAIL: netns router unreachable listener on queue $queue: $ret" 1>&2
++		exit $ret
++	fi
++
++	wait
++	ret=$?
++
++	for file in $TMPFILE0 $TMPFILE1; do
++		last=$(tail -n1 "$file")
++		if [ x"$last" != x"$expected packets total" ]; then
++			echo "FAIL: Expected $expected packets total, but got $last" 1>&2
++			cat "$file" 1>&2
++
++			ip netns exec nsrouter nft list ruleset
++			exit 1
++		fi
++	done
++
++	echo "PASS: Expected and received $last"
++}
++
++ip netns exec nsrouter sysctl net.ipv6.conf.all.forwarding=1 > /dev/null
++ip netns exec nsrouter sysctl net.ipv4.conf.veth0.forwarding=1 > /dev/null
++ip netns exec nsrouter sysctl net.ipv4.conf.veth1.forwarding=1 > /dev/null
++
++load_ruleset "filter" 0
++
++sleep 3
++test_ping
++
++test_ping
++ret=$?
++if [ $ret -eq 0 ];then
++	# queue bypass works (rules were skipped, no listener)
++	echo "PASS: ns1 can reach ns2"
++else
++	echo "FAIL: ns1 cannot reach ns2: $ret" 1>&2
++	exit $ret
++fi
++
++test_queue_blackhole ip
++test_queue_blackhole ip6
++
++# dummy ruleset to add base chains between the
++# queueing rules.  We don't want the second reinject
++# to re-execute the old hooks.
++load_counter_ruleset 10
++
++# we are hooking all: prerouting/input/forward/output/postrouting.
++# we ping ns2 from ns1 via nsrouter using ipv4 and ipv6, so:
++# 1x icmp prerouting,forward,postrouting -> 3 queue events (6 incl. reply).
++# 1x icmp prerouting,input,output postrouting -> 4 queue events incl. reply.
++# so we expect that userspace program receives 10 packets.
++test_queue 10
++
++# same.  We queue to a second program as well.
++load_ruleset "filter2" 20
++test_queue 20
++
++exit $ret
+-- 
+2.21.0
 
-You could probably make an initial patch to add this function, so this
-patch becomes smaller and easier to review:
-
-                nf_flow_fill_inet_dst(...)
-
-to wrap the code below.
-
-> +		other_dst = data->route.tuple[!dir].dst;
-> +		dst = data->route.tuple[dir].dst;
-> +
-> +		ft->iifidx = other_dst->dev->ifindex;
-> +		ft->dst.dst_cache = dst;
-> +	}
-> +
-> +	ft->dst.type = data->type;
->  	ft->dir = dir;
->  
->  	switch (ctt->src.l3num) {
->  	case NFPROTO_IPV4:
->  		ft->src_v4 = ctt->src.u3.in;
->  		ft->dst_v4 = ctt->dst.u3.in;
-> -		ft->mtu = ip_dst_mtu_maybe_forward(dst, true);
-> +		if (data->type == FLOW_OFFLOAD_TYPE_BRIDGE)
-> +			ft->mtu = dst_port.dev->mtu;
-> +		else
-> +			ft->mtu = ip_dst_mtu_maybe_forward(dst, true);
->  		break;
->  	case NFPROTO_IPV6:
->  		ft->src_v6 = ctt->src.u3.in6;
-> @@ -51,9 +73,6 @@ struct flow_offload_entry {
->  	ft->l4proto = ctt->dst.protonum;
->  	ft->src_port = ctt->src.u.tcp.port;
->  	ft->dst_port = ctt->dst.u.tcp.port;
-> -
-> -	ft->iifidx = other_dst->dev->ifindex;
-> -	ft->dst_cache = dst;
->  }
->  
->  struct flow_offload *
-> @@ -72,11 +91,13 @@ struct flow_offload *
->  
->  	flow = &entry->flow;
->  
-> -	if (!dst_hold_safe(data->route.tuple[FLOW_OFFLOAD_DIR_ORIGINAL].dst))
-> -		goto err_dst_cache_original;
-> +	if (data->type == FLOW_OFFLOAD_TYPE_INET) {
-
-Place this code below in a function?
-
-> +		if (!dst_hold_safe(data->route.tuple[FLOW_OFFLOAD_DIR_ORIGINAL].dst))
-> +			goto err_dst_cache_original;
->  
-> -	if (!dst_hold_safe(data->route.tuple[FLOW_OFFLOAD_DIR_REPLY].dst))
-> -		goto err_dst_cache_reply;
-> +		if (!dst_hold_safe(data->route.tuple[FLOW_OFFLOAD_DIR_REPLY].dst))
-> +			goto err_dst_cache_reply;
-> +	}
->  
->  	entry->ct = ct;
->  
-> @@ -91,7 +112,8 @@ struct flow_offload *
->  	return flow;
->  
->  err_dst_cache_reply:
-> -	dst_release(data->route.tuple[FLOW_OFFLOAD_DIR_ORIGINAL].dst);
-> +	if (data->type == FLOW_OFFLOAD_TYPE_INET)
-> +		dst_release(data->route.tuple[FLOW_OFFLOAD_DIR_ORIGINAL].dst);
-
-Same thing here, place this code in a function.
-
->  err_dst_cache_original:
->  	kfree(entry);
->  err_ct_refcnt:
-> @@ -139,8 +161,13 @@ void flow_offload_free(struct flow_offload *flow)
->  {
->  	struct flow_offload_entry *e;
->  
-> -	dst_release(flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple.dst.dst_cache);
-> -	dst_release(flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].tuple.dst.dst_cache);
-> +	if (flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple.dst.type == FLOW_OFFLOAD_TYPE_INET) {
-
-Place this code in a function.
-
-Better use switch() rather than if().
-
-> +		dst_release(flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple.dst.dst_cache);
-> +		dst_release(flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].tuple.dst.dst_cache);
-> +	} else {
-> +		dev_put(flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple.dst.dst_port.dev);
-> +		dev_put(flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].tuple.dst.dst_port.dev);
-> +	}
->  	e = container_of(flow, struct flow_offload_entry, flow);
->  	if (flow->flags & FLOW_OFFLOAD_DYING)
->  		nf_ct_delete(e->ct, 0, 0);
-> diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
-> index 0016bb8..9af01ef 100644
-> --- a/net/netfilter/nf_flow_table_ip.c
-> +++ b/net/netfilter/nf_flow_table_ip.c
-> @@ -16,6 +16,8 @@
->  #include <linux/tcp.h>
->  #include <linux/udp.h>
->  
-> +#include "../bridge/br_private.h"
-> +
->  static int nf_flow_state_check(struct flow_offload *flow, int proto,
->  			       struct sk_buff *skb, unsigned int thoff)
->  {
-> @@ -220,6 +222,7 @@ static bool nf_flow_exceeds_mtu(const struct sk_buff *skb, unsigned int mtu)
->  {
->  	struct flow_offload_tuple_rhash *tuplehash;
->  	struct nf_flowtable *flow_table = priv;
-> +	int family = flow_table->type->family;
->  	struct flow_offload_tuple tuple = {};
->  	enum flow_offload_tuple_dir dir;
->  	struct flow_offload *flow;
-> @@ -228,6 +231,7 @@ static bool nf_flow_exceeds_mtu(const struct sk_buff *skb, unsigned int mtu)
->  	unsigned int thoff;
->  	struct iphdr *iph;
->  	__be32 nexthop;
-> +	u16 vlan_tag;
->  
->  	if (skb->protocol != htons(ETH_P_IP))
->  		return NF_ACCEPT;
-> @@ -235,14 +239,25 @@ static bool nf_flow_exceeds_mtu(const struct sk_buff *skb, unsigned int mtu)
->  	if (nf_flow_tuple_ip(skb, state->in, &tuple) < 0)
->  		return NF_ACCEPT;
->  
-> +	if (family != NFPROTO_BRIDGE && family != NFPROTO_IPV4)
-> +		return NF_ACCEPT;
-> +
-> +	if (family == NFPROTO_BRIDGE && skb_vlan_tag_present(skb))
-> +		tuple.vlan_tag = skb_vlan_tag_get_id(skb);
-> +
->  	tuplehash = flow_offload_lookup(flow_table, &tuple);
->  	if (tuplehash == NULL)
->  		return NF_ACCEPT;
->  
->  	dir = tuplehash->tuple.dir;
->  	flow = container_of(tuplehash, struct flow_offload, tuplehash[dir]);
-> -	rt = (struct rtable *)flow->tuplehash[dir].tuple.dst.dst_cache;
-> -	outdev = rt->dst.dev;
-> +	if (family == NFPROTO_IPV4) {
-> +		rt = (struct rtable *)flow->tuplehash[dir].tuple.dst.dst_cache;
-> +		outdev = rt->dst.dev;
-> +	} else {
-> +		vlan_tag = flow->tuplehash[dir].tuple.dst.dst_port.dst_vlan_tag;
-> +		outdev = flow->tuplehash[dir].tuple.dst.dst_port.dev;
-> +	}
->  
->  	if (unlikely(nf_flow_exceeds_mtu(skb, flow->tuplehash[dir].tuple.mtu)))
->  		return NF_ACCEPT;
-> @@ -258,13 +273,25 @@ static bool nf_flow_exceeds_mtu(const struct sk_buff *skb, unsigned int mtu)
->  		return NF_DROP;
->  
->  	flow->timeout = (u32)jiffies + NF_FLOW_TIMEOUT;
-> -	iph = ip_hdr(skb);
-> -	ip_decrease_ttl(iph);
->  
->  	skb->dev = outdev;
-> -	nexthop = rt_nexthop(rt, flow->tuplehash[!dir].tuple.src_v4.s_addr);
-> -	skb_dst_set_noref(skb, &rt->dst);
-> -	neigh_xmit(NEIGH_ARP_TABLE, outdev, &nexthop, skb);
-> +	if (family == NFPROTO_IPV4) {
-> +		iph = ip_hdr(skb);
-> +		ip_decrease_ttl(iph);
-> +
-> +		nexthop = rt_nexthop(rt, flow->tuplehash[!dir].tuple.src_v4.s_addr);
-> +		skb_dst_set_noref(skb, &rt->dst);
-> +		neigh_xmit(NEIGH_ARP_TABLE, outdev, &nexthop, skb);
-> +	} else {
-> +		const struct net_bridge_port *p;
-> +
-> +		if (vlan_tag && (p = br_port_get_rtnl_rcu(state->in)))
-> +			__vlan_hwaccel_put_tag(skb, p->br->vlan_proto, vlan_tag);
-> +		else
-> +			__vlan_hwaccel_clear_tag(skb);
-> +
-> +		br_dev_queue_push_xmit(state->net, state->sk, skb);
-> +	}
-
-Probably you can place common code into functions, the make a function
-that uses these function to build the bridge and the inet datapath
-into independent functions.
-
-Instead of all these if() branches so often to reuse code, which makes
-the code hard to follow.
-
->  	return NF_STOLEN;
->  }
-> diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
-> index cdb7c46..c88396a 100644
-> --- a/net/netfilter/nft_flow_offload.c
-> +++ b/net/netfilter/nft_flow_offload.c
-> @@ -14,6 +14,8 @@
->  #include <linux/netfilter/nf_conntrack_common.h>
->  #include <net/netfilter/nf_flow_table.h>
->  
-> +#include "../bridge/br_private.h"
-> +
->  struct nft_flow_offload {
->  	struct nft_flowtable	*flowtable;
->  };
-> @@ -49,6 +51,58 @@ static int nft_flow_route(const struct nft_pktinfo *pkt,
->  	return 0;
->  }
->  
-> +static int nft_flow_forward(const struct nft_pktinfo *pkt,
-> +			    const struct nf_conn *ct,
-> +			    struct nf_flow_forward *forward,
-> +			    enum ip_conntrack_dir dir)
-> +{
-> +	struct net_bridge_vlan_group *vg;
-> +	const struct net_bridge_port *p;
-> +	u16 vid = 0;
-> +
-> +	if (skb_vlan_tag_present(pkt->skb))
-> +		vid = skb_vlan_tag_get_id(pkt->skb);
-> +
-> +	forward->tuple[dir].dst_port.dst_vlan_tag = vid;
-> +	forward->tuple[!dir].vlan_tag = vid;
-> +	forward->tuple[dir].dst_port.dev = dev_get_by_index(dev_net(nft_out(pkt)),
-> +							    nft_out(pkt)->ifindex);
-> +	forward->tuple[!dir].dst_port.dev = dev_get_by_index(dev_net(nft_in(pkt)),
-> +							     nft_in(pkt)->ifindex);
-> +
-> +	rtnl_lock();
-
-rtnl_lock() from the packet path?
-
-> +	p = br_port_get_rtnl_rcu(nft_out(pkt));
-> +	if (p) {
-> +		if (!br_opt_get(p->br, BROPT_VLAN_ENABLED))
-> +			goto out;
-> +
-> +		if (!vid) {
-> +			vg = nbp_vlan_group_rcu(p);
-> +			vid = br_get_pvid(vg);
-> +		}
-> +
-> +		if (vid) {
-> +			struct bridge_vlan_info info;
-> +
-> +			if (br_vlan_get_info(nft_in(pkt), vid, &info) == 0 &&
-> +			    info.flags & BRIDGE_VLAN_INFO_UNTAGGED)
-> +				vid = 0;
-> +		}
-> +	} else {
-> +		rtnl_unlock();
-> +		dev_put(forward->tuple[dir].dst_port.dev);
-> +		dev_put(forward->tuple[!dir].dst_port.dev);
-> +		return -ENOENT;
-> +	}
-> +
-> +out:
-> +	rtnl_unlock();
-> +	forward->tuple[!dir].dst_port.dst_vlan_tag = vid;
-> +	forward->tuple[dir].vlan_tag = vid;
-> +
-> +	return 0;
-> +}
-> +
->  static bool nft_flow_offload_skip(struct sk_buff *skb, int family)
->  {
->  	if (skb_sec_path(skb))
-> @@ -61,6 +115,15 @@ static bool nft_flow_offload_skip(struct sk_buff *skb, int family)
->  
->  		if (unlikely(opt->optlen))
->  			return true;
-> +	} else if (family == NFPROTO_BRIDGE) {
-> +		const struct iphdr *iph;
-> +
-> +		if (skb->protocol != htons(ETH_P_IP))
-> +			return true;
-> +
-> +		iph = ip_hdr(skb);
-> +		if (iph->ihl > 5)
-> +			return true;
->  	}
->  
->  	return false;
-> @@ -76,11 +139,12 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
->  	struct nf_flow_data data;
->  	struct flow_offload *flow;
->  	enum ip_conntrack_dir dir;
-> +	int family = nft_pf(pkt);
->  	bool is_tcp = false;
->  	struct nf_conn *ct;
->  	int ret;
->  
-> -	if (nft_flow_offload_skip(pkt->skb, nft_pf(pkt)))
-> +	if (nft_flow_offload_skip(pkt->skb, family))
->  		goto out;
->  
->  	ct = nf_ct_get(pkt->skb, &ctinfo);
-> @@ -108,8 +172,15 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
->  		goto out;
->  
->  	dir = CTINFO2DIR(ctinfo);
-> -	if (nft_flow_route(pkt, ct, &data.route, dir) < 0)
-> -		goto err_flow_route;
-> +	if (family == NFPROTO_BRIDGE) {
-> +		data.type = FLOW_OFFLOAD_TYPE_BRIDGE;
-> +		if (nft_flow_forward(pkt, ct, &data.forward, dir) < 0)
-> +			goto err_flow_data;
-> +	} else {
-> +		data.type = FLOW_OFFLOAD_TYPE_INET;
-> +		if (nft_flow_route(pkt, ct, &data.route, dir) < 0)
-> +			goto err_flow_data;
-> +	}
->  
->  	flow = flow_offload_alloc(ct, &data);
->  	if (!flow)
-> @@ -124,14 +195,20 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
->  	if (ret < 0)
->  		goto err_flow_add;
->  
-> -	dst_release(data.route.tuple[!dir].dst);
-> +	if (family != NFPROTO_BRIDGE)
-> +		dst_release(data.route.tuple[!dir].dst);
->  	return;
->  
->  err_flow_add:
->  	flow_offload_free(flow);
->  err_flow_alloc:
-> -	dst_release(data.route.tuple[!dir].dst);
-> -err_flow_route:
-> +	if (family == NFPROTO_BRIDGE) {
-> +		dev_put(data.forward.tuple[dir].dst_port.dev);
-> +		dev_put(data.forward.tuple[!dir].dst_port.dev);
-> +	} else {
-> +		dst_release(data.route.tuple[!dir].dst);
-> +	}
-> +err_flow_data:
->  	clear_bit(IPS_OFFLOAD_BIT, &ct->status);
->  out:
->  	regs->verdict.code = NFT_BREAK;
-> -- 
-> 1.8.3.1
-> 
