@@ -6,29 +6,29 @@ X-Spam-Status: No, score=-8.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AB0C6C48BD6
-	for <netfilter-devel@archiver.kernel.org>; Wed, 26 Jun 2019 20:44:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6595AC48BD6
+	for <netfilter-devel@archiver.kernel.org>; Wed, 26 Jun 2019 20:44:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7C641208E3
-	for <netfilter-devel@archiver.kernel.org>; Wed, 26 Jun 2019 20:44:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 46CE1208E3
+	for <netfilter-devel@archiver.kernel.org>; Wed, 26 Jun 2019 20:44:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726320AbfFZUoN (ORCPT
+        id S1726341AbfFZUoO (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 26 Jun 2019 16:44:13 -0400
-Received: from fnsib-smtp07.srv.cat ([46.16.61.68]:34764 "EHLO
+        Wed, 26 Jun 2019 16:44:14 -0400
+Received: from fnsib-smtp07.srv.cat ([46.16.61.68]:47646 "EHLO
         fnsib-smtp07.srv.cat" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726239AbfFZUoN (ORCPT
+        with ESMTP id S1726271AbfFZUoO (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 26 Jun 2019 16:44:13 -0400
+        Wed, 26 Jun 2019 16:44:14 -0400
 Received: from localhost.localdomain (unknown [47.62.206.189])
-        by fnsib-smtp07.srv.cat (Postfix) with ESMTPSA id 4625B819E;
-        Wed, 26 Jun 2019 22:44:09 +0200 (CEST)
+        by fnsib-smtp07.srv.cat (Postfix) with ESMTPSA id 909DC81A8;
+        Wed, 26 Jun 2019 22:44:10 +0200 (CEST)
 From:   Ander Juaristi <a@juaristi.eus>
 To:     netfilter-devel@vger.kernel.org
 Cc:     Ander Juaristi <a@juaristi.eus>
-Subject: [PATCH v2 2/7] nftables: meta: hour: Fix integer overflow error
-Date:   Wed, 26 Jun 2019 22:43:57 +0200
-Message-Id: <20190626204402.5257-2-a@juaristi.eus>
+Subject: [PATCH v2 3/7] nftables: meta: time: Proper handling of DST
+Date:   Wed, 26 Jun 2019 22:43:58 +0200
+Message-Id: <20190626204402.5257-3-a@juaristi.eus>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20190626204402.5257-1-a@juaristi.eus>
 References: <20190626204402.5257-1-a@juaristi.eus>
@@ -38,43 +38,35 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This patch fixes an overflow error that would happen when introducing edge times
-whose second representation is smaller than the value of the tm_gmtoff field, such
-as 00:00.
-
 Signed-off-by: Ander Juaristi <a@juaristi.eus>
 ---
- src/meta.c | 10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ src/meta.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
 diff --git a/src/meta.c b/src/meta.c
-index 31a86b2..39e551c 100644
+index 39e551c..bfe8aaa 100644
 --- a/src/meta.c
 +++ b/src/meta.c
-@@ -565,7 +565,7 @@ static void hour_type_print(const struct expr *expr, struct output_ctx *octx)
- 		cur_tm = localtime(&ts);
+@@ -408,6 +408,7 @@ static void date_type_print(const struct expr *expr, struct output_ctx *octx)
+ static time_t parse_iso_date(const char *sym)
+ {
+ 	time_t ts = time(NULL);
++	long int gmtoff;
+ 	struct tm tm, *cur_tm;
  
- 		if (cur_tm)
--			seconds += cur_tm->tm_gmtoff;
-+			seconds = (seconds + cur_tm->tm_gmtoff) % 86400;
- 
- 		__hour_type_print_r(0, 0, seconds, out);
- 		nft_print(octx, "\"%s\"", out);
-@@ -616,8 +616,12 @@ convert:
- 		result = tm.tm_hour * 3600 + tm.tm_min * 60 + tm.tm_sec;
+ 	memset(&tm, 0, sizeof(struct tm));
+@@ -433,7 +434,10 @@ success:
+ 		return ts;
  
  	/* Substract tm_gmtoff to get the current time */
--	if (cur_tm)
--		result -= cur_tm->tm_gmtoff;
-+	if (cur_tm) {
-+		if (result >= cur_tm->tm_gmtoff)
-+			result -= cur_tm->tm_gmtoff;
-+		else
-+			result = 86400 - cur_tm->tm_gmtoff + result;
-+	}
+-	return ts - cur_tm->tm_gmtoff;
++	gmtoff = cur_tm->tm_gmtoff;
++	if (cur_tm->tm_isdst == 1)
++		gmtoff -= 3600;
++	return ts - gmtoff;
+ }
  
- success:
- 	*res = constant_expr_alloc(&sym->location, sym->dtype,
+ static struct error_record *date_type_parse(const struct expr *sym,
 -- 
 2.17.1
 
