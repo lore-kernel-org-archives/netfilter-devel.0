@@ -2,78 +2,56 @@ Return-Path: <SRS0=TDc5=UZ=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_NEOMUTT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E982FC48BD3
-	for <netfilter-devel@archiver.kernel.org>; Wed, 26 Jun 2019 11:07:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EC44CC48BD3
+	for <netfilter-devel@archiver.kernel.org>; Wed, 26 Jun 2019 11:12:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C4DDE20656
-	for <netfilter-devel@archiver.kernel.org>; Wed, 26 Jun 2019 11:07:07 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Xhnj6sHv"
+	by mail.kernel.org (Postfix) with ESMTP id CEDEA20663
+	for <netfilter-devel@archiver.kernel.org>; Wed, 26 Jun 2019 11:12:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727134AbfFZLHF (ORCPT
+        id S1726157AbfFZLMS (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 26 Jun 2019 07:07:05 -0400
-Received: from mail-wr1-f66.google.com ([209.85.221.66]:44899 "EHLO
-        mail-wr1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725930AbfFZLHF (ORCPT
+        Wed, 26 Jun 2019 07:12:18 -0400
+Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:40150 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725930AbfFZLMS (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 26 Jun 2019 07:07:05 -0400
-Received: by mail-wr1-f66.google.com with SMTP id r16so2206435wrl.11;
-        Wed, 26 Jun 2019 04:07:03 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:from:date:message-id:subject:to;
-        bh=m90tKDbIoQ6CgI7EuX/tJe0WMVlu0RpWKVwGqLrxzg0=;
-        b=Xhnj6sHva5UgsbQUfTH3AGwsXB5sHyc7flB/orpM2Uc3SBKpX8A12ny3WjMpvVTWaP
-         iWkR61qaItmgLRydDB1KtD7ELxeoxlagk8C/+ouGutlJLkEpn9r7yj9JJSDAioDARr3N
-         zxQAOWJSL0V8zU6saDbOHBUG1vsMS4q0tK2JF0ta+hgF9QTq4MMO4a+qKlhekU7W0JNw
-         s94teqE5PKmGLMTXb7T5+LxJW9+KEETa6ViEuQFLYJW4WBqYZ7mBDUmPJQPTpH7BJeyQ
-         RI/Hmr9Z0VxpIl7lS3lknTKMqW3F98sF3PeK7KYbhDUF73mBKF0Rrmyh1/eRkoS3T7Mo
-         DlGQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:from:date:message-id:subject:to;
-        bh=m90tKDbIoQ6CgI7EuX/tJe0WMVlu0RpWKVwGqLrxzg0=;
-        b=Qx01WFUv4LBCLsHNCRzbmaFVNyNGYlUhKAc8q23l9sod9XqoNdXf0f8OPKuYlP35C0
-         aR3ujteuKLi09OOgkIHQX/RCC1cRwh6EJyFPOvakAp64At0sVDPTLbH7q98+AY/Q7tEo
-         PA5alhJemuvsfif6tIDY2HjdIl2DjkKgO4ybRd3inQDyTCqd9Tff2U3bDKR/szt+JvlB
-         THK5MWKsgBjQdKjqACow9PDHz5eEncxo8FKBExg/0xbvvZRcpWMU4pMVTbJKsNXP2uDN
-         Gr5ZsZi0oy8W54QlLdL7YrHQpXqb9cY6FT9XZLuZbBsL6KbwTtzHXA+jLrmUGbGayQkJ
-         zDjg==
-X-Gm-Message-State: APjAAAVunh2ivLdpBd+3a9m8C1S5pmJjZ9P8NSgh0jyZnjYGvMXki/C9
-        eI12xDykyhrUR4Jghv0VOQv3Vp1t/yWbLRl8EJmz0L0z
-X-Google-Smtp-Source: APXvYqyTQNDusmVKdMMUQCnFWE9y3N0o32CPXogs3sJSXm2xup3rhUscuMYwuHM8Mb1prmVQc7cmQCFcQuU6DjdyheY=
-X-Received: by 2002:a5d:63cb:: with SMTP id c11mr3263377wrw.65.1561547222059;
- Wed, 26 Jun 2019 04:07:02 -0700 (PDT)
+        Wed, 26 Jun 2019 07:12:18 -0400
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.89)
+        (envelope-from <fw@strlen.de>)
+        id 1hg5qa-0001Ub-R4; Wed, 26 Jun 2019 13:12:16 +0200
+Date:   Wed, 26 Jun 2019 13:12:16 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     Fernando Fernandez Mancera <ffmancera@riseup.net>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf-next v6] netfilter: nf_tables: Add SYNPROXY support
+Message-ID: <20190626111216.6va4t6nfkjkvof4a@breakpoint.cc>
+References: <20190626105918.1142-1-ffmancera@riseup.net>
 MIME-Version: 1.0
-From:   Naruto Nguyen <narutonguyen2018@gmail.com>
-Date:   Wed, 26 Jun 2019 18:06:45 +0700
-Message-ID: <CANpxKHHXzrEpJPSj3x83+WE23G1W0KPz9XbG=fCVzS21+-BpfQ@mail.gmail.com>
-Subject: Question about nf_conntrack_proto for IPsec
-To:     netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-        netfilter@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190626105918.1142-1-ffmancera@riseup.net>
+User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi everyone,
+Fernando Fernandez Mancera <ffmancera@riseup.net> wrote:
+> Add SYNPROXY module support in nf_tables. It preserves the behaviour of the
+> SYNPROXY target of iptables but structured in a different way to propose
+> improvements in the future.
 
-In linux/latest/source/net/netfilter/ folder, I only see we have
-nf_conntrack_proto_tcp.c, nf_conntrack_proto_udp.c and some other
-conntrack implementations for other protocols but I do not see
-nf_conntrack_proto for IPsec, so does it mean connection tracking
-cannot track ESP or AH protocol as a connection. I mean when I use
-"conntrack -L" command, I will not see ESP or AH  connection is saved
-in conntrack list. Could you please help me to understand if conntrack
-supports that and any reasons if it does not support?
+Looks good, thanks Fernando!
 
-Thanks a lot,
-Brs,
-Naruto
+Just one note, this will cause conflicts with
+https://patchwork.ozlabs.org/patch/1121798/
+
+Normally this would need to wait until the fix has propagated to
+nf-next.
+
+Pablo, any suggestion on how to proceed?
+I guess Fernando should resend a rebased v7 once the fix is in nf-next?
