@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4D03BC48BD3
-	for <netfilter-devel@archiver.kernel.org>; Thu, 27 Jun 2019 00:44:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B84CC48BD6
+	for <netfilter-devel@archiver.kernel.org>; Thu, 27 Jun 2019 00:46:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 231EE20815
-	for <netfilter-devel@archiver.kernel.org>; Thu, 27 Jun 2019 00:44:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E78FD216E3
+	for <netfilter-devel@archiver.kernel.org>; Thu, 27 Jun 2019 00:46:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1561596285;
-	bh=InIDW00RUkirh/J5pgEUul3acAmgbBcoF5Q5xM3H0D4=;
+	s=default; t=1561596385;
+	bh=VSm7k7yGBgV5GvCGRMrMLJDYP3WvNyNqSeKVgryW9gM=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=E1VNmp3sdJuvoWgRv7ntSd/YqoJbO5Pq/6JZiG1OPVqEl+kqEIFJW/z4WBoRwa/iH
-	 /FD022kHjx6h2E3pDmGKz8NcQeas9VBy0rnwd8hp6mFM4brbPVnMhSI/dm8U3i+h2M
-	 LY+dD8QTIiZdPx4sZRbOVPLtdcZq0mcX7uaQaFJ8=
+	b=RqQq7LEXCgGL8CXFPnmEP0eqQ6OkMezyzeA5oIJiYceZVzM7LkMsGtrCNT7mDrON/
+	 hVVeASxSTPD7WrpECbpIvxv0VD+ww5eaccLejawOr9iaCtcYdQM9xltAaQ42Ntezk8
+	 sptrvK4SD3bbhcl1B+o/NMpSYh2xisfb3hSOBdVg=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729584AbfF0Alv (ORCPT
+        id S1729266AbfF0AkK (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 26 Jun 2019 20:41:51 -0400
-Received: from mail.kernel.org ([198.145.29.99]:45554 "EHLO mail.kernel.org"
+        Wed, 26 Jun 2019 20:40:10 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44164 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729577AbfF0Alu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 26 Jun 2019 20:41:50 -0400
+        id S1729254AbfF0AkH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 26 Jun 2019 20:40:07 -0400
 Received: from sasha-vm.mshome.net (unknown [107.242.116.147])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 9203E21881;
-        Thu, 27 Jun 2019 00:41:47 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id EC84721871;
+        Thu, 27 Jun 2019 00:40:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1561596110;
-        bh=InIDW00RUkirh/J5pgEUul3acAmgbBcoF5Q5xM3H0D4=;
+        s=default; t=1561596006;
+        bh=VSm7k7yGBgV5GvCGRMrMLJDYP3WvNyNqSeKVgryW9gM=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=ZxstcwcWXSj8A5EZNZ+KzMNbLXd5uW20RXM8FFB4h6uoMc1fAccKs0BSQCbkt0osj
-         0Dq9iRqVATR4l99XVWGh9CCBXH78eaRzFc9obzQ+AAM50GrNaHjonBRES4F/F5X9pK
-         cm1gCc+dTUQbOYXuFuV/uG+OCgTk3+oBKBZFMuns=
+        b=bXGTRHA+bnH55nQs0pCfFjdniXRc1+w1Iv3tKjaCvkTzVaLvnexDKfwodada+6owj
+         QpfdKM8BcZ1v/cKfxeyfiH8Zt/I7rDcrzsoZzascNlKHDB7eTRCpxOajDq9V7ShCjq
+         7yGw4wCSxWvPW9gdJsX80i3e1QTOKVEZsM+wlMCs=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Guillaume Nault <gnault@redhat.com>,
@@ -46,12 +46,12 @@ Cc:     Guillaume Nault <gnault@redhat.com>,
         Sasha Levin <sashal@kernel.org>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.9 08/21] netfilter: ipv6: nf_defrag: fix leakage of unqueued fragments
-Date:   Wed, 26 Jun 2019 20:41:08 -0400
-Message-Id: <20190627004122.21671-8-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.14 12/35] netfilter: ipv6: nf_defrag: accept duplicate fragments again
+Date:   Wed, 26 Jun 2019 20:39:00 -0400
+Message-Id: <20190627003925.21330-12-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20190627004122.21671-1-sashal@kernel.org>
-References: <20190627004122.21671-1-sashal@kernel.org>
+In-Reply-To: <20190627003925.21330-1-sashal@kernel.org>
+References: <20190627003925.21330-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -63,61 +63,57 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Guillaume Nault <gnault@redhat.com>
 
-[ Upstream commit a0d56cb911ca301de81735f1d73c2aab424654ba ]
+[ Upstream commit 8a3dca632538c550930ce8bafa8c906b130d35cf ]
 
-With commit 997dd9647164 ("net: IP6 defrag: use rbtrees in
-nf_conntrack_reasm.c"), nf_ct_frag6_reasm() is now called from
-nf_ct_frag6_queue(). With this change, nf_ct_frag6_queue() can fail
-after the skb has been added to the fragment queue and
-nf_ct_frag6_gather() was adapted to handle this case.
+When fixing the skb leak introduced by the conversion to rbtree, I
+forgot about the special case of duplicate fragments. The condition
+under the 'insert_error' label isn't effective anymore as
+nf_ct_frg6_gather() doesn't override the returned value anymore. So
+duplicate fragments now get NF_DROP verdict.
 
-But nf_ct_frag6_queue() can still fail before the fragment has been
-queued. nf_ct_frag6_gather() can't handle this case anymore, because it
-has no way to know if nf_ct_frag6_queue() queued the fragment before
-failing. If it didn't, the skb is lost as the error code is overwritten
-with -EINPROGRESS.
+To accept duplicate fragments again, handle them specially as soon as
+inet_frag_queue_insert() reports them. Return -EINPROGRESS which will
+translate to NF_STOLEN verdict, like any accepted fragment. However,
+such packets don't carry any new information and aren't queued, so we
+just drop them immediately.
 
-Fix this by setting -EINPROGRESS directly in nf_ct_frag6_queue(), so
-that nf_ct_frag6_gather() can propagate the error as is.
-
-Fixes: 997dd9647164 ("net: IP6 defrag: use rbtrees in nf_conntrack_reasm.c")
+Fixes: a0d56cb911ca ("netfilter: ipv6: nf_defrag: fix leakage of unqueued fragments")
 Signed-off-by: Guillaume Nault <gnault@redhat.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- net/ipv6/netfilter/nf_conntrack_reasm.c | 12 +++++-------
- 1 file changed, 5 insertions(+), 7 deletions(-)
+ net/ipv6/netfilter/nf_conntrack_reasm.c | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
 diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
-index 1e1fa99b3243..e6114a6710e0 100644
+index 73c29ddcfb95..35d5a76867d0 100644
 --- a/net/ipv6/netfilter/nf_conntrack_reasm.c
 +++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
-@@ -292,7 +292,11 @@ static int nf_ct_frag6_queue(struct frag_queue *fq, struct sk_buff *skb,
- 		skb->_skb_refdst = 0UL;
- 		err = nf_ct_frag6_reasm(fq, skb, prev, dev);
- 		skb->_skb_refdst = orefdst;
--		return err;
-+
-+		/* After queue has assumed skb ownership, only 0 or
-+		 * -EINPROGRESS must be returned.
-+		 */
-+		return err ? -EINPROGRESS : 0;
- 	}
+@@ -265,8 +265,14 @@ static int nf_ct_frag6_queue(struct frag_queue *fq, struct sk_buff *skb,
  
+ 	prev = fq->q.fragments_tail;
+ 	err = inet_frag_queue_insert(&fq->q, skb, offset, end);
+-	if (err)
++	if (err) {
++		if (err == IPFRAG_DUP) {
++			/* No error for duplicates, pretend they got queued. */
++			kfree_skb(skb);
++			return -EINPROGRESS;
++		}
+ 		goto insert_error;
++	}
+ 
+ 	if (dev)
+ 		fq->iif = dev->ifindex;
+@@ -304,8 +310,6 @@ static int nf_ct_frag6_queue(struct frag_queue *fq, struct sk_buff *skb,
+ 	return -EINPROGRESS;
+ 
+ insert_error:
+-	if (err == IPFRAG_DUP)
+-		goto err;
+ 	inet_frag_kill(&fq->q);
+ err:
  	skb_dst_drop(skb);
-@@ -480,12 +484,6 @@ int nf_ct_frag6_gather(struct net *net, struct sk_buff *skb, u32 user)
- 		ret = 0;
- 	}
- 
--	/* after queue has assumed skb ownership, only 0 or -EINPROGRESS
--	 * must be returned.
--	 */
--	if (ret)
--		ret = -EINPROGRESS;
--
- 	spin_unlock_bh(&fq->q.lock);
- 	inet_frag_put(&fq->q);
- 	return ret;
 -- 
 2.20.1
 
