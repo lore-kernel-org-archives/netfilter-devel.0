@@ -2,100 +2,93 @@ Return-Path: <SRS0=TR/Z=U2=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_NEOMUTT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_NEOMUTT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D94E6C48BD6
-	for <netfilter-devel@archiver.kernel.org>; Thu, 27 Jun 2019 15:46:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7DC6DC48BD7
+	for <netfilter-devel@archiver.kernel.org>; Thu, 27 Jun 2019 15:50:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BC2472080C
-	for <netfilter-devel@archiver.kernel.org>; Thu, 27 Jun 2019 15:46:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 56C742080C
+	for <netfilter-devel@archiver.kernel.org>; Thu, 27 Jun 2019 15:50:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726463AbfF0Pqe (ORCPT
+        id S1726590AbfF0Puj (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 27 Jun 2019 11:46:34 -0400
-Received: from rs07.intra2net.com ([85.214.138.66]:56092 "EHLO
-        rs07.intra2net.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726187AbfF0Pqe (ORCPT
+        Thu, 27 Jun 2019 11:50:39 -0400
+Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:48648 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726384AbfF0Puj (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 27 Jun 2019 11:46:34 -0400
-Received: from mail.m.i2n (unknown [172.17.128.1])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by rs07.intra2net.com (Postfix) with ESMTPS id EC88215000C4;
-        Thu, 27 Jun 2019 17:46:31 +0200 (CEST)
-Received: from localhost (mail.m.i2n [127.0.0.1])
-        by localhost (Postfix) with ESMTP id B7C1F830;
-        Thu, 27 Jun 2019 17:46:31 +0200 (CEST)
-X-Virus-Scanned: by Intra2net Mail Security (AVE=8.3.54.52,VDF=8.16.17.176)
-Received: from localhost (storm.m.i2n [172.16.1.2])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.m.i2n (Postfix) with ESMTPS id 0DCF7611;
-        Thu, 27 Jun 2019 17:46:30 +0200 (CEST)
-Date:   Thu, 27 Jun 2019 17:46:29 +0200
-From:   Thomas Jarosch <thomas.jarosch@intra2net.com>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        Thu, 27 Jun 2019 11:50:39 -0400
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.89)
+        (envelope-from <fw@strlen.de>)
+        id 1hgWfU-00045i-OE; Thu, 27 Jun 2019 17:50:36 +0200
+Date:   Thu, 27 Jun 2019 17:50:36 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     Thomas Jarosch <thomas.jarosch@intra2net.com>
+Cc:     Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org,
         Juliana Rodrigueiro <juliana.rodrigueiro@intra2net.com>
 Subject: Re: 4.19: Traced deadlock during xfrm_user module load
-Message-ID: <20190627154629.27g5uwd47esyhz4s@intra2net.com>
+Message-ID: <20190627155036.vzoo2xikdfuyiug3@breakpoint.cc>
 References: <20190625155509.pgcxwgclqx3lfxxr@intra2net.com>
  <20190625165344.ii4zgvxydqj663ny@breakpoint.cc>
+ <20190627154629.27g5uwd47esyhz4s@intra2net.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20190625165344.ii4zgvxydqj663ny@breakpoint.cc>
-User-Agent: NeoMutt/20180716
+In-Reply-To: <20190627154629.27g5uwd47esyhz4s@intra2net.com>
+User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Florian,
-
-You wrote on Tue, Jun 25, 2019 at 06:53:44PM +0200:
-> Thanks for this detailed analysis.
-> In this specific case I think this is enough:
+Thomas Jarosch <thomas.jarosch@intra2net.com> wrote:
+> You wrote on Tue, Jun 25, 2019 at 06:53:44PM +0200:
+> > Thanks for this detailed analysis.
+> > In this specific case I think this is enough:
+> > 
+> > diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
+> > index 92077d459109..61ba92415480 100644
+> > --- a/net/netfilter/nfnetlink.c
+> > +++ b/net/netfilter/nfnetlink.c
+> > @@ -578,7 +578,8 @@ static int nfnetlink_bind(struct net *net, int group)
+> >         ss = nfnetlink_get_subsys(type << 8);
+> >         rcu_read_unlock();
+> >         if (!ss)
+> > -               request_module("nfnetlink-subsys-%d", type);
+> > +               request_module_nowait("nfnetlink-subsys-%d", type);
+> >         return 0;
+> >  }
+> >  #endif
 > 
-> diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
-> index 92077d459109..61ba92415480 100644
-> --- a/net/netfilter/nfnetlink.c
-> +++ b/net/netfilter/nfnetlink.c
-> @@ -578,7 +578,8 @@ static int nfnetlink_bind(struct net *net, int group)
->         ss = nfnetlink_get_subsys(type << 8);
->         rcu_read_unlock();
->         if (!ss)
-> -               request_module("nfnetlink-subsys-%d", type);
-> +               request_module_nowait("nfnetlink-subsys-%d", type);
->         return 0;
->  }
->  #endif
+> thanks for the patch! We finally found an easy way to reproduce the deadlock,
+> the following commands instantly trigger the problem on our machines:
+> 
+>     rmmod nf_conntrack_netlink
+>     rmmod xfrm_user
+>     conntrack -e NEW -E & modprobe -v xfrm_user
+> 
+> Note: the "-e" filter is needed to trigger the problematic
+> code path in the kernel.
+> 
+> We were worried that using "_nowait" would introduce other race conditions,
+> since the requested service might not be available by the time it is required.
 
-thanks for the patch! We finally found an easy way to reproduce the deadlock,
-the following commands instantly trigger the problem on our machines:
+Then this code would be buggy too, there is no guarantee that a
+request_module() succeeds.
 
-    rmmod nf_conntrack_netlink
-    rmmod xfrm_user
-    conntrack -e NEW -E & modprobe -v xfrm_user
+> "nfnetlink_bind()", the caller will listen on the socket for messages
+> regardless whether the needed modules are loaded, loading or unloaded.
+> To verify this we added a three second sleep during the initialisation of
+> nf_conntrack_netlink. The events started to appear after
+> the delayed init was completed.
+> 
+> If this is the case, then using "_nowait" should suffice as a fix
+> for the problem. Could you please confirm these assumptions
+> and give us some piece of mind?
 
-Note: the "-e" filter is needed to trigger the problematic
-code path in the kernel.
-
-We were worried that using "_nowait" would introduce other race conditions,
-since the requested service might not be available by the time it is required.
-
-On the other hand, if we understand correctly, it seems that after
-"nfnetlink_bind()", the caller will listen on the socket for messages
-regardless whether the needed modules are loaded, loading or unloaded.
-To verify this we added a three second sleep during the initialisation of
-nf_conntrack_netlink. The events started to appear after
-the delayed init was completed.
-
-If this is the case, then using "_nowait" should suffice as a fix
-for the problem. Could you please confirm these assumptions
-and give us some piece of mind?
-
-Best regards,
-Juliana Rodrigueiro and Thomas Jarosch
+Yes, _nowait is safe here (and needed, as you find out).
+I'm away for a few hours but I plan to submit this patch officially
+soon.
