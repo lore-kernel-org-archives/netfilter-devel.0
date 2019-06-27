@@ -2,86 +2,100 @@ Return-Path: <SRS0=TR/Z=U2=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_NEOMUTT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 013A9C48BD6
-	for <netfilter-devel@archiver.kernel.org>; Thu, 27 Jun 2019 15:42:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D94E6C48BD6
+	for <netfilter-devel@archiver.kernel.org>; Thu, 27 Jun 2019 15:46:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C1F3E20656
-	for <netfilter-devel@archiver.kernel.org>; Thu, 27 Jun 2019 15:42:25 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="LpXi13AF"
+	by mail.kernel.org (Postfix) with ESMTP id BC2472080C
+	for <netfilter-devel@archiver.kernel.org>; Thu, 27 Jun 2019 15:46:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726370AbfF0PmZ (ORCPT
+        id S1726463AbfF0Pqe (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 27 Jun 2019 11:42:25 -0400
-Received: from mail-ot1-f68.google.com ([209.85.210.68]:42894 "EHLO
-        mail-ot1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726187AbfF0PmZ (ORCPT
+        Thu, 27 Jun 2019 11:46:34 -0400
+Received: from rs07.intra2net.com ([85.214.138.66]:56092 "EHLO
+        rs07.intra2net.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726187AbfF0Pqe (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 27 Jun 2019 11:42:25 -0400
-Received: by mail-ot1-f68.google.com with SMTP id l15so2725762otn.9
-        for <netfilter-devel@vger.kernel.org>; Thu, 27 Jun 2019 08:42:25 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to;
-        bh=qyxseQmmTvWlSqOeNW9JwHVZ7ZeibwGbqOoH0asGO1o=;
-        b=LpXi13AFq8njmQGLtjcBaTUMI48gufg+HbfFMeX3T/81QS1pUg6TJzhqIwkWWBIxL9
-         C18Y0irDQp7atpxljVxBR/sclsPoNYg5w3sqHEYViztfJqhITFlb8sfJjY9QEiGGIhGP
-         KrhHF17aiU+ulvQifiJRSMPOpARsS1mGpzkVJV7ursUv3keImGZgYX9MiZYeS1glZAGy
-         gdu4Q0OI9R0YN5U7hMvFFiDIs8S4Opnvk7hS1pBTOfPf4hYEDgeZ5S1zgqeHLqZlbHhz
-         C3CSI6MApTZ92lhoTtkbstEsuw9QYhk//3l+WFsMQooOcEYZHcMsdIv/xOrFaNFjGMwT
-         BF6w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to;
-        bh=qyxseQmmTvWlSqOeNW9JwHVZ7ZeibwGbqOoH0asGO1o=;
-        b=RI9iJ/sbHTpFyixn46cxxvHvlpAFRVjDYsADJQN35TpREyzTTAfvX3nPPpCZYNAx80
-         JGB7Ab0dhqKF9nZ+ADVYv+QD5zmiPxj6wzGqbq32HETboix96423dLX3IjiqXBqvZKE6
-         FUwsNoxyPDTvHGgMlEHNM3/y/GC5rqr8+5BXEvakzTxDUwog+zqkI0jHke6gGVYmQcdf
-         MrGDLYoB99ID7P9nM2nXU/IUMIDUzAXmcP49WE5zQKM/J6iPwdgJfQIuRE5f/v1xaPiJ
-         6fKIcLzeHnGYT+f4LZMFz3r+45Zo8u2UnPlMfeegYA1SlNxWdNM1+JO+7i81fV1umeAT
-         OW0w==
-X-Gm-Message-State: APjAAAWno6S8UKoMJm9Ibrt4UXJNJN2noab65k7ZS7jie348hYMzV3Ii
-        m3hgQ+qMGyUmZLZHhToIIjMeJ2ut/sxnQCFYAf8=
-X-Google-Smtp-Source: APXvYqxIgLBECallvCmg1nTzDXxoZAvmlC9JskSu4vAW8C3k8FsRrfH1F06m6Ra9r4kwd+CaxuHK5hdJY2ZoVWsdq/g=
-X-Received: by 2002:a9d:2f26:: with SMTP id h35mr4092251otb.183.1561650144579;
- Thu, 27 Jun 2019 08:42:24 -0700 (PDT)
+        Thu, 27 Jun 2019 11:46:34 -0400
+Received: from mail.m.i2n (unknown [172.17.128.1])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by rs07.intra2net.com (Postfix) with ESMTPS id EC88215000C4;
+        Thu, 27 Jun 2019 17:46:31 +0200 (CEST)
+Received: from localhost (mail.m.i2n [127.0.0.1])
+        by localhost (Postfix) with ESMTP id B7C1F830;
+        Thu, 27 Jun 2019 17:46:31 +0200 (CEST)
+X-Virus-Scanned: by Intra2net Mail Security (AVE=8.3.54.52,VDF=8.16.17.176)
+Received: from localhost (storm.m.i2n [172.16.1.2])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.m.i2n (Postfix) with ESMTPS id 0DCF7611;
+        Thu, 27 Jun 2019 17:46:30 +0200 (CEST)
+Date:   Thu, 27 Jun 2019 17:46:29 +0200
+From:   Thomas Jarosch <thomas.jarosch@intra2net.com>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        Juliana Rodrigueiro <juliana.rodrigueiro@intra2net.com>
+Subject: Re: 4.19: Traced deadlock during xfrm_user module load
+Message-ID: <20190627154629.27g5uwd47esyhz4s@intra2net.com>
+References: <20190625155509.pgcxwgclqx3lfxxr@intra2net.com>
+ <20190625165344.ii4zgvxydqj663ny@breakpoint.cc>
 MIME-Version: 1.0
-References: <20190619175741.22411-1-shekhar250198@gmail.com> <20190627123752.qrlbym6bcnuhtoci@egarver.localdomain>
-In-Reply-To: <20190627123752.qrlbym6bcnuhtoci@egarver.localdomain>
-From:   shekhar sharma <shekhar250198@gmail.com>
-Date:   Thu, 27 Jun 2019 21:12:13 +0530
-Message-ID: <CAN9XX2rXKDVkddE0Bcpuy5dH24cGXCA-nbtD4RGi4g0JTVmuLw@mail.gmail.com>
-Subject: Re: [PATCH nft v9]tests: py: fix pyhton3
-To:     Eric Garver <eric@garver.life>,
-        Shekhar Sharma <shekhar250198@gmail.com>,
-        Netfilter Development Mailing list 
-        <netfilter-devel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190625165344.ii4zgvxydqj663ny@breakpoint.cc>
+User-Agent: NeoMutt/20180716
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Jun 27, 2019 at 6:07 PM Eric Garver <eric@garver.life> wrote:
->
-> On Wed, Jun 19, 2019 at 11:27:41PM +0530, Shekhar Sharma wrote:
-> > This patch changes the file to run on both python2 and python3.
-> >
-> > The tempfile module has been imported and used.
-> > Although the previous replacement of cmp() by eric works,
-> > I have replaced cmp(a,b) by ((a>b)-(a<b)) which works correctly.
-> >
-> > Thanks!
-> >
-> >
-> > Signed-off-by: Shekhar Sharma <shekhar250198@gmail.com>
-> > ---
->
-> The patch Subject has a typo, "pyhton3". Please fix it on next revision.
-Oops! Will correct it.
+Hi Florian,
+
+You wrote on Tue, Jun 25, 2019 at 06:53:44PM +0200:
+> Thanks for this detailed analysis.
+> In this specific case I think this is enough:
+> 
+> diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
+> index 92077d459109..61ba92415480 100644
+> --- a/net/netfilter/nfnetlink.c
+> +++ b/net/netfilter/nfnetlink.c
+> @@ -578,7 +578,8 @@ static int nfnetlink_bind(struct net *net, int group)
+>         ss = nfnetlink_get_subsys(type << 8);
+>         rcu_read_unlock();
+>         if (!ss)
+> -               request_module("nfnetlink-subsys-%d", type);
+> +               request_module_nowait("nfnetlink-subsys-%d", type);
+>         return 0;
+>  }
+>  #endif
+
+thanks for the patch! We finally found an easy way to reproduce the deadlock,
+the following commands instantly trigger the problem on our machines:
+
+    rmmod nf_conntrack_netlink
+    rmmod xfrm_user
+    conntrack -e NEW -E & modprobe -v xfrm_user
+
+Note: the "-e" filter is needed to trigger the problematic
+code path in the kernel.
+
+We were worried that using "_nowait" would introduce other race conditions,
+since the requested service might not be available by the time it is required.
+
+On the other hand, if we understand correctly, it seems that after
+"nfnetlink_bind()", the caller will listen on the socket for messages
+regardless whether the needed modules are loaded, loading or unloaded.
+To verify this we added a three second sleep during the initialisation of
+nf_conntrack_netlink. The events started to appear after
+the delayed init was completed.
+
+If this is the case, then using "_nowait" should suffice as a fix
+for the problem. Could you please confirm these assumptions
+and give us some piece of mind?
+
+Best regards,
+Juliana Rodrigueiro and Thomas Jarosch
