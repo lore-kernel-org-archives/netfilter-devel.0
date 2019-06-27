@@ -2,76 +2,194 @@ Return-Path: <SRS0=TR/Z=U2=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_NEOMUTT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_NEOMUTT autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A2BFC48BD6
-	for <netfilter-devel@archiver.kernel.org>; Thu, 27 Jun 2019 12:32:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 82EC7C48BD9
+	for <netfilter-devel@archiver.kernel.org>; Thu, 27 Jun 2019 12:35:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 093DE2084B
-	for <netfilter-devel@archiver.kernel.org>; Thu, 27 Jun 2019 12:32:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 649B42084B
+	for <netfilter-devel@archiver.kernel.org>; Thu, 27 Jun 2019 12:35:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726465AbfF0Mce (ORCPT
+        id S1726658AbfF0Mf4 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 27 Jun 2019 08:32:34 -0400
-Received: from mx1.redhat.com ([209.132.183.28]:51682 "EHLO mx1.redhat.com"
+        Thu, 27 Jun 2019 08:35:56 -0400
+Received: from mail.us.es ([193.147.175.20]:35118 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726375AbfF0Mce (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 27 Jun 2019 08:32:34 -0400
-Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.phx2.redhat.com [10.5.11.16])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        id S1726375AbfF0Mfz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 27 Jun 2019 08:35:55 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id F11CD11ED88
+        for <netfilter-devel@vger.kernel.org>; Thu, 27 Jun 2019 14:35:52 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id E03786E7A0
+        for <netfilter-devel@vger.kernel.org>; Thu, 27 Jun 2019 14:35:52 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id D54A5A5B8; Thu, 27 Jun 2019 14:35:52 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id AD555DA4D0;
+        Thu, 27 Jun 2019 14:35:50 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Thu, 27 Jun 2019 14:35:50 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (sys.soleta.eu [212.170.55.40])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mx1.redhat.com (Postfix) with ESMTPS id BF941C050918;
-        Thu, 27 Jun 2019 12:32:28 +0000 (UTC)
-Received: from egarver.localdomain (ovpn-120-117.rdu2.redhat.com [10.10.120.117])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id 5A0375C25D;
-        Thu, 27 Jun 2019 12:32:24 +0000 (UTC)
-Date:   Thu, 27 Jun 2019 08:32:23 -0400
-From:   Eric Garver <eric@garver.life>
-To:     shekhar sharma <shekhar250198@gmail.com>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Netfilter Development Mailing list 
-        <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH nft v9]tests: py: fix pyhton3
-Message-ID: <20190627123223.viv3p7kn3lq7nxfi@egarver.localdomain>
-Mail-Followup-To: Eric Garver <eric@garver.life>,
-        shekhar sharma <shekhar250198@gmail.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Netfilter Development Mailing list <netfilter-devel@vger.kernel.org>
-References: <20190619175741.22411-1-shekhar250198@gmail.com>
- <20190620143731.jfnty672zi7rcxgs@salvia>
- <CAN9XX2r6FK6gn7X7i6krWOwaFTiad5OVQybT+qMYbuW1iFY1qQ@mail.gmail.com>
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 880944265A2F;
+        Thu, 27 Jun 2019 14:35:50 +0200 (CEST)
+Date:   Thu, 27 Jun 2019 14:35:50 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     wenxu@ucloud.cnf
+Cc:     fw@strlen.de, netfilter-devel@vger.kernel.org,
+        netdev@vger.kernel.org
+Subject: Re: [PATCH 2/2 nf-next] netfilter:nft_meta: add NFT_META_VLAN support
+Message-ID: <20190627123550.vx7r4rmzduzabig6@salvia>
+References: <1561601357-20486-1-git-send-email-wenxu@ucloud.cn>
+ <1561601357-20486-2-git-send-email-wenxu@ucloud.cn>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CAN9XX2r6FK6gn7X7i6krWOwaFTiad5OVQybT+qMYbuW1iFY1qQ@mail.gmail.com>
-User-Agent: NeoMutt/20180716
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.16
-X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.5.16 (mx1.redhat.com [10.5.110.31]); Thu, 27 Jun 2019 12:32:33 +0000 (UTC)
+In-Reply-To: <1561601357-20486-2-git-send-email-wenxu@ucloud.cn>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Jun 20, 2019 at 11:08:18PM +0530, shekhar sharma wrote:
-> On Thu, Jun 20, 2019 at 8:07 PM Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> >
-> > On Wed, Jun 19, 2019 at 11:27:41PM +0530, Shekhar Sharma wrote:
-> > > This patch changes the file to run on both python2 and python3.
-> > >
-> > > The tempfile module has been imported and used.
-> > > Although the previous replacement of cmp() by eric works,
-> > > I have replaced cmp(a,b) by ((a>b)-(a<b)) which works correctly.
-> >
-> > Any reason not to use Eric's approach? This ((a>b)-(a<b)) is
-> > confusing.
+On Thu, Jun 27, 2019 at 10:09:17AM +0800, wenxu@ucloud.cn wrote:
+> From: wenxu <wenxu@ucloud.cn>
 > 
-> No, Eric's approach is also working nicely. I read on a website
-> that cmp(a,b) of python2 can be replaced by ((a>b)-(a<b)) in python3.
+> This patch provide a meta vlan to set the vlan tag of the packet.
+> 
+> for q-in-q vlan id 20:
+> meta vlan set 0x88a8:20
 
-This is true, but as Pablo stated it can be confusing. For this function
-we only care if the sets are equivalent so I simplified it.
+Actually, I think this is not very useful for stacked vlan since this
+just sets/mangles the existing meta vlan data.
 
-If you agree, the please drop this change from your next revision and
-Pablo can take my patch.
+We'll need infrastructure that uses skb_vlan_push() and _pop().
+
+Patch looks good anyway, such infrastructure to push/pop can be added
+later on.
+
+Thanks.
+
+> set the default 0x8100 vlan type with vlan id 20
+> meta vlan set 20
+> 
+> Signed-off-by: wenxu <wenxu@ucloud.cn>
+> ---
+>  include/uapi/linux/netfilter/nf_tables.h |  4 ++++
+>  net/netfilter/nft_meta.c                 | 27 ++++++++++++++++++++++++++-
+>  2 files changed, 30 insertions(+), 1 deletion(-)
+> 
+> diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+> index 0b18646..cf037f2 100644
+> --- a/include/uapi/linux/netfilter/nf_tables.h
+> +++ b/include/uapi/linux/netfilter/nf_tables.h
+> @@ -797,6 +797,7 @@ enum nft_exthdr_attributes {
+>   * @NFT_META_OIFKIND: packet output interface kind name (dev->rtnl_link_ops->kind)
+>   * @NFT_META_BRI_PVID: packet input bridge port pvid
+>   * @NFT_META_BRI_VLAN_PROTO: packet input bridge vlan proto
+> + * @NFT_META_VLAN: packet vlan metadata
+>   */
+>  enum nft_meta_keys {
+>  	NFT_META_LEN,
+> @@ -829,6 +830,7 @@ enum nft_meta_keys {
+>  	NFT_META_OIFKIND,
+>  	NFT_META_BRI_PVID,
+>  	NFT_META_BRI_VLAN_PROTO,
+> +	NFT_META_VLAN,
+>  };
+>  
+>  /**
+> @@ -895,12 +897,14 @@ enum nft_hash_attributes {
+>   * @NFTA_META_DREG: destination register (NLA_U32)
+>   * @NFTA_META_KEY: meta data item to load (NLA_U32: nft_meta_keys)
+>   * @NFTA_META_SREG: source register (NLA_U32)
+> + * @NFTA_META_SREG2: source register (NLA_U32)
+>   */
+>  enum nft_meta_attributes {
+>  	NFTA_META_UNSPEC,
+>  	NFTA_META_DREG,
+>  	NFTA_META_KEY,
+>  	NFTA_META_SREG,
+> +	NFTA_META_SREG2,
+>  	__NFTA_META_MAX
+>  };
+>  #define NFTA_META_MAX		(__NFTA_META_MAX - 1)
+> diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
+> index e3adf6a..29a6679 100644
+> --- a/net/netfilter/nft_meta.c
+> +++ b/net/netfilter/nft_meta.c
+> @@ -28,7 +28,10 @@ struct nft_meta {
+>  	enum nft_meta_keys	key:8;
+>  	union {
+>  		enum nft_registers	dreg:8;
+> -		enum nft_registers	sreg:8;
+> +		struct {
+> +			enum nft_registers	sreg:8;
+> +			enum nft_registers	sreg2:8;
+> +		};
+>  	};
+>  };
+>  
+> @@ -312,6 +315,17 @@ static void nft_meta_set_eval(const struct nft_expr *expr,
+>  		skb->secmark = value;
+>  		break;
+>  #endif
+> +	case NFT_META_VLAN: {
+> +		u32 *sreg2 = &regs->data[meta->sreg2];
+> +		__be16 vlan_proto;
+> +		u16 vlan_tci;
+> +
+> +		vlan_tci = nft_reg_load16(sreg);
+> +		vlan_proto = nft_reg_load16(sreg2);
+> +
+> +		__vlan_hwaccel_put_tag(skb, vlan_proto, vlan_tci);
+> +		break;
+> +	}
+>  	default:
+>  		WARN_ON(1);
+>  	}
+> @@ -321,6 +335,7 @@ static void nft_meta_set_eval(const struct nft_expr *expr,
+>  	[NFTA_META_DREG]	= { .type = NLA_U32 },
+>  	[NFTA_META_KEY]		= { .type = NLA_U32 },
+>  	[NFTA_META_SREG]	= { .type = NLA_U32 },
+> +	[NFTA_META_SREG2]	= { .type = NLA_U32 },
+>  };
+>  
+>  static int nft_meta_get_init(const struct nft_ctx *ctx,
+> @@ -483,6 +498,13 @@ static int nft_meta_set_init(const struct nft_ctx *ctx,
+>  	case NFT_META_PKTTYPE:
+>  		len = sizeof(u8);
+>  		break;
+> +	case NFT_META_VLAN:
+> +		len = sizeof(u16);
+> +		priv->sreg2 = nft_parse_register(tb[NFTA_META_SREG2]);
+> +		err = nft_validate_register_load(priv->sreg2, len);
+> +		if (err < 0)
+> +			return err;
+> +		break;
+>  	default:
+>  		return -EOPNOTSUPP;
+>  	}
+> @@ -521,6 +543,9 @@ static int nft_meta_set_dump(struct sk_buff *skb, const struct nft_expr *expr)
+>  		goto nla_put_failure;
+>  	if (nft_dump_register(skb, NFTA_META_SREG, priv->sreg))
+>  		goto nla_put_failure;
+> +	if (priv->key == NFT_META_VLAN &&
+> +	    nft_dump_register(skb, NFTA_META_SREG2, priv->sreg2))
+> +		goto nla_put_failure;
+>  
+>  	return 0;
+>  
+> -- 
+> 1.8.3.1
+> 
