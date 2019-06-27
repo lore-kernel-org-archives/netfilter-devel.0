@@ -1,55 +1,123 @@
-Return-Path: <SRS0=TDc5=UZ=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=TR/Z=U2=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_NEOMUTT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 293A8C48BD6
-	for <netfilter-devel@archiver.kernel.org>; Wed, 26 Jun 2019 21:12:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 79613C48BD3
+	for <netfilter-devel@archiver.kernel.org>; Thu, 27 Jun 2019 00:32:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 058972085A
-	for <netfilter-devel@archiver.kernel.org>; Wed, 26 Jun 2019 21:12:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 507C12083B
+	for <netfilter-devel@archiver.kernel.org>; Thu, 27 Jun 2019 00:32:17 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1561595537;
+	bh=bzQ3M3ElXovJq05VKCdHi5FE5kAXWkXIxzDseoSK8ZU=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=W6Pr67d6bYE/HfIRcOpIycRVtqbhKsir/QkKqPe4UYWTUqq9v1DAfDA+c2mSMe5+a
+	 RCkN2o4nxAOHPHQTkt27+8/uxX2ud99ZdOsYUUDWqQeQsTBPBQSMZ8Ml3gSSU0OfK4
+	 PQcaJvTDLAD/0TegqMRderzvMRBp/jrgFnfRj8oo=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726373AbfFZVM4 (ORCPT
+        id S1727415AbfF0AcL (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 26 Jun 2019 17:12:56 -0400
-Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:43584 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726320AbfFZVM4 (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 26 Jun 2019 17:12:56 -0400
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.89)
-        (envelope-from <fw@strlen.de>)
-        id 1hgFDr-0006HH-DD; Wed, 26 Jun 2019 23:12:55 +0200
-Date:   Wed, 26 Jun 2019 23:12:55 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Ander Juaristi <a@juaristi.eus>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH v2 7/7] nftables: tests/py: More tests for day and hour
-Message-ID: <20190626211255.5rgtfsc7kogn37bv@breakpoint.cc>
-References: <20190626204402.5257-1-a@juaristi.eus>
- <20190626204402.5257-7-a@juaristi.eus>
+        Wed, 26 Jun 2019 20:32:11 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35824 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727409AbfF0AcK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 26 Jun 2019 20:32:10 -0400
+Received: from sasha-vm.mshome.net (unknown [107.242.116.147])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id EC9282083B;
+        Thu, 27 Jun 2019 00:32:07 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1561595530;
+        bh=bzQ3M3ElXovJq05VKCdHi5FE5kAXWkXIxzDseoSK8ZU=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=0jQAjVL1zf+a8XLK7Wtn6ByGyDJc3IFWSsCbxu183x9Q//4OIwUcZB9rtNusuHd+1
+         eUV7K+Vmn6KPaf9X6sgANuHkkUVP4dzuJTjdACBPnJ5OEX6KA3wV2ZmNkHljCDRj9G
+         BiD6QG2zYrhWQ9WjXQ3SeIId6AqrG9vSH03g/jWc=
+From:   Sasha Levin <sashal@kernel.org>
+To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc:     Guillaume Nault <gnault@redhat.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Sasha Levin <sashal@kernel.org>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org
+Subject: [PATCH AUTOSEL 5.1 32/95] netfilter: ipv6: nf_defrag: fix leakage of unqueued fragments
+Date:   Wed, 26 Jun 2019 20:29:17 -0400
+Message-Id: <20190627003021.19867-32-sashal@kernel.org>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20190627003021.19867-1-sashal@kernel.org>
+References: <20190627003021.19867-1-sashal@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190626204402.5257-7-a@juaristi.eus>
-User-Agent: NeoMutt/20170113 (1.7.2)
+X-stable: review
+X-Patchwork-Hint: Ignore
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Ander Juaristi <a@juaristi.eus> wrote:
-> I still have some problems to test the 'time' key.
-> 
-> It always prints one hour earlier than the introduced time,
-> even though it works perfectly when I introduce the same rules manually,
-> and there is code that specifically checks for that issue by checking TZ to UTC
-> and substracting the GMT offset accordingly. Maybe there is some issue with
-> env variables or localtime() in the Python test environment?
-> 
-> Need to investigate further.
+From: Guillaume Nault <gnault@redhat.com>
 
-If you're stuck let me know and I can take a look at this too.
+[ Upstream commit a0d56cb911ca301de81735f1d73c2aab424654ba ]
+
+With commit 997dd9647164 ("net: IP6 defrag: use rbtrees in
+nf_conntrack_reasm.c"), nf_ct_frag6_reasm() is now called from
+nf_ct_frag6_queue(). With this change, nf_ct_frag6_queue() can fail
+after the skb has been added to the fragment queue and
+nf_ct_frag6_gather() was adapted to handle this case.
+
+But nf_ct_frag6_queue() can still fail before the fragment has been
+queued. nf_ct_frag6_gather() can't handle this case anymore, because it
+has no way to know if nf_ct_frag6_queue() queued the fragment before
+failing. If it didn't, the skb is lost as the error code is overwritten
+with -EINPROGRESS.
+
+Fix this by setting -EINPROGRESS directly in nf_ct_frag6_queue(), so
+that nf_ct_frag6_gather() can propagate the error as is.
+
+Fixes: 997dd9647164 ("net: IP6 defrag: use rbtrees in nf_conntrack_reasm.c")
+Signed-off-by: Guillaume Nault <gnault@redhat.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ net/ipv6/netfilter/nf_conntrack_reasm.c | 12 +++++-------
+ 1 file changed, 5 insertions(+), 7 deletions(-)
+
+diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
+index 3de0e9b0a482..5b3f65e29b6f 100644
+--- a/net/ipv6/netfilter/nf_conntrack_reasm.c
++++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
+@@ -293,7 +293,11 @@ static int nf_ct_frag6_queue(struct frag_queue *fq, struct sk_buff *skb,
+ 		skb->_skb_refdst = 0UL;
+ 		err = nf_ct_frag6_reasm(fq, skb, prev, dev);
+ 		skb->_skb_refdst = orefdst;
+-		return err;
++
++		/* After queue has assumed skb ownership, only 0 or
++		 * -EINPROGRESS must be returned.
++		 */
++		return err ? -EINPROGRESS : 0;
+ 	}
+ 
+ 	skb_dst_drop(skb);
+@@ -480,12 +484,6 @@ int nf_ct_frag6_gather(struct net *net, struct sk_buff *skb, u32 user)
+ 		ret = 0;
+ 	}
+ 
+-	/* after queue has assumed skb ownership, only 0 or -EINPROGRESS
+-	 * must be returned.
+-	 */
+-	if (ret)
+-		ret = -EINPROGRESS;
+-
+ 	spin_unlock_bh(&fq->q.lock);
+ 	inet_frag_put(&fq->q);
+ 	return ret;
+-- 
+2.20.1
+
