@@ -2,89 +2,168 @@ Return-Path: <SRS0=rhnh=U3=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 10073C4321A
-	for <netfilter-devel@archiver.kernel.org>; Fri, 28 Jun 2019 17:30:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AE001C5B579
+	for <netfilter-devel@archiver.kernel.org>; Fri, 28 Jun 2019 17:41:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E760C2086D
-	for <netfilter-devel@archiver.kernel.org>; Fri, 28 Jun 2019 17:30:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9413E208CB
+	for <netfilter-devel@archiver.kernel.org>; Fri, 28 Jun 2019 17:41:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726641AbfF1Raa (ORCPT
+        id S1726707AbfF1Rlj (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 28 Jun 2019 13:30:30 -0400
-Received: from mail.us.es ([193.147.175.20]:49304 "EHLO mail.us.es"
+        Fri, 28 Jun 2019 13:41:39 -0400
+Received: from mail.us.es ([193.147.175.20]:52750 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726443AbfF1Raa (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 28 Jun 2019 13:30:30 -0400
+        id S1726940AbfF1Rlh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 28 Jun 2019 13:41:37 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id A500B19D8AC
-        for <netfilter-devel@vger.kernel.org>; Fri, 28 Jun 2019 19:30:28 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id E6DBF1B2B60
+        for <netfilter-devel@vger.kernel.org>; Fri, 28 Jun 2019 19:41:35 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 960521021A7
-        for <netfilter-devel@vger.kernel.org>; Fri, 28 Jun 2019 19:30:28 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id D9153DA708
+        for <netfilter-devel@vger.kernel.org>; Fri, 28 Jun 2019 19:41:35 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 86F42DA7B6; Fri, 28 Jun 2019 19:30:28 +0200 (CEST)
+        id CEA7ADA3F4; Fri, 28 Jun 2019 19:41:35 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 684BFA5B8;
-        Fri, 28 Jun 2019 19:30:24 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A55F0DA708;
+        Fri, 28 Jun 2019 19:41:31 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Fri, 28 Jun 2019 19:30:24 +0200 (CEST)
+ Fri, 28 Jun 2019 19:41:31 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [31.4.195.66])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 282454265A2F;
-        Fri, 28 Jun 2019 19:30:24 +0200 (CEST)
-Date:   Fri, 28 Jun 2019 19:30:23 +0200
+Received: from salvia.here (unknown [31.4.195.66])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id 4D6874265A32;
+        Fri, 28 Jun 2019 19:41:31 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     zhe.he@windriver.com
-Cc:     kadlec@blackhole.kfki.hu, fw@strlen.de, davem@davemloft.net,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] netfilter: Fix remainder of pseudo-header protocol 0
-Message-ID: <20190628173023.f45mvwcdhnavnt42@salvia>
-References: <1561346258-272481-1-git-send-email-zhe.he@windriver.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <1561346258-272481-1-git-send-email-zhe.he@windriver.com>
-User-Agent: NeoMutt/20170113 (1.7.2)
+To:     netfilter-devel@vger.kernel.org
+Cc:     davem@davemloft.net, netdev@vger.kernel.org
+Subject: [PATCH 1/4] ipvs: defer hook registration to avoid leaks
+Date:   Fri, 28 Jun 2019 19:41:22 +0200
+Message-Id: <20190628174125.20739-2-pablo@netfilter.org>
+X-Mailer: git-send-email 2.11.0
+In-Reply-To: <20190628174125.20739-1-pablo@netfilter.org>
+References: <20190628174125.20739-1-pablo@netfilter.org>
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Jun 24, 2019 at 11:17:38AM +0800, zhe.he@windriver.com wrote:
-> From: He Zhe <zhe.he@windriver.com>
-> 
-> Since v5.1-rc1, some types of packets do not get unreachable reply with the
-> following iptables setting. Fox example,
-> 
-> $ iptables -A INPUT -p icmp --icmp-type 8 -j REJECT
-> $ ping 127.0.0.1 -c 1
-> PING 127.0.0.1 (127.0.0.1) 56(84) bytes of data.
-> — 127.0.0.1 ping statistics —
-> 1 packets transmitted, 0 received, 100% packet loss, time 0ms
-> 
-> We should have got the following reply from command line, but we did not.
-> From 127.0.0.1 icmp_seq=1 Destination Port Unreachable
-> 
-> Yi Zhao reported it and narrowed it down to:
-> 7fc38225363d ("netfilter: reject: skip csum verification for protocols that don't support it"),
-> 
-> This is because nf_ip_checksum still expects pseudo-header protocol type 0 for
-> packets that are of neither TCP or UDP, and thus ICMP packets are mistakenly
-> treated as TCP/UDP.
-> 
-> This patch corrects the conditions in nf_ip_checksum and all other places that
-> still call it with protocol 0.
+From: Julian Anastasov <ja@ssi.bg>
 
-Applied, thanks.
+syzkaller reports for memory leak when registering hooks [1]
+
+As we moved the nf_unregister_net_hooks() call into
+__ip_vs_dev_cleanup(), defer the nf_register_net_hooks()
+call, so that hooks are allocated and freed from same
+pernet_operations (ipvs_core_dev_ops).
+
+[1]
+BUG: memory leak
+unreferenced object 0xffff88810acd8a80 (size 96):
+ comm "syz-executor073", pid 7254, jiffies 4294950560 (age 22.250s)
+ hex dump (first 32 bytes):
+   02 00 00 00 00 00 00 00 50 8b bb 82 ff ff ff ff  ........P.......
+   00 00 00 00 00 00 00 00 00 77 bb 82 ff ff ff ff  .........w......
+ backtrace:
+   [<0000000013db61f1>] kmemleak_alloc_recursive include/linux/kmemleak.h:55 [inline]
+   [<0000000013db61f1>] slab_post_alloc_hook mm/slab.h:439 [inline]
+   [<0000000013db61f1>] slab_alloc_node mm/slab.c:3269 [inline]
+   [<0000000013db61f1>] kmem_cache_alloc_node_trace+0x15b/0x2a0 mm/slab.c:3597
+   [<000000001a27307d>] __do_kmalloc_node mm/slab.c:3619 [inline]
+   [<000000001a27307d>] __kmalloc_node+0x38/0x50 mm/slab.c:3627
+   [<0000000025054add>] kmalloc_node include/linux/slab.h:590 [inline]
+   [<0000000025054add>] kvmalloc_node+0x4a/0xd0 mm/util.c:431
+   [<0000000050d1bc00>] kvmalloc include/linux/mm.h:637 [inline]
+   [<0000000050d1bc00>] kvzalloc include/linux/mm.h:645 [inline]
+   [<0000000050d1bc00>] allocate_hook_entries_size+0x3b/0x60 net/netfilter/core.c:61
+   [<00000000e8abe142>] nf_hook_entries_grow+0xae/0x270 net/netfilter/core.c:128
+   [<000000004b94797c>] __nf_register_net_hook+0x9a/0x170 net/netfilter/core.c:337
+   [<00000000d1545cbc>] nf_register_net_hook+0x34/0xc0 net/netfilter/core.c:464
+   [<00000000876c9b55>] nf_register_net_hooks+0x53/0xc0 net/netfilter/core.c:480
+   [<000000002ea868e0>] __ip_vs_init+0xe8/0x170 net/netfilter/ipvs/ip_vs_core.c:2280
+   [<000000002eb2d451>] ops_init+0x4c/0x140 net/core/net_namespace.c:130
+   [<000000000284ec48>] setup_net+0xde/0x230 net/core/net_namespace.c:316
+   [<00000000a70600fa>] copy_net_ns+0xf0/0x1e0 net/core/net_namespace.c:439
+   [<00000000ff26c15e>] create_new_namespaces+0x141/0x2a0 kernel/nsproxy.c:107
+   [<00000000b103dc79>] copy_namespaces+0xa1/0xe0 kernel/nsproxy.c:165
+   [<000000007cc008a2>] copy_process.part.0+0x11fd/0x2150 kernel/fork.c:2035
+   [<00000000c344af7c>] copy_process kernel/fork.c:1800 [inline]
+   [<00000000c344af7c>] _do_fork+0x121/0x4f0 kernel/fork.c:2369
+
+Reported-by: syzbot+722da59ccb264bc19910@syzkaller.appspotmail.com
+Fixes: 719c7d563c17 ("ipvs: Fix use-after-free in ip_vs_in")
+Signed-off-by: Julian Anastasov <ja@ssi.bg>
+Acked-by: Simon Horman <horms@verge.net.au>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/ipvs/ip_vs_core.c | 21 ++++++++++++++-------
+ 1 file changed, 14 insertions(+), 7 deletions(-)
+
+diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+index 7138556b206b..d5103a9eb302 100644
+--- a/net/netfilter/ipvs/ip_vs_core.c
++++ b/net/netfilter/ipvs/ip_vs_core.c
+@@ -2245,7 +2245,6 @@ static const struct nf_hook_ops ip_vs_ops[] = {
+ static int __net_init __ip_vs_init(struct net *net)
+ {
+ 	struct netns_ipvs *ipvs;
+-	int ret;
+ 
+ 	ipvs = net_generic(net, ip_vs_net_id);
+ 	if (ipvs == NULL)
+@@ -2277,17 +2276,11 @@ static int __net_init __ip_vs_init(struct net *net)
+ 	if (ip_vs_sync_net_init(ipvs) < 0)
+ 		goto sync_fail;
+ 
+-	ret = nf_register_net_hooks(net, ip_vs_ops, ARRAY_SIZE(ip_vs_ops));
+-	if (ret < 0)
+-		goto hook_fail;
+-
+ 	return 0;
+ /*
+  * Error handling
+  */
+ 
+-hook_fail:
+-	ip_vs_sync_net_cleanup(ipvs);
+ sync_fail:
+ 	ip_vs_conn_net_cleanup(ipvs);
+ conn_fail:
+@@ -2317,6 +2310,19 @@ static void __net_exit __ip_vs_cleanup(struct net *net)
+ 	net->ipvs = NULL;
+ }
+ 
++static int __net_init __ip_vs_dev_init(struct net *net)
++{
++	int ret;
++
++	ret = nf_register_net_hooks(net, ip_vs_ops, ARRAY_SIZE(ip_vs_ops));
++	if (ret < 0)
++		goto hook_fail;
++	return 0;
++
++hook_fail:
++	return ret;
++}
++
+ static void __net_exit __ip_vs_dev_cleanup(struct net *net)
+ {
+ 	struct netns_ipvs *ipvs = net_ipvs(net);
+@@ -2336,6 +2342,7 @@ static struct pernet_operations ipvs_core_ops = {
+ };
+ 
+ static struct pernet_operations ipvs_core_dev_ops = {
++	.init = __ip_vs_dev_init,
+ 	.exit = __ip_vs_dev_cleanup,
+ };
+ 
+-- 
+2.11.0
+
+
