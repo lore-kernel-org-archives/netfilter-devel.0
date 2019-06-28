@@ -6,211 +6,100 @@ X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1CE1EC5B576
-	for <netfilter-devel@archiver.kernel.org>; Fri, 28 Jun 2019 03:37:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 566D5C5B578
+	for <netfilter-devel@archiver.kernel.org>; Fri, 28 Jun 2019 06:03:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id F2F7D208CB
-	for <netfilter-devel@archiver.kernel.org>; Fri, 28 Jun 2019 03:37:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 35BA52086D
+	for <netfilter-devel@archiver.kernel.org>; Fri, 28 Jun 2019 06:03:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727133AbfF1Dhw (ORCPT
+        id S1726827AbfF1GDj (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 27 Jun 2019 23:37:52 -0400
-Received: from m97188.mail.qiye.163.com ([220.181.97.188]:60052 "EHLO
-        m97188.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726565AbfF1Dhw (ORCPT
+        Fri, 28 Jun 2019 02:03:39 -0400
+Received: from mail1.windriver.com ([147.11.146.13]:53484 "EHLO
+        mail1.windriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726572AbfF1GDj (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 27 Jun 2019 23:37:52 -0400
-Received: from [192.168.188.14] (unknown [120.132.1.226])
-        by m97188.mail.qiye.163.com (Hmail) with ESMTPA id E9E0E964028;
-        Fri, 28 Jun 2019 11:37:47 +0800 (CST)
-Subject: Re: [PATCH 2/3 nf-next] netfilter:nf_flow_table: Support bridge type
- flow offload
-To:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-References: <1561545148-11978-1-git-send-email-wenxu@ucloud.cn>
- <1561545148-11978-2-git-send-email-wenxu@ucloud.cn>
- <20190626183816.3ux3iifxaal4ffil@breakpoint.cc>
- <20190626191945.2mktaqrcrfcrfc66@breakpoint.cc>
- <dce5cba2-766c-063e-745f-23b3dd83494b@ucloud.cn>
- <20190627125839.t56fnptdeqixt7wd@salvia>
-From:   wenxu <wenxu@ucloud.cn>
-Message-ID: <b2a48653-9f30-18a9-d0e1-eaa940a361a9@ucloud.cn>
-Date:   Fri, 28 Jun 2019 11:37:42 +0800
-User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:60.0) Gecko/20100101
+        Fri, 28 Jun 2019 02:03:39 -0400
+Received: from ALA-HCA.corp.ad.wrs.com ([147.11.189.40])
+        by mail1.windriver.com (8.15.2/8.15.1) with ESMTPS id x5S63GbX015888
+        (version=TLSv1 cipher=AES128-SHA bits=128 verify=FAIL);
+        Thu, 27 Jun 2019 23:03:16 -0700 (PDT)
+Received: from [128.224.162.221] (128.224.162.221) by ALA-HCA.corp.ad.wrs.com
+ (147.11.189.50) with Microsoft SMTP Server (TLS) id 14.3.439.0; Thu, 27 Jun
+ 2019 23:03:16 -0700
+Subject: Re: [PATCH] netfilter: Fix remainder of pseudo-header protocol 0
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+CC:     <kadlec@blackhole.kfki.hu>, <fw@strlen.de>, <davem@davemloft.net>,
+        <netfilter-devel@vger.kernel.org>, <coreteam@netfilter.org>,
+        <netdev@vger.kernel.org>, <linux-kernel@vger.kernel.org>
+References: <1561346258-272481-1-git-send-email-zhe.he@windriver.com>
+ <20190627184903.atdcwk4wnfaayyer@salvia>
+From:   He Zhe <zhe.he@windriver.com>
+Message-ID: <aafd41fb-b58e-a402-c8fe-5eeffc7a7755@windriver.com>
+Date:   Fri, 28 Jun 2019 14:03:12 +0800
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
  Thunderbird/60.7.0
 MIME-Version: 1.0
-In-Reply-To: <20190627125839.t56fnptdeqixt7wd@salvia>
-Content-Type: text/plain; charset=utf-8
+In-Reply-To: <20190627184903.atdcwk4wnfaayyer@salvia>
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 Content-Language: en-US
-X-HM-Spam-Status: e1kfGhgUHx5ZQUhXWQgYFAkeWUFZVkpVS0lNS0tLSk9JS0JMT0xZV1koWU
-        FJQjdXWS1ZQUlXWQkOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6MlE6KTo6ITg5EAsvTxU9CAtR
-        QjoaFBFVSlVKTk1KTUJIS01DSU5LVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJS1VK
-        SElVSlVJSU1ZV1kIAVlBQ0NOQzcG
-X-HM-Tid: 0a6b9c291b4320bckuqye9e0e964028
+X-Originating-IP: [128.224.162.221]
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
 
-On 6/27/2019 8:58 PM, Pablo Neira Ayuso wrote:
-> On Thu, Jun 27, 2019 at 02:22:36PM +0800, wenxu wrote:
->> On 6/27/2019 3:19 AM, Florian Westphal wrote:
->>> Florian Westphal <fw@strlen.de> wrote:
-> [...]
->>>> Whats the idea with this patch?
->>>>
->>>> Do you see a performance improvement when bypassing bridge layer? If so,
->>>> how much?
->>>>
->>>> I just wonder if its really cheaper than not using bridge conntrack in
->>>> the first place :-)
->> This patch is based on the conntrack function in bridge.  It will
->> bypass the fdb lookup and conntrack lookup to get the performance 
->> improvement. The more important things for hardware offload in the
->> future with nf_tables add hardware offload support
-> Florian would like to see numbers / benchmark.
 
+On 6/28/19 2:49 AM, Pablo Neira Ayuso wrote:
+> On Mon, Jun 24, 2019 at 11:17:38AM +0800, zhe.he@windriver.com wrote:
+>> From: He Zhe <zhe.he@windriver.com>
+>>
+>> Since v5.1-rc1, some types of packets do not get unreachable reply with the
+>> following iptables setting. Fox example,
+>>
+>> $ iptables -A INPUT -p icmp --icmp-type 8 -j REJECT
+>> $ ping 127.0.0.1 -c 1
+>> PING 127.0.0.1 (127.0.0.1) 56(84) bytes of data.
+>> — 127.0.0.1 ping statistics —
+>> 1 packets transmitted, 0 received, 100% packet loss, time 0ms
+>>
+>> We should have got the following reply from command line, but we did not.
+>> From 127.0.0.1 icmp_seq=1 Destination Port Unreachable
+>>
+>> Yi Zhao reported it and narrowed it down to:
+>> 7fc38225363d ("netfilter: reject: skip csum verification for protocols that don't support it"),
+>>
+>> This is because nf_ip_checksum still expects pseudo-header protocol type 0 for
+>> packets that are of neither TCP or UDP, and thus ICMP packets are mistakenly
+>> treated as TCP/UDP.
+>>
+>> This patch corrects the conditions in nf_ip_checksum and all other places that
+>> still call it with protocol 0.
+> Looking at 7fc38225363dd8f19e667ad7c77b63bc4a5c065d, I wonder this can
+> be fixed while simplifying it...
+>
+> I think nf_reject_verify_csum() is useless?
+>
+> In your patch, now you explicitly check for IPPROTO_TCP and
+> IPPROTO_UDP to validate the checksum.
 
-I just did a simple performace test with following test.
+Thanks for your review.
 
-p netns add ns21
-ip netns add ns22
-ip l add dev veth21 type veth peer name eth0 netns ns21
-ip l add dev veth22 type veth peer name eth0 netns ns22
-ifconfig veth21 up
-ifconfig veth22 up
-ip netns exec ns21 ip a a dev eth0 10.0.0.7/24
-ip netns exec ns22 ip a a dev eth0 10.0.0.8/24
-ip netns exec ns21 ifconfig eth0 up
-ip netns exec ns22 ifconfig eth0 up
+I suppose the two main points of 7fc38225363d are valid and I was trying to
+align with them and fix them:
+1) Skip csum verification for protocols that don't support it.
+2) Remove the protocol 0 used to indicate non-TCP/UDP packets, and use actual
+   types instead to be clear.
 
-ip l add dev br0 type bridge vlan_filtering 1
-brctl addif br0 veth21
-brctl addif br0 veth22
+1) uses nf_reject_verify_csum to skip those that should be skipped and leaves
+the protocols that support csum to the rest of the logic including
+nf_ip_checksum. But 2) removes the "0" transition from the rest of the
+logic and thus causes this issue. So I add the explicit check against TCP/UDP to
+nf_ip_checksum. And nf_reject_verify_csum is still useful.
 
-ifconfig br0 up
-
-bridge vlan add dev veth21 vid 200 pvid untagged
-bridge vlan add dev veth22 vid 200 pvid untagged
-
-nft add table bridge firewall
-nft add chain bridge firewall zones { type filter hook prerouting priority - 300 \; }
-nft add rule bridge firewall zones counter ct zone set iif map { "veth21" : 2, "veth22" : 2 }
-
-nft add chain bridge firewall rule-200-ingress
-nft add rule bridge firewall rule-200-ingress ct zone 2 ct state established,related counter accept
-nft add rule bridge firewall rule-200-ingress ct zone 2 ct state invalid counter drop
-nft add rule bridge firewall rule-200-ingress ct zone 2 tcp dport 23 ct state new counter accept
-nft add rule bridge firewall rule-200-ingress counter drop
-
-nft add chain bridge firewall rule-200-egress
-nft add rule bridge firewall rule-200-egress ct zone 2 ct state established,related counter accept
-nft add rule bridge firewall rule-200-egress ct zone 2 ct state invalid counter drop
-nft add rule bridge firewall rule-200-egress ct zone 2 tcp dport 23 ct state new counter drop
-nft add rule bridge firewall rule-200-egress counter accept
-
-nft add chain bridge firewall rules-all { type filter hook prerouting priority - 150 \; }
-nft add rule bridge firewall rules-all counter meta protocol ip iif vmap { "veth22" : jump rule-200-ingress, "veth21" : jump rule-200-egress }
-
-
-
-netns21 communication with ns22
-
-
-ns21 iperf to 10.0.0.8 with dport 22 in ns22
-
-
-first time with OFFLOAD enable
-
-nft add flowtable bridge firewall fb2 { hook ingress priority 0 \; devices = { veth21, veth22 } \; }
-nft add chain bridge firewall ftb-all {type filter hook forward priority 0 \; policy accept \; }
-nft add rule bridge firewall ftb-all counter ct zone 2 ip protocol tcp flow offload @fb2
-
-# iperf -c 10.0.0.8 -p 22 -t 60 -i2
-------------------------------------------------------------
-Client connecting to 10.0.0.8, TCP port 22
-TCP window size: 85.0 KByte (default)
-------------------------------------------------------------
-[  3] local 10.0.0.7 port 60014 connected with 10.0.0.8 port 22
-[ ID] Interval       Transfer     Bandwidth
-[  3]  0.0- 2.0 sec  10.8 GBytes  46.5 Gbits/sec
-[  3]  2.0- 4.0 sec  10.9 GBytes  46.7 Gbits/sec
-[  3]  4.0- 6.0 sec  10.9 GBytes  46.8 Gbits/sec
-[  3]  6.0- 8.0 sec  11.0 GBytes  47.2 Gbits/sec
-[  3]  8.0-10.0 sec  11.0 GBytes  47.1 Gbits/sec
-[  3] 10.0-12.0 sec  11.0 GBytes  47.1 Gbits/sec
-[  3] 12.0-14.0 sec  11.7 GBytes  50.4 Gbits/sec
-[  3] 14.0-16.0 sec  12.0 GBytes  51.6 Gbits/sec
-[  3] 16.0-18.0 sec  12.0 GBytes  51.6 Gbits/sec
-[  3] 18.0-20.0 sec  12.0 GBytes  51.6 Gbits/sec
-[  3] 20.0-22.0 sec  12.0 GBytes  51.5 Gbits/sec
-[  3] 22.0-24.0 sec  12.0 GBytes  51.4 Gbits/sec
-[  3] 24.0-26.0 sec  12.0 GBytes  51.3 Gbits/sec
-[  3] 26.0-28.0 sec  12.0 GBytes  51.7 Gbits/sec
-[  3] 28.0-30.0 sec  12.0 GBytes  51.6 Gbits/sec
-[  3] 30.0-32.0 sec  12.0 GBytes  51.6 Gbits/sec
-[  3] 32.0-34.0 sec  12.0 GBytes  51.6 Gbits/sec
-[  3] 34.0-36.0 sec  12.0 GBytes  51.5 Gbits/sec
-[  3] 36.0-38.0 sec  12.0 GBytes  51.5 Gbits/sec
-[  3] 38.0-40.0 sec  12.0 GBytes  51.6 Gbits/sec
-[  3] 40.0-42.0 sec  12.0 GBytes  51.6 Gbits/sec
-[  3] 42.0-44.0 sec  12.0 GBytes  51.5 Gbits/sec
-[  3] 44.0-46.0 sec  12.0 GBytes  51.4 Gbits/sec
-[  3] 46.0-48.0 sec  12.0 GBytes  51.4 Gbits/sec
-[  3] 48.0-50.0 sec  12.0 GBytes  51.5 Gbits/sec
-[  3] 50.0-52.0 sec  12.0 GBytes  51.6 Gbits/sec
-[  3] 52.0-54.0 sec  12.0 GBytes  51.6 Gbits/sec
-[  3] 54.0-56.0 sec  12.0 GBytes  51.5 Gbits/sec
-[  3] 56.0-58.0 sec  11.9 GBytes  51.2 Gbits/sec
-[  3] 58.0-60.0 sec  11.8 GBytes  50.7 Gbits/sec
-[  3]  0.0-60.0 sec   353 GBytes  50.5 Gbits/sec
-
-
-The second time on any offload:
-# iperf -c 10.0.0.8 -p 22 -t 60 -i2
-------------------------------------------------------------
-Client connecting to 10.0.0.8, TCP port 22
-TCP window size: 85.0 KByte (default)
-------------------------------------------------------------
-[  3] local 10.0.0.7 port 60536 connected with 10.0.0.8 port 22
-[ ID] Interval       Transfer     Bandwidth
-[  3]  0.0- 2.0 sec  8.88 GBytes  38.1 Gbits/sec
-[  3]  2.0- 4.0 sec  9.02 GBytes  38.7 Gbits/sec
-[  3]  4.0- 6.0 sec  9.02 GBytes  38.8 Gbits/sec
-[  3]  6.0- 8.0 sec  9.05 GBytes  38.9 Gbits/sec
-[  3]  8.0-10.0 sec  9.05 GBytes  38.9 Gbits/sec
-[  3] 10.0-12.0 sec  9.04 GBytes  38.8 Gbits/sec
-[  3] 12.0-14.0 sec  9.05 GBytes  38.9 Gbits/sec
-[  3] 14.0-16.0 sec  9.05 GBytes  38.9 Gbits/sec
-[  3] 16.0-18.0 sec  9.06 GBytes  38.9 Gbits/sec
-[  3] 18.0-20.0 sec  9.07 GBytes  39.0 Gbits/sec
-[  3] 20.0-22.0 sec  9.07 GBytes  38.9 Gbits/sec
-[  3] 22.0-24.0 sec  9.06 GBytes  38.9 Gbits/sec
-[  3] 24.0-26.0 sec  9.05 GBytes  38.9 Gbits/sec
-[  3] 26.0-28.0 sec  9.05 GBytes  38.9 Gbits/sec
-[  3] 28.0-30.0 sec  9.06 GBytes  38.9 Gbits/sec
-[  3] 30.0-32.0 sec  9.06 GBytes  38.9 Gbits/sec
-[  3] 32.0-34.0 sec  9.07 GBytes  38.9 Gbits/sec
-[  3] 34.0-36.0 sec  9.05 GBytes  38.9 Gbits/sec
-[  3] 36.0-38.0 sec  9.03 GBytes  38.8 Gbits/sec
-[  3] 38.0-40.0 sec  9.03 GBytes  38.8 Gbits/sec
-[  3] 40.0-42.0 sec  9.05 GBytes  38.9 Gbits/sec
-[  3] 42.0-44.0 sec  9.03 GBytes  38.8 Gbits/sec
-[  3] 44.0-46.0 sec  9.04 GBytes  38.8 Gbits/sec
-[  3] 46.0-48.0 sec  9.05 GBytes  38.9 Gbits/sec
-[  3] 48.0-50.0 sec  9.05 GBytes  38.9 Gbits/sec
-[  3] 50.0-52.0 sec  9.05 GBytes  38.9 Gbits/sec
-[  3] 52.0-54.0 sec  9.06 GBytes  38.9 Gbits/sec
-[  3] 54.0-56.0 sec  9.05 GBytes  38.9 Gbits/sec
-[  3] 56.0-58.0 sec  9.05 GBytes  38.9 Gbits/sec
-[  3] 58.0-60.0 sec  9.05 GBytes  38.9 Gbits/sec
-[  3]  0.0-60.0 sec   271 GBytes  38.8 Gbits/sec
-
-
-
+Zhe
 
 >
+
