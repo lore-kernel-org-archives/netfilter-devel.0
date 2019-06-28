@@ -2,105 +2,215 @@ Return-Path: <SRS0=rhnh=U3=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EEAC2C5B576
-	for <netfilter-devel@archiver.kernel.org>; Fri, 28 Jun 2019 00:49:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1CE1EC5B576
+	for <netfilter-devel@archiver.kernel.org>; Fri, 28 Jun 2019 03:37:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C51052086D
-	for <netfilter-devel@archiver.kernel.org>; Fri, 28 Jun 2019 00:49:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F2F7D208CB
+	for <netfilter-devel@archiver.kernel.org>; Fri, 28 Jun 2019 03:37:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726652AbfF1Atl (ORCPT
+        id S1727133AbfF1Dhw (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 27 Jun 2019 20:49:41 -0400
-Received: from m97179.mail.qiye.163.com ([220.181.97.179]:34418 "EHLO
-        m97179.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726601AbfF1Atl (ORCPT
+        Thu, 27 Jun 2019 23:37:52 -0400
+Received: from m97188.mail.qiye.163.com ([220.181.97.188]:60052 "EHLO
+        m97188.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726565AbfF1Dhw (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 27 Jun 2019 20:49:41 -0400
-Received: from localhost.localdomain (unknown [123.59.132.129])
-        by m97179.mail.qiye.163.com (Hmail) with ESMTPA id CB503E016FA;
-        Fri, 28 Jun 2019 08:49:36 +0800 (CST)
-From:   wenxu@ucloud.cn
-To:     pablo@netfilter.org, fw@strlen.de
+        Thu, 27 Jun 2019 23:37:52 -0400
+Received: from [192.168.188.14] (unknown [120.132.1.226])
+        by m97188.mail.qiye.163.com (Hmail) with ESMTPA id E9E0E964028;
+        Fri, 28 Jun 2019 11:37:47 +0800 (CST)
+Subject: Re: [PATCH 2/3 nf-next] netfilter:nf_flow_table: Support bridge type
+ flow offload
+To:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Florian Westphal <fw@strlen.de>
 Cc:     netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-Subject: [PATCH 1/2 nf-next v3] netfilter: nft_meta: Add NFT_META_BRI_IIFVPROTO support
-Date:   Fri, 28 Jun 2019 08:49:34 +0800
-Message-Id: <1561682975-21790-1-git-send-email-wenxu@ucloud.cn>
-X-Mailer: git-send-email 1.8.3.1
-X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZSVVOSkxCQkJDQ0xPTU1PSFlXWShZQU
-        lCN1dZLVlBSVdZCQ4XHghZQVk1NCk2OjckKS43PlkG
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6NBQ6Cxw4Nzg0HAs0Ik9PKxQX
-        F01PC0lVSlVKTk1KTUNJQkxNQ0NLVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJSFVO
-        QlVKSElVSklCWVdZCAFZQUlNS0w3Bg++
-X-HM-Tid: 0a6b9b8f205020bdkuqycb503e016fa
+References: <1561545148-11978-1-git-send-email-wenxu@ucloud.cn>
+ <1561545148-11978-2-git-send-email-wenxu@ucloud.cn>
+ <20190626183816.3ux3iifxaal4ffil@breakpoint.cc>
+ <20190626191945.2mktaqrcrfcrfc66@breakpoint.cc>
+ <dce5cba2-766c-063e-745f-23b3dd83494b@ucloud.cn>
+ <20190627125839.t56fnptdeqixt7wd@salvia>
+From:   wenxu <wenxu@ucloud.cn>
+Message-ID: <b2a48653-9f30-18a9-d0e1-eaa940a361a9@ucloud.cn>
+Date:   Fri, 28 Jun 2019 11:37:42 +0800
+User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:60.0) Gecko/20100101
+ Thunderbird/60.7.0
+MIME-Version: 1.0
+In-Reply-To: <20190627125839.t56fnptdeqixt7wd@salvia>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
+X-HM-Spam-Status: e1kfGhgUHx5ZQUhXWQgYFAkeWUFZVkpVS0lNS0tLSk9JS0JMT0xZV1koWU
+        FJQjdXWS1ZQUlXWQkOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
+X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6MlE6KTo6ITg5EAsvTxU9CAtR
+        QjoaFBFVSlVKTk1KTUJIS01DSU5LVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJS1VK
+        SElVSlVJSU1ZV1kIAVlBQ0NOQzcG
+X-HM-Tid: 0a6b9c291b4320bckuqye9e0e964028
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: wenxu <wenxu@ucloud.cn>
 
-This patch provide a meta to get the bridge vlan proto
+On 6/27/2019 8:58 PM, Pablo Neira Ayuso wrote:
+> On Thu, Jun 27, 2019 at 02:22:36PM +0800, wenxu wrote:
+>> On 6/27/2019 3:19 AM, Florian Westphal wrote:
+>>> Florian Westphal <fw@strlen.de> wrote:
+> [...]
+>>>> Whats the idea with this patch?
+>>>>
+>>>> Do you see a performance improvement when bypassing bridge layer? If so,
+>>>> how much?
+>>>>
+>>>> I just wonder if its really cheaper than not using bridge conntrack in
+>>>> the first place :-)
+>> This patch is based on the conntrack function in bridge.  It will
+>> bypass the fdb lookup and conntrack lookup to get the performance 
+>> improvement. The more important things for hardware offload in the
+>> future with nf_tables add hardware offload support
+> Florian would like to see numbers / benchmark.
 
-nft add rule bridge firewall zones counter meta br_vlan_proto 0x8100
 
-Signed-off-by: wenxu <wenxu@ucloud.cn>
----
- include/uapi/linux/netfilter/nf_tables.h | 2 ++
- net/netfilter/nft_meta.c                 | 9 +++++++++
- 2 files changed, 11 insertions(+)
+I just did a simple performace test with following test.
 
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index 8859535..0b18646 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -796,6 +796,7 @@ enum nft_exthdr_attributes {
-  * @NFT_META_IIFKIND: packet input interface kind name (dev->rtnl_link_ops->kind)
-  * @NFT_META_OIFKIND: packet output interface kind name (dev->rtnl_link_ops->kind)
-  * @NFT_META_BRI_PVID: packet input bridge port pvid
-+ * @NFT_META_BRI_IIFVPROTO: packet input bridge vlan proto
-  */
- enum nft_meta_keys {
- 	NFT_META_LEN,
-@@ -827,6 +828,7 @@ enum nft_meta_keys {
- 	NFT_META_IIFKIND,
- 	NFT_META_OIFKIND,
- 	NFT_META_BRI_PVID,
-+	NFT_META_BRI_IIFVPROTO,
- };
- 
- /**
-diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
-index 4f8116d..e3adf6a 100644
---- a/net/netfilter/nft_meta.c
-+++ b/net/netfilter/nft_meta.c
-@@ -248,6 +248,14 @@ void nft_meta_get_eval(const struct nft_expr *expr,
- 			return;
- 		}
- 		goto err;
-+	case NFT_META_BRI_IIFVPROTO:
-+		if (in == NULL || (p = br_port_get_rtnl_rcu(in)) == NULL)
-+			goto err;
-+		if (br_opt_get(p->br, BROPT_VLAN_ENABLED)) {
-+			nft_reg_store16(dest, p->br->vlan_proto);
-+			return;
-+		}
-+		goto err;
- #endif
- 	case NFT_META_IIFKIND:
- 		if (in == NULL || in->rtnl_link_ops == NULL)
-@@ -376,6 +384,7 @@ static int nft_meta_get_init(const struct nft_ctx *ctx,
- 		len = IFNAMSIZ;
- 		break;
- 	case NFT_META_BRI_PVID:
-+	case NFT_META_BRI_IIFVPROTO:
- 		if (ctx->family != NFPROTO_BRIDGE)
- 			return -EOPNOTSUPP;
- 		len = sizeof(u16);
--- 
-1.8.3.1
+p netns add ns21
+ip netns add ns22
+ip l add dev veth21 type veth peer name eth0 netns ns21
+ip l add dev veth22 type veth peer name eth0 netns ns22
+ifconfig veth21 up
+ifconfig veth22 up
+ip netns exec ns21 ip a a dev eth0 10.0.0.7/24
+ip netns exec ns22 ip a a dev eth0 10.0.0.8/24
+ip netns exec ns21 ifconfig eth0 up
+ip netns exec ns22 ifconfig eth0 up
 
+ip l add dev br0 type bridge vlan_filtering 1
+brctl addif br0 veth21
+brctl addif br0 veth22
+
+ifconfig br0 up
+
+bridge vlan add dev veth21 vid 200 pvid untagged
+bridge vlan add dev veth22 vid 200 pvid untagged
+
+nft add table bridge firewall
+nft add chain bridge firewall zones { type filter hook prerouting priority - 300 \; }
+nft add rule bridge firewall zones counter ct zone set iif map { "veth21" : 2, "veth22" : 2 }
+
+nft add chain bridge firewall rule-200-ingress
+nft add rule bridge firewall rule-200-ingress ct zone 2 ct state established,related counter accept
+nft add rule bridge firewall rule-200-ingress ct zone 2 ct state invalid counter drop
+nft add rule bridge firewall rule-200-ingress ct zone 2 tcp dport 23 ct state new counter accept
+nft add rule bridge firewall rule-200-ingress counter drop
+
+nft add chain bridge firewall rule-200-egress
+nft add rule bridge firewall rule-200-egress ct zone 2 ct state established,related counter accept
+nft add rule bridge firewall rule-200-egress ct zone 2 ct state invalid counter drop
+nft add rule bridge firewall rule-200-egress ct zone 2 tcp dport 23 ct state new counter drop
+nft add rule bridge firewall rule-200-egress counter accept
+
+nft add chain bridge firewall rules-all { type filter hook prerouting priority - 150 \; }
+nft add rule bridge firewall rules-all counter meta protocol ip iif vmap { "veth22" : jump rule-200-ingress, "veth21" : jump rule-200-egress }
+
+
+
+netns21 communication with ns22
+
+
+ns21 iperf to 10.0.0.8 with dport 22 in ns22
+
+
+first time with OFFLOAD enable
+
+nft add flowtable bridge firewall fb2 { hook ingress priority 0 \; devices = { veth21, veth22 } \; }
+nft add chain bridge firewall ftb-all {type filter hook forward priority 0 \; policy accept \; }
+nft add rule bridge firewall ftb-all counter ct zone 2 ip protocol tcp flow offload @fb2
+
+# iperf -c 10.0.0.8 -p 22 -t 60 -i2
+------------------------------------------------------------
+Client connecting to 10.0.0.8, TCP port 22
+TCP window size: 85.0 KByte (default)
+------------------------------------------------------------
+[  3] local 10.0.0.7 port 60014 connected with 10.0.0.8 port 22
+[ ID] Interval       Transfer     Bandwidth
+[  3]  0.0- 2.0 sec  10.8 GBytes  46.5 Gbits/sec
+[  3]  2.0- 4.0 sec  10.9 GBytes  46.7 Gbits/sec
+[  3]  4.0- 6.0 sec  10.9 GBytes  46.8 Gbits/sec
+[  3]  6.0- 8.0 sec  11.0 GBytes  47.2 Gbits/sec
+[  3]  8.0-10.0 sec  11.0 GBytes  47.1 Gbits/sec
+[  3] 10.0-12.0 sec  11.0 GBytes  47.1 Gbits/sec
+[  3] 12.0-14.0 sec  11.7 GBytes  50.4 Gbits/sec
+[  3] 14.0-16.0 sec  12.0 GBytes  51.6 Gbits/sec
+[  3] 16.0-18.0 sec  12.0 GBytes  51.6 Gbits/sec
+[  3] 18.0-20.0 sec  12.0 GBytes  51.6 Gbits/sec
+[  3] 20.0-22.0 sec  12.0 GBytes  51.5 Gbits/sec
+[  3] 22.0-24.0 sec  12.0 GBytes  51.4 Gbits/sec
+[  3] 24.0-26.0 sec  12.0 GBytes  51.3 Gbits/sec
+[  3] 26.0-28.0 sec  12.0 GBytes  51.7 Gbits/sec
+[  3] 28.0-30.0 sec  12.0 GBytes  51.6 Gbits/sec
+[  3] 30.0-32.0 sec  12.0 GBytes  51.6 Gbits/sec
+[  3] 32.0-34.0 sec  12.0 GBytes  51.6 Gbits/sec
+[  3] 34.0-36.0 sec  12.0 GBytes  51.5 Gbits/sec
+[  3] 36.0-38.0 sec  12.0 GBytes  51.5 Gbits/sec
+[  3] 38.0-40.0 sec  12.0 GBytes  51.6 Gbits/sec
+[  3] 40.0-42.0 sec  12.0 GBytes  51.6 Gbits/sec
+[  3] 42.0-44.0 sec  12.0 GBytes  51.5 Gbits/sec
+[  3] 44.0-46.0 sec  12.0 GBytes  51.4 Gbits/sec
+[  3] 46.0-48.0 sec  12.0 GBytes  51.4 Gbits/sec
+[  3] 48.0-50.0 sec  12.0 GBytes  51.5 Gbits/sec
+[  3] 50.0-52.0 sec  12.0 GBytes  51.6 Gbits/sec
+[  3] 52.0-54.0 sec  12.0 GBytes  51.6 Gbits/sec
+[  3] 54.0-56.0 sec  12.0 GBytes  51.5 Gbits/sec
+[  3] 56.0-58.0 sec  11.9 GBytes  51.2 Gbits/sec
+[  3] 58.0-60.0 sec  11.8 GBytes  50.7 Gbits/sec
+[  3]  0.0-60.0 sec   353 GBytes  50.5 Gbits/sec
+
+
+The second time on any offload:
+# iperf -c 10.0.0.8 -p 22 -t 60 -i2
+------------------------------------------------------------
+Client connecting to 10.0.0.8, TCP port 22
+TCP window size: 85.0 KByte (default)
+------------------------------------------------------------
+[  3] local 10.0.0.7 port 60536 connected with 10.0.0.8 port 22
+[ ID] Interval       Transfer     Bandwidth
+[  3]  0.0- 2.0 sec  8.88 GBytes  38.1 Gbits/sec
+[  3]  2.0- 4.0 sec  9.02 GBytes  38.7 Gbits/sec
+[  3]  4.0- 6.0 sec  9.02 GBytes  38.8 Gbits/sec
+[  3]  6.0- 8.0 sec  9.05 GBytes  38.9 Gbits/sec
+[  3]  8.0-10.0 sec  9.05 GBytes  38.9 Gbits/sec
+[  3] 10.0-12.0 sec  9.04 GBytes  38.8 Gbits/sec
+[  3] 12.0-14.0 sec  9.05 GBytes  38.9 Gbits/sec
+[  3] 14.0-16.0 sec  9.05 GBytes  38.9 Gbits/sec
+[  3] 16.0-18.0 sec  9.06 GBytes  38.9 Gbits/sec
+[  3] 18.0-20.0 sec  9.07 GBytes  39.0 Gbits/sec
+[  3] 20.0-22.0 sec  9.07 GBytes  38.9 Gbits/sec
+[  3] 22.0-24.0 sec  9.06 GBytes  38.9 Gbits/sec
+[  3] 24.0-26.0 sec  9.05 GBytes  38.9 Gbits/sec
+[  3] 26.0-28.0 sec  9.05 GBytes  38.9 Gbits/sec
+[  3] 28.0-30.0 sec  9.06 GBytes  38.9 Gbits/sec
+[  3] 30.0-32.0 sec  9.06 GBytes  38.9 Gbits/sec
+[  3] 32.0-34.0 sec  9.07 GBytes  38.9 Gbits/sec
+[  3] 34.0-36.0 sec  9.05 GBytes  38.9 Gbits/sec
+[  3] 36.0-38.0 sec  9.03 GBytes  38.8 Gbits/sec
+[  3] 38.0-40.0 sec  9.03 GBytes  38.8 Gbits/sec
+[  3] 40.0-42.0 sec  9.05 GBytes  38.9 Gbits/sec
+[  3] 42.0-44.0 sec  9.03 GBytes  38.8 Gbits/sec
+[  3] 44.0-46.0 sec  9.04 GBytes  38.8 Gbits/sec
+[  3] 46.0-48.0 sec  9.05 GBytes  38.9 Gbits/sec
+[  3] 48.0-50.0 sec  9.05 GBytes  38.9 Gbits/sec
+[  3] 50.0-52.0 sec  9.05 GBytes  38.9 Gbits/sec
+[  3] 52.0-54.0 sec  9.06 GBytes  38.9 Gbits/sec
+[  3] 54.0-56.0 sec  9.05 GBytes  38.9 Gbits/sec
+[  3] 56.0-58.0 sec  9.05 GBytes  38.9 Gbits/sec
+[  3] 58.0-60.0 sec  9.05 GBytes  38.9 Gbits/sec
+[  3]  0.0-60.0 sec   271 GBytes  38.8 Gbits/sec
+
+
+
+
+>
