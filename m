@@ -2,107 +2,236 @@ Return-Path: <SRS0=rhnh=U3=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4751DC4321A
-	for <netfilter-devel@archiver.kernel.org>; Fri, 28 Jun 2019 09:07:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B563BC5B57A
+	for <netfilter-devel@archiver.kernel.org>; Fri, 28 Jun 2019 09:48:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 284E320644
-	for <netfilter-devel@archiver.kernel.org>; Fri, 28 Jun 2019 09:07:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 97764208E3
+	for <netfilter-devel@archiver.kernel.org>; Fri, 28 Jun 2019 09:48:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726518AbfF1JHx (ORCPT
+        id S1726567AbfF1Jsy (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 28 Jun 2019 05:07:53 -0400
-Received: from mail.us.es ([193.147.175.20]:40888 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726514AbfF1JHx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 28 Jun 2019 05:07:53 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 8E5EDC3302
-        for <netfilter-devel@vger.kernel.org>; Fri, 28 Jun 2019 11:07:51 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 7D17F1021A6
-        for <netfilter-devel@vger.kernel.org>; Fri, 28 Jun 2019 11:07:51 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 72C6B1021A4; Fri, 28 Jun 2019 11:07:51 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 6E95EDA4D1;
-        Fri, 28 Jun 2019 11:07:49 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Fri, 28 Jun 2019 11:07:49 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (sys.soleta.eu [212.170.55.40])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 4DAD14265A2F;
-        Fri, 28 Jun 2019 11:07:49 +0200 (CEST)
-Date:   Fri, 28 Jun 2019 11:07:48 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Yonatan Goldschmidt <yon.goldschmidt@gmail.com>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH] netfilter: nat: Update obsolete comment on
- get_unique_tuple()
-Message-ID: <20190628090748.e42ymhe3huvuduhj@salvia>
-References: <20190627212307.GB4897@jong.localdomain>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190627212307.GB4897@jong.localdomain>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+        Fri, 28 Jun 2019 05:48:54 -0400
+Received: from m9783.mail.qiye.163.com ([220.181.97.83]:37213 "EHLO
+        m9783.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726426AbfF1Jsx (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 28 Jun 2019 05:48:53 -0400
+Received: from localhost.localdomain (unknown [123.59.132.129])
+        by m9783.mail.qiye.163.com (Hmail) with ESMTPA id 3D796C17EA;
+        Fri, 28 Jun 2019 17:48:47 +0800 (CST)
+From:   wenxu@ucloud.cn
+To:     pablo@netfilter.org, fw@strlen.de
+Cc:     netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+Subject: [PATCH 1/4 nf-next v2] netfilter:nf_flow_table: Refactor flow_offload_tuple to destination
+Date:   Fri, 28 Jun 2019 17:48:43 +0800
+Message-Id: <1561715326-3945-1-git-send-email-wenxu@ucloud.cn>
+X-Mailer: git-send-email 1.8.3.1
+X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZSVVPSU9LS0tLSU9MQk5OSFlXWShZQU
+        lCN1dZLVlBSVdZCQ4XHghZQVk1NCk2OjckKS43PlkG
+X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6ORg6Nww*EzgzGAszHwwcNhoJ
+        FQ0wCRlVSlVKTk1KTEpOSElMSEhOVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJSFVO
+        QlVKSElVSklCWVdZCAFZQUxNS0s3Bg++
+X-HM-Tid: 0a6b9d7cc12e2085kuqy3d796c17ea
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Jun 28, 2019 at 12:23:08AM +0300, Yonatan Goldschmidt wrote:
-> Commit c7232c9979cba ("netfilter: add protocol independent NAT core")
-> added nf_nat_core.c based on ipv4/netfilter/nf_nat_core.c,
-> with this comment copied.
-> 
-> Referred function doesn't exist anymore, and anyway since day one
-> of this file it should have referred the generic __nf_conntrack_confirm(),
-> added in 9fb9cbb1082d6.
-> 
-> Signed-off-by: Yonatan Goldschmidt <yon.goldschmidt@gmail.com>
-> ---
->  net/netfilter/nf_nat_core.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
-> index 9ab410455992..3f6023ed4966 100644
-> --- a/net/netfilter/nf_nat_core.c
-> +++ b/net/netfilter/nf_nat_core.c
-> @@ -519,7 +519,7 @@ static void nf_nat_l4proto_unique_tuple(struct nf_conntrack_tuple *tuple,
->   * and NF_INET_LOCAL_OUT, we change the destination to map into the
->   * range. It might not be possible to get a unique tuple, but we try.
->   * At worst (or if we race), we will end up with a final duplicate in
-> - * __ip_conntrack_confirm and drop the packet. */
-> + * __nf_conntrack_confirm and drop the packet. */
+From: wenxu <wenxu@ucloud.cn>
 
-I dislike this oneliners to update comments, I tend to think it's too
-much overhead a patch just to update something obvious to the reader.
+Add struct flow_offload_dst to support more offload method to replace
+dst_cache which only work for route offload.
 
-However, I also understand you may want to fix this while passing by
-here.
+Signed-off-by: wenxu <wenxu@ucloud.cn>
+---
+ include/net/netfilter/nf_flow_table.h | 12 ++++++++++--
+ net/netfilter/nf_flow_table_core.c    | 22 +++++++++++-----------
+ net/netfilter/nf_flow_table_ip.c      |  4 ++--
+ net/netfilter/nft_flow_offload.c      | 12 ++++++------
+ 4 files changed, 29 insertions(+), 21 deletions(-)
 
-So my sugggestion is that you run:
+diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
+index d8c1879..d40d409 100644
+--- a/include/net/netfilter/nf_flow_table.h
++++ b/include/net/netfilter/nf_flow_table.h
+@@ -33,6 +33,10 @@ enum flow_offload_tuple_dir {
+ 	FLOW_OFFLOAD_DIR_MAX = IP_CT_DIR_MAX
+ };
+ 
++struct flow_offload_dst {
++	struct dst_entry		*dst_cache;
++};
++
+ struct flow_offload_tuple {
+ 	union {
+ 		struct in_addr		src_v4;
+@@ -55,7 +59,7 @@ struct flow_offload_tuple {
+ 
+ 	u16				mtu;
+ 
+-	struct dst_entry		*dst_cache;
++	struct flow_offload_dst		dst;
+ };
+ 
+ struct flow_offload_tuple_rhash {
+@@ -85,8 +89,12 @@ struct nf_flow_route {
+ 	} tuple[FLOW_OFFLOAD_DIR_MAX];
+ };
+ 
++struct nf_flow_dst {
++	struct nf_flow_route route;
++};
++
+ struct flow_offload *flow_offload_alloc(struct nf_conn *ct,
+-					struct nf_flow_route *route);
++					struct nf_flow_dst *flow_dst);
+ void flow_offload_free(struct flow_offload *flow);
+ 
+ int flow_offload_add(struct nf_flowtable *flow_table, struct flow_offload *flow);
+diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
+index e3d7972..7e0b5bd 100644
+--- a/net/netfilter/nf_flow_table_core.c
++++ b/net/netfilter/nf_flow_table_core.c
+@@ -24,13 +24,13 @@ struct flow_offload_entry {
+ 
+ static void
+ flow_offload_fill_dir(struct flow_offload *flow, struct nf_conn *ct,
+-		      struct nf_flow_route *route,
++		      struct nf_flow_dst *flow_dst,
+ 		      enum flow_offload_tuple_dir dir)
+ {
+ 	struct flow_offload_tuple *ft = &flow->tuplehash[dir].tuple;
+ 	struct nf_conntrack_tuple *ctt = &ct->tuplehash[dir].tuple;
+-	struct dst_entry *other_dst = route->tuple[!dir].dst;
+-	struct dst_entry *dst = route->tuple[dir].dst;
++	struct dst_entry *other_dst = flow_dst->route.tuple[!dir].dst;
++	struct dst_entry *dst = flow_dst->route.tuple[dir].dst;
+ 
+ 	ft->dir = dir;
+ 
+@@ -57,7 +57,7 @@ struct flow_offload_entry {
+ }
+ 
+ struct flow_offload *
+-flow_offload_alloc(struct nf_conn *ct, struct nf_flow_route *route)
++flow_offload_alloc(struct nf_conn *ct, struct nf_flow_dst *flow_dst)
+ {
+ 	struct flow_offload_entry *entry;
+ 	struct flow_offload *flow;
+@@ -72,16 +72,16 @@ struct flow_offload *
+ 
+ 	flow = &entry->flow;
+ 
+-	if (!dst_hold_safe(route->tuple[FLOW_OFFLOAD_DIR_ORIGINAL].dst))
++	if (!dst_hold_safe(flow_dst->route.tuple[FLOW_OFFLOAD_DIR_ORIGINAL].dst))
+ 		goto err_dst_cache_original;
+ 
+-	if (!dst_hold_safe(route->tuple[FLOW_OFFLOAD_DIR_REPLY].dst))
++	if (!dst_hold_safe(flow_dst->route.tuple[FLOW_OFFLOAD_DIR_REPLY].dst))
+ 		goto err_dst_cache_reply;
+ 
+ 	entry->ct = ct;
+ 
+-	flow_offload_fill_dir(flow, ct, route, FLOW_OFFLOAD_DIR_ORIGINAL);
+-	flow_offload_fill_dir(flow, ct, route, FLOW_OFFLOAD_DIR_REPLY);
++	flow_offload_fill_dir(flow, ct, flow_dst, FLOW_OFFLOAD_DIR_ORIGINAL);
++	flow_offload_fill_dir(flow, ct, flow_dst, FLOW_OFFLOAD_DIR_REPLY);
+ 
+ 	if (ct->status & IPS_SRC_NAT)
+ 		flow->flags |= FLOW_OFFLOAD_SNAT;
+@@ -91,7 +91,7 @@ struct flow_offload *
+ 	return flow;
+ 
+ err_dst_cache_reply:
+-	dst_release(route->tuple[FLOW_OFFLOAD_DIR_ORIGINAL].dst);
++	dst_release(flow_dst->route.tuple[FLOW_OFFLOAD_DIR_ORIGINAL].dst);
+ err_dst_cache_original:
+ 	kfree(entry);
+ err_ct_refcnt:
+@@ -139,8 +139,8 @@ void flow_offload_free(struct flow_offload *flow)
+ {
+ 	struct flow_offload_entry *e;
+ 
+-	dst_release(flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple.dst_cache);
+-	dst_release(flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].tuple.dst_cache);
++	dst_release(flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple.dst.dst_cache);
++	dst_release(flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].tuple.dst.dst_cache);
+ 	e = container_of(flow, struct flow_offload_entry, flow);
+ 	if (flow->flags & FLOW_OFFLOAD_DYING)
+ 		nf_ct_delete(e->ct, 0, 0);
+diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
+index 2413174..0016bb8 100644
+--- a/net/netfilter/nf_flow_table_ip.c
++++ b/net/netfilter/nf_flow_table_ip.c
+@@ -241,7 +241,7 @@ static bool nf_flow_exceeds_mtu(const struct sk_buff *skb, unsigned int mtu)
+ 
+ 	dir = tuplehash->tuple.dir;
+ 	flow = container_of(tuplehash, struct flow_offload, tuplehash[dir]);
+-	rt = (struct rtable *)flow->tuplehash[dir].tuple.dst_cache;
++	rt = (struct rtable *)flow->tuplehash[dir].tuple.dst.dst_cache;
+ 	outdev = rt->dst.dev;
+ 
+ 	if (unlikely(nf_flow_exceeds_mtu(skb, flow->tuplehash[dir].tuple.mtu)))
+@@ -457,7 +457,7 @@ static int nf_flow_tuple_ipv6(struct sk_buff *skb, const struct net_device *dev,
+ 
+ 	dir = tuplehash->tuple.dir;
+ 	flow = container_of(tuplehash, struct flow_offload, tuplehash[dir]);
+-	rt = (struct rt6_info *)flow->tuplehash[dir].tuple.dst_cache;
++	rt = (struct rt6_info *)flow->tuplehash[dir].tuple.dst.dst_cache;
+ 	outdev = rt->dst.dev;
+ 
+ 	if (unlikely(nf_flow_exceeds_mtu(skb, flow->tuplehash[dir].tuple.mtu)))
+diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
+index aa5f571..261c565 100644
+--- a/net/netfilter/nft_flow_offload.c
++++ b/net/netfilter/nft_flow_offload.c
+@@ -70,10 +70,10 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
+ 				  struct nft_regs *regs,
+ 				  const struct nft_pktinfo *pkt)
+ {
+-	struct nft_flow_offload *priv = nft_expr_priv(expr);
+ 	struct nf_flowtable *flowtable = &priv->flowtable->data;
++	struct nft_flow_offload *priv = nft_expr_priv(expr);
+ 	enum ip_conntrack_info ctinfo;
+-	struct nf_flow_route route;
++	struct nf_flow_dst flow_dst;
+ 	struct flow_offload *flow;
+ 	enum ip_conntrack_dir dir;
+ 	bool is_tcp = false;
+@@ -108,10 +108,10 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
+ 		goto out;
+ 
+ 	dir = CTINFO2DIR(ctinfo);
+-	if (nft_flow_route(pkt, ct, &route, dir) < 0)
++	if (nft_flow_route(pkt, ct, &flow_dst.route, dir) < 0)
+ 		goto err_flow_route;
+ 
+-	flow = flow_offload_alloc(ct, &route);
++	flow = flow_offload_alloc(ct, &flow_dst);
+ 	if (!flow)
+ 		goto err_flow_alloc;
+ 
+@@ -124,13 +124,13 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
+ 	if (ret < 0)
+ 		goto err_flow_add;
+ 
+-	dst_release(route.tuple[!dir].dst);
++	dst_release(flow_dst.route.tuple[!dir].dst);
+ 	return;
+ 
+ err_flow_add:
+ 	flow_offload_free(flow);
+ err_flow_alloc:
+-	dst_release(route.tuple[!dir].dst);
++	dst_release(flow_dst.route.tuple[!dir].dst);
+ err_flow_route:
+ 	clear_bit(IPS_OFFLOAD_BIT, &ct->status);
+ out:
+-- 
+1.8.3.1
 
-        git grep ip_conntrack
-
-in the tree, searching for comments and documentation that can be
-updated, eg.
-
-net/netfilter/nf_conntrack_proto_icmp.c:        /* See ip_conntrack_proto_tcp.c */
-
-Please, only update comments / documentation in your patch.
-
-The ip_conntrack_ prefix is legacy, that it was used by the time there
-was only support for IPv4 in the connection tracking system.
-
-Thanks.
