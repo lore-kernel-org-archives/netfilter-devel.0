@@ -2,165 +2,283 @@ Return-Path: <SRS0=rhnh=U3=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F0C5C4321A
-	for <netfilter-devel@archiver.kernel.org>; Fri, 28 Jun 2019 19:58:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C5E8C4321A
+	for <netfilter-devel@archiver.kernel.org>; Fri, 28 Jun 2019 20:02:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 442942086D
-	for <netfilter-devel@archiver.kernel.org>; Fri, 28 Jun 2019 19:58:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 563912086D
+	for <netfilter-devel@archiver.kernel.org>; Fri, 28 Jun 2019 20:02:43 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="vVLyvukr"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Y56xEBQH"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727035AbfF1T6E (ORCPT
+        id S1727069AbfF1UCn (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 28 Jun 2019 15:58:04 -0400
-Received: from mail-yw1-f65.google.com ([209.85.161.65]:39922 "EHLO
-        mail-yw1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726762AbfF1T6D (ORCPT
+        Fri, 28 Jun 2019 16:02:43 -0400
+Received: from mail-pf1-f172.google.com ([209.85.210.172]:33562 "EHLO
+        mail-pf1-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726809AbfF1UCm (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 28 Jun 2019 15:58:03 -0400
-Received: by mail-yw1-f65.google.com with SMTP id u134so4663295ywf.6
-        for <netfilter-devel@vger.kernel.org>; Fri, 28 Jun 2019 12:58:03 -0700 (PDT)
+        Fri, 28 Jun 2019 16:02:42 -0400
+Received: by mail-pf1-f172.google.com with SMTP id x15so3529979pfq.0
+        for <netfilter-devel@vger.kernel.org>; Fri, 28 Jun 2019 13:02:42 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=JnkachwQP0cyQ9JdMbTUnW5qndJ/fTXRxpRomw9WY6k=;
-        b=vVLyvukrpuQtbZdzKfeFDmHdS8rq0f9WdO6YO1eZI6sLIUF996To1rdL8/7+axITIy
-         85yp8tjhuqeC8aQG5v6WRyAA6OCt/OvXJzXuB3erg1B1/6I/VhC97S1snroCo/cGfDMP
-         uVp7k4O91vtcWDPfd0EgxARsjrcpaEz0vxiRw/U3zJGyqOMaKnEbJrlYwP0YHPX11owd
-         ydc6SDTxO8stFGHPET1XRyuFJtUOZ/g0botEElyakKaPs0TwZwUnhxua9Brg/C7XrXzK
-         Tzz95CL2xg4AohWS6sDOA/H16jSdpmsb38czV9xkwcdD72qnaCznSjjlKboOu3AVh9Qv
-         0LPg==
+        h=from:to:cc:subject:date:message-id;
+        bh=sWTuF+Lv7F4QfGwHyCrGNRZEpglJGlp66bEUilxWapQ=;
+        b=Y56xEBQHC9dy7lDWHroMhzlo3sb2C23FExJViGacFuR3bWRO3wl9Fz7Ut5GtDO0xof
+         Ql7n/Z/nHkFwi6YS1yDM2/B5N6bMG7nhTC+cBqnguAdyFm8UTxwTj/rkPadjYew1EPvc
+         DkbtgEm9Icr7ibObmFT0Xa5QaAjr1PZ3MN+j3DMqD31tpWfvjXJoTPcjcsYfdSBs1gNE
+         ro81CqAqv02CxgtRCffjsF0nGJ2cz8KLaTc4rsLZTqLQqGw4TMeyIVOOhriYJwv9r3ya
+         OIczXm6YfdYt6koUQWWU5HTQf/jA3oh0IudXxpAgflh0vSpq4AUfTj49ZUZrj+lGhAP0
+         Lf/A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=JnkachwQP0cyQ9JdMbTUnW5qndJ/fTXRxpRomw9WY6k=;
-        b=NE9J3FoR8a/dRWw8FYYYFtTHFpWwU2HIFQ1sMDVNVgTXDVq5Cu6yHmIDJiXQkFAd7o
-         5FH7L18u6YrxMPRYSsqU56uZ4tpMqlCm0VRpcMa9iQbYetoqGkAu+kSCAiJihNLKwoQM
-         8dph81tkBrNJJBMPQoiHWNz7KS7wcqY0A16jAUjk1UEKak1h9KKrJ65W8ygJ0DNC5Wla
-         nU0MlPF6CjeLDDUU1xgFCt+p3mELKv/tqbaJW2NbtooYt8AXGo+LKIsfPLEDf1b4xt9L
-         P9SWpOBDpsLRIVyQ/mS2Xg7G9zsB/p/1V92hsRu2377FDYAxu0H5W0qlAkIDoZxsXQqO
-         rltQ==
-X-Gm-Message-State: APjAAAWWId1ciKTZZY6KYZ8fpuBo3nNoiSovLvkrc1y446tGgwOabo4u
-        w1UUY9JFK5QHbGXqezVQJr/lUsjZijQ=
-X-Google-Smtp-Source: APXvYqxAkwc4Ve4zO1Le8ow+GIFyqjbEKmANIBNx9jsthvKpc2e9FaG9rs21GLmXeHF5DgKNZVnmhw==
-X-Received: by 2002:a81:de09:: with SMTP id k9mr7659851ywj.58.1561751882473;
-        Fri, 28 Jun 2019 12:58:02 -0700 (PDT)
-Received: from mail-yw1-f44.google.com (mail-yw1-f44.google.com. [209.85.161.44])
-        by smtp.gmail.com with ESMTPSA id p64sm697271ywh.34.2019.06.28.12.58.02
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_3 cipher=AEAD-AES128-GCM-SHA256 bits=128/128);
-        Fri, 28 Jun 2019 12:58:02 -0700 (PDT)
-Received: by mail-yw1-f44.google.com with SMTP id j190so3812895ywb.0
-        for <netfilter-devel@vger.kernel.org>; Fri, 28 Jun 2019 12:58:02 -0700 (PDT)
-X-Received: by 2002:a81:4807:: with SMTP id v7mr6063772ywa.494.1561751494211;
- Fri, 28 Jun 2019 12:51:34 -0700 (PDT)
-MIME-Version: 1.0
-References: <20190628123819.2785504-1-arnd@arndb.de> <20190628123819.2785504-4-arnd@arndb.de>
-In-Reply-To: <20190628123819.2785504-4-arnd@arndb.de>
-From:   Willem de Bruijn <willemdebruijn.kernel@gmail.com>
-Date:   Fri, 28 Jun 2019 15:50:57 -0400
-X-Gmail-Original-Message-ID: <CA+FuTSexLuu8e1XHaY0ObGi46CgZnBpELecBr+kMgCU29Fa_gw@mail.gmail.com>
-Message-ID: <CA+FuTSexLuu8e1XHaY0ObGi46CgZnBpELecBr+kMgCU29Fa_gw@mail.gmail.com>
-Subject: Re: [PATCH 4/4] ipvs: reduce kernel stack usage
-To:     Arnd Bergmann <arnd@arndb.de>
-Cc:     Kees Cook <keescook@chromium.org>,
-        Wensong Zhang <wensong@linux-vs.org>,
-        Simon Horman <horms@verge.net.au>,
-        Julian Anastasov <ja@ssi.bg>,
-        "David S. Miller" <davem@davemloft.net>,
-        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        James Smart <james.smart@broadcom.com>,
-        Dick Kennedy <dick.kennedy@broadcom.com>,
-        "James E . J . Bottomley" <jejb@linux.ibm.com>,
-        "Martin K . Petersen" <martin.petersen@oracle.com>,
-        Larry Finger <Larry.Finger@lwfinger.net>,
-        Florian Schilhabel <florian.c.schilhabel@googlemail.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        James Morris <jmorris@namei.org>, linux-scsi@vger.kernel.org,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        devel@driverdev.osuosl.org,
-        Network Development <netdev@vger.kernel.org>,
-        lvs-devel@vger.kernel.org,
-        netfilter-devel <netfilter-devel@vger.kernel.org>,
-        coreteam@netfilter.org, Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Content-Type: text/plain; charset="UTF-8"
+        h=x-gm-message-state:from:to:cc:subject:date:message-id;
+        bh=sWTuF+Lv7F4QfGwHyCrGNRZEpglJGlp66bEUilxWapQ=;
+        b=rHKjq/aa8x/SkFEPg26h934EWJJLorEGlpC3kfSQjn6Qb9L74UiKjVOoJlkd1SiB2y
+         6g5nkD5WmMa56vXUA7KmjRRcJk+e+z0gligDpbLXVzAOjaiTKkL9ObHLP5xvPGCn67cM
+         8dwsjfvWWP4BeOWp72NcrofAW4Uj7lzk0NCTaVeGzdsnfflU8pZtkhnz/f8tTV4xpcZ/
+         zyBfpooFtPMpYOIXl7dSW/nQxf7MsrrqLaQsHjlZNmMTARU7HpUfv27hMAvpbCSR3ppV
+         y3cM2961XTychyEgKXLhPMtXA1gz/9BiF4m6t7dIr2BW9cqfXarTXcnQkOsc0aw+dkN+
+         1JyA==
+X-Gm-Message-State: APjAAAVC6v4BjKPh/4z/9MMMFFBtVP/M949hIESTIr9O1NdeVt9tSX/e
+        GOZPptCAv72Hhh8r/7x0jVoyM9D8wTE=
+X-Google-Smtp-Source: APXvYqwyhhbZzqzm94n/t1v0zICTnYYBr0b1W/QLAHw1xdEEMwBxk0leg1l54JVthmoYR9bVLDwbNA==
+X-Received: by 2002:a17:90a:db52:: with SMTP id u18mr15392747pjx.107.1561752161714;
+        Fri, 28 Jun 2019 13:02:41 -0700 (PDT)
+Received: from shekhar.domain.name ([117.199.29.227])
+        by smtp.gmail.com with ESMTPSA id m101sm2650323pjb.7.2019.06.28.13.02.39
+        (version=TLS1_3 cipher=AEAD-AES256-GCM-SHA384 bits=256/256);
+        Fri, 28 Jun 2019 13:02:41 -0700 (PDT)
+From:   Shekhar Sharma <shekhar250198@gmail.com>
+To:     netfilter-devel@vger.kernel.org
+Cc:     Shekhar Sharma <shekhar250198@gmail.com>
+Subject: [PATCH nft v10]tests: py: fix python3
+Date:   Sat, 29 Jun 2019 01:32:29 +0530
+Message-Id: <20190628200229.3217-1-shekhar250198@gmail.com>
+X-Mailer: git-send-email 2.17.1
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Jun 28, 2019 at 8:40 AM Arnd Bergmann <arnd@arndb.de> wrote:
->
-> With the new CONFIG_GCC_PLUGIN_STRUCTLEAK_BYREF_ALL option, the stack
-> usage in the ipvs debug output grows because each instance of
-> IP_VS_DBG_BUF() now has its own buffer of 160 bytes that add up
-> rather than reusing the stack slots:
->
-> net/netfilter/ipvs/ip_vs_core.c: In function 'ip_vs_sched_persist':
-> net/netfilter/ipvs/ip_vs_core.c:427:1: error: the frame size of 1052 bytes is larger than 1024 bytes [-Werror=frame-larger-than=]
-> net/netfilter/ipvs/ip_vs_core.c: In function 'ip_vs_new_conn_out':
-> net/netfilter/ipvs/ip_vs_core.c:1231:1: error: the frame size of 1048 bytes is larger than 1024 bytes [-Werror=frame-larger-than=]
-> net/netfilter/ipvs/ip_vs_ftp.c: In function 'ip_vs_ftp_out':
-> net/netfilter/ipvs/ip_vs_ftp.c:397:1: error: the frame size of 1104 bytes is larger than 1024 bytes [-Werror=frame-larger-than=]
-> net/netfilter/ipvs/ip_vs_ftp.c: In function 'ip_vs_ftp_in':
-> net/netfilter/ipvs/ip_vs_ftp.c:555:1: error: the frame size of 1200 bytes is larger than 1024 bytes [-Werror=frame-larger-than=]
->
-> Since printk() already has a way to print IPv4/IPv6 addresses using
-> the %pIS format string, use that instead,
+This converts the nft-test.py file to run on both py2 and py3.
 
-since these are sockaddr_in and sockaddr_in6, should that have the 'n'
-specifier to denote network byteorder?
+Signed-off-by: Shekhar Sharma <shekhar250198@gmail.com>
+---
+The version history of this patch is:
+v1:conversion to py3 by changing the print statements.
+v2:add the '__future__' package for compatibility with py2 and py3.
+v3:solves the 'version' problem in argparse by adding a new argument.
+v4:uses .format() method to make print statements clearer.
+v5:updated the shebang and corrected the sequence of import statements.
+v6:resent the same with small changes
+v7:resent with small changes
+v9:replaced os module with tempfile and replaced cmp(a,b)
+    with ((a>b)-(a<b)).
+v10:replacements from v9 changed to what eric had suggested in his
+    patch. (replacement of cmp() function)
 
-> combined with a macro that
-> creates a local sockaddr structure on the stack. These will still
-> add up, but the stack frames are now under 200 bytes.
+---
+ tests/py/nft-test.py | 67 ++++++++++++++++++++++----------------------
+ 1 file changed, 34 insertions(+), 33 deletions(-)
 
-would it make sense to just define a helper function that takes const
-char * level and msg strings and up to three struct nf_inet_addr* and
-do the conversion in there? No need for macros and no state on the
-stack outside error paths at all.
+diff --git a/tests/py/nft-test.py b/tests/py/nft-test.py
+index 09d00dba..f3b17ead 100755
+--- a/tests/py/nft-test.py
++++ b/tests/py/nft-test.py
+@@ -1,4 +1,4 @@
+-#!/usr/bin/python2
++#!/usr/bin/env python
+ #
+ # (C) 2014 by Ana Rey Botello <anarey@gmail.com>
+ #
+@@ -13,12 +13,15 @@
+ # Thanks to the Outreach Program for Women (OPW) for sponsoring this test
+ # infrastructure.
+ 
++from __future__ import print_function
+ import sys
+ import os
+ import argparse
+ import signal
+ import json
+ import traceback
++import tempfile
++
+ 
+ TESTS_PATH = os.path.dirname(os.path.abspath(__file__))
+ sys.path.insert(0, os.path.join(TESTS_PATH, '../../py/'))
+@@ -486,12 +489,11 @@ def set_check_element(rule1, rule2):
+     '''
+     Check if element exists in anonymous sets.
+     '''
+-    ret = -1
+     pos1 = rule1.find("{")
+     pos2 = rule2.find("{")
+ 
+-    if (cmp(rule1[:pos1], rule2[:pos2]) != 0):
+-        return ret;
++    if (rule1[:pos1] != rule2[:pos2]):
++        return False
+ 
+     end1 = rule1.find("}")
+     end2 = rule2.find("}")
+@@ -501,13 +503,12 @@ def set_check_element(rule1, rule2):
+         list2 = (rule2[pos2 + 1:end2].replace(" ", "")).split(",")
+         list1.sort()
+         list2.sort()
+-        if cmp(list1, list2) == 0:
+-            ret = 0
++        if list1 != list2:
++            return False
+ 
+-    if ret != 0:
+-        return ret
++        return rule1[end1:] == rule2[end2:]
+ 
+-    return cmp(rule1[end1:], rule2[end2:])
++    return False
+ 
+ 
+ def obj_add(o, test_result, filename, lineno):
+@@ -770,7 +771,7 @@ def rule_add(rule, filename, lineno, force_all_family_option, filename_path):
+             unit_tests += 1
+             table_flush(table, filename, lineno)
+ 
+-            payload_log = os.tmpfile()
++            payload_log = tempfile.TemporaryFile(mode="w+")
+ 
+             # Add rule and check return code
+             cmd = "add rule %s %s %s" % (table, chain, rule[0])
+@@ -840,8 +841,8 @@ def rule_add(rule, filename, lineno, force_all_family_option, filename_path):
+ 
+             if rule_output.rstrip() != teoric_exit.rstrip():
+                 if rule[0].find("{") != -1:  # anonymous sets
+-                    if set_check_element(teoric_exit.rstrip(),
+-                                         rule_output.rstrip()) != 0:
++                    if not set_check_element(teoric_exit.rstrip(),
++                                         rule_output.rstrip()):
+                         warning += 1
+                         retest_output = True
+                         print_differences_warning(filename, lineno,
+@@ -910,7 +911,7 @@ def rule_add(rule, filename, lineno, force_all_family_option, filename_path):
+                               gotf.name, 1)
+ 
+             table_flush(table, filename, lineno)
+-            payload_log = os.tmpfile()
++            payload_log = tempfile.TemporaryFile(mode="w+")
+ 
+             # Add rule in JSON format
+             cmd = json.dumps({ "nftables": [{ "add": { "rule": {
+@@ -1016,9 +1017,9 @@ def execute_cmd(cmd, filename, lineno, stdout_log=False, debug=False):
+     :param debug: temporarily set these debug flags
+     '''
+     global log_file
+-    print >> log_file, "command: %s" % cmd
++    print("command: {}".format(cmd), file=log_file)
+     if debug_option:
+-        print cmd
++        print(cmd)
+ 
+     if debug:
+         debug_old = nftables.get_debug()
+@@ -1212,7 +1213,7 @@ def run_test_file(filename, force_all_family_option, specific_file):
+         sys.stdout.flush()
+ 
+         if signal_received == 1:
+-            print "\nSignal received. Cleaning up and Exitting..."
++            print("\nSignal received. Cleaning up and Exitting...")
+             cleanup_on_exit()
+             sys.exit(0)
+ 
+@@ -1319,13 +1320,13 @@ def run_test_file(filename, force_all_family_option, specific_file):
+ 
+     if specific_file:
+         if force_all_family_option:
+-            print print_result_all(filename, tests, total_warning, total_error,
+-                                   total_unit_run)
++            print(print_result_all(filename, tests, total_warning, total_error,
++                                   total_unit_run))
+         else:
+-            print print_result(filename, tests, total_warning, total_error)
++            print(print_result(filename, tests, total_warning, total_error))
+     else:
+         if tests == passed and tests > 0:
+-            print filename + ": " + Colors.GREEN + "OK" + Colors.ENDC
++            print(filename + ": " + Colors.GREEN + "OK" + Colors.ENDC)
+ 
+     f.close()
+     del table_list[:]
+@@ -1336,7 +1337,7 @@ def run_test_file(filename, force_all_family_option, specific_file):
+ 
+ 
+ def main():
+-    parser = argparse.ArgumentParser(description='Run nft tests', version='1.0')
++    parser = argparse.ArgumentParser(description='Run nft tests')
+ 
+     parser.add_argument('filenames', nargs='*', metavar='path/to/file.t',
+                         help='Run only these tests')
+@@ -1359,6 +1360,10 @@ def main():
+                         dest='enable_schema',
+                         help='verify json input/output against schema')
+ 
++    parser.add_argument('-v', '--version', action='version',
++                        version='1.0',
++                        help='Print the version information')
++
+     args = parser.parse_args()
+     global debug_option, need_fix_option, enable_json_option, enable_json_schema
+     debug_option = args.debug
+@@ -1372,15 +1377,15 @@ def main():
+     signal.signal(signal.SIGTERM, signal_handler)
+ 
+     if os.getuid() != 0:
+-        print "You need to be root to run this, sorry"
++        print("You need to be root to run this, sorry")
+         return
+ 
+     # Change working directory to repository root
+     os.chdir(TESTS_PATH + "/../..")
+ 
+     if not os.path.exists('src/.libs/libnftables.so'):
+-        print "The nftables library does not exist. " \
+-              "You need to build the project."
++        print("The nftables library does not exist. "
++              "You need to build the project.")
+         return
+ 
+     if args.enable_schema and not args.enable_json:
+@@ -1434,19 +1439,15 @@ def main():
+             run_total += file_unit_run
+ 
+     if test_files == 0:
+-        print "No test files to run"
++        print("No test files to run")
+     else:
+         if not specific_file:
+             if force_all_family_option:
+-                print "%d test files, %d files passed, %d unit tests, " \
+-                      "%d total executed, %d error, %d warning" \
+-                      % (test_files, files_ok, tests, run_total, errors,
+-                         warnings)
++                print("%d test files, %d files passed, %d unit tests, " % (test_files, files_ok, tests))
++                print("%d total executed, %d error, %d warning" % (run_total, errors,warnings))
+             else:
+-                print "%d test files, %d files passed, %d unit tests, " \
+-                      "%d error, %d warning" \
+-                      % (test_files, files_ok, tests, errors, warnings)
+-
++                print("%d test files, %d files passed, %d unit tests, " % (test_files, files_ok, tests))
++                print("%d error, %d warning" % (errors, warnings))
+ 
+ if __name__ == '__main__':
+     main()
+-- 
+2.17.1
 
->
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> ---
-> I'm not sure this actually does what I think it does. Someone
-> needs to verify that we correctly print the addresses here.
-> I've also only added three files that caused the warning messages
-> to be reported. There are still a lot of other instances of
-> IP_VS_DBG_BUF() that could be converted the same way after the
-> basic idea is confirmed.
-> ---
->  include/net/ip_vs.h             | 71 +++++++++++++++++++--------------
->  net/netfilter/ipvs/ip_vs_core.c | 44 ++++++++++----------
->  net/netfilter/ipvs/ip_vs_ftp.c  | 20 +++++-----
->  3 files changed, 72 insertions(+), 63 deletions(-)
->
-> diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
-> index 3759167f91f5..3dfbeef67be6 100644
-> --- a/include/net/ip_vs.h
-> +++ b/include/net/ip_vs.h
-> @@ -227,6 +227,16 @@ static inline const char *ip_vs_dbg_addr(int af, char *buf, size_t buf_len,
->                        sizeof(ip_vs_dbg_buf), addr,                     \
->                        &ip_vs_dbg_idx)
->
-> +#define IP_VS_DBG_SOCKADDR4(fam, addr, port)                           \
-> +       (struct sockaddr*)&(struct sockaddr_in)                         \
-> +       { .sin_family = (fam), .sin_addr = (addr)->in, .sin_port = (port) }
-
-might as well set .sin_family = AF_INET here and AF_INET6 below?
-
-> +#define IP_VS_DBG_SOCKADDR6(fam, addr, port)                           \
-> +       (struct sockaddr*)&(struct sockaddr_in6) \
-> +       { .sin6_family = (fam), .sin6_addr = (addr)->in6, .sin6_port = (port) }
