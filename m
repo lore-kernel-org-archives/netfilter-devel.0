@@ -2,101 +2,107 @@ Return-Path: <SRS0=rhnh=U3=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C51A6C5B579
-	for <netfilter-devel@archiver.kernel.org>; Fri, 28 Jun 2019 06:59:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4751DC4321A
+	for <netfilter-devel@archiver.kernel.org>; Fri, 28 Jun 2019 09:07:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A463A2070D
-	for <netfilter-devel@archiver.kernel.org>; Fri, 28 Jun 2019 06:59:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 284E320644
+	for <netfilter-devel@archiver.kernel.org>; Fri, 28 Jun 2019 09:07:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727223AbfF1G7v (ORCPT
+        id S1726518AbfF1JHx (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 28 Jun 2019 02:59:51 -0400
-Received: from szxga07-in.huawei.com ([45.249.212.35]:51076 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726574AbfF1G7v (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 28 Jun 2019 02:59:51 -0400
-Received: from DGGEMS401-HUB.china.huawei.com (unknown [172.30.72.60])
-        by Forcepoint Email with ESMTP id 54038D01547FC815F27D;
-        Fri, 28 Jun 2019 14:59:48 +0800 (CST)
-Received: from huawei.com (10.175.100.202) by DGGEMS401-HUB.china.huawei.com
- (10.3.19.201) with Microsoft SMTP Server id 14.3.439.0; Fri, 28 Jun 2019
- 14:59:41 +0800
-From:   Miaohe Lin <linmiaohe@huawei.com>
-To:     <pablo@netfilter.org>, <kadlec@blackhole.kfki.hu>, <fw@strlen.de>,
-        <davem@davemloft.net>, <kuznet@ms2.inr.ac.ru>,
-        <yoshfuji@linux-ipv6.org>, <netfilter-devel@vger.kernel.org>,
-        <coreteam@netfilter.org>, <netdev@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>
-CC:     <linmiaohe@huawei.com>, <mingfangsen@huawei.com>
-Subject: [PATCH v4] net: netfilter: Fix rpfilter dropping vrf packets by mistake
-Date:   Fri, 28 Jun 2019 09:06:43 +0000
-Message-ID: <1561712803-195184-1-git-send-email-linmiaohe@huawei.com>
-X-Mailer: git-send-email 1.8.3.4
+        Fri, 28 Jun 2019 05:07:53 -0400
+Received: from mail.us.es ([193.147.175.20]:40888 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726514AbfF1JHx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 28 Jun 2019 05:07:53 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 8E5EDC3302
+        for <netfilter-devel@vger.kernel.org>; Fri, 28 Jun 2019 11:07:51 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 7D17F1021A6
+        for <netfilter-devel@vger.kernel.org>; Fri, 28 Jun 2019 11:07:51 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 72C6B1021A4; Fri, 28 Jun 2019 11:07:51 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 6E95EDA4D1;
+        Fri, 28 Jun 2019 11:07:49 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Fri, 28 Jun 2019 11:07:49 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (sys.soleta.eu [212.170.55.40])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 4DAD14265A2F;
+        Fri, 28 Jun 2019 11:07:49 +0200 (CEST)
+Date:   Fri, 28 Jun 2019 11:07:48 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Yonatan Goldschmidt <yon.goldschmidt@gmail.com>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH] netfilter: nat: Update obsolete comment on
+ get_unique_tuple()
+Message-ID: <20190628090748.e42ymhe3huvuduhj@salvia>
+References: <20190627212307.GB4897@jong.localdomain>
 MIME-Version: 1.0
-Content-Type: text/plain
-X-Originating-IP: [10.175.100.202]
-X-CFilter-Loop: Reflected
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190627212307.GB4897@jong.localdomain>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-When firewalld is enabled with ipv4/ipv6 rpfilter, vrf
-ipv4/ipv6 packets will be dropped. Vrf device will pass
-through netfilter hook twice. One with enslaved device
-and another one with l3 master device. So in device may
-dismatch witch out device because out device is always
-enslaved device.So failed with the check of the rpfilter
-and drop the packets by mistake.
+On Fri, Jun 28, 2019 at 12:23:08AM +0300, Yonatan Goldschmidt wrote:
+> Commit c7232c9979cba ("netfilter: add protocol independent NAT core")
+> added nf_nat_core.c based on ipv4/netfilter/nf_nat_core.c,
+> with this comment copied.
+> 
+> Referred function doesn't exist anymore, and anyway since day one
+> of this file it should have referred the generic __nf_conntrack_confirm(),
+> added in 9fb9cbb1082d6.
+> 
+> Signed-off-by: Yonatan Goldschmidt <yon.goldschmidt@gmail.com>
+> ---
+>  net/netfilter/nf_nat_core.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
+> index 9ab410455992..3f6023ed4966 100644
+> --- a/net/netfilter/nf_nat_core.c
+> +++ b/net/netfilter/nf_nat_core.c
+> @@ -519,7 +519,7 @@ static void nf_nat_l4proto_unique_tuple(struct nf_conntrack_tuple *tuple,
+>   * and NF_INET_LOCAL_OUT, we change the destination to map into the
+>   * range. It might not be possible to get a unique tuple, but we try.
+>   * At worst (or if we race), we will end up with a final duplicate in
+> - * __ip_conntrack_confirm and drop the packet. */
+> + * __nf_conntrack_confirm and drop the packet. */
 
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
----
- net/ipv4/netfilter/ipt_rpfilter.c  | 1 +
- net/ipv6/netfilter/ip6t_rpfilter.c | 8 +++++++-
- 2 files changed, 8 insertions(+), 1 deletion(-)
+I dislike this oneliners to update comments, I tend to think it's too
+much overhead a patch just to update something obvious to the reader.
 
-diff --git a/net/ipv4/netfilter/ipt_rpfilter.c b/net/ipv4/netfilter/ipt_rpfilter.c
-index 59031670b16a..cc23f1ce239c 100644
---- a/net/ipv4/netfilter/ipt_rpfilter.c
-+++ b/net/ipv4/netfilter/ipt_rpfilter.c
-@@ -78,6 +78,7 @@ static bool rpfilter_mt(const struct sk_buff *skb, struct xt_action_param *par)
- 	flow.flowi4_mark = info->flags & XT_RPFILTER_VALID_MARK ? skb->mark : 0;
- 	flow.flowi4_tos = RT_TOS(iph->tos);
- 	flow.flowi4_scope = RT_SCOPE_UNIVERSE;
-+	flow.flowi4_oif = l3mdev_master_ifindex_rcu(xt_in(par));
- 
- 	return rpfilter_lookup_reverse(xt_net(par), &flow, xt_in(par), info->flags) ^ invert;
- }
-diff --git a/net/ipv6/netfilter/ip6t_rpfilter.c b/net/ipv6/netfilter/ip6t_rpfilter.c
-index 6bcaf7357183..3c4a1772c15f 100644
---- a/net/ipv6/netfilter/ip6t_rpfilter.c
-+++ b/net/ipv6/netfilter/ip6t_rpfilter.c
-@@ -55,6 +55,10 @@ static bool rpfilter_lookup_reverse6(struct net *net, const struct sk_buff *skb,
- 	if (rpfilter_addr_linklocal(&iph->saddr)) {
- 		lookup_flags |= RT6_LOOKUP_F_IFACE;
- 		fl6.flowi6_oif = dev->ifindex;
-+	/* Set flowi6_oif for vrf devices to lookup route in l3mdev domain. */
-+	} else if (netif_is_l3_master(dev) || netif_is_l3_slave(dev)) {
-+		lookup_flags |= FLOWI_FLAG_SKIP_NH_OIF;
-+		fl6.flowi6_oif = dev->ifindex;
- 	} else if ((flags & XT_RPFILTER_LOOSE) == 0)
- 		fl6.flowi6_oif = dev->ifindex;
- 
-@@ -70,7 +74,9 @@ static bool rpfilter_lookup_reverse6(struct net *net, const struct sk_buff *skb,
- 		goto out;
- 	}
- 
--	if (rt->rt6i_idev->dev == dev || (flags & XT_RPFILTER_LOOSE))
-+	if (rt->rt6i_idev->dev == dev ||
-+	    l3mdev_master_ifindex_rcu(rt->rt6i_idev->dev) == dev->ifindex ||
-+	    (flags & XT_RPFILTER_LOOSE))
- 		ret = true;
-  out:
- 	ip6_rt_put(rt);
--- 
-2.21.GIT
+However, I also understand you may want to fix this while passing by
+here.
 
+So my sugggestion is that you run:
+
+        git grep ip_conntrack
+
+in the tree, searching for comments and documentation that can be
+updated, eg.
+
+net/netfilter/nf_conntrack_proto_icmp.c:        /* See ip_conntrack_proto_tcp.c */
+
+Please, only update comments / documentation in your patch.
+
+The ip_conntrack_ prefix is legacy, that it was used by the time there
+was only support for IPv4 in the connection tracking system.
+
+Thanks.
