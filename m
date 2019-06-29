@@ -2,66 +2,40 @@ Return-Path: <SRS0=xEq4=U4=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0B75AC4321A
-	for <netfilter-devel@archiver.kernel.org>; Sat, 29 Jun 2019 12:19:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E70FBC4321A
+	for <netfilter-devel@archiver.kernel.org>; Sat, 29 Jun 2019 14:14:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D8B0E208E3
-	for <netfilter-devel@archiver.kernel.org>; Sat, 29 Jun 2019 12:19:30 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="bpIP4kxP"
+	by mail.kernel.org (Postfix) with ESMTP id CA3122086D
+	for <netfilter-devel@archiver.kernel.org>; Sat, 29 Jun 2019 14:14:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726963AbfF2MTZ (ORCPT
+        id S1726836AbfF2OOC (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 29 Jun 2019 08:19:25 -0400
-Received: from mail-io1-f68.google.com ([209.85.166.68]:41471 "EHLO
-        mail-io1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726906AbfF2MTZ (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 29 Jun 2019 08:19:25 -0400
-Received: by mail-io1-f68.google.com with SMTP id w25so18312968ioc.8;
-        Sat, 29 Jun 2019 05:19:25 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=subject:to:cc:references:from:message-id:date:user-agent
-         :mime-version:in-reply-to:content-language:content-transfer-encoding;
-        bh=LQjCzj6kSAyiqgx/XnEaKVR/sAwnNleQB4HH0jju7V8=;
-        b=bpIP4kxPiE+RWJOuxStAinVwrrG63ZYrHRp2HCJwRYwAdR+lFxIYpqvGF3sWc2ZLPi
-         zrGbBlFq4ZTm7REMzBqLIA0DFC47AFjYmn7eT3BUl6yHQQMvk3UOXnG+vaOGmRNJi28L
-         ofuHSMYEvHT2nbFS9ccP5Zn6txZzHctp+Kt9hDbdYlONjeLC5f3vInzVTi3yuyEg2ep7
-         BzdfgqEZRKpDlR3MhB2vvHjxT5f8+TPK1h28FJPufjgNfpqRsX/JUh3G93WYaVfXDy9W
-         NqXufPp3tQL7hQqRTXu4NaFvbgU4EwDxKsWYNujafWId1VkiWvS8Cg08BxxOice4Nfdz
-         0K/Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-language
-         :content-transfer-encoding;
-        bh=LQjCzj6kSAyiqgx/XnEaKVR/sAwnNleQB4HH0jju7V8=;
-        b=ttrL8ACGPKBjFa0JkGODRU+kv2E4HSf7uzgcuFcXLODW3Oq3xC8I5VnMg/fhqmbCKJ
-         i7B9J5TSU0XMAY84f311PvVeL5q3eW5Ap1BlcAWEtUw+7TmFR0L2BSDsU369rvFot9V3
-         aA73LHQXC0IOFQf77/YCWKGIj8d1vwFyR+hOeFiXVvKQG98tVh9y6dX+3PtyaxhBG4jV
-         5WJQbBWwEJD2K21sapCEOYoUUVqLZW3jy0DzAHpbjyW5JlRPDeT+Jb0JDDy9t5LLXWdX
-         oEuJTyFWJcpCsQpdJ+BkvWZ+73+scwVi0UyWHa5/rVWDpJGWSPJvhPsCG9Cr/sw/SbBZ
-         siow==
-X-Gm-Message-State: APjAAAWOHPwybQO23WKztIY9ozQ6HYQzmT0MqN3ULbKEPrB9nMhiiHeN
-        BXfkf0wiBmaYqoihYw7XJweSOcaj
-X-Google-Smtp-Source: APXvYqyCvOSFAQauAhkgL2UBuPYzxiopJq4a3k5G6qQi2Y/DyBwRIt5xEtWt8QQMf1/iVWIf/Kw++A==
-X-Received: by 2002:a05:6638:6a3:: with SMTP id d3mr17657118jad.33.1561810764861;
-        Sat, 29 Jun 2019 05:19:24 -0700 (PDT)
-Received: from ?IPv6:2601:282:800:fd80:958e:c3e2:46b7:3acd? ([2601:282:800:fd80:958e:c3e2:46b7:3acd])
-        by smtp.googlemail.com with ESMTPSA id a7sm8887373iok.19.2019.06.29.05.19.23
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Sat, 29 Jun 2019 05:19:23 -0700 (PDT)
-Subject: Re: [PATCH v4] net: netfilter: Fix rpfilter dropping vrf packets by
- mistake
-To:     linmiaohe <linmiaohe@huawei.com>,
+        Sat, 29 Jun 2019 10:14:02 -0400
+Received: from szxga02-in.huawei.com ([45.249.212.188]:3016 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1726770AbfF2OOC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 29 Jun 2019 10:14:02 -0400
+Received: from DGGEMM401-HUB.china.huawei.com (unknown [172.30.72.55])
+        by Forcepoint Email with ESMTP id EBD3F63A0F28E98C15C6;
+        Sat, 29 Jun 2019 22:13:59 +0800 (CST)
+Received: from dggeme766-chm.china.huawei.com (10.3.19.112) by
+ DGGEMM401-HUB.china.huawei.com (10.3.20.209) with Microsoft SMTP Server (TLS)
+ id 14.3.439.0; Sat, 29 Jun 2019 22:13:59 +0800
+Received: from dggeme763-chm.china.huawei.com (10.3.19.109) by
+ dggeme766-chm.china.huawei.com (10.3.19.112) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
+ 15.1.1591.10; Sat, 29 Jun 2019 22:13:59 +0800
+Received: from dggeme763-chm.china.huawei.com ([10.6.66.36]) by
+ dggeme763-chm.china.huawei.com ([10.6.66.36]) with mapi id 15.01.1591.008;
+ Sat, 29 Jun 2019 22:13:59 +0800
+From:   linmiaohe <linmiaohe@huawei.com>
+To:     David Ahern <dsahern@gmail.com>,
         "pablo@netfilter.org" <pablo@netfilter.org>
-Cc:     "kadlec@blackhole.kfki.hu" <kadlec@blackhole.kfki.hu>,
+CC:     "kadlec@blackhole.kfki.hu" <kadlec@blackhole.kfki.hu>,
         "fw@strlen.de" <fw@strlen.de>,
         "davem@davemloft.net" <davem@davemloft.net>,
         "kuznet@ms2.inr.ac.ru" <kuznet@ms2.inr.ac.ru>,
@@ -71,32 +45,45 @@ Cc:     "kadlec@blackhole.kfki.hu" <kadlec@blackhole.kfki.hu>,
         "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
         "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
         Mingfangsen <mingfangsen@huawei.com>
+Subject: =?utf-8?B?562U5aSNOiBbUEFUQ0ggdjRdIG5ldDogbmV0ZmlsdGVyOiBGaXggcnBmaWx0?=
+ =?utf-8?Q?er_dropping_vrf_packets_by_mistake?=
+Thread-Topic: [PATCH v4] net: netfilter: Fix rpfilter dropping vrf packets by
+ mistake
+Thread-Index: AdUuGy8DDB3uB4ksWUWckzFOhXp+DAAFqTYAABSVBMA=
+Date:   Sat, 29 Jun 2019 14:13:59 +0000
+Message-ID: <cef929f9a14f462f9f7d3fa475f84e76@huawei.com>
 References: <2213b3e722a14ee48768ecc7118efc46@huawei.com>
-From:   David Ahern <dsahern@gmail.com>
-Message-ID: <08740476-acfb-d35a-50b7-3aee42f23bfa@gmail.com>
-Date:   Sat, 29 Jun 2019 06:19:22 -0600
-User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:52.0)
- Gecko/20100101 Thunderbird/52.9.1
+ <08740476-acfb-d35a-50b7-3aee42f23bfa@gmail.com>
+In-Reply-To: <08740476-acfb-d35a-50b7-3aee42f23bfa@gmail.com>
+Accept-Language: en-US
+Content-Language: zh-CN
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+x-originating-ip: [10.184.189.20]
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-In-Reply-To: <2213b3e722a14ee48768ecc7118efc46@huawei.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+X-CFilter-Loop: Reflected
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 6/28/19 8:13 PM, linmiaohe wrote:
-> You're right. Fib rules code would set FLOWI_FLAG_SKIP_NH_OIF flag.  But I set
-> it here for distinguish with the flags & XT_RPFILTER_LOOSE branch. Without
-> this, they do the same work and maybe should be  combined. I don't want to
-> do that as that makes code confusing.
-> Is this code snipet below ok ? If so, I would delete this flag setting.
->  
->        } else if (netif_is_l3_master(dev) || netif_is_l3_slave(dev)) {
->                fl6.flowi6_oif = dev->ifindex;
->         } else if ((flags & XT_RPFILTER_LOOSE) == 0)
->                 fl6.flowi6_oif = dev->ifindex;
-
-that looks fine to me, but it is up to Pablo.
+T24gNi8yOS8xOSAyMDoyMCBQTSwgRGF2aWQgQWhlcm4gd3JvdGU6DQo+IE9uIDYvMjgvMTkgODox
+MyBQTSwgbGlubWlhb2hlIHdyb3RlOg0KPiA+IFlvdSdyZSByaWdodC4gRmliIHJ1bGVzIGNvZGUg
+d291bGQgc2V0IEZMT1dJX0ZMQUdfU0tJUF9OSF9PSUYgZmxhZy4gIA0KPiA+IEJ1dCBJIHNldCBp
+dCBoZXJlIGZvciBkaXN0aW5ndWlzaCB3aXRoIHRoZSBmbGFncyAmIFhUX1JQRklMVEVSX0xPT1NF
+IA0KPiA+IGJyYW5jaC4gV2l0aG91dCB0aGlzLCB0aGV5IGRvIHRoZSBzYW1lIHdvcmsgYW5kIG1h
+eWJlIHNob3VsZCBiZSAgDQo+ID4gY29tYmluZWQuIEkgZG9uJ3Qgd2FudCB0byBkbyB0aGF0IGFz
+IHRoYXQgbWFrZXMgY29kZSBjb25mdXNpbmcuDQo+ID4gSXMgdGhpcyBjb2RlIHNuaXBldCBiZWxv
+dyBvayA/IElmIHNvLCBJIHdvdWxkIGRlbGV0ZSB0aGlzIGZsYWcgc2V0dGluZy4NCj4gPiAgDQo+
+ID4gICAgICAgIH0gZWxzZSBpZiAobmV0aWZfaXNfbDNfbWFzdGVyKGRldikgfHwgbmV0aWZfaXNf
+bDNfc2xhdmUoZGV2KSkgew0KPiA+ICAgICAgICAgICAgICAgIGZsNi5mbG93aTZfb2lmID0gZGV2
+LT5pZmluZGV4Ow0KPiA+ICAgICAgICAgfSBlbHNlIGlmICgoZmxhZ3MgJiBYVF9SUEZJTFRFUl9M
+T09TRSkgPT0gMCkNCj4gPiAgICAgICAgICAgICAgICAgZmw2LmZsb3dpNl9vaWYgPSBkZXYtPmlm
+aW5kZXg7DQoNCj4gdGhhdCBsb29rcyBmaW5lIHRvIG1lLCBidXQgaXQgaXMgdXAgdG8gUGFibG8u
+DQoNCkBEYXZpZCBBaGVybiAgTWFueSB0aGFua3MgZm9yIHlvdXIgdmFsdWFibGUgYWR2aWNlLg0K
+DQpAIFBhYmxvIEhpLCBjb3VsZCB5b3UgcGxlYXNlIHRlbGwgbWUgaWYgdGhpcyBjb2RlIHNuaXBl
+dCBpcyBvaz8NCklmIG5vdCwgd2hpY2ggY29kZSB3b3VsZCB5b3UgcHJlZmVyPyBJdCdzIHZlcnkg
+bmljZSBvZiB5b3UgdG8NCmZpZ3VyZSBpdCBvdXQgZm9yIG1lLiBUaGFua3MgYSBsb3QuDQoNCkhh
+dmUgYSBuaWNlIGRheS4NCkJlc3Qgd2lzaGVzLg0K
