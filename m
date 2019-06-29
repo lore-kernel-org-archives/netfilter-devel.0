@@ -1,66 +1,93 @@
-Return-Path: <SRS0=rhnh=U3=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=xEq4=U4=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B96D1C5B579
-	for <netfilter-devel@archiver.kernel.org>; Fri, 28 Jun 2019 20:37:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F0DA1C5B579
+	for <netfilter-devel@archiver.kernel.org>; Sat, 29 Jun 2019 02:13:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 99A3D20828
-	for <netfilter-devel@archiver.kernel.org>; Fri, 28 Jun 2019 20:37:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D4144208E3
+	for <netfilter-devel@archiver.kernel.org>; Sat, 29 Jun 2019 02:13:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727165AbfF1Ug6 (ORCPT
+        id S1726947AbfF2CNL (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 28 Jun 2019 16:36:58 -0400
-Received: from shards.monkeyblade.net ([23.128.96.9]:51470 "EHLO
-        shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727148AbfF1Ug6 (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 28 Jun 2019 16:36:58 -0400
-Received: from localhost (unknown [IPv6:2601:601:9f80:35cd::d71])
-        (using TLSv1 with cipher AES256-SHA (256/256 bits))
-        (Client did not present a certificate)
-        (Authenticated sender: davem-davemloft)
-        by shards.monkeyblade.net (Postfix) with ESMTPSA id 48C811340AFCE;
-        Fri, 28 Jun 2019 13:36:58 -0700 (PDT)
-Date:   Fri, 28 Jun 2019 13:36:57 -0700 (PDT)
-Message-Id: <20190628.133657.1483641750948631630.davem@davemloft.net>
-To:     pablo@netfilter.org
-Cc:     netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-Subject: Re: [PATCH 0/4] Netfilter/IPVS fixes for net
-From:   David Miller <davem@davemloft.net>
-In-Reply-To: <20190628174125.20739-1-pablo@netfilter.org>
-References: <20190628174125.20739-1-pablo@netfilter.org>
-X-Mailer: Mew version 6.8 on Emacs 26.1
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-X-Greylist: Sender succeeded SMTP AUTH, not delayed by milter-greylist-4.5.12 (shards.monkeyblade.net [149.20.54.216]); Fri, 28 Jun 2019 13:36:58 -0700 (PDT)
+        Fri, 28 Jun 2019 22:13:11 -0400
+Received: from szxga01-in.huawei.com ([45.249.212.187]:2959 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1726682AbfF2CNL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 28 Jun 2019 22:13:11 -0400
+Received: from DGGEMM404-HUB.china.huawei.com (unknown [172.30.72.57])
+        by Forcepoint Email with ESMTP id 009771E16AABD9844CA4;
+        Sat, 29 Jun 2019 10:13:07 +0800 (CST)
+Received: from dggeme714-chm.china.huawei.com (10.1.199.110) by
+ DGGEMM404-HUB.china.huawei.com (10.3.20.212) with Microsoft SMTP Server (TLS)
+ id 14.3.439.0; Sat, 29 Jun 2019 10:13:06 +0800
+Received: from dggeme763-chm.china.huawei.com (10.3.19.109) by
+ dggeme714-chm.china.huawei.com (10.1.199.110) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
+ 15.1.1591.10; Sat, 29 Jun 2019 10:13:06 +0800
+Received: from dggeme763-chm.china.huawei.com ([10.6.66.36]) by
+ dggeme763-chm.china.huawei.com ([10.6.66.36]) with mapi id 15.01.1591.008;
+ Sat, 29 Jun 2019 10:13:06 +0800
+From:   linmiaohe <linmiaohe@huawei.com>
+To:     David Ahern <dsahern@gmail.com>
+CC:     "pablo@netfilter.org" <pablo@netfilter.org>,
+        "kadlec@blackhole.kfki.hu" <kadlec@blackhole.kfki.hu>,
+        "fw@strlen.de" <fw@strlen.de>,
+        "davem@davemloft.net" <davem@davemloft.net>,
+        "kuznet@ms2.inr.ac.ru" <kuznet@ms2.inr.ac.ru>,
+        "yoshfuji@linux-ipv6.org" <yoshfuji@linux-ipv6.org>,
+        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+        "coreteam@netfilter.org" <coreteam@netfilter.org>,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        Mingfangsen <mingfangsen@huawei.com>
+Subject: Re: [PATCH v4] net: netfilter: Fix rpfilter dropping vrf packets by
+ mistake
+Thread-Topic: [PATCH v4] net: netfilter: Fix rpfilter dropping vrf packets by
+ mistake
+Thread-Index: AdUuGy8DDB3uB4ksWUWckzFOhXp+DA==
+Date:   Sat, 29 Jun 2019 02:13:06 +0000
+Message-ID: <2213b3e722a14ee48768ecc7118efc46@huawei.com>
+Accept-Language: en-US
+Content-Language: zh-CN
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+x-originating-ip: [10.184.189.20]
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
+X-CFilter-Loop: Reflected
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Fri, 28 Jun 2019 19:41:21 +0200
-
-> The following patchset contains Netfilter fixes for net:
-> 
-> 1) Fix memleak reported by syzkaller when registering IPVS hooks,
->    patch from Julian Anastasov.
-> 
-> 2) Fix memory leak in start_sync_thread, also from Julian.
-> 
-> 3) Fix conntrack deletion via ctnetlink, from Felix Kaechele.
-> 
-> 4) Fix reject for ICMP due to incorrect checksum handling, from
->    He Zhe.
-> 
-> You can pull these changes from:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
-
-Pulled, thanks.
+T24gNi8yOS8xOSAxOjA1IEFNLCBEYXZpZCBBaGVybiB3cm90ZToNCj4gT24gNi8yOC8xOSAzOjA2
+IEFNLCBNaWFvaGUgTGluIHdyb3RlOg0KPiA+IGRpZmYgLS1naXQgYS9uZXQvaXB2Ni9uZXRmaWx0
+ZXIvaXA2dF9ycGZpbHRlci5jIA0KPiA+IGIvbmV0L2lwdjYvbmV0ZmlsdGVyL2lwNnRfcnBmaWx0
+ZXIuYw0KPiA+IGluZGV4IDZiY2FmNzM1NzE4My4uM2M0YTE3NzJjMTVmIDEwMDY0NA0KPiA+IC0t
+LSBhL25ldC9pcHY2L25ldGZpbHRlci9pcDZ0X3JwZmlsdGVyLmMNCj4gPiArKysgYi9uZXQvaXB2
+Ni9uZXRmaWx0ZXIvaXA2dF9ycGZpbHRlci5jDQo+ID4gQEAgLTU1LDYgKzU1LDEwIEBAIHN0YXRp
+YyBib29sIHJwZmlsdGVyX2xvb2t1cF9yZXZlcnNlNihzdHJ1Y3QgbmV0ICpuZXQsIGNvbnN0IHN0
+cnVjdCBza19idWZmICpza2IsDQo+ID4gIAlpZiAocnBmaWx0ZXJfYWRkcl9saW5rbG9jYWwoJmlw
+aC0+c2FkZHIpKSB7DQo+ID4gIAkJbG9va3VwX2ZsYWdzIHw9IFJUNl9MT09LVVBfRl9JRkFDRTsN
+Cj4gPiAgCQlmbDYuZmxvd2k2X29pZiA9IGRldi0+aWZpbmRleDsNCj4gPiArCS8qIFNldCBmbG93
+aTZfb2lmIGZvciB2cmYgZGV2aWNlcyB0byBsb29rdXAgcm91dGUgaW4gbDNtZGV2IGRvbWFpbi4g
+Ki8NCj4gPiArCX0gZWxzZSBpZiAobmV0aWZfaXNfbDNfbWFzdGVyKGRldikgfHwgbmV0aWZfaXNf
+bDNfc2xhdmUoZGV2KSkgew0KPiA+ICsJCWxvb2t1cF9mbGFncyB8PSBGTE9XSV9GTEFHX1NLSVBf
+TkhfT0lGOw0KPg0KPiB5b3UgZG9uJ3QgbmVlZCB0byBzZXQgdGhhdCBmbGFnIGhlcmUuIEl0IGlz
+IGRvbmUgYnkgdGhlIGZpYl9ydWxlcyBjb2RlIGFzIG5lZWRlZC4NCj4NCllvdSdyZSByaWdodC4g
+RmliIHJ1bGVzIGNvZGUgd291bGQgc2V0IEZMT1dJX0ZMQUdfU0tJUF9OSF9PSUYgZmxhZy4gIEJ1
+dCBJIHNldA0KaXQgaGVyZSBmb3IgZGlzdGluZ3Vpc2ggd2l0aCB0aGUgZmxhZ3MgJiBYVF9SUEZJ
+TFRFUl9MT09TRSBicmFuY2guIFdpdGhvdXQNCnRoaXMsIHRoZXkgZG8gdGhlIHNhbWUgd29yayBh
+bmQgbWF5YmUgc2hvdWxkIGJlICBjb21iaW5lZC4gSSBkb24ndCB3YW50IHRvDQpkbyB0aGF0IGFz
+IHRoYXQgbWFrZXMgY29kZSBjb25mdXNpbmcuDQpJcyB0aGlzIGNvZGUgc25pcGV0IGJlbG93IG9r
+ID8gSWYgc28sIEkgd291bGQgZGVsZXRlIHRoaXMgZmxhZyBzZXR0aW5nLg0KIA0KICAgICAgIH0g
+ZWxzZSBpZiAobmV0aWZfaXNfbDNfbWFzdGVyKGRldikgfHwgbmV0aWZfaXNfbDNfc2xhdmUoZGV2
+KSkgew0KICAgICAgICAgICAgICAgZmw2LmZsb3dpNl9vaWYgPSBkZXYtPmlmaW5kZXg7DQogICAg
+ICAgIH0gZWxzZSBpZiAoKGZsYWdzICYgWFRfUlBGSUxURVJfTE9PU0UpID09IDApDQogICAgICAg
+ICAgICAgICAgZmw2LmZsb3dpNl9vaWYgPSBkZXYtPmlmaW5kZXg7DQo=
