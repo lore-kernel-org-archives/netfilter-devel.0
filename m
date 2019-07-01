@@ -7,77 +7,85 @@ X-Spam-Status: No, score=-10.0 required=3.0
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 232D7C0650E
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 88017C06511
 	for <netfilter-devel@archiver.kernel.org>; Mon,  1 Jul 2019 16:39:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id EBFBC21473
-	for <netfilter-devel@archiver.kernel.org>; Mon,  1 Jul 2019 16:39:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6197921473
+	for <netfilter-devel@archiver.kernel.org>; Mon,  1 Jul 2019 16:39:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729361AbfGAQjA (ORCPT
+        id S1729370AbfGAQjA (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Mon, 1 Jul 2019 12:39:00 -0400
-Received: from mail.us.es ([193.147.175.20]:43694 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:43700 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729264AbfGAQjA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        id S1729348AbfGAQjA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Mon, 1 Jul 2019 12:39:00 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 1EA22FFB6D
-        for <netfilter-devel@vger.kernel.org>; Mon,  1 Jul 2019 18:38:57 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id CFD47FFB70
+        for <netfilter-devel@vger.kernel.org>; Mon,  1 Jul 2019 18:38:58 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 10AC591E1
-        for <netfilter-devel@vger.kernel.org>; Mon,  1 Jul 2019 18:38:57 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C2578DA7B6
+        for <netfilter-devel@vger.kernel.org>; Mon,  1 Jul 2019 18:38:58 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 0629ADA4CA; Mon,  1 Jul 2019 18:38:57 +0200 (CEST)
+        id B7E6C91E1; Mon,  1 Jul 2019 18:38:58 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id EC534DA801;
-        Mon,  1 Jul 2019 18:38:54 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C262CDA4D0;
+        Mon,  1 Jul 2019 18:38:56 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 01 Jul 2019 18:38:54 +0200 (CEST)
+ Mon, 01 Jul 2019 18:38:56 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id B9C9C4265A31;
-        Mon,  1 Jul 2019 18:38:54 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 9100E4265A31;
+        Mon,  1 Jul 2019 18:38:56 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     nevola@gmail.com, phil@nwl.cc
-Subject: [PATCH nft 1/2] monitor: fix double cache update with --echo
-Date:   Mon,  1 Jul 2019 18:38:50 +0200
-Message-Id: <20190701163851.11200-1-pablo@netfilter.org>
+Subject: [PATCH nft 2/2] tests: shell: restore element expiration
+Date:   Mon,  1 Jul 2019 18:38:51 +0200
+Message-Id: <20190701163851.11200-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
+In-Reply-To: <20190701163851.11200-1-pablo@netfilter.org>
+References: <20190701163851.11200-1-pablo@netfilter.org>
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The evaluation step already updates the cache for each command in this
-batch. There is no need to update the cache again from the echo path,
-otherwise the cache is populated twice with the same object.
+This patch adds a test for 24f33c710e8c ("src: enable set expiration
+date for set elements").
 
-Fixes: b99c4d072d99 ("Implement --echo option")
+This is also implicitly testing for a cache corruption bug that is fixed
+by 9b032cd6477b ("monitor: fix double cache update with --echo").
+
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-This fixes a crash when combining -f and -e, the follow up patch
-introduces a test for such combination.
+ tests/shell/testcases/sets/0036add_set_element_expiration_0 | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
+ create mode 100755 tests/shell/testcases/sets/0036add_set_element_expiration_0
 
- src/monitor.c | 1 -
- 1 file changed, 1 deletion(-)
-
-diff --git a/src/monitor.c b/src/monitor.c
-index a68d960bfd4e..5b25c9d4854e 100644
---- a/src/monitor.c
-+++ b/src/monitor.c
-@@ -900,7 +900,6 @@ int netlink_echo_callback(const struct nlmsghdr *nlh, void *data)
- 		.ctx = ctx,
- 		.loc = &netlink_location,
- 		.monitor_flags = 0xffffffff,
--		.cache_needed = true,
- 	};
- 
- 	if (!nft_output_echo(&echo_monh.ctx->nft->output))
+diff --git a/tests/shell/testcases/sets/0036add_set_element_expiration_0 b/tests/shell/testcases/sets/0036add_set_element_expiration_0
+new file mode 100755
+index 000000000000..b9b44b0d1c98
+--- /dev/null
++++ b/tests/shell/testcases/sets/0036add_set_element_expiration_0
+@@ -0,0 +1,13 @@
++#!/bin/bash
++
++NFT=nft
++
++set -e
++
++RULESET="add table ip x
++add set ip x y { type ipv4_addr; flags dynamic,timeout; } 
++add element ip x y { 1.1.1.1 timeout 30s expires 15s }"
++
++test_output=$($NFT -e -f - <<< "$RULESET" 2>&1)
++
++diff_output=$(diff -u <(echo "$test_output") <(echo "$RULESET"))
 -- 
 2.11.0
 
