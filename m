@@ -2,107 +2,81 @@ Return-Path: <SRS0=danl=U6=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 60B2AC5B578
-	for <netfilter-devel@archiver.kernel.org>; Mon,  1 Jul 2019 21:47:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 22004C5B578
+	for <netfilter-devel@archiver.kernel.org>; Mon,  1 Jul 2019 22:10:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3C00520B7C
-	for <netfilter-devel@archiver.kernel.org>; Mon,  1 Jul 2019 21:47:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F0884205C9
+	for <netfilter-devel@archiver.kernel.org>; Mon,  1 Jul 2019 22:10:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726793AbfGAVrb (ORCPT
+        id S1726586AbfGAWKC (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 1 Jul 2019 17:47:31 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:41880 "EHLO orbyte.nwl.cc"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726586AbfGAVra (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 1 Jul 2019 17:47:30 -0400
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.91)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1hi493-0000QG-1t; Mon, 01 Jul 2019 23:47:29 +0200
-Date:   Mon, 1 Jul 2019 23:47:29 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [nft PATCH v2] parser_bison: Accept arbitrary user-defined names
- by quoting
-Message-ID: <20190701214728.GR31548@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-References: <20190624163608.17348-1-phil@nwl.cc>
- <20190628180051.47o27vbgqrsjpwab@salvia>
- <20190701161139.GQ31548@orbyte.nwl.cc>
- <20190701181341.na3v3jmk2hejlmyq@salvia>
- <20190701181924.2xo7akmbqtcrh6bj@salvia>
+        Mon, 1 Jul 2019 18:10:02 -0400
+Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:39586 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726320AbfGAWKC (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 1 Jul 2019 18:10:02 -0400
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.89)
+        (envelope-from <fw@strlen.de>)
+        id 1hi4Uo-0008K0-E6; Tue, 02 Jul 2019 00:09:58 +0200
+Date:   Tue, 2 Jul 2019 00:09:58 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     Ander Juaristi <a@juaristi.eus>
+Cc:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH] nft_meta: Introduce new conditions 'time', 'day' and
+ 'hour'
+Message-ID: <20190701220958.j544fbscpgrtplxv@breakpoint.cc>
+References: <20190623160758.10925-1-a@juaristi.eus>
+ <20190623225647.2s6m74t4y5pkj5pk@breakpoint.cc>
+ <9e7b514c-8b00-85b7-93d0-9eea4304596e@juaristi.eus>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20190701181924.2xo7akmbqtcrh6bj@salvia>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <9e7b514c-8b00-85b7-93d0-9eea4304596e@juaristi.eus>
+User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Pablo,
-
-On Mon, Jul 01, 2019 at 08:19:24PM +0200, Pablo Neira Ayuso wrote:
-> On Mon, Jul 01, 2019 at 08:13:41PM +0200, Pablo Neira Ayuso wrote:
-> > On Mon, Jul 01, 2019 at 06:11:39PM +0200, Phil Sutter wrote:
-> > > Hi Pablo,
-> > > 
-> > > On Fri, Jun 28, 2019 at 08:00:51PM +0200, Pablo Neira Ayuso wrote:
-> > > > On Mon, Jun 24, 2019 at 06:36:08PM +0200, Phil Sutter wrote:
-> > > > > Parser already allows to quote user-defined strings in some places to
-> > > > > avoid clashing with defined keywords, but not everywhere. Extend this
-> > > > > support further and add a test case for it.
-> > > > > 
-> > > > > Signed-off-by: Phil Sutter <phil@nwl.cc>
-> > > > > ---
-> > > > > Changes since v1:
-> > > > > - Fix testcase, I forgot to commit adjustments done to it.
-> > > > > 
-> > > > > Note: This is a reduced variant of "src: Quote user-defined names" sent
-> > > > >       back in January. Discussion was not conclusive regarding whether
-> > > > >       to quote these names on output or not, but I assume allowing for
-> > > > >       users to specify them by adding quotes is a step forward without
-> > > > >       drawbacks.
-> > > > 
-> > > > So this will fail later on, right?
-> > > > 
-> > > >         nft list ruleset > file.nft
-> > > >         nft -f file.nft
-> > > 
-> > > Yes, that's right. I sent a complete version which does the necessary
-> > > quoting on output in January[1], but discussion wasn't conclusive. You
-> > > had a different approach which accepts the quotes as part of the name
-> > > but you weren't happy with it, either. I *think* you wanted to search
-> > > for ways to solve this from within bison but we never got back to it
-> > > anymore.
-> > > 
-> > > This simplified patch is merely trying to make things consistent
-> > > regarding user-defined names. IIRC, I can already have an interface
-> > > named "month", use that in a netdev family chain declaration (quoted)
-> > > and 'nft list ruleset' will print it unquoted, so it can't be applied
-> > > anymore. Without my patch, it is simply impossible to use certain
-> > > recognized keywords as names for tables, chains, etc., even if one
-> > > accepted the implications it has.
-> > 
-> > I'm not arguing there's something to fix.
-> > 
-> > I'm telling this is still incomplete.
-> > 
-> > Would you allocate a bit of time to discuss this during the NFWS?
+Ander Juaristi <a@juaristi.eus> wrote:
+> I don't think this would make sense.
 > 
-> I mean, a quick summary of the different options for a complete
-> solution for this, and we decide there.
-> 
-> Unless you tell me this is very urgent :-)
+> Would require statements such as "meta time 1562005920098458691". That
+> is totally unfriendly to the end user.
 
-That's a great idea! I'll check my inbox for more of those unfinished
-topics. :)
+We do not necessarily need to expose this on nft side.
 
-Thanks, Phil
+e.g. user says
+meta time 1562018374
+
+and nft converts this to 1562018374000000000 internally.
+
+Or did you mean that this might cause confusion as this
+might never match at all?
+
+In such a case, we'd have to internally rewrite
+meta time 1562018374
+to
+meta time 1562018374-1562018375
+
+(reg1 >= 1562018374000000000 and <= 1562018375000000000).
+
+We could also expose/support the suffixes we support for timeouts, e.g.:
+3512312s, 1000ms and so on.
+
+> But maybe I didn't understand what you meant here. Maybe you meant to
+> replace get_seconds() with ktime_get_real_ns(), and divide the result by
+> 10e-9 to get seconds?
+
+No, thats not what I meant.
+
+I was just thinking that having ns-resolution exposed to registers
+might allow to use this for e.g. sampling packet arrival time.
+
+Its not a big deal, we can add this later when such a use case pops up
+and keep seconds resolution.
