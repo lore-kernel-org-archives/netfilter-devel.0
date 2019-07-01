@@ -4,126 +4,121 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.0 required=3.0
 	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9E507C0650E
-	for <netfilter-devel@archiver.kernel.org>; Mon,  1 Jul 2019 19:34:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F03F1C5B578
+	for <netfilter-devel@archiver.kernel.org>; Mon,  1 Jul 2019 20:16:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7A54C206A3
-	for <netfilter-devel@archiver.kernel.org>; Mon,  1 Jul 2019 19:34:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C94F0206A3
+	for <netfilter-devel@archiver.kernel.org>; Mon,  1 Jul 2019 20:16:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726605AbfGATeb (ORCPT
+        id S1726878AbfGAUQz (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 1 Jul 2019 15:34:31 -0400
-Received: from ja.ssi.bg ([178.16.129.10]:36606 "EHLO ja.ssi.bg"
-        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726442AbfGATeb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 1 Jul 2019 15:34:31 -0400
-Received: from ja.home.ssi.bg (localhost.localdomain [127.0.0.1])
-        by ja.ssi.bg (8.15.2/8.15.2) with ESMTP id x61JYNWm005403;
-        Mon, 1 Jul 2019 22:34:23 +0300
-Received: (from root@localhost)
-        by ja.home.ssi.bg (8.15.2/8.15.2/Submit) id x61JYN3b005402;
-        Mon, 1 Jul 2019 22:34:23 +0300
-From:   Julian Anastasov <ja@ssi.bg>
-To:     Simon Horman <horms@verge.net.au>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>, lvs-devel@vger.kernel.org,
-        netfilter-devel@vger.kernel.org,
-        Vadim Fedorenko <vfedorenko@yandex-team.ru>
-Subject: [PATCH net-next] ipvs: strip gre tunnel headers from icmp errors
-Date:   Mon,  1 Jul 2019 22:34:15 +0300
-Message-Id: <20190701193415.5366-1-ja@ssi.bg>
-X-Mailer: git-send-email 2.21.0
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        Mon, 1 Jul 2019 16:16:55 -0400
+Received: from fnsib-smtp06.srv.cat ([46.16.61.61]:56835 "EHLO
+        fnsib-smtp06.srv.cat" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726781AbfGAUQz (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 1 Jul 2019 16:16:55 -0400
+Received: from localhost.localdomain (unknown [47.62.206.189])
+        by fnsib-smtp06.srv.cat (Postfix) with ESMTPSA id ED27AD9C55
+        for <netfilter-devel@vger.kernel.org>; Mon,  1 Jul 2019 22:16:51 +0200 (CEST)
+From:   Ander Juaristi <a@juaristi.eus>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH v4 2/4] meta: Parse 'time' type with timegm()
+Date:   Mon,  1 Jul 2019 22:16:44 +0200
+Message-Id: <20190701201646.7040-2-a@juaristi.eus>
+X-Mailer: git-send-email 2.17.1
+In-Reply-To: <20190701201646.7040-1-a@juaristi.eus>
+References: <20190701201646.7040-1-a@juaristi.eus>
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Recognize GRE tunnels in received ICMP errors and
-properly strip the tunnel headers.
+Use timegm() to parse the 'time' time. The timegm() function is only
+available on Linux, but overwriting the TZ environment variable seems to
+be a much worse solution.
 
-Signed-off-by: Julian Anastasov <ja@ssi.bg>
+The problem is that we need to convert an ISO date to a timestamp
+without taking into account the time zone offset, since comparison will
+be done in kernel space and there is no time zone information there.
+
+Overwriting TZ is portable, but will cause problems when parsing a
+ruleset that has 'time' and 'hour' rules. Parsing an 'hour' type must
+not do time zone conversion, but that will be automatically done if TZ has
+been overwritten to UTC.
+
+We could record the initial setting of the
+TZ variable on start, but there's no reliable way to do that (we'd have
+to store the initial TZ in a global variable at program start and re-set
+it every time we parse an 'hour' value).
+
+Hence it's better idea to use timegm(), even though it's non-portable.
+Netfilter is a Linux program after all.
+
+Signed-off-by: Ander Juaristi <a@juaristi.eus>
 ---
- net/netfilter/ipvs/ip_vs_core.c | 45 ++++++++++++++++++++++++++++++---
- 1 file changed, 41 insertions(+), 4 deletions(-)
+ src/meta.c | 33 +++++++++++++++++++++++++--------
+ 1 file changed, 25 insertions(+), 8 deletions(-)
 
- This patch is based on:
- "[PATCH v3] ipvs: allow tunneling with gre encapsulation"
-
-diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-index e8651fd621ef..c2c51bdb889d 100644
---- a/net/netfilter/ipvs/ip_vs_core.c
-+++ b/net/netfilter/ipvs/ip_vs_core.c
-@@ -1610,6 +1610,38 @@ static int ipvs_udp_decap(struct netns_ipvs *ipvs, struct sk_buff *skb,
- 	return 0;
- }
+diff --git a/src/meta.c b/src/meta.c
+index 41405f1..6f8b842 100644
+--- a/src/meta.c
++++ b/src/meta.c
+@@ -390,15 +390,30 @@ const struct datatype ifname_type = {
+ static void date_type_print(const struct expr *expr, struct output_ctx *octx)
+ {
+ 	char timestr[21];
+-	struct tm *tm;
++	struct tm *tm, *cur_tm;
++	long int gmtoff;
++	time_t cur_ts = time(NULL);
+ 	uint64_t tstamp = mpz_get_uint64(expr->value);
  
-+/* Check the GRE tunnel and return its header length */
-+static int ipvs_gre_decap(struct netns_ipvs *ipvs, struct sk_buff *skb,
-+			  unsigned int offset, __u16 af,
-+			  const union nf_inet_addr *daddr, __u8 *proto)
-+{
-+	struct gre_base_hdr _greh, *greh;
-+	struct ip_vs_dest *dest;
+ 	if (!nft_output_seconds(octx)) {
+-		if ((tm = localtime((time_t *) &tstamp)) == NULL ||
+-			!strftime(timestr, sizeof(timestr) - 1, "%F %T", tm))
++		/* Obtain current tm, to add tm_gmtoff to the timestamp */
++		cur_tm = localtime(&cur_ts);
 +
-+	greh = skb_header_pointer(skb, offset, sizeof(_greh), &_greh);
-+	if (!greh)
-+		goto unk;
-+	dest = ip_vs_find_tunnel(ipvs, af, daddr, 0);
-+	if (!dest)
-+		goto unk;
-+	if (dest->tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GRE) {
-+		__be16 type;
++		/* Adjust the GMT offset */
++		if (cur_tm) {
++			gmtoff = cur_tm->tm_gmtoff;
++			if (cur_tm->tm_isdst == 1)
++				gmtoff -= 3600;
 +
-+		/* Only support version 0 and C (csum) */
-+		if ((greh->flags & ~GRE_CSUM) != 0)
-+			goto unk;
-+		type = greh->protocol;
-+		/* Later we can support also IPPROTO_IPV6 */
-+		if (type != htons(ETH_P_IP))
-+			goto unk;
-+		*proto = IPPROTO_IPIP;
-+		return gre_calc_hlen(gre_flags_to_tnl_flags(greh->flags));
-+	}
++			tstamp += gmtoff;
++		}
 +
-+unk:
-+	return 0;
-+}
-+
- /*
-  *	Handle ICMP messages in the outside-to-inside direction (incoming).
-  *	Find any that might be relevant, check against existing connections,
-@@ -1689,7 +1721,8 @@ ip_vs_in_icmp(struct netns_ipvs *ipvs, struct sk_buff *skb, int *related,
- 		if (cih == NULL)
- 			return NF_ACCEPT; /* The packet looks wrong, ignore */
- 		ipip = true;
--	} else if (cih->protocol == IPPROTO_UDP &&	/* Can be UDP encap */
-+	} else if ((cih->protocol == IPPROTO_UDP ||	/* Can be UDP encap */
-+		    cih->protocol == IPPROTO_GRE) &&	/* Can be GRE encap */
- 		   /* Error for our tunnel must arrive at LOCAL_IN */
- 		   (skb_rtable(skb)->rt_flags & RTCF_LOCAL)) {
- 		__u8 iproto;
-@@ -1699,10 +1732,14 @@ ip_vs_in_icmp(struct netns_ipvs *ipvs, struct sk_buff *skb, int *related,
- 		if (unlikely(cih->frag_off & htons(IP_OFFSET)))
- 			return NF_ACCEPT;
- 		offset2 = offset + cih->ihl * 4;
--		ulen = ipvs_udp_decap(ipvs, skb, offset2, AF_INET, raddr,
--				      &iproto);
-+		if (cih->protocol == IPPROTO_UDP)
-+			ulen = ipvs_udp_decap(ipvs, skb, offset2, AF_INET,
-+					      raddr, &iproto);
++		if ((tm = gmtime((time_t *) &tstamp)) != NULL &&
++			strftime(timestr, sizeof(timestr) - 1, "%F %T", tm))
++			nft_print(octx, "\"%s\"", timestr);
 +		else
-+			ulen = ipvs_gre_decap(ipvs, skb, offset2, AF_INET,
-+					      raddr, &iproto);
- 		if (ulen > 0) {
--			/* Skip IP and UDP tunnel headers */
-+			/* Skip IP and UDP/GRE tunnel headers */
- 			offset = offset2 + ulen;
- 			/* Now we should be at the original IP header */
- 			cih = skb_header_pointer(skb, offset, sizeof(_ciph),
+ 			nft_print(octx, "Error converting timestamp to printed time");
+ 
+-		nft_print(octx, "\"%s\"", timestr);
+ 		return;
+ 	}
+ 
+@@ -426,10 +441,12 @@ static time_t parse_iso_date(const char *sym)
+ 	return -1;
+ 
+ success:
+-	setenv("TZ", "UTC", true);
+-	tzset();
+-
+-	ts = mktime(&tm);
++	/*
++	 * Overwriting TZ is problematic if we're parsing hour types in this same process,
++	 * hence I'd rather use timegm() which doesn't take into account the TZ env variable,
++	 * even though it's Linux-specific.
++	 */
++	ts = timegm(&tm);
+ 	if (ts == (time_t) -1 || cur_tm == NULL)
+ 		return ts;
+ 
 -- 
-2.21.0
+2.17.1
 
