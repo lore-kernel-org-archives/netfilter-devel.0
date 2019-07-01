@@ -7,72 +7,79 @@ X-Spam-Status: No, score=-10.0 required=3.0
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 74CC5C0650E
-	for <netfilter-devel@archiver.kernel.org>; Mon,  1 Jul 2019 17:58:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 118C9C06510
+	for <netfilter-devel@archiver.kernel.org>; Mon,  1 Jul 2019 17:58:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 51AC82064A
+	by mail.kernel.org (Postfix) with ESMTP id E767A2064A
 	for <netfilter-devel@archiver.kernel.org>; Mon,  1 Jul 2019 17:58:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729972AbfGAR61 (ORCPT
+        id S1730024AbfGAR61 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Mon, 1 Jul 2019 13:58:27 -0400
-Received: from mail.us.es ([193.147.175.20]:43964 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:43966 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727130AbfGAR60 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 1 Jul 2019 13:58:26 -0400
+        id S1728077AbfGAR61 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 1 Jul 2019 13:58:27 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 0760D11F024
+        by mail.us.es (Postfix) with ESMTP id A76B711F022
         for <netfilter-devel@vger.kernel.org>; Mon,  1 Jul 2019 19:58:25 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id ECAE0DA732
-        for <netfilter-devel@vger.kernel.org>; Mon,  1 Jul 2019 19:58:24 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 98320DA704
+        for <netfilter-devel@vger.kernel.org>; Mon,  1 Jul 2019 19:58:25 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id E2336DA708; Mon,  1 Jul 2019 19:58:24 +0200 (CEST)
+        id 8DC52DA4D1; Mon,  1 Jul 2019 19:58:25 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id B71A5DA732
-        for <netfilter-devel@vger.kernel.org>; Mon,  1 Jul 2019 19:58:22 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 86B7ADA704
+        for <netfilter-devel@vger.kernel.org>; Mon,  1 Jul 2019 19:58:23 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 01 Jul 2019 19:58:22 +0200 (CEST)
+ Mon, 01 Jul 2019 19:58:23 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 952C34265A31
-        for <netfilter-devel@vger.kernel.org>; Mon,  1 Jul 2019 19:58:22 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 65EB44265A31
+        for <netfilter-devel@vger.kernel.org>; Mon,  1 Jul 2019 19:58:23 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft 1/3] parser_bison: do not enforce semicolon from ct helper block
-Date:   Mon,  1 Jul 2019 19:58:17 +0200
-Message-Id: <20190701175819.5558-1-pablo@netfilter.org>
+Subject: [PATCH nft 2/3] rule: do not print semicolon in ct timeout
+Date:   Mon,  1 Jul 2019 19:58:18 +0200
+Message-Id: <20190701175819.5558-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
+In-Reply-To: <20190701175819.5558-1-pablo@netfilter.org>
+References: <20190701175819.5558-1-pablo@netfilter.org>
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Use the statement separator rule, since newline is also valid.
+table ip filter {
+        ct timeout agressive-tcp {
+                protocol tcp;
+                            ^--- remove this semicolon
+
+Not needed, remove it.
 
 Fixes: c7c94802679c ("src: add ct timeout support")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- src/parser_bison.y | 2 +-
+ src/rule.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/src/parser_bison.y b/src/parser_bison.y
-index 4f2e34752fa9..153ef326ffe7 100644
---- a/src/parser_bison.y
-+++ b/src/parser_bison.y
-@@ -3516,7 +3516,7 @@ timeout_state		:	STRING	COLON	NUM
- 			}
- 			;
- 
--ct_timeout_config	:	PROTOCOL	ct_l4protoname	SEMICOLON
-+ct_timeout_config	:	PROTOCOL	ct_l4protoname	stmt_separator
- 			{
- 				struct ct_timeout *ct;
- 				int l4proto = $2;
+diff --git a/src/rule.c b/src/rule.c
+index 048a7fb4c92c..6dbc553e6c33 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -1834,7 +1834,7 @@ static void obj_print_data(const struct obj *obj,
+ 		nft_print(octx, "%s", opts->nl);
+ 		nft_print(octx, "%s%sprotocol ", opts->tab, opts->tab);
+ 		print_proto_name_proto(obj->ct_timeout.l4proto, octx);
+-		nft_print(octx, ";%s", opts->nl);
++		nft_print(octx, "%s", opts->nl);
+ 		nft_print(octx, "%s%sl3proto %s%s",
+ 			  opts->tab, opts->tab,
+ 			  family2str(obj->ct_timeout.l3proto),
 -- 
 2.11.0
 
