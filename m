@@ -2,126 +2,181 @@ Return-Path: <SRS0=Rfup=U7=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.0 required=3.0
-	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.5 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 40A15C06510
-	for <netfilter-devel@archiver.kernel.org>; Tue,  2 Jul 2019 18:44:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EE0B6C06510
+	for <netfilter-devel@archiver.kernel.org>; Tue,  2 Jul 2019 19:14:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 252C421721
-	for <netfilter-devel@archiver.kernel.org>; Tue,  2 Jul 2019 18:44:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C0AB721852
+	for <netfilter-devel@archiver.kernel.org>; Tue,  2 Jul 2019 19:14:57 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="p214pIWQ"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726329AbfGBSow (ORCPT
+        id S1727049AbfGBTO5 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 2 Jul 2019 14:44:52 -0400
-Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:44472 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725851AbfGBSow (ORCPT
+        Tue, 2 Jul 2019 15:14:57 -0400
+Received: from mail-qt1-f194.google.com ([209.85.160.194]:41142 "EHLO
+        mail-qt1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726329AbfGBTO5 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 2 Jul 2019 14:44:52 -0400
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.89)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1hiNlq-0006vR-Ba; Tue, 02 Jul 2019 20:44:50 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next] netfilter: nf_queue: remove unused hook entries pointer
-Date:   Tue,  2 Jul 2019 20:41:14 +0200
-Message-Id: <20190702184114.11670-1-fw@strlen.de>
-X-Mailer: git-send-email 2.21.0
+        Tue, 2 Jul 2019 15:14:57 -0400
+Received: by mail-qt1-f194.google.com with SMTP id d17so19836104qtj.8;
+        Tue, 02 Jul 2019 12:14:56 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to:user-agent;
+        bh=e5unW9lLl9uq+mR99M6ARNOqSRJfUUEv53dLr0zCGJY=;
+        b=p214pIWQyhKnHj/PInRopNuCY8kGdEkzC+v8uT18rbmQyW/a3VSBFvkQh87xeFQIZV
+         tDe9GuS83REUmZX05GXPaZIFN+rfTKnnfenta5n1o5iE+/5C+A+NwS8YJ8LEGREeteTz
+         RM7Cr1r8SbOUBjM5kaoxnZzdm3YnxwrpWNdxTbz587RL1uMpaGkaHz7oA3CaZTZH1DrN
+         epUWjHsedUTvjX4uyz9HiZWH6CKI/Cj2FVHCzPZ8khMxGgPoTEaHvYDnlzbnG/TmLLNm
+         6dX/odzZDOx+9ErO9cKeJs9A04LlOo2I3pQgF4ko3VzWMhSpvmuTHKWsCEzMwoA1mJc8
+         QRwg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to:user-agent;
+        bh=e5unW9lLl9uq+mR99M6ARNOqSRJfUUEv53dLr0zCGJY=;
+        b=piQ60fK5gP7Pbc6A4tgdh6PcoAvaR0krUEzWSauo6Gp+yRUaq2aefYeObhRaBFgsjE
+         kS2lxN1FaY3Fmnm5w+v3CeMIaeZ7ZL0bRPqTE6yThZ1sFrHs1nIzLfem/yWi3BIJMzAX
+         4JyHzYzGiM7811GxuC+Pd1T6/gW8nmmSZdIAuWQ0rluqa3uAQEYkd5obDEe7ZSJoGxch
+         wmAHvq4WH2dUV2eyTfN98a/juwGyENlziRjxHszchxXG7tA4AUr3pakMCxJfGbukYgmg
+         a2bgvwW03xpCf2pKyCWFatuZQFdiNwB+tVpe5iTNje4nnTfdWnkajGirU8Di1Sh/d4Wa
+         Ykow==
+X-Gm-Message-State: APjAAAVmjwUFdVlmUsiWhXinue6VHiv0Fiqq1ME82XPMcB++vmMyG3O7
+        zw55EM+6nca61NlXFQFU4J4=
+X-Google-Smtp-Source: APXvYqznhmtQAfiMQarM6DIB+CMh0+0qU3V2pBXMntAtT8j8TsyTuycoit/tEsXb8tu1rciYgEudug==
+X-Received: by 2002:a0c:983b:: with SMTP id c56mr28567273qvd.131.1562094895965;
+        Tue, 02 Jul 2019 12:14:55 -0700 (PDT)
+Received: from localhost.localdomain ([177.220.172.139])
+        by smtp.gmail.com with ESMTPSA id a19sm7411636qka.103.2019.07.02.12.14.54
+        (version=TLS1_3 cipher=AEAD-AES256-GCM-SHA384 bits=256/256);
+        Tue, 02 Jul 2019 12:14:55 -0700 (PDT)
+Received: by localhost.localdomain (Postfix, from userid 1000)
+        id 7B21BC0D87; Tue,  2 Jul 2019 16:14:52 -0300 (-03)
+Date:   Tue, 2 Jul 2019 16:14:52 -0300
+From:   Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        davem@davemloft.net, thomas.lendacky@amd.com, f.fainelli@gmail.com,
+        ariel.elior@cavium.com, michael.chan@broadcom.com,
+        santosh@chelsio.com, madalin.bucur@nxp.com,
+        yisen.zhuang@huawei.com, salil.mehta@huawei.com,
+        jeffrey.t.kirsher@intel.com, tariqt@mellanox.com,
+        saeedm@mellanox.com, jiri@mellanox.com, idosch@mellanox.com,
+        jakub.kicinski@netronome.com, peppe.cavallaro@st.com,
+        grygorii.strashko@ti.com, andrew@lunn.ch,
+        vivien.didelot@savoirfairelinux.com, alexandre.torgue@st.com,
+        joabreu@synopsys.com, linux-net-drivers@solarflare.com,
+        ganeshgr@chelsio.com, ogerlitz@mellanox.com,
+        Manish.Chopra@cavium.com, mkubecek@suse.cz,
+        venkatkumar.duvvuru@broadcom.com, cphealy@gmail.com
+Subject: Re: [PATCH net-next 02/12] net: sched: add tcf_block_cb_alloc()
+Message-ID: <20190702191452.GB2746@localhost.localdomain>
+References: <20190620194917.2298-1-pablo@netfilter.org>
+ <20190620194917.2298-3-pablo@netfilter.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190620194917.2298-3-pablo@netfilter.org>
+User-Agent: Mutt/1.11.4 (2019-03-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Its not used anywhere, so remove this.
+On Thu, Jun 20, 2019 at 09:49:07PM +0200, Pablo Neira Ayuso wrote:
+> Add a new helper function to allocate tcf_block_cb objects.
+> 
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> ---
+>  include/net/pkt_cls.h |  8 ++++++++
+>  net/sched/cls_api.c   | 23 +++++++++++++++++++----
+>  2 files changed, 27 insertions(+), 4 deletions(-)
+> 
+> diff --git a/include/net/pkt_cls.h b/include/net/pkt_cls.h
+> index 720f2b32fc2f..276a17a3547b 100644
+> --- a/include/net/pkt_cls.h
+> +++ b/include/net/pkt_cls.h
+> @@ -72,6 +72,8 @@ static inline struct Qdisc *tcf_block_q(struct tcf_block *block)
+>  	return block->q;
+>  }
+>  
+> +struct tcf_block_cb *tcf_block_cb_alloc(tc_setup_cb_t *cb,
+> +					void *cb_ident, void *cb_priv);
+>  void *tcf_block_cb_priv(struct tcf_block_cb *block_cb);
+>  struct tcf_block_cb *tcf_block_cb_lookup(struct tcf_block *block,
+>  					 tc_setup_cb_t *cb, void *cb_ident);
+> @@ -150,6 +152,12 @@ void tc_setup_cb_block_unregister(struct tcf_block *block, tc_setup_cb_t *cb,
+>  {
+>  }
+>  
+> +static inline struct tcf_block_cb *
+> +tcf_block_cb_alloc(tc_setup_cb_t *cb, void *cb_ident, void *cb_priv)
+> +{
+> +	return NULL;
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- include/net/netfilter/nf_queue.h | 3 +--
- net/bridge/br_input.c            | 2 +-
- net/netfilter/core.c             | 2 +-
- net/netfilter/nf_queue.c         | 8 +++-----
- 4 files changed, 6 insertions(+), 9 deletions(-)
+[A] This...
 
-diff --git a/include/net/netfilter/nf_queue.h b/include/net/netfilter/nf_queue.h
-index 7239105d9d2e..3cb6dcf53a4e 100644
---- a/include/net/netfilter/nf_queue.h
-+++ b/include/net/netfilter/nf_queue.h
-@@ -120,6 +120,5 @@ nfqueue_hash(const struct sk_buff *skb, u16 queue, u16 queues_total, u8 family,
- }
- 
- int nf_queue(struct sk_buff *skb, struct nf_hook_state *state,
--	     const struct nf_hook_entries *entries, unsigned int index,
--	     unsigned int verdict);
-+	     unsigned int index, unsigned int verdict);
- #endif /* _NF_QUEUE_H */
-diff --git a/net/bridge/br_input.c b/net/bridge/br_input.c
-index 21b74e7a7b2f..512383d5e53f 100644
---- a/net/bridge/br_input.c
-+++ b/net/bridge/br_input.c
-@@ -234,7 +234,7 @@ static int nf_hook_bridge_pre(struct sk_buff *skb, struct sk_buff **pskb)
- 			kfree_skb(skb);
- 			return RX_HANDLER_CONSUMED;
- 		case NF_QUEUE:
--			ret = nf_queue(skb, &state, e, i, verdict);
-+			ret = nf_queue(skb, &state, i, verdict);
- 			if (ret == 1)
- 				continue;
- 			return RX_HANDLER_CONSUMED;
-diff --git a/net/netfilter/core.c b/net/netfilter/core.c
-index 817a9e5d16e4..5d5bdf450091 100644
---- a/net/netfilter/core.c
-+++ b/net/netfilter/core.c
-@@ -520,7 +520,7 @@ int nf_hook_slow(struct sk_buff *skb, struct nf_hook_state *state,
- 				ret = -EPERM;
- 			return ret;
- 		case NF_QUEUE:
--			ret = nf_queue(skb, state, e, s, verdict);
-+			ret = nf_queue(skb, state, s, verdict);
- 			if (ret == 1)
- 				continue;
- 			return ret;
-diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
-index b5b2be55ca82..c72a5bdd123f 100644
---- a/net/netfilter/nf_queue.c
-+++ b/net/netfilter/nf_queue.c
-@@ -156,7 +156,6 @@ static void nf_ip6_saveroute(const struct sk_buff *skb,
- }
- 
- static int __nf_queue(struct sk_buff *skb, const struct nf_hook_state *state,
--		      const struct nf_hook_entries *entries,
- 		      unsigned int index, unsigned int queuenum)
- {
- 	int status = -ENOENT;
-@@ -225,12 +224,11 @@ static int __nf_queue(struct sk_buff *skb, const struct nf_hook_state *state,
- 
- /* Packets leaving via this function must come back through nf_reinject(). */
- int nf_queue(struct sk_buff *skb, struct nf_hook_state *state,
--	     const struct nf_hook_entries *entries, unsigned int index,
--	     unsigned int verdict)
-+	     unsigned int index, unsigned int verdict)
- {
- 	int ret;
- 
--	ret = __nf_queue(skb, state, entries, index, verdict >> NF_VERDICT_QBITS);
-+	ret = __nf_queue(skb, state, index, verdict >> NF_VERDICT_QBITS);
- 	if (ret < 0) {
- 		if (ret == -ESRCH &&
- 		    (verdict & NF_VERDICT_FLAG_QUEUE_BYPASS))
-@@ -336,7 +334,7 @@ void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
- 		local_bh_enable();
- 		break;
- 	case NF_QUEUE:
--		err = nf_queue(skb, &entry->state, hooks, i, verdict);
-+		err = nf_queue(skb, &entry->state, i, verdict);
- 		if (err == 1)
- 			goto next_hook;
- 		break;
--- 
-2.21.0
+> +}
+> +
+>  static inline
+>  void *tcf_block_cb_priv(struct tcf_block_cb *block_cb)
+>  {
+> diff --git a/net/sched/cls_api.c b/net/sched/cls_api.c
+> index b2417fda26ec..c01d825edab5 100644
+> --- a/net/sched/cls_api.c
+> +++ b/net/sched/cls_api.c
+> @@ -746,6 +746,23 @@ unsigned int tcf_block_cb_decref(struct tcf_block_cb *block_cb)
+>  }
+>  EXPORT_SYMBOL(tcf_block_cb_decref);
+>  
+> +struct tcf_block_cb *tcf_block_cb_alloc(tc_setup_cb_t *cb,
+> +					void *cb_ident, void *cb_priv)
+> +{
+> +	struct tcf_block_cb *block_cb;
+> +
+> +	block_cb = kzalloc(sizeof(*block_cb), GFP_KERNEL);
+> +	if (!block_cb)
+> +		return NULL;
+> +
+> +	block_cb->cb = cb;
+> +	block_cb->cb_ident = cb_ident;
+> +	block_cb->cb_priv = cb_priv;
+> +
+> +	return block_cb;
+> +}
+> +EXPORT_SYMBOL(tcf_block_cb_alloc);
+> +
+>  struct tcf_block_cb *__tcf_block_cb_register(struct tcf_block *block,
+>  					     tc_setup_cb_t *cb, void *cb_ident,
+>  					     void *cb_priv,
+> @@ -761,12 +778,10 @@ struct tcf_block_cb *__tcf_block_cb_register(struct tcf_block *block,
+>  	if (err)
+>  		return ERR_PTR(err);
+>  
+> -	block_cb = kzalloc(sizeof(*block_cb), GFP_KERNEL);
+> +	block_cb = tcf_block_cb_alloc(cb, cb_ident, cb_priv);
+>  	if (!block_cb)
+>  		return ERR_PTR(-ENOMEM);
 
+... will be translated into -ENOMEM here.
+Would be nice to in [A] return ERR_PTR(-EOPNOTSUPP) instead and adjust
+the actual implementation as well.
+With patch 11, this will be visible to the user then.
+
+> -	block_cb->cb = cb;
+> -	block_cb->cb_ident = cb_ident;
+> -	block_cb->cb_priv = cb_priv;
+> +
+>  	list_add(&block_cb->list, &block->cb_list);
+>  	return block_cb;
+>  }
+> -- 
+> 2.11.0
+> 
