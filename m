@@ -7,44 +7,44 @@ X-Spam-Status: No, score=-10.0 required=3.0
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 31934C5B57D
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BDB8FC06511
 	for <netfilter-devel@archiver.kernel.org>; Wed,  3 Jul 2019 01:18:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id F2A9A2064A
-	for <netfilter-devel@archiver.kernel.org>; Wed,  3 Jul 2019 01:18:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9D6752064A
+	for <netfilter-devel@archiver.kernel.org>; Wed,  3 Jul 2019 01:18:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727208AbfGCBSn (ORCPT
+        id S1727239AbfGCBSo (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 2 Jul 2019 21:18:43 -0400
-Received: from mail.us.es ([193.147.175.20]:51534 "EHLO mail.us.es"
+        Tue, 2 Jul 2019 21:18:44 -0400
+Received: from mail.us.es ([193.147.175.20]:51522 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727101AbfGCBSn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 2 Jul 2019 21:18:43 -0400
+        id S1726635AbfGCBSo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 2 Jul 2019 21:18:44 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 7182380770
-        for <netfilter-devel@vger.kernel.org>; Wed,  3 Jul 2019 00:52:23 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 3D16A80766
+        for <netfilter-devel@vger.kernel.org>; Wed,  3 Jul 2019 00:50:35 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 612D4DA801
-        for <netfilter-devel@vger.kernel.org>; Wed,  3 Jul 2019 00:52:23 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 2E7E6DA708
+        for <netfilter-devel@vger.kernel.org>; Wed,  3 Jul 2019 00:50:35 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 5058A11510C; Wed,  3 Jul 2019 00:52:14 +0200 (CEST)
+        id 23F35FB37C; Wed,  3 Jul 2019 00:50:35 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 22DA6115103
-        for <netfilter-devel@vger.kernel.org>; Wed,  3 Jul 2019 00:52:12 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id B45CEDA708
+        for <netfilter-devel@vger.kernel.org>; Wed,  3 Jul 2019 00:50:32 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 03 Jul 2019 00:52:12 +0200 (CEST)
+ Wed, 03 Jul 2019 00:50:32 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 065254265A2F
-        for <netfilter-devel@vger.kernel.org>; Wed,  3 Jul 2019 00:52:11 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 988004265A31
+        for <netfilter-devel@vger.kernel.org>; Wed,  3 Jul 2019 00:50:32 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Subject: [PATCH nft,v2] mnl: remove unnecessary NLM_F_ACK flags
-Date:   Wed,  3 Jul 2019 00:52:08 +0200
-Message-Id: <20190702225208.28347-1-pablo@netfilter.org>
+Date:   Wed,  3 Jul 2019 00:50:29 +0200
+Message-Id: <20190702225029.8196-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -61,7 +61,8 @@ objects is empty.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-v2: mnl_nft_obj_dump() needs NLM_F_ACK when dump == false.
+v2: mnl_nft_obj_dump() still needs to leave NLM_F_ACK in place for
+    reset command when it not happening in the context of a dump.
 
  src/mnl.c | 14 +++++++-------
  1 file changed, 7 insertions(+), 7 deletions(-)
