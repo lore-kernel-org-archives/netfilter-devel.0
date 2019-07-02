@@ -2,102 +2,254 @@ Return-Path: <SRS0=Rfup=U7=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.0 required=3.0
-	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 43F66C06510
-	for <netfilter-devel@archiver.kernel.org>; Tue,  2 Jul 2019 01:52:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3BAA5C5B57D
+	for <netfilter-devel@archiver.kernel.org>; Tue,  2 Jul 2019 07:17:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 257E520881
-	for <netfilter-devel@archiver.kernel.org>; Tue,  2 Jul 2019 01:52:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0D8C7216C8
+	for <netfilter-devel@archiver.kernel.org>; Tue,  2 Jul 2019 07:17:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726960AbfGBBw0 (ORCPT
+        id S1725859AbfGBHRE (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 1 Jul 2019 21:52:26 -0400
-Received: from szxga06-in.huawei.com ([45.249.212.32]:60266 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726486AbfGBBw0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 1 Jul 2019 21:52:26 -0400
-Received: from DGGEMS410-HUB.china.huawei.com (unknown [172.30.72.60])
-        by Forcepoint Email with ESMTP id 290B0A9BBE054957DE66;
-        Tue,  2 Jul 2019 09:52:24 +0800 (CST)
-Received: from huawei.com (10.175.100.202) by DGGEMS410-HUB.china.huawei.com
- (10.3.19.210) with Microsoft SMTP Server id 14.3.439.0; Tue, 2 Jul 2019
- 09:52:18 +0800
-From:   Miaohe Lin <linmiaohe@huawei.com>
-To:     <pablo@netfilter.org>, <kadlec@blackhole.kfki.hu>, <fw@strlen.de>,
-        <davem@davemloft.net>, <kuznet@ms2.inr.ac.ru>,
-        <yoshfuji@linux-ipv6.org>, <netfilter-devel@vger.kernel.org>,
-        <coreteam@netfilter.org>, <netdev@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>
-CC:     <linmiaohe@huawei.com>, <mingfangsen@huawei.com>
-Subject: [PATCH v5] net: netfilter: Fix rpfilter dropping vrf packets by mistake
-Date:   Tue, 2 Jul 2019 03:59:36 +0000
-Message-ID: <1562039976-203880-1-git-send-email-linmiaohe@huawei.com>
-X-Mailer: git-send-email 1.8.3.4
+        Tue, 2 Jul 2019 03:17:04 -0400
+Received: from kirsty.vergenet.net ([202.4.237.240]:52152 "EHLO
+        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725802AbfGBHRE (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 2 Jul 2019 03:17:04 -0400
+Received: from reginn.horms.nl (watermunt.horms.nl [80.127.179.77])
+        by kirsty.vergenet.net (Postfix) with ESMTPA id E1FC525AF0F;
+        Tue,  2 Jul 2019 17:17:01 +1000 (AEST)
+Received: by reginn.horms.nl (Postfix, from userid 7100)
+        id B71DA940476; Tue,  2 Jul 2019 09:16:59 +0200 (CEST)
+Date:   Tue, 2 Jul 2019 09:16:59 +0200
+From:   Simon Horman <horms@verge.net.au>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Julian Anastasov <ja@ssi.bg>
+Cc:     Vadim Fedorenko <vfedorenko@yandex-team.ru>,
+        Konstantin Khlebnikov <khlebnikov@yandex-team.ru>,
+        netfilter-devel@vger.kernel.org, lvs-devel@vger.kernel.org
+Subject: Re: [PATCH v3] ipvs: allow tunneling with gre encapsulation
+Message-ID: <20190702071656.c2uratq2ehgklo4b@verge.net.au>
+References: <1561999774-8125-1-git-send-email-vfedorenko@yandex-team.ru>
+ <alpine.LFD.2.21.1907012200110.3870@ja.home.ssi.bg>
 MIME-Version: 1.0
-Content-Type: text/plain
-X-Originating-IP: [10.175.100.202]
-X-CFilter-Loop: Reflected
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <alpine.LFD.2.21.1907012200110.3870@ja.home.ssi.bg>
+Organisation: Horms Solutions BV
+User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-When firewalld is enabled with ipv4/ipv6 rpfilter, vrf
-ipv4/ipv6 packets will be dropped. Vrf device will pass
-through netfilter hook twice. One with enslaved device
-and another one with l3 master device. So in device may
-dismatch witch out device because out device is always
-enslaved device.So failed with the check of the rpfilter
-and drop the packets by mistake.
+On Mon, Jul 01, 2019 at 10:03:13PM +0300, Julian Anastasov wrote:
+> 
+> 	Hello,
+> 
+> 	Added CC to lvs-devel@vger.kernel.org
+> 
+> On Mon, 1 Jul 2019, Vadim Fedorenko wrote:
+> 
+> > windows real servers can handle gre tunnels, this patch allows
+> > gre encapsulation with the tunneling method, thereby letting ipvs
+> > be load balancer for windows-based services
+> > 
+> > Signed-off-by: Vadim Fedorenko <vfedorenko@yandex-team.ru>
+> 
+> 	Looks good to me, thanks!
+> 
+> Acked-by: Julian Anastasov <ja@ssi.bg>
 
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
----
- net/ipv4/netfilter/ipt_rpfilter.c  | 1 +
- net/ipv6/netfilter/ip6t_rpfilter.c | 8 ++++++--
- 2 files changed, 7 insertions(+), 2 deletions(-)
+Likewise,
 
-diff --git a/net/ipv4/netfilter/ipt_rpfilter.c b/net/ipv4/netfilter/ipt_rpfilter.c
-index 59031670b16a..cc23f1ce239c 100644
---- a/net/ipv4/netfilter/ipt_rpfilter.c
-+++ b/net/ipv4/netfilter/ipt_rpfilter.c
-@@ -78,6 +78,7 @@ static bool rpfilter_mt(const struct sk_buff *skb, struct xt_action_param *par)
- 	flow.flowi4_mark = info->flags & XT_RPFILTER_VALID_MARK ? skb->mark : 0;
- 	flow.flowi4_tos = RT_TOS(iph->tos);
- 	flow.flowi4_scope = RT_SCOPE_UNIVERSE;
-+	flow.flowi4_oif = l3mdev_master_ifindex_rcu(xt_in(par));
- 
- 	return rpfilter_lookup_reverse(xt_net(par), &flow, xt_in(par), info->flags) ^ invert;
- }
-diff --git a/net/ipv6/netfilter/ip6t_rpfilter.c b/net/ipv6/netfilter/ip6t_rpfilter.c
-index 6bcaf7357183..d800801a5dd2 100644
---- a/net/ipv6/netfilter/ip6t_rpfilter.c
-+++ b/net/ipv6/netfilter/ip6t_rpfilter.c
-@@ -55,7 +55,9 @@ static bool rpfilter_lookup_reverse6(struct net *net, const struct sk_buff *skb,
- 	if (rpfilter_addr_linklocal(&iph->saddr)) {
- 		lookup_flags |= RT6_LOOKUP_F_IFACE;
- 		fl6.flowi6_oif = dev->ifindex;
--	} else if ((flags & XT_RPFILTER_LOOSE) == 0)
-+	/* Set flowi6_oif for vrf devices to lookup route in l3mdev domain. */
-+	} else if (netif_is_l3_master(dev) || netif_is_l3_slave(dev) ||
-+		  (flags & XT_RPFILTER_LOOSE) == 0)
- 		fl6.flowi6_oif = dev->ifindex;
- 
- 	rt = (void *)ip6_route_lookup(net, &fl6, skb, lookup_flags);
-@@ -70,7 +72,9 @@ static bool rpfilter_lookup_reverse6(struct net *net, const struct sk_buff *skb,
- 		goto out;
- 	}
- 
--	if (rt->rt6i_idev->dev == dev || (flags & XT_RPFILTER_LOOSE))
-+	if (rt->rt6i_idev->dev == dev ||
-+	    l3mdev_master_ifindex_rcu(rt->rt6i_idev->dev) == dev->ifindex ||
-+	    (flags & XT_RPFILTER_LOOSE))
- 		ret = true;
-  out:
- 	ip6_rt_put(rt);
--- 
-2.21.GIT
+Signed-off-by: Simon Horman <horms@verge.net.au>
 
+Pablo, please consider including this in nf-next.
+
+> 
+> > ---
+> > v2: style fix
+> > v3: change dest->tun_type checks to else if statement
+> > ---
+> >  include/uapi/linux/ip_vs.h      |  1 +
+> >  net/netfilter/ipvs/ip_vs_ctl.c  |  1 +
+> >  net/netfilter/ipvs/ip_vs_xmit.c | 66 +++++++++++++++++++++++++++++++++++++++--
+> >  3 files changed, 65 insertions(+), 3 deletions(-)
+> > 
+> > diff --git a/include/uapi/linux/ip_vs.h b/include/uapi/linux/ip_vs.h
+> > index e4f1806..4102ddc 100644
+> > --- a/include/uapi/linux/ip_vs.h
+> > +++ b/include/uapi/linux/ip_vs.h
+> > @@ -128,6 +128,7 @@
+> >  enum {
+> >  	IP_VS_CONN_F_TUNNEL_TYPE_IPIP = 0,	/* IPIP */
+> >  	IP_VS_CONN_F_TUNNEL_TYPE_GUE,		/* GUE */
+> > +	IP_VS_CONN_F_TUNNEL_TYPE_GRE,		/* GRE */
+> >  	IP_VS_CONN_F_TUNNEL_TYPE_MAX,
+> >  };
+> >  
+> > diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+> > index 84384d8..998353b 100644
+> > --- a/net/netfilter/ipvs/ip_vs_ctl.c
+> > +++ b/net/netfilter/ipvs/ip_vs_ctl.c
+> > @@ -525,6 +525,7 @@ static void ip_vs_rs_hash(struct netns_ipvs *ipvs, struct ip_vs_dest *dest)
+> >  			port = dest->tun_port;
+> >  			break;
+> >  		case IP_VS_CONN_F_TUNNEL_TYPE_IPIP:
+> > +		case IP_VS_CONN_F_TUNNEL_TYPE_GRE:
+> >  			port = 0;
+> >  			break;
+> >  		default:
+> > diff --git a/net/netfilter/ipvs/ip_vs_xmit.c b/net/netfilter/ipvs/ip_vs_xmit.c
+> > index 71fc6d6..9c464d2 100644
+> > --- a/net/netfilter/ipvs/ip_vs_xmit.c
+> > +++ b/net/netfilter/ipvs/ip_vs_xmit.c
+> > @@ -29,6 +29,7 @@
+> >  #include <linux/tcp.h>                  /* for tcphdr */
+> >  #include <net/ip.h>
+> >  #include <net/gue.h>
+> > +#include <net/gre.h>
+> >  #include <net/tcp.h>                    /* for csum_tcpudp_magic */
+> >  #include <net/udp.h>
+> >  #include <net/icmp.h>                   /* for icmp_send */
+> > @@ -388,6 +389,12 @@ static inline bool decrement_ttl(struct netns_ipvs *ipvs,
+> >  			     IP_VS_TUNNEL_ENCAP_FLAG_REMCSUM) &&
+> >  			    skb->ip_summed == CHECKSUM_PARTIAL)
+> >  				mtu -= GUE_PLEN_REMCSUM + GUE_LEN_PRIV;
+> > +		} else if (dest->tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GRE) {
+> > +			__be16 tflags = 0;
+> > +
+> > +			if (dest->tun_flags & IP_VS_TUNNEL_ENCAP_FLAG_CSUM)
+> > +				tflags |= TUNNEL_CSUM;
+> > +			mtu -= gre_calc_hlen(tflags);
+> >  		}
+> >  		if (mtu < 68) {
+> >  			IP_VS_DBG_RL("%s(): mtu less than 68\n", __func__);
+> > @@ -548,6 +555,12 @@ static inline bool decrement_ttl(struct netns_ipvs *ipvs,
+> >  			     IP_VS_TUNNEL_ENCAP_FLAG_REMCSUM) &&
+> >  			    skb->ip_summed == CHECKSUM_PARTIAL)
+> >  				mtu -= GUE_PLEN_REMCSUM + GUE_LEN_PRIV;
+> > +		} else if (dest->tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GRE) {
+> > +			__be16 tflags = 0;
+> > +
+> > +			if (dest->tun_flags & IP_VS_TUNNEL_ENCAP_FLAG_CSUM)
+> > +				tflags |= TUNNEL_CSUM;
+> > +			mtu -= gre_calc_hlen(tflags);
+> >  		}
+> >  		if (mtu < IPV6_MIN_MTU) {
+> >  			IP_VS_DBG_RL("%s(): mtu less than %d\n", __func__,
+> > @@ -1079,6 +1092,24 @@ static inline int __tun_gso_type_mask(int encaps_af, int orig_af)
+> >  	return 0;
+> >  }
+> >  
+> > +static void
+> > +ipvs_gre_encap(struct net *net, struct sk_buff *skb,
+> > +	       struct ip_vs_conn *cp, __u8 *next_protocol)
+> > +{
+> > +	__be16 proto = *next_protocol == IPPROTO_IPIP ?
+> > +				htons(ETH_P_IP) : htons(ETH_P_IPV6);
+> > +	__be16 tflags = 0;
+> > +	size_t hdrlen;
+> > +
+> > +	if (cp->dest->tun_flags & IP_VS_TUNNEL_ENCAP_FLAG_CSUM)
+> > +		tflags |= TUNNEL_CSUM;
+> > +
+> > +	hdrlen = gre_calc_hlen(tflags);
+> > +	gre_build_header(skb, hdrlen, tflags, proto, 0, 0);
+> > +
+> > +	*next_protocol = IPPROTO_GRE;
+> > +}
+> > +
+> >  /*
+> >   *   IP Tunneling transmitter
+> >   *
+> > @@ -1151,6 +1182,15 @@ static inline int __tun_gso_type_mask(int encaps_af, int orig_af)
+> >  		gue_hdrlen = sizeof(struct guehdr) + gue_optlen;
+> >  
+> >  		max_headroom += sizeof(struct udphdr) + gue_hdrlen;
+> > +	} else if (tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GRE) {
+> > +		size_t gre_hdrlen;
+> > +		__be16 tflags = 0;
+> > +
+> > +		if (tun_flags & IP_VS_TUNNEL_ENCAP_FLAG_CSUM)
+> > +			tflags |= TUNNEL_CSUM;
+> > +		gre_hdrlen = gre_calc_hlen(tflags);
+> > +
+> > +		max_headroom += gre_hdrlen;
+> >  	}
+> >  
+> >  	/* We only care about the df field if sysctl_pmtu_disc(ipvs) is set */
+> > @@ -1172,6 +1212,11 @@ static inline int __tun_gso_type_mask(int encaps_af, int orig_af)
+> >  		    skb->ip_summed == CHECKSUM_PARTIAL) {
+> >  			gso_type |= SKB_GSO_TUNNEL_REMCSUM;
+> >  		}
+> > +	} else if (tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GRE) {
+> > +		if (tun_flags & IP_VS_TUNNEL_ENCAP_FLAG_CSUM)
+> > +			gso_type |= SKB_GSO_GRE_CSUM;
+> > +		else
+> > +			gso_type |= SKB_GSO_GRE;
+> >  	}
+> >  
+> >  	if (iptunnel_handle_offloads(skb, gso_type))
+> > @@ -1192,8 +1237,8 @@ static inline int __tun_gso_type_mask(int encaps_af, int orig_af)
+> >  			check = true;
+> >  
+> >  		udp_set_csum(!check, skb, saddr, cp->daddr.ip, skb->len);
+> > -	}
+> > -
+> > +	} else if (tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GRE)
+> > +		ipvs_gre_encap(net, skb, cp, &next_protocol);
+> >  
+> >  	skb_push(skb, sizeof(struct iphdr));
+> >  	skb_reset_network_header(skb);
+> > @@ -1287,6 +1332,15 @@ static inline int __tun_gso_type_mask(int encaps_af, int orig_af)
+> >  		gue_hdrlen = sizeof(struct guehdr) + gue_optlen;
+> >  
+> >  		max_headroom += sizeof(struct udphdr) + gue_hdrlen;
+> > +	} else if (tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GRE) {
+> > +		size_t gre_hdrlen;
+> > +		__be16 tflags = 0;
+> > +
+> > +		if (tun_flags & IP_VS_TUNNEL_ENCAP_FLAG_CSUM)
+> > +			tflags |= TUNNEL_CSUM;
+> > +		gre_hdrlen = gre_calc_hlen(tflags);
+> > +
+> > +		max_headroom += gre_hdrlen;
+> >  	}
+> >  
+> >  	skb = ip_vs_prepare_tunneled_skb(skb, cp->af, max_headroom,
+> > @@ -1306,6 +1360,11 @@ static inline int __tun_gso_type_mask(int encaps_af, int orig_af)
+> >  		    skb->ip_summed == CHECKSUM_PARTIAL) {
+> >  			gso_type |= SKB_GSO_TUNNEL_REMCSUM;
+> >  		}
+> > +	} else if (tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GRE) {
+> > +		if (tun_flags & IP_VS_TUNNEL_ENCAP_FLAG_CSUM)
+> > +			gso_type |= SKB_GSO_GRE_CSUM;
+> > +		else
+> > +			gso_type |= SKB_GSO_GRE;
+> >  	}
+> >  
+> >  	if (iptunnel_handle_offloads(skb, gso_type))
+> > @@ -1326,7 +1385,8 @@ static inline int __tun_gso_type_mask(int encaps_af, int orig_af)
+> >  			check = true;
+> >  
+> >  		udp6_set_csum(!check, skb, &saddr, &cp->daddr.in6, skb->len);
+> > -	}
+> > +	} else if (tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GRE)
+> > +		ipvs_gre_encap(net, skb, cp, &next_protocol);
+> >  
+> >  	skb_push(skb, sizeof(struct ipv6hdr));
+> >  	skb_reset_network_header(skb);
+> > -- 
+> > 1.9.1
+> 
+> Regards
+> 
+> --
+> Julian Anastasov <ja@ssi.bg>
+> 
