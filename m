@@ -7,29 +7,29 @@ X-Spam-Status: No, score=-10.0 required=3.0
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B1EC4C06510
-	for <netfilter-devel@archiver.kernel.org>; Tue,  2 Jul 2019 18:30:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 40A15C06510
+	for <netfilter-devel@archiver.kernel.org>; Tue,  2 Jul 2019 18:44:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 999C72184B
-	for <netfilter-devel@archiver.kernel.org>; Tue,  2 Jul 2019 18:30:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 252C421721
+	for <netfilter-devel@archiver.kernel.org>; Tue,  2 Jul 2019 18:44:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726291AbfGBSay (ORCPT
+        id S1726329AbfGBSow (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 2 Jul 2019 14:30:54 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:44070 "EHLO orbyte.nwl.cc"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725851AbfGBSay (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 2 Jul 2019 14:30:54 -0400
-Received: from localhost ([::1]:57160 helo=tatos)
-        by orbyte.nwl.cc with esmtp (Exim 4.91)
-        (envelope-from <phil@nwl.cc>)
-        id 1hiNYK-0004XP-TK; Tue, 02 Jul 2019 20:30:52 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH v2] nft: Set socket receive buffer
-Date:   Tue,  2 Jul 2019 20:30:49 +0200
-Message-Id: <20190702183049.21460-1-phil@nwl.cc>
+        Tue, 2 Jul 2019 14:44:52 -0400
+Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:44472 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725851AbfGBSow (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 2 Jul 2019 14:44:52 -0400
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.89)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1hiNlq-0006vR-Ba; Tue, 02 Jul 2019 20:44:50 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf-next] netfilter: nf_queue: remove unused hook entries pointer
+Date:   Tue,  2 Jul 2019 20:41:14 +0200
+Message-Id: <20190702184114.11670-1-fw@strlen.de>
 X-Mailer: git-send-email 2.21.0
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -38,112 +38,90 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-When trying to delete user-defined chains in a large ruleset,
-iptables-nft aborts with "No buffer space available". This can be
-reproduced using the following script:
+Its not used anywhere, so remove this.
 
-| #! /bin/bash
-| iptables-nft-restore <(
-|
-| echo "*filter"
-| for i in $(seq 0 200000);do
-|         printf ":chain_%06x - [0:0]\n" $i
-| done
-| for i in $(seq 0 200000);do
-|         printf -- "-A INPUT -j chain_%06x\n" $i
-|         printf -- "-A INPUT -j chain_%06x\n" $i
-| done
-| echo COMMIT
-|
-| )
-| iptables-nft -X
-
-The problem seems to be the sheer amount of netlink error messages sent
-back to user space (one EBUSY for each chain). To solve this, set
-receive buffer size depending on number of commands sent to kernel.
-
-Suggested-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Phil Sutter <phil@nwl.cc>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
-Changes since v1:
-- Reset stored receive buffer size to zero in nft_restart().
----
- iptables/nft.c | 27 +++++++++++++++++++++++----
- 1 file changed, 23 insertions(+), 4 deletions(-)
+ include/net/netfilter/nf_queue.h | 3 +--
+ net/bridge/br_input.c            | 2 +-
+ net/netfilter/core.c             | 2 +-
+ net/netfilter/nf_queue.c         | 8 +++-----
+ 4 files changed, 6 insertions(+), 9 deletions(-)
 
-diff --git a/iptables/nft.c b/iptables/nft.c
-index 2c61521455de8..3aa2c6c6b9166 100644
---- a/iptables/nft.c
-+++ b/iptables/nft.c
-@@ -206,8 +206,24 @@ static void mnl_set_sndbuffer(const struct mnl_socket *nl,
- 	nlbuffsiz = newbuffsiz;
+diff --git a/include/net/netfilter/nf_queue.h b/include/net/netfilter/nf_queue.h
+index 7239105d9d2e..3cb6dcf53a4e 100644
+--- a/include/net/netfilter/nf_queue.h
++++ b/include/net/netfilter/nf_queue.h
+@@ -120,6 +120,5 @@ nfqueue_hash(const struct sk_buff *skb, u16 queue, u16 queues_total, u8 family,
  }
  
-+static int nlrcvbuffsiz;
-+
-+static void mnl_set_rcvbuffer(const struct mnl_socket *nl, int numcmds)
-+{
-+	int newbuffsiz = getpagesize() * numcmds;
-+
-+	if (newbuffsiz <= nlrcvbuffsiz)
-+		return;
-+
-+	if (setsockopt(mnl_socket_get_fd(nl), SOL_SOCKET, SO_RCVBUFFORCE,
-+		       &newbuffsiz, sizeof(socklen_t)) < 0)
-+		return;
-+
-+	nlrcvbuffsiz = newbuffsiz;
-+}
-+
- static ssize_t mnl_nft_socket_sendmsg(const struct mnl_socket *nf_sock,
--				      struct nftnl_batch *batch)
-+				      struct nftnl_batch *batch, int numcmds)
+ int nf_queue(struct sk_buff *skb, struct nf_hook_state *state,
+-	     const struct nf_hook_entries *entries, unsigned int index,
+-	     unsigned int verdict);
++	     unsigned int index, unsigned int verdict);
+ #endif /* _NF_QUEUE_H */
+diff --git a/net/bridge/br_input.c b/net/bridge/br_input.c
+index 21b74e7a7b2f..512383d5e53f 100644
+--- a/net/bridge/br_input.c
++++ b/net/bridge/br_input.c
+@@ -234,7 +234,7 @@ static int nf_hook_bridge_pre(struct sk_buff *skb, struct sk_buff **pskb)
+ 			kfree_skb(skb);
+ 			return RX_HANDLER_CONSUMED;
+ 		case NF_QUEUE:
+-			ret = nf_queue(skb, &state, e, i, verdict);
++			ret = nf_queue(skb, &state, i, verdict);
+ 			if (ret == 1)
+ 				continue;
+ 			return RX_HANDLER_CONSUMED;
+diff --git a/net/netfilter/core.c b/net/netfilter/core.c
+index 817a9e5d16e4..5d5bdf450091 100644
+--- a/net/netfilter/core.c
++++ b/net/netfilter/core.c
+@@ -520,7 +520,7 @@ int nf_hook_slow(struct sk_buff *skb, struct nf_hook_state *state,
+ 				ret = -EPERM;
+ 			return ret;
+ 		case NF_QUEUE:
+-			ret = nf_queue(skb, state, e, s, verdict);
++			ret = nf_queue(skb, state, s, verdict);
+ 			if (ret == 1)
+ 				continue;
+ 			return ret;
+diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
+index b5b2be55ca82..c72a5bdd123f 100644
+--- a/net/netfilter/nf_queue.c
++++ b/net/netfilter/nf_queue.c
+@@ -156,7 +156,6 @@ static void nf_ip6_saveroute(const struct sk_buff *skb,
+ }
+ 
+ static int __nf_queue(struct sk_buff *skb, const struct nf_hook_state *state,
+-		      const struct nf_hook_entries *entries,
+ 		      unsigned int index, unsigned int queuenum)
  {
- 	static const struct sockaddr_nl snl = {
- 		.nl_family = AF_NETLINK
-@@ -222,13 +238,15 @@ static ssize_t mnl_nft_socket_sendmsg(const struct mnl_socket *nf_sock,
- 	};
+ 	int status = -ENOENT;
+@@ -225,12 +224,11 @@ static int __nf_queue(struct sk_buff *skb, const struct nf_hook_state *state,
  
- 	mnl_set_sndbuffer(nf_sock, batch);
-+	mnl_set_rcvbuffer(nf_sock, numcmds);
- 	nftnl_batch_iovec(batch, iov, iov_len);
- 
- 	return sendmsg(mnl_socket_get_fd(nf_sock), &msg, 0);
- }
- 
- static int mnl_batch_talk(const struct mnl_socket *nf_sock,
--			  struct nftnl_batch *batch, struct list_head *err_list)
-+			  struct nftnl_batch *batch, int numcmds,
-+			  struct list_head *err_list)
+ /* Packets leaving via this function must come back through nf_reinject(). */
+ int nf_queue(struct sk_buff *skb, struct nf_hook_state *state,
+-	     const struct nf_hook_entries *entries, unsigned int index,
+-	     unsigned int verdict)
++	     unsigned int index, unsigned int verdict)
  {
- 	const struct mnl_socket *nl = nf_sock;
- 	int ret, fd = mnl_socket_get_fd(nl), portid = mnl_socket_get_portid(nl);
-@@ -240,7 +258,7 @@ static int mnl_batch_talk(const struct mnl_socket *nf_sock,
- 	};
- 	int err = 0;
+ 	int ret;
  
--	ret = mnl_nft_socket_sendmsg(nf_sock, batch);
-+	ret = mnl_nft_socket_sendmsg(nf_sock, batch, numcmds);
- 	if (ret == -1)
- 		return -1;
- 
-@@ -795,6 +813,7 @@ static int nft_restart(struct nft_handle *h)
- 
- 	h->portid = mnl_socket_get_portid(h->nl);
- 	nlbuffsiz = 0;
-+	nlrcvbuffsiz = 0;
- 
- 	return 0;
- }
-@@ -2917,7 +2936,7 @@ retry:
- 	}
- 
- 	errno = 0;
--	ret = mnl_batch_talk(h->nl, h->batch, &h->err_list);
-+	ret = mnl_batch_talk(h->nl, h->batch, seq, &h->err_list);
- 	if (ret && errno == ERESTART) {
- 		nft_rebuild_cache(h);
- 
+-	ret = __nf_queue(skb, state, entries, index, verdict >> NF_VERDICT_QBITS);
++	ret = __nf_queue(skb, state, index, verdict >> NF_VERDICT_QBITS);
+ 	if (ret < 0) {
+ 		if (ret == -ESRCH &&
+ 		    (verdict & NF_VERDICT_FLAG_QUEUE_BYPASS))
+@@ -336,7 +334,7 @@ void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
+ 		local_bh_enable();
+ 		break;
+ 	case NF_QUEUE:
+-		err = nf_queue(skb, &entry->state, hooks, i, verdict);
++		err = nf_queue(skb, &entry->state, i, verdict);
+ 		if (err == 1)
+ 			goto next_hook;
+ 		break;
 -- 
 2.21.0
 
