@@ -2,163 +2,144 @@ Return-Path: <SRS0=aW9c=VA=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.0 required=3.0
-	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.5 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AD4E3C0650E
-	for <netfilter-devel@archiver.kernel.org>; Wed,  3 Jul 2019 07:36:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 48C81C06511
+	for <netfilter-devel@archiver.kernel.org>; Wed,  3 Jul 2019 10:43:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 90CAA21881
-	for <netfilter-devel@archiver.kernel.org>; Wed,  3 Jul 2019 07:36:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1E477218A0
+	for <netfilter-devel@archiver.kernel.org>; Wed,  3 Jul 2019 10:43:44 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=resnulli-us.20150623.gappssmtp.com header.i=@resnulli-us.20150623.gappssmtp.com header.b="Mo7L+Un5"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727008AbfGCHgg (ORCPT
+        id S1727152AbfGCKnm (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 3 Jul 2019 03:36:36 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:45458 "EHLO orbyte.nwl.cc"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726327AbfGCHgg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 3 Jul 2019 03:36:36 -0400
-Received: from localhost ([::1]:58548 helo=tatos)
-        by orbyte.nwl.cc with esmtp (Exim 4.91)
-        (envelope-from <phil@nwl.cc>)
-        id 1hiZoh-0003PU-2D; Wed, 03 Jul 2019 09:36:35 +0200
-From:   Phil Sutter <phil@nwl.cc>
+        Wed, 3 Jul 2019 06:43:42 -0400
+Received: from mail-wm1-f65.google.com ([209.85.128.65]:51152 "EHLO
+        mail-wm1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726434AbfGCKnl (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 3 Jul 2019 06:43:41 -0400
+Received: by mail-wm1-f65.google.com with SMTP id n9so1694832wmi.0
+        for <netfilter-devel@vger.kernel.org>; Wed, 03 Jul 2019 03:43:40 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=resnulli-us.20150623.gappssmtp.com; s=20150623;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to:user-agent;
+        bh=UsJdfQ3kFOEpjq3npj0/cKJVQ/CAeYwFwNGHz+UuQEE=;
+        b=Mo7L+Un5qawi0Ud2xyzwa+vtDRNMAl2JlQnhTgT+jKVPdep728lSG1VOlDolRBR32z
+         o9CIihoj0ORs/0mlGJYg/eBM84SjBA5/FrNSdCsz0OUnqF6LjNVE6pi6Wp6uZGMYfGfN
+         kSSvZZxKVdNenN48LGfCgScJ3VzwuB3PcUGxCbUcCIjmv9B3I0yPJ7USlI1awB/+V6LQ
+         GDB3TN01fDA9cI4fmdidUm4LK3wmfhv6/fyIMcEpHGSdoSk9TnGAotu+eR36P1QOA6BG
+         J6vpj7PsTmBeGmrcJ2esm4S1fpF0KZ74ZGMNhEsGIfsP8pBQfZCvcLi26E2TEyFtwNP6
+         6tlA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to:user-agent;
+        bh=UsJdfQ3kFOEpjq3npj0/cKJVQ/CAeYwFwNGHz+UuQEE=;
+        b=E55ldzZkb3Lppw2GfCRrPy0ustVpSfwbS2ddJs2i/gcKdm9yjgDjxtcKEtJSC+ijFf
+         kgeFOCrtqG3eae24kO6UZLjs+fvGTQcM7z6DnrviZwFSwX8AFxXVPgdMDMZ7pTgyk8Wq
+         ilBpxEF/vKm+/entEZfvHwM50aR3a0N5oq6Bp6g2jsQtfYQW+jmObCZ/VL0MfxNAsIcD
+         wIo/RY+pvy6HTuucoRSnndrsBxuFA2+/RSLIiYFONdCsViWuBmludABB6C7M8+UoEnjN
+         gEE/dY8pCwyrdR0LAhubkvGSTiwrpwonFooCo27P7g0LqpJhhvP12uWPaINw1Z4od9vA
+         DWmg==
+X-Gm-Message-State: APjAAAVh3iTpdIuDFgJa8lrvdwnoqRiNMYZ7qyQNlWE9hqkX9hq3yT7J
+        f4qy32KWQvVa1J7mp0WqB3yqbw==
+X-Google-Smtp-Source: APXvYqyKM5q4kA/2N5Nl1bUVzdA5jHOFGeHjEnp+NM9nCJ5f+TRg/STP5PpMxj7IEA1K54O+G3CXGA==
+X-Received: by 2002:a1c:e356:: with SMTP id a83mr7928808wmh.38.1562150619486;
+        Wed, 03 Jul 2019 03:43:39 -0700 (PDT)
+Received: from localhost (ip-213-220-235-213.net.upcbroadband.cz. [213.220.235.213])
+        by smtp.gmail.com with ESMTPSA id l11sm1647582wrw.97.2019.07.03.03.43.38
+        (version=TLS1_3 cipher=AEAD-AES256-GCM-SHA384 bits=256/256);
+        Wed, 03 Jul 2019 03:43:39 -0700 (PDT)
+Date:   Wed, 3 Jul 2019 12:43:38 +0200
+From:   Jiri Pirko <jiri@resnulli.us>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH 1/2] nft: Pass nft_handle down to mnl_batch_talk()
-Date:   Wed,  3 Jul 2019 09:36:25 +0200
-Message-Id: <20190703073626.18915-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.21.0
+Cc:     netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        davem@davemloft.net, thomas.lendacky@amd.com, f.fainelli@gmail.com,
+        ariel.elior@cavium.com, michael.chan@broadcom.com,
+        santosh@chelsio.com, madalin.bucur@nxp.com,
+        yisen.zhuang@huawei.com, salil.mehta@huawei.com,
+        jeffrey.t.kirsher@intel.com, tariqt@mellanox.com,
+        saeedm@mellanox.com, jiri@mellanox.com, idosch@mellanox.com,
+        jakub.kicinski@netronome.com, peppe.cavallaro@st.com,
+        grygorii.strashko@ti.com, andrew@lunn.ch,
+        vivien.didelot@savoirfairelinux.com, alexandre.torgue@st.com,
+        joabreu@synopsys.com, linux-net-drivers@solarflare.com,
+        ganeshgr@chelsio.com, ogerlitz@mellanox.com,
+        Manish.Chopra@cavium.com, marcelo.leitner@gmail.com,
+        mkubecek@suse.cz, venkatkumar.duvvuru@broadcom.com,
+        cphealy@gmail.com
+Subject: Re: [PATCH net-next 04/12] net: sched: add tcf_block_setup()
+Message-ID: <20190703104338.GV2250@nanopsycho>
+References: <20190620194917.2298-1-pablo@netfilter.org>
+ <20190620194917.2298-5-pablo@netfilter.org>
+ <20190621171603.GF2414@nanopsycho.orion>
+ <20190625083154.jfzhh22zsl3fu2ik@salvia>
+ <20190626121256.GA2424@nanopsycho>
+ <20190626131626.ihkjqvs2iciski2o@salvia>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190626131626.ihkjqvs2iciski2o@salvia>
+User-Agent: Mutt/1.11.4 (2019-03-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From there, pass it along to mnl_nft_socket_sendmsg() and further down
-to mnl_set_{snd,rcv}buffer(). This prepares the code path for keeping
-stored socket buffer sizes in struct nft_handle.
+Wed, Jun 26, 2019 at 03:16:26PM CEST, pablo@netfilter.org wrote:
+>On Wed, Jun 26, 2019 at 02:12:56PM +0200, Jiri Pirko wrote:
+>> Tue, Jun 25, 2019 at 10:31:54AM CEST, pablo@netfilter.org wrote:
+>> >On Fri, Jun 21, 2019 at 07:16:03PM +0200, Jiri Pirko wrote:
+>> >> Thu, Jun 20, 2019 at 09:49:09PM CEST, pablo@netfilter.org wrote:
+>> >> 
+>> >> [...]
+>> >> 
+>> >> > 
+>> >> >+static LIST_HEAD(tcf_block_cb_list);
+>> >> 
+>> >> I still don't like the global list. Have to go throught the code more
+>> >> carefully, but why you can't pass the priv/ctx from tc/netfilter. From
+>> >> tc it would be tcf_block as it is now, from netfilter something else.
+>> >
+>> >This tcf_block_cb_list should go away at some point, once drivers know
+>> >how to deal with multiple subsystems using the setup block
+>> >infrastructure. As I said in my previous email, only one can set up
+>> >the block at this stage, the ones coming later will hit busy.
+>> 
+>> The driver should know if it can bind or is busy. Also, the bind cmd
+>> should contain type of binder (tc/nft/whatever) or perhaps rather binder
+>> priority (according to the hook order in rx/tx).
+>
+>OK, so I see two possible paths then:
+>
+>#1 Add global list and allow one single subsystem to bind by now. Then
+>   later, in a follow up patchset. Add binder type and priority once
+>   there is a driver that can handle the three subsystems, remove
+>   this global list and each driver deals/knows what to do from the
+>   binder path.
+>
+>#2 Remove the global list now, each driver maintains a list of flow blocks
+>   internally, allow one single flow block by now. This will need a bit more
+>   code, since there will be code in the driver to maintain the list of
+>   existing flow blocks, per driver, instead of global. So it will be
+>   a per-driver global local to check if there is a flow block with
+>   this [ cb, cb_ident ] already in place.
+>
+>#1 is almost ready - it's this batch :-) -  then #2 may need more code -
+>this batch is slightly large.
+>
+>I understand though that path #2 may make it easier for the first
+>driver client allowing for the three subsystems to bind.
+>
+>Let me know what path your prefer.
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- iptables/nft.c | 41 ++++++++++++++++++-----------------------
- 1 file changed, 18 insertions(+), 23 deletions(-)
+I definitelly prefer #2. Thanks!
 
-diff --git a/iptables/nft.c b/iptables/nft.c
-index 3aa2c6c6b9166..4a5280916e3b1 100644
---- a/iptables/nft.c
-+++ b/iptables/nft.c
-@@ -188,18 +188,15 @@ static void mnl_err_list_free(struct mnl_err *err)
- 
- static int nlbuffsiz;
- 
--static void mnl_set_sndbuffer(const struct mnl_socket *nl,
--			      struct nftnl_batch *batch)
-+static void mnl_set_sndbuffer(struct nft_handle *h)
- {
--	int newbuffsiz;
-+	int newbuffsiz = nftnl_batch_iovec_len(h->batch) * BATCH_PAGE_SIZE;
- 
--	if (nftnl_batch_iovec_len(batch) * BATCH_PAGE_SIZE <= nlbuffsiz)
-+	if (newbuffsiz <= nlbuffsiz)
- 		return;
- 
--	newbuffsiz = nftnl_batch_iovec_len(batch) * BATCH_PAGE_SIZE;
--
- 	/* Rise sender buffer length to avoid hitting -EMSGSIZE */
--	if (setsockopt(mnl_socket_get_fd(nl), SOL_SOCKET, SO_SNDBUFFORCE,
-+	if (setsockopt(mnl_socket_get_fd(h->nl), SOL_SOCKET, SO_SNDBUFFORCE,
- 		       &newbuffsiz, sizeof(socklen_t)) < 0)
- 		return;
- 
-@@ -208,27 +205,26 @@ static void mnl_set_sndbuffer(const struct mnl_socket *nl,
- 
- static int nlrcvbuffsiz;
- 
--static void mnl_set_rcvbuffer(const struct mnl_socket *nl, int numcmds)
-+static void mnl_set_rcvbuffer(struct nft_handle *h, int numcmds)
- {
- 	int newbuffsiz = getpagesize() * numcmds;
- 
- 	if (newbuffsiz <= nlrcvbuffsiz)
- 		return;
- 
--	if (setsockopt(mnl_socket_get_fd(nl), SOL_SOCKET, SO_RCVBUFFORCE,
-+	if (setsockopt(mnl_socket_get_fd(h->nl), SOL_SOCKET, SO_RCVBUFFORCE,
- 		       &newbuffsiz, sizeof(socklen_t)) < 0)
- 		return;
- 
- 	nlrcvbuffsiz = newbuffsiz;
- }
- 
--static ssize_t mnl_nft_socket_sendmsg(const struct mnl_socket *nf_sock,
--				      struct nftnl_batch *batch, int numcmds)
-+static ssize_t mnl_nft_socket_sendmsg(struct nft_handle *h, int numcmds)
- {
- 	static const struct sockaddr_nl snl = {
- 		.nl_family = AF_NETLINK
- 	};
--	uint32_t iov_len = nftnl_batch_iovec_len(batch);
-+	uint32_t iov_len = nftnl_batch_iovec_len(h->batch);
- 	struct iovec iov[iov_len];
- 	struct msghdr msg = {
- 		.msg_name	= (struct sockaddr *) &snl,
-@@ -237,18 +233,16 @@ static ssize_t mnl_nft_socket_sendmsg(const struct mnl_socket *nf_sock,
- 		.msg_iovlen	= iov_len,
- 	};
- 
--	mnl_set_sndbuffer(nf_sock, batch);
--	mnl_set_rcvbuffer(nf_sock, numcmds);
--	nftnl_batch_iovec(batch, iov, iov_len);
-+	mnl_set_sndbuffer(h);
-+	mnl_set_rcvbuffer(h, numcmds);
-+	nftnl_batch_iovec(h->batch, iov, iov_len);
- 
--	return sendmsg(mnl_socket_get_fd(nf_sock), &msg, 0);
-+	return sendmsg(mnl_socket_get_fd(h->nl), &msg, 0);
- }
- 
--static int mnl_batch_talk(const struct mnl_socket *nf_sock,
--			  struct nftnl_batch *batch, int numcmds,
--			  struct list_head *err_list)
-+static int mnl_batch_talk(struct nft_handle *h, int numcmds)
- {
--	const struct mnl_socket *nl = nf_sock;
-+	const struct mnl_socket *nl = h->nl;
- 	int ret, fd = mnl_socket_get_fd(nl), portid = mnl_socket_get_portid(nl);
- 	char rcv_buf[MNL_SOCKET_BUFFER_SIZE];
- 	fd_set readfds;
-@@ -258,7 +252,7 @@ static int mnl_batch_talk(const struct mnl_socket *nf_sock,
- 	};
- 	int err = 0;
- 
--	ret = mnl_nft_socket_sendmsg(nf_sock, batch, numcmds);
-+	ret = mnl_nft_socket_sendmsg(h, numcmds);
- 	if (ret == -1)
- 		return -1;
- 
-@@ -280,7 +274,8 @@ static int mnl_batch_talk(const struct mnl_socket *nf_sock,
- 		ret = mnl_cb_run(rcv_buf, ret, 0, portid, NULL, NULL);
- 		/* Continue on error, make sure we get all acknowledgments */
- 		if (ret == -1) {
--			mnl_err_list_node_add(err_list, errno, nlh->nlmsg_seq);
-+			mnl_err_list_node_add(&h->err_list, errno,
-+					      nlh->nlmsg_seq);
- 			err = -1;
- 		}
- 
-@@ -2936,7 +2931,7 @@ retry:
- 	}
- 
- 	errno = 0;
--	ret = mnl_batch_talk(h->nl, h->batch, seq, &h->err_list);
-+	ret = mnl_batch_talk(h, seq);
- 	if (ret && errno == ERESTART) {
- 		nft_rebuild_cache(h);
- 
--- 
-2.21.0
 
+>
+>Thanks for reviewing.
