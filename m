@@ -2,135 +2,88 @@ Return-Path: <SRS0=aW9c=VA=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.0 required=3.0
-	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F3D7C0650E
-	for <netfilter-devel@archiver.kernel.org>; Wed,  3 Jul 2019 18:39:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 732A1C06514
+	for <netfilter-devel@archiver.kernel.org>; Wed,  3 Jul 2019 19:10:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 111182189E
-	for <netfilter-devel@archiver.kernel.org>; Wed,  3 Jul 2019 18:39:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 511C0218A0
+	for <netfilter-devel@archiver.kernel.org>; Wed,  3 Jul 2019 19:10:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726918AbfGCSjk (ORCPT
+        id S1727279AbfGCTJ7 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 3 Jul 2019 14:39:40 -0400
-Received: from ja.ssi.bg ([178.16.129.10]:43466 "EHLO ja.ssi.bg"
-        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726430AbfGCSjk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 3 Jul 2019 14:39:40 -0400
-Received: from ja.home.ssi.bg (localhost.localdomain [127.0.0.1])
-        by ja.ssi.bg (8.15.2/8.15.2) with ESMTP id x63IcbL4004594;
-        Wed, 3 Jul 2019 21:38:37 +0300
-Received: (from root@localhost)
-        by ja.home.ssi.bg (8.15.2/8.15.2/Submit) id x63IcaMv004593;
-        Wed, 3 Jul 2019 21:38:36 +0300
-From:   Julian Anastasov <ja@ssi.bg>
-To:     Simon Horman <horms@verge.net.au>
-Cc:     lvs-devel@vger.kernel.org, Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org,
-        Vadim Fedorenko <vfedorenko@yandex-team.ru>
-Subject: [PATCHv2 net-next] ipvs: strip gre tunnel headers from icmp errors
-Date:   Wed,  3 Jul 2019 21:38:09 +0300
-Message-Id: <20190703183809.4554-1-ja@ssi.bg>
-X-Mailer: git-send-email 2.21.0
+        Wed, 3 Jul 2019 15:09:59 -0400
+Received: from mail.us.es ([193.147.175.20]:42818 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726762AbfGCTJ6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 3 Jul 2019 15:09:58 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 1FA0DC1A00
+        for <netfilter-devel@vger.kernel.org>; Wed,  3 Jul 2019 21:09:56 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 10800114D6E
+        for <netfilter-devel@vger.kernel.org>; Wed,  3 Jul 2019 21:09:56 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 05C841021A9; Wed,  3 Jul 2019 21:09:56 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 0751671E8;
+        Wed,  3 Jul 2019 21:09:54 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Wed, 03 Jul 2019 21:09:54 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (sys.soleta.eu [212.170.55.40])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id D07BE40705C3;
+        Wed,  3 Jul 2019 21:09:53 +0200 (CEST)
+Date:   Wed, 3 Jul 2019 21:09:53 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Julian Anastasov <ja@ssi.bg>
+Cc:     Randy Dunlap <rdunlap@infradead.org>,
+        Stephen Rothwell <sfr@canb.auug.org.au>,
+        Linux Next Mailing List <linux-next@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        lvs-devel@vger.kernel.org
+Subject: Re: linux-next: Tree for Jul 3 (netfilter/ipvs/)
+Message-ID: <20190703190953.jybqfokxbgtuijyu@salvia>
+References: <20190703214900.45e94ae4@canb.auug.org.au>
+ <406d9741-68ad-f465-1248-64eef05b1350@infradead.org>
+ <alpine.LFD.2.21.1907032126220.3226@ja.home.ssi.bg>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <alpine.LFD.2.21.1907032126220.3226@ja.home.ssi.bg>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Recognize GRE tunnels in received ICMP errors and
-properly strip the tunnel headers.
+On Wed, Jul 03, 2019 at 09:29:26PM +0300, Julian Anastasov wrote:
+> 
+> 	Hello,
+> 
+> On Wed, 3 Jul 2019, Randy Dunlap wrote:
+> 
+> > On 7/3/19 4:49 AM, Stephen Rothwell wrote:
+> > > Hi all,
+> > > 
+> > > Changes since 20190702:
+> > > 
+> > 
+> > on i386:
+> 
+> 	Oh, well. net/gre.h was included by CONFIG_NF_CONNTRACK, so
+> it is failing when CONFIG_NF_CONNTRACK is not used.
+> 
+> 	Pablo, should I post v2 or just a fix?
 
-Signed-off-by: Julian Anastasov <ja@ssi.bg>
----
- net/netfilter/ipvs/ip_vs_core.c | 46 ++++++++++++++++++++++++++++++---
- 1 file changed, 42 insertions(+), 4 deletions(-)
-
- Here is v2 in case it is needed, with net/gre.h included
-
-diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-index e8651fd621ef..dd4727a5d6ec 100644
---- a/net/netfilter/ipvs/ip_vs_core.c
-+++ b/net/netfilter/ipvs/ip_vs_core.c
-@@ -35,6 +35,7 @@
- #include <net/udp.h>
- #include <net/icmp.h>                   /* for icmp_send */
- #include <net/gue.h>
-+#include <net/gre.h>
- #include <net/route.h>
- #include <net/ip6_checksum.h>
- #include <net/netns/generic.h>		/* net_generic() */
-@@ -1610,6 +1611,38 @@ static int ipvs_udp_decap(struct netns_ipvs *ipvs, struct sk_buff *skb,
- 	return 0;
- }
- 
-+/* Check the GRE tunnel and return its header length */
-+static int ipvs_gre_decap(struct netns_ipvs *ipvs, struct sk_buff *skb,
-+			  unsigned int offset, __u16 af,
-+			  const union nf_inet_addr *daddr, __u8 *proto)
-+{
-+	struct gre_base_hdr _greh, *greh;
-+	struct ip_vs_dest *dest;
-+
-+	greh = skb_header_pointer(skb, offset, sizeof(_greh), &_greh);
-+	if (!greh)
-+		goto unk;
-+	dest = ip_vs_find_tunnel(ipvs, af, daddr, 0);
-+	if (!dest)
-+		goto unk;
-+	if (dest->tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GRE) {
-+		__be16 type;
-+
-+		/* Only support version 0 and C (csum) */
-+		if ((greh->flags & ~GRE_CSUM) != 0)
-+			goto unk;
-+		type = greh->protocol;
-+		/* Later we can support also IPPROTO_IPV6 */
-+		if (type != htons(ETH_P_IP))
-+			goto unk;
-+		*proto = IPPROTO_IPIP;
-+		return gre_calc_hlen(gre_flags_to_tnl_flags(greh->flags));
-+	}
-+
-+unk:
-+	return 0;
-+}
-+
- /*
-  *	Handle ICMP messages in the outside-to-inside direction (incoming).
-  *	Find any that might be relevant, check against existing connections,
-@@ -1689,7 +1722,8 @@ ip_vs_in_icmp(struct netns_ipvs *ipvs, struct sk_buff *skb, int *related,
- 		if (cih == NULL)
- 			return NF_ACCEPT; /* The packet looks wrong, ignore */
- 		ipip = true;
--	} else if (cih->protocol == IPPROTO_UDP &&	/* Can be UDP encap */
-+	} else if ((cih->protocol == IPPROTO_UDP ||	/* Can be UDP encap */
-+		    cih->protocol == IPPROTO_GRE) &&	/* Can be GRE encap */
- 		   /* Error for our tunnel must arrive at LOCAL_IN */
- 		   (skb_rtable(skb)->rt_flags & RTCF_LOCAL)) {
- 		__u8 iproto;
-@@ -1699,10 +1733,14 @@ ip_vs_in_icmp(struct netns_ipvs *ipvs, struct sk_buff *skb, int *related,
- 		if (unlikely(cih->frag_off & htons(IP_OFFSET)))
- 			return NF_ACCEPT;
- 		offset2 = offset + cih->ihl * 4;
--		ulen = ipvs_udp_decap(ipvs, skb, offset2, AF_INET, raddr,
--				      &iproto);
-+		if (cih->protocol == IPPROTO_UDP)
-+			ulen = ipvs_udp_decap(ipvs, skb, offset2, AF_INET,
-+					      raddr, &iproto);
-+		else
-+			ulen = ipvs_gre_decap(ipvs, skb, offset2, AF_INET,
-+					      raddr, &iproto);
- 		if (ulen > 0) {
--			/* Skip IP and UDP tunnel headers */
-+			/* Skip IP and UDP/GRE tunnel headers */
- 			offset = offset2 + ulen;
- 			/* Now we should be at the original IP header */
- 			cih = skb_header_pointer(skb, offset, sizeof(_ciph),
--- 
-2.21.0
-
+I let you choose.
