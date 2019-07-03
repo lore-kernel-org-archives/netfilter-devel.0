@@ -2,103 +2,73 @@ Return-Path: <SRS0=aW9c=VA=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.5 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B6A0C06513
-	for <netfilter-devel@archiver.kernel.org>; Wed,  3 Jul 2019 12:08:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 37A90C4646D
+	for <netfilter-devel@archiver.kernel.org>; Wed,  3 Jul 2019 12:19:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 741CF218A4
-	for <netfilter-devel@archiver.kernel.org>; Wed,  3 Jul 2019 12:08:11 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=cumulusnetworks.com header.i=@cumulusnetworks.com header.b="cKuxib0x"
+	by mail.kernel.org (Postfix) with ESMTP id 0D072218B8
+	for <netfilter-devel@archiver.kernel.org>; Wed,  3 Jul 2019 12:19:11 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1562156351;
+	bh=GpARfgYUgT5olAUEuC9ccJgpBkUXS4H7tRQyYVWvS3M=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=dGeYPUopnTyrXixLejLZgYphdYaDtw9sU+EEnWz8paZZQzdulG40ob2E2jhkGbCzU
+	 rcxUvgHYH7Qrh1sCiNB5VLD8q3FU12vYh5tiJ2LjLI1aAIAskyN3hf4KGFd4gwHRf4
+	 xVUohwlRCVgpNjEV6P67Ac1UrFwkuGJkvlOTdQbU=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726936AbfGCMIJ (ORCPT
+        id S1726997AbfGCMTK (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 3 Jul 2019 08:08:09 -0400
-Received: from mail-wm1-f65.google.com ([209.85.128.65]:54689 "EHLO
-        mail-wm1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726605AbfGCMIF (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 3 Jul 2019 08:08:05 -0400
-Received: by mail-wm1-f65.google.com with SMTP id g135so1939200wme.4
-        for <netfilter-devel@vger.kernel.org>; Wed, 03 Jul 2019 05:08:04 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=cumulusnetworks.com; s=google;
-        h=subject:to:cc:references:from:message-id:date:user-agent
-         :mime-version:in-reply-to:content-language:content-transfer-encoding;
-        bh=J59F3dMhWxbnEie6W6MXq5/LSl0Eehr1s+0JLvyfa3g=;
-        b=cKuxib0xGaicYaSYXqj2YMouleMsFhPteEEhc9pVacqBYPsyNB0dXkCX/+isPZ4EIW
-         i5Ij4uQqcTrFv+UVuLQzlvAW3F9GdCasq9PL1U8uEpIaO+9OdyPeHJKYcwjky9eUba7N
-         aAZ45EQ+NhmViQ5JsTnCE/jrDNLR+W5ltBM0I=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-language
-         :content-transfer-encoding;
-        bh=J59F3dMhWxbnEie6W6MXq5/LSl0Eehr1s+0JLvyfa3g=;
-        b=ELJTshsmgrzUiZQY/eAypZuGYRrShqSdOiFJPNYObnDukVeW6ClUyzISHZUts2zdzB
-         nxWJhaHB4fqPtOffxUB38kTJ5N0xr7DVXV7PvRXT73YXN6bKzGdHUvmGkzXj2zJj1QeA
-         rSpSyzS18T6xScauGSDK8kCCOiLMc7tSP/obsi2SQZ4xBSkNH9Txb7iOiZnZqAHeGX1I
-         6OhKY/RnarR9F7GRhWRrCN6ADigz4Do2lRs67OMQ7WLnofRT7yqaCDR2Lvnj2NkeFOz/
-         M75oC5r0Jtcq9AzhIBDTaMlWGfeRYoCcLFbBgl8YJ0qBnTCYh9yTQydAmifyRhI9HZkD
-         XdyA==
-X-Gm-Message-State: APjAAAUchf7B+5CAOEJ5RiKYus4aOGSr2D5fZ9vaKiMo72uHhXQPIgL3
-        ZLI5j5tgFE26VyRkfEf9k6TreQ==
-X-Google-Smtp-Source: APXvYqyY/5IU4uKdq9FUXoGJ7wsMiQArBiaK1i5XY7LOZq/P7x84WsZD5LFvXi5DUEu/Q2hNB/EWcQ==
-X-Received: by 2002:a1c:3886:: with SMTP id f128mr7745421wma.151.1562155683641;
-        Wed, 03 Jul 2019 05:08:03 -0700 (PDT)
-Received: from [192.168.51.243] ([78.128.78.220])
-        by smtp.gmail.com with ESMTPSA id j7sm2920336wru.54.2019.07.03.05.08.02
-        (version=TLS1_3 cipher=AEAD-AES128-GCM-SHA256 bits=128/128);
-        Wed, 03 Jul 2019 05:08:03 -0700 (PDT)
-Subject: Re: [PATCH 1/2 nf-next v3] netfilter: nft_meta: Add
- NFT_META_BRI_IIFVPROTO support
-To:     wenxu@ucloud.cn, pablo@netfilter.org, fw@strlen.de
-Cc:     netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-References: <1561682975-21790-1-git-send-email-wenxu@ucloud.cn>
-From:   Nikolay Aleksandrov <nikolay@cumulusnetworks.com>
-Message-ID: <366e228f-7253-e388-4799-f0f9c18d1111@cumulusnetworks.com>
-Date:   Wed, 3 Jul 2019 15:08:01 +0300
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.6.1
+        Wed, 3 Jul 2019 08:19:10 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54644 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725847AbfGCMTK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 3 Jul 2019 08:19:10 -0400
+Received: from localhost (83-86-89-107.cable.dynamic.v4.ziggo.nl [83.86.89.107])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id F17CA218A4;
+        Wed,  3 Jul 2019 12:19:08 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1562156349;
+        bh=GpARfgYUgT5olAUEuC9ccJgpBkUXS4H7tRQyYVWvS3M=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=eSzg0uUn6ek35jC7H7r+LIbYN4HyR4PzA3DQHqPUERTelLPZ0tMqk75xXE8I7zROC
+         Xg5qbQLPMW+WF2krmTx/eU0aoLD/6EtjFiJoxo1djeK874bcT79GVczRzOSSJvG3ET
+         TH9rpK16/n1Gfco5VsCQFAZE9kCrkUvlJ8CseqP0=
+Date:   Wed, 3 Jul 2019 14:19:06 +0200
+From:   Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     stable@vger.kernel.org, netfilter-devel@vger.kernel.org
+Subject: Re: netfilter patches for -stable
+Message-ID: <20190703121906.GF7784@kroah.com>
+References: <20190702234321.cwqnmqhfymfg6hqh@salvia>
 MIME-Version: 1.0
-In-Reply-To: <1561682975-21790-1-git-send-email-wenxu@ucloud.cn>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190702234321.cwqnmqhfymfg6hqh@salvia>
+User-Agent: Mutt/1.12.1 (2019-06-15)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 28/06/2019 03:49, wenxu@ucloud.cn wrote:
-> From: wenxu <wenxu@ucloud.cn>
+On Wed, Jul 03, 2019 at 01:43:21AM +0200, Pablo Neira Ayuso wrote:
+> Hi Greg,
 > 
-> This patch provide a meta to get the bridge vlan proto
+> Would you consider to take the following patches for -stable?
 > 
-> nft add rule bridge firewall zones counter meta br_vlan_proto 0x8100
+> e75b3e1c9bc5 netfilter: nf_flow_table: ignore DF bit setting
+> 8437a6209f76 netfilter: nft_flow_offload: set liberal tracking mode for tcp
+> 91a9048f2380 netfilter: nft_flow_offload: don't offload when sequence numbers need adjustment
+> 69aeb538587e netfilter: nft_flow_offload: IPCB is only valid for ipv4 family
 > 
-> Signed-off-by: wenxu <wenxu@ucloud.cn>
-> ---
->  include/uapi/linux/netfilter/nf_tables.h | 2 ++
->  net/netfilter/nft_meta.c                 | 9 +++++++++
->  2 files changed, 11 insertions(+)
+> Users report this is fixing a connection stall in:
 > 
+>         https://bugzilla.kernel.org/show_bug.cgi?id=203671
 
-Hi,
-When using the internal bridge API outside of the bridge I'd advise you to CC bridge
-maintainers as well. This patch is clearly wrong since you cannot access the vlan
-fields directly because bridge vlan support might be disabled from the kernel config
-as Pablo has noticed as well. In general I'd try to avoid using the internal API directly,
-but that is a different matter. Please consult with include/linux/if_bridge.h for exported
-functions that are supposed to be visible outside of the bridge, if you need anything else
-make sure to add support for it there. The usage of br_opt_get directly for example must
-be changed to br_vlan_enabled(). 
+All now qeued up, thanks.
 
-Thanks,
- Nik
-
-
+greg k-h
