@@ -2,73 +2,100 @@ Return-Path: <SRS0=aW9c=VA=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.5 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 37A90C4646D
-	for <netfilter-devel@archiver.kernel.org>; Wed,  3 Jul 2019 12:19:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 348D2C06511
+	for <netfilter-devel@archiver.kernel.org>; Wed,  3 Jul 2019 12:23:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0D072218B8
-	for <netfilter-devel@archiver.kernel.org>; Wed,  3 Jul 2019 12:19:11 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1562156351;
-	bh=GpARfgYUgT5olAUEuC9ccJgpBkUXS4H7tRQyYVWvS3M=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=dGeYPUopnTyrXixLejLZgYphdYaDtw9sU+EEnWz8paZZQzdulG40ob2E2jhkGbCzU
-	 rcxUvgHYH7Qrh1sCiNB5VLD8q3FU12vYh5tiJ2LjLI1aAIAskyN3hf4KGFd4gwHRf4
-	 xVUohwlRCVgpNjEV6P67Ac1UrFwkuGJkvlOTdQbU=
+	by mail.kernel.org (Postfix) with ESMTP id 1715F218A6
+	for <netfilter-devel@archiver.kernel.org>; Wed,  3 Jul 2019 12:23:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726997AbfGCMTK (ORCPT
+        id S1726457AbfGCMXR (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 3 Jul 2019 08:19:10 -0400
-Received: from mail.kernel.org ([198.145.29.99]:54644 "EHLO mail.kernel.org"
+        Wed, 3 Jul 2019 08:23:17 -0400
+Received: from mail.us.es ([193.147.175.20]:41650 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725847AbfGCMTK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 3 Jul 2019 08:19:10 -0400
-Received: from localhost (83-86-89-107.cable.dynamic.v4.ziggo.nl [83.86.89.107])
+        id S1725933AbfGCMXR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 3 Jul 2019 08:23:17 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id D5AE9179891
+        for <netfilter-devel@vger.kernel.org>; Wed,  3 Jul 2019 14:23:15 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C4DC3A7BD6
+        for <netfilter-devel@vger.kernel.org>; Wed,  3 Jul 2019 14:23:15 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id B8A451021A8; Wed,  3 Jul 2019 14:23:15 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id AD7C110219C;
+        Wed,  3 Jul 2019 14:23:13 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Wed, 03 Jul 2019 14:23:13 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (sys.soleta.eu [212.170.55.40])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id F17CA218A4;
-        Wed,  3 Jul 2019 12:19:08 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1562156349;
-        bh=GpARfgYUgT5olAUEuC9ccJgpBkUXS4H7tRQyYVWvS3M=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=eSzg0uUn6ek35jC7H7r+LIbYN4HyR4PzA3DQHqPUERTelLPZ0tMqk75xXE8I7zROC
-         Xg5qbQLPMW+WF2krmTx/eU0aoLD/6EtjFiJoxo1djeK874bcT79GVczRzOSSJvG3ET
-         TH9rpK16/n1Gfco5VsCQFAZE9kCrkUvlJ8CseqP0=
-Date:   Wed, 3 Jul 2019 14:19:06 +0200
-From:   Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     stable@vger.kernel.org, netfilter-devel@vger.kernel.org
-Subject: Re: netfilter patches for -stable
-Message-ID: <20190703121906.GF7784@kroah.com>
-References: <20190702234321.cwqnmqhfymfg6hqh@salvia>
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 887B44265A32;
+        Wed,  3 Jul 2019 14:23:13 +0200 (CEST)
+Date:   Wed, 3 Jul 2019 14:23:13 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Nikolay Aleksandrov <nikolay@cumulusnetworks.com>
+Cc:     wenxu@ucloud.cn, fw@strlen.de, netfilter-devel@vger.kernel.org,
+        netdev@vger.kernel.org
+Subject: Re: [PATCH 1/2 nf-next v3] netfilter: nft_meta: Add
+ NFT_META_BRI_IIFVPROTO support
+Message-ID: <20190703122313.cidsxiaao6y2b6pt@salvia>
+References: <1561682975-21790-1-git-send-email-wenxu@ucloud.cn>
+ <366e228f-7253-e388-4799-f0f9c18d1111@cumulusnetworks.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20190702234321.cwqnmqhfymfg6hqh@salvia>
-User-Agent: Mutt/1.12.1 (2019-06-15)
+In-Reply-To: <366e228f-7253-e388-4799-f0f9c18d1111@cumulusnetworks.com>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Jul 03, 2019 at 01:43:21AM +0200, Pablo Neira Ayuso wrote:
-> Hi Greg,
+On Wed, Jul 03, 2019 at 03:08:01PM +0300, Nikolay Aleksandrov wrote:
+> On 28/06/2019 03:49, wenxu@ucloud.cn wrote:
+> > From: wenxu <wenxu@ucloud.cn>
+> > 
+> > This patch provide a meta to get the bridge vlan proto
+> > 
+> > nft add rule bridge firewall zones counter meta br_vlan_proto 0x8100
+> > 
+> > Signed-off-by: wenxu <wenxu@ucloud.cn>
+> > ---
+> >  include/uapi/linux/netfilter/nf_tables.h | 2 ++
+> >  net/netfilter/nft_meta.c                 | 9 +++++++++
+> >  2 files changed, 11 insertions(+)
+> > 
 > 
-> Would you consider to take the following patches for -stable?
-> 
-> e75b3e1c9bc5 netfilter: nf_flow_table: ignore DF bit setting
-> 8437a6209f76 netfilter: nft_flow_offload: set liberal tracking mode for tcp
-> 91a9048f2380 netfilter: nft_flow_offload: don't offload when sequence numbers need adjustment
-> 69aeb538587e netfilter: nft_flow_offload: IPCB is only valid for ipv4 family
-> 
-> Users report this is fixing a connection stall in:
-> 
->         https://bugzilla.kernel.org/show_bug.cgi?id=203671
+> Hi,
+> When using the internal bridge API outside of the bridge I'd advise you to CC bridge
+> maintainers as well.
 
-All now qeued up, thanks.
+Will keep this mind, thanks.
 
-greg k-h
+> This patch is clearly wrong since you cannot access the vlan
+> fields directly because bridge vlan support might be disabled from the kernel config
+> as Pablo has noticed as well. In general I'd try to avoid using the internal API directly,
+> but that is a different matter.
+
+BROPT_VLAN_ENABLED is exposed through netlink and sysfs, and this only
+consults the value. I guess you refer to the fact that...
+
+> Please consult with include/linux/if_bridge.h for exported
+> functions that are supposed to be visible outside of the bridge, if you need anything else
+> make sure to add support for it there. The usage of br_opt_get directly for example must
+> be changed to br_vlan_enabled().
+
+Indeed... this patch should be using br_vlan_enabled() instead.
+
+Thanks.
