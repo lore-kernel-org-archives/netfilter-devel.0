@@ -2,88 +2,218 @@ Return-Path: <SRS0=ip/f=VB=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.0 required=3.0
-	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1E7B0C46497
-	for <netfilter-devel@archiver.kernel.org>; Thu,  4 Jul 2019 22:59:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9E250C0650E
+	for <netfilter-devel@archiver.kernel.org>; Thu,  4 Jul 2019 23:49:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E96A521852
-	for <netfilter-devel@archiver.kernel.org>; Thu,  4 Jul 2019 22:59:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 620DF216FD
+	for <netfilter-devel@archiver.kernel.org>; Thu,  4 Jul 2019 23:49:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727281AbfGDW7a (ORCPT
+        id S1727644AbfGDXtL (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 4 Jul 2019 18:59:30 -0400
-Received: from mail.us.es ([193.147.175.20]:51634 "EHLO mail.us.es"
+        Thu, 4 Jul 2019 19:49:11 -0400
+Received: from mail.us.es ([193.147.175.20]:32828 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725917AbfGDW73 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 4 Jul 2019 18:59:29 -0400
+        id S1727142AbfGDXtL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 4 Jul 2019 19:49:11 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 137AB11456E
-        for <netfilter-devel@vger.kernel.org>; Fri,  5 Jul 2019 00:59:27 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 10133819B3
+        for <netfilter-devel@vger.kernel.org>; Fri,  5 Jul 2019 01:49:08 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 06E096DA85
-        for <netfilter-devel@vger.kernel.org>; Fri,  5 Jul 2019 00:59:27 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id F364C472
+        for <netfilter-devel@vger.kernel.org>; Fri,  5 Jul 2019 01:49:07 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id F0BEBFB37C; Fri,  5 Jul 2019 00:59:26 +0200 (CEST)
+        id E02421021A4; Fri,  5 Jul 2019 01:49:07 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 0DA56DA732;
-        Fri,  5 Jul 2019 00:59:25 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 72306DA704;
+        Fri,  5 Jul 2019 01:49:05 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Fri, 05 Jul 2019 00:59:25 +0200 (CEST)
+ Fri, 05 Jul 2019 01:49:05 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id D95124265A31;
-        Fri,  5 Jul 2019 00:59:24 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 404154265A31;
+        Fri,  5 Jul 2019 01:49:04 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     phil@nwl.cc
-Subject: [PATCH nft 2/3] main: replace NFT_EXIT_NOMEM by EXIT_FAILURE
-Date:   Fri,  5 Jul 2019 00:59:19 +0200
-Message-Id: <20190704225920.3671-2-pablo@netfilter.org>
+To:     netdev@vger.kernel.org
+Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        thomas.lendacky@amd.com, f.fainelli@gmail.com,
+        ariel.elior@cavium.com, michael.chan@broadcom.com,
+        madalin.bucur@nxp.com, yisen.zhuang@huawei.com,
+        salil.mehta@huawei.com, jeffrey.t.kirsher@intel.com,
+        tariqt@mellanox.com, saeedm@mellanox.com, jiri@mellanox.com,
+        idosch@mellanox.com, jakub.kicinski@netronome.com,
+        peppe.cavallaro@st.com, grygorii.strashko@ti.com, andrew@lunn.ch,
+        vivien.didelot@gmail.com, alexandre.torgue@st.com,
+        joabreu@synopsys.com, linux-net-drivers@solarflare.com,
+        ogerlitz@mellanox.com, Manish.Chopra@cavium.com,
+        marcelo.leitner@gmail.com, mkubecek@suse.cz,
+        venkatkumar.duvvuru@broadcom.com, maxime.chevallier@bootlin.com,
+        cphealy@gmail.com
+Subject: [PATCH 00/15 net-next,v2] netfilter: add hardware offload infrastructure
+Date:   Fri,  5 Jul 2019 01:48:28 +0200
+Message-Id: <20190704234843.6601-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
-In-Reply-To: <20190704225920.3671-1-pablo@netfilter.org>
-References: <20190704225920.3671-1-pablo@netfilter.org>
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The main.c file always uses either EXIT_FAILURE or EXIT_SUCCESS, replace
-this.
+Hi,
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- src/main.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+This patchset adds support for Netfilter hardware offloads.
 
-diff --git a/src/main.c b/src/main.c
-index 694611224d07..9db3d9aa0a15 100644
---- a/src/main.c
-+++ b/src/main.c
-@@ -19,7 +19,6 @@
- #include <sys/types.h>
- 
- #include <nftables/libnftables.h>
--#include <nftables.h>
- #include <utils.h>
- #include <cli.h>
- 
-@@ -307,7 +306,7 @@ int main(int argc, char * const *argv)
- 		if (buf == NULL) {
- 			fprintf(stderr, "%s:%u: Memory allocation failure\n",
- 				__FILE__, __LINE__);
--			exit(NFT_EXIT_NOMEM);
-+			exit(EXIT_FAILURE);
- 		}
- 		for (i = optind; i < argc; i++) {
- 			strcat(buf, argv[i]);
+This patchset reuses the existing block infrastructure, the
+netdev_ops->ndo_setup_tc() interface, TC_SETUP_CLSFLOWER classifier and
+the flow rule API.
+
+Patch #1 moves tcf_block_cb code before the indirect block
+         infrastructure to avoid forward declarations in the next
+         patches. This is just a preparation patch.
+
+Patch #2 adds tcf_block_cb_alloc() to allocate flow block callbacks.
+
+Patch #3 adds tcf_block_cb_free() to release flow block callbacks.
+
+Patch #4 adds the tcf_block_setup() infrastructure, which allows drivers
+         to set up flow block callbacks. This infrastructure transports
+         these objects via list (through the tc_block_offload object)
+         back to the core for registration.
+
+            CLS_API                           DRIVER
+        TC_SETUP_BLOCK    ---------->  setup flow_block_cb object &
+                                 it adds object to flow_block_offload->cb_list
+                                                |
+            CLS_API     <-----------------------'
+           registers                     list with flow blocks
+         flow_block_cb &                   travels back to
+       calls ->reoffload               the core for registration
+
+         This patch introduces a global flow block list for all drivers
+	 which is a temporary artifact to make incremental changes, it
+	 is removed in patch #12!
+
+Patch #5 extends tcf_block_cb_alloc() to allow drivers to set a release
+         callback that is invoked from tcf_block_cb_free() to release
+         private driver block information.
+
+Patch #6 adds tcf_setup_block_offload(), this helper function is used by
+         most drivers to setup the block, including common bind and
+         unbind operations.
+
+Patch #7 adapts drivers to use the infrastructure introduced in Patch #4.
+
+Patch #8 stops exposing the tc block structure to drivers, by caching
+         the only information that drivers need, ie. block is shared
+         flag.
+
+Patch #9 removes the tcf_block_cb_register() / _unregister()
+         infrastructure, since it is now unused after Patch #7.
+
+Patch #10 moves the flow_block API to the net/core/flow_offload.c file.
+          This renames from tcf_block_cb to flow_block_cb as well as the
+          functions to allocate, release, lookup and setup flow block
+          callbacks.
+
+Patch #11 makes sure that only one flow block callback per device is
+          possible by now. This means only one of the ethtool / tc /
+          netfilter subsystems can use hardware offloads, until drivers
+          are updated to remove this limitation.
+
+Patch #12 introduces a flow block list per-driver, this is a step
+	  towards offloading multiple subsystems. This needs more work
+	  on the driver side to support for this.
+
+Patch #13 renames TC_BLOCK_{UN}BIND to FLOW_BLOCK_{UN}BIND.
+
+Patch #14 renames TCF_BLOCK_BINDER_TYPE_* to FLOW_BLOCK_BINDER_TYPE_*.
+
+Patch #15 introduces basic netfilter hardware offload infrastructure
+          for the ingress chain. This includes 5-tuple exact matching
+	  and accept / drop rule actions. Only basechains are supported
+	  at this stage, no .reoffload callback is implemented either.
+	  Default policy to "accept" is only supported for now.
+
+An example ruleset looks like this:
+
+	table netdev filter {
+		flags offload;
+
+		chain ingress {
+	                type filter hook ingress device eth0 priority 0;
+
+			ip daddr 192.168.0.10 tcp dport 22 drop
+	        }
+	}
+
+The 'offload' flag specifies that this table (and anything that is enclosed
+into this table) belongs to hardware.
+
+Please, apply, thanks.
+
+Pablo Neira Ayuso (15):
+  net: sched: move tcf_block_cb before indr_block
+  net: sched: add tcf_block_cb_alloc()
+  net: sched: add tcf_block_cb_free()
+  net: sched: add tcf_block_setup()
+  net: sched: add release callback to struct tcf_block_cb
+  net: sched: add tcf_setup_block_offload()
+  net: use tcf_block_setup() infrastructure
+  net: cls_api: do not expose tcf_block to drivers
+  net: sched: remove tcf_block_cb_{register,unregister}()
+  net: flow_offload: add flow_block_cb API
+  net: flow_offload: don't allow subsystem to reuse blocks
+  net: flow_offload: make flow block callback list per-driver
+  net: flow_offload: rename TC_BLOCK_{UN}BIND to FLOW_BLOCK_{UN}BIND
+  net: flow_offload: rename TCF_BLOCK_BINDER_TYPE_* to FLOW_BLOCK_BINDER_TYPE_*
+  netfilter: nf_tables: add hardware offload support
+
+ drivers/net/ethernet/broadcom/bnxt/bnxt.c          |  26 +-
+ drivers/net/ethernet/broadcom/bnxt/bnxt_vfr.c      |  29 +-
+ drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c    |  26 +-
+ drivers/net/ethernet/intel/i40e/i40e_main.c        |  26 +-
+ drivers/net/ethernet/intel/iavf/iavf_main.c        |  35 +-
+ drivers/net/ethernet/intel/igb/igb_main.c          |  26 +-
+ drivers/net/ethernet/intel/ixgbe/ixgbe_main.c      |  29 +-
+ drivers/net/ethernet/mellanox/mlx5/core/en_main.c  |  29 +-
+ drivers/net/ethernet/mellanox/mlx5/core/en_rep.c   |  70 ++-
+ drivers/net/ethernet/mellanox/mlxsw/spectrum.c     |  97 ++--
+ drivers/net/ethernet/mscc/ocelot_ace.h             |   4 +-
+ drivers/net/ethernet/mscc/ocelot_flower.c          |  47 +-
+ drivers/net/ethernet/mscc/ocelot_tc.c              |  42 +-
+ drivers/net/ethernet/netronome/nfp/abm/cls.c       |  22 +-
+ drivers/net/ethernet/netronome/nfp/abm/main.h      |   2 +-
+ drivers/net/ethernet/netronome/nfp/bpf/main.c      |  30 +-
+ .../net/ethernet/netronome/nfp/flower/offload.c    |  76 +--
+ drivers/net/ethernet/qlogic/qede/qede_main.c       |  23 +-
+ drivers/net/ethernet/stmicro/stmmac/stmmac_main.c  |  23 +-
+ drivers/net/netdevsim/netdev.c                     |  29 +-
+ include/net/flow_offload.h                         |  56 +++
+ include/net/netfilter/nf_tables.h                  |  13 +
+ include/net/netfilter/nf_tables_offload.h          |  76 +++
+ include/net/pkt_cls.h                              |  90 +---
+ include/uapi/linux/netfilter/nf_tables.h           |   2 +
+ net/core/flow_offload.c                            | 123 +++++
+ net/dsa/slave.c                                    |  28 +-
+ net/netfilter/Makefile                             |   2 +-
+ net/netfilter/nf_tables_api.c                      |  22 +-
+ net/netfilter/nf_tables_offload.c                  | 261 ++++++++++
+ net/netfilter/nft_cmp.c                            |  53 +++
+ net/netfilter/nft_immediate.c                      |  31 ++
+ net/netfilter/nft_meta.c                           |  27 ++
+ net/netfilter/nft_payload.c                        | 187 ++++++++
+ net/sched/cls_api.c                                | 526 ++++++++++-----------
+ net/sched/sch_ingress.c                            |   6 +-
+ 36 files changed, 1411 insertions(+), 783 deletions(-)
+ create mode 100644 include/net/netfilter/nf_tables_offload.h
+ create mode 100644 net/netfilter/nf_tables_offload.c
+
 -- 
 2.11.0
 
