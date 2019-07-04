@@ -2,43 +2,43 @@ Return-Path: <SRS0=ip/f=VB=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,URIBL_SBL,URIBL_SBL_A,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.0 required=3.0
+	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 29D15C0651F
-	for <netfilter-devel@archiver.kernel.org>; Thu,  4 Jul 2019 23:49:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 606F1C46498
+	for <netfilter-devel@archiver.kernel.org>; Thu,  4 Jul 2019 23:49:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 07CB621852
-	for <netfilter-devel@archiver.kernel.org>; Thu,  4 Jul 2019 23:49:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 22608216FD
+	for <netfilter-devel@archiver.kernel.org>; Thu,  4 Jul 2019 23:49:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727819AbfGDXtq (ORCPT
+        id S1727749AbfGDXt2 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 4 Jul 2019 19:49:46 -0400
-Received: from mail.us.es ([193.147.175.20]:33692 "EHLO mail.us.es"
+        Thu, 4 Jul 2019 19:49:28 -0400
+Received: from mail.us.es ([193.147.175.20]:33246 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727788AbfGDXti (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 4 Jul 2019 19:49:38 -0400
+        id S1727705AbfGDXt1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 4 Jul 2019 19:49:27 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id B1ECA81422
-        for <netfilter-devel@vger.kernel.org>; Fri,  5 Jul 2019 01:49:35 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 539C68169E
+        for <netfilter-devel@vger.kernel.org>; Fri,  5 Jul 2019 01:49:22 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 917BE1150DA
-        for <netfilter-devel@vger.kernel.org>; Fri,  5 Jul 2019 01:49:35 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 21CACA0AAB
+        for <netfilter-devel@vger.kernel.org>; Fri,  5 Jul 2019 01:49:22 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 86B0C114D9C; Fri,  5 Jul 2019 01:49:35 +0200 (CEST)
+        id 177B1A0AAC; Fri,  5 Jul 2019 01:49:22 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id D1BAD115109;
-        Fri,  5 Jul 2019 01:49:29 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id AE5C41021A4;
+        Fri,  5 Jul 2019 01:49:17 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Fri, 05 Jul 2019 01:49:29 +0200 (CEST)
+ Fri, 05 Jul 2019 01:49:17 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 9C4CA4265A31;
-        Fri,  5 Jul 2019 01:49:28 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 802004265A31;
+        Fri,  5 Jul 2019 01:49:16 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netdev@vger.kernel.org
@@ -56,9 +56,9 @@ Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
         marcelo.leitner@gmail.com, mkubecek@suse.cz,
         venkatkumar.duvvuru@broadcom.com, maxime.chevallier@bootlin.com,
         cphealy@gmail.com
-Subject: [PATCH 13/15 net-next,v2] net: flow_offload: rename TC_BLOCK_{UN}BIND to FLOW_BLOCK_{UN}BIND
-Date:   Fri,  5 Jul 2019 01:48:41 +0200
-Message-Id: <20190704234843.6601-14-pablo@netfilter.org>
+Subject: [PATCH 06/15 net-next,v2] net: sched: add tcf_setup_block_offload()
+Date:   Fri,  5 Jul 2019 01:48:34 +0200
+Message-Id: <20190704234843.6601-7-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20190704234843.6601-1-pablo@netfilter.org>
 References: <20190704234843.6601-1-pablo@netfilter.org>
@@ -68,279 +68,693 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Not tc specific anymore, rename this.
+Most drivers do the same thing to set up the block, add a helper
+function to do this.
 
-Suggested-by: Jiri Pirko <jiri@resnulli.us>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-v2: Actually a new patch (no previous v1), requested by Jiri.
+v2: no changes.
 
- drivers/net/ethernet/mellanox/mlx5/core/en_rep.c   |  4 ++--
- drivers/net/ethernet/mellanox/mlxsw/spectrum.c     |  4 ++--
- drivers/net/ethernet/mscc/ocelot_tc.c              |  4 ++--
- .../net/ethernet/netronome/nfp/flower/offload.c    |  8 ++++----
- include/net/flow_offload.h                         |  4 ++--
- net/core/flow_offload.c                            |  4 ++--
- net/dsa/slave.c                                    |  4 ++--
- net/sched/cls_api.c                                | 24 +++++++++++-----------
- 8 files changed, 28 insertions(+), 28 deletions(-)
+ drivers/net/ethernet/broadcom/bnxt/bnxt.c         | 26 ++++-------------
+ drivers/net/ethernet/broadcom/bnxt/bnxt_vfr.c     | 28 ++++--------------
+ drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c   | 26 ++++-------------
+ drivers/net/ethernet/intel/i40e/i40e_main.c       | 26 ++++-------------
+ drivers/net/ethernet/intel/iavf/iavf_main.c       | 35 ++++-------------------
+ drivers/net/ethernet/intel/igb/igb_main.c         | 23 ++-------------
+ drivers/net/ethernet/intel/ixgbe/ixgbe_main.c     | 27 ++++-------------
+ drivers/net/ethernet/mellanox/mlx5/core/en_main.c | 27 ++++-------------
+ drivers/net/ethernet/mellanox/mlx5/core/en_rep.c  | 26 ++++-------------
+ drivers/net/ethernet/netronome/nfp/abm/cls.c      | 17 ++---------
+ drivers/net/ethernet/netronome/nfp/bpf/main.c     | 29 ++++---------------
+ drivers/net/ethernet/qlogic/qede/qede_main.c      | 23 ++-------------
+ drivers/net/ethernet/stmicro/stmmac/stmmac_main.c | 22 ++------------
+ drivers/net/netdevsim/netdev.c                    | 26 ++++-------------
+ include/net/pkt_cls.h                             | 10 +++++++
+ net/sched/cls_api.c                               | 20 +++++++++++++
+ 16 files changed, 91 insertions(+), 300 deletions(-)
 
+diff --git a/drivers/net/ethernet/broadcom/bnxt/bnxt.c b/drivers/net/ethernet/broadcom/bnxt/bnxt.c
+index b7b62273c955..bda732ab6538 100644
+--- a/drivers/net/ethernet/broadcom/bnxt/bnxt.c
++++ b/drivers/net/ethernet/broadcom/bnxt/bnxt.c
+@@ -9847,32 +9847,16 @@ static int bnxt_setup_tc_block_cb(enum tc_setup_type type, void *type_data,
+ 	}
+ }
+ 
+-static int bnxt_setup_tc_block(struct net_device *dev,
+-			       struct tc_block_offload *f)
+-{
+-	struct bnxt *bp = netdev_priv(dev);
+-
+-	if (f->binder_type != TCF_BLOCK_BINDER_TYPE_CLSACT_INGRESS)
+-		return -EOPNOTSUPP;
+-
+-	switch (f->command) {
+-	case TC_BLOCK_BIND:
+-		return tcf_block_cb_register(f->block, bnxt_setup_tc_block_cb,
+-					     bp, bp, f->extack);
+-	case TC_BLOCK_UNBIND:
+-		tcf_block_cb_unregister(f->block, bnxt_setup_tc_block_cb, bp);
+-		return 0;
+-	default:
+-		return -EOPNOTSUPP;
+-	}
+-}
+-
+ static int bnxt_setup_tc(struct net_device *dev, enum tc_setup_type type,
+ 			 void *type_data)
+ {
++	struct bnxt *bp = netdev_priv(dev);
++
+ 	switch (type) {
+ 	case TC_SETUP_BLOCK:
+-		return bnxt_setup_tc_block(dev, type_data);
++		return tcf_setup_block_offload(type_data,
++					       bnxt_setup_tc_block_cb, bp, bp,
++					       true);
+ 	case TC_SETUP_QDISC_MQPRIO: {
+ 		struct tc_mqprio_qopt *mqprio = type_data;
+ 
+diff --git a/drivers/net/ethernet/broadcom/bnxt/bnxt_vfr.c b/drivers/net/ethernet/broadcom/bnxt/bnxt_vfr.c
+index f760921389a3..c8bb104f28d4 100644
+--- a/drivers/net/ethernet/broadcom/bnxt/bnxt_vfr.c
++++ b/drivers/net/ethernet/broadcom/bnxt/bnxt_vfr.c
+@@ -161,34 +161,16 @@ static int bnxt_vf_rep_setup_tc_block_cb(enum tc_setup_type type,
+ 	}
+ }
+ 
+-static int bnxt_vf_rep_setup_tc_block(struct net_device *dev,
+-				      struct tc_block_offload *f)
+-{
+-	struct bnxt_vf_rep *vf_rep = netdev_priv(dev);
+-
+-	if (f->binder_type != TCF_BLOCK_BINDER_TYPE_CLSACT_INGRESS)
+-		return -EOPNOTSUPP;
+-
+-	switch (f->command) {
+-	case TC_BLOCK_BIND:
+-		return tcf_block_cb_register(f->block,
+-					     bnxt_vf_rep_setup_tc_block_cb,
+-					     vf_rep, vf_rep, f->extack);
+-	case TC_BLOCK_UNBIND:
+-		tcf_block_cb_unregister(f->block,
+-					bnxt_vf_rep_setup_tc_block_cb, vf_rep);
+-		return 0;
+-	default:
+-		return -EOPNOTSUPP;
+-	}
+-}
+-
+ static int bnxt_vf_rep_setup_tc(struct net_device *dev, enum tc_setup_type type,
+ 				void *type_data)
+ {
++	struct bnxt_vf_rep *vf_rep = netdev_priv(dev);
++
+ 	switch (type) {
+ 	case TC_SETUP_BLOCK:
+-		return bnxt_vf_rep_setup_tc_block(dev, type_data);
++		return tcf_setup_block_offload(type_data,
++					       bnxt_vf_rep_setup_tc_block_cb,
++					       vf_rep, vf_rep, true);
+ 	default:
+ 		return -EOPNOTSUPP;
+ 	}
+diff --git a/drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c b/drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c
+index b08efc48d42f..a09b9c909be1 100644
+--- a/drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c
++++ b/drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c
+@@ -3190,32 +3190,16 @@ static int cxgb_setup_tc_block_cb(enum tc_setup_type type, void *type_data,
+ 	}
+ }
+ 
+-static int cxgb_setup_tc_block(struct net_device *dev,
+-			       struct tc_block_offload *f)
+-{
+-	struct port_info *pi = netdev2pinfo(dev);
+-
+-	if (f->binder_type != TCF_BLOCK_BINDER_TYPE_CLSACT_INGRESS)
+-		return -EOPNOTSUPP;
+-
+-	switch (f->command) {
+-	case TC_BLOCK_BIND:
+-		return tcf_block_cb_register(f->block, cxgb_setup_tc_block_cb,
+-					     pi, dev, f->extack);
+-	case TC_BLOCK_UNBIND:
+-		tcf_block_cb_unregister(f->block, cxgb_setup_tc_block_cb, pi);
+-		return 0;
+-	default:
+-		return -EOPNOTSUPP;
+-	}
+-}
+-
+ static int cxgb_setup_tc(struct net_device *dev, enum tc_setup_type type,
+ 			 void *type_data)
+ {
++	struct port_info *pi = netdev2pinfo(dev);
++
+ 	switch (type) {
+ 	case TC_SETUP_BLOCK:
+-		return cxgb_setup_tc_block(dev, type_data);
++		return tcf_setup_block_offload(type_data,
++					       cxgb_setup_tc_block_cb, pi, dev,
++					       true);
+ 	default:
+ 		return -EOPNOTSUPP;
+ 	}
+diff --git a/drivers/net/ethernet/intel/i40e/i40e_main.c b/drivers/net/ethernet/intel/i40e/i40e_main.c
+index 5361c08328f7..1e703daa50fd 100644
+--- a/drivers/net/ethernet/intel/i40e/i40e_main.c
++++ b/drivers/net/ethernet/intel/i40e/i40e_main.c
+@@ -8177,34 +8177,18 @@ static int i40e_setup_tc_block_cb(enum tc_setup_type type, void *type_data,
+ 	}
+ }
+ 
+-static int i40e_setup_tc_block(struct net_device *dev,
+-			       struct tc_block_offload *f)
+-{
+-	struct i40e_netdev_priv *np = netdev_priv(dev);
+-
+-	if (f->binder_type != TCF_BLOCK_BINDER_TYPE_CLSACT_INGRESS)
+-		return -EOPNOTSUPP;
+-
+-	switch (f->command) {
+-	case TC_BLOCK_BIND:
+-		return tcf_block_cb_register(f->block, i40e_setup_tc_block_cb,
+-					     np, np, f->extack);
+-	case TC_BLOCK_UNBIND:
+-		tcf_block_cb_unregister(f->block, i40e_setup_tc_block_cb, np);
+-		return 0;
+-	default:
+-		return -EOPNOTSUPP;
+-	}
+-}
+-
+ static int __i40e_setup_tc(struct net_device *netdev, enum tc_setup_type type,
+ 			   void *type_data)
+ {
++	struct i40e_netdev_priv *np = netdev_priv(netdev);
++
+ 	switch (type) {
+ 	case TC_SETUP_QDISC_MQPRIO:
+ 		return i40e_setup_tc(netdev, type_data);
+ 	case TC_SETUP_BLOCK:
+-		return i40e_setup_tc_block(netdev, type_data);
++		return tcf_setup_block_offload(type_data,
++					       i40e_setup_tc_block_cb, np, np,
++					       true);
+ 	default:
+ 		return -EOPNOTSUPP;
+ 	}
+diff --git a/drivers/net/ethernet/intel/iavf/iavf_main.c b/drivers/net/ethernet/intel/iavf/iavf_main.c
+index 881561b36083..29640e4b15f2 100644
+--- a/drivers/net/ethernet/intel/iavf/iavf_main.c
++++ b/drivers/net/ethernet/intel/iavf/iavf_main.c
+@@ -3114,35 +3114,6 @@ static int iavf_setup_tc_block_cb(enum tc_setup_type type, void *type_data,
+ }
+ 
+ /**
+- * iavf_setup_tc_block - register callbacks for tc
+- * @netdev: network interface device structure
+- * @f: tc offload data
+- *
+- * This function registers block callbacks for tc
+- * offloads
+- **/
+-static int iavf_setup_tc_block(struct net_device *dev,
+-			       struct tc_block_offload *f)
+-{
+-	struct iavf_adapter *adapter = netdev_priv(dev);
+-
+-	if (f->binder_type != TCF_BLOCK_BINDER_TYPE_CLSACT_INGRESS)
+-		return -EOPNOTSUPP;
+-
+-	switch (f->command) {
+-	case TC_BLOCK_BIND:
+-		return tcf_block_cb_register(f->block, iavf_setup_tc_block_cb,
+-					     adapter, adapter, f->extack);
+-	case TC_BLOCK_UNBIND:
+-		tcf_block_cb_unregister(f->block, iavf_setup_tc_block_cb,
+-					adapter);
+-		return 0;
+-	default:
+-		return -EOPNOTSUPP;
+-	}
+-}
+-
+-/**
+  * iavf_setup_tc - configure multiple traffic classes
+  * @netdev: network interface device structure
+  * @type: type of offload
+@@ -3156,11 +3127,15 @@ static int iavf_setup_tc_block(struct net_device *dev,
+ static int iavf_setup_tc(struct net_device *netdev, enum tc_setup_type type,
+ 			 void *type_data)
+ {
++	struct iavf_adapter *adapter = netdev_priv(netdev);
++
+ 	switch (type) {
+ 	case TC_SETUP_QDISC_MQPRIO:
+ 		return __iavf_setup_tc(netdev, type_data);
+ 	case TC_SETUP_BLOCK:
+-		return iavf_setup_tc_block(netdev, type_data);
++		return tcf_setup_block_offload(type_data,
++					       iavf_setup_tc_block_cb, adapter,
++					       adapter, true);
+ 	default:
+ 		return -EOPNOTSUPP;
+ 	}
+diff --git a/drivers/net/ethernet/intel/igb/igb_main.c b/drivers/net/ethernet/intel/igb/igb_main.c
+index f66dae72fe37..75a29adce0ce 100644
+--- a/drivers/net/ethernet/intel/igb/igb_main.c
++++ b/drivers/net/ethernet/intel/igb/igb_main.c
+@@ -2783,25 +2783,6 @@ static int igb_setup_tc_block_cb(enum tc_setup_type type, void *type_data,
+ 	}
+ }
+ 
+-static int igb_setup_tc_block(struct igb_adapter *adapter,
+-			      struct tc_block_offload *f)
+-{
+-	if (f->binder_type != TCF_BLOCK_BINDER_TYPE_CLSACT_INGRESS)
+-		return -EOPNOTSUPP;
+-
+-	switch (f->command) {
+-	case TC_BLOCK_BIND:
+-		return tcf_block_cb_register(f->block, igb_setup_tc_block_cb,
+-					     adapter, adapter, f->extack);
+-	case TC_BLOCK_UNBIND:
+-		tcf_block_cb_unregister(f->block, igb_setup_tc_block_cb,
+-					adapter);
+-		return 0;
+-	default:
+-		return -EOPNOTSUPP;
+-	}
+-}
+-
+ static int igb_offload_txtime(struct igb_adapter *adapter,
+ 			      struct tc_etf_qopt_offload *qopt)
+ {
+@@ -2834,7 +2815,9 @@ static int igb_setup_tc(struct net_device *dev, enum tc_setup_type type,
+ 	case TC_SETUP_QDISC_CBS:
+ 		return igb_offload_cbs(adapter, type_data);
+ 	case TC_SETUP_BLOCK:
+-		return igb_setup_tc_block(adapter, type_data);
++		return tcf_setup_block_offload(type_data, igb_setup_tc_block_cb,
++					       adapter, adapter, true);
++
+ 	case TC_SETUP_QDISC_ETF:
+ 		return igb_offload_txtime(adapter, type_data);
+ 
+diff --git a/drivers/net/ethernet/intel/ixgbe/ixgbe_main.c b/drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+index b613e72c8ee4..7d3fe89ce807 100644
+--- a/drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
++++ b/drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+@@ -9607,27 +9607,6 @@ static int ixgbe_setup_tc_block_cb(enum tc_setup_type type, void *type_data,
+ 	}
+ }
+ 
+-static int ixgbe_setup_tc_block(struct net_device *dev,
+-				struct tc_block_offload *f)
+-{
+-	struct ixgbe_adapter *adapter = netdev_priv(dev);
+-
+-	if (f->binder_type != TCF_BLOCK_BINDER_TYPE_CLSACT_INGRESS)
+-		return -EOPNOTSUPP;
+-
+-	switch (f->command) {
+-	case TC_BLOCK_BIND:
+-		return tcf_block_cb_register(f->block, ixgbe_setup_tc_block_cb,
+-					     adapter, adapter, f->extack);
+-	case TC_BLOCK_UNBIND:
+-		tcf_block_cb_unregister(f->block, ixgbe_setup_tc_block_cb,
+-					adapter);
+-		return 0;
+-	default:
+-		return -EOPNOTSUPP;
+-	}
+-}
+-
+ static int ixgbe_setup_tc_mqprio(struct net_device *dev,
+ 				 struct tc_mqprio_qopt *mqprio)
+ {
+@@ -9638,9 +9617,13 @@ static int ixgbe_setup_tc_mqprio(struct net_device *dev,
+ static int __ixgbe_setup_tc(struct net_device *dev, enum tc_setup_type type,
+ 			    void *type_data)
+ {
++	struct ixgbe_adapter *adapter = netdev_priv(dev);
++
+ 	switch (type) {
+ 	case TC_SETUP_BLOCK:
+-		return ixgbe_setup_tc_block(dev, type_data);
++		return tcf_setup_block_offload(type_data,
++					       ixgbe_setup_tc_block_cb,
++					       adapter, adapter, true);
+ 	case TC_SETUP_QDISC_MQPRIO:
+ 		return ixgbe_setup_tc_mqprio(dev, type_data);
+ 	default:
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+index 1085040675ae..ffb501cfbc8d 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+@@ -3345,36 +3345,19 @@ static int mlx5e_setup_tc_block_cb(enum tc_setup_type type, void *type_data,
+ 		return -EOPNOTSUPP;
+ 	}
+ }
+-
+-static int mlx5e_setup_tc_block(struct net_device *dev,
+-				struct tc_block_offload *f)
+-{
+-	struct mlx5e_priv *priv = netdev_priv(dev);
+-
+-	if (f->binder_type != TCF_BLOCK_BINDER_TYPE_CLSACT_INGRESS)
+-		return -EOPNOTSUPP;
+-
+-	switch (f->command) {
+-	case TC_BLOCK_BIND:
+-		return tcf_block_cb_register(f->block, mlx5e_setup_tc_block_cb,
+-					     priv, priv, f->extack);
+-	case TC_BLOCK_UNBIND:
+-		tcf_block_cb_unregister(f->block, mlx5e_setup_tc_block_cb,
+-					priv);
+-		return 0;
+-	default:
+-		return -EOPNOTSUPP;
+-	}
+-}
+ #endif
+ 
+ static int mlx5e_setup_tc(struct net_device *dev, enum tc_setup_type type,
+ 			  void *type_data)
+ {
++	struct mlx5e_priv *priv = netdev_priv(dev);
++
+ 	switch (type) {
+ #ifdef CONFIG_MLX5_ESWITCH
+ 	case TC_SETUP_BLOCK:
+-		return mlx5e_setup_tc_block(dev, type_data);
++		return tcf_setup_block_offload(type_data,
++					       mlx5e_setup_tc_block_cb,
++					       priv, priv, true);
+ #endif
+ 	case TC_SETUP_QDISC_MQPRIO:
+ 		return mlx5e_setup_tc_mqprio(dev, type_data);
 diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c b/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
-index 2d26af759997..d05888dff503 100644
+index 330034fcdfc5..120de25c63c8 100644
 --- a/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
 +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
-@@ -714,7 +714,7 @@ mlx5e_rep_indr_setup_tc_block(struct net_device *netdev,
- 		return -EOPNOTSUPP;
- 
- 	switch (f->command) {
--	case TC_BLOCK_BIND:
-+	case FLOW_BLOCK_BIND:
- 		indr_priv = mlx5e_rep_indr_block_priv_lookup(rpriv, netdev);
- 		if (indr_priv)
- 			return -EEXIST;
-@@ -739,7 +739,7 @@ mlx5e_rep_indr_setup_tc_block(struct net_device *netdev,
- 		flow_block_cb_add(block_cb, f);
- 
- 		return 0;
--	case TC_BLOCK_UNBIND:
-+	case FLOW_BLOCK_UNBIND:
- 		indr_priv = mlx5e_rep_indr_block_priv_lookup(rpriv, netdev);
- 		if (!indr_priv)
- 			return -ENOENT;
-diff --git a/drivers/net/ethernet/mellanox/mlxsw/spectrum.c b/drivers/net/ethernet/mellanox/mlxsw/spectrum.c
-index 3ecb51a05961..8083491b2172 100644
---- a/drivers/net/ethernet/mellanox/mlxsw/spectrum.c
-+++ b/drivers/net/ethernet/mellanox/mlxsw/spectrum.c
-@@ -1693,7 +1693,7 @@ static int mlxsw_sp_setup_tc_block(struct mlxsw_sp_port *mlxsw_sp_port,
+@@ -1178,32 +1178,16 @@ static int mlx5e_rep_setup_tc_cb(enum tc_setup_type type, void *type_data,
  	}
+ }
  
- 	switch (f->command) {
+-static int mlx5e_rep_setup_tc_block(struct net_device *dev,
+-				    struct tc_block_offload *f)
+-{
+-	struct mlx5e_priv *priv = netdev_priv(dev);
+-
+-	if (f->binder_type != TCF_BLOCK_BINDER_TYPE_CLSACT_INGRESS)
+-		return -EOPNOTSUPP;
+-
+-	switch (f->command) {
 -	case TC_BLOCK_BIND:
-+	case FLOW_BLOCK_BIND:
- 		block_cb = flow_block_cb_alloc(f, cb, mlxsw_sp_port,
- 					       mlxsw_sp_port, NULL);
- 		if (IS_ERR(block_cb))
-@@ -1706,7 +1706,7 @@ static int mlxsw_sp_setup_tc_block(struct mlxsw_sp_port *mlxsw_sp_port,
- 		}
- 		flow_block_cb_add(block_cb, f);
- 		return 0;
+-		return tcf_block_cb_register(f->block, mlx5e_rep_setup_tc_cb,
+-					     priv, priv, f->extack);
 -	case TC_BLOCK_UNBIND:
-+	case FLOW_BLOCK_UNBIND:
- 		mlxsw_sp_setup_tc_block_flower_unbind(mlxsw_sp_port,
- 						      f, ingress);
- 		block_cb = flow_block_cb_lookup(f, cb, mlxsw_sp_port);
-diff --git a/drivers/net/ethernet/mscc/ocelot_tc.c b/drivers/net/ethernet/mscc/ocelot_tc.c
-index 17fca31206c7..d92de65176b5 100644
---- a/drivers/net/ethernet/mscc/ocelot_tc.c
-+++ b/drivers/net/ethernet/mscc/ocelot_tc.c
-@@ -152,7 +152,7 @@ static int ocelot_setup_tc_block(struct ocelot_port *port,
- 	f->block_cb_list = &ocelot_block_cb_list;
- 
- 	switch (f->command) {
--	case TC_BLOCK_BIND:
-+	case FLOW_BLOCK_BIND:
- 		block_cb = flow_block_cb_alloc(f, cb, port, port, NULL);
- 		if (IS_ERR(block_cb))
- 			return PTR_ERR(block_cb);
-@@ -164,7 +164,7 @@ static int ocelot_setup_tc_block(struct ocelot_port *port,
- 		}
- 		flow_block_cb_add(block_cb, f);
- 		return 0;
--	case TC_BLOCK_UNBIND:
-+	case FLOW_BLOCK_UNBIND:
- 		block_cb = flow_block_cb_lookup(f, cb, port);
- 		if (!block_cb)
- 			return -ENOENT;
-diff --git a/drivers/net/ethernet/netronome/nfp/flower/offload.c b/drivers/net/ethernet/netronome/nfp/flower/offload.c
-index 6b2f31ed2315..c52b8349b9f1 100644
---- a/drivers/net/ethernet/netronome/nfp/flower/offload.c
-+++ b/drivers/net/ethernet/netronome/nfp/flower/offload.c
-@@ -1316,7 +1316,7 @@ static int nfp_flower_setup_tc_block(struct net_device *netdev,
- 	repr_priv->block_shared = f->block_shared;
- 
- 	switch (f->command) {
--	case TC_BLOCK_BIND:
-+	case FLOW_BLOCK_BIND:
- 		block_cb = flow_block_cb_alloc(f,
- 					       nfp_flower_setup_tc_block_cb,
- 					       repr, repr, NULL);
-@@ -1325,7 +1325,7 @@ static int nfp_flower_setup_tc_block(struct net_device *netdev,
- 
- 		flow_block_cb_add(block_cb, f);
- 		return 0;
--	case TC_BLOCK_UNBIND:
-+	case FLOW_BLOCK_UNBIND:
- 		block_cb = flow_block_cb_lookup(f,
- 						nfp_flower_setup_tc_block_cb,
- 						repr);
-@@ -1413,7 +1413,7 @@ nfp_flower_setup_indr_tc_block(struct net_device *netdev, struct nfp_app *app,
+-		tcf_block_cb_unregister(f->block, mlx5e_rep_setup_tc_cb, priv);
+-		return 0;
+-	default:
+-		return -EOPNOTSUPP;
+-	}
+-}
+-
+ static int mlx5e_rep_setup_tc(struct net_device *dev, enum tc_setup_type type,
+ 			      void *type_data)
+ {
++	struct mlx5e_priv *priv = netdev_priv(dev);
++
+ 	switch (type) {
+ 	case TC_SETUP_BLOCK:
+-		return mlx5e_rep_setup_tc_block(dev, type_data);
++		return tcf_setup_block_offload(type_data,
++					       mlx5e_rep_setup_tc_cb,
++					       priv, priv, true);
+ 	default:
  		return -EOPNOTSUPP;
- 
- 	switch (f->command) {
+ 	}
+diff --git a/drivers/net/ethernet/netronome/nfp/abm/cls.c b/drivers/net/ethernet/netronome/nfp/abm/cls.c
+index ff3913085665..d99981ec04a3 100644
+--- a/drivers/net/ethernet/netronome/nfp/abm/cls.c
++++ b/drivers/net/ethernet/netronome/nfp/abm/cls.c
+@@ -265,19 +265,6 @@ static int nfp_abm_setup_tc_block_cb(enum tc_setup_type type,
+ int nfp_abm_setup_cls_block(struct net_device *netdev, struct nfp_repr *repr,
+ 			    struct tc_block_offload *f)
+ {
+-	if (f->binder_type != TCF_BLOCK_BINDER_TYPE_CLSACT_EGRESS)
+-		return -EOPNOTSUPP;
+-
+-	switch (f->command) {
 -	case TC_BLOCK_BIND:
-+	case FLOW_BLOCK_BIND:
- 		cb_priv = kmalloc(sizeof(*cb_priv), GFP_KERNEL);
- 		if (!cb_priv)
- 			return -ENOMEM;
-@@ -1434,7 +1434,7 @@ nfp_flower_setup_indr_tc_block(struct net_device *netdev, struct nfp_app *app,
- 
- 		flow_block_cb_add(block_cb, f);
- 		return 0;
+-		return tcf_block_cb_register(f->block,
+-					     nfp_abm_setup_tc_block_cb,
+-					     repr, repr, f->extack);
 -	case TC_BLOCK_UNBIND:
-+	case FLOW_BLOCK_UNBIND:
- 		cb_priv = nfp_flower_indr_block_cb_priv_lookup(app, netdev);
- 		if (!cb_priv)
- 			return -ENOENT;
-diff --git a/include/net/flow_offload.h b/include/net/flow_offload.h
-index 390e74ed42cb..744eb474c823 100644
---- a/include/net/flow_offload.h
-+++ b/include/net/flow_offload.h
-@@ -235,8 +235,8 @@ static inline void flow_stats_update(struct flow_stats *flow_stats,
- #include <net/sch_generic.h> /* for tc_setup_cb_t. */
+-		tcf_block_cb_unregister(f->block, nfp_abm_setup_tc_block_cb,
+-					repr);
+-		return 0;
+-	default:
+-		return -EOPNOTSUPP;
+-	}
++	return tcf_setup_block_offload(f, nfp_abm_setup_tc_block_cb, repr, repr,
++				       true);
+ }
+diff --git a/drivers/net/ethernet/netronome/nfp/bpf/main.c b/drivers/net/ethernet/netronome/nfp/bpf/main.c
+index 9c136da25221..fac38899dc23 100644
+--- a/drivers/net/ethernet/netronome/nfp/bpf/main.c
++++ b/drivers/net/ethernet/netronome/nfp/bpf/main.c
+@@ -160,35 +160,16 @@ static int nfp_bpf_setup_tc_block_cb(enum tc_setup_type type,
+ 	return 0;
+ }
  
- enum flow_block_command {
--	TC_BLOCK_BIND,
--	TC_BLOCK_UNBIND,
-+	FLOW_BLOCK_BIND,
-+	FLOW_BLOCK_UNBIND,
- };
- 
- enum flow_block_binder_type {
-diff --git a/net/core/flow_offload.c b/net/core/flow_offload.c
-index 8392cf2b5ea7..eaff06ee313d 100644
---- a/net/core/flow_offload.c
-+++ b/net/core/flow_offload.c
-@@ -268,14 +268,14 @@ int flow_block_setup_offload(struct flow_block_offload *f,
+-static int nfp_bpf_setup_tc_block(struct net_device *netdev,
+-				  struct tc_block_offload *f)
+-{
+-	struct nfp_net *nn = netdev_priv(netdev);
+-
+-	if (f->binder_type != TCF_BLOCK_BINDER_TYPE_CLSACT_INGRESS)
+-		return -EOPNOTSUPP;
+-
+-	switch (f->command) {
+-	case TC_BLOCK_BIND:
+-		return tcf_block_cb_register(f->block,
+-					     nfp_bpf_setup_tc_block_cb,
+-					     nn, nn, f->extack);
+-	case TC_BLOCK_UNBIND:
+-		tcf_block_cb_unregister(f->block,
+-					nfp_bpf_setup_tc_block_cb,
+-					nn);
+-		return 0;
+-	default:
+-		return -EOPNOTSUPP;
+-	}
+-}
+-
+ static int nfp_bpf_setup_tc(struct nfp_app *app, struct net_device *netdev,
+ 			    enum tc_setup_type type, void *type_data)
+ {
++	struct nfp_net *nn = netdev_priv(netdev);
++
+ 	switch (type) {
+ 	case TC_SETUP_BLOCK:
+-		return nfp_bpf_setup_tc_block(netdev, type_data);
++		return tcf_setup_block_offload(type_data,
++					       nfp_bpf_setup_tc_block_cb,
++					       nn, nn, true);
+ 	default:
  		return -EOPNOTSUPP;
+ 	}
+diff --git a/drivers/net/ethernet/qlogic/qede/qede_main.c b/drivers/net/ethernet/qlogic/qede/qede_main.c
+index d4a29660751d..013046a30732 100644
+--- a/drivers/net/ethernet/qlogic/qede/qede_main.c
++++ b/drivers/net/ethernet/qlogic/qede/qede_main.c
+@@ -579,25 +579,6 @@ static int qede_setup_tc_block_cb(enum tc_setup_type type, void *type_data,
+ 	}
+ }
  
- 	switch (f->command) {
+-static int qede_setup_tc_block(struct qede_dev *edev,
+-			       struct tc_block_offload *f)
+-{
+-	if (f->binder_type != TCF_BLOCK_BINDER_TYPE_CLSACT_INGRESS)
+-		return -EOPNOTSUPP;
+-
+-	switch (f->command) {
 -	case TC_BLOCK_BIND:
-+	case FLOW_BLOCK_BIND:
- 		block_cb = flow_block_cb_alloc(f, cb, cb_ident, cb_priv, NULL);
- 		if (IS_ERR(block_cb))
- 			return PTR_ERR(block_cb);
- 
- 		flow_block_cb_add(block_cb, f);
- 		return 0;
+-		return tcf_block_cb_register(f->block,
+-					     qede_setup_tc_block_cb,
+-					     edev, edev, f->extack);
 -	case TC_BLOCK_UNBIND:
-+	case FLOW_BLOCK_UNBIND:
- 		block_cb = flow_block_cb_lookup(f, cb, cb_ident);
- 		if (!block_cb)
- 			return -ENOENT;
-diff --git a/net/dsa/slave.c b/net/dsa/slave.c
-index 504c4183af71..636a22201654 100644
---- a/net/dsa/slave.c
-+++ b/net/dsa/slave.c
-@@ -960,14 +960,14 @@ static int dsa_slave_setup_tc_block(struct net_device *dev,
+-		tcf_block_cb_unregister(f->block, qede_setup_tc_block_cb, edev);
+-		return 0;
+-	default:
+-		return -EOPNOTSUPP;
+-	}
+-}
+-
+ static int
+ qede_setup_tc_offload(struct net_device *dev, enum tc_setup_type type,
+ 		      void *type_data)
+@@ -607,7 +588,9 @@ qede_setup_tc_offload(struct net_device *dev, enum tc_setup_type type,
+ 
+ 	switch (type) {
+ 	case TC_SETUP_BLOCK:
+-		return qede_setup_tc_block(edev, type_data);
++		return tcf_setup_block_offload(type_data,
++					       qede_setup_tc_block_cb,
++					       edev, edev, true);
+ 	case TC_SETUP_QDISC_MQPRIO:
+ 		mqprio = type_data;
+ 
+diff --git a/drivers/net/ethernet/stmicro/stmmac/stmmac_main.c b/drivers/net/ethernet/stmicro/stmmac/stmmac_main.c
+index 3425d4dda03d..ffed6b51040a 100644
+--- a/drivers/net/ethernet/stmicro/stmmac/stmmac_main.c
++++ b/drivers/net/ethernet/stmicro/stmmac/stmmac_main.c
+@@ -3853,24 +3853,6 @@ static int stmmac_setup_tc_block_cb(enum tc_setup_type type, void *type_data,
+ 	return ret;
+ }
+ 
+-static int stmmac_setup_tc_block(struct stmmac_priv *priv,
+-				 struct tc_block_offload *f)
+-{
+-	if (f->binder_type != TCF_BLOCK_BINDER_TYPE_CLSACT_INGRESS)
+-		return -EOPNOTSUPP;
+-
+-	switch (f->command) {
+-	case TC_BLOCK_BIND:
+-		return tcf_block_cb_register(f->block, stmmac_setup_tc_block_cb,
+-				priv, priv, f->extack);
+-	case TC_BLOCK_UNBIND:
+-		tcf_block_cb_unregister(f->block, stmmac_setup_tc_block_cb, priv);
+-		return 0;
+-	default:
+-		return -EOPNOTSUPP;
+-	}
+-}
+-
+ static int stmmac_setup_tc(struct net_device *ndev, enum tc_setup_type type,
+ 			   void *type_data)
+ {
+@@ -3878,7 +3860,9 @@ static int stmmac_setup_tc(struct net_device *ndev, enum tc_setup_type type,
+ 
+ 	switch (type) {
+ 	case TC_SETUP_BLOCK:
+-		return stmmac_setup_tc_block(priv, type_data);
++		return tcf_setup_block_offload(type_data,
++					       stmmac_setup_tc_block_cb,
++					       priv, priv, true);
+ 	case TC_SETUP_QDISC_CBS:
+ 		return stmmac_tc_setup_cbs(priv, priv, type_data);
+ 	default:
+diff --git a/drivers/net/netdevsim/netdev.c b/drivers/net/netdevsim/netdev.c
+index e5c8aa08e1cd..240727623e9b 100644
+--- a/drivers/net/netdevsim/netdev.c
++++ b/drivers/net/netdevsim/netdev.c
+@@ -78,26 +78,6 @@ nsim_setup_tc_block_cb(enum tc_setup_type type, void *type_data, void *cb_priv)
+ 	return nsim_bpf_setup_tc_block_cb(type, type_data, cb_priv);
+ }
+ 
+-static int
+-nsim_setup_tc_block(struct net_device *dev, struct tc_block_offload *f)
+-{
+-	struct netdevsim *ns = netdev_priv(dev);
+-
+-	if (f->binder_type != TCF_BLOCK_BINDER_TYPE_CLSACT_INGRESS)
+-		return -EOPNOTSUPP;
+-
+-	switch (f->command) {
+-	case TC_BLOCK_BIND:
+-		return tcf_block_cb_register(f->block, nsim_setup_tc_block_cb,
+-					     ns, ns, f->extack);
+-	case TC_BLOCK_UNBIND:
+-		tcf_block_cb_unregister(f->block, nsim_setup_tc_block_cb, ns);
+-		return 0;
+-	default:
+-		return -EOPNOTSUPP;
+-	}
+-}
+-
+ static int nsim_set_vf_mac(struct net_device *dev, int vf, u8 *mac)
+ {
+ 	struct netdevsim *ns = netdev_priv(dev);
+@@ -226,9 +206,13 @@ static int nsim_set_vf_link_state(struct net_device *dev, int vf, int state)
+ static int
+ nsim_setup_tc(struct net_device *dev, enum tc_setup_type type, void *type_data)
+ {
++	struct netdevsim *ns = netdev_priv(dev);
++
+ 	switch (type) {
+ 	case TC_SETUP_BLOCK:
+-		return nsim_setup_tc_block(dev, type_data);
++		return tcf_setup_block_offload(type_data,
++					       nsim_setup_tc_block_cb, ns, ns,
++					       true);
+ 	default:
  		return -EOPNOTSUPP;
+ 	}
+diff --git a/include/net/pkt_cls.h b/include/net/pkt_cls.h
+index fd0bfb63ab70..d35711758ddb 100644
+--- a/include/net/pkt_cls.h
++++ b/include/net/pkt_cls.h
+@@ -111,6 +111,8 @@ void tc_indr_block_cb_unregister(struct net_device *dev,
+ int tcf_classify(struct sk_buff *skb, const struct tcf_proto *tp,
+ 		 struct tcf_result *res, bool compat_mode);
  
- 	switch (f->command) {
--	case TC_BLOCK_BIND:
-+	case FLOW_BLOCK_BIND:
- 		block_cb = flow_block_cb_alloc(f, cb, dev, dev, NULL);
- 		if (IS_ERR(block_cb))
- 			return PTR_ERR(block_cb);
++int tcf_setup_block_offload(struct tc_block_offload *f, tc_setup_cb_t *cb,
++			    void *cb_ident, void *cb_priv, bool ingress_only);
+ #else
+ static inline bool tcf_block_shared(struct tcf_block *block)
+ {
+@@ -161,6 +163,14 @@ void tc_setup_cb_block_unregister(struct tcf_block *block, tc_setup_cb_t *cb,
+ {
+ }
  
- 		flow_block_cb_add(block_cb, f);
- 		return 0;
--	case TC_BLOCK_UNBIND:
-+	case FLOW_BLOCK_UNBIND:
- 		block_cb = flow_block_cb_lookup(f, cb, dev);
- 		if (!block_cb)
- 			return -ENOENT;
++static inline int tcf_setup_block_offload(struct tc_block_offload *f,
++					  tc_setup_cb_t *cb,
++					  void *cb_ident, void *cb_priv,
++					  bool ingress_only)
++{
++	return -EOPNOTSUPP;
++}
++
+ static inline struct tcf_block_cb *
+ tcf_block_cb_alloc(tc_setup_cb_t *cb, void *cb_ident, void *cb_priv,
+ 		   void (*release)(void *cb_priv))
 diff --git a/net/sched/cls_api.c b/net/sched/cls_api.c
-index 5635b6f63015..00f4303dc6e5 100644
+index 534a545ea51e..003f24a1323f 100644
 --- a/net/sched/cls_api.c
 +++ b/net/sched/cls_api.c
-@@ -767,10 +767,10 @@ static int tcf_block_setup(struct tcf_block *block,
- 	int err;
- 
- 	switch (bo->command) {
--	case TC_BLOCK_BIND:
-+	case FLOW_BLOCK_BIND:
- 		err = tcf_block_bind(block, bo);
- 		break;
--	case TC_BLOCK_UNBIND:
-+	case FLOW_BLOCK_UNBIND:
- 		err = 0;
- 		tcf_block_unbind(block, bo);
- 		break;
-@@ -904,8 +904,8 @@ static void tc_indr_block_ing_cmd(struct tc_indr_block_dev *indr_dev,
- 	if (!indr_dev->block)
- 		return;
- 
--	indr_block_cb->cb(indr_dev->dev, indr_block_cb->cb_priv, TC_SETUP_BLOCK,
--			  &bo);
-+	indr_block_cb->cb(indr_dev->dev, indr_block_cb->cb_priv,
-+			  TC_SETUP_BLOCK, &bo);
- 	tcf_block_setup(indr_dev->block, &bo);
+@@ -922,6 +922,26 @@ static int tcf_block_setup(struct tcf_block *block, struct tc_block_offload *bo)
+ 	return err;
  }
  
-@@ -925,7 +925,7 @@ int __tc_indr_block_cb_register(struct net_device *dev, void *cb_priv,
- 	if (err)
- 		goto err_dev_put;
++int tcf_setup_block_offload(struct tc_block_offload *f, tc_setup_cb_t *cb,
++			    void *cb_ident, void *cb_priv, bool ingress_only)
++{
++	if (ingress_only &&
++	    f->binder_type != TCF_BLOCK_BINDER_TYPE_CLSACT_INGRESS)
++		return -EOPNOTSUPP;
++
++	switch (f->command) {
++	case TC_BLOCK_BIND:
++		return tcf_block_cb_register(f->block, cb, cb_ident, cb_priv,
++					     f->extack);
++	case TC_BLOCK_UNBIND:
++		tcf_block_cb_unregister(f->block, cb, cb_ident);
++		return 0;
++	default:
++		return -EOPNOTSUPP;
++	}
++}
++EXPORT_SYMBOL(tcf_setup_block_offload);
++
+ static struct rhashtable indr_setup_block_ht;
  
--	tc_indr_block_ing_cmd(indr_dev, indr_block_cb, TC_BLOCK_BIND);
-+	tc_indr_block_ing_cmd(indr_dev, indr_block_cb, FLOW_BLOCK_BIND);
- 	return 0;
- 
- err_dev_put:
-@@ -962,7 +962,7 @@ void __tc_indr_block_cb_unregister(struct net_device *dev,
- 		return;
- 
- 	/* Send unbind message if required to free any block cbs. */
--	tc_indr_block_ing_cmd(indr_dev, indr_block_cb, TC_BLOCK_UNBIND);
-+	tc_indr_block_ing_cmd(indr_dev, indr_block_cb, FLOW_BLOCK_UNBIND);
- 	tc_indr_block_cb_del(indr_block_cb);
- 	tc_indr_block_dev_put(indr_dev);
- }
-@@ -997,7 +997,7 @@ static void tc_indr_block_call(struct tcf_block *block, struct net_device *dev,
- 	if (!indr_dev)
- 		return;
- 
--	indr_dev->block = command == TC_BLOCK_BIND ? block : NULL;
-+	indr_dev->block = command == FLOW_BLOCK_BIND ? block : NULL;
- 
- 	list_for_each_entry(indr_block_cb, &indr_dev->cb_list, list)
- 		indr_block_cb->cb(dev, indr_block_cb->cb_priv, TC_SETUP_BLOCK,
-@@ -1047,20 +1047,20 @@ static int tcf_block_offload_bind(struct tcf_block *block, struct Qdisc *q,
- 		return -EOPNOTSUPP;
- 	}
- 
--	err = tcf_block_offload_cmd(block, dev, ei, TC_BLOCK_BIND, extack);
-+	err = tcf_block_offload_cmd(block, dev, ei, FLOW_BLOCK_BIND, extack);
- 	if (err == -EOPNOTSUPP)
- 		goto no_offload_dev_inc;
- 	if (err)
- 		return err;
- 
--	tc_indr_block_call(block, dev, ei, TC_BLOCK_BIND, extack);
-+	tc_indr_block_call(block, dev, ei, FLOW_BLOCK_BIND, extack);
- 	return 0;
- 
- no_offload_dev_inc:
- 	if (tcf_block_offload_in_use(block))
- 		return -EOPNOTSUPP;
- 	block->nooffloaddevcnt++;
--	tc_indr_block_call(block, dev, ei, TC_BLOCK_BIND, extack);
-+	tc_indr_block_call(block, dev, ei, FLOW_BLOCK_BIND, extack);
- 	return 0;
- }
- 
-@@ -1070,11 +1070,11 @@ static void tcf_block_offload_unbind(struct tcf_block *block, struct Qdisc *q,
- 	struct net_device *dev = q->dev_queue->dev;
- 	int err;
- 
--	tc_indr_block_call(block, dev, ei, TC_BLOCK_UNBIND, NULL);
-+	tc_indr_block_call(block, dev, ei, FLOW_BLOCK_UNBIND, NULL);
- 
- 	if (!dev->netdev_ops->ndo_setup_tc)
- 		goto no_offload_dev_dec;
--	err = tcf_block_offload_cmd(block, dev, ei, TC_BLOCK_UNBIND, NULL);
-+	err = tcf_block_offload_cmd(block, dev, ei, FLOW_BLOCK_UNBIND, NULL);
- 	if (err == -EOPNOTSUPP)
- 		goto no_offload_dev_dec;
- 	return;
+ struct tc_indr_block_dev {
 -- 
 2.11.0
 
