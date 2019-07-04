@@ -2,71 +2,110 @@ Return-Path: <SRS0=ip/f=VB=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.0 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 49567C0651F
-	for <netfilter-devel@archiver.kernel.org>; Thu,  4 Jul 2019 18:25:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A67C1C0651F
+	for <netfilter-devel@archiver.kernel.org>; Thu,  4 Jul 2019 18:49:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2293721670
-	for <netfilter-devel@archiver.kernel.org>; Thu,  4 Jul 2019 18:25:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7808C2189E
+	for <netfilter-devel@archiver.kernel.org>; Thu,  4 Jul 2019 18:49:03 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="SYRcLNyJ"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726991AbfGDSZy (ORCPT
+        id S1726120AbfGDStD (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 4 Jul 2019 14:25:54 -0400
-Received: from mail.us.es ([193.147.175.20]:48980 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725865AbfGDSZy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 4 Jul 2019 14:25:54 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id C1647B6C60
-        for <netfilter-devel@vger.kernel.org>; Thu,  4 Jul 2019 20:25:52 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id B14F9DA4CA
-        for <netfilter-devel@vger.kernel.org>; Thu,  4 Jul 2019 20:25:52 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id A6FA1DA704; Thu,  4 Jul 2019 20:25:52 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id B670EDA732;
-        Thu,  4 Jul 2019 20:25:50 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Thu, 04 Jul 2019 20:25:50 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (sys.soleta.eu [212.170.55.40])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 9496F4265A31;
-        Thu,  4 Jul 2019 20:25:50 +0200 (CEST)
-Date:   Thu, 4 Jul 2019 20:25:50 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     phil@nwl.cc
-Subject: Re: [PATCH] utils: inline xmalloc(), xzalloc() and xfree()
-Message-ID: <20190704182550.6afq67lgmdn2lwzc@salvia>
-References: <20190704181809.31388-1-pablo@netfilter.org>
+        Thu, 4 Jul 2019 14:49:03 -0400
+Received: from mail-ua1-f66.google.com ([209.85.222.66]:34031 "EHLO
+        mail-ua1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725865AbfGDStC (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 4 Jul 2019 14:49:02 -0400
+Received: by mail-ua1-f66.google.com with SMTP id c4so1399909uad.1
+        for <netfilter-devel@vger.kernel.org>; Thu, 04 Jul 2019 11:49:02 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc:content-transfer-encoding;
+        bh=/Hn0aaGGgje7tIhCuyUc74308rvrhoCZpczG3RG+e6g=;
+        b=SYRcLNyJ6x34p4ly5yTSnKqoOsCAoGtnmZ0ptS9rN1ltZP2WOMRkWCQTL5UCJVH9iu
+         ekj9UrpL30YvJmjsc5teXmbfJxT+FUtotC8i0NzhlY8zS6E7e4noMMNkUH6DY664aZSd
+         gQeGc2HdLtsshu4G9B+qzGNQ0UrJDenIBawBEcybF68VMMF5341Z3SuJ+ASZk5w1addo
+         EBbg4BhjxYaY9z7BpFNHeT31qzStN2oc8GrNyH70vIQnth74bqwD1/fkMHFDjVeLkh8D
+         2va5iR3XvxMiaEdYK2iAhcJnl9NpP8W+BOiVYMeybVcEkGWO8x8hxAk5iBtjRxAJ3mnZ
+         aJBQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc:content-transfer-encoding;
+        bh=/Hn0aaGGgje7tIhCuyUc74308rvrhoCZpczG3RG+e6g=;
+        b=KusJ4+grRSDoOwC0o1YwNSCeIdDr1PYgXK0GuRJpH4CK4CgQm+78Piikx9eGosVlY6
+         /gE77otZ0sLPvz7NRjDZ5tToO9Nuf0dZxIdUG9oc5tWv4vn3TRkCLHp+/aeQQPRuXoPa
+         iEzmI+3MmwqjSo8uSrDy0lwpcDb+Gympgbr6i86SAdKjPWJNCQQUTzekUWr648XHiLzj
+         ydKcHWDazMRsB10S0E5TnGBANrU1Qw91Nhqcau/nYWt1pP2eHe7/d/qoExiY1gFNLSnd
+         gwSswde0B4y/vlhwfAgwVBuIDOER3ilazRWDE9eq2gzElzaR8z55a1e9d4tdLzz6CyEu
+         PnHQ==
+X-Gm-Message-State: APjAAAW9lNI2leFKKnmROZGO0lKbPHpY0+pb3lx8INbS/0rKjdt5I7EB
+        VOFD1RCpB6/r/GieCHpMhZ3bdk5IaicMu50aLstv0Ww7
+X-Google-Smtp-Source: APXvYqxMMvnvx1JJYxxaUnpEexQa6g2selTm6M5fjE950jbY+uTG1NOd73jeq2sZ1878Aqg/gU0OJ9UuDd4kLbjJvG0=
+X-Received: by 2002:ab0:3159:: with SMTP id e25mr13458019uam.81.1562266141856;
+ Thu, 04 Jul 2019 11:49:01 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190704181809.31388-1-pablo@netfilter.org>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+References: <20190605092818.13844-1-sveyret@gmail.com> <20190605092818.13844-2-sveyret@gmail.com>
+ <20190702231247.qoqcq5lynsb4xs5h@salvia>
+In-Reply-To: <20190702231247.qoqcq5lynsb4xs5h@salvia>
+From:   =?UTF-8?Q?St=C3=A9phane_Veyret?= <sveyret@gmail.com>
+Date:   Thu, 4 Jul 2019 20:48:50 +0200
+Message-ID: <CAFs+hh6TcVM1HbK=iZF5vfSnnGYdtpSTTy=DR3LizSgkuYQghA@mail.gmail.com>
+Subject: Re: [PATCH nftables v4 1/1] add ct expectations support
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Jul 04, 2019 at 08:18:09PM +0200, Pablo Neira Ayuso wrote:
-> So these functions can be used from main.c and cli.c.
-> 
-> This patch reverts 7c0407c5ca53 ("nft: don't use xzalloc()").
+Le mer. 3 juil. 2019 =C3=A0 01:12, Pablo Neira Ayuso <pablo@netfilter.org> =
+a =C3=A9crit :
+> Please, make sure you run ./configure with --with-json.
 
-Scratch this. Headers are missing, and then __memory_allocation_error
-needs to be inlined too.
+I'm sorry, but I don't manage to compile it anymore.
 
-I let you fix this, Phil, will not follow up on this.
+I took latest versions of kernel/lib/nft and merged my modifications
+to nft. But when I try to compile nft, even if the configure goes
+well, the make fails. The message is that it needs libnftnl > 1.1.3
+whereas configure only requires version 1.1.1, and the lib creates a
+package with version 1.1.2. If I cheat (and update the libnftnl.pc
+file by hand), then make fails later, when compiling libnftables.c
+with the following messages :
+libnftables.c:112:14: warning: data definition has no type or storage class
+ EXPORT_SYMBOL(nft_ctx_add_include_path);
+              ^
+libnftables.c:112:15: warning: type defaults to =E2=80=98int=E2=80=99 in de=
+claration
+of =C2=AB nft_ctx_add_include_path =C2=BB [-Wimplicit-int]
+ EXPORT_SYMBOL(nft_ctx_add_include_path);
+               ^~~~~~~~~~~~~~~~~~~~~~~~
+libnftables.c:112:15: error: =C2=AB nft_ctx_add_include_path =C2=BB redecla=
+red
+as different kind of symbol
+In file included from libnftables.c:9:
+../include/nftables/libnftables.h:76:5: note: previous definition of =C2=AB
+nft_ctx_add_include_path =C2=BB was here
+ int nft_ctx_add_include_path(struct nft_ctx *ctx, const char *path);
+     ^~~~~~~~~~~~~~~~~~~~~~~~
+libnftables.c:113:5: warning: no previous prototype for function =C2=AB
+nft_ctx_add_include_path =C2=BB [-Wmissing-prototypes]
+ int nft_ctx_add_include_path(struct nft_ctx *ctx, const char *path)
+     ^~~~~~~~~~~~~~~~~~~~~~~~
 
-Thanks.
+Does someone have a clue ?
+
+--=20
+Bien cordialement, / Plej kore,
+
+St=C3=A9phane Veyret
