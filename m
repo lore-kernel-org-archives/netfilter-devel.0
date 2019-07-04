@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-10.0 required=3.0
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4919FC46499
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6B65BC4649B
 	for <netfilter-devel@archiver.kernel.org>; Thu,  4 Jul 2019 23:49:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2B57C216FD
+	by mail.kernel.org (Postfix) with ESMTP id 4CF0621852
 	for <netfilter-devel@archiver.kernel.org>; Thu,  4 Jul 2019 23:49:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727703AbfGDXtS (ORCPT
+        id S1727689AbfGDXtR (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 4 Jul 2019 19:49:18 -0400
-Received: from mail.us.es ([193.147.175.20]:33078 "EHLO mail.us.es"
+        Thu, 4 Jul 2019 19:49:17 -0400
+Received: from mail.us.es ([193.147.175.20]:32928 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727654AbfGDXtS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 4 Jul 2019 19:49:18 -0400
+        id S1727142AbfGDXtR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 4 Jul 2019 19:49:17 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 7DAF3819C1
-        for <netfilter-devel@vger.kernel.org>; Fri,  5 Jul 2019 01:49:15 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id BE96A819B3
+        for <netfilter-devel@vger.kernel.org>; Fri,  5 Jul 2019 01:49:11 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 56B25A0AAB
-        for <netfilter-devel@vger.kernel.org>; Fri,  5 Jul 2019 01:49:15 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id ADF71CE158
+        for <netfilter-devel@vger.kernel.org>; Fri,  5 Jul 2019 01:49:11 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 48EE6DA732; Fri,  5 Jul 2019 01:49:14 +0200 (CEST)
+        id AC0EDDA3F4; Fri,  5 Jul 2019 01:49:11 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 7EDE7114D6E;
-        Fri,  5 Jul 2019 01:49:12 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 53BAF18502;
+        Fri,  5 Jul 2019 01:49:08 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Fri, 05 Jul 2019 01:49:12 +0200 (CEST)
+ Fri, 05 Jul 2019 01:49:08 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 59F5B4265A31;
-        Fri,  5 Jul 2019 01:49:11 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 27B7A4265A31;
+        Fri,  5 Jul 2019 01:49:07 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netdev@vger.kernel.org
@@ -56,9 +56,9 @@ Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
         marcelo.leitner@gmail.com, mkubecek@suse.cz,
         venkatkumar.duvvuru@broadcom.com, maxime.chevallier@bootlin.com,
         cphealy@gmail.com
-Subject: [PATCH 03/15 net-next,v2] net: sched: add tcf_block_cb_free()
-Date:   Fri,  5 Jul 2019 01:48:31 +0200
-Message-Id: <20190704234843.6601-4-pablo@netfilter.org>
+Subject: [PATCH 01/15 net-next,v2] net: sched: move tcf_block_cb before indr_block
+Date:   Fri,  5 Jul 2019 01:48:29 +0200
+Message-Id: <20190704234843.6601-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20190704234843.6601-1-pablo@netfilter.org>
 References: <20190704234843.6601-1-pablo@netfilter.org>
@@ -68,57 +68,532 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Just a stub to release tcf_block_cb objects, follow up patch extends it
-to have a release callback in it for the private data.
+The indr_block infrastructure will depend on the tcf_block_cb object,
+move this code on top to avoid forward declarations.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
 v2: no changes.
 
- include/net/pkt_cls.h | 5 +++++
- net/sched/cls_api.c   | 6 ++++++
- 2 files changed, 11 insertions(+)
+ net/sched/cls_api.c | 484 ++++++++++++++++++++++++++--------------------------
+ 1 file changed, 242 insertions(+), 242 deletions(-)
 
-diff --git a/include/net/pkt_cls.h b/include/net/pkt_cls.h
-index a756d895c7a4..b50df3b9456c 100644
---- a/include/net/pkt_cls.h
-+++ b/include/net/pkt_cls.h
-@@ -74,6 +74,7 @@ static inline struct Qdisc *tcf_block_q(struct tcf_block *block)
- 
- struct tcf_block_cb *tcf_block_cb_alloc(tc_setup_cb_t *cb,
- 					void *cb_ident, void *cb_priv);
-+void tcf_block_cb_free(struct tcf_block_cb *block_cb);
- void *tcf_block_cb_priv(struct tcf_block_cb *block_cb);
- struct tcf_block_cb *tcf_block_cb_lookup(struct tcf_block *block,
- 					 tc_setup_cb_t *cb, void *cb_ident);
-@@ -158,6 +159,10 @@ tcf_block_cb_alloc(tc_setup_cb_t *cb, void *cb_ident, void *cb_priv)
- 	return ERR_PTR(-EOPNOTSUPP);
- }
- 
-+static inline void tcf_block_cb_free(struct tcf_block_cb *block_cb)
-+{
-+}
-+
- static inline
- void *tcf_block_cb_priv(struct tcf_block_cb *block_cb)
- {
 diff --git a/net/sched/cls_api.c b/net/sched/cls_api.c
-index 6cd76e3df2be..93b74a15e7ac 100644
+index ad36bbcc583e..b2417fda26ec 100644
 --- a/net/sched/cls_api.c
 +++ b/net/sched/cls_api.c
-@@ -763,6 +763,12 @@ struct tcf_block_cb *tcf_block_cb_alloc(tc_setup_cb_t *cb,
+@@ -565,6 +565,248 @@ static struct tcf_block *tc_dev_ingress_block(struct net_device *dev)
+ 	return cops->tcf_block(qdisc, TC_H_MIN_INGRESS, NULL);
  }
- EXPORT_SYMBOL(tcf_block_cb_alloc);
  
-+void tcf_block_cb_free(struct tcf_block_cb *block_cb)
++static struct tcf_chain *
++__tcf_get_next_chain(struct tcf_block *block, struct tcf_chain *chain)
 +{
++	mutex_lock(&block->lock);
++	if (chain)
++		chain = list_is_last(&chain->list, &block->chain_list) ?
++			NULL : list_next_entry(chain, list);
++	else
++		chain = list_first_entry_or_null(&block->chain_list,
++						 struct tcf_chain, list);
++
++	/* skip all action-only chains */
++	while (chain && tcf_chain_held_by_acts_only(chain))
++		chain = list_is_last(&chain->list, &block->chain_list) ?
++			NULL : list_next_entry(chain, list);
++
++	if (chain)
++		tcf_chain_hold(chain);
++	mutex_unlock(&block->lock);
++
++	return chain;
++}
++
++/* Function to be used by all clients that want to iterate over all chains on
++ * block. It properly obtains block->lock and takes reference to chain before
++ * returning it. Users of this function must be tolerant to concurrent chain
++ * insertion/deletion or ensure that no concurrent chain modification is
++ * possible. Note that all netlink dump callbacks cannot guarantee to provide
++ * consistent dump because rtnl lock is released each time skb is filled with
++ * data and sent to user-space.
++ */
++
++struct tcf_chain *
++tcf_get_next_chain(struct tcf_block *block, struct tcf_chain *chain)
++{
++	struct tcf_chain *chain_next = __tcf_get_next_chain(block, chain);
++
++	if (chain)
++		tcf_chain_put(chain);
++
++	return chain_next;
++}
++EXPORT_SYMBOL(tcf_get_next_chain);
++
++static struct tcf_proto *
++__tcf_get_next_proto(struct tcf_chain *chain, struct tcf_proto *tp)
++{
++	u32 prio = 0;
++
++	ASSERT_RTNL();
++	mutex_lock(&chain->filter_chain_lock);
++
++	if (!tp) {
++		tp = tcf_chain_dereference(chain->filter_chain, chain);
++	} else if (tcf_proto_is_deleting(tp)) {
++		/* 'deleting' flag is set and chain->filter_chain_lock was
++		 * unlocked, which means next pointer could be invalid. Restart
++		 * search.
++		 */
++		prio = tp->prio + 1;
++		tp = tcf_chain_dereference(chain->filter_chain, chain);
++
++		for (; tp; tp = tcf_chain_dereference(tp->next, chain))
++			if (!tp->deleting && tp->prio >= prio)
++				break;
++	} else {
++		tp = tcf_chain_dereference(tp->next, chain);
++	}
++
++	if (tp)
++		tcf_proto_get(tp);
++
++	mutex_unlock(&chain->filter_chain_lock);
++
++	return tp;
++}
++
++/* Function to be used by all clients that want to iterate over all tp's on
++ * chain. Users of this function must be tolerant to concurrent tp
++ * insertion/deletion or ensure that no concurrent chain modification is
++ * possible. Note that all netlink dump callbacks cannot guarantee to provide
++ * consistent dump because rtnl lock is released each time skb is filled with
++ * data and sent to user-space.
++ */
++
++struct tcf_proto *
++tcf_get_next_proto(struct tcf_chain *chain, struct tcf_proto *tp,
++		   bool rtnl_held)
++{
++	struct tcf_proto *tp_next = __tcf_get_next_proto(chain, tp);
++
++	if (tp)
++		tcf_proto_put(tp, rtnl_held, NULL);
++
++	return tp_next;
++}
++EXPORT_SYMBOL(tcf_get_next_proto);
++
++static int
++tcf_block_playback_offloads(struct tcf_block *block, tc_setup_cb_t *cb,
++			    void *cb_priv, bool add, bool offload_in_use,
++			    struct netlink_ext_ack *extack)
++{
++	struct tcf_chain *chain, *chain_prev;
++	struct tcf_proto *tp, *tp_prev;
++	int err;
++
++	for (chain = __tcf_get_next_chain(block, NULL);
++	     chain;
++	     chain_prev = chain,
++		     chain = __tcf_get_next_chain(block, chain),
++		     tcf_chain_put(chain_prev)) {
++		for (tp = __tcf_get_next_proto(chain, NULL); tp;
++		     tp_prev = tp,
++			     tp = __tcf_get_next_proto(chain, tp),
++			     tcf_proto_put(tp_prev, true, NULL)) {
++			if (tp->ops->reoffload) {
++				err = tp->ops->reoffload(tp, add, cb, cb_priv,
++							 extack);
++				if (err && add)
++					goto err_playback_remove;
++			} else if (add && offload_in_use) {
++				err = -EOPNOTSUPP;
++				NL_SET_ERR_MSG(extack, "Filter HW offload failed - classifier without re-offloading support");
++				goto err_playback_remove;
++			}
++		}
++	}
++
++	return 0;
++
++err_playback_remove:
++	tcf_proto_put(tp, true, NULL);
++	tcf_chain_put(chain);
++	tcf_block_playback_offloads(block, cb, cb_priv, false, offload_in_use,
++				    extack);
++	return err;
++}
++
++static bool tcf_block_offload_in_use(struct tcf_block *block)
++{
++	return block->offloadcnt;
++}
++
++struct tcf_block_cb {
++	struct list_head list;
++	tc_setup_cb_t *cb;
++	void *cb_ident;
++	void *cb_priv;
++	unsigned int refcnt;
++};
++
++void *tcf_block_cb_priv(struct tcf_block_cb *block_cb)
++{
++	return block_cb->cb_priv;
++}
++EXPORT_SYMBOL(tcf_block_cb_priv);
++
++struct tcf_block_cb *tcf_block_cb_lookup(struct tcf_block *block,
++					 tc_setup_cb_t *cb, void *cb_ident)
++{	struct tcf_block_cb *block_cb;
++
++	list_for_each_entry(block_cb, &block->cb_list, list)
++		if (block_cb->cb == cb && block_cb->cb_ident == cb_ident)
++			return block_cb;
++	return NULL;
++}
++EXPORT_SYMBOL(tcf_block_cb_lookup);
++
++void tcf_block_cb_incref(struct tcf_block_cb *block_cb)
++{
++	block_cb->refcnt++;
++}
++EXPORT_SYMBOL(tcf_block_cb_incref);
++
++unsigned int tcf_block_cb_decref(struct tcf_block_cb *block_cb)
++{
++	return --block_cb->refcnt;
++}
++EXPORT_SYMBOL(tcf_block_cb_decref);
++
++struct tcf_block_cb *__tcf_block_cb_register(struct tcf_block *block,
++					     tc_setup_cb_t *cb, void *cb_ident,
++					     void *cb_priv,
++					     struct netlink_ext_ack *extack)
++{
++	struct tcf_block_cb *block_cb;
++	int err;
++
++	/* Replay any already present rules */
++	err = tcf_block_playback_offloads(block, cb, cb_priv, true,
++					  tcf_block_offload_in_use(block),
++					  extack);
++	if (err)
++		return ERR_PTR(err);
++
++	block_cb = kzalloc(sizeof(*block_cb), GFP_KERNEL);
++	if (!block_cb)
++		return ERR_PTR(-ENOMEM);
++	block_cb->cb = cb;
++	block_cb->cb_ident = cb_ident;
++	block_cb->cb_priv = cb_priv;
++	list_add(&block_cb->list, &block->cb_list);
++	return block_cb;
++}
++EXPORT_SYMBOL(__tcf_block_cb_register);
++
++int tcf_block_cb_register(struct tcf_block *block,
++			  tc_setup_cb_t *cb, void *cb_ident,
++			  void *cb_priv, struct netlink_ext_ack *extack)
++{
++	struct tcf_block_cb *block_cb;
++
++	block_cb = __tcf_block_cb_register(block, cb, cb_ident, cb_priv,
++					   extack);
++	return PTR_ERR_OR_ZERO(block_cb);
++}
++EXPORT_SYMBOL(tcf_block_cb_register);
++
++void __tcf_block_cb_unregister(struct tcf_block *block,
++			       struct tcf_block_cb *block_cb)
++{
++	tcf_block_playback_offloads(block, block_cb->cb, block_cb->cb_priv,
++				    false, tcf_block_offload_in_use(block),
++				    NULL);
++	list_del(&block_cb->list);
 +	kfree(block_cb);
 +}
-+EXPORT_SYMBOL(tcf_block_cb_free);
++EXPORT_SYMBOL(__tcf_block_cb_unregister);
 +
- struct tcf_block_cb *__tcf_block_cb_register(struct tcf_block *block,
- 					     tc_setup_cb_t *cb, void *cb_ident,
- 					     void *cb_priv,
++void tcf_block_cb_unregister(struct tcf_block *block,
++			     tc_setup_cb_t *cb, void *cb_ident)
++{
++	struct tcf_block_cb *block_cb;
++
++	block_cb = tcf_block_cb_lookup(block, cb, cb_ident);
++	if (!block_cb)
++		return;
++	__tcf_block_cb_unregister(block, block_cb);
++}
++EXPORT_SYMBOL(tcf_block_cb_unregister);
++
+ static struct rhashtable indr_setup_block_ht;
+ 
+ struct tc_indr_block_dev {
+@@ -782,11 +1024,6 @@ static void tc_indr_block_call(struct tcf_block *block, struct net_device *dev,
+ 				  &bo);
+ }
+ 
+-static bool tcf_block_offload_in_use(struct tcf_block *block)
+-{
+-	return block->offloadcnt;
+-}
+-
+ static int tcf_block_offload_cmd(struct tcf_block *block,
+ 				 struct net_device *dev,
+ 				 struct tcf_block_ext_info *ei,
+@@ -1003,104 +1240,6 @@ static struct tcf_block *tcf_block_refcnt_get(struct net *net, u32 block_index)
+ 	return block;
+ }
+ 
+-static struct tcf_chain *
+-__tcf_get_next_chain(struct tcf_block *block, struct tcf_chain *chain)
+-{
+-	mutex_lock(&block->lock);
+-	if (chain)
+-		chain = list_is_last(&chain->list, &block->chain_list) ?
+-			NULL : list_next_entry(chain, list);
+-	else
+-		chain = list_first_entry_or_null(&block->chain_list,
+-						 struct tcf_chain, list);
+-
+-	/* skip all action-only chains */
+-	while (chain && tcf_chain_held_by_acts_only(chain))
+-		chain = list_is_last(&chain->list, &block->chain_list) ?
+-			NULL : list_next_entry(chain, list);
+-
+-	if (chain)
+-		tcf_chain_hold(chain);
+-	mutex_unlock(&block->lock);
+-
+-	return chain;
+-}
+-
+-/* Function to be used by all clients that want to iterate over all chains on
+- * block. It properly obtains block->lock and takes reference to chain before
+- * returning it. Users of this function must be tolerant to concurrent chain
+- * insertion/deletion or ensure that no concurrent chain modification is
+- * possible. Note that all netlink dump callbacks cannot guarantee to provide
+- * consistent dump because rtnl lock is released each time skb is filled with
+- * data and sent to user-space.
+- */
+-
+-struct tcf_chain *
+-tcf_get_next_chain(struct tcf_block *block, struct tcf_chain *chain)
+-{
+-	struct tcf_chain *chain_next = __tcf_get_next_chain(block, chain);
+-
+-	if (chain)
+-		tcf_chain_put(chain);
+-
+-	return chain_next;
+-}
+-EXPORT_SYMBOL(tcf_get_next_chain);
+-
+-static struct tcf_proto *
+-__tcf_get_next_proto(struct tcf_chain *chain, struct tcf_proto *tp)
+-{
+-	u32 prio = 0;
+-
+-	ASSERT_RTNL();
+-	mutex_lock(&chain->filter_chain_lock);
+-
+-	if (!tp) {
+-		tp = tcf_chain_dereference(chain->filter_chain, chain);
+-	} else if (tcf_proto_is_deleting(tp)) {
+-		/* 'deleting' flag is set and chain->filter_chain_lock was
+-		 * unlocked, which means next pointer could be invalid. Restart
+-		 * search.
+-		 */
+-		prio = tp->prio + 1;
+-		tp = tcf_chain_dereference(chain->filter_chain, chain);
+-
+-		for (; tp; tp = tcf_chain_dereference(tp->next, chain))
+-			if (!tp->deleting && tp->prio >= prio)
+-				break;
+-	} else {
+-		tp = tcf_chain_dereference(tp->next, chain);
+-	}
+-
+-	if (tp)
+-		tcf_proto_get(tp);
+-
+-	mutex_unlock(&chain->filter_chain_lock);
+-
+-	return tp;
+-}
+-
+-/* Function to be used by all clients that want to iterate over all tp's on
+- * chain. Users of this function must be tolerant to concurrent tp
+- * insertion/deletion or ensure that no concurrent chain modification is
+- * possible. Note that all netlink dump callbacks cannot guarantee to provide
+- * consistent dump because rtnl lock is released each time skb is filled with
+- * data and sent to user-space.
+- */
+-
+-struct tcf_proto *
+-tcf_get_next_proto(struct tcf_chain *chain, struct tcf_proto *tp,
+-		   bool rtnl_held)
+-{
+-	struct tcf_proto *tp_next = __tcf_get_next_proto(chain, tp);
+-
+-	if (tp)
+-		tcf_proto_put(tp, rtnl_held, NULL);
+-
+-	return tp_next;
+-}
+-EXPORT_SYMBOL(tcf_get_next_proto);
+-
+ static void tcf_block_flush_all_chains(struct tcf_block *block, bool rtnl_held)
+ {
+ 	struct tcf_chain *chain;
+@@ -1494,145 +1633,6 @@ void tcf_block_put(struct tcf_block *block)
+ 
+ EXPORT_SYMBOL(tcf_block_put);
+ 
+-struct tcf_block_cb {
+-	struct list_head list;
+-	tc_setup_cb_t *cb;
+-	void *cb_ident;
+-	void *cb_priv;
+-	unsigned int refcnt;
+-};
+-
+-void *tcf_block_cb_priv(struct tcf_block_cb *block_cb)
+-{
+-	return block_cb->cb_priv;
+-}
+-EXPORT_SYMBOL(tcf_block_cb_priv);
+-
+-struct tcf_block_cb *tcf_block_cb_lookup(struct tcf_block *block,
+-					 tc_setup_cb_t *cb, void *cb_ident)
+-{	struct tcf_block_cb *block_cb;
+-
+-	list_for_each_entry(block_cb, &block->cb_list, list)
+-		if (block_cb->cb == cb && block_cb->cb_ident == cb_ident)
+-			return block_cb;
+-	return NULL;
+-}
+-EXPORT_SYMBOL(tcf_block_cb_lookup);
+-
+-void tcf_block_cb_incref(struct tcf_block_cb *block_cb)
+-{
+-	block_cb->refcnt++;
+-}
+-EXPORT_SYMBOL(tcf_block_cb_incref);
+-
+-unsigned int tcf_block_cb_decref(struct tcf_block_cb *block_cb)
+-{
+-	return --block_cb->refcnt;
+-}
+-EXPORT_SYMBOL(tcf_block_cb_decref);
+-
+-static int
+-tcf_block_playback_offloads(struct tcf_block *block, tc_setup_cb_t *cb,
+-			    void *cb_priv, bool add, bool offload_in_use,
+-			    struct netlink_ext_ack *extack)
+-{
+-	struct tcf_chain *chain, *chain_prev;
+-	struct tcf_proto *tp, *tp_prev;
+-	int err;
+-
+-	for (chain = __tcf_get_next_chain(block, NULL);
+-	     chain;
+-	     chain_prev = chain,
+-		     chain = __tcf_get_next_chain(block, chain),
+-		     tcf_chain_put(chain_prev)) {
+-		for (tp = __tcf_get_next_proto(chain, NULL); tp;
+-		     tp_prev = tp,
+-			     tp = __tcf_get_next_proto(chain, tp),
+-			     tcf_proto_put(tp_prev, true, NULL)) {
+-			if (tp->ops->reoffload) {
+-				err = tp->ops->reoffload(tp, add, cb, cb_priv,
+-							 extack);
+-				if (err && add)
+-					goto err_playback_remove;
+-			} else if (add && offload_in_use) {
+-				err = -EOPNOTSUPP;
+-				NL_SET_ERR_MSG(extack, "Filter HW offload failed - classifier without re-offloading support");
+-				goto err_playback_remove;
+-			}
+-		}
+-	}
+-
+-	return 0;
+-
+-err_playback_remove:
+-	tcf_proto_put(tp, true, NULL);
+-	tcf_chain_put(chain);
+-	tcf_block_playback_offloads(block, cb, cb_priv, false, offload_in_use,
+-				    extack);
+-	return err;
+-}
+-
+-struct tcf_block_cb *__tcf_block_cb_register(struct tcf_block *block,
+-					     tc_setup_cb_t *cb, void *cb_ident,
+-					     void *cb_priv,
+-					     struct netlink_ext_ack *extack)
+-{
+-	struct tcf_block_cb *block_cb;
+-	int err;
+-
+-	/* Replay any already present rules */
+-	err = tcf_block_playback_offloads(block, cb, cb_priv, true,
+-					  tcf_block_offload_in_use(block),
+-					  extack);
+-	if (err)
+-		return ERR_PTR(err);
+-
+-	block_cb = kzalloc(sizeof(*block_cb), GFP_KERNEL);
+-	if (!block_cb)
+-		return ERR_PTR(-ENOMEM);
+-	block_cb->cb = cb;
+-	block_cb->cb_ident = cb_ident;
+-	block_cb->cb_priv = cb_priv;
+-	list_add(&block_cb->list, &block->cb_list);
+-	return block_cb;
+-}
+-EXPORT_SYMBOL(__tcf_block_cb_register);
+-
+-int tcf_block_cb_register(struct tcf_block *block,
+-			  tc_setup_cb_t *cb, void *cb_ident,
+-			  void *cb_priv, struct netlink_ext_ack *extack)
+-{
+-	struct tcf_block_cb *block_cb;
+-
+-	block_cb = __tcf_block_cb_register(block, cb, cb_ident, cb_priv,
+-					   extack);
+-	return PTR_ERR_OR_ZERO(block_cb);
+-}
+-EXPORT_SYMBOL(tcf_block_cb_register);
+-
+-void __tcf_block_cb_unregister(struct tcf_block *block,
+-			       struct tcf_block_cb *block_cb)
+-{
+-	tcf_block_playback_offloads(block, block_cb->cb, block_cb->cb_priv,
+-				    false, tcf_block_offload_in_use(block),
+-				    NULL);
+-	list_del(&block_cb->list);
+-	kfree(block_cb);
+-}
+-EXPORT_SYMBOL(__tcf_block_cb_unregister);
+-
+-void tcf_block_cb_unregister(struct tcf_block *block,
+-			     tc_setup_cb_t *cb, void *cb_ident)
+-{
+-	struct tcf_block_cb *block_cb;
+-
+-	block_cb = tcf_block_cb_lookup(block, cb, cb_ident);
+-	if (!block_cb)
+-		return;
+-	__tcf_block_cb_unregister(block, block_cb);
+-}
+-EXPORT_SYMBOL(tcf_block_cb_unregister);
+-
+ /* Main classifier routine: scans classifier chain attached
+  * to this qdisc, (optionally) tests for protocol and asks
+  * specific classifiers.
 -- 
 2.11.0
 
