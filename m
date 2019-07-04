@@ -5,40 +5,40 @@ X-Spam-Level:
 X-Spam-Status: No, score=-10.0 required=3.0
 	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B398DC46497
-	for <netfilter-devel@archiver.kernel.org>; Thu,  4 Jul 2019 23:49:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 28BE2C0650E
+	for <netfilter-devel@archiver.kernel.org>; Thu,  4 Jul 2019 23:49:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 95326216FD
-	for <netfilter-devel@archiver.kernel.org>; Thu,  4 Jul 2019 23:49:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 053C1216FD
+	for <netfilter-devel@archiver.kernel.org>; Thu,  4 Jul 2019 23:49:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727727AbfGDXtW (ORCPT
+        id S1727745AbfGDXt2 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 4 Jul 2019 19:49:22 -0400
-Received: from mail.us.es ([193.147.175.20]:33182 "EHLO mail.us.es"
+        Thu, 4 Jul 2019 19:49:28 -0400
+Received: from mail.us.es ([193.147.175.20]:33346 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727705AbfGDXtV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 4 Jul 2019 19:49:21 -0400
+        id S1727739AbfGDXt0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 4 Jul 2019 19:49:26 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 7445481683
-        for <netfilter-devel@vger.kernel.org>; Fri,  5 Jul 2019 01:49:19 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id BE719816BB
+        for <netfilter-devel@vger.kernel.org>; Fri,  5 Jul 2019 01:49:24 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 56200A7BD6
-        for <netfilter-devel@vger.kernel.org>; Fri,  5 Jul 2019 01:49:19 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A904E6DA85
+        for <netfilter-devel@vger.kernel.org>; Fri,  5 Jul 2019 01:49:24 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 41B55DA732; Fri,  5 Jul 2019 01:49:18 +0200 (CEST)
+        id A839FCE158; Fri,  5 Jul 2019 01:49:24 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id EDC2ADA704;
-        Fri,  5 Jul 2019 01:49:15 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 315FBDA4D1;
+        Fri,  5 Jul 2019 01:49:21 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Fri, 05 Jul 2019 01:49:15 +0200 (CEST)
+ Fri, 05 Jul 2019 01:49:21 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id C1F6B4265A31;
-        Fri,  5 Jul 2019 01:49:14 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id E9DBC4265A32;
+        Fri,  5 Jul 2019 01:49:19 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netdev@vger.kernel.org
@@ -56,9 +56,9 @@ Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
         marcelo.leitner@gmail.com, mkubecek@suse.cz,
         venkatkumar.duvvuru@broadcom.com, maxime.chevallier@bootlin.com,
         cphealy@gmail.com
-Subject: [PATCH 05/15 net-next,v2] net: sched: add release callback to struct tcf_block_cb
-Date:   Fri,  5 Jul 2019 01:48:33 +0200
-Message-Id: <20190704234843.6601-6-pablo@netfilter.org>
+Subject: [PATCH 08/15 net-next,v2] net: cls_api: do not expose tcf_block to drivers
+Date:   Fri,  5 Jul 2019 01:48:36 +0200
+Message-Id: <20190704234843.6601-9-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20190704234843.6601-1-pablo@netfilter.org>
 References: <20190704234843.6601-1-pablo@netfilter.org>
@@ -68,88 +68,87 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Call it on tcf_block_cb object to release the driver private block area.
+Expose the block_shared flag which is what drivers.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-v2: no changes.
+v2: fix incorrect correction of block_shared in net/sched/cls_api.c
 
- include/net/pkt_cls.h |  6 ++++--
- net/sched/cls_api.c   | 10 ++++++++--
- 2 files changed, 12 insertions(+), 4 deletions(-)
+ drivers/net/ethernet/mscc/ocelot_tc.c               | 2 +-
+ drivers/net/ethernet/netronome/nfp/flower/offload.c | 2 +-
+ include/net/pkt_cls.h                               | 2 +-
+ net/sched/cls_api.c                                 | 6 +++---
+ 4 files changed, 6 insertions(+), 6 deletions(-)
 
+diff --git a/drivers/net/ethernet/mscc/ocelot_tc.c b/drivers/net/ethernet/mscc/ocelot_tc.c
+index 5c3bf639f87c..a52c233da571 100644
+--- a/drivers/net/ethernet/mscc/ocelot_tc.c
++++ b/drivers/net/ethernet/mscc/ocelot_tc.c
+@@ -140,7 +140,7 @@ static int ocelot_setup_tc_block(struct ocelot_port *port,
+ 
+ 	if (f->binder_type == TCF_BLOCK_BINDER_TYPE_CLSACT_INGRESS) {
+ 		cb = ocelot_setup_tc_block_cb_ig;
+-		port->tc.block_shared = tcf_block_shared(f->block);
++		port->tc.block_shared = f->block_shared;
+ 	} else if (f->binder_type == TCF_BLOCK_BINDER_TYPE_CLSACT_EGRESS) {
+ 		cb = ocelot_setup_tc_block_cb_eg;
+ 	} else {
+diff --git a/drivers/net/ethernet/netronome/nfp/flower/offload.c b/drivers/net/ethernet/netronome/nfp/flower/offload.c
+index fa44dce810ed..a19f4aafc3af 100644
+--- a/drivers/net/ethernet/netronome/nfp/flower/offload.c
++++ b/drivers/net/ethernet/netronome/nfp/flower/offload.c
+@@ -1313,7 +1313,7 @@ static int nfp_flower_setup_tc_block(struct net_device *netdev,
+ 		return -EOPNOTSUPP;
+ 
+ 	repr_priv = repr->app_priv;
+-	repr_priv->block_shared = tcf_block_shared(f->block);
++	repr_priv->block_shared = f->block_shared;
+ 
+ 	switch (f->command) {
+ 	case TC_BLOCK_BIND:
 diff --git a/include/net/pkt_cls.h b/include/net/pkt_cls.h
-index d660cb4fad75..fd0bfb63ab70 100644
+index cb899c4552f4..cc64dd45dfc2 100644
 --- a/include/net/pkt_cls.h
 +++ b/include/net/pkt_cls.h
-@@ -73,7 +73,8 @@ static inline struct Qdisc *tcf_block_q(struct tcf_block *block)
- }
+@@ -663,7 +663,7 @@ struct tc_block_offload {
+ 	enum tcf_block_binder_type binder_type;
+ 	struct list_head cb_list;
+ 	struct net *net;
+-	struct tcf_block *block;
++	bool block_shared;
+ 	struct netlink_ext_ack *extack;
+ };
  
- struct tcf_block_cb *tcf_block_cb_alloc(tc_setup_cb_t *cb,
--					void *cb_ident, void *cb_priv);
-+					void *cb_ident, void *cb_priv,
-+					void (*release)(void *cb_priv));
- void tcf_block_cb_free(struct tcf_block_cb *block_cb);
- 
- struct tc_block_offload;
-@@ -161,7 +162,8 @@ void tc_setup_cb_block_unregister(struct tcf_block *block, tc_setup_cb_t *cb,
- }
- 
- static inline struct tcf_block_cb *
--tcf_block_cb_alloc(tc_setup_cb_t *cb, void *cb_ident, void *cb_priv)
-+tcf_block_cb_alloc(tc_setup_cb_t *cb, void *cb_ident, void *cb_priv,
-+		   void (*release)(void *cb_priv))
- {
- 	return ERR_PTR(-EOPNOTSUPP);
- }
 diff --git a/net/sched/cls_api.c b/net/sched/cls_api.c
-index a2c1258cc8dc..534a545ea51e 100644
+index 3f036d50af65..e546d56c1a39 100644
 --- a/net/sched/cls_api.c
 +++ b/net/sched/cls_api.c
-@@ -713,6 +713,7 @@ struct tcf_block_cb {
- 	struct list_head global_list;
- 	struct list_head list;
- 	tc_setup_cb_t *cb;
-+	void (*release)(void *cb_priv);
- 	void *cb_ident;
- 	void *cb_priv;
- 	unsigned int refcnt;
-@@ -750,7 +751,8 @@ unsigned int tcf_block_cb_decref(struct tcf_block_cb *block_cb)
- EXPORT_SYMBOL(tcf_block_cb_decref);
+@@ -1073,7 +1073,7 @@ static void tc_indr_block_ing_cmd(struct tc_indr_block_dev *indr_dev,
+ 		.command	= command,
+ 		.binder_type	= TCF_BLOCK_BINDER_TYPE_CLSACT_INGRESS,
+ 		.net		= dev_net(indr_dev->dev),
+-		.block		= indr_dev->block,
++		.block_shared	= tcf_block_shared(indr_dev->block),
+ 	};
+ 	INIT_LIST_HEAD(&bo.cb_list);
  
- struct tcf_block_cb *tcf_block_cb_alloc(tc_setup_cb_t *cb,
--					void *cb_ident, void *cb_priv)
-+					void *cb_ident, void *cb_priv,
-+					void (*release)(void *cb_priv))
- {
- 	struct tcf_block_cb *block_cb;
- 
-@@ -760,6 +762,7 @@ struct tcf_block_cb *tcf_block_cb_alloc(tc_setup_cb_t *cb,
- 
- 	block_cb->cb = cb;
- 	block_cb->cb_ident = cb_ident;
-+	block_cb->release = release;
- 	block_cb->cb_priv = cb_priv;
- 
- 	return block_cb;
-@@ -768,6 +771,9 @@ EXPORT_SYMBOL(tcf_block_cb_alloc);
- 
- void tcf_block_cb_free(struct tcf_block_cb *block_cb)
- {
-+	if (block_cb->release)
-+		block_cb->release(block_cb->cb_priv);
-+
- 	kfree(block_cb);
- }
- EXPORT_SYMBOL(tcf_block_cb_free);
-@@ -801,7 +807,7 @@ struct tcf_block_cb *__tcf_block_cb_register(struct tcf_block *block,
- 	if (err)
- 		return ERR_PTR(err);
- 
--	block_cb = tcf_block_cb_alloc(cb, cb_ident, cb_priv);
-+	block_cb = tcf_block_cb_alloc(cb, cb_ident, cb_priv, NULL);
- 	if (IS_ERR(block_cb))
- 		return block_cb;
+@@ -1164,7 +1164,7 @@ static void tc_indr_block_call(struct tcf_block *block, struct net_device *dev,
+ 		.command	= command,
+ 		.binder_type	= ei->binder_type,
+ 		.net		= dev_net(dev),
+-		.block		= block,
++		.block_shared	= tcf_block_shared(block),
+ 		.extack		= extack,
+ 	};
+ 	INIT_LIST_HEAD(&bo.cb_list);
+@@ -1194,7 +1194,7 @@ static int tcf_block_offload_cmd(struct tcf_block *block,
+ 	bo.net = dev_net(dev);
+ 	bo.command = command;
+ 	bo.binder_type = ei->binder_type;
+-	bo.block = block;
++	bo.block_shared = tcf_block_shared(block);
+ 	bo.extack = extack;
+ 	INIT_LIST_HEAD(&bo.cb_list);
  
 -- 
 2.11.0
