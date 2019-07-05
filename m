@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-10.0 required=3.0
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 425AAC5B57D
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A6BA2C468AA
 	for <netfilter-devel@archiver.kernel.org>; Fri,  5 Jul 2019 22:09:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 253D0216E3
+	by mail.kernel.org (Postfix) with ESMTP id 89F9F216E3
 	for <netfilter-devel@archiver.kernel.org>; Fri,  5 Jul 2019 22:09:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725764AbfGEWJP (ORCPT
+        id S1725813AbfGEWJQ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 5 Jul 2019 18:09:15 -0400
-Received: from m9784.mail.qiye.163.com ([220.181.97.84]:27777 "EHLO
+        Fri, 5 Jul 2019 18:09:16 -0400
+Received: from m9784.mail.qiye.163.com ([220.181.97.84]:27743 "EHLO
         m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727008AbfGEWJO (ORCPT
+        with ESMTP id S1725882AbfGEWJP (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 5 Jul 2019 18:09:14 -0400
+        Fri, 5 Jul 2019 18:09:15 -0400
 Received: from localhost.localdomain (unknown [123.59.132.129])
-        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id 9519D415E8;
+        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id 4B083411C3;
         Sat,  6 Jul 2019 06:09:11 +0800 (CST)
 From:   wenxu@ucloud.cn
 To:     pablo@netfilter.org, nikolay@cumulusnetworks.com, fw@strlen.de
 Cc:     netfilter-devel@vger.kernel.org, bridge@lists.linux-foundation.org
-Subject: [PATCH 5/5 nf-next v3] netfilter: Flow table support the bridge family for ipv4
-Date:   Sat,  6 Jul 2019 06:09:10 +0800
-Message-Id: <1562364550-16974-5-git-send-email-wenxu@ucloud.cn>
+Subject: [PATCH 2/5 nf-next v3] netfilter:nf_flow_table: Separate inet operation to single function
+Date:   Sat,  6 Jul 2019 06:09:07 +0800
+Message-Id: <1562364550-16974-2-git-send-email-wenxu@ucloud.cn>
 X-Mailer: git-send-email 1.8.3.1
 In-Reply-To: <1562364550-16974-1-git-send-email-wenxu@ucloud.cn>
 References: <1562364550-16974-1-git-send-email-wenxu@ucloud.cn>
-X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVklVSk1JS0tLSkxCSUJLTExZV1koWU
+X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVkpVQkJKS0tLSkxOT0xNS0xZV1koWU
         FJQjdXWS1ZQUlXWQkOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6MTY6Ngw5TTgxUQgyTE1IC00q
-        NAwKCVZVSlVKTk1JSE1PTk5KTU1IVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJSFVO
-        QlVKSElVSklCWVdZCAFZQUhCQ0o3Bg++
-X-HM-Tid: 0a6bc42f21cd2086kuqy9519d415e8
+X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6PE06Djo4MDg3IggRTEwuCwwU
+        NwMKChhVSlVKTk1JSE1PTk5KSExJVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJSFVO
+        QlVKSElVSklCWVdZCAFZQUxLQkI3Bg++
+X-HM-Tid: 0a6bc42f209f2086kuqy4b083411c3
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
@@ -46,100 +46,191 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: wenxu <wenxu@ucloud.cn>
 
-This patch adds the bridge flow table type, that implements the datapath
-flow table to forward IPv4 traffic through bridge.
+This patch separate the inet family operation to single function.
+Prepare for supporting  the bridge family.
 
 Signed-off-by: wenxu <wenxu@ucloud.cn>
 ---
- net/bridge/netfilter/Kconfig                |  8 +++++
- net/bridge/netfilter/Makefile               |  1 +
- net/bridge/netfilter/nf_flow_table_bridge.c | 46 +++++++++++++++++++++++++++++
- 3 files changed, 55 insertions(+)
- create mode 100644 net/bridge/netfilter/nf_flow_table_bridge.c
+ net/netfilter/nf_flow_table_core.c | 52 ++++++++++++++++++++++++++++----------
+ net/netfilter/nf_flow_table_ip.c   | 34 +++++++++++++++----------
+ 2 files changed, 59 insertions(+), 27 deletions(-)
 
-diff --git a/net/bridge/netfilter/Kconfig b/net/bridge/netfilter/Kconfig
-index f4fb0b9..cba5f71 100644
---- a/net/bridge/netfilter/Kconfig
-+++ b/net/bridge/netfilter/Kconfig
-@@ -33,6 +33,14 @@ config NF_CONNTRACK_BRIDGE
+diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
+index 7e0b5bd..2bec409 100644
+--- a/net/netfilter/nf_flow_table_core.c
++++ b/net/netfilter/nf_flow_table_core.c
+@@ -22,6 +22,20 @@ struct flow_offload_entry {
+ static DEFINE_MUTEX(flowtable_lock);
+ static LIST_HEAD(flowtables);
  
- 	  To compile it as a module, choose M here.  If unsure, say N.
- 
-+config NF_FLOW_TABLE_BRIDGE
-+	tristate "Netfilter flow table bridge module"
-+	depends on NF_FLOW_TABLE && NF_CONNTRACK_BRIDGE
-+	help
-+          This option adds the flow table bridge support.
-+
-+	  To compile it as a module, choose M here.
-+
- endif # NF_TABLES_BRIDGE
- 
- menuconfig BRIDGE_NF_EBTABLES
-diff --git a/net/bridge/netfilter/Makefile b/net/bridge/netfilter/Makefile
-index 9d77673..deb81e6 100644
---- a/net/bridge/netfilter/Makefile
-+++ b/net/bridge/netfilter/Makefile
-@@ -7,6 +7,7 @@ obj-$(CONFIG_NFT_BRIDGE_REJECT)  += nft_reject_bridge.o
- 
- # connection tracking
- obj-$(CONFIG_NF_CONNTRACK_BRIDGE) += nf_conntrack_bridge.o
-+obj-$(CONFIG_NF_FLOW_TABLE_BRIDGE) += nf_flow_table_bridge.o
- 
- # packet logging
- obj-$(CONFIG_NF_LOG_BRIDGE) += nf_log_bridge.o
-diff --git a/net/bridge/netfilter/nf_flow_table_bridge.c b/net/bridge/netfilter/nf_flow_table_bridge.c
-new file mode 100644
-index 0000000..3a65b44
---- /dev/null
-+++ b/net/bridge/netfilter/nf_flow_table_bridge.c
-@@ -0,0 +1,46 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/module.h>
-+#include <linux/netfilter.h>
-+#include <net/netfilter/nf_flow_table.h>
-+#include <net/netfilter/nf_tables.h>
-+
-+static unsigned int
-+nf_flow_offload_bridge_hook(void *priv, struct sk_buff *skb,
-+			    const struct nf_hook_state *state)
++static struct dst_entry *
++flow_offload_fill_inet_dst(struct flow_offload_tuple *ft,
++			   struct nf_flow_route *route,
++			   enum flow_offload_tuple_dir dir)
 +{
-+	switch (skb->protocol) {
-+	case htons(ETH_P_IP):
-+		return nf_flow_offload_ip_hook(priv, skb, state);
++	struct dst_entry *other_dst = route->tuple[!dir].dst;
++	struct dst_entry *dst = route->tuple[dir].dst;
++
++	ft->iifidx = other_dst->dev->ifindex;
++	ft->dst.dst_cache = dst;
++
++	return dst;
++}
++
+ static void
+ flow_offload_fill_dir(struct flow_offload *flow, struct nf_conn *ct,
+ 		      struct nf_flow_dst *flow_dst,
+@@ -29,9 +43,9 @@ struct flow_offload_entry {
+ {
+ 	struct flow_offload_tuple *ft = &flow->tuplehash[dir].tuple;
+ 	struct nf_conntrack_tuple *ctt = &ct->tuplehash[dir].tuple;
+-	struct dst_entry *other_dst = flow_dst->route.tuple[!dir].dst;
+-	struct dst_entry *dst = flow_dst->route.tuple[dir].dst;
++	struct dst_entry *dst;
+ 
++	dst = flow_offload_fill_inet_dst(ft, &flow_dst->route, dir);
+ 	ft->dir = dir;
+ 
+ 	switch (ctt->src.l3num) {
+@@ -51,9 +65,19 @@ struct flow_offload_entry {
+ 	ft->l4proto = ctt->dst.protonum;
+ 	ft->src_port = ctt->src.u.tcp.port;
+ 	ft->dst_port = ctt->dst.u.tcp.port;
++}
+ 
+-	ft->iifidx = other_dst->dev->ifindex;
+-	ft->dst_cache = dst;
++static int flow_offload_dst_hold(struct nf_flow_dst *flow_dst)
++{
++	if (!dst_hold_safe(flow_dst->route.tuple[FLOW_OFFLOAD_DIR_ORIGINAL].dst))
++		return -1;
++
++	if (!dst_hold_safe(flow_dst->route.tuple[FLOW_OFFLOAD_DIR_REPLY].dst)) {
++		dst_release(flow_dst->route.tuple[FLOW_OFFLOAD_DIR_ORIGINAL].dst);
++		return -1;
 +	}
 +
-+	return NF_ACCEPT;
-+}
-+
-+static struct nf_flowtable_type flowtable_bridge = {
-+	.family		= NFPROTO_BRIDGE,
-+	.init		= nf_flow_table_init,
-+	.free		= nf_flow_table_free,
-+	.hook		= nf_flow_offload_bridge_hook,
-+	.owner		= THIS_MODULE,
-+};
-+
-+static int __init nf_flow_bridge_module_init(void)
-+{
-+	nft_register_flowtable_type(&flowtable_bridge);
-+
 +	return 0;
-+}
-+
-+static void __exit nf_flow_bridge_module_exit(void)
+ }
+ 
+ struct flow_offload *
+@@ -72,11 +96,8 @@ struct flow_offload *
+ 
+ 	flow = &entry->flow;
+ 
+-	if (!dst_hold_safe(flow_dst->route.tuple[FLOW_OFFLOAD_DIR_ORIGINAL].dst))
+-		goto err_dst_cache_original;
+-
+-	if (!dst_hold_safe(flow_dst->route.tuple[FLOW_OFFLOAD_DIR_REPLY].dst))
+-		goto err_dst_cache_reply;
++	if (flow_offload_dst_hold(flow_dst))
++		goto err_dst_cache;
+ 
+ 	entry->ct = ct;
+ 
+@@ -90,9 +111,7 @@ struct flow_offload *
+ 
+ 	return flow;
+ 
+-err_dst_cache_reply:
+-	dst_release(flow_dst->route.tuple[FLOW_OFFLOAD_DIR_ORIGINAL].dst);
+-err_dst_cache_original:
++err_dst_cache:
+ 	kfree(entry);
+ err_ct_refcnt:
+ 	nf_ct_put(ct);
+@@ -135,12 +154,17 @@ static void flow_offload_fixup_ct_state(struct nf_conn *ct)
+ 	ct->timeout = nfct_time_stamp + timeout;
+ }
+ 
++static void flow_offload_dst_release(struct flow_offload *flow)
 +{
-+	nft_unregister_flowtable_type(&flowtable_bridge);
++	dst_release(flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple.dst.dst_cache);
++	dst_release(flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].tuple.dst.dst_cache);
 +}
 +
-+module_init(nf_flow_bridge_module_init);
-+module_exit(nf_flow_bridge_module_exit);
+ void flow_offload_free(struct flow_offload *flow)
+ {
+ 	struct flow_offload_entry *e;
+ 
+-	dst_release(flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple.dst.dst_cache);
+-	dst_release(flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].tuple.dst.dst_cache);
++	flow_offload_dst_release(flow);
+ 	e = container_of(flow, struct flow_offload_entry, flow);
+ 	if (flow->flags & FLOW_OFFLOAD_DYING)
+ 		nf_ct_delete(e->ct, 0, 0);
+diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
+index 0016bb8..24263e2 100644
+--- a/net/netfilter/nf_flow_table_ip.c
++++ b/net/netfilter/nf_flow_table_ip.c
+@@ -214,6 +214,25 @@ static bool nf_flow_exceeds_mtu(const struct sk_buff *skb, unsigned int mtu)
+ 	return true;
+ }
+ 
++static void nf_flow_inet_xmit(struct flow_offload *flow, struct sk_buff *skb,
++			      enum flow_offload_tuple_dir dir)
++{
++	struct net_device *outdev;
++	struct rtable *rt;
++	struct iphdr *iph;
++	__be32 nexthop;
 +
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("wenxu <wenxu@ucloud.cn>");
-+MODULE_ALIAS_NF_FLOWTABLE(AF_BRIDGE);
++	rt = (struct rtable *)flow->tuplehash[dir].tuple.dst.dst_cache;
++	outdev = rt->dst.dev;
++	iph = ip_hdr(skb);
++	ip_decrease_ttl(iph);
++
++	skb->dev = outdev;
++	nexthop = rt_nexthop(rt, flow->tuplehash[!dir].tuple.src_v4.s_addr);
++	skb_dst_set_noref(skb, &rt->dst);
++	neigh_xmit(NEIGH_ARP_TABLE, outdev, &nexthop, skb);
++}
++
+ unsigned int
+ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
+ 			const struct nf_hook_state *state)
+@@ -223,11 +242,7 @@ static bool nf_flow_exceeds_mtu(const struct sk_buff *skb, unsigned int mtu)
+ 	struct flow_offload_tuple tuple = {};
+ 	enum flow_offload_tuple_dir dir;
+ 	struct flow_offload *flow;
+-	struct net_device *outdev;
+-	struct rtable *rt;
+ 	unsigned int thoff;
+-	struct iphdr *iph;
+-	__be32 nexthop;
+ 
+ 	if (skb->protocol != htons(ETH_P_IP))
+ 		return NF_ACCEPT;
+@@ -241,13 +256,11 @@ static bool nf_flow_exceeds_mtu(const struct sk_buff *skb, unsigned int mtu)
+ 
+ 	dir = tuplehash->tuple.dir;
+ 	flow = container_of(tuplehash, struct flow_offload, tuplehash[dir]);
+-	rt = (struct rtable *)flow->tuplehash[dir].tuple.dst.dst_cache;
+-	outdev = rt->dst.dev;
+ 
+ 	if (unlikely(nf_flow_exceeds_mtu(skb, flow->tuplehash[dir].tuple.mtu)))
+ 		return NF_ACCEPT;
+ 
+-	if (skb_try_make_writable(skb, sizeof(*iph)))
++	if (skb_try_make_writable(skb, sizeof(struct iphdr)))
+ 		return NF_DROP;
+ 
+ 	thoff = ip_hdr(skb)->ihl * 4;
+@@ -258,13 +271,8 @@ static bool nf_flow_exceeds_mtu(const struct sk_buff *skb, unsigned int mtu)
+ 		return NF_DROP;
+ 
+ 	flow->timeout = (u32)jiffies + NF_FLOW_TIMEOUT;
+-	iph = ip_hdr(skb);
+-	ip_decrease_ttl(iph);
+ 
+-	skb->dev = outdev;
+-	nexthop = rt_nexthop(rt, flow->tuplehash[!dir].tuple.src_v4.s_addr);
+-	skb_dst_set_noref(skb, &rt->dst);
+-	neigh_xmit(NEIGH_ARP_TABLE, outdev, &nexthop, skb);
++	nf_flow_inet_xmit(flow, skb, dir);
+ 
+ 	return NF_STOLEN;
+ }
 -- 
 1.8.3.1
 
