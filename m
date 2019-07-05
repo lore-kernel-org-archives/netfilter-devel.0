@@ -6,54 +6,55 @@ X-Spam-Status: No, score=-2.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
 	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3DABDC46499
-	for <netfilter-devel@archiver.kernel.org>; Fri,  5 Jul 2019 20:45:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D7DF2C46499
+	for <netfilter-devel@archiver.kernel.org>; Fri,  5 Jul 2019 20:45:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1D4CD216E3
-	for <netfilter-devel@archiver.kernel.org>; Fri,  5 Jul 2019 20:45:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B05AF216E3
+	for <netfilter-devel@archiver.kernel.org>; Fri,  5 Jul 2019 20:45:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728109AbfGEUpR (ORCPT
+        id S1728110AbfGEUp0 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 5 Jul 2019 16:45:17 -0400
-Received: from mail.us.es ([193.147.175.20]:42860 "EHLO mail.us.es"
+        Fri, 5 Jul 2019 16:45:26 -0400
+Received: from mail.us.es ([193.147.175.20]:42896 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726898AbfGEUpR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 5 Jul 2019 16:45:17 -0400
+        id S1726898AbfGEUp0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 5 Jul 2019 16:45:26 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 94242FB6C3
-        for <netfilter-devel@vger.kernel.org>; Fri,  5 Jul 2019 22:45:15 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 8826CFB6C0
+        for <netfilter-devel@vger.kernel.org>; Fri,  5 Jul 2019 22:45:24 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 87545202D2
-        for <netfilter-devel@vger.kernel.org>; Fri,  5 Jul 2019 22:45:15 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 799B4351A
+        for <netfilter-devel@vger.kernel.org>; Fri,  5 Jul 2019 22:45:24 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 7CEE71851C; Fri,  5 Jul 2019 22:45:15 +0200 (CEST)
+        id 6F4A9DA708; Fri,  5 Jul 2019 22:45:24 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 81DCDDA704;
-        Fri,  5 Jul 2019 22:45:13 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 7881DDA4CA;
+        Fri,  5 Jul 2019 22:45:22 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Fri, 05 Jul 2019 22:45:13 +0200 (CEST)
+ Fri, 05 Jul 2019 22:45:22 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from us.es (sys.soleta.eu [212.170.55.40])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
         (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 5570F4265A2F;
-        Fri,  5 Jul 2019 22:45:13 +0200 (CEST)
-Date:   Fri, 5 Jul 2019 22:45:12 +0200
+        by entrada.int (Postfix) with ESMTPSA id 5813C4265A2F;
+        Fri,  5 Jul 2019 22:45:22 +0200 (CEST)
+Date:   Fri, 5 Jul 2019 22:45:21 +0200
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     wenxu@ucloud.cn
 Cc:     nikolay@cumulusnetworks.com, netfilter-devel@vger.kernel.org,
         bridge@lists.linux-foundation.org
-Subject: Re: [PATCH 3/7 nf-next v2] bridge: add br_vlan_get_pvid_rcu()
-Message-ID: <20190705204512.uvzvpgu2ny7lqi75@salvia>
+Subject: Re: [PATCH 4/7 nf-next v2] netfilter: nft_meta_bridge: add
+ NFT_META_BRI_IIFPVID support
+Message-ID: <20190705204521.u2mq22wt5h2u6nnr@salvia>
 References: <1562332598-17415-1-git-send-email-wenxu@ucloud.cn>
- <1562332598-17415-3-git-send-email-wenxu@ucloud.cn>
+ <1562332598-17415-4-git-send-email-wenxu@ucloud.cn>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <1562332598-17415-3-git-send-email-wenxu@ucloud.cn>
+In-Reply-To: <1562332598-17415-4-git-send-email-wenxu@ucloud.cn>
 User-Agent: NeoMutt/20170113 (1.7.2)
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -61,9 +62,19 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Jul 05, 2019 at 09:16:34PM +0800, wenxu@ucloud.cn wrote:
-> From: Pablo Neira Ayuso <pablo@netfilter.org>
+On Fri, Jul 05, 2019 at 09:16:35PM +0800, wenxu@ucloud.cn wrote:
+> From: wenxu <wenxu@ucloud.cn>
 > 
-> This new function allows you to fetch bridge pvid from packet path.
+> nft add table bridge firewall
+> nft add chain bridge firewall zones { type filter hook prerouting priority - 300 \; }
+> nft add rule bridge firewall zones counter ct zone set vlan id map { 100 : 1, 200 : 2 }
+> 
+> As above set the bridge port with pvid, the received packet don't contain
+> the vlan tag which means the packet should belong to vlan 200 through pvid.
+> With this pacth user can get the pvid of bridge ports.
+> 
+> So add the following rule for as the first rule in the chain of zones.
+> 
+> nft add rule bridge firewall zones counter meta vlan set meta briifpvid
 
 Applied, thanks.
