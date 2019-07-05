@@ -7,66 +7,65 @@ X-Spam-Status: No, score=-5.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 12463C5B57D
-	for <netfilter-devel@archiver.kernel.org>; Fri,  5 Jul 2019 08:18:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 61781C5B57D
+	for <netfilter-devel@archiver.kernel.org>; Fri,  5 Jul 2019 08:23:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D816621852
-	for <netfilter-devel@archiver.kernel.org>; Fri,  5 Jul 2019 08:18:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 15228218A3
+	for <netfilter-devel@archiver.kernel.org>; Fri,  5 Jul 2019 08:23:17 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=cumulusnetworks.com header.i=@cumulusnetworks.com header.b="JehHPgs6"
+	dkim=pass (1024-bit key) header.d=cumulusnetworks.com header.i=@cumulusnetworks.com header.b="CQlzpE/J"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727179AbfGEISx (ORCPT
+        id S1727092AbfGEIXQ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 5 Jul 2019 04:18:53 -0400
-Received: from mail-wm1-f68.google.com ([209.85.128.68]:52910 "EHLO
-        mail-wm1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726116AbfGEISx (ORCPT
+        Fri, 5 Jul 2019 04:23:16 -0400
+Received: from mail-wm1-f67.google.com ([209.85.128.67]:38210 "EHLO
+        mail-wm1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727074AbfGEIXQ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 5 Jul 2019 04:18:53 -0400
-Received: by mail-wm1-f68.google.com with SMTP id s3so7892818wms.2
-        for <netfilter-devel@vger.kernel.org>; Fri, 05 Jul 2019 01:18:51 -0700 (PDT)
+        Fri, 5 Jul 2019 04:23:16 -0400
+Received: by mail-wm1-f67.google.com with SMTP id s15so8431812wmj.3
+        for <netfilter-devel@vger.kernel.org>; Fri, 05 Jul 2019 01:23:15 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=cumulusnetworks.com; s=google;
         h=subject:to:cc:references:from:message-id:date:user-agent
          :mime-version:in-reply-to:content-language:content-transfer-encoding;
-        bh=xNaeeNQ+DrT/MDlwiypulX86a/vhe/+Mo0zzZKV7q8c=;
-        b=JehHPgs6sR8BLe7UByCaHBk14ZJNP0GNmUXJbLqc1ZTfXPb8PUTWfJ2nZ6RLnGFo1L
-         J1k+aGLyEvR5cwemuYJ5jXbTdE/3GDchqRdGac05YNIAXbxIgzJrDjUoZF2bZCIs0LHd
-         8UsvftCyyEzzFDGFryG44SKvKD2/6OgSjMYQU=
+        bh=SuddDTHB7Z8B8sUF248QER9k0T7rIWuLc0Ru7WUYpI8=;
+        b=CQlzpE/JiVprrt8EiTO+bozfQKK8Y/Yo4zm31B3qCHkUQTMk8a4+Eff4PLY6l6cRyr
+         XkE8646Rw53crfH57uOjDtBSPOHBctswexkDT5385oZ2EEvLoQp6byYLMUSxF9OhTX/b
+         y3qQhK7+weZ8ks4JNowADfs+sFpy6s6/6kQgw=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:subject:to:cc:references:from:message-id:date
          :user-agent:mime-version:in-reply-to:content-language
          :content-transfer-encoding;
-        bh=xNaeeNQ+DrT/MDlwiypulX86a/vhe/+Mo0zzZKV7q8c=;
-        b=XNOEKVSSDO6FQyLaPZQK7RvfeQ5TrBU8h39VTTDx2kogudusrlJlekNvyBdznbhRFF
-         awyF6K0cHxkdNnBWZYI0MinDd3h8rNv/xSD0Q9EOj3TstU1BsFEeCR6TCw2/dOxh8apN
-         oF6s47+DNELEjVmhIxtRZOLn9kOdUafrTB3cpN/akgx8TpjojRIE1hMcUN65o6lqosHE
-         JzHYNoRb1gaJ17r0bU6O4iGbhtNZGhfuEF8RaVLvIqWLxLeheSIsnFqPcNZY2aAaqkON
-         arAxQDXflLetfXlgKNSdJ02SWbejB+cKYLZRn4i3nFurahE9/fCS+vml9q2ca/OaziDv
-         FD4g==
-X-Gm-Message-State: APjAAAVXxJQa6/dRDICWJhObE8x3q9UpGjGTN7utcXkfjdViEdOm9YEa
-        IOSTozJcd5es5x9M7VtoPJhi8g==
-X-Google-Smtp-Source: APXvYqwua5wSPZZ5dvFM8Gh/e9hvNksw/eFcfk0k+YX6EbO3Bha7QwvoFSozmIDDGxTTdpCfdOHPZw==
-X-Received: by 2002:a7b:c766:: with SMTP id x6mr2302197wmk.40.1562314731102;
-        Fri, 05 Jul 2019 01:18:51 -0700 (PDT)
+        bh=SuddDTHB7Z8B8sUF248QER9k0T7rIWuLc0Ru7WUYpI8=;
+        b=IvmmQQfbHhCnUApEI3+Cd8V9t6SWzZc1VjOt5HYqYXglAUx08yqYjPVORcS1Phi6Sx
+         Ae+fqMdloWBrcQLycn976KlHTP71KlYF5HP7XBGjgUJANaAkKLYaqyP69iodDng6tH8X
+         Tn2UyCViXGtShsiDX89+XAWpzGV9QmjLQ4dc6v8ngObHXdK7lbhAlVl1dIeytnkteaPk
+         Uq3V4gV+PFVKGSFCoJyQ85nC6AF0iTSPR+RbxkkxHj9oWOXcDv2+304/Z0MpZhTmHH0Q
+         AKij6vFuNnDZY1wCUvHC2TpBQRcUopdjHSfVBt9+SLYRx8c6nWbw8VkmxBd7so1SePN9
+         1sOw==
+X-Gm-Message-State: APjAAAWPP4ZkXp4W9Jlx6GRn+iwjpwJZR1MFDDXaq/vVwTmMd0pEkxdP
+        GC/PDEalTjiJx6ULV/wtLQbJHQ==
+X-Google-Smtp-Source: APXvYqxdnZo7N3/z/bFZdw1B/goBTojtQ8+zC+jf1AbPoqUB+6h4+38BbJ/sPfkQvMMlRctGujI9XQ==
+X-Received: by 2002:a05:600c:21d4:: with SMTP id x20mr2035423wmj.61.1562314994458;
+        Fri, 05 Jul 2019 01:23:14 -0700 (PDT)
 Received: from [192.168.0.107] (84-238-136-197.ip.btc-net.bg. [84.238.136.197])
-        by smtp.gmail.com with ESMTPSA id 72sm8076210wrk.22.2019.07.05.01.18.50
+        by smtp.gmail.com with ESMTPSA id r16sm21785293wrr.42.2019.07.05.01.23.13
         (version=TLS1_3 cipher=AEAD-AES128-GCM-SHA256 bits=128/128);
-        Fri, 05 Jul 2019 01:18:50 -0700 (PDT)
-Subject: Re: [PATCH 2/7 nf-next] netfilter: nft_meta_bridge: Remove the
- br_private.h header
+        Fri, 05 Jul 2019 01:23:13 -0700 (PDT)
+Subject: Re: [PATCH 3/7 nf-next] bridge: add br_vlan_get_pvid_rcu()
 To:     wenxu@ucloud.cn, pablo@netfilter.org
 Cc:     netfilter-devel@vger.kernel.org, bridge@lists.linux-foundation.org
 References: <1562224955-3979-1-git-send-email-wenxu@ucloud.cn>
- <1562224955-3979-2-git-send-email-wenxu@ucloud.cn>
+ <1562224955-3979-3-git-send-email-wenxu@ucloud.cn>
 From:   Nikolay Aleksandrov <nikolay@cumulusnetworks.com>
-Message-ID: <ccca906e-eb4f-efa0-abc5-664be9d8044b@cumulusnetworks.com>
-Date:   Fri, 5 Jul 2019 11:18:49 +0300
+Message-ID: <df83723a-4dd5-7c38-4240-9ef47fde55cf@cumulusnetworks.com>
+Date:   Fri, 5 Jul 2019 11:23:12 +0300
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
  Thunderbird/60.7.2
 MIME-Version: 1.0
-In-Reply-To: <1562224955-3979-2-git-send-email-wenxu@ucloud.cn>
+In-Reply-To: <1562224955-3979-3-git-send-email-wenxu@ucloud.cn>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
@@ -78,16 +77,17 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 On 04/07/2019 10:22, wenxu@ucloud.cn wrote:
 > From: wenxu <wenxu@ucloud.cn>
 > 
-> Mkae the nft_bridge_meta can't direct access the bridge
-> internal API.
+> This new function allows you to fetch bridge pvid from packet path.
 > 
 > Signed-off-by: wenxu <wenxu@ucloud.cn>
 > ---
->  net/bridge/netfilter/nft_meta_bridge.c | 19 ++++++++++++++-----
->  1 file changed, 14 insertions(+), 5 deletions(-)
+>  include/linux/if_bridge.h |  6 ++++++
+>  net/bridge/br_vlan.c      | 19 +++++++++++++++----
+>  2 files changed, 21 insertions(+), 4 deletions(-)
 > 
 
-Nice, thanks!
-Reviewed-by: Nikolay Aleksandrov <nikolay@cumulusnetworks.com>
+While the patch looks fine, you've taken authorship of Pablo's patch.
+From technical POV:
+Acked-by: Nikolay Aleksandrov <nikolay@cumulusnetworks.com>
 
 
