@@ -2,71 +2,108 @@ Return-Path: <SRS0=b56t=VC=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.0 required=3.0
+	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 19B5BC46499
-	for <netfilter-devel@archiver.kernel.org>; Fri,  5 Jul 2019 13:04:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E81D8C46499
+	for <netfilter-devel@archiver.kernel.org>; Fri,  5 Jul 2019 13:16:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E9B1E216E3
-	for <netfilter-devel@archiver.kernel.org>; Fri,  5 Jul 2019 13:04:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C1D5F218CA
+	for <netfilter-devel@archiver.kernel.org>; Fri,  5 Jul 2019 13:16:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728708AbfGENEe (ORCPT
+        id S1729020AbfGENQq (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 5 Jul 2019 09:04:34 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:51094 "EHLO orbyte.nwl.cc"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727965AbfGENEe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 5 Jul 2019 09:04:34 -0400
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.91)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1hjNtA-0003nM-Iu; Fri, 05 Jul 2019 15:04:32 +0200
-Date:   Fri, 5 Jul 2019 15:04:32 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, anon.amish@gmail.com
-Subject: Re: [nft PATCH v2] evaluate: Accept ranges of N-N
-Message-ID: <20190705130432.GE1628@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org, anon.amish@gmail.com
-References: <20190705121505.26466-1-phil@nwl.cc>
- <20190705125847.toc2sba27pcqywpo@salvia>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190705125847.toc2sba27pcqywpo@salvia>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+        Fri, 5 Jul 2019 09:16:46 -0400
+Received: from m9784.mail.qiye.163.com ([220.181.97.84]:49058 "EHLO
+        m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727261AbfGENQq (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 5 Jul 2019 09:16:46 -0400
+Received: from localhost.localdomain (unknown [123.59.132.129])
+        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id 9C14F418A1;
+        Fri,  5 Jul 2019 21:16:39 +0800 (CST)
+From:   wenxu@ucloud.cn
+To:     nikolay@cumulusnetworks.com, pablo@netfilter.org
+Cc:     netfilter-devel@vger.kernel.org, bridge@lists.linux-foundation.org
+Subject: [PATCH 2/7 nf-next v2] netfilter: nft_meta_bridge: Remove the br_private.h header
+Date:   Fri,  5 Jul 2019 21:16:33 +0800
+Message-Id: <1562332598-17415-2-git-send-email-wenxu@ucloud.cn>
+X-Mailer: git-send-email 1.8.3.1
+In-Reply-To: <1562332598-17415-1-git-send-email-wenxu@ucloud.cn>
+References: <1562332598-17415-1-git-send-email-wenxu@ucloud.cn>
+X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVkpVS05LS0tLS0xKTklOTkxZV1koWU
+        FJQjdXWS1ZQUlXWQkOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
+X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6PiI6KAw4HTgrSQgjCTErVjM4
+        VjZPCS5VSlVKTk1JSEhJTkJCTUJKVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJSFVO
+        QlVKSElVSklCWVdZCAFZQUlDT043Bg++
+X-HM-Tid: 0a6bc247956c2086kuqy9c14f418a1
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Jul 05, 2019 at 02:58:47PM +0200, Pablo Neira Ayuso wrote:
-> On Fri, Jul 05, 2019 at 02:15:05PM +0200, Phil Sutter wrote:
-> > Trying to add a range of size 1 was previously not allowed:
-> > 
-> > | # nft add element ip t s '{ 40-40 }'
-> > | Error: Range has zero or negative size
-> > | add element ip t s { 40-40 }
-> > |                      ^^^^^
-> > 
-> > The error message is not correct: If a range 40-41 is of size 2 (it
-> > contains elements 40 and 41), a range 40-40 must be of size 1.
-> > 
-> > Handling this is even supported already: If a single element is added to
-> > an interval set, it is converted into just this range. The implication
-> > is that on output, previous input of '40-40' is indistinguishable from
-> > single element input '40'.
-> 
-> What kind of human is going to generate such range? :-)
+From: wenxu <wenxu@ucloud.cn>
 
-According to the ticket, some scripts do. :)
+Mkae the nft_bridge_meta can't direct access the bridge
+internal API.
 
-> I think we can place this item in the "nft ruleset optimization"
-> discussion during the NFWS.
+Signed-off-by: wenxu <wenxu@ucloud.cn>
+Reviewed-by: Nikolay Aleksandrov <nikolay@cumulusnetworks.com>
+---
+ net/bridge/netfilter/nft_meta_bridge.c | 19 ++++++++++++++-----
+ 1 file changed, 14 insertions(+), 5 deletions(-)
 
-Sure, I'll add a note to the proposal.
+diff --git a/net/bridge/netfilter/nft_meta_bridge.c b/net/bridge/netfilter/nft_meta_bridge.c
+index dde8651..2ea8acb 100644
+--- a/net/bridge/netfilter/nft_meta_bridge.c
++++ b/net/bridge/netfilter/nft_meta_bridge.c
+@@ -8,7 +8,14 @@
+ #include <net/netfilter/nf_tables.h>
+ #include <net/netfilter/nft_meta.h>
+ 
+-#include "../br_private.h"
++static const struct net_device *
++nft_meta_get_bridge(const struct net_device *dev)
++{
++	if (dev && netif_is_bridge_port(dev))
++		return netdev_master_upper_dev_get_rcu((struct net_device *)dev);
++
++	return NULL;
++}
+ 
+ static void nft_meta_bridge_get_eval(const struct nft_expr *expr,
+ 				     struct nft_regs *regs,
+@@ -17,22 +24,24 @@ static void nft_meta_bridge_get_eval(const struct nft_expr *expr,
+ 	const struct nft_meta *priv = nft_expr_priv(expr);
+ 	const struct net_device *in = nft_in(pkt), *out = nft_out(pkt);
+ 	u32 *dest = &regs->data[priv->dreg];
+-	const struct net_bridge_port *p;
++	const struct net_device *br_dev;
+ 
+ 	switch (priv->key) {
+ 	case NFT_META_BRI_IIFNAME:
+-		if (in == NULL || (p = br_port_get_rcu(in)) == NULL)
++		br_dev = nft_meta_get_bridge(in);
++		if (!br_dev)
+ 			goto err;
+ 		break;
+ 	case NFT_META_BRI_OIFNAME:
+-		if (out == NULL || (p = br_port_get_rcu(out)) == NULL)
++		br_dev = nft_meta_get_bridge(out);
++		if (!br_dev)
+ 			goto err;
+ 		break;
+ 	default:
+ 		goto out;
+ 	}
+ 
+-	strncpy((char *)dest, p->br->dev->name, IFNAMSIZ);
++	strncpy((char *)dest, br_dev->name, IFNAMSIZ);
+ 	return;
+ out:
+ 	return nft_meta_get_eval(expr, regs, pkt);
+-- 
+1.8.3.1
 
-Thanks, Phil
