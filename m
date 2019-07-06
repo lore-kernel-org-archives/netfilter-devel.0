@@ -7,38 +7,36 @@ X-Spam-Status: No, score=-10.0 required=3.0
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1533BC0650E
-	for <netfilter-devel@archiver.kernel.org>; Sat,  6 Jul 2019 14:16:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 61598C0650E
+	for <netfilter-devel@archiver.kernel.org>; Sat,  6 Jul 2019 14:16:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id EB19F206A3
-	for <netfilter-devel@archiver.kernel.org>; Sat,  6 Jul 2019 14:16:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3B44B206A3
+	for <netfilter-devel@archiver.kernel.org>; Sat,  6 Jul 2019 14:16:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726702AbfGFOQB (ORCPT
+        id S1726708AbfGFOQE (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 6 Jul 2019 10:16:01 -0400
-Received: from m9784.mail.qiye.163.com ([220.181.97.84]:38100 "EHLO
+        Sat, 6 Jul 2019 10:16:04 -0400
+Received: from m9784.mail.qiye.163.com ([220.181.97.84]:38088 "EHLO
         m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726559AbfGFOQB (ORCPT
+        with ESMTP id S1726177AbfGFOQE (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 6 Jul 2019 10:16:01 -0400
+        Sat, 6 Jul 2019 10:16:04 -0400
 Received: from localhost.localdomain (unknown [123.59.132.129])
-        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id AD20F416E5;
+        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id 8D10F416DF;
         Sat,  6 Jul 2019 22:15:55 +0800 (CST)
 From:   wenxu@ucloud.cn
 To:     pablo@netfilter.org, nikolay@cumulusnetworks.com, fw@strlen.de
 Cc:     netfilter-devel@vger.kernel.org, bridge@lists.linux-foundation.org
-Subject: [PATCH 2/5 nf-next v4] netfilter:nf_flow_table: Separate inet operation to single function
-Date:   Sat,  6 Jul 2019 22:15:49 +0800
-Message-Id: <1562422552-26065-2-git-send-email-wenxu@ucloud.cn>
+Subject: [PATCH 1/5 nf-next v4] netfilter:nf_flow_table: Refactor flow_offload_tuple to destination
+Date:   Sat,  6 Jul 2019 22:15:48 +0800
+Message-Id: <1562422552-26065-1-git-send-email-wenxu@ucloud.cn>
 X-Mailer: git-send-email 1.8.3.1
-In-Reply-To: <1562422552-26065-1-git-send-email-wenxu@ucloud.cn>
-References: <1562422552-26065-1-git-send-email-wenxu@ucloud.cn>
-X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVkpVQ0xKS0tLS05KT0JDT0pZV1koWU
-        FJQjdXWS1ZQUlXWQkOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6Nww6IRw4KDgrUQ9KPxdOOgss
-        CE9PCU9VSlVKTk1JT0lJTk5OTENKVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJSFVO
-        QlVKSElVSklCWVdZCAFZQUxLQkI3Bg++
-X-HM-Tid: 0a6bc7a434522086kuqyad20f416e5
+X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZSVVOTkNLS0tLQ0xMSENLT1lXWShZQU
+        lCN1dZLVlBSVdZCQ4XHghZQVk1NCk2OjckKS43PlkG
+X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6Nzo6EDo*FTg2EA8PLxBROgoC
+        Ch4aCiJVSlVKTk1JT0lJTk5OTUNDVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJSFVO
+        QlVKSElVSklCWVdZCAFZQUxOTks3Bg++
+X-HM-Tid: 0a6bc7a433d02086kuqy8d10f416df
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
@@ -46,191 +44,190 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: wenxu <wenxu@ucloud.cn>
 
-This patch separate the inet family operation to single function.
-Prepare for supporting  the bridge family.
+Add struct flow_offload_dst to support more offload method to replace
+dst_cache which only work for route offload.
 
 Signed-off-by: wenxu <wenxu@ucloud.cn>
 ---
- net/netfilter/nf_flow_table_core.c | 52 ++++++++++++++++++++++++++++----------
- net/netfilter/nf_flow_table_ip.c   | 34 +++++++++++++++----------
- 2 files changed, 59 insertions(+), 27 deletions(-)
+ include/net/netfilter/nf_flow_table.h | 12 ++++++++++--
+ net/netfilter/nf_flow_table_core.c    | 22 +++++++++++-----------
+ net/netfilter/nf_flow_table_ip.c      |  4 ++--
+ net/netfilter/nft_flow_offload.c      | 10 +++++-----
+ 4 files changed, 28 insertions(+), 20 deletions(-)
 
+diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
+index d8c1879..d40d409 100644
+--- a/include/net/netfilter/nf_flow_table.h
++++ b/include/net/netfilter/nf_flow_table.h
+@@ -33,6 +33,10 @@ enum flow_offload_tuple_dir {
+ 	FLOW_OFFLOAD_DIR_MAX = IP_CT_DIR_MAX
+ };
+ 
++struct flow_offload_dst {
++	struct dst_entry		*dst_cache;
++};
++
+ struct flow_offload_tuple {
+ 	union {
+ 		struct in_addr		src_v4;
+@@ -55,7 +59,7 @@ struct flow_offload_tuple {
+ 
+ 	u16				mtu;
+ 
+-	struct dst_entry		*dst_cache;
++	struct flow_offload_dst		dst;
+ };
+ 
+ struct flow_offload_tuple_rhash {
+@@ -85,8 +89,12 @@ struct nf_flow_route {
+ 	} tuple[FLOW_OFFLOAD_DIR_MAX];
+ };
+ 
++struct nf_flow_dst {
++	struct nf_flow_route route;
++};
++
+ struct flow_offload *flow_offload_alloc(struct nf_conn *ct,
+-					struct nf_flow_route *route);
++					struct nf_flow_dst *flow_dst);
+ void flow_offload_free(struct flow_offload *flow);
+ 
+ int flow_offload_add(struct nf_flowtable *flow_table, struct flow_offload *flow);
 diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
-index 7e0b5bd..2bec409 100644
+index e3d7972..7e0b5bd 100644
 --- a/net/netfilter/nf_flow_table_core.c
 +++ b/net/netfilter/nf_flow_table_core.c
-@@ -22,6 +22,20 @@ struct flow_offload_entry {
- static DEFINE_MUTEX(flowtable_lock);
- static LIST_HEAD(flowtables);
+@@ -24,13 +24,13 @@ struct flow_offload_entry {
  
-+static struct dst_entry *
-+flow_offload_fill_inet_dst(struct flow_offload_tuple *ft,
-+			   struct nf_flow_route *route,
-+			   enum flow_offload_tuple_dir dir)
-+{
-+	struct dst_entry *other_dst = route->tuple[!dir].dst;
-+	struct dst_entry *dst = route->tuple[dir].dst;
-+
-+	ft->iifidx = other_dst->dev->ifindex;
-+	ft->dst.dst_cache = dst;
-+
-+	return dst;
-+}
-+
  static void
  flow_offload_fill_dir(struct flow_offload *flow, struct nf_conn *ct,
- 		      struct nf_flow_dst *flow_dst,
-@@ -29,9 +43,9 @@ struct flow_offload_entry {
+-		      struct nf_flow_route *route,
++		      struct nf_flow_dst *flow_dst,
+ 		      enum flow_offload_tuple_dir dir)
  {
  	struct flow_offload_tuple *ft = &flow->tuplehash[dir].tuple;
  	struct nf_conntrack_tuple *ctt = &ct->tuplehash[dir].tuple;
--	struct dst_entry *other_dst = flow_dst->route.tuple[!dir].dst;
--	struct dst_entry *dst = flow_dst->route.tuple[dir].dst;
-+	struct dst_entry *dst;
+-	struct dst_entry *other_dst = route->tuple[!dir].dst;
+-	struct dst_entry *dst = route->tuple[dir].dst;
++	struct dst_entry *other_dst = flow_dst->route.tuple[!dir].dst;
++	struct dst_entry *dst = flow_dst->route.tuple[dir].dst;
  
-+	dst = flow_offload_fill_inet_dst(ft, &flow_dst->route, dir);
  	ft->dir = dir;
  
- 	switch (ctt->src.l3num) {
-@@ -51,9 +65,19 @@ struct flow_offload_entry {
- 	ft->l4proto = ctt->dst.protonum;
- 	ft->src_port = ctt->src.u.tcp.port;
- 	ft->dst_port = ctt->dst.u.tcp.port;
-+}
- 
--	ft->iifidx = other_dst->dev->ifindex;
--	ft->dst_cache = dst;
-+static int flow_offload_dst_hold(struct nf_flow_dst *flow_dst)
-+{
-+	if (!dst_hold_safe(flow_dst->route.tuple[FLOW_OFFLOAD_DIR_ORIGINAL].dst))
-+		return -1;
-+
-+	if (!dst_hold_safe(flow_dst->route.tuple[FLOW_OFFLOAD_DIR_REPLY].dst)) {
-+		dst_release(flow_dst->route.tuple[FLOW_OFFLOAD_DIR_ORIGINAL].dst);
-+		return -1;
-+	}
-+
-+	return 0;
+@@ -57,7 +57,7 @@ struct flow_offload_entry {
  }
  
  struct flow_offload *
-@@ -72,11 +96,8 @@ struct flow_offload *
+-flow_offload_alloc(struct nf_conn *ct, struct nf_flow_route *route)
++flow_offload_alloc(struct nf_conn *ct, struct nf_flow_dst *flow_dst)
+ {
+ 	struct flow_offload_entry *entry;
+ 	struct flow_offload *flow;
+@@ -72,16 +72,16 @@ struct flow_offload *
  
  	flow = &entry->flow;
  
--	if (!dst_hold_safe(flow_dst->route.tuple[FLOW_OFFLOAD_DIR_ORIGINAL].dst))
--		goto err_dst_cache_original;
--
--	if (!dst_hold_safe(flow_dst->route.tuple[FLOW_OFFLOAD_DIR_REPLY].dst))
--		goto err_dst_cache_reply;
-+	if (flow_offload_dst_hold(flow_dst))
-+		goto err_dst_cache;
+-	if (!dst_hold_safe(route->tuple[FLOW_OFFLOAD_DIR_ORIGINAL].dst))
++	if (!dst_hold_safe(flow_dst->route.tuple[FLOW_OFFLOAD_DIR_ORIGINAL].dst))
+ 		goto err_dst_cache_original;
+ 
+-	if (!dst_hold_safe(route->tuple[FLOW_OFFLOAD_DIR_REPLY].dst))
++	if (!dst_hold_safe(flow_dst->route.tuple[FLOW_OFFLOAD_DIR_REPLY].dst))
+ 		goto err_dst_cache_reply;
  
  	entry->ct = ct;
  
-@@ -90,9 +111,7 @@ struct flow_offload *
+-	flow_offload_fill_dir(flow, ct, route, FLOW_OFFLOAD_DIR_ORIGINAL);
+-	flow_offload_fill_dir(flow, ct, route, FLOW_OFFLOAD_DIR_REPLY);
++	flow_offload_fill_dir(flow, ct, flow_dst, FLOW_OFFLOAD_DIR_ORIGINAL);
++	flow_offload_fill_dir(flow, ct, flow_dst, FLOW_OFFLOAD_DIR_REPLY);
  
+ 	if (ct->status & IPS_SRC_NAT)
+ 		flow->flags |= FLOW_OFFLOAD_SNAT;
+@@ -91,7 +91,7 @@ struct flow_offload *
  	return flow;
  
--err_dst_cache_reply:
--	dst_release(flow_dst->route.tuple[FLOW_OFFLOAD_DIR_ORIGINAL].dst);
--err_dst_cache_original:
-+err_dst_cache:
+ err_dst_cache_reply:
+-	dst_release(route->tuple[FLOW_OFFLOAD_DIR_ORIGINAL].dst);
++	dst_release(flow_dst->route.tuple[FLOW_OFFLOAD_DIR_ORIGINAL].dst);
+ err_dst_cache_original:
  	kfree(entry);
  err_ct_refcnt:
- 	nf_ct_put(ct);
-@@ -135,12 +154,17 @@ static void flow_offload_fixup_ct_state(struct nf_conn *ct)
- 	ct->timeout = nfct_time_stamp + timeout;
- }
- 
-+static void flow_offload_dst_release(struct flow_offload *flow)
-+{
-+	dst_release(flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple.dst.dst_cache);
-+	dst_release(flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].tuple.dst.dst_cache);
-+}
-+
- void flow_offload_free(struct flow_offload *flow)
+@@ -139,8 +139,8 @@ void flow_offload_free(struct flow_offload *flow)
  {
  	struct flow_offload_entry *e;
  
--	dst_release(flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple.dst.dst_cache);
--	dst_release(flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].tuple.dst.dst_cache);
-+	flow_offload_dst_release(flow);
+-	dst_release(flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple.dst_cache);
+-	dst_release(flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].tuple.dst_cache);
++	dst_release(flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple.dst.dst_cache);
++	dst_release(flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].tuple.dst.dst_cache);
  	e = container_of(flow, struct flow_offload_entry, flow);
  	if (flow->flags & FLOW_OFFLOAD_DYING)
  		nf_ct_delete(e->ct, 0, 0);
 diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
-index 0016bb8..24263e2 100644
+index 2413174..0016bb8 100644
 --- a/net/netfilter/nf_flow_table_ip.c
 +++ b/net/netfilter/nf_flow_table_ip.c
-@@ -214,6 +214,25 @@ static bool nf_flow_exceeds_mtu(const struct sk_buff *skb, unsigned int mtu)
- 	return true;
- }
- 
-+static void nf_flow_inet_xmit(struct flow_offload *flow, struct sk_buff *skb,
-+			      enum flow_offload_tuple_dir dir)
-+{
-+	struct net_device *outdev;
-+	struct rtable *rt;
-+	struct iphdr *iph;
-+	__be32 nexthop;
-+
-+	rt = (struct rtable *)flow->tuplehash[dir].tuple.dst.dst_cache;
-+	outdev = rt->dst.dev;
-+	iph = ip_hdr(skb);
-+	ip_decrease_ttl(iph);
-+
-+	skb->dev = outdev;
-+	nexthop = rt_nexthop(rt, flow->tuplehash[!dir].tuple.src_v4.s_addr);
-+	skb_dst_set_noref(skb, &rt->dst);
-+	neigh_xmit(NEIGH_ARP_TABLE, outdev, &nexthop, skb);
-+}
-+
- unsigned int
- nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
- 			const struct nf_hook_state *state)
-@@ -223,11 +242,7 @@ static bool nf_flow_exceeds_mtu(const struct sk_buff *skb, unsigned int mtu)
- 	struct flow_offload_tuple tuple = {};
- 	enum flow_offload_tuple_dir dir;
- 	struct flow_offload *flow;
--	struct net_device *outdev;
--	struct rtable *rt;
- 	unsigned int thoff;
--	struct iphdr *iph;
--	__be32 nexthop;
- 
- 	if (skb->protocol != htons(ETH_P_IP))
- 		return NF_ACCEPT;
-@@ -241,13 +256,11 @@ static bool nf_flow_exceeds_mtu(const struct sk_buff *skb, unsigned int mtu)
+@@ -241,7 +241,7 @@ static bool nf_flow_exceeds_mtu(const struct sk_buff *skb, unsigned int mtu)
  
  	dir = tuplehash->tuple.dir;
  	flow = container_of(tuplehash, struct flow_offload, tuplehash[dir]);
--	rt = (struct rtable *)flow->tuplehash[dir].tuple.dst.dst_cache;
--	outdev = rt->dst.dev;
+-	rt = (struct rtable *)flow->tuplehash[dir].tuple.dst_cache;
++	rt = (struct rtable *)flow->tuplehash[dir].tuple.dst.dst_cache;
+ 	outdev = rt->dst.dev;
  
  	if (unlikely(nf_flow_exceeds_mtu(skb, flow->tuplehash[dir].tuple.mtu)))
- 		return NF_ACCEPT;
+@@ -457,7 +457,7 @@ static int nf_flow_tuple_ipv6(struct sk_buff *skb, const struct net_device *dev,
  
--	if (skb_try_make_writable(skb, sizeof(*iph)))
-+	if (skb_try_make_writable(skb, sizeof(struct iphdr)))
- 		return NF_DROP;
+ 	dir = tuplehash->tuple.dir;
+ 	flow = container_of(tuplehash, struct flow_offload, tuplehash[dir]);
+-	rt = (struct rt6_info *)flow->tuplehash[dir].tuple.dst_cache;
++	rt = (struct rt6_info *)flow->tuplehash[dir].tuple.dst.dst_cache;
+ 	outdev = rt->dst.dev;
  
- 	thoff = ip_hdr(skb)->ihl * 4;
-@@ -258,13 +271,8 @@ static bool nf_flow_exceeds_mtu(const struct sk_buff *skb, unsigned int mtu)
- 		return NF_DROP;
+ 	if (unlikely(nf_flow_exceeds_mtu(skb, flow->tuplehash[dir].tuple.mtu)))
+diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
+index aa5f571..4af94ce 100644
+--- a/net/netfilter/nft_flow_offload.c
++++ b/net/netfilter/nft_flow_offload.c
+@@ -73,7 +73,7 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
+ 	struct nft_flow_offload *priv = nft_expr_priv(expr);
+ 	struct nf_flowtable *flowtable = &priv->flowtable->data;
+ 	enum ip_conntrack_info ctinfo;
+-	struct nf_flow_route route;
++	struct nf_flow_dst flow_dst;
+ 	struct flow_offload *flow;
+ 	enum ip_conntrack_dir dir;
+ 	bool is_tcp = false;
+@@ -108,10 +108,10 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
+ 		goto out;
  
- 	flow->timeout = (u32)jiffies + NF_FLOW_TIMEOUT;
--	iph = ip_hdr(skb);
--	ip_decrease_ttl(iph);
+ 	dir = CTINFO2DIR(ctinfo);
+-	if (nft_flow_route(pkt, ct, &route, dir) < 0)
++	if (nft_flow_route(pkt, ct, &flow_dst.route, dir) < 0)
+ 		goto err_flow_route;
  
--	skb->dev = outdev;
--	nexthop = rt_nexthop(rt, flow->tuplehash[!dir].tuple.src_v4.s_addr);
--	skb_dst_set_noref(skb, &rt->dst);
--	neigh_xmit(NEIGH_ARP_TABLE, outdev, &nexthop, skb);
-+	nf_flow_inet_xmit(flow, skb, dir);
+-	flow = flow_offload_alloc(ct, &route);
++	flow = flow_offload_alloc(ct, &flow_dst);
+ 	if (!flow)
+ 		goto err_flow_alloc;
  
- 	return NF_STOLEN;
- }
+@@ -124,13 +124,13 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
+ 	if (ret < 0)
+ 		goto err_flow_add;
+ 
+-	dst_release(route.tuple[!dir].dst);
++	dst_release(flow_dst.route.tuple[!dir].dst);
+ 	return;
+ 
+ err_flow_add:
+ 	flow_offload_free(flow);
+ err_flow_alloc:
+-	dst_release(route.tuple[!dir].dst);
++	dst_release(flow_dst.route.tuple[!dir].dst);
+ err_flow_route:
+ 	clear_bit(IPS_OFFLOAD_BIT, &ct->status);
+ out:
 -- 
 1.8.3.1
 
