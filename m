@@ -2,156 +2,211 @@ Return-Path: <SRS0=/Ma8=VD=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_SANE_2 autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-8.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B237C0650E
-	for <netfilter-devel@archiver.kernel.org>; Sat,  6 Jul 2019 10:41:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 84CEFC0650E
+	for <netfilter-devel@archiver.kernel.org>; Sat,  6 Jul 2019 12:02:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1E29720989
-	for <netfilter-devel@archiver.kernel.org>; Sat,  6 Jul 2019 10:41:42 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1562409702;
-	bh=1lMfmiBsx1ARHoZng0ChQJt6VtT1eCRyB6pMDDOcHkM=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:List-ID:From;
-	b=GwCmGopdaKY4mCJdhzRbLAXo9TccVLxptRQdJ3kcPI+6LH+GjwYyHq3uf/EWAACKD
-	 xRDwfxj9kQdeRC5j77A1Z5dMFZ8HYnyK8lLaemnxyj0PWzH5NPOXwrChDeGsOuiYe6
-	 yZN3hlyIjy5VNGq+NhBnUUt3S78+LbMS8a5UZtiI=
+	by mail.kernel.org (Postfix) with ESMTP id 490CB2089C
+	for <netfilter-devel@archiver.kernel.org>; Sat,  6 Jul 2019 12:02:48 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=cumulusnetworks.com header.i=@cumulusnetworks.com header.b="EQ3u+Arf"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726023AbfGFKlg (ORCPT
+        id S1726207AbfGFMCs (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 6 Jul 2019 06:41:36 -0400
-Received: from bombadil.infradead.org ([198.137.202.133]:40710 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725926AbfGFKlg (ORCPT
+        Sat, 6 Jul 2019 08:02:48 -0400
+Received: from mail-wr1-f65.google.com ([209.85.221.65]:33991 "EHLO
+        mail-wr1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726181AbfGFMCr (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 6 Jul 2019 06:41:36 -0400
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=bombadil.20170209; h=Content-Transfer-Encoding:
-        Content-Type:MIME-Version:References:In-Reply-To:Message-ID:Subject:Cc:To:
-        From:Date:Sender:Reply-To:Content-ID:Content-Description:Resent-Date:
-        Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:
-        List-Help:List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-         bh=x8xrypbhTWD1eWxAgLr7OjCl2dz8XFdFHYVEQD+l2xE=; b=YBvr4PY1Da2Hx3f7iSWvlPukP
-        XbOYF2nAlGklvMISBtplGqU/b14y4fzaIQRcBUXwTlVjP/RP6dOV0RlTBXmTwT1CfKGKGciWFl5du
-        b4b3cBo3O8z3yXD1nvSYMMDOWbwgHWouDGhSADzwfwA9Qm6uyZcweCcmo96c/ckGZLYGeOVuZ64ly
-        5gBICvY5YcW2NxdEDWyS4FfRL3zcOwXSGLhCk0jo8H+GSEGe1eqbOnl4pWZhaMUhRTjSuHCW4FwKQ
-        NKb9Oa3HttarFKO3DQFaIC1yifRDMHCZS5a/koauXe+hzqed8li7bGQynmTKFugnD7KIuBPk+ZQTw
-        u+zCYCLqA==;
-Received: from 177.205.70.5.dynamic.adsl.gvt.net.br ([177.205.70.5] helo=coco.lan)
-        by bombadil.infradead.org with esmtpsa (Exim 4.92 #3 (Red Hat Linux))
-        id 1hji8K-0007Fa-2X; Sat, 06 Jul 2019 10:41:32 +0000
-Date:   Sat, 6 Jul 2019 07:41:26 -0300
-From:   Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To:     Jacek Anaszewski <jacek.anaszewski@gmail.com>
-Cc:     Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
-        Vadim Pasternak <vadimp@mellanox.com>,
-        Pavel Machek <pavel@ucw.cz>, Dan Murphy <dmurphy@ti.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        linux-leds@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, netdev@vger.kernel.org
-Subject: Re: [PATCH 24/43] docs: leds: convert to ReST
-Message-ID: <20190706074047.58c23fe9@coco.lan>
-In-Reply-To: <0b2a2452-20ca-1651-e03b-a15a8502b028@gmail.com>
-References: <cover.1561723979.git.mchehab+samsung@kernel.org>
-        <2fecbe9a9cefda64771b43c5fc67495d897dd722.1561723980.git.mchehab+samsung@kernel.org>
-        <0b2a2452-20ca-1651-e03b-a15a8502b028@gmail.com>
-X-Mailer: Claws Mail 3.17.3 (GTK+ 2.24.32; x86_64-redhat-linux-gnu)
+        Sat, 6 Jul 2019 08:02:47 -0400
+Received: by mail-wr1-f65.google.com with SMTP id u18so12380321wru.1
+        for <netfilter-devel@vger.kernel.org>; Sat, 06 Jul 2019 05:02:44 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=cumulusnetworks.com; s=google;
+        h=subject:to:cc:references:from:message-id:date:user-agent
+         :mime-version:in-reply-to:content-language:content-transfer-encoding;
+        bh=4EbNExg+eeJy8G4OPlBwKsMIGrrWxQfyRl+kvZT6XoE=;
+        b=EQ3u+Arfn+T84bTpym4AoPrymvvWZgkDFzNQq0a/dq5Q4pDylnihfnFR1E6gfGNurD
+         02tqdOt0ntAaUasXpwZQqY9RLJ2GVNCk0S71PSrO4wD1AsJS6Hxr5q0wgorXbKqxjjYU
+         t8QvpnnsweerViwwVx1ZnuH1gHwkGhUFf2QzU=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-language
+         :content-transfer-encoding;
+        bh=4EbNExg+eeJy8G4OPlBwKsMIGrrWxQfyRl+kvZT6XoE=;
+        b=KdyZ5urJinHCkNk1HYnxXs3gpoPylJ4JyWd2dXtZ8JVOz/tq7t1D43a+IpHgtxAlYg
+         m2ohgI4zDK5RQ9BxCGG0jXEZ29ZfgVhjMT262rBXsS30v8bdIv5hUqmohpK2YRMid3sQ
+         WSnAtvq2eTOZMxzukbnqtAbozluDX6OUkE3V9eqi4Ugtr3HNu9xvQG0gWbPVoz5OGbrG
+         LvUveXbU73j0zoX+n92g67/cTShPlKZ0FzulHJ9cB6SwnTwQtuYNz/OCCHfiLkpFLHfi
+         gXn11/qUP3FtNdRYrJbyLgJ+6nW+niLrTE4GDOIlrSSIFMSXaKLCcspcbpglK/Luh76Q
+         2UHQ==
+X-Gm-Message-State: APjAAAWj6InoGg4n58iDuExVumljpZIgS6qtpKKTo9FBTp+yZpMeZbbG
+        LdjNIpkpHnIqswvSCTu/GYTbuzKBKlQ=
+X-Google-Smtp-Source: APXvYqwrND7Z7euDzBteINY2CyuK2aTxQFWf1dlkZ0Y1miBSdPadDvgU0QLveKN1v2Rydj+kRqqecw==
+X-Received: by 2002:adf:ecc4:: with SMTP id s4mr9651980wro.331.1562414563602;
+        Sat, 06 Jul 2019 05:02:43 -0700 (PDT)
+Received: from [192.168.0.107] (84-238-136-197.ip.btc-net.bg. [84.238.136.197])
+        by smtp.gmail.com with ESMTPSA id x6sm5674002wrt.63.2019.07.06.05.02.42
+        (version=TLS1_3 cipher=AEAD-AES128-GCM-SHA256 bits=128/128);
+        Sat, 06 Jul 2019 05:02:42 -0700 (PDT)
+Subject: Re: [PATCH nf-next v2] netfilter:nft_meta: add NFT_META_VLAN support
+To:     wenxu@ucloud.cn, pablo@netfilter.org
+Cc:     netfilter-devel@vger.kernel.org, bridge@lists.linux-foundation.org
+References: <1562332598-17415-1-git-send-email-wenxu@ucloud.cn>
+ <1562332598-17415-7-git-send-email-wenxu@ucloud.cn>
+From:   Nikolay Aleksandrov <nikolay@cumulusnetworks.com>
+Message-ID: <caaaa242-6bb8-9d5e-af66-a0cd6592f81d@cumulusnetworks.com>
+Date:   Sat, 6 Jul 2019 15:02:41 +0300
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.7.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <1562332598-17415-7-git-send-email-wenxu@ucloud.cn>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Em Fri, 28 Jun 2019 21:01:40 +0200
-Jacek Anaszewski <jacek.anaszewski@gmail.com> escreveu:
+On 05/07/2019 16:16, wenxu@ucloud.cn wrote:
+> From: wenxu <wenxu@ucloud.cn>
+> 
+> This patch provide a meta vlan to set the vlan tag of the packet.
+> 
+> for q-in-q outer vlan id 20:
+> meta vlan set 0x88a8:20
+> 
+> set the default 0x8100 vlan type with vlan id 20
+> meta vlan set 20
+> 
+> Signed-off-by: wenxu <wenxu@ucloud.cn>
+> ---
+>  include/net/netfilter/nft_meta.h         |  5 ++++-
+>  include/uapi/linux/netfilter/nf_tables.h |  4 ++++
+>  net/netfilter/nft_meta.c                 | 25 +++++++++++++++++++++++++
+>  3 files changed, 33 insertions(+), 1 deletion(-)
+> 
 
-> Hi Mauro,
->=20
-> On 6/28/19 2:20 PM, Mauro Carvalho Chehab wrote:
-> > Rename the leds documentation files to ReST, add an
-> > index for them and adjust in order to produce a nice html
-> > output via the Sphinx build system.
-> >=20
-> > At its new index.rst, let's add a :orphan: while this is not linked to
-> > the main index.rst file, in order to avoid build warnings.
-> >=20
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-> > Acked-by: Pavel Machek <pavel@ucw.cz>
-> > ---
-> >  Documentation/laptops/thinkpad-acpi.txt       |   4 +-
-> >  Documentation/leds/index.rst                  |  25 ++
-> >  .../leds/{leds-blinkm.txt =3D> leds-blinkm.rst} |  64 ++---
-> >  ...s-class-flash.txt =3D> leds-class-flash.rst} |  49 ++--
-> >  .../leds/{leds-class.txt =3D> leds-class.rst}   |  15 +-
-> >  .../leds/{leds-lm3556.txt =3D> leds-lm3556.rst} | 100 ++++++--
-> >  .../leds/{leds-lp3944.txt =3D> leds-lp3944.rst} |  23 +-
-> >  Documentation/leds/leds-lp5521.rst            | 115 +++++++++
-> >  Documentation/leds/leds-lp5521.txt            | 101 --------
-> >  Documentation/leds/leds-lp5523.rst            | 147 ++++++++++++
-> >  Documentation/leds/leds-lp5523.txt            | 130 ----------
-> >  Documentation/leds/leds-lp5562.rst            | 137 +++++++++++
-> >  Documentation/leds/leds-lp5562.txt            | 120 ----------
-> >  Documentation/leds/leds-lp55xx.rst            | 224 ++++++++++++++++++
-> >  Documentation/leds/leds-lp55xx.txt            | 194 ---------------
-> >  Documentation/leds/leds-mlxcpld.rst           | 118 +++++++++
-> >  Documentation/leds/leds-mlxcpld.txt           | 110 ---------
-> >  ...edtrig-oneshot.txt =3D> ledtrig-oneshot.rst} |  11 +-
-> >  ...ig-transient.txt =3D> ledtrig-transient.rst} |  63 +++--
-> >  ...edtrig-usbport.txt =3D> ledtrig-usbport.rst} |  11 +-
-> >  Documentation/leds/{uleds.txt =3D> uleds.rst}   |   5 +-
-> >  MAINTAINERS                                   |   2 +-
-> >  drivers/leds/trigger/Kconfig                  |   2 +-
-> >  drivers/leds/trigger/ledtrig-transient.c      |   2 +-
-> >  net/netfilter/Kconfig                         |   2 +-
-> >  25 files changed, 996 insertions(+), 778 deletions(-)
-> >  create mode 100644 Documentation/leds/index.rst
-> >  rename Documentation/leds/{leds-blinkm.txt =3D> leds-blinkm.rst} (57%)
-> >  rename Documentation/leds/{leds-class-flash.txt =3D> leds-class-flash.=
-rst} (74%)
-> >  rename Documentation/leds/{leds-class.txt =3D> leds-class.rst} (92%)
-> >  rename Documentation/leds/{leds-lm3556.txt =3D> leds-lm3556.rst} (70%)
-> >  rename Documentation/leds/{leds-lp3944.txt =3D> leds-lp3944.rst} (78%)
-> >  create mode 100644 Documentation/leds/leds-lp5521.rst
-> >  delete mode 100644 Documentation/leds/leds-lp5521.txt
-> >  create mode 100644 Documentation/leds/leds-lp5523.rst
-> >  delete mode 100644 Documentation/leds/leds-lp5523.txt
-> >  create mode 100644 Documentation/leds/leds-lp5562.rst
-> >  delete mode 100644 Documentation/leds/leds-lp5562.txt
-> >  create mode 100644 Documentation/leds/leds-lp55xx.rst
-> >  delete mode 100644 Documentation/leds/leds-lp55xx.txt
-> >  create mode 100644 Documentation/leds/leds-mlxcpld.rst
-> >  delete mode 100644 Documentation/leds/leds-mlxcpld.txt
-> >  rename Documentation/leds/{ledtrig-oneshot.txt =3D> ledtrig-oneshot.rs=
-t} (90%)
-> >  rename Documentation/leds/{ledtrig-transient.txt =3D> ledtrig-transien=
-t.rst} (81%)
-> >  rename Documentation/leds/{ledtrig-usbport.txt =3D> ledtrig-usbport.rs=
-t} (86%)
-> >  rename Documentation/leds/{uleds.txt =3D> uleds.rst} (95%) =20
->=20
-> Patches 4/9 and 24/43 applied to the for-next branch of linux-leds.git.
+The patch looks fine, just a note: you'll only be able to work with the
+outer tag, so guessing to achieve a double-tagged frame you'll have to
+add another NFT_META_VLAN_INNER(?) and will have to organize them one
+after another.
 
-Thanks!
+Reviewed-by: Nikolay Aleksandrov <nikolay@cumulusnetworks.com>
 
-I'll keep this one on my tree:
+> diff --git a/include/net/netfilter/nft_meta.h b/include/net/netfilter/nft_meta.h
+> index 5c69e9b..cb0f1e8 100644
+> --- a/include/net/netfilter/nft_meta.h
+> +++ b/include/net/netfilter/nft_meta.h
+> @@ -6,7 +6,10 @@ struct nft_meta {
+>  	enum nft_meta_keys	key:8;
+>  	union {
+>  		enum nft_registers	dreg:8;
+> -		enum nft_registers	sreg:8;
+> +		struct {
+> +			enum nft_registers	sreg:8;
+> +			enum nft_registers	sreg2:8;
+> +		};
+>  	};
+>  };
+>  
+> diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+> index a0d1dbd..699524a 100644
+> --- a/include/uapi/linux/netfilter/nf_tables.h
+> +++ b/include/uapi/linux/netfilter/nf_tables.h
+> @@ -797,6 +797,7 @@ enum nft_exthdr_attributes {
+>   * @NFT_META_OIFKIND: packet output interface kind name (dev->rtnl_link_ops->kind)
+>   * @NFT_META_BRI_IIFPVID: packet input bridge port pvid
+>   * @NFT_META_BRI_IIFVPROTO: packet input bridge vlan proto
+> + * @NFT_META_VLAN: packet vlan metadata
+>   */
+>  enum nft_meta_keys {
+>  	NFT_META_LEN,
+> @@ -829,6 +830,7 @@ enum nft_meta_keys {
+>  	NFT_META_OIFKIND,
+>  	NFT_META_BRI_IIFPVID,
+>  	NFT_META_BRI_IIFVPROTO,
+> +	NFT_META_VLAN,
+>  };
+>  
+>  /**
+> @@ -895,12 +897,14 @@ enum nft_hash_attributes {
+>   * @NFTA_META_DREG: destination register (NLA_U32)
+>   * @NFTA_META_KEY: meta data item to load (NLA_U32: nft_meta_keys)
+>   * @NFTA_META_SREG: source register (NLA_U32)
+> + * @NFTA_META_SREG2: source register (NLA_U32)
+>   */
+>  enum nft_meta_attributes {
+>  	NFTA_META_UNSPEC,
+>  	NFTA_META_DREG,
+>  	NFTA_META_KEY,
+>  	NFTA_META_SREG,
+> +	NFTA_META_SREG2,
+>  	__NFTA_META_MAX
+>  };
+>  #define NFTA_META_MAX		(__NFTA_META_MAX - 1)
+> diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
+> index 18a848b..fb3d12e 100644
+> --- a/net/netfilter/nft_meta.c
+> +++ b/net/netfilter/nft_meta.c
+> @@ -271,6 +271,20 @@ void nft_meta_set_eval(const struct nft_expr *expr,
+>  		skb->secmark = value;
+>  		break;
+>  #endif
+> +	case NFT_META_VLAN: {
+> +		u32 *sreg2 = &regs->data[meta->sreg2];
+> +		u16 vlan_proto;
+> +		u16 vlan_tci;
+> +
+> +		vlan_tci = nft_reg_load16(sreg);
+> +		vlan_proto = nft_reg_load16(sreg2);
+> +
+> +		if (vlan_proto != ETH_P_8021Q && vlan_proto != ETH_P_8021AD)
+> +			return;
+> +
+> +		__vlan_hwaccel_put_tag(skb, htons(vlan_proto), vlan_tci & VLAN_VID_MASK);
+> +		break;
+> +	}
+>  	default:
+>  		WARN_ON(1);
+>  	}
+> @@ -281,6 +295,7 @@ void nft_meta_set_eval(const struct nft_expr *expr,
+>  	[NFTA_META_DREG]	= { .type = NLA_U32 },
+>  	[NFTA_META_KEY]		= { .type = NLA_U32 },
+>  	[NFTA_META_SREG]	= { .type = NLA_U32 },
+> +	[NFTA_META_SREG2]	= { .type = NLA_U32 },
+>  };
+>  EXPORT_SYMBOL_GPL(nft_meta_policy);
+>  
+> @@ -432,6 +447,13 @@ int nft_meta_set_init(const struct nft_ctx *ctx,
+>  	case NFT_META_PKTTYPE:
+>  		len = sizeof(u8);
+>  		break;
+> +	case NFT_META_VLAN:
+> +		len = sizeof(u16);
+> +		priv->sreg2 = nft_parse_register(tb[NFTA_META_SREG2]);
+> +		err = nft_validate_register_load(priv->sreg2, len);
+> +		if (err < 0)
+> +			return err;
+> +		break;
+>  	default:
+>  		return -EOPNOTSUPP;
+>  	}
+> @@ -457,6 +479,9 @@ int nft_meta_get_dump(struct sk_buff *skb,
+>  		goto nla_put_failure;
+>  	if (nft_dump_register(skb, NFTA_META_DREG, priv->dreg))
+>  		goto nla_put_failure;
+> +	if (priv->key == NFT_META_VLAN &&
+> +	    nft_dump_register(skb, NFTA_META_SREG2, priv->sreg2))
+> +		goto nla_put_failure;
+>  	return 0;
+>  
+>  nla_put_failure:
+> 
 
-	[PATCH 10/39] docs: leds: add it to the driver-api book
-
-=46rom the other series. If everything goes well, either Jon or I should
-be sending upstream by the end of the merge window, after rebasing it,
-together with a bunch of other patches touching the driver-api index.rst.
-
-That should hopefully avoid merge conflicts.
-
-Regards,
-Mauro
