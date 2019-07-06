@@ -2,88 +2,183 @@ Return-Path: <SRS0=/Ma8=VD=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DEDBAC0650E
-	for <netfilter-devel@archiver.kernel.org>; Sat,  6 Jul 2019 14:29:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BFDEEC48BDB
+	for <netfilter-devel@archiver.kernel.org>; Sat,  6 Jul 2019 16:55:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B305C20828
-	for <netfilter-devel@archiver.kernel.org>; Sat,  6 Jul 2019 14:29:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 99493206A2
+	for <netfilter-devel@archiver.kernel.org>; Sat,  6 Jul 2019 16:55:29 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="aok8kHj1"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726446AbfGFO33 (ORCPT
+        id S1726870AbfGFQz1 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 6 Jul 2019 10:29:29 -0400
-Received: from m9784.mail.qiye.163.com ([220.181.97.84]:50328 "EHLO
-        m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726177AbfGFO33 (ORCPT
+        Sat, 6 Jul 2019 12:55:27 -0400
+Received: from mail-wm1-f48.google.com ([209.85.128.48]:54688 "EHLO
+        mail-wm1-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726702AbfGFQz1 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 6 Jul 2019 10:29:29 -0400
-Received: from [192.168.1.3] (unknown [58.37.149.201])
-        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id 2F1AB416E5;
-        Sat,  6 Jul 2019 22:29:26 +0800 (CST)
-Subject: Re: [PATCH nf-next v2] netfilter:nft_meta: add NFT_META_VLAN support
-To:     Nikolay Aleksandrov <nikolay@cumulusnetworks.com>,
-        pablo@netfilter.org
-Cc:     netfilter-devel@vger.kernel.org, bridge@lists.linux-foundation.org
-References: <1562332598-17415-1-git-send-email-wenxu@ucloud.cn>
- <1562332598-17415-7-git-send-email-wenxu@ucloud.cn>
- <caaaa242-6bb8-9d5e-af66-a0cd6592f81d@cumulusnetworks.com>
-From:   wenxu <wenxu@ucloud.cn>
-Message-ID: <83e9506d-8888-f841-f16c-0d038e52b39e@ucloud.cn>
-Date:   Sat, 6 Jul 2019 22:29:14 +0800
-User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:60.0) Gecko/20100101
- Thunderbird/60.6.1
+        Sat, 6 Jul 2019 12:55:27 -0400
+Received: by mail-wm1-f48.google.com with SMTP id p74so8883987wme.4;
+        Sat, 06 Jul 2019 09:55:24 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=date:from:to:cc:subject:message-id:mime-version:content-disposition
+         :user-agent;
+        bh=CHvEJVpnUTpEucTZAESaqgprel+L7cKgKdvDS7CIeuo=;
+        b=aok8kHj1nJmFCVDYgUfeuFSO3ANNqq47dUqVU6JR4U6XgL5mlLyhoalRMYWlynQ0DM
+         wzPSlV8AlzuSROicmK9+/uk5xeAHkf+YQcX467jECsz4EtQmKClrSsPZdz+27AkZsjnn
+         7a/7SaRxpoDfsZexztuy0Gp0w+iMDJC54cJBvMoBaCCsWeZTNfv4GZWJkCP3q2NhpiRH
+         KResuQ+eAkx65CZnf4By+tWWQjMJF6/FlKXitHLWjRVqcky9TyM5vaPR8MegRTIKfyev
+         rWEy8HdQq/aYL/SHZRzVnzo/Ma8cxB6kRsJ9w+vj3WqOMBWYyztWpTYUEZ1eVBeFthAx
+         wblg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:mime-version
+         :content-disposition:user-agent;
+        bh=CHvEJVpnUTpEucTZAESaqgprel+L7cKgKdvDS7CIeuo=;
+        b=MaCTKJaLcFFuA/yEwFDfwjfFw+l8WzOatU3WJ1SKM3rU/18+x6+183lLCw+ePx9yjw
+         YukQccIeVc3nEz5WlUwVOBIwyks1Rd1WZ5Vdm/hMEzavneNMbH15XKY8pyXJxpNlgEKy
+         7ZO+KOsG3AvQ1MYhRKW6jhADdsDVG933g80zCgt9xD2/sk1DRF//xDIlMir0E3pGHH37
+         vhweJgqSLqk8z1XA5OMCJRIgRIwmY8yiZmZJSl+PrihtDxJK7zL7x5w5Pfmi8FYdu7EV
+         fzB+/6aYvM9DhlG0h/GbCfH36LdB/O5iH63t2BMN7aw9j+Qf2CH0qiMJu6ofIuWxvTr9
+         +xrA==
+X-Gm-Message-State: APjAAAXb8rzaWMtkPMB7riCqL4cz6vwNg8CocLsJ9wIBwE8nZTB4xIU7
+        cwKc+6LKEoNPK/HZVzP1iDE0igY=
+X-Google-Smtp-Source: APXvYqxCUZ/ISGFTqEpRp+iWpA3L82Jo4pRIeTjvtvvkFTNDf0Wed0Dh1/DA8Pq/TSGusBRQ9w74Kg==
+X-Received: by 2002:a1c:a1c5:: with SMTP id k188mr8636557wme.102.1562432123781;
+        Sat, 06 Jul 2019 09:55:23 -0700 (PDT)
+Received: from avx2 ([46.53.252.147])
+        by smtp.gmail.com with ESMTPSA id p26sm18099800wrp.58.2019.07.06.09.55.22
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Sat, 06 Jul 2019 09:55:23 -0700 (PDT)
+Date:   Sat, 6 Jul 2019 19:55:21 +0300
+From:   Alexey Dobriyan <adobriyan@gmail.com>
+To:     davem@davemloft.net
+Cc:     netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        linux-nfs@vger.kernel.org, j.vosburgh@gmail.com, vfalico@gmail.com,
+        andy@greyhouse.net, pablo@netfilter.org, kadlec@netfilter.org,
+        fw@strlen.de, bfields@fieldses.org, chuck.lever@oracle.com
+Subject: [PATCH 2/2] net: apply proc_net_mkdir() harder
+Message-ID: <20190706165521.GB10550@avx2>
 MIME-Version: 1.0
-In-Reply-To: <caaaa242-6bb8-9d5e-af66-a0cd6592f81d@cumulusnetworks.com>
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVklVS05DS0tLSElNSk5NTUlZV1koWU
-        FJQjdXWS1ZQUlXWQkOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6Kxg6FBw6Kjg0Mg89LxY1VkhI
-        FQ4wCkNVSlVKTk1JT0lISE1NSENDVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWU5DVUhM
-        VUpPQlVJS0pZV1kIAVlBSUNOSzcG
-X-HM-Tid: 0a6bc7b092b52086kuqy2f1ab416e5
+Content-Disposition: inline
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+From: "Hallsmark, Per" <Per.Hallsmark@windriver.com>
 
-在 2019/7/6 20:02, Nikolay Aleksandrov 写道:
-> On 05/07/2019 16:16, wenxu@ucloud.cn wrote:
->> From: wenxu <wenxu@ucloud.cn>
->>
->> This patch provide a meta vlan to set the vlan tag of the packet.
->>
->> for q-in-q outer vlan id 20:
->> meta vlan set 0x88a8:20
->>
->> set the default 0x8100 vlan type with vlan id 20
->> meta vlan set 20
->>
->> Signed-off-by: wenxu <wenxu@ucloud.cn>
->> ---
->>  include/net/netfilter/nft_meta.h         |  5 ++++-
->>  include/uapi/linux/netfilter/nf_tables.h |  4 ++++
->>  net/netfilter/nft_meta.c                 | 25 +++++++++++++++++++++++++
->>  3 files changed, 33 insertions(+), 1 deletion(-)
->>
-> The patch looks fine, just a note: you'll only be able to work with the
-> outer tag, so guessing to achieve a double-tagged frame you'll have to
-> add another NFT_META_VLAN_INNER(?) and will have to organize them one
-> after another.
+proc_net_mkdir() should be used to create stuff under /proc/net,
+so that dentry revalidation kicks in.
 
-yes, It's just set/mangle the meta vlan data. 
-I think it's a good idear for stacked tagged with NFT_META_VLAN_INNER, in 
-this case it should check the the proto of vlan tag already on packet
-There are three case:
-1. packet already contain a vlan header with proto 0x88a8, it should push the inner vlan tag
-2. there is no outer vlan tag, maybe we should add a inner 0x8100 tag 
-and outer 0x88a8 tag?
-3.  packet already contain a vlan tag with proto 0x8100, push the vlan tag and add outer 0x88a8 tag ?
+See
 
->
->
->
+	commit 1fde6f21d90f8ba5da3cb9c54ca991ed72696c43
+	proc: fix /proc/net/* after setns(2)
+
+	[added more chunks --adobriyan]
+
+Signed-off-by: "Hallsmark, Per" <Per.Hallsmark@windriver.com>
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+---
+
+ drivers/net/bonding/bond_procfs.c  |    2 +-
+ net/core/pktgen.c                  |    2 +-
+ net/ipv4/netfilter/ipt_CLUSTERIP.c |    2 +-
+ net/ipv6/proc.c                    |    2 +-
+ net/netfilter/xt_hashlimit.c       |    4 ++--
+ net/netfilter/xt_recent.c          |    2 +-
+ net/sunrpc/stats.c                 |    2 +-
+ 7 files changed, 8 insertions(+), 8 deletions(-)
+
+--- a/drivers/net/bonding/bond_procfs.c
++++ b/drivers/net/bonding/bond_procfs.c
+@@ -293,7 +293,7 @@ void bond_remove_proc_entry(struct bonding *bond)
+ void __net_init bond_create_proc_dir(struct bond_net *bn)
+ {
+ 	if (!bn->proc_dir) {
+-		bn->proc_dir = proc_mkdir(DRV_NAME, bn->net->proc_net);
++		bn->proc_dir = proc_net_mkdir(bn->net, DRV_NAME, bn->net->proc_net);
+ 		if (!bn->proc_dir)
+ 			pr_warn("Warning: Cannot create /proc/net/%s\n",
+ 				DRV_NAME);
+--- a/net/core/pktgen.c
++++ b/net/core/pktgen.c
+@@ -3791,7 +3791,7 @@ static int __net_init pg_net_init(struct net *net)
+ 	pn->net = net;
+ 	INIT_LIST_HEAD(&pn->pktgen_threads);
+ 	pn->pktgen_exiting = false;
+-	pn->proc_dir = proc_mkdir(PG_PROC_DIR, pn->net->proc_net);
++	pn->proc_dir = proc_net_mkdir(pn->net, PG_PROC_DIR, pn->net->proc_net);
+ 	if (!pn->proc_dir) {
+ 		pr_warn("cannot create /proc/net/%s\n", PG_PROC_DIR);
+ 		return -ENODEV;
+--- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
++++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+@@ -828,7 +828,7 @@ static int clusterip_net_init(struct net *net)
+ 		return ret;
+ 
+ #ifdef CONFIG_PROC_FS
+-	cn->procdir = proc_mkdir("ipt_CLUSTERIP", net->proc_net);
++	cn->procdir = proc_net_mkdir(net, "ipt_CLUSTERIP", net->proc_net);
+ 	if (!cn->procdir) {
+ 		nf_unregister_net_hook(net, &cip_arp_ops);
+ 		pr_err("Unable to proc dir entry\n");
+--- a/net/ipv6/proc.c
++++ b/net/ipv6/proc.c
+@@ -282,7 +282,7 @@ static int __net_init ipv6_proc_init_net(struct net *net)
+ 			snmp6_seq_show, NULL))
+ 		goto proc_snmp6_fail;
+ 
+-	net->mib.proc_net_devsnmp6 = proc_mkdir("dev_snmp6", net->proc_net);
++	net->mib.proc_net_devsnmp6 = proc_net_mkdir(net, "dev_snmp6", net->proc_net);
+ 	if (!net->mib.proc_net_devsnmp6)
+ 		goto proc_dev_snmp6_fail;
+ 	return 0;
+--- a/net/netfilter/xt_hashlimit.c
++++ b/net/netfilter/xt_hashlimit.c
+@@ -1237,11 +1237,11 @@ static int __net_init hashlimit_proc_net_init(struct net *net)
+ {
+ 	struct hashlimit_net *hashlimit_net = hashlimit_pernet(net);
+ 
+-	hashlimit_net->ipt_hashlimit = proc_mkdir("ipt_hashlimit", net->proc_net);
++	hashlimit_net->ipt_hashlimit = proc_net_mkdir(net, "ipt_hashlimit", net->proc_net);
+ 	if (!hashlimit_net->ipt_hashlimit)
+ 		return -ENOMEM;
+ #if IS_ENABLED(CONFIG_IP6_NF_IPTABLES)
+-	hashlimit_net->ip6t_hashlimit = proc_mkdir("ip6t_hashlimit", net->proc_net);
++	hashlimit_net->ip6t_hashlimit = proc_net_mkdir(net, "ip6t_hashlimit", net->proc_net);
+ 	if (!hashlimit_net->ip6t_hashlimit) {
+ 		remove_proc_entry("ipt_hashlimit", net->proc_net);
+ 		return -ENOMEM;
+--- a/net/netfilter/xt_recent.c
++++ b/net/netfilter/xt_recent.c
+@@ -629,7 +629,7 @@ static int __net_init recent_proc_net_init(struct net *net)
+ {
+ 	struct recent_net *recent_net = recent_pernet(net);
+ 
+-	recent_net->xt_recent = proc_mkdir("xt_recent", net->proc_net);
++	recent_net->xt_recent = proc_net_mkdir(net, "xt_recent", net->proc_net);
+ 	if (!recent_net->xt_recent)
+ 		return -ENOMEM;
+ 	return 0;
+--- a/net/sunrpc/stats.c
++++ b/net/sunrpc/stats.c
+@@ -323,7 +323,7 @@ int rpc_proc_init(struct net *net)
+ 
+ 	dprintk("RPC:       registering /proc/net/rpc\n");
+ 	sn = net_generic(net, sunrpc_net_id);
+-	sn->proc_net_rpc = proc_mkdir("rpc", net->proc_net);
++	sn->proc_net_rpc = proc_net_mkdir(net, "rpc", net->proc_net);
+ 	if (sn->proc_net_rpc == NULL)
+ 		return -ENOMEM;
+ 
