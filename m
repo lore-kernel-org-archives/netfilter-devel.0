@@ -2,183 +2,199 @@ Return-Path: <SRS0=/Ma8=VD=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable
-	autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BFDEEC48BDB
-	for <netfilter-devel@archiver.kernel.org>; Sat,  6 Jul 2019 16:55:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EAD76C0650E
+	for <netfilter-devel@archiver.kernel.org>; Sat,  6 Jul 2019 22:28:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 99493206A2
-	for <netfilter-devel@archiver.kernel.org>; Sat,  6 Jul 2019 16:55:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id ABFCE20838
+	for <netfilter-devel@archiver.kernel.org>; Sat,  6 Jul 2019 22:28:44 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="aok8kHj1"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="cK7GXLop"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726870AbfGFQz1 (ORCPT
+        id S1726731AbfGFW2o (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 6 Jul 2019 12:55:27 -0400
-Received: from mail-wm1-f48.google.com ([209.85.128.48]:54688 "EHLO
-        mail-wm1-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726702AbfGFQz1 (ORCPT
+        Sat, 6 Jul 2019 18:28:44 -0400
+Received: from mail-wr1-f66.google.com ([209.85.221.66]:40988 "EHLO
+        mail-wr1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726673AbfGFW2o (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 6 Jul 2019 12:55:27 -0400
-Received: by mail-wm1-f48.google.com with SMTP id p74so8883987wme.4;
-        Sat, 06 Jul 2019 09:55:24 -0700 (PDT)
+        Sat, 6 Jul 2019 18:28:44 -0400
+Received: by mail-wr1-f66.google.com with SMTP id c2so13212188wrm.8
+        for <netfilter-devel@vger.kernel.org>; Sat, 06 Jul 2019 15:28:41 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
-        h=date:from:to:cc:subject:message-id:mime-version:content-disposition
-         :user-agent;
-        bh=CHvEJVpnUTpEucTZAESaqgprel+L7cKgKdvDS7CIeuo=;
-        b=aok8kHj1nJmFCVDYgUfeuFSO3ANNqq47dUqVU6JR4U6XgL5mlLyhoalRMYWlynQ0DM
-         wzPSlV8AlzuSROicmK9+/uk5xeAHkf+YQcX467jECsz4EtQmKClrSsPZdz+27AkZsjnn
-         7a/7SaRxpoDfsZexztuy0Gp0w+iMDJC54cJBvMoBaCCsWeZTNfv4GZWJkCP3q2NhpiRH
-         KResuQ+eAkx65CZnf4By+tWWQjMJF6/FlKXitHLWjRVqcky9TyM5vaPR8MegRTIKfyev
-         rWEy8HdQq/aYL/SHZRzVnzo/Ma8cxB6kRsJ9w+vj3WqOMBWYyztWpTYUEZ1eVBeFthAx
-         wblg==
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=basp1FeaqXoN6zDMaS9+fSyDA4/C8rnqkCqbdsbuxj4=;
+        b=cK7GXLopGhv/BSg8aBDt0PmY8oivp6OtGd4zsm3hX27ta4X3o+xAnu1z45EFa1fv3L
+         meUxPRSo74MTs2J7XX3ps5L95cB/8UocyEkyiAKmFplc5d/diOOGYCIVxpSPtx9SaBFn
+         wxIsMhgoWjYz6M7GRJ7rV6txD7hR1P2YICVUdSp99TVzZP3z/zW/oswH6gwaepdFNYVc
+         DJVU6FW5ISNT5GFGC7f7omSkbo9oK8TWJmf0zGl1ekgjja2V/wyq+sqsfw+DZxierCtK
+         It4udgFDSx/ofd2MbEAVh3nKlhg9Dx9s6HzVkQZAnyrNP9iHEncEk6dCHTNayQeX6jMf
+         HjJw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:mime-version
-         :content-disposition:user-agent;
-        bh=CHvEJVpnUTpEucTZAESaqgprel+L7cKgKdvDS7CIeuo=;
-        b=MaCTKJaLcFFuA/yEwFDfwjfFw+l8WzOatU3WJ1SKM3rU/18+x6+183lLCw+ePx9yjw
-         YukQccIeVc3nEz5WlUwVOBIwyks1Rd1WZ5Vdm/hMEzavneNMbH15XKY8pyXJxpNlgEKy
-         7ZO+KOsG3AvQ1MYhRKW6jhADdsDVG933g80zCgt9xD2/sk1DRF//xDIlMir0E3pGHH37
-         vhweJgqSLqk8z1XA5OMCJRIgRIwmY8yiZmZJSl+PrihtDxJK7zL7x5w5Pfmi8FYdu7EV
-         fzB+/6aYvM9DhlG0h/GbCfH36LdB/O5iH63t2BMN7aw9j+Qf2CH0qiMJu6ofIuWxvTr9
-         +xrA==
-X-Gm-Message-State: APjAAAXb8rzaWMtkPMB7riCqL4cz6vwNg8CocLsJ9wIBwE8nZTB4xIU7
-        cwKc+6LKEoNPK/HZVzP1iDE0igY=
-X-Google-Smtp-Source: APXvYqxCUZ/ISGFTqEpRp+iWpA3L82Jo4pRIeTjvtvvkFTNDf0Wed0Dh1/DA8Pq/TSGusBRQ9w74Kg==
-X-Received: by 2002:a1c:a1c5:: with SMTP id k188mr8636557wme.102.1562432123781;
-        Sat, 06 Jul 2019 09:55:23 -0700 (PDT)
-Received: from avx2 ([46.53.252.147])
-        by smtp.gmail.com with ESMTPSA id p26sm18099800wrp.58.2019.07.06.09.55.22
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Sat, 06 Jul 2019 09:55:23 -0700 (PDT)
-Date:   Sat, 6 Jul 2019 19:55:21 +0300
-From:   Alexey Dobriyan <adobriyan@gmail.com>
-To:     davem@davemloft.net
-Cc:     netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        linux-nfs@vger.kernel.org, j.vosburgh@gmail.com, vfalico@gmail.com,
-        andy@greyhouse.net, pablo@netfilter.org, kadlec@netfilter.org,
-        fw@strlen.de, bfields@fieldses.org, chuck.lever@oracle.com
-Subject: [PATCH 2/2] net: apply proc_net_mkdir() harder
-Message-ID: <20190706165521.GB10550@avx2>
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=basp1FeaqXoN6zDMaS9+fSyDA4/C8rnqkCqbdsbuxj4=;
+        b=ZGUHPK3mjWY68jz86KcQ+UwpPad/781bJuRhciTkfQxowW5RNuMubU+J84hCYozic9
+         iKLb2PBMlRKADcy/1CdE5mycP63hhI6vnAB5A8OBaxSDQxm5JgvwJfSm7/0gF+Q6HI1b
+         NWscX5b557vs7pVOjxQ12hC+cS7PKp+uitASl8V4MqcHPAqoajvmgA8gwLiNooqAtgEh
+         yjuh0UXQH0ageD5uH0KYMOK8EDWoHbLjReue2/x4JMKMgHrkD7x+Jbjeks3ZjCe/sSc3
+         fjvqYno28QUEuXL3Xhu/rH+KX1jBt7bkuUTFlr0DLuZC6SJeoALB5t1+5t99jrinavM5
+         mL0w==
+X-Gm-Message-State: APjAAAUej1iIgMnL8Kegvt0TiHSshb4UMZQQ1AFbgT3uuiwkmQsteVGW
+        6Yn5qaH31NI1JfHfYvhD2qc=
+X-Google-Smtp-Source: APXvYqwIfLM+2y/dAFMIeDmLkkGqlTgi0eVmzvqFwFh6HbQ+ZRbbI+TThsRX4gYl0zublCRPym2waQ==
+X-Received: by 2002:adf:f104:: with SMTP id r4mr5904694wro.140.1562452121221;
+        Sat, 06 Jul 2019 15:28:41 -0700 (PDT)
+Received: from jong.localdomain ([141.226.217.127])
+        by smtp.gmail.com with ESMTPSA id g25sm8704076wmk.39.2019.07.06.15.28.37
+        (version=TLS1_3 cipher=AEAD-AES256-GCM-SHA384 bits=256/256);
+        Sat, 06 Jul 2019 15:28:40 -0700 (PDT)
+From:   Yonatan Goldschmidt <yon.goldschmidt@gmail.com>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org,
+        Yonatan Goldschmidt <yon.goldschmidt@gmail.com>
+Subject: [PATCH] netfilter: Update obsolete comments referring to ip_conntrack
+Date:   Sun,  7 Jul 2019 01:28:24 +0300
+Message-Id: <20190706222824.29550-1-yon.goldschmidt@gmail.com>
+X-Mailer: git-send-email 2.21.0
+In-Reply-To: <20190705085156.GA14117@jong.localdomain>
+References: <20190705085156.GA14117@jong.localdomain>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: "Hallsmark, Per" <Per.Hallsmark@windriver.com>
+In 9fb9cbb1082d ("[NETFILTER]: Add nf_conntrack subsystem.") the new
+generic nf_conntrack was introduced, and it came to supersede the
+old ip_conntrack.
+This change updates (some) of the obsolete comments referring to old
+file/function names of the ip_conntrack mechanism, as well as removes
+a few self-referencing comments that we shouldn't maintain anymore.
 
-proc_net_mkdir() should be used to create stuff under /proc/net,
-so that dentry revalidation kicks in.
+I did not update any comments referring to historical actions (e.g,
+comments like "this file was derived from ..." were left untouched,
+even if the referenced file is no longer here).
 
-See
-
-	commit 1fde6f21d90f8ba5da3cb9c54ca991ed72696c43
-	proc: fix /proc/net/* after setns(2)
-
-	[added more chunks --adobriyan]
-
-Signed-off-by: "Hallsmark, Per" <Per.Hallsmark@windriver.com>
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Signed-off-by: Yonatan Goldschmidt <yon.goldschmidt@gmail.com>
 ---
+ include/linux/netfilter/nf_conntrack_h323_asn1.h | 3 +--
+ net/ipv4/netfilter/ipt_CLUSTERIP.c               | 4 ++--
+ net/netfilter/nf_conntrack_core.c                | 4 +---
+ net/netfilter/nf_conntrack_h323_asn1.c           | 5 ++---
+ net/netfilter/nf_conntrack_proto_gre.c           | 2 --
+ net/netfilter/nf_conntrack_proto_icmp.c          | 2 +-
+ net/netfilter/nf_nat_core.c                      | 2 +-
+ 7 files changed, 8 insertions(+), 14 deletions(-)
 
- drivers/net/bonding/bond_procfs.c  |    2 +-
- net/core/pktgen.c                  |    2 +-
- net/ipv4/netfilter/ipt_CLUSTERIP.c |    2 +-
- net/ipv6/proc.c                    |    2 +-
- net/netfilter/xt_hashlimit.c       |    4 ++--
- net/netfilter/xt_recent.c          |    2 +-
- net/sunrpc/stats.c                 |    2 +-
- 7 files changed, 8 insertions(+), 8 deletions(-)
-
---- a/drivers/net/bonding/bond_procfs.c
-+++ b/drivers/net/bonding/bond_procfs.c
-@@ -293,7 +293,7 @@ void bond_remove_proc_entry(struct bonding *bond)
- void __net_init bond_create_proc_dir(struct bond_net *bn)
- {
- 	if (!bn->proc_dir) {
--		bn->proc_dir = proc_mkdir(DRV_NAME, bn->net->proc_net);
-+		bn->proc_dir = proc_net_mkdir(bn->net, DRV_NAME, bn->net->proc_net);
- 		if (!bn->proc_dir)
- 			pr_warn("Warning: Cannot create /proc/net/%s\n",
- 				DRV_NAME);
---- a/net/core/pktgen.c
-+++ b/net/core/pktgen.c
-@@ -3791,7 +3791,7 @@ static int __net_init pg_net_init(struct net *net)
- 	pn->net = net;
- 	INIT_LIST_HEAD(&pn->pktgen_threads);
- 	pn->pktgen_exiting = false;
--	pn->proc_dir = proc_mkdir(PG_PROC_DIR, pn->net->proc_net);
-+	pn->proc_dir = proc_net_mkdir(pn->net, PG_PROC_DIR, pn->net->proc_net);
- 	if (!pn->proc_dir) {
- 		pr_warn("cannot create /proc/net/%s\n", PG_PROC_DIR);
- 		return -ENODEV;
+diff --git a/include/linux/netfilter/nf_conntrack_h323_asn1.h b/include/linux/netfilter/nf_conntrack_h323_asn1.h
+index 91d6275292a5..19df78341fb3 100644
+--- a/include/linux/netfilter/nf_conntrack_h323_asn1.h
++++ b/include/linux/netfilter/nf_conntrack_h323_asn1.h
+@@ -1,7 +1,6 @@
+ /* SPDX-License-Identifier: GPL-2.0-only */
+ /****************************************************************************
+- * ip_conntrack_h323_asn1.h - BER and PER decoding library for H.323
+- * 			      conntrack/NAT module.
++ * BER and PER decoding library for H.323 conntrack/NAT module.
+  *
+  * Copyright (c) 2006 by Jing Min Zhao <zhaojingmin@users.sourceforge.net>
+  *
+diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+index 4d6bf7ac0792..6bdb1ab8af61 100644
 --- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
 +++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-@@ -828,7 +828,7 @@ static int clusterip_net_init(struct net *net)
- 		return ret;
+@@ -416,8 +416,8 @@ clusterip_tg(struct sk_buff *skb, const struct xt_action_param *par)
+ 	     ctinfo == IP_CT_RELATED_REPLY))
+ 		return XT_CONTINUE;
  
- #ifdef CONFIG_PROC_FS
--	cn->procdir = proc_mkdir("ipt_CLUSTERIP", net->proc_net);
-+	cn->procdir = proc_net_mkdir(net, "ipt_CLUSTERIP", net->proc_net);
- 	if (!cn->procdir) {
- 		nf_unregister_net_hook(net, &cip_arp_ops);
- 		pr_err("Unable to proc dir entry\n");
---- a/net/ipv6/proc.c
-+++ b/net/ipv6/proc.c
-@@ -282,7 +282,7 @@ static int __net_init ipv6_proc_init_net(struct net *net)
- 			snmp6_seq_show, NULL))
- 		goto proc_snmp6_fail;
+-	/* ip_conntrack_icmp guarantees us that we only have ICMP_ECHO,
+-	 * TIMESTAMP, INFO_REQUEST or ADDRESS type icmp packets from here
++	/* nf_conntrack_proto_icmp guarantees us that we only have ICMP_ECHO,
++	 * TIMESTAMP, INFO_REQUEST or ICMP_ADDRESS type icmp packets from here
+ 	 * on, which all have an ID field [relevant for hashing]. */
  
--	net->mib.proc_net_devsnmp6 = proc_mkdir("dev_snmp6", net->proc_net);
-+	net->mib.proc_net_devsnmp6 = proc_net_mkdir(net, "dev_snmp6", net->proc_net);
- 	if (!net->mib.proc_net_devsnmp6)
- 		goto proc_dev_snmp6_fail;
- 	return 0;
---- a/net/netfilter/xt_hashlimit.c
-+++ b/net/netfilter/xt_hashlimit.c
-@@ -1237,11 +1237,11 @@ static int __net_init hashlimit_proc_net_init(struct net *net)
+ 	hash = clusterip_hashfn(skb, cipinfo->config);
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index f4f9b8344a32..74a61127edf0 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -1816,9 +1816,7 @@ EXPORT_SYMBOL_GPL(nf_ct_kill_acct);
+ #include <linux/netfilter/nfnetlink_conntrack.h>
+ #include <linux/mutex.h>
+ 
+-/* Generic function for tcp/udp/sctp/dccp and alike. This needs to be
+- * in ip_conntrack_core, since we don't want the protocols to autoload
+- * or depend on ctnetlink */
++/* Generic function for tcp/udp/sctp/dccp and alike. */
+ int nf_ct_port_tuple_to_nlattr(struct sk_buff *skb,
+ 			       const struct nf_conntrack_tuple *tuple)
  {
- 	struct hashlimit_net *hashlimit_net = hashlimit_pernet(net);
+diff --git a/net/netfilter/nf_conntrack_h323_asn1.c b/net/netfilter/nf_conntrack_h323_asn1.c
+index 8f6ba8162f0b..573cb4481481 100644
+--- a/net/netfilter/nf_conntrack_h323_asn1.c
++++ b/net/netfilter/nf_conntrack_h323_asn1.c
+@@ -1,11 +1,10 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+ /*
+- * ip_conntrack_helper_h323_asn1.c - BER and PER decoding library for H.323
+- * 			      	     conntrack/NAT module.
++ * BER and PER decoding library for H.323 conntrack/NAT module.
+  *
+  * Copyright (c) 2006 by Jing Min Zhao <zhaojingmin@users.sourceforge.net>
+  *
+- * See ip_conntrack_helper_h323_asn1.h for details.
++ * See nf_conntrack_helper_h323_asn1.h for details.
+  */
  
--	hashlimit_net->ipt_hashlimit = proc_mkdir("ipt_hashlimit", net->proc_net);
-+	hashlimit_net->ipt_hashlimit = proc_net_mkdir(net, "ipt_hashlimit", net->proc_net);
- 	if (!hashlimit_net->ipt_hashlimit)
- 		return -ENOMEM;
- #if IS_ENABLED(CONFIG_IP6_NF_IPTABLES)
--	hashlimit_net->ip6t_hashlimit = proc_mkdir("ip6t_hashlimit", net->proc_net);
-+	hashlimit_net->ip6t_hashlimit = proc_net_mkdir(net, "ip6t_hashlimit", net->proc_net);
- 	if (!hashlimit_net->ip6t_hashlimit) {
- 		remove_proc_entry("ipt_hashlimit", net->proc_net);
- 		return -ENOMEM;
---- a/net/netfilter/xt_recent.c
-+++ b/net/netfilter/xt_recent.c
-@@ -629,7 +629,7 @@ static int __net_init recent_proc_net_init(struct net *net)
- {
- 	struct recent_net *recent_net = recent_pernet(net);
+ #ifdef __KERNEL__
+diff --git a/net/netfilter/nf_conntrack_proto_gre.c b/net/netfilter/nf_conntrack_proto_gre.c
+index c2eb365f1723..5b05487a60d2 100644
+--- a/net/netfilter/nf_conntrack_proto_gre.c
++++ b/net/netfilter/nf_conntrack_proto_gre.c
+@@ -1,7 +1,5 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+ /*
+- * ip_conntrack_proto_gre.c - Version 3.0
+- *
+  * Connection tracking protocol helper module for GRE.
+  *
+  * GRE is a generic encapsulation protocol, which is generally not very
+diff --git a/net/netfilter/nf_conntrack_proto_icmp.c b/net/netfilter/nf_conntrack_proto_icmp.c
+index a824367ed518..5f37aff3b2a9 100644
+--- a/net/netfilter/nf_conntrack_proto_icmp.c
++++ b/net/netfilter/nf_conntrack_proto_icmp.c
+@@ -215,7 +215,7 @@ int nf_conntrack_icmpv4_error(struct nf_conn *tmpl,
+ 		return -NF_ACCEPT;
+ 	}
  
--	recent_net->xt_recent = proc_mkdir("xt_recent", net->proc_net);
-+	recent_net->xt_recent = proc_net_mkdir(net, "xt_recent", net->proc_net);
- 	if (!recent_net->xt_recent)
- 		return -ENOMEM;
- 	return 0;
---- a/net/sunrpc/stats.c
-+++ b/net/sunrpc/stats.c
-@@ -323,7 +323,7 @@ int rpc_proc_init(struct net *net)
- 
- 	dprintk("RPC:       registering /proc/net/rpc\n");
- 	sn = net_generic(net, sunrpc_net_id);
--	sn->proc_net_rpc = proc_mkdir("rpc", net->proc_net);
-+	sn->proc_net_rpc = proc_net_mkdir(net, "rpc", net->proc_net);
- 	if (sn->proc_net_rpc == NULL)
- 		return -ENOMEM;
- 
+-	/* See ip_conntrack_proto_tcp.c */
++	/* See nf_conntrack_proto_tcp.c */
+ 	if (state->net->ct.sysctl_checksum &&
+ 	    state->hook == NF_INET_PRE_ROUTING &&
+ 	    nf_ip_checksum(skb, state->hook, dataoff, 0)) {
+diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
+index 9ab410455992..3f6023ed4966 100644
+--- a/net/netfilter/nf_nat_core.c
++++ b/net/netfilter/nf_nat_core.c
+@@ -519,7 +519,7 @@ static void nf_nat_l4proto_unique_tuple(struct nf_conntrack_tuple *tuple,
+  * and NF_INET_LOCAL_OUT, we change the destination to map into the
+  * range. It might not be possible to get a unique tuple, but we try.
+  * At worst (or if we race), we will end up with a final duplicate in
+- * __ip_conntrack_confirm and drop the packet. */
++ * __nf_conntrack_confirm and drop the packet. */
+ static void
+ get_unique_tuple(struct nf_conntrack_tuple *tuple,
+ 		 const struct nf_conntrack_tuple *orig_tuple,
+-- 
+2.21.0
+
