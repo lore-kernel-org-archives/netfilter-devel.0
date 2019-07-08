@@ -2,118 +2,169 @@ Return-Path: <SRS0=pcH3=VF=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.8 required=3.0
+	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PULL_REQUEST,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C1B98C606A7
-	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Jul 2019 10:07:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B0C56C606AB
+	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Jul 2019 10:32:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 927B020651
-	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Jul 2019 10:07:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 94B2D20665
+	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Jul 2019 10:32:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729244AbfGHKHn (ORCPT
+        id S1726684AbfGHKcp (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 8 Jul 2019 06:07:43 -0400
-Received: from mail.us.es ([193.147.175.20]:45702 "EHLO mail.us.es"
+        Mon, 8 Jul 2019 06:32:45 -0400
+Received: from mail.us.es ([193.147.175.20]:34232 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728766AbfGHKHn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 8 Jul 2019 06:07:43 -0400
+        id S1725977AbfGHKco (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 8 Jul 2019 06:32:44 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 72DB0C04A2
-        for <netfilter-devel@vger.kernel.org>; Mon,  8 Jul 2019 12:07:40 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id B293EBAE85
+        for <netfilter-devel@vger.kernel.org>; Mon,  8 Jul 2019 12:32:42 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 6274D114D8C
-        for <netfilter-devel@vger.kernel.org>; Mon,  8 Jul 2019 12:07:40 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A12501021B2
+        for <netfilter-devel@vger.kernel.org>; Mon,  8 Jul 2019 12:32:42 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 57D11114D71; Mon,  8 Jul 2019 12:07:40 +0200 (CEST)
+        id A04651021A9; Mon,  8 Jul 2019 12:32:42 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 242E6DA732;
-        Mon,  8 Jul 2019 12:07:38 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 98181FB37C;
+        Mon,  8 Jul 2019 12:32:40 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 08 Jul 2019 12:07:38 +0200 (CEST)
+ Mon, 08 Jul 2019 12:32:40 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (sys.soleta.eu [212.170.55.40])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 041504265A32;
-        Mon,  8 Jul 2019 12:07:37 +0200 (CEST)
-Date:   Mon, 8 Jul 2019 12:07:37 +0200
+Received: from salvia.here (sys.soleta.eu [212.170.55.40])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id 683D34265A31;
+        Mon,  8 Jul 2019 12:32:40 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Yonatan Goldschmidt <yon.goldschmidt@gmail.com>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH] netfilter: Update obsolete comments referring to
- ip_conntrack
-Message-ID: <20190708100737.fo42wf5sgkpsgvar@salvia>
-References: <20190705085156.GA14117@jong.localdomain>
- <20190706222824.29550-1-yon.goldschmidt@gmail.com>
+To:     netfilter-devel@vger.kernel.org
+Cc:     davem@davemloft.net, netdev@vger.kernel.org
+Subject: [PATCH 00/15] Netfilter/IPVS updates for net-next
+Date:   Mon,  8 Jul 2019 12:32:22 +0200
+Message-Id: <20190708103237.28061-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.11.0
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="gd6x7bboqz642wos"
-Content-Disposition: inline
-In-Reply-To: <20190706222824.29550-1-yon.goldschmidt@gmail.com>
-User-Agent: NeoMutt/20170113 (1.7.2)
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Hi,
 
---gd6x7bboqz642wos
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+The following patchset contains Netfilter/IPVS updates for net-next:
 
-On Sun, Jul 07, 2019 at 01:28:24AM +0300, Yonatan Goldschmidt wrote:
-> In 9fb9cbb1082d ("[NETFILTER]: Add nf_conntrack subsystem.") the new
-> generic nf_conntrack was introduced, and it came to supersede the
-> old ip_conntrack.
-> This change updates (some) of the obsolete comments referring to old
-> file/function names of the ip_conntrack mechanism, as well as removes
-> a few self-referencing comments that we shouldn't maintain anymore.
-> 
-> I did not update any comments referring to historical actions (e.g,
-> comments like "this file was derived from ..." were left untouched,
-> even if the referenced file is no longer here).
+1) Move bridge keys in nft_meta to nft_meta_bridge, from wenxu.
 
-A few more changes in net/netfilter/Kconfig, I'd suggest
+2) Support for bridge pvid matching, from wenxu.
 
---gd6x7bboqz642wos
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: attachment; filename="x.patch"
+3) Support for bridge vlan protocol matching, also from wenxu.
 
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index d59742408d9b..d7b166e38e99 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -223,8 +223,6 @@ config NF_CONNTRACK_FTP
- 	  of Network Address Translation on them.
- 
- 	  This is FTP support on Layer 3 independent connection tracking.
--	  Layer 3 independent connection tracking is experimental scheme
--	  which generalize ip_conntrack to support other layer 3 protocols.
- 
- 	  To compile it as a module, choose M here.  If unsure, say N.
- 
-@@ -338,7 +336,7 @@ config NF_CONNTRACK_SIP
- 	help
- 	  SIP is an application-layer control protocol that can establish,
- 	  modify, and terminate multimedia sessions (conferences) such as
--	  Internet telephony calls. With the ip_conntrack_sip and
-+	  Internet telephony calls. With the nf_conntrack_sip and
- 	  the nf_nat_sip modules you can support the protocol on a connection
- 	  tracking/NATing firewall.
- 
-@@ -1313,7 +1311,7 @@ config NETFILTER_XT_MATCH_HELPER
- 	depends on NETFILTER_ADVANCED
- 	help
- 	  Helper matching allows you to match packets in dynamic connections
--	  tracked by a conntrack-helper, ie. ip_conntrack_ftp
-+	  tracked by a conntrack-helper, ie. nf_conntrack_ftp
- 
- 	  To compile it as a module, choose M here.  If unsure, say Y.
- 
+4) Add br_vlan_get_pvid_rcu(), to fetch the bridge port pvid
+   from packet path.
 
---gd6x7bboqz642wos--
+5) Prefer specific family extension in nf_tables.
+
+6) Autoload specific family extension in case it is missing.
+
+7) Add synproxy support to nf_tables, from Fernando Fernandez Mancera.
+
+8) Support for GRE encapsulation in IPVS, from Vadim Fedorenko.
+
+9) ICMP handling for GRE encapsulation, from Julian Anastasov.
+
+10) Remove unused parameter in nf_queue, from Florian Westphal.
+
+11) Replace seq_printf() by seq_puts() in nf_log, from Markus Elfring.
+
+12) Rename nf_SYNPROXY.h => nf_synproxy.h before this header becomes
+    public.
+
+You can pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git
+
+Thanks.
+
+----------------------------------------------------------------
+
+The following changes since commit 77cf8edbc0e7db6d68d1a49cf954849fb92cfa7c:
+
+  tipc: simplify stale link failure criteria (2019-06-25 13:28:57 -0700)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git HEAD
+
+for you to fetch changes up to 0ef1efd1354d732d040f29b2005420f83fcdd8f4:
+
+  netfilter: nf_tables: force module load in case select_ops() returns -EAGAIN (2019-07-06 08:37:36 +0200)
+
+----------------------------------------------------------------
+Fernando Fernandez Mancera (1):
+      netfilter: nf_tables: Add synproxy support
+
+Florian Westphal (1):
+      netfilter: nf_queue: remove unused hook entries pointer
+
+Julian Anastasov (1):
+      ipvs: strip gre tunnel headers from icmp errors
+
+Markus Elfring (1):
+      netfilter: nf_log: Replace a seq_printf() call by seq_puts() in seq_show()
+
+Pablo Neira Ayuso (5):
+      netfilter: rename nf_SYNPROXY.h to nf_synproxy.h
+      bridge: add br_vlan_get_pvid_rcu()
+      netfilter: nf_tables: add nft_expr_type_request_module()
+      netfilter: nf_tables: __nft_expr_type_get() selects specific family type
+      netfilter: nf_tables: force module load in case select_ops() returns -EAGAIN
+
+Vadim Fedorenko (1):
+      ipvs: allow tunneling with gre encapsulation
+
+wenxu (5):
+      netfilter: nft_meta: move bridge meta keys into nft_meta_bridge
+      netfilter: nft_meta_bridge: Remove the br_private.h header
+      netfilter: nft_meta_bridge: add NFT_META_BRI_IIFPVID support
+      bridge: add br_vlan_get_proto()
+      netfilter: nft_meta_bridge: Add NFT_META_BRI_IIFVPROTO support
+
+ include/linux/if_bridge.h                          |  12 +
+ include/net/netfilter/nf_conntrack_synproxy.h      |   1 +
+ include/net/netfilter/nf_queue.h                   |   3 +-
+ include/net/netfilter/nf_synproxy.h                |   5 +
+ include/net/netfilter/nft_meta.h                   |  44 ++++
+ include/uapi/linux/ip_vs.h                         |   1 +
+ .../netfilter/{nf_SYNPROXY.h => nf_synproxy.h}     |   4 +
+ include/uapi/linux/netfilter/nf_tables.h           |  20 ++
+ include/uapi/linux/netfilter/xt_SYNPROXY.h         |   2 +-
+ net/bridge/br_input.c                              |   2 +-
+ net/bridge/br_vlan.c                               |  29 ++-
+ net/bridge/netfilter/Kconfig                       |   6 +
+ net/bridge/netfilter/Makefile                      |   1 +
+ net/bridge/netfilter/nft_meta_bridge.c             | 163 ++++++++++++
+ net/netfilter/Kconfig                              |  11 +
+ net/netfilter/Makefile                             |   1 +
+ net/netfilter/core.c                               |   2 +-
+ net/netfilter/ipvs/ip_vs_core.c                    |  46 +++-
+ net/netfilter/ipvs/ip_vs_ctl.c                     |   1 +
+ net/netfilter/ipvs/ip_vs_xmit.c                    |  66 ++++-
+ net/netfilter/nf_log.c                             |   2 +-
+ net/netfilter/nf_queue.c                           |   8 +-
+ net/netfilter/nf_synproxy_core.c                   |   2 +-
+ net/netfilter/nf_tables_api.c                      |  36 ++-
+ net/netfilter/nf_tables_core.c                     |   1 +
+ net/netfilter/nft_meta.c                           |  85 +++---
+ net/netfilter/nft_synproxy.c                       | 287 +++++++++++++++++++++
+ 27 files changed, 757 insertions(+), 84 deletions(-)
+ create mode 100644 include/net/netfilter/nft_meta.h
+ rename include/uapi/linux/netfilter/{nf_SYNPROXY.h => nf_synproxy.h} (71%)
+ create mode 100644 net/bridge/netfilter/nft_meta_bridge.c
+ create mode 100644 net/netfilter/nft_synproxy.c
