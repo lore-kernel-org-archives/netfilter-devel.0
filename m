@@ -4,48 +4,47 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C3D0FC606AC
-	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Jul 2019 10:33:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C357C606AA
+	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Jul 2019 10:33:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9D2072064B
-	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Jul 2019 10:33:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2BC7A2064B
+	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Jul 2019 10:33:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730146AbfGHKdB (ORCPT
+        id S1730131AbfGHKcx (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 8 Jul 2019 06:33:01 -0400
-Received: from mail.us.es ([193.147.175.20]:34286 "EHLO mail.us.es"
+        Mon, 8 Jul 2019 06:32:53 -0400
+Received: from mail.us.es ([193.147.175.20]:34312 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728957AbfGHKcy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 8 Jul 2019 06:32:54 -0400
+        id S1728968AbfGHKcw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 8 Jul 2019 06:32:52 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id EBD2EBAE8A
-        for <netfilter-devel@vger.kernel.org>; Mon,  8 Jul 2019 12:32:52 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id D1FF9BAE90
+        for <netfilter-devel@vger.kernel.org>; Mon,  8 Jul 2019 12:32:50 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id D1F87DA708
-        for <netfilter-devel@vger.kernel.org>; Mon,  8 Jul 2019 12:32:52 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C2D64DA801
+        for <netfilter-devel@vger.kernel.org>; Mon,  8 Jul 2019 12:32:50 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id C7C57114D71; Mon,  8 Jul 2019 12:32:52 +0200 (CEST)
+        id B6B84114D6E; Mon,  8 Jul 2019 12:32:50 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id D463FDA708;
-        Mon,  8 Jul 2019 12:32:50 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A725FDA704;
+        Mon,  8 Jul 2019 12:32:48 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 08 Jul 2019 12:32:50 +0200 (CEST)
+ Mon, 08 Jul 2019 12:32:48 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id A07C04265A2F;
-        Mon,  8 Jul 2019 12:32:50 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 77BB74265A5B;
+        Mon,  8 Jul 2019 12:32:48 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 14/15] netfilter: nf_tables: __nft_expr_type_get() selects specific family type
-Date:   Mon,  8 Jul 2019 12:32:36 +0200
-Message-Id: <20190708103237.28061-15-pablo@netfilter.org>
+Subject: [PATCH 10/15] netfilter: nft_meta_bridge: add NFT_META_BRI_IIFPVID support
+Date:   Mon,  8 Jul 2019 12:32:32 +0200
+Message-Id: <20190708103237.28061-11-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20190708103237.28061-1-pablo@netfilter.org>
 References: <20190708103237.28061-1-pablo@netfilter.org>
@@ -55,40 +54,80 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-In case that there are two types, prefer the family specify extension.
+From: wenxu <wenxu@ucloud.cn>
 
+This patch allows you to match on the bridge port pvid, eg.
+
+nft add rule bridge firewall zones counter meta ibrpvid 10
+
+Signed-off-by: wenxu <wenxu@ucloud.cn>
+Reviewed-by: Nikolay Aleksandrov <nikolay@cumulusnetworks.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c | 13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ include/uapi/linux/netfilter/nf_tables.h |  2 ++
+ net/bridge/netfilter/nft_meta_bridge.c   | 15 +++++++++++++++
+ 2 files changed, 17 insertions(+)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 582f4e475d67..5e97bf64975a 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -2009,14 +2009,17 @@ EXPORT_SYMBOL_GPL(nft_unregister_expr);
- static const struct nft_expr_type *__nft_expr_type_get(u8 family,
- 						       struct nlattr *nla)
- {
--	const struct nft_expr_type *type;
-+	const struct nft_expr_type *type, *candidate = NULL;
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index c53d581643fe..87474920615a 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -795,6 +795,7 @@ enum nft_exthdr_attributes {
+  * @NFT_META_SECPATH: boolean, secpath_exists (!!skb->sp)
+  * @NFT_META_IIFKIND: packet input interface kind name (dev->rtnl_link_ops->kind)
+  * @NFT_META_OIFKIND: packet output interface kind name (dev->rtnl_link_ops->kind)
++ * @NFT_META_BRI_IIFPVID: packet input bridge port pvid
+  */
+ enum nft_meta_keys {
+ 	NFT_META_LEN,
+@@ -825,6 +826,7 @@ enum nft_meta_keys {
+ 	NFT_META_SECPATH,
+ 	NFT_META_IIFKIND,
+ 	NFT_META_OIFKIND,
++	NFT_META_BRI_IIFPVID,
+ };
  
- 	list_for_each_entry(type, &nf_tables_expressions, list) {
--		if (!nla_strcmp(nla, type->name) &&
--		    (!type->family || type->family == family))
--			return type;
-+		if (!nla_strcmp(nla, type->name)) {
-+			if (!type->family && !candidate)
-+				candidate = type;
-+			else if (type->family == family)
-+				candidate = type;
-+		}
+ /**
+diff --git a/net/bridge/netfilter/nft_meta_bridge.c b/net/bridge/netfilter/nft_meta_bridge.c
+index 2ea8acb4bc4a..9487d42f657a 100644
+--- a/net/bridge/netfilter/nft_meta_bridge.c
++++ b/net/bridge/netfilter/nft_meta_bridge.c
+@@ -7,6 +7,7 @@
+ #include <linux/netfilter/nf_tables.h>
+ #include <net/netfilter/nf_tables.h>
+ #include <net/netfilter/nft_meta.h>
++#include <linux/if_bridge.h>
+ 
+ static const struct net_device *
+ nft_meta_get_bridge(const struct net_device *dev)
+@@ -37,6 +38,17 @@ static void nft_meta_bridge_get_eval(const struct nft_expr *expr,
+ 		if (!br_dev)
+ 			goto err;
+ 		break;
++	case NFT_META_BRI_IIFPVID: {
++		u16 p_pvid;
++
++		br_dev = nft_meta_get_bridge(in);
++		if (!br_dev || !br_vlan_enabled(br_dev))
++			goto err;
++
++		br_vlan_get_pvid_rcu(in, &p_pvid);
++		nft_reg_store16(dest, p_pvid);
++		return;
++	}
+ 	default:
+ 		goto out;
  	}
--	return NULL;
-+	return candidate;
- }
- 
- #ifdef CONFIG_MODULES
+@@ -62,6 +74,9 @@ static int nft_meta_bridge_get_init(const struct nft_ctx *ctx,
+ 	case NFT_META_BRI_OIFNAME:
+ 		len = IFNAMSIZ;
+ 		break;
++	case NFT_META_BRI_IIFPVID:
++		len = sizeof(u16);
++		break;
+ 	default:
+ 		return nft_meta_get_init(ctx, expr, tb);
+ 	}
 -- 
 2.11.0
 
