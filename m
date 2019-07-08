@@ -4,40 +4,40 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 64DCAC606BD
-	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Jul 2019 16:06:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 10D23C606BD
+	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Jul 2019 16:06:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3A65C21537
-	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Jul 2019 16:06:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E39C821537
+	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Jul 2019 16:06:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2391266AbfGHQGe (ORCPT
+        id S2391403AbfGHQGm (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 8 Jul 2019 12:06:34 -0400
-Received: from mail.us.es ([193.147.175.20]:52930 "EHLO mail.us.es"
+        Mon, 8 Jul 2019 12:06:42 -0400
+Received: from mail.us.es ([193.147.175.20]:52792 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2391112AbfGHQGd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 8 Jul 2019 12:06:33 -0400
+        id S2391137AbfGHQGc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 8 Jul 2019 12:06:32 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 06CA1B6C96
+        by mail.us.es (Postfix) with ESMTP id DDB8BB632D
         for <netfilter-devel@vger.kernel.org>; Mon,  8 Jul 2019 18:06:30 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id E0B5C1150CE
-        for <netfilter-devel@vger.kernel.org>; Mon,  8 Jul 2019 18:06:29 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C823A11510D
+        for <netfilter-devel@vger.kernel.org>; Mon,  8 Jul 2019 18:06:30 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id DB6C41150B5; Mon,  8 Jul 2019 18:06:29 +0200 (CEST)
+        id C3B1C115105; Mon,  8 Jul 2019 18:06:30 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 6B32D6D2B2;
-        Mon,  8 Jul 2019 18:06:24 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 80E8610219C;
+        Mon,  8 Jul 2019 18:06:27 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 08 Jul 2019 18:06:23 +0200 (CEST)
+ Mon, 08 Jul 2019 18:06:27 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 3509C4265A31;
-        Mon,  8 Jul 2019 18:06:23 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 508FD4265A31;
+        Mon,  8 Jul 2019 18:06:26 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netdev@vger.kernel.org
@@ -54,9 +54,9 @@ Cc:     davem@davemloft.net, thomas.lendacky@amd.com, f.fainelli@gmail.com,
         marcelo.leitner@gmail.com, mkubecek@suse.cz,
         venkatkumar.duvvuru@broadcom.com, maxime.chevallier@bootlin.com,
         cphealy@gmail.com, netfilter-devel@vger.kernel.org
-Subject: [PATCH net-next,v3 03/11] net: flow_offload: rename TCF_BLOCK_BINDER_TYPE_* to FLOW_BLOCK_BINDER_TYPE_*
-Date:   Mon,  8 Jul 2019 18:06:05 +0200
-Message-Id: <20190708160614.2226-4-pablo@netfilter.org>
+Subject: [PATCH net-next,v3 05/11] net: flow_offload: add list handling functions
+Date:   Mon,  8 Jul 2019 18:06:07 +0200
+Message-Id: <20190708160614.2226-6-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20190708160614.2226-1-pablo@netfilter.org>
 References: <20190708160614.2226-1-pablo@netfilter.org>
@@ -66,256 +66,133 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Rename from TCF_BLOCK_BINDER_TYPE_* to FLOW_BLOCK_BINDER_TYPE_* and
-remove temporary tcf_block_binder_type alias.
+This patch adds the list handling functions for the flow block API:
+
+* flow_block_cb_lookup() allows drivers to look up for existing flow blocks.
+* flow_block_cb_add() adds a flow block to the list to be registered by the
+  core.
+* flow_block_cb_remove() to remove a flow block from the list of existing
+  flow blocks per driver and to request the core to unregister this.
+
+The flow block API also annotates the netns this flow block belongs to.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-v3: move patch to the beginning of this series.
+v3: extracted from former patch "net: flow_offload: add flow_block_cb API".
 
- drivers/net/ethernet/mellanox/mlx5/core/en_rep.c    |  2 +-
- drivers/net/ethernet/mellanox/mlxsw/spectrum.c      |  4 ++--
- drivers/net/ethernet/mscc/ocelot_flower.c           |  2 +-
- drivers/net/ethernet/mscc/ocelot_tc.c               |  4 ++--
- drivers/net/ethernet/netronome/nfp/flower/offload.c |  6 +++---
- include/net/flow_offload.h                          |  6 +++---
- include/net/pkt_cls.h                               |  3 +--
- net/core/flow_offload.c                             |  2 +-
- net/dsa/slave.c                                     |  4 ++--
- net/sched/cls_api.c                                 | 14 +++++++-------
- net/sched/sch_ingress.c                             |  6 +++---
- 11 files changed, 26 insertions(+), 27 deletions(-)
+ include/net/flow_offload.h | 20 ++++++++++++++++++++
+ net/core/flow_offload.c    | 18 ++++++++++++++++++
+ net/sched/cls_api.c        |  3 +++
+ 3 files changed, 41 insertions(+)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c b/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
-index a13139a5a5ca..f5c430973b35 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
-@@ -700,7 +700,7 @@ mlx5e_rep_indr_setup_tc_block(struct net_device *netdev,
- 	struct mlx5e_rep_indr_block_priv *indr_priv;
- 	int err = 0;
- 
--	if (f->binder_type != TCF_BLOCK_BINDER_TYPE_CLSACT_INGRESS)
-+	if (f->binder_type != FLOW_BLOCK_BINDER_TYPE_CLSACT_INGRESS)
- 		return -EOPNOTSUPP;
- 
- 	switch (f->command) {
-diff --git a/drivers/net/ethernet/mellanox/mlxsw/spectrum.c b/drivers/net/ethernet/mellanox/mlxsw/spectrum.c
-index 9cf61a9d8291..a178d082f061 100644
---- a/drivers/net/ethernet/mellanox/mlxsw/spectrum.c
-+++ b/drivers/net/ethernet/mellanox/mlxsw/spectrum.c
-@@ -1668,10 +1668,10 @@ static int mlxsw_sp_setup_tc_block(struct mlxsw_sp_port *mlxsw_sp_port,
- 	bool ingress;
- 	int err;
- 
--	if (f->binder_type == TCF_BLOCK_BINDER_TYPE_CLSACT_INGRESS) {
-+	if (f->binder_type == FLOW_BLOCK_BINDER_TYPE_CLSACT_INGRESS) {
- 		cb = mlxsw_sp_setup_tc_block_cb_matchall_ig;
- 		ingress = true;
--	} else if (f->binder_type == TCF_BLOCK_BINDER_TYPE_CLSACT_EGRESS) {
-+	} else if (f->binder_type == FLOW_BLOCK_BINDER_TYPE_CLSACT_EGRESS) {
- 		cb = mlxsw_sp_setup_tc_block_cb_matchall_eg;
- 		ingress = false;
- 	} else {
-diff --git a/drivers/net/ethernet/mscc/ocelot_flower.c b/drivers/net/ethernet/mscc/ocelot_flower.c
-index 8778dee5a471..b682f08a93b4 100644
---- a/drivers/net/ethernet/mscc/ocelot_flower.c
-+++ b/drivers/net/ethernet/mscc/ocelot_flower.c
-@@ -306,7 +306,7 @@ int ocelot_setup_tc_block_flower_bind(struct ocelot_port *port,
- 	struct tcf_block_cb *block_cb;
- 	int ret;
- 
--	if (f->binder_type == TCF_BLOCK_BINDER_TYPE_CLSACT_EGRESS)
-+	if (f->binder_type == FLOW_BLOCK_BINDER_TYPE_CLSACT_EGRESS)
- 		return -EOPNOTSUPP;
- 
- 	block_cb = tcf_block_cb_lookup(f->block,
-diff --git a/drivers/net/ethernet/mscc/ocelot_tc.c b/drivers/net/ethernet/mscc/ocelot_tc.c
-index c84942ef8e7b..58a0b5f8850c 100644
---- a/drivers/net/ethernet/mscc/ocelot_tc.c
-+++ b/drivers/net/ethernet/mscc/ocelot_tc.c
-@@ -137,10 +137,10 @@ static int ocelot_setup_tc_block(struct ocelot_port *port,
- 	netdev_dbg(port->dev, "tc_block command %d, binder_type %d\n",
- 		   f->command, f->binder_type);
- 
--	if (f->binder_type == TCF_BLOCK_BINDER_TYPE_CLSACT_INGRESS) {
-+	if (f->binder_type == FLOW_BLOCK_BINDER_TYPE_CLSACT_INGRESS) {
- 		cb = ocelot_setup_tc_block_cb_ig;
- 		port->tc.block_shared = tcf_block_shared(f->block);
--	} else if (f->binder_type == TCF_BLOCK_BINDER_TYPE_CLSACT_EGRESS) {
-+	} else if (f->binder_type == FLOW_BLOCK_BINDER_TYPE_CLSACT_EGRESS) {
- 		cb = ocelot_setup_tc_block_cb_eg;
- 	} else {
- 		return -EOPNOTSUPP;
-diff --git a/drivers/net/ethernet/netronome/nfp/flower/offload.c b/drivers/net/ethernet/netronome/nfp/flower/offload.c
-index 7c94f5142076..46041e509150 100644
---- a/drivers/net/ethernet/netronome/nfp/flower/offload.c
-+++ b/drivers/net/ethernet/netronome/nfp/flower/offload.c
-@@ -1308,7 +1308,7 @@ static int nfp_flower_setup_tc_block(struct net_device *netdev,
- 	struct nfp_repr *repr = netdev_priv(netdev);
- 	struct nfp_flower_repr_priv *repr_priv;
- 
--	if (f->binder_type != TCF_BLOCK_BINDER_TYPE_CLSACT_INGRESS)
-+	if (f->binder_type != FLOW_BLOCK_BINDER_TYPE_CLSACT_INGRESS)
- 		return -EOPNOTSUPP;
- 
- 	repr_priv = repr->app_priv;
-@@ -1389,8 +1389,8 @@ nfp_flower_setup_indr_tc_block(struct net_device *netdev, struct nfp_app *app,
- 	struct nfp_flower_priv *priv = app->priv;
- 	int err;
- 
--	if (f->binder_type != TCF_BLOCK_BINDER_TYPE_CLSACT_INGRESS &&
--	    !(f->binder_type == TCF_BLOCK_BINDER_TYPE_CLSACT_EGRESS &&
-+	if (f->binder_type != FLOW_BLOCK_BINDER_TYPE_CLSACT_INGRESS &&
-+	    !(f->binder_type == FLOW_BLOCK_BINDER_TYPE_CLSACT_EGRESS &&
- 	      nfp_flower_internal_port_can_offload(app, netdev)))
- 		return -EOPNOTSUPP;
- 
 diff --git a/include/net/flow_offload.h b/include/net/flow_offload.h
-index 965b0f1133b3..0d7d1e6d6f2a 100644
+index bcc4e2fef6ba..06acde2960fa 100644
 --- a/include/net/flow_offload.h
 +++ b/include/net/flow_offload.h
-@@ -239,9 +239,9 @@ enum flow_block_command {
+@@ -251,12 +251,16 @@ struct flow_block_offload {
+ 	enum flow_block_command command;
+ 	enum flow_block_binder_type binder_type;
+ 	struct tcf_block *block;
++	struct net *net;
++	struct list_head cb_list;
+ 	struct list_head *driver_block_list;
+ 	struct netlink_ext_ack *extack;
  };
  
- enum flow_block_binder_type {
--	TCF_BLOCK_BINDER_TYPE_UNSPEC,
--	TCF_BLOCK_BINDER_TYPE_CLSACT_INGRESS,
--	TCF_BLOCK_BINDER_TYPE_CLSACT_EGRESS,
-+	FLOW_BLOCK_BINDER_TYPE_UNSPEC,
-+	FLOW_BLOCK_BINDER_TYPE_CLSACT_INGRESS,
-+	FLOW_BLOCK_BINDER_TYPE_CLSACT_EGRESS,
- };
+ struct flow_block_cb {
++	struct list_head	driver_list;
+ 	struct list_head	list;
++	struct net		*net;
+ 	tc_setup_cb_t		*cb;
+ 	void			*cb_ident;
+ 	void			*cb_priv;
+@@ -269,6 +273,22 @@ struct flow_block_cb *flow_block_cb_alloc(struct net *net, tc_setup_cb_t *cb,
+ 					  void (*release)(void *cb_priv));
+ void flow_block_cb_free(struct flow_block_cb *block_cb);
  
- struct tcf_block;
-diff --git a/include/net/pkt_cls.h b/include/net/pkt_cls.h
-index 1a96f469164f..e4499526fde8 100644
---- a/include/net/pkt_cls.h
-+++ b/include/net/pkt_cls.h
-@@ -27,10 +27,9 @@ int register_tcf_proto_ops(struct tcf_proto_ops *ops);
- int unregister_tcf_proto_ops(struct tcf_proto_ops *ops);
- 
- #define tc_block_offload flow_block_offload
--#define tcf_block_binder_type flow_block_binder_type
- 
- struct tcf_block_ext_info {
--	enum tcf_block_binder_type binder_type;
-+	enum flow_block_binder_type binder_type;
- 	tcf_chain_head_change_t *chain_head_change;
- 	void *chain_head_change_priv;
- 	u32 block_index;
++struct flow_block_cb *flow_block_cb_lookup(struct net *net,
++					   struct list_head *driver_flow_block_list,
++					   tc_setup_cb_t *cb, void *cb_ident);
++
++static inline void flow_block_cb_add(struct flow_block_cb *block_cb,
++				     struct flow_block_offload *offload)
++{
++	list_add_tail(&block_cb->driver_list, &offload->cb_list);
++}
++
++static inline void flow_block_cb_remove(struct flow_block_cb *block_cb,
++					struct flow_block_offload *offload)
++{
++	list_move(&block_cb->driver_list, &offload->cb_list);
++}
++
+ int flow_block_cb_setup_simple(struct flow_block_offload *f,
+ 			       struct list_head *driver_list, tc_setup_cb_t *cb,
+ 			       void *cb_ident, void *cb_priv, bool ingress_only);
 diff --git a/net/core/flow_offload.c b/net/core/flow_offload.c
-index 593e73f7593a..6d8187e8effc 100644
+index d08148cb6953..85fd5f4a1e0f 100644
 --- a/net/core/flow_offload.c
 +++ b/net/core/flow_offload.c
-@@ -172,7 +172,7 @@ int flow_block_cb_setup_simple(struct flow_block_offload *f,
- 			       bool ingress_only)
- {
- 	if (ingress_only &&
--	    f->binder_type != TCF_BLOCK_BINDER_TYPE_CLSACT_INGRESS)
-+	    f->binder_type != FLOW_BLOCK_BINDER_TYPE_CLSACT_INGRESS)
- 		return -EOPNOTSUPP;
+@@ -176,6 +176,7 @@ struct flow_block_cb *flow_block_cb_alloc(struct net *net, tc_setup_cb_t *cb,
+ 	if (!block_cb)
+ 		return ERR_PTR(-ENOMEM);
  
- 	f->driver_block_list = driver_block_list;
-diff --git a/net/dsa/slave.c b/net/dsa/slave.c
-index 58a71ee0747a..9b5e202c255e 100644
---- a/net/dsa/slave.c
-+++ b/net/dsa/slave.c
-@@ -947,9 +947,9 @@ static int dsa_slave_setup_tc_block(struct net_device *dev,
- {
- 	tc_setup_cb_t *cb;
++	block_cb->net = net;
+ 	block_cb->cb = cb;
+ 	block_cb->cb_ident = cb_ident;
+ 	block_cb->cb_priv = cb_priv;
+@@ -194,6 +195,23 @@ void flow_block_cb_free(struct flow_block_cb *block_cb)
+ }
+ EXPORT_SYMBOL(flow_block_cb_free);
  
--	if (f->binder_type == TCF_BLOCK_BINDER_TYPE_CLSACT_INGRESS)
-+	if (f->binder_type == FLOW_BLOCK_BINDER_TYPE_CLSACT_INGRESS)
- 		cb = dsa_slave_setup_tc_block_cb_ig;
--	else if (f->binder_type == TCF_BLOCK_BINDER_TYPE_CLSACT_EGRESS)
-+	else if (f->binder_type == FLOW_BLOCK_BINDER_TYPE_CLSACT_EGRESS)
- 		cb = dsa_slave_setup_tc_block_cb_eg;
- 	else
- 		return -EOPNOTSUPP;
++struct flow_block_cb *flow_block_cb_lookup(struct net *net,
++					   struct list_head *driver_block_list,
++					   tc_setup_cb_t *cb, void *cb_ident)
++{
++	struct flow_block_cb *block_cb;
++
++	list_for_each_entry(block_cb, driver_block_list, driver_list) {
++		if (block_cb->net == net &&
++		    block_cb->cb == cb &&
++		    block_cb->cb_ident == cb_ident)
++			return block_cb;
++	}
++
++	return NULL;
++}
++EXPORT_SYMBOL(flow_block_cb_lookup);
++
+ int flow_block_cb_setup_simple(struct flow_block_offload *f,
+ 			       struct list_head *driver_block_list,
+ 			       tc_setup_cb_t *cb, void *cb_ident, void *cb_priv,
 diff --git a/net/sched/cls_api.c b/net/sched/cls_api.c
-index 5597bed80d9c..fa0c451aca59 100644
+index fa0c451aca59..72761b43ae41 100644
 --- a/net/sched/cls_api.c
 +++ b/net/sched/cls_api.c
-@@ -678,7 +678,7 @@ static void tc_indr_block_ing_cmd(struct tc_indr_block_dev *indr_dev,
- {
+@@ -679,6 +679,7 @@ static void tc_indr_block_ing_cmd(struct tc_indr_block_dev *indr_dev,
  	struct tc_block_offload bo = {
  		.command	= command,
--		.binder_type	= TCF_BLOCK_BINDER_TYPE_CLSACT_INGRESS,
-+		.binder_type	= FLOW_BLOCK_BINDER_TYPE_CLSACT_INGRESS,
+ 		.binder_type	= FLOW_BLOCK_BINDER_TYPE_CLSACT_INGRESS,
++		.net		= dev_net(indr_dev->dev),
  		.block		= indr_dev->block,
  	};
  
-@@ -1340,17 +1340,17 @@ static void tcf_block_release(struct Qdisc *q, struct tcf_block *block,
- struct tcf_block_owner_item {
- 	struct list_head list;
- 	struct Qdisc *q;
--	enum tcf_block_binder_type binder_type;
-+	enum flow_block_binder_type binder_type;
- };
- 
- static void
- tcf_block_owner_netif_keep_dst(struct tcf_block *block,
- 			       struct Qdisc *q,
--			       enum tcf_block_binder_type binder_type)
-+			       enum flow_block_binder_type binder_type)
+@@ -767,6 +768,7 @@ static void tc_indr_block_call(struct tcf_block *block, struct net_device *dev,
+ 	struct tc_block_offload bo = {
+ 		.command	= command,
+ 		.binder_type	= ei->binder_type,
++		.net		= dev_net(dev),
+ 		.block		= block,
+ 		.extack		= extack,
+ 	};
+@@ -795,6 +797,7 @@ static int tcf_block_offload_cmd(struct tcf_block *block,
  {
- 	if (block->keep_dst &&
--	    binder_type != TCF_BLOCK_BINDER_TYPE_CLSACT_INGRESS &&
--	    binder_type != TCF_BLOCK_BINDER_TYPE_CLSACT_EGRESS)
-+	    binder_type != FLOW_BLOCK_BINDER_TYPE_CLSACT_INGRESS &&
-+	    binder_type != FLOW_BLOCK_BINDER_TYPE_CLSACT_EGRESS)
- 		netif_keep_dst(qdisc_dev(q));
- }
+ 	struct tc_block_offload bo = {};
  
-@@ -1367,7 +1367,7 @@ EXPORT_SYMBOL(tcf_block_netif_keep_dst);
- 
- static int tcf_block_owner_add(struct tcf_block *block,
- 			       struct Qdisc *q,
--			       enum tcf_block_binder_type binder_type)
-+			       enum flow_block_binder_type binder_type)
- {
- 	struct tcf_block_owner_item *item;
- 
-@@ -1382,7 +1382,7 @@ static int tcf_block_owner_add(struct tcf_block *block,
- 
- static void tcf_block_owner_del(struct tcf_block *block,
- 				struct Qdisc *q,
--				enum tcf_block_binder_type binder_type)
-+				enum flow_block_binder_type binder_type)
- {
- 	struct tcf_block_owner_item *item;
- 
-diff --git a/net/sched/sch_ingress.c b/net/sched/sch_ingress.c
-index 599730f804d7..bf56aa519797 100644
---- a/net/sched/sch_ingress.c
-+++ b/net/sched/sch_ingress.c
-@@ -83,7 +83,7 @@ static int ingress_init(struct Qdisc *sch, struct nlattr *opt,
- 
- 	mini_qdisc_pair_init(&q->miniqp, sch, &dev->miniq_ingress);
- 
--	q->block_info.binder_type = TCF_BLOCK_BINDER_TYPE_CLSACT_INGRESS;
-+	q->block_info.binder_type = FLOW_BLOCK_BINDER_TYPE_CLSACT_INGRESS;
- 	q->block_info.chain_head_change = clsact_chain_head_change;
- 	q->block_info.chain_head_change_priv = &q->miniqp;
- 
-@@ -217,7 +217,7 @@ static int clsact_init(struct Qdisc *sch, struct nlattr *opt,
- 
- 	mini_qdisc_pair_init(&q->miniqp_ingress, sch, &dev->miniq_ingress);
- 
--	q->ingress_block_info.binder_type = TCF_BLOCK_BINDER_TYPE_CLSACT_INGRESS;
-+	q->ingress_block_info.binder_type = FLOW_BLOCK_BINDER_TYPE_CLSACT_INGRESS;
- 	q->ingress_block_info.chain_head_change = clsact_chain_head_change;
- 	q->ingress_block_info.chain_head_change_priv = &q->miniqp_ingress;
- 
-@@ -228,7 +228,7 @@ static int clsact_init(struct Qdisc *sch, struct nlattr *opt,
- 
- 	mini_qdisc_pair_init(&q->miniqp_egress, sch, &dev->miniq_egress);
- 
--	q->egress_block_info.binder_type = TCF_BLOCK_BINDER_TYPE_CLSACT_EGRESS;
-+	q->egress_block_info.binder_type = FLOW_BLOCK_BINDER_TYPE_CLSACT_EGRESS;
- 	q->egress_block_info.chain_head_change = clsact_chain_head_change;
- 	q->egress_block_info.chain_head_change_priv = &q->miniqp_egress;
- 
++	bo.net = dev_net(dev);
+ 	bo.command = command;
+ 	bo.binder_type = ei->binder_type;
+ 	bo.block = block;
 -- 
 2.11.0
 
