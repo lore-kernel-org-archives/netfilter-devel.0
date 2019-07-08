@@ -6,38 +6,38 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DB64DC606BD
-	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Jul 2019 16:06:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F2B7DC606C1
+	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Jul 2019 16:06:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B833220656
-	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Jul 2019 16:06:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D320021537
+	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Jul 2019 16:06:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2391081AbfGHQGr (ORCPT
+        id S2390070AbfGHQGq (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 8 Jul 2019 12:06:47 -0400
-Received: from mail.us.es ([193.147.175.20]:52862 "EHLO mail.us.es"
+        Mon, 8 Jul 2019 12:06:46 -0400
+Received: from mail.us.es ([193.147.175.20]:52752 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2391036AbfGHQGb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        id S2391025AbfGHQGb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Mon, 8 Jul 2019 12:06:31 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 99423B6FD9
-        for <netfilter-devel@vger.kernel.org>; Mon,  8 Jul 2019 18:06:29 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id C8176FC607
+        for <netfilter-devel@vger.kernel.org>; Mon,  8 Jul 2019 18:06:26 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 82DCD1021A9
-        for <netfilter-devel@vger.kernel.org>; Mon,  8 Jul 2019 18:06:29 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A5AD06E7AC
+        for <netfilter-devel@vger.kernel.org>; Mon,  8 Jul 2019 18:06:26 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 78455FB37C; Mon,  8 Jul 2019 18:06:29 +0200 (CEST)
+        id 9DD40A75E; Mon,  8 Jul 2019 18:06:26 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id E23731150DA;
-        Mon,  8 Jul 2019 18:06:25 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id DA372D190C;
+        Mon,  8 Jul 2019 18:06:22 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 08 Jul 2019 18:06:23 +0200 (CEST)
+ Mon, 08 Jul 2019 18:06:22 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id BA5BC4265A2F;
-        Mon,  8 Jul 2019 18:06:24 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 9487A4265A2F;
+        Mon,  8 Jul 2019 18:06:21 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netdev@vger.kernel.org
@@ -54,9 +54,9 @@ Cc:     davem@davemloft.net, thomas.lendacky@amd.com, f.fainelli@gmail.com,
         marcelo.leitner@gmail.com, mkubecek@suse.cz,
         venkatkumar.duvvuru@broadcom.com, maxime.chevallier@bootlin.com,
         cphealy@gmail.com, netfilter-devel@vger.kernel.org
-Subject: [PATCH net-next,v3 04/11] net: flow_offload: add flow_block_cb_alloc() and flow_block_cb_free()
-Date:   Mon,  8 Jul 2019 18:06:06 +0200
-Message-Id: <20190708160614.2226-5-pablo@netfilter.org>
+Subject: [PATCH net-next,v3 02/11] net: flow_offload: rename TC_BLOCK_{UN}BIND to FLOW_BLOCK_{UN}BIND
+Date:   Mon,  8 Jul 2019 18:06:04 +0200
+Message-Id: <20190708160614.2226-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20190708160614.2226-1-pablo@netfilter.org>
 References: <20190708160614.2226-1-pablo@netfilter.org>
@@ -66,82 +66,281 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Add a new helper function to allocate flow_block_cb objects.
+Rename from TC_BLOCK_{UN}BIND to FLOW_BLOCK_{UN}BIND and remove
+temporary tc_block_command alias.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-v3: instead of introducing tcf_block_cb_alloc() and tcf_block_cb_free()
-    to rename them later on in the series, add them upfront to flow_offload.c
-    to reduce the size of this batch.
+v2: move patch to the beginning of this series.
 
- include/net/flow_offload.h | 14 ++++++++++++++
- net/core/flow_offload.c    | 28 ++++++++++++++++++++++++++++
- 2 files changed, 42 insertions(+)
+ drivers/net/ethernet/mellanox/mlx5/core/en_rep.c   |  4 ++--
+ drivers/net/ethernet/mellanox/mlxsw/spectrum.c     |  4 ++--
+ drivers/net/ethernet/mscc/ocelot_tc.c              |  4 ++--
+ .../net/ethernet/netronome/nfp/flower/offload.c    |  8 ++++----
+ include/net/flow_offload.h                         |  4 ++--
+ include/net/pkt_cls.h                              |  1 -
+ net/core/flow_offload.c                            |  4 ++--
+ net/dsa/slave.c                                    |  4 ++--
+ net/sched/cls_api.c                                | 22 +++++++++++-----------
+ 9 files changed, 27 insertions(+), 28 deletions(-)
 
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c b/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
+index 5b5c4ecf4214..a13139a5a5ca 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
+@@ -704,7 +704,7 @@ mlx5e_rep_indr_setup_tc_block(struct net_device *netdev,
+ 		return -EOPNOTSUPP;
+ 
+ 	switch (f->command) {
+-	case TC_BLOCK_BIND:
++	case FLOW_BLOCK_BIND:
+ 		indr_priv = mlx5e_rep_indr_block_priv_lookup(rpriv, netdev);
+ 		if (indr_priv)
+ 			return -EEXIST;
+@@ -727,7 +727,7 @@ mlx5e_rep_indr_setup_tc_block(struct net_device *netdev,
+ 		}
+ 
+ 		return err;
+-	case TC_BLOCK_UNBIND:
++	case FLOW_BLOCK_UNBIND:
+ 		indr_priv = mlx5e_rep_indr_block_priv_lookup(rpriv, netdev);
+ 		if (!indr_priv)
+ 			return -ENOENT;
+diff --git a/drivers/net/ethernet/mellanox/mlxsw/spectrum.c b/drivers/net/ethernet/mellanox/mlxsw/spectrum.c
+index ce285fbeebd3..9cf61a9d8291 100644
+--- a/drivers/net/ethernet/mellanox/mlxsw/spectrum.c
++++ b/drivers/net/ethernet/mellanox/mlxsw/spectrum.c
+@@ -1679,7 +1679,7 @@ static int mlxsw_sp_setup_tc_block(struct mlxsw_sp_port *mlxsw_sp_port,
+ 	}
+ 
+ 	switch (f->command) {
+-	case TC_BLOCK_BIND:
++	case FLOW_BLOCK_BIND:
+ 		err = tcf_block_cb_register(f->block, cb, mlxsw_sp_port,
+ 					    mlxsw_sp_port, f->extack);
+ 		if (err)
+@@ -1692,7 +1692,7 @@ static int mlxsw_sp_setup_tc_block(struct mlxsw_sp_port *mlxsw_sp_port,
+ 			return err;
+ 		}
+ 		return 0;
+-	case TC_BLOCK_UNBIND:
++	case FLOW_BLOCK_UNBIND:
+ 		mlxsw_sp_setup_tc_block_flower_unbind(mlxsw_sp_port,
+ 						      f->block, ingress);
+ 		tcf_block_cb_unregister(f->block, cb, mlxsw_sp_port);
+diff --git a/drivers/net/ethernet/mscc/ocelot_tc.c b/drivers/net/ethernet/mscc/ocelot_tc.c
+index 72084306240d..c84942ef8e7b 100644
+--- a/drivers/net/ethernet/mscc/ocelot_tc.c
++++ b/drivers/net/ethernet/mscc/ocelot_tc.c
+@@ -147,14 +147,14 @@ static int ocelot_setup_tc_block(struct ocelot_port *port,
+ 	}
+ 
+ 	switch (f->command) {
+-	case TC_BLOCK_BIND:
++	case FLOW_BLOCK_BIND:
+ 		ret = tcf_block_cb_register(f->block, cb, port,
+ 					    port, f->extack);
+ 		if (ret)
+ 			return ret;
+ 
+ 		return ocelot_setup_tc_block_flower_bind(port, f);
+-	case TC_BLOCK_UNBIND:
++	case FLOW_BLOCK_UNBIND:
+ 		ocelot_setup_tc_block_flower_unbind(port, f);
+ 		tcf_block_cb_unregister(f->block, cb, port);
+ 		return 0;
+diff --git a/drivers/net/ethernet/netronome/nfp/flower/offload.c b/drivers/net/ethernet/netronome/nfp/flower/offload.c
+index 6dbe947269c3..7c94f5142076 100644
+--- a/drivers/net/ethernet/netronome/nfp/flower/offload.c
++++ b/drivers/net/ethernet/netronome/nfp/flower/offload.c
+@@ -1315,11 +1315,11 @@ static int nfp_flower_setup_tc_block(struct net_device *netdev,
+ 	repr_priv->block_shared = tcf_block_shared(f->block);
+ 
+ 	switch (f->command) {
+-	case TC_BLOCK_BIND:
++	case FLOW_BLOCK_BIND:
+ 		return tcf_block_cb_register(f->block,
+ 					     nfp_flower_setup_tc_block_cb,
+ 					     repr, repr, f->extack);
+-	case TC_BLOCK_UNBIND:
++	case FLOW_BLOCK_UNBIND:
+ 		tcf_block_cb_unregister(f->block,
+ 					nfp_flower_setup_tc_block_cb,
+ 					repr);
+@@ -1395,7 +1395,7 @@ nfp_flower_setup_indr_tc_block(struct net_device *netdev, struct nfp_app *app,
+ 		return -EOPNOTSUPP;
+ 
+ 	switch (f->command) {
+-	case TC_BLOCK_BIND:
++	case FLOW_BLOCK_BIND:
+ 		cb_priv = kmalloc(sizeof(*cb_priv), GFP_KERNEL);
+ 		if (!cb_priv)
+ 			return -ENOMEM;
+@@ -1413,7 +1413,7 @@ nfp_flower_setup_indr_tc_block(struct net_device *netdev, struct nfp_app *app,
+ 		}
+ 
+ 		return err;
+-	case TC_BLOCK_UNBIND:
++	case FLOW_BLOCK_UNBIND:
+ 		cb_priv = nfp_flower_indr_block_cb_priv_lookup(app, netdev);
+ 		if (!cb_priv)
+ 			return -ENOENT;
 diff --git a/include/net/flow_offload.h b/include/net/flow_offload.h
-index 0d7d1e6d6f2a..bcc4e2fef6ba 100644
+index 6afc6009c6ab..965b0f1133b3 100644
 --- a/include/net/flow_offload.h
 +++ b/include/net/flow_offload.h
-@@ -255,6 +255,20 @@ struct flow_block_offload {
- 	struct netlink_ext_ack *extack;
+@@ -234,8 +234,8 @@ static inline void flow_stats_update(struct flow_stats *flow_stats,
+ }
+ 
+ enum flow_block_command {
+-	TC_BLOCK_BIND,
+-	TC_BLOCK_UNBIND,
++	FLOW_BLOCK_BIND,
++	FLOW_BLOCK_UNBIND,
  };
  
-+struct flow_block_cb {
-+	struct list_head	list;
-+	tc_setup_cb_t		*cb;
-+	void			*cb_ident;
-+	void			*cb_priv;
-+	void			(*release)(void *cb_priv);
-+	unsigned int		refcnt;
-+};
-+
-+struct flow_block_cb *flow_block_cb_alloc(struct net *net, tc_setup_cb_t *cb,
-+					  void *cb_ident, void *cb_priv,
-+					  void (*release)(void *cb_priv));
-+void flow_block_cb_free(struct flow_block_cb *block_cb);
-+
- int flow_block_cb_setup_simple(struct flow_block_offload *f,
- 			       struct list_head *driver_list, tc_setup_cb_t *cb,
- 			       void *cb_ident, void *cb_priv, bool ingress_only);
+ enum flow_block_binder_type {
+diff --git a/include/net/pkt_cls.h b/include/net/pkt_cls.h
+index b6c306fa9541..1a96f469164f 100644
+--- a/include/net/pkt_cls.h
++++ b/include/net/pkt_cls.h
+@@ -27,7 +27,6 @@ int register_tcf_proto_ops(struct tcf_proto_ops *ops);
+ int unregister_tcf_proto_ops(struct tcf_proto_ops *ops);
+ 
+ #define tc_block_offload flow_block_offload
+-#define tc_block_command flow_block_command
+ #define tcf_block_binder_type flow_block_binder_type
+ 
+ struct tcf_block_ext_info {
 diff --git a/net/core/flow_offload.c b/net/core/flow_offload.c
-index 6d8187e8effc..d08148cb6953 100644
+index e31c0fdb6b01..593e73f7593a 100644
 --- a/net/core/flow_offload.c
 +++ b/net/core/flow_offload.c
-@@ -166,6 +166,34 @@ void flow_rule_match_enc_opts(const struct flow_rule *rule,
- }
- EXPORT_SYMBOL(flow_rule_match_enc_opts);
+@@ -178,10 +178,10 @@ int flow_block_cb_setup_simple(struct flow_block_offload *f,
+ 	f->driver_block_list = driver_block_list;
  
-+struct flow_block_cb *flow_block_cb_alloc(struct net *net, tc_setup_cb_t *cb,
-+					  void *cb_ident, void *cb_priv,
-+					  void (*release)(void *cb_priv))
-+{
-+	struct flow_block_cb *block_cb;
-+
-+	block_cb = kzalloc(sizeof(*block_cb), GFP_KERNEL);
-+	if (!block_cb)
-+		return ERR_PTR(-ENOMEM);
-+
-+	block_cb->cb = cb;
-+	block_cb->cb_ident = cb_ident;
-+	block_cb->cb_priv = cb_priv;
-+	block_cb->release = release;
-+
-+	return block_cb;
-+}
-+EXPORT_SYMBOL(flow_block_cb_alloc);
-+
-+void flow_block_cb_free(struct flow_block_cb *block_cb)
-+{
-+	if (block_cb->release)
-+		block_cb->release(block_cb->cb_priv);
-+
-+	kfree(block_cb);
-+}
-+EXPORT_SYMBOL(flow_block_cb_free);
-+
- int flow_block_cb_setup_simple(struct flow_block_offload *f,
- 			       struct list_head *driver_block_list,
- 			       tc_setup_cb_t *cb, void *cb_ident, void *cb_priv,
+ 	switch (f->command) {
+-	case TC_BLOCK_BIND:
++	case FLOW_BLOCK_BIND:
+ 		return tcf_block_cb_register(f->block, cb, cb_ident, cb_priv,
+ 					     f->extack);
+-	case TC_BLOCK_UNBIND:
++	case FLOW_BLOCK_UNBIND:
+ 		tcf_block_cb_unregister(f->block, cb, cb_ident);
+ 		return 0;
+ 	default:
+diff --git a/net/dsa/slave.c b/net/dsa/slave.c
+index 99673f6b07f6..58a71ee0747a 100644
+--- a/net/dsa/slave.c
++++ b/net/dsa/slave.c
+@@ -955,9 +955,9 @@ static int dsa_slave_setup_tc_block(struct net_device *dev,
+ 		return -EOPNOTSUPP;
+ 
+ 	switch (f->command) {
+-	case TC_BLOCK_BIND:
++	case FLOW_BLOCK_BIND:
+ 		return tcf_block_cb_register(f->block, cb, dev, dev, f->extack);
+-	case TC_BLOCK_UNBIND:
++	case FLOW_BLOCK_UNBIND:
+ 		tcf_block_cb_unregister(f->block, cb, dev);
+ 		return 0;
+ 	default:
+diff --git a/net/sched/cls_api.c b/net/sched/cls_api.c
+index ad36bbcc583e..5597bed80d9c 100644
+--- a/net/sched/cls_api.c
++++ b/net/sched/cls_api.c
+@@ -674,7 +674,7 @@ static void tc_indr_block_cb_del(struct tc_indr_block_cb *indr_block_cb)
+ 
+ static void tc_indr_block_ing_cmd(struct tc_indr_block_dev *indr_dev,
+ 				  struct tc_indr_block_cb *indr_block_cb,
+-				  enum tc_block_command command)
++				  enum flow_block_command command)
+ {
+ 	struct tc_block_offload bo = {
+ 		.command	= command,
+@@ -705,7 +705,7 @@ int __tc_indr_block_cb_register(struct net_device *dev, void *cb_priv,
+ 	if (err)
+ 		goto err_dev_put;
+ 
+-	tc_indr_block_ing_cmd(indr_dev, indr_block_cb, TC_BLOCK_BIND);
++	tc_indr_block_ing_cmd(indr_dev, indr_block_cb, FLOW_BLOCK_BIND);
+ 	return 0;
+ 
+ err_dev_put:
+@@ -742,7 +742,7 @@ void __tc_indr_block_cb_unregister(struct net_device *dev,
+ 		return;
+ 
+ 	/* Send unbind message if required to free any block cbs. */
+-	tc_indr_block_ing_cmd(indr_dev, indr_block_cb, TC_BLOCK_UNBIND);
++	tc_indr_block_ing_cmd(indr_dev, indr_block_cb, FLOW_BLOCK_UNBIND);
+ 	tc_indr_block_cb_del(indr_block_cb);
+ 	tc_indr_block_dev_put(indr_dev);
+ }
+@@ -759,7 +759,7 @@ EXPORT_SYMBOL_GPL(tc_indr_block_cb_unregister);
+ 
+ static void tc_indr_block_call(struct tcf_block *block, struct net_device *dev,
+ 			       struct tcf_block_ext_info *ei,
+-			       enum tc_block_command command,
++			       enum flow_block_command command,
+ 			       struct netlink_ext_ack *extack)
+ {
+ 	struct tc_indr_block_cb *indr_block_cb;
+@@ -775,7 +775,7 @@ static void tc_indr_block_call(struct tcf_block *block, struct net_device *dev,
+ 	if (!indr_dev)
+ 		return;
+ 
+-	indr_dev->block = command == TC_BLOCK_BIND ? block : NULL;
++	indr_dev->block = command == FLOW_BLOCK_BIND ? block : NULL;
+ 
+ 	list_for_each_entry(indr_block_cb, &indr_dev->cb_list, list)
+ 		indr_block_cb->cb(dev, indr_block_cb->cb_priv, TC_SETUP_BLOCK,
+@@ -790,7 +790,7 @@ static bool tcf_block_offload_in_use(struct tcf_block *block)
+ static int tcf_block_offload_cmd(struct tcf_block *block,
+ 				 struct net_device *dev,
+ 				 struct tcf_block_ext_info *ei,
+-				 enum tc_block_command command,
++				 enum flow_block_command command,
+ 				 struct netlink_ext_ack *extack)
+ {
+ 	struct tc_block_offload bo = {};
+@@ -820,20 +820,20 @@ static int tcf_block_offload_bind(struct tcf_block *block, struct Qdisc *q,
+ 		return -EOPNOTSUPP;
+ 	}
+ 
+-	err = tcf_block_offload_cmd(block, dev, ei, TC_BLOCK_BIND, extack);
++	err = tcf_block_offload_cmd(block, dev, ei, FLOW_BLOCK_BIND, extack);
+ 	if (err == -EOPNOTSUPP)
+ 		goto no_offload_dev_inc;
+ 	if (err)
+ 		return err;
+ 
+-	tc_indr_block_call(block, dev, ei, TC_BLOCK_BIND, extack);
++	tc_indr_block_call(block, dev, ei, FLOW_BLOCK_BIND, extack);
+ 	return 0;
+ 
+ no_offload_dev_inc:
+ 	if (tcf_block_offload_in_use(block))
+ 		return -EOPNOTSUPP;
+ 	block->nooffloaddevcnt++;
+-	tc_indr_block_call(block, dev, ei, TC_BLOCK_BIND, extack);
++	tc_indr_block_call(block, dev, ei, FLOW_BLOCK_BIND, extack);
+ 	return 0;
+ }
+ 
+@@ -843,11 +843,11 @@ static void tcf_block_offload_unbind(struct tcf_block *block, struct Qdisc *q,
+ 	struct net_device *dev = q->dev_queue->dev;
+ 	int err;
+ 
+-	tc_indr_block_call(block, dev, ei, TC_BLOCK_UNBIND, NULL);
++	tc_indr_block_call(block, dev, ei, FLOW_BLOCK_UNBIND, NULL);
+ 
+ 	if (!dev->netdev_ops->ndo_setup_tc)
+ 		goto no_offload_dev_dec;
+-	err = tcf_block_offload_cmd(block, dev, ei, TC_BLOCK_UNBIND, NULL);
++	err = tcf_block_offload_cmd(block, dev, ei, FLOW_BLOCK_UNBIND, NULL);
+ 	if (err == -EOPNOTSUPP)
+ 		goto no_offload_dev_dec;
+ 	return;
 -- 
 2.11.0
 
