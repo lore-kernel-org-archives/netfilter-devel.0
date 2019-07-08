@@ -2,158 +2,159 @@ Return-Path: <SRS0=pcH3=VF=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 39D21C606BD
-	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Jul 2019 17:42:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 756FBC606C8
+	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Jul 2019 17:51:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 166F3217D8
-	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Jul 2019 17:42:12 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=resnulli-us.20150623.gappssmtp.com header.i=@resnulli-us.20150623.gappssmtp.com header.b="IY+VaTm6"
+	by mail.kernel.org (Postfix) with ESMTP id 5D457218A0
+	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Jul 2019 17:51:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730922AbfGHRmJ (ORCPT
+        id S1731016AbfGHRvi (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 8 Jul 2019 13:42:09 -0400
-Received: from mail-wm1-f68.google.com ([209.85.128.68]:50980 "EHLO
-        mail-wm1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728189AbfGHRmJ (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 8 Jul 2019 13:42:09 -0400
-Received: by mail-wm1-f68.google.com with SMTP id v15so376403wml.0
-        for <netfilter-devel@vger.kernel.org>; Mon, 08 Jul 2019 10:42:08 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=resnulli-us.20150623.gappssmtp.com; s=20150623;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to:user-agent;
-        bh=ye/ao4wrW+EUCxOtSAz3cL/mCw3UELfD0/7EA13+7ME=;
-        b=IY+VaTm6YIzbox7XK448KVefzqd5kcSp7gecKsSU/OI4jZ+FnI8tbYpZypbMGQ0qFb
-         nQCPv6r3tfaTnfEoFr16NXNlaxLHXCOhjU/qdWuGrTkotdQAeZcCuRaRyluusRnd2dl4
-         azwgGpCp7q0nNyedInzjEGk3EMrhHfZeEgIi5Gjkr9e6ZVQfvRMgXs0SFYCC9HZjzJQN
-         5JXM9hqJNhRFyABX8hsiPpzw+ZEW1hHDd3tb5S2zO6phyzoVEVtxNu4Qb5pIXBuP+7jN
-         4Gp5UwmIBckGXHenyuhJe+3ma80GWxkgGVSEotiaK81rdX9qPwvZ6bw4UakhaKeQPcXU
-         jh4w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to:user-agent;
-        bh=ye/ao4wrW+EUCxOtSAz3cL/mCw3UELfD0/7EA13+7ME=;
-        b=QfosJzxGnVnG8EDofqXK+GK8fwppgHBMdOjLZS8qNfmss378KUwXavGuj1zJg5fUmp
-         Mc5CxZdeVeRSZtpRhe1zR1cFIZNu0/T/NK4O3ZFdaWeBx2F4gcaOT+YL1Q1DxltKqZ0f
-         yXiDrPA9Mme+ToPEPX3BqhK2Ii7h3cjz+XZ6JG2X3E3RhUC0NozfwmhsZUQuQPYpmL23
-         7+tupZ9IgVQgR9+vogiEX0tuwSbc4crwzndOyys+Xwy7CF5OfuCZUja52dtrut1LQHJ+
-         jt3b35108QeHVp5YIbVYkN23T4uvz7sORpNejd56JjWTR+CD768SUgv74SCdbiH+jVJp
-         4z4Q==
-X-Gm-Message-State: APjAAAVav4JvdTpku2JP90D8P15JcaTh0vb6LoSVVG9zoHpws+Ilhhxu
-        nKhJzaAVem0dd8xqnLflVQnO4A==
-X-Google-Smtp-Source: APXvYqyoDcfjbc5Jjj+wWrqlUumG0wn7U2u7ZZLPzrfGGDQIrVQ7L+7CEe4cZBozdheh3Kd/XPOh2A==
-X-Received: by 2002:a05:600c:da:: with SMTP id u26mr17133667wmm.108.1562607727394;
-        Mon, 08 Jul 2019 10:42:07 -0700 (PDT)
-Received: from localhost (jirka.pirko.cz. [84.16.102.26])
-        by smtp.gmail.com with ESMTPSA id t17sm24535673wrs.45.2019.07.08.10.42.06
-        (version=TLS1_3 cipher=AEAD-AES256-GCM-SHA384 bits=256/256);
-        Mon, 08 Jul 2019 10:42:06 -0700 (PDT)
-Date:   Mon, 8 Jul 2019 19:42:06 +0200
-From:   Jiri Pirko <jiri@resnulli.us>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netdev@vger.kernel.org, davem@davemloft.net,
-        thomas.lendacky@amd.com, f.fainelli@gmail.com,
-        ariel.elior@cavium.com, michael.chan@broadcom.com,
-        madalin.bucur@nxp.com, yisen.zhuang@huawei.com,
-        salil.mehta@huawei.com, jeffrey.t.kirsher@intel.com,
-        tariqt@mellanox.com, saeedm@mellanox.com, jiri@mellanox.com,
-        idosch@mellanox.com, jakub.kicinski@netronome.com,
-        peppe.cavallaro@st.com, grygorii.strashko@ti.com, andrew@lunn.ch,
-        vivien.didelot@gmail.com, alexandre.torgue@st.com,
-        joabreu@synopsys.com, linux-net-drivers@solarflare.com,
-        ogerlitz@mellanox.com, Manish.Chopra@cavium.com,
-        marcelo.leitner@gmail.com, mkubecek@suse.cz,
-        venkatkumar.duvvuru@broadcom.com, maxime.chevallier@bootlin.com,
-        cphealy@gmail.com, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH net-next,v3 07/11] net: sched: use flow block API
-Message-ID: <20190708174206.GC2282@nanopsycho.orion>
-References: <20190708160614.2226-1-pablo@netfilter.org>
- <20190708160614.2226-8-pablo@netfilter.org>
+        Mon, 8 Jul 2019 13:51:38 -0400
+Received: from mx1.redhat.com ([209.132.183.28]:42704 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728117AbfGHRvi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 8 Jul 2019 13:51:38 -0400
+Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.13])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mx1.redhat.com (Postfix) with ESMTPS id 70F31E3E08;
+        Mon,  8 Jul 2019 17:51:32 +0000 (UTC)
+Received: from madcap2.tricolour.ca (ovpn-112-14.phx2.redhat.com [10.3.112.14])
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id E42FD608A4;
+        Mon,  8 Jul 2019 17:51:08 +0000 (UTC)
+Date:   Mon, 8 Jul 2019 13:51:05 -0400
+From:   Richard Guy Briggs <rgb@redhat.com>
+To:     Paul Moore <paul@paul-moore.com>
+Cc:     Tycho Andersen <tycho@tycho.ws>,
+        containers@lists.linux-foundation.org, linux-api@vger.kernel.org,
+        Linux-Audit Mailing List <linux-audit@redhat.com>,
+        linux-fsdevel@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        sgrubb@redhat.com, omosnace@redhat.com, dhowells@redhat.com,
+        simo@redhat.com, Eric Paris <eparis@parisplace.org>,
+        Serge Hallyn <serge@hallyn.com>, ebiederm@xmission.com,
+        nhorman@tuxdriver.com
+Subject: Re: [PATCH ghak90 V6 02/10] audit: add container id
+Message-ID: <20190708175105.7zb6mikjw2wmnwln@madcap2.tricolour.ca>
+References: <cover.1554732921.git.rgb@redhat.com>
+ <9edad39c40671fb53f28d76862304cc2647029c6.1554732921.git.rgb@redhat.com>
+ <20190529145742.GA8959@cisco>
+ <CAHC9VhR4fudQanvZGYWMvCf7k2CU3q7e7n1Pi7hzC3v_zpVEdw@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20190708160614.2226-8-pablo@netfilter.org>
-User-Agent: Mutt/1.11.4 (2019-03-13)
+In-Reply-To: <CAHC9VhR4fudQanvZGYWMvCf7k2CU3q7e7n1Pi7hzC3v_zpVEdw@mail.gmail.com>
+User-Agent: NeoMutt/20180716
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.13
+X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.5.16 (mx1.redhat.com [10.5.110.38]); Mon, 08 Jul 2019 17:51:37 +0000 (UTC)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Mon, Jul 08, 2019 at 06:06:09PM CEST, pablo@netfilter.org wrote:
->This patch adds tcf_block_setup() which uses the flow block API.
->
->This infrastructure takes the flow block callbacks coming from the
->driver and register/unregister to/from the cls_api core.
->
->Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+On 2019-05-29 11:29, Paul Moore wrote:
+> On Wed, May 29, 2019 at 10:57 AM Tycho Andersen <tycho@tycho.ws> wrote:
+> >
+> > On Mon, Apr 08, 2019 at 11:39:09PM -0400, Richard Guy Briggs wrote:
+> > > It is not permitted to unset the audit container identifier.
+> > > A child inherits its parent's audit container identifier.
+> >
+> > ...
+> >
+> > >  /**
+> > > + * audit_set_contid - set current task's audit contid
+> > > + * @contid: contid value
+> > > + *
+> > > + * Returns 0 on success, -EPERM on permission failure.
+> > > + *
+> > > + * Called (set) from fs/proc/base.c::proc_contid_write().
+> > > + */
+> > > +int audit_set_contid(struct task_struct *task, u64 contid)
+> > > +{
+> > > +     u64 oldcontid;
+> > > +     int rc = 0;
+> > > +     struct audit_buffer *ab;
+> > > +     uid_t uid;
+> > > +     struct tty_struct *tty;
+> > > +     char comm[sizeof(current->comm)];
+> > > +
+> > > +     task_lock(task);
+> > > +     /* Can't set if audit disabled */
+> > > +     if (!task->audit) {
+> > > +             task_unlock(task);
+> > > +             return -ENOPROTOOPT;
+> > > +     }
+> > > +     oldcontid = audit_get_contid(task);
+> > > +     read_lock(&tasklist_lock);
+> > > +     /* Don't allow the audit containerid to be unset */
+> > > +     if (!audit_contid_valid(contid))
+> > > +             rc = -EINVAL;
+> > > +     /* if we don't have caps, reject */
+> > > +     else if (!capable(CAP_AUDIT_CONTROL))
+> > > +             rc = -EPERM;
+> > > +     /* if task has children or is not single-threaded, deny */
+> > > +     else if (!list_empty(&task->children))
+> > > +             rc = -EBUSY;
+> > > +     else if (!(thread_group_leader(task) && thread_group_empty(task)))
+> > > +             rc = -EALREADY;
+> > > +     read_unlock(&tasklist_lock);
+> > > +     if (!rc)
+> > > +             task->audit->contid = contid;
+> > > +     task_unlock(task);
+> > > +
+> > > +     if (!audit_enabled)
+> > > +             return rc;
+> >
+> > ...but it is allowed to change it (assuming
+> > capable(CAP_AUDIT_CONTROL), of course)? Seems like this might be more
+> > immediately useful since we still live in the world of majority
+> > privileged containers if we didn't allow changing it, in addition to
+> > un-setting it.
+> 
+> The idea is that only container orchestrators should be able to
+> set/modify the audit container ID, and since setting the audit
+> container ID can have a significant effect on the records captured
+> (and their routing to multiple daemons when we get there) modifying
+> the audit container ID is akin to modifying the audit configuration
+> which is why it is gated by CAP_AUDIT_CONTROL.  The current thinking
+> is that you would only change the audit container ID from one
+> set/inherited value to another if you were nesting containers, in
+> which case the nested container orchestrator would need to be granted
+> CAP_AUDIT_CONTROL (which everyone to date seems to agree is a workable
+> compromise).  We did consider allowing for a chain of nested audit
+> container IDs, but the implications of doing so are significant
+> (implementation mess, runtime cost, etc.) so we are leaving that out
+> of this effort.
 
-[...]
+We had previously discussed the idea of restricting
+orchestrators/engines from only being able to set the audit container
+identifier on their own descendants, but it was discarded.  I've added a
+check to ensure this is now enforced.
 
+I've also added a check to ensure that a process can't set its own audit
+container identifier and that if the identifier is already set, then the
+orchestrator/engine must be in a descendant user namespace from the
+orchestrator that set the previously inherited audit container
+identifier.
 
->+static int tcf_block_bind(struct tcf_block *block,
->+			  struct flow_block_offload *bo)
->+{
->+	struct flow_block_cb *block_cb, *next;
->+	int err, i = 0;
->+
->+	list_for_each_entry(block_cb, &bo->cb_list, driver_list) {
->+		err = tcf_block_playback_offloads(block, block_cb->cb,
->+						  block_cb->cb_priv, true,
->+						  tcf_block_offload_in_use(block),
->+						  bo->extack);
->+		if (err)
->+			goto err_unroll;
->+
->+		list_add(&block_cb->list, &block->cb_list);
->+		i++;
->+	}
->+	list_splice(&bo->cb_list, bo->driver_block_list);
+> From a practical perspective, un-setting the audit container ID is
+> pretty much the same as changing it from one set value to another so
+> most of the above applies to that case as well.
+> 
+> -- 
+> paul moore
+> www.paul-moore.com
 
-This cl/driver_block list magic is really very hard to follow. Could you
-please make it more clear?
+- RGB
 
-
-
->+
->+	return 0;
->+
->+err_unroll:
->+	list_for_each_entry_safe(block_cb, next, &bo->cb_list, driver_list) {
->+		if (i-- > 0) {
->+			list_del(&block_cb->list);
->+			tcf_block_playback_offloads(block, block_cb->cb,
->+						    block_cb->cb_priv, false,
->+						    tcf_block_offload_in_use(block),
->+						    NULL);
->+		}
->+		flow_block_cb_free(block_cb);
->+	}
->+
->+	return err;
->+}
->+
->+static void tcf_block_unbind(struct tcf_block *block,
->+			     struct flow_block_offload *bo)
->+{
->+	struct flow_block_cb *block_cb, *next;
->+
->+	list_for_each_entry_safe(block_cb, next, &bo->cb_list, driver_list) {
->+		list_del(&block_cb->driver_list);
->+		tcf_block_playback_offloads(block, block_cb->cb,
->+					    block_cb->cb_priv, false,
->+					    tcf_block_offload_in_use(block),
->+					    NULL);
->+		list_del(&block_cb->list);
->+		flow_block_cb_free(block_cb);
->+	}
->+}
-
-[...]
+--
+Richard Guy Briggs <rgb@redhat.com>
+Sr. S/W Engineer, Kernel Security, Base Operating Systems
+Remote, Ottawa, Red Hat Canada
+IRC: rgb, SunRaycer
+Voice: +1.647.777.2635, Internal: (81) 32635
