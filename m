@@ -2,139 +2,101 @@ Return-Path: <SRS0=pcH3=VF=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
+X-Spam-Status: No, score=-5.4 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3DDF4C606A0
-	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Jul 2019 08:29:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D7954C606A7
+	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Jul 2019 09:21:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 21A3A20665
-	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Jul 2019 08:29:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A065720644
+	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Jul 2019 09:21:02 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=cumulusnetworks.com header.i=@cumulusnetworks.com header.b="dsvdK0qi"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729190AbfGHI3i (ORCPT
+        id S1728793AbfGHJVC (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 8 Jul 2019 04:29:38 -0400
-Received: from m9784.mail.qiye.163.com ([220.181.97.84]:5908 "EHLO
-        m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727518AbfGHI3g (ORCPT
+        Mon, 8 Jul 2019 05:21:02 -0400
+Received: from mail-wr1-f66.google.com ([209.85.221.66]:45952 "EHLO
+        mail-wr1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725897AbfGHJVC (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 8 Jul 2019 04:29:36 -0400
-Received: from localhost.localdomain (unknown [123.59.132.129])
-        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id A057E41C3F;
-        Mon,  8 Jul 2019 16:29:29 +0800 (CST)
-From:   wenxu@ucloud.cn
-To:     pablo@netfilter.org, fw@strlen.de
-Cc:     netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-Subject: [PATCH nf-next 3/3] netfilter: nft_nat: add nft_bridge_nat_type support
-Date:   Mon,  8 Jul 2019 16:29:27 +0800
-Message-Id: <1562574567-8293-3-git-send-email-wenxu@ucloud.cn>
-X-Mailer: git-send-email 1.8.3.1
-In-Reply-To: <1562574567-8293-1-git-send-email-wenxu@ucloud.cn>
-References: <1562574567-8293-1-git-send-email-wenxu@ucloud.cn>
-X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVkpVSUlDS0tLS09PQ0lJTUJZV1koWU
-        FJQjdXWS1ZQUlXWQkOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6Nww6DQw*Qjg#Ig45EBhMSCgh
-        IU0aC0NVSlVKTk1JTkxPTk1CQkpCVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJSFVO
-        QlVKSElVSklCWVdZCAFZQUhPT0o3Bg++
-X-HM-Tid: 0a6bd0b3c1752086kuqya057e41c3f
+        Mon, 8 Jul 2019 05:21:02 -0400
+Received: by mail-wr1-f66.google.com with SMTP id f9so16163432wre.12
+        for <netfilter-devel@vger.kernel.org>; Mon, 08 Jul 2019 02:21:00 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=cumulusnetworks.com; s=google;
+        h=subject:to:cc:references:from:message-id:date:user-agent
+         :mime-version:in-reply-to:content-language:content-transfer-encoding;
+        bh=xKaPruWTlpWYxTAe5/OM4A69iwAjsuSfFQXF7KmN4t8=;
+        b=dsvdK0qi3A9LYQRo3NIpkZxTvkK9fNxv4HBY45Fdw4cEU+kkzdhj5v89f+EdTiLnDa
+         htxsQALue0Ri1TZp4kO0y95gk/lbwWJIrUSc+pl4bHnPxKkon6aDm8Q4hEoT4OGiGvlB
+         8jDiTM1C5HyZy+d75iAwjoLtRaY6hoKiulK6Y=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-language
+         :content-transfer-encoding;
+        bh=xKaPruWTlpWYxTAe5/OM4A69iwAjsuSfFQXF7KmN4t8=;
+        b=HtxcAjpS/Ho7w0wbk7vwU8keMlY+/x1wGHD9z1fDnNPAv4EGlTKVtEnVewKBGnFYpi
+         w0lrm/UapsfNnMkPg135WQyoer9SEnZbtVi+RLib+J01t4f3ajTmlhTDgjt6CjM9mzgu
+         qfHfHn+YZRiPBo2xyWZLnd/eNMw6lTaMO7zeQJd0HhN6ewofzxoVzDh+BckTp9M5VWDO
+         iTBDmyMXyrmEDNl8RkuFp0T7c6VNovHrMTMI2kHKGFnDNwKW4Cef+CkteW6G+LKcOK6f
+         TNZCyQKElyXWa8+o+UcI8levzvUHSOzanSqO0bBVmtwwob8hcTOX4Y+eIPXzzCWUkS9K
+         Ls8A==
+X-Gm-Message-State: APjAAAXAH5FRpS+NvZ9qnMAFd6/XXf5FoSTdpUbkMxOHUjdL/2lKAsB1
+        aXNz+rLBad8HQyHC8VshgpI2Uk8ejYg=
+X-Google-Smtp-Source: APXvYqzHr98XVbO5L7No2wd0cwrT5mAvOgpS2rj1lDCjkl8ERwHNotB4jz7EBq+1T75zQxWkndzGJA==
+X-Received: by 2002:a5d:5448:: with SMTP id w8mr17743312wrv.180.1562577659774;
+        Mon, 08 Jul 2019 02:20:59 -0700 (PDT)
+Received: from [192.168.0.107] (84-238-136-197.ip.btc-net.bg. [84.238.136.197])
+        by smtp.gmail.com with ESMTPSA id 5sm14144524wmg.42.2019.07.08.02.20.58
+        (version=TLS1_3 cipher=AEAD-AES128-GCM-SHA256 bits=128/128);
+        Mon, 08 Jul 2019 02:20:59 -0700 (PDT)
+Subject: Re: [PATCH nf-next v3] netfilter:nft_meta: add NFT_META_VLAN support
+To:     wenxu@ucloud.cn, pablo@netfilter.org
+Cc:     netfilter-devel@vger.kernel.org
+References: <1562506649-3745-1-git-send-email-wenxu@ucloud.cn>
+From:   Nikolay Aleksandrov <nikolay@cumulusnetworks.com>
+Message-ID: <8dbddc50-c49a-346f-8df7-95d6b460f950@cumulusnetworks.com>
+Date:   Mon, 8 Jul 2019 12:20:57 +0300
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.7.2
+MIME-Version: 1.0
+In-Reply-To: <1562506649-3745-1-git-send-email-wenxu@ucloud.cn>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: wenxu <wenxu@ucloud.cn>
+On 07/07/2019 16:37, wenxu@ucloud.cn wrote:
+> From: wenxu <wenxu@ucloud.cn>
+> 
+> This patch provide a meta vlan to set the vlan tag of the packet.
+> 
+> for q-in-q outer vlan id 20:
+> meta vlan set 0x88a8:20
+> 
+> set the default 0x8100 vlan type with vlan id 20
+> meta vlan set 20
+> 
+> Signed-off-by: wenxu <wenxu@ucloud.cn>
+> ---
+>  include/net/netfilter/nft_meta.h         |  5 ++++-
+>  include/uapi/linux/netfilter/nf_tables.h |  4 ++++
+>  net/netfilter/nft_meta.c                 | 27 +++++++++++++++++++++++++++
+>  3 files changed, 35 insertions(+), 1 deletion(-)
+> 
 
-Add nft_bridge_nat_type to configure nat rule in bridge family
+So mac_len is (mostly) only updated at receive, how do you deal with the
+mac header at egress, specifically if it's a locally originating packet ?
+I think it will be 0 and data will be pointing at the network header, take
+NF_INET_LOCAL_OUT for example.
 
-Signed-off-by: wenxu <wenxu@ucloud.cn>
----
- net/netfilter/nft_nat.c | 49 +++++++++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 47 insertions(+), 2 deletions(-)
 
-diff --git a/net/netfilter/nft_nat.c b/net/netfilter/nft_nat.c
-index c3c93e9..ba396851 100644
---- a/net/netfilter/nft_nat.c
-+++ b/net/netfilter/nft_nat.c
-@@ -136,7 +136,9 @@ static int nft_nat_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
- 		return -EINVAL;
- 
- 	family = ntohl(nla_get_be32(tb[NFTA_NAT_FAMILY]));
--	if (ctx->family != NFPROTO_INET && ctx->family != family)
-+	if (ctx->family != NFPROTO_INET &&
-+	    ctx->family != NFPROTO_BRIDGE &&
-+	    ctx->family != family)
- 		return -EOPNOTSUPP;
- 
- 	switch (family) {
-@@ -318,6 +320,40 @@ static void nft_nat_inet_module_exit(void)
- static void nft_nat_inet_module_exit(void) { }
- #endif
- 
-+#ifdef CONFIG_NF_TABLES_BRIDGE
-+static const struct nft_expr_ops nft_nat_bridge_ops = {
-+	.type           = &nft_nat_type,
-+	.size           = NFT_EXPR_SIZE(sizeof(struct nft_nat)),
-+	.eval           = nft_nat_eval,
-+	.init           = nft_nat_init,
-+	.destroy        = nft_nat_destroy,
-+	.dump           = nft_nat_dump,
-+	.validate	= nft_nat_validate,
-+};
-+
-+static struct nft_expr_type nft_bridge_nat_type __read_mostly = {
-+	.name           = "nat",
-+	.family		= NFPROTO_BRIDGE,
-+	.ops            = &nft_nat_bridge_ops,
-+	.policy         = nft_nat_policy,
-+	.maxattr        = NFTA_NAT_MAX,
-+	.owner          = THIS_MODULE,
-+};
-+
-+static int nft_nat_bridge_module_init(void)
-+{
-+	return nft_register_expr(&nft_bridge_nat_type);
-+}
-+
-+static void nft_nat_bridge_module_exit(void)
-+{
-+	nft_unregister_expr(&nft_bridge_nat_type);
-+}
-+#else
-+static int nft_nat_bridge_module_init(void) { return 0; }
-+static void nft_nat_bridge_module_exit(void) { }
-+#endif
-+
- static int __init nft_nat_module_init(void)
- {
- 	int ret = nft_nat_inet_module_init();
-@@ -325,15 +361,24 @@ static int __init nft_nat_module_init(void)
- 	if (ret)
- 		return ret;
- 
-+	ret = nft_nat_bridge_module_init();
-+	if (ret) {
-+		nft_nat_inet_module_exit();
-+		return ret;
-+	}
-+
- 	ret = nft_register_expr(&nft_nat_type);
--	if (ret)
-+	if (ret) {
-+		nft_nat_bridge_module_exit();
- 		nft_nat_inet_module_exit();
-+	}
- 
- 	return ret;
- }
- 
- static void __exit nft_nat_module_exit(void)
- {
-+	nft_nat_bridge_module_exit();
- 	nft_nat_inet_module_exit();
- 	nft_unregister_expr(&nft_nat_type);
- }
--- 
-1.8.3.1
+
 
