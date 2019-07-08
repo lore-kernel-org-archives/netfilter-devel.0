@@ -7,234 +7,83 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B18C3C606AA
-	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Jul 2019 10:33:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D0DCC606AB
+	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Jul 2019 10:33:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 94A5E2064B
-	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Jul 2019 10:33:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6BAD32064B
+	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Jul 2019 10:33:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729450AbfGHKcu (ORCPT
+        id S1729003AbfGHKcr (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 8 Jul 2019 06:32:50 -0400
-Received: from mail.us.es ([193.147.175.20]:34262 "EHLO mail.us.es"
+        Mon, 8 Jul 2019 06:32:47 -0400
+Received: from mail.us.es ([193.147.175.20]:34264 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728949AbfGHKct (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 8 Jul 2019 06:32:49 -0400
+        id S1728960AbfGHKcr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 8 Jul 2019 06:32:47 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id DB38ABAE90
-        for <netfilter-devel@vger.kernel.org>; Mon,  8 Jul 2019 12:32:47 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id BA78FBAE86
+        for <netfilter-devel@vger.kernel.org>; Mon,  8 Jul 2019 12:32:45 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id C7F94A7BD6
-        for <netfilter-devel@vger.kernel.org>; Mon,  8 Jul 2019 12:32:47 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id AAB331021A7
+        for <netfilter-devel@vger.kernel.org>; Mon,  8 Jul 2019 12:32:45 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id C5C241021A7; Mon,  8 Jul 2019 12:32:47 +0200 (CEST)
+        id 9FFE510219C; Mon,  8 Jul 2019 12:32:45 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 4C6D56E7AC;
-        Mon,  8 Jul 2019 12:32:45 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A2598DA4CA;
+        Mon,  8 Jul 2019 12:32:43 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 08 Jul 2019 12:32:45 +0200 (CEST)
+ Mon, 08 Jul 2019 12:32:43 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 1D0B74265A31;
-        Mon,  8 Jul 2019 12:32:45 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 37FBB4265A31;
+        Mon,  8 Jul 2019 12:32:43 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 04/15] ipvs: allow tunneling with gre encapsulation
-Date:   Mon,  8 Jul 2019 12:32:26 +0200
-Message-Id: <20190708103237.28061-5-pablo@netfilter.org>
+Subject: [PATCH 02/15] netfilter: nf_log: Replace a seq_printf() call by seq_puts() in seq_show()
+Date:   Mon,  8 Jul 2019 12:32:24 +0200
+Message-Id: <20190708103237.28061-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20190708103237.28061-1-pablo@netfilter.org>
 References: <20190708103237.28061-1-pablo@netfilter.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Vadim Fedorenko <vfedorenko@yandex-team.ru>
+From: Markus Elfring <elfring@users.sourceforge.net>
 
-windows real servers can handle gre tunnels, this patch allows
-gre encapsulation with the tunneling method, thereby letting ipvs
-be load balancer for windows-based services
+A string which did not contain a data format specification should be put
+into a sequence. Thus use the corresponding function “seq_puts”.
 
-Signed-off-by: Vadim Fedorenko <vfedorenko@yandex-team.ru>
-Acked-by: Julian Anastasov <ja@ssi.bg>
-Signed-off-by: Simon Horman <horms@verge.net.au>
+This issue was detected by using the Coccinelle software.
+
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/uapi/linux/ip_vs.h      |  1 +
- net/netfilter/ipvs/ip_vs_ctl.c  |  1 +
- net/netfilter/ipvs/ip_vs_xmit.c | 66 +++++++++++++++++++++++++++++++++++++++--
- 3 files changed, 65 insertions(+), 3 deletions(-)
+ net/netfilter/nf_log.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/include/uapi/linux/ip_vs.h b/include/uapi/linux/ip_vs.h
-index e4f18061a4fd..4102ddcb4e14 100644
---- a/include/uapi/linux/ip_vs.h
-+++ b/include/uapi/linux/ip_vs.h
-@@ -128,6 +128,7 @@
- enum {
- 	IP_VS_CONN_F_TUNNEL_TYPE_IPIP = 0,	/* IPIP */
- 	IP_VS_CONN_F_TUNNEL_TYPE_GUE,		/* GUE */
-+	IP_VS_CONN_F_TUNNEL_TYPE_GRE,		/* GRE */
- 	IP_VS_CONN_F_TUNNEL_TYPE_MAX,
- };
+diff --git a/net/netfilter/nf_log.c b/net/netfilter/nf_log.c
+index 3574a212bdc2..bb25d4c794c7 100644
+--- a/net/netfilter/nf_log.c
++++ b/net/netfilter/nf_log.c
+@@ -374,7 +374,7 @@ static int seq_show(struct seq_file *s, void *v)
+ 			continue;
  
-diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index 84384d896e29..998353bec74f 100644
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -525,6 +525,7 @@ static void ip_vs_rs_hash(struct netns_ipvs *ipvs, struct ip_vs_dest *dest)
- 			port = dest->tun_port;
- 			break;
- 		case IP_VS_CONN_F_TUNNEL_TYPE_IPIP:
-+		case IP_VS_CONN_F_TUNNEL_TYPE_GRE:
- 			port = 0;
- 			break;
- 		default:
-diff --git a/net/netfilter/ipvs/ip_vs_xmit.c b/net/netfilter/ipvs/ip_vs_xmit.c
-index 71fc6d63a67f..9c464d24beec 100644
---- a/net/netfilter/ipvs/ip_vs_xmit.c
-+++ b/net/netfilter/ipvs/ip_vs_xmit.c
-@@ -29,6 +29,7 @@
- #include <linux/tcp.h>                  /* for tcphdr */
- #include <net/ip.h>
- #include <net/gue.h>
-+#include <net/gre.h>
- #include <net/tcp.h>                    /* for csum_tcpudp_magic */
- #include <net/udp.h>
- #include <net/icmp.h>                   /* for icmp_send */
-@@ -388,6 +389,12 @@ __ip_vs_get_out_rt(struct netns_ipvs *ipvs, int skb_af, struct sk_buff *skb,
- 			     IP_VS_TUNNEL_ENCAP_FLAG_REMCSUM) &&
- 			    skb->ip_summed == CHECKSUM_PARTIAL)
- 				mtu -= GUE_PLEN_REMCSUM + GUE_LEN_PRIV;
-+		} else if (dest->tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GRE) {
-+			__be16 tflags = 0;
-+
-+			if (dest->tun_flags & IP_VS_TUNNEL_ENCAP_FLAG_CSUM)
-+				tflags |= TUNNEL_CSUM;
-+			mtu -= gre_calc_hlen(tflags);
- 		}
- 		if (mtu < 68) {
- 			IP_VS_DBG_RL("%s(): mtu less than 68\n", __func__);
-@@ -548,6 +555,12 @@ __ip_vs_get_out_rt_v6(struct netns_ipvs *ipvs, int skb_af, struct sk_buff *skb,
- 			     IP_VS_TUNNEL_ENCAP_FLAG_REMCSUM) &&
- 			    skb->ip_summed == CHECKSUM_PARTIAL)
- 				mtu -= GUE_PLEN_REMCSUM + GUE_LEN_PRIV;
-+		} else if (dest->tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GRE) {
-+			__be16 tflags = 0;
-+
-+			if (dest->tun_flags & IP_VS_TUNNEL_ENCAP_FLAG_CSUM)
-+				tflags |= TUNNEL_CSUM;
-+			mtu -= gre_calc_hlen(tflags);
- 		}
- 		if (mtu < IPV6_MIN_MTU) {
- 			IP_VS_DBG_RL("%s(): mtu less than %d\n", __func__,
-@@ -1079,6 +1092,24 @@ ipvs_gue_encap(struct net *net, struct sk_buff *skb,
- 	return 0;
- }
+ 		logger = nft_log_dereference(loggers[*pos][i]);
+-		seq_printf(s, "%s", logger->name);
++		seq_puts(s, logger->name);
+ 		if (i == 0 && loggers[*pos][i + 1] != NULL)
+ 			seq_puts(s, ",");
  
-+static void
-+ipvs_gre_encap(struct net *net, struct sk_buff *skb,
-+	       struct ip_vs_conn *cp, __u8 *next_protocol)
-+{
-+	__be16 proto = *next_protocol == IPPROTO_IPIP ?
-+				htons(ETH_P_IP) : htons(ETH_P_IPV6);
-+	__be16 tflags = 0;
-+	size_t hdrlen;
-+
-+	if (cp->dest->tun_flags & IP_VS_TUNNEL_ENCAP_FLAG_CSUM)
-+		tflags |= TUNNEL_CSUM;
-+
-+	hdrlen = gre_calc_hlen(tflags);
-+	gre_build_header(skb, hdrlen, tflags, proto, 0, 0);
-+
-+	*next_protocol = IPPROTO_GRE;
-+}
-+
- /*
-  *   IP Tunneling transmitter
-  *
-@@ -1151,6 +1182,15 @@ ip_vs_tunnel_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
- 		gue_hdrlen = sizeof(struct guehdr) + gue_optlen;
- 
- 		max_headroom += sizeof(struct udphdr) + gue_hdrlen;
-+	} else if (tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GRE) {
-+		size_t gre_hdrlen;
-+		__be16 tflags = 0;
-+
-+		if (tun_flags & IP_VS_TUNNEL_ENCAP_FLAG_CSUM)
-+			tflags |= TUNNEL_CSUM;
-+		gre_hdrlen = gre_calc_hlen(tflags);
-+
-+		max_headroom += gre_hdrlen;
- 	}
- 
- 	/* We only care about the df field if sysctl_pmtu_disc(ipvs) is set */
-@@ -1172,6 +1212,11 @@ ip_vs_tunnel_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
- 		    skb->ip_summed == CHECKSUM_PARTIAL) {
- 			gso_type |= SKB_GSO_TUNNEL_REMCSUM;
- 		}
-+	} else if (tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GRE) {
-+		if (tun_flags & IP_VS_TUNNEL_ENCAP_FLAG_CSUM)
-+			gso_type |= SKB_GSO_GRE_CSUM;
-+		else
-+			gso_type |= SKB_GSO_GRE;
- 	}
- 
- 	if (iptunnel_handle_offloads(skb, gso_type))
-@@ -1192,8 +1237,8 @@ ip_vs_tunnel_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
- 			check = true;
- 
- 		udp_set_csum(!check, skb, saddr, cp->daddr.ip, skb->len);
--	}
--
-+	} else if (tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GRE)
-+		ipvs_gre_encap(net, skb, cp, &next_protocol);
- 
- 	skb_push(skb, sizeof(struct iphdr));
- 	skb_reset_network_header(skb);
-@@ -1287,6 +1332,15 @@ ip_vs_tunnel_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
- 		gue_hdrlen = sizeof(struct guehdr) + gue_optlen;
- 
- 		max_headroom += sizeof(struct udphdr) + gue_hdrlen;
-+	} else if (tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GRE) {
-+		size_t gre_hdrlen;
-+		__be16 tflags = 0;
-+
-+		if (tun_flags & IP_VS_TUNNEL_ENCAP_FLAG_CSUM)
-+			tflags |= TUNNEL_CSUM;
-+		gre_hdrlen = gre_calc_hlen(tflags);
-+
-+		max_headroom += gre_hdrlen;
- 	}
- 
- 	skb = ip_vs_prepare_tunneled_skb(skb, cp->af, max_headroom,
-@@ -1306,6 +1360,11 @@ ip_vs_tunnel_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
- 		    skb->ip_summed == CHECKSUM_PARTIAL) {
- 			gso_type |= SKB_GSO_TUNNEL_REMCSUM;
- 		}
-+	} else if (tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GRE) {
-+		if (tun_flags & IP_VS_TUNNEL_ENCAP_FLAG_CSUM)
-+			gso_type |= SKB_GSO_GRE_CSUM;
-+		else
-+			gso_type |= SKB_GSO_GRE;
- 	}
- 
- 	if (iptunnel_handle_offloads(skb, gso_type))
-@@ -1326,7 +1385,8 @@ ip_vs_tunnel_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
- 			check = true;
- 
- 		udp6_set_csum(!check, skb, &saddr, &cp->daddr.in6, skb->len);
--	}
-+	} else if (tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GRE)
-+		ipvs_gre_encap(net, skb, cp, &next_protocol);
- 
- 	skb_push(skb, sizeof(struct ipv6hdr));
- 	skb_reset_network_header(skb);
 -- 
 2.11.0
 
