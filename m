@@ -2,42 +2,42 @@ Return-Path: <SRS0=pcH3=VF=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C142C606BD
-	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Jul 2019 16:06:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 31B3EC606BD
+	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Jul 2019 16:06:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4568721537
-	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Jul 2019 16:06:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1339D21537
+	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Jul 2019 16:06:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2390994AbfGHQG0 (ORCPT
+        id S2391338AbfGHQGe (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 8 Jul 2019 12:06:26 -0400
-Received: from mail.us.es ([193.147.175.20]:52642 "EHLO mail.us.es"
+        Mon, 8 Jul 2019 12:06:34 -0400
+Received: from mail.us.es ([193.147.175.20]:52752 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729454AbfGHQG0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 8 Jul 2019 12:06:26 -0400
+        id S2391249AbfGHQGe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 8 Jul 2019 12:06:34 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 83320FC5FC
-        for <netfilter-devel@vger.kernel.org>; Mon,  8 Jul 2019 18:06:21 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 2803CB6322
+        for <netfilter-devel@vger.kernel.org>; Mon,  8 Jul 2019 18:06:32 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 56B9CCE158
-        for <netfilter-devel@vger.kernel.org>; Mon,  8 Jul 2019 18:06:21 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 146BB10219C
+        for <netfilter-devel@vger.kernel.org>; Mon,  8 Jul 2019 18:06:32 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 54517D190C; Mon,  8 Jul 2019 18:06:21 +0200 (CEST)
+        id 13A82DA708; Mon,  8 Jul 2019 18:06:32 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 9FD91DA7B6;
-        Mon,  8 Jul 2019 18:06:18 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 0D8DB1021B2;
+        Mon,  8 Jul 2019 18:06:29 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 08 Jul 2019 18:06:18 +0200 (CEST)
+ Mon, 08 Jul 2019 18:06:27 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 767D94265A2F;
-        Mon,  8 Jul 2019 18:06:17 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id D7FFA4265A2F;
+        Mon,  8 Jul 2019 18:06:27 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netdev@vger.kernel.org
@@ -54,147 +54,79 @@ Cc:     davem@davemloft.net, thomas.lendacky@amd.com, f.fainelli@gmail.com,
         marcelo.leitner@gmail.com, mkubecek@suse.cz,
         venkatkumar.duvvuru@broadcom.com, maxime.chevallier@bootlin.com,
         cphealy@gmail.com, netfilter-devel@vger.kernel.org
-Subject: [PATCH net-next,v3 00/11] netfilter: add hardware offload infrastructure
-Date:   Mon,  8 Jul 2019 18:06:02 +0200
-Message-Id: <20190708160614.2226-1-pablo@netfilter.org>
+Subject: [PATCH net-next,v3 06/11] net: flow_offload: add flow_block_cb_{priv,incref,decref}()
+Date:   Mon,  8 Jul 2019 18:06:08 +0200
+Message-Id: <20190708160614.2226-7-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
+In-Reply-To: <20190708160614.2226-1-pablo@netfilter.org>
+References: <20190708160614.2226-1-pablo@netfilter.org>
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi,
+This patch completes the flow block API to introduce:
 
-This patchset adds support for Netfilter hardware offloads.
+* flow_block_cb_priv() to accept callback private data.
+* flow_block_cb_incref() to bump reference counter on this flow block.
+* flow_block_cb_decref() to decrement the reference counter.
 
-This patchset reuses the existing block infrastructure, the
-netdev_ops->ndo_setup_tc() interface, TC_SETUP_CLSFLOWER classifier and
-the flow rule API.
+These function are taken from the existing tcf_block_cb_priv(),
+tcf_block_cb_incref() and tcf_block_cb_decref().
 
-Patch #1 adds flow_block_cb_setup_simple(), most drivers do the same thing
-         to set up flow blocks, to reduce the number of changes, consolidate
-         codebase. Use _simple() postfix as requested by Jakub Kicinski.
-         This new function resides in net/core/flow_offload.c
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+v3: missing in previous batch.
 
-Patch #2 renames TC_BLOCK_{UN}BIND to FLOW_BLOCK_{UN}BIND.
+ include/net/flow_offload.h |  4 ++++
+ net/core/flow_offload.c    | 18 ++++++++++++++++++
+ 2 files changed, 22 insertions(+)
 
-Patch #3 renames TCF_BLOCK_BINDER_TYPE_* to FLOW_BLOCK_BINDER_TYPE_*.
-
-Patch #4 adds flow_block_cb_alloc() and flow_block_cb_free() helper
-         functions, this is the first patch of the flow block API.
-
-Patch #5 adds the helper to deal with list operations in the flow block API.
-         This includes flow_block_cb_lookup(), flow_block_cb_add() and
-	 flow_block_cb_remove().
-
-Patch #6 adds flow_block_cb_priv(), flow_block_cb_incref() and
-         flow_block_cb_decref() which completes the flow block API.
-
-Patch #7 updates the cls_api to use the flow block API from the new
-         tcf_block_setup(). This infrastructure transports these objects
-         via list (through the tc_block_offload object) back to the core
-	 for registration.
-
-            CLS_API                           DRIVER
-        TC_SETUP_BLOCK    ---------->  setup flow_block_cb object &
-                                 it adds object to flow_block_offload->cb_list
-                                                |
-            CLS_API     <-----------------------'
-           registers                     list with flow blocks
-         flow_block_cb &                   travels back to
-       calls ->reoffload               the core for registration
-
-         drivers allocate and sets up (configure the blocks), then
-	 registration happens from the core (cls_api and netfilter).
-
-Patch #8 updates drivers to use the flow block API.
-
-Patch #9 removes the tcf block callback API, which is replaced by the
-         flow block API.
-
-Patch #10 adds the flow_block_cb_is_busy() helper to check if the block
-	  is already used by a subsystem. This helper is invoked from
-	  drivers. Once drivers are updated to support for multiple
-	  subsystems, they can remove this check.
-
-Patch #11 introduces basic netfilter hardware offload infrastructure
-          for the ingress chain. This includes 5-tuple exact matching
-          and accept / drop rule actions. Only basechains are supported
-          at this stage, no .reoffload callback is implemented either.
-          Default policy to "accept" is only supported for now.
-
-        table netdev filter {
-                flags offload;
-
-                chain ingress {
-                        type filter hook ingress device eth0 priority 0;
-
-                        ip daddr 192.168.0.10 tcp dport 22 drop
-                }
-        }
-
-This patchset reuses the existing tcf block callback API and it places it
-in the flow block callback API in net/core/flow_offload.c.
-
-This series aims to addres Jakub Kicinski's feedback, mostly targeting to
-reducing the batch size and reordering patches.
-
-Please, apply. Thanks.
-
-Pablo Neira Ayuso (11):
-  net: flow_offload: add flow_block_cb_setup_simple()
-  net: flow_offload: rename TC_BLOCK_{UN}BIND to FLOW_BLOCK_{UN}BIND
-  net: flow_offload: rename TCF_BLOCK_BINDER_TYPE_* to FLOW_BLOCK_BINDER_TYPE_*
-  net: flow_offload: add flow_block_cb_alloc() and flow_block_cb_free()
-  net: flow_offload: add list handling functions
-  net: flow_offload: add flow_block_cb_{priv,incref,decref}()
-  net: sched: use flow block API
-  drivers: net: use flow block API
-  net: sched: remove tcf block API
-  net: flow_offload: add flow_block_cb_is_busy() and use it
-  netfilter: nf_tables: add hardware offload support
-
- drivers/net/ethernet/broadcom/bnxt/bnxt.c          |  27 +--
- drivers/net/ethernet/broadcom/bnxt/bnxt_vfr.c      |  29 +--
- drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c    |  27 +--
- drivers/net/ethernet/intel/i40e/i40e_main.c        |  27 +--
- drivers/net/ethernet/intel/iavf/iavf_main.c        |  36 +--
- drivers/net/ethernet/intel/igb/igb_main.c          |  27 +--
- drivers/net/ethernet/intel/ixgbe/ixgbe_main.c      |  30 +--
- drivers/net/ethernet/mellanox/mlx5/core/en_main.c  |  30 +--
- drivers/net/ethernet/mellanox/mlx5/core/en_rep.c   |  76 +++---
- drivers/net/ethernet/mellanox/mlxsw/spectrum.c     | 103 +++++---
- drivers/net/ethernet/mscc/ocelot_ace.h             |   4 +-
- drivers/net/ethernet/mscc/ocelot_flower.c          |  47 ++--
- drivers/net/ethernet/mscc/ocelot_tc.c              |  46 ++--
- drivers/net/ethernet/netronome/nfp/abm/cls.c       |  22 +-
- drivers/net/ethernet/netronome/nfp/abm/main.h      |   2 +-
- drivers/net/ethernet/netronome/nfp/bpf/main.c      |  30 +--
- .../net/ethernet/netronome/nfp/flower/offload.c    |  83 ++++---
- drivers/net/ethernet/qlogic/qede/qede_main.c       |  24 +-
- drivers/net/ethernet/stmicro/stmmac/stmmac_main.c  |  23 +-
- drivers/net/netdevsim/netdev.c                     |  29 +--
- include/net/flow_offload.h                         |  67 ++++++
- include/net/netfilter/nf_tables.h                  |  13 +
- include/net/netfilter/nf_tables_offload.h          |  76 ++++++
- include/net/pkt_cls.h                              |  89 +------
- include/uapi/linux/netfilter/nf_tables.h           |   2 +
- net/core/flow_offload.c                            | 118 ++++++++++
- net/dsa/slave.c                                    |  33 ++-
- net/netfilter/Makefile                             |   2 +-
- net/netfilter/nf_tables_api.c                      |  22 +-
- net/netfilter/nf_tables_offload.c                  | 261 +++++++++++++++++++++
- net/netfilter/nft_cmp.c                            |  53 +++++
- net/netfilter/nft_immediate.c                      |  31 +++
- net/netfilter/nft_meta.c                           |  27 +++
- net/netfilter/nft_payload.c                        | 187 +++++++++++++++
- net/sched/cls_api.c                                | 213 ++++++++---------
- net/sched/sch_ingress.c                            |   6 +-
- 36 files changed, 1298 insertions(+), 624 deletions(-)
- create mode 100644 include/net/netfilter/nf_tables_offload.h
- create mode 100644 net/netfilter/nf_tables_offload.c
-
+diff --git a/include/net/flow_offload.h b/include/net/flow_offload.h
+index 06acde2960fa..342e6aef7e3a 100644
+--- a/include/net/flow_offload.h
++++ b/include/net/flow_offload.h
+@@ -277,6 +277,10 @@ struct flow_block_cb *flow_block_cb_lookup(struct net *net,
+ 					   struct list_head *driver_flow_block_list,
+ 					   tc_setup_cb_t *cb, void *cb_ident);
+ 
++void *flow_block_cb_priv(struct flow_block_cb *block_cb);
++void flow_block_cb_incref(struct flow_block_cb *block_cb);
++unsigned int flow_block_cb_decref(struct flow_block_cb *block_cb);
++
+ static inline void flow_block_cb_add(struct flow_block_cb *block_cb,
+ 				     struct flow_block_offload *offload)
+ {
+diff --git a/net/core/flow_offload.c b/net/core/flow_offload.c
+index 85fd5f4a1e0f..916ff32e53e7 100644
+--- a/net/core/flow_offload.c
++++ b/net/core/flow_offload.c
+@@ -212,6 +212,24 @@ struct flow_block_cb *flow_block_cb_lookup(struct net *net,
+ }
+ EXPORT_SYMBOL(flow_block_cb_lookup);
+ 
++void *flow_block_cb_priv(struct flow_block_cb *block_cb)
++{
++	return block_cb->cb_priv;
++}
++EXPORT_SYMBOL(flow_block_cb_priv);
++
++void flow_block_cb_incref(struct flow_block_cb *block_cb)
++{
++	block_cb->refcnt++;
++}
++EXPORT_SYMBOL(flow_block_cb_incref);
++
++unsigned int flow_block_cb_decref(struct flow_block_cb *block_cb)
++{
++	return --block_cb->refcnt;
++}
++EXPORT_SYMBOL(flow_block_cb_decref);
++
+ int flow_block_cb_setup_simple(struct flow_block_offload *f,
+ 			       struct list_head *driver_block_list,
+ 			       tc_setup_cb_t *cb, void *cb_ident, void *cb_priv,
 -- 
 2.11.0
 
