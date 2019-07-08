@@ -2,88 +2,67 @@ Return-Path: <SRS0=pcH3=VF=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D0DCC606AB
-	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Jul 2019 10:33:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7448CC606C0
+	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Jul 2019 14:17:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6BAD32064B
-	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Jul 2019 10:33:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 570A721670
+	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Jul 2019 14:17:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729003AbfGHKcr (ORCPT
+        id S1729829AbfGHORg (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 8 Jul 2019 06:32:47 -0400
-Received: from mail.us.es ([193.147.175.20]:34264 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728960AbfGHKcr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 8 Jul 2019 06:32:47 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id BA78FBAE86
-        for <netfilter-devel@vger.kernel.org>; Mon,  8 Jul 2019 12:32:45 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id AAB331021A7
-        for <netfilter-devel@vger.kernel.org>; Mon,  8 Jul 2019 12:32:45 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 9FFE510219C; Mon,  8 Jul 2019 12:32:45 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id A2598DA4CA;
-        Mon,  8 Jul 2019 12:32:43 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 08 Jul 2019 12:32:43 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from salvia.here (sys.soleta.eu [212.170.55.40])
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 37FBB4265A31;
-        Mon,  8 Jul 2019 12:32:43 +0200 (CEST)
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 02/15] netfilter: nf_log: Replace a seq_printf() call by seq_puts() in seq_show()
-Date:   Mon,  8 Jul 2019 12:32:24 +0200
-Message-Id: <20190708103237.28061-3-pablo@netfilter.org>
-X-Mailer: git-send-email 2.11.0
-In-Reply-To: <20190708103237.28061-1-pablo@netfilter.org>
-References: <20190708103237.28061-1-pablo@netfilter.org>
+        Mon, 8 Jul 2019 10:17:36 -0400
+Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:39830 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1728596AbfGHORf (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 8 Jul 2019 10:17:35 -0400
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.89)
+        (envelope-from <fw@strlen.de>)
+        id 1hkUSQ-0001FR-U2; Mon, 08 Jul 2019 16:17:30 +0200
+Date:   Mon, 8 Jul 2019 16:17:30 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     wenxu@ucloud.cn
+Cc:     pablo@netfilter.org, fw@strlen.de, netfilter-devel@vger.kernel.org,
+        netdev@vger.kernel.org
+Subject: Re: [PATCH nf-next 1/3] netfilter: nf_nat_proto: add
+ nf_nat_bridge_ops support
+Message-ID: <20190708141730.ozycgmtrub7ok2qs@breakpoint.cc>
+References: <1562574567-8293-1-git-send-email-wenxu@ucloud.cn>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1562574567-8293-1-git-send-email-wenxu@ucloud.cn>
+User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Markus Elfring <elfring@users.sourceforge.net>
+wenxu@ucloud.cn <wenxu@ucloud.cn> wrote:
+> From: wenxu <wenxu@ucloud.cn>
+> 
+> Add nf_nat_bridge_ops to do nat in the bridge family
 
-A string which did not contain a data format specification should be put
-into a sequence. Thus use the corresponding function “seq_puts”.
+Whats the use case for this?
 
-This issue was detected by using the Coccinelle software.
+The reason I'm asking is that a bridge doesn't know about IP,
+Bridge netfilter (the call-iptables thing) has a lot of glue code
+to detect dnat rewrites and updates target mac address, including
+support for redirect (suddently packet has to be pushed up the stack)
+or changes in the oif to non-bridge ports (it even checks forward sysctl
+state ..) and so on.
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_log.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Thats something that I don't want to support in nftables.
 
-diff --git a/net/netfilter/nf_log.c b/net/netfilter/nf_log.c
-index 3574a212bdc2..bb25d4c794c7 100644
---- a/net/netfilter/nf_log.c
-+++ b/net/netfilter/nf_log.c
-@@ -374,7 +374,7 @@ static int seq_show(struct seq_file *s, void *v)
- 			continue;
- 
- 		logger = nft_log_dereference(loggers[*pos][i]);
--		seq_printf(s, "%s", logger->name);
-+		seq_puts(s, logger->name);
- 		if (i == 0 && loggers[*pos][i + 1] != NULL)
- 			seq_puts(s, ",");
- 
--- 
-2.11.0
+For NAT on bridge, it should be possible already to push such packets
+up the stack by
 
+bridge input meta iif eth0 ip saddr 192.168.0.0/16 \
+       meta pkttype set unicast ether daddr set 00:11:22:33:44:55
+
+then normal ip processing handles this and nat should "just work".
+If above doesn't work for you I'd like to understand why.
