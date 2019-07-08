@@ -4,31 +4,32 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 71DB6C606AB
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BBA98C606A7
 	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Jul 2019 10:33:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 55D042064B
+	by mail.kernel.org (Postfix) with ESMTP id 9F4582064B
 	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Jul 2019 10:33:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730159AbfGHKdJ (ORCPT
+        id S1730062AbfGHKdJ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Mon, 8 Jul 2019 06:33:09 -0400
-Received: from mail.us.es ([193.147.175.20]:34368 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:34310 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729461AbfGHKcx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        id S1730073AbfGHKcx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Mon, 8 Jul 2019 06:32:53 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 5317FBAE93
+        by mail.us.es (Postfix) with ESMTP id DB50DBAE8D
         for <netfilter-devel@vger.kernel.org>; Mon,  8 Jul 2019 12:32:51 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 42707DA4D1
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C9E9C1021A4
         for <netfilter-devel@vger.kernel.org>; Mon,  8 Jul 2019 12:32:51 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 37E1FDA7B6; Mon,  8 Jul 2019 12:32:51 +0200 (CEST)
+        id BF2FE6DA6D; Mon,  8 Jul 2019 12:32:51 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 33FE46DA85;
+        by antivirus1-rhel7.int (Postfix) with ESMTP id B6A0CD190C;
         Mon,  8 Jul 2019 12:32:49 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
@@ -36,15 +37,15 @@ Received: from 192.168.1.97 (192.168.1.97)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 077DB4265A31;
-        Mon,  8 Jul 2019 12:32:48 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 885A74265A2F;
+        Mon,  8 Jul 2019 12:32:49 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 11/15] bridge: add br_vlan_get_proto()
-Date:   Mon,  8 Jul 2019 12:32:33 +0200
-Message-Id: <20190708103237.28061-12-pablo@netfilter.org>
+Subject: [PATCH 12/15] netfilter: nft_meta_bridge: Add NFT_META_BRI_IIFVPROTO support
+Date:   Mon,  8 Jul 2019 12:32:34 +0200
+Message-Id: <20190708103237.28061-13-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20190708103237.28061-1-pablo@netfilter.org>
 References: <20190708103237.28061-1-pablo@netfilter.org>
@@ -56,61 +57,68 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: wenxu <wenxu@ucloud.cn>
 
-This new function allows you to fetch the bridge port vlan protocol.
+This patch allows you to match on bridge vlan protocol, eg.
+
+nft add rule bridge firewall zones counter meta ibrvproto 0x8100
 
 Signed-off-by: wenxu <wenxu@ucloud.cn>
-Acked-by: Nikolay Aleksandrov <nikolay@cumulusnetworks.com>
+Reviewed-by: Nikolay Aleksandrov <nikolay@cumulusnetworks.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/linux/if_bridge.h |  6 ++++++
- net/bridge/br_vlan.c      | 10 ++++++++++
- 2 files changed, 16 insertions(+)
+ include/uapi/linux/netfilter/nf_tables.h |  2 ++
+ net/bridge/netfilter/nft_meta_bridge.c   | 12 ++++++++++++
+ 2 files changed, 14 insertions(+)
 
-diff --git a/include/linux/if_bridge.h b/include/linux/if_bridge.h
-index 950db1dad830..9e57c4411734 100644
---- a/include/linux/if_bridge.h
-+++ b/include/linux/if_bridge.h
-@@ -89,6 +89,7 @@ static inline bool br_multicast_router(const struct net_device *dev)
- bool br_vlan_enabled(const struct net_device *dev);
- int br_vlan_get_pvid(const struct net_device *dev, u16 *p_pvid);
- int br_vlan_get_pvid_rcu(const struct net_device *dev, u16 *p_pvid);
-+int br_vlan_get_proto(const struct net_device *dev, u16 *p_proto);
- int br_vlan_get_info(const struct net_device *dev, u16 vid,
- 		     struct bridge_vlan_info *p_vinfo);
- #else
-@@ -102,6 +103,11 @@ static inline int br_vlan_get_pvid(const struct net_device *dev, u16 *p_pvid)
- 	return -EINVAL;
- }
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index 87474920615a..0e3462dfb182 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -796,6 +796,7 @@ enum nft_exthdr_attributes {
+  * @NFT_META_IIFKIND: packet input interface kind name (dev->rtnl_link_ops->kind)
+  * @NFT_META_OIFKIND: packet output interface kind name (dev->rtnl_link_ops->kind)
+  * @NFT_META_BRI_IIFPVID: packet input bridge port pvid
++ * @NFT_META_BRI_IIFVPROTO: packet input bridge vlan proto
+  */
+ enum nft_meta_keys {
+ 	NFT_META_LEN,
+@@ -827,6 +828,7 @@ enum nft_meta_keys {
+ 	NFT_META_IIFKIND,
+ 	NFT_META_OIFKIND,
+ 	NFT_META_BRI_IIFPVID,
++	NFT_META_BRI_IIFVPROTO,
+ };
  
-+static inline int br_vlan_get_proto(const struct net_device *dev, u16 *p_proto)
-+{
-+	return -EINVAL;
-+}
+ /**
+diff --git a/net/bridge/netfilter/nft_meta_bridge.c b/net/bridge/netfilter/nft_meta_bridge.c
+index 9487d42f657a..bed66f536b34 100644
+--- a/net/bridge/netfilter/nft_meta_bridge.c
++++ b/net/bridge/netfilter/nft_meta_bridge.c
+@@ -49,6 +49,17 @@ static void nft_meta_bridge_get_eval(const struct nft_expr *expr,
+ 		nft_reg_store16(dest, p_pvid);
+ 		return;
+ 	}
++	case NFT_META_BRI_IIFVPROTO: {
++		u16 p_proto;
 +
- static inline int br_vlan_get_pvid_rcu(const struct net_device *dev, u16 *p_pvid)
- {
- 	return -EINVAL;
-diff --git a/net/bridge/br_vlan.c b/net/bridge/br_vlan.c
-index 8d97b91ad503..021cc9f66804 100644
---- a/net/bridge/br_vlan.c
-+++ b/net/bridge/br_vlan.c
-@@ -797,6 +797,16 @@ bool br_vlan_enabled(const struct net_device *dev)
- }
- EXPORT_SYMBOL_GPL(br_vlan_enabled);
- 
-+int br_vlan_get_proto(const struct net_device *dev, u16 *p_proto)
-+{
-+	struct net_bridge *br = netdev_priv(dev);
++		br_dev = nft_meta_get_bridge(in);
++		if (!br_dev || !br_vlan_enabled(br_dev))
++			goto err;
 +
-+	*p_proto = ntohs(br->vlan_proto);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(br_vlan_get_proto);
-+
- int __br_vlan_set_proto(struct net_bridge *br, __be16 proto)
- {
- 	int err = 0;
++		br_vlan_get_proto(br_dev, &p_proto);
++		nft_reg_store16(dest, p_proto);
++		return;
++	}
+ 	default:
+ 		goto out;
+ 	}
+@@ -75,6 +86,7 @@ static int nft_meta_bridge_get_init(const struct nft_ctx *ctx,
+ 		len = IFNAMSIZ;
+ 		break;
+ 	case NFT_META_BRI_IIFPVID:
++	case NFT_META_BRI_IIFVPROTO:
+ 		len = sizeof(u16);
+ 		break;
+ 	default:
 -- 
 2.11.0
 
