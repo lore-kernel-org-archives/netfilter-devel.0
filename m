@@ -6,145 +6,167 @@ X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
 	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 756FBC606C8
-	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Jul 2019 17:51:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8EF59C606C7
+	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Jul 2019 18:06:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5D457218A0
-	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Jul 2019 17:51:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6C6BA21874
+	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Jul 2019 18:06:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731016AbfGHRvi (ORCPT
+        id S2388882AbfGHSGT (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 8 Jul 2019 13:51:38 -0400
-Received: from mx1.redhat.com ([209.132.183.28]:42704 "EHLO mx1.redhat.com"
+        Mon, 8 Jul 2019 14:06:19 -0400
+Received: from mx1.redhat.com ([209.132.183.28]:50052 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728117AbfGHRvi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 8 Jul 2019 13:51:38 -0400
-Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.13])
+        id S1727413AbfGHSGS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 8 Jul 2019 14:06:18 -0400
+Received: from smtp.corp.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mx1.redhat.com (Postfix) with ESMTPS id 70F31E3E08;
-        Mon,  8 Jul 2019 17:51:32 +0000 (UTC)
+        by mx1.redhat.com (Postfix) with ESMTPS id 903EA5D672;
+        Mon,  8 Jul 2019 18:06:12 +0000 (UTC)
 Received: from madcap2.tricolour.ca (ovpn-112-14.phx2.redhat.com [10.3.112.14])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id E42FD608A4;
-        Mon,  8 Jul 2019 17:51:08 +0000 (UTC)
-Date:   Mon, 8 Jul 2019 13:51:05 -0400
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id 43F002B9F2;
+        Mon,  8 Jul 2019 18:06:01 +0000 (UTC)
+Date:   Mon, 8 Jul 2019 14:05:58 -0400
 From:   Richard Guy Briggs <rgb@redhat.com>
 To:     Paul Moore <paul@paul-moore.com>
-Cc:     Tycho Andersen <tycho@tycho.ws>,
+Cc:     "Serge E. Hallyn" <serge@hallyn.com>,
+        Tycho Andersen <tycho@tycho.ws>,
         containers@lists.linux-foundation.org, linux-api@vger.kernel.org,
         Linux-Audit Mailing List <linux-audit@redhat.com>,
         linux-fsdevel@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
         netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
         sgrubb@redhat.com, omosnace@redhat.com, dhowells@redhat.com,
         simo@redhat.com, Eric Paris <eparis@parisplace.org>,
-        Serge Hallyn <serge@hallyn.com>, ebiederm@xmission.com,
-        nhorman@tuxdriver.com
+        ebiederm@xmission.com, nhorman@tuxdriver.com
 Subject: Re: [PATCH ghak90 V6 02/10] audit: add container id
-Message-ID: <20190708175105.7zb6mikjw2wmnwln@madcap2.tricolour.ca>
+Message-ID: <20190708180558.5bar6ripag3sdadl@madcap2.tricolour.ca>
 References: <cover.1554732921.git.rgb@redhat.com>
  <9edad39c40671fb53f28d76862304cc2647029c6.1554732921.git.rgb@redhat.com>
  <20190529145742.GA8959@cisco>
  <CAHC9VhR4fudQanvZGYWMvCf7k2CU3q7e7n1Pi7hzC3v_zpVEdw@mail.gmail.com>
+ <20190529153427.GB8959@cisco>
+ <CAHC9VhSF3AjErX37+eeusJ7+XRw8yuPsmqBTRwc9EVoRBh_3Tw@mail.gmail.com>
+ <20190529222835.GD8959@cisco>
+ <CAHC9VhRS66VGtug3fq3RTGHDvfGmBJG6yRJ+iMxm3cxnNF-zJw@mail.gmail.com>
+ <20190530170913.GA16722@mail.hallyn.com>
+ <CAHC9VhThLiQzGYRUWmSuVfOC6QCDmA75BDB7Eg7V8HX4x7ymQg@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CAHC9VhR4fudQanvZGYWMvCf7k2CU3q7e7n1Pi7hzC3v_zpVEdw@mail.gmail.com>
+In-Reply-To: <CAHC9VhThLiQzGYRUWmSuVfOC6QCDmA75BDB7Eg7V8HX4x7ymQg@mail.gmail.com>
 User-Agent: NeoMutt/20180716
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.13
-X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.5.16 (mx1.redhat.com [10.5.110.38]); Mon, 08 Jul 2019 17:51:37 +0000 (UTC)
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.11
+X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.5.16 (mx1.redhat.com [10.5.110.39]); Mon, 08 Jul 2019 18:06:17 +0000 (UTC)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 2019-05-29 11:29, Paul Moore wrote:
-> On Wed, May 29, 2019 at 10:57 AM Tycho Andersen <tycho@tycho.ws> wrote:
-> >
-> > On Mon, Apr 08, 2019 at 11:39:09PM -0400, Richard Guy Briggs wrote:
-> > > It is not permitted to unset the audit container identifier.
-> > > A child inherits its parent's audit container identifier.
-> >
-> > ...
-> >
-> > >  /**
-> > > + * audit_set_contid - set current task's audit contid
-> > > + * @contid: contid value
-> > > + *
-> > > + * Returns 0 on success, -EPERM on permission failure.
-> > > + *
-> > > + * Called (set) from fs/proc/base.c::proc_contid_write().
-> > > + */
-> > > +int audit_set_contid(struct task_struct *task, u64 contid)
-> > > +{
-> > > +     u64 oldcontid;
-> > > +     int rc = 0;
-> > > +     struct audit_buffer *ab;
-> > > +     uid_t uid;
-> > > +     struct tty_struct *tty;
-> > > +     char comm[sizeof(current->comm)];
-> > > +
-> > > +     task_lock(task);
-> > > +     /* Can't set if audit disabled */
-> > > +     if (!task->audit) {
-> > > +             task_unlock(task);
-> > > +             return -ENOPROTOOPT;
-> > > +     }
-> > > +     oldcontid = audit_get_contid(task);
-> > > +     read_lock(&tasklist_lock);
-> > > +     /* Don't allow the audit containerid to be unset */
-> > > +     if (!audit_contid_valid(contid))
-> > > +             rc = -EINVAL;
-> > > +     /* if we don't have caps, reject */
-> > > +     else if (!capable(CAP_AUDIT_CONTROL))
-> > > +             rc = -EPERM;
-> > > +     /* if task has children or is not single-threaded, deny */
-> > > +     else if (!list_empty(&task->children))
-> > > +             rc = -EBUSY;
-> > > +     else if (!(thread_group_leader(task) && thread_group_empty(task)))
-> > > +             rc = -EALREADY;
-> > > +     read_unlock(&tasklist_lock);
-> > > +     if (!rc)
-> > > +             task->audit->contid = contid;
-> > > +     task_unlock(task);
-> > > +
-> > > +     if (!audit_enabled)
-> > > +             return rc;
-> >
-> > ...but it is allowed to change it (assuming
-> > capable(CAP_AUDIT_CONTROL), of course)? Seems like this might be more
-> > immediately useful since we still live in the world of majority
-> > privileged containers if we didn't allow changing it, in addition to
-> > un-setting it.
+On 2019-05-30 15:29, Paul Moore wrote:
+> On Thu, May 30, 2019 at 1:09 PM Serge E. Hallyn <serge@hallyn.com> wrote:
+> > On Wed, May 29, 2019 at 06:39:48PM -0400, Paul Moore wrote:
+> > > On Wed, May 29, 2019 at 6:28 PM Tycho Andersen <tycho@tycho.ws> wrote:
+> > > > On Wed, May 29, 2019 at 12:03:58PM -0400, Paul Moore wrote:
+> > > > > On Wed, May 29, 2019 at 11:34 AM Tycho Andersen <tycho@tycho.ws> wrote:
+> > > > > > On Wed, May 29, 2019 at 11:29:05AM -0400, Paul Moore wrote:
+> > > > > > > On Wed, May 29, 2019 at 10:57 AM Tycho Andersen <tycho@tycho.ws> wrote:
+> > > > > > > > On Mon, Apr 08, 2019 at 11:39:09PM -0400, Richard Guy Briggs wrote:
 > 
-> The idea is that only container orchestrators should be able to
-> set/modify the audit container ID, and since setting the audit
-> container ID can have a significant effect on the records captured
-> (and their routing to multiple daemons when we get there) modifying
-> the audit container ID is akin to modifying the audit configuration
-> which is why it is gated by CAP_AUDIT_CONTROL.  The current thinking
-> is that you would only change the audit container ID from one
-> set/inherited value to another if you were nesting containers, in
-> which case the nested container orchestrator would need to be granted
-> CAP_AUDIT_CONTROL (which everyone to date seems to agree is a workable
-> compromise).  We did consider allowing for a chain of nested audit
-> container IDs, but the implications of doing so are significant
-> (implementation mess, runtime cost, etc.) so we are leaving that out
-> of this effort.
+> ...
+> 
+> > > > > > > The current thinking
+> > > > > > > is that you would only change the audit container ID from one
+> > > > > > > set/inherited value to another if you were nesting containers, in
+> > > > > > > which case the nested container orchestrator would need to be granted
+> > > > > > > CAP_AUDIT_CONTROL (which everyone to date seems to agree is a workable
+> > > > > > > compromise).
+> > > >
+> > > > won't work in user namespaced containers, because they will never be
+> > > > capable(CAP_AUDIT_CONTROL); so I don't think this will work for
+> > > > nesting as is. But maybe nobody cares :)
+> > >
+> > > That's fun :)
+> > >
+> > > To be honest, I've never been a big fan of supporting nested
+> > > containers from an audit perspective, so I'm not really too upset
+> > > about this.  The k8s/cri-o folks seem okay with this, or at least I
+> > > haven't heard any objections; lxc folks, what do you have to say?
+> >
+> > I actually thought the answer to this (when last I looked, "some time" ago)
+> > was that userspace should track an audit message saying "task X in
+> > container Y is changing its auditid to Z", and then decide to also track Z.
+> > This should be doable, but a lot of extra work in userspace.
+> >
+> > Per-userns containerids would also work.  So task X1 is in containerid
+> > 1 on the host and creates a new task Y in new userns;  it continues to
+> > be reported in init_user_ns as containerid 1 forever;  but in its own
+> > userns it can request to be known as some other containerid.  Audit
+> > socks would be per-userns, allowing root in a container to watch for
+> > audit events in its own (and descendent) namespaces.
+> >
+> > But again I'm sure we've gone over all this in the last few years.
+> >
+> > I suppose we can look at this as a "first step", and talk about
+> > making it user-ns-nestable later.  But agreed it's not useful in a
+> > lot of situations as is.
+> 
+> [REMINDER: It is an "*audit* container ID" and not a general
+> "container ID" ;)  Smiley aside, I'm not kidding about that part.]
+> 
+> I'm not interested in supporting/merging something that isn't useful;
+> if this doesn't work for your use case then we need to figure out what
+> would work.  It sounds like nested containers are much more common in
+> the lxc world, can you elaborate a bit more on this?
+> 
+> As far as the possible solutions you mention above, I'm not sure I
+> like the per-userns audit container IDs, I'd much rather just emit the
+> necessary tracking information via the audit record stream and let the
+> log analysis tools figure it out.  However, the bigger question is how
+> to limit (re)setting the audit container ID when you are in a non-init
+> userns.  For reasons already mentioned, using capable() is a non
+> starter for everything but the initial userns, and using ns_capable()
+> is equally poor as it essentially allows any userns the ability to
+> munge it's audit container ID (obviously not good).  It appears we
+> need a different method for controlling access to the audit container
+> ID.
 
-We had previously discussed the idea of restricting
-orchestrators/engines from only being able to set the audit container
-identifier on their own descendants, but it was discarded.  I've added a
-check to ensure this is now enforced.
+We're not quite ready yet for multiple audit daemons and possibly not
+yet for audit namespaces, but this is starting to look a lot like the
+latter.
 
-I've also added a check to ensure that a process can't set its own audit
-container identifier and that if the identifier is already set, then the
-orchestrator/engine must be in a descendant user namespace from the
-orchestrator that set the previously inherited audit container
-identifier.
+If we can't trust ns_capable() then why are we passing on
+CAP_AUDIT_CONTROL?  It is being passed down and not stripped purposely
+by the orchestrator/engine.  If ns_capable() isn't inherited how is it
+gained otherwise?  Can it be inserted by cotainer image?  I think the
+answer is "no".  Either we trust ns_capable() or we have audit
+namespaces (recommend based on user namespace) (or both).
 
-> From a practical perspective, un-setting the audit container ID is
-> pretty much the same as changing it from one set value to another so
-> most of the above applies to that case as well.
+At this point I would say we are at an impasse unless we trust
+ns_capable() or we implement audit namespaces.
+
+I don't think another mechanism to trust nested orchestrators/engines
+will buy us anything.
+
+Am I missing something?
+
+> Punting this to a LSM hook is an obvious thing to do, and something we
+> might want to do anyway, but currently audit doesn't rely on the LSM
+> for proper/safe operation and I'm not sure I want to change that now.
+> 
+> The next obvious thing is to create some sort of access control knob
+> in audit itself.  Perhaps an auditctl operation that would allow the
+> administrator to specify which containers, via their corresponding
+> audit container IDs, are allowed to change their audit container ID?
+> The permission granting would need to be done in the init userns, but
+> it would allow containers with a non-init userns the ability to change
+> their audit container ID.  We would probably still want a
+> ns_capable(CAP_AUDIT_CONTROL) restriction in this case.
+
+This auditctl knob of which you speak is an additional API, not changing
+the existing proposed one.
+
+> Does anyone else have any other ideas?
 > 
 > -- 
 > paul moore
