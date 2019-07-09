@@ -2,263 +2,150 @@ Return-Path: <SRS0=D85U=VG=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.2 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BFEF8C606D5
-	for <netfilter-devel@archiver.kernel.org>; Tue,  9 Jul 2019 03:59:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 84CCAC606B0
+	for <netfilter-devel@archiver.kernel.org>; Tue,  9 Jul 2019 06:21:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 845A0216C4
-	for <netfilter-devel@archiver.kernel.org>; Tue,  9 Jul 2019 03:59:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5932921537
+	for <netfilter-devel@archiver.kernel.org>; Tue,  9 Jul 2019 06:21:02 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=canb.auug.org.au header.i=@canb.auug.org.au header.b="l9HD78Kp"
+	dkim=pass (2048-bit key) header.d=resnulli-us.20150623.gappssmtp.com header.i=@resnulli-us.20150623.gappssmtp.com header.b="mzoMzL+u"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727019AbfGID7w (ORCPT
+        id S1726018AbfGIGVC (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 8 Jul 2019 23:59:52 -0400
-Received: from ozlabs.org ([203.11.71.1]:35047 "EHLO ozlabs.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725886AbfGID7w (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 8 Jul 2019 23:59:52 -0400
-Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange ECDHE (P-256) server-signature RSA-PSS (4096 bits) server-digest SHA256)
-        (No client certificate requested)
-        by mail.ozlabs.org (Postfix) with ESMTPSA id 45jT9J2k2dz9s7T;
-        Tue,  9 Jul 2019 13:59:47 +1000 (AEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=canb.auug.org.au;
-        s=201702; t=1562644788;
-        bh=RgjpdRAvdzbPAMVLAeQMRJv+UJy8bs/j18MWrpoy9Og=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=l9HD78KpfDWMpjSQLQ/aJuDVQn23+9qjQuL/zpniYcKni9gOtaiva//OWfpNWolbr
-         PMahEF9iXg/MnRGBAZfW0GxMvoTgLNsgAb5o0RJe8dyp0Op/8ww/QuRXrDNkcaNALP
-         FqVW6w1lalePk8Nov9Ff+2W3oKmA1TfgFn4yuebAH9Pk//2SOBmkraaoT1OEYUllIb
-         W7JkfLpKM89ljU6q1/MFn0Fp9yNA3RgmrlNADyWj/zJFpxbXkA+MUQtgOWBdOKo1GY
-         jlgQLvD1Y/E8DsIF6vsgmz/6URUW/cw58fVp7Aw3ax/1ikJrnNqpFse/BWBmKkyabW
-         erav/B2AJQ6PA==
-Date:   Tue, 9 Jul 2019 13:59:47 +1000
-From:   Stephen Rothwell <sfr@canb.auug.org.au>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        NetFilter <netfilter-devel@vger.kernel.org>,
-        Masahiro Yamada <yamada.masahiro@socionext.com>,
-        David Miller <davem@davemloft.net>,
-        Networking <netdev@vger.kernel.org>
-Cc:     Linux Next Mailing List <linux-next@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        wenxu <wenxu@ucloud.cn>
-Subject: Re: linux-next: build failure after merge of the netfilter-next
- tree
-Message-ID: <20190709135947.225603dc@canb.auug.org.au>
-In-Reply-To: <20190708133958.6a30f5cb@canb.auug.org.au>
-References: <20190708133958.6a30f5cb@canb.auug.org.au>
+        Tue, 9 Jul 2019 02:21:02 -0400
+Received: from mail-wr1-f67.google.com ([209.85.221.67]:47005 "EHLO
+        mail-wr1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725832AbfGIGVB (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 9 Jul 2019 02:21:01 -0400
+Received: by mail-wr1-f67.google.com with SMTP id z1so14961431wru.13
+        for <netfilter-devel@vger.kernel.org>; Mon, 08 Jul 2019 23:21:00 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=resnulli-us.20150623.gappssmtp.com; s=20150623;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:content-transfer-encoding:in-reply-to
+         :user-agent;
+        bh=ii+SXJ6+lfZyOMkcgHiyxZo8EJmBOTy8e2tqhigbHgM=;
+        b=mzoMzL+uHjgHbharxa6BcWOTmRpcvyOhY1DkVle/hIw5aphi/yagKx8zIgSi8AHTGE
+         8VQwdWSyV7AQZ67NzZXEoojinQ7FTenP+7PftdgjHYNiJ6oISdx49oemqROx06TL68Yl
+         hzc5Rdzji2xumhrB3Rml3dtritWa+LvzjpeCa+/W0SsbqAebpNWe0E/lR3kKJuNmWh7j
+         wlePILMgzUS6KTPjb6/gx8I5E9CBOltn5mWPCaRxRpeEb2sWXON+MxmMtYIZ1S1ZCeyR
+         +IdzfKZgetmraUoX4wXKBgPbd2Gy2E3XbySc4jY2cdUNlvmtPqvtaEPQcvm3e9CEe1/q
+         ExFQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:content-transfer-encoding
+         :in-reply-to:user-agent;
+        bh=ii+SXJ6+lfZyOMkcgHiyxZo8EJmBOTy8e2tqhigbHgM=;
+        b=NNz3SjXLyXuVuW4weorf1Kn8v4WfQje4rl+FSTHcTW9rig3TwuD6Jor6Zt0xdmR9HV
+         cnnl5ts1G01YsgdcjTfOXaxlbh3ExCYjSReCb4Z7qZPcwftLEed8x7CHg4tOaSLxKdit
+         7xd3AYTek7k45lT4Pjz8oA6S2FTGBr7VEjRK08i0Yk+Te+evm8+kvdVQBC5xrGY7KxUt
+         +nvaZlnNZLVumYUWdfp4DL+cVJlrfrch0KEwwYTsolZo2mT71BtrIVa6jiC0qWnxyfsk
+         hsF3vvl8Xgi9sBgafBajJM+PhaSGDCfmQ3evcF5RH0prKzX3P7l+5sJ3Umq1kSfaP1cK
+         P2Ow==
+X-Gm-Message-State: APjAAAUA/JiyGrJida3bIsHKfzenN1k1F+wabzwfKSiPIwrnKfiEAVPm
+        xm3wi6GW6+hBz/f/1xTTKJL2hQ==
+X-Google-Smtp-Source: APXvYqwMuAxaX1kwGYFqL8yFCzZQLst+dSPzj80a5gurwUi/qGC6E0PqpmLgwMja9ali6xLiVwN6qA==
+X-Received: by 2002:a5d:6284:: with SMTP id k4mr23350348wru.179.1562653259657;
+        Mon, 08 Jul 2019 23:20:59 -0700 (PDT)
+Received: from localhost (jirka.pirko.cz. [84.16.102.26])
+        by smtp.gmail.com with ESMTPSA id v15sm17182167wru.61.2019.07.08.23.20.59
+        (version=TLS1_3 cipher=AEAD-AES256-GCM-SHA384 bits=256/256);
+        Mon, 08 Jul 2019 23:20:59 -0700 (PDT)
+Date:   Tue, 9 Jul 2019 08:20:58 +0200
+From:   Jiri Pirko <jiri@resnulli.us>
+To:     Jakub Kicinski <jakub.kicinski@netronome.com>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>, netdev@vger.kernel.org,
+        davem@davemloft.net, thomas.lendacky@amd.com, f.fainelli@gmail.com,
+        ariel.elior@cavium.com, michael.chan@broadcom.com,
+        madalin.bucur@nxp.com, yisen.zhuang@huawei.com,
+        salil.mehta@huawei.com, jeffrey.t.kirsher@intel.com,
+        tariqt@mellanox.com, saeedm@mellanox.com, jiri@mellanox.com,
+        idosch@mellanox.com, peppe.cavallaro@st.com,
+        grygorii.strashko@ti.com, andrew@lunn.ch, vivien.didelot@gmail.com,
+        alexandre.torgue@st.com, joabreu@synopsys.com,
+        linux-net-drivers@solarflare.com, ogerlitz@mellanox.com,
+        Manish.Chopra@cavium.com, marcelo.leitner@gmail.com,
+        mkubecek@suse.cz, venkatkumar.duvvuru@broadcom.com,
+        maxime.chevallier@bootlin.com, cphealy@gmail.com,
+        netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH net-next,v3 11/11] netfilter: nf_tables: add hardware
+ offload support
+Message-ID: <20190709062058.GI2282@nanopsycho.orion>
+References: <20190708160614.2226-1-pablo@netfilter.org>
+ <20190708160614.2226-12-pablo@netfilter.org>
+ <20190708184437.4d29648a@cakuba.netronome.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- boundary="Sig_/hz4YiY3dpqX1kPdvlStk//p"; protocol="application/pgp-signature"
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20190708184437.4d29648a@cakuba.netronome.com>
+User-Agent: Mutt/1.11.4 (2019-03-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
---Sig_/hz4YiY3dpqX1kPdvlStk//p
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
-
-Hi all,
-
-On Mon, 8 Jul 2019 13:39:58 +1000 Stephen Rothwell <sfr@canb.auug.org.au> w=
-rote:
+Tue, Jul 09, 2019 at 03:44:37AM CEST, jakub.kicinski@netronome.com wrote:
+>On Mon,  8 Jul 2019 18:06:13 +0200, Pablo Neira Ayuso wrote:
+>> This patch adds hardware offload support for nftables through the
+>> existing netdev_ops->ndo_setup_tc() interface, the TC_SETUP_CLSFLOWER
+>> classifier and the flow rule API. This hardware offload support is
+>> available for the NFPROTO_NETDEV family and the ingress hook.
+>> 
+>> Each nftables expression has a new ->offload interface, that is used to
+>> populate the flow rule object that is attached to the transaction
+>> object.
+>> 
+>> There is a new per-table NFT_TABLE_F_HW flag, that is set on to offload
+>> an entire table, including all of its chains.
+>> 
+>> This patch supports for basic metadata (layer 3 and 4 protocol numbers),
+>> 5-tuple payload matching and the accept/drop actions; this also includes
+>> basechain hardware offload only.
+>> 
+>> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 >
-> After merging the netfilter-next tree, today's linux-next build (x86_64
-> allmodconfig) failed like this:
->=20
-> In file included from <command-line>:
-> include/net/netfilter/nft_meta.h:6:21: warning: 'key' is narrower than va=
-lues of its type
->   enum nft_meta_keys key:8;
->                      ^~~
-> include/net/netfilter/nft_meta.h:6:21: error: field 'key' has incomplete =
-type
-> include/net/netfilter/nft_meta.h:8:22: warning: 'dreg' is narrower than v=
-alues of its type
->    enum nft_registers dreg:8;
->                       ^~~~
-> include/net/netfilter/nft_meta.h:8:22: error: field 'dreg' has incomplete=
- type
-> include/net/netfilter/nft_meta.h:9:22: warning: 'sreg' is narrower than v=
-alues of its type
->    enum nft_registers sreg:8;
->                       ^~~~
-> include/net/netfilter/nft_meta.h:9:22: error: field 'sreg' has incomplete=
- type
-> include/net/netfilter/nft_meta.h:13:32: error: array type has incomplete =
-element type 'struct nla_policy'
->  extern const struct nla_policy nft_meta_policy[];
->                                 ^~~~~~~~~~~~~~~
-> include/net/netfilter/nft_meta.h:17:22: warning: 'struct nlattr' declared=
- inside parameter list will not be visible outside of this definition or de=
-claration
->          const struct nlattr * const tb[]);
->                       ^~~~~~
-> include/net/netfilter/nft_meta.h:16:22: warning: 'struct nft_expr' declar=
-ed inside parameter list will not be visible outside of this definition or =
-declaration
->          const struct nft_expr *expr,
->                       ^~~~~~~~
-> include/net/netfilter/nft_meta.h:15:36: warning: 'struct nft_ctx' declare=
-d inside parameter list will not be visible outside of this definition or d=
-eclaration
->  int nft_meta_get_init(const struct nft_ctx *ctx,
->                                     ^~~~~~~
-> include/net/netfilter/nft_meta.h:21:22: warning: 'struct nlattr' declared=
- inside parameter list will not be visible outside of this definition or de=
-claration
->          const struct nlattr * const tb[]);
->                       ^~~~~~
-> include/net/netfilter/nft_meta.h:20:22: warning: 'struct nft_expr' declar=
-ed inside parameter list will not be visible outside of this definition or =
-declaration
->          const struct nft_expr *expr,
->                       ^~~~~~~~
-> include/net/netfilter/nft_meta.h:19:36: warning: 'struct nft_ctx' declare=
-d inside parameter list will not be visible outside of this definition or d=
-eclaration
->  int nft_meta_set_init(const struct nft_ctx *ctx,
->                                     ^~~~~~~
-> include/net/netfilter/nft_meta.h:24:22: warning: 'struct nft_expr' declar=
-ed inside parameter list will not be visible outside of this definition or =
-declaration
->          const struct nft_expr *expr);
->                       ^~~~~~~~
-> include/net/netfilter/nft_meta.h:23:30: warning: 'struct sk_buff' declare=
-d inside parameter list will not be visible outside of this definition or d=
-eclaration
->  int nft_meta_get_dump(struct sk_buff *skb,
->                               ^~~~~~~
-> include/net/netfilter/nft_meta.h:27:22: warning: 'struct nft_expr' declar=
-ed inside parameter list will not be visible outside of this definition or =
-declaration
->          const struct nft_expr *expr);
->                       ^~~~~~~~
-> include/net/netfilter/nft_meta.h:26:30: warning: 'struct sk_buff' declare=
-d inside parameter list will not be visible outside of this definition or d=
-eclaration
->  int nft_meta_set_dump(struct sk_buff *skb,
->                               ^~~~~~~
-> include/net/netfilter/nft_meta.h:31:23: warning: 'struct nft_pktinfo' dec=
-lared inside parameter list will not be visible outside of this definition =
-or declaration
->           const struct nft_pktinfo *pkt);
->                        ^~~~~~~~~~~
-> include/net/netfilter/nft_meta.h:30:17: warning: 'struct nft_regs' declar=
-ed inside parameter list will not be visible outside of this definition or =
-declaration
->           struct nft_regs *regs,
->                  ^~~~~~~~
-> include/net/netfilter/nft_meta.h:29:37: warning: 'struct nft_expr' declar=
-ed inside parameter list will not be visible outside of this definition or =
-declaration
->  void nft_meta_get_eval(const struct nft_expr *expr,
->                                      ^~~~~~~~
-> include/net/netfilter/nft_meta.h:35:23: warning: 'struct nft_pktinfo' dec=
-lared inside parameter list will not be visible outside of this definition =
-or declaration
->           const struct nft_pktinfo *pkt);
->                        ^~~~~~~~~~~
-> include/net/netfilter/nft_meta.h:34:17: warning: 'struct nft_regs' declar=
-ed inside parameter list will not be visible outside of this definition or =
-declaration
->           struct nft_regs *regs,
->                  ^~~~~~~~
-> include/net/netfilter/nft_meta.h:33:37: warning: 'struct nft_expr' declar=
-ed inside parameter list will not be visible outside of this definition or =
-declaration
->  void nft_meta_set_eval(const struct nft_expr *expr,
->                                      ^~~~~~~~
-> include/net/netfilter/nft_meta.h:38:19: warning: 'struct nft_expr' declar=
-ed inside parameter list will not be visible outside of this definition or =
-declaration
->       const struct nft_expr *expr);
->                    ^~~~~~~~
-> include/net/netfilter/nft_meta.h:37:40: warning: 'struct nft_ctx' declare=
-d inside parameter list will not be visible outside of this definition or d=
-eclaration
->  void nft_meta_set_destroy(const struct nft_ctx *ctx,
->                                         ^~~~~~~
-> include/net/netfilter/nft_meta.h:42:19: warning: 'struct nft_data' declar=
-ed inside parameter list will not be visible outside of this definition or =
-declaration
->       const struct nft_data **data);
->                    ^~~~~~~~
-> include/net/netfilter/nft_meta.h:41:19: warning: 'struct nft_expr' declar=
-ed inside parameter list will not be visible outside of this definition or =
-declaration
->       const struct nft_expr *expr,
->                    ^~~~~~~~
-> include/net/netfilter/nft_meta.h:40:40: warning: 'struct nft_ctx' declare=
-d inside parameter list will not be visible outside of this definition or d=
-eclaration
->  int nft_meta_set_validate(const struct nft_ctx *ctx,
->                                         ^~~~~~~
->=20
-> Caused by commit
->=20
->   30e103fe24de ("netfilter: nft_meta: move bridge meta keys into nft_meta=
-_bridge")
->=20
-> interacting with commit
->=20
->   3a768d9f7ae5 ("kbuild: compile-test kernel headers to ensure they are s=
-elf-contained")
->=20
-> from the kbuild tree.
->=20
-> I have applied the following patch for today.
->=20
-> From: Stephen Rothwell <sfr@canb.auug.org.au>
-> Date: Mon, 8 Jul 2019 13:34:42 +1000
-> Subject: [PATCH] don't test build another netfilter header
->=20
-> Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
-> ---
->  include/Kbuild | 1 +
->  1 file changed, 1 insertion(+)
->=20
-> diff --git a/include/Kbuild b/include/Kbuild
-> index 78434c59701f..cfd73c94d015 100644
-> --- a/include/Kbuild
-> +++ b/include/Kbuild
-> @@ -900,6 +900,7 @@ header-test-			+=3D net/netfilter/nf_tables_core.h
->  header-test-			+=3D net/netfilter/nf_tables_ipv4.h
->  header-test-			+=3D net/netfilter/nf_tables_ipv6.h
->  header-test-			+=3D net/netfilter/nft_fib.h
-> +header-test-			+=3D net/netfilter/nft_meta.h
->  header-test-			+=3D net/netfilter/nft_reject.h
->  header-test-			+=3D net/netns/can.h
->  header-test-			+=3D net/netns/generic.h
+>Any particular reason to not fence this off with a device feature
+>(ethtool -k)?  Then you wouldn't need that per-driver list abomination
+>until drivers start advertising it..  IDK if we want the per-device
+>offload enable flags or not in general, it seems like a good idea in
+>general for admin to be able to disable offload per device 🤷
+>
+>> +static int nft_flow_offload_rule(struct nft_trans *trans,
+>> +				 enum tc_fl_command command)
+>> +{
+>> +	struct nft_flow_rule *flow = nft_trans_flow_rule(trans);
+>> +	struct nft_rule *rule = nft_trans_rule(trans);
+>> +	struct tc_cls_flower_offload cls_flower = {};
+>> +	struct nft_base_chain *basechain;
+>> +	struct netlink_ext_ack extack;
+>> +	__be16 proto = ETH_P_ALL;
+>> +
+>> +	if (!nft_is_base_chain(trans->ctx.chain))
+>> +		return -EOPNOTSUPP;
+>> +
+>> +	basechain = nft_base_chain(trans->ctx.chain);
+>> +
+>> +	if (flow)
+>> +		proto = flow->proto;
+>> +
+>> +	nft_flow_offload_common_init(&cls_flower.common, proto, &extack);
+>> +	cls_flower.command = command;
+>> +	cls_flower.cookie = (unsigned long) rule;
+>> +	if (flow)
+>> +		cls_flower.rule = flow->rule;
+>> +
+>> +	return nft_setup_cb_call(basechain, TC_SETUP_CLSFLOWER, &cls_flower);
+>> +}
+>
+>Are we 100% okay with using TC cls_flower structures and defines in nft
+>code?
 
-I reported this yesterday against the netflter-next tree, but now the
-fix patch is needed in the merge of the net-next tree.
-
---=20
-Cheers,
-Stephen Rothwell
-
---Sig_/hz4YiY3dpqX1kPdvlStk//p
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAl0kETMACgkQAVBC80lX
-0GxRnwf+MiRLsKZsmwRDeYoqyZYev7qEhxT3w3Mgk5Uv5JbqGs/VKzKgDtnnMPbF
-oHh+Hb+vio1WsbNX99nym5KaCq0jgVrjPganqE375dzl8CoARnb/K2NjmTurzQ7y
-ZQzx1g/sTiRo+0BP7EF/i6gsiLoiw10n8GgnX1wkRsC/K34wZ+ZR3XgiGNMw0ssy
-8j3NdSbIofTAevJI11HUoZ3ghPdzqkg+RKchk1ySN4vDuOVCtJhoBpy/NBHeST08
-TEeNXorTMhuDdHeNLdf4+TgSfKXVXzHFngrzpCQrB/ewUCtWTSf2G2HdloUN0GpB
-PCVd1+1ViowhjuF1pxc7aMOrLx1rGg==
-=hLZQ
------END PGP SIGNATURE-----
-
---Sig_/hz4YiY3dpqX1kPdvlStk//p--
+Yeah, your right. Should be renamed and moved to "flow offload" as well.
