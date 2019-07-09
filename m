@@ -2,142 +2,93 @@ Return-Path: <SRS0=D85U=VG=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E6B73C606D3
-	for <netfilter-devel@archiver.kernel.org>; Tue,  9 Jul 2019 01:44:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C6DE3C606CF
+	for <netfilter-devel@archiver.kernel.org>; Tue,  9 Jul 2019 02:56:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BCD1F2166E
-	for <netfilter-devel@archiver.kernel.org>; Tue,  9 Jul 2019 01:44:46 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=netronome-com.20150623.gappssmtp.com header.i=@netronome-com.20150623.gappssmtp.com header.b="ga/SunY/"
+	by mail.kernel.org (Postfix) with ESMTP id 9CC6421537
+	for <netfilter-devel@archiver.kernel.org>; Tue,  9 Jul 2019 02:56:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726762AbfGIBop (ORCPT
+        id S1726302AbfGIC4J (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 8 Jul 2019 21:44:45 -0400
-Received: from mail-qk1-f193.google.com ([209.85.222.193]:38229 "EHLO
-        mail-qk1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725905AbfGIBoo (ORCPT
+        Mon, 8 Jul 2019 22:56:09 -0400
+Received: from m9784.mail.qiye.163.com ([220.181.97.84]:26956 "EHLO
+        m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725905AbfGIC4J (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 8 Jul 2019 21:44:44 -0400
-Received: by mail-qk1-f193.google.com with SMTP id a27so14866573qkk.5
-        for <netfilter-devel@vger.kernel.org>; Mon, 08 Jul 2019 18:44:44 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=netronome-com.20150623.gappssmtp.com; s=20150623;
-        h=date:from:to:cc:subject:message-id:in-reply-to:references
-         :organization:mime-version:content-transfer-encoding;
-        bh=ZvuQo6evsVCUlDEsNzH37NojCewlv73AG70+WQmLr4c=;
-        b=ga/SunY/p1WWr4ZysR/ivY26jKT1KD8q9KDIOCndKrp6hl5oEvpSRtHMD5VoIub6NM
-         YE1JSDCR8o9JpN3Q7XSIR4be/OYAu0U3unv5lwWtSZPaCkUTB/HYCHtAMXT3xFKycopS
-         uwOMNW+T2foduGaSjaxJUhjoB4SaJw6fL2lwz0jyM0gf9jzKwxI3oiip7dN6BVknAe1/
-         8zpf1YCONHDHpgofVHg7Pzpl25GbwpmEb7l+oDC+kNzFsxf8+1S36B9SQXqMKZSzBNO9
-         5HhYz2kYm59sA7dEEjAUuA6kDbd1Dn3eMCkAbLlX8cpm0ZIHEsnOHW+LmJ/KozGiL0xe
-         PrBg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:in-reply-to
-         :references:organization:mime-version:content-transfer-encoding;
-        bh=ZvuQo6evsVCUlDEsNzH37NojCewlv73AG70+WQmLr4c=;
-        b=FfA+oxY3w/FcF985k8eQpm5/StJxRHSyFXjGGuEy61GokHEeoLVBDBSuvaMADo1nwX
-         4CaLBP4/bko9/2v57m7aqd2nJ21XhH4EEj1tJXHwvOcNBlFuIF7faJFTSv3ecfI9HciT
-         GDFHxpmhj24fXmThgdOLBOutHbyyy+UOFZSrfINVeyMa6XSsSMFoGY/jpitk4eRszl5N
-         uAIYWBeW7N0p4kAX3FfwDv2oNHUzZ4tEnbfUaMwhH2gvcFdzc4IFMZ3vhY764E4BDx/y
-         DsxRDWCwMRSt+sg0Fnjw2vWFfEpi5e4IN83Q0qcyEh7M2EPZHhF5hLaB4Gxx9nV2x3Qz
-         00ng==
-X-Gm-Message-State: APjAAAVJajpw6YeaK4KRXvAZ8Etid29CMpsJvPpHnxJTqQz78llMKh/+
-        DhgIns3NCPnMSmnXq31Fx3sHsQ==
-X-Google-Smtp-Source: APXvYqxsDnt2MdLzJayLyeHUcjX6rwz7H/ShvonENWZNfDkTqiFniQq5aiVptinAv4sFRDV2CsydhQ==
-X-Received: by 2002:a37:e506:: with SMTP id e6mr17619550qkg.229.1562636684065;
-        Mon, 08 Jul 2019 18:44:44 -0700 (PDT)
-Received: from cakuba.netronome.com ([66.60.152.14])
-        by smtp.gmail.com with ESMTPSA id q56sm9371475qtq.64.2019.07.08.18.44.40
-        (version=TLS1_3 cipher=AEAD-AES256-GCM-SHA384 bits=256/256);
-        Mon, 08 Jul 2019 18:44:43 -0700 (PDT)
-Date:   Mon, 8 Jul 2019 18:44:37 -0700
-From:   Jakub Kicinski <jakub.kicinski@netronome.com>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netdev@vger.kernel.org, davem@davemloft.net,
-        thomas.lendacky@amd.com, f.fainelli@gmail.com,
-        ariel.elior@cavium.com, michael.chan@broadcom.com,
-        madalin.bucur@nxp.com, yisen.zhuang@huawei.com,
-        salil.mehta@huawei.com, jeffrey.t.kirsher@intel.com,
-        tariqt@mellanox.com, saeedm@mellanox.com, jiri@mellanox.com,
-        idosch@mellanox.com, peppe.cavallaro@st.com,
-        grygorii.strashko@ti.com, andrew@lunn.ch, vivien.didelot@gmail.com,
-        alexandre.torgue@st.com, joabreu@synopsys.com,
-        linux-net-drivers@solarflare.com, ogerlitz@mellanox.com,
-        Manish.Chopra@cavium.com, marcelo.leitner@gmail.com,
-        mkubecek@suse.cz, venkatkumar.duvvuru@broadcom.com,
-        maxime.chevallier@bootlin.com, cphealy@gmail.com,
-        netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH net-next,v3 11/11] netfilter: nf_tables: add hardware
- offload support
-Message-ID: <20190708184437.4d29648a@cakuba.netronome.com>
-In-Reply-To: <20190708160614.2226-12-pablo@netfilter.org>
-References: <20190708160614.2226-1-pablo@netfilter.org>
-        <20190708160614.2226-12-pablo@netfilter.org>
-Organization: Netronome Systems, Ltd.
+        Mon, 8 Jul 2019 22:56:09 -0400
+Received: from [192.168.188.14] (unknown [120.132.1.226])
+        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id AA198415E4;
+        Tue,  9 Jul 2019 10:56:06 +0800 (CST)
+Subject: Re: [PATCH nf-next 1/3] netfilter: nf_nat_proto: add
+ nf_nat_bridge_ops support
+To:     Florian Westphal <fw@strlen.de>
+Cc:     pablo@netfilter.org, netfilter-devel@vger.kernel.org,
+        netdev@vger.kernel.org
+References: <1562574567-8293-1-git-send-email-wenxu@ucloud.cn>
+ <20190708141730.ozycgmtrub7ok2qs@breakpoint.cc>
+From:   wenxu <wenxu@ucloud.cn>
+Message-ID: <0a4cf910-6c87-34b6-3018-3e25f6fecdce@ucloud.cn>
+Date:   Tue, 9 Jul 2019 10:56:04 +0800
+User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:60.0) Gecko/20100101
+ Thunderbird/60.7.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <20190708141730.ozycgmtrub7ok2qs@breakpoint.cc>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
+X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVkpVSEtMS0tLS09KS0tDWVdZKFlBSU
+        I3V1ktWUFJV1kJDhceCFlBWTU0KTY6NyQpLjc#WQY+
+X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6Kz46LQw4FzgzKg48HjhCAzAL
+        GiMaCU5VSlVKTk1JTU9LQk1NQklJVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJS1VK
+        SElVSlVJSU1ZV1kIAVlBSU1LTTcG
+X-HM-Tid: 0a6bd4a8e4ae2086kuqyaa198415e4
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon,  8 Jul 2019 18:06:13 +0200, Pablo Neira Ayuso wrote:
-> This patch adds hardware offload support for nftables through the
-> existing netdev_ops->ndo_setup_tc() interface, the TC_SETUP_CLSFLOWER
-> classifier and the flow rule API. This hardware offload support is
-> available for the NFPROTO_NETDEV family and the ingress hook.
->=20
-> Each nftables expression has a new ->offload interface, that is used to
-> populate the flow rule object that is attached to the transaction
-> object.
->=20
-> There is a new per-table NFT_TABLE_F_HW flag, that is set on to offload
-> an entire table, including all of its chains.
->=20
-> This patch supports for basic metadata (layer 3 and 4 protocol numbers),
-> 5-tuple payload matching and the accept/drop actions; this also includes
-> basechain hardware offload only.
->=20
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
-Any particular reason to not fence this off with a device feature
-(ethtool -k)?  Then you wouldn't need that per-driver list abomination
-until drivers start advertising it..  IDK if we want the per-device
-offload enable flags or not in general, it seems like a good idea in
-general for admin to be able to disable offload per device =F0=9F=A4=B7
+On 7/8/2019 10:17 PM, Florian Westphal wrote:
+> wenxu@ucloud.cn <wenxu@ucloud.cn> wrote:
+>> From: wenxu <wenxu@ucloud.cn>
+>>
+>> Add nf_nat_bridge_ops to do nat in the bridge family
+> Whats the use case for this?
+>
+> The reason I'm asking is that a bridge doesn't know about IP,
+> Bridge netfilter (the call-iptables thing) has a lot of glue code
+> to detect dnat rewrites and updates target mac address, including
+> support for redirect (suddently packet has to be pushed up the stack)
+> or changes in the oif to non-bridge ports (it even checks forward sysctl
+> state ..) and so on.
+>
+> Thats something that I don't want to support in nftables.
+>
+> For NAT on bridge, it should be possible already to push such packets
+> up the stack by
+>
+> bridge input meta iif eth0 ip saddr 192.168.0.0/16 \
+>        meta pkttype set unicast ether daddr set 00:11:22:33:44:55
 
-> +static int nft_flow_offload_rule(struct nft_trans *trans,
-> +				 enum tc_fl_command command)
-> +{
-> +	struct nft_flow_rule *flow =3D nft_trans_flow_rule(trans);
-> +	struct nft_rule *rule =3D nft_trans_rule(trans);
-> +	struct tc_cls_flower_offload cls_flower =3D {};
-> +	struct nft_base_chain *basechain;
-> +	struct netlink_ext_ack extack;
-> +	__be16 proto =3D ETH_P_ALL;
-> +
-> +	if (!nft_is_base_chain(trans->ctx.chain))
-> +		return -EOPNOTSUPP;
-> +
-> +	basechain =3D nft_base_chain(trans->ctx.chain);
-> +
-> +	if (flow)
-> +		proto =3D flow->proto;
-> +
-> +	nft_flow_offload_common_init(&cls_flower.common, proto, &extack);
-> +	cls_flower.command =3D command;
-> +	cls_flower.cookie =3D (unsigned long) rule;
-> +	if (flow)
-> +		cls_flower.rule =3D flow->rule;
-> +
-> +	return nft_setup_cb_call(basechain, TC_SETUP_CLSFLOWER, &cls_flower);
-> +}
+yes, packet can be push up to IP stack to handle the nat through bridge device. 
 
-Are we 100% okay with using TC cls_flower structures and defines in nft
-code?
+
+In my case dnat 2.2.1.7 to 10.0.0.7, It assume the mac address of the two address
+
+is the same known by outer. So The bridge can just do nat( without modify mac address or oif).
+
+But in This case modify the packet dmac to bridge device, the packet push up through bridge device
+
+Then do nat and route send back to bridge device.
+
+
+
+
+
+
+
+
