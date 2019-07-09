@@ -2,64 +2,46 @@ Return-Path: <SRS0=D85U=VG=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9410DC73C41
-	for <netfilter-devel@archiver.kernel.org>; Tue,  9 Jul 2019 13:39:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B24BBC73C5A
+	for <netfilter-devel@archiver.kernel.org>; Tue,  9 Jul 2019 20:56:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 67F9020861
-	for <netfilter-devel@archiver.kernel.org>; Tue,  9 Jul 2019 13:39:46 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=resnulli-us.20150623.gappssmtp.com header.i=@resnulli-us.20150623.gappssmtp.com header.b="low1tkX+"
+	by mail.kernel.org (Postfix) with ESMTP id 89C8E20861
+	for <netfilter-devel@archiver.kernel.org>; Tue,  9 Jul 2019 20:56:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726951AbfGINjq (ORCPT
+        id S1729809AbfGIU4F (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 9 Jul 2019 09:39:46 -0400
-Received: from mail-wr1-f66.google.com ([209.85.221.66]:33089 "EHLO
-        mail-wr1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726375AbfGINjp (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 9 Jul 2019 09:39:45 -0400
-Received: by mail-wr1-f66.google.com with SMTP id n9so21125089wru.0
-        for <netfilter-devel@vger.kernel.org>; Tue, 09 Jul 2019 06:39:44 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=resnulli-us.20150623.gappssmtp.com; s=20150623;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to:user-agent;
-        bh=apoOMffNJoQn70AP+vwaQWCqZ67b11ZTTTPNPF0zncc=;
-        b=low1tkX+u0lmbS53jGQMF39lCRHPF4OmP0atVBomBggFXnzvLKyRf94mZxIe074Pcm
-         YsVhjy3HsTU79H83cps/H9wRxNdKJgTMhWQsyii4YVxz61gBKdPqu6Ntjvf/3cz854r9
-         iqY6UJycGQQ2Q5b+cC9Cw2Mw+QT5HUNSg590fCqW3FDDdhJ6EV0aBpbkh3VONpJOgDY9
-         v/VVok38LDTXBXy1lkMMSUYhKDE/9Ungavt6a4DPdqUT5xrnFIH3s5OeFekiPl/jmBr0
-         9xVdMuuau0ikX90ueNGoO0NVnRJIfePLA+wWcjGYNpsox/bomBnjmEMOLWScBVrTEBEj
-         My8g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to:user-agent;
-        bh=apoOMffNJoQn70AP+vwaQWCqZ67b11ZTTTPNPF0zncc=;
-        b=XdUoV14PK8c5AMZpIgKwUrLKkayQ+b3QPHvVUwst3b3XPlw8aFOzMCAxUijsS6Rv4G
-         RusHfCDkHwT1CQFEO+aTfouzj+AHD/6d7bFmpYgpMh2dnMIKfSrJDZbmdnQ307tHQE6u
-         QCgp5xdlPSVUVp58g/p8ReRuZUlS/a1Lk0vjU/HZN5W/g2jl0qiABWlccGEO92jvJYpD
-         mXcoLiUO7YmHdq+nOuVmSkq9hpeofAt4whu41LBY9BeHroY3C9KYyCztMI4HKwdXiQBg
-         ZY+nZAcmgzsPgOESdw6xwI1Cc4qiy6nbO8fzvnjg88D7YElAFwWP0v32mjT5RTdAX22o
-         5GYA==
-X-Gm-Message-State: APjAAAVpfyW3ihqMvwSDvHmMEXaMTRM3q4kmR+HUqDflNyloEP72IPfo
-        swBiPVChJJAS2njiPvM9+mQkBQ==
-X-Google-Smtp-Source: APXvYqzx7x4PaqGGI3lQwjrwx1jljBVsRO2D7YzozT/qbBkMF/u153y1W2UIg60XDmesJBx4LOE/7Q==
-X-Received: by 2002:adf:f646:: with SMTP id x6mr21117021wrp.18.1562679584114;
-        Tue, 09 Jul 2019 06:39:44 -0700 (PDT)
-Received: from localhost (jirka.pirko.cz. [84.16.102.26])
-        by smtp.gmail.com with ESMTPSA id z25sm3598235wmf.38.2019.07.09.06.39.43
-        (version=TLS1_3 cipher=AEAD-AES256-GCM-SHA384 bits=256/256);
-        Tue, 09 Jul 2019 06:39:43 -0700 (PDT)
-Date:   Tue, 9 Jul 2019 15:39:43 +0200
-From:   Jiri Pirko <jiri@resnulli.us>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netdev@vger.kernel.org, davem@davemloft.net,
-        thomas.lendacky@amd.com, f.fainelli@gmail.com,
+        Tue, 9 Jul 2019 16:56:05 -0400
+Received: from mail.us.es ([193.147.175.20]:36562 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1729806AbfGIU4F (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 9 Jul 2019 16:56:05 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 013372812ABE
+        for <netfilter-devel@vger.kernel.org>; Tue,  9 Jul 2019 22:56:01 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id E45CECE158
+        for <netfilter-devel@vger.kernel.org>; Tue,  9 Jul 2019 22:56:00 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id D98A5DA4D0; Tue,  9 Jul 2019 22:56:00 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 18EF8DA704;
+        Tue,  9 Jul 2019 22:55:58 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Tue, 09 Jul 2019 22:55:58 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from salvia.here (unknown [31.4.194.134])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id 069D94265A31;
+        Tue,  9 Jul 2019 22:55:55 +0200 (CEST)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netdev@vger.kernel.org
+Cc:     davem@davemloft.net, thomas.lendacky@amd.com, f.fainelli@gmail.com,
         ariel.elior@cavium.com, michael.chan@broadcom.com,
         madalin.bucur@nxp.com, yisen.zhuang@huawei.com,
         salil.mehta@huawei.com, jeffrey.t.kirsher@intel.com,
@@ -71,30 +53,173 @@ Cc:     netdev@vger.kernel.org, davem@davemloft.net,
         ogerlitz@mellanox.com, Manish.Chopra@cavium.com,
         marcelo.leitner@gmail.com, mkubecek@suse.cz,
         venkatkumar.duvvuru@broadcom.com, maxime.chevallier@bootlin.com,
-        cphealy@gmail.com, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH net-next,v3 10/11] net: flow_offload: add
- flow_block_cb_is_busy() and use it
-Message-ID: <20190709133943.GC2301@nanopsycho.orion>
-References: <20190708160614.2226-1-pablo@netfilter.org>
- <20190708160614.2226-11-pablo@netfilter.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190708160614.2226-11-pablo@netfilter.org>
-User-Agent: Mutt/1.11.4 (2019-03-13)
+        cphealy@gmail.com, phil@nwl.cc, netfilter-devel@vger.kernel.org
+Subject: [PATCH net-next,v4 00/11] netfilter: add hardware offload infrastructure
+Date:   Tue,  9 Jul 2019 22:55:38 +0200
+Message-Id: <20190709205550.3160-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.11.0
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Mon, Jul 08, 2019 at 06:06:12PM CEST, pablo@netfilter.org wrote:
+Hi,
 
-[...]
+This patchset adds support for Netfilter hardware offloads.
 
->+bool flow_block_cb_is_busy(tc_setup_cb_t *cb, void *cb_ident,
+This patchset reuses the existing block infrastructure, the
+netdev_ops->ndo_setup_tc() interface, TC_SETUP_CLSFLOWER classifier and
+the flow rule API.
 
-There should be another patch before this one renaming tc_setup_cb_t and
-ndo_setup_tc. This is not TC specific anymore now, it might confuse the
-reader.
+Patch #1 adds flow_block_cb_setup_simple(), most drivers do the same thing
+         to set up flow blocks, to reduce the number of changes, consolidate
+         codebase. Use _simple() postfix as requested by Jakub Kicinski.
+         This new function resides in net/core/flow_offload.c
 
-[...]
+Patch #2 renames TC_BLOCK_{UN}BIND to FLOW_BLOCK_{UN}BIND.
+
+Patch #3 renames TCF_BLOCK_BINDER_TYPE_* to FLOW_BLOCK_BINDER_TYPE_*.
+
+Patch #4 adds flow_block_cb_alloc() and flow_block_cb_free() helper
+         functions, this is the first patch of the flow block API.
+
+Patch #5 adds the helper to deal with list operations in the flow block API.
+         This includes flow_block_cb_lookup(), flow_block_cb_add() and
+	 flow_block_cb_remove().
+
+Patch #6 adds flow_block_cb_priv(), flow_block_cb_incref() and
+         flow_block_cb_decref() which completes the flow block API.
+
+Patch #7 updates the cls_api to use the flow block API from the new
+         tcf_block_setup(). This infrastructure transports these objects
+         via list (through the tc_block_offload object) back to the core
+	 for registration.
+
+            CLS_API                           DRIVER
+        TC_SETUP_BLOCK    ---------->  setup flow_block_cb object &
+                                 it adds object to flow_block_offload->cb_list
+                                                |
+            CLS_API     <-----------------------'
+           registers                     list with flow blocks
+         flow_block_cb &                   travels back to
+       calls ->reoffload               the core for registration
+
+         drivers allocate and sets up (configure the blocks), then
+	 registration happens from the core (cls_api and netfilter).
+
+Patch #8 updates drivers to use the flow block API.
+
+Patch #9 removes the tcf block callback API, which is replaced by the
+         flow block API.
+
+Patch #10 adds the flow_block_cb_is_busy() helper to check if the block
+	  is already used by a subsystem. This helper is invoked from
+	  drivers. Once drivers are updated to support for multiple
+	  subsystems, they can remove this check.
+
+Patch #11 rename tc structure and definitions for the block bind/unbind
+	  path.
+
+Patch #12 introduces basic netfilter hardware offload infrastructure
+          for the ingress chain. This includes 5-tuple exact matching
+          and accept / drop rule actions. Only basechains are supported
+          at this stage, no .reoffload callback is implemented either.
+          Default policy to "accept" is only supported for now.
+
+        table netdev filter {
+                chain ingress {
+                        type filter hook ingress device eth0 priority 0; flags offload;
+
+                        ip daddr 192.168.0.10 tcp dport 22 drop
+                }
+        }
+
+This patchset reuses the existing tcf block callback API and it places it
+in the flow block callback API in net/core/flow_offload.c.
+
+This series aims to address Jakub and Jiri's feedback, please see specific
+patches in this batch for changelog in this v4.
+
+Please, apply. Thank you very much.
+
+P.S: yes, Phil, I still believe there is a chance.
+
+Pablo Neira Ayuso (12):
+  net: flow_offload: add flow_block_cb_setup_simple()
+  net: flow_offload: rename TC_BLOCK_{UN}BIND to FLOW_BLOCK_{UN}BIND
+  net: flow_offload: rename TCF_BLOCK_BINDER_TYPE_* to FLOW_BLOCK_BINDER_TYPE_*
+  net: flow_offload: add flow_block_cb_alloc() and flow_block_cb_free()
+  net: flow_offload: add list handling functions
+  net: flow_offload: add flow_block_cb_{priv,incref,decref}()
+  net: sched: use flow block API
+  drivers: net: use flow block API
+  net: sched: remove tcf block API
+  net: flow_offload: add flow_block_cb_is_busy() and use it
+  net: flow_offload: rename tc_cls_flower_offload to flow_cls_offload
+  netfilter: nf_tables: add hardware offload support
+
+ drivers/net/ethernet/broadcom/bnxt/bnxt.c          |  27 +--
+ drivers/net/ethernet/broadcom/bnxt/bnxt_tc.c       |  18 +-
+ drivers/net/ethernet/broadcom/bnxt/bnxt_tc.h       |   4 +-
+ drivers/net/ethernet/broadcom/bnxt/bnxt_vfr.c      |  29 +--
+ drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c    |  35 +--
+ .../net/ethernet/chelsio/cxgb4/cxgb4_tc_flower.c   |  22 +-
+ .../net/ethernet/chelsio/cxgb4/cxgb4_tc_flower.h   |   6 +-
+ drivers/net/ethernet/intel/i40e/i40e_main.c        |  49 ++--
+ drivers/net/ethernet/intel/iavf/iavf_main.c        |  58 ++---
+ drivers/net/ethernet/intel/igb/igb_main.c          |  43 ++--
+ drivers/net/ethernet/intel/ixgbe/ixgbe_main.c      |  30 +--
+ .../net/ethernet/mellanox/mlx5/core/en/tc_tun.c    |   6 +-
+ .../net/ethernet/mellanox/mlx5/core/en/tc_tun.h    |   8 +-
+ .../ethernet/mellanox/mlx5/core/en/tc_tun_geneve.c |  18 +-
+ .../ethernet/mellanox/mlx5/core/en/tc_tun_gre.c    |   4 +-
+ .../ethernet/mellanox/mlx5/core/en/tc_tun_vxlan.c  |  10 +-
+ drivers/net/ethernet/mellanox/mlx5/core/en_main.c  |  38 +--
+ drivers/net/ethernet/mellanox/mlx5/core/en_rep.c   |  94 ++++----
+ drivers/net/ethernet/mellanox/mlx5/core/en_tc.c    |  34 +--
+ drivers/net/ethernet/mellanox/mlx5/core/en_tc.h    |   6 +-
+ drivers/net/ethernet/mellanox/mlxsw/spectrum.c     | 116 +++++----
+ drivers/net/ethernet/mellanox/mlxsw/spectrum.h     |  10 +-
+ .../net/ethernet/mellanox/mlxsw/spectrum_flower.c  |  34 +--
+ drivers/net/ethernet/mscc/ocelot_ace.h             |   4 +-
+ drivers/net/ethernet/mscc/ocelot_flower.c          |  70 +++---
+ drivers/net/ethernet/mscc/ocelot_tc.c              |  47 ++--
+ drivers/net/ethernet/netronome/nfp/abm/cls.c       |  22 +-
+ drivers/net/ethernet/netronome/nfp/abm/main.h      |   2 +-
+ drivers/net/ethernet/netronome/nfp/bpf/main.c      |  30 +--
+ drivers/net/ethernet/netronome/nfp/flower/action.c |  14 +-
+ drivers/net/ethernet/netronome/nfp/flower/main.h   |   6 +-
+ drivers/net/ethernet/netronome/nfp/flower/match.c  |  44 ++--
+ .../net/ethernet/netronome/nfp/flower/metadata.c   |   2 +-
+ .../net/ethernet/netronome/nfp/flower/offload.c    | 116 +++++----
+ drivers/net/ethernet/qlogic/qede/qede.h            |   2 +-
+ drivers/net/ethernet/qlogic/qede/qede_filter.c     |   2 +-
+ drivers/net/ethernet/qlogic/qede/qede_main.c       |  32 +--
+ drivers/net/ethernet/stmicro/stmmac/stmmac_main.c  |  23 +-
+ drivers/net/netdevsim/netdev.c                     |  29 +--
+ include/net/flow_offload.h                         |  96 ++++++++
+ include/net/netfilter/nf_tables.h                  |  14 ++
+ include/net/netfilter/nf_tables_offload.h          |  76 ++++++
+ include/net/pkt_cls.h                              | 129 +---------
+ include/uapi/linux/netfilter/nf_tables.h           |   2 +
+ net/core/flow_offload.c                            | 118 +++++++++
+ net/dsa/slave.c                                    |  33 ++-
+ net/netfilter/Makefile                             |   2 +-
+ net/netfilter/nf_tables_api.c                      |  39 ++-
+ net/netfilter/nf_tables_offload.c                  | 267 +++++++++++++++++++++
+ net/netfilter/nft_cmp.c                            |  53 ++++
+ net/netfilter/nft_immediate.c                      |  31 +++
+ net/netfilter/nft_meta.c                           |  27 +++
+ net/netfilter/nft_payload.c                        | 187 +++++++++++++++
+ net/sched/cls_api.c                                | 211 ++++++++--------
+ net/sched/cls_flower.c                             |  24 +-
+ net/sched/sch_ingress.c                            |   6 +-
+ 56 files changed, 1579 insertions(+), 880 deletions(-)
+ create mode 100644 include/net/netfilter/nf_tables_offload.h
+ create mode 100644 net/netfilter/nf_tables_offload.c
+
+-- 
+2.11.0
+
+
