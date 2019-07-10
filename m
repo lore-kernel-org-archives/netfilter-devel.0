@@ -2,104 +2,149 @@ Return-Path: <SRS0=hDGH=VH=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.5 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,URIBL_SBL,URIBL_SBL_A,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E2B0C73C7F
-	for <netfilter-devel@archiver.kernel.org>; Wed, 10 Jul 2019 08:09:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6BB6BC606B0
+	for <netfilter-devel@archiver.kernel.org>; Wed, 10 Jul 2019 09:06:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 516682064A
-	for <netfilter-devel@archiver.kernel.org>; Wed, 10 Jul 2019 08:09:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 44C252084B
+	for <netfilter-devel@archiver.kernel.org>; Wed, 10 Jul 2019 09:06:32 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=resnulli-us.20150623.gappssmtp.com header.i=@resnulli-us.20150623.gappssmtp.com header.b="pjy217XI"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727497AbfGJIJB (ORCPT
+        id S1727695AbfGJJGb (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 10 Jul 2019 04:09:01 -0400
-Received: from mout.kundenserver.de ([217.72.192.75]:58047 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726275AbfGJIJB (ORCPT
+        Wed, 10 Jul 2019 05:06:31 -0400
+Received: from mail-wr1-f65.google.com ([209.85.221.65]:45547 "EHLO
+        mail-wr1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727516AbfGJJGb (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 10 Jul 2019 04:09:01 -0400
-Received: from threadripper.lan ([149.172.19.189]) by mrelayeu.kundenserver.de
- (mreue109 [212.227.15.145]) with ESMTPA (Nemesis) id
- 1MZkxd-1hxa0r3rmR-00WjLd; Wed, 10 Jul 2019 10:08:43 +0200
-From:   Arnd Bergmann <arnd@arndb.de>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        Roopa Prabhu <roopa@cumulusnetworks.com>,
-        Nikolay Aleksandrov <nikolay@cumulusnetworks.com>,
-        "David S. Miller" <davem@davemloft.net>
-Cc:     Arnd Bergmann <arnd@arndb.de>, wenxu <wenxu@ucloud.cn>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        bridge@lists.linux-foundation.org, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH] [net-next] netfilter: bridge: make NF_TABLES_BRIDGE tristate
-Date:   Wed, 10 Jul 2019 10:08:20 +0200
-Message-Id: <20190710080835.296696-1-arnd@arndb.de>
-X-Mailer: git-send-email 2.20.0
+        Wed, 10 Jul 2019 05:06:31 -0400
+Received: by mail-wr1-f65.google.com with SMTP id f9so1547640wre.12
+        for <netfilter-devel@vger.kernel.org>; Wed, 10 Jul 2019 02:06:29 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=resnulli-us.20150623.gappssmtp.com; s=20150623;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to:user-agent;
+        bh=gfiGdoMrNOXbv2R2b/ALuxp4d8khvzgv9lGUsocDsBc=;
+        b=pjy217XIpnijmquHDV5m9IIxXUeufF48+n5UfMueTkCPkeWqEgmBzfzifRR/9O+4nu
+         WJN/ujPs8LbUUcY0Hks9XVPEm8TV4864sulAZczauVTEPNIv+5s++7dOvj+rAiuL4uqU
+         HUawgpV/h5n67vmCzDYtnzOPywxUsLcnrbD4rg7ImB+crIQaYK+QOxXmSVYljLmIoAhx
+         OGiUwISb3bt7FZrfgc3NckIkd4raO453MbhPnt5NnvBym1gaeo/mxt2THaw8QLgNaNSY
+         E2u//KDxYvdeAHhYCwM1SJGOAPfaExEZFyuJ7/C2BqkWIbZi5zDANj3NTxCN0XzP4VmO
+         aJdQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to:user-agent;
+        bh=gfiGdoMrNOXbv2R2b/ALuxp4d8khvzgv9lGUsocDsBc=;
+        b=Bl7QoRgaWODsLu+KvHbJm4cTT6RBJHUiJlsxuj7O3+lPO6/EfIiHhuTgk2J62Ph0ZT
+         BSEKflGl1Ag3Q1mSZ6f55Vn/AAms9TuSDFlc1fw6FTeQrFzOiGyl4V4HRUyEnTWj/Hpu
+         idj3kexWcnWrCDGLa+0j1LwOwB5P4UyUEzeHDvRiKUDm4u5r7EVOFBvQW3aYOeGCCITx
+         fRNktTXm0iND5PAS9v4q9+TVnewx5fsgo4aZUWy8Pu3/f3MwWi213vSW/Clb+8ekSomd
+         EBKfnUxHfUGyHqs0vSw0oaFAgY3cVUqHO4ZOsrV2ug4eB0z4wz7eGUWY+ARxi0AoSNEO
+         gSjg==
+X-Gm-Message-State: APjAAAVjTYQ5y0Soev/izm/HkJuf3h8s/Dq/LrCfI62s9wIZFqL3Rtqo
+        cPTCSMhKUZHSGKfApDcOoKDw3w==
+X-Google-Smtp-Source: APXvYqxcBeWPqezd48Im6NCAZBn28KAUIeeIUpiU2sv+/vColU7Chh5MLaWW82St7p4SuKkIxWt8PQ==
+X-Received: by 2002:adf:e446:: with SMTP id t6mr30608322wrm.115.1562749589271;
+        Wed, 10 Jul 2019 02:06:29 -0700 (PDT)
+Received: from localhost (jirka.pirko.cz. [84.16.102.26])
+        by smtp.gmail.com with ESMTPSA id x8sm1364286wmc.5.2019.07.10.02.06.28
+        (version=TLS1_3 cipher=AEAD-AES256-GCM-SHA384 bits=256/256);
+        Wed, 10 Jul 2019 02:06:28 -0700 (PDT)
+Date:   Wed, 10 Jul 2019 11:06:28 +0200
+From:   Jiri Pirko <jiri@resnulli.us>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netdev@vger.kernel.org, davem@davemloft.net,
+        thomas.lendacky@amd.com, f.fainelli@gmail.com,
+        ariel.elior@cavium.com, michael.chan@broadcom.com,
+        madalin.bucur@nxp.com, yisen.zhuang@huawei.com,
+        salil.mehta@huawei.com, jeffrey.t.kirsher@intel.com,
+        tariqt@mellanox.com, saeedm@mellanox.com, jiri@mellanox.com,
+        idosch@mellanox.com, jakub.kicinski@netronome.com,
+        peppe.cavallaro@st.com, grygorii.strashko@ti.com, andrew@lunn.ch,
+        vivien.didelot@gmail.com, alexandre.torgue@st.com,
+        joabreu@synopsys.com, linux-net-drivers@solarflare.com,
+        ogerlitz@mellanox.com, Manish.Chopra@cavium.com,
+        marcelo.leitner@gmail.com, mkubecek@suse.cz,
+        venkatkumar.duvvuru@broadcom.com, maxime.chevallier@bootlin.com,
+        cphealy@gmail.com, phil@nwl.cc, netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH net-next,v4 05/12] net: flow_offload: add list handling
+ functions
+Message-ID: <20190710090628.GF2282@nanopsycho>
+References: <20190709205550.3160-1-pablo@netfilter.org>
+ <20190709205550.3160-6-pablo@netfilter.org>
+ <20190710073652.GD2282@nanopsycho>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Provags-ID: V03:K1:elaCO7FAVfJUeOfRfMZ/SidxX1yW9xg/dTsF+eOAjseTF+HrSsh
- O/5o2LCc/QHx9+Dtt5SpGZwyRjo+WBMgSb1nYeNSEjJ5paUqiHeO5Lojl8GV/xsWVvNC+Vt
- d7lpKPCfcrQc7XOz4ar3qp5WIH4H5Zuanv+y7mswQGzCABkfTMOoe8W17qnU5aedb3udHHJ
- wb+VVASNuep4zWR8giESA==
-X-UI-Out-Filterresults: notjunk:1;V03:K0:yMgse7shMA4=:LArjo+6xNg3a9zmYJxTdn+
- HOvd4nwyv98ntXVQMrMy9NQhoqgh8gFs8IwouZ5KzTK863X7uTeiUXjRHp/JFEcboyNL1a1H8
- HbNXt6gQQcr3Ca3esHg9nfmSUjxYFBNjnjP3DlbkMzQ4D6WzdLmWpG5gefkikmGjp8mcrP/Oo
- W+W9cndzhkGDuQ/byGySE2sE3a29dd5Sck5s3wMBHo0iuyH1kOC6Vv70VDSB+nfqC+TNpEksU
- g4Jxlhu83BHuX8mquA25nQfX7kaW0yr96SEgGbs9gdAiTTKoeC7Dhhtn3omqN0EXKuFCDCpBv
- tKtg8O7LTzxWnHCTD1hrgN07J1x1VDJm4hCfibRPuBz04zELQbpb7UpIG3fXAMuzQvG9LRP4j
- 2a26VnmKI1bpfy9T1x4ZapFRW4t4JhCjD5zYcfbkUJrf0pSyj+T6KEXaWBwt9JnAzoF669t4x
- uEifEPpGoOsEvw9rcAe4Jmz8xSujIqpdNJYFd9gRJCd5vIlmQBc9zw4xuksStC74Rj8UTetGo
- CEpUXLHkpKcokBWIT+avQVeuCep7sxZ7GdpxgwgR1A9PZei2EyeNBtmyV5Hv+igVWAZ+r5kRl
- GwgaTBqj1B0IHgcAaIa3qqR4BNYWPgGJ6eHuRzcJqgqQA9k/tI7xVahXkSGuZtwFNRRxmrzC6
- XmSfJmz0CefDEhqPnCQDPzty208/msEKOarWMU/hx81rlZoiUc4KUErX7KFtnnUgBA0Acx4Vd
- ZGYexP96hzBT+6EqkaDrcVTEHIZ2cen3nHV5Gg==
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190710073652.GD2282@nanopsycho>
+User-Agent: Mutt/1.11.4 (2019-03-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The new nft_meta_bridge code fails to link as built-in when NF_TABLES
-is a loadable module.
+Wed, Jul 10, 2019 at 09:36:52AM CEST, jiri@resnulli.us wrote:
+>Tue, Jul 09, 2019 at 10:55:43PM CEST, pablo@netfilter.org wrote:
+>
+>[...]
+>
+>
+>>@@ -176,6 +176,7 @@ struct flow_block_cb *flow_block_cb_alloc(struct net *net, tc_setup_cb_t *cb,
+>> 	if (!block_cb)
+>> 		return ERR_PTR(-ENOMEM);
+>> 
+>>+	block_cb->net = net;
+>> 	block_cb->cb = cb;
+>> 	block_cb->cb_ident = cb_ident;
+>> 	block_cb->cb_priv = cb_priv;
+>>@@ -194,6 +195,22 @@ void flow_block_cb_free(struct flow_block_cb *block_cb)
+>> }
+>> EXPORT_SYMBOL(flow_block_cb_free);
+>> 
+>>+struct flow_block_cb *flow_block_cb_lookup(struct flow_block_offload *f,
+>>+					   tc_setup_cb_t *cb, void *cb_ident)
+>>+{
+>>+	struct flow_block_cb *block_cb;
+>>+
+>>+	list_for_each_entry(block_cb, f->driver_block_list, driver_list) {
+>>+		if (block_cb->net == f->net &&
 
-net/bridge/netfilter/nft_meta_bridge.o: In function `nft_meta_bridge_get_eval':
-nft_meta_bridge.c:(.text+0x1e8): undefined reference to `nft_meta_get_eval'
-net/bridge/netfilter/nft_meta_bridge.o: In function `nft_meta_bridge_get_init':
-nft_meta_bridge.c:(.text+0x468): undefined reference to `nft_meta_get_init'
-nft_meta_bridge.c:(.text+0x49c): undefined reference to `nft_parse_register'
-nft_meta_bridge.c:(.text+0x4cc): undefined reference to `nft_validate_register_store'
-net/bridge/netfilter/nft_meta_bridge.o: In function `nft_meta_bridge_module_exit':
-nft_meta_bridge.c:(.exit.text+0x14): undefined reference to `nft_unregister_expr'
-net/bridge/netfilter/nft_meta_bridge.o: In function `nft_meta_bridge_module_init':
-nft_meta_bridge.c:(.init.text+0x14): undefined reference to `nft_register_expr'
-net/bridge/netfilter/nft_meta_bridge.o:(.rodata+0x60): undefined reference to `nft_meta_get_dump'
-net/bridge/netfilter/nft_meta_bridge.o:(.rodata+0x88): undefined reference to `nft_meta_set_eval'
+Looking at this a bit more, this is wrong. This breaks block sharing
+concept. The original lookup look up the block_cb in certain block - the
+block to be shared. With this, you broke the block sharing feature for
+mlxsw.
 
-This can happen because the NF_TABLES_BRIDGE dependency itself is just a
-'bool'.  Make the symbol a 'tristate' instead so Kconfig can propagate the
-dependencies correctly.
+We need to maintain the existing block concept (changed to flow_block).
 
-Fixes: 30e103fe24de ("netfilter: nft_meta: move bridge meta keys into nft_meta_bridge")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- net/bridge/netfilter/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/bridge/netfilter/Kconfig b/net/bridge/netfilter/Kconfig
-index 154fa558bb90..d0c75d7ec074 100644
---- a/net/bridge/netfilter/Kconfig
-+++ b/net/bridge/netfilter/Kconfig
-@@ -6,7 +6,7 @@
- menuconfig NF_TABLES_BRIDGE
- 	depends on BRIDGE && NETFILTER && NF_TABLES
- 	select NETFILTER_FAMILY_BRIDGE
--	bool "Ethernet Bridge nf_tables support"
-+	tristate "Ethernet Bridge nf_tables support"
- 
- if NF_TABLES_BRIDGE
- 
--- 
-2.20.0
-
+>
+>I don't understand why you need net for this. You should have a list of
+>cbs per subsystem (tc/nft) go over it here.
+>
+>The clash of 2 suybsytems is prevented later on by
+>flow_block_cb_is_busy().
+>
+>Am I missing something?
+>If not, could you please remove use of net from flow_block_cb_alloc()
+>and from here and replace it by some shared flow structure holding the
+>cb list that would be used by both tc and nft?
+>
+>
+>
+>>+		    block_cb->cb == cb &&
+>>+		    block_cb->cb_ident == cb_ident)
+>>+			return block_cb;
+>>+	}
+>>+
+>>+	return NULL;
+>>+}
+>>+EXPORT_SYMBOL(flow_block_cb_lookup);
+>>+
+>
+>[...]
