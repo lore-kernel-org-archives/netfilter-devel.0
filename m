@@ -2,149 +2,68 @@ Return-Path: <SRS0=hDGH=VH=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.5 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,URIBL_SBL,URIBL_SBL_A,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6BB6BC606B0
-	for <netfilter-devel@archiver.kernel.org>; Wed, 10 Jul 2019 09:06:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BE2F0C73C7C
+	for <netfilter-devel@archiver.kernel.org>; Wed, 10 Jul 2019 10:06:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 44C252084B
-	for <netfilter-devel@archiver.kernel.org>; Wed, 10 Jul 2019 09:06:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 67EA62054F
+	for <netfilter-devel@archiver.kernel.org>; Wed, 10 Jul 2019 10:06:25 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=resnulli-us.20150623.gappssmtp.com header.i=@resnulli-us.20150623.gappssmtp.com header.b="pjy217XI"
+	dkim=pass (1024-bit key) header.d=riseup.net header.i=@riseup.net header.b="iyEQvdJf"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727695AbfGJJGb (ORCPT
+        id S1726132AbfGJKGZ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 10 Jul 2019 05:06:31 -0400
-Received: from mail-wr1-f65.google.com ([209.85.221.65]:45547 "EHLO
-        mail-wr1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727516AbfGJJGb (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 10 Jul 2019 05:06:31 -0400
-Received: by mail-wr1-f65.google.com with SMTP id f9so1547640wre.12
-        for <netfilter-devel@vger.kernel.org>; Wed, 10 Jul 2019 02:06:29 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=resnulli-us.20150623.gappssmtp.com; s=20150623;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to:user-agent;
-        bh=gfiGdoMrNOXbv2R2b/ALuxp4d8khvzgv9lGUsocDsBc=;
-        b=pjy217XIpnijmquHDV5m9IIxXUeufF48+n5UfMueTkCPkeWqEgmBzfzifRR/9O+4nu
-         WJN/ujPs8LbUUcY0Hks9XVPEm8TV4864sulAZczauVTEPNIv+5s++7dOvj+rAiuL4uqU
-         HUawgpV/h5n67vmCzDYtnzOPywxUsLcnrbD4rg7ImB+crIQaYK+QOxXmSVYljLmIoAhx
-         OGiUwISb3bt7FZrfgc3NckIkd4raO453MbhPnt5NnvBym1gaeo/mxt2THaw8QLgNaNSY
-         E2u//KDxYvdeAHhYCwM1SJGOAPfaExEZFyuJ7/C2BqkWIbZi5zDANj3NTxCN0XzP4VmO
-         aJdQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to:user-agent;
-        bh=gfiGdoMrNOXbv2R2b/ALuxp4d8khvzgv9lGUsocDsBc=;
-        b=Bl7QoRgaWODsLu+KvHbJm4cTT6RBJHUiJlsxuj7O3+lPO6/EfIiHhuTgk2J62Ph0ZT
-         BSEKflGl1Ag3Q1mSZ6f55Vn/AAms9TuSDFlc1fw6FTeQrFzOiGyl4V4HRUyEnTWj/Hpu
-         idj3kexWcnWrCDGLa+0j1LwOwB5P4UyUEzeHDvRiKUDm4u5r7EVOFBvQW3aYOeGCCITx
-         fRNktTXm0iND5PAS9v4q9+TVnewx5fsgo4aZUWy8Pu3/f3MwWi213vSW/Clb+8ekSomd
-         EBKfnUxHfUGyHqs0vSw0oaFAgY3cVUqHO4ZOsrV2ug4eB0z4wz7eGUWY+ARxi0AoSNEO
-         gSjg==
-X-Gm-Message-State: APjAAAVjTYQ5y0Soev/izm/HkJuf3h8s/Dq/LrCfI62s9wIZFqL3Rtqo
-        cPTCSMhKUZHSGKfApDcOoKDw3w==
-X-Google-Smtp-Source: APXvYqxcBeWPqezd48Im6NCAZBn28KAUIeeIUpiU2sv+/vColU7Chh5MLaWW82St7p4SuKkIxWt8PQ==
-X-Received: by 2002:adf:e446:: with SMTP id t6mr30608322wrm.115.1562749589271;
-        Wed, 10 Jul 2019 02:06:29 -0700 (PDT)
-Received: from localhost (jirka.pirko.cz. [84.16.102.26])
-        by smtp.gmail.com with ESMTPSA id x8sm1364286wmc.5.2019.07.10.02.06.28
-        (version=TLS1_3 cipher=AEAD-AES256-GCM-SHA384 bits=256/256);
-        Wed, 10 Jul 2019 02:06:28 -0700 (PDT)
-Date:   Wed, 10 Jul 2019 11:06:28 +0200
-From:   Jiri Pirko <jiri@resnulli.us>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netdev@vger.kernel.org, davem@davemloft.net,
-        thomas.lendacky@amd.com, f.fainelli@gmail.com,
-        ariel.elior@cavium.com, michael.chan@broadcom.com,
-        madalin.bucur@nxp.com, yisen.zhuang@huawei.com,
-        salil.mehta@huawei.com, jeffrey.t.kirsher@intel.com,
-        tariqt@mellanox.com, saeedm@mellanox.com, jiri@mellanox.com,
-        idosch@mellanox.com, jakub.kicinski@netronome.com,
-        peppe.cavallaro@st.com, grygorii.strashko@ti.com, andrew@lunn.ch,
-        vivien.didelot@gmail.com, alexandre.torgue@st.com,
-        joabreu@synopsys.com, linux-net-drivers@solarflare.com,
-        ogerlitz@mellanox.com, Manish.Chopra@cavium.com,
-        marcelo.leitner@gmail.com, mkubecek@suse.cz,
-        venkatkumar.duvvuru@broadcom.com, maxime.chevallier@bootlin.com,
-        cphealy@gmail.com, phil@nwl.cc, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH net-next,v4 05/12] net: flow_offload: add list handling
- functions
-Message-ID: <20190710090628.GF2282@nanopsycho>
-References: <20190709205550.3160-1-pablo@netfilter.org>
- <20190709205550.3160-6-pablo@netfilter.org>
- <20190710073652.GD2282@nanopsycho>
+        Wed, 10 Jul 2019 06:06:25 -0400
+Received: from mx1.riseup.net ([198.252.153.129]:43786 "EHLO mx1.riseup.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726097AbfGJKGZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 10 Jul 2019 06:06:25 -0400
+Received: from bell.riseup.net (bell-pn.riseup.net [10.0.1.178])
+        (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+        (Client CN "*.riseup.net", Issuer "COMODO RSA Domain Validation Secure Server CA" (verified OK))
+        by mx1.riseup.net (Postfix) with ESMTPS id 225641A0B2A
+        for <netfilter-devel@vger.kernel.org>; Wed, 10 Jul 2019 03:06:24 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=riseup.net; s=squak;
+        t=1562753184; bh=pyjhtAYBb4Zl7TFUwrrZ7BxF5twMOguARQId249whEg=;
+        h=From:To:Cc:Subject:Date:From;
+        b=iyEQvdJf0ZNk0S7sPR94XJ8XTmOKYdqpKHjKP64SszD84YjsC+ND6e8Vx1kLNvUPX
+         5gKTpP7znLRma//MTEMI+wN9Rth8IJO5/3t0XgQFq3KIHmLpzx4ywDGFRoyFuhElJR
+         qpa3DbVN3GNl6TBDZYkyuj7O34ddpQTqU8LHmPuk=
+X-Riseup-User-ID: 81E7E64B197D006A356D6C18222E9B86B6006BDDC24F7886B9C80BFE5FB2BD34
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+         by bell.riseup.net (Postfix) with ESMTPSA id 6713B223259;
+        Wed, 10 Jul 2019 03:06:22 -0700 (PDT)
+From:   Fernando Fernandez Mancera <ffmancera@riseup.net>
+To:     netfilter-devel@vger.kernel.org
+Cc:     Fernando Fernandez Mancera <ffmancera@riseup.net>
+Subject: [PATCH 0/2 nf-next] Fix mss value announced to the client
+Date:   Wed, 10 Jul 2019 12:05:55 +0200
+Message-Id: <20190710100556.25307-1-ffmancera@riseup.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190710073652.GD2282@nanopsycho>
-User-Agent: Mutt/1.11.4 (2019-03-13)
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Wed, Jul 10, 2019 at 09:36:52AM CEST, jiri@resnulli.us wrote:
->Tue, Jul 09, 2019 at 10:55:43PM CEST, pablo@netfilter.org wrote:
->
->[...]
->
->
->>@@ -176,6 +176,7 @@ struct flow_block_cb *flow_block_cb_alloc(struct net *net, tc_setup_cb_t *cb,
->> 	if (!block_cb)
->> 		return ERR_PTR(-ENOMEM);
->> 
->>+	block_cb->net = net;
->> 	block_cb->cb = cb;
->> 	block_cb->cb_ident = cb_ident;
->> 	block_cb->cb_priv = cb_priv;
->>@@ -194,6 +195,22 @@ void flow_block_cb_free(struct flow_block_cb *block_cb)
->> }
->> EXPORT_SYMBOL(flow_block_cb_free);
->> 
->>+struct flow_block_cb *flow_block_cb_lookup(struct flow_block_offload *f,
->>+					   tc_setup_cb_t *cb, void *cb_ident)
->>+{
->>+	struct flow_block_cb *block_cb;
->>+
->>+	list_for_each_entry(block_cb, f->driver_block_list, driver_list) {
->>+		if (block_cb->net == f->net &&
+This is a port of Ibrahim's patch. It includes all the changes requested and it
+also fixes the mss value announced in the nftables synproxy module. Maybe it
+would be a good idea to squash it so please feel free to do it. :-)
 
-Looking at this a bit more, this is wrong. This breaks block sharing
-concept. The original lookup look up the block_cb in certain block - the
-block to be shared. With this, you broke the block sharing feature for
-mlxsw.
+Fernando Fernandez Mancera (2):
+  netfilter: synproxy: fix erroneous tcp mss option
+  netfilter: synproxy: rename mss synproxy_options field
 
-We need to maintain the existing block concept (changed to flow_block).
+ include/net/netfilter/nf_conntrack_synproxy.h |  3 ++-
+ net/ipv4/netfilter/ipt_SYNPROXY.c             |  2 ++
+ net/ipv6/netfilter/ip6t_SYNPROXY.c            |  2 ++
+ net/netfilter/nf_synproxy_core.c              | 12 ++++++------
+ net/netfilter/nft_synproxy.c                  |  2 ++
+ 5 files changed, 14 insertions(+), 7 deletions(-)
 
+-- 
+2.20.1
 
->
->I don't understand why you need net for this. You should have a list of
->cbs per subsystem (tc/nft) go over it here.
->
->The clash of 2 suybsytems is prevented later on by
->flow_block_cb_is_busy().
->
->Am I missing something?
->If not, could you please remove use of net from flow_block_cb_alloc()
->and from here and replace it by some shared flow structure holding the
->cb list that would be used by both tc and nft?
->
->
->
->>+		    block_cb->cb == cb &&
->>+		    block_cb->cb_ident == cb_ident)
->>+			return block_cb;
->>+	}
->>+
->>+	return NULL;
->>+}
->>+EXPORT_SYMBOL(flow_block_cb_lookup);
->>+
->
->[...]
