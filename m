@@ -2,101 +2,99 @@ Return-Path: <SRS0=hDGH=VH=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C972C73C7F
-	for <netfilter-devel@archiver.kernel.org>; Wed, 10 Jul 2019 07:46:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A5128C73C7C
+	for <netfilter-devel@archiver.kernel.org>; Wed, 10 Jul 2019 07:52:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 237DF20651
-	for <netfilter-devel@archiver.kernel.org>; Wed, 10 Jul 2019 07:46:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7237F20693
+	for <netfilter-devel@archiver.kernel.org>; Wed, 10 Jul 2019 07:52:30 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="rk0yxVoR"
+	dkim=pass (2048-bit key) header.d=resnulli-us.20150623.gappssmtp.com header.i=@resnulli-us.20150623.gappssmtp.com header.b="qzxxD21Z"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727123AbfGJHqG (ORCPT
+        id S1726996AbfGJHwa (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 10 Jul 2019 03:46:06 -0400
-Received: from mail-pl1-f193.google.com ([209.85.214.193]:41064 "EHLO
-        mail-pl1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726251AbfGJHqG (ORCPT
+        Wed, 10 Jul 2019 03:52:30 -0400
+Received: from mail-wm1-f66.google.com ([209.85.128.66]:40849 "EHLO
+        mail-wm1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726043AbfGJHwa (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 10 Jul 2019 03:46:06 -0400
-Received: by mail-pl1-f193.google.com with SMTP id m9so782373pls.8;
-        Wed, 10 Jul 2019 00:46:05 -0700 (PDT)
+        Wed, 10 Jul 2019 03:52:30 -0400
+Received: by mail-wm1-f66.google.com with SMTP id v19so1154511wmj.5
+        for <netfilter-devel@vger.kernel.org>; Wed, 10 Jul 2019 00:52:29 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=rV8XY23YcgGtmJ7pWfTCdKdGdKOHA29Wd8XEtkDo6dw=;
-        b=rk0yxVoRI1NSXQaTxJGnXTVDTyoh73Qr15nBHk581jpDGshkxfpn3RztceSyQs+tHe
-         ti7BzzdaHXnGOAGg6mqaBJ1SAJHD3e6CdgRxUu5ixvnbeMoOmTLMD9XC6iTWrjA6F+08
-         WKInMtFYRWZALcgK61SSZxrpio9iP4ILgs+n8XyfIl4/ijmVe2vKFVBz1EhdmKo7KRMx
-         genAn4wRFNkS02wbrK1nV8BTUxA/GLNMlgzTkAJyRvlOY05RHzqBLzUZl5A8vk4jqgvz
-         q4QPtcHkt2xMb3JPCE4OfqRs1uXAXn3kU5N3dvXfNh3+iHcvizhBiRoXII9PboSmzdrW
-         +bsw==
+        d=resnulli-us.20150623.gappssmtp.com; s=20150623;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to:user-agent;
+        bh=qhTlrZHLNRMRw8CxaRivDcNwdwMdgPSvNlEj+BqbS6g=;
+        b=qzxxD21ZSlj/SnwoplyKvzDxnDoMTqjZ4dzBknodnZD3j/W54/Hgk8A+UJhPCAGmta
+         KeMC7iqea4B5jx6RS5dTpsVrDOi2l9opBGNfkwgZKomnCGHH9URUQ5XZFjfejh3e/vHA
+         QXVEcCpRM7mQabGMhGTS3DCZ/sVCUiqSwcBdUVMmTMVzm4nosN3652eYrl8+gUjm/Jm3
+         Lf61GpKculW4W2/lFpMMotCQuhFuKKnRFeto8Aqp9mWi8uiieItkFZhFdQu4pW+A9wRI
+         9EO9tGzt0GjjtkNPeCJ2/zh1tyPkLgB5pJKQhpHn8z8LjLO6ksKbOducvepOacba7NPZ
+         BvbA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=rV8XY23YcgGtmJ7pWfTCdKdGdKOHA29Wd8XEtkDo6dw=;
-        b=tAtthZ/iazOow0jrm2CubXuUQaZ9nvi8EfaIT5a7aNFZ0EfgQnhDhX99kNIryooEH/
-         LAzBUad1DsfDAcfQQ/96IEgazuoJioScKvzuB8ITtxWN5jecZqR/D7ZBRc7k/s9qXQTM
-         I/zVf5673zQKfIYbN2wc9P5kxhYihc/r57kY1ZSWKAsLl9E4hNz7DBk0KQ6beIHLBzi9
-         Ut+BesFrU7Dc0Pbmh56KR1/ad6RdPMzHm9rcOLzjBoemfBjz+mlfwamO+Nf+rJfJZKbw
-         tp8DAdU7ON9l8y/9smGZeAIlJf0Bk8BJVyZAzc9reaaDZfa3K2GKASQwjQZfn6ZwPIiU
-         Amng==
-X-Gm-Message-State: APjAAAUdD8Ppq7xwXZAnf3+kVmpebaUsJkkx+SLYIjl7PJ1dz/lRC0xS
-        BnZVfzcBxEIdnepbJfT+Hd4=
-X-Google-Smtp-Source: APXvYqzTEtpXtNGzqCh1iEYjwJr8rhP0UH3QyDiHyaS+gj3onEv9axgpOacn/2/6w5KIyiizT1khyA==
-X-Received: by 2002:a17:902:20c8:: with SMTP id v8mr37589553plg.284.1562744765212;
-        Wed, 10 Jul 2019 00:46:05 -0700 (PDT)
-Received: from localhost.localdomain ([116.66.213.65])
-        by smtp.gmail.com with ESMTPSA id g14sm1252903pgn.8.2019.07.10.00.46.01
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-SHA bits=128/128);
-        Wed, 10 Jul 2019 00:46:04 -0700 (PDT)
-From:   yangxingwu <xingwu.yang@gmail.com>
-To:     wensong@linux-vs.org
-Cc:     horms@verge.net.au, ja@ssi.bg, pablo@netfilter.org,
-        kadlec@blackhole.kfki.hu, fw@strlen.de, davem@davemloft.net,
-        netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        linux-kernel@vger.kernel.org, yangxingwu <xingwu.yang@gmail.com>
-Subject: [PATCH] ipvs: remove unnecessary space
-Date:   Wed, 10 Jul 2019 15:45:52 +0800
-Message-Id: <20190710074552.74394-1-xingwu.yang@gmail.com>
-X-Mailer: git-send-email 2.20.1 (Apple Git-117)
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to:user-agent;
+        bh=qhTlrZHLNRMRw8CxaRivDcNwdwMdgPSvNlEj+BqbS6g=;
+        b=TeHN++E06rTqcHLP5BOvSYImNyiOz2dmUaVesIwJSt3lNGLmDQVALiK5CrAzM/DgO5
+         d3HsdBoxJ5i/KNpJYAWyVlwzehGYmiHcMf0Qt5PRvMZduy1zhi9yos1hUxsTiBMr/j4f
+         PfBXG8PxFXFeYUEUJXelhsnM1ZFhZO0dSVMWp9Jb5N8an9Hy01Rmo7v7BpbEIbbI24qq
+         h4JXamlefUld5dy3HlyLJ7KzTvLf1pJWnxkgOM7ux9b6IiHWleBizGA6kmYH/1Nt1lG4
+         nLsu81LW2COq8PegAc7wuRg6ipVHCY77fbHiYNIgrSYeccIhiIkQtSI2wL7eyrP1XpLh
+         /W5Q==
+X-Gm-Message-State: APjAAAVPUBhy6WY0wQZCaugqHz6r0miBURN7yl3gAEGyfkFqn2D0x1+z
+        sXbV4erXmVLy6f4CXF6At7vflg==
+X-Google-Smtp-Source: APXvYqy6DV5QN0XuO9nDO+bPKuNho9zU5hAr8U+yPzsraxkLWo3NR+Ld6rb4oTBpf43bvfDhnU2e4w==
+X-Received: by 2002:a1c:a01a:: with SMTP id j26mr3768636wme.112.1562745148345;
+        Wed, 10 Jul 2019 00:52:28 -0700 (PDT)
+Received: from localhost (jirka.pirko.cz. [84.16.102.26])
+        by smtp.gmail.com with ESMTPSA id l25sm1125061wme.13.2019.07.10.00.52.27
+        (version=TLS1_3 cipher=AEAD-AES256-GCM-SHA384 bits=256/256);
+        Wed, 10 Jul 2019 00:52:28 -0700 (PDT)
+Date:   Wed, 10 Jul 2019 09:52:27 +0200
+From:   Jiri Pirko <jiri@resnulli.us>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netdev@vger.kernel.org, davem@davemloft.net,
+        thomas.lendacky@amd.com, f.fainelli@gmail.com,
+        ariel.elior@cavium.com, michael.chan@broadcom.com,
+        madalin.bucur@nxp.com, yisen.zhuang@huawei.com,
+        salil.mehta@huawei.com, jeffrey.t.kirsher@intel.com,
+        tariqt@mellanox.com, saeedm@mellanox.com, jiri@mellanox.com,
+        idosch@mellanox.com, jakub.kicinski@netronome.com,
+        peppe.cavallaro@st.com, grygorii.strashko@ti.com, andrew@lunn.ch,
+        vivien.didelot@gmail.com, alexandre.torgue@st.com,
+        joabreu@synopsys.com, linux-net-drivers@solarflare.com,
+        ogerlitz@mellanox.com, Manish.Chopra@cavium.com,
+        marcelo.leitner@gmail.com, mkubecek@suse.cz,
+        venkatkumar.duvvuru@broadcom.com, maxime.chevallier@bootlin.com,
+        cphealy@gmail.com, phil@nwl.cc, netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH net-next,v4 12/12] netfilter: nf_tables: add hardware
+ offload support
+Message-ID: <20190710075227.GA4362@nanopsycho>
+References: <20190709205550.3160-1-pablo@netfilter.org>
+ <20190709205550.3160-13-pablo@netfilter.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190709205550.3160-13-pablo@netfilter.org>
+User-Agent: Mutt/1.11.4 (2019-03-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-this patch removes the extra space.
+Tue, Jul 09, 2019 at 10:55:50PM CEST, pablo@netfilter.org wrote:
 
-Signed-off-by: yangxingwu <xingwu.yang@gmail.com>
----
- net/netfilter/ipvs/ip_vs_mh.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+[...]
 
-diff --git a/net/netfilter/ipvs/ip_vs_mh.c b/net/netfilter/ipvs/ip_vs_mh.c
-index 94d9d34..98e358e 100644
---- a/net/netfilter/ipvs/ip_vs_mh.c
-+++ b/net/netfilter/ipvs/ip_vs_mh.c
-@@ -174,8 +174,8 @@ static int ip_vs_mh_populate(struct ip_vs_mh_state *s,
- 		return 0;
- 	}
- 
--	table =  kcalloc(BITS_TO_LONGS(IP_VS_MH_TAB_SIZE),
--			 sizeof(unsigned long), GFP_KERNEL);
-+	table =	kcalloc(BITS_TO_LONGS(IP_VS_MH_TAB_SIZE),
-+			sizeof(unsigned long), GFP_KERNEL);
- 	if (!table)
- 		return -ENOMEM;
- 
--- 
-1.8.3.1
+>+	if (!dev || !dev->netdev_ops->ndo_setup_tc)
 
+Why didn't you rename ndo_setup_tc? I put a comment about it in the
+previous version thread. I expect that you can at least write why it is
+a wrong idea.
+
+[...]
