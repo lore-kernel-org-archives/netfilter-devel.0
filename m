@@ -2,190 +2,195 @@ Return-Path: <SRS0=hDGH=VH=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.7 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 97607C73C7C
-	for <netfilter-devel@archiver.kernel.org>; Wed, 10 Jul 2019 11:01:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 004FAC74A22
+	for <netfilter-devel@archiver.kernel.org>; Wed, 10 Jul 2019 13:14:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 677E02064B
-	for <netfilter-devel@archiver.kernel.org>; Wed, 10 Jul 2019 11:01:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CD60120838
+	for <netfilter-devel@archiver.kernel.org>; Wed, 10 Jul 2019 13:14:31 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="A+0BwmK4"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727121AbfGJLBA (ORCPT
+        id S1727226AbfGJNO0 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 10 Jul 2019 07:01:00 -0400
-Received: from kich.slackware.pl ([193.218.152.244]:34108 "EHLO
-        kich.slackware.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725994AbfGJLA7 (ORCPT
+        Wed, 10 Jul 2019 09:14:26 -0400
+Received: from mail-pg1-f193.google.com ([209.85.215.193]:42548 "EHLO
+        mail-pg1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725956AbfGJNO0 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 10 Jul 2019 07:00:59 -0400
-X-Greylist: delayed 381 seconds by postgrey-1.27 at vger.kernel.org; Wed, 10 Jul 2019 07:00:58 EDT
-Received: from kich.toxcorp.com (kich.toxcorp.com [193.218.152.244])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-        (No client certificate requested)
-        (Authenticated sender: shasta@toxcorp.com)
-        by kich.slackware.pl (Postfix) with ESMTPSA id 3B00CC0;
-        Wed, 10 Jul 2019 12:54:36 +0200 (CEST)
-Date:   Wed, 10 Jul 2019 12:54:36 +0200 (CEST)
-From:   Jakub Jankowski <shasta@toxcorp.com>
-To:     Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-cc:     Jakub Jankowski <shasta@toxcorp.com>, netfilter@vger.kernel.org,
-        mhemsley@open-systems.com, netfilter-devel@vger.kernel.org
-Subject: Re: 3-way handshake sets conntrack timeout to max_retrans
-In-Reply-To: <alpine.DEB.2.20.1907101242560.17522@blackhole.kfki.hu>
-Message-ID: <alpine.LNX.2.21.1907101251090.26040@kich.toxcorp.com>
-References: <alpine.LNX.2.21.1907100147540.26040@kich.toxcorp.com> <alpine.DEB.2.20.1907101242560.17522@blackhole.kfki.hu>
-User-Agent: Alpine 2.21 (LNX 202 2017-01-01)
+        Wed, 10 Jul 2019 09:14:26 -0400
+Received: by mail-pg1-f193.google.com with SMTP id t132so1243129pgb.9;
+        Wed, 10 Jul 2019 06:14:25 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=VLGpVWCepPkViNPlTkxuFahJxt3WaXWMIUHUVNkKRfo=;
+        b=A+0BwmK4oAsgVef3DhVlqKulKgYebIo9OKP8qfDYLkZlxPiAd3yrKqrRq6NvoDvV/I
+         PH6wpAD9Su78O/ZS4ZU44XGzJWftifeY/yJwIzzlS3BjZUvKlJ2K5cU4tgN1FJbpJ3cr
+         GXjzau9lJ4+cwNLR/FZC/4ZtpbvuX9csG3Y502W0686CNEnuD7hZxTqQSXtYm7GSwpj8
+         utIQZ7EF0Pe5Mv20VbwEDZRrQ5vW3Sg367cCB1gO9QgBvQ9lQW0HROudGouXaUsVEhFj
+         qyxUkNSjmQ8QQRq3nSsyucroBhlvPWtGim/Can6mINjW4drLd2Npo3g2w/MnKZmPtLBq
+         BxBQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=VLGpVWCepPkViNPlTkxuFahJxt3WaXWMIUHUVNkKRfo=;
+        b=pYs7NQ7CeHdlTclfHflJ0isWLCfuOROWt55VBeelSQdYEmBXY3C5rINr4j6tniP8ST
+         TJV42mgy071vx2immjxIB9K4hZTWBaMntU+NkP+UYZ0mURj8wmJJ5Gew3l5sn5iPvlCn
+         vLOho5n+6VpwU/YdlIKFiNClLgh10wscYij54sAabfL0KD9ZfFkA/aoSjn/J8OI8R4JG
+         wsq5gsrYbzdcNQ234JINUi3vv4jgTYkCRsnbi6xfRIU4M6GqtGZXUzRy8F2TVEa9/+Kd
+         Vw9H2OYGZ29pbcLZFllMq5xu6EH0LRweh/PlaE/waff1V7afnuytaCqhb53TJkDHKG9x
+         G6XA==
+X-Gm-Message-State: APjAAAX6C2n+IoztkIPZDBVsFDGt3kLhq/hutUwCJacIbqVO4N7CSTzd
+        9RHKNSvagfI/pqMdzJ76tCEjDpMighic+Q==
+X-Google-Smtp-Source: APXvYqxzWYXUwjttKWD0MSuruhNwge1FOyOY/bWZc4n43lF4RblamDYxNzK6ccAh/vcxymQNvyfCXA==
+X-Received: by 2002:a17:90a:220a:: with SMTP id c10mr7084689pje.33.1562764465081;
+        Wed, 10 Jul 2019 06:14:25 -0700 (PDT)
+Received: from localhost.localdomain ([116.66.213.65])
+        by smtp.gmail.com with ESMTPSA id x25sm489273pfa.90.2019.07.10.06.14.21
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-SHA bits=128/128);
+        Wed, 10 Jul 2019 06:14:24 -0700 (PDT)
+From:   yangxingwu <xingwu.yang@gmail.com>
+To:     davem@davemloft.net
+Cc:     kuznet@ms2.inr.ac.ru, yoshfuji@linux-ipv6.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        pablo@netfilter.org, kadlec@blackhole.kfki.hu, fw@strlen.de,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        yangxingwu <xingwu.yang@gmail.com>
+Subject: [PATCH] ipv6: Use ipv6_authlen for len
+Date:   Wed, 10 Jul 2019 21:14:10 +0800
+Message-Id: <20190710131410.75825-1-xingwu.yang@gmail.com>
+X-Mailer: git-send-email 2.20.1 (Apple Git-117)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 2019-07-10, Jozsef Kadlecsik wrote:
+The length of AH header is computed manually as (hp->hdrlen+2)<<2.
+However, in include/linux/ipv6.h, a macro named ipv6_authlen is
+already defined for exactly the same job. This commit replaces
+the manual computation code with the macro.
 
-> Hi,
->
-> On Wed, 10 Jul 2019, Jakub Jankowski wrote:
->
->> We're debugging a weird issue. tl;dr: I have a .pcap file of connection
->> setup that makes conntrack apply TCP_CONNTRACK_RETRANS timeout (300s by
->> default) instead of TCP_CONNTRACK_ESTABLISHED (5d by default). The .pcap
->> is a recording of some app traffic running on Windows (SAP, I believe).
->>
->> To reproduce it, I set up a testbed consisting of three Debian (Buster)
->> VMs, running their default kernel (4.19.0-5-amd64, based on 4.19.37),
->> but I get the same results on vanilla 4.19.57.
->>
->>
->>              10.88.15.142        10.88.15.1
->>    ------------- enp0s3        enp0s3 -------------
->>    |           | -------------------- |           |
->>    | testhost1 |                      | testhost0 |
->>    |           | -------------------- |    (DUT)  |
->>    ------------- enp0s4        enp0s4 -------------
->>              10.88.1.2           10.88.1.1
->>
->>
->> Replaying "bad" pcap using tcpreplay from testhost1:
->>
->> root@testhost1:~# tcpreplay --cachefile=replay.cache --intf1=enp0s4
->> --intf2=enp0s3 -L 3 replay-timeadjusted.pcap
->>
->> and capturing what is seen on Device Under Test (testhost0)
->>
->> root@testhost0:~# tcpdump -s 0 -w replay-timeadjusted.pcap -i enp0s3 -nn
->>
->>
->> To pinpoint which timeout is getting set, we slightly moved these two sysctls
->> apart, because by default they're both 300s:
->>
->> # sysctl -w net.netfilter.nf_conntrack_tcp_timeout_max_retrans=313
->> # sysctl -w net.netfilter.nf_conntrack_tcp_timeout_unacknowledged=338
->>
->>
->> Firewall setup is the simplest thing we could come up with for conntrack to
->> handle this connection (and only this, to avoide pr_debug() noise):
->>
->> root@testhost0:~# iptables-save
->> # Generated by xtables-save v1.8.2 on Wed Jul 10 00:23:12 2019
->> *filter
->> :INPUT ACCEPT [0:0]
->> :FORWARD ACCEPT [0:0]
->> :OUTPUT ACCEPT [0:0]
->> :fwd - [0:0]
->> -A FORWARD -p tcp -m tcp --dport 3230 -j fwd
->> -A FORWARD -p tcp -m tcp --sport 3230 -j fwd
->> -A fwd -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
->> -A fwd -p tcp -m conntrack --ctstate NEW -m tcp --dport 3230 -j ACCEPT
->> COMMIT
->> # Completed on Wed Jul 10 00:23:12 2019
->> root@testhost0:~#
->>
->>
->> The offending handshake is:
->>
->> root@testhost0:~# tcpdump -v -nn --absolute-tcp-sequence-numbers -r
->> replayed-traffic.pcap
->> reading from file replayed-traffic.pcap, link-type EN10MB (Ethernet)
->> 01:13:25.070622 IP (tos 0x0, ttl 128, id 35410, offset 0, flags [DF], proto
->> TCP (6), length 52)
->>     10.88.15.142.51451 > 10.88.1.2.3230: Flags [S], cksum 0x1473 (correct),
->> seq 962079611, win 64240, options [mss 1460,nop,wscale 8,nop,nop,sackOK],
->> length 0
->> 01:13:26.070462 IP (tos 0x0, ttl 53, id 29815, offset 0, flags [DF], proto TCP
->> (6), length 48)
->>     10.88.1.2.3230 > 10.88.15.142.51451: Flags [S.], cksum 0x70cf (correct),
->> seq 1148284782, ack 962079612, win 65535, options [mss 1380,nop,wscale 3],
->> length 0
->> 01:13:27.070449 IP (tos 0x0, ttl 128, id 35411, offset 0, flags [DF], proto
->> TCP (6), length 40)
->>     10.88.15.142.51451 > 10.88.1.2.3230: Flags [.], cksum 0x9a46 (correct),
->> ack 1148284783, win 512, length 0
->>
->> This conversation results in the following conntrack events:
->>
->> root@testhost0:~# conntrack -E --orig-src 10.88.15.142
->>     [NEW] tcp      6 120 SYN_SENT src=10.88.15.142 dst=10.88.1.2 sport=51451
->> dport=3230 [UNREPLIED] src=10.88.1.2 dst=10.88.15.142 sport=3230 dport=51451
->>  [UPDATE] tcp      6 60 SYN_RECV src=10.88.15.142 dst=10.88.1.2 sport=51451
->> dport=3230 src=10.88.1.2 dst=10.88.15.142 sport=3230 dport=51451
->>  [UPDATE] tcp      6 312 ESTABLISHED src=10.88.15.142 dst=10.88.1.2
->> sport=51451 dport=3230 src=10.88.1.2 dst=10.88.15.142 sport=3230 dport=51451
->> [ASSURED]
->>
->>
->> After enabling all pr_debug()s in nf_conntrack_proto_tcp.c, the above
->> handshake results in this:
->>
->
-> Thanks for the thorough report, but the kernel debug log above does not
-> correspond to the packet replay: the TCP parameters do not match. Please
-> send the proper debug log, so we can look into it.
+Signed-off-by: yangxingwu <xingwu.yang@gmail.com>
+---
+ net/ipv6/ah6.c                          | 4 ++--
+ net/ipv6/exthdrs_core.c                 | 2 +-
+ net/ipv6/ip6_tunnel.c                   | 2 +-
+ net/ipv6/netfilter/ip6t_ah.c            | 2 +-
+ net/ipv6/netfilter/ip6t_ipv6header.c    | 2 +-
+ net/ipv6/netfilter/nf_conntrack_reasm.c | 2 +-
+ net/ipv6/netfilter/nf_log_ipv6.c        | 2 +-
+ 7 files changed, 8 insertions(+), 8 deletions(-)
 
-Argh. My bad, wrong copy&paste, sorry. Here goes the correct debug 
-snippet:
-
-Jul 10 01:13:25 testhost0 kernel: [ 2250.026592] tcp_new: sender end=962079612 maxend=962079612 maxwin=64240 scale=8 receiver end=0 maxend=0 maxwin=0 scale=0
-Jul 10 01:13:25 testhost0 kernel: [ 2250.026632] tcp_in_window: START
-Jul 10 01:13:25 testhost0 kernel: [ 2250.026640] tcp_in_window:
-Jul 10 01:13:25 testhost0 kernel: [ 2250.026652] seq=962079611 ack=0+(0) sack=0+(0) win=64240 end=962079612
-Jul 10 01:13:25 testhost0 kernel: [ 2250.026663] tcp_in_window: sender end=962079612 maxend=962079612 maxwin=64240 scale=8 receiver end=0 maxend=0 maxwin=0 scale=0
-Jul 10 01:13:25 testhost0 kernel: [ 2250.026671] tcp_in_window:
-Jul 10 01:13:25 testhost0 kernel: [ 2250.026680] seq=962079611 ack=0+(0) sack=0+(0) win=64240 end=962079612
-Jul 10 01:13:25 testhost0 kernel: [ 2250.026690] tcp_in_window: sender end=962079612 maxend=962079612 maxwin=64240 scale=8 receiver end=0 maxend=0 maxwin=0 scale=0
-Jul 10 01:13:25 testhost0 kernel: [ 2250.026698] tcp_in_window: I=1 II=1 III=1 IV=1
-Jul 10 01:13:25 testhost0 kernel: [ 2250.026708] tcp_in_window: res=1 sender end=962079612 maxend=962079612 maxwin=64240 receiver end=0 maxend=64240 maxwin=0
-Jul 10 01:13:25 testhost0 kernel: [ 2250.026715] tcp_conntracks:
-Jul 10 01:13:25 testhost0 kernel: [ 2250.026725] syn=1 ack=0 fin=0 rst=0 old=0 new=1
-Jul 10 01:13:26 testhost0 kernel: [ 2251.026365] tcp_in_window: START
-Jul 10 01:13:26 testhost0 kernel: [ 2251.026373] tcp_in_window:
-Jul 10 01:13:26 testhost0 kernel: [ 2251.026376] seq=1148284782 ack=962079612+(0) sack=962079612+(0) win=65535 end=1148284783
-Jul 10 01:13:26 testhost0 kernel: [ 2251.026379] tcp_in_window: sender end=0 maxend=64240 maxwin=0 scale=0 receiver end=962079612 maxend=962079612 maxwin=64240 scale=8
-Jul 10 01:13:26 testhost0 kernel: [ 2251.026380] tcp_in_window:
-Jul 10 01:13:26 testhost0 kernel: [ 2251.026382] seq=1148284782 ack=962079612+(0) sack=962079612+(0) win=65535 end=1148284783
-Jul 10 01:13:26 testhost0 kernel: [ 2251.026384] tcp_in_window: sender end=1148284783 maxend=1148284783 maxwin=65535 scale=3 receiver end=962079612 maxend=962079612 maxwin=64240 scale=8
-Jul 10 01:13:26 testhost0 kernel: [ 2251.026386] tcp_in_window: I=1 II=1 III=1 IV=1
-Jul 10 01:13:26 testhost0 kernel: [ 2251.026387] tcp_in_window: res=1 sender end=1148284783 maxend=1148284783 maxwin=65535 receiver end=962079612 maxend=962145147 maxwin=64240
-Jul 10 01:13:26 testhost0 kernel: [ 2251.026389] tcp_conntracks:
-Jul 10 01:13:26 testhost0 kernel: [ 2251.026391] syn=1 ack=1 fin=0 rst=0 old=1 new=2
-Jul 10 01:13:27 testhost0 kernel: [ 2252.026425] tcp_in_window: START
-Jul 10 01:13:27 testhost0 kernel: [ 2252.026435] tcp_in_window:
-Jul 10 01:13:27 testhost0 kernel: [ 2252.026438] seq=962079612 ack=1148284783+(0) sack=1148284783+(0) win=512 end=962079612
-Jul 10 01:13:27 testhost0 kernel: [ 2252.026440] tcp_in_window: sender end=962079612 maxend=962145147 maxwin=64240 scale=8 receiver end=1148284783 maxend=1148284783 maxwin=65535 scale=3
-Jul 10 01:13:27 testhost0 kernel: [ 2252.026442] tcp_in_window:
-Jul 10 01:13:27 testhost0 kernel: [ 2252.026444] seq=962079612 ack=1148284783+(0) sack=1148284783+(0) win=512 end=962079612
-Jul 10 01:13:27 testhost0 kernel: [ 2252.026446] tcp_in_window: sender end=962079612 maxend=962145147 maxwin=64240 scale=8 receiver end=1148284783 maxend=1148284783 maxwin=65535 scale=3
-Jul 10 01:13:27 testhost0 kernel: [ 2252.026447] tcp_in_window: I=1 II=1 III=1 IV=1
-Jul 10 01:13:27 testhost0 kernel: [ 2252.026449] tcp_in_window: res=1 sender end=962079612 maxend=962145147 maxwin=131072 receiver end=1148284783 maxend=1148415855 maxwin=65535
-Jul 10 01:13:27 testhost0 kernel: [ 2252.026451] tcp_conntracks:
-Jul 10 01:13:27 testhost0 kernel: [ 2252.026452] syn=0 ack=1 fin=0 rst=0 old=2 new=3
-
-
-J.
-
+diff --git a/net/ipv6/ah6.c b/net/ipv6/ah6.c
+index 68b9e92..626c64b 100644
+--- a/net/ipv6/ah6.c
++++ b/net/ipv6/ah6.c
+@@ -464,7 +464,7 @@ static void ah6_input_done(struct crypto_async_request *base, int err)
+ 	struct ah_data *ahp = x->data;
+ 	struct ip_auth_hdr *ah = ip_auth_hdr(skb);
+ 	int hdr_len = skb_network_header_len(skb);
+-	int ah_hlen = (ah->hdrlen + 2) << 2;
++	int ah_hlen = ipv6_authlen(ah);
+ 
+ 	if (err)
+ 		goto out;
+@@ -546,7 +546,7 @@ static int ah6_input(struct xfrm_state *x, struct sk_buff *skb)
+ 	ahash = ahp->ahash;
+ 
+ 	nexthdr = ah->nexthdr;
+-	ah_hlen = (ah->hdrlen + 2) << 2;
++	ah_hlen = ipv6_authlen(ah);
+ 
+ 	if (ah_hlen != XFRM_ALIGN8(sizeof(*ah) + ahp->icv_full_len) &&
+ 	    ah_hlen != XFRM_ALIGN8(sizeof(*ah) + ahp->icv_trunc_len))
+diff --git a/net/ipv6/exthdrs_core.c b/net/ipv6/exthdrs_core.c
+index 11a43ee..b358f1a 100644
+--- a/net/ipv6/exthdrs_core.c
++++ b/net/ipv6/exthdrs_core.c
+@@ -266,7 +266,7 @@ int ipv6_find_hdr(const struct sk_buff *skb, unsigned int *offset,
+ 		} else if (nexthdr == NEXTHDR_AUTH) {
+ 			if (flags && (*flags & IP6_FH_F_AUTH) && (target < 0))
+ 				break;
+-			hdrlen = (hp->hdrlen + 2) << 2;
++			hdrlen = ipv6_authlen(hp);
+ 		} else
+ 			hdrlen = ipv6_optlen(hp);
+ 
+diff --git a/net/ipv6/ip6_tunnel.c b/net/ipv6/ip6_tunnel.c
+index b80fde1..3134fbb 100644
+--- a/net/ipv6/ip6_tunnel.c
++++ b/net/ipv6/ip6_tunnel.c
+@@ -416,7 +416,7 @@ __u16 ip6_tnl_parse_tlv_enc_lim(struct sk_buff *skb, __u8 *raw)
+ 				break;
+ 			optlen = 8;
+ 		} else if (nexthdr == NEXTHDR_AUTH) {
+-			optlen = (hdr->hdrlen + 2) << 2;
++			optlen = ipv6_authlen(hdr);
+ 		} else {
+ 			optlen = ipv6_optlen(hdr);
+ 		}
+diff --git a/net/ipv6/netfilter/ip6t_ah.c b/net/ipv6/netfilter/ip6t_ah.c
+index 0228ff3..4e15a14 100644
+--- a/net/ipv6/netfilter/ip6t_ah.c
++++ b/net/ipv6/netfilter/ip6t_ah.c
+@@ -55,7 +55,7 @@ static bool ah_mt6(const struct sk_buff *skb, struct xt_action_param *par)
+ 		return false;
+ 	}
+ 
+-	hdrlen = (ah->hdrlen + 2) << 2;
++	hdrlen = ipv6_authlen(ah);
+ 
+ 	pr_debug("IPv6 AH LEN %u %u ", hdrlen, ah->hdrlen);
+ 	pr_debug("RES %04X ", ah->reserved);
+diff --git a/net/ipv6/netfilter/ip6t_ipv6header.c b/net/ipv6/netfilter/ip6t_ipv6header.c
+index fd439f8..0fc6326 100644
+--- a/net/ipv6/netfilter/ip6t_ipv6header.c
++++ b/net/ipv6/netfilter/ip6t_ipv6header.c
+@@ -71,7 +71,7 @@
+ 		if (nexthdr == NEXTHDR_FRAGMENT)
+ 			hdrlen = 8;
+ 		else if (nexthdr == NEXTHDR_AUTH)
+-			hdrlen = (hp->hdrlen + 2) << 2;
++			hdrlen = ipv6_authlen(hp);
+ 		else
+ 			hdrlen = ipv6_optlen(hp);
+ 
+diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
+index 84322ce..16de015 100644
+--- a/net/ipv6/netfilter/nf_conntrack_reasm.c
++++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
+@@ -421,7 +421,7 @@ static int nf_ct_frag6_reasm(struct frag_queue *fq, struct sk_buff *skb,
+ 		if (skb_copy_bits(skb, start, &hdr, sizeof(hdr)))
+ 			BUG();
+ 		if (nexthdr == NEXTHDR_AUTH)
+-			hdrlen = (hdr.hdrlen+2)<<2;
++			hdrlen = ipv6_authlen(&hdr);
+ 		else
+ 			hdrlen = ipv6_optlen(&hdr);
+ 
+diff --git a/net/ipv6/netfilter/nf_log_ipv6.c b/net/ipv6/netfilter/nf_log_ipv6.c
+index 549c511..f53bd8f 100644
+--- a/net/ipv6/netfilter/nf_log_ipv6.c
++++ b/net/ipv6/netfilter/nf_log_ipv6.c
+@@ -155,7 +155,7 @@ static void dump_ipv6_packet(struct net *net, struct nf_log_buf *m,
+ 
+ 			}
+ 
+-			hdrlen = (hp->hdrlen+2)<<2;
++			hdrlen = ipv6_authlen(hp);
+ 			break;
+ 		case IPPROTO_ESP:
+ 			if (logflags & NF_LOG_IPOPT) {
 -- 
-Jakub Jankowski|shasta@toxcorp.com|https://toxcorp.com/
+1.8.3.1
+
