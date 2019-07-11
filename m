@@ -1,101 +1,55 @@
 Return-Path: <SRS0=IQIq=VI=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
-X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Level: **
+X-Spam-Status: No, score=2.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UNWANTED_LANGUAGE_BODY,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 49C29C74A45
-	for <netfilter-devel@archiver.kernel.org>; Thu, 11 Jul 2019 03:40:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 74AF8C74A4B
+	for <netfilter-devel@archiver.kernel.org>; Thu, 11 Jul 2019 07:45:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1F52720872
-	for <netfilter-devel@archiver.kernel.org>; Thu, 11 Jul 2019 03:40:35 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="MQSWRWsA"
+	by mail.kernel.org (Postfix) with ESMTP id 5033921019
+	for <netfilter-devel@archiver.kernel.org>; Thu, 11 Jul 2019 07:45:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727831AbfGKDkT (ORCPT
+        id S1727785AbfGKHpd (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 10 Jul 2019 23:40:19 -0400
-Received: from mail-pg1-f193.google.com ([209.85.215.193]:34891 "EHLO
-        mail-pg1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725977AbfGKDkT (ORCPT
+        Thu, 11 Jul 2019 03:45:33 -0400
+Received: from mail.thorholdings.com ([201.218.124.195]:49462 "EHLO
+        bdsupport.top" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1726363AbfGKHpd (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 10 Jul 2019 23:40:19 -0400
-Received: by mail-pg1-f193.google.com with SMTP id s27so2226249pgl.2;
-        Wed, 10 Jul 2019 20:40:18 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=M8wX1u1AyY8aIZh85CrgBQrNgkI4YoDiE4Y/ARBtWTI=;
-        b=MQSWRWsAWJYvODOaMa5S5WYGn5WyApLDP13/bq1J3buPbjvqYJk04y5+eL1GBCPaEY
-         VxMNOWWX/W8DqqO0Cycuruwb36aIFFnuV+tscB1DRqRuS9BkZh1rUkwn2yyJgDkC+pDu
-         kx7fMeiWEn4hBGCAR+IMyee/am4cZRsk4uXbhxS7Yj6ONNrCqsd2KD+JtV7wkWRtueJj
-         lwzKDnD6v1FnSawOO7c0h3P3kxy554wDZGoIiFrnWjoayKHK/WHfy5j+97z+IXEwhlO6
-         HsYmw+95wRiHg6gkWWwdZL9X+7cHT6pmJwCjust5djfhvzIufdEyFICSR8cnVqESD0cd
-         NgAQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=M8wX1u1AyY8aIZh85CrgBQrNgkI4YoDiE4Y/ARBtWTI=;
-        b=S3tfGs3UlbGzzDeXlaVJbweFYPahR6qjEcods5F+0kf9giTjCvCZazVsjKlGUtjaqc
-         PIbPfoWT2Sw6h/6QOmeYUTWXS1IX/Ct2CvgkmW7g36VDoYBpryoU6yhVo3QNHBRM4v/G
-         1N/0htJaWT8/ANLZfvc1x59x3V5pB0tcWop9w4EPIYwFlzYNkbDmZDbSi5FlvWt57O7K
-         7ulFI3pUpl/n9o8kyAW7jtBCOpQZ+GTfe7bXZC5kHVhvJlTopSIB4DEatVOjFvciGJvE
-         bQ55wkfmEAw3+RKMPtELe4zCvh9vr1ZdJCkD9B978z/tGcn5vbbN8C82fpj85CpSYMGq
-         b/5g==
-X-Gm-Message-State: APjAAAXaWvmCPRaklGe7HEUYm6cUDPBTK++kUb8IbJZT54BnPDcfOiWZ
-        OVj4H0vjym0tOSA0XTsaEHA=
-X-Google-Smtp-Source: APXvYqxYR5XW+F/7S+4Zmn+naLYm4I1R/JfSfk5RrKN/ZLUBN1s5HNPr3vy1j6yMf97NWWQce/VQvA==
-X-Received: by 2002:a65:6152:: with SMTP id o18mr1869115pgv.279.1562816418283;
-        Wed, 10 Jul 2019 20:40:18 -0700 (PDT)
-Received: from localhost.localdomain ([116.66.213.65])
-        by smtp.gmail.com with ESMTPSA id c130sm3543777pfc.184.2019.07.10.20.40.14
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-SHA bits=128/128);
-        Wed, 10 Jul 2019 20:40:17 -0700 (PDT)
-From:   yangxingwu <xingwu.yang@gmail.com>
-To:     wensong@linux-vs.org
-Cc:     horms@verge.net.au, ja@ssi.bg, pablo@netfilter.org,
-        kadlec@blackhole.kfki.hu, fw@strlen.de, davem@davemloft.net,
-        netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        linux-kernel@vger.kernel.org, yangxingwu <xingwu.yang@gmail.com>
-Subject: [PATCH] ipvs: remove unnecessary space
-Date:   Thu, 11 Jul 2019 11:39:59 +0800
-Message-Id: <20190711033959.1593-1-xingwu.yang@gmail.com>
-X-Mailer: git-send-email 2.20.1 (Apple Git-117)
-MIME-Version: 1.0
+        Thu, 11 Jul 2019 03:45:33 -0400
+To:     netfilter-devel@vger.kernel.org
+From:   Oliver Klemens <info@bdsupport.top>
+Subject: FW: Kontakt.
+Date:   Thu, 11 Jul 2019 02:45:33 -0500
+Message-ID: <20190711_074533_012487.info@bdsupport.top>
+X-Mailer: WEBMAIL
 Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Mime-Version: 1.0
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-this patch removes the extra space and use bitmap_zalloc instead
+Sehr geehrte Damen und Herren,
 
-Signed-off-by: yangxingwu <xingwu.yang@gmail.com>
+nach unserem Besuch Ihrer Homepage möchten wir Ihnen ein Angebot von Produkten vorstellen, das Ihnen ermöglichen wird, den Verkauf Ihrer Produkte sowie Dienstleistungen deutlich zu erhöhen.
+
+Gewinnen Sie gezielt neue Kunden. Mit den täglich aktualisierten Firmenadressen aus der Firmendatenbank GC-Contact erreichen Sie Ihre Zielgruppe punktgenau.
+
 ---
- net/netfilter/ipvs/ip_vs_mh.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+1. Gesamtpaket 2019 DE - 1,4 Mio. Firmenadressen ( 1 457 620 ) - 190 € ( bis zum 11.07.2019 )
+2. Gesamtpaket 2019 DE,AT,CH - 1,7 Mio. Firmenadressen ( 1 747 921 ) - 240 € ( bis zum 11.07.2019 )
+---
+3. Schweiz 2019 ( 187 911 ) - 149 € ( bis zum 11.07.2019 )
+4. Österreich 2019 ( 104 000 ) - 149 € ( bis zum 11.07.2019 )
+---
 
-diff --git a/net/netfilter/ipvs/ip_vs_mh.c b/net/netfilter/ipvs/ip_vs_mh.c
-index 94d9d34..3229867 100644
---- a/net/netfilter/ipvs/ip_vs_mh.c
-+++ b/net/netfilter/ipvs/ip_vs_mh.c
-@@ -174,8 +174,7 @@ static int ip_vs_mh_populate(struct ip_vs_mh_state *s,
- 		return 0;
- 	}
- 
--	table =  kcalloc(BITS_TO_LONGS(IP_VS_MH_TAB_SIZE),
--			 sizeof(unsigned long), GFP_KERNEL);
-+	table = bitmap_zalloc(IP_VS_MH_TAB_SIZE, GFP_KERNEL);
- 	if (!table)
- 		return -ENOMEM;
- 
--- 
-1.8.3.1
+http://www.dbc-adressen.top/?page=catalog
+
+Mit freundlichen Grüßen
+Oliver Klemens
 
