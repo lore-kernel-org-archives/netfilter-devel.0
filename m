@@ -2,33 +2,32 @@ Return-Path: <SRS0=nOV7=VK=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 15EB3C742D7
-	for <netfilter-devel@archiver.kernel.org>; Sat, 13 Jul 2019 15:38:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C32A6C742D7
+	for <netfilter-devel@archiver.kernel.org>; Sat, 13 Jul 2019 15:38:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E4E24204FD
-	for <netfilter-devel@archiver.kernel.org>; Sat, 13 Jul 2019 15:38:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A7DC0204FD
+	for <netfilter-devel@archiver.kernel.org>; Sat, 13 Jul 2019 15:38:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727809AbfGMPia (ORCPT
+        id S1728018AbfGMPio (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 13 Jul 2019 11:38:30 -0400
-Received: from cmccmta2.chinamobile.com ([221.176.66.80]:2141 "EHLO
-        cmccmta2.chinamobile.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727656AbfGMPia (ORCPT
+        Sat, 13 Jul 2019 11:38:44 -0400
+Received: from cmccmta1.chinamobile.com ([221.176.66.79]:2107 "EHLO
+        cmccmta1.chinamobile.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727626AbfGMPio (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 13 Jul 2019 11:38:30 -0400
-Received: from spf.mail.chinamobile.com (unknown[172.16.121.5]) by rmmx-syy-dmz-app08-12008 (RichMail) with SMTP id 2ee85d29f77052c-3a621; Sat, 13 Jul 2019 23:23:28 +0800 (CST)
-X-RM-TRANSID: 2ee85d29f77052c-3a621
+        Sat, 13 Jul 2019 11:38:44 -0400
+Received: from spf.mail.chinamobile.com (unknown[172.16.121.19]) by rmmx-syy-dmz-app03-12003 (RichMail) with SMTP id 2ee35d29f763725-3a85a; Sat, 13 Jul 2019 23:23:16 +0800 (CST)
+X-RM-TRANSID: 2ee35d29f763725-3a85a
 X-RM-TagInfo: emlType=0                                       
 X-RM-SPAM-FLAG: 00000000
 Received: from localhost (unknown[223.105.0.241])
-        by rmsmtp-syy-appsvr03-12003 (RichMail) with SMTP id 2ee35d29f76f5a8-83a47;
-        Sat, 13 Jul 2019 23:23:28 +0800 (CST)
-X-RM-TRANSID: 2ee35d29f76f5a8-83a47
+        by rmsmtp-syy-appsvr10-12010 (RichMail) with SMTP id 2eea5d29f7641cf-8262e;
+        Sat, 13 Jul 2019 23:23:16 +0800 (CST)
+X-RM-TRANSID: 2eea5d29f7641cf-8262e
 From:   Haishuang Yan <yanhaishuang@cmss.chinamobile.com>
 To:     "David S. Miller" <davem@davemloft.net>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
@@ -36,65 +35,27 @@ To:     "David S. Miller" <davem@davemloft.net>,
 Cc:     netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
         linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
         Haishuang Yan <yanhaishuang@cmss.chinamobile.com>
-Subject: [net-next 2/2] ipvs: batch __ip_vs_dev_cleanup
-Date:   Sat, 13 Jul 2019 23:19:46 +0800
-Message-Id: <1563031186-2101-3-git-send-email-yanhaishuang@cmss.chinamobile.com>
+Subject: [net-next 0/2] ipvs: speedup ipvs netns dismantle
+Date:   Sat, 13 Jul 2019 23:19:44 +0800
+Message-Id: <1563031186-2101-1-git-send-email-yanhaishuang@cmss.chinamobile.com>
 X-Mailer: git-send-email 1.8.3.1
-In-Reply-To: <1563031186-2101-1-git-send-email-yanhaishuang@cmss.chinamobile.com>
-References: <1563031186-2101-1-git-send-email-yanhaishuang@cmss.chinamobile.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-It's better to batch __ip_vs_cleanup to speedup ipvs
-devices dismantle.
+Implement exit_batch() method to dismantle more ipvs netns
+per round.
 
-Signed-off-by: Haishuang Yan <yanhaishuang@cmss.chinamobile.com>
----
- net/netfilter/ipvs/ip_vs_core.c | 20 +++++++++++++-------
- 1 file changed, 13 insertions(+), 7 deletions(-)
+Haishuang Yan (2):
+  ipvs: batch __ip_vs_cleanup
+  ipvs: batch __ip_vs_dev_cleanup
 
-diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-index b4d79b7..58af24a 100644
---- a/net/netfilter/ipvs/ip_vs_core.c
-+++ b/net/netfilter/ipvs/ip_vs_core.c
-@@ -2434,14 +2434,20 @@ static int __net_init __ip_vs_dev_init(struct net *net)
- 	return ret;
- }
- 
--static void __net_exit __ip_vs_dev_cleanup(struct net *net)
-+static void __net_exit __ip_vs_dev_cleanup_batch(struct list_head *net_list)
- {
--	struct netns_ipvs *ipvs = net_ipvs(net);
-+	struct netns_ipvs *ipvs;
-+	struct net *net;
-+	LIST_HEAD(list);
-+
- 	EnterFunction(2);
--	nf_unregister_net_hooks(net, ip_vs_ops, ARRAY_SIZE(ip_vs_ops));
--	ipvs->enable = 0;	/* Disable packet reception */
--	smp_wmb();
--	ip_vs_sync_net_cleanup(ipvs);
-+	list_for_each_entry(net, net_list, exit_list) {
-+		ipvs = net_ipvs(net);
-+		nf_unregister_net_hooks(net, ip_vs_ops, ARRAY_SIZE(ip_vs_ops));
-+		ipvs->enable = 0;	/* Disable packet reception */
-+		smp_wmb();
-+		ip_vs_sync_net_cleanup(ipvs);
-+	}
- 	LeaveFunction(2);
- }
- 
-@@ -2454,7 +2460,7 @@ static void __net_exit __ip_vs_dev_cleanup(struct net *net)
- 
- static struct pernet_operations ipvs_core_dev_ops = {
- 	.init = __ip_vs_dev_init,
--	.exit = __ip_vs_dev_cleanup,
-+	.exit_batch = __ip_vs_dev_cleanup_batch,
- };
- 
- /*
+ include/net/ip_vs.h             |  2 +-
+ net/netfilter/ipvs/ip_vs_core.c | 49 +++++++++++++++++++++++++----------------
+ net/netfilter/ipvs/ip_vs_ctl.c  | 13 ++++++++---
+ 3 files changed, 41 insertions(+), 23 deletions(-)
+
 -- 
 1.8.3.1
 
