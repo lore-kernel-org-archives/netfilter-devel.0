@@ -2,294 +2,196 @@ Return-Path: <SRS0=nOV7=VK=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A93D6C31E40
-	for <netfilter-devel@archiver.kernel.org>; Sat, 13 Jul 2019 17:23:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DDBFFC31E40
+	for <netfilter-devel@archiver.kernel.org>; Sat, 13 Jul 2019 18:45:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7CC2220838
-	for <netfilter-devel@archiver.kernel.org>; Sat, 13 Jul 2019 17:23:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9C12920848
+	for <netfilter-devel@archiver.kernel.org>; Sat, 13 Jul 2019 18:45:22 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="m8JUmKLA"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727896AbfGMRXg (ORCPT
+        id S1727879AbfGMSpW (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 13 Jul 2019 13:23:36 -0400
-Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:45072 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727853AbfGMRXf (ORCPT
+        Sat, 13 Jul 2019 14:45:22 -0400
+Received: from mail-ed1-f52.google.com ([209.85.208.52]:39914 "EHLO
+        mail-ed1-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727874AbfGMSpV (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 13 Jul 2019 13:23:35 -0400
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.89)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1hmLkC-0003vr-Gd; Sat, 13 Jul 2019 19:23:32 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>,
-        Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nft] proto: add pseudo th protocol to match d/sport in generic way
-Date:   Sat, 13 Jul 2019 19:23:27 +0200
-Message-Id: <20190713172327.13928-1-fw@strlen.de>
-X-Mailer: git-send-email 2.21.0
+        Sat, 13 Jul 2019 14:45:21 -0400
+Received: by mail-ed1-f52.google.com with SMTP id m10so11915881edv.6
+        for <netfilter-devel@vger.kernel.org>; Sat, 13 Jul 2019 11:45:20 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:from:date:message-id:subject:to:cc;
+        bh=rZ421yy419gBa9zp5kiXF44KKjufyUDiz9clkqW4qfM=;
+        b=m8JUmKLATCYMexNllXLbAmZ/yqKujnJ+d0BbEVxBUCq1edvkjfwDLNaggsfq5cPl3f
+         ypr4o0FSHQmTl/xDTonvT/Yg3O/MgUxUjXyxc4Y7uiORZ0X+pzCQhUDbagb92t2V045X
+         daXY8n2a24v+pnH4KGCoRJOFxvuLW76+ET1tYLYsULGXBXcGX0OXug3W5YJ7KF37sSsd
+         BsHZgxdxlB52bolU1fyENzu002so3uZQLWMzqd2pP8ZEfHwwqdWdH0wZYAqM9LTwYRHT
+         FdabqOloGR+WDRFu1UUh2NIXttPGX8mBGU/pdby11gyjX3F1tYWpJ3qCTBpHyws+6XpB
+         OaMg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:from:date:message-id:subject:to:cc;
+        bh=rZ421yy419gBa9zp5kiXF44KKjufyUDiz9clkqW4qfM=;
+        b=UbFLMBkjfPnCtAEGSbccZaSQ2ESjhMdFP/1GrdkATafdVZpFU2HREl8YUF85LKBrxs
+         14+y6UNg2jicWiPWCnmDXozbjuw1XbfJGEqk3eYuOrXRYpX6sC+K1dd3YY04b3XcWsft
+         pNY3nGWnJdh0wbCgFmSa9/eBm5tasbeiViY3XBqrFNpmdj44wgYz390G99GRDXv9h+Cl
+         kiEOdXBQzsNPp7VsZrX89DMhMTLkR1I1GM/+rNK6j4rwTjMxREmGIMevU/CWr/RP8QzO
+         rhwq2LYFeCyQwkre7gL1sZ1nJqsZP7JL0JOjOo0opUEOuOG5DtVD+xFMASf7Jq74xm8D
+         IQFw==
+X-Gm-Message-State: APjAAAUq0F0aYUEEuFwH/kcsIBekxBAFNaKwuLVQYXhCDPpiNHmCYyeU
+        tqwM3EzIVP46xo5Qo+SRFLOFu1Ujo2Ofbcb2fPcG5u3J
+X-Google-Smtp-Source: APXvYqxa4/upk/diAroUK+A+lN4PS4DASu/wn0U4vo9mmvhJOnmt345PMfz+bkefNuWF29MD7HMQsRKemPCgSRuWTJ8=
+X-Received: by 2002:a17:906:318e:: with SMTP id 14mr13673871ejy.85.1563043519108;
+ Sat, 13 Jul 2019 11:45:19 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+From:   Anatoly Pugachev <matorola@gmail.com>
+Date:   Sat, 13 Jul 2019 21:45:08 +0300
+Message-ID: <CADxRZqwxBCV6G2OMjuv3S49MsDeSuAHfN8vnVSFm_Uvv1BD1Og@mail.gmail.com>
+Subject: [sparc64] nft bus error
+To:     netfilter-devel@vger.kernel.org
+Cc:     coreteam@netfilter.org,
+        debian-sparc <debian-sparc@lists.debian.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Problem: Its not possible to easily match both udp and tcp in a single
-rule.
+Hello!
 
-... input ip protocol { tcp,udp } dport 53
+Getting nft (libnftnl) bus error with sparc64 linux machine.
 
-will not work, as bison expects "tcp dport" or "sctp dport", or any
-other transport protocol name.
+using git version of libnftnl and nftables (installed under /opt/nft):
+mator@ttip:/1/mator/libnftnl$ git desc
+libnftnl-1.1.3-7-ga6a2d0c
+mator@ttip:/1/mator/libnftnl$ cd ../nftables/
+mator@ttip:/1/mator/nftables$ git desc
+v0.9.1-25-g87c0bee
 
-Its possible to match the sport and dport via raw payload expressions,
-e.g.:
-... input ip protocol { tcp,udp } @th,16,16 53
+# which nft
+/opt/nft/sbin/nft
+# nft  list tables
+table ip sshguard
+table ip6 sshguard
+(loading some rules)
+# nft -f /etc/nft.rules
+# nft  list tables
+Bus error
+(run under gdb)
+# gdb -q /opt/nft/sbin/nft
+Reading symbols from /opt/nft/sbin/nft...done.
+(gdb) set args list tables
+(gdb) run
+Starting program: /opt/nft/sbin/nft list tables
 
-but its not very readable.
-Furthermore, its not possible to use this for set definitions:
+Program received signal SIGBUS, Bus error.
+0xfff8000100946490 in nftnl_udata_get_u32 (attr=0x10000106e30) at udata.c:127
+127             return *data;
+(gdb) bt
+#0  0xfff8000100946490 in nftnl_udata_get_u32 (attr=0x10000106e30) at
+udata.c:127
+#1  0xfff8000100168db8 in netlink_delinearize_set (ctx=0x7feffffee08,
+nls=0x100001076e0) at netlink.c:568
+#2  0xfff800010016929c in list_set_cb (nls=0x100001076e0,
+arg=0x7feffffee08) at netlink.c:647
+#3  0xfff800010094083c in nftnl_set_list_foreach
+(set_list=0x10000107640, cb=0xfff8000100169278 <list_set_cb>,
+data=0x7feffffee08) at set.c:780
+#4  0xfff80001001693a4 in netlink_list_sets (ctx=0x7feffffee08,
+h=0x10000107160) at netlink.c:668
+#5  0xfff800010013ba90 in cache_init_objects (ctx=0x7feffffee08,
+flags=127) at rule.c:161
+#6  0xfff800010013be98 in cache_init (ctx=0x7feffffee08, flags=127) at
+rule.c:220
+#7  0xfff800010013c0b8 in cache_update (nft=0x10000106a20, flags=127,
+msgs=0x7fefffff140) at rule.c:258
+#8  0xfff800010018cca4 in nft_evaluate (nft=0x10000106a20,
+msgs=0x7fefffff140, cmds=0x7fefffff130) at libnftables.c:406
+#9  0xfff800010018cf4c in nft_run_cmd_from_buffer (nft=0x10000106a20,
+buf=0x10000106d40 "list tables") at libnftables.c:447
+#10 0x0000010000002088 in main (argc=3, argv=0x7fefffff618) at main.c:316
+(gdb)
 
-table inet filter {
-        set myset {
-                type ipv4_addr . inet_proto . inet_service
-        }
 
-        chain forward {
-                type filter hook forward priority filter; policy accept;
-                ip daddr . ip protocol . @th,0,16 @myset
-        }
-}
- # nft -f test
- test:7:26-35: Error: can not use variable sized data types (integer) in concat expressions
 
-During the netfilter workshop Pablo suggested to add an alias to do raw
-sport/dport matching more readable, and make it use the inet_service
-type automatically.
 
-So, this change makes @th,0,16 work for the set definition case by
-setting the data type to inet_service.
+# cat /etc/nft.rules
+# Translated by iptables-restore-translate v1.8.3 on Sat Jul 13 10:53:36 2019
+add table ip filter
+add chain ip filter INPUT { type filter hook input priority 0; policy accept; }
+add chain ip filter FORWARD { type filter hook forward priority 0;
+policy accept; }
+add chain ip filter OUTPUT { type filter hook output priority 0;
+policy accept; }
+# -t filter -A INPUT -p tcp --dport 22 -m set --match-set sshguard4 src -j DROP
+add rule ip filter INPUT iifname "lo" counter accept
+add rule ip filter INPUT ct state related,established counter accept
+add rule ip filter INPUT ct state new  tcp dport 22 counter accept
+add rule ip filter INPUT ip saddr 10.8.1.0/24 counter accept
+add rule ip filter INPUT ip protocol icmp counter accept
+add rule ip filter INPUT ip protocol udp udp dport 33434-33529 counter accept
+add rule ip filter INPUT iifname "eth0" ip saddr 10.190.2.0/24 ct
+state new  tcp dport 445 counter accept
+add rule ip filter INPUT iifname "eth0" ip saddr 10.190.2.0/24 ct
+state new  udp dport 445 counter accept
+add rule ip filter INPUT iifname "eth0" ip saddr 192.168.158.0/24 ct
+state new  tcp dport 445 counter accept
+add rule ip filter INPUT iifname "eth0" ip saddr 192.168.158.0/24 ct
+state new  udp dport 445 counter accept
+add rule ip filter INPUT ip protocol tcp tcp dport { 80,443} counter accept
+add rule ip filter INPUT counter drop
+add table ip nat
+add chain ip nat PREROUTING { type nat hook prerouting priority -100;
+policy accept; }
+add chain ip nat INPUT { type nat hook input priority 100; policy accept; }
+add chain ip nat OUTPUT { type nat hook output priority -100; policy accept; }
+add chain ip nat POSTROUTING { type nat hook postrouting priority 100;
+policy accept; }
+# Completed on Sat Jul 13 10:53:36 2019
 
-A new "th s|dport" syntax is provided as readable alternative:
 
-ip protocol { tcp, udp } th dport 53
+machine info:
 
-As "th" is an alias for the raw expression, no dependency is
-generated -- its the users responsibility to add a suitable test to
-select the l4 header types that should be matched.
+nftables$ gcc -v
+Using built-in specs.
+COLLECT_GCC=gcc
+COLLECT_LTO_WRAPPER=/usr/lib/gcc/sparc64-linux-gnu/8/lto-wrapper
+Target: sparc64-linux-gnu
+Configured with: ../src/configure -v --with-pkgversion='Debian
+8.3.0-7' --with-bugurl=file:///usr/share/doc/gcc-8/README.Bugs
+--enable-languages=c,ada,c++,go,d,fortran,objc,obj-c++ --prefix=/usr
+--with-gcc-major-version-only --program-suffix=-8
+--program-prefix=sparc64-linux-gnu- --enable-shared
+--enable-linker-build-id --libexecdir=/usr/lib
+--without-included-gettext --enable-threads=posix --libdir=/usr/lib
+--enable-nls --enable-clocale=gnu --enable-libstdcxx-debug
+--enable-libstdcxx-time=yes --with-default-libstdcxx-abi=new
+--enable-gnu-unique-object --disable-libquadmath
+--disable-libquadmath-support --enable-plugin --enable-default-pie
+--with-system-zlib --disable-libphobos --enable-objc-gc=auto
+--enable-multiarch --disable-werror --with-cpu-32=ultrasparc
+--enable-targets=all --with-long-double-128 --enable-multilib
+--enable-checking=release --build=sparc64-linux-gnu
+--host=sparc64-linux-gnu --target=sparc64-linux-gnu
+Thread model: posix
+gcc version 8.3.0 (Debian 8.3.0-7)
 
-Suggested-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- doc/payload-expression.txt                    |  9 ++++++++
- include/proto.h                               |  7 ++++++
- src/parser_bison.y                            | 16 +++++++++++++
- src/payload.c                                 | 23 +++++++++++++++++++
- src/proto.c                                   | 12 ++++++++++
- tests/py/any/rawpayload.t                     |  2 +-
- .../sets/0037_set_with_inet_service_0         |  6 +++++
- .../dumps/0037_set_with_inet_service_0.nft    | 16 +++++++++++++
- 8 files changed, 90 insertions(+), 1 deletion(-)
- create mode 100755 tests/shell/testcases/sets/0037_set_with_inet_service_0
- create mode 100644 tests/shell/testcases/sets/dumps/0037_set_with_inet_service_0.nft
+nftables$ ld -V
+GNU ld (GNU Binutils for Debian) 2.32.51.20190707
+  Supported emulations:
+   elf64_sparc
+   elf32_sparc
 
-diff --git a/doc/payload-expression.txt b/doc/payload-expression.txt
-index b98a60772027..dba42fd542cf 100644
---- a/doc/payload-expression.txt
-+++ b/doc/payload-expression.txt
-@@ -498,6 +498,15 @@ Transport Header, for example TCP
- ----------------------------------------------
- inet filter input meta l4proto {tcp, udp} @th,16,16 { 53, 80 }
- -----------------------------------------------------------------
-+The above can also be written as
-+-----------------------------------------------------------------
-+inet filter input meta l4proto {tcp, udp} th dport { 53, 80 }
-+-----------------------------------------------------------------
-+it is more convenient, but like the raw expression notation no
-+dependencies are created or checked. It is the users responsibility
-+to restrict matching to those header types that have a notion of ports.
-+Otherwise, rules using raw expressions will errnously match unrelated
-+packets, e.g. mis-interpreting ESP packets SPI field as a port.
- 
- .Rewrite arp packet target hardware address if target protocol address matches a given address
- ----------------------------------------------------------------------------------------------
-diff --git a/include/proto.h b/include/proto.h
-index 92b25edbd3da..fab48c1bb30c 100644
---- a/include/proto.h
-+++ b/include/proto.h
-@@ -310,6 +310,12 @@ enum sctp_hdr_fields {
- 	SCTPHDR_CHECKSUM,
- };
- 
-+enum th_hdr_fields {
-+	THDR_INVALID,
-+	THDR_SPORT,
-+	THDR_DPORT,
-+};
-+
- extern const struct proto_desc proto_icmp;
- extern const struct proto_desc proto_igmp;
- extern const struct proto_desc proto_ah;
-@@ -320,6 +326,7 @@ extern const struct proto_desc proto_udplite;
- extern const struct proto_desc proto_tcp;
- extern const struct proto_desc proto_dccp;
- extern const struct proto_desc proto_sctp;
-+extern const struct proto_desc proto_th;
- extern const struct proto_desc proto_icmp6;
- 
- extern const struct proto_desc proto_ip;
-diff --git a/src/parser_bison.y b/src/parser_bison.y
-index a4905f2a39ae..0a387f619998 100644
---- a/src/parser_bison.y
-+++ b/src/parser_bison.y
-@@ -719,6 +719,9 @@ int nft_lex(void *, void *, void *);
- %type <expr>			dccp_hdr_expr	sctp_hdr_expr
- %destructor { expr_free($$); }	dccp_hdr_expr	sctp_hdr_expr
- %type <val>			dccp_hdr_field	sctp_hdr_field
-+%type <expr>			th_hdr_expr
-+%destructor { expr_free($$); }	th_hdr_expr
-+%type <val>			th_hdr_field
- 
- %type <expr>			exthdr_expr
- %destructor { expr_free($$); }	exthdr_expr
-@@ -4198,6 +4201,7 @@ payload_expr		:	payload_raw_expr
- 			|	tcp_hdr_expr
- 			|	dccp_hdr_expr
- 			|	sctp_hdr_expr
-+			|	th_hdr_expr
- 			;
- 
- payload_raw_expr	:	AT	payload_base_spec	COMMA	NUM	COMMA	NUM
-@@ -4487,6 +4491,18 @@ sctp_hdr_field		:	SPORT		{ $$ = SCTPHDR_SPORT; }
- 			|	CHECKSUM	{ $$ = SCTPHDR_CHECKSUM; }
- 			;
- 
-+th_hdr_expr		:	TRANSPORT_HDR 	th_hdr_field
-+			{
-+				$$ = payload_expr_alloc(&@$, &proto_th, $2);
-+				if ($$)
-+					$$->payload.is_raw = true;
-+			}
-+			;
-+
-+th_hdr_field		:	SPORT		{ $$ = THDR_SPORT; }
-+			|	DPORT		{ $$ = THDR_DPORT; }
-+			;
-+
- exthdr_expr		:	hbh_hdr_expr
- 			|	rt_hdr_expr
- 			|	rt0_hdr_expr
-diff --git a/src/payload.c b/src/payload.c
-index 3bf1ecc75c40..abd5339c5b0b 100644
---- a/src/payload.c
-+++ b/src/payload.c
-@@ -172,10 +172,33 @@ struct expr *payload_expr_alloc(const struct location *loc,
- void payload_init_raw(struct expr *expr, enum proto_bases base,
- 		      unsigned int offset, unsigned int len)
- {
-+	enum th_hdr_fields thf;
-+
- 	expr->payload.base	= base;
- 	expr->payload.offset	= offset;
- 	expr->len		= len;
- 	expr->dtype		= &integer_type;
-+
-+	if (base != PROTO_BASE_TRANSPORT_HDR)
-+		return;
-+	if (len != 16)
-+		return;
-+
-+	switch (offset) {
-+	case 0:
-+		thf = THDR_SPORT;
-+		/* fall through */
-+	case 16:
-+		if (offset == 16)
-+			thf = THDR_DPORT;
-+		expr->payload.tmpl = &proto_th.templates[thf];
-+		expr->payload.desc = &proto_th;
-+		expr->dtype = &inet_service_type;
-+		expr->payload.desc = &proto_th;
-+		break;
-+	default:
-+		break;
-+	}
- }
- 
- unsigned int payload_hdr_field(const struct expr *expr)
-diff --git a/src/proto.c b/src/proto.c
-index 67e86f2070c1..40ce590efd12 100644
---- a/src/proto.c
-+++ b/src/proto.c
-@@ -561,6 +561,18 @@ const struct proto_desc proto_sctp = {
- 	},
- };
- 
-+/*
-+ * Dummy Transpor Header (common udp/tcp/dccp/sctp fields)
-+ */
-+const struct proto_desc proto_th = {
-+	.name		= "th",
-+	.base		= PROTO_BASE_TRANSPORT_HDR,
-+	.templates	= {
-+		[THDR_SPORT]		= INET_SERVICE("sport", struct udphdr, source),
-+		[THDR_DPORT]		= INET_SERVICE("dport", struct udphdr, dest),
-+	},
-+};
-+
- /*
-  * IPv4
-  */
-diff --git a/tests/py/any/rawpayload.t b/tests/py/any/rawpayload.t
-index 9a3402f1a406..c3382a96876c 100644
---- a/tests/py/any/rawpayload.t
-+++ b/tests/py/any/rawpayload.t
-@@ -4,7 +4,7 @@
- *inet;test-inet;input
- *netdev;test-netdev;ingress
- 
--meta l4proto { tcp, udp, sctp} @th,16,16 { 22, 23, 80 };ok;meta l4proto { 6, 17, 132} @th,16,16 { 22, 23, 80}
-+meta l4proto { tcp, udp, sctp} @th,16,16 { 22, 23, 80 };ok;meta l4proto { 6, 17, 132} th dport { 22, 23, 80}
- meta l4proto tcp @th,16,16 { 22, 23, 80};ok;tcp dport { 22, 23, 80}
- @nh,8,8 255;ok
- @nh,8,16 0;ok
-diff --git a/tests/shell/testcases/sets/0037_set_with_inet_service_0 b/tests/shell/testcases/sets/0037_set_with_inet_service_0
-new file mode 100755
-index 000000000000..07820b7c4fdd
---- /dev/null
-+++ b/tests/shell/testcases/sets/0037_set_with_inet_service_0
-@@ -0,0 +1,6 @@
-+#!/bin/bash
-+
-+set -e
-+dumpfile=$(dirname $0)/dumps/$(basename $0).nft
-+
-+$NFT -f "$dumpfile"
-diff --git a/tests/shell/testcases/sets/dumps/0037_set_with_inet_service_0.nft b/tests/shell/testcases/sets/dumps/0037_set_with_inet_service_0.nft
-new file mode 100644
-index 000000000000..0e85f7c20eba
---- /dev/null
-+++ b/tests/shell/testcases/sets/dumps/0037_set_with_inet_service_0.nft
-@@ -0,0 +1,16 @@
-+table inet filter {
-+	set myset {
-+		type ipv4_addr . inet_proto . inet_service
-+		elements = { 192.168.0.12 . tcp . 53,
-+			     192.168.0.12 . tcp . 80,
-+			     192.168.0.12 . udp . 53,
-+			     192.168.0.13 . tcp . 80,
-+			     192.168.0.113 . tcp . 22 }
-+	}
-+
-+	chain forward {
-+		type filter hook forward priority filter; policy drop;
-+		ct state established,related accept
-+		ct state new ip daddr . ip protocol . th dport @myset accept
-+	}
-+}
--- 
-2.21.0
+# ldconfig -V
+ldconfig (Debian GLIBC 2.28-10) 2.28
 
+# uname -a
+Linux ttip 5.2.0-rc6-00001-g9014143bab2f #1064 SMP Sat Jul 13 21:36:42
+MSK 2019 sparc64 GNU/Linux
