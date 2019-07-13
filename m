@@ -2,78 +2,72 @@ Return-Path: <SRS0=nOV7=VK=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9D1D5C31E40
-	for <netfilter-devel@archiver.kernel.org>; Sat, 13 Jul 2019 22:05:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8630CC31E40
+	for <netfilter-devel@archiver.kernel.org>; Sat, 13 Jul 2019 22:26:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 78774205ED
-	for <netfilter-devel@archiver.kernel.org>; Sat, 13 Jul 2019 22:05:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 52B2920838
+	for <netfilter-devel@archiver.kernel.org>; Sat, 13 Jul 2019 22:26:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728126AbfGMWF7 (ORCPT
+        id S1728035AbfGMW02 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 13 Jul 2019 18:05:59 -0400
-Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:45290 "EHLO
+        Sat, 13 Jul 2019 18:26:28 -0400
+Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:45332 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727968AbfGMWF7 (ORCPT
+        by vger.kernel.org with ESMTP id S1727978AbfGMW02 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 13 Jul 2019 18:05:59 -0400
+        Sat, 13 Jul 2019 18:26:28 -0400
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.89)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1hmQ9V-0004ic-8x; Sun, 14 Jul 2019 00:05:57 +0200
+        (envelope-from <fw@strlen.de>)
+        id 1hmQTI-0004oC-9E; Sun, 14 Jul 2019 00:26:25 +0200
+Date:   Sun, 14 Jul 2019 00:26:24 +0200
 From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf] netfilter: nf_tables: don't fail when updating base chain policy
-Date:   Sat, 13 Jul 2019 23:59:21 +0200
-Message-Id: <20190713215921.18696-1-fw@strlen.de>
-X-Mailer: git-send-email 2.21.0
+To:     Fernando Fernandez Mancera <ffmancera@riseup.net>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf v2] netfilter: synproxy: fix rst sequence number
+ mismatch
+Message-ID: <20190713222624.heea2xjqeh52dohu@breakpoint.cc>
+References: <20190712104513.11683-1-ffmancera@riseup.net>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190712104513.11683-1-ffmancera@riseup.net>
+User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The following nftables test case fails on nf-next:
+Fernando Fernandez Mancera <ffmancera@riseup.net> wrote:
+> 14:51:00.024418 IP 192.168.122.1.41462 > netfilter.90: Flags [S], seq
+> 4023580551, win 64240, options [mss 1460,sackOK,TS val 2149563785 ecr
+> 0,nop,wscale 7], length 0
 
-tests/shell/run-tests.sh tests/shell/testcases/transactions/0011chain_0
+Could you please trim this down to the relevant parts
+and add a more human-readable description as to where the problem is,
+under which circumstances this happens and why the
+!SEEN_REPLY_BIT test is bogus?
 
-The test case contains:
-add chain x y { type filter hook input priority 0; }
-add chain x y { policy drop; }"
+Keep in mind that you know more about synproxy than I do, so its
+harder for me to follow what you're doing when the commit message consists
+of tcpdump output.
 
-The new test
-if (chain->flags ^ flags)
-	return -EOPNOTSUPP;
+> 14:51:00.024454 IP netfilter.90 > 192.168.122.1.41462: Flags [S.], seq
+> 727560212, ack 4023580552, win 0, options [mss 1460,sackOK,TS val 355031 ecr
+> 2149563785,nop,wscale 7], length 0
+> 14:51:00.024524 IP 192.168.122.1.41462 > netfilter.90: Flags [.], ack 1, win
+> 502, options [nop,nop,TS val 2149563785 ecr 355031], length 0
+> 14:51:00.024550 IP netfilter.90 > 192.168.122.1.41462: Flags [R.], seq
+> 3567407084, ack 1, win 0, length 0
 
-triggers here, because chain->flags has NFT_BASE_CHAIN set, but flags
-is 0 because no flag attribute was present in the policy update.
+... its not obvious to me why a reset is generated here in first place,
+and why changing code in TCP_CLOSE case helps?
+(I could guess the hook was called in postrouting and close transition
+ came from rst that was sent, but that still doesn't explain why it
+ was sent to begin with).
 
-Just fetch the current flag settings of a pre-existing chain in case
-userspace did not provide any.
-
-Fixes: c9626a2cbdb20 ("netfilter: nf_tables: add hardware offload support")
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/nf_tables_api.c | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index add64bd227a8..5746a7c948fe 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -1914,6 +1914,8 @@ static int nf_tables_newchain(struct net *net, struct sock *nlsk,
- 
- 	if (nla[NFTA_CHAIN_FLAGS])
- 		flags = ntohl(nla_get_be32(nla[NFTA_CHAIN_FLAGS]));
-+	else if (chain)
-+		flags = chain->flags;
- 
- 	nft_ctx_init(&ctx, net, skb, nlh, family, table, chain, nla);
- 
--- 
-2.21.0
-
+I assume the hostname "netfilter" is the synproxy machine, and
+192.168.122.1 is a client we're proxying for, right?
