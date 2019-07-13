@@ -2,61 +2,66 @@ Return-Path: <SRS0=nOV7=VK=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+X-Spam-Status: No, score=-3.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DDBFFC31E40
-	for <netfilter-devel@archiver.kernel.org>; Sat, 13 Jul 2019 18:45:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B4254C31E40
+	for <netfilter-devel@archiver.kernel.org>; Sat, 13 Jul 2019 19:26:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9C12920848
-	for <netfilter-devel@archiver.kernel.org>; Sat, 13 Jul 2019 18:45:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6E08D20848
+	for <netfilter-devel@archiver.kernel.org>; Sat, 13 Jul 2019 19:26:15 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="m8JUmKLA"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="oWNU0KB6"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727879AbfGMSpW (ORCPT
+        id S1727949AbfGMT0O (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 13 Jul 2019 14:45:22 -0400
-Received: from mail-ed1-f52.google.com ([209.85.208.52]:39914 "EHLO
-        mail-ed1-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727874AbfGMSpV (ORCPT
+        Sat, 13 Jul 2019 15:26:14 -0400
+Received: from mail-ed1-f47.google.com ([209.85.208.47]:41234 "EHLO
+        mail-ed1-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727936AbfGMT0O (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 13 Jul 2019 14:45:21 -0400
-Received: by mail-ed1-f52.google.com with SMTP id m10so11915881edv.6
-        for <netfilter-devel@vger.kernel.org>; Sat, 13 Jul 2019 11:45:20 -0700 (PDT)
+        Sat, 13 Jul 2019 15:26:14 -0400
+Received: by mail-ed1-f47.google.com with SMTP id p15so11943871eds.8
+        for <netfilter-devel@vger.kernel.org>; Sat, 13 Jul 2019 12:26:13 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
-        h=mime-version:from:date:message-id:subject:to:cc;
-        bh=rZ421yy419gBa9zp5kiXF44KKjufyUDiz9clkqW4qfM=;
-        b=m8JUmKLATCYMexNllXLbAmZ/yqKujnJ+d0BbEVxBUCq1edvkjfwDLNaggsfq5cPl3f
-         ypr4o0FSHQmTl/xDTonvT/Yg3O/MgUxUjXyxc4Y7uiORZ0X+pzCQhUDbagb92t2V045X
-         daXY8n2a24v+pnH4KGCoRJOFxvuLW76+ET1tYLYsULGXBXcGX0OXug3W5YJ7KF37sSsd
-         BsHZgxdxlB52bolU1fyENzu002so3uZQLWMzqd2pP8ZEfHwwqdWdH0wZYAqM9LTwYRHT
-         FdabqOloGR+WDRFu1UUh2NIXttPGX8mBGU/pdby11gyjX3F1tYWpJ3qCTBpHyws+6XpB
-         OaMg==
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=kCxRdDgJzao4P4ibCYslsZF616uoUl1Mh0dT6oL4Lpk=;
+        b=oWNU0KB6n/D1dCeN5yKJEW2x1mNnUAfzhBrWq6yV05VWGzRvvoWvZnCRZ/ESyp8fKg
+         ZDB2I+Te4N6UTTdXc8uTVDksOkpzCx+NRRMjdHrPo+fBgKk/yeSCiYTmCm3bqL/S0SA3
+         hrJvPqIG8EXJRb0SQSoveZJpOY6cg9MJQamRdHLIMUQk5qgnTq/geW/Po2+7F3EOAxMz
+         4ynuRGMj0ZUhLxMEKE8Z8joGF5ToGijffWCmZ9wcOpiHQ+Lm3hSJ6xzh/oN/HlfMdBY7
+         ccmTMXzkzl4Q7g16/tTM+R9YJatbxUXm1/F28WQzdR2YQL1FejE6I2w8DqAABnTTsNxn
+         LPNg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:from:date:message-id:subject:to:cc;
-        bh=rZ421yy419gBa9zp5kiXF44KKjufyUDiz9clkqW4qfM=;
-        b=UbFLMBkjfPnCtAEGSbccZaSQ2ESjhMdFP/1GrdkATafdVZpFU2HREl8YUF85LKBrxs
-         14+y6UNg2jicWiPWCnmDXozbjuw1XbfJGEqk3eYuOrXRYpX6sC+K1dd3YY04b3XcWsft
-         pNY3nGWnJdh0wbCgFmSa9/eBm5tasbeiViY3XBqrFNpmdj44wgYz390G99GRDXv9h+Cl
-         kiEOdXBQzsNPp7VsZrX89DMhMTLkR1I1GM/+rNK6j4rwTjMxREmGIMevU/CWr/RP8QzO
-         rhwq2LYFeCyQwkre7gL1sZ1nJqsZP7JL0JOjOo0opUEOuOG5DtVD+xFMASf7Jq74xm8D
-         IQFw==
-X-Gm-Message-State: APjAAAUq0F0aYUEEuFwH/kcsIBekxBAFNaKwuLVQYXhCDPpiNHmCYyeU
-        tqwM3EzIVP46xo5Qo+SRFLOFu1Ujo2Ofbcb2fPcG5u3J
-X-Google-Smtp-Source: APXvYqxa4/upk/diAroUK+A+lN4PS4DASu/wn0U4vo9mmvhJOnmt345PMfz+bkefNuWF29MD7HMQsRKemPCgSRuWTJ8=
-X-Received: by 2002:a17:906:318e:: with SMTP id 14mr13673871ejy.85.1563043519108;
- Sat, 13 Jul 2019 11:45:19 -0700 (PDT)
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=kCxRdDgJzao4P4ibCYslsZF616uoUl1Mh0dT6oL4Lpk=;
+        b=cvN/xyn3OxpzuIffkilT2dtb+AtVzL+wBrnCNZJ5oiQvFK0ql5d6a/Nvy3oA6wu6BL
+         NP51L3PhEEwjrHfTMLPuh6uLVZaNx0xJIjBSFvNzcFNbtnXVUfLHudFuG2RxyNj5b+1c
+         JzA0U/rUfm4IGbnorMFpZzBIcRxqt9DceM1yaubyIUkuMj99gaXVouk0SykRlr0QcJxP
+         sOPW8Xm6Df0Kl871j8ofEQtJHf3nXGGCfnQTpnJyDHXCxjWbl3fWBXlydJ3eQZq67Bbc
+         Dhf9UaGuuUjvpVSCHmrYWoQGgBVelEI8f/mqWSHT8q5JAHCNaw6Chelv72U8JyHliBYs
+         VQ3g==
+X-Gm-Message-State: APjAAAUEU2mA190kmgUnuIOYNagFPlxspD+PvGc+yM94qh2wnyww2/XE
+        bomHVChhY11fFj8Br92ENcyaJwOT5eZWGEUFPfU=
+X-Google-Smtp-Source: APXvYqx8jBbilzYOJdrBkydFSpFC8RNQ9T4GC5l+7jCr9qJt/77IPoxs2AjaiBK9i9iinna35uG6mB6aScZM3XyJWGI=
+X-Received: by 2002:a50:89a6:: with SMTP id g35mr16076117edg.145.1563045972721;
+ Sat, 13 Jul 2019 12:26:12 -0700 (PDT)
 MIME-Version: 1.0
+References: <CADxRZqwxBCV6G2OMjuv3S49MsDeSuAHfN8vnVSFm_Uvv1BD1Og@mail.gmail.com>
+ <20190713190320.pmu33mx2lm75fihd@breakpoint.cc>
+In-Reply-To: <20190713190320.pmu33mx2lm75fihd@breakpoint.cc>
 From:   Anatoly Pugachev <matorola@gmail.com>
-Date:   Sat, 13 Jul 2019 21:45:08 +0300
-Message-ID: <CADxRZqwxBCV6G2OMjuv3S49MsDeSuAHfN8vnVSFm_Uvv1BD1Og@mail.gmail.com>
-Subject: [sparc64] nft bus error
-To:     netfilter-devel@vger.kernel.org
-Cc:     coreteam@netfilter.org,
+Date:   Sat, 13 Jul 2019 22:26:02 +0300
+Message-ID: <CADxRZqw+MrtQhQF1_AZ2Gr_Sm5xmWjH0ZwjKXKdZ_rQqOvSrhw@mail.gmail.com>
+Subject: Re: [sparc64] nft bus error
+To:     Florian Westphal <fw@strlen.de>
+Cc:     netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         debian-sparc <debian-sparc@lists.debian.org>
 Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -64,134 +69,51 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello!
+On Sat, Jul 13, 2019 at 10:03 PM Florian Westphal <fw@strlen.de> wrote:
+> Anatoly Pugachev <matorola@gmail.com> wrote:
+> > Program received signal SIGBUS, Bus error.
+> > 0xfff8000100946490 in nftnl_udata_get_u32 (attr=0x10000106e30) at udata.c:127
+> > 127             return *data;
+>
+> struct nftnl_udata {
+>        uint8_t         type;
+>        uint8_t         len;
+>        unsigned char   value[];
+> } __attribute__((__packed__));
+>
+> Sparc doesn't like doing:
+>
+> uint32_t nftnl_udata_get_u32(const struct nftnl_udata *attr)
+> {
+>         uint32_t *data = (uint32_t *)attr->value;
+>
+>         return *data;
+> }
+>
+> Anatoly, does this help?
+>
+> diff --git a/src/udata.c b/src/udata.c
+> --- a/src/udata.c
+> +++ b/src/udata.c
+> @@ -122,9 +122,11 @@ void *nftnl_udata_get(const struct nftnl_udata *attr)
+>  EXPORT_SYMBOL(nftnl_udata_get_u32);
+>  uint32_t nftnl_udata_get_u32(const struct nftnl_udata *attr)
+>  {
+> -       uint32_t *data = (uint32_t *)attr->value;
+> +       uint32_t data;
+>
+> -       return *data;
+> +       memcpy(&data, attr->value, sizeof(data));
+> +
+> +       return data;
+>  }
+>
+>  EXPORT_SYMBOL(nftnl_udata_next);
 
-Getting nft (libnftnl) bus error with sparc64 linux machine.
+Florian,
 
-using git version of libnftnl and nftables (installed under /opt/nft):
-mator@ttip:/1/mator/libnftnl$ git desc
-libnftnl-1.1.3-7-ga6a2d0c
-mator@ttip:/1/mator/libnftnl$ cd ../nftables/
-mator@ttip:/1/mator/nftables$ git desc
-v0.9.1-25-g87c0bee
+yes, works beautifully!
 
-# which nft
-/opt/nft/sbin/nft
-# nft  list tables
-table ip sshguard
-table ip6 sshguard
-(loading some rules)
-# nft -f /etc/nft.rules
-# nft  list tables
-Bus error
-(run under gdb)
-# gdb -q /opt/nft/sbin/nft
-Reading symbols from /opt/nft/sbin/nft...done.
-(gdb) set args list tables
-(gdb) run
-Starting program: /opt/nft/sbin/nft list tables
+Thanks!
 
-Program received signal SIGBUS, Bus error.
-0xfff8000100946490 in nftnl_udata_get_u32 (attr=0x10000106e30) at udata.c:127
-127             return *data;
-(gdb) bt
-#0  0xfff8000100946490 in nftnl_udata_get_u32 (attr=0x10000106e30) at
-udata.c:127
-#1  0xfff8000100168db8 in netlink_delinearize_set (ctx=0x7feffffee08,
-nls=0x100001076e0) at netlink.c:568
-#2  0xfff800010016929c in list_set_cb (nls=0x100001076e0,
-arg=0x7feffffee08) at netlink.c:647
-#3  0xfff800010094083c in nftnl_set_list_foreach
-(set_list=0x10000107640, cb=0xfff8000100169278 <list_set_cb>,
-data=0x7feffffee08) at set.c:780
-#4  0xfff80001001693a4 in netlink_list_sets (ctx=0x7feffffee08,
-h=0x10000107160) at netlink.c:668
-#5  0xfff800010013ba90 in cache_init_objects (ctx=0x7feffffee08,
-flags=127) at rule.c:161
-#6  0xfff800010013be98 in cache_init (ctx=0x7feffffee08, flags=127) at
-rule.c:220
-#7  0xfff800010013c0b8 in cache_update (nft=0x10000106a20, flags=127,
-msgs=0x7fefffff140) at rule.c:258
-#8  0xfff800010018cca4 in nft_evaluate (nft=0x10000106a20,
-msgs=0x7fefffff140, cmds=0x7fefffff130) at libnftables.c:406
-#9  0xfff800010018cf4c in nft_run_cmd_from_buffer (nft=0x10000106a20,
-buf=0x10000106d40 "list tables") at libnftables.c:447
-#10 0x0000010000002088 in main (argc=3, argv=0x7fefffff618) at main.c:316
-(gdb)
-
-
-
-
-# cat /etc/nft.rules
-# Translated by iptables-restore-translate v1.8.3 on Sat Jul 13 10:53:36 2019
-add table ip filter
-add chain ip filter INPUT { type filter hook input priority 0; policy accept; }
-add chain ip filter FORWARD { type filter hook forward priority 0;
-policy accept; }
-add chain ip filter OUTPUT { type filter hook output priority 0;
-policy accept; }
-# -t filter -A INPUT -p tcp --dport 22 -m set --match-set sshguard4 src -j DROP
-add rule ip filter INPUT iifname "lo" counter accept
-add rule ip filter INPUT ct state related,established counter accept
-add rule ip filter INPUT ct state new  tcp dport 22 counter accept
-add rule ip filter INPUT ip saddr 10.8.1.0/24 counter accept
-add rule ip filter INPUT ip protocol icmp counter accept
-add rule ip filter INPUT ip protocol udp udp dport 33434-33529 counter accept
-add rule ip filter INPUT iifname "eth0" ip saddr 10.190.2.0/24 ct
-state new  tcp dport 445 counter accept
-add rule ip filter INPUT iifname "eth0" ip saddr 10.190.2.0/24 ct
-state new  udp dport 445 counter accept
-add rule ip filter INPUT iifname "eth0" ip saddr 192.168.158.0/24 ct
-state new  tcp dport 445 counter accept
-add rule ip filter INPUT iifname "eth0" ip saddr 192.168.158.0/24 ct
-state new  udp dport 445 counter accept
-add rule ip filter INPUT ip protocol tcp tcp dport { 80,443} counter accept
-add rule ip filter INPUT counter drop
-add table ip nat
-add chain ip nat PREROUTING { type nat hook prerouting priority -100;
-policy accept; }
-add chain ip nat INPUT { type nat hook input priority 100; policy accept; }
-add chain ip nat OUTPUT { type nat hook output priority -100; policy accept; }
-add chain ip nat POSTROUTING { type nat hook postrouting priority 100;
-policy accept; }
-# Completed on Sat Jul 13 10:53:36 2019
-
-
-machine info:
-
-nftables$ gcc -v
-Using built-in specs.
-COLLECT_GCC=gcc
-COLLECT_LTO_WRAPPER=/usr/lib/gcc/sparc64-linux-gnu/8/lto-wrapper
-Target: sparc64-linux-gnu
-Configured with: ../src/configure -v --with-pkgversion='Debian
-8.3.0-7' --with-bugurl=file:///usr/share/doc/gcc-8/README.Bugs
---enable-languages=c,ada,c++,go,d,fortran,objc,obj-c++ --prefix=/usr
---with-gcc-major-version-only --program-suffix=-8
---program-prefix=sparc64-linux-gnu- --enable-shared
---enable-linker-build-id --libexecdir=/usr/lib
---without-included-gettext --enable-threads=posix --libdir=/usr/lib
---enable-nls --enable-clocale=gnu --enable-libstdcxx-debug
---enable-libstdcxx-time=yes --with-default-libstdcxx-abi=new
---enable-gnu-unique-object --disable-libquadmath
---disable-libquadmath-support --enable-plugin --enable-default-pie
---with-system-zlib --disable-libphobos --enable-objc-gc=auto
---enable-multiarch --disable-werror --with-cpu-32=ultrasparc
---enable-targets=all --with-long-double-128 --enable-multilib
---enable-checking=release --build=sparc64-linux-gnu
---host=sparc64-linux-gnu --target=sparc64-linux-gnu
-Thread model: posix
-gcc version 8.3.0 (Debian 8.3.0-7)
-
-nftables$ ld -V
-GNU ld (GNU Binutils for Debian) 2.32.51.20190707
-  Supported emulations:
-   elf64_sparc
-   elf32_sparc
-
-# ldconfig -V
-ldconfig (Debian GLIBC 2.28-10) 2.28
-
-# uname -a
-Linux ttip 5.2.0-rc6-00001-g9014143bab2f #1064 SMP Sat Jul 13 21:36:42
-MSK 2019 sparc64 GNU/Linux
+PS: missed CC list
