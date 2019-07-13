@@ -2,118 +2,136 @@ Return-Path: <SRS0=nOV7=VK=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+X-Spam-Status: No, score=-6.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B4254C31E40
-	for <netfilter-devel@archiver.kernel.org>; Sat, 13 Jul 2019 19:26:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 810A5C71142
+	for <netfilter-devel@archiver.kernel.org>; Sat, 13 Jul 2019 21:15:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6E08D20848
-	for <netfilter-devel@archiver.kernel.org>; Sat, 13 Jul 2019 19:26:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 55E84205ED
+	for <netfilter-devel@archiver.kernel.org>; Sat, 13 Jul 2019 21:15:56 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="oWNU0KB6"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="d3dHpLK9"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727949AbfGMT0O (ORCPT
+        id S1727978AbfGMVPy (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 13 Jul 2019 15:26:14 -0400
-Received: from mail-ed1-f47.google.com ([209.85.208.47]:41234 "EHLO
-        mail-ed1-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727936AbfGMT0O (ORCPT
+        Sat, 13 Jul 2019 17:15:54 -0400
+Received: from mail-oi1-f194.google.com ([209.85.167.194]:46938 "EHLO
+        mail-oi1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727961AbfGMVPy (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 13 Jul 2019 15:26:14 -0400
-Received: by mail-ed1-f47.google.com with SMTP id p15so11943871eds.8
-        for <netfilter-devel@vger.kernel.org>; Sat, 13 Jul 2019 12:26:13 -0700 (PDT)
+        Sat, 13 Jul 2019 17:15:54 -0400
+Received: by mail-oi1-f194.google.com with SMTP id 65so9882611oid.13;
+        Sat, 13 Jul 2019 14:15:53 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=kCxRdDgJzao4P4ibCYslsZF616uoUl1Mh0dT6oL4Lpk=;
-        b=oWNU0KB6n/D1dCeN5yKJEW2x1mNnUAfzhBrWq6yV05VWGzRvvoWvZnCRZ/ESyp8fKg
-         ZDB2I+Te4N6UTTdXc8uTVDksOkpzCx+NRRMjdHrPo+fBgKk/yeSCiYTmCm3bqL/S0SA3
-         hrJvPqIG8EXJRb0SQSoveZJpOY6cg9MJQamRdHLIMUQk5qgnTq/geW/Po2+7F3EOAxMz
-         4ynuRGMj0ZUhLxMEKE8Z8joGF5ToGijffWCmZ9wcOpiHQ+Lm3hSJ6xzh/oN/HlfMdBY7
-         ccmTMXzkzl4Q7g16/tTM+R9YJatbxUXm1/F28WQzdR2YQL1FejE6I2w8DqAABnTTsNxn
-         LPNg==
+        bh=eD485LN6XByAHt5KmjLCQInLrbXWW1Y7wTAhLWUZutA=;
+        b=d3dHpLK9vHt3LiLTj9Vt9HWU4SNLt4Yor5/8ShJkSXiTTCVm3e/R701G8DPQgOTGES
+         fw6tU0vXqJp3ML3PatDvFLaAAuEGkKSGJetcHXpAfP/7yr3s0GL5ote1WO1auwn/2odO
+         ZymDIsCXUJdaoEVnaw3KN9BRXgYyfv2ezI02rlgeVm66zNlZY/Jzcx/qlGB4Rh8zcZy5
+         1bsTEAzENjxXb3tVAyGUHoKhGZ77bLX7dfUePsYVaASIYWBuD9nBSonYQqMKfwSx7SMP
+         PVEIEDCFsOeruOFZWzmirjvjuDZD70MgpU/7y3g7ITXObIckSF8ciPWaCNCAY2QErnI1
+         otYQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=kCxRdDgJzao4P4ibCYslsZF616uoUl1Mh0dT6oL4Lpk=;
-        b=cvN/xyn3OxpzuIffkilT2dtb+AtVzL+wBrnCNZJ5oiQvFK0ql5d6a/Nvy3oA6wu6BL
-         NP51L3PhEEwjrHfTMLPuh6uLVZaNx0xJIjBSFvNzcFNbtnXVUfLHudFuG2RxyNj5b+1c
-         JzA0U/rUfm4IGbnorMFpZzBIcRxqt9DceM1yaubyIUkuMj99gaXVouk0SykRlr0QcJxP
-         sOPW8Xm6Df0Kl871j8ofEQtJHf3nXGGCfnQTpnJyDHXCxjWbl3fWBXlydJ3eQZq67Bbc
-         Dhf9UaGuuUjvpVSCHmrYWoQGgBVelEI8f/mqWSHT8q5JAHCNaw6Chelv72U8JyHliBYs
-         VQ3g==
-X-Gm-Message-State: APjAAAUEU2mA190kmgUnuIOYNagFPlxspD+PvGc+yM94qh2wnyww2/XE
-        bomHVChhY11fFj8Br92ENcyaJwOT5eZWGEUFPfU=
-X-Google-Smtp-Source: APXvYqx8jBbilzYOJdrBkydFSpFC8RNQ9T4GC5l+7jCr9qJt/77IPoxs2AjaiBK9i9iinna35uG6mB6aScZM3XyJWGI=
-X-Received: by 2002:a50:89a6:: with SMTP id g35mr16076117edg.145.1563045972721;
- Sat, 13 Jul 2019 12:26:12 -0700 (PDT)
+        bh=eD485LN6XByAHt5KmjLCQInLrbXWW1Y7wTAhLWUZutA=;
+        b=mAvyVhKTr04f2f+9ggGYIMNZkTFIszlpgjTmZKil7/82NkKy9+8aETwd5bT91pq65Z
+         86Pq0J2Ny5fNLJMHTpuR4ZVB6ROrpqOfXZzqfNDFmd8n25vanFr9myITvNgIckCuc8l9
+         WYXlSIbz8szLBLute11ahRV69BPMbqfpPCAKephmirnqxd5DPggl47rRhm709dkx8Bdt
+         QLUJshHLb8ewIyzY01QShrYf+CY60iaKIFKyi+VIFeLEFZccuZNLFGsSuuchSzzCHbBA
+         61QCDJm7nmpUgK/bgws4qCH1rhNOG+ZyrcPIxj1appsyQg4XOwWoYn0U4Zvs/OgNWMte
+         fSyA==
+X-Gm-Message-State: APjAAAV+bckBDhqh6MWTQt9LhU6daNQgVeIgsdp6YK0NtOGI1TVdJQIa
+        olGue2aGe9OYHE2PxR7HVHCQzGYsmrBq1ihTMV2Ysw==
+X-Google-Smtp-Source: APXvYqwn5IGIihDZF9udiN6+gZTLwstT0fIpI9751klIARpXJ9Rt0LYnmO9ejtl/2Vj844ohnnQcvT1Ipk/maqWxws8=
+X-Received: by 2002:aca:b808:: with SMTP id i8mr9211752oif.163.1563052552937;
+ Sat, 13 Jul 2019 14:15:52 -0700 (PDT)
 MIME-Version: 1.0
-References: <CADxRZqwxBCV6G2OMjuv3S49MsDeSuAHfN8vnVSFm_Uvv1BD1Og@mail.gmail.com>
- <20190713190320.pmu33mx2lm75fihd@breakpoint.cc>
-In-Reply-To: <20190713190320.pmu33mx2lm75fihd@breakpoint.cc>
-From:   Anatoly Pugachev <matorola@gmail.com>
-Date:   Sat, 13 Jul 2019 22:26:02 +0300
-Message-ID: <CADxRZqw+MrtQhQF1_AZ2Gr_Sm5xmWjH0ZwjKXKdZ_rQqOvSrhw@mail.gmail.com>
-Subject: Re: [sparc64] nft bus error
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        debian-sparc <debian-sparc@lists.debian.org>
+References: <20190713210306.30815-1-michael-dev@fami-braun.de>
+In-Reply-To: <20190713210306.30815-1-michael-dev@fami-braun.de>
+From:   Laura Garcia <nevola@gmail.com>
+Date:   Sat, 13 Jul 2019 23:15:41 +0200
+Message-ID: <CAF90-Wh9QZbzo64UKLAN98iWGJt3hZH37a+_8_rgyYBGydz-ew@mail.gmail.com>
+Subject: Re: [PATCH] Fix dumping vlan rules
+To:     michael-dev@fami-braun.de
+Cc:     netdev@vger.kernel.org,
+        Netfilter Development Mailing list 
+        <netfilter-devel@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sat, Jul 13, 2019 at 10:03 PM Florian Westphal <fw@strlen.de> wrote:
-> Anatoly Pugachev <matorola@gmail.com> wrote:
-> > Program received signal SIGBUS, Bus error.
-> > 0xfff8000100946490 in nftnl_udata_get_u32 (attr=0x10000106e30) at udata.c:127
-> > 127             return *data;
->
-> struct nftnl_udata {
->        uint8_t         type;
->        uint8_t         len;
->        unsigned char   value[];
-> } __attribute__((__packed__));
->
-> Sparc doesn't like doing:
->
-> uint32_t nftnl_udata_get_u32(const struct nftnl_udata *attr)
-> {
->         uint32_t *data = (uint32_t *)attr->value;
->
->         return *data;
-> }
->
-> Anatoly, does this help?
->
-> diff --git a/src/udata.c b/src/udata.c
-> --- a/src/udata.c
-> +++ b/src/udata.c
-> @@ -122,9 +122,11 @@ void *nftnl_udata_get(const struct nftnl_udata *attr)
->  EXPORT_SYMBOL(nftnl_udata_get_u32);
->  uint32_t nftnl_udata_get_u32(const struct nftnl_udata *attr)
->  {
-> -       uint32_t *data = (uint32_t *)attr->value;
-> +       uint32_t data;
->
-> -       return *data;
-> +       memcpy(&data, attr->value, sizeof(data));
-> +
-> +       return data;
->  }
->
->  EXPORT_SYMBOL(nftnl_udata_next);
+CC'ing netfilter.
 
-Florian,
-
-yes, works beautifully!
-
-Thanks!
-
-PS: missed CC list
+On Sat, Jul 13, 2019 at 11:10 PM <michael-dev@fami-braun.de> wrote:
+>
+> From: "M. Braun" <michael-dev@fami-braun.de>
+>
+> Given the following bridge rules:
+> 1. ip protocol icmp accept
+> 2. ether type vlan vlan type ip ip protocol icmp accept
+>
+> The are currently both dumped by "nft list ruleset" as
+> 1. ip protocol icmp accept
+> 2. ip protocol icmp accept
+>
+> Though, the netlink code actually is different
+>
+> bridge filter FORWARD 4
+>   [ payload load 2b @ link header + 12 => reg 1 ]
+>   [ cmp eq reg 1 0x00000008 ]
+>   [ payload load 1b @ network header + 9 => reg 1 ]
+>   [ cmp eq reg 1 0x00000001 ]
+>   [ immediate reg 0 accept ]
+>
+> bridge filter FORWARD 5 4
+>   [ payload load 2b @ link header + 12 => reg 1 ]
+>   [ cmp eq reg 1 0x00000081 ]
+>   [ payload load 2b @ link header + 16 => reg 1 ]
+>   [ cmp eq reg 1 0x00000008 ]
+>   [ payload load 1b @ network header + 9 => reg 1 ]
+>   [ cmp eq reg 1 0x00000001 ]
+>   [ immediate reg 0 accept ]
+>
+> Fix this by avoiding the removal of all vlan statements
+> in the given example.
+>
+> Signed-off-by: Michael Braun <michael-dev@fami-braun.de>
+> ---
+>  src/payload.c | 12 ++++++++++++
+>  1 file changed, 12 insertions(+)
+>
+> diff --git a/src/payload.c b/src/payload.c
+> index 3bf1ecc..905422a 100644
+> --- a/src/payload.c
+> +++ b/src/payload.c
+> @@ -506,6 +506,18 @@ static bool payload_may_dependency_kill(struct payload_dep_ctx *ctx,
+>                      dep->left->payload.desc == &proto_ip6) &&
+>                     expr->payload.base == PROTO_BASE_TRANSPORT_HDR)
+>                         return false;
+> +               /* Do not kill
+> +                *  ether type vlan and vlan type ip and ip protocol icmp
+> +                * into
+> +                *  ip protocol icmp
+> +                * as this lacks ether type vlan.
+> +                * More generally speaking, do not kill protocol type
+> +                * for stacked protocols if we only have protcol type matches.
+> +                */
+> +               if (dep->left->etype == EXPR_PAYLOAD && dep->op == OP_EQ &&
+> +                   expr->flags & EXPR_F_PROTOCOL &&
+> +                   expr->payload.base == dep->left->payload.base)
+> +                       return false;
+>                 break;
+>         }
+>
+> --
+> 2.20.1
+>
