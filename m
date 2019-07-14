@@ -2,121 +2,283 @@ Return-Path: <SRS0=dbJk=VL=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 03A36C73C66
-	for <netfilter-devel@archiver.kernel.org>; Sun, 14 Jul 2019 11:44:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 35247C73C66
+	for <netfilter-devel@archiver.kernel.org>; Sun, 14 Jul 2019 23:20:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BD3EE20644
-	for <netfilter-devel@archiver.kernel.org>; Sun, 14 Jul 2019 11:44:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F1F712063F
+	for <netfilter-devel@archiver.kernel.org>; Sun, 14 Jul 2019 23:20:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728301AbfGNLoi (ORCPT
+        id S1728853AbfGNXUB (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 14 Jul 2019 07:44:38 -0400
-Received: from mail-wr1-f52.google.com ([209.85.221.52]:44585 "EHLO
-        mail-wr1-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728278AbfGNLoi (ORCPT
+        Sun, 14 Jul 2019 19:20:01 -0400
+Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:46910 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1728754AbfGNXUA (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 14 Jul 2019 07:44:38 -0400
-Received: by mail-wr1-f52.google.com with SMTP id p17so14161221wrf.11;
-        Sun, 14 Jul 2019 04:44:36 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:subject:openpgp:autocrypt:to:cc:message-id
-         :date:user-agent:mime-version:content-language
-         :content-transfer-encoding;
-        bh=yo/NWPRXSHcPk6pX8esGu04rC5T8JHfpOrKxzRqkolQ=;
-        b=GM85wdJAzBVWL1cEhktLUXSbIcDG+KRS4fzdsg47Sx/gxMAV0Pn3c9+ZOlj9+f9o02
-         phxCsyoPoqy8wXHRxg+iKGn7NMElhtgFNtkLMI+lr0y5sRN+mnwSgYcFADeqRZSw6+G0
-         1doF45KDPq2botHcWS0UaLFwugFtHWLQjd7M4gdhKz6H3SDUG1j2SRZKmtT+2zAhzKkQ
-         X7DAu9whEgkbYBwPte0ilK/Qbn2AVcInsmeaThwbXRb1JgS9e4CmMQd7tkLsoSB7ijw/
-         5pGy+Z/DuUo6wXHuiuPI37IuvW+rv93aamhSEu4K1n8AHXibjfEcCXc7DAQ9xEt9ego3
-         sqkw==
-X-Gm-Message-State: APjAAAUMxWp6swGyOq4gltZGZNzpcoryD7Gy5j2NkBMgAytAwYkx10x6
-        ZL0+w8BEKprUyfxqClgM2X7UuCRL
-X-Google-Smtp-Source: APXvYqz9EPN7byyKTkDwIMdNQqS3hx2gGEWzoCG5vYiWKJNIhocIY7yrNyJ3vmpPs3twS07GX1BGVA==
-X-Received: by 2002:adf:ef49:: with SMTP id c9mr23863649wrp.188.1563104675876;
-        Sun, 14 Jul 2019 04:44:35 -0700 (PDT)
-Received: from [192.168.1.139] ([213.194.137.137])
-        by smtp.gmail.com with ESMTPSA id t140sm13880187wmt.0.2019.07.14.04.44.34
-        (version=TLS1_3 cipher=AEAD-AES128-GCM-SHA256 bits=128/128);
-        Sun, 14 Jul 2019 04:44:34 -0700 (PDT)
-From:   Arturo Borrero Gonzalez <arturo@netfilter.org>
-Subject: [ANNOUNCE] New Netfilter core team member: Phil Sutter
-Openpgp: preference=signencrypt
-Autocrypt: addr=arturo@netfilter.org; keydata=
- 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
- EXgmBmyUKrJkh/zvupp9t9Y2ioPbcMObRIEXio4=
-To:     netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-        netfilter-core@lists.netfilter.org,
-        netfilter-announce@lists.netfilter.org
-Cc:     Phil Sutter <phil@nwl.cc>
-Message-ID: <6dc0e9c1-0ee0-5095-9dec-58663a41b7ba@netfilter.org>
-Date:   Sun, 14 Jul 2019 13:44:33 +0200
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.7.2
+        Sun, 14 Jul 2019 19:20:00 -0400
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.89)
+        (envelope-from <fw@strlen.de>)
+        id 1hmnmg-000174-Bp; Mon, 15 Jul 2019 01:19:58 +0200
+Date:   Mon, 15 Jul 2019 01:19:58 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     Ander Juaristi <a@juaristi.eus>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH v5 1/3] meta: Introduce new conditions 'time', 'day' and
+ 'hour'
+Message-ID: <20190714231958.wtyiusnqpazmwbgl@breakpoint.cc>
+References: <20190707205531.6628-1-a@juaristi.eus>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190707205531.6628-1-a@juaristi.eus>
+User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi there!
+Ander Juaristi <a@juaristi.eus> wrote:
+> These keywords introduce new checks for a timestamp, an absolute date (which is converted to a timestamp),
+> an hour in the day (which is converted to the number of seconds since midnight) and a day of week.
 
-Past week, during Netfilter Workshop 2019 in Malaga, the Netfilter core team
-decided to invite Phil Sutter to join us as a new core team member, an
-invitation he accepted.
+[ Pablo, please see below for a usability question ]
 
-We decided to make this offer to Phil after several years of contributions to
-the Netfilter codebase. Currently based in Germany, Phil is helping a lot in the
-nftables framework, also taking care of the xtables-nft tools.
+This patch causes following compiler warnings for me:
+meta.c: In function 'hour_type_print':
+meta.c:582:26: warning: '%02d' directive output may be truncated writing between 2 and 10 bytes into a region of size 9 [-Wformat-truncation=]
+   snprintf(out, buflen, "%02d:%02d:%02d", hours, minutes, seconds);
+                          ^~~~
+meta.c:582:25: note: directive argument in the range [0, 2147483647]
+   snprintf(out, buflen, "%02d:%02d:%02d", hours, minutes, seconds);
+                         ^~~~~~~~~~~~~~~~
+meta.c:582:25: note: directive argument in the range [0, 60]
+In file included from /usr/include/stdio.h:867, from meta.c:17:
+/usr/include/bits/stdio2.h:67:10: note: '__builtin___snprintf_chk' output between 9 and 26 bytes into a destination of size 9
+   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+meta.c:580:26: warning: '%02d' directive output may be truncated writing between 2 and 10 bytes into a region of size 9 [-Wformat-truncation=]
+   snprintf(out, buflen, "%02d:%02d", hours, minutes);
+meta.c:580:25: note: directive argument in the range [0, 2147483647] snprintf(out, buflen, "%02d:%02d", hours, minutes);
+                         ^~~~~~~~~~~
+meta.c:580:25: note: directive argument in the range [0, 60] In file included from /usr/include/stdio.h:867, from meta.c:17:
+/usr/include/bits/stdio2.h:67:10: note: '__builtin___snprintf_chk' output between 6 and 14 bytes into a destination of size 9
+   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+There is no bug here, compiler doesn't know that those intergers only contains numbers
+in the two digit range.
 
-You may contact him in the brand new email address: phil@netfilter.org
-Thanks you very much Phil, and welcome! :-)
+I suggest to "fix" this by increasing out[] to 32 bytes.
 
-regards.
+> diff --git a/src/meta.c b/src/meta.c
+> index 1e8964e..00ff267 100644
+> --- a/src/meta.c
+> +++ b/src/meta.c
+> @@ -37,6 +37,10 @@
+>  #include <iface.h>
+>  #include <json.h>
+>  
+> +#define _XOPEN_SOURCE
+> +#define __USE_XOPEN
+> +#include <time.h>
+> +
+>  static struct symbol_table *realm_tbl;
+>  void realm_table_meta_init(void)
+>  {
+> @@ -383,6 +387,313 @@ const struct datatype ifname_type = {
+>  	.basetype	= &string_type,
+>  };
+>  
+> +static void date_type_print(const struct expr *expr, struct output_ctx *octx)
+> +{
+> +	char timestr[21];
+> +	struct tm *tm, *cur_tm;
+> +	uint64_t tstamp = mpz_get_uint64(expr->value);
+
+I would suggest to always order in reverse xmas tree, i.e.
+
+> +	uint64_t tstamp = mpz_get_uint64(expr->value);
+> +	struct tm *tm, *cur_tm;
+> +	char timestr[21];
+
+just to get used to this.  The networking maintainer (David Miller) prefers
+it this way for kernel patches (yes, this is an nftables patch but getting
+used to this ordering is a good idea.
+
+> +	/* Convert from nanoseconds to seconds */
+> +	tstamp /= 1000000000L;
+
+[..]
+
+This looks good to me, but there are three usability issues.
+
+The worst one first:
+
+nft add rule filter input hour 23:15-00:22 counter
+
+This works. But this fails:
+nft add rule filter input hour 23:15-03:22  counter
+Error: Range has zero or negative size
+
+Because values are converted to UTC, the first one will be a range from
+21:15 to 22:22 UTC, so left < right. Second one is not.
+
+The obvious workaround:
+
+meta hour < "04:22" will NOT match at 00:28 (GMT+2), as its still 22:28 in
+the UTC time zone.
+
+It will match once local time is past 0 hours UTC.
+
+I suggest to try to fix this from the evaluation step, by
+swapping left and right and inverting the match.
+
+So 76500-8520 (left larger right) turns into "!= 8520-76500",
+which appears to do the right thing.
+
+shape and I have no idea how to fix this without using/relying on kernel time zone.
+
+Even when relying on kernel time zone for everything, I don't see
+how we can support cross-day ("22:23-00:42") matching, as the range is
+invalid.
+
+Second problem:
+For same reason, "Weekday" matching is broken.
+If its Monday (00:31), rule that asks for monday won't match, because
+day is relative to UTC, and since its 22:31 UTC, its still Sunday.
+
+This is unusable when in a time zone much further away.
+
+Only solution I see is to change kernel patch to rely on
+sys_tz, just like xt_time, with all the pain this brings.
+
+Third problem, but NOT directly related to this patch, its due to
+existing range expression forcing numeric output:
+
+All time based ranges get printed like this:
+meta hour 72600-72720
+meta time 1563142680000000000-1563143400000000000
+
+I think we should relax range printing and only force numeric for
+the new time/hour/day when user did specify the --seconds option.
+
+Ander, you can fix this by finding out where the range print
+function gets called and by only propagating NFT_CTX_OUTPUT_NUMERIC_TIME
+when user asked for it instead of doing so unconditionally.
+
+Currently we always force numeric because something like
+"ssh-http" or "daemon-ftpd" looks very silly, but in case of hours and
+days I don't think it makes sense to do the raw-printing by default.
+
+> +static struct error_record *hour_type_parse(const struct expr *sym,
+> +					    struct expr **res)
+> +{
+> +	time_t ts;
+> +	char *endptr;
+> +	struct tm tm, *cur_tm;
+> +	uint64_t result = 0;
+> +	struct error_record *er;
+> +
+> +	memset(&tm, 0, sizeof(struct tm));
+> +
+> +	/* First, try to parse it as a number */
+> +	result = strtoul(sym->identifier, (char **) &endptr, 10);
+> +	if (*endptr == '\0' && endptr != sym->identifier)
+> +		goto success;
+> +
+> +	result = 0;
+> +
+> +	/* Obtain current tm, so that we can substract tm_gmtoff */
+> +	ts = time(NULL);
+> +	cur_tm = localtime(&ts);
+> +
+> +	if (strptime(sym->identifier, "%T", &tm))
+> +		goto convert;
+> +	if (strptime(sym->identifier, "%R", &tm))
+> +		goto convert;
+> +
+> +	if ((er = time_parse(&sym->location, sym->identifier, &result)) == NULL) {
+> +		result /= 1000;
+> +		goto convert;
+> +	}
+
+Seems this function accepts 'meta hour "04:22-23:15"'.   This should cause
+an error instead of letting user wonder why things don't work as expected:
+
+This passes the string "04:22-23:15" as "04:22".
+
+So this should fail, as this contains invalid '-' character, respectively
+has too many ":".
+
+> +	[NFT_META_TIME_HOUR]	= META_TEMPLATE("hour", &hour_type,
+> +						8 * BITS_PER_BYTE,
+> +						BYTEORDER_HOST_ENDIAN),
+
+Why does hour need 64bits of register space?  I think u32 is enough?
+
+>  static bool meta_key_is_unqualified(enum nft_meta_keys key)
+> diff --git a/src/parser_bison.y b/src/parser_bison.y
+> index 670e91f..26b64da 100644
+> --- a/src/parser_bison.y
+> +++ b/src/parser_bison.y
+> @@ -415,6 +415,7 @@ int nft_lex(void *, void *, void *);
+>  %token IIFGROUP			"iifgroup"
+>  %token OIFGROUP			"oifgroup"
+>  %token CGROUP			"cgroup"
+> +%token TIME			"time"
+>  
+>  %token CLASSID			"classid"
+>  %token NEXTHOP			"nexthop"
+> @@ -3886,6 +3887,9 @@ meta_key_unqualified	:	MARK		{ $$ = NFT_META_MARK; }
+>  			|       OIFGROUP	{ $$ = NFT_META_OIFGROUP; }
+>  			|       CGROUP		{ $$ = NFT_META_CGROUP; }
+>  			|       IPSEC		{ $$ = NFT_META_SECPATH; }
+> +			|       TIME		{ $$ = NFT_META_TIME; }
+> +			|       DAY		{ $$ = NFT_META_TIME_DAY; }
+> +			|       HOUR		{ $$ = NFT_META_TIME_HOUR; }
+>  			;
+>  
+>  meta_stmt		:	META	meta_key	SET	stmt_expr
+> diff --git a/src/scanner.l b/src/scanner.l
+> index d1f6e87..bd28141 100644
+> --- a/src/scanner.l
+> +++ b/src/scanner.l
+> @@ -411,7 +411,9 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
+>  "sack2"			{ return SACK2; }
+>  "sack3"			{ return SACK3; }
+>  "sack-permitted"	{ return SACK_PERMITTED; }
+> -"timestamp"		{ return TIMESTAMP; }
+
+Won't that break the tcp timestamp option?  I think this token needs
+to stay where it is.
+
+> +"time"			{ return TIME; }
+> +"day"			{ return DAY; }
+> +"hour"			{ return HOUR; }
+
+Causes:
+src/scanner.l:424: warning, rule cannot be matched
+src/scanner.l:425: warning, rule cannot be matched
+
+as DAY and HOUR rules are duplicates, just remove them.
+ 
+> diff --git a/tests/py/ip/meta.t.payload b/tests/py/ip/meta.t.payload
+> index 322c087..c9bc09f 100644
+> --- a/tests/py/ip/meta.t.payload
+> +++ b/tests/py/ip/meta.t.payload
+> @@ -1,3 +1,87 @@
+> +# meta time "1970-05-23 21:07:14" drop
+> +ip meta-test input
+> +  [ meta load unknown => reg 1 ]
+
+This "unknown" is coming from libnftnl.
+You need to fix up meta_key2str_array[] in src/expr/meta.c in libnftnl.
+
+This should say "time", "time_day" or similar.
+Also, shouldn't this come in patch #2 when those tests get added?
+
+Alternatively, you can squash your three patches into one, it would
+ be fine I think.
