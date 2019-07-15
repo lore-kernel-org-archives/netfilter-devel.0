@@ -2,169 +2,142 @@ Return-Path: <SRS0=suf1=VM=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 36C0FC76195
-	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Jul 2019 14:49:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E2D9BC7618F
+	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Jul 2019 14:52:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1ACC12067C
-	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Jul 2019 14:49:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B85DA2086C
+	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Jul 2019 14:52:19 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1563202339;
+	bh=VlBCB3cvj0pngMZ1/OmuZY11wGrcEs5NU2PFJGH1IN0=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=a2nYP6+plZ5oRcSMMBPEtdFDs6YzWyZJwl/s1kIbIrhf1ipfO3nrGpNTqsE82ZvAe
+	 cfd6GCTgXFqPKEJYTnegB3VvtChZE+Z/LL82Z+eiI0s5kNWn1QNruWNKz0fiCVDMKd
+	 tx4VP4DpWekXxcLY2VsTpMmamGLlh7WTV5NCnluo=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2404555AbfGOOsj (ORCPT
+        id S2391769AbfGOObB (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 15 Jul 2019 10:48:39 -0400
-Received: from szxga07-in.huawei.com ([45.249.212.35]:43894 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S2404564AbfGOOsh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 15 Jul 2019 10:48:37 -0400
-Received: from DGGEMS411-HUB.china.huawei.com (unknown [172.30.72.59])
-        by Forcepoint Email with ESMTP id 54249BD5A6834CEA0A9A;
-        Mon, 15 Jul 2019 22:48:33 +0800 (CST)
-Received: from [127.0.0.1] (10.184.191.73) by DGGEMS411-HUB.china.huawei.com
- (10.3.19.211) with Microsoft SMTP Server id 14.3.439.0; Mon, 15 Jul 2019
- 22:48:25 +0800
-To:     <wensong@linux-vs.org>, <horms@verge.net.au>, <ja@ssi.bg>,
-        <pablo@netfilter.org>, <kadlec@blackhole.kfki.hu>, <fw@strlen.de>,
-        <davem@davemloft.net>
-CC:     "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-        <lvs-devel@vger.kernel.org>, <netfilter-devel@vger.kernel.org>,
-        <coreteam@netfilter.org>, Mingfangsen <mingfangsen@huawei.com>,
-        <wangxiaogang3@huawei.com>, <xuhanbing@huawei.com>
-From:   hujunwei <hujunwei4@huawei.com>
-Subject: [PATCH net] ipvs: Improve robustness to the ipvs sysctl
-Message-ID: <1997375e-815d-137f-20c9-0829a8587ee9@huawei.com>
-Date:   Mon, 15 Jul 2019 22:48:18 +0800
-User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:60.0) Gecko/20100101
- Thunderbird/60.6.1
+        Mon, 15 Jul 2019 10:31:01 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44310 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1732124AbfGOObA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 15 Jul 2019 10:31:00 -0400
+Received: from sasha-vm.mshome.net (unknown [73.61.17.35])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 90CA9205ED;
+        Mon, 15 Jul 2019 14:30:57 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1563201059;
+        bh=VlBCB3cvj0pngMZ1/OmuZY11wGrcEs5NU2PFJGH1IN0=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=STYP1YLkdfWWOxyts8aIp87unxmIKu2ETy2+CxfiZiDZ1bwINv+dg1SCXf3YJUrJz
+         HNHgp6KlJw/eNcY5OkkjnqWxT7HBc5UEySmlDrpbDDVhRv0xsJPXXNT9QtcX/jRDPR
+         p9lIsW6FLY/iOvH1XWle8MypHcAwM4AnrAsYbobA=
+From:   Sasha Levin <sashal@kernel.org>
+To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc:     Stefano Brivio <sbrivio@redhat.com>,
+        NOYB <JunkYardMail1@Frontier.com>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Sasha Levin <sashal@kernel.org>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org
+Subject: [PATCH AUTOSEL 4.14 039/105] ipset: Fix memory accounting for hash types on resize
+Date:   Mon, 15 Jul 2019 10:27:33 -0400
+Message-Id: <20190715142839.9896-39-sashal@kernel.org>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20190715142839.9896-1-sashal@kernel.org>
+References: <20190715142839.9896-1-sashal@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.184.191.73]
-X-CFilter-Loop: Reflected
+X-stable: review
+X-Patchwork-Hint: Ignore
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Junwei Hu <hujunwei4@huawei.com>
+From: Stefano Brivio <sbrivio@redhat.com>
 
-The ipvs module parse the user buffer and save it to sysctl,
-then check if the value is valid. invalid value occurs
-over a period of time.
-Here, I add a variable, struct ctl_table tmp, used to read
-the value from the user buffer, and save only when it is valid.
+[ Upstream commit 11921796f4799ca9c61c4b22cc54d84aa69f8a35 ]
 
-Fixes: f73181c8288f ("ipvs: add support for sync threads")
-Signed-off-by: Junwei Hu <hujunwei4@huawei.com>
+If a fresh array block is allocated during resize, the current in-memory
+set size should be increased by the size of the block, not replaced by it.
+
+Before the fix, adding entries to a hash set type, leading to a table
+resize, caused an inconsistent memory size to be reported. This becomes
+more obvious when swapping sets with similar sizes:
+
+  # cat hash_ip_size.sh
+  #!/bin/sh
+  FAIL_RETRIES=10
+
+  tries=0
+  while [ ${tries} -lt ${FAIL_RETRIES} ]; do
+  	ipset create t1 hash:ip
+  	for i in `seq 1 4345`; do
+  		ipset add t1 1.2.$((i / 255)).$((i % 255))
+  	done
+  	t1_init="$(ipset list t1|sed -n 's/Size in memory: \(.*\)/\1/p')"
+
+  	ipset create t2 hash:ip
+  	for i in `seq 1 4360`; do
+  		ipset add t2 1.2.$((i / 255)).$((i % 255))
+  	done
+  	t2_init="$(ipset list t2|sed -n 's/Size in memory: \(.*\)/\1/p')"
+
+  	ipset swap t1 t2
+  	t1_swap="$(ipset list t1|sed -n 's/Size in memory: \(.*\)/\1/p')"
+  	t2_swap="$(ipset list t2|sed -n 's/Size in memory: \(.*\)/\1/p')"
+
+  	ipset destroy t1
+  	ipset destroy t2
+  	tries=$((tries + 1))
+
+  	if [ ${t1_init} -lt 10000 ] || [ ${t2_init} -lt 10000 ]; then
+  		echo "FAIL after ${tries} tries:"
+  		echo "T1 size ${t1_init}, after swap ${t1_swap}"
+  		echo "T2 size ${t2_init}, after swap ${t2_swap}"
+  		exit 1
+  	fi
+  done
+  echo "PASS"
+  # echo -n 'func hash_ip4_resize +p' > /sys/kernel/debug/dynamic_debug/control
+  # ./hash_ip_size.sh
+  [ 2035.018673] attempt to resize set t1 from 10 to 11, t 00000000fe6551fa
+  [ 2035.078583] set t1 resized from 10 (00000000fe6551fa) to 11 (00000000172a0163)
+  [ 2035.080353] Table destroy by resize 00000000fe6551fa
+  FAIL after 4 tries:
+  T1 size 9064, after swap 71128
+  T2 size 71128, after swap 9064
+
+Reported-by: NOYB <JunkYardMail1@Frontier.com>
+Fixes: 9e41f26a505c ("netfilter: ipset: Count non-static extension memory for userspace")
+Signed-off-by: Stefano Brivio <sbrivio@redhat.com>
+Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- net/netfilter/ipvs/ip_vs_ctl.c | 61 +++++++++++++++++++++++-----------
- 1 file changed, 42 insertions(+), 19 deletions(-)
+ net/netfilter/ipset/ip_set_hash_gen.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index 741d91aa4a8d..e78fd05f108b 100644
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -1680,12 +1680,18 @@ proc_do_defense_mode(struct ctl_table *table, int write,
- 	int val = *valp;
- 	int rc;
-
--	rc = proc_dointvec(table, write, buffer, lenp, ppos);
-+	struct ctl_table tmp = {
-+		.data = &val,
-+		.maxlen = sizeof(int),
-+		.mode = table->mode,
-+	};
-+
-+	rc = proc_dointvec(&tmp, write, buffer, lenp, ppos);
- 	if (write && (*valp != val)) {
--		if ((*valp < 0) || (*valp > 3)) {
--			/* Restore the correct value */
-+		if (val < 0 || val > 3)
-+			rc = -EINVAL;
-+		else {
- 			*valp = val;
--		} else {
- 			update_defense_level(ipvs);
- 		}
- 	}
-@@ -1699,15 +1705,20 @@ proc_do_sync_threshold(struct ctl_table *table, int write,
- 	int *valp = table->data;
- 	int val[2];
- 	int rc;
-+	struct ctl_table tmp = {
-+		.data = &val,
-+		.maxlen = table->maxlen,
-+		.mode = table->mode,
-+	};
-
--	/* backup the value first */
- 	memcpy(val, valp, sizeof(val));
--
--	rc = proc_dointvec(table, write, buffer, lenp, ppos);
--	if (write && (valp[0] < 0 || valp[1] < 0 ||
--	    (valp[0] >= valp[1] && valp[1]))) {
--		/* Restore the correct value */
--		memcpy(valp, val, sizeof(val));
-+	rc = proc_dointvec(&tmp, write, buffer, lenp, ppos);
-+	if (write) {
-+		if (val[0] < 0 || val[1] < 0 ||
-+		    (val[0] >= val[1] && val[1]))
-+			rc = -EINVAL;
-+		else
-+			memcpy(valp, val, sizeof(val));
- 	}
- 	return rc;
- }
-@@ -1720,12 +1731,18 @@ proc_do_sync_mode(struct ctl_table *table, int write,
- 	int val = *valp;
- 	int rc;
-
--	rc = proc_dointvec(table, write, buffer, lenp, ppos);
-+	struct ctl_table tmp = {
-+		.data = &val,
-+		.maxlen = sizeof(int),
-+		.mode = table->mode,
-+	};
-+
-+	rc = proc_dointvec(&tmp, write, buffer, lenp, ppos);
- 	if (write && (*valp != val)) {
--		if ((*valp < 0) || (*valp > 1)) {
--			/* Restore the correct value */
-+		if (val < 0 || val > 1)
-+			rc = -EINVAL;
-+		else
- 			*valp = val;
--		}
- 	}
- 	return rc;
- }
-@@ -1738,12 +1755,18 @@ proc_do_sync_ports(struct ctl_table *table, int write,
- 	int val = *valp;
- 	int rc;
-
--	rc = proc_dointvec(table, write, buffer, lenp, ppos);
-+	struct ctl_table tmp = {
-+		.data = &val,
-+		.maxlen = sizeof(int),
-+		.mode = table->mode,
-+	};
-+
-+	rc = proc_dointvec(&tmp, write, buffer, lenp, ppos);
- 	if (write && (*valp != val)) {
--		if (*valp < 1 || !is_power_of_2(*valp)) {
--			/* Restore the correct value */
-+		if (val < 1 || !is_power_of_2(val))
-+			rc = -EINVAL;
-+		else
- 			*valp = val;
--		}
- 	}
- 	return rc;
- }
+diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
+index dfd268166e42..42d9cd22447e 100644
+--- a/net/netfilter/ipset/ip_set_hash_gen.h
++++ b/net/netfilter/ipset/ip_set_hash_gen.h
+@@ -624,7 +624,7 @@ mtype_resize(struct ip_set *set, bool retried)
+ 					goto cleanup;
+ 				}
+ 				m->size = AHASH_INIT_SIZE;
+-				extsize = ext_size(AHASH_INIT_SIZE, dsize);
++				extsize += ext_size(AHASH_INIT_SIZE, dsize);
+ 				RCU_INIT_POINTER(hbucket(t, key), m);
+ 			} else if (m->pos >= m->size) {
+ 				struct hbucket *ht;
 -- 
-2.21.GIT
+2.20.1
 
