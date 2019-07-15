@@ -4,55 +4,57 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 799B8C76195
-	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Jul 2019 14:20:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EEF60C76195
+	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Jul 2019 14:36:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4DD30217D8
-	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Jul 2019 14:20:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B44D2204FD
+	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Jul 2019 14:36:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1563200444;
-	bh=w55zOYYzJNMcdP+7zqKRNkT5GrF8Viwduokb96WWaeE=;
+	s=default; t=1563201374;
+	bh=5Aa0KM4jO8VC0hRf7ZvbdSlkO9hIjzPXUB4KSc1LdgI=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=vxL5F5IYT/CNYlcJl95bnS7yYoQkHCIsc3JfDSgJTbvLy5VcKGGEi885pWfA4zQBu
-	 jLk+7DeZTfOSkOo09TYgeqlCYwUresgII+rdN//kiWo/pki8mHMuizH4Ds3vFmc4Sc
-	 HXIILTfHzMJfgSjwNMmW1Iv+cYnePwndqH9DQv1A=
+	b=xrCbwXVUPalw0jRPujjJnbnQfL42ZlxpzAVUQrTYd3bIgAkHquot8qeAiu5noOK1/
+	 jCLc1dGZkz+4pHHjacM8vkdGDHm2vWAakbnteqyJcqf55ugr218fngvwUiVBqvVx6W
+	 CCaSAX8DlJ13SQTeYJXVHAKtCFbpTh3TVdEXtX9g=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2390215AbfGOOUn (ORCPT
+        id S2391949AbfGOOdP (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 15 Jul 2019 10:20:43 -0400
-Received: from mail.kernel.org ([198.145.29.99]:45838 "EHLO mail.kernel.org"
+        Mon, 15 Jul 2019 10:33:15 -0400
+Received: from mail.kernel.org ([198.145.29.99]:49100 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2390270AbfGOOUm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 15 Jul 2019 10:20:42 -0400
+        id S2391941AbfGOOdP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 15 Jul 2019 10:33:15 -0400
 Received: from sasha-vm.mshome.net (unknown [73.61.17.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id DC6EF206B8;
-        Mon, 15 Jul 2019 14:20:39 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id E0E0920861;
+        Mon, 15 Jul 2019 14:33:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1563200441;
-        bh=w55zOYYzJNMcdP+7zqKRNkT5GrF8Viwduokb96WWaeE=;
+        s=default; t=1563201194;
+        bh=5Aa0KM4jO8VC0hRf7ZvbdSlkO9hIjzPXUB4KSc1LdgI=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=mjO8bP5npvsYcJAi8lESgMjmIdsfmXkzwC0mv5rZvvu2d7kWJ2zSKVSDs3h6dCb7j
-         Z6XUQYQ3DTHE2MDMXniKqQWoUd2tEISU/dW9sDIkctxXNYE8ZtZZACR4VEJM0QYnGC
-         7lVeW3TGNcJS8nnQb710WoMq6IL1H2J/DUrSuo9E=
+        b=tmo/UANpzT10eB9fj1oj+j7DLfIinVh2GVLqO8dxBGUaGpX7DbmDFWxQawbdIbyAX
+         5AvG7AV4FRgMVCaTjp8P3rfAyPOc0z/Vxt0wtKuKBzra5VirCc0Rsqjxnf+5ueiGGR
+         IzNTv9w51wB0Jw34fM4ALT4T2uhyJLb7MZvKlWpE=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Stefano Brivio <sbrivio@redhat.com>,
-        NOYB <JunkYardMail1@Frontier.com>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Sasha Levin <sashal@kernel.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.19 051/158] ipset: Fix memory accounting for hash types on resize
-Date:   Mon, 15 Jul 2019 10:16:22 -0400
-Message-Id: <20190715141809.8445-51-sashal@kernel.org>
+Cc:     Julian Anastasov <ja@ssi.bg>,
+        syzbot+7e2e50c8adfccd2e5041@syzkaller.appspotmail.com,
+        Eric Biggers <ebiggers@kernel.org>,
+        Simon Horman <horms@verge.net.au>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org,
+        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org
+Subject: [PATCH AUTOSEL 4.14 075/105] ipvs: fix tinfo memory leak in start_sync_thread
+Date:   Mon, 15 Jul 2019 10:28:09 -0400
+Message-Id: <20190715142839.9896-75-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20190715141809.8445-1-sashal@kernel.org>
-References: <20190715141809.8445-1-sashal@kernel.org>
+In-Reply-To: <20190715142839.9896-1-sashal@kernel.org>
+References: <20190715142839.9896-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -62,82 +64,399 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Stefano Brivio <sbrivio@redhat.com>
+From: Julian Anastasov <ja@ssi.bg>
 
-[ Upstream commit 11921796f4799ca9c61c4b22cc54d84aa69f8a35 ]
+[ Upstream commit 5db7c8b9f9fc2aeec671ae3ca6375752c162e0e7 ]
 
-If a fresh array block is allocated during resize, the current in-memory
-set size should be increased by the size of the block, not replaced by it.
+syzkaller reports for memory leak in start_sync_thread [1]
 
-Before the fix, adding entries to a hash set type, leading to a table
-resize, caused an inconsistent memory size to be reported. This becomes
-more obvious when swapping sets with similar sizes:
+As Eric points out, kthread may start and stop before the
+threadfn function is called, so there is no chance the
+data (tinfo in our case) to be released in thread.
 
-  # cat hash_ip_size.sh
-  #!/bin/sh
-  FAIL_RETRIES=10
+Fix this by releasing tinfo in the controlling code instead.
 
-  tries=0
-  while [ ${tries} -lt ${FAIL_RETRIES} ]; do
-  	ipset create t1 hash:ip
-  	for i in `seq 1 4345`; do
-  		ipset add t1 1.2.$((i / 255)).$((i % 255))
-  	done
-  	t1_init="$(ipset list t1|sed -n 's/Size in memory: \(.*\)/\1/p')"
+[1]
+BUG: memory leak
+unreferenced object 0xffff8881206bf700 (size 32):
+ comm "syz-executor761", pid 7268, jiffies 4294943441 (age 20.470s)
+ hex dump (first 32 bytes):
+   00 40 7c 09 81 88 ff ff 80 45 b8 21 81 88 ff ff  .@|......E.!....
+   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+ backtrace:
+   [<0000000057619e23>] kmemleak_alloc_recursive include/linux/kmemleak.h:55 [inline]
+   [<0000000057619e23>] slab_post_alloc_hook mm/slab.h:439 [inline]
+   [<0000000057619e23>] slab_alloc mm/slab.c:3326 [inline]
+   [<0000000057619e23>] kmem_cache_alloc_trace+0x13d/0x280 mm/slab.c:3553
+   [<0000000086ce5479>] kmalloc include/linux/slab.h:547 [inline]
+   [<0000000086ce5479>] start_sync_thread+0x5d2/0xe10 net/netfilter/ipvs/ip_vs_sync.c:1862
+   [<000000001a9229cc>] do_ip_vs_set_ctl+0x4c5/0x780 net/netfilter/ipvs/ip_vs_ctl.c:2402
+   [<00000000ece457c8>] nf_sockopt net/netfilter/nf_sockopt.c:106 [inline]
+   [<00000000ece457c8>] nf_setsockopt+0x4c/0x80 net/netfilter/nf_sockopt.c:115
+   [<00000000942f62d4>] ip_setsockopt net/ipv4/ip_sockglue.c:1258 [inline]
+   [<00000000942f62d4>] ip_setsockopt+0x9b/0xb0 net/ipv4/ip_sockglue.c:1238
+   [<00000000a56a8ffd>] udp_setsockopt+0x4e/0x90 net/ipv4/udp.c:2616
+   [<00000000fa895401>] sock_common_setsockopt+0x38/0x50 net/core/sock.c:3130
+   [<0000000095eef4cf>] __sys_setsockopt+0x98/0x120 net/socket.c:2078
+   [<000000009747cf88>] __do_sys_setsockopt net/socket.c:2089 [inline]
+   [<000000009747cf88>] __se_sys_setsockopt net/socket.c:2086 [inline]
+   [<000000009747cf88>] __x64_sys_setsockopt+0x26/0x30 net/socket.c:2086
+   [<00000000ded8ba80>] do_syscall_64+0x76/0x1a0 arch/x86/entry/common.c:301
+   [<00000000893b4ac8>] entry_SYSCALL_64_after_hwframe+0x44/0xa9
 
-  	ipset create t2 hash:ip
-  	for i in `seq 1 4360`; do
-  		ipset add t2 1.2.$((i / 255)).$((i % 255))
-  	done
-  	t2_init="$(ipset list t2|sed -n 's/Size in memory: \(.*\)/\1/p')"
-
-  	ipset swap t1 t2
-  	t1_swap="$(ipset list t1|sed -n 's/Size in memory: \(.*\)/\1/p')"
-  	t2_swap="$(ipset list t2|sed -n 's/Size in memory: \(.*\)/\1/p')"
-
-  	ipset destroy t1
-  	ipset destroy t2
-  	tries=$((tries + 1))
-
-  	if [ ${t1_init} -lt 10000 ] || [ ${t2_init} -lt 10000 ]; then
-  		echo "FAIL after ${tries} tries:"
-  		echo "T1 size ${t1_init}, after swap ${t1_swap}"
-  		echo "T2 size ${t2_init}, after swap ${t2_swap}"
-  		exit 1
-  	fi
-  done
-  echo "PASS"
-  # echo -n 'func hash_ip4_resize +p' > /sys/kernel/debug/dynamic_debug/control
-  # ./hash_ip_size.sh
-  [ 2035.018673] attempt to resize set t1 from 10 to 11, t 00000000fe6551fa
-  [ 2035.078583] set t1 resized from 10 (00000000fe6551fa) to 11 (00000000172a0163)
-  [ 2035.080353] Table destroy by resize 00000000fe6551fa
-  FAIL after 4 tries:
-  T1 size 9064, after swap 71128
-  T2 size 71128, after swap 9064
-
-Reported-by: NOYB <JunkYardMail1@Frontier.com>
-Fixes: 9e41f26a505c ("netfilter: ipset: Count non-static extension memory for userspace")
-Signed-off-by: Stefano Brivio <sbrivio@redhat.com>
-Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Reported-by: syzbot+7e2e50c8adfccd2e5041@syzkaller.appspotmail.com
+Suggested-by: Eric Biggers <ebiggers@kernel.org>
+Fixes: 998e7a76804b ("ipvs: Use kthread_run() instead of doing a double-fork via kernel_thread()")
+Signed-off-by: Julian Anastasov <ja@ssi.bg>
+Acked-by: Simon Horman <horms@verge.net.au>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- net/netfilter/ipset/ip_set_hash_gen.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/net/ip_vs.h             |   6 +-
+ net/netfilter/ipvs/ip_vs_ctl.c  |   4 -
+ net/netfilter/ipvs/ip_vs_sync.c | 134 +++++++++++++++++---------------
+ 3 files changed, 76 insertions(+), 68 deletions(-)
 
-diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
-index 8a33dac4e805..ddfe06d7530b 100644
---- a/net/netfilter/ipset/ip_set_hash_gen.h
-+++ b/net/netfilter/ipset/ip_set_hash_gen.h
-@@ -625,7 +625,7 @@ mtype_resize(struct ip_set *set, bool retried)
- 					goto cleanup;
- 				}
- 				m->size = AHASH_INIT_SIZE;
--				extsize = ext_size(AHASH_INIT_SIZE, dsize);
-+				extsize += ext_size(AHASH_INIT_SIZE, dsize);
- 				RCU_INIT_POINTER(hbucket(t, key), m);
- 			} else if (m->pos >= m->size) {
- 				struct hbucket *ht;
+diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
+index 5d08c1950e7d..82bc9f0e8a76 100644
+--- a/include/net/ip_vs.h
++++ b/include/net/ip_vs.h
+@@ -812,11 +812,12 @@ struct ipvs_master_sync_state {
+ 	struct ip_vs_sync_buff	*sync_buff;
+ 	unsigned long		sync_queue_len;
+ 	unsigned int		sync_queue_delay;
+-	struct task_struct	*master_thread;
+ 	struct delayed_work	master_wakeup_work;
+ 	struct netns_ipvs	*ipvs;
+ };
+ 
++struct ip_vs_sync_thread_data;
++
+ /* How much time to keep dests in trash */
+ #define IP_VS_DEST_TRASH_PERIOD		(120 * HZ)
+ 
+@@ -947,7 +948,8 @@ struct netns_ipvs {
+ 	spinlock_t		sync_lock;
+ 	struct ipvs_master_sync_state *ms;
+ 	spinlock_t		sync_buff_lock;
+-	struct task_struct	**backup_threads;
++	struct ip_vs_sync_thread_data *master_tinfo;
++	struct ip_vs_sync_thread_data *backup_tinfo;
+ 	int			threads_mask;
+ 	volatile int		sync_state;
+ 	struct mutex		sync_mutex;
+diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+index 6d7608b88f66..4648dccebf59 100644
+--- a/net/netfilter/ipvs/ip_vs_ctl.c
++++ b/net/netfilter/ipvs/ip_vs_ctl.c
+@@ -2414,9 +2414,7 @@ do_ip_vs_set_ctl(struct sock *sk, int cmd, void __user *user, unsigned int len)
+ 			cfg.syncid = dm->syncid;
+ 			ret = start_sync_thread(ipvs, &cfg, dm->state);
+ 		} else {
+-			mutex_lock(&ipvs->sync_mutex);
+ 			ret = stop_sync_thread(ipvs, dm->state);
+-			mutex_unlock(&ipvs->sync_mutex);
+ 		}
+ 		goto out_dec;
+ 	}
+@@ -3524,10 +3522,8 @@ static int ip_vs_genl_del_daemon(struct netns_ipvs *ipvs, struct nlattr **attrs)
+ 	if (!attrs[IPVS_DAEMON_ATTR_STATE])
+ 		return -EINVAL;
+ 
+-	mutex_lock(&ipvs->sync_mutex);
+ 	ret = stop_sync_thread(ipvs,
+ 			       nla_get_u32(attrs[IPVS_DAEMON_ATTR_STATE]));
+-	mutex_unlock(&ipvs->sync_mutex);
+ 	return ret;
+ }
+ 
+diff --git a/net/netfilter/ipvs/ip_vs_sync.c b/net/netfilter/ipvs/ip_vs_sync.c
+index 5e07f7a6794e..b578ebb3d7ef 100644
+--- a/net/netfilter/ipvs/ip_vs_sync.c
++++ b/net/netfilter/ipvs/ip_vs_sync.c
+@@ -195,6 +195,7 @@ union ip_vs_sync_conn {
+ #define IPVS_OPT_F_PARAM	(1 << (IPVS_OPT_PARAM-1))
+ 
+ struct ip_vs_sync_thread_data {
++	struct task_struct *task;
+ 	struct netns_ipvs *ipvs;
+ 	struct socket *sock;
+ 	char *buf;
+@@ -374,8 +375,11 @@ static inline void sb_queue_tail(struct netns_ipvs *ipvs,
+ 					      max(IPVS_SYNC_SEND_DELAY, 1));
+ 		ms->sync_queue_len++;
+ 		list_add_tail(&sb->list, &ms->sync_queue);
+-		if ((++ms->sync_queue_delay) == IPVS_SYNC_WAKEUP_RATE)
+-			wake_up_process(ms->master_thread);
++		if ((++ms->sync_queue_delay) == IPVS_SYNC_WAKEUP_RATE) {
++			int id = (int)(ms - ipvs->ms);
++
++			wake_up_process(ipvs->master_tinfo[id].task);
++		}
+ 	} else
+ 		ip_vs_sync_buff_release(sb);
+ 	spin_unlock(&ipvs->sync_lock);
+@@ -1645,8 +1649,10 @@ static void master_wakeup_work_handler(struct work_struct *work)
+ 	spin_lock_bh(&ipvs->sync_lock);
+ 	if (ms->sync_queue_len &&
+ 	    ms->sync_queue_delay < IPVS_SYNC_WAKEUP_RATE) {
++		int id = (int)(ms - ipvs->ms);
++
+ 		ms->sync_queue_delay = IPVS_SYNC_WAKEUP_RATE;
+-		wake_up_process(ms->master_thread);
++		wake_up_process(ipvs->master_tinfo[id].task);
+ 	}
+ 	spin_unlock_bh(&ipvs->sync_lock);
+ }
+@@ -1712,10 +1718,6 @@ static int sync_thread_master(void *data)
+ 	if (sb)
+ 		ip_vs_sync_buff_release(sb);
+ 
+-	/* release the sending multicast socket */
+-	sock_release(tinfo->sock);
+-	kfree(tinfo);
+-
+ 	return 0;
+ }
+ 
+@@ -1749,11 +1751,6 @@ static int sync_thread_backup(void *data)
+ 		}
+ 	}
+ 
+-	/* release the sending multicast socket */
+-	sock_release(tinfo->sock);
+-	kfree(tinfo->buf);
+-	kfree(tinfo);
+-
+ 	return 0;
+ }
+ 
+@@ -1761,8 +1758,8 @@ static int sync_thread_backup(void *data)
+ int start_sync_thread(struct netns_ipvs *ipvs, struct ipvs_sync_daemon_cfg *c,
+ 		      int state)
+ {
+-	struct ip_vs_sync_thread_data *tinfo = NULL;
+-	struct task_struct **array = NULL, *task;
++	struct ip_vs_sync_thread_data *ti = NULL, *tinfo;
++	struct task_struct *task;
+ 	struct net_device *dev;
+ 	char *name;
+ 	int (*threadfn)(void *data);
+@@ -1831,7 +1828,7 @@ int start_sync_thread(struct netns_ipvs *ipvs, struct ipvs_sync_daemon_cfg *c,
+ 		threadfn = sync_thread_master;
+ 	} else if (state == IP_VS_STATE_BACKUP) {
+ 		result = -EEXIST;
+-		if (ipvs->backup_threads)
++		if (ipvs->backup_tinfo)
+ 			goto out_early;
+ 
+ 		ipvs->bcfg = *c;
+@@ -1858,28 +1855,22 @@ int start_sync_thread(struct netns_ipvs *ipvs, struct ipvs_sync_daemon_cfg *c,
+ 					  master_wakeup_work_handler);
+ 			ms->ipvs = ipvs;
+ 		}
+-	} else {
+-		array = kcalloc(count, sizeof(struct task_struct *),
+-				GFP_KERNEL);
+-		result = -ENOMEM;
+-		if (!array)
+-			goto out;
+ 	}
++	result = -ENOMEM;
++	ti = kcalloc(count, sizeof(struct ip_vs_sync_thread_data),
++		     GFP_KERNEL);
++	if (!ti)
++		goto out;
+ 
+ 	for (id = 0; id < count; id++) {
+-		result = -ENOMEM;
+-		tinfo = kmalloc(sizeof(*tinfo), GFP_KERNEL);
+-		if (!tinfo)
+-			goto out;
++		tinfo = &ti[id];
+ 		tinfo->ipvs = ipvs;
+-		tinfo->sock = NULL;
+ 		if (state == IP_VS_STATE_BACKUP) {
++			result = -ENOMEM;
+ 			tinfo->buf = kmalloc(ipvs->bcfg.sync_maxlen,
+ 					     GFP_KERNEL);
+ 			if (!tinfo->buf)
+ 				goto out;
+-		} else {
+-			tinfo->buf = NULL;
+ 		}
+ 		tinfo->id = id;
+ 		if (state == IP_VS_STATE_MASTER)
+@@ -1894,17 +1885,15 @@ int start_sync_thread(struct netns_ipvs *ipvs, struct ipvs_sync_daemon_cfg *c,
+ 			result = PTR_ERR(task);
+ 			goto out;
+ 		}
+-		tinfo = NULL;
+-		if (state == IP_VS_STATE_MASTER)
+-			ipvs->ms[id].master_thread = task;
+-		else
+-			array[id] = task;
++		tinfo->task = task;
+ 	}
+ 
+ 	/* mark as active */
+ 
+-	if (state == IP_VS_STATE_BACKUP)
+-		ipvs->backup_threads = array;
++	if (state == IP_VS_STATE_MASTER)
++		ipvs->master_tinfo = ti;
++	else
++		ipvs->backup_tinfo = ti;
+ 	spin_lock_bh(&ipvs->sync_buff_lock);
+ 	ipvs->sync_state |= state;
+ 	spin_unlock_bh(&ipvs->sync_buff_lock);
+@@ -1919,29 +1908,31 @@ int start_sync_thread(struct netns_ipvs *ipvs, struct ipvs_sync_daemon_cfg *c,
+ 
+ out:
+ 	/* We do not need RTNL lock anymore, release it here so that
+-	 * sock_release below and in the kthreads can use rtnl_lock
+-	 * to leave the mcast group.
++	 * sock_release below can use rtnl_lock to leave the mcast group.
+ 	 */
+ 	rtnl_unlock();
+-	count = id;
+-	while (count-- > 0) {
+-		if (state == IP_VS_STATE_MASTER)
+-			kthread_stop(ipvs->ms[count].master_thread);
+-		else
+-			kthread_stop(array[count]);
++	id = min(id, count - 1);
++	if (ti) {
++		for (tinfo = ti + id; tinfo >= ti; tinfo--) {
++			if (tinfo->task)
++				kthread_stop(tinfo->task);
++		}
+ 	}
+ 	if (!(ipvs->sync_state & IP_VS_STATE_MASTER)) {
+ 		kfree(ipvs->ms);
+ 		ipvs->ms = NULL;
+ 	}
+ 	mutex_unlock(&ipvs->sync_mutex);
+-	if (tinfo) {
+-		if (tinfo->sock)
+-			sock_release(tinfo->sock);
+-		kfree(tinfo->buf);
+-		kfree(tinfo);
++
++	/* No more mutexes, release socks */
++	if (ti) {
++		for (tinfo = ti + id; tinfo >= ti; tinfo--) {
++			if (tinfo->sock)
++				sock_release(tinfo->sock);
++			kfree(tinfo->buf);
++		}
++		kfree(ti);
+ 	}
+-	kfree(array);
+ 	return result;
+ 
+ out_early:
+@@ -1953,15 +1944,18 @@ int start_sync_thread(struct netns_ipvs *ipvs, struct ipvs_sync_daemon_cfg *c,
+ 
+ int stop_sync_thread(struct netns_ipvs *ipvs, int state)
+ {
+-	struct task_struct **array;
++	struct ip_vs_sync_thread_data *ti, *tinfo;
+ 	int id;
+ 	int retc = -EINVAL;
+ 
+ 	IP_VS_DBG(7, "%s(): pid %d\n", __func__, task_pid_nr(current));
+ 
++	mutex_lock(&ipvs->sync_mutex);
+ 	if (state == IP_VS_STATE_MASTER) {
++		retc = -ESRCH;
+ 		if (!ipvs->ms)
+-			return -ESRCH;
++			goto err;
++		ti = ipvs->master_tinfo;
+ 
+ 		/*
+ 		 * The lock synchronizes with sb_queue_tail(), so that we don't
+@@ -1980,38 +1974,56 @@ int stop_sync_thread(struct netns_ipvs *ipvs, int state)
+ 			struct ipvs_master_sync_state *ms = &ipvs->ms[id];
+ 			int ret;
+ 
++			tinfo = &ti[id];
+ 			pr_info("stopping master sync thread %d ...\n",
+-				task_pid_nr(ms->master_thread));
++				task_pid_nr(tinfo->task));
+ 			cancel_delayed_work_sync(&ms->master_wakeup_work);
+-			ret = kthread_stop(ms->master_thread);
++			ret = kthread_stop(tinfo->task);
+ 			if (retc >= 0)
+ 				retc = ret;
+ 		}
+ 		kfree(ipvs->ms);
+ 		ipvs->ms = NULL;
++		ipvs->master_tinfo = NULL;
+ 	} else if (state == IP_VS_STATE_BACKUP) {
+-		if (!ipvs->backup_threads)
+-			return -ESRCH;
++		retc = -ESRCH;
++		if (!ipvs->backup_tinfo)
++			goto err;
++		ti = ipvs->backup_tinfo;
+ 
+ 		ipvs->sync_state &= ~IP_VS_STATE_BACKUP;
+-		array = ipvs->backup_threads;
+ 		retc = 0;
+ 		for (id = ipvs->threads_mask; id >= 0; id--) {
+ 			int ret;
+ 
++			tinfo = &ti[id];
+ 			pr_info("stopping backup sync thread %d ...\n",
+-				task_pid_nr(array[id]));
+-			ret = kthread_stop(array[id]);
++				task_pid_nr(tinfo->task));
++			ret = kthread_stop(tinfo->task);
+ 			if (retc >= 0)
+ 				retc = ret;
+ 		}
+-		kfree(array);
+-		ipvs->backup_threads = NULL;
++		ipvs->backup_tinfo = NULL;
++	} else {
++		goto err;
+ 	}
++	id = ipvs->threads_mask;
++	mutex_unlock(&ipvs->sync_mutex);
++
++	/* No more mutexes, release socks */
++	for (tinfo = ti + id; tinfo >= ti; tinfo--) {
++		if (tinfo->sock)
++			sock_release(tinfo->sock);
++		kfree(tinfo->buf);
++	}
++	kfree(ti);
+ 
+ 	/* decrease the module use count */
+ 	ip_vs_use_count_dec();
++	return retc;
+ 
++err:
++	mutex_unlock(&ipvs->sync_mutex);
+ 	return retc;
+ }
+ 
+@@ -2030,7 +2042,6 @@ void ip_vs_sync_net_cleanup(struct netns_ipvs *ipvs)
+ {
+ 	int retc;
+ 
+-	mutex_lock(&ipvs->sync_mutex);
+ 	retc = stop_sync_thread(ipvs, IP_VS_STATE_MASTER);
+ 	if (retc && retc != -ESRCH)
+ 		pr_err("Failed to stop Master Daemon\n");
+@@ -2038,5 +2049,4 @@ void ip_vs_sync_net_cleanup(struct netns_ipvs *ipvs)
+ 	retc = stop_sync_thread(ipvs, IP_VS_STATE_BACKUP);
+ 	if (retc && retc != -ESRCH)
+ 		pr_err("Failed to stop Backup Daemon\n");
+-	mutex_unlock(&ipvs->sync_mutex);
+ }
 -- 
 2.20.1
 
