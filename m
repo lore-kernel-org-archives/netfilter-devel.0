@@ -2,111 +2,100 @@ Return-Path: <SRS0=suf1=VM=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+X-Spam-Status: No, score=-6.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A1D8C76191
-	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Jul 2019 18:09:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A1BAC7618F
+	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Jul 2019 19:32:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4DB0C2081C
-	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Jul 2019 18:09:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E6CA12081C
+	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Jul 2019 19:32:21 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=riseup.net header.i=@riseup.net header.b="S8j7jhvO"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730204AbfGOSJK (ORCPT
+        id S1730579AbfGOTcU (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 15 Jul 2019 14:09:10 -0400
-Received: from mail.us.es ([193.147.175.20]:41174 "EHLO mail.us.es"
+        Mon, 15 Jul 2019 15:32:20 -0400
+Received: from mx1.riseup.net ([198.252.153.129]:58648 "EHLO mx1.riseup.net"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729501AbfGOSJK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 15 Jul 2019 14:09:10 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 2AF3ADA738
-        for <netfilter-devel@vger.kernel.org>; Mon, 15 Jul 2019 20:09:08 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 1D2011150B9
-        for <netfilter-devel@vger.kernel.org>; Mon, 15 Jul 2019 20:09:08 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 10C9C203F3; Mon, 15 Jul 2019 20:09:08 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 124E9DA4D1;
-        Mon, 15 Jul 2019 20:09:06 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 15 Jul 2019 20:09:06 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (sys.soleta.eu [212.170.55.40])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id D948C4265A32;
-        Mon, 15 Jul 2019 20:09:05 +0200 (CEST)
-Date:   Mon, 15 Jul 2019 20:09:05 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Masahiro Yamada <yamada.masahiro@socionext.com>
-Cc:     Laura Garcia <nevola@gmail.com>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Stephen Rothwell <sfr@canb.auug.org.au>,
-        Linux Next Mailing List <linux-next@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-kbuild <linux-kbuild@vger.kernel.org>,
-        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-        Netfilter Development Mailing list 
-        <netfilter-devel@vger.kernel.org>
-Subject: Re: linux-next: Tree for Jul 15 (HEADERS_TEST w/ netfilter tables
- offload)
-Message-ID: <20190715180905.rytaht5kslpbatcy@salvia>
-References: <20190715144848.4cc41e07@canb.auug.org.au>
- <ccb5b818-c191-2d9e-311f-b2c79b7f6823@infradead.org>
- <CAF90-WirEMg7arNOTmo+tyJ20rt_zeN=nr0OO6Qk0Ss8J4QrUA@mail.gmail.com>
- <20190715173341.zth4na7zekjsesaa@salvia>
- <CAK7LNAS0rX_SRXqb=N=Td-DFNWd=PytDFje12gYh2pYNRBVAJA@mail.gmail.com>
+        id S1729948AbfGOTcU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 15 Jul 2019 15:32:20 -0400
+Received: from capuchin.riseup.net (capuchin-pn.riseup.net [10.0.1.176])
+        (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+        (Client CN "*.riseup.net", Issuer "COMODO RSA Domain Validation Secure Server CA" (verified OK))
+        by mx1.riseup.net (Postfix) with ESMTPS id D404E1A0985
+        for <netfilter-devel@vger.kernel.org>; Mon, 15 Jul 2019 12:32:19 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=riseup.net; s=squak;
+        t=1563219139; bh=/cfL+CQ2J06PmvQlI75GuiTaR9nYXIYkR2WLgu7SiBw=;
+        h=From:To:Cc:Subject:Date:From;
+        b=S8j7jhvOY+a9wC99o3r/R3wtD6iJdZ+bG6kk2XdkjuaG4ye/XyFltpjgMmoqJsL+B
+         y4nYlMXz7YmuVjY0qKQ7JRrw90B5o0ve+xKT0gCaAAn8NverxcAAtIL8fyPJn5BuHL
+         dgIvcLSIXByaAjcLRRTKuvnDINhbIU8ZvC6GBQ1s=
+X-Riseup-User-ID: 4266C37C3470FB708AD70B26022E85546B4F4F424A48B723014B255C57117536
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+         by capuchin.riseup.net (Postfix) with ESMTPSA id 17D0B120327;
+        Mon, 15 Jul 2019 12:32:18 -0700 (PDT)
+From:   Fernando Fernandez Mancera <ffmancera@riseup.net>
+To:     netfilter-devel@vger.kernel.org
+Cc:     Fernando Fernandez Mancera <ffmancera@riseup.net>
+Subject: [PATCH nf v3] netfilter: synproxy: fix rst sequence number mismatch
+Date:   Mon, 15 Jul 2019 21:31:49 +0200
+Message-Id: <20190715193148.3334-1-ffmancera@riseup.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAK7LNAS0rX_SRXqb=N=Td-DFNWd=PytDFje12gYh2pYNRBVAJA@mail.gmail.com>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Jul 16, 2019 at 02:56:09AM +0900, Masahiro Yamada wrote:
-> On Tue, Jul 16, 2019 at 2:33 AM Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> >
-> > On Mon, Jul 15, 2019 at 07:28:04PM +0200, Laura Garcia wrote:
-> > > CC'ing netfilter.
-> > >
-> > > On Mon, Jul 15, 2019 at 6:45 PM Randy Dunlap <rdunlap@infradead.org> wrote:
-> > > >
-> > > > On 7/14/19 9:48 PM, Stephen Rothwell wrote:
-> > > > > Hi all,
-> > > > >
-> > > > > Please do not add v5.4 material to your linux-next included branches
-> > > > > until after v5.3-rc1 has been released.
-> > > > >
-> > > > > Changes since 20190712:
-> > > > >
-> > > >
-> > > > Hi,
-> > > >
-> > > > I am seeing these build errors from HEADERS_TEST (or KERNEL_HEADERS_TEST)
-> > > > for include/net/netfilter/nf_tables_offload.h.s:
-> > > >
-> > > >   CC      include/net/netfilter/nf_tables_offload.h.s
-> > [...]
-> > > > Should this header file not be tested?
-> 
-> This means you must endlessly exclude
-> headers that include nf_tables.h
-> 
-> 
-> > Yes, it should indeed be added.
-> 
-> Adding 'header-test-' is the last resort.
+14:51:00.024418 IP 192.168.122.1.41462 > netfilter.90: Flags [S], seq
+4023580551,
+14:51:00.024454 IP netfilter.90 > 192.168.122.1.41462: Flags [S.], seq
+727560212, ack 4023580552,
+14:51:00.024524 IP 192.168.122.1.41462 > netfilter.90: Flags [.], ack 1,
 
-OK, so policy now is that all internal headers should compile
-standalone, right?
+Note: here, synproxy will send a SYN to the real server, as the 3whs was
+completed sucessfully. Instead of a syn/ack that we can intercept, we instead
+received a reset packet from the real backend, that we forward to the original
+client. However, we don't use the correct sequence number, so the reset is not
+effective in closing the connection coming from the client.
 
-I can have a look and make it compile standalone.
+14:51:00.024550 IP netfilter.90 > 192.168.122.1.41462: Flags [R.], seq
+3567407084,
+14:51:00.231196 IP 192.168.122.1.41462 > netfilter.90: Flags [.], ack 1,
+14:51:00.647911 IP 192.168.122.1.41462 > netfilter.90: Flags [.], ack 1,
+14:51:01.474395 IP 192.168.122.1.41462 > netfilter.90: Flags [.], ack 1,
+
+Fixes: 48b1de4c110a ("netfilter: add SYNPROXY core/target")
+Signed-off-by: Fernando Fernandez Mancera <ffmancera@riseup.net>
+---
+ net/netfilter/nf_synproxy_core.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/net/netfilter/nf_synproxy_core.c b/net/netfilter/nf_synproxy_core.c
+index 6676a3842a0c..b0930d4aba22 100644
+--- a/net/netfilter/nf_synproxy_core.c
++++ b/net/netfilter/nf_synproxy_core.c
+@@ -687,7 +687,7 @@ ipv4_synproxy_hook(void *priv, struct sk_buff *skb,
+ 	state = &ct->proto.tcp;
+ 	switch (state->state) {
+ 	case TCP_CONNTRACK_CLOSE:
+-		if (th->rst && !test_bit(IPS_SEEN_REPLY_BIT, &ct->status)) {
++		if (th->rst && CTINFO2DIR(ctinfo) != IP_CT_DIR_ORIGINAL) {
+ 			nf_ct_seqadj_init(ct, ctinfo, synproxy->isn -
+ 						      ntohl(th->seq) + 1);
+ 			break;
+@@ -1111,7 +1111,7 @@ ipv6_synproxy_hook(void *priv, struct sk_buff *skb,
+ 	state = &ct->proto.tcp;
+ 	switch (state->state) {
+ 	case TCP_CONNTRACK_CLOSE:
+-		if (th->rst && !test_bit(IPS_SEEN_REPLY_BIT, &ct->status)) {
++		if (th->rst && CTINFO2DIR(ctinfo) != IP_CT_DIR_ORIGINAL) {
+ 			nf_ct_seqadj_init(ct, ctinfo, synproxy->isn -
+ 						      ntohl(th->seq) + 1);
+ 			break;
+-- 
+2.20.1
+
