@@ -4,57 +4,56 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B976BC76195
-	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Jul 2019 14:56:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C4532C7618F
+	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Jul 2019 15:01:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 929C8205ED
-	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Jul 2019 14:56:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9A5172054F
+	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Jul 2019 15:01:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1563202565;
-	bh=4/m/2Mfax+c7i6Z3CxWlTyE2IYQ4BoDrA/ah/vbuP70=;
+	s=default; t=1563202863;
+	bh=6ZfNFaNDbZXLhczr3NiuI23GxalUYqmEAJnecquVb6E=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=wrL0xMVojLopJkFZhVCGG097UCQWvP7zFneabt3IMLkT5CtsBlvv/+k3kOzYMOJ9v
-	 7T4r74E2Nd5a9V2j6tqlmcmVm7wd6VOUOMxXpdPISKCLCU1fkzBO7Ta3RK2xiCki6r
-	 c2jUZ8Bnh/L7sA0hI+yEwzNpTfgzdEkhdkASW4gk=
+	b=Lcq2+uxJlky300+96arlDvFFavZcfw25cKKnbKO0E4yGU9FTdcLgIoUQNK3e2llBf
+	 Z1j8d04zn3mPMBDqkGJ2NS16CDu77+7ViL+lPdKyskZJw0xQjih3rxT0x8URK0qHgS
+	 ncUeyFtTK9bFP6wRahalMMcUniuy5tyUd3cGx0SY=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2390765AbfGOOXh (ORCPT
+        id S2389166AbfGOOPB (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 15 Jul 2019 10:23:37 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55060 "EHLO mail.kernel.org"
+        Mon, 15 Jul 2019 10:15:01 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58234 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2390118AbfGOOXb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 15 Jul 2019 10:23:31 -0400
+        id S2388820AbfGOOO5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 15 Jul 2019 10:14:57 -0400
 Received: from sasha-vm.mshome.net (unknown [73.61.17.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 427C52053B;
-        Mon, 15 Jul 2019 14:23:25 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id DD747206B8;
+        Mon, 15 Jul 2019 14:14:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1563200609;
-        bh=4/m/2Mfax+c7i6Z3CxWlTyE2IYQ4BoDrA/ah/vbuP70=;
+        s=default; t=1563200096;
+        bh=6ZfNFaNDbZXLhczr3NiuI23GxalUYqmEAJnecquVb6E=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=f9Kph1UeimZKnpWuhQIYpFfJw5Ka5mn8e2Y7OfSVbcrxHWnPxKnTXR5EnBx9/zCiY
-         bkfxF9GFcrKz3lowMDdr4XTUW5kv8lWSD5srGndceq4FBtNZv4Kyu1eaAxIZxRLeBO
-         D0ui/GDSA7GqdmFgscYPnps6Y4kkxM/N8NSxp0p0=
+        b=H5GpSTStz3FcOBtN6T7+HBc2bOnpHcVXbJ6g+pu8BxNdsZamV/lXvD0uw7ldl8w/Q
+         zOxJqePe5bqG4PGzBl3qDh3LjqbsCN7ZW8mJ7rH7eo6Of6wWqgKD4+F+yDk5fdJdRn
+         CMayuHnHS3+g+JBk7Tnpggy8OqgPDp9Sm85vI28I=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Julian Anastasov <ja@ssi.bg>,
-        syzbot+722da59ccb264bc19910@syzkaller.appspotmail.com,
-        Simon Horman <horms@verge.net.au>,
+Cc:     He Zhe <zhe.he@windriver.com>, Yi Zhao <yi.zhao@windriver.com>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
-        Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org,
-        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org
-Subject: [PATCH AUTOSEL 4.19 091/158] ipvs: defer hook registration to avoid leaks
-Date:   Mon, 15 Jul 2019 10:17:02 -0400
-Message-Id: <20190715141809.8445-91-sashal@kernel.org>
+        Sasha Levin <sashal@kernel.org>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org
+Subject: [PATCH AUTOSEL 5.1 183/219] netfilter: Fix remainder of pseudo-header protocol 0
+Date:   Mon, 15 Jul 2019 10:03:04 -0400
+Message-Id: <20190715140341.6443-183-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20190715141809.8445-1-sashal@kernel.org>
-References: <20190715141809.8445-1-sashal@kernel.org>
+In-Reply-To: <20190715140341.6443-1-sashal@kernel.org>
+References: <20190715140341.6443-1-sashal@kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 X-stable: review
 X-Patchwork-Hint: Ignore
 Content-Transfer-Encoding: 8bit
@@ -63,118 +62,92 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Julian Anastasov <ja@ssi.bg>
+From: He Zhe <zhe.he@windriver.com>
 
-[ Upstream commit cf47a0b882a4e5f6b34c7949d7b293e9287f1972 ]
+[ Upstream commit 5d1549847c76b1ffcf8e388ef4d0f229bdd1d7e8 ]
 
-syzkaller reports for memory leak when registering hooks [1]
+Since v5.1-rc1, some types of packets do not get unreachable reply with the
+following iptables setting. Fox example,
 
-As we moved the nf_unregister_net_hooks() call into
-__ip_vs_dev_cleanup(), defer the nf_register_net_hooks()
-call, so that hooks are allocated and freed from same
-pernet_operations (ipvs_core_dev_ops).
+$ iptables -A INPUT -p icmp --icmp-type 8 -j REJECT
+$ ping 127.0.0.1 -c 1
+PING 127.0.0.1 (127.0.0.1) 56(84) bytes of data.
+— 127.0.0.1 ping statistics —
+1 packets transmitted, 0 received, 100% packet loss, time 0ms
 
-[1]
-BUG: memory leak
-unreferenced object 0xffff88810acd8a80 (size 96):
- comm "syz-executor073", pid 7254, jiffies 4294950560 (age 22.250s)
- hex dump (first 32 bytes):
-   02 00 00 00 00 00 00 00 50 8b bb 82 ff ff ff ff  ........P.......
-   00 00 00 00 00 00 00 00 00 77 bb 82 ff ff ff ff  .........w......
- backtrace:
-   [<0000000013db61f1>] kmemleak_alloc_recursive include/linux/kmemleak.h:55 [inline]
-   [<0000000013db61f1>] slab_post_alloc_hook mm/slab.h:439 [inline]
-   [<0000000013db61f1>] slab_alloc_node mm/slab.c:3269 [inline]
-   [<0000000013db61f1>] kmem_cache_alloc_node_trace+0x15b/0x2a0 mm/slab.c:3597
-   [<000000001a27307d>] __do_kmalloc_node mm/slab.c:3619 [inline]
-   [<000000001a27307d>] __kmalloc_node+0x38/0x50 mm/slab.c:3627
-   [<0000000025054add>] kmalloc_node include/linux/slab.h:590 [inline]
-   [<0000000025054add>] kvmalloc_node+0x4a/0xd0 mm/util.c:431
-   [<0000000050d1bc00>] kvmalloc include/linux/mm.h:637 [inline]
-   [<0000000050d1bc00>] kvzalloc include/linux/mm.h:645 [inline]
-   [<0000000050d1bc00>] allocate_hook_entries_size+0x3b/0x60 net/netfilter/core.c:61
-   [<00000000e8abe142>] nf_hook_entries_grow+0xae/0x270 net/netfilter/core.c:128
-   [<000000004b94797c>] __nf_register_net_hook+0x9a/0x170 net/netfilter/core.c:337
-   [<00000000d1545cbc>] nf_register_net_hook+0x34/0xc0 net/netfilter/core.c:464
-   [<00000000876c9b55>] nf_register_net_hooks+0x53/0xc0 net/netfilter/core.c:480
-   [<000000002ea868e0>] __ip_vs_init+0xe8/0x170 net/netfilter/ipvs/ip_vs_core.c:2280
-   [<000000002eb2d451>] ops_init+0x4c/0x140 net/core/net_namespace.c:130
-   [<000000000284ec48>] setup_net+0xde/0x230 net/core/net_namespace.c:316
-   [<00000000a70600fa>] copy_net_ns+0xf0/0x1e0 net/core/net_namespace.c:439
-   [<00000000ff26c15e>] create_new_namespaces+0x141/0x2a0 kernel/nsproxy.c:107
-   [<00000000b103dc79>] copy_namespaces+0xa1/0xe0 kernel/nsproxy.c:165
-   [<000000007cc008a2>] copy_process.part.0+0x11fd/0x2150 kernel/fork.c:2035
-   [<00000000c344af7c>] copy_process kernel/fork.c:1800 [inline]
-   [<00000000c344af7c>] _do_fork+0x121/0x4f0 kernel/fork.c:2369
+We should have got the following reply from command line, but we did not.
+From 127.0.0.1 icmp_seq=1 Destination Port Unreachable
 
-Reported-by: syzbot+722da59ccb264bc19910@syzkaller.appspotmail.com
-Fixes: 719c7d563c17 ("ipvs: Fix use-after-free in ip_vs_in")
-Signed-off-by: Julian Anastasov <ja@ssi.bg>
-Acked-by: Simon Horman <horms@verge.net.au>
+Yi Zhao reported it and narrowed it down to:
+7fc38225363d ("netfilter: reject: skip csum verification for protocols that don't support it"),
+
+This is because nf_ip_checksum still expects pseudo-header protocol type 0 for
+packets that are of neither TCP or UDP, and thus ICMP packets are mistakenly
+treated as TCP/UDP.
+
+This patch corrects the conditions in nf_ip_checksum and all other places that
+still call it with protocol 0.
+
+Fixes: 7fc38225363d ("netfilter: reject: skip csum verification for protocols that don't support it")
+Reported-by: Yi Zhao <yi.zhao@windriver.com>
+Signed-off-by: He Zhe <zhe.he@windriver.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- net/netfilter/ipvs/ip_vs_core.c | 21 ++++++++++++++-------
- 1 file changed, 14 insertions(+), 7 deletions(-)
+ net/netfilter/nf_conntrack_proto_icmp.c | 2 +-
+ net/netfilter/nf_nat_proto.c            | 2 +-
+ net/netfilter/utils.c                   | 5 +++--
+ 3 files changed, 5 insertions(+), 4 deletions(-)
 
-diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-index 62c0e80dcd71..a71f777d1353 100644
---- a/net/netfilter/ipvs/ip_vs_core.c
-+++ b/net/netfilter/ipvs/ip_vs_core.c
-@@ -2218,7 +2218,6 @@ static const struct nf_hook_ops ip_vs_ops[] = {
- static int __net_init __ip_vs_init(struct net *net)
- {
- 	struct netns_ipvs *ipvs;
--	int ret;
+diff --git a/net/netfilter/nf_conntrack_proto_icmp.c b/net/netfilter/nf_conntrack_proto_icmp.c
+index 9becac953587..71a84a0517f3 100644
+--- a/net/netfilter/nf_conntrack_proto_icmp.c
++++ b/net/netfilter/nf_conntrack_proto_icmp.c
+@@ -221,7 +221,7 @@ int nf_conntrack_icmpv4_error(struct nf_conn *tmpl,
+ 	/* See ip_conntrack_proto_tcp.c */
+ 	if (state->net->ct.sysctl_checksum &&
+ 	    state->hook == NF_INET_PRE_ROUTING &&
+-	    nf_ip_checksum(skb, state->hook, dataoff, 0)) {
++	    nf_ip_checksum(skb, state->hook, dataoff, IPPROTO_ICMP)) {
+ 		icmp_error_log(skb, state, "bad hw icmp checksum");
+ 		return -NF_ACCEPT;
+ 	}
+diff --git a/net/netfilter/nf_nat_proto.c b/net/netfilter/nf_nat_proto.c
+index 62743da3004f..0b0efbb953bf 100644
+--- a/net/netfilter/nf_nat_proto.c
++++ b/net/netfilter/nf_nat_proto.c
+@@ -567,7 +567,7 @@ int nf_nat_icmp_reply_translation(struct sk_buff *skb,
  
- 	ipvs = net_generic(net, ip_vs_net_id);
- 	if (ipvs == NULL)
-@@ -2250,17 +2249,11 @@ static int __net_init __ip_vs_init(struct net *net)
- 	if (ip_vs_sync_net_init(ipvs) < 0)
- 		goto sync_fail;
+ 	if (!skb_make_writable(skb, hdrlen + sizeof(*inside)))
+ 		return 0;
+-	if (nf_ip_checksum(skb, hooknum, hdrlen, 0))
++	if (nf_ip_checksum(skb, hooknum, hdrlen, IPPROTO_ICMP))
+ 		return 0;
  
--	ret = nf_register_net_hooks(net, ip_vs_ops, ARRAY_SIZE(ip_vs_ops));
--	if (ret < 0)
--		goto hook_fail;
--
- 	return 0;
- /*
-  * Error handling
-  */
- 
--hook_fail:
--	ip_vs_sync_net_cleanup(ipvs);
- sync_fail:
- 	ip_vs_conn_net_cleanup(ipvs);
- conn_fail:
-@@ -2290,6 +2283,19 @@ static void __net_exit __ip_vs_cleanup(struct net *net)
- 	net->ipvs = NULL;
- }
- 
-+static int __net_init __ip_vs_dev_init(struct net *net)
-+{
-+	int ret;
-+
-+	ret = nf_register_net_hooks(net, ip_vs_ops, ARRAY_SIZE(ip_vs_ops));
-+	if (ret < 0)
-+		goto hook_fail;
-+	return 0;
-+
-+hook_fail:
-+	return ret;
-+}
-+
- static void __net_exit __ip_vs_dev_cleanup(struct net *net)
- {
- 	struct netns_ipvs *ipvs = net_ipvs(net);
-@@ -2309,6 +2315,7 @@ static struct pernet_operations ipvs_core_ops = {
- };
- 
- static struct pernet_operations ipvs_core_dev_ops = {
-+	.init = __ip_vs_dev_init,
- 	.exit = __ip_vs_dev_cleanup,
- };
- 
+ 	inside = (void *)skb->data + hdrlen;
+diff --git a/net/netfilter/utils.c b/net/netfilter/utils.c
+index 06dc55590441..51b454d8fa9c 100644
+--- a/net/netfilter/utils.c
++++ b/net/netfilter/utils.c
+@@ -17,7 +17,8 @@ __sum16 nf_ip_checksum(struct sk_buff *skb, unsigned int hook,
+ 	case CHECKSUM_COMPLETE:
+ 		if (hook != NF_INET_PRE_ROUTING && hook != NF_INET_LOCAL_IN)
+ 			break;
+-		if ((protocol == 0 && !csum_fold(skb->csum)) ||
++		if ((protocol != IPPROTO_TCP && protocol != IPPROTO_UDP &&
++		    !csum_fold(skb->csum)) ||
+ 		    !csum_tcpudp_magic(iph->saddr, iph->daddr,
+ 				       skb->len - dataoff, protocol,
+ 				       skb->csum)) {
+@@ -26,7 +27,7 @@ __sum16 nf_ip_checksum(struct sk_buff *skb, unsigned int hook,
+ 		}
+ 		/* fall through */
+ 	case CHECKSUM_NONE:
+-		if (protocol == 0)
++		if (protocol != IPPROTO_TCP && protocol != IPPROTO_UDP)
+ 			skb->csum = 0;
+ 		else
+ 			skb->csum = csum_tcpudp_nofold(iph->saddr, iph->daddr,
 -- 
 2.20.1
 
