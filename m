@@ -2,179 +2,185 @@ Return-Path: <SRS0=suf1=VM=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E96B3C7618F
-	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Jul 2019 17:02:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C93FC76191
+	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Jul 2019 17:28:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E9C0D2080A
-	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Jul 2019 17:02:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5C20C206B8
+	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Jul 2019 17:28:26 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=fami-braun.de header.i=@fami-braun.de header.b="VoB6VW7Y"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="OhdNkyY8"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730914AbfGORCQ (ORCPT
+        id S1731631AbfGOR2S (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 15 Jul 2019 13:02:16 -0400
-Received: from mo4-p00-ob.smtp.rzone.de ([81.169.146.218]:35577 "EHLO
-        mo4-p00-ob.smtp.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730253AbfGORCQ (ORCPT
+        Mon, 15 Jul 2019 13:28:18 -0400
+Received: from mail-ot1-f65.google.com ([209.85.210.65]:44353 "EHLO
+        mail-ot1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1731244AbfGOR2S (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 15 Jul 2019 13:02:16 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; t=1563210134;
-        s=strato-dkim-0002; d=fami-braun.de;
-        h=Message-Id:Date:Subject:Cc:To:From:X-RZG-CLASS-ID:X-RZG-AUTH:From:
-        Subject:Sender;
-        bh=rVKlGRr2cKc5jqVH0T0O/z2kvd/2FSYB+eCbbWDWA1U=;
-        b=VoB6VW7YlkWoirvFeKu4gPmIMKl+v95Ud96tQfkdfdp750KO5Z5q3IxdX15jh6m1RP
-        yS1CbkaPzPY2qdwRz8tA7wuRB0+CmYCuejcXVroVYC5n6rSXukF4JZn4XWYFEiuXs5gD
-        QPoePXqTgHCOO1HWj8oPdKo31OSRQxoMP+izaug094p3KayUe/9s3rMOV3RGjuNhWXiU
-        jnV/O+mnN5i1iQzeNbUADakQF2UJiQcPoDrGB8YJlwpy+oKLktH0pFlbLEHTiLu2N3aJ
-        2CJmM5w8UctVZ20aT3xJTEH0V0zxWSHHXRRYDF73CFLgX1PcN4MBkJEOGTnW+boXcmFs
-        YJoA==
-X-RZG-AUTH: ":P20JeEWkefDI1ODZs1HHtgV3eF0OpFsRaGIBEm4ljegySSvO7VhbcRIBGrxpcA5nVfJ6oTd1q4iwu00FZDcOZNHDvWoi8D0OGJ+eAjpdjmy19A=="
-X-RZG-CLASS-ID: mo00
-Received: from dynamic.fami-braun.de
-        by smtp.strato.de (RZmta 44.24 AUTH)
-        with ESMTPSA id R034b8v6FGx833c
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (curve secp521r1 with 521 ECDH bits, eq. 15360 bits RSA))
-        (Client did not present a certificate)
-        for <netfilter-devel@vger.kernel.org>;
-        Mon, 15 Jul 2019 18:59:08 +0200 (CEST)
-Received: from dynamic.fami-braun.de (localhost [127.0.0.1])
-        by dynamic.fami-braun.de (fami-braun.de) with ESMTP id B8D39154045
-        for <netfilter-devel@vger.kernel.org>; Mon, 15 Jul 2019 18:59:07 +0200 (CEST)
-Received: by dynamic.fami-braun.de (fami-braun.de, from userid 1001)
-        id 68A6815822E; Mon, 15 Jul 2019 18:59:07 +0200 (CEST)
-From:   michael-dev@fami-braun.de
-To:     netfilter-devel@vger.kernel.org
-Cc:     michael-dev@fami-braun.de
-Subject: [PATCHv2] Fix dumping vlan rules
-Date:   Mon, 15 Jul 2019 18:59:01 +0200
-Message-Id: <20190715165901.14441-1-michael-dev@fami-braun.de>
-X-Mailer: git-send-email 2.20.1
+        Mon, 15 Jul 2019 13:28:18 -0400
+Received: by mail-ot1-f65.google.com with SMTP id b7so17813593otl.11;
+        Mon, 15 Jul 2019 10:28:16 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc:content-transfer-encoding;
+        bh=HnnOnZBQP1Cav/Lz0tbA/DG3A9QQlkvslSRS75Fhsp8=;
+        b=OhdNkyY8F0PXWv8P8vpcWJ1/uZjniPOJJO12nWFstF1crz+Go6ZWpzhmhsqGqgMI7H
+         GBbRrLzsr1K6JootoUSnz9ALtYvHGWNc1uDqSbOxj+XzbsoSBaxRXnC7oohtIZ+eUMtL
+         sxTrX0lHSd1txyA4gVJe+lZs9Mbre+AfuUDBdxda7/DnqrYb/eFP8T33gVIlTVuC/g3D
+         r1MdgWrUJ0UB2HC3dCENzq+hBIzWWrmAIpAxbECVS7OVCMCbp4A/8SSSKy8xgd+UD7qH
+         5ygpFKVYzehTLvfJr5dxc8mEdmeuJy7eWQHqyPG+swLpm2FS9YyE2YXfpLgRmcD/cyYW
+         zkFg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc:content-transfer-encoding;
+        bh=HnnOnZBQP1Cav/Lz0tbA/DG3A9QQlkvslSRS75Fhsp8=;
+        b=cjTS9V4HD+EscteRgcM9WkK7AQIfFNA38xgodD1vaJ149vS1BM3m7AxuLudKrFB5f7
+         OR71Il+ckHdzqPGi2vMWz3EdMYrIIkaXRiXOLGNWe2yNFfM4RWxrZNt8/mHvNQdcuxXG
+         PA1VIyMb2BpT8lRcSardRerycqyfWCQix7pBSheD+zi0HgSC2StQ2sLv66oXcIp9IByl
+         05N1woo/ziKqq5odH6akll501kNsWxyW7et3KHmHqxICNzFuYV85fgfGqrndZEw2+ktk
+         cnAP5ZdZEkwA1R5n5gtW7rhHc5SewB/+Lu+BMoWs1Z6t5Eti1E1cFLS9RHDK4Tarodxa
+         HHMA==
+X-Gm-Message-State: APjAAAX+7hoPo/1AGXHuKTmTFZulTu2Z0YBcbJ19xi+pZ+VKaKoEeKTz
+        p7qc45hpi6OsBoWtvwTuzewQNvOJcGI8XrYUW50kBA==
+X-Google-Smtp-Source: APXvYqw8ll09WKFXUcoLvj+kqijbMcBE40SbDOOHBrCFaNGDKzQpjnlCkR0xQKyZyyMOqdqLLBFmiPBnH4g0HsOcTa0=
+X-Received: by 2002:a9d:222c:: with SMTP id o41mr21287254ota.278.1563211695910;
+ Mon, 15 Jul 2019 10:28:15 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20190715144848.4cc41e07@canb.auug.org.au> <ccb5b818-c191-2d9e-311f-b2c79b7f6823@infradead.org>
+In-Reply-To: <ccb5b818-c191-2d9e-311f-b2c79b7f6823@infradead.org>
+From:   Laura Garcia <nevola@gmail.com>
+Date:   Mon, 15 Jul 2019 19:28:04 +0200
+Message-ID: <CAF90-WirEMg7arNOTmo+tyJ20rt_zeN=nr0OO6Qk0Ss8J4QrUA@mail.gmail.com>
+Subject: Re: linux-next: Tree for Jul 15 (HEADERS_TEST w/ netfilter tables offload)
+To:     Randy Dunlap <rdunlap@infradead.org>
+Cc:     Stephen Rothwell <sfr@canb.auug.org.au>,
+        Linux Next Mailing List <linux-next@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        linux-kbuild <linux-kbuild@vger.kernel.org>,
+        Masahiro Yamada <yamada.masahiro@socionext.com>,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        Netfilter Development Mailing list 
+        <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: "M. Braun" <michael-dev@fami-braun.de>
+CC'ing netfilter.
 
-Given the following bridge rules:
-1. ip protocol icmp accept
-2. ether type vlan vlan type ip ip protocol icmp accept
-
-The are currently both dumped by "nft list ruleset" as
-1. ip protocol icmp accept
-2. ip protocol icmp accept
-
-Though, the netlink code actually is different
-
-bridge filter FORWARD 4
-  [ payload load 2b @ link header + 12 => reg 1 ]
-  [ cmp eq reg 1 0x00000008 ]
-  [ payload load 1b @ network header + 9 => reg 1 ]
-  [ cmp eq reg 1 0x00000001 ]
-  [ immediate reg 0 accept ]
-
-bridge filter FORWARD 5 4
-  [ payload load 2b @ link header + 12 => reg 1 ]
-  [ cmp eq reg 1 0x00000081 ]
-  [ payload load 2b @ link header + 16 => reg 1 ]
-  [ cmp eq reg 1 0x00000008 ]
-  [ payload load 1b @ network header + 9 => reg 1 ]
-  [ cmp eq reg 1 0x00000001 ]
-  [ immediate reg 0 accept ]
-
-Fix this by avoiding the removal of all vlan statements
-in the given example.
-
-Signed-off-by: Michael Braun <michael-dev@fami-braun.de>
----
- src/payload.c                         | 12 ++++++++++++
- tests/py/bridge/vlan.t                |  2 ++
- tests/py/bridge/vlan.t.payload        | 10 ++++++++++
- tests/py/bridge/vlan.t.payload.netdev | 12 ++++++++++++
- 4 files changed, 36 insertions(+)
-
-diff --git a/src/payload.c b/src/payload.c
-index 3bf1ecc..905422a 100644
---- a/src/payload.c
-+++ b/src/payload.c
-@@ -506,6 +506,18 @@ static bool payload_may_dependency_kill(struct payload_dep_ctx *ctx,
- 		     dep->left->payload.desc == &proto_ip6) &&
- 		    expr->payload.base == PROTO_BASE_TRANSPORT_HDR)
- 			return false;
-+		/* Do not kill
-+		 *  ether type vlan and vlan type ip and ip protocol icmp
-+		 * into
-+		 *  ip protocol icmp
-+		 * as this lacks ether type vlan.
-+		 * More generally speaking, do not kill protocol type
-+		 * for stacked protocols if we only have protcol type matches.
-+		 */
-+		if (dep->left->etype == EXPR_PAYLOAD && dep->op == OP_EQ &&
-+		    expr->flags & EXPR_F_PROTOCOL &&
-+		    expr->payload.base == dep->left->payload.base)
-+			return false;
- 		break;
- 	}
- 
-diff --git a/tests/py/bridge/vlan.t b/tests/py/bridge/vlan.t
-index 526d7cc..7a52a50 100644
---- a/tests/py/bridge/vlan.t
-+++ b/tests/py/bridge/vlan.t
-@@ -32,6 +32,8 @@ ether type vlan vlan id 1 ip saddr 10.0.0.0/23 udp dport 53;ok;vlan id 1 ip sadd
- vlan id { 1, 2, 4, 100, 4095 } vlan pcp 1-3;ok
- vlan id { 1, 2, 4, 100, 4096 };fail
- 
-+ether type vlan ip protocol 1 accept;ok
-+
- # illegal dependencies
- ether type ip vlan id 1;fail
- ether type ip vlan id 1 ip saddr 10.0.0.1;fail
-diff --git a/tests/py/bridge/vlan.t.payload b/tests/py/bridge/vlan.t.payload
-index cb0e812..bb8925e 100644
---- a/tests/py/bridge/vlan.t.payload
-+++ b/tests/py/bridge/vlan.t.payload
-@@ -199,3 +199,13 @@ bridge test-bridge input
-   [ cmp gte reg 1 0x00000020 ]
-   [ cmp lte reg 1 0x00000060 ]
- 
-+# ether type vlan ip protocol 1 accept
-+bridge test-bridge input
-+  [ payload load 2b @ link header + 12 => reg 1 ]
-+  [ cmp eq reg 1 0x00000081 ]
-+  [ payload load 2b @ link header + 16 => reg 1 ]
-+  [ cmp eq reg 1 0x00000008 ]
-+  [ payload load 1b @ network header + 9 => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+  [ immediate reg 0 accept ]
-+
-diff --git a/tests/py/bridge/vlan.t.payload.netdev b/tests/py/bridge/vlan.t.payload.netdev
-index c57955e..0a3f90a 100644
---- a/tests/py/bridge/vlan.t.payload.netdev
-+++ b/tests/py/bridge/vlan.t.payload.netdev
-@@ -233,3 +233,15 @@ netdev test-netdev ingress
-   [ cmp gte reg 1 0x00000020 ]
-   [ cmp lte reg 1 0x00000060 ]
- 
-+# ether type vlan ip protocol 1 accept
-+netdev test-netdev ingress
-+  [ meta load iiftype => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 2b @ link header + 12 => reg 1 ]
-+  [ cmp eq reg 1 0x00000081 ]
-+  [ payload load 2b @ link header + 16 => reg 1 ]
-+  [ cmp eq reg 1 0x00000008 ]
-+  [ payload load 1b @ network header + 9 => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+  [ immediate reg 0 accept ]
-+
--- 
-2.20.1
-
+On Mon, Jul 15, 2019 at 6:45 PM Randy Dunlap <rdunlap@infradead.org> wrote:
+>
+> On 7/14/19 9:48 PM, Stephen Rothwell wrote:
+> > Hi all,
+> >
+> > Please do not add v5.4 material to your linux-next included branches
+> > until after v5.3-rc1 has been released.
+> >
+> > Changes since 20190712:
+> >
+>
+> Hi,
+>
+> I am seeing these build errors from HEADERS_TEST (or KERNEL_HEADERS_TEST)
+> for include/net/netfilter/nf_tables_offload.h.s:
+>
+>   CC      include/net/netfilter/nf_tables_offload.h.s
+> In file included from ./../include/net/netfilter/nf_tables_offload.h:5:0,
+>                  from <command-line>:0:
+> ../include/net/netfilter/nf_tables.h: In function =E2=80=98nft_gencursor_=
+next=E2=80=99:
+> ../include/net/netfilter/nf_tables.h:1223:14: error: =E2=80=98const struc=
+t net=E2=80=99 has no member named =E2=80=98nft=E2=80=99; did you mean =E2=
+=80=98nf=E2=80=99?
+>   return net->nft.gencursor + 1 =3D=3D 1 ? 1 : 0;
+>               ^~~
+>               nf
+> In file included from ../include/linux/kernel.h:11:0,
+>                  from ../include/net/flow_offload.h:4,
+>                  from ./../include/net/netfilter/nf_tables_offload.h:4,
+>                  from <command-line>:0:
+> ../include/net/netfilter/nf_tables.h: In function =E2=80=98nft_genmask_cu=
+r=E2=80=99:
+> ../include/net/netfilter/nf_tables.h:1234:29: error: =E2=80=98const struc=
+t net=E2=80=99 has no member named =E2=80=98nft=E2=80=99; did you mean =E2=
+=80=98nf=E2=80=99?
+>   return 1 << READ_ONCE(net->nft.gencursor);
+>                              ^
+> ../include/linux/compiler.h:261:17: note: in definition of macro =E2=80=
+=98__READ_ONCE=E2=80=99
+>   union { typeof(x) __val; char __c[1]; } __u;   \
+>                  ^
+> ../include/net/netfilter/nf_tables.h:1234:14: note: in expansion of macro=
+ =E2=80=98READ_ONCE=E2=80=99
+>   return 1 << READ_ONCE(net->nft.gencursor);
+>               ^~~~~~~~~
+> ../include/net/netfilter/nf_tables.h:1234:29: error: =E2=80=98const struc=
+t net=E2=80=99 has no member named =E2=80=98nft=E2=80=99; did you mean =E2=
+=80=98nf=E2=80=99?
+>   return 1 << READ_ONCE(net->nft.gencursor);
+>                              ^
+> ../include/linux/compiler.h:263:22: note: in definition of macro =E2=80=
+=98__READ_ONCE=E2=80=99
+>    __read_once_size(&(x), __u.__c, sizeof(x));  \
+>                       ^
+> ../include/net/netfilter/nf_tables.h:1234:14: note: in expansion of macro=
+ =E2=80=98READ_ONCE=E2=80=99
+>   return 1 << READ_ONCE(net->nft.gencursor);
+>               ^~~~~~~~~
+> ../include/net/netfilter/nf_tables.h:1234:29: error: =E2=80=98const struc=
+t net=E2=80=99 has no member named =E2=80=98nft=E2=80=99; did you mean =E2=
+=80=98nf=E2=80=99?
+>   return 1 << READ_ONCE(net->nft.gencursor);
+>                              ^
+> ../include/linux/compiler.h:263:42: note: in definition of macro =E2=80=
+=98__READ_ONCE=E2=80=99
+>    __read_once_size(&(x), __u.__c, sizeof(x));  \
+>                                           ^
+> ../include/net/netfilter/nf_tables.h:1234:14: note: in expansion of macro=
+ =E2=80=98READ_ONCE=E2=80=99
+>   return 1 << READ_ONCE(net->nft.gencursor);
+>               ^~~~~~~~~
+> ../include/net/netfilter/nf_tables.h:1234:29: error: =E2=80=98const struc=
+t net=E2=80=99 has no member named =E2=80=98nft=E2=80=99; did you mean =E2=
+=80=98nf=E2=80=99?
+>   return 1 << READ_ONCE(net->nft.gencursor);
+>                              ^
+> ../include/linux/compiler.h:265:30: note: in definition of macro =E2=80=
+=98__READ_ONCE=E2=80=99
+>    __read_once_size_nocheck(&(x), __u.__c, sizeof(x)); \
+>                               ^
+> ../include/net/netfilter/nf_tables.h:1234:14: note: in expansion of macro=
+ =E2=80=98READ_ONCE=E2=80=99
+>   return 1 << READ_ONCE(net->nft.gencursor);
+>               ^~~~~~~~~
+> ../include/net/netfilter/nf_tables.h:1234:29: error: =E2=80=98const struc=
+t net=E2=80=99 has no member named =E2=80=98nft=E2=80=99; did you mean =E2=
+=80=98nf=E2=80=99?
+>   return 1 << READ_ONCE(net->nft.gencursor);
+>                              ^
+> ../include/linux/compiler.h:265:50: note: in definition of macro =E2=80=
+=98__READ_ONCE=E2=80=99
+>    __read_once_size_nocheck(&(x), __u.__c, sizeof(x)); \
+>                                                   ^
+> ../include/net/netfilter/nf_tables.h:1234:14: note: in expansion of macro=
+ =E2=80=98READ_ONCE=E2=80=99
+>   return 1 << READ_ONCE(net->nft.gencursor);
+>               ^~~~~~~~~
+> make[2]: *** [../scripts/Makefile.build:304: include/net/netfilter/nf_tab=
+les_offload.h.s] Error 1
+>
+>
+> Should this header file not be tested?
+>
+> thanks.
+> --
+> ~Randy
