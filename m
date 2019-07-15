@@ -2,179 +2,169 @@ Return-Path: <SRS0=suf1=VM=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F502C76191
-	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Jul 2019 14:36:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 36C0FC76195
+	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Jul 2019 14:49:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3813E217D9
-	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Jul 2019 14:36:34 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1563201394;
-	bh=6qc/DsBtf4DUEyKzd/ZKdDJvR33gkFgDAek0Y9xKLos=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=uPMs8bUGBZTuV+hUDCvE1P6K+KCu2IquRzOo84Yqs2xB5OqBOx5hErZ3gzITifHfW
-	 bruswcSIIEnGIe5Z7C+UC8LcCX2YBs/oCc5TiZaHretBf5vsriCfxVF67IFAtY+cyr
-	 /o7G9ye/pjoVssKKdsHy0NMo6Nw7Z3JRCmwAYHhA=
+	by mail.kernel.org (Postfix) with ESMTP id 1ACC12067C
+	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Jul 2019 14:49:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2391821AbfGOOcR (ORCPT
+        id S2404555AbfGOOsj (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 15 Jul 2019 10:32:17 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47024 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2391118AbfGOOcQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 15 Jul 2019 10:32:16 -0400
-Received: from sasha-vm.mshome.net (unknown [73.61.17.35])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 27F3E21530;
-        Mon, 15 Jul 2019 14:32:11 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1563201134;
-        bh=6qc/DsBtf4DUEyKzd/ZKdDJvR33gkFgDAek0Y9xKLos=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=cHR3TdEkLQEerHkpNow84HdlToK+MuLnFUOoTxBFLPqEgbv7QRAoHN7/XazZjZ2PK
-         9T4M6ztEX4NS+4JiiD/253xh5qJo4pm+tboCjsCGwdTlcp4gu55LqCgm0afhML49mg
-         qWwOUalFtiyoSssBvTYCck0wSy7QfgOmatYvynLw=
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Julian Anastasov <ja@ssi.bg>,
-        syzbot+722da59ccb264bc19910@syzkaller.appspotmail.com,
-        Simon Horman <horms@verge.net.au>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org,
-        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org
-Subject: [PATCH AUTOSEL 4.14 060/105] ipvs: defer hook registration to avoid leaks
-Date:   Mon, 15 Jul 2019 10:27:54 -0400
-Message-Id: <20190715142839.9896-60-sashal@kernel.org>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20190715142839.9896-1-sashal@kernel.org>
-References: <20190715142839.9896-1-sashal@kernel.org>
+        Mon, 15 Jul 2019 10:48:39 -0400
+Received: from szxga07-in.huawei.com ([45.249.212.35]:43894 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S2404564AbfGOOsh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 15 Jul 2019 10:48:37 -0400
+Received: from DGGEMS411-HUB.china.huawei.com (unknown [172.30.72.59])
+        by Forcepoint Email with ESMTP id 54249BD5A6834CEA0A9A;
+        Mon, 15 Jul 2019 22:48:33 +0800 (CST)
+Received: from [127.0.0.1] (10.184.191.73) by DGGEMS411-HUB.china.huawei.com
+ (10.3.19.211) with Microsoft SMTP Server id 14.3.439.0; Mon, 15 Jul 2019
+ 22:48:25 +0800
+To:     <wensong@linux-vs.org>, <horms@verge.net.au>, <ja@ssi.bg>,
+        <pablo@netfilter.org>, <kadlec@blackhole.kfki.hu>, <fw@strlen.de>,
+        <davem@davemloft.net>
+CC:     "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        <lvs-devel@vger.kernel.org>, <netfilter-devel@vger.kernel.org>,
+        <coreteam@netfilter.org>, Mingfangsen <mingfangsen@huawei.com>,
+        <wangxiaogang3@huawei.com>, <xuhanbing@huawei.com>
+From:   hujunwei <hujunwei4@huawei.com>
+Subject: [PATCH net] ipvs: Improve robustness to the ipvs sysctl
+Message-ID: <1997375e-815d-137f-20c9-0829a8587ee9@huawei.com>
+Date:   Mon, 15 Jul 2019 22:48:18 +0800
+User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:60.0) Gecko/20100101
+ Thunderbird/60.6.1
 MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.184.191.73]
+X-CFilter-Loop: Reflected
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Julian Anastasov <ja@ssi.bg>
+From: Junwei Hu <hujunwei4@huawei.com>
 
-[ Upstream commit cf47a0b882a4e5f6b34c7949d7b293e9287f1972 ]
+The ipvs module parse the user buffer and save it to sysctl,
+then check if the value is valid. invalid value occurs
+over a period of time.
+Here, I add a variable, struct ctl_table tmp, used to read
+the value from the user buffer, and save only when it is valid.
 
-syzkaller reports for memory leak when registering hooks [1]
-
-As we moved the nf_unregister_net_hooks() call into
-__ip_vs_dev_cleanup(), defer the nf_register_net_hooks()
-call, so that hooks are allocated and freed from same
-pernet_operations (ipvs_core_dev_ops).
-
-[1]
-BUG: memory leak
-unreferenced object 0xffff88810acd8a80 (size 96):
- comm "syz-executor073", pid 7254, jiffies 4294950560 (age 22.250s)
- hex dump (first 32 bytes):
-   02 00 00 00 00 00 00 00 50 8b bb 82 ff ff ff ff  ........P.......
-   00 00 00 00 00 00 00 00 00 77 bb 82 ff ff ff ff  .........w......
- backtrace:
-   [<0000000013db61f1>] kmemleak_alloc_recursive include/linux/kmemleak.h:55 [inline]
-   [<0000000013db61f1>] slab_post_alloc_hook mm/slab.h:439 [inline]
-   [<0000000013db61f1>] slab_alloc_node mm/slab.c:3269 [inline]
-   [<0000000013db61f1>] kmem_cache_alloc_node_trace+0x15b/0x2a0 mm/slab.c:3597
-   [<000000001a27307d>] __do_kmalloc_node mm/slab.c:3619 [inline]
-   [<000000001a27307d>] __kmalloc_node+0x38/0x50 mm/slab.c:3627
-   [<0000000025054add>] kmalloc_node include/linux/slab.h:590 [inline]
-   [<0000000025054add>] kvmalloc_node+0x4a/0xd0 mm/util.c:431
-   [<0000000050d1bc00>] kvmalloc include/linux/mm.h:637 [inline]
-   [<0000000050d1bc00>] kvzalloc include/linux/mm.h:645 [inline]
-   [<0000000050d1bc00>] allocate_hook_entries_size+0x3b/0x60 net/netfilter/core.c:61
-   [<00000000e8abe142>] nf_hook_entries_grow+0xae/0x270 net/netfilter/core.c:128
-   [<000000004b94797c>] __nf_register_net_hook+0x9a/0x170 net/netfilter/core.c:337
-   [<00000000d1545cbc>] nf_register_net_hook+0x34/0xc0 net/netfilter/core.c:464
-   [<00000000876c9b55>] nf_register_net_hooks+0x53/0xc0 net/netfilter/core.c:480
-   [<000000002ea868e0>] __ip_vs_init+0xe8/0x170 net/netfilter/ipvs/ip_vs_core.c:2280
-   [<000000002eb2d451>] ops_init+0x4c/0x140 net/core/net_namespace.c:130
-   [<000000000284ec48>] setup_net+0xde/0x230 net/core/net_namespace.c:316
-   [<00000000a70600fa>] copy_net_ns+0xf0/0x1e0 net/core/net_namespace.c:439
-   [<00000000ff26c15e>] create_new_namespaces+0x141/0x2a0 kernel/nsproxy.c:107
-   [<00000000b103dc79>] copy_namespaces+0xa1/0xe0 kernel/nsproxy.c:165
-   [<000000007cc008a2>] copy_process.part.0+0x11fd/0x2150 kernel/fork.c:2035
-   [<00000000c344af7c>] copy_process kernel/fork.c:1800 [inline]
-   [<00000000c344af7c>] _do_fork+0x121/0x4f0 kernel/fork.c:2369
-
-Reported-by: syzbot+722da59ccb264bc19910@syzkaller.appspotmail.com
-Fixes: 719c7d563c17 ("ipvs: Fix use-after-free in ip_vs_in")
-Signed-off-by: Julian Anastasov <ja@ssi.bg>
-Acked-by: Simon Horman <horms@verge.net.au>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
+Fixes: f73181c8288f ("ipvs: add support for sync threads")
+Signed-off-by: Junwei Hu <hujunwei4@huawei.com>
 ---
- net/netfilter/ipvs/ip_vs_core.c | 21 ++++++++++++++-------
- 1 file changed, 14 insertions(+), 7 deletions(-)
+ net/netfilter/ipvs/ip_vs_ctl.c | 61 +++++++++++++++++++++++-----------
+ 1 file changed, 42 insertions(+), 19 deletions(-)
 
-diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-index ee97ce176b9a..2156571455db 100644
---- a/net/netfilter/ipvs/ip_vs_core.c
-+++ b/net/netfilter/ipvs/ip_vs_core.c
-@@ -2206,7 +2206,6 @@ static const struct nf_hook_ops ip_vs_ops[] = {
- static int __net_init __ip_vs_init(struct net *net)
- {
- 	struct netns_ipvs *ipvs;
--	int ret;
- 
- 	ipvs = net_generic(net, ip_vs_net_id);
- 	if (ipvs == NULL)
-@@ -2238,17 +2237,11 @@ static int __net_init __ip_vs_init(struct net *net)
- 	if (ip_vs_sync_net_init(ipvs) < 0)
- 		goto sync_fail;
- 
--	ret = nf_register_net_hooks(net, ip_vs_ops, ARRAY_SIZE(ip_vs_ops));
--	if (ret < 0)
--		goto hook_fail;
+diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+index 741d91aa4a8d..e78fd05f108b 100644
+--- a/net/netfilter/ipvs/ip_vs_ctl.c
++++ b/net/netfilter/ipvs/ip_vs_ctl.c
+@@ -1680,12 +1680,18 @@ proc_do_defense_mode(struct ctl_table *table, int write,
+ 	int val = *valp;
+ 	int rc;
+
+-	rc = proc_dointvec(table, write, buffer, lenp, ppos);
++	struct ctl_table tmp = {
++		.data = &val,
++		.maxlen = sizeof(int),
++		.mode = table->mode,
++	};
++
++	rc = proc_dointvec(&tmp, write, buffer, lenp, ppos);
+ 	if (write && (*valp != val)) {
+-		if ((*valp < 0) || (*valp > 3)) {
+-			/* Restore the correct value */
++		if (val < 0 || val > 3)
++			rc = -EINVAL;
++		else {
+ 			*valp = val;
+-		} else {
+ 			update_defense_level(ipvs);
+ 		}
+ 	}
+@@ -1699,15 +1705,20 @@ proc_do_sync_threshold(struct ctl_table *table, int write,
+ 	int *valp = table->data;
+ 	int val[2];
+ 	int rc;
++	struct ctl_table tmp = {
++		.data = &val,
++		.maxlen = table->maxlen,
++		.mode = table->mode,
++	};
+
+-	/* backup the value first */
+ 	memcpy(val, valp, sizeof(val));
 -
- 	return 0;
- /*
-  * Error handling
-  */
- 
--hook_fail:
--	ip_vs_sync_net_cleanup(ipvs);
- sync_fail:
- 	ip_vs_conn_net_cleanup(ipvs);
- conn_fail:
-@@ -2278,6 +2271,19 @@ static void __net_exit __ip_vs_cleanup(struct net *net)
- 	net->ipvs = NULL;
+-	rc = proc_dointvec(table, write, buffer, lenp, ppos);
+-	if (write && (valp[0] < 0 || valp[1] < 0 ||
+-	    (valp[0] >= valp[1] && valp[1]))) {
+-		/* Restore the correct value */
+-		memcpy(valp, val, sizeof(val));
++	rc = proc_dointvec(&tmp, write, buffer, lenp, ppos);
++	if (write) {
++		if (val[0] < 0 || val[1] < 0 ||
++		    (val[0] >= val[1] && val[1]))
++			rc = -EINVAL;
++		else
++			memcpy(valp, val, sizeof(val));
+ 	}
+ 	return rc;
  }
- 
-+static int __net_init __ip_vs_dev_init(struct net *net)
-+{
-+	int ret;
+@@ -1720,12 +1731,18 @@ proc_do_sync_mode(struct ctl_table *table, int write,
+ 	int val = *valp;
+ 	int rc;
+
+-	rc = proc_dointvec(table, write, buffer, lenp, ppos);
++	struct ctl_table tmp = {
++		.data = &val,
++		.maxlen = sizeof(int),
++		.mode = table->mode,
++	};
 +
-+	ret = nf_register_net_hooks(net, ip_vs_ops, ARRAY_SIZE(ip_vs_ops));
-+	if (ret < 0)
-+		goto hook_fail;
-+	return 0;
++	rc = proc_dointvec(&tmp, write, buffer, lenp, ppos);
+ 	if (write && (*valp != val)) {
+-		if ((*valp < 0) || (*valp > 1)) {
+-			/* Restore the correct value */
++		if (val < 0 || val > 1)
++			rc = -EINVAL;
++		else
+ 			*valp = val;
+-		}
+ 	}
+ 	return rc;
+ }
+@@ -1738,12 +1755,18 @@ proc_do_sync_ports(struct ctl_table *table, int write,
+ 	int val = *valp;
+ 	int rc;
+
+-	rc = proc_dointvec(table, write, buffer, lenp, ppos);
++	struct ctl_table tmp = {
++		.data = &val,
++		.maxlen = sizeof(int),
++		.mode = table->mode,
++	};
 +
-+hook_fail:
-+	return ret;
-+}
-+
- static void __net_exit __ip_vs_dev_cleanup(struct net *net)
- {
- 	struct netns_ipvs *ipvs = net_ipvs(net);
-@@ -2297,6 +2303,7 @@ static struct pernet_operations ipvs_core_ops = {
- };
- 
- static struct pernet_operations ipvs_core_dev_ops = {
-+	.init = __ip_vs_dev_init,
- 	.exit = __ip_vs_dev_cleanup,
- };
- 
++	rc = proc_dointvec(&tmp, write, buffer, lenp, ppos);
+ 	if (write && (*valp != val)) {
+-		if (*valp < 1 || !is_power_of_2(*valp)) {
+-			/* Restore the correct value */
++		if (val < 1 || !is_power_of_2(val))
++			rc = -EINVAL;
++		else
+ 			*valp = val;
+-		}
+ 	}
+ 	return rc;
+ }
 -- 
-2.20.1
+2.21.GIT
 
