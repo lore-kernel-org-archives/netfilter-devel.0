@@ -2,103 +2,129 @@ Return-Path: <SRS0=suf1=VM=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.3 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F24E8C7618F
-	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Jul 2019 11:23:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D5BCC7618F
+	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Jul 2019 11:59:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C4CEA2080A
-	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Jul 2019 11:23:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E29C120665
+	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Jul 2019 11:59:37 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="lAntxpbe"
+	dkim=pass (1024-bit key) header.d=riseup.net header.i=@riseup.net header.b="J+UUAbEa"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729799AbfGOLXn (ORCPT
+        id S1729855AbfGOL7h (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 15 Jul 2019 07:23:43 -0400
-Received: from mail-wr1-f68.google.com ([209.85.221.68]:45695 "EHLO
-        mail-wr1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729814AbfGOLXn (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 15 Jul 2019 07:23:43 -0400
-Received: by mail-wr1-f68.google.com with SMTP id f9so16620794wre.12
-        for <netfilter-devel@vger.kernel.org>; Mon, 15 Jul 2019 04:23:41 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=date:from:to:cc:subject:message-id:mime-version:content-disposition
-         :user-agent;
-        bh=kc0S3mFcbtM9X2cItKfZZV6mfNwHU1lebr4GxLX2rI4=;
-        b=lAntxpbeksTcYXsbX1bYAGQ9M6xlyDcCw5j7/Ap/uDxdimdwrlREGNF91WgJH9NtOD
-         SplpiBFt79kYNcUIxZvQ8SYJAkD8pIanGJ5LkWfFP57gfOSQikK1vZzAALFayzvf0ks1
-         cMm3LSENy6oi3ckfgpA2BLfh2GZuaqkyHj2JA1zcvHGsY4BQY6uVaGAmRDEqsCVcFcrf
-         Dc3bgv4W/96lxQGqD+X/zEZn9XFzUCtQWXw5F74doc+orRm+MZIQtAaihcv11PWyL09m
-         NcPc/IihrqrNq5+qFl1FJG+COHQxQ3w6w9JFFARnGuJaqorR+5tIhoihXXcboLw8MuVw
-         Ir3g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:mime-version
-         :content-disposition:user-agent;
-        bh=kc0S3mFcbtM9X2cItKfZZV6mfNwHU1lebr4GxLX2rI4=;
-        b=h5zZDNGRc074ckod1WExorQaBCVgiYZvDM7dE2N+x4dgo0P2RNoosx+b1qLoT+LsJa
-         E6rzsUL2rk19V5j8CTb06L8dANZscDc74VouwvTANMaRiX4ZnfxW2r7wltT21cVoUWoi
-         xMAJwMuKD4Di3lGOMBsuZDbIcDdfDKuJo2b7/OHPj+uKsCU3RUk5FRTVNrZBJsQEWhuu
-         SJ1QJhPKA9GZqf643bXBVys2FDA1ZTr1AG1Jr+OmO1T1wLbv4w3jWqEZJMFDgW7VUDZ/
-         3G/dx1/6x5HTtZz0eUSP1RuTC0RXL8LQNM/2DrzO/+DEYxF/aDnXuIy6z4OWnofsi6uQ
-         10Yg==
-X-Gm-Message-State: APjAAAUAM+YGQ+s9L+NaqmeQPT7Zkix0Bu4JVNKHCNwzLKTx1Bo1Sjh3
-        +t7w7HLGOr2W1n8RkIzuhnULo0Eq
-X-Google-Smtp-Source: APXvYqwsB9EnopvvFfV5XQ0Pfp1PoPmoOLnJubTQXEQAQf/NJ6PH7LGLytM5SfgyY7qOJrrvcf+zcA==
-X-Received: by 2002:a5d:5348:: with SMTP id t8mr27854464wrv.159.1563189820910;
-        Mon, 15 Jul 2019 04:23:40 -0700 (PDT)
-Received: from nevthink ([185.79.20.147])
-        by smtp.gmail.com with ESMTPSA id l25sm12691115wme.13.2019.07.15.04.23.39
-        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Mon, 15 Jul 2019 04:23:40 -0700 (PDT)
-Date:   Mon, 15 Jul 2019 13:23:37 +0200
-From:   Laura Garcia Liebana <nevola@gmail.com>
-To:     netfilter-devel@vger.kernel.org
-Cc:     pablo@netfilter.org
-Subject: [PATCH nf] netfilter: fix symhash with modulus one
-Message-ID: <20190715112337.gobsm3ljlmgtarnf@nevthink>
+        Mon, 15 Jul 2019 07:59:37 -0400
+Received: from mx1.riseup.net ([198.252.153.129]:40594 "EHLO mx1.riseup.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1729827AbfGOL7h (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 15 Jul 2019 07:59:37 -0400
+Received: from capuchin.riseup.net (capuchin-pn.riseup.net [10.0.1.176])
+        (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+        (Client CN "*.riseup.net", Issuer "COMODO RSA Domain Validation Secure Server CA" (verified OK))
+        by mx1.riseup.net (Postfix) with ESMTPS id 617341A32A7;
+        Mon, 15 Jul 2019 04:59:36 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=riseup.net; s=squak;
+        t=1563191976; bh=ESwqwZN6MGv0t2OBxX2O/xiAyiO2xKkkOI7FTx6M5r8=;
+        h=Subject:From:To:Cc:References:Date:In-Reply-To:From;
+        b=J+UUAbEaYtL3yXoYf9otVMQi3I4acN4+4fAtvMr9RuqNEUCY4DeubjuxHxnznX0KS
+         ySSiVTkp04J+R2pZIiTJxH5AtmR769ssHFDhCPCPllK0oZo4CVcau4YcRRt59ga8Iu
+         JZ8vDP/0NPQL7zGxN+bUmrGp1LxNC5ZgQyKUWKck=
+X-Riseup-User-ID: CCB0D0143894916E6B586861C791E8B317782B94F6F8115D2B7CEEC1524F45D5
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+         by capuchin.riseup.net (Postfix) with ESMTPSA id 79E7C120559;
+        Mon, 15 Jul 2019 04:59:35 -0700 (PDT)
+Subject: Re: [PATCH nf v2] netfilter: synproxy: fix rst sequence number
+ mismatch
+From:   Fernando Fernandez Mancera <ffmancera@riseup.net>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     netfilter-devel@vger.kernel.org
+References: <20190712104513.11683-1-ffmancera@riseup.net>
+ <20190713222624.heea2xjqeh52dohu@breakpoint.cc>
+ <D18A40D8-9569-4975-8CC2-3ED9DE7FFFB7@riseup.net>
+Openpgp: preference=signencrypt
+Message-ID: <e452baf5-0ac8-473f-0568-389de62eb375@riseup.net>
+Date:   Mon, 15 Jul 2019 13:59:47 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-User-Agent: NeoMutt/20170113 (1.7.2)
+In-Reply-To: <D18A40D8-9569-4975-8CC2-3ED9DE7FFFB7@riseup.net>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US-large
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The rule below doesn't work as the kernel raises -ERANGE.
+Hi Florian,
 
-nft add rule netdev nftlb lb01 ip daddr set \
-	symhash mod 1 map { 0 : 192.168.0.10 } fwd to "eth0"
+On 7/14/19 1:25 AM, Fernando Fernandez Mancera wrote:
+> El 14 de julio de 2019 0:26:24 CEST, Florian Westphal <fw@strlen.de> escribió:
+>> Fernando Fernandez Mancera <ffmancera@riseup.net> wrote:
+>>> 14:51:00.024418 IP 192.168.122.1.41462 > netfilter.90: Flags [S], seq
+>>> 4023580551, win 64240, options [mss 1460,sackOK,TS val 2149563785 ecr
+>>> 0,nop,wscale 7], length 0
+>>
+>> Could you please trim this down to the relevant parts
+>> and add a more human-readable description as to where the problem is,
+>> under which circumstances this happens and why the
+>> !SEEN_REPLY_BIT test is bogus?
+>>
+>> Keep in mind that you know more about synproxy than I do, so its
+>> harder for me to follow what you're doing when the commit message
+>> consists
+>> of tcpdump output.
+>>
+>>> 14:51:00.024454 IP netfilter.90 > 192.168.122.1.41462: Flags [S.],
+>> seq
+>>> 727560212, ack 4023580552, win 0, options [mss 1460,sackOK,TS val
+>> 355031 ecr
+>>> 2149563785,nop,wscale 7], length 0
+>>> 14:51:00.024524 IP 192.168.122.1.41462 > netfilter.90: Flags [.], ack
+>> 1, win
+>>> 502, options [nop,nop,TS val 2149563785 ecr 355031], length 0
+>>> 14:51:00.024550 IP netfilter.90 > 192.168.122.1.41462: Flags [R.],
+>> seq
+>>> 3567407084, ack 1, win 0, length 0
+>>
+>> ... its not obvious to me why a reset is generated here in first place,
+>> and why changing code in TCP_CLOSE case helps?
+>> (I could guess the hook was called in postrouting and close transition
+>> came from rst that was sent, but that still doesn't explain why it
+>> was sent to begin with).
+>>
+>> I assume the hostname "netfilter" is the synproxy machine, and
+>> 192.168.122.1 is a client we're proxying for, right?
+> 
+> Sure, I will prepare a detailed description of the problem. Sorry about that and thanks!
+> 
 
-This patch allows to use the symhash modulus with one
-element, in the same way that the other types of hashes and
-algorithms that uses the modulus parameter.
+When there is no service listening in the specified port in the backend,
+we get a reset packet from the backend that is sent to the client but
+the sequence number mismatches the tcp stream one so there is a loop in
+which the client is requesting it until the timeout.
 
-Signed-off-by: Laura Garcia Liebana <nevola@gmail.com>
----
- net/netfilter/nft_hash.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+To solve this we need to adjust the sequence number, we cannot use the
+!SEEN_REPLY_BIT test because it is always false at this point and then
+we never get into the if statement. Instead of check the !SEEN_REPLY_BIT
+we need to check if the CT IP address is different to the original CT IP.
 
-diff --git a/net/netfilter/nft_hash.c b/net/netfilter/nft_hash.c
-index fe93e731dc7f..b836d550b919 100644
---- a/net/netfilter/nft_hash.c
-+++ b/net/netfilter/nft_hash.c
-@@ -129,7 +129,7 @@ static int nft_symhash_init(const struct nft_ctx *ctx,
- 	priv->dreg = nft_parse_register(tb[NFTA_HASH_DREG]);
- 
- 	priv->modulus = ntohl(nla_get_be32(tb[NFTA_HASH_MODULUS]));
--	if (priv->modulus <= 1)
-+	if (priv->modulus < 1)
- 		return -ERANGE;
- 
- 	if (priv->offset + priv->modulus - 1 < priv->offset)
--- 
-2.11.0
+I hope that answers your questions, here is the tcpdump output with only
+the important information. Please note that "netfilter" is the synproxy
+machine and 192.168.122.1 is the client. If that is fine to you, I will
+include this description into the commit message and send a v3 patch.
+Thanks Florian! :-)
 
+TCPDUMP output:
+
+14:51:00.024418 IP 192.168.122.1.41462 > netfilter.90: Flags [S], seq
+4023580551,
+14:51:00.024454 IP netfilter.90 > 192.168.122.1.41462: Flags [S.], seq
+727560212, ack 4023580552,
+14:51:00.024524 IP 192.168.122.1.41462 > netfilter.90: Flags [.], ack 1,
+14:51:00.024550 IP netfilter.90 > 192.168.122.1.41462: Flags [R.], seq
+3567407084,
+14:51:00.231196 IP 192.168.122.1.41462 > netfilter.90: Flags [.], ack 1,
+14:51:00.647911 IP 192.168.122.1.41462 > netfilter.90: Flags [.], ack 1,
+14:51:01.474395 IP 192.168.122.1.41462 > netfilter.90: Flags [.], ack 1,
