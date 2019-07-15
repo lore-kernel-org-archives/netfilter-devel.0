@@ -2,120 +2,163 @@ Return-Path: <SRS0=suf1=VM=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A51B3C76191
-	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Jul 2019 20:40:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EEA8EC7618F
+	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Jul 2019 21:04:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 87A4E2145D
-	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Jul 2019 20:40:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B81952086C
+	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Jul 2019 21:04:49 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=paul-moore-com.20150623.gappssmtp.com header.i=@paul-moore-com.20150623.gappssmtp.com header.b="C00/OWh9"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731927AbfGOUkQ (ORCPT
+        id S1732282AbfGOVEo (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 15 Jul 2019 16:40:16 -0400
-Received: from ja.ssi.bg ([178.16.129.10]:33272 "EHLO ja.ssi.bg"
-        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1730258AbfGOUkQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 15 Jul 2019 16:40:16 -0400
-Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
-        by ja.ssi.bg (8.15.2/8.15.2) with ESMTP id x6FKdqBF006984;
-        Mon, 15 Jul 2019 23:39:53 +0300
-Date:   Mon, 15 Jul 2019 23:39:52 +0300 (EEST)
-From:   Julian Anastasov <ja@ssi.bg>
-To:     Haishuang Yan <yanhaishuang@cmss.chinamobile.com>
-cc:     "David S. Miller" <davem@davemloft.net>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Simon Horman <horms@verge.net.au>, netdev@vger.kernel.org,
-        lvs-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
-        netfilter-devel@vger.kernel.org
-Subject: Re: [net-next 1/2] ipvs: batch __ip_vs_cleanup
-In-Reply-To: <1563031186-2101-2-git-send-email-yanhaishuang@cmss.chinamobile.com>
-Message-ID: <alpine.LFD.2.21.1907152333300.5700@ja.home.ssi.bg>
-References: <1563031186-2101-1-git-send-email-yanhaishuang@cmss.chinamobile.com> <1563031186-2101-2-git-send-email-yanhaishuang@cmss.chinamobile.com>
-User-Agent: Alpine 2.21 (LFD 202 2017-01-01)
+        Mon, 15 Jul 2019 17:04:44 -0400
+Received: from mail-lj1-f195.google.com ([209.85.208.195]:46734 "EHLO
+        mail-lj1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1732348AbfGOVEo (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 15 Jul 2019 17:04:44 -0400
+Received: by mail-lj1-f195.google.com with SMTP id v24so17718208ljg.13
+        for <netfilter-devel@vger.kernel.org>; Mon, 15 Jul 2019 14:04:41 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=paul-moore-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=nMdAH6nTLDrGvTqGSOAbQkcOJz7RylQFzwai+/2x5Kg=;
+        b=C00/OWh9vq2MRiQn1E4VUuP+O+05mZjNiBnTBYE91LA3zA6l01Y3ZAFqD2sa2HJkYA
+         h5J92fYmst8NEM4kbY7z9ANwjGbMbqg3KDgovAqdXLcZH01wV9eGew+ThGgGmvphgmAD
+         MxCVdar45y7UYA1DDtDoQVv8dYq4cWtZjZQ6/WT8LjTbkRr544wt+KFFducPNhPYqfvf
+         wvewvBAHmtMQ3UdggObhYJdHU1TEreaMfaoyjsOy6hYFNOwCZ9YqhCLMTU3973yjiSJE
+         Yi+PlsVJ+lpWQCfj+ktNFR7xMaZJmXQJhqz9OR+Yp0H3xtV8sPxtgsA5H5qa8lTtOAmU
+         09Kw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=nMdAH6nTLDrGvTqGSOAbQkcOJz7RylQFzwai+/2x5Kg=;
+        b=aM3ukKiFNWtCPCS9t+EL14QQlBY0nllsGCqn0ck8G77bzJspmouYoNgUEQm+QHeooJ
+         OvHhY7DUZiBX83ek639AnZGw0XrKVK38P4dyTLwGfK5CId21ooEdbNF/q72vepIY3jWJ
+         J/r8A/4iJEG798plvlFIEKTs8n03BsQayHGOOCB7MOVD3FQOxyi8l9N6VeLYKR4b25hP
+         LudowISxzqtWe/zE/iYDMvGtz3XYAut1xE7f1E2e7IqeCRaTY727aZ1/yM0N2FnAhd7y
+         Yl0S1aQ07YwL5jYGtwqS/9bO7ElH4ALo/gJhsm0pn3wYS8l52P2upyeNJ5UqCN7EiVX/
+         6k9Q==
+X-Gm-Message-State: APjAAAX2HZb2nuHa9YtbxFgzLM4k9Pw/EDI78+2LfP9X/V+tO1b/WzxM
+        Q3kmOLSV1uurcqlvUI4Mxbe9o2uHi2ljr4+lXQ==
+X-Google-Smtp-Source: APXvYqx7xtowySesa4+9lw6Ozl7JVLEqOjJfTZIHvPqefLlVsTXkwA71CsctPNus3iiABl3+IN2es94OlE7TcFEpzio=
+X-Received: by 2002:a2e:5bdd:: with SMTP id m90mr14605368lje.46.1563224680729;
+ Mon, 15 Jul 2019 14:04:40 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+References: <cover.1554732921.git.rgb@redhat.com> <9edad39c40671fb53f28d76862304cc2647029c6.1554732921.git.rgb@redhat.com>
+ <20190529145742.GA8959@cisco> <CAHC9VhR4fudQanvZGYWMvCf7k2CU3q7e7n1Pi7hzC3v_zpVEdw@mail.gmail.com>
+ <20190529153427.GB8959@cisco> <CAHC9VhSF3AjErX37+eeusJ7+XRw8yuPsmqBTRwc9EVoRBh_3Tw@mail.gmail.com>
+ <20190529222835.GD8959@cisco> <CAHC9VhRS66VGtug3fq3RTGHDvfGmBJG6yRJ+iMxm3cxnNF-zJw@mail.gmail.com>
+ <20190530170913.GA16722@mail.hallyn.com> <CAHC9VhThLiQzGYRUWmSuVfOC6QCDmA75BDB7Eg7V8HX4x7ymQg@mail.gmail.com>
+ <20190708180558.5bar6ripag3sdadl@madcap2.tricolour.ca>
+In-Reply-To: <20190708180558.5bar6ripag3sdadl@madcap2.tricolour.ca>
+From:   Paul Moore <paul@paul-moore.com>
+Date:   Mon, 15 Jul 2019 17:04:29 -0400
+Message-ID: <CAHC9VhRTT7JWqNnynvK04wKerjc-3UJ6R1uPtjCAPVr_tW-7MA@mail.gmail.com>
+Subject: Re: [PATCH ghak90 V6 02/10] audit: add container id
+To:     Richard Guy Briggs <rgb@redhat.com>
+Cc:     "Serge E. Hallyn" <serge@hallyn.com>,
+        Tycho Andersen <tycho@tycho.ws>,
+        containers@lists.linux-foundation.org, linux-api@vger.kernel.org,
+        Linux-Audit Mailing List <linux-audit@redhat.com>,
+        linux-fsdevel@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        sgrubb@redhat.com, omosnace@redhat.com, dhowells@redhat.com,
+        simo@redhat.com, Eric Paris <eparis@parisplace.org>,
+        ebiederm@xmission.com, nhorman@tuxdriver.com
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+On Mon, Jul 8, 2019 at 2:06 PM Richard Guy Briggs <rgb@redhat.com> wrote:
+> On 2019-05-30 15:29, Paul Moore wrote:
 
-	Hello,
+...
 
-On Sat, 13 Jul 2019, Haishuang Yan wrote:
+> > [REMINDER: It is an "*audit* container ID" and not a general
+> > "container ID" ;)  Smiley aside, I'm not kidding about that part.]
+> >
+> > I'm not interested in supporting/merging something that isn't useful;
+> > if this doesn't work for your use case then we need to figure out what
+> > would work.  It sounds like nested containers are much more common in
+> > the lxc world, can you elaborate a bit more on this?
+> >
+> > As far as the possible solutions you mention above, I'm not sure I
+> > like the per-userns audit container IDs, I'd much rather just emit the
+> > necessary tracking information via the audit record stream and let the
+> > log analysis tools figure it out.  However, the bigger question is how
+> > to limit (re)setting the audit container ID when you are in a non-init
+> > userns.  For reasons already mentioned, using capable() is a non
+> > starter for everything but the initial userns, and using ns_capable()
+> > is equally poor as it essentially allows any userns the ability to
+> > munge it's audit container ID (obviously not good).  It appears we
+> > need a different method for controlling access to the audit container
+> > ID.
+>
+> We're not quite ready yet for multiple audit daemons and possibly not
+> yet for audit namespaces, but this is starting to look a lot like the
+> latter.
 
-> It's better to batch __ip_vs_cleanup to speedup ipvs
-> connections dismantle.
-> 
-> Signed-off-by: Haishuang Yan <yanhaishuang@cmss.chinamobile.com>
-> ---
->  include/net/ip_vs.h             |  2 +-
->  net/netfilter/ipvs/ip_vs_core.c | 29 +++++++++++++++++------------
->  net/netfilter/ipvs/ip_vs_ctl.c  | 13 ++++++++++---
->  3 files changed, 28 insertions(+), 16 deletions(-)
-> 
-> diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
-> index 3759167..93e7a25 100644
-> --- a/include/net/ip_vs.h
-> +++ b/include/net/ip_vs.h
-> @@ -1324,7 +1324,7 @@ static inline void ip_vs_control_del(struct ip_vs_conn *cp)
->  void ip_vs_control_net_cleanup(struct netns_ipvs *ipvs);
->  void ip_vs_estimator_net_cleanup(struct netns_ipvs *ipvs);
->  void ip_vs_sync_net_cleanup(struct netns_ipvs *ipvs);
-> -void ip_vs_service_net_cleanup(struct netns_ipvs *ipvs);
-> +void ip_vs_service_nets_cleanup(struct list_head *net_list);
->  
->  /* IPVS application functions
->   * (from ip_vs_app.c)
-> diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-> index 46f06f9..b4d79b7 100644
-> --- a/net/netfilter/ipvs/ip_vs_core.c
-> +++ b/net/netfilter/ipvs/ip_vs_core.c
-> @@ -2402,18 +2402,23 @@ static int __net_init __ip_vs_init(struct net *net)
->  	return -ENOMEM;
->  }
->  
-> -static void __net_exit __ip_vs_cleanup(struct net *net)
-> +static void __net_exit __ip_vs_cleanup_batch(struct list_head *net_list)
->  {
-> -	struct netns_ipvs *ipvs = net_ipvs(net);
-> -
-> -	ip_vs_service_net_cleanup(ipvs);	/* ip_vs_flush() with locks */
-> -	ip_vs_conn_net_cleanup(ipvs);
-> -	ip_vs_app_net_cleanup(ipvs);
-> -	ip_vs_protocol_net_cleanup(ipvs);
-> -	ip_vs_control_net_cleanup(ipvs);
-> -	ip_vs_estimator_net_cleanup(ipvs);
-> -	IP_VS_DBG(2, "ipvs netns %d released\n", ipvs->gen);
-> -	net->ipvs = NULL;
-> +	struct netns_ipvs *ipvs;
-> +	struct net *net;
-> +	LIST_HEAD(list);
-> +
-> +	ip_vs_service_nets_cleanup(net_list);	/* ip_vs_flush() with locks */
-> +	list_for_each_entry(net, net_list, exit_list) {
+A few quick comments on audit namespaces: the audit container ID is
+not envisioned as a new namespace (even in nested form) and neither do
+I consider running multiple audit daemons to be a new namespace.
 
-	How much faster is to replace list_for_each_entry in
-ops_exit_list() with this one. IPVS can waste time in calls
-such as kthread_stop() and del_timer_sync() but I'm not sure
-we can solve it easily. What gain do you see in benchmarks?
+From my perspective we create namespaces to allow us to redefine a
+global resource for some subset of the system, e.g. providing a unique
+/tmp for some number of processes on the system.  While it may be
+tempting to think of the audit container ID as something we could
+"namespace", especially when multiple audit daemons are concerned, in
+some ways this would be counter productive; the audit container ID is
+intended to be a global ID that can be used to associate audit event
+records with a "container" where the "container" is defined by an
+orchestrator outside the audit subsystem.  The global nature of the
+audit container ID allows us to maintain a sane(ish) view of the
+system in the audit log, if we were to "namespace" the audit container
+ID such that the value was no longer guaranteed to be unique
+throughout the system, we would need to additionally track the audit
+namespace along with the audit container ID which starts to border on
+insanity IMHO.
 
-> +		ipvs = net_ipvs(net);
-> +		ip_vs_conn_net_cleanup(ipvs);
-> +		ip_vs_app_net_cleanup(ipvs);
-> +		ip_vs_protocol_net_cleanup(ipvs);
-> +		ip_vs_control_net_cleanup(ipvs);
-> +		ip_vs_estimator_net_cleanup(ipvs);
-> +		IP_VS_DBG(2, "ipvs netns %d released\n", ipvs->gen);
-> +		net->ipvs = NULL;
-> +	}
->  }
+> If we can't trust ns_capable() then why are we passing on
+> CAP_AUDIT_CONTROL?  It is being passed down and not stripped purposely
+> by the orchestrator/engine.  If ns_capable() isn't inherited how is it
+> gained otherwise?  Can it be inserted by cotainer image?  I think the
+> answer is "no".  Either we trust ns_capable() or we have audit
+> namespaces (recommend based on user namespace) (or both).
 
-Regards
+My thinking is that since ns_capable() checks the credentials with
+respect to the current user namespace we can't rely on it to control
+access since it would be possible for a privileged process running
+inside an unprivileged container to manipulate the audit container ID
+(containerized process has CAP_AUDIT_CONTROL, e.g. running as root in
+the container, while the container itself does not).
 
---
-Julian Anastasov <ja@ssi.bg>
+> At this point I would say we are at an impasse unless we trust
+> ns_capable() or we implement audit namespaces.
+
+I'm not sure how we can trust ns_capable(), but if you can think of a
+way I would love to hear it.  I'm also not sure how namespacing audit
+is helpful (see my above comments), but if you think it is please
+explain.
+
+> I don't think another mechanism to trust nested orchestrators/engines
+> will buy us anything.
+>
+> Am I missing something?
+
+Based on your questions/comments above it looks like your
+understanding of ns_capable() does not match mine; if I'm thinking
+about ns_capable() incorrectly, please educate me.
+
+-- 
+paul moore
+www.paul-moore.com
