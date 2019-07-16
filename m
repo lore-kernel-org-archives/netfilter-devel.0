@@ -6,77 +6,52 @@ X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 324D2C76195
-	for <netfilter-devel@archiver.kernel.org>; Tue, 16 Jul 2019 18:52:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B7EFC7618F
+	for <netfilter-devel@archiver.kernel.org>; Tue, 16 Jul 2019 19:02:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 11D9520693
-	for <netfilter-devel@archiver.kernel.org>; Tue, 16 Jul 2019 18:52:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6107720665
+	for <netfilter-devel@archiver.kernel.org>; Tue, 16 Jul 2019 19:02:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388566AbfGPSwZ (ORCPT
+        id S1728858AbfGPTC0 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 16 Jul 2019 14:52:25 -0400
-Received: from mail.us.es ([193.147.175.20]:35580 "EHLO mail.us.es"
+        Tue, 16 Jul 2019 15:02:26 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:51176 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388448AbfGPSwZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 16 Jul 2019 14:52:25 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 4988FBEBB1
-        for <netfilter-devel@vger.kernel.org>; Tue, 16 Jul 2019 20:52:23 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 3937D11510A
-        for <netfilter-devel@vger.kernel.org>; Tue, 16 Jul 2019 20:52:23 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 190091150DD; Tue, 16 Jul 2019 20:52:23 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id A77ABDA708;
-        Tue, 16 Jul 2019 20:52:20 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 16 Jul 2019 20:52:20 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (sys.soleta.eu [212.170.55.40])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 81A764265A2F;
-        Tue, 16 Jul 2019 20:52:20 +0200 (CEST)
-Date:   Tue, 16 Jul 2019 20:52:20 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Alexey Dobriyan <adobriyan@gmail.com>
-Cc:     davem@davemloft.net, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, linux-nfs@vger.kernel.org,
-        j.vosburgh@gmail.com, vfalico@gmail.com, andy@greyhouse.net,
-        kadlec@netfilter.org, fw@strlen.de, bfields@fieldses.org,
-        chuck.lever@oracle.com
-Subject: Re: [PATCH 2/2] net: apply proc_net_mkdir() harder
-Message-ID: <20190716185220.hnlyiievuucdtn7x@salvia>
-References: <20190706165521.GB10550@avx2>
+        id S1728137AbfGPTC0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 16 Jul 2019 15:02:26 -0400
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.91)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1hnSiW-0006KG-Kw; Tue, 16 Jul 2019 21:02:24 +0200
+Date:   Tue, 16 Jul 2019 21:02:24 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: json_cmd_assoc and cmd
+Message-ID: <20190716190224.GB31548@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+References: <20190716183101.pev5gcmk3agqwpsm@salvia>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20190706165521.GB10550@avx2>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+In-Reply-To: <20190716183101.pev5gcmk3agqwpsm@salvia>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sat, Jul 06, 2019 at 07:55:21PM +0300, Alexey Dobriyan wrote:
-> From: "Hallsmark, Per" <Per.Hallsmark@windriver.com>
-> 
-> proc_net_mkdir() should be used to create stuff under /proc/net,
-> so that dentry revalidation kicks in.
-> 
-> See
-> 
-> 	commit 1fde6f21d90f8ba5da3cb9c54ca991ed72696c43
-> 	proc: fix /proc/net/* after setns(2)
-> 
-> 	[added more chunks --adobriyan]
+Hi Pablo,
 
-I don't find this in the tree, if you split the netfilter part in an
-independent patch, I could take it into the netfilter tree.
+On Tue, Jul 16, 2019 at 08:31:01PM +0200, Pablo Neira Ayuso wrote:
+> Why json_cmd_assoc is not placed in struct cmd instead? I mean, just
+> store the json_t *json in cmd?
 
-Or just keep it like this and ask David to take it.
+The global list (json_cmd_list) is used in json_events_cb(). Unless I
+miss something, the cmd list is not available from struct
+netlink_mon_handler.
+
+Maybe I could move struct cmds list head into struct nft_ctx?
+
+Thanks, Phil
