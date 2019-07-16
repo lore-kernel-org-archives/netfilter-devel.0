@@ -6,38 +6,38 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 98BB6C7618F
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E34D6C76198
 	for <netfilter-devel@archiver.kernel.org>; Tue, 16 Jul 2019 00:47:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7C34121738
+	by mail.kernel.org (Postfix) with ESMTP id C5EB521738
 	for <netfilter-devel@archiver.kernel.org>; Tue, 16 Jul 2019 00:47:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1733177AbfGPAry (ORCPT
+        id S1733181AbfGPAry (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Mon, 15 Jul 2019 20:47:54 -0400
-Received: from m9784.mail.qiye.163.com ([220.181.97.84]:24416 "EHLO
+Received: from m9784.mail.qiye.163.com ([220.181.97.84]:24418 "EHLO
         m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730690AbfGPArx (ORCPT
+        with ESMTP id S1733170AbfGPArx (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Mon, 15 Jul 2019 20:47:53 -0400
 Received: from localhost.localdomain (unknown [123.59.132.129])
-        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id E9E9741649;
+        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id C9F9C41823;
         Tue, 16 Jul 2019 08:47:47 +0800 (CST)
 From:   wenxu@ucloud.cn
 To:     pablo@netfilter.org, fw@strlen.de
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next v5 8/8] netfilter: Support the bridge family in flow table
-Date:   Tue, 16 Jul 2019 08:47:46 +0800
-Message-Id: <1563238066-3105-9-git-send-email-wenxu@ucloud.cn>
+Subject: [PATCH nf-next v5 7/8] netfilter:nft_flow_offload: Support bridge family flow offload
+Date:   Tue, 16 Jul 2019 08:47:45 +0800
+Message-Id: <1563238066-3105-8-git-send-email-wenxu@ucloud.cn>
 X-Mailer: git-send-email 1.8.3.1
 In-Reply-To: <1563238066-3105-1-git-send-email-wenxu@ucloud.cn>
 References: <1563238066-3105-1-git-send-email-wenxu@ucloud.cn>
-X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVkpVS0tIQkJCTkJLQ0xITElZV1koWU
+X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVklVSkhCS0tLSkxMSENIT0lZV1koWU
         FJQjdXWS1ZQUlXWQkOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6PSI6MQw4Ojg3FAMJGEhMQwIX
-        MjpPCk1VSlVKTk1ISUhDS01DS0tMVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJSFVO
-        QlVKSElVSklCWVdZCAFZQUhCSE83Bg++
-X-HM-Tid: 0a6bf83fef042086kuqye9e9741649
+X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6ODI6Axw*Ojg1LgNIGE4hQ0wT
+        MxwwCRlVSlVKTk1ISUhDS01MQkhIVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJSFVO
+        QlVKSElVSklCWVdZCAFZQU1NTU43Bg++
+X-HM-Tid: 0a6bf83fee812086kuqyc9f9c41823
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
@@ -45,102 +45,217 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: wenxu <wenxu@ucloud.cn>
 
-This patch add the bridge flow table type. Implement the datapath
-flow table to forward both IPV4 and IPV6 traffic through bridge.
+With nf_conntrack_bridge function. The bridge family can do
+conntrack it self. The flow offload function based on the conntrack.
+This patch add bridge family operation in nf_flow_offload
 
 Signed-off-by: wenxu <wenxu@ucloud.cn>
 ---
- net/bridge/netfilter/Kconfig                |  8 +++++
- net/bridge/netfilter/Makefile               |  1 +
- net/bridge/netfilter/nf_flow_table_bridge.c | 48 +++++++++++++++++++++++++++++
- 3 files changed, 57 insertions(+)
- create mode 100644 net/bridge/netfilter/nf_flow_table_bridge.c
+ net/netfilter/nft_flow_offload.c | 138 +++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 131 insertions(+), 7 deletions(-)
 
-diff --git a/net/bridge/netfilter/Kconfig b/net/bridge/netfilter/Kconfig
-index 154fa55..8b3f52b 100644
---- a/net/bridge/netfilter/Kconfig
-+++ b/net/bridge/netfilter/Kconfig
-@@ -39,6 +39,14 @@ config NF_CONNTRACK_BRIDGE
+diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
+index 4af94ce..796d31c 100644
+--- a/net/netfilter/nft_flow_offload.c
++++ b/net/netfilter/nft_flow_offload.c
+@@ -6,6 +6,7 @@
+ #include <linux/netfilter.h>
+ #include <linux/workqueue.h>
+ #include <linux/spinlock.h>
++#include <linux/if_bridge.h>
+ #include <linux/netfilter/nf_tables.h>
+ #include <net/ip.h> /* for ipv4 options. */
+ #include <net/netfilter/nf_tables.h>
+@@ -49,23 +50,142 @@ static int nft_flow_route(const struct nft_pktinfo *pkt,
+ 	return 0;
+ }
  
- 	  To compile it as a module, choose M here.  If unsure, say N.
- 
-+config NF_FLOW_TABLE_BRIDGE
-+	tristate "Netfilter flow table bridge module"
-+	depends on NF_FLOW_TABLE && NF_CONNTRACK_BRIDGE
-+	help
-+          This option adds the flow table bridge support.
-+
-+	  To compile it as a module, choose M here.
-+
- endif # NF_TABLES_BRIDGE
- 
- menuconfig BRIDGE_NF_EBTABLES
-diff --git a/net/bridge/netfilter/Makefile b/net/bridge/netfilter/Makefile
-index 8e2c575..627b269 100644
---- a/net/bridge/netfilter/Makefile
-+++ b/net/bridge/netfilter/Makefile
-@@ -8,6 +8,7 @@ obj-$(CONFIG_NFT_BRIDGE_REJECT)  += nft_reject_bridge.o
- 
- # connection tracking
- obj-$(CONFIG_NF_CONNTRACK_BRIDGE) += nf_conntrack_bridge.o
-+obj-$(CONFIG_NF_FLOW_TABLE_BRIDGE) += nf_flow_table_bridge.o
- 
- # packet logging
- obj-$(CONFIG_NF_LOG_BRIDGE) += nf_log_bridge.o
-diff --git a/net/bridge/netfilter/nf_flow_table_bridge.c b/net/bridge/netfilter/nf_flow_table_bridge.c
-new file mode 100644
-index 0000000..c4fdd4a
---- /dev/null
-+++ b/net/bridge/netfilter/nf_flow_table_bridge.c
-@@ -0,0 +1,48 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/module.h>
-+#include <linux/netfilter.h>
-+#include <net/netfilter/nf_flow_table.h>
-+#include <net/netfilter/nf_tables.h>
-+
-+static unsigned int
-+nf_flow_offload_bridge_hook(void *priv, struct sk_buff *skb,
-+			    const struct nf_hook_state *state)
++static const struct net_device *
++nft_get_bridge(const struct net_device *dev)
 +{
-+	switch (skb->protocol) {
-+	case htons(ETH_P_IP):
-+		return nf_flow_offload_ip_hook(priv, skb, state);
-+	case htons(ETH_P_IPV6):
-+		return nf_flow_offload_ipv6_hook(priv, skb, state);
-+	}
++	if (dev && netif_is_bridge_port(dev))
++		return netdev_master_upper_dev_get_rcu((struct net_device *)dev);
 +
-+	return NF_ACCEPT;
++	return NULL;
 +}
 +
-+static struct nf_flowtable_type flowtable_bridge = {
-+	.family		= NFPROTO_BRIDGE,
-+	.init		= nf_flow_table_init,
-+	.free		= nf_flow_table_free,
-+	.hook		= nf_flow_offload_bridge_hook,
-+	.owner		= THIS_MODULE,
-+};
-+
-+static int __init nf_flow_bridge_module_init(void)
++static int nft_flow_forward(const struct nft_pktinfo *pkt,
++			    const struct nf_conn *ct,
++			    struct nf_flow_forward *forward,
++			    enum ip_conntrack_dir dir)
 +{
-+	nft_register_flowtable_type(&flowtable_bridge);
++#ifdef CONFIG_NF_TABLES_BRIDGE
++	const struct net_device *br_dev;
++	u16 vlan_proto = 0;
++	u16 vid = 0;
++
++	if (skb_vlan_tag_present(pkt->skb)) {
++		vid = skb_vlan_tag_get_id(pkt->skb);
++		vlan_proto = ntohs(pkt->skb->vlan_proto);
++	}
++
++	forward->tuple[dir].dst_port.dst_vlan_tag = vid;
++	forward->tuple[dir].dst_port.vlan_proto = vlan_proto;
++	forward->tuple[!dir].vlan_tag = vid;
++	forward->tuple[dir].dst_port.dev = dev_get_by_index(dev_net(nft_out(pkt)),
++							    nft_out(pkt)->ifindex);
++	forward->tuple[!dir].dst_port.dev = dev_get_by_index(dev_net(nft_in(pkt)),
++							     nft_in(pkt)->ifindex);
++
++	br_dev = nft_get_bridge(nft_out(pkt));
++	if (!br_dev)
++		goto err;
++
++	if (!br_vlan_enabled(br_dev))
++		goto out;
++
++	if (!vid)
++		br_vlan_get_pvid_rcu(nft_out(pkt), &vid);
++
++	if (vid) {
++		struct bridge_vlan_info vinfo;
++		int ret;
++
++		ret = br_vlan_get_proto(br_dev, &vlan_proto);
++		if (ret < 0)
++			goto err;
++
++		ret = br_vlan_get_info_rcu(nft_in(pkt), vid, &vinfo);
++		if (ret < 0)
++			goto err;
++
++		if (vinfo.flags & BRIDGE_VLAN_INFO_UNTAGGED) {
++			vid = 0;
++			vlan_proto = 0;
++		}
++	}
++
++out:
++	forward->tuple[!dir].dst_port.vlan_proto = vlan_proto;
++	forward->tuple[!dir].dst_port.dst_vlan_tag = vid;
++	forward->tuple[dir].vlan_tag = vid;
++
++	return 0;
++
++err:
++	dev_put(forward->tuple[dir].dst_port.dev);
++	dev_put(forward->tuple[!dir].dst_port.dev);
++#endif
++	return -ENOENT;
++}
++
+ static bool nft_flow_offload_skip(struct sk_buff *skb, int family)
+ {
+ 	if (skb_sec_path(skb))
+ 		return true;
+ 
+-	if (family == NFPROTO_IPV4) {
++	switch (family) {
++	case NFPROTO_IPV4: {
+ 		const struct ip_options *opt;
+ 
+ 		opt = &(IPCB(skb)->opt);
+ 
+ 		if (unlikely(opt->optlen))
+ 			return true;
++		break;
++	}
++	case NFPROTO_BRIDGE: {
++		if (skb->protocol != htons(ETH_P_IPV6) &&
++		    skb->protocol != htons(ETH_P_IP))
++			return true;
++
++		if (skb->protocol == htons(ETH_P_IP)) {
++			const struct iphdr *iph;
++
++			iph = ip_hdr(skb);
++			if (iph->ihl > 5)
++				return true;
++		}
++		break;
++	}
+ 	}
+ 
+ 	return false;
+ }
+ 
++static void flow_offload_release_dst(struct nf_flow_dst *flow_dst,
++				     enum ip_conntrack_dir dir)
++{
++	if (flow_dst->type == FLOW_OFFLOAD_TYPE_BRIDGE) {
++		dev_put(flow_dst->forward.tuple[dir].dst_port.dev);
++		dev_put(flow_dst->forward.tuple[!dir].dst_port.dev);
++	} else {
++		dst_release(flow_dst->route.tuple[!dir].dst);
++	}
++}
++
++static int flow_offload_get_dst(const struct nft_pktinfo *pkt, struct nf_conn *ct,
++				enum ip_conntrack_dir dir, int family,
++				struct nf_flow_dst *flow_dst)
++{
++	if (family == NFPROTO_BRIDGE) {
++		flow_dst->type = FLOW_OFFLOAD_TYPE_BRIDGE;
++		if (nft_flow_forward(pkt, ct, &flow_dst->forward, dir) < 0)
++			return -1;
++	} else {
++		flow_dst->type = FLOW_OFFLOAD_TYPE_INET;
++		if (nft_flow_route(pkt, ct, &flow_dst->route, dir) < 0)
++			return -1;
++	}
 +
 +	return 0;
 +}
 +
-+static void __exit nf_flow_bridge_module_exit(void)
-+{
-+	nft_unregister_flowtable_type(&flowtable_bridge);
-+}
+ static void nft_flow_offload_eval(const struct nft_expr *expr,
+ 				  struct nft_regs *regs,
+ 				  const struct nft_pktinfo *pkt)
+@@ -76,11 +196,12 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
+ 	struct nf_flow_dst flow_dst;
+ 	struct flow_offload *flow;
+ 	enum ip_conntrack_dir dir;
++	int family = nft_pf(pkt);
+ 	bool is_tcp = false;
+ 	struct nf_conn *ct;
+ 	int ret;
+ 
+-	if (nft_flow_offload_skip(pkt->skb, nft_pf(pkt)))
++	if (nft_flow_offload_skip(pkt->skb, family))
+ 		goto out;
+ 
+ 	ct = nf_ct_get(pkt->skb, &ctinfo);
+@@ -108,8 +229,9 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
+ 		goto out;
+ 
+ 	dir = CTINFO2DIR(ctinfo);
+-	if (nft_flow_route(pkt, ct, &flow_dst.route, dir) < 0)
+-		goto err_flow_route;
 +
-+module_init(nf_flow_bridge_module_init);
-+module_exit(nf_flow_bridge_module_exit);
++	if (flow_offload_get_dst(pkt, ct, dir, family, &flow_dst) < 0)
++		goto err_flow_dst;
+ 
+ 	flow = flow_offload_alloc(ct, &flow_dst);
+ 	if (!flow)
+@@ -124,14 +246,16 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
+ 	if (ret < 0)
+ 		goto err_flow_add;
+ 
+-	dst_release(flow_dst.route.tuple[!dir].dst);
++	if (family != NFPROTO_BRIDGE)
++		dst_release(flow_dst.route.tuple[!dir].dst);
 +
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("wenxu <wenxu@ucloud.cn>");
-+MODULE_ALIAS_NF_FLOWTABLE(7); /* NFPROTO_BRIDGE */
+ 	return;
+ 
+ err_flow_add:
+ 	flow_offload_free(flow);
+ err_flow_alloc:
+-	dst_release(flow_dst.route.tuple[!dir].dst);
+-err_flow_route:
++	flow_offload_release_dst(&flow_dst, dir);
++err_flow_dst:
+ 	clear_bit(IPS_OFFLOAD_BIT, &ct->status);
+ out:
+ 	regs->verdict.code = NFT_BREAK;
 -- 
 1.8.3.1
 
