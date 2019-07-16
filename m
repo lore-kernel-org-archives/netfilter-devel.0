@@ -2,90 +2,77 @@ Return-Path: <SRS0=/Fuh=VN=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EF9E1C7618F
-	for <netfilter-devel@archiver.kernel.org>; Tue, 16 Jul 2019 17:49:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BA8D6C7618F
+	for <netfilter-devel@archiver.kernel.org>; Tue, 16 Jul 2019 17:57:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C4B342145D
-	for <netfilter-devel@archiver.kernel.org>; Tue, 16 Jul 2019 17:49:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9D6DC206C2
+	for <netfilter-devel@archiver.kernel.org>; Tue, 16 Jul 2019 17:57:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388294AbfGPRtv (ORCPT
+        id S1730499AbfGPR5P (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 16 Jul 2019 13:49:51 -0400
-Received: from mail.us.es ([193.147.175.20]:45414 "EHLO mail.us.es"
+        Tue, 16 Jul 2019 13:57:15 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:51054 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728137AbfGPRtv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 16 Jul 2019 13:49:51 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 39299F2808
-        for <netfilter-devel@vger.kernel.org>; Tue, 16 Jul 2019 19:49:49 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 2A0FA909A9
-        for <netfilter-devel@vger.kernel.org>; Tue, 16 Jul 2019 19:49:49 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 1F992D190F; Tue, 16 Jul 2019 19:49:49 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 1582CD190F;
-        Tue, 16 Jul 2019 19:49:47 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 16 Jul 2019 19:49:47 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from salvia.here (sys.soleta.eu [212.170.55.40])
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id E39164265A31;
-        Tue, 16 Jul 2019 19:49:46 +0200 (CEST)
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     charles@ccxtechnologies.com
-Subject: [PATCH nft,v2] evaluate: bogus error when refering to existing non-base chain
-Date:   Tue, 16 Jul 2019 19:49:42 +0200
-Message-Id: <20190716174943.1038-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.11.0
-X-Virus-Scanned: ClamAV using ClamSMTP
+        id S1728137AbfGPR5O (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 16 Jul 2019 13:57:14 -0400
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.91)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1hnRhQ-00058i-MF; Tue, 16 Jul 2019 19:57:12 +0200
+Date:   Tue, 16 Jul 2019 19:57:12 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, charles@ccxtechnologies.com,
+        Fernando Fernandez Mancera <ffmancera@riseup.net>
+Subject: Re: [PATCH nft] evaluate: bogus error when refering to existing
+ non-base chain
+Message-ID: <20190716175712.GG1628@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org, charles@ccxtechnologies.com,
+        Fernando Fernandez Mancera <ffmancera@riseup.net>
+References: <20190716115120.21710-1-pablo@netfilter.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190716115120.21710-1-pablo@netfilter.org>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
- add rule ip testNEW test6 jump test8
-                                ^^^^^
- Error: invalid verdict chain expression value
+On Tue, Jul 16, 2019 at 01:51:20PM +0200, Pablo Neira Ayuso wrote:
+>  add rule ip testNEW test6 jump test8
+>                                 ^^^^^
+>  Error: invalid verdict chain expression value
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-v2: keep the check for the expression type in place.
+Note that I can't reproduce this issue locally.
 
-@Charles: would you mind to test this one and confirm crash does not happen
-          anymore?
+[...]
+> -			if ((stmt->expr->chain->etype != EXPR_SYMBOL &&
+> -			    stmt->expr->chain->etype != EXPR_VALUE) ||
+> -			    stmt->expr->chain->symtype != SYMBOL_VALUE) {
+> -				return stmt_error(ctx, stmt,
+> -						  "invalid verdict chain expression %s\n",
+> -						  expr_name(stmt->expr->chain));
+> -			}
 
- src/evaluate.c | 9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+So I guess the problem is that for an etype of EXPR_VALUE, symtype is
+still checked. The latter is used by EXPR_SYMBOL only, but since
+SYMBOL_VALUE is 0 (implicitly, it's the first item in enum
+symbol_types) this probably works by accident.
 
-diff --git a/src/evaluate.c b/src/evaluate.c
-index f95f42e1067a..ed3ca484ad22 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -1987,12 +1987,9 @@ static int stmt_evaluate_verdict(struct eval_ctx *ctx, struct stmt *stmt)
- 		if (stmt->expr->chain != NULL) {
- 			if (expr_evaluate(ctx, &stmt->expr->chain) < 0)
- 				return -1;
--			if ((stmt->expr->chain->etype != EXPR_SYMBOL &&
--			    stmt->expr->chain->etype != EXPR_VALUE) ||
--			    stmt->expr->chain->symtype != SYMBOL_VALUE) {
--				return stmt_error(ctx, stmt,
--						  "invalid verdict chain expression %s\n",
--						  expr_name(stmt->expr->chain));
-+			if (stmt->expr->chain->etype != EXPR_VALUE) {
-+				return expr_error(ctx->msgs, stmt->expr->chain,
-+						  "not a value expression");
- 			}
- 		}
- 		break;
--- 
-2.11.0
+I still don't understand why it doesn't work for you, but I guess the
+bug is found. So probably
 
+| if ((stmt->expr->chain->etype != EXPR_SYMBOL ||
+|       stmt->expr->chain->symtype != SYMBOL_VALUE) &&
+|     stmt->expr->chain->etype != EXPR_VALUE)) {
+
+is right.
+
+Cheers, Phil
