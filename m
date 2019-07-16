@@ -2,154 +2,296 @@ Return-Path: <SRS0=/Fuh=VN=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	UNWANTED_LANGUAGE_BODY,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 83BB5C76197
-	for <netfilter-devel@archiver.kernel.org>; Tue, 16 Jul 2019 10:26:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 25726C76196
+	for <netfilter-devel@archiver.kernel.org>; Tue, 16 Jul 2019 10:26:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 66DFC20880
+	by mail.kernel.org (Postfix) with ESMTP id F2E2220880
 	for <netfilter-devel@archiver.kernel.org>; Tue, 16 Jul 2019 10:26:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1733171AbfGPK0z (ORCPT
+        id S1733173AbfGPK04 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 16 Jul 2019 06:26:55 -0400
-Received: from mail.us.es ([193.147.175.20]:60872 "EHLO mail.us.es"
+        Tue, 16 Jul 2019 06:26:56 -0400
+Received: from mail.us.es ([193.147.175.20]:60880 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1732984AbfGPK0z (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        id S1732524AbfGPK0z (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Tue, 16 Jul 2019 06:26:55 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 299FEB6C9A
-        for <netfilter-devel@vger.kernel.org>; Tue, 16 Jul 2019 12:26:51 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id F1F43B6C61
+        for <netfilter-devel@vger.kernel.org>; Tue, 16 Jul 2019 12:26:50 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id F3926115110
+        by antivirus1-rhel7.int (Postfix) with ESMTP id BE166D190F
         for <netfilter-devel@vger.kernel.org>; Tue, 16 Jul 2019 12:26:50 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id F33731158E5; Tue, 16 Jul 2019 12:26:31 +0200 (CEST)
+        id 7509511541A; Tue, 16 Jul 2019 12:26:29 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id D58A61158E2
-        for <netfilter-devel@vger.kernel.org>; Tue, 16 Jul 2019 12:26:29 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 325001153F3
+        for <netfilter-devel@vger.kernel.org>; Tue, 16 Jul 2019 12:26:27 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 16 Jul 2019 12:26:29 +0200 (CEST)
+ Tue, 16 Jul 2019 12:26:27 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id B27E84265A32
-        for <netfilter-devel@vger.kernel.org>; Tue, 16 Jul 2019 12:26:29 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 105B44265A2F
+        for <netfilter-devel@vger.kernel.org>; Tue, 16 Jul 2019 12:26:27 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft 5/5] cache: incorrect cache flags for create commands
-Date:   Tue, 16 Jul 2019 12:26:24 +0200
-Message-Id: <20190716102624.4628-5-pablo@netfilter.org>
+Subject: [PATCH nft 1/5] src: add set_is_datamap(), set_is_objmap() and set_is_map() helpers
+Date:   Tue, 16 Jul 2019 12:26:20 +0200
+Message-Id: <20190716102624.4628-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
-In-Reply-To: <20190716102624.4628-1-pablo@netfilter.org>
-References: <20190716102624.4628-1-pablo@netfilter.org>
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
- # nft create table testD
- # nft create chain testD test6
- Error: No such file or directory
- create chain testD test6
-              ^^^^^
+Two map types are currently possible:
 
-Handle 'create' command just like 'add' and 'insert'. Check for object
-types to dump the tables for more fine grain listing, instead of dumping
-the whole ruleset.
+* data maps, ie. set_is_datamap().
+* object maps, ie. set_is_objmap().
 
-Fixes: 7df42800cf89 ("src: single cache_update() call to build cache before evaluation")
+This patch adds helper function to check for the map type.
+
+set_is_map() allows you to check for either map type.
+
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- src/cache.c                                        | 30 +++++++++++++++-------
- tests/shell/testcases/chains/0030create_0          |  6 +++++
- .../shell/testcases/chains/dumps/0030create_0.nft  |  4 +++
- 3 files changed, 31 insertions(+), 9 deletions(-)
- create mode 100644 tests/shell/testcases/chains/0030create_0
- create mode 100644 tests/shell/testcases/chains/dumps/0030create_0.nft
+ include/rule.h | 16 ++++++++++++++++
+ src/evaluate.c | 12 ++++++------
+ src/json.c     |  4 ++--
+ src/mnl.c      |  6 +++---
+ src/netlink.c  | 12 ++++++------
+ src/rule.c     |  6 +++---
+ 6 files changed, 36 insertions(+), 20 deletions(-)
 
-diff --git a/src/cache.c b/src/cache.c
-index d371c5488d1b..e04ead85c830 100644
---- a/src/cache.c
-+++ b/src/cache.c
-@@ -16,10 +16,29 @@
- static unsigned int evaluate_cache_add(struct cmd *cmd, unsigned int flags)
- {
- 	switch (cmd->obj) {
-+	case CMD_OBJ_CHAIN:
-+	case CMD_OBJ_SET:
-+	case CMD_OBJ_COUNTER:
-+	case CMD_OBJ_QUOTA:
-+	case CMD_OBJ_LIMIT:
-+	case CMD_OBJ_SECMARK:
-+	case CMD_OBJ_FLOWTABLE:
-+		flags |= NFT_CACHE_TABLE;
-+		break;
- 	case CMD_OBJ_SETELEM:
--		flags |= NFT_CACHE_SETELEM;
-+		flags |= NFT_CACHE_TABLE |
-+			 NFT_CACHE_CHAIN |
-+			 NFT_CACHE_SET |
-+			 NFT_CACHE_OBJECT |
-+			 NFT_CACHE_SETELEM;
- 		break;
- 	case CMD_OBJ_RULE:
-+		flags |= NFT_CACHE_TABLE |
-+			 NFT_CACHE_CHAIN |
-+			 NFT_CACHE_SET |
-+			 NFT_CACHE_OBJECT |
-+			 NFT_CACHE_FLOWTABLE;
-+
- 		if (cmd->handle.index.id ||
- 		    cmd->handle.position.id)
- 			flags |= NFT_CACHE_RULE;
-@@ -83,18 +102,11 @@ unsigned int cache_evaluate(struct nft_ctx *nft, struct list_head *cmds)
- 		switch (cmd->op) {
- 		case CMD_ADD:
- 		case CMD_INSERT:
-+		case CMD_CREATE:
- 			if (nft_output_echo(&nft->output)) {
- 				flags = NFT_CACHE_FULL;
- 				break;
- 			}
--
--			flags |= NFT_CACHE_TABLE |
--				 NFT_CACHE_CHAIN |
--				 NFT_CACHE_SET |
--				 NFT_CACHE_FLOWTABLE |
--				 NFT_CACHE_OBJECT;
--			/* Fall through */
--		case CMD_CREATE:
- 			flags = evaluate_cache_add(cmd, flags);
- 			break;
- 		case CMD_REPLACE:
-diff --git a/tests/shell/testcases/chains/0030create_0 b/tests/shell/testcases/chains/0030create_0
-new file mode 100644
-index 000000000000..0b457f91f11f
---- /dev/null
-+++ b/tests/shell/testcases/chains/0030create_0
-@@ -0,0 +1,6 @@
-+#!/bin/bash
-+
-+set -e
-+
-+$NFT add table ip x
-+$NFT create chain ip x y
-diff --git a/tests/shell/testcases/chains/dumps/0030create_0.nft b/tests/shell/testcases/chains/dumps/0030create_0.nft
-new file mode 100644
-index 000000000000..8e818d2d05e6
---- /dev/null
-+++ b/tests/shell/testcases/chains/dumps/0030create_0.nft
-@@ -0,0 +1,4 @@
-+table ip x {
-+	chain y {
-+	}
+diff --git a/include/rule.h b/include/rule.h
+index aefb24d95163..bee1d4474216 100644
+--- a/include/rule.h
++++ b/include/rule.h
+@@ -6,6 +6,7 @@
+ #include <list.h>
+ #include <netinet/in.h>
+ #include <libnftnl/object.h>	/* For NFTNL_CTTIMEOUT_ARRAY_MAX. */
++#include <linux/netfilter/nf_tables.h>
+ 
+ /**
+  * struct handle_spec - handle ID
+@@ -321,6 +322,21 @@ extern const char *set_policy2str(uint32_t policy);
+ extern void set_print(const struct set *set, struct output_ctx *octx);
+ extern void set_print_plain(const struct set *s, struct output_ctx *octx);
+ 
++static inline bool set_is_datamap(uint32_t set_flags)
++{
++	return set_flags & NFT_SET_MAP;
 +}
++
++static inline bool set_is_objmap(uint32_t set_flags)
++{
++	return set_flags & NFT_SET_OBJECT;
++}
++
++static inline bool set_is_map(uint32_t set_flags)
++{
++	return set_is_datamap(set_flags) || set_is_objmap(set_flags);
++}
++
+ #include <statement.h>
+ 
+ struct counter {
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 8086f750417a..e1a827e723ae 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -83,7 +83,7 @@ static struct expr *implicit_set_declaration(struct eval_ctx *ctx,
+ 	struct set *set;
+ 	struct handle h;
+ 
+-	if (expr->set_flags & NFT_SET_MAP)
++	if (set_is_datamap(expr->set_flags))
+ 		key_fix_dtype_byteorder(key);
+ 
+ 	set = set_alloc(&expr->location);
+@@ -1381,7 +1381,7 @@ static int expr_evaluate_map(struct eval_ctx *ctx, struct expr **expr)
+ 		if (expr_evaluate(ctx, &map->mappings) < 0)
+ 			return -1;
+ 		if (map->mappings->etype != EXPR_SET_REF ||
+-		    !(map->mappings->set->flags & NFT_SET_MAP))
++		    !set_is_datamap(map->mappings->set->flags))
+ 			return expr_error(ctx->msgs, map->mappings,
+ 					  "Expression is not a map");
+ 		break;
+@@ -1416,7 +1416,7 @@ static int expr_evaluate_mapping(struct eval_ctx *ctx, struct expr **expr)
+ 	if (set == NULL)
+ 		return expr_error(ctx->msgs, mapping,
+ 				  "mapping outside of map context");
+-	if (!(set->flags & (NFT_SET_MAP | NFT_SET_OBJECT)))
++	if (!set_is_map(set->flags))
+ 		return set_error(ctx, set, "set is not a map");
+ 
+ 	expr_set_context(&ctx->ectx, set->key->dtype, set->key->len);
+@@ -2991,7 +2991,7 @@ static int stmt_evaluate_objref_map(struct eval_ctx *ctx, struct stmt *stmt)
+ 		if (map->mappings->etype != EXPR_SET_REF)
+ 			return expr_error(ctx->msgs, map->mappings,
+ 					  "Expression is not a map");
+-		if (!(map->mappings->set->flags & NFT_SET_OBJECT))
++		if (!set_is_objmap(map->mappings->set->flags))
+ 			return expr_error(ctx->msgs, map->mappings,
+ 					  "Expression is not a map with objects");
+ 		break;
+@@ -3149,7 +3149,7 @@ static int set_evaluate(struct eval_ctx *ctx, struct set *set)
+ 	    set->key->etype == EXPR_CONCAT)
+ 		return set_error(ctx, set, "concatenated types not supported in interval sets");
+ 
+-	if (set->flags & NFT_SET_MAP) {
++	if (set_is_datamap(set->flags)) {
+ 		if (set->datatype == NULL)
+ 			return set_error(ctx, set, "map definition does not "
+ 					 "specify mapping data type");
+@@ -3158,7 +3158,7 @@ static int set_evaluate(struct eval_ctx *ctx, struct set *set)
+ 		if (set->datalen == 0 && set->datatype->type != TYPE_VERDICT)
+ 			return set_error(ctx, set, "unqualified mapping data "
+ 					 "type specified in map definition");
+-	} else if (set->flags & NFT_SET_OBJECT) {
++	} else if (set_is_objmap(set->flags)) {
+ 		set->datatype = &string_type;
+ 		set->datalen  = NFT_OBJ_MAXNAMELEN * BITS_PER_BYTE;
+ 	}
+diff --git a/src/json.c b/src/json.c
+index 1006d7bb7f22..f40dc51883b7 100644
+--- a/src/json.c
++++ b/src/json.c
+@@ -79,10 +79,10 @@ static json_t *set_print_json(struct output_ctx *octx, const struct set *set)
+ 	json_t *root, *tmp;
+ 	const char *type, *datatype_ext = NULL;
+ 
+-	if (set->flags & NFT_SET_MAP) {
++	if (set_is_datamap(set->flags)) {
+ 		type = "map";
+ 		datatype_ext = set->datatype->name;
+-	} else if (set->flags & NFT_SET_OBJECT) {
++	} else if (set_is_objmap(set->flags)) {
+ 		type = "map";
+ 		datatype_ext = obj_type_name(set->objtype);
+ 	} else if (set->flags & NFT_SET_EVAL) {
+diff --git a/src/mnl.c b/src/mnl.c
+index c145cc5c9228..a954e9d8f5cd 100644
+--- a/src/mnl.c
++++ b/src/mnl.c
+@@ -799,13 +799,13 @@ int mnl_nft_set_add(struct netlink_ctx *ctx, const struct cmd *cmd,
+ 			  dtype_map_to_kernel(set->key->dtype));
+ 	nftnl_set_set_u32(nls, NFTNL_SET_KEY_LEN,
+ 			  div_round_up(set->key->len, BITS_PER_BYTE));
+-	if (set->flags & NFT_SET_MAP) {
++	if (set_is_datamap(set->flags)) {
+ 		nftnl_set_set_u32(nls, NFTNL_SET_DATA_TYPE,
+ 				  dtype_map_to_kernel(set->datatype));
+ 		nftnl_set_set_u32(nls, NFTNL_SET_DATA_LEN,
+ 				  set->datalen / BITS_PER_BYTE);
+ 	}
+-	if (set->flags & NFT_SET_OBJECT)
++	if (set_is_objmap(set->flags))
+ 		nftnl_set_set_u32(nls, NFTNL_SET_OBJ_TYPE, set->objtype);
+ 
+ 	if (set->timeout)
+@@ -833,7 +833,7 @@ int mnl_nft_set_add(struct netlink_ctx *ctx, const struct cmd *cmd,
+ 				 set->key->byteorder))
+ 		memory_allocation_error();
+ 
+-	if (set->flags & NFT_SET_MAP &&
++	if (set_is_datamap(set->flags) &&
+ 	    !nftnl_udata_put_u32(udbuf, NFTNL_UDATA_SET_DATABYTEORDER,
+ 				 set->datatype->byteorder))
+ 		memory_allocation_error();
+diff --git a/src/netlink.c b/src/netlink.c
+index 97eb082c6547..0374c39aca91 100644
+--- a/src/netlink.c
++++ b/src/netlink.c
+@@ -146,7 +146,7 @@ static struct nftnl_set_elem *alloc_nftnl_setelem(const struct expr *set,
+ 				   nftnl_udata_buf_len(udbuf));
+ 		nftnl_udata_buf_free(udbuf);
+ 	}
+-	if (set->set_flags & NFT_SET_MAP && data != NULL) {
++	if (set_is_datamap(set->set_flags) && data != NULL) {
+ 		netlink_gen_data(data, &nld);
+ 		switch (data->etype) {
+ 		case EXPR_VERDICT:
+@@ -165,7 +165,7 @@ static struct nftnl_set_elem *alloc_nftnl_setelem(const struct expr *set,
+ 			break;
+ 		}
+ 	}
+-	if (set->set_flags & NFT_SET_OBJECT && data != NULL) {
++	if (set_is_objmap(set->set_flags) && data != NULL) {
+ 		netlink_gen_data(data, &nld);
+ 		nftnl_set_elem_set(nlse, NFTNL_SET_ELEM_OBJREF,
+ 				   nld.value, nld.len);
+@@ -581,7 +581,7 @@ struct set *netlink_delinearize_set(struct netlink_ctx *ctx,
+ 	}
+ 
+ 	flags = nftnl_set_get_u32(nls, NFTNL_SET_FLAGS);
+-	if (flags & NFT_SET_MAP) {
++	if (set_is_datamap(flags)) {
+ 		data = nftnl_set_get_u32(nls, NFTNL_SET_DATA_TYPE);
+ 		datatype = dtype_map_from_kernel(data);
+ 		if (datatype == NULL) {
+@@ -593,7 +593,7 @@ struct set *netlink_delinearize_set(struct netlink_ctx *ctx,
+ 	} else
+ 		datatype = NULL;
+ 
+-	if (flags & NFT_SET_OBJECT) {
++	if (set_is_objmap(flags)) {
+ 		objtype = nftnl_set_get_u32(nls, NFTNL_SET_OBJ_TYPE);
+ 		datatype = &string_type;
+ 	}
+@@ -795,7 +795,7 @@ int netlink_delinearize_setelem(struct nftnl_set_elem *nlse,
+ 	if (flags & NFT_SET_ELEM_INTERVAL_END)
+ 		expr->flags |= EXPR_F_INTERVAL_END;
+ 
+-	if (set->flags & NFT_SET_MAP) {
++	if (set_is_datamap(set->flags)) {
+ 		if (nftnl_set_elem_is_set(nlse, NFTNL_SET_ELEM_DATA)) {
+ 			nld.value = nftnl_set_elem_get(nlse, NFTNL_SET_ELEM_DATA,
+ 						       &nld.len);
+@@ -817,7 +817,7 @@ int netlink_delinearize_setelem(struct nftnl_set_elem *nlse,
+ 
+ 		expr = mapping_expr_alloc(&netlink_location, expr, data);
+ 	}
+-	if (set->flags & NFT_SET_OBJECT) {
++	if (set_is_objmap(set->flags)) {
+ 		if (nftnl_set_elem_is_set(nlse, NFTNL_SET_ELEM_OBJREF)) {
+ 			nld.value = nftnl_set_elem_get(nlse,
+ 						       NFTNL_SET_ELEM_OBJREF,
+diff --git a/src/rule.c b/src/rule.c
+index 0a91917f7568..e04fc09b0a5b 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -449,7 +449,7 @@ static void set_print_declaration(const struct set *set,
+ 	if ((set->flags & (NFT_SET_EVAL | NFT_SET_ANONYMOUS)) ==
+ 				(NFT_SET_EVAL | NFT_SET_ANONYMOUS))
+ 		type = "meter";
+-	else if (set->flags & (NFT_SET_MAP | NFT_SET_OBJECT))
++	else if (set_is_map(set->flags))
+ 		type = "map";
+ 	else
+ 		type = "set";
+@@ -469,9 +469,9 @@ static void set_print_declaration(const struct set *set,
+ 	nft_print(octx, "%s", opts->nl);
+ 	nft_print(octx, "%s%stype %s",
+ 		  opts->tab, opts->tab, set->key->dtype->name);
+-	if (set->flags & NFT_SET_MAP)
++	if (set_is_datamap(set->flags))
+ 		nft_print(octx, " : %s", set->datatype->name);
+-	else if (set->flags & NFT_SET_OBJECT)
++	else if (set_is_objmap(set->flags))
+ 		nft_print(octx, " : %s", obj_type_name(set->objtype));
+ 
+ 	nft_print(octx, "%s", opts->stmt_separator);
 -- 
 2.11.0
 
