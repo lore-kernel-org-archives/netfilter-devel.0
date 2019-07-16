@@ -6,29 +6,29 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BB2A8C76195
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DD3B2C76188
 	for <netfilter-devel@archiver.kernel.org>; Tue, 16 Jul 2019 10:26:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9EE6A20880
+	by mail.kernel.org (Postfix) with ESMTP id C07C520880
 	for <netfilter-devel@archiver.kernel.org>; Tue, 16 Jul 2019 10:26:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1733164AbfGPK0z (ORCPT
+        id S1732851AbfGPK0z (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Tue, 16 Jul 2019 06:26:55 -0400
-Received: from mail.us.es ([193.147.175.20]:60874 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:60876 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1732446AbfGPK0y (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        id S1732257AbfGPK0y (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Tue, 16 Jul 2019 06:26:54 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 16D1CB6C7C
+        by mail.us.es (Postfix) with ESMTP id 171A2B6C8B
         for <netfilter-devel@vger.kernel.org>; Tue, 16 Jul 2019 12:26:51 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id DF09D1150CC
+        by antivirus1-rhel7.int (Postfix) with ESMTP id D7440DA708
         for <netfilter-devel@vger.kernel.org>; Tue, 16 Jul 2019 12:26:50 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id E0D861158EE; Tue, 16 Jul 2019 12:26:30 +0200 (CEST)
+        id 516051158E8; Tue, 16 Jul 2019 12:26:30 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id BEE73115402
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 255711153FE
         for <netfilter-devel@vger.kernel.org>; Tue, 16 Jul 2019 12:26:28 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
@@ -36,14 +36,14 @@ Received: from 192.168.1.97 (192.168.1.97)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id A40444265A32
-        for <netfilter-devel@vger.kernel.org>; Tue, 16 Jul 2019 12:26:28 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 02F754265A2F
+        for <netfilter-devel@vger.kernel.org>; Tue, 16 Jul 2019 12:26:27 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft 3/5] src: use set_is_anonymous()
-Date:   Tue, 16 Jul 2019 12:26:22 +0200
-Message-Id: <20190716102624.4628-3-pablo@netfilter.org>
+Subject: [PATCH nft 2/5] evaluate: missing object maps handling in list and flush commands
+Date:   Tue, 16 Jul 2019 12:26:21 +0200
+Message-Id: <20190716102624.4628-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20190716102624.4628-1-pablo@netfilter.org>
 References: <20190716102624.4628-1-pablo@netfilter.org>
@@ -53,144 +53,182 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+NFT_SET_OBJECT tells there is an object map.
+
+ # nft list ruleset
+ table inet filter {
+        map countermap {
+                type ipv4_addr : counter
+        }
+ }
+
+The following command fails:
+
+ # nft flush set inet filter countermap
+
+This patch checks for NFT_SET_OBJECT from new set_is_literal() and
+map_is_literal() functions. This patch also adds tests for this.
+
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- src/evaluate.c    | 2 +-
- src/expression.c  | 4 ++--
- src/json.c        | 4 ++--
- src/monitor.c     | 4 ++--
- src/parser_json.c | 2 +-
- src/rule.c        | 4 ++--
- src/segtree.c     | 2 +-
- 7 files changed, 11 insertions(+), 11 deletions(-)
+ include/rule.h                              | 15 +++++++++++++++
+ src/evaluate.c                              | 13 +++++--------
+ tests/shell/testcases/listing/0017objects_0 | 19 +++++++++++++++++++
+ tests/shell/testcases/listing/0018data_0    | 19 +++++++++++++++++++
+ tests/shell/testcases/listing/0019set_0     | 19 +++++++++++++++++++
+ 5 files changed, 77 insertions(+), 8 deletions(-)
+ create mode 100755 tests/shell/testcases/listing/0017objects_0
+ create mode 100755 tests/shell/testcases/listing/0018data_0
+ create mode 100755 tests/shell/testcases/listing/0019set_0
 
+diff --git a/include/rule.h b/include/rule.h
+index bee1d4474216..42d29b7c910e 100644
+--- a/include/rule.h
++++ b/include/rule.h
+@@ -337,6 +337,21 @@ static inline bool set_is_map(uint32_t set_flags)
+ 	return set_is_datamap(set_flags) || set_is_objmap(set_flags);
+ }
+ 
++static inline bool set_is_anonymous(uint32_t set_flags)
++{
++	return set_flags & NFT_SET_ANONYMOUS;
++}
++
++static inline bool set_is_literal(uint32_t set_flags)
++{
++	return !(set_is_anonymous(set_flags) || set_is_map(set_flags));
++}
++
++static inline bool map_is_literal(uint32_t set_flags)
++{
++	return !(set_is_anonymous(set_flags) || !set_is_map(set_flags));
++}
++
+ #include <statement.h>
+ 
+ struct counter {
 diff --git a/src/evaluate.c b/src/evaluate.c
-index f915187165cc..e35291d28b6a 100644
+index e1a827e723ae..f915187165cc 100644
 --- a/src/evaluate.c
 +++ b/src/evaluate.c
-@@ -1642,7 +1642,7 @@ static int __binop_transfer(struct eval_ctx *ctx,
- 		}
- 		break;
- 	case EXPR_SET_REF:
--		if (!((*right)->set->flags & NFT_SET_ANONYMOUS))
-+		if (!set_is_anonymous((*right)->set->flags))
- 			return 0;
+@@ -3630,8 +3630,8 @@ static int cmd_evaluate_list(struct eval_ctx *ctx, struct cmd *cmd)
+ 		if (set == NULL)
+ 			return set_not_found(ctx, &ctx->cmd->handle.set.location,
+ 					     ctx->cmd->handle.set.name);
+-		else if (set->flags & (NFT_SET_MAP | NFT_SET_ANONYMOUS))
+-			return cmd_error(ctx,  &ctx->cmd->handle.set.location,
++		else if (!set_is_literal(set->flags))
++			return cmd_error(ctx, &ctx->cmd->handle.set.location,
+ 					 "%s", strerror(ENOENT));
  
- 		return __binop_transfer(ctx, left, &(*right)->set->init);
-diff --git a/src/expression.c b/src/expression.c
-index 5d0b4f82cae4..cb49e0b73f5a 100644
---- a/src/expression.c
-+++ b/src/expression.c
-@@ -851,7 +851,7 @@ static const char *calculate_delim(const struct expr *expr, int *count)
- 	const char *newline = ",\n\t\t\t     ";
- 	const char *singleline = ", ";
+ 		return 0;
+@@ -3659,8 +3659,7 @@ static int cmd_evaluate_list(struct eval_ctx *ctx, struct cmd *cmd)
+ 		if (set == NULL)
+ 			return set_not_found(ctx, &ctx->cmd->handle.set.location,
+ 					     ctx->cmd->handle.set.name);
+-		else if (!(set->flags & NFT_SET_MAP) ||
+-			 set->flags & NFT_SET_ANONYMOUS)
++		else if (!map_is_literal(set->flags))
+ 			return cmd_error(ctx, &ctx->cmd->handle.set.location,
+ 					 "%s", strerror(ENOENT));
  
--	if (expr->set_flags & NFT_SET_ANONYMOUS)
-+	if (set_is_anonymous(expr->set_flags))
- 		return singleline;
+@@ -3752,10 +3751,9 @@ static int cmd_evaluate_flush(struct eval_ctx *ctx, struct cmd *cmd)
+ 		if (set == NULL)
+ 			return set_not_found(ctx, &ctx->cmd->handle.set.location,
+ 					     ctx->cmd->handle.set.name);
+-		else if (set->flags & (NFT_SET_MAP | NFT_SET_ANONYMOUS))
++		else if (!set_is_literal(set->flags))
+ 			return cmd_error(ctx, &ctx->cmd->handle.set.location,
+ 					 "%s", strerror(ENOENT));
+-
+ 		return 0;
+ 	case CMD_OBJ_MAP:
+ 		table = table_lookup(&cmd->handle, &ctx->nft->cache);
+@@ -3766,8 +3764,7 @@ static int cmd_evaluate_flush(struct eval_ctx *ctx, struct cmd *cmd)
+ 		if (set == NULL)
+ 			return set_not_found(ctx, &ctx->cmd->handle.set.location,
+ 					     ctx->cmd->handle.set.name);
+-		else if (!(set->flags & NFT_SET_MAP) ||
+-			 set->flags & NFT_SET_ANONYMOUS)
++		else if (!map_is_literal(set->flags))
+ 			return cmd_error(ctx, &ctx->cmd->handle.set.location,
+ 					 "%s", strerror(ENOENT));
  
- 	if (!expr->dtype)
-@@ -1035,7 +1035,7 @@ struct expr *map_expr_alloc(const struct location *loc, struct expr *arg,
- 
- static void set_ref_expr_print(const struct expr *expr, struct output_ctx *octx)
- {
--	if (expr->set->flags & NFT_SET_ANONYMOUS) {
-+	if (set_is_anonymous(expr->set->flags)) {
- 		if (expr->set->flags & NFT_SET_EVAL)
- 			nft_print(octx, "%s", expr->set->handle.set.name);
- 		else
-diff --git a/src/json.c b/src/json.c
-index f40dc51883b7..b21677efea91 100644
---- a/src/json.c
-+++ b/src/json.c
-@@ -522,7 +522,7 @@ json_t *set_expr_json(const struct expr *expr, struct output_ctx *octx)
- 
- json_t *set_ref_expr_json(const struct expr *expr, struct output_ctx *octx)
- {
--	if (expr->set->flags & NFT_SET_ANONYMOUS) {
-+	if (set_is_anonymous(expr->set->flags)) {
- 		return expr_print_json(expr->set->init, octx);
- 	} else {
- 		return json_pack("s+", "@", expr->set->handle.set.name);
-@@ -1473,7 +1473,7 @@ static json_t *table_print_json_full(struct netlink_ctx *ctx,
- 		json_array_append_new(root, tmp);
- 	}
- 	list_for_each_entry(set, &table->sets, list) {
--		if (set->flags & NFT_SET_ANONYMOUS)
-+		if (set_is_anonymous(set->flags))
- 			continue;
- 		tmp = set_print_json(&ctx->nft->output, set);
- 		json_array_append_new(root, tmp);
-diff --git a/src/monitor.c b/src/monitor.c
-index 5b25c9d4854e..40c381149cda 100644
---- a/src/monitor.c
-+++ b/src/monitor.c
-@@ -275,7 +275,7 @@ static int netlink_events_set_cb(const struct nlmsghdr *nlh, int type,
- 
- 	nls = netlink_set_alloc(nlh);
- 	flags = nftnl_set_get_u32(nls, NFTNL_SET_FLAGS);
--	if (flags & NFT_SET_ANONYMOUS)
-+	if (set_is_anonymous(flags))
- 		goto out;
- 
- 	set = netlink_delinearize_set(monh->ctx, nls);
-@@ -392,7 +392,7 @@ static int netlink_events_setelem_cb(const struct nlmsghdr *nlh, int type,
- 		goto out;
- 	}
- 
--	if (set->flags & NFT_SET_ANONYMOUS)
-+	if (set_is_anonymous(set->flags))
- 		goto out;
- 
- 	/* we want to 'delinearize' the set_elem, but don't
-diff --git a/src/parser_json.c b/src/parser_json.c
-index f701ebdf1858..9add6f88d09e 100644
---- a/src/parser_json.c
-+++ b/src/parser_json.c
-@@ -3598,7 +3598,7 @@ static uint64_t handle_from_nlmsg(const struct nlmsghdr *nlh)
- 	case NFT_MSG_NEWSET:
- 		nls = netlink_set_alloc(nlh);
- 		flags = nftnl_set_get_u32(nls, NFTNL_SET_FLAGS);
--		if (!(flags & NFT_SET_ANONYMOUS))
-+		if (!set_is_anonymous(flags))
- 			handle = nftnl_set_get_u64(nls, NFTNL_SET_HANDLE);
- 		nftnl_set_free(nls);
- 		break;
-diff --git a/src/rule.c b/src/rule.c
-index e04fc09b0a5b..52d8181f0d92 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -388,7 +388,7 @@ struct set *set_lookup_fuzzy(const char *set_name,
- 
- 	list_for_each_entry(table, &cache->list, list) {
- 		list_for_each_entry(set, &table->sets, list) {
--			if (set->flags & NFT_SET_ANONYMOUS)
-+			if (set_is_anonymous(set->flags))
- 				continue;
- 			if (!strcmp(set->handle.set.name, set_name)) {
- 				*t = table;
-@@ -1272,7 +1272,7 @@ static void table_print(const struct table *table, struct output_ctx *octx)
- 		delim = "\n";
- 	}
- 	list_for_each_entry(set, &table->sets, list) {
--		if (set->flags & NFT_SET_ANONYMOUS)
-+		if (set_is_anonymous(set->flags))
- 			continue;
- 		nft_print(octx, "%s", delim);
- 		set_print(set, octx);
-diff --git a/src/segtree.c b/src/segtree.c
-index a21270a08c46..eff0653a8dfb 100644
---- a/src/segtree.c
-+++ b/src/segtree.c
-@@ -440,7 +440,7 @@ static bool segtree_needs_first_segment(const struct set *set,
- 		 * 3) New empty set and, separately, new elements are added.
- 		 * 4) This set is created with a number of initial elements.
- 		 */
--		if ((set->flags & NFT_SET_ANONYMOUS) ||
-+		if ((set_is_anonymous(set->flags)) ||
- 		    (set->init && set->init->size == 0) ||
- 		    (set->init == NULL && init) ||
- 		    (set->init == init)) {
+diff --git a/tests/shell/testcases/listing/0017objects_0 b/tests/shell/testcases/listing/0017objects_0
+new file mode 100755
+index 000000000000..14d614382e1b
+--- /dev/null
++++ b/tests/shell/testcases/listing/0017objects_0
+@@ -0,0 +1,19 @@
++#!/bin/bash
++
++EXPECTED="table inet filter {
++	map countermap {
++		type ipv4_addr : counter
++	}
++}"
++
++set -e
++
++$NFT -f - <<< $EXPECTED
++$NFT flush map inet filter countermap
++
++GET="$($NFT list map inet filter countermap)"
++if [ "$EXPECTED" != "$GET" ] ; then
++	DIFF="$(which diff)"
++	[ -x $DIFF ] && $DIFF -u <(echo "$EXPECTED") <(echo "$GET")
++	exit 1
++fi
+diff --git a/tests/shell/testcases/listing/0018data_0 b/tests/shell/testcases/listing/0018data_0
+new file mode 100755
+index 000000000000..767fe13ae65a
+--- /dev/null
++++ b/tests/shell/testcases/listing/0018data_0
+@@ -0,0 +1,19 @@
++#!/bin/bash
++
++EXPECTED="table inet filter {
++	map ipmap {
++		type ipv4_addr : ipv4_addr
++	}
++}"
++
++set -e
++
++$NFT -f - <<< $EXPECTED
++$NFT flush map inet filter ipmap
++
++GET="$($NFT list map inet filter ipmap)"
++if [ "$EXPECTED" != "$GET" ] ; then
++	DIFF="$(which diff)"
++	[ -x $DIFF ] && $DIFF -u <(echo "$EXPECTED") <(echo "$GET")
++	exit 1
++fi
+diff --git a/tests/shell/testcases/listing/0019set_0 b/tests/shell/testcases/listing/0019set_0
+new file mode 100755
+index 000000000000..04eb0faf74af
+--- /dev/null
++++ b/tests/shell/testcases/listing/0019set_0
+@@ -0,0 +1,19 @@
++#!/bin/bash
++
++EXPECTED="table inet filter {
++	set ipset {
++		type ipv4_addr
++	}
++}"
++
++set -e
++
++$NFT -f - <<< $EXPECTED
++$NFT flush set inet filter ipset
++
++GET="$($NFT list set inet filter ipset)"
++if [ "$EXPECTED" != "$GET" ] ; then
++	DIFF="$(which diff)"
++	[ -x $DIFF ] && $DIFF -u <(echo "$EXPECTED") <(echo "$GET")
++	exit 1
++fi
 -- 
 2.11.0
 
