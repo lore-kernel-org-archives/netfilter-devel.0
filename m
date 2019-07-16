@@ -2,48 +2,48 @@ Return-Path: <SRS0=/Fuh=VN=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DD3B2C76188
-	for <netfilter-devel@archiver.kernel.org>; Tue, 16 Jul 2019 10:26:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 83BB5C76197
+	for <netfilter-devel@archiver.kernel.org>; Tue, 16 Jul 2019 10:26:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C07C520880
-	for <netfilter-devel@archiver.kernel.org>; Tue, 16 Jul 2019 10:26:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 66DFC20880
+	for <netfilter-devel@archiver.kernel.org>; Tue, 16 Jul 2019 10:26:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732851AbfGPK0z (ORCPT
+        id S1733171AbfGPK0z (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Tue, 16 Jul 2019 06:26:55 -0400
-Received: from mail.us.es ([193.147.175.20]:60876 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:60872 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1732257AbfGPK0y (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 16 Jul 2019 06:26:54 -0400
+        id S1732984AbfGPK0z (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 16 Jul 2019 06:26:55 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 171A2B6C8B
+        by mail.us.es (Postfix) with ESMTP id 299FEB6C9A
         for <netfilter-devel@vger.kernel.org>; Tue, 16 Jul 2019 12:26:51 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id D7440DA708
+        by antivirus1-rhel7.int (Postfix) with ESMTP id F3926115110
         for <netfilter-devel@vger.kernel.org>; Tue, 16 Jul 2019 12:26:50 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 516051158E8; Tue, 16 Jul 2019 12:26:30 +0200 (CEST)
+        id F33731158E5; Tue, 16 Jul 2019 12:26:31 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 255711153FE
-        for <netfilter-devel@vger.kernel.org>; Tue, 16 Jul 2019 12:26:28 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id D58A61158E2
+        for <netfilter-devel@vger.kernel.org>; Tue, 16 Jul 2019 12:26:29 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 16 Jul 2019 12:26:28 +0200 (CEST)
+ Tue, 16 Jul 2019 12:26:29 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 02F754265A2F
-        for <netfilter-devel@vger.kernel.org>; Tue, 16 Jul 2019 12:26:27 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id B27E84265A32
+        for <netfilter-devel@vger.kernel.org>; Tue, 16 Jul 2019 12:26:29 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft 2/5] evaluate: missing object maps handling in list and flush commands
-Date:   Tue, 16 Jul 2019 12:26:21 +0200
-Message-Id: <20190716102624.4628-2-pablo@netfilter.org>
+Subject: [PATCH nft 5/5] cache: incorrect cache flags for create commands
+Date:   Tue, 16 Jul 2019 12:26:24 +0200
+Message-Id: <20190716102624.4628-5-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20190716102624.4628-1-pablo@netfilter.org>
 References: <20190716102624.4628-1-pablo@netfilter.org>
@@ -53,182 +53,103 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-NFT_SET_OBJECT tells there is an object map.
+ # nft create table testD
+ # nft create chain testD test6
+ Error: No such file or directory
+ create chain testD test6
+              ^^^^^
 
- # nft list ruleset
- table inet filter {
-        map countermap {
-                type ipv4_addr : counter
-        }
- }
+Handle 'create' command just like 'add' and 'insert'. Check for object
+types to dump the tables for more fine grain listing, instead of dumping
+the whole ruleset.
 
-The following command fails:
-
- # nft flush set inet filter countermap
-
-This patch checks for NFT_SET_OBJECT from new set_is_literal() and
-map_is_literal() functions. This patch also adds tests for this.
-
+Fixes: 7df42800cf89 ("src: single cache_update() call to build cache before evaluation")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/rule.h                              | 15 +++++++++++++++
- src/evaluate.c                              | 13 +++++--------
- tests/shell/testcases/listing/0017objects_0 | 19 +++++++++++++++++++
- tests/shell/testcases/listing/0018data_0    | 19 +++++++++++++++++++
- tests/shell/testcases/listing/0019set_0     | 19 +++++++++++++++++++
- 5 files changed, 77 insertions(+), 8 deletions(-)
- create mode 100755 tests/shell/testcases/listing/0017objects_0
- create mode 100755 tests/shell/testcases/listing/0018data_0
- create mode 100755 tests/shell/testcases/listing/0019set_0
+ src/cache.c                                        | 30 +++++++++++++++-------
+ tests/shell/testcases/chains/0030create_0          |  6 +++++
+ .../shell/testcases/chains/dumps/0030create_0.nft  |  4 +++
+ 3 files changed, 31 insertions(+), 9 deletions(-)
+ create mode 100644 tests/shell/testcases/chains/0030create_0
+ create mode 100644 tests/shell/testcases/chains/dumps/0030create_0.nft
 
-diff --git a/include/rule.h b/include/rule.h
-index bee1d4474216..42d29b7c910e 100644
---- a/include/rule.h
-+++ b/include/rule.h
-@@ -337,6 +337,21 @@ static inline bool set_is_map(uint32_t set_flags)
- 	return set_is_datamap(set_flags) || set_is_objmap(set_flags);
- }
- 
-+static inline bool set_is_anonymous(uint32_t set_flags)
-+{
-+	return set_flags & NFT_SET_ANONYMOUS;
-+}
+diff --git a/src/cache.c b/src/cache.c
+index d371c5488d1b..e04ead85c830 100644
+--- a/src/cache.c
++++ b/src/cache.c
+@@ -16,10 +16,29 @@
+ static unsigned int evaluate_cache_add(struct cmd *cmd, unsigned int flags)
+ {
+ 	switch (cmd->obj) {
++	case CMD_OBJ_CHAIN:
++	case CMD_OBJ_SET:
++	case CMD_OBJ_COUNTER:
++	case CMD_OBJ_QUOTA:
++	case CMD_OBJ_LIMIT:
++	case CMD_OBJ_SECMARK:
++	case CMD_OBJ_FLOWTABLE:
++		flags |= NFT_CACHE_TABLE;
++		break;
+ 	case CMD_OBJ_SETELEM:
+-		flags |= NFT_CACHE_SETELEM;
++		flags |= NFT_CACHE_TABLE |
++			 NFT_CACHE_CHAIN |
++			 NFT_CACHE_SET |
++			 NFT_CACHE_OBJECT |
++			 NFT_CACHE_SETELEM;
+ 		break;
+ 	case CMD_OBJ_RULE:
++		flags |= NFT_CACHE_TABLE |
++			 NFT_CACHE_CHAIN |
++			 NFT_CACHE_SET |
++			 NFT_CACHE_OBJECT |
++			 NFT_CACHE_FLOWTABLE;
 +
-+static inline bool set_is_literal(uint32_t set_flags)
-+{
-+	return !(set_is_anonymous(set_flags) || set_is_map(set_flags));
-+}
-+
-+static inline bool map_is_literal(uint32_t set_flags)
-+{
-+	return !(set_is_anonymous(set_flags) || !set_is_map(set_flags));
-+}
-+
- #include <statement.h>
- 
- struct counter {
-diff --git a/src/evaluate.c b/src/evaluate.c
-index e1a827e723ae..f915187165cc 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -3630,8 +3630,8 @@ static int cmd_evaluate_list(struct eval_ctx *ctx, struct cmd *cmd)
- 		if (set == NULL)
- 			return set_not_found(ctx, &ctx->cmd->handle.set.location,
- 					     ctx->cmd->handle.set.name);
--		else if (set->flags & (NFT_SET_MAP | NFT_SET_ANONYMOUS))
--			return cmd_error(ctx,  &ctx->cmd->handle.set.location,
-+		else if (!set_is_literal(set->flags))
-+			return cmd_error(ctx, &ctx->cmd->handle.set.location,
- 					 "%s", strerror(ENOENT));
- 
- 		return 0;
-@@ -3659,8 +3659,7 @@ static int cmd_evaluate_list(struct eval_ctx *ctx, struct cmd *cmd)
- 		if (set == NULL)
- 			return set_not_found(ctx, &ctx->cmd->handle.set.location,
- 					     ctx->cmd->handle.set.name);
--		else if (!(set->flags & NFT_SET_MAP) ||
--			 set->flags & NFT_SET_ANONYMOUS)
-+		else if (!map_is_literal(set->flags))
- 			return cmd_error(ctx, &ctx->cmd->handle.set.location,
- 					 "%s", strerror(ENOENT));
- 
-@@ -3752,10 +3751,9 @@ static int cmd_evaluate_flush(struct eval_ctx *ctx, struct cmd *cmd)
- 		if (set == NULL)
- 			return set_not_found(ctx, &ctx->cmd->handle.set.location,
- 					     ctx->cmd->handle.set.name);
--		else if (set->flags & (NFT_SET_MAP | NFT_SET_ANONYMOUS))
-+		else if (!set_is_literal(set->flags))
- 			return cmd_error(ctx, &ctx->cmd->handle.set.location,
- 					 "%s", strerror(ENOENT));
+ 		if (cmd->handle.index.id ||
+ 		    cmd->handle.position.id)
+ 			flags |= NFT_CACHE_RULE;
+@@ -83,18 +102,11 @@ unsigned int cache_evaluate(struct nft_ctx *nft, struct list_head *cmds)
+ 		switch (cmd->op) {
+ 		case CMD_ADD:
+ 		case CMD_INSERT:
++		case CMD_CREATE:
+ 			if (nft_output_echo(&nft->output)) {
+ 				flags = NFT_CACHE_FULL;
+ 				break;
+ 			}
 -
- 		return 0;
- 	case CMD_OBJ_MAP:
- 		table = table_lookup(&cmd->handle, &ctx->nft->cache);
-@@ -3766,8 +3764,7 @@ static int cmd_evaluate_flush(struct eval_ctx *ctx, struct cmd *cmd)
- 		if (set == NULL)
- 			return set_not_found(ctx, &ctx->cmd->handle.set.location,
- 					     ctx->cmd->handle.set.name);
--		else if (!(set->flags & NFT_SET_MAP) ||
--			 set->flags & NFT_SET_ANONYMOUS)
-+		else if (!map_is_literal(set->flags))
- 			return cmd_error(ctx, &ctx->cmd->handle.set.location,
- 					 "%s", strerror(ENOENT));
- 
-diff --git a/tests/shell/testcases/listing/0017objects_0 b/tests/shell/testcases/listing/0017objects_0
-new file mode 100755
-index 000000000000..14d614382e1b
+-			flags |= NFT_CACHE_TABLE |
+-				 NFT_CACHE_CHAIN |
+-				 NFT_CACHE_SET |
+-				 NFT_CACHE_FLOWTABLE |
+-				 NFT_CACHE_OBJECT;
+-			/* Fall through */
+-		case CMD_CREATE:
+ 			flags = evaluate_cache_add(cmd, flags);
+ 			break;
+ 		case CMD_REPLACE:
+diff --git a/tests/shell/testcases/chains/0030create_0 b/tests/shell/testcases/chains/0030create_0
+new file mode 100644
+index 000000000000..0b457f91f11f
 --- /dev/null
-+++ b/tests/shell/testcases/listing/0017objects_0
-@@ -0,0 +1,19 @@
++++ b/tests/shell/testcases/chains/0030create_0
+@@ -0,0 +1,6 @@
 +#!/bin/bash
-+
-+EXPECTED="table inet filter {
-+	map countermap {
-+		type ipv4_addr : counter
-+	}
-+}"
 +
 +set -e
 +
-+$NFT -f - <<< $EXPECTED
-+$NFT flush map inet filter countermap
-+
-+GET="$($NFT list map inet filter countermap)"
-+if [ "$EXPECTED" != "$GET" ] ; then
-+	DIFF="$(which diff)"
-+	[ -x $DIFF ] && $DIFF -u <(echo "$EXPECTED") <(echo "$GET")
-+	exit 1
-+fi
-diff --git a/tests/shell/testcases/listing/0018data_0 b/tests/shell/testcases/listing/0018data_0
-new file mode 100755
-index 000000000000..767fe13ae65a
++$NFT add table ip x
++$NFT create chain ip x y
+diff --git a/tests/shell/testcases/chains/dumps/0030create_0.nft b/tests/shell/testcases/chains/dumps/0030create_0.nft
+new file mode 100644
+index 000000000000..8e818d2d05e6
 --- /dev/null
-+++ b/tests/shell/testcases/listing/0018data_0
-@@ -0,0 +1,19 @@
-+#!/bin/bash
-+
-+EXPECTED="table inet filter {
-+	map ipmap {
-+		type ipv4_addr : ipv4_addr
++++ b/tests/shell/testcases/chains/dumps/0030create_0.nft
+@@ -0,0 +1,4 @@
++table ip x {
++	chain y {
 +	}
-+}"
-+
-+set -e
-+
-+$NFT -f - <<< $EXPECTED
-+$NFT flush map inet filter ipmap
-+
-+GET="$($NFT list map inet filter ipmap)"
-+if [ "$EXPECTED" != "$GET" ] ; then
-+	DIFF="$(which diff)"
-+	[ -x $DIFF ] && $DIFF -u <(echo "$EXPECTED") <(echo "$GET")
-+	exit 1
-+fi
-diff --git a/tests/shell/testcases/listing/0019set_0 b/tests/shell/testcases/listing/0019set_0
-new file mode 100755
-index 000000000000..04eb0faf74af
---- /dev/null
-+++ b/tests/shell/testcases/listing/0019set_0
-@@ -0,0 +1,19 @@
-+#!/bin/bash
-+
-+EXPECTED="table inet filter {
-+	set ipset {
-+		type ipv4_addr
-+	}
-+}"
-+
-+set -e
-+
-+$NFT -f - <<< $EXPECTED
-+$NFT flush set inet filter ipset
-+
-+GET="$($NFT list set inet filter ipset)"
-+if [ "$EXPECTED" != "$GET" ] ; then
-+	DIFF="$(which diff)"
-+	[ -x $DIFF ] && $DIFF -u <(echo "$EXPECTED") <(echo "$GET")
-+	exit 1
-+fi
++}
 -- 
 2.11.0
 
