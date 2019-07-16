@@ -2,151 +2,152 @@ Return-Path: <SRS0=/Fuh=VN=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-0.7 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9F93EC7618F
-	for <netfilter-devel@archiver.kernel.org>; Tue, 16 Jul 2019 22:42:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E404C7618F
+	for <netfilter-devel@archiver.kernel.org>; Tue, 16 Jul 2019 23:30:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 65E682173E
-	for <netfilter-devel@archiver.kernel.org>; Tue, 16 Jul 2019 22:42:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CD35B218AD
+	for <netfilter-devel@archiver.kernel.org>; Tue, 16 Jul 2019 23:30:35 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=riseup.net header.i=@riseup.net header.b="qz4kIabj"
+	dkim=pass (2048-bit key) header.d=paul-moore-com.20150623.gappssmtp.com header.i=@paul-moore-com.20150623.gappssmtp.com header.b="kfuVXg1G"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388711AbfGPWmj (ORCPT
+        id S2389140AbfGPXa3 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 16 Jul 2019 18:42:39 -0400
-Received: from mx1.riseup.net ([198.252.153.129]:47316 "EHLO mx1.riseup.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728235AbfGPWmi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 16 Jul 2019 18:42:38 -0400
-Received: from bell.riseup.net (bell-pn.riseup.net [10.0.1.178])
-        (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
-        (Client CN "*.riseup.net", Issuer "COMODO RSA Domain Validation Secure Server CA" (verified OK))
-        by mx1.riseup.net (Postfix) with ESMTPS id C397C1A6696;
-        Tue, 16 Jul 2019 15:42:37 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=riseup.net; s=squak;
-        t=1563316957; bh=BDsjHnryZeKAXRtKkDifbexGthjxy6/i3djYNd84Eww=;
-        h=Subject:To:Cc:References:From:Date:In-Reply-To:From;
-        b=qz4kIabjIcvyMmpD/SYm8MtqNK/E42FKMUv6lgLhKv3PfIL1J6pI2cozlohDLYahF
-         XSsiwwzuj9hRolzDc8WLOc6VqNp0rPLNMwhSUzk5M5ABpJQgHcr2MGlpRBLy4cDAo0
-         i9a4QFU/+V39/XHrQ+ABLicAv2s6K8GNQEzG+bW8=
-X-Riseup-User-ID: 5228834F011F8743D6465485F6B948A2C394CB2F457745C6BB98ACFFCF94DFBD
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-         by bell.riseup.net (Postfix) with ESMTPSA id C16E722307B;
-        Tue, 16 Jul 2019 15:42:36 -0700 (PDT)
-Subject: Re: [PATCH 1/2 nft WIP] src: introduce prio_expr in chain priority
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-References: <20190716090812.873-1-ffmancera@riseup.net>
- <20190716090812.873-2-ffmancera@riseup.net>
- <20190716180646.ajihkibvox4nkd2c@salvia>
-From:   Fernando Fernandez Mancera <ffmancera@riseup.net>
-Openpgp: preference=signencrypt
-Message-ID: <a1c9efde-fe86-028c-73cd-546a34143fbd@riseup.net>
-Date:   Wed, 17 Jul 2019 00:42:49 +0200
+        Tue, 16 Jul 2019 19:30:29 -0400
+Received: from mail-lf1-f65.google.com ([209.85.167.65]:41881 "EHLO
+        mail-lf1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728235AbfGPXa3 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 16 Jul 2019 19:30:29 -0400
+Received: by mail-lf1-f65.google.com with SMTP id 62so10084317lfa.8
+        for <netfilter-devel@vger.kernel.org>; Tue, 16 Jul 2019 16:30:27 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=paul-moore-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=YWcpEc5FvGUxMrkeRiB0cnwgYS5TPs4Urt5+gPVZDh8=;
+        b=kfuVXg1GBNwcOoznZPvryqh6/i2XrbBE6hkmVUMgSZi+LTGFCMeiia9P0u53fqR03S
+         Db8ww5cz17ZFCZKlTuva1FUSo3Y2oMZofZ8fP/h1fLivURlC81chU7PWbmPju7Admx1Z
+         0vNl1Znw/JxnQbaEB3qodZy91u3UJcA/kBkF3/fop+D+uNxeIU9ClEdXjFRvVywlejx8
+         DnAqQwuvXO4VpPWfxjCThhbeKljqILhPjFnODqbpRq1N11o4FSdml1BI7L1b7dz9y+YP
+         fYw1lfsvEQejaiRHp3kfd9vzzpXxhC6v4ipIrx4uMBDRiXoRA77MJ55m7j30qsm5olyc
+         8AKg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=YWcpEc5FvGUxMrkeRiB0cnwgYS5TPs4Urt5+gPVZDh8=;
+        b=InuafZ60c+vJjNX/KUPkdYafHUKAq+IKtM8CPJxG4hdhrx34NYS3JbTT9ptHqZgUCL
+         TTWKF64MDmx58FxS1n4ERk5e6OjNSxd00mTb+K24Suq34xlfaVBHzAEWrK4KnnAe/Vmn
+         AMRpXZV1Sx1FjtaASH9ElXixPuHj0s7W01n3AEAbSiA1HjSB7Or3rU5vWu1bgLCnSbuj
+         w8qytlUyihxxd8jA6T6nAnfMhS09gFvLkCaXicS4Y47j1vsDMqpUbs/DVhioeb89WhAE
+         IBnuzrjr1U31GRu3d7fo+GIcoOc5Pqg0qNMkme7NM/9YRg430kXmOse+S3y4e797/vqb
+         6ehA==
+X-Gm-Message-State: APjAAAUhF8dShHRPIvMZHbGnAGjjzR5LQaCS+hDd4jZNV5HdoBTK5nB8
+        TyQ9ZZKwtRp8EDD7J/5ElUSnawlQUgkG8IxNyA==
+X-Google-Smtp-Source: APXvYqxz39ngK72ytLQXqEXgHBnS7WXBpZpi6vOwRoyqlsR7YPmTcb6oeRneK/RtXK9BLw25UxnyGGXWi29uMJ0dI9o=
+X-Received: by 2002:ac2:4109:: with SMTP id b9mr14480083lfi.31.1563319826317;
+ Tue, 16 Jul 2019 16:30:26 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <20190716180646.ajihkibvox4nkd2c@salvia>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US-large
-Content-Transfer-Encoding: 7bit
+References: <20190529145742.GA8959@cisco> <CAHC9VhR4fudQanvZGYWMvCf7k2CU3q7e7n1Pi7hzC3v_zpVEdw@mail.gmail.com>
+ <20190529153427.GB8959@cisco> <CAHC9VhSF3AjErX37+eeusJ7+XRw8yuPsmqBTRwc9EVoRBh_3Tw@mail.gmail.com>
+ <20190529222835.GD8959@cisco> <CAHC9VhRS66VGtug3fq3RTGHDvfGmBJG6yRJ+iMxm3cxnNF-zJw@mail.gmail.com>
+ <20190530170913.GA16722@mail.hallyn.com> <CAHC9VhThLiQzGYRUWmSuVfOC6QCDmA75BDB7Eg7V8HX4x7ymQg@mail.gmail.com>
+ <20190708180558.5bar6ripag3sdadl@madcap2.tricolour.ca> <CAHC9VhRTT7JWqNnynvK04wKerjc-3UJ6R1uPtjCAPVr_tW-7MA@mail.gmail.com>
+ <20190716220320.sotbfqplgdructg7@madcap2.tricolour.ca>
+In-Reply-To: <20190716220320.sotbfqplgdructg7@madcap2.tricolour.ca>
+From:   Paul Moore <paul@paul-moore.com>
+Date:   Tue, 16 Jul 2019 19:30:15 -0400
+Message-ID: <CAHC9VhScHizB2r5q3T5s0P3jkYdvzBPPudDksosYFp_TO7W9-Q@mail.gmail.com>
+Subject: Re: [PATCH ghak90 V6 02/10] audit: add container id
+To:     Richard Guy Briggs <rgb@redhat.com>
+Cc:     "Serge E. Hallyn" <serge@hallyn.com>,
+        Tycho Andersen <tycho@tycho.ws>,
+        containers@lists.linux-foundation.org, linux-api@vger.kernel.org,
+        Linux-Audit Mailing List <linux-audit@redhat.com>,
+        linux-fsdevel@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        sgrubb@redhat.com, omosnace@redhat.com, dhowells@redhat.com,
+        simo@redhat.com, Eric Paris <eparis@parisplace.org>,
+        ebiederm@xmission.com, nhorman@tuxdriver.com
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Pablo, thanks for reviewing. Comments below.
+On Tue, Jul 16, 2019 at 6:03 PM Richard Guy Briggs <rgb@redhat.com> wrote:
+> On 2019-07-15 17:04, Paul Moore wrote:
+> > On Mon, Jul 8, 2019 at 2:06 PM Richard Guy Briggs <rgb@redhat.com> wrote:
 
-On 7/16/19 8:06 PM, Pablo Neira Ayuso wrote:
-> On Tue, Jul 16, 2019 at 11:08:12AM +0200, Fernando Fernandez Mancera wrote:
->> Signed-off-by: Fernando Fernandez Mancera <ffmancera@riseup.net>
->> ---
->>  include/rule.h     |  8 ++++----
->>  src/evaluate.c     | 29 +++++++++++++++++++----------
->>  src/parser_bison.y | 25 +++++++++++++++++--------
->>  src/rule.c         |  4 ++--
->>  4 files changed, 42 insertions(+), 24 deletions(-)
->>
->> diff --git a/include/rule.h b/include/rule.h
->> index aefb24d..4d7cec8 100644
->> --- a/include/rule.h
->> +++ b/include/rule.h
->> @@ -173,13 +173,13 @@ enum chain_flags {
->>   * struct prio_spec - extendend priority specification for mixed
->>   *                    textual/numerical parsing.
->>   *
->> - * @str:  name of the standard priority value
->> - * @num:  Numerical value. This MUST contain the parsed value of str after
->> + * @prio_expr:  expr of the standard priority value
->> + * @num:  Numerical value. This MUST contain the parsed value of prio_expr after
->>   *        evaluation.
->>   */
->>  struct prio_spec {
->> -	const char  *str;
->> -	int          num;
->> +	struct expr	*prio_expr;
-> 
-> Use:
-> 
->         struct expr     *expr;
-> 
-> instead.
-> 
->> +	int		num;
-> 
-> You could just store this in the expression, no need for this num
-> field.
-> 
+...
 
-I think that would not be possible. Right now, the priority
-specification supports combinations of a string and a number. e.g
+> > > If we can't trust ns_capable() then why are we passing on
+> > > CAP_AUDIT_CONTROL?  It is being passed down and not stripped purposely
+> > > by the orchestrator/engine.  If ns_capable() isn't inherited how is it
+> > > gained otherwise?  Can it be inserted by cotainer image?  I think the
+> > > answer is "no".  Either we trust ns_capable() or we have audit
+> > > namespaces (recommend based on user namespace) (or both).
+> >
+> > My thinking is that since ns_capable() checks the credentials with
+> > respect to the current user namespace we can't rely on it to control
+> > access since it would be possible for a privileged process running
+> > inside an unprivileged container to manipulate the audit container ID
+> > (containerized process has CAP_AUDIT_CONTROL, e.g. running as root in
+> > the container, while the container itself does not).
+>
+> What makes an unprivileged container unprivileged?  "root", or "CAP_*"?
 
-table inet global {
-    chain prerouting {
-        type filter hook prerouting priority filter + 3
-        policy accept
-    }
-}
+My understanding is that when most people refer to an unprivileged
+container they are referring to a container run without capabilities
+or a container run by a user other than root.  I'm sure there are
+better definitions out there, by folks much smarter than me on these
+things, but that's my working definition.
 
-or
+> If CAP_AUDIT_CONTROL is granted, does "root" matter?
 
-table inet global {
-    chain prerouting {
-        type filter hook prerouting priority filter - 3
-        policy accept
-    }
-}
+Our discussions here have been about capabilities, not UIDs.  The only
+reason root might matter is that it generally has the full capability
+set.
 
-I don't think we are going to be able to do that using only a single
-"struct expr *".
+> Does it matter what user namespace it is in?
 
->>  	struct location loc;
->>  };
->>  
->> diff --git a/src/evaluate.c b/src/evaluate.c
->> index 8086f75..cee65cd 100644
->> --- a/src/evaluate.c
->> +++ b/src/evaluate.c
->> @@ -3181,15 +3181,24 @@ static int set_evaluate(struct eval_ctx *ctx, struct set *set)
->>  	return 0;
->>  }
->>  
->> -static bool evaluate_priority(struct prio_spec *prio, int family, int hook)
->> +static bool evaluate_priority(struct eval_ctx *ctx, struct prio_spec *prio,
->> +			      int family, int hook)
->>  {
->>  	int priority;
->> +	char prio_str[NFT_NAME_MAXLEN];
->>  
->>  	/* A numeric value has been used to specify priority. */
->> -	if (prio->str == NULL)
->> +	if (prio->prio_expr == NULL)
-> 
-> prio_expr == NULL never happens.
-> 
+What likely matters is what check is called: capable() or
+ns_capable().  Those can yield very different results.
 
-It never happens if we only have a single field in the "struct prio_spec".
+> I understand that root is *gained* in an
+> unprivileged user namespace, but capabilities are inherited or permitted
+> and that process either has it or it doesn't and an unprivileged user
+> namespace can't gain a capability that has been rescinded.  Different
+> subsystems use the userid or capabilities or both to determine
+> privileges.
 
-Thanks!
+Once again, I believe the important thing to focus on here is
+capable() vs ns_capable().  We can't safely rely on ns_capable() for
+the audit container ID policy since that is easily met inside the
+container regardless of the process' creds which started the
+container.
+
+> In this case, is the userid relevant?
+
+We don't do UID checks, we do capability checks, so yes, the UID is irrelevant.
+
+> > > At this point I would say we are at an impasse unless we trust
+> > > ns_capable() or we implement audit namespaces.
+> >
+> > I'm not sure how we can trust ns_capable(), but if you can think of a
+> > way I would love to hear it.  I'm also not sure how namespacing audit
+> > is helpful (see my above comments), but if you think it is please
+> > explain.
+>
+> So if we are not namespacing, why do we not trust capabilities?
+
+We can trust capable(CAP_AUDIT_CONTROL) for enforcing audit container
+ID policy, we can not trust ns_capable(CAP_AUDIT_CONTROL).
+
+-- 
+paul moore
+www.paul-moore.com
