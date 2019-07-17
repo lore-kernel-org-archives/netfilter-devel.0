@@ -2,70 +2,66 @@ Return-Path: <SRS0=WNzP=VO=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E29FAC76195
-	for <netfilter-devel@archiver.kernel.org>; Wed, 17 Jul 2019 19:04:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F21AC7618F
+	for <netfilter-devel@archiver.kernel.org>; Wed, 17 Jul 2019 19:38:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C6ECC21849
-	for <netfilter-devel@archiver.kernel.org>; Wed, 17 Jul 2019 19:04:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 573D121849
+	for <netfilter-devel@archiver.kernel.org>; Wed, 17 Jul 2019 19:38:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727107AbfGQTEI (ORCPT
+        id S1727229AbfGQTia (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 17 Jul 2019 15:04:08 -0400
-Received: from shards.monkeyblade.net ([23.128.96.9]:40914 "EHLO
-        shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725993AbfGQTEI (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 17 Jul 2019 15:04:08 -0400
-Received: from localhost (unknown [IPv6:2601:601:9f80:35cd::d71])
-        (using TLSv1 with cipher AES256-SHA (256/256 bits))
-        (Client did not present a certificate)
-        (Authenticated sender: davem-davemloft)
-        by shards.monkeyblade.net (Postfix) with ESMTPSA id 3C8161475AE87;
-        Wed, 17 Jul 2019 12:04:07 -0700 (PDT)
-Date:   Wed, 17 Jul 2019 12:04:06 -0700 (PDT)
-Message-Id: <20190717.120406.1122378175032864724.davem@davemloft.net>
-To:     pablo@netfilter.org
-Cc:     adobriyan@gmail.com, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, linux-nfs@vger.kernel.org,
-        j.vosburgh@gmail.com, vfalico@gmail.com, andy@greyhouse.net,
-        kadlec@netfilter.org, fw@strlen.de, bfields@fieldses.org,
-        chuck.lever@oracle.com
-Subject: Re: [PATCH 2/2] net: apply proc_net_mkdir() harder
-From:   David Miller <davem@davemloft.net>
-In-Reply-To: <20190716185220.hnlyiievuucdtn7x@salvia>
-References: <20190706165521.GB10550@avx2>
-        <20190716185220.hnlyiievuucdtn7x@salvia>
-X-Mailer: Mew version 6.8 on Emacs 26.1
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-X-Greylist: Sender succeeded SMTP AUTH, not delayed by milter-greylist-4.5.12 (shards.monkeyblade.net [149.20.54.216]); Wed, 17 Jul 2019 12:04:07 -0700 (PDT)
+        Wed, 17 Jul 2019 15:38:30 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:55462 "EHLO orbyte.nwl.cc"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725993AbfGQTia (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 17 Jul 2019 15:38:30 -0400
+Received: from localhost ([::1]:40320 helo=tatos)
+        by orbyte.nwl.cc with esmtp (Exim 4.91)
+        (envelope-from <phil@nwl.cc>)
+        id 1hnpkx-0004QV-Os; Wed, 17 Jul 2019 21:38:27 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+Subject: [nf PATCH] net: nf_tables: Support auto-loading for inet nat
+Date:   Wed, 17 Jul 2019 21:38:19 +0200
+Message-Id: <20190717193819.8392-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.22.0
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Tue, 16 Jul 2019 20:52:20 +0200
+Trying to create an inet family nat chain would not cause
+nft_chain_nat.ko module to auto-load due to missing module alias. Add a
+proper one with hard-coded family value 1 for the pseudo-family
+NFPROTO_INET.
 
-> On Sat, Jul 06, 2019 at 07:55:21PM +0300, Alexey Dobriyan wrote:
->> From: "Hallsmark, Per" <Per.Hallsmark@windriver.com>
->> 
->> proc_net_mkdir() should be used to create stuff under /proc/net,
->> so that dentry revalidation kicks in.
->> 
->> See
->> 
->> 	commit 1fde6f21d90f8ba5da3cb9c54ca991ed72696c43
->> 	proc: fix /proc/net/* after setns(2)
->> 
->> 	[added more chunks --adobriyan]
-> 
-> I don't find this in the tree,
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+Changes since RFC:
+- Go with hard-coding the value for now like in nf_flow_table_inet.c.
+- Adjust subject and commit message a bit.
+---
+ net/netfilter/nft_chain_nat.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-Because there were changes requested.
+diff --git a/net/netfilter/nft_chain_nat.c b/net/netfilter/nft_chain_nat.c
+index 2f89bde3c61cb..ff9ac8ae0031f 100644
+--- a/net/netfilter/nft_chain_nat.c
++++ b/net/netfilter/nft_chain_nat.c
+@@ -142,3 +142,6 @@ MODULE_ALIAS_NFT_CHAIN(AF_INET, "nat");
+ #ifdef CONFIG_NF_TABLES_IPV6
+ MODULE_ALIAS_NFT_CHAIN(AF_INET6, "nat");
+ #endif
++#ifdef CONFIG_NF_TABLES_INET
++MODULE_ALIAS_NFT_CHAIN(1, "nat");	/* NFPROTO_INET */
++#endif
+-- 
+2.22.0
 
