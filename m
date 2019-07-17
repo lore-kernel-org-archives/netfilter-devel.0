@@ -6,62 +6,143 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F21AC7618F
-	for <netfilter-devel@archiver.kernel.org>; Wed, 17 Jul 2019 19:38:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B109CC7618F
+	for <netfilter-devel@archiver.kernel.org>; Wed, 17 Jul 2019 19:43:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 573D121849
-	for <netfilter-devel@archiver.kernel.org>; Wed, 17 Jul 2019 19:38:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8B22521849
+	for <netfilter-devel@archiver.kernel.org>; Wed, 17 Jul 2019 19:43:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727229AbfGQTia (ORCPT
+        id S1727217AbfGQTnB (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 17 Jul 2019 15:38:30 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:55462 "EHLO orbyte.nwl.cc"
+        Wed, 17 Jul 2019 15:43:01 -0400
+Received: from mail.us.es ([193.147.175.20]:57734 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725993AbfGQTia (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 17 Jul 2019 15:38:30 -0400
-Received: from localhost ([::1]:40320 helo=tatos)
-        by orbyte.nwl.cc with esmtp (Exim 4.91)
-        (envelope-from <phil@nwl.cc>)
-        id 1hnpkx-0004QV-Os; Wed, 17 Jul 2019 21:38:27 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-Subject: [nf PATCH] net: nf_tables: Support auto-loading for inet nat
-Date:   Wed, 17 Jul 2019 21:38:19 +0200
-Message-Id: <20190717193819.8392-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.22.0
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        id S1727057AbfGQTnA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 17 Jul 2019 15:43:00 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 1F22ADA72F
+        for <netfilter-devel@vger.kernel.org>; Wed, 17 Jul 2019 21:42:59 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 128D9DA732
+        for <netfilter-devel@vger.kernel.org>; Wed, 17 Jul 2019 21:42:59 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 07F3458F; Wed, 17 Jul 2019 21:42:59 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id E93CADA732;
+        Wed, 17 Jul 2019 21:42:56 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Wed, 17 Jul 2019 21:42:56 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from salvia.here (sys.soleta.eu [212.170.55.40])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id AD5B34265A31;
+        Wed, 17 Jul 2019 21:42:56 +0200 (CEST)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     davem@davemloft.net, netdev@vger.kernel.org, jiri@resnulli.us,
+        jakub.kicinski@netronome.com
+Subject: [PATCH net,v3 1/4] net: openvswitch: rename flow_stats to sw_flow_stats
+Date:   Wed, 17 Jul 2019 21:42:45 +0200
+Message-Id: <20190717194248.2522-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.11.0
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Trying to create an inet family nat chain would not cause
-nft_chain_nat.ko module to auto-load due to missing module alias. Add a
-proper one with hard-coded family value 1 for the pseudo-family
-NFPROTO_INET.
+There is a flow_stats structure defined in include/net/flow_offload.h
+which is placed in the networking core. I think that definition takes
+precedence on OVS, so rename flow_stats in OVS to sw_flow_stats.
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-Changes since RFC:
-- Go with hard-coding the value for now like in nf_flow_table_inet.c.
-- Adjust subject and commit message a bit.
----
- net/netfilter/nft_chain_nat.c | 3 +++
- 1 file changed, 3 insertions(+)
+OVS compilation breaks here after this patchset since flow_stats
+structure is already defined in include/net/flow_offload.h. This patch
+is new in this batch.
 
-diff --git a/net/netfilter/nft_chain_nat.c b/net/netfilter/nft_chain_nat.c
-index 2f89bde3c61cb..ff9ac8ae0031f 100644
---- a/net/netfilter/nft_chain_nat.c
-+++ b/net/netfilter/nft_chain_nat.c
-@@ -142,3 +142,6 @@ MODULE_ALIAS_NFT_CHAIN(AF_INET, "nat");
- #ifdef CONFIG_NF_TABLES_IPV6
- MODULE_ALIAS_NFT_CHAIN(AF_INET6, "nat");
- #endif
-+#ifdef CONFIG_NF_TABLES_INET
-+MODULE_ALIAS_NFT_CHAIN(1, "nat");	/* NFPROTO_INET */
-+#endif
+ net/openvswitch/flow.c       | 8 ++++----
+ net/openvswitch/flow.h       | 4 ++--
+ net/openvswitch/flow_table.c | 2 +-
+ 3 files changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/net/openvswitch/flow.c b/net/openvswitch/flow.c
+index dca3b1e2acf0..bc89e16e0505 100644
+--- a/net/openvswitch/flow.c
++++ b/net/openvswitch/flow.c
+@@ -59,7 +59,7 @@ u64 ovs_flow_used_time(unsigned long flow_jiffies)
+ void ovs_flow_stats_update(struct sw_flow *flow, __be16 tcp_flags,
+ 			   const struct sk_buff *skb)
+ {
+-	struct flow_stats *stats;
++	struct sw_flow_stats *stats;
+ 	unsigned int cpu = smp_processor_id();
+ 	int len = skb->len + (skb_vlan_tag_present(skb) ? VLAN_HLEN : 0);
+ 
+@@ -87,7 +87,7 @@ void ovs_flow_stats_update(struct sw_flow *flow, __be16 tcp_flags,
+ 			if (likely(flow->stats_last_writer != -1) &&
+ 			    likely(!rcu_access_pointer(flow->stats[cpu]))) {
+ 				/* Try to allocate CPU-specific stats. */
+-				struct flow_stats *new_stats;
++				struct sw_flow_stats *new_stats;
+ 
+ 				new_stats =
+ 					kmem_cache_alloc_node(flow_stats_cache,
+@@ -134,7 +134,7 @@ void ovs_flow_stats_get(const struct sw_flow *flow,
+ 
+ 	/* We open code this to make sure cpu 0 is always considered */
+ 	for (cpu = 0; cpu < nr_cpu_ids; cpu = cpumask_next(cpu, &flow->cpu_used_mask)) {
+-		struct flow_stats *stats = rcu_dereference_ovsl(flow->stats[cpu]);
++		struct sw_flow_stats *stats = rcu_dereference_ovsl(flow->stats[cpu]);
+ 
+ 		if (stats) {
+ 			/* Local CPU may write on non-local stats, so we must
+@@ -158,7 +158,7 @@ void ovs_flow_stats_clear(struct sw_flow *flow)
+ 
+ 	/* We open code this to make sure cpu 0 is always considered */
+ 	for (cpu = 0; cpu < nr_cpu_ids; cpu = cpumask_next(cpu, &flow->cpu_used_mask)) {
+-		struct flow_stats *stats = ovsl_dereference(flow->stats[cpu]);
++		struct sw_flow_stats *stats = ovsl_dereference(flow->stats[cpu]);
+ 
+ 		if (stats) {
+ 			spin_lock_bh(&stats->lock);
+diff --git a/net/openvswitch/flow.h b/net/openvswitch/flow.h
+index 3e2cc2202d66..a5506e2d4b7a 100644
+--- a/net/openvswitch/flow.h
++++ b/net/openvswitch/flow.h
+@@ -194,7 +194,7 @@ struct sw_flow_actions {
+ 	struct nlattr actions[];
+ };
+ 
+-struct flow_stats {
++struct sw_flow_stats {
+ 	u64 packet_count;		/* Number of packets matched. */
+ 	u64 byte_count;			/* Number of bytes matched. */
+ 	unsigned long used;		/* Last used time (in jiffies). */
+@@ -216,7 +216,7 @@ struct sw_flow {
+ 	struct cpumask cpu_used_mask;
+ 	struct sw_flow_mask *mask;
+ 	struct sw_flow_actions __rcu *sf_acts;
+-	struct flow_stats __rcu *stats[]; /* One for each CPU.  First one
++	struct sw_flow_stats __rcu *stats[]; /* One for each CPU.  First one
+ 					   * is allocated at flow creation time,
+ 					   * the rest are allocated on demand
+ 					   * while holding the 'stats[0].lock'.
+diff --git a/net/openvswitch/flow_table.c b/net/openvswitch/flow_table.c
+index 988fd8a94e43..651093e33351 100644
+--- a/net/openvswitch/flow_table.c
++++ b/net/openvswitch/flow_table.c
+@@ -66,7 +66,7 @@ void ovs_flow_mask_key(struct sw_flow_key *dst, const struct sw_flow_key *src,
+ struct sw_flow *ovs_flow_alloc(void)
+ {
+ 	struct sw_flow *flow;
+-	struct flow_stats *stats;
++	struct sw_flow_stats *stats;
+ 
+ 	flow = kmem_cache_zalloc(flow_cache, GFP_KERNEL);
+ 	if (!flow)
 -- 
-2.22.0
+2.11.0
 
