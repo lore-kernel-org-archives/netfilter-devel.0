@@ -2,231 +2,99 @@ Return-Path: <SRS0=fTMW=VP=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C76AC76191
-	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Jul 2019 06:44:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A834C76191
+	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Jul 2019 08:49:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 276CD21783
-	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Jul 2019 06:44:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2AE5A208C0
+	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Jul 2019 08:49:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726472AbfGRGoP (ORCPT
+        id S1726715AbfGRIto (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 18 Jul 2019 02:44:15 -0400
-Received: from vxsys-smtpclusterma-05.srv.cat ([46.16.61.54]:41705 "EHLO
-        vxsys-smtpclusterma-05.srv.cat" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726386AbfGRGoP (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 18 Jul 2019 02:44:15 -0400
-Received: from bubu.das-nano.com (242.red-83-48-67.staticip.rima-tde.net [83.48.67.242])
-        by vxsys-smtpclusterma-05.srv.cat (Postfix) with ESMTPA id 67B7724215
-        for <netfilter-devel@vger.kernel.org>; Thu, 18 Jul 2019 08:44:11 +0200 (CEST)
-From:   Ander Juaristi <a@juaristi.eus>
+        Thu, 18 Jul 2019 04:49:44 -0400
+Received: from mx2.suse.de ([195.135.220.15]:48270 "EHLO mx1.suse.de"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1726397AbfGRIto (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 18 Jul 2019 04:49:44 -0400
+X-Virus-Scanned: by amavisd-new at test-mx.suse.de
+Received: from relay2.suse.de (unknown [195.135.220.254])
+        by mx1.suse.de (Postfix) with ESMTP id 86834AF47
+        for <netfilter-devel@vger.kernel.org>; Thu, 18 Jul 2019 08:49:43 +0000 (UTC)
+Received: by unicorn.suse.cz (Postfix, from userid 1000)
+        id 333A6E00A9; Thu, 18 Jul 2019 10:49:43 +0200 (CEST)
+Date:   Thu, 18 Jul 2019 10:49:43 +0200
+From:   Michal Kubecek <mkubecek@suse.cz>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH v2] netfilter: nft_dynset: support for element deletion
-Date:   Thu, 18 Jul 2019 08:43:59 +0200
-Message-Id: <20190718064359.5440-1-a@juaristi.eus>
-X-Mailer: git-send-email 2.17.1
+Subject: userspace conntrack helper and confirming the master conntrack
+Message-ID: <20190718084943.GE24551@unicorn.suse.cz>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This patch implements the delete operation from the ruleset.
+Hello,
 
-It implements a new delete() function in nft_set_rhash. It is simpler
-to use than the already existing remove(), because it only takes the set
-and the key as arguments, whereas remove() expects a full
-nft_set_elem structure.
+to clean up some skeletons in the closet of our distribution kernels,
+I'm trying to add a userspace conntrack helper for SLP into conntrackd.
 
-Signed-off-by: Ander Juaristi <a@juaristi.eus>
----
- include/net/netfilter/nf_tables.h        | 17 ++++++---
- include/uapi/linux/netfilter/nf_tables.h |  1 +
- net/netfilter/nft_dynset.c               | 44 +++++++++++++++++-------
- net/netfilter/nft_set_hash.c             | 19 ++++++++++
- 4 files changed, 63 insertions(+), 18 deletions(-)
+A helper is needed to handle SLP queries which are sent as multicast UDP
+packets but replied to with unicast packets so that reply's source
+address does not much request's destination. This is exactly the same
+problem as for mDNS so that I started by copying existing mdns helper in
+conntrackd and changing the default timeout. But I found that it does
+not work with 5.2 kernel.
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 9e8493aad49d..ddea26ba14b1 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -286,24 +286,25 @@ struct nft_expr;
- /**
-  *	struct nft_set_ops - nf_tables set operations
-  *
-+ *	@update: update an element if exists, add it if doesn't exist
-+ *	@delete: delete an element
-  *	@lookup: look up an element within the set
-  *	@insert: insert new element into set
-  *	@activate: activate new element in the next generation
-  *	@deactivate: lookup for element and deactivate it in the next generation
-  *	@flush: deactivate element in the next generation
-  *	@remove: remove element from set
-- *	@walk: iterate over all set elemeennts
-+ *	@walk: iterate over all set elements
-  *	@get: get set elements
-  *	@privsize: function to return size of set private data
-  *	@init: initialize private data of new set instance
-  *	@destroy: destroy private data of set instance
-  *	@elemsize: element private size
-+ *
-+ *	Operations update and delete have simpler interfaces, and currently
-+ *	only used in the packet path. All the rest are for the control plane.
-  */
- struct nft_set_ops {
--	bool				(*lookup)(const struct net *net,
--						  const struct nft_set *set,
--						  const u32 *key,
--						  const struct nft_set_ext **ext);
- 	bool				(*update)(struct nft_set *set,
- 						  const u32 *key,
- 						  void *(*new)(struct nft_set *,
-@@ -312,7 +313,13 @@ struct nft_set_ops {
- 						  const struct nft_expr *expr,
- 						  struct nft_regs *regs,
- 						  const struct nft_set_ext **ext);
-+	bool				(*delete)(const struct nft_set *set,
-+						  const u32 *key);
- 
-+	bool				(*lookup)(const struct net *net,
-+						  const struct nft_set *set,
-+						  const u32 *key,
-+						  const struct nft_set_ext **ext);
- 	int				(*insert)(const struct net *net,
- 						  const struct nft_set *set,
- 						  const struct nft_set_elem *elem,
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index c6c8ec5c7c00..e8483e1e7146 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -634,6 +634,7 @@ enum nft_lookup_attributes {
- enum nft_dynset_ops {
- 	NFT_DYNSET_OP_ADD,
- 	NFT_DYNSET_OP_UPDATE,
-+	NFT_DYNSET_OP_DELETE,
- };
- 
- enum nft_dynset_flags {
-diff --git a/net/netfilter/nft_dynset.c b/net/netfilter/nft_dynset.c
-index bfb9f7463b03..0cb775be1f2e 100644
---- a/net/netfilter/nft_dynset.c
-+++ b/net/netfilter/nft_dynset.c
-@@ -79,37 +79,54 @@ static void *nft_dynset_new(struct nft_set *set, const struct nft_expr *expr,
- 	return NULL;
- }
- 
--void nft_dynset_eval(const struct nft_expr *expr,
--		     struct nft_regs *regs, const struct nft_pktinfo *pkt)
-+static bool nft_dynset_update(u8 sreg_key, int op, u64 timeout,
-+			      const struct nft_expr *expr,
-+			      const struct nft_pktinfo *pkt,
-+			      struct nft_regs *regs, struct nft_set *set)
- {
--	const struct nft_dynset *priv = nft_expr_priv(expr);
--	struct nft_set *set = priv->set;
- 	const struct nft_set_ext *ext;
- 	const struct nft_expr *sexpr;
--	u64 timeout;
- 
--	if (set->ops->update(set, &regs->data[priv->sreg_key], nft_dynset_new,
-+	if (set->ops->update(set, &regs->data[sreg_key], nft_dynset_new,
- 			     expr, regs, &ext)) {
- 		sexpr = NULL;
- 		if (nft_set_ext_exists(ext, NFT_SET_EXT_EXPR))
- 			sexpr = nft_set_ext_expr(ext);
- 
--		if (priv->op == NFT_DYNSET_OP_UPDATE &&
-+		if (op == NFT_DYNSET_OP_UPDATE &&
- 		    nft_set_ext_exists(ext, NFT_SET_EXT_EXPIRATION)) {
--			timeout = priv->timeout ? : set->timeout;
-+			timeout = timeout ? : set->timeout;
- 			*nft_set_ext_expiration(ext) = get_jiffies_64() + timeout;
- 		}
- 
- 		if (sexpr != NULL)
- 			sexpr->ops->eval(sexpr, regs, pkt);
- 
--		if (priv->invert)
--			regs->verdict.code = NFT_BREAK;
--		return;
-+		return true;
- 	}
- 
--	if (!priv->invert)
--		regs->verdict.code = NFT_BREAK;
-+	return false;
-+}
-+
-+void nft_dynset_eval(const struct nft_expr *expr,
-+		     struct nft_regs *regs, const struct nft_pktinfo *pkt)
-+{
-+	const struct nft_dynset *priv = nft_expr_priv(expr);
-+	struct nft_set *set = priv->set;
-+
-+	if (priv->op == NFT_DYNSET_OP_DELETE) {
-+		set->ops->delete(set, &regs->data[priv->sreg_key]);
-+	} else {
-+		if (nft_dynset_update(priv->sreg_key, priv->op, priv->timeout,
-+				      expr, pkt, regs, set)) {
-+			if (priv->invert)
-+				regs->verdict.code = NFT_BREAK;
-+			return;
-+		}
-+
-+		if (!priv->invert)
-+			regs->verdict.code = NFT_BREAK;
-+	}
- }
- 
- static const struct nla_policy nft_dynset_policy[NFTA_DYNSET_MAX + 1] = {
-@@ -165,6 +182,7 @@ static int nft_dynset_init(const struct nft_ctx *ctx,
- 	priv->op = ntohl(nla_get_be32(tb[NFTA_DYNSET_OP]));
- 	switch (priv->op) {
- 	case NFT_DYNSET_OP_ADD:
-+	case NFT_DYNSET_OP_DELETE:
- 		break;
- 	case NFT_DYNSET_OP_UPDATE:
- 		if (!(set->flags & NFT_SET_TIMEOUT))
-diff --git a/net/netfilter/nft_set_hash.c b/net/netfilter/nft_set_hash.c
-index 03df08801e28..867abcb488bc 100644
---- a/net/netfilter/nft_set_hash.c
-+++ b/net/netfilter/nft_set_hash.c
-@@ -237,6 +237,24 @@ static void nft_rhash_remove(const struct net *net,
- 	rhashtable_remove_fast(&priv->ht, &he->node, nft_rhash_params);
- }
- 
-+static bool nft_rhash_delete(const struct nft_set *set,
-+			     const u32 *key)
-+{
-+	struct nft_rhash *priv = nft_set_priv(set);
-+	struct nft_rhash_elem *he;
-+	struct nft_rhash_cmp_arg arg = {
-+		.genmask = NFT_GENMASK_ANY,
-+		.set = set,
-+		.key = key,
-+	};
-+
-+	he = rhashtable_lookup(&priv->ht, &arg, nft_rhash_params);
-+	if (he == NULL)
-+		return false;
-+
-+	return (rhashtable_remove_fast(&priv->ht, &he->node, nft_rhash_params) == 0);
-+}
-+
- static void nft_rhash_walk(const struct nft_ctx *ctx, struct nft_set *set,
- 			   struct nft_set_iter *iter)
- {
-@@ -665,6 +683,7 @@ struct nft_set_type nft_set_rhash_type __read_mostly = {
- 		.remove		= nft_rhash_remove,
- 		.lookup		= nft_rhash_lookup,
- 		.update		= nft_rhash_update,
-+		.delete		= nft_rhash_delete,
- 		.walk		= nft_rhash_walk,
- 		.get		= nft_rhash_get,
- 	},
--- 
-2.17.1
+The setup looks like this (omitting some log rules):
 
+  nfct helper add slp inet udp
+  iptables -t raw -A OUTPUT -m addrtype --dst-type MULTICAST \
+      -p udp --dport 427 -j CT --helper slp
+  iptables -t raw -A OUTPUT -m addrtype --dst-type BROADCAST
+      -p udp --dport 427 -j CT --helper slp
+  iptables -A INPUT -i lo -j ACCEPT
+  iptables -A INPUT -p tcp --dport 22 -j ACCEPT
+  iptables -A INPUT -m conntrack --ctstate ESTABLISHED -j ACCEPT
+  iptables -A INPUT -m conntrack --ctstate RELATED -j ACCEPT
+  iptables -P INPUT DROP
+  iptables -P OUTPUT ACCEPT
+
+The helper rules apply, outgoing multicast packet is sent away but the
+unicast reply is not recognized as related and rejected. Monitring with
+"conntrack -E expect" shows that an expectation is created but it is
+immediately destroyed and "conntrack -E" does not show the conntrack for
+the original multicast packet (which is created when I omit the helper
+rules in raw table). Kernel side tracing confirms that the conntrack is
+never confirmed and inserted into the hash table so that the expectation
+is destroyed once the request packet is sent out (and skb_consume()-ed).
+
+I added some more tracing and this is what seems to happen:
+
+  - ipv4_confirm() is called for the conntrack from ip_output() via hook
+  - nf_confirm() calls attached helper and calls its help() function
+    which is nfnl_userspace_cthelper(), that returns 0x78003
+  - nf_confirm() returns that without calling nf_confirm_conntrack()
+  - verdict 0x78003 is returned to nf_hook_slow() which therefore calls
+    nf_queue() to pass this to userspace helper on queue 7
+  - nf_queue() returns 0 which is also returned by nf_hook_slow()
+  - the packet reappears in nf_reinject() where it passes through
+    nf_reroute() and nf_iterate() to the main switch statement
+  - it takes NF_ACCEPT branch to call okfn which is ip_finish_output()
+  - unless I missed something, there is nothing that could confirm the
+    conntrack after that
+
+Did I forget to do something in the helper (essentially a copy of
+existing mdns helper which is supposed to work) or in the setup above
+(which is based on the documentation)? Or is this a problem on kernel
+side? Should the conntrack be confirmed while processing the original
+packet (which ends up queued) or the reinjected one? And where should it
+happen?
+
+Thanks in advance,
+Michal Kubecek
