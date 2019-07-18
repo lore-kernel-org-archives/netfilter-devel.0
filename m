@@ -6,80 +6,88 @@ X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 59EB1C76191
-	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Jul 2019 13:41:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9F45AC76191
+	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Jul 2019 14:12:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2983720873
-	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Jul 2019 13:41:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7986E20880
+	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Jul 2019 14:12:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726735AbfGRNl4 (ORCPT
+        id S1727730AbfGROMA (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 18 Jul 2019 09:41:56 -0400
-Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:39776 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726665AbfGRNl4 (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 18 Jul 2019 09:41:56 -0400
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.89)
-        (envelope-from <fw@strlen.de>)
-        id 1ho6fS-0002vX-W5; Thu, 18 Jul 2019 15:41:55 +0200
-Date:   Thu, 18 Jul 2019 15:41:54 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Ander Juaristi <a@juaristi.eus>
-Cc:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH v5 1/3] meta: Introduce new conditions 'time', 'day' and
- 'hour'
-Message-ID: <20190718134154.j3mkphxztmzva2hu@breakpoint.cc>
-References: <20190707205531.6628-1-a@juaristi.eus>
- <20190714231958.wtyiusnqpazmwbgl@breakpoint.cc>
- <20190714233401.frxc63fky53yfqft@breakpoint.cc>
- <0d7fec35-cf5b-1bdc-81de-99dd74e79621@juaristi.eus>
+        Thu, 18 Jul 2019 10:12:00 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:35562 "EHLO orbyte.nwl.cc"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727623AbfGROMA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 18 Jul 2019 10:12:00 -0400
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.91)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1ho78X-0005Yh-HQ; Thu, 18 Jul 2019 16:11:57 +0200
+Date:   Thu, 18 Jul 2019 16:11:57 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Jeremy Sowden <jeremy@azazel.net>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+Subject: Re: json_cmd_assoc and cmd
+Message-ID: <20190718141157.GH1628@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Jeremy Sowden <jeremy@azazel.net>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+References: <20190716183101.pev5gcmk3agqwpsm@salvia>
+ <20190716190224.GB31548@orbyte.nwl.cc>
+ <20190716193903.44zquiylov2p452g@salvia>
+ <20190718123704.GA31345@azazel.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <0d7fec35-cf5b-1bdc-81de-99dd74e79621@juaristi.eus>
-User-Agent: NeoMutt/20170113 (1.7.2)
+In-Reply-To: <20190718123704.GA31345@azazel.net>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Ander Juaristi <a@juaristi.eus> wrote:
-> On 15/7/19 1:34, Florian Westphal wrote:
-> > > Even when relying on kernel time zone for everything, I don't see
-> > > how we can support cross-day ("22:23-00:42") matching, as the range is
-> > > invalid.
-> > 
-> > And that as well of course, swap and invert should work just fine.
-> > 
-> > > Second problem:
-> > > Only solution I see is to change kernel patch to rely on
-> > > sys_tz, just like xt_time, with all the pain this brings.
-> > 
-> > This stands, as the weekday is computed in the kernel, we will
-> > need to bring sys_tz into this on the kernel side, the current
-> > code uses UTC so we could be several hours off.
-> > 
-> > This can be restricted to the 'DAY' case of course.
-> > 
+Hi,
+
+On Thu, Jul 18, 2019 at 01:37:04PM +0100, Jeremy Sowden wrote:
+> On 2019-07-16, at 21:39:03 +0200, Pablo Neira Ayuso wrote:
+> > BTW, not directly related to this, but isn't this strange?
+> >
+> >         list_for_each_entry(cmd, cmds, list) {
+> >                 memset(&ctx, 0, sizeof(ctx));
+> >                 ctx.msgs = msgs;
+> >                 ctx.seqnum = cmd->seqnum = mnl_seqnum_alloc(&seqnum);
+> >                 ctx.batch = batch;
+> >                 ctx.nft = nft;
+> >                 init_list_head(&ctx.list);
+> >                 ret = do_command(&ctx, cmd);
+> >                 ...
+> >
+> > ctx is reset over and over again. Then, recycled here:
+> >
+> >                 ret = mnl_batch_talk(&ctx, &err_list, num_cmds);
+> >
+> > I wonder if we can get this better.
 > 
-> I see... Thank you. You saved me hours of work figuring this out.
+> Something like this?
+> 
+>         ...
+> 	struct netlink_ctx ctx = { .msgs = msgs, .nft = nft };
+>         ...
+> 
+> 	ctx.batch = batch = mnl_batch_init();
+> 	batch_seqnum = mnl_batch_begin(batch, mnl_seqnum_alloc(&seqnum));
+> 	list_for_each_entry(cmd, cmds, list) {
+> 		ctx.seqnum = cmd->seqnum = mnl_seqnum_alloc(&seqnum);
+> 		init_list_head(&ctx.list);
+> 		ret = do_command(&ctx, cmd);
+> 		...
+> 	}
 
-Giving hints is what I am supposed to do :-)
+Yes, that at least simplifies the foreach loop a bit. I wonder though
+if we could eliminate struct netlink_ctx altogether by moving pointers
+into struct nft_ctx.
 
-> So, for the TIME case we just swap left and right, and for the DAY case,
-> just add (tz_minuteswest * 60) to the seconds before breaking it into
-> day/mon/year?
+Pablo, do you think that's feasible?
 
-Yes, swap and eq -> not eq -- at least I think that should work and
-would make something like 18:00-07:00 work.
-
-> And what does tz_dsttime do? gettimeofday(2) man says it is there for
-> historical reasons and should be ignored on Linux. But I don't know what is
-> it for in the kernel.
-
-The kernel has no idea what a time zone is, the tz_dsttime setting
-comes from userspace, typically during boot via hwclock(8).
-
-IIRC it only flags if we're in 'daylight saving time' or not,
-i.e. 0 for CET and 1 in CEST case.
+Cheers, Phil
