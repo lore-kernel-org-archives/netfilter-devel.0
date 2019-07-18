@@ -2,162 +2,125 @@ Return-Path: <SRS0=fTMW=VP=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.0 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C2250C76191
-	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Jul 2019 11:02:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3221EC76191
+	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Jul 2019 12:37:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8B64E2173B
-	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Jul 2019 11:02:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A3D8420880
+	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Jul 2019 12:37:14 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=riseup.net header.i=@riseup.net header.b="DBHth1mI"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="r4ilWVvz"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726513AbfGRLCE (ORCPT
+        id S1727740AbfGRMhO (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 18 Jul 2019 07:02:04 -0400
-Received: from mx1.riseup.net ([198.252.153.129]:51928 "EHLO mx1.riseup.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726482AbfGRLCE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 18 Jul 2019 07:02:04 -0400
-Received: from capuchin.riseup.net (capuchin-pn.riseup.net [10.0.1.176])
-        (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
-        (Client CN "*.riseup.net", Issuer "COMODO RSA Domain Validation Secure Server CA" (verified OK))
-        by mx1.riseup.net (Postfix) with ESMTPS id 2CEB11B93BA;
-        Thu, 18 Jul 2019 04:02:03 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=riseup.net; s=squak;
-        t=1563447723; bh=H4SToIpaas3hhSWcXdoBvNhaPvPqyYHSOqw2mb1rMCE=;
-        h=From:To:Cc:Subject:Date:From;
-        b=DBHth1mINAollrfvtVnjm3EEFRSQCQj8hm2AbvaOr6/5jY4LBo7x+bmoN6IZ6gBgo
-         Cmc2/j9O5BrriS7g04q6Nn9IzefiXm5GRVCxKK8LHgckAHAs/67aKPKhRYSNgez/77
-         K+9uMeKSrLpAwgsjXDa87I8c6UMut4yNgBWd7uN0=
-X-Riseup-User-ID: 4DB131B3318C0D5B66C7B9F3EB344FB306A980CE668286AF9970BE1609428CD0
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-         by capuchin.riseup.net (Postfix) with ESMTPSA id 35D351207A5;
-        Thu, 18 Jul 2019 04:02:02 -0700 (PDT)
-From:   Fernando Fernandez Mancera <ffmancera@riseup.net>
-To:     netfilter-devel@vger.kernel.org
-Cc:     Fernando Fernandez Mancera <ffmancera@riseup.net>,
-        Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft] src: osf: fix snprintf -Wformat-truncation warning
-Date:   Thu, 18 Jul 2019 13:01:46 +0200
-Message-Id: <20190718110145.13361-1-ffmancera@riseup.net>
+        Thu, 18 Jul 2019 08:37:14 -0400
+Received: from kadath.azazel.net ([81.187.231.250]:50600 "EHLO
+        kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726608AbfGRMhO (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 18 Jul 2019 08:37:14 -0400
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
+         s=20190108; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+        Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=RgCrA214dS1yST/6GBOUEF+yME35qvNOpI+teI3p8vk=; b=r4ilWVvzmiXc5KcmcEgtaZDcMG
+        aBl2w0vHPxIxCA/425/z4S7yV6T/LVs7OF+R9W8JNLM7vgwwlnYdga6ojKEAMxhK/8DCVH5OGMmaz
+        EqT5+cfy0pQwe3uopOTLHFhhfaZKKgVMF7Lk1brtaiE4cL//SWzMXOcMHWlgq0iEM9CdOVqk8QY4P
+        EO04hEBaNmb2LEGN8dEL1YXMPPX6idsFw+rSycYxoD79311cjR+1+aiXoeNO6SUMgJXk7pA4YNSPZ
+        /yyrz4Djc9Lg3IVH7pkCNavjOEVQ6+ur9Dy+R7nwppokiFBJq4IVHfM0gKQgLC44JMhfVHm+PEMBk
+        iAoigZYQ==;
+Received: from [2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae] (helo=azazel.net)
+        by kadath.azazel.net with esmtpsa (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
+        (Exim 4.92)
+        (envelope-from <jeremy@azazel.net>)
+        id 1ho5ek-0005o7-1K; Thu, 18 Jul 2019 13:37:06 +0100
+Date:   Thu, 18 Jul 2019 13:37:04 +0100
+From:   Jeremy Sowden <jeremy@azazel.net>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
+Subject: Re: json_cmd_assoc and cmd
+Message-ID: <20190718123704.GA31345@azazel.net>
+References: <20190716183101.pev5gcmk3agqwpsm@salvia>
+ <20190716190224.GB31548@orbyte.nwl.cc>
+ <20190716193903.44zquiylov2p452g@salvia>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="IS0zKkzwUGydFO0o"
+Content-Disposition: inline
+In-Reply-To: <20190716193903.44zquiylov2p452g@salvia>
+User-Agent: Mutt/1.10.1 (2018-07-13)
+X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
+X-SA-Exim-Mail-From: jeremy@azazel.net
+X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Fedora 30 uses very recent gcc (version 9.1.1 20190503 (Red Hat 9.1.1-1)),
-osf produces following warnings:
 
--Wformat-truncation warning have been introduced in the version 7.1 of gcc.
-Also, remove a unneeded address check of "tmp + 1" in nf_osf_strchr().
+--IS0zKkzwUGydFO0o
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-nfnl_osf.c: In function ‘nfnl_osf_load_fingerprints’:
-nfnl_osf.c:292:39: warning: ‘%s’ directive output may be truncated writing
-up to 1023 bytes into a region of size 128 [-Wformat-truncation=]
-  292 |   cnt = snprintf(obuf, sizeof(obuf), "%s,", pbeg);
-      |                                       ^~
-nfnl_osf.c:292:9: note: ‘snprintf’ output between 2 and 1025 bytes into a
-destination of size 128
-  292 |   cnt = snprintf(obuf, sizeof(obuf), "%s,", pbeg);
-      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-nfnl_osf.c:302:46: warning: ‘%s’ directive output may be truncated writing
-up to 1023 bytes into a region of size 32 [-Wformat-truncation=]
-  302 |    cnt = snprintf(f.genre, sizeof(f.genre), "%s", pbeg);
-      |                                              ^~
-nfnl_osf.c:302:10: note: ‘snprintf’ output between 1 and 1024 bytes into a
-destination of size 32
-  302 |    cnt = snprintf(f.genre, sizeof(f.genre), "%s", pbeg);
-      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-nfnl_osf.c:309:49: warning: ‘%s’ directive output may be truncated writing
-up to 1023 bytes into a region of size 32 [-Wformat-truncation=]
-  309 |   cnt = snprintf(f.version, sizeof(f.version), "%s", pbeg);
-      |                                                 ^~
-nfnl_osf.c:309:9: note: ‘snprintf’ output between 1 and 1024 bytes into a
-destination of size 32
-  309 |   cnt = snprintf(f.version, sizeof(f.version), "%s", pbeg);
-      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-nfnl_osf.c:317:47: warning: ‘%s’ directive output may be truncated writing
-up to 1023 bytes into a region of size 32 [-Wformat-truncation=]
-  317 |       snprintf(f.subtype, sizeof(f.subtype), "%s", pbeg);
-      |                                               ^~
-nfnl_osf.c:317:7: note: ‘snprintf’ output between 1 and 1024 bytes into a
-destination of size 32
-  317 |       snprintf(f.subtype, sizeof(f.subtype), "%s", pbeg);
-      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+On 2019-07-16, at 21:39:03 +0200, Pablo Neira Ayuso wrote:
+> BTW, not directly related to this, but isn't this strange?
+>
+>         list_for_each_entry(cmd, cmds, list) {
+>                 memset(&ctx, 0, sizeof(ctx));
+>                 ctx.msgs = msgs;
+>                 ctx.seqnum = cmd->seqnum = mnl_seqnum_alloc(&seqnum);
+>                 ctx.batch = batch;
+>                 ctx.nft = nft;
+>                 init_list_head(&ctx.list);
+>                 ret = do_command(&ctx, cmd);
+>                 ...
+>
+> ctx is reset over and over again. Then, recycled here:
+>
+>                 ret = mnl_batch_talk(&ctx, &err_list, num_cmds);
+>
+> I wonder if we can get this better.
 
-Reported-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Fernando Fernandez Mancera <ffmancera@riseup.net>
----
- src/nfnl_osf.c | 14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+Something like this?
 
-diff --git a/src/nfnl_osf.c b/src/nfnl_osf.c
-index be3fd81..c99f8f3 100644
---- a/src/nfnl_osf.c
-+++ b/src/nfnl_osf.c
-@@ -81,7 +81,7 @@ static char *nf_osf_strchr(char *ptr, char c)
- 	if (tmp)
- 		*tmp = '\0';
- 
--	while (tmp && tmp + 1 && isspace(*(tmp + 1)))
-+	while (tmp && isspace(*(tmp + 1)))
- 		tmp++;
- 
- 	return tmp;
-@@ -212,7 +212,7 @@ static int osf_load_line(char *buffer, int len, int del,
- 			 struct netlink_ctx *ctx)
- {
- 	int i, cnt = 0;
--	char obuf[MAXOPTSTRLEN];
-+	char obuf[MAXOPTSTRLEN + 1];
- 	struct nf_osf_user_finger f;
- 	char *pbeg, *pend;
- 	struct nlmsghdr *nlh;
-@@ -289,7 +289,7 @@ static int osf_load_line(char *buffer, int len, int del,
- 	pend = nf_osf_strchr(pbeg, OSFPDEL);
- 	if (pend) {
- 		*pend = '\0';
--		cnt = snprintf(obuf, sizeof(obuf), "%s,", pbeg);
-+		cnt = snprintf(obuf, sizeof(obuf), "%.128s", pbeg);
- 		pbeg = pend + 1;
- 	}
- 
-@@ -297,16 +297,16 @@ static int osf_load_line(char *buffer, int len, int del,
- 	if (pend) {
- 		*pend = '\0';
- 		if (pbeg[0] == '@' || pbeg[0] == '*')
--			cnt = snprintf(f.genre, sizeof(f.genre), "%s", pbeg + 1);
-+			cnt = snprintf(f.genre, sizeof(f.genre), "%.31s", pbeg + 1);
- 		else
--			cnt = snprintf(f.genre, sizeof(f.genre), "%s", pbeg);
-+			cnt = snprintf(f.genre, sizeof(f.genre), "%.31s", pbeg);
- 		pbeg = pend + 1;
- 	}
- 
- 	pend = nf_osf_strchr(pbeg, OSFPDEL);
- 	if (pend) {
- 		*pend = '\0';
--		cnt = snprintf(f.version, sizeof(f.version), "%s", pbeg);
-+		cnt = snprintf(f.version, sizeof(f.version), "%.31s", pbeg);
- 		pbeg = pend + 1;
- 	}
- 
-@@ -314,7 +314,7 @@ static int osf_load_line(char *buffer, int len, int del,
- 	if (pend) {
- 		*pend = '\0';
- 		cnt =
--		    snprintf(f.subtype, sizeof(f.subtype), "%s", pbeg);
-+		    snprintf(f.subtype, sizeof(f.subtype), "%.31s", pbeg);
- 		pbeg = pend + 1;
- 	}
- 
--- 
-2.20.1
+        ...
+	struct netlink_ctx ctx = { .msgs = msgs, .nft = nft };
+        ...
 
+	ctx.batch = batch = mnl_batch_init();
+	batch_seqnum = mnl_batch_begin(batch, mnl_seqnum_alloc(&seqnum));
+	list_for_each_entry(cmd, cmds, list) {
+		ctx.seqnum = cmd->seqnum = mnl_seqnum_alloc(&seqnum);
+		init_list_head(&ctx.list);
+		ret = do_command(&ctx, cmd);
+		...
+	}
+
+J.
+
+--IS0zKkzwUGydFO0o
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEEZ8d+2N/NBLDbUxIF0Z7UzfnX9sMFAl0wZ+kACgkQ0Z7UzfnX
+9sOPPxAAkue/XA2X1N90MHDgYxpkUCTnk2FZqvsceE8HxlUo5eqgi/d8gdPnyVsO
+TIuD24UTKh5aU4wIKtKpaPjIyPGh8B+GLrqiMSH2/ubCtzkW9+u7Ehl1MA1ljkud
+x55SpgBJKLfzg65oEyBUPx6ttu9TehTQpGS1WF8Gzs1+gGYff+0z7N1iH0KriMkX
+ke/YlRB/6Ign5qCFvdVKe5f/88yOUgCLolzLYdYOosXMH8CBE1wBGtPjxu3I5k4j
+Cgx0j+ecjjaQFOeLtuyAUoRsF+wu95+NpSm4XFmCsttaG10HIw3Tw+tHL9c2IiEp
+v62c7NrqJEYo2noEpxxN1JNQbFoJSyU6xV/1zt1Nj8tSw68ybhKvd3ADBoNbOmL4
+I/1a12CCYyISMjDMmMLAKiK6NLbPwa7INmJcY9mLb+RRskE2R2+G9hwhNl0a8ZEr
+05674KV0/7CbL4uwq3xWEvymGdis2XbE7MxBQjtg8E7wiJRP1PiT+hZN8CdXCAEK
+uUT35IZb7Gs6bofrCpAFqdUpYva6FwHPtfRvLJyxnYWi4cxJjEz7XKmPPAT+kp3a
+lk779jFrvXnaju2ZPfWd6u4TuT3svJul0OOtViv/HqO185u+5yGZxxK1s6pc25aw
+jQ7f/0batvUv9HFHdZ0XEJELaoCmB0GmT+50fgtsSuTtkpTMUME=
+=uPHh
+-----END PGP SIGNATURE-----
+
+--IS0zKkzwUGydFO0o--
