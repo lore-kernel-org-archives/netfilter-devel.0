@@ -2,166 +2,116 @@ Return-Path: <SRS0=fTMW=VP=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C0D68C76195
-	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Jul 2019 14:17:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E9743C7618F
+	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Jul 2019 14:57:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6583321783
-	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Jul 2019 14:17:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C731D2080D
+	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Jul 2019 14:57:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2390646AbfGRORX convert rfc822-to-8bit (ORCPT
+        id S1727685AbfGRO51 convert rfc822-to-8bit (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 18 Jul 2019 10:17:23 -0400
-Received: from cmccmta3.chinamobile.com ([221.176.66.81]:2113 "EHLO
-        cmccmta3.chinamobile.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2390356AbfGRORX (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 18 Jul 2019 10:17:23 -0400
-Received: from spf.mail.chinamobile.com (unknown[172.16.121.1]) by rmmx-syy-dmz-app12-12012 (RichMail) with SMTP id 2eec5d307f28e2e-a11f6; Thu, 18 Jul 2019 22:16:09 +0800 (CST)
-X-RM-TRANSID: 2eec5d307f28e2e-a11f6
-X-RM-TagInfo: emlType=0                                       
-X-RM-SPAM-FLAG: 00000000
-Received: from [10.0.0.249] (unknown[112.22.251.180])
-        by rmsmtp-syy-appsvr01-12001 (RichMail) with SMTP id 2ee15d307f26c3f-095a6;
-        Thu, 18 Jul 2019 22:16:09 +0800 (CST)
-X-RM-TRANSID: 2ee15d307f26c3f-095a6
-Content-Type: text/plain; charset=gb2312
-Mime-Version: 1.0 (Mac OS X Mail 10.3 \(3273\))
-Subject: Re: [net-next 1/2] ipvs: batch __ip_vs_cleanup
-From:   Haishuang Yan <yanhaishuang@cmss.chinamobile.com>
-In-Reply-To: <alpine.LFD.2.21.1907152333300.5700@ja.home.ssi.bg>
-Date:   Thu, 18 Jul 2019 22:16:05 +0800
-Cc:     "David S. Miller" <davem@davemloft.net>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Simon Horman <horms@verge.net.au>, netdev@vger.kernel.org,
-        lvs-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
-        netfilter-devel@vger.kernel.org
+        Thu, 18 Jul 2019 10:57:27 -0400
+Received: from mail.us.es ([193.147.175.20]:52248 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727623AbfGRO51 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 18 Jul 2019 10:57:27 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id E9EFA6D4F5
+        for <netfilter-devel@vger.kernel.org>; Thu, 18 Jul 2019 16:57:24 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id DB879A6DA
+        for <netfilter-devel@vger.kernel.org>; Thu, 18 Jul 2019 16:57:24 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id D0CA011510A; Thu, 18 Jul 2019 16:57:24 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id B70D21150CB;
+        Thu, 18 Jul 2019 16:57:22 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Thu, 18 Jul 2019 16:57:22 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (sys.soleta.eu [212.170.55.40])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 900E840705C7;
+        Thu, 18 Jul 2019 16:57:22 +0200 (CEST)
+Date:   Thu, 18 Jul 2019 16:57:22 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Jeremy Sowden <jeremy@azazel.net>
+Cc:     Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
+Subject: Re: json_cmd_assoc and cmd
+Message-ID: <20190718145722.k5nnznt753cunnca@salvia>
+References: <20190716183101.pev5gcmk3agqwpsm@salvia>
+ <20190716190224.GB31548@orbyte.nwl.cc>
+ <20190716193903.44zquiylov2p452g@salvia>
+ <20190718123704.GA31345@azazel.net>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Content-Transfer-Encoding: 8BIT
-Message-Id: <8441EA26-E197-4F40-A6D7-5B7D59AA7F7F@cmss.chinamobile.com>
-References: <1563031186-2101-1-git-send-email-yanhaishuang@cmss.chinamobile.com>
- <1563031186-2101-2-git-send-email-yanhaishuang@cmss.chinamobile.com>
- <alpine.LFD.2.21.1907152333300.5700@ja.home.ssi.bg>
-To:     Julian Anastasov <ja@ssi.bg>
-X-Mailer: Apple Mail (2.3273)
+In-Reply-To: <20190718123704.GA31345@azazel.net>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-
-> On 2019年7月16日, at 上午4:39, Julian Anastasov <ja@ssi.bg> wrote:
+On Thu, Jul 18, 2019 at 01:37:04PM +0100, Jeremy Sowden wrote:
+> On 2019-07-16, at 21:39:03 +0200, Pablo Neira Ayuso wrote:
+> > BTW, not directly related to this, but isn't this strange?
+> >
+> >         list_for_each_entry(cmd, cmds, list) {
+> >                 memset(&ctx, 0, sizeof(ctx));
+> >                 ctx.msgs = msgs;
+> >                 ctx.seqnum = cmd->seqnum = mnl_seqnum_alloc(&seqnum);
+> >                 ctx.batch = batch;
+> >                 ctx.nft = nft;
+> >                 init_list_head(&ctx.list);
+> >                 ret = do_command(&ctx, cmd);
+> >                 ...
+> >
+> > ctx is reset over and over again. Then, recycled here:
+> >
+> >                 ret = mnl_batch_talk(&ctx, &err_list, num_cmds);
+> >
+> > I wonder if we can get this better.
 > 
+> Something like this?
+
+Yes, something like that would get things in better shape I think,
+more comments below.
+
+> 	struct netlink_ctx ctx = { .msgs = msgs, .nft = nft };
+>         ...
 > 
-> 	Hello,
-> 
-> On Sat, 13 Jul 2019, Haishuang Yan wrote:
-> 
->> It's better to batch __ip_vs_cleanup to speedup ipvs
->> connections dismantle.
->> 
->> Signed-off-by: Haishuang Yan <yanhaishuang@cmss.chinamobile.com>
->> ---
->> include/net/ip_vs.h             |  2 +-
->> net/netfilter/ipvs/ip_vs_core.c | 29 +++++++++++++++++------------
->> net/netfilter/ipvs/ip_vs_ctl.c  | 13 ++++++++++---
->> 3 files changed, 28 insertions(+), 16 deletions(-)
->> 
->> diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
->> index 3759167..93e7a25 100644
->> --- a/include/net/ip_vs.h
->> +++ b/include/net/ip_vs.h
->> @@ -1324,7 +1324,7 @@ static inline void ip_vs_control_del(struct ip_vs_conn *cp)
->> void ip_vs_control_net_cleanup(struct netns_ipvs *ipvs);
->> void ip_vs_estimator_net_cleanup(struct netns_ipvs *ipvs);
->> void ip_vs_sync_net_cleanup(struct netns_ipvs *ipvs);
->> -void ip_vs_service_net_cleanup(struct netns_ipvs *ipvs);
->> +void ip_vs_service_nets_cleanup(struct list_head *net_list);
->> 
->> /* IPVS application functions
->>  * (from ip_vs_app.c)
->> diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
->> index 46f06f9..b4d79b7 100644
->> --- a/net/netfilter/ipvs/ip_vs_core.c
->> +++ b/net/netfilter/ipvs/ip_vs_core.c
->> @@ -2402,18 +2402,23 @@ static int __net_init __ip_vs_init(struct net *net)
->> 	return -ENOMEM;
->> }
->> 
->> -static void __net_exit __ip_vs_cleanup(struct net *net)
->> +static void __net_exit __ip_vs_cleanup_batch(struct list_head *net_list)
->> {
->> -	struct netns_ipvs *ipvs = net_ipvs(net);
->> -
->> -	ip_vs_service_net_cleanup(ipvs);	/* ip_vs_flush() with locks */
->> -	ip_vs_conn_net_cleanup(ipvs);
->> -	ip_vs_app_net_cleanup(ipvs);
->> -	ip_vs_protocol_net_cleanup(ipvs);
->> -	ip_vs_control_net_cleanup(ipvs);
->> -	ip_vs_estimator_net_cleanup(ipvs);
->> -	IP_VS_DBG(2, "ipvs netns %d released\n", ipvs->gen);
->> -	net->ipvs = NULL;
->> +	struct netns_ipvs *ipvs;
->> +	struct net *net;
->> +	LIST_HEAD(list);
->> +
->> +	ip_vs_service_nets_cleanup(net_list);	/* ip_vs_flush() with locks */
->> +	list_for_each_entry(net, net_list, exit_list) {
-> 
-> 	How much faster is to replace list_for_each_entry in
-> ops_exit_list() with this one. IPVS can waste time in calls
-> such as kthread_stop() and del_timer_sync() but I'm not sure
-> we can solve it easily. What gain do you see in benchmarks?
+> 	ctx.batch = batch = mnl_batch_init();
+> 	batch_seqnum = mnl_batch_begin(batch, mnl_seqnum_alloc(&seqnum));
+> 	list_for_each_entry(cmd, cmds, list) {
+> 		ctx.seqnum = cmd->seqnum = mnl_seqnum_alloc(&seqnum);
+> 		init_list_head(&ctx.list);
 
-Hi, 
+I think we don't need to re-initialize this list over and over again
+(from what I see when doing: git grep "ctx->list").
 
-As the following benchmark testing results show, there is a little performance improvement:
+This always does list_splice_tail_init() to attach the object list
+where they belong.
 
-$  cat add_del_unshare.sh
-#!/bin/bash
+You can probably add something like:
 
-for i in `seq 1 100`
-    do
-     (for j in `seq 1 40` ; do  unshare -n ipvsadm -A -t 172.16.$i.$j:80 >/dev/null ; done) &
-    done
-wait; grep net_namespace /proc/slabinfo
+        if (!list_empty(&ctx->list))
+                BUG("command list is not empty\n");
 
-Befor patch:
-$  time sh add_del_unshare.sh
-net_namespace       4020   4020   4736    6    8 : tunables    0    0    0 : slabdata    670    670      0
+I would make a patch and run tests/shell and tests/py to check if what
+I'm suggesting this fine :-)
 
-real    0m8.086s
-user    0m2.025s
-sys     0m36.956s
+> 		ret = do_command(&ctx, cmd);
+> 		...
 
-After patch:
-$  time sh add_del_unshare.sh
-net_namespace       4020   4020   4736    6    8 : tunables    0    0    0 : slabdata    670    670      0
-
-real    0m7.623s
-user    0m2.003s
-sys     0m32.935s
-
-
-> 
->> +		ipvs = net_ipvs(net);
->> +		ip_vs_conn_net_cleanup(ipvs);
->> +		ip_vs_app_net_cleanup(ipvs);
->> +		ip_vs_protocol_net_cleanup(ipvs);
->> +		ip_vs_control_net_cleanup(ipvs);
->> +		ip_vs_estimator_net_cleanup(ipvs);
->> +		IP_VS_DBG(2, "ipvs netns %d released\n", ipvs->gen);
->> +		net->ipvs = NULL;
->> +	}
->> }
-> 
-> Regards
-> 
-> --
-> Julian Anastasov <ja@ssi.bg>
-> 
-
-
-
+Thanks!
