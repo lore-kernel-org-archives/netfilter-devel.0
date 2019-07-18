@@ -6,29 +6,29 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F3E35C76192
-	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Jul 2019 03:39:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E0FCC76186
+	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Jul 2019 03:39:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D46172077C
-	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Jul 2019 03:39:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0CDFA2077C
+	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Jul 2019 03:39:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389534AbfGRDjp (ORCPT
+        id S2389545AbfGRDju (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 17 Jul 2019 23:39:45 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:33902 "EHLO orbyte.nwl.cc"
+        Wed, 17 Jul 2019 23:39:50 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:33908 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2389086AbfGRDjp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 17 Jul 2019 23:39:45 -0400
-Received: from localhost ([::1]:46992 helo=tatos)
+        id S2389084AbfGRDju (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 17 Jul 2019 23:39:50 -0400
+Received: from localhost ([::1]:46998 helo=tatos)
         by orbyte.nwl.cc with esmtp (Exim 4.91)
         (envelope-from <phil@nwl.cc>)
-        id 1hnxGi-0008Qq-7c; Thu, 18 Jul 2019 05:39:44 +0200
+        id 1hnxGn-0008Qz-Jh; Thu, 18 Jul 2019 05:39:49 +0200
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [nft PATCH 2/3] meta: Reject nfproto value 0xffff
-Date:   Thu, 18 Jul 2019 05:39:39 +0200
-Message-Id: <20190718033940.12820-2-phil@nwl.cc>
+Subject: [nft PATCH 3/3] tests/py: Add missing meta tests
+Date:   Thu, 18 Jul 2019 05:39:40 +0200
+Message-Id: <20190718033940.12820-3-phil@nwl.cc>
 X-Mailer: git-send-email 2.22.0
 In-Reply-To: <20190718033940.12820-1-phil@nwl.cc>
 References: <20190718033940.12820-1-phil@nwl.cc>
@@ -39,62 +39,130 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Since parsing of arphrd_type happens via sym_tbl, there is no dedicated
-parser function to perform the check in. So instead make use of maxval
-in expr_ctx to reject the value.
-
-While being at it, introduce a switch() to check for meta.key value in a
-single place.
+Ensure invalid values are rejected. Also add basic positive tests for
+{i,o}ifkind.
 
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- src/evaluate.c | 24 ++++++++++++++++++------
- 1 file changed, 18 insertions(+), 6 deletions(-)
+ tests/py/any/meta.t         | 10 ++++++++++
+ tests/py/any/meta.t.json    | 30 ++++++++++++++++++++++++++++++
+ tests/py/any/meta.t.payload | 10 ++++++++++
+ 3 files changed, 50 insertions(+)
 
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 55cd9d00d274c..ff52aefc669e0 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -23,6 +23,7 @@
- #include <netinet/icmp6.h>
- #include <net/ethernet.h>
- #include <net/if.h>
-+#include <net/if_arp.h>
- #include <errno.h>
+diff --git a/tests/py/any/meta.t b/tests/py/any/meta.t
+index 4b3c604de110d..9771d9dd585a3 100644
+--- a/tests/py/any/meta.t
++++ b/tests/py/any/meta.t
+@@ -63,6 +63,7 @@ meta mark xor 0x03 != 0x01;ok;meta mark != 0x00000002
  
- #include <expression.h>
-@@ -1795,14 +1796,25 @@ static int expr_evaluate_fib(struct eval_ctx *ctx, struct expr **exprp)
- static int expr_evaluate_meta(struct eval_ctx *ctx, struct expr **exprp)
- {
- 	struct expr *meta = *exprp;
-+	unsigned int maxval = 0;
+ meta iif "lo" accept;ok;iif "lo" accept
+ meta iif != "lo" accept;ok;iif != "lo" accept
++meta iif 0;fail
  
--	if (ctx->pctx.family != NFPROTO_INET &&
--	    meta->flags & EXPR_F_PROTOCOL &&
--	    meta->meta.key == NFT_META_NFPROTO)
-+	switch (meta->meta.key) {
-+	case NFT_META_NFPROTO:
-+		if (ctx->pctx.family == NFPROTO_INET ||
-+		    !(meta->flags & EXPR_F_PROTOCOL))
-+			break;
- 		return expr_error(ctx->msgs, meta,
--					  "meta nfproto is only useful in the inet family");
--
--	return expr_evaluate_primary(ctx, exprp);
-+				  "meta nfproto is only useful in the inet family");
-+	case NFT_META_IIFTYPE:
-+	case NFT_META_OIFTYPE:
-+		maxval = ARPHRD_VOID - 1;
-+		break;
-+	default:
-+		break;
-+	}
-+	__expr_set_context(&ctx->ectx, (*exprp)->dtype, (*exprp)->byteorder,
-+			   (*exprp)->len, maxval);
-+	return 0;
- }
+ meta iifname "dummy0";ok;iifname "dummy0"
+ meta iifname != "dummy0";ok;iifname != "dummy0"
+@@ -78,9 +79,14 @@ meta iiftype != ether;ok
+ meta iiftype ether;ok
+ meta iiftype != ppp;ok
+ meta iiftype ppp;ok
++meta iiftype 0xffff;fail
++
++meta iifkind "bond";ok
++meta iifkind "";fail
  
- static int expr_evaluate_socket(struct eval_ctx *ctx, struct expr **expr)
+ meta oif "lo" accept;ok;oif "lo" accept
+ meta oif != "lo" accept;ok;oif != "lo" accept
++meta oif 0;fail
+ 
+ meta oifname "dummy0";ok;oifname "dummy0"
+ meta oifname != "dummy0";ok;oifname != "dummy0"
+@@ -93,6 +99,10 @@ meta oiftype {ether, ppp, ipip, ipip6, loopback, sit, ipgre};ok
+ meta oiftype != {ether, ppp, ipip, ipip6, loopback, sit, ipgre};ok
+ meta oiftype != ether;ok
+ meta oiftype ether;ok
++meta oiftype 0xffff;fail
++
++meta oifkind "bond";ok
++meta oifkind "";fail
+ 
+ meta skuid {"bin", "root", "daemon"} accept;ok;meta skuid { 0, 1, 2} accept
+ meta skuid != {"bin", "root", "daemon"} accept;ok;meta skuid != { 1, 0, 2} accept
+diff --git a/tests/py/any/meta.t.json b/tests/py/any/meta.t.json
+index 447e553f8ba78..cff557f48a3ab 100644
+--- a/tests/py/any/meta.t.json
++++ b/tests/py/any/meta.t.json
+@@ -952,6 +952,21 @@
+     }
+ ]
+ 
++# meta iifkind "bond"
++[
++    {
++        "match": {
++            "left": {
++                "meta": {
++                    "key": "iifkind"
++                }
++            },
++            "op": "==",
++            "right": "bond"
++        }
++    }
++]
++
+ # meta oif "lo" accept
+ [
+     {
+@@ -1113,6 +1128,21 @@
+     }
+ ]
+ 
++# meta oifkind "bond"
++[
++    {
++        "match": {
++            "left": {
++                "meta": {
++                    "key": "oifkind"
++                }
++            },
++            "op": "==",
++            "right": "bond"
++        }
++    }
++]
++
+ # meta oiftype ether
+ [
+     {
+diff --git a/tests/py/any/meta.t.payload b/tests/py/any/meta.t.payload
+index 1d8426de9632d..915101b3f70c4 100644
+--- a/tests/py/any/meta.t.payload
++++ b/tests/py/any/meta.t.payload
+@@ -263,6 +263,11 @@ ip test-ip4 input
+   [ meta load iiftype => reg 1 ]
+   [ cmp eq reg 1 0x00000200 ]
+ 
++# meta iifkind "bond"
++ip test-ip4 input 
++  [ meta load iifkind => reg 1 ]
++  [ cmp eq reg 1 0x646e6f62 0x00000000 0x00000000 0x00000000 ]
++
+ # meta oif "lo" accept
+ ip test-ip4 input
+   [ meta load oif => reg 1 ]
+@@ -329,6 +334,11 @@ ip test-ip4 input
+   [ meta load oiftype => reg 1 ]
+   [ cmp eq reg 1 0x00000001 ]
+ 
++# meta oifkind "bond"
++ip test-ip4 input 
++  [ meta load oifkind => reg 1 ]
++  [ cmp eq reg 1 0x646e6f62 0x00000000 0x00000000 0x00000000 ]
++
+ # meta skuid {"bin", "root", "daemon"} accept
+ __set%d test-ip4 3
+ __set%d test-ip4 0
 -- 
 2.22.0
 
