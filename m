@@ -2,70 +2,210 @@ Return-Path: <SRS0=fTMW=VP=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 047A6C76195
-	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Jul 2019 10:18:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AA902C76195
+	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Jul 2019 10:25:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CDD8421841
-	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Jul 2019 10:18:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8364D20880
+	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Jul 2019 10:25:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389961AbfGRKSH (ORCPT
+        id S2389532AbfGRKY6 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 18 Jul 2019 06:18:07 -0400
-Received: from mx2.suse.de ([195.135.220.15]:41322 "EHLO mx1.suse.de"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726482AbfGRKSH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 18 Jul 2019 06:18:07 -0400
-X-Virus-Scanned: by amavisd-new at test-mx.suse.de
-Received: from relay2.suse.de (unknown [195.135.220.254])
-        by mx1.suse.de (Postfix) with ESMTP id 67F0DAF81;
-        Thu, 18 Jul 2019 10:18:06 +0000 (UTC)
-Received: by unicorn.suse.cz (Postfix, from userid 1000)
-        id 14A87E00A9; Thu, 18 Jul 2019 12:18:06 +0200 (CEST)
-Date:   Thu, 18 Jul 2019 12:18:06 +0200
-From:   Michal Kubecek <mkubecek@suse.cz>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: userspace conntrack helper and confirming the master conntrack
-Message-ID: <20190718101806.GF24551@unicorn.suse.cz>
-References: <20190718084943.GE24551@unicorn.suse.cz>
- <20190718092128.zbw4qappq6jsb4ja@breakpoint.cc>
+        Thu, 18 Jul 2019 06:24:58 -0400
+Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:39156 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726482AbfGRKY6 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 18 Jul 2019 06:24:58 -0400
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.89)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1ho3ap-0001te-US; Thu, 18 Jul 2019 12:24:56 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     <netdev@vger.kernel.org>
+Cc:     <netfilter-devel@vger.kernel.org>, Florian Westphal <fw@strlen.de>,
+        Jason Muskat <jason@metalcastle.ca>
+Subject: [RFC net] net: generate icmp redirects after netfilter forward hook
+Date:   Thu, 18 Jul 2019 12:24:40 +0200
+Message-Id: <20190718102440.8355-1-fw@strlen.de>
+X-Mailer: git-send-email 2.21.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190718092128.zbw4qappq6jsb4ja@breakpoint.cc>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Jul 18, 2019 at 11:21:28AM +0200, Florian Westphal wrote:
-> > I added some more tracing and this is what seems to happen:
-> > 
-> >   - ipv4_confirm() is called for the conntrack from ip_output() via hook
-> >   - nf_confirm() calls attached helper and calls its help() function
-> >     which is nfnl_userspace_cthelper(), that returns 0x78003
-> >   - nf_confirm() returns that without calling nf_confirm_conntrack()
-> >   - verdict 0x78003 is returned to nf_hook_slow() which therefore calls
-> >     nf_queue() to pass this to userspace helper on queue 7
-> >   - nf_queue() returns 0 which is also returned by nf_hook_slow()
-> >   - the packet reappears in nf_reinject() where it passes through
-> >     nf_reroute() and nf_iterate() to the main switch statement
-> >   - it takes NF_ACCEPT branch to call okfn which is ip_finish_output()
-> >   - unless I missed something, there is nothing that could confirm the
-> >     conntrack after that
-> 
-> I broke this with
-> commit 827318feb69cb07ed58bb9b9dd6c2eaa81a116ad
-> ("netfilter: conntrack: remove helper hook again").
-> 
-> Seems we have to revert, i see no other solution at this time.
+Quoting from
+https://bugzilla.kernel.org/show_bug.cgi?id=204155
 
-Thanks for the quick reply. I can confirm that with commit 827318feb69c
-reverted, the helper works as expected.
+ ----
+1. Configure an PPPoE interface (e.g., ppp0) with an IPv6 address and
+   a prefixlen of 64; e.g., 2001:0DB8::1/64.
+2. Configure a Netfilter ip6table rule to drop IN to OUT forwarding of traffic
+   across the PPP interface: ip6tables -A FORWARD -i ppp+ -o ppp+ -j DROP
+3. Create a Netfilter NFLOG rule to log all outbound traffic.
+4. From an Internet IPv6 Address initiate TCP traffic to an IPv6 address
+   within the /64 IPv6 address space from step 1, but an IPv6 address that
+   is NOT configured on that interface; e.g., ` nc 2001:0DB8::2 80`
+5. Observe the NFLOG showing the Netfilter ip6table filter FORWARD rule
+   is matched and therefore the traffic should be dropped.
+6. Observe the traffic from step 4, that should have been dropped,
+   resulted in an outbound ICMPv6 Redirect with a source IPv6 address of
+   the PPP interface’s Local Link to the Internet IPv6 Address.
+ ----
 
-Michal 
+Problem is that we emit the redirect before passing the packet to the
+netfilter FORWARD hook.   The same "problem" exists in ipv4.
+
+There are various counter-arguments to changing this, e.g.  we would
+still emit such redirect when packet is dropped later in the stack
+(e.g. in POSTROUTING or qdisc).
+
+We will also still emit e.g. ICMPV6 PKTTOOBIG error, as that occurs
+before FORWARD as well, and moving that seems wrong (packet
+has to be dropped).
+
+The only argument that I can think of in favor of this change
+is the lack of a proper alternative to filtering such traffic.
+
+PREROUTING would work, but at that point we lack the
+"packet will be forwarded from ppp0 to ppp0" information that
+we only have available in FORWARD.
+
+Compile tested only.
+
+Cc: Jason Muskat <jason@metalcastle.ca>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ net/ipv4/ip_forward.c | 16 +++++------
+ net/ipv6/ip6_output.c | 63 ++++++++++++++++++++++++-------------------
+ 2 files changed, 44 insertions(+), 35 deletions(-)
+
+diff --git a/net/ipv4/ip_forward.c b/net/ipv4/ip_forward.c
+index 06f6f280b9ff..33c46470c966 100644
+--- a/net/ipv4/ip_forward.c
++++ b/net/ipv4/ip_forward.c
+@@ -69,6 +69,14 @@ static int ip_forward_finish(struct net *net, struct sock *sk, struct sk_buff *s
+ 	__IP_INC_STATS(net, IPSTATS_MIB_OUTFORWDATAGRAMS);
+ 	__IP_ADD_STATS(net, IPSTATS_MIB_OUTOCTETS, skb->len);
+ 
++	/*
++	 *	We now generate an ICMP HOST REDIRECT giving the route
++	 *	we calculated.
++	 */
++	if (IPCB(skb)->flags & IPSKB_DOREDIRECT && !opt->srr &&
++	    !skb_sec_path(skb))
++		ip_rt_send_redirect(skb);
++
+ #ifdef CONFIG_NET_SWITCHDEV
+ 	if (skb->offload_l3_fwd_mark) {
+ 		consume_skb(skb);
+@@ -143,14 +151,6 @@ int ip_forward(struct sk_buff *skb)
+ 	/* Decrease ttl after skb cow done */
+ 	ip_decrease_ttl(iph);
+ 
+-	/*
+-	 *	We now generate an ICMP HOST REDIRECT giving the route
+-	 *	we calculated.
+-	 */
+-	if (IPCB(skb)->flags & IPSKB_DOREDIRECT && !opt->srr &&
+-	    !skb_sec_path(skb))
+-		ip_rt_send_redirect(skb);
+-
+ 	if (net->ipv4.sysctl_ip_fwd_update_priority)
+ 		skb->priority = rt_tos2priority(iph->tos);
+ 
+diff --git a/net/ipv6/ip6_output.c b/net/ipv6/ip6_output.c
+index 8e49fd62eea9..2dafd2da2926 100644
+--- a/net/ipv6/ip6_output.c
++++ b/net/ipv6/ip6_output.c
+@@ -383,11 +383,45 @@ static int ip6_forward_proxy_check(struct sk_buff *skb)
+ static inline int ip6_forward_finish(struct net *net, struct sock *sk,
+ 				     struct sk_buff *skb)
+ {
++	struct inet6_skb_parm *opt = IP6CB(skb);
+ 	struct dst_entry *dst = skb_dst(skb);
+ 
+ 	__IP6_INC_STATS(net, ip6_dst_idev(dst), IPSTATS_MIB_OUTFORWDATAGRAMS);
+ 	__IP6_ADD_STATS(net, ip6_dst_idev(dst), IPSTATS_MIB_OUTOCTETS, skb->len);
+ 
++	/* IPv6 specs say nothing about it, but it is clear that we cannot
++	   send redirects to source routed frames.
++	   We don't send redirects to frames decapsulated from IPsec.
++	 */
++	if (IP6CB(skb)->iif == dst->dev->ifindex &&
++	    opt->srcrt == 0 && !skb_sec_path(skb)) {
++		struct ipv6hdr *hdr = ipv6_hdr(skb);
++		struct in6_addr *target = NULL;
++		struct inet_peer *peer;
++		struct rt6_info *rt;
++
++		/*
++		 *	incoming and outgoing devices are the same
++		 *	send a redirect.
++		 */
++
++		rt = (struct rt6_info *) dst;
++		if (rt->rt6i_flags & RTF_GATEWAY)
++			target = &rt->rt6i_gateway;
++		else
++			target = &hdr->daddr;
++
++		peer = inet_getpeer_v6(net->ipv6.peers, &hdr->daddr, 1);
++
++		/* Limit redirects both by destination (here)
++		   and by source (inside ndisc_send_redirect)
++		 */
++		if (inet_peer_xrlim_allow(peer, 1*HZ))
++			ndisc_send_redirect(skb, target);
++		if (peer)
++			inet_putpeer(peer);
++	}
++
+ #ifdef CONFIG_NET_SWITCHDEV
+ 	if (skb->offload_l3_fwd_mark) {
+ 		consume_skb(skb);
+@@ -498,33 +532,8 @@ int ip6_forward(struct sk_buff *skb)
+ 	   send redirects to source routed frames.
+ 	   We don't send redirects to frames decapsulated from IPsec.
+ 	 */
+-	if (IP6CB(skb)->iif == dst->dev->ifindex &&
+-	    opt->srcrt == 0 && !skb_sec_path(skb)) {
+-		struct in6_addr *target = NULL;
+-		struct inet_peer *peer;
+-		struct rt6_info *rt;
+-
+-		/*
+-		 *	incoming and outgoing devices are the same
+-		 *	send a redirect.
+-		 */
+-
+-		rt = (struct rt6_info *) dst;
+-		if (rt->rt6i_flags & RTF_GATEWAY)
+-			target = &rt->rt6i_gateway;
+-		else
+-			target = &hdr->daddr;
+-
+-		peer = inet_getpeer_v6(net->ipv6.peers, &hdr->daddr, 1);
+-
+-		/* Limit redirects both by destination (here)
+-		   and by source (inside ndisc_send_redirect)
+-		 */
+-		if (inet_peer_xrlim_allow(peer, 1*HZ))
+-			ndisc_send_redirect(skb, target);
+-		if (peer)
+-			inet_putpeer(peer);
+-	} else {
++	if (IP6CB(skb)->iif != dst->dev->ifindex ||
++	    opt->srcrt || skb_sec_path(skb)) {
+ 		int addrtype = ipv6_addr_type(&hdr->saddr);
+ 
+ 		/* This check is security critical. */
+-- 
+2.21.0
+
