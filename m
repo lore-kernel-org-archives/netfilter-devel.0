@@ -2,67 +2,77 @@ Return-Path: <SRS0=fTMW=VP=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 77253C7618F
-	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Jul 2019 18:15:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C3CDEC7618F
+	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Jul 2019 18:23:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 16D1B2083B
-	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Jul 2019 18:15:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9F9DB21019
+	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Jul 2019 18:23:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727812AbfGRSPQ (ORCPT
+        id S2390368AbfGRSXp (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 18 Jul 2019 14:15:16 -0400
-Received: from mail.us.es ([193.147.175.20]:36290 "EHLO mail.us.es"
+        Thu, 18 Jul 2019 14:23:45 -0400
+Received: from mail.us.es ([193.147.175.20]:37994 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726649AbfGRSPQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 18 Jul 2019 14:15:16 -0400
+        id S1726649AbfGRSXo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 18 Jul 2019 14:23:44 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id DB70AB60C5
-        for <netfilter-devel@vger.kernel.org>; Thu, 18 Jul 2019 20:15:14 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id EF600B5AA2
+        for <netfilter-devel@vger.kernel.org>; Thu, 18 Jul 2019 20:23:42 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id CB733203F1
-        for <netfilter-devel@vger.kernel.org>; Thu, 18 Jul 2019 20:15:14 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id E03BD1150CB
+        for <netfilter-devel@vger.kernel.org>; Thu, 18 Jul 2019 20:23:42 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id C04F091F4; Thu, 18 Jul 2019 20:15:14 +0200 (CEST)
+        id D5ABB1150B9; Thu, 18 Jul 2019 20:23:42 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id CB5D11150CB;
-        Thu, 18 Jul 2019 20:15:12 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id E2F85203F1
+        for <netfilter-devel@vger.kernel.org>; Thu, 18 Jul 2019 20:23:40 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Thu, 18 Jul 2019 20:15:12 +0200 (CEST)
+ Thu, 18 Jul 2019 20:23:40 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (sys.soleta.eu [212.170.55.40])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 9EB7D4265A31;
-        Thu, 18 Jul 2019 20:15:12 +0200 (CEST)
-Date:   Thu, 18 Jul 2019 20:15:12 +0200
+Received: from salvia.here (sys.soleta.eu [212.170.55.40])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id C535A4265A2F
+        for <netfilter-devel@vger.kernel.org>; Thu, 18 Jul 2019 20:23:40 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Phil Sutter <phil@nwl.cc>
-Cc:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-Subject: Re: [nf PATCH] net: nf_tables: Support auto-loading for inet nat
-Message-ID: <20190718181512.lyx4wdhs3rwesasc@salvia>
-References: <20190717193819.8392-1-phil@nwl.cc>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190717193819.8392-1-phil@nwl.cc>
-User-Agent: NeoMutt/20170113 (1.7.2)
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nf 1/2] netfilter: nft_meta: skip EAGAIN if nft_meta_bridge is not a module
+Date:   Thu, 18 Jul 2019 20:23:36 +0200
+Message-Id: <20190718182337.1625-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.11.0
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Jul 17, 2019 at 09:38:19PM +0200, Phil Sutter wrote:
-> Trying to create an inet family nat chain would not cause
-> nft_chain_nat.ko module to auto-load due to missing module alias. Add a
-> proper one with hard-coded family value 1 for the pseudo-family
-> NFPROTO_INET.
+If it is a module, request this module. Otherwise, if it is compiled
+built-in or not selected, skip this.
 
-Applied, thanks Phil.
+Fixes: 0ef1efd1354d ("netfilter: nf_tables: force module load in case select_ops() returns -EAGAIN")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nft_meta.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
+index 76866f77e343..865888933a83 100644
+--- a/net/netfilter/nft_meta.c
++++ b/net/netfilter/nft_meta.c
+@@ -546,7 +546,7 @@ nft_meta_select_ops(const struct nft_ctx *ctx,
+ 	if (tb[NFTA_META_DREG] && tb[NFTA_META_SREG])
+ 		return ERR_PTR(-EINVAL);
+ 
+-#ifdef CONFIG_NF_TABLES_BRIDGE
++#if defined(CONFIG_NF_TABLES_BRIDGE) && IS_MODULE(CONFIG_NFT_BRIDGE_META)
+ 	if (ctx->family == NFPROTO_BRIDGE)
+ 		return ERR_PTR(-EAGAIN);
+ #endif
+-- 
+2.11.0
+
