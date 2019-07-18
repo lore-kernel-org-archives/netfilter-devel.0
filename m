@@ -2,36 +2,48 @@ Return-Path: <SRS0=fTMW=VP=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AA902C76195
-	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Jul 2019 10:25:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C2250C76191
+	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Jul 2019 11:02:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8364D20880
-	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Jul 2019 10:25:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8B64E2173B
+	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Jul 2019 11:02:04 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=riseup.net header.i=@riseup.net header.b="DBHth1mI"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389532AbfGRKY6 (ORCPT
+        id S1726513AbfGRLCE (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 18 Jul 2019 06:24:58 -0400
-Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:39156 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726482AbfGRKY6 (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 18 Jul 2019 06:24:58 -0400
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.89)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1ho3ap-0001te-US; Thu, 18 Jul 2019 12:24:56 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     <netdev@vger.kernel.org>
-Cc:     <netfilter-devel@vger.kernel.org>, Florian Westphal <fw@strlen.de>,
-        Jason Muskat <jason@metalcastle.ca>
-Subject: [RFC net] net: generate icmp redirects after netfilter forward hook
-Date:   Thu, 18 Jul 2019 12:24:40 +0200
-Message-Id: <20190718102440.8355-1-fw@strlen.de>
-X-Mailer: git-send-email 2.21.0
+        Thu, 18 Jul 2019 07:02:04 -0400
+Received: from mx1.riseup.net ([198.252.153.129]:51928 "EHLO mx1.riseup.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726482AbfGRLCE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 18 Jul 2019 07:02:04 -0400
+Received: from capuchin.riseup.net (capuchin-pn.riseup.net [10.0.1.176])
+        (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+        (Client CN "*.riseup.net", Issuer "COMODO RSA Domain Validation Secure Server CA" (verified OK))
+        by mx1.riseup.net (Postfix) with ESMTPS id 2CEB11B93BA;
+        Thu, 18 Jul 2019 04:02:03 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=riseup.net; s=squak;
+        t=1563447723; bh=H4SToIpaas3hhSWcXdoBvNhaPvPqyYHSOqw2mb1rMCE=;
+        h=From:To:Cc:Subject:Date:From;
+        b=DBHth1mINAollrfvtVnjm3EEFRSQCQj8hm2AbvaOr6/5jY4LBo7x+bmoN6IZ6gBgo
+         Cmc2/j9O5BrriS7g04q6Nn9IzefiXm5GRVCxKK8LHgckAHAs/67aKPKhRYSNgez/77
+         K+9uMeKSrLpAwgsjXDa87I8c6UMut4yNgBWd7uN0=
+X-Riseup-User-ID: 4DB131B3318C0D5B66C7B9F3EB344FB306A980CE668286AF9970BE1609428CD0
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+         by capuchin.riseup.net (Postfix) with ESMTPSA id 35D351207A5;
+        Thu, 18 Jul 2019 04:02:02 -0700 (PDT)
+From:   Fernando Fernandez Mancera <ffmancera@riseup.net>
+To:     netfilter-devel@vger.kernel.org
+Cc:     Fernando Fernandez Mancera <ffmancera@riseup.net>,
+        Florian Westphal <fw@strlen.de>
+Subject: [PATCH nft] src: osf: fix snprintf -Wformat-truncation warning
+Date:   Thu, 18 Jul 2019 13:01:46 +0200
+Message-Id: <20190718110145.13361-1-ffmancera@riseup.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
@@ -40,172 +52,112 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Quoting from
-https://bugzilla.kernel.org/show_bug.cgi?id=204155
+Fedora 30 uses very recent gcc (version 9.1.1 20190503 (Red Hat 9.1.1-1)),
+osf produces following warnings:
 
- ----
-1. Configure an PPPoE interface (e.g., ppp0) with an IPv6 address and
-   a prefixlen of 64; e.g., 2001:0DB8::1/64.
-2. Configure a Netfilter ip6table rule to drop IN to OUT forwarding of traffic
-   across the PPP interface: ip6tables -A FORWARD -i ppp+ -o ppp+ -j DROP
-3. Create a Netfilter NFLOG rule to log all outbound traffic.
-4. From an Internet IPv6 Address initiate TCP traffic to an IPv6 address
-   within the /64 IPv6 address space from step 1, but an IPv6 address that
-   is NOT configured on that interface; e.g., ` nc 2001:0DB8::2 80`
-5. Observe the NFLOG showing the Netfilter ip6table filter FORWARD rule
-   is matched and therefore the traffic should be dropped.
-6. Observe the traffic from step 4, that should have been dropped,
-   resulted in an outbound ICMPv6 Redirect with a source IPv6 address of
-   the PPP interface’s Local Link to the Internet IPv6 Address.
- ----
+-Wformat-truncation warning have been introduced in the version 7.1 of gcc.
+Also, remove a unneeded address check of "tmp + 1" in nf_osf_strchr().
 
-Problem is that we emit the redirect before passing the packet to the
-netfilter FORWARD hook.   The same "problem" exists in ipv4.
+nfnl_osf.c: In function ‘nfnl_osf_load_fingerprints’:
+nfnl_osf.c:292:39: warning: ‘%s’ directive output may be truncated writing
+up to 1023 bytes into a region of size 128 [-Wformat-truncation=]
+  292 |   cnt = snprintf(obuf, sizeof(obuf), "%s,", pbeg);
+      |                                       ^~
+nfnl_osf.c:292:9: note: ‘snprintf’ output between 2 and 1025 bytes into a
+destination of size 128
+  292 |   cnt = snprintf(obuf, sizeof(obuf), "%s,", pbeg);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+nfnl_osf.c:302:46: warning: ‘%s’ directive output may be truncated writing
+up to 1023 bytes into a region of size 32 [-Wformat-truncation=]
+  302 |    cnt = snprintf(f.genre, sizeof(f.genre), "%s", pbeg);
+      |                                              ^~
+nfnl_osf.c:302:10: note: ‘snprintf’ output between 1 and 1024 bytes into a
+destination of size 32
+  302 |    cnt = snprintf(f.genre, sizeof(f.genre), "%s", pbeg);
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+nfnl_osf.c:309:49: warning: ‘%s’ directive output may be truncated writing
+up to 1023 bytes into a region of size 32 [-Wformat-truncation=]
+  309 |   cnt = snprintf(f.version, sizeof(f.version), "%s", pbeg);
+      |                                                 ^~
+nfnl_osf.c:309:9: note: ‘snprintf’ output between 1 and 1024 bytes into a
+destination of size 32
+  309 |   cnt = snprintf(f.version, sizeof(f.version), "%s", pbeg);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+nfnl_osf.c:317:47: warning: ‘%s’ directive output may be truncated writing
+up to 1023 bytes into a region of size 32 [-Wformat-truncation=]
+  317 |       snprintf(f.subtype, sizeof(f.subtype), "%s", pbeg);
+      |                                               ^~
+nfnl_osf.c:317:7: note: ‘snprintf’ output between 1 and 1024 bytes into a
+destination of size 32
+  317 |       snprintf(f.subtype, sizeof(f.subtype), "%s", pbeg);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-There are various counter-arguments to changing this, e.g.  we would
-still emit such redirect when packet is dropped later in the stack
-(e.g. in POSTROUTING or qdisc).
-
-We will also still emit e.g. ICMPV6 PKTTOOBIG error, as that occurs
-before FORWARD as well, and moving that seems wrong (packet
-has to be dropped).
-
-The only argument that I can think of in favor of this change
-is the lack of a proper alternative to filtering such traffic.
-
-PREROUTING would work, but at that point we lack the
-"packet will be forwarded from ppp0 to ppp0" information that
-we only have available in FORWARD.
-
-Compile tested only.
-
-Cc: Jason Muskat <jason@metalcastle.ca>
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Reported-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Fernando Fernandez Mancera <ffmancera@riseup.net>
 ---
- net/ipv4/ip_forward.c | 16 +++++------
- net/ipv6/ip6_output.c | 63 ++++++++++++++++++++++++-------------------
- 2 files changed, 44 insertions(+), 35 deletions(-)
+ src/nfnl_osf.c | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff --git a/net/ipv4/ip_forward.c b/net/ipv4/ip_forward.c
-index 06f6f280b9ff..33c46470c966 100644
---- a/net/ipv4/ip_forward.c
-+++ b/net/ipv4/ip_forward.c
-@@ -69,6 +69,14 @@ static int ip_forward_finish(struct net *net, struct sock *sk, struct sk_buff *s
- 	__IP_INC_STATS(net, IPSTATS_MIB_OUTFORWDATAGRAMS);
- 	__IP_ADD_STATS(net, IPSTATS_MIB_OUTOCTETS, skb->len);
+diff --git a/src/nfnl_osf.c b/src/nfnl_osf.c
+index be3fd81..c99f8f3 100644
+--- a/src/nfnl_osf.c
++++ b/src/nfnl_osf.c
+@@ -81,7 +81,7 @@ static char *nf_osf_strchr(char *ptr, char c)
+ 	if (tmp)
+ 		*tmp = '\0';
  
-+	/*
-+	 *	We now generate an ICMP HOST REDIRECT giving the route
-+	 *	we calculated.
-+	 */
-+	if (IPCB(skb)->flags & IPSKB_DOREDIRECT && !opt->srr &&
-+	    !skb_sec_path(skb))
-+		ip_rt_send_redirect(skb);
-+
- #ifdef CONFIG_NET_SWITCHDEV
- 	if (skb->offload_l3_fwd_mark) {
- 		consume_skb(skb);
-@@ -143,14 +151,6 @@ int ip_forward(struct sk_buff *skb)
- 	/* Decrease ttl after skb cow done */
- 	ip_decrease_ttl(iph);
+-	while (tmp && tmp + 1 && isspace(*(tmp + 1)))
++	while (tmp && isspace(*(tmp + 1)))
+ 		tmp++;
  
--	/*
--	 *	We now generate an ICMP HOST REDIRECT giving the route
--	 *	we calculated.
--	 */
--	if (IPCB(skb)->flags & IPSKB_DOREDIRECT && !opt->srr &&
--	    !skb_sec_path(skb))
--		ip_rt_send_redirect(skb);
--
- 	if (net->ipv4.sysctl_ip_fwd_update_priority)
- 		skb->priority = rt_tos2priority(iph->tos);
- 
-diff --git a/net/ipv6/ip6_output.c b/net/ipv6/ip6_output.c
-index 8e49fd62eea9..2dafd2da2926 100644
---- a/net/ipv6/ip6_output.c
-+++ b/net/ipv6/ip6_output.c
-@@ -383,11 +383,45 @@ static int ip6_forward_proxy_check(struct sk_buff *skb)
- static inline int ip6_forward_finish(struct net *net, struct sock *sk,
- 				     struct sk_buff *skb)
+ 	return tmp;
+@@ -212,7 +212,7 @@ static int osf_load_line(char *buffer, int len, int del,
+ 			 struct netlink_ctx *ctx)
  {
-+	struct inet6_skb_parm *opt = IP6CB(skb);
- 	struct dst_entry *dst = skb_dst(skb);
+ 	int i, cnt = 0;
+-	char obuf[MAXOPTSTRLEN];
++	char obuf[MAXOPTSTRLEN + 1];
+ 	struct nf_osf_user_finger f;
+ 	char *pbeg, *pend;
+ 	struct nlmsghdr *nlh;
+@@ -289,7 +289,7 @@ static int osf_load_line(char *buffer, int len, int del,
+ 	pend = nf_osf_strchr(pbeg, OSFPDEL);
+ 	if (pend) {
+ 		*pend = '\0';
+-		cnt = snprintf(obuf, sizeof(obuf), "%s,", pbeg);
++		cnt = snprintf(obuf, sizeof(obuf), "%.128s", pbeg);
+ 		pbeg = pend + 1;
+ 	}
  
- 	__IP6_INC_STATS(net, ip6_dst_idev(dst), IPSTATS_MIB_OUTFORWDATAGRAMS);
- 	__IP6_ADD_STATS(net, ip6_dst_idev(dst), IPSTATS_MIB_OUTOCTETS, skb->len);
+@@ -297,16 +297,16 @@ static int osf_load_line(char *buffer, int len, int del,
+ 	if (pend) {
+ 		*pend = '\0';
+ 		if (pbeg[0] == '@' || pbeg[0] == '*')
+-			cnt = snprintf(f.genre, sizeof(f.genre), "%s", pbeg + 1);
++			cnt = snprintf(f.genre, sizeof(f.genre), "%.31s", pbeg + 1);
+ 		else
+-			cnt = snprintf(f.genre, sizeof(f.genre), "%s", pbeg);
++			cnt = snprintf(f.genre, sizeof(f.genre), "%.31s", pbeg);
+ 		pbeg = pend + 1;
+ 	}
  
-+	/* IPv6 specs say nothing about it, but it is clear that we cannot
-+	   send redirects to source routed frames.
-+	   We don't send redirects to frames decapsulated from IPsec.
-+	 */
-+	if (IP6CB(skb)->iif == dst->dev->ifindex &&
-+	    opt->srcrt == 0 && !skb_sec_path(skb)) {
-+		struct ipv6hdr *hdr = ipv6_hdr(skb);
-+		struct in6_addr *target = NULL;
-+		struct inet_peer *peer;
-+		struct rt6_info *rt;
-+
-+		/*
-+		 *	incoming and outgoing devices are the same
-+		 *	send a redirect.
-+		 */
-+
-+		rt = (struct rt6_info *) dst;
-+		if (rt->rt6i_flags & RTF_GATEWAY)
-+			target = &rt->rt6i_gateway;
-+		else
-+			target = &hdr->daddr;
-+
-+		peer = inet_getpeer_v6(net->ipv6.peers, &hdr->daddr, 1);
-+
-+		/* Limit redirects both by destination (here)
-+		   and by source (inside ndisc_send_redirect)
-+		 */
-+		if (inet_peer_xrlim_allow(peer, 1*HZ))
-+			ndisc_send_redirect(skb, target);
-+		if (peer)
-+			inet_putpeer(peer);
-+	}
-+
- #ifdef CONFIG_NET_SWITCHDEV
- 	if (skb->offload_l3_fwd_mark) {
- 		consume_skb(skb);
-@@ -498,33 +532,8 @@ int ip6_forward(struct sk_buff *skb)
- 	   send redirects to source routed frames.
- 	   We don't send redirects to frames decapsulated from IPsec.
- 	 */
--	if (IP6CB(skb)->iif == dst->dev->ifindex &&
--	    opt->srcrt == 0 && !skb_sec_path(skb)) {
--		struct in6_addr *target = NULL;
--		struct inet_peer *peer;
--		struct rt6_info *rt;
--
--		/*
--		 *	incoming and outgoing devices are the same
--		 *	send a redirect.
--		 */
--
--		rt = (struct rt6_info *) dst;
--		if (rt->rt6i_flags & RTF_GATEWAY)
--			target = &rt->rt6i_gateway;
--		else
--			target = &hdr->daddr;
--
--		peer = inet_getpeer_v6(net->ipv6.peers, &hdr->daddr, 1);
--
--		/* Limit redirects both by destination (here)
--		   and by source (inside ndisc_send_redirect)
--		 */
--		if (inet_peer_xrlim_allow(peer, 1*HZ))
--			ndisc_send_redirect(skb, target);
--		if (peer)
--			inet_putpeer(peer);
--	} else {
-+	if (IP6CB(skb)->iif != dst->dev->ifindex ||
-+	    opt->srcrt || skb_sec_path(skb)) {
- 		int addrtype = ipv6_addr_type(&hdr->saddr);
+ 	pend = nf_osf_strchr(pbeg, OSFPDEL);
+ 	if (pend) {
+ 		*pend = '\0';
+-		cnt = snprintf(f.version, sizeof(f.version), "%s", pbeg);
++		cnt = snprintf(f.version, sizeof(f.version), "%.31s", pbeg);
+ 		pbeg = pend + 1;
+ 	}
  
- 		/* This check is security critical. */
+@@ -314,7 +314,7 @@ static int osf_load_line(char *buffer, int len, int del,
+ 	if (pend) {
+ 		*pend = '\0';
+ 		cnt =
+-		    snprintf(f.subtype, sizeof(f.subtype), "%s", pbeg);
++		    snprintf(f.subtype, sizeof(f.subtype), "%.31s", pbeg);
+ 		pbeg = pend + 1;
+ 	}
+ 
 -- 
-2.21.0
+2.20.1
 
