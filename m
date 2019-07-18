@@ -2,61 +2,57 @@ Return-Path: <SRS0=fTMW=VP=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2A4C5C76196
-	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Jul 2019 18:26:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 408E8C7618F
+	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Jul 2019 18:27:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id ED0682173B
-	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Jul 2019 18:26:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1CD6F21019
+	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Jul 2019 18:27:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2390515AbfGRS0P (ORCPT
+        id S1728054AbfGRS1R (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 18 Jul 2019 14:26:15 -0400
-Received: from mail.us.es ([193.147.175.20]:38566 "EHLO mail.us.es"
+        Thu, 18 Jul 2019 14:27:17 -0400
+Received: from mail.us.es ([193.147.175.20]:38756 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727812AbfGRS0P (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 18 Jul 2019 14:26:15 -0400
+        id S1726649AbfGRS1R (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 18 Jul 2019 14:27:17 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 5AD9DB5AB1
-        for <netfilter-devel@vger.kernel.org>; Thu, 18 Jul 2019 20:26:12 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 26678B5AA2
+        for <netfilter-devel@vger.kernel.org>; Thu, 18 Jul 2019 20:27:15 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 4B6E1DA704
-        for <netfilter-devel@vger.kernel.org>; Thu, 18 Jul 2019 20:26:12 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 16C94DA708
+        for <netfilter-devel@vger.kernel.org>; Thu, 18 Jul 2019 20:27:15 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 49E239615B; Thu, 18 Jul 2019 20:26:12 +0200 (CEST)
+        id 0C5A4DA704; Thu, 18 Jul 2019 20:27:15 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 8692FDA704;
-        Thu, 18 Jul 2019 20:26:09 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 18DDFDA708;
+        Thu, 18 Jul 2019 20:27:13 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Thu, 18 Jul 2019 20:26:09 +0200 (CEST)
+ Thu, 18 Jul 2019 20:27:13 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from us.es (sys.soleta.eu [212.170.55.40])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
         (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 53B7A4265A31;
-        Thu, 18 Jul 2019 20:26:09 +0200 (CEST)
-Date:   Thu, 18 Jul 2019 20:26:08 +0200
+        by entrada.int (Postfix) with ESMTPSA id EE0AA4265A31;
+        Thu, 18 Jul 2019 20:27:12 +0200 (CEST)
+Date:   Thu, 18 Jul 2019 20:27:12 +0200
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     yangxingwu <xingwu.yang@gmail.com>
-Cc:     wensong@linux-vs.org, horms@verge.net.au, ja@ssi.bg,
-        kadlec@blackhole.kfki.hu, fw@strlen.de, davem@davemloft.net,
-        netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        linux-kernel@vger.kernel.org, joe@perches.com
-Subject: Re: [PATCH v2] net/netfilter: remove unnecessary spaces
-Message-ID: <20190718182608.apjgz5xbpsyvxfp6@salvia>
-References: <20190715082747.fdlpvekbqyhwx724@salvia>
- <20190716021301.27753-1-xingwu.yang@gmail.com>
+To:     Fernando Fernandez Mancera <ffmancera@riseup.net>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf v3] netfilter: synproxy: fix rst sequence number
+ mismatch
+Message-ID: <20190718182712.xvgtkpwx3j5dxdcr@salvia>
+References: <20190715193148.3334-1-ffmancera@riseup.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20190716021301.27753-1-xingwu.yang@gmail.com>
+In-Reply-To: <20190715193148.3334-1-ffmancera@riseup.net>
 User-Agent: NeoMutt/20170113 (1.7.2)
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -64,181 +60,23 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Looks good, but you will have to wait until net-next reopens:
-
-http://vger.kernel.org/~davem/net-next.html
-
-Will keep this in my patchwork until that happens.
-
-Thanks.
-
-On Tue, Jul 16, 2019 at 10:13:01AM +0800, yangxingwu wrote:
-> this patch removes extra spaces
+On Mon, Jul 15, 2019 at 09:31:49PM +0200, Fernando Fernandez Mancera wrote:
+> 14:51:00.024418 IP 192.168.122.1.41462 > netfilter.90: Flags [S], seq
+> 4023580551,
+> 14:51:00.024454 IP netfilter.90 > 192.168.122.1.41462: Flags [S.], seq
+> 727560212, ack 4023580552,
+> 14:51:00.024524 IP 192.168.122.1.41462 > netfilter.90: Flags [.], ack 1,
 > 
-> Signed-off-by: yangxingwu <xingwu.yang@gmail.com>
-> ---
->  net/netfilter/ipset/ip_set_hash_gen.h  | 2 +-
->  net/netfilter/ipset/ip_set_list_set.c  | 2 +-
->  net/netfilter/ipvs/ip_vs_core.c        | 2 +-
->  net/netfilter/ipvs/ip_vs_mh.c          | 4 ++--
->  net/netfilter/ipvs/ip_vs_proto_tcp.c   | 2 +-
->  net/netfilter/nf_conntrack_ftp.c       | 2 +-
->  net/netfilter/nf_conntrack_proto_tcp.c | 2 +-
->  net/netfilter/nfnetlink_log.c          | 4 ++--
->  net/netfilter/nfnetlink_queue.c        | 4 ++--
->  net/netfilter/xt_IDLETIMER.c           | 2 +-
->  10 files changed, 13 insertions(+), 13 deletions(-)
+> Note: here, synproxy will send a SYN to the real server, as the 3whs was
+> completed sucessfully. Instead of a syn/ack that we can intercept, we instead
+> received a reset packet from the real backend, that we forward to the original
+> client. However, we don't use the correct sequence number, so the reset is not
+> effective in closing the connection coming from the client.
 > 
-> diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
-> index 10f6196..eb907d2 100644
-> --- a/net/netfilter/ipset/ip_set_hash_gen.h
-> +++ b/net/netfilter/ipset/ip_set_hash_gen.h
-> @@ -954,7 +954,7 @@ struct htype {
->  		mtype_data_netmask(d, NCIDR_GET(h->nets[j].cidr[0]));
->  #endif
->  		key = HKEY(d, h->initval, t->htable_bits);
-> -		n =  rcu_dereference_bh(hbucket(t, key));
-> +		n = rcu_dereference_bh(hbucket(t, key));
->  		if (!n)
->  			continue;
->  		for (i = 0; i < n->pos; i++) {
-> diff --git a/net/netfilter/ipset/ip_set_list_set.c b/net/netfilter/ipset/ip_set_list_set.c
-> index 8ada318..5c2be76 100644
-> --- a/net/netfilter/ipset/ip_set_list_set.c
-> +++ b/net/netfilter/ipset/ip_set_list_set.c
-> @@ -289,7 +289,7 @@ struct list_set {
->  	if (n &&
->  	    !(SET_WITH_TIMEOUT(set) &&
->  	      ip_set_timeout_expired(ext_timeout(n, set))))
-> -		n =  NULL;
-> +		n = NULL;
->  
->  	e = kzalloc(set->dsize, GFP_ATOMIC);
->  	if (!e)
-> diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-> index 7138556..6b3ae76 100644
-> --- a/net/netfilter/ipvs/ip_vs_core.c
-> +++ b/net/netfilter/ipvs/ip_vs_core.c
-> @@ -615,7 +615,7 @@ int ip_vs_leave(struct ip_vs_service *svc, struct sk_buff *skb,
->  		unsigned int flags = (svc->flags & IP_VS_SVC_F_ONEPACKET &&
->  				      iph->protocol == IPPROTO_UDP) ?
->  				      IP_VS_CONN_F_ONE_PACKET : 0;
-> -		union nf_inet_addr daddr =  { .all = { 0, 0, 0, 0 } };
-> +		union nf_inet_addr daddr = { .all = { 0, 0, 0, 0 } };
->  
->  		/* create a new connection entry */
->  		IP_VS_DBG(6, "%s(): create a cache_bypass entry\n", __func__);
-> diff --git a/net/netfilter/ipvs/ip_vs_mh.c b/net/netfilter/ipvs/ip_vs_mh.c
-> index 94d9d34..da0280c 100644
-> --- a/net/netfilter/ipvs/ip_vs_mh.c
-> +++ b/net/netfilter/ipvs/ip_vs_mh.c
-> @@ -174,8 +174,8 @@ static int ip_vs_mh_populate(struct ip_vs_mh_state *s,
->  		return 0;
->  	}
->  
-> -	table =  kcalloc(BITS_TO_LONGS(IP_VS_MH_TAB_SIZE),
-> -			 sizeof(unsigned long), GFP_KERNEL);
-> +	table = kcalloc(BITS_TO_LONGS(IP_VS_MH_TAB_SIZE),
-> +			sizeof(unsigned long), GFP_KERNEL);
->  	if (!table)
->  		return -ENOMEM;
->  
-> diff --git a/net/netfilter/ipvs/ip_vs_proto_tcp.c b/net/netfilter/ipvs/ip_vs_proto_tcp.c
-> index 915ac82..c7b46a9 100644
-> --- a/net/netfilter/ipvs/ip_vs_proto_tcp.c
-> +++ b/net/netfilter/ipvs/ip_vs_proto_tcp.c
-> @@ -710,7 +710,7 @@ static int __ip_vs_tcp_init(struct netns_ipvs *ipvs, struct ip_vs_proto_data *pd
->  							sizeof(tcp_timeouts));
->  	if (!pd->timeout_table)
->  		return -ENOMEM;
-> -	pd->tcp_state_table =  tcp_states;
-> +	pd->tcp_state_table = tcp_states;
->  	return 0;
->  }
->  
-> diff --git a/net/netfilter/nf_conntrack_ftp.c b/net/netfilter/nf_conntrack_ftp.c
-> index 8c6c11b..26c1ff8 100644
-> --- a/net/netfilter/nf_conntrack_ftp.c
-> +++ b/net/netfilter/nf_conntrack_ftp.c
-> @@ -162,7 +162,7 @@ static int try_rfc959(const char *data, size_t dlen,
->  	if (length == 0)
->  		return 0;
->  
-> -	cmd->u3.ip =  htonl((array[0] << 24) | (array[1] << 16) |
-> +	cmd->u3.ip = htonl((array[0] << 24) | (array[1] << 16) |
->  				    (array[2] << 8) | array[3]);
->  	cmd->u.tcp.port = htons((array[4] << 8) | array[5]);
->  	return length;
-> diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-> index 1e2cc83..48f3a67 100644
-> --- a/net/netfilter/nf_conntrack_proto_tcp.c
-> +++ b/net/netfilter/nf_conntrack_proto_tcp.c
-> @@ -1225,7 +1225,7 @@ static int tcp_to_nlattr(struct sk_buff *skb, struct nlattr *nla,
->  	[CTA_PROTOINFO_TCP_WSCALE_ORIGINAL] = { .type = NLA_U8 },
->  	[CTA_PROTOINFO_TCP_WSCALE_REPLY]    = { .type = NLA_U8 },
->  	[CTA_PROTOINFO_TCP_FLAGS_ORIGINAL]  = { .len = sizeof(struct nf_ct_tcp_flags) },
-> -	[CTA_PROTOINFO_TCP_FLAGS_REPLY]	    = { .len =  sizeof(struct nf_ct_tcp_flags) },
-> +	[CTA_PROTOINFO_TCP_FLAGS_REPLY]	    = { .len = sizeof(struct nf_ct_tcp_flags) },
->  };
->  
->  #define TCP_NLATTR_SIZE	( \
-> diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
-> index 6dee4f9..d69e186 100644
-> --- a/net/netfilter/nfnetlink_log.c
-> +++ b/net/netfilter/nfnetlink_log.c
-> @@ -651,7 +651,7 @@ static void nfulnl_instance_free_rcu(struct rcu_head *head)
->  	/* FIXME: do we want to make the size calculation conditional based on
->  	 * what is actually present?  way more branches and checks, but more
->  	 * memory efficient... */
-> -	size =    nlmsg_total_size(sizeof(struct nfgenmsg))
-> +	size = nlmsg_total_size(sizeof(struct nfgenmsg))
->  		+ nla_total_size(sizeof(struct nfulnl_msg_packet_hdr))
->  		+ nla_total_size(sizeof(u_int32_t))	/* ifindex */
->  		+ nla_total_size(sizeof(u_int32_t))	/* ifindex */
-> @@ -668,7 +668,7 @@ static void nfulnl_instance_free_rcu(struct rcu_head *head)
->  		+ nla_total_size(sizeof(struct nfgenmsg));	/* NLMSG_DONE */
->  
->  	if (in && skb_mac_header_was_set(skb)) {
-> -		size +=   nla_total_size(skb->dev->hard_header_len)
-> +		size += nla_total_size(skb->dev->hard_header_len)
->  			+ nla_total_size(sizeof(u_int16_t))	/* hwtype */
->  			+ nla_total_size(sizeof(u_int16_t));	/* hwlen */
->  	}
-> diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-> index 89750f7..a1ef6e3 100644
-> --- a/net/netfilter/nfnetlink_queue.c
-> +++ b/net/netfilter/nfnetlink_queue.c
-> @@ -394,7 +394,7 @@ static int nfqnl_put_bridge(struct nf_queue_entry *entry, struct sk_buff *skb)
->  	char *secdata = NULL;
->  	u32 seclen = 0;
->  
-> -	size =    nlmsg_total_size(sizeof(struct nfgenmsg))
-> +	size = nlmsg_total_size(sizeof(struct nfgenmsg))
->  		+ nla_total_size(sizeof(struct nfqnl_msg_packet_hdr))
->  		+ nla_total_size(sizeof(u_int32_t))	/* ifindex */
->  		+ nla_total_size(sizeof(u_int32_t))	/* ifindex */
-> @@ -453,7 +453,7 @@ static int nfqnl_put_bridge(struct nf_queue_entry *entry, struct sk_buff *skb)
->  	}
->  
->  	if (queue->flags & NFQA_CFG_F_UID_GID) {
-> -		size +=  (nla_total_size(sizeof(u_int32_t))	/* uid */
-> +		size += (nla_total_size(sizeof(u_int32_t))	/* uid */
->  			+ nla_total_size(sizeof(u_int32_t)));	/* gid */
->  	}
->  
-> diff --git a/net/netfilter/xt_IDLETIMER.c b/net/netfilter/xt_IDLETIMER.c
-> index 9cec9ea..f56d3ed 100644
-> --- a/net/netfilter/xt_IDLETIMER.c
-> +++ b/net/netfilter/xt_IDLETIMER.c
-> @@ -283,7 +283,7 @@ static int __init idletimer_tg_init(void)
->  
->  	idletimer_tg_kobj = &idletimer_tg_device->kobj;
->  
-> -	err =  xt_register_target(&idletimer_tg);
-> +	err = xt_register_target(&idletimer_tg);
->  	if (err < 0) {
->  		pr_debug("couldn't register xt target\n");
->  		goto out_dev;
-> -- 
-> 1.8.3.1
-> 
+> 14:51:00.024550 IP netfilter.90 > 192.168.122.1.41462: Flags [R.], seq
+> 3567407084,
+> 14:51:00.231196 IP 192.168.122.1.41462 > netfilter.90: Flags [.], ack 1,
+> 14:51:00.647911 IP 192.168.122.1.41462 > netfilter.90: Flags [.], ack 1,
+> 14:51:01.474395 IP 192.168.122.1.41462 > netfilter.90: Flags [.], ack 1,
+
+Applied, thanks Fernando.
