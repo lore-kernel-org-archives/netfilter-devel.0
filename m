@@ -2,134 +2,74 @@ Return-Path: <SRS0=fTMW=VP=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A50CC76196
-	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Jul 2019 12:44:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6B758C76191
+	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Jul 2019 12:56:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3CAF321019
-	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Jul 2019 12:44:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3C74A2173E
+	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Jul 2019 12:56:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2390276AbfGRMoP (ORCPT
+        id S2390256AbfGRM4n (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 18 Jul 2019 08:44:15 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:35396 "EHLO orbyte.nwl.cc"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727794AbfGRMoO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 18 Jul 2019 08:44:14 -0400
-Received: from localhost ([::1]:48486 helo=tatos)
-        by orbyte.nwl.cc with esmtp (Exim 4.91)
-        (envelope-from <phil@nwl.cc>)
-        id 1ho5ld-0005Av-Hw; Thu, 18 Jul 2019 14:44:13 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
+        Thu, 18 Jul 2019 08:56:43 -0400
+Received: from vxsic-smtp02hc14.srv.cat ([46.16.61.94]:48713 "EHLO
+        vxsys-smtpclusterma-04.srv.cat" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1726715AbfGRM4m (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 18 Jul 2019 08:56:42 -0400
+Received: from [192.168.4.111] (242.red-83-48-67.staticip.rima-tde.net [83.48.67.242])
+        by vxsys-smtpclusterma-04.srv.cat (Postfix) with ESMTPA id 8A0E52451E;
+        Thu, 18 Jul 2019 14:56:40 +0200 (CEST)
+Subject: Re: [PATCH v5 1/3] meta: Introduce new conditions 'time', 'day' and
+ 'hour'
+To:     Florian Westphal <fw@strlen.de>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH] xtables-save: Use argv[0] as program name
-Date:   Thu, 18 Jul 2019 14:44:09 +0200
-Message-Id: <20190718124409.587-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.22.0
+References: <20190707205531.6628-1-a@juaristi.eus>
+ <20190714231958.wtyiusnqpazmwbgl@breakpoint.cc>
+ <20190714233401.frxc63fky53yfqft@breakpoint.cc>
+From:   Ander Juaristi <a@juaristi.eus>
+Message-ID: <0d7fec35-cf5b-1bdc-81de-99dd74e79621@juaristi.eus>
+Date:   Thu, 18 Jul 2019 14:56:34 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.3.0
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <20190714233401.frxc63fky53yfqft@breakpoint.cc>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Don't hard-code program names. This also fixes for bogus 'xtables-save'
-name which is no longer used.
+On 15/7/19 1:34, Florian Westphal wrote:
+>> Even when relying on kernel time zone for everything, I don't see
+>> how we can support cross-day ("22:23-00:42") matching, as the range is
+>> invalid.
+> 
+> And that as well of course, swap and invert should work just fine.
+> 
+>> Second problem:
+>> Only solution I see is to change kernel patch to rely on
+>> sys_tz, just like xt_time, with all the pain this brings.
+> 
+> This stands, as the weekday is computed in the kernel, we will
+> need to bring sys_tz into this on the kernel side, the current
+> code uses UTC so we could be several hours off.
+> 
+> This can be restricted to the 'DAY' case of course.
+> 
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- iptables/xtables-save.c | 21 +++++++++++----------
- 1 file changed, 11 insertions(+), 10 deletions(-)
+I see... Thank you. You saved me hours of work figuring this out.
 
-diff --git a/iptables/xtables-save.c b/iptables/xtables-save.c
-index 98e004af4b1a4..b8d19705771ed 100644
---- a/iptables/xtables-save.c
-+++ b/iptables/xtables-save.c
-@@ -9,6 +9,7 @@
- #include "config.h"
- #include <getopt.h>
- #include <errno.h>
-+#include <libgen.h>
- #include <stdio.h>
- #include <fcntl.h>
- #include <stdlib.h>
-@@ -80,8 +81,8 @@ __do_output(struct nft_handle *h, const char *tablename, bool counters)
- 
- 	time_t now = time(NULL);
- 
--	printf("# Generated by xtables-save v%s on %s",
--	       PACKAGE_VERSION, ctime(&now));
-+	printf("# Generated by %s v%s on %s", prog_name,
-+	       prog_vers, ctime(&now));
- 	printf("*%s\n", tablename);
- 
- 	/* Dump out chain names first,
-@@ -122,7 +123,7 @@ do_output(struct nft_handle *h, const char *tablename, bool counters)
-  * rule
-  */
- static int
--xtables_save_main(int family, const char *progname, int argc, char *argv[])
-+xtables_save_main(int family, int argc, char *argv[])
- {
- 	const struct builtin_table *tables;
- 	const char *tablename = NULL;
-@@ -133,7 +134,7 @@ xtables_save_main(int family, const char *progname, int argc, char *argv[])
- 	FILE *file = NULL;
- 	int ret, c;
- 
--	xtables_globals.program_name = progname;
-+	xtables_globals.program_name = basename(*argv);;
- 	c = xtables_init_all(&xtables_globals, family);
- 	if (c < 0) {
- 		fprintf(stderr, "%s/%s Failed to initialize xtables\n",
-@@ -237,12 +238,12 @@ xtables_save_main(int family, const char *progname, int argc, char *argv[])
- 
- int xtables_ip4_save_main(int argc, char *argv[])
- {
--	return xtables_save_main(NFPROTO_IPV4, "iptables-save", argc, argv);
-+	return xtables_save_main(NFPROTO_IPV4, argc, argv);
- }
- 
- int xtables_ip6_save_main(int argc, char *argv[])
- {
--	return xtables_save_main(NFPROTO_IPV6, "ip6tables-save", argc, argv);
-+	return xtables_save_main(NFPROTO_IPV6, argc, argv);
- }
- 
- static int __ebt_save(struct nft_handle *h, const char *tablename, bool counters)
-@@ -266,8 +267,8 @@ static int __ebt_save(struct nft_handle *h, const char *tablename, bool counters
- 
- 	if (first) {
- 		now = time(NULL);
--		printf("# Generated by ebtables-save v%s on %s",
--		       PACKAGE_VERSION, ctime(&now));
-+		printf("# Generated by %s v%s on %s", prog_name,
-+		       prog_vers, ctime(&now));
- 		first = false;
- 	}
- 	printf("*%s\n", tablename);
-@@ -307,7 +308,7 @@ int xtables_eb_save_main(int argc_, char *argv_[])
- 		}
- 	}
- 
--	xtables_globals.program_name = "ebtables-save";
-+	xtables_globals.program_name = basename(*argv_);
- 	c = xtables_init_all(&xtables_globals, h.family);
- 	if (c < 0) {
- 		fprintf(stderr, "%s/%s Failed to initialize xtables\n",
-@@ -361,7 +362,7 @@ int xtables_arp_save_main(int argc, char **argv)
- 	};
- 	int c;
- 
--	xtables_globals.program_name = "arptables-save";
-+	xtables_globals.program_name = basename(*argv);;
- 	c = xtables_init_all(&xtables_globals, h.family);
- 	if (c < 0) {
- 		fprintf(stderr, "%s/%s Failed to initialize xtables\n",
--- 
-2.22.0
+So, for the TIME case we just swap left and right, and for the DAY case,
+just add (tz_minuteswest * 60) to the seconds before breaking it into 
+day/mon/year?
+
+And what does tz_dsttime do? gettimeofday(2) man says it is there for 
+historical reasons and should be ignored on Linux. But I don't know what 
+is it for in the kernel.
 
