@@ -6,30 +6,29 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D77E1C76192
-	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Jul 2019 03:37:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E1E71C76192
+	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Jul 2019 03:38:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B82B62082F
-	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Jul 2019 03:37:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C368B2077C
+	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Jul 2019 03:38:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389193AbfGRDhf (ORCPT
+        id S2389258AbfGRDie (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 17 Jul 2019 23:37:35 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:33874 "EHLO orbyte.nwl.cc"
+        Wed, 17 Jul 2019 23:38:34 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:33890 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1732510AbfGRDhf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 17 Jul 2019 23:37:35 -0400
-Received: from localhost ([::1]:46964 helo=tatos)
+        id S1732313AbfGRDie (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 17 Jul 2019 23:38:34 -0400
+Received: from localhost ([::1]:46980 helo=tatos)
         by orbyte.nwl.cc with esmtp (Exim 4.91)
         (envelope-from <phil@nwl.cc>)
-        id 1hnxEb-0008PD-NM; Thu, 18 Jul 2019 05:37:33 +0200
+        id 1hnxFZ-0008Pj-76; Thu, 18 Jul 2019 05:38:33 +0200
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Florian Westphal <fwestpha@redhat.com>,
-        netfilter-devel@vger.kernel.org
-Subject: [nf PATCH] net: nf_tables: Make nft_meta expression more robust
-Date:   Thu, 18 Jul 2019 05:37:29 +0200
-Message-Id: <20190718033729.12438-1-phil@nwl.cc>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [libnftnl PATCH] expr: meta: Make NFT_META_{I,O}IFKIND known
+Date:   Thu, 18 Jul 2019 05:38:29 +0200
+Message-Id: <20190718033829.12647-1-phil@nwl.cc>
 X-Mailer: git-send-email 2.22.0
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -38,116 +37,59 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-nft_meta_get_eval()'s tendency to bail out setting NFT_BREAK verdict in
-situations where required data is missing breaks inverted checks
-like e.g.:
-
-| meta iifname != eth0 accept
-
-This rule will never match if there is no input interface (or it is not
-known) which is not intuitive and, what's worse, breaks consistency of
-iptables-nft with iptables-legacy.
-
-Fix this by falling back to placing a value in dreg which never matches
-(avoiding accidental matches):
-
-{I,O}IF:
-	Use invalid ifindex value zero.
-
-{I,O}IFNAME, {I,O}IFKIND:
-	Use an empty string which is neither a valid interface name nor
-	kind.
-
-{I,O}IFTYPE:
-	Use ARPHRD_VOID (0xFFFF).
+This only affects debug output, the key was properly handled in
+productive code paths already.
 
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- net/netfilter/nft_meta.c | 45 +++++++++++++++++-----------------------
- 1 file changed, 19 insertions(+), 26 deletions(-)
+ include/linux/netfilter/nf_tables.h | 4 ++++
+ src/expr/meta.c                     | 4 +++-
+ 2 files changed, 7 insertions(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
-index 76866f77e3435..ee3b54692cc7e 100644
---- a/net/netfilter/nft_meta.c
-+++ b/net/netfilter/nft_meta.c
-@@ -11,6 +11,7 @@
- #include <linux/netlink.h>
- #include <linux/netfilter.h>
- #include <linux/netfilter/nf_tables.h>
-+#include <linux/if_arp.h>
- #include <linux/in.h>
- #include <linux/ip.h>
- #include <linux/ipv6.h>
-@@ -60,34 +61,22 @@ void nft_meta_get_eval(const struct nft_expr *expr,
- 		*dest = skb->mark;
- 		break;
- 	case NFT_META_IIF:
--		if (in == NULL)
--			goto err;
--		*dest = in->ifindex;
-+		*dest = in ? in->ifindex : 0;
- 		break;
- 	case NFT_META_OIF:
--		if (out == NULL)
--			goto err;
--		*dest = out->ifindex;
-+		*dest = out ? out->ifindex : 0;
- 		break;
- 	case NFT_META_IIFNAME:
--		if (in == NULL)
--			goto err;
--		strncpy((char *)dest, in->name, IFNAMSIZ);
-+		strncpy((char *)dest, in ? in->name : "", IFNAMSIZ);
- 		break;
- 	case NFT_META_OIFNAME:
--		if (out == NULL)
--			goto err;
--		strncpy((char *)dest, out->name, IFNAMSIZ);
-+		strncpy((char *)dest, out ? out->name : "", IFNAMSIZ);
- 		break;
- 	case NFT_META_IIFTYPE:
--		if (in == NULL)
--			goto err;
--		nft_reg_store16(dest, in->type);
-+		nft_reg_store16(dest, in ? in->type : ARPHRD_VOID);
- 		break;
- 	case NFT_META_OIFTYPE:
--		if (out == NULL)
--			goto err;
--		nft_reg_store16(dest, out->type);
-+		nft_reg_store16(dest, out ? out->type : ARPHRD_VOID);
- 		break;
- 	case NFT_META_SKUID:
- 		sk = skb_to_full_sk(skb);
-@@ -216,16 +205,20 @@ void nft_meta_get_eval(const struct nft_expr *expr,
- 		nft_reg_store8(dest, secpath_exists(skb));
- 		break;
+diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
+index df6c706ccf093..8a9cd4cb3fa05 100644
+--- a/include/linux/netfilter/nf_tables.h
++++ b/include/linux/netfilter/nf_tables.h
+@@ -793,6 +793,8 @@ enum nft_exthdr_attributes {
+  * @NFT_META_CGROUP: socket control group (skb->sk->sk_classid)
+  * @NFT_META_PRANDOM: a 32bit pseudo-random number
+  * @NFT_META_SECPATH: boolean, secpath_exists (!!skb->sp)
++ * @NFT_META_IIFKIND: packet input interface kind name (dev->rtnl_link_ops->kind)
++ * @NFT_META_OIFKIND: packet output interface kind name (dev->rtnl_link_ops->kind)
+  */
+ enum nft_meta_keys {
+ 	NFT_META_LEN,
+@@ -821,6 +823,8 @@ enum nft_meta_keys {
+ 	NFT_META_CGROUP,
+ 	NFT_META_PRANDOM,
+ 	NFT_META_SECPATH,
++	NFT_META_IIFKIND,
++	NFT_META_OIFKIND,
+ };
+ 
+ /**
+diff --git a/src/expr/meta.c b/src/expr/meta.c
+index ffcc8967b109d..f1984f6eb5c5b 100644
+--- a/src/expr/meta.c
++++ b/src/expr/meta.c
+@@ -22,7 +22,7 @@
+ #include <libnftnl/rule.h>
+ 
+ #ifndef NFT_META_MAX
+-#define NFT_META_MAX (NFT_META_SECPATH + 1)
++#define NFT_META_MAX (NFT_META_OIFKIND + 1)
  #endif
--	case NFT_META_IIFKIND:
--		if (in == NULL || in->rtnl_link_ops == NULL)
--			goto err;
--		strncpy((char *)dest, in->rtnl_link_ops->kind, IFNAMSIZ);
-+	case NFT_META_IIFKIND: {
-+		const struct rtnl_link_ops *rl_ops =
-+			in ? in->rtnl_link_ops : NULL;
-+
-+		strncpy((char *)dest, rl_ops ? rl_ops->kind : "", IFNAMSIZ);
- 		break;
--	case NFT_META_OIFKIND:
--		if (out == NULL || out->rtnl_link_ops == NULL)
--			goto err;
--		strncpy((char *)dest, out->rtnl_link_ops->kind, IFNAMSIZ);
-+	}
-+	case NFT_META_OIFKIND: {
-+		const struct rtnl_link_ops *rl_ops =
-+			out ? out->rtnl_link_ops : NULL;
-+
-+		strncpy((char *)dest, rl_ops ? rl_ops->kind : "", IFNAMSIZ);
- 		break;
-+	}
- 	default:
- 		WARN_ON(1);
- 		goto err;
+ 
+ struct nftnl_expr_meta {
+@@ -159,6 +159,8 @@ static const char *meta_key2str_array[NFT_META_MAX] = {
+ 	[NFT_META_CGROUP]	= "cgroup",
+ 	[NFT_META_PRANDOM]	= "prandom",
+ 	[NFT_META_SECPATH]	= "secpath",
++	[NFT_META_IIFKIND]	= "iifkind",
++	[NFT_META_OIFKIND]	= "oifkind",
+ };
+ 
+ static const char *meta_key2str(uint8_t key)
 -- 
 2.22.0
 
