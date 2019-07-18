@@ -6,68 +6,106 @@ X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5632DC76195
-	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Jul 2019 19:39:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 564BAC76196
+	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Jul 2019 20:36:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2C488208C0
-	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Jul 2019 19:39:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 38EA821019
+	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Jul 2019 20:36:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728022AbfGRTjl (ORCPT
+        id S2391189AbfGRUgR (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 18 Jul 2019 15:39:41 -0400
-Received: from shards.monkeyblade.net ([23.128.96.9]:54732 "EHLO
+        Thu, 18 Jul 2019 16:36:17 -0400
+Received: from shards.monkeyblade.net ([23.128.96.9]:55430 "EHLO
         shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727687AbfGRTjl (ORCPT
+        with ESMTP id S1727687AbfGRUgR (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 18 Jul 2019 15:39:41 -0400
+        Thu, 18 Jul 2019 16:36:17 -0400
 Received: from localhost (unknown [IPv6:2601:601:9f80:35cd::d71])
         (using TLSv1 with cipher AES256-SHA (256/256 bits))
         (Client did not present a certificate)
         (Authenticated sender: davem-davemloft)
-        by shards.monkeyblade.net (Postfix) with ESMTPSA id 75B9515280425;
-        Thu, 18 Jul 2019 12:39:40 -0700 (PDT)
-Date:   Thu, 18 Jul 2019 12:39:39 -0700 (PDT)
-Message-Id: <20190718.123939.886909513952061536.davem@davemloft.net>
+        by shards.monkeyblade.net (Postfix) with ESMTPSA id B8A3815280D71;
+        Thu, 18 Jul 2019 13:36:16 -0700 (PDT)
+Date:   Thu, 18 Jul 2019 13:36:14 -0700 (PDT)
+Message-Id: <20190718.133614.1555276747207613273.davem@davemloft.net>
 To:     pablo@netfilter.org
 Cc:     netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
         jiri@resnulli.us, jakub.kicinski@netronome.com, pshelar@ovn.org
 Subject: Re: [PATCH net,v4 0/4] flow_offload fixes
 From:   David Miller <davem@davemloft.net>
-In-Reply-To: <20190718175931.13529-1-pablo@netfilter.org>
+In-Reply-To: <20190718.123939.886909513952061536.davem@davemloft.net>
 References: <20190718175931.13529-1-pablo@netfilter.org>
+        <20190718.123939.886909513952061536.davem@davemloft.net>
 X-Mailer: Mew version 6.8 on Emacs 26.1
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-X-Greylist: Sender succeeded SMTP AUTH, not delayed by milter-greylist-4.5.12 (shards.monkeyblade.net [149.20.54.216]); Thu, 18 Jul 2019 12:39:40 -0700 (PDT)
+Content-Type: Text/Plain; charset=iso-8859-7
+Content-Transfer-Encoding: base64
+X-Greylist: Sender succeeded SMTP AUTH, not delayed by milter-greylist-4.5.12 (shards.monkeyblade.net [149.20.54.216]); Thu, 18 Jul 2019 13:36:17 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Thu, 18 Jul 2019 19:59:27 +0200
-
-> The following patchset contains fixes for the flow_offload infrastructure:
-> 
-> 1) Fix possible build breakage before patch 3/4. Both the flow_offload
->    infrastructure and OVS define the flow_stats structure. Patch 3/4 in
->    this batch indirectly pulls in the flow_stats definition from
->    include/net/flow_offload.h into OVS, leading to structure redefinition
->    compile-time errors.
-> 
-> 2) Remove netns parameter from flow_block_cb_alloc(), this is not
->    required as Jiri suggests. The flow_block_cb_is_busy() function uses
->    the per-driver block list to check for used blocks which was the
->    original intention for this parameter.
-> 
-> 3) Rename tc_setup_cb_t to flow_setup_cb_t. This callback is not
->    exclusive of tc anymore, this might confuse the reader as Jiri
->    suggests, fix this semantic inconsistency.
-> 
-> 4) Fix block sharing feature: Add flow_block structure and use it,
->    update flow_block_cb_lookup() to use this flow_block object.
-> 
-> Please, apply, thanks.
-
-Series applied, thank you.
+RnJvbTogRGF2aWQgTWlsbGVyIDxkYXZlbUBkYXZlbWxvZnQubmV0Pg0KRGF0ZTogVGh1LCAxOCBK
+dWwgMjAxOSAxMjozOTozOSAtMDcwMCAoUERUKQ0KDQo+IFNlcmllcyBhcHBsaWVkLCB0aGFuayB5
+b3UuDQoNCkFjdHVhbGx5LCBJIGhhZCB0byByZXZlcnQsIHRoaXMgYnJlYWtzIHRoZSBidWlsZDoN
+Cg0KSW4gZmlsZSBpbmNsdWRlZCBmcm9tIC4vaW5jbHVkZS9uZXQvbmV0ZmlsdGVyL25mX3RhYmxl
+c19vZmZsb2FkLmg6NCwNCiAgICAgICAgICAgICAgICAgZnJvbSA8Y29tbWFuZC1saW5lPjoNCi4v
+aW5jbHVkZS9uZXQvZmxvd19vZmZsb2FkLmg6IEluIGZ1bmN0aW9uIKFmbG93X2Jsb2NrX2NiX2Fk
+ZKI6DQouL2luY2x1ZGUvbmV0L2Zsb3dfb2ZmbG9hZC5oOjI5NzoyOiBlcnJvcjogaW1wbGljaXQg
+ZGVjbGFyYXRpb24gb2YgZnVuY3Rpb24goWxpc3RfYWRkX3RhaWyiIFstV2Vycm9yPWltcGxpY2l0
+LWZ1bmN0aW9uLWRlY2xhcmF0aW9uXQ0KICBsaXN0X2FkZF90YWlsKCZibG9ja19jYi0+bGlzdCwg
+Jm9mZmxvYWQtPmNiX2xpc3QpOw0KICBefn5+fn5+fn5+fn5+DQouL2luY2x1ZGUvbmV0L2Zsb3df
+b2ZmbG9hZC5oOiBJbiBmdW5jdGlvbiChZmxvd19ibG9ja19jYl9yZW1vdmWiOg0KLi9pbmNsdWRl
+L25ldC9mbG93X29mZmxvYWQuaDozMDM6MjogZXJyb3I6IGltcGxpY2l0IGRlY2xhcmF0aW9uIG9m
+IGZ1bmN0aW9uIKFsaXN0X21vdmWiIFstV2Vycm9yPWltcGxpY2l0LWZ1bmN0aW9uLWRlY2xhcmF0
+aW9uXQ0KICBsaXN0X21vdmUoJmJsb2NrX2NiLT5saXN0LCAmb2ZmbG9hZC0+Y2JfbGlzdCk7DQog
+IF5+fn5+fn5+fg0KLi9pbmNsdWRlL25ldC9mbG93X29mZmxvYWQuaDogSW4gZnVuY3Rpb24goWZs
+b3dfYmxvY2tfaW5pdKI6DQouL2luY2x1ZGUvbmV0L2Zsb3dfb2ZmbG9hZC5oOjM0NjoyOiBlcnJv
+cjogaW1wbGljaXQgZGVjbGFyYXRpb24gb2YgZnVuY3Rpb24goUlOSVRfTElTVF9IRUFEojsgZGlk
+IHlvdSBtZWFuIKFYQVRUUl9MSVNUX01BWKI/IFstV2Vycm9yPWltcGxpY2l0LWZ1bmN0aW9uLWRl
+Y2xhcmF0aW9uXQ0KICBJTklUX0xJU1RfSEVBRCgmZmxvd19ibG9jay0+Y2JfbGlzdCk7DQogIF5+
+fn5+fn5+fn5+fn5+DQogIFhBVFRSX0xJU1RfTUFYDQpJbiBmaWxlIGluY2x1ZGVkIGZyb20gLi9p
+bmNsdWRlL25ldC9uZXRmaWx0ZXIvbmZfdGFibGVzLmg6NSwNCiAgICAgICAgICAgICAgICAgZnJv
+bSAuL2luY2x1ZGUvbmV0L25ldGZpbHRlci9uZl90YWJsZXNfb2ZmbG9hZC5oOjUsDQogICAgICAg
+ICAgICAgICAgIGZyb20gPGNvbW1hbmQtbGluZT46DQouL2luY2x1ZGUvbGludXgvbGlzdC5oOiBB
+dCB0b3AgbGV2ZWw6DQouL2luY2x1ZGUvbGludXgvbGlzdC5oOjI2OjIwOiB3YXJuaW5nOiBjb25m
+bGljdGluZyB0eXBlcyBmb3IgoUlOSVRfTElTVF9IRUFEog0KIHN0YXRpYyBpbmxpbmUgdm9pZCBJ
+TklUX0xJU1RfSEVBRChzdHJ1Y3QgbGlzdF9oZWFkICpsaXN0KQ0KICAgICAgICAgICAgICAgICAg
+ICBefn5+fn5+fn5+fn5+fg0KLi9pbmNsdWRlL2xpbnV4L2xpc3QuaDoyNjoyMDogZXJyb3I6IHN0
+YXRpYyBkZWNsYXJhdGlvbiBvZiChSU5JVF9MSVNUX0hFQUSiIGZvbGxvd3Mgbm9uLXN0YXRpYyBk
+ZWNsYXJhdGlvbg0KSW4gZmlsZSBpbmNsdWRlZCBmcm9tIC4vaW5jbHVkZS9uZXQvbmV0ZmlsdGVy
+L25mX3RhYmxlc19vZmZsb2FkLmg6NCwNCiAgICAgICAgICAgICAgICAgZnJvbSA8Y29tbWFuZC1s
+aW5lPjoNCi4vaW5jbHVkZS9uZXQvZmxvd19vZmZsb2FkLmg6MzQ2OjI6IG5vdGU6IHByZXZpb3Vz
+IGltcGxpY2l0IGRlY2xhcmF0aW9uIG9mIKFJTklUX0xJU1RfSEVBRKIgd2FzIGhlcmUNCiAgSU5J
+VF9MSVNUX0hFQUQoJmZsb3dfYmxvY2stPmNiX2xpc3QpOw0KICBefn5+fn5+fn5+fn5+fg0KSW4g
+ZmlsZSBpbmNsdWRlZCBmcm9tIC4vaW5jbHVkZS9uZXQvbmV0ZmlsdGVyL25mX3RhYmxlcy5oOjUs
+DQogICAgICAgICAgICAgICAgIGZyb20gLi9pbmNsdWRlL25ldC9uZXRmaWx0ZXIvbmZfdGFibGVz
+X29mZmxvYWQuaDo1LA0KICAgICAgICAgICAgICAgICBmcm9tIDxjb21tYW5kLWxpbmU+Og0KLi9p
+bmNsdWRlL2xpbnV4L2xpc3QuaDo5MToyMDogd2FybmluZzogY29uZmxpY3RpbmcgdHlwZXMgZm9y
+IKFsaXN0X2FkZF90YWlsog0KIHN0YXRpYyBpbmxpbmUgdm9pZCBsaXN0X2FkZF90YWlsKHN0cnVj
+dCBsaXN0X2hlYWQgKm5ldywgc3RydWN0IGxpc3RfaGVhZCAqaGVhZCkNCiAgICAgICAgICAgICAg
+ICAgICAgXn5+fn5+fn5+fn5+fg0KLi9pbmNsdWRlL2xpbnV4L2xpc3QuaDo5MToyMDogZXJyb3I6
+IHN0YXRpYyBkZWNsYXJhdGlvbiBvZiChbGlzdF9hZGRfdGFpbKIgZm9sbG93cyBub24tc3RhdGlj
+IGRlY2xhcmF0aW9uDQpJbiBmaWxlIGluY2x1ZGVkIGZyb20gLi9pbmNsdWRlL25ldC9uZXRmaWx0
+ZXIvbmZfdGFibGVzX29mZmxvYWQuaDo0LA0KICAgICAgICAgICAgICAgICBmcm9tIDxjb21tYW5k
+LWxpbmU+Og0KLi9pbmNsdWRlL25ldC9mbG93X29mZmxvYWQuaDoyOTc6Mjogbm90ZTogcHJldmlv
+dXMgaW1wbGljaXQgZGVjbGFyYXRpb24gb2YgoWxpc3RfYWRkX3RhaWyiIHdhcyBoZXJlDQogIGxp
+c3RfYWRkX3RhaWwoJmJsb2NrX2NiLT5saXN0LCAmb2ZmbG9hZC0+Y2JfbGlzdCk7DQogIF5+fn5+
+fn5+fn5+fn4NCkluIGZpbGUgaW5jbHVkZWQgZnJvbSAuL2luY2x1ZGUvbmV0L25ldGZpbHRlci9u
+Zl90YWJsZXMuaDo1LA0KICAgICAgICAgICAgICAgICBmcm9tIC4vaW5jbHVkZS9uZXQvbmV0Zmls
+dGVyL25mX3RhYmxlc19vZmZsb2FkLmg6NSwNCiAgICAgICAgICAgICAgICAgZnJvbSA8Y29tbWFu
+ZC1saW5lPjoNCi4vaW5jbHVkZS9saW51eC9saXN0Lmg6MTk5OjIwOiB3YXJuaW5nOiBjb25mbGlj
+dGluZyB0eXBlcyBmb3IgoWxpc3RfbW92ZaINCiBzdGF0aWMgaW5saW5lIHZvaWQgbGlzdF9tb3Zl
+KHN0cnVjdCBsaXN0X2hlYWQgKmxpc3QsIHN0cnVjdCBsaXN0X2hlYWQgKmhlYWQpDQogICAgICAg
+ICAgICAgICAgICAgIF5+fn5+fn5+fg0KLi9pbmNsdWRlL2xpbnV4L2xpc3QuaDoxOTk6MjA6IGVy
+cm9yOiBzdGF0aWMgZGVjbGFyYXRpb24gb2YgoWxpc3RfbW92ZaIgZm9sbG93cyBub24tc3RhdGlj
+IGRlY2xhcmF0aW9uDQpJbiBmaWxlIGluY2x1ZGVkIGZyb20gLi9pbmNsdWRlL25ldC9uZXRmaWx0
+ZXIvbmZfdGFibGVzX29mZmxvYWQuaDo0LA0KICAgICAgICAgICAgICAgICBmcm9tIDxjb21tYW5k
+LWxpbmU+Og0KLi9pbmNsdWRlL25ldC9mbG93X29mZmxvYWQuaDozMDM6Mjogbm90ZTogcHJldmlv
+dXMgaW1wbGljaXQgZGVjbGFyYXRpb24gb2YgoWxpc3RfbW92ZaIgd2FzIGhlcmUNCiAgbGlzdF9t
+b3ZlKCZibG9ja19jYi0+bGlzdCwgJm9mZmxvYWQtPmNiX2xpc3QpOw0KICBefn5+fn5+fn4NCmNj
+MTogc29tZSB3YXJuaW5ncyBiZWluZyB0cmVhdGVkIGFzIGVycm9ycw0KbWFrZVsxXTogKioqIFtz
+Y3JpcHRzL01ha2VmaWxlLmJ1aWxkOjMwNDogaW5jbHVkZS9uZXQvbmV0ZmlsdGVyL25mX3RhYmxl
+c19vZmZsb2FkLmguc10gRXJyb3IgMQ0KbWFrZTogKioqIFtNYWtlZmlsZToxMDc3OiBpbmNsdWRl
+XSBFcnJvciAyDQptYWtlOiAqKiogV2FpdGluZyBmb3IgdW5maW5pc2hlZCBqb2JzLi4uLg0K
