@@ -1,119 +1,292 @@
-Return-Path: <SRS0=fTMW=VP=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=2jko=VQ=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D2D96C7618F
-	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Jul 2019 21:53:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 26742C7618F
+	for <netfilter-devel@archiver.kernel.org>; Fri, 19 Jul 2019 01:50:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A67B820659
-	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Jul 2019 21:53:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DC8832085A
+	for <netfilter-devel@archiver.kernel.org>; Fri, 19 Jul 2019 01:50:11 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=paul-moore-com.20150623.gappssmtp.com header.i=@paul-moore-com.20150623.gappssmtp.com header.b="BDDC63Ab"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="MCiBd15j"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2391648AbfGRVxQ (ORCPT
+        id S1726248AbfGSBuG (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 18 Jul 2019 17:53:16 -0400
-Received: from mail-lf1-f65.google.com ([209.85.167.65]:37201 "EHLO
-        mail-lf1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728140AbfGRVxM (ORCPT
+        Thu, 18 Jul 2019 21:50:06 -0400
+Received: from mail-wm1-f66.google.com ([209.85.128.66]:37967 "EHLO
+        mail-wm1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726015AbfGSBuG (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 18 Jul 2019 17:53:12 -0400
-Received: by mail-lf1-f65.google.com with SMTP id c9so20266029lfh.4
-        for <netfilter-devel@vger.kernel.org>; Thu, 18 Jul 2019 14:53:10 -0700 (PDT)
+        Thu, 18 Jul 2019 21:50:06 -0400
+Received: by mail-wm1-f66.google.com with SMTP id s15so6056444wmj.3;
+        Thu, 18 Jul 2019 18:50:03 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=paul-moore-com.20150623.gappssmtp.com; s=20150623;
+        d=gmail.com; s=20161025;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=RhzTrt+KngzjicFbTv3vZ6r7DsUfT24hW3ZTH7kCo04=;
-        b=BDDC63AbbksIGaPLCaZ+G2vZ+QlUC0Y4xmaYnnx1w9Sn0c/YSKCOyE3F3bipx/OPNo
-         bY+GCUelVN9YgKRNdiGTQc7e9dxHE8srVeTFP4z3kHDTgyTHdIJxEgeYAGwEg5uRlCR4
-         SJCBe/KsTQXTy1ZbjaHtMM7hkizkZLcw0c9zfxcr0RvysIbU+uTnupNfETlIA5tdojdb
-         eaHLpJsvTbxt6FmfE6Rqf0hRmvzcJp0R71+FTYwBZjMbwYRjqxFe4jlSYdDpAlcz6a+v
-         gHInJ6oZUdBaKuk2fyjd8yd5aDlkZ2MjSHc//o4Z3Oextu3SQoPtQvrnS0hkfu0OOV0b
-         pBqg==
+         :cc:content-transfer-encoding;
+        bh=WDwkNs81FUZFHWGd/sO39vfFP66wdXfNWwzEjhrHbj0=;
+        b=MCiBd15jvjEJxA6x34rhULLLwlTLLYgBXB+F4E6kdkulT7exik970qGy3KFN+BrIxG
+         tZbn6fTjLGy8kP5z+5gGu87VsdN3pCJAeFV5kl4DAjMFIL07g+jtKuY1wJaJCxZC+UvI
+         KpBqmMEkmulOtVwCTW1Pa5fd/yTOoud7D1aEk1p/dPU/wRQsaNs/IBEpalc/mtmbPBmD
+         TH17O/iFCqh6MJxn4s2MvD4Ob72eD3rtN5xa4RxjpMYmyEADilsnpFWUObTViF3vHl5U
+         dHzUjMboThyY73PJtRcjpCIUMGTR1oCSpbx2cwxnL9ItBBcHPznMwS5SEm8e55lcLFCc
+         Wg+A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=RhzTrt+KngzjicFbTv3vZ6r7DsUfT24hW3ZTH7kCo04=;
-        b=WYEqgGeJNlyTeL7rdFdmvXOLH97dfpqbhU3S3CeDmWMX5jgxK6BFRG9j90KC/CkXZV
-         2getStBV+1bSDZCd/fhAWT6d+KYyZIECv8veeXY8zuY16MpZ+Oki04jpZtc8YD7+8e7/
-         39C1dcayfP/mET98PAMbQerV6KOp7awcK4I03WaGKmNgxgOp/fGJZgQm9ZKSfJmeZvb7
-         hazBuTm/WEDYquC2qI4jVXPGIb7eRxrqgbkDT8qFzp/3lswsJan6/6aJo5yJH1rhd9D3
-         pPdZG7tkCY8LTb+w0y7/5FfSaOKrN1hQWqChU5SHMuxv/LH4ZvQM5WseN9Ow1IjXz9XE
-         up9w==
-X-Gm-Message-State: APjAAAWNzG+zCYoXX45ADMqoptG/LvxLZtv5g/+C6dIk5TErydzh6Fer
-        il38JxKQnMwclLgTnvmWcLOoC3crCrZr4JZIyw==
-X-Google-Smtp-Source: APXvYqyGCCJtInWCDaYi60JZY3NOkc1TuPq3hehijvo4gTpiQWjSYxIYBAQx3HMzGAWPk3gWvXKxriSLAdaQ7algVzQ=
-X-Received: by 2002:a19:8093:: with SMTP id b141mr22767615lfd.137.1563486789899;
- Thu, 18 Jul 2019 14:53:09 -0700 (PDT)
+         :message-id:subject:to:cc:content-transfer-encoding;
+        bh=WDwkNs81FUZFHWGd/sO39vfFP66wdXfNWwzEjhrHbj0=;
+        b=N7dqCHgoD+YsNRqtj5SbbnZZySSwTYWSut0KWzz3QRxZTr52ZFsZhVP+hGSkZ7zEe+
+         zpeBdxLeo68PaobzKyoDkrpetbYRW3aybg2Q9MvGp9laSXzc9RN2FnhgYKS1DEbwt1YV
+         pP2ML9/4KHNdQ1uWUuwsOQ4/3795vbpu0U13y3hJfP96REbKtmiAlZwrqP4ULxmbeJHM
+         GSP5i6G4Cdf1WGqZIssupKUqrP2i/ZAQ8asQg05Caa4ymqLRkJshRaEdi8tCe6/OwBWt
+         F7jCZQ6vroT2udxRwLGJHkcEeIiDaUNq0tlV2Tdv9wKwl8CIoG/H8RCVMWzouOO1yGu6
+         EEPg==
+X-Gm-Message-State: APjAAAVAnUETxp6Rz7D+OqIpdoTaZVNVvCzPagEbSSIhg6y02pXm4z2u
+        D5cWBylGk0fWXFwJUUXlx/p6b5WSjziF5vzpCQc=
+X-Google-Smtp-Source: APXvYqwFpSPd5I8fcpSYcyID6XJJzY27kjDCAIabLWTM7Nm4GYBgCiQMRA74Jj/XtFnJSc2+Z5ynxPfRIk4fui/EmSw=
+X-Received: by 2002:a1c:1b97:: with SMTP id b145mr42414616wmb.158.1563501002993;
+ Thu, 18 Jul 2019 18:50:02 -0700 (PDT)
 MIME-Version: 1.0
-References: <20190529153427.GB8959@cisco> <CAHC9VhSF3AjErX37+eeusJ7+XRw8yuPsmqBTRwc9EVoRBh_3Tw@mail.gmail.com>
- <20190529222835.GD8959@cisco> <CAHC9VhRS66VGtug3fq3RTGHDvfGmBJG6yRJ+iMxm3cxnNF-zJw@mail.gmail.com>
- <20190530170913.GA16722@mail.hallyn.com> <CAHC9VhThLiQzGYRUWmSuVfOC6QCDmA75BDB7Eg7V8HX4x7ymQg@mail.gmail.com>
- <20190708180558.5bar6ripag3sdadl@madcap2.tricolour.ca> <CAHC9VhRTT7JWqNnynvK04wKerjc-3UJ6R1uPtjCAPVr_tW-7MA@mail.gmail.com>
- <20190716220320.sotbfqplgdructg7@madcap2.tricolour.ca> <CAHC9VhScHizB2r5q3T5s0P3jkYdvzBPPudDksosYFp_TO7W9-Q@mail.gmail.com>
- <20190718005145.eshekqfr3navqqiy@madcap2.tricolour.ca>
-In-Reply-To: <20190718005145.eshekqfr3navqqiy@madcap2.tricolour.ca>
-From:   Paul Moore <paul@paul-moore.com>
-Date:   Thu, 18 Jul 2019 17:52:58 -0400
-Message-ID: <CAHC9VhTYV02ws3QcezER5cY+Xt+tExcJEO-dumTDx=FXGFh3nw@mail.gmail.com>
-Subject: Re: [PATCH ghak90 V6 02/10] audit: add container id
-To:     Richard Guy Briggs <rgb@redhat.com>
-Cc:     "Serge E. Hallyn" <serge@hallyn.com>,
-        Tycho Andersen <tycho@tycho.ws>,
-        containers@lists.linux-foundation.org, linux-api@vger.kernel.org,
-        Linux-Audit Mailing List <linux-audit@redhat.com>,
-        linux-fsdevel@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        sgrubb@redhat.com, omosnace@redhat.com, dhowells@redhat.com,
-        simo@redhat.com, Eric Paris <eparis@parisplace.org>,
-        ebiederm@xmission.com, nhorman@tuxdriver.com
+References: <20190715082747.fdlpvekbqyhwx724@salvia> <20190716021301.27753-1-xingwu.yang@gmail.com>
+ <20190718182608.apjgz5xbpsyvxfp6@salvia>
+In-Reply-To: <20190718182608.apjgz5xbpsyvxfp6@salvia>
+From:   yangxingwu <xingwu.yang@gmail.com>
+Date:   Fri, 19 Jul 2019 09:49:51 +0800
+Message-ID: <CA+7U5Jvb-ZRV3yveyDh-=-uD_aYCHBDTvdbxZ6Mrxj8Mf0oXuw@mail.gmail.com>
+Subject: Re: [PATCH v2] net/netfilter: remove unnecessary spaces
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     wensong@linux-vs.org, Simon Horman <horms@verge.net.au>, ja@ssi.bg,
+        kadlec@blackhole.kfki.hu, fw@strlen.de, davem@davemloft.net,
+        netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        linux-kernel@vger.kernel.org, Joe Perches <joe@perches.com>
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Jul 17, 2019 at 8:52 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> On 2019-07-16 19:30, Paul Moore wrote:
+Thansk Pablo
 
-...
-
-> > We can trust capable(CAP_AUDIT_CONTROL) for enforcing audit container
-> > ID policy, we can not trust ns_capable(CAP_AUDIT_CONTROL).
+Pablo Neira Ayuso <pablo@netfilter.org> =E4=BA=8E2019=E5=B9=B47=E6=9C=8819=
+=E6=97=A5=E5=91=A8=E4=BA=94 =E4=B8=8A=E5=8D=882:26=E5=86=99=E9=81=93=EF=BC=
+=9A
 >
-> Ok.  So does a process in a non-init user namespace have two (or more)
-> sets of capabilities stored in creds, one in the init_user_ns, and one
-> in current_user_ns?  Or does it get stripped of all its capabilities in
-> init_user_ns once it has its own set in current_user_ns?  If the former,
-> then we can use capable().  If the latter, we need another mechanism, as
-> you have suggested might be needed.
-
-Unfortunately I think the problem is that ultimately we need to allow
-any container orchestrator that has been given privileges to manage
-the audit container ID to also grant that privilege to any of the
-child process/containers it manages.  I don't believe we can do that
-with capabilities based on the code I've looked at, and the
-discussions I've had, but if you find a way I would leave to hear it.
-
-> If some random unprivileged user wants to fire up a container
-> orchestrator/engine in his own user namespace, then audit needs to be
-> namespaced.  Can we safely discard this scenario for now?
-
-I think the only time we want to allow a container orchestrator to
-manage the audit container ID is if it has been granted that privilege
-by someone who has that privilege already.  In the zero-container, or
-single-level of containers, case this is relatively easy, and we can
-accomplish it using CAP_AUDIT_CONTROL as the privilege.  If we start
-nesting container orchestrators it becomes more complicated as we need
-to be able to support granting and inheriting this privilege in a
-manner; this is why I suggested a new mechanism *may* be necessary.
-
---
-paul moore
-www.paul-moore.com
+> Looks good, but you will have to wait until net-next reopens:
+>
+> http://vger.kernel.org/~davem/net-next.html
+>
+> Will keep this in my patchwork until that happens.
+>
+> Thanks.
+>
+> On Tue, Jul 16, 2019 at 10:13:01AM +0800, yangxingwu wrote:
+> > this patch removes extra spaces
+> >
+> > Signed-off-by: yangxingwu <xingwu.yang@gmail.com>
+> > ---
+> >  net/netfilter/ipset/ip_set_hash_gen.h  | 2 +-
+> >  net/netfilter/ipset/ip_set_list_set.c  | 2 +-
+> >  net/netfilter/ipvs/ip_vs_core.c        | 2 +-
+> >  net/netfilter/ipvs/ip_vs_mh.c          | 4 ++--
+> >  net/netfilter/ipvs/ip_vs_proto_tcp.c   | 2 +-
+> >  net/netfilter/nf_conntrack_ftp.c       | 2 +-
+> >  net/netfilter/nf_conntrack_proto_tcp.c | 2 +-
+> >  net/netfilter/nfnetlink_log.c          | 4 ++--
+> >  net/netfilter/nfnetlink_queue.c        | 4 ++--
+> >  net/netfilter/xt_IDLETIMER.c           | 2 +-
+> >  10 files changed, 13 insertions(+), 13 deletions(-)
+> >
+> > diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipse=
+t/ip_set_hash_gen.h
+> > index 10f6196..eb907d2 100644
+> > --- a/net/netfilter/ipset/ip_set_hash_gen.h
+> > +++ b/net/netfilter/ipset/ip_set_hash_gen.h
+> > @@ -954,7 +954,7 @@ struct htype {
+> >               mtype_data_netmask(d, NCIDR_GET(h->nets[j].cidr[0]));
+> >  #endif
+> >               key =3D HKEY(d, h->initval, t->htable_bits);
+> > -             n =3D  rcu_dereference_bh(hbucket(t, key));
+> > +             n =3D rcu_dereference_bh(hbucket(t, key));
+> >               if (!n)
+> >                       continue;
+> >               for (i =3D 0; i < n->pos; i++) {
+> > diff --git a/net/netfilter/ipset/ip_set_list_set.c b/net/netfilter/ipse=
+t/ip_set_list_set.c
+> > index 8ada318..5c2be76 100644
+> > --- a/net/netfilter/ipset/ip_set_list_set.c
+> > +++ b/net/netfilter/ipset/ip_set_list_set.c
+> > @@ -289,7 +289,7 @@ struct list_set {
+> >       if (n &&
+> >           !(SET_WITH_TIMEOUT(set) &&
+> >             ip_set_timeout_expired(ext_timeout(n, set))))
+> > -             n =3D  NULL;
+> > +             n =3D NULL;
+> >
+> >       e =3D kzalloc(set->dsize, GFP_ATOMIC);
+> >       if (!e)
+> > diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs=
+_core.c
+> > index 7138556..6b3ae76 100644
+> > --- a/net/netfilter/ipvs/ip_vs_core.c
+> > +++ b/net/netfilter/ipvs/ip_vs_core.c
+> > @@ -615,7 +615,7 @@ int ip_vs_leave(struct ip_vs_service *svc, struct s=
+k_buff *skb,
+> >               unsigned int flags =3D (svc->flags & IP_VS_SVC_F_ONEPACKE=
+T &&
+> >                                     iph->protocol =3D=3D IPPROTO_UDP) ?
+> >                                     IP_VS_CONN_F_ONE_PACKET : 0;
+> > -             union nf_inet_addr daddr =3D  { .all =3D { 0, 0, 0, 0 } }=
+;
+> > +             union nf_inet_addr daddr =3D { .all =3D { 0, 0, 0, 0 } };
+> >
+> >               /* create a new connection entry */
+> >               IP_VS_DBG(6, "%s(): create a cache_bypass entry\n", __fun=
+c__);
+> > diff --git a/net/netfilter/ipvs/ip_vs_mh.c b/net/netfilter/ipvs/ip_vs_m=
+h.c
+> > index 94d9d34..da0280c 100644
+> > --- a/net/netfilter/ipvs/ip_vs_mh.c
+> > +++ b/net/netfilter/ipvs/ip_vs_mh.c
+> > @@ -174,8 +174,8 @@ static int ip_vs_mh_populate(struct ip_vs_mh_state =
+*s,
+> >               return 0;
+> >       }
+> >
+> > -     table =3D  kcalloc(BITS_TO_LONGS(IP_VS_MH_TAB_SIZE),
+> > -                      sizeof(unsigned long), GFP_KERNEL);
+> > +     table =3D kcalloc(BITS_TO_LONGS(IP_VS_MH_TAB_SIZE),
+> > +                     sizeof(unsigned long), GFP_KERNEL);
+> >       if (!table)
+> >               return -ENOMEM;
+> >
+> > diff --git a/net/netfilter/ipvs/ip_vs_proto_tcp.c b/net/netfilter/ipvs/=
+ip_vs_proto_tcp.c
+> > index 915ac82..c7b46a9 100644
+> > --- a/net/netfilter/ipvs/ip_vs_proto_tcp.c
+> > +++ b/net/netfilter/ipvs/ip_vs_proto_tcp.c
+> > @@ -710,7 +710,7 @@ static int __ip_vs_tcp_init(struct netns_ipvs *ipvs=
+, struct ip_vs_proto_data *pd
+> >                                                       sizeof(tcp_timeou=
+ts));
+> >       if (!pd->timeout_table)
+> >               return -ENOMEM;
+> > -     pd->tcp_state_table =3D  tcp_states;
+> > +     pd->tcp_state_table =3D tcp_states;
+> >       return 0;
+> >  }
+> >
+> > diff --git a/net/netfilter/nf_conntrack_ftp.c b/net/netfilter/nf_conntr=
+ack_ftp.c
+> > index 8c6c11b..26c1ff8 100644
+> > --- a/net/netfilter/nf_conntrack_ftp.c
+> > +++ b/net/netfilter/nf_conntrack_ftp.c
+> > @@ -162,7 +162,7 @@ static int try_rfc959(const char *data, size_t dlen=
+,
+> >       if (length =3D=3D 0)
+> >               return 0;
+> >
+> > -     cmd->u3.ip =3D  htonl((array[0] << 24) | (array[1] << 16) |
+> > +     cmd->u3.ip =3D htonl((array[0] << 24) | (array[1] << 16) |
+> >                                   (array[2] << 8) | array[3]);
+> >       cmd->u.tcp.port =3D htons((array[4] << 8) | array[5]);
+> >       return length;
+> > diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_=
+conntrack_proto_tcp.c
+> > index 1e2cc83..48f3a67 100644
+> > --- a/net/netfilter/nf_conntrack_proto_tcp.c
+> > +++ b/net/netfilter/nf_conntrack_proto_tcp.c
+> > @@ -1225,7 +1225,7 @@ static int tcp_to_nlattr(struct sk_buff *skb, str=
+uct nlattr *nla,
+> >       [CTA_PROTOINFO_TCP_WSCALE_ORIGINAL] =3D { .type =3D NLA_U8 },
+> >       [CTA_PROTOINFO_TCP_WSCALE_REPLY]    =3D { .type =3D NLA_U8 },
+> >       [CTA_PROTOINFO_TCP_FLAGS_ORIGINAL]  =3D { .len =3D sizeof(struct =
+nf_ct_tcp_flags) },
+> > -     [CTA_PROTOINFO_TCP_FLAGS_REPLY]     =3D { .len =3D  sizeof(struct=
+ nf_ct_tcp_flags) },
+> > +     [CTA_PROTOINFO_TCP_FLAGS_REPLY]     =3D { .len =3D sizeof(struct =
+nf_ct_tcp_flags) },
+> >  };
+> >
+> >  #define TCP_NLATTR_SIZE      ( \
+> > diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_lo=
+g.c
+> > index 6dee4f9..d69e186 100644
+> > --- a/net/netfilter/nfnetlink_log.c
+> > +++ b/net/netfilter/nfnetlink_log.c
+> > @@ -651,7 +651,7 @@ static void nfulnl_instance_free_rcu(struct rcu_hea=
+d *head)
+> >       /* FIXME: do we want to make the size calculation conditional bas=
+ed on
+> >        * what is actually present?  way more branches and checks, but m=
+ore
+> >        * memory efficient... */
+> > -     size =3D    nlmsg_total_size(sizeof(struct nfgenmsg))
+> > +     size =3D nlmsg_total_size(sizeof(struct nfgenmsg))
+> >               + nla_total_size(sizeof(struct nfulnl_msg_packet_hdr))
+> >               + nla_total_size(sizeof(u_int32_t))     /* ifindex */
+> >               + nla_total_size(sizeof(u_int32_t))     /* ifindex */
+> > @@ -668,7 +668,7 @@ static void nfulnl_instance_free_rcu(struct rcu_hea=
+d *head)
+> >               + nla_total_size(sizeof(struct nfgenmsg));      /* NLMSG_=
+DONE */
+> >
+> >       if (in && skb_mac_header_was_set(skb)) {
+> > -             size +=3D   nla_total_size(skb->dev->hard_header_len)
+> > +             size +=3D nla_total_size(skb->dev->hard_header_len)
+> >                       + nla_total_size(sizeof(u_int16_t))     /* hwtype=
+ */
+> >                       + nla_total_size(sizeof(u_int16_t));    /* hwlen =
+*/
+> >       }
+> > diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_=
+queue.c
+> > index 89750f7..a1ef6e3 100644
+> > --- a/net/netfilter/nfnetlink_queue.c
+> > +++ b/net/netfilter/nfnetlink_queue.c
+> > @@ -394,7 +394,7 @@ static int nfqnl_put_bridge(struct nf_queue_entry *=
+entry, struct sk_buff *skb)
+> >       char *secdata =3D NULL;
+> >       u32 seclen =3D 0;
+> >
+> > -     size =3D    nlmsg_total_size(sizeof(struct nfgenmsg))
+> > +     size =3D nlmsg_total_size(sizeof(struct nfgenmsg))
+> >               + nla_total_size(sizeof(struct nfqnl_msg_packet_hdr))
+> >               + nla_total_size(sizeof(u_int32_t))     /* ifindex */
+> >               + nla_total_size(sizeof(u_int32_t))     /* ifindex */
+> > @@ -453,7 +453,7 @@ static int nfqnl_put_bridge(struct nf_queue_entry *=
+entry, struct sk_buff *skb)
+> >       }
+> >
+> >       if (queue->flags & NFQA_CFG_F_UID_GID) {
+> > -             size +=3D  (nla_total_size(sizeof(u_int32_t))     /* uid =
+*/
+> > +             size +=3D (nla_total_size(sizeof(u_int32_t))      /* uid =
+*/
+> >                       + nla_total_size(sizeof(u_int32_t)));   /* gid */
+> >       }
+> >
+> > diff --git a/net/netfilter/xt_IDLETIMER.c b/net/netfilter/xt_IDLETIMER.=
+c
+> > index 9cec9ea..f56d3ed 100644
+> > --- a/net/netfilter/xt_IDLETIMER.c
+> > +++ b/net/netfilter/xt_IDLETIMER.c
+> > @@ -283,7 +283,7 @@ static int __init idletimer_tg_init(void)
+> >
+> >       idletimer_tg_kobj =3D &idletimer_tg_device->kobj;
+> >
+> > -     err =3D  xt_register_target(&idletimer_tg);
+> > +     err =3D xt_register_target(&idletimer_tg);
+> >       if (err < 0) {
+> >               pr_debug("couldn't register xt target\n");
+> >               goto out_dev;
+> > --
+> > 1.8.3.1
+> >
