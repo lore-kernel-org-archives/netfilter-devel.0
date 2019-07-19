@@ -2,196 +2,124 @@ Return-Path: <SRS0=2jko=VQ=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.8 required=3.0
-	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PULL_REQUEST,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A764C7618F
-	for <netfilter-devel@archiver.kernel.org>; Fri, 19 Jul 2019 16:45:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AC747C76197
+	for <netfilter-devel@archiver.kernel.org>; Fri, 19 Jul 2019 16:45:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1B75C2186A
-	for <netfilter-devel@archiver.kernel.org>; Fri, 19 Jul 2019 16:45:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 900562186A
+	for <netfilter-devel@archiver.kernel.org>; Fri, 19 Jul 2019 16:45:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730070AbfGSQp3 (ORCPT
+        id S1731873AbfGSQpc (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 19 Jul 2019 12:45:29 -0400
-Received: from mail.us.es ([193.147.175.20]:49374 "EHLO mail.us.es"
+        Fri, 19 Jul 2019 12:45:32 -0400
+Received: from mail.us.es ([193.147.175.20]:49420 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727717AbfGSQp3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 19 Jul 2019 12:45:29 -0400
+        id S1728449AbfGSQpb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 19 Jul 2019 12:45:31 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 28979DA738
-        for <netfilter-devel@vger.kernel.org>; Fri, 19 Jul 2019 18:45:27 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id CA44CBAEE2
+        for <netfilter-devel@vger.kernel.org>; Fri, 19 Jul 2019 18:45:29 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id F3A071150D8
-        for <netfilter-devel@vger.kernel.org>; Fri, 19 Jul 2019 18:45:26 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A921DDA704
+        for <netfilter-devel@vger.kernel.org>; Fri, 19 Jul 2019 18:45:29 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id F2DEF1150CC; Fri, 19 Jul 2019 18:45:26 +0200 (CEST)
+        id 9D853115107; Fri, 19 Jul 2019 18:45:29 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 7433F1150CE;
-        Fri, 19 Jul 2019 18:45:22 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id DBE84DA704;
+        Fri, 19 Jul 2019 18:45:24 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Fri, 19 Jul 2019 18:45:22 +0200 (CEST)
+ Fri, 19 Jul 2019 18:45:24 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (unknown [47.60.47.94])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id DAA4B4265A2F;
-        Fri, 19 Jul 2019 18:45:21 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 5CF0340705C4;
+        Fri, 19 Jul 2019 18:45:24 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 00/14] Netfilter fixes for net
-Date:   Fri, 19 Jul 2019 18:45:03 +0200
-Message-Id: <20190719164517.29496-1-pablo@netfilter.org>
+Subject: [PATCH 01/14] netfilter: nfnetlink: avoid deadlock due to synchronous request_module
+Date:   Fri, 19 Jul 2019 18:45:04 +0200
+Message-Id: <20190719164517.29496-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
+In-Reply-To: <20190719164517.29496-1-pablo@netfilter.org>
+References: <20190719164517.29496-1-pablo@netfilter.org>
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The following patchset contains Netfilter fixes for net:
+From: Florian Westphal <fw@strlen.de>
 
-1) Fix a deadlock when module is requested via netlink_bind()
-   in nfnetlink, from Florian Westphal.
+Thomas and Juliana report a deadlock when running:
 
-2) Fix ipt_rpfilter and ip6t_rpfilter with VRF, from Miaohe Lin.
+(rmmod nf_conntrack_netlink/xfrm_user)
 
-3) Skip master comparison in SIP helper to fix expectation clash
-   under two valid scenarios, from xiao ruizhu.
+  conntrack -e NEW -E &
+  modprobe -v xfrm_user
 
-4) Remove obsolete comments in nf_conntrack codebase, from
-   Yonatan Goldschmidt.
+They provided following analysis:
 
-5) Fix redirect extension module autoload, from Christian Hesse.
+conntrack -e NEW -E
+    netlink_bind()
+        netlink_lock_table() -> increases "nl_table_users"
+            nfnetlink_bind()
+            # does not unlock the table as it's locked by netlink_bind()
+                __request_module()
+                    call_usermodehelper_exec()
 
-6) Fix incorrect mssg option sent to client in synproxy,
-   from Fernando Fernandez.
+This triggers "modprobe nf_conntrack_netlink" from kernel, netlink_bind()
+won't return until modprobe process is done.
 
-7) Fix incorrect window calculations in TCP conntrack, from
-   Florian Westphal.
+"modprobe xfrm_user":
+    xfrm_user_init()
+        register_pernet_subsys()
+            -> grab pernet_ops_rwsem
+                ..
+                netlink_table_grab()
+                    calls schedule() as "nl_table_users" is non-zero
 
-8) Don't bail out when updating basechain policy due to recent
-   offload works, also from Florian.
+so modprobe is blocked because netlink_bind() increased
+nl_table_users while also holding pernet_ops_rwsem.
 
-9) Allow symhash to use modulus 1 as other hash extensions do,
-   from Laura.Garcia.
+"modprobe nf_conntrack_netlink" runs and inits nf_conntrack_netlink:
+    ctnetlink_init()
+        register_pernet_subsys()
+            -> blocks on "pernet_ops_rwsem" thanks to xfrm_user module
 
-10) Missing NAT chain module autoload for the inet family,
-    from Phil Sutter.
+both modprobe processes wait on one another -- neither can make
+progress.
 
-11) Fix missing adjustment of TCP RST packet in synproxy,
-    from Fernando Fernandez.
+Switch netlink_bind() to "nowait" modprobe -- this releases the netlink
+table lock, which then allows both modprobe instances to complete.
 
-12) Skip EAGAIN path when nft_meta_bridge is built-in or
-    not selected.
+Reported-by: Thomas Jarosch <thomas.jarosch@intra2net.com>
+Reported-by: Juliana Rodrigueiro <juliana.rodrigueiro@intra2net.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nfnetlink.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-13) Conntrack bridge does not depend on nf_tables_bridge.
+diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
+index 92077d459109..4abbb452cf6c 100644
+--- a/net/netfilter/nfnetlink.c
++++ b/net/netfilter/nfnetlink.c
+@@ -578,7 +578,7 @@ static int nfnetlink_bind(struct net *net, int group)
+ 	ss = nfnetlink_get_subsys(type << 8);
+ 	rcu_read_unlock();
+ 	if (!ss)
+-		request_module("nfnetlink-subsys-%d", type);
++		request_module_nowait("nfnetlink-subsys-%d", type);
+ 	return 0;
+ }
+ #endif
+-- 
+2.11.0
 
-14) Turn NF_TABLES_BRIDGE into tristate to fix possible
-    link break of nft_meta_bridge, from Arnd Bergmann.
-
-You can pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
-
-Thanks.
-
-----------------------------------------------------------------
-
-The following changes since commit 76104862cccaeaa84fdd23e39f2610a96296291c:
-
-  sky2: Disable MSI on P5W DH Deluxe (2019-07-14 13:45:54 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git HEAD
-
-for you to fetch changes up to dfee0e99bcff718fa14d973c41f161220fdcb7d5:
-
-  netfilter: bridge: make NF_TABLES_BRIDGE tristate (2019-07-19 18:08:14 +0200)
-
-----------------------------------------------------------------
-Arnd Bergmann (1):
-      netfilter: bridge: make NF_TABLES_BRIDGE tristate
-
-Christian Hesse (1):
-      netfilter: nf_tables: fix module autoload for redir
-
-Fernando Fernandez Mancera (2):
-      netfilter: synproxy: fix erroneous tcp mss option
-      netfilter: synproxy: fix rst sequence number mismatch
-
-Florian Westphal (3):
-      netfilter: nfnetlink: avoid deadlock due to synchronous request_module
-      netfilter: conntrack: always store window size un-scaled
-      netfilter: nf_tables: don't fail when updating base chain policy
-
-Laura Garcia Liebana (1):
-      netfilter: nft_hash: fix symhash with modulus one
-
-Miaohe Lin (1):
-      netfilter: Fix rpfilter dropping vrf packets by mistake
-
-Pablo Neira Ayuso (2):
-      netfilter: nft_meta: skip EAGAIN if nft_meta_bridge is not a module
-      netfilter: bridge: NF_CONNTRACK_BRIDGE does not depend on NF_TABLES_BRIDGE
-
-Phil Sutter (1):
-      netfilter: nf_tables: Support auto-loading for inet nat
-
-Yonatan Goldschmidt (1):
-      netfilter: Update obsolete comments referring to ip_conntrack
-
-xiao ruizhu (1):
-      netfilter: nf_conntrack_sip: fix expectation clash
-
- include/linux/netfilter/nf_conntrack_h323_asn1.h |  3 +--
- include/net/netfilter/nf_conntrack_expect.h      | 12 ++++++++---
- include/net/netfilter/nf_conntrack_synproxy.h    |  1 +
- net/bridge/netfilter/Kconfig                     |  6 +++---
- net/ipv4/netfilter/ipt_CLUSTERIP.c               |  4 ++--
- net/ipv4/netfilter/ipt_SYNPROXY.c                |  2 ++
- net/ipv4/netfilter/ipt_rpfilter.c                |  1 +
- net/ipv4/netfilter/nf_nat_h323.c                 | 12 +++++------
- net/ipv6/netfilter/ip6t_SYNPROXY.c               |  2 ++
- net/ipv6/netfilter/ip6t_rpfilter.c               |  8 ++++++--
- net/netfilter/Kconfig                            |  6 ++----
- net/netfilter/ipvs/ip_vs_nfct.c                  |  2 +-
- net/netfilter/nf_conntrack_amanda.c              |  2 +-
- net/netfilter/nf_conntrack_broadcast.c           |  2 +-
- net/netfilter/nf_conntrack_core.c                |  4 +---
- net/netfilter/nf_conntrack_expect.c              | 26 +++++++++++++++++-------
- net/netfilter/nf_conntrack_ftp.c                 |  2 +-
- net/netfilter/nf_conntrack_h323_asn1.c           |  5 ++---
- net/netfilter/nf_conntrack_h323_main.c           | 18 ++++++++--------
- net/netfilter/nf_conntrack_irc.c                 |  2 +-
- net/netfilter/nf_conntrack_netlink.c             |  4 ++--
- net/netfilter/nf_conntrack_pptp.c                |  4 ++--
- net/netfilter/nf_conntrack_proto_gre.c           |  2 --
- net/netfilter/nf_conntrack_proto_icmp.c          |  2 +-
- net/netfilter/nf_conntrack_proto_tcp.c           |  8 +++++---
- net/netfilter/nf_conntrack_sane.c                |  2 +-
- net/netfilter/nf_conntrack_sip.c                 | 10 ++++++---
- net/netfilter/nf_conntrack_tftp.c                |  2 +-
- net/netfilter/nf_nat_amanda.c                    |  2 +-
- net/netfilter/nf_nat_core.c                      |  2 +-
- net/netfilter/nf_nat_ftp.c                       |  2 +-
- net/netfilter/nf_nat_irc.c                       |  2 +-
- net/netfilter/nf_nat_sip.c                       |  8 +++++---
- net/netfilter/nf_nat_tftp.c                      |  2 +-
- net/netfilter/nf_synproxy_core.c                 |  8 ++++----
- net/netfilter/nf_tables_api.c                    |  2 ++
- net/netfilter/nfnetlink.c                        |  2 +-
- net/netfilter/nft_chain_filter.c                 |  2 +-
- net/netfilter/nft_chain_nat.c                    |  3 +++
- net/netfilter/nft_ct.c                           |  2 +-
- net/netfilter/nft_hash.c                         |  2 +-
- net/netfilter/nft_meta.c                         |  2 +-
- net/netfilter/nft_redir.c                        |  2 +-
- net/netfilter/nft_synproxy.c                     |  2 ++
- 44 files changed, 117 insertions(+), 82 deletions(-)
 
