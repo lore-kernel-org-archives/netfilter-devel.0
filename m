@@ -4,47 +4,48 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9DBD2C76196
-	for <netfilter-devel@archiver.kernel.org>; Fri, 19 Jul 2019 16:45:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 032A2C7618F
+	for <netfilter-devel@archiver.kernel.org>; Fri, 19 Jul 2019 16:46:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8097E2186A
-	for <netfilter-devel@archiver.kernel.org>; Fri, 19 Jul 2019 16:45:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D9AA52186A
+	for <netfilter-devel@archiver.kernel.org>; Fri, 19 Jul 2019 16:46:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729992AbfGSQpt (ORCPT
+        id S1732083AbfGSQqB (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 19 Jul 2019 12:45:49 -0400
-Received: from mail.us.es ([193.147.175.20]:49916 "EHLO mail.us.es"
+        Fri, 19 Jul 2019 12:46:01 -0400
+Received: from mail.us.es ([193.147.175.20]:49906 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731912AbfGSQpt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 19 Jul 2019 12:45:49 -0400
+        id S1731902AbfGSQps (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 19 Jul 2019 12:45:48 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id CCC2CBAF03
+        by mail.us.es (Postfix) with ESMTP id 7A9C4BAEE6
         for <netfilter-devel@vger.kernel.org>; Fri, 19 Jul 2019 18:45:45 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id BA65FD190F
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 60045DA732
         for <netfilter-devel@vger.kernel.org>; Fri, 19 Jul 2019 18:45:45 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id AC9A6DA704; Fri, 19 Jul 2019 18:45:45 +0200 (CEST)
+        id 57BB91150DE; Fri, 19 Jul 2019 18:45:45 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id B54E9D2F98;
-        Fri, 19 Jul 2019 18:45:31 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A3C65115111;
+        Fri, 19 Jul 2019 18:45:30 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Fri, 19 Jul 2019 18:45:31 +0200 (CEST)
+ Fri, 19 Jul 2019 18:45:30 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (unknown [47.60.47.94])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 349804265A2F;
-        Fri, 19 Jul 2019 18:45:31 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 2600E4265A2F;
+        Fri, 19 Jul 2019 18:45:30 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 07/14] netfilter: conntrack: always store window size un-scaled
-Date:   Fri, 19 Jul 2019 18:45:10 +0200
-Message-Id: <20190719164517.29496-8-pablo@netfilter.org>
+Subject: [PATCH 06/14] netfilter: synproxy: fix erroneous tcp mss option
+Date:   Fri, 19 Jul 2019 18:45:09 +0200
+Message-Id: <20190719164517.29496-7-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20190719164517.29496-1-pablo@netfilter.org>
 References: <20190719164517.29496-1-pablo@netfilter.org>
@@ -54,77 +55,95 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+From: Fernando Fernandez Mancera <ffmancera@riseup.net>
 
-Jakub Jankowski reported following oddity:
+Now synproxy sends the mss value set by the user on client syn-ack packet
+instead of the mss value that client announced.
 
-After 3 way handshake completes, timeout of new connection is set to
-max_retrans (300s) instead of established (5 days).
-
-shortened excerpt from pcap provided:
-25.070622 IP (flags [DF], proto TCP (6), length 52)
-10.8.5.4.1025 > 10.8.1.2.80: Flags [S], seq 11, win 64240, [wscale 8]
-26.070462 IP (flags [DF], proto TCP (6), length 48)
-10.8.1.2.80 > 10.8.5.4.1025: Flags [S.], seq 82, ack 12, win 65535, [wscale 3]
-27.070449 IP (flags [DF], proto TCP (6), length 40)
-10.8.5.4.1025 > 10.8.1.2.80: Flags [.], ack 83, win 512, length 0
-
-Turns out the last_win is of u16 type, but we store the scaled value:
-512 << 8 (== 0x20000) becomes 0 window.
-
-The Fixes tag is not correct, as the bug has existed forever, but
-without that change all that this causes might cause is to mistake a
-window update (to-nonzero-from-zero) for a retransmit.
-
-Fixes: fbcd253d2448b8 ("netfilter: conntrack: lower timeout to RETRANS seconds if window is 0")
-Reported-by: Jakub Jankowski <shasta@toxcorp.com>
-Tested-by: Jakub Jankowski <shasta@toxcorp.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Acked-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Fixes: 48b1de4c110a ("netfilter: add SYNPROXY core/target")
+Signed-off-by: Fernando Fernandez Mancera <ffmancera@riseup.net>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_conntrack_proto_tcp.c | 8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ include/net/netfilter/nf_conntrack_synproxy.h | 1 +
+ net/ipv4/netfilter/ipt_SYNPROXY.c             | 2 ++
+ net/ipv6/netfilter/ip6t_SYNPROXY.c            | 2 ++
+ net/netfilter/nf_synproxy_core.c              | 4 ++--
+ net/netfilter/nft_synproxy.c                  | 2 ++
+ 5 files changed, 9 insertions(+), 2 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-index d5fdfa00d683..85c1f8c213b0 100644
---- a/net/netfilter/nf_conntrack_proto_tcp.c
-+++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -472,6 +472,7 @@ static bool tcp_in_window(const struct nf_conn *ct,
- 	struct ip_ct_tcp_state *receiver = &state->seen[!dir];
- 	const struct nf_conntrack_tuple *tuple = &ct->tuplehash[dir].tuple;
- 	__u32 seq, ack, sack, end, win, swin;
-+	u16 win_raw;
- 	s32 receiver_offset;
- 	bool res, in_recv_win;
+diff --git a/include/net/netfilter/nf_conntrack_synproxy.h b/include/net/netfilter/nf_conntrack_synproxy.h
+index 8f00125b06f4..44513b93bd55 100644
+--- a/include/net/netfilter/nf_conntrack_synproxy.h
++++ b/include/net/netfilter/nf_conntrack_synproxy.h
+@@ -68,6 +68,7 @@ struct synproxy_options {
+ 	u8				options;
+ 	u8				wscale;
+ 	u16				mss;
++	u16				mss_encode;
+ 	u32				tsval;
+ 	u32				tsecr;
+ };
+diff --git a/net/ipv4/netfilter/ipt_SYNPROXY.c b/net/ipv4/netfilter/ipt_SYNPROXY.c
+index 8e7f84ec783d..0e70f3f65f6f 100644
+--- a/net/ipv4/netfilter/ipt_SYNPROXY.c
++++ b/net/ipv4/netfilter/ipt_SYNPROXY.c
+@@ -36,6 +36,8 @@ synproxy_tg4(struct sk_buff *skb, const struct xt_action_param *par)
+ 			opts.options |= XT_SYNPROXY_OPT_ECN;
  
-@@ -480,7 +481,8 @@ static bool tcp_in_window(const struct nf_conn *ct,
- 	 */
- 	seq = ntohl(tcph->seq);
- 	ack = sack = ntohl(tcph->ack_seq);
--	win = ntohs(tcph->window);
-+	win_raw = ntohs(tcph->window);
-+	win = win_raw;
- 	end = segment_seq_plus_len(seq, skb->len, dataoff, tcph);
+ 		opts.options &= info->options;
++		opts.mss_encode = opts.mss;
++		opts.mss = info->mss;
+ 		if (opts.options & XT_SYNPROXY_OPT_TIMESTAMP)
+ 			synproxy_init_timestamp_cookie(info, &opts);
+ 		else
+diff --git a/net/ipv6/netfilter/ip6t_SYNPROXY.c b/net/ipv6/netfilter/ip6t_SYNPROXY.c
+index e77ea1ed5edd..5cdb4a69d277 100644
+--- a/net/ipv6/netfilter/ip6t_SYNPROXY.c
++++ b/net/ipv6/netfilter/ip6t_SYNPROXY.c
+@@ -36,6 +36,8 @@ synproxy_tg6(struct sk_buff *skb, const struct xt_action_param *par)
+ 			opts.options |= XT_SYNPROXY_OPT_ECN;
  
- 	if (receiver->flags & IP_CT_TCP_FLAG_SACK_PERM)
-@@ -655,14 +657,14 @@ static bool tcp_in_window(const struct nf_conn *ct,
- 			    && state->last_seq == seq
- 			    && state->last_ack == ack
- 			    && state->last_end == end
--			    && state->last_win == win)
-+			    && state->last_win == win_raw)
- 				state->retrans++;
- 			else {
- 				state->last_dir = dir;
- 				state->last_seq = seq;
- 				state->last_ack = ack;
- 				state->last_end = end;
--				state->last_win = win;
-+				state->last_win = win_raw;
- 				state->retrans = 0;
- 			}
- 		}
+ 		opts.options &= info->options;
++		opts.mss_encode = opts.mss;
++		opts.mss = info->mss;
+ 		if (opts.options & XT_SYNPROXY_OPT_TIMESTAMP)
+ 			synproxy_init_timestamp_cookie(info, &opts);
+ 		else
+diff --git a/net/netfilter/nf_synproxy_core.c b/net/netfilter/nf_synproxy_core.c
+index b101f187eda8..09718e5a9e41 100644
+--- a/net/netfilter/nf_synproxy_core.c
++++ b/net/netfilter/nf_synproxy_core.c
+@@ -470,7 +470,7 @@ synproxy_send_client_synack(struct net *net,
+ 	struct iphdr *iph, *niph;
+ 	struct tcphdr *nth;
+ 	unsigned int tcp_hdr_size;
+-	u16 mss = opts->mss;
++	u16 mss = opts->mss_encode;
+ 
+ 	iph = ip_hdr(skb);
+ 
+@@ -884,7 +884,7 @@ synproxy_send_client_synack_ipv6(struct net *net,
+ 	struct ipv6hdr *iph, *niph;
+ 	struct tcphdr *nth;
+ 	unsigned int tcp_hdr_size;
+-	u16 mss = opts->mss;
++	u16 mss = opts->mss_encode;
+ 
+ 	iph = ipv6_hdr(skb);
+ 
+diff --git a/net/netfilter/nft_synproxy.c b/net/netfilter/nft_synproxy.c
+index 80060ade8a5b..928e661d1517 100644
+--- a/net/netfilter/nft_synproxy.c
++++ b/net/netfilter/nft_synproxy.c
+@@ -31,6 +31,8 @@ static void nft_synproxy_tcp_options(struct synproxy_options *opts,
+ 		opts->options |= NF_SYNPROXY_OPT_ECN;
+ 
+ 	opts->options &= priv->info.options;
++	opts->mss_encode = opts->mss;
++	opts->mss = info->mss;
+ 	if (opts->options & NF_SYNPROXY_OPT_TIMESTAMP)
+ 		synproxy_init_timestamp_cookie(info, opts);
+ 	else
 -- 
 2.11.0
 
