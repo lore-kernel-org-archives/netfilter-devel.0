@@ -7,20 +7,20 @@ X-Spam-Status: No, score=-9.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 34FD9C76196
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D511C76195
 	for <netfilter-devel@archiver.kernel.org>; Fri, 19 Jul 2019 11:10:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 053A921849
+	by mail.kernel.org (Postfix) with ESMTP id 4738621849
 	for <netfilter-devel@archiver.kernel.org>; Fri, 19 Jul 2019 11:10:13 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="QaFPTIqy"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="FsmFOCDy"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727603AbfGSLKM (ORCPT
+        id S1727577AbfGSLKM (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Fri, 19 Jul 2019 07:10:12 -0400
-Received: from kadath.azazel.net ([81.187.231.250]:52162 "EHLO
+Received: from kadath.azazel.net ([81.187.231.250]:52156 "EHLO
         kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727389AbfGSLKM (ORCPT
+        with ESMTP id S1726075AbfGSLKM (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Fri, 19 Jul 2019 07:10:12 -0400
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
@@ -29,22 +29,22 @@ DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
         Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
         :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=qOPFAIuBK3b+lsEwNQ4U8sEvGEkxBPaVsnbSdc6mceQ=; b=QaFPTIqy8LA4pkwsyNl6WdKG+9
-        cgIoy7S7TyteJWlocMTsuVLZmzh/ETkJOHdKUzTHYVITPU/l0LazqnDnDQk88WoyIVMyXk/eBsDkE
-        uQwVIG0TLEusT6tpfSLRA9B8lSL+RCUcyLyYBgrOM/LjQtU9rV3LZ9Xu6B2XcOWqF77TpMe6L+B3a
-        11UzFIjHu6/acV0HmVzFam+LypUm6Co61+OCV6aWZAxTSIJ0ZZEfQj70I3qWZXsrya2MPdVIONdx/
-        cOrrKxfVNWsXGYhLPl1pV4cOQR6ejfG3Im4EfxQ83uJF7tGexytIhBQdb2n7Iw1qA7+adaXqVy0vo
-        VsnTIjQA==;
+        bh=FVOsoidmuLp2ZWjjQ/jX6lOjmANXIU1gP72yHUoxL7A=; b=FsmFOCDyILLeBlqifaEInLClxj
+        0a3FwVnHGU7yvAObqLeAtRfBQMOCI4kw54l9b3mat0dDMDFGphNo5sZGIf6ZwtOWtJ4jYcQmLH+5W
+        ksb8zZovaPtljP6qGYe7USefHYaJuDRf8LRkxFQ+7LHGNeD80y+SFa8NddCJ/mMc1ve31NenQJxhD
+        MSzDhmtAysEoxjqOj0uyctcF5/uw4Za8pLkvCF7qjm5EOdQSu/djmaaodw963oTf3xl5DfBvhapLV
+        aS6U/114xoxyCn+QsJxNeoUyYMgay7gN04CfIgrWZFE0+hSBudGenE1cw9MBfYCCWf4ZN0IfvVPfC
+        0w22ojxg==;
 Received: from [2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae] (helo=ulthar.dreamlands)
         by kadath.azazel.net with esmtp (Exim 4.92)
         (envelope-from <jeremy@azazel.net>)
-        id 1hoQmB-00070n-1x; Fri, 19 Jul 2019 12:10:11 +0100
+        id 1hoQmA-00070n-R3; Fri, 19 Jul 2019 12:10:10 +0100
 From:   Jeremy Sowden <jeremy@azazel.net>
 To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
 Cc:     Pablo Neira Ayuso <pablo@netfilter.org>, Phil Sutter <phil@nwl.cc>
-Subject: [PATCH nft v2 2/2] rule: removed duplicate member initializer.
-Date:   Fri, 19 Jul 2019 12:10:10 +0100
-Message-Id: <20190719111010.14421-3-jeremy@azazel.net>
+Subject: [PATCH nft v2 1/2] libnftables: got rid of repeated initialization of netlink_ctx variable in loop.
+Date:   Fri, 19 Jul 2019 12:10:09 +0100
+Message-Id: <20190719111010.14421-2-jeremy@azazel.net>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20190719111010.14421-1-jeremy@azazel.net>
 References: <20190719103205.GM1628@orbyte.nwl.cc>
@@ -59,27 +59,75 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Initialization of a netlink_ctx included two initializers for .nft.
-Removed one of them.
+Most members in the context doesn't change, so there is no need to
+memset it and reassign them on every iteration.  Moved that code out of
+the loop.
 
-Fixes: 2dc07bcd7eaa ("src: pass struct nft_ctx through struct netlink_ctx")
+Fixes: a72315d2bad4 ("src: add rule batching support")
+Reported-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 ---
- src/rule.c | 1 -
- 1 file changed, 1 deletion(-)
+ src/libnftables.c | 23 ++++++++++-------------
+ 1 file changed, 10 insertions(+), 13 deletions(-)
 
-diff --git a/src/rule.c b/src/rule.c
-index b957b4571249..0ebe91e79a03 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -240,7 +240,6 @@ int cache_update(struct nft_ctx *nft, unsigned int flags, struct list_head *msgs
- 		.list		= LIST_HEAD_INIT(ctx.list),
- 		.nft		= nft,
- 		.msgs		= msgs,
--		.nft		= nft,
- 	};
- 	struct nft_cache *cache = &nft->cache;
- 	uint32_t genid, genid_stop;
+diff --git a/src/libnftables.c b/src/libnftables.c
+index 2f77a7709e2c..4a139c58b2b3 100644
+--- a/src/libnftables.c
++++ b/src/libnftables.c
+@@ -22,8 +22,12 @@ static int nft_netlink(struct nft_ctx *nft,
+ 		       struct mnl_socket *nf_sock)
+ {
+ 	uint32_t batch_seqnum, seqnum = 0, num_cmds = 0;
+-	struct nftnl_batch *batch;
+-	struct netlink_ctx ctx;
++	struct netlink_ctx ctx = {
++		.nft  = nft,
++		.msgs = msgs,
++		.list = LIST_HEAD_INIT(ctx.list),
++		.batch = mnl_batch_init(),
++	};
+ 	struct cmd *cmd;
+ 	struct mnl_err *err, *tmp;
+ 	LIST_HEAD(err_list);
+@@ -32,16 +36,9 @@ static int nft_netlink(struct nft_ctx *nft,
+ 	if (list_empty(cmds))
+ 		return 0;
+ 
+-	batch = mnl_batch_init();
+-
+-	batch_seqnum = mnl_batch_begin(batch, mnl_seqnum_alloc(&seqnum));
++	batch_seqnum = mnl_batch_begin(ctx.batch, mnl_seqnum_alloc(&seqnum));
+ 	list_for_each_entry(cmd, cmds, list) {
+-		memset(&ctx, 0, sizeof(ctx));
+-		ctx.msgs = msgs;
+ 		ctx.seqnum = cmd->seqnum = mnl_seqnum_alloc(&seqnum);
+-		ctx.batch = batch;
+-		ctx.nft = nft;
+-		init_list_head(&ctx.list);
+ 		ret = do_command(&ctx, cmd);
+ 		if (ret < 0) {
+ 			netlink_io_error(&ctx, &cmd->location,
+@@ -52,9 +49,9 @@ static int nft_netlink(struct nft_ctx *nft,
+ 		num_cmds++;
+ 	}
+ 	if (!nft->check)
+-		mnl_batch_end(batch, mnl_seqnum_alloc(&seqnum));
++		mnl_batch_end(ctx.batch, mnl_seqnum_alloc(&seqnum));
+ 
+-	if (!mnl_batch_ready(batch))
++	if (!mnl_batch_ready(ctx.batch))
+ 		goto out;
+ 
+ 	ret = mnl_batch_talk(&ctx, &err_list, num_cmds);
+@@ -83,7 +80,7 @@ static int nft_netlink(struct nft_ctx *nft,
+ 		}
+ 	}
+ out:
+-	mnl_batch_reset(batch);
++	mnl_batch_reset(ctx.batch);
+ 	return ret;
+ }
+ 
 -- 
 2.20.1
 
