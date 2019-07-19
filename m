@@ -2,132 +2,58 @@ Return-Path: <SRS0=2jko=VQ=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D511C76195
-	for <netfilter-devel@archiver.kernel.org>; Fri, 19 Jul 2019 11:10:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 88773C76188
+	for <netfilter-devel@archiver.kernel.org>; Fri, 19 Jul 2019 11:17:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4738621849
-	for <netfilter-devel@archiver.kernel.org>; Fri, 19 Jul 2019 11:10:13 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="FsmFOCDy"
+	by mail.kernel.org (Postfix) with ESMTP id 67F0421849
+	for <netfilter-devel@archiver.kernel.org>; Fri, 19 Jul 2019 11:17:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727577AbfGSLKM (ORCPT
+        id S1727559AbfGSLRK (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 19 Jul 2019 07:10:12 -0400
-Received: from kadath.azazel.net ([81.187.231.250]:52156 "EHLO
-        kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726075AbfGSLKM (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 19 Jul 2019 07:10:12 -0400
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-         s=20190108; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
-        Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
-        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=FVOsoidmuLp2ZWjjQ/jX6lOjmANXIU1gP72yHUoxL7A=; b=FsmFOCDyILLeBlqifaEInLClxj
-        0a3FwVnHGU7yvAObqLeAtRfBQMOCI4kw54l9b3mat0dDMDFGphNo5sZGIf6ZwtOWtJ4jYcQmLH+5W
-        ksb8zZovaPtljP6qGYe7USefHYaJuDRf8LRkxFQ+7LHGNeD80y+SFa8NddCJ/mMc1ve31NenQJxhD
-        MSzDhmtAysEoxjqOj0uyctcF5/uw4Za8pLkvCF7qjm5EOdQSu/djmaaodw963oTf3xl5DfBvhapLV
-        aS6U/114xoxyCn+QsJxNeoUyYMgay7gN04CfIgrWZFE0+hSBudGenE1cw9MBfYCCWf4ZN0IfvVPfC
-        0w22ojxg==;
-Received: from [2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae] (helo=ulthar.dreamlands)
-        by kadath.azazel.net with esmtp (Exim 4.92)
-        (envelope-from <jeremy@azazel.net>)
-        id 1hoQmA-00070n-R3; Fri, 19 Jul 2019 12:10:10 +0100
-From:   Jeremy Sowden <jeremy@azazel.net>
-To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>, Phil Sutter <phil@nwl.cc>
-Subject: [PATCH nft v2 1/2] libnftables: got rid of repeated initialization of netlink_ctx variable in loop.
-Date:   Fri, 19 Jul 2019 12:10:09 +0100
-Message-Id: <20190719111010.14421-2-jeremy@azazel.net>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20190719111010.14421-1-jeremy@azazel.net>
+        Fri, 19 Jul 2019 07:17:10 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:37774 "EHLO orbyte.nwl.cc"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726072AbfGSLRJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 19 Jul 2019 07:17:09 -0400
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.91)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1hoQsu-0006e1-1m; Fri, 19 Jul 2019 13:17:08 +0200
+Date:   Fri, 19 Jul 2019 13:17:08 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Jeremy Sowden <jeremy@azazel.net>
+Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>,
+        Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH nft v2 2/2] rule: removed duplicate member initializer.
+Message-ID: <20190719111707.GN1628@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Jeremy Sowden <jeremy@azazel.net>,
+        Netfilter Devel <netfilter-devel@vger.kernel.org>,
+        Pablo Neira Ayuso <pablo@netfilter.org>
 References: <20190719103205.GM1628@orbyte.nwl.cc>
  <20190719111010.14421-1-jeremy@azazel.net>
+ <20190719111010.14421-3-jeremy@azazel.net>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190719111010.14421-3-jeremy@azazel.net>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Most members in the context doesn't change, so there is no need to
-memset it and reassign them on every iteration.  Moved that code out of
-the loop.
+On Fri, Jul 19, 2019 at 12:10:10PM +0100, Jeremy Sowden wrote:
+> Initialization of a netlink_ctx included two initializers for .nft.
+> Removed one of them.
 
-Fixes: a72315d2bad4 ("src: add rule batching support")
-Reported-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
----
- src/libnftables.c | 23 ++++++++++-------------
- 1 file changed, 10 insertions(+), 13 deletions(-)
+Oh, good catch! The fact that I stared ad this code ten minutes
+ago and didn't see it speaks for itself. :)
 
-diff --git a/src/libnftables.c b/src/libnftables.c
-index 2f77a7709e2c..4a139c58b2b3 100644
---- a/src/libnftables.c
-+++ b/src/libnftables.c
-@@ -22,8 +22,12 @@ static int nft_netlink(struct nft_ctx *nft,
- 		       struct mnl_socket *nf_sock)
- {
- 	uint32_t batch_seqnum, seqnum = 0, num_cmds = 0;
--	struct nftnl_batch *batch;
--	struct netlink_ctx ctx;
-+	struct netlink_ctx ctx = {
-+		.nft  = nft,
-+		.msgs = msgs,
-+		.list = LIST_HEAD_INIT(ctx.list),
-+		.batch = mnl_batch_init(),
-+	};
- 	struct cmd *cmd;
- 	struct mnl_err *err, *tmp;
- 	LIST_HEAD(err_list);
-@@ -32,16 +36,9 @@ static int nft_netlink(struct nft_ctx *nft,
- 	if (list_empty(cmds))
- 		return 0;
- 
--	batch = mnl_batch_init();
--
--	batch_seqnum = mnl_batch_begin(batch, mnl_seqnum_alloc(&seqnum));
-+	batch_seqnum = mnl_batch_begin(ctx.batch, mnl_seqnum_alloc(&seqnum));
- 	list_for_each_entry(cmd, cmds, list) {
--		memset(&ctx, 0, sizeof(ctx));
--		ctx.msgs = msgs;
- 		ctx.seqnum = cmd->seqnum = mnl_seqnum_alloc(&seqnum);
--		ctx.batch = batch;
--		ctx.nft = nft;
--		init_list_head(&ctx.list);
- 		ret = do_command(&ctx, cmd);
- 		if (ret < 0) {
- 			netlink_io_error(&ctx, &cmd->location,
-@@ -52,9 +49,9 @@ static int nft_netlink(struct nft_ctx *nft,
- 		num_cmds++;
- 	}
- 	if (!nft->check)
--		mnl_batch_end(batch, mnl_seqnum_alloc(&seqnum));
-+		mnl_batch_end(ctx.batch, mnl_seqnum_alloc(&seqnum));
- 
--	if (!mnl_batch_ready(batch))
-+	if (!mnl_batch_ready(ctx.batch))
- 		goto out;
- 
- 	ret = mnl_batch_talk(&ctx, &err_list, num_cmds);
-@@ -83,7 +80,7 @@ static int nft_netlink(struct nft_ctx *nft,
- 		}
- 	}
- out:
--	mnl_batch_reset(batch);
-+	mnl_batch_reset(ctx.batch);
- 	return ret;
- }
- 
--- 
-2.20.1
+> Fixes: 2dc07bcd7eaa ("src: pass struct nft_ctx through struct netlink_ctx")
+> Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 
+Acked-by: Phil Sutter <phil@nwl.cc>
