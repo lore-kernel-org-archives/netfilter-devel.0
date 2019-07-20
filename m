@@ -2,94 +2,77 @@ Return-Path: <SRS0=YHPx=VR=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E435C76188
-	for <netfilter-devel@archiver.kernel.org>; Sat, 20 Jul 2019 15:15:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 67ED6C76186
+	for <netfilter-devel@archiver.kernel.org>; Sat, 20 Jul 2019 16:30:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5BDC32082A
-	for <netfilter-devel@archiver.kernel.org>; Sat, 20 Jul 2019 15:15:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 417892085A
+	for <netfilter-devel@archiver.kernel.org>; Sat, 20 Jul 2019 16:30:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726233AbfGTPPG (ORCPT
+        id S1726253AbfGTQag (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 20 Jul 2019 11:15:06 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:40742 "EHLO orbyte.nwl.cc"
+        Sat, 20 Jul 2019 12:30:36 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:40874 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726056AbfGTPPG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 20 Jul 2019 11:15:06 -0400
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.91)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1hor4g-0004pz-QU; Sat, 20 Jul 2019 17:15:02 +0200
-Date:   Sat, 20 Jul 2019 17:15:02 +0200
+        id S1726137AbfGTQag (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 20 Jul 2019 12:30:36 -0400
+Received: from localhost ([::1]:53964 helo=tatos)
+        by orbyte.nwl.cc with esmtp (Exim 4.91)
+        (envelope-from <phil@nwl.cc>)
+        id 1hosFm-0005RD-NY; Sat, 20 Jul 2019 18:30:34 +0200
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Florian Westphal <fwestpha@redhat.com>,
-        netfilter-devel@vger.kernel.org
-Subject: Re: [nf PATCH v2 1/2] net: nf_tables: Make nft_meta expression more
- robust
-Message-ID: <20190720151502.GD32501@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fwestpha@redhat.com>,
-        netfilter-devel@vger.kernel.org
-References: <20190719123921.1249-1-phil@nwl.cc>
- <20190719163521.oozthobj33ejswrx@salvia>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [iptables PATCH 05/12] xtables-save: Fix table compatibility check
+Date:   Sat, 20 Jul 2019 18:30:19 +0200
+Message-Id: <20190720163026.15410-6-phil@nwl.cc>
+X-Mailer: git-send-email 2.22.0
+In-Reply-To: <20190720163026.15410-1-phil@nwl.cc>
+References: <20190720163026.15410-1-phil@nwl.cc>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190719163521.oozthobj33ejswrx@salvia>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi,
+The builtin table check guarding the 'is incompatible' warning was
+wrong: The idea was to print the warning only for incompatible tables
+which are builtin, not for others. Yet the code would print the warning
+only for non-builtin ones.
 
-On Fri, Jul 19, 2019 at 06:35:21PM +0200, Pablo Neira Ayuso wrote:
-> On Fri, Jul 19, 2019 at 02:39:20PM +0200, Phil Sutter wrote:
-> > nft_meta_get_eval()'s tendency to bail out setting NFT_BREAK verdict in
-> > situations where required data is missing breaks inverted checks
-> > like e.g.:
-> > 
-> > | meta iifname != eth0 accept
-> > 
-> > This rule will never match if there is no input interface (or it is not
-> > known) which is not intuitive and, what's worse, breaks consistency of
-> > iptables-nft with iptables-legacy.
-> > 
-> > Fix this by falling back to placing a value in dreg which never matches
-> > (avoiding accidental matches):
-> > 
-> > {I,O}IF:
-> > 	Use invalid ifindex value zero.
-> > 
-> > {BRI_,}{I,O}IFNAME, {I,O}IFKIND:
-> > 	Use an empty string which is neither a valid interface name nor
-> > 	kind.
-> > 
-> > {I,O}IFTYPE:
-> > 	Use ARPHRD_VOID (0xFFFF).
-> 
-> What could it be done with?
-> 
-> NFT_META_BRI_IIFPVID
-> NFT_META_BRI_IIFPVPROTO
-> 
-> Those will still not work for
-> 
->         meta ibrpvid != 40
-> 
-> if interface is not available.
-> 
-> For VPROTO probably it's possible. I don't have a solution for
-> IIFPVID.
+Also reorder the checks: nft_table_builtin_find() is fast and therefore
+a quick way to bail for uninteresting tables. The compatibility check is
+needed for the remaining tables, only.
 
-VLAN IDs 0 and 4095 are reserved, we could use those. I refrained from
-changing bridge VLAN matches because of IIFPVPROTO, no idea if there's
-an illegal value we could use for that. If you have an idea, I'm all for
-it. :)
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ iptables/xtables-save.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-Thanks, Phil
+diff --git a/iptables/xtables-save.c b/iptables/xtables-save.c
+index 0cf11f998cc77..811ec6330a4cb 100644
+--- a/iptables/xtables-save.c
++++ b/iptables/xtables-save.c
+@@ -67,11 +67,12 @@ __do_output(struct nft_handle *h, const char *tablename, bool counters)
+ {
+ 	struct nftnl_chain_list *chain_list;
+ 
++	if (!nft_table_builtin_find(h, tablename))
++		return 0;
+ 
+ 	if (!nft_is_table_compatible(h, tablename)) {
+-		if (!nft_table_builtin_find(h, tablename))
+-			printf("# Table `%s' is incompatible, use 'nft' tool.\n",
+-			       tablename);
++		printf("# Table `%s' is incompatible, use 'nft' tool.\n",
++		       tablename);
+ 		return 0;
+ 	}
+ 
+-- 
+2.22.0
+
