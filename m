@@ -6,29 +6,29 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 997BCC76195
-	for <netfilter-devel@archiver.kernel.org>; Sat, 20 Jul 2019 16:31:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 65EAFC76195
+	for <netfilter-devel@archiver.kernel.org>; Sat, 20 Jul 2019 16:31:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6573F2085A
-	for <netfilter-devel@archiver.kernel.org>; Sat, 20 Jul 2019 16:31:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3C9DC2085A
+	for <netfilter-devel@archiver.kernel.org>; Sat, 20 Jul 2019 16:31:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726665AbfGTQbT (ORCPT
+        id S1726674AbfGTQbY (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 20 Jul 2019 12:31:19 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:40922 "EHLO orbyte.nwl.cc"
+        Sat, 20 Jul 2019 12:31:24 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:40928 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726300AbfGTQbT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 20 Jul 2019 12:31:19 -0400
-Received: from localhost ([::1]:54012 helo=tatos)
+        id S1726300AbfGTQbX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 20 Jul 2019 12:31:23 -0400
+Received: from localhost ([::1]:54018 helo=tatos)
         by orbyte.nwl.cc with esmtp (Exim 4.91)
         (envelope-from <phil@nwl.cc>)
-        id 1hosGT-0005UN-C8; Sat, 20 Jul 2019 18:31:17 +0200
+        id 1hosGY-0005Uj-Lv; Sat, 20 Jul 2019 18:31:22 +0200
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH 08/12] xtables-save: Pass optstring/longopts to xtables_save_main()
-Date:   Sat, 20 Jul 2019 18:30:22 +0200
-Message-Id: <20190720163026.15410-9-phil@nwl.cc>
+Subject: [iptables PATCH 04/12] xtables-save: Unify *-save header/footer comments
+Date:   Sat, 20 Jul 2019 18:30:18 +0200
+Message-Id: <20190720163026.15410-5-phil@nwl.cc>
 X-Mailer: git-send-email 2.22.0
 In-Reply-To: <20190720163026.15410-1-phil@nwl.cc>
 References: <20190720163026.15410-1-phil@nwl.cc>
@@ -39,101 +39,221 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Introduce variables for the different optstrings so short and long
-options live side-by-side.
-
-In order to make xtables_save_main() more versatile, pass optstring and
-longopts via parameter.
+Make eb- and arptables-save print both header and footer comments, too.
+Also print them for each table separately - the timing information is
+worth the extra lines in output.
 
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- iptables/xtables-save.c | 20 +++++++++++++-------
- 1 file changed, 13 insertions(+), 7 deletions(-)
+ .../arptables/0001-arptables-save-restore_0   |  7 +++----
+ .../0002-arptables-restore-defaults_0         |  6 ++----
+ .../arptables/0003-arptables-verbose-output_0 |  5 ++---
+ .../ebtables/0002-ebtables-save-restore_0     |  4 +---
+ .../ebtables/0003-ebtables-restore-defaults_0 |  6 ++----
+ .../testcases/ebtables/0004-save-counters_0   |  9 +++------
+ iptables/xtables-save.c                       | 19 ++++++++++---------
+ 7 files changed, 23 insertions(+), 33 deletions(-)
 
+diff --git a/iptables/tests/shell/testcases/arptables/0001-arptables-save-restore_0 b/iptables/tests/shell/testcases/arptables/0001-arptables-save-restore_0
+index e10f61cc8f95b..bf04dc0a3e15a 100755
+--- a/iptables/tests/shell/testcases/arptables/0001-arptables-save-restore_0
++++ b/iptables/tests/shell/testcases/arptables/0001-arptables-save-restore_0
+@@ -50,13 +50,12 @@ DUMP='*filter
+ -A foo -j MARK --set-mark 12345
+ -A foo -j ACCEPT --opcode 1
+ -A foo -j ACCEPT --proto-type 0x800
+--A foo -j ACCEPT -i lo --opcode 1 --proto-type 0x800
+-'
++-A foo -j ACCEPT -i lo --opcode 1 --proto-type 0x800'
+ 
+-diff -u <(echo -e "$DUMP") <($XT_MULTI arptables-save)
++diff -u <(echo -e "$DUMP") <($XT_MULTI arptables-save | grep -v "^#")
+ 
+ # make sure dump can be restored and check it didn't change
+ 
+ $XT_MULTI arptables -F
+ $XT_MULTI arptables-restore <<<$DUMP
+-diff -u <(echo -e "$DUMP") <($XT_MULTI arptables-save)
++diff -u <(echo -e "$DUMP") <($XT_MULTI arptables-save | grep -v "^#")
+diff --git a/iptables/tests/shell/testcases/arptables/0002-arptables-restore-defaults_0 b/iptables/tests/shell/testcases/arptables/0002-arptables-restore-defaults_0
+index b2ed95e87bb40..38d387f327ebb 100755
+--- a/iptables/tests/shell/testcases/arptables/0002-arptables-restore-defaults_0
++++ b/iptables/tests/shell/testcases/arptables/0002-arptables-restore-defaults_0
+@@ -11,8 +11,7 @@ set -e
+ DUMP='*filter
+ :OUTPUT ACCEPT
+ -A OUTPUT -j mangle --mangle-ip-s 10.0.0.1
+--A OUTPUT -j mangle --mangle-ip-d 10.0.0.2
+-'
++-A OUTPUT -j mangle --mangle-ip-d 10.0.0.2'
+ 
+ # note how mangle-ip-s is unset in second rule
+ 
+@@ -20,8 +19,7 @@ EXPECT='*filter
+ :INPUT ACCEPT
+ :OUTPUT ACCEPT
+ -A OUTPUT -j mangle --mangle-ip-s 10.0.0.1
+--A OUTPUT -j mangle --mangle-ip-d 10.0.0.2
+-'
++-A OUTPUT -j mangle --mangle-ip-d 10.0.0.2'
+ 
+ $XT_MULTI arptables -F
+ $XT_MULTI arptables-restore <<<$DUMP
+diff --git a/iptables/tests/shell/testcases/arptables/0003-arptables-verbose-output_0 b/iptables/tests/shell/testcases/arptables/0003-arptables-verbose-output_0
+index 3a9807a1cfe0b..10c5ec33ada2c 100755
+--- a/iptables/tests/shell/testcases/arptables/0003-arptables-verbose-output_0
++++ b/iptables/tests/shell/testcases/arptables/0003-arptables-verbose-output_0
+@@ -58,7 +58,6 @@ EXPECT='*filter
+ -A INPUT -j MARK -i eth23 --set-mark 42
+ -A OUTPUT -j CLASSIFY -o eth23 --set-class 23:42
+ -A OUTPUT -j foo -o eth23
+--A foo -j mangle -o eth23 --mangle-ip-s 10.0.0.1
+-'
++-A foo -j mangle -o eth23 --mangle-ip-s 10.0.0.1'
+ 
+-diff -u -Z <(echo -e "$EXPECT") <($XT_MULTI arptables-save)
++diff -u -Z <(echo -e "$EXPECT") <($XT_MULTI arptables-save | grep -v '^#')
+diff --git a/iptables/tests/shell/testcases/ebtables/0002-ebtables-save-restore_0 b/iptables/tests/shell/testcases/ebtables/0002-ebtables-save-restore_0
+index 080ba49a4974d..e18d46551509d 100755
+--- a/iptables/tests/shell/testcases/ebtables/0002-ebtables-save-restore_0
++++ b/iptables/tests/shell/testcases/ebtables/0002-ebtables-save-restore_0
+@@ -99,7 +99,6 @@ DUMP='*filter
+ -A foo --802_3-sap 0x23 --limit 100/sec --limit-burst 5 -j ACCEPT
+ -A foo --pkttype-type multicast --log-level notice --log-prefix "" -j CONTINUE
+ -A foo --pkttype-type multicast --limit 100/sec --limit-burst 5 -j ACCEPT
+-
+ *nat
+ :PREROUTING ACCEPT
+ :OUTPUT DROP
+@@ -107,8 +106,7 @@ DUMP='*filter
+ :nat_foo DROP
+ -A PREROUTING -j redirect 
+ -A OUTPUT -j ACCEPT
+--A POSTROUTING -j ACCEPT
+-'
++-A POSTROUTING -j ACCEPT'
+ 
+ diff -u <(echo -e "$DUMP") <($XT_MULTI ebtables-save | grep -v '^#')
+ 
+diff --git a/iptables/tests/shell/testcases/ebtables/0003-ebtables-restore-defaults_0 b/iptables/tests/shell/testcases/ebtables/0003-ebtables-restore-defaults_0
+index c858054764d70..62d224134456b 100755
+--- a/iptables/tests/shell/testcases/ebtables/0003-ebtables-restore-defaults_0
++++ b/iptables/tests/shell/testcases/ebtables/0003-ebtables-restore-defaults_0
+@@ -13,8 +13,7 @@ DUMP='*filter
+ -A FORWARD --limit 100 --limit-burst 42 -j ACCEPT
+ -A FORWARD --limit 1000 -j ACCEPT
+ -A FORWARD --log --log-prefix "foobar"
+--A FORWARD --log
+-'
++-A FORWARD --log'
+ 
+ # note how limit-burst is 5 in second rule and log-prefix empty in fourth one
+ 
+@@ -25,8 +24,7 @@ EXPECT='*filter
+ -A FORWARD --limit 100/sec --limit-burst 42 -j ACCEPT
+ -A FORWARD --limit 1000/sec --limit-burst 5 -j ACCEPT
+ -A FORWARD --log-level notice --log-prefix "foobar" -j CONTINUE
+--A FORWARD --log-level notice --log-prefix "" -j CONTINUE
+-'
++-A FORWARD --log-level notice --log-prefix "" -j CONTINUE'
+ 
+ $XT_MULTI ebtables --init-table
+ $XT_MULTI ebtables-restore <<<$DUMP
+diff --git a/iptables/tests/shell/testcases/ebtables/0004-save-counters_0 b/iptables/tests/shell/testcases/ebtables/0004-save-counters_0
+index 8348dc7ee231f..46966f433139a 100755
+--- a/iptables/tests/shell/testcases/ebtables/0004-save-counters_0
++++ b/iptables/tests/shell/testcases/ebtables/0004-save-counters_0
+@@ -32,8 +32,7 @@ EXPECT='*filter
+ :FORWARD ACCEPT
+ :OUTPUT ACCEPT
+ -A FORWARD -i nodev123 -o nodev432 -j ACCEPT
+--A FORWARD -i nodev432 -o nodev123 -j ACCEPT
+-'
++-A FORWARD -i nodev432 -o nodev123 -j ACCEPT'
+ 
+ echo "ebtables-save"
+ diff -u <(echo -e "$EXPECT") <($XT_MULTI ebtables-save | grep -v '^#')
+@@ -43,8 +42,7 @@ EXPECT='*filter
+ :FORWARD ACCEPT
+ :OUTPUT ACCEPT
+ [0:0] -A FORWARD -i nodev123 -o nodev432 -j ACCEPT
+-[0:0] -A FORWARD -i nodev432 -o nodev123 -j ACCEPT
+-'
++[0:0] -A FORWARD -i nodev432 -o nodev123 -j ACCEPT'
+ 
+ echo "ebtables-save -c"
+ diff -u <(echo -e "$EXPECT") <($XT_MULTI ebtables-save -c | grep -v '^#')
+@@ -60,8 +58,7 @@ EXPECT='*filter
+ :FORWARD ACCEPT
+ :OUTPUT ACCEPT
+ -A FORWARD -i nodev123 -o nodev432 -j ACCEPT -c 0 0
+--A FORWARD -i nodev432 -o nodev123 -j ACCEPT -c 0 0
+-'
++-A FORWARD -i nodev432 -o nodev123 -j ACCEPT -c 0 0'
+ 
+ echo "EBTABLES_SAVE_COUNTER=yes ebtables-save"
+ diff -u <(echo -e "$EXPECT") <($XT_MULTI ebtables-save | grep -v '^#')
 diff --git a/iptables/xtables-save.c b/iptables/xtables-save.c
-index ac452f1dd6f14..b4d14b5bcd016 100644
+index 491122f39bbb0..0cf11f998cc77 100644
 --- a/iptables/xtables-save.c
 +++ b/iptables/xtables-save.c
-@@ -33,7 +33,8 @@
- 
- static bool show_counters = false;
- 
--static const struct option options[] = {
-+static const char *ipt_save_optstring = "bcdt:M:f:46V";
-+static const struct option ipt_save_options[] = {
- 	{.name = "counters", .has_arg = false, .val = 'c'},
- 	{.name = "version",  .has_arg = false, .val = 'V'},
- 	{.name = "dump",     .has_arg = false, .val = 'd'},
-@@ -45,6 +46,7 @@ static const struct option options[] = {
- 	{NULL},
- };
- 
-+static const char *arp_save_optstring = "cM:V";
- static const struct option arp_save_options[] = {
- 	{.name = "counters", .has_arg = false, .val = 'c'},
- 	{.name = "version",  .has_arg = false, .val = 'V'},
-@@ -52,6 +54,7 @@ static const struct option arp_save_options[] = {
- 	{NULL},
- };
- 
-+static const char *ebt_save_optstring = "ct:M:V";
- static const struct option ebt_save_options[] = {
- 	{.name = "counters", .has_arg = false, .val = 'c'},
- 	{.name = "version",  .has_arg = false, .val = 'V'},
-@@ -129,7 +132,8 @@ do_output(struct nft_handle *h, const char *tablename, struct do_output_data *d)
-  * rule
-  */
- static int
--xtables_save_main(int family, int argc, char *argv[])
-+xtables_save_main(int family, int argc, char *argv[],
-+		  const char *optstring, const struct option *longopts)
+@@ -250,7 +250,6 @@ static int __ebt_save(struct nft_handle *h, const char *tablename, bool counters
  {
- 	const struct builtin_table *tables;
- 	const char *tablename = NULL;
-@@ -150,7 +154,7 @@ xtables_save_main(int family, int argc, char *argv[])
- 		exit(1);
- 	}
+ 	struct nftnl_chain_list *chain_list;
+ 	unsigned int format = FMT_NOCOUNTS;
+-	static bool first = true;
+ 	time_t now;
  
--	while ((c = getopt_long(argc, argv, "bcdt:M:f:46V", options, NULL)) != -1) {
-+	while ((c = getopt_long(argc, argv, optstring, longopts, NULL)) != -1) {
- 		switch (c) {
- 		case 'b':
- 			fprintf(stderr, "-b/--binary option is not implemented\n");
-@@ -245,12 +249,14 @@ xtables_save_main(int family, int argc, char *argv[])
+ 	if (!nft_table_find(h, tablename)) {
+@@ -265,12 +264,9 @@ static int __ebt_save(struct nft_handle *h, const char *tablename, bool counters
  
- int xtables_ip4_save_main(int argc, char *argv[])
- {
--	return xtables_save_main(NFPROTO_IPV4, argc, argv);
-+	return xtables_save_main(NFPROTO_IPV4, argc, argv,
-+				 ipt_save_optstring, ipt_save_options);
+ 	chain_list = nft_chain_list_get(h, tablename);
+ 
+-	if (first) {
+-		now = time(NULL);
+-		printf("# Generated by %s v%s on %s", prog_name,
+-		       prog_vers, ctime(&now));
+-		first = false;
+-	}
++	now = time(NULL);
++	printf("# Generated by %s v%s on %s", prog_name,
++	       prog_vers, ctime(&now));
+ 	printf("*%s\n", tablename);
+ 
+ 	if (counters)
+@@ -281,7 +277,8 @@ static int __ebt_save(struct nft_handle *h, const char *tablename, bool counters
+ 	 * thereby preventing dependency conflicts */
+ 	nft_chain_save(h, chain_list);
+ 	nft_rule_save(h, tablename, format);
+-	printf("\n");
++	now = time(NULL);
++	printf("# Completed on %s", ctime(&now));
+ 	return 0;
  }
  
- int xtables_ip6_save_main(int argc, char *argv[])
- {
--	return xtables_save_main(NFPROTO_IPV6, argc, argv);
-+	return xtables_save_main(NFPROTO_IPV6, argc, argv,
-+				 ipt_save_optstring, ipt_save_options);
+@@ -361,6 +358,7 @@ int xtables_arp_save_main(int argc, char **argv)
+ 	struct nft_handle h = {
+ 		.family	= NFPROTO_ARP,
+ 	};
++	time_t now;
+ 	int c;
+ 
+ 	xtables_globals.program_name = basename(*argv);;
+@@ -407,10 +405,13 @@ int xtables_arp_save_main(int argc, char **argv)
+ 		return 0;
+ 	}
+ 
++	printf("# Generated by %s v%s on %s", prog_name,
++	       prog_vers, ctime(&now));
+ 	printf("*filter\n");
+ 	nft_chain_save(&h, nft_chain_list_get(&h, "filter"));
+ 	nft_rule_save(&h, "filter", show_counters ? 0 : FMT_NOCOUNTS);
+-	printf("\n");
++	now = time(NULL);
++	printf("# Completed on %s", ctime(&now));
+ 	nft_fini(&h);
+ 	return 0;
  }
- 
- static int __ebt_save(struct nft_handle *h, const char *tablename, void *data)
-@@ -323,7 +329,7 @@ int xtables_eb_save_main(int argc_, char *argv_[])
- 		exit(1);
- 	}
- 
--	while ((c = getopt_long(argc_, argv_, "ct:M:V", ebt_save_options, NULL)) != -1) {
-+	while ((c = getopt_long(argc_, argv_, ebt_save_optstring, ebt_save_options, NULL)) != -1) {
- 		switch (c) {
- 		case 'c':
- 			unsetenv("EBTABLES_SAVE_COUNTER");
-@@ -378,7 +384,7 @@ int xtables_arp_save_main(int argc, char **argv)
- 		exit(1);
- 	}
- 
--	while ((c = getopt_long(argc, argv, "cM:V", arp_save_options, NULL)) != -1) {
-+	while ((c = getopt_long(argc, argv, arp_save_optstring, arp_save_options, NULL)) != -1) {
- 		switch (c) {
- 		case 'c':
- 			show_counters = true;
 -- 
 2.22.0
 
