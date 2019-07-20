@@ -6,29 +6,29 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 181C4C76195
-	for <netfilter-devel@archiver.kernel.org>; Sat, 20 Jul 2019 16:31:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 997BCC76195
+	for <netfilter-devel@archiver.kernel.org>; Sat, 20 Jul 2019 16:31:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id EBE612085A
-	for <netfilter-devel@archiver.kernel.org>; Sat, 20 Jul 2019 16:31:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6573F2085A
+	for <netfilter-devel@archiver.kernel.org>; Sat, 20 Jul 2019 16:31:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726663AbfGTQbN (ORCPT
+        id S1726665AbfGTQbT (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 20 Jul 2019 12:31:13 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:40916 "EHLO orbyte.nwl.cc"
+        Sat, 20 Jul 2019 12:31:19 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:40922 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726300AbfGTQbN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 20 Jul 2019 12:31:13 -0400
-Received: from localhost ([::1]:54006 helo=tatos)
+        id S1726300AbfGTQbT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 20 Jul 2019 12:31:19 -0400
+Received: from localhost ([::1]:54012 helo=tatos)
         by orbyte.nwl.cc with esmtp (Exim 4.91)
         (envelope-from <phil@nwl.cc>)
-        id 1hosGN-0005Tz-VQ; Sat, 20 Jul 2019 18:31:12 +0200
+        id 1hosGT-0005UN-C8; Sat, 20 Jul 2019 18:31:17 +0200
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH 01/12] ebtables: Fix error message for invalid parameters
-Date:   Sat, 20 Jul 2019 18:30:15 +0200
-Message-Id: <20190720163026.15410-2-phil@nwl.cc>
+Subject: [iptables PATCH 08/12] xtables-save: Pass optstring/longopts to xtables_save_main()
+Date:   Sat, 20 Jul 2019 18:30:22 +0200
+Message-Id: <20190720163026.15410-9-phil@nwl.cc>
 X-Mailer: git-send-email 2.22.0
 In-Reply-To: <20190720163026.15410-1-phil@nwl.cc>
 References: <20190720163026.15410-1-phil@nwl.cc>
@@ -39,37 +39,101 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-With empty ruleset, ebtables-nft would report the wrong argv:
+Introduce variables for the different optstrings so short and long
+options live side-by-side.
 
-| % sudo ./install/sbin/ebtables-nft -vnL
-| ebtables v1.8.3 (nf_tables): Unknown argument: './install/sbin/ebtables-nft'
-| Try `ebtables -h' or 'ebtables --help' for more information.
+In order to make xtables_save_main() more versatile, pass optstring and
+longopts via parameter.
 
-After a (successful) call to 'ebtables-nft -L', this would even
-segfault:
-
-| % sudo ./install/sbin/ebtables-nft -vnL
-| zsh: segmentation fault  sudo ./install/sbin/ebtables-nft -vnL
-
-Fixes: acde6be32036f ("ebtables-translate: Fix segfault while parsing extension options")
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- iptables/xtables-eb.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ iptables/xtables-save.c | 20 +++++++++++++-------
+ 1 file changed, 13 insertions(+), 7 deletions(-)
 
-diff --git a/iptables/xtables-eb.c b/iptables/xtables-eb.c
-index 171f41b0f616e..b8d89ad974a42 100644
---- a/iptables/xtables-eb.c
-+++ b/iptables/xtables-eb.c
-@@ -1180,7 +1180,7 @@ print_zero:
- 			if (ebt_command_default(&cs))
- 				xtables_error(PARAMETER_PROBLEM,
- 					      "Unknown argument: '%s'",
--					      argv[optind - 1]);
-+					      argv[optind]);
+diff --git a/iptables/xtables-save.c b/iptables/xtables-save.c
+index ac452f1dd6f14..b4d14b5bcd016 100644
+--- a/iptables/xtables-save.c
++++ b/iptables/xtables-save.c
+@@ -33,7 +33,8 @@
  
- 			if (command != 'A' && command != 'I' &&
- 			    command != 'D' && command != 'C')
+ static bool show_counters = false;
+ 
+-static const struct option options[] = {
++static const char *ipt_save_optstring = "bcdt:M:f:46V";
++static const struct option ipt_save_options[] = {
+ 	{.name = "counters", .has_arg = false, .val = 'c'},
+ 	{.name = "version",  .has_arg = false, .val = 'V'},
+ 	{.name = "dump",     .has_arg = false, .val = 'd'},
+@@ -45,6 +46,7 @@ static const struct option options[] = {
+ 	{NULL},
+ };
+ 
++static const char *arp_save_optstring = "cM:V";
+ static const struct option arp_save_options[] = {
+ 	{.name = "counters", .has_arg = false, .val = 'c'},
+ 	{.name = "version",  .has_arg = false, .val = 'V'},
+@@ -52,6 +54,7 @@ static const struct option arp_save_options[] = {
+ 	{NULL},
+ };
+ 
++static const char *ebt_save_optstring = "ct:M:V";
+ static const struct option ebt_save_options[] = {
+ 	{.name = "counters", .has_arg = false, .val = 'c'},
+ 	{.name = "version",  .has_arg = false, .val = 'V'},
+@@ -129,7 +132,8 @@ do_output(struct nft_handle *h, const char *tablename, struct do_output_data *d)
+  * rule
+  */
+ static int
+-xtables_save_main(int family, int argc, char *argv[])
++xtables_save_main(int family, int argc, char *argv[],
++		  const char *optstring, const struct option *longopts)
+ {
+ 	const struct builtin_table *tables;
+ 	const char *tablename = NULL;
+@@ -150,7 +154,7 @@ xtables_save_main(int family, int argc, char *argv[])
+ 		exit(1);
+ 	}
+ 
+-	while ((c = getopt_long(argc, argv, "bcdt:M:f:46V", options, NULL)) != -1) {
++	while ((c = getopt_long(argc, argv, optstring, longopts, NULL)) != -1) {
+ 		switch (c) {
+ 		case 'b':
+ 			fprintf(stderr, "-b/--binary option is not implemented\n");
+@@ -245,12 +249,14 @@ xtables_save_main(int family, int argc, char *argv[])
+ 
+ int xtables_ip4_save_main(int argc, char *argv[])
+ {
+-	return xtables_save_main(NFPROTO_IPV4, argc, argv);
++	return xtables_save_main(NFPROTO_IPV4, argc, argv,
++				 ipt_save_optstring, ipt_save_options);
+ }
+ 
+ int xtables_ip6_save_main(int argc, char *argv[])
+ {
+-	return xtables_save_main(NFPROTO_IPV6, argc, argv);
++	return xtables_save_main(NFPROTO_IPV6, argc, argv,
++				 ipt_save_optstring, ipt_save_options);
+ }
+ 
+ static int __ebt_save(struct nft_handle *h, const char *tablename, void *data)
+@@ -323,7 +329,7 @@ int xtables_eb_save_main(int argc_, char *argv_[])
+ 		exit(1);
+ 	}
+ 
+-	while ((c = getopt_long(argc_, argv_, "ct:M:V", ebt_save_options, NULL)) != -1) {
++	while ((c = getopt_long(argc_, argv_, ebt_save_optstring, ebt_save_options, NULL)) != -1) {
+ 		switch (c) {
+ 		case 'c':
+ 			unsetenv("EBTABLES_SAVE_COUNTER");
+@@ -378,7 +384,7 @@ int xtables_arp_save_main(int argc, char **argv)
+ 		exit(1);
+ 	}
+ 
+-	while ((c = getopt_long(argc, argv, "cM:V", arp_save_options, NULL)) != -1) {
++	while ((c = getopt_long(argc, argv, arp_save_optstring, arp_save_options, NULL)) != -1) {
+ 		switch (c) {
+ 		case 'c':
+ 			show_counters = true;
 -- 
 2.22.0
 
