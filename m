@@ -2,33 +2,33 @@ Return-Path: <SRS0=YHPx=VR=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D2664C76186
-	for <netfilter-devel@archiver.kernel.org>; Sat, 20 Jul 2019 16:30:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 58E27C76186
+	for <netfilter-devel@archiver.kernel.org>; Sat, 20 Jul 2019 16:30:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B55EF2085A
-	for <netfilter-devel@archiver.kernel.org>; Sat, 20 Jul 2019 16:30:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 39E352085A
+	for <netfilter-devel@archiver.kernel.org>; Sat, 20 Jul 2019 16:30:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726320AbfGTQaq (ORCPT
+        id S1726355AbfGTQaw (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 20 Jul 2019 12:30:46 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:40886 "EHLO orbyte.nwl.cc"
+        Sat, 20 Jul 2019 12:30:52 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:40892 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726300AbfGTQaq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 20 Jul 2019 12:30:46 -0400
-Received: from localhost ([::1]:53976 helo=tatos)
+        id S1726300AbfGTQav (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 20 Jul 2019 12:30:51 -0400
+Received: from localhost ([::1]:53982 helo=tatos)
         by orbyte.nwl.cc with esmtp (Exim 4.91)
         (envelope-from <phil@nwl.cc>)
-        id 1hosFx-0005Rx-B9; Sat, 20 Jul 2019 18:30:45 +0200
+        id 1hosG2-0005SI-Lk; Sat, 20 Jul 2019 18:30:50 +0200
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH 03/12] xtables-save: Use argv[0] as program name
-Date:   Sat, 20 Jul 2019 18:30:17 +0200
-Message-Id: <20190720163026.15410-4-phil@nwl.cc>
+Subject: [iptables PATCH 06/12] nft: Make nft_for_each_table() more versatile
+Date:   Sat, 20 Jul 2019 18:30:20 +0200
+Message-Id: <20190720163026.15410-7-phil@nwl.cc>
 X-Mailer: git-send-email 2.22.0
 In-Reply-To: <20190720163026.15410-1-phil@nwl.cc>
 References: <20190720163026.15410-1-phil@nwl.cc>
@@ -39,99 +39,157 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Don't hard-code program names. This also fixes for bogus 'xtables-save'
-name which is no longer used.
+Support passing arbitrary data (via void pointer) to the callback.
 
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- iptables/xtables-save.c | 21 +++++++++++----------
- 1 file changed, 11 insertions(+), 10 deletions(-)
+ iptables/nft.c          |  6 +++---
+ iptables/nft.h          |  2 +-
+ iptables/xtables-save.c | 27 +++++++++++++++++----------
+ 3 files changed, 21 insertions(+), 14 deletions(-)
 
+diff --git a/iptables/nft.c b/iptables/nft.c
+index 8f0d5e664eca6..cd42af70b54ef 100644
+--- a/iptables/nft.c
++++ b/iptables/nft.c
+@@ -2092,8 +2092,8 @@ err:
+ }
+ 
+ int nft_for_each_table(struct nft_handle *h,
+-		       int (*func)(struct nft_handle *h, const char *tablename, bool counters),
+-		       bool counters)
++		       int (*func)(struct nft_handle *h, const char *tablename, void *data),
++		       void *data)
+ {
+ 	struct nftnl_table_list *list;
+ 	struct nftnl_table_list_iter *iter;
+@@ -2112,7 +2112,7 @@ int nft_for_each_table(struct nft_handle *h,
+ 		const char *tablename =
+ 			nftnl_table_get(t, NFTNL_TABLE_NAME);
+ 
+-		func(h, tablename, counters);
++		func(h, tablename, data);
+ 
+ 		t = nftnl_table_list_iter_next(iter);
+ 	}
+diff --git a/iptables/nft.h b/iptables/nft.h
+index dc1161840a38c..da078a44bab7b 100644
+--- a/iptables/nft.h
++++ b/iptables/nft.h
+@@ -81,7 +81,7 @@ void nft_build_cache(struct nft_handle *h);
+ struct nftnl_table;
+ struct nftnl_chain_list;
+ 
+-int nft_for_each_table(struct nft_handle *h, int (*func)(struct nft_handle *h, const char *tablename, bool counters), bool counters);
++int nft_for_each_table(struct nft_handle *h, int (*func)(struct nft_handle *h, const char *tablename, void *data), void *data);
+ bool nft_table_find(struct nft_handle *h, const char *tablename);
+ int nft_table_purge_chains(struct nft_handle *h, const char *table, struct nftnl_chain_list *list);
+ int nft_table_flush(struct nft_handle *h, const char *table);
 diff --git a/iptables/xtables-save.c b/iptables/xtables-save.c
-index 3f389e8fdc234..491122f39bbb0 100644
+index 811ec6330a4cb..484450f03354f 100644
 --- a/iptables/xtables-save.c
 +++ b/iptables/xtables-save.c
-@@ -9,6 +9,7 @@
- #include "config.h"
- #include <getopt.h>
- #include <errno.h>
-+#include <libgen.h>
- #include <stdio.h>
- #include <fcntl.h>
- #include <stdlib.h>
-@@ -80,8 +81,8 @@ __do_output(struct nft_handle *h, const char *tablename, bool counters)
+@@ -62,10 +62,15 @@ static const struct option ebt_save_options[] = {
  
- 	time_t now = time(NULL);
+ static bool ebt_legacy_counter_format;
  
--	printf("# Generated by xtables-save v%s on %s",
--	       PACKAGE_VERSION, ctime(&now));
-+	printf("# Generated by %s v%s on %s", prog_name,
-+	       prog_vers, ctime(&now));
- 	printf("*%s\n", tablename);
- 
- 	/* Dump out chain names first,
-@@ -122,7 +123,7 @@ do_output(struct nft_handle *h, const char *tablename, bool counters)
-  * rule
-  */
++struct do_output_data {
++	bool counters;
++};
++
  static int
--xtables_save_main(int family, const char *progname, int argc, char *argv[])
-+xtables_save_main(int family, int argc, char *argv[])
+-__do_output(struct nft_handle *h, const char *tablename, bool counters)
++__do_output(struct nft_handle *h, const char *tablename, void *data)
+ {
+ 	struct nftnl_chain_list *chain_list;
++	struct do_output_data *d = data;
+ 
+ 	if (!nft_table_builtin_find(h, tablename))
+ 		return 0;
+@@ -89,7 +94,7 @@ __do_output(struct nft_handle *h, const char *tablename, bool counters)
+ 	/* Dump out chain names first,
+ 	 * thereby preventing dependency conflicts */
+ 	nft_chain_save(h, chain_list);
+-	nft_rule_save(h, tablename, counters ? 0 : FMT_NOCOUNTS);
++	nft_rule_save(h, tablename, d->counters ? 0 : FMT_NOCOUNTS);
+ 
+ 	now = time(NULL);
+ 	printf("COMMIT\n");
+@@ -98,12 +103,12 @@ __do_output(struct nft_handle *h, const char *tablename, bool counters)
+ }
+ 
+ static int
+-do_output(struct nft_handle *h, const char *tablename, bool counters)
++do_output(struct nft_handle *h, const char *tablename, struct do_output_data *d)
+ {
+ 	int ret;
+ 
+ 	if (!tablename) {
+-		ret = nft_for_each_table(h, __do_output, counters);
++		ret = nft_for_each_table(h, __do_output, d);
+ 		nft_check_xt_legacy(h->family, true);
+ 		return !!ret;
+ 	}
+@@ -114,7 +119,7 @@ do_output(struct nft_handle *h, const char *tablename, bool counters)
+ 		return 1;
+ 	}
+ 
+-	ret = __do_output(h, tablename, counters);
++	ret = __do_output(h, tablename, d);
+ 	nft_check_xt_legacy(h->family, true);
+ 	return ret;
+ }
+@@ -128,6 +133,7 @@ xtables_save_main(int family, int argc, char *argv[])
  {
  	const struct builtin_table *tables;
  	const char *tablename = NULL;
-@@ -133,7 +134,7 @@ xtables_save_main(int family, const char *progname, int argc, char *argv[])
- 	FILE *file = NULL;
- 	int ret, c;
++	struct do_output_data d = {};
+ 	bool dump = false;
+ 	struct nft_handle h = {
+ 		.family	= family,
+@@ -150,7 +156,7 @@ xtables_save_main(int family, int argc, char *argv[])
+ 			fprintf(stderr, "-b/--binary option is not implemented\n");
+ 			break;
+ 		case 'c':
+-			show_counters = true;
++			d.counters = true;
+ 			break;
  
--	xtables_globals.program_name = progname;
-+	xtables_globals.program_name = basename(*argv);;
- 	c = xtables_init_all(&xtables_globals, family);
- 	if (c < 0) {
- 		fprintf(stderr, "%s/%s Failed to initialize xtables\n",
-@@ -237,12 +238,12 @@ xtables_save_main(int family, const char *progname, int argc, char *argv[])
- 
- int xtables_ip4_save_main(int argc, char *argv[])
- {
--	return xtables_save_main(NFPROTO_IPV4, "iptables-save", argc, argv);
-+	return xtables_save_main(NFPROTO_IPV4, argc, argv);
- }
- 
- int xtables_ip6_save_main(int argc, char *argv[])
- {
--	return xtables_save_main(NFPROTO_IPV6, "ip6tables-save", argc, argv);
-+	return xtables_save_main(NFPROTO_IPV6, argc, argv);
- }
- 
- static int __ebt_save(struct nft_handle *h, const char *tablename, bool counters)
-@@ -266,8 +267,8 @@ static int __ebt_save(struct nft_handle *h, const char *tablename, bool counters
- 
- 	if (first) {
- 		now = time(NULL);
--		printf("# Generated by ebtables-save v%s on %s",
--		       PACKAGE_VERSION, ctime(&now));
-+		printf("# Generated by %s v%s on %s", prog_name,
-+		       prog_vers, ctime(&now));
- 		first = false;
- 	}
- 	printf("*%s\n", tablename);
-@@ -308,7 +309,7 @@ int xtables_eb_save_main(int argc_, char *argv_[])
- 		}
+ 		case 't':
+@@ -229,7 +235,7 @@ xtables_save_main(int family, int argc, char *argv[])
+ 		exit(EXIT_FAILURE);
  	}
  
--	xtables_globals.program_name = "ebtables-save";
-+	xtables_globals.program_name = basename(*argv_);
- 	c = xtables_init_all(&xtables_globals, h.family);
- 	if (c < 0) {
- 		fprintf(stderr, "%s/%s Failed to initialize xtables\n",
-@@ -362,7 +363,7 @@ int xtables_arp_save_main(int argc, char **argv)
- 	};
- 	int c;
+-	ret = do_output(&h, tablename, show_counters);
++	ret = do_output(&h, tablename, &d);
+ 	nft_fini(&h);
+ 	if (dump)
+ 		exit(0);
+@@ -247,10 +253,11 @@ int xtables_ip6_save_main(int argc, char *argv[])
+ 	return xtables_save_main(NFPROTO_IPV6, argc, argv);
+ }
  
--	xtables_globals.program_name = "arptables-save";
-+	xtables_globals.program_name = basename(*argv);;
- 	c = xtables_init_all(&xtables_globals, h.family);
- 	if (c < 0) {
- 		fprintf(stderr, "%s/%s Failed to initialize xtables\n",
+-static int __ebt_save(struct nft_handle *h, const char *tablename, bool counters)
++static int __ebt_save(struct nft_handle *h, const char *tablename, void *data)
+ {
+ 	struct nftnl_chain_list *chain_list;
+ 	unsigned int format = FMT_NOCOUNTS;
++	bool *counters = data;
+ 	time_t now;
+ 
+ 	if (!nft_table_find(h, tablename)) {
+@@ -286,9 +293,9 @@ static int __ebt_save(struct nft_handle *h, const char *tablename, bool counters
+ static int ebt_save(struct nft_handle *h, const char *tablename, bool counters)
+ {
+ 	if (!tablename)
+-		return nft_for_each_table(h, __ebt_save, counters);
++		return nft_for_each_table(h, __ebt_save, &counters);
+ 
+-	return __ebt_save(h, tablename, counters);
++	return __ebt_save(h, tablename, &counters);
+ }
+ 
+ int xtables_eb_save_main(int argc_, char *argv_[])
 -- 
 2.22.0
 
