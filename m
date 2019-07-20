@@ -2,75 +2,136 @@ Return-Path: <SRS0=YHPx=VR=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0EB6CC76186
-	for <netfilter-devel@archiver.kernel.org>; Sat, 20 Jul 2019 20:15:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9674EC76186
+	for <netfilter-devel@archiver.kernel.org>; Sat, 20 Jul 2019 20:21:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C892820838
-	for <netfilter-devel@archiver.kernel.org>; Sat, 20 Jul 2019 20:15:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6DEED20838
+	for <netfilter-devel@archiver.kernel.org>; Sat, 20 Jul 2019 20:21:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726223AbfGTUPQ (ORCPT
+        id S1726256AbfGTUV6 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 20 Jul 2019 16:15:16 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:41368 "EHLO orbyte.nwl.cc"
+        Sat, 20 Jul 2019 16:21:58 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:41382 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726166AbfGTUPQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 20 Jul 2019 16:15:16 -0400
+        id S1726238AbfGTUV6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 20 Jul 2019 16:21:58 -0400
 Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.91)
         (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1hovlC-0007hv-G5; Sat, 20 Jul 2019 22:15:14 +0200
-Date:   Sat, 20 Jul 2019 22:15:14 +0200
+        id 1hovrh-0007pT-9i; Sat, 20 Jul 2019 22:21:57 +0200
+Date:   Sat, 20 Jul 2019 22:21:57 +0200
 From:   Phil Sutter <phil@nwl.cc>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-Subject: Re: [iptables PATCH 09/12] xtables-save: Make COMMIT line optional
-Message-ID: <20190720201514.GG32501@orbyte.nwl.cc>
+To:     Fernando Fernandez Mancera <ffmancera@riseup.net>
+Cc:     netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH nft] src: osf: fix snprintf -Wformat-truncation warning
+Message-ID: <20190720202157.GB22661@orbyte.nwl.cc>
 Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Florian Westphal <fw@strlen.de>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-References: <20190720163026.15410-1-phil@nwl.cc>
- <20190720163026.15410-10-phil@nwl.cc>
- <20190720192918.ckfbq22si4tundhx@breakpoint.cc>
- <20190720201133.GE32501@orbyte.nwl.cc>
- <20190720201310.5fuxgzlz5xi4kjpe@breakpoint.cc>
+        Fernando Fernandez Mancera <ffmancera@riseup.net>,
+        netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
+References: <20190718110145.13361-1-ffmancera@riseup.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20190720201310.5fuxgzlz5xi4kjpe@breakpoint.cc>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20190718110145.13361-1-ffmancera@riseup.net>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sat, Jul 20, 2019 at 10:13:10PM +0200, Florian Westphal wrote:
-> Phil Sutter <phil@nwl.cc> wrote:
-> > On Sat, Jul 20, 2019 at 09:29:18PM +0200, Florian Westphal wrote:
-> > > Phil Sutter <phil@nwl.cc> wrote:
-> > > > Change xtables_save_main to support optional printing of COMMIT line as
-> > > > it is not used in arp- or ebtables.
-> > > 
-> > > Why?  Is this so ebt-save dumps are compatible with the
-> > > old ebt-restore?
-> > 
-> > Hmm. I haven't considered deviating in ebtables-nft-save format from
-> > legacy one yet, but it may actually be no problem given that people
-> > shouldn't switch between both. The only bummer might be if someone has a
-> > custom script which then trips over the unknown non-comment line.
-> > 
-> > I'm undecided, but not against "breaking" with legacy save dumps per se.
-> > If you think it's not a problem, we could just simplify things. OTOH
-> > this is not a big patch, either so maybe not even worth the risk. :)
-> 
-> I'm fine with this, I was just wondering because the changelog explains
-> whats happening, not why.
+Hi Fernando,
 
-Yes, typical pitfall for me. Maybe I should put a sticky note somewhere.
-:)
+On Thu, Jul 18, 2019 at 01:01:46PM +0200, Fernando Fernandez Mancera wrote:
+> Fedora 30 uses very recent gcc (version 9.1.1 20190503 (Red Hat 9.1.1-1)),
+> osf produces following warnings:
+> 
+> -Wformat-truncation warning have been introduced in the version 7.1 of gcc.
+> Also, remove a unneeded address check of "tmp + 1" in nf_osf_strchr().
+> 
+> nfnl_osf.c: In function ‘nfnl_osf_load_fingerprints’:
+> nfnl_osf.c:292:39: warning: ‘%s’ directive output may be truncated writing
+> up to 1023 bytes into a region of size 128 [-Wformat-truncation=]
+>   292 |   cnt = snprintf(obuf, sizeof(obuf), "%s,", pbeg);
+>       |                                       ^~
+> nfnl_osf.c:292:9: note: ‘snprintf’ output between 2 and 1025 bytes into a
+> destination of size 128
+>   292 |   cnt = snprintf(obuf, sizeof(obuf), "%s,", pbeg);
+>       |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> nfnl_osf.c:302:46: warning: ‘%s’ directive output may be truncated writing
+> up to 1023 bytes into a region of size 32 [-Wformat-truncation=]
+>   302 |    cnt = snprintf(f.genre, sizeof(f.genre), "%s", pbeg);
+>       |                                              ^~
+> nfnl_osf.c:302:10: note: ‘snprintf’ output between 1 and 1024 bytes into a
+> destination of size 32
+>   302 |    cnt = snprintf(f.genre, sizeof(f.genre), "%s", pbeg);
+>       |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> nfnl_osf.c:309:49: warning: ‘%s’ directive output may be truncated writing
+> up to 1023 bytes into a region of size 32 [-Wformat-truncation=]
+>   309 |   cnt = snprintf(f.version, sizeof(f.version), "%s", pbeg);
+>       |                                                 ^~
+> nfnl_osf.c:309:9: note: ‘snprintf’ output between 1 and 1024 bytes into a
+> destination of size 32
+>   309 |   cnt = snprintf(f.version, sizeof(f.version), "%s", pbeg);
+>       |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> nfnl_osf.c:317:47: warning: ‘%s’ directive output may be truncated writing
+> up to 1023 bytes into a region of size 32 [-Wformat-truncation=]
+>   317 |       snprintf(f.subtype, sizeof(f.subtype), "%s", pbeg);
+>       |                                               ^~
+> nfnl_osf.c:317:7: note: ‘snprintf’ output between 1 and 1024 bytes into a
+> destination of size 32
+>   317 |       snprintf(f.subtype, sizeof(f.subtype), "%s", pbeg);
+>       |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> 
+> Reported-by: Florian Westphal <fw@strlen.de>
+> Signed-off-by: Fernando Fernandez Mancera <ffmancera@riseup.net>
+> ---
+>  src/nfnl_osf.c | 14 +++++++-------
+>  1 file changed, 7 insertions(+), 7 deletions(-)
+> 
+> diff --git a/src/nfnl_osf.c b/src/nfnl_osf.c
+> index be3fd81..c99f8f3 100644
+> --- a/src/nfnl_osf.c
+> +++ b/src/nfnl_osf.c
+> @@ -81,7 +81,7 @@ static char *nf_osf_strchr(char *ptr, char c)
+>  	if (tmp)
+>  		*tmp = '\0';
+>  
+> -	while (tmp && tmp + 1 && isspace(*(tmp + 1)))
+> +	while (tmp && isspace(*(tmp + 1)))
+>  		tmp++;
+>  
+>  	return tmp;
+> @@ -212,7 +212,7 @@ static int osf_load_line(char *buffer, int len, int del,
+>  			 struct netlink_ctx *ctx)
+>  {
+>  	int i, cnt = 0;
+> -	char obuf[MAXOPTSTRLEN];
+> +	char obuf[MAXOPTSTRLEN + 1];
+>  	struct nf_osf_user_finger f;
+>  	char *pbeg, *pend;
+>  	struct nlmsghdr *nlh;
+> @@ -289,7 +289,7 @@ static int osf_load_line(char *buffer, int len, int del,
+>  	pend = nf_osf_strchr(pbeg, OSFPDEL);
+>  	if (pend) {
+>  		*pend = '\0';
+> -		cnt = snprintf(obuf, sizeof(obuf), "%s,", pbeg);
+> +		cnt = snprintf(obuf, sizeof(obuf), "%.128s", pbeg);
+
+Not a big deal, but sizeof() and hard-coding the "precision" doesn't mix
+well in my opinion. I've solved this like so:
+
+		i = sizeof(obuf);
+		cnt = snprintf(obuf, i, "%.*s,", i - 2, pbeg);
+
+(i - 2) to leave space for the trailing comma and nul-char. Also note
+that your patch drops the trailing comma, I guess that's a bug.
+
+Maybe you want to have a look at my patch (Message-ID
+20190720185226.8876-2-phil@nwl.cc) and incorporate what's useful into
+yours? It's your code, so you should know better how to fix things. :)
 
 Thanks, Phil
