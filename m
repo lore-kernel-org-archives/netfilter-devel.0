@@ -6,30 +6,32 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 99D73C76186
-	for <netfilter-devel@archiver.kernel.org>; Sat, 20 Jul 2019 18:52:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 78E72C76195
+	for <netfilter-devel@archiver.kernel.org>; Sat, 20 Jul 2019 18:52:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 761252084C
-	for <netfilter-devel@archiver.kernel.org>; Sat, 20 Jul 2019 18:52:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4D6012084C
+	for <netfilter-devel@archiver.kernel.org>; Sat, 20 Jul 2019 18:52:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726115AbfGTSwh (ORCPT
+        id S1726130AbfGTSwm (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 20 Jul 2019 14:52:37 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:41196 "EHLO orbyte.nwl.cc"
+        Sat, 20 Jul 2019 14:52:42 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:41202 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725780AbfGTSwg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 20 Jul 2019 14:52:36 -0400
-Received: from localhost ([::1]:54286 helo=tatos)
+        id S1725780AbfGTSwl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 20 Jul 2019 14:52:41 -0400
+Received: from localhost ([::1]:54292 helo=tatos)
         by orbyte.nwl.cc with esmtp (Exim 4.91)
         (envelope-from <phil@nwl.cc>)
-        id 1houTD-00070Y-3S; Sat, 20 Jul 2019 20:52:35 +0200
+        id 1houTI-00070i-D3; Sat, 20 Jul 2019 20:52:40 +0200
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [nft PATCH 1/2] parser_bison: Get rid of (most) bison compiler warnings
-Date:   Sat, 20 Jul 2019 20:52:25 +0200
-Message-Id: <20190720185226.8876-1-phil@nwl.cc>
+Subject: [nft PATCH 2/2] nfnl_osf: Silence string truncation gcc warnings
+Date:   Sat, 20 Jul 2019 20:52:26 +0200
+Message-Id: <20190720185226.8876-2-phil@nwl.cc>
 X-Mailer: git-send-email 2.22.0
+In-Reply-To: <20190720185226.8876-1-phil@nwl.cc>
+References: <20190720185226.8876-1-phil@nwl.cc>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -37,54 +39,64 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Shut the complaints about POSIX incompatibility by passing -Wno-yacc to
-bison. An alternative would be to not pass -y, but that caused seemingly
-unsolveable problems with automake and expected file names.
+Albeit a bit too enthusiastic, gcc is right in that these strings may be
+truncated since the destination buffer is smaller than the source one.
+Get rid of the warnings (and the potential problem) by specifying a
+string "precision" of one character less than the destination. This
+ensures a terminating nul-character may be written as well.
 
-Fix two warnings about deprecated '%pure-parser' and '%error-verbose'
-statements by replacing them with what bison suggests.
-
-A third warning sadly left in place: Replacing '%name-prefix' by what
-is suggested leads to compilation errors.
-
+Fixes: af00174af3ef4 ("src: osf: import nfnl_osf.c to load osf fingerprints")
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- src/Makefile.am    | 2 +-
- src/parser_bison.y | 4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ src/nfnl_osf.c | 16 +++++++++-------
+ 1 file changed, 9 insertions(+), 7 deletions(-)
 
-diff --git a/src/Makefile.am b/src/Makefile.am
-index e2b531390cefb..740c21f2cac85 100644
---- a/src/Makefile.am
-+++ b/src/Makefile.am
-@@ -22,7 +22,7 @@ AM_CFLAGS = -Wall								\
- 	    -Waggregate-return -Wunused -Wwrite-strings ${GCC_FVISIBILITY_HIDDEN}
+diff --git a/src/nfnl_osf.c b/src/nfnl_osf.c
+index be3fd8100b665..bed9ba64b65c6 100644
+--- a/src/nfnl_osf.c
++++ b/src/nfnl_osf.c
+@@ -289,32 +289,34 @@ static int osf_load_line(char *buffer, int len, int del,
+ 	pend = nf_osf_strchr(pbeg, OSFPDEL);
+ 	if (pend) {
+ 		*pend = '\0';
+-		cnt = snprintf(obuf, sizeof(obuf), "%s,", pbeg);
++		i = sizeof(obuf);
++		cnt = snprintf(obuf, i, "%.*s,", i - 2, pbeg);
+ 		pbeg = pend + 1;
+ 	}
  
+ 	pend = nf_osf_strchr(pbeg, OSFPDEL);
+ 	if (pend) {
+ 		*pend = '\0';
++		i = sizeof(f.genre);
+ 		if (pbeg[0] == '@' || pbeg[0] == '*')
+-			cnt = snprintf(f.genre, sizeof(f.genre), "%s", pbeg + 1);
+-		else
+-			cnt = snprintf(f.genre, sizeof(f.genre), "%s", pbeg);
++			pbeg++;
++		cnt = snprintf(f.genre, i, "%.*s", i - 1, pbeg + 1);
+ 		pbeg = pend + 1;
+ 	}
  
--AM_YFLAGS = -d
-+AM_YFLAGS = -d -Wno-yacc
+ 	pend = nf_osf_strchr(pbeg, OSFPDEL);
+ 	if (pend) {
+ 		*pend = '\0';
+-		cnt = snprintf(f.version, sizeof(f.version), "%s", pbeg);
++		i = sizeof(f.version);
++		cnt = snprintf(f.version, i, "%.*s", i - 1, pbeg);
+ 		pbeg = pend + 1;
+ 	}
  
- BUILT_SOURCES = parser_bison.h
+ 	pend = nf_osf_strchr(pbeg, OSFPDEL);
+ 	if (pend) {
+ 		*pend = '\0';
+-		cnt =
+-		    snprintf(f.subtype, sizeof(f.subtype), "%s", pbeg);
++		i = sizeof(f.subtype);
++		cnt = snprintf(f.subtype, i, "%.*s", i - 1, pbeg);
+ 		pbeg = pend + 1;
+ 	}
  
-diff --git a/src/parser_bison.y b/src/parser_bison.y
-index c90de47e88f74..12e499b4dd025 100644
---- a/src/parser_bison.y
-+++ b/src/parser_bison.y
-@@ -116,12 +116,12 @@ int nft_lex(void *, void *, void *);
- 
- %name-prefix "nft_"
- %debug
--%pure-parser
-+%define api.pure
- %parse-param		{ struct nft_ctx *nft }
- %parse-param		{ void *scanner }
- %parse-param		{ struct parser_state *state }
- %lex-param		{ scanner }
--%error-verbose
-+%define parse.error verbose
- %locations
- 
- %initial-action {
 -- 
 2.22.0
 
