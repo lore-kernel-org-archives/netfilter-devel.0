@@ -2,99 +2,61 @@ Return-Path: <SRS0=p03Y=VS=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B718DC76188
-	for <netfilter-devel@archiver.kernel.org>; Sun, 21 Jul 2019 10:22:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9F9D0C76188
+	for <netfilter-devel@archiver.kernel.org>; Sun, 21 Jul 2019 10:43:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8ABAF2085A
-	for <netfilter-devel@archiver.kernel.org>; Sun, 21 Jul 2019 10:22:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 78AD42085A
+	for <netfilter-devel@archiver.kernel.org>; Sun, 21 Jul 2019 10:43:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726047AbfGUKWd (ORCPT
+        id S1726319AbfGUKnM (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 21 Jul 2019 06:22:33 -0400
-Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:49262 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726020AbfGUKWc (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 21 Jul 2019 06:22:32 -0400
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.89)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1hp8z9-0004aj-9y; Sun, 21 Jul 2019 12:22:31 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft] scanner: don't rely on fseek for input stream repositioning
-Date:   Sun, 21 Jul 2019 12:18:31 +0200
-Message-Id: <20190721101831.28089-1-fw@strlen.de>
-X-Mailer: git-send-email 2.21.0
+        Sun, 21 Jul 2019 06:43:12 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:42900 "EHLO orbyte.nwl.cc"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726131AbfGUKnL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 21 Jul 2019 06:43:11 -0400
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.91)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1hp9J7-0005vO-JV; Sun, 21 Jul 2019 12:43:09 +0200
+Date:   Sun, 21 Jul 2019 12:43:09 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Fernando Fernandez Mancera <ffmancera@riseup.net>
+Cc:     netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH nft] src: osf: fix snprintf -Wformat-truncation warning
+Message-ID: <20190721104309.GD22661@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Fernando Fernandez Mancera <ffmancera@riseup.net>,
+        netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
+References: <20190718110145.13361-1-ffmancera@riseup.net>
+ <20190720202157.GB22661@orbyte.nwl.cc>
+ <00a4ebbb-a571-b00a-83ac-ad198ccbd263@riseup.net>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <00a4ebbb-a571-b00a-83ac-ad198ccbd263@riseup.net>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-It doesn't work when reading from a pipe, leading to parser
-errors in case of 'cat foo | nft -f -', whereas 'nft -f < foo'
-works fine.
+Hi,
 
-Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1354
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- src/scanner.l | 35 ++++++++++++++++++++---------------
- 1 file changed, 20 insertions(+), 15 deletions(-)
+On Sun, Jul 21, 2019 at 11:59:14AM +0200, Fernando Fernandez Mancera wrote:
+[...]
+> I think your code is more readable than mine. I am going to send a v2
+> patch with your code but also adding the following fix.
+> 
+> -	while (tmp && tmp + 1 && isspace(*(tmp + 1)))
+> +	while (tmp && isspace(*(tmp + 1)))
+> 
+> I am going to send a similar patch for the iptables tree because this
+> file was imported from iptables.git/utils/nfnl_osf.c.
 
-diff --git a/src/scanner.l b/src/scanner.l
-index 4ed5f9241381..c1adcbddbd73 100644
---- a/src/scanner.l
-+++ b/src/scanner.l
-@@ -36,23 +36,28 @@
-  */
- #define YY_INPUT(buf,result,max_size)						\
- {										\
--	long n = 0;								\
-+	result = 0;								\
- 	errno = 0;								\
--	while ((result = fread(buf, 1, max_size, yyin)) == 0 &&			\
--		ferror(yyin)) {							\
--		if (errno != EINTR) {						\
--			YY_FATAL_ERROR("input in flex scanner failed");		\
--			break;							\
-+										\
-+	while (result < max_size) {						\
-+		int chr = fgetc(yyin);						\
-+										\
-+		if (chr != EOF) {						\
-+			buf[result++] = chr;					\
-+			if (chr == '\n' || chr == ' ')				\
-+				break;						\
-+			continue;						\
- 		}								\
--		errno = 0;							\
--		clearerr(yyin);							\
--	}									\
--	if (result > 1 && !feof(yyin)) {					\
--		while (result > 1 && 						\
--		       (buf[result - 1] != '\n' &&  buf[result - 1] != ' '))	\
--			result--, n++;						\
--		result--, n++;							\
--		fseek(yyin, -n, SEEK_CUR);					\
-+										\
-+		if (ferror(yyin)) {						\
-+			if (errno != EINTR) {					\
-+				YY_FATAL_ERROR("input in flex scanner failed");	\
-+				break;						\
-+			}							\
-+			errno = 0;						\
-+			clearerr(yyin);						\
-+		}								\
-+		break;								\
- 	}									\
- }
- 
--- 
-2.21.0
+Sounds great, thanks a lot!
 
+Cheers, Phil
