@@ -6,51 +6,84 @@ X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 84274C76191
-	for <netfilter-devel@archiver.kernel.org>; Sun, 21 Jul 2019 18:54:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A414DC76191
+	for <netfilter-devel@archiver.kernel.org>; Sun, 21 Jul 2019 18:56:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5AC7B206BF
-	for <netfilter-devel@archiver.kernel.org>; Sun, 21 Jul 2019 18:54:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7483A206BF
+	for <netfilter-devel@archiver.kernel.org>; Sun, 21 Jul 2019 18:56:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726484AbfGUSye (ORCPT
+        id S1727032AbfGUS4e (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 21 Jul 2019 14:54:34 -0400
-Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:50158 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725828AbfGUSye (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 21 Jul 2019 14:54:34 -0400
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.89)
-        (envelope-from <fw@strlen.de>)
-        id 1hpGye-0006JD-R9; Sun, 21 Jul 2019 20:54:32 +0200
-Date:   Sun, 21 Jul 2019 20:54:32 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
-        phil@nwl.cc
-Subject: Re: [PATCH nft] doc: fib: explain example in more detail
-Message-ID: <20190721185432.o2wke7wecfdbyzfr@breakpoint.cc>
-References: <20190721104305.29594-1-fw@strlen.de>
- <20190721184212.2fxviqkcil27wzqp@salvia>
+        Sun, 21 Jul 2019 14:56:34 -0400
+Received: from mail.us.es ([193.147.175.20]:44618 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726484AbfGUS4e (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 21 Jul 2019 14:56:34 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 31C95C3301
+        for <netfilter-devel@vger.kernel.org>; Sun, 21 Jul 2019 20:56:32 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 21444A6A8
+        for <netfilter-devel@vger.kernel.org>; Sun, 21 Jul 2019 20:56:32 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 16F3EFF6CC; Sun, 21 Jul 2019 20:56:32 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 27CA9DA708;
+        Sun, 21 Jul 2019 20:56:30 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Sun, 21 Jul 2019 20:56:30 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (unknown [31.4.214.120])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id E19A04265A2F;
+        Sun, 21 Jul 2019 20:56:29 +0200 (CEST)
+Date:   Sun, 21 Jul 2019 20:56:28 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Phil Sutter <phil@nwl.cc>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [iptables PATCH 00/12] Larger xtables-save review
+Message-ID: <20190721185628.zvzvw3vpiik36prl@salvia>
+References: <20190720163026.15410-1-phil@nwl.cc>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20190721184212.2fxviqkcil27wzqp@salvia>
+In-Reply-To: <20190720163026.15410-1-phil@nwl.cc>
 User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> Cc'ing Phil.
+On Sat, Jul 20, 2019 at 06:30:14PM +0200, Phil Sutter wrote:
+> This series started as a fix to program names mentioned in *-save
+> outputs and ended in merging ebtables-save and arptables-save code into
+> xtables_save_main used by ip{6,}tables-nft-save.
 > 
-> On Sun, Jul 21, 2019 at 12:43:05PM +0200, Florian Westphal wrote:
-> > As noted by Felix Dreissig, fib documentation is quite terse, so explain
-> > the 'saddr . iif' example with a few more words.
+> The first patch is actually unrelated but was discovered when testing
+> counter output - depending on environment, ebtables-nft might segfault.
 > 
-> There are patches to disallow ifindex 0 from Phil
+> The second patch fixes option '-c' of ebtables-nft-save which enables
+> counter prefixes in dumped rules but failed to disable the classical
+> ebtables-style counters.
+> 
+> Patch three sorts program names quoted in output of any of the *-save
+> programs, patch four unifies the header/footer comments in the same. The
+> latter also drops the extra newline printed in ebtables- and
+> arptables-save output, so test scripts need adjustments beyond dropping
+> the new comment lines from output.
+> 
+> Patch five fixes the table compatibility check in ip{6,}tables-nft-save.
+> 
+> Patches six and eight to ten prepare for integrating arptables- and
+> ebtables-save into the xtables-save code.
+> 
+> Patch seven merely fixes a minor coding-style issue.
+> 
+> Patches eleven and twelve finally perform the actual merge.
 
-WHich ones?
-I only see those that make meta write 0 in case iface doesn't exist,
-so it does exactly what fib does.
+Series look good after quick review.
