@@ -2,84 +2,157 @@ Return-Path: <SRS0=p03Y=VS=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1931AC76196
-	for <netfilter-devel@archiver.kernel.org>; Sun, 21 Jul 2019 18:59:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3CB59C76191
+	for <netfilter-devel@archiver.kernel.org>; Sun, 21 Jul 2019 19:07:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id F2DDE208E4
-	for <netfilter-devel@archiver.kernel.org>; Sun, 21 Jul 2019 18:59:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0857E2083B
+	for <netfilter-devel@archiver.kernel.org>; Sun, 21 Jul 2019 19:07:55 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=riseup.net header.i=@riseup.net header.b="sthl54V3"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727296AbfGUS7w (ORCPT
+        id S1726941AbfGUTHy (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 21 Jul 2019 14:59:52 -0400
-Received: from mail.us.es ([193.147.175.20]:45020 "EHLO mail.us.es"
+        Sun, 21 Jul 2019 15:07:54 -0400
+Received: from mx1.riseup.net ([198.252.153.129]:50028 "EHLO mx1.riseup.net"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727032AbfGUS7w (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 21 Jul 2019 14:59:52 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 5DB82C3302
-        for <netfilter-devel@vger.kernel.org>; Sun, 21 Jul 2019 20:59:50 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 4E513115111
-        for <netfilter-devel@vger.kernel.org>; Sun, 21 Jul 2019 20:59:50 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 4296D115101; Sun, 21 Jul 2019 20:59:50 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id D618CDA704;
-        Sun, 21 Jul 2019 20:59:47 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Sun, 21 Jul 2019 20:59:47 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [31.4.214.120])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 8999F4265A2F;
-        Sun, 21 Jul 2019 20:59:47 +0200 (CEST)
-Date:   Sun, 21 Jul 2019 20:59:45 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Wenwen Wang <wang6495@umn.edu>
-Cc:     Wenwen Wang <wenwen@cs.uga.edu>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        Roopa Prabhu <roopa@cumulusnetworks.com>,
-        Nikolay Aleksandrov <nikolay@cumulusnetworks.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        "open list:NETFILTER" <netfilter-devel@vger.kernel.org>,
-        "open list:NETFILTER" <coreteam@netfilter.org>,
-        "moderated list:ETHERNET BRIDGE" <bridge@lists.linux-foundation.org>,
-        "open list:ETHERNET BRIDGE" <netdev@vger.kernel.org>,
-        open list <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] netfilter: ebtables: compat: fix a memory leak bug
-Message-ID: <20190721185945.76vsrm6ruge64das@salvia>
-References: <1563625366-3602-1-git-send-email-wang6495@umn.edu>
+        id S1726831AbfGUTHy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 21 Jul 2019 15:07:54 -0400
+Received: from capuchin.riseup.net (capuchin-pn.riseup.net [10.0.1.176])
+        (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+        (Client CN "*.riseup.net", Issuer "COMODO RSA Domain Validation Secure Server CA" (verified OK))
+        by mx1.riseup.net (Postfix) with ESMTPS id 9C12B1A1203;
+        Sun, 21 Jul 2019 12:07:53 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=riseup.net; s=squak;
+        t=1563736073; bh=02npZRDBi56UliPgI3Ih05DqMQLTWlArtx/FvB8xoYM=;
+        h=From:To:Cc:Subject:Date:From;
+        b=sthl54V3I734zG9Oq9eLttCPkwCGVWdLURiMWGnVpQkEcNtheVJ58BDsZwqg1F7Ny
+         ji0jBz7P1F3t1gAb4ReMrVpjgts5bGH9YIv7oRPDitW6WqHfUQrWAyCdEAXESbHltK
+         0WGKO5e1sqmDvLxzoGOW34BvIENcEJryqBmrHqZk=
+X-Riseup-User-ID: 3614025F0ED5FE7AB98C76AA1A0DCDE1152EB8FA907E4FE9D23AD83F5052F284
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+         by capuchin.riseup.net (Postfix) with ESMTPSA id 1A5C5120390;
+        Sun, 21 Jul 2019 12:07:51 -0700 (PDT)
+From:   Fernando Fernandez Mancera <ffmancera@riseup.net>
+To:     netfilter-devel@vger.kernel.org
+Cc:     Fernando Fernandez Mancera <ffmancera@riseup.net>,
+        Florian Westphal <fw@strlen.de>
+Subject: [PATCH nft v2] src: osf: fix snprintf -Wformat-truncation warning
+Date:   Sun, 21 Jul 2019 21:07:37 +0200
+Message-Id: <20190721190737.4333-1-ffmancera@riseup.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1563625366-3602-1-git-send-email-wang6495@umn.edu>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sat, Jul 20, 2019 at 07:22:45AM -0500, Wenwen Wang wrote:
-> From: Wenwen Wang <wenwen@cs.uga.edu>
-> 
-> In compat_do_replace(), a temporary buffer is allocated through vmalloc()
-> to hold entries copied from the user space. The buffer address is firstly
-> saved to 'newinfo->entries', and later on assigned to 'entries_tmp'. Then
-> the entries in this temporary buffer is copied to the internal kernel
-> structure through compat_copy_entries(). If this copy process fails,
-> compat_do_replace() should be terminated. However, the allocated temporary
-> buffer is not freed on this path, leading to a memory leak.
-> 
-> To fix the bug, free the buffer before returning from compat_do_replace().
+Fedora 30 uses very recent gcc (version 9.1.1 20190503 (Red Hat 9.1.1-1)),
+osf produces following warnings:
 
-Applied, thanks.
+-Wformat-truncation warning have been introduced in the version 7.1 of gcc.
+Also, remove a unneeded address check of "tmp + 1" in nf_osf_strchr().
+
+nfnl_osf.c: In function ‘nfnl_osf_load_fingerprints’:
+nfnl_osf.c:292:39: warning: ‘%s’ directive output may be truncated writing
+up to 1023 bytes into a region of size 128 [-Wformat-truncation=]
+  292 |   cnt = snprintf(obuf, sizeof(obuf), "%s,", pbeg);
+      |                                       ^~
+nfnl_osf.c:292:9: note: ‘snprintf’ output between 2 and 1025 bytes into a
+destination of size 128
+  292 |   cnt = snprintf(obuf, sizeof(obuf), "%s,", pbeg);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+nfnl_osf.c:302:46: warning: ‘%s’ directive output may be truncated writing
+up to 1023 bytes into a region of size 32 [-Wformat-truncation=]
+  302 |    cnt = snprintf(f.genre, sizeof(f.genre), "%s", pbeg);
+      |                                              ^~
+nfnl_osf.c:302:10: note: ‘snprintf’ output between 1 and 1024 bytes into a
+destination of size 32
+  302 |    cnt = snprintf(f.genre, sizeof(f.genre), "%s", pbeg);
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+nfnl_osf.c:309:49: warning: ‘%s’ directive output may be truncated writing
+up to 1023 bytes into a region of size 32 [-Wformat-truncation=]
+  309 |   cnt = snprintf(f.version, sizeof(f.version), "%s", pbeg);
+      |                                                 ^~
+nfnl_osf.c:309:9: note: ‘snprintf’ output between 1 and 1024 bytes into a
+destination of size 32
+  309 |   cnt = snprintf(f.version, sizeof(f.version), "%s", pbeg);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+nfnl_osf.c:317:47: warning: ‘%s’ directive output may be truncated writing
+up to 1023 bytes into a region of size 32 [-Wformat-truncation=]
+  317 |       snprintf(f.subtype, sizeof(f.subtype), "%s", pbeg);
+      |                                               ^~
+nfnl_osf.c:317:7: note: ‘snprintf’ output between 1 and 1024 bytes into a
+destination of size 32
+  317 |       snprintf(f.subtype, sizeof(f.subtype), "%s", pbeg);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Reported-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Fernando Fernandez Mancera <ffmancera@riseup.net>
+---
+ src/nfnl_osf.c | 18 ++++++++++--------
+ 1 file changed, 10 insertions(+), 8 deletions(-)
+
+diff --git a/src/nfnl_osf.c b/src/nfnl_osf.c
+index be3fd81..d8284dd 100644
+--- a/src/nfnl_osf.c
++++ b/src/nfnl_osf.c
+@@ -81,7 +81,7 @@ static char *nf_osf_strchr(char *ptr, char c)
+ 	if (tmp)
+ 		*tmp = '\0';
+ 
+-	while (tmp && tmp + 1 && isspace(*(tmp + 1)))
++	while (tmp && isspace(*(tmp + 1)))
+ 		tmp++;
+ 
+ 	return tmp;
+@@ -289,32 +289,34 @@ static int osf_load_line(char *buffer, int len, int del,
+ 	pend = nf_osf_strchr(pbeg, OSFPDEL);
+ 	if (pend) {
+ 		*pend = '\0';
+-		cnt = snprintf(obuf, sizeof(obuf), "%s,", pbeg);
++		i = sizeof(obuf);
++		cnt = snprintf(obuf, i, "%.*s,", i - 2, pbeg);
+ 		pbeg = pend + 1;
+ 	}
+ 
+ 	pend = nf_osf_strchr(pbeg, OSFPDEL);
+ 	if (pend) {
+ 		*pend = '\0';
++		i = sizeof(f.genre);
+ 		if (pbeg[0] == '@' || pbeg[0] == '*')
+-			cnt = snprintf(f.genre, sizeof(f.genre), "%s", pbeg + 1);
+-		else
+-			cnt = snprintf(f.genre, sizeof(f.genre), "%s", pbeg);
++			pbeg++;
++		cnt = snprintf(f.genre, i, "%.*s", i - 1, pbeg);
+ 		pbeg = pend + 1;
+ 	}
+ 
+ 	pend = nf_osf_strchr(pbeg, OSFPDEL);
+ 	if (pend) {
+ 		*pend = '\0';
+-		cnt = snprintf(f.version, sizeof(f.version), "%s", pbeg);
++		i = sizeof(f.version);
++		cnt = snprintf(f.version, i, "%.*s", i - 1, pbeg);
+ 		pbeg = pend + 1;
+ 	}
+ 
+ 	pend = nf_osf_strchr(pbeg, OSFPDEL);
+ 	if (pend) {
+ 		*pend = '\0';
+-		cnt =
+-		    snprintf(f.subtype, sizeof(f.subtype), "%s", pbeg);
++		i = sizeof(f.subtype);
++		cnt = snprintf(f.subtype, i, "%.*s", i - 1, pbeg);
+ 		pbeg = pend + 1;
+ 	}
+ 
+-- 
+2.20.1
+
