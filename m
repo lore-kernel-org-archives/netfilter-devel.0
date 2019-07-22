@@ -6,59 +6,48 @@ X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A6277C76188
-	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Jul 2019 12:16:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E4E7CC76190
+	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Jul 2019 12:17:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 85B8C2190D
-	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Jul 2019 12:16:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C37BA2190D
+	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Jul 2019 12:17:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728930AbfGVMQh (ORCPT
+        id S1729065AbfGVMRt (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 22 Jul 2019 08:16:37 -0400
-Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:53074 "EHLO
+        Mon, 22 Jul 2019 08:17:49 -0400
+Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:53086 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726236AbfGVMQh (ORCPT
+        by vger.kernel.org with ESMTP id S1726236AbfGVMRt (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 22 Jul 2019 08:16:37 -0400
+        Mon, 22 Jul 2019 08:17:49 -0400
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.89)
         (envelope-from <fw@strlen.de>)
-        id 1hpXF5-0002Tt-EE; Mon, 22 Jul 2019 14:16:35 +0200
-Date:   Mon, 22 Jul 2019 14:16:35 +0200
+        id 1hpXGG-0002UO-0K; Mon, 22 Jul 2019 14:17:48 +0200
+Date:   Mon, 22 Jul 2019 14:17:47 +0200
 From:   Florian Westphal <fw@strlen.de>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
-        phil@nwl.cc
+To:     Phil Sutter <phil@nwl.cc>, Florian Westphal <fw@strlen.de>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
 Subject: Re: [PATCH nft] doc: fib: explain example in more detail
-Message-ID: <20190722121635.m2jbh7rx34mvxrgg@breakpoint.cc>
+Message-ID: <20190722121747.32ve2o3e7luxtwnq@breakpoint.cc>
 References: <20190721104305.29594-1-fw@strlen.de>
  <20190721184212.2fxviqkcil27wzqp@salvia>
  <20190721185432.o2wke7wecfdbyzfr@breakpoint.cc>
- <20190722115803.a6vjrirc3gxgqc2d@salvia>
+ <20190722115756.GH22661@orbyte.nwl.cc>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20190722115803.a6vjrirc3gxgqc2d@salvia>
+In-Reply-To: <20190722115756.GH22661@orbyte.nwl.cc>
 User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Sun, Jul 21, 2019 at 08:54:32PM +0200, Florian Westphal wrote:
-> > Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > > Cc'ing Phil.
-> > > 
-> > > On Sun, Jul 21, 2019 at 12:43:05PM +0200, Florian Westphal wrote:
-> > > > As noted by Felix Dreissig, fib documentation is quite terse, so explain
-> > > > the 'saddr . iif' example with a few more words.
-> > > 
-> > > There are patches to disallow ifindex 0 from Phil
-> > 
-> > WHich ones?
-> 
-> https://patchwork.ozlabs.org/patch/1133521/
+Phil Sutter <phil@nwl.cc> wrote:
+> use for "no data available" situations. This whole attempt feels a bit
+> futile. Maybe we should introduce something to signal "no value" so that
+> cmp expression will never match for '==' and always for '!='? Not sure
+> how to realize this via registers. Also undecided about '<' and '>' ops.
 
-This is insane. "nft meta iif 0 counter" seems totally fine to me.
-
-I think we should never try to be clever here.
+Whats the point?
