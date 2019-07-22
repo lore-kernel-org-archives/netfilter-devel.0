@@ -2,67 +2,57 @@ Return-Path: <SRS0=3WFO=VT=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F151C76188
-	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Jul 2019 08:45:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 36D67C76195
+	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Jul 2019 08:54:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 00ECC21E6B
-	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Jul 2019 08:45:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1583622296
+	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Jul 2019 08:54:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727304AbfGVIpn (ORCPT
+        id S1728549AbfGVIyP (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 22 Jul 2019 04:45:43 -0400
-Received: from mail.us.es ([193.147.175.20]:56004 "EHLO mail.us.es"
+        Mon, 22 Jul 2019 04:54:15 -0400
+Received: from mail.us.es ([193.147.175.20]:60150 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725989AbfGVIpn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 22 Jul 2019 04:45:43 -0400
+        id S1725989AbfGVIyP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 22 Jul 2019 04:54:15 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 30E09F2630
-        for <netfilter-devel@vger.kernel.org>; Mon, 22 Jul 2019 10:45:39 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 65AE5C1DE1
+        for <netfilter-devel@vger.kernel.org>; Mon, 22 Jul 2019 10:54:13 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 1DAF31150DD
-        for <netfilter-devel@vger.kernel.org>; Mon, 22 Jul 2019 10:45:39 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 4C7A11150B9
+        for <netfilter-devel@vger.kernel.org>; Mon, 22 Jul 2019 10:54:13 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 11E27909A8; Mon, 22 Jul 2019 10:45:39 +0200 (CEST)
+        id 4227CDA708; Mon, 22 Jul 2019 10:54:13 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 003BADA708;
-        Mon, 22 Jul 2019 10:45:36 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C712BA59B;
+        Mon, 22 Jul 2019 10:54:10 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 22 Jul 2019 10:45:36 +0200 (CEST)
+ Mon, 22 Jul 2019 10:54:10 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from us.es (unknown [31.4.214.120])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
         (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id B1ED740705C3;
-        Mon, 22 Jul 2019 10:45:36 +0200 (CEST)
-Date:   Mon, 22 Jul 2019 10:45:35 +0200
+        by entrada.int (Postfix) with ESMTPSA id 89CEA4265A31;
+        Mon, 22 Jul 2019 10:54:10 +0200 (CEST)
+Date:   Mon, 22 Jul 2019 10:54:08 +0200
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     =?utf-8?Q?=C4=B0brahim?= Ercan <ibrahim.metu@gmail.com>
-Cc:     Ibrahim Ercan <ibrahim.ercan@labristeknoloji.com>,
-        Florian Westphal <fw@strlen.de>,
-        netfilter-devel@vger.kernel.org, ffmancera@riseup.net
-Subject: Re: [PATCH v2] netfilter: synproxy: erroneous TCP mss option fixed.
-Message-ID: <20190722084535.gnk25y2weo4h44xl@salvia>
-References: <CAK6Qs9k_bdU9ZL4WRXBGYdtfnP_qhot0hzC=uMQG6C_pkz3+2w@mail.gmail.com>
- <1561441324-19193-1-git-send-email-ibrahim.ercan@labristeknoloji.com>
- <20190627185744.ynxyes7an6gd7hlg@salvia>
- <20190627190019.hrlowm5lxw7grmsk@breakpoint.cc>
- <20190627190857.f6lwop54735wo6dg@salvia>
- <20190627192109.zpkn2vff3ykin6ya@breakpoint.cc>
- <20190627192705.eyy4aond5yl5jjrr@salvia>
- <20190701185825.32mmnw4jdtsj7avr@salvia>
- <CAK6Qs9mp7E3Wr4Zo8mLgsbLMwZRCaQoy=3nRx3XDJP4mcgNSEA@mail.gmail.com>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft] src: evaluate: support prefix expression in
+ statements
+Message-ID: <20190722085408.m4al3d7jk63pakyd@salvia>
+References: <20190721162948.20221-1-fw@strlen.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAK6Qs9mp7E3Wr4Zo8mLgsbLMwZRCaQoy=3nRx3XDJP4mcgNSEA@mail.gmail.com>
+In-Reply-To: <20190721162948.20221-1-fw@strlen.de>
 User-Agent: NeoMutt/20170113 (1.7.2)
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -70,56 +60,110 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Jul 22, 2019 at 11:31:45AM +0300, İbrahim Ercan wrote:
-> On Mon, Jul 1, 2019 at 9:58 PM Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> >
-> > Hi Ibrahim,
-> >
-> > On Thu, Jun 27, 2019 at 09:27:05PM +0200, Pablo Neira Ayuso wrote:
-> > > On Thu, Jun 27, 2019 at 09:21:09PM +0200, Florian Westphal wrote:
-> > > > Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > > > > On Thu, Jun 27, 2019 at 09:00:19PM +0200, Florian Westphal wrote:
-> > > > > > Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > [...]
-> > > > > I see, probably place client_mss field into the synproxy_options
-> > > > > structure?
-> > > >
-> > > > I worked on a fix for this too (Ibrahim was faster), I
-> > > > tried to rename opts.mss so we have
-> > > >
-> > > > u16 mss_peer;
-> > > > u16 mss_configured;
-> > > >
-> > > > but I got confused myself as to where which mss is to be used.
-> > > >
-> > > > perhaps
-> > > > u16 mss_option;
-> > > > u16 mss_encode;
-> > > >
-> > > > ... would have been better.
-> > >
-> > > I would leave the opts.mss as is by now. Given there will be a
-> > > conflict between nf-next and nf, I was trying to minimize the number
-> > > of chunks for this fix, but that's just my preference (I'll have to
-> > > sort out this it seems).
-> > >
-> > > Then, adding follow up patches to rename fields would be great indeed
-> > > as you suggest.
-> >
-> > @Ibrahim: Would you follow up with patch v3?
-> >
-> > I'd name this 'mss_backend' to opts, instead of adding client_mss as
-> > parameter. Since this is the MSS that the server backend behind the
-> > proxy.
-> >
-> > I don't mind names, if you prefer Florian's, that's also fine. I'd
-> > just like not to add a new parameter to synproxy_send_client_synack().
-> >
-> > Thanks.
+On Sun, Jul 21, 2019 at 06:29:48PM +0200, Florian Westphal wrote:
+> nft dumps core when a statement contains a prefix expression:
+> iifname ens3 snat to 10.0.0.0/28
 > 
-> Sorry for late reply. I was offline for 3 weeks. I will send new patch asap.
+> yields:
+> BUG: unknown expression type prefix
+> nft: netlink_linearize.c:688: netlink_gen_expr: Assertion `0' failed.
+> 
+> This assertion is correct -- we can't linearize a prefix because kernel
+> doesn't know what that is.
+> 
+> For LHS, they get converted to a binary 'and' such as
+> '10.0.0.0 & 255.255.255.240'.  For RHS, we can convert them into a range:
+> 
+> iifname "ens3" snat to 10.0.0.0-10.0.0.15
+> 
+> Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1187
+> Signed-off-by: Florian Westphal <fw@strlen.de>
+> ---
+>  src/evaluate.c                  | 61 +++++++++++++++++++++++++++++++++
+>  tests/py/ip6/dnat.t             |  2 ++
+>  tests/py/ip6/dnat.t.json        | 27 +++++++++++++++
+>  tests/py/ip6/dnat.t.payload.ip6 | 12 +++++++
+>  4 files changed, 102 insertions(+)
+> 
+> diff --git a/src/evaluate.c b/src/evaluate.c
+> index 8c1c82abed4e..d55fe8ebb78e 100644
+> --- a/src/evaluate.c
+> +++ b/src/evaluate.c
+> @@ -1933,6 +1933,65 @@ static int stmt_evaluate_expr(struct eval_ctx *ctx, struct stmt *stmt)
+>  	return expr_evaluate(ctx, &stmt->expr);
+>  }
+>  
+> +static int stmt_prefix_conversion(struct eval_ctx *ctx, struct expr **expr,
+> +				  enum byteorder byteorder)
+> +{
+> +	struct expr *mask, *and, *or, *prefix, *base, *range;
+> +
+> +	prefix = *expr;
+> +	base = prefix->prefix;
+> +
+> +	if (base->etype != EXPR_VALUE)
+> +		return expr_error(ctx->msgs, prefix,
+> +				  "you cannot specify a prefix here, "
+> +				  "unknown type %s", base->dtype->name);
+> +
+> +	if (!expr_is_constant(base))
+> +		return expr_error(ctx->msgs, prefix,
+> +				  "Prefix expression is undefined for "
+> +				  "non-constant expressions");
+> +
+> +	if (expr_basetype(base)->type != TYPE_INTEGER)
+> +		return expr_error(ctx->msgs, prefix,
+> +				  "Prefix expression expected integer value");
+> +
+> +	mask = constant_expr_alloc(&prefix->location, expr_basetype(base),
+> +				   BYTEORDER_HOST_ENDIAN, base->len, NULL);
+> +
+> +	mpz_prefixmask(mask->value, base->len, prefix->prefix_len);
+> +	and = binop_expr_alloc(&prefix->location, OP_AND, expr_get(base), mask);
+> +
+> +	if (expr_evaluate(ctx, &and) < 0) {
 
-Please, do, based it on kernel 5.2
+I think we don't need this expr_evaluate() call. The one at the bottom
+of this function (for the range expression) should take care of this
+already since expr_evaluate() makes recursive calls to left and right
+hand side.
 
-Fernando already made a patch for 5.3-rc, we'll take your patch for
--stable, as a backport.
+> +		expr_free(and);
+> +		goto err_evaluation;
+> +	}
+> +
+> +	mask = constant_expr_alloc(&prefix->location, expr_basetype(base),
+> +				   BYTEORDER_HOST_ENDIAN, base->len, NULL);
+> +	mpz_bitmask(mask->value, prefix->len - prefix->prefix_len);
+> +	or = binop_expr_alloc(&prefix->location, OP_OR, expr_get(base), mask);
+> +
+> +	if (expr_evaluate(ctx, &or) < 0) {
+
+Same here.
+
+> +		expr_free(and);
+> +		expr_free(or);
+> +		goto err_evaluation;
+> +	}
+> +
+> +	range = range_expr_alloc(&prefix->location, and, or);
+> +	if (expr_evaluate(ctx, &range) < 0) {
+> +		expr_free(range);
+> +		goto err_evaluation;
+> +	}
+> +
+> +	expr_free(*expr);
+> +	*expr = range;
+> +	return 0;
+> +
+> +err_evaluation:
+> +	return expr_error(ctx->msgs, prefix,
+> +			  "Could not expand prefix expression");
+
+If this happens, then expr_error() will reported via recursive call
+inside expr_evaluate(). I mean, expr_evaluate() itself should give us
+an error already. So I would remove this, which is already actually
+telling about an internal problem. The user cannot do much about this.
+So either remove it or BUG() here I'd suggest.
+
+Thanks!
