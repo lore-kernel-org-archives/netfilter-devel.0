@@ -2,209 +2,122 @@ Return-Path: <SRS0=3WFO=VT=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 23B36C76188
-	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Jul 2019 10:17:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 85F88C76190
+	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Jul 2019 10:17:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0496D217D6
-	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Jul 2019 10:17:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6709C218A0
+	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Jul 2019 10:17:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729502AbfGVKRK (ORCPT
+        id S1729368AbfGVKRJ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 22 Jul 2019 06:17:10 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:45480 "EHLO orbyte.nwl.cc"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729239AbfGVKRK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 22 Jul 2019 06:17:10 -0400
-Received: from localhost ([::1]:58570 helo=tatos)
-        by orbyte.nwl.cc with esmtp (Exim 4.91)
-        (envelope-from <phil@nwl.cc>)
-        id 1hpVNU-0000dj-Mp; Mon, 22 Jul 2019 12:17:09 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH v2 11/11] ebtables-save: Merge into xtables_save_main()
-Date:   Mon, 22 Jul 2019 12:16:28 +0200
-Message-Id: <20190722101628.21195-12-phil@nwl.cc>
-X-Mailer: git-send-email 2.22.0
-In-Reply-To: <20190722101628.21195-1-phil@nwl.cc>
-References: <20190722101628.21195-1-phil@nwl.cc>
+        Mon, 22 Jul 2019 06:17:09 -0400
+Received: from mail-qk1-f195.google.com ([209.85.222.195]:45490 "EHLO
+        mail-qk1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728569AbfGVKRJ (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 22 Jul 2019 06:17:09 -0400
+Received: by mail-qk1-f195.google.com with SMTP id s22so28165276qkj.12;
+        Mon, 22 Jul 2019 03:17:08 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=7CJkKA7SZFRonSxwlZKyw8W6pgs5EdX5dwdC50uPvBs=;
+        b=IfyEGn1teOvseGqamLGm6eYMrp4kEADYmxLmuf3lwn47e7irJLZzzSadD5rA/AIBI9
+         goH41xTw+8mHRl1BZvXsR//j0Bkx/qgpjDwxg+U0Sgv/xiZjg8KtvmyTZALR9IWcaIXV
+         CkKHYuQh8zqpoaziifRWNQJj6IFlA4GCuNLjekCgFw/JORcJrYdvAW9z1V4W6KoM1wwm
+         VULx2b8vVGz68sAMPswtsad+XUrTWq6NgpiZCM1ZVw4TMgy/CGbdJbHgWLP86SU1dGvd
+         Z5pyX3CkxJbOlpaYN+NcMGuBrk11hsJl17wOl6wns3nwJxlMqgXlSlT1u12RZg1yhaEA
+         FtQA==
+X-Gm-Message-State: APjAAAXq6SoJbRtNpNdtsju6Iqd40f0IQCjpznLrKw1xRcgd1JB/roKO
+        6vLan+lWSBG81Y9PJP7R6HGzDTE7JDS31A46Yqg=
+X-Google-Smtp-Source: APXvYqy7ISax661sJxUrp3WbLhv5BC0kus4uGgZKznelHiJHcAGScOZIvY+BAP14dw/qwJzgUC+dnqfk8j1fG+ylzm4=
+X-Received: by 2002:a37:4ac3:: with SMTP id x186mr44360140qka.138.1563790627957;
+ Mon, 22 Jul 2019 03:17:07 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20190628123819.2785504-1-arnd@arndb.de> <20190628123819.2785504-4-arnd@arndb.de>
+ <alpine.LFD.2.21.1906302308280.3788@ja.home.ssi.bg>
+In-Reply-To: <alpine.LFD.2.21.1906302308280.3788@ja.home.ssi.bg>
+From:   Arnd Bergmann <arnd@arndb.de>
+Date:   Mon, 22 Jul 2019 12:16:51 +0200
+Message-ID: <CAK8P3a03wShPgL85K-0W3UUc3QJWLbbs+ZVAnkKLkqg00vVehw@mail.gmail.com>
+Subject: Re: [PATCH 4/4] ipvs: reduce kernel stack usage
+To:     Julian Anastasov <ja@ssi.bg>
+Cc:     Kees Cook <keescook@chromium.org>,
+        Wensong Zhang <wensong@linux-vs.org>,
+        Simon Horman <horms@verge.net.au>,
+        "David S. Miller" <davem@davemloft.net>,
+        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        James Smart <james.smart@broadcom.com>,
+        Dick Kennedy <dick.kennedy@broadcom.com>,
+        "James E . J . Bottomley" <jejb@linux.ibm.com>,
+        "Martin K . Petersen" <martin.petersen@oracle.com>,
+        Larry Finger <Larry.Finger@lwfinger.net>,
+        Florian Schilhabel <florian.c.schilhabel@googlemail.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        James Morris <jmorris@namei.org>,
+        linux-scsi <linux-scsi@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        driverdevel <devel@driverdev.osuosl.org>,
+        Networking <netdev@vger.kernel.org>, lvs-devel@vger.kernel.org,
+        netfilter-devel <netfilter-devel@vger.kernel.org>,
+        coreteam@netfilter.org, Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The only thing missing was handling of EBTABLES_SAVE_COUNTER env var,
-but that can be done after parsing parameters in bridge-specific code.
+On Sun, Jun 30, 2019 at 10:37 PM Julian Anastasov <ja@ssi.bg> wrote:
+> On Fri, 28 Jun 2019, Arnd Bergmann wrote:
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- iptables/xtables-save.c | 123 +++++-----------------------------------
- 1 file changed, 13 insertions(+), 110 deletions(-)
+> >       struct ip_vs_conn *ctl_cp = cp->control;
+> >       if (!ctl_cp) {
+> > -             IP_VS_ERR_BUF("request control DEL for uncontrolled: "
+> > -                           "%s:%d to %s:%d\n",
+> > -                           IP_VS_DBG_ADDR(cp->af, &cp->caddr),
+> > -                           ntohs(cp->cport),
+> > -                           IP_VS_DBG_ADDR(cp->af, &cp->vaddr),
+> > -                           ntohs(cp->vport));
+> > +             pr_err("request control DEL for uncontrolled: "
+> > +                    "%pISp to %pISp\n",
 
-diff --git a/iptables/xtables-save.c b/iptables/xtables-save.c
-index 0c294e056c7b5..77b13f7ffbcdd 100644
---- a/iptables/xtables-save.c
-+++ b/iptables/xtables-save.c
-@@ -31,8 +31,6 @@
- #define prog_name xtables_globals.program_name
- #define prog_vers xtables_globals.program_version
- 
--static bool show_counters = false;
--
- static const char *ipt_save_optstring = "bcdt:M:f:46V";
- static const struct option ipt_save_options[] = {
- 	{.name = "counters", .has_arg = false, .val = 'c'},
-@@ -63,8 +61,6 @@ static const struct option ebt_save_options[] = {
- 	{NULL},
- };
- 
--static bool ebt_legacy_counter_format;
--
- struct do_output_data {
- 	unsigned int format;
- 	bool commit;
-@@ -228,9 +224,18 @@ xtables_save_main(int family, int argc, char *argv[],
- 	case NFPROTO_ARP:
- 		tables = xtables_arp;
- 		break;
--	case NFPROTO_BRIDGE:
-+	case NFPROTO_BRIDGE: {
-+		const char *ctr = getenv("EBTABLES_SAVE_COUNTER");
-+
-+		if (!(d.format & FMT_NOCOUNTS)) {
-+			d.format |= FMT_EBT_SAVE;
-+		} else if (ctr && !strcmp(ctr, "yes")) {
-+			d.format &= ~FMT_NOCOUNTS;
-+			d.format |= FMT_C_COUNTS | FMT_EBT_SAVE;
-+		}
- 		tables = xtables_bridge;
- 		break;
-+	}
- 	default:
- 		fprintf(stderr, "Unknown family %d\n", family);
- 		return 1;
-@@ -264,112 +269,10 @@ int xtables_ip6_save_main(int argc, char *argv[])
- 				 ipt_save_optstring, ipt_save_options);
- }
- 
--static int __ebt_save(struct nft_handle *h, const char *tablename, void *data)
-+int xtables_eb_save_main(int argc, char *argv[])
- {
--	struct nftnl_chain_list *chain_list;
--	unsigned int format = FMT_NOCOUNTS;
--	bool *counters = data;
--	time_t now;
--
--	if (!nft_table_find(h, tablename)) {
--		printf("Table `%s' does not exist\n", tablename);
--		return 1;
--	}
--
--	if (!nft_is_table_compatible(h, tablename)) {
--		printf("# Table `%s' is incompatible, use 'nft' tool.\n", tablename);
--		return 0;
--	}
--
--	chain_list = nft_chain_list_get(h, tablename);
--
--	now = time(NULL);
--	printf("# Generated by %s v%s on %s", prog_name,
--	       prog_vers, ctime(&now));
--	printf("*%s\n", tablename);
--
--	if (counters)
--		format = FMT_EBT_SAVE |
--			(ebt_legacy_counter_format ? FMT_C_COUNTS : 0);
--
--	/* Dump out chain names first,
--	 * thereby preventing dependency conflicts */
--	nft_chain_save(h, chain_list);
--	nft_rule_save(h, tablename, format);
--	now = time(NULL);
--	printf("# Completed on %s", ctime(&now));
--	return 0;
--}
--
--static int ebt_save(struct nft_handle *h, const char *tablename, bool counters)
--{
--	if (!tablename)
--		return nft_for_each_table(h, __ebt_save, &counters);
--
--	return __ebt_save(h, tablename, &counters);
--}
--
--int xtables_eb_save_main(int argc_, char *argv_[])
--{
--	const char *ctr = getenv("EBTABLES_SAVE_COUNTER");
--	const char *tablename = NULL;
--	struct nft_handle h = {
--		.family	= NFPROTO_BRIDGE,
--	};
--	int c;
--
--	if (ctr) {
--		if (strcmp(ctr, "yes") == 0) {
--			ebt_legacy_counter_format = true;
--			show_counters = true;
--		}
--	}
--
--	xtables_globals.program_name = basename(*argv_);
--	c = xtables_init_all(&xtables_globals, h.family);
--	if (c < 0) {
--		fprintf(stderr, "%s/%s Failed to initialize xtables\n",
--				xtables_globals.program_name,
--				xtables_globals.program_version);
--		exit(1);
--	}
--
--	while ((c = getopt_long(argc_, argv_, ebt_save_optstring, ebt_save_options, NULL)) != -1) {
--		switch (c) {
--		case 'c':
--			unsetenv("EBTABLES_SAVE_COUNTER");
--			show_counters = true;
--			ebt_legacy_counter_format = false;
--			break;
--		case 't':
--			/* Select specific table. */
--			tablename = optarg;
--			break;
--		case 'M':
--			xtables_modprobe_program = optarg;
--			break;
--		case 'V':
--			printf("%s v%s (nf_tables)\n", prog_name, prog_vers);
--			exit(0);
--		default:
--			fprintf(stderr,
--				"Look at manual page `%s.8' for more information.\n",
--				prog_name);
--			exit(1);
--		}
--	}
--
--	if (nft_init(&h, xtables_bridge) < 0) {
--		fprintf(stderr, "%s/%s Failed to initialize nft: %s\n",
--				xtables_globals.program_name,
--				xtables_globals.program_version,
--				strerror(errno));
--		exit(EXIT_FAILURE);
--	}
--
--	ebt_save(&h, tablename, show_counters);
--	nft_fini(&h);
--	return 0;
-+	return xtables_save_main(NFPROTO_BRIDGE, argc, argv,
-+				 ebt_save_optstring, ebt_save_options);
- }
- 
- int xtables_arp_save_main(int argc, char *argv[])
--- 
-2.22.0
+(replying a bit late)
 
+>         ip_vs_dbg_addr() used compact form (%pI6c), so it would be
+> better to use %pISc and %pISpc everywhere in IPVS...
+
+done
+
+>         Also, note that before now port was printed with %d and
+> ntohs() was used, now port should be in network order, so:
+>
+> - ntohs() should be removed
+
+done
+
+> - htons() should be added, if missing. At first look, this case
+> is not present in IPVS, we have only ntohs() usage
+
+I found one case in ip_vs_ftp_in() that needs it in order to subtract one:
+
+                IP_VS_DBG(7, "protocol %s %pISpc %pISpc\n",
+                          ip_vs_proto_name(ipvsh->protocol),
+-                         IP_VS_DBG_SOCKADDR(cp->af, &to, ntohs(port)),
++                         IP_VS_DBG_SOCKADDR(cp->af, &to, port),
+                          IP_VS_DBG_SOCKADDR(cp->af, &cp->vaddr,
+-                                             ntohs(cp->vport)-1));
++                                            htons(ntohs(cp->vport)-1)));
+
+Thanks for the review, I'll send a new patch after some more
+build testing on the new version.
+
+       Arnd
