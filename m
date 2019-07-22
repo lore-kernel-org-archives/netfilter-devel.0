@@ -2,106 +2,99 @@ Return-Path: <SRS0=3WFO=VT=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2402BC76188
-	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Jul 2019 14:34:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A055C7618F
+	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Jul 2019 16:02:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id EECCF218C9
-	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Jul 2019 14:34:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0C414218EA
+	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Jul 2019 16:02:58 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=riseup.net header.i=@riseup.net header.b="WL6seZI1"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729391AbfGVOeg (ORCPT
+        id S1730072AbfGVQC5 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 22 Jul 2019 10:34:36 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:45982 "EHLO orbyte.nwl.cc"
+        Mon, 22 Jul 2019 12:02:57 -0400
+Received: from mx1.riseup.net ([198.252.153.129]:47718 "EHLO mx1.riseup.net"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725907AbfGVOeg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 22 Jul 2019 10:34:36 -0400
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.91)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1hpZOb-0003GX-3c; Mon, 22 Jul 2019 16:34:33 +0200
-Date:   Mon, 22 Jul 2019 16:34:33 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft] doc: fib: explain example in more detail
-Message-ID: <20190722143433.GL22661@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Florian Westphal <fw@strlen.de>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-References: <20190721104305.29594-1-fw@strlen.de>
- <20190721184212.2fxviqkcil27wzqp@salvia>
- <20190721185432.o2wke7wecfdbyzfr@breakpoint.cc>
- <20190722115756.GH22661@orbyte.nwl.cc>
- <20190722121747.32ve2o3e7luxtwnq@breakpoint.cc>
- <20190722125246.GJ22661@orbyte.nwl.cc>
- <20190722125633.7pgm3glloutr4esj@breakpoint.cc>
- <20190722130259.GK22661@orbyte.nwl.cc>
- <20190722130624.lbyjngxcxho6znpw@breakpoint.cc>
+        id S1729398AbfGVQC5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 22 Jul 2019 12:02:57 -0400
+Received: from capuchin.riseup.net (capuchin-pn.riseup.net [10.0.1.176])
+        (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+        (Client CN "*.riseup.net", Issuer "COMODO RSA Domain Validation Secure Server CA" (verified OK))
+        by mx1.riseup.net (Postfix) with ESMTPS id 49A7E1A4B97
+        for <netfilter-devel@vger.kernel.org>; Mon, 22 Jul 2019 09:02:57 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=riseup.net; s=squak;
+        t=1563811377; bh=zeFKOju8ctGmzbwsBf8IHuuPAxevvO5O/YNEnfxPckg=;
+        h=From:To:Cc:Subject:Date:From;
+        b=WL6seZI1ZrNUFpMNLkaWY6aX401x9aVcmnvXCSzyxkRHmJ+YORFfQkP0Z/xUSmdA/
+         KYBbZZ3fei+ZXpC0C9iLytgGTPfruKI0xvEutrihcXMjgK+9DwYMDSjypM07VJw8+j
+         AZ1rbGMBgPG9oR7q410mwiPAZiNdozOhxXKQezp4=
+X-Riseup-User-ID: 4EDAB559420E00F37B4DCA06C397177FF20BB03C3AFEA0D80F85D6AED09821AA
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+         by capuchin.riseup.net (Postfix) with ESMTPSA id 5DB33120986;
+        Mon, 22 Jul 2019 09:02:56 -0700 (PDT)
+From:   Fernando Fernandez Mancera <ffmancera@riseup.net>
+To:     netfilter-devel@vger.kernel.org
+Cc:     Fernando Fernandez Mancera <ffmancera@riseup.net>
+Subject: [PATCH 0/2 nft] Introduce variables in chain priority and policy
+Date:   Mon, 22 Jul 2019 18:02:35 +0200
+Message-Id: <20190722160236.12516-1-ffmancera@riseup.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190722130624.lbyjngxcxho6znpw@breakpoint.cc>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Jul 22, 2019 at 03:06:24PM +0200, Florian Westphal wrote:
-> Phil Sutter <phil@nwl.cc> wrote:
-> > On Mon, Jul 22, 2019 at 02:56:33PM +0200, Florian Westphal wrote:
-> > > Phil Sutter <phil@nwl.cc> wrote:
-> > > > On Mon, Jul 22, 2019 at 02:17:47PM +0200, Florian Westphal wrote:
-> > > > > Phil Sutter <phil@nwl.cc> wrote:
-> > > > > > use for "no data available" situations. This whole attempt feels a bit
-> > > > > > futile. Maybe we should introduce something to signal "no value" so that
-> > > > > > cmp expression will never match for '==' and always for '!='? Not sure
-> > > > > > how to realize this via registers. Also undecided about '<' and '>' ops.
-> > > > > 
-> > > > > Whats the point?
-> > > > 
-> > > > IIRC, Pablo's demand for not aborting in nft_meta in case of
-> > > > insufficient data was to insert a value into dreg which will never
-> > > > match. I think the idea was to avoid accidental matching in situations
-> > > > where a match doesn't make sense.
-> > > 
-> > > I think the only contraint is that it must not overlap with a
-> > > legitimate ifindex.
-> > > 
-> > > But 0 cannot occur, so 'meta iif 0' will only match in case no input
-> > > interface existed -- I think thats fine and might even be desired.
-> > 
-> > OK, so we just drop my patch to reject ifindex 0 from userspace to keep
-> > fib working?
-> > 
-> > [...]
-> > > I would propose to go with '0' dreg for ifindex, "" for name and leave
-> > > rest as-is.
-> > 
-> > My kernel patch also changes iftype to set ARPHRD_VOID and ifkind to set
-> > an empty string as well.
-> 
-> I would keep both with current semantics, i.e. 'break'/no match until we
-> get more evidence that we need this ARPHDR_VOID store.
-> 
-> For iifkind, I am not sure.  Perhaps leave it as-is?
-> 
-> Kernel doesn't allow "" iifname (so we can reuse it for 'no interface'),
-> but what about ifkind?
+This patch series introduces the use of variables in chain priority and policy
+specification. It also contains tests for invalid cases.
 
-Well, at least every implementation of rtnl_link_ops I found in current
-kernel sources initializes 'kind' field but there's indeed no guarantee.
+Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1172
 
-> > For iftype, I also sent a userspace patch to disallow ARPHRD_VOID. Do
-> > you think it should be dropped as well?
-> 
-> I think we should leave userspace alone.
+Fernando Fernandez Mancera (2):
+  src: allow variables in the chain priority specification
+  src: allow variable in chain policy
 
-OK.
+ include/datatype.h                            |  1 +
+ include/rule.h                                | 10 +-
+ src/datatype.c                                | 26 ++++++
+ src/evaluate.c                                | 92 +++++++++++++++++--
+ src/json.c                                    |  5 +-
+ src/mnl.c                                     |  9 +-
+ src/netlink.c                                 |  8 +-
+ src/parser_bison.y                            | 45 +++++++--
+ src/parser_json.c                             | 17 +++-
+ src/rule.c                                    | 17 +++-
+ .../testcases/nft-f/0021priority_variable_0   | 17 ++++
+ .../testcases/nft-f/0022priority_variable_0   | 17 ++++
+ .../testcases/nft-f/0023priority_variable_1   | 18 ++++
+ .../testcases/nft-f/0024priority_variable_1   | 18 ++++
+ .../testcases/nft-f/0025policy_variable_0     | 17 ++++
+ .../testcases/nft-f/0026policy_variable_0     | 17 ++++
+ .../testcases/nft-f/0027policy_variable_1     | 18 ++++
+ .../testcases/nft-f/0028policy_variable_1     | 18 ++++
+ .../nft-f/dumps/0021priority_variable_0.nft   |  5 +
+ .../nft-f/dumps/0022priority_variable_0.nft   |  5 +
+ .../nft-f/dumps/0025policy_variable_0.nft     |  5 +
+ .../nft-f/dumps/0026policy_variable_0.nft     |  5 +
+ 22 files changed, 350 insertions(+), 40 deletions(-)
+ mode change 100644 => 100755 src/evaluate.c
+ create mode 100755 tests/shell/testcases/nft-f/0021priority_variable_0
+ create mode 100755 tests/shell/testcases/nft-f/0022priority_variable_0
+ create mode 100755 tests/shell/testcases/nft-f/0023priority_variable_1
+ create mode 100755 tests/shell/testcases/nft-f/0024priority_variable_1
+ create mode 100755 tests/shell/testcases/nft-f/0025policy_variable_0
+ create mode 100755 tests/shell/testcases/nft-f/0026policy_variable_0
+ create mode 100755 tests/shell/testcases/nft-f/0027policy_variable_1
+ create mode 100755 tests/shell/testcases/nft-f/0028policy_variable_1
+ create mode 100644 tests/shell/testcases/nft-f/dumps/0021priority_variable_0.nft
+ create mode 100644 tests/shell/testcases/nft-f/dumps/0022priority_variable_0.nft
+ create mode 100644 tests/shell/testcases/nft-f/dumps/0025policy_variable_0.nft
+ create mode 100644 tests/shell/testcases/nft-f/dumps/0026policy_variable_0.nft
 
-Thanks, Phil
+-- 
+2.20.1
+
