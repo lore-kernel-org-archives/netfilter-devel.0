@@ -6,29 +6,29 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A67BC76188
-	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Jul 2019 10:17:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1CCA9C76190
+	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Jul 2019 10:17:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0AE45217D6
-	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Jul 2019 10:17:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E7B80217D6
+	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Jul 2019 10:17:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729229AbfGVKRV (ORCPT
+        id S1729507AbfGVKR0 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 22 Jul 2019 06:17:21 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:45492 "EHLO orbyte.nwl.cc"
+        Mon, 22 Jul 2019 06:17:26 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:45498 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728569AbfGVKRV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 22 Jul 2019 06:17:21 -0400
-Received: from localhost ([::1]:58582 helo=tatos)
+        id S1728569AbfGVKR0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 22 Jul 2019 06:17:26 -0400
+Received: from localhost ([::1]:58588 helo=tatos)
         by orbyte.nwl.cc with esmtp (Exim 4.91)
         (envelope-from <phil@nwl.cc>)
-        id 1hpVNf-0000eu-Mo; Mon, 22 Jul 2019 12:17:19 +0200
+        id 1hpVNl-0000fI-0i; Mon, 22 Jul 2019 12:17:25 +0200
 From:   Phil Sutter <phil@nwl.cc>
 To:     Florian Westphal <fw@strlen.de>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH v2 10/11] arptables-save: Merge into xtables_save_main()
-Date:   Mon, 22 Jul 2019 12:16:27 +0200
-Message-Id: <20190722101628.21195-11-phil@nwl.cc>
+Subject: [iptables PATCH v2 06/11] xtables-save: Avoid mixed code and declarations
+Date:   Mon, 22 Jul 2019 12:16:23 +0200
+Message-Id: <20190722101628.21195-7-phil@nwl.cc>
 X-Mailer: git-send-email 2.22.0
 In-Reply-To: <20190722101628.21195-1-phil@nwl.cc>
 References: <20190722101628.21195-1-phil@nwl.cc>
@@ -39,86 +39,47 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-With all preparations in place, xtables_save_main() can replace it with
-not further changes.
+Also move time() calls to where they are used.
 
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- iptables/xtables-save.c | 63 ++---------------------------------------
- 1 file changed, 3 insertions(+), 60 deletions(-)
+ iptables/xtables-save.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
 diff --git a/iptables/xtables-save.c b/iptables/xtables-save.c
-index 980a80ff06f96..0c294e056c7b5 100644
+index 484450f03354f..ac452f1dd6f14 100644
 --- a/iptables/xtables-save.c
 +++ b/iptables/xtables-save.c
-@@ -372,65 +372,8 @@ int xtables_eb_save_main(int argc_, char *argv_[])
- 	return 0;
- }
- 
--int xtables_arp_save_main(int argc, char **argv)
-+int xtables_arp_save_main(int argc, char *argv[])
+@@ -71,6 +71,7 @@ __do_output(struct nft_handle *h, const char *tablename, void *data)
  {
--	struct nft_handle h = {
--		.family	= NFPROTO_ARP,
--	};
--	time_t now;
--	int c;
+ 	struct nftnl_chain_list *chain_list;
+ 	struct do_output_data *d = data;
++	time_t now;
+ 
+ 	if (!nft_table_builtin_find(h, tablename))
+ 		return 0;
+@@ -85,19 +86,18 @@ __do_output(struct nft_handle *h, const char *tablename, void *data)
+ 	if (!chain_list)
+ 		return 0;
+ 
+-	time_t now = time(NULL);
 -
--	xtables_globals.program_name = basename(*argv);;
--	c = xtables_init_all(&xtables_globals, h.family);
--	if (c < 0) {
--		fprintf(stderr, "%s/%s Failed to initialize xtables\n",
--				xtables_globals.program_name,
--				xtables_globals.program_version);
--		exit(1);
--	}
--
--	while ((c = getopt_long(argc, argv, arp_save_optstring, arp_save_options, NULL)) != -1) {
--		switch (c) {
--		case 'c':
--			show_counters = true;
--			break;
--		case 'M':
--			xtables_modprobe_program = optarg;
--			break;
--		case 'V':
--			printf("%s v%s (nf_tables)\n", prog_name, prog_vers);
--			exit(0);
--		default:
--			fprintf(stderr,
--				"Look at manual page `%s.8' for more information.\n",
--				prog_name);
--			exit(1);
--		}
--	}
--
--	if (nft_init(&h, xtables_arp) < 0) {
--		fprintf(stderr, "%s/%s Failed to initialize nft: %s\n",
--				xtables_globals.program_name,
--				xtables_globals.program_version,
--				strerror(errno));
--		exit(EXIT_FAILURE);
--	}
--
--	if (!nft_table_find(&h, "filter"))
--		return 0;
--
--	if (!nft_is_table_compatible(&h, "filter")) {
--		printf("# Table `filter' is incompatible, use 'nft' tool.\n");
--		return 0;
--	}
--
--	printf("# Generated by %s v%s on %s", prog_name,
--	       prog_vers, ctime(&now));
--	printf("*filter\n");
--	nft_chain_save(&h, nft_chain_list_get(&h, "filter"));
--	nft_rule_save(&h, "filter", show_counters ? 0 : FMT_NOCOUNTS);
--	now = time(NULL);
--	printf("# Completed on %s", ctime(&now));
--	nft_fini(&h);
--	return 0;
-+	return xtables_save_main(NFPROTO_ARP, argc, argv,
-+				 arp_save_optstring, arp_save_options);
++	now = time(NULL);
+ 	printf("# Generated by %s v%s on %s", prog_name,
+ 	       prog_vers, ctime(&now));
+-	printf("*%s\n", tablename);
+ 
++	printf("*%s\n", tablename);
+ 	/* Dump out chain names first,
+ 	 * thereby preventing dependency conflicts */
+ 	nft_chain_save(h, chain_list);
+ 	nft_rule_save(h, tablename, d->counters ? 0 : FMT_NOCOUNTS);
++	printf("COMMIT\n");
+ 
+ 	now = time(NULL);
+-	printf("COMMIT\n");
+ 	printf("# Completed on %s", ctime(&now));
+ 	return 0;
  }
 -- 
 2.22.0
