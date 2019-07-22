@@ -2,89 +2,147 @@ Return-Path: <SRS0=3WFO=VT=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+X-Spam-Status: No, score=-6.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 32230C76188
-	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Jul 2019 12:01:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 08A8BC76188
+	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Jul 2019 12:06:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 06C8120449
-	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Jul 2019 12:01:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DBBAE218DA
+	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Jul 2019 12:06:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730162AbfGVMBN (ORCPT
+        id S1729096AbfGVMGc (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 22 Jul 2019 08:01:13 -0400
-Received: from mail.us.es ([193.147.175.20]:51634 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730097AbfGVMBN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 22 Jul 2019 08:01:13 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id ADA74C1DF1
-        for <netfilter-devel@vger.kernel.org>; Mon, 22 Jul 2019 14:01:11 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 9DF1A11510F
-        for <netfilter-devel@vger.kernel.org>; Mon, 22 Jul 2019 14:01:11 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 9241B115109; Mon, 22 Jul 2019 14:01:11 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 23DF51150CC;
-        Mon, 22 Jul 2019 14:01:09 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 22 Jul 2019 14:01:09 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [31.4.214.120])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id DBAD040705C4;
-        Mon, 22 Jul 2019 14:01:08 +0200 (CEST)
-Date:   Mon, 22 Jul 2019 14:01:07 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft v2] src: evaluate: support prefix expression in
- statements
-Message-ID: <20190722120107.76yebnqhmeinhowh@salvia>
-References: <20190722093740.5176-1-fw@strlen.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190722093740.5176-1-fw@strlen.de>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+        Mon, 22 Jul 2019 08:06:32 -0400
+Received: from mx2.labristeknoloji.com ([91.93.128.220]:33976 "EHLO
+        mx2.labristeknoloji.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728266AbfGVMGc (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 22 Jul 2019 08:06:32 -0400
+From:   Ibrahim Ercan <ibrahim.ercan@labristeknoloji.com>
+To:     netfilter-devel@vger.kernel.org
+Cc:     fw@strlen.de, ffmancera@riseup.net, pablo@netfilter.org,
+        ibrahim.metu@gmail.com,
+        Ibrahim Ercan <ibrahim.ercan@labrisnetworks.com>
+Subject: [PATCH v3] netfilter: synproxy: erroneous TCP mss option fixed.
+Date:   Mon, 22 Jul 2019 15:06:26 +0300
+Message-Id: <1563797186-27042-1-git-send-email-ibrahim.ercan@labristeknoloji.com>
+In-Reply-To: <CAK6Qs9mp7E3Wr4Zo8mLgsbLMwZRCaQoy=3nRx3XDJP4mcgNSEA@mail.gmail.com>
+References: <CAK6Qs9mp7E3Wr4Zo8mLgsbLMwZRCaQoy=3nRx3XDJP4mcgNSEA@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Jul 22, 2019 at 11:37:40AM +0200, Florian Westphal wrote:
-> Currently nft dumps core when it encounters a prefix expression as
-> part of a statement, e.g.
-> iifname ens3 snat to 10.0.0.0/28
-> 
-> yields:
-> BUG: unknown expression type prefix
-> nft: netlink_linearize.c:688: netlink_gen_expr: Assertion `0' failed.
-> 
-> This assertion is correct -- we can't linearize a prefix because
-> kernel doesn't know what that is.
-> 
-> For LHS prefixes, they get converted to a binary 'and' such as
-> '10.0.0.0 & 255.255.255.240'.  For RHS, we can do something similar
-> and convert them into a range.
-> 
-> snat to 10.0.0.0/28 will be converted into:
-> iifname "ens3" snat to 10.0.0.0-10.0.0.15
-> 
-> Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1187
-> Signed-off-by: Florian Westphal <fw@strlen.de>
+synproxy_options has been modified as recommended by Pablo.
 
-Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Ibrahim Ercan <ibrahim.ercan@labrisnetworks.com>
+---
+ include/net/netfilter/nf_conntrack_synproxy.h | 3 ++-
+ net/ipv4/netfilter/ipt_SYNPROXY.c             | 6 ++++--
+ net/ipv6/netfilter/ip6t_SYNPROXY.c            | 6 ++++--
+ net/netfilter/nf_synproxy_core.c              | 4 ++--
+ 4 files changed, 12 insertions(+), 7 deletions(-)
 
-Please, double check before pushing this out that valgrind is happy
-with this (no memleaks).
+diff --git a/include/net/netfilter/nf_conntrack_synproxy.h b/include/net/netfilter/nf_conntrack_synproxy.h
+index 2c7559a..d4b44b3 100644
+--- a/include/net/netfilter/nf_conntrack_synproxy.h
++++ b/include/net/netfilter/nf_conntrack_synproxy.h
+@@ -66,7 +66,8 @@ static inline struct synproxy_net *synproxy_pernet(struct net *net)
+ struct synproxy_options {
+ 	u8				options;
+ 	u8				wscale;
+-	u16				mss;
++	u16				mss_option;
++	u16				mss_encode;
+ 	u32				tsval;
+ 	u32				tsecr;
+ };
+diff --git a/net/ipv4/netfilter/ipt_SYNPROXY.c b/net/ipv4/netfilter/ipt_SYNPROXY.c
+index 64d9563..6e230a6 100644
+--- a/net/ipv4/netfilter/ipt_SYNPROXY.c
++++ b/net/ipv4/netfilter/ipt_SYNPROXY.c
+@@ -75,7 +75,7 @@ synproxy_send_client_synack(struct net *net,
+ 	struct iphdr *iph, *niph;
+ 	struct tcphdr *nth;
+ 	unsigned int tcp_hdr_size;
+-	u16 mss = opts->mss;
++	u16 mss = opts->mss_encode;
+ 
+ 	iph = ip_hdr(skb);
+ 
+@@ -246,7 +246,7 @@ synproxy_recv_client_ack(struct net *net,
+ 	}
+ 
+ 	this_cpu_inc(snet->stats->cookie_valid);
+-	opts->mss = mss;
++	opts->mss_option = mss;
+ 	opts->options |= XT_SYNPROXY_OPT_MSS;
+ 
+ 	if (opts->options & XT_SYNPROXY_OPT_TIMESTAMP)
+@@ -283,6 +283,8 @@ synproxy_tg4(struct sk_buff *skb, const struct xt_action_param *par)
+ 			opts.options |= XT_SYNPROXY_OPT_ECN;
+ 
+ 		opts.options &= info->options;
++		opts.mss_encode = opts.mss_option;
++		opts.mss_option = info->mss;
+ 		if (opts.options & XT_SYNPROXY_OPT_TIMESTAMP)
+ 			synproxy_init_timestamp_cookie(info, &opts);
+ 		else
+diff --git a/net/ipv6/netfilter/ip6t_SYNPROXY.c b/net/ipv6/netfilter/ip6t_SYNPROXY.c
+index 41325d5..36313b0 100644
+--- a/net/ipv6/netfilter/ip6t_SYNPROXY.c
++++ b/net/ipv6/netfilter/ip6t_SYNPROXY.c
+@@ -89,7 +89,7 @@ synproxy_send_client_synack(struct net *net,
+ 	struct ipv6hdr *iph, *niph;
+ 	struct tcphdr *nth;
+ 	unsigned int tcp_hdr_size;
+-	u16 mss = opts->mss;
++	u16 mss = opts->mss_encode;
+ 
+ 	iph = ipv6_hdr(skb);
+ 
+@@ -260,7 +260,7 @@ synproxy_recv_client_ack(struct net *net,
+ 	}
+ 
+ 	this_cpu_inc(snet->stats->cookie_valid);
+-	opts->mss = mss;
++	opts->mss_option = mss;
+ 	opts->options |= XT_SYNPROXY_OPT_MSS;
+ 
+ 	if (opts->options & XT_SYNPROXY_OPT_TIMESTAMP)
+@@ -297,6 +297,8 @@ synproxy_tg6(struct sk_buff *skb, const struct xt_action_param *par)
+ 			opts.options |= XT_SYNPROXY_OPT_ECN;
+ 
+ 		opts.options &= info->options;
++		opts.mss_encode = opts.mss_option;
++		opts.mss_option = info->mss;
+ 		if (opts.options & XT_SYNPROXY_OPT_TIMESTAMP)
+ 			synproxy_init_timestamp_cookie(info, &opts);
+ 		else
+diff --git a/net/netfilter/nf_synproxy_core.c b/net/netfilter/nf_synproxy_core.c
+index 8ce74ed..74ff90a 100644
+--- a/net/netfilter/nf_synproxy_core.c
++++ b/net/netfilter/nf_synproxy_core.c
+@@ -56,7 +56,7 @@ synproxy_parse_options(const struct sk_buff *skb, unsigned int doff,
+ 			switch (opcode) {
+ 			case TCPOPT_MSS:
+ 				if (opsize == TCPOLEN_MSS) {
+-					opts->mss = get_unaligned_be16(ptr);
++					opts->mss_option = get_unaligned_be16(ptr);
+ 					opts->options |= XT_SYNPROXY_OPT_MSS;
+ 				}
+ 				break;
+@@ -115,7 +115,7 @@ synproxy_build_options(struct tcphdr *th, const struct synproxy_options *opts)
+ 	if (options & XT_SYNPROXY_OPT_MSS)
+ 		*ptr++ = htonl((TCPOPT_MSS << 24) |
+ 			       (TCPOLEN_MSS << 16) |
+-			       opts->mss);
++			       opts->mss_option);
+ 
+ 	if (options & XT_SYNPROXY_OPT_TIMESTAMP) {
+ 		if (options & XT_SYNPROXY_OPT_SACK_PERM)
+-- 
+2.7.4
 
-Thanks.
