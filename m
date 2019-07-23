@@ -2,112 +2,96 @@ Return-Path: <SRS0=NVo7=VU=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9E611C7618B
-	for <netfilter-devel@archiver.kernel.org>; Tue, 23 Jul 2019 12:52:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 44144C7618E
+	for <netfilter-devel@archiver.kernel.org>; Tue, 23 Jul 2019 13:11:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 810F92238E
-	for <netfilter-devel@archiver.kernel.org>; Tue, 23 Jul 2019 12:52:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 18FF521734
+	for <netfilter-devel@archiver.kernel.org>; Tue, 23 Jul 2019 13:11:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2390040AbfGWMw5 (ORCPT
+        id S2389860AbfGWNLq (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 23 Jul 2019 08:52:57 -0400
-Received: from m9784.mail.qiye.163.com ([220.181.97.84]:26695 "EHLO
-        m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2390011AbfGWMw4 (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 23 Jul 2019 08:52:56 -0400
-Received: from localhost.localdomain (unknown [123.59.132.129])
-        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id 3A6AA41CF1;
-        Tue, 23 Jul 2019 20:52:46 +0800 (CST)
-From:   wenxu@ucloud.cn
-To:     pablo@netfilter.org, fw@strlen.de
-Cc:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next 6/7] netfilter: nft_fwd_netdev: add fw_netdev action support
-Date:   Tue, 23 Jul 2019 20:52:43 +0800
-Message-Id: <1563886364-11164-7-git-send-email-wenxu@ucloud.cn>
-X-Mailer: git-send-email 1.8.3.1
-In-Reply-To: <1563886364-11164-1-git-send-email-wenxu@ucloud.cn>
-References: <1563886364-11164-1-git-send-email-wenxu@ucloud.cn>
-X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVkpVSExCS0tLS01MTEpLQ0NZV1koWU
-        FJQjdXWS1ZQUlXWQkOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6MQg6Igw*Tzg9NlE9SSwOTi0s
-        PEtPFEtVSlVKTk1IQ0NNSE1NSEpPVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJSFVO
-        QlVKSElVSklCWVdZCAFZQUlDSkI3Bg++
-X-HM-Tid: 0a6c1ee42e2a2086kuqy3a6aa41cf1
+        Tue, 23 Jul 2019 09:11:46 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:48400 "EHLO orbyte.nwl.cc"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728323AbfGWNLq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 23 Jul 2019 09:11:46 -0400
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.91)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1hpuZy-0007gJ-Mk; Tue, 23 Jul 2019 15:11:42 +0200
+Date:   Tue, 23 Jul 2019 15:11:42 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft 3/3] src: evaluate: return immediately if no op was
+ requested
+Message-ID: <20190723131142.GN22661@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+References: <20190721001406.23785-1-fw@strlen.de>
+ <20190721001406.23785-4-fw@strlen.de>
+ <20190721184901.n5ea7kpn246bddnb@salvia>
+ <20190721185040.5ueush32pe7zta2k@breakpoint.cc>
+ <20190722212556.gnxhgqlnrqt2epgg@salvia>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190722212556.gnxhgqlnrqt2epgg@salvia>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: wenxu <wenxu@ucloud.cn>
+On Mon, Jul 22, 2019 at 11:25:56PM +0200, Pablo Neira Ayuso wrote:
+> On Sun, Jul 21, 2019 at 08:50:40PM +0200, Florian Westphal wrote:
+> > Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > > On Sun, Jul 21, 2019 at 02:14:07AM +0200, Florian Westphal wrote:
+> > > > This makes nft behave like 0.9.0 -- the ruleset
+> > > > 
+> > > > flush ruleset
+> > > > table inet filter {
+> > > > }
+> > > > table inet filter {
+> > > >       chain test {
+> > > >         counter
+> > > >     }
+> > > > }
+> > > > 
+> > > > loads again without generating an error message.
+> > > > I've added a test case for this, without this it will create an error,
+> > > > and with a checkout of the 'fixes' tag we get crash.
+> > > > 
+> > > > Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1351
+> > > > Fixes: e5382c0d08e3c ("src: Support intra-transaction rule references")
+> > > 
+> > > This one is causing the cache corruption, right?
+> > 
+> > There is no cache corruption.  This patch makes us enter a code
+> > path that we did not take before.
+> 
+> Sorry, I mean, this is a cache bug :-)
+> 
+> cache_flush() is cheating, it sets flags to CACHE_FULL, hence this
+> enters this codepath we dit not take before. This propagates from the
+> previous logic, as a workaround.
+> 
+> I made this patch, to skip the cache in case "flush ruleset" is
+> requested.
+> 
+> This breaks testcases/transactions/0024rule_0, which is a recent test
+> from Phil to check for intra-transaction references, I don't know yet
+> what makes this code unhappy with my changes.
+> 
+> Phil, would you help me have a look at what assumption breaks? Thanks.
 
-fwd_netdev action offload:
-nft --debug=netlink add rule netdev firewall aclout ip daddr 10.0.1.7 fwd to eth0
+Sorry, I don't get it. What is happening in the first place? Florian
+writes, a lookup happens in the wrong table and it seems
+chain_evaluate() doesn't add the chain to cache. Yet I don't understand
+why given patch fixes the problem.
 
-Signed-off-by: wenxu <wenxu@ucloud.cn>
----
- net/netfilter/nft_fwd_netdev.c | 30 ++++++++++++++++++++++++++++++
- 1 file changed, 30 insertions(+)
-
-diff --git a/net/netfilter/nft_fwd_netdev.c b/net/netfilter/nft_fwd_netdev.c
-index 61b7f93..06dbd98 100644
---- a/net/netfilter/nft_fwd_netdev.c
-+++ b/net/netfilter/nft_fwd_netdev.c
-@@ -15,6 +15,7 @@
- #include <net/netfilter/nf_dup_netdev.h>
- #include <net/neighbour.h>
- #include <net/ip.h>
-+#include <net/netfilter/nf_tables_offload.h>
- 
- struct nft_fwd_netdev {
- 	enum nft_registers	sreg_dev:8;
-@@ -63,6 +64,33 @@ static int nft_fwd_netdev_dump(struct sk_buff *skb, const struct nft_expr *expr)
- 	return -1;
- }
- 
-+static int nft_fwd_netdev_offload(struct nft_offload_ctx *ctx,
-+				  struct nft_flow_rule *flow,
-+				  const struct nft_expr *expr)
-+{
-+	const struct nft_fwd_netdev *priv = nft_expr_priv(expr);
-+	struct nft_offload_reg *reg = &ctx->regs[priv->sreg_dev];
-+	const struct nft_data *data = &reg->action.data;
-+	struct flow_action_entry *entry;
-+	struct net_device *dev;
-+	int oif = -1;
-+
-+	if (reg->type != NFT_OFFLOAD_REG_ACTION)
-+		return -EOPNOTSUPP;
-+
-+	entry = &flow->rule->action.entries[ctx->num_actions++];
-+
-+	memcpy(&oif, data->data, sizeof(oif));
-+	dev = __dev_get_by_index(ctx->net, oif);
-+	if (!dev)
-+		return -EOPNOTSUPP;
-+
-+	entry->id = FLOW_ACTION_REDIRECT;
-+	entry->dev = dev;
-+
-+	return 0;
-+}
-+
- struct nft_fwd_neigh {
- 	enum nft_registers	sreg_dev:8;
- 	enum nft_registers	sreg_addr:8;
-@@ -194,6 +222,8 @@ static int nft_fwd_neigh_dump(struct sk_buff *skb, const struct nft_expr *expr)
- 	.eval		= nft_fwd_netdev_eval,
- 	.init		= nft_fwd_netdev_init,
- 	.dump		= nft_fwd_netdev_dump,
-+	.offload	= nft_fwd_netdev_offload,
-+	.offload_actions = nft_offload_action,
- };
- 
- static const struct nft_expr_ops *
--- 
-1.8.3.1
-
+Cheers, Phil
