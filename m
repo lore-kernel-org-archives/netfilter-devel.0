@@ -4,82 +4,128 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 77D19C7618B
-	for <netfilter-devel@archiver.kernel.org>; Tue, 23 Jul 2019 13:23:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 06821C7618B
+	for <netfilter-devel@archiver.kernel.org>; Tue, 23 Jul 2019 13:28:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4E62121903
-	for <netfilter-devel@archiver.kernel.org>; Tue, 23 Jul 2019 13:23:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D8A84205C9
+	for <netfilter-devel@archiver.kernel.org>; Tue, 23 Jul 2019 13:28:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732465AbfGWNXe (ORCPT
+        id S1731441AbfGWN2D (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 23 Jul 2019 09:23:34 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:48434 "EHLO orbyte.nwl.cc"
+        Tue, 23 Jul 2019 09:28:03 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:48448 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725778AbfGWNXd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 23 Jul 2019 09:23:33 -0400
-Received: from localhost ([::1]:33292 helo=tatos)
+        id S1731095AbfGWN2D (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 23 Jul 2019 09:28:03 -0400
+Received: from localhost ([::1]:33306 helo=tatos)
         by orbyte.nwl.cc with esmtp (Exim 4.91)
         (envelope-from <phil@nwl.cc>)
-        id 1hpulQ-0007w3-U6; Tue, 23 Jul 2019 15:23:32 +0200
+        id 1hpupm-000886-E5; Tue, 23 Jul 2019 15:28:02 +0200
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: [nft PATCH v2 1/2] parser_bison: Fix for deprecated statements
-Date:   Tue, 23 Jul 2019 15:23:12 +0200
-Message-Id: <20190723132313.13238-2-phil@nwl.cc>
+Cc:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+Subject: [PATCH v3 1/2] net: nf_tables: Make nft_meta expression more robust
+Date:   Tue, 23 Jul 2019 15:27:52 +0200
+Message-Id: <20190723132753.13781-1-phil@nwl.cc>
 X-Mailer: git-send-email 2.22.0
-In-Reply-To: <20190723132313.13238-1-phil@nwl.cc>
-References: <20190723132313.13238-1-phil@nwl.cc>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Bison-3.3 started to warn about:
+nft_meta_get_eval()'s tendency to bail out setting NFT_BREAK verdict in
+situations where required data is missing leads to unexpected behaviour
+with inverted checks like so:
 
-/home/n0-1/git/nftables/src/parser_bison.y:117.1-19: warning: deprecated directive, use ‘%define api.prefix {nft_}’ [-Wdeprecated]
-    117 | %name-prefix "nft_"
-        | ^~~~~~~~~~~~~~~~~~~
-/home/n0-1/git/nftables/src/parser_bison.y:119.1-12: warning: deprecated directive, use ‘%define api.pure’ [-Wdeprecated]
-  119 | %pure-parser
-      | ^~~~~~~~~~~~
-/home/n0-1/git/nftables/src/parser_bison.y:124.1-14: warning: deprecated directive, use ‘%define parse.error verbose’ [-Wdeprecated]
-  124 | %error-verbose
-      | ^~~~~~~~~~~~~~
+| meta iifname != eth0 accept
 
-Replace the last two as suggested but leave the first one in place as
-that causes compilation errors in scanner.l - flex seems not to pick up
-the changed internal symbol names.
+This rule will never match if there is no input interface (or it is not
+known) which is not intuitive and, what's worse, breaks consistency of
+iptables-nft with iptables-legacy.
+
+Fix this by falling back to placing a value in dreg which never matches
+(avoiding accidental matches), i.e. zero for interface index and an
+empty string for interface name.
+---
+Changes since v1:
+- Apply same fix to net/bridge/netfilter/nft_meta_bridge.c as well.
+
+Changes since v2:
+- Limit this fix to address only expressions returning an interface
+  index or name. As Florian correctly criticized, these changes may be
+  problematic as they tend to change nftables' behaviour. Hence fix only
+  the cases needed to establish iptables-nft compatibility.
 
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- src/parser_bison.y | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ net/bridge/netfilter/nft_meta_bridge.c |  6 +-----
+ net/netfilter/nft_meta.c               | 16 ++++------------
+ 2 files changed, 5 insertions(+), 17 deletions(-)
 
-diff --git a/src/parser_bison.y b/src/parser_bison.y
-index 53e669521efa0..b463a140d31ff 100644
---- a/src/parser_bison.y
-+++ b/src/parser_bison.y
-@@ -116,12 +116,12 @@ int nft_lex(void *, void *, void *);
+diff --git a/net/bridge/netfilter/nft_meta_bridge.c b/net/bridge/netfilter/nft_meta_bridge.c
+index bed66f536b345..a98dec2cf0cfd 100644
+--- a/net/bridge/netfilter/nft_meta_bridge.c
++++ b/net/bridge/netfilter/nft_meta_bridge.c
+@@ -30,13 +30,9 @@ static void nft_meta_bridge_get_eval(const struct nft_expr *expr,
+ 	switch (priv->key) {
+ 	case NFT_META_BRI_IIFNAME:
+ 		br_dev = nft_meta_get_bridge(in);
+-		if (!br_dev)
+-			goto err;
+ 		break;
+ 	case NFT_META_BRI_OIFNAME:
+ 		br_dev = nft_meta_get_bridge(out);
+-		if (!br_dev)
+-			goto err;
+ 		break;
+ 	case NFT_META_BRI_IIFPVID: {
+ 		u16 p_pvid;
+@@ -64,7 +60,7 @@ static void nft_meta_bridge_get_eval(const struct nft_expr *expr,
+ 		goto out;
+ 	}
  
- %name-prefix "nft_"
- %debug
--%pure-parser
-+%define api.pure
- %parse-param		{ struct nft_ctx *nft }
- %parse-param		{ void *scanner }
- %parse-param		{ struct parser_state *state }
- %lex-param		{ scanner }
--%error-verbose
-+%define parse.error verbose
- %locations
- 
- %initial-action {
+-	strncpy((char *)dest, br_dev->name, IFNAMSIZ);
++	strncpy((char *)dest, br_dev ? br_dev->name : "", IFNAMSIZ);
+ 	return;
+ out:
+ 	return nft_meta_get_eval(expr, regs, pkt);
+diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
+index f1b1d948c07b4..f69afb9ff3cbe 100644
+--- a/net/netfilter/nft_meta.c
++++ b/net/netfilter/nft_meta.c
+@@ -60,24 +60,16 @@ void nft_meta_get_eval(const struct nft_expr *expr,
+ 		*dest = skb->mark;
+ 		break;
+ 	case NFT_META_IIF:
+-		if (in == NULL)
+-			goto err;
+-		*dest = in->ifindex;
++		*dest = in ? in->ifindex : 0;
+ 		break;
+ 	case NFT_META_OIF:
+-		if (out == NULL)
+-			goto err;
+-		*dest = out->ifindex;
++		*dest = out ? out->ifindex : 0;
+ 		break;
+ 	case NFT_META_IIFNAME:
+-		if (in == NULL)
+-			goto err;
+-		strncpy((char *)dest, in->name, IFNAMSIZ);
++		strncpy((char *)dest, in ? in->name : "", IFNAMSIZ);
+ 		break;
+ 	case NFT_META_OIFNAME:
+-		if (out == NULL)
+-			goto err;
+-		strncpy((char *)dest, out->name, IFNAMSIZ);
++		strncpy((char *)dest, out ? out->name : "", IFNAMSIZ);
+ 		break;
+ 	case NFT_META_IIFTYPE:
+ 		if (in == NULL)
 -- 
 2.22.0
 
