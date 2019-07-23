@@ -2,94 +2,90 @@ Return-Path: <SRS0=NVo7=VU=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 36C69C7618B
-	for <netfilter-devel@archiver.kernel.org>; Tue, 23 Jul 2019 15:24:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 266F2C76186
+	for <netfilter-devel@archiver.kernel.org>; Tue, 23 Jul 2019 17:36:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0AF7B223A0
-	for <netfilter-devel@archiver.kernel.org>; Tue, 23 Jul 2019 15:24:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E61F4218B0
+	for <netfilter-devel@archiver.kernel.org>; Tue, 23 Jul 2019 17:36:56 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=untangle.com header.i=@untangle.com header.b="fVe5U0ho"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729210AbfGWPY4 (ORCPT
+        id S2390800AbfGWRg4 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 23 Jul 2019 11:24:56 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:48684 "EHLO orbyte.nwl.cc"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726283AbfGWPY4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 23 Jul 2019 11:24:56 -0400
-Received: from localhost ([::1]:33542 helo=tatos)
-        by orbyte.nwl.cc with esmtp (Exim 4.91)
-        (envelope-from <phil@nwl.cc>)
-        id 1hpwet-0001ct-Ld; Tue, 23 Jul 2019 17:24:55 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH 2/2] doc: Install ip{6,}tables-restore-translate.8 man pages
-Date:   Tue, 23 Jul 2019 17:24:41 +0200
-Message-Id: <20190723152441.7360-2-phil@nwl.cc>
-X-Mailer: git-send-email 2.22.0
-In-Reply-To: <20190723152441.7360-1-phil@nwl.cc>
-References: <20190723152441.7360-1-phil@nwl.cc>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        Tue, 23 Jul 2019 13:36:56 -0400
+Received: from mail-io1-f67.google.com ([209.85.166.67]:45690 "EHLO
+        mail-io1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2388454AbfGWRg4 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 23 Jul 2019 13:36:56 -0400
+Received: by mail-io1-f67.google.com with SMTP id g20so83585743ioc.12
+        for <netfilter-devel@vger.kernel.org>; Tue, 23 Jul 2019 10:36:55 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=untangle.com; s=google;
+        h=from:to:subject:date:message-id;
+        bh=Vm3tp+4RZl6OrTlImKeU02AIIHcufkyXr8xz2M3+Hy4=;
+        b=fVe5U0hoR1J8+wd/riHYCoI0IHk3j05T4p/rjY2Ca++hPZ7KWTyArhVlqM2dop8eW/
+         sAfR/DZ9g/qR12jUJ4B9HubsQtelI64tjIQEElruXCRpQs4+drJR8OeAKWuy0v21PpxJ
+         TeTQUIp6r76Me/Yul5o7aV5yaCBjmDgc8V/34=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:subject:date:message-id;
+        bh=Vm3tp+4RZl6OrTlImKeU02AIIHcufkyXr8xz2M3+Hy4=;
+        b=IOEdUebl5q9yzg5GlSD8/ryTgkTF5qdsPxd1Jt/RSZ7jQaWvsCwhxagt+7D0soLL+1
+         dpXfHUsyWwZtn3g6mDD9elnawmXJJp63Mau1PO6uQGSlc32mNdfAYY02kdeo6H19FQ1g
+         /iOFZRPGzB8Qh52GhrjMoJFXgksywb1TM7PtS7pWHAhsb2cRZHwDE+xmq5O0M8rk/57A
+         7k7Jbq4lRhmP5Ju82xB1vUa1yLMI5RQosaGNY0G3LHKKFM/LbJ5rMLqmLGhBdIva1O5A
+         /VcBWbvgLqQI4LgLrNe3kY3ozKdWyMJkTR4DaVjv4mz8gcmnMeP21tBKkoJn9/oUrPMy
+         LH0A==
+X-Gm-Message-State: APjAAAXwoxhZ2v/QkZ3MfJo6mzsqERxirmrCP1zmXkNfU8mxnAd6hioe
+        uisV6U41/yQwr8mBvxp2x7AqE8soERUtgQ==
+X-Google-Smtp-Source: APXvYqx6MNUX0E/GZFSMe6wMkAr3/yMTt1NkuiIb4TTZNgxjN9+85OxG76EDdPUheAIjM1Iyhnf4KQ==
+X-Received: by 2002:a02:5ec9:: with SMTP id h192mr78110717jab.25.1563903415281;
+        Tue, 23 Jul 2019 10:36:55 -0700 (PDT)
+Received: from pinebook.zebraskunk.int (cpe-74-137-94-90.kya.res.rr.com. [74.137.94.90])
+        by smtp.gmail.com with ESMTPSA id c14sm34103325ioa.22.2019.07.23.10.36.54
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_3 cipher=AEAD-AES256-GCM-SHA384 bits=256/256);
+        Tue, 23 Jul 2019 10:36:54 -0700 (PDT)
+From:   Brett Mastbergen <bmastbergen@untangle.com>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nft] src: Sync comments with current expr definition
+Date:   Tue, 23 Jul 2019 13:36:49 -0400
+Message-Id: <20190723173649.3855-1-bmastbergen@untangle.com>
+X-Mailer: git-send-email 2.17.1
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Just like in b738ca3677785 ("doc: Install ip{6,}tables-translate.8
-manpages"), create man pages for *-restore-translate tools as semantic
-links to xtables-translate.8.
+ops has been removed, and etype has been added
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
+Signed-off-by: Brett Mastbergen <bmastbergen@untangle.com>
 ---
- iptables/.gitignore  | 2 ++
- iptables/Makefile.am | 3 ++-
- 2 files changed, 4 insertions(+), 1 deletion(-)
+ include/expression.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/iptables/.gitignore b/iptables/.gitignore
-index c638139b8a1d0..d46adc8a32f02 100644
---- a/iptables/.gitignore
-+++ b/iptables/.gitignore
-@@ -3,6 +3,7 @@
- /ip6tables-restore
- /ip6tables-static
- /ip6tables-translate.8
-+/ip6tables-restore-translate.8
- /iptables
- /iptables.8
- /iptables-extensions.8
-@@ -13,6 +14,7 @@
- /iptables-restore.8
- /iptables-static
- /iptables-translate.8
-+/iptables-restore-translate.8
- /iptables-xml
- /iptables-xml.1
- /xtables-multi
-diff --git a/iptables/Makefile.am b/iptables/Makefile.am
-index 11abb23977e8c..d2207a47a7a26 100644
---- a/iptables/Makefile.am
-+++ b/iptables/Makefile.am
-@@ -62,6 +62,7 @@ man_MANS         = iptables.8 iptables-restore.8 iptables-save.8 \
- if ENABLE_NFTABLES
- man_MANS	+= xtables-nft.8 xtables-translate.8 xtables-legacy.8 \
-                    iptables-translate.8 ip6tables-translate.8 \
-+		   iptables-restore-translate.8 ip6tables-restore-translate.8 \
-                    xtables-monitor.8 \
-                    arptables-nft.8 arptables-nft-restore.8 arptables-nft-save.8 \
-                    ebtables-nft.8
-@@ -98,7 +99,7 @@ iptables-extensions.8: iptables-extensions.8.tmpl ../extensions/matches.man ../e
- 		-e '/@MATCH@/ r ../extensions/matches.man' \
- 		-e '/@TARGET@/ r ../extensions/targets.man' $< >$@;
- 
--iptables-translate.8 ip6tables-translate.8:
-+iptables-translate.8 ip6tables-translate.8 iptables-restore-translate.8 ip6tables-restore-translate.8:
- 	${AM_VERBOSE_GEN} echo '.so man8/xtables-translate.8' >$@
- 
- pkgconfig_DATA = xtables.pc
+diff --git a/include/expression.h b/include/expression.h
+index 4de53682..717b6755 100644
+--- a/include/expression.h
++++ b/include/expression.h
+@@ -208,9 +208,9 @@ enum expr_flags {
+  * @flags:	mask of enum expr_flags
+  * @dtype:	data type of expression
+  * @byteorder:	byteorder of expression
+- * @len:	length of expression
+- * @ops:	expression ops
++ * @etype:	expression type
+  * @op:		operation for unary, binary and relational expressions
++ * @len:	length of expression
+  * @union:	type specific data
+  */
+ struct expr {
 -- 
-2.22.0
+2.17.1
 
