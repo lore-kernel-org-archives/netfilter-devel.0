@@ -2,70 +2,97 @@ Return-Path: <SRS0=AKzi=VV=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 387C5C7618B
-	for <netfilter-devel@archiver.kernel.org>; Wed, 24 Jul 2019 09:57:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E45EBC7618F
+	for <netfilter-devel@archiver.kernel.org>; Wed, 24 Jul 2019 14:37:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0DC2F21841
-	for <netfilter-devel@archiver.kernel.org>; Wed, 24 Jul 2019 09:57:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BD8E62147A
+	for <netfilter-devel@archiver.kernel.org>; Wed, 24 Jul 2019 14:37:46 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="CA+jpzga"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726339AbfGXJ5a (ORCPT
+        id S1727363AbfGXOhm (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 24 Jul 2019 05:57:30 -0400
-Received: from mail.us.es ([193.147.175.20]:45852 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725999AbfGXJ5a (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 24 Jul 2019 05:57:30 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id D1DE5B6325
-        for <netfilter-devel@vger.kernel.org>; Wed, 24 Jul 2019 11:57:28 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id BF70D1150CE
-        for <netfilter-devel@vger.kernel.org>; Wed, 24 Jul 2019 11:57:28 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id B2D8DAD9C; Wed, 24 Jul 2019 11:57:28 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 7E3D41150CB;
-        Wed, 24 Jul 2019 11:57:26 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 24 Jul 2019 11:57:26 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [31.4.183.64])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 1BA114265A2F;
-        Wed, 24 Jul 2019 11:57:25 +0200 (CEST)
-Date:   Wed, 24 Jul 2019 11:57:24 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft] doc: fib: explain example in more detail
-Message-ID: <20190724095724.o6p6i3qnwdjr5lby@salvia>
-References: <20190721104305.29594-1-fw@strlen.de>
+        Wed, 24 Jul 2019 10:37:42 -0400
+Received: from mail-ed1-f65.google.com ([209.85.208.65]:44868 "EHLO
+        mail-ed1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725870AbfGXOhm (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 24 Jul 2019 10:37:42 -0400
+Received: by mail-ed1-f65.google.com with SMTP id k8so47313387edr.11;
+        Wed, 24 Jul 2019 07:37:40 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=TWTT6YD5xmmHLQ8NqWxp5VF2vzE1ezaxf9lnh1XS2/w=;
+        b=CA+jpzga4i8X7wUqQh3D2NsxFNLhZs4qlXqRH6J20hyHLc7tr/bRzvILcNcs8TxIT1
+         vKwRTH5QYASlKQ681RU/pBhw81k+9XoByq9x6c5jqdG6HcoMqVQ8mL4yJt/dGkmto9WO
+         y4+IHa1XI3Mg4pqqKkMmAPjxzOcmSuyfJOO/QNbk8GFPo3r8QGLuKsdMkGaSO3wyKTZb
+         WQwSHAamnTvCF/hEs3t/OVqmH5z/8f4ENxUZroRz8IafJe53/EValYRW97LQUhMKnfDS
+         ZM7UZ+H3debMoNEO8aPSWAWFqkQdpqWjRzErQ7U0/iEl/jemFWj0KvZSUyOlOJmgjB//
+         vvPQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=TWTT6YD5xmmHLQ8NqWxp5VF2vzE1ezaxf9lnh1XS2/w=;
+        b=nf9IcrQSCSjjjsKR7VYhuJ3o7SzkqmnKw1RZ9L8EXqP3h/WGyczlm9Mbu2KVBorLLO
+         mDkNcHojXWzcMJCzChPYZahZuJhpHTrm85/m82jFo9T8qthU0ZUSR64HGzHIeysYxzjx
+         3Hp42pAWgIdmqx+QQPLSn2PWvtrRkrmoQxzRa+PR4TCq98HO1YH30+vsePQNCrTf4SSu
+         Dk2tsiF9Q0i05dRv8PKSnieV9ZdbgK69wtuoNV/0g6gc2Ws+iUUP3DYtwe1ToCMlm+G+
+         34Kra9hcTPhC9W9xHPTGUdX572c6j177hjodvHVk+OpEe3haO1am/v6xHj8dL61ZdWpa
+         jjXQ==
+X-Gm-Message-State: APjAAAX1iAWwme58A8Abp1bcusvWB41BTRV+wGnepOYnfuAVNl2LHs/e
+        6rRIxDA7IYrr2N2RnA+JqQ==
+X-Google-Smtp-Source: APXvYqxC/jZNJyEw4Ahjdq75WHaL0LyYNComFoAz8fwPe58jYKm0eNtQsy23cTgEfzNUw5n9mhp9Gw==
+X-Received: by 2002:a17:906:5042:: with SMTP id e2mr61790141ejk.220.1563979060071;
+        Wed, 24 Jul 2019 07:37:40 -0700 (PDT)
+Received: from presler.lan (a95-94-77-68.cpe.netcabo.pt. [95.94.77.68])
+        by smtp.gmail.com with ESMTPSA id ns22sm9281459ejb.9.2019.07.24.07.37.38
+        (version=TLS1_3 cipher=AEAD-AES256-GCM-SHA384 bits=256/256);
+        Wed, 24 Jul 2019 07:37:39 -0700 (PDT)
+From:   Rui Salvaterra <rsalvaterra@gmail.com>
+To:     pablo@netfilter.org, davem@davemloft.net,
+        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Cc:     Rui Salvaterra <rsalvaterra@gmail.com>
+Subject: [PATCH] netfilter: trivial: remove extraneous space from message
+Date:   Wed, 24 Jul 2019 15:37:33 +0100
+Message-Id: <20190724143733.17433-1-rsalvaterra@gmail.com>
+X-Mailer: git-send-email 2.22.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190721104305.29594-1-fw@strlen.de>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sun, Jul 21, 2019 at 12:43:05PM +0200, Florian Westphal wrote:
-> As noted by Felix Dreissig, fib documentation is quite terse, so explain
-> the 'saddr . iif' example with a few more words.
-> 
-> Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1220
-> Signed-off-by: Florian Westphal <fw@strlen.de>
+Pure ocd, but this one has been bugging me for a while.
 
-Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Rui Salvaterra <rsalvaterra@gmail.com>
+---
+ net/netfilter/nf_conntrack_helper.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Thanks Florian.
+diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
+index 8d729e7c36ff..209123f35b4a 100644
+--- a/net/netfilter/nf_conntrack_helper.c
++++ b/net/netfilter/nf_conntrack_helper.c
+@@ -218,7 +218,7 @@ nf_ct_lookup_helper(struct nf_conn *ct, struct net *net)
+ 			return NULL;
+ 		pr_info("nf_conntrack: default automatic helper assignment "
+ 			"has been turned off for security reasons and CT-based "
+-			" firewall rule not found. Use the iptables CT target "
++			"firewall rule not found. Use the iptables CT target "
+ 			"to attach helpers instead.\n");
+ 		net->ct.auto_assign_helper_warned = 1;
+ 		return NULL;
+-- 
+2.22.0
+
