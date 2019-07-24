@@ -2,130 +2,89 @@ Return-Path: <SRS0=AKzi=VV=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.2 required=3.0 tests=FREEMAIL_FORGED_FROMDOMAIN,
-	FREEMAIL_FROM,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D3DAC76191
-	for <netfilter-devel@archiver.kernel.org>; Wed, 24 Jul 2019 20:13:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0BEFBC76186
+	for <netfilter-devel@archiver.kernel.org>; Wed, 24 Jul 2019 21:18:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E033820665
-	for <netfilter-devel@archiver.kernel.org>; Wed, 24 Jul 2019 20:13:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CBFB22189F
+	for <netfilter-devel@archiver.kernel.org>; Wed, 24 Jul 2019 21:18:17 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=canb.auug.org.au header.i=@canb.auug.org.au header.b="V0hHpFzh"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2403836AbfGXUNK (ORCPT
+        id S1727868AbfGXVSO (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 24 Jul 2019 16:13:10 -0400
-Received: from smtp3-g21.free.fr ([212.27.42.3]:28908 "EHLO smtp3-g21.free.fr"
+        Wed, 24 Jul 2019 17:18:14 -0400
+Received: from bilbo.ozlabs.org ([203.11.71.1]:34167 "EHLO ozlabs.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2391912AbfGXUNF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 24 Jul 2019 16:13:05 -0400
-Received: from [IPv6:2a01:e34:ec0c:ae81:259a:5cf4:cd92:2659] (unknown [IPv6:2a01:e34:ec0c:ae80:259a:5cf4:cd92:2659])
-        by smtp3-g21.free.fr (Postfix) with ESMTPS id 8F39713F87E
-        for <netfilter-devel@vger.kernel.org>; Wed, 24 Jul 2019 22:13:02 +0200 (CEST)
-Subject: [PATCH iptables]: restore legacy behaviour of iptables-restore when
- rules start with -4/-6
-From:   Adel Belhouane <bugs.a.b@free.fr>
-To:     netfilter-devel@vger.kernel.org
-Message-ID: <f056f1bb-2a73-5042-740c-f2a16958deb0@free.fr>
-Date:   Wed, 24 Jul 2019 22:13:02 +0200
-User-Agent: Mozilla/5.0 (X11; Linux i686 on x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.8.0
+        id S1726818AbfGXVSO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 24 Jul 2019 17:18:14 -0400
+Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange ECDHE (P-256) server-signature RSA-PSS (4096 bits) server-digest SHA256)
+        (No client certificate requested)
+        by mail.ozlabs.org (Postfix) with ESMTPSA id 45v7VV2NDJz9s4Y;
+        Thu, 25 Jul 2019 07:18:10 +1000 (AEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=canb.auug.org.au;
+        s=201702; t=1564003091;
+        bh=ZlrI6QWEkVk+jpf0/CEmKaDNIZ69mnNqNbr14CHhqng=;
+        h=Date:From:To:Cc:Subject:From;
+        b=V0hHpFzhze4oGwu7Htn6DCkrEhZF/gMBLiLqoBKZJINfwk5VbXdjkH3FGGtgxYHlk
+         mMuvKZLwtjtfpN6TXtLe4tOJwKdTsaAqXk8lge7zexGcdwmUPTZShpGr2gycha7vyB
+         ax8tMdygCfqhSj0dS1YDff9xmIRndkJz7WHiwVkaPOGt3YkQK/1RYoiu7dANcNFHup
+         58dYCDdF2iJZMUsotsoqhRiAp0A1G4gT99sUD9uPzbRSoJYC7uhcAZ2kJX+GgB5eMI
+         onJRuZX6Na+vioFOSlwypRsJZN47zpXdF1WMZ9PvHorj/1VKYn5iCv6blEBCmvS+Rf
+         ATyePvl0rloew==
+Date:   Thu, 25 Jul 2019 07:18:03 +1000
+From:   Stephen Rothwell <sfr@canb.auug.org.au>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        NetFilter <netfilter-devel@vger.kernel.org>
+Cc:     Linux Next Mailing List <linux-next@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Phil Sutter <phil@nwl.cc>
+Subject: linux-next: Signed-off-by missing for commit in the netfilter tree
+Message-ID: <20190725071803.6beb44f9@canb.auug.org.au>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: fr
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; boundary="Sig_/myjbYSr/EfRoQ1LLFBsAGba";
+ protocol="application/pgp-signature"; micalg=pgp-sha256
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Legacy implementation of iptables-restore / ip6tables-restore allowed
-to insert a -4 or -6 option at start of a rule line to ignore it if not
-matching the command's protocol. This allowed to mix specific ipv4 and ipv6
-rules in a single file, as still described in iptables 1.8.3's man page in
-options -4 and -6.
+--Sig_/myjbYSr/EfRoQ1LLFBsAGba
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-Example with the file /tmp/rules:
+Hi all,
 
-*filter
-:INPUT ACCEPT [0:0]
-:FORWARD ACCEPT [0:0]
-:OUTPUT ACCEPT [0:0]
--4 -A INPUT -p icmp -j ACCEPT
--6 -A INPUT -p ipv6-icmp -j ACCEPT
-COMMIT
+Commit
 
-works fine with iptables-legacy-restore and ip6tables-legacy-restore but
-fails for the two nft variants:
+  5f5ff5ca2e18 ("netfilter: nf_tables: Make nft_meta expression more robust=
+")
 
-% iptables-nft-restore < /tmp/rules
-% iptables-nft-save
-*filter
-:INPUT ACCEPT [0:0]
-:FORWARD ACCEPT [0:0]
-:OUTPUT ACCEPT [0:0]
--A INPUT -p icmp -j ACCEPT
--A INPUT -p ipv6-icmp -j ACCEPT
-COMMIT
+is missing a Signed-off-by from its author.
 
-The two rules were added when the -6 rule should have been ignored.
+--=20
+Cheers,
+Stephen Rothwell
 
-% ip6tables-nft-restore < /tmp/rules
-Error occurred at line: 5
-Try `ip6tables-restore -h' or 'ip6tables-restore --help' for more information.
+--Sig_/myjbYSr/EfRoQ1LLFBsAGba
+Content-Type: application/pgp-signature
+Content-Description: OpenPGP digital signature
 
-No rule was added when the -4 rule should have been ignored and the -6
-rule added.
+-----BEGIN PGP SIGNATURE-----
 
-There's a distribution bug report mentioning this problem:
-https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=925343
+iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAl04ywsACgkQAVBC80lX
+0GxZGAf/UUOEi8K2f2YAehwZpxFFt9+M1OitxZVyr4HLAvttAT5uYVbRytRlqmkS
+cChx6PqCD9/ExbeUIjubSHXkt5Y8z2spIQ18SpFjRZsmajz7m7t3Fp/WWAsBOLtT
+QQkG6HxKv7yGhN4DDTirJ2bd2l/u9yxDbju/OxDoXGyssQuPjVJBiCYweHev6+zS
+7T6Oe1yeqYExjyL8Vzj8/agxAuRyJRVNYzJUuFS9/UN+6k3043dY2rnsr9GFtkF9
+kfZphzNM5O/YtjFHFFsquQT8PlIbCSr+8ES3Q8e/msQCHv3PwKlj67FazOHMtG0w
+vK+/ovxdnAQQ3982Q5UjRZzppuHKcg==
+=7TJs
+-----END PGP SIGNATURE-----
 
-The following patch restores the legacy behaviour:
-- let do_parse() return and thus not add a command in those restore
-special cases
-- let do_commandx() ignore CMD_NONE instead of bailing out
-
-It doesn't attempt to fix all minor anomalies, but just to fix the regression.
-For example the line below should throw an error according to the man page
-(and does in the legacy version), but doesn't in the nft version:
-
-% iptables -6 -A INPUT -p tcp -j ACCEPT
-
-Signed-off-by: Adel Belhouane <bugs.a.b@free.fr>
-
-diff --git a/iptables/xtables.c b/iptables/xtables.c
-index 93d9dcb..0e0cb5f 100644
---- a/iptables/xtables.c
-+++ b/iptables/xtables.c
-@@ -955,6 +955,9 @@ void do_parse(struct nft_handle *h, int argc, char *argv[],
-  			break;
-  
-  		case '4':
-+			if (p->restore && args->family == AF_INET6)
-+				return;
-+
-  			if (args->family != AF_INET)
-  				exit_tryhelp(2);
-  
-@@ -962,6 +965,9 @@ void do_parse(struct nft_handle *h, int argc, char *argv[],
-  			break;
-  
-  		case '6':
-+			if (p->restore && args->family == AF_INET)
-+				return;
-+
-  			args->family = AF_INET6;
-  			xtables_set_nfproto(AF_INET6);
-  
-@@ -1174,6 +1180,9 @@ int do_commandx(struct nft_handle *h, int argc, char *argv[], char **table,
-  	case CMD_SET_POLICY:
-  		ret = nft_chain_set(h, p.table, p.chain, p.policy, NULL);
-  		break;
-+	case CMD_NONE:
-+	/* do_parse ignored the line (eg: -4 with ip6tables-restore) */
-+		break;
-  	default:
-  		/* We should never reach this... */
-  		exit_tryhelp(2);
-
+--Sig_/myjbYSr/EfRoQ1LLFBsAGba--
