@@ -2,66 +2,80 @@ Return-Path: <SRS0=uZng=VW=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3405AC7618B
-	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Jul 2019 10:10:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E9049C7618B
+	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Jul 2019 10:14:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E52F22080C
-	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Jul 2019 10:10:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B39D42081B
+	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Jul 2019 10:14:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729795AbfGYKKu (ORCPT
+        id S2389425AbfGYKOS (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 25 Jul 2019 06:10:50 -0400
-Received: from mail.us.es ([193.147.175.20]:45040 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729761AbfGYKKu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 25 Jul 2019 06:10:50 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 8FE97FB440
-        for <netfilter-devel@vger.kernel.org>; Thu, 25 Jul 2019 12:10:48 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 80F3B115109
-        for <netfilter-devel@vger.kernel.org>; Thu, 25 Jul 2019 12:10:48 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 76594115108; Thu, 25 Jul 2019 12:10:48 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 3B4B3115104;
-        Thu, 25 Jul 2019 12:10:46 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Thu, 25 Jul 2019 12:10:46 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [31.4.183.64])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id CE90C4265A32;
-        Thu, 25 Jul 2019 12:10:45 +0200 (CEST)
-Date:   Thu, 25 Jul 2019 12:10:44 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     wenxu@ucloud.cn
-Cc:     netfilter-devel@vger.kernel.org
-Subject: vrf and flowtable problems
-Message-ID: <20190725101044.kkoyziz57iynjmzc@salvia>
+        Thu, 25 Jul 2019 06:14:18 -0400
+Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:43794 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S2389419AbfGYKOR (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 25 Jul 2019 06:14:17 -0400
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.89)
+        (envelope-from <fw@strlen.de>)
+        id 1hqalI-0001Kc-HB; Thu, 25 Jul 2019 12:14:12 +0200
+Date:   Thu, 25 Jul 2019 12:14:12 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     wenxu@ucloud.cn, fw@strlen.de, netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf-next 3/7] netfilter: nft_table_offload: Add rtnl for
+ chain and rule operations
+Message-ID: <20190725101412.ubkqqzjkftrajnmx@breakpoint.cc>
+References: <1563886364-11164-1-git-send-email-wenxu@ucloud.cn>
+ <1563886364-11164-4-git-send-email-wenxu@ucloud.cn>
+ <20190725094826.kv7cvjsiykuwr6em@salvia>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+In-Reply-To: <20190725094826.kv7cvjsiykuwr6em@salvia>
 User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi,
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Tue, Jul 23, 2019 at 08:52:40PM +0800, wenxu@ucloud.cn wrote:
+> > From: wenxu <wenxu@ucloud.cn>
+> > 
+> > The nft_setup_cb_call and ndo_setup_tc callback should be under rtnl lock
+> > 
+> > or it will report:
+> > kernel: RTNL: assertion failed at
+> > drivers/net/ethernet/mellanox/mlx5/core/en_rep.c (635)
+> > 
+> > Signed-off-by: wenxu <wenxu@ucloud.cn>
+> > ---
+> >  net/netfilter/nf_tables_offload.c | 16 ++++++++++++----
+> >  1 file changed, 12 insertions(+), 4 deletions(-)
+> > 
+> > diff --git a/net/netfilter/nf_tables_offload.c b/net/netfilter/nf_tables_offload.c
+> > index 33543f5..3e1a1a8 100644
+> > --- a/net/netfilter/nf_tables_offload.c
+> > +++ b/net/netfilter/nf_tables_offload.c
+> > @@ -115,14 +115,18 @@ static int nft_setup_cb_call(struct nft_base_chain *basechain,
+> >  			     enum tc_setup_type type, void *type_data)
+> >  {
+> >  	struct flow_block_cb *block_cb;
+> > -	int err;
+> > +	int err = 0;
+> >  
+> > +	rtnl_lock();
+> 
+> Please, have a look at 90d2723c6d4cb2ace50fc3b932a2bcc77710450b and
+> review if this assumption is correct. Probably nfnl_lock() is missing
+> from __nft_release_basechain().
 
-There are reports
+The mlx driver has a ASSERT_RTNL() in the mlx5e_rep_indr_setup_tc_block()
+callpath.  Or are you proposing to remove that assertion?  If so, what
+lock should protect the callback lists?
 
-https://github.com/openwrt/openwrt/pull/2266#issuecomment-514681715
-
-This report might not be your fault, but you can probably help fixing
-bugs before we move on anywhere else.
