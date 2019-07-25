@@ -2,69 +2,65 @@ Return-Path: <SRS0=uZng=VW=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8071CC76191
-	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Jul 2019 09:34:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 71979C7618B
+	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Jul 2019 09:46:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 46AF72084D
-	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Jul 2019 09:34:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3D8DF2190F
+	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Jul 2019 09:46:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2403755AbfGYJeI (ORCPT
+        id S1726591AbfGYJqQ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 25 Jul 2019 05:34:08 -0400
-Received: from mail.us.es ([193.147.175.20]:56992 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2390556AbfGYJeD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 25 Jul 2019 05:34:03 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id B7491FB361
-        for <netfilter-devel@vger.kernel.org>; Thu, 25 Jul 2019 11:34:00 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id A7CFD11A003
-        for <netfilter-devel@vger.kernel.org>; Thu, 25 Jul 2019 11:34:00 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 9D8A1DA704; Thu, 25 Jul 2019 11:34:00 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id A686D11A006;
-        Thu, 25 Jul 2019 11:33:58 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Thu, 25 Jul 2019 11:33:58 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [31.4.183.64])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 4CE734265A31;
-        Thu, 25 Jul 2019 11:33:58 +0200 (CEST)
-Date:   Thu, 25 Jul 2019 11:33:55 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Fernando Fernandez Mancera <ffmancera@riseup.net>
+        Thu, 25 Jul 2019 05:46:16 -0400
+Received: from m9784.mail.qiye.163.com ([220.181.97.84]:37151 "EHLO
+        m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729162AbfGYJqP (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 25 Jul 2019 05:46:15 -0400
+Received: from localhost.localdomain (unknown [123.59.132.129])
+        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id 8CA9F41D41;
+        Thu, 25 Jul 2019 17:46:10 +0800 (CST)
+From:   wenxu@ucloud.cn
+To:     pablo@netfilter.org, fw@strlen.de
 Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH iptables v2] nfnl_osf: fix snprintf -Wformat-truncation
- warning
-Message-ID: <20190725093355.6fltg5dkoruwmjlc@salvia>
-References: <20190724073114.2027-1-ffmancera@riseup.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190724073114.2027-1-ffmancera@riseup.net>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+Subject: [PATCH nf-next v2 0/5] sipport nft_tunnel offload
+Date:   Thu, 25 Jul 2019 17:46:04 +0800
+Message-Id: <1564047969-26514-1-git-send-email-wenxu@ucloud.cn>
+X-Mailer: git-send-email 1.8.3.1
+X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZSVVMSkxCQkJCSE5KTktKTllXWShZQU
+        lCN1dZLVlBSVdZCQ4XHghZQVk1NCk2OjckKS43PlkG
+X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6PEk6GCo5DDg5CFYPHkkjLhMa
+        LBgKCkhVSlVKTk1PS09MQkxKT0tDVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJSFVO
+        QlVKSElVSklCWVdZCAFZQUpPSk83Bg++
+X-HM-Tid: 0a6c288611242086kuqy8ca9f41d41
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Jul 24, 2019 at 09:31:14AM +0200, Fernando Fernandez Mancera wrote:
-> Fedora 30 uses very recent gcc (version 9.1.1 20190503 (Red Hat 9.1.1-1)),
-> osf produces following warnings:
-> 
-> -Wformat-truncation warning have been introduced in the version 7.1 of gcc.
-> Also, remove a unneeded address check of "tmp + 1" in nf_osf_strchr().
+From: wenxu <wenxu@ucloud.cn>
 
-Applied, thanks Fernando.
+This series support tunnel meta match offload and
+tunnel_obj ation offload. This series depends on
+http://patchwork.ozlabs.org/project/netfilter-devel/list/?series=120961
+
+wenxu (5):
+  netfilter: nft_tunnel: support NFT_TUNNEL_SRC/DST_IP match
+  netfilter: nft_tunnel: support tunnel meta match offload
+  netfilter: nft_tunnel: add NFTA_TUNNEL_KEY_RELEASE action
+  netfilter: nft_objref: add nft_objref_type offload
+  netfilter: nft_tunnel: support nft_tunnel_obj offload
+
+ include/net/netfilter/nf_tables.h         |   3 +
+ include/net/netfilter/nf_tables_offload.h |   2 +
+ include/uapi/linux/netfilter/nf_tables.h  |   3 +
+ net/netfilter/nft_objref.c                |  15 ++++
+ net/netfilter/nft_tunnel.c                | 123 ++++++++++++++++++++++++++----
+ 5 files changed, 133 insertions(+), 13 deletions(-)
+
+-- 
+1.8.3.1
+
