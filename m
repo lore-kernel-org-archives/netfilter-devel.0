@@ -2,111 +2,94 @@ Return-Path: <SRS0=uZng=VW=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 34673C7618B
-	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Jul 2019 09:46:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1BCF7C7618B
+	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Jul 2019 09:48:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id EA1FD204FD
-	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Jul 2019 09:46:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DC5892190F
+	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Jul 2019 09:48:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2390816AbfGYJqW (ORCPT
+        id S1728637AbfGYJsd (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 25 Jul 2019 05:46:22 -0400
-Received: from m9784.mail.qiye.163.com ([220.181.97.84]:37191 "EHLO
-        m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729718AbfGYJqW (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 25 Jul 2019 05:46:22 -0400
-Received: from localhost.localdomain (unknown [123.59.132.129])
-        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id D7BAA41C73;
-        Thu, 25 Jul 2019 17:46:11 +0800 (CST)
-From:   wenxu@ucloud.cn
-To:     pablo@netfilter.org, fw@strlen.de
-Cc:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next v2 4/5] netfilter: nft_objref: add nft_objref_type offload
-Date:   Thu, 25 Jul 2019 17:46:08 +0800
-Message-Id: <1564047969-26514-5-git-send-email-wenxu@ucloud.cn>
-X-Mailer: git-send-email 1.8.3.1
-In-Reply-To: <1564047969-26514-1-git-send-email-wenxu@ucloud.cn>
-References: <1564047969-26514-1-git-send-email-wenxu@ucloud.cn>
-X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVkpVSklNQkJCTEhOQ0hJSUpZV1koWU
-        FJQjdXWS1ZQUlXWQkOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6MUk6NBw4DDgwNlZONEkRLhMw
-        FCtPC0JVSlVKTk1PS09MQkxKQk9CVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJSFVO
-        QlVKSElVSklCWVdZCAFZQUlDTkI3Bg++
-X-HM-Tid: 0a6c2886163c2086kuqyd7baa41c73
+        Thu, 25 Jul 2019 05:48:33 -0400
+Received: from mail.us.es ([193.147.175.20]:35160 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725808AbfGYJsd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 25 Jul 2019 05:48:33 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 2A0FEFB362
+        for <netfilter-devel@vger.kernel.org>; Thu, 25 Jul 2019 11:48:31 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 19A5811510D
+        for <netfilter-devel@vger.kernel.org>; Thu, 25 Jul 2019 11:48:31 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 0F3BE11510A; Thu, 25 Jul 2019 11:48:31 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 0F20D115104;
+        Thu, 25 Jul 2019 11:48:29 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Thu, 25 Jul 2019 11:48:26 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (unknown [31.4.183.64])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id A7BC34265A2F;
+        Thu, 25 Jul 2019 11:48:28 +0200 (CEST)
+Date:   Thu, 25 Jul 2019 11:48:26 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     wenxu@ucloud.cn
+Cc:     fw@strlen.de, netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf-next 3/7] netfilter: nft_table_offload: Add rtnl for
+ chain and rule operations
+Message-ID: <20190725094826.kv7cvjsiykuwr6em@salvia>
+References: <1563886364-11164-1-git-send-email-wenxu@ucloud.cn>
+ <1563886364-11164-4-git-send-email-wenxu@ucloud.cn>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1563886364-11164-4-git-send-email-wenxu@ucloud.cn>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: wenxu <wenxu@ucloud.cn>
+On Tue, Jul 23, 2019 at 08:52:40PM +0800, wenxu@ucloud.cn wrote:
+> From: wenxu <wenxu@ucloud.cn>
+> 
+> The nft_setup_cb_call and ndo_setup_tc callback should be under rtnl lock
+> 
+> or it will report:
+> kernel: RTNL: assertion failed at
+> drivers/net/ethernet/mellanox/mlx5/core/en_rep.c (635)
+> 
+> Signed-off-by: wenxu <wenxu@ucloud.cn>
+> ---
+>  net/netfilter/nf_tables_offload.c | 16 ++++++++++++----
+>  1 file changed, 12 insertions(+), 4 deletions(-)
+> 
+> diff --git a/net/netfilter/nf_tables_offload.c b/net/netfilter/nf_tables_offload.c
+> index 33543f5..3e1a1a8 100644
+> --- a/net/netfilter/nf_tables_offload.c
+> +++ b/net/netfilter/nf_tables_offload.c
+> @@ -115,14 +115,18 @@ static int nft_setup_cb_call(struct nft_base_chain *basechain,
+>  			     enum tc_setup_type type, void *type_data)
+>  {
+>  	struct flow_block_cb *block_cb;
+> -	int err;
+> +	int err = 0;
+>  
+> +	rtnl_lock();
 
-support offload for nft_objref_type
+Please, have a look at 90d2723c6d4cb2ace50fc3b932a2bcc77710450b and
+review if this assumption is correct. Probably nfnl_lock() is missing
+from __nft_release_basechain().
 
-Signed-off-by: wenxu <wenxu@ucloud.cn>
----
- include/net/netfilter/nf_tables.h |  3 +++
- net/netfilter/nft_objref.c        | 15 +++++++++++++++
- 2 files changed, 18 insertions(+)
-
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 9285df2..d6f96c0 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -1122,6 +1122,9 @@ struct nft_object_ops {
- 	int				(*dump)(struct sk_buff *skb,
- 						struct nft_object *obj,
- 						bool reset);
-+	int				(*offload)(struct nft_offload_ctx *ctx,
-+						   struct nft_flow_rule *flow,
-+						   struct nft_object *obj);
- 	const struct nft_object_type	*type;
- };
- 
-diff --git a/net/netfilter/nft_objref.c b/net/netfilter/nft_objref.c
-index bfd18d2..f71cf76 100644
---- a/net/netfilter/nft_objref.c
-+++ b/net/netfilter/nft_objref.c
-@@ -10,6 +10,7 @@
- #include <linux/netfilter.h>
- #include <linux/netfilter/nf_tables.h>
- #include <net/netfilter/nf_tables.h>
-+#include <net/netfilter/nf_tables_offload.h>
- 
- #define nft_objref_priv(expr)	*((struct nft_object **)nft_expr_priv(expr))
- 
-@@ -82,6 +83,18 @@ static void nft_objref_activate(const struct nft_ctx *ctx,
- 	obj->use++;
- }
- 
-+static int nft_objref_offload(struct nft_offload_ctx *ctx,
-+			      struct nft_flow_rule *flow,
-+			      const struct nft_expr *expr)
-+{
-+	struct nft_object *obj = nft_objref_priv(expr);
-+
-+	if (obj->ops->offload)
-+		return obj->ops->offload(ctx, flow, obj);
-+	else
-+		return -EOPNOTSUPP;
-+}
-+
- static struct nft_expr_type nft_objref_type;
- static const struct nft_expr_ops nft_objref_ops = {
- 	.type		= &nft_objref_type,
-@@ -91,6 +104,8 @@ static void nft_objref_activate(const struct nft_ctx *ctx,
- 	.activate	= nft_objref_activate,
- 	.deactivate	= nft_objref_deactivate,
- 	.dump		= nft_objref_dump,
-+	.offload	= nft_objref_offload,
-+	.offload_actions = nft_offload_action,
- };
- 
- struct nft_objref_map {
--- 
-1.8.3.1
-
+I'd like to avoid grabbing the rtnl_lock().
