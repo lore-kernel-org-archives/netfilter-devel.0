@@ -6,38 +6,36 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D367C76191
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 67D2CC7618B
 	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Jul 2019 14:05:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 208CD22BF5
+	by mail.kernel.org (Postfix) with ESMTP id 41D2722BF5
 	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Jul 2019 14:05:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387593AbfGYOFv (ORCPT
+        id S2387651AbfGYOFv (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Thu, 25 Jul 2019 10:05:51 -0400
-Received: from m9784.mail.qiye.163.com ([220.181.97.84]:37055 "EHLO
+Received: from m9784.mail.qiye.163.com ([220.181.97.84]:37053 "EHLO
         m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727209AbfGYOFu (ORCPT
+        with ESMTP id S1727302AbfGYOFu (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Thu, 25 Jul 2019 10:05:50 -0400
 Received: from localhost.localdomain (unknown [123.59.132.129])
-        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id EE139417E2;
+        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id DDAFF4160E;
         Thu, 25 Jul 2019 22:05:46 +0800 (CST)
 From:   wenxu@ucloud.cn
 To:     pablo@netfilter.org, fw@strlen.de
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next v2 11/11] netfilter: nft_tunnel: support nft_tunnel_obj offload
-Date:   Thu, 25 Jul 2019 22:05:41 +0800
-Message-Id: <1564063541-31430-2-git-send-email-wenxu@ucloud.cn>
+Subject: [PATCH nf-next v2 10/11] netfilter: nft_objref: add nft_objref_type offload
+Date:   Thu, 25 Jul 2019 22:05:40 +0800
+Message-Id: <1564063541-31430-1-git-send-email-wenxu@ucloud.cn>
 X-Mailer: git-send-email 1.8.3.1
-In-Reply-To: <1564063541-31430-1-git-send-email-wenxu@ucloud.cn>
-References: <1564063541-31430-1-git-send-email-wenxu@ucloud.cn>
-X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVkpVTUxDS0tLS0JJTktNT0pZV1koWU
-        FJQjdXWS1ZQUlXWQkOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6K006URw4MTg*MksuHBUjDDhM
-        PBIaFElVSlVKTk1PS01ITk9MS0pDVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJSFVO
-        QlVKSElVSklCWVdZCAFZQUlISks3Bg++
-X-HM-Tid: 0a6c2973be6c2086kuqyee139417e2
+X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZSFVLQ0pCQkJMTENMT0xOTVlXWShZQU
+        lCN1dZLVlBSVdZCQ4XHghZQVk1NCk2OjckKS43PlkG
+X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6OTI6HBw4EDg1IkseDBdJDDAx
+        PT9PChRVSlVKTk1PS01ITk9NQk5IVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJSFVO
+        QlVKSElVSklCWVdZCAFZQUlNSEs3Bg++
+X-HM-Tid: 0a6c2973be2a2086kuqyddaff4160e
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
@@ -45,51 +43,68 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: wenxu <wenxu@ucloud.cn>
 
-Add nft_tunnel_obj offload for both encap and decap actions
+support offload for nft_objref_type
 
 Signed-off-by: wenxu <wenxu@ucloud.cn>
 ---
- net/netfilter/nft_tunnel.c | 20 ++++++++++++++++++++
- 1 file changed, 20 insertions(+)
+ include/net/netfilter/nf_tables.h |  3 +++
+ net/netfilter/nft_objref.c        | 15 +++++++++++++++
+ 2 files changed, 18 insertions(+)
 
-diff --git a/net/netfilter/nft_tunnel.c b/net/netfilter/nft_tunnel.c
-index b0656ed..854b217 100644
---- a/net/netfilter/nft_tunnel.c
-+++ b/net/netfilter/nft_tunnel.c
-@@ -633,6 +633,25 @@ static void nft_tunnel_obj_destroy(const struct nft_ctx *ctx,
- 		metadata_dst_free(priv->md);
- }
- 
-+static int nft_tunnel_obj_offload(struct nft_offload_ctx *ctx,
-+				  struct nft_flow_rule *flow,
-+				  struct nft_object *obj)
-+{
-+	struct nft_tunnel_obj *priv = nft_obj_data(obj);
-+	struct flow_action_entry *entry;
-+
-+	entry = &flow->rule->action.entries[ctx->num_actions++];
-+
-+	if (!priv->tunnel_key_release) {
-+		entry->id = FLOW_ACTION_TUNNEL_ENCAP;
-+		entry->tunnel = &priv->md->u.tun_info;
-+	} else {
-+		entry->id = FLOW_ACTION_TUNNEL_DECAP;
-+	}
-+
-+	return 0;
-+}
-+
- static struct nft_object_type nft_tunnel_obj_type;
- static const struct nft_object_ops nft_tunnel_obj_ops = {
- 	.type		= &nft_tunnel_obj_type,
-@@ -641,6 +660,7 @@ static void nft_tunnel_obj_destroy(const struct nft_ctx *ctx,
- 	.init		= nft_tunnel_obj_init,
- 	.destroy	= nft_tunnel_obj_destroy,
- 	.dump		= nft_tunnel_obj_dump,
-+	.offload	= nft_tunnel_obj_offload,
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index 9285df2..d6f96c0 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -1122,6 +1122,9 @@ struct nft_object_ops {
+ 	int				(*dump)(struct sk_buff *skb,
+ 						struct nft_object *obj,
+ 						bool reset);
++	int				(*offload)(struct nft_offload_ctx *ctx,
++						   struct nft_flow_rule *flow,
++						   struct nft_object *obj);
+ 	const struct nft_object_type	*type;
  };
  
- static struct nft_object_type nft_tunnel_obj_type __read_mostly = {
+diff --git a/net/netfilter/nft_objref.c b/net/netfilter/nft_objref.c
+index bfd18d2..f71cf76 100644
+--- a/net/netfilter/nft_objref.c
++++ b/net/netfilter/nft_objref.c
+@@ -10,6 +10,7 @@
+ #include <linux/netfilter.h>
+ #include <linux/netfilter/nf_tables.h>
+ #include <net/netfilter/nf_tables.h>
++#include <net/netfilter/nf_tables_offload.h>
+ 
+ #define nft_objref_priv(expr)	*((struct nft_object **)nft_expr_priv(expr))
+ 
+@@ -82,6 +83,18 @@ static void nft_objref_activate(const struct nft_ctx *ctx,
+ 	obj->use++;
+ }
+ 
++static int nft_objref_offload(struct nft_offload_ctx *ctx,
++			      struct nft_flow_rule *flow,
++			      const struct nft_expr *expr)
++{
++	struct nft_object *obj = nft_objref_priv(expr);
++
++	if (obj->ops->offload)
++		return obj->ops->offload(ctx, flow, obj);
++	else
++		return -EOPNOTSUPP;
++}
++
+ static struct nft_expr_type nft_objref_type;
+ static const struct nft_expr_ops nft_objref_ops = {
+ 	.type		= &nft_objref_type,
+@@ -91,6 +104,8 @@ static void nft_objref_activate(const struct nft_ctx *ctx,
+ 	.activate	= nft_objref_activate,
+ 	.deactivate	= nft_objref_deactivate,
+ 	.dump		= nft_objref_dump,
++	.offload	= nft_objref_offload,
++	.offload_actions = nft_offload_action,
+ };
+ 
+ struct nft_objref_map {
 -- 
 1.8.3.1
 
