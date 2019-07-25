@@ -6,38 +6,38 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6B392C7618B
-	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Jul 2019 13:34:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4466BC76191
+	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Jul 2019 13:34:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4A26C22BF5
-	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Jul 2019 13:34:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1DE6C22BF5
+	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Jul 2019 13:34:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388204AbfGYNeH (ORCPT
+        id S2388242AbfGYNeI (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 25 Jul 2019 09:34:07 -0400
-Received: from m9784.mail.qiye.163.com ([220.181.97.84]:52410 "EHLO
+        Thu, 25 Jul 2019 09:34:08 -0400
+Received: from m9784.mail.qiye.163.com ([220.181.97.84]:52368 "EHLO
         m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2388197AbfGYNeH (ORCPT
+        with ESMTP id S2388200AbfGYNeI (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 25 Jul 2019 09:34:07 -0400
+        Thu, 25 Jul 2019 09:34:08 -0400
 Received: from localhost.localdomain (unknown [123.59.132.129])
-        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id 6ACAF417C3;
+        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id 18E0741CAA;
         Thu, 25 Jul 2019 21:34:06 +0800 (CST)
 From:   wenxu@ucloud.cn
 To:     pablo@netfilter.org, fw@strlen.de
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next v2 04/11] netfilter: nft_immediate: add offload support for actions
-Date:   Thu, 25 Jul 2019 21:33:59 +0800
-Message-Id: <1564061644-31189-5-git-send-email-wenxu@ucloud.cn>
+Subject: [PATCH nf-next v2 01/11] netfilter: nf_flow_offload: add net in offload_ctx
+Date:   Thu, 25 Jul 2019 21:33:56 +0800
+Message-Id: <1564061644-31189-2-git-send-email-wenxu@ucloud.cn>
 X-Mailer: git-send-email 1.8.3.1
 In-Reply-To: <1564061644-31189-1-git-send-email-wenxu@ucloud.cn>
 References: <1564061644-31189-1-git-send-email-wenxu@ucloud.cn>
-X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVklVS0lJS0tLSEpJQ0tOSkNZV1koWU
+X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVkpVTU1KS0tLSkhJTk1LTEhZV1koWU
         FJQjdXWS1ZQUlXWQkOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6Nkk6Sxw6Qjg#KksBDBEjNFE9
-        LCNPCQJVSlVKTk1PS01KTU9NTkpMVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJSFVO
-        QlVKSElVSklCWVdZCAFZQUhKQ0I3Bg++
-X-HM-Tid: 0a6c2956be702086kuqy6acaf417c3
+X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6MBQ6Dgw6CDg0NksVKhMxNEoX
+        KzAaCiFVSlVKTk1PS01KTU9NSkNOVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJSFVO
+        QlVKSElVSklCWVdZCAFZQUhKTU83Bg++
+X-HM-Tid: 0a6c2956bd212086kuqy18e0741caa
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
@@ -45,85 +45,69 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: wenxu <wenxu@ucloud.cn>
 
-Immediate offload support for other action to handle the offload_reg
+In the offload_ctx, the net can be used for other actions
+such as fwd netdev
 
 Signed-off-by: wenxu <wenxu@ucloud.cn>
 ---
- net/netfilter/nft_immediate.c | 47 +++++++++++++++++++++++++++----------------
- 1 file changed, 30 insertions(+), 17 deletions(-)
+ include/net/netfilter/nf_tables_offload.h | 3 ++-
+ net/netfilter/nf_tables_api.c             | 2 +-
+ net/netfilter/nf_tables_offload.c         | 3 ++-
+ 3 files changed, 5 insertions(+), 3 deletions(-)
 
-diff --git a/net/netfilter/nft_immediate.c b/net/netfilter/nft_immediate.c
-index 391f699..34facc3 100644
---- a/net/netfilter/nft_immediate.c
-+++ b/net/netfilter/nft_immediate.c
-@@ -130,29 +130,42 @@ static int nft_immediate_offload(struct nft_offload_ctx *ctx,
- 				 const struct nft_expr *expr)
- {
- 	const struct nft_immediate_expr *priv = nft_expr_priv(expr);
-+	const struct nft_data *data = &priv->data;
- 	struct flow_action_entry *entry;
--	const struct nft_data *data;
--
--	if (priv->dreg != NFT_REG_VERDICT)
--		return -EOPNOTSUPP;
--
--	entry = &flow->rule->action.entries[ctx->num_actions++];
+diff --git a/include/net/netfilter/nf_tables_offload.h b/include/net/netfilter/nf_tables_offload.h
+index 3196663..ad61958 100644
+--- a/include/net/netfilter/nf_tables_offload.h
++++ b/include/net/netfilter/nf_tables_offload.h
+@@ -24,6 +24,7 @@ struct nft_offload_ctx {
+ 		__be16				l3num;
+ 		u8				protonum;
+ 	} dep;
++	struct net *net;
+ 	unsigned int				num_actions;
+ 	struct nft_offload_reg			regs[NFT_REG32_15 + 1];
+ };
+@@ -60,7 +61,7 @@ struct nft_flow_rule {
+ #define NFT_OFFLOAD_F_ACTION	(1 << 0)
  
--	data = &priv->data;
--	switch (data->verdict.code) {
--	case NF_ACCEPT:
--		entry->id = FLOW_ACTION_ACCEPT;
--		break;
--	case NF_DROP:
--		entry->id = FLOW_ACTION_DROP;
--		break;
--	default:
--		return -EOPNOTSUPP;
-+	if (priv->dreg == NFT_REG_VERDICT) {
-+		entry = &flow->rule->action.entries[ctx->num_actions++];
-+
-+		switch (data->verdict.code) {
-+		case NF_ACCEPT:
-+			entry->id = FLOW_ACTION_ACCEPT;
-+			break;
-+		case NF_DROP:
-+			entry->id = FLOW_ACTION_DROP;
-+			break;
-+		default:
-+			return -EOPNOTSUPP;
-+		}
-+	} else {
-+		struct nft_offload_reg *reg = &ctx->regs[priv->dreg];
-+
-+		reg->type = NFT_OFFLOAD_REG_ACTION;
-+		memcpy(&reg->action.data, data, sizeof(*data));
- 	}
+ struct nft_rule;
+-struct nft_flow_rule *nft_flow_rule_create(const struct nft_rule *rule);
++struct nft_flow_rule *nft_flow_rule_create(struct net *net, const struct nft_rule *rule);
+ void nft_flow_rule_destroy(struct nft_flow_rule *flow);
+ int nft_flow_rule_offload_commit(struct net *net);
  
- 	return 0;
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 605a7cf..c6dc173 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -2844,7 +2844,7 @@ static int nf_tables_newrule(struct net *net, struct sock *nlsk,
+ 		return nft_table_validate(net, table);
+ 
+ 	if (chain->flags & NFT_CHAIN_HW_OFFLOAD) {
+-		flow = nft_flow_rule_create(rule);
++		flow = nft_flow_rule_create(net, rule);
+ 		if (IS_ERR(flow))
+ 			return PTR_ERR(flow);
+ 
+diff --git a/net/netfilter/nf_tables_offload.c b/net/netfilter/nf_tables_offload.c
+index 64f5fd5..5c1fef7 100644
+--- a/net/netfilter/nf_tables_offload.c
++++ b/net/netfilter/nf_tables_offload.c
+@@ -28,12 +28,13 @@ static struct nft_flow_rule *nft_flow_rule_alloc(int num_actions)
+ 	return flow;
  }
  
-+static int nft_immediate_offload_actions(const struct nft_expr *expr)
-+{
-+	const struct nft_immediate_expr *priv = nft_expr_priv(expr);
-+
-+	if (priv->dreg == NFT_REG_VERDICT)
-+		return 1;
-+	else
-+		return 0;
-+}
-+
- static const struct nft_expr_ops nft_imm_ops = {
- 	.type		= &nft_imm_type,
- 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_immediate_expr)),
-@@ -163,7 +176,7 @@ static int nft_immediate_offload(struct nft_offload_ctx *ctx,
- 	.dump		= nft_immediate_dump,
- 	.validate	= nft_immediate_validate,
- 	.offload	= nft_immediate_offload,
--	.offload_actions = nft_offload_action,
-+	.offload_actions = nft_immediate_offload_actions,
- };
- 
- struct nft_expr_type nft_imm_type __read_mostly = {
+-struct nft_flow_rule *nft_flow_rule_create(const struct nft_rule *rule)
++struct nft_flow_rule *nft_flow_rule_create(struct net *net, const struct nft_rule *rule)
+ {
+ 	struct nft_offload_ctx ctx = {
+ 		.dep	= {
+ 			.type	= NFT_OFFLOAD_DEP_UNSPEC,
+ 		},
++		.net = net,
+ 	};
+ 	struct nft_flow_rule *flow;
+ 	int num_actions = 0, err;
 -- 
 1.8.3.1
 
