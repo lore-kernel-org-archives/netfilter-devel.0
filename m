@@ -2,73 +2,106 @@ Return-Path: <SRS0=uZng=VW=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 888CAC7618B
-	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Jul 2019 09:17:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A097C7618B
+	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Jul 2019 09:27:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 49F522190F
-	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Jul 2019 09:17:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2931C2238C
+	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Jul 2019 09:27:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2390322AbfGYJRc (ORCPT
+        id S2390480AbfGYJ1c (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 25 Jul 2019 05:17:32 -0400
-Received: from mail.us.es ([193.147.175.20]:49534 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2390290AbfGYJRb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 25 Jul 2019 05:17:31 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id CD2DBBAEE6
-        for <netfilter-devel@vger.kernel.org>; Thu, 25 Jul 2019 11:17:29 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id BBF706DA95
-        for <netfilter-devel@vger.kernel.org>; Thu, 25 Jul 2019 11:17:29 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id BB515A6D8; Thu, 25 Jul 2019 11:17:29 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 990986E7A0;
-        Thu, 25 Jul 2019 11:17:27 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Thu, 25 Jul 2019 11:17:27 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [31.4.183.64])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 2DB3240705C7;
-        Thu, 25 Jul 2019 11:17:27 +0200 (CEST)
-Date:   Thu, 25 Jul 2019 11:17:24 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     wenxu@ucloud.cn
-Cc:     nikolay@cumulusnetworks.com, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf-next v3] netfilter:nft_meta: add NFT_META_VLAN support
-Message-ID: <20190725091724.l42cvxgkjfdu6pzd@salvia>
-References: <1562506649-3745-1-git-send-email-wenxu@ucloud.cn>
+        Thu, 25 Jul 2019 05:27:32 -0400
+Received: from m9784.mail.qiye.163.com ([220.181.97.84]:36050 "EHLO
+        m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2388611AbfGYJ1b (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 25 Jul 2019 05:27:31 -0400
+Received: from [192.168.188.14] (unknown [120.132.1.226])
+        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id AB22941D77;
+        Thu, 25 Jul 2019 17:27:26 +0800 (CST)
+Subject: Re: [PATCH nf v2] netfilter: nft_tunnel: Fix don't convert tun id to
+ host endian
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     fw@strlen.de, netfilter-devel@vger.kernel.org
+References: <1564040633-25728-1-git-send-email-wenxu@ucloud.cn>
+ <20190725083151.umv7je3ps743ze2d@salvia>
+From:   wenxu <wenxu@ucloud.cn>
+Message-ID: <b2017277-73fc-79e0-3060-dbf2118c5d0d@ucloud.cn>
+Date:   Thu, 25 Jul 2019 17:27:20 +0800
+User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:60.0) Gecko/20100101
+ Thunderbird/60.8.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1562506649-3745-1-git-send-email-wenxu@ucloud.cn>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+In-Reply-To: <20190725083151.umv7je3ps743ze2d@salvia>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
+X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVkpVS0NLQkJCTEhJS0pMTklZV1koWU
+        FJQjdXWS1ZQUlXWQkOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
+X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6ODo6LRw6STgwHFYsDg8pKE4d
+        QkMaCT9VSlVKTk1PS09NQ09NQ01NVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJS1VK
+        SElVSlVJSU1ZV1kIAVlBSEtDQjcG
+X-HM-Tid: 0a6c2874eb4e2086kuqyab22941d77
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sun, Jul 07, 2019 at 09:37:29PM +0800, wenxu@ucloud.cn wrote:
-> From: wenxu <wenxu@ucloud.cn>
-> 
-> This patch provide a meta vlan to set the vlan tag of the packet.
-> 
-> for q-in-q outer vlan id 20:
-> meta vlan set 0x88a8:20
-> 
-> set the default 0x8100 vlan type with vlan id 20
-> meta vlan set 20
+sorry for this.
 
-Support for pushing and popping vlan will be needed soon, this design
-does not cover that usecase.
+nftables should be set the token byetorder as BYTEORDER_HOST_ENDIAN
+
+
+BR
+
+wenxu
+
+On 7/25/2019 4:31 PM, Pablo Neira Ayuso wrote:
+> On Thu, Jul 25, 2019 at 03:43:53PM +0800, wenxu@ucloud.cn wrote:
+>> From: wenxu <wenxu@ucloud.cn>
+>>
+>> In the action store tun_id to reg in a host endian.
+> This is correct.
+>
+>> But the nft_cmp action get the user data in a net endian which lead
+>> match failed.
+>>
+>> nft --debug=netlink add rule netdev firewall aclin ip daddr 10.0.0.7
+>> tunnel tun_id 1000 fwd to eth0
+>>
+>> the expr tunnel tun_id 1000 --> [ cmp eq reg 1 0xe8030000 ]:
+>> the cmp expr set the tun_id 1000 in network endian.
+>>
+>> So the tun_id should be store as network endian. Which is the
+>> same as nft_payload match. 
+>>
+>> [ meta load protocol => reg 1 ]
+>> [ cmp eq reg 1 0x00000008 ]
+>> [ payload load 4b @ network header + 16 => reg 1 ]
+>> [ cmp eq reg 1 0x0700000a ]
+>> [ tunnel load id => reg 1 ]
+>> [ cmp eq reg 1 0xe8030000 ]
+>> [ immediate reg 1 0x0000000f ]
+>> [ fwd sreg_dev 1 ]
+>>
+>> Fixes: aaecfdb5c5dd ("netfilter: nf_tables: match on tunnel metadata")
+>> Signed-off-by: wenxu <wenxu@ucloud.cn>
+>> ---
+>>  net/netfilter/nft_tunnel.c | 2 +-
+>>  1 file changed, 1 insertion(+), 1 deletion(-)
+>>
+>> diff --git a/net/netfilter/nft_tunnel.c b/net/netfilter/nft_tunnel.c
+>> index 3d4c2ae..c9f4585 100644
+>> --- a/net/netfilter/nft_tunnel.c
+>> +++ b/net/netfilter/nft_tunnel.c
+>> @@ -53,7 +53,7 @@ static void nft_tunnel_get_eval(const struct nft_expr *expr,
+>>  		     !(tun_info->mode & IP_TUNNEL_INFO_TX)) ||
+>>  		    (priv->mode == NFT_TUNNEL_MODE_TX &&
+>>  		     (tun_info->mode & IP_TUNNEL_INFO_TX)))
+>> -			*dest = ntohl(tunnel_id_to_key32(tun_info->key.tun_id));
+>> +			*dest = tunnel_id_to_key32(tun_info->key.tun_id);
+> Data is _never_ stored in network byteorder in registers.
+>
