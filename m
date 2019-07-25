@@ -2,110 +2,128 @@ Return-Path: <SRS0=uZng=VW=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5DA90C7618B
-	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Jul 2019 12:24:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6B392C7618B
+	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Jul 2019 13:34:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1D73C229F9
-	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Jul 2019 12:24:56 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="i9qdM+Af"
+	by mail.kernel.org (Postfix) with ESMTP id 4A26C22BF5
+	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Jul 2019 13:34:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727816AbfGYMYz (ORCPT
+        id S2388204AbfGYNeH (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 25 Jul 2019 08:24:55 -0400
-Received: from mail-ot1-f49.google.com ([209.85.210.49]:33329 "EHLO
-        mail-ot1-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726001AbfGYMYz (ORCPT
+        Thu, 25 Jul 2019 09:34:07 -0400
+Received: from m9784.mail.qiye.163.com ([220.181.97.84]:52410 "EHLO
+        m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2388197AbfGYNeH (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 25 Jul 2019 08:24:55 -0400
-Received: by mail-ot1-f49.google.com with SMTP id q20so51353333otl.0
-        for <netfilter-devel@vger.kernel.org>; Thu, 25 Jul 2019 05:24:54 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=ZhZc1k6o/1c6J0SshxHfuvnZje0v/zVbfAkPxQoSBOU=;
-        b=i9qdM+Afx6+bjvFD1Gbr7orWRT+bC6+X4jJNekYb+1oXp5P/xwjPBFfF8OnpeVxj/Q
-         asd8lZnzL8i903aGPymXhNb0gSrVrDoHhdJUtY/snKmJyDSLtZkQmF2ktA+Ver1VV20Y
-         g+NxZCN2ETM/8bsh/1XXLXec99hITbhwA+hHl0BlHmPp2ROpdw5rp2s+5o8+cYUEX9Mi
-         3/5oU7ZICFAYbMhlYEzulDas9AxFg+j+O66uvBJsdQcaA1nPYbJ57PSYnUxq+99CN5Xj
-         s4scuK+kOpPsS+JFhzVHNDcvDibJgfSrkQud3tySa10UVu+ULHXgJ1PHROkslPlSOR9y
-         gASQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=ZhZc1k6o/1c6J0SshxHfuvnZje0v/zVbfAkPxQoSBOU=;
-        b=sLcCWBydOpBjkC+QD4PBzwZ3KPNhIhXCy2DGx98QnebED4wOAhup5eqxp6wcjO1Chi
-         AwIfOchu1+XnPG2KiXmKnGYcoQ5kMQvkaTbOfbxCvOLap+UC9fqs+FtsSgOa6ad9oe+n
-         G+Ps6PzlgHLAagcFAUXahYbXCuCmhC+Oofhfzx4JCxOkRhRZtZ41bXlF4jm/Li/OSIMO
-         5GIMH8N4C7/q8XHtG+ZgtCsBXuICbSDBv1JHoeoKnR3A9Hkg9Ybj1c1Z9RLjXtvibzba
-         Zo3AsEvziydo4WY9n38e3Ejw6YyTlzJ5eCYoIhe4Rb0olichoTJCDfcQi6SoViyP5SeR
-         /URw==
-X-Gm-Message-State: APjAAAUSQktPbHiX+12k73y/S3wR4M4po1JgTCUpFX+VZAT47SHknQif
-        IFLDZzO+k+8Q/4ht/dEBpC8hhXJvzIIpaQGV9JxgvXqU
-X-Google-Smtp-Source: APXvYqw4ULMJlN+fIEUpt+7MeDK2hDyZrosKD7Q1LRjcotLx+ARp30JoxHAD2Xjti5cqVExKf0BPO3feagbp6U4TvzY=
-X-Received: by 2002:a9d:61d8:: with SMTP id h24mr4495117otk.53.1564057494474;
- Thu, 25 Jul 2019 05:24:54 -0700 (PDT)
-MIME-Version: 1.0
-References: <CALOK-OeZcoZZCbuCBzp+1c5iXoqVx33UW_+G3_5aUjw=iRMxHw@mail.gmail.com>
-In-Reply-To: <CALOK-OeZcoZZCbuCBzp+1c5iXoqVx33UW_+G3_5aUjw=iRMxHw@mail.gmail.com>
-From:   Laura Garcia <nevola@gmail.com>
-Date:   Thu, 25 Jul 2019 14:24:42 +0200
-Message-ID: <CAF90-WiSA88hMQSsvDP=vJK=DhLQPzUN4JzX=OR88oFowqJ8gQ@mail.gmail.com>
-Subject: Re: nftables feature request: modify set element timeout
-To:     Fran Fitzpatrick <francis.x.fitzpatrick@gmail.com>
-Cc:     Netfilter Development Mailing list 
-        <netfilter-devel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+        Thu, 25 Jul 2019 09:34:07 -0400
+Received: from localhost.localdomain (unknown [123.59.132.129])
+        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id 6ACAF417C3;
+        Thu, 25 Jul 2019 21:34:06 +0800 (CST)
+From:   wenxu@ucloud.cn
+To:     pablo@netfilter.org, fw@strlen.de
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nf-next v2 04/11] netfilter: nft_immediate: add offload support for actions
+Date:   Thu, 25 Jul 2019 21:33:59 +0800
+Message-Id: <1564061644-31189-5-git-send-email-wenxu@ucloud.cn>
+X-Mailer: git-send-email 1.8.3.1
+In-Reply-To: <1564061644-31189-1-git-send-email-wenxu@ucloud.cn>
+References: <1564061644-31189-1-git-send-email-wenxu@ucloud.cn>
+X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVklVS0lJS0tLSEpJQ0tOSkNZV1koWU
+        FJQjdXWS1ZQUlXWQkOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
+X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6Nkk6Sxw6Qjg#KksBDBEjNFE9
+        LCNPCQJVSlVKTk1PS01KTU9NTkpMVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJSFVO
+        QlVKSElVSklCWVdZCAFZQUhKQ0I3Bg++
+X-HM-Tid: 0a6c2956be702086kuqy6acaf417c3
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Jul 23, 2019 at 1:10 AM Fran Fitzpatrick
-<francis.x.fitzpatrick@gmail.com> wrote:
->
-> This morning I was using the `timeout` feature of nftables, but came
-> across an apparent limitation where I was not able to update an
-> element in a set's timeout value unless I removed the element from the
-> set.
->
-> Can it be possible to handle the element timeout value without needed
-> to remove it from a set?
->
-> [root@fedora29 vagrant]# nft add element inet filter myset {10.0.0.1
-> timeout 1m }
-> [root@fedora29 vagrant]# nft add element inet filter myset {10.0.0.1
-> timeout 10m }
-> [root@fedora29 vagrant]# nft list ruleset
-> table inet filter {
->         set myset {
->                 type ipv4_addr
->                 flags timeout
->                 elements = { 10.0.0.1 timeout 1m expires 59s542ms }
->         }
-> }
+From: wenxu <wenxu@ucloud.cn>
 
-Hi,
+Immediate offload support for other action to handle the offload_reg
 
-The timeout attribute per element is designed to be created as a
-constant value where the expiration is calculated and reseted to the
-timeout value during an element update. I don't know exactly your use
-case but what you're able to do is something like:
+Signed-off-by: wenxu <wenxu@ucloud.cn>
+---
+ net/netfilter/nft_immediate.c | 47 +++++++++++++++++++++++++++----------------
+ 1 file changed, 30 insertions(+), 17 deletions(-)
 
-nft add element inet filter myset {10.0.0.1 timeout 10m }
+diff --git a/net/netfilter/nft_immediate.c b/net/netfilter/nft_immediate.c
+index 391f699..34facc3 100644
+--- a/net/netfilter/nft_immediate.c
++++ b/net/netfilter/nft_immediate.c
+@@ -130,29 +130,42 @@ static int nft_immediate_offload(struct nft_offload_ctx *ctx,
+ 				 const struct nft_expr *expr)
+ {
+ 	const struct nft_immediate_expr *priv = nft_expr_priv(expr);
++	const struct nft_data *data = &priv->data;
+ 	struct flow_action_entry *entry;
+-	const struct nft_data *data;
+-
+-	if (priv->dreg != NFT_REG_VERDICT)
+-		return -EOPNOTSUPP;
+-
+-	entry = &flow->rule->action.entries[ctx->num_actions++];
+ 
+-	data = &priv->data;
+-	switch (data->verdict.code) {
+-	case NF_ACCEPT:
+-		entry->id = FLOW_ACTION_ACCEPT;
+-		break;
+-	case NF_DROP:
+-		entry->id = FLOW_ACTION_DROP;
+-		break;
+-	default:
+-		return -EOPNOTSUPP;
++	if (priv->dreg == NFT_REG_VERDICT) {
++		entry = &flow->rule->action.entries[ctx->num_actions++];
++
++		switch (data->verdict.code) {
++		case NF_ACCEPT:
++			entry->id = FLOW_ACTION_ACCEPT;
++			break;
++		case NF_DROP:
++			entry->id = FLOW_ACTION_DROP;
++			break;
++		default:
++			return -EOPNOTSUPP;
++		}
++	} else {
++		struct nft_offload_reg *reg = &ctx->regs[priv->dreg];
++
++		reg->type = NFT_OFFLOAD_REG_ACTION;
++		memcpy(&reg->action.data, data, sizeof(*data));
+ 	}
+ 
+ 	return 0;
+ }
+ 
++static int nft_immediate_offload_actions(const struct nft_expr *expr)
++{
++	const struct nft_immediate_expr *priv = nft_expr_priv(expr);
++
++	if (priv->dreg == NFT_REG_VERDICT)
++		return 1;
++	else
++		return 0;
++}
++
+ static const struct nft_expr_ops nft_imm_ops = {
+ 	.type		= &nft_imm_type,
+ 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_immediate_expr)),
+@@ -163,7 +176,7 @@ static int nft_immediate_offload(struct nft_offload_ctx *ctx,
+ 	.dump		= nft_immediate_dump,
+ 	.validate	= nft_immediate_validate,
+ 	.offload	= nft_immediate_offload,
+-	.offload_actions = nft_offload_action,
++	.offload_actions = nft_immediate_offload_actions,
+ };
+ 
+ struct nft_expr_type nft_imm_type __read_mostly = {
+-- 
+1.8.3.1
 
-Where the timeout would be the max reachable value, and then update
-the expiration date:
-
-nft add element inet filter myset {10.0.0.1 expires 1m }
-
-For this, you would need an upstream kernel and nftables.
-
-Cheers!
