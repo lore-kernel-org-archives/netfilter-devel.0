@@ -6,76 +6,84 @@ X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E9049C7618B
-	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Jul 2019 10:14:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C8378C76191
+	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Jul 2019 10:14:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B39D42081B
-	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Jul 2019 10:14:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8E4102081B
+	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Jul 2019 10:14:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389425AbfGYKOS (ORCPT
+        id S2389537AbfGYKOi (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 25 Jul 2019 06:14:18 -0400
-Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:43794 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S2389419AbfGYKOR (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 25 Jul 2019 06:14:17 -0400
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.89)
-        (envelope-from <fw@strlen.de>)
-        id 1hqalI-0001Kc-HB; Thu, 25 Jul 2019 12:14:12 +0200
-Date:   Thu, 25 Jul 2019 12:14:12 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     wenxu@ucloud.cn, fw@strlen.de, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf-next 3/7] netfilter: nft_table_offload: Add rtnl for
- chain and rule operations
-Message-ID: <20190725101412.ubkqqzjkftrajnmx@breakpoint.cc>
+        Thu, 25 Jul 2019 06:14:38 -0400
+Received: from mail.us.es ([193.147.175.20]:46754 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2389520AbfGYKOi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 25 Jul 2019 06:14:38 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 57A54FB44A
+        for <netfilter-devel@vger.kernel.org>; Thu, 25 Jul 2019 12:14:35 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 47B1F11510A
+        for <netfilter-devel@vger.kernel.org>; Thu, 25 Jul 2019 12:14:35 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 3B6EA115105; Thu, 25 Jul 2019 12:14:35 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 6053F115105;
+        Thu, 25 Jul 2019 12:14:32 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Thu, 25 Jul 2019 12:14:32 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (unknown [31.4.183.64])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 0ADEA4265A31;
+        Thu, 25 Jul 2019 12:14:31 +0200 (CEST)
+Date:   Thu, 25 Jul 2019 12:14:29 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     wenxu@ucloud.cn
+Cc:     fw@strlen.de, netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf-next 2/7] netfilter: nf_tables_offload: add
+ offload_actions callback
+Message-ID: <20190725101429.mldb64bfhr67254m@salvia>
 References: <1563886364-11164-1-git-send-email-wenxu@ucloud.cn>
- <1563886364-11164-4-git-send-email-wenxu@ucloud.cn>
- <20190725094826.kv7cvjsiykuwr6em@salvia>
+ <1563886364-11164-3-git-send-email-wenxu@ucloud.cn>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20190725094826.kv7cvjsiykuwr6em@salvia>
+In-Reply-To: <1563886364-11164-3-git-send-email-wenxu@ucloud.cn>
 User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Tue, Jul 23, 2019 at 08:52:40PM +0800, wenxu@ucloud.cn wrote:
-> > From: wenxu <wenxu@ucloud.cn>
-> > 
-> > The nft_setup_cb_call and ndo_setup_tc callback should be under rtnl lock
-> > 
-> > or it will report:
-> > kernel: RTNL: assertion failed at
-> > drivers/net/ethernet/mellanox/mlx5/core/en_rep.c (635)
-> > 
-> > Signed-off-by: wenxu <wenxu@ucloud.cn>
-> > ---
-> >  net/netfilter/nf_tables_offload.c | 16 ++++++++++++----
-> >  1 file changed, 12 insertions(+), 4 deletions(-)
-> > 
-> > diff --git a/net/netfilter/nf_tables_offload.c b/net/netfilter/nf_tables_offload.c
-> > index 33543f5..3e1a1a8 100644
-> > --- a/net/netfilter/nf_tables_offload.c
-> > +++ b/net/netfilter/nf_tables_offload.c
-> > @@ -115,14 +115,18 @@ static int nft_setup_cb_call(struct nft_base_chain *basechain,
-> >  			     enum tc_setup_type type, void *type_data)
-> >  {
-> >  	struct flow_block_cb *block_cb;
-> > -	int err;
-> > +	int err = 0;
-> >  
-> > +	rtnl_lock();
+On Tue, Jul 23, 2019 at 08:52:39PM +0800, wenxu@ucloud.cn wrote:
+> From: wenxu <wenxu@ucloud.cn>
 > 
-> Please, have a look at 90d2723c6d4cb2ace50fc3b932a2bcc77710450b and
-> review if this assumption is correct. Probably nfnl_lock() is missing
-> from __nft_release_basechain().
+> There will be zero one or serval actions for some expr. such as
+> payload set and immediate
+> 
+> Signed-off-by: wenxu <wenxu@ucloud.cn>
+> ---
+>  include/net/netfilter/nf_tables.h         | 7 ++++++-
+>  include/net/netfilter/nf_tables_offload.h | 2 --
+>  net/netfilter/nf_tables_offload.c         | 4 ++--
+>  net/netfilter/nft_immediate.c             | 2 +-
+>  4 files changed, 9 insertions(+), 6 deletions(-)
+> 
+> diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+> index 9b62456..9285df2 100644
+> --- a/include/net/netfilter/nf_tables.h
+> +++ b/include/net/netfilter/nf_tables.h
+> @@ -785,7 +785,7 @@ struct nft_expr_ops {
+>  	int				(*offload)(struct nft_offload_ctx *ctx,
+>  						   struct nft_flow_rule *flow,
+>  						   const struct nft_expr *expr);
+> -	u32				offload_flags;
+> +	int				(*offload_actions)(const struct nft_expr *expr);
 
-The mlx driver has a ASSERT_RTNL() in the mlx5e_rep_indr_setup_tc_block()
-callpath.  Or are you proposing to remove that assertion?  If so, what
-lock should protect the callback lists?
-
+I don't understand why you need to add this? is it for payload?
