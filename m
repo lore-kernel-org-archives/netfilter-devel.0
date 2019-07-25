@@ -2,455 +2,403 @@ Return-Path: <SRS0=uZng=VW=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+X-Spam-Status: No, score=-6.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 29CDAC7618B
-	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Jul 2019 09:14:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 10BA5C76194
+	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Jul 2019 09:14:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CEB4521852
-	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Jul 2019 09:14:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C1A5421852
+	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Jul 2019 09:14:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2390290AbfGYJOM (ORCPT
+        id S2390291AbfGYJON (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 25 Jul 2019 05:14:12 -0400
-Received: from mail.us.es ([193.147.175.20]:47974 "EHLO mail.us.es"
+        Thu, 25 Jul 2019 05:14:13 -0400
+Received: from mail.us.es ([193.147.175.20]:47980 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2390283AbfGYJOM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 25 Jul 2019 05:14:12 -0400
+        id S2390285AbfGYJON (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 25 Jul 2019 05:14:13 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id A26CFBAEE4
-        for <netfilter-devel@vger.kernel.org>; Thu, 25 Jul 2019 11:14:06 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id E51CCBAEE0
+        for <netfilter-devel@vger.kernel.org>; Thu, 25 Jul 2019 11:14:07 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 90189DA732
-        for <netfilter-devel@vger.kernel.org>; Thu, 25 Jul 2019 11:14:06 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id D1BC2DA732
+        for <netfilter-devel@vger.kernel.org>; Thu, 25 Jul 2019 11:14:07 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 85B6C11510C; Thu, 25 Jul 2019 11:14:06 +0200 (CEST)
+        id C6D6DDA704; Thu, 25 Jul 2019 11:14:07 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 0FDAFDA732
-        for <netfilter-devel@vger.kernel.org>; Thu, 25 Jul 2019 11:14:04 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 72B28DA708
+        for <netfilter-devel@vger.kernel.org>; Thu, 25 Jul 2019 11:14:05 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Thu, 25 Jul 2019 11:14:04 +0200 (CEST)
+ Thu, 25 Jul 2019 11:14:05 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (unknown [31.4.183.64])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id AB25C4265A31
-        for <netfilter-devel@vger.kernel.org>; Thu, 25 Jul 2019 11:14:03 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 222524265A31
+        for <netfilter-devel@vger.kernel.org>; Thu, 25 Jul 2019 11:14:05 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft,v1 1/2] src: add tunnel support
-Date:   Thu, 25 Jul 2019 11:13:59 +0200
-Message-Id: <20190725091400.30057-1-pablo@netfilter.org>
+Subject: [PATCH nft,v1 2/2] src: add tunnel expression support
+Date:   Thu, 25 Jul 2019 11:14:00 +0200
+Message-Id: <20190725091400.30057-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
+In-Reply-To: <20190725091400.30057-1-pablo@netfilter.org>
+References: <20190725091400.30057-1-pablo@netfilter.org>
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This patch adds support to attach tunnel metadata.
+This patch allows you to match on tunnel metadata.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/rule.h     | 15 +++++++++++
- src/evaluate.c     | 23 ++++++++++++++++
- src/mnl.c          | 38 +++++++++++++++++++++++++++
- src/netlink.c      | 77 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
- src/parser_bison.y | 50 ++++++++++++++++++++++++++++++++---
- src/rule.c         | 21 +++++++++++++++
- src/scanner.l      |  4 ++-
- 7 files changed, 224 insertions(+), 4 deletions(-)
+ include/Makefile.am       |  4 ++-
+ include/expression.h      |  6 ++++
+ include/tunnel.h          | 33 +++++++++++++++++++++
+ src/Makefile.am           |  1 +
+ src/evaluate.c            |  7 +++++
+ src/expression.c          |  1 +
+ src/netlink_delinearize.c | 17 +++++++++++
+ src/netlink_linearize.c   | 14 +++++++++
+ src/parser_bison.y        | 33 +++++++++++++++++----
+ src/scanner.l             |  2 ++
+ src/statement.c           |  1 +
+ src/tunnel.c              | 75 +++++++++++++++++++++++++++++++++++++++++++++++
+ 12 files changed, 188 insertions(+), 6 deletions(-)
+ create mode 100644 include/tunnel.h
+ create mode 100644 src/tunnel.c
 
-diff --git a/include/rule.h b/include/rule.h
-index ee881b9ccd17..00c16e39e980 100644
---- a/include/rule.h
-+++ b/include/rule.h
-@@ -406,6 +406,18 @@ struct secmark {
- 	char		ctx[NFT_SECMARK_CTX_MAXLEN];
+diff --git a/include/Makefile.am b/include/Makefile.am
+index 04a4a619a530..2224c5026836 100644
+--- a/include/Makefile.am
++++ b/include/Makefile.am
+@@ -1,4 +1,4 @@
+-SUBDIRS =		linux		\
++uSUBDIRS =		linux		\
+ 			nftables
+ 
+ noinst_HEADERS = 	cli.h		\
+@@ -31,8 +31,10 @@ noinst_HEADERS = 	cli.h		\
+ 			parser.h	\
+ 			proto.h		\
+ 			socket.h	\
++			tunnel.h	\
+ 			rule.h		\
+ 			rt.h		\
++			tunnel.h	\
+ 			utils.h		\
+ 			xfrm.h		\
+ 			xt.h
+diff --git a/include/expression.h b/include/expression.h
+index 717b67550381..9941149a687b 100644
+--- a/include/expression.h
++++ b/include/expression.h
+@@ -70,6 +70,7 @@ enum expr_types {
+ 	EXPR_RT,
+ 	EXPR_FIB,
+ 	EXPR_XFRM,
++	EXPR_TUNNEL,
  };
  
-+struct tunnel {
-+	const char	*type;
-+	uint32_t	id;
-+	struct expr	*src;
-+	struct expr	*dst;
-+	uint32_t	label;
-+	uint16_t	sport;
-+	uint16_t	dport;
-+	uint8_t		tos;
-+	uint8_t		ttl;
+ enum ops {
+@@ -196,6 +197,7 @@ enum expr_flags {
+ #include <hash.h>
+ #include <ct.h>
+ #include <socket.h>
++#include <tunnel.h>
+ #include <osf.h>
+ #include <xfrm.h>
+ 
+@@ -311,6 +313,10 @@ struct expr {
+ 			enum nft_socket_keys	key;
+ 		} socket;
+ 		struct {
++			/* EXPR_TUNNEL */
++			enum nft_tunnel_keys	key;
++		} tunnel;
++		struct {
+ 			/* EXPR_RT */
+ 			enum nft_rt_keys	key;
+ 		} rt;
+diff --git a/include/tunnel.h b/include/tunnel.h
+new file mode 100644
+index 000000000000..90d3f8f75ad7
+--- /dev/null
++++ b/include/tunnel.h
+@@ -0,0 +1,33 @@
++#ifndef NFTABLES_TUNNEL_H
++#define NFTABLES_TUNNEL_H
++
++/**
++ * struct tunnel_template - template for tunnel expressions
++ *
++ * @token:	parser token for the expression
++ * @dtype:	data type of the expression
++ * @len:	length of the expression
++ * @byteorder:	byteorder
++ */
++struct tunnel_template {
++	const char		*token;
++	const struct datatype	*dtype;
++	enum byteorder		byteorder;
++	unsigned int		len;
 +};
 +
- /**
-  * struct obj - nftables stateful object statement
-  *
-@@ -426,6 +438,7 @@ struct obj {
- 		struct quota		quota;
- 		struct ct_helper	ct_helper;
- 		struct limit		limit;
-+		struct tunnel		tunnel;
- 		struct ct_timeout	ct_timeout;
- 		struct secmark		secmark;
- 		struct ct_expect	ct_expect;
-@@ -558,6 +571,8 @@ enum cmd_obj {
- 	CMD_OBJ_CT_HELPERS,
- 	CMD_OBJ_LIMIT,
- 	CMD_OBJ_LIMITS,
-+	CMD_OBJ_TUNNEL,
-+	CMD_OBJ_TUNNELS,
- 	CMD_OBJ_FLOWTABLE,
- 	CMD_OBJ_FLOWTABLES,
- 	CMD_OBJ_CT_TIMEOUT,
++extern const struct tunnel_template tunnel_templates[];
++
++#define TUNNEL_TEMPLATE(__token, __dtype, __len, __byteorder) {	\
++	.token		= (__token),				\
++	.dtype		= (__dtype),				\
++	.len		= (__len),				\
++	.byteorder	= (__byteorder),			\
++}
++
++extern struct expr *tunnel_expr_alloc(const struct location *loc,
++				      enum nft_tunnel_keys key);
++
++const struct expr_ops tunnel_expr_ops;
++
++#endif /* NFTABLES_TUNNEL_H */
+diff --git a/src/Makefile.am b/src/Makefile.am
+index e2b531390cef..9b62c5325c8f 100644
+--- a/src/Makefile.am
++++ b/src/Makefile.am
+@@ -63,6 +63,7 @@ libnftables_la_SOURCES =			\
+ 		nfnl_osf.c			\
+ 		tcpopt.c			\
+ 		socket.c			\
++		tunnel.c			\
+ 		print.c				\
+ 		libnftables.c			\
+ 		libnftables.map
 diff --git a/src/evaluate.c b/src/evaluate.c
-index 48c65cd2f35a..0c2a8d0a9571 100644
+index 0c2a8d0a9571..dca2bdfea917 100644
 --- a/src/evaluate.c
 +++ b/src/evaluate.c
-@@ -3520,9 +3520,31 @@ static int ct_timeout_evaluate(struct eval_ctx *ctx, struct obj *obj)
- 	return 0;
+@@ -1828,6 +1828,11 @@ static int expr_evaluate_osf(struct eval_ctx *ctx, struct expr **expr)
+ 	return expr_evaluate_primary(ctx, expr);
  }
  
-+static int tunnel_evaluate(struct eval_ctx *ctx, struct obj *obj)
++static int expr_evaluate_tunnel(struct eval_ctx *ctx, struct expr **exprp)
 +{
-+	if (obj->tunnel.src != NULL) {
-+		__expr_set_context(&ctx->ectx, &ipaddr_type,
-+				   BYTEORDER_BIG_ENDIAN,
-+				   sizeof(struct in_addr) * BITS_PER_BYTE, 0);
-+		if (expr_evaluate(ctx, &obj->tunnel.src) < 0)
-+			return -1;
-+        }
-+	if (obj->tunnel.dst != NULL) {
-+		__expr_set_context(&ctx->ectx, &ipaddr_type,
-+				   BYTEORDER_BIG_ENDIAN,
-+				   sizeof(struct in_addr) * BITS_PER_BYTE, 0);
-+		if (expr_evaluate(ctx, &obj->tunnel.dst) < 0)
-+			return -1;
-+	}
-+
-+	return 0;
++	return expr_evaluate_primary(ctx, exprp);
 +}
 +
- static int obj_evaluate(struct eval_ctx *ctx, struct obj *obj)
+ static int expr_evaluate_variable(struct eval_ctx *ctx, struct expr **exprp)
  {
- 	switch (obj->type) {
-+	case NFT_OBJECT_TUNNEL:
-+		return tunnel_evaluate(ctx, obj);
- 	case NFT_OBJECT_CT_TIMEOUT:
- 		return ct_timeout_evaluate(ctx, obj);
- 	case NFT_OBJECT_CT_EXPECT:
-@@ -3604,6 +3626,7 @@ static int cmd_evaluate_add(struct eval_ctx *ctx, struct cmd *cmd)
- 	case CMD_OBJ_QUOTA:
- 	case CMD_OBJ_CT_HELPER:
- 	case CMD_OBJ_LIMIT:
-+	case CMD_OBJ_TUNNEL:
- 	case CMD_OBJ_CT_TIMEOUT:
- 	case CMD_OBJ_SECMARK:
- 	case CMD_OBJ_CT_EXPECT:
-diff --git a/src/mnl.c b/src/mnl.c
-index eab8d5486437..e9021e4515ae 100644
---- a/src/mnl.c
-+++ b/src/mnl.c
-@@ -951,6 +951,7 @@ int mnl_nft_obj_add(struct netlink_ctx *ctx, const struct cmd *cmd,
- 		    unsigned int flags)
- {
- 	struct obj *obj = cmd->object;
-+	struct nft_data_linearize nld;
- 	struct nftnl_obj *nlo;
- 	struct nlmsghdr *nlh;
- 
-@@ -985,6 +986,43 @@ int mnl_nft_obj_add(struct netlink_ctx *ctx, const struct cmd *cmd,
- 		nftnl_obj_set_u32(nlo, NFTNL_OBJ_LIMIT_TYPE, obj->limit.type);
- 		nftnl_obj_set_u32(nlo, NFTNL_OBJ_LIMIT_FLAGS, obj->limit.flags);
- 		break;
-+	case NFT_OBJECT_TUNNEL:
-+		nftnl_obj_set_u64(nlo, NFTNL_OBJ_TUNNEL_ID, obj->tunnel.id);
-+		if (obj->tunnel.sport)
-+			nftnl_obj_set_u16(nlo, NFTNL_OBJ_TUNNEL_SPORT,
-+					  obj->tunnel.sport);
-+		if (obj->tunnel.dport)
-+			nftnl_obj_set_u16(nlo, NFTNL_OBJ_TUNNEL_DPORT,
-+					  obj->tunnel.dport);
-+		if (obj->tunnel.tos)
-+			nftnl_obj_set_u16(nlo, NFTNL_OBJ_TUNNEL_TOS,
-+					  obj->tunnel.tos);
-+		if (obj->tunnel.ttl)
-+			nftnl_obj_set_u16(nlo, NFTNL_OBJ_TUNNEL_TTL,
-+					  obj->tunnel.ttl);
-+		if (obj->tunnel.src) {
-+			netlink_gen_data(obj->tunnel.src, &nld);
-+			if (nld.len == sizeof(struct in_addr)) {
-+				nftnl_obj_set_u32(nlo,
-+						  NFTNL_OBJ_TUNNEL_IPV4_SRC,
-+						  nld.value[0]);
-+			}
-+		} else {
-+			nftnl_obj_set(nlo, NFTNL_OBJ_TUNNEL_IPV6_SRC,
-+				      nld.value);
-+		}
-+		if (obj->tunnel.dst) {
-+			netlink_gen_data(obj->tunnel.dst, &nld);
-+			if (nld.len == sizeof(struct in_addr)) {
-+				nftnl_obj_set_u32(nlo,
-+						  NFTNL_OBJ_TUNNEL_IPV4_DST,
-+						  nld.value[0]);
-+			} else {
-+				nftnl_obj_set(nlo, NFTNL_OBJ_TUNNEL_IPV6_DST,
-+					      nld.value);
-+			}
-+		}
-+		break;
- 	case NFT_OBJECT_CT_HELPER:
- 		nftnl_obj_set_str(nlo, NFTNL_OBJ_CT_HELPER_NAME,
- 				  obj->ct_helper.name);
-diff --git a/src/netlink.c b/src/netlink.c
-index 14b0df410726..bcb5ecc6bb32 100644
---- a/src/netlink.c
-+++ b/src/netlink.c
-@@ -936,6 +936,51 @@ void netlink_dump_obj(struct nftnl_obj *nln, struct netlink_ctx *ctx)
- 	fprintf(fp, "\n");
- }
- 
-+static struct in6_addr all_zeroes;
-+
-+static struct expr *netlink_obj_tunnel_parse_addr(struct nftnl_obj *nlo,
-+						  int attr)
-+{
-+	struct nft_data_delinearize nld;
-+	const struct datatype *dtype;
-+	const uint32_t *addr6;
-+	struct expr *expr;
-+	uint32_t addr;
-+
-+	memset(&nld, 0, sizeof(nld));
-+
-+	switch (attr) {
-+	case NFTNL_OBJ_TUNNEL_IPV4_SRC:
-+	case NFTNL_OBJ_TUNNEL_IPV4_DST:
-+		addr = nftnl_obj_get_u32(nlo, attr);
-+		if (!addr)
-+			return NULL;
-+
-+		dtype = &ipaddr_type;
-+		nld.value = &addr;
-+		nld.len = sizeof(struct in_addr);
-+		break;
-+	case NFTNL_OBJ_TUNNEL_IPV6_SRC:
-+	case NFTNL_OBJ_TUNNEL_IPV6_DST:
-+		addr6 = nftnl_obj_get(nlo, attr);
-+		if (!memcmp(addr6, &all_zeroes, sizeof(all_zeroes)))
-+			return NULL;
-+
-+		dtype = &ip6addr_type;
-+		nld.value = addr6;
-+		nld.len = sizeof(struct in6_addr);
-+		break;
-+	default:
-+		return NULL;
-+	}
-+
-+	expr = netlink_alloc_value(&netlink_location, &nld);
-+	expr->dtype	= dtype;
-+	expr->byteorder	= BYTEORDER_BIG_ENDIAN;
-+
-+	return expr;
-+}
-+
- struct obj *netlink_delinearize_obj(struct netlink_ctx *ctx,
- 				    struct nftnl_obj *nlo)
- {
-@@ -1008,6 +1053,38 @@ struct obj *netlink_delinearize_obj(struct netlink_ctx *ctx,
- 		obj->ct_expect.size =
- 			nftnl_obj_get_u8(nlo, NFTNL_OBJ_CT_EXPECT_SIZE);
- 		break;
-+	case NFT_OBJECT_TUNNEL:
-+		obj->tunnel.id = nftnl_obj_get_u64(nlo, NFTNL_OBJ_TUNNEL_ID);
-+		obj->tunnel.sport =
-+			nftnl_obj_get_u16(nlo, NFTNL_OBJ_TUNNEL_SPORT);
-+		obj->tunnel.dport =
-+			nftnl_obj_get_u16(nlo, NFTNL_OBJ_TUNNEL_DPORT);
-+		obj->tunnel.tos =
-+			nftnl_obj_get_u16(nlo, NFTNL_OBJ_TUNNEL_TOS) >> 2;
-+		obj->tunnel.ttl =
-+			nftnl_obj_get_u16(nlo, NFTNL_OBJ_TUNNEL_TTL);
-+
-+		if (nftnl_obj_is_set(nlo, NFTNL_OBJ_TUNNEL_IPV4_SRC)) {
-+			obj->tunnel.src =
-+				netlink_obj_tunnel_parse_addr(nlo,
-+					NFTNL_OBJ_TUNNEL_IPV4_SRC);
-+		}
-+		if (nftnl_obj_is_set(nlo, NFTNL_OBJ_TUNNEL_IPV4_DST)) {
-+			obj->tunnel.dst =
-+				netlink_obj_tunnel_parse_addr(nlo,
-+					NFTNL_OBJ_TUNNEL_IPV4_DST);
-+		}
-+		if (nftnl_obj_is_set(nlo, NFTNL_OBJ_TUNNEL_IPV6_SRC)) {
-+			obj->tunnel.src =
-+				netlink_obj_tunnel_parse_addr(nlo,
-+					NFTNL_OBJ_TUNNEL_IPV6_SRC);
-+		}
-+		if (nftnl_obj_is_set(nlo, NFTNL_OBJ_TUNNEL_IPV6_DST)) {
-+			obj->tunnel.dst =
-+				netlink_obj_tunnel_parse_addr(nlo,
-+					NFTNL_OBJ_TUNNEL_IPV6_DST);
-+		}
-+		break;
+ 	struct expr *new = expr_clone((*exprp)->sym->expr);
+@@ -1884,6 +1889,8 @@ static int expr_evaluate(struct eval_ctx *ctx, struct expr **expr)
+ 		return expr_evaluate_meta(ctx, expr);
+ 	case EXPR_SOCKET:
+ 		return expr_evaluate_socket(ctx, expr);
++	case EXPR_TUNNEL:
++		return expr_evaluate_tunnel(ctx, expr);
+ 	case EXPR_OSF:
+ 		return expr_evaluate_osf(ctx, expr);
+ 	case EXPR_FIB:
+diff --git a/src/expression.c b/src/expression.c
+index cb49e0b73f5a..c97b2c9dd5c9 100644
+--- a/src/expression.c
++++ b/src/expression.c
+@@ -1204,6 +1204,7 @@ const struct expr_ops *expr_ops(const struct expr *e)
+ 	case EXPR_RT: return &rt_expr_ops;
+ 	case EXPR_FIB: return &fib_expr_ops;
+ 	case EXPR_XFRM: return &xfrm_expr_ops;
++	case EXPR_TUNNEL: return &tunnel_expr_ops;
  	}
- 	obj->type = type;
  
+ 	BUG("Unknown expression type %d\n", e->etype);
+diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
+index fc2574b1dea9..25ce874b35d0 100644
+--- a/src/netlink_delinearize.c
++++ b/src/netlink_delinearize.c
+@@ -668,6 +668,21 @@ static void netlink_parse_osf(struct netlink_parse_ctx *ctx,
+ 	netlink_set_register(ctx, dreg, expr);
+ }
+ 
++static void netlink_parse_tunnel(struct netlink_parse_ctx *ctx,
++				 const struct location *loc,
++				 const struct nftnl_expr *nle)
++{
++	enum nft_registers dreg;
++	struct expr * expr;
++	uint32_t key;
++
++	key = nftnl_expr_get_u32(nle, NFTNL_EXPR_TUNNEL_KEY);
++	expr = tunnel_expr_alloc(loc, key);
++
++	dreg = netlink_parse_register(nle, NFTNL_EXPR_TUNNEL_DREG);
++	netlink_set_register(ctx, dreg, expr);
++}
++
+ static void netlink_parse_meta_stmt(struct netlink_parse_ctx *ctx,
+ 				    const struct location *loc,
+ 				    const struct nftnl_expr *nle)
+@@ -1464,6 +1479,7 @@ static const struct {
+ 	{ .name = "exthdr",	.parse = netlink_parse_exthdr },
+ 	{ .name = "meta",	.parse = netlink_parse_meta },
+ 	{ .name = "socket",	.parse = netlink_parse_socket },
++	{ .name = "tunnel",	.parse = netlink_parse_tunnel },
+ 	{ .name = "osf",	.parse = netlink_parse_osf },
+ 	{ .name = "rt",		.parse = netlink_parse_rt },
+ 	{ .name = "ct",		.parse = netlink_parse_ct },
+@@ -2158,6 +2174,7 @@ static void expr_postprocess(struct rule_pp_ctx *ctx, struct expr **exprp)
+ 	case EXPR_NUMGEN:
+ 	case EXPR_FIB:
+ 	case EXPR_SOCKET:
++	case EXPR_TUNNEL:
+ 	case EXPR_OSF:
+ 	case EXPR_XFRM:
+ 		break;
+diff --git a/src/netlink_linearize.c b/src/netlink_linearize.c
+index 498326d0087a..b337539a44cf 100644
+--- a/src/netlink_linearize.c
++++ b/src/netlink_linearize.c
+@@ -232,6 +232,18 @@ static void netlink_gen_osf(struct netlink_linearize_ctx *ctx,
+ 	nftnl_rule_add_expr(ctx->nlr, nle);
+ }
+ 
++static void netlink_gen_tunnel(struct netlink_linearize_ctx *ctx,
++			       const struct expr *expr,
++			       enum nft_registers dreg)
++{
++	struct nftnl_expr *nle;
++
++	nle = alloc_nft_expr("tunnel");
++	netlink_put_register(nle, NFTNL_EXPR_TUNNEL_DREG, dreg);
++	nftnl_expr_set_u32(nle, NFTNL_EXPR_TUNNEL_KEY, expr->tunnel.key);
++	nftnl_rule_add_expr(ctx->nlr, nle);
++}
++
+ static void netlink_gen_numgen(struct netlink_linearize_ctx *ctx,
+ 			    const struct expr *expr,
+ 			    enum nft_registers dreg)
+@@ -735,6 +747,8 @@ static void netlink_gen_expr(struct netlink_linearize_ctx *ctx,
+ 		return netlink_gen_fib(ctx, expr, dreg);
+ 	case EXPR_SOCKET:
+ 		return netlink_gen_socket(ctx, expr, dreg);
++	case EXPR_TUNNEL:
++		return netlink_gen_tunnel(ctx, expr, dreg);
+ 	case EXPR_OSF:
+ 		return netlink_gen_osf(ctx, expr, dreg);
+ 	case EXPR_XFRM:
 diff --git a/src/parser_bison.y b/src/parser_bison.y
-index 53e669521efa..d3b64b641700 100644
+index d3b64b641700..ba28224a3b96 100644
 --- a/src/parser_bison.y
 +++ b/src/parser_bison.y
-@@ -459,6 +459,7 @@ int nft_lex(void *, void *, void *);
- %token COUNTERS			"counters"
- %token QUOTAS			"quotas"
- %token LIMITS			"limits"
-+%token TUNNELS			"tunnels"
- %token HELPERS			"helpers"
+@@ -225,6 +225,8 @@ int nft_lex(void *, void *, void *);
+ %token RULESET			"ruleset"
+ %token TRACE			"trace"
  
- %token LOG			"log"
-@@ -589,7 +590,7 @@ int nft_lex(void *, void *, void *);
- %type <flowtable>		flowtable_block_alloc flowtable_block
- %destructor { flowtable_free($$); }	flowtable_block_alloc
++%token PATH			"path"
++
+ %token INET			"inet"
+ %token NETDEV			"netdev"
  
--%type <obj>			obj_block_alloc counter_block quota_block ct_helper_block ct_timeout_block ct_expect_block limit_block secmark_block
-+%type <obj>			obj_block_alloc counter_block quota_block ct_helper_block ct_timeout_block ct_expect_block tunnel_block limit_block secmark_block
- %destructor { obj_free($$); }	obj_block_alloc
+@@ -601,8 +603,8 @@ int nft_lex(void *, void *, void *);
+ %destructor { stmt_free($$); }	counter_stmt counter_stmt_alloc stateful_stmt
+ %type <stmt>			payload_stmt
+ %destructor { stmt_free($$); }	payload_stmt
+-%type <stmt>			ct_stmt
+-%destructor { stmt_free($$); }	ct_stmt
++%type <stmt>			ct_stmt tunnel_stmt
++%destructor { stmt_free($$); }	ct_stmt tunnel_stmt
+ %type <stmt>			meta_stmt
+ %destructor { stmt_free($$); }	meta_stmt
+ %type <stmt>			log_stmt log_stmt_alloc
+@@ -746,9 +748,9 @@ int nft_lex(void *, void *, void *);
+ %destructor { expr_free($$); }	mh_hdr_expr
+ %type <val>			mh_hdr_field
  
- %type <list>			stmt_list
-@@ -697,8 +698,8 @@ int nft_lex(void *, void *, void *);
- %type <expr>			and_rhs_expr exclusive_or_rhs_expr inclusive_or_rhs_expr
- %destructor { expr_free($$); }	and_rhs_expr exclusive_or_rhs_expr inclusive_or_rhs_expr
+-%type <expr>			meta_expr
+-%destructor { expr_free($$); }	meta_expr
+-%type <val>			meta_key	meta_key_qualified	meta_key_unqualified	numgen_type
++%type <expr>			meta_expr	tunnel_expr
++%destructor { expr_free($$); }	meta_expr	tunnel_expr
++%type <val>			meta_key	meta_key_qualified	meta_key_unqualified	numgen_type	tunnel_key
  
--%type <obj>			counter_obj quota_obj ct_obj_alloc limit_obj secmark_obj
--%destructor { obj_free($$); }	counter_obj quota_obj ct_obj_alloc limit_obj secmark_obj
-+%type <obj>			counter_obj quota_obj ct_obj_alloc limit_obj tunnel_obj secmark_obj
-+%destructor { obj_free($$); }	counter_obj quota_obj ct_obj_alloc limit_obj tunnel_obj secmark_obj
- 
- %type <expr>			relational_expr
- %destructor { expr_free($$); }	relational_expr
-@@ -1009,6 +1010,10 @@ add_cmd			:	TABLE		table_spec
- 			{
- 				$$ = cmd_alloc(CMD_ADD, CMD_OBJ_SECMARK, &$2, &@$, $3);
- 			}
-+			|	TUNNEL		obj_spec	tunnel_obj	'{' tunnel_block '}'	stmt_separator
-+			{
-+				$$ = cmd_alloc_obj_ct(CMD_ADD, CMD_OBJ_TUNNEL, &$2, &@$, $3);
-+			}
- 			;
- 
- replace_cmd		:	RULE		ruleid_spec	rule
-@@ -1102,6 +1107,10 @@ create_cmd		:	TABLE		table_spec
- 			{
- 				$$ = cmd_alloc(CMD_CREATE, CMD_OBJ_SECMARK, &$2, &@$, $3);
- 			}
-+			|	TUNNEL		obj_spec	tunnel_obj	'{' tunnel_block '}'	stmt_separator
-+			{
-+				$$ = cmd_alloc_obj_ct(CMD_CREATE, CMD_OBJ_TUNNEL, &$2, &@$, $3);
-+			}
- 			;
- 
- insert_cmd		:	RULE		rule_position	rule
-@@ -1589,6 +1598,15 @@ table_block		:	/* empty */	{ $$ = $<table>-1; }
- 				list_add_tail(&$4->list, &$1->objs);
- 				$$ = $1;
- 			}
-+			|	table_block	TUNNEL	obj_identifier  obj_block_alloc '{'     tunnel_block     '}' stmt_separator
-+			{
-+				$4->location = @3;
-+				$4->type = NFT_OBJECT_TUNNEL;
-+				handle_merge(&$4->handle, &$3);
-+				handle_free(&$3);
-+				list_add_tail(&$4->list, &$1->objs);
-+				$$ = $1;
-+			}
- 			;
- 
- chain_block_alloc	:	/* empty */
-@@ -3698,6 +3716,32 @@ limit_obj		:	limit_config
+ %type <expr>			socket_expr
+ %destructor { expr_free($$); } socket_expr
+@@ -2310,6 +2312,7 @@ stmt			:	verdict_stmt
+ 			|	tproxy_stmt
+ 			|	queue_stmt
+ 			|	ct_stmt
++			|	tunnel_stmt
+ 			|	masq_stmt
+ 			|	redir_stmt
+ 			|	dup_stmt
+@@ -2788,6 +2791,7 @@ primary_stmt_expr	:	symbol_expr		{ $$ = $1; }
+ 			|	integer_expr		{ $$ = $1; }
+ 			|	boolean_expr		{ $$ = $1; }
+ 			|	meta_expr		{ $$ = $1; }
++			|	tunnel_expr		{ $$ = $1; }
+ 			|	rt_expr			{ $$ = $1; }
+ 			|	ct_expr			{ $$ = $1; }
+ 			|	numgen_expr             { $$ = $1; }
+@@ -3243,6 +3247,7 @@ primary_expr		:	symbol_expr			{ $$ = $1; }
+ 			|	exthdr_expr			{ $$ = $1; }
+ 			|	exthdr_exists_expr		{ $$ = $1; }
+ 			|	meta_expr			{ $$ = $1; }
++			|	tunnel_expr			{ $$ = $1; }
+ 			|	socket_expr			{ $$ = $1; }
+ 			|	rt_expr				{ $$ = $1; }
+ 			|	ct_expr				{ $$ = $1; }
+@@ -4095,6 +4100,16 @@ meta_stmt		:	META	meta_key	SET	stmt_expr
  			}
  			;
  
-+tunnel_config		:	TYPE	string		stmt_separator	{	$<obj>0->tunnel.type = $2;	}
-+			|	ID	NUM		stmt_separator	{	$<obj>0->tunnel.id = $2;	}
-+			|	IP	SADDR	expr	stmt_separator	{	$<obj>0->tunnel.src = $3;	}
-+			|	IP	DADDR	expr	stmt_separator	{	$<obj>0->tunnel.dst = $3;	}
-+			|	SPORT	NUM		stmt_separator	{	$<obj>0->tunnel.sport = $2;	}
-+			|	DPORT	NUM		stmt_separator	{	$<obj>0->tunnel.dport = $2;	}
-+			|	DSCP	NUM		stmt_separator	{	$<obj>0->tunnel.tos = $2 << 2;	}
-+			|	TTL	NUM		stmt_separator	{	$<obj>0->tunnel.ttl = $2;	}
++tunnel_key		:	PATH		{ $$ = NFT_TUNNEL_PATH; }
++			|	ID		{ $$ = NFT_TUNNEL_ID; }
 +			;
 +
-+tunnel_block		:	/* empty */	{ $$ = $<obj>-1; }
-+			|       tunnel_block     common_block
-+			|       tunnel_block     stmt_separator
-+			|       tunnel_block     tunnel_config
++tunnel_expr		:	TUNNEL	tunnel_key
 +			{
-+				$$ = $1;
++				$$ = tunnel_expr_alloc(&@$, $2);
 +			}
 +			;
 +
-+tunnel_obj		:
+ socket_expr		:	SOCKET	socket_key
+ 			{
+ 				$$ = socket_expr_alloc(&@$, $2);
+@@ -4326,6 +4341,14 @@ ct_stmt			:	CT	ct_key		SET	stmt_expr
+ 			}
+ 			;
+ 
++tunnel_stmt		:	TUNNEL	NAME	stmt_expr
 +			{
-+				$$ = obj_alloc(&@$);
-+				$$->type = NFT_OBJECT_TUNNEL;
++				$$ = objref_stmt_alloc(&@$);
++				$$->objref.type = NFT_OBJECT_TUNNEL;
++				$$->objref.expr = $3;
 +			}
 +			;
 +
- relational_expr		:	expr	/* implicit */	rhs_expr
+ payload_stmt		:	payload_expr		SET	stmt_expr
  			{
- 				$$ = relational_expr_alloc(&@$, OP_IMPLICIT, $1, $2);
-diff --git a/src/rule.c b/src/rule.c
-index 293606576044..b99786ba967a 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -1442,6 +1442,7 @@ void cmd_free(struct cmd *cmd)
- 		case CMD_OBJ_CT_TIMEOUT:
- 		case CMD_OBJ_CT_EXPECT:
- 		case CMD_OBJ_LIMIT:
-+		case CMD_OBJ_TUNNEL:
- 		case CMD_OBJ_SECMARK:
- 			obj_free(cmd->object);
- 			break;
-@@ -1533,6 +1534,7 @@ static int do_command_add(struct netlink_ctx *ctx, struct cmd *cmd, bool excl)
- 	case CMD_OBJ_CT_TIMEOUT:
- 	case CMD_OBJ_CT_EXPECT:
- 	case CMD_OBJ_LIMIT:
-+	case CMD_OBJ_TUNNEL:
- 	case CMD_OBJ_SECMARK:
- 		return mnl_nft_obj_add(ctx, cmd, flags);
- 	case CMD_OBJ_FLOWTABLE:
-@@ -1617,6 +1619,8 @@ static int do_command_delete(struct netlink_ctx *ctx, struct cmd *cmd)
- 		return mnl_nft_obj_del(ctx, cmd, NFT_OBJECT_CT_EXPECT);
- 	case CMD_OBJ_LIMIT:
- 		return mnl_nft_obj_del(ctx, cmd, NFT_OBJECT_LIMIT);
-+	case CMD_OBJ_TUNNEL:
-+		return mnl_nft_obj_del(ctx, cmd, NFT_OBJECT_TUNNEL);
- 	case CMD_OBJ_SECMARK:
- 		return mnl_nft_obj_del(ctx, cmd, NFT_OBJECT_SECMARK);
- 	case CMD_OBJ_FLOWTABLE:
-@@ -1903,6 +1907,18 @@ static void obj_print_data(const struct obj *obj,
- 		nft_print(octx, "%s", opts->nl);
- 		}
- 		break;
-+	case NFT_OBJECT_TUNNEL:
-+		nft_print(octx, " %s {%s", obj->handle.obj.name, opts->nl);
+ 				if ($1->etype == EXPR_EXTHDR)
+diff --git a/src/scanner.l b/src/scanner.l
+index f8575638a47b..7bbe5663dddd 100644
+--- a/src/scanner.l
++++ b/src/scanner.l
+@@ -329,6 +329,8 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
+ "tunnel"		{ return TUNNEL; }
+ "tunnels"		{ return TUNNELS; }
+ 
++"path"			{ return PATH; }
 +
-+		nft_print(octx, "%s%sid %u%s",
-+			  opts->tab, opts->tab, obj->tunnel.id, opts->nl);
-+
-+		if (obj->tunnel.dst) {
-+			nft_print(octx, "%s%sip daddr ",
-+				  opts->tab, opts->tab);
-+			expr_print(obj->tunnel.dst, octx);
-+		}
-+		break;
- 	default:
- 		nft_print(octx, " unknown {%s", opts->nl);
- 		break;
-@@ -1914,6 +1930,7 @@ static const char * const obj_type_name_array[] = {
+ "log"			{ return LOG; }
+ "prefix"		{ return PREFIX; }
+ "group"			{ return GROUP; }
+diff --git a/src/statement.c b/src/statement.c
+index a9e72de3edfd..ab893be664e3 100644
+--- a/src/statement.c
++++ b/src/statement.c
+@@ -207,6 +207,7 @@ static const char *objref_type[NFT_OBJECT_MAX + 1] = {
  	[NFT_OBJECT_QUOTA]	= "quota",
  	[NFT_OBJECT_CT_HELPER]	= "ct helper",
  	[NFT_OBJECT_LIMIT]	= "limit",
@@ -458,46 +406,87 @@ index 293606576044..b99786ba967a 100644
  	[NFT_OBJECT_CT_TIMEOUT] = "ct timeout",
  	[NFT_OBJECT_SECMARK]	= "secmark",
  	[NFT_OBJECT_CT_EXPECT]	= "ct expectation",
-@@ -1931,6 +1948,7 @@ static uint32_t obj_type_cmd_array[NFT_OBJECT_MAX + 1] = {
- 	[NFT_OBJECT_QUOTA]	= CMD_OBJ_QUOTA,
- 	[NFT_OBJECT_CT_HELPER]	= CMD_OBJ_CT_HELPER,
- 	[NFT_OBJECT_LIMIT]	= CMD_OBJ_LIMIT,
-+	[NFT_OBJECT_TUNNEL]	= CMD_OBJ_TUNNEL,
- 	[NFT_OBJECT_CT_TIMEOUT] = CMD_OBJ_CT_TIMEOUT,
- 	[NFT_OBJECT_SECMARK]	= CMD_OBJ_SECMARK,
- 	[NFT_OBJECT_CT_EXPECT]	= CMD_OBJ_CT_EXPECT,
-@@ -2297,6 +2315,9 @@ static int do_command_list(struct netlink_ctx *ctx, struct cmd *cmd)
- 	case CMD_OBJ_LIMIT:
- 	case CMD_OBJ_LIMITS:
- 		return do_list_obj(ctx, cmd, NFT_OBJECT_LIMIT);
-+	case CMD_OBJ_TUNNEL:
-+	case CMD_OBJ_TUNNELS:
-+		return do_list_obj(ctx, cmd, NFT_OBJECT_TUNNEL);
- 	case CMD_OBJ_SECMARK:
- 	case CMD_OBJ_SECMARKS:
- 		return do_list_obj(ctx, cmd, NFT_OBJECT_SECMARK);
-diff --git a/src/scanner.l b/src/scanner.l
-index 4ed5f9241381..f8575638a47b 100644
---- a/src/scanner.l
-+++ b/src/scanner.l
-@@ -326,6 +326,9 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
- "quotas"		{ return QUOTAS; }
- "limits"		{ return LIMITS; }
- 
-+"tunnel"		{ return TUNNEL; }
-+"tunnels"		{ return TUNNELS; }
+diff --git a/src/tunnel.c b/src/tunnel.c
+new file mode 100644
+index 000000000000..de01622246ef
+--- /dev/null
++++ b/src/tunnel.c
+@@ -0,0 +1,75 @@
++/*
++ * Copyright (c) 2018 Pablo Neira Ayuso <pablo@netfilter.org>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
 +
- "log"			{ return LOG; }
- "prefix"		{ return PREFIX; }
- "group"			{ return GROUP; }
-@@ -577,7 +580,6 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
- "reqid"			{ return REQID; }
- "spnum"			{ return SPNUM; }
- "transport"		{ return TRANSPORT; }
--"tunnel"		{ return TUNNEL; }
- 
- "in"			{ return IN; }
- "out"			{ return OUT; }
++#include <errno.h>
++#include <limits.h>
++#include <stddef.h>
++#include <stdlib.h>
++#include <stdio.h>
++#include <stdint.h>
++#include <string.h>
++#include <net/if.h>
++#include <net/if_arp.h>
++#include <pwd.h>
++#include <grp.h>
++#include <arpa/inet.h>
++#include <linux/netfilter.h>
++#include <linux/pkt_sched.h>
++#include <linux/if_packet.h>
++
++#include <nftables.h>
++#include <expression.h>
++#include <datatype.h>
++#include <tunnel.h>
++#include <gmputil.h>
++#include <utils.h>
++#include <erec.h>
++
++const struct tunnel_template tunnel_templates[] = {
++	[NFT_TUNNEL_PATH]	= META_TEMPLATE("path", &boolean_type,
++						BITS_PER_BYTE, BYTEORDER_HOST_ENDIAN),
++	[NFT_TUNNEL_ID]		= META_TEMPLATE("id",  &integer_type,
++						4 * 8, BYTEORDER_HOST_ENDIAN),
++};
++
++static void tunnel_expr_print(const struct expr *expr, struct output_ctx *octx)
++{
++	nft_print(octx, "tunnel %s",
++		  tunnel_templates[expr->tunnel.key].token);
++}
++
++static bool tunnel_expr_cmp(const struct expr *e1, const struct expr *e2)
++{
++	return e1->tunnel.key == e2->tunnel.key;
++}
++
++static void tunnel_expr_clone(struct expr *new, const struct expr *expr)
++{
++	new->tunnel.key = expr->tunnel.key;
++}
++
++const struct expr_ops tunnel_expr_ops = {
++	.type		= EXPR_TUNNEL,
++	.name		= "tunnel",
++	.print		= tunnel_expr_print,
++	.cmp		= tunnel_expr_cmp,
++	.clone		= tunnel_expr_clone,
++};
++
++struct expr *tunnel_expr_alloc(const struct location *loc,
++			       enum nft_tunnel_keys key)
++{
++	const struct tunnel_template *tmpl = &tunnel_templates[key];
++	struct expr *expr;
++
++	expr = expr_alloc(loc, EXPR_TUNNEL, tmpl->dtype, tmpl->byteorder,
++			  tmpl->len);
++	expr->tunnel.key = key;
++
++	return expr;
++}
 -- 
 2.11.0
 
