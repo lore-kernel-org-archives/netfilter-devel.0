@@ -2,738 +2,166 @@ Return-Path: <SRS0=19L1=VX=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.2 required=3.0 tests=FREEMAIL_FORGED_FROMDOMAIN,
+	FREEMAIL_FROM,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C270C76191
-	for <netfilter-devel@archiver.kernel.org>; Fri, 26 Jul 2019 06:18:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E7029C7618B
+	for <netfilter-devel@archiver.kernel.org>; Fri, 26 Jul 2019 07:24:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4D08F21734
-	for <netfilter-devel@archiver.kernel.org>; Fri, 26 Jul 2019 06:18:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C51D521873
+	for <netfilter-devel@archiver.kernel.org>; Fri, 26 Jul 2019 07:24:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726139AbfGZGSg (ORCPT
+        id S1726124AbfGZHYn (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 26 Jul 2019 02:18:36 -0400
-Received: from m9784.mail.qiye.163.com ([220.181.97.84]:10810 "EHLO
-        m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726102AbfGZGSg (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 26 Jul 2019 02:18:36 -0400
-Received: from localhost.localdomain (unknown [123.59.132.129])
-        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id 5520841ABB;
-        Fri, 26 Jul 2019 14:17:50 +0800 (CST)
-From:   wenxu@ucloud.cn
-To:     pablo@netfilter.org, fw@strlen.de
-Cc:     netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-Subject: [PATCH net-next v2 1/3] flow_offload: move tc indirect block to flow offload
-Date:   Fri, 26 Jul 2019 14:17:47 +0800
-Message-Id: <1564121869-3398-2-git-send-email-wenxu@ucloud.cn>
-X-Mailer: git-send-email 1.8.3.1
-In-Reply-To: <1564121869-3398-1-git-send-email-wenxu@ucloud.cn>
-References: <1564121869-3398-1-git-send-email-wenxu@ucloud.cn>
-X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVkpVS0pMS0tLS0xCSk5PQkxZV1koWU
-        FJQjdXWS1ZQUlXWQkOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6Phg6Ayo4FTg*NksWMwgzTDwo
-        LDBPCgtVSlVKTk1PSklKQ0xLTklOVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJSFVO
-        QlVKSElVSklCWVdZCAFZQUlKQ0NINwY+
-X-HM-Tid: 0a6c2cedb01d2086kuqy5520841abb
+        Fri, 26 Jul 2019 03:24:43 -0400
+Received: from smtp3-g21.free.fr ([212.27.42.3]:7752 "EHLO smtp3-g21.free.fr"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725836AbfGZHYn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 26 Jul 2019 03:24:43 -0400
+Received: from [IPv6:2a01:e34:ec0c:ae81:259a:5cf4:cd92:2659] (unknown [IPv6:2a01:e34:ec0c:ae80:259a:5cf4:cd92:2659])
+        by smtp3-g21.free.fr (Postfix) with ESMTPS id CD00413F838
+        for <netfilter-devel@vger.kernel.org>; Fri, 26 Jul 2019 09:24:37 +0200 (CEST)
+From:   Adel Belhouane <bugs.a.b@free.fr>
+Subject: [PATCH iptables v2]: restore legacy behaviour of iptables-restore
+ when rules start with -4/-6
+To:     netfilter-devel@vger.kernel.org
+Message-ID: <dcef34f2-7271-72e3-e0c3-60844305dd62@free.fr>
+Date:   Fri, 26 Jul 2019 09:24:37 +0200
+User-Agent: Mozilla/5.0 (X11; Linux i686 on x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.8.0
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: fr
+Content-Transfer-Encoding: 7bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: wenxu <wenxu@ucloud.cn>
 
-move tc indirect block to flow_offload and rename
-it to flow indirect block.The nf_tables can use the 
-indr block architecture.
+v2: moved examples to testcase files
 
-Signed-off-by: wenxu <wenxu@ucloud.cn>
----
-v2: make use of flow_block from Pablo
-    flow_indr_rhashtable_init advice by jakub.kicinski
+Legacy implementation of iptables-restore / ip6tables-restore allowed
+to insert a -4 or -6 option at start of a rule line to ignore it if not
+matching the command's protocol. This allowed to mix specific ipv4 and
+ipv6 rules in a single file, as still described in iptables 1.8.3's man
+page in options -4 and -6. The implementation over nftables doesn't behave
+correctly in this case: iptables-nft-restore accepts both -4 or -6 lines
+and ip6tables-nft-restore throws an error on -4.
 
- drivers/net/ethernet/mellanox/mlx5/core/en_rep.c   |  10 +-
- .../net/ethernet/netronome/nfp/flower/offload.c    |  10 +-
- include/net/flow_offload.h                         |  41 ++++
- include/net/pkt_cls.h                              |  35 ----
- include/net/sch_generic.h                          |   3 -
- net/core/flow_offload.c                            | 190 +++++++++++++++++
- net/sched/cls_api.c                                | 231 ++-------------------
- 7 files changed, 261 insertions(+), 259 deletions(-)
+There's a distribution bug report mentioning this problem:
+https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=925343
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c b/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
-index 7f747cb..074573b 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
-@@ -785,9 +785,9 @@ static int mlx5e_rep_indr_register_block(struct mlx5e_rep_priv *rpriv,
- {
- 	int err;
- 
--	err = __tc_indr_block_cb_register(netdev, rpriv,
--					  mlx5e_rep_indr_setup_tc_cb,
--					  rpriv);
-+	err = __flow_indr_block_cb_register(netdev, rpriv,
-+					    mlx5e_rep_indr_setup_tc_cb,
-+					    rpriv);
- 	if (err) {
- 		struct mlx5e_priv *priv = netdev_priv(rpriv->netdev);
- 
-@@ -800,8 +800,8 @@ static int mlx5e_rep_indr_register_block(struct mlx5e_rep_priv *rpriv,
- static void mlx5e_rep_indr_unregister_block(struct mlx5e_rep_priv *rpriv,
- 					    struct net_device *netdev)
- {
--	__tc_indr_block_cb_unregister(netdev, mlx5e_rep_indr_setup_tc_cb,
--				      rpriv);
-+	__flow_indr_block_cb_unregister(netdev, mlx5e_rep_indr_setup_tc_cb,
-+					rpriv);
- }
- 
- static int mlx5e_nic_rep_netdevice_event(struct notifier_block *nb,
-diff --git a/drivers/net/ethernet/netronome/nfp/flower/offload.c b/drivers/net/ethernet/netronome/nfp/flower/offload.c
-index e209f15..6a0f034 100644
---- a/drivers/net/ethernet/netronome/nfp/flower/offload.c
-+++ b/drivers/net/ethernet/netronome/nfp/flower/offload.c
-@@ -1479,16 +1479,16 @@ int nfp_flower_reg_indir_block_handler(struct nfp_app *app,
- 		return NOTIFY_OK;
- 
- 	if (event == NETDEV_REGISTER) {
--		err = __tc_indr_block_cb_register(netdev, app,
--						  nfp_flower_indr_setup_tc_cb,
--						  app);
-+		err = __flow_indr_block_cb_register(netdev, app,
-+						    nfp_flower_indr_setup_tc_cb,
-+						    app);
- 		if (err)
- 			nfp_flower_cmsg_warn(app,
- 					     "Indirect block reg failed - %s\n",
- 					     netdev->name);
- 	} else if (event == NETDEV_UNREGISTER) {
--		__tc_indr_block_cb_unregister(netdev,
--					      nfp_flower_indr_setup_tc_cb, app);
-+		__flow_indr_block_cb_unregister(netdev,
-+						nfp_flower_indr_setup_tc_cb, app);
- 	}
- 
- 	return NOTIFY_OK;
-diff --git a/include/net/flow_offload.h b/include/net/flow_offload.h
-index 00b9aab..b5ef5be 100644
---- a/include/net/flow_offload.h
-+++ b/include/net/flow_offload.h
-@@ -4,6 +4,7 @@
- #include <linux/kernel.h>
- #include <linux/list.h>
- #include <net/flow_dissector.h>
-+#include <linux/rhashtable.h>
- 
- struct flow_match {
- 	struct flow_dissector	*dissector;
-@@ -366,4 +367,44 @@ static inline void flow_block_init(struct flow_block *flow_block)
- 	INIT_LIST_HEAD(&flow_block->cb_list);
- }
- 
-+typedef int flow_indr_block_bind_cb_t(struct net_device *dev, void *cb_priv,
-+				      enum tc_setup_type type, void *type_data);
-+
-+struct flow_indr_block_cb {
-+	struct list_head list;
-+	void *cb_priv;
-+	flow_indr_block_bind_cb_t *cb;
-+	void *cb_ident;
-+};
-+
-+typedef void flow_indr_block_ing_cmd_t(struct net_device *dev,
-+				       struct flow_block *flow_block,
-+				       struct flow_indr_block_cb *indr_block_cb,
-+				       enum flow_block_command command);
-+
-+struct flow_indr_block_dev {
-+	struct rhash_head ht_node;
-+	struct net_device *dev;
-+	unsigned int refcnt;
-+	struct list_head cb_list;
-+	flow_indr_block_ing_cmd_t *ing_cmd_cb;
-+	struct flow_block *flow_block;
-+};
-+
-+struct flow_indr_block_dev *flow_indr_block_dev_lookup(struct net_device *dev);
-+
-+int flow_indr_rhashtable_init(void);
-+
-+int __flow_indr_block_cb_register(struct net_device *dev, void *cb_priv,
-+				  flow_indr_block_bind_cb_t *cb, void *cb_ident);
-+
-+void __flow_indr_block_cb_unregister(struct net_device *dev,
-+				     flow_indr_block_bind_cb_t *cb, void *cb_ident);
-+
-+int flow_indr_block_cb_register(struct net_device *dev, void *cb_priv,
-+				flow_indr_block_bind_cb_t *cb, void *cb_ident);
-+
-+void flow_indr_block_cb_unregister(struct net_device *dev,
-+				   flow_indr_block_bind_cb_t *cb, void *cb_ident);
-+
- #endif /* _NET_FLOW_OFFLOAD_H */
-diff --git a/include/net/pkt_cls.h b/include/net/pkt_cls.h
-index e429809..0790a4e 100644
---- a/include/net/pkt_cls.h
-+++ b/include/net/pkt_cls.h
-@@ -70,15 +70,6 @@ static inline struct Qdisc *tcf_block_q(struct tcf_block *block)
- 	return block->q;
- }
- 
--int __tc_indr_block_cb_register(struct net_device *dev, void *cb_priv,
--				tc_indr_block_bind_cb_t *cb, void *cb_ident);
--int tc_indr_block_cb_register(struct net_device *dev, void *cb_priv,
--			      tc_indr_block_bind_cb_t *cb, void *cb_ident);
--void __tc_indr_block_cb_unregister(struct net_device *dev,
--				   tc_indr_block_bind_cb_t *cb, void *cb_ident);
--void tc_indr_block_cb_unregister(struct net_device *dev,
--				 tc_indr_block_bind_cb_t *cb, void *cb_ident);
--
- int tcf_classify(struct sk_buff *skb, const struct tcf_proto *tp,
- 		 struct tcf_result *res, bool compat_mode);
- 
-@@ -137,32 +128,6 @@ void tc_setup_cb_block_unregister(struct tcf_block *block, flow_setup_cb_t *cb,
- {
- }
- 
--static inline
--int __tc_indr_block_cb_register(struct net_device *dev, void *cb_priv,
--				tc_indr_block_bind_cb_t *cb, void *cb_ident)
--{
--	return 0;
--}
--
--static inline
--int tc_indr_block_cb_register(struct net_device *dev, void *cb_priv,
--			      tc_indr_block_bind_cb_t *cb, void *cb_ident)
--{
--	return 0;
--}
--
--static inline
--void __tc_indr_block_cb_unregister(struct net_device *dev,
--				   tc_indr_block_bind_cb_t *cb, void *cb_ident)
--{
--}
--
--static inline
--void tc_indr_block_cb_unregister(struct net_device *dev,
--				 tc_indr_block_bind_cb_t *cb, void *cb_ident)
--{
--}
--
- static inline int tcf_classify(struct sk_buff *skb, const struct tcf_proto *tp,
- 			       struct tcf_result *res, bool compat_mode)
- {
-diff --git a/include/net/sch_generic.h b/include/net/sch_generic.h
-index 6b6b012..d9f359a 100644
---- a/include/net/sch_generic.h
-+++ b/include/net/sch_generic.h
-@@ -23,9 +23,6 @@
- struct module;
- struct bpf_flow_keys;
- 
--typedef int tc_indr_block_bind_cb_t(struct net_device *dev, void *cb_priv,
--				    enum tc_setup_type type, void *type_data);
--
- struct qdisc_rate_table {
- 	struct tc_ratespec rate;
- 	u32		data[256];
-diff --git a/net/core/flow_offload.c b/net/core/flow_offload.c
-index d63b970..a6785df 100644
---- a/net/core/flow_offload.c
-+++ b/net/core/flow_offload.c
-@@ -2,6 +2,7 @@
- #include <linux/kernel.h>
- #include <linux/slab.h>
- #include <net/flow_offload.h>
-+#include <linux/rtnetlink.h>
- 
- struct flow_rule *flow_rule_alloc(unsigned int num_actions)
- {
-@@ -280,3 +281,192 @@ int flow_block_cb_setup_simple(struct flow_block_offload *f,
- 	}
- }
- EXPORT_SYMBOL(flow_block_cb_setup_simple);
-+
-+static struct rhashtable indr_setup_block_ht;
-+
-+static const struct rhashtable_params flow_indr_setup_block_ht_params = {
-+	.key_offset	= offsetof(struct flow_indr_block_dev, dev),
-+	.head_offset	= offsetof(struct flow_indr_block_dev, ht_node),
-+	.key_len	= sizeof(struct net_device *),
-+};
-+
-+struct flow_indr_block_dev *
-+flow_indr_block_dev_lookup(struct net_device *dev)
-+{
-+	return rhashtable_lookup_fast(&indr_setup_block_ht, &dev,
-+				      flow_indr_setup_block_ht_params);
-+}
-+EXPORT_SYMBOL(flow_indr_block_dev_lookup);
-+
-+static struct flow_indr_block_dev *flow_indr_block_dev_get(struct net_device *dev)
-+{
-+	struct flow_indr_block_dev *indr_dev;
-+
-+	indr_dev = flow_indr_block_dev_lookup(dev);
-+	if (indr_dev)
-+		goto inc_ref;
-+
-+	indr_dev = kzalloc(sizeof(*indr_dev), GFP_KERNEL);
-+	if (!indr_dev)
-+		return NULL;
-+
-+	INIT_LIST_HEAD(&indr_dev->cb_list);
-+	indr_dev->dev = dev;
-+	if (rhashtable_insert_fast(&indr_setup_block_ht, &indr_dev->ht_node,
-+				   flow_indr_setup_block_ht_params)) {
-+		kfree(indr_dev);
-+		return NULL;
-+	}
-+
-+inc_ref:
-+	indr_dev->refcnt++;
-+	return indr_dev;
-+}
-+
-+static void flow_indr_block_dev_put(struct flow_indr_block_dev *indr_dev)
-+{
-+	if (--indr_dev->refcnt)
-+		return;
-+
-+	rhashtable_remove_fast(&indr_setup_block_ht, &indr_dev->ht_node,
-+			       flow_indr_setup_block_ht_params);
-+	kfree(indr_dev);
-+}
-+
-+static struct flow_indr_block_cb *
-+flow_indr_block_cb_lookup(struct flow_indr_block_dev *indr_dev,
-+			  flow_indr_block_bind_cb_t *cb, void *cb_ident)
-+{
-+	struct flow_indr_block_cb *indr_block_cb;
-+
-+	list_for_each_entry(indr_block_cb, &indr_dev->cb_list, list)
-+		if (indr_block_cb->cb == cb &&
-+		    indr_block_cb->cb_ident == cb_ident)
-+			return indr_block_cb;
-+	return NULL;
-+}
-+
-+static struct flow_indr_block_cb *
-+flow_indr_block_cb_add(struct flow_indr_block_dev *indr_dev, void *cb_priv,
-+		       flow_indr_block_bind_cb_t *cb, void *cb_ident)
-+{
-+	struct flow_indr_block_cb *indr_block_cb;
-+
-+	indr_block_cb = flow_indr_block_cb_lookup(indr_dev, cb, cb_ident);
-+	if (indr_block_cb)
-+		return ERR_PTR(-EEXIST);
-+
-+	indr_block_cb = kzalloc(sizeof(*indr_block_cb), GFP_KERNEL);
-+	if (!indr_block_cb)
-+		return ERR_PTR(-ENOMEM);
-+
-+	indr_block_cb->cb_priv = cb_priv;
-+	indr_block_cb->cb = cb;
-+	indr_block_cb->cb_ident = cb_ident;
-+	list_add(&indr_block_cb->list, &indr_dev->cb_list);
-+
-+	return indr_block_cb;
-+}
-+
-+static void flow_indr_block_cb_del(struct flow_indr_block_cb *indr_block_cb)
-+{
-+	list_del(&indr_block_cb->list);
-+	kfree(indr_block_cb);
-+}
-+
-+int __flow_indr_block_cb_register(struct net_device *dev, void *cb_priv,
-+				  flow_indr_block_bind_cb_t *cb,
-+				  void *cb_ident)
-+{
-+	struct flow_indr_block_cb *indr_block_cb;
-+	struct flow_indr_block_dev *indr_dev;
-+	int err;
-+
-+	indr_dev = flow_indr_block_dev_get(dev);
-+	if (!indr_dev)
-+		return -ENOMEM;
-+
-+	indr_block_cb = flow_indr_block_cb_add(indr_dev, cb_priv, cb, cb_ident);
-+	err = PTR_ERR_OR_ZERO(indr_block_cb);
-+	if (err)
-+		goto err_dev_put;
-+
-+	if (indr_dev->ing_cmd_cb)
-+		indr_dev->ing_cmd_cb(indr_dev->dev, indr_dev->flow_block, indr_block_cb,
-+				     FLOW_BLOCK_BIND);
-+
-+	return 0;
-+
-+err_dev_put:
-+	flow_indr_block_dev_put(indr_dev);
-+	return err;
-+}
-+EXPORT_SYMBOL_GPL(__flow_indr_block_cb_register);
-+
-+int flow_indr_block_cb_register(struct net_device *dev, void *cb_priv,
-+				flow_indr_block_bind_cb_t *cb,
-+				void *cb_ident)
-+{
-+	int err;
-+
-+	rtnl_lock();
-+	err = __flow_indr_block_cb_register(dev, cb_priv, cb, cb_ident);
-+	rtnl_unlock();
-+
-+	return err;
-+}
-+EXPORT_SYMBOL_GPL(flow_indr_block_cb_register);
-+
-+void __flow_indr_block_cb_unregister(struct net_device *dev,
-+				     flow_indr_block_bind_cb_t *cb,
-+				     void *cb_ident)
-+{
-+	struct flow_indr_block_cb *indr_block_cb;
-+	struct flow_indr_block_dev *indr_dev;
-+
-+	indr_dev = flow_indr_block_dev_lookup(dev);
-+	if (!indr_dev)
-+		return;
-+
-+	indr_block_cb = flow_indr_block_cb_lookup(indr_dev, cb, cb_ident);
-+	if (!indr_block_cb)
-+		return;
-+
-+	/* Send unbind message if required to free any block cbs. */
-+	if (indr_dev->ing_cmd_cb)
-+		indr_dev->ing_cmd_cb(indr_dev->dev, indr_dev->flow_block,
-+				     indr_block_cb,
-+				     FLOW_BLOCK_UNBIND);
-+
-+	flow_indr_block_cb_del(indr_block_cb);
-+	flow_indr_block_dev_put(indr_dev);
-+}
-+EXPORT_SYMBOL_GPL(__flow_indr_block_cb_unregister);
-+
-+void flow_indr_block_cb_unregister(struct net_device *dev,
-+				   flow_indr_block_bind_cb_t *cb,
-+				   void *cb_ident)
-+{
-+	rtnl_lock();
-+	__flow_indr_block_cb_unregister(dev, cb, cb_ident);
-+	rtnl_unlock();
-+}
-+EXPORT_SYMBOL_GPL(flow_indr_block_cb_unregister);
-+
-+int flow_indr_rhashtable_init(void)
-+{
-+	static bool rhash_table_init;
-+	int err = 0;
-+
-+	if (rhash_table_init)
-+		return 0;
-+
-+	err = rhashtable_init(&indr_setup_block_ht,
-+			      &flow_indr_setup_block_ht_params);
-+	if (err)
-+		return err;
-+
-+	rhash_table_init = true;
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(flow_indr_rhashtable_init);
-diff --git a/net/sched/cls_api.c b/net/sched/cls_api.c
-index 3565d9a..d370c52 100644
---- a/net/sched/cls_api.c
-+++ b/net/sched/cls_api.c
-@@ -37,6 +37,7 @@
- #include <net/tc_act/tc_skbedit.h>
- #include <net/tc_act/tc_ct.h>
- #include <net/tc_act/tc_mpls.h>
-+#include <net/flow_offload.h>
- 
- extern const struct nla_policy rtm_tca_policy[TCA_MAX + 1];
- 
-@@ -545,235 +546,43 @@ static void tcf_chain_flush(struct tcf_chain *chain, bool rtnl_held)
- 	}
- }
- 
--static struct tcf_block *tc_dev_ingress_block(struct net_device *dev)
--{
--	const struct Qdisc_class_ops *cops;
--	struct Qdisc *qdisc;
--
--	if (!dev_ingress_queue(dev))
--		return NULL;
--
--	qdisc = dev_ingress_queue(dev)->qdisc_sleeping;
--	if (!qdisc)
--		return NULL;
--
--	cops = qdisc->ops->cl_ops;
--	if (!cops)
--		return NULL;
--
--	if (!cops->tcf_block)
--		return NULL;
--
--	return cops->tcf_block(qdisc, TC_H_MIN_INGRESS, NULL);
--}
--
--static struct rhashtable indr_setup_block_ht;
--
--struct tc_indr_block_dev {
--	struct rhash_head ht_node;
--	struct net_device *dev;
--	unsigned int refcnt;
--	struct list_head cb_list;
--	struct tcf_block *block;
--};
--
--struct tc_indr_block_cb {
--	struct list_head list;
--	void *cb_priv;
--	tc_indr_block_bind_cb_t *cb;
--	void *cb_ident;
--};
--
--static const struct rhashtable_params tc_indr_setup_block_ht_params = {
--	.key_offset	= offsetof(struct tc_indr_block_dev, dev),
--	.head_offset	= offsetof(struct tc_indr_block_dev, ht_node),
--	.key_len	= sizeof(struct net_device *),
--};
--
--static struct tc_indr_block_dev *
--tc_indr_block_dev_lookup(struct net_device *dev)
--{
--	return rhashtable_lookup_fast(&indr_setup_block_ht, &dev,
--				      tc_indr_setup_block_ht_params);
--}
--
--static struct tc_indr_block_dev *tc_indr_block_dev_get(struct net_device *dev)
--{
--	struct tc_indr_block_dev *indr_dev;
--
--	indr_dev = tc_indr_block_dev_lookup(dev);
--	if (indr_dev)
--		goto inc_ref;
--
--	indr_dev = kzalloc(sizeof(*indr_dev), GFP_KERNEL);
--	if (!indr_dev)
--		return NULL;
--
--	INIT_LIST_HEAD(&indr_dev->cb_list);
--	indr_dev->dev = dev;
--	indr_dev->block = tc_dev_ingress_block(dev);
--	if (rhashtable_insert_fast(&indr_setup_block_ht, &indr_dev->ht_node,
--				   tc_indr_setup_block_ht_params)) {
--		kfree(indr_dev);
--		return NULL;
--	}
--
--inc_ref:
--	indr_dev->refcnt++;
--	return indr_dev;
--}
--
--static void tc_indr_block_dev_put(struct tc_indr_block_dev *indr_dev)
--{
--	if (--indr_dev->refcnt)
--		return;
--
--	rhashtable_remove_fast(&indr_setup_block_ht, &indr_dev->ht_node,
--			       tc_indr_setup_block_ht_params);
--	kfree(indr_dev);
--}
--
--static struct tc_indr_block_cb *
--tc_indr_block_cb_lookup(struct tc_indr_block_dev *indr_dev,
--			tc_indr_block_bind_cb_t *cb, void *cb_ident)
--{
--	struct tc_indr_block_cb *indr_block_cb;
--
--	list_for_each_entry(indr_block_cb, &indr_dev->cb_list, list)
--		if (indr_block_cb->cb == cb &&
--		    indr_block_cb->cb_ident == cb_ident)
--			return indr_block_cb;
--	return NULL;
--}
--
--static struct tc_indr_block_cb *
--tc_indr_block_cb_add(struct tc_indr_block_dev *indr_dev, void *cb_priv,
--		     tc_indr_block_bind_cb_t *cb, void *cb_ident)
--{
--	struct tc_indr_block_cb *indr_block_cb;
--
--	indr_block_cb = tc_indr_block_cb_lookup(indr_dev, cb, cb_ident);
--	if (indr_block_cb)
--		return ERR_PTR(-EEXIST);
--
--	indr_block_cb = kzalloc(sizeof(*indr_block_cb), GFP_KERNEL);
--	if (!indr_block_cb)
--		return ERR_PTR(-ENOMEM);
--
--	indr_block_cb->cb_priv = cb_priv;
--	indr_block_cb->cb = cb;
--	indr_block_cb->cb_ident = cb_ident;
--	list_add(&indr_block_cb->list, &indr_dev->cb_list);
--
--	return indr_block_cb;
--}
--
--static void tc_indr_block_cb_del(struct tc_indr_block_cb *indr_block_cb)
--{
--	list_del(&indr_block_cb->list);
--	kfree(indr_block_cb);
--}
--
- static int tcf_block_setup(struct tcf_block *block,
- 			   struct flow_block_offload *bo);
- 
--static void tc_indr_block_ing_cmd(struct tc_indr_block_dev *indr_dev,
--				  struct tc_indr_block_cb *indr_block_cb,
-+static void tc_indr_block_ing_cmd(struct net_device *dev,
-+				  struct flow_block *flow_block,
-+				  struct flow_indr_block_cb *indr_block_cb,
- 				  enum flow_block_command command)
- {
-+	struct tcf_block *block = flow_block ?
-+				  container_of(flow_block,
-+					       struct tcf_block,
-+					       flow_block) : NULL;
- 	struct flow_block_offload bo = {
- 		.command	= command,
- 		.binder_type	= FLOW_BLOCK_BINDER_TYPE_CLSACT_INGRESS,
--		.net		= dev_net(indr_dev->dev),
--		.block_shared	= tcf_block_non_null_shared(indr_dev->block),
-+		.net		= dev_net(dev),
-+		.block_shared	= tcf_block_non_null_shared(block),
- 	};
- 	INIT_LIST_HEAD(&bo.cb_list);
- 
--	if (!indr_dev->block)
--		return;
--
--	bo.block = &indr_dev->block->flow_block;
--
--	indr_block_cb->cb(indr_dev->dev, indr_block_cb->cb_priv, TC_SETUP_BLOCK,
--			  &bo);
--	tcf_block_setup(indr_dev->block, &bo);
--}
--
--int __tc_indr_block_cb_register(struct net_device *dev, void *cb_priv,
--				tc_indr_block_bind_cb_t *cb, void *cb_ident)
--{
--	struct tc_indr_block_cb *indr_block_cb;
--	struct tc_indr_block_dev *indr_dev;
--	int err;
--
--	indr_dev = tc_indr_block_dev_get(dev);
--	if (!indr_dev)
--		return -ENOMEM;
--
--	indr_block_cb = tc_indr_block_cb_add(indr_dev, cb_priv, cb, cb_ident);
--	err = PTR_ERR_OR_ZERO(indr_block_cb);
--	if (err)
--		goto err_dev_put;
--
--	tc_indr_block_ing_cmd(indr_dev, indr_block_cb, FLOW_BLOCK_BIND);
--	return 0;
--
--err_dev_put:
--	tc_indr_block_dev_put(indr_dev);
--	return err;
--}
--EXPORT_SYMBOL_GPL(__tc_indr_block_cb_register);
--
--int tc_indr_block_cb_register(struct net_device *dev, void *cb_priv,
--			      tc_indr_block_bind_cb_t *cb, void *cb_ident)
--{
--	int err;
--
--	rtnl_lock();
--	err = __tc_indr_block_cb_register(dev, cb_priv, cb, cb_ident);
--	rtnl_unlock();
--
--	return err;
--}
--EXPORT_SYMBOL_GPL(tc_indr_block_cb_register);
--
--void __tc_indr_block_cb_unregister(struct net_device *dev,
--				   tc_indr_block_bind_cb_t *cb, void *cb_ident)
--{
--	struct tc_indr_block_cb *indr_block_cb;
--	struct tc_indr_block_dev *indr_dev;
--
--	indr_dev = tc_indr_block_dev_lookup(dev);
--	if (!indr_dev)
-+	if (!block)
- 		return;
- 
--	indr_block_cb = tc_indr_block_cb_lookup(indr_dev, cb, cb_ident);
--	if (!indr_block_cb)
--		return;
-+	bo.block = flow_block;
- 
--	/* Send unbind message if required to free any block cbs. */
--	tc_indr_block_ing_cmd(indr_dev, indr_block_cb, FLOW_BLOCK_UNBIND);
--	tc_indr_block_cb_del(indr_block_cb);
--	tc_indr_block_dev_put(indr_dev);
--}
--EXPORT_SYMBOL_GPL(__tc_indr_block_cb_unregister);
-+	indr_block_cb->cb(dev, indr_block_cb->cb_priv, TC_SETUP_BLOCK, &bo);
- 
--void tc_indr_block_cb_unregister(struct net_device *dev,
--				 tc_indr_block_bind_cb_t *cb, void *cb_ident)
--{
--	rtnl_lock();
--	__tc_indr_block_cb_unregister(dev, cb, cb_ident);
--	rtnl_unlock();
-+	tcf_block_setup(block, &bo);
- }
--EXPORT_SYMBOL_GPL(tc_indr_block_cb_unregister);
- 
- static void tc_indr_block_call(struct tcf_block *block, struct net_device *dev,
- 			       struct tcf_block_ext_info *ei,
- 			       enum flow_block_command command,
- 			       struct netlink_ext_ack *extack)
- {
--	struct tc_indr_block_cb *indr_block_cb;
--	struct tc_indr_block_dev *indr_dev;
-+	struct flow_indr_block_cb *indr_block_cb;
-+	struct flow_indr_block_dev *indr_dev;
- 	struct flow_block_offload bo = {
- 		.command	= command,
- 		.binder_type	= ei->binder_type,
-@@ -784,11 +593,12 @@ static void tc_indr_block_call(struct tcf_block *block, struct net_device *dev,
- 	};
- 	INIT_LIST_HEAD(&bo.cb_list);
- 
--	indr_dev = tc_indr_block_dev_lookup(dev);
-+	indr_dev = flow_indr_block_dev_lookup(dev);
- 	if (!indr_dev)
- 		return;
- 
--	indr_dev->block = command == FLOW_BLOCK_BIND ? block : NULL;
-+	indr_dev->flow_block = command == FLOW_BLOCK_BIND ? &block->flow_block : NULL;
-+	indr_dev->ing_cmd_cb = command == FLOW_BLOCK_BIND ? tc_indr_block_ing_cmd : NULL;
- 
- 	list_for_each_entry(indr_block_cb, &indr_dev->cb_list, list)
- 		indr_block_cb->cb(dev, indr_block_cb->cb_priv, TC_SETUP_BLOCK,
-@@ -3358,8 +3168,7 @@ static int __init tc_filter_init(void)
- 	if (err)
- 		goto err_register_pernet_subsys;
- 
--	err = rhashtable_init(&indr_setup_block_ht,
--			      &tc_indr_setup_block_ht_params);
-+	err = flow_indr_rhashtable_init();
- 	if (err)
- 		goto err_rhash_setup_block_ht;
- 
--- 
-1.8.3.1
+Restore the legacy behaviour:
+- let do_parse() return and thus not add a command in those restore
+   special cases
+- let do_commandx() ignore CMD_NONE instead of bailing out
 
+I didn't attempt to fix all minor anomalies, but just to fix the
+regression. For example in the line below, iptables should throw an error
+instead of accepting -6 and then adding it as ipv4:
+
+% iptables-nft -6 -A INPUT -p tcp -j ACCEPT
+
+Signed-off-by: Adel Belhouane <bugs.a.b@free.fr>
+
+diff --git a/iptables/tests/shell/testcases/ipt-restore/0005-ipt-6_0 b/iptables/tests/shell/testcases/ipt-restore/0005-ipt-6_0
+new file mode 100755
+index 000000000000..dd069771022c
+--- /dev/null
++++ b/iptables/tests/shell/testcases/ipt-restore/0005-ipt-6_0
+@@ -0,0 +1,26 @@
++#!/bin/bash
++
++# Make sure iptables-restore simply ignores
++# rules starting with -6
++
++set -e
++
++# show rules, drop uninteresting policy settings
++ipt_show() {
++	$XT_MULTI iptables -S | grep -v '^-P'
++}
++
++# issue reproducer for iptables-restore
++
++$XT_MULTI iptables-restore <<EOF
++*filter
++-A FORWARD -m comment --comment any -j ACCEPT
++-4 -A FORWARD -m comment --comment ipv4 -j ACCEPT
++-6 -A FORWARD -m comment --comment ipv6 -j ACCEPT
++COMMIT
++EOF
++
++EXPECT='-A FORWARD -m comment --comment any -j ACCEPT
++-A FORWARD -m comment --comment ipv4 -j ACCEPT'
++
++diff -u -Z <(echo -e "$EXPECT") <(ipt_show)
+diff --git a/iptables/tests/shell/testcases/ipt-restore/0006-ip6t-4_0 b/iptables/tests/shell/testcases/ipt-restore/0006-ip6t-4_0
+new file mode 100755
+index 000000000000..a37253a9d78e
+--- /dev/null
++++ b/iptables/tests/shell/testcases/ipt-restore/0006-ip6t-4_0
+@@ -0,0 +1,26 @@
++#!/bin/bash
++
++# Make sure ip6tables-restore simply ignores
++# rules starting with -4
++
++set -e
++
++# show rules, drop uninteresting policy settings
++ipt_show() {
++	$XT_MULTI ip6tables -S | grep -v '^-P'
++}
++
++# issue reproducer for ip6tables-restore
++
++$XT_MULTI ip6tables-restore <<EOF
++*filter
++-A FORWARD -m comment --comment any -j ACCEPT
++-4 -A FORWARD -m comment --comment ipv4 -j ACCEPT
++-6 -A FORWARD -m comment --comment ipv6 -j ACCEPT
++COMMIT
++EOF
++
++EXPECT='-A FORWARD -m comment --comment any -j ACCEPT
++-A FORWARD -m comment --comment ipv6 -j ACCEPT'
++
++diff -u -Z <(echo -e "$EXPECT") <(ipt_show)
+diff --git a/iptables/xtables.c b/iptables/xtables.c
+index 93d9dcba828b..0e0cb5f53d42 100644
+--- a/iptables/xtables.c
++++ b/iptables/xtables.c
+@@ -955,6 +955,9 @@ void do_parse(struct nft_handle *h, int argc, char *argv[],
+  			break;
+  
+  		case '4':
++			if (p->restore && args->family == AF_INET6)
++				return;
++
+  			if (args->family != AF_INET)
+  				exit_tryhelp(2);
+  
+@@ -962,6 +965,9 @@ void do_parse(struct nft_handle *h, int argc, char *argv[],
+  			break;
+  
+  		case '6':
++			if (p->restore && args->family == AF_INET)
++				return;
++
+  			args->family = AF_INET6;
+  			xtables_set_nfproto(AF_INET6);
+  
+@@ -1174,6 +1180,9 @@ int do_commandx(struct nft_handle *h, int argc, char *argv[], char **table,
+  	case CMD_SET_POLICY:
+  		ret = nft_chain_set(h, p.table, p.chain, p.policy, NULL);
+  		break;
++	case CMD_NONE:
++	/* do_parse ignored the line (eg: -4 with ip6tables-restore) */
++		break;
+  	default:
+  		/* We should never reach this... */
+  		exit_tryhelp(2);
