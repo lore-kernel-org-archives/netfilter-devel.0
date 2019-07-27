@@ -4,69 +4,69 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-6.7 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CC8ECC7618F
-	for <netfilter-devel@archiver.kernel.org>; Sat, 27 Jul 2019 00:52:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 59B03C76190
+	for <netfilter-devel@archiver.kernel.org>; Sat, 27 Jul 2019 00:56:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 934E5229F9
-	for <netfilter-devel@archiver.kernel.org>; Sat, 27 Jul 2019 00:52:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2D03D229F9
+	for <netfilter-devel@archiver.kernel.org>; Sat, 27 Jul 2019 00:56:35 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=netronome-com.20150623.gappssmtp.com header.i=@netronome-com.20150623.gappssmtp.com header.b="tH3fXljO"
+	dkim=pass (2048-bit key) header.d=netronome-com.20150623.gappssmtp.com header.i=@netronome-com.20150623.gappssmtp.com header.b="U0q6OZF7"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728222AbfG0Aww (ORCPT
+        id S1728220AbfG0A4d (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 26 Jul 2019 20:52:52 -0400
-Received: from mail-qt1-f195.google.com ([209.85.160.195]:41200 "EHLO
-        mail-qt1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726115AbfG0Aww (ORCPT
+        Fri, 26 Jul 2019 20:56:33 -0400
+Received: from mail-qk1-f194.google.com ([209.85.222.194]:44221 "EHLO
+        mail-qk1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726681AbfG0A4c (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 26 Jul 2019 20:52:52 -0400
-Received: by mail-qt1-f195.google.com with SMTP id d17so54288995qtj.8
-        for <netfilter-devel@vger.kernel.org>; Fri, 26 Jul 2019 17:52:52 -0700 (PDT)
+        Fri, 26 Jul 2019 20:56:32 -0400
+Received: by mail-qk1-f194.google.com with SMTP id d79so40356391qke.11
+        for <netfilter-devel@vger.kernel.org>; Fri, 26 Jul 2019 17:56:32 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=netronome-com.20150623.gappssmtp.com; s=20150623;
         h=date:from:to:cc:subject:message-id:in-reply-to:references
          :organization:mime-version:content-transfer-encoding;
-        bh=IxMznPIC5UfZy1+kJ9CB0q6LfRe/nhn6D+AfcZZVl1M=;
-        b=tH3fXljO9Laly2uDYB7Djus4nkymtuIlKMP9pgDBVP08Po/aJvqah1VAIaQ9g3wjuu
-         Ub3EouXyNRyqEs/sAwKx9lhPTi9fPgHf7e3ww6ko29OpwFdhL+iaTejnz2xz3hadeEkC
-         4jE9YEwVlCcO11wTsiAWmo6RKVFX9Y+YNKBpSTPjrDyr0+lCAYdk3sYrtZzVAPQM+lkD
-         2IQh4mEknUoAd3AZCTMjlIZZ4wT87ZTEdkwNshID30Ny4ZJGS24l7mVPmZ10KdJDks7o
-         gV+Qc0zamMugoo3IwEqqGOPElcNFY1t4hfakF8gO2iy93ORtWRuw3jwGeYOMpHo/X9I6
-         oilQ==
+        bh=D+EahN2WDf0UyCF98RwKe0SRG64PvdhD02JevFEUhtM=;
+        b=U0q6OZF7xUK0PumILnqjgZfuzTudsgX6VT7DF2aM+v4ai87AWV5mylM4SF26xhvDtR
+         BWw0BbrcGMnsO3TQa5WfqUZki7cyqApXWDdwW4qjBxh2FLE2yUxeDBFMRICaCsj4OjjE
+         lzYosjpUBd/d030OEWnB2fp3ooEHPkPgCDBXEs8W2SrbKW6F7KveRQqKEJmyjqwQihh4
+         fJ1JC/1OvC2WJwc3b7k4HSSiESMFnnSot/I7r6NWEY4XJmC4Wl+GlB4W+FeMORNmrZWz
+         KLPvYqpEH6mifGXU8FNDJ7hyeEgOKOtDhPcJloi1aShVhgHLsXiGRqOk+OXY2QmRPJXJ
+         +qOw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:date:from:to:cc:subject:message-id:in-reply-to
          :references:organization:mime-version:content-transfer-encoding;
-        bh=IxMznPIC5UfZy1+kJ9CB0q6LfRe/nhn6D+AfcZZVl1M=;
-        b=CF1+QRbg0r2QtHvFoLL1lsWshDiFYQxdJBdyP4LsQZGSHDmR2M1dxn9hqH8+IEBSzJ
-         YWZRIs7n9HTqQCwm6o08OFXMgKipItxwrdvciXewDLescGfL2Ju9cHBFfSC5gI4MBJqC
-         CoXNs4o2plBIVjSv7Q9Kjc4bGqzuVlvza4s0Uvr9DnzIoSGrTxMAj7aA1mmmdRu6gzLq
-         E0ITtRWAEeUncS9SDRNoYMhYeDIp7Ov6WlhgimBk6z/RUzrpiRII/ehFoMHbwChtAFUy
-         B6B4IUvE46GAzaiArYK2TbH7vj5ikLIMWcyIN7AUcYW26P50OYGHU+cwCLsBq3MvXz6k
-         aF4g==
-X-Gm-Message-State: APjAAAXIXLYGX8EUU0cj9WsRA8JIQoiuhltBNbbOAuM1YlJQsbg+YZL/
-        hnpKA9o5VdxjCquV/8e1JyKTdg==
-X-Google-Smtp-Source: APXvYqwxJJB54EGa8+t++FLHaXG/WjxD0k3jR6VANPo76Sa7x4BHiGzRXJZBxbuNPFIRXgpcySkPxA==
-X-Received: by 2002:ac8:5311:: with SMTP id t17mr67017784qtn.304.1564188771648;
-        Fri, 26 Jul 2019 17:52:51 -0700 (PDT)
+        bh=D+EahN2WDf0UyCF98RwKe0SRG64PvdhD02JevFEUhtM=;
+        b=YvQS3Po3TAkc5Wko5RL/Hk2QDkrPkw4uo4G2DVn/koBOGvDeFW8J0Yel52phEsMeO5
+         nKhUGX7ZiWMdjVeYpSSEQ5gYTaR98QvelS3eZ9uaQVUtDh4ljskwRSApSHdQnpAeCMVl
+         L1R+v+Wk7LXuGo0opuTTJAneCocxjflSfPJAzWpnQn8s0cK9DVYPCmIO8vmH/PGdI0w2
+         zGZGf1izCXAg8LjcfrRK5/IDdWCunlSYNH7qPY20lkYm2qriW6CEQd+8h4yxbxz5DFuq
+         KCa1asLqnPoXHBJFoiS3Nzs5jweDZshR/aoXvtqPFnRa2SQwaZ0njQDCXMOB9JDaSPSf
+         xZFg==
+X-Gm-Message-State: APjAAAWZQgsGJsUpGrM+UZ4R0iU2yB4y4snLE9cglbiX4/CyMaToMi4X
+        RvEcPCN7Th66n487dJoJmXlgkg==
+X-Google-Smtp-Source: APXvYqxWCmIsDgrHAK05JR8WqgdMV0+hgjUzOArYSbDIbTXLTKJNiTDR4x/uzFmMNznIrTyo6qjDig==
+X-Received: by 2002:a37:dc42:: with SMTP id v63mr48716828qki.488.1564188991930;
+        Fri, 26 Jul 2019 17:56:31 -0700 (PDT)
 Received: from cakuba.netronome.com ([66.60.152.14])
-        by smtp.gmail.com with ESMTPSA id n184sm22906920qkc.114.2019.07.26.17.52.50
+        by smtp.gmail.com with ESMTPSA id m8sm21000597qkg.104.2019.07.26.17.56.31
         (version=TLS1_3 cipher=AEAD-AES256-GCM-SHA384 bits=256/256);
-        Fri, 26 Jul 2019 17:52:51 -0700 (PDT)
-Date:   Fri, 26 Jul 2019 17:52:45 -0700
+        Fri, 26 Jul 2019 17:56:31 -0700 (PDT)
+Date:   Fri, 26 Jul 2019 17:56:27 -0700
 From:   Jakub Kicinski <jakub.kicinski@netronome.com>
 To:     wenxu@ucloud.cn
 Cc:     pablo@netfilter.org, fw@strlen.de, netfilter-devel@vger.kernel.org,
         netdev@vger.kernel.org
-Subject: Re: [PATCH net-next v3 2/3] flow_offload: support get tcf block
- immediately
-Message-ID: <20190726175245.4467d94b@cakuba.netronome.com>
-In-Reply-To: <1564148047-6428-3-git-send-email-wenxu@ucloud.cn>
+Subject: Re: [PATCH net-next v3 1/3] flow_offload: move tc indirect block to
+ flow offload
+Message-ID: <20190726175627.7c146f94@cakuba.netronome.com>
+In-Reply-To: <1564148047-6428-2-git-send-email-wenxu@ucloud.cn>
 References: <1564148047-6428-1-git-send-email-wenxu@ucloud.cn>
-        <1564148047-6428-3-git-send-email-wenxu@ucloud.cn>
+        <1564148047-6428-2-git-send-email-wenxu@ucloud.cn>
 Organization: Netronome Systems, Ltd.
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
@@ -76,64 +76,55 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, 26 Jul 2019 21:34:06 +0800, wenxu@ucloud.cn wrote:
+On Fri, 26 Jul 2019 21:34:05 +0800, wenxu@ucloud.cn wrote:
 > From: wenxu <wenxu@ucloud.cn>
 > 
-> Because the new flow-indr-block can't get the tcf_block
-> directly.
-> It provide a callback to find the tcf block immediately
-> when the device register and contain a ingress block.
+> move tc indirect block to flow_offload and rename
+> it to flow indirect block.The nf_tables can use the
+> indr block architecture.
 > 
 > Signed-off-by: wenxu <wenxu@ucloud.cn>
 
-Please CC people who gave you feedback on your subsequent submissions.
-
 > diff --git a/include/net/flow_offload.h b/include/net/flow_offload.h
-> index 66f89bc..3b2e848 100644
+> index 00b9aab..66f89bc 100644
 > --- a/include/net/flow_offload.h
 > +++ b/include/net/flow_offload.h
-> @@ -391,6 +391,10 @@ struct flow_indr_block_dev {
->  	struct flow_block *flow_block;
->  };
+> @@ -4,6 +4,7 @@
+>  #include <linux/kernel.h>
+>  #include <linux/list.h>
+>  #include <net/flow_dissector.h>
+> +#include <linux/rhashtable.h>
 >  
-> +typedef void flow_indr_get_default_block_t(struct flow_indr_block_dev *indr_dev);
-> +
-> +void flow_indr_set_default_block_cb(flow_indr_get_default_block_t *cb);
-> +
->  struct flow_indr_block_dev *flow_indr_block_dev_lookup(struct net_device *dev);
->  
->  int __flow_indr_block_cb_register(struct net_device *dev, void *cb_priv,
-> diff --git a/net/core/flow_offload.c b/net/core/flow_offload.c
-> index 9f1ae67..db8469d 100644
-> --- a/net/core/flow_offload.c
-> +++ b/net/core/flow_offload.c
-> @@ -298,6 +298,14 @@ struct flow_indr_block_dev *
+>  struct flow_match {
+>  	struct flow_dissector	*dissector;
+> @@ -366,4 +367,42 @@ static inline void flow_block_init(struct flow_block *flow_block)
+>  	INIT_LIST_HEAD(&flow_block->cb_list);
 >  }
->  EXPORT_SYMBOL(flow_indr_block_dev_lookup);
 >  
-> +static flow_indr_get_default_block_t *flow_indr_get_default_block;
-
-This static variable which can only be set to the TC's callback really
-is not a great API design :/
-
-> +void flow_indr_set_default_block_cb(flow_indr_get_default_block_t *cb)
-> +{
-> +	flow_indr_get_default_block = cb;
-> +}
-> +EXPORT_SYMBOL(flow_indr_set_default_block_cb);
+> +typedef int flow_indr_block_bind_cb_t(struct net_device *dev, void *cb_priv,
+> +				      enum tc_setup_type type, void *type_data);
 > +
->  static struct flow_indr_block_dev *flow_indr_block_dev_get(struct net_device *dev)
->  {
->  	struct flow_indr_block_dev *indr_dev;
-> @@ -312,6 +320,10 @@ static struct flow_indr_block_dev *flow_indr_block_dev_get(struct net_device *de
->  
->  	INIT_LIST_HEAD(&indr_dev->cb_list);
->  	indr_dev->dev = dev;
+> +struct flow_indr_block_cb {
+> +	struct list_head list;
+> +	void *cb_priv;
+> +	flow_indr_block_bind_cb_t *cb;
+> +	void *cb_ident;
+> +};
 > +
-> +	if (flow_indr_get_default_block)
-> +		flow_indr_get_default_block(indr_dev);
+> +typedef void flow_indr_block_ing_cmd_t(struct net_device *dev,
+> +				       struct flow_block *flow_block,
+> +				       struct flow_indr_block_cb *indr_block_cb,
+> +				       enum flow_block_command command);
 > +
->  	if (rhashtable_insert_fast(&indr_setup_block_ht, &indr_dev->ht_node,
->  				   flow_indr_setup_block_ht_params)) {
->  		kfree(indr_dev);
+> +struct flow_indr_block_dev {
+> +	struct rhash_head ht_node;
+> +	struct net_device *dev;
+> +	unsigned int refcnt;
+> +	struct list_head cb_list;
+> +	flow_indr_block_ing_cmd_t *ing_cmd_cb;
+> +	struct flow_block *flow_block;
 
+TC can only have one block per device. Now with nftables offload we can
+have multiple blocks. Could you elaborate how this is solved?
+
+> +};
