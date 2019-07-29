@@ -2,102 +2,113 @@ Return-Path: <SRS0=chdK=V2=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B7262C7618B
-	for <netfilter-devel@archiver.kernel.org>; Mon, 29 Jul 2019 14:59:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0ACE5C433FF
+	for <netfilter-devel@archiver.kernel.org>; Mon, 29 Jul 2019 15:59:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 928DC2067D
-	for <netfilter-devel@archiver.kernel.org>; Mon, 29 Jul 2019 14:59:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CFEB92073F
+	for <netfilter-devel@archiver.kernel.org>; Mon, 29 Jul 2019 15:59:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728662AbfG2O7L (ORCPT
+        id S2388304AbfG2P7A (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 29 Jul 2019 10:59:11 -0400
-Received: from szxga06-in.huawei.com ([45.249.212.32]:33374 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726197AbfG2O7K (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 29 Jul 2019 10:59:10 -0400
-Received: from DGGEMS410-HUB.china.huawei.com (unknown [172.30.72.60])
-        by Forcepoint Email with ESMTP id 1619C9E47522CFEB2C32;
-        Mon, 29 Jul 2019 22:59:08 +0800 (CST)
-Received: from [127.0.0.1] (10.184.191.73) by DGGEMS410-HUB.china.huawei.com
- (10.3.19.210) with Microsoft SMTP Server id 14.3.439.0; Mon, 29 Jul 2019
- 22:59:01 +0800
-Subject: Re: [PATCH net] ipvs: Improve robustness to the ipvs sysctl
-To:     Florian Westphal <fw@strlen.de>
-CC:     <wensong@linux-vs.org>, <horms@verge.net.au>, <ja@ssi.bg>,
-        <pablo@netfilter.org>, <lvs-devel@vger.kernel.org>,
-        <netfilter-devel@vger.kernel.org>,
-        Mingfangsen <mingfangsen@huawei.com>, <wangxiaogang3@huawei.com>,
-        <xuhanbing@huawei.com>
-References: <1997375e-815d-137f-20c9-0829a8587ee9@huawei.com>
- <20190729004958.GA19226@strlen.de>
-From:   hujunwei <hujunwei4@huawei.com>
-Message-ID: <5544dfbc-b291-05f5-ba7f-1cfc9bba013b@huawei.com>
-Date:   Mon, 29 Jul 2019 22:58:45 +0800
-User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:60.0) Gecko/20100101
- Thunderbird/60.6.1
+        Mon, 29 Jul 2019 11:59:00 -0400
+Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:35644 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S2387888AbfG2P7A (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 29 Jul 2019 11:59:00 -0400
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.89)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1hs838-0004VR-A5; Mon, 29 Jul 2019 17:58:58 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     syzkaller-bugs@googlegroups.com, Florian Westphal <fw@strlen.de>,
+        syzbot+276ddebab3382bbf72db@syzkaller.appspotmail.com
+Subject: [PATCH nf] netfilter: ebtables: also count base chain policies
+Date:   Mon, 29 Jul 2019 17:58:10 +0200
+Message-Id: <20190729155810.20653-1-fw@strlen.de>
+X-Mailer: git-send-email 2.21.0
+In-Reply-To: <0000000000006d6c68058e259203@google.com>
+References: <0000000000006d6c68058e259203@google.com>
 MIME-Version: 1.0
-In-Reply-To: <20190729004958.GA19226@strlen.de>
-Content-Type: text/plain; charset="utf-8"
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.184.191.73]
-X-CFilter-Loop: Reflected
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Julian, thank you for replay.
+ebtables doesn't include the base chain policies in the rule count,
+so we need to add them manually when we call into the x_tables core
+to allocate space for the comapt offset table.
 
-On 2019/7/29 8:49, Florian Westphal wrote:
-> hujunwei <hujunwei4@huawei.com> wrote:
-> 
-> [ trimmed CC list ]
-> 
->> The ipvs module parse the user buffer and save it to sysctl,
->> then check if the value is valid. invalid value occurs
->> over a period of time.
->> Here, I add a variable, struct ctl_table tmp, used to read
->> the value from the user buffer, and save only when it is valid.
-> 
-> Does this cause any problems?  If so, what are those?
-> 
-For example, when a negative number value occurs over a period of time,
-the func such as ip_vs_sync_conn_v0() will get invalid number
-by sysctl_sync_threshold(), casue judge abnormal in ip_vs_sync_conn_needed().
+This lead syzbot to trigger:
+WARNING: CPU: 1 PID: 9012 at net/netfilter/x_tables.c:649
+xt_compat_add_offset.cold+0x11/0x36 net/netfilter/x_tables.c:649
 
->> Fixes: f73181c8288f ("ipvs: add support for sync threads")
->> Signed-off-by: Junwei Hu <hujunwei4@huawei.com>
->> ---
->>  net/netfilter/ipvs/ip_vs_ctl.c | 61 +++++++++++++++++++++++-----------
->>  1 file changed, 42 insertions(+), 19 deletions(-)
->>
->> diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
->> index 741d91aa4a8d..e78fd05f108b 100644
->> --- a/net/netfilter/ipvs/ip_vs_ctl.c
->> +++ b/net/netfilter/ipvs/ip_vs_ctl.c
->> @@ -1680,12 +1680,18 @@ proc_do_defense_mode(struct ctl_table *table, int write,
->>  	int val = *valp;
->>  	int rc;
->>
->> -	rc = proc_dointvec(table, write, buffer, lenp, ppos);
->> +	struct ctl_table tmp = {
->> +		.data = &val,
->> +		.maxlen = sizeof(int),
->> +		.mode = table->mode,
->> +	};
->> +
->> +	rc = proc_dointvec(&tmp, write, buffer, lenp, ppos);
-> 
-> Wouldn't it be better do use proc_dointvec_minmax and set the
-> constraints via .extra1,2 in the sysctl knob definition?
-> 
-You are right, proc_dointvec_minmax seems like a better choice, I will update the patch.
+Reported-by: syzbot+276ddebab3382bbf72db@syzkaller.appspotmail.com
+Fixes: 2035f3ff8eaa ("netfilter: ebtables: compat: un-break 32bit setsockopt when no rules are present")
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ net/bridge/netfilter/ebtables.c | 28 +++++++++++++++++-----------
+ 1 file changed, 17 insertions(+), 11 deletions(-)
 
-Regards,
-Junwei
+diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
+index fd84b48e48b5..c8177a89f52c 100644
+--- a/net/bridge/netfilter/ebtables.c
++++ b/net/bridge/netfilter/ebtables.c
+@@ -1770,20 +1770,28 @@ static int compat_calc_entry(const struct ebt_entry *e,
+ 	return 0;
+ }
+ 
++static int ebt_compat_init_offsets(unsigned int number)
++{
++	if (number > INT_MAX)
++		return -EINVAL;
++
++	/* also count the base chain policies */
++	number += NF_BR_NUMHOOKS;
++
++	return xt_compat_init_offsets(NFPROTO_BRIDGE, number);
++}
+ 
+ static int compat_table_info(const struct ebt_table_info *info,
+ 			     struct compat_ebt_replace *newinfo)
+ {
+ 	unsigned int size = info->entries_size;
+ 	const void *entries = info->entries;
++	int ret;
+ 
+ 	newinfo->entries_size = size;
+-	if (info->nentries) {
+-		int ret = xt_compat_init_offsets(NFPROTO_BRIDGE,
+-						 info->nentries);
+-		if (ret)
+-			return ret;
+-	}
++	ret = ebt_compat_init_offsets(info->nentries);
++	if (ret)
++		return ret;
+ 
+ 	return EBT_ENTRY_ITERATE(entries, size, compat_calc_entry, info,
+ 							entries, newinfo);
+@@ -2234,11 +2242,9 @@ static int compat_do_replace(struct net *net, void __user *user,
+ 
+ 	xt_compat_lock(NFPROTO_BRIDGE);
+ 
+-	if (tmp.nentries) {
+-		ret = xt_compat_init_offsets(NFPROTO_BRIDGE, tmp.nentries);
+-		if (ret < 0)
+-			goto out_unlock;
+-	}
++	ret = ebt_compat_init_offsets(tmp.nentries);
++	if (ret < 0)
++		goto out_unlock;
+ 
+ 	ret = compat_copy_entries(entries_tmp, tmp.entries_size, &state);
+ 	if (ret < 0)
+-- 
+2.21.0
 
