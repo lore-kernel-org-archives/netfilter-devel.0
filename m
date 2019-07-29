@@ -2,85 +2,82 @@ Return-Path: <SRS0=chdK=V2=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.4 required=3.0 tests=FROM_LOCAL_HEX,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F30CC7618F
-	for <netfilter-devel@archiver.kernel.org>; Mon, 29 Jul 2019 00:38:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B759AC7618F
+	for <netfilter-devel@archiver.kernel.org>; Mon, 29 Jul 2019 00:50:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 01217206BA
-	for <netfilter-devel@archiver.kernel.org>; Mon, 29 Jul 2019 00:38:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 99CA92070B
+	for <netfilter-devel@archiver.kernel.org>; Mon, 29 Jul 2019 00:50:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726297AbfG2AiE (ORCPT
+        id S1726291AbfG2AuS (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 28 Jul 2019 20:38:04 -0400
-Received: from mail-io1-f71.google.com ([209.85.166.71]:55450 "EHLO
-        mail-io1-f71.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726267AbfG2AiB (ORCPT
+        Sun, 28 Jul 2019 20:50:18 -0400
+Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:59626 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726238AbfG2AuS (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 28 Jul 2019 20:38:01 -0400
-Received: by mail-io1-f71.google.com with SMTP id f22so65819527ioh.22
-        for <netfilter-devel@vger.kernel.org>; Sun, 28 Jul 2019 17:38:01 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:date:in-reply-to:message-id:subject
-         :from:to;
-        bh=P/bfC/9DYsjpqYrAz/GLNeevsKIsGM5ry8dJO/L9Ihk=;
-        b=AykLSMNrRyGnu0WR+sRnAYCeC8nB8ywa4Uy/mCeTo+1OkBkW6HDRFe3aKRlix+KkjW
-         bkPW8N0Z/9yZIb2kIYp8hHpLxhFPvxPDQsg/LK1i5MfOa00h1DMsgiZBpVEdQ6ofxHY4
-         k4YUe//g5QfDyxqKHSluxsPlMRQ40Dv5b2lYSQAt4BQZ5XkLjz0XW59k7/pb5aVNdSG+
-         sSPGlIV3v11QYZMCTyCAkaVBCYen50Ryco/cL3ooxJyDlcpDzz9BVQc9YJW+O/IQlJHS
-         Ppu8WL50ZOwaLn+a24OC7OvM86lR/ivdTsVTxnLlWgxDCaQxIqlOIVdx2nDhfjLCIBdR
-         pG+A==
-X-Gm-Message-State: APjAAAXTy1GRUETF3cnzxvedyqMP5YdCEK9CE0wIOhaynZN2gdWs73Xv
-        cSgs44BIDz5SunAG3SlGnWhzqbJJDgxTjBpHWo36kyGuzkFl
-X-Google-Smtp-Source: APXvYqwVilF5qTRSsaLkhL6POlQdbplmHCUtbsaCjcw6sv9rHxSg5wY2IEL+f/ULWS/npxF51AhFcSpVnuGNfy6+mXTXpQgpNXm3
+        Sun, 28 Jul 2019 20:50:18 -0400
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.89)
+        (envelope-from <fw@strlen.de>)
+        id 1hrtrY-000832-8H; Mon, 29 Jul 2019 02:50:04 +0200
+Date:   Mon, 29 Jul 2019 02:49:58 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     hujunwei <hujunwei4@huawei.com>
+Cc:     wensong@linux-vs.org, horms@verge.net.au, ja@ssi.bg,
+        pablo@netfilter.org, lvs-devel@vger.kernel.org,
+        netfilter-devel@vger.kernel.org,
+        Mingfangsen <mingfangsen@huawei.com>, wangxiaogang3@huawei.com,
+        xuhanbing@huawei.com
+Subject: Re: [PATCH net] ipvs: Improve robustness to the ipvs sysctl
+Message-ID: <20190729004958.GA19226@strlen.de>
+References: <1997375e-815d-137f-20c9-0829a8587ee9@huawei.com>
 MIME-Version: 1.0
-X-Received: by 2002:a05:6638:40c:: with SMTP id q12mr81494815jap.17.1564360680847;
- Sun, 28 Jul 2019 17:38:00 -0700 (PDT)
-Date:   Sun, 28 Jul 2019 17:38:00 -0700
-In-Reply-To: <000000000000c75fb7058ba0c0e4@google.com>
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <000000000000aec4ec058ec71a3d@google.com>
-Subject: Re: memory leak in bio_copy_user_iov
-From:   syzbot <syzbot+03e5c8ebd22cc6c3a8cb@syzkaller.appspotmail.com>
-To:     agk@redhat.com, axboe@kernel.dk, coreteam@netfilter.org,
-        davem@davemloft.net, dm-devel@redhat.com, hdanton@sina.com,
-        kaber@trash.net, kadlec@blackhole.kfki.hu,
-        linux-block@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-raid@vger.kernel.org, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, pablo@netfilter.org,
-        shli@kernel.org, snitzer@redhat.com,
-        syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1997375e-815d-137f-20c9-0829a8587ee9@huawei.com>
+User-Agent: Mutt/1.12.0 (2019-05-25)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-syzbot has bisected this bug to:
+hujunwei <hujunwei4@huawei.com> wrote:
 
-commit 664820265d70a759dceca87b6eb200cd2b93cda8
-Author: Mike Snitzer <snitzer@redhat.com>
-Date:   Thu Feb 18 20:44:39 2016 +0000
+[ trimmed CC list ]
 
-     dm: do not return target from dm_get_live_table_for_ioctl()
+> The ipvs module parse the user buffer and save it to sysctl,
+> then check if the value is valid. invalid value occurs
+> over a period of time.
+> Here, I add a variable, struct ctl_table tmp, used to read
+> the value from the user buffer, and save only when it is valid.
 
-bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=13f4eb64600000
-start commit:   0011572c Merge branch 'for-5.2-fixes' of git://git.kernel...
-git tree:       upstream
-final crash:    https://syzkaller.appspot.com/x/report.txt?x=100ceb64600000
-console output: https://syzkaller.appspot.com/x/log.txt?x=17f4eb64600000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=cb38d33cd06d8d48
-dashboard link: https://syzkaller.appspot.com/bug?extid=03e5c8ebd22cc6c3a8cb
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=13244221a00000
-C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=117b2432a00000
+Does this cause any problems?  If so, what are those?
 
-Reported-by: syzbot+03e5c8ebd22cc6c3a8cb@syzkaller.appspotmail.com
-Fixes: 664820265d70 ("dm: do not return target from  
-dm_get_live_table_for_ioctl()")
+> Fixes: f73181c8288f ("ipvs: add support for sync threads")
+> Signed-off-by: Junwei Hu <hujunwei4@huawei.com>
+> ---
+>  net/netfilter/ipvs/ip_vs_ctl.c | 61 +++++++++++++++++++++++-----------
+>  1 file changed, 42 insertions(+), 19 deletions(-)
+> 
+> diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+> index 741d91aa4a8d..e78fd05f108b 100644
+> --- a/net/netfilter/ipvs/ip_vs_ctl.c
+> +++ b/net/netfilter/ipvs/ip_vs_ctl.c
+> @@ -1680,12 +1680,18 @@ proc_do_defense_mode(struct ctl_table *table, int write,
+>  	int val = *valp;
+>  	int rc;
+> 
+> -	rc = proc_dointvec(table, write, buffer, lenp, ppos);
+> +	struct ctl_table tmp = {
+> +		.data = &val,
+> +		.maxlen = sizeof(int),
+> +		.mode = table->mode,
+> +	};
+> +
+> +	rc = proc_dointvec(&tmp, write, buffer, lenp, ppos);
 
-For information about bisection process see: https://goo.gl/tpsmEJ#bisection
+Wouldn't it be better do use proc_dointvec_minmax and set the
+constraints via .extra1,2 in the sysctl knob definition?
