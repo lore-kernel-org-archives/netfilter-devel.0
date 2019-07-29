@@ -2,51 +2,40 @@ Return-Path: <SRS0=chdK=V2=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.3 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B4E30C433FF
-	for <netfilter-devel@archiver.kernel.org>; Mon, 29 Jul 2019 19:36:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 16A09C433FF
+	for <netfilter-devel@archiver.kernel.org>; Mon, 29 Jul 2019 20:04:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7BEFC2171F
-	for <netfilter-devel@archiver.kernel.org>; Mon, 29 Jul 2019 19:36:58 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b="KaGnW8b+"
+	by mail.kernel.org (Postfix) with ESMTP id E88C6205F4
+	for <netfilter-devel@archiver.kernel.org>; Mon, 29 Jul 2019 20:04:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388630AbfG2Tg5 (ORCPT
+        id S1729933AbfG2UDz (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 29 Jul 2019 15:36:57 -0400
-Received: from smtp-out.kfki.hu ([148.6.0.48]:56627 "EHLO smtp-out.kfki.hu"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2387811AbfG2Tg4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 29 Jul 2019 15:36:56 -0400
-Received: from localhost (localhost [127.0.0.1])
-        by smtp2.kfki.hu (Postfix) with ESMTP id 90602CC010E;
-        Mon, 29 Jul 2019 21:36:53 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        blackhole.kfki.hu; h=mime-version:user-agent:message-id:from
-        :from:date:date:received:received:received; s=20151130; t=
-        1564429011; x=1566243412; bh=8YdbWiEb4tfmH4XUZZ4tIdIHNlFaCMACRGi
-        hpYfxBY8=; b=KaGnW8b+c+ZQQTiuKTuNsWEL2L6dgj2H4+pX0gkjs3u1A74emwy
-        y+au4hZlJSkpgxajkk9q2xVZeWL7Bgz9FU6Rnp9+v/cvCMueSe3Awx+QUT0p+eYt
-        UWspzbBWEUTSLHOwnCJ5Aim9EF6YCehYLA8L/7jl+wcVz2fLDN94kNak=
-X-Virus-Scanned: Debian amavisd-new at smtp2.kfki.hu
-Received: from smtp2.kfki.hu ([127.0.0.1])
-        by localhost (smtp2.kfki.hu [127.0.0.1]) (amavisd-new, port 10026)
-        with ESMTP; Mon, 29 Jul 2019 21:36:51 +0200 (CEST)
-Received: from blackhole.kfki.hu (blackhole.kfki.hu [148.6.240.2])
-        by smtp2.kfki.hu (Postfix) with ESMTP id 44A9BCC0110;
-        Mon, 29 Jul 2019 21:36:51 +0200 (CEST)
-Received: by blackhole.kfki.hu (Postfix, from userid 1000)
-        id 1D57B21B3B; Mon, 29 Jul 2019 21:36:51 +0200 (CEST)
-Date:   Mon, 29 Jul 2019 21:36:51 +0200 (CEST)
-From:   Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-To:     netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
-Subject: [ANNOUNCE] ipset 7.3 released
-Message-ID: <alpine.DEB.2.20.1907292134050.26619@blackhole.kfki.hu>
-User-Agent: Alpine 2.20 (DEB 67 2015-01-07)
+        Mon, 29 Jul 2019 16:03:55 -0400
+Received: from ja.ssi.bg ([178.16.129.10]:52746 "EHLO ja.ssi.bg"
+        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1729843AbfG2UDz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 29 Jul 2019 16:03:55 -0400
+Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
+        by ja.ssi.bg (8.15.2/8.15.2) with ESMTP id x6TK3VOW005690;
+        Mon, 29 Jul 2019 23:03:32 +0300
+Date:   Mon, 29 Jul 2019 23:03:31 +0300 (EEST)
+From:   Julian Anastasov <ja@ssi.bg>
+To:     Haishuang Yan <yanhaishuang@cmss.chinamobile.com>
+cc:     "David S. Miller" <davem@davemloft.net>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Simon Horman <horms@verge.net.au>, netdev@vger.kernel.org,
+        lvs-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
+        netfilter-devel@vger.kernel.org
+Subject: Re: [net-next 1/2] ipvs: batch __ip_vs_cleanup
+In-Reply-To: <8441EA26-E197-4F40-A6D7-5B7D59AA7F7F@cmss.chinamobile.com>
+Message-ID: <alpine.LFD.2.21.1907292300580.2909@ja.home.ssi.bg>
+References: <1563031186-2101-1-git-send-email-yanhaishuang@cmss.chinamobile.com> <1563031186-2101-2-git-send-email-yanhaishuang@cmss.chinamobile.com> <alpine.LFD.2.21.1907152333300.5700@ja.home.ssi.bg>
+ <8441EA26-E197-4F40-A6D7-5B7D59AA7F7F@cmss.chinamobile.com>
+User-Agent: Alpine 2.21 (LFD 202 2017-01-01)
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -54,29 +43,54 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi,
 
-I'm happy to announce ipset 7.3 which brings a few fixes and corrections:
+	Hello,
 
-Userspace changes:
-  - ipset: fix spelling error in libipset.3 manpage (Neutron Soutmun)
-Kernel part changes:
-  - Fix rename concurrency with listing, which can result broken
-    list/save results.
-  - ipset: Copy the right MAC address in bitmap:ip,mac and
-    hash:ip,mac sets (Stefano Brivio)
-  - ipset: Actually allow destination MAC address for hash:ip,mac
-    sets too (Stefano Brivio)
+On Thu, 18 Jul 2019, Haishuang Yan wrote:
 
-You can download the source code of ipset from:
-        http://ipset.netfilter.org
-        ftp://ftp.netfilter.org/pub/ipset/
-        git://git.netfilter.org/ipset.git
+> As the following benchmark testing results show, there is a little performance improvement:
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+	OK, can you send v2 after removing the LIST_HEAD(list) from
+both patches, I guess, it is not needed. If you prefer, you can
+include these benchmark results too.
+
+> $  cat add_del_unshare.sh
+> #!/bin/bash
+> 
+> for i in `seq 1 100`
+>     do
+>      (for j in `seq 1 40` ; do  unshare -n ipvsadm -A -t 172.16.$i.$j:80 >/dev/null ; done) &
+>     done
+> wait; grep net_namespace /proc/slabinfo
+> 
+> Befor patch:
+> $  time sh add_del_unshare.sh
+> net_namespace       4020   4020   4736    6    8 : tunables    0    0    0 : slabdata    670    670      0
+> 
+> real    0m8.086s
+> user    0m2.025s
+> sys     0m36.956s
+> 
+> After patch:
+> $  time sh add_del_unshare.sh
+> net_namespace       4020   4020   4736    6    8 : tunables    0    0    0 : slabdata    670    670      0
+> 
+> real    0m7.623s
+> user    0m2.003s
+> sys     0m32.935s
+> 
+> 
+> > 
+> >> +		ipvs = net_ipvs(net);
+> >> +		ip_vs_conn_net_cleanup(ipvs);
+> >> +		ip_vs_app_net_cleanup(ipvs);
+> >> +		ip_vs_protocol_net_cleanup(ipvs);
+> >> +		ip_vs_control_net_cleanup(ipvs);
+> >> +		ip_vs_estimator_net_cleanup(ipvs);
+> >> +		IP_VS_DBG(2, "ipvs netns %d released\n", ipvs->gen);
+> >> +		net->ipvs = NULL;
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
