@@ -2,68 +2,67 @@ Return-Path: <SRS0=chdK=V2=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.2 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 271C9C7618B
-	for <netfilter-devel@archiver.kernel.org>; Mon, 29 Jul 2019 11:14:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E92BCC7618B
+	for <netfilter-devel@archiver.kernel.org>; Mon, 29 Jul 2019 11:15:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id F04262070D
-	for <netfilter-devel@archiver.kernel.org>; Mon, 29 Jul 2019 11:14:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AC1942070D
+	for <netfilter-devel@archiver.kernel.org>; Mon, 29 Jul 2019 11:15:14 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=resnulli-us.20150623.gappssmtp.com header.i=@resnulli-us.20150623.gappssmtp.com header.b="cltdXSpv"
+	dkim=pass (2048-bit key) header.d=resnulli-us.20150623.gappssmtp.com header.i=@resnulli-us.20150623.gappssmtp.com header.b="SeBtfXAx"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387618AbfG2LOB (ORCPT
+        id S2387575AbfG2LPO (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 29 Jul 2019 07:14:01 -0400
-Received: from mail-wm1-f66.google.com ([209.85.128.66]:53222 "EHLO
-        mail-wm1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2387450AbfG2LOB (ORCPT
+        Mon, 29 Jul 2019 07:15:14 -0400
+Received: from mail-wr1-f65.google.com ([209.85.221.65]:37004 "EHLO
+        mail-wr1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2387554AbfG2LPO (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 29 Jul 2019 07:14:01 -0400
-Received: by mail-wm1-f66.google.com with SMTP id s3so53439419wms.2
-        for <netfilter-devel@vger.kernel.org>; Mon, 29 Jul 2019 04:13:57 -0700 (PDT)
+        Mon, 29 Jul 2019 07:15:14 -0400
+Received: by mail-wr1-f65.google.com with SMTP id n9so36296092wrr.4
+        for <netfilter-devel@vger.kernel.org>; Mon, 29 Jul 2019 04:15:12 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=resnulli-us.20150623.gappssmtp.com; s=20150623;
         h=date:from:to:cc:subject:message-id:references:mime-version
          :content-disposition:in-reply-to:user-agent;
-        bh=F9xze7EuNMlpdeu9j58pHlZMhDPD1uyveURptxNoH+8=;
-        b=cltdXSpv+Y3RYPa9c2LmSINGUOfQECFL6P3Yg4ahPXZpb1N2kmTmc/XwlMWmsojZW3
-         iSEvbAxMPKUNh8c4VKd3FzMgng/EoTMXMAsYT0k1IwdqOSyAd/14XqCzfpjm+uQHMkfv
-         KzIzHHjS+fy5t3DNnlGQZVKsmPXdG/cW4uRdnN53wnvc8hfdmacUP5oZFYfceqWYpKJk
-         6ouwG0HrhL3xdjrGH41m5Ni961uyr6dMj66Vj6ntc2fG9vLpEcQ3orf1UFHs9U9mMubK
-         BwysgJlWGz+er6LpyLOB9H0f/fp0AP9FSo4AKTPR4kYW0bRwdjo9z/EaAdABUDlDcUIW
-         3Skg==
+        bh=znSGiK7PbMchvYU9Af1rZtjhPWnspUvLSiDGFYWJu00=;
+        b=SeBtfXAxSwLxkrU3XfrPxkSAWAEEWI4elXP6/20hP/dmCvIM005tIzEmdDZ/8RS4u4
+         ffCd8SrPEppPrg6KYi+CSuRSoGjCSQiikjlwrigB1Pi1Tk77upYgvyAX7f2tDF70P6ge
+         Oeiv0dTEjJTyZTOM1yDl4ePyWVqfxp/36XAgiZba5HmPQzybJ+5tpkPZyy6hj8zECNWn
+         tlEuCWUvermt/rAa7Ph99frgDbWuWSY/qr6sxu8Sb6JSrMNdaodqAEdnz9ljSoILMFdk
+         EeAi3ufdmaJ7NcTnuQk9Mcj9PM+vwBw59TVGOt9PeIz2qotNaKeJudNBhvwjQnsD8HkJ
+         okWA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:date:from:to:cc:subject:message-id:references
          :mime-version:content-disposition:in-reply-to:user-agent;
-        bh=F9xze7EuNMlpdeu9j58pHlZMhDPD1uyveURptxNoH+8=;
-        b=tQLkZXZfLc1BaVieNWOQl3Kje9NU9SxAxZq6XTDomn4xH6uSFxhotbTzgh/fDglup6
-         W9H6cZ5akGVeyVIIgtQ4gdbj7xhBJhuz/q5a748+Cyg7L+eLTEUCtREQwgodQr6WSw+f
-         lCRlpTh/vuF1vUSTd6X5FGSJShaovCkAkahuCCxo2SVbXSLSTuxe/DI07ZyHYKvjHbLh
-         P21WCC8US/2n6qmnlUz4ckclbAvdi5uj+eBrDqeb95KmvIEAF41Uu0gsILNz+Nu6Uwkq
-         Y+1fOeDDlbc90IAQenTJsUqVJAUa2aTDZ6m5dI6q+mo6oibyxG6XmQw0NzUTJlAD3qM8
-         idjw==
-X-Gm-Message-State: APjAAAVrFjUErsTr34K0uhEiyXlgGgDDCPxpYA1DPmnlMF6mZBTiDngh
-        cdUB4RzLWau6ae+Ath67FUw=
-X-Google-Smtp-Source: APXvYqwklRKQJ3VWRDpw54uKC3FxI/tMgS6PG0oY9PpFfv0m+0tCIairiymXdOgaj5+SPzcala1hrA==
-X-Received: by 2002:a7b:c3d7:: with SMTP id t23mr96685428wmj.94.1564398837236;
-        Mon, 29 Jul 2019 04:13:57 -0700 (PDT)
+        bh=znSGiK7PbMchvYU9Af1rZtjhPWnspUvLSiDGFYWJu00=;
+        b=bu6EoD2NYJ9dnSyDODEqSNqKyaVy9mg14V5UTrI3Dp3ghNVAaMLVk9BLIDcJKRK9fa
+         iVtewhvYVFUB/y+tNqjZloMjJN0ohez2owqOSWwQRb2tADe6zRqCES5u4IeuPUQI8Mu2
+         sPMIvMw6jpvfeNkjOzwt15Und+1EVkpRDE5hPtTXTOwg2aahL5Gq7MYmBRoYR3LA6jbj
+         i5Uw4mwzIOc0OlUaCkmCWCAT9epvLusBIEYni3fYfsWB28JRkg10QkRw3W0zGGxXpMJS
+         48DqboZm4pzK415rf6dLZlQoUknBwxwXgsnrcAX8tCzzy+H5uwyP8v8/igL6NIn3SBUS
+         W23w==
+X-Gm-Message-State: APjAAAX9es9grFzjsnPwDVsoiGxp9Dq71niXRNV9nTQGAQWLjXUy+FmI
+        iIv8Px3mSYjVSDBQShtCixCTDDgJ
+X-Google-Smtp-Source: APXvYqz+SMe9OLJGzHQWaIWVKZJuza1/I/IzNq97uy3uoBpchELTDro3SV8S1rqDWF4WxZ8GI09cgQ==
+X-Received: by 2002:a5d:4b91:: with SMTP id b17mr205222wrt.57.1564398912252;
+        Mon, 29 Jul 2019 04:15:12 -0700 (PDT)
 Received: from localhost (mail.chocen-mesto.cz. [85.163.43.2])
-        by smtp.gmail.com with ESMTPSA id z19sm44618105wmi.7.2019.07.29.04.13.56
+        by smtp.gmail.com with ESMTPSA id r15sm64793570wrj.68.2019.07.29.04.15.11
         (version=TLS1_3 cipher=AEAD-AES256-GCM-SHA384 bits=256/256);
-        Mon, 29 Jul 2019 04:13:56 -0700 (PDT)
-Date:   Mon, 29 Jul 2019 13:13:50 +0200
+        Mon, 29 Jul 2019 04:15:11 -0700 (PDT)
+Date:   Mon, 29 Jul 2019 13:15:10 +0200
 From:   Jiri Pirko <jiri@resnulli.us>
 To:     wenxu@ucloud.cn
 Cc:     pablo@netfilter.org, fw@strlen.de, jakub.kicinski@netronome.com,
         netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
 Subject: Re: [PATCH net-next v4 1/3] flow_offload: move tc indirect block to
  flow offload
-Message-ID: <20190729111350.GE2211@nanopsycho>
+Message-ID: <20190729111510.GF2211@nanopsycho>
 References: <1564296769-32294-1-git-send-email-wenxu@ucloud.cn>
  <1564296769-32294-2-git-send-email-wenxu@ucloud.cn>
 MIME-Version: 1.0
@@ -80,151 +79,17 @@ Sun, Jul 28, 2019 at 08:52:47AM CEST, wenxu@ucloud.cn wrote:
 >From: wenxu <wenxu@ucloud.cn>
 >
 >move tc indirect block to flow_offload and rename
+
+A sentence should start with capital letter.
+
+
 >it to flow indirect block.The nf_tables can use the
+
+There should be a space between "." and first letter of the next
+sensence.
+
+
 >indr block architecture.
 >
->Signed-off-by: wenxu <wenxu@ucloud.cn>
->---
->v3: subsys_initcall for init_flow_indr_rhashtable
->v4: no change
->
-
-[...]
-
-
->diff --git a/include/net/flow_offload.h b/include/net/flow_offload.h
->index 00b9aab..66f89bc 100644
->--- a/include/net/flow_offload.h
->+++ b/include/net/flow_offload.h
->@@ -4,6 +4,7 @@
-> #include <linux/kernel.h>
-> #include <linux/list.h>
-> #include <net/flow_dissector.h>
->+#include <linux/rhashtable.h>
-> 
-> struct flow_match {
-> 	struct flow_dissector	*dissector;
->@@ -366,4 +367,42 @@ static inline void flow_block_init(struct flow_block *flow_block)
-> 	INIT_LIST_HEAD(&flow_block->cb_list);
-> }
-> 
->+typedef int flow_indr_block_bind_cb_t(struct net_device *dev, void *cb_priv,
->+				      enum tc_setup_type type, void *type_data);
->+
->+struct flow_indr_block_cb {
->+	struct list_head list;
->+	void *cb_priv;
->+	flow_indr_block_bind_cb_t *cb;
->+	void *cb_ident;
->+};
-
-I don't understand why are you pushing this struct out of the c file to
-the header. Please don't.
-
-
->+
->+typedef void flow_indr_block_ing_cmd_t(struct net_device *dev,
->+				       struct flow_block *flow_block,
->+				       struct flow_indr_block_cb *indr_block_cb,
->+				       enum flow_block_command command);
->+
->+struct flow_indr_block_dev {
->+	struct rhash_head ht_node;
->+	struct net_device *dev;
->+	unsigned int refcnt;
->+	struct list_head cb_list;
->+	flow_indr_block_ing_cmd_t *ing_cmd_cb;
->+	struct flow_block *flow_block;
-
-I don't understand why are you pushing this struct out of the c file to
-the header. Please don't.
-
-
->+};
->+
->+struct flow_indr_block_dev *flow_indr_block_dev_lookup(struct net_device *dev);
->+
->+int __flow_indr_block_cb_register(struct net_device *dev, void *cb_priv,
->+				  flow_indr_block_bind_cb_t *cb, void *cb_ident);
->+
->+void __flow_indr_block_cb_unregister(struct net_device *dev,
->+				     flow_indr_block_bind_cb_t *cb, void *cb_ident);
->+
->+int flow_indr_block_cb_register(struct net_device *dev, void *cb_priv,
->+				flow_indr_block_bind_cb_t *cb, void *cb_ident);
->+
->+void flow_indr_block_cb_unregister(struct net_device *dev,
->+				   flow_indr_block_bind_cb_t *cb, void *cb_ident);
->+
-	
-[...]
-
-	
->+
->+int __flow_indr_block_cb_register(struct net_device *dev, void *cb_priv,
->+				  flow_indr_block_bind_cb_t *cb,
->+				  void *cb_ident)
->+{
->+	struct flow_indr_block_cb *indr_block_cb;
->+	struct flow_indr_block_dev *indr_dev;
->+	int err;
->+
->+	indr_dev = flow_indr_block_dev_get(dev);
->+	if (!indr_dev)
->+		return -ENOMEM;
->+
->+	indr_block_cb = flow_indr_block_cb_add(indr_dev, cb_priv, cb, cb_ident);
->+	err = PTR_ERR_OR_ZERO(indr_block_cb);
->+	if (err)
->+		goto err_dev_put;
->+
->+	if (indr_dev->ing_cmd_cb)
->+		indr_dev->ing_cmd_cb(indr_dev->dev, indr_dev->flow_block, indr_block_cb,
-
-This line is over 80cols. Please run checkpatch script for your patch
-and obey the warnings.
-
-
->+				     FLOW_BLOCK_BIND);
->+
->+	return 0;
->+
->+err_dev_put:
->+	flow_indr_block_dev_put(indr_dev);
->+	return err;
->+}
->+EXPORT_SYMBOL_GPL(__flow_indr_block_cb_register);
-
-[...]
-
-
-> 
->-static void tc_indr_block_ing_cmd(struct tc_indr_block_dev *indr_dev,
->-				  struct tc_indr_block_cb *indr_block_cb,
->+static void tc_indr_block_ing_cmd(struct net_device *dev,
-
-I don't understand why you change struct tc_indr_block_dev * to
-struct net_device * here. If you want to do that, please do that in a
-separate patch, not it this one where only "the move" should happen.
-
-
->+				  struct flow_block *flow_block,
->+				  struct flow_indr_block_cb *indr_block_cb,
-> 				  enum flow_block_command command)
-> {
->+	struct tcf_block *block = flow_block ?
->+				  container_of(flow_block,
->+					       struct tcf_block,
->+					       flow_block) : NULL;
-> 	struct flow_block_offload bo = {
-> 		.command	= command,
-> 		.binder_type	= FLOW_BLOCK_BINDER_TYPE_CLSACT_INGRESS,
->-		.net		= dev_net(indr_dev->dev),
->-		.block_shared	= tcf_block_non_null_shared(indr_dev->block),
->+		.net		= dev_net(dev),
->+		.block_shared	= tcf_block_non_null_shared(block),
-> 	};
-> 	INIT_LIST_HEAD(&bo.cb_list);
-> 
 
 [...]
