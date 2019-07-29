@@ -2,99 +2,81 @@ Return-Path: <SRS0=chdK=V2=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.3 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A1424C433FF
-	for <netfilter-devel@archiver.kernel.org>; Mon, 29 Jul 2019 19:34:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B4E30C433FF
+	for <netfilter-devel@archiver.kernel.org>; Mon, 29 Jul 2019 19:36:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4E3082171F
-	for <netfilter-devel@archiver.kernel.org>; Mon, 29 Jul 2019 19:34:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7BEFC2171F
+	for <netfilter-devel@archiver.kernel.org>; Mon, 29 Jul 2019 19:36:58 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b="MLs+ai41"
+	dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b="KaGnW8b+"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388136AbfG2TeA (ORCPT
+        id S2388630AbfG2Tg5 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 29 Jul 2019 15:34:00 -0400
-Received: from smtp-out.kfki.hu ([148.6.0.48]:43343 "EHLO smtp-out.kfki.hu"
+        Mon, 29 Jul 2019 15:36:57 -0400
+Received: from smtp-out.kfki.hu ([148.6.0.48]:56627 "EHLO smtp-out.kfki.hu"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388048AbfG2Td7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 29 Jul 2019 15:33:59 -0400
+        id S2387811AbfG2Tg4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 29 Jul 2019 15:36:56 -0400
 Received: from localhost (localhost [127.0.0.1])
-        by smtp2.kfki.hu (Postfix) with ESMTP id DA7ADCC0104;
-        Mon, 29 Jul 2019 21:33:56 +0200 (CEST)
+        by smtp2.kfki.hu (Postfix) with ESMTP id 90602CC010E;
+        Mon, 29 Jul 2019 21:36:53 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        blackhole.kfki.hu; h=mime-version:references:in-reply-to
-        :x-mailer:message-id:date:date:from:from:received:received
-        :received; s=20151130; t=1564428834; x=1566243235; bh=bp59LHP0eE
-        iFa3K26GxorPUVWVezu2C4uUOX+XbORf4=; b=MLs+ai41oDSA0hzr7r3gyCfdk8
-        qGXFM03So/xqRBpig2912/RrfoGa6y5qjnhkTtLhhLTOc7jGRUhcshHuScg18vv0
-        X5+c6bEBdRdsTJEL4b3jgMYs11xBlcd+Q/6Lr1qrwB5kzl/f2kWxLJhfVmDAXmv3
-        /WIvkzHQEko1EabvA=
+        blackhole.kfki.hu; h=mime-version:user-agent:message-id:from
+        :from:date:date:received:received:received; s=20151130; t=
+        1564429011; x=1566243412; bh=8YdbWiEb4tfmH4XUZZ4tIdIHNlFaCMACRGi
+        hpYfxBY8=; b=KaGnW8b+c+ZQQTiuKTuNsWEL2L6dgj2H4+pX0gkjs3u1A74emwy
+        y+au4hZlJSkpgxajkk9q2xVZeWL7Bgz9FU6Rnp9+v/cvCMueSe3Awx+QUT0p+eYt
+        UWspzbBWEUTSLHOwnCJ5Aim9EF6YCehYLA8L/7jl+wcVz2fLDN94kNak=
 X-Virus-Scanned: Debian amavisd-new at smtp2.kfki.hu
 Received: from smtp2.kfki.hu ([127.0.0.1])
         by localhost (smtp2.kfki.hu [127.0.0.1]) (amavisd-new, port 10026)
-        with ESMTP; Mon, 29 Jul 2019 21:33:54 +0200 (CEST)
-Received: from blackhole.kfki.hu (blackhole.szhk.kfki.hu [IPv6:2001:738:5001:1::240:2])
-        by smtp2.kfki.hu (Postfix) with ESMTP id D1060CC00F4;
-        Mon, 29 Jul 2019 21:33:54 +0200 (CEST)
+        with ESMTP; Mon, 29 Jul 2019 21:36:51 +0200 (CEST)
+Received: from blackhole.kfki.hu (blackhole.kfki.hu [148.6.240.2])
+        by smtp2.kfki.hu (Postfix) with ESMTP id 44A9BCC0110;
+        Mon, 29 Jul 2019 21:36:51 +0200 (CEST)
 Received: by blackhole.kfki.hu (Postfix, from userid 1000)
-        id B766D207E9; Mon, 29 Jul 2019 21:33:54 +0200 (CEST)
+        id 1D57B21B3B; Mon, 29 Jul 2019 21:36:51 +0200 (CEST)
+Date:   Mon, 29 Jul 2019 21:36:51 +0200 (CEST)
 From:   Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-To:     netfilter-devel@vger.kernel.org
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 1/3] netfilter: ipset: Actually allow destination MAC address for hash:ip,mac sets too
-Date:   Mon, 29 Jul 2019 21:33:52 +0200
-Message-Id: <20190729193354.26559-2-kadlec@blackhole.kfki.hu>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20190729193354.26559-1-kadlec@blackhole.kfki.hu>
-References: <20190729193354.26559-1-kadlec@blackhole.kfki.hu>
+To:     netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+Subject: [ANNOUNCE] ipset 7.3 released
+Message-ID: <alpine.DEB.2.20.1907292134050.26619@blackhole.kfki.hu>
+User-Agent: Alpine 2.20 (DEB 67 2015-01-07)
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=US-ASCII
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Stefano Brivio <sbrivio@redhat.com>
+Hi,
 
-In commit 8cc4ccf58379 ("ipset: Allow matching on destination MAC address
-for mac and ipmac sets"), ipset.git commit 1543514c46a7, I removed the
-KADT check that prevents matching on destination MAC addresses for
-hash:mac sets, but forgot to remove the same check for hash:ip,mac set.
+I'm happy to announce ipset 7.3 which brings a few fixes and corrections:
 
-Drop this check: functionality is now commented in man pages and there's
-no reason to restrict to source MAC address matching anymore.
+Userspace changes:
+  - ipset: fix spelling error in libipset.3 manpage (Neutron Soutmun)
+Kernel part changes:
+  - Fix rename concurrency with listing, which can result broken
+    list/save results.
+  - ipset: Copy the right MAC address in bitmap:ip,mac and
+    hash:ip,mac sets (Stefano Brivio)
+  - ipset: Actually allow destination MAC address for hash:ip,mac
+    sets too (Stefano Brivio)
 
-Reported-by: Chen Yi <yiche@redhat.com>
-Fixes: 8cc4ccf58379 ("ipset: Allow matching on destination MAC address fo=
-r mac and ipmac sets")
-Signed-off-by: Stefano Brivio <sbrivio@redhat.com>
-Signed-off-by: Jozsef Kadlecsik <kadlec@netfilter.org>
----
- net/netfilter/ipset/ip_set_hash_ipmac.c | 4 ----
- 1 file changed, 4 deletions(-)
+You can download the source code of ipset from:
+        http://ipset.netfilter.org
+        ftp://ftp.netfilter.org/pub/ipset/
+        git://git.netfilter.org/ipset.git
 
-diff --git a/net/netfilter/ipset/ip_set_hash_ipmac.c b/net/netfilter/ipse=
-t/ip_set_hash_ipmac.c
-index faf59b6a998f..eb1443408320 100644
---- a/net/netfilter/ipset/ip_set_hash_ipmac.c
-+++ b/net/netfilter/ipset/ip_set_hash_ipmac.c
-@@ -89,10 +89,6 @@ hash_ipmac4_kadt(struct ip_set *set, const struct sk_b=
-uff *skb,
- 	struct hash_ipmac4_elem e =3D { .ip =3D 0, { .foo[0] =3D 0, .foo[1] =3D=
- 0 } };
- 	struct ip_set_ext ext =3D IP_SET_INIT_KEXT(skb, opt, set);
-=20
--	 /* MAC can be src only */
--	if (!(opt->flags & IPSET_DIM_TWO_SRC))
--		return 0;
+Best regards,
+Jozsef
 -
- 	if (skb_mac_header(skb) < skb->head ||
- 	    (skb_mac_header(skb) + ETH_HLEN) > skb->data)
- 		return -EINVAL;
---=20
-2.20.1
-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
