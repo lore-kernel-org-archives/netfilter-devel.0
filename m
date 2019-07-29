@@ -2,189 +2,98 @@ Return-Path: <SRS0=chdK=V2=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DF222C433FF
-	for <netfilter-devel@archiver.kernel.org>; Mon, 29 Jul 2019 03:43:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 601D5C76186
+	for <netfilter-devel@archiver.kernel.org>; Mon, 29 Jul 2019 04:42:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B1DDE2070D
-	for <netfilter-devel@archiver.kernel.org>; Mon, 29 Jul 2019 03:43:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 37933206E0
+	for <netfilter-devel@archiver.kernel.org>; Mon, 29 Jul 2019 04:42:49 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=netronome-com.20150623.gappssmtp.com header.i=@netronome-com.20150623.gappssmtp.com header.b="EgI7tgjt"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726607AbfG2DnV (ORCPT
+        id S1726251AbfG2Emr (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 28 Jul 2019 23:43:21 -0400
-Received: from m9784.mail.qiye.163.com ([220.181.97.84]:33847 "EHLO
-        m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726436AbfG2DnV (ORCPT
+        Mon, 29 Jul 2019 00:42:47 -0400
+Received: from mail-pl1-f196.google.com ([209.85.214.196]:33705 "EHLO
+        mail-pl1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726012AbfG2Emr (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 28 Jul 2019 23:43:21 -0400
-Received: from [192.168.188.14] (unknown [120.132.1.226])
-        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id 6294D41A53;
-        Mon, 29 Jul 2019 11:43:09 +0800 (CST)
-Subject: Re: [PATCH net-next] netfilter: nf_table_offload: Fix zero prio of
- flow_cls_common_offload
-To:     Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>,
-        pablo@netfilter.org
-Cc:     davem@davemloft.net, netfilter-devel@vger.kernel.org,
+        Mon, 29 Jul 2019 00:42:47 -0400
+Received: by mail-pl1-f196.google.com with SMTP id c14so26926808plo.0
+        for <netfilter-devel@vger.kernel.org>; Sun, 28 Jul 2019 21:42:47 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=netronome-com.20150623.gappssmtp.com; s=20150623;
+        h=date:from:to:cc:subject:message-id:in-reply-to:references
+         :organization:mime-version:content-transfer-encoding;
+        bh=l92voTIZEyekIch5SAn07z8owJJ0AY4RSH8j88UGsQY=;
+        b=EgI7tgjtQE8yUhxXAyVwkKNWHwNX7a55Hc6LVsWrk090s+9jmw5GYHYiHl6VrX+Wbs
+         CYnktHVRr3WVk1fWJpB0YlfqR3MrOYIQJ7PxyebBweNuDL/86ILJYebFlcwRd+CfUt4A
+         i8KUCRHuBcpN1VbY/HWBusK+vNfvierZZcIJJ4oESJdCRJVC42cQ7i6H+R2GkkT/ZszB
+         TCcRsRkTVE/omKK4Uh4MBfkyX+bVgb4tVOWyH8L9yfgyC76g/UFgV/NjZih8ySK1RVG+
+         ukR24VuewPjwXyExiI6+egl4bwFkXOgBabKBesJUroKnGlNNcPPMOpYqmRW4HynJucDL
+         XWDw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:in-reply-to
+         :references:organization:mime-version:content-transfer-encoding;
+        bh=l92voTIZEyekIch5SAn07z8owJJ0AY4RSH8j88UGsQY=;
+        b=dBtModMyfFbBQHxsZSrYf6chBmeJEWXGZqtqpNDcH+8kmzLG69HpPnt34N90FU+tYw
+         OPlkEIP6grM14pvGZaaEItEUAL20tjsdJrWqxJgip0EtKI7U7GZoqjuMmmZxWrEPipg4
+         Ngr5c++vfp0y7hXWs8wxIPfsvVU0s1R/Mqkmqq496oWi2DuClSpSmoLGmGN2HLjm5EXo
+         iWAhkj3sZZrFthDMxTgsXkArdjRXfUrn67IQ+rWLmSDcek960Hsq9kzde/MOzoPH6KaI
+         NK2TpEnPDmbAiGwR5GIFeIkBVxTHY5G0/1ESLtxGbQzbWwdRc5/CCKSz/rNDXNvlpbYY
+         QPUg==
+X-Gm-Message-State: APjAAAUzfOubSbW+jxHWD7DCudJK2e3BNXnql4yavHcRGiN9aGQe9mSq
+        6ZHWS1r6/xm4JlqJqBmhNn3VPQ==
+X-Google-Smtp-Source: APXvYqx8ZF3Tm6npsTxWEJVnTfZuXsgkJ+7nkec8proE/fymVNYurnzUJ2SETiDP0IkOexKMOSP5cQ==
+X-Received: by 2002:a17:902:a607:: with SMTP id u7mr108807346plq.43.1564375366836;
+        Sun, 28 Jul 2019 21:42:46 -0700 (PDT)
+Received: from cakuba.netronome.com (c-71-204-185-212.hsd1.ca.comcast.net. [71.204.185.212])
+        by smtp.gmail.com with ESMTPSA id w16sm72704191pfj.85.2019.07.28.21.42.46
+        (version=TLS1_3 cipher=AEAD-AES256-GCM-SHA384 bits=256/256);
+        Sun, 28 Jul 2019 21:42:46 -0700 (PDT)
+Date:   Sun, 28 Jul 2019 21:42:37 -0700
+From:   Jakub Kicinski <jakub.kicinski@netronome.com>
+To:     wenxu <wenxu@ucloud.cn>
+Cc:     pablo@netfilter.org, fw@strlen.de, netfilter-devel@vger.kernel.org,
         netdev@vger.kernel.org
-References: <1562832210-25981-1-git-send-email-wenxu@ucloud.cn>
- <20190724235151.GB4063@localhost.localdomain>
- <9775e2da-78ce-95f8-c215-b35b464ea5a9@ucloud.cn>
- <20190725034540.GJ6204@localhost.localdomain>
-From:   wenxu <wenxu@ucloud.cn>
-Message-ID: <80fd8d7f-3437-1621-960c-02fd5173c985@ucloud.cn>
-Date:   Mon, 29 Jul 2019 11:43:07 +0800
-User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:60.0) Gecko/20100101
- Thunderbird/60.8.0
+Subject: Re: [PATCH net-next v4 2/3] flow_offload: Support get default block
+ from tc immediately
+Message-ID: <20190728214237.2c0687db@cakuba.netronome.com>
+In-Reply-To: <5eed91c1-20ed-c08c-4700-979392bc5f33@ucloud.cn>
+References: <1564296769-32294-1-git-send-email-wenxu@ucloud.cn>
+        <1564296769-32294-3-git-send-email-wenxu@ucloud.cn>
+        <20190728131653.6af72a87@cakuba.netronome.com>
+        <5eed91c1-20ed-c08c-4700-979392bc5f33@ucloud.cn>
+Organization: Netronome Systems, Ltd.
 MIME-Version: 1.0
-In-Reply-To: <20190725034540.GJ6204@localhost.localdomain>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
-X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVkpVSENNS0tLSk5NT0tJTkJZV1koWU
-        FJQjdXWS1ZQUlXWQkOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6KzI6Lio4TDgyMkooNhIVTy0R
-        GSxPCQxVSlVKTk1PSExKTENCTENCVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJS1VK
-        SElVSlVJSU1ZV1kIAVlBTUxOTzcG
-X-HM-Tid: 0a6c3bd327672086kuqy6294d41a53
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi pablo
+On Mon, 29 Jul 2019 10:43:56 +0800, wenxu wrote:
+> On 7/29/2019 4:16 AM, Jakub Kicinski wrote:
+> > I don't know the nft code, but it seems unlikely it wouldn't have the
+> > same problem/need.. =20
+>=20
+> nft don't have the same problem.=C2=A0 The offload rule can only attached
+> to offload base chain.
+>=20
+> Th=C2=A0 offload base chain is created after the device driver loaded (the
+> device exist).
 
+For indirect blocks the block is on the tunnel device and the offload
+target is another device. E.g. you offload rules from a VXLAN device
+onto the ASIC. The ASICs driver does not have to be loaded when VXLAN
+device is created.
 
-Any suggestion for this case.  Tthe 0 prio vlaue for driver is an invalid priority. So What should we do for this
-
-case? Currently there is no prio for each nft rules.
-
-
-BR
-
-wenxu
-
-
-On 7/25/2019 11:45 AM, Marcelo Ricardo Leitner wrote:
-> On Thu, Jul 25, 2019 at 11:03:52AM +0800, wenxu wrote:
->> On 7/25/2019 7:51 AM, Marcelo Ricardo Leitner wrote:
->>> On Thu, Jul 11, 2019 at 04:03:30PM +0800, wenxu@ucloud.cn wrote:
->>>> From: wenxu <wenxu@ucloud.cn>
->>>>
->>>> The flow_cls_common_offload prio should be not zero
->>>>
->>>> It leads the invalid table prio in hw.
->>>>
->>>> # nft add table netdev firewall
->>>> # nft add chain netdev firewall acl { type filter hook ingress device mlx_pf0vf0 priority - 300 \; }
->>>> # nft add rule netdev firewall acl ip daddr 1.1.1.7 drop
->>>> Error: Could not process rule: Invalid argument
->>>>
->>>> kernel log
->>>> mlx5_core 0000:81:00.0: E-Switch: Failed to create FDB Table err -22 (table prio: 65535, level: 0, size: 4194304)
->>>>
->>>> Fixes: c9626a2cbdb2 ("netfilter: nf_tables: add hardware offload support")
->>>> Signed-off-by: wenxu <wenxu@ucloud.cn>
->>>> ---
->>>>  net/netfilter/nf_tables_offload.c | 3 +++
->>>>  1 file changed, 3 insertions(+)
->>>>
->>>> diff --git a/net/netfilter/nf_tables_offload.c b/net/netfilter/nf_tables_offload.c
->>>> index 2c33028..01d8133 100644
->>>> --- a/net/netfilter/nf_tables_offload.c
->>>> +++ b/net/netfilter/nf_tables_offload.c
->>>> @@ -7,6 +7,8 @@
->>>>  #include <net/netfilter/nf_tables_offload.h>
->>>>  #include <net/pkt_cls.h>
->>>>  
->>>> +#define FLOW_OFFLOAD_DEFAUT_PRIO 1U
->>>> +
->>>>  static struct nft_flow_rule *nft_flow_rule_alloc(int num_actions)
->>>>  {
->>>>  	struct nft_flow_rule *flow;
->>>> @@ -107,6 +109,7 @@ static void nft_flow_offload_common_init(struct flow_cls_common_offload *common,
->>>>  					struct netlink_ext_ack *extack)
->>>>  {
->>>>  	common->protocol = proto;
->>>> +	common->prio = TC_H_MAKE(FLOW_OFFLOAD_DEFAUT_PRIO << 16, 0);
->>> Note that tc semantics for this is to auto-generate a priority in such
->>> cases, instead of using a default.
->>>
->>> @tc_new_tfilter():
->>>         if (prio == 0) {
->>>                 /* If no priority is provided by the user,
->>>                  * we allocate one.
->>>                  */
->>>                 if (n->nlmsg_flags & NLM_F_CREATE) {
->>>                         prio = TC_H_MAKE(0x80000000U, 0U);
->>>                         prio_allocate = true;
->>> ...
->>>                 if (prio_allocate)
->>>                         prio = tcf_auto_prio(tcf_chain_tp_prev(chain,
->>>                                                                &chain_info));
->> Yes,The tc auto-generate a priority.  But if there is no pre
->> tcf_proto, the priority is also set as a default.
-> After the first filter, there will be a tcf_proto. Please see the test below.
->
->> In nftables each rule no priortiy for each other. So It is enough to
->> set a default value which is similar as the tc.
-> Yep, maybe it works for nftables. I'm just highlighting this because
-> it is reusing tc infrastructure and will expose a different behavior
-> to the user.  But if nftables already has this defined, that probably
-> takes precedence by now and all that is left to do is to make sure any
-> documentation on it is updated.  Pablo?
->
->> static inline u32 tcf_auto_prio(struct tcf_proto *tp)
->> {
->>     u32 first = TC_H_MAKE(0xC0000000U, 0U);
->                               ^^^^  base default prio, 0xC0000 = 49152
->
->>     if (tp)
->>         first = tp->prio - 1;
->>
->>     return TC_H_MAJ(first);
->> }
-> # tc qdisc add dev veth1 ingress
-> # tc filter add dev veth1 ingress proto ip flower src_mac ec:13:db:00:00:00 action drop
->                                                            1st filter  --^^
-> # tc filter add dev veth1 ingress proto ip flower src_mac ec:13:db:00:00:01 action drop
->                                                            2nd filter  --^^
-> # tc filter add dev veth1 ingress proto ip flower src_mac ec:13:db:00:00:02 action drop
->
-> With no 'prio X' parameter, it uses 0 as default, and when dumped:
->
-> # tc filter show dev veth1 ingress
-> filter protocol ip pref 49150 flower
-> filter protocol ip pref 49150 flower handle 0x1
->   src_mac ec:13:db:00:00:02
->   eth_type ipv4
->   not_in_hw
->         action order 1: gact action drop
->          random type none pass val 0
->          index 40003 ref 1 bind 1
->
-> filter protocol ip pref 49151 flower
-> filter protocol ip pref 49151 flower handle 0x1
->                         ^vv^^---- 2nd filter
->   src_mac ec:13:db:00:00:01
->   eth_type ipv4
->   not_in_hw
->         action order 1: gact action drop
->          random type none pass val 0
->          index 40002 ref 1 bind 1
->
-> filter protocol ip pref 49152 flower
-> filter protocol ip pref 49152 flower handle 0x1
->                         ^vv^^---- 1st filter
->   src_mac ec:13:db:00:00:00
->   eth_type ipv4
->   not_in_hw
->         action order 1: gact action drop
->          random type none pass val 0
->          index 40001 ref 1 bind 1
->
->
->
+So I feel like either the chain somehow directly references the offload
+target (in which case the indirect infrastructure with hash lookup etc
+is not needed for nft), or indirect infra is needed, and we need to take
+care of replays.
