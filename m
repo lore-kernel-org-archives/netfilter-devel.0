@@ -2,183 +2,170 @@ Return-Path: <SRS0=FCuH=V3=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B7FA9C31E40
-	for <netfilter-devel@archiver.kernel.org>; Tue, 30 Jul 2019 07:12:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 853F9C0650F
+	for <netfilter-devel@archiver.kernel.org>; Tue, 30 Jul 2019 10:54:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 99CF5205F4
-	for <netfilter-devel@archiver.kernel.org>; Tue, 30 Jul 2019 07:12:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6645F206E0
+	for <netfilter-devel@archiver.kernel.org>; Tue, 30 Jul 2019 10:54:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727425AbfG3HL7 (ORCPT
+        id S1728707AbfG3Kyg (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 30 Jul 2019 03:11:59 -0400
-Received: from szxga07-in.huawei.com ([45.249.212.35]:58946 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726180AbfG3HL6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 30 Jul 2019 03:11:58 -0400
-Received: from DGGEMS412-HUB.china.huawei.com (unknown [172.30.72.60])
-        by Forcepoint Email with ESMTP id 32C8A978192D47138D60;
-        Tue, 30 Jul 2019 15:11:54 +0800 (CST)
-Received: from [127.0.0.1] (10.184.191.73) by DGGEMS412-HUB.china.huawei.com
- (10.3.19.212) with Microsoft SMTP Server id 14.3.439.0; Tue, 30 Jul 2019
- 15:11:47 +0800
-Subject: [PATCH net v2] ipvs: Improve robustness to the ipvs sysctl
-From:   hujunwei <hujunwei4@huawei.com>
-To:     <wensong@linux-vs.org>, <horms@verge.net.au>,
-        <pablo@netfilter.org>, <kadlec@blackhole.kfki.hu>, <fw@strlen.de>,
-        <davem@davemloft.net>, "Julian Anastasov" <ja@ssi.bg>,
-        Florian Westphal <fw@strlen.de>
-CC:     "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-        <lvs-devel@vger.kernel.org>, <netfilter-devel@vger.kernel.org>,
-        <coreteam@netfilter.org>, Mingfangsen <mingfangsen@huawei.com>,
-        <wangxiaogang3@huawei.com>, <xuhanbing@huawei.com>
-References: <1997375e-815d-137f-20c9-0829a8587ee9@huawei.com>
-Message-ID: <4a0476d3-57a4-50e0-cae8-9dffc4f4d556@huawei.com>
-Date:   Tue, 30 Jul 2019 15:11:33 +0800
-User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:60.0) Gecko/20100101
- Thunderbird/60.6.1
-MIME-Version: 1.0
-In-Reply-To: <1997375e-815d-137f-20c9-0829a8587ee9@huawei.com>
-Content-Type: text/plain; charset="utf-8"
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.184.191.73]
-X-CFilter-Loop: Reflected
+        Tue, 30 Jul 2019 06:54:36 -0400
+Received: from correo.us.es ([193.147.175.20]:42860 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727445AbfG3Kyf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 30 Jul 2019 06:54:35 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id D1C3AB60CE
+        for <netfilter-devel@vger.kernel.org>; Tue, 30 Jul 2019 12:54:31 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C0341DA732
+        for <netfilter-devel@vger.kernel.org>; Tue, 30 Jul 2019 12:54:31 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id B546118539; Tue, 30 Jul 2019 12:54:31 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 5229AD2F98;
+        Tue, 30 Jul 2019 12:54:29 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Tue, 30 Jul 2019 12:54:29 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from salvia.here (unknown [47.60.32.83])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id 4E88F4265A2F;
+        Tue, 30 Jul 2019 12:54:28 +0200 (CEST)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     wenxu@ucloud.cn, jiri@resnulli.us, marcelo.leitner@gmail.com,
+        saeedm@mellanox.com, gerlitz.or@gmail.com, paulb@mellanox.com,
+        netdev@vger.kernel.org
+Subject: [PATCH nf] netfilter: nf_tables: map basechain priority to hardware priority
+Date:   Tue, 30 Jul 2019 12:54:17 +0200
+Message-Id: <20190730105417.14538-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.11.0
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Junwei Hu <hujunwei4@huawei.com>
+This patch maps basechain netfilter priorities from -8192 to 8191 to
+hardware priority 0xC000 + 1. tcf_auto_prio() uses 0xC000 if the user
+specifies no priority, then it subtract 1 for each new tcf_proto object.
+This patch uses the hardware priority range from 0xC000 to 0xFFFF for
+netfilter.
 
-The ipvs module parse the user buffer and save it to sysctl,
-then check if the value is valid. invalid value occurs
-over a period of time.
-Here, I add a variable, struct ctl_table tmp, used to read
-the value from the user buffer, and save only when it is valid.
-I delete proc_do_sync_mode and use extra1/2 in table for the
-proc_dointvec_minmax call.
-
-Fixes: f73181c8288f ("ipvs: add support for sync threads")
-Signed-off-by: Junwei Hu <hujunwei4@huawei.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-V1->V2:
-- delete proc_do_sync_mode and use proc_dointvec_minmax call.
----
- net/netfilter/ipvs/ip_vs_ctl.c | 69 +++++++++++++++++++++---------------------
- 1 file changed, 35 insertions(+), 34 deletions(-)
+This follows a rather conservative approach, I could just expose the
+2^16 hardware priority range, but we may need to split this priority
+range among the ethtool_rx, tc and netfilter subsystems to start with
+and it should be possible to extend the priority range later on.
 
-diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index 060565e..7aed7b0 100644
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -1737,12 +1737,18 @@ static int ip_vs_zero_all(struct netns_ipvs *ipvs)
- 	int val = *valp;
- 	int rc;
+By netfilter priority, I'm refering to the basechain priority:
 
--	rc = proc_dointvec(table, write, buffer, lenp, ppos);
-+	struct ctl_table tmp = {
-+		.data = &val,
-+		.maxlen = sizeof(int),
-+		.mode = table->mode,
-+	};
+	add chain x y { type filter hook ingress device eth0 priority 0; }
+                                                             ^^^^^^^^^^^
+
+This is no transparently mapped to hardware, this patch shifts it to
+make it fit into the 0xC000 + 1 .. 0xFFFF hardware priority range.
+
+ include/net/netfilter/nf_tables_offload.h |  2 ++
+ net/netfilter/nf_tables_api.c             |  4 ++++
+ net/netfilter/nf_tables_offload.c         | 32 ++++++++++++++++++++++++++++---
+ 3 files changed, 35 insertions(+), 3 deletions(-)
+
+diff --git a/include/net/netfilter/nf_tables_offload.h b/include/net/netfilter/nf_tables_offload.h
+index 3196663a10e3..2d497394021e 100644
+--- a/include/net/netfilter/nf_tables_offload.h
++++ b/include/net/netfilter/nf_tables_offload.h
+@@ -73,4 +73,6 @@ int nft_flow_rule_offload_commit(struct net *net);
+ 	(__reg)->key		= __key;				\
+ 	memset(&(__reg)->mask, 0xff, (__reg)->len);
+ 
++u16 nft_chain_offload_priority(struct nft_base_chain *basechain);
 +
-+	rc = proc_dointvec(&tmp, write, buffer, lenp, ppos);
- 	if (write && (*valp != val)) {
--		if ((*valp < 0) || (*valp > 3)) {
--			/* Restore the correct value */
-+		if (val < 0 || val > 3) {
-+			rc = -EINVAL;
-+		} else {
- 			*valp = val;
--		} else {
- 			update_defense_level(ipvs);
- 		}
- 	}
-@@ -1756,33 +1762,20 @@ static int ip_vs_zero_all(struct netns_ipvs *ipvs)
- 	int *valp = table->data;
- 	int val[2];
- 	int rc;
-+	struct ctl_table tmp = {
-+		.data = &val,
-+		.maxlen = table->maxlen,
-+		.mode = table->mode,
-+	};
-
--	/* backup the value first */
- 	memcpy(val, valp, sizeof(val));
--
--	rc = proc_dointvec(table, write, buffer, lenp, ppos);
--	if (write && (valp[0] < 0 || valp[1] < 0 ||
--	    (valp[0] >= valp[1] && valp[1]))) {
--		/* Restore the correct value */
--		memcpy(valp, val, sizeof(val));
--	}
--	return rc;
--}
--
--static int
--proc_do_sync_mode(struct ctl_table *table, int write,
--		     void __user *buffer, size_t *lenp, loff_t *ppos)
--{
--	int *valp = table->data;
--	int val = *valp;
--	int rc;
--
--	rc = proc_dointvec(table, write, buffer, lenp, ppos);
--	if (write && (*valp != val)) {
--		if ((*valp < 0) || (*valp > 1)) {
--			/* Restore the correct value */
--			*valp = val;
--		}
-+	rc = proc_dointvec(&tmp, write, buffer, lenp, ppos);
-+	if (write) {
-+		if (val[0] < 0 || val[1] < 0 ||
-+		    (val[0] >= val[1] && val[1]))
-+			rc = -EINVAL;
-+		else
-+			memcpy(valp, val, sizeof(val));
- 	}
- 	return rc;
- }
-@@ -1795,12 +1788,18 @@ static int ip_vs_zero_all(struct netns_ipvs *ipvs)
- 	int val = *valp;
- 	int rc;
-
--	rc = proc_dointvec(table, write, buffer, lenp, ppos);
-+	struct ctl_table tmp = {
-+		.data = &val,
-+		.maxlen = sizeof(int),
-+		.mode = table->mode,
-+	};
+ #endif
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 93647fdf435c..9ee6db9a668d 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -1669,6 +1669,10 @@ static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 genmask,
+ 
+ 		chain->flags |= NFT_BASE_CHAIN | flags;
+ 		basechain->policy = NF_ACCEPT;
++		if (chain->flags & NFT_CHAIN_HW_OFFLOAD &&
++		    !nft_chain_offload_priority(basechain))
++			return -EOPNOTSUPP;
 +
-+	rc = proc_dointvec(&tmp, write, buffer, lenp, ppos);
- 	if (write && (*valp != val)) {
--		if (*valp < 1 || !is_power_of_2(*valp)) {
--			/* Restore the correct value */
-+		if (val < 1 || !is_power_of_2(val))
-+			rc = -EINVAL;
-+		else
- 			*valp = val;
--		}
- 	}
- 	return rc;
+ 		flow_block_init(&basechain->flow_block);
+ 	} else {
+ 		chain = kzalloc(sizeof(*chain), GFP_KERNEL);
+diff --git a/net/netfilter/nf_tables_offload.c b/net/netfilter/nf_tables_offload.c
+index ec70978eba5a..df8427ba857c 100644
+--- a/net/netfilter/nf_tables_offload.c
++++ b/net/netfilter/nf_tables_offload.c
+@@ -156,10 +156,11 @@ void nft_offload_update_dependency(struct nft_offload_ctx *ctx,
  }
-@@ -1860,7 +1859,9 @@ static int ip_vs_zero_all(struct netns_ipvs *ipvs)
- 		.procname	= "sync_version",
- 		.maxlen		= sizeof(int),
- 		.mode		= 0644,
--		.proc_handler	= proc_do_sync_mode,
-+		.proc_handler	= proc_dointvec_minmax,
-+		.extra1		= SYSCTL_ZERO,
-+		.extra2		= SYSCTL_ONE,
- 	},
- 	{
- 		.procname	= "sync_ports",
+ 
+ static void nft_flow_offload_common_init(struct flow_cls_common_offload *common,
+-					 __be16 proto,
+-					struct netlink_ext_ack *extack)
++					 __be16 proto, int priority,
++					 struct netlink_ext_ack *extack)
+ {
+ 	common->protocol = proto;
++	common->prio = priority;
+ 	common->extack = extack;
+ }
+ 
+@@ -180,6 +181,29 @@ static int nft_setup_cb_call(struct nft_base_chain *basechain,
+ 	return 0;
+ }
+ 
++/* Available priorities for hardware offload range: -8192..8191 */
++#define NFT_BASECHAIN_OFFLOAD_PRIO_MAX		(SHRT_MAX / 4)
++#define NFT_BASECHAIN_OFFLOAD_PRIO_MIN		(SHRT_MIN / 4)
++#define NFT_BASECHAIN_OFFLOAD_PRIO_RANGE	(USHRT_MAX / 4)
++/* tcf_auto_prio() uses 0xC000 as base, then subtract one for each new chain. */
++#define NFT_BASECHAIN_OFFLOAD_HW_PRIO_BASE	(0xC000 + 1)
++
++u16 nft_chain_offload_priority(struct nft_base_chain *basechain)
++{
++	u16 prio;
++
++	if (basechain->ops.priority < NFT_BASECHAIN_OFFLOAD_PRIO_MIN ||
++	    basechain->ops.priority > NFT_BASECHAIN_OFFLOAD_PRIO_MAX)
++		return 0;
++
++	/* map netfilter chain priority to hardware priority. */
++	prio = basechain->ops.priority +
++		NFT_BASECHAIN_OFFLOAD_PRIO_MAX +
++			NFT_BASECHAIN_OFFLOAD_HW_PRIO_BASE;
++
++	return prio;
++}
++
+ static int nft_flow_offload_rule(struct nft_trans *trans,
+ 				 enum flow_cls_command command)
+ {
+@@ -200,7 +224,9 @@ static int nft_flow_offload_rule(struct nft_trans *trans,
+ 	if (flow)
+ 		proto = flow->proto;
+ 
+-	nft_flow_offload_common_init(&cls_flow.common, proto, &extack);
++	nft_flow_offload_common_init(&cls_flow.common, proto,
++				     nft_chain_offload_priority(basechain),
++				     &extack);
+ 	cls_flow.command = command;
+ 	cls_flow.cookie = (unsigned long) rule;
+ 	if (flow)
 -- 
-1.7.12.4
+2.11.0
 
