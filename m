@@ -2,107 +2,191 @@ Return-Path: <SRS0=FCuH=V3=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B5773C0650F
-	for <netfilter-devel@archiver.kernel.org>; Tue, 30 Jul 2019 19:08:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6CAD8C0650F
+	for <netfilter-devel@archiver.kernel.org>; Tue, 30 Jul 2019 19:30:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 88C382064A
-	for <netfilter-devel@archiver.kernel.org>; Tue, 30 Jul 2019 19:08:11 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="C4/XzLrS"
+	by mail.kernel.org (Postfix) with ESMTP id 4AFB02067D
+	for <netfilter-devel@archiver.kernel.org>; Tue, 30 Jul 2019 19:30:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387801AbfG3TII (ORCPT
+        id S1729458AbfG3TaO (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 30 Jul 2019 15:08:08 -0400
-Received: from mail-qt1-f196.google.com ([209.85.160.196]:46194 "EHLO
-        mail-qt1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2387756AbfG3TII (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 30 Jul 2019 15:08:08 -0400
-Received: by mail-qt1-f196.google.com with SMTP id h21so64055533qtn.13;
-        Tue, 30 Jul 2019 12:08:08 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to:user-agent;
-        bh=69tEdrH7C4uZgWGRDxRFgxd5fRarFFp82Fzw8ANraiM=;
-        b=C4/XzLrSlBsHh18iv2/8L6xgDVBIyS5Juw2p1an44yyqcJqtxhjxeKH0/mmuPciL22
-         csbKPBV+1sURYHrnxWqwNaZPUF3KtYqfmJLVzXnbK9lMdv0LWJOcWufwgkcl27BiQeQD
-         VpYmTZNiS8Uvl358fZZy0lOPLeYVuXGAvbEK11D4OfHaOuxi4fMWRWqfefNgQDpISKYU
-         ZoQzEOKHDPVVZ+CZ7yp2qD+GVK0cBF/ZXPbqnzhKvytp4y319ccL2FXbJi5zerpRgqZf
-         O/fggf8mLo0yMUsu7OH4dupMgZF2Q6VYyg0UbpPtkuywoy1B6Zar6drWaFHXkdigu1jk
-         ay3A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to:user-agent;
-        bh=69tEdrH7C4uZgWGRDxRFgxd5fRarFFp82Fzw8ANraiM=;
-        b=b+tNFvRkXytPX9hT+0kPFZQYlBNecyxOhtO6p4roNJjy/6k/ZrNr9/u3XECExCNm5L
-         0sN0ySUtm8cOewQ/wUyOeaZ1cvYOxmGCHdKe/yvq5Aea55h1ShpOw6EeipkqFrwp1MjN
-         dItgVRmvtznaheCLr3bnojuF4cI2+vGWVRPp1T/mnJ+FOxc9ZEc/HuOHBtnpzesXkuo1
-         dCH5mRt5j9c1tW/in5A3yYNJH/rMkebUPm4dqsMYCPL0UKeuiyoNe/vS0VvJtdva2kbj
-         arAWo0mH7vTeOFpjYSP7f4wiSj0NimgKRiOzHydHWcii6lfDv8+HBo2htNsQpisoTZAo
-         Y67g==
-X-Gm-Message-State: APjAAAVKEDqcyVJANikKhKPn4tbs4/cGRaSW9yl8HujvsqzK0T/NfFtL
-        4J7Sgkg+cycSn/pAAyadujM=
-X-Google-Smtp-Source: APXvYqzwg/cfSBynIJet++I5kPCGTwqyHKX4s8j6sc/mQAA29QrX2e6XTe6K8gGVIJjOEJKKavH6Yg==
-X-Received: by 2002:ac8:31ba:: with SMTP id h55mr83446669qte.363.1564513687458;
-        Tue, 30 Jul 2019 12:08:07 -0700 (PDT)
-Received: from localhost.localdomain ([177.220.172.104])
-        by smtp.gmail.com with ESMTPSA id j2sm30148427qtb.89.2019.07.30.12.08.06
-        (version=TLS1_3 cipher=AEAD-AES256-GCM-SHA384 bits=256/256);
-        Tue, 30 Jul 2019 12:08:06 -0700 (PDT)
-Received: by localhost.localdomain (Postfix, from userid 1000)
-        id 1D655C0AD9; Tue, 30 Jul 2019 16:08:04 -0300 (-03)
-Date:   Tue, 30 Jul 2019 16:08:04 -0300
-From:   Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, wenxu@ucloud.cn, jiri@resnulli.us,
-        saeedm@mellanox.com, gerlitz.or@gmail.com, paulb@mellanox.com,
-        netdev@vger.kernel.org
-Subject: Re: [PATCH nf] netfilter: nf_tables: map basechain priority to
- hardware priority
-Message-ID: <20190730190804.GQ6204@localhost.localdomain>
-References: <20190730105417.14538-1-pablo@netfilter.org>
+        Tue, 30 Jul 2019 15:30:14 -0400
+Received: from ja.ssi.bg ([178.16.129.10]:55932 "EHLO ja.ssi.bg"
+        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1728677AbfG3TaO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 30 Jul 2019 15:30:14 -0400
+Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
+        by ja.ssi.bg (8.15.2/8.15.2) with ESMTP id x6UJTQ1u006069;
+        Tue, 30 Jul 2019 22:29:27 +0300
+Date:   Tue, 30 Jul 2019 22:29:26 +0300 (EEST)
+From:   Julian Anastasov <ja@ssi.bg>
+To:     hujunwei <hujunwei4@huawei.com>
+cc:     wensong@linux-vs.org, horms@verge.net.au, pablo@netfilter.org,
+        kadlec@blackhole.kfki.hu, Florian Westphal <fw@strlen.de>,
+        davem@davemloft.net, Florian Westphal <fw@strlen.de>,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, Mingfangsen <mingfangsen@huawei.com>,
+        wangxiaogang3@huawei.com, xuhanbing@huawei.com
+Subject: Re: [PATCH net v2] ipvs: Improve robustness to the ipvs sysctl
+In-Reply-To: <4a0476d3-57a4-50e0-cae8-9dffc4f4d556@huawei.com>
+Message-ID: <alpine.LFD.2.21.1907302226340.4897@ja.home.ssi.bg>
+References: <1997375e-815d-137f-20c9-0829a8587ee9@huawei.com> <4a0476d3-57a4-50e0-cae8-9dffc4f4d556@huawei.com>
+User-Agent: Alpine 2.21 (LFD 202 2017-01-01)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190730105417.14538-1-pablo@netfilter.org>
-User-Agent: Mutt/1.12.0 (2019-05-25)
+Content-Type: text/plain; charset=US-ASCII
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Jul 30, 2019 at 12:54:17PM +0200, Pablo Neira Ayuso wrote:
-> This patch maps basechain netfilter priorities from -8192 to 8191 to
-> hardware priority 0xC000 + 1. tcf_auto_prio() uses 0xC000 if the user
-> specifies no priority, then it subtract 1 for each new tcf_proto object.
-> This patch uses the hardware priority range from 0xC000 to 0xFFFF for
-> netfilter.
 
-This makes more sense, thanks Pablo.
-Nit below.
+	Hello,
 
-> +u16 nft_chain_offload_priority(struct nft_base_chain *basechain)
-> +{
-> +	u16 prio;
+On Tue, 30 Jul 2019, hujunwei wrote:
+
+> From: Junwei Hu <hujunwei4@huawei.com>
+> 
+> The ipvs module parse the user buffer and save it to sysctl,
+> then check if the value is valid. invalid value occurs
+> over a period of time.
+> Here, I add a variable, struct ctl_table tmp, used to read
+> the value from the user buffer, and save only when it is valid.
+> I delete proc_do_sync_mode and use extra1/2 in table for the
+> proc_dointvec_minmax call.
+> 
+> Fixes: f73181c8288f ("ipvs: add support for sync threads")
+> Signed-off-by: Junwei Hu <hujunwei4@huawei.com>
+
+	Looks good to me, thanks!
+
+Acked-by: Julian Anastasov <ja@ssi.bg>
+
+	BTW, why ip_vs_zero_all everywhere? Due to old git version?
+
+> ---
+> V1->V2:
+> - delete proc_do_sync_mode and use proc_dointvec_minmax call.
+> ---
+>  net/netfilter/ipvs/ip_vs_ctl.c | 69 +++++++++++++++++++++---------------------
+>  1 file changed, 35 insertions(+), 34 deletions(-)
+> 
+> diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+> index 060565e..7aed7b0 100644
+> --- a/net/netfilter/ipvs/ip_vs_ctl.c
+> +++ b/net/netfilter/ipvs/ip_vs_ctl.c
+> @@ -1737,12 +1737,18 @@ static int ip_vs_zero_all(struct netns_ipvs *ipvs)
+>  	int val = *valp;
+>  	int rc;
+> 
+> -	rc = proc_dointvec(table, write, buffer, lenp, ppos);
+> +	struct ctl_table tmp = {
+> +		.data = &val,
+> +		.maxlen = sizeof(int),
+> +		.mode = table->mode,
+> +	};
 > +
-> +	if (basechain->ops.priority < NFT_BASECHAIN_OFFLOAD_PRIO_MIN ||
-> +	    basechain->ops.priority > NFT_BASECHAIN_OFFLOAD_PRIO_MAX)
-> +		return 0;
+> +	rc = proc_dointvec(&tmp, write, buffer, lenp, ppos);
+>  	if (write && (*valp != val)) {
+> -		if ((*valp < 0) || (*valp > 3)) {
+> -			/* Restore the correct value */
+> +		if (val < 0 || val > 3) {
+> +			rc = -EINVAL;
+> +		} else {
+>  			*valp = val;
+> -		} else {
+>  			update_defense_level(ipvs);
+>  		}
+>  	}
+> @@ -1756,33 +1762,20 @@ static int ip_vs_zero_all(struct netns_ipvs *ipvs)
+>  	int *valp = table->data;
+>  	int val[2];
+>  	int rc;
+> +	struct ctl_table tmp = {
+> +		.data = &val,
+> +		.maxlen = table->maxlen,
+> +		.mode = table->mode,
+> +	};
+> 
+> -	/* backup the value first */
+>  	memcpy(val, valp, sizeof(val));
+> -
+> -	rc = proc_dointvec(table, write, buffer, lenp, ppos);
+> -	if (write && (valp[0] < 0 || valp[1] < 0 ||
+> -	    (valp[0] >= valp[1] && valp[1]))) {
+> -		/* Restore the correct value */
+> -		memcpy(valp, val, sizeof(val));
+> -	}
+> -	return rc;
+> -}
+> -
+> -static int
+> -proc_do_sync_mode(struct ctl_table *table, int write,
+> -		     void __user *buffer, size_t *lenp, loff_t *ppos)
+> -{
+> -	int *valp = table->data;
+> -	int val = *valp;
+> -	int rc;
+> -
+> -	rc = proc_dointvec(table, write, buffer, lenp, ppos);
+> -	if (write && (*valp != val)) {
+> -		if ((*valp < 0) || (*valp > 1)) {
+> -			/* Restore the correct value */
+> -			*valp = val;
+> -		}
+> +	rc = proc_dointvec(&tmp, write, buffer, lenp, ppos);
+> +	if (write) {
+> +		if (val[0] < 0 || val[1] < 0 ||
+> +		    (val[0] >= val[1] && val[1]))
+> +			rc = -EINVAL;
+> +		else
+> +			memcpy(valp, val, sizeof(val));
+>  	}
+>  	return rc;
+>  }
+> @@ -1795,12 +1788,18 @@ static int ip_vs_zero_all(struct netns_ipvs *ipvs)
+>  	int val = *valp;
+>  	int rc;
+> 
+> -	rc = proc_dointvec(table, write, buffer, lenp, ppos);
+> +	struct ctl_table tmp = {
+> +		.data = &val,
+> +		.maxlen = sizeof(int),
+> +		.mode = table->mode,
+> +	};
 > +
-> +	/* map netfilter chain priority to hardware priority. */
-> +	prio = basechain->ops.priority +
-> +		NFT_BASECHAIN_OFFLOAD_PRIO_MAX +
-> +			NFT_BASECHAIN_OFFLOAD_HW_PRIO_BASE;
+> +	rc = proc_dointvec(&tmp, write, buffer, lenp, ppos);
+>  	if (write && (*valp != val)) {
+> -		if (*valp < 1 || !is_power_of_2(*valp)) {
+> -			/* Restore the correct value */
+> +		if (val < 1 || !is_power_of_2(val))
+> +			rc = -EINVAL;
+> +		else
+>  			*valp = val;
+> -		}
+>  	}
+>  	return rc;
+>  }
+> @@ -1860,7 +1859,9 @@ static int ip_vs_zero_all(struct netns_ipvs *ipvs)
+>  		.procname	= "sync_version",
+>  		.maxlen		= sizeof(int),
+>  		.mode		= 0644,
+> -		.proc_handler	= proc_do_sync_mode,
+> +		.proc_handler	= proc_dointvec_minmax,
+> +		.extra1		= SYSCTL_ZERO,
+> +		.extra2		= SYSCTL_ONE,
+>  	},
+>  	{
+>  		.procname	= "sync_ports",
+> -- 
+> 1.7.12.4
 
-Weird indent here.
+Regards
 
-> +
-> +	return prio;
-> +}
+--
+Julian Anastasov <ja@ssi.bg>
