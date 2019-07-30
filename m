@@ -2,121 +2,256 @@ Return-Path: <SRS0=FCuH=V3=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EECCFC433FF
-	for <netfilter-devel@archiver.kernel.org>; Tue, 30 Jul 2019 12:25:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EB910C0650F
+	for <netfilter-devel@archiver.kernel.org>; Tue, 30 Jul 2019 12:28:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C3869206E0
-	for <netfilter-devel@archiver.kernel.org>; Tue, 30 Jul 2019 12:25:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B0657206E0
+	for <netfilter-devel@archiver.kernel.org>; Tue, 30 Jul 2019 12:28:26 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="oNRi4Rrq"
+	dkim=pass (1024-bit key) header.d=untangle.com header.i=@untangle.com header.b="HwE7uvZ8"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730018AbfG3MZj (ORCPT
+        id S1728381AbfG3M20 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 30 Jul 2019 08:25:39 -0400
-Received: from mail-io1-f67.google.com ([209.85.166.67]:36026 "EHLO
-        mail-io1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728534AbfG3MZj (ORCPT
+        Tue, 30 Jul 2019 08:28:26 -0400
+Received: from mail-io1-f66.google.com ([209.85.166.66]:37876 "EHLO
+        mail-io1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727823AbfG3M20 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 30 Jul 2019 08:25:39 -0400
-Received: by mail-io1-f67.google.com with SMTP id o9so23964147iom.3;
-        Tue, 30 Jul 2019 05:25:38 -0700 (PDT)
+        Tue, 30 Jul 2019 08:28:26 -0400
+Received: by mail-io1-f66.google.com with SMTP id q22so7797127iog.4
+        for <netfilter-devel@vger.kernel.org>; Tue, 30 Jul 2019 05:28:25 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id;
-        bh=s5yWI2xfBi7yZUvh5vbuUYKfiAIOr2+n9/J+pTBAvvA=;
-        b=oNRi4RrqZcCHcv3ihpvxRh05FVUCJujtgcfihPqzEIhibrVSyvLxH6ou+KPX3QcJW1
-         8odyqmb9Xy6OZW3Akl4mhb8QXyeta1TByczNxiawqeZqlsAEQgeNH4zWnRQNZjNaanng
-         0uyuZIy+8zTVFFxa0Ya/KrP2BWiVnBI9uP6oyFln1SImZYqFXKVsPFuT21tgQZ7JxlFX
-         Fs+CbA/+uEvCQ0ZUgz9IPY356ERlad9t/WiFeJ2j53Gucbi1JlQ9yIBQgH0c0Te24k7b
-         EffDwc1jhPKoAalhRJA+XcovRIjMe2TsRZptfp0V8HA2/1B5SE8WZ8hszhzXBdu/7690
-         DokQ==
+        d=untangle.com; s=google;
+        h=from:to:subject:date:message-id;
+        bh=4j5/teSlDdA8cCmR5o2TJa1qhAorvE1XnuxVFIFYUtU=;
+        b=HwE7uvZ8D53NnaDyI908eRPoXyOa31ca6pcXnnW0stBooVH1ld48qTvl8jNf74lgX9
+         bFYBEFR2jkCk0n2qBXXlg1qCHSRehv9UBGGoxZ37KOs4TjjnJ3ig6VS7ofz9LYDh65Dx
+         +RmmxhK6tH5cQHQRyZZW9HimsTehSooLrDoSM=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id;
-        bh=s5yWI2xfBi7yZUvh5vbuUYKfiAIOr2+n9/J+pTBAvvA=;
-        b=TMGbfHz7XYUaf0EEpYhojlH2AUFA8fqyYprqvHQp0O+q0TjwUdFbpgltjDLL9ujHyn
-         yeZ00voKnicZ84UCrXg6I8nSL+xZ6tvdaiYd7Bmn8Qryw+8NhG9WlsgxcuJZIvcuZB+J
-         JtHrkSSxBc4X5FV6x4qQWAoqzunbiYNj5mljYW6JnzNVi0/P5CXxlI9/t1MFRI8ANQdZ
-         wpMIEapsrfEYW7cXrkcrPqEjBI/YuhlWqPKb0mN3LTXLmLSrReCPiC5fBoQ8cYxHhb3D
-         cD5/6dvCJz7NfXVcBa7CtjQdMoxreac96H5y8a7dwievlDsY09rEbbmMquO8YCFjhHpG
-         oQIg==
-X-Gm-Message-State: APjAAAUbOB4VI52yGSCxBg4E9Ux5lxqkkngGvDEH5YFAJF1wOlefoLnN
-        wj4Dl2K7JSpkv3oJyPTAiA==
-X-Google-Smtp-Source: APXvYqyQH9tqYauuovKG4HR22AWdKr93hT9a4O67gZNyhFbLW2ujv+hKs4GCYjdavvE1y4Ujue7gVA==
-X-Received: by 2002:a6b:cd86:: with SMTP id d128mr106118586iog.234.1564489538291;
-        Tue, 30 Jul 2019 05:25:38 -0700 (PDT)
-Received: from ip-172-31-35-247.us-east-2.compute.internal (ec2-52-15-165-154.us-east-2.compute.amazonaws.com. [52.15.165.154])
-        by smtp.gmail.com with ESMTPSA id j23sm52454755ioo.6.2019.07.30.05.25.37
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Tue, 30 Jul 2019 05:25:37 -0700 (PDT)
-From:   Rundong Ge <rdong.ge@gmail.com>
-To:     davem@davemloft.net
-Cc:     kuznet@ms2.inr.ac.ru, yoshfuji@linux-ipv6.org,
-        netdev@vger.kernel.org, pablo@netfilter.org, kadlec@netfilter.org,
-        fw@strlen.de, roopa@cumulusnetworks.com,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        bridge@lists.linux-foundation.org, nikolay@cumulusnetworks.com,
-        linux-kernel@vger.kernel.org, rdong.ge@gmail.com
-Subject: [PATCH] bridge:fragmented packets dropped by bridge
-Date:   Tue, 30 Jul 2019 12:25:34 +0000
-Message-Id: <20190730122534.30687-1-rdong.ge@gmail.com>
+        h=x-gm-message-state:from:to:subject:date:message-id;
+        bh=4j5/teSlDdA8cCmR5o2TJa1qhAorvE1XnuxVFIFYUtU=;
+        b=hCbp9KUmIb3gUOMJTDl1fwzPIaCqOgTESj/oYQ6HixzAnKwkN+8tIqbGvUaLTnzDf2
+         lhznaNrz4wVWuSeCvEtvoqUlc2wFsPMoLW0wA99S3r3EszYnN1xy9bHRbVc4pWFhjWWB
+         RuMJ8ZF/Y6jMYYMSsnHeiHYCxbSUs16opLJYOWQQvd2P8qoNWeFUAlhVwZYM57CWBs60
+         HWdHoJqnbGYVU4U8SuuUDXwroRPF/yZLXAdxEYL2BcXV91pg1a6CGfJ4hmHxoBfIBnGN
+         JUMNm9vRHfkqNDiuRygiPbKnmPdFv/UxGFWk7tBiA4dfHe5ZZPw7XojsutEdC0jeDN29
+         oIxg==
+X-Gm-Message-State: APjAAAUDVFKW8EHU91PfbTVFhMrcdy2guZfpicG9WAc88zYstwl+xeeC
+        oR8r6YGXW8/IiBYhjEogqM97ddzduVUEgg==
+X-Google-Smtp-Source: APXvYqxVP2TAtYHwaKi50DMu93YcFHF28jxrBELhD2SPhHkXlEvTvGhHarUcyvwr2gvAnJZD3/a96g==
+X-Received: by 2002:a5d:9c12:: with SMTP id 18mr55770572ioe.48.1564489704938;
+        Tue, 30 Jul 2019 05:28:24 -0700 (PDT)
+Received: from pinebook.zebraskunk.int (cpe-74-137-94-90.kya.res.rr.com. [74.137.94.90])
+        by smtp.gmail.com with ESMTPSA id v3sm8964157ioh.58.2019.07.30.05.28.24
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_3 cipher=AEAD-AES256-GCM-SHA384 bits=256/256);
+        Tue, 30 Jul 2019 05:28:24 -0700 (PDT)
+From:   Brett Mastbergen <bmastbergen@untangle.com>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nft v2] src: Support maps as left side expressions
+Date:   Tue, 30 Jul 2019 08:28:18 -0400
+Message-Id: <20190730122818.2032-1-bmastbergen@untangle.com>
 X-Mailer: git-send-email 2.17.1
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Given following setup:
--modprobe br_netfilter
--echo '1' > /proc/sys/net/bridge/bridge-nf-call-iptables
--brctl addbr br0
--brctl addif br0 enp2s0
--brctl addif br0 enp3s0
--brctl addif br0 enp6s0
--ifconfig enp2s0 mtu 1300
--ifconfig enp3s0 mtu 1500
--ifconfig enp6s0 mtu 1500
--ifconfig br0 up
+This change allows map expressions on the left side of comparisons:
 
-                 multi-port
-mtu1500 - mtu1500|bridge|1500 - mtu1500
-  A                  |            B
-                   mtu1300
+nft add rule foo bar ip saddr map @map_a == 22 counter
 
-With netfilter defragmentation/conntrack enabled, fragmented
-packets from A will be defragmented in prerouting, and refragmented
-at postrouting.
-But in this scenario the bridge found the frag_max_size(1500) is
-larger than the dst mtu stored in the fake_rtable whitch is
-always equal to the bridge's mtu 1300, then packets will be dopped.
+It also allows map expressions as the left side expression of other
+map expressions:
 
-This modifies ip_skb_dst_mtu to use the out dev's mtu instead
-of bridge's mtu in bridge refragment.
+nft add rule foo bar ip saddr map @map_a map @map_b == 22 counter
 
-Signed-off-by: Rundong Ge <rdong.ge@gmail.com>
+To accomplish this, some additional context needs to be set during
+evaluation and delinearization.  A tweak is also make to the parser
+logic to allow map expressions as the left hand expression to other
+map expressions.
+
+By allowing maps as left side comparison expressions one can map
+information in the packet to some arbitrary piece of data and use
+the equality (or inequality) to make some decision about the traffic,
+unlike today where the result of a map lookup is only usable as the
+right side of a statement (like dnat or snat) that actually uses the
+value as input.
+
+v2: Add testcases
+
+Signed-off-by: Brett Mastbergen <bmastbergen@untangle.com>
 ---
- include/net/ip.h | 2 ++
- 1 file changed, 2 insertions(+)
+ src/evaluate.c                                     |  2 +-
+ src/expression.c                                   | 12 +++++++++++-
+ src/netlink_delinearize.c                          |  2 ++
+ src/parser_bison.y                                 | 10 +++++++---
+ .../shell/testcases/maps/dumps/left_side_map_0.nft | 10 ++++++++++
+ tests/shell/testcases/maps/dumps/map_to_map_0.nft  | 14 ++++++++++++++
+ tests/shell/testcases/maps/left_side_map_0         |  8 ++++++++
+ tests/shell/testcases/maps/map_to_map_0            |  9 +++++++++
+ 8 files changed, 62 insertions(+), 5 deletions(-)
+ create mode 100644 tests/shell/testcases/maps/dumps/left_side_map_0.nft
+ create mode 100644 tests/shell/testcases/maps/dumps/map_to_map_0.nft
+ create mode 100755 tests/shell/testcases/maps/left_side_map_0
+ create mode 100755 tests/shell/testcases/maps/map_to_map_0
 
-diff --git a/include/net/ip.h b/include/net/ip.h
-index 29d89de..0512de3 100644
---- a/include/net/ip.h
-+++ b/include/net/ip.h
-@@ -450,6 +450,8 @@ static inline unsigned int ip_dst_mtu_maybe_forward(const struct dst_entry *dst,
- static inline unsigned int ip_skb_dst_mtu(struct sock *sk,
- 					  const struct sk_buff *skb)
- {
-+	if ((skb_dst(skb)->flags & DST_FAKE_RTABLE) && skb->dev)
-+		return min(skb->dev->mtu, IP_MAX_MTU);
- 	if (!sk || !sk_fullsock(sk) || ip_sk_use_pmtu(sk)) {
- 		bool forwarding = IPCB(skb)->flags & IPSKB_FORWARDED;
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 48c65cd2..59538f27 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -1385,6 +1385,7 @@ static int expr_evaluate_map(struct eval_ctx *ctx, struct expr **expr)
+ 		    !set_is_datamap(map->mappings->set->flags))
+ 			return expr_error(ctx->msgs, map->mappings,
+ 					  "Expression is not a map");
++		expr_set_context(&ctx->ectx, map->mappings->set->datatype, map->mappings->set->datalen);
+ 		break;
+ 	default:
+ 		BUG("invalid mapping expression %s\n",
+@@ -1399,7 +1400,6 @@ static int expr_evaluate_map(struct eval_ctx *ctx, struct expr **expr)
+ 					 map->map->dtype->desc);
  
+ 	datatype_set(map, map->mappings->set->datatype);
+-	map->flags |= EXPR_F_CONSTANT;
+ 
+ 	/* Data for range lookups needs to be in big endian order */
+ 	if (map->mappings->set->flags & NFT_SET_INTERVAL &&
+diff --git a/src/expression.c b/src/expression.c
+index cb49e0b7..e5979394 100644
+--- a/src/expression.c
++++ b/src/expression.c
+@@ -1067,8 +1067,18 @@ static const struct expr_ops set_ref_expr_ops = {
+ struct expr *set_ref_expr_alloc(const struct location *loc, struct set *set)
+ {
+ 	struct expr *expr;
++	const struct datatype *dtype;
++	unsigned int len;
+ 
+-	expr = expr_alloc(loc, EXPR_SET_REF, set->key->dtype, 0, 0);
++	if (set->flags & NFT_SET_MAP) {
++		dtype = set->datatype;
++		len = set->datalen;
++	} else {
++		dtype = set->key->dtype;
++		len = set->key->len;
++	}
++
++	expr = expr_alloc(loc, EXPR_SET_REF, dtype, 0, len);
+ 	expr->set = set_get(set);
+ 	expr->flags |= EXPR_F_CONSTANT;
+ 	return expr;
+diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
+index fc2574b1..b70433f0 100644
+--- a/src/netlink_delinearize.c
++++ b/src/netlink_delinearize.c
+@@ -341,6 +341,8 @@ static void netlink_parse_lookup(struct netlink_parse_ctx *ctx,
+ 	if (nftnl_expr_is_set(nle, NFTNL_EXPR_LOOKUP_DREG)) {
+ 		dreg = netlink_parse_register(nle, NFTNL_EXPR_LOOKUP_DREG);
+ 		expr = map_expr_alloc(loc, left, right);
++		expr_set_type(expr, right->dtype, right->byteorder);
++		expr->len = right->len;
+ 		if (dreg != NFT_REG_VERDICT)
+ 			return netlink_set_register(ctx, dreg, expr);
+ 	} else {
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index 53e66952..9b998d65 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -668,8 +668,8 @@ int nft_lex(void *, void *, void *);
+ %type <expr>			concat_expr
+ %destructor { expr_free($$); }	concat_expr
+ 
+-%type <expr>			map_expr
+-%destructor { expr_free($$); }	map_expr
++%type <expr>			map_expr map_lhs_expr
++%destructor { expr_free($$); }	map_expr map_lhs_expr
+ 
+ %type <expr>			verdict_map_stmt
+ %destructor { expr_free($$); }	verdict_map_stmt
+@@ -3378,7 +3378,11 @@ multiton_rhs_expr	:	prefix_rhs_expr
+ 			|	wildcard_expr
+ 			;
+ 
+-map_expr		:	concat_expr	MAP	rhs_expr
++map_lhs_expr		:	concat_expr
++			|	map_expr
++			;
++
++map_expr		:	map_lhs_expr	MAP	rhs_expr
+ 			{
+ 				$$ = map_expr_alloc(&@$, $1, $3);
+ 			}
+diff --git a/tests/shell/testcases/maps/dumps/left_side_map_0.nft b/tests/shell/testcases/maps/dumps/left_side_map_0.nft
+new file mode 100644
+index 00000000..b93948fc
+--- /dev/null
++++ b/tests/shell/testcases/maps/dumps/left_side_map_0.nft
+@@ -0,0 +1,10 @@
++table ip x {
++	map y {
++		type ipv4_addr : inet_service
++	}
++
++	chain z {
++		type filter hook output priority filter; policy accept;
++		ip saddr map @y 22 counter packets 0 bytes 0
++	}
++}
+diff --git a/tests/shell/testcases/maps/dumps/map_to_map_0.nft b/tests/shell/testcases/maps/dumps/map_to_map_0.nft
+new file mode 100644
+index 00000000..fd7339f9
+--- /dev/null
++++ b/tests/shell/testcases/maps/dumps/map_to_map_0.nft
+@@ -0,0 +1,14 @@
++table ip x {
++	map y {
++		type ipv4_addr : mark
++	}
++
++	map yy {
++		type mark : inet_service
++	}
++
++	chain z {
++		type filter hook output priority filter; policy accept;
++		ip saddr map @y map @yy 22 counter packets 0 bytes 0
++	}
++}
+diff --git a/tests/shell/testcases/maps/left_side_map_0 b/tests/shell/testcases/maps/left_side_map_0
+new file mode 100755
+index 00000000..93c721b7
+--- /dev/null
++++ b/tests/shell/testcases/maps/left_side_map_0
+@@ -0,0 +1,8 @@
++#!/bin/bash
++
++set -e
++
++$NFT add table x
++$NFT add map x y { type ipv4_addr : inet_service\; }
++$NFT add chain ip x z { type filter hook output priority 0 \; }
++$NFT add rule x z ip saddr map @y 22 counter
+diff --git a/tests/shell/testcases/maps/map_to_map_0 b/tests/shell/testcases/maps/map_to_map_0
+new file mode 100755
+index 00000000..95a45f62
+--- /dev/null
++++ b/tests/shell/testcases/maps/map_to_map_0
+@@ -0,0 +1,9 @@
++#!/bin/bash
++
++set -e
++
++$NFT add table x
++$NFT add map x y { type ipv4_addr : mark\; }
++$NFT add map x yy { type mark : inet_service\; }
++$NFT add chain ip x z { type filter hook output priority 0 \; }
++$NFT add rule x z ip saddr map @y map@yy 22 counter
 -- 
-1.8.3.1
+2.17.1
 
