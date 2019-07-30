@@ -2,103 +2,67 @@ Return-Path: <SRS0=FCuH=V3=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B16E0C433FF
-	for <netfilter-devel@archiver.kernel.org>; Tue, 30 Jul 2019 14:38:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DF4D3C0650F
+	for <netfilter-devel@archiver.kernel.org>; Tue, 30 Jul 2019 14:41:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 87654206E0
-	for <netfilter-devel@archiver.kernel.org>; Tue, 30 Jul 2019 14:38:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BCF29206E0
+	for <netfilter-devel@archiver.kernel.org>; Tue, 30 Jul 2019 14:41:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729505AbfG3Oi5 (ORCPT
+        id S1731386AbfG3Oln (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 30 Jul 2019 10:38:57 -0400
-Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:42934 "EHLO
+        Tue, 30 Jul 2019 10:41:43 -0400
+Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:42958 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728532AbfG3Oi5 (ORCPT
+        by vger.kernel.org with ESMTP id S1729908AbfG3Oln (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 30 Jul 2019 10:38:57 -0400
+        Tue, 30 Jul 2019 10:41:43 -0400
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.89)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1hsTHD-0004Ws-KX; Tue, 30 Jul 2019 16:38:55 +0200
+        (envelope-from <fw@strlen.de>)
+        id 1hsTJt-0004Yv-BO; Tue, 30 Jul 2019 16:41:41 +0200
+Date:   Tue, 30 Jul 2019 16:41:41 +0200
 From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH 2/2] typeof keyword
-Date:   Tue, 30 Jul 2019 16:37:32 +0200
-Message-Id: <20190730143732.2126-3-fw@strlen.de>
-X-Mailer: git-send-email 2.21.0
-In-Reply-To: <20190730143732.2126-1-fw@strlen.de>
-References: <20190730143732.2126-1-fw@strlen.de>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, fw@strlen.de,
+        bmastbergen@untangle.com
+Subject: Re: [PATCH nft,RFC,PoC 2/2] src: restore typeof datatype when
+ listing set definition
+Message-ID: <20190730144141.k3dn37nlychhjk46@breakpoint.cc>
+References: <20190730141620.2129-1-pablo@netfilter.org>
+ <20190730141620.2129-3-pablo@netfilter.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190730141620.2129-3-pablo@netfilter.org>
+User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Allows to do this:
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> This is a proof-of-concept.
+> 
+> The idea behind this patch is to store the typeof definition
+> so it can be restored when listing it back.
+> 
+> Better way to do this would be to store the typeof expression
+> definition in a way that the set->key expression can be rebuilt.
 
-table filter {
-    set foo {
-        type typeof(osf name);
-    }
-    map bar {
-        type typeof(osf name) : typeof(meta mark);
-    }
-    map baz {
-        type typeof(osf name) : typeof(ct helper);
-    }
-}
+Maybe we can store the raw netlink data that makes up the expression
+in the tlv area?
 
-Problem is that listing such a table produces "type string" -- it
-can't be restored.
+That would probably allow more code reuse to get back the "proper"
+type.
 
-Use in concatenations doesn't work either.
+One problem with my patch is that while you can add a map that
+returns "osf name", I could not find a way to easily re-lookup
+a suitable expression.  Storing a string would work of course,
+but I don't like it because we have no way to revalidate this.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- src/parser_bison.y | 5 +++++
- src/scanner.l      | 1 +
- 2 files changed, 6 insertions(+)
-
-diff --git a/src/parser_bison.y b/src/parser_bison.y
-index 5771f9f7469e..bc0105673f38 100644
---- a/src/parser_bison.y
-+++ b/src/parser_bison.y
-@@ -191,6 +191,7 @@ int nft_lex(void *, void *, void *);
- %token DEFINE			"define"
- %token REDEFINE			"redefine"
- %token UNDEFINE			"undefine"
-+%token TYPEOF			"typeof"
- 
- %token FIB			"fib"
- 
-@@ -1824,6 +1825,10 @@ data_type_atom_expr	:	type_identifier
- 							 dtype->size, NULL);
- 				xfree($1);
- 			}
-+			|	TYPEOF	'('	primary_expr	')'
-+			{
-+				$$ = $3;
-+			}
- 			;
- 
- data_type_expr		:	data_type_atom_expr
-diff --git a/src/scanner.l b/src/scanner.l
-index c1adcbddbd73..cd563aa0ca1f 100644
---- a/src/scanner.l
-+++ b/src/scanner.l
-@@ -243,6 +243,7 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
- "define"		{ return DEFINE; }
- "redefine"		{ return REDEFINE; }
- "undefine"		{ return UNDEFINE; }
-+"typeof"		{ return TYPEOF; }
- 
- "describe"		{ return DESCRIBE; }
- 
--- 
-2.21.0
-
+If we can reuse libnftnl/libmnl to have the basic netlink validation
+run on the blob we can at least be sure that its not complete garbage
+before we attempt to interpret the blob.
