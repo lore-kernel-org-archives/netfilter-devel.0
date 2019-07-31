@@ -2,94 +2,55 @@ Return-Path: <SRS0=6+Vk=V4=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 30694C433FF
-	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Jul 2019 13:10:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 370E1C32753
+	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Jul 2019 15:50:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0D06B20693
-	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Jul 2019 13:10:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1365C206B8
+	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Jul 2019 15:50:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387811AbfGaNKq (ORCPT
+        id S1728089AbfGaPuU (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 31 Jul 2019 09:10:46 -0400
-Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:49476 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S2387696AbfGaNKq (ORCPT
+        Wed, 31 Jul 2019 11:50:20 -0400
+Received: from shards.monkeyblade.net ([23.128.96.9]:39488 "EHLO
+        shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726675AbfGaPuU (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 31 Jul 2019 09:10:46 -0400
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.89)
-        (envelope-from <fw@strlen.de>)
-        id 1hsoNQ-00049o-P4; Wed, 31 Jul 2019 15:10:44 +0200
-Date:   Wed, 31 Jul 2019 15:10:44 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH 1/2] src: store expr, not dtype to track data in sets
-Message-ID: <20190731131044.ntk6lzwe5uniku7p@breakpoint.cc>
-References: <20190730143732.2126-1-fw@strlen.de>
- <20190730143732.2126-2-fw@strlen.de>
- <20190731130230.nc5fj437st7ejkne@salvia>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190731130230.nc5fj437st7ejkne@salvia>
-User-Agent: NeoMutt/20170113 (1.7.2)
+        Wed, 31 Jul 2019 11:50:20 -0400
+Received: from localhost (unknown [IPv6:2601:601:9f80:35cd::d71])
+        (using TLSv1 with cipher AES256-SHA (256/256 bits))
+        (Client did not present a certificate)
+        (Authenticated sender: davem-davemloft)
+        by shards.monkeyblade.net (Postfix) with ESMTPSA id A077B12B8C6EC;
+        Wed, 31 Jul 2019 08:50:19 -0700 (PDT)
+Date:   Wed, 31 Jul 2019 08:50:19 -0700 (PDT)
+Message-Id: <20190731.085019.1144909092253347155.davem@davemloft.net>
+To:     pablo@netfilter.org
+Cc:     netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+Subject: Re: [PATCH 0/8] netfilter fixes for net
+From:   David Miller <davem@davemloft.net>
+In-Reply-To: <20190731115157.27020-1-pablo@netfilter.org>
+References: <20190731115157.27020-1-pablo@netfilter.org>
+X-Mailer: Mew version 6.8 on Emacs 26.1
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+X-Greylist: Sender succeeded SMTP AUTH, not delayed by milter-greylist-4.5.12 (shards.monkeyblade.net [149.20.54.216]); Wed, 31 Jul 2019 08:50:19 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > +static struct expr *concat_expr_alloc_by_type_FIXME(uint32_t type)
-> > +{
-> > +	struct expr *concat_expr = concat_expr_alloc(&netlink_location);
-> > +	unsigned int n;
-> > +	int size = 0;
-> > +
-> > +	n = div_round_up(fls(type), TYPE_BITS);
-> > +	while (n > 0 && concat_subtype_id(type, --n)) {
-> > +		const struct datatype *i;
-> > +		struct expr *expr;
-> > +
-> > +		i = concat_subtype_lookup(type, n);
-> > +		if (i == NULL)
-> > +			return NULL;
-> > +
-> > +		if (i->size == 0)
-> > +			size = -1;
-> > +		else if (size >= 0)
-> > +			size += i->size;
-> > +
-> > +		expr = constant_expr_alloc(&netlink_location, i, i->byteorder,
-> > +					   i->size, NULL);
-> > +
-> > +		compound_expr_add(concat_expr, expr);
-> > +	}
-> > +
-> > +	/* can be incorrect in case of i->size being 0 (variable length). */
-> > +	concat_expr->len = size > 0 ? size : 0;
-> > +
-> > +	return concat_expr;
-> > +}
-> > +
-> > +static struct expr *
-> > +data_expr_alloc_by_type_FIXME(enum nft_data_types type, enum byteorder keybyteorder)
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Wed, 31 Jul 2019 13:51:49 +0200
+
+> The following patchset contains Netfilter fixes for your net tree:
+ ...
+> You can pull these changes from:
 > 
-> There is no support for concatenations from the right hand side of the
-> mapping, so I would just calloc a constant expression itself.
+>   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
 
-Excellent.  This is what I concluded when I was working on this, but at
-that point i was already backed into a corner, hence the function name
-:-)
-
-> will be more simple. Same comment applies to dtype_map_from_kernel().
-
-Oh, right.
-
-> In general, I agree in the direction where this is going, that is,
-> turn the datatype field in the set object into an expression.
-
-Perfect.
+Pulled, thanks.
