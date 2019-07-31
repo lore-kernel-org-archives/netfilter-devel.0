@@ -2,56 +2,190 @@ Return-Path: <SRS0=6+Vk=V4=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DF630C433FF
-	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Jul 2019 17:45:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E5AB4C32751
+	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Jul 2019 17:54:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C2C17208E4
-	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Jul 2019 17:45:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C887B2067D
+	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Jul 2019 17:54:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729479AbfGaRpq (ORCPT
+        id S1729913AbfGaRye (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 31 Jul 2019 13:45:46 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:41054 "EHLO orbyte.nwl.cc"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727502AbfGaRpp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 31 Jul 2019 13:45:45 -0400
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.91)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1hssfX-0006ee-PY; Wed, 31 Jul 2019 19:45:43 +0200
-Date:   Wed, 31 Jul 2019 19:45:43 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [iptables PATCH 5/5] xtables-monitor: Add family-specific aliases
-Message-ID: <20190731174543.GP14469@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-References: <20190731163915.22232-1-phil@nwl.cc>
- <20190731163915.22232-6-phil@nwl.cc>
+        Wed, 31 Jul 2019 13:54:34 -0400
+Received: from ja.ssi.bg ([178.16.129.10]:60010 "EHLO ja.ssi.bg"
+        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1726232AbfGaRye (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 31 Jul 2019 13:54:34 -0400
+Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
+        by ja.ssi.bg (8.15.2/8.15.2) with ESMTP id x6VHrlOx004195;
+        Wed, 31 Jul 2019 20:53:47 +0300
+Date:   Wed, 31 Jul 2019 20:53:47 +0300 (EEST)
+From:   Julian Anastasov <ja@ssi.bg>
+To:     hujunwei <hujunwei4@huawei.com>
+cc:     wensong@linux-vs.org, horms@verge.net.au, pablo@netfilter.org,
+        kadlec@blackhole.kfki.hu, Florian Westphal <fw@strlen.de>,
+        davem@davemloft.net, Florian Westphal <fw@strlen.de>,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, Mingfangsen <mingfangsen@huawei.com>,
+        wangxiaogang3@huawei.com, xuhanbing@huawei.com
+Subject: Re: [PATCH net v3] ipvs: Improve robustness to the ipvs sysctl
+In-Reply-To: <5fd55d18-f4e2-a6b4-5c54-db76c05be5df@huawei.com>
+Message-ID: <alpine.LFD.2.21.1907312052310.3631@ja.home.ssi.bg>
+References: <1997375e-815d-137f-20c9-0829a8587ee9@huawei.com> <4a0476d3-57a4-50e0-cae8-9dffc4f4d556@huawei.com> <5fd55d18-f4e2-a6b4-5c54-db76c05be5df@huawei.com>
+User-Agent: Alpine 2.21 (LFD 202 2017-01-01)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190731163915.22232-6-phil@nwl.cc>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Type: text/plain; charset=US-ASCII
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Jul 31, 2019 at 06:39:15PM +0200, Phil Sutter wrote:
-> Allow for more intuitive xtables-monitor use, e.g. 'ebtables-monitor'
-> instead of 'xtables-monitor --bridge'. This needs separate main
-> functions to call from xtables-nft-multi.c and in turn allows to
-> properly initialize for each family. The latter is required to correctly
-> print e.g. rules using ebtables extensions.
+
+	Hello,
+
+On Thu, 1 Aug 2019, hujunwei wrote:
+
+> From: Junwei Hu <hujunwei4@huawei.com>
 > 
-> Signed-off-by: Phil Sutter <phil@nwl.cc>
+> The ipvs module parse the user buffer and save it to sysctl,
+> then check if the value is valid. invalid value occurs
+> over a period of time.
+> Here, I add a variable, struct ctl_table tmp, used to read
+> the value from the user buffer, and save only when it is valid.
+> I delete proc_do_sync_mode and use extra1/2 in table for the
+> proc_dointvec_minmax call.
+> 
+> Fixes: f73181c8288f ("ipvs: add support for sync threads")
+> Signed-off-by: Junwei Hu <hujunwei4@huawei.com>
+> Acked-by: Julian Anastasov <ja@ssi.bg>
 
-This one needs a v2, I forgot to update iptables/.gitignore.
+	Yep, Acked-by: Julian Anastasov <ja@ssi.bg>
 
-Sorry, Phil
+> ---
+> V1->V2:
+> - delete proc_do_sync_mode and use proc_dointvec_minmax call.
+> V2->V3:
+> - update git version
+> ---
+>  net/netfilter/ipvs/ip_vs_ctl.c | 69 +++++++++++++++++-----------------
+>  1 file changed, 35 insertions(+), 34 deletions(-)
+> 
+> diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+> index 060565e7d227..72189559a1cd 100644
+> --- a/net/netfilter/ipvs/ip_vs_ctl.c
+> +++ b/net/netfilter/ipvs/ip_vs_ctl.c
+> @@ -1737,12 +1737,18 @@ proc_do_defense_mode(struct ctl_table *table, int write,
+>  	int val = *valp;
+>  	int rc;
+> 
+> -	rc = proc_dointvec(table, write, buffer, lenp, ppos);
+> +	struct ctl_table tmp = {
+> +		.data = &val,
+> +		.maxlen = sizeof(int),
+> +		.mode = table->mode,
+> +	};
+> +
+> +	rc = proc_dointvec(&tmp, write, buffer, lenp, ppos);
+>  	if (write && (*valp != val)) {
+> -		if ((*valp < 0) || (*valp > 3)) {
+> -			/* Restore the correct value */
+> -			*valp = val;
+> +		if (val < 0 || val > 3) {
+> +			rc = -EINVAL;
+>  		} else {
+> +			*valp = val;
+>  			update_defense_level(ipvs);
+>  		}
+>  	}
+> @@ -1756,33 +1762,20 @@ proc_do_sync_threshold(struct ctl_table *table, int write,
+>  	int *valp = table->data;
+>  	int val[2];
+>  	int rc;
+> +	struct ctl_table tmp = {
+> +		.data = &val,
+> +		.maxlen = table->maxlen,
+> +		.mode = table->mode,
+> +	};
+> 
+> -	/* backup the value first */
+>  	memcpy(val, valp, sizeof(val));
+> -
+> -	rc = proc_dointvec(table, write, buffer, lenp, ppos);
+> -	if (write && (valp[0] < 0 || valp[1] < 0 ||
+> -	    (valp[0] >= valp[1] && valp[1]))) {
+> -		/* Restore the correct value */
+> -		memcpy(valp, val, sizeof(val));
+> -	}
+> -	return rc;
+> -}
+> -
+> -static int
+> -proc_do_sync_mode(struct ctl_table *table, int write,
+> -		     void __user *buffer, size_t *lenp, loff_t *ppos)
+> -{
+> -	int *valp = table->data;
+> -	int val = *valp;
+> -	int rc;
+> -
+> -	rc = proc_dointvec(table, write, buffer, lenp, ppos);
+> -	if (write && (*valp != val)) {
+> -		if ((*valp < 0) || (*valp > 1)) {
+> -			/* Restore the correct value */
+> -			*valp = val;
+> -		}
+> +	rc = proc_dointvec(&tmp, write, buffer, lenp, ppos);
+> +	if (write) {
+> +		if (val[0] < 0 || val[1] < 0 ||
+> +		    (val[0] >= val[1] && val[1]))
+> +			rc = -EINVAL;
+> +		else
+> +			memcpy(valp, val, sizeof(val));
+>  	}
+>  	return rc;
+>  }
+> @@ -1795,12 +1788,18 @@ proc_do_sync_ports(struct ctl_table *table, int write,
+>  	int val = *valp;
+>  	int rc;
+> 
+> -	rc = proc_dointvec(table, write, buffer, lenp, ppos);
+> +	struct ctl_table tmp = {
+> +		.data = &val,
+> +		.maxlen = sizeof(int),
+> +		.mode = table->mode,
+> +	};
+> +
+> +	rc = proc_dointvec(&tmp, write, buffer, lenp, ppos);
+>  	if (write && (*valp != val)) {
+> -		if (*valp < 1 || !is_power_of_2(*valp)) {
+> -			/* Restore the correct value */
+> +		if (val < 1 || !is_power_of_2(val))
+> +			rc = -EINVAL;
+> +		else
+>  			*valp = val;
+> -		}
+>  	}
+>  	return rc;
+>  }
+> @@ -1860,7 +1859,9 @@ static struct ctl_table vs_vars[] = {
+>  		.procname	= "sync_version",
+>  		.maxlen		= sizeof(int),
+>  		.mode		= 0644,
+> -		.proc_handler	= proc_do_sync_mode,
+> +		.proc_handler	= proc_dointvec_minmax,
+> +		.extra1		= SYSCTL_ZERO,
+> +		.extra2		= SYSCTL_ONE,
+>  	},
+>  	{
+>  		.procname	= "sync_ports",
+> -- 
+> 2.21.GIT
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
