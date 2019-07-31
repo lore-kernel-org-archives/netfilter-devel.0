@@ -7,39 +7,39 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3983FC32751
-	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Jul 2019 08:12:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A050CC32751
+	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Jul 2019 08:12:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1B23B20693
-	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Jul 2019 08:12:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 741A220693
+	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Jul 2019 08:12:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727100AbfGaIMl (ORCPT
+        id S1727671AbfGaIMv (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 31 Jul 2019 04:12:41 -0400
-Received: from m9784.mail.qiye.163.com ([220.181.97.84]:50527 "EHLO
+        Wed, 31 Jul 2019 04:12:51 -0400
+Received: from m9784.mail.qiye.163.com ([220.181.97.84]:50765 "EHLO
         m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726125AbfGaIMi (ORCPT
+        with ESMTP id S1726862AbfGaIMl (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 31 Jul 2019 04:12:38 -0400
+        Wed, 31 Jul 2019 04:12:41 -0400
 Received: from localhost.localdomain (unknown [123.59.132.129])
-        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id 9228641A12;
-        Wed, 31 Jul 2019 16:12:34 +0800 (CST)
+        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id D7F5641A7C;
+        Wed, 31 Jul 2019 16:12:35 +0800 (CST)
 From:   wenxu@ucloud.cn
 To:     pablo@netfilter.org, fw@strlen.de, jakub.kicinski@netronome.com,
         jiri@resnulli.us
 Cc:     netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-Subject: [PATCH net-next 1/6] cls_api: modify the tc_indr_block_ing_cmd parameters.
-Date:   Wed, 31 Jul 2019 16:12:28 +0800
-Message-Id: <1564560753-32603-2-git-send-email-wenxu@ucloud.cn>
+Subject: [PATCH net-next 5/6] flow_offload: support get flow_block immediately
+Date:   Wed, 31 Jul 2019 16:12:32 +0800
+Message-Id: <1564560753-32603-6-git-send-email-wenxu@ucloud.cn>
 X-Mailer: git-send-email 1.8.3.1
 In-Reply-To: <1564560753-32603-1-git-send-email-wenxu@ucloud.cn>
 References: <1564560753-32603-1-git-send-email-wenxu@ucloud.cn>
-X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVkpVSUlDS0tLS09PQ0lJTUJZV1koWU
+X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVkpVSENJS0tLS0NDTUJKTEpZV1koWU
         FJQjdXWS1ZQUlXWQkOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6Pk06KQw6KDgzDEgKFghKHjA5
-        OCMwCxNVSlVKTk1PTk1LTE5PTEtIVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJSFVO
-        QlVKSElVSklCWVdZCAFZQUhPSkw3Bg++
-X-HM-Tid: 0a6c471687c32086kuqy9228641a12
+X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6Kww6ESo5Tjg8KkgvSw5WHjE1
+        LCEaFDFVSlVKTk1PTk1LTE5OQk1LVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJSFVO
+        QlVKSElVSklCWVdZCAFZQU1ISEI3Bg++
+X-HM-Tid: 0a6c47168cc52086kuqyd7f5641a7c
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
@@ -47,76 +47,179 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: wenxu <wenxu@ucloud.cn>
 
-This patch make tc_indr_block_ing_cmd can't access struct
-tc_indr_block_dev and tc_indr_block_cb.
+The new flow-indr-block can't get the tcf_block
+directly. It provide a callback list to find the flow_block immediately
+when the device register and contain a ingress block.
 
 Signed-off-by: wenxu <wenxu@ucloud.cn>
 ---
- net/sched/cls_api.c | 26 +++++++++++++++-----------
- 1 file changed, 15 insertions(+), 11 deletions(-)
+ include/net/flow_offload.h | 17 +++++++++++++++++
+ net/core/flow_offload.c    | 33 +++++++++++++++++++++++++++++++++
+ net/sched/cls_api.c        | 44 ++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 94 insertions(+)
 
+diff --git a/include/net/flow_offload.h b/include/net/flow_offload.h
+index c8d60a6..db04e3f 100644
+--- a/include/net/flow_offload.h
++++ b/include/net/flow_offload.h
+@@ -376,6 +376,23 @@ typedef void flow_indr_block_ing_cmd_t(struct net_device *dev,
+ 				       void *cb_priv,
+ 				       enum flow_block_command command);
+ 
++struct flow_indr_block_info {
++	struct flow_block *flow_block;
++	flow_indr_block_ing_cmd_t *ing_cmd_cb;
++};
++
++typedef bool flow_indr_get_default_block_t(struct net_device *dev,
++					    struct flow_indr_block_info *info);
++
++struct flow_indr_get_block_entry {
++	flow_indr_get_default_block_t *get_block_cb;
++	struct list_head	list;
++};
++
++void flow_indr_add_default_block_cb(struct flow_indr_get_block_entry *entry);
++
++void flow_indr_del_default_block_cb(struct flow_indr_get_block_entry *entry);
++
+ int __flow_indr_block_cb_register(struct net_device *dev, void *cb_priv,
+ 				  flow_indr_block_bind_cb_t *cb,
+ 				  void *cb_ident);
+diff --git a/net/core/flow_offload.c b/net/core/flow_offload.c
+index a1fdfa4..8ff7a75b 100644
+--- a/net/core/flow_offload.c
++++ b/net/core/flow_offload.c
+@@ -282,6 +282,8 @@ int flow_block_cb_setup_simple(struct flow_block_offload *f,
+ }
+ EXPORT_SYMBOL(flow_block_cb_setup_simple);
+ 
++static LIST_HEAD(get_default_block_cb_list);
++
+ static struct rhashtable indr_setup_block_ht;
+ 
+ struct flow_indr_block_cb {
+@@ -313,6 +315,24 @@ struct flow_indr_block_dev {
+ 				      flow_indr_setup_block_ht_params);
+ }
+ 
++static void flow_get_default_block(struct flow_indr_block_dev *indr_dev)
++{
++	struct flow_indr_get_block_entry *entry_cb;
++	struct flow_indr_block_info info;
++
++	rcu_read_lock();
++
++	list_for_each_entry_rcu(entry_cb, &get_default_block_cb_list, list) {
++		if (entry_cb->get_block_cb(indr_dev->dev, &info)) {
++			indr_dev->flow_block = info.flow_block;
++			indr_dev->ing_cmd_cb = info.ing_cmd_cb;
++			break;
++		}
++	}
++
++	rcu_read_unlock();
++}
++
+ static struct flow_indr_block_dev *
+ flow_indr_block_dev_get(struct net_device *dev)
+ {
+@@ -328,6 +348,7 @@ struct flow_indr_block_dev {
+ 
+ 	INIT_LIST_HEAD(&indr_dev->cb_list);
+ 	indr_dev->dev = dev;
++	flow_get_default_block(indr_dev);
+ 	if (rhashtable_insert_fast(&indr_setup_block_ht, &indr_dev->ht_node,
+ 				   flow_indr_setup_block_ht_params)) {
+ 		kfree(indr_dev);
+@@ -492,6 +513,18 @@ void flow_indr_block_call(struct flow_block *flow_block,
+ }
+ EXPORT_SYMBOL_GPL(flow_indr_block_call);
+ 
++void flow_indr_add_default_block_cb(struct flow_indr_get_block_entry *entry)
++{
++	list_add_tail_rcu(&entry->list, &get_default_block_cb_list);
++}
++EXPORT_SYMBOL_GPL(flow_indr_add_default_block_cb);
++
++void flow_indr_del_default_block_cb(struct flow_indr_get_block_entry *entry)
++{
++	list_del_rcu(&entry->list);
++}
++EXPORT_SYMBOL_GPL(flow_indr_del_default_block_cb);
++
+ static int __init init_flow_indr_rhashtable(void)
+ {
+ 	return rhashtable_init(&indr_setup_block_ht,
 diff --git a/net/sched/cls_api.c b/net/sched/cls_api.c
-index 3565d9a..2e3b58d 100644
+index bd5e591..8bf918c 100644
 --- a/net/sched/cls_api.c
 +++ b/net/sched/cls_api.c
-@@ -677,26 +677,28 @@ static void tc_indr_block_cb_del(struct tc_indr_block_cb *indr_block_cb)
- static int tcf_block_setup(struct tcf_block *block,
- 			   struct flow_block_offload *bo);
+@@ -576,6 +576,43 @@ static void tc_indr_block_ing_cmd(struct net_device *dev,
+ 	tcf_block_setup(block, &bo);
+ }
  
--static void tc_indr_block_ing_cmd(struct tc_indr_block_dev *indr_dev,
--				  struct tc_indr_block_cb *indr_block_cb,
-+static void tc_indr_block_ing_cmd(struct net_device *dev,
-+				  struct tcf_block *block,
-+				  tc_indr_block_bind_cb_t *cb,
-+				  void *cb_priv,
- 				  enum flow_block_command command)
- {
- 	struct flow_block_offload bo = {
- 		.command	= command,
- 		.binder_type	= FLOW_BLOCK_BINDER_TYPE_CLSACT_INGRESS,
--		.net		= dev_net(indr_dev->dev),
--		.block_shared	= tcf_block_non_null_shared(indr_dev->block),
-+		.net		= dev_net(dev),
-+		.block_shared	= tcf_block_non_null_shared(block),
- 	};
- 	INIT_LIST_HEAD(&bo.cb_list);
- 
--	if (!indr_dev->block)
-+	if (!block)
- 		return;
- 
--	bo.block = &indr_dev->block->flow_block;
-+	bo.block = &block->flow_block;
- 
--	indr_block_cb->cb(indr_dev->dev, indr_block_cb->cb_priv, TC_SETUP_BLOCK,
--			  &bo);
--	tcf_block_setup(indr_dev->block, &bo);
-+	cb(dev, cb_priv, TC_SETUP_BLOCK, &bo);
++static struct tcf_block *tc_dev_ingress_block(struct net_device *dev)
++{
++	const struct Qdisc_class_ops *cops;
++	struct Qdisc *qdisc;
 +
-+	tcf_block_setup(block, &bo);
- }
++	if (!dev_ingress_queue(dev))
++		return NULL;
++
++	qdisc = dev_ingress_queue(dev)->qdisc_sleeping;
++	if (!qdisc)
++		return NULL;
++
++	cops = qdisc->ops->cl_ops;
++	if (!cops)
++		return NULL;
++
++	if (!cops->tcf_block)
++		return NULL;
++
++	return cops->tcf_block(qdisc, TC_H_MIN_INGRESS, NULL);
++}
++
++static bool tc_indr_get_default_block(struct net_device *dev,
++				      struct flow_indr_block_info *info)
++{
++	struct tcf_block *block = tc_dev_ingress_block(dev);
++
++	if (block) {
++		info->flow_block = &block->flow_block;
++		info->ing_cmd_cb = tc_indr_block_ing_cmd;
++
++		return true;
++	}
++
++	return false;
++}
++
+ static void tc_indr_block_call(struct tcf_block *block, struct net_device *dev,
+ 			       struct tcf_block_ext_info *ei,
+ 			       enum flow_block_command command,
+@@ -3146,6 +3183,11 @@ static void __net_exit tcf_net_exit(struct net *net)
+ 	.size = sizeof(struct tcf_net),
+ };
  
- int __tc_indr_block_cb_register(struct net_device *dev, void *cb_priv,
-@@ -715,7 +717,8 @@ int __tc_indr_block_cb_register(struct net_device *dev, void *cb_priv,
++static struct flow_indr_get_block_entry get_block_entry = {
++	.get_block_cb = tc_indr_get_default_block,
++	.list = LIST_HEAD_INIT(get_block_entry.list),
++};
++
+ static int __init tc_filter_init(void)
+ {
+ 	int err;
+@@ -3158,6 +3200,8 @@ static int __init tc_filter_init(void)
  	if (err)
- 		goto err_dev_put;
+ 		goto err_register_pernet_subsys;
  
--	tc_indr_block_ing_cmd(indr_dev, indr_block_cb, FLOW_BLOCK_BIND);
-+	tc_indr_block_ing_cmd(dev, indr_dev->block, cb, cb_priv,
-+			      FLOW_BLOCK_BIND);
- 	return 0;
- 
- err_dev_put:
-@@ -752,7 +755,8 @@ void __tc_indr_block_cb_unregister(struct net_device *dev,
- 		return;
- 
- 	/* Send unbind message if required to free any block cbs. */
--	tc_indr_block_ing_cmd(indr_dev, indr_block_cb, FLOW_BLOCK_UNBIND);
-+	tc_indr_block_ing_cmd(dev, indr_dev->block, cb, indr_block_cb->cb_priv,
-+			      FLOW_BLOCK_UNBIND);
- 	tc_indr_block_cb_del(indr_block_cb);
- 	tc_indr_block_dev_put(indr_dev);
- }
++	flow_indr_add_default_block_cb(&get_block_entry);
++
+ 	rtnl_register(PF_UNSPEC, RTM_NEWTFILTER, tc_new_tfilter, NULL,
+ 		      RTNL_FLAG_DOIT_UNLOCKED);
+ 	rtnl_register(PF_UNSPEC, RTM_DELTFILTER, tc_del_tfilter, NULL,
 -- 
 1.8.3.1
 
