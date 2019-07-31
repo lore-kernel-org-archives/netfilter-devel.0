@@ -2,55 +2,88 @@ Return-Path: <SRS0=6+Vk=V4=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 370E1C32753
-	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Jul 2019 15:50:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 22D29C32751
+	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Jul 2019 15:59:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1365C206B8
-	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Jul 2019 15:50:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F2775208E3
+	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Jul 2019 15:59:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728089AbfGaPuU (ORCPT
+        id S1730320AbfGaP7K (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 31 Jul 2019 11:50:20 -0400
-Received: from shards.monkeyblade.net ([23.128.96.9]:39488 "EHLO
-        shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726675AbfGaPuU (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 31 Jul 2019 11:50:20 -0400
-Received: from localhost (unknown [IPv6:2601:601:9f80:35cd::d71])
-        (using TLSv1 with cipher AES256-SHA (256/256 bits))
-        (Client did not present a certificate)
-        (Authenticated sender: davem-davemloft)
-        by shards.monkeyblade.net (Postfix) with ESMTPSA id A077B12B8C6EC;
-        Wed, 31 Jul 2019 08:50:19 -0700 (PDT)
-Date:   Wed, 31 Jul 2019 08:50:19 -0700 (PDT)
-Message-Id: <20190731.085019.1144909092253347155.davem@davemloft.net>
-To:     pablo@netfilter.org
-Cc:     netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-Subject: Re: [PATCH 0/8] netfilter fixes for net
-From:   David Miller <davem@davemloft.net>
-In-Reply-To: <20190731115157.27020-1-pablo@netfilter.org>
-References: <20190731115157.27020-1-pablo@netfilter.org>
-X-Mailer: Mew version 6.8 on Emacs 26.1
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+        Wed, 31 Jul 2019 11:59:10 -0400
+Received: from szxga07-in.huawei.com ([45.249.212.35]:50084 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1730160AbfGaP7J (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 31 Jul 2019 11:59:09 -0400
+Received: from DGGEMS411-HUB.china.huawei.com (unknown [172.30.72.59])
+        by Forcepoint Email with ESMTP id 6753393EB0F19B20B741;
+        Wed, 31 Jul 2019 23:59:05 +0800 (CST)
+Received: from [127.0.0.1] (10.184.191.73) by DGGEMS411-HUB.china.huawei.com
+ (10.3.19.211) with Microsoft SMTP Server id 14.3.439.0; Wed, 31 Jul 2019
+ 23:58:54 +0800
+Subject: Re: [PATCH net v2] ipvs: Improve robustness to the ipvs sysctl
+To:     Julian Anastasov <ja@ssi.bg>
+CC:     <wensong@linux-vs.org>, <horms@verge.net.au>,
+        <pablo@netfilter.org>, <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>, <davem@davemloft.net>,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        <lvs-devel@vger.kernel.org>, <netfilter-devel@vger.kernel.org>,
+        <coreteam@netfilter.org>, Mingfangsen <mingfangsen@huawei.com>,
+        <wangxiaogang3@huawei.com>, <xuhanbing@huawei.com>
+References: <1997375e-815d-137f-20c9-0829a8587ee9@huawei.com>
+ <4a0476d3-57a4-50e0-cae8-9dffc4f4d556@huawei.com>
+ <alpine.LFD.2.21.1907302226340.4897@ja.home.ssi.bg>
+From:   hujunwei <hujunwei4@huawei.com>
+Message-ID: <484fef63-710a-701e-3151-eefaf3b9b1ca@huawei.com>
+Date:   Wed, 31 Jul 2019 23:58:49 +0800
+User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:60.0) Gecko/20100101
+ Thunderbird/60.6.1
+MIME-Version: 1.0
+In-Reply-To: <alpine.LFD.2.21.1907302226340.4897@ja.home.ssi.bg>
+Content-Type: text/plain; charset="utf-8"
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
-X-Greylist: Sender succeeded SMTP AUTH, not delayed by milter-greylist-4.5.12 (shards.monkeyblade.net [149.20.54.216]); Wed, 31 Jul 2019 08:50:19 -0700 (PDT)
+X-Originating-IP: [10.184.191.73]
+X-CFilter-Loop: Reflected
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Wed, 31 Jul 2019 13:51:49 +0200
+Hello, Julian
 
-> The following patchset contains Netfilter fixes for your net tree:
- ...
-> You can pull these changes from:
+On 2019/7/31 3:29, Julian Anastasov wrote:
 > 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
+> 	Hello,
+> 
+> On Tue, 30 Jul 2019, hujunwei wrote:
+> 
+>> From: Junwei Hu <hujunwei4@huawei.com>
+>>
+>> The ipvs module parse the user buffer and save it to sysctl,
+>> then check if the value is valid. invalid value occurs
+>> over a period of time.
+>> Here, I add a variable, struct ctl_table tmp, used to read
+>> the value from the user buffer, and save only when it is valid.
+>> I delete proc_do_sync_mode and use extra1/2 in table for the
+>> proc_dointvec_minmax call.
+>>
+>> Fixes: f73181c8288f ("ipvs: add support for sync threads")
+>> Signed-off-by: Junwei Hu <hujunwei4@huawei.com>
+> 
+> 	Looks good to me, thanks!
+> 
+> Acked-by: Julian Anastasov <ja@ssi.bg>
+> 
+> 	BTW, why ip_vs_zero_all everywhere? Due to old git version?
+> 
 
-Pulled, thanks.
+I will update the git version and send the patch v3.
+
+Regards,
+Junwei
+
