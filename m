@@ -7,89 +7,161 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3757CC32753
-	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Jul 2019 11:52:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3138CC433FF
+	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Jul 2019 12:17:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0FFF7206A3
-	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Jul 2019 11:52:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 10F71206A2
+	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Jul 2019 12:17:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728284AbfGaLwI (ORCPT
+        id S1726421AbfGaMRJ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 31 Jul 2019 07:52:08 -0400
-Received: from correo.us.es ([193.147.175.20]:59298 "EHLO mail.us.es"
+        Wed, 31 Jul 2019 08:17:09 -0400
+Received: from correo.us.es ([193.147.175.20]:40366 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727323AbfGaLwH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 31 Jul 2019 07:52:07 -0400
+        id S1726274AbfGaMRI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 31 Jul 2019 08:17:08 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id DC9378076E
-        for <netfilter-devel@vger.kernel.org>; Wed, 31 Jul 2019 13:52:05 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id CE2F66CB6A
+        for <netfilter-devel@vger.kernel.org>; Wed, 31 Jul 2019 14:17:05 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id CC67F1150DD
-        for <netfilter-devel@vger.kernel.org>; Wed, 31 Jul 2019 13:52:05 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id BFB35DA704
+        for <netfilter-devel@vger.kernel.org>; Wed, 31 Jul 2019 14:17:05 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id C1F351150D8; Wed, 31 Jul 2019 13:52:05 +0200 (CEST)
+        id A5D931150CE; Wed, 31 Jul 2019 14:17:05 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 86405DA4D1;
-        Wed, 31 Jul 2019 13:52:03 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 84D1DDA732;
+        Wed, 31 Jul 2019 14:17:03 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 31 Jul 2019 13:52:03 +0200 (CEST)
+ Wed, 31 Jul 2019 14:17:03 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (unknown [47.60.32.83])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 170044265A32;
-        Wed, 31 Jul 2019 13:52:02 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 5FACE4265A2F;
+        Wed, 31 Jul 2019 14:17:02 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 1/8] netfilter: ebtables: fix a memory leak bug in compat
-Date:   Wed, 31 Jul 2019 13:51:50 +0200
-Message-Id: <20190731115157.27020-2-pablo@netfilter.org>
+Cc:     marcelo.leitner@gmail.com, wenxu@ucloud.cn, jiri@resnulli.us,
+        saeedm@mellanox.com, gerlitz.or@gmail.com, paulb@mellanox.com,
+        netdev@vger.kernel.org, jakub.kicinski@netronome.com
+Subject: [PATCH nf,v2] netfilter: nf_tables: map basechain priority to hardware priority
+Date:   Wed, 31 Jul 2019 14:16:56 +0200
+Message-Id: <20190731121656.27951-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
-In-Reply-To: <20190731115157.27020-1-pablo@netfilter.org>
-References: <20190731115157.27020-1-pablo@netfilter.org>
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Wenwen Wang <wenwen@cs.uga.edu>
+This patch adds initial support for offloading basechains using the
+priority range from -8192 to 8191.
 
-In compat_do_replace(), a temporary buffer is allocated through vmalloc()
-to hold entries copied from the user space. The buffer address is firstly
-saved to 'newinfo->entries', and later on assigned to 'entries_tmp'. Then
-the entries in this temporary buffer is copied to the internal kernel
-structure through compat_copy_entries(). If this copy process fails,
-compat_do_replace() should be terminated. However, the allocated temporary
-buffer is not freed on this path, leading to a memory leak.
+The software priority -8192 is mapped to the hardware priority
+0xC000 + 1. tcf_auto_prio() uses 0xC000 if the user specifies no
+priority, then it subtracts 1 for each new tcf_proto object. This patch
+reserves the hardware priority range from 0xC000 to 0xFFFF for
+netfilter.
 
-To fix the bug, free the buffer before returning from compat_do_replace().
+The software to hardware priority mapping is not exposed to userspace,
+so it should be possible to update this / extend the range of supported
+priorities later on.
 
-Signed-off-by: Wenwen Wang <wenwen@cs.uga.edu>
-Reviewed-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/bridge/netfilter/ebtables.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+v2: fix indent in priority assignment - Marcelo Leitner.
+    Missing << 16 bitshift.
 
-diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
-index 963dfdc14827..fd84b48e48b5 100644
---- a/net/bridge/netfilter/ebtables.c
-+++ b/net/bridge/netfilter/ebtables.c
-@@ -2261,8 +2261,10 @@ static int compat_do_replace(struct net *net, void __user *user,
- 	state.buf_kern_len = size64;
+ include/net/netfilter/nf_tables_offload.h |  2 ++
+ net/netfilter/nf_tables_api.c             |  4 ++++
+ net/netfilter/nf_tables_offload.c         | 31 ++++++++++++++++++++++++++++---
+ 3 files changed, 34 insertions(+), 3 deletions(-)
+
+diff --git a/include/net/netfilter/nf_tables_offload.h b/include/net/netfilter/nf_tables_offload.h
+index 3196663a10e3..2d497394021e 100644
+--- a/include/net/netfilter/nf_tables_offload.h
++++ b/include/net/netfilter/nf_tables_offload.h
+@@ -73,4 +73,6 @@ int nft_flow_rule_offload_commit(struct net *net);
+ 	(__reg)->key		= __key;				\
+ 	memset(&(__reg)->mask, 0xff, (__reg)->len);
  
- 	ret = compat_copy_entries(entries_tmp, tmp.entries_size, &state);
--	if (WARN_ON(ret < 0))
-+	if (WARN_ON(ret < 0)) {
-+		vfree(entries_tmp);
- 		goto out_unlock;
-+	}
++u16 nft_chain_offload_priority(struct nft_base_chain *basechain);
++
+ #endif
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 605a7cfe7ca7..9cf0fecf5cb9 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -1662,6 +1662,10 @@ static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 genmask,
  
- 	vfree(entries_tmp);
- 	tmp.entries_size = size64;
+ 		chain->flags |= NFT_BASE_CHAIN | flags;
+ 		basechain->policy = NF_ACCEPT;
++		if (chain->flags & NFT_CHAIN_HW_OFFLOAD &&
++		    !nft_chain_offload_priority(basechain))
++			return -EOPNOTSUPP;
++
+ 		flow_block_init(&basechain->flow_block);
+ 	} else {
+ 		chain = kzalloc(sizeof(*chain), GFP_KERNEL);
+diff --git a/net/netfilter/nf_tables_offload.c b/net/netfilter/nf_tables_offload.c
+index 64f5fd5f240e..a79efd49c8a8 100644
+--- a/net/netfilter/nf_tables_offload.c
++++ b/net/netfilter/nf_tables_offload.c
+@@ -103,10 +103,11 @@ void nft_offload_update_dependency(struct nft_offload_ctx *ctx,
+ }
+ 
+ static void nft_flow_offload_common_init(struct flow_cls_common_offload *common,
+-					 __be16 proto,
+-					struct netlink_ext_ack *extack)
++					 __be16 proto, int priority,
++					 struct netlink_ext_ack *extack)
+ {
+ 	common->protocol = proto;
++	common->prio = priority << 16;
+ 	common->extack = extack;
+ }
+ 
+@@ -124,6 +125,28 @@ static int nft_setup_cb_call(struct nft_base_chain *basechain,
+ 	return 0;
+ }
+ 
++/* Available priorities for hardware offload range: -8192..8191 */
++#define NFT_BASECHAIN_OFFLOAD_PRIO_MAX		(SHRT_MAX / 4)
++#define NFT_BASECHAIN_OFFLOAD_PRIO_MIN		(SHRT_MIN / 4)
++#define NFT_BASECHAIN_OFFLOAD_PRIO_RANGE	(USHRT_MAX / 4)
++/* tcf_auto_prio() uses 0xC000 as base, then subtract one for each new chain. */
++#define NFT_BASECHAIN_OFFLOAD_HW_PRIO_BASE	(0xC000 + 1)
++
++u16 nft_chain_offload_priority(struct nft_base_chain *basechain)
++{
++	u16 prio;
++
++	if (basechain->ops.priority < NFT_BASECHAIN_OFFLOAD_PRIO_MIN ||
++	    basechain->ops.priority > NFT_BASECHAIN_OFFLOAD_PRIO_MAX)
++		return 0;
++
++	/* map netfilter chain priority to hardware priority. */
++	prio = basechain->ops.priority + NFT_BASECHAIN_OFFLOAD_PRIO_MAX +
++		NFT_BASECHAIN_OFFLOAD_HW_PRIO_BASE;
++
++	return prio;
++}
++
+ static int nft_flow_offload_rule(struct nft_trans *trans,
+ 				 enum flow_cls_command command)
+ {
+@@ -142,7 +165,9 @@ static int nft_flow_offload_rule(struct nft_trans *trans,
+ 	if (flow)
+ 		proto = flow->proto;
+ 
+-	nft_flow_offload_common_init(&cls_flow.common, proto, &extack);
++	nft_flow_offload_common_init(&cls_flow.common, proto,
++				     nft_chain_offload_priority(basechain),
++				     &extack);
+ 	cls_flow.command = command;
+ 	cls_flow.cookie = (unsigned long) rule;
+ 	if (flow)
 -- 
 2.11.0
 
