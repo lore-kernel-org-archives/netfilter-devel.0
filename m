@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 11FCAC433FF
-	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Jul 2019 11:52:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 53637C32751
+	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Jul 2019 11:52:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E35D5206A3
-	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Jul 2019 11:52:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 34A47206A3
+	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Jul 2019 11:52:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728490AbfGaLwT (ORCPT
+        id S1728850AbfGaLwY (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 31 Jul 2019 07:52:19 -0400
-Received: from correo.us.es ([193.147.175.20]:59402 "EHLO mail.us.es"
+        Wed, 31 Jul 2019 07:52:24 -0400
+Received: from correo.us.es ([193.147.175.20]:59318 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728195AbfGaLwP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 31 Jul 2019 07:52:15 -0400
+        id S1727461AbfGaLwL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 31 Jul 2019 07:52:11 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id E99F280769
-        for <netfilter-devel@vger.kernel.org>; Wed, 31 Jul 2019 13:52:13 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 9111580768
+        for <netfilter-devel@vger.kernel.org>; Wed, 31 Jul 2019 13:52:09 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id D988A4FA31
-        for <netfilter-devel@vger.kernel.org>; Wed, 31 Jul 2019 13:52:13 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 7F7F31150DE
+        for <netfilter-devel@vger.kernel.org>; Wed, 31 Jul 2019 13:52:09 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id CF3CDA590; Wed, 31 Jul 2019 13:52:13 +0200 (CEST)
+        id 7455F1150CB; Wed, 31 Jul 2019 13:52:09 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 3B0A41150B9;
-        Wed, 31 Jul 2019 13:52:09 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id F12BDDA4D1;
+        Wed, 31 Jul 2019 13:52:06 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 31 Jul 2019 13:52:09 +0200 (CEST)
+ Wed, 31 Jul 2019 13:52:06 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (unknown [47.60.32.83])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id B7C284265A31;
-        Wed, 31 Jul 2019 13:52:08 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 7081E4265A32;
+        Wed, 31 Jul 2019 13:52:06 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 6/8] netfilter: ipset: Copy the right MAC address in bitmap:ip,mac and hash:ip,mac sets
-Date:   Wed, 31 Jul 2019 13:51:55 +0200
-Message-Id: <20190731115157.27020-7-pablo@netfilter.org>
+Subject: [PATCH 4/8] netfilter: add include guard to xt_connlabel.h
+Date:   Wed, 31 Jul 2019 13:51:53 +0200
+Message-Id: <20190731115157.27020-5-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20190731115157.27020-1-pablo@netfilter.org>
 References: <20190731115157.27020-1-pablo@netfilter.org>
@@ -55,83 +55,36 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Stefano Brivio <sbrivio@redhat.com>
+From: Masahiro Yamada <yamada.masahiro@socionext.com>
 
-In commit 8cc4ccf58379 ("ipset: Allow matching on destination MAC address
-for mac and ipmac sets"), ipset.git commit 1543514c46a7, I added to the
-KADT functions for sets matching on MAC addreses the copy of source or
-destination MAC address depending on the configured match.
+Add a header include guard just in case.
 
-This was done correctly for hash:mac, but for hash:ip,mac and
-bitmap:ip,mac, copying and pasting the same code block presents an
-obvious problem: in these two set types, the MAC address is the second
-dimension, not the first one, and we are actually selecting the MAC
-address depending on whether the first dimension (IP address) specifies
-source or destination.
-
-Fix this by checking for the IPSET_DIM_TWO_SRC flag in option flags.
-
-This way, mixing source and destination matches for the two dimensions
-of ip,mac set types works as expected. With this setup:
-
-  ip netns add A
-  ip link add veth1 type veth peer name veth2 netns A
-  ip addr add 192.0.2.1/24 dev veth1
-  ip -net A addr add 192.0.2.2/24 dev veth2
-  ip link set veth1 up
-  ip -net A link set veth2 up
-
-  dst=$(ip netns exec A cat /sys/class/net/veth2/address)
-
-  ip netns exec A ipset create test_bitmap bitmap:ip,mac range 192.0.0.0/16
-  ip netns exec A ipset add test_bitmap 192.0.2.1,${dst}
-  ip netns exec A iptables -A INPUT -m set ! --match-set test_bitmap src,dst -j DROP
-
-  ip netns exec A ipset create test_hash hash:ip,mac
-  ip netns exec A ipset add test_hash 192.0.2.1,${dst}
-  ip netns exec A iptables -A INPUT -m set ! --match-set test_hash src,dst -j DROP
-
-ipset correctly matches a test packet:
-
-  # ping -c1 192.0.2.2 >/dev/null
-  # echo $?
-  0
-
-Reported-by: Chen Yi <yiche@redhat.com>
-Fixes: 8cc4ccf58379 ("ipset: Allow matching on destination MAC address for mac and ipmac sets")
-Signed-off-by: Stefano Brivio <sbrivio@redhat.com>
-Signed-off-by: Jozsef Kadlecsik <kadlec@netfilter.org>
+Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
+Acked-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/ipset/ip_set_bitmap_ipmac.c | 2 +-
- net/netfilter/ipset/ip_set_hash_ipmac.c   | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ include/uapi/linux/netfilter/xt_connlabel.h | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/net/netfilter/ipset/ip_set_bitmap_ipmac.c b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
-index ca7ac4a25ada..1d4e63326e68 100644
---- a/net/netfilter/ipset/ip_set_bitmap_ipmac.c
-+++ b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
-@@ -226,7 +226,7 @@ bitmap_ipmac_kadt(struct ip_set *set, const struct sk_buff *skb,
+diff --git a/include/uapi/linux/netfilter/xt_connlabel.h b/include/uapi/linux/netfilter/xt_connlabel.h
+index 2312f0ec07b2..323f0dfc2a4e 100644
+--- a/include/uapi/linux/netfilter/xt_connlabel.h
++++ b/include/uapi/linux/netfilter/xt_connlabel.h
+@@ -1,4 +1,8 @@
+ /* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
++
++#ifndef _UAPI_XT_CONNLABEL_H
++#define _UAPI_XT_CONNLABEL_H
++
+ #include <linux/types.h>
  
- 	e.id = ip_to_id(map, ip);
- 
--	if (opt->flags & IPSET_DIM_ONE_SRC)
-+	if (opt->flags & IPSET_DIM_TWO_SRC)
- 		ether_addr_copy(e.ether, eth_hdr(skb)->h_source);
- 	else
- 		ether_addr_copy(e.ether, eth_hdr(skb)->h_dest);
-diff --git a/net/netfilter/ipset/ip_set_hash_ipmac.c b/net/netfilter/ipset/ip_set_hash_ipmac.c
-index eb1443408320..24d8f4df4230 100644
---- a/net/netfilter/ipset/ip_set_hash_ipmac.c
-+++ b/net/netfilter/ipset/ip_set_hash_ipmac.c
-@@ -93,7 +93,7 @@ hash_ipmac4_kadt(struct ip_set *set, const struct sk_buff *skb,
- 	    (skb_mac_header(skb) + ETH_HLEN) > skb->data)
- 		return -EINVAL;
- 
--	if (opt->flags & IPSET_DIM_ONE_SRC)
-+	if (opt->flags & IPSET_DIM_TWO_SRC)
- 		ether_addr_copy(e.ether, eth_hdr(skb)->h_source);
- 	else
- 		ether_addr_copy(e.ether, eth_hdr(skb)->h_dest);
+ #define XT_CONNLABEL_MAXBIT 127
+@@ -11,3 +15,5 @@ struct xt_connlabel_mtinfo {
+ 	__u16 bit;
+ 	__u16 options;
+ };
++
++#endif /* _UAPI_XT_CONNLABEL_H */
 -- 
 2.11.0
 
