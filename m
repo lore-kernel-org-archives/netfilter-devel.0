@@ -6,38 +6,38 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C0076C41514
-	for <netfilter-devel@archiver.kernel.org>; Thu,  1 Aug 2019 14:01:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 97A34C19759
+	for <netfilter-devel@archiver.kernel.org>; Thu,  1 Aug 2019 14:01:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 913E8205F4
-	for <netfilter-devel@archiver.kernel.org>; Thu,  1 Aug 2019 14:01:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 79286205F4
+	for <netfilter-devel@archiver.kernel.org>; Thu,  1 Aug 2019 14:01:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731475AbfHAOBk (ORCPT
+        id S1731335AbfHAOBl (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 1 Aug 2019 10:01:40 -0400
-Received: from m9784.mail.qiye.163.com ([220.181.97.84]:22709 "EHLO
+        Thu, 1 Aug 2019 10:01:41 -0400
+Received: from m9784.mail.qiye.163.com ([220.181.97.84]:22907 "EHLO
         m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1731335AbfHAOBk (ORCPT
+        with ESMTP id S1731334AbfHAOBl (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 1 Aug 2019 10:01:40 -0400
+        Thu, 1 Aug 2019 10:01:41 -0400
 Received: from localhost.localdomain (unknown [123.59.132.129])
-        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id A18ED41623;
-        Thu,  1 Aug 2019 22:01:27 +0800 (CST)
+        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id 3249F41114;
+        Thu,  1 Aug 2019 22:01:28 +0800 (CST)
 From:   wenxu@ucloud.cn
 To:     pablo@netfilter.org, fw@strlen.de
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next v3 1/9] netfilter: nf_flow_offload: add net in offload_ctx
-Date:   Thu,  1 Aug 2019 22:01:18 +0800
-Message-Id: <1564668086-16260-2-git-send-email-wenxu@ucloud.cn>
+Subject: [PATCH nf-next v3 7/9] netfilter: nft_tunnel: add NFTA_TUNNEL_KEY_RELEASE action
+Date:   Thu,  1 Aug 2019 22:01:24 +0800
+Message-Id: <1564668086-16260-8-git-send-email-wenxu@ucloud.cn>
 X-Mailer: git-send-email 1.8.3.1
 In-Reply-To: <1564668086-16260-1-git-send-email-wenxu@ucloud.cn>
 References: <1564668086-16260-1-git-send-email-wenxu@ucloud.cn>
-X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVkpVS01MS0tLS0hKT0xKSU5ZV1koWU
+X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVkpVSU5KS0tLS09NTEhLS09ZV1koWU
         FJQjdXWS1ZQUlXWQkOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6MxA6HTo*Czg#Nk8aFy89I0I0
-        EDUaCQhVSlVKTk1PTU1DS0NMTE9PVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJSFVO
-        QlVKSElVSklCWVdZCAFZQUhKTEw3Bg++
-X-HM-Tid: 0a6c4d7c4d7a2086kuqya18ed41623
+X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6NC46ECo4NzgyGE8*LSgVI05L
+        CgwwCQ1VSlVKTk1PTU1DS0NDSU5PVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJSFVO
+        QlVKSElVSklCWVdZCAFZQU9LSkk3Bg++
+X-HM-Tid: 0a6c4d7c4f9a2086kuqy3249f41114
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
@@ -45,71 +45,99 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: wenxu <wenxu@ucloud.cn>
 
-In the offload_ctx, the net can be used for other actions
-such as fwd netdev
+Add new NFTA_TUNNEL_KEY_RELEASE action for future offload
+feature
 
 Signed-off-by: wenxu <wenxu@ucloud.cn>
 ---
 v3: no change
 
- include/net/netfilter/nf_tables_offload.h | 3 ++-
- net/netfilter/nf_tables_api.c             | 2 +-
- net/netfilter/nf_tables_offload.c         | 3 ++-
- 3 files changed, 5 insertions(+), 3 deletions(-)
+ include/uapi/linux/netfilter/nf_tables.h |  1 +
+ net/netfilter/nft_tunnel.c               | 24 +++++++++++++++++++++---
+ 2 files changed, 22 insertions(+), 3 deletions(-)
 
-diff --git a/include/net/netfilter/nf_tables_offload.h b/include/net/netfilter/nf_tables_offload.h
-index 3196663..ad61958 100644
---- a/include/net/netfilter/nf_tables_offload.h
-+++ b/include/net/netfilter/nf_tables_offload.h
-@@ -24,6 +24,7 @@ struct nft_offload_ctx {
- 		__be16				l3num;
- 		u8				protonum;
- 	} dep;
-+	struct net *net;
- 	unsigned int				num_actions;
- 	struct nft_offload_reg			regs[NFT_REG32_15 + 1];
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index 173690a..4489b66 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -1758,6 +1758,7 @@ enum nft_tunnel_key_attributes {
+ 	NFTA_TUNNEL_KEY_SPORT,
+ 	NFTA_TUNNEL_KEY_DPORT,
+ 	NFTA_TUNNEL_KEY_OPTS,
++	NFTA_TUNNEL_KEY_RELEASE,
+ 	__NFTA_TUNNEL_KEY_MAX
  };
-@@ -60,7 +61,7 @@ struct nft_flow_rule {
- #define NFT_OFFLOAD_F_ACTION	(1 << 0)
+ #define NFTA_TUNNEL_KEY_MAX	(__NFTA_TUNNEL_KEY_MAX - 1)
+diff --git a/net/netfilter/nft_tunnel.c b/net/netfilter/nft_tunnel.c
+index f0190bc..078dcee 100644
+--- a/net/netfilter/nft_tunnel.c
++++ b/net/netfilter/nft_tunnel.c
+@@ -211,6 +211,7 @@ struct nft_tunnel_opts {
+ struct nft_tunnel_obj {
+ 	struct metadata_dst	*md;
+ 	struct nft_tunnel_opts	opts;
++	bool tunnel_key_release;
+ };
  
- struct nft_rule;
--struct nft_flow_rule *nft_flow_rule_create(const struct nft_rule *rule);
-+struct nft_flow_rule *nft_flow_rule_create(struct net *net, const struct nft_rule *rule);
- void nft_flow_rule_destroy(struct nft_flow_rule *flow);
- int nft_flow_rule_offload_commit(struct net *net);
+ static const struct nla_policy nft_tunnel_ip_policy[NFTA_TUNNEL_KEY_IP_MAX + 1] = {
+@@ -395,6 +396,7 @@ static int nft_tunnel_obj_opts_init(const struct nft_ctx *ctx,
+ 	[NFTA_TUNNEL_KEY_TOS]	= { .type = NLA_U8, },
+ 	[NFTA_TUNNEL_KEY_TTL]	= { .type = NLA_U8, },
+ 	[NFTA_TUNNEL_KEY_OPTS]	= { .type = NLA_NESTED, },
++	[NFTA_TUNNEL_KEY_RELEASE]	= { .type = NLA_U8, },
+ };
  
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 605a7cf..c6dc173 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -2844,7 +2844,7 @@ static int nf_tables_newrule(struct net *net, struct sock *nlsk,
- 		return nft_table_validate(net, table);
+ static int nft_tunnel_obj_init(const struct nft_ctx *ctx,
+@@ -406,6 +408,12 @@ static int nft_tunnel_obj_init(const struct nft_ctx *ctx,
+ 	struct metadata_dst *md;
+ 	int err;
  
- 	if (chain->flags & NFT_CHAIN_HW_OFFLOAD) {
--		flow = nft_flow_rule_create(rule);
-+		flow = nft_flow_rule_create(net, rule);
- 		if (IS_ERR(flow))
- 			return PTR_ERR(flow);
++	if (tb[NFTA_TUNNEL_KEY_RELEASE]) {
++		priv->tunnel_key_release = !!nla_get_u8(tb[NFTA_TUNNEL_KEY_RELEASE]);
++		if (priv->tunnel_key_release)
++			return 0;
++	}
++
+ 	if (!tb[NFTA_TUNNEL_KEY_ID])
+ 		return -EINVAL;
  
-diff --git a/net/netfilter/nf_tables_offload.c b/net/netfilter/nf_tables_offload.c
-index 64f5fd5..5c1fef7 100644
---- a/net/netfilter/nf_tables_offload.c
-+++ b/net/netfilter/nf_tables_offload.c
-@@ -28,12 +28,13 @@ static struct nft_flow_rule *nft_flow_rule_alloc(int num_actions)
- 	return flow;
+@@ -488,8 +496,11 @@ static inline void nft_tunnel_obj_eval(struct nft_object *obj,
+ 	struct sk_buff *skb = pkt->skb;
+ 
+ 	skb_dst_drop(skb);
+-	dst_hold((struct dst_entry *) priv->md);
+-	skb_dst_set(skb, (struct dst_entry *) priv->md);
++
++	if (!priv->tunnel_key_release) {
++		dst_hold((struct dst_entry *)priv->md);
++		skb_dst_set(skb, (struct dst_entry *)priv->md);
++	}
  }
  
--struct nft_flow_rule *nft_flow_rule_create(const struct nft_rule *rule)
-+struct nft_flow_rule *nft_flow_rule_create(struct net *net, const struct nft_rule *rule)
+ static int nft_tunnel_ip_dump(struct sk_buff *skb, struct ip_tunnel_info *info)
+@@ -591,6 +602,12 @@ static int nft_tunnel_obj_dump(struct sk_buff *skb,
+ 	struct nft_tunnel_obj *priv = nft_obj_data(obj);
+ 	struct ip_tunnel_info *info = &priv->md->u.tun_info;
+ 
++	if (priv->tunnel_key_release) {
++		if (nla_put_u8(skb, NFTA_TUNNEL_KEY_RELEASE, 1))
++			goto nla_put_failure;
++		return 0;
++	}
++
+ 	if (nla_put_be32(skb, NFTA_TUNNEL_KEY_ID,
+ 			 tunnel_id_to_key32(info->key.tun_id)) ||
+ 	    nft_tunnel_ip_dump(skb, info) < 0 ||
+@@ -612,7 +629,8 @@ static void nft_tunnel_obj_destroy(const struct nft_ctx *ctx,
  {
- 	struct nft_offload_ctx ctx = {
- 		.dep	= {
- 			.type	= NFT_OFFLOAD_DEP_UNSPEC,
- 		},
-+		.net = net,
- 	};
- 	struct nft_flow_rule *flow;
- 	int num_actions = 0, err;
+ 	struct nft_tunnel_obj *priv = nft_obj_data(obj);
+ 
+-	metadata_dst_free(priv->md);
++	if (!priv->tunnel_key_release)
++		metadata_dst_free(priv->md);
+ }
+ 
+ static struct nft_object_type nft_tunnel_obj_type;
 -- 
 1.8.3.1
 
