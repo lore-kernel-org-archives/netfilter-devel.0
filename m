@@ -2,114 +2,133 @@ Return-Path: <SRS0=uSEi=V5=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D47D9C19759
-	for <netfilter-devel@archiver.kernel.org>; Thu,  1 Aug 2019 14:02:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ECF56C19759
+	for <netfilter-devel@archiver.kernel.org>; Thu,  1 Aug 2019 14:20:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B204720838
-	for <netfilter-devel@archiver.kernel.org>; Thu,  1 Aug 2019 14:02:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C3C9020838
+	for <netfilter-devel@archiver.kernel.org>; Thu,  1 Aug 2019 14:20:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731334AbfHAOCG (ORCPT
+        id S1727024AbfHAOUZ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 1 Aug 2019 10:02:06 -0400
-Received: from m9784.mail.qiye.163.com ([220.181.97.84]:22705 "EHLO
-        m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730800AbfHAOCG (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 1 Aug 2019 10:02:06 -0400
-Received: from localhost.localdomain (unknown [123.59.132.129])
-        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id 86B7141129;
-        Thu,  1 Aug 2019 22:01:27 +0800 (CST)
-From:   wenxu@ucloud.cn
-To:     pablo@netfilter.org, fw@strlen.de
+        Thu, 1 Aug 2019 10:20:25 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:43574 "EHLO orbyte.nwl.cc"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726825AbfHAOUZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 1 Aug 2019 10:20:25 -0400
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.91)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1htBwN-0001Rh-A6; Thu, 01 Aug 2019 16:20:23 +0200
+Date:   Thu, 1 Aug 2019 16:20:23 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next v3 0/9] netfilter: nf_tables_offload: support more expr and obj offload
-Date:   Thu,  1 Aug 2019 22:01:17 +0800
-Message-Id: <1564668086-16260-1-git-send-email-wenxu@ucloud.cn>
-X-Mailer: git-send-email 1.8.3.1
-X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZSFVNQk5CQkJDTUtMTUhOTllXWShZQU
-        lCN1dZLVlBSVdZCQ4XHghZQVk1NCk2OjckKS43PlkG
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6PD46MQw5HDg*DE8QPSofI08o
-        EVZPCyJVSlVKTk1PTU1DS0NMTU9KVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJSFVO
-        QlVKSElVSklCWVdZCAFZQU9LTUk3Bg++
-X-HM-Tid: 0a6c4d7c4d0c2086kuqy86b7141129
+Subject: Re: [iptables PATCH 4/5] xtables-monitor: Support ARP and bridge
+ families
+Message-ID: <20190801142023.GV14469@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+References: <20190731163915.22232-1-phil@nwl.cc>
+ <20190731163915.22232-5-phil@nwl.cc>
+ <20190801112050.nqig4dbncyx4gfdz@salvia>
+ <20190801120048.GS14469@orbyte.nwl.cc>
+ <20190801123040.rljiffbbux3bajls@salvia>
+ <20190801124107.GT14469@orbyte.nwl.cc>
+ <20190801124738.pnfo4zsypkqiaonm@salvia>
+ <20190801125800.GU14469@orbyte.nwl.cc>
+ <20190801130303.vddtqk2hect4mny7@salvia>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190801130303.vddtqk2hect4mny7@salvia>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: wenxu <wenxu@ucloud.cn>
+On Thu, Aug 01, 2019 at 03:03:03PM +0200, Pablo Neira Ayuso wrote:
+> On Thu, Aug 01, 2019 at 02:58:00PM +0200, Phil Sutter wrote:
+> > On Thu, Aug 01, 2019 at 02:47:38PM +0200, Pablo Neira Ayuso wrote:
+> > > On Thu, Aug 01, 2019 at 02:41:07PM +0200, Phil Sutter wrote:
+> > > > Hi,
+> > > > 
+> > > > On Thu, Aug 01, 2019 at 02:30:40PM +0200, Pablo Neira Ayuso wrote:
+> > > > > On Thu, Aug 01, 2019 at 02:00:48PM +0200, Phil Sutter wrote:
+> > > [...]
+> > > > > I think users will end up using --arp and --bridge for this. I myself
+> > > > > will not remember this -0 and -1 thing.
+> > > > 
+> > > > That's correct. So I guess changing cmdline flags to -a/-b makes sense
+> > > > either way.
+> > > 
+> > > In the rule side, getopt_long() is already pretty overloaded, just
+> > > double check these are spare.
+> > 
+> > This is only about xtables-monitor cmdline, or am I missing something?
+> 
+> I was referring to the iptables rule command. Not sure it's worth
+> there the alias. I think you mentioned that there's already -0 and -1
+> in the rule command line, hence the -0 and -1 for xtables-monitor.
 
-This series patch support more expr and obj offload: 
-fw_nedev, set payload, tunnel encap/decap action,
-tunnel meta match, objref offload
+Why should xtables-monitor print something that can be used as input to
+iptables?
 
-The follwing is the test sample:
+> > > > > Feel free to explore any possibility, probably leaving the existing -0
+> > > > > and -1 in place if you're afraid of breaking anything, add aliases and
+> > > > > only document the more intuitive one. If you think this is worth
+> > > > > exploring, of course.
+> > > > 
+> > > > I would omit the prefix from output if a family was selected. For
+> > > > unfiltered xtables-monitor output, I would change the prefix to
+> > > > something more readable, e.g.:
+> > > > 
+> > > > 'ip:  ',
+> > > > 'ip6: ',
+> > > > 'arp: ',
+> > > > 'eb:  '
+> > > > 
+> > > > What do you think?
+> > > 
+> > > Probably use the long option name, which seems more readable to me:
+> > > 
+> > > EVENT: --ipv4 -t filter -A INPUT -j ACCEPT
+> > 
+> > Ah, good idea!
+> > 
+> > > I like that the event is printed using the {ip,...}tables syntax.
+> > 
+> > OK. --arp/--bridge won't work there, obviously. We could of course try
+> > to change that, but I guess it's not feasible.
+> 
+> I think we would need a common parser, and that's not feasible. Unless
+> there is some preparsing, just to check if the family option is in
+> place, ie. -4, -6, --arp and --bridge, then route the parsing to the
+> corresponding parser. It's a bit of extra glue code, not sure it's
+> worth, just an idea / future work if helping all these tooling
+> converge might be of interest.
 
-# nft add table netdev firewall
-# nft add tunnel netdev firewall encap tunid 1000 tundst 0xf198a8ac tunsrc 0x4b98a8ac tunrelease 0
-# nft add tunnel netdev firewall decap tunid 0 tundst 0 tunsrc 0  tunrelease 1
-# nft add chain netdev firewall aclout { type filter hook ingress device mlx_pf0vf0 priority - 300 \; }
-# nft --debug=netlink add rule netdev firewall aclout ip daddr 10.0.1.7  @ll,0,48 set 0x00002e9ca06e2596 @ll,48,48 set 0xfaffffffffff tunnel name encap fwd to gretap
-  [ meta load protocol => reg 1 ]
-  [ cmp eq reg 1 0x00000008 ]
-  [ payload load 4b @ network header + 16 => reg 1 ]
-  [ cmp eq reg 1 0x0701000a ]
-  [ immediate reg 1 0x6ea09c2e 0x00009625 ]
-  [ payload write reg 1 => 6b @ link header + 0 csum_type 0 csum_off 0 csum_flags 0x0 ]
-  [ immediate reg 1 0xfffffffa 0x0000ffff ]
-  [ payload write reg 1 => 6b @ link header + 6 csum_type 0 csum_off 0 csum_flags 0x0 ]
-  [ objref type 6 name encap ]
-  [ immediate reg 1 0x00000019 ]
-  [ fwd sreg_dev 1 ]
+Given the large differences in ebtables cmdline syntax to the other
+tools, I consider it a plus to have different commands (and hence
+separate "main" functions).
 
+> > Also, IIRC 'iptables -6' was buggy in that it should fail but does
+> > not. This is a compatibility issue I didn't get to fix yet.
+> 
+> Noted. I have seen the recent patch to fix this.
 
-# nft add chain netdev firewall aclin { type filter hook ingress device gretap priority - 300 \; }
-# nft --debug=netlink add rule netdev firewall aclin ip daddr 10.0.0.7 tunnel tunid 1000 tunnel tundst 172.168.152.75 tunnel tunsrc 172.168.152.241 tunnel name decap @ll,0,48 set 0x0000525400001275 @ll,48,48 set 0xfaffffffffff fwd to mlx_pf0vf0
-  [ meta load protocol => reg 1 ]
-  [ cmp eq reg 1 0x00000008 ]
-  [ payload load 4b @ network header + 16 => reg 1 ]
-  [ cmp eq reg 1 0x0700000a ]
-  [ tunnel load id => reg 1 ]
-  [ cmp eq reg 1 0x000003e8 ]
-  [ tunnel load tun_dst => reg 1 ]
-  [ cmp eq reg 1 0xaca8984b ]
-  [ tunnel load tun_src => reg 1 ]
-  [ cmp eq reg 1 0xaca898f1 ]
-  [ objref type 6 name decap ]
-  [ immediate reg 1 0x00005452 0x00007512 ]
-  [ payload write reg 1 => 6b @ link header + 0 csum_type 0 csum_off 0 csum_flags 0x0 ]
-  [ immediate reg 1 0xfffffffa 0x0000ffff ]
-  [ payload write reg 1 => 6b @ link header + 6 csum_type 0 csum_off 0 csum_flags 0x0 ]
-  [ immediate reg 1 0x0000000f ]
-  [ fwd sreg_dev 1 ]
+That was only for iptables-nft-restore. I am talking about plain
+iptables:
 
-wenxu (9):
-  netfilter: nf_flow_offload: add net in offload_ctx
-  netfilter: nf_tables_offload: add offload_actions callback
-  netfilter: nft_fwd_netdev: add fw_netdev action support
-  netfilter: nft_payload: add nft_set_payload offload support
-  netfilter: nft_tunnel: support NFT_TUNNEL_SRC/DST_IP match
-  netfilter: nft_tunnel: support tunnel meta match offload
-  netfilter: nft_tunnel: add NFTA_TUNNEL_KEY_RELEASE action
-  netfilter: nft_objref: add nft_objref_type offload
-  netfilter: nft_tunnel: support nft_tunnel_obj offload
+| % iptables-legacy -6 -A FORWARD -j ACCEPT
+| This is the IPv4 version of iptables.
+| Try `iptables -h' or 'iptables --help' for more information.
 
- include/net/netfilter/nf_tables.h         |  10 ++-
- include/net/netfilter/nf_tables_offload.h |   7 +-
- include/uapi/linux/netfilter/nf_tables.h  |   3 +
- net/netfilter/nf_tables_api.c             |   2 +-
- net/netfilter/nf_tables_offload.c         |   7 +-
- net/netfilter/nft_fwd_netdev.c            |  27 +++++++
- net/netfilter/nft_immediate.c             |   2 +-
- net/netfilter/nft_objref.c                |  15 ++++
- net/netfilter/nft_payload.c               |  56 ++++++++++++++
- net/netfilter/nft_tunnel.c                | 123 ++++++++++++++++++++++++++----
- 10 files changed, 230 insertions(+), 22 deletions(-)
+iptables-nft accepts this but the result seems to be identical to just
+omitting '-6'.
 
--- 
-1.8.3.1
-
+Cheers, Phil
