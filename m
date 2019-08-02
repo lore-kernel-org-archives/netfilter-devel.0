@@ -2,140 +2,80 @@ Return-Path: <SRS0=xWIb=V6=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AA7FAC32750
-	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Aug 2019 10:45:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3EA06C32750
+	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Aug 2019 11:00:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8CA252087C
-	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Aug 2019 10:45:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 16DED206A3
+	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Aug 2019 11:00:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730642AbfHBKpP (ORCPT
+        id S2392207AbfHBLAb (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 2 Aug 2019 06:45:15 -0400
-Received: from m9784.mail.qiye.163.com ([220.181.97.84]:35083 "EHLO
-        m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730424AbfHBKpP (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 2 Aug 2019 06:45:15 -0400
-Received: from [192.168.188.14] (unknown [120.132.1.226])
-        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id 97599419D0;
-        Fri,  2 Aug 2019 18:45:06 +0800 (CST)
-Subject: Re: [PATCH net-next v5 5/6] flow_offload: support get flow_block
- immediately
+        Fri, 2 Aug 2019 07:00:31 -0400
+Received: from correo.us.es ([193.147.175.20]:33602 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2392118AbfHBLAb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 2 Aug 2019 07:00:31 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 8EA9BC1B29
+        for <netfilter-devel@vger.kernel.org>; Fri,  2 Aug 2019 13:00:28 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 7FAB5115103
+        for <netfilter-devel@vger.kernel.org>; Fri,  2 Aug 2019 13:00:28 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 7BAFB1150CE; Fri,  2 Aug 2019 13:00:28 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 5107E115101;
+        Fri,  2 Aug 2019 13:00:26 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Fri, 02 Aug 2019 13:00:26 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (unknown [31.4.181.192])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id E7A1C40705C3;
+        Fri,  2 Aug 2019 13:00:25 +0200 (CEST)
+Date:   Fri, 2 Aug 2019 13:00:23 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     Jakub Kicinski <jakub.kicinski@netronome.com>
-Cc:     jiri@resnulli.us, pablo@netfilter.org, fw@strlen.de,
-        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-        John Hurley <john.hurley@netronome.com>
-References: <1564628627-10021-1-git-send-email-wenxu@ucloud.cn>
- <1564628627-10021-6-git-send-email-wenxu@ucloud.cn>
- <20190801161129.25fee619@cakuba.netronome.com>
-From:   wenxu <wenxu@ucloud.cn>
-Message-ID: <bac5c6a5-8a1b-ee74-988b-6c2a71885761@ucloud.cn>
-Date:   Fri, 2 Aug 2019 18:45:04 +0800
-User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:60.0) Gecko/20100101
- Thunderbird/60.8.0
+Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org, marcelo.leitner@gmail.com,
+        jiri@resnulli.us, wenxu@ucloud.cn, saeedm@mellanox.com,
+        paulb@mellanox.com, gerlitz.or@gmail.com
+Subject: Re: [PATCH net 0/2] flow_offload hardware priority fixes
+Message-ID: <20190802110023.udfcxowe3vmihduq@salvia>
+References: <20190801112817.24976-1-pablo@netfilter.org>
+ <20190801172014.314a9d01@cakuba.netronome.com>
 MIME-Version: 1.0
-In-Reply-To: <20190801161129.25fee619@cakuba.netronome.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
-X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVkpVT0pIS0tLSUlNS0lLQ0pZV1koWU
-        FJQjdXWS1ZQUlXWQkOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6MTo6ITo6KDgxSU8eKxIeFjIM
-        NgkKFApVSlVKTk1PTE9JTEtNQkxIVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJS1VK
-        SElVSlVJSU1ZV1kIAVlBTktMSDcG
-X-HM-Tid: 0a6c51eee6b72086kuqy97599419d0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190801172014.314a9d01@cakuba.netronome.com>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Hi Jakub,
 
-On 8/2/2019 7:11 AM, Jakub Kicinski wrote:
-> On Thu,  1 Aug 2019 11:03:46 +0800, wenxu@ucloud.cn wrote:
->> From: wenxu <wenxu@ucloud.cn>
->>
->> The new flow-indr-block can't get the tcf_block
->> directly. It provide a callback list to find the flow_block immediately
->> when the device register and contain a ingress block.
->>
->> Signed-off-by: wenxu <wenxu@ucloud.cn>
-> First of all thanks for splitting the series up into more patches, 
-> it is easier to follow the logic now!
->
->> @@ -328,6 +348,7 @@ struct flow_indr_block_dev {
->>  
->>  	INIT_LIST_HEAD(&indr_dev->cb_list);
->>  	indr_dev->dev = dev;
->> +	flow_get_default_block(indr_dev);
->>  	if (rhashtable_insert_fast(&indr_setup_block_ht, &indr_dev->ht_node,
->>  				   flow_indr_setup_block_ht_params)) {
->>  		kfree(indr_dev);
-> I wonder if it's still practical to keep the block information in the
-> indr_dev structure at all. The way this used to work was:
->
->
-> [hash table of devices]     --------------
->                  |         |    netdev    |
->                  |         |    refcnt    |
->   indir_dev[tun0]|  ------ | cached block | ---- [ TC block ]
->                  |         |   callbacks  | .
->                  |          --------------   \__ [cb, cb_priv, cb_ident]
->                  |                               [cb, cb_priv, cb_ident]
->                  |          --------------
->                  |         |    netdev    |
->                  |         |    refcnt    |
->   indir_dev[tun1]|  ------ | cached block | ---- [ TC block ]
->                  |         |   callbacks  |.
-> -----------------           --------------   \__ [cb, cb_priv, cb_ident]
->                                                  [cb, cb_priv, cb_ident]
->
->
-> In the example above we have two tunnels tun0 and tun1, each one has a
-> indr_dev structure allocated, and for each one of them two drivers
-> registered for callbacks (hence the callbacks list has two entries).
->
-> We used to cache the TC block in the indr_dev structure, but now that
-> there are multiple subsytems using the indr_dev we either have to have
-> a list of cached blocks (with entries for each subsystem) or just always
-> iterate over the subsystems :(
->
-> After all the same device may have both a TC block and a NFT block.
->
-> I think always iterating would be easier:
->
-> The indr_dev struct would no longer have the block pointer, instead
-> when new driver registers for the callback instead of:
->
-> 	if (indr_dev->ing_cmd_cb)
-> 		indr_dev->ing_cmd_cb(indr_dev->dev, indr_dev->flow_block,
-> 				     indr_block_cb->cb, indr_block_cb->cb_priv,
-> 				     FLOW_BLOCK_BIND);
->
-> We'd have something like the loop in flow_get_default_block():
->
-> 	for each (subsystem)
-> 		subsystem->handle_new_indir_cb(indr_dev, cb);
->
-> And then per-subsystem logic would actually call the cb. Or:
->
-> 	for each (subsystem)
-> 		block = get_default_block(indir_dev)
-> 		indr_dev->ing_cmd_cb(...)
+If the user specifies 'pref' in the new rule, then tc checks if there
+is a tcf_proto object that matches this priority. If the tcf_proto
+object does not exist, tc creates a tcf_proto object and it adds the
+new rule to this tcf_proto.
 
-            nft dev chian is also based on register_netdevice_notifier, So for unregister case,
+In cls_flower, each tcf_proto only stores one single rule, so if the
+user tries to add another rule with the same 'pref', cls_flower
+returns EEXIST.
 
-the basechian(block) of nft maybe delete before the __tc_indr_block_cb_unregister. is right?
+I'll prepare a new patchset not to map the priority to the netfilter
+basechain priority, instead the rule priority will be internally
+allocated for each new rule.
 
-So maybe we can cache the block as a list of all the subsystem in  indr_dev ?
-
-> I hope this makes sense.
->
->
-> Also please double check nft unload logic has an RCU synchronization
-> point, I'm not 100% confident rcu_barrier() implies synchronize_rcu().
-> Perhaps someone more knowledgeable can chime in :)
->
+Thanks for your feedback.
