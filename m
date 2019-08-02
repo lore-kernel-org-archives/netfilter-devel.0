@@ -2,99 +2,91 @@ Return-Path: <SRS0=xWIb=V6=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8622DC32750
-	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Aug 2019 22:04:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 99692C433FF
+	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Aug 2019 22:26:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5E8B7206A3
-	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Aug 2019 22:04:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6B4332087E
+	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Aug 2019 22:26:11 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=netronome-com.20150623.gappssmtp.com header.i=@netronome-com.20150623.gappssmtp.com header.b="TlJ5L8kG"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731844AbfHBWER (ORCPT
+        id S2388953AbfHBW0K (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 2 Aug 2019 18:04:17 -0400
-Received: from correo.us.es ([193.147.175.20]:50368 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731199AbfHBWER (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 2 Aug 2019 18:04:17 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id D0E79127C87
-        for <netfilter-devel@vger.kernel.org>; Sat,  3 Aug 2019 00:04:14 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id C1DFC1150CC
-        for <netfilter-devel@vger.kernel.org>; Sat,  3 Aug 2019 00:04:14 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id A17AD6E7A0; Sat,  3 Aug 2019 00:04:14 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id F0374DA730;
-        Sat,  3 Aug 2019 00:04:11 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Sat, 03 Aug 2019 00:04:11 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [31.4.211.36])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id A58284265A2F;
-        Sat,  3 Aug 2019 00:04:11 +0200 (CEST)
-Date:   Sat, 3 Aug 2019 00:04:09 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Jakub Kicinski <jakub.kicinski@netronome.com>
+        Fri, 2 Aug 2019 18:26:10 -0400
+Received: from mail-qt1-f195.google.com ([209.85.160.195]:45218 "EHLO
+        mail-qt1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730202AbfHBW0J (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 2 Aug 2019 18:26:09 -0400
+Received: by mail-qt1-f195.google.com with SMTP id x22so2144548qtp.12
+        for <netfilter-devel@vger.kernel.org>; Fri, 02 Aug 2019 15:26:09 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=netronome-com.20150623.gappssmtp.com; s=20150623;
+        h=date:from:to:cc:subject:message-id:in-reply-to:references
+         :organization:mime-version:content-transfer-encoding;
+        bh=WW2IGqIhICVQU16C1ct624+3lC3vhr3vbeWHd8gpPwo=;
+        b=TlJ5L8kG065qlx3kok9uMspcKyr0xVQUygOHQuH8rQaTNp1OjCFmzprkFjI2Y82nbS
+         7Av+Tuag3qQc/jXyPlW7nNa8BvMottA2QniPnzHCBGPD1XFL375u5uFwdeP8oLGfbjCn
+         aPCpUboXRcvBgkbyolxwm8JsEdUF9CseyrJRVzV/BBcxGga11bQYuZhJ1HHdKogi5hhg
+         mIw/O9YHoGDhSoAJkF3CI2i1BRWRoVMmhEznZ0LjfE5lHpXosSAT1pKNJGkRFDsv0v9o
+         G0+Y1b+LFUkNyOcNB9TKr5M6oBGiESTGUPK9IPHebl+HivQ5x7V14TBdWFnJ+JigbWjM
+         Emyg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:in-reply-to
+         :references:organization:mime-version:content-transfer-encoding;
+        bh=WW2IGqIhICVQU16C1ct624+3lC3vhr3vbeWHd8gpPwo=;
+        b=GNMNW6OwrdkUR9T82Q+eiRyyWGVeDHSsYGV7aA5anSRpbO2BfGNlsbLXrFoTyWZcrh
+         vXtJLHQCoZjx28gdadL+iclb118gBQ5Fy5WSrO/PkopVuEOtW+q1FCSqDqor203mjA2D
+         W65qHNqmzQDys1EKu/WL8svbyB9Co4j37ugf8Ohao9MYMDVs7PoFHOkIR4qlqKNbJvU7
+         QvhluJ5BGyL3/XoLqyXPnBZpoLUuFGTuRbA5Mz6mhtS62dFuLCw2emCZbA4DPo1m30Vs
+         ppeFs/LZJYwmAIGOBjCoEPDXQtaZxfzZRTYe95Zzlq7k1H+4nm8OgfH2QLjH4s/vcyp4
+         prYQ==
+X-Gm-Message-State: APjAAAW0RZCrgkl/JrLP/kRwr0m3RxYjet/D5GNiDcaanwavPn/ur1CH
+        rkkySlQxCMEC3c384+6RXwzf/A==
+X-Google-Smtp-Source: APXvYqzJrOLKmEQBq0mvlisQE+9X+CJX0jHdvp6TwIgEbRDBzIj/TdUNhU9kSQuwHTc9motfP82T2A==
+X-Received: by 2002:ac8:23c5:: with SMTP id r5mr99897585qtr.319.1564784768703;
+        Fri, 02 Aug 2019 15:26:08 -0700 (PDT)
+Received: from cakuba.netronome.com ([66.60.152.14])
+        by smtp.gmail.com with ESMTPSA id y194sm34417836qkb.111.2019.08.02.15.26.07
+        (version=TLS1_3 cipher=AEAD-AES256-GCM-SHA384 bits=256/256);
+        Fri, 02 Aug 2019 15:26:08 -0700 (PDT)
+Date:   Fri, 2 Aug 2019 15:25:49 -0700
+From:   Jakub Kicinski <jakub.kicinski@netronome.com>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
         netdev@vger.kernel.org, marcelo.leitner@gmail.com,
         jiri@resnulli.us, wenxu@ucloud.cn, saeedm@mellanox.com,
         paulb@mellanox.com, gerlitz.or@gmail.com
 Subject: Re: [PATCH net 0/2] flow_offload hardware priority fixes
-Message-ID: <20190802220409.klwdkcvjgegz6hj2@salvia>
+Message-ID: <20190802152549.357784a7@cakuba.netronome.com>
+In-Reply-To: <20190802220409.klwdkcvjgegz6hj2@salvia>
 References: <20190801112817.24976-1-pablo@netfilter.org>
- <20190801172014.314a9d01@cakuba.netronome.com>
- <20190802110023.udfcxowe3vmihduq@salvia>
- <20190802134738.328691b4@cakuba.netronome.com>
+        <20190801172014.314a9d01@cakuba.netronome.com>
+        <20190802110023.udfcxowe3vmihduq@salvia>
+        <20190802134738.328691b4@cakuba.netronome.com>
+        <20190802220409.klwdkcvjgegz6hj2@salvia>
+Organization: Netronome Systems, Ltd.
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190802134738.328691b4@cakuba.netronome.com>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Jakub,
+On Sat, 3 Aug 2019 00:04:09 +0200, Pablo Neira Ayuso wrote:
+> That patch removed the reference to tcf_auto_prio() already, please
+> let me know if you have any more specific update you would like to see
+> on that patch.
 
-On Fri, Aug 02, 2019 at 01:47:38PM -0700, Jakub Kicinski wrote:
-> On Fri, 2 Aug 2019 13:00:23 +0200, Pablo Neira Ayuso wrote:
-> > Hi Jakub,
-> > 
-> > If the user specifies 'pref' in the new rule, then tc checks if there
-> > is a tcf_proto object that matches this priority. If the tcf_proto
-> > object does not exist, tc creates a tcf_proto object and it adds the
-> > new rule to this tcf_proto.
-> > 
-> > In cls_flower, each tcf_proto only stores one single rule, so if the
-> > user tries to add another rule with the same 'pref', cls_flower
-> > returns EEXIST.
-> 
-> So you're saying this doesn't work?
-> 
-> ip link add type dummy
-> tc qdisc add dev dummy0 clsact
-> tc filter add dev dummy0 ingress protocol ipv6 prio 123 flower src_ip 1111::1 action drop
-> tc filter add dev dummy0 ingress protocol ipv6 prio 123 flower src_ip 1111::2 action drop
-
-This works indeed as you describe.
-
-I'll go back to the original netfilter basechain priority patch then:
-
-https://patchwork.ozlabs.org/patch/1140412/
-
-That patch removed the reference to tcf_auto_prio() already, please
-let me know if you have any more specific update you would like to see
-on that patch.
-
-Thanks.
+Please explain why the artificial priorities are needed at all.
+Hardware should order tables based on table type - ethtool, TC, nft.
+As I mentioned in the first email, and unless you can make a strong 
+case against that.
+Within those tables we should follow the same ordering rules as we 
+do in software (modulo ethtool but ordering is pretty clear there).
