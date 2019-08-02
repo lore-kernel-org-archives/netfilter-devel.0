@@ -2,87 +2,94 @@ Return-Path: <SRS0=xWIb=V6=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A3D92C433FF
-	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Aug 2019 02:56:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ADE15C32750
+	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Aug 2019 04:20:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 77AEB2084C
-	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Aug 2019 02:56:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 714E22073D
+	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Aug 2019 04:20:30 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=netronome-com.20150623.gappssmtp.com header.i=@netronome-com.20150623.gappssmtp.com header.b="hsdn6aqq"
+	dkim=pass (1024-bit key) header.d=cloudflare.com header.i=@cloudflare.com header.b="dyKqag01"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729582AbfHBC4e (ORCPT
+        id S1731372AbfHBEUa (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 1 Aug 2019 22:56:34 -0400
-Received: from mail-qk1-f194.google.com ([209.85.222.194]:43118 "EHLO
-        mail-qk1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729531AbfHBC4e (ORCPT
+        Fri, 2 Aug 2019 00:20:30 -0400
+Received: from mail-qt1-f193.google.com ([209.85.160.193]:35420 "EHLO
+        mail-qt1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1731359AbfHBEUa (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 1 Aug 2019 22:56:34 -0400
-Received: by mail-qk1-f194.google.com with SMTP id m14so28017751qka.10
-        for <netfilter-devel@vger.kernel.org>; Thu, 01 Aug 2019 19:56:33 -0700 (PDT)
+        Fri, 2 Aug 2019 00:20:30 -0400
+Received: by mail-qt1-f193.google.com with SMTP id d23so72667532qto.2
+        for <netfilter-devel@vger.kernel.org>; Thu, 01 Aug 2019 21:20:29 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=netronome-com.20150623.gappssmtp.com; s=20150623;
-        h=date:from:to:cc:subject:message-id:in-reply-to:references
-         :organization:mime-version:content-transfer-encoding;
-        bh=AGcsiVskghKXKTPwmk4P4JA0sIIcQz2X4jy5Em4AmC8=;
-        b=hsdn6aqqkOnymE2HgFmv9WV2k1diZ5VIWvhfEVFicAI+f5QcIe8ovHPyufx8cXq2AU
-         oJOoC+rANwmmnA2yAN+lICss4ugdRztzzv7fhukfFVtMb5AactqVbujYzoKSBZeqVxte
-         pkBoMBj9TuCo7siwxi2DlaT62jiRDW8FOkdJlAYDwueRkwUX9yBlakwuMB6v+Stan0LK
-         XC7iZKbaTN+RiLjmviwi3v01RdVYvMHQVLusBF2MW8VVM1cIZj2/8o4NUeSM8PGpVmGt
-         L4kyOH2tkf2/ubdf5XY5h9cigQBP4rnBL0e0APIpPo8juxcAUijO6l1sgoVM/mXZ/knT
-         XRAA==
+        d=cloudflare.com; s=google;
+        h=mime-version:from:date:message-id:subject:to;
+        bh=eqnicDfGf0dQKKt1jU8gwdO73pHw7L4fwxISKDMieuw=;
+        b=dyKqag01UMk3+Ea/RorgJVQBosLJQT50Ok1hXUyMYgD2VPmSgiKbjRnP9ZeSgoT+HU
+         LIU1wtU8188+OFSCYJRM4PQIlHbVigODh6Z+bCE5K4Ifn+qd9V1QyONJBv+LbuUMLw3g
+         O1vSLuVslQ4ILQuZtzeJs1seJpVnKucZQvnTg=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:in-reply-to
-         :references:organization:mime-version:content-transfer-encoding;
-        bh=AGcsiVskghKXKTPwmk4P4JA0sIIcQz2X4jy5Em4AmC8=;
-        b=ifDobNhy4BtBZ06EtAF14e1TQpjR5erRstGUuuiJaPu4sIOYClmjyuK9dFp27Eew0b
-         DNCJNv5VyEE7fvXXXukaMRg/ee4bCCvO0m5Zmng8uhxiLK6pShTpBvSIB/xbfIT4K665
-         ScMEToBg/uWY9zBuNzkl8+a1OkMkssg11QXKJ0CLGCCcwY3vSX7o57Rs7HB8+sxjkteq
-         IpAn+iLBIr8gODpTiEeAitJayGXCphq4g/P95Wo1ePhAdNEQDhWzg0fQ/9vc4r5fx/++
-         Tfy47dPFQhepZPAQwsVIC+tVakUZMkHmlOczWl8Y22shn8JqjpU5MAH6he6E5f3eAXji
-         nmfA==
-X-Gm-Message-State: APjAAAUa6EPyU7JzsTWSGhB+mSYevBmiukiKaM5/PBkDinOJ24fGUFQH
-        pze/oZumuZjnZdNbV8x4JJ2TDW+3nJo=
-X-Google-Smtp-Source: APXvYqyYZi4yt1e1ehHUYDiKwdTUpM0xPNEVpILsB7fjpu4rSy2YTQxg25vtKeU2tM7Zn6waReWrSg==
-X-Received: by 2002:ae9:f801:: with SMTP id x1mr79486878qkh.242.1564714593159;
-        Thu, 01 Aug 2019 19:56:33 -0700 (PDT)
-Received: from cakuba.netronome.com ([66.60.152.14])
-        by smtp.gmail.com with ESMTPSA id e125sm30096769qkd.120.2019.08.01.19.56.32
-        (version=TLS1_3 cipher=AEAD-AES256-GCM-SHA384 bits=256/256);
-        Thu, 01 Aug 2019 19:56:33 -0700 (PDT)
-Date:   Thu, 1 Aug 2019 19:56:14 -0700
-From:   Jakub Kicinski <jakub.kicinski@netronome.com>
-To:     wenxu <wenxu@ucloud.cn>
-Cc:     jiri@resnulli.us, pablo@netfilter.org, fw@strlen.de,
-        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-        John Hurley <john.hurley@netronome.com>
-Subject: Re: [PATCH net-next v5 5/6] flow_offload: support get flow_block
- immediately
-Message-ID: <20190801195614.0742c12b@cakuba.netronome.com>
-In-Reply-To: <43995d3c-dff5-3000-317c-09b119c61565@ucloud.cn>
-References: <1564628627-10021-1-git-send-email-wenxu@ucloud.cn>
-        <1564628627-10021-6-git-send-email-wenxu@ucloud.cn>
-        <20190801161129.25fee619@cakuba.netronome.com>
-        <43995d3c-dff5-3000-317c-09b119c61565@ucloud.cn>
-Organization: Netronome Systems, Ltd.
+        h=x-gm-message-state:mime-version:from:date:message-id:subject:to;
+        bh=eqnicDfGf0dQKKt1jU8gwdO73pHw7L4fwxISKDMieuw=;
+        b=iYin8gWsr9HG6anv/kFAMrvJj9UR9hwOEYDEo8mfwChkM9ca/NvrS6yCT7NpiGMzJK
+         m0uNmn0F3QZoOBgotimavIoUhSjBb/aZCnec9EKhTHYzjAKOpLzLvGuZ8FT65UwteKbm
+         mQb63alMNKKDjNa3qR0DGDlMZ6cuSECta8mDsosnkJI5c8N0XP92eW8TUgMiD3TKODU6
+         RDM7nwgMbTDO57K2Ev8WyLcbjo8M6w0nO5uRlqUId585F9p/41wJgfAcpXGkxEAlAA43
+         pDZgsTL2w+ABBTZ+mwsvGvMLB/F0tQxqgGfFXzgYJ8pzlvJbwEAgi9JX8PJx6PcZKPn6
+         oCtA==
+X-Gm-Message-State: APjAAAU3mSkAQvd6sEocI3auJBvN/2FqWI8huW0wjnhYTfFZpV15OltQ
+        MS26IZmX3OodtTIdiwG/B9YBDcdYXx0LacrwGj/jLCiEL5yNBw==
+X-Google-Smtp-Source: APXvYqxmpSV4z1A8wMboTHXeOlzHy+TDu+W5grHiIEnTPGnGlM0CsrIm2jSpq9Ica5w6wPg2Wac6DbGA9uNJEixM7GQ=
+X-Received: by 2002:ac8:4252:: with SMTP id r18mr33179490qtm.357.1564719628630;
+ Thu, 01 Aug 2019 21:20:28 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+From:   Ivan Babrou <ivan@cloudflare.com>
+Date:   Thu, 1 Aug 2019 21:20:17 -0700
+Message-ID: <CABWYdi0aifR5EDAMVJ2vh6nURXwc0ED75hOkkWvU6-8icmvM_A@mail.gmail.com>
+Subject: [PATCH] expr: allow export of notrack expr
+To:     netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, 2 Aug 2019 10:47:26 +0800, wenxu wrote:
-> > After all the same device may have both a TC block and a NFT block.  
-> 
-> Only one subsystem can be used for the same device for both indr-dev and hw-dev
-> the flow_block_cb_is_busy avoid the situation you mentioned.
+Currently it's impossible to export notrack expr as json,
+as it lacks snprintf member and triggers segmentation fault.
 
-AFAIU that's a temporary limitation until drivers learn to manage
-multiple tables.
+There are no parameters to notrack, so there's nothing
+to do, but it should be an explicit function that does nothing.
+
+Signed-off-by: Ivan Babrou <ivan@cloudflare.com>
+---
+ src/expr_ops.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/src/expr_ops.c b/src/expr_ops.c
+index 3538dd6..a2e1dd3 100644
+--- a/src/expr_ops.c
++++ b/src/expr_ops.c
+@@ -42,8 +42,16 @@ extern struct expr_ops expr_ops_tunnel;
+ extern struct expr_ops expr_ops_osf;
+ extern struct expr_ops expr_ops_xfrm;
+
++static int
++nftnl_expr_notrack_snprintf(char *buf, size_t len, uint32_t type,
++   uint32_t flags, const struct nftnl_expr *e)
++{
++ return -1;
++}
++
+ static struct expr_ops expr_ops_notrack = {
+  .name = "notrack",
++ .snprintf = nftnl_expr_notrack_snprintf,
+ };
+
+ static struct expr_ops *expr_ops[] = {
+--
+2.22.0
