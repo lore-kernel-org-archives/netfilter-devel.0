@@ -2,543 +2,118 @@ Return-Path: <SRS0=xWIb=V6=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B3AF9C433FF
-	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Aug 2019 10:12:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D224C32750
+	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Aug 2019 10:35:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 75903206A3
-	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Aug 2019 10:12:59 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=riseup.net header.i=@riseup.net header.b="m/+sQhJA"
+	by mail.kernel.org (Postfix) with ESMTP id F188520665
+	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Aug 2019 10:35:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389167AbfHBKM7 (ORCPT
+        id S1726340AbfHBKfh (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 2 Aug 2019 06:12:59 -0400
-Received: from mx1.riseup.net ([198.252.153.129]:41882 "EHLO mx1.riseup.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388321AbfHBKM7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 2 Aug 2019 06:12:59 -0400
-Received: from bell.riseup.net (bell-pn.riseup.net [10.0.1.178])
-        (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
-        (Client CN "*.riseup.net", Issuer "COMODO RSA Domain Validation Secure Server CA" (verified OK))
-        by mx1.riseup.net (Postfix) with ESMTPS id 02FEB1B9083
-        for <netfilter-devel@vger.kernel.org>; Fri,  2 Aug 2019 03:12:58 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=riseup.net; s=squak;
-        t=1564740778; bh=vVD9JfnXfkhPxAdQNf4hnfU3XkQUTf+oUr2IGHJKy6I=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=m/+sQhJA/gOuWm04qMU/UYdWMQVqFZ4JNMkcSPbeBpM7gKd0n3ttANri2CSEOhLE9
-         lC4KfEEJ69Q0VhJeEBYmpT8VAznimUcgEpv2rgEsVcnNDnrIQRsSOrPLB2nlMmQn3R
-         GdlgKoIytexiucj32ZZUslTgcdlxQSA+d1QNeqzI=
-X-Riseup-User-ID: C8CF71BE289328454C5DD4FAD4D7466C4DB36C1ECD8BD6D3B9BEE584A0D4A3D0
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-         by bell.riseup.net (Postfix) with ESMTPSA id AB54E223297;
-        Fri,  2 Aug 2019 03:12:56 -0700 (PDT)
-From:   Fernando Fernandez Mancera <ffmancera@riseup.net>
-To:     netfilter-devel@vger.kernel.org
-Cc:     Fernando Fernandez Mancera <ffmancera@riseup.net>
-Subject: [PATCH 2/2 nft v4] src: allow variable in chain policy
-Date:   Fri,  2 Aug 2019 12:12:10 +0200
-Message-Id: <20190802101207.27719-3-ffmancera@riseup.net>
-In-Reply-To: <20190802101207.27719-1-ffmancera@riseup.net>
-References: <20190802101207.27719-1-ffmancera@riseup.net>
+        Fri, 2 Aug 2019 06:35:37 -0400
+Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:33144 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726014AbfHBKfh (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 2 Aug 2019 06:35:37 -0400
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.89)
+        (envelope-from <fw@strlen.de>)
+        id 1htUuN-0002el-Ov; Fri, 02 Aug 2019 12:35:35 +0200
+Date:   Fri, 2 Aug 2019 12:35:35 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     Ander Juaristi <a@juaristi.eus>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH v6] meta: Introduce new conditions 'time', 'day' and
+ 'hour'
+Message-ID: <20190802103535.mkogus6kjurmvfrj@breakpoint.cc>
+References: <20190802071038.5509-1-a@juaristi.eus>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190802071038.5509-1-a@juaristi.eus>
+User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This patch introduces the use of nft input files variables in chain policy.
-e.g.
+Ander Juaristi <a@juaristi.eus> wrote:
+> These keywords introduce new checks for a timestamp, an absolute date (which is converted to a timestamp),
+> an hour in the day (which is converted to the number of seconds since midnight) and a day of week.
+> 
+> When converting an ISO date (eg. 2019-06-06 17:00) to a timestamp,
+> we need to substract it the GMT difference in seconds, that is, the value
+> of the 'tm_gmtoff' field in the tm structure. This is because the kernel
+> doesn't know about time zones. And hence the kernel manages different timestamps
+> than those that are advertised in userspace when running, for instance, date +%s.
+> 
+> The same conversion needs to be done when converting hours (e.g 17:00) to seconds since midnight
+> as well.
+> 
+> The result needs to be computed modulo 86400 in case GMT offset (difference in seconds from UTC)
+> is negative.
+> 
+> We also introduce a new command line option (-t, --seconds) to show the actual
+> timestamps when printing the values, rather than the ISO dates, or the hour.
+> 
+> Some usage examples:
+> 
+> 	time < "2019-06-06 17:00" drop;
+> 	time < "2019-06-06 17:20:20" drop;
+> 	time < 12341234 drop;
+> 	day "Sat" drop;
+> 	day 6 drop;
+> 	hour >= 17:00 drop;
+> 	hour >= "17:00:01" drop;
+> 	hour >= 63000 drop;
+> 
+> We need to convert an ISO date to a timestamp
+> without taking into account the time zone offset, since comparison will
+> be done in kernel space and there is no time zone information there.
+> 
+> Overwriting TZ is portable, but will cause problems when parsing a
+> ruleset that has 'time' and 'hour' rules. Parsing an 'hour' type must
+> not do time zone conversion, but that will be automatically done if TZ has
+> been overwritten to UTC.
+> 
+> Hence, we use timegm() to parse the 'time' type, even though it's not portable.
+> Overwriting TZ seems to be a much worse solution.
+> 
+> Finally, be aware that timestamps are converted to nanoseconds when
+> transferring to the kernel (as comparison is done with nanosecond
+> precision), and back to seconds when retrieving them for printing.
+> 
+> We swap left and right values in a range to properly handle
+> cross-day hour ranges (e.g. 23:15-03:22).
 
-define default_policy = "accept"
+Might make sense to also do this for days.
 
-add table ip foo
-add chain ip foo bar {type filter hook input priority filter; policy $default_policy}
+> The first time, we need to call expr_evaluate_range, error printing
+> disabled, because otherwise an error (example below) will be printed
+> even though the ruleset was eventually successfully evaluated. This
+> might be misleading for the end user.
+> 
+>     meta-test:25:11-21: Error: Range has zero or negative size
+>                     hour eq 23:15-03:22 drop;
+>                             ^^^^^^^^^^^
 
-table ip foo {
-	chain bar {
-		type filter hook input priority filter; policy accept;
-	}
-}
+nft add inet filter input meta hour '"12:22-12:23"' counter
+-> gets parsed as 'meta hour 12:22'.
 
-Signed-off-by: Fernando Fernandez Mancera <ffmancera@riseup.net>
----
- include/datatype.h                            |  1 +
- include/rule.h                                |  2 +-
- src/datatype.c                                | 29 +++++++++++++++++++
- src/evaluate.c                                | 22 ++++++++++++++
- src/json.c                                    |  5 +++-
- src/mnl.c                                     |  9 ++++--
- src/netlink.c                                 |  8 ++++-
- src/parser_bison.y                            | 23 ++++++++++++---
- src/parser_json.c                             | 17 +++++++----
- src/rule.c                                    | 13 +++++++--
- .../testcases/nft-f/0025policy_variable_0     | 17 +++++++++++
- .../testcases/nft-f/0026policy_variable_0     | 17 +++++++++++
- .../testcases/nft-f/0027policy_variable_1     | 18 ++++++++++++
- .../testcases/nft-f/0028policy_variable_1     | 18 ++++++++++++
- .../nft-f/dumps/0025policy_variable_0.nft     |  5 ++++
- .../nft-f/dumps/0026policy_variable_0.nft     |  5 ++++
- 16 files changed, 191 insertions(+), 18 deletions(-)
- create mode 100755 tests/shell/testcases/nft-f/0025policy_variable_0
- create mode 100755 tests/shell/testcases/nft-f/0026policy_variable_0
- create mode 100755 tests/shell/testcases/nft-f/0027policy_variable_1
- create mode 100755 tests/shell/testcases/nft-f/0028policy_variable_1
- create mode 100644 tests/shell/testcases/nft-f/dumps/0025policy_variable_0.nft
- create mode 100644 tests/shell/testcases/nft-f/dumps/0026policy_variable_0.nft
+Could this at least throw an error?  Its not obvious why this doesn't
+work as expected.
 
-diff --git a/include/datatype.h b/include/datatype.h
-index 1b012d5..b8941af 100644
---- a/include/datatype.h
-+++ b/include/datatype.h
-@@ -257,6 +257,7 @@ extern const struct datatype igmp_type_type;
- extern const struct datatype time_type;
- extern const struct datatype boolean_type;
- extern const struct datatype priority_type;
-+extern const struct datatype policy_type;
- 
- void inet_service_type_print(const struct expr *expr, struct output_ctx *octx);
- 
-diff --git a/include/rule.h b/include/rule.h
-index a071531..5099fa9 100644
---- a/include/rule.h
-+++ b/include/rule.h
-@@ -206,7 +206,7 @@ struct chain {
- 	const char		*hookstr;
- 	unsigned int		hooknum;
- 	struct prio_spec	priority;
--	int			policy;
-+	struct expr		*policy;
- 	const char		*type;
- 	const char		*dev;
- 	struct scope		scope;
-diff --git a/src/datatype.c b/src/datatype.c
-index 5dac70e..27ffa55 100644
---- a/src/datatype.c
-+++ b/src/datatype.c
-@@ -1282,3 +1282,32 @@ const struct datatype priority_type = {
- 	.desc		= "priority type",
- 	.parse		= priority_type_parse,
- };
-+
-+static struct error_record *policy_type_parse(const struct expr *sym,
-+					      struct expr **res)
-+{
-+	int policy;
-+	if (!strcmp(sym->identifier, "accept"))
-+		policy = NF_ACCEPT;
-+	else if (!strcmp(sym->identifier, "drop"))
-+		policy = NF_DROP;
-+	else
-+		return error(&sym->location, "wrong policy");
-+
-+	*res = constant_expr_alloc(&sym->location, &integer_type,
-+				   BYTEORDER_HOST_ENDIAN, sizeof(int) *
-+				   BITS_PER_BYTE, &policy);
-+
-+	return NULL;
-+}
-+
-+/* This datatype is not registered via datatype_register()
-+ * since this datatype should not ever be used from either
-+ * rules or elements.
-+ */
-+const struct datatype policy_type = {
-+	.type		= TYPE_STRING,
-+	.name		= "policy",
-+	.desc		= "policy type",
-+	.parse		= policy_type_parse,
-+};
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 0ea8090..5fe1a32 100755
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -3476,6 +3476,23 @@ static uint32_t str2hooknum(uint32_t family, const char *hook)
- 	return NF_INET_NUMHOOKS;
- }
- 
-+static bool evaluate_policy(struct eval_ctx *ctx, struct expr **exprp)
-+{
-+	struct expr *expr;
-+	ctx->ectx.dtype = &policy_type;
-+	ctx->ectx.len = NFT_NAME_MAXLEN * BITS_PER_BYTE;
-+	if (expr_evaluate(ctx, exprp) < 0)
-+		return false;
-+	expr = *exprp;
-+	if (expr->etype != EXPR_VALUE) {
-+		expr_error(ctx->msgs, expr, "%s is not a valid "
-+			   "policy expression", expr_name(expr));
-+		return false;
-+	}
-+
-+	return true;
-+}
-+
- static int chain_evaluate(struct eval_ctx *ctx, struct chain *chain)
- {
- 	struct table *table;
-@@ -3509,6 +3526,11 @@ static int chain_evaluate(struct eval_ctx *ctx, struct chain *chain)
- 			return __stmt_binary_error(ctx, &chain->priority.loc, NULL,
- 						   "invalid priority expression %s in this context.",
- 						   expr_name(chain->priority.expr));
-+		if (chain->policy) {
-+			if (!evaluate_policy(ctx, &chain->policy))
-+				return chain_error(ctx, chain, "invalid policy expression %s",
-+						   expr_name(chain->policy));
-+		}
- 	}
- 
- 	list_for_each_entry(rule, &chain->rules, list) {
-diff --git a/src/json.c b/src/json.c
-index 05f089e..0871ea4 100644
---- a/src/json.c
-+++ b/src/json.c
-@@ -224,6 +224,7 @@ static json_t *chain_print_json(const struct chain *chain)
- {
- 	json_t *root, *tmp;
- 	int priority;
-+	int policy;
- 
- 	root = json_pack("{s:s, s:s, s:s, s:I}",
- 			 "family", family2str(chain->handle.family),
-@@ -234,12 +235,14 @@ static json_t *chain_print_json(const struct chain *chain)
- 	if (chain->flags & CHAIN_F_BASECHAIN) {
- 		mpz_export_data(&priority, chain->priority.expr->value,
- 				BYTEORDER_HOST_ENDIAN, sizeof(int));
-+		mpz_export_data(&policy, chain->policy->value,
-+				BYTEORDER_HOST_ENDIAN, sizeof(int));
- 		tmp = json_pack("{s:s, s:s, s:i, s:s}",
- 				"type", chain->type,
- 				"hook", hooknum2str(chain->handle.family,
- 						    chain->hooknum),
- 				"prio", priority,
--				"policy", chain_policy2str(chain->policy));
-+				"policy", chain_policy2str(policy));
- 		if (chain->dev)
- 			json_object_set_new(tmp, "dev", json_string(chain->dev));
- 		json_object_update(root, tmp);
-diff --git a/src/mnl.c b/src/mnl.c
-index 8921ccf..f24d2ce 100644
---- a/src/mnl.c
-+++ b/src/mnl.c
-@@ -519,6 +519,7 @@ int mnl_nft_chain_add(struct netlink_ctx *ctx, const struct cmd *cmd,
- 	struct nftnl_chain *nlc;
- 	struct nlmsghdr *nlh;
- 	int priority;
-+	int policy;
- 
- 	nlc = nftnl_chain_alloc();
- 	if (nlc == NULL)
-@@ -539,9 +540,11 @@ int mnl_nft_chain_add(struct netlink_ctx *ctx, const struct cmd *cmd,
- 			nftnl_chain_set_str(nlc, NFTNL_CHAIN_TYPE,
- 					    cmd->chain->type);
- 		}
--		if (cmd->chain->policy != -1)
--			nftnl_chain_set_u32(nlc, NFTNL_CHAIN_POLICY,
--					    cmd->chain->policy);
-+		if (cmd->chain->policy) {
-+			mpz_export_data(&policy, cmd->chain->policy->value,
-+					BYTEORDER_HOST_ENDIAN, sizeof(int));
-+			nftnl_chain_set_u32(nlc, NFTNL_CHAIN_POLICY, policy);
-+		}
- 		if (cmd->chain->dev != NULL)
- 			nftnl_chain_set_str(nlc, NFTNL_CHAIN_DEV,
- 					    cmd->chain->dev);
-diff --git a/src/netlink.c b/src/netlink.c
-index a0e4d63..8350e43 100644
---- a/src/netlink.c
-+++ b/src/netlink.c
-@@ -370,6 +370,7 @@ struct chain *netlink_delinearize_chain(struct netlink_ctx *ctx,
- {
- 	struct chain *chain;
- 	int priority;
-+	int policy;
- 
- 	chain = chain_alloc(nftnl_chain_get_str(nlc, NFTNL_CHAIN_NAME));
- 	chain->handle.family =
-@@ -396,7 +397,12 @@ struct chain *netlink_delinearize_chain(struct netlink_ctx *ctx,
- 						    BITS_PER_BYTE, &priority);
- 		chain->type          =
- 			xstrdup(nftnl_chain_get_str(nlc, NFTNL_CHAIN_TYPE));
--		chain->policy          =
-+		policy = nftnl_chain_get_u32(nlc, NFTNL_CHAIN_POLICY);
-+		chain->policy = constant_expr_alloc(&netlink_location,
-+						    &string_type,
-+						    BYTEORDER_HOST_ENDIAN,
-+						    sizeof(int) * BITS_PER_BYTE,
-+						    &policy);
- 			nftnl_chain_get_u32(nlc, NFTNL_CHAIN_POLICY);
- 		if (nftnl_chain_is_set(nlc, NFTNL_CHAIN_DEV)) {
- 			chain->dev	=
-diff --git a/src/parser_bison.y b/src/parser_bison.y
-index 3f763f0..252d511 100644
---- a/src/parser_bison.y
-+++ b/src/parser_bison.y
-@@ -636,8 +636,8 @@ int nft_lex(void *, void *, void *);
- %type <stmt>			meter_stmt meter_stmt_alloc flow_stmt_legacy_alloc
- %destructor { stmt_free($$); }	meter_stmt meter_stmt_alloc flow_stmt_legacy_alloc
- 
--%type <expr>			symbol_expr verdict_expr integer_expr variable_expr chain_expr
--%destructor { expr_free($$); }	symbol_expr verdict_expr integer_expr variable_expr chain_expr
-+%type <expr>			symbol_expr verdict_expr integer_expr variable_expr chain_expr policy_expr
-+%destructor { expr_free($$); }	symbol_expr verdict_expr integer_expr variable_expr chain_expr policy_expr
- %type <expr>			primary_expr shift_expr and_expr
- %destructor { expr_free($$); }	primary_expr shift_expr and_expr
- %type <expr>			exclusive_or_expr inclusive_or_expr
-@@ -2028,17 +2028,32 @@ dev_spec		:	DEVICE	string		{ $$ = $2; }
- 			|	/* empty */		{ $$ = NULL; }
- 			;
- 
--policy_spec		:	POLICY		chain_policy
-+policy_spec		:	POLICY		policy_expr
- 			{
--				if ($<chain>0->policy != -1) {
-+				if ($<chain>0->policy) {
- 					erec_queue(error(&@$, "you cannot set chain policy twice"),
- 						   state->msgs);
-+					expr_free($2);
- 					YYERROR;
- 				}
- 				$<chain>0->policy	= $2;
- 			}
- 			;
- 
-+policy_expr		:	variable_expr
-+			{
-+				datatype_set($1->sym->expr, &policy_type);
-+				$$ = $1;
-+			}
-+			|	chain_policy
-+			{
-+				$$ = constant_expr_alloc(&@$, &integer_type,
-+							 BYTEORDER_HOST_ENDIAN,
-+							 sizeof(int) *
-+							 BITS_PER_BYTE, &$1);
-+			}
-+			;
-+
- chain_policy		:	ACCEPT		{ $$ = NF_ACCEPT; }
- 			|	DROP		{ $$ = NF_DROP;   }
- 			;
-diff --git a/src/parser_json.c b/src/parser_json.c
-index 0e2fd6b..c9a8440 100644
---- a/src/parser_json.c
-+++ b/src/parser_json.c
-@@ -2530,13 +2530,20 @@ static struct cmd *json_parse_cmd_add_table(struct json_ctx *ctx, json_t *root,
- 	return cmd_alloc(op, obj, &h, int_loc, NULL);
- }
- 
--static int parse_policy(const char *policy)
-+static struct expr *parse_policy(const char *policy)
- {
-+	int policy_num;
-+
- 	if (!strcmp(policy, "accept"))
--		return NF_ACCEPT;
--	if (!strcmp(policy, "drop"))
--		return NF_DROP;
--	return -1;
-+		policy_num = NF_ACCEPT;
-+	else if (!strcmp(policy, "drop"))
-+		policy_num = NF_DROP;
-+	else
-+		return NULL;
-+
-+	return constant_expr_alloc(int_loc, &integer_type,
-+				   BYTEORDER_HOST_ENDIAN, sizeof(int)
-+				   * BITS_PER_BYTE, &policy_num);
- }
- 
- static struct cmd *json_parse_cmd_add_chain(struct json_ctx *ctx, json_t *root,
-diff --git a/src/rule.c b/src/rule.c
-index 2aca8af..27eca2e 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -798,7 +798,7 @@ struct chain *chain_alloc(const char *name)
- 	if (name != NULL)
- 		chain->handle.chain.name = xstrdup(name);
- 
--	chain->policy = -1;
-+	chain->policy = NULL;
- 	return chain;
- }
- 
-@@ -822,6 +822,7 @@ void chain_free(struct chain *chain)
- 	if (chain->dev != NULL)
- 		xfree(chain->dev);
- 	expr_free(chain->priority.expr);
-+	expr_free(chain->policy);
- 	xfree(chain);
- }
- 
-@@ -1098,12 +1099,15 @@ static void chain_print_declaration(const struct chain *chain,
- 				    struct output_ctx *octx)
- {
- 	char priobuf[STD_PRIO_BUFSIZE];
-+	int policy;
- 
- 	nft_print(octx, "\tchain %s {", chain->handle.chain.name);
- 	if (nft_output_handle(octx))
- 		nft_print(octx, " # handle %" PRIu64, chain->handle.handle.id);
- 	nft_print(octx, "\n");
- 	if (chain->flags & CHAIN_F_BASECHAIN) {
-+		mpz_export_data(&policy, chain->policy->value,
-+				BYTEORDER_HOST_ENDIAN, sizeof(int));
- 		nft_print(octx, "\t\ttype %s hook %s", chain->type,
- 			  hooknum2str(chain->handle.family, chain->hooknum));
- 		if (chain->dev != NULL)
-@@ -1112,7 +1116,7 @@ static void chain_print_declaration(const struct chain *chain,
- 			  prio2str(octx, priobuf, sizeof(priobuf),
- 				   chain->handle.family, chain->hooknum,
- 				   chain->priority.expr),
--			  chain_policy2str(chain->policy));
-+			  chain_policy2str(policy));
- 	}
- }
- 
-@@ -1133,17 +1137,20 @@ static void chain_print(const struct chain *chain, struct output_ctx *octx)
- void chain_print_plain(const struct chain *chain, struct output_ctx *octx)
- {
- 	char priobuf[STD_PRIO_BUFSIZE];
-+	int policy;
- 
- 	nft_print(octx, "chain %s %s %s", family2str(chain->handle.family),
- 		  chain->handle.table.name, chain->handle.chain.name);
- 
- 	if (chain->flags & CHAIN_F_BASECHAIN) {
-+		mpz_export_data(&policy, chain->policy->value,
-+				BYTEORDER_HOST_ENDIAN, 4);
- 		nft_print(octx, " { type %s hook %s priority %s; policy %s; }",
- 			  chain->type, chain->hookstr,
- 			  prio2str(octx, priobuf, sizeof(priobuf),
- 				   chain->handle.family, chain->hooknum,
- 				   chain->priority.expr),
--			  chain_policy2str(chain->policy));
-+			  chain_policy2str(policy));
- 	}
- 	if (nft_output_handle(octx))
- 		nft_print(octx, " # handle %" PRIu64, chain->handle.handle.id);
-diff --git a/tests/shell/testcases/nft-f/0025policy_variable_0 b/tests/shell/testcases/nft-f/0025policy_variable_0
-new file mode 100755
-index 0000000..b88e968
---- /dev/null
-+++ b/tests/shell/testcases/nft-f/0025policy_variable_0
-@@ -0,0 +1,17 @@
-+#!/bin/bash
-+
-+# Tests use of variables in chain policy
-+
-+set -e
-+
-+RULESET="
-+define default_policy = \"accept\"
-+
-+table inet global {
-+    chain prerouting {
-+        type filter hook prerouting priority filter
-+        policy \$default_policy
-+    }
-+}"
-+
-+$NFT -f - <<< "$RULESET"
-diff --git a/tests/shell/testcases/nft-f/0026policy_variable_0 b/tests/shell/testcases/nft-f/0026policy_variable_0
-new file mode 100755
-index 0000000..d4d98ed
---- /dev/null
-+++ b/tests/shell/testcases/nft-f/0026policy_variable_0
-@@ -0,0 +1,17 @@
-+#!/bin/bash
-+
-+# Tests use of variables in chain policy
-+
-+set -e
-+
-+RULESET="
-+define default_policy = \"drop\"
-+
-+table inet global {
-+    chain prerouting {
-+        type filter hook prerouting priority filter
-+        policy \$default_policy
-+    }
-+}"
-+
-+$NFT -f - <<< "$RULESET"
-diff --git a/tests/shell/testcases/nft-f/0027policy_variable_1 b/tests/shell/testcases/nft-f/0027policy_variable_1
-new file mode 100755
-index 0000000..ae35516
---- /dev/null
-+++ b/tests/shell/testcases/nft-f/0027policy_variable_1
-@@ -0,0 +1,18 @@
-+#!/bin/bash
-+
-+# Tests use of variables in chain policy
-+
-+set -e
-+
-+RULESET="
-+define default_policy = { 127.0.0.1 }
-+
-+table inet global {
-+    chain prerouting {
-+        type filter hook prerouting priority filter
-+        policy \$default_policy
-+    }
-+}"
-+
-+$NFT -f - <<< "$RULESET" && exit 1
-+exit 0
-diff --git a/tests/shell/testcases/nft-f/0028policy_variable_1 b/tests/shell/testcases/nft-f/0028policy_variable_1
-new file mode 100755
-index 0000000..027eb01
---- /dev/null
-+++ b/tests/shell/testcases/nft-f/0028policy_variable_1
-@@ -0,0 +1,18 @@
-+#!/bin/bash
-+
-+# Tests use of variables in priority specification
-+
-+set -e
-+
-+RULESET="
-+define default_policy = *
-+
-+table inet global {
-+    chain prerouting {
-+        type filter hook prerouting priority filter
-+        policy \$default_policy
-+    }
-+}"
-+
-+$NFT -f - <<< "$RULESET" && exit 1
-+exit 0
-diff --git a/tests/shell/testcases/nft-f/dumps/0025policy_variable_0.nft b/tests/shell/testcases/nft-f/dumps/0025policy_variable_0.nft
-new file mode 100644
-index 0000000..f409309
---- /dev/null
-+++ b/tests/shell/testcases/nft-f/dumps/0025policy_variable_0.nft
-@@ -0,0 +1,5 @@
-+table inet global {
-+	chain prerouting {
-+		type filter hook prerouting priority filter; policy accept;
-+	}
-+}
-diff --git a/tests/shell/testcases/nft-f/dumps/0026policy_variable_0.nft b/tests/shell/testcases/nft-f/dumps/0026policy_variable_0.nft
-new file mode 100644
-index 0000000..d729e1e
---- /dev/null
-+++ b/tests/shell/testcases/nft-f/dumps/0026policy_variable_0.nft
-@@ -0,0 +1,5 @@
-+table inet global {
-+	chain prerouting {
-+		type filter hook prerouting priority filter; policy drop;
-+	}
-+}
--- 
-2.20.1
+('"12:22"-"12:23"' will work of course).
 
+nft --debug=netlink add inet filter input meta day '"Sat"-"Fri"' counter
+
+... doesn't do anything.  nft returns 1, but no error is shown.
+
+Looks like range errors are not displayed anymore:
+nft --debug=netlink add inet filter input tcp dport 23-22
+
+should throw an error message.
