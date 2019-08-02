@@ -7,53 +7,51 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 74B14C32750
-	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Aug 2019 13:34:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F0589C32753
+	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Aug 2019 13:34:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 49AFB20665
-	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Aug 2019 13:34:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C995620665
+	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Aug 2019 13:34:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1564752842;
-	bh=luGPwrsMzBhqsBsjmDOagWeS2+zn0+WUsPIMCrUf+ek=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=UuWx+M9FxBoikQvO63ELFNdAgSC7piTKt2rairo8nf7mUURpOr6biqObt9/4jZcJw
-	 EgSv7QV7lAxH2hryu0HZZnGi4ms36U8r3DKMbSoyVPvtROeX8rwK5etuzEQku+ffQg
-	 Wlnjf40wqWHlcpOQoAof18gDJeKqgJZoluzhxhek=
+	s=default; t=1564752846;
+	bh=FiM5YvIzCSvxAqFNHP7gBJ+hf6uOa38n0rEzatyP9WI=;
+	h=From:To:Cc:Subject:Date:List-ID:From;
+	b=wQuSNitAEl2d3K/+NJLWyxvNeuPcj+cF2egDZOd4yANWFmoymQm6BNK9YumTl6wzO
+	 KcDZHyFgnFTbGqo2BbVHBefOA5HzzUF6vKH4rjNdn8DV21+UnAS0I2Wayw7W0BZ437
+	 T3cG0DUDxF0LMxUUI/3inGPStJcmmw2Gk2W6ZOaU=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2391921AbfHBNds (ORCPT
+        id S1732083AbfHBNXG (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 2 Aug 2019 09:33:48 -0400
-Received: from mail.kernel.org ([198.145.29.99]:33712 "EHLO mail.kernel.org"
+        Fri, 2 Aug 2019 09:23:06 -0400
+Received: from mail.kernel.org ([198.145.29.99]:33608 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1732368AbfHBNXJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 2 Aug 2019 09:23:09 -0400
+        id S1731794AbfHBNXF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 2 Aug 2019 09:23:05 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 683F1217D4;
-        Fri,  2 Aug 2019 13:23:07 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 6A298217D4;
+        Fri,  2 Aug 2019 13:23:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1564752188;
-        bh=luGPwrsMzBhqsBsjmDOagWeS2+zn0+WUsPIMCrUf+ek=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=IcDq8NHDwgNXWO2A4JXS5/mZGzyrBAZN0eOy4G87/fPxPKF8oxoVvZnXsFd+/tfk7
-         3r1bY59tU23JiLeZkKsSLGgg7NRTMEPb9PYCB220EQ5LwlQrnHRhJeqY3W3ExZzPx1
-         +weWoBhG8fe65bmLzIcclTnSXP74wbgNTrIM3bBk=
+        s=default; t=1564752184;
+        bh=FiM5YvIzCSvxAqFNHP7gBJ+hf6uOa38n0rEzatyP9WI=;
+        h=From:To:Cc:Subject:Date:From;
+        b=O60CUC+rGeSXycwlOIzIfEtsq8EJghQYe5ThkaUm0sndCwzdBYt6W3nXNLZsiJtj0
+         7n5V5MoTq76P7VrHmvVQsck5NyR+w9Fp/famuHasOXaZm3/SzahWnNxXRSVYNXzmuC
+         LUKi+ie88VG8ZjuL6I+Wxjue0H7Lvpaoqu6i0HwQ=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Florian Westphal <fw@strlen.de>,
-        Jakub Jankowski <shasta@toxcorp.com>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Thomas Jarosch <thomas.jarosch@intra2net.com>,
+        Juliana Rodrigueiro <juliana.rodrigueiro@intra2net.com>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
         Sasha Levin <sashal@kernel.org>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.19 04/42] netfilter: conntrack: always store window size un-scaled
-Date:   Fri,  2 Aug 2019 09:22:24 -0400
-Message-Id: <20190802132302.13537-4-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 01/42] netfilter: nfnetlink: avoid deadlock due to synchronous request_module
+Date:   Fri,  2 Aug 2019 09:22:21 -0400
+Message-Id: <20190802132302.13537-1-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20190802132302.13537-1-sashal@kernel.org>
-References: <20190802132302.13537-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -65,78 +63,72 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Florian Westphal <fw@strlen.de>
 
-[ Upstream commit 959b69ef57db00cb33e9c4777400ae7183ebddd3 ]
+[ Upstream commit 1b0890cd60829bd51455dc5ad689ed58c4408227 ]
 
-Jakub Jankowski reported following oddity:
+Thomas and Juliana report a deadlock when running:
 
-After 3 way handshake completes, timeout of new connection is set to
-max_retrans (300s) instead of established (5 days).
+(rmmod nf_conntrack_netlink/xfrm_user)
 
-shortened excerpt from pcap provided:
-25.070622 IP (flags [DF], proto TCP (6), length 52)
-10.8.5.4.1025 > 10.8.1.2.80: Flags [S], seq 11, win 64240, [wscale 8]
-26.070462 IP (flags [DF], proto TCP (6), length 48)
-10.8.1.2.80 > 10.8.5.4.1025: Flags [S.], seq 82, ack 12, win 65535, [wscale 3]
-27.070449 IP (flags [DF], proto TCP (6), length 40)
-10.8.5.4.1025 > 10.8.1.2.80: Flags [.], ack 83, win 512, length 0
+  conntrack -e NEW -E &
+  modprobe -v xfrm_user
 
-Turns out the last_win is of u16 type, but we store the scaled value:
-512 << 8 (== 0x20000) becomes 0 window.
+They provided following analysis:
 
-The Fixes tag is not correct, as the bug has existed forever, but
-without that change all that this causes might cause is to mistake a
-window update (to-nonzero-from-zero) for a retransmit.
+conntrack -e NEW -E
+    netlink_bind()
+        netlink_lock_table() -> increases "nl_table_users"
+            nfnetlink_bind()
+            # does not unlock the table as it's locked by netlink_bind()
+                __request_module()
+                    call_usermodehelper_exec()
 
-Fixes: fbcd253d2448b8 ("netfilter: conntrack: lower timeout to RETRANS seconds if window is 0")
-Reported-by: Jakub Jankowski <shasta@toxcorp.com>
-Tested-by: Jakub Jankowski <shasta@toxcorp.com>
+This triggers "modprobe nf_conntrack_netlink" from kernel, netlink_bind()
+won't return until modprobe process is done.
+
+"modprobe xfrm_user":
+    xfrm_user_init()
+        register_pernet_subsys()
+            -> grab pernet_ops_rwsem
+                ..
+                netlink_table_grab()
+                    calls schedule() as "nl_table_users" is non-zero
+
+so modprobe is blocked because netlink_bind() increased
+nl_table_users while also holding pernet_ops_rwsem.
+
+"modprobe nf_conntrack_netlink" runs and inits nf_conntrack_netlink:
+    ctnetlink_init()
+        register_pernet_subsys()
+            -> blocks on "pernet_ops_rwsem" thanks to xfrm_user module
+
+both modprobe processes wait on one another -- neither can make
+progress.
+
+Switch netlink_bind() to "nowait" modprobe -- this releases the netlink
+table lock, which then allows both modprobe instances to complete.
+
+Reported-by: Thomas Jarosch <thomas.jarosch@intra2net.com>
+Reported-by: Juliana Rodrigueiro <juliana.rodrigueiro@intra2net.com>
 Signed-off-by: Florian Westphal <fw@strlen.de>
-Acked-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- net/netfilter/nf_conntrack_proto_tcp.c | 8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ net/netfilter/nfnetlink.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-index 842f3f86fb2e7..7011ab27c4371 100644
---- a/net/netfilter/nf_conntrack_proto_tcp.c
-+++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -480,6 +480,7 @@ static bool tcp_in_window(const struct nf_conn *ct,
- 	struct ip_ct_tcp_state *receiver = &state->seen[!dir];
- 	const struct nf_conntrack_tuple *tuple = &ct->tuplehash[dir].tuple;
- 	__u32 seq, ack, sack, end, win, swin;
-+	u16 win_raw;
- 	s32 receiver_offset;
- 	bool res, in_recv_win;
- 
-@@ -488,7 +489,8 @@ static bool tcp_in_window(const struct nf_conn *ct,
- 	 */
- 	seq = ntohl(tcph->seq);
- 	ack = sack = ntohl(tcph->ack_seq);
--	win = ntohs(tcph->window);
-+	win_raw = ntohs(tcph->window);
-+	win = win_raw;
- 	end = segment_seq_plus_len(seq, skb->len, dataoff, tcph);
- 
- 	if (receiver->flags & IP_CT_TCP_FLAG_SACK_PERM)
-@@ -663,14 +665,14 @@ static bool tcp_in_window(const struct nf_conn *ct,
- 			    && state->last_seq == seq
- 			    && state->last_ack == ack
- 			    && state->last_end == end
--			    && state->last_win == win)
-+			    && state->last_win == win_raw)
- 				state->retrans++;
- 			else {
- 				state->last_dir = dir;
- 				state->last_seq = seq;
- 				state->last_ack = ack;
- 				state->last_end = end;
--				state->last_win = win;
-+				state->last_win = win_raw;
- 				state->retrans = 0;
- 			}
- 		}
+diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
+index 916913454624f..7f2c1915763f8 100644
+--- a/net/netfilter/nfnetlink.c
++++ b/net/netfilter/nfnetlink.c
+@@ -575,7 +575,7 @@ static int nfnetlink_bind(struct net *net, int group)
+ 	ss = nfnetlink_get_subsys(type << 8);
+ 	rcu_read_unlock();
+ 	if (!ss)
+-		request_module("nfnetlink-subsys-%d", type);
++		request_module_nowait("nfnetlink-subsys-%d", type);
+ 	return 0;
+ }
+ #endif
 -- 
 2.20.1
 
