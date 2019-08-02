@@ -1,72 +1,71 @@
-Return-Path: <SRS0=uSEi=V5=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=xWIb=V6=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B825CC19759
-	for <netfilter-devel@archiver.kernel.org>; Thu,  1 Aug 2019 23:11:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D831CC433FF
+	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Aug 2019 00:20:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8C33C206B8
-	for <netfilter-devel@archiver.kernel.org>; Thu,  1 Aug 2019 23:11:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9D30120B7C
+	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Aug 2019 00:20:35 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=netronome-com.20150623.gappssmtp.com header.i=@netronome-com.20150623.gappssmtp.com header.b="A9lhvsWX"
+	dkim=pass (2048-bit key) header.d=netronome-com.20150623.gappssmtp.com header.i=@netronome-com.20150623.gappssmtp.com header.b="uFJjTGHG"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732215AbfHAXLs (ORCPT
+        id S1732196AbfHBAUe (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 1 Aug 2019 19:11:48 -0400
-Received: from mail-qt1-f193.google.com ([209.85.160.193]:33868 "EHLO
-        mail-qt1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730581AbfHAXLs (ORCPT
+        Thu, 1 Aug 2019 20:20:34 -0400
+Received: from mail-qk1-f193.google.com ([209.85.222.193]:34812 "EHLO
+        mail-qk1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1732077AbfHBAUc (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 1 Aug 2019 19:11:48 -0400
-Received: by mail-qt1-f193.google.com with SMTP id k10so2935487qtq.1
-        for <netfilter-devel@vger.kernel.org>; Thu, 01 Aug 2019 16:11:47 -0700 (PDT)
+        Thu, 1 Aug 2019 20:20:32 -0400
+Received: by mail-qk1-f193.google.com with SMTP id t8so53509831qkt.1
+        for <netfilter-devel@vger.kernel.org>; Thu, 01 Aug 2019 17:20:32 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=netronome-com.20150623.gappssmtp.com; s=20150623;
         h=date:from:to:cc:subject:message-id:in-reply-to:references
          :organization:mime-version:content-transfer-encoding;
-        bh=ztAu4QZGDIQMdZBWkY7E7Oa+ajrHbkMzVWaeIeGWy+c=;
-        b=A9lhvsWXZkWPnMr3aru1wfNuTiEcH0uUEvNMFE60foNthE6agvJlfpDhsVN7tOQDjK
-         cOscdGWjN/31oB6xchKWqH3ZSo7r2e4RdRJlQz2NVKdk7uYcgKRMNyDiYDBt3yC40gH5
-         HxzbQ5RS1bn9v4epx7RpAUaeFgDqJNCEb0jMBv7WQ/DF6rzJuWy5x/UeDO3wHBbfeRrJ
-         aWAGrfCzbJTcA1Gr0RMLCNWs8Xch1G8PYISnwfIhsQosgh2L90bnGglreWyWI1SD6YW9
-         DMf1X4x1q1DWqI6xLvaQ09JLi4d3pGSyBO5Tx6gPhXu9Rj230/nEMvDpFDGQ2iauCa4X
-         Fp7w==
+        bh=YrAx0zX7auo9QDlbkVDwIncGhtx6wpbCngP7FcTQWIE=;
+        b=uFJjTGHGaA/2S8Tg0aI9XTPUgW5bMOgxhC4Mo4QBDPRxI4eILwRSICN6t626DW3MQy
+         UT5mXBV84unrcIg7Zvq53rJZZYyS6nuWkTyvNme7sW9fQGtGq5TxKoQaMJ08dYZ1tjz0
+         vSK+NSQIs8Y0e8zE3Yu0Ohx8X+Xo4mh4jgSC4tqmRBHTOrETIFvACWXyI+Xof/Gufq2H
+         H5livpB85Uj/W75oLHm1FyAcjf4MhOKSRuG7+P8KWEv7ioUcHMWBl7BEnR0ZLIq8tB9N
+         vPNrSA0f7lGBfKwR7hdvcCgWpLM919DRjG6q6MuU6lIQB0aDu98AGYr14lqVAlGBL1UV
+         c8Xw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:date:from:to:cc:subject:message-id:in-reply-to
          :references:organization:mime-version:content-transfer-encoding;
-        bh=ztAu4QZGDIQMdZBWkY7E7Oa+ajrHbkMzVWaeIeGWy+c=;
-        b=FVCDm7JXIt1X/Z8Fl2+UKrY2wxfxyxlN+c8TO4S8jpMIyEsFIfJkdKBmXsiRLSm0Cj
-         q8mU72PnQBSCmh3T0ZuKvycDs5+2sFRWspoGXebeC9TFMfPD1q0X375Tj10NXjHm1SMz
-         oEJ4fLDDABNdHbr/LUGtje0TbfQWdyB3Lwmnq2AvDsCk+kd5HzcKUeX/pq7PE5+8m4Jg
-         5qRChawu+cCKLHtOrbyH/lXc8DQ/r3PDwsKcOZKMz+spk9dv8YWaRUSyttUOaBYf1nIe
-         9gsl3GKJwMfAgvixNN5h+FbwR+9S14Dnh6E7swhikhf+BGqK5r56eC4VuU8LGIa2IUo+
-         /7xw==
-X-Gm-Message-State: APjAAAVykTBihbzFzarNkDir5TtqNPDtYSQFDlR/w49R5jh5AsgK1NKh
-        s1KQeQaGzliACqwZK0wK7YlRGQ==
-X-Google-Smtp-Source: APXvYqzIALNSgEi0ptpT9zrpQ6/XoXDwKdKZHriP7QHEszTr5F3EcGFq3Y7qbcJXt9Ay/wn0LB75Mw==
-X-Received: by 2002:ac8:428f:: with SMTP id o15mr13908670qtl.210.1564701107392;
-        Thu, 01 Aug 2019 16:11:47 -0700 (PDT)
+        bh=YrAx0zX7auo9QDlbkVDwIncGhtx6wpbCngP7FcTQWIE=;
+        b=ZzxBgD5gYESjeX1vwC1nQ+yCp1b7TX4Tfv2pclrGX0NjzlEzbARVZe6IN20aOchvFH
+         f1CrI2r6pEXe/wwj3TMxYtoBIfGOWgikgH7KSWXZ2zy13KexGWix5/Ody7byJJ3HV77r
+         N+W5AIE8MHODOVhQpPwu0fjV0+Bhw5POP/k/pIzGabhHzdm3tbEQwoXxeXU7fkkn/roL
+         6JL+XRV7ypPyT3luqbEr9kqzf60oBzndATehvDHHsXgz2bGNE3H7APORG6jdYAz8x6GD
+         PpHFvS21zxkV+ezPOClIfO4ABKHtHK8sFUrfOVibjc1rz0tP+WbPGyf+Ljpe5/bIK9Wp
+         B5uQ==
+X-Gm-Message-State: APjAAAXtZf9hz3u9YhGuYwQLgpqRmH0A3K35bPz0H702cmOb9tCOsgjb
+        m0EERTYKXqdwmzEtFhYHY/3b0ffFDcw=
+X-Google-Smtp-Source: APXvYqwMbYD3LNl4MXicH/fDkdzKCw1hudlErHNhB9gDh523ZTphg4Ka3FPSXvESVk2M2ey+T/YIow==
+X-Received: by 2002:ae9:e707:: with SMTP id m7mr89292148qka.50.1564705231787;
+        Thu, 01 Aug 2019 17:20:31 -0700 (PDT)
 Received: from cakuba.netronome.com ([66.60.152.14])
-        by smtp.gmail.com with ESMTPSA id y194sm32944388qkb.111.2019.08.01.16.11.46
+        by smtp.gmail.com with ESMTPSA id e8sm30484586qkn.95.2019.08.01.17.20.30
         (version=TLS1_3 cipher=AEAD-AES256-GCM-SHA384 bits=256/256);
-        Thu, 01 Aug 2019 16:11:47 -0700 (PDT)
-Date:   Thu, 1 Aug 2019 16:11:29 -0700
+        Thu, 01 Aug 2019 17:20:31 -0700 (PDT)
+Date:   Thu, 1 Aug 2019 17:20:14 -0700
 From:   Jakub Kicinski <jakub.kicinski@netronome.com>
-To:     wenxu@ucloud.cn
-Cc:     jiri@resnulli.us, pablo@netfilter.org, fw@strlen.de,
-        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-        John Hurley <john.hurley@netronome.com>
-Subject: Re: [PATCH net-next v5 5/6] flow_offload: support get flow_block
- immediately
-Message-ID: <20190801161129.25fee619@cakuba.netronome.com>
-In-Reply-To: <1564628627-10021-6-git-send-email-wenxu@ucloud.cn>
-References: <1564628627-10021-1-git-send-email-wenxu@ucloud.cn>
-        <1564628627-10021-6-git-send-email-wenxu@ucloud.cn>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org, marcelo.leitner@gmail.com,
+        jiri@resnulli.us, wenxu@ucloud.cn, saeedm@mellanox.com,
+        paulb@mellanox.com, gerlitz.or@gmail.com
+Subject: Re: [PATCH net 0/2] flow_offload hardware priority fixes
+Message-ID: <20190801172014.314a9d01@cakuba.netronome.com>
+In-Reply-To: <20190801112817.24976-1-pablo@netfilter.org>
+References: <20190801112817.24976-1-pablo@netfilter.org>
 Organization: Netronome Systems, Ltd.
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
@@ -76,82 +75,10 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu,  1 Aug 2019 11:03:46 +0800, wenxu@ucloud.cn wrote:
-> From: wenxu <wenxu@ucloud.cn>
-> 
-> The new flow-indr-block can't get the tcf_block
-> directly. It provide a callback list to find the flow_block immediately
-> when the device register and contain a ingress block.
-> 
-> Signed-off-by: wenxu <wenxu@ucloud.cn>
+On Thu,  1 Aug 2019 13:28:15 +0200, Pablo Neira Ayuso wrote:
+> Please, apply, thank you.
 
-First of all thanks for splitting the series up into more patches, 
-it is easier to follow the logic now!
+I'm still waiting for a reply. 
 
-> @@ -328,6 +348,7 @@ struct flow_indr_block_dev {
->  
->  	INIT_LIST_HEAD(&indr_dev->cb_list);
->  	indr_dev->dev = dev;
-> +	flow_get_default_block(indr_dev);
->  	if (rhashtable_insert_fast(&indr_setup_block_ht, &indr_dev->ht_node,
->  				   flow_indr_setup_block_ht_params)) {
->  		kfree(indr_dev);
-
-I wonder if it's still practical to keep the block information in the
-indr_dev structure at all. The way this used to work was:
-
-
-[hash table of devices]     --------------
-                 |         |    netdev    |
-                 |         |    refcnt    |
-  indir_dev[tun0]|  ------ | cached block | ---- [ TC block ]
-                 |         |   callbacks  | .
-                 |          --------------   \__ [cb, cb_priv, cb_ident]
-                 |                               [cb, cb_priv, cb_ident]
-                 |          --------------
-                 |         |    netdev    |
-                 |         |    refcnt    |
-  indir_dev[tun1]|  ------ | cached block | ---- [ TC block ]
-                 |         |   callbacks  |.
------------------           --------------   \__ [cb, cb_priv, cb_ident]
-                                                 [cb, cb_priv, cb_ident]
-
-
-In the example above we have two tunnels tun0 and tun1, each one has a
-indr_dev structure allocated, and for each one of them two drivers
-registered for callbacks (hence the callbacks list has two entries).
-
-We used to cache the TC block in the indr_dev structure, but now that
-there are multiple subsytems using the indr_dev we either have to have
-a list of cached blocks (with entries for each subsystem) or just always
-iterate over the subsystems :(
-
-After all the same device may have both a TC block and a NFT block.
-
-I think always iterating would be easier:
-
-The indr_dev struct would no longer have the block pointer, instead
-when new driver registers for the callback instead of:
-
-	if (indr_dev->ing_cmd_cb)
-		indr_dev->ing_cmd_cb(indr_dev->dev, indr_dev->flow_block,
-				     indr_block_cb->cb, indr_block_cb->cb_priv,
-				     FLOW_BLOCK_BIND);
-
-We'd have something like the loop in flow_get_default_block():
-
-	for each (subsystem)
-		subsystem->handle_new_indir_cb(indr_dev, cb);
-
-And then per-subsystem logic would actually call the cb. Or:
-
-	for each (subsystem)
-		block = get_default_block(indir_dev)
-		indr_dev->ing_cmd_cb(...)
-
-I hope this makes sense.
-
-
-Also please double check nft unload logic has an RCU synchronization
-point, I'm not 100% confident rcu_barrier() implies synchronize_rcu().
-Perhaps someone more knowledgeable can chime in :)
+Perhaps since Pablo doesn't want to talk to me someone else can explain
+to me why we want to seemingly diverge from the software model?
