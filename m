@@ -2,84 +2,99 @@ Return-Path: <SRS0=xWIb=V6=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E6EA1C32750
-	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Aug 2019 07:36:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D7619C433FF
+	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Aug 2019 09:13:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BB51820665
-	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Aug 2019 07:36:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8AE23205F4
+	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Aug 2019 09:13:54 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=riseup.net header.i=@riseup.net header.b="CLmFeUjQ"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729630AbfHBHg2 (ORCPT
+        id S1727403AbfHBJNy (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 2 Aug 2019 03:36:28 -0400
-Received: from vxsys-smtpclusterma-04.srv.cat ([46.16.61.62]:51565 "EHLO
-        vxsys-smtpclusterma-04.srv.cat" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726118AbfHBHg2 (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 2 Aug 2019 03:36:28 -0400
-Received: from [192.168.4.111] (242.red-83-48-67.staticip.rima-tde.net [83.48.67.242])
-        by vxsys-smtpclusterma-04.srv.cat (Postfix) with ESMTPA id 538EF24301
-        for <netfilter-devel@vger.kernel.org>; Fri,  2 Aug 2019 09:36:25 +0200 (CEST)
-Subject: Re: [PATCH v3] netfilter: nft_meta: support for time matching
-From:   Ander Juaristi <a@juaristi.eus>
+        Fri, 2 Aug 2019 05:13:54 -0400
+Received: from mx1.riseup.net ([198.252.153.129]:52674 "EHLO mx1.riseup.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726818AbfHBJNy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 2 Aug 2019 05:13:54 -0400
+Received: from bell.riseup.net (bell-pn.riseup.net [10.0.1.178])
+        (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+        (Client CN "*.riseup.net", Issuer "COMODO RSA Domain Validation Secure Server CA" (verified OK))
+        by mx1.riseup.net (Postfix) with ESMTPS id AC7901A301B
+        for <netfilter-devel@vger.kernel.org>; Fri,  2 Aug 2019 02:13:53 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=riseup.net; s=squak;
+        t=1564737233; bh=MorDiK3yKZkpTsgcAJreqICAuMWOkWPLLQobDeCzteI=;
+        h=From:To:Cc:Subject:Date:From;
+        b=CLmFeUjQ6vTFjE5d1m3zlqGjmf0OgxaF1KoBlx1YEjVKLmanMgr2aIVNLFxHSXJJo
+         zYuyH4w2HMC04Znn/kyE3y60HgSJgDfhg9nAIdY9zlQeIRHpTp6RH+cRNEIs4Y5pjX
+         KZUxOOQiU2aaZek04qWknmvqb3EXjgWAYVDk2OxM=
+X-Riseup-User-ID: E01E1CFFD3DC9D3C8B94D4768B1F773E6D3A891BCFF6C480AEA954D64D7C7E56
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+         by bell.riseup.net (Postfix) with ESMTPSA id 64BEE223246;
+        Fri,  2 Aug 2019 02:13:52 -0700 (PDT)
+From:   Fernando Fernandez Mancera <ffmancera@riseup.net>
 To:     netfilter-devel@vger.kernel.org
-References: <20190802071233.5580-1-a@juaristi.eus>
-Message-ID: <55c6fec8-6c1d-174e-942e-b3f3d6f53542@juaristi.eus>
-Date:   Fri, 2 Aug 2019 09:36:19 +0200
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.3.0
+Cc:     Fernando Fernandez Mancera <ffmancera@riseup.net>
+Subject: [PATCH 0/2 nft v3] Introduce variables in chain priority and policy
+Date:   Fri,  2 Aug 2019 11:13:33 +0200
+Message-Id: <20190802091335.10778-1-ffmancera@riseup.net>
 MIME-Version: 1.0
-In-Reply-To: <20190802071233.5580-1-a@juaristi.eus>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+This patch series introduces the use of variables in chain priority and policy
+specification. It also contains tests for invalid cases.
 
+Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1172
 
-On 2/8/19 9:12, Ander Juaristi wrote:
-> diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-> index 82abaa183fc3..6d9dd120b466 100644
-> --- a/include/uapi/linux/netfilter/nf_tables.h
-> +++ b/include/uapi/linux/netfilter/nf_tables.h
-> @@ -799,6 +799,9 @@ enum nft_exthdr_attributes {
->    * @NFT_META_OIFKIND: packet output interface kind name (dev->rtnl_link_ops->kind)
->    * @NFT_META_BRI_IIFPVID: packet input bridge port pvid
->    * @NFT_META_BRI_IIFVPROTO: packet input bridge vlan proto
-> + * @NFT_META_TIME: a UNIX timestamp
-> + * @NFT_META_TIME_DAY: day of week
-> + * @NFT_META_TIME_HOUR: hour of day
->    */
->   enum nft_meta_keys {
->   	NFT_META_LEN,
-> @@ -829,8 +832,9 @@ enum nft_meta_keys {
->   	NFT_META_SECPATH,
->   	NFT_META_IIFKIND,
->   	NFT_META_OIFKIND,
-> -	NFT_META_BRI_IIFPVID,
-> -	NFT_META_BRI_IIFVPROTO,
+Fernando Fernandez Mancera (2):
+  src: allow variables in the chain priority specification
+  src: allow variable in chain policy
 
-I needed to remove these two so that the next three constants take the 
-correct values (otherwise it won't work because the meta keys sent by 
-userspace and those expected by the kernel don't match).
+ include/datatype.h                            |  2 +
+ include/rule.h                                |  9 +-
+ src/datatype.c                                | 55 ++++++++++++
+ src/evaluate.c                                | 85 ++++++++++++++++---
+ src/json.c                                    | 16 +++-
+ src/mnl.c                                     | 22 +++--
+ src/netlink.c                                 | 30 +++++--
+ src/parser_bison.y                            | 58 ++++++++++---
+ src/parser_json.c                             | 28 ++++--
+ src/rule.c                                    | 28 +++---
+ .../testcases/nft-f/0021priority_variable_0   | 17 ++++
+ .../testcases/nft-f/0022priority_variable_0   | 17 ++++
+ .../testcases/nft-f/0023priority_variable_1   | 18 ++++
+ .../testcases/nft-f/0024priority_variable_1   | 18 ++++
+ .../testcases/nft-f/0025policy_variable_0     | 17 ++++
+ .../testcases/nft-f/0026policy_variable_0     | 17 ++++
+ .../testcases/nft-f/0027policy_variable_1     | 18 ++++
+ .../testcases/nft-f/0028policy_variable_1     | 18 ++++
+ .../nft-f/dumps/0021priority_variable_0.nft   |  5 ++
+ .../nft-f/dumps/0022priority_variable_0.nft   |  5 ++
+ .../nft-f/dumps/0025policy_variable_0.nft     |  5 ++
+ .../nft-f/dumps/0026policy_variable_0.nft     |  5 ++
+ 22 files changed, 429 insertions(+), 64 deletions(-)
+ mode change 100644 => 100755 src/evaluate.c
+ create mode 100755 tests/shell/testcases/nft-f/0021priority_variable_0
+ create mode 100755 tests/shell/testcases/nft-f/0022priority_variable_0
+ create mode 100755 tests/shell/testcases/nft-f/0023priority_variable_1
+ create mode 100755 tests/shell/testcases/nft-f/0024priority_variable_1
+ create mode 100755 tests/shell/testcases/nft-f/0025policy_variable_0
+ create mode 100755 tests/shell/testcases/nft-f/0026policy_variable_0
+ create mode 100755 tests/shell/testcases/nft-f/0027policy_variable_1
+ create mode 100755 tests/shell/testcases/nft-f/0028policy_variable_1
+ create mode 100644 tests/shell/testcases/nft-f/dumps/0021priority_variable_0.nft
+ create mode 100644 tests/shell/testcases/nft-f/dumps/0022priority_variable_0.nft
+ create mode 100644 tests/shell/testcases/nft-f/dumps/0025policy_variable_0.nft
+ create mode 100644 tests/shell/testcases/nft-f/dumps/0026policy_variable_0.nft
 
-Those two constants NFT_META_BRI_IIFPVID and NFT_META_BRI_IIFVPROTO 
-aren't defined in nftables, I don't know why.
-
-I leave up to you to decide how to merge this: either manually give 
-NFT_META_TIME the correct value, or replicate NFT_META_BRI_IIFPVID and
-NFT_META_BRI_IIFVPROTO in nftables.
-
-> +	NFT_META_TIME,
-> +	NFT_META_TIME_DAY,
-> +	NFT_META_TIME_HOUR,
->   };
->   
->   /**
+-- 
+2.20.1
 
