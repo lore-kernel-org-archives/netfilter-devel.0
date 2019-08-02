@@ -2,198 +2,123 @@ Return-Path: <SRS0=xWIb=V6=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F840C32755
-	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Aug 2019 13:29:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A4E79C433FF
+	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Aug 2019 13:30:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 519B42182B
-	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Aug 2019 13:29:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7CAF621851
+	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Aug 2019 13:30:07 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1564752607;
+	bh=9J3VMBHUArBhUK4Sg+ljXqo8wwD81SF21cANTQ67C2c=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=W541RgoZGG1edo67biu7OFmiQXe29R0Lv7SNf5ogPGLLThr/jLP+XuHN+5FhVCSqT
+	 yp5eMTs30q9oz44VKIB1QZKcm9+HFkZrm88dUmMKAU467I2Ijjv42kd37xyq3uOlk5
+	 1KA7lcfq/dbmhfqoDbYXHxjY9S9xGaJnaSBi2pLA=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389396AbfHBN3l (ORCPT
+        id S2394179AbfHBNY2 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 2 Aug 2019 09:29:41 -0400
-Received: from correo.us.es ([193.147.175.20]:41564 "EHLO mail.us.es"
+        Fri, 2 Aug 2019 09:24:28 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35206 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2391787AbfHBN3l (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 2 Aug 2019 09:29:41 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 020D0FB44F
-        for <netfilter-devel@vger.kernel.org>; Fri,  2 Aug 2019 15:29:39 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id E67F41150CC
-        for <netfilter-devel@vger.kernel.org>; Fri,  2 Aug 2019 15:29:38 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id CE8551150CB; Fri,  2 Aug 2019 15:29:38 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id B11B2DA730;
-        Fri,  2 Aug 2019 15:29:36 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Fri, 02 Aug 2019 15:29:36 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from salvia.here (unknown [31.4.181.192])
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 0D4124265A31;
-        Fri,  2 Aug 2019 15:29:34 +0200 (CEST)
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     davem@davemloft.net, netdev@vger.kernel.org,
-        jakub.kicinski@netronome.com, jiri@resnulli.us,
-        marcelo.leitner@gmail.com, saeedm@mellanox.com, wenxu@ucloud.cn,
-        gerlitz.or@gmail.com, paulb@mellanox.com
-Subject: [PATCH net-next 3/3] filter: nf_tables_offload: set priority field for rules
-Date:   Fri,  2 Aug 2019 15:28:46 +0200
-Message-Id: <20190802132846.3067-4-pablo@netfilter.org>
-X-Mailer: git-send-email 2.11.0
-In-Reply-To: <20190802132846.3067-1-pablo@netfilter.org>
-References: <20190802132846.3067-1-pablo@netfilter.org>
-X-Virus-Scanned: ClamAV using ClamSMTP
+        id S2394174AbfHBNY2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 2 Aug 2019 09:24:28 -0400
+Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 6B75E20644;
+        Fri,  2 Aug 2019 13:24:26 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1564752267;
+        bh=9J3VMBHUArBhUK4Sg+ljXqo8wwD81SF21cANTQ67C2c=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=j2jBagP0E6kaAJrs+zO45dXrrqyEOTHcBQCHq9Oo8rtjo2owGiATvepuT2BbxvdDB
+         My5alm9wQ9i8sU84tv9ZGYeP7Nr6X6xheqipnuJ0q1z7SP8mhcomCtrCqiEbQbIbJl
+         1qeusnoCBkuBGOZGrZ9xhq4nzKX6Oy3q+4hWDdt4=
+From:   Sasha Levin <sashal@kernel.org>
+To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc:     Miaohe Lin <linmiaohe@huawei.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Sasha Levin <sashal@kernel.org>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org
+Subject: [PATCH AUTOSEL 4.14 03/30] netfilter: Fix rpfilter dropping vrf packets by mistake
+Date:   Fri,  2 Aug 2019 09:23:55 -0400
+Message-Id: <20190802132422.13963-3-sashal@kernel.org>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20190802132422.13963-1-sashal@kernel.org>
+References: <20190802132422.13963-1-sashal@kernel.org>
+MIME-Version: 1.0
+X-stable: review
+X-Patchwork-Hint: Ignore
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This patch allocates the priority per rule starting from priority 1
-since some drivers assume priority 0 never happens.
+From: Miaohe Lin <linmiaohe@huawei.com>
 
-This patch is restricting the rule priority range to 8-bit integer since
-the nft_rule object has 7-bit spare bits plus one that is scratched from
-the handle. It should be possible to extend this later on by placing the
-priority after the userdata area to turn this into 32-bits priority
-field, to put this data away from the packet path cachelines.
+[ Upstream commit b575b24b8eee37f10484e951b62ce2a31c579775 ]
 
+When firewalld is enabled with ipv4/ipv6 rpfilter, vrf
+ipv4/ipv6 packets will be dropped. Vrf device will pass
+through netfilter hook twice. One with enslaved device
+and another one with l3 master device. So in device may
+dismatch witch out device because out device is always
+enslaved device.So failed with the check of the rpfilter
+and drop the packets by mistake.
+
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
-v1: formerly "netfilter: nf_tables: map basechain priority to hardware priority"
-    address mapping to hardware based on comments from Jakub.
+ net/ipv4/netfilter/ipt_rpfilter.c  | 1 +
+ net/ipv6/netfilter/ip6t_rpfilter.c | 8 ++++++--
+ 2 files changed, 7 insertions(+), 2 deletions(-)
 
- include/net/netfilter/nf_tables.h         |  8 ++++++--
- include/net/netfilter/nf_tables_offload.h |  1 +
- net/netfilter/nf_tables_offload.c         | 27 ++++++++++++++++++++++-----
- 3 files changed, 29 insertions(+), 7 deletions(-)
-
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 87dbe62c0f27..a6308fcf5bf0 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -9,6 +9,7 @@
- #include <linux/netfilter/nf_tables.h>
- #include <linux/u64_stats_sync.h>
- #include <linux/rhashtable.h>
-+#include <linux/idr.h>
- #include <net/netfilter/nf_flow_table.h>
- #include <net/netlink.h>
- #include <net/flow_offload.h>
-@@ -824,14 +825,16 @@ int nft_expr_dump(struct sk_buff *skb, unsigned int attr,
-  *	@genmask: generation mask
-  *	@dlen: length of expression data
-  *	@udata: user data is appended to the rule
-+ *	@prio: priority (for hardware offload)
-  *	@data: expression data
-  */
- struct nft_rule {
- 	struct list_head		list;
--	u64				handle:42,
-+	u64				handle:41,
- 					genmask:2,
- 					dlen:12,
--					udata:1;
-+					udata:1,
-+					prio:8;
- 	unsigned char			data[]
- 		__attribute__((aligned(__alignof__(struct nft_expr))));
- };
-@@ -964,6 +967,7 @@ struct nft_base_chain {
- 	char 				dev_name[IFNAMSIZ];
- 	struct {
- 		struct flow_block	flow_block;
-+		struct idr		prio_idr;
- 	} offload;
- };
+diff --git a/net/ipv4/netfilter/ipt_rpfilter.c b/net/ipv4/netfilter/ipt_rpfilter.c
+index 37fb9552e8589..341d1bd637af2 100644
+--- a/net/ipv4/netfilter/ipt_rpfilter.c
++++ b/net/ipv4/netfilter/ipt_rpfilter.c
+@@ -96,6 +96,7 @@ static bool rpfilter_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ 	flow.flowi4_mark = info->flags & XT_RPFILTER_VALID_MARK ? skb->mark : 0;
+ 	flow.flowi4_tos = RT_TOS(iph->tos);
+ 	flow.flowi4_scope = RT_SCOPE_UNIVERSE;
++	flow.flowi4_oif = l3mdev_master_ifindex_rcu(xt_in(par));
  
-diff --git a/include/net/netfilter/nf_tables_offload.h b/include/net/netfilter/nf_tables_offload.h
-index fb3db391ade8..70f226568fe7 100644
---- a/include/net/netfilter/nf_tables_offload.h
-+++ b/include/net/netfilter/nf_tables_offload.h
-@@ -76,6 +76,7 @@ int nft_flow_rule_offload_commit(struct net *net);
- static inline void nft_basechain_offload_init(struct nft_base_chain *basechain)
- {
- 	flow_block_init(&basechain->offload.flow_block);
-+	idr_init(&basechain->offload.prio_idr);
+ 	return rpfilter_lookup_reverse(xt_net(par), &flow, xt_in(par), info->flags) ^ invert;
  }
+diff --git a/net/ipv6/netfilter/ip6t_rpfilter.c b/net/ipv6/netfilter/ip6t_rpfilter.c
+index 40eb16bd97860..d535768bea0fd 100644
+--- a/net/ipv6/netfilter/ip6t_rpfilter.c
++++ b/net/ipv6/netfilter/ip6t_rpfilter.c
+@@ -58,7 +58,9 @@ static bool rpfilter_lookup_reverse6(struct net *net, const struct sk_buff *skb,
+ 	if (rpfilter_addr_linklocal(&iph->saddr)) {
+ 		lookup_flags |= RT6_LOOKUP_F_IFACE;
+ 		fl6.flowi6_oif = dev->ifindex;
+-	} else if ((flags & XT_RPFILTER_LOOSE) == 0)
++	/* Set flowi6_oif for vrf devices to lookup route in l3mdev domain. */
++	} else if (netif_is_l3_master(dev) || netif_is_l3_slave(dev) ||
++		  (flags & XT_RPFILTER_LOOSE) == 0)
+ 		fl6.flowi6_oif = dev->ifindex;
  
- #endif
-diff --git a/net/netfilter/nf_tables_offload.c b/net/netfilter/nf_tables_offload.c
-index 84615381b06f..21144938482a 100644
---- a/net/netfilter/nf_tables_offload.c
-+++ b/net/netfilter/nf_tables_offload.c
-@@ -103,10 +103,11 @@ void nft_offload_update_dependency(struct nft_offload_ctx *ctx,
- }
+ 	rt = (void *) ip6_route_lookup(net, &fl6, lookup_flags);
+@@ -73,7 +75,9 @@ static bool rpfilter_lookup_reverse6(struct net *net, const struct sk_buff *skb,
+ 		goto out;
+ 	}
  
- static void nft_flow_offload_common_init(struct flow_cls_common_offload *common,
--					 __be16 proto,
--					struct netlink_ext_ack *extack)
-+					 __be16 proto, u32 priority,
-+					 struct netlink_ext_ack *extack)
- {
- 	common->protocol = proto;
-+	common->prio = priority;
- 	common->extack = extack;
- }
- 
-@@ -125,6 +126,8 @@ static int nft_setup_cb_call(struct nft_base_chain *basechain,
- 	return 0;
- }
- 
-+#define NFT_OFFLOAD_PRIO_MAX	U8_MAX
-+
- static int nft_flow_offload_rule(struct nft_trans *trans,
- 				 enum flow_cls_command command)
- {
-@@ -134,22 +137,36 @@ static int nft_flow_offload_rule(struct nft_trans *trans,
- 	struct nft_base_chain *basechain;
- 	struct netlink_ext_ack extack;
- 	__be16 proto = ETH_P_ALL;
-+	u32 prio = 1;
-+	int err;
- 
- 	if (!nft_is_base_chain(trans->ctx.chain))
- 		return -EOPNOTSUPP;
- 
- 	basechain = nft_base_chain(trans->ctx.chain);
- 
--	if (flow)
-+	if (flow) {
-+		if (idr_alloc_u32(&basechain->offload.prio_idr, NULL, &prio,
-+				  NFT_OFFLOAD_PRIO_MAX, GFP_KERNEL) < 0)
-+			return -E2BIG;
-+
-+		rule->prio = prio;
- 		proto = flow->proto;
-+	}
- 
--	nft_flow_offload_common_init(&cls_flow.common, proto, &extack);
-+	nft_flow_offload_common_init(&cls_flow.common, proto, rule->prio,
-+				     &extack);
- 	cls_flow.command = command;
- 	cls_flow.cookie = (unsigned long) rule;
- 	if (flow)
- 		cls_flow.rule = flow->rule;
- 
--	return nft_setup_cb_call(basechain, TC_SETUP_CLSFLOWER, &cls_flow);
-+	err = nft_setup_cb_call(basechain, TC_SETUP_CLSFLOWER, &cls_flow);
-+	if ((err < 0 && command == FLOW_CLS_REPLACE) ||
-+	    (err == 0 && command == FLOW_CLS_DESTROY))
-+		idr_remove(&basechain->offload.prio_idr, rule->prio);
-+
-+	return err;
- }
- 
- static int nft_flow_offload_bind(struct flow_block_offload *bo,
+-	if (rt->rt6i_idev->dev == dev || (flags & XT_RPFILTER_LOOSE))
++	if (rt->rt6i_idev->dev == dev ||
++	    l3mdev_master_ifindex_rcu(rt->rt6i_idev->dev) == dev->ifindex ||
++	    (flags & XT_RPFILTER_LOOSE))
+ 		ret = true;
+  out:
+ 	ip6_rt_put(rt);
 -- 
-2.11.0
+2.20.1
 
