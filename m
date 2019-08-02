@@ -2,91 +2,84 @@ Return-Path: <SRS0=xWIb=V6=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A85BCC433FF
-	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Aug 2019 07:29:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E6EA1C32750
+	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Aug 2019 07:36:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 81D5320657
-	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Aug 2019 07:29:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BB51820665
+	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Aug 2019 07:36:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732932AbfHBH3h (ORCPT
+        id S1729630AbfHBHg2 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 2 Aug 2019 03:29:37 -0400
-Received: from vxsys-smtpclusterma-03.srv.cat ([46.16.60.198]:36209 "EHLO
-        vxsys-smtpclusterma-03.srv.cat" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1730790AbfHBH3g (ORCPT
+        Fri, 2 Aug 2019 03:36:28 -0400
+Received: from vxsys-smtpclusterma-04.srv.cat ([46.16.61.62]:51565 "EHLO
+        vxsys-smtpclusterma-04.srv.cat" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726118AbfHBHg2 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 2 Aug 2019 03:29:36 -0400
-Received: from bubu.das-nano.com (242.red-83-48-67.staticip.rima-tde.net [83.48.67.242])
-        by vxsys-smtpclusterma-03.srv.cat (Postfix) with ESMTPA id BF9B224330
-        for <netfilter-devel@vger.kernel.org>; Fri,  2 Aug 2019 09:29:33 +0200 (CEST)
+        Fri, 2 Aug 2019 03:36:28 -0400
+Received: from [192.168.4.111] (242.red-83-48-67.staticip.rima-tde.net [83.48.67.242])
+        by vxsys-smtpclusterma-04.srv.cat (Postfix) with ESMTPA id 538EF24301
+        for <netfilter-devel@vger.kernel.org>; Fri,  2 Aug 2019 09:36:25 +0200 (CEST)
+Subject: Re: [PATCH v3] netfilter: nft_meta: support for time matching
 From:   Ander Juaristi <a@juaristi.eus>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH] meta: Introduce new conditions 'time', 'day' and 'hour'
-Date:   Fri,  2 Aug 2019 09:29:23 +0200
-Message-Id: <20190802072923.21578-1-a@juaristi.eus>
-X-Mailer: git-send-email 2.17.1
+References: <20190802071233.5580-1-a@juaristi.eus>
+Message-ID: <55c6fec8-6c1d-174e-942e-b3f3d6f53542@juaristi.eus>
+Date:   Fri, 2 Aug 2019 09:36:19 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.3.0
+MIME-Version: 1.0
+In-Reply-To: <20190802071233.5580-1-a@juaristi.eus>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Signed-off-by: Ander Juaristi <a@juaristi.eus>
----
- include/linux/netfilter/nf_tables.h | 6 ++++++
- src/expr/meta.c                     | 5 ++++-
- 2 files changed, 10 insertions(+), 1 deletion(-)
 
-diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
-index 1bf4346..0a6bc7f 100644
---- a/include/linux/netfilter/nf_tables.h
-+++ b/include/linux/netfilter/nf_tables.h
-@@ -794,6 +794,9 @@ enum nft_exthdr_attributes {
-  * @NFT_META_SECPATH: boolean, secpath_exists (!!skb->sp)
-  * @NFT_META_IIFKIND: packet input interface kind name (dev->rtnl_link_ops->kind)
-  * @NFT_META_OIFKIND: packet output interface kind name (dev->rtnl_link_ops->kind)
-+ * @NFT_META_TIME: a UNIX timestamp
-+ * @NFT_META_TIME_DAY: day of week
-+ * @NFT_META_TIME_HOUR: hour of day
-  */
- enum nft_meta_keys {
- 	NFT_META_LEN,
-@@ -824,6 +827,9 @@ enum nft_meta_keys {
- 	NFT_META_SECPATH,
- 	NFT_META_IIFKIND,
- 	NFT_META_OIFKIND,
-+	NFT_META_TIME,
-+	NFT_META_TIME_DAY,
-+	NFT_META_TIME_HOUR,
- };
- 
- /**
-diff --git a/src/expr/meta.c b/src/expr/meta.c
-index f1984f6..c2ac72e 100644
---- a/src/expr/meta.c
-+++ b/src/expr/meta.c
-@@ -22,7 +22,7 @@
- #include <libnftnl/rule.h>
- 
- #ifndef NFT_META_MAX
--#define NFT_META_MAX (NFT_META_OIFKIND + 1)
-+#define NFT_META_MAX (NFT_META_TIME_HOUR + 1)
- #endif
- 
- struct nftnl_expr_meta {
-@@ -161,6 +161,9 @@ static const char *meta_key2str_array[NFT_META_MAX] = {
- 	[NFT_META_SECPATH]	= "secpath",
- 	[NFT_META_IIFKIND]	= "iifkind",
- 	[NFT_META_OIFKIND]	= "oifkind",
-+	[NFT_META_TIME]		= "time",
-+	[NFT_META_TIME_DAY]	= "day",
-+	[NFT_META_TIME_HOUR]	= "hour",
- };
- 
- static const char *meta_key2str(uint8_t key)
--- 
-2.17.1
+
+On 2/8/19 9:12, Ander Juaristi wrote:
+> diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+> index 82abaa183fc3..6d9dd120b466 100644
+> --- a/include/uapi/linux/netfilter/nf_tables.h
+> +++ b/include/uapi/linux/netfilter/nf_tables.h
+> @@ -799,6 +799,9 @@ enum nft_exthdr_attributes {
+>    * @NFT_META_OIFKIND: packet output interface kind name (dev->rtnl_link_ops->kind)
+>    * @NFT_META_BRI_IIFPVID: packet input bridge port pvid
+>    * @NFT_META_BRI_IIFVPROTO: packet input bridge vlan proto
+> + * @NFT_META_TIME: a UNIX timestamp
+> + * @NFT_META_TIME_DAY: day of week
+> + * @NFT_META_TIME_HOUR: hour of day
+>    */
+>   enum nft_meta_keys {
+>   	NFT_META_LEN,
+> @@ -829,8 +832,9 @@ enum nft_meta_keys {
+>   	NFT_META_SECPATH,
+>   	NFT_META_IIFKIND,
+>   	NFT_META_OIFKIND,
+> -	NFT_META_BRI_IIFPVID,
+> -	NFT_META_BRI_IIFVPROTO,
+
+I needed to remove these two so that the next three constants take the 
+correct values (otherwise it won't work because the meta keys sent by 
+userspace and those expected by the kernel don't match).
+
+Those two constants NFT_META_BRI_IIFPVID and NFT_META_BRI_IIFVPROTO 
+aren't defined in nftables, I don't know why.
+
+I leave up to you to decide how to merge this: either manually give 
+NFT_META_TIME the correct value, or replicate NFT_META_BRI_IIFPVID and
+NFT_META_BRI_IIFVPROTO in nftables.
+
+> +	NFT_META_TIME,
+> +	NFT_META_TIME_DAY,
+> +	NFT_META_TIME_HOUR,
+>   };
+>   
+>   /**
 
