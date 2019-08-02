@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B0841C32750
-	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Aug 2019 13:25:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6FBB3C32750
+	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Aug 2019 13:26:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 88BAA2182B
-	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Aug 2019 13:25:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4635A21855
+	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Aug 2019 13:26:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1564752358;
-	bh=tlx84D8sSjVoacLkk/cR5dKVIyxX5S11HGCogWBGsu8=;
+	s=default; t=1564752406;
+	bh=mCkc4uu9nUwQFBTMLNVRopvyPSS0b6Geurf5ZV8j4qI=;
 	h=From:To:Cc:Subject:Date:List-ID:From;
-	b=on3lLK/ZbQVaI3kKVF03RI9NKHp2GcjL1GvrbZURNh/FKpzl/I3JVMgqwf7dzH06T
-	 ycV9iETlBKI0ZDBTREMQoZroObcSRta9sTXB+Nac1mBykC+No/dEwrC5FhT7TyID+r
-	 kmS5QmItR99GnggKWjto+rLxuFj+olq407dpOM9w=
+	b=v56l1+yZEX/gloIFeM2e+lbC+nVeH2QTtjKGX/NadJnYYsMbTWAj4+TcyxskPApNu
+	 frjoHLfnlJWjY2Ke3BO2gEFh45Mw+2zaH3lwhyWPsifeDgY5sMJUJgUY1aJ5TxEmdP
+	 AutUYWtWt0LI8KeD8a8Iyc1tMNh7DdkmrmiiLzzI=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2394435AbfHBNZu (ORCPT
+        id S2394614AbfHBN0l (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 2 Aug 2019 09:25:50 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36538 "EHLO mail.kernel.org"
+        Fri, 2 Aug 2019 09:26:41 -0400
+Received: from mail.kernel.org ([198.145.29.99]:37458 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2390633AbfHBNZt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 2 Aug 2019 09:25:49 -0400
+        id S2394606AbfHBN0i (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 2 Aug 2019 09:26:38 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 412A921850;
-        Fri,  2 Aug 2019 13:25:48 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 06C53217D4;
+        Fri,  2 Aug 2019 13:26:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1564752349;
-        bh=tlx84D8sSjVoacLkk/cR5dKVIyxX5S11HGCogWBGsu8=;
+        s=default; t=1564752398;
+        bh=mCkc4uu9nUwQFBTMLNVRopvyPSS0b6Geurf5ZV8j4qI=;
         h=From:To:Cc:Subject:Date:From;
-        b=lt4XdFNCPXD0aRAFi5YHPQ1S1it/aI9tfA9xfm+yNnqAIzD/jttF3S+2gCul4hnte
-         vg0VO3BdV9GQSCQ0YgT2FAcEoHh2i0BksKdoVKOv85EKMBkrp3N1CPNg+qbolAuTfE
-         /BywJOTVooMe5BJ25cyH5IG/ClFAMAvafMXfbCro=
+        b=DiZnM0prMkO1SDPlVTq4WQil1dNTuss7zTpg+it2rsrcphDcnSX/HDK6hX/e0e1M+
+         xNUciC0TYVYo8CoWWzYfP66mVGQan6kuKxou5xQMwEEQUjYvdArSwRKYInNkMX7iVB
+         XKboOzFS/vV16kRXBOEtT2yCu8WSxP3BZNZ2l/kk=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Florian Westphal <fw@strlen.de>,
@@ -48,9 +48,9 @@ Cc:     Florian Westphal <fw@strlen.de>,
         Sasha Levin <sashal@kernel.org>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.9 01/22] netfilter: nfnetlink: avoid deadlock due to synchronous request_module
-Date:   Fri,  2 Aug 2019 09:25:25 -0400
-Message-Id: <20190802132547.14517-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.4 01/17] netfilter: nfnetlink: avoid deadlock due to synchronous request_module
+Date:   Fri,  2 Aug 2019 09:26:18 -0400
+Message-Id: <20190802132635.14885-1-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
 X-stable: review
@@ -117,10 +117,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
-index 2278d9ab723bf..9837a61cb3e3b 100644
+index 9adedba78eeac..044559c10e98e 100644
 --- a/net/netfilter/nfnetlink.c
 +++ b/net/netfilter/nfnetlink.c
-@@ -490,7 +490,7 @@ static int nfnetlink_bind(struct net *net, int group)
+@@ -495,7 +495,7 @@ static int nfnetlink_bind(struct net *net, int group)
  	ss = nfnetlink_get_subsys(type << 8);
  	rcu_read_unlock();
  	if (!ss)
