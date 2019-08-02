@@ -2,144 +2,123 @@ Return-Path: <SRS0=xWIb=V6=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A0CA4C32750
-	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Aug 2019 13:09:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A59CCC433FF
+	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Aug 2019 13:20:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8200B20578
-	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Aug 2019 13:09:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7A02721849
+	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Aug 2019 13:20:01 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1564752001;
+	bh=YQAVTzL1BNXGuPi0ICwc8Hd7ymKLulTzBQpBdUtpRV4=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=RPKOWPbAje2klOlDDaF+xw87Gq4OwhxZ1aglk+VbfGX80Yl9F/IO8B5fPhS10kntI
+	 sbtdXgDeySIRtYPxQI4nH4iNCRlCfLb/3Lrp4xDW4eaQREDp/yo8gpoB05etNhZCW3
+	 BMenOorEphfUIl7xwk0nDfg76sa/NIIbGlptuAYU=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389854AbfHBNJX (ORCPT
+        id S2393245AbfHBNUA (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 2 Aug 2019 09:09:23 -0400
-Received: from m9784.mail.qiye.163.com ([220.181.97.84]:53729 "EHLO
-        m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2389781AbfHBNJX (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 2 Aug 2019 09:09:23 -0400
-Received: from [192.168.1.3] (unknown [180.157.106.98])
-        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id B10A64116C;
-        Fri,  2 Aug 2019 21:09:18 +0800 (CST)
-Subject: Re: [PATCH net-next v5 5/6] flow_offload: support get flow_block
- immediately
-From:   wenxu <wenxu@ucloud.cn>
-To:     Jakub Kicinski <jakub.kicinski@netronome.com>
-Cc:     jiri@resnulli.us, pablo@netfilter.org, fw@strlen.de,
-        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-        John Hurley <john.hurley@netronome.com>
-References: <1564628627-10021-1-git-send-email-wenxu@ucloud.cn>
- <1564628627-10021-6-git-send-email-wenxu@ucloud.cn>
- <20190801161129.25fee619@cakuba.netronome.com>
- <bac5c6a5-8a1b-ee74-988b-6c2a71885761@ucloud.cn>
-Message-ID: <55850b13-991f-97bd-b452-efacd0f39aa4@ucloud.cn>
-Date:   Fri, 2 Aug 2019 21:09:03 +0800
-User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:60.0) Gecko/20100101
- Thunderbird/60.8.0
+        Fri, 2 Aug 2019 09:20:00 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58256 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2393238AbfHBNT7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 2 Aug 2019 09:19:59 -0400
+Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 6482A2087C;
+        Fri,  2 Aug 2019 13:19:57 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1564751998;
+        bh=YQAVTzL1BNXGuPi0ICwc8Hd7ymKLulTzBQpBdUtpRV4=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=dJs82pjoVsr0XPIwIEeWPGe6ibOmXcZLqejv3Hx+z3zIXq6XaMHjKh6OJiNjeMW/R
+         1AfPgrllRvn5+uwRl5jaeA5PnJofjX69TDDYgQEH/ibcBm7V7CE64vchxub+Lzy3VF
+         GnxMBtoTR1XmOAmF523aR5hrD+DJj6RlWDfy7AEI=
+From:   Sasha Levin <sashal@kernel.org>
+To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc:     Miaohe Lin <linmiaohe@huawei.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Sasha Levin <sashal@kernel.org>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org
+Subject: [PATCH AUTOSEL 5.2 05/76] netfilter: Fix rpfilter dropping vrf packets by mistake
+Date:   Fri,  2 Aug 2019 09:18:39 -0400
+Message-Id: <20190802131951.11600-5-sashal@kernel.org>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20190802131951.11600-1-sashal@kernel.org>
+References: <20190802131951.11600-1-sashal@kernel.org>
 MIME-Version: 1.0
-In-Reply-To: <bac5c6a5-8a1b-ee74-988b-6c2a71885761@ucloud.cn>
-Content-Type: text/plain; charset=utf-8
+X-stable: review
+X-Patchwork-Hint: Ignore
 Content-Transfer-Encoding: 8bit
-X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVklVSkhJS0tLSUtMQktKWVdZKFlBSU
-        I3V1ktWUFJV1kJDhceCFlBWTU0KTY6NyQpLjc#WQY+
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6Nyo6CTo5LDg#Ik84DUJNIVEZ
-        LDkaCxxVSlVKTk1PTE5KSE5CS01KVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpDS1VK
-        TkxVSktNVUJDWVdZCAFZQU5PSko3Bg++
-X-HM-Tid: 0a6c5272ebe92086kuqyb10a64116c
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+From: Miaohe Lin <linmiaohe@huawei.com>
 
-在 2019/8/2 18:45, wenxu 写道:
-> On 8/2/2019 7:11 AM, Jakub Kicinski wrote:
->> On Thu,  1 Aug 2019 11:03:46 +0800, wenxu@ucloud.cn wrote:
->>> From: wenxu <wenxu@ucloud.cn>
->>>
->>> The new flow-indr-block can't get the tcf_block
->>> directly. It provide a callback list to find the flow_block immediately
->>> when the device register and contain a ingress block.
->>>
->>> Signed-off-by: wenxu <wenxu@ucloud.cn>
->> First of all thanks for splitting the series up into more patches, 
->> it is easier to follow the logic now!
->>
->>> @@ -328,6 +348,7 @@ struct flow_indr_block_dev {
->>>  
->>>  	INIT_LIST_HEAD(&indr_dev->cb_list);
->>>  	indr_dev->dev = dev;
->>> +	flow_get_default_block(indr_dev);
->>>  	if (rhashtable_insert_fast(&indr_setup_block_ht, &indr_dev->ht_node,
->>>  				   flow_indr_setup_block_ht_params)) {
->>>  		kfree(indr_dev);
->> I wonder if it's still practical to keep the block information in the
->> indr_dev structure at all. The way this used to work was:
->>
->>
->> [hash table of devices]     --------------
->>                  |         |    netdev    |
->>                  |         |    refcnt    |
->>   indir_dev[tun0]|  ------ | cached block | ---- [ TC block ]
->>                  |         |   callbacks  | .
->>                  |          --------------   \__ [cb, cb_priv, cb_ident]
->>                  |                               [cb, cb_priv, cb_ident]
->>                  |          --------------
->>                  |         |    netdev    |
->>                  |         |    refcnt    |
->>   indir_dev[tun1]|  ------ | cached block | ---- [ TC block ]
->>                  |         |   callbacks  |.
->> -----------------           --------------   \__ [cb, cb_priv, cb_ident]
->>                                                  [cb, cb_priv, cb_ident]
->>
->>
->> In the example above we have two tunnels tun0 and tun1, each one has a
->> indr_dev structure allocated, and for each one of them two drivers
->> registered for callbacks (hence the callbacks list has two entries).
->>
->> We used to cache the TC block in the indr_dev structure, but now that
->> there are multiple subsytems using the indr_dev we either have to have
->> a list of cached blocks (with entries for each subsystem) or just always
->> iterate over the subsystems :(
->>
->> After all the same device may have both a TC block and a NFT block.
->>
->> I think always iterating would be easier:
->>
->> The indr_dev struct would no longer have the block pointer, instead
->> when new driver registers for the callback instead of:
->>
->> 	if (indr_dev->ing_cmd_cb)
->> 		indr_dev->ing_cmd_cb(indr_dev->dev, indr_dev->flow_block,
->> 				     indr_block_cb->cb, indr_block_cb->cb_priv,
->> 				     FLOW_BLOCK_BIND);
->>
->> We'd have something like the loop in flow_get_default_block():
->>
->> 	for each (subsystem)
->> 		subsystem->handle_new_indir_cb(indr_dev, cb);
->>
->> And then per-subsystem logic would actually call the cb. Or:
->>
->> 	for each (subsystem)
->> 		block = get_default_block(indir_dev)
->> 		indr_dev->ing_cmd_cb(...)
->             nft dev chian is also based on register_netdevice_notifier, So for unregister case,
->
-> the basechian(block) of nft maybe delete before the __tc_indr_block_cb_unregister. is right?
->
-> So maybe we can cache the block as a list of all the subsystem in  indr_dev ?
+[ Upstream commit b575b24b8eee37f10484e951b62ce2a31c579775 ]
 
+When firewalld is enabled with ipv4/ipv6 rpfilter, vrf
+ipv4/ipv6 packets will be dropped. Vrf device will pass
+through netfilter hook twice. One with enslaved device
+and another one with l3 master device. So in device may
+dismatch witch out device because out device is always
+enslaved device.So failed with the check of the rpfilter
+and drop the packets by mistake.
 
-when the device is unregister the nft netdev chain related to this device will also be delete through netdevice_notifier
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ net/ipv4/netfilter/ipt_rpfilter.c  | 1 +
+ net/ipv6/netfilter/ip6t_rpfilter.c | 8 ++++++--
+ 2 files changed, 7 insertions(+), 2 deletions(-)
 
-. So for unregister case,the basechian(block) of nft maybe delete before the __tc_indr_block_cb_unregister.
+diff --git a/net/ipv4/netfilter/ipt_rpfilter.c b/net/ipv4/netfilter/ipt_rpfilter.c
+index 59031670b16a0..cc23f1ce239c2 100644
+--- a/net/ipv4/netfilter/ipt_rpfilter.c
++++ b/net/ipv4/netfilter/ipt_rpfilter.c
+@@ -78,6 +78,7 @@ static bool rpfilter_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ 	flow.flowi4_mark = info->flags & XT_RPFILTER_VALID_MARK ? skb->mark : 0;
+ 	flow.flowi4_tos = RT_TOS(iph->tos);
+ 	flow.flowi4_scope = RT_SCOPE_UNIVERSE;
++	flow.flowi4_oif = l3mdev_master_ifindex_rcu(xt_in(par));
+ 
+ 	return rpfilter_lookup_reverse(xt_net(par), &flow, xt_in(par), info->flags) ^ invert;
+ }
+diff --git a/net/ipv6/netfilter/ip6t_rpfilter.c b/net/ipv6/netfilter/ip6t_rpfilter.c
+index 6bcaf73571834..d800801a5dd27 100644
+--- a/net/ipv6/netfilter/ip6t_rpfilter.c
++++ b/net/ipv6/netfilter/ip6t_rpfilter.c
+@@ -55,7 +55,9 @@ static bool rpfilter_lookup_reverse6(struct net *net, const struct sk_buff *skb,
+ 	if (rpfilter_addr_linklocal(&iph->saddr)) {
+ 		lookup_flags |= RT6_LOOKUP_F_IFACE;
+ 		fl6.flowi6_oif = dev->ifindex;
+-	} else if ((flags & XT_RPFILTER_LOOSE) == 0)
++	/* Set flowi6_oif for vrf devices to lookup route in l3mdev domain. */
++	} else if (netif_is_l3_master(dev) || netif_is_l3_slave(dev) ||
++		  (flags & XT_RPFILTER_LOOSE) == 0)
+ 		fl6.flowi6_oif = dev->ifindex;
+ 
+ 	rt = (void *)ip6_route_lookup(net, &fl6, skb, lookup_flags);
+@@ -70,7 +72,9 @@ static bool rpfilter_lookup_reverse6(struct net *net, const struct sk_buff *skb,
+ 		goto out;
+ 	}
+ 
+-	if (rt->rt6i_idev->dev == dev || (flags & XT_RPFILTER_LOOSE))
++	if (rt->rt6i_idev->dev == dev ||
++	    l3mdev_master_ifindex_rcu(rt->rt6i_idev->dev) == dev->ifindex ||
++	    (flags & XT_RPFILTER_LOOSE))
+ 		ret = true;
+  out:
+ 	ip6_rt_put(rt);
+-- 
+2.20.1
 
-cache for the block is not work because the chain already be delete and free. Maybe it improve the prio of
-
-rep_netdev_event can help this?
-
->
->
