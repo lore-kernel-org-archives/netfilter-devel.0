@@ -2,133 +2,159 @@ Return-Path: <SRS0=xWIb=V6=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6FBB3C32750
-	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Aug 2019 13:26:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5426DC32750
+	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Aug 2019 13:29:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4635A21855
-	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Aug 2019 13:26:46 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1564752406;
-	bh=mCkc4uu9nUwQFBTMLNVRopvyPSS0b6Geurf5ZV8j4qI=;
-	h=From:To:Cc:Subject:Date:List-ID:From;
-	b=v56l1+yZEX/gloIFeM2e+lbC+nVeH2QTtjKGX/NadJnYYsMbTWAj4+TcyxskPApNu
-	 frjoHLfnlJWjY2Ke3BO2gEFh45Mw+2zaH3lwhyWPsifeDgY5sMJUJgUY1aJ5TxEmdP
-	 AutUYWtWt0LI8KeD8a8Iyc1tMNh7DdkmrmiiLzzI=
+	by mail.kernel.org (Postfix) with ESMTP id 37600217D6
+	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Aug 2019 13:29:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2394614AbfHBN0l (ORCPT
+        id S2394915AbfHBN3f (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 2 Aug 2019 09:26:41 -0400
-Received: from mail.kernel.org ([198.145.29.99]:37458 "EHLO mail.kernel.org"
+        Fri, 2 Aug 2019 09:29:35 -0400
+Received: from correo.us.es ([193.147.175.20]:41518 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2394606AbfHBN0i (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 2 Aug 2019 09:26:38 -0400
-Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 06C53217D4;
-        Fri,  2 Aug 2019 13:26:36 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1564752398;
-        bh=mCkc4uu9nUwQFBTMLNVRopvyPSS0b6Geurf5ZV8j4qI=;
-        h=From:To:Cc:Subject:Date:From;
-        b=DiZnM0prMkO1SDPlVTq4WQil1dNTuss7zTpg+it2rsrcphDcnSX/HDK6hX/e0e1M+
-         xNUciC0TYVYo8CoWWzYfP66mVGQan6kuKxou5xQMwEEQUjYvdArSwRKYInNkMX7iVB
-         XKboOzFS/vV16kRXBOEtT2yCu8WSxP3BZNZ2l/kk=
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Florian Westphal <fw@strlen.de>,
-        Thomas Jarosch <thomas.jarosch@intra2net.com>,
-        Juliana Rodrigueiro <juliana.rodrigueiro@intra2net.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Sasha Levin <sashal@kernel.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.4 01/17] netfilter: nfnetlink: avoid deadlock due to synchronous request_module
-Date:   Fri,  2 Aug 2019 09:26:18 -0400
-Message-Id: <20190802132635.14885-1-sashal@kernel.org>
-X-Mailer: git-send-email 2.20.1
-MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
-Content-Transfer-Encoding: 8bit
+        id S2388448AbfHBN3f (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 2 Aug 2019 09:29:35 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 1C8CEFB45A
+        for <netfilter-devel@vger.kernel.org>; Fri,  2 Aug 2019 15:29:32 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id F2A06DA72F
+        for <netfilter-devel@vger.kernel.org>; Fri,  2 Aug 2019 15:29:31 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id E5EA4DA7B9; Fri,  2 Aug 2019 15:29:31 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id CE9661150DA;
+        Fri,  2 Aug 2019 15:29:29 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Fri, 02 Aug 2019 15:29:29 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from salvia.here (unknown [31.4.181.192])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id 78F3A4265A31;
+        Fri,  2 Aug 2019 15:29:28 +0200 (CEST)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     davem@davemloft.net, netdev@vger.kernel.org,
+        jakub.kicinski@netronome.com, jiri@resnulli.us,
+        marcelo.leitner@gmail.com, saeedm@mellanox.com, wenxu@ucloud.cn,
+        gerlitz.or@gmail.com, paulb@mellanox.com
+Subject: [PATCH net-next 2/3] netfilter: nf_tables_offload: add offload field to basechain
+Date:   Fri,  2 Aug 2019 15:28:45 +0200
+Message-Id: <20190802132846.3067-3-pablo@netfilter.org>
+X-Mailer: git-send-email 2.11.0
+In-Reply-To: <20190802132846.3067-1-pablo@netfilter.org>
+References: <20190802132846.3067-1-pablo@netfilter.org>
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+Wrap offload objects in struct nft_base_chain around structure.
 
-[ Upstream commit 1b0890cd60829bd51455dc5ad689ed58c4408227 ]
-
-Thomas and Juliana report a deadlock when running:
-
-(rmmod nf_conntrack_netlink/xfrm_user)
-
-  conntrack -e NEW -E &
-  modprobe -v xfrm_user
-
-They provided following analysis:
-
-conntrack -e NEW -E
-    netlink_bind()
-        netlink_lock_table() -> increases "nl_table_users"
-            nfnetlink_bind()
-            # does not unlock the table as it's locked by netlink_bind()
-                __request_module()
-                    call_usermodehelper_exec()
-
-This triggers "modprobe nf_conntrack_netlink" from kernel, netlink_bind()
-won't return until modprobe process is done.
-
-"modprobe xfrm_user":
-    xfrm_user_init()
-        register_pernet_subsys()
-            -> grab pernet_ops_rwsem
-                ..
-                netlink_table_grab()
-                    calls schedule() as "nl_table_users" is non-zero
-
-so modprobe is blocked because netlink_bind() increased
-nl_table_users while also holding pernet_ops_rwsem.
-
-"modprobe nf_conntrack_netlink" runs and inits nf_conntrack_netlink:
-    ctnetlink_init()
-        register_pernet_subsys()
-            -> blocks on "pernet_ops_rwsem" thanks to xfrm_user module
-
-both modprobe processes wait on one another -- neither can make
-progress.
-
-Switch netlink_bind() to "nowait" modprobe -- this releases the netlink
-table lock, which then allows both modprobe instances to complete.
-
-Reported-by: Thomas Jarosch <thomas.jarosch@intra2net.com>
-Reported-by: Juliana Rodrigueiro <juliana.rodrigueiro@intra2net.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- net/netfilter/nfnetlink.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+v1: initial patch version.
 
-diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
-index 9adedba78eeac..044559c10e98e 100644
---- a/net/netfilter/nfnetlink.c
-+++ b/net/netfilter/nfnetlink.c
-@@ -495,7 +495,7 @@ static int nfnetlink_bind(struct net *net, int group)
- 	ss = nfnetlink_get_subsys(type << 8);
- 	rcu_read_unlock();
- 	if (!ss)
--		request_module("nfnetlink-subsys-%d", type);
-+		request_module_nowait("nfnetlink-subsys-%d", type);
+ include/net/netfilter/nf_tables.h         | 6 ++++--
+ include/net/netfilter/nf_tables_offload.h | 5 +++++
+ net/netfilter/nf_tables_api.c             | 2 +-
+ net/netfilter/nf_tables_offload.c         | 7 ++++---
+ 4 files changed, 14 insertions(+), 6 deletions(-)
+
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index 9b624566b82d..87dbe62c0f27 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -952,7 +952,7 @@ struct nft_stats {
+  *	@stats: per-cpu chain stats
+  *	@chain: the chain
+  *	@dev_name: device name that this base chain is attached to (if any)
+- *	@flow_block: flow block (for hardware offload)
++ *	@offload: hardware offload data
+  */
+ struct nft_base_chain {
+ 	struct nf_hook_ops		ops;
+@@ -962,7 +962,9 @@ struct nft_base_chain {
+ 	struct nft_stats __percpu	*stats;
+ 	struct nft_chain		chain;
+ 	char 				dev_name[IFNAMSIZ];
+-	struct flow_block		flow_block;
++	struct {
++		struct flow_block	flow_block;
++	} offload;
+ };
+ 
+ static inline struct nft_base_chain *nft_base_chain(const struct nft_chain *chain)
+diff --git a/include/net/netfilter/nf_tables_offload.h b/include/net/netfilter/nf_tables_offload.h
+index 3196663a10e3..fb3db391ade8 100644
+--- a/include/net/netfilter/nf_tables_offload.h
++++ b/include/net/netfilter/nf_tables_offload.h
+@@ -73,4 +73,9 @@ int nft_flow_rule_offload_commit(struct net *net);
+ 	(__reg)->key		= __key;				\
+ 	memset(&(__reg)->mask, 0xff, (__reg)->len);
+ 
++static inline void nft_basechain_offload_init(struct nft_base_chain *basechain)
++{
++	flow_block_init(&basechain->offload.flow_block);
++}
++
+ #endif
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 605a7cfe7ca7..a07d764c3555 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -1662,7 +1662,7 @@ static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 genmask,
+ 
+ 		chain->flags |= NFT_BASE_CHAIN | flags;
+ 		basechain->policy = NF_ACCEPT;
+-		flow_block_init(&basechain->flow_block);
++		nft_basechain_offload_init(basechain);
+ 	} else {
+ 		chain = kzalloc(sizeof(*chain), GFP_KERNEL);
+ 		if (chain == NULL)
+diff --git a/net/netfilter/nf_tables_offload.c b/net/netfilter/nf_tables_offload.c
+index 64f5fd5f240e..84615381b06f 100644
+--- a/net/netfilter/nf_tables_offload.c
++++ b/net/netfilter/nf_tables_offload.c
+@@ -113,10 +113,11 @@ static void nft_flow_offload_common_init(struct flow_cls_common_offload *common,
+ static int nft_setup_cb_call(struct nft_base_chain *basechain,
+ 			     enum tc_setup_type type, void *type_data)
+ {
++	struct flow_block *flow_block = &basechain->offload.flow_block;
+ 	struct flow_block_cb *block_cb;
+ 	int err;
+ 
+-	list_for_each_entry(block_cb, &basechain->flow_block.cb_list, list) {
++	list_for_each_entry(block_cb, &flow_block->cb_list, list) {
+ 		err = block_cb->cb(type, type_data, block_cb->cb_priv);
+ 		if (err < 0)
+ 			return err;
+@@ -154,7 +155,7 @@ static int nft_flow_offload_rule(struct nft_trans *trans,
+ static int nft_flow_offload_bind(struct flow_block_offload *bo,
+ 				 struct nft_base_chain *basechain)
+ {
+-	list_splice(&bo->cb_list, &basechain->flow_block.cb_list);
++	list_splice(&bo->cb_list, &basechain->offload.flow_block.cb_list);
  	return 0;
  }
- #endif
+ 
+@@ -198,7 +199,7 @@ static int nft_flow_offload_chain(struct nft_trans *trans,
+ 		return -EOPNOTSUPP;
+ 
+ 	bo.command = cmd;
+-	bo.block = &basechain->flow_block;
++	bo.block = &basechain->offload.flow_block;
+ 	bo.binder_type = FLOW_BLOCK_BINDER_TYPE_CLSACT_INGRESS;
+ 	bo.extack = &extack;
+ 	INIT_LIST_HEAD(&bo.cb_list);
 -- 
-2.20.1
+2.11.0
 
