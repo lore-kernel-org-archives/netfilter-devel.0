@@ -4,50 +4,53 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E8D2EC433FF
-	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Aug 2019 13:36:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 70E0EC32750
+	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Aug 2019 13:37:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B74782173E
-	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Aug 2019 13:36:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4626620665
+	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Aug 2019 13:37:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1564753005;
-	bh=phiVujId+WFxGQoYspshRxrrMTJTXAXY6Se9fQv9PWA=;
+	s=default; t=1564753020;
+	bh=RNc3pXcYq5h54k1i2ujyLIyS0AiKBu1iI6KqeB31Jkk=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=Gn3DS508oF/A4b3aaaP4DEizoyMyrw5kQ8wsZP82r6CXsB3jhd1JuHWYNwaO4BoXG
-	 wH2KWRms6mljBFzwvpJ5HXj22A9MOd0Vbss4vf7PDO8ilP9eRVUDtXEkRNplWUdk+a
-	 zTVHZ6xeuzLsDR9+hDUn2yNC9vr+u3llke26zWW0=
+	b=uDOiPddRNCDWefbySV7nMGKlq6Q+pMRrMIVI4tPstaDkId4UvzC2M4XyRFa2uXtuj
+	 Ql02ZccxUG7qRgfew4o4zWc+l64z2mZ15UYC0bNY43KcFYPjYaCiEuMzo0cB4dUqj5
+	 4euxdDZcTT4bwuHaXKw0qbj0c3lqS3fWy9RMgrSc=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2406062AbfHBNgk (ORCPT
+        id S2406490AbfHBNg7 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 2 Aug 2019 09:36:40 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58486 "EHLO mail.kernel.org"
+        Fri, 2 Aug 2019 09:36:59 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58310 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2393288AbfHBNUK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 2 Aug 2019 09:20:10 -0400
+        id S2393248AbfHBNUB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 2 Aug 2019 09:20:01 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id C771F216C8;
-        Fri,  2 Aug 2019 13:20:08 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id BEA12217D6;
+        Fri,  2 Aug 2019 13:19:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1564752009;
-        bh=phiVujId+WFxGQoYspshRxrrMTJTXAXY6Se9fQv9PWA=;
+        s=default; t=1564752000;
+        bh=RNc3pXcYq5h54k1i2ujyLIyS0AiKBu1iI6KqeB31Jkk=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=Dpu63Biasha1DELDgtmR78oQ2nIVAQbuzgPbAljy+rhj4nMyBm5cHW3Dq2PCwr0+E
-         TjBxiv7erOGN3sXydD2qg7GCfrCtGEtqB0Ry6rIgziO9+8sfS47G/C7EYcreLNpl8Q
-         Igow+9k55EckjpNlSK8cRLJGydLz+aq4BrRRIGBg=
+        b=Dvqu2KgeE9vXcZ2+Lz485K1UtZ5JkLtDZskvqoGjDv/3vT/+8r+P+b4iCK64Qgz4w
+         jn5OWZUhl9bzgcgawRF7fygBsLGFosxPw/rkMC5HTp6O6Gxs/dy14PARS04o10HepG
+         QXEbD3DSh/ukAkDyochilssSkm1vt1uzB5mn3Bv4=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Phil Sutter <phil@nwl.cc>, Pablo Neira Ayuso <pablo@netfilter.org>,
+Cc:     Florian Westphal <fw@strlen.de>,
+        Jakub Jankowski <shasta@toxcorp.com>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
         Sasha Levin <sashal@kernel.org>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.2 15/76] netfilter: nf_tables: Support auto-loading for inet nat
-Date:   Fri,  2 Aug 2019 09:18:49 -0400
-Message-Id: <20190802131951.11600-15-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.2 07/76] netfilter: conntrack: always store window size un-scaled
+Date:   Fri,  2 Aug 2019 09:18:41 -0400
+Message-Id: <20190802131951.11600-7-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20190802131951.11600-1-sashal@kernel.org>
 References: <20190802131951.11600-1-sashal@kernel.org>
@@ -60,34 +63,80 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Phil Sutter <phil@nwl.cc>
+From: Florian Westphal <fw@strlen.de>
 
-[ Upstream commit b4f1483cbfa5fafca4874e90063f75603edbc210 ]
+[ Upstream commit 959b69ef57db00cb33e9c4777400ae7183ebddd3 ]
 
-Trying to create an inet family nat chain would not cause
-nft_chain_nat.ko module to auto-load due to missing module alias. Add a
-proper one with hard-coded family value 1 for the pseudo-family
-NFPROTO_INET.
+Jakub Jankowski reported following oddity:
 
-Fixes: d164385ec572 ("netfilter: nat: add inet family nat support")
-Signed-off-by: Phil Sutter <phil@nwl.cc>
+After 3 way handshake completes, timeout of new connection is set to
+max_retrans (300s) instead of established (5 days).
+
+shortened excerpt from pcap provided:
+25.070622 IP (flags [DF], proto TCP (6), length 52)
+10.8.5.4.1025 > 10.8.1.2.80: Flags [S], seq 11, win 64240, [wscale 8]
+26.070462 IP (flags [DF], proto TCP (6), length 48)
+10.8.1.2.80 > 10.8.5.4.1025: Flags [S.], seq 82, ack 12, win 65535, [wscale 3]
+27.070449 IP (flags [DF], proto TCP (6), length 40)
+10.8.5.4.1025 > 10.8.1.2.80: Flags [.], ack 83, win 512, length 0
+
+Turns out the last_win is of u16 type, but we store the scaled value:
+512 << 8 (== 0x20000) becomes 0 window.
+
+The Fixes tag is not correct, as the bug has existed forever, but
+without that change all that this causes might cause is to mistake a
+window update (to-nonzero-from-zero) for a retransmit.
+
+Fixes: fbcd253d2448b8 ("netfilter: conntrack: lower timeout to RETRANS seconds if window is 0")
+Reported-by: Jakub Jankowski <shasta@toxcorp.com>
+Tested-by: Jakub Jankowski <shasta@toxcorp.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Acked-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- net/netfilter/nft_chain_nat.c | 3 +++
- 1 file changed, 3 insertions(+)
+ net/netfilter/nf_conntrack_proto_tcp.c | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff --git a/net/netfilter/nft_chain_nat.c b/net/netfilter/nft_chain_nat.c
-index 2f89bde3c61cb..ff9ac8ae0031f 100644
---- a/net/netfilter/nft_chain_nat.c
-+++ b/net/netfilter/nft_chain_nat.c
-@@ -142,3 +142,6 @@ MODULE_ALIAS_NFT_CHAIN(AF_INET, "nat");
- #ifdef CONFIG_NF_TABLES_IPV6
- MODULE_ALIAS_NFT_CHAIN(AF_INET6, "nat");
- #endif
-+#ifdef CONFIG_NF_TABLES_INET
-+MODULE_ALIAS_NFT_CHAIN(1, "nat");	/* NFPROTO_INET */
-+#endif
+diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+index 1e2cc83ff5da8..ae1f8c6b3a974 100644
+--- a/net/netfilter/nf_conntrack_proto_tcp.c
++++ b/net/netfilter/nf_conntrack_proto_tcp.c
+@@ -472,6 +472,7 @@ static bool tcp_in_window(const struct nf_conn *ct,
+ 	struct ip_ct_tcp_state *receiver = &state->seen[!dir];
+ 	const struct nf_conntrack_tuple *tuple = &ct->tuplehash[dir].tuple;
+ 	__u32 seq, ack, sack, end, win, swin;
++	u16 win_raw;
+ 	s32 receiver_offset;
+ 	bool res, in_recv_win;
+ 
+@@ -480,7 +481,8 @@ static bool tcp_in_window(const struct nf_conn *ct,
+ 	 */
+ 	seq = ntohl(tcph->seq);
+ 	ack = sack = ntohl(tcph->ack_seq);
+-	win = ntohs(tcph->window);
++	win_raw = ntohs(tcph->window);
++	win = win_raw;
+ 	end = segment_seq_plus_len(seq, skb->len, dataoff, tcph);
+ 
+ 	if (receiver->flags & IP_CT_TCP_FLAG_SACK_PERM)
+@@ -655,14 +657,14 @@ static bool tcp_in_window(const struct nf_conn *ct,
+ 			    && state->last_seq == seq
+ 			    && state->last_ack == ack
+ 			    && state->last_end == end
+-			    && state->last_win == win)
++			    && state->last_win == win_raw)
+ 				state->retrans++;
+ 			else {
+ 				state->last_dir = dir;
+ 				state->last_seq = seq;
+ 				state->last_ack = ack;
+ 				state->last_end = end;
+-				state->last_win = win;
++				state->last_win = win_raw;
+ 				state->retrans = 0;
+ 			}
+ 		}
 -- 
 2.20.1
 
