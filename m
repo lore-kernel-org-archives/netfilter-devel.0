@@ -3,79 +3,58 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3EA06C32750
-	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Aug 2019 11:00:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 96076C433FF
+	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Aug 2019 11:12:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 16DED206A3
-	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Aug 2019 11:00:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6ECA320665
+	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Aug 2019 11:12:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2392207AbfHBLAb (ORCPT
+        id S1731231AbfHBLMM (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 2 Aug 2019 07:00:31 -0400
-Received: from correo.us.es ([193.147.175.20]:33602 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2392118AbfHBLAb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 2 Aug 2019 07:00:31 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 8EA9BC1B29
-        for <netfilter-devel@vger.kernel.org>; Fri,  2 Aug 2019 13:00:28 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 7FAB5115103
-        for <netfilter-devel@vger.kernel.org>; Fri,  2 Aug 2019 13:00:28 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 7BAFB1150CE; Fri,  2 Aug 2019 13:00:28 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 5107E115101;
-        Fri,  2 Aug 2019 13:00:26 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Fri, 02 Aug 2019 13:00:26 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [31.4.181.192])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id E7A1C40705C3;
-        Fri,  2 Aug 2019 13:00:25 +0200 (CEST)
-Date:   Fri, 2 Aug 2019 13:00:23 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Jakub Kicinski <jakub.kicinski@netronome.com>
-Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org, marcelo.leitner@gmail.com,
-        jiri@resnulli.us, wenxu@ucloud.cn, saeedm@mellanox.com,
-        paulb@mellanox.com, gerlitz.or@gmail.com
-Subject: Re: [PATCH net 0/2] flow_offload hardware priority fixes
-Message-ID: <20190802110023.udfcxowe3vmihduq@salvia>
-References: <20190801112817.24976-1-pablo@netfilter.org>
- <20190801172014.314a9d01@cakuba.netronome.com>
+        Fri, 2 Aug 2019 07:12:12 -0400
+Received: from vxsys-smtpclusterma-03.srv.cat ([46.16.60.199]:52965 "EHLO
+        vxsys-smtpclusterma-03.srv.cat" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1731048AbfHBLML (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 2 Aug 2019 07:12:11 -0400
+Received: from [192.168.4.111] (242.red-83-48-67.staticip.rima-tde.net [83.48.67.242])
+        by vxsys-smtpclusterma-03.srv.cat (Postfix) with ESMTPA id 03EC624219;
+        Fri,  2 Aug 2019 13:12:08 +0200 (CEST)
+Subject: Re: [PATCH v6] meta: Introduce new conditions 'time', 'day' and
+ 'hour'
+To:     Florian Westphal <fw@strlen.de>
+Cc:     netfilter-devel@vger.kernel.org
+References: <20190802071038.5509-1-a@juaristi.eus>
+ <20190802104502.yeunepvge6ohnjsm@breakpoint.cc>
+From:   Ander Juaristi <a@juaristi.eus>
+Message-ID: <20887110-0683-8e2a-ca5f-2a50f1e2e535@juaristi.eus>
+Date:   Fri, 2 Aug 2019 13:12:03 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.3.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190801172014.314a9d01@cakuba.netronome.com>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+In-Reply-To: <20190802104502.yeunepvge6ohnjsm@breakpoint.cc>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Jakub,
+Sorry, my bad. The machine I ran the tests on didn't have the patched 
+libnftnl so all of them passed. I'll check again.
 
-If the user specifies 'pref' in the new rule, then tc checks if there
-is a tcf_proto object that matches this priority. If the tcf_proto
-object does not exist, tc creates a tcf_proto object and it adds the
-new rule to this tcf_proto.
-
-In cls_flower, each tcf_proto only stores one single rule, so if the
-user tries to add another rule with the same 'pref', cls_flower
-returns EEXIST.
-
-I'll prepare a new patchset not to map the priority to the netfilter
-basechain priority, instead the rule priority will be internally
-allocated for each new rule.
-
-Thanks for your feedback.
+On 2/8/19 12:45, Florian Westphal wrote:
+> Ander Juaristi <a@juaristi.eus> wrote:
+>> --- a/tests/py/ip/meta.t.payload
+>> +++ b/tests/py/ip/meta.t.payload
+>> @@ -1,3 +1,87 @@
+>> +# meta time "1970-05-23 21:07:14" drop
+>> +ip meta-test input
+>> +  [ meta load unknown => reg 1 ]
+> 
+> This "unknown" should not exist anymore after your libnftnl patch.
+> 
