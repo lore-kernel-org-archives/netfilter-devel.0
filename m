@@ -6,70 +6,68 @@ X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
 	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D955EC433FF
-	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Aug 2019 18:02:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D1D88C32750
+	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Aug 2019 20:47:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B0FE920880
-	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Aug 2019 18:02:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9A5C720880
+	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Aug 2019 20:47:58 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=netronome-com.20150623.gappssmtp.com header.i=@netronome-com.20150623.gappssmtp.com header.b="QU4+byOK"
+	dkim=pass (2048-bit key) header.d=netronome-com.20150623.gappssmtp.com header.i=@netronome-com.20150623.gappssmtp.com header.b="0cZkj17p"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2406482AbfHBSCh (ORCPT
+        id S1727848AbfHBUr6 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 2 Aug 2019 14:02:37 -0400
-Received: from mail-qt1-f196.google.com ([209.85.160.196]:40663 "EHLO
-        mail-qt1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2405670AbfHBSCh (ORCPT
+        Fri, 2 Aug 2019 16:47:58 -0400
+Received: from mail-qk1-f194.google.com ([209.85.222.194]:44400 "EHLO
+        mail-qk1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726704AbfHBUr6 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 2 Aug 2019 14:02:37 -0400
-Received: by mail-qt1-f196.google.com with SMTP id a15so74764563qtn.7
-        for <netfilter-devel@vger.kernel.org>; Fri, 02 Aug 2019 11:02:36 -0700 (PDT)
+        Fri, 2 Aug 2019 16:47:58 -0400
+Received: by mail-qk1-f194.google.com with SMTP id d79so55803733qke.11
+        for <netfilter-devel@vger.kernel.org>; Fri, 02 Aug 2019 13:47:57 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=netronome-com.20150623.gappssmtp.com; s=20150623;
         h=date:from:to:cc:subject:message-id:in-reply-to:references
          :organization:mime-version:content-transfer-encoding;
-        bh=x0/imP+PQmkbv+nO4BOzOroOpmKGmhypr4x6s/BrmAc=;
-        b=QU4+byOKqeH+oscCH7CXhPiAbbi8tfSoK1a1tvv1Y5hNHjRxB7zWYt7qowGQ0RNLtb
-         hNqoOvE0XWRjiOjYc/vg4yJ/fT8d08W3ahxSMvx2rWwmNS4UOUC3o5FzJNzQu0dFSqYA
-         cRiAn+orT7pK0gLAbADWyemlAP8AaJa0ufvlKFpcUTfmJLcAF378VCq+AH7cs+PMnXH8
-         uUv2nkmN3NSqTZcSrSR3Eu1lyaHsjfbBoyU11EiJP8ojtqPB3xUeXn+pdl0fejUjG3HR
-         Q3E6IzCShwtD+ppxnjJgFX3XU+ootEUufs8r2P/gYKYjtYel57bNFP5PvObDr3cjOOyl
-         5mqw==
+        bh=l2xTmeRtEZTPMASSyFs2258/OlcrW4XV8UWTXw6h5+k=;
+        b=0cZkj17p28vciM09SU3936/Q8DZdrQt6nHUUyhVZEvE5mPkdVaT3Bxk0GgtLCHVqUq
+         J2zV2mcLdpHFem6LH415jDwmnqzUaPdUUfP1aSNzw1LsMvChYxCJ59CsKbw5eQkFfPr0
+         pjsyrJYLIwhMGknijfLBcroM9GFWGqdBaPhL+qpPNt9mbShDS92VjCMfNGjW32B8bYi5
+         NYtyRME50oGbbNNv5oqoTQtDkySWVMlyDcU81B491kQ5JY2nYV3lR90CV9MC0X1dUPF4
+         WblnCHJPAtrr1rY1btjs6xomaxQ+Hfx3a1IOa0LLS6Hd7A7IL/BXXS9Ax66n3YNQuH4T
+         kVKQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:date:from:to:cc:subject:message-id:in-reply-to
          :references:organization:mime-version:content-transfer-encoding;
-        bh=x0/imP+PQmkbv+nO4BOzOroOpmKGmhypr4x6s/BrmAc=;
-        b=YEC9a/LkctYVjeAkohVV+UbJFFdoURtQ/n6qD3ZBYHAwihKKBhwSIqDUgrZZ5V7GvF
-         qdKbKGhMLXTaI03Fanl3+Zgm7uJy55hmwngq4ubjVr8ftfKz2UzdIISrGSpdWpK57Jqw
-         e2EvDKLAWMbxHTAojgZNRVhE6qEnG0XSGa6HciS71iKArCdIY4rZPRiGh5wHoGfJDN9+
-         lt687lScjpnYuDZfN81eZST6rliTwjZWi1VZprtMvNEmOObS99k7aAk4Ljhdl2y44rxx
-         59fTSM/QfW5Y52H0YV0Muh+4PSvwghdNIz9Cgs6oZcdU+SUveTU1wu/QGjbAY9i50dg9
-         0aPQ==
-X-Gm-Message-State: APjAAAUeMqpKGGMeAOqbn7SsOWdPb6gpxffAoHI+REILi6UBv0Bh4Cs8
-        piWqE0Xkl5cUZIRSv5sAJIc1hw==
-X-Google-Smtp-Source: APXvYqzngw8tV6BxNFGiW0CSqUH4hqv9Q65MQ9wH3WPxdRY3rhYBa9CXN3DwJQRneAnW/2FukjdU2A==
-X-Received: by 2002:ac8:124c:: with SMTP id g12mr35071167qtj.57.1564768956248;
-        Fri, 02 Aug 2019 11:02:36 -0700 (PDT)
+        bh=l2xTmeRtEZTPMASSyFs2258/OlcrW4XV8UWTXw6h5+k=;
+        b=SWDiAlfmMT4faREayVlDkwGjCkD0AoWXc8gt8ww7/aJKKD+/DPw3JGOIBM4KTzte9S
+         pkfTkooMqdqmDkFcZIGyMNYL9Ofp7ZzfL+aGdiX22CWlTIMi9+NtInxIOeguqfdgCeD6
+         vK1uO5axK0kf5JSWJEU7X6EAZ/FEr7t9EJCQXoUsnCcjBlvNjMn4M3F5LJXY82gHB4Pa
+         eOuITn8EdZ3tnTREqC4TECS+Df/KqDFcUxhBirayFt7mUxVkCYPb0O6+YusSl579xBVf
+         gnpp08hvIDqgAdfxI44SiSGzcH6gc5vKuSF6il92QtzmfFE+Opse8UB7zj6NfL71uDJn
+         LHoA==
+X-Gm-Message-State: APjAAAXTneDIUbfuhZwL2pGn/ZOFN11VKmoDFHvpIer8YC141+h/YVyJ
+        6CUPPMQsmLkI7cQ97gpHZOPzQbfRo7U=
+X-Google-Smtp-Source: APXvYqyGPVP4pYNHM6j3aUEwLbB+3r04zY+QW4Rhajmc+Oriuf8YEYDgH6W+BTNlLSFJ3Q+vhcav0g==
+X-Received: by 2002:a37:7cc5:: with SMTP id x188mr90076102qkc.456.1564778877066;
+        Fri, 02 Aug 2019 13:47:57 -0700 (PDT)
 Received: from cakuba.netronome.com ([66.60.152.14])
-        by smtp.gmail.com with ESMTPSA id 123sm30288918qkm.61.2019.08.02.11.02.35
+        by smtp.gmail.com with ESMTPSA id g2sm32862012qkf.32.2019.08.02.13.47.55
         (version=TLS1_3 cipher=AEAD-AES256-GCM-SHA384 bits=256/256);
-        Fri, 02 Aug 2019 11:02:36 -0700 (PDT)
-Date:   Fri, 2 Aug 2019 11:02:16 -0700
+        Fri, 02 Aug 2019 13:47:56 -0700 (PDT)
+Date:   Fri, 2 Aug 2019 13:47:38 -0700
 From:   Jakub Kicinski <jakub.kicinski@netronome.com>
-To:     wenxu <wenxu@ucloud.cn>
-Cc:     jiri@resnulli.us, pablo@netfilter.org, fw@strlen.de,
-        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-        John Hurley <john.hurley@netronome.com>
-Subject: Re: [PATCH net-next v5 5/6] flow_offload: support get flow_block
- immediately
-Message-ID: <20190802110216.5e1fd938@cakuba.netronome.com>
-In-Reply-To: <55850b13-991f-97bd-b452-efacd0f39aa4@ucloud.cn>
-References: <1564628627-10021-1-git-send-email-wenxu@ucloud.cn>
-        <1564628627-10021-6-git-send-email-wenxu@ucloud.cn>
-        <20190801161129.25fee619@cakuba.netronome.com>
-        <bac5c6a5-8a1b-ee74-988b-6c2a71885761@ucloud.cn>
-        <55850b13-991f-97bd-b452-efacd0f39aa4@ucloud.cn>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org, marcelo.leitner@gmail.com,
+        jiri@resnulli.us, wenxu@ucloud.cn, saeedm@mellanox.com,
+        paulb@mellanox.com, gerlitz.or@gmail.com
+Subject: Re: [PATCH net 0/2] flow_offload hardware priority fixes
+Message-ID: <20190802134738.328691b4@cakuba.netronome.com>
+In-Reply-To: <20190802110023.udfcxowe3vmihduq@salvia>
+References: <20190801112817.24976-1-pablo@netfilter.org>
+        <20190801172014.314a9d01@cakuba.netronome.com>
+        <20190802110023.udfcxowe3vmihduq@salvia>
 Organization: Netronome Systems, Ltd.
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -79,62 +77,82 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, 2 Aug 2019 21:09:03 +0800, wenxu wrote:
-> >> We'd have something like the loop in flow_get_default_block():
-> >>
-> >> 	for each (subsystem)
-> >> 		subsystem->handle_new_indir_cb(indr_dev, cb);
-> >>
-> >> And then per-subsystem logic would actually call the cb. Or:
-> >>
-> >> 	for each (subsystem)
-> >> 		block =3D get_default_block(indir_dev)
-> >> 		indr_dev->ing_cmd_cb(...) =20
-> > =C2=A0=C2=A0=C2=A0 =C2=A0=C2=A0=C2=A0 =C2=A0=C2=A0=C2=A0 nft dev chian =
-is also based on register_netdevice_notifier, So for unregister case,
-> >
-> > the basechian(block) of nft maybe delete before the __tc_indr_block_cb_=
-unregister. is right?
-> >
-> > So maybe we can cache the block as a list of all the subsystem in=C2=A0=
- indr_dev ? =20
+On Fri, 2 Aug 2019 13:00:23 +0200, Pablo Neira Ayuso wrote:
+> Hi Jakub,
 >=20
+> If the user specifies 'pref' in the new rule, then tc checks if there
+> is a tcf_proto object that matches this priority. If the tcf_proto
+> object does not exist, tc creates a tcf_proto object and it adds the
+> new rule to this tcf_proto.
 >=20
-> when the device is unregister the nft netdev chain related to this device=
- will also be delete through netdevice_notifier
->=20
-> . So for unregister case,the basechian(block) of nft maybe delete before =
-the __tc_indr_block_cb_unregister.
+> In cls_flower, each tcf_proto only stores one single rule, so if the
+> user tries to add another rule with the same 'pref', cls_flower
+> returns EEXIST.
 
-Hm, but I don't think that should be an issue. The ordering should be
-like one of the following two:
+=F0=9F=98=B3=20
 
-device unregister:
-  - driver notifier callback
-    - unregister flow cb
-      - UNBIND cb
-        - free driver's block state
-    - free driver's device state
-  - nft block destroy
-    # doesn't see driver's CB any more
+So you're saying this doesn't work?
 
-Or:
+ip link add type dummy
+tc qdisc add dev dummy0 clsact
+tc filter add dev dummy0 ingress protocol ipv6 prio 123 flower src_ip 1111:=
+:1 action drop
+tc filter add dev dummy0 ingress protocol ipv6 prio 123 flower src_ip 1111:=
+:2 action drop
+tc filter add dev dummy0 ingress protocol ipv6 prio 123 flower src_ip 1111:=
+:3 action drop
+tc filter add dev dummy0 ingress protocol ipv6 prio 123 flower src_ip 1111:=
+:4 action drop
+tc filter add dev dummy0 ingress protocol ipv6 prio 123 flower src_ip 1111:=
+:5 action drop
 
-device unregister:
-  - nft block destroy
-    - UNBIND cb
-      - free driver's block state
-  - driver notifier callback
-    - free driver's state
+tc filter show dev dummy0 ingress
 
-No?
+filter protocol ipv6 pref 123 flower chain 0=20
+filter protocol ipv6 pref 123 flower chain 0 handle 0x1=20
+  eth_type ipv6
+  src_ip 1111::1
+  not_in_hw
+	action order 1: gact action drop
+	 random type none pass val 0
+	 index 1 ref 1 bind 1
 
-> cache for the block is not work because the chain already be delete and f=
-ree. Maybe it improve the prio of
->=20
-> rep_netdev_event can help this?
+filter protocol ipv6 pref 123 flower chain 0 handle 0x2=20
+  eth_type ipv6
+  src_ip 1111::2
+  not_in_hw
+	action order 1: gact action drop
+	 random type none pass val 0
+	 index 2 ref 1 bind 1
 
-In theory the cache should work in a similar way as drivers, because
-once the indr_dev is created and the initial block is found, the cached
-value is just recorded in BIND/UNBIND calls. So if BIND/UNBIND works for
-drivers it will also put the right info in the cache.
+filter protocol ipv6 pref 123 flower chain 0 handle 0x3=20
+  eth_type ipv6
+  src_ip 1111::3
+  not_in_hw
+	action order 1: gact action drop
+	 random type none pass val 0
+	 index 3 ref 1 bind 1
+
+filter protocol ipv6 pref 123 flower chain 0 handle 0x4=20
+  eth_type ipv6
+  src_ip 1111::4
+  not_in_hw
+	action order 1: gact action drop
+	 random type none pass val 0
+	 index 4 ref 1 bind 1
+
+filter protocol ipv6 pref 123 flower chain 0 handle 0x5=20
+  eth_type ipv6
+  src_ip 1111::5
+  not_in_hw
+	action order 1: gact action drop
+	 random type none pass val 0
+	 index 5 ref 1 bind 1
+
+
+> I'll prepare a new patchset not to map the priority to the netfilter
+> basechain priority, instead the rule priority will be internally
+> allocated for each new rule.
+
+In which you're adding fake priorities to rules, AFAICT,=20
+and continue to baffle me.
