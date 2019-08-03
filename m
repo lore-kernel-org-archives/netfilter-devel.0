@@ -2,76 +2,75 @@ Return-Path: <SRS0=mIA1=V7=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A8D5C433FF
-	for <netfilter-devel@archiver.kernel.org>; Sat,  3 Aug 2019 13:42:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DEEEDC31E40
+	for <netfilter-devel@archiver.kernel.org>; Sat,  3 Aug 2019 16:34:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1B2252073D
-	for <netfilter-devel@archiver.kernel.org>; Sat,  3 Aug 2019 13:42:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BCAE42073D
+	for <netfilter-devel@archiver.kernel.org>; Sat,  3 Aug 2019 16:34:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727550AbfHCNm2 (ORCPT
+        id S2388591AbfHCQer (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 3 Aug 2019 09:42:28 -0400
-Received: from m9784.mail.qiye.163.com ([220.181.97.84]:14178 "EHLO
-        m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727529AbfHCNm2 (ORCPT
+        Sat, 3 Aug 2019 12:34:47 -0400
+Received: from mail-lf1-f66.google.com ([209.85.167.66]:36014 "EHLO
+        mail-lf1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2388523AbfHCQer (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 3 Aug 2019 09:42:28 -0400
-Received: from [192.168.1.4] (unknown [222.68.27.146])
-        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id 57A30415DE;
-        Sat,  3 Aug 2019 21:42:21 +0800 (CST)
-Subject: Re: [PATCH net-next v5 5/6] flow_offload: support get flow_block
- immediately
-To:     Jakub Kicinski <jakub.kicinski@netronome.com>
-Cc:     jiri@resnulli.us, pablo@netfilter.org, fw@strlen.de,
-        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-        John Hurley <john.hurley@netronome.com>
-References: <1564628627-10021-1-git-send-email-wenxu@ucloud.cn>
- <1564628627-10021-6-git-send-email-wenxu@ucloud.cn>
- <20190801161129.25fee619@cakuba.netronome.com>
- <bac5c6a5-8a1b-ee74-988b-6c2a71885761@ucloud.cn>
- <55850b13-991f-97bd-b452-efacd0f39aa4@ucloud.cn>
- <20190802110216.5e1fd938@cakuba.netronome.com>
- <45660f1e-b6a8-1bcb-0d57-7c1790d3fbaf@ucloud.cn>
- <20190802172155.7a36713d@cakuba.netronome.com>
-From:   wenxu <wenxu@ucloud.cn>
-Message-ID: <57c751f3-4b8e-7eb9-2ae0-1d72ca2c35e2@ucloud.cn>
-Date:   Sat, 3 Aug 2019 21:42:06 +0800
-User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:60.0) Gecko/20100101
- Thunderbird/60.8.0
+        Sat, 3 Aug 2019 12:34:47 -0400
+Received: by mail-lf1-f66.google.com with SMTP id j17so1019379lfp.3
+        for <netfilter-devel@vger.kernel.org>; Sat, 03 Aug 2019 09:34:46 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=eyxZxTomFfPbWiAetqtPgtMLib3xCsrhPFW0Jq8wnRg=;
+        b=VZEHHIYoF3QFPjQPu+AgKpW1hUWFUDGsNErnhvTj4LwyrObZRU8rrBkG1ORtFBTb41
+         IXGUtqIGB2vCsDZGrTjbTHMvH0VxtLKcWWOrv1v+9VwDOaWrnALRmP4DhJV2nybWyEuj
+         Vh6+BRqB4TtPLpFzdMC+GsuyDhCOajIKx7X1EEJyy0GjRSrV0QpmYpHi5R6SMlrYtoO5
+         L2sD8ZoysCqWP37V1TN01JJzILJDJFx0zWBRmYIkDdhiTyQQ4MK06I/vNLHzbNwZXg7U
+         g6qx8s+tUE7JHrotg+w1FTnw0/+gxIvPVJcLW51KAkKxGmAS5aXkRvdWAkau/aMG5FRG
+         Xl+A==
+X-Gm-Message-State: APjAAAVZB7VajCDr4Dn2WwAmbtKMduLEiCwIJ99mPPVIEwo/cLY+FiVi
+        qoR21CVRnjNhgLCLAGCb4SUDuDUgwTFqwT64VclB3Q==
+X-Google-Smtp-Source: APXvYqy2Yn4aNBXqRTmW3Ppvae/bzICtUWoK0tK6vCVVBLGba1dgdveQnO4z/rXVFxBcOKGNWGfaP8kwPA571wDc03U=
+X-Received: by 2002:a19:ed07:: with SMTP id y7mr28943779lfy.56.1564850085457;
+ Sat, 03 Aug 2019 09:34:45 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <20190802172155.7a36713d@cakuba.netronome.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVkpVQ01NS0tLSUJPTUNOSE1ZV1koWU
-        FJQjdXWS1ZQUlXWQkOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6MUk6LDo6LDg8Lk4BEhw9EAs1
-        HgIaCi5VSlVKTk1PQ0hCTE9KTU1DVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUlJSVVN
-        Q1VJTFVKT01ZV1kIAVlBSU1JQjcG
-X-HM-Tid: 0a6c57b788ac2086kuqy57a30415de
+References: <20190723012303.2221-1-mcroce@redhat.com>
+In-Reply-To: <20190723012303.2221-1-mcroce@redhat.com>
+From:   Matteo Croce <mcroce@redhat.com>
+Date:   Sat, 3 Aug 2019 18:34:09 +0200
+Message-ID: <CAGnkfhwen3p9T3mNL3w6dQcLFFDUtfn4g-j=6yoda2o+TpGR5w@mail.gmail.com>
+Subject: Re: [PATCH net-next] netfilter: conntrack: use shared sysctl constants
+To:     netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        LKML <linux-kernel@vger.kernel.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Tonghao Zhang <xiangxia.m.yue@gmail.com>,
+        Kees Cook <keescook@chromium.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+On Tue, Jul 23, 2019 at 3:23 AM Matteo Croce <mcroce@redhat.com> wrote:
+>
+> Use shared sysctl variables for zero and one constants, as in commit
+> eec4844fae7c ("proc/sysctl: add shared variables for range check")
+>
+> Fixes: 8f14c99c7eda ("netfilter: conntrack: limit sysctl setting for boolean options")
+> Signed-off-by: Matteo Croce <mcroce@redhat.com>
+>
 
-在 2019/8/3 8:21, Jakub Kicinski 写道:
-> On Sat, 3 Aug 2019 07:19:31 +0800, wenxu wrote:
->>> Or:
->>>
->>> device unregister:
->>>   - nft block destroy
->>>     - UNBIND cb
->>>       - free driver's block state
->>>   - driver notifier callback
->>>     - free driver's state
->>>
->>> No?  
->> For the second case maybe can't unbind cb? because the nft block is
->> destroied. There is no way to find the block(chain) in nft.
-> But before the block is destroyed doesn't nft send an UNBIND event to
-> the drivers, always?
-you are correct, it will be send an UBIND event when the block is destroyed
+followup, can anyone review it?
+
+Thanks,
+-- 
+Matteo Croce
+per aspera ad upstream
