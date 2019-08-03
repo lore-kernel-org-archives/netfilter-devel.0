@@ -1,116 +1,100 @@
-Return-Path: <SRS0=xWIb=V6=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=mIA1=V7=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BB4D8C433FF
-	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Aug 2019 23:19:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DB07AC0650F
+	for <netfilter-devel@archiver.kernel.org>; Sat,  3 Aug 2019 00:22:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9B66720880
-	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Aug 2019 23:19:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B1C9920880
+	for <netfilter-devel@archiver.kernel.org>; Sat,  3 Aug 2019 00:22:17 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=netronome-com.20150623.gappssmtp.com header.i=@netronome-com.20150623.gappssmtp.com header.b="RzDTgJab"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729267AbfHBXTv (ORCPT
+        id S2388777AbfHCAWQ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 2 Aug 2019 19:19:51 -0400
-Received: from m9784.mail.qiye.163.com ([220.181.97.84]:43518 "EHLO
-        m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2389210AbfHBXTv (ORCPT
+        Fri, 2 Aug 2019 20:22:16 -0400
+Received: from mail-qt1-f195.google.com ([209.85.160.195]:34680 "EHLO
+        mail-qt1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2388474AbfHCAWQ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 2 Aug 2019 19:19:51 -0400
-Received: from [192.168.1.4] (unknown [222.68.27.146])
-        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id 7129E41620;
-        Sat,  3 Aug 2019 07:19:45 +0800 (CST)
-Subject: Re: [PATCH net-next v5 5/6] flow_offload: support get flow_block
- immediately
-To:     Jakub Kicinski <jakub.kicinski@netronome.com>
+        Fri, 2 Aug 2019 20:22:16 -0400
+Received: by mail-qt1-f195.google.com with SMTP id k10so6583513qtq.1
+        for <netfilter-devel@vger.kernel.org>; Fri, 02 Aug 2019 17:22:15 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=netronome-com.20150623.gappssmtp.com; s=20150623;
+        h=date:from:to:cc:subject:message-id:in-reply-to:references
+         :organization:mime-version:content-transfer-encoding;
+        bh=/AsxNX/HoiCUTitgu7Zhub4nXA9wkO6WI1FPkvPAZO4=;
+        b=RzDTgJabyerl3vdx1kIKMxh/tHGv2muBmet8U/xA+dZkaLu2rOeUztjTgWs5oERUiQ
+         MgL/39L5coy2iW+yPmpfxSZ+Lli1Xz6jgEa17jdQXcFFPCFJgw8Xse678EoHsomL2xVm
+         zlSSAHQ3IVlU8vsoqmKT2aTR+1K3OIMc4FGvyu1/SYa04baeJz1YyPog4K4Kqyx/yhgn
+         mpQjCx/wn6R8Tq586bM6MK7JUAAz4e2uH+NlthYh7BGyIWg0iZ6MPAFWuCamF+RkZry0
+         1HdMfv0rdTUrcVAq++gY9XS0vkRKl9b2BT+MWuTg6He4CC0B+rrMh1328cSxEBYXKuIk
+         ijxw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:in-reply-to
+         :references:organization:mime-version:content-transfer-encoding;
+        bh=/AsxNX/HoiCUTitgu7Zhub4nXA9wkO6WI1FPkvPAZO4=;
+        b=DsyWZ+5o7DZ5vOMDFB8m/ilB3NnSF+kdJRHptmDyzZ7wdWZo/5vrNz72MqhDZh9Pcl
+         dkOj07l0i9rAbIIsh8k/FIKq9lfvNed+fIR7uMm/MqKrpfa9jRhE47FiBH9z36JAnha+
+         x2WPKbFzldRmUnQWhwo+tmnYAabzMNktq6LfSL3IiowhVwRNkkIfhF4gmv9IPTtnE4Ml
+         GjdBSiMAOgAz5FDCZXkkV5SY0B69jVUtHpiz/F6Tu4ZOSac9u1GCnfA46HjIFIjK/Sjf
+         BvClQkAccjfiwQWjga6zY91eatoyxr/ycmxAl3GBujj2L5wiIYiNAglJgYqYFOQqV4Ug
+         YGLw==
+X-Gm-Message-State: APjAAAUX2pH8lkyQUqVQ/EAufC34oZYn1U92D9JcicAqwkJNY5demXRl
+        +9HrIXoVJ+fThViiDKtIu0qJYERHUxU=
+X-Google-Smtp-Source: APXvYqz4U2PA6UBDmArGdcdkCyRLC4FBXI+2UX6SDy50EtxpWhrV57FEoTIDbobfxn6BxqpxKJVH6A==
+X-Received: by 2002:aed:3747:: with SMTP id i65mr99964140qtb.166.1564791735391;
+        Fri, 02 Aug 2019 17:22:15 -0700 (PDT)
+Received: from cakuba.netronome.com ([66.60.152.14])
+        by smtp.gmail.com with ESMTPSA id m27sm37873964qtu.31.2019.08.02.17.22.13
+        (version=TLS1_3 cipher=AEAD-AES256-GCM-SHA384 bits=256/256);
+        Fri, 02 Aug 2019 17:22:15 -0700 (PDT)
+Date:   Fri, 2 Aug 2019 17:21:55 -0700
+From:   Jakub Kicinski <jakub.kicinski@netronome.com>
+To:     wenxu <wenxu@ucloud.cn>
 Cc:     jiri@resnulli.us, pablo@netfilter.org, fw@strlen.de,
         netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
         John Hurley <john.hurley@netronome.com>
+Subject: Re: [PATCH net-next v5 5/6] flow_offload: support get flow_block
+ immediately
+Message-ID: <20190802172155.7a36713d@cakuba.netronome.com>
+In-Reply-To: <45660f1e-b6a8-1bcb-0d57-7c1790d3fbaf@ucloud.cn>
 References: <1564628627-10021-1-git-send-email-wenxu@ucloud.cn>
- <1564628627-10021-6-git-send-email-wenxu@ucloud.cn>
- <20190801161129.25fee619@cakuba.netronome.com>
- <bac5c6a5-8a1b-ee74-988b-6c2a71885761@ucloud.cn>
- <55850b13-991f-97bd-b452-efacd0f39aa4@ucloud.cn>
- <20190802110216.5e1fd938@cakuba.netronome.com>
-From:   wenxu <wenxu@ucloud.cn>
-Message-ID: <45660f1e-b6a8-1bcb-0d57-7c1790d3fbaf@ucloud.cn>
-Date:   Sat, 3 Aug 2019 07:19:31 +0800
-User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:60.0) Gecko/20100101
- Thunderbird/60.8.0
+        <1564628627-10021-6-git-send-email-wenxu@ucloud.cn>
+        <20190801161129.25fee619@cakuba.netronome.com>
+        <bac5c6a5-8a1b-ee74-988b-6c2a71885761@ucloud.cn>
+        <55850b13-991f-97bd-b452-efacd0f39aa4@ucloud.cn>
+        <20190802110216.5e1fd938@cakuba.netronome.com>
+        <45660f1e-b6a8-1bcb-0d57-7c1790d3fbaf@ucloud.cn>
+Organization: Netronome Systems, Ltd.
 MIME-Version: 1.0
-In-Reply-To: <20190802110216.5e1fd938@cakuba.netronome.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVkpVTUhCS0tLS05DSkxPSkhZV1koWU
-        FJQjdXWS1ZQUlXWQkOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6NDo6PAw*Qzg9Ik4ODE4TDhEU
-        NzJPCTxVSlVKTk1PTENMQkNOTE9CVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUlJSVVN
-        Q1VJTFVKT01ZV1kIAVlBSEJJQzcG
-X-HM-Tid: 0a6c54a1cd1a2086kuqy7129e41620
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+On Sat, 3 Aug 2019 07:19:31 +0800, wenxu wrote:
+> > Or:
+> >
+> > device unregister:
+> >   - nft block destroy
+> >     - UNBIND cb
+> >       - free driver's block state
+> >   - driver notifier callback
+> >     - free driver's state
+> >
+> > No?  
+> 
+> For the second case maybe can't unbind cb? because the nft block is
+> destroied. There is no way to find the block(chain) in nft.
 
-在 2019/8/3 2:02, Jakub Kicinski 写道:
-> On Fri, 2 Aug 2019 21:09:03 +0800, wenxu wrote:
->>>> We'd have something like the loop in flow_get_default_block():
->>>>
->>>> 	for each (subsystem)
->>>> 		subsystem->handle_new_indir_cb(indr_dev, cb);
->>>>
->>>> And then per-subsystem logic would actually call the cb. Or:
->>>>
->>>> 	for each (subsystem)
->>>> 		block = get_default_block(indir_dev)
->>>> 		indr_dev->ing_cmd_cb(...)  
->>>             nft dev chian is also based on register_netdevice_notifier, So for unregister case,
->>>
->>> the basechian(block) of nft maybe delete before the __tc_indr_block_cb_unregister. is right?
->>>
->>> So maybe we can cache the block as a list of all the subsystem in  indr_dev ?  
->>
->> when the device is unregister the nft netdev chain related to this device will also be delete through netdevice_notifier
->>
->> . So for unregister case,the basechian(block) of nft maybe delete before the __tc_indr_block_cb_unregister.
-> Hm, but I don't think that should be an issue. The ordering should be
-> like one of the following two:
->
-> device unregister:
->   - driver notifier callback
->     - unregister flow cb
->       - UNBIND cb
->         - free driver's block state
->     - free driver's device state
->   - nft block destroy
->     # doesn't see driver's CB any more
->
-> Or:
->
-> device unregister:
->   - nft block destroy
->     - UNBIND cb
->       - free driver's block state
->   - driver notifier callback
->     - free driver's state
->
-> No?
-
-For the second case maybe can't unbind cb? because the nft block is destroied. There is no way
-
-to find the block(chain) in nft.
-
-
->
->> cache for the block is not work because the chain already be delete and free. Maybe it improve the prio of
->>
->> rep_netdev_event can help this?
-> In theory the cache should work in a similar way as drivers, because
-> once the indr_dev is created and the initial block is found, the cached
-> value is just recorded in BIND/UNBIND calls. So if BIND/UNBIND works for
-> drivers it will also put the right info in the cache.
->
+But before the block is destroyed doesn't nft send an UNBIND event to
+the drivers, always?
