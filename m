@@ -2,77 +2,63 @@ Return-Path: <SRS0=7PQj=WB=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C420FC0650F
-	for <netfilter-devel@archiver.kernel.org>; Mon,  5 Aug 2019 06:02:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 92F39C433FF
+	for <netfilter-devel@archiver.kernel.org>; Mon,  5 Aug 2019 06:27:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9CDCE206C1
-	for <netfilter-devel@archiver.kernel.org>; Mon,  5 Aug 2019 06:02:44 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=resnulli-us.20150623.gappssmtp.com header.i=@resnulli-us.20150623.gappssmtp.com header.b="nGb8EYn0"
+	by mail.kernel.org (Postfix) with ESMTP id 773B42182B
+	for <netfilter-devel@archiver.kernel.org>; Mon,  5 Aug 2019 06:27:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727294AbfHEGCl (ORCPT
+        id S1727320AbfHEG0i (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 5 Aug 2019 02:02:41 -0400
-Received: from mail-wm1-f65.google.com ([209.85.128.65]:56279 "EHLO
-        mail-wm1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727225AbfHEGCl (ORCPT
+        Mon, 5 Aug 2019 02:26:38 -0400
+Received: from m9784.mail.qiye.163.com ([220.181.97.84]:59137 "EHLO
+        m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727256AbfHEG0i (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 5 Aug 2019 02:02:41 -0400
-Received: by mail-wm1-f65.google.com with SMTP id a15so73458592wmj.5
-        for <netfilter-devel@vger.kernel.org>; Sun, 04 Aug 2019 23:02:40 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=resnulli-us.20150623.gappssmtp.com; s=20150623;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to:user-agent;
-        bh=rYbLHeGEkazMYqZpHw+axOUdiO9DJFjeR3HG13iSHYE=;
-        b=nGb8EYn0j+RQBxVSCa1n1EyFmtdIfEuLUCX2KAp9y0Ioe/1pjs+rjP2GGOIpvBpzMY
-         n/D1x6IGmixX2PpCZiPmcONWrwWI2udkFDZ8R5Z3zdrd5yR9DKwu7bR1PJgyxIXOfhQF
-         od4We0x8lMkeEZov/thQXa6mbbBlKudqU86TQ3drDCtTZj/tWyA1O+YmjN7xpvojdifk
-         iVHCBCpjUz7Z+x0mGaD5LxGTSJwMJtqBMc09oq8shNPs5JWdHCWpX2EPTsMwVjGs03Tn
-         4H5gKNhaLlrjL2lsOE4zwU1i3VVGrxPHWp1wqstYEEVwNDkvY5OswQr+bbFZcEhCzcF9
-         DhFA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to:user-agent;
-        bh=rYbLHeGEkazMYqZpHw+axOUdiO9DJFjeR3HG13iSHYE=;
-        b=pzfNTNCW5SKePIyfSE2uDX+yzEMaV+9oQxLMdxtZwHC8dIwi9DpmNA+VkVtcH/iMdW
-         6RKkC0JaBFPkWm5/Wws1tx1iw4q/neGcsYrk4e9iZZThsy4LQVW8ac5OBBebceLRM2s/
-         J4A3A1KSSOvlDWRPYJc1Xpm7N8U7tJofGsjB8CeBs5bcZ0A/TeXjLXYDww9yac+atvDx
-         J/MkpTEXzz463Yqvo474pkX7HLMj5i7oEW7XAhQdCA3BIA02ktPGPzAyKc4uBXw7hjHm
-         qRArKfsGwgq5rkWDWEuAjvDUmDLZvCUCOA67qYLEyyU2R4EK59xjkuPn+PxmakpRzrxQ
-         o5tw==
-X-Gm-Message-State: APjAAAX0vDWw8lNrvOfWlHaZ5eat/38j9L4ZD8iv+S1Qgje4AVZji7PH
-        3H8q99xX6Ba/qIPOkihwqTh/ig==
-X-Google-Smtp-Source: APXvYqwsDzjnqn7kQhQNISPjmml7diURISWzFQnEUhyPflTbdqCa8FD5Jm797JM/YiXzUIO52ZD5wQ==
-X-Received: by 2002:a7b:c651:: with SMTP id q17mr15334256wmk.136.1564984959650;
-        Sun, 04 Aug 2019 23:02:39 -0700 (PDT)
-Received: from localhost (jirka.pirko.cz. [84.16.102.26])
-        by smtp.gmail.com with ESMTPSA id g8sm85255642wmf.17.2019.08.04.23.02.39
-        (version=TLS1_3 cipher=AEAD-AES256-GCM-SHA384 bits=256/256);
-        Sun, 04 Aug 2019 23:02:39 -0700 (PDT)
-Date:   Mon, 5 Aug 2019 08:02:38 +0200
-From:   Jiri Pirko <jiri@resnulli.us>
-To:     wenxu@ucloud.cn
+        Mon, 5 Aug 2019 02:26:38 -0400
+Received: from [192.168.188.14] (unknown [120.132.1.226])
+        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id DD6A6419F1;
+        Mon,  5 Aug 2019 14:26:33 +0800 (CST)
+Subject: Re: [PATCH net-next 3/6] cls_api: add flow_indr_block_call function
+To:     Jiri Pirko <jiri@resnulli.us>
 Cc:     pablo@netfilter.org, fw@strlen.de, jakub.kicinski@netronome.com,
         netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-Subject: Re: [PATCH net-next 3/6] cls_api: add flow_indr_block_call function
-Message-ID: <20190805060238.GB2349@nanopsycho.orion>
 References: <1564628627-10021-1-git-send-email-wenxu@ucloud.cn>
  <1564628627-10021-4-git-send-email-wenxu@ucloud.cn>
+ <20190805060238.GB2349@nanopsycho.orion>
+From:   wenxu <wenxu@ucloud.cn>
+Message-ID: <28de8cda-6264-0440-ad96-dcc1f607fce2@ucloud.cn>
+Date:   Mon, 5 Aug 2019 14:26:31 +0800
+User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:60.0) Gecko/20100101
+ Thunderbird/60.8.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1564628627-10021-4-git-send-email-wenxu@ucloud.cn>
-User-Agent: Mutt/1.11.4 (2019-03-13)
+In-Reply-To: <20190805060238.GB2349@nanopsycho.orion>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
+X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVkpVSUhIS0tLSk5CSU1ITUpZV1koWU
+        FJQjdXWS1ZQUlXWQkOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
+X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6OT46Myo5CDg0Kk4MFBEPTDEQ
+        EwgaCRlVSlVKTk1PQkNNSEJPSUNDVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJS1VK
+        SElVSlVJSU1ZV1kIAVlBSkxCSTcG
+X-HM-Tid: 0a6c6075466b2086kuqydd6a6419f1
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Re subject. You don't have "v5" in this patch. I don't understand how
-that happened. Do you use --subject-prefix in git-format-patch?
+v5 contain this patch but with non-version tag,
+
+I used --subject-prefix in git-format-patch. I am sorry to  make a mistake when modify the
+
+commit log. So should I repost the v6?
+
+
+On 8/5/2019 2:02 PM, Jiri Pirko wrote:
+> Re subject. You don't have "v5" in this patch. I don't understand how
+> that happened. Do you use --subject-prefix in git-format-patch?
+>
