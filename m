@@ -2,119 +2,90 @@ Return-Path: <SRS0=7PQj=WB=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.2 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E0916C0650F
-	for <netfilter-devel@archiver.kernel.org>; Mon,  5 Aug 2019 07:34:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2AF07C0650F
+	for <netfilter-devel@archiver.kernel.org>; Mon,  5 Aug 2019 08:36:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BE5B2206A2
-	for <netfilter-devel@archiver.kernel.org>; Mon,  5 Aug 2019 07:34:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F197E20B1F
+	for <netfilter-devel@archiver.kernel.org>; Mon,  5 Aug 2019 08:36:21 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=resnulli-us.20150623.gappssmtp.com header.i=@resnulli-us.20150623.gappssmtp.com header.b="hDDgI/D7"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726656AbfHEHer (ORCPT
+        id S1727869AbfHEIgV (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 5 Aug 2019 03:34:47 -0400
-Received: from mail.fem.tu-ilmenau.de ([141.24.220.54]:50324 "EHLO
-        mail.fem.tu-ilmenau.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726394AbfHEHer (ORCPT
+        Mon, 5 Aug 2019 04:36:21 -0400
+Received: from mail-wm1-f67.google.com ([209.85.128.67]:52360 "EHLO
+        mail-wm1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726423AbfHEIgV (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 5 Aug 2019 03:34:47 -0400
-X-Greylist: delayed 369 seconds by postgrey-1.27 at vger.kernel.org; Mon, 05 Aug 2019 03:34:45 EDT
-Received: from localhost (localhost [127.0.0.1])
-        by mail.fem.tu-ilmenau.de (Postfix) with ESMTP id D9E7C63A6;
-        Mon,  5 Aug 2019 09:28:34 +0200 (CEST)
-X-Virus-Scanned: amavisd-new at fem.tu-ilmenau.de
-Received: from mail.fem.tu-ilmenau.de ([127.0.0.1])
-        by localhost (mail.fem.tu-ilmenau.de [127.0.0.1]) (amavisd-new, port 10024)
-        with ESMTP id XpvJ9+gRMJbQ; Mon,  5 Aug 2019 09:28:31 +0200 (CEST)
-Received: from mail-backup.fem.tu-ilmenau.de (mail-backup.net.fem.tu-ilmenau.de [10.42.40.22])
-        (using TLSv1 with cipher ADH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mail.fem.tu-ilmenau.de (Postfix) with ESMTPS;
-        Mon,  5 Aug 2019 09:28:31 +0200 (CEST)
-Received: from a234.fem.tu-ilmenau.de (ray-controller.net.fem.tu-ilmenau.de [10.42.51.234])
-        by mail-backup.fem.tu-ilmenau.de (Postfix) with ESMTP id 0857655119;
-        Mon,  5 Aug 2019 09:28:31 +0200 (CEST)
-Received: by a234.fem.tu-ilmenau.de (Postfix, from userid 1000)
-        id D9F15306AC9A; Mon,  5 Aug 2019 09:28:30 +0200 (CEST)
-From:   Michael Braun <michael-dev@fami-braun.de>
-To:     netfilter-devel@vger.kernel.org
-Cc:     Michael Braun <michael-dev@fami-braun.de>
-Subject: [PATCH] netfilter: nfnetlink_log:add support for VLAN information
-Date:   Mon,  5 Aug 2019 09:28:14 +0200
-Message-Id: <20190805072814.14922-1-michael-dev@fami-braun.de>
-X-Mailer: git-send-email 2.20.1
+        Mon, 5 Aug 2019 04:36:21 -0400
+Received: by mail-wm1-f67.google.com with SMTP id s3so73832599wms.2
+        for <netfilter-devel@vger.kernel.org>; Mon, 05 Aug 2019 01:36:20 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=resnulli-us.20150623.gappssmtp.com; s=20150623;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to:user-agent;
+        bh=wcX8Ms+eBR5njFsdTaYqDPTlypyRlj8jAxKB1CXuFng=;
+        b=hDDgI/D76bo/7bPX2ewajJp1GpcGEkpd0Akx91DEvOl05gMGQlKhmXyBM8e5mcpLl9
+         fBZoUTPVaHQr8wfaBDZ6/JC23GEUNcajKQGhWW/30rQIw7CpjQIjyimiFXdTRlXCpeAe
+         G6r+9YVt4KYEz2azaAkYK38f8ICLw148oly8T22MvnvIM5xG7n8i5zB6q3trDveQh2o5
+         poBplhsr0Ubq9VTag356q5n2bTgzpNj//jmsRIRVgt8cNO9tsD1sOStpeMSLAxHREN6z
+         ctV98r+W0TBlRmI/u3zI9qglAR6sScySumABKhAdK53gbsBfVtN5qWsiMrfhGwaH2acP
+         wXSA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to:user-agent;
+        bh=wcX8Ms+eBR5njFsdTaYqDPTlypyRlj8jAxKB1CXuFng=;
+        b=ImtYSJ3qfII0YuwjUMXKdD7H3ZpDvxOJLTNn76id836Qh2WIVCMHrkLu0C1N8ftYNi
+         9b0o8jgKKXovghy9oxywaISqUXmwelSxQmlFycOS/ZVgfBjtA2E/K13dyBhAWkPqJsak
+         5T/SX/aI0CTBDpmv0/bTQVOOFZDTG17EtOT9z/psXE63yRWlWgJu0XGWT23z/2/EWaej
+         vXnj9liHBHvrfcps/ekU8gx76wV1PwfaLySep675mgYsvgnjx1IVesS2NffKVLutXhkC
+         ssK230nzEt/mwlwdUPjIbRpbEWhA6M7JXuiiWGFJncgMkAD/CFoNeJQ6HvttGm5cix+y
+         PAYA==
+X-Gm-Message-State: APjAAAUjUGc5xZZ2s1whAi1OY3ql9PgySBG7d7LJTYDczrP+bnowyO5k
+        NVm3P2CfB14zvfeuKBi3tQzjgw==
+X-Google-Smtp-Source: APXvYqw3nZU+qgoqQFFTZGv0L1r/ogoiNXFs4uUUydyeOI01jBOKc4KOufh9aHaJlBEYnj1pP3fufQ==
+X-Received: by 2002:a1c:be11:: with SMTP id o17mr17359663wmf.115.1564994180034;
+        Mon, 05 Aug 2019 01:36:20 -0700 (PDT)
+Received: from localhost (jirka.pirko.cz. [84.16.102.26])
+        by smtp.gmail.com with ESMTPSA id w67sm121270092wma.24.2019.08.05.01.36.19
+        (version=TLS1_3 cipher=AEAD-AES256-GCM-SHA384 bits=256/256);
+        Mon, 05 Aug 2019 01:36:19 -0700 (PDT)
+Date:   Mon, 5 Aug 2019 10:36:18 +0200
+From:   Jiri Pirko <jiri@resnulli.us>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org, jakub.kicinski@netronome.com,
+        marcelo.leitner@gmail.com, saeedm@mellanox.com, wenxu@ucloud.cn,
+        gerlitz.or@gmail.com, paulb@mellanox.com
+Subject: Re: [PATCH net-next 1/3,v2] net: sched: use major priority number as
+ hardware priority
+Message-ID: <20190805083618.GC2349@nanopsycho.orion>
+References: <20190802132846.3067-1-pablo@netfilter.org>
+ <20190802132846.3067-2-pablo@netfilter.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190802132846.3067-2-pablo@netfilter.org>
+User-Agent: Mutt/1.11.4 (2019-03-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Currently, there is no vlan information (e.g. when used with a vlan aware
-bridge) passed to userspache, HWHEADER will contain an 08 00 (ip) suffix
-even for tagged ip packets.
+Fri, Aug 02, 2019 at 03:28:44PM CEST, pablo@netfilter.org wrote:
+>tc transparently maps the software priority number to hardware. Update
+>it to pass the major priority which is what most drivers expect. Update
+>drivers too so they do not need to lshift the priority field of the
+>flow_cls_common_offload object. The stmmac driver is an exception, since
+>this code assumes the tc software priority is fine, therefore, lshift it
+>just to be conservative.
+>
+>Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
-Therefore, add an extra netlink attribute that passes the vlan tag to
-userspace. Userspace might need to handle PCP/DEI included in this field.
-
-Signed-off-by: Michael Braun <michael-dev@fami-braun.de>
----
- include/uapi/linux/netfilter/nfnetlink_log.h | 1 +
- net/netfilter/nf_log_common.c                | 2 ++
- net/netfilter/nfnetlink_log.c                | 6 ++++++
- 3 files changed, 9 insertions(+)
-
-diff --git a/include/uapi/linux/netfilter/nfnetlink_log.h b/include/uapi/linux/netfilter/nfnetlink_log.h
-index 20983cb195a0..d15f74d47f48 100644
---- a/include/uapi/linux/netfilter/nfnetlink_log.h
-+++ b/include/uapi/linux/netfilter/nfnetlink_log.h
-@@ -54,6 +54,7 @@ enum nfulnl_attr_type {
- 	NFULA_HWLEN,			/* hardware header length */
- 	NFULA_CT,                       /* nf_conntrack_netlink.h */
- 	NFULA_CT_INFO,                  /* enum ip_conntrack_info */
-+	NFULA_VLAN_TAG,                 /* __u16 vlan tag */
- 
- 	__NFULA_MAX
- };
-diff --git a/net/netfilter/nf_log_common.c b/net/netfilter/nf_log_common.c
-index ae5628ddbe6d..57c4cc8fbead 100644
---- a/net/netfilter/nf_log_common.c
-+++ b/net/netfilter/nf_log_common.c
-@@ -160,6 +160,8 @@ nf_log_dump_packet_common(struct nf_log_buf *m, u_int8_t pf,
- 	       '0' + loginfo->u.log.level, prefix,
- 	       in ? in->name : "",
- 	       out ? out->name : "");
-+	if (skb_vlan_tag_present(skb))
-+		nf_log_buf_add(m, "VLAN=%d ", skb_vlan_tag_get_id(skb));
- #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
- 	physindev = nf_bridge_get_physindev(skb);
- 	if (physindev && in != physindev)
-diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
-index 6dee4f9a944c..f6fe0d760816 100644
---- a/net/netfilter/nfnetlink_log.c
-+++ b/net/netfilter/nfnetlink_log.c
-@@ -16,6 +16,7 @@
- #include <linux/skbuff.h>
- #include <linux/if_arp.h>
- #include <linux/init.h>
-+#include <linux/if_vlan.h>
- #include <linux/ip.h>
- #include <linux/ipv6.h>
- #include <linux/netdevice.h>
-@@ -580,6 +581,11 @@ __build_packet_message(struct nfnl_log_net *log,
- 				 NFULA_CT, NFULA_CT_INFO) < 0)
- 		goto nla_put_failure;
- 
-+	if (skb_vlan_tag_present(skb) &&
-+	    nla_put_be16(inst->skb, NFULA_VLAN_TAG,
-+			 htons(skb_vlan_tag_get(skb))))
-+		goto nla_put_failure;
-+
- 	if (data_len) {
- 		struct nlattr *nla;
- 		int size = nla_attr_size(data_len);
--- 
-2.20.1
-
+Acked-by: Jiri Pirko <jiri@mellanox.com>
