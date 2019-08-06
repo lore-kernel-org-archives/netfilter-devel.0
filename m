@@ -2,92 +2,85 @@ Return-Path: <SRS0=eApp=WC=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BD879C433FF
-	for <netfilter-devel@archiver.kernel.org>; Tue,  6 Aug 2019 03:38:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EA4D5C31E40
+	for <netfilter-devel@archiver.kernel.org>; Tue,  6 Aug 2019 09:42:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8979B20657
-	for <netfilter-devel@archiver.kernel.org>; Tue,  6 Aug 2019 03:38:00 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=netronome-com.20150623.gappssmtp.com header.i=@netronome-com.20150623.gappssmtp.com header.b="UeowZqZ6"
+	by mail.kernel.org (Postfix) with ESMTP id C299520C01
+	for <netfilter-devel@archiver.kernel.org>; Tue,  6 Aug 2019 09:42:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730900AbfHFDiA (ORCPT
+        id S1732442AbfHFJmd (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 5 Aug 2019 23:38:00 -0400
-Received: from mail-pl1-f196.google.com ([209.85.214.196]:33875 "EHLO
-        mail-pl1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729383AbfHFDh7 (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 5 Aug 2019 23:37:59 -0400
-Received: by mail-pl1-f196.google.com with SMTP id i2so37281699plt.1
-        for <netfilter-devel@vger.kernel.org>; Mon, 05 Aug 2019 20:37:59 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=netronome-com.20150623.gappssmtp.com; s=20150623;
-        h=date:from:to:cc:subject:message-id:in-reply-to:references
-         :organization:mime-version:content-transfer-encoding;
-        bh=iTUIZrn2UCx1jsCAA6lR14LBO0TeNKIe7IeoTHeBk+g=;
-        b=UeowZqZ6UlZTZMBrx71f+LilHHiFuZm1ZhGrxSNw1/b2riKOr9eFixDJc0WdzFBkO/
-         VaHIk71IDeT7eQT6pwoQg09TjPg9LjcpZc4V0rakSaYvKKF/MiZYTRKpvy1+EgRLHmlp
-         FCUKSjAv7VGdt7ZlXtN5XVyqN1UoJbeIe4NqDzsYQW7PG0ZE6ndLSAIycQnbtWAmk5zB
-         +LPvdoR939tFTdTEJxkK/UFTFUpXRKHUu/JqglM5Ek1jez+wsQtqMzk7HDz+mSZhAxoq
-         PBCS8Ok0duNrVKs5zmflhGxFl5xDusyHcvV0wjuFdIQQGcUSjQlefi7RwiBfbUy2nKw/
-         hDlQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:in-reply-to
-         :references:organization:mime-version:content-transfer-encoding;
-        bh=iTUIZrn2UCx1jsCAA6lR14LBO0TeNKIe7IeoTHeBk+g=;
-        b=ib0YJByddJ1FIt4wbnjA3H5Wr0VmVfe6w27sFcWeL0j3nD1EK8fwY7E0Tzw3sXF0MX
-         QBP2e/sDNQzNuwASWKw+7kEOQnNfIwDghPXS10+HXI53LB8Vr5z+5ro+6oT/TZh3YuPF
-         d6xTUfjdIPRhCn8NSvoURmfpadxHCANaGLJu2d8MxKQJRcn+frkfNSvQRgikSK5Uc5+Y
-         IHOKcvIc6+HaT52nsLkOvhzzWV8ZZLL+rX6+bg98p8hQnYrGz8VE+2wuVb4DQQyOZ97z
-         VEoS07RxLHnF8gY9pvmHfRCHv6BQMcl7ZanP4BBKsZ5OWKFz49lNU8UQE/Ob0ahijsTc
-         z5Dg==
-X-Gm-Message-State: APjAAAUgiiQaBBDIvoSpFdwz/RSGzA/BdG9BtEtNuUpw4z0hQDmK04CT
-        Iqe7tvbsinn8zXlVLfzAUHTZlw==
-X-Google-Smtp-Source: APXvYqwKWTmq1ez4TP1y+z2irCx0ekSwXiQ3zg18mb/u64Fp9c4PxsuBOgscnSq+2fAsYwDRp6KI7A==
-X-Received: by 2002:a17:902:b608:: with SMTP id b8mr990842pls.303.1565062679099;
-        Mon, 05 Aug 2019 20:37:59 -0700 (PDT)
-Received: from cakuba.netronome.com (c-71-204-185-212.hsd1.ca.comcast.net. [71.204.185.212])
-        by smtp.gmail.com with ESMTPSA id y12sm96170564pfn.187.2019.08.05.20.37.58
-        (version=TLS1_3 cipher=AEAD-AES256-GCM-SHA384 bits=256/256);
-        Mon, 05 Aug 2019 20:37:58 -0700 (PDT)
-Date:   Mon, 5 Aug 2019 20:37:34 -0700
-From:   Jakub Kicinski <jakub.kicinski@netronome.com>
-To:     wenxu@ucloud.cn
-Cc:     jiri@resnulli.us, netfilter-devel@vger.kernel.org,
-        netdev@vger.kernel.org
-Subject: Re: [PATCH net-next v6 0/6] flow_offload: add indr-block in
- nf_table_offload
-Message-ID: <20190805203734.79f81124@cakuba.netronome.com>
-In-Reply-To: <1564925041-23530-1-git-send-email-wenxu@ucloud.cn>
-References: <1564925041-23530-1-git-send-email-wenxu@ucloud.cn>
-Organization: Netronome Systems, Ltd.
+        Tue, 6 Aug 2019 05:42:33 -0400
+Received: from correo.us.es ([193.147.175.20]:42520 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1730068AbfHFJmc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 6 Aug 2019 05:42:32 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id A6F5FF26F7
+        for <netfilter-devel@vger.kernel.org>; Tue,  6 Aug 2019 11:42:28 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 98AF5A58B
+        for <netfilter-devel@vger.kernel.org>; Tue,  6 Aug 2019 11:42:28 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 8AD181150CE; Tue,  6 Aug 2019 11:42:28 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 6C684DA704;
+        Tue,  6 Aug 2019 11:42:26 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Tue, 06 Aug 2019 11:42:26 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (149.103.108.93.rev.vodafone.pt [93.108.103.149])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id D63E84265A31;
+        Tue,  6 Aug 2019 11:42:25 +0200 (CEST)
+Date:   Tue, 6 Aug 2019 11:42:19 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Jakub Kicinski <jakub.kicinski@netronome.com>
+Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org, marcelo.leitner@gmail.com,
+        jiri@resnulli.us, wenxu@ucloud.cn, saeedm@mellanox.com,
+        paulb@mellanox.com, gerlitz.or@gmail.com
+Subject: Re: [PATCH net 0/2] flow_offload hardware priority fixes
+Message-ID: <20190806094219.uwpjjsqkpf5rdi6d@salvia>
+References: <20190801112817.24976-1-pablo@netfilter.org>
+ <20190801172014.314a9d01@cakuba.netronome.com>
+ <20190802110023.udfcxowe3vmihduq@salvia>
+ <20190802134738.328691b4@cakuba.netronome.com>
+ <20190802220409.klwdkcvjgegz6hj2@salvia>
+ <20190802152549.357784a7@cakuba.netronome.com>
+ <20190803070854.zb3nvwj4ubx2mzy6@salvia>
+ <20190805120439.40d70cee@cakuba.netronome.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190805120439.40d70cee@cakuba.netronome.com>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sun,  4 Aug 2019 21:23:55 +0800, wenxu@ucloud.cn wrote:
-> From: wenxu <wenxu@ucloud.cn>
+On Mon, Aug 05, 2019 at 12:04:39PM -0700, Jakub Kicinski wrote:
+> On Sat, 3 Aug 2019 09:08:54 +0200, Pablo Neira Ayuso wrote:
+> > The idea is that every subsystem (ethtool, tc, nf) sets up/binds its
+> > own flow_block object. And each flow_block object has its own priority
+> > range space. So whatever priority the user specifies only applies to
+> > the specific subsystem.
 > 
-> This series patch make nftables offload support the vlan and
-> tunnel device offload through indr-block architecture.
+> Right, okay so that part is pretty obvious but thanks for spelling it
+> out. 
 > 
-> The first four patches mv tc indr block to flow offload and
-> rename to flow-indr-block.
-> Because the new flow-indr-block can't get the tcf_block
-> directly. The fifth patch provide a callback list to get 
-> flow_block of each subsystem immediately when the device
-> register and contain a block.
-> The last patch make nf_tables_offload support flow-indr-block.
+> Are you also agreeing that priorities of blocks, not rules within 
+> a block are dictated by the order of processing within the kernel?
+> IOW TC blocks are _always_ before nft blocks?
 
-Looks good to me, thanks for the changes!
-
-Acked-by: Jakub Kicinski <jakub.kicinski@netronome.com>
+yes.
