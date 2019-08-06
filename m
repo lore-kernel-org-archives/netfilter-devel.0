@@ -6,41 +6,60 @@ X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4CE33C433FF
-	for <netfilter-devel@archiver.kernel.org>; Tue,  6 Aug 2019 10:44:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 12017C433FF
+	for <netfilter-devel@archiver.kernel.org>; Tue,  6 Aug 2019 11:07:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2B93920818
-	for <netfilter-devel@archiver.kernel.org>; Tue,  6 Aug 2019 10:44:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E717B20B1F
+	for <netfilter-devel@archiver.kernel.org>; Tue,  6 Aug 2019 11:07:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732571AbfHFKoM (ORCPT
+        id S1731235AbfHFLHW (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 6 Aug 2019 06:44:12 -0400
-Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:47850 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1731922AbfHFKoL (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 6 Aug 2019 06:44:11 -0400
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.89)
-        (envelope-from <fw@strlen.de>)
-        id 1huwwr-0001Ts-65; Tue, 06 Aug 2019 12:44:09 +0200
-Date:   Tue, 6 Aug 2019 12:44:09 +0200
-From:   Florian Westphal <fw@strlen.de>
+        Tue, 6 Aug 2019 07:07:22 -0400
+Received: from correo.us.es ([193.147.175.20]:38700 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728845AbfHFLHV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 6 Aug 2019 07:07:21 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 22C62C1DE1
+        for <netfilter-devel@vger.kernel.org>; Tue,  6 Aug 2019 13:07:19 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 1396F512D2
+        for <netfilter-devel@vger.kernel.org>; Tue,  6 Aug 2019 13:07:19 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 0937250F3F; Tue,  6 Aug 2019 13:07:19 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 02E8FDA704;
+        Tue,  6 Aug 2019 13:07:16 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Tue, 06 Aug 2019 13:07:16 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (149.103.108.93.rev.vodafone.pt [93.108.103.149])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 718994265A32;
+        Tue,  6 Aug 2019 13:07:15 +0200 (CEST)
+Date:   Tue, 6 Aug 2019 13:06:48 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     Fernando Fernandez Mancera <ffmancera@riseup.net>
 Cc:     netfilter-devel@vger.kernel.org
 Subject: Re: [PATCH RFC nf-next] Introducing stateful object update operation
-Message-ID: <20190806104409.yt2cgmgohxyhokji@breakpoint.cc>
+Message-ID: <20190806110648.khukqwbmxgbk5yfr@salvia>
 References: <20190806102945.728-1-ffmancera@riseup.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 In-Reply-To: <20190806102945.728-1-ffmancera@riseup.net>
 User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Fernando Fernandez Mancera <ffmancera@riseup.net> wrote:
+On Tue, Aug 06, 2019 at 12:29:45PM +0200, Fernando Fernandez Mancera wrote:
 > I have been thinking of a way to update a quota object. i.e raise or lower the
 > quota limit of an existing object. I think it would be ideal to implement the
 > operations of updating objects in the API in a generic way.
@@ -96,11 +115,27 @@ Fernando Fernandez Mancera <ffmancera@riseup.net> wrote:
 >  	NFT_MSG_DELOBJ,
 > +	NFT_MSG_UPDOBJ,
 
-This breaks ABI, new enums need to be added at the end.
+No need for this new message type, see below.
 
-But I wonder if we can't just re-use NEWOBJ and teach it to update
-the object if it exists already.
+>  	NFT_MSG_GETOBJ_RESET,
+>  	NFT_MSG_NEWFLOWTABLE,
+>  	NFT_MSG_GETFLOWTABLE,
+> diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+> index 605a7cfe7ca7..c7267f418808 100644
+> --- a/net/netfilter/nf_tables_api.c
+> +++ b/net/netfilter/nf_tables_api.c
+> @@ -5420,6 +5420,16 @@ static void nft_obj_destroy(const struct nft_ctx *ctx, struct nft_object *obj)
+>  	kfree(obj);
+>  }
+>  
+> +static int nf_tables_updobj(struct net *net, struct sock *nlsk,
+> +			    struct sk_buff *skb, const struct nlmsghdr *nlh,
+> +			    const struct nlattr * const nla[],
+> +			    struct netlink_ext_ack *extack)
+> +{
+> +	/* Placeholder function, here we would need to check if the object
+> +	 * exists. Then init the context and update the object.*/
+> +	return 1;
 
-Userspace can already pass EXCL flag to bail out for the 'exists' case.
-
-I agree that such feature (object update) is a good idea.
+Use the existing nf_tables_newobj(), if NLM_F_EXCL is not set on and
+the object exists, then this is an update.
