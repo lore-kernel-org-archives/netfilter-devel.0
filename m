@@ -2,153 +2,97 @@ Return-Path: <SRS0=eApp=WC=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BEEF5C433FF
-	for <netfilter-devel@archiver.kernel.org>; Tue,  6 Aug 2019 16:03:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 11827C41514
+	for <netfilter-devel@archiver.kernel.org>; Tue,  6 Aug 2019 16:05:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9DFF220818
-	for <netfilter-devel@archiver.kernel.org>; Tue,  6 Aug 2019 16:03:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E284320C01
+	for <netfilter-devel@archiver.kernel.org>; Tue,  6 Aug 2019 16:05:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387489AbfHFQD2 (ORCPT
+        id S1733298AbfHFQFQ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 6 Aug 2019 12:03:28 -0400
-Received: from correo.us.es ([193.147.175.20]:44566 "EHLO mail.us.es"
+        Tue, 6 Aug 2019 12:05:16 -0400
+Received: from correo.us.es ([193.147.175.20]:45092 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1733207AbfHFQD2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 6 Aug 2019 12:03:28 -0400
+        id S1732048AbfHFQFQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 6 Aug 2019 12:05:16 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id B732FBA1B2
-        for <netfilter-devel@vger.kernel.org>; Tue,  6 Aug 2019 18:03:25 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 04345BA1B4
+        for <netfilter-devel@vger.kernel.org>; Tue,  6 Aug 2019 18:05:14 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id A89BA1150DD
-        for <netfilter-devel@vger.kernel.org>; Tue,  6 Aug 2019 18:03:25 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id E2D5F1150CE
+        for <netfilter-devel@vger.kernel.org>; Tue,  6 Aug 2019 18:05:13 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 9BE557E062; Tue,  6 Aug 2019 18:03:25 +0200 (CEST)
+        id D78675C023; Tue,  6 Aug 2019 18:05:13 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 80D56DA730;
-        Tue,  6 Aug 2019 18:03:23 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A96B1DA730;
+        Tue,  6 Aug 2019 18:05:11 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 06 Aug 2019 18:03:23 +0200 (CEST)
+ Tue, 06 Aug 2019 18:05:11 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from salvia.here (149.103.108.93.rev.vodafone.pt [93.108.103.149])
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 6605C4265A31;
-        Tue,  6 Aug 2019 18:03:21 +0200 (CEST)
+Received: from us.es (149.103.108.93.rev.vodafone.pt [93.108.103.149])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 170F24265A31;
+        Tue,  6 Aug 2019 18:05:10 +0200 (CEST)
+Date:   Tue, 6 Aug 2019 18:05:09 +0200
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     davem@davemloft.net, netdev@vger.kernel.org,
-        marcelo.leitner@gmail.com, jiri@resnulli.us, wenxu@ucloud.cn,
-        saeedm@mellanox.com, paulb@mellanox.com, gerlitz.or@gmail.com,
-        jakub.kicinski@netronome.com
-Subject: [PATCH 2/2 net,v4] netfilter: nf_tables: map basechain priority to hardware priority
-Date:   Tue,  6 Aug 2019 18:03:10 +0200
-Message-Id: <20190806160310.6663-3-pablo@netfilter.org>
-X-Mailer: git-send-email 2.11.0
-In-Reply-To: <20190806160310.6663-1-pablo@netfilter.org>
-References: <20190806160310.6663-1-pablo@netfilter.org>
+To:     wenxu@ucloud.cn
+Cc:     jakub.kicinski@netronome.com, jiri@resnulli.us,
+        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+Subject: Re: [PATCH net-next v6 5/6] flow_offload: support get
+ multi-subsystem block
+Message-ID: <20190806160509.qrldfktw37qqorae@salvia>
+References: <1564925041-23530-1-git-send-email-wenxu@ucloud.cn>
+ <1564925041-23530-6-git-send-email-wenxu@ucloud.cn>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1564925041-23530-6-git-send-email-wenxu@ucloud.cn>
+User-Agent: NeoMutt/20170113 (1.7.2)
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This patch adds initial support for offloading basechains using
-the priority range from -32767 to 32767. This is restricting the
-netfilter priority range to 16-bit integer since this is what most
-drivers assume so far from tc.
+On Sun, Aug 04, 2019 at 09:24:00PM +0800, wenxu@ucloud.cn wrote:
+> From: wenxu <wenxu@ucloud.cn>
+> 
+> It provide a callback list to find the blocks of tc
+> and nft subsystems
+> 
+> Signed-off-by: wenxu <wenxu@ucloud.cn>
+> ---
+> v6: new patch
+> 
+>  include/net/flow_offload.h | 10 +++++++++-
+>  net/core/flow_offload.c    | 47 +++++++++++++++++++++++++++++++++-------------
+>  net/sched/cls_api.c        |  9 ++++++++-
+>  3 files changed, 51 insertions(+), 15 deletions(-)
+> 
+> diff --git a/include/net/flow_offload.h b/include/net/flow_offload.h
+> index 8f1a7b8..6022dd0 100644
+> --- a/include/net/flow_offload.h
+> +++ b/include/net/flow_offload.h
+> @@ -375,6 +375,15 @@ typedef void flow_indr_block_ing_cmd_t(struct net_device *dev,
+>  					void *cb_priv,
+>  					enum flow_block_command command);
+>  
+> +struct flow_indr_block_ing_entry {
+> +	flow_indr_block_ing_cmd_t *cb;
+> +	struct list_head	list;
+> +};
+> +
+> +void flow_indr_add_block_ing_cb(struct flow_indr_block_ing_entry *entry);
+> +
+> +void flow_indr_del_block_ing_cb(struct flow_indr_block_ing_entry *entry);
 
-The software to hardware priority mapping is not exposed to userspace.
-Hence, it should be possible to extend this range of supported priorities
-later on once drivers are updated to support for 32-bit integer
-priorities.
-
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-v4: no changes wrt. [PATCH net 2/2,v3] netfilter: nf_tables: map basechain
-    priority to hardware priority.
-
- include/net/netfilter/nf_tables_offload.h |  2 ++
- net/netfilter/nf_tables_api.c             |  4 ++++
- net/netfilter/nf_tables_offload.c         | 18 +++++++++++++++---
- 3 files changed, 21 insertions(+), 3 deletions(-)
-
-diff --git a/include/net/netfilter/nf_tables_offload.h b/include/net/netfilter/nf_tables_offload.h
-index 3196663a10e3..3c31e9d55028 100644
---- a/include/net/netfilter/nf_tables_offload.h
-+++ b/include/net/netfilter/nf_tables_offload.h
-@@ -73,4 +73,6 @@ int nft_flow_rule_offload_commit(struct net *net);
- 	(__reg)->key		= __key;				\
- 	memset(&(__reg)->mask, 0xff, (__reg)->len);
- 
-+u32 nft_chain_offload_priority(struct nft_base_chain *basechain);
-+
- #endif
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 605a7cfe7ca7..9cf0fecf5cb9 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -1662,6 +1662,10 @@ static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 genmask,
- 
- 		chain->flags |= NFT_BASE_CHAIN | flags;
- 		basechain->policy = NF_ACCEPT;
-+		if (chain->flags & NFT_CHAIN_HW_OFFLOAD &&
-+		    !nft_chain_offload_priority(basechain))
-+			return -EOPNOTSUPP;
-+
- 		flow_block_init(&basechain->flow_block);
- 	} else {
- 		chain = kzalloc(sizeof(*chain), GFP_KERNEL);
-diff --git a/net/netfilter/nf_tables_offload.c b/net/netfilter/nf_tables_offload.c
-index 64f5fd5f240e..81d636fac571 100644
---- a/net/netfilter/nf_tables_offload.c
-+++ b/net/netfilter/nf_tables_offload.c
-@@ -103,10 +103,11 @@ void nft_offload_update_dependency(struct nft_offload_ctx *ctx,
- }
- 
- static void nft_flow_offload_common_init(struct flow_cls_common_offload *common,
--					 __be16 proto,
--					struct netlink_ext_ack *extack)
-+					 __be16 proto, int priority,
-+					 struct netlink_ext_ack *extack)
- {
- 	common->protocol = proto;
-+	common->prio = priority;
- 	common->extack = extack;
- }
- 
-@@ -124,6 +125,15 @@ static int nft_setup_cb_call(struct nft_base_chain *basechain,
- 	return 0;
- }
- 
-+u32 nft_chain_offload_priority(struct nft_base_chain *basechain)
-+{
-+	if (basechain->ops.priority < SHRT_MIN ||
-+	    basechain->ops.priority > SHRT_MAX)
-+		return 0;
-+
-+	return basechain->ops.priority + abs(SHRT_MIN);
-+}
-+
- static int nft_flow_offload_rule(struct nft_trans *trans,
- 				 enum flow_cls_command command)
- {
-@@ -142,7 +152,9 @@ static int nft_flow_offload_rule(struct nft_trans *trans,
- 	if (flow)
- 		proto = flow->proto;
- 
--	nft_flow_offload_common_init(&cls_flow.common, proto, &extack);
-+	nft_flow_offload_common_init(&cls_flow.common, proto,
-+				     nft_chain_offload_priority(basechain),
-+				     &extack);
- 	cls_flow.command = command;
- 	cls_flow.cookie = (unsigned long) rule;
- 	if (flow)
--- 
-2.11.0
-
+Twice the same?
