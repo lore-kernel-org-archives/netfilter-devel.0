@@ -1,166 +1,108 @@
-Return-Path: <SRS0=eApp=WC=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=iSAz=WD=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.2 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7ACB9C31E40
-	for <netfilter-devel@archiver.kernel.org>; Tue,  6 Aug 2019 23:37:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 18DA6C433FF
+	for <netfilter-devel@archiver.kernel.org>; Wed,  7 Aug 2019 00:25:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 55B3A2089E
-	for <netfilter-devel@archiver.kernel.org>; Tue,  6 Aug 2019 23:37:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D97D6214C6
+	for <netfilter-devel@archiver.kernel.org>; Wed,  7 Aug 2019 00:25:35 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=metaloft-com.20150623.gappssmtp.com header.i=@metaloft-com.20150623.gappssmtp.com header.b="y/uGOiob"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726133AbfHFXhO (ORCPT
+        id S1727501AbfHGAZf (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 6 Aug 2019 19:37:14 -0400
-Received: from m9784.mail.qiye.163.com ([220.181.97.84]:7357 "EHLO
-        m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726044AbfHFXhO (ORCPT
+        Tue, 6 Aug 2019 20:25:35 -0400
+Received: from mail-pg1-f193.google.com ([209.85.215.193]:35100 "EHLO
+        mail-pg1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726238AbfHGAZf (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 6 Aug 2019 19:37:14 -0400
-Received: from [192.168.1.3] (unknown [101.93.38.113])
-        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id 0DE344160C;
-        Wed,  7 Aug 2019 07:37:10 +0800 (CST)
-Subject: Re: [PATCH net-next v6 5/6] flow_offload: support get multi-subsystem
- block
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     jakub.kicinski@netronome.com, jiri@resnulli.us,
-        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-References: <1564925041-23530-1-git-send-email-wenxu@ucloud.cn>
- <1564925041-23530-6-git-send-email-wenxu@ucloud.cn>
- <20190806161000.3csoy3jlpq6cletq@salvia>
-From:   wenxu <wenxu@ucloud.cn>
-Message-ID: <7654c76a-bc47-e0f7-7b94-90e36b337ee0@ucloud.cn>
-Date:   Wed, 7 Aug 2019 07:36:55 +0800
-User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:60.0) Gecko/20100101
+        Tue, 6 Aug 2019 20:25:35 -0400
+Received: by mail-pg1-f193.google.com with SMTP id n4so733485pgv.2
+        for <netfilter-devel@vger.kernel.org>; Tue, 06 Aug 2019 17:25:35 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=metaloft-com.20150623.gappssmtp.com; s=20150623;
+        h=to:from:subject:message-id:date:user-agent:mime-version
+         :content-language:content-transfer-encoding;
+        bh=1+n2jV791B/qZPMBB+tZ2w+Rm1T/g2nQKQ80HO/r0r8=;
+        b=y/uGOiobi5vSPNPicLCEmiDwKIXvg0sQZMaj4QQBSW6xXEVzDTBw2ZGyH49AtIGSla
+         a/ybWifAPf5BIYQbRmP/9MnWeQmVLo842AklHn2fTW7VHVCRnqepQM2HQHxzLPtX60WU
+         Ux7GCDbuhm1oxGSPf4pCeJUDFtHOjD1T5HhAuj02pJ77AyzQqLhcaxIt9eVGCjJGVqkG
+         3u3/kFOtgs6c+BYN7wMwTEawX/PcrNonEdNNvMd3/8P1QhtZ7nOW0KzGH0y1X0FU/ROp
+         hHpd+rYT14sfxrD7Jjc1dosaGlSmacYVH5HNS+TGtR5CLIVp6/yDesiGt/mdaWMH5slE
+         xS6g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:to:from:subject:message-id:date:user-agent
+         :mime-version:content-language:content-transfer-encoding;
+        bh=1+n2jV791B/qZPMBB+tZ2w+Rm1T/g2nQKQ80HO/r0r8=;
+        b=t0FHPjTRFr4NNmrkHytRzGHngj02aFjx1xLPQ1vnMw2EB53HWKbO28kylUS5c2Y9rl
+         rayMHMTcakvRcxS9qKXTYL30HqQgx+0vPmyrS5Wb/D3di4kE3MA05zaHYcM0oTX2Dwrs
+         egaI5QvWfwAPJYPohxf9G6zXC1JU3hjOu4Ug2ZDE2AhhlinqrSvyvjxoK8MkRfDJlcGv
+         TFK13wGZsAlx7L3xqum6wow+E2AI2hJMaJnAcI63OyYUH4J7CdzPdBoCkMnZLrIAJTL1
+         TpeQ/qyGKMKNOgd7+hq3jdvB63jVxMW4/g1D8y32sHnd0CsddPiCmW2OvpCSkU0trUrZ
+         0pIQ==
+X-Gm-Message-State: APjAAAVe7TtM2fpQrEPykeVqyfNp06Af+eOEZdfCWHHj0kcq/PvcMov4
+        eP52v+0BoGQ1hpuWwt9HMCQbcbPzNiM=
+X-Google-Smtp-Source: APXvYqzXsJ9ucTBU4jcckuSkTcuiCwh/r4smYfjTbZ2DMf1PwYRkwTcN7pK7BJ0uMuGkVTjV1HpksA==
+X-Received: by 2002:a63:1455:: with SMTP id 21mr5317235pgu.116.1565137534307;
+        Tue, 06 Aug 2019 17:25:34 -0700 (PDT)
+Received: from ?IPv6:2600:6c4e:2200:6881::3c8? (2600-6c4e-2200-6881-0000-0000-0000-03c8.dhcp6.chtrptr.net. [2600:6c4e:2200:6881::3c8])
+        by smtp.gmail.com with ESMTPSA id d2sm20426564pjs.21.2019.08.06.17.25.33
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_3 cipher=AEAD-AES128-GCM-SHA256 bits=128/128);
+        Tue, 06 Aug 2019 17:25:33 -0700 (PDT)
+To:     netfilter-devel@vger.kernel.org
+From:   Dirk Morris <dmorris@metaloft.com>
+Subject: [PATCH net] netfilter: Use consistent ct id hash calculation
+Message-ID: <e5d48c19-508d-e1ed-1f16-8e0a3773c619@metaloft.com>
+Date:   Tue, 6 Aug 2019 17:25:32 -0700
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
  Thunderbird/60.8.0
 MIME-Version: 1.0
-In-Reply-To: <20190806161000.3csoy3jlpq6cletq@salvia>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVklVSUhJS0tLSE5LQk5JSk5ZV1koWU
-        FJQjdXWS1ZQUlXWQkOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6P006Vgw*DDgxMk1LLE0pSjM6
-        KhQwFCxVSlVKTk1OSkhPTUhLSEpKVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpLSlVC
-        SFVIQ1VKSkhZV1kIAVlBTklJTDcG
-X-HM-Tid: 0a6c694b2d492086kuqy0de344160c
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Currently the new ct id is a hash based on several attributes which do
+not change throughout lifetime of the connection. However, the hash
+includes the reply side tuple which does change during NAT on the
+first packet. This means the ct id associated with the first packet of
+a connection pre-NAT is different than it is post-NAT. This means if
+you are using nfqueue or nflog in userspace the associated ct id
+changes from pre-NAT on the first packet to post-NAT on the first
+packet or all subsequent packets.
 
-在 2019/8/7 0:10, Pablo Neira Ayuso 写道:
-> On Sun, Aug 04, 2019 at 09:24:00PM +0800, wenxu@ucloud.cn wrote:
->> diff --git a/include/net/flow_offload.h b/include/net/flow_offload.h
->> index 8f1a7b8..6022dd0 100644
->> --- a/include/net/flow_offload.h
->> +++ b/include/net/flow_offload.h
-> [...]
->> @@ -282,6 +282,8 @@ int flow_block_cb_setup_simple(struct flow_block_offload *f,
->>  }
->>  EXPORT_SYMBOL(flow_block_cb_setup_simple);
->>  
->> +static LIST_HEAD(block_ing_cb_list);
->> +
->>  static struct rhashtable indr_setup_block_ht;
->>  
->>  struct flow_indr_block_cb {
->> @@ -295,7 +297,6 @@ struct flow_indr_block_dev {
->>  	struct rhash_head ht_node;
->>  	struct net_device *dev;
->>  	unsigned int refcnt;
->> -	flow_indr_block_ing_cmd_t  *block_ing_cmd_cb;
->>  	struct list_head cb_list;
->>  };
->>  
->> @@ -389,6 +390,22 @@ static void flow_indr_block_cb_del(struct flow_indr_block_cb *indr_block_cb)
->>  	kfree(indr_block_cb);
->>  }
->>  
->> +static void flow_block_ing_cmd(struct net_device *dev,
->> +			       flow_indr_block_bind_cb_t *cb,
->> +			       void *cb_priv,
->> +			       enum flow_block_command command)
->> +{
->> +	struct flow_indr_block_ing_entry *entry;
->> +
->> +	rcu_read_lock();
->> +
-> unnecessary empty line.
->
->> +	list_for_each_entry_rcu(entry, &block_ing_cb_list, list) {
->> +		entry->cb(dev, cb, cb_priv, command);
->> +	}
->> +
->> +	rcu_read_unlock();
-> OK, there's rcu_read_lock here...
->
->> +}
->> +
->>  int __flow_indr_block_cb_register(struct net_device *dev, void *cb_priv,
->>  				  flow_indr_block_bind_cb_t *cb,
->>  				  void *cb_ident)
->> @@ -406,10 +423,8 @@ int __flow_indr_block_cb_register(struct net_device *dev, void *cb_priv,
->>  	if (err)
->>  		goto err_dev_put;
->>  
->> -	if (indr_dev->block_ing_cmd_cb)
->> -		indr_dev->block_ing_cmd_cb(dev, indr_block_cb->cb,
->> -					   indr_block_cb->cb_priv,
->> -					   FLOW_BLOCK_BIND);
->> +	flow_block_ing_cmd(dev, indr_block_cb->cb, indr_block_cb->cb_priv,
->> +			   FLOW_BLOCK_BIND);
->>  
->>  	return 0;
->>  
->> @@ -448,10 +463,8 @@ void __flow_indr_block_cb_unregister(struct net_device *dev,
->>  	if (!indr_block_cb)
->>  		return;
->>  
->> -	if (indr_dev->block_ing_cmd_cb)
->> -		indr_dev->block_ing_cmd_cb(dev, indr_block_cb->cb,
->> -					   indr_block_cb->cb_priv,
->> -					   FLOW_BLOCK_UNBIND);
->> +	flow_block_ing_cmd(dev, indr_block_cb->cb, indr_block_cb->cb_priv,
->> +			   FLOW_BLOCK_UNBIND);
->>  
->>  	flow_indr_block_cb_del(indr_block_cb);
->>  	flow_indr_block_dev_put(indr_dev);
->> @@ -469,7 +482,6 @@ void flow_indr_block_cb_unregister(struct net_device *dev,
->>  EXPORT_SYMBOL_GPL(flow_indr_block_cb_unregister);
->>  
->>  void flow_indr_block_call(struct net_device *dev,
->> -			  flow_indr_block_ing_cmd_t cb,
->>  			  struct flow_block_offload *bo,
->>  			  enum flow_block_command command)
->>  {
->> @@ -480,15 +492,24 @@ void flow_indr_block_call(struct net_device *dev,
->>  	if (!indr_dev)
->>  		return;
->>  
->> -	indr_dev->block_ing_cmd_cb = command == FLOW_BLOCK_BIND
->> -				     ? cb : NULL;
->> -
->>  	list_for_each_entry(indr_block_cb, &indr_dev->cb_list, list)
->>  		indr_block_cb->cb(dev, indr_block_cb->cb_priv, TC_SETUP_BLOCK,
->>  				  bo);
->>  }
->>  EXPORT_SYMBOL_GPL(flow_indr_block_call);
->>  
->> +void flow_indr_add_block_ing_cb(struct flow_indr_block_ing_entry *entry)
->> +{
-> ... but registration does not protect the list with a mutex.
->
->> +	list_add_tail_rcu(&entry->list, &block_ing_cb_list);
->> +}
->> +EXPORT_SYMBOL_GPL(flow_indr_add_block_ing_cb);
+Below is a patch that (I think) provides the same level of uniqueness
+of the hash, but is consistent through the lifetime of the first
+packet and afterwards because it only uses the original direction
+tuple.
 
-flow_indr_add_block_ing_cb called from tc and nft in different order.
- subsys_initcall(tc_filter_init) and nf_tables_module_init 
-It will be called at the same time? 
+Signed-off-by: Dirk Morris <dmorris@metaloft.com>
+---
+  nf_conntrack_core.c |    3 ++-
+  1 file changed, 2 insertions(+), 1 deletion(-)
 
-And any nft need flow_indr_del_block_ing_cb. It also does nedd the lock?
-
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index a542761..eae4898 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -471,7 +471,8 @@ u32 nf_ct_get_id(const struct nf_conn *ct)
+         a = (unsigned long)ct;
+         b = (unsigned long)ct->master ^ net_hash_mix(nf_ct_net(ct));
+         c = (unsigned long)ct->ext;
+-       d = (unsigned long)siphash(&ct->tuplehash, sizeof(ct->tuplehash),
++       d = (unsigned long)siphash(&ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple,
++                                  sizeof(ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple),
+                                    &ct_id_seed);
+  #ifdef CONFIG_64BIT
+         return siphash_4u64((u64)a, (u64)b, (u64)c, (u64)d, &ct_id_seed);
