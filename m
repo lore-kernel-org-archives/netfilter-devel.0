@@ -2,211 +2,155 @@ Return-Path: <SRS0=iSAz=WD=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E6BDEC32751
-	for <netfilter-devel@archiver.kernel.org>; Wed,  7 Aug 2019 14:17:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 64E57C433FF
+	for <netfilter-devel@archiver.kernel.org>; Wed,  7 Aug 2019 15:28:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B99FE21E6C
-	for <netfilter-devel@archiver.kernel.org>; Wed,  7 Aug 2019 14:17:31 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="MFIaKggY"
+	by mail.kernel.org (Postfix) with ESMTP id 3C03A21E73
+	for <netfilter-devel@archiver.kernel.org>; Wed,  7 Aug 2019 15:28:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388219AbfHGORY (ORCPT
+        id S2388630AbfHGP2l (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 7 Aug 2019 10:17:24 -0400
-Received: from kadath.azazel.net ([81.187.231.250]:46012 "EHLO
-        kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730016AbfHGORK (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 7 Aug 2019 10:17:10 -0400
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-         s=20190108; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
-        Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
-        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=oOpFcWNpt0i4CaFfXIdVnJrCBk46Rzj4f/lsRX4vkeo=; b=MFIaKggYh9FqTMc1gJReqWXXIy
-        C9aVUS0CrGA3i9SWbm6qGMMa/dDClEWM+JVang5dke1cbQxdQkiUeYOzuL1+uB7kpgrDV8TeEmzuq
-        8BCpL8nwJM9An/FNidRMxA1+A1P3NSezTBsiRC4w8o4CvirS3+v+YmRGfTSO+Y+Wkheyf0EVIC9Hh
-        3hTmxoaGfHVZNPxPySVKaLiP4zo6x3oTTyv+zfXdYzBBtXxSNTIXM7FIW3N5eQrkkI9/jRV8KO5NP
-        sCfrhQJyNtE37MxR6MdqdkDM3vRZgVihdgmQVOrrTYRNp+MCmq5IaWCVjDj3WE9qCXa7vQcktAHKF
-        JaNUbN+g==;
-Received: from [2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae] (helo=ulthar.dreamlands)
-        by kadath.azazel.net with esmtp (Exim 4.92)
-        (envelope-from <jeremy@azazel.net>)
-        id 1hvMkV-0001Wc-8T; Wed, 07 Aug 2019 15:17:07 +0100
-From:   Jeremy Sowden <jeremy@azazel.net>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>,
-        Net Dev <netdev@vger.kernel.org>,
-        Masahiro Yamada <yamada.masahiro@socionext.com>
-Subject: [PATCH net-next v1 7/8] netfilter: removed "#ifdef __KERNEL__" guards from some headers.
-Date:   Wed,  7 Aug 2019 15:17:04 +0100
-Message-Id: <20190807141705.4864-8-jeremy@azazel.net>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20190807141705.4864-1-jeremy@azazel.net>
-References: <20190722201615.GE23346@azazel.net>
- <20190807141705.4864-1-jeremy@azazel.net>
+        Wed, 7 Aug 2019 11:28:41 -0400
+Received: from mga09.intel.com ([134.134.136.24]:56763 "EHLO mga09.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2387827AbfHGP2k (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 7 Aug 2019 11:28:40 -0400
+X-Amp-Result: UNSCANNABLE
+X-Amp-File-Uploaded: False
+Received: from fmsmga004.fm.intel.com ([10.253.24.48])
+  by orsmga102.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 07 Aug 2019 08:28:40 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.64,357,1559545200"; 
+   d="scan'208";a="198701426"
+Received: from lkp-server01.sh.intel.com (HELO lkp-server01) ([10.239.97.150])
+  by fmsmga004.fm.intel.com with ESMTP; 07 Aug 2019 08:28:39 -0700
+Received: from kbuild by lkp-server01 with local (Exim 4.89)
+        (envelope-from <lkp@intel.com>)
+        id 1hvNri-00080X-Kl; Wed, 07 Aug 2019 23:28:38 +0800
+Date:   Wed, 7 Aug 2019 23:27:52 +0800
+From:   kbuild test robot <lkp@intel.com>
+To:     Ander Juaristi <a@juaristi.eus>
+Cc:     kbuild-all@01.org, netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH v3] netfilter: nft_meta: support for time matching
+Message-ID: <201908072207.PfTHrUGc%lkp@intel.com>
+References: <20190802071233.5580-1-a@juaristi.eus>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190802071233.5580-1-a@juaristi.eus>
+X-Patchwork-Hint: ignore
+User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-A number of non-UAPI Netfilter header-files contained superfluous
-"#ifdef __KERNEL__" guards.  Removed them.
+Hi Ander,
 
-Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
+Thank you for the patch! Perhaps something to improve:
+
+[auto build test WARNING on linus/master]
+[cannot apply to v5.3-rc3 next-20190807]
+[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
+
+url:    https://github.com/0day-ci/linux/commits/Ander-Juaristi/netfilter-nft_meta-support-for-time-matching/20190804-141253
+reproduce:
+        # apt-get install sparse
+        # sparse version: v0.6.1-rc1-7-g2b96cd8-dirty
+        make ARCH=x86_64 allmodconfig
+        make C=1 CF='-fdiagnostic-prefix -D__CHECK_ENDIAN__'
+
+If you fix the issue, kindly add following tag
+Reported-by: kbuild test robot <lkp@intel.com>
+
+
+sparse warnings: (new ones prefixed by >>)
+
+   include/linux/sched.h:609:43: sparse: sparse: bad integer constant expression
+   include/linux/sched.h:609:73: sparse: sparse: invalid named zero-width bitfield `value'
+   include/linux/sched.h:610:43: sparse: sparse: bad integer constant expression
+   include/linux/sched.h:610:67: sparse: sparse: invalid named zero-width bitfield `bucket_id'
+   net/bridge/netfilter/nft_meta_bridge.c:41:14: sparse: sparse: undefined identifier 'NFT_META_BRI_IIFPVID'
+   net/bridge/netfilter/nft_meta_bridge.c:52:14: sparse: sparse: undefined identifier 'NFT_META_BRI_IIFVPROTO'
+>> net/bridge/netfilter/nft_meta_bridge.c:41:14: sparse: sparse: incompatible types for 'case' statement
+   net/bridge/netfilter/nft_meta_bridge.c:52:14: sparse: sparse: incompatible types for 'case' statement
+   net/bridge/netfilter/nft_meta_bridge.c:88:14: sparse: sparse: undefined identifier 'NFT_META_BRI_IIFPVID'
+   net/bridge/netfilter/nft_meta_bridge.c:89:14: sparse: sparse: undefined identifier 'NFT_META_BRI_IIFVPROTO'
+   net/bridge/netfilter/nft_meta_bridge.c:88:14: sparse: sparse: incompatible types for 'case' statement
+   net/bridge/netfilter/nft_meta_bridge.c:89:14: sparse: sparse: incompatible types for 'case' statement
+   net/bridge/netfilter/nft_meta_bridge.c:41:14: sparse: sparse: Expected constant expression in case statement
+   net/bridge/netfilter/nft_meta_bridge.c:52:14: sparse: sparse: Expected constant expression in case statement
+   net/bridge/netfilter/nft_meta_bridge.c:88:14: sparse: sparse: Expected constant expression in case statement
+   net/bridge/netfilter/nft_meta_bridge.c:89:14: sparse: sparse: Expected constant expression in case statement
+
+vim +/case +41 net/bridge/netfilter/nft_meta_bridge.c
+
+30e103fe24debc wenxu 2019-07-05  20  
+30e103fe24debc wenxu 2019-07-05  21  static void nft_meta_bridge_get_eval(const struct nft_expr *expr,
+30e103fe24debc wenxu 2019-07-05  22  				     struct nft_regs *regs,
+30e103fe24debc wenxu 2019-07-05  23  				     const struct nft_pktinfo *pkt)
+30e103fe24debc wenxu 2019-07-05  24  {
+30e103fe24debc wenxu 2019-07-05  25  	const struct nft_meta *priv = nft_expr_priv(expr);
+30e103fe24debc wenxu 2019-07-05  26  	const struct net_device *in = nft_in(pkt), *out = nft_out(pkt);
+30e103fe24debc wenxu 2019-07-05  27  	u32 *dest = &regs->data[priv->dreg];
+9d6a1ecdc99717 wenxu 2019-07-05  28  	const struct net_device *br_dev;
+30e103fe24debc wenxu 2019-07-05  29  
+30e103fe24debc wenxu 2019-07-05  30  	switch (priv->key) {
+30e103fe24debc wenxu 2019-07-05  31  	case NFT_META_BRI_IIFNAME:
+9d6a1ecdc99717 wenxu 2019-07-05  32  		br_dev = nft_meta_get_bridge(in);
+9d6a1ecdc99717 wenxu 2019-07-05  33  		if (!br_dev)
+30e103fe24debc wenxu 2019-07-05  34  			goto err;
+30e103fe24debc wenxu 2019-07-05  35  		break;
+30e103fe24debc wenxu 2019-07-05  36  	case NFT_META_BRI_OIFNAME:
+9d6a1ecdc99717 wenxu 2019-07-05  37  		br_dev = nft_meta_get_bridge(out);
+9d6a1ecdc99717 wenxu 2019-07-05  38  		if (!br_dev)
+30e103fe24debc wenxu 2019-07-05  39  			goto err;
+30e103fe24debc wenxu 2019-07-05  40  		break;
+c54c7c685494fc wenxu 2019-07-05 @41  	case NFT_META_BRI_IIFPVID: {
+c54c7c685494fc wenxu 2019-07-05  42  		u16 p_pvid;
+c54c7c685494fc wenxu 2019-07-05  43  
+c54c7c685494fc wenxu 2019-07-05  44  		br_dev = nft_meta_get_bridge(in);
+c54c7c685494fc wenxu 2019-07-05  45  		if (!br_dev || !br_vlan_enabled(br_dev))
+c54c7c685494fc wenxu 2019-07-05  46  			goto err;
+c54c7c685494fc wenxu 2019-07-05  47  
+c54c7c685494fc wenxu 2019-07-05  48  		br_vlan_get_pvid_rcu(in, &p_pvid);
+c54c7c685494fc wenxu 2019-07-05  49  		nft_reg_store16(dest, p_pvid);
+c54c7c685494fc wenxu 2019-07-05  50  		return;
+c54c7c685494fc wenxu 2019-07-05  51  	}
+2a3a93ef0ba516 wenxu 2019-07-05  52  	case NFT_META_BRI_IIFVPROTO: {
+2a3a93ef0ba516 wenxu 2019-07-05  53  		u16 p_proto;
+2a3a93ef0ba516 wenxu 2019-07-05  54  
+2a3a93ef0ba516 wenxu 2019-07-05  55  		br_dev = nft_meta_get_bridge(in);
+2a3a93ef0ba516 wenxu 2019-07-05  56  		if (!br_dev || !br_vlan_enabled(br_dev))
+2a3a93ef0ba516 wenxu 2019-07-05  57  			goto err;
+2a3a93ef0ba516 wenxu 2019-07-05  58  
+2a3a93ef0ba516 wenxu 2019-07-05  59  		br_vlan_get_proto(br_dev, &p_proto);
+2a3a93ef0ba516 wenxu 2019-07-05  60  		nft_reg_store16(dest, p_proto);
+2a3a93ef0ba516 wenxu 2019-07-05  61  		return;
+2a3a93ef0ba516 wenxu 2019-07-05  62  	}
+30e103fe24debc wenxu 2019-07-05  63  	default:
+30e103fe24debc wenxu 2019-07-05  64  		goto out;
+30e103fe24debc wenxu 2019-07-05  65  	}
+30e103fe24debc wenxu 2019-07-05  66  
+9d6a1ecdc99717 wenxu 2019-07-05  67  	strncpy((char *)dest, br_dev->name, IFNAMSIZ);
+30e103fe24debc wenxu 2019-07-05  68  	return;
+30e103fe24debc wenxu 2019-07-05  69  out:
+30e103fe24debc wenxu 2019-07-05  70  	return nft_meta_get_eval(expr, regs, pkt);
+30e103fe24debc wenxu 2019-07-05  71  err:
+30e103fe24debc wenxu 2019-07-05  72  	regs->verdict.code = NFT_BREAK;
+30e103fe24debc wenxu 2019-07-05  73  }
+30e103fe24debc wenxu 2019-07-05  74  
+
+:::::: The code at line 41 was first introduced by commit
+:::::: c54c7c685494fc0f1662091d4d0c4fc26e810471 netfilter: nft_meta_bridge: add NFT_META_BRI_IIFPVID support
+
+:::::: TO: wenxu <wenxu@ucloud.cn>
+:::::: CC: Pablo Neira Ayuso <pablo@netfilter.org>
+
 ---
- include/linux/netfilter/nf_conntrack_dccp.h      | 3 ---
- include/linux/netfilter/nf_conntrack_h323.h      | 4 ----
- include/linux/netfilter/nf_conntrack_irc.h       | 3 ---
- include/linux/netfilter/nf_conntrack_pptp.h      | 3 ---
- include/linux/netfilter/nf_conntrack_proto_gre.h | 2 --
- include/linux/netfilter/nf_conntrack_sane.h      | 4 ----
- include/linux/netfilter/nf_conntrack_sip.h       | 2 --
- 7 files changed, 21 deletions(-)
-
-diff --git a/include/linux/netfilter/nf_conntrack_dccp.h b/include/linux/netfilter/nf_conntrack_dccp.h
-index ace0f952d50f..c509ed76e714 100644
---- a/include/linux/netfilter/nf_conntrack_dccp.h
-+++ b/include/linux/netfilter/nf_conntrack_dccp.h
-@@ -25,7 +25,6 @@ enum ct_dccp_roles {
- };
- #define CT_DCCP_ROLE_MAX	(__CT_DCCP_ROLE_MAX - 1)
- 
--#ifdef __KERNEL__
- #include <linux/netfilter/nf_conntrack_tuple_common.h>
- 
- struct nf_ct_dccp {
-@@ -36,6 +35,4 @@ struct nf_ct_dccp {
- 	u_int64_t	handshake_seq;
- };
- 
--#endif /* __KERNEL__ */
--
- #endif /* _NF_CONNTRACK_DCCP_H */
-diff --git a/include/linux/netfilter/nf_conntrack_h323.h b/include/linux/netfilter/nf_conntrack_h323.h
-index 96dfa886f8c0..4561ec0fcea4 100644
---- a/include/linux/netfilter/nf_conntrack_h323.h
-+++ b/include/linux/netfilter/nf_conntrack_h323.h
-@@ -2,8 +2,6 @@
- #ifndef _NF_CONNTRACK_H323_H
- #define _NF_CONNTRACK_H323_H
- 
--#ifdef __KERNEL__
--
- #include <linux/netfilter.h>
- #include <linux/skbuff.h>
- #include <linux/types.h>
-@@ -97,5 +95,3 @@ extern int (*nat_q931_hook) (struct sk_buff *skb, struct nf_conn *ct,
- 			     struct nf_conntrack_expect *exp);
- 
- #endif
--
--#endif
-diff --git a/include/linux/netfilter/nf_conntrack_irc.h b/include/linux/netfilter/nf_conntrack_irc.h
-index f75e005db969..d02255f721e1 100644
---- a/include/linux/netfilter/nf_conntrack_irc.h
-+++ b/include/linux/netfilter/nf_conntrack_irc.h
-@@ -2,8 +2,6 @@
- #ifndef _NF_CONNTRACK_IRC_H
- #define _NF_CONNTRACK_IRC_H
- 
--#ifdef __KERNEL__
--
- #include <linux/netfilter.h>
- #include <linux/skbuff.h>
- #include <net/netfilter/nf_conntrack_expect.h>
-@@ -17,5 +15,4 @@ extern unsigned int (*nf_nat_irc_hook)(struct sk_buff *skb,
- 				       unsigned int matchlen,
- 				       struct nf_conntrack_expect *exp);
- 
--#endif /* __KERNEL__ */
- #endif /* _NF_CONNTRACK_IRC_H */
-diff --git a/include/linux/netfilter/nf_conntrack_pptp.h b/include/linux/netfilter/nf_conntrack_pptp.h
-index 3f10e806f0dc..fcc409de31a4 100644
---- a/include/linux/netfilter/nf_conntrack_pptp.h
-+++ b/include/linux/netfilter/nf_conntrack_pptp.h
-@@ -50,8 +50,6 @@ struct nf_nat_pptp {
- 	__be16 pac_call_id;			/* NAT'ed PAC call id */
- };
- 
--#ifdef __KERNEL__
--
- #define PPTP_CONTROL_PORT	1723
- 
- #define PPTP_PACKET_CONTROL	1
-@@ -324,5 +322,4 @@ extern void
- (*nf_nat_pptp_hook_expectfn)(struct nf_conn *ct,
- 			     struct nf_conntrack_expect *exp);
- 
--#endif /* __KERNEL__ */
- #endif /* _NF_CONNTRACK_PPTP_H */
-diff --git a/include/linux/netfilter/nf_conntrack_proto_gre.h b/include/linux/netfilter/nf_conntrack_proto_gre.h
-index 25f9a770fb84..f33aa6021364 100644
---- a/include/linux/netfilter/nf_conntrack_proto_gre.h
-+++ b/include/linux/netfilter/nf_conntrack_proto_gre.h
-@@ -10,7 +10,6 @@ struct nf_ct_gre {
- 	unsigned int timeout;
- };
- 
--#ifdef __KERNEL__
- #include <net/netfilter/nf_conntrack_tuple.h>
- 
- struct nf_conn;
-@@ -32,5 +31,4 @@ void nf_ct_gre_keymap_destroy(struct nf_conn *ct);
- 
- bool gre_pkt_to_tuple(const struct sk_buff *skb, unsigned int dataoff,
- 		      struct net *net, struct nf_conntrack_tuple *tuple);
--#endif /* __KERNEL__ */
- #endif /* _CONNTRACK_PROTO_GRE_H */
-diff --git a/include/linux/netfilter/nf_conntrack_sane.h b/include/linux/netfilter/nf_conntrack_sane.h
-index 7d2de44edce3..46c7acd1b4a7 100644
---- a/include/linux/netfilter/nf_conntrack_sane.h
-+++ b/include/linux/netfilter/nf_conntrack_sane.h
-@@ -3,8 +3,6 @@
- #define _NF_CONNTRACK_SANE_H
- /* SANE tracking. */
- 
--#ifdef __KERNEL__
--
- #define SANE_PORT	6566
- 
- enum sane_state {
-@@ -17,6 +15,4 @@ struct nf_ct_sane_master {
- 	enum sane_state state;
- };
- 
--#endif /* __KERNEL__ */
--
- #endif /* _NF_CONNTRACK_SANE_H */
-diff --git a/include/linux/netfilter/nf_conntrack_sip.h b/include/linux/netfilter/nf_conntrack_sip.h
-index f6437f7841af..c620521c42bc 100644
---- a/include/linux/netfilter/nf_conntrack_sip.h
-+++ b/include/linux/netfilter/nf_conntrack_sip.h
-@@ -1,7 +1,6 @@
- /* SPDX-License-Identifier: GPL-2.0 */
- #ifndef __NF_CONNTRACK_SIP_H__
- #define __NF_CONNTRACK_SIP_H__
--#ifdef __KERNEL__
- 
- #include <linux/skbuff.h>
- #include <linux/types.h>
-@@ -196,5 +195,4 @@ int ct_sip_get_sdp_header(const struct nf_conn *ct, const char *dptr,
- 			  enum sdp_header_types term,
- 			  unsigned int *matchoff, unsigned int *matchlen);
- 
--#endif /* __KERNEL__ */
- #endif /* __NF_CONNTRACK_SIP_H__ */
--- 
-2.20.1
-
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
