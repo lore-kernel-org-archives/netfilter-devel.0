@@ -2,67 +2,129 @@ Return-Path: <SRS0=iSAz=WD=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 174B1C31E40
-	for <netfilter-devel@archiver.kernel.org>; Wed,  7 Aug 2019 01:11:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CB866C31E40
+	for <netfilter-devel@archiver.kernel.org>; Wed,  7 Aug 2019 01:13:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E7BAE2173C
-	for <netfilter-devel@archiver.kernel.org>; Wed,  7 Aug 2019 01:11:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id ACA56214C6
+	for <netfilter-devel@archiver.kernel.org>; Wed,  7 Aug 2019 01:13:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727698AbfHGBLc (ORCPT
+        id S1728157AbfHGBN7 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 6 Aug 2019 21:11:32 -0400
-Received: from m9784.mail.qiye.163.com ([220.181.97.84]:58394 "EHLO
+        Tue, 6 Aug 2019 21:13:59 -0400
+Received: from m9784.mail.qiye.163.com ([220.181.97.84]:1027 "EHLO
         m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727538AbfHGBLc (ORCPT
+        with ESMTP id S1727651AbfHGBN6 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 6 Aug 2019 21:11:32 -0400
-Received: from [192.168.1.3] (unknown [101.93.38.113])
-        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id 57B9F416EF;
-        Wed,  7 Aug 2019 09:11:29 +0800 (CST)
-Subject: Re: [PATCH net-next v6 5/6] flow_offload: support get multi-subsystem
- block
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     jakub.kicinski@netronome.com, jiri@resnulli.us,
-        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-References: <1564925041-23530-1-git-send-email-wenxu@ucloud.cn>
- <1564925041-23530-6-git-send-email-wenxu@ucloud.cn>
- <20190806161000.3csoy3jlpq6cletq@salvia>
-From:   wenxu <wenxu@ucloud.cn>
-Message-ID: <c3aec20d-359e-ca54-5ab1-bb16c439feb8@ucloud.cn>
-Date:   Wed, 7 Aug 2019 09:11:15 +0800
-User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:60.0) Gecko/20100101
- Thunderbird/60.8.0
-MIME-Version: 1.0
-In-Reply-To: <20190806161000.3csoy3jlpq6cletq@salvia>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVkpVSEhJS0tLSkhNSExOT0hZV1koWU
+        Tue, 6 Aug 2019 21:13:58 -0400
+Received: from localhost.localdomain (unknown [123.59.132.129])
+        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id 9E8C441749;
+        Wed,  7 Aug 2019 09:13:55 +0800 (CST)
+From:   wenxu@ucloud.cn
+To:     jakub.kicinski@netronome.com, pablo@netfilter.org
+Cc:     netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+Subject: [PATCH net-next v7 2/6] cls_api: remove the tcf_block cache
+Date:   Wed,  7 Aug 2019 09:13:50 +0800
+Message-Id: <1565140434-8109-3-git-send-email-wenxu@ucloud.cn>
+X-Mailer: git-send-email 1.8.3.1
+In-Reply-To: <1565140434-8109-1-git-send-email-wenxu@ucloud.cn>
+References: <1565140434-8109-1-git-send-email-wenxu@ucloud.cn>
+X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVkpVSUlOS0tLS0lIQ09KQ01ZV1koWU
         FJQjdXWS1ZQUlXWQkOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6Pi46ATo6HTgzMk0rIwEYExFJ
-        PkMwCUhVSlVKTk1OSk9LSUNCQ09CVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpLSlVC
-        SFVIQ1VKSkhZV1kIAVlBSkNDTjcG
-X-HM-Tid: 0a6c69a1881b2086kuqy57b9f416ef
+X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6MVE6NSo5SDg5Ok0KMwE#TjgV
+        SApPFAlVSlVKTk1OSk9LT0hOQ0lMVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJSFVO
+        QlVKSElVSklCWVdZCAFZQUhNT0w3Bg++
+X-HM-Tid: 0a6c69a3c31e2086kuqy9e8c441749
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+From: wenxu <wenxu@ucloud.cn>
 
-在 2019/8/7 0:10, Pablo Neira Ayuso 写道:
->
->>  
->> +void flow_indr_add_block_ing_cb(struct flow_indr_block_ing_entry *entry)
->> +{
-> ... but registration does not protect the list with a mutex.
->
->> +	list_add_tail_rcu(&entry->list, &block_ing_cb_list);
->> +}
->> +EXPORT_SYMBOL_GPL(flow_indr_add_block_ing_cb);
-yes, I think the  flow_indr_add_block_ing_cb and flow_indr_del_block_ing_cb maybe used for
+Remove the tcf_block in the tc_indr_block_dev for muti-subsystem
+support.
 
-more subsystem in the future. Both of them should add a mutex lock
+Signed-off-by: wenxu <wenxu@ucloud.cn>
+Acked-by: Jakub Kicinski <jakub.kicinski@netronome.com>
+---
+v7: no change
+
+ net/sched/cls_api.c | 16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
+
+diff --git a/net/sched/cls_api.c b/net/sched/cls_api.c
+index 1dd210d..12eaa6c9 100644
+--- a/net/sched/cls_api.c
++++ b/net/sched/cls_api.c
+@@ -574,7 +574,6 @@ struct tc_indr_block_dev {
+ 	struct net_device *dev;
+ 	unsigned int refcnt;
+ 	struct list_head cb_list;
+-	struct tcf_block *block;
+ };
+ 
+ struct tc_indr_block_cb {
+@@ -611,7 +610,6 @@ static struct tc_indr_block_dev *tc_indr_block_dev_get(struct net_device *dev)
+ 
+ 	INIT_LIST_HEAD(&indr_dev->cb_list);
+ 	indr_dev->dev = dev;
+-	indr_dev->block = tc_dev_ingress_block(dev);
+ 	if (rhashtable_insert_fast(&indr_setup_block_ht, &indr_dev->ht_node,
+ 				   tc_indr_setup_block_ht_params)) {
+ 		kfree(indr_dev);
+@@ -706,6 +704,7 @@ int __tc_indr_block_cb_register(struct net_device *dev, void *cb_priv,
+ {
+ 	struct tc_indr_block_cb *indr_block_cb;
+ 	struct tc_indr_block_dev *indr_dev;
++	struct tcf_block *block;
+ 	int err;
+ 
+ 	indr_dev = tc_indr_block_dev_get(dev);
+@@ -717,8 +716,9 @@ int __tc_indr_block_cb_register(struct net_device *dev, void *cb_priv,
+ 	if (err)
+ 		goto err_dev_put;
+ 
+-	tc_indr_block_ing_cmd(dev, indr_dev->block, cb, cb_priv,
+-			      FLOW_BLOCK_BIND);
++	block = tc_dev_ingress_block(dev);
++	tc_indr_block_ing_cmd(dev, block, indr_block_cb->cb,
++			      indr_block_cb->cb_priv, FLOW_BLOCK_BIND);
+ 	return 0;
+ 
+ err_dev_put:
+@@ -745,6 +745,7 @@ void __tc_indr_block_cb_unregister(struct net_device *dev,
+ {
+ 	struct tc_indr_block_cb *indr_block_cb;
+ 	struct tc_indr_block_dev *indr_dev;
++	struct tcf_block *block;
+ 
+ 	indr_dev = tc_indr_block_dev_lookup(dev);
+ 	if (!indr_dev)
+@@ -755,8 +756,9 @@ void __tc_indr_block_cb_unregister(struct net_device *dev,
+ 		return;
+ 
+ 	/* Send unbind message if required to free any block cbs. */
+-	tc_indr_block_ing_cmd(dev, indr_dev->block, cb, indr_block_cb->cb_priv,
+-			      FLOW_BLOCK_UNBIND);
++	block = tc_dev_ingress_block(dev);
++	tc_indr_block_ing_cmd(dev, block, indr_block_cb->cb,
++			      indr_block_cb->cb_priv, FLOW_BLOCK_UNBIND);
+ 	tc_indr_block_cb_del(indr_block_cb);
+ 	tc_indr_block_dev_put(indr_dev);
+ }
+@@ -792,8 +794,6 @@ static void tc_indr_block_call(struct tcf_block *block, struct net_device *dev,
+ 	if (!indr_dev)
+ 		return;
+ 
+-	indr_dev->block = command == FLOW_BLOCK_BIND ? block : NULL;
+-
+ 	list_for_each_entry(indr_block_cb, &indr_dev->cb_list, list)
+ 		indr_block_cb->cb(dev, indr_block_cb->cb_priv, TC_SETUP_BLOCK,
+ 				  &bo);
+-- 
+1.8.3.1
 
