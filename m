@@ -4,40 +4,41 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 62213C31E40
-	for <netfilter-devel@archiver.kernel.org>; Wed,  7 Aug 2019 01:14:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A1C7C31E40
+	for <netfilter-devel@archiver.kernel.org>; Wed,  7 Aug 2019 01:14:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3F26A214C6
-	for <netfilter-devel@archiver.kernel.org>; Wed,  7 Aug 2019 01:14:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DA8CA214C6
+	for <netfilter-devel@archiver.kernel.org>; Wed,  7 Aug 2019 01:14:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727924AbfHGBN6 (ORCPT
+        id S1728535AbfHGBOJ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 6 Aug 2019 21:13:58 -0400
-Received: from m9784.mail.qiye.163.com ([220.181.97.84]:1039 "EHLO
+        Tue, 6 Aug 2019 21:14:09 -0400
+Received: from m9784.mail.qiye.163.com ([220.181.97.84]:64988 "EHLO
         m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727868AbfHGBN6 (ORCPT
+        with ESMTP id S1727527AbfHGBN6 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Tue, 6 Aug 2019 21:13:58 -0400
 Received: from localhost.localdomain (unknown [123.59.132.129])
-        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id D321B41700;
+        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id 6AA044170C;
         Wed,  7 Aug 2019 09:13:55 +0800 (CST)
 From:   wenxu@ucloud.cn
 To:     jakub.kicinski@netronome.com, pablo@netfilter.org
 Cc:     netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-Subject: [PATCH net-next v7 3/6] cls_api: add flow_indr_block_call function
-Date:   Wed,  7 Aug 2019 09:13:51 +0800
-Message-Id: <1565140434-8109-4-git-send-email-wenxu@ucloud.cn>
+Subject: [PATCH net-next v7 1/6] cls_api: modify the tc_indr_block_ing_cmd parameters.
+Date:   Wed,  7 Aug 2019 09:13:49 +0800
+Message-Id: <1565140434-8109-2-git-send-email-wenxu@ucloud.cn>
 X-Mailer: git-send-email 1.8.3.1
 In-Reply-To: <1565140434-8109-1-git-send-email-wenxu@ucloud.cn>
 References: <1565140434-8109-1-git-send-email-wenxu@ucloud.cn>
 X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVkpVSUlOS0tLS0lIQ09KQ01ZV1koWU
         FJQjdXWS1ZQUlXWQkOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6Nio6FCo6KDg*HE0yMwNJTjUv
-        TCkKCTBVSlVKTk1OSk9LT0hOQkhMVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJSFVO
-        QlVKSElVSklCWVdZCAFZQUlDSEI3Bg++
-X-HM-Tid: 0a6c69a3c3ae2086kuqyd321b41700
+X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6MAg6Txw6Ojg3EE0NIwwaTjYB
+        S0swCUxVSlVKTk1OSk9LT0hOTkNOVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJSFVO
+        QlVKSElVSklCWVdZCAFZQUhPSUg3Bg++
+X-HM-Tid: 0a6c69a3c2212086kuqy6aa044170c
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
@@ -45,67 +46,79 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: wenxu <wenxu@ucloud.cn>
 
-This patch make indr_block_call don't access struct tc_indr_block_cb
-and tc_indr_block_dev directly
+This patch make tc_indr_block_ing_cmd can't access struct
+tc_indr_block_dev and tc_indr_block_cb.
 
 Signed-off-by: wenxu <wenxu@ucloud.cn>
 Acked-by: Jakub Kicinski <jakub.kicinski@netronome.com>
 ---
 v7: no change
 
- net/sched/cls_api.c | 27 +++++++++++++++++----------
- 1 file changed, 17 insertions(+), 10 deletions(-)
+ net/sched/cls_api.c | 26 +++++++++++++++-----------
+ 1 file changed, 15 insertions(+), 11 deletions(-)
 
 diff --git a/net/sched/cls_api.c b/net/sched/cls_api.c
-index 12eaa6c9..7c34fc6 100644
+index 9d85d32..1dd210d 100644
 --- a/net/sched/cls_api.c
 +++ b/net/sched/cls_api.c
-@@ -773,13 +773,27 @@ void tc_indr_block_cb_unregister(struct net_device *dev,
- }
- EXPORT_SYMBOL_GPL(tc_indr_block_cb_unregister);
+@@ -677,26 +677,28 @@ static void tc_indr_block_cb_del(struct tc_indr_block_cb *indr_block_cb)
+ static int tcf_block_setup(struct tcf_block *block,
+ 			   struct flow_block_offload *bo);
  
-+static void flow_indr_block_call(struct net_device *dev,
-+				 struct flow_block_offload *bo,
-+				 enum flow_block_command command)
-+{
-+	struct tc_indr_block_cb *indr_block_cb;
-+	struct tc_indr_block_dev *indr_dev;
-+
-+	indr_dev = tc_indr_block_dev_lookup(dev);
-+	if (!indr_dev)
-+		return;
-+
-+	list_for_each_entry(indr_block_cb, &indr_dev->cb_list, list)
-+		indr_block_cb->cb(dev, indr_block_cb->cb_priv, TC_SETUP_BLOCK,
-+				  bo);
-+}
-+
- static void tc_indr_block_call(struct tcf_block *block, struct net_device *dev,
- 			       struct tcf_block_ext_info *ei,
- 			       enum flow_block_command command,
- 			       struct netlink_ext_ack *extack)
+-static void tc_indr_block_ing_cmd(struct tc_indr_block_dev *indr_dev,
+-				  struct tc_indr_block_cb *indr_block_cb,
++static void tc_indr_block_ing_cmd(struct net_device *dev,
++				  struct tcf_block *block,
++				  tc_indr_block_bind_cb_t *cb,
++				  void *cb_priv,
+ 				  enum flow_block_command command)
  {
--	struct tc_indr_block_cb *indr_block_cb;
--	struct tc_indr_block_dev *indr_dev;
  	struct flow_block_offload bo = {
  		.command	= command,
- 		.binder_type	= ei->binder_type,
-@@ -790,14 +804,7 @@ static void tc_indr_block_call(struct tcf_block *block, struct net_device *dev,
+ 		.binder_type	= FLOW_BLOCK_BINDER_TYPE_CLSACT_INGRESS,
+-		.net		= dev_net(indr_dev->dev),
+-		.block_shared	= tcf_block_non_null_shared(indr_dev->block),
++		.net		= dev_net(dev),
++		.block_shared	= tcf_block_non_null_shared(block),
  	};
  	INIT_LIST_HEAD(&bo.cb_list);
  
--	indr_dev = tc_indr_block_dev_lookup(dev);
--	if (!indr_dev)
--		return;
--
--	list_for_each_entry(indr_block_cb, &indr_dev->cb_list, list)
--		indr_block_cb->cb(dev, indr_block_cb->cb_priv, TC_SETUP_BLOCK,
--				  &bo);
--
-+	flow_indr_block_call(dev, &bo, command);
- 	tcf_block_setup(block, &bo);
+-	if (!indr_dev->block)
++	if (!block)
+ 		return;
+ 
+-	bo.block = &indr_dev->block->flow_block;
++	bo.block = &block->flow_block;
+ 
+-	indr_block_cb->cb(indr_dev->dev, indr_block_cb->cb_priv, TC_SETUP_BLOCK,
+-			  &bo);
+-	tcf_block_setup(indr_dev->block, &bo);
++	cb(dev, cb_priv, TC_SETUP_BLOCK, &bo);
++
++	tcf_block_setup(block, &bo);
  }
  
+ int __tc_indr_block_cb_register(struct net_device *dev, void *cb_priv,
+@@ -715,7 +717,8 @@ int __tc_indr_block_cb_register(struct net_device *dev, void *cb_priv,
+ 	if (err)
+ 		goto err_dev_put;
+ 
+-	tc_indr_block_ing_cmd(indr_dev, indr_block_cb, FLOW_BLOCK_BIND);
++	tc_indr_block_ing_cmd(dev, indr_dev->block, cb, cb_priv,
++			      FLOW_BLOCK_BIND);
+ 	return 0;
+ 
+ err_dev_put:
+@@ -752,7 +755,8 @@ void __tc_indr_block_cb_unregister(struct net_device *dev,
+ 		return;
+ 
+ 	/* Send unbind message if required to free any block cbs. */
+-	tc_indr_block_ing_cmd(indr_dev, indr_block_cb, FLOW_BLOCK_UNBIND);
++	tc_indr_block_ing_cmd(dev, indr_dev->block, cb, indr_block_cb->cb_priv,
++			      FLOW_BLOCK_UNBIND);
+ 	tc_indr_block_cb_del(indr_block_cb);
+ 	tc_indr_block_dev_put(indr_dev);
+ }
 -- 
 1.8.3.1
 
