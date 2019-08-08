@@ -6,121 +6,99 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 41953C433FF
-	for <netfilter-devel@archiver.kernel.org>; Thu,  8 Aug 2019 05:28:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7897EC0650F
+	for <netfilter-devel@archiver.kernel.org>; Thu,  8 Aug 2019 05:43:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1D6A2217D7
-	for <netfilter-devel@archiver.kernel.org>; Thu,  8 Aug 2019 05:28:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 577D72089E
+	for <netfilter-devel@archiver.kernel.org>; Thu,  8 Aug 2019 05:43:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730921AbfHHF2W (ORCPT
+        id S1731065AbfHHFnb (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 8 Aug 2019 01:28:22 -0400
-Received: from outbound.smtp.vt.edu ([198.82.183.121]:46998 "EHLO
+        Thu, 8 Aug 2019 01:43:31 -0400
+Received: from outbound.smtp.vt.edu ([198.82.183.121]:52936 "EHLO
         omr1.cc.vt.edu" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1726106AbfHHF2S (ORCPT
+        with ESMTP id S1726187AbfHHFnb (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 8 Aug 2019 01:28:18 -0400
-Received: from mr2.cc.vt.edu (mr2.cc.ipv6.vt.edu [IPv6:2607:b400:92:8400:0:90:e077:bf22])
-        by omr1.cc.vt.edu (8.14.4/8.14.4) with ESMTP id x785SGPH015515
-        for <netfilter-devel@vger.kernel.org>; Thu, 8 Aug 2019 01:28:16 -0400
-Received: from mail-qk1-f197.google.com (mail-qk1-f197.google.com [209.85.222.197])
-        by mr2.cc.vt.edu (8.14.7/8.14.7) with ESMTP id x785SBdY005547
-        for <netfilter-devel@vger.kernel.org>; Thu, 8 Aug 2019 01:28:16 -0400
-Received: by mail-qk1-f197.google.com with SMTP id m198so81259774qke.22
-        for <netfilter-devel@vger.kernel.org>; Wed, 07 Aug 2019 22:28:16 -0700 (PDT)
+        Thu, 8 Aug 2019 01:43:31 -0400
+Received: from mr4.cc.vt.edu (smtp.ipv6.vt.edu [IPv6:2607:b400:92:9:0:9d:8fcb:4116])
+        by omr1.cc.vt.edu (8.14.4/8.14.4) with ESMTP id x785hTH8023835
+        for <netfilter-devel@vger.kernel.org>; Thu, 8 Aug 2019 01:43:29 -0400
+Received: from mail-qt1-f198.google.com (mail-qt1-f198.google.com [209.85.160.198])
+        by mr4.cc.vt.edu (8.14.7/8.14.7) with ESMTP id x785hOGo020546
+        for <netfilter-devel@vger.kernel.org>; Thu, 8 Aug 2019 01:43:29 -0400
+Received: by mail-qt1-f198.google.com with SMTP id f28so84623315qtg.2
+        for <netfilter-devel@vger.kernel.org>; Wed, 07 Aug 2019 22:43:29 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:sender:from:to:cc:subject:mime-version:date
          :message-id;
-        bh=ONCnBgjUfpZrL3xEXxyitnhHR+HMMVGSrZxNYT/XzNs=;
-        b=XDLFES+jphKN8u/koo2MXLELzIitJa37iULR3zlTuEvCKKrYFEfrnjGmU0N4Vdp7s6
-         tunUxF7LO74JmP+cnbwMob73EkVNP/rfn9U7hxx9lfl/HSaGfGRJKPn+Qd4JEnPxIvOL
-         myESGUTHCzPx69Tj4QH2X921KGs5rgtzt5nD8p/Tq9v85Z//fUOAkItvETtq2PyYhaYv
-         +MsZNujyo9Q8VnHqSvguUiAlJZL4Gnh6hh/Bs2j9pjk44x3w2TYfodAmLns4j86bx/UF
-         IUldbN/E2NMn89elSOqr5ypKUiO4yhszVtYLCLE6DnC/Oaj0zrymK4j71G5rR9gSRiuh
-         75gg==
-X-Gm-Message-State: APjAAAWdFpUE4kj6sSiWjkUFu0t3Pn18FtRDE86J8a6RE7f8GdvWABoe
-        VRuveggG0uPMvmACDRQ7YRWV5FZV862rPeV/bpM8BcEbwSwZpElFc2qlcmyxUvSQ/csGQaFM9MR
-        8vqFy90xozMWkhir1eH9LtyBa7TrDaUON5UuVh3E=
-X-Received: by 2002:aed:27d5:: with SMTP id m21mr728405qtg.153.1565242091250;
-        Wed, 07 Aug 2019 22:28:11 -0700 (PDT)
-X-Google-Smtp-Source: APXvYqwHFKYV/uvRzllEEMllEsc4oakfKGIB84d0faSTQi74ovMYBJ7npBJoOpxzusd6v4sS/gkelA==
-X-Received: by 2002:aed:27d5:: with SMTP id m21mr728395qtg.153.1565242090938;
-        Wed, 07 Aug 2019 22:28:10 -0700 (PDT)
+        bh=c6yvSjRSPSPtd7WKVRhn/33mlt2UI1aeE4hr0QgnAWg=;
+        b=KttXjyFgz9k+tOEHHawJa9YpEwjs5jukWpAH9ZtFTkjV1TsZVZ8aCf6LBJ6yghAa3P
+         FLFJ/k5KWEQ2Bu/KdxwDVMwzfODZO26iJVPhneCZ5BRtMW3uQYrG1VDOheVk8MDPvxRt
+         5h54qzxb/JQem1zDggYkR55Q6n/KMkjuelQtILZAukZaw0Lc8fguR+2qcl8PCYSQTegX
+         g5RjLx3wypzPLVEhqmXu1X8Khi47BLoBiMeyhuGwjRNwO1XWSXyTRdRPNdl/96+tc783
+         AfZwEdz/edrleJhJ8IPsGDN/zNdSouw/Y2rD+4cRPQDl9KQuQALV4oHGtzt1xLdPHW1F
+         FZ8A==
+X-Gm-Message-State: APjAAAWb5BfwR/Psl2/zPQJ+uP3ZUTvRxFgbDC/ScaMJ1XbwZMwY4rvo
+        oEoLHB5iGfNfeKoFOaB+5BXLFstCoR+uodWVxGzfseaVYSrgFhYnSUVVtg4ZZurX3ZhoHy4AmjV
+        4RAUZU2bQmEZ//uy5nMtviJUslz4Xnyu1kU8/l6s=
+X-Received: by 2002:a37:dcc7:: with SMTP id v190mr12012688qki.169.1565243004366;
+        Wed, 07 Aug 2019 22:43:24 -0700 (PDT)
+X-Google-Smtp-Source: APXvYqzKldRnyI5SL9XuBns9hAd6WuyGhSYe29+X/2gQVf84YuCE8HdYQj3/BaWF8ziX92uInHbLyQ==
+X-Received: by 2002:a37:dcc7:: with SMTP id v190mr12012675qki.169.1565243004139;
+        Wed, 07 Aug 2019 22:43:24 -0700 (PDT)
 Received: from turing-police ([2601:5c0:c001:4341::359])
-        by smtp.gmail.com with ESMTPSA id u16sm46835732qte.32.2019.08.07.22.28.09
+        by smtp.gmail.com with ESMTPSA id h18sm36284621qkj.134.2019.08.07.22.43.22
         (version=TLS1_3 cipher=AEAD-AES256-GCM-SHA384 bits=256/256);
-        Wed, 07 Aug 2019 22:28:09 -0700 (PDT)
+        Wed, 07 Aug 2019 22:43:23 -0700 (PDT)
 From:   "Valdis =?utf-8?Q?Kl=c4=93tnieks?=" <valdis.kletnieks@vt.edu>
 X-Google-Original-From: "Valdis =?utf-8?Q?Kl=c4=93tnieks?=" <Valdis.Kletnieks@vt.edu>
 X-Mailer: exmh version 2.9.0 11/07/2018 with nmh-1.7+dev
 To:     Pablo Neira Ayuso <pablo@netfilter.org>,
         Jozsef Kadlecsik <kadlec@netfilter.org>,
         Florian Westphal <fw@strlen.de>
-cc:     netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+Cc:     netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] net/netfilter - add missing prototypes.
+Subject: [PATCH] net/netfilter/nf_nat_proto.c - make tables static
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Date:   Thu, 08 Aug 2019 01:28:08 -0400
-Message-ID: <54079.1565242088@turing-police>
+Date:   Thu, 08 Aug 2019 01:43:22 -0400
+Message-ID: <55481.1565243002@turing-police>
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Sparse rightly complains about undeclared symbols.
+Sparse warns about two tables not being declared.
 
-  CHECK   net/netfilter/nft_set_hash.c
-net/netfilter/nft_set_hash.c:647:21: warning: symbol 'nft_set_rhash_type' was not declared. Should it be static?
-net/netfilter/nft_set_hash.c:670:21: warning: symbol 'nft_set_hash_type' was not declared. Should it be static?
-net/netfilter/nft_set_hash.c:690:21: warning: symbol 'nft_set_hash_fast_type' was not declared. Should it be static?
-  CHECK   net/netfilter/nft_set_bitmap.c
-net/netfilter/nft_set_bitmap.c:296:21: warning: symbol 'nft_set_bitmap_type' was not declared. Should it be static?
-  CHECK   net/netfilter/nft_set_rbtree.c
-net/netfilter/nft_set_rbtree.c:470:21: warning: symbol 'nft_set_rbtree_type' was not declared. Should it be static?
+  CHECK   net/netfilter/nf_nat_proto.c
+net/netfilter/nf_nat_proto.c:725:26: warning: symbol 'nf_nat_ipv4_ops' was not declared. Should it be static?
+net/netfilter/nf_nat_proto.c:964:26: warning: symbol 'nf_nat_ipv6_ops' was not declared. Should it be static?
 
-Include nf_tables_core.h rather than nf_tables.h to pick up the additional definitions.
+And in fact they can indeed be static.
 
 Signed-off-by: Valdis Kletnieks <valdis.kletnieks@vt.edu>
 
-diff --git a/net/netfilter/nft_set_bitmap.c b/net/netfilter/nft_set_bitmap.c
-index b5aeccdddb22..087a056e34d1 100644
---- a/net/netfilter/nft_set_bitmap.c
-+++ b/net/netfilter/nft_set_bitmap.c
-@@ -10,7 +10,7 @@
- #include <linux/netlink.h>
- #include <linux/netfilter.h>
- #include <linux/netfilter/nf_tables.h>
--#include <net/netfilter/nf_tables.h>
-+#include <net/netfilter/nf_tables_core.h>
+diff --git a/net/netfilter/nf_nat_proto.c b/net/netfilter/nf_nat_proto.c
+index 7ac733ebd060..0a59c14b5177 100644
+--- a/net/netfilter/nf_nat_proto.c
++++ b/net/netfilter/nf_nat_proto.c
+@@ -722,7 +722,7 @@ nf_nat_ipv4_local_fn(void *priv, struct sk_buff *skb,
+ 	return ret;
+ }
  
- struct nft_bitmap_elem {
- 	struct list_head	head;
-diff --git a/net/netfilter/nft_set_hash.c b/net/netfilter/nft_set_hash.c
-index 6e8d20c03e3d..c490451fcebf 100644
---- a/net/netfilter/nft_set_hash.c
-+++ b/net/netfilter/nft_set_hash.c
-@@ -16,7 +16,7 @@
- #include <linux/rhashtable.h>
- #include <linux/netfilter.h>
- #include <linux/netfilter/nf_tables.h>
--#include <net/netfilter/nf_tables.h>
-+#include <net/netfilter/nf_tables_core.h>
+-const struct nf_hook_ops nf_nat_ipv4_ops[] = {
++static const struct nf_hook_ops nf_nat_ipv4_ops[] = {
+ 	/* Before packet filtering, change destination */
+ 	{
+ 		.hook		= nf_nat_ipv4_in,
+@@ -961,7 +961,7 @@ nf_nat_ipv6_local_fn(void *priv, struct sk_buff *skb,
+ 	return ret;
+ }
  
- /* We target a hash table size of 4, element hint is 75% of final size */
- #define NFT_RHASH_ELEMENT_HINT 3
-diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
-index 419d58ef802b..57123259452f 100644
---- a/net/netfilter/nft_set_rbtree.c
-+++ b/net/netfilter/nft_set_rbtree.c
-@@ -13,7 +13,7 @@
- #include <linux/netlink.h>
- #include <linux/netfilter.h>
- #include <linux/netfilter/nf_tables.h>
--#include <net/netfilter/nf_tables.h>
-+#include <net/netfilter/nf_tables_core.h>
- 
- struct nft_rbtree {
- 	struct rb_root		root;
+-const struct nf_hook_ops nf_nat_ipv6_ops[] = {
++static const struct nf_hook_ops nf_nat_ipv6_ops[] = {
+ 	/* Before packet filtering, change destination */
+ 	{
+ 		.hook		= nf_nat_ipv6_in,
 
