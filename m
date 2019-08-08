@@ -2,177 +2,125 @@ Return-Path: <SRS0=+PqO=WE=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AF6C4C433FF
-	for <netfilter-devel@archiver.kernel.org>; Thu,  8 Aug 2019 05:01:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 41953C433FF
+	for <netfilter-devel@archiver.kernel.org>; Thu,  8 Aug 2019 05:28:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 78D0E2186A
-	for <netfilter-devel@archiver.kernel.org>; Thu,  8 Aug 2019 05:01:58 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=metaloft-com.20150623.gappssmtp.com header.i=@metaloft-com.20150623.gappssmtp.com header.b="zh14li9I"
+	by mail.kernel.org (Postfix) with ESMTP id 1D6A2217D7
+	for <netfilter-devel@archiver.kernel.org>; Thu,  8 Aug 2019 05:28:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730854AbfHHFB6 (ORCPT
+        id S1730921AbfHHF2W (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 8 Aug 2019 01:01:58 -0400
-Received: from mail-pg1-f194.google.com ([209.85.215.194]:35011 "EHLO
-        mail-pg1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725933AbfHHFB5 (ORCPT
+        Thu, 8 Aug 2019 01:28:22 -0400
+Received: from outbound.smtp.vt.edu ([198.82.183.121]:46998 "EHLO
+        omr1.cc.vt.edu" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1726106AbfHHF2S (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 8 Aug 2019 01:01:57 -0400
-Received: by mail-pg1-f194.google.com with SMTP id n4so1641130pgv.2
-        for <netfilter-devel@vger.kernel.org>; Wed, 07 Aug 2019 22:01:57 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=metaloft-com.20150623.gappssmtp.com; s=20150623;
-        h=subject:to:cc:references:from:message-id:date:user-agent
-         :mime-version:in-reply-to:content-language:content-transfer-encoding;
-        bh=HprVMKR1+23XeVLomuA0F/VmWho41kh02MotJAK115g=;
-        b=zh14li9I5L9LU6KID6iUUopgpiv4bUOrFP8nIVO+kHCNzb5eulvjsc+XwJqysMDASU
-         g5d0CTR63J8aJx4KqKtPTN0LpqaVDxbvQCzDs8K7hgJAr1LrKi4QB0TdIsX1zMo4SxxV
-         QMFu7XIPtK9/NIZ1HEKRFJRz7nCBAWTXjEvSJh8xv3LABWqmWmZX2EHe/jWjYJMv9FKn
-         yxZ2b3UF/qMgMiSuQOj6/N373ErasFK8xEChlxmtMyJ/mjFNsx4Pxq65lTvJ+lnfmSl9
-         8boN2H/uY66UvquPvnO2KqwgrL6l4TdTHZpD7ufS8xwd1CrYoLwiXbw26Dc7ObCE9IA9
-         dTTg==
+        Thu, 8 Aug 2019 01:28:18 -0400
+Received: from mr2.cc.vt.edu (mr2.cc.ipv6.vt.edu [IPv6:2607:b400:92:8400:0:90:e077:bf22])
+        by omr1.cc.vt.edu (8.14.4/8.14.4) with ESMTP id x785SGPH015515
+        for <netfilter-devel@vger.kernel.org>; Thu, 8 Aug 2019 01:28:16 -0400
+Received: from mail-qk1-f197.google.com (mail-qk1-f197.google.com [209.85.222.197])
+        by mr2.cc.vt.edu (8.14.7/8.14.7) with ESMTP id x785SBdY005547
+        for <netfilter-devel@vger.kernel.org>; Thu, 8 Aug 2019 01:28:16 -0400
+Received: by mail-qk1-f197.google.com with SMTP id m198so81259774qke.22
+        for <netfilter-devel@vger.kernel.org>; Wed, 07 Aug 2019 22:28:16 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-language
-         :content-transfer-encoding;
-        bh=HprVMKR1+23XeVLomuA0F/VmWho41kh02MotJAK115g=;
-        b=eUyD3nrTwJg75YQS/guoOAAPg4sp0r0X5STp8neeyXcrSZQ5ArfXc6U1oJwhJgMpFN
-         ivSVQ5zCN3rQyWNl4Ek+0LLcA7ycvYTwF+MzN8fh7JCWG1F3FbFHGfUQdNWvP0Cfa3O3
-         lr08A9TralUY8YfSphYETKGgTHHoE3rraJtCMjBkmXnOwo/Faeeav9PF3uzXYk4tzeN2
-         dcQgQ7enYTnC0O0zu+EvzaPeYhbdoINW0G+yaCZG+Z0hV1Ec/urjF0AEjywpQNfyt6Y6
-         2+J/lzE+LH3swH86DTg0D5gZFdrMm1gsTXeBIaiQFWRTUQVl3o55S5mj4XfSbpDbvKpf
-         /p5A==
-X-Gm-Message-State: APjAAAWJ+rpOQmNUSV1pX80WNqO57lLIrg8MU4QaSaF6eG0LJS5YBP6X
-        uZUUWgWLLAuV9VkECUJbxjw5T8ovW2U=
-X-Google-Smtp-Source: APXvYqz51PA338ERljZV1EC/eQRXZsupK5MpLjiIr2k3I21Q/vsmc8zey8plsrhT6h3DQ47ijnpCqw==
-X-Received: by 2002:a63:4522:: with SMTP id s34mr10871370pga.362.1565240516413;
-        Wed, 07 Aug 2019 22:01:56 -0700 (PDT)
-Received: from ?IPv6:2600:6c4e:2200:6881::3c8? (2600-6c4e-2200-6881-0000-0000-0000-03c8.dhcp6.chtrptr.net. [2600:6c4e:2200:6881::3c8])
-        by smtp.gmail.com with ESMTPSA id u7sm89901520pfm.96.2019.08.07.22.01.55
-        (version=TLS1_3 cipher=AEAD-AES128-GCM-SHA256 bits=128/128);
-        Wed, 07 Aug 2019 22:01:55 -0700 (PDT)
-Subject: Re: [PATCH net] netfilter: Use consistent ct id hash calculation
-To:     Florian Westphal <fw@strlen.de>,
-        Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-References: <e5d48c19-508d-e1ed-1f16-8e0a3773c619@metaloft.com>
- <20190807003416.v2q3qpwen6cwgzqu@breakpoint.cc>
- <33301d87-0bc2-b332-d48c-6aa6ef8268e8@metaloft.com>
- <20190807163641.vrid7drwsyk2cer4@salvia>
- <20190807180157.ogsx435gxih7wo7r@breakpoint.cc>
- <20190807203146.bmlvjw4kvkbd5dns@salvia>
- <20190807234552.lnfuktyr7cpvocki@breakpoint.cc>
-From:   Dirk Morris <dmorris@metaloft.com>
-Message-ID: <f58a512a-0b74-c98d-067d-70ef67da0a95@metaloft.com>
-Date:   Wed, 7 Aug 2019 22:01:54 -0700
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.8.0
-MIME-Version: 1.0
-In-Reply-To: <20190807234552.lnfuktyr7cpvocki@breakpoint.cc>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        h=x-gm-message-state:sender:from:to:cc:subject:mime-version:date
+         :message-id;
+        bh=ONCnBgjUfpZrL3xEXxyitnhHR+HMMVGSrZxNYT/XzNs=;
+        b=XDLFES+jphKN8u/koo2MXLELzIitJa37iULR3zlTuEvCKKrYFEfrnjGmU0N4Vdp7s6
+         tunUxF7LO74JmP+cnbwMob73EkVNP/rfn9U7hxx9lfl/HSaGfGRJKPn+Qd4JEnPxIvOL
+         myESGUTHCzPx69Tj4QH2X921KGs5rgtzt5nD8p/Tq9v85Z//fUOAkItvETtq2PyYhaYv
+         +MsZNujyo9Q8VnHqSvguUiAlJZL4Gnh6hh/Bs2j9pjk44x3w2TYfodAmLns4j86bx/UF
+         IUldbN/E2NMn89elSOqr5ypKUiO4yhszVtYLCLE6DnC/Oaj0zrymK4j71G5rR9gSRiuh
+         75gg==
+X-Gm-Message-State: APjAAAWdFpUE4kj6sSiWjkUFu0t3Pn18FtRDE86J8a6RE7f8GdvWABoe
+        VRuveggG0uPMvmACDRQ7YRWV5FZV862rPeV/bpM8BcEbwSwZpElFc2qlcmyxUvSQ/csGQaFM9MR
+        8vqFy90xozMWkhir1eH9LtyBa7TrDaUON5UuVh3E=
+X-Received: by 2002:aed:27d5:: with SMTP id m21mr728405qtg.153.1565242091250;
+        Wed, 07 Aug 2019 22:28:11 -0700 (PDT)
+X-Google-Smtp-Source: APXvYqwHFKYV/uvRzllEEMllEsc4oakfKGIB84d0faSTQi74ovMYBJ7npBJoOpxzusd6v4sS/gkelA==
+X-Received: by 2002:aed:27d5:: with SMTP id m21mr728395qtg.153.1565242090938;
+        Wed, 07 Aug 2019 22:28:10 -0700 (PDT)
+Received: from turing-police ([2601:5c0:c001:4341::359])
+        by smtp.gmail.com with ESMTPSA id u16sm46835732qte.32.2019.08.07.22.28.09
+        (version=TLS1_3 cipher=AEAD-AES256-GCM-SHA384 bits=256/256);
+        Wed, 07 Aug 2019 22:28:09 -0700 (PDT)
+From:   "Valdis =?utf-8?Q?Kl=c4=93tnieks?=" <valdis.kletnieks@vt.edu>
+X-Google-Original-From: "Valdis =?utf-8?Q?Kl=c4=93tnieks?=" <Valdis.Kletnieks@vt.edu>
+X-Mailer: exmh version 2.9.0 11/07/2018 with nmh-1.7+dev
+To:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>
+cc:     netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] net/netfilter - add missing prototypes.
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Date:   Thu, 08 Aug 2019 01:28:08 -0400
+Message-ID: <54079.1565242088@turing-police>
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Sparse rightly complains about undeclared symbols.
 
+  CHECK   net/netfilter/nft_set_hash.c
+net/netfilter/nft_set_hash.c:647:21: warning: symbol 'nft_set_rhash_type' was not declared. Should it be static?
+net/netfilter/nft_set_hash.c:670:21: warning: symbol 'nft_set_hash_type' was not declared. Should it be static?
+net/netfilter/nft_set_hash.c:690:21: warning: symbol 'nft_set_hash_fast_type' was not declared. Should it be static?
+  CHECK   net/netfilter/nft_set_bitmap.c
+net/netfilter/nft_set_bitmap.c:296:21: warning: symbol 'nft_set_bitmap_type' was not declared. Should it be static?
+  CHECK   net/netfilter/nft_set_rbtree.c
+net/netfilter/nft_set_rbtree.c:470:21: warning: symbol 'nft_set_rbtree_type' was not declared. Should it be static?
 
-On 8/7/19 4:45 PM, Florian Westphal wrote:
+Include nf_tables_core.h rather than nf_tables.h to pick up the additional definitions.
 
-> 
-> So Pablos suggestion above should work just fine.
-> Dirk, can you spin a v2 with that change?
-> 
+Signed-off-by: Valdis Kletnieks <valdis.kletnieks@vt.edu>
 
-Yes, will do tomorrow.
+diff --git a/net/netfilter/nft_set_bitmap.c b/net/netfilter/nft_set_bitmap.c
+index b5aeccdddb22..087a056e34d1 100644
+--- a/net/netfilter/nft_set_bitmap.c
++++ b/net/netfilter/nft_set_bitmap.c
+@@ -10,7 +10,7 @@
+ #include <linux/netlink.h>
+ #include <linux/netfilter.h>
+ #include <linux/netfilter/nf_tables.h>
+-#include <net/netfilter/nf_tables.h>
++#include <net/netfilter/nf_tables_core.h>
+ 
+ struct nft_bitmap_elem {
+ 	struct list_head	head;
+diff --git a/net/netfilter/nft_set_hash.c b/net/netfilter/nft_set_hash.c
+index 6e8d20c03e3d..c490451fcebf 100644
+--- a/net/netfilter/nft_set_hash.c
++++ b/net/netfilter/nft_set_hash.c
+@@ -16,7 +16,7 @@
+ #include <linux/rhashtable.h>
+ #include <linux/netfilter.h>
+ #include <linux/netfilter/nf_tables.h>
+-#include <net/netfilter/nf_tables.h>
++#include <net/netfilter/nf_tables_core.h>
+ 
+ /* We target a hash table size of 4, element hint is 75% of final size */
+ #define NFT_RHASH_ELEMENT_HINT 3
+diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
+index 419d58ef802b..57123259452f 100644
+--- a/net/netfilter/nft_set_rbtree.c
++++ b/net/netfilter/nft_set_rbtree.c
+@@ -13,7 +13,7 @@
+ #include <linux/netlink.h>
+ #include <linux/netfilter.h>
+ #include <linux/netfilter/nf_tables.h>
+-#include <net/netfilter/nf_tables.h>
++#include <net/netfilter/nf_tables_core.h>
+ 
+ struct nft_rbtree {
+ 	struct rb_root		root;
 
-Also, just an idea, I also played around with just adding
-u32 id to struct nf_conn and just calculating the hash inside
-__nf_conntack_alloc when initialized or even lazily in nf_ct_get_id.
-This seems to work fine and you don't have to worry about anything changing
-and only calculate the hash once.
-
-I'm presuming this method was avoided for some reason, like keeping the struct
-size to a minimum.
-
----
-  include/net/netfilter/nf_conntrack.h |    3 +++
-  net/netfilter/nf_conntrack_core.c    |   30 +++++++++++++++---------------
-  2 files changed, 18 insertions(+), 15 deletions(-)
-
-diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
-index 93bbae8..9772ddc 100644
---- a/include/net/netfilter/nf_conntrack.h
-+++ b/include/net/netfilter/nf_conntrack.h
-@@ -74,6 +74,9 @@ struct nf_conn {
-  	/* jiffies32 when this ct is considered dead */
-  	u32 timeout;
-  
-+	/* ct id */
-+	u32 id;
-+
-  	possible_net_t ct_net;
-  
-  #if IS_ENABLED(CONFIG_NF_NAT)
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index ab73c5f..614fd86 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -312,21 +312,7 @@ EXPORT_SYMBOL_GPL(nf_ct_invert_tuple);
-   */
-  u32 nf_ct_get_id(const struct nf_conn *ct)
-  {
--	static __read_mostly siphash_key_t ct_id_seed;
--	unsigned long a, b, c, d;
--
--	net_get_random_once(&ct_id_seed, sizeof(ct_id_seed));
--
--	a = (unsigned long)ct;
--	b = (unsigned long)ct->master ^ net_hash_mix(nf_ct_net(ct));
--	c = (unsigned long)ct->ext;
--	d = (unsigned long)siphash(&ct->tuplehash, sizeof(ct->tuplehash),
--				   &ct_id_seed);
--#ifdef CONFIG_64BIT
--	return siphash_4u64((u64)a, (u64)b, (u64)c, (u64)d, &ct_id_seed);
--#else
--	return siphash_4u32((u32)a, (u32)b, (u32)c, (u32)d, &ct_id_seed);
--#endif
-+    return ct->id;
-  }
-  EXPORT_SYMBOL_GPL(nf_ct_get_id);
-  
-@@ -1178,6 +1164,7 @@ __nf_conntrack_alloc(struct net *net,
-  		     gfp_t gfp, u32 hash)
-  {
-  	struct nf_conn *ct;
-+	static __read_mostly siphash_key_t ct_id_seed;
-  
-  	/* We don't want any race condition at early drop stage */
-  	atomic_inc(&net->ct.count);
-@@ -1215,6 +1202,19 @@ __nf_conntrack_alloc(struct net *net,
-  
-  	nf_ct_zone_add(ct, zone);
-  
-+	unsigned long a, b, c;
-+	net_get_random_once(&ct_id_seed, sizeof(ct_id_seed));
-+	a = (unsigned long)ct;
-+	b = (unsigned long)ct->master ^ net_hash_mix(nf_ct_net(ct));
-+	c = (unsigned long)siphash(&ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple,
-+				   sizeof(ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple),
-+				   &ct_id_seed);
-+#ifdef CONFIG_64BIT
-+	ct->id = siphash_3u64((u64)a, (u64)b, (u64)c, &ct_id_seed);
-+#else
-+	ct->id = siphash_3u32((u32)a, (u32)b, (u32)c, &ct_id_seed);
-+#endif
-+
-  	/* Because we use RCU lookups, we set ct_general.use to zero before
-  	 * this is inserted in any list.
-  	 */
