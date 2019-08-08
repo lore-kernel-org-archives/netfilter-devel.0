@@ -2,57 +2,56 @@ Return-Path: <SRS0=+PqO=WE=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4837CC0650F
-	for <netfilter-devel@archiver.kernel.org>; Thu,  8 Aug 2019 10:45:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C6776C0650F
+	for <netfilter-devel@archiver.kernel.org>; Thu,  8 Aug 2019 11:16:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 138862084D
-	for <netfilter-devel@archiver.kernel.org>; Thu,  8 Aug 2019 10:45:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A6518216C8
+	for <netfilter-devel@archiver.kernel.org>; Thu,  8 Aug 2019 11:16:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731487AbfHHKp0 (ORCPT
+        id S1731487AbfHHLQt (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 8 Aug 2019 06:45:26 -0400
-Received: from correo.us.es ([193.147.175.20]:33502 "EHLO mail.us.es"
+        Thu, 8 Aug 2019 07:16:49 -0400
+Received: from correo.us.es ([193.147.175.20]:42506 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731038AbfHHKp0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 8 Aug 2019 06:45:26 -0400
+        id S1730722AbfHHLQt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 8 Aug 2019 07:16:49 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 94856B6C7B
-        for <netfilter-devel@vger.kernel.org>; Thu,  8 Aug 2019 12:45:22 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 02160B6329
+        for <netfilter-devel@vger.kernel.org>; Thu,  8 Aug 2019 13:16:47 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 83E971150B9
-        for <netfilter-devel@vger.kernel.org>; Thu,  8 Aug 2019 12:45:22 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id E62931150D8
+        for <netfilter-devel@vger.kernel.org>; Thu,  8 Aug 2019 13:16:46 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 798ECDA72F; Thu,  8 Aug 2019 12:45:22 +0200 (CEST)
+        id DA6CBDA72F; Thu,  8 Aug 2019 13:16:46 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 0C15AA6A7;
-        Thu,  8 Aug 2019 12:45:20 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id D8962DA72F;
+        Thu,  8 Aug 2019 13:16:44 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Thu, 08 Aug 2019 12:45:20 +0200 (CEST)
+ Thu, 08 Aug 2019 13:16:44 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from us.es (149.103.108.93.rev.vodafone.pt [93.108.103.149])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
         (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 77FAC4265A2F;
-        Thu,  8 Aug 2019 12:45:19 +0200 (CEST)
-Date:   Thu, 8 Aug 2019 12:45:11 +0200
+        by entrada.int (Postfix) with ESMTPSA id 404A64265A2F;
+        Thu,  8 Aug 2019 13:16:44 +0200 (CEST)
+Date:   Thu, 8 Aug 2019 13:16:34 +0200
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Fernando Fernandez Mancera <ffmancera@riseup.net>
+To:     Brett Mastbergen <bmastbergen@untangle.com>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH 0/2 nft v4] Introduce variables in chain priority and
- policy
-Message-ID: <20190808104511.ciyis5p4kryoavmz@salvia>
-References: <20190802101207.27719-1-ffmancera@riseup.net>
+Subject: Re: [PATCH nft v2] src: Support maps as left side expressions
+Message-ID: <20190808111634.quczq7ajnaobscab@salvia>
+References: <20190730122818.2032-1-bmastbergen@untangle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20190802101207.27719-1-ffmancera@riseup.net>
+In-Reply-To: <20190730122818.2032-1-bmastbergen@untangle.com>
 User-Agent: NeoMutt/20170113 (1.7.2)
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -60,12 +59,33 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Aug 02, 2019 at 12:12:06PM +0200, Fernando Fernandez Mancera wrote:
-> This patch series introduces the use of variables in chain priority and policy
-> specification. It also contains tests for invalid cases.
+Hi brett,
 
-Series applied, thanks Fernando.
+On Tue, Jul 30, 2019 at 08:28:18AM -0400, Brett Mastbergen wrote:
+> This change allows map expressions on the left side of comparisons:
+> 
+> nft add rule foo bar ip saddr map @map_a == 22 counter
+> 
+> It also allows map expressions as the left side expression of other
+> map expressions:
+> 
+> nft add rule foo bar ip saddr map @map_a map @map_b == 22 counter
 
-> Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1172
+This is an interesting usage of the maps from the left-hand side of an
+expression.
 
-Please, close this ticket. Thanks.
+I have a fundamental question, that is, how this will be used from
+rulesets? My impression is that this will result in many rules, e.g.
+
+        ip saddr map @map_a map @map_b == 22 accept
+        ip saddr map @map_a map @map_b == 21 drop
+        ip saddr map @map_a map @map_b == 20 jump chain_0
+        ...
+
+This means that we need one rule per map lookup.
+
+I think this feature will be more useful if this can be combined with
+verdict maps, so the right hand side could be used to look up for an
+action.
+
+Thanks.
