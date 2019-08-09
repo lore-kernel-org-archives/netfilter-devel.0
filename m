@@ -2,178 +2,187 @@ Return-Path: <SRS0=FL4W=WF=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,USER_AGENT_SANE_1
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 01D8FC32756
-	for <netfilter-devel@archiver.kernel.org>; Fri,  9 Aug 2019 07:04:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 921E2C433FF
+	for <netfilter-devel@archiver.kernel.org>; Fri,  9 Aug 2019 10:41:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CDCE3206DF
-	for <netfilter-devel@archiver.kernel.org>; Fri,  9 Aug 2019 07:04:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6D7302086A
+	for <netfilter-devel@archiver.kernel.org>; Fri,  9 Aug 2019 10:41:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726212AbfHIHEN (ORCPT
+        id S2405999AbfHIKll (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 9 Aug 2019 03:04:13 -0400
-Received: from mail.thelounge.net ([91.118.73.15]:23605 "EHLO
-        mail.thelounge.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725879AbfHIHEN (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 9 Aug 2019 03:04:13 -0400
-Received: from srv-rhsoft.rhsoft.net  (Authenticated sender: h.reindl@thelounge.net) by mail.thelounge.net (THELOUNGE MTA) with ESMTPSA id 464bnj1YykzXYc
-        for <netfilter-devel@vger.kernel.org>; Fri,  9 Aug 2019 09:04:09 +0200 (CEST)
+        Fri, 9 Aug 2019 06:41:41 -0400
+Received: from correo.us.es ([193.147.175.20]:35426 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726196AbfHIKll (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 9 Aug 2019 06:41:41 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id A8B79C3282
+        for <netfilter-devel@vger.kernel.org>; Fri,  9 Aug 2019 12:41:38 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 94046DA704
+        for <netfilter-devel@vger.kernel.org>; Fri,  9 Aug 2019 12:41:38 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 89A58DA72F; Fri,  9 Aug 2019 12:41:38 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 53AE3DA704
+        for <netfilter-devel@vger.kernel.org>; Fri,  9 Aug 2019 12:41:36 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Fri, 09 Aug 2019 12:41:36 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from salvia.here (149.103.108.93.rev.vodafone.pt [93.108.103.149])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id C78B04265A2F
+        for <netfilter-devel@vger.kernel.org>; Fri,  9 Aug 2019 12:41:35 +0200 (CEST)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-From:   Reindl Harald <h.reindl@thelounge.net>
-Subject: kernel BUG at lib/list_debug.c:47! invalid opcode: 0000 [#1] SMP
- NOPTI
-Openpgp: id=9D2B46CDBC140A36753AE4D733174D5A5892B7B8;
- url=https://arrakis-tls.thelounge.net/gpg/h.reindl_thelounge.net.pub.txt
-Organization: the lounge interactive design
-Message-ID: <c2e5ca37-7039-c420-a359-41c08246d2b1@thelounge.net>
-Date:   Fri, 9 Aug 2019 09:04:08 +0200
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.8.0
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: de-CH
-Content-Transfer-Encoding: 7bit
+Subject: [PATCH nf] netfilter: nf_tables: user-after-free in failing rule with bound set
+Date:   Fri,  9 Aug 2019 12:41:18 +0200
+Message-Id: <20190809104118.2415-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.11.0
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-i know that 5.1.15 was a little old, update after 6 weeks uptime was
-originally planned with the 5.2.8 release in the hope it contains the
-"netfilter: conntrack: always store window size un-scaled" patch
+If a rule that has already a bound anonymous set fails to be added, the
+preparation phase releases the rule and the bound set. However, the
+transaction object from the abort path still has a reference to the set
+object that is stale, leading to a use-after-free when checking for the
+set->bound field. Add a new field to the transaction that specifies if
+the set is bound, so the abort path can skip releasing it since the rule
+command owns it and it takes care of releasing it. After this update,
+the set->bound field is removed.
 
-maybe the root vause is already fixed, upgraded now to 5.2.7
+[   24.649883] Unable to handle kernel paging request at virtual address 0000000000040434
+[   24.657858] Mem abort info:
+[   24.660686]   ESR = 0x96000004
+[   24.663769]   Exception class = DABT (current EL), IL = 32 bits
+[   24.669725]   SET = 0, FnV = 0
+[   24.672804]   EA = 0, S1PTW = 0
+[   24.675975] Data abort info:
+[   24.678880]   ISV = 0, ISS = 0x00000004
+[   24.682743]   CM = 0, WnR = 0
+[   24.685723] user pgtable: 4k pages, 48-bit VAs, pgdp=0000000428952000
+[   24.692207] [0000000000040434] pgd=0000000000000000
+[   24.697119] Internal error: Oops: 96000004 [#1] SMP
+[...]
+[   24.889414] Call trace:
+[   24.891870]  __nf_tables_abort+0x3f0/0x7a0
+[   24.895984]  nf_tables_abort+0x20/0x40
+[   24.899750]  nfnetlink_rcv_batch+0x17c/0x588
+[   24.904037]  nfnetlink_rcv+0x13c/0x190
+[   24.907803]  netlink_unicast+0x18c/0x208
+[   24.911742]  netlink_sendmsg+0x1b0/0x350
+[   24.915682]  sock_sendmsg+0x4c/0x68
+[   24.919185]  ___sys_sendmsg+0x288/0x2c8
+[   24.923037]  __sys_sendmsg+0x7c/0xd0
+[   24.926628]  __arm64_sys_sendmsg+0x2c/0x38
+[   24.930744]  el0_svc_common.constprop.0+0x94/0x158
+[   24.935556]  el0_svc_handler+0x34/0x90
+[   24.939322]  el0_svc+0x8/0xc
+[   24.942216] Code: 37280300 f9404023 91014262 aa1703e0 (f9401863)
+[   24.948336] ---[ end trace cebbb9dcbed3b56f ]---
 
-[3723834.867725] kernel BUG at lib/list_debug.c:47!
-[3723834.870392] invalid opcode: 0000 [#1] SMP NOPTI
-[3723834.872843] CPU: 0 PID: 0 Comm: swapper/0 Not tainted
-5.1.15-200.fc29.x86_64 #1
-[3723834.876700] Hardware name: VMware, Inc. VMware Virtual
-Platform/440BX Desktop Reference Platform, BIOS 6.00 09/19/2018
-[3723834.881939] RIP: 0010:__list_del_entry_valid.cold.1+0x12/0x4c
-[3723834.882943] Code: c7 ff 0f 0b 48 89 c1 4c 89 c6 48 c7 c7 f0 6b 11
-b9 e8 7c 38 c7 ff 0f 0b 48 89 fe 48 89 c2 48 c7 c7 80 6c 11 b9 e8 68 38
-c7 ff <0f> 0b 48 c7 c7 30 6d 11 b9 e8 5a 38 c7 ff 0f 0b 48 89 f2 48 89 fe
-[3723834.886123] RSP: 0018:ffff92a4dd2038e8 EFLAGS: 00010246
-[3723834.887060] RAX: 000000000000004e RBX: ffff92a4d5fd6000 RCX:
-0000000000000000
-[3723834.888315] RDX: 0000000000000000 RSI: 00000000000000f6 RDI:
-0000000000000300
-[3723834.889570] RBP: ffff92a4c5500000 R08: 000000000000048f R09:
-0000000000000003
-[3723834.890825] R10: 0000000000000000 R11: 0000000000000001 R12:
-ffff92a4d5fd6010
-[3723834.892082] R13: ffff92a4c6a4bfa8 R14: ffff92a4c55000f8 R15:
-ffff92a4c5500000
-[3723834.893343] FS:  0000000000000000(0000) GS:ffff92a4dd200000(0000)
-knlGS:0000000000000000
-[3723834.894758] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[3723834.895859] CR2: 00007fb811913048 CR3: 00000000996da002 CR4:
-00000000003606f0
-[3723834.897173] DR0: 0000000000000000 DR1: 0000000000000000 DR2:
-0000000000000000
-[3723834.898445] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7:
-0000000000000400
-[3723834.899715] Call Trace:
-[3723834.900262]  <IRQ>
-[3723834.900678]  recent_entry_update+0x52/0xa0 [xt_recent]
-[3723834.901619]  recent_mt+0x197/0x37d [xt_recent]
-[3723834.902444]  ipt_do_table+0x25f/0x630 [ip_tables]
-[3723834.903312]  ? l4proto_manip_pkt+0x299/0x450 [nf_nat]
-[3723834.904230]  nf_hook_slow+0x44/0xc0
-[3723834.904886]  ip_forward+0x458/0x480
-[3723834.905541]  ? ip_defrag.cold.12+0x33/0x33
-[3723834.906297]  ip_rcv+0xbc/0xd0
-[3723834.906868]  ? ip_rcv_finish_core.isra.19+0x350/0x350
-[3723834.907785]  __netif_receive_skb_one_core+0x52/0x70
-[3723834.908671]  netif_receive_skb_internal+0x42/0xf0
-[3723834.909554]  ? fdb_find_rcu+0xe7/0x160 [bridge]
-[3723834.910383]  netif_receive_skb+0x17/0xa0
-[3723834.911111]  br_pass_frame_up+0x12f/0x150 [bridge]
-[3723834.911995]  ? fdb_find_rcu+0xe7/0x160 [bridge]
-[3723834.912826]  br_handle_frame_finish+0x170/0x430 [bridge]
-[3723834.913807]  ? nf_confirm+0xcb/0xf0 [nf_conntrack]
-[3723834.914682]  ? br_handle_frame_finish+0x430/0x430 [bridge]
-[3723834.915690]  br_handle_frame+0x154/0x330 [bridge]
-[3723834.916550]  ? ip_output+0x69/0xe0
-[3723834.917191]  __netif_receive_skb_core+0x34a/0xc60
-[3723834.918051]  ? __build_skb+0x25/0xe0
-[3723834.918720]  ? ip_defrag.cold.12+0x33/0x33
-[3723834.919477]  ? __build_skb+0x25/0xe0
-[3723834.920146]  __netif_receive_skb_one_core+0x36/0x70
-[3723834.921033]  netif_receive_skb_internal+0x42/0xf0
-[3723834.921897]  napi_gro_receive+0xed/0x150
-[3723834.922632]  vmxnet3_rq_rx_complete+0x950/0xe80 [vmxnet3]
-[3723834.923606]  vmxnet3_poll_rx_only+0x31/0xa0 [vmxnet3]
-[3723834.924521]  net_rx_action+0x149/0x3b0
-[3723834.925220]  __do_softirq+0xe3/0x30a
-[3723834.925891]  irq_exit+0xeb/0xf0
-[3723834.926488]  do_IRQ+0x85/0xd0
-[3723834.927058]  common_interrupt+0xf/0xf
-[3723834.927740]  </IRQ>
-[3723834.928163] RIP: 0010:native_safe_halt+0xe/0x10
-[3723834.928991] Code: ff ff 7f c3 65 48 8b 04 25 00 5c 01 00 3e 80 48
-02 20 48 8b 00 a8 08 75 c4 eb 80 90 e9 07 00 00 00 0f 00 2d 76 60 46 00
-fb f4 <c3> 90 e9 07 00 00 00 0f 00 2d 66 60 46 00 f4 c3 90 90 0f 1f 44 00
-[3723834.932213] RSP: 0018:ffffffffb9203e98 EFLAGS: 00000246 ORIG_RAX:
-ffffffffffffffdb
-[3723834.933578] RAX: ffffffffb89a2410 RBX: 0000000000000000 RCX:
-7ff2c5223c3f2f4a
-[3723834.934897] RDX: 0000000000000000 RSI: 0000000000000000 RDI:
-ffff92a4dd21b4e0
-[3723834.936171] RBP: 0000000000000000 R08: ffffb6e0c0957a50 R09:
-0000000000000000
-[3723834.937440] R10: 0000000000000000 R11: 0000000000000001 R12:
-0000000000000000
-[3723834.938709] R13: 0000000000000000 R14: 0000000000000000 R15:
-0000000000000000
-[3723834.939980]  ? __sched_text_end+0x6/0x6
-[3723834.940693]  default_idle+0x1c/0x140
-[3723834.941364]  do_idle+0x1e1/0x260
-[3723834.942070]  ? do_idle+0x7/0x260
-[3723834.942735]  cpu_startup_entry+0x19/0x20
-[3723834.943465]  start_kernel+0x4f7/0x517
-[3723834.944151]  secondary_startup_64+0xa4/0xb0
-[3723834.944922] Modules linked in: nf_conntrack_netlink sch_hfsc bridge
-stp llc xt_multiport ipt_REJECT nf_reject_ipv4 iptable_filter
-nfnetlink_log xt_NFLOG xt_limit xt_tcpmss xt_connlimit nf_conncount
-xt_recent xt_conntrack iptable_mangle xt_CT iptable_raw xt_iprange
-xt_NETMAP xt_nat xt_set iptable_nat ip_set_list_set ip_set_hash_ip
-ip_set_hash_net ip_set_bitmap_port ip_set nfnetlink nf_nat_ftp nf_nat
-nf_conntrack_ftp nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 libcrc32c
-crct10dif_pclmul crc32_pclmul ghash_clmulni_intel vmxnet3 ip_tables
-crc32c_intel vmw_pvscsi [last unloaded: inet_diag]
-[3723834.958381] ---[ end trace 22f5d74f90a5d340 ]---
-[3723834.960984] RIP: 0010:__list_del_entry_valid.cold.1+0x12/0x4c
-[3723834.962674] Code: c7 ff 0f 0b 48 89 c1 4c 89 c6 48 c7 c7 f0 6b 11
-b9 e8 7c 38 c7 ff 0f 0b 48 89 fe 48 89 c2 48 c7 c7 80 6c 11 b9 e8 68 38
-c7 ff <0f> 0b 48 c7 c7 30 6d 11 b9 e8 5a 38 c7 ff 0f 0b 48 89 f2 48 89 fe
-[3723834.965917] RSP: 0018:ffff92a4dd2038e8 EFLAGS: 00010246
-[3723834.966867] RAX: 000000000000004e RBX: ffff92a4d5fd6000 RCX:
-0000000000000000
-[3723834.968144] RDX: 0000000000000000 RSI: 00000000000000f6 RDI:
-0000000000000300
-[3723834.969422] RBP: ffff92a4c5500000 R08: 000000000000048f R09:
-0000000000000003
-[3723834.970714] R10: 0000000000000000 R11: 0000000000000001 R12:
-ffff92a4d5fd6010
-[3723834.971990] R13: ffff92a4c6a4bfa8 R14: ffff92a4c55000f8 R15:
-ffff92a4c5500000
-[3723834.973266] FS:  0000000000000000(0000) GS:ffff92a4dd200000(0000)
-knlGS:0000000000000000
-[3723834.974697] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[3723834.975730] CR2: 00007fb811913048 CR3: 00000000996da002 CR4:
-00000000003606f0
-[3723834.977050] DR0: 0000000000000000 DR1: 0000000000000000 DR2:
-0000000000000000
-[3723834.978323] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7:
-0000000000000400
-[3723834.979600] Kernel panic - not syncing: Fatal exception in interrupt
-[3723834.980790] Kernel Offset: 0x37000000 from 0xffffffff81000000
-(relocation range: 0xffffffff80000000-0xffffffffbfffffff)
-[3723834.982677] Rebooting in 1 seconds..
-[3723835.983434] ACPI MEMORY or I/O RESET_REG
+Fixes: f6ac85858976 ("netfilter: nf_tables: unbind set in rule from commit path")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/net/netfilter/nf_tables.h |  9 +++++++--
+ net/netfilter/nf_tables_api.c     | 15 ++++++++++-----
+ 2 files changed, 17 insertions(+), 7 deletions(-)
+
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index 9b624566b82d..475d6f28ca67 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -421,8 +421,7 @@ struct nft_set {
+ 	unsigned char			*udata;
+ 	/* runtime data below here */
+ 	const struct nft_set_ops	*ops ____cacheline_aligned;
+-	u16				flags:13,
+-					bound:1,
++	u16				flags:14,
+ 					genmask:2;
+ 	u8				klen;
+ 	u8				dlen;
+@@ -1348,12 +1347,15 @@ struct nft_trans_rule {
+ struct nft_trans_set {
+ 	struct nft_set			*set;
+ 	u32				set_id;
++	bool				bound;
+ };
+ 
+ #define nft_trans_set(trans)	\
+ 	(((struct nft_trans_set *)trans->data)->set)
+ #define nft_trans_set_id(trans)	\
+ 	(((struct nft_trans_set *)trans->data)->set_id)
++#define nft_trans_set_bound(trans)	\
++	(((struct nft_trans_set *)trans->data)->bound)
+ 
+ struct nft_trans_chain {
+ 	bool				update;
+@@ -1384,12 +1386,15 @@ struct nft_trans_table {
+ struct nft_trans_elem {
+ 	struct nft_set			*set;
+ 	struct nft_set_elem		elem;
++	bool				bound;
+ };
+ 
+ #define nft_trans_elem_set(trans)	\
+ 	(((struct nft_trans_elem *)trans->data)->set)
+ #define nft_trans_elem(trans)	\
+ 	(((struct nft_trans_elem *)trans->data)->elem)
++#define nft_trans_elem_set_bound(trans)	\
++	(((struct nft_trans_elem *)trans->data)->bound)
+ 
+ struct nft_trans_obj {
+ 	struct nft_object		*obj;
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 605a7cfe7ca7..88abbddf8967 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -138,9 +138,14 @@ static void nft_set_trans_bind(const struct nft_ctx *ctx, struct nft_set *set)
+ 		return;
+ 
+ 	list_for_each_entry_reverse(trans, &net->nft.commit_list, list) {
+-		if (trans->msg_type == NFT_MSG_NEWSET &&
+-		    nft_trans_set(trans) == set) {
+-			set->bound = true;
++		switch (trans->msg_type) {
++		case NFT_MSG_NEWSET:
++			if (nft_trans_set(trans) == set)
++				nft_trans_set_bound(trans) = true;
++			break;
++		case NFT_MSG_NEWSETELEM:
++			if (nft_trans_elem_set(trans) == set)
++				nft_trans_elem_set_bound(trans) = true;
+ 			break;
+ 		}
+ 	}
+@@ -6906,7 +6911,7 @@ static int __nf_tables_abort(struct net *net)
+ 			break;
+ 		case NFT_MSG_NEWSET:
+ 			trans->ctx.table->use--;
+-			if (nft_trans_set(trans)->bound) {
++			if (nft_trans_set_bound(trans)) {
+ 				nft_trans_destroy(trans);
+ 				break;
+ 			}
+@@ -6918,7 +6923,7 @@ static int __nf_tables_abort(struct net *net)
+ 			nft_trans_destroy(trans);
+ 			break;
+ 		case NFT_MSG_NEWSETELEM:
+-			if (nft_trans_elem_set(trans)->bound) {
++			if (nft_trans_elem_set_bound(trans)) {
+ 				nft_trans_destroy(trans);
+ 				break;
+ 			}
+-- 
+2.11.0
+
