@@ -7,20 +7,20 @@ X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5FCCCC32750
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B6B57C433FF
 	for <netfilter-devel@archiver.kernel.org>; Mon, 12 Aug 2019 11:57:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2B4A7206DF
+	by mail.kernel.org (Postfix) with ESMTP id 8250C206DF
 	for <netfilter-devel@archiver.kernel.org>; Mon, 12 Aug 2019 11:57:44 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="SCyvalos"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="bz6P4qIO"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728343AbfHLL5n (ORCPT
+        id S1728342AbfHLL5n (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Mon, 12 Aug 2019 07:57:43 -0400
-Received: from kadath.azazel.net ([81.187.231.250]:42460 "EHLO
+Received: from kadath.azazel.net ([81.187.231.250]:42454 "EHLO
         kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728336AbfHLL5n (ORCPT
+        with ESMTP id S1728334AbfHLL5n (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Mon, 12 Aug 2019 07:57:43 -0400
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
@@ -29,22 +29,22 @@ DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
         Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
         :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=eiddhejMHZa3RsroE846rcDJuLu3g6wv8w4ZwuPQBW4=; b=SCyvalos7hrPijtWYQ7FQAdpUj
-        3ow7yPzkmZkXXtyZQ+1J8DZ7z+m15UhOuYziNAciJp191Nios1arx0OCHAN6gQy87FEGWpOixxgOJ
-        spdN35CWQUMcTHLyB/fnZNbyMXKR7J5R4Scq/mhpz23UyrLTSZpqBLG8PKEy/KfL2XPCkbQl22yBd
-        rAqGTYbrsKeVSUofi8MzWLkIrX1ZvukFvnqC3hqrOiGti+e52BIkvfwdPG52hsfnAWFBZ9MSLkdt/
-        k1h31G8avMoZIxoE4j4UbYFDZNCygBDPA/d1PFaHB7cCIjBlhSQ+rDSvCWKMyxhcyCC/v7+BkbTdY
-        mzHgsxPQ==;
+        bh=HNb1J9wbH5bMeFa6u2LvOTfXcDb7HGJNKPTOEOKC5TA=; b=bz6P4qIOpVruOhK/OM7Q9uM+9i
+        sXgc8iU1uZn9LWuJcPEpMb0tdjBN8KlCh4DzOTixwo/pAJ+Nw3G+Rnq+EX5PPEmJuydZPWOeS/nqu
+        i1kz2oTIIHaeRGKWM7cco5ntYnTWXftH+gD0HdiHixQIoQoOTRoLQY1O+kV3naSZZpkCbfZncIpMP
+        pmhsbczra2uRiLWGa/dsP+ijV7p7kGKWVqfxbNreRipNRORNGS4i4vMWsuE2eXEHRV9si3NYDM6I8
+        ROqdI1an7Q5tik8v5ARObqIMPTOFEcwbtonQpXIdNsmohVA/mPelx7GaAnwYaWOvNG/u2EA9B4M3N
+        lHgDBuwA==;
 Received: from [2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae] (helo=ulthar.dreamlands)
         by kadath.azazel.net with esmtp (Exim 4.92)
         (envelope-from <jeremy@azazel.net>)
-        id 1hx8xK-0002sN-Gt; Mon, 12 Aug 2019 12:57:42 +0100
+        id 1hx8xK-0002sN-CT; Mon, 12 Aug 2019 12:57:42 +0100
 From:   Jeremy Sowden <jeremy@azazel.net>
 To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
 Cc:     =?UTF-8?q?Franta=20Hanzl=C3=ADk?= <franta@hanzlici.cz>
-Subject: [PATCH xtables-addons v2 2/2] xt_DHCPMAC: replaced skb_make_writable with skb_ensure_writable.
-Date:   Mon, 12 Aug 2019 12:57:42 +0100
-Message-Id: <20190812115742.21770-3-jeremy@azazel.net>
+Subject: [PATCH xtables-addons v2 1/2] xt_pknock, xt_SYSRQ: don't set shash_desc::flags.
+Date:   Mon, 12 Aug 2019 12:57:41 +0100
+Message-Id: <20190812115742.21770-2-jeremy@azazel.net>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20190812115742.21770-1-jeremy@azazel.net>
 References: <20190811113826.5e594d8f@franta.hanzlici.cz>
@@ -59,28 +59,38 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-skb_make_writable was removed from the kernel in 5.2 and its callers
-converted to use skb_ensure_writable.
+shash_desc::flags was removed from the kernel in 5.1.
 
 Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 ---
- extensions/xt_DHCPMAC.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ extensions/pknock/xt_pknock.c | 1 -
+ extensions/xt_SYSRQ.c         | 1 -
+ 2 files changed, 2 deletions(-)
 
-diff --git a/extensions/xt_DHCPMAC.c b/extensions/xt_DHCPMAC.c
-index 47f9534f74c7..a748cb101d99 100644
---- a/extensions/xt_DHCPMAC.c
-+++ b/extensions/xt_DHCPMAC.c
-@@ -96,7 +96,8 @@ dhcpmac_tg(struct sk_buff *skb, const struct xt_action_param *par)
- 	struct udphdr udpbuf, *udph;
- 	unsigned int i;
+diff --git a/extensions/pknock/xt_pknock.c b/extensions/pknock/xt_pknock.c
+index c76901ac4c1a..8021ea07e1b9 100644
+--- a/extensions/pknock/xt_pknock.c
++++ b/extensions/pknock/xt_pknock.c
+@@ -1125,7 +1125,6 @@ static int __init xt_pknock_mt_init(void)
  
--	if (!skb_make_writable(skb, 0))
-+	if (skb_ensure_writable(skb, ip_hdrlen(skb) + sizeof(udpbuf) +
-+				     sizeof(dhcpbuf)))
- 		return NF_DROP;
+ 	crypto.size = crypto_shash_digestsize(crypto.tfm);
+ 	crypto.desc.tfm = crypto.tfm;
+-	crypto.desc.flags = 0;
  
- 	udph = skb_header_pointer(skb, ip_hdrlen(skb),
+ 	pde = proc_mkdir("xt_pknock", init_net.proc_net);
+ 	if (pde == NULL) {
+diff --git a/extensions/xt_SYSRQ.c b/extensions/xt_SYSRQ.c
+index c386c7e2db5d..183692f49489 100644
+--- a/extensions/xt_SYSRQ.c
++++ b/extensions/xt_SYSRQ.c
+@@ -114,7 +114,6 @@ static unsigned int sysrq_tg(const void *pdata, uint16_t len)
+ 	}
+ 
+ 	desc.tfm   = sysrq_tfm;
+-	desc.flags = 0;
+ 	ret = crypto_shash_init(&desc);
+ 	if (ret != 0)
+ 		goto hash_fail;
 -- 
 2.20.1
 
