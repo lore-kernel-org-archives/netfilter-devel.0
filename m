@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 618EBC32757
-	for <netfilter-devel@archiver.kernel.org>; Tue, 13 Aug 2019 18:37:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2A6DCC433FF
+	for <netfilter-devel@archiver.kernel.org>; Tue, 13 Aug 2019 18:37:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3AAAD20679
-	for <netfilter-devel@archiver.kernel.org>; Tue, 13 Aug 2019 18:37:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 035B82064A
+	for <netfilter-devel@archiver.kernel.org>; Tue, 13 Aug 2019 18:37:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727954AbfHMShc (ORCPT
+        id S1727994AbfHMShX (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 13 Aug 2019 14:37:32 -0400
-Received: from correo.us.es ([193.147.175.20]:58784 "EHLO mail.us.es"
+        Tue, 13 Aug 2019 14:37:23 -0400
+Received: from correo.us.es ([193.147.175.20]:58778 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727958AbfHMSh0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 13 Aug 2019 14:37:26 -0400
+        id S1727679AbfHMShX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 13 Aug 2019 14:37:23 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 931F8B632C
-        for <netfilter-devel@vger.kernel.org>; Tue, 13 Aug 2019 20:37:22 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id C9CD9DA73F
+        for <netfilter-devel@vger.kernel.org>; Tue, 13 Aug 2019 20:37:18 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 85510DA7B9
-        for <netfilter-devel@vger.kernel.org>; Tue, 13 Aug 2019 20:37:22 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id BC7B01150B9
+        for <netfilter-devel@vger.kernel.org>; Tue, 13 Aug 2019 20:37:18 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 7AE821150CE; Tue, 13 Aug 2019 20:37:22 +0200 (CEST)
+        id B2380519F7; Tue, 13 Aug 2019 20:37:18 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 1573DA75E;
-        Tue, 13 Aug 2019 20:37:20 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 9036A4CA35;
+        Tue, 13 Aug 2019 20:37:16 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 13 Aug 2019 20:37:20 +0200 (CEST)
+ Tue, 13 Aug 2019 20:37:16 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (unknown [31.4.218.116])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id B6C284265A2F;
-        Tue, 13 Aug 2019 20:37:19 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 4529D4265A2F;
+        Tue, 13 Aug 2019 20:37:16 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 08/17] netfilter: add missing includes to a number of header-files.
-Date:   Tue, 13 Aug 2019 20:36:52 +0200
-Message-Id: <20190813183701.4002-9-pablo@netfilter.org>
+Subject: [PATCH 04/17] netfilter: remove unnecessary spaces
+Date:   Tue, 13 Aug 2019 20:36:48 +0200
+Message-Id: <20190813183701.4002-5-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20190813183701.4002-1-pablo@netfilter.org>
 References: <20190813183701.4002-1-pablo@netfilter.org>
@@ -55,461 +55,175 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Jeremy Sowden <jeremy@azazel.net>
+From: yangxingwu <xingwu.yang@gmail.com>
 
-A number of netfilter header-files used declarations and definitions
-from other headers without including them.  Added include directives to
-make those declarations and definitions available.
+This patch removes extra spaces.
 
-Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
+Signed-off-by: yangxingwu <xingwu.yang@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/linux/netfilter/ipset/ip_set_getport.h   | 4 ++++
- include/linux/netfilter/nf_conntrack_amanda.h    | 4 ++++
- include/linux/netfilter/nf_conntrack_ftp.h       | 8 +++++---
- include/linux/netfilter/nf_conntrack_h323.h      | 7 +++++--
- include/linux/netfilter/nf_conntrack_h323_asn1.h | 2 ++
- include/linux/netfilter/nf_conntrack_irc.h       | 4 ++++
- include/linux/netfilter/nf_conntrack_pptp.h      | 9 +++++----
- include/linux/netfilter/nf_conntrack_sip.h       | 4 ++--
- include/linux/netfilter/nf_conntrack_snmp.h      | 3 +++
- include/linux/netfilter/nf_conntrack_tftp.h      | 5 +++++
- include/net/netfilter/br_netfilter.h             | 2 ++
- include/net/netfilter/ipv4/nf_dup_ipv4.h         | 3 +++
- include/net/netfilter/ipv6/nf_defrag_ipv6.h      | 4 +++-
- include/net/netfilter/ipv6/nf_dup_ipv6.h         | 2 ++
- include/net/netfilter/nf_conntrack_bridge.h      | 4 ++++
- include/net/netfilter/nf_conntrack_count.h       | 3 +++
- include/net/netfilter/nf_dup_netdev.h            | 2 ++
- include/net/netfilter/nf_flow_table.h            | 1 +
- include/net/netfilter/nf_nat_helper.h            | 4 ++--
- include/net/netfilter/nf_nat_redirect.h          | 3 +++
- include/net/netfilter/nf_queue.h                 | 2 ++
- include/net/netfilter/nf_reject.h                | 3 +++
- include/net/netfilter/nf_tables_ipv6.h           | 1 +
- include/net/netfilter/nft_fib.h                  | 2 ++
- include/net/netfilter/nft_meta.h                 | 2 ++
- include/net/netfilter/nft_reject.h               | 5 +++++
- include/uapi/linux/netfilter/xt_policy.h         | 1 +
- 27 files changed, 80 insertions(+), 14 deletions(-)
+ net/netfilter/ipset/ip_set_hash_gen.h  | 2 +-
+ net/netfilter/ipset/ip_set_list_set.c  | 2 +-
+ net/netfilter/ipvs/ip_vs_core.c        | 2 +-
+ net/netfilter/ipvs/ip_vs_mh.c          | 4 ++--
+ net/netfilter/ipvs/ip_vs_proto_tcp.c   | 2 +-
+ net/netfilter/nf_conntrack_ftp.c       | 2 +-
+ net/netfilter/nf_conntrack_proto_tcp.c | 2 +-
+ net/netfilter/nfnetlink_log.c          | 4 ++--
+ net/netfilter/nfnetlink_queue.c        | 4 ++--
+ net/netfilter/xt_IDLETIMER.c           | 2 +-
+ 10 files changed, 13 insertions(+), 13 deletions(-)
 
-diff --git a/include/linux/netfilter/ipset/ip_set_getport.h b/include/linux/netfilter/ipset/ip_set_getport.h
-index ac6a11d38a19..a906df06948b 100644
---- a/include/linux/netfilter/ipset/ip_set_getport.h
-+++ b/include/linux/netfilter/ipset/ip_set_getport.h
-@@ -2,6 +2,10 @@
- #ifndef _IP_SET_GETPORT_H
- #define _IP_SET_GETPORT_H
+diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
+index 0feb77fa9edc..3fced06ab752 100644
+--- a/net/netfilter/ipset/ip_set_hash_gen.h
++++ b/net/netfilter/ipset/ip_set_hash_gen.h
+@@ -953,7 +953,7 @@ mtype_test_cidrs(struct ip_set *set, struct mtype_elem *d,
+ 		mtype_data_netmask(d, NCIDR_GET(h->nets[j].cidr[0]));
+ #endif
+ 		key = HKEY(d, h->initval, t->htable_bits);
+-		n =  rcu_dereference_bh(hbucket(t, key));
++		n = rcu_dereference_bh(hbucket(t, key));
+ 		if (!n)
+ 			continue;
+ 		for (i = 0; i < n->pos; i++) {
+diff --git a/net/netfilter/ipset/ip_set_list_set.c b/net/netfilter/ipset/ip_set_list_set.c
+index 6f9ead6319e0..67ac50104e6f 100644
+--- a/net/netfilter/ipset/ip_set_list_set.c
++++ b/net/netfilter/ipset/ip_set_list_set.c
+@@ -288,7 +288,7 @@ list_set_uadd(struct ip_set *set, void *value, const struct ip_set_ext *ext,
+ 	if (n &&
+ 	    !(SET_WITH_TIMEOUT(set) &&
+ 	      ip_set_timeout_expired(ext_timeout(n, set))))
+-		n =  NULL;
++		n = NULL;
  
-+#include <linux/skbuff.h>
-+#include <linux/types.h>
-+#include <uapi/linux/in.h>
-+
- extern bool ip_set_get_ip4_port(const struct sk_buff *skb, bool src,
- 				__be16 *port, u8 *proto);
+ 	e = kzalloc(set->dsize, GFP_ATOMIC);
+ 	if (!e)
+diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+index 46f06f92ab8f..8b80ab794a92 100644
+--- a/net/netfilter/ipvs/ip_vs_core.c
++++ b/net/netfilter/ipvs/ip_vs_core.c
+@@ -617,7 +617,7 @@ int ip_vs_leave(struct ip_vs_service *svc, struct sk_buff *skb,
+ 		unsigned int flags = (svc->flags & IP_VS_SVC_F_ONEPACKET &&
+ 				      iph->protocol == IPPROTO_UDP) ?
+ 				      IP_VS_CONN_F_ONE_PACKET : 0;
+-		union nf_inet_addr daddr =  { .all = { 0, 0, 0, 0 } };
++		union nf_inet_addr daddr = { .all = { 0, 0, 0, 0 } };
  
-diff --git a/include/linux/netfilter/nf_conntrack_amanda.h b/include/linux/netfilter/nf_conntrack_amanda.h
-index 34345e543ba2..6f0ac896fcc9 100644
---- a/include/linux/netfilter/nf_conntrack_amanda.h
-+++ b/include/linux/netfilter/nf_conntrack_amanda.h
-@@ -3,6 +3,10 @@
- #define _NF_CONNTRACK_AMANDA_H
- /* AMANDA tracking. */
+ 		/* create a new connection entry */
+ 		IP_VS_DBG(6, "%s(): create a cache_bypass entry\n", __func__);
+diff --git a/net/netfilter/ipvs/ip_vs_mh.c b/net/netfilter/ipvs/ip_vs_mh.c
+index 94d9d349ebb0..da0280cec506 100644
+--- a/net/netfilter/ipvs/ip_vs_mh.c
++++ b/net/netfilter/ipvs/ip_vs_mh.c
+@@ -174,8 +174,8 @@ static int ip_vs_mh_populate(struct ip_vs_mh_state *s,
+ 		return 0;
+ 	}
  
-+#include <linux/netfilter.h>
-+#include <linux/skbuff.h>
-+#include <net/netfilter/nf_conntrack_expect.h>
-+
- extern unsigned int (*nf_nat_amanda_hook)(struct sk_buff *skb,
- 					  enum ip_conntrack_info ctinfo,
- 					  unsigned int protoff,
-diff --git a/include/linux/netfilter/nf_conntrack_ftp.h b/include/linux/netfilter/nf_conntrack_ftp.h
-index 73a296dfd019..0e38302820b9 100644
---- a/include/linux/netfilter/nf_conntrack_ftp.h
-+++ b/include/linux/netfilter/nf_conntrack_ftp.h
-@@ -2,8 +2,12 @@
- #ifndef _NF_CONNTRACK_FTP_H
- #define _NF_CONNTRACK_FTP_H
+-	table =  kcalloc(BITS_TO_LONGS(IP_VS_MH_TAB_SIZE),
+-			 sizeof(unsigned long), GFP_KERNEL);
++	table = kcalloc(BITS_TO_LONGS(IP_VS_MH_TAB_SIZE),
++			sizeof(unsigned long), GFP_KERNEL);
+ 	if (!table)
+ 		return -ENOMEM;
  
-+#include <linux/netfilter.h>
-+#include <linux/skbuff.h>
-+#include <linux/types.h>
-+#include <net/netfilter/nf_conntrack_expect.h>
- #include <uapi/linux/netfilter/nf_conntrack_ftp.h>
--
-+#include <uapi/linux/netfilter/nf_conntrack_tuple_common.h>
+diff --git a/net/netfilter/ipvs/ip_vs_proto_tcp.c b/net/netfilter/ipvs/ip_vs_proto_tcp.c
+index 000d961b97e4..32b028853a7c 100644
+--- a/net/netfilter/ipvs/ip_vs_proto_tcp.c
++++ b/net/netfilter/ipvs/ip_vs_proto_tcp.c
+@@ -710,7 +710,7 @@ static int __ip_vs_tcp_init(struct netns_ipvs *ipvs, struct ip_vs_proto_data *pd
+ 							sizeof(tcp_timeouts));
+ 	if (!pd->timeout_table)
+ 		return -ENOMEM;
+-	pd->tcp_state_table =  tcp_states;
++	pd->tcp_state_table = tcp_states;
+ 	return 0;
+ }
  
- #define FTP_PORT	21
+diff --git a/net/netfilter/nf_conntrack_ftp.c b/net/netfilter/nf_conntrack_ftp.c
+index 0ecb3e289ef2..c57d2348c505 100644
+--- a/net/netfilter/nf_conntrack_ftp.c
++++ b/net/netfilter/nf_conntrack_ftp.c
+@@ -162,7 +162,7 @@ static int try_rfc959(const char *data, size_t dlen,
+ 	if (length == 0)
+ 		return 0;
  
-@@ -20,8 +24,6 @@ struct nf_ct_ftp_master {
- 	u_int16_t flags[IP_CT_DIR_MAX];
+-	cmd->u3.ip =  htonl((array[0] << 24) | (array[1] << 16) |
++	cmd->u3.ip = htonl((array[0] << 24) | (array[1] << 16) |
+ 				    (array[2] << 8) | array[3]);
+ 	cmd->u.tcp.port = htons((array[4] << 8) | array[5]);
+ 	return length;
+diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+index 85c1f8c213b0..1926fd56df56 100644
+--- a/net/netfilter/nf_conntrack_proto_tcp.c
++++ b/net/netfilter/nf_conntrack_proto_tcp.c
+@@ -1227,7 +1227,7 @@ static const struct nla_policy tcp_nla_policy[CTA_PROTOINFO_TCP_MAX+1] = {
+ 	[CTA_PROTOINFO_TCP_WSCALE_ORIGINAL] = { .type = NLA_U8 },
+ 	[CTA_PROTOINFO_TCP_WSCALE_REPLY]    = { .type = NLA_U8 },
+ 	[CTA_PROTOINFO_TCP_FLAGS_ORIGINAL]  = { .len = sizeof(struct nf_ct_tcp_flags) },
+-	[CTA_PROTOINFO_TCP_FLAGS_REPLY]	    = { .len =  sizeof(struct nf_ct_tcp_flags) },
++	[CTA_PROTOINFO_TCP_FLAGS_REPLY]	    = { .len = sizeof(struct nf_ct_tcp_flags) },
  };
  
--struct nf_conntrack_expect;
--
- /* For NAT to hook in when we find a packet which describes what other
-  * connection we should expect. */
- extern unsigned int (*nf_nat_ftp_hook)(struct sk_buff *skb,
-diff --git a/include/linux/netfilter/nf_conntrack_h323.h b/include/linux/netfilter/nf_conntrack_h323.h
-index f76ed373a2a5..96dfa886f8c0 100644
---- a/include/linux/netfilter/nf_conntrack_h323.h
-+++ b/include/linux/netfilter/nf_conntrack_h323.h
-@@ -4,7 +4,12 @@
+ #define TCP_NLATTR_SIZE	( \
+diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
+index 6dee4f9a944c..d69e1863e536 100644
+--- a/net/netfilter/nfnetlink_log.c
++++ b/net/netfilter/nfnetlink_log.c
+@@ -651,7 +651,7 @@ nfulnl_log_packet(struct net *net,
+ 	/* FIXME: do we want to make the size calculation conditional based on
+ 	 * what is actually present?  way more branches and checks, but more
+ 	 * memory efficient... */
+-	size =    nlmsg_total_size(sizeof(struct nfgenmsg))
++	size = nlmsg_total_size(sizeof(struct nfgenmsg))
+ 		+ nla_total_size(sizeof(struct nfulnl_msg_packet_hdr))
+ 		+ nla_total_size(sizeof(u_int32_t))	/* ifindex */
+ 		+ nla_total_size(sizeof(u_int32_t))	/* ifindex */
+@@ -668,7 +668,7 @@ nfulnl_log_packet(struct net *net,
+ 		+ nla_total_size(sizeof(struct nfgenmsg));	/* NLMSG_DONE */
  
- #ifdef __KERNEL__
+ 	if (in && skb_mac_header_was_set(skb)) {
+-		size +=   nla_total_size(skb->dev->hard_header_len)
++		size += nla_total_size(skb->dev->hard_header_len)
+ 			+ nla_total_size(sizeof(u_int16_t))	/* hwtype */
+ 			+ nla_total_size(sizeof(u_int16_t));	/* hwlen */
+ 	}
+diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+index b6a7ce622c72..feabdfb22920 100644
+--- a/net/netfilter/nfnetlink_queue.c
++++ b/net/netfilter/nfnetlink_queue.c
+@@ -394,7 +394,7 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
+ 	char *secdata = NULL;
+ 	u32 seclen = 0;
  
-+#include <linux/netfilter.h>
-+#include <linux/skbuff.h>
-+#include <linux/types.h>
- #include <linux/netfilter/nf_conntrack_h323_asn1.h>
-+#include <net/netfilter/nf_conntrack_expect.h>
-+#include <uapi/linux/netfilter/nf_conntrack_tuple_common.h>
+-	size =    nlmsg_total_size(sizeof(struct nfgenmsg))
++	size = nlmsg_total_size(sizeof(struct nfgenmsg))
+ 		+ nla_total_size(sizeof(struct nfqnl_msg_packet_hdr))
+ 		+ nla_total_size(sizeof(u_int32_t))	/* ifindex */
+ 		+ nla_total_size(sizeof(u_int32_t))	/* ifindex */
+@@ -453,7 +453,7 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
+ 	}
  
- #define RAS_PORT 1719
- #define Q931_PORT 1720
-@@ -28,8 +33,6 @@ struct nf_ct_h323_master {
- 	};
- };
+ 	if (queue->flags & NFQA_CFG_F_UID_GID) {
+-		size +=  (nla_total_size(sizeof(u_int32_t))	/* uid */
++		size += (nla_total_size(sizeof(u_int32_t))	/* uid */
+ 			+ nla_total_size(sizeof(u_int32_t)));	/* gid */
+ 	}
  
--struct nf_conn;
--
- int get_h225_addr(struct nf_conn *ct, unsigned char *data,
- 		  TransportAddress *taddr, union nf_inet_addr *addr,
- 		  __be16 *port);
-diff --git a/include/linux/netfilter/nf_conntrack_h323_asn1.h b/include/linux/netfilter/nf_conntrack_h323_asn1.h
-index 19df78341fb3..bd6797f823b2 100644
---- a/include/linux/netfilter/nf_conntrack_h323_asn1.h
-+++ b/include/linux/netfilter/nf_conntrack_h323_asn1.h
-@@ -37,6 +37,8 @@
- /*****************************************************************************
-  * H.323 Types
-  ****************************************************************************/
-+
-+#include <linux/types.h>
- #include <linux/netfilter/nf_conntrack_h323_types.h>
+diff --git a/net/netfilter/xt_IDLETIMER.c b/net/netfilter/xt_IDLETIMER.c
+index 9cec9eae556a..f56d3ed93e56 100644
+--- a/net/netfilter/xt_IDLETIMER.c
++++ b/net/netfilter/xt_IDLETIMER.c
+@@ -283,7 +283,7 @@ static int __init idletimer_tg_init(void)
  
- typedef struct {
-diff --git a/include/linux/netfilter/nf_conntrack_irc.h b/include/linux/netfilter/nf_conntrack_irc.h
-index 00c2b74206e1..f75e005db969 100644
---- a/include/linux/netfilter/nf_conntrack_irc.h
-+++ b/include/linux/netfilter/nf_conntrack_irc.h
-@@ -4,6 +4,10 @@
+ 	idletimer_tg_kobj = &idletimer_tg_device->kobj;
  
- #ifdef __KERNEL__
- 
-+#include <linux/netfilter.h>
-+#include <linux/skbuff.h>
-+#include <net/netfilter/nf_conntrack_expect.h>
-+
- #define IRC_PORT	6667
- 
- extern unsigned int (*nf_nat_irc_hook)(struct sk_buff *skb,
-diff --git a/include/linux/netfilter/nf_conntrack_pptp.h b/include/linux/netfilter/nf_conntrack_pptp.h
-index 833a5b2255ea..3f10e806f0dc 100644
---- a/include/linux/netfilter/nf_conntrack_pptp.h
-+++ b/include/linux/netfilter/nf_conntrack_pptp.h
-@@ -3,7 +3,12 @@
- #ifndef _NF_CONNTRACK_PPTP_H
- #define _NF_CONNTRACK_PPTP_H
- 
-+#include <linux/netfilter.h>
-+#include <linux/skbuff.h>
-+#include <linux/types.h>
- #include <linux/netfilter/nf_conntrack_common.h>
-+#include <net/netfilter/nf_conntrack_expect.h>
-+#include <uapi/linux/netfilter/nf_conntrack_tuple_common.h>
- 
- extern const char *const pptp_msg_name[];
- 
-@@ -297,10 +302,6 @@ union pptp_ctrl_union {
- 	struct PptpSetLinkInfo		setlink;
- };
- 
--/* crap needed for nf_conntrack_compat.h */
--struct nf_conn;
--struct nf_conntrack_expect;
--
- extern int
- (*nf_nat_pptp_hook_outbound)(struct sk_buff *skb,
- 			     struct nf_conn *ct, enum ip_conntrack_info ctinfo,
-diff --git a/include/linux/netfilter/nf_conntrack_sip.h b/include/linux/netfilter/nf_conntrack_sip.h
-index c7fc38807a33..f6437f7841af 100644
---- a/include/linux/netfilter/nf_conntrack_sip.h
-+++ b/include/linux/netfilter/nf_conntrack_sip.h
-@@ -3,9 +3,9 @@
- #define __NF_CONNTRACK_SIP_H__
- #ifdef __KERNEL__
- 
--#include <net/netfilter/nf_conntrack_expect.h>
--
-+#include <linux/skbuff.h>
- #include <linux/types.h>
-+#include <net/netfilter/nf_conntrack_expect.h>
- 
- #define SIP_PORT	5060
- #define SIP_TIMEOUT	3600
-diff --git a/include/linux/netfilter/nf_conntrack_snmp.h b/include/linux/netfilter/nf_conntrack_snmp.h
-index 818088c47475..87e4f33eb55f 100644
---- a/include/linux/netfilter/nf_conntrack_snmp.h
-+++ b/include/linux/netfilter/nf_conntrack_snmp.h
-@@ -2,6 +2,9 @@
- #ifndef _NF_CONNTRACK_SNMP_H
- #define _NF_CONNTRACK_SNMP_H
- 
-+#include <linux/netfilter.h>
-+#include <linux/skbuff.h>
-+
- extern int (*nf_nat_snmp_hook)(struct sk_buff *skb,
- 				unsigned int protoff,
- 				struct nf_conn *ct,
-diff --git a/include/linux/netfilter/nf_conntrack_tftp.h b/include/linux/netfilter/nf_conntrack_tftp.h
-index 5769e12dd0a2..dc4c1b9beac0 100644
---- a/include/linux/netfilter/nf_conntrack_tftp.h
-+++ b/include/linux/netfilter/nf_conntrack_tftp.h
-@@ -4,6 +4,11 @@
- 
- #define TFTP_PORT 69
- 
-+#include <linux/netfilter.h>
-+#include <linux/skbuff.h>
-+#include <linux/types.h>
-+#include <net/netfilter/nf_conntrack_expect.h>
-+
- struct tftphdr {
- 	__be16 opcode;
- };
-diff --git a/include/net/netfilter/br_netfilter.h b/include/net/netfilter/br_netfilter.h
-index 302fcd3aade2..ca121ed906df 100644
---- a/include/net/netfilter/br_netfilter.h
-+++ b/include/net/netfilter/br_netfilter.h
-@@ -2,6 +2,8 @@
- #ifndef _BR_NETFILTER_H_
- #define _BR_NETFILTER_H_
- 
-+#include <linux/netfilter.h>
-+
- #include "../../../net/bridge/br_private.h"
- 
- static inline struct nf_bridge_info *nf_bridge_alloc(struct sk_buff *skb)
-diff --git a/include/net/netfilter/ipv4/nf_dup_ipv4.h b/include/net/netfilter/ipv4/nf_dup_ipv4.h
-index c962e0be3549..a2bc16cdbcd3 100644
---- a/include/net/netfilter/ipv4/nf_dup_ipv4.h
-+++ b/include/net/netfilter/ipv4/nf_dup_ipv4.h
-@@ -2,6 +2,9 @@
- #ifndef _NF_DUP_IPV4_H_
- #define _NF_DUP_IPV4_H_
- 
-+#include <linux/skbuff.h>
-+#include <uapi/linux/in.h>
-+
- void nf_dup_ipv4(struct net *net, struct sk_buff *skb, unsigned int hooknum,
- 		 const struct in_addr *gw, int oif);
- 
-diff --git a/include/net/netfilter/ipv6/nf_defrag_ipv6.h b/include/net/netfilter/ipv6/nf_defrag_ipv6.h
-index 9d7e28736da9..6d31cd041143 100644
---- a/include/net/netfilter/ipv6/nf_defrag_ipv6.h
-+++ b/include/net/netfilter/ipv6/nf_defrag_ipv6.h
-@@ -2,7 +2,9 @@
- #ifndef _NF_DEFRAG_IPV6_H
- #define _NF_DEFRAG_IPV6_H
- 
--struct net;
-+#include <linux/skbuff.h>
-+#include <linux/types.h>
-+
- int nf_defrag_ipv6_enable(struct net *);
- 
- int nf_ct_frag6_init(void);
-diff --git a/include/net/netfilter/ipv6/nf_dup_ipv6.h b/include/net/netfilter/ipv6/nf_dup_ipv6.h
-index caf0c2dd8ee7..f6312bb04a13 100644
---- a/include/net/netfilter/ipv6/nf_dup_ipv6.h
-+++ b/include/net/netfilter/ipv6/nf_dup_ipv6.h
-@@ -2,6 +2,8 @@
- #ifndef _NF_DUP_IPV6_H_
- #define _NF_DUP_IPV6_H_
- 
-+#include <linux/skbuff.h>
-+
- void nf_dup_ipv6(struct net *net, struct sk_buff *skb, unsigned int hooknum,
- 		 const struct in6_addr *gw, int oif);
- 
-diff --git a/include/net/netfilter/nf_conntrack_bridge.h b/include/net/netfilter/nf_conntrack_bridge.h
-index 9a5514d5bc51..8f2e5b2ab523 100644
---- a/include/net/netfilter/nf_conntrack_bridge.h
-+++ b/include/net/netfilter/nf_conntrack_bridge.h
-@@ -1,6 +1,10 @@
- #ifndef NF_CONNTRACK_BRIDGE_
- #define NF_CONNTRACK_BRIDGE_
- 
-+#include <linux/module.h>
-+#include <linux/types.h>
-+#include <uapi/linux/if_ether.h>
-+
- struct nf_ct_bridge_info {
- 	struct nf_hook_ops	*ops;
- 	unsigned int		ops_size;
-diff --git a/include/net/netfilter/nf_conntrack_count.h b/include/net/netfilter/nf_conntrack_count.h
-index f32fc8289473..9645b47fa7e4 100644
---- a/include/net/netfilter/nf_conntrack_count.h
-+++ b/include/net/netfilter/nf_conntrack_count.h
-@@ -2,6 +2,9 @@
- #define _NF_CONNTRACK_COUNT_H
- 
- #include <linux/list.h>
-+#include <linux/spinlock.h>
-+#include <net/netfilter/nf_conntrack_tuple.h>
-+#include <net/netfilter/nf_conntrack_zones.h>
- 
- struct nf_conncount_data;
- 
-diff --git a/include/net/netfilter/nf_dup_netdev.h b/include/net/netfilter/nf_dup_netdev.h
-index 2a6f6dcad3d9..181672672160 100644
---- a/include/net/netfilter/nf_dup_netdev.h
-+++ b/include/net/netfilter/nf_dup_netdev.h
-@@ -2,6 +2,8 @@
- #ifndef _NF_DUP_NETDEV_H_
- #define _NF_DUP_NETDEV_H_
- 
-+#include <net/netfilter/nf_tables.h>
-+
- void nf_dup_netdev_egress(const struct nft_pktinfo *pkt, int oif);
- void nf_fwd_netdev_egress(const struct nft_pktinfo *pkt, int oif);
- 
-diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
-index d8c187936bec..7249e331bd0b 100644
---- a/include/net/netfilter/nf_flow_table.h
-+++ b/include/net/netfilter/nf_flow_table.h
-@@ -6,6 +6,7 @@
- #include <linux/netdevice.h>
- #include <linux/rhashtable-types.h>
- #include <linux/rcupdate.h>
-+#include <linux/netfilter.h>
- #include <linux/netfilter/nf_conntrack_tuple_common.h>
- #include <net/dst.h>
- 
-diff --git a/include/net/netfilter/nf_nat_helper.h b/include/net/netfilter/nf_nat_helper.h
-index 97d7033e93a4..efae84646353 100644
---- a/include/net/netfilter/nf_nat_helper.h
-+++ b/include/net/netfilter/nf_nat_helper.h
-@@ -3,9 +3,9 @@
- #define _NF_NAT_HELPER_H
- /* NAT protocol helper routines. */
- 
-+#include <linux/skbuff.h>
- #include <net/netfilter/nf_conntrack.h>
--
--struct sk_buff;
-+#include <net/netfilter/nf_conntrack_expect.h>
- 
- /* These return true or false. */
- bool __nf_nat_mangle_tcp_packet(struct sk_buff *skb, struct nf_conn *ct,
-diff --git a/include/net/netfilter/nf_nat_redirect.h b/include/net/netfilter/nf_nat_redirect.h
-index c129aacc8ae8..2418653a66db 100644
---- a/include/net/netfilter/nf_nat_redirect.h
-+++ b/include/net/netfilter/nf_nat_redirect.h
-@@ -2,6 +2,9 @@
- #ifndef _NF_NAT_REDIRECT_H_
- #define _NF_NAT_REDIRECT_H_
- 
-+#include <linux/skbuff.h>
-+#include <uapi/linux/netfilter/nf_nat.h>
-+
- unsigned int
- nf_nat_redirect_ipv4(struct sk_buff *skb,
- 		     const struct nf_nat_ipv4_multi_range_compat *mr,
-diff --git a/include/net/netfilter/nf_queue.h b/include/net/netfilter/nf_queue.h
-index 3cb6dcf53a4e..359b80b43169 100644
---- a/include/net/netfilter/nf_queue.h
-+++ b/include/net/netfilter/nf_queue.h
-@@ -5,6 +5,8 @@
- #include <linux/ip.h>
- #include <linux/ipv6.h>
- #include <linux/jhash.h>
-+#include <linux/netfilter.h>
-+#include <linux/skbuff.h>
- 
- /* Each queued (to userspace) skbuff has one of these. */
- struct nf_queue_entry {
-diff --git a/include/net/netfilter/nf_reject.h b/include/net/netfilter/nf_reject.h
-index 221f877f29d1..9051c3a0c8e7 100644
---- a/include/net/netfilter/nf_reject.h
-+++ b/include/net/netfilter/nf_reject.h
-@@ -2,6 +2,9 @@
- #ifndef _NF_REJECT_H
- #define _NF_REJECT_H
- 
-+#include <linux/types.h>
-+#include <uapi/linux/in.h>
-+
- static inline bool nf_reject_verify_csum(__u8 proto)
- {
- 	/* Skip protocols that don't use 16-bit one's complement checksum
-diff --git a/include/net/netfilter/nf_tables_ipv6.h b/include/net/netfilter/nf_tables_ipv6.h
-index dabe6fdb553a..d0f1c537b017 100644
---- a/include/net/netfilter/nf_tables_ipv6.h
-+++ b/include/net/netfilter/nf_tables_ipv6.h
-@@ -4,6 +4,7 @@
- 
- #include <linux/netfilter_ipv6/ip6_tables.h>
- #include <net/ipv6.h>
-+#include <net/netfilter/nf_tables.h>
- 
- static inline void nft_set_pktinfo_ipv6(struct nft_pktinfo *pkt,
- 					struct sk_buff *skb)
-diff --git a/include/net/netfilter/nft_fib.h b/include/net/netfilter/nft_fib.h
-index e4c4d8eaca8c..628b6fa579cd 100644
---- a/include/net/netfilter/nft_fib.h
-+++ b/include/net/netfilter/nft_fib.h
-@@ -2,6 +2,8 @@
- #ifndef _NFT_FIB_H_
- #define _NFT_FIB_H_
- 
-+#include <net/netfilter/nf_tables.h>
-+
- struct nft_fib {
- 	enum nft_registers	dreg:8;
- 	u8			result;
-diff --git a/include/net/netfilter/nft_meta.h b/include/net/netfilter/nft_meta.h
-index 5c69e9b09388..07e2fd507963 100644
---- a/include/net/netfilter/nft_meta.h
-+++ b/include/net/netfilter/nft_meta.h
-@@ -2,6 +2,8 @@
- #ifndef _NFT_META_H_
- #define _NFT_META_H_
- 
-+#include <net/netfilter/nf_tables.h>
-+
- struct nft_meta {
- 	enum nft_meta_keys	key:8;
- 	union {
-diff --git a/include/net/netfilter/nft_reject.h b/include/net/netfilter/nft_reject.h
-index de80c50761f0..56b123a42220 100644
---- a/include/net/netfilter/nft_reject.h
-+++ b/include/net/netfilter/nft_reject.h
-@@ -2,6 +2,11 @@
- #ifndef _NFT_REJECT_H_
- #define _NFT_REJECT_H_
- 
-+#include <linux/types.h>
-+#include <net/netlink.h>
-+#include <net/netfilter/nf_tables.h>
-+#include <uapi/linux/netfilter/nf_tables.h>
-+
- struct nft_reject {
- 	enum nft_reject_types	type:8;
- 	u8			icmp_code;
-diff --git a/include/uapi/linux/netfilter/xt_policy.h b/include/uapi/linux/netfilter/xt_policy.h
-index 323bfa3074c5..4cf2ce2a8a44 100644
---- a/include/uapi/linux/netfilter/xt_policy.h
-+++ b/include/uapi/linux/netfilter/xt_policy.h
-@@ -2,6 +2,7 @@
- #ifndef _XT_POLICY_H
- #define _XT_POLICY_H
- 
-+#include <linux/netfilter.h>
- #include <linux/types.h>
- #include <linux/in.h>
- #include <linux/in6.h>
+-	err =  xt_register_target(&idletimer_tg);
++	err = xt_register_target(&idletimer_tg);
+ 	if (err < 0) {
+ 		pr_debug("couldn't register xt target\n");
+ 		goto out_dev;
 -- 
 2.11.0
 
