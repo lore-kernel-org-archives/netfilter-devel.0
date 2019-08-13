@@ -2,59 +2,93 @@ Return-Path: <SRS0=20ch=WJ=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 44F2AC32757
-	for <netfilter-devel@archiver.kernel.org>; Tue, 13 Aug 2019 04:27:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D070C32750
+	for <netfilter-devel@archiver.kernel.org>; Tue, 13 Aug 2019 06:09:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 24BBF20644
-	for <netfilter-devel@archiver.kernel.org>; Tue, 13 Aug 2019 04:27:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6B75A20842
+	for <netfilter-devel@archiver.kernel.org>; Tue, 13 Aug 2019 06:09:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726086AbfHME1C (ORCPT
+        id S1727343AbfHMGJx (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 13 Aug 2019 00:27:02 -0400
-Received: from shards.monkeyblade.net ([23.128.96.9]:56244 "EHLO
-        shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725815AbfHME1C (ORCPT
+        Tue, 13 Aug 2019 02:09:53 -0400
+Received: from mail-wr1-f66.google.com ([209.85.221.66]:41315 "EHLO
+        mail-wr1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725815AbfHMGJw (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 13 Aug 2019 00:27:02 -0400
-Received: from localhost (unknown [IPv6:2601:601:9f80:35cd::d71])
-        (using TLSv1 with cipher AES256-SHA (256/256 bits))
-        (Client did not present a certificate)
-        (Authenticated sender: davem-davemloft)
-        by shards.monkeyblade.net (Postfix) with ESMTPSA id 9A03D153BB58F;
-        Mon, 12 Aug 2019 21:27:01 -0700 (PDT)
-Date:   Mon, 12 Aug 2019 21:26:59 -0700 (PDT)
-Message-Id: <20190812.212659.1072592048193337024.davem@davemloft.net>
-To:     netdev@vger.kernel.org, jakub.kicinski@netronome.com
-CC:     linux-wireless@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        bpf@vger.kernel.org
-Subject: Taking a day off...
-From:   David Miller <davem@davemloft.net>
-X-Mailer: Mew version 6.8 on Emacs 26.1
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-X-Greylist: Sender succeeded SMTP AUTH, not delayed by milter-greylist-4.5.12 (shards.monkeyblade.net [149.20.54.216]); Mon, 12 Aug 2019 21:27:01 -0700 (PDT)
+        Tue, 13 Aug 2019 02:09:52 -0400
+Received: by mail-wr1-f66.google.com with SMTP id j16so4345924wrr.8;
+        Mon, 12 Aug 2019 23:09:51 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=maxOAdMiS/xfSYWsDRy3DYEAb7NCOxMvoqPrTEM6hGg=;
+        b=GHc70X+zF+QSjj8x/Tij6dQQpQSWVL7Oj6n6qfoZ/0WCPeo1LzhEJQ9coz3+WResai
+         4TtzSE1+0ijiP+DWqg7yxhmxh0ut0281kTKBsqL5lvrdyCno+8l0VEJH5Ctn1egZ/Fw8
+         nw2f4Q7AC2H/ZE+ivbG88eemN0/zo5uEgc+cwxjOWeFoBdhAZs/WAQpCkIVDq09/MfQa
+         OqGAY1lHMC0Bu42UuJeZH9y5nva3olWB1KnMQIhPTvBfWmN4lJ/5i0e794OcrketSGjN
+         VPx3sbF3L7KSsMj2JhnYS/CF245I8eqoMn4pHdvUCWqdZVXZ5QlTaVkb7Rdi/JdnMtO+
+         guMA==
+X-Gm-Message-State: APjAAAUgE8VWyCO41bv1whGLrHOsQHBYlyDQfr+UlA8taDqjVN8WxVJe
+        9okb6/2Vi0PPGlZbkcBDgCfJpj4qP/s=
+X-Google-Smtp-Source: APXvYqzbBriL+bF8uJ2yyYWXnrkp6leIJkJrAeXCvoExrnAuLLrZH6dxl12sou/Xc17YJNSW4PNngA==
+X-Received: by 2002:adf:db09:: with SMTP id s9mr17326965wri.214.1565676590476;
+        Mon, 12 Aug 2019 23:09:50 -0700 (PDT)
+Received: from localhost.localdomain (broadband-188-32-48-208.ip.moscow.rt.ru. [188.32.48.208])
+        by smtp.googlemail.com with ESMTPSA id o11sm402494wmh.46.2019.08.12.23.09.49
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Mon, 12 Aug 2019 23:09:50 -0700 (PDT)
+From:   Denis Efremov <efremov@linux.com>
+To:     linux-kernel@vger.kernel.org
+Cc:     Denis Efremov <efremov@linux.com>, joe@perches.com,
+        Florian Westphal <fw@strlen.de>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Juanjo Ciarlante <jjciarla@raiz.uncu.edu.ar>,
+        netfilter-devel@vger.kernel.org
+Subject: [PATCH] MAINTAINERS: ip masquerading: Update path to the driver
+Date:   Tue, 13 Aug 2019 09:09:41 +0300
+Message-Id: <20190813060941.15012-1-efremov@linux.com>
+X-Mailer: git-send-email 2.21.0
+In-Reply-To: <7cd8d12f59bcacd18a78f599b46dac555f7f16c0.camel@perches.com>
+References: <7cd8d12f59bcacd18a78f599b46dac555f7f16c0.camel@perches.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Update MAINTAINERS record to reflect the filename change
+from ipt_MASQUERADE.c to xt_MASQUERADE.c
 
-Hello everyone,
+Cc: Florian Westphal <fw@strlen.de>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Juanjo Ciarlante <jjciarla@raiz.uncu.edu.ar>
+Cc: netfilter-devel@vger.kernel.org
+Fixes: adf82accc5f5 ("netfilter: x_tables: merge ip and ipv6 masquerade modules")
+Signed-off-by: Denis Efremov <efremov@linux.com>
+---
+ MAINTAINERS | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Tomorrow I will be letting Jakub Kicinski manage the net and net-next
-GIT trees.  So he will be integrating patches into GIT and doing git
-pulls from people.  He will alway keep the patchwork states up to
-date, just like I do.
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 25eb86f3261e..87ac0378186c 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -8443,7 +8443,7 @@ F:	include/uapi/linux/io_uring.h
+ IP MASQUERADING
+ M:	Juanjo Ciarlante <jjciarla@raiz.uncu.edu.ar>
+ S:	Maintained
+-F:	net/ipv4/netfilter/ipt_MASQUERADE.c
++F:	net/netfilter/xt_MASQUERADE.c
+ 
+ IPMI SUBSYSTEM
+ M:	Corey Minyard <minyard@acm.org>
+-- 
+2.21.0
 
-I completely expect everyone to give Jakub the same respect and
-consideration they usually give to me, because he deserves it.
-
-In the future, when I need to take a few days off, I will hand things
-over to Jakub in a similar way.
-
-Thank you.
