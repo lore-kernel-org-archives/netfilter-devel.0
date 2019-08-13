@@ -2,49 +2,48 @@ Return-Path: <SRS0=20ch=WJ=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D5F9EC32750
-	for <netfilter-devel@archiver.kernel.org>; Tue, 13 Aug 2019 10:56:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2CE53C433FF
+	for <netfilter-devel@archiver.kernel.org>; Tue, 13 Aug 2019 10:58:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B53722067D
-	for <netfilter-devel@archiver.kernel.org>; Tue, 13 Aug 2019 10:56:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 08A872067D
+	for <netfilter-devel@archiver.kernel.org>; Tue, 13 Aug 2019 10:58:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728347AbfHMK4L (ORCPT
+        id S1727908AbfHMK6M (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 13 Aug 2019 06:56:11 -0400
-Received: from m9784.mail.qiye.163.com ([220.181.97.84]:32833 "EHLO
+        Tue, 13 Aug 2019 06:58:12 -0400
+Received: from m9784.mail.qiye.163.com ([220.181.97.84]:36527 "EHLO
         m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728292AbfHMK4L (ORCPT
+        with ESMTP id S1726650AbfHMK6M (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 13 Aug 2019 06:56:11 -0400
+        Tue, 13 Aug 2019 06:58:12 -0400
 Received: from [192.168.188.14] (unknown [120.132.1.226])
-        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id A21AB417DB;
-        Tue, 13 Aug 2019 18:56:06 +0800 (CST)
-Subject: Re: [PATCH nf-next v6 8/8] netfilter: Support the bridge family in
- flow table
+        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id 62849415E9;
+        Tue, 13 Aug 2019 18:58:09 +0800 (CST)
+Subject: Re: [PATCH nf-next v3 0/9] netfilter: nf_tables_offload: support more
+ expr and obj offload
 From:   wenxu <wenxu@ucloud.cn>
 To:     pablo@netfilter.org, fw@strlen.de
 Cc:     netfilter-devel@vger.kernel.org
-References: <1564053176-28605-1-git-send-email-wenxu@ucloud.cn>
- <1564053176-28605-9-git-send-email-wenxu@ucloud.cn>
-Message-ID: <39536e32-4a6c-a0df-d909-a58a595e13cc@ucloud.cn>
-Date:   Tue, 13 Aug 2019 18:56:05 +0800
+References: <1564668086-16260-1-git-send-email-wenxu@ucloud.cn>
+Message-ID: <e43baf4a-0137-16ca-91cb-ae622b03211c@ucloud.cn>
+Date:   Tue, 13 Aug 2019 18:58:08 +0800
 User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:60.0) Gecko/20100101
  Thunderbird/60.8.0
 MIME-Version: 1.0
-In-Reply-To: <1564053176-28605-9-git-send-email-wenxu@ucloud.cn>
+In-Reply-To: <1564668086-16260-1-git-send-email-wenxu@ucloud.cn>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Content-Language: en-US
-X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVkpVT0pIS0tLSUlNS0lLQ0pZV1koWU
+X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVklVSU5IS0tLSU5CSEJCT0pZV1koWU
         FJQjdXWS1ZQUlXWQkOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6Kww6TDo6Gjg5Ezo5SBA5SSs3
-        KU8wCwtVSlVKTk1OTUJITE1NQkhOVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJS1VK
-        SElVSlVJSU1ZV1kIAVlBT0xMQzcG
-X-HM-Tid: 0a6c8a9eec752086kuqya21ab417db
+X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6KxQ6Tio4Ejg6FzowCwsLPQkY
+        KUwwC0xVSlVKTk1OTUJIQ0NCTUJNVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJS1VK
+        SElVSlVJSU1ZV1kIAVlBT0xCTzcG
+X-HM-Tid: 0a6c8aa0cbe52086kuqy62849415e9
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
@@ -52,112 +51,76 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 Hi pablo,
 
+How about also for this series?
 
-How about this patch? There are any question about this series?
 
-
-BR
-
-wenxu
-
-On 7/25/2019 7:12 PM, wenxu@ucloud.cn wrote:
+On 8/1/2019 10:01 PM, wenxu@ucloud.cn wrote:
 > From: wenxu <wenxu@ucloud.cn>
 >
-> This patch add the bridge flow table type. Implement the datapath
-> flow table to forward both IPV4 and IPV6 traffic through bridge.
+> This series patch support more expr and obj offload: 
+> fw_nedev, set payload, tunnel encap/decap action,
+> tunnel meta match, objref offload
 >
-> Signed-off-by: wenxu <wenxu@ucloud.cn>
-> ---
-> v6: rebase Kconfig file to master
+> The follwing is the test sample:
 >
->  net/bridge/netfilter/Kconfig                |  8 +++++
->  net/bridge/netfilter/Makefile               |  1 +
->  net/bridge/netfilter/nf_flow_table_bridge.c | 48 +++++++++++++++++++++++++++++
->  3 files changed, 57 insertions(+)
->  create mode 100644 net/bridge/netfilter/nf_flow_table_bridge.c
+> # nft add table netdev firewall
+> # nft add tunnel netdev firewall encap tunid 1000 tundst 0xf198a8ac tunsrc 0x4b98a8ac tunrelease 0
+> # nft add tunnel netdev firewall decap tunid 0 tundst 0 tunsrc 0  tunrelease 1
+> # nft add chain netdev firewall aclout { type filter hook ingress device mlx_pf0vf0 priority - 300 \; }
+> # nft --debug=netlink add rule netdev firewall aclout ip daddr 10.0.1.7  @ll,0,48 set 0x00002e9ca06e2596 @ll,48,48 set 0xfaffffffffff tunnel name encap fwd to gretap
+>   [ meta load protocol => reg 1 ]
+>   [ cmp eq reg 1 0x00000008 ]
+>   [ payload load 4b @ network header + 16 => reg 1 ]
+>   [ cmp eq reg 1 0x0701000a ]
+>   [ immediate reg 1 0x6ea09c2e 0x00009625 ]
+>   [ payload write reg 1 => 6b @ link header + 0 csum_type 0 csum_off 0 csum_flags 0x0 ]
+>   [ immediate reg 1 0xfffffffa 0x0000ffff ]
+>   [ payload write reg 1 => 6b @ link header + 6 csum_type 0 csum_off 0 csum_flags 0x0 ]
+>   [ objref type 6 name encap ]
+>   [ immediate reg 1 0x00000019 ]
+>   [ fwd sreg_dev 1 ]
 >
-> diff --git a/net/bridge/netfilter/Kconfig b/net/bridge/netfilter/Kconfig
-> index 5040fe4..ad100cb 100644
-> --- a/net/bridge/netfilter/Kconfig
-> +++ b/net/bridge/netfilter/Kconfig
-> @@ -41,6 +41,14 @@ config NF_CONNTRACK_BRIDGE
->  
->  	  To compile it as a module, choose M here.  If unsure, say N.
->  
-> +config NF_FLOW_TABLE_BRIDGE
-> +	tristate "Netfilter flow table bridge module"
-> +	depends on NF_FLOW_TABLE && NF_CONNTRACK_BRIDGE
-> +	help
-> +          This option adds the flow table bridge support.
-> +
-> +	  To compile it as a module, choose M here.
-> +
->  menuconfig BRIDGE_NF_EBTABLES
->  	tristate "Ethernet Bridge tables (ebtables) support"
->  	depends on BRIDGE && NETFILTER && NETFILTER_XTABLES
-> diff --git a/net/bridge/netfilter/Makefile b/net/bridge/netfilter/Makefile
-> index 8e2c575..627b269 100644
-> --- a/net/bridge/netfilter/Makefile
-> +++ b/net/bridge/netfilter/Makefile
-> @@ -8,6 +8,7 @@ obj-$(CONFIG_NFT_BRIDGE_REJECT)  += nft_reject_bridge.o
->  
->  # connection tracking
->  obj-$(CONFIG_NF_CONNTRACK_BRIDGE) += nf_conntrack_bridge.o
-> +obj-$(CONFIG_NF_FLOW_TABLE_BRIDGE) += nf_flow_table_bridge.o
->  
->  # packet logging
->  obj-$(CONFIG_NF_LOG_BRIDGE) += nf_log_bridge.o
-> diff --git a/net/bridge/netfilter/nf_flow_table_bridge.c b/net/bridge/netfilter/nf_flow_table_bridge.c
-> new file mode 100644
-> index 0000000..c4fdd4a
-> --- /dev/null
-> +++ b/net/bridge/netfilter/nf_flow_table_bridge.c
-> @@ -0,0 +1,48 @@
-> +// SPDX-License-Identifier: GPL-2.0-only
-> +#include <linux/kernel.h>
-> +#include <linux/init.h>
-> +#include <linux/module.h>
-> +#include <linux/netfilter.h>
-> +#include <net/netfilter/nf_flow_table.h>
-> +#include <net/netfilter/nf_tables.h>
-> +
-> +static unsigned int
-> +nf_flow_offload_bridge_hook(void *priv, struct sk_buff *skb,
-> +			    const struct nf_hook_state *state)
-> +{
-> +	switch (skb->protocol) {
-> +	case htons(ETH_P_IP):
-> +		return nf_flow_offload_ip_hook(priv, skb, state);
-> +	case htons(ETH_P_IPV6):
-> +		return nf_flow_offload_ipv6_hook(priv, skb, state);
-> +	}
-> +
-> +	return NF_ACCEPT;
-> +}
-> +
-> +static struct nf_flowtable_type flowtable_bridge = {
-> +	.family		= NFPROTO_BRIDGE,
-> +	.init		= nf_flow_table_init,
-> +	.free		= nf_flow_table_free,
-> +	.hook		= nf_flow_offload_bridge_hook,
-> +	.owner		= THIS_MODULE,
-> +};
-> +
-> +static int __init nf_flow_bridge_module_init(void)
-> +{
-> +	nft_register_flowtable_type(&flowtable_bridge);
-> +
-> +	return 0;
-> +}
-> +
-> +static void __exit nf_flow_bridge_module_exit(void)
-> +{
-> +	nft_unregister_flowtable_type(&flowtable_bridge);
-> +}
-> +
-> +module_init(nf_flow_bridge_module_init);
-> +module_exit(nf_flow_bridge_module_exit);
-> +
-> +MODULE_LICENSE("GPL");
-> +MODULE_AUTHOR("wenxu <wenxu@ucloud.cn>");
-> +MODULE_ALIAS_NF_FLOWTABLE(7); /* NFPROTO_BRIDGE */
+>
+> # nft add chain netdev firewall aclin { type filter hook ingress device gretap priority - 300 \; }
+> # nft --debug=netlink add rule netdev firewall aclin ip daddr 10.0.0.7 tunnel tunid 1000 tunnel tundst 172.168.152.75 tunnel tunsrc 172.168.152.241 tunnel name decap @ll,0,48 set 0x0000525400001275 @ll,48,48 set 0xfaffffffffff fwd to mlx_pf0vf0
+>   [ meta load protocol => reg 1 ]
+>   [ cmp eq reg 1 0x00000008 ]
+>   [ payload load 4b @ network header + 16 => reg 1 ]
+>   [ cmp eq reg 1 0x0700000a ]
+>   [ tunnel load id => reg 1 ]
+>   [ cmp eq reg 1 0x000003e8 ]
+>   [ tunnel load tun_dst => reg 1 ]
+>   [ cmp eq reg 1 0xaca8984b ]
+>   [ tunnel load tun_src => reg 1 ]
+>   [ cmp eq reg 1 0xaca898f1 ]
+>   [ objref type 6 name decap ]
+>   [ immediate reg 1 0x00005452 0x00007512 ]
+>   [ payload write reg 1 => 6b @ link header + 0 csum_type 0 csum_off 0 csum_flags 0x0 ]
+>   [ immediate reg 1 0xfffffffa 0x0000ffff ]
+>   [ payload write reg 1 => 6b @ link header + 6 csum_type 0 csum_off 0 csum_flags 0x0 ]
+>   [ immediate reg 1 0x0000000f ]
+>   [ fwd sreg_dev 1 ]
+>
+> wenxu (9):
+>   netfilter: nf_flow_offload: add net in offload_ctx
+>   netfilter: nf_tables_offload: add offload_actions callback
+>   netfilter: nft_fwd_netdev: add fw_netdev action support
+>   netfilter: nft_payload: add nft_set_payload offload support
+>   netfilter: nft_tunnel: support NFT_TUNNEL_SRC/DST_IP match
+>   netfilter: nft_tunnel: support tunnel meta match offload
+>   netfilter: nft_tunnel: add NFTA_TUNNEL_KEY_RELEASE action
+>   netfilter: nft_objref: add nft_objref_type offload
+>   netfilter: nft_tunnel: support nft_tunnel_obj offload
+>
+>  include/net/netfilter/nf_tables.h         |  10 ++-
+>  include/net/netfilter/nf_tables_offload.h |   7 +-
+>  include/uapi/linux/netfilter/nf_tables.h  |   3 +
+>  net/netfilter/nf_tables_api.c             |   2 +-
+>  net/netfilter/nf_tables_offload.c         |   7 +-
+>  net/netfilter/nft_fwd_netdev.c            |  27 +++++++
+>  net/netfilter/nft_immediate.c             |   2 +-
+>  net/netfilter/nft_objref.c                |  15 ++++
+>  net/netfilter/nft_payload.c               |  56 ++++++++++++++
+>  net/netfilter/nft_tunnel.c                | 123 ++++++++++++++++++++++++++----
+>  10 files changed, 230 insertions(+), 22 deletions(-)
+>
