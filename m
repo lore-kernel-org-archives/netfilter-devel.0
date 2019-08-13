@@ -4,91 +4,218 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D070C32750
-	for <netfilter-devel@archiver.kernel.org>; Tue, 13 Aug 2019 06:09:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A8DDEC433FF
+	for <netfilter-devel@archiver.kernel.org>; Tue, 13 Aug 2019 06:59:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6B75A20842
-	for <netfilter-devel@archiver.kernel.org>; Tue, 13 Aug 2019 06:09:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7442920644
+	for <netfilter-devel@archiver.kernel.org>; Tue, 13 Aug 2019 06:59:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727343AbfHMGJx (ORCPT
+        id S1726282AbfHMG7H (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 13 Aug 2019 02:09:53 -0400
-Received: from mail-wr1-f66.google.com ([209.85.221.66]:41315 "EHLO
-        mail-wr1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725815AbfHMGJw (ORCPT
+        Tue, 13 Aug 2019 02:59:07 -0400
+Received: from vxsys-smtpclusterma-05.srv.cat ([46.16.61.63]:45665 "EHLO
+        vxsys-smtpclusterma-05.srv.cat" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725842AbfHMG7G (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 13 Aug 2019 02:09:52 -0400
-Received: by mail-wr1-f66.google.com with SMTP id j16so4345924wrr.8;
-        Mon, 12 Aug 2019 23:09:51 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=maxOAdMiS/xfSYWsDRy3DYEAb7NCOxMvoqPrTEM6hGg=;
-        b=GHc70X+zF+QSjj8x/Tij6dQQpQSWVL7Oj6n6qfoZ/0WCPeo1LzhEJQ9coz3+WResai
-         4TtzSE1+0ijiP+DWqg7yxhmxh0ut0281kTKBsqL5lvrdyCno+8l0VEJH5Ctn1egZ/Fw8
-         nw2f4Q7AC2H/ZE+ivbG88eemN0/zo5uEgc+cwxjOWeFoBdhAZs/WAQpCkIVDq09/MfQa
-         OqGAY1lHMC0Bu42UuJeZH9y5nva3olWB1KnMQIhPTvBfWmN4lJ/5i0e794OcrketSGjN
-         VPx3sbF3L7KSsMj2JhnYS/CF245I8eqoMn4pHdvUCWqdZVXZ5QlTaVkb7Rdi/JdnMtO+
-         guMA==
-X-Gm-Message-State: APjAAAUgE8VWyCO41bv1whGLrHOsQHBYlyDQfr+UlA8taDqjVN8WxVJe
-        9okb6/2Vi0PPGlZbkcBDgCfJpj4qP/s=
-X-Google-Smtp-Source: APXvYqzbBriL+bF8uJ2yyYWXnrkp6leIJkJrAeXCvoExrnAuLLrZH6dxl12sou/Xc17YJNSW4PNngA==
-X-Received: by 2002:adf:db09:: with SMTP id s9mr17326965wri.214.1565676590476;
-        Mon, 12 Aug 2019 23:09:50 -0700 (PDT)
-Received: from localhost.localdomain (broadband-188-32-48-208.ip.moscow.rt.ru. [188.32.48.208])
-        by smtp.googlemail.com with ESMTPSA id o11sm402494wmh.46.2019.08.12.23.09.49
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 12 Aug 2019 23:09:50 -0700 (PDT)
-From:   Denis Efremov <efremov@linux.com>
-To:     linux-kernel@vger.kernel.org
-Cc:     Denis Efremov <efremov@linux.com>, joe@perches.com,
-        Florian Westphal <fw@strlen.de>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Juanjo Ciarlante <jjciarla@raiz.uncu.edu.ar>,
-        netfilter-devel@vger.kernel.org
-Subject: [PATCH] MAINTAINERS: ip masquerading: Update path to the driver
-Date:   Tue, 13 Aug 2019 09:09:41 +0300
-Message-Id: <20190813060941.15012-1-efremov@linux.com>
-X-Mailer: git-send-email 2.21.0
-In-Reply-To: <7cd8d12f59bcacd18a78f599b46dac555f7f16c0.camel@perches.com>
-References: <7cd8d12f59bcacd18a78f599b46dac555f7f16c0.camel@perches.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        Tue, 13 Aug 2019 02:59:06 -0400
+Received: from bubu.das-nano.com (242.red-83-48-67.staticip.rima-tde.net [83.48.67.242])
+        by vxsys-smtpclusterma-05.srv.cat (Postfix) with ESMTPA id 5FA7B24269
+        for <netfilter-devel@vger.kernel.org>; Tue, 13 Aug 2019 08:59:01 +0200 (CEST)
+From:   Ander Juaristi <a@juaristi.eus>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH v3] netfilter: nft_dynset: support for element deletion
+Date:   Tue, 13 Aug 2019 08:58:49 +0200
+Message-Id: <20190813065849.4745-1-a@juaristi.eus>
+X-Mailer: git-send-email 2.17.1
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Update MAINTAINERS record to reflect the filename change
-from ipt_MASQUERADE.c to xt_MASQUERADE.c
+This patch implements the delete operation from the ruleset.
 
-Cc: Florian Westphal <fw@strlen.de>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Juanjo Ciarlante <jjciarla@raiz.uncu.edu.ar>
-Cc: netfilter-devel@vger.kernel.org
-Fixes: adf82accc5f5 ("netfilter: x_tables: merge ip and ipv6 masquerade modules")
-Signed-off-by: Denis Efremov <efremov@linux.com>
+It implements a new delete() function in nft_set_rhash. It is simpler
+to use than the already existing remove(), because it only takes the set
+and the key as arguments, whereas remove() expects a full
+nft_set_elem structure.
+
+Signed-off-by: Ander Juaristi <a@juaristi.eus>
 ---
- MAINTAINERS | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/net/netfilter/nf_tables.h        | 10 +++++-
+ include/uapi/linux/netfilter/nf_tables.h |  1 +
+ net/netfilter/nft_dynset.c               | 44 +++++++++++++++++-------
+ net/netfilter/nft_set_hash.c             | 19 ++++++++++
+ 4 files changed, 60 insertions(+), 14 deletions(-)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 25eb86f3261e..87ac0378186c 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -8443,7 +8443,7 @@ F:	include/uapi/linux/io_uring.h
- IP MASQUERADING
- M:	Juanjo Ciarlante <jjciarla@raiz.uncu.edu.ar>
- S:	Maintained
--F:	net/ipv4/netfilter/ipt_MASQUERADE.c
-+F:	net/netfilter/xt_MASQUERADE.c
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index 9e8493aad49d..d1f02f89913f 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -287,17 +287,23 @@ struct nft_expr;
+  *	struct nft_set_ops - nf_tables set operations
+  *
+  *	@lookup: look up an element within the set
++ *	@update: update an element if exists, add it if doesn't exist
++ *	@delete: delete an element
+  *	@insert: insert new element into set
+  *	@activate: activate new element in the next generation
+  *	@deactivate: lookup for element and deactivate it in the next generation
+  *	@flush: deactivate element in the next generation
+  *	@remove: remove element from set
+- *	@walk: iterate over all set elemeennts
++ *	@walk: iterate over all set elements
+  *	@get: get set elements
+  *	@privsize: function to return size of set private data
+  *	@init: initialize private data of new set instance
+  *	@destroy: destroy private data of set instance
+  *	@elemsize: element private size
++ *
++ *	Operations lookup, update and delete have simpler interfaces, are faster
++ *	and currently only used in the packet path. All the rest are slower,
++ *	control plane functions.
+  */
+ struct nft_set_ops {
+ 	bool				(*lookup)(const struct net *net,
+@@ -312,6 +318,8 @@ struct nft_set_ops {
+ 						  const struct nft_expr *expr,
+ 						  struct nft_regs *regs,
+ 						  const struct nft_set_ext **ext);
++	bool				(*delete)(const struct nft_set *set,
++						  const u32 *key);
  
- IPMI SUBSYSTEM
- M:	Corey Minyard <minyard@acm.org>
+ 	int				(*insert)(const struct net *net,
+ 						  const struct nft_set *set,
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index c6c8ec5c7c00..e8483e1e7146 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -634,6 +634,7 @@ enum nft_lookup_attributes {
+ enum nft_dynset_ops {
+ 	NFT_DYNSET_OP_ADD,
+ 	NFT_DYNSET_OP_UPDATE,
++	NFT_DYNSET_OP_DELETE,
+ };
+ 
+ enum nft_dynset_flags {
+diff --git a/net/netfilter/nft_dynset.c b/net/netfilter/nft_dynset.c
+index bfb9f7463b03..0cb775be1f2e 100644
+--- a/net/netfilter/nft_dynset.c
++++ b/net/netfilter/nft_dynset.c
+@@ -79,37 +79,54 @@ static void *nft_dynset_new(struct nft_set *set, const struct nft_expr *expr,
+ 	return NULL;
+ }
+ 
+-void nft_dynset_eval(const struct nft_expr *expr,
+-		     struct nft_regs *regs, const struct nft_pktinfo *pkt)
++static bool nft_dynset_update(u8 sreg_key, int op, u64 timeout,
++			      const struct nft_expr *expr,
++			      const struct nft_pktinfo *pkt,
++			      struct nft_regs *regs, struct nft_set *set)
+ {
+-	const struct nft_dynset *priv = nft_expr_priv(expr);
+-	struct nft_set *set = priv->set;
+ 	const struct nft_set_ext *ext;
+ 	const struct nft_expr *sexpr;
+-	u64 timeout;
+ 
+-	if (set->ops->update(set, &regs->data[priv->sreg_key], nft_dynset_new,
++	if (set->ops->update(set, &regs->data[sreg_key], nft_dynset_new,
+ 			     expr, regs, &ext)) {
+ 		sexpr = NULL;
+ 		if (nft_set_ext_exists(ext, NFT_SET_EXT_EXPR))
+ 			sexpr = nft_set_ext_expr(ext);
+ 
+-		if (priv->op == NFT_DYNSET_OP_UPDATE &&
++		if (op == NFT_DYNSET_OP_UPDATE &&
+ 		    nft_set_ext_exists(ext, NFT_SET_EXT_EXPIRATION)) {
+-			timeout = priv->timeout ? : set->timeout;
++			timeout = timeout ? : set->timeout;
+ 			*nft_set_ext_expiration(ext) = get_jiffies_64() + timeout;
+ 		}
+ 
+ 		if (sexpr != NULL)
+ 			sexpr->ops->eval(sexpr, regs, pkt);
+ 
+-		if (priv->invert)
+-			regs->verdict.code = NFT_BREAK;
+-		return;
++		return true;
+ 	}
+ 
+-	if (!priv->invert)
+-		regs->verdict.code = NFT_BREAK;
++	return false;
++}
++
++void nft_dynset_eval(const struct nft_expr *expr,
++		     struct nft_regs *regs, const struct nft_pktinfo *pkt)
++{
++	const struct nft_dynset *priv = nft_expr_priv(expr);
++	struct nft_set *set = priv->set;
++
++	if (priv->op == NFT_DYNSET_OP_DELETE) {
++		set->ops->delete(set, &regs->data[priv->sreg_key]);
++	} else {
++		if (nft_dynset_update(priv->sreg_key, priv->op, priv->timeout,
++				      expr, pkt, regs, set)) {
++			if (priv->invert)
++				regs->verdict.code = NFT_BREAK;
++			return;
++		}
++
++		if (!priv->invert)
++			regs->verdict.code = NFT_BREAK;
++	}
+ }
+ 
+ static const struct nla_policy nft_dynset_policy[NFTA_DYNSET_MAX + 1] = {
+@@ -165,6 +182,7 @@ static int nft_dynset_init(const struct nft_ctx *ctx,
+ 	priv->op = ntohl(nla_get_be32(tb[NFTA_DYNSET_OP]));
+ 	switch (priv->op) {
+ 	case NFT_DYNSET_OP_ADD:
++	case NFT_DYNSET_OP_DELETE:
+ 		break;
+ 	case NFT_DYNSET_OP_UPDATE:
+ 		if (!(set->flags & NFT_SET_TIMEOUT))
+diff --git a/net/netfilter/nft_set_hash.c b/net/netfilter/nft_set_hash.c
+index 03df08801e28..07499296f673 100644
+--- a/net/netfilter/nft_set_hash.c
++++ b/net/netfilter/nft_set_hash.c
+@@ -237,6 +237,24 @@ static void nft_rhash_remove(const struct net *net,
+ 	rhashtable_remove_fast(&priv->ht, &he->node, nft_rhash_params);
+ }
+ 
++static bool nft_rhash_delete(const struct nft_set *set,
++			     const u32 *key)
++{
++	struct nft_rhash *priv = nft_set_priv(set);
++	struct nft_rhash_elem *he;
++	struct nft_rhash_cmp_arg arg = {
++		.genmask = NFT_GENMASK_ANY,
++		.set = set,
++		.key = key,
++	};
++
++	he = rhashtable_lookup(&priv->ht, &arg, nft_rhash_params);
++	if (he == NULL)
++		return false;
++
++	return rhashtable_remove_fast(&priv->ht, &he->node, nft_rhash_params) == 0;
++}
++
+ static void nft_rhash_walk(const struct nft_ctx *ctx, struct nft_set *set,
+ 			   struct nft_set_iter *iter)
+ {
+@@ -665,6 +683,7 @@ struct nft_set_type nft_set_rhash_type __read_mostly = {
+ 		.remove		= nft_rhash_remove,
+ 		.lookup		= nft_rhash_lookup,
+ 		.update		= nft_rhash_update,
++		.delete		= nft_rhash_delete,
+ 		.walk		= nft_rhash_walk,
+ 		.get		= nft_rhash_get,
+ 	},
 -- 
-2.21.0
+2.17.1
 
