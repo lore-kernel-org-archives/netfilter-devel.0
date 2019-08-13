@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2A6DCC433FF
-	for <netfilter-devel@archiver.kernel.org>; Tue, 13 Aug 2019 18:37:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 661C1C433FF
+	for <netfilter-devel@archiver.kernel.org>; Tue, 13 Aug 2019 18:37:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 035B82064A
-	for <netfilter-devel@archiver.kernel.org>; Tue, 13 Aug 2019 18:37:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4963F2064A
+	for <netfilter-devel@archiver.kernel.org>; Tue, 13 Aug 2019 18:37:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727994AbfHMShX (ORCPT
+        id S1727679AbfHMShf (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 13 Aug 2019 14:37:23 -0400
-Received: from correo.us.es ([193.147.175.20]:58778 "EHLO mail.us.es"
+        Tue, 13 Aug 2019 14:37:35 -0400
+Received: from correo.us.es ([193.147.175.20]:58792 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727679AbfHMShX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        id S1725923AbfHMShX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Tue, 13 Aug 2019 14:37:23 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id C9CD9DA73F
-        for <netfilter-devel@vger.kernel.org>; Tue, 13 Aug 2019 20:37:18 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 89C19B6322
+        for <netfilter-devel@vger.kernel.org>; Tue, 13 Aug 2019 20:37:20 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id BC7B01150B9
-        for <netfilter-devel@vger.kernel.org>; Tue, 13 Aug 2019 20:37:18 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 799D5519F7
+        for <netfilter-devel@vger.kernel.org>; Tue, 13 Aug 2019 20:37:20 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id B2380519F7; Tue, 13 Aug 2019 20:37:18 +0200 (CEST)
+        id 6F36B4CA35; Tue, 13 Aug 2019 20:37:20 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 9036A4CA35;
-        Tue, 13 Aug 2019 20:37:16 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 673F1519E5;
+        Tue, 13 Aug 2019 20:37:18 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 13 Aug 2019 20:37:16 +0200 (CEST)
+ Tue, 13 Aug 2019 20:37:18 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (unknown [31.4.218.116])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 4529D4265A2F;
-        Tue, 13 Aug 2019 20:37:16 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 1A54F4265A2F;
+        Tue, 13 Aug 2019 20:37:18 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 04/17] netfilter: remove unnecessary spaces
-Date:   Tue, 13 Aug 2019 20:36:48 +0200
-Message-Id: <20190813183701.4002-5-pablo@netfilter.org>
+Subject: [PATCH 06/17] netfilter: nf_tables: store data in offload context registers
+Date:   Tue, 13 Aug 2019 20:36:50 +0200
+Message-Id: <20190813183701.4002-7-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20190813183701.4002-1-pablo@netfilter.org>
 References: <20190813183701.4002-1-pablo@netfilter.org>
@@ -55,175 +55,77 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: yangxingwu <xingwu.yang@gmail.com>
+Store immediate data into offload context register. This allows follow
+up instructions to take it from the corresponding source register.
 
-This patch removes extra spaces.
+This patch is required to support for payload mangling, although other
+instructions that take data from source register will benefit from this
+too.
 
-Signed-off-by: yangxingwu <xingwu.yang@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/ipset/ip_set_hash_gen.h  | 2 +-
- net/netfilter/ipset/ip_set_list_set.c  | 2 +-
- net/netfilter/ipvs/ip_vs_core.c        | 2 +-
- net/netfilter/ipvs/ip_vs_mh.c          | 4 ++--
- net/netfilter/ipvs/ip_vs_proto_tcp.c   | 2 +-
- net/netfilter/nf_conntrack_ftp.c       | 2 +-
- net/netfilter/nf_conntrack_proto_tcp.c | 2 +-
- net/netfilter/nfnetlink_log.c          | 4 ++--
- net/netfilter/nfnetlink_queue.c        | 4 ++--
- net/netfilter/xt_IDLETIMER.c           | 2 +-
- 10 files changed, 13 insertions(+), 13 deletions(-)
+ include/net/netfilter/nf_tables_offload.h |  1 +
+ net/netfilter/nft_immediate.c             | 24 +++++++++++++++++-------
+ 2 files changed, 18 insertions(+), 7 deletions(-)
 
-diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
-index 0feb77fa9edc..3fced06ab752 100644
---- a/net/netfilter/ipset/ip_set_hash_gen.h
-+++ b/net/netfilter/ipset/ip_set_hash_gen.h
-@@ -953,7 +953,7 @@ mtype_test_cidrs(struct ip_set *set, struct mtype_elem *d,
- 		mtype_data_netmask(d, NCIDR_GET(h->nets[j].cidr[0]));
- #endif
- 		key = HKEY(d, h->initval, t->htable_bits);
--		n =  rcu_dereference_bh(hbucket(t, key));
-+		n = rcu_dereference_bh(hbucket(t, key));
- 		if (!n)
- 			continue;
- 		for (i = 0; i < n->pos; i++) {
-diff --git a/net/netfilter/ipset/ip_set_list_set.c b/net/netfilter/ipset/ip_set_list_set.c
-index 6f9ead6319e0..67ac50104e6f 100644
---- a/net/netfilter/ipset/ip_set_list_set.c
-+++ b/net/netfilter/ipset/ip_set_list_set.c
-@@ -288,7 +288,7 @@ list_set_uadd(struct ip_set *set, void *value, const struct ip_set_ext *ext,
- 	if (n &&
- 	    !(SET_WITH_TIMEOUT(set) &&
- 	      ip_set_timeout_expired(ext_timeout(n, set))))
--		n =  NULL;
-+		n = NULL;
+diff --git a/include/net/netfilter/nf_tables_offload.h b/include/net/netfilter/nf_tables_offload.h
+index 3196663a10e3..4977fbe7ed08 100644
+--- a/include/net/netfilter/nf_tables_offload.h
++++ b/include/net/netfilter/nf_tables_offload.h
+@@ -9,6 +9,7 @@ struct nft_offload_reg {
+ 	u32		len;
+ 	u32		base_offset;
+ 	u32		offset;
++	struct nft_data data;
+ 	struct nft_data	mask;
+ };
  
- 	e = kzalloc(set->dsize, GFP_ATOMIC);
- 	if (!e)
-diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-index 46f06f92ab8f..8b80ab794a92 100644
---- a/net/netfilter/ipvs/ip_vs_core.c
-+++ b/net/netfilter/ipvs/ip_vs_core.c
-@@ -617,7 +617,7 @@ int ip_vs_leave(struct ip_vs_service *svc, struct sk_buff *skb,
- 		unsigned int flags = (svc->flags & IP_VS_SVC_F_ONEPACKET &&
- 				      iph->protocol == IPPROTO_UDP) ?
- 				      IP_VS_CONN_F_ONE_PACKET : 0;
--		union nf_inet_addr daddr =  { .all = { 0, 0, 0, 0 } };
-+		union nf_inet_addr daddr = { .all = { 0, 0, 0, 0 } };
- 
- 		/* create a new connection entry */
- 		IP_VS_DBG(6, "%s(): create a cache_bypass entry\n", __func__);
-diff --git a/net/netfilter/ipvs/ip_vs_mh.c b/net/netfilter/ipvs/ip_vs_mh.c
-index 94d9d349ebb0..da0280cec506 100644
---- a/net/netfilter/ipvs/ip_vs_mh.c
-+++ b/net/netfilter/ipvs/ip_vs_mh.c
-@@ -174,8 +174,8 @@ static int ip_vs_mh_populate(struct ip_vs_mh_state *s,
- 		return 0;
- 	}
- 
--	table =  kcalloc(BITS_TO_LONGS(IP_VS_MH_TAB_SIZE),
--			 sizeof(unsigned long), GFP_KERNEL);
-+	table = kcalloc(BITS_TO_LONGS(IP_VS_MH_TAB_SIZE),
-+			sizeof(unsigned long), GFP_KERNEL);
- 	if (!table)
- 		return -ENOMEM;
- 
-diff --git a/net/netfilter/ipvs/ip_vs_proto_tcp.c b/net/netfilter/ipvs/ip_vs_proto_tcp.c
-index 000d961b97e4..32b028853a7c 100644
---- a/net/netfilter/ipvs/ip_vs_proto_tcp.c
-+++ b/net/netfilter/ipvs/ip_vs_proto_tcp.c
-@@ -710,7 +710,7 @@ static int __ip_vs_tcp_init(struct netns_ipvs *ipvs, struct ip_vs_proto_data *pd
- 							sizeof(tcp_timeouts));
- 	if (!pd->timeout_table)
- 		return -ENOMEM;
--	pd->tcp_state_table =  tcp_states;
-+	pd->tcp_state_table = tcp_states;
+diff --git a/net/netfilter/nft_immediate.c b/net/netfilter/nft_immediate.c
+index ca2ae4b95a8d..c7f0ef73d939 100644
+--- a/net/netfilter/nft_immediate.c
++++ b/net/netfilter/nft_immediate.c
+@@ -125,17 +125,13 @@ static int nft_immediate_validate(const struct nft_ctx *ctx,
  	return 0;
  }
  
-diff --git a/net/netfilter/nf_conntrack_ftp.c b/net/netfilter/nf_conntrack_ftp.c
-index 0ecb3e289ef2..c57d2348c505 100644
---- a/net/netfilter/nf_conntrack_ftp.c
-+++ b/net/netfilter/nf_conntrack_ftp.c
-@@ -162,7 +162,7 @@ static int try_rfc959(const char *data, size_t dlen,
- 	if (length == 0)
- 		return 0;
+-static int nft_immediate_offload(struct nft_offload_ctx *ctx,
+-				 struct nft_flow_rule *flow,
+-				 const struct nft_expr *expr)
++static int nft_immediate_offload_verdict(struct nft_offload_ctx *ctx,
++					 struct nft_flow_rule *flow,
++					 const struct nft_immediate_expr *priv)
+ {
+-	const struct nft_immediate_expr *priv = nft_expr_priv(expr);
+ 	struct flow_action_entry *entry;
+ 	const struct nft_data *data;
  
--	cmd->u3.ip =  htonl((array[0] << 24) | (array[1] << 16) |
-+	cmd->u3.ip = htonl((array[0] << 24) | (array[1] << 16) |
- 				    (array[2] << 8) | array[3]);
- 	cmd->u.tcp.port = htons((array[4] << 8) | array[5]);
- 	return length;
-diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-index 85c1f8c213b0..1926fd56df56 100644
---- a/net/netfilter/nf_conntrack_proto_tcp.c
-+++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -1227,7 +1227,7 @@ static const struct nla_policy tcp_nla_policy[CTA_PROTOINFO_TCP_MAX+1] = {
- 	[CTA_PROTOINFO_TCP_WSCALE_ORIGINAL] = { .type = NLA_U8 },
- 	[CTA_PROTOINFO_TCP_WSCALE_REPLY]    = { .type = NLA_U8 },
- 	[CTA_PROTOINFO_TCP_FLAGS_ORIGINAL]  = { .len = sizeof(struct nf_ct_tcp_flags) },
--	[CTA_PROTOINFO_TCP_FLAGS_REPLY]	    = { .len =  sizeof(struct nf_ct_tcp_flags) },
-+	[CTA_PROTOINFO_TCP_FLAGS_REPLY]	    = { .len = sizeof(struct nf_ct_tcp_flags) },
- };
+-	if (priv->dreg != NFT_REG_VERDICT)
+-		return -EOPNOTSUPP;
+-
+ 	entry = &flow->rule->action.entries[ctx->num_actions++];
  
- #define TCP_NLATTR_SIZE	( \
-diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
-index 6dee4f9a944c..d69e1863e536 100644
---- a/net/netfilter/nfnetlink_log.c
-+++ b/net/netfilter/nfnetlink_log.c
-@@ -651,7 +651,7 @@ nfulnl_log_packet(struct net *net,
- 	/* FIXME: do we want to make the size calculation conditional based on
- 	 * what is actually present?  way more branches and checks, but more
- 	 * memory efficient... */
--	size =    nlmsg_total_size(sizeof(struct nfgenmsg))
-+	size = nlmsg_total_size(sizeof(struct nfgenmsg))
- 		+ nla_total_size(sizeof(struct nfulnl_msg_packet_hdr))
- 		+ nla_total_size(sizeof(u_int32_t))	/* ifindex */
- 		+ nla_total_size(sizeof(u_int32_t))	/* ifindex */
-@@ -668,7 +668,7 @@ nfulnl_log_packet(struct net *net,
- 		+ nla_total_size(sizeof(struct nfgenmsg));	/* NLMSG_DONE */
+ 	data = &priv->data;
+@@ -153,6 +149,20 @@ static int nft_immediate_offload(struct nft_offload_ctx *ctx,
+ 	return 0;
+ }
  
- 	if (in && skb_mac_header_was_set(skb)) {
--		size +=   nla_total_size(skb->dev->hard_header_len)
-+		size += nla_total_size(skb->dev->hard_header_len)
- 			+ nla_total_size(sizeof(u_int16_t))	/* hwtype */
- 			+ nla_total_size(sizeof(u_int16_t));	/* hwlen */
- 	}
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index b6a7ce622c72..feabdfb22920 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -394,7 +394,7 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
- 	char *secdata = NULL;
- 	u32 seclen = 0;
- 
--	size =    nlmsg_total_size(sizeof(struct nfgenmsg))
-+	size = nlmsg_total_size(sizeof(struct nfgenmsg))
- 		+ nla_total_size(sizeof(struct nfqnl_msg_packet_hdr))
- 		+ nla_total_size(sizeof(u_int32_t))	/* ifindex */
- 		+ nla_total_size(sizeof(u_int32_t))	/* ifindex */
-@@ -453,7 +453,7 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
- 	}
- 
- 	if (queue->flags & NFQA_CFG_F_UID_GID) {
--		size +=  (nla_total_size(sizeof(u_int32_t))	/* uid */
-+		size += (nla_total_size(sizeof(u_int32_t))	/* uid */
- 			+ nla_total_size(sizeof(u_int32_t)));	/* gid */
- 	}
- 
-diff --git a/net/netfilter/xt_IDLETIMER.c b/net/netfilter/xt_IDLETIMER.c
-index 9cec9eae556a..f56d3ed93e56 100644
---- a/net/netfilter/xt_IDLETIMER.c
-+++ b/net/netfilter/xt_IDLETIMER.c
-@@ -283,7 +283,7 @@ static int __init idletimer_tg_init(void)
- 
- 	idletimer_tg_kobj = &idletimer_tg_device->kobj;
- 
--	err =  xt_register_target(&idletimer_tg);
-+	err = xt_register_target(&idletimer_tg);
- 	if (err < 0) {
- 		pr_debug("couldn't register xt target\n");
- 		goto out_dev;
++static int nft_immediate_offload(struct nft_offload_ctx *ctx,
++				 struct nft_flow_rule *flow,
++				 const struct nft_expr *expr)
++{
++	const struct nft_immediate_expr *priv = nft_expr_priv(expr);
++
++	if (priv->dreg == NFT_REG_VERDICT)
++		return nft_immediate_offload_verdict(ctx, flow, priv);
++
++	memcpy(&ctx->regs[priv->dreg].data, &priv->data, sizeof(priv->data));
++
++	return 0;
++}
++
+ static const struct nft_expr_ops nft_imm_ops = {
+ 	.type		= &nft_imm_type,
+ 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_immediate_expr)),
 -- 
 2.11.0
 
