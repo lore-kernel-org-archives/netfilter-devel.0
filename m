@@ -1,57 +1,60 @@
-Return-Path: <SRS0=yud9=WI=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=20ch=WJ=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 456AFC31E40
-	for <netfilter-devel@archiver.kernel.org>; Mon, 12 Aug 2019 21:25:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 44F2AC32757
+	for <netfilter-devel@archiver.kernel.org>; Tue, 13 Aug 2019 04:27:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 211AD2075B
-	for <netfilter-devel@archiver.kernel.org>; Mon, 12 Aug 2019 21:25:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 24BBF20644
+	for <netfilter-devel@archiver.kernel.org>; Tue, 13 Aug 2019 04:27:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727464AbfHLVZr (ORCPT
+        id S1726086AbfHME1C (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 12 Aug 2019 17:25:47 -0400
-Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:50838 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727434AbfHLVZr (ORCPT
+        Tue, 13 Aug 2019 00:27:02 -0400
+Received: from shards.monkeyblade.net ([23.128.96.9]:56244 "EHLO
+        shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725815AbfHME1C (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 12 Aug 2019 17:25:47 -0400
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.89)
-        (envelope-from <fw@strlen.de>)
-        id 1hxHp3-0004cR-S6; Mon, 12 Aug 2019 23:25:45 +0200
-Date:   Mon, 12 Aug 2019 23:25:45 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Todd Seidelmann <tseidelmann@linode.com>
-Cc:     netdev@vger.kernel.org,
-        netfilter-devel <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH net] netfilter: ebtables: Fix argument order to
- ADD_COUNTER
-Message-ID: <20190812212545.le2m7vsihcyk7ti6@breakpoint.cc>
-References: <00a6c489-dc5b-d66f-f06d-b8785acb50e7@linode.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <00a6c489-dc5b-d66f-f06d-b8785acb50e7@linode.com>
-User-Agent: NeoMutt/20170113 (1.7.2)
+        Tue, 13 Aug 2019 00:27:02 -0400
+Received: from localhost (unknown [IPv6:2601:601:9f80:35cd::d71])
+        (using TLSv1 with cipher AES256-SHA (256/256 bits))
+        (Client did not present a certificate)
+        (Authenticated sender: davem-davemloft)
+        by shards.monkeyblade.net (Postfix) with ESMTPSA id 9A03D153BB58F;
+        Mon, 12 Aug 2019 21:27:01 -0700 (PDT)
+Date:   Mon, 12 Aug 2019 21:26:59 -0700 (PDT)
+Message-Id: <20190812.212659.1072592048193337024.davem@davemloft.net>
+To:     netdev@vger.kernel.org, jakub.kicinski@netronome.com
+CC:     linux-wireless@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        bpf@vger.kernel.org
+Subject: Taking a day off...
+From:   David Miller <davem@davemloft.net>
+X-Mailer: Mew version 6.8 on Emacs 26.1
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+X-Greylist: Sender succeeded SMTP AUTH, not delayed by milter-greylist-4.5.12 (shards.monkeyblade.net [149.20.54.216]); Mon, 12 Aug 2019 21:27:01 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Todd Seidelmann <tseidelmann@linode.com> wrote:
-> The ordering of arguments to the x_tables ADD_COUNTER macro
-> appears to be wrong in ebtables (cf. ip_tables.c, ip6_tables.c,
-> and arp_tables.c).
-> 
-> This causes data corruption in the ebtables userspace tools
-> because they get incorrect packet & byte counts from the kernel.
 
-Please send netfilter patches to netfilter-devel@vger.kernel.org .
+Hello everyone,
 
-Fixes: d72133e628803 ("netfilter: ebtables: use ADD_COUNTER macro")
+Tomorrow I will be letting Jakub Kicinski manage the net and net-next
+GIT trees.  So he will be integrating patches into GIT and doing git
+pulls from people.  He will alway keep the patchwork states up to
+date, just like I do.
 
-Acked-by: Florian Westphal <fw@strlen.de>
+I completely expect everyone to give Jakub the same respect and
+consideration they usually give to me, because he deserves it.
+
+In the future, when I need to take a few days off, I will hand things
+over to Jakub in a similar way.
+
+Thank you.
