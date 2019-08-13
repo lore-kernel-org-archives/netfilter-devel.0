@@ -2,223 +2,171 @@ Return-Path: <SRS0=20ch=WJ=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.8 required=3.0
-	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PULL_REQUEST,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E6E54C433FF
-	for <netfilter-devel@archiver.kernel.org>; Tue, 13 Aug 2019 18:37:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D7C7C32753
+	for <netfilter-devel@archiver.kernel.org>; Tue, 13 Aug 2019 18:37:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C04452064A
-	for <netfilter-devel@archiver.kernel.org>; Tue, 13 Aug 2019 18:37:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 183322064A
+	for <netfilter-devel@archiver.kernel.org>; Tue, 13 Aug 2019 18:37:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727722AbfHMShV (ORCPT
+        id S1727609AbfHMShT (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 13 Aug 2019 14:37:21 -0400
-Received: from correo.us.es ([193.147.175.20]:58740 "EHLO mail.us.es"
+        Tue, 13 Aug 2019 14:37:19 -0400
+Received: from correo.us.es ([193.147.175.20]:58760 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725923AbfHMShU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 13 Aug 2019 14:37:20 -0400
+        id S1726802AbfHMShT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 13 Aug 2019 14:37:19 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id AC5ADDA708
-        for <netfilter-devel@vger.kernel.org>; Tue, 13 Aug 2019 20:37:14 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id DA636B6328
+        for <netfilter-devel@vger.kernel.org>; Tue, 13 Aug 2019 20:37:16 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 9CCBBDA72F
-        for <netfilter-devel@vger.kernel.org>; Tue, 13 Aug 2019 20:37:14 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id CBA76DA72F
+        for <netfilter-devel@vger.kernel.org>; Tue, 13 Aug 2019 20:37:16 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 928F5ADE9; Tue, 13 Aug 2019 20:37:14 +0200 (CEST)
+        id C11BD1150B9; Tue, 13 Aug 2019 20:37:16 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 76A11DA72F;
-        Tue, 13 Aug 2019 20:37:12 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id B4A27DA72F;
+        Tue, 13 Aug 2019 20:37:14 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 13 Aug 2019 20:37:12 +0200 (CEST)
+ Tue, 13 Aug 2019 20:37:14 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (unknown [31.4.218.116])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 2C46B4265A2F;
-        Tue, 13 Aug 2019 20:37:12 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 689D94265A2F;
+        Tue, 13 Aug 2019 20:37:14 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 00/17] Netfilter/IPVS updates for net-next
-Date:   Tue, 13 Aug 2019 20:36:44 +0200
-Message-Id: <20190813183701.4002-1-pablo@netfilter.org>
+Subject: [PATCH 02/17] netfilter: conntrack: use shared sysctl constants
+Date:   Tue, 13 Aug 2019 20:36:46 +0200
+Message-Id: <20190813183701.4002-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <20190813183701.4002-1-pablo@netfilter.org>
+References: <20190813183701.4002-1-pablo@netfilter.org>
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi,
+From: Matteo Croce <mcroce@redhat.com>
 
-The following patchset contains Netfilter/IPVS updates for net-next:
+Use shared sysctl variables for zero and one constants, as in commit
+eec4844fae7c ("proc/sysctl: add shared variables for range check")
 
-1) Rename mss field to mss_option field in synproxy, from Fernando Mancera.
+Fixes: 8f14c99c7eda ("netfilter: conntrack: limit sysctl setting for boolean options")
+Signed-off-by: Matteo Croce <mcroce@redhat.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_conntrack_standalone.c | 34 ++++++++++++++++-----------------
+ 1 file changed, 16 insertions(+), 18 deletions(-)
 
-2) Use SYSCTL_{ZERO,ONE} definitions in conntrack, from Matteo Croce.
+diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
+index e0d392cb3075..d97f4ea47cf3 100644
+--- a/net/netfilter/nf_conntrack_standalone.c
++++ b/net/netfilter/nf_conntrack_standalone.c
+@@ -511,8 +511,6 @@ static void nf_conntrack_standalone_fini_proc(struct net *net)
+ /* Log invalid packets of a given protocol */
+ static int log_invalid_proto_min __read_mostly;
+ static int log_invalid_proto_max __read_mostly = 255;
+-static int zero;
+-static int one = 1;
+ 
+ /* size the user *wants to set */
+ static unsigned int nf_conntrack_htable_size_user __read_mostly;
+@@ -629,8 +627,8 @@ static struct ctl_table nf_ct_sysctl_table[] = {
+ 		.maxlen		= sizeof(int),
+ 		.mode		= 0644,
+ 		.proc_handler	= proc_dointvec_minmax,
+-		.extra1 	= &zero,
+-		.extra2 	= &one,
++		.extra1 	= SYSCTL_ZERO,
++		.extra2 	= SYSCTL_ONE,
+ 	},
+ 	[NF_SYSCTL_CT_LOG_INVALID] = {
+ 		.procname	= "nf_conntrack_log_invalid",
+@@ -654,8 +652,8 @@ static struct ctl_table nf_ct_sysctl_table[] = {
+ 		.maxlen		= sizeof(int),
+ 		.mode		= 0644,
+ 		.proc_handler	= proc_dointvec_minmax,
+-		.extra1 	= &zero,
+-		.extra2 	= &one,
++		.extra1 	= SYSCTL_ZERO,
++		.extra2 	= SYSCTL_ONE,
+ 	},
+ 	[NF_SYSCTL_CT_HELPER] = {
+ 		.procname	= "nf_conntrack_helper",
+@@ -663,8 +661,8 @@ static struct ctl_table nf_ct_sysctl_table[] = {
+ 		.maxlen		= sizeof(int),
+ 		.mode		= 0644,
+ 		.proc_handler	= proc_dointvec_minmax,
+-		.extra1 	= &zero,
+-		.extra2 	= &one,
++		.extra1 	= SYSCTL_ZERO,
++		.extra2 	= SYSCTL_ONE,
+ 	},
+ #ifdef CONFIG_NF_CONNTRACK_EVENTS
+ 	[NF_SYSCTL_CT_EVENTS] = {
+@@ -673,8 +671,8 @@ static struct ctl_table nf_ct_sysctl_table[] = {
+ 		.maxlen		= sizeof(int),
+ 		.mode		= 0644,
+ 		.proc_handler	= proc_dointvec_minmax,
+-		.extra1 	= &zero,
+-		.extra2 	= &one,
++		.extra1 	= SYSCTL_ZERO,
++		.extra2 	= SYSCTL_ONE,
+ 	},
+ #endif
+ #ifdef CONFIG_NF_CONNTRACK_TIMESTAMP
+@@ -684,8 +682,8 @@ static struct ctl_table nf_ct_sysctl_table[] = {
+ 		.maxlen		= sizeof(int),
+ 		.mode		= 0644,
+ 		.proc_handler	= proc_dointvec_minmax,
+-		.extra1 	= &zero,
+-		.extra2 	= &one,
++		.extra1 	= SYSCTL_ZERO,
++		.extra2 	= SYSCTL_ONE,
+ 	},
+ #endif
+ 	[NF_SYSCTL_CT_PROTO_TIMEOUT_GENERIC] = {
+@@ -759,16 +757,16 @@ static struct ctl_table nf_ct_sysctl_table[] = {
+ 		.maxlen		= sizeof(int),
+ 		.mode		= 0644,
+ 		.proc_handler	= proc_dointvec_minmax,
+-		.extra1 	= &zero,
+-		.extra2 	= &one,
++		.extra1 	= SYSCTL_ZERO,
++		.extra2 	= SYSCTL_ONE,
+ 	},
+ 	[NF_SYSCTL_CT_PROTO_TCP_LIBERAL] = {
+ 		.procname       = "nf_conntrack_tcp_be_liberal",
+ 		.maxlen         = sizeof(int),
+ 		.mode           = 0644,
+ 		.proc_handler	= proc_dointvec_minmax,
+-		.extra1 	= &zero,
+-		.extra2 	= &one,
++		.extra1 	= SYSCTL_ZERO,
++		.extra2 	= SYSCTL_ONE,
+ 	},
+ 	[NF_SYSCTL_CT_PROTO_TCP_MAX_RETRANS] = {
+ 		.procname	= "nf_conntrack_tcp_max_retrans",
+@@ -904,8 +902,8 @@ static struct ctl_table nf_ct_sysctl_table[] = {
+ 		.maxlen		= sizeof(int),
+ 		.mode		= 0644,
+ 		.proc_handler	= proc_dointvec_minmax,
+-		.extra1 	= &zero,
+-		.extra2 	= &one,
++		.extra1 	= SYSCTL_ZERO,
++		.extra2 	= SYSCTL_ONE,
+ 	},
+ #endif
+ #ifdef CONFIG_NF_CT_PROTO_GRE
+-- 
+2.11.0
 
-3) More strict validation of IPVS sysctl values, from Junwei Hu.
-
-4) Remove unnecessary spaces after on the right hand side of assignments,
-   from yangxingwu.
-
-5) Add offload support for bitwise operation.
-
-6) Extend the nft_offload_reg structure to store immediate date.
-
-7) Collapse several ip_set header files into ip_set.h, from
-   Jeremy Sowden.
-
-8) Make netfilter headers compile with CONFIG_KERNEL_HEADER_TEST=y,
-   from Jeremy Sowden.
-
-9) Fix several sparse warnings due to missing prototypes, from
-   Valdis Kletnieks.
-
-10) Use static lock initialiser to ensure connlabel spinlock is
-    initialized on boot time to fix sched/act_ct.c, patch
-    from Florian Westphal.
-
-You can pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git
-
-Thanks.
-
-----------------------------------------------------------------
-
-The following changes since commit 4de97b0c86fcf9a225dff465f1614c834c2eeea6:
-
-  Merge branch 'enetc-PCIe-MDIO' (2019-08-02 18:22:18 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git HEAD
-
-for you to fetch changes up to 105333435b4f3b21ffc325f32fae17719310db64:
-
-  netfilter: connlabels: prefer static lock initialiser (2019-08-13 12:15:45 +0200)
-
-----------------------------------------------------------------
-Fernando Fernandez Mancera (1):
-      netfilter: synproxy: rename mss synproxy_options field
-
-Florian Westphal (1):
-      netfilter: connlabels: prefer static lock initialiser
-
-Jeremy Sowden (8):
-      netfilter: inline four headers files into another one.
-      netfilter: add missing includes to a number of header-files.
-      netfilter: add missing IS_ENABLED(CONFIG_BRIDGE_NETFILTER) checks to header-file.
-      netfilter: add missing IS_ENABLED(CONFIG_NF_TABLES) check to header-file.
-      netfilter: add missing IS_ENABLED(CONFIG_NF_CONNTRACK) checks to some header-files.
-      netfilter: add missing IS_ENABLED(CONFIG_NETFILTER) checks to some header-files.
-      netfilter: remove "#ifdef __KERNEL__" guards from some headers.
-      kbuild: remove all netfilter headers from header-test blacklist.
-
-Junwei Hu (1):
-      ipvs: Improve robustness to the ipvs sysctl
-
-Matteo Croce (1):
-      netfilter: conntrack: use shared sysctl constants
-
-Pablo Neira Ayuso (2):
-      netfilter: nft_bitwise: add offload support
-      netfilter: nf_tables: store data in offload context registers
-
-Valdis Kletnieks (2):
-      netfilter: nf_tables: add missing prototypes.
-      netfilter: nf_nat_proto: make tables static
-
-yangxingwu (1):
-      netfilter: remove unnecessary spaces
-
- include/Kbuild                                   |  74 -------
- include/linux/netfilter/ipset/ip_set.h           | 238 ++++++++++++++++++++++-
- include/linux/netfilter/ipset/ip_set_comment.h   |  73 -------
- include/linux/netfilter/ipset/ip_set_counter.h   |  84 --------
- include/linux/netfilter/ipset/ip_set_getport.h   |   4 +
- include/linux/netfilter/ipset/ip_set_skbinfo.h   |  42 ----
- include/linux/netfilter/ipset/ip_set_timeout.h   |  77 --------
- include/linux/netfilter/nf_conntrack_amanda.h    |   4 +
- include/linux/netfilter/nf_conntrack_dccp.h      |   3 -
- include/linux/netfilter/nf_conntrack_ftp.h       |   8 +-
- include/linux/netfilter/nf_conntrack_h323.h      |  11 +-
- include/linux/netfilter/nf_conntrack_h323_asn1.h |   2 +
- include/linux/netfilter/nf_conntrack_irc.h       |   5 +-
- include/linux/netfilter/nf_conntrack_pptp.h      |  12 +-
- include/linux/netfilter/nf_conntrack_proto_gre.h |   2 -
- include/linux/netfilter/nf_conntrack_sane.h      |   4 -
- include/linux/netfilter/nf_conntrack_sip.h       |   6 +-
- include/linux/netfilter/nf_conntrack_snmp.h      |   3 +
- include/linux/netfilter/nf_conntrack_tftp.h      |   5 +
- include/linux/netfilter/x_tables.h               |   6 +
- include/linux/netfilter_arp/arp_tables.h         |   2 +
- include/linux/netfilter_bridge/ebtables.h        |   2 +
- include/linux/netfilter_ipv4/ip_tables.h         |   4 +
- include/linux/netfilter_ipv6/ip6_tables.h        |   2 +
- include/net/netfilter/br_netfilter.h             |  12 ++
- include/net/netfilter/ipv4/nf_dup_ipv4.h         |   3 +
- include/net/netfilter/ipv6/nf_defrag_ipv6.h      |   4 +-
- include/net/netfilter/ipv6/nf_dup_ipv6.h         |   2 +
- include/net/netfilter/nf_conntrack.h             |  10 +
- include/net/netfilter/nf_conntrack_acct.h        |  13 ++
- include/net/netfilter/nf_conntrack_bridge.h      |   6 +
- include/net/netfilter/nf_conntrack_core.h        |   3 +
- include/net/netfilter/nf_conntrack_count.h       |   3 +
- include/net/netfilter/nf_conntrack_l4proto.h     |   4 +
- include/net/netfilter/nf_conntrack_synproxy.h    |   2 +-
- include/net/netfilter/nf_conntrack_timestamp.h   |   6 +
- include/net/netfilter/nf_conntrack_tuple.h       |   2 +
- include/net/netfilter/nf_dup_netdev.h            |   2 +
- include/net/netfilter/nf_flow_table.h            |   5 +
- include/net/netfilter/nf_nat.h                   |   4 +
- include/net/netfilter/nf_nat_helper.h            |   4 +-
- include/net/netfilter/nf_nat_redirect.h          |   3 +
- include/net/netfilter/nf_queue.h                 |   7 +
- include/net/netfilter/nf_reject.h                |   3 +
- include/net/netfilter/nf_synproxy.h              |   4 +
- include/net/netfilter/nf_tables.h                |  12 ++
- include/net/netfilter/nf_tables_ipv6.h           |   1 +
- include/net/netfilter/nf_tables_offload.h        |   1 +
- include/net/netfilter/nft_fib.h                  |   2 +
- include/net/netfilter/nft_meta.h                 |   2 +
- include/net/netfilter/nft_reject.h               |   5 +
- include/uapi/linux/netfilter/xt_policy.h         |   1 +
- net/ipv4/netfilter/ipt_SYNPROXY.c                |   4 +-
- net/ipv6/netfilter/ip6t_SYNPROXY.c               |   4 +-
- net/netfilter/ipset/ip_set_hash_gen.h            |   4 +-
- net/netfilter/ipset/ip_set_list_set.c            |   2 +-
- net/netfilter/ipvs/ip_vs_core.c                  |   2 +-
- net/netfilter/ipvs/ip_vs_ctl.c                   |  69 +++----
- net/netfilter/ipvs/ip_vs_mh.c                    |   4 +-
- net/netfilter/ipvs/ip_vs_proto_tcp.c             |   2 +-
- net/netfilter/nf_conntrack_ftp.c                 |   2 +-
- net/netfilter/nf_conntrack_labels.c              |   3 +-
- net/netfilter/nf_conntrack_proto_tcp.c           |   2 +-
- net/netfilter/nf_conntrack_standalone.c          |  34 ++--
- net/netfilter/nf_nat_proto.c                     |   4 +-
- net/netfilter/nf_synproxy_core.c                 |   8 +-
- net/netfilter/nfnetlink_log.c                    |   4 +-
- net/netfilter/nfnetlink_queue.c                  |   4 +-
- net/netfilter/nft_bitwise.c                      |  19 ++
- net/netfilter/nft_immediate.c                    |  24 ++-
- net/netfilter/nft_set_bitmap.c                   |   2 +-
- net/netfilter/nft_set_hash.c                     |   2 +-
- net/netfilter/nft_set_rbtree.c                   |   2 +-
- net/netfilter/nft_synproxy.c                     |   4 +-
- net/netfilter/xt_IDLETIMER.c                     |   2 +-
- net/netfilter/xt_set.c                           |   1 -
- 76 files changed, 527 insertions(+), 480 deletions(-)
- delete mode 100644 include/linux/netfilter/ipset/ip_set_comment.h
- delete mode 100644 include/linux/netfilter/ipset/ip_set_counter.h
- delete mode 100644 include/linux/netfilter/ipset/ip_set_skbinfo.h
- delete mode 100644 include/linux/netfilter/ipset/ip_set_timeout.h
 
