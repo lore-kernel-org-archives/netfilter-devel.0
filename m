@@ -2,125 +2,128 @@ Return-Path: <SRS0=20ch=WJ=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.0 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2CE53C433FF
-	for <netfilter-devel@archiver.kernel.org>; Tue, 13 Aug 2019 10:58:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 32C3BC32750
+	for <netfilter-devel@archiver.kernel.org>; Tue, 13 Aug 2019 11:37:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 08A872067D
-	for <netfilter-devel@archiver.kernel.org>; Tue, 13 Aug 2019 10:58:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F33BA206C2
+	for <netfilter-devel@archiver.kernel.org>; Tue, 13 Aug 2019 11:37:04 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="sYeZ7bzt"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727908AbfHMK6M (ORCPT
+        id S1727552AbfHMLg7 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 13 Aug 2019 06:58:12 -0400
-Received: from m9784.mail.qiye.163.com ([220.181.97.84]:36527 "EHLO
-        m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726650AbfHMK6M (ORCPT
+        Tue, 13 Aug 2019 07:36:59 -0400
+Received: from kadath.azazel.net ([81.187.231.250]:60518 "EHLO
+        kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725981AbfHMLg6 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 13 Aug 2019 06:58:12 -0400
-Received: from [192.168.188.14] (unknown [120.132.1.226])
-        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id 62849415E9;
-        Tue, 13 Aug 2019 18:58:09 +0800 (CST)
-Subject: Re: [PATCH nf-next v3 0/9] netfilter: nf_tables_offload: support more
- expr and obj offload
-From:   wenxu <wenxu@ucloud.cn>
-To:     pablo@netfilter.org, fw@strlen.de
-Cc:     netfilter-devel@vger.kernel.org
-References: <1564668086-16260-1-git-send-email-wenxu@ucloud.cn>
-Message-ID: <e43baf4a-0137-16ca-91cb-ae622b03211c@ucloud.cn>
-Date:   Tue, 13 Aug 2019 18:58:08 +0800
-User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:60.0) Gecko/20100101
- Thunderbird/60.8.0
+        Tue, 13 Aug 2019 07:36:58 -0400
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
+         s=20190108; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+        Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=lXORjW+EvERLqzo6SjmX1Ws1O3ILhH8iZsNJou9jpik=; b=sYeZ7bztCLU1VNvu8eU4lJaUsB
+        eL8d2nHGJMYek9v4OYQq8rsgDiWQuQGfOSq8nrNfot6tLCvqfqQpEwKE+wpxnY5hukI3ZioUSF4Cx
+        vH10nTG6L5bk3Ze8lRr6Bcty2/Lz33e12BUOqjFNmiFr5+3N3js9USTrejEjgwOKyyIDP6AiCLHVS
+        HYdBdGsMS2JN0sj05OYmKeKeSkR2QNdiYDNQ8IBj54TJ0NMxpihBsRFnMR0jlx5esthXi7gW96lU+
+        dtXxLhjfeRCFgC5iEjpJ8iMoUCoXWr+pHo57xy+yyBKBnUj/Yb2x5vKnLidBgg9ScJ/90q/gpNS7Y
+        MWVCXQrg==;
+Received: from pnakotus.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:208:9bff:febe:32] helo=azazel.net)
+        by kadath.azazel.net with esmtpsa (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
+        (Exim 4.92)
+        (envelope-from <jeremy@azazel.net>)
+        id 1hxV6n-0006G1-4R; Tue, 13 Aug 2019 12:36:57 +0100
+Date:   Tue, 13 Aug 2019 12:36:57 +0100
+From:   Jeremy Sowden <jeremy@azazel.net>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>,
+        Net Dev <netdev@vger.kernel.org>,
+        Masahiro Yamada <yamada.masahiro@socionext.com>
+Subject: Re: [PATCH net-next v1 0/8] netfilter: header compilation fixes
+Message-ID: <20190813113657.GB4840@azazel.net>
+References: <20190722201615.GE23346@azazel.net>
+ <20190807141705.4864-1-jeremy@azazel.net>
+ <20190813095529.aisgjjwl6rzt5xeh@salvia>
+ <20190813100424.GA4840@azazel.net>
+ <20190813101403.ly5z5q6xvyno3xdd@salvia>
 MIME-Version: 1.0
-In-Reply-To: <1564668086-16260-1-git-send-email-wenxu@ucloud.cn>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
-X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVklVSU5IS0tLSU5CSEJCT0pZV1koWU
-        FJQjdXWS1ZQUlXWQkOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6KxQ6Tio4Ejg6FzowCwsLPQkY
-        KUwwC0xVSlVKTk1OTUJIQ0NCTUJNVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJS1VK
-        SElVSlVJSU1ZV1kIAVlBT0xCTzcG
-X-HM-Tid: 0a6c8aa0cbe52086kuqy62849415e9
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="gj572EiMnwbLXET9"
+Content-Disposition: inline
+In-Reply-To: <20190813101403.ly5z5q6xvyno3xdd@salvia>
+User-Agent: Mutt/1.10.1 (2018-07-13)
+X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:208:9bff:febe:32
+X-SA-Exim-Mail-From: jeremy@azazel.net
+X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi pablo,
 
-How about also for this series?
+--gj572EiMnwbLXET9
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
+On 2019-08-13, at 12:14:03 +0200, Pablo Neira Ayuso wrote:
+> On Tue, Aug 13, 2019 at 11:04:24AM +0100, Jeremy Sowden wrote:
+> > On 2019-08-13, at 11:55:29 +0200, Pablo Neira Ayuso wrote:
+> > > Would you mind if - before pushing this out - I do this string
+> > > replacement for the patch subject?
+> > >
+> > > s/added/add
+> > > s/removed/remove
+> > > s/inlined/inline
+> > >
+> > > I was told present tense is preferred for description. Otherwise, I'll
+> > > leave them as is.
+> >
+> > I adopted past tenses because at the point at which one is reading
+> > the description of a commit, one is usually reading about old
+> > behaviour and what has been done to change it.  However, I wasn't
+> > aware that there was a preference and I am happy to switch to the
+> > present tense instead, so by all means feel free to change them.
+>
+> This is not in the Documentation tree, or I could not find this in a
+> quick git grep:
+>
+> https://kernelnewbies.org/PatchPhilosophy
+>
+> "In patch descriptions and in the subject, it is common and preferable
+> to use present-tense, imperative language. Write as if you are telling
+> git what to do with your patch."
+>
+> I remember though that maintainers have been asking for this in the
+> past.
 
-On 8/1/2019 10:01 PM, wenxu@ucloud.cn wrote:
-> From: wenxu <wenxu@ucloud.cn>
->
-> This series patch support more expr and obj offload: 
-> fw_nedev, set payload, tunnel encap/decap action,
-> tunnel meta match, objref offload
->
-> The follwing is the test sample:
->
-> # nft add table netdev firewall
-> # nft add tunnel netdev firewall encap tunid 1000 tundst 0xf198a8ac tunsrc 0x4b98a8ac tunrelease 0
-> # nft add tunnel netdev firewall decap tunid 0 tundst 0 tunsrc 0  tunrelease 1
-> # nft add chain netdev firewall aclout { type filter hook ingress device mlx_pf0vf0 priority - 300 \; }
-> # nft --debug=netlink add rule netdev firewall aclout ip daddr 10.0.1.7  @ll,0,48 set 0x00002e9ca06e2596 @ll,48,48 set 0xfaffffffffff tunnel name encap fwd to gretap
->   [ meta load protocol => reg 1 ]
->   [ cmp eq reg 1 0x00000008 ]
->   [ payload load 4b @ network header + 16 => reg 1 ]
->   [ cmp eq reg 1 0x0701000a ]
->   [ immediate reg 1 0x6ea09c2e 0x00009625 ]
->   [ payload write reg 1 => 6b @ link header + 0 csum_type 0 csum_off 0 csum_flags 0x0 ]
->   [ immediate reg 1 0xfffffffa 0x0000ffff ]
->   [ payload write reg 1 => 6b @ link header + 6 csum_type 0 csum_off 0 csum_flags 0x0 ]
->   [ objref type 6 name encap ]
->   [ immediate reg 1 0x00000019 ]
->   [ fwd sreg_dev 1 ]
->
->
-> # nft add chain netdev firewall aclin { type filter hook ingress device gretap priority - 300 \; }
-> # nft --debug=netlink add rule netdev firewall aclin ip daddr 10.0.0.7 tunnel tunid 1000 tunnel tundst 172.168.152.75 tunnel tunsrc 172.168.152.241 tunnel name decap @ll,0,48 set 0x0000525400001275 @ll,48,48 set 0xfaffffffffff fwd to mlx_pf0vf0
->   [ meta load protocol => reg 1 ]
->   [ cmp eq reg 1 0x00000008 ]
->   [ payload load 4b @ network header + 16 => reg 1 ]
->   [ cmp eq reg 1 0x0700000a ]
->   [ tunnel load id => reg 1 ]
->   [ cmp eq reg 1 0x000003e8 ]
->   [ tunnel load tun_dst => reg 1 ]
->   [ cmp eq reg 1 0xaca8984b ]
->   [ tunnel load tun_src => reg 1 ]
->   [ cmp eq reg 1 0xaca898f1 ]
->   [ objref type 6 name decap ]
->   [ immediate reg 1 0x00005452 0x00007512 ]
->   [ payload write reg 1 => 6b @ link header + 0 csum_type 0 csum_off 0 csum_flags 0x0 ]
->   [ immediate reg 1 0xfffffffa 0x0000ffff ]
->   [ payload write reg 1 => 6b @ link header + 6 csum_type 0 csum_off 0 csum_flags 0x0 ]
->   [ immediate reg 1 0x0000000f ]
->   [ fwd sreg_dev 1 ]
->
-> wenxu (9):
->   netfilter: nf_flow_offload: add net in offload_ctx
->   netfilter: nf_tables_offload: add offload_actions callback
->   netfilter: nft_fwd_netdev: add fw_netdev action support
->   netfilter: nft_payload: add nft_set_payload offload support
->   netfilter: nft_tunnel: support NFT_TUNNEL_SRC/DST_IP match
->   netfilter: nft_tunnel: support tunnel meta match offload
->   netfilter: nft_tunnel: add NFTA_TUNNEL_KEY_RELEASE action
->   netfilter: nft_objref: add nft_objref_type offload
->   netfilter: nft_tunnel: support nft_tunnel_obj offload
->
->  include/net/netfilter/nf_tables.h         |  10 ++-
->  include/net/netfilter/nf_tables_offload.h |   7 +-
->  include/uapi/linux/netfilter/nf_tables.h  |   3 +
->  net/netfilter/nf_tables_api.c             |   2 +-
->  net/netfilter/nf_tables_offload.c         |   7 +-
->  net/netfilter/nft_fwd_netdev.c            |  27 +++++++
->  net/netfilter/nft_immediate.c             |   2 +-
->  net/netfilter/nft_objref.c                |  15 ++++
->  net/netfilter/nft_payload.c               |  56 ++++++++++++++
->  net/netfilter/nft_tunnel.c                | 123 ++++++++++++++++++++++++++----
->  10 files changed, 230 insertions(+), 22 deletions(-)
->
+Thanks for the pointer.
+
+J.
+
+--gj572EiMnwbLXET9
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEEZ8d+2N/NBLDbUxIF0Z7UzfnX9sMFAl1SoNUACgkQ0Z7UzfnX
+9sME5A/9EloKPh1FzFH1mpNfCz5dYSuzZRlCVkSQ9L+MB+ys221pxeswOeGQ77aM
+S3XGyTirwyRquakbz+bqvEN+ZurS59nUyG4jdyFu7qAJB8V3DQUWwH+m7PdXvGwR
+BP/KAl+QiKQkDfHzuzNHd3AcCZGVHXmw2sWcqzG4RYSu+e9S7fsa1k2N+C0b/MjP
+Tv28b7yQjD+GcM94CeTpR61Gt3RcyBk72+dxH8eym6ZEk6LtD7KgzX3iJW7XIpqO
+ePxwmEDGl5r40p2TCVj6H293vPCgXAUod7oFtgNY+xfmL7N/bbFIBFnNqMU+XIQb
+5ompei+eKH4GIasrvr/mdyRug80uoO1xp8cAeA7sSaJpuNkkT24xSANeejaqpM5D
+0WXVbt0OmUzC2tZFw0olCWDtqNpyoyLXCX7acVXFKvOsYadi9FPoZQmbFroj31Ju
+3y9cckpzyP5bnONbHfcajKeZu8xznprD4l006KCbEaz2nIbCwsdT0vdboqHERkH/
+0/Sa2uQP7ZaeZ0eUEA10cg2QvAZDMavrfD/qghFxnbPhmMuF8azDF4krwIxu6LtH
+8glVhNGC8BnQNJTGSGc17UNv/n/V5rTisGwwxAFuCZwPVUEkNndSg4t2TKm/xEuo
+s8jKSplCH/yAUNzCRe3XQyyc8MF95rzeRxGIzCNPISicixmLink=
+=4z5Y
+-----END PGP SIGNATURE-----
+
+--gj572EiMnwbLXET9--
