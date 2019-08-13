@@ -2,220 +2,90 @@ Return-Path: <SRS0=20ch=WJ=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A8DDEC433FF
-	for <netfilter-devel@archiver.kernel.org>; Tue, 13 Aug 2019 06:59:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0B872C433FF
+	for <netfilter-devel@archiver.kernel.org>; Tue, 13 Aug 2019 08:47:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7442920644
-	for <netfilter-devel@archiver.kernel.org>; Tue, 13 Aug 2019 06:59:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D115720679
+	for <netfilter-devel@archiver.kernel.org>; Tue, 13 Aug 2019 08:47:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726282AbfHMG7H (ORCPT
+        id S1727220AbfHMIrZ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 13 Aug 2019 02:59:07 -0400
-Received: from vxsys-smtpclusterma-05.srv.cat ([46.16.61.63]:45665 "EHLO
-        vxsys-smtpclusterma-05.srv.cat" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725842AbfHMG7G (ORCPT
+        Tue, 13 Aug 2019 04:47:25 -0400
+Received: from rp02.intra2net.com ([62.75.181.28]:36306 "EHLO
+        rp02.intra2net.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725820AbfHMIrY (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 13 Aug 2019 02:59:06 -0400
-Received: from bubu.das-nano.com (242.red-83-48-67.staticip.rima-tde.net [83.48.67.242])
-        by vxsys-smtpclusterma-05.srv.cat (Postfix) with ESMTPA id 5FA7B24269
-        for <netfilter-devel@vger.kernel.org>; Tue, 13 Aug 2019 08:59:01 +0200 (CEST)
-From:   Ander Juaristi <a@juaristi.eus>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH v3] netfilter: nft_dynset: support for element deletion
-Date:   Tue, 13 Aug 2019 08:58:49 +0200
-Message-Id: <20190813065849.4745-1-a@juaristi.eus>
-X-Mailer: git-send-email 2.17.1
+        Tue, 13 Aug 2019 04:47:24 -0400
+Received: from mail.m.i2n (unknown [172.17.128.1])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by rp02.intra2net.com (Postfix) with ESMTPS id 27B7310015B;
+        Tue, 13 Aug 2019 10:47:22 +0200 (CEST)
+Received: from localhost (mail.m.i2n [127.0.0.1])
+        by localhost (Postfix) with ESMTP id C93DA7C5;
+        Tue, 13 Aug 2019 10:47:21 +0200 (CEST)
+X-Virus-Scanned: by Intra2net Mail Security (AVE=8.3.54.70,VDF=8.16.20.216)
+Received: from localhost (storm.m.i2n [172.16.1.2])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.m.i2n (Postfix) with ESMTPS id 102FE51F;
+        Tue, 13 Aug 2019 10:47:19 +0200 (CEST)
+Date:   Tue, 13 Aug 2019 10:47:19 +0200
+From:   Thomas Jarosch <thomas.jarosch@intra2net.com>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     netfilter-devel@vger.kernel.org,
+        Jakub Jankowski <shasta@toxcorp.com>
+Subject: Re: [PATCH nf] netfilter: conntrack: always store window size
+ un-scaled
+Message-ID: <20190813084718.xdy7vh23bskueihg@intra2net.com>
+References: <20190711222905.22000-1-fw@strlen.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190711222905.22000-1-fw@strlen.de>
+User-Agent: NeoMutt/20180716
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This patch implements the delete operation from the ruleset.
+Hi Florian,
 
-It implements a new delete() function in nft_set_rhash. It is simpler
-to use than the already existing remove(), because it only takes the set
-and the key as arguments, whereas remove() expects a full
-nft_set_elem structure.
+You wrote on Fri, Jul 12, 2019 at 12:29:05AM +0200:
+> Jakub Jankowski reported following oddity:
+> 
+> After 3 way handshake completes, timeout of new connection is set to
+> max_retrans (300s) instead of established (5 days).
+> 
+> shortened excerpt from pcap provided:
+> 25.070622 IP (flags [DF], proto TCP (6), length 52)
+> 10.8.5.4.1025 > 10.8.1.2.80: Flags [S], seq 11, win 64240, [wscale 8]
+> 26.070462 IP (flags [DF], proto TCP (6), length 48)
+> 10.8.1.2.80 > 10.8.5.4.1025: Flags [S.], seq 82, ack 12, win 65535, [wscale 3]
+> 27.070449 IP (flags [DF], proto TCP (6), length 40)
+> 10.8.5.4.1025 > 10.8.1.2.80: Flags [.], ack 83, win 512, length 0
+> 
+> Turns out the last_win is of u16 type, but we store the scaled value:
+> 512 << 8 (== 0x20000) becomes 0 window.
+> 
+> The Fixes tag is not correct, as the bug has existed forever, but
+> without that change all that this causes might cause is to mistake a
+> window update (to-nonzero-from-zero) for a retransmit.
+> 
+> Fixes: fbcd253d2448b8 ("netfilter: conntrack: lower timeout to RETRANS seconds if window is 0")
+> Reported-by: Jakub Jankowski <shasta@toxcorp.com>
+> Tested-by: Jakub Jankowski <shasta@toxcorp.com>
+> Signed-off-by: Florian Westphal <fw@strlen.de>
 
-Signed-off-by: Ander Juaristi <a@juaristi.eus>
----
- include/net/netfilter/nf_tables.h        | 10 +++++-
- include/uapi/linux/netfilter/nf_tables.h |  1 +
- net/netfilter/nft_dynset.c               | 44 +++++++++++++++++-------
- net/netfilter/nft_set_hash.c             | 19 ++++++++++
- 4 files changed, 60 insertions(+), 14 deletions(-)
+it seems the patch fixed a kernel bugzilla entry, too:
+https://bugzilla.kernel.org/show_bug.cgi?id=202287
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 9e8493aad49d..d1f02f89913f 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -287,17 +287,23 @@ struct nft_expr;
-  *	struct nft_set_ops - nf_tables set operations
-  *
-  *	@lookup: look up an element within the set
-+ *	@update: update an element if exists, add it if doesn't exist
-+ *	@delete: delete an element
-  *	@insert: insert new element into set
-  *	@activate: activate new element in the next generation
-  *	@deactivate: lookup for element and deactivate it in the next generation
-  *	@flush: deactivate element in the next generation
-  *	@remove: remove element from set
-- *	@walk: iterate over all set elemeennts
-+ *	@walk: iterate over all set elements
-  *	@get: get set elements
-  *	@privsize: function to return size of set private data
-  *	@init: initialize private data of new set instance
-  *	@destroy: destroy private data of set instance
-  *	@elemsize: element private size
-+ *
-+ *	Operations lookup, update and delete have simpler interfaces, are faster
-+ *	and currently only used in the packet path. All the rest are slower,
-+ *	control plane functions.
-  */
- struct nft_set_ops {
- 	bool				(*lookup)(const struct net *net,
-@@ -312,6 +318,8 @@ struct nft_set_ops {
- 						  const struct nft_expr *expr,
- 						  struct nft_regs *regs,
- 						  const struct nft_set_ext **ext);
-+	bool				(*delete)(const struct nft_set *set,
-+						  const u32 *key);
- 
- 	int				(*insert)(const struct net *net,
- 						  const struct nft_set *set,
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index c6c8ec5c7c00..e8483e1e7146 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -634,6 +634,7 @@ enum nft_lookup_attributes {
- enum nft_dynset_ops {
- 	NFT_DYNSET_OP_ADD,
- 	NFT_DYNSET_OP_UPDATE,
-+	NFT_DYNSET_OP_DELETE,
- };
- 
- enum nft_dynset_flags {
-diff --git a/net/netfilter/nft_dynset.c b/net/netfilter/nft_dynset.c
-index bfb9f7463b03..0cb775be1f2e 100644
---- a/net/netfilter/nft_dynset.c
-+++ b/net/netfilter/nft_dynset.c
-@@ -79,37 +79,54 @@ static void *nft_dynset_new(struct nft_set *set, const struct nft_expr *expr,
- 	return NULL;
- }
- 
--void nft_dynset_eval(const struct nft_expr *expr,
--		     struct nft_regs *regs, const struct nft_pktinfo *pkt)
-+static bool nft_dynset_update(u8 sreg_key, int op, u64 timeout,
-+			      const struct nft_expr *expr,
-+			      const struct nft_pktinfo *pkt,
-+			      struct nft_regs *regs, struct nft_set *set)
- {
--	const struct nft_dynset *priv = nft_expr_priv(expr);
--	struct nft_set *set = priv->set;
- 	const struct nft_set_ext *ext;
- 	const struct nft_expr *sexpr;
--	u64 timeout;
- 
--	if (set->ops->update(set, &regs->data[priv->sreg_key], nft_dynset_new,
-+	if (set->ops->update(set, &regs->data[sreg_key], nft_dynset_new,
- 			     expr, regs, &ext)) {
- 		sexpr = NULL;
- 		if (nft_set_ext_exists(ext, NFT_SET_EXT_EXPR))
- 			sexpr = nft_set_ext_expr(ext);
- 
--		if (priv->op == NFT_DYNSET_OP_UPDATE &&
-+		if (op == NFT_DYNSET_OP_UPDATE &&
- 		    nft_set_ext_exists(ext, NFT_SET_EXT_EXPIRATION)) {
--			timeout = priv->timeout ? : set->timeout;
-+			timeout = timeout ? : set->timeout;
- 			*nft_set_ext_expiration(ext) = get_jiffies_64() + timeout;
- 		}
- 
- 		if (sexpr != NULL)
- 			sexpr->ops->eval(sexpr, regs, pkt);
- 
--		if (priv->invert)
--			regs->verdict.code = NFT_BREAK;
--		return;
-+		return true;
- 	}
- 
--	if (!priv->invert)
--		regs->verdict.code = NFT_BREAK;
-+	return false;
-+}
-+
-+void nft_dynset_eval(const struct nft_expr *expr,
-+		     struct nft_regs *regs, const struct nft_pktinfo *pkt)
-+{
-+	const struct nft_dynset *priv = nft_expr_priv(expr);
-+	struct nft_set *set = priv->set;
-+
-+	if (priv->op == NFT_DYNSET_OP_DELETE) {
-+		set->ops->delete(set, &regs->data[priv->sreg_key]);
-+	} else {
-+		if (nft_dynset_update(priv->sreg_key, priv->op, priv->timeout,
-+				      expr, pkt, regs, set)) {
-+			if (priv->invert)
-+				regs->verdict.code = NFT_BREAK;
-+			return;
-+		}
-+
-+		if (!priv->invert)
-+			regs->verdict.code = NFT_BREAK;
-+	}
- }
- 
- static const struct nla_policy nft_dynset_policy[NFTA_DYNSET_MAX + 1] = {
-@@ -165,6 +182,7 @@ static int nft_dynset_init(const struct nft_ctx *ctx,
- 	priv->op = ntohl(nla_get_be32(tb[NFTA_DYNSET_OP]));
- 	switch (priv->op) {
- 	case NFT_DYNSET_OP_ADD:
-+	case NFT_DYNSET_OP_DELETE:
- 		break;
- 	case NFT_DYNSET_OP_UPDATE:
- 		if (!(set->flags & NFT_SET_TIMEOUT))
-diff --git a/net/netfilter/nft_set_hash.c b/net/netfilter/nft_set_hash.c
-index 03df08801e28..07499296f673 100644
---- a/net/netfilter/nft_set_hash.c
-+++ b/net/netfilter/nft_set_hash.c
-@@ -237,6 +237,24 @@ static void nft_rhash_remove(const struct net *net,
- 	rhashtable_remove_fast(&priv->ht, &he->node, nft_rhash_params);
- }
- 
-+static bool nft_rhash_delete(const struct nft_set *set,
-+			     const u32 *key)
-+{
-+	struct nft_rhash *priv = nft_set_priv(set);
-+	struct nft_rhash_elem *he;
-+	struct nft_rhash_cmp_arg arg = {
-+		.genmask = NFT_GENMASK_ANY,
-+		.set = set,
-+		.key = key,
-+	};
-+
-+	he = rhashtable_lookup(&priv->ht, &arg, nft_rhash_params);
-+	if (he == NULL)
-+		return false;
-+
-+	return rhashtable_remove_fast(&priv->ht, &he->node, nft_rhash_params) == 0;
-+}
-+
- static void nft_rhash_walk(const struct nft_ctx *ctx, struct nft_set *set,
- 			   struct nft_set_iter *iter)
- {
-@@ -665,6 +683,7 @@ struct nft_set_type nft_set_rhash_type __read_mostly = {
- 		.remove		= nft_rhash_remove,
- 		.lookup		= nft_rhash_lookup,
- 		.update		= nft_rhash_update,
-+		.delete		= nft_rhash_delete,
- 		.walk		= nft_rhash_walk,
- 		.get		= nft_rhash_get,
- 	},
--- 
-2.17.1
+I had a feeling it could be related since the reporter bisected it
+down to changes in the TCP window scaling defaults.
 
+Cheers,
+Thomas
