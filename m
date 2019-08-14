@@ -2,161 +2,107 @@ Return-Path: <SRS0=qEnH=WK=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7EE42C0650F
-	for <netfilter-devel@archiver.kernel.org>; Wed, 14 Aug 2019 08:00:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B07AC433FF
+	for <netfilter-devel@archiver.kernel.org>; Wed, 14 Aug 2019 08:01:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5E924205C9
-	for <netfilter-devel@archiver.kernel.org>; Wed, 14 Aug 2019 08:00:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F30A4205C9
+	for <netfilter-devel@archiver.kernel.org>; Wed, 14 Aug 2019 08:01:29 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="ty/4j8cR"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726714AbfHNIAs (ORCPT
+        id S1725928AbfHNIB3 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 14 Aug 2019 04:00:48 -0400
-Received: from correo.us.es ([193.147.175.20]:46178 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726534AbfHNIAr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 14 Aug 2019 04:00:47 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 7CE4AC41A3
-        for <netfilter-devel@vger.kernel.org>; Wed, 14 Aug 2019 10:00:45 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 5DBC111510C
-        for <netfilter-devel@vger.kernel.org>; Wed, 14 Aug 2019 10:00:45 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 3364111C4D8; Wed, 14 Aug 2019 10:00:41 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 14FAE11C0E5;
-        Wed, 14 Aug 2019 10:00:39 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 14 Aug 2019 10:00:39 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [31.4.218.116])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id DD2084265A32;
-        Wed, 14 Aug 2019 10:00:38 +0200 (CEST)
-Date:   Wed, 14 Aug 2019 10:00:37 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     wenxu <wenxu@ucloud.cn>
-Cc:     fw@strlen.de, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf-next v3 5/9] netfilter: nft_tunnel: support
- NFT_TUNNEL_SRC/DST_IP match
-Message-ID: <20190814080037.w7xi2htgshg2adsd@salvia>
-References: <1564668086-16260-1-git-send-email-wenxu@ucloud.cn>
- <1564668086-16260-6-git-send-email-wenxu@ucloud.cn>
- <20190813181930.ljrisiq2iszcddlk@salvia>
- <ba98af8c-fcd3-50dd-770d-ddb85a887031@ucloud.cn>
+        Wed, 14 Aug 2019 04:01:29 -0400
+Received: from kadath.azazel.net ([81.187.231.250]:48346 "EHLO
+        kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725265AbfHNIB3 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 14 Aug 2019 04:01:29 -0400
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
+         s=20190108; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
+        Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=LV7AqxmZ4FSNfTZLYXKQVHMMyBbDJAvcQqEqNRhUNYw=; b=ty/4j8cRrgERrywyn/Jr5FWzPO
+        SHYFZ/0+p0OORCv6219/KD2NPZaNT/0HpWUL/IbC972AzLqbFlv/wMvJw714phzYYghv9wEdHD0U1
+        GrAOj9q9EDgP3n0yQWt2tY7yTFTsLX/+9HLZpE7L4ETxTJbF9E41sZ1FVcLbQE6qC+tbr9VcfTEuy
+        eUlafGG4jRxA00j5zdm1apKwW+6Oz0eFS/0dwUa8+IJG3Wcn1BQHao9zSZDGd8QKab3zUSWWGulP7
+        VEr1jiZkKFQ/BLwVCI5bH6hJeDH8yhPx3/H0t/rV5adlEgFzmrOfk1cDlMh7vtWD8ImZvSXbLD9lz
+        x+5fY3Ww==;
+Received: from [2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae] (helo=ulthar.dreamlands)
+        by kadath.azazel.net with esmtp (Exim 4.92)
+        (envelope-from <jeremy@azazel.net>)
+        id 1hxoDo-0007Df-GN; Wed, 14 Aug 2019 09:01:28 +0100
+From:   Jeremy Sowden <jeremy@azazel.net>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>,
+        kbuild test robot <lkp@intel.com>
+Subject: [PATCH nf-next] netfilter: remove deprecation warnings from uapi headers.
+Date:   Wed, 14 Aug 2019 09:01:28 +0100
+Message-Id: <20190814080128.8015-1-jeremy@azazel.net>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20190814074539.ort2lumte4gw3oix@salvia>
+References: <20190814074539.ort2lumte4gw3oix@salvia>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <ba98af8c-fcd3-50dd-770d-ddb85a887031@ucloud.cn>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Transfer-Encoding: 8bit
+X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
+X-SA-Exim-Mail-From: jeremy@azazel.net
+X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Aug 14, 2019 at 03:54:03PM +0800, wenxu wrote:
-> 
-> On 8/14/2019 2:19 AM, Pablo Neira Ayuso wrote:
-> > On Thu, Aug 01, 2019 at 10:01:22PM +0800, wenxu@ucloud.cn wrote:
-> >> From: wenxu <wenxu@ucloud.cn>
-> >>
-> >> Add new two NFT_TUNNEL_SRC/DST_IP match in nft_tunnel
-> >>
-> >> Signed-off-by: wenxu <wenxu@ucloud.cn>
-> >> ---
-> >> v3: no change
-> >>
-> >>  include/uapi/linux/netfilter/nf_tables.h |  2 ++
-> >>  net/netfilter/nft_tunnel.c               | 46 +++++++++++++++++++++++++-------
-> >>  2 files changed, 38 insertions(+), 10 deletions(-)
-> >>
-> >> diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-> >> index 82abaa1..173690a 100644
-> >> --- a/include/uapi/linux/netfilter/nf_tables.h
-> >> +++ b/include/uapi/linux/netfilter/nf_tables.h
-> >> @@ -1765,6 +1765,8 @@ enum nft_tunnel_key_attributes {
-> >>  enum nft_tunnel_keys {
-> >>  	NFT_TUNNEL_PATH,
-> >>  	NFT_TUNNEL_ID,
-> >> +	NFT_TUNNEL_SRC_IP,
-> >> +	NFT_TUNNEL_DST_IP,
-> >>  	__NFT_TUNNEL_MAX
-> >>  };
-> >>  #define NFT_TUNNEL_MAX	(__NFT_TUNNEL_MAX - 1)
-> >> diff --git a/net/netfilter/nft_tunnel.c b/net/netfilter/nft_tunnel.c
-> >> index 3d4c2ae..e218163 100644
-> >> --- a/net/netfilter/nft_tunnel.c
-> >> +++ b/net/netfilter/nft_tunnel.c
-> >> @@ -18,6 +18,18 @@ struct nft_tunnel {
-> >>  	enum nft_tunnel_mode	mode:8;
-> >>  };
-> >>  
-> >> +bool nft_tunnel_mode_validate(enum nft_tunnel_mode priv_mode, u8 tun_mode)
-> >> +{
-> >> +	if (priv_mode == NFT_TUNNEL_MODE_NONE ||
-> >> +	    (priv_mode == NFT_TUNNEL_MODE_RX &&
-> >> +	     !(tun_mode & IP_TUNNEL_INFO_TX)) ||
-> >> +	    (priv_mode == NFT_TUNNEL_MODE_TX &&
-> >> +	     (tun_mode & IP_TUNNEL_INFO_TX)))
-> >> +		return true;
-> >> +
-> >> +	return false;
-> >> +}
-> > Make an initial patch to add nft_tunnel_mode_validate().
-> >
-> >>  static void nft_tunnel_get_eval(const struct nft_expr *expr,
-> >>  				struct nft_regs *regs,
-> >>  				const struct nft_pktinfo *pkt)
-> >> @@ -34,11 +46,7 @@ static void nft_tunnel_get_eval(const struct nft_expr *expr,
-> >>  			nft_reg_store8(dest, false);
-> >>  			return;
-> >>  		}
-> >> -		if (priv->mode == NFT_TUNNEL_MODE_NONE ||
-> >> -		    (priv->mode == NFT_TUNNEL_MODE_RX &&
-> >> -		     !(tun_info->mode & IP_TUNNEL_INFO_TX)) ||
-> >> -		    (priv->mode == NFT_TUNNEL_MODE_TX &&
-> >> -		     (tun_info->mode & IP_TUNNEL_INFO_TX)))
-> >> +		if (nft_tunnel_mode_validate(priv->mode, tun_info->mode))
-> >>  			nft_reg_store8(dest, true);
-> >>  		else
-> >>  			nft_reg_store8(dest, false);
-> > [...]
-> >> +	case NFT_TUNNEL_DST_IP:
-> >> +		if (!tun_info) {
-> >> +			regs->verdict.code = NFT_BREAK;
-> >> +			return;
-> >> +		}
-> >> +		if (nft_tunnel_mode_validate(priv->mode, tun_info->mode))
-> >> +			*dest = ntohl(tun_info->key.u.ipv4.dst);
-> > No need to convert this from network to host endianess.
-> >
-> >> +		else
-> >> +			regs->verdict.code = NFT_BREAK;
-> >> +		break;
-> >>  	default:
-> >>  		WARN_ON(1);
-> >>  		regs->verdict.code = NFT_BREAK;
-> >> @@ -86,6 +110,8 @@ static int nft_tunnel_get_init(const struct nft_ctx *ctx,
-> >>  		len = sizeof(u8);
-> >>  		break;
-> >>  	case NFT_TUNNEL_ID:
-> >> +	case NFT_TUNNEL_SRC_IP:
-> >> +	case NFT_TUNNEL_DST_IP:
-> > Missing policy updates, ie. nft_tunnel_key_policy.
-> 
-> I don't understand why it need update nft_tunnel_key_policy
-> which is used for tunnel_obj action. This NFT_TUNNEL_SRC/DST_IP is used
-> for tunnel_expr
+There are two netfilter userspace headers which contain deprecation
+warnings.  While these headers are not used within the kernel, they are
+compiled stand-alone for header-testing.
 
-It seems there is no policy object for _get_eval(), add it.
+Pablo informs me that userspace iptables still refer to these headers,
+and the intention was to use xt_LOG.h instead and remove these, but
+userspace was never updated.
 
-Thanks.
+Remove the warnings.
+
+Fixes: 2a475c409fe8 ("kbuild: remove all netfilter headers from header-test blacklist.")
+Reported-by: kbuild test robot <lkp@intel.com>
+Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
+---
+ include/uapi/linux/netfilter_ipv4/ipt_LOG.h  | 2 --
+ include/uapi/linux/netfilter_ipv6/ip6t_LOG.h | 2 --
+ 2 files changed, 4 deletions(-)
+
+diff --git a/include/uapi/linux/netfilter_ipv4/ipt_LOG.h b/include/uapi/linux/netfilter_ipv4/ipt_LOG.h
+index 6dec14ba851b..b7cf2c669f40 100644
+--- a/include/uapi/linux/netfilter_ipv4/ipt_LOG.h
++++ b/include/uapi/linux/netfilter_ipv4/ipt_LOG.h
+@@ -2,8 +2,6 @@
+ #ifndef _IPT_LOG_H
+ #define _IPT_LOG_H
+ 
+-#warning "Please update iptables, this file will be removed soon!"
+-
+ /* make sure not to change this without changing netfilter.h:NF_LOG_* (!) */
+ #define IPT_LOG_TCPSEQ		0x01	/* Log TCP sequence numbers */
+ #define IPT_LOG_TCPOPT		0x02	/* Log TCP options */
+diff --git a/include/uapi/linux/netfilter_ipv6/ip6t_LOG.h b/include/uapi/linux/netfilter_ipv6/ip6t_LOG.h
+index 7553a434e4da..23e91a9c2583 100644
+--- a/include/uapi/linux/netfilter_ipv6/ip6t_LOG.h
++++ b/include/uapi/linux/netfilter_ipv6/ip6t_LOG.h
+@@ -2,8 +2,6 @@
+ #ifndef _IP6T_LOG_H
+ #define _IP6T_LOG_H
+ 
+-#warning "Please update iptables, this file will be removed soon!"
+-
+ /* make sure not to change this without changing netfilter.h:NF_LOG_* (!) */
+ #define IP6T_LOG_TCPSEQ		0x01	/* Log TCP sequence numbers */
+ #define IP6T_LOG_TCPOPT		0x02	/* Log TCP options */
+-- 
+2.20.1
+
