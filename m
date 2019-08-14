@@ -2,101 +2,141 @@ Return-Path: <SRS0=qEnH=WK=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BFDFBC433FF
-	for <netfilter-devel@archiver.kernel.org>; Wed, 14 Aug 2019 02:01:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8EA31C32753
+	for <netfilter-devel@archiver.kernel.org>; Wed, 14 Aug 2019 02:21:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9693F20844
-	for <netfilter-devel@archiver.kernel.org>; Wed, 14 Aug 2019 02:01:25 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=canb.auug.org.au header.i=@canb.auug.org.au header.b="ivJ+lZc4"
+	by mail.kernel.org (Postfix) with ESMTP id 6560C2063F
+	for <netfilter-devel@archiver.kernel.org>; Wed, 14 Aug 2019 02:21:46 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1565749306;
+	bh=G73h3hyn60e8WBVTxkyp0DOlyih+PHC/HzJC/EH1UJM=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=goL3ZaDhON6cvqAK0gsF2ymN+ySJ0KlDcaWeBXxTZP9+8t8yPG1NyROMWQCCJcQsr
+	 rXnEJGvDN8C/FBrkrMncwaW1WyYM8+3deK64OOpP4PdAtSD2uRYWh/2ru2S+DwvpUs
+	 wr/VzI1n235e5e5Fjoziocv36lMWYtER2i7en8UE=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726727AbfHNCBV (ORCPT
+        id S1729294AbfHNCTE (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 13 Aug 2019 22:01:21 -0400
-Received: from bilbo.ozlabs.org ([203.11.71.1]:40639 "EHLO ozlabs.org"
+        Tue, 13 Aug 2019 22:19:04 -0400
+Received: from mail.kernel.org ([198.145.29.99]:49946 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726007AbfHNCBV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 13 Aug 2019 22:01:21 -0400
-Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange ECDHE (P-256) server-signature RSA-PSS (4096 bits) server-digest SHA256)
+        id S1729203AbfHNCTC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 13 Aug 2019 22:19:02 -0400
+Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.ozlabs.org (Postfix) with ESMTPSA id 467Xqx58cyz9sP8;
-        Wed, 14 Aug 2019 12:01:17 +1000 (AEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=canb.auug.org.au;
-        s=201702; t=1565748078;
-        bh=e2nkYYq6Zq5d2uClkqO0wjWirioLnmBJr/FHSnA5vBU=;
-        h=Date:From:To:Cc:Subject:From;
-        b=ivJ+lZc4dP8lOWFiI4tGLU9KOJ2WXKizgsTMGEf5D/xHYobrJ7V8Fkf4uYOAFAIzR
-         kiaZ5EdDUTqpRNTb9pahWg2DEZLgNz/QydvuvLHvOhmu1M9waR/M0vJhuLyGsOfe7B
-         ObYbMNAWQeowyWdqhZetaPH+QEF1YSscOGTljcYVzQZCC3YKsizRKc+r568Wybpwo7
-         k91U/mIlppiyC8nJLgTxwu8o+Y9Bav/afjq6CqDd9E92DDaRA2KFyDxrvCgXS26xV2
-         SjNDomdWZclP5KaKMGmheVerNDL6Y3wsqo5DjLDVS1GQ5xaAPlBHqqRiO5FfxbJeo+
-         27RUB9t+A7AUw==
-Date:   Wed, 14 Aug 2019 12:01:10 +1000
-From:   Stephen Rothwell <sfr@canb.auug.org.au>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        NetFilter <netfilter-devel@vger.kernel.org>
-Cc:     Linux Next Mailing List <linux-next@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Jeremy Sowden <jeremy@azazel.net>
-Subject: linux-next: build warnings after merge of the netfilter-next tree
-Message-ID: <20190814120110.3c17ddec@canb.auug.org.au>
+        by mail.kernel.org (Postfix) with ESMTPSA id 83DC42084D;
+        Wed, 14 Aug 2019 02:19:01 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1565749142;
+        bh=G73h3hyn60e8WBVTxkyp0DOlyih+PHC/HzJC/EH1UJM=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=xsr/SkPVBxw+VixXgnnzL5yFvTHTLtrZ3gXCwdfOyYYdVZl1r6RdiX1LSPSo2RWNl
+         Z2aFBScPbqIYDrAspvhSW/DNuJ8oBGuY2vwlq49avxVpoEBjp5Fv74kd1ZU59je+3t
+         azrwjcAq0iwue9cnxbUy1fg59ugPDGy7XpkGRjg4=
+From:   Sasha Levin <sashal@kernel.org>
+To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc:     Florian Westphal <fw@strlen.de>,
+        syzbot+276ddebab3382bbf72db@syzkaller.appspotmail.com,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Sasha Levin <sashal@kernel.org>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org
+Subject: [PATCH AUTOSEL 4.14 17/44] netfilter: ebtables: also count base chain policies
+Date:   Tue, 13 Aug 2019 22:18:06 -0400
+Message-Id: <20190814021834.16662-17-sashal@kernel.org>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20190814021834.16662-1-sashal@kernel.org>
+References: <20190814021834.16662-1-sashal@kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/signed; boundary="Sig_//VAFaF+b02F0AzB+9QlMd5h";
- protocol="application/pgp-signature"; micalg=pgp-sha256
+X-stable: review
+X-Patchwork-Hint: Ignore
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
---Sig_//VAFaF+b02F0AzB+9QlMd5h
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+From: Florian Westphal <fw@strlen.de>
 
-Hi all,
+[ Upstream commit 3b48300d5cc7c7bed63fddb006c4046549ed4aec ]
 
-After merging the netfilter-next tree, today's linux-next build (x86_64
-allmodconfig) produced these warnings:
+ebtables doesn't include the base chain policies in the rule count,
+so we need to add them manually when we call into the x_tables core
+to allocate space for the comapt offset table.
 
-In file included from <command-line>:
-include/uapi/linux/netfilter_ipv6/ip6t_LOG.h:5:2: warning: #warning "Please=
- update iptables, this file will be removed soon!" [-Wcpp]
- #warning "Please update iptables, this file will be removed soon!"
-  ^~~~~~~
-In file included from <command-line>:
-include/uapi/linux/netfilter_ipv4/ipt_LOG.h:5:2: warning: #warning "Please =
-update iptables, this file will be removed soon!" [-Wcpp]
- #warning "Please update iptables, this file will be removed soon!"
-  ^~~~~~~
+This lead syzbot to trigger:
+WARNING: CPU: 1 PID: 9012 at net/netfilter/x_tables.c:649
+xt_compat_add_offset.cold+0x11/0x36 net/netfilter/x_tables.c:649
 
-Introduced by commit
+Reported-by: syzbot+276ddebab3382bbf72db@syzkaller.appspotmail.com
+Fixes: 2035f3ff8eaa ("netfilter: ebtables: compat: un-break 32bit setsockopt when no rules are present")
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ net/bridge/netfilter/ebtables.c | 28 +++++++++++++++++-----------
+ 1 file changed, 17 insertions(+), 11 deletions(-)
 
-  2a475c409fe8 ("kbuild: remove all netfilter headers from header-test blac=
-klist.")
+diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
+index 48e364b11e067..100b4f88179a2 100644
+--- a/net/bridge/netfilter/ebtables.c
++++ b/net/bridge/netfilter/ebtables.c
+@@ -1779,20 +1779,28 @@ static int compat_calc_entry(const struct ebt_entry *e,
+ 	return 0;
+ }
+ 
++static int ebt_compat_init_offsets(unsigned int number)
++{
++	if (number > INT_MAX)
++		return -EINVAL;
++
++	/* also count the base chain policies */
++	number += NF_BR_NUMHOOKS;
++
++	return xt_compat_init_offsets(NFPROTO_BRIDGE, number);
++}
+ 
+ static int compat_table_info(const struct ebt_table_info *info,
+ 			     struct compat_ebt_replace *newinfo)
+ {
+ 	unsigned int size = info->entries_size;
+ 	const void *entries = info->entries;
++	int ret;
+ 
+ 	newinfo->entries_size = size;
+-	if (info->nentries) {
+-		int ret = xt_compat_init_offsets(NFPROTO_BRIDGE,
+-						 info->nentries);
+-		if (ret)
+-			return ret;
+-	}
++	ret = ebt_compat_init_offsets(info->nentries);
++	if (ret)
++		return ret;
+ 
+ 	return EBT_ENTRY_ITERATE(entries, size, compat_calc_entry, info,
+ 							entries, newinfo);
+@@ -2240,11 +2248,9 @@ static int compat_do_replace(struct net *net, void __user *user,
+ 
+ 	xt_compat_lock(NFPROTO_BRIDGE);
+ 
+-	if (tmp.nentries) {
+-		ret = xt_compat_init_offsets(NFPROTO_BRIDGE, tmp.nentries);
+-		if (ret < 0)
+-			goto out_unlock;
+-	}
++	ret = ebt_compat_init_offsets(tmp.nentries);
++	if (ret < 0)
++		goto out_unlock;
+ 
+ 	ret = compat_copy_entries(entries_tmp, tmp.entries_size, &state);
+ 	if (ret < 0)
+-- 
+2.20.1
 
---=20
-Cheers,
-Stephen Rothwell
-
---Sig_//VAFaF+b02F0AzB+9QlMd5h
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAl1Ta2YACgkQAVBC80lX
-0GxcTgf/adyYODk8/1pjyxD0WSdoSVJWS9BkQ2vM9cIgzCgCgxOAWvPXDUY5Ca6V
-WBBWPTy26zVMT9I5LUarGRTymeeMOY84lvkol5l9CWKe/k34yNTVwvrH/4j1XoC+
-UOKUqHrFNG4ENIz2ZYMfe7Ej6AErg7G4vvSL4ALX0GhmO8tuz4HER9JrHKkaOgCZ
-TF7/rIjq18CsV0hECH+zkfYQM9k376CKYyVQe4kG5jav0Hn1F6Xe6DkzDqG5Jyq/
-q0oE08tqBxOiDgUFX78Wgk+F675+zAfJSMio6x4l507zIDZsE0JDlXedHPQNTsjs
-D2n2ZeMROzmDvKWuAqvG9svN9lb6pA==
-=fckG
------END PGP SIGNATURE-----
-
---Sig_//VAFaF+b02F0AzB+9QlMd5h--
