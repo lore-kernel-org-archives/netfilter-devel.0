@@ -6,38 +6,38 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DAC4BC433FF
-	for <netfilter-devel@archiver.kernel.org>; Wed, 14 Aug 2019 10:16:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 16CFFC32753
+	for <netfilter-devel@archiver.kernel.org>; Wed, 14 Aug 2019 10:16:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BBBBC205F4
-	for <netfilter-devel@archiver.kernel.org>; Wed, 14 Aug 2019 10:16:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id ED624205F4
+	for <netfilter-devel@archiver.kernel.org>; Wed, 14 Aug 2019 10:16:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727296AbfHNKQx (ORCPT
+        id S1727304AbfHNKQx (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Wed, 14 Aug 2019 06:16:53 -0400
-Received: from m9784.mail.qiye.163.com ([220.181.97.84]:55460 "EHLO
+Received: from m9784.mail.qiye.163.com ([220.181.97.84]:55398 "EHLO
         m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727229AbfHNKQw (ORCPT
+        with ESMTP id S1727218AbfHNKQx (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 14 Aug 2019 06:16:52 -0400
+        Wed, 14 Aug 2019 06:16:53 -0400
 Received: from localhost.localdomain (unknown [123.59.132.129])
-        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id C60F541B98;
+        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id 8A6C541BB8;
         Wed, 14 Aug 2019 18:16:49 +0800 (CST)
 From:   wenxu@ucloud.cn
 To:     pablo@netfilter.org, fw@strlen.de
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next v4 04/12] netfilter: nft_payload: add nft_set_payload offload support
-Date:   Wed, 14 Aug 2019 18:16:40 +0800
-Message-Id: <1565777808-28735-5-git-send-email-wenxu@ucloud.cn>
+Subject: [PATCH nf-next v4 02/12] netfilter: nf_tables_offload: add offload_actions callback
+Date:   Wed, 14 Aug 2019 18:16:38 +0800
+Message-Id: <1565777808-28735-3-git-send-email-wenxu@ucloud.cn>
 X-Mailer: git-send-email 1.8.3.1
 In-Reply-To: <1565777808-28735-1-git-send-email-wenxu@ucloud.cn>
 References: <1565777808-28735-1-git-send-email-wenxu@ucloud.cn>
-X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVkpVSklCQkJCTE5NQ0pIS05ZV1koWU
+X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVklVSk9PS0tLS05IT0tOTE1ZV1koWU
         FJQjdXWS1ZQUlXWQkOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6NRg6Cxw6Gjg0OTkiAjEKCCsL
-        AhIKFBxVSlVKTk1OTExMQ0tCQ0JCVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJSFVO
-        QlVKSElVSklCWVdZCAFZQUhPTkg3Bg++
-X-HM-Tid: 0a6c8fa1519e2086kuqyc60f541b98
+X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6PTo6Qzo*ITgxPTk1EjcyCDJM
+        DRUaCjZVSlVKTk1OTExMQ0tCTU5CVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJSFVO
+        QlVKSElVSklCWVdZCAFZQUhDQ0g3Bg++
+X-HM-Tid: 0a6c8fa150ac2086kuqy8a6c541bb8
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
@@ -45,91 +45,87 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: wenxu <wenxu@ucloud.cn>
 
-currently payload set only support ll header
-
-nft --debug=netlink add rule netdev firewall aclout ip daddr 10.0.1.7 @ll,0,48
-set 0x00002e9ca06e2596 @ll,48,48 set 0xfaffffffffff fwd to eth0
+There will be zero one or serval actions for some expr. such as
+payload set and immediate. The one payload set action maybe split
+to several offload entries. And only NFT_REG_VERDICT immediate
+action has 1 offload entry
 
 Signed-off-by: wenxu <wenxu@ucloud.cn>
 ---
 v4: no change
 
- net/netfilter/nft_payload.c | 56 +++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 56 insertions(+)
+ include/net/netfilter/nf_tables.h         | 7 ++++++-
+ include/net/netfilter/nf_tables_offload.h | 2 --
+ net/netfilter/nf_tables_offload.c         | 4 ++--
+ net/netfilter/nft_immediate.c             | 2 +-
+ 4 files changed, 9 insertions(+), 6 deletions(-)
 
-diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
-index 22a80eb..980e4a1 100644
---- a/net/netfilter/nft_payload.c
-+++ b/net/netfilter/nft_payload.c
-@@ -562,12 +562,68 @@ static int nft_payload_set_dump(struct sk_buff *skb, const struct nft_expr *expr
- 	return -1;
- }
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index dc301e3..5cf71a0 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -787,7 +787,7 @@ struct nft_expr_ops {
+ 	int				(*offload)(struct nft_offload_ctx *ctx,
+ 						   struct nft_flow_rule *flow,
+ 						   const struct nft_expr *expr);
+-	u32				offload_flags;
++	int				(*offload_actions)(const struct nft_expr *expr);
+ 	const struct nft_expr_type	*type;
+ 	void				*data;
+ };
+@@ -796,6 +796,11 @@ struct nft_expr_ops {
+ #define NFT_EXPR_SIZE(size)		(sizeof(struct nft_expr) + \
+ 					 ALIGN(size, __alignof__(struct nft_expr)))
  
-+static int nft_payload_set_offload(struct nft_offload_ctx *ctx,
-+				   struct nft_flow_rule *flow,
-+				   const struct nft_expr *expr)
++static inline int nft_offload_action(const struct nft_expr *expr)
 +{
-+	const struct nft_payload_set *priv = nft_expr_priv(expr);
-+	struct nft_offload_reg *reg = &ctx->regs[priv->sreg];
-+	const struct nft_data *data = &reg->data;
-+	struct flow_action_entry *entry;
-+	u32 len = priv->len;
-+	u32 offset, last;
-+	int n_actions, i;
-+
-+	if (priv->base != NFT_PAYLOAD_LL_HEADER || len > 16)
-+		return -EOPNOTSUPP;
-+
-+	offset = priv->offset;
-+	n_actions = len >> 2;
-+	last = len & 0x3;
-+
-+	for (i = 0; i < n_actions; i++) {
-+		entry = &flow->rule->action.entries[ctx->num_actions++];
-+
-+		entry->id = FLOW_ACTION_MANGLE;
-+		entry->mangle.htype = FLOW_ACT_MANGLE_HDR_TYPE_ETH;
-+		entry->mangle.mask = 0;
-+		entry->mangle.val = data->data[i];
-+		entry->mangle.offset = offset;
-+		offset = offset + 4;
-+	}
-+
-+	if (last) {
-+		entry = &flow->rule->action.entries[ctx->num_actions++];
-+
-+		entry->id = FLOW_ACTION_MANGLE;
-+		entry->mangle.htype = FLOW_ACT_MANGLE_HDR_TYPE_ETH;
-+		entry->mangle.mask = ~((1 << (last * 8)) - 1);
-+		entry->mangle.val = data->data[i];
-+		entry->mangle.offset = offset;
-+	}
-+
-+	return 0;
++	return 1;
 +}
 +
-+static int nft_payload_set_offload_actions(const struct nft_expr *expr)
-+{
-+	const struct nft_payload_set *priv = nft_expr_priv(expr);
-+	u32 len = priv->len;
-+
-+	if (priv->base != NFT_PAYLOAD_LL_HEADER || len > 16)
-+		return 0;
-+
-+	return (len >> 2) + !!(len & 3);
-+}
-+
- static const struct nft_expr_ops nft_payload_set_ops = {
- 	.type		= &nft_payload_type,
- 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_payload_set)),
- 	.eval		= nft_payload_set_eval,
- 	.init		= nft_payload_set_init,
- 	.dump		= nft_payload_set_dump,
-+	.offload	= nft_payload_set_offload,
-+	.offload_actions = nft_payload_set_offload_actions,
+ /**
+  *	struct nft_expr - nf_tables expression
+  *
+diff --git a/include/net/netfilter/nf_tables_offload.h b/include/net/netfilter/nf_tables_offload.h
+index 71453fd..ff032fb 100644
+--- a/include/net/netfilter/nf_tables_offload.h
++++ b/include/net/netfilter/nf_tables_offload.h
+@@ -59,8 +59,6 @@ struct nft_flow_rule {
+ 	struct flow_rule	*rule;
  };
  
- static const struct nft_expr_ops *
+-#define NFT_OFFLOAD_F_ACTION	(1 << 0)
+-
+ struct nft_rule;
+ struct nft_flow_rule *nft_flow_rule_create(struct net *net, const struct nft_rule *rule);
+ void nft_flow_rule_destroy(struct nft_flow_rule *flow);
+diff --git a/net/netfilter/nf_tables_offload.c b/net/netfilter/nf_tables_offload.c
+index 9d9a864..e097189 100644
+--- a/net/netfilter/nf_tables_offload.c
++++ b/net/netfilter/nf_tables_offload.c
+@@ -42,8 +42,8 @@ struct nft_flow_rule *nft_flow_rule_create(struct net *net, const struct nft_rul
+ 
+ 	expr = nft_expr_first(rule);
+ 	while (expr->ops && expr != nft_expr_last(rule)) {
+-		if (expr->ops->offload_flags & NFT_OFFLOAD_F_ACTION)
+-			num_actions++;
++		if (expr->ops->offload_actions)
++			num_actions += expr->ops->offload_actions(expr);
+ 
+ 		expr = nft_expr_next(expr);
+ 	}
+diff --git a/net/netfilter/nft_immediate.c b/net/netfilter/nft_immediate.c
+index c7f0ef7..a2110be 100644
+--- a/net/netfilter/nft_immediate.c
++++ b/net/netfilter/nft_immediate.c
+@@ -173,7 +173,7 @@ static int nft_immediate_offload(struct nft_offload_ctx *ctx,
+ 	.dump		= nft_immediate_dump,
+ 	.validate	= nft_immediate_validate,
+ 	.offload	= nft_immediate_offload,
+-	.offload_flags	= NFT_OFFLOAD_F_ACTION,
++	.offload_actions = nft_offload_action,
+ };
+ 
+ struct nft_expr_type nft_imm_type __read_mostly = {
 -- 
 1.8.3.1
 
