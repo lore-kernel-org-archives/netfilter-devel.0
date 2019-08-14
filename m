@@ -6,45 +6,45 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CEC7FC433FF
-	for <netfilter-devel@archiver.kernel.org>; Wed, 14 Aug 2019 08:34:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8E978C32753
+	for <netfilter-devel@archiver.kernel.org>; Wed, 14 Aug 2019 09:04:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id AC75420843
-	for <netfilter-devel@archiver.kernel.org>; Wed, 14 Aug 2019 08:34:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6704A205F4
+	for <netfilter-devel@archiver.kernel.org>; Wed, 14 Aug 2019 09:04:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726793AbfHNIet (ORCPT
+        id S1726311AbfHNJEO (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 14 Aug 2019 04:34:49 -0400
-Received: from correo.us.es ([193.147.175.20]:57468 "EHLO mail.us.es"
+        Wed, 14 Aug 2019 05:04:14 -0400
+Received: from correo.us.es ([193.147.175.20]:36822 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726760AbfHNIet (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 14 Aug 2019 04:34:49 -0400
+        id S1725306AbfHNJEN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 14 Aug 2019 05:04:13 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id BD40CC4144
-        for <netfilter-devel@vger.kernel.org>; Wed, 14 Aug 2019 10:34:46 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id E4B02C4149
+        for <netfilter-devel@vger.kernel.org>; Wed, 14 Aug 2019 11:04:10 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id AFD6C203F2
-        for <netfilter-devel@vger.kernel.org>; Wed, 14 Aug 2019 10:34:46 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id D4F6B1150DA
+        for <netfilter-devel@vger.kernel.org>; Wed, 14 Aug 2019 11:04:10 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id A57C3DA7E1; Wed, 14 Aug 2019 10:34:46 +0200 (CEST)
+        id CA7281150D8; Wed, 14 Aug 2019 11:04:10 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 9753721FE4;
-        Wed, 14 Aug 2019 10:34:44 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id BA6E9DA72F;
+        Wed, 14 Aug 2019 11:04:08 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 14 Aug 2019 10:34:44 +0200 (CEST)
+ Wed, 14 Aug 2019 11:04:08 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (unknown [31.4.218.116])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 5F5704265A32;
-        Wed, 14 Aug 2019 10:34:44 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 834D84265A32;
+        Wed, 14 Aug 2019 11:04:08 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     fw@strlen.de
-Subject: [PATCH nft,v2] gmputil: assert length is non-zero
-Date:   Wed, 14 Aug 2019 10:34:42 +0200
-Message-Id: <20190814083442.24470-1-pablo@netfilter.org>
+Subject: [PATCH nft,v3] gmputil: assert length is non-zero
+Date:   Wed, 14 Aug 2019 11:04:05 +0200
+Message-Id: <20190814090405.30079-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -55,7 +55,7 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 Importing, exporting and byteswapping zero length data should not
 happen.
 
-Add inline functions so we know from where the assertion is triggered in
+Use macro definition so we know from where the assertion is triggered in
 the code for easier diagnosing in the future.
 
 When importing datatype.h from gmputil.h, it seems gcc complains on
@@ -63,18 +63,18 @@ missing declarations in json.h.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-v2: use inline for easier diagnosing.
+v3: gcc may not inline functions, use macro definition instead.
 
- include/gmputil.h | 38 +++++++++++++++++++++++++++++++-------
+ include/gmputil.h | 33 ++++++++++++++++++++++++++-------
  include/json.h    |  4 ++++
  src/gmputil.c     | 16 +++++++---------
- 3 files changed, 42 insertions(+), 16 deletions(-)
+ 3 files changed, 37 insertions(+), 16 deletions(-)
 
 diff --git a/include/gmputil.h b/include/gmputil.h
-index ad63d67b4e05..38aa0e0dc11a 100644
+index ad63d67b4e05..0cb85a7d0793 100644
 --- a/include/gmputil.h
 +++ b/include/gmputil.h
-@@ -52,12 +52,36 @@ extern uint32_t mpz_get_be32(const mpz_t op);
+@@ -52,12 +52,31 @@ extern uint32_t mpz_get_be32(const mpz_t op);
  extern uint16_t mpz_get_be16(const mpz_t op);
  
  enum byteorder;
@@ -94,27 +94,22 @@ index ad63d67b4e05..38aa0e0dc11a 100644
 +#include <assert.h>
 +#include <datatype.h>
 +
-+static inline void *mpz_export_data(void *data, const mpz_t op,
-+				    enum byteorder byteorder, unsigned int len)
-+{
-+	assert(len > 0);
-+
-+	return __mpz_export_data(data, op, byteorder, len);
++#define mpz_export_data(data, op, byteorder, len)		\
++{								\
++	assert(len > 0);					\
++	__mpz_export_data(data, op, byteorder, len); 		\
 +}
 +
-+static inline void mpz_import_data(mpz_t rop, const void *data,
-+				   enum byteorder byteorder, unsigned int len)
-+{
-+	assert(len > 0);
-+
-+	__mpz_import_data(rop, data, byteorder, len);
++#define mpz_import_data(rop, data, byteorder, len)		\
++{								\
++	assert(len > 0);					\
++	__mpz_import_data(rop, data, byteorder, len);		\
 +}
 +
-+static inline void mpz_switch_byteorder(mpz_t rop, unsigned int len)
-+{
-+	assert(len > 0);
-+
-+	__mpz_switch_byteorder(rop, len);
++#define mpz_switch_byteorder(rop, len)				\
++{								\
++	assert(len > 0);					\
++	__mpz_switch_byteorder(rop, len);			\
 +}
  
  #endif /* NFTABLES_GMPUTIL_H */
