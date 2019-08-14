@@ -7,51 +7,52 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A803EC32750
-	for <netfilter-devel@archiver.kernel.org>; Wed, 14 Aug 2019 02:33:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 77475C32750
+	for <netfilter-devel@archiver.kernel.org>; Wed, 14 Aug 2019 02:37:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 75EB820842
-	for <netfilter-devel@archiver.kernel.org>; Wed, 14 Aug 2019 02:33:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4FBAC20665
+	for <netfilter-devel@archiver.kernel.org>; Wed, 14 Aug 2019 02:37:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1565749993;
-	bh=gdO0swjJ28YedzX8e/R8tHVRo8A3I/mriBHldzkfYHw=;
+	s=default; t=1565750226;
+	bh=MksosQLMGZ89hzq1CyJjp04g4mTD95UR39ssKqqsh+s=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=o8DeS74kPambx0oiPa7LfWf1LU/49FQQFs3/MfBuzRB9onXY8kY+wohCNNqFlYs81
-	 3ORw6JwLT15MuItZ+yYAnaif/F8XlC2XFaKzuXPipr8zI3ccYCFw+5IgNzODdcsO+o
-	 fZ3s6VNMMG9UUOO6zGTK3fA4WuX2yLKAw0tLEkQ4=
+	b=M4Q/XKiyoCSHM6qadlQy9HYJyCjJVsDXt2gpfHW5Fol5nDRAklYvkE9dy1WF3AeZF
+	 oJh7lph8nOXkhzIF3wtpLLV9BJ2rAm6m1IusQo0GKK+KTAiWTZIRx1fMCYHe7UqvQw
+	 Uw9QOSGaW1msI4PDSeq/Ex/WvWUTeW2De5ocEPXo=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728534AbfHNCdH (ORCPT
+        id S1728358AbfHNCg7 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 13 Aug 2019 22:33:07 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47524 "EHLO mail.kernel.org"
+        Tue, 13 Aug 2019 22:36:59 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44980 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728870AbfHNCQA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 13 Aug 2019 22:16:00 -0400
+        id S1728040AbfHNCMv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 13 Aug 2019 22:12:51 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 81C19208C2;
-        Wed, 14 Aug 2019 02:15:58 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 5A4DE20842;
+        Wed, 14 Aug 2019 02:12:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1565748959;
-        bh=gdO0swjJ28YedzX8e/R8tHVRo8A3I/mriBHldzkfYHw=;
+        s=default; t=1565748770;
+        bh=MksosQLMGZ89hzq1CyJjp04g4mTD95UR39ssKqqsh+s=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=d6D8oDpe23vVAuT9Szms9YuWC4wtk5BVQV85XXYv2alYB177Ln9uIH9qd3/QWAF4n
-         KcC3xGQluijYJx3gSXRJ9KLp3zTkAg5qRv4izp902KkLZmBebmarYDff1PgbmwK170
-         r84QLbIPk5urQsW5HOgDUfKuXSIdIU8LRkO0e/BM=
+        b=x3nwzRtSuvSOiI1m/fr/VLU6jDwAAqAa1vkrGn8SQtZwtMgzLVV+UmItrSc9PaZ60
+         ktLSXnAeOoCF5ncss1KCZ+3Zs/1IOtFp+1MyHjGEXone6yycHmJXXNkttztMSzeiQL
+         JgQKpXaWXZI0Gri1rUjPn0ZfNLIETBT5aQ0luytQ=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Wenwen Wang <wenwen@cs.uga.edu>, Florian Westphal <fw@strlen.de>,
+Cc:     Florian Westphal <fw@strlen.de>,
+        syzbot+276ddebab3382bbf72db@syzkaller.appspotmail.com,
         Pablo Neira Ayuso <pablo@netfilter.org>,
         Sasha Levin <sashal@kernel.org>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.19 06/68] netfilter: ebtables: fix a memory leak bug in compat
-Date:   Tue, 13 Aug 2019 22:14:44 -0400
-Message-Id: <20190814021548.16001-6-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.2 058/123] netfilter: ebtables: also count base chain policies
+Date:   Tue, 13 Aug 2019 22:09:42 -0400
+Message-Id: <20190814021047.14828-58-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20190814021548.16001-1-sashal@kernel.org>
-References: <20190814021548.16001-1-sashal@kernel.org>
+In-Reply-To: <20190814021047.14828-1-sashal@kernel.org>
+References: <20190814021047.14828-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -61,44 +62,81 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Wenwen Wang <wenwen@cs.uga.edu>
+From: Florian Westphal <fw@strlen.de>
 
-[ Upstream commit 15a78ba1844a8e052c1226f930133de4cef4e7ad ]
+[ Upstream commit 3b48300d5cc7c7bed63fddb006c4046549ed4aec ]
 
-In compat_do_replace(), a temporary buffer is allocated through vmalloc()
-to hold entries copied from the user space. The buffer address is firstly
-saved to 'newinfo->entries', and later on assigned to 'entries_tmp'. Then
-the entries in this temporary buffer is copied to the internal kernel
-structure through compat_copy_entries(). If this copy process fails,
-compat_do_replace() should be terminated. However, the allocated temporary
-buffer is not freed on this path, leading to a memory leak.
+ebtables doesn't include the base chain policies in the rule count,
+so we need to add them manually when we call into the x_tables core
+to allocate space for the comapt offset table.
 
-To fix the bug, free the buffer before returning from compat_do_replace().
+This lead syzbot to trigger:
+WARNING: CPU: 1 PID: 9012 at net/netfilter/x_tables.c:649
+xt_compat_add_offset.cold+0x11/0x36 net/netfilter/x_tables.c:649
 
-Signed-off-by: Wenwen Wang <wenwen@cs.uga.edu>
-Reviewed-by: Florian Westphal <fw@strlen.de>
+Reported-by: syzbot+276ddebab3382bbf72db@syzkaller.appspotmail.com
+Fixes: 2035f3ff8eaa ("netfilter: ebtables: compat: un-break 32bit setsockopt when no rules are present")
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- net/bridge/netfilter/ebtables.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ net/bridge/netfilter/ebtables.c | 28 +++++++++++++++++-----------
+ 1 file changed, 17 insertions(+), 11 deletions(-)
 
 diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
-index 0bb4d712b80cb..57856f8bc22dd 100644
+index fd84b48e48b57..c8177a89f52c3 100644
 --- a/net/bridge/netfilter/ebtables.c
 +++ b/net/bridge/netfilter/ebtables.c
-@@ -2268,8 +2268,10 @@ static int compat_do_replace(struct net *net, void __user *user,
- 	state.buf_kern_len = size64;
+@@ -1770,20 +1770,28 @@ static int compat_calc_entry(const struct ebt_entry *e,
+ 	return 0;
+ }
+ 
++static int ebt_compat_init_offsets(unsigned int number)
++{
++	if (number > INT_MAX)
++		return -EINVAL;
++
++	/* also count the base chain policies */
++	number += NF_BR_NUMHOOKS;
++
++	return xt_compat_init_offsets(NFPROTO_BRIDGE, number);
++}
+ 
+ static int compat_table_info(const struct ebt_table_info *info,
+ 			     struct compat_ebt_replace *newinfo)
+ {
+ 	unsigned int size = info->entries_size;
+ 	const void *entries = info->entries;
++	int ret;
+ 
+ 	newinfo->entries_size = size;
+-	if (info->nentries) {
+-		int ret = xt_compat_init_offsets(NFPROTO_BRIDGE,
+-						 info->nentries);
+-		if (ret)
+-			return ret;
+-	}
++	ret = ebt_compat_init_offsets(info->nentries);
++	if (ret)
++		return ret;
+ 
+ 	return EBT_ENTRY_ITERATE(entries, size, compat_calc_entry, info,
+ 							entries, newinfo);
+@@ -2234,11 +2242,9 @@ static int compat_do_replace(struct net *net, void __user *user,
+ 
+ 	xt_compat_lock(NFPROTO_BRIDGE);
+ 
+-	if (tmp.nentries) {
+-		ret = xt_compat_init_offsets(NFPROTO_BRIDGE, tmp.nentries);
+-		if (ret < 0)
+-			goto out_unlock;
+-	}
++	ret = ebt_compat_init_offsets(tmp.nentries);
++	if (ret < 0)
++		goto out_unlock;
  
  	ret = compat_copy_entries(entries_tmp, tmp.entries_size, &state);
--	if (WARN_ON(ret < 0))
-+	if (WARN_ON(ret < 0)) {
-+		vfree(entries_tmp);
- 		goto out_unlock;
-+	}
- 
- 	vfree(entries_tmp);
- 	tmp.entries_size = size64;
+ 	if (ret < 0)
 -- 
 2.20.1
 
