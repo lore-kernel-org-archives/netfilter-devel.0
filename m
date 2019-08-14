@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 30BB3C433FF
-	for <netfilter-devel@archiver.kernel.org>; Wed, 14 Aug 2019 09:25:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 05B11C32753
+	for <netfilter-devel@archiver.kernel.org>; Wed, 14 Aug 2019 09:25:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 10475204EC
+	by mail.kernel.org (Postfix) with ESMTP id DB51F204EC
 	for <netfilter-devel@archiver.kernel.org>; Wed, 14 Aug 2019 09:25:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726925AbfHNJYx (ORCPT
+        id S1727264AbfHNJZI (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 14 Aug 2019 05:24:53 -0400
-Received: from correo.us.es ([193.147.175.20]:42586 "EHLO mail.us.es"
+        Wed, 14 Aug 2019 05:25:08 -0400
+Received: from correo.us.es ([193.147.175.20]:42600 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726821AbfHNJYw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 14 Aug 2019 05:24:52 -0400
+        id S1726918AbfHNJYz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 14 Aug 2019 05:24:55 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 54F4DC40E9
-        for <netfilter-devel@vger.kernel.org>; Wed, 14 Aug 2019 11:24:50 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 05A4BC40EC
+        for <netfilter-devel@vger.kernel.org>; Wed, 14 Aug 2019 11:24:52 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 46DCB1150CB
-        for <netfilter-devel@vger.kernel.org>; Wed, 14 Aug 2019 11:24:50 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id E9A58115109
+        for <netfilter-devel@vger.kernel.org>; Wed, 14 Aug 2019 11:24:51 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 3C9315C023; Wed, 14 Aug 2019 11:24:50 +0200 (CEST)
+        id DF466DA730; Wed, 14 Aug 2019 11:24:51 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 288297E064;
-        Wed, 14 Aug 2019 11:24:48 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C767BDA730;
+        Wed, 14 Aug 2019 11:24:49 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 14 Aug 2019 11:24:48 +0200 (CEST)
+ Wed, 14 Aug 2019 11:24:49 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (unknown [31.4.218.116])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id D2FB14265A2F;
-        Wed, 14 Aug 2019 11:24:47 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 7E56A4265A2F;
+        Wed, 14 Aug 2019 11:24:49 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 1/7] selftests: netfilter: extend flowtable test script for ipsec
-Date:   Wed, 14 Aug 2019 11:24:34 +0200
-Message-Id: <20190814092440.20087-2-pablo@netfilter.org>
+Subject: [PATCH 3/7] netfilter: nf_tables: use-after-free in failing rule with bound set
+Date:   Wed, 14 Aug 2019 11:24:36 +0200
+Message-Id: <20190814092440.20087-4-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20190814092440.20087-1-pablo@netfilter.org>
 References: <20190814092440.20087-1-pablo@netfilter.org>
@@ -55,85 +55,138 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+If a rule that has already a bound anonymous set fails to be added, the
+preparation phase releases the rule and the bound set. However, the
+transaction object from the abort path still has a reference to the set
+object that is stale, leading to a use-after-free when checking for the
+set->bound field. Add a new field to the transaction that specifies if
+the set is bound, so the abort path can skip releasing it since the rule
+command owns it and it takes care of releasing it. After this update,
+the set->bound field is removed.
 
-'flow offload' expression should not offload flows that will be subject
-to ipsec, but it does.
+[   24.649883] Unable to handle kernel paging request at virtual address 0000000000040434
+[   24.657858] Mem abort info:
+[   24.660686]   ESR = 0x96000004
+[   24.663769]   Exception class = DABT (current EL), IL = 32 bits
+[   24.669725]   SET = 0, FnV = 0
+[   24.672804]   EA = 0, S1PTW = 0
+[   24.675975] Data abort info:
+[   24.678880]   ISV = 0, ISS = 0x00000004
+[   24.682743]   CM = 0, WnR = 0
+[   24.685723] user pgtable: 4k pages, 48-bit VAs, pgdp=0000000428952000
+[   24.692207] [0000000000040434] pgd=0000000000000000
+[   24.697119] Internal error: Oops: 96000004 [#1] SMP
+[...]
+[   24.889414] Call trace:
+[   24.891870]  __nf_tables_abort+0x3f0/0x7a0
+[   24.895984]  nf_tables_abort+0x20/0x40
+[   24.899750]  nfnetlink_rcv_batch+0x17c/0x588
+[   24.904037]  nfnetlink_rcv+0x13c/0x190
+[   24.907803]  netlink_unicast+0x18c/0x208
+[   24.911742]  netlink_sendmsg+0x1b0/0x350
+[   24.915682]  sock_sendmsg+0x4c/0x68
+[   24.919185]  ___sys_sendmsg+0x288/0x2c8
+[   24.923037]  __sys_sendmsg+0x7c/0xd0
+[   24.926628]  __arm64_sys_sendmsg+0x2c/0x38
+[   24.930744]  el0_svc_common.constprop.0+0x94/0x158
+[   24.935556]  el0_svc_handler+0x34/0x90
+[   24.939322]  el0_svc+0x8/0xc
+[   24.942216] Code: 37280300 f9404023 91014262 aa1703e0 (f9401863)
+[   24.948336] ---[ end trace cebbb9dcbed3b56f ]---
 
-This results in a connectivity blackhole for the affected flows -- first
-packets will go through (offload happens after established state is
-reached), but all remaining ones bypass ipsec encryption and are thus
-discarded by the peer.
-
-This can be worked around by adding "rt ipsec exists accept"
-before the 'flow offload' rule matches.
-
-This test case will fail, support for such flows is added in
-next patch.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Fixes: f6ac85858976 ("netfilter: nf_tables: unbind set in rule from commit path")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- tools/testing/selftests/netfilter/nft_flowtable.sh | 48 ++++++++++++++++++++++
- 1 file changed, 48 insertions(+)
+ include/net/netfilter/nf_tables.h |  9 +++++++--
+ net/netfilter/nf_tables_api.c     | 15 ++++++++++-----
+ 2 files changed, 17 insertions(+), 7 deletions(-)
 
-diff --git a/tools/testing/selftests/netfilter/nft_flowtable.sh b/tools/testing/selftests/netfilter/nft_flowtable.sh
-index fe52488a6f72..16571ac1dab4 100755
---- a/tools/testing/selftests/netfilter/nft_flowtable.sh
-+++ b/tools/testing/selftests/netfilter/nft_flowtable.sh
-@@ -321,4 +321,52 @@ else
- 	ip netns exec nsr1 nft list ruleset
- fi
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index 9b624566b82d..475d6f28ca67 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -421,8 +421,7 @@ struct nft_set {
+ 	unsigned char			*udata;
+ 	/* runtime data below here */
+ 	const struct nft_set_ops	*ops ____cacheline_aligned;
+-	u16				flags:13,
+-					bound:1,
++	u16				flags:14,
+ 					genmask:2;
+ 	u8				klen;
+ 	u8				dlen;
+@@ -1348,12 +1347,15 @@ struct nft_trans_rule {
+ struct nft_trans_set {
+ 	struct nft_set			*set;
+ 	u32				set_id;
++	bool				bound;
+ };
  
-+KEY_SHA="0x"$(ps -xaf | sha1sum | cut -d " " -f 1)
-+KEY_AES="0x"$(ps -xaf | md5sum | cut -d " " -f 1)
-+SPI1=$RANDOM
-+SPI2=$RANDOM
-+
-+if [ $SPI1 -eq $SPI2 ]; then
-+	SPI2=$((SPI2+1))
-+fi
-+
-+do_esp() {
-+    local ns=$1
-+    local me=$2
-+    local remote=$3
-+    local lnet=$4
-+    local rnet=$5
-+    local spi_out=$6
-+    local spi_in=$7
-+
-+    ip -net $ns xfrm state add src $remote dst $me proto esp spi $spi_in  enc aes $KEY_AES  auth sha1 $KEY_SHA mode tunnel sel src $rnet dst $lnet
-+    ip -net $ns xfrm state add src $me  dst $remote proto esp spi $spi_out enc aes $KEY_AES auth sha1 $KEY_SHA mode tunnel sel src $lnet dst $rnet
-+
-+    # to encrypt packets as they go out (includes forwarded packets that need encapsulation)
-+    ip -net $ns xfrm policy add src $lnet dst $rnet dir out tmpl src $me dst $remote proto esp mode tunnel priority 1 action allow
-+    # to fwd decrypted packets after esp processing:
-+    ip -net $ns xfrm policy add src $rnet dst $lnet dir fwd tmpl src $remote dst $me proto esp mode tunnel priority 1 action allow
-+
-+}
-+
-+do_esp nsr1 192.168.10.1 192.168.10.2 10.0.1.0/24 10.0.2.0/24 $SPI1 $SPI2
-+
-+do_esp nsr2 192.168.10.2 192.168.10.1 10.0.2.0/24 10.0.1.0/24 $SPI2 $SPI1
-+
-+ip netns exec nsr1 nft delete table ip nat
-+
-+# restore default routes
-+ip -net ns2 route del 192.168.10.1 via 10.0.2.1
-+ip -net ns2 route add default via 10.0.2.1
-+ip -net ns2 route add default via dead:2::1
-+
-+test_tcp_forwarding ns1 ns2
-+if [ $? -eq 0 ] ;then
-+	echo "PASS: ipsec tunnel mode for ns1/ns2"
-+else
-+	echo "FAIL: ipsec tunnel mode for ns1/ns2"
-+	ip netns exec nsr1 nft list ruleset 1>&2
-+	ip netns exec nsr1 cat /proc/net/xfrm_stat 1>&2
-+fi
-+
- exit $ret
+ #define nft_trans_set(trans)	\
+ 	(((struct nft_trans_set *)trans->data)->set)
+ #define nft_trans_set_id(trans)	\
+ 	(((struct nft_trans_set *)trans->data)->set_id)
++#define nft_trans_set_bound(trans)	\
++	(((struct nft_trans_set *)trans->data)->bound)
+ 
+ struct nft_trans_chain {
+ 	bool				update;
+@@ -1384,12 +1386,15 @@ struct nft_trans_table {
+ struct nft_trans_elem {
+ 	struct nft_set			*set;
+ 	struct nft_set_elem		elem;
++	bool				bound;
+ };
+ 
+ #define nft_trans_elem_set(trans)	\
+ 	(((struct nft_trans_elem *)trans->data)->set)
+ #define nft_trans_elem(trans)	\
+ 	(((struct nft_trans_elem *)trans->data)->elem)
++#define nft_trans_elem_set_bound(trans)	\
++	(((struct nft_trans_elem *)trans->data)->bound)
+ 
+ struct nft_trans_obj {
+ 	struct nft_object		*obj;
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 605a7cfe7ca7..88abbddf8967 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -138,9 +138,14 @@ static void nft_set_trans_bind(const struct nft_ctx *ctx, struct nft_set *set)
+ 		return;
+ 
+ 	list_for_each_entry_reverse(trans, &net->nft.commit_list, list) {
+-		if (trans->msg_type == NFT_MSG_NEWSET &&
+-		    nft_trans_set(trans) == set) {
+-			set->bound = true;
++		switch (trans->msg_type) {
++		case NFT_MSG_NEWSET:
++			if (nft_trans_set(trans) == set)
++				nft_trans_set_bound(trans) = true;
++			break;
++		case NFT_MSG_NEWSETELEM:
++			if (nft_trans_elem_set(trans) == set)
++				nft_trans_elem_set_bound(trans) = true;
+ 			break;
+ 		}
+ 	}
+@@ -6906,7 +6911,7 @@ static int __nf_tables_abort(struct net *net)
+ 			break;
+ 		case NFT_MSG_NEWSET:
+ 			trans->ctx.table->use--;
+-			if (nft_trans_set(trans)->bound) {
++			if (nft_trans_set_bound(trans)) {
+ 				nft_trans_destroy(trans);
+ 				break;
+ 			}
+@@ -6918,7 +6923,7 @@ static int __nf_tables_abort(struct net *net)
+ 			nft_trans_destroy(trans);
+ 			break;
+ 		case NFT_MSG_NEWSETELEM:
+-			if (nft_trans_elem_set(trans)->bound) {
++			if (nft_trans_elem_set_bound(trans)) {
+ 				nft_trans_destroy(trans);
+ 				break;
+ 			}
 -- 
 2.11.0
 
