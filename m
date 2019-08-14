@@ -2,126 +2,146 @@ Return-Path: <SRS0=qEnH=WK=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.0 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 51979C0650F
-	for <netfilter-devel@archiver.kernel.org>; Wed, 14 Aug 2019 07:53:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 21062C0650F
+	for <netfilter-devel@archiver.kernel.org>; Wed, 14 Aug 2019 07:54:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2647B2054F
-	for <netfilter-devel@archiver.kernel.org>; Wed, 14 Aug 2019 07:53:05 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="sv6t142v"
+	by mail.kernel.org (Postfix) with ESMTP id 012162054F
+	for <netfilter-devel@archiver.kernel.org>; Wed, 14 Aug 2019 07:54:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726986AbfHNHxE (ORCPT
+        id S1726512AbfHNHyI (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 14 Aug 2019 03:53:04 -0400
-Received: from kadath.azazel.net ([81.187.231.250]:48214 "EHLO
-        kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726527AbfHNHxE (ORCPT
+        Wed, 14 Aug 2019 03:54:08 -0400
+Received: from m9784.mail.qiye.163.com ([220.181.97.84]:23486 "EHLO
+        m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725928AbfHNHyI (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 14 Aug 2019 03:53:04 -0400
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-         s=20190108; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-        Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=Z1ZeiPXHySZ5F4wBRu7h0kUAhRu1wtbKLF8v1Xq92fM=; b=sv6t142vddKN1Wb4PeX3Tcvr2W
-        YkwiYzm9mC8WuG0uiVNMJ6sDqKsiYNYYT0Gt139x93usmtVwxfvV3IJJC5iXjkWA2fEOJ32gREVMw
-        yGl28iOIjJeD3HsP+gv7xHKI8d9BXjerk2x55Ae0TaUbthY4AdtdfuLXb0UQDcYrbU4wKu4Ld3ysP
-        ixe30OfnUHzeiJvgG7oPS/bP1V+mUWK5g9HGYbH/HmSpVVY3IVPVAJjYpOoUbzosodj5mp20aGT4B
-        DKAEj8X1L88nJsG/j4ay+FDTzzr00k4qWZEbvJS2uZ8YIlAfeJ7f/GcV+gQhAx6Xc81MDvUX4301z
-        +j7gop3A==;
-Received: from pnakotus.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:208:9bff:febe:32] helo=azazel.net)
-        by kadath.azazel.net with esmtpsa (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
-        (Exim 4.92)
-        (envelope-from <jeremy@azazel.net>)
-        id 1hxo5b-0006bg-EX; Wed, 14 Aug 2019 08:52:59 +0100
-Date:   Wed, 14 Aug 2019 08:52:59 +0100
-From:   Jeremy Sowden <jeremy@azazel.net>
+        Wed, 14 Aug 2019 03:54:08 -0400
+Received: from [192.168.188.14] (unknown [120.132.1.226])
+        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id C676941B0F;
+        Wed, 14 Aug 2019 15:54:04 +0800 (CST)
+Subject: Re: [PATCH nf-next v3 5/9] netfilter: nft_tunnel: support
+ NFT_TUNNEL_SRC/DST_IP match
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     kbuild-all@01.org, kbuild test robot <lkp@intel.com>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-Subject: Re: [nf-next:master 14/17]
- include/uapi/linux/netfilter_ipv6/ip6t_LOG.h:5:2: warning: #warning "Please
- update iptables, this file will be removed soon!"
-Message-ID: <20190814075259.GA9536@azazel.net>
-References: <201908140638.At0bDWvT%lkp@intel.com>
- <20190814074539.ort2lumte4gw3oix@salvia>
+Cc:     fw@strlen.de, netfilter-devel@vger.kernel.org
+References: <1564668086-16260-1-git-send-email-wenxu@ucloud.cn>
+ <1564668086-16260-6-git-send-email-wenxu@ucloud.cn>
+ <20190813181930.ljrisiq2iszcddlk@salvia>
+From:   wenxu <wenxu@ucloud.cn>
+Message-ID: <ba98af8c-fcd3-50dd-770d-ddb85a887031@ucloud.cn>
+Date:   Wed, 14 Aug 2019 15:54:03 +0800
+User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:60.0) Gecko/20100101
+ Thunderbird/60.8.0
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="VS++wcV0S1rZb1Fb"
-Content-Disposition: inline
-In-Reply-To: <20190814074539.ort2lumte4gw3oix@salvia>
-User-Agent: Mutt/1.10.1 (2018-07-13)
-X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:208:9bff:febe:32
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
+In-Reply-To: <20190813181930.ljrisiq2iszcddlk@salvia>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
+X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVkpVSE9DS0tLS09CTkJKS01ZV1koWU
+        FJQjdXWS1ZQUlXWQkOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
+X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6MT46FBw4ATgyCzkdHEMcCR06
+        NR0aCz1VSlVKTk1OTE1CSU9OSk9KVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJS1VK
+        SElVSlVJSU1ZV1kIAVlBT05NTDcG
+X-HM-Tid: 0a6c8f1ea1572086kuqyc676941b0f
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
 
---VS++wcV0S1rZb1Fb
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On 2019-08-14, at 09:45:39 +0200, Pablo Neira Ayuso wrote:
-> On Wed, Aug 14, 2019 at 06:05:49AM +0800, kbuild test robot wrote:
-> > tree:   https://kernel.googlesource.com/pub/scm/linux/kernel/git/pablo/nf-next.git master
-> > head:   105333435b4f3b21ffc325f32fae17719310db64
-> > commit: 2a475c409fe81a76fb26a6b023509d648237bbe6 [14/17] kbuild: remove all netfilter headers from header-test blacklist.
-> > config: sparc64-allmodconfig (attached as .config)
-> > compiler: sparc64-linux-gcc (GCC) 7.4.0
-> > reproduce:
-> >         wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
-> >         chmod +x ~/bin/make.cross
-> >         git checkout 2a475c409fe81a76fb26a6b023509d648237bbe6
-> >         # save the attached .config to linux build tree
-> >         GCC_VERSION=7.4.0 make.cross ARCH=sparc64
-> >
-> > If you fix the issue, kindly add following tag
-> > Reported-by: kbuild test robot <lkp@intel.com>
-> >
-> > All warnings (new ones prefixed by >>):
-> >
-> >    In file included from <command-line>:0:0:
-> > >> include/uapi/linux/netfilter_ipv6/ip6t_LOG.h:5:2: warning: #warning "Please update iptables, this file will be removed soon!" [-Wcpp]
-> >     #warning "Please update iptables, this file will be removed soon!"
-> >      ^~~~~~~
+On 8/14/2019 2:19 AM, Pablo Neira Ayuso wrote:
+> On Thu, Aug 01, 2019 at 10:01:22PM +0800, wenxu@ucloud.cn wrote:
+>> From: wenxu <wenxu@ucloud.cn>
+>>
+>> Add new two NFT_TUNNEL_SRC/DST_IP match in nft_tunnel
+>>
+>> Signed-off-by: wenxu <wenxu@ucloud.cn>
+>> ---
+>> v3: no change
+>>
+>>  include/uapi/linux/netfilter/nf_tables.h |  2 ++
+>>  net/netfilter/nft_tunnel.c               | 46 +++++++++++++++++++++++++-------
+>>  2 files changed, 38 insertions(+), 10 deletions(-)
+>>
+>> diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+>> index 82abaa1..173690a 100644
+>> --- a/include/uapi/linux/netfilter/nf_tables.h
+>> +++ b/include/uapi/linux/netfilter/nf_tables.h
+>> @@ -1765,6 +1765,8 @@ enum nft_tunnel_key_attributes {
+>>  enum nft_tunnel_keys {
+>>  	NFT_TUNNEL_PATH,
+>>  	NFT_TUNNEL_ID,
+>> +	NFT_TUNNEL_SRC_IP,
+>> +	NFT_TUNNEL_DST_IP,
+>>  	__NFT_TUNNEL_MAX
+>>  };
+>>  #define NFT_TUNNEL_MAX	(__NFT_TUNNEL_MAX - 1)
+>> diff --git a/net/netfilter/nft_tunnel.c b/net/netfilter/nft_tunnel.c
+>> index 3d4c2ae..e218163 100644
+>> --- a/net/netfilter/nft_tunnel.c
+>> +++ b/net/netfilter/nft_tunnel.c
+>> @@ -18,6 +18,18 @@ struct nft_tunnel {
+>>  	enum nft_tunnel_mode	mode:8;
+>>  };
+>>  
+>> +bool nft_tunnel_mode_validate(enum nft_tunnel_mode priv_mode, u8 tun_mode)
+>> +{
+>> +	if (priv_mode == NFT_TUNNEL_MODE_NONE ||
+>> +	    (priv_mode == NFT_TUNNEL_MODE_RX &&
+>> +	     !(tun_mode & IP_TUNNEL_INFO_TX)) ||
+>> +	    (priv_mode == NFT_TUNNEL_MODE_TX &&
+>> +	     (tun_mode & IP_TUNNEL_INFO_TX)))
+>> +		return true;
+>> +
+>> +	return false;
+>> +}
+> Make an initial patch to add nft_tunnel_mode_validate().
 >
-> I'd suggest you send me a patch to remove this #warning.
+>>  static void nft_tunnel_get_eval(const struct nft_expr *expr,
+>>  				struct nft_regs *regs,
+>>  				const struct nft_pktinfo *pkt)
+>> @@ -34,11 +46,7 @@ static void nft_tunnel_get_eval(const struct nft_expr *expr,
+>>  			nft_reg_store8(dest, false);
+>>  			return;
+>>  		}
+>> -		if (priv->mode == NFT_TUNNEL_MODE_NONE ||
+>> -		    (priv->mode == NFT_TUNNEL_MODE_RX &&
+>> -		     !(tun_info->mode & IP_TUNNEL_INFO_TX)) ||
+>> -		    (priv->mode == NFT_TUNNEL_MODE_TX &&
+>> -		     (tun_info->mode & IP_TUNNEL_INFO_TX)))
+>> +		if (nft_tunnel_mode_validate(priv->mode, tun_info->mode))
+>>  			nft_reg_store8(dest, true);
+>>  		else
+>>  			nft_reg_store8(dest, false);
+> [...]
+>> +	case NFT_TUNNEL_DST_IP:
+>> +		if (!tun_info) {
+>> +			regs->verdict.code = NFT_BREAK;
+>> +			return;
+>> +		}
+>> +		if (nft_tunnel_mode_validate(priv->mode, tun_info->mode))
+>> +			*dest = ntohl(tun_info->key.u.ipv4.dst);
+> No need to convert this from network to host endianess.
 >
-> userspace iptables still refer to this header. The intention was to
-> use xt_LOG.h instead and remove these, but userspace was never
-> updated.
+>> +		else
+>> +			regs->verdict.code = NFT_BREAK;
+>> +		break;
+>>  	default:
+>>  		WARN_ON(1);
+>>  		regs->verdict.code = NFT_BREAK;
+>> @@ -86,6 +110,8 @@ static int nft_tunnel_get_init(const struct nft_ctx *ctx,
+>>  		len = sizeof(u8);
+>>  		break;
+>>  	case NFT_TUNNEL_ID:
+>> +	case NFT_TUNNEL_SRC_IP:
+>> +	case NFT_TUNNEL_DST_IP:
+> Missing policy updates, ie. nft_tunnel_key_policy.
 
-Was just preparing one to add "#ifndef __KERNEL__" guards to the
-warnings.  I'll remove them instead.
+I don't understand why it need update nft_tunnel_key_policy
+which is used for tunnel_obj action. This NFT_TUNNEL_SRC/DST_IP is used
+for tunnel_expr
 
-J.
-
---VS++wcV0S1rZb1Fb
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEEZ8d+2N/NBLDbUxIF0Z7UzfnX9sMFAl1Tvc8ACgkQ0Z7UzfnX
-9sMchxAAr1Jzv9XvvKQ1G6KHrs2zGVm9yyg0JdgKdUh8IhPdeSJVo6LCVY2R5cR8
-XRj20Q72BVpX+hSQcIixVCfRbTk/m1J+TXVzWhlMAw2Iao7OQ1FTb14yYa/7uhY9
-QYC4R8oxhivlA4R1j5lse2aqZNu3VHWY+BCRngVdQgU883h5Mm4W8Ucuovc7DjsK
-mO/UQTVhXRV06AwSVqsroNB3jjN2Y+CbizmwG9ZvhMa0BrA+feawdrjQLMuRAznY
-KvoIHJskeZ+5nn/R8Y3SU8OmdLPe/WxtaKMw/5STL8Kv/D97yqNTcPZp0euEuSOk
-loMKWVUIIXNo4UQ95OwWjMi9dFXPHWOrUi+JV8EaMWbFqTtf1DqYAlQRJnYJZFDp
-Mq4azT9OhhEGfOQdCKpHBDY7XNGNvvmiya23tULR6WpFOzmUK+R2Nmemo6e3Nd/9
-7brPIxmk7biYeBb1wCKJu+dUkXbtiwxq5h71gN0hIRc8WV7kAp8GXB3IvOY70NV7
-qf744QIYcY51F6qUsbINzQE30089xbdCLTc/ybLAJtIeBK0GurfJFUQWmLzC8Kfn
-kYj0zn7zFhUtS68hmH8jRGJjg8VD81PNZI24a4fvpgPElGmKOfB4vc6c/l9i0+qJ
-poqhhp5zNu76Tb9dBfkJ/+EW37MsQC/ZUmF+DJM4wWrnKZhqCEg=
-=dEhD
------END PGP SIGNATURE-----
-
---VS++wcV0S1rZb1Fb--
+>
