@@ -2,107 +2,69 @@ Return-Path: <SRS0=qEnH=WK=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B07AC433FF
-	for <netfilter-devel@archiver.kernel.org>; Wed, 14 Aug 2019 08:01:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BC335C0650F
+	for <netfilter-devel@archiver.kernel.org>; Wed, 14 Aug 2019 08:17:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id F30A4205C9
-	for <netfilter-devel@archiver.kernel.org>; Wed, 14 Aug 2019 08:01:29 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="ty/4j8cR"
+	by mail.kernel.org (Postfix) with ESMTP id 97BB42084F
+	for <netfilter-devel@archiver.kernel.org>; Wed, 14 Aug 2019 08:17:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725928AbfHNIB3 (ORCPT
+        id S1726575AbfHNIRw (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 14 Aug 2019 04:01:29 -0400
-Received: from kadath.azazel.net ([81.187.231.250]:48346 "EHLO
-        kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725265AbfHNIB3 (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 14 Aug 2019 04:01:29 -0400
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-         s=20190108; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
-        Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
-        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=LV7AqxmZ4FSNfTZLYXKQVHMMyBbDJAvcQqEqNRhUNYw=; b=ty/4j8cRrgERrywyn/Jr5FWzPO
-        SHYFZ/0+p0OORCv6219/KD2NPZaNT/0HpWUL/IbC972AzLqbFlv/wMvJw714phzYYghv9wEdHD0U1
-        GrAOj9q9EDgP3n0yQWt2tY7yTFTsLX/+9HLZpE7L4ETxTJbF9E41sZ1FVcLbQE6qC+tbr9VcfTEuy
-        eUlafGG4jRxA00j5zdm1apKwW+6Oz0eFS/0dwUa8+IJG3Wcn1BQHao9zSZDGd8QKab3zUSWWGulP7
-        VEr1jiZkKFQ/BLwVCI5bH6hJeDH8yhPx3/H0t/rV5adlEgFzmrOfk1cDlMh7vtWD8ImZvSXbLD9lz
-        x+5fY3Ww==;
-Received: from [2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae] (helo=ulthar.dreamlands)
-        by kadath.azazel.net with esmtp (Exim 4.92)
-        (envelope-from <jeremy@azazel.net>)
-        id 1hxoDo-0007Df-GN; Wed, 14 Aug 2019 09:01:28 +0100
-From:   Jeremy Sowden <jeremy@azazel.net>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>,
-        kbuild test robot <lkp@intel.com>
-Subject: [PATCH nf-next] netfilter: remove deprecation warnings from uapi headers.
-Date:   Wed, 14 Aug 2019 09:01:28 +0100
-Message-Id: <20190814080128.8015-1-jeremy@azazel.net>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20190814074539.ort2lumte4gw3oix@salvia>
-References: <20190814074539.ort2lumte4gw3oix@salvia>
+        Wed, 14 Aug 2019 04:17:52 -0400
+Received: from correo.us.es ([193.147.175.20]:52114 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725928AbfHNIRv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 14 Aug 2019 04:17:51 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 6E6F0C4146
+        for <netfilter-devel@vger.kernel.org>; Wed, 14 Aug 2019 10:17:49 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 609F545F
+        for <netfilter-devel@vger.kernel.org>; Wed, 14 Aug 2019 10:17:49 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 55FD5DA730; Wed, 14 Aug 2019 10:17:49 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 5E38C21FE4;
+        Wed, 14 Aug 2019 10:17:47 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Wed, 14 Aug 2019 10:17:47 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (unknown [31.4.218.116])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 37B6F4265A2F;
+        Wed, 14 Aug 2019 10:17:47 +0200 (CEST)
+Date:   Wed, 14 Aug 2019 10:17:47 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Ander Juaristi <a@juaristi.eus>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH v3] netfilter: nft_dynset: support for element deletion
+Message-ID: <20190814081747.j3gg57copo2zpinm@salvia>
+References: <20190813065849.4745-1-a@juaristi.eus>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190813065849.4745-1-a@juaristi.eus>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-There are two netfilter userspace headers which contain deprecation
-warnings.  While these headers are not used within the kernel, they are
-compiled stand-alone for header-testing.
+On Tue, Aug 13, 2019 at 08:58:49AM +0200, Ander Juaristi wrote:
+> This patch implements the delete operation from the ruleset.
+> 
+> It implements a new delete() function in nft_set_rhash. It is simpler
+> to use than the already existing remove(), because it only takes the set
+> and the key as arguments, whereas remove() expects a full
+> nft_set_elem structure.
 
-Pablo informs me that userspace iptables still refer to these headers,
-and the intention was to use xt_LOG.h instead and remove these, but
-userspace was never updated.
-
-Remove the warnings.
-
-Fixes: 2a475c409fe8 ("kbuild: remove all netfilter headers from header-test blacklist.")
-Reported-by: kbuild test robot <lkp@intel.com>
-Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
----
- include/uapi/linux/netfilter_ipv4/ipt_LOG.h  | 2 --
- include/uapi/linux/netfilter_ipv6/ip6t_LOG.h | 2 --
- 2 files changed, 4 deletions(-)
-
-diff --git a/include/uapi/linux/netfilter_ipv4/ipt_LOG.h b/include/uapi/linux/netfilter_ipv4/ipt_LOG.h
-index 6dec14ba851b..b7cf2c669f40 100644
---- a/include/uapi/linux/netfilter_ipv4/ipt_LOG.h
-+++ b/include/uapi/linux/netfilter_ipv4/ipt_LOG.h
-@@ -2,8 +2,6 @@
- #ifndef _IPT_LOG_H
- #define _IPT_LOG_H
- 
--#warning "Please update iptables, this file will be removed soon!"
--
- /* make sure not to change this without changing netfilter.h:NF_LOG_* (!) */
- #define IPT_LOG_TCPSEQ		0x01	/* Log TCP sequence numbers */
- #define IPT_LOG_TCPOPT		0x02	/* Log TCP options */
-diff --git a/include/uapi/linux/netfilter_ipv6/ip6t_LOG.h b/include/uapi/linux/netfilter_ipv6/ip6t_LOG.h
-index 7553a434e4da..23e91a9c2583 100644
---- a/include/uapi/linux/netfilter_ipv6/ip6t_LOG.h
-+++ b/include/uapi/linux/netfilter_ipv6/ip6t_LOG.h
-@@ -2,8 +2,6 @@
- #ifndef _IP6T_LOG_H
- #define _IP6T_LOG_H
- 
--#warning "Please update iptables, this file will be removed soon!"
--
- /* make sure not to change this without changing netfilter.h:NF_LOG_* (!) */
- #define IP6T_LOG_TCPSEQ		0x01	/* Log TCP sequence numbers */
- #define IP6T_LOG_TCPOPT		0x02	/* Log TCP options */
--- 
-2.20.1
-
+Userspace patches for this? Thanks.
