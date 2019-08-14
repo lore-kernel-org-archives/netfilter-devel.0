@@ -2,98 +2,69 @@ Return-Path: <SRS0=qEnH=WK=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 048E5C32753
-	for <netfilter-devel@archiver.kernel.org>; Wed, 14 Aug 2019 12:35:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C5DF9C433FF
+	for <netfilter-devel@archiver.kernel.org>; Wed, 14 Aug 2019 13:25:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D65FA208C2
-	for <netfilter-devel@archiver.kernel.org>; Wed, 14 Aug 2019 12:35:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 94762206C1
+	for <netfilter-devel@archiver.kernel.org>; Wed, 14 Aug 2019 13:25:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726821AbfHNMfn (ORCPT
+        id S1727916AbfHNNZQ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 14 Aug 2019 08:35:43 -0400
-Received: from mail-wm1-f66.google.com ([209.85.128.66]:55090 "EHLO
-        mail-wm1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725800AbfHNMfn (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 14 Aug 2019 08:35:43 -0400
-Received: by mail-wm1-f66.google.com with SMTP id p74so4461361wme.4;
-        Wed, 14 Aug 2019 05:35:41 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=o3+1DGCI+40iCgNQeNraT+W9gH7K4q3+/wyAXdj74H0=;
-        b=Y/utA6970bNuf57jmahnslU0JUuQeOYYamV9KPLj7UtwsWa3hJnwyB0gt4kpatWFHL
-         rZ8eRue5rrF7RgO1UgTTjp+bB4iYsMHDAzqeKDlL0iFzbUPQUbIoCT54ErrsZqAjdTiz
-         63apVmn+5WstAbbkM/Qi+DuGYbB9Jxkycq04BNoTLuwmKXlB5zP7mDtZGMZLFiCUJ+Vi
-         fbrQWva8uXvPlX9RahqigeXde4fKhVjXkTnwziKlaBD/XM8OT4QBaHckydcKcSoPf+4H
-         kUL/7vvC2VgxCjOSAc/8sCqjJYlvB1Vi9T8cABzsyBuhrMQVoQ2N00//MsIUCgytJyW/
-         TAfg==
-X-Gm-Message-State: APjAAAWbFGSpC5pFeouBuQOmLRb5TFISN5gSW3adkO1TSV25GHBIbct+
-        yEM8EUBgJdt9K6wzLF6ELBoGm/sQ7FQ=
-X-Google-Smtp-Source: APXvYqy2OoJyBEUvH6yudeOQVJ8pnaYwbYPqS1dOWBGxCOQfCQWCjBMRvHokvOsd0MJqwKajAkwP2A==
-X-Received: by 2002:a1c:a957:: with SMTP id s84mr8429998wme.65.1565786141198;
-        Wed, 14 Aug 2019 05:35:41 -0700 (PDT)
-Received: from green.intra.ispras.ru (bran.ispras.ru. [83.149.199.196])
-        by smtp.googlemail.com with ESMTPSA id g14sm23289656wrb.38.2019.08.14.05.35.39
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 14 Aug 2019 05:35:40 -0700 (PDT)
-From:   Denis Efremov <efremov@linux.com>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Denis Efremov <efremov@linux.com>, joe@perches.com,
-        linux-kernel@vger.kernel.org, Florian Westphal <fw@strlen.de>,
-        Juanjo Ciarlante <jjciarla@raiz.uncu.edu.ar>,
-        netfilter-devel@vger.kernel.org
-Subject: [PATCH] MAINTAINERS: Remove IP MASQUERADING record
-Date:   Wed, 14 Aug 2019 15:35:02 +0300
-Message-Id: <20190814123502.12863-1-efremov@linux.com>
-X-Mailer: git-send-email 2.21.0
-In-Reply-To: <20190813085818.4yfcaxfk2xqy32fx@salvia>
-References: <20190813085818.4yfcaxfk2xqy32fx@salvia>
+        Wed, 14 Aug 2019 09:25:16 -0400
+Received: from correo.us.es ([193.147.175.20]:45236 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727654AbfHNNZQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 14 Aug 2019 09:25:16 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 3D335DA725
+        for <netfilter-devel@vger.kernel.org>; Wed, 14 Aug 2019 15:25:13 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 30E7EDA72F
+        for <netfilter-devel@vger.kernel.org>; Wed, 14 Aug 2019 15:25:13 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 267C4DA704; Wed, 14 Aug 2019 15:25:13 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 14A35DA72F;
+        Wed, 14 Aug 2019 15:25:11 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Wed, 14 Aug 2019 15:25:11 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (unknown [31.4.218.116])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id E22224265A2F;
+        Wed, 14 Aug 2019 15:25:10 +0200 (CEST)
+Date:   Wed, 14 Aug 2019 15:25:10 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nftables] src: json: support json restore for "th"
+ pseudoheader
+Message-ID: <20190814132510.5wo7p4fggfmv2gr5@salvia>
+References: <20190814113452.13244-1-fw@strlen.de>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190814113452.13244-1-fw@strlen.de>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This entry is in MAINTAINERS for historical purpose.
-It doesn't match current sources since the commit
-adf82accc5f5 ("netfilter: x_tables: merge ip and
-ipv6 masquerade modules") moved the module.
-The net/netfilter/xt_MASQUERADE.c module is already under
-the netfilter section. Thus, there is no purpose to keep this
-separate entry in MAINTAINERS.
+On Wed, Aug 14, 2019 at 01:34:52PM +0200, Florian Westphal wrote:
+> Json output could not be restored back by nft because it did
+> not recognize the new "th" pseudoheader.
+> 
+> Fixes: a43a696443a150f44 ("proto: add pseudo th protocol to match d/sport in generic way")
+> Signed-off-by: Florian Westphal <fw@strlen.de>
 
-Cc: Florian Westphal <fw@strlen.de>
-Cc: Juanjo Ciarlante <jjciarla@raiz.uncu.edu.ar>
-Cc: netfilter-devel@vger.kernel.org
-Suggested-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Denis Efremov <efremov@linux.com>
----
- MAINTAINERS | 5 -----
- 1 file changed, 5 deletions(-)
-
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 2b03d2d4bfca..2ab292d1fa0e 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -8429,11 +8429,6 @@ S:	Maintained
- F:	fs/io_uring.c
- F:	include/uapi/linux/io_uring.h
- 
--IP MASQUERADING
--M:	Juanjo Ciarlante <jjciarla@raiz.uncu.edu.ar>
--S:	Maintained
--F:	net/ipv4/netfilter/ipt_MASQUERADE.c
--
- IPMI SUBSYSTEM
- M:	Corey Minyard <minyard@acm.org>
- L:	openipmi-developer@lists.sourceforge.net (moderated for non-subscribers)
--- 
-2.21.0
-
+Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
