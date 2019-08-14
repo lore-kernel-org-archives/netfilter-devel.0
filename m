@@ -4,47 +4,47 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F5F1C32753
-	for <netfilter-devel@archiver.kernel.org>; Wed, 14 Aug 2019 09:24:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A466C433FF
+	for <netfilter-devel@archiver.kernel.org>; Wed, 14 Aug 2019 09:24:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 215CA204EC
-	for <netfilter-devel@archiver.kernel.org>; Wed, 14 Aug 2019 09:24:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5B53F2083B
+	for <netfilter-devel@archiver.kernel.org>; Wed, 14 Aug 2019 09:24:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727019AbfHNJYz (ORCPT
+        id S1727196AbfHNJY6 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 14 Aug 2019 05:24:55 -0400
-Received: from correo.us.es ([193.147.175.20]:42594 "EHLO mail.us.es"
+        Wed, 14 Aug 2019 05:24:58 -0400
+Received: from correo.us.es ([193.147.175.20]:42602 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726852AbfHNJYx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 14 Aug 2019 05:24:53 -0400
+        id S1727039AbfHNJY5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 14 Aug 2019 05:24:57 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 31E68C40E6
-        for <netfilter-devel@vger.kernel.org>; Wed, 14 Aug 2019 11:24:51 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 001D7C40EB
+        for <netfilter-devel@vger.kernel.org>; Wed, 14 Aug 2019 11:24:54 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 20FC11150DE
-        for <netfilter-devel@vger.kernel.org>; Wed, 14 Aug 2019 11:24:51 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id E50071150D8
+        for <netfilter-devel@vger.kernel.org>; Wed, 14 Aug 2019 11:24:54 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 16C811150DA; Wed, 14 Aug 2019 11:24:51 +0200 (CEST)
+        id DAC257E065; Wed, 14 Aug 2019 11:24:54 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 0A2D0DA704;
-        Wed, 14 Aug 2019 11:24:49 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id D97D345F;
+        Wed, 14 Aug 2019 11:24:52 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 14 Aug 2019 11:24:49 +0200 (CEST)
+ Wed, 14 Aug 2019 11:24:52 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (unknown [31.4.218.116])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id B43BC4265A2F;
-        Wed, 14 Aug 2019 11:24:48 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 967A44265A2F;
+        Wed, 14 Aug 2019 11:24:52 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 2/7] netfilter: nf_flow_table: fix offload for flows that are subject to xfrm
-Date:   Wed, 14 Aug 2019 11:24:35 +0200
-Message-Id: <20190814092440.20087-3-pablo@netfilter.org>
+Subject: [PATCH 7/7] netfilter: nft_flow_offload: skip tcp rst and fin packets
+Date:   Wed, 14 Aug 2019 11:24:40 +0200
+Message-Id: <20190814092440.20087-8-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20190814092440.20087-1-pablo@netfilter.org>
 References: <20190814092440.20087-1-pablo@netfilter.org>
@@ -54,111 +54,56 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+TCP rst and fin packets do not qualify to place a flow into the
+flowtable. Most likely there will be no more packets after connection
+closure. Without this patch, this flow entry expires and connection
+tracking picks up the entry in ESTABLISHED state using the fixup
+timeout, which makes this look inconsistent to the user for a connection
+that is actually already closed.
 
-This makes the previously added 'encap test' pass.
-Because its possible that the xfrm dst entry becomes stale while such
-a flow is offloaded, we need to call dst_check() -- the notifier that
-handles this for non-tunneled traffic isn't sufficient, because SA or
-or policies might have changed.
-
-If dst becomes stale the flow offload entry will be tagged for teardown
-and packets will be passed to 'classic' forwarding path.
-
-Removing the entry right away is problematic, as this would
-introduce a race condition with the gc worker.
-
-In case flow is long-lived, it could eventually be offloaded again
-once the gc worker removes the entry from the flow table.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_flow_table_ip.c | 43 ++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 43 insertions(+)
+ net/netfilter/nft_flow_offload.c | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
-index cdfc33517e85..d68c801dd614 100644
---- a/net/netfilter/nf_flow_table_ip.c
-+++ b/net/netfilter/nf_flow_table_ip.c
-@@ -214,6 +214,25 @@ static bool nf_flow_exceeds_mtu(const struct sk_buff *skb, unsigned int mtu)
- 	return true;
- }
+diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
+index aa5f571d4361..060a4ed46d5e 100644
+--- a/net/netfilter/nft_flow_offload.c
++++ b/net/netfilter/nft_flow_offload.c
+@@ -72,11 +72,11 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
+ {
+ 	struct nft_flow_offload *priv = nft_expr_priv(expr);
+ 	struct nf_flowtable *flowtable = &priv->flowtable->data;
++	struct tcphdr _tcph, *tcph = NULL;
+ 	enum ip_conntrack_info ctinfo;
+ 	struct nf_flow_route route;
+ 	struct flow_offload *flow;
+ 	enum ip_conntrack_dir dir;
+-	bool is_tcp = false;
+ 	struct nf_conn *ct;
+ 	int ret;
  
-+static int nf_flow_offload_dst_check(struct dst_entry *dst)
-+{
-+	if (unlikely(dst_xfrm(dst)))
-+		return dst_check(dst, 0) ? 0 : -1;
-+
-+	return 0;
-+}
-+
-+static unsigned int nf_flow_xmit_xfrm(struct sk_buff *skb,
-+				      const struct nf_hook_state *state,
-+				      struct dst_entry *dst)
-+{
-+	skb_orphan(skb);
-+	skb_dst_set_noref(skb, dst);
-+	skb->tstamp = 0;
-+	dst_output(state->net, state->sk, skb);
-+	return NF_STOLEN;
-+}
-+
- unsigned int
- nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
- 			const struct nf_hook_state *state)
-@@ -254,6 +273,11 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
- 	if (nf_flow_state_check(flow, ip_hdr(skb)->protocol, skb, thoff))
- 		return NF_ACCEPT;
+@@ -89,7 +89,10 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
  
-+	if (nf_flow_offload_dst_check(&rt->dst)) {
-+		flow_offload_teardown(flow);
-+		return NF_ACCEPT;
-+	}
-+
- 	if (nf_flow_nat_ip(flow, skb, thoff, dir) < 0)
- 		return NF_DROP;
+ 	switch (ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.protonum) {
+ 	case IPPROTO_TCP:
+-		is_tcp = true;
++		tcph = skb_header_pointer(pkt->skb, pkt->xt.thoff,
++					  sizeof(_tcph), &_tcph);
++		if (unlikely(!tcph || tcph->fin || tcph->rst))
++			goto out;
+ 		break;
+ 	case IPPROTO_UDP:
+ 		break;
+@@ -115,7 +118,7 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
+ 	if (!flow)
+ 		goto err_flow_alloc;
  
-@@ -261,6 +285,13 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
- 	iph = ip_hdr(skb);
- 	ip_decrease_ttl(iph);
- 
-+	if (unlikely(dst_xfrm(&rt->dst))) {
-+		memset(skb->cb, 0, sizeof(struct inet_skb_parm));
-+		IPCB(skb)->iif = skb->dev->ifindex;
-+		IPCB(skb)->flags = IPSKB_FORWARDED;
-+		return nf_flow_xmit_xfrm(skb, state, &rt->dst);
-+	}
-+
- 	skb->dev = outdev;
- 	nexthop = rt_nexthop(rt, flow->tuplehash[!dir].tuple.src_v4.s_addr);
- 	skb_dst_set_noref(skb, &rt->dst);
-@@ -467,6 +498,11 @@ nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
- 				sizeof(*ip6h)))
- 		return NF_ACCEPT;
- 
-+	if (nf_flow_offload_dst_check(&rt->dst)) {
-+		flow_offload_teardown(flow);
-+		return NF_ACCEPT;
-+	}
-+
- 	if (skb_try_make_writable(skb, sizeof(*ip6h)))
- 		return NF_DROP;
- 
-@@ -477,6 +513,13 @@ nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
- 	ip6h = ipv6_hdr(skb);
- 	ip6h->hop_limit--;
- 
-+	if (unlikely(dst_xfrm(&rt->dst))) {
-+		memset(skb->cb, 0, sizeof(struct inet6_skb_parm));
-+		IP6CB(skb)->iif = skb->dev->ifindex;
-+		IP6CB(skb)->flags = IP6SKB_FORWARDED;
-+		return nf_flow_xmit_xfrm(skb, state, &rt->dst);
-+	}
-+
- 	skb->dev = outdev;
- 	nexthop = rt6_nexthop(rt, &flow->tuplehash[!dir].tuple.src_v6);
- 	skb_dst_set_noref(skb, &rt->dst);
+-	if (is_tcp) {
++	if (tcph) {
+ 		ct->proto.tcp.seen[0].flags |= IP_CT_TCP_FLAG_BE_LIBERAL;
+ 		ct->proto.tcp.seen[1].flags |= IP_CT_TCP_FLAG_BE_LIBERAL;
+ 	}
 -- 
 2.11.0
 
