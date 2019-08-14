@@ -2,192 +2,88 @@ Return-Path: <SRS0=qEnH=WK=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 05B11C32753
-	for <netfilter-devel@archiver.kernel.org>; Wed, 14 Aug 2019 09:25:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E399C433FF
+	for <netfilter-devel@archiver.kernel.org>; Wed, 14 Aug 2019 09:39:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id DB51F204EC
-	for <netfilter-devel@archiver.kernel.org>; Wed, 14 Aug 2019 09:25:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 01A8C20578
+	for <netfilter-devel@archiver.kernel.org>; Wed, 14 Aug 2019 09:39:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727264AbfHNJZI (ORCPT
+        id S1726699AbfHNJje (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 14 Aug 2019 05:25:08 -0400
-Received: from correo.us.es ([193.147.175.20]:42600 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726918AbfHNJYz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 14 Aug 2019 05:24:55 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 05A4BC40EC
-        for <netfilter-devel@vger.kernel.org>; Wed, 14 Aug 2019 11:24:52 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id E9A58115109
-        for <netfilter-devel@vger.kernel.org>; Wed, 14 Aug 2019 11:24:51 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id DF466DA730; Wed, 14 Aug 2019 11:24:51 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id C767BDA730;
-        Wed, 14 Aug 2019 11:24:49 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 14 Aug 2019 11:24:49 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from salvia.here (unknown [31.4.218.116])
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 7E56A4265A2F;
-        Wed, 14 Aug 2019 11:24:49 +0200 (CEST)
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 3/7] netfilter: nf_tables: use-after-free in failing rule with bound set
-Date:   Wed, 14 Aug 2019 11:24:36 +0200
-Message-Id: <20190814092440.20087-4-pablo@netfilter.org>
-X-Mailer: git-send-email 2.11.0
-In-Reply-To: <20190814092440.20087-1-pablo@netfilter.org>
-References: <20190814092440.20087-1-pablo@netfilter.org>
-X-Virus-Scanned: ClamAV using ClamSMTP
+        Wed, 14 Aug 2019 05:39:34 -0400
+Received: from m9784.mail.qiye.163.com ([220.181.97.84]:36701 "EHLO
+        m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726481AbfHNJje (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 14 Aug 2019 05:39:34 -0400
+Received: from [192.168.188.14] (unknown [120.132.1.226])
+        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id C803141BAE;
+        Wed, 14 Aug 2019 17:39:30 +0800 (CST)
+Subject: Re: [PATCH nf-next v6 0/8] netfilter: nf_flow_offload: support bridge
+ family offload for both ipv4 and ipv6
+From:   wenxu <wenxu@ucloud.cn>
+To:     pablo@netfilter.org, fw@strlen.de
+Cc:     netfilter-devel@vger.kernel.org
+References: <1564053176-28605-1-git-send-email-wenxu@ucloud.cn>
+Message-ID: <37240542-1827-0693-9d63-a9252a02d229@ucloud.cn>
+Date:   Wed, 14 Aug 2019 17:39:29 +0800
+User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:60.0) Gecko/20100101
+ Thunderbird/60.8.0
+MIME-Version: 1.0
+In-Reply-To: <1564053176-28605-1-git-send-email-wenxu@ucloud.cn>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
+X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVkpVS0NLQkJCTEhJS0pMTklZV1koWU
+        FJQjdXWS1ZQUlXWQkOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
+X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6ODY6DAw4OTg1PTlDA0JMNlEu
+        DRQaCT5VSlVKTk1OTExOTkxKS0pOVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJS1VK
+        SElVSlVJSU1ZV1kIAVlBSUxPTTcG
+X-HM-Tid: 0a6c8f7f28042086kuqyc803141bae
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-If a rule that has already a bound anonymous set fails to be added, the
-preparation phase releases the rule and the bound set. However, the
-transaction object from the abort path still has a reference to the set
-object that is stale, leading to a use-after-free when checking for the
-set->bound field. Add a new field to the transaction that specifies if
-the set is bound, so the abort path can skip releasing it since the rule
-command owns it and it takes care of releasing it. After this update,
-the set->bound field is removed.
+Hi pablo,
 
-[   24.649883] Unable to handle kernel paging request at virtual address 0000000000040434
-[   24.657858] Mem abort info:
-[   24.660686]   ESR = 0x96000004
-[   24.663769]   Exception class = DABT (current EL), IL = 32 bits
-[   24.669725]   SET = 0, FnV = 0
-[   24.672804]   EA = 0, S1PTW = 0
-[   24.675975] Data abort info:
-[   24.678880]   ISV = 0, ISS = 0x00000004
-[   24.682743]   CM = 0, WnR = 0
-[   24.685723] user pgtable: 4k pages, 48-bit VAs, pgdp=0000000428952000
-[   24.692207] [0000000000040434] pgd=0000000000000000
-[   24.697119] Internal error: Oops: 96000004 [#1] SMP
-[...]
-[   24.889414] Call trace:
-[   24.891870]  __nf_tables_abort+0x3f0/0x7a0
-[   24.895984]  nf_tables_abort+0x20/0x40
-[   24.899750]  nfnetlink_rcv_batch+0x17c/0x588
-[   24.904037]  nfnetlink_rcv+0x13c/0x190
-[   24.907803]  netlink_unicast+0x18c/0x208
-[   24.911742]  netlink_sendmsg+0x1b0/0x350
-[   24.915682]  sock_sendmsg+0x4c/0x68
-[   24.919185]  ___sys_sendmsg+0x288/0x2c8
-[   24.923037]  __sys_sendmsg+0x7c/0xd0
-[   24.926628]  __arm64_sys_sendmsg+0x2c/0x38
-[   24.930744]  el0_svc_common.constprop.0+0x94/0x158
-[   24.935556]  el0_svc_handler+0x34/0x90
-[   24.939322]  el0_svc+0x8/0xc
-[   24.942216] Code: 37280300 f9404023 91014262 aa1703e0 (f9401863)
-[   24.948336] ---[ end trace cebbb9dcbed3b56f ]---
-
-Fixes: f6ac85858976 ("netfilter: nf_tables: unbind set in rule from commit path")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/net/netfilter/nf_tables.h |  9 +++++++--
- net/netfilter/nf_tables_api.c     | 15 ++++++++++-----
- 2 files changed, 17 insertions(+), 7 deletions(-)
-
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 9b624566b82d..475d6f28ca67 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -421,8 +421,7 @@ struct nft_set {
- 	unsigned char			*udata;
- 	/* runtime data below here */
- 	const struct nft_set_ops	*ops ____cacheline_aligned;
--	u16				flags:13,
--					bound:1,
-+	u16				flags:14,
- 					genmask:2;
- 	u8				klen;
- 	u8				dlen;
-@@ -1348,12 +1347,15 @@ struct nft_trans_rule {
- struct nft_trans_set {
- 	struct nft_set			*set;
- 	u32				set_id;
-+	bool				bound;
- };
- 
- #define nft_trans_set(trans)	\
- 	(((struct nft_trans_set *)trans->data)->set)
- #define nft_trans_set_id(trans)	\
- 	(((struct nft_trans_set *)trans->data)->set_id)
-+#define nft_trans_set_bound(trans)	\
-+	(((struct nft_trans_set *)trans->data)->bound)
- 
- struct nft_trans_chain {
- 	bool				update;
-@@ -1384,12 +1386,15 @@ struct nft_trans_table {
- struct nft_trans_elem {
- 	struct nft_set			*set;
- 	struct nft_set_elem		elem;
-+	bool				bound;
- };
- 
- #define nft_trans_elem_set(trans)	\
- 	(((struct nft_trans_elem *)trans->data)->set)
- #define nft_trans_elem(trans)	\
- 	(((struct nft_trans_elem *)trans->data)->elem)
-+#define nft_trans_elem_set_bound(trans)	\
-+	(((struct nft_trans_elem *)trans->data)->bound)
- 
- struct nft_trans_obj {
- 	struct nft_object		*obj;
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 605a7cfe7ca7..88abbddf8967 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -138,9 +138,14 @@ static void nft_set_trans_bind(const struct nft_ctx *ctx, struct nft_set *set)
- 		return;
- 
- 	list_for_each_entry_reverse(trans, &net->nft.commit_list, list) {
--		if (trans->msg_type == NFT_MSG_NEWSET &&
--		    nft_trans_set(trans) == set) {
--			set->bound = true;
-+		switch (trans->msg_type) {
-+		case NFT_MSG_NEWSET:
-+			if (nft_trans_set(trans) == set)
-+				nft_trans_set_bound(trans) = true;
-+			break;
-+		case NFT_MSG_NEWSETELEM:
-+			if (nft_trans_elem_set(trans) == set)
-+				nft_trans_elem_set_bound(trans) = true;
- 			break;
- 		}
- 	}
-@@ -6906,7 +6911,7 @@ static int __nf_tables_abort(struct net *net)
- 			break;
- 		case NFT_MSG_NEWSET:
- 			trans->ctx.table->use--;
--			if (nft_trans_set(trans)->bound) {
-+			if (nft_trans_set_bound(trans)) {
- 				nft_trans_destroy(trans);
- 				break;
- 			}
-@@ -6918,7 +6923,7 @@ static int __nf_tables_abort(struct net *net)
- 			nft_trans_destroy(trans);
- 			break;
- 		case NFT_MSG_NEWSETELEM:
--			if (nft_trans_elem_set(trans)->bound) {
-+			if (nft_trans_elem_set_bound(trans)) {
- 				nft_trans_destroy(trans);
- 				break;
- 			}
--- 
-2.11.0
+How about this series patches ? There are anything need for me to do for this?
 
 
+BR
+
+wenxu
+
+On 7/25/2019 7:12 PM, wenxu@ucloud.cn wrote:
+> From: wenxu <wenxu@ucloud.cn>
+>
+> This series only rebase to matser for the last patch 
+> netfilter: Support the bridge family in flow table
+>
+> wenxu (8):
+>   netfilter:nf_flow_table: Refactor flow_offload_tuple to destination
+>   netfilter:nf_flow_table_core: Separate inet operation to single
+>     function
+>   netfilter:nf_flow_table_ip: Separate inet operation to single function
+>   bridge: add br_vlan_get_info_rcu()
+>   netfilter:nf_flow_table_core: Support bridge family flow offload
+>   netfilter:nf_flow_table_ip: Support bridge family flow offload
+>   netfilter:nft_flow_offload: Support bridge family flow offload
+>   netfilter: Support the bridge family in flow table
+>
+>  include/linux/if_bridge.h                   |   7 ++
+>  include/net/netfilter/nf_flow_table.h       |  39 +++++++-
+>  net/bridge/br_vlan.c                        |  25 +++++
+>  net/bridge/netfilter/Kconfig                |   8 ++
+>  net/bridge/netfilter/Makefile               |   1 +
+>  net/bridge/netfilter/nf_flow_table_bridge.c |  48 ++++++++++
+>  net/netfilter/nf_flow_table_core.c          | 102 ++++++++++++++++----
+>  net/netfilter/nf_flow_table_ip.c            | 127 +++++++++++++++++++------
+>  net/netfilter/nft_flow_offload.c            | 142 ++++++++++++++++++++++++++--
+>  9 files changed, 440 insertions(+), 59 deletions(-)
+>  create mode 100644 net/bridge/netfilter/nf_flow_table_bridge.c
+>
