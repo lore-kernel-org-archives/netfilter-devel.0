@@ -6,42 +6,61 @@ X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
 	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C4C93C32753
-	for <netfilter-devel@archiver.kernel.org>; Wed, 14 Aug 2019 17:18:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E19D4C433FF
+	for <netfilter-devel@archiver.kernel.org>; Wed, 14 Aug 2019 17:28:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A78CE20665
-	for <netfilter-devel@archiver.kernel.org>; Wed, 14 Aug 2019 17:18:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BB862206C2
+	for <netfilter-devel@archiver.kernel.org>; Wed, 14 Aug 2019 17:28:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730983AbfHNRS3 (ORCPT
+        id S1729223AbfHNR2F (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 14 Aug 2019 13:18:29 -0400
-Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:35636 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1729862AbfHNRS1 (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 14 Aug 2019 13:18:27 -0400
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.89)
-        (envelope-from <fw@strlen.de>)
-        id 1hxwuk-0004eT-4V; Wed, 14 Aug 2019 19:18:22 +0200
-Date:   Wed, 14 Aug 2019 19:18:22 +0200
-From:   Florian Westphal <fw@strlen.de>
+        Wed, 14 Aug 2019 13:28:05 -0400
+Received: from correo.us.es ([193.147.175.20]:53372 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1729070AbfHNR2E (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 14 Aug 2019 13:28:04 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id D5341C50E8
+        for <netfilter-devel@vger.kernel.org>; Wed, 14 Aug 2019 19:28:01 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C70C04CA35
+        for <netfilter-devel@vger.kernel.org>; Wed, 14 Aug 2019 19:28:01 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id BC9D9DA7B9; Wed, 14 Aug 2019 19:28:01 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 1A1B9DA730;
+        Wed, 14 Aug 2019 19:27:59 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Wed, 14 Aug 2019 19:27:59 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (unknown [31.4.218.116])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id E0FCA4265A2F;
+        Wed, 14 Aug 2019 19:27:58 +0200 (CEST)
+Date:   Wed, 14 Aug 2019 19:27:58 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     David Miller <davem@davemloft.net>
-Cc:     pablo@netfilter.org, netfilter-devel@vger.kernel.org,
-        netdev@vger.kernel.org
+Cc:     netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
 Subject: Re: fallout from net-next netfilter changes
-Message-ID: <20190814171822.7yuem4ji3od4zu3d@breakpoint.cc>
+Message-ID: <20190814172758.xtf6ioke4qztzzqi@salvia>
 References: <20190814.125330.1934256694306164517.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 In-Reply-To: <20190814.125330.1934256694306164517.davem@davemloft.net>
 User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-David Miller <davem@davemloft.net> wrote:
+On Wed, Aug 14, 2019 at 12:53:30PM -0400, David Miller wrote:
+> 
 > This started happening after Jakub's pull of your net-next changes
 > yesterday:
 > 
@@ -54,6 +73,12 @@ David Miller <davem@davemloft.net> wrote:
 >   ^~~~~~~
 > 
 > It's probaly from the standard kernel build UAPI header checks.
+> 
+> Please fix this.
 
-A patch that removes those #warning from the kernel is sitting in
-the netfilter patchwork queue already.
+Would you apply this patch that Jeremy posted via net-next instead of
+nf-next?
+
+http://patchwork.ozlabs.org/patch/1146821/
+
+Thanks.
