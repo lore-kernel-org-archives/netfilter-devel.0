@@ -2,97 +2,150 @@ Return-Path: <SRS0=qEnH=WK=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B41FC433FF
-	for <netfilter-devel@archiver.kernel.org>; Wed, 14 Aug 2019 16:17:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9439CC32753
+	for <netfilter-devel@archiver.kernel.org>; Wed, 14 Aug 2019 16:32:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2CC0D2083B
-	for <netfilter-devel@archiver.kernel.org>; Wed, 14 Aug 2019 16:17:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7523120665
+	for <netfilter-devel@archiver.kernel.org>; Wed, 14 Aug 2019 16:32:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727524AbfHNQR1 (ORCPT
+        id S1728262AbfHNQcl (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 14 Aug 2019 12:17:27 -0400
-Received: from dispatch1-us1.ppe-hosted.com ([148.163.129.52]:39858 "EHLO
+        Wed, 14 Aug 2019 12:32:41 -0400
+Received: from dispatch1-us1.ppe-hosted.com ([67.231.154.164]:41284 "EHLO
         dispatch1-us1.ppe-hosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726522AbfHNQR0 (ORCPT
+        by vger.kernel.org with ESMTP id S1726166AbfHNQcl (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 14 Aug 2019 12:17:26 -0400
+        Wed, 14 Aug 2019 12:32:41 -0400
 X-Virus-Scanned: Proofpoint Essentials engine
 Received: from webmail.solarflare.com (webmail.solarflare.com [12.187.104.26])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mx1-us5.ppe-hosted.com (PPE Hosted ESMTP Server) with ESMTPS id 7DE2FA40063;
-        Wed, 14 Aug 2019 16:17:25 +0000 (UTC)
+        by mx1-us1.ppe-hosted.com (PPE Hosted ESMTP Server) with ESMTPS id 2B38240005A;
+        Wed, 14 Aug 2019 16:32:39 +0000 (UTC)
 Received: from [10.17.20.203] (10.17.20.203) by ocex03.SolarFlarecom.com
  (10.20.40.36) with Microsoft SMTP Server (TLS) id 15.0.1395.4; Wed, 14 Aug
- 2019 09:17:21 -0700
-Subject: Re: [PATCH net-next,v4 08/12] drivers: net: use flow block API
+ 2019 09:32:36 -0700
+Subject: Re: [PATCH net-next,v4 07/12] net: sched: use flow block API
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
-CC:     <netdev@vger.kernel.org>, <netfilter-devel@vger.kernel.org>
 References: <20190709205550.3160-1-pablo@netfilter.org>
- <20190709205550.3160-9-pablo@netfilter.org>
- <75eec70e-60de-e33b-aea0-be595ca625f4@solarflare.com>
- <20190813195126.ilwtoljk2csco73m@salvia>
+ <20190709205550.3160-8-pablo@netfilter.org>
+CC:     netdev <netdev@vger.kernel.org>, <netfilter-devel@vger.kernel.org>
 From:   Edward Cree <ecree@solarflare.com>
-Message-ID: <b3232864-3800-e2a4-9ee3-2cfcf222a148@solarflare.com>
-Date:   Wed, 14 Aug 2019 17:17:20 +0100
+Message-ID: <b45709c7-38b5-2dcb-3db1-0c2fca1840be@solarflare.com>
+Date:   Wed, 14 Aug 2019 17:32:34 +0100
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
  Thunderbird/60.7.0
 MIME-Version: 1.0
-In-Reply-To: <20190813195126.ilwtoljk2csco73m@salvia>
+In-Reply-To: <20190709205550.3160-8-pablo@netfilter.org>
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 Content-Language: en-GB
 X-Originating-IP: [10.17.20.203]
 X-TM-AS-Product-Ver: SMEX-12.5.0.1300-8.5.1010-24846.005
-X-TM-AS-Result: No-10.910200-4.000000-10
-X-TMASE-MatchedRID: fE0JoqABJp0bF9xF7zzuNfZvT2zYoYOwC/ExpXrHizw/hcT28SJs8v/p
-        7AIzNMBS5sErdUkMbqaXeiT2Em65KDwe897U/PjCpyEWs4H2Rqc0bM+gM8H/Ugv1OPvvDLzsAUq
-        wO9pSIT01wrEZp8hyYqPCbIW4ooFkLbUbaWIvlY9xoP7A9oFi1mcCy3wC35zdikvLPxTKpjhWj9
-        Xdj6pyaN4rjaopPTS8q2A6xYQhHEUnAOBcD3t42fChiQolft/y+IfriO3cV8RGM2uNXRqsUqKOH
-        /xyOViuW2Ak0gmF7uqz0ZOkreXeRsTnL4nkk931Z93oz43dfXHNUTeBBPKQKlNtD3nNFtZWfD1p
-        /kSNbAKpDgMfeL8P3pTIMHQYuXBt8aVkBZkOPzLyxz2hgoG97eDTYjejIZTwl23GX7Au7dT8z4k
-        rOhCPi+fOVcxjDhcwPcCXjNqUmkUgBwKKRHe+rxKDZnP+4XT4MQ8s8fI0prS8xfdrYf9lylWBsj
-        PevZQYw4j67ehcJv4=
+X-TM-AS-Result: No-8.652700-4.000000-10
+X-TMASE-MatchedRID: vbSD0OnL8/IbF9xF7zzuNfZvT2zYoYOwC/ExpXrHizz5+tteD5RzhUa8
+        yKZOJ6C10ydY4VdAUiKE/4V4ELwD7ldXhVJKmheRiFAxVB+a60Z5GpkA2em4X1VkJxysad/IZ0K
+        4y8cwk+TQ28Xu0AD31q/rqubmgBuQMLxnrIEe9UEmEURBmKrZlN0Gx5Pa47KxJLfQYoCQHFZBTO
+        ceQiaS50+dy+d/3+snO9j5Iv9OVbEgmbNmX9WJ5MGNvKPnBgOa3V4UShoTXaccNByoSo036VV2z
+        fPCCri0C8Mvm8Nyba5BWXUe0d/YHd5xKQ1PuX/ZEhGH3CRdKUXj+qfvZhFpQjE5FmPR2MmRezKB
+        ji0+3F75tFRf3eUM1cUR3WaFcu9ziUvyAFIM+O1vVGJXymdLJMnlJe2gk8vII0YrtQLsSUz8z4k
+        rOhCPi+fOVcxjDhcwAYt5KiTiutkLbigRnpKlKZx+7GyJjhAU+XAG8WadtZkRklN03KneMWuNSY
+        9U7MALSGrkWcCpOZbePVC4a2WVYi6D86u7S96RsJv4+BFJlvRVRXSWvXPfUEDe7/Z84AiJh8xkx
+        6AsMh4ZTSkqdqz5FucIl+0VmRmLNglg0VTTR7tgO21BQaodlQ==
 X-TM-AS-User-Approved-Sender: No
 X-TM-AS-User-Blocked-Sender: No
-X-TMASE-Result: 10--10.910200-4.000000
+X-TMASE-Result: 10--8.652700-4.000000
 X-TMASE-Version: SMEX-12.5.0.1300-8.5.1010-24846.005
-X-MDID: 1565799446-xs6DQ6u-OldQ
+X-MDID: 1565800360-6DOxZqhgQkJF
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 13/08/2019 20:51, Pablo Neira Ayuso wrote:
-> On Mon, Aug 12, 2019 at 06:50:09PM +0100, Edward Cree wrote:
->> Pablo, can you explain (because this commit message doesn't) why these per-
->>  driver lists are needed, and what the information/state is that has module
->>  (rather than, say, netdevice) scope?
-> The idea is to update drivers to support one flow_block per subsystem,
-> one for ethtool, one for tc, and so on. So far, existing drivers only
-> allow for binding one single flow_block to one of the existing
-> subsystems. So this limitation applies at driver level.
-That argues for per-driver _code_, not for per-driver _state_.  For instance,
- each driver could (more logically) store this information in the netdev
- private data, rather than a static global.  Or even, since each driver
- instance has a unique cb_ident = netdev_priv(net_dev), this doesn't need to
- be local to the driver at all and could just belong to the device owning the
- flow_block (which isn't necessarily the device doing the offload, per
- indirect blocks).
+On 09/07/2019 21:55, Pablo Neira Ayuso wrote:
+> This patch adds tcf_block_setup() which uses the flow block API.
+>
+> This infrastructure takes the flow block callbacks coming from the
+> driver and register/unregister to/from the cls_api core.
+>
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> ---
+> <snip>
+> @@ -796,13 +804,20 @@ static int tcf_block_offload_cmd(struct tcf_block *block,
+>  				 struct netlink_ext_ack *extack)
+>  {
+>  	struct tc_block_offload bo = {};
+> +	int err;
+>  
+>  	bo.net = dev_net(dev);
+>  	bo.command = command;
+>  	bo.binder_type = ei->binder_type;
+>  	bo.block = block;
+>  	bo.extack = extack;
+> -	return dev->netdev_ops->ndo_setup_tc(dev, TC_SETUP_BLOCK, &bo);
+> +	INIT_LIST_HEAD(&bo.cb_list);
+> +
+> +	err = dev->netdev_ops->ndo_setup_tc(dev, TC_SETUP_BLOCK, &bo);
+> +	if (err < 0)
+> +		return err;
+> +
+> +	return tcf_block_setup(block, &bo);
+>  }
+>  
+>  static int tcf_block_offload_bind(struct tcf_block *block, struct Qdisc *q,
+> @@ -1636,6 +1651,77 @@ void tcf_block_cb_unregister(struct tcf_block *block,
+>  }
+>  EXPORT_SYMBOL(tcf_block_cb_unregister);
+>  
+> +static int tcf_block_bind(struct tcf_block *block,
+> +			  struct flow_block_offload *bo)
+> +{
+> +	struct flow_block_cb *block_cb, *next;
+> +	int err, i = 0;
+> +
+> +	list_for_each_entry(block_cb, &bo->cb_list, list) {
+> +		err = tcf_block_playback_offloads(block, block_cb->cb,
+> +						  block_cb->cb_priv, true,
+> +						  tcf_block_offload_in_use(block),
+> +						  bo->extack);
+> +		if (err)
+> +			goto err_unroll;
+> +
+> +		i++;
+> +	}
+> +	list_splice(&bo->cb_list, &block->cb_list);
+> +
+> +	return 0;
+> +
+> +err_unroll:
+> +	list_for_each_entry_safe(block_cb, next, &bo->cb_list, list) {
+> +		if (i-- > 0) {
+> +			list_del(&block_cb->list);
+> +			tcf_block_playback_offloads(block, block_cb->cb,
+> +						    block_cb->cb_priv, false,
+> +						    tcf_block_offload_in_use(block),
+> +						    NULL);
+> +		}
+> +		flow_block_cb_free(block_cb);
+> +	}
+> +
+> +	return err;
+> +}
+Why has the replay been moved from the function called by the driver
+ (__tcf_block_cb_register()) to work done by the driver's caller based on
+ what the driver has left on this flow_block_offload.cb_list?  This makes
+ it impossible for the driver to (say) unregister a block outside of an
+ explicit request from ndo_setup_tc().
+In my under-development driver, I have a teardown path called on PCI
+ remove, which calls tcf_block_cb_unregister() on all my block bindings
+ (of which the driver keeps track), to ensure that no flow rules are still
+ in place when unregister_netdev() is called; this is needed because some
+ of the driver's state for certain rules involves taking a reference on
+ the netdevice (dev_hold()).  Your structural changes here make that
+ impossible; is there any reason why they're necessary?
 
-TBH I'm still not clear why you need a flow_block per subsystem, rather than
- just having multiple subsystems feed their offload requests through the same
- flow_block but with different enum tc_setup_type or enum tc_fl_command or
- some other indication that this is "netfilter" rather than "tc" asking for a
- tc_cls_flower_offload.
-
-I'd also like to concur with what Jakub said on v2: "this series is really
- hard to follow... the number of things called some combination of block cb
- and list makes my head hurt :/".
-
-This really needs a design document explaining what all the bits are, how
- they fit together, and why they need to be like that.
+-Ed
