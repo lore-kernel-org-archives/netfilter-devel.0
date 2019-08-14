@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 32D42C32750
-	for <netfilter-devel@archiver.kernel.org>; Wed, 14 Aug 2019 02:22:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B728C32750
+	for <netfilter-devel@archiver.kernel.org>; Wed, 14 Aug 2019 02:28:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id F22F220842
-	for <netfilter-devel@archiver.kernel.org>; Wed, 14 Aug 2019 02:22:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DB6932085A
+	for <netfilter-devel@archiver.kernel.org>; Wed, 14 Aug 2019 02:28:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1565749364;
-	bh=234ZHydERtazHOtGzAM7E9t5ZSzd/PLvBnGrxyMvjnU=;
+	s=default; t=1565749720;
+	bh=h3Bcr7D81pV0AzkJuvbhQdFv4ti2+P7JLnY34hAaaxs=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=LB3jwYaK0A4Q2NkZt7qELqimWXcx35JqyrVtLpYQ+qCTCFqa0MqvzQPwGqVX0B/sM
-	 BPb9tUsc0QSZM8BS5WzjFviZu0uglYJAh7NCOLnAm6EJowiPX25d0mh5QD9hSuJD1e
-	 9zt4XbMqyBOKTRGWBHJ3OjC2upQupRSAXfcml83U=
+	b=NYX1w3QN6v250QdBVDFnpCAi4f5xzAHJni3S5pEj8pTHkqeO/16DZl8MjfO0g/EAl
+	 /b8gAgN+iXk9FFsB7GjCJNC7wUoY7FzaUtlsoM8tdDBzCC0JTvMcW3UrS3RUIZM+NJ
+	 0G7MtCS75MYvSbuaVTE0rsDZgV+psaOwJXrQwEIs=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729237AbfHNCWg (ORCPT
+        id S1729117AbfHNCZ5 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 13 Aug 2019 22:22:36 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49654 "EHLO mail.kernel.org"
+        Tue, 13 Aug 2019 22:25:57 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54066 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727502AbfHNCSo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 13 Aug 2019 22:18:44 -0400
+        id S1729681AbfHNCZ4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 13 Aug 2019 22:25:56 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 541BD2085A;
-        Wed, 14 Aug 2019 02:18:42 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 1827E2085A;
+        Wed, 14 Aug 2019 02:25:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1565749123;
-        bh=234ZHydERtazHOtGzAM7E9t5ZSzd/PLvBnGrxyMvjnU=;
+        s=default; t=1565749556;
+        bh=h3Bcr7D81pV0AzkJuvbhQdFv4ti2+P7JLnY34hAaaxs=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=WW0YFKgqfMETVoN3mocbbuKs3U1oVtDUaSi28+TOrws4KovulPMHr7L19eVknJ5t7
-         gnmi1bMp92yKQrvn8oCChWjLHcEMOoNz9xfXYisHPVvM5AaMklnMtO8DG+gfPZzxE5
-         kmyMkkOV4E/CQAwHszRpULSKFXvQx0XbQiBcRAZs=
+        b=L6TZlrtAeK0hGjgXboURbXvWMW/WGd0glOY2phtki3u2Whb4nvbm11UOGxB8m96IB
+         NXKsCAl7ZlG1GZAalBA2G1FhDj3OJbO0x9HTSb04HtMLrFWBy/CX3+SY6QEC6uSC+p
+         x9urtUgCoqCYNm0vMzmgIH7rKxcehxTR+UseFHBg=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Wenwen Wang <wenwen@cs.uga.edu>, Florian Westphal <fw@strlen.de>,
@@ -46,12 +46,12 @@ Cc:     Wenwen Wang <wenwen@cs.uga.edu>, Florian Westphal <fw@strlen.de>,
         Sasha Levin <sashal@kernel.org>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.14 05/44] netfilter: ebtables: fix a memory leak bug in compat
-Date:   Tue, 13 Aug 2019 22:17:54 -0400
-Message-Id: <20190814021834.16662-5-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.4 03/28] netfilter: ebtables: fix a memory leak bug in compat
+Date:   Tue, 13 Aug 2019 22:25:25 -0400
+Message-Id: <20190814022550.17463-3-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20190814021834.16662-1-sashal@kernel.org>
-References: <20190814021834.16662-1-sashal@kernel.org>
+In-Reply-To: <20190814022550.17463-1-sashal@kernel.org>
+References: <20190814022550.17463-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -84,10 +84,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 3 insertions(+), 1 deletion(-)
 
 diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
-index b967bd51bf1f9..48e364b11e067 100644
+index 1a87cf78fadc4..d9471e3ef2161 100644
 --- a/net/bridge/netfilter/ebtables.c
 +++ b/net/bridge/netfilter/ebtables.c
-@@ -2267,8 +2267,10 @@ static int compat_do_replace(struct net *net, void __user *user,
+@@ -2280,8 +2280,10 @@ static int compat_do_replace(struct net *net, void __user *user,
  	state.buf_kern_len = size64;
  
  	ret = compat_copy_entries(entries_tmp, tmp.entries_size, &state);
