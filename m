@@ -1,109 +1,62 @@
-Return-Path: <SRS0=qEnH=WK=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=UCCN=WL=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.8 required=3.0
-	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E1916C32753
-	for <netfilter-devel@archiver.kernel.org>; Wed, 14 Aug 2019 21:44:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 49C41C32753
+	for <netfilter-devel@archiver.kernel.org>; Thu, 15 Aug 2019 02:59:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BC167214C6
-	for <netfilter-devel@archiver.kernel.org>; Wed, 14 Aug 2019 21:44:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2538F2084F
+	for <netfilter-devel@archiver.kernel.org>; Thu, 15 Aug 2019 02:59:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729160AbfHNVoB (ORCPT
+        id S1728416AbfHOC7V (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 14 Aug 2019 17:44:01 -0400
-Received: from correo.us.es ([193.147.175.20]:47268 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728425AbfHNVoA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 14 Aug 2019 17:44:00 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 4FCFBC4143
-        for <netfilter-devel@vger.kernel.org>; Wed, 14 Aug 2019 23:43:58 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 41EFA1150DD
-        for <netfilter-devel@vger.kernel.org>; Wed, 14 Aug 2019 23:43:58 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 378D3DA72F; Wed, 14 Aug 2019 23:43:58 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id DE95ADA72F;
-        Wed, 14 Aug 2019 23:43:55 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 14 Aug 2019 23:43:55 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from salvia.here (sys.soleta.eu [212.170.55.40])
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id B73A84265A2F;
-        Wed, 14 Aug 2019 23:43:55 +0200 (CEST)
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 2/2] netfilter: nft_bitwise: Adjust parentheses to fix memcmp size argument
-Date:   Wed, 14 Aug 2019 23:43:47 +0200
-Message-Id: <20190814214347.4940-3-pablo@netfilter.org>
-X-Mailer: git-send-email 2.11.0
+        Wed, 14 Aug 2019 22:59:21 -0400
+Received: from shards.monkeyblade.net ([23.128.96.9]:36248 "EHLO
+        shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728014AbfHOC7U (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 14 Aug 2019 22:59:20 -0400
+Received: from localhost (unknown [IPv6:2601:601:9f80:35cd::d71])
+        (using TLSv1 with cipher AES256-SHA (256/256 bits))
+        (Client did not present a certificate)
+        (Authenticated sender: davem-davemloft)
+        by shards.monkeyblade.net (Postfix) with ESMTPSA id 2CFB914522EFE;
+        Wed, 14 Aug 2019 19:59:20 -0700 (PDT)
+Date:   Wed, 14 Aug 2019 19:59:17 -0700 (PDT)
+Message-Id: <20190814.195917.1229842924375924884.davem@davemloft.net>
+To:     pablo@netfilter.org
+Cc:     netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+Subject: Re: [PATCH 0/2] Netfilter updates for net-next
+From:   David Miller <davem@davemloft.net>
 In-Reply-To: <20190814214347.4940-1-pablo@netfilter.org>
 References: <20190814214347.4940-1-pablo@netfilter.org>
-X-Virus-Scanned: ClamAV using ClamSMTP
+X-Mailer: Mew version 6.8 on Emacs 26.1
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+X-Greylist: Sender succeeded SMTP AUTH, not delayed by milter-greylist-4.5.12 (shards.monkeyblade.net [149.20.54.216]); Wed, 14 Aug 2019 19:59:20 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Nathan Chancellor <natechancellor@gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Wed, 14 Aug 2019 23:43:45 +0200
 
-clang warns:
+> The following patchset contains Netfilter updates for net-next.
+> This round addresses fallout from previous pull request:
+> 
+> 1) Remove #warning from ipt_LOG.h and ip6t_LOG.h headers,
+>    from Jeremy Sowden.
+> 
+> 2) Incorrect parens in memcmp() in nft_bitwise, from Nathan Chancellor.
+> 
+> You can pull these changes from:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git
 
-net/netfilter/nft_bitwise.c:138:50: error: size argument in 'memcmp'
-call is a comparison [-Werror,-Wmemsize-comparison]
-        if (memcmp(&priv->xor, &zero, sizeof(priv->xor) ||
-                                      ~~~~~~~~~~~~~~~~~~^~
-net/netfilter/nft_bitwise.c:138:6: note: did you mean to compare the
-result of 'memcmp' instead?
-        if (memcmp(&priv->xor, &zero, sizeof(priv->xor) ||
-            ^
-                                                       )
-net/netfilter/nft_bitwise.c:138:32: note: explicitly cast the argument
-to size_t to silence this warning
-        if (memcmp(&priv->xor, &zero, sizeof(priv->xor) ||
-                                      ^
-                                      (size_t)(
-1 error generated.
-
-Adjust the parentheses so that the result of the sizeof is used for the
-size argument in memcmp, rather than the result of the comparison (which
-would always be true because sizeof is a non-zero number).
-
-Fixes: bd8699e9e292 ("netfilter: nft_bitwise: add offload support")
-Link: https://github.com/ClangBuiltLinux/linux/issues/638
-Reported-by: kbuild test robot <lkp@intel.com>
-Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
-Reviewed-by: Nick Desaulniers <ndesaulniers@google.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nft_bitwise.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/net/netfilter/nft_bitwise.c b/net/netfilter/nft_bitwise.c
-index 1f04ed5c518c..974300178fa9 100644
---- a/net/netfilter/nft_bitwise.c
-+++ b/net/netfilter/nft_bitwise.c
-@@ -135,8 +135,8 @@ static int nft_bitwise_offload(struct nft_offload_ctx *ctx,
- {
- 	const struct nft_bitwise *priv = nft_expr_priv(expr);
- 
--	if (memcmp(&priv->xor, &zero, sizeof(priv->xor) ||
--	    priv->sreg != priv->dreg))
-+	if (memcmp(&priv->xor, &zero, sizeof(priv->xor)) ||
-+	    priv->sreg != priv->dreg)
- 		return -EOPNOTSUPP;
- 
- 	memcpy(&ctx->regs[priv->dreg].mask, &priv->mask, sizeof(priv->mask));
--- 
-2.11.0
-
+Pulled, thanks.
