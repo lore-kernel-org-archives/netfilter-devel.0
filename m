@@ -1,71 +1,127 @@
-Return-Path: <SRS0=UCCN=WL=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=Eqja=WM=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AD643C3A59B
-	for <netfilter-devel@archiver.kernel.org>; Thu, 15 Aug 2019 21:02:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EB293C3A589
+	for <netfilter-devel@archiver.kernel.org>; Fri, 16 Aug 2019 01:04:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 83CF02063F
-	for <netfilter-devel@archiver.kernel.org>; Thu, 15 Aug 2019 21:02:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C2835206C1
+	for <netfilter-devel@archiver.kernel.org>; Fri, 16 Aug 2019 01:04:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1733074AbfHOVCU (ORCPT
+        id S1726390AbfHPBE1 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 15 Aug 2019 17:02:20 -0400
-Received: from shards.monkeyblade.net ([23.128.96.9]:50270 "EHLO
-        shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726008AbfHOVCU (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 15 Aug 2019 17:02:20 -0400
-Received: from localhost (unknown [IPv6:2601:601:9f80:35cd::d71])
-        (using TLSv1 with cipher AES256-SHA (256/256 bits))
-        (Client did not present a certificate)
-        (Authenticated sender: davem-davemloft)
-        by shards.monkeyblade.net (Postfix) with ESMTPSA id 9100314049755;
-        Thu, 15 Aug 2019 14:02:17 -0700 (PDT)
-Date:   Thu, 15 Aug 2019 14:02:17 -0700 (PDT)
-Message-Id: <20190815.140217.47364101504540637.davem@davemloft.net>
-To:     pablo@netfilter.org
-Cc:     netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-Subject: Re: [PATCH 0/7] Netfilter fixes for net
-From:   David Miller <davem@davemloft.net>
-In-Reply-To: <20190814092440.20087-1-pablo@netfilter.org>
-References: <20190814092440.20087-1-pablo@netfilter.org>
-X-Mailer: Mew version 6.8 on Emacs 26.1
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-X-Greylist: Sender succeeded SMTP AUTH, not delayed by milter-greylist-4.5.12 (shards.monkeyblade.net [149.20.54.216]); Thu, 15 Aug 2019 14:02:17 -0700 (PDT)
+        Thu, 15 Aug 2019 21:04:27 -0400
+Received: from correo.us.es ([193.147.175.20]:39898 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726089AbfHPBE1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 15 Aug 2019 21:04:27 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id F0841C4150
+        for <netfilter-devel@vger.kernel.org>; Fri, 16 Aug 2019 03:04:23 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id E06DADA72F
+        for <netfilter-devel@vger.kernel.org>; Fri, 16 Aug 2019 03:04:23 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id D60E1D2CAD; Fri, 16 Aug 2019 03:04:23 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id AAB20D2B1A;
+        Fri, 16 Aug 2019 03:04:21 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Fri, 16 Aug 2019 03:04:21 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (sys.soleta.eu [212.170.55.40])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 869CB4265A2F;
+        Fri, 16 Aug 2019 03:04:21 +0200 (CEST)
+Date:   Fri, 16 Aug 2019 03:04:21 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Edward Cree <ecree@solarflare.com>
+Cc:     netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH net-next,v4 08/12] drivers: net: use flow block API
+Message-ID: <20190816010421.if6mbyl2n3fsujy4@salvia>
+References: <20190709205550.3160-1-pablo@netfilter.org>
+ <20190709205550.3160-9-pablo@netfilter.org>
+ <75eec70e-60de-e33b-aea0-be595ca625f4@solarflare.com>
+ <20190813195126.ilwtoljk2csco73m@salvia>
+ <b3232864-3800-e2a4-9ee3-2cfcf222a148@solarflare.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <b3232864-3800-e2a4-9ee3-2cfcf222a148@solarflare.com>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Wed, 14 Aug 2019 11:24:33 +0200
+On Wed, Aug 14, 2019 at 05:17:20PM +0100, Edward Cree wrote:
+> On 13/08/2019 20:51, Pablo Neira Ayuso wrote:
+> > On Mon, Aug 12, 2019 at 06:50:09PM +0100, Edward Cree wrote:
+> >> Pablo, can you explain (because this commit message doesn't) why these per-
+> >>  driver lists are needed, and what the information/state is that has module
+> >>  (rather than, say, netdevice) scope?
+> >
+> > The idea is to update drivers to support one flow_block per subsystem,
+> > one for ethtool, one for tc, and so on. So far, existing drivers only
+> > allow for binding one single flow_block to one of the existing
+> > subsystems. So this limitation applies at driver level.
+>
+> That argues for per-driver _code_, not for per-driver _state_. For instance,
+>  each driver could (more logically) store this information in the netdev
+>  private data, rather than a static global.  Or even, since each driver
+>  instance has a unique cb_ident = netdev_priv(net_dev), this doesn't need to
+>  be local to the driver at all and could just belong to the device owning the
+>  flow_block (which isn't necessarily the device doing the offload, per
+>  indirect blocks).
 
-> This patchset contains Netfilter fixes for net:
-> 
-> 1) Extend selftest to cover flowtable with ipsec, from Florian Westphal.
-> 
-> 2) Fix interaction of ipsec with flowtable, also from Florian.
-> 
-> 3) User-after-free with bound set to rule that fails to load.
-> 
-> 4) Adjust state and timeout for flows that expire.
-> 
-> 5) Timeout update race with flows in teardown state.
-> 
-> 6) Ensure conntrack id hash calculation use invariants as input,
->    from Dirk Morris.
-> 
-> 7) Do not push flows into flowtable for TCP fin/rst packets.
-> 
-> You can pull these changes from:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
+This list could be placed in netdev_priv() area, yes.
 
-Pulled, thanks.
+> TBH I'm still not clear why you need a flow_block per subsystem, rather than
+>  just having multiple subsystems feed their offload requests through the same
+>  flow_block but with different enum tc_setup_type or enum tc_fl_command or
+>  some other indication that this is "netfilter" rather than "tc" asking for a
+>  tc_cls_flower_offload.
+
+In tc, the flow_block is set up by when the ingress qdisc is
+registered. The usual scenario for most drivers is to have one single
+flow_block per registered ingress qdisc, this makes a 1:1 mapping
+between ingress qdisc and flow_block.
+
+Still, you can register two or more ingress qdiscs to make them share
+the same policy via 'tc block'. In that case all those qdiscs use one
+single flow_block. This makes a N:1 mapping between these qdisc
+ingress and the flow_block. This policy applies to all ingress qdiscs
+that are part of the same tc block. By 'tc block', I'm refering to the
+tcf_block structure.
+
+In netfilter, there are ingress basechains that are registered per
+device. Each basechain gets a flow_block by when the basechain is
+registered. Shared blocks as in tcf_block are not yet supported, but
+it should not be hard to extend it to make this work.
+
+To reuse the same flow_block as entry point for all subsystems as your
+propose - assuming offloads for two or more subsystems are in place -
+then all of them would need to have the same block sharing
+configuration, which might not be the case, ie. tc ingress might have
+a eth0 and eth1 use the same policy via flow_block, while netfilter
+might have one basechain for eth0 and another for eth1 (no policy
+sharing).
+
+[...]
+> This really needs a design document explaining what all the bits are, how
+>  they fit together, and why they need to be like that.
+
+I did not design this flow_block abstraction, this concept was already
+in place under a different name and extend it so the ethtool/netfilter
+subsystems to avoid driver code duplication for offloads. Having said
+this, I agree documentation is good to have.
