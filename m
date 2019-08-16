@@ -2,61 +2,59 @@ Return-Path: <SRS0=Eqja=WM=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EB293C3A589
-	for <netfilter-devel@archiver.kernel.org>; Fri, 16 Aug 2019 01:04:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1C979C3A589
+	for <netfilter-devel@archiver.kernel.org>; Fri, 16 Aug 2019 01:10:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C2835206C1
-	for <netfilter-devel@archiver.kernel.org>; Fri, 16 Aug 2019 01:04:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E7E1D2064A
+	for <netfilter-devel@archiver.kernel.org>; Fri, 16 Aug 2019 01:10:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726390AbfHPBE1 (ORCPT
+        id S1726312AbfHPBKi (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 15 Aug 2019 21:04:27 -0400
-Received: from correo.us.es ([193.147.175.20]:39898 "EHLO mail.us.es"
+        Thu, 15 Aug 2019 21:10:38 -0400
+Received: from correo.us.es ([193.147.175.20]:40818 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726089AbfHPBE1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 15 Aug 2019 21:04:27 -0400
+        id S1725983AbfHPBKi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 15 Aug 2019 21:10:38 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id F0841C4150
-        for <netfilter-devel@vger.kernel.org>; Fri, 16 Aug 2019 03:04:23 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 8E1F2C4148
+        for <netfilter-devel@vger.kernel.org>; Fri, 16 Aug 2019 03:10:35 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id E06DADA72F
-        for <netfilter-devel@vger.kernel.org>; Fri, 16 Aug 2019 03:04:23 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 7C542D2F9B
+        for <netfilter-devel@vger.kernel.org>; Fri, 16 Aug 2019 03:10:35 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id D60E1D2CAD; Fri, 16 Aug 2019 03:04:23 +0200 (CEST)
+        id 71E03DA8E8; Fri, 16 Aug 2019 03:10:35 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id AAB20D2B1A;
-        Fri, 16 Aug 2019 03:04:21 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 28DD8DA7B6;
+        Fri, 16 Aug 2019 03:10:33 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Fri, 16 Aug 2019 03:04:21 +0200 (CEST)
+ Fri, 16 Aug 2019 03:10:33 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from us.es (sys.soleta.eu [212.170.55.40])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
         (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 869CB4265A2F;
-        Fri, 16 Aug 2019 03:04:21 +0200 (CEST)
-Date:   Fri, 16 Aug 2019 03:04:21 +0200
+        by entrada.int (Postfix) with ESMTPSA id 086B34265A2F;
+        Fri, 16 Aug 2019 03:10:32 +0200 (CEST)
+Date:   Fri, 16 Aug 2019 03:10:33 +0200
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     Edward Cree <ecree@solarflare.com>
-Cc:     netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH net-next,v4 08/12] drivers: net: use flow block API
-Message-ID: <20190816010421.if6mbyl2n3fsujy4@salvia>
+Cc:     netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH net-next,v4 07/12] net: sched: use flow block API
+Message-ID: <20190816011033.sw34b3ckfd636afg@salvia>
 References: <20190709205550.3160-1-pablo@netfilter.org>
- <20190709205550.3160-9-pablo@netfilter.org>
- <75eec70e-60de-e33b-aea0-be595ca625f4@solarflare.com>
- <20190813195126.ilwtoljk2csco73m@salvia>
- <b3232864-3800-e2a4-9ee3-2cfcf222a148@solarflare.com>
+ <20190709205550.3160-8-pablo@netfilter.org>
+ <b45709c7-38b5-2dcb-3db1-0c2fca1840be@solarflare.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <b3232864-3800-e2a4-9ee3-2cfcf222a148@solarflare.com>
+In-Reply-To: <b45709c7-38b5-2dcb-3db1-0c2fca1840be@solarflare.com>
 User-Agent: NeoMutt/20170113 (1.7.2)
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -64,64 +62,99 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Aug 14, 2019 at 05:17:20PM +0100, Edward Cree wrote:
-> On 13/08/2019 20:51, Pablo Neira Ayuso wrote:
-> > On Mon, Aug 12, 2019 at 06:50:09PM +0100, Edward Cree wrote:
-> >> Pablo, can you explain (because this commit message doesn't) why these per-
-> >>  driver lists are needed, and what the information/state is that has module
-> >>  (rather than, say, netdevice) scope?
+On Wed, Aug 14, 2019 at 05:32:34PM +0100, Edward Cree wrote:
+> On 09/07/2019 21:55, Pablo Neira Ayuso wrote:
+> > This patch adds tcf_block_setup() which uses the flow block API.
 > >
-> > The idea is to update drivers to support one flow_block per subsystem,
-> > one for ethtool, one for tc, and so on. So far, existing drivers only
-> > allow for binding one single flow_block to one of the existing
-> > subsystems. So this limitation applies at driver level.
->
-> That argues for per-driver _code_, not for per-driver _state_. For instance,
->  each driver could (more logically) store this information in the netdev
->  private data, rather than a static global.  Or even, since each driver
->  instance has a unique cb_ident = netdev_priv(net_dev), this doesn't need to
->  be local to the driver at all and could just belong to the device owning the
->  flow_block (which isn't necessarily the device doing the offload, per
->  indirect blocks).
+> > This infrastructure takes the flow block callbacks coming from the
+> > driver and register/unregister to/from the cls_api core.
+> >
+> > Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> > ---
+> > <snip>
+> > @@ -796,13 +804,20 @@ static int tcf_block_offload_cmd(struct tcf_block *block,
+> >  				 struct netlink_ext_ack *extack)
+> >  {
+> >  	struct tc_block_offload bo = {};
+> > +	int err;
+> >  
+> >  	bo.net = dev_net(dev);
+> >  	bo.command = command;
+> >  	bo.binder_type = ei->binder_type;
+> >  	bo.block = block;
+> >  	bo.extack = extack;
+> > -	return dev->netdev_ops->ndo_setup_tc(dev, TC_SETUP_BLOCK, &bo);
+> > +	INIT_LIST_HEAD(&bo.cb_list);
+> > +
+> > +	err = dev->netdev_ops->ndo_setup_tc(dev, TC_SETUP_BLOCK, &bo);
+> > +	if (err < 0)
+> > +		return err;
+> > +
+> > +	return tcf_block_setup(block, &bo);
+> >  }
+> >  
+> >  static int tcf_block_offload_bind(struct tcf_block *block, struct Qdisc *q,
+> > @@ -1636,6 +1651,77 @@ void tcf_block_cb_unregister(struct tcf_block *block,
+> >  }
+> >  EXPORT_SYMBOL(tcf_block_cb_unregister);
+> >  
+> > +static int tcf_block_bind(struct tcf_block *block,
+> > +			  struct flow_block_offload *bo)
+> > +{
+> > +	struct flow_block_cb *block_cb, *next;
+> > +	int err, i = 0;
+> > +
+> > +	list_for_each_entry(block_cb, &bo->cb_list, list) {
+> > +		err = tcf_block_playback_offloads(block, block_cb->cb,
+> > +						  block_cb->cb_priv, true,
+> > +						  tcf_block_offload_in_use(block),
+> > +						  bo->extack);
+> > +		if (err)
+> > +			goto err_unroll;
+> > +
+> > +		i++;
+> > +	}
+> > +	list_splice(&bo->cb_list, &block->cb_list);
+> > +
+> > +	return 0;
+> > +
+> > +err_unroll:
+> > +	list_for_each_entry_safe(block_cb, next, &bo->cb_list, list) {
+> > +		if (i-- > 0) {
+> > +			list_del(&block_cb->list);
+> > +			tcf_block_playback_offloads(block, block_cb->cb,
+> > +						    block_cb->cb_priv, false,
+> > +						    tcf_block_offload_in_use(block),
+> > +						    NULL);
+> > +		}
+> > +		flow_block_cb_free(block_cb);
+> > +	}
+> > +
+> > +	return err;
+> > +}
+> >
+> Why has the replay been moved from the function called by the driver
+>  (__tcf_block_cb_register()) to work done by the driver's caller based on
+>  what the driver has left on this flow_block_offload.cb_list?  This makes
+>  it impossible for the driver to (say) unregister a block outside of an
+>  explicit request from ndo_setup_tc().
+> In my under-development driver, I have a teardown path called on PCI
+>  remove, which calls tcf_block_cb_unregister() on all my block bindings
+>  (of which the driver keeps track), to ensure that no flow rules are still
+>  in place when unregister_netdev() is called;
 
-This list could be placed in netdev_priv() area, yes.
+It's the subsystem that has to release resources when
+unregister_netdev() event happens. At least in netfilter, when the
+device is going away, the filtering policy is removed, hence the
+FLOW_BLOCK_UNBIND is called to release the blocks and, hence, the
+offload resources. I remember tc ingress qdisc works like this too.
 
-> TBH I'm still not clear why you need a flow_block per subsystem, rather than
->  just having multiple subsystems feed their offload requests through the same
->  flow_block but with different enum tc_setup_type or enum tc_fl_command or
->  some other indication that this is "netfilter" rather than "tc" asking for a
->  tc_cls_flower_offload.
+>  this is needed because some  of the driver's state for certain
+>  rules involves taking a reference on  the netdevice (dev_hold()). 
+>  Your structural changes here make that  impossible; is there any
+>  reason why they're necessary?
 
-In tc, the flow_block is set up by when the ingress qdisc is
-registered. The usual scenario for most drivers is to have one single
-flow_block per registered ingress qdisc, this makes a 1:1 mapping
-between ingress qdisc and flow_block.
+May I have access to your driver code?
 
-Still, you can register two or more ingress qdiscs to make them share
-the same policy via 'tc block'. In that case all those qdiscs use one
-single flow_block. This makes a N:1 mapping between these qdisc
-ingress and the flow_block. This policy applies to all ingress qdiscs
-that are part of the same tc block. By 'tc block', I'm refering to the
-tcf_block structure.
-
-In netfilter, there are ingress basechains that are registered per
-device. Each basechain gets a flow_block by when the basechain is
-registered. Shared blocks as in tcf_block are not yet supported, but
-it should not be hard to extend it to make this work.
-
-To reuse the same flow_block as entry point for all subsystems as your
-propose - assuming offloads for two or more subsystems are in place -
-then all of them would need to have the same block sharing
-configuration, which might not be the case, ie. tc ingress might have
-a eth0 and eth1 use the same policy via flow_block, while netfilter
-might have one basechain for eth0 and another for eth1 (no policy
-sharing).
-
-[...]
-> This really needs a design document explaining what all the bits are, how
->  they fit together, and why they need to be like that.
-
-I did not design this flow_block abstraction, this concept was already
-in place under a different name and extend it so the ethtool/netfilter
-subsystems to avoid driver code duplication for offloads. Having said
-this, I agree documentation is good to have.
+This would make it easier for me to understand your requirements, and
+to discuss changes with you.
