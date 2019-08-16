@@ -2,139 +2,96 @@ Return-Path: <SRS0=Eqja=WM=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1670DC3A59C
-	for <netfilter-devel@archiver.kernel.org>; Fri, 16 Aug 2019 13:10:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E2DFC3A59C
+	for <netfilter-devel@archiver.kernel.org>; Fri, 16 Aug 2019 14:44:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E8CFA20644
-	for <netfilter-devel@archiver.kernel.org>; Fri, 16 Aug 2019 13:10:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 49F6F206C1
+	for <netfilter-devel@archiver.kernel.org>; Fri, 16 Aug 2019 14:44:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726752AbfHPNKd (ORCPT
+        id S1727291AbfHPOor (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 16 Aug 2019 09:10:33 -0400
-Received: from m9784.mail.qiye.163.com ([220.181.97.84]:60949 "EHLO
-        m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726541AbfHPNKd (ORCPT
+        Fri, 16 Aug 2019 10:44:47 -0400
+Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:46164 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727245AbfHPOoq (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 16 Aug 2019 09:10:33 -0400
-Received: from localhost.localdomain (unknown [123.59.132.129])
-        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id B64BE41B46;
-        Fri, 16 Aug 2019 21:10:27 +0800 (CST)
-From:   wenxu@ucloud.cn
-To:     pablo@netfilter.org
-Cc:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft v3] meta: add ibrpvid and ibrvproto support
-Date:   Fri, 16 Aug 2019 21:10:26 +0800
-Message-Id: <1565961026-27741-1-git-send-email-wenxu@ucloud.cn>
-X-Mailer: git-send-email 1.8.3.1
-X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZSVVPSEtCQkJCQk9JTExCTllXWShZQU
-        lCN1dZLVlBSVdZCQ4XHghZQVk1NCk2OjckKS43PlkG
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6Kxg6MSo4KTgzDzkzDkIxVjRP
-        ORdPFCFVSlVKTk1OQk1KS0lMQ0lMVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJSFVO
-        QlVKSElVSklCWVdZCAFZQUhKQ0k3Bg++
-X-HM-Tid: 0a6c9a8d00ab2086kuqyb64be41b46
+        Fri, 16 Aug 2019 10:44:46 -0400
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.89)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1hydTB-0002nN-2w; Fri, 16 Aug 2019 16:44:45 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     <netfilter-devel@vger.kernel.org>
+Subject: [PATCH nftables 0/8] add typeof keyword
+Date:   Fri, 16 Aug 2019 16:42:33 +0200
+Message-Id: <20190816144241.11469-1-fw@strlen.de>
+X-Mailer: git-send-email 2.21.0
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: wenxu <wenxu@ucloud.cn>
+This patch series adds the typeof keyword.
 
-This allows you to match the bridge pvid and vlan protocol, for
-instance:
+The only dependency is a small change to libnftnl to add two new
+UDATA_SET_TYPEOF enum values.
 
-nft add rule bridge firewall zones meta ibrvproto 0x8100
-nft add rule bridge firewall zones meta ibrpvid 100
+named set can be configured as follows:
 
-Signed-off-by: wenxu <wenxu@ucloud.cn>
----
- src/meta.c                     |  6 ++++++
- tests/py/bridge/meta.t         |  2 ++
- tests/py/bridge/meta.t.json    | 26 ++++++++++++++++++++++++++
- tests/py/bridge/meta.t.payload |  9 +++++++++
- 4 files changed, 43 insertions(+)
+set os {
+   type typeof(osf name)
+   elements = { "Linux", "Windows" }
+}
 
-diff --git a/src/meta.c b/src/meta.c
-index 5901c99..d45d757 100644
---- a/src/meta.c
-+++ b/src/meta.c
-@@ -442,6 +442,12 @@ const struct meta_template meta_templates[] = {
- 	[NFT_META_OIFKIND]	= META_TEMPLATE("oifkind",   &ifname_type,
- 						IFNAMSIZ * BITS_PER_BYTE,
- 						BYTEORDER_HOST_ENDIAN),
-+	[NFT_META_BRI_IIFPVID]	= META_TEMPLATE("ibrpvid",   &integer_type,
-+						2 * BITS_PER_BYTE,
-+						BYTEORDER_HOST_ENDIAN),
-+	[NFT_META_BRI_IIFVPROTO] = META_TEMPLATE("ibrvproto",   &integer_type,
-+						2 * BITS_PER_BYTE,
-+						BYTEORDER_HOST_ENDIAN),
- };
- 
- static bool meta_key_is_unqualified(enum nft_meta_keys key)
-diff --git a/tests/py/bridge/meta.t b/tests/py/bridge/meta.t
-index 88e819f..d9fb681 100644
---- a/tests/py/bridge/meta.t
-+++ b/tests/py/bridge/meta.t
-@@ -4,3 +4,5 @@
- 
- meta obrname "br0";ok
- meta ibrname "br0";ok
-+meta ibrvproto 0x8100;ok
-+meta ibrpvid 100;ok
-diff --git a/tests/py/bridge/meta.t.json b/tests/py/bridge/meta.t.json
-index 5df4773..0a5e64a 100644
---- a/tests/py/bridge/meta.t.json
-+++ b/tests/py/bridge/meta.t.json
-@@ -23,3 +23,29 @@
-         }
-     }
- ]
-+
-+# meta ibrvproto 0x8100
-+[
-+    {
-+        "match": {
-+            "left": {
-+                "meta": { "key": "ibrvproto" }
-+            },
-+	    "op": "==",
-+            "right": 0x8100
-+        }
-+    }
-+]
-+
-+# meta ibrpvid 100
-+[
-+    {
-+        "match": {
-+            "left": {
-+                "meta": { "key": "ibrpvid" }
-+            },
-+	    "op": "==",
-+            "right": 100
-+        }
-+    }
-+]
-diff --git a/tests/py/bridge/meta.t.payload b/tests/py/bridge/meta.t.payload
-index 0f0d101..e5793a9 100644
---- a/tests/py/bridge/meta.t.payload
-+++ b/tests/py/bridge/meta.t.payload
-@@ -8,3 +8,12 @@ bridge test-bridge input
-   [ meta load bri_iifname => reg 1 ]
-   [ cmp eq reg 1 0x00307262 0x00000000 0x00000000 0x00000000 ]
- 
-+# meta ibrvproto 0x8100
-+bridge test-bridge input
-+  [ meta load bri_iifvproto => reg 1 ]
-+  [ cmp eq reg 1 0x00008100 ]
-+
-+# meta ibrpvid 100
-+bridge test-bridge input
-+  [ meta load bri_iifpvid => reg 1 ]
-+  [ cmp eq reg 1 0x00000064 ]
--- 
-2.15.1
+or
+nft add set ip filter allowed "{ type typeof(ip daddr) . typeof(tcp dport); }"
+
+... which is the same as the "old" 'type ipv4_addr . inet_service".
+
+The type is stored in the kernel via the udata set infrastructure,
+on listing -- if a udata type is present -- nft will validate that this
+type matches the set key length.
+
+This initial submission doesn't include a documentation update because
+I'd like to get feedback on the chosen syntax first.
+
+Florian Westphal (8):
+      src: libnftnl: run single-initcalls only once
+      src: libnftnl: split nft_ctx_new/free
+      src: store expr, not dtype to track data in sets
+      src: parser: add syntax to provide bitsize for non-spcific types
+      src: add "typeof" keyword
+      src: add "typeof" print support
+      src: netlink: remove assertion
+      tests: add typeof test cases
+
+ include/datatype.h                                 |    1 
+ include/netlink.h                                  |    1 
+ include/nftables.h                                 |    3 
+ include/rule.h                                     |    6 
+ src/datatype.c                                     |    5 
+ src/evaluate.c                                     |   58 ++++--
+ src/expression.c                                   |    2 
+ src/json.c                                         |    4 
+ src/libnftables.c                                  |   48 +++--
+ src/mnl.c                                          |   39 ++++
+ src/monitor.c                                      |    2 
+ src/netlink.c                                      |  176 ++++++++++++++++++---
+ src/netlink_delinearize.c                          |   15 +
+ src/parser_bison.y                                 |   26 ++-
+ src/parser_json.c                                  |    8 
+ src/rule.c                                         |   35 +++-
+ src/scanner.l                                      |    1 
+ src/segtree.c                                      |    8 
+ tests/shell/testcases/maps/dumps/typeof_maps_0.nft |   16 +
+ tests/shell/testcases/maps/typeof_maps_0           |   26 +++
+ tests/shell/testcases/sets/dumps/typeof_sets_0.nft |   31 +++
+ tests/shell/testcases/sets/typeof_sets_0           |   40 ++++
+ 22 files changed, 459 insertions(+), 92 deletions(-)
+
 
