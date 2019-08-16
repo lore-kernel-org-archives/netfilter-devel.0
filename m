@@ -2,111 +2,112 @@ Return-Path: <SRS0=Eqja=WM=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 624A2C3A59C
-	for <netfilter-devel@archiver.kernel.org>; Fri, 16 Aug 2019 17:00:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 17C7CC41514
+	for <netfilter-devel@archiver.kernel.org>; Fri, 16 Aug 2019 17:45:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3D2942077C
-	for <netfilter-devel@archiver.kernel.org>; Fri, 16 Aug 2019 17:00:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E0C8C205F4
+	for <netfilter-devel@archiver.kernel.org>; Fri, 16 Aug 2019 17:45:21 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="dc+uFNYU"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727377AbfHPRAm (ORCPT
+        id S1727503AbfHPRpU (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 16 Aug 2019 13:00:42 -0400
-Received: from dispatch1-us1.ppe-hosted.com ([148.163.129.52]:58380 "EHLO
-        dispatch1-us1.ppe-hosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726097AbfHPRAm (ORCPT
+        Fri, 16 Aug 2019 13:45:20 -0400
+Received: from mail-pl1-f196.google.com ([209.85.214.196]:39633 "EHLO
+        mail-pl1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727486AbfHPRpT (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 16 Aug 2019 13:00:42 -0400
-X-Virus-Scanned: Proofpoint Essentials engine
-Received: from webmail.solarflare.com (webmail.solarflare.com [12.187.104.26])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mx1-us2.ppe-hosted.com (PPE Hosted ESMTP Server) with ESMTPS id 0C2B3A40086;
-        Fri, 16 Aug 2019 17:00:40 +0000 (UTC)
-Received: from [10.17.20.203] (10.17.20.203) by ocex03.SolarFlarecom.com
- (10.20.40.36) with Microsoft SMTP Server (TLS) id 15.0.1395.4; Fri, 16 Aug
- 2019 10:00:37 -0700
-Subject: Re: [PATCH net-next,v4 08/12] drivers: net: use flow block API
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-CC:     <netdev@vger.kernel.org>, <netfilter-devel@vger.kernel.org>
-References: <20190709205550.3160-1-pablo@netfilter.org>
- <20190709205550.3160-9-pablo@netfilter.org>
- <75eec70e-60de-e33b-aea0-be595ca625f4@solarflare.com>
- <20190813195126.ilwtoljk2csco73m@salvia>
- <b3232864-3800-e2a4-9ee3-2cfcf222a148@solarflare.com>
- <20190816010421.if6mbyl2n3fsujy4@salvia>
-From:   Edward Cree <ecree@solarflare.com>
-Message-ID: <cb418901-2f09-3c0e-c87a-83d97f222179@solarflare.com>
-Date:   Fri, 16 Aug 2019 18:00:35 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.7.0
+        Fri, 16 Aug 2019 13:45:19 -0400
+Received: by mail-pl1-f196.google.com with SMTP id z3so2735582pln.6;
+        Fri, 16 Aug 2019 10:45:19 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=RyCXVhRN+ce8wTQS17+Ol/8skNZ2vgCgTWCjwmTFLGM=;
+        b=dc+uFNYUI5lcwQJgLQMs1y4B8iUf6H+6kx3JMIVyf3nUO/7W+6YbukJIvtuXg4dgD8
+         sMAa4o6wjL5QkbYthTKS2+TjEWtLxXzkk5Tqn4mnaT4wUkDOTjjOpS2TAoSjJeLjaBiA
+         QJ5v3Xh/oJkro4YN8vKN/aASH/bKNWvzZ2PLZ5/gmKMjapQ9PT12q3TtepGRz0wYUCip
+         WosCcYiaViTuDmvekvY0eJ+BJPKAoRocbjnj9uOMMn4G3Ayk1ULae9fLZFNEjLAB75RL
+         2D9nAhTc9AzNR0B0YspUhkFpVI3LhUEhlTO6mM4WHdCKXoqvk+3wnFUWswwmb1Qw/RKr
+         uY6g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=RyCXVhRN+ce8wTQS17+Ol/8skNZ2vgCgTWCjwmTFLGM=;
+        b=CfTSYXJgeb6MCprqFa4lCPBgTdyp8o3IRbUE7KITQuyT6dkFUohtJl0LQfTwJI4qJ6
+         rzYBEdF7Kj9IBTLIs+TyOqYNPWXAqWixc5fZnCfNvbLlG2ELuHZxrrMJFgCYdx5Lnu4I
+         7A16bR8MGgNQMUkfq5y7u/WK9Th+PwCSLOz/6OFvtigdoRVp2VNZtWZ+fQojpbdjKyW7
+         pYKMQEZXGHVnK9GTX2NgQeDg9quU7CmoVbn70ZXcMZaWLihhi6TEzIRx3JjPjTuBT4Gg
+         W/GEtNWohHOwL3y5xAdLD6/QuKPOe8HcmEJ1tH2yUWRHZBwA6xRYdx2AZh6+cyvCNkKq
+         9l+A==
+X-Gm-Message-State: APjAAAXY+5NBFH8z69w61uvcpJrYQN4GGmsVFjbp4roo5V4BwwRX0rNN
+        rY7tMRtT5RtKi2JfTIQcRo1qXKjkbH+KOkN4bJKgDA==
+X-Google-Smtp-Source: APXvYqw8xOpt4KdjG/NA/xWzu6Qn+d25WhlD671OL0tFrbTkmVj/CgAzSbdLTMHFFNusj8zIv4XiYN1tkSp2JuMET/c=
+X-Received: by 2002:a17:902:7286:: with SMTP id d6mr10489652pll.61.1565977519072;
+ Fri, 16 Aug 2019 10:45:19 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <20190816010421.if6mbyl2n3fsujy4@salvia>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Content-Language: en-GB
-X-Originating-IP: [10.17.20.203]
-X-TM-AS-Product-Ver: SMEX-12.5.0.1300-8.5.1010-24850.005
-X-TM-AS-Result: No-17.631200-4.000000-10
-X-TMASE-MatchedRID: vbSD0OnL8/IbF9xF7zzuNfZvT2zYoYOwC/ExpXrHizxQKAQSutQYXKUT
-        uBQ/WRv/Rmq6mybPcBr/9pPsp96lqXiIda1vG1h51TY/cLrxiVC/CiKQLeaSpGmycYYiBYyZILq
-        t4bmdQTtN7UiX+gj8LbII776sEiWuv6wwCZk9Fh3M0ihsfYPMYQeCHewokHM/UjFJwpdmcrQst6
-        tMNaxmZmex7oMSouhbrsrGNSvpRG/gErZj0q1t0ksh+mzT1Unb+ZfOn+32vrCiaaypnafKT+zCD
-        xuJUSyYq2qzz7SL4uIYGx31AH7WFezhkZcJwPyQwtE16arXsSIYgyDj5TiRtdDxDdXabYEQdDtz
-        +zUSeR/GRm8c+FYCvOsya+QbLx9hJFTEHHYFNqmdONTJNTrm6VsP0tBwe3qDniNY8Fl2niPtGy4
-        6TELGyOfOVcxjDhcwAYt5KiTiutkLbigRnpKlKSPzRlrdFGDw4fEP9CRM1HIM47kgokJV0Ep/wR
-        2UqiAzSxbygo6SCJooIsuzl5ygNg==
-X-TM-AS-User-Approved-Sender: No
-X-TM-AS-User-Blocked-Sender: No
-X-TMASE-Result: 10--17.631200-4.000000
-X-TMASE-Version: SMEX-12.5.0.1300-8.5.1010-24850.005
-X-MDID: 1565974841-ghlOeUhOYh2E
+References: <CAA5aLPhf1=wzQG0BAonhR3td-RhEmXaczug8n4hzXCzreb+52g@mail.gmail.com>
+In-Reply-To: <CAA5aLPhf1=wzQG0BAonhR3td-RhEmXaczug8n4hzXCzreb+52g@mail.gmail.com>
+From:   Cong Wang <xiyou.wangcong@gmail.com>
+Date:   Fri, 16 Aug 2019 10:45:07 -0700
+Message-ID: <CAM_iQpVyEtOGd5LbyGcSNKCn5XzT8+Ouup26fvE1yp7T5aLSjg@mail.gmail.com>
+Subject: Re: Unable to create htb tc classes more than 64K
+To:     Akshat Kakkar <akshat.1984@gmail.com>
+Cc:     NetFilter <netfilter-devel@vger.kernel.org>,
+        lartc <lartc@vger.kernel.org>, netdev <netdev@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 16/08/2019 02:04, Pablo Neira Ayuso wrote:
-> On Wed, Aug 14, 2019 at 05:17:20PM +0100, Edward Cree wrote:
->> TBH I'm still not clear why you need a flow_block per subsystem, rather than
->>  just having multiple subsystems feed their offload requests through the same
->>  flow_block but with different enum tc_setup_type or enum tc_fl_command or
->>  some other indication that this is "netfilter" rather than "tc" asking for a
->>  tc_cls_flower_offload.
-> In tc, the flow_block is set up by when the ingress qdisc is
-> registered. The usual scenario for most drivers is to have one single
-> flow_block per registered ingress qdisc, this makes a 1:1 mapping
-> between ingress qdisc and flow_block.
+On Fri, Aug 16, 2019 at 5:49 AM Akshat Kakkar <akshat.1984@gmail.com> wrote:
 >
-> Still, you can register two or more ingress qdiscs to make them share
-> the same policy via 'tc block'. In that case all those qdiscs use one
-> single flow_block. This makes a N:1 mapping between these qdisc
-> ingress and the flow_block. This policy applies to all ingress qdiscs
-> that are part of the same tc block. By 'tc block', I'm refering to the
-> tcf_block structure.
->
-> In netfilter, there are ingress basechains that are registered per
-> device. Each basechain gets a flow_block by when the basechain is
-> registered. Shared blocks as in tcf_block are not yet supported, but
-> it should not be hard to extend it to make this work.
->
-> To reuse the same flow_block as entry point for all subsystems as your
-> propose - assuming offloads for two or more subsystems are in place -
-> then all of them would need to have the same block sharing
-> configuration, which might not be the case, ie. tc ingress might have
-> a eth0 and eth1 use the same policy via flow_block, while netfilter
-> might have one basechain for eth0 and another for eth1 (no policy
-> sharing).
-Thank you, that's very helpful.
+> I want to have around 1 Million htb tc classes.
+> The simple structure of htb tc class, allow having only 64K classes at once.
 
->> This really needs a design document explaining what all the bits are, how
->>  they fit together, and why they need to be like that.
-> I did not design this flow_block abstraction, this concept was already
-> in place under a different name and extend it so the ethtool/netfilter
-> subsystems to avoid driver code duplication for offloads.
-It's more the new implementation that you've created as part of this
- extension that I was asking about, although I agree that the
- abstraction that already existed is in need of documentation too.
+This is probably due the limit of class ID which is 16bit for minor.
+
+
+> But, it is possible to make it more hierarchical using hierarchy of
+> qdisc and classes.
+> For this I tried something like this
+>
+> tc qdisc add dev eno2 root handle 100: htb
+> tc class add dev eno2 parent 100: classid 100:1 htb rate 100Mbps
+> tc class add dev eno2 parent 100: classid 100:2 htb rate 100Mbps
+>
+> tc qdisc add dev eno2 parent 100:1 handle 1: htb
+> tc class add dev eno2 parent 1: classid 1:10 htb rate 100kbps
+> tc class add dev eno2 parent 1: classid 1:20 htb rate 300kbps
+>
+> tc qdisc add dev eno2 parent 100:2 handle 2: htb
+> tc class add dev eno2 parent 2: classid 2:10 htb rate 100kbps
+> tc class add dev eno2 parent 2: classid 2:20 htb rate 300kbps
+>
+> What I want is something like:
+> tc filter add dev eno2 parent 100: protocol ip prio 1 handle
+> 0x00000001 fw flowid 1:10
+> tc filter add dev eno2 parent 100: protocol ip prio 1 handle
+> 0x00000002 fw flowid 1:20
+> tc filter add dev eno2 parent 100: protocol ip prio 1 handle
+> 0x00000003 fw flowid 2:10
+> tc filter add dev eno2 parent 100: protocol ip prio 1 handle
+> 0x00000004 fw flowid 2:20
+>
+> But I am unable to shape my traffic by any of 1:10, 1:20, 2:10 or 2:20.
+>
+> Can you please suggest, where is it going wrong?
+> Is it not possible altogether?
+
+The filter could only filter for classes on the same level, you are
+trying to filter for the children classes, which doesn't work.
+
+Thanks.
