@@ -6,29 +6,29 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 74578C3A59C
-	for <netfilter-devel@archiver.kernel.org>; Fri, 16 Aug 2019 14:45:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D823C3A59C
+	for <netfilter-devel@archiver.kernel.org>; Fri, 16 Aug 2019 14:45:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 553E9206C1
-	for <netfilter-devel@archiver.kernel.org>; Fri, 16 Aug 2019 14:45:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 10F0E206C1
+	for <netfilter-devel@archiver.kernel.org>; Fri, 16 Aug 2019 14:45:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727359AbfHPOpE (ORCPT
+        id S1727362AbfHPOpH (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 16 Aug 2019 10:45:04 -0400
-Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:46180 "EHLO
+        Fri, 16 Aug 2019 10:45:07 -0400
+Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:46184 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727291AbfHPOpD (ORCPT
+        by vger.kernel.org with ESMTP id S1727291AbfHPOpH (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 16 Aug 2019 10:45:03 -0400
+        Fri, 16 Aug 2019 10:45:07 -0400
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.89)
         (envelope-from <fw@breakpoint.cc>)
-        id 1hydTS-0002oG-13; Fri, 16 Aug 2019 16:45:02 +0200
+        id 1hydTW-0002oZ-6r; Fri, 16 Aug 2019 16:45:06 +0200
 From:   Florian Westphal <fw@strlen.de>
 To:     <netfilter-devel@vger.kernel.org>
 Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nftables 4/8] src: parser: add syntax to provide bitsize for non-spcific types
-Date:   Fri, 16 Aug 2019 16:42:37 +0200
-Message-Id: <20190816144241.11469-5-fw@strlen.de>
+Subject: [PATCH nftables 5/8] src: add "typeof" keyword
+Date:   Fri, 16 Aug 2019 16:42:38 +0200
+Message-Id: <20190816144241.11469-6-fw@strlen.de>
 X-Mailer: git-send-email 2.21.0
 In-Reply-To: <20190816144241.11469-1-fw@strlen.de>
 References: <20190816144241.11469-1-fw@strlen.de>
@@ -39,92 +39,72 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This allows creation of sets with string and integer types by
-providing the datatype width using a comma, e.g.
+This allows users to specify named sets by using the expression
+directly, rather than having to lookup the data type to use, or
+the needed size via 'nft describe".
 
-"type string, 64" or "integer, 32".
+Example:
 
-This is mainly intended as a fallback for the upcoming "typeof"
-keyword -- if we can't make sense of the kernel provided type
-(or its missing entirely), we can then fallback to this format.
+table filter {
+    set allowed_dports {
+        type typeof(tcp dport);
+    }
+    map nametomark {
+        type typeof(osf name) : typeof(meta mark);
+    }
+    map port2helper {
+        type ipv4_addr . inet_service : typeof(ct helper);
+    }
+}
+
+Currently, listing such a table will lose the typeof() expression:
+
+nft will print the datatype instead, just as if "type inet_service"
+would have been used.
+
+For types with non-fixed widths, the new "type, width" format
+added in previous patch is used.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- src/parser_bison.y | 18 ++++++++++++++++++
- src/rule.c         | 24 +++++++++++++++++++-----
- 2 files changed, 37 insertions(+), 5 deletions(-)
+ src/parser_bison.y | 5 +++++
+ src/scanner.l      | 1 +
+ 2 files changed, 6 insertions(+)
 
 diff --git a/src/parser_bison.y b/src/parser_bison.y
-index c531ee1d1dd8..ee169fbac194 100644
+index ee169fbac194..876050ba6863 100644
 --- a/src/parser_bison.y
 +++ b/src/parser_bison.y
-@@ -1826,6 +1826,24 @@ data_type_atom_expr	:	type_identifier
- 							 dtype->size, NULL);
+@@ -192,6 +192,7 @@ int nft_lex(void *, void *, void *);
+ %token DEFINE			"define"
+ %token REDEFINE			"redefine"
+ %token UNDEFINE			"undefine"
++%token TYPEOF			"typeof"
+ 
+ %token FIB			"fib"
+ 
+@@ -1844,6 +1845,10 @@ data_type_atom_expr	:	type_identifier
+ 							 $3, NULL);
  				xfree($1);
  			}
-+			|	type_identifier	COMMA	NUM
++			|	TYPEOF	'('	primary_expr	')'
 +			{
-+				const struct datatype *dtype = datatype_lookup_byname($1);
-+				if (dtype == NULL) {
-+					erec_queue(error(&@1, "unknown datatype %s", $1),
-+						   state->msgs);
-+					YYERROR;
-+				}
-+
-+				if (dtype->size) {
-+					erec_queue(error(&@1, "Datatype %s has a fixed type", $1),
-+						   state->msgs);
-+					YYERROR;
-+				}
-+				$$ = constant_expr_alloc(&@1, dtype, dtype->byteorder,
-+							 $3, NULL);
-+				xfree($1);
++				$$ = $3;
 +			}
  			;
  
  data_type_expr		:	data_type_atom_expr
-diff --git a/src/rule.c b/src/rule.c
-index aee08ea12c8b..59369c9082a3 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -436,6 +436,16 @@ const char *set_policy2str(uint32_t policy)
- 	}
- }
+diff --git a/src/scanner.l b/src/scanner.l
+index c1adcbddbd73..cd563aa0ca1f 100644
+--- a/src/scanner.l
++++ b/src/scanner.l
+@@ -243,6 +243,7 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
+ "define"		{ return DEFINE; }
+ "redefine"		{ return REDEFINE; }
+ "undefine"		{ return UNDEFINE; }
++"typeof"		{ return TYPEOF; }
  
-+static void set_print_key(const struct expr *expr, struct output_ctx *octx)
-+{
-+	const struct datatype *dtype = expr->dtype;
-+
-+	if (dtype->size)
-+		nft_print(octx, " %s", dtype->name);
-+	else
-+		nft_print(octx, " %s,%d", dtype->name, expr->len);
-+}
-+
- static void set_print_declaration(const struct set *set,
- 				  struct print_fmt_options *opts,
- 				  struct output_ctx *octx)
-@@ -465,12 +475,16 @@ static void set_print_declaration(const struct set *set,
- 	if (nft_output_handle(octx))
- 		nft_print(octx, " # handle %" PRIu64, set->handle.handle.id);
- 	nft_print(octx, "%s", opts->nl);
--	nft_print(octx, "%s%stype %s",
--		  opts->tab, opts->tab, set->key->dtype->name);
--	if (set_is_datamap(set->flags))
--		nft_print(octx, " : %s", set->data->dtype->name);
--	else if (set_is_objmap(set->flags))
-+	nft_print(octx, "%s%stype ",
-+		  opts->tab, opts->tab);
-+	set_print_key(set->key, octx);
-+
-+	if (set_is_datamap(set->flags)) {
-+		nft_print(octx, " : ");
-+		set_print_key(set->data, octx);
-+	} else if (set_is_objmap(set->flags)) {
- 		nft_print(octx, " : %s", obj_type_name(set->objtype));
-+	}
- 
- 	nft_print(octx, "%s", opts->stmt_separator);
+ "describe"		{ return DESCRIBE; }
  
 -- 
 2.21.0
