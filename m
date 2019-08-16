@@ -2,98 +2,139 @@ Return-Path: <SRS0=Eqja=WM=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A0080C3A59C
-	for <netfilter-devel@archiver.kernel.org>; Fri, 16 Aug 2019 12:48:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1670DC3A59C
+	for <netfilter-devel@archiver.kernel.org>; Fri, 16 Aug 2019 13:10:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 773CB2086C
-	for <netfilter-devel@archiver.kernel.org>; Fri, 16 Aug 2019 12:48:34 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ulDEdRzE"
+	by mail.kernel.org (Postfix) with ESMTP id E8CFA20644
+	for <netfilter-devel@archiver.kernel.org>; Fri, 16 Aug 2019 13:10:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727199AbfHPMsc (ORCPT
+        id S1726752AbfHPNKd (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 16 Aug 2019 08:48:32 -0400
-Received: from mail-wr1-f68.google.com ([209.85.221.68]:35890 "EHLO
-        mail-wr1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726075AbfHPMsb (ORCPT
+        Fri, 16 Aug 2019 09:10:33 -0400
+Received: from m9784.mail.qiye.163.com ([220.181.97.84]:60949 "EHLO
+        m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726541AbfHPNKd (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 16 Aug 2019 08:48:31 -0400
-Received: by mail-wr1-f68.google.com with SMTP id r3so1445569wrt.3;
-        Fri, 16 Aug 2019 05:48:29 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:from:date:message-id:subject:to;
-        bh=gdVAyJbKzHtUas+0+o6fqj0G7LO7nGfIwyqZgFQ2Jtw=;
-        b=ulDEdRzEUH8ETwpn8XqY5dIWfukjD3mf4eRxumgFU7a4M6lHZLgdRr9KVpKtivzIja
-         1NGIK99AAUoB6w4anAwijNy+qRTcCcD7gLUqAWVfW61i43ioa3pQvBjzBUFHUpJoa0GA
-         BloO5UCchMPm+ojeiwQ1M8lxGfeOp9sCOotZ9wp7pEGpLr4EJHJW50B/T8xIinZZMd5R
-         odkILibkFT1tA6tPVrVGWntvbNQWvYjXu8aD+7SMn+iiPXpECFChuM/mnJ0ItMPBdWdo
-         6PxM6xeeQkWoop3hMXMU0PIXDm2gm7hGi+1ebw/utZTNNMJyHve1BlUlbI2KDbTuHWRw
-         mXlQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:from:date:message-id:subject:to;
-        bh=gdVAyJbKzHtUas+0+o6fqj0G7LO7nGfIwyqZgFQ2Jtw=;
-        b=VTYahtHsrTEalQ1x+JHVgtvqNThVDbzLY5puRQkWc933EdKqVoiEMfp9I7G8qkJU0A
-         stNVuGivftrbfzcSIzgHj1+jEciUCrcG/FGeZgDNvYbCZUDw851ExowyNx8NcWKAnJfr
-         /WRFPRwBGgu+aKmfevy+ts73UW8tH1w0vIrce2wwaXRny+imYfQWZ4M8IqsMqcD9LVJu
-         hPgUENGqOkCxq1mO1rLu6JCxvLkPxSVhCz9Uj0k0ceQebzB7FwZFFZT68fpcogOg0EHB
-         1bjcrbNwcibOjC5Xpok96z7K9EExaPOfW3s2bvGaC9G9AhNW8R4GGLC70j8/HoWt4fh5
-         4now==
-X-Gm-Message-State: APjAAAVrSU9HCjklkv8viTFyE0Gk1ovDpkpGEQxW0MKBz157Xs9RyPfx
-        QpfojvDL5RPX9ZvuMjZb+w77xabitA+SJkycy/fPCZxy
-X-Google-Smtp-Source: APXvYqyxPH9aW3FqUle7zpXisvCf3oR92FR+98HoNP1GDcJLjSwjgRGREyDzVFikQzHrJH6doZBVE16aErk2H47LvHo=
-X-Received: by 2002:adf:9043:: with SMTP id h61mr4366047wrh.247.1565959708854;
- Fri, 16 Aug 2019 05:48:28 -0700 (PDT)
-MIME-Version: 1.0
-From:   Akshat Kakkar <akshat.1984@gmail.com>
-Date:   Fri, 16 Aug 2019 18:18:21 +0530
-Message-ID: <CAA5aLPhf1=wzQG0BAonhR3td-RhEmXaczug8n4hzXCzreb+52g@mail.gmail.com>
-Subject: Unable to create htb tc classes more than 64K
-To:     netfilter-devel@vger.kernel.org, lartc <lartc@vger.kernel.org>,
-        netdev <netdev@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+        Fri, 16 Aug 2019 09:10:33 -0400
+Received: from localhost.localdomain (unknown [123.59.132.129])
+        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id B64BE41B46;
+        Fri, 16 Aug 2019 21:10:27 +0800 (CST)
+From:   wenxu@ucloud.cn
+To:     pablo@netfilter.org
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nft v3] meta: add ibrpvid and ibrvproto support
+Date:   Fri, 16 Aug 2019 21:10:26 +0800
+Message-Id: <1565961026-27741-1-git-send-email-wenxu@ucloud.cn>
+X-Mailer: git-send-email 1.8.3.1
+X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZSVVPSEtCQkJCQk9JTExCTllXWShZQU
+        lCN1dZLVlBSVdZCQ4XHghZQVk1NCk2OjckKS43PlkG
+X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6Kxg6MSo4KTgzDzkzDkIxVjRP
+        ORdPFCFVSlVKTk1OQk1KS0lMQ0lMVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJSFVO
+        QlVKSElVSklCWVdZCAFZQUhKQ0k3Bg++
+X-HM-Tid: 0a6c9a8d00ab2086kuqyb64be41b46
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-I want to have around 1 Million htb tc classes.
-The simple structure of htb tc class, allow having only 64K classes at once.
-But, it is possible to make it more hierarchical using hierarchy of
-qdisc and classes.
-For this I tried something like this
+From: wenxu <wenxu@ucloud.cn>
 
-tc qdisc add dev eno2 root handle 100: htb
-tc class add dev eno2 parent 100: classid 100:1 htb rate 100Mbps
-tc class add dev eno2 parent 100: classid 100:2 htb rate 100Mbps
+This allows you to match the bridge pvid and vlan protocol, for
+instance:
 
-tc qdisc add dev eno2 parent 100:1 handle 1: htb
-tc class add dev eno2 parent 1: classid 1:10 htb rate 100kbps
-tc class add dev eno2 parent 1: classid 1:20 htb rate 300kbps
+nft add rule bridge firewall zones meta ibrvproto 0x8100
+nft add rule bridge firewall zones meta ibrpvid 100
 
-tc qdisc add dev eno2 parent 100:2 handle 2: htb
-tc class add dev eno2 parent 2: classid 2:10 htb rate 100kbps
-tc class add dev eno2 parent 2: classid 2:20 htb rate 300kbps
+Signed-off-by: wenxu <wenxu@ucloud.cn>
+---
+ src/meta.c                     |  6 ++++++
+ tests/py/bridge/meta.t         |  2 ++
+ tests/py/bridge/meta.t.json    | 26 ++++++++++++++++++++++++++
+ tests/py/bridge/meta.t.payload |  9 +++++++++
+ 4 files changed, 43 insertions(+)
 
-What I want is something like:
-tc filter add dev eno2 parent 100: protocol ip prio 1 handle
-0x00000001 fw flowid 1:10
-tc filter add dev eno2 parent 100: protocol ip prio 1 handle
-0x00000002 fw flowid 1:20
-tc filter add dev eno2 parent 100: protocol ip prio 1 handle
-0x00000003 fw flowid 2:10
-tc filter add dev eno2 parent 100: protocol ip prio 1 handle
-0x00000004 fw flowid 2:20
+diff --git a/src/meta.c b/src/meta.c
+index 5901c99..d45d757 100644
+--- a/src/meta.c
++++ b/src/meta.c
+@@ -442,6 +442,12 @@ const struct meta_template meta_templates[] = {
+ 	[NFT_META_OIFKIND]	= META_TEMPLATE("oifkind",   &ifname_type,
+ 						IFNAMSIZ * BITS_PER_BYTE,
+ 						BYTEORDER_HOST_ENDIAN),
++	[NFT_META_BRI_IIFPVID]	= META_TEMPLATE("ibrpvid",   &integer_type,
++						2 * BITS_PER_BYTE,
++						BYTEORDER_HOST_ENDIAN),
++	[NFT_META_BRI_IIFVPROTO] = META_TEMPLATE("ibrvproto",   &integer_type,
++						2 * BITS_PER_BYTE,
++						BYTEORDER_HOST_ENDIAN),
+ };
+ 
+ static bool meta_key_is_unqualified(enum nft_meta_keys key)
+diff --git a/tests/py/bridge/meta.t b/tests/py/bridge/meta.t
+index 88e819f..d9fb681 100644
+--- a/tests/py/bridge/meta.t
++++ b/tests/py/bridge/meta.t
+@@ -4,3 +4,5 @@
+ 
+ meta obrname "br0";ok
+ meta ibrname "br0";ok
++meta ibrvproto 0x8100;ok
++meta ibrpvid 100;ok
+diff --git a/tests/py/bridge/meta.t.json b/tests/py/bridge/meta.t.json
+index 5df4773..0a5e64a 100644
+--- a/tests/py/bridge/meta.t.json
++++ b/tests/py/bridge/meta.t.json
+@@ -23,3 +23,29 @@
+         }
+     }
+ ]
++
++# meta ibrvproto 0x8100
++[
++    {
++        "match": {
++            "left": {
++                "meta": { "key": "ibrvproto" }
++            },
++	    "op": "==",
++            "right": 0x8100
++        }
++    }
++]
++
++# meta ibrpvid 100
++[
++    {
++        "match": {
++            "left": {
++                "meta": { "key": "ibrpvid" }
++            },
++	    "op": "==",
++            "right": 100
++        }
++    }
++]
+diff --git a/tests/py/bridge/meta.t.payload b/tests/py/bridge/meta.t.payload
+index 0f0d101..e5793a9 100644
+--- a/tests/py/bridge/meta.t.payload
++++ b/tests/py/bridge/meta.t.payload
+@@ -8,3 +8,12 @@ bridge test-bridge input
+   [ meta load bri_iifname => reg 1 ]
+   [ cmp eq reg 1 0x00307262 0x00000000 0x00000000 0x00000000 ]
+ 
++# meta ibrvproto 0x8100
++bridge test-bridge input
++  [ meta load bri_iifvproto => reg 1 ]
++  [ cmp eq reg 1 0x00008100 ]
++
++# meta ibrpvid 100
++bridge test-bridge input
++  [ meta load bri_iifpvid => reg 1 ]
++  [ cmp eq reg 1 0x00000064 ]
+-- 
+2.15.1
 
-But I am unable to shape my traffic by any of 1:10, 1:20, 2:10 or 2:20.
-
-Can you please suggest, where is it going wrong?
-Is it not possible altogether?
-
--Akshat
