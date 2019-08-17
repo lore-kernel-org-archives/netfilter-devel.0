@@ -1,95 +1,213 @@
-Return-Path: <SRS0=Eqja=WM=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=n2xU=WN=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.7 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 850D3C3A59F
-	for <netfilter-devel@archiver.kernel.org>; Fri, 16 Aug 2019 19:44:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C96AAC3A59D
+	for <netfilter-devel@archiver.kernel.org>; Sat, 17 Aug 2019 01:27:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5C5CC2171F
-	for <netfilter-devel@archiver.kernel.org>; Fri, 16 Aug 2019 19:44:59 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=netronome-com.20150623.gappssmtp.com header.i=@netronome-com.20150623.gappssmtp.com header.b="inuomRVS"
+	by mail.kernel.org (Postfix) with ESMTP id A3260205F4
+	for <netfilter-devel@archiver.kernel.org>; Sat, 17 Aug 2019 01:27:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727650AbfHPTo5 (ORCPT
+        id S1725937AbfHQB1i (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 16 Aug 2019 15:44:57 -0400
-Received: from mail-qt1-f196.google.com ([209.85.160.196]:46206 "EHLO
-        mail-qt1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727602AbfHPTo5 (ORCPT
+        Fri, 16 Aug 2019 21:27:38 -0400
+Received: from mail105.syd.optusnet.com.au ([211.29.132.249]:40719 "EHLO
+        mail105.syd.optusnet.com.au" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725829AbfHQB1i (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 16 Aug 2019 15:44:57 -0400
-Received: by mail-qt1-f196.google.com with SMTP id j15so7287635qtl.13
-        for <netfilter-devel@vger.kernel.org>; Fri, 16 Aug 2019 12:44:57 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=netronome-com.20150623.gappssmtp.com; s=20150623;
-        h=date:from:to:cc:subject:message-id:in-reply-to:references
-         :organization:mime-version:content-transfer-encoding;
-        bh=8oUD8uoK0U6eFOyqa1XdhinrbHHTjvt4vpE48z+ZU84=;
-        b=inuomRVSW6pUNWICL/LbsTDKMo3RFuU0MwjtDwAmZ/ul11E1NZ00LJ9DyRk41zY7lH
-         PQ5mS8WIPGJ29Idzv+lEjxBYaVGUxS9PuoKSanjPK2Poegc5eDbP7ikPdo1Tiy+MJjXu
-         eZ8l20Gl0bj5tazFxsSjC6tyIlmsk7WiKl92eX/F3xrnwknxfylLwY3aLo5tMaI0pq8D
-         cVzR/9gp/hTp1UMuo90lvfHQKlvMhIMIATbq9g+j69oPL6NkS9Hd0qYCy95O6wlEvUXj
-         iXQWU+RXsym8ifNA4Z3SbfEy6DoQK8hsnrkJvTgiLqUJS5DSaSaJk7lhdBIHbBZsXGd6
-         j6Ow==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:in-reply-to
-         :references:organization:mime-version:content-transfer-encoding;
-        bh=8oUD8uoK0U6eFOyqa1XdhinrbHHTjvt4vpE48z+ZU84=;
-        b=a5v8I2GdrmIeN0Ct6AncMm6SfQZ2NvD+1hsqXB/+oJ2BTZ6wctNc11QBBOudsT22PC
-         Y5MVy03s06enp/B5sSzDD5+bgg/A9PFX3qXDui7m860e8QPjgy3HneOZ4M+UdkXmjd3p
-         Ysi9myy104n+XHpKHMzkugt9qY7qSlIwmQYaEp1+CIIhGkn9cmGKt0Ylxk193poELUmX
-         KUy9R1HXNYZZsv/c922elDvgKOnzZTT44R2ty1qGrPAT6CMJ1WtpbwDHa6xStb94lnvD
-         2cdpv5A1yu9ZUjfiTngZrquwqOHR5k0GOFeShpXg+ESAmAai4BWi6/ieL6f3ZBvleHs0
-         icAA==
-X-Gm-Message-State: APjAAAXWgMu7D4zE2fR1GestQ/ABTfO9rxs18uYlqnlTsLkEH42Nrs/Z
-        aTCng1bXgNoX626EPOhKmTPzMA==
-X-Google-Smtp-Source: APXvYqyThjW/BK3sV6h6FsEOIUaTM8wHYUa/3RM+1cvkwCZoYYzkocQGFjDKyvknq7JuMpiGF8phpg==
-X-Received: by 2002:ac8:376c:: with SMTP id p41mr10458702qtb.306.1565984696577;
-        Fri, 16 Aug 2019 12:44:56 -0700 (PDT)
-Received: from cakuba.netronome.com ([66.60.152.14])
-        by smtp.gmail.com with ESMTPSA id m8sm3812416qti.97.2019.08.16.12.44.54
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 16 Aug 2019 12:44:56 -0700 (PDT)
-Date:   Fri, 16 Aug 2019 12:44:39 -0700
-From:   Jakub Kicinski <jakub.kicinski@netronome.com>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org, marcelo.leitner@gmail.com,
-        jiri@resnulli.us, wenxu@ucloud.cn, saeedm@mellanox.com,
-        paulb@mellanox.com, gerlitz.or@gmail.com
-Subject: Re: [PATCH net,v5 2/2] netfilter: nf_tables: map basechain priority
- to hardware priority
-Message-ID: <20190816124439.7cc166c1@cakuba.netronome.com>
-In-Reply-To: <20190816012410.31844-3-pablo@netfilter.org>
-References: <20190816012410.31844-1-pablo@netfilter.org>
-        <20190816012410.31844-3-pablo@netfilter.org>
-Organization: Netronome Systems, Ltd.
+        Fri, 16 Aug 2019 21:27:38 -0400
+X-Greylist: delayed 1347 seconds by postgrey-1.27 at vger.kernel.org; Fri, 16 Aug 2019 21:27:35 EDT
+Received: from dimstar.local.net (unknown [114.72.91.7])
+        by mail105.syd.optusnet.com.au (Postfix) with SMTP id B7B60361C5E
+        for <netfilter-devel@vger.kernel.org>; Sat, 17 Aug 2019 11:04:56 +1000 (AEST)
+Received: (qmail 26837 invoked by uid 501); 17 Aug 2019 01:04:51 -0000
+Date:   Sat, 17 Aug 2019 11:04:51 +1000
+From:   Duncan Roe <duncan_roe@optusnet.com.au>
+To:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH conntrack-tools] src: fix strncpy -Wstringop-truncation
+ warnings
+Message-ID: <20190817010451.GA4911@dimstar.local.net>
+Mail-Followup-To: netfilter-devel@vger.kernel.org
+References: <20190816092511.830-1-guigom@riseup.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190816092511.830-1-guigom@riseup.net>
+User-Agent: Mutt/1.10.1 (2018-07-13)
+X-Optus-CM-Score: 0
+X-Optus-CM-Analysis: v=2.2 cv=D+Q3ErZj c=1 sm=1 tr=0
+        a=j7Z9DUGHOYSlcI8coM27+w==:117 a=j7Z9DUGHOYSlcI8coM27+w==:17
+        a=jpOVt7BSZ2e4Z31A5e1TngXxSK0=:19 a=kj9zAlcOel0A:10 a=FmdZ9Uzk2mMA:10
+        a=bBqXziUQAAAA:8 a=higmGc5uha10EgAAnhcA:9 a=BE1EReVqkM0DrJgs:21
+        a=iLd4QAoMwaXBxHLJ:21 a=CjuIK1q_8ugA:10 a=BjKv_IHbNJvPKzgot4uq:22
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, 16 Aug 2019 03:24:10 +0200, Pablo Neira Ayuso wrote:
-> This patch adds initial support for offloading basechains using the
-> priority range from 1 to 65535. This is restricting the netfilter
-> priority range to 16-bit integer since this is what most drivers assume
-> so far from tc. It should be possible to extend this range of supported
-> priorities later on once drivers are updated to support for 32-bit
-> integer priorities.
-> 
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> ---
-> v5: fix clang warning by simplifying the mapping of hardware priorities
->     to basechain priority in the range of 1-65535. Zero is left behind
->     since some drivers do not support this, no negative basechain
->     priorities are used at this stage.
+Hi Jose,
 
-LGTM.
+PLEASE DO NOT DO THIS! See at end
+
+On Fri, Aug 16, 2019 at 11:25:11AM +0200, Jose M. Guisado Gomez wrote:
+> -Wstringop-truncation warning was introduced in GCC-8 as truncation
+> checker for strncpy and strncat.
+>
+> Systems using gcc version >= 8 would receive the following warnings:
+>
+> read_config_yy.c: In function ???yyparse???:
+> read_config_yy.y:1594:2: warning: ???strncpy??? specified bound 16 equals destination size [-Wstringop-truncation]
+>  1594 |  strncpy(policy->name, $2, CTD_HELPER_NAME_LEN);
+>       |  ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> read_config_yy.y:1384:2: warning: ???strncpy??? specified bound 256 equals destination size [-Wstringop-truncation]
+>  1384 |  strncpy(conf.stats.logfile, $2, FILENAME_MAXLEN);
+>       |  ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> read_config_yy.y:692:2: warning: ???strncpy??? specified bound 108 equals destination size [-Wstringop-truncation]
+>   692 |  strncpy(conf.local.path, $2, UNIX_PATH_MAX);
+>       |  ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> read_config_yy.y:169:2: warning: ???strncpy??? specified bound 256 equals destination size [-Wstringop-truncation]
+>   169 |  strncpy(conf.lockfile, $2, FILENAME_MAXLEN);
+>       |  ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> read_config_yy.y:119:2: warning: ???strncpy??? specified bound 256 equals destination size [-Wstringop-truncation]
+>   119 |  strncpy(conf.logfile, $2, FILENAME_MAXLEN);
+>       |  ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+>
+> main.c: In function ???main???:
+> main.c:168:5: warning: ???strncpy??? specified bound 4096 equals destination size [-Wstringop-truncation]
+>   168 |     strncpy(config_file, argv[i], PATH_MAX);
+>       |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+>
+> Fix the issue by checking for string length first. Also using
+> snprintf instead.
+>
+> In addition, correct an off-by-one when warning about maximum config
+> file path length.
+>
+> Signed-off-by: Jose M. Guisado Gomez <guigom@riseup.net>
+> ---
+>  src/main.c           |  4 ++--
+>  src/read_config_yy.y | 35 +++++++++++++++++++++++++++--------
+>  2 files changed, 29 insertions(+), 10 deletions(-)
+>
+> diff --git a/src/main.c b/src/main.c
+> index 7062e12..d4fbbfa 100644
+> --- a/src/main.c
+> +++ b/src/main.c
+> @@ -165,13 +165,13 @@ int main(int argc, char *argv[])
+>  			break;
+>  		case 'C':
+>  			if (++i < argc) {
+> -				strncpy(config_file, argv[i], PATH_MAX);
+>  				if (strlen(argv[i]) >= PATH_MAX){
+>  					config_file[PATH_MAX-1]='\0';
+>  					dlog(LOG_WARNING, "Path to config file"
+>  					     " to long. Cutting it down to %d"
+> -					     " characters", PATH_MAX);
+> +					     " characters", PATH_MAX - 1);
+>  				}
+> +				snprintf(config_file, PATH_MAX, "%.*s", PATH_MAX - 1, argv[i]);
+>  				break;
+>  			}
+>  			show_usage(argv[0]);
+> diff --git a/src/read_config_yy.y b/src/read_config_yy.y
+> index 4311cd6..696a86d 100644
+> --- a/src/read_config_yy.y
+> +++ b/src/read_config_yy.y
+> @@ -116,7 +116,12 @@ logfile_bool : T_LOG T_OFF
+>
+>  logfile_path : T_LOG T_PATH_VAL
+>  {
+> -	strncpy(conf.logfile, $2, FILENAME_MAXLEN);
+> +	if (strlen($2) >= FILENAME_MAXLEN) {
+> +		dlog(LOG_ERR, "Filename is longer than %u characters",
+> +		     FILENAME_MAXLEN - 1);
+> +		exit(EXIT_FAILURE);
+> +	}
+> +	snprintf(conf.logfile, FILENAME_MAXLEN, "%.*s", FILENAME_MAXLEN - 1, $2);
+>  	free($2);
+>  };
+>
+> @@ -166,7 +171,12 @@ syslog_facility : T_SYSLOG T_STRING
+>
+>  lock : T_LOCK T_PATH_VAL
+>  {
+> -	strncpy(conf.lockfile, $2, FILENAME_MAXLEN);
+> +	if (strlen($2) >= FILENAME_MAXLEN) {
+> +		dlog(LOG_ERR, "Filename is longer than %u characters",
+> +		     FILENAME_MAXLEN - 1);
+> +		exit(EXIT_FAILURE);
+> +	}
+> +	snprintf(conf.lockfile, FILENAME_MAXLEN, "%.*s", FILENAME_MAXLEN - 1, $2);
+>  	free($2);
+>  };
+>
+> @@ -689,13 +699,13 @@ unix_options:
+>
+>  unix_option : T_PATH T_PATH_VAL
+>  {
+> -	strncpy(conf.local.path, $2, UNIX_PATH_MAX);
+> -	free($2);
+> -	if (conf.local.path[UNIX_PATH_MAX - 1]) {
+> +	if (strlen($2) >= UNIX_PATH_MAX) {
+>  		dlog(LOG_ERR, "UNIX Path is longer than %u characters",
+>  		     UNIX_PATH_MAX - 1);
+>  		exit(EXIT_FAILURE);
+>  	}
+> +	snprintf(conf.local.path, UNIX_PATH_MAX, "%.*s", UNIX_PATH_MAX - 1, $2);
+> +	free($2);
+>  };
+>
+>  unix_option : T_BACKLOG T_NUMBER
+> @@ -1381,7 +1391,12 @@ stat_logfile_bool : T_LOG T_OFF
+>
+>  stat_logfile_path : T_LOG T_PATH_VAL
+>  {
+> -	strncpy(conf.stats.logfile, $2, FILENAME_MAXLEN);
+> +	if (strlen($2) >= FILENAME_MAXLEN) {
+> +		dlog(LOG_ERR, "Log file path is longer than %u characters",
+> +		     FILENAME_MAXLEN - 1);
+> +		exit(EXIT_FAILURE);
+> +	}
+> +	snprintf(conf.stats.logfile, FILENAME_MAXLEN, "%.*s", FILENAME_MAXLEN - 1, $2);
+>  	free($2);
+>  };
+>
+> @@ -1589,11 +1604,15 @@ helper_type: T_HELPER_POLICY T_STRING '{' helper_policy_list '}'
+>  		exit(EXIT_FAILURE);
+>  		break;
+>  	}
+> +	if (strlen($2) >= CTD_HELPER_NAME_LEN) {
+> +		dlog(LOG_ERR, "CTD helper name is longer than %u characters",
+> +		     CTD_HELPER_NAME_LEN - 1);
+> +		exit(EXIT_FAILURE);
+> +	}
+>
+>  	policy = (struct ctd_helper_policy *) &e->data;
+> -	strncpy(policy->name, $2, CTD_HELPER_NAME_LEN);
+> +	snprintf(policy->name, CTD_HELPER_NAME_LEN, "%.*s", CTD_HELPER_NAME_LEN - 1, $2);
+>  	free($2);
+> -	policy->name[CTD_HELPER_NAME_LEN-1] = '\0';
+>  	/* Now object is complete. */
+>  	e->type = SYMBOL_HELPER_POLICY_EXPECT_ROOT;
+>  	stack_item_push(&symbol_stack, e);
+> --
+> 2.23.0.rc1
+>
+There is absolutely no need to change code to eliminate GCC warnings.
+
+If you are satisfied that the code is good, put these lines near the start, e.g.
+before any #include lines:
+
+> #pragma GCC diagnostic ignored "-Wpragmas"
+> #pragma GCC diagnostic ignored "-Wstringop-truncation"
+
+The first pragma stops old GCC compilers warning about the unrecognised second
+pragma
+
+The second pragma suppresses the new warning.
+
+Cheers ... Duncan.
