@@ -2,101 +2,114 @@ Return-Path: <SRS0=n2xU=WN=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+X-Spam-Status: No, score=-6.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E93B6C3A59F
-	for <netfilter-devel@archiver.kernel.org>; Sat, 17 Aug 2019 12:46:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A5E00C3A59B
+	for <netfilter-devel@archiver.kernel.org>; Sat, 17 Aug 2019 13:43:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BE6D62173B
-	for <netfilter-devel@archiver.kernel.org>; Sat, 17 Aug 2019 12:46:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6E21820880
+	for <netfilter-devel@archiver.kernel.org>; Sat, 17 Aug 2019 13:43:40 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="PY1uvxiY"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="kDeczDQU"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725965AbfHQMqW (ORCPT
+        id S1726012AbfHQNnk (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 17 Aug 2019 08:46:22 -0400
-Received: from mail-wr1-f50.google.com ([209.85.221.50]:42657 "EHLO
-        mail-wr1-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725832AbfHQMqV (ORCPT
+        Sat, 17 Aug 2019 09:43:40 -0400
+Received: from mail-io1-f68.google.com ([209.85.166.68]:35464 "EHLO
+        mail-io1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726004AbfHQNnj (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 17 Aug 2019 08:46:21 -0400
-Received: by mail-wr1-f50.google.com with SMTP id b16so4102876wrq.9;
-        Sat, 17 Aug 2019 05:46:19 -0700 (PDT)
+        Sat, 17 Aug 2019 09:43:39 -0400
+Received: by mail-io1-f68.google.com with SMTP id i22so11896919ioh.2
+        for <netfilter-devel@vger.kernel.org>; Sat, 17 Aug 2019 06:43:39 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=2pfNQGCh4bl0mf6scXIqLXLsi31gckxp3PKJLBvyYTg=;
-        b=PY1uvxiYFchcVO/vymSgiIaAMFTTfTQrsU4+DUupB4PEy2w4ui0VP0rB3sx4axUXNd
-         GeTBfL8vauDDt538K7+SChie9W97RTf4H8r6qfmMZ5KcXsPKkr1J0S0r+eUlMaxgzonc
-         +0d9wDkUpgTQWHAGIutiTFz9BsKklohtAbtjEN+kf/LkHw7myG7c+24t3WKRa//zUgHy
-         Rh3D2wtrZTaVEf/AdyIqPCCLqm9BxrrKV6/0e2ycGuDn1fegeOzubN96fH9q6zaedZ+2
-         UvAMX90EfgB7+RZlz6DijqNtJO99iMY39rCMpAlZlwnAeasjvlefcytktQjAnTH43UzN
-         8wfg==
+        bh=hvGFC1OdCZDcm//O9vnqLLa55K9y3UKTeVFr0x8drRw=;
+        b=kDeczDQUmJ9Vtf0Ol+77fn+H0oZUxqaLgeej+VI7sqwk6tYabP3Ntq/qseyZuORRS3
+         wRWEYyvA+Yc3UYbIlTMw9EQlu7fsHwskwSRUrqUeiKvQWffTU/fl3QQmN4Ae8f3AsMXG
+         zIBp4jfbn7EGEGOc9HLAB4/iTsz8hdO2IehfXr2JhlNNkJYI81Lf8OKSOq+tYA2FLSYs
+         sRpl82v5GslyT2I9ulSkmMNCCkgcSNmlLRW9BpzbIhAy1a5x28LCC3empW+BrlSf3m4e
+         bYSyIrt75VeV743Gkdp0bLaaORQgw5x2FLaJHiQx8EMyffmPuPlhicCkfuJCvOn4Ja2s
+         j4Pg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=2pfNQGCh4bl0mf6scXIqLXLsi31gckxp3PKJLBvyYTg=;
-        b=EhRfpftySNw4EnkOBrLhuziwJ3m/Tic0gQxVh82xTkOmBB9PRgYYWuA7qixzz9cOsp
-         5+73r5mMiU2r57wYIJ+pGgUFzUDLfwghQQDry8TDOTWv15+Rh82TImEX88GmiyBkrTfh
-         EdwvJMHIFtnPr/7s00CFca/eE0fTHJud1LB2u3IW8SlUzYHF7JhtL29QJwsNjjiV4NQb
-         /JVifGPLzpS9Aij+4AfPRUsZDK1H/WelmgjZL7zHnuyblRfgoImJ970h5vwi7FZ9Ac6L
-         mGB7k5CHd6qXD72kGNicQVVC080opaMhSREp7Yc9HySEKdOnVE8x4fs6cbV8AD/KpV+i
-         OY+Q==
-X-Gm-Message-State: APjAAAW065ptn3IfUwgH1wAuYAGimltGg1eVYvMluj1WtvbNhFQB9QZk
-        gfxq3BEugfTMFJ1MF4C83jR08KJ3vOCz7+0bJ36jmu7s
-X-Google-Smtp-Source: APXvYqzcahsc6U7mNTgJExlQl/MPBfE73r2bJmCpxK7jg2R3glGaGaCDzVvWTvZkJALgNWEzJEibXbyxM2l7aWKbM5k=
-X-Received: by 2002:a05:6000:110f:: with SMTP id z15mr15402092wrw.162.1566045979073;
- Sat, 17 Aug 2019 05:46:19 -0700 (PDT)
+        bh=hvGFC1OdCZDcm//O9vnqLLa55K9y3UKTeVFr0x8drRw=;
+        b=eiVBKAOS0LgPzeFoSfjImlOeZ/FQJ2ga6hbAR2mYdStUfzSRtjrwiythz+OGMVkJeo
+         Soth1vCUU7byCD4GR8ALdt4WT8oQQBVsyUkgr9YijlQHeJrVp6z2m+NtyKdpHNH34L3Q
+         uF2N1OLo2LNfTUUpmbG10nC6YAcpgDoQi5+w+/o/xhUAmTy/7PZxi/XSCCJ3Dp//LCDY
+         FGRQAi9GwL4q9pVCauylHG0SDP0m8++HUeSN7V7cZsPEQqtiuhA5AbtkWemF299p6R5q
+         uZHOZxof2Pjj9mvA41c9CUYGKQduhSy8GimaNiVYfrwgQQWC72ca9N2owrI6fmrd9Ngs
+         G4zA==
+X-Gm-Message-State: APjAAAXyqiUw8pCn+uykJAbXEy4f+C4e+zzK1KUYWSe2YQEZolPoe1OC
+        540Bqjth+b+sOXtevmEXFhu8Z++o7dBfcO/RedO1m8zo
+X-Google-Smtp-Source: APXvYqwOCDYuny3Z25Sn8lj2F4FvxKUK20JlGzTO6hJfWZEh03lL9aTZRn/8qqLiBTzwjSgmzlPG6xhZCDfL5Nw32UA=
+X-Received: by 2002:a02:22c6:: with SMTP id o189mr10828954jao.35.1566049418804;
+ Sat, 17 Aug 2019 06:43:38 -0700 (PDT)
 MIME-Version: 1.0
-References: <CAA5aLPhf1=wzQG0BAonhR3td-RhEmXaczug8n4hzXCzreb+52g@mail.gmail.com>
- <CAM_iQpVyEtOGd5LbyGcSNKCn5XzT8+Ouup26fvE1yp7T5aLSjg@mail.gmail.com>
-In-Reply-To: <CAM_iQpVyEtOGd5LbyGcSNKCn5XzT8+Ouup26fvE1yp7T5aLSjg@mail.gmail.com>
-From:   Akshat Kakkar <akshat.1984@gmail.com>
-Date:   Sat, 17 Aug 2019 18:16:19 +0530
-Message-ID: <CAA5aLPiqyhnWjY7A3xsaNJ71sDOf=Rqej8d+7=_PyJPmV9uApA@mail.gmail.com>
-Subject: Re: Unable to create htb tc classes more than 64K
-To:     Cong Wang <xiyou.wangcong@gmail.com>
-Cc:     NetFilter <netfilter-devel@vger.kernel.org>,
-        lartc <lartc@vger.kernel.org>, netdev <netdev@vger.kernel.org>
+References: <20190817111753.8756-1-a@juaristi.eus> <20190817111753.8756-2-a@juaristi.eus>
+In-Reply-To: <20190817111753.8756-2-a@juaristi.eus>
+From:   Jones Desougi <jones.desougi+netfilter@gmail.com>
+Date:   Sat, 17 Aug 2019 15:43:26 +0200
+Message-ID: <CAGdUbJFMCT9aXqPKVEVF-vvLzser+58R62mSZRZLRfaR5eJpSQ@mail.gmail.com>
+Subject: Re: [PATCH v5 2/2] netfilter: nft_meta: support for time matching
+To:     Ander Juaristi <a@juaristi.eus>
+Cc:     netfilter-devel@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-I agree that it is because of 16bit of minor I'd of class which
-restricts it to 64K.
-Point is, can we use multilevel qdisc and classes to extend it to more
-no. of classes i.e. to more than 64K classes
+The naming of the new meta keys seem a bit confusing.
 
-One scheme can be like
-                                      100: root qdisc
-                                         |
-                                       / | \
-                                     /   |   \
-                                   /     |     \
-                                 /       |       \
-                          100:1   100:2   100:3        child classes
-                            |              |           |
-                            |              |           |
-                            |              |           |
-                           1:            2:          3:     qdisc
-                           / \           / \           / \
-                         /     \                     /     \
-                      1:1    1:2             3:1      3:2 leaf classes
+On Sat, Aug 17, 2019 at 1:19 PM Ander Juaristi <a@juaristi.eus> wrote:
+>
+> This patch introduces meta matches in the kernel for time (a UNIX timestamp),
+> day (a day of week, represented as an integer between 0-6), and
+> hour (an hour in the current day, or: number of seconds since midnight).
+>
+> All values are taken as unsigned 64-bit integers.
+>
+> The 'time' keyword is internally converted to nanoseconds by nft in
+> userspace, and hence the timestamp is taken in nanoseconds as well.
+>
+> Signed-off-by: Ander Juaristi <a@juaristi.eus>
+> ---
+>  include/uapi/linux/netfilter/nf_tables.h |  6 ++++
+>  net/netfilter/nft_meta.c                 | 46 ++++++++++++++++++++++++
+>  2 files changed, 52 insertions(+)
+>
+> diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+> index 82abaa183fc3..b83b62eb4b01 100644
+> --- a/include/uapi/linux/netfilter/nf_tables.h
+> +++ b/include/uapi/linux/netfilter/nf_tables.h
+> @@ -799,6 +799,9 @@ enum nft_exthdr_attributes {
+>   * @NFT_META_OIFKIND: packet output interface kind name (dev->rtnl_link_ops->kind)
+>   * @NFT_META_BRI_IIFPVID: packet input bridge port pvid
+>   * @NFT_META_BRI_IIFVPROTO: packet input bridge vlan proto
+> + * @NFT_META_TIME_NS: time since epoch (in nanoseconds)
+> + * @NFT_META_TIME_DAY: day of week (from 0 = Sunday to 6 = Saturday)
 
-with all qdisc and classes defined as htb.
+This would be clearer as NFT_META_TIME_WEEKDAY. Just day can mean a
+lot of things.
+Matches nicely with the added nft_meta_weekday function too.
 
-Is this correct approach? Any alternative??
+> + * @NFT_META_TIME_HOUR: hour of day (in seconds)
 
-Besides, in order to direct traffic to leaf classes 1:1, 1:2, 2:1,
-2:2, 3:1, 3:2 .... , instead of using filters I am using ipset with
-skbprio and iptables map-set match rule.
-But even after all this it don't work. Why?
+This isn't really an hour, so why call it that (confuses unit at least)?
+Something like NFT_META_TIME_TIMEOFDAY? Alternatively TIMEINDAY.
+Presumably the added nft_meta_hour function also derives its name from
+this, but otherwise has nothing to do with hours.
 
-What I am missing?
+>   */
+>  enum nft_meta_keys {
+>         NFT_META_LEN,
+...
