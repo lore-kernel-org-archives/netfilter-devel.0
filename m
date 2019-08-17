@@ -2,141 +2,172 @@ Return-Path: <SRS0=n2xU=WN=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C3B4C3A59F
-	for <netfilter-devel@archiver.kernel.org>; Sat, 17 Aug 2019 11:18:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D1C5C3A59B
+	for <netfilter-devel@archiver.kernel.org>; Sat, 17 Aug 2019 11:27:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3B78F2173B
-	for <netfilter-devel@archiver.kernel.org>; Sat, 17 Aug 2019 11:18:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F3AC821019
+	for <netfilter-devel@archiver.kernel.org>; Sat, 17 Aug 2019 11:27:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725937AbfHQLSE (ORCPT
+        id S1725925AbfHQL1F (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 17 Aug 2019 07:18:04 -0400
-Received: from vxsys-smtpclusterma-05.srv.cat ([46.16.61.54]:60317 "EHLO
-        vxsys-smtpclusterma-05.srv.cat" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725784AbfHQLSE (ORCPT
+        Sat, 17 Aug 2019 07:27:05 -0400
+Received: from vxsys-smtpclusterma-02.srv.cat ([46.16.60.194]:47227 "EHLO
+        vxsys-smtpclusterma-02.srv.cat" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725889AbfHQL1F (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 17 Aug 2019 07:18:04 -0400
+        Sat, 17 Aug 2019 07:27:05 -0400
 Received: from localhost.localdomain (static-79-171-230-77.ipcom.comunitel.net [77.230.171.79])
-        by vxsys-smtpclusterma-05.srv.cat (Postfix) with ESMTPA id 7078424283
-        for <netfilter-devel@vger.kernel.org>; Sat, 17 Aug 2019 13:18:00 +0200 (CEST)
+        by vxsys-smtpclusterma-02.srv.cat (Postfix) with ESMTPA id E03EA24229
+        for <netfilter-devel@vger.kernel.org>; Sat, 17 Aug 2019 13:26:59 +0200 (CEST)
 From:   Ander Juaristi <a@juaristi.eus>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH v5 1/2] netfilter: Introduce new 64-bit helper functions
-Date:   Sat, 17 Aug 2019 13:17:52 +0200
-Message-Id: <20190817111753.8756-1-a@juaristi.eus>
+Subject: [PATCH v4] netfilter: nft_dynset: support for element deletion
+Date:   Sat, 17 Aug 2019 13:26:52 +0200
+Message-Id: <20190817112652.9413-1-a@juaristi.eus>
 X-Mailer: git-send-email 2.17.1
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Introduce new helper functions to load/store 64-bit values
-onto/from registers:
+This patch implements the delete operation from the ruleset.
 
- - nft_reg_store64
- - nft_reg_load64
-
-This commit also re-orders all these helpers from smallest
-to largest target bit size.
+It implements a new delete() function in nft_set_rhash. It is simpler
+to use than the already existing remove(), because it only takes the set
+and the key as arguments, whereas remove() expects a full
+nft_set_elem structure.
 
 Signed-off-by: Ander Juaristi <a@juaristi.eus>
 ---
- include/net/netfilter/nf_tables.h | 25 ++++++++++++++++++-------
- net/netfilter/nft_byteorder.c     |  9 +++++----
- 2 files changed, 23 insertions(+), 11 deletions(-)
+ include/net/netfilter/nf_tables.h        | 10 +++++++++-
+ include/uapi/linux/netfilter/nf_tables.h |  1 +
+ net/netfilter/nft_dynset.c               |  7 +++++++
+ net/netfilter/nft_set_hash.c             | 19 +++++++++++++++++++
+ 4 files changed, 36 insertions(+), 1 deletion(-)
 
 diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 9b624566b82d..298cf4528635 100644
+index 9e8493aad49d..d1f02f89913f 100644
 --- a/include/net/netfilter/nf_tables.h
 +++ b/include/net/netfilter/nf_tables.h
-@@ -2,6 +2,7 @@
- #ifndef _NET_NF_TABLES_H
- #define _NET_NF_TABLES_H
+@@ -287,17 +287,23 @@ struct nft_expr;
+  *	struct nft_set_ops - nf_tables set operations
+  *
+  *	@lookup: look up an element within the set
++ *	@update: update an element if exists, add it if doesn't exist
++ *	@delete: delete an element
+  *	@insert: insert new element into set
+  *	@activate: activate new element in the next generation
+  *	@deactivate: lookup for element and deactivate it in the next generation
+  *	@flush: deactivate element in the next generation
+  *	@remove: remove element from set
+- *	@walk: iterate over all set elemeennts
++ *	@walk: iterate over all set elements
+  *	@get: get set elements
+  *	@privsize: function to return size of set private data
+  *	@init: initialize private data of new set instance
+  *	@destroy: destroy private data of set instance
+  *	@elemsize: element private size
++ *
++ *	Operations lookup, update and delete have simpler interfaces, are faster
++ *	and currently only used in the packet path. All the rest are slower,
++ *	control plane functions.
+  */
+ struct nft_set_ops {
+ 	bool				(*lookup)(const struct net *net,
+@@ -312,6 +318,8 @@ struct nft_set_ops {
+ 						  const struct nft_expr *expr,
+ 						  struct nft_regs *regs,
+ 						  const struct nft_set_ext **ext);
++	bool				(*delete)(const struct nft_set *set,
++						  const u32 *key);
  
-+#include <asm/unaligned.h>
- #include <linux/list.h>
- #include <linux/netfilter.h>
- #include <linux/netfilter/nfnetlink.h>
-@@ -100,23 +101,28 @@ struct nft_regs {
- 	};
+ 	int				(*insert)(const struct net *net,
+ 						  const struct nft_set *set,
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index c6c8ec5c7c00..e8483e1e7146 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -634,6 +634,7 @@ enum nft_lookup_attributes {
+ enum nft_dynset_ops {
+ 	NFT_DYNSET_OP_ADD,
+ 	NFT_DYNSET_OP_UPDATE,
++	NFT_DYNSET_OP_DELETE,
  };
  
--/* Store/load an u16 or u8 integer to/from the u32 data register.
-+/* Store/load an u8, u16 or u64 integer to/from the u32 data register.
-  *
-  * Note, when using concatenations, register allocation happens at 32-bit
-  * level. So for store instruction, pad the rest part with zero to avoid
-  * garbage values.
-  */
+ enum nft_dynset_flags {
+diff --git a/net/netfilter/nft_dynset.c b/net/netfilter/nft_dynset.c
+index bfb9f7463b03..eeab38359469 100644
+--- a/net/netfilter/nft_dynset.c
++++ b/net/netfilter/nft_dynset.c
+@@ -88,6 +88,11 @@ void nft_dynset_eval(const struct nft_expr *expr,
+ 	const struct nft_expr *sexpr;
+ 	u64 timeout;
  
--static inline void nft_reg_store16(u32 *dreg, u16 val)
-+static inline void nft_reg_store8(u32 *dreg, u8 val)
- {
- 	*dreg = 0;
--	*(u16 *)dreg = val;
-+	*(u8 *)dreg = val;
++	if (priv->op == NFT_DYNSET_OP_DELETE) {
++		set->ops->delete(set, &regs->data[priv->sreg_key]);
++		return;
++	}
++
+ 	if (set->ops->update(set, &regs->data[priv->sreg_key], nft_dynset_new,
+ 			     expr, regs, &ext)) {
+ 		sexpr = NULL;
+@@ -105,6 +110,7 @@ void nft_dynset_eval(const struct nft_expr *expr,
+ 
+ 		if (priv->invert)
+ 			regs->verdict.code = NFT_BREAK;
++
+ 		return;
+ 	}
+ 
+@@ -165,6 +171,7 @@ static int nft_dynset_init(const struct nft_ctx *ctx,
+ 	priv->op = ntohl(nla_get_be32(tb[NFTA_DYNSET_OP]));
+ 	switch (priv->op) {
+ 	case NFT_DYNSET_OP_ADD:
++	case NFT_DYNSET_OP_DELETE:
+ 		break;
+ 	case NFT_DYNSET_OP_UPDATE:
+ 		if (!(set->flags & NFT_SET_TIMEOUT))
+diff --git a/net/netfilter/nft_set_hash.c b/net/netfilter/nft_set_hash.c
+index 03df08801e28..07499296f673 100644
+--- a/net/netfilter/nft_set_hash.c
++++ b/net/netfilter/nft_set_hash.c
+@@ -237,6 +237,24 @@ static void nft_rhash_remove(const struct net *net,
+ 	rhashtable_remove_fast(&priv->ht, &he->node, nft_rhash_params);
  }
  
--static inline void nft_reg_store8(u32 *dreg, u8 val)
-+static inline u8 nft_reg_load8(u32 *sreg)
++static bool nft_rhash_delete(const struct nft_set *set,
++			     const u32 *key)
 +{
-+	return *(u8 *)sreg;
++	struct nft_rhash *priv = nft_set_priv(set);
++	struct nft_rhash_elem *he;
++	struct nft_rhash_cmp_arg arg = {
++		.genmask = NFT_GENMASK_ANY,
++		.set = set,
++		.key = key,
++	};
++
++	he = rhashtable_lookup(&priv->ht, &arg, nft_rhash_params);
++	if (he == NULL)
++		return false;
++
++	return rhashtable_remove_fast(&priv->ht, &he->node, nft_rhash_params) == 0;
 +}
 +
-+static inline void nft_reg_store16(u32 *dreg, u16 val)
+ static void nft_rhash_walk(const struct nft_ctx *ctx, struct nft_set *set,
+ 			   struct nft_set_iter *iter)
  {
- 	*dreg = 0;
--	*(u8 *)dreg = val;
-+	*(u16 *)dreg = val;
- }
- 
- static inline u16 nft_reg_load16(u32 *sreg)
-@@ -124,9 +130,14 @@ static inline u16 nft_reg_load16(u32 *sreg)
- 	return *(u16 *)sreg;
- }
- 
--static inline u8 nft_reg_load8(u32 *sreg)
-+static inline void nft_reg_store64(u32 *dreg, u64 val)
- {
--	return *(u8 *)sreg;
-+	put_unaligned(val, (u64 *)dreg);
-+}
-+
-+static inline u64 nft_reg_load64(u32 *sreg)
-+{
-+	return get_unaligned((u64 *)sreg);
- }
- 
- static inline void nft_data_copy(u32 *dst, const struct nft_data *src,
-diff --git a/net/netfilter/nft_byteorder.c b/net/netfilter/nft_byteorder.c
-index e06318428ea0..12bed3f7bbc6 100644
---- a/net/netfilter/nft_byteorder.c
-+++ b/net/netfilter/nft_byteorder.c
-@@ -43,14 +43,15 @@ void nft_byteorder_eval(const struct nft_expr *expr,
- 		switch (priv->op) {
- 		case NFT_BYTEORDER_NTOH:
- 			for (i = 0; i < priv->len / 8; i++) {
--				src64 = get_unaligned((u64 *)&src[i]);
--				put_unaligned_be64(src64, &dst[i]);
-+				src64 = nft_reg_load64(&src[i]);
-+				nft_reg_store64(&dst[i], be64_to_cpu(src64));
- 			}
- 			break;
- 		case NFT_BYTEORDER_HTON:
- 			for (i = 0; i < priv->len / 8; i++) {
--				src64 = get_unaligned_be64(&src[i]);
--				put_unaligned(src64, (u64 *)&dst[i]);
-+				src64 = (__force __u64)
-+					cpu_to_be64(nft_reg_load64(&src[i]));
-+				nft_reg_store64(&dst[i], src64);
- 			}
- 			break;
- 		}
+@@ -665,6 +683,7 @@ struct nft_set_type nft_set_rhash_type __read_mostly = {
+ 		.remove		= nft_rhash_remove,
+ 		.lookup		= nft_rhash_lookup,
+ 		.update		= nft_rhash_update,
++		.delete		= nft_rhash_delete,
+ 		.walk		= nft_rhash_walk,
+ 		.get		= nft_rhash_get,
+ 	},
 -- 
 2.17.1
 
