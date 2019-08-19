@@ -3,78 +3,123 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 12B1CC3A59D
-	for <netfilter-devel@archiver.kernel.org>; Mon, 19 Aug 2019 10:59:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B8369C3A59D
+	for <netfilter-devel@archiver.kernel.org>; Mon, 19 Aug 2019 11:03:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E48FF20844
-	for <netfilter-devel@archiver.kernel.org>; Mon, 19 Aug 2019 10:59:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 92F3320844
+	for <netfilter-devel@archiver.kernel.org>; Mon, 19 Aug 2019 11:03:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727201AbfHSK73 (ORCPT
+        id S1726755AbfHSLDg (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 19 Aug 2019 06:59:29 -0400
-Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:55798 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726550AbfHSK73 (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 19 Aug 2019 06:59:29 -0400
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1hzfNl-0003yn-MC; Mon, 19 Aug 2019 12:59:25 +0200
-Date:   Mon, 19 Aug 2019 12:59:25 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     wenxu <wenxu@ucloud.cn>
-Cc:     Florian Westphal <fw@strlen.de>, pablo@netfilter.org,
-        netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf-next] netfilter: nf_table_offload: Fix the incorrect
- rcu usage in nft_indr_block_get_and_ing_cmd
-Message-ID: <20190819105925.GB2588@breakpoint.cc>
-References: <1566208007-22513-1-git-send-email-wenxu@ucloud.cn>
- <20190819102123.GA2588@breakpoint.cc>
- <2bde486e-dfe8-ad2b-8b77-babcad90d82e@ucloud.cn>
+        Mon, 19 Aug 2019 07:03:36 -0400
+Received: from correo.us.es ([193.147.175.20]:34800 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726610AbfHSLDg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 19 Aug 2019 07:03:36 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 0277080767
+        for <netfilter-devel@vger.kernel.org>; Mon, 19 Aug 2019 13:03:34 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id E7C24335E
+        for <netfilter-devel@vger.kernel.org>; Mon, 19 Aug 2019 13:03:33 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id DD571DA840; Mon, 19 Aug 2019 13:03:33 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 79927D2B1F;
+        Mon, 19 Aug 2019 13:03:31 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Mon, 19 Aug 2019 13:03:31 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (unknown [31.4.181.67])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 2ED504265A2F;
+        Mon, 19 Aug 2019 13:03:31 +0200 (CEST)
+Date:   Mon, 19 Aug 2019 13:03:28 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     netfilter@vger.kernel.org, netfilter-announce@lists.netfilter.org,
+        lwn@lwn.net
+Subject: [ANNOUNCE] libnftnl 1.1.4 release
+Message-ID: <20190819110328.vnwmmox5ymabneib@salvia>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed; boundary="twaeaue3tdaywezh"
 Content-Disposition: inline
-In-Reply-To: <2bde486e-dfe8-ad2b-8b77-babcad90d82e@ucloud.cn>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-wenxu <wenxu@ucloud.cn> wrote:
-> >> The nft_indr_block_get_and_ing_cmd is called in netdevice notify
-> >> It is the incorrect rcu case, To fix it just traverse the list under
-> >> the commit mutex.
-> > What is an 'incorrect rcu case'?
-> >
-> > Please clarify, e.g. by including rcu warning/splat backtrace here.
 
-[..]
+--twaeaue3tdaywezh
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-> flow_block_ing_cmd() needs to call blocking functions while iterating block_ing_cb_list,
-> nft_indr_block_get_and_ing_cmd is in the cb_list, So it should also not in rcu for blocking
-> cases.
+Hi!
 
-Please submit a v2 that includes this explanation in the commit message.
+The Netfilter project proudly presents:
 
-> >> +	struct nft_ctx ctx = {
-> >> +		.net	= dev_net(dev),
-> >> +	};
-> > Why is this ctx needed?
-> >
-> >> +	mutex_lock(&ctx.net->nft.commit_mutex);
-> > net->nft.commit_mutex?
-> 
-> When traverse the list, the list is protected under commit_mutex like nf_tables_netdev_event
-> do in the netdevice notify callback
+        libnftnl 1.1.4
 
-Yes, I see that, but why do you need nft_ctx ctx?  Its confusing.
+libnftnl is a userspace library providing a low-level netlink
+programming interface (API) to the in-kernel nf_tables subsystem. The
+library libnftnl has been previously known as libnftables. This
+library is currently used by nftables.
 
-Just use
+See ChangeLog that comes attached to this email for more details.
 
-mutex_lock(&net->nft.commit_mutex);
+You can download it from:
 
-without adding this 'ctx'.
+http://www.netfilter.org/projects/libnftnl/downloads.html
+ftp://ftp.netfilter.org/pub/libnftnl/
+
+Happy firewalling.
+
+--twaeaue3tdaywezh
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: attachment; filename="changes-libnftnl-1.1.4.txt"
+Content-Transfer-Encoding: 8bit
+
+Brett Mastbergen (1):
+      src: Add ct id support
+
+Fernando Fernandez Mancera (1):
+      src: add synproxy support
+
+Florian Westphal (1):
+      udata: fix sigbus crash on sparc
+
+Laura Garcia Liebana (1):
+      src: enable set expiration date for set elements
+
+Pablo Neira Ayuso (2):
+      include: resync nf_tables.h cache copy
+      build: libnftnl 1.1.4 release
+
+Phil Sutter (1):
+      expr: meta: Make NFT_META_{I,O}IFKIND known
+
+Stephen Suryaputra (1):
+      src: add support for matching IPv4 options
+
+Stéphane Veyret (2):
+      src: add ct expectation support
+      examples: add ct expectation examples
+
+Thomas Petazzoni (1):
+      Add Requires.private field to libnftnl.pc
+
+wenxu (1):
+      expr: meta: Make NFT_META_BRI_IIF{VPROTO, PVID} known
+
+
+--twaeaue3tdaywezh--
