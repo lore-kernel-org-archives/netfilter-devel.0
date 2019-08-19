@@ -6,78 +6,75 @@ X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D7098C3A59D
-	for <netfilter-devel@archiver.kernel.org>; Mon, 19 Aug 2019 10:50:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 12B1CC3A59D
+	for <netfilter-devel@archiver.kernel.org>; Mon, 19 Aug 2019 10:59:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A728620851
-	for <netfilter-devel@archiver.kernel.org>; Mon, 19 Aug 2019 10:50:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E48FF20844
+	for <netfilter-devel@archiver.kernel.org>; Mon, 19 Aug 2019 10:59:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726784AbfHSKu0 (ORCPT
+        id S1727201AbfHSK73 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 19 Aug 2019 06:50:26 -0400
-Received: from correo.us.es ([193.147.175.20]:58906 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726477AbfHSKu0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 19 Aug 2019 06:50:26 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 69DA9130E2B
-        for <netfilter-devel@vger.kernel.org>; Mon, 19 Aug 2019 12:50:23 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 5AA5ECA0F3
-        for <netfilter-devel@vger.kernel.org>; Mon, 19 Aug 2019 12:50:23 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 502C6CE39D; Mon, 19 Aug 2019 12:50:23 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 4E9CEDA7B6;
-        Mon, 19 Aug 2019 12:50:21 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 19 Aug 2019 12:50:21 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [31.4.181.67])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 04B384265A2F;
-        Mon, 19 Aug 2019 12:50:20 +0200 (CEST)
-Date:   Mon, 19 Aug 2019 12:50:19 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Juliana Rodrigueiro <juliana.rodrigueiro@intra2net.com>
-Cc:     netfilter-devel@vger.kernel.org, fw@strlen.de
-Subject: Re: [PATCH v2] netfilter: nfacct: Fix alignment mismatch in
- xt_nfacct_match_info
-Message-ID: <20190819105019.7woggt356yy76nfp@salvia>
-References: <7899070.tJGA48rBTd@rocinante.m.i2n>
+        Mon, 19 Aug 2019 06:59:29 -0400
+Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:55798 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726550AbfHSK73 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 19 Aug 2019 06:59:29 -0400
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1hzfNl-0003yn-MC; Mon, 19 Aug 2019 12:59:25 +0200
+Date:   Mon, 19 Aug 2019 12:59:25 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     wenxu <wenxu@ucloud.cn>
+Cc:     Florian Westphal <fw@strlen.de>, pablo@netfilter.org,
+        netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf-next] netfilter: nf_table_offload: Fix the incorrect
+ rcu usage in nft_indr_block_get_and_ing_cmd
+Message-ID: <20190819105925.GB2588@breakpoint.cc>
+References: <1566208007-22513-1-git-send-email-wenxu@ucloud.cn>
+ <20190819102123.GA2588@breakpoint.cc>
+ <2bde486e-dfe8-ad2b-8b77-babcad90d82e@ucloud.cn>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <7899070.tJGA48rBTd@rocinante.m.i2n>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+In-Reply-To: <2bde486e-dfe8-ad2b-8b77-babcad90d82e@ucloud.cn>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Aug 16, 2019 at 05:02:22PM +0200, Juliana Rodrigueiro wrote:
-> When running a 64-bit kernel with a 32-bit iptables binary, the size of
-> the xt_nfacct_match_info struct diverges.
-> 
->     kernel: sizeof(struct xt_nfacct_match_info) : 40
->     iptables: sizeof(struct xt_nfacct_match_info)) : 36
-> 
-> Trying to append nfacct related rules results in an unhelpful message.
-> Although it is suggested to look for more information in dmesg, nothing
-> can be found there.
-> 
->     # iptables -A <chain> -m nfacct --nfacct-name <acct-object>
->     iptables: Invalid argument. Run `dmesg' for more information.
-> 
-> This patch fixes the memory misalignment by enforcing 8-byte alignment
-> within the struct's first revision. This solution is often used in many
-> other uapi netfilter headers.
+wenxu <wenxu@ucloud.cn> wrote:
+> >> The nft_indr_block_get_and_ing_cmd is called in netdevice notify
+> >> It is the incorrect rcu case, To fix it just traverse the list under
+> >> the commit mutex.
+> > What is an 'incorrect rcu case'?
+> >
+> > Please clarify, e.g. by including rcu warning/splat backtrace here.
 
-Applied, thanks.
+[..]
 
-Please, send us the userspace chunk for iptables. Thanks again.
+> flow_block_ing_cmd() needs to call blocking functions while iterating block_ing_cb_list,
+> nft_indr_block_get_and_ing_cmd is in the cb_list, So it should also not in rcu for blocking
+> cases.
+
+Please submit a v2 that includes this explanation in the commit message.
+
+> >> +	struct nft_ctx ctx = {
+> >> +		.net	= dev_net(dev),
+> >> +	};
+> > Why is this ctx needed?
+> >
+> >> +	mutex_lock(&ctx.net->nft.commit_mutex);
+> > net->nft.commit_mutex?
+> 
+> When traverse the list, the list is protected under commit_mutex like nf_tables_netdev_event
+> do in the netdevice notify callback
+
+Yes, I see that, but why do you need nft_ctx ctx?  Its confusing.
+
+Just use
+
+mutex_lock(&net->nft.commit_mutex);
+
+without adding this 'ctx'.
