@@ -2,117 +2,155 @@ Return-Path: <SRS0=DEFU=WP=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.8 required=3.0
-	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PULL_REQUEST,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BB6BEC3A5A0
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D9673C3A5A2
 	for <netfilter-devel@archiver.kernel.org>; Mon, 19 Aug 2019 18:59:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9AAD8214DA
+	by mail.kernel.org (Postfix) with ESMTP id BCA1022CE8
 	for <netfilter-devel@archiver.kernel.org>; Mon, 19 Aug 2019 18:59:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728370AbfHSS7i (ORCPT
+        id S1728374AbfHSS7i (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Mon, 19 Aug 2019 14:59:38 -0400
-Received: from correo.us.es ([193.147.175.20]:37880 "EHLO mail.us.es"
+Received: from correo.us.es ([193.147.175.20]:37878 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728324AbfHSS7h (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        id S1728067AbfHSS7h (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Mon, 19 Aug 2019 14:59:37 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 05EA2F2625
-        for <netfilter-devel@vger.kernel.org>; Mon, 19 Aug 2019 20:50:10 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 1636DDA72F
+        for <netfilter-devel@vger.kernel.org>; Mon, 19 Aug 2019 20:50:15 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id ED5F2B8007
-        for <netfilter-devel@vger.kernel.org>; Mon, 19 Aug 2019 20:50:09 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 05EA0DA72F
+        for <netfilter-devel@vger.kernel.org>; Mon, 19 Aug 2019 20:50:15 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id E2F3FB8004; Mon, 19 Aug 2019 20:50:09 +0200 (CEST)
+        id EF49FB7FF2; Mon, 19 Aug 2019 20:50:14 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id E1174B7FF2;
-        Mon, 19 Aug 2019 20:50:07 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id E7ED6DA72F;
+        Mon, 19 Aug 2019 20:50:12 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 19 Aug 2019 20:50:07 +0200 (CEST)
+ Mon, 19 Aug 2019 20:50:12 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (unknown [31.4.209.241])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 699574265A32;
-        Mon, 19 Aug 2019 20:50:07 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 72C864265A32;
+        Mon, 19 Aug 2019 20:50:12 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 0/5] Netfilter fixes for net
-Date:   Mon, 19 Aug 2019 20:49:06 +0200
-Message-Id: <20190819184911.15263-1-pablo@netfilter.org>
+Subject: [PATCH 4/5] netfilter: xt_nfacct: Fix alignment mismatch in xt_nfacct_match_info
+Date:   Mon, 19 Aug 2019 20:49:10 +0200
+Message-Id: <20190819184911.15263-5-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
+In-Reply-To: <20190819184911.15263-1-pablo@netfilter.org>
+References: <20190819184911.15263-1-pablo@netfilter.org>
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi,
+From: Juliana Rodrigueiro <juliana.rodrigueiro@intra2net.com>
 
-The following patchset contains Netfilter fixes for net:
+When running a 64-bit kernel with a 32-bit iptables binary, the size of
+the xt_nfacct_match_info struct diverges.
 
-1) Remove IP MASQUERADING record in MAINTAINERS file,
-   from Denis Efremov.
+    kernel: sizeof(struct xt_nfacct_match_info) : 40
+    iptables: sizeof(struct xt_nfacct_match_info)) : 36
 
-2) Counter arguments are swapped in ebtables, from
-   Todd Seidelmann.
+Trying to append nfacct related rules results in an unhelpful message.
+Although it is suggested to look for more information in dmesg, nothing
+can be found there.
 
-3) Missing netlink attribute validation in flow_offload
-   extension.
+    # iptables -A <chain> -m nfacct --nfacct-name <acct-object>
+    iptables: Invalid argument. Run `dmesg' for more information.
 
-4) Incorrect alignment in xt_nfacct that breaks 32-bits
-   userspace / 64-bits kernels, from Juliana Rodrigueiro.
+This patch fixes the memory misalignment by enforcing 8-byte alignment
+within the struct's first revision. This solution is often used in many
+other uapi netfilter headers.
 
-5) Missing include guard in nf_conntrack_h323_types.h,
-   from Masahiro Yamada.
+Signed-off-by: Juliana Rodrigueiro <juliana.rodrigueiro@intra2net.com>
+Acked-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/uapi/linux/netfilter/xt_nfacct.h |  5 +++++
+ net/netfilter/xt_nfacct.c                | 36 ++++++++++++++++++++++----------
+ 2 files changed, 30 insertions(+), 11 deletions(-)
 
-You can pull these changes from:
+diff --git a/include/uapi/linux/netfilter/xt_nfacct.h b/include/uapi/linux/netfilter/xt_nfacct.h
+index 5c8a4d760ee3..b5123ab8d54a 100644
+--- a/include/uapi/linux/netfilter/xt_nfacct.h
++++ b/include/uapi/linux/netfilter/xt_nfacct.h
+@@ -11,4 +11,9 @@ struct xt_nfacct_match_info {
+ 	struct nf_acct	*nfacct;
+ };
+ 
++struct xt_nfacct_match_info_v1 {
++	char		name[NFACCT_NAME_MAX];
++	struct nf_acct	*nfacct __attribute__((aligned(8)));
++};
++
+ #endif /* _XT_NFACCT_MATCH_H */
+diff --git a/net/netfilter/xt_nfacct.c b/net/netfilter/xt_nfacct.c
+index d0ab1adf5bff..5aab6df74e0f 100644
+--- a/net/netfilter/xt_nfacct.c
++++ b/net/netfilter/xt_nfacct.c
+@@ -54,25 +54,39 @@ nfacct_mt_destroy(const struct xt_mtdtor_param *par)
+ 	nfnl_acct_put(info->nfacct);
+ }
+ 
+-static struct xt_match nfacct_mt_reg __read_mostly = {
+-	.name       = "nfacct",
+-	.family     = NFPROTO_UNSPEC,
+-	.checkentry = nfacct_mt_checkentry,
+-	.match      = nfacct_mt,
+-	.destroy    = nfacct_mt_destroy,
+-	.matchsize  = sizeof(struct xt_nfacct_match_info),
+-	.usersize   = offsetof(struct xt_nfacct_match_info, nfacct),
+-	.me         = THIS_MODULE,
++static struct xt_match nfacct_mt_reg[] __read_mostly = {
++	{
++		.name       = "nfacct",
++		.revision   = 0,
++		.family     = NFPROTO_UNSPEC,
++		.checkentry = nfacct_mt_checkentry,
++		.match      = nfacct_mt,
++		.destroy    = nfacct_mt_destroy,
++		.matchsize  = sizeof(struct xt_nfacct_match_info),
++		.usersize   = offsetof(struct xt_nfacct_match_info, nfacct),
++		.me         = THIS_MODULE,
++	},
++	{
++		.name       = "nfacct",
++		.revision   = 1,
++		.family     = NFPROTO_UNSPEC,
++		.checkentry = nfacct_mt_checkentry,
++		.match      = nfacct_mt,
++		.destroy    = nfacct_mt_destroy,
++		.matchsize  = sizeof(struct xt_nfacct_match_info_v1),
++		.usersize   = offsetof(struct xt_nfacct_match_info_v1, nfacct),
++		.me         = THIS_MODULE,
++	},
+ };
+ 
+ static int __init nfacct_mt_init(void)
+ {
+-	return xt_register_match(&nfacct_mt_reg);
++	return xt_register_matches(nfacct_mt_reg, ARRAY_SIZE(nfacct_mt_reg));
+ }
+ 
+ static void __exit nfacct_mt_exit(void)
+ {
+-	xt_unregister_match(&nfacct_mt_reg);
++	xt_unregister_matches(nfacct_mt_reg, ARRAY_SIZE(nfacct_mt_reg));
+ }
+ 
+ module_init(nfacct_mt_init);
+-- 
+2.11.0
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
-
-Thanks.
-
-----------------------------------------------------------------
-
-The following changes since commit cfef46d692efd852a0da6803f920cc756eea2855:
-
-  ravb: Fix use-after-free ravb_tstamp_skb (2019-08-18 14:19:14 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git HEAD
-
-for you to fetch changes up to 38a429c898ddd210cc35463b096389f97c3c5a73:
-
-  netfilter: add include guard to nf_conntrack_h323_types.h (2019-08-19 13:59:57 +0200)
-
-----------------------------------------------------------------
-Denis Efremov (1):
-      MAINTAINERS: Remove IP MASQUERADING record
-
-Juliana Rodrigueiro (1):
-      netfilter: xt_nfacct: Fix alignment mismatch in xt_nfacct_match_info
-
-Masahiro Yamada (1):
-      netfilter: add include guard to nf_conntrack_h323_types.h
-
-Pablo Neira Ayuso (1):
-      netfilter: nft_flow_offload: missing netlink attribute policy
-
-Todd Seidelmann (1):
-      netfilter: ebtables: Fix argument order to ADD_COUNTER
-
- MAINTAINERS                                       |  5 ----
- include/linux/netfilter/nf_conntrack_h323_types.h |  5 ++++
- include/uapi/linux/netfilter/xt_nfacct.h          |  5 ++++
- net/bridge/netfilter/ebtables.c                   |  8 ++---
- net/netfilter/nft_flow_offload.c                  |  6 ++++
- net/netfilter/xt_nfacct.c                         | 36 ++++++++++++++++-------
- 6 files changed, 45 insertions(+), 20 deletions(-)
 
