@@ -2,96 +2,115 @@ Return-Path: <SRS0=DEFU=WP=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
+X-Spam-Status: No, score=-8.2 required=3.0 tests=FROM_EXCESS_BASE64,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_2 autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5DBD6C3A5A0
-	for <netfilter-devel@archiver.kernel.org>; Mon, 19 Aug 2019 18:59:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AAB31C3A5A0
+	for <netfilter-devel@archiver.kernel.org>; Mon, 19 Aug 2019 19:34:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 29F0E214DA
-	for <netfilter-devel@archiver.kernel.org>; Mon, 19 Aug 2019 18:59:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8D1FD206C1
+	for <netfilter-devel@archiver.kernel.org>; Mon, 19 Aug 2019 19:34:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728316AbfHSS7f (ORCPT
+        id S1728579AbfHSTeP (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 19 Aug 2019 14:59:35 -0400
-Received: from correo.us.es ([193.147.175.20]:37848 "EHLO mail.us.es"
+        Mon, 19 Aug 2019 15:34:15 -0400
+Received: from fajn.hanzlici.cz ([46.13.76.95]:36406 "EHLO mail.hanzlici.cz"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728014AbfHSS7e (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 19 Aug 2019 14:59:34 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id E88B9F2622
-        for <netfilter-devel@vger.kernel.org>; Mon, 19 Aug 2019 20:50:11 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id D956EA75E
-        for <netfilter-devel@vger.kernel.org>; Mon, 19 Aug 2019 20:50:11 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id CEE4BDA8E8; Mon, 19 Aug 2019 20:50:11 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 6123EB7FF6;
-        Mon, 19 Aug 2019 20:50:09 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 19 Aug 2019 20:50:09 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from salvia.here (unknown [31.4.209.241])
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id DAB144265A32;
-        Mon, 19 Aug 2019 20:50:08 +0200 (CEST)
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 1/5] MAINTAINERS: Remove IP MASQUERADING record
-Date:   Mon, 19 Aug 2019 20:49:07 +0200
-Message-Id: <20190819184911.15263-2-pablo@netfilter.org>
-X-Mailer: git-send-email 2.11.0
-In-Reply-To: <20190819184911.15263-1-pablo@netfilter.org>
-References: <20190819184911.15263-1-pablo@netfilter.org>
-X-Virus-Scanned: ClamAV using ClamSMTP
+        id S1728375AbfHSTeP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 19 Aug 2019 15:34:15 -0400
+Received: from franta.hanzlici.cz (franta.hanzlici.cz [192.168.1.22])
+        (Authenticated sender: franta@hanzlici.cz)
+        by mail.hanzlici.cz (Postfix) with ESMTPSA id 49DF71909C0;
+        Mon, 19 Aug 2019 21:34:13 +0200 (CEST)
+Date:   Mon, 19 Aug 2019 21:34:11 +0200
+From:   Franta =?UTF-8?B?SGFuemzDrWs=?= <franta@hanzlici.cz>
+To:     Jeremy Sowden <jeremy@azazel.net>
+Cc:     Jan Engelhardt <jengelh@inai.de>,
+        Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH xtables-addons v2 1/2] xt_pknock, xt_SYSRQ: don't set
+ shash_desc::flags.
+Message-ID: <20190819213411.6aaabd42@franta.hanzlici.cz>
+In-Reply-To: <20190812165731.GC5190@azazel.net>
+References: <20190811113826.5e594d8f@franta.hanzlici.cz>
+        <20190812115742.21770-1-jeremy@azazel.net>
+        <20190812115742.21770-2-jeremy@azazel.net>
+        <nycvar.YFH.7.76.1908122317330.19510@n3.vanv.qr>
+        <20190812165731.GC5190@azazel.net>
+X-Mailer: Claws Mail 3.17.3 (GTK+ 2.24.32; i686-redhat-linux-gnu)
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Denis Efremov <efremov@linux.com>
+On Mon, 12 Aug 2019 17:57:31 +0100
+Jeremy Sowden <jeremy@azazel.net> wrote:
 
-This entry is in MAINTAINERS for historical purpose.
-It doesn't match current sources since the commit
-adf82accc5f5 ("netfilter: x_tables: merge ip and
-ipv6 masquerade modules") moved the module.
-The net/netfilter/xt_MASQUERADE.c module is already under
-the netfilter section. Thus, there is no purpose to keep this
-separate entry in MAINTAINERS.
+> On 2019-08-12, at 23:17:52 +0800, Jan Engelhardt wrote:
+> > On Monday 2019-08-12 19:57, Jeremy Sowden wrote:  
+> > >shash_desc::flags was removed from the kernel in 5.1.
+> > >
+> > >Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
+> > >---
+> > > extensions/pknock/xt_pknock.c | 1 -
+> > > extensions/xt_SYSRQ.c         | 1 -
+> > > 2 files changed, 2 deletions(-)
+> > >
+> > >diff --git a/extensions/pknock/xt_pknock.c b/extensions/pknock/xt_pknock.c
+> > >index c76901ac4c1a..8021ea07e1b9 100644
+> > >--- a/extensions/pknock/xt_pknock.c
+> > >+++ b/extensions/pknock/xt_pknock.c
+> > >@@ -1125,7 +1125,6 @@ static int __init xt_pknock_mt_init(void)
+> > >
+> > > 	crypto.size = crypto_shash_digestsize(crypto.tfm);
+> > > 	crypto.desc.tfm = crypto.tfm;
+> > >-	crypto.desc.flags = 0;  
+> >
+> > But this will still be needed for 5.0 I guess, so it cannot just be
+> > unconditionally removed.  
+> 
+> That assignment was actually superfluous anyway, because crypto.desc is
+> zero-initialized when crypto is initialized (xt_pknock.c, ll. 110ff.):
+> 
+>   static struct {
+>           const char *algo;
+>           struct crypto_shash *tfm;
+>           unsigned int size;
+>           struct shash_desc desc;
+>   } crypto = {
+>           .algo	= "hmac(sha256)",
+>           .tfm	= NULL,
+>           .size	= 0
+>   };
+> 
+> In fact the explicit zero-initialization of .tfm and .size is also
+> superfluous and can be removed:
+> 
+>   static struct {
+>           const char *algo;
+>           struct crypto_shash *tfm;
+>           unsigned int size;
+>           struct shash_desc desc;
+>   } crypto = {
+>           .algo	= "hmac(sha256)",
+>   };
+> 
+> Adding an initializer to the variable declaration in xt_SYSRQ.c will do
+> the same thing.  Patch attached.
+> 
+> J.
 
-Cc: Florian Westphal <fw@strlen.de>
-Cc: Juanjo Ciarlante <jjciarla@raiz.uncu.edu.ar>
-Cc: netfilter-devel@vger.kernel.org
-Suggested-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Denis Efremov <efremov@linux.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- MAINTAINERS | 5 -----
- 1 file changed, 5 deletions(-)
+Hi Jeremy, thanks for Your patches!
+Please, they are only here in mail list, or also in any repo?
+Or will be some new package release and I should wait?
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index a416574780d6..6839cfd91dde 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -8439,11 +8439,6 @@ S:	Maintained
- F:	fs/io_uring.c
- F:	include/uapi/linux/io_uring.h
- 
--IP MASQUERADING
--M:	Juanjo Ciarlante <jjciarla@raiz.uncu.edu.ar>
--S:	Maintained
--F:	net/ipv4/netfilter/ipt_MASQUERADE.c
--
- IPMI SUBSYSTEM
- M:	Corey Minyard <minyard@acm.org>
- L:	openipmi-developer@lists.sourceforge.net (moderated for non-subscribers)
+My xtables-addons v3.3 package list SourceForge as project home site,
+but I can't find there nothing newer than stuff from March 2019:
+https://sourceforge.net/p/xtables-addons/xtables-addons/ci/master/tree/
+Or am I wrong?
 -- 
-2.11.0
-
-
+Thanks, Franta Hanzlik
