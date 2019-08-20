@@ -2,106 +2,92 @@ Return-Path: <SRS0=ly5L=WQ=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1E5FBC3A59D
-	for <netfilter-devel@archiver.kernel.org>; Tue, 20 Aug 2019 18:35:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4D7ADC3A589
+	for <netfilter-devel@archiver.kernel.org>; Tue, 20 Aug 2019 19:22:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 035A122DA9
-	for <netfilter-devel@archiver.kernel.org>; Tue, 20 Aug 2019 18:35:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1B64722DA7
+	for <netfilter-devel@archiver.kernel.org>; Tue, 20 Aug 2019 19:22:23 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=netronome-com.20150623.gappssmtp.com header.i=@netronome-com.20150623.gappssmtp.com header.b="NB1jHGW3"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730092AbfHTSfk (ORCPT
+        id S1730273AbfHTTWW (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 20 Aug 2019 14:35:40 -0400
-Received: from correo.us.es ([193.147.175.20]:42398 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728682AbfHTSfj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 20 Aug 2019 14:35:39 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id B927EDA738
-        for <netfilter-devel@vger.kernel.org>; Tue, 20 Aug 2019 20:35:36 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id AAC28DA7B6
-        for <netfilter-devel@vger.kernel.org>; Tue, 20 Aug 2019 20:35:36 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 89E7BD2B1F; Tue, 20 Aug 2019 20:35:36 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 7DB6FDA8E8;
-        Tue, 20 Aug 2019 20:35:34 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 20 Aug 2019 20:35:34 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [47.60.43.0])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 40B0D4265A2F;
-        Tue, 20 Aug 2019 20:35:34 +0200 (CEST)
-Date:   Tue, 20 Aug 2019 20:35:33 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Edward Cree <ecree@solarflare.com>
+        Tue, 20 Aug 2019 15:22:22 -0400
+Received: from mail-qk1-f195.google.com ([209.85.222.195]:38559 "EHLO
+        mail-qk1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728185AbfHTTWW (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 20 Aug 2019 15:22:22 -0400
+Received: by mail-qk1-f195.google.com with SMTP id u190so5497815qkh.5
+        for <netfilter-devel@vger.kernel.org>; Tue, 20 Aug 2019 12:22:22 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=netronome-com.20150623.gappssmtp.com; s=20150623;
+        h=date:from:to:cc:subject:message-id:in-reply-to:references
+         :organization:mime-version:content-transfer-encoding;
+        bh=UxntnfUhoyfJtCVV8rivLfmU6f8XilX6XjYLYMrrx5k=;
+        b=NB1jHGW3AC8XEU0X0M4MEWLljIPAucw1LyO0zPMU/BaLmYL8rqH32Ygv6DtluhA2Wc
+         +kJpeQV148DYsYUf1NeTU1KHEbBoMgIkpjmeJl9rDmKzInPNqNIMN0/x0HwIcRE4Z5lk
+         FsSrYhY3kBXzJpmPRG7wmwCe/Q/RHY3MwrtzbU9+c2o1sGgY3YVGCGQcjpQlByhlD8L9
+         q6QD8447pCe5MEEZMLXDjPUCO3GWH7SoUNu67LvJk+HE3zqECpLWls15XZIK0Cov3rIP
+         9Zo6OZnbV3TLcFR2BkXs7y9eQye/fqJgax7TH583KgFcRpV++eoTkGAfTsukoBwvQIdB
+         oDxg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:in-reply-to
+         :references:organization:mime-version:content-transfer-encoding;
+        bh=UxntnfUhoyfJtCVV8rivLfmU6f8XilX6XjYLYMrrx5k=;
+        b=Jo/x1J15u3k5wgdSxAD6CIcqUQBWKjVGFqCOjx5R+oltnMZyEdZ2AL6HlKV0Ncf8UJ
+         WUsbDfeEKA4O4/XTkBP4RBh2vKIA+SCDysMCfTHncGmt32RStSGP0N+XzGmMvcyPjnE+
+         ZIgve/TUID6lfR6G6/T6bPkWeECteliINcvIJ6TCABup6hXID2tHyJNjiCgkZIxJjbiI
+         ICXaAFaTurDC6m6NPL9efRwu8d5J66uDB1CdpBFn0FX7peLyxsjrNa/obxkymPqNpTZK
+         NvLQSZIdGyzoV5hGvyaaUvOej55rs26zxSdTjCeHz6/vhWk+zTubsoya/RVj7mLQWMgk
+         b42w==
+X-Gm-Message-State: APjAAAXQPPomXbScLlLkpsUh/pJcZ6Ty4eYHlpI200i0T0ZfZAtyNTBS
+        tqyDfmiZiEMz1YlCzWnStDxU0w==
+X-Google-Smtp-Source: APXvYqxAdhriNfgclkhutoA76ENPDWPTnCr4/+6N7ogosLbY09gYfGp0x57+ZDCDTfwFOkvHBzGkgg==
+X-Received: by 2002:a05:620a:112b:: with SMTP id p11mr28580891qkk.146.1566328941748;
+        Tue, 20 Aug 2019 12:22:21 -0700 (PDT)
+Received: from cakuba.netronome.com ([66.60.152.14])
+        by smtp.gmail.com with ESMTPSA id o43sm10499059qto.63.2019.08.20.12.22.20
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 20 Aug 2019 12:22:21 -0700 (PDT)
+Date:   Tue, 20 Aug 2019 12:22:14 -0700
+From:   Jakub Kicinski <jakub.kicinski@netronome.com>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org, jakub.kicinski@netronome.com,
-        jiri@resnulli.us, vladbu@mellanox.com
-Subject: Re: [PATCH net-next 1/2] net: flow_offload: mangle 128-bit packet
- field with one action
-Message-ID: <20190820183533.ykh7mnurpmegxb27@salvia>
-References: <20190820105225.13943-1-pablo@netfilter.org>
- <f18d8369-f87d-5b9a-6c9d-daf48a3b95f1@solarflare.com>
- <20190820144453.ckme6oj2c4hmofhu@salvia>
- <c8a00a98-74eb-9f8d-660f-c2ea159dec91@solarflare.com>
- <20190820173344.3nrzfjboyztz3lji@salvia>
- <f4cf8a97-3322-d982-6068-d4c0ce997b1c@solarflare.com>
+        netdev@vger.kernel.org, jiri@resnulli.us, vladbu@mellanox.com
+Subject: Re: [PATCH net-next 0/2] netfilter: payload mangling offload
+ support
+Message-ID: <20190820122214.702476ff@cakuba.netronome.com>
+In-Reply-To: <20190820104807.13843-1-pablo@netfilter.org>
+References: <20190820104807.13843-1-pablo@netfilter.org>
+Organization: Netronome Systems, Ltd.
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <f4cf8a97-3322-d982-6068-d4c0ce997b1c@solarflare.com>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Aug 20, 2019 at 07:15:10PM +0100, Edward Cree wrote:
-> On 20/08/2019 18:33, Pablo Neira Ayuso wrote:
-> > I can update tc pedit to generate one single action for offset
-> > consecutive packet editions, if that is the concern, I'll send a v2.
-> IMHO the fix belongs in TC userland (i.e. iproute2), to turn a
-> single action on the commandline for an ipv6 addr into four pedit
-> actions before the kernel ever sees it.
-> Similarly if nftables wants to use this it should generate four
-> separate pedit actions, probably in the kernel netfilter code as (I
-> assume) your uAPI talks in terms of named fields rather than the
-> u32ish offsets and masks of tc pedit.
+On Tue, 20 Aug 2019 12:48:05 +0200, Pablo Neira Ayuso wrote:
+> Hi,
+> 
+> This patchset adds payload mangling offload support for Netfilter:
+> 
+> 1) Adapt existing drivers to allow for mangling up to four 32-bit words
+>    with one single flow_rule action. Hence, once single action can be
+>    used to mangle an IPv6 address.
+> 
+> 2) Add support for netfilter packet mangling.
 
-The driver flow_offload API does not necessarily need to map 1:1 to
-the netlink control plane / UAPI. The driver flow_offload API is
-detached from UAPI and it is internal to drivers.
+Why pick 128b as a unit, because that's nftables' word size? :/
 
-> The TC (well, flow_offload now I suppose) API should be kept narrow,
-> not widened for things that can already be expressed adequately. 
-> Your array of words inside a pedit action looks like a kind of loop
-> unrolling but for data structures, which doesn't look sensible to
-> me.
+Reality is unless core coalesces _all_ consecutive rewrites drivers 
+will have to do their own coalescing, anyway.
 
-With one action that says "mangle an IPv6 at offset ip6 daddr field"
-the driver has more global view on what is going on, rather than
-having four actions to mangle four 32-bit words at some offset.
-
-If this patch adds some loops here is because I did not want to make
-too smart changes on the drivers.
-
-The only reason I can find why mangling is restricted to 32-bits word
-is tc pedit. The existing flow_offload API was modeled after tc
-actions, which was exposing tc pedit implementation details to
-hardware.
-
-Please, allow for incremental updates on the flow_offload API to get
-it better now. Later we'll have way more drivers it will become harder
-to update this.
+We suffered through enough haphazard "updates", I don't like this either.
