@@ -2,63 +2,90 @@ Return-Path: <SRS0=ly5L=WQ=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 38F74C3A589
-	for <netfilter-devel@archiver.kernel.org>; Tue, 20 Aug 2019 05:36:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EA8D7C3A589
+	for <netfilter-devel@archiver.kernel.org>; Tue, 20 Aug 2019 06:27:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 12674216F4
-	for <netfilter-devel@archiver.kernel.org>; Tue, 20 Aug 2019 05:36:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BB4AF214DA
+	for <netfilter-devel@archiver.kernel.org>; Tue, 20 Aug 2019 06:27:04 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="hPMuWusl"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729169AbfHTFgL (ORCPT
+        id S1729107AbfHTG1B (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 20 Aug 2019 01:36:11 -0400
-Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:60736 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1729147AbfHTFgK (ORCPT
+        Tue, 20 Aug 2019 02:27:01 -0400
+Received: from mail-wr1-f43.google.com ([209.85.221.43]:33071 "EHLO
+        mail-wr1-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726049AbfHTG1B (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 20 Aug 2019 01:36:10 -0400
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1hzwoR-00028O-3t; Tue, 20 Aug 2019 07:36:07 +0200
-Date:   Tue, 20 Aug 2019 07:36:07 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Leonardo Bras <leonardo@linux.ibm.com>
-Cc:     netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>
-Subject: Re: [PATCH 1/1] netfilter: nf_tables: fib: Drop IPV6 packages if
- IPv6 is disabled on boot
-Message-ID: <20190820053607.GL2588@breakpoint.cc>
-References: <20190820005821.2644-1-leonardo@linux.ibm.com>
+        Tue, 20 Aug 2019 02:27:01 -0400
+Received: by mail-wr1-f43.google.com with SMTP id u16so11073111wrr.0;
+        Mon, 19 Aug 2019 23:26:59 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=gfbR/B8uYiMWQfmRpgyRoErFiH9g7iKs91y2cIUxD6Q=;
+        b=hPMuWuslu6rMGkPgZDoNm3pm+hI01GBmbVHwO+qQgAmPthI1bRmLm1V0Y9a+zi5Oef
+         SUq73dWHdTYzpUCVh33CXAoDIxfk7ClKAeUQsuNOD0YyiLdxJb8aFrLlQMZVq2K2NPzW
+         99QXu6HdUnY9FUHuDxcAj+nxhk1Io/JomB4FLodjPtwGLWjt/e4kevEnn837P8mxXPfs
+         2kCK694Eny2mNgk0A5k/8FypWjaQNwoVv2L/YlibjQpvCgoMX4KEvDyvMaKYvAO0rAHo
+         aWrWG4vNhgpoc7++i8Sz+H79EURtu2iuZlBWK2SjXLxSfS2PljNBPy3zJn7G3sfhxSGE
+         RgQw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=gfbR/B8uYiMWQfmRpgyRoErFiH9g7iKs91y2cIUxD6Q=;
+        b=ncbmX8VAUQQ1LcD297zHccJ42hszr4m/NYLrdIWPSekdYY6jc7bttMWtf5yysjbJbL
+         lPwQbEQRK0DLrrfmfk1K02nC094KrO6g8/nNXxyea1EtZuY6hshfgSzAOfb0IuOsxEoN
+         uc398Fs/A3bpkALBegpckgHpUlSUDB9+hbeiYCj3orEwXS0jSmjm5kDnRnZM9h2QmqQQ
+         AZEoY0RUeRSRS/71tx3OgihcG07Grw9LW1dxvBzZeNR+nfhjGLMl7Nx4sPjbRpsCov1I
+         TrHNu9KfVAS4oR2jfslyyTAUEAZ8l6w2kYGzkk8DXx+LCx6s6P6zALxEzhIEsq7XbqnF
+         iH3Q==
+X-Gm-Message-State: APjAAAXmi2hPiutbM+8bZ9gHJm9gYtZsuTW75YamjtcoEnPoQjzgc+ip
+        A+wdO7v1yjxgfp87Mn2EdVoPCU3KFgSyVPY4KbeROTAtfzs=
+X-Google-Smtp-Source: APXvYqwuzoW15Et6tG0hLUJ07+wWLWRaLUvLcaMMzYcrR5QX9leMIkV+Ltx30cTNODa7ceEHqWbnbLNK6iLMwtLWem4=
+X-Received: by 2002:adf:9043:: with SMTP id h61mr24974180wrh.247.1566282418946;
+ Mon, 19 Aug 2019 23:26:58 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190820005821.2644-1-leonardo@linux.ibm.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+References: <CAA5aLPhf1=wzQG0BAonhR3td-RhEmXaczug8n4hzXCzreb+52g@mail.gmail.com>
+ <CAM_iQpVyEtOGd5LbyGcSNKCn5XzT8+Ouup26fvE1yp7T5aLSjg@mail.gmail.com>
+ <CAA5aLPiqyhnWjY7A3xsaNJ71sDOf=Rqej8d+7=_PyJPmV9uApA@mail.gmail.com>
+ <CAM_iQpUH6y8oEct3FXUhqNekQ3sn3N7LoSR0chJXAPYUzvWbxA@mail.gmail.com> <CAA5aLPjzX+9YFRGgCgceHjkU0=e6x8YMENfp_cC9fjfHYK3e+A@mail.gmail.com>
+In-Reply-To: <CAA5aLPjzX+9YFRGgCgceHjkU0=e6x8YMENfp_cC9fjfHYK3e+A@mail.gmail.com>
+From:   Akshat Kakkar <akshat.1984@gmail.com>
+Date:   Tue, 20 Aug 2019 11:56:47 +0530
+Message-ID: <CAA5aLPh9o4wMAMzC_cQ3YtcYbta72qW9gywL3g=wjWNzVECKfw@mail.gmail.com>
+Subject: Re: Unable to create htb tc classes more than 64K
+To:     Cong Wang <xiyou.wangcong@gmail.com>,
+        Anton Danilov <littlesmilingcloud@gmail.com>
+Cc:     NetFilter <netfilter-devel@vger.kernel.org>,
+        lartc <lartc@vger.kernel.org>, netdev <netdev@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Leonardo Bras <leonardo@linux.ibm.com> wrote:
-> If IPv6 is disabled on boot (ipv6.disable=1), but nft_fib_inet ends up
-> dealing with a IPv6 package, it causes a kernel panic in
-> fib6_node_lookup_1(), crashing in bad_page_fault.
-> 
-> The panic is caused by trying to deference a very low address (0x38
-> in ppc64le), due to ipv6.fib6_main_tbl = NULL.
-> BUG: Kernel NULL pointer dereference at 0x00000038
-> 
-> Fix this behavior by dropping IPv6 packages if !ipv6_mod_enabled().
+>> If your goal is merely having as many classes as you can, then yes.
 
-Wouldn't fib_netdev.c have the same problem?
+My goal is not just to make as many classes as possible, but also to
+use them to do rate limiting per ip per server. Say, I have a list of
+10000 IPs and more than 100 servers. So simply if I want few IPs to
+get speed of says 1Mbps per server but others say speed of 2 Mbps per
+server. How can I achieve this without having 10000 x 100 classes.
+These numbers can be large than this and hence I am looking for a
+generic solution to this.
 
-If so, might be better to place this test in both
-nft_fib6_eval_type and nft_fib6_eval.
+I am using ipset +  iptables to classify and not filters.
 
+Besides, if tc is allowing me to define qdisc (100:) -> classes
+(100:1) -> qdisc(1:  2:  3: ) -> classes (1:1,1:2   2:1,2:2    3:1,
+3:2   ...) sort of structure (ie like the one shown in ascii tree)
+then how should those lowest child classes be actually used or
+consumed or where it can be used?
