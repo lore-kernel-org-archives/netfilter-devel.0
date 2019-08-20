@@ -2,90 +2,100 @@ Return-Path: <SRS0=ly5L=WQ=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F867C41514
-	for <netfilter-devel@archiver.kernel.org>; Tue, 20 Aug 2019 14:45:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 86B9CC3A589
+	for <netfilter-devel@archiver.kernel.org>; Tue, 20 Aug 2019 15:50:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1FE9122DA9
-	for <netfilter-devel@archiver.kernel.org>; Tue, 20 Aug 2019 14:45:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5CC6322CE3
+	for <netfilter-devel@archiver.kernel.org>; Tue, 20 Aug 2019 15:50:21 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="YuwCdT5/"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730026AbfHTOpB (ORCPT
+        id S1730686AbfHTPuU (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 20 Aug 2019 10:45:01 -0400
-Received: from correo.us.es ([193.147.175.20]:33584 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729810AbfHTOpB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 20 Aug 2019 10:45:01 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id CD12FFB446
-        for <netfilter-devel@vger.kernel.org>; Tue, 20 Aug 2019 16:44:56 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id C0A57CA0F3
-        for <netfilter-devel@vger.kernel.org>; Tue, 20 Aug 2019 16:44:56 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id B51D9DA4CA; Tue, 20 Aug 2019 16:44:56 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id A1609D1DBB;
-        Tue, 20 Aug 2019 16:44:54 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 20 Aug 2019 16:44:54 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [47.60.43.0])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 678164265A2F;
-        Tue, 20 Aug 2019 16:44:54 +0200 (CEST)
-Date:   Tue, 20 Aug 2019 16:44:53 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Edward Cree <ecree@solarflare.com>
-Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org, jakub.kicinski@netronome.com,
-        jiri@resnulli.us, vladbu@mellanox.com
-Subject: Re: [PATCH net-next 1/2] net: flow_offload: mangle 128-bit packet
- field with one action
-Message-ID: <20190820144453.ckme6oj2c4hmofhu@salvia>
-References: <20190820105225.13943-1-pablo@netfilter.org>
- <f18d8369-f87d-5b9a-6c9d-daf48a3b95f1@solarflare.com>
+        Tue, 20 Aug 2019 11:50:20 -0400
+Received: from mail-io1-f65.google.com ([209.85.166.65]:36337 "EHLO
+        mail-io1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729820AbfHTPuT (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 20 Aug 2019 11:50:19 -0400
+Received: by mail-io1-f65.google.com with SMTP id o9so13184300iom.3
+        for <netfilter-devel@vger.kernel.org>; Tue, 20 Aug 2019 08:50:19 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:from:date:message-id:subject:to;
+        bh=3yp74A9rh1veF+3uWG8H/C7kIb/ZNnwSf+btoSYAKwc=;
+        b=YuwCdT5/6XOBnWqCOcAhgxj59yuXmxHhyN3UfDHla+NrWz9+BmsKWW6+uPUwNBzKcg
+         N9tW2Zfns7nYUrrqL7TLIqbSG2tsyTo3VNjizk3tYXa9uYoWUZfe9LvB96HR+5n5mgqk
+         TqlTz61gV8FV1ycnnxgiiqhLPsan/dBaIYXywzpxoexUjLPFNtLw9a/TOF2dsWCvc0mk
+         n5XJCoCz0dbvGFSFxVQQpVubYBKqG7eRSEnefwYFQUTQVYn8P+hRZ7f8XuqP4AmtdZgW
+         oScItPtRJtIX3Q81jSAS5EA27n2L3XzkQq3ZGa4yQQSs6Vj7XeiPJsZL2gd9FE1fgCDm
+         c40w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:from:date:message-id:subject:to;
+        bh=3yp74A9rh1veF+3uWG8H/C7kIb/ZNnwSf+btoSYAKwc=;
+        b=bAyWtu364hQSd7VyKmrC+aidwtkuUpMT4fPXACvQbtoQQVuQ0AFEDRTEMYM9lQe1GX
+         nhAbz+el0Mh/XJSxKiB7ww4xOWnkuFaVgQLUrm0343BwrL8Kk19iYnoOHbZNjpxTmLos
+         xcTrXr6mokwBh+nLt72GrCwMWr4nO/H+LMmnrrkTdCW7xrRtsOYZnsvQ/oYAHWhIYThy
+         0jjS+Mcl0cBkzJHPXztbiajLlGbmV1c7aqDJSBrD6DDk2JnF5XLkXxK3rNegj1/qvyL5
+         Dg33hXJ6g7+veX7EOM7lGitpfn4O2GCP8FijlBL/FCisOwGrwiSt0VGo/v719CiJDp2c
+         B8jA==
+X-Gm-Message-State: APjAAAUSB/S8Uq/pkz4qR+OtvUz01oE2QRQN1DAMckdTIbj2B+SaMb3N
+        1yfORHnKtapszTDlf2aRsYSMezpOdRNOzCwtJyxG6kzy
+X-Google-Smtp-Source: APXvYqzMaKTYQIGwmkdSban//KYOMXn4xffWmykYfqI40UD5Ky9ci/C2AAuUgSUlR7voyDf2Zd3fJW24iIhGNhWlHME=
+X-Received: by 2002:a5d:8913:: with SMTP id b19mr12814055ion.83.1566316218491;
+ Tue, 20 Aug 2019 08:50:18 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <f18d8369-f87d-5b9a-6c9d-daf48a3b95f1@solarflare.com>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+From:   Eric Jallot <ejallot@gmail.com>
+Date:   Tue, 20 Aug 2019 17:50:05 +0200
+Message-ID: <CAMV0XWFgyO+4XmzyscM7eTPR4ZubLpA0hChU4De0qw+UL_PBvg@mail.gmail.com>
+Subject: [PATCH nft 1/2] src: secmark: fix brace indentation in object output
+To:     netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Aug 20, 2019 at 03:15:16PM +0100, Edward Cree wrote:
-> On 20/08/2019 11:52, Pablo Neira Ayuso wrote:
-> > The existing infrastructure needs the front-end to generate up to four
-> > actions (one for each 32-bit word) to mangle an IPv6 address. This patch
-> > allows you to mangle fields than are longer than 4-bytes with one single
-> > action. Drivers have been adapted to this new representation following a
-> > simple approach, that is, iterate over the array of words and configure
-> > the hardware IR to make the packet mangling. FLOW_ACTION_MANGLE_MAX_WORDS
-> > defines the maximum number of words from one given offset (currently 4
-> > words).
-> >
-> > Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
->
-> What's the point of this?
-> Why do you need to be able to do this with a single action?  It doesn't
->  look like this extra 70 lines of code is actually buying you anything,
->  and it makes more work for any other drivers that want to implement the
->  offload API.
+Before patch:
+ # nft list secmarks
+ table inet t {
+        secmark s {
+                system_u:object_r:ssh_server_packet_t:s0        }
+ }
 
-It looks to me this limitation is coming from tc pedit.
+After patch:
+ # nft list secmarks
+ table inet t {
+         secmark s {
+                 system_u:object_r:ssh_server_packet_t:s0
+         }
+ }
 
-Four actions to mangle an IPv6 address consume more memory when making
-the translation, and if you expect a lot of rules.
+Fixes: 3bc84e5c ("src: add support for setting secmark")
+Signed-off-by: Eric Jallot <ejallot@gmail.com>
+---
+ src/rule.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-I think drivers can do more than one 32-bit word mangling in one go.
+diff --git a/src/rule.c b/src/rule.c
+index 5655e8c..255fe37 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -1821,6 +1821,7 @@ static void obj_print_data(const struct obj *obj,
+                        nft_print(octx, " # handle %" PRIu64,
+obj->handle.handle.id);
+                nft_print(octx, "%s%s%s", opts->nl, opts->tab, opts->tab);
+                nft_print(octx, "%s", obj->secmark.ctx);
++               nft_print(octx, "%s", opts->nl);
+                break;
+        case NFT_OBJECT_CT_HELPER:
+                nft_print(octx, " %s {", obj->handle.obj.name);
+
+--
+1.8.3.1
