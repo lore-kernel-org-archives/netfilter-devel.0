@@ -2,77 +2,81 @@ Return-Path: <SRS0=ly5L=WQ=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 008E2C3A59E
-	for <netfilter-devel@archiver.kernel.org>; Tue, 20 Aug 2019 16:00:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E3CA0C3A589
+	for <netfilter-devel@archiver.kernel.org>; Tue, 20 Aug 2019 16:14:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CBE2A2070B
-	for <netfilter-devel@archiver.kernel.org>; Tue, 20 Aug 2019 16:00:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C02072087E
+	for <netfilter-devel@archiver.kernel.org>; Tue, 20 Aug 2019 16:14:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729827AbfHTQAn (ORCPT
+        id S1730142AbfHTQOd (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 20 Aug 2019 12:00:43 -0400
-Received: from dispatch1-us1.ppe-hosted.com ([148.163.129.52]:56582 "EHLO
-        dispatch1-us1.ppe-hosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726663AbfHTQAm (ORCPT
+        Tue, 20 Aug 2019 12:14:33 -0400
+Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:36114 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725971AbfHTQOd (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 20 Aug 2019 12:00:42 -0400
-X-Virus-Scanned: Proofpoint Essentials engine
-Received: from webmail.solarflare.com (webmail.solarflare.com [12.187.104.26])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mx1-us2.ppe-hosted.com (PPE Hosted ESMTP Server) with ESMTPS id F0A40A40094;
-        Tue, 20 Aug 2019 16:00:32 +0000 (UTC)
-Received: from [10.17.20.203] (10.17.20.203) by ocex03.SolarFlarecom.com
- (10.20.40.36) with Microsoft SMTP Server (TLS) id 15.0.1395.4; Tue, 20 Aug
- 2019 09:00:28 -0700
-Subject: Re: [PATCH net-next 1/2] net: flow_offload: mangle 128-bit packet
- field with one action
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-CC:     <netfilter-devel@vger.kernel.org>, <davem@davemloft.net>,
-        <netdev@vger.kernel.org>, <jakub.kicinski@netronome.com>,
-        <jiri@resnulli.us>, <vladbu@mellanox.com>
-References: <20190820105225.13943-1-pablo@netfilter.org>
- <f18d8369-f87d-5b9a-6c9d-daf48a3b95f1@solarflare.com>
- <20190820144453.ckme6oj2c4hmofhu@salvia>
-From:   Edward Cree <ecree@solarflare.com>
-Message-ID: <c8a00a98-74eb-9f8d-660f-c2ea159dec91@solarflare.com>
-Date:   Tue, 20 Aug 2019 17:00:26 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.7.0
+        Tue, 20 Aug 2019 12:14:33 -0400
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1i06mF-0006DN-NE; Tue, 20 Aug 2019 18:14:31 +0200
+Date:   Tue, 20 Aug 2019 18:14:31 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     Eric Jallot <ejallot@gmail.com>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft 2/2] src: secmark: fix missing quotes in selctx
+ strings output
+Message-ID: <20190820161431.GU2588@breakpoint.cc>
+References: <CAMV0XWGubiNxMu_HSgnXMCn75p92dMvLr9E+wBx3gx3gTE6GCA@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <20190820144453.ckme6oj2c4hmofhu@salvia>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Content-Language: en-GB
-X-Originating-IP: [10.17.20.203]
-X-TM-AS-Product-Ver: SMEX-12.5.0.1300-8.5.1010-24858.005
-X-TM-AS-Result: No-0.209100-4.000000-10
-X-TMASE-MatchedRID: pBwXUM+nCwsbF9xF7zzuNfZvT2zYoYOwC/ExpXrHizziXr4PGSaEWM8J
-        UuVypuWwB4Co4PVKNKkhIV9c+BD6MkUoQAen0GQcKf/HxnllDygLBPYMfuIybh1rVWTdGrE4QXQ
-        Js8w+HtLnzlXMYw4XMKHUf3pt8cg10C1sQRfQzEHEQdG7H66TyJ8TMnmE+d0ZFFXVg9UmWWDqBd
-        lb9z4SQsz/oub4GvCvR90Chiz7xZvi+fTMx9KaNitss6PUa4/cD6GAt+UbooSj1CO4X0Eqeb0SA
-        hXRHTr3ZyMWcibO/JI=
-X-TM-AS-User-Approved-Sender: No
-X-TM-AS-User-Blocked-Sender: No
-X-TMASE-Result: 10-0.209100-4.000000
-X-TMASE-Version: SMEX-12.5.0.1300-8.5.1010-24858.005
-X-MDID: 1566316833-jeWVkV15BaN2
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAMV0XWGubiNxMu_HSgnXMCn75p92dMvLr9E+wBx3gx3gTE6GCA@mail.gmail.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 20/08/2019 15:44, Pablo Neira Ayuso wrote:
-> It looks to me this limitation is coming from tc pedit.
->
-> Four actions to mangle an IPv6 address consume more memory when making
-> the translation, and if you expect a lot of rules.
-Your change means that now every pedit uses four hw entries, even if it
- was only meant to be a 32-bit mangle.  Host memory used to keep track of
- the pedit actions is cheap, hw entries in pedit tables are not.  Nor is
- driver implementation complexity.
-NAK.
+Eric Jallot <ejallot@gmail.com> wrote:
+> Colon is not allowed in strings and breaks nft -f.
+> So move to quoted string in selctx output.
+> 
+> Before patch:
+>  # nft list ruleset > rules.nft; cat rules.nft
+>  table inet t {
+>          secmark s {
+>                  system_u:object_r:ssh_server_packet_t:s0
+>          }
+>  }
+>  # nft flush ruleset
+>  # nft -f rules.nft
+>  rules.nft:3:11-11: Error: syntax error, unexpected colon
+>                 system_u:object_r:ssh_server_packet_t:s0
+>                         ^
+> 
+> After patch:
+>  # nft list ruleset > rules.nft; cat rules.nft
+>  table inet t {
+>          secmark s {
+>                  "system_u:object_r:ssh_server_packet_t:s0"
+>          }
+>  }
+>  # nft flush ruleset
+>  # nft -f rules.nft
+> 
+> Fixes: 3bc84e5c ("src: add support for setting secmark")
+> Signed-off-by: Eric Jallot <ejallot@gmail.com>
+
+Thanks for the patches.  Something has mangled them in transit,
+replacing tabs with spaces and adding line breaks.
+
+I've applied this change manually and pushed the result out,
+can you please double-check the result is correct?
+
+If not, please submit a relative fix.
+
+Thanks!
