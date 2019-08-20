@@ -6,74 +6,73 @@ X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DFEDDC3A589
-	for <netfilter-devel@archiver.kernel.org>; Tue, 20 Aug 2019 17:57:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 74994C3A59E
+	for <netfilter-devel@archiver.kernel.org>; Tue, 20 Aug 2019 18:15:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B60A8214DA
-	for <netfilter-devel@archiver.kernel.org>; Tue, 20 Aug 2019 17:57:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4AD53206DD
+	for <netfilter-devel@archiver.kernel.org>; Tue, 20 Aug 2019 18:15:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727358AbfHTR5G (ORCPT
+        id S1729409AbfHTSPR (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 20 Aug 2019 13:57:06 -0400
-Received: from correo.us.es ([193.147.175.20]:37192 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726717AbfHTR5G (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 20 Aug 2019 13:57:06 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 93BE5DA737
-        for <netfilter-devel@vger.kernel.org>; Tue, 20 Aug 2019 19:57:03 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 855F7B7FFB
-        for <netfilter-devel@vger.kernel.org>; Tue, 20 Aug 2019 19:57:03 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 7AEB1B7FF9; Tue, 20 Aug 2019 19:57:03 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 86775B7FF6;
-        Tue, 20 Aug 2019 19:57:01 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 20 Aug 2019 19:57:01 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [47.60.43.0])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        Tue, 20 Aug 2019 14:15:17 -0400
+Received: from dispatch1-us1.ppe-hosted.com ([148.163.129.52]:51910 "EHLO
+        dispatch1-us1.ppe-hosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727006AbfHTSPR (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 20 Aug 2019 14:15:17 -0400
+X-Virus-Scanned: Proofpoint Essentials engine
+Received: from webmail.solarflare.com (webmail.solarflare.com [12.187.104.26])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
         (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 552E94265A2F;
-        Tue, 20 Aug 2019 19:57:01 +0200 (CEST)
-Date:   Tue, 20 Aug 2019 19:57:00 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Michael Braun <michael-dev@fami-braun.de>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH] src: add vlan_id type
-Message-ID: <20190820175700.pqgx3hn4h6eztdjt@salvia>
-References: <20190820164523.18464-1-michael-dev@fami-braun.de>
+        by mx1-us1.ppe-hosted.com (PPE Hosted ESMTP Server) with ESMTPS id C1D4D100077;
+        Tue, 20 Aug 2019 18:15:15 +0000 (UTC)
+Received: from [10.17.20.203] (10.17.20.203) by ocex03.SolarFlarecom.com
+ (10.20.40.36) with Microsoft SMTP Server (TLS) id 15.0.1395.4; Tue, 20 Aug
+ 2019 11:15:11 -0700
+Subject: Re: [PATCH net-next 1/2] net: flow_offload: mangle 128-bit packet
+ field with one action
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+CC:     <netfilter-devel@vger.kernel.org>, <davem@davemloft.net>,
+        <netdev@vger.kernel.org>, <jakub.kicinski@netronome.com>,
+        <jiri@resnulli.us>, <vladbu@mellanox.com>
+References: <20190820105225.13943-1-pablo@netfilter.org>
+ <f18d8369-f87d-5b9a-6c9d-daf48a3b95f1@solarflare.com>
+ <20190820144453.ckme6oj2c4hmofhu@salvia>
+ <c8a00a98-74eb-9f8d-660f-c2ea159dec91@solarflare.com>
+ <20190820173344.3nrzfjboyztz3lji@salvia>
+From:   Edward Cree <ecree@solarflare.com>
+Message-ID: <f4cf8a97-3322-d982-6068-d4c0ce997b1c@solarflare.com>
+Date:   Tue, 20 Aug 2019 19:15:10 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.7.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190820164523.18464-1-michael-dev@fami-braun.de>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+In-Reply-To: <20190820173344.3nrzfjboyztz3lji@salvia>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+Content-Language: en-GB
+X-Originating-IP: [10.17.20.203]
+X-TM-AS-Product-Ver: SMEX-12.5.0.1300-8.5.1010-24858.005
+X-TM-AS-Result: No-5.519200-4.000000-10
+X-TMASE-MatchedRID: 9zTThWtzImsbF9xF7zzuNfZvT2zYoYOwC/ExpXrHizyXLxteTkbUDyiZ
+        psjkkNK7cOwULTxNTS38nUTy5iFBDFtxk61WvxUuiVJZi91I9JhgFto/VVnNJUTqq9Xa45y5r4D
+        XF8+ppZAzhlbHXiALdFQHo6JVIdqWHxrbuiP4bz4iMpIfyuUBO9THOkgubClWpZud0fqWp9ijxY
+        yRBa/qJQOkBnb8H8GWDV8DVAd6AO/dB/CxWTRRu4as+d5/8j56Nk8z7eUgWBlSB56NfcvC2fRy9
+        sZeYHW39O/qj5Q5uaW6DnxS4FLt5w==
+X-TM-AS-User-Approved-Sender: No
+X-TM-AS-User-Blocked-Sender: No
+X-TMASE-Result: 10--5.519200-4.000000
+X-TMASE-Version: SMEX-12.5.0.1300-8.5.1010-24858.005
+X-MDID: 1566324916-NrYtBXEXYXn9
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Aug 20, 2019 at 06:45:23PM +0200, Michael Braun wrote:
-> This enables using vlan id in a set or a concatenation.
-> 
-> table bridge filter {
-> 	set dropvlans {
-> 		type vlan_id
-> 		elements = { 123 }
-> 	}
-> 	chain FORWARD {
-> 		type filter hook forward priority filter; policy accept;
->                 vlan id @dropvlans drop
-> 	}
-> }
+On 20/08/2019 18:33, Pablo Neira Ayuso wrote:
+> I can update tc pedit to generate one single action for offset
+> consecutive packet editions, if that is the concern, I'll send a v2.
+IMHO the fix belongs in TC userland (i.e. iproute2), to turn a single action on the commandline for an ipv6 addr into four pedit actions before the kernel ever sees it.
+Similarly if nftables wants to use this it should generate four separate pedit actions, probably in the kernel netfilter code as (I assume) your uAPI talks in terms of named fields rather than the u32ish offsets and masks of tc pedit.
+The TC (well, flow_offload now I suppose) API should be kept narrow, not widened for things that can already be expressed adequately.  Your array of words inside a pedit action looks like a kind of loop unrolling but for data structures, which doesn't look sensible to me.
 
-Thanks for submitting your patch.
-
-Florian sent a better approach to support for all types generically.
-Please, have a look at his recent typeof() series.
+-Ed
