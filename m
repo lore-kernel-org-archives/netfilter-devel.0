@@ -2,90 +2,82 @@ Return-Path: <SRS0=ly5L=WQ=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EA8D7C3A589
-	for <netfilter-devel@archiver.kernel.org>; Tue, 20 Aug 2019 06:27:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C8AE4C3A59E
+	for <netfilter-devel@archiver.kernel.org>; Tue, 20 Aug 2019 10:48:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BB4AF214DA
-	for <netfilter-devel@archiver.kernel.org>; Tue, 20 Aug 2019 06:27:04 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="hPMuWusl"
+	by mail.kernel.org (Postfix) with ESMTP id 9EEB3206DF
+	for <netfilter-devel@archiver.kernel.org>; Tue, 20 Aug 2019 10:48:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729107AbfHTG1B (ORCPT
+        id S1729699AbfHTKs1 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 20 Aug 2019 02:27:01 -0400
-Received: from mail-wr1-f43.google.com ([209.85.221.43]:33071 "EHLO
-        mail-wr1-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726049AbfHTG1B (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 20 Aug 2019 02:27:01 -0400
-Received: by mail-wr1-f43.google.com with SMTP id u16so11073111wrr.0;
-        Mon, 19 Aug 2019 23:26:59 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=gfbR/B8uYiMWQfmRpgyRoErFiH9g7iKs91y2cIUxD6Q=;
-        b=hPMuWuslu6rMGkPgZDoNm3pm+hI01GBmbVHwO+qQgAmPthI1bRmLm1V0Y9a+zi5Oef
-         SUq73dWHdTYzpUCVh33CXAoDIxfk7ClKAeUQsuNOD0YyiLdxJb8aFrLlQMZVq2K2NPzW
-         99QXu6HdUnY9FUHuDxcAj+nxhk1Io/JomB4FLodjPtwGLWjt/e4kevEnn837P8mxXPfs
-         2kCK694Eny2mNgk0A5k/8FypWjaQNwoVv2L/YlibjQpvCgoMX4KEvDyvMaKYvAO0rAHo
-         aWrWG4vNhgpoc7++i8Sz+H79EURtu2iuZlBWK2SjXLxSfS2PljNBPy3zJn7G3sfhxSGE
-         RgQw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=gfbR/B8uYiMWQfmRpgyRoErFiH9g7iKs91y2cIUxD6Q=;
-        b=ncbmX8VAUQQ1LcD297zHccJ42hszr4m/NYLrdIWPSekdYY6jc7bttMWtf5yysjbJbL
-         lPwQbEQRK0DLrrfmfk1K02nC094KrO6g8/nNXxyea1EtZuY6hshfgSzAOfb0IuOsxEoN
-         uc398Fs/A3bpkALBegpckgHpUlSUDB9+hbeiYCj3orEwXS0jSmjm5kDnRnZM9h2QmqQQ
-         AZEoY0RUeRSRS/71tx3OgihcG07Grw9LW1dxvBzZeNR+nfhjGLMl7Nx4sPjbRpsCov1I
-         TrHNu9KfVAS4oR2jfslyyTAUEAZ8l6w2kYGzkk8DXx+LCx6s6P6zALxEzhIEsq7XbqnF
-         iH3Q==
-X-Gm-Message-State: APjAAAXmi2hPiutbM+8bZ9gHJm9gYtZsuTW75YamjtcoEnPoQjzgc+ip
-        A+wdO7v1yjxgfp87Mn2EdVoPCU3KFgSyVPY4KbeROTAtfzs=
-X-Google-Smtp-Source: APXvYqwuzoW15Et6tG0hLUJ07+wWLWRaLUvLcaMMzYcrR5QX9leMIkV+Ltx30cTNODa7ceEHqWbnbLNK6iLMwtLWem4=
-X-Received: by 2002:adf:9043:: with SMTP id h61mr24974180wrh.247.1566282418946;
- Mon, 19 Aug 2019 23:26:58 -0700 (PDT)
-MIME-Version: 1.0
-References: <CAA5aLPhf1=wzQG0BAonhR3td-RhEmXaczug8n4hzXCzreb+52g@mail.gmail.com>
- <CAM_iQpVyEtOGd5LbyGcSNKCn5XzT8+Ouup26fvE1yp7T5aLSjg@mail.gmail.com>
- <CAA5aLPiqyhnWjY7A3xsaNJ71sDOf=Rqej8d+7=_PyJPmV9uApA@mail.gmail.com>
- <CAM_iQpUH6y8oEct3FXUhqNekQ3sn3N7LoSR0chJXAPYUzvWbxA@mail.gmail.com> <CAA5aLPjzX+9YFRGgCgceHjkU0=e6x8YMENfp_cC9fjfHYK3e+A@mail.gmail.com>
-In-Reply-To: <CAA5aLPjzX+9YFRGgCgceHjkU0=e6x8YMENfp_cC9fjfHYK3e+A@mail.gmail.com>
-From:   Akshat Kakkar <akshat.1984@gmail.com>
-Date:   Tue, 20 Aug 2019 11:56:47 +0530
-Message-ID: <CAA5aLPh9o4wMAMzC_cQ3YtcYbta72qW9gywL3g=wjWNzVECKfw@mail.gmail.com>
-Subject: Re: Unable to create htb tc classes more than 64K
-To:     Cong Wang <xiyou.wangcong@gmail.com>,
-        Anton Danilov <littlesmilingcloud@gmail.com>
-Cc:     NetFilter <netfilter-devel@vger.kernel.org>,
-        lartc <lartc@vger.kernel.org>, netdev <netdev@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+        Tue, 20 Aug 2019 06:48:27 -0400
+Received: from correo.us.es ([193.147.175.20]:38106 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1729660AbfHTKs0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 20 Aug 2019 06:48:26 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 8F8EAF2787
+        for <netfilter-devel@vger.kernel.org>; Tue, 20 Aug 2019 12:48:23 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 83897B8017
+        for <netfilter-devel@vger.kernel.org>; Tue, 20 Aug 2019 12:48:23 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 76ABEB8004; Tue, 20 Aug 2019 12:48:23 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 593A2B7FF2;
+        Tue, 20 Aug 2019 12:48:21 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Tue, 20 Aug 2019 12:48:21 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from salvia.here (unknown [47.60.43.0])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id 375D64265A2F;
+        Tue, 20 Aug 2019 12:48:18 +0200 (CEST)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     davem@davemloft.net, netdev@vger.kernel.org,
+        jakub.kicinski@netronome.com, jiri@resnulli.us, vladbu@mellanox.com
+Subject: [PATCH net-next 0/2] netfilter: payload mangling offload support
+Date:   Tue, 20 Aug 2019 12:48:05 +0200
+Message-Id: <20190820104807.13843-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.11.0
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
->> If your goal is merely having as many classes as you can, then yes.
+Hi,
 
-My goal is not just to make as many classes as possible, but also to
-use them to do rate limiting per ip per server. Say, I have a list of
-10000 IPs and more than 100 servers. So simply if I want few IPs to
-get speed of says 1Mbps per server but others say speed of 2 Mbps per
-server. How can I achieve this without having 10000 x 100 classes.
-These numbers can be large than this and hence I am looking for a
-generic solution to this.
+This patchset adds payload mangling offload support for Netfilter:
 
-I am using ipset +  iptables to classify and not filters.
+1) Adapt existing drivers to allow for mangling up to four 32-bit words
+   with one single flow_rule action. Hence, once single action can be
+   used to mangle an IPv6 address.
 
-Besides, if tc is allowing me to define qdisc (100:) -> classes
-(100:1) -> qdisc(1:  2:  3: ) -> classes (1:1,1:2   2:1,2:2    3:1,
-3:2   ...) sort of structure (ie like the one shown in ascii tree)
-then how should those lowest child classes be actually used or
-consumed or where it can be used?
+2) Add support for netfilter packet mangling.
+
+Please, apply.
+
+Pablo Neira Ayuso (2):
+  net: flow_offload: mangle 128-bit packet field with one action
+  netfilter: nft_payload: packet mangling offload support
+
+ .../net/ethernet/chelsio/cxgb4/cxgb4_tc_flower.c   | 44 ++++++++----
+ drivers/net/ethernet/mellanox/mlx5/core/en_tc.c    | 50 +++++++++----
+ drivers/net/ethernet/netronome/nfp/flower/action.c | 69 ++++++++++++------
+ include/net/flow_offload.h                         |  9 ++-
+ net/netfilter/nft_payload.c                        | 82 ++++++++++++++++++++++
+ net/sched/cls_api.c                                |  7 +-
+ 6 files changed, 207 insertions(+), 54 deletions(-)
+
+-- 
+2.11.0
+
+
