@@ -1,111 +1,123 @@
-Return-Path: <SRS0=DEFU=WP=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=ly5L=WQ=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 46F2CC3A5A0
-	for <netfilter-devel@archiver.kernel.org>; Mon, 19 Aug 2019 20:28:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8FDA7C3A5A0
+	for <netfilter-devel@archiver.kernel.org>; Tue, 20 Aug 2019 00:58:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 102C422CE8
-	for <netfilter-devel@archiver.kernel.org>; Mon, 19 Aug 2019 20:28:08 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=netronome-com.20150623.gappssmtp.com header.i=@netronome-com.20150623.gappssmtp.com header.b="kjpnuPoN"
+	by mail.kernel.org (Postfix) with ESMTP id 6807222CE8
+	for <netfilter-devel@archiver.kernel.org>; Tue, 20 Aug 2019 00:58:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728402AbfHSU2H (ORCPT
+        id S1728876AbfHTA6p (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 19 Aug 2019 16:28:07 -0400
-Received: from mail-qt1-f193.google.com ([209.85.160.193]:36341 "EHLO
-        mail-qt1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728055AbfHSU2H (ORCPT
+        Mon, 19 Aug 2019 20:58:45 -0400
+Received: from mx0b-001b2d01.pphosted.com ([148.163.158.5]:61014 "EHLO
+        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1728773AbfHTA6p (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 19 Aug 2019 16:28:07 -0400
-Received: by mail-qt1-f193.google.com with SMTP id z4so3425956qtc.3
-        for <netfilter-devel@vger.kernel.org>; Mon, 19 Aug 2019 13:28:07 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=netronome-com.20150623.gappssmtp.com; s=20150623;
-        h=date:from:to:cc:subject:message-id:in-reply-to:references
-         :organization:mime-version:content-transfer-encoding;
-        bh=pJvcVeGyUeIVDpO5RArvDs7NS7qFRcy6zBiCjIhFyCU=;
-        b=kjpnuPoNhgCzQoP6p/RTLE23OKutNFwh0RaCBaUpPKFCL/a9OlcZdO9kjDsTBb2lBN
-         qvirKyldJzmUhiECW5COmsf4jBRys0ZQ7p/od9SWMCl0pcokhQDetq3HoOy/PoPsPnTj
-         mHX+vTPjJBwoAcaZpXQnYN6G393UKNRfTj184M1E8o+tAuyDjBkMcdM+lPNoMS2jXcso
-         Odl57Wm9bO72RjCeQQIfzG1bz2n+T3ni70uv3D4NxyI7FD8d/fvRuJmiex1KH+kUJXQH
-         YJbNhAQKTab0U21jVJchUfWoGtyqkehVeG3fcX8/e+Hid9d8rWJWD7GLFC+xxrueF5yY
-         Gzyw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:in-reply-to
-         :references:organization:mime-version:content-transfer-encoding;
-        bh=pJvcVeGyUeIVDpO5RArvDs7NS7qFRcy6zBiCjIhFyCU=;
-        b=I2arPLaVSGhTDv0J0k8LEb2vZxUN/1mA9hv3eDm40gpgLVNyRlSiS1GaU7GKyO8HhP
-         HpObiLvzT1ocwgM21ponN5SIcAS+pkwFufAitqysnLdpwheNbMlknZiuHI+DHCTFuyQO
-         YzKkMsO9Nu0fSU4Id+wJf/kpz2eGvSUp1dTnDhy1BWEW4eU0H+4oEcDSrnD7B/RL74u/
-         fbpnvAHRqSQrhnGZvuiA9ORkto+XTg653JaCnlEMhfPJFTX6kgyUt4CHjUcOqxud3bOs
-         Ce+FoBMmo3QZvaqno/VyMf3WyT0KyKD44S7Rsrea9ezLaLbqMeOKoUa7wKJQUIzCUTtk
-         3qRA==
-X-Gm-Message-State: APjAAAVAg2Vqv2DepMOApCa01ZSnyuIRKUVvslwXo0hWpTcRwtkqJX0Y
-        AGPv/4m+QhrCEuEbICMJATDlow==
-X-Google-Smtp-Source: APXvYqztOLbRTFoVwU3R0+mvN+1PxMzx6yaEI7zKkrws343fdleTwrioRPo5ZqAbVsnLmOxVIg0OSQ==
-X-Received: by 2002:ac8:7b97:: with SMTP id p23mr23070680qtu.357.1566246486693;
-        Mon, 19 Aug 2019 13:28:06 -0700 (PDT)
-Received: from cakuba.netronome.com ([66.60.152.14])
-        by smtp.gmail.com with ESMTPSA id y23sm7379429qki.118.2019.08.19.13.28.05
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 19 Aug 2019 13:28:06 -0700 (PDT)
-Date:   Mon, 19 Aug 2019 13:27:57 -0700
-From:   Jakub Kicinski <jakub.kicinski@netronome.com>
-To:     Vlad Buslov <vladbu@mellanox.com>
-Cc:     wenxu <wenxu@ucloud.cn>, David Miller <davem@davemloft.net>,
-        Jiri Pirko <jiri@resnulli.us>,
-        "pablo@netfilter.org" <pablo@netfilter.org>,
-        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-        "netdev@vger.kernel.org" <netdev@vger.kernel.org>
-Subject: Re: [PATCH net-next v7 5/6] flow_offload: support get
- multi-subsystem block
-Message-ID: <20190819132757.0d00d34d@cakuba.netronome.com>
-In-Reply-To: <vbftvady5tg.fsf@mellanox.com>
-References: <1565140434-8109-1-git-send-email-wenxu@ucloud.cn>
-        <1565140434-8109-6-git-send-email-wenxu@ucloud.cn>
-        <vbfimr2o4ly.fsf@mellanox.com>
-        <f28ddefe-a7d8-e5ad-e03e-08cfee4db147@ucloud.cn>
-        <vbfpnl55eyg.fsf@mellanox.com>
-        <20190816105627.57c1c2aa@cakuba.netronome.com>
-        <vbftvady5tg.fsf@mellanox.com>
-Organization: Netronome Systems, Ltd.
+        Mon, 19 Aug 2019 20:58:45 -0400
+Received: from pps.filterd (m0098413.ppops.net [127.0.0.1])
+        by mx0b-001b2d01.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id x7K0v1If114615
+        for <netfilter-devel@vger.kernel.org>; Mon, 19 Aug 2019 20:58:44 -0400
+Received: from e14.ny.us.ibm.com (e14.ny.us.ibm.com [129.33.205.204])
+        by mx0b-001b2d01.pphosted.com with ESMTP id 2ug669129x-1
+        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NOT)
+        for <netfilter-devel@vger.kernel.org>; Mon, 19 Aug 2019 20:58:43 -0400
+Received: from localhost
+        by e14.ny.us.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+        for <netfilter-devel@vger.kernel.org> from <leonardo@linux.ibm.com>;
+        Tue, 20 Aug 2019 01:58:43 +0100
+Received: from b01cxnp22033.gho.pok.ibm.com (9.57.198.23)
+        by e14.ny.us.ibm.com (146.89.104.201) with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted;
+        (version=TLSv1/SSLv3 cipher=AES256-GCM-SHA384 bits=256/256)
+        Tue, 20 Aug 2019 01:58:39 +0100
+Received: from b01ledav004.gho.pok.ibm.com (b01ledav004.gho.pok.ibm.com [9.57.199.109])
+        by b01cxnp22033.gho.pok.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id x7K0wcmr48300468
+        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Tue, 20 Aug 2019 00:58:38 GMT
+Received: from b01ledav004.gho.pok.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id 0D759112062;
+        Tue, 20 Aug 2019 00:58:38 +0000 (GMT)
+Received: from b01ledav004.gho.pok.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id 1EE3A112065;
+        Tue, 20 Aug 2019 00:58:36 +0000 (GMT)
+Received: from LeoBras.ibmuc.com (unknown [9.85.170.223])
+        by b01ledav004.gho.pok.ibm.com (Postfix) with ESMTP;
+        Tue, 20 Aug 2019 00:58:35 +0000 (GMT)
+From:   Leonardo Bras <leonardo@linux.ibm.com>
+To:     netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc:     Leonardo Bras <leonardo@linux.ibm.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>
+Subject: [PATCH 1/1] netfilter: nf_tables: fib: Drop IPV6 packages if IPv6 is disabled on boot
+Date:   Mon, 19 Aug 2019 21:58:21 -0300
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+X-TM-AS-GCONF: 00
+x-cbid: 19082000-0052-0000-0000-000003EC65CD
+X-IBM-SpamModules-Scores: 
+X-IBM-SpamModules-Versions: BY=3.00011620; HX=3.00000242; KW=3.00000007;
+ PH=3.00000004; SC=3.00000287; SDB=6.01249297; UDB=6.00659489; IPR=6.01030832;
+ MB=3.00028239; MTD=3.00000008; XFM=3.00000015; UTC=2019-08-20 00:58:41
+X-IBM-AV-DETECTION: SAVI=unused REMOTE=unused XFE=unused
+x-cbparentid: 19082000-0053-0000-0000-000062268B18
+Message-Id: <20190820005821.2644-1-leonardo@linux.ibm.com>
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:,, definitions=2019-08-19_05:,,
+ signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 priorityscore=1501
+ malwarescore=0 suspectscore=0 phishscore=0 bulkscore=0 spamscore=0
+ clxscore=1011 lowpriorityscore=0 mlxscore=0 impostorscore=0
+ mlxlogscore=999 adultscore=0 classifier=spam adjust=0 reason=mlx
+ scancount=1 engine=8.0.1-1906280000 definitions=main-1908200005
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, 19 Aug 2019 07:26:07 +0000, Vlad Buslov wrote:
-> On Fri 16 Aug 2019 at 20:56, Jakub Kicinski <jakub.kicinski@netronome.com> wrote:
-> > Hi Vlad!
-> >
-> > While looking into this, would you mind also add the missing
-> > flow_block_cb_is_busy() calls in the indirect handlers in the drivers?
-> >
-> > LMK if you're too busy, I don't want this to get forgotten :)  
-> 
-> Hi Jakub,
-> 
-> I've checked the code and it looks like only nfp driver is affected:
-> 
-> - I added check in nfp to lookup cb_priv with
->   nfp_flower_indr_block_cb_priv_lookup() and call
->   flow_block_cb_is_busy() if cb_priv exists.
-> 
-> - In mlx5 en_rep.c there is already a check that indr_priv exists, so
->   trying to lookup block_cb->cb_indent==indr_priv is redundant.
-> 
-> - Switch drivers (mlxsw and ocelot) take reference to block_cb on
->   FLOW_BLOCK_BIND, so they should not require any modifications.
-> 
-> Tell me if I missed anything. Sending the patch for nfp.
+If IPv6 is disabled on boot (ipv6.disable=1), but nft_fib_inet ends up
+dealing with a IPv6 package, it causes a kernel panic in
+fib6_node_lookup_1(), crashing in bad_page_fault.
 
-Ah, that sounds plausible, I've only checked the nfp driver.
+The panic is caused by trying to deference a very low address (0x38
+in ppc64le), due to ipv6.fib6_main_tbl = NULL.
+BUG: Kernel NULL pointer dereference at 0x00000038
+
+Fix this behavior by dropping IPv6 packages if !ipv6_mod_enabled().
+
+Signed-off-by: Leonardo Bras <leonardo@linux.ibm.com>
+---
+ net/netfilter/nft_fib_inet.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/net/netfilter/nft_fib_inet.c b/net/netfilter/nft_fib_inet.c
+index 465432e0531b..0017afab3c51 100644
+--- a/net/netfilter/nft_fib_inet.c
++++ b/net/netfilter/nft_fib_inet.c
+@@ -2,6 +2,7 @@
+ 
+ #include <linux/kernel.h>
+ #include <linux/init.h>
++#include <linux/ipv6.h>
+ #include <linux/module.h>
+ #include <linux/netlink.h>
+ #include <linux/netfilter.h>
+@@ -28,6 +29,8 @@ static void nft_fib_inet_eval(const struct nft_expr *expr,
+ 		}
+ 		break;
+ 	case NFPROTO_IPV6:
++		if (!ipv6_mod_enabled())
++			break;
+ 		switch (priv->result) {
+ 		case NFT_FIB_RESULT_OIF:
+ 		case NFT_FIB_RESULT_OIFNAME:
+-- 
+2.20.1
+
