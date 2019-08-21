@@ -6,38 +6,38 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C6257C3A5A1
-	for <netfilter-devel@archiver.kernel.org>; Wed, 21 Aug 2019 05:10:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8DF6EC3A59E
+	for <netfilter-devel@archiver.kernel.org>; Wed, 21 Aug 2019 05:10:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9A62C22DA7
-	for <netfilter-devel@archiver.kernel.org>; Wed, 21 Aug 2019 05:10:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5EEA622DA7
+	for <netfilter-devel@archiver.kernel.org>; Wed, 21 Aug 2019 05:10:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727348AbfHUFKD (ORCPT
+        id S1727764AbfHUFKH (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 21 Aug 2019 01:10:03 -0400
-Received: from m9784.mail.qiye.163.com ([220.181.97.84]:31901 "EHLO
+        Wed, 21 Aug 2019 01:10:07 -0400
+Received: from m9784.mail.qiye.163.com ([220.181.97.84]:31765 "EHLO
         m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727286AbfHUFKC (ORCPT
+        with ESMTP id S1726983AbfHUFKG (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 21 Aug 2019 01:10:02 -0400
+        Wed, 21 Aug 2019 01:10:06 -0400
 Received: from localhost.localdomain (unknown [123.59.132.129])
-        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id 2FF5A418BC;
-        Wed, 21 Aug 2019 13:09:55 +0800 (CST)
+        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id 2F8F54164A;
+        Wed, 21 Aug 2019 13:09:54 +0800 (CST)
 From:   wenxu@ucloud.cn
 To:     pablo@netfilter.org, fw@strlen.de
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next v5 8/8] netfilter: nft_tunnel: support nft_tunnel_obj offload
-Date:   Wed, 21 Aug 2019 13:09:53 +0800
-Message-Id: <1566364193-31330-9-git-send-email-wenxu@ucloud.cn>
+Subject: [PATCH nf-next v5 1/8] netfilter: nft_tunnel: add nft_tunnel_mode_validate function
+Date:   Wed, 21 Aug 2019 13:09:46 +0800
+Message-Id: <1566364193-31330-2-git-send-email-wenxu@ucloud.cn>
 X-Mailer: git-send-email 1.8.3.1
 In-Reply-To: <1566364193-31330-1-git-send-email-wenxu@ucloud.cn>
 References: <1566364193-31330-1-git-send-email-wenxu@ucloud.cn>
-X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVklVSUhNS0tLSUJCT05ITE9ZV1koWU
+X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVklVSUlOS0tLSENKT01CTEhZV1koWU
         FJQjdXWS1ZQUlXWQkOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6OCo6Qww4DTg#OT84DhFKIzEW
-        LCEKCRJVSlVKTk1NSE1PSkJOSU1MVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJSFVO
-        QlVKSElVSklCWVdZCAFZQUlISUg3Bg++
-X-HM-Tid: 0a6cb294d9962086kuqy2ff5a418bc
+X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6Pz46TRw5Dzg#Fz8TDhxNIzES
+        NzEaCRJVSlVKTk1NSE1PSkJPSU5LVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJSFVO
+        QlVKSElVSklCWVdZCAFZQUlDQkM3Bg++
+X-HM-Tid: 0a6cb294d5a42086kuqy2f8f54164a
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
@@ -45,53 +45,65 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: wenxu <wenxu@ucloud.cn>
 
-Add nft_tunnel_obj offload for both encap and decap actions
+Move mode validate  common code to nft_tunnel_mode_validate
+function.
 
 Signed-off-by: wenxu <wenxu@ucloud.cn>
 ---
-v5: no change
+v5: no chang
 
- net/netfilter/nft_tunnel.c | 20 ++++++++++++++++++++
- 1 file changed, 20 insertions(+)
+ net/netfilter/nft_tunnel.c | 24 ++++++++++++++----------
+ 1 file changed, 14 insertions(+), 10 deletions(-)
 
 diff --git a/net/netfilter/nft_tunnel.c b/net/netfilter/nft_tunnel.c
-index aa3dc52..b47838d 100644
+index 3d4c2ae..d374466 100644
 --- a/net/netfilter/nft_tunnel.c
 +++ b/net/netfilter/nft_tunnel.c
-@@ -669,6 +669,25 @@ static void nft_tunnel_obj_destroy(const struct nft_ctx *ctx,
- 		metadata_dst_free(priv->md);
- }
- 
-+static int nft_tunnel_obj_offload(struct nft_offload_ctx *ctx,
-+				  struct nft_flow_rule *flow,
-+				  struct nft_object *obj)
-+{
-+	struct nft_tunnel_obj *priv = nft_obj_data(obj);
-+	struct flow_action_entry *entry;
-+
-+	entry = &flow->rule->action.entries[ctx->num_actions++];
-+
-+	if (!priv->tunnel_key_release) {
-+		entry->id = FLOW_ACTION_TUNNEL_ENCAP;
-+		entry->tunnel = &priv->md->u.tun_info;
-+	} else {
-+		entry->id = FLOW_ACTION_TUNNEL_DECAP;
-+	}
-+
-+	return 0;
-+}
-+
- static struct nft_object_type nft_tunnel_obj_type;
- static const struct nft_object_ops nft_tunnel_obj_ops = {
- 	.type		= &nft_tunnel_obj_type,
-@@ -677,6 +696,7 @@ static void nft_tunnel_obj_destroy(const struct nft_ctx *ctx,
- 	.init		= nft_tunnel_obj_init,
- 	.destroy	= nft_tunnel_obj_destroy,
- 	.dump		= nft_tunnel_obj_dump,
-+	.offload	= nft_tunnel_obj_offload,
+@@ -18,6 +18,18 @@ struct nft_tunnel {
+ 	enum nft_tunnel_mode	mode:8;
  };
  
- static struct nft_object_type nft_tunnel_obj_type __read_mostly = {
++bool nft_tunnel_mode_validate(enum nft_tunnel_mode priv_mode, u8 tun_mode)
++{
++	if (priv_mode == NFT_TUNNEL_MODE_NONE ||
++	    (priv_mode == NFT_TUNNEL_MODE_RX &&
++	     !(tun_mode & IP_TUNNEL_INFO_TX)) ||
++	    (priv_mode == NFT_TUNNEL_MODE_TX &&
++	     (tun_mode & IP_TUNNEL_INFO_TX)))
++		return true;
++
++	return false;
++}
++
+ static void nft_tunnel_get_eval(const struct nft_expr *expr,
+ 				struct nft_regs *regs,
+ 				const struct nft_pktinfo *pkt)
+@@ -34,11 +46,7 @@ static void nft_tunnel_get_eval(const struct nft_expr *expr,
+ 			nft_reg_store8(dest, false);
+ 			return;
+ 		}
+-		if (priv->mode == NFT_TUNNEL_MODE_NONE ||
+-		    (priv->mode == NFT_TUNNEL_MODE_RX &&
+-		     !(tun_info->mode & IP_TUNNEL_INFO_TX)) ||
+-		    (priv->mode == NFT_TUNNEL_MODE_TX &&
+-		     (tun_info->mode & IP_TUNNEL_INFO_TX)))
++		if (nft_tunnel_mode_validate(priv->mode, tun_info->mode))
+ 			nft_reg_store8(dest, true);
+ 		else
+ 			nft_reg_store8(dest, false);
+@@ -48,11 +56,7 @@ static void nft_tunnel_get_eval(const struct nft_expr *expr,
+ 			regs->verdict.code = NFT_BREAK;
+ 			return;
+ 		}
+-		if (priv->mode == NFT_TUNNEL_MODE_NONE ||
+-		    (priv->mode == NFT_TUNNEL_MODE_RX &&
+-		     !(tun_info->mode & IP_TUNNEL_INFO_TX)) ||
+-		    (priv->mode == NFT_TUNNEL_MODE_TX &&
+-		     (tun_info->mode & IP_TUNNEL_INFO_TX)))
++		if (nft_tunnel_mode_validate(priv->mode, tun_info->mode))
+ 			*dest = ntohl(tunnel_id_to_key32(tun_info->key.tun_id));
+ 		else
+ 			regs->verdict.code = NFT_BREAK;
 -- 
 1.8.3.1
 
