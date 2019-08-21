@@ -6,29 +6,29 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F2857C3A59E
-	for <netfilter-devel@archiver.kernel.org>; Wed, 21 Aug 2019 09:27:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 24F27C3A59E
+	for <netfilter-devel@archiver.kernel.org>; Wed, 21 Aug 2019 09:27:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CFB4222D6D
-	for <netfilter-devel@archiver.kernel.org>; Wed, 21 Aug 2019 09:27:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0097922D6D
+	for <netfilter-devel@archiver.kernel.org>; Wed, 21 Aug 2019 09:27:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726921AbfHUJ10 (ORCPT
+        id S1726906AbfHUJ1b (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 21 Aug 2019 05:27:26 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:43820 "EHLO orbyte.nwl.cc"
+        Wed, 21 Aug 2019 05:27:31 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:43826 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726882AbfHUJ10 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 21 Aug 2019 05:27:26 -0400
-Received: from localhost ([::1]:56910 helo=tatos)
+        id S1726882AbfHUJ1b (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 21 Aug 2019 05:27:31 -0400
+Received: from localhost ([::1]:56916 helo=tatos)
         by orbyte.nwl.cc with esmtp (Exim 4.91)
         (envelope-from <phil@nwl.cc>)
-        id 1i0Mto-00058L-E1; Wed, 21 Aug 2019 11:27:24 +0200
+        id 1i0Mtu-00058g-3p; Wed, 21 Aug 2019 11:27:30 +0200
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH 13/14] nft: Support parsing lookup expression
-Date:   Wed, 21 Aug 2019 11:26:01 +0200
-Message-Id: <20190821092602.16292-14-phil@nwl.cc>
+Subject: [iptables PATCH 12/14] nft: Embed rule's table name in nft_xt_ctx
+Date:   Wed, 21 Aug 2019 11:26:00 +0200
+Message-Id: <20190821092602.16292-13-phil@nwl.cc>
 X-Mailer: git-send-email 2.22.0
 In-Reply-To: <20190821092602.16292-1-phil@nwl.cc>
 References: <20190821092602.16292-1-phil@nwl.cc>
@@ -39,79 +39,39 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Add required glue code to support family specific lookup expression
-parsers implemented as family_ops callback.
+Down to the point where expression parsing happens, the rule's table is
+not known anymore but relevant if set lookups are required.
 
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- iptables/nft-shared.c | 9 +++++++++
- iptables/nft-shared.h | 2 ++
- iptables/nft.c        | 5 ++++-
- 3 files changed, 15 insertions(+), 1 deletion(-)
+ iptables/nft-shared.c | 1 +
+ iptables/nft-shared.h | 1 +
+ 2 files changed, 2 insertions(+)
 
 diff --git a/iptables/nft-shared.c b/iptables/nft-shared.c
-index 5615dfae00569..1c540ccfb70e1 100644
+index 0f8cabf9abcc7..5615dfae00569 100644
 --- a/iptables/nft-shared.c
 +++ b/iptables/nft-shared.c
-@@ -588,6 +588,13 @@ static void nft_parse_limit(struct nft_xt_ctx *ctx, struct nftnl_expr *e)
- 		ctx->h->ops->parse_match(match, ctx->cs);
- }
+@@ -597,6 +597,7 @@ void nft_rule_to_iptables_command_state(struct nft_handle *h,
+ 	struct nft_xt_ctx ctx = {
+ 		.cs = cs,
+ 		.h = h,
++		.table = nftnl_rule_get_str(r, NFTNL_RULE_TABLE),
+ 	};
  
-+static void nft_parse_lookup(struct nft_xt_ctx *ctx, struct nft_handle *h,
-+			     struct nftnl_expr *e)
-+{
-+	if (ctx->h->ops->parse_lookup)
-+		ctx->h->ops->parse_lookup(ctx, e, NULL);
-+}
-+
- void nft_rule_to_iptables_command_state(struct nft_handle *h,
- 					const struct nftnl_rule *r,
- 					struct iptables_command_state *cs)
-@@ -628,6 +635,8 @@ void nft_rule_to_iptables_command_state(struct nft_handle *h,
- 			nft_parse_target(&ctx, expr);
- 		else if (strcmp(name, "limit") == 0)
- 			nft_parse_limit(&ctx, expr);
-+		else if (strcmp(name, "lookup") == 0)
-+			nft_parse_lookup(&ctx, h, expr);
- 
- 		expr = nftnl_expr_iter_next(iter);
- 	}
+ 	iter = nftnl_expr_iter_create(r);
 diff --git a/iptables/nft-shared.h b/iptables/nft-shared.h
-index 6d2b237d90bbc..e5acb447045d3 100644
+index cb7eea6208cd2..6d2b237d90bbc 100644
 --- a/iptables/nft-shared.h
 +++ b/iptables/nft-shared.h
-@@ -86,6 +86,8 @@ struct nft_family_ops {
- 			      void *data);
- 	void (*parse_cmp)(struct nft_xt_ctx *ctx, struct nftnl_expr *e,
- 			  void *data);
-+	void (*parse_lookup)(struct nft_xt_ctx *ctx, struct nftnl_expr *e,
-+			     void *data);
- 	void (*parse_immediate)(const char *jumpto, bool nft_goto, void *data);
+@@ -51,6 +51,7 @@ struct nft_xt_ctx {
+ 	struct nftnl_expr_iter *iter;
+ 	struct nft_handle *h;
+ 	uint32_t flags;
++	const char *table;
  
- 	void (*print_table_header)(const char *tablename);
-diff --git a/iptables/nft.c b/iptables/nft.c
-index 821afa8f5e78c..4cc4b1798d979 100644
---- a/iptables/nft.c
-+++ b/iptables/nft.c
-@@ -1065,6 +1065,8 @@ int add_match(struct nft_handle *h,
- 
- 	if (!strcmp(m->u.user.name, "limit"))
- 		return add_nft_limit(r, m);
-+	else if (!strcmp(m->u.user.name, "among"))
-+		return add_nft_among(h, r, m);
- 
- 	expr = nftnl_expr_alloc("match");
- 	if (expr == NULL)
-@@ -3497,7 +3499,8 @@ static const char *supported_exprs[] = {
- 	"cmp",
- 	"bitwise",
- 	"counter",
--	"immediate"
-+	"immediate",
-+	"lookup"
- };
- 
- 
+ 	uint32_t reg;
+ 	struct {
 -- 
 2.22.0
 
