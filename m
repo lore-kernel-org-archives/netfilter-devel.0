@@ -2,42 +2,42 @@ Return-Path: <SRS0=lxoE=WR=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8DF6EC3A59E
-	for <netfilter-devel@archiver.kernel.org>; Wed, 21 Aug 2019 05:10:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 07445C3A5A1
+	for <netfilter-devel@archiver.kernel.org>; Wed, 21 Aug 2019 05:10:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5EEA622DA7
+	by mail.kernel.org (Postfix) with ESMTP id DB6E222DA7
 	for <netfilter-devel@archiver.kernel.org>; Wed, 21 Aug 2019 05:10:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727764AbfHUFKH (ORCPT
+        id S1727766AbfHUFKH (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Wed, 21 Aug 2019 01:10:07 -0400
-Received: from m9784.mail.qiye.163.com ([220.181.97.84]:31765 "EHLO
+Received: from m9784.mail.qiye.163.com ([220.181.97.84]:31897 "EHLO
         m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726983AbfHUFKG (ORCPT
+        with ESMTP id S1727752AbfHUFKH (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 21 Aug 2019 01:10:06 -0400
+        Wed, 21 Aug 2019 01:10:07 -0400
 Received: from localhost.localdomain (unknown [123.59.132.129])
-        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id 2F8F54164A;
+        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id C07A3418AB;
         Wed, 21 Aug 2019 13:09:54 +0800 (CST)
 From:   wenxu@ucloud.cn
 To:     pablo@netfilter.org, fw@strlen.de
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next v5 1/8] netfilter: nft_tunnel: add nft_tunnel_mode_validate function
-Date:   Wed, 21 Aug 2019 13:09:46 +0800
-Message-Id: <1566364193-31330-2-git-send-email-wenxu@ucloud.cn>
+Subject: [PATCH nf-next v5 5/8] netfilter: nft_tunnel: support tunnel meta match offload
+Date:   Wed, 21 Aug 2019 13:09:50 +0800
+Message-Id: <1566364193-31330-6-git-send-email-wenxu@ucloud.cn>
 X-Mailer: git-send-email 1.8.3.1
 In-Reply-To: <1566364193-31330-1-git-send-email-wenxu@ucloud.cn>
 References: <1566364193-31330-1-git-send-email-wenxu@ucloud.cn>
-X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVklVSUlOS0tLSENKT01CTEhZV1koWU
+X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVkpVSktIS0tLS09PQ0lJTUJZV1koWU
         FJQjdXWS1ZQUlXWQkOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6Pz46TRw5Dzg#Fz8TDhxNIzES
-        NzEaCRJVSlVKTk1NSE1PSkJPSU5LVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJSFVO
-        QlVKSElVSklCWVdZCAFZQUlDQkM3Bg++
-X-HM-Tid: 0a6cb294d5a42086kuqy2f8f54164a
+X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6MC46Vhw5SjgrOT8VQxE8IzkS
+        KT8aFC1VSlVKTk1NSE1PSkJPQkpNVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJSFVO
+        QlVKSElVSklCWVdZCAFZQUhCT003Bg++
+X-HM-Tid: 0a6cb294d8042086kuqyc07a3418ab
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
@@ -45,65 +45,99 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: wenxu <wenxu@ucloud.cn>
 
-Move mode validate  common code to nft_tunnel_mode_validate
-function.
+Add tunnel meta match offload. Currently support for NFT_TUNNEL_ID
+NFT_TUNNEL_SRC_IP and NFT_TUNNEL_DST_IP
 
 Signed-off-by: wenxu <wenxu@ucloud.cn>
 ---
-v5: no chang
+v5: no change
 
- net/netfilter/nft_tunnel.c | 24 ++++++++++++++----------
- 1 file changed, 14 insertions(+), 10 deletions(-)
+ include/net/netfilter/nf_tables_offload.h |  5 ++++
+ net/netfilter/nft_tunnel.c                | 41 +++++++++++++++++++++++++++++++
+ 2 files changed, 46 insertions(+)
 
+diff --git a/include/net/netfilter/nf_tables_offload.h b/include/net/netfilter/nf_tables_offload.h
+index 8a5969d9..cafc262 100644
+--- a/include/net/netfilter/nf_tables_offload.h
++++ b/include/net/netfilter/nf_tables_offload.h
+@@ -44,6 +44,11 @@ struct nft_flow_key {
+ 	struct flow_dissector_key_ip			ip;
+ 	struct flow_dissector_key_vlan			vlan;
+ 	struct flow_dissector_key_eth_addrs		eth_addrs;
++	struct flow_dissector_key_keyid         enc_key_id;
++	union {
++		struct flow_dissector_key_ipv4_addrs	enc_ipv4;
++		struct flow_dissector_key_ipv6_addrs	enc_ipv6;
++	};
+ } __aligned(BITS_PER_LONG / 8); /* Ensure that we can do comparisons as longs. */
+ 
+ struct nft_flow_match {
 diff --git a/net/netfilter/nft_tunnel.c b/net/netfilter/nft_tunnel.c
-index 3d4c2ae..d374466 100644
+index 58b6083..018ec27 100644
 --- a/net/netfilter/nft_tunnel.c
 +++ b/net/netfilter/nft_tunnel.c
-@@ -18,6 +18,18 @@ struct nft_tunnel {
- 	enum nft_tunnel_mode	mode:8;
- };
+@@ -11,6 +11,7 @@
+ #include <net/ip_tunnels.h>
+ #include <net/vxlan.h>
+ #include <net/erspan.h>
++#include <net/netfilter/nf_tables_offload.h>
  
-+bool nft_tunnel_mode_validate(enum nft_tunnel_mode priv_mode, u8 tun_mode)
+ struct nft_tunnel {
+ 	enum nft_tunnel_keys	key:8;
+@@ -177,6 +178,45 @@ static int nft_tunnel_get_dump(struct sk_buff *skb,
+ 	return -1;
+ }
+ 
++static int nft_tunnel_get_offload(struct nft_offload_ctx *ctx,
++				  struct nft_flow_rule *flow,
++				  const struct nft_expr *expr)
 +{
-+	if (priv_mode == NFT_TUNNEL_MODE_NONE ||
-+	    (priv_mode == NFT_TUNNEL_MODE_RX &&
-+	     !(tun_mode & IP_TUNNEL_INFO_TX)) ||
-+	    (priv_mode == NFT_TUNNEL_MODE_TX &&
-+	     (tun_mode & IP_TUNNEL_INFO_TX)))
-+		return true;
++	const struct nft_tunnel *priv = nft_expr_priv(expr);
++	struct nft_offload_reg *reg = &ctx->regs[priv->dreg];
 +
-+	return false;
++	if (priv->mode == NFT_TUNNEL_MODE_TX)
++		return -EOPNOTSUPP;
++
++	switch (priv->key) {
++	case NFT_TUNNEL_ID:
++		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_ENC_KEYID, enc_key_id, keyid,
++				  sizeof(__u32), reg);
++		break;
++	case NFT_TUNNEL_IP_SRC:
++		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_ENC_IPV4_ADDRS, enc_ipv4, src,
++				  sizeof(__u32), reg);
++		break;
++	case NFT_TUNNEL_IP_DST:
++		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_ENC_IPV4_ADDRS, enc_ipv4, dst,
++				  sizeof(__u32), reg);
++		break;
++	case NFT_TUNNEL_IP6_SRC:
++		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_ENC_IPV6_ADDRS, enc_ipv6, src,
++				  sizeof(struct in6_addr), reg);
++		break;
++	case NFT_TUNNEL_IP6_DST:
++		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_ENC_IPV6_ADDRS, enc_ipv6, dst,
++				  sizeof(struct in6_addr), reg);
++		break;
++	case NFT_TUNNEL_PATH:
++	default:
++		return -EOPNOTSUPP;
++	}
++
++	return 0;
 +}
 +
- static void nft_tunnel_get_eval(const struct nft_expr *expr,
- 				struct nft_regs *regs,
- 				const struct nft_pktinfo *pkt)
-@@ -34,11 +46,7 @@ static void nft_tunnel_get_eval(const struct nft_expr *expr,
- 			nft_reg_store8(dest, false);
- 			return;
- 		}
--		if (priv->mode == NFT_TUNNEL_MODE_NONE ||
--		    (priv->mode == NFT_TUNNEL_MODE_RX &&
--		     !(tun_info->mode & IP_TUNNEL_INFO_TX)) ||
--		    (priv->mode == NFT_TUNNEL_MODE_TX &&
--		     (tun_info->mode & IP_TUNNEL_INFO_TX)))
-+		if (nft_tunnel_mode_validate(priv->mode, tun_info->mode))
- 			nft_reg_store8(dest, true);
- 		else
- 			nft_reg_store8(dest, false);
-@@ -48,11 +56,7 @@ static void nft_tunnel_get_eval(const struct nft_expr *expr,
- 			regs->verdict.code = NFT_BREAK;
- 			return;
- 		}
--		if (priv->mode == NFT_TUNNEL_MODE_NONE ||
--		    (priv->mode == NFT_TUNNEL_MODE_RX &&
--		     !(tun_info->mode & IP_TUNNEL_INFO_TX)) ||
--		    (priv->mode == NFT_TUNNEL_MODE_TX &&
--		     (tun_info->mode & IP_TUNNEL_INFO_TX)))
-+		if (nft_tunnel_mode_validate(priv->mode, tun_info->mode))
- 			*dest = ntohl(tunnel_id_to_key32(tun_info->key.tun_id));
- 		else
- 			regs->verdict.code = NFT_BREAK;
+ static struct nft_expr_type nft_tunnel_type;
+ static const struct nft_expr_ops nft_tunnel_get_ops = {
+ 	.type		= &nft_tunnel_type,
+@@ -184,6 +224,7 @@ static int nft_tunnel_get_dump(struct sk_buff *skb,
+ 	.eval		= nft_tunnel_get_eval,
+ 	.init		= nft_tunnel_get_init,
+ 	.dump		= nft_tunnel_get_dump,
++	.offload	= nft_tunnel_get_offload,
+ };
+ 
+ static struct nft_expr_type nft_tunnel_type __read_mostly = {
 -- 
 1.8.3.1
 
