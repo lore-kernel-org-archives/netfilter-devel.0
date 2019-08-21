@@ -1,92 +1,126 @@
-Return-Path: <SRS0=ly5L=WQ=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=lxoE=WR=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A0A51C3A589
-	for <netfilter-devel@archiver.kernel.org>; Tue, 20 Aug 2019 20:26:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 78B91C3A589
+	for <netfilter-devel@archiver.kernel.org>; Wed, 21 Aug 2019 02:53:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7391522DD3
-	for <netfilter-devel@archiver.kernel.org>; Tue, 20 Aug 2019 20:26:28 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="lsTakIhF"
+	by mail.kernel.org (Postfix) with ESMTP id 4EA6122DA7
+	for <netfilter-devel@archiver.kernel.org>; Wed, 21 Aug 2019 02:53:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730732AbfHTU02 (ORCPT
+        id S1726798AbfHUCxA (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 20 Aug 2019 16:26:28 -0400
-Received: from mail-qt1-f194.google.com ([209.85.160.194]:38531 "EHLO
-        mail-qt1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730824AbfHTU01 (ORCPT
+        Tue, 20 Aug 2019 22:53:00 -0400
+Received: from m9784.mail.qiye.163.com ([220.181.97.84]:64788 "EHLO
+        m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726351AbfHUCxA (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 20 Aug 2019 16:26:27 -0400
-Received: by mail-qt1-f194.google.com with SMTP id x4so243811qts.5
-        for <netfilter-devel@vger.kernel.org>; Tue, 20 Aug 2019 13:26:26 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:from:date:message-id:subject:to;
-        bh=66IbthnW/HLzHTXDCr8Cmnqi57PwwzSnp3WiimYCh6w=;
-        b=lsTakIhFwFnGuq4Stk4qPJE2UTTIkl6DFJnrXBaixNZUAg67A6AnpB6I5brU3G63Cs
-         v/XLOLBrbjIwXHwPH2aS+MRrv+X33zDn9BXjBdiwxXwpWCvb60GjB8/bKY7zLFWvIdwn
-         gW9us1nhDN5tbrkPFakTL0v4Tqlq46MT/zVIrX8Q7R0ascvd/yAcvg1ak02oM4eAY8rt
-         tXoK5HQOPBkCD+04AAk3+GygTii8Q25oTSiopsVYnTa90MXNSODhk7Go4cCZj30pn7Bo
-         56PZk6QgDXnD9u8CKQQng5bBDabgHVCoGAoj9gyK+2EtR3T6kA88HXf5per5Rhxa1U4v
-         wpZg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:from:date:message-id:subject:to;
-        bh=66IbthnW/HLzHTXDCr8Cmnqi57PwwzSnp3WiimYCh6w=;
-        b=NyfU+ziUhHe9pAltbgu70fspX0JLIrmUCvK/e9ZOqObUeUb6SCEIt0g1s02Du9++6y
-         /CHS38acIrWN2mSHFYCpwIoEjYi4cZmhQ0sLwnR7+lpxIFWj1wlP9SNvDSgmmlg0gs6X
-         dG4SIMlFBp+nzBjcREd/K/Wc9y5PKN31xpyu8/b02lxW6Yr3dnwKy6+kjuk9cZ5lii9T
-         Z176x3tQhWRDN6YsWcGEYrGY1lT9q3MtNecc6+49H47YKMAg53QXECM28wy6uxTapNeH
-         WEW3Z42sj8YzVb9x63oqw1aLCFVC7/5aX+NteSDO2Vds6/G6n1nS9q8s3YYd1UnLSrwe
-         TDTA==
-X-Gm-Message-State: APjAAAWBUkcTRALkjQ3VNJBq5matpuv9mNyYvQV6DLDdMSiIy7VNaOMF
-        KRRUSG8c6jqC+VhyYNykd7qp4u1GePcS1/DjDsCAGQ==
-X-Google-Smtp-Source: APXvYqyTGo/TaMfiPMC4eDaTqploQYlhdsKP8wJWnw+y5c9uZAeSWe4ltoebtMeg2vxGBfgOEJhit7HSj1K1WiVynnM=
-X-Received: by 2002:aed:24f4:: with SMTP id u49mr28441167qtc.110.1566332785615;
- Tue, 20 Aug 2019 13:26:25 -0700 (PDT)
+        Tue, 20 Aug 2019 22:53:00 -0400
+Received: from [192.168.188.14] (unknown [120.132.1.226])
+        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id 495A641750;
+        Wed, 21 Aug 2019 10:52:53 +0800 (CST)
+Subject: Re: [PATCH nf-next v4 00/12] netfilter: nf_tables_offload: support
+ more expr and obj offload
+From:   wenxu <wenxu@ucloud.cn>
+To:     pablo@netfilter.org, fw@strlen.de
+Cc:     netfilter-devel@vger.kernel.org
+References: <1565777808-28735-1-git-send-email-wenxu@ucloud.cn>
+Message-ID: <dd78c477-8dd9-d034-73ed-73f88676e539@ucloud.cn>
+Date:   Wed, 21 Aug 2019 10:52:50 +0800
+User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:60.0) Gecko/20100101
+ Thunderbird/60.8.0
 MIME-Version: 1.0
-Received: by 2002:ac8:3226:0:0:0:0:0 with HTTP; Tue, 20 Aug 2019 13:26:25
- -0700 (PDT)
-From:   "Joseph C. Sible" <josephcsible@gmail.com>
-Date:   Tue, 20 Aug 2019 16:26:25 -0400
-Message-ID: <CABpewhHgvi8TFqiBD6o_mksG0xLa5khYL2BbxaLhW6uhfOtHMA@mail.gmail.com>
-Subject: [PATCH iptables] doc: Note REDIRECT case of no IP address
-To:     netfilter-devel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <1565777808-28735-1-git-send-email-wenxu@ucloud.cn>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
+X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVkpVSEtMS0tLS09KS0tDWVdZKFlBSU
+        I3V1ktWUFJV1kJDhceCFlBWTU0KTY6NyQpLjc#WQY+
+X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6MBw6FRw6UTgrHz8MTDYQFRY3
+        SD8aCxhVSlVKTk1NSE5OQkxITUpPVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJS1VK
+        SElVSlVJSU1ZV1kIAVlBTktDSDcG
+X-HM-Tid: 0a6cb217653d2086kuqy495a641750
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-If an IP packet comes in on an interface that lacks a corresponding IP
-address (which happens on, e.g., the veth's that Project Calico creates),
-attempting to use REDIRECT on it will cause it to be dropped. Take note
-of this in REDIRECT's documentation.
+Please drop this series first, I will send patches for each offload function individually
 
-Signed-off-by: Joseph C. Sible <josephcsible@gmail.com>
----
- extensions/libxt_REDIRECT.man | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/extensions/libxt_REDIRECT.man b/extensions/libxt_REDIRECT.man
-index 3400a6d..28d4d10 100644
---- a/extensions/libxt_REDIRECT.man
-+++ b/extensions/libxt_REDIRECT.man
-@@ -8,7 +8,8 @@ chains, and user-defined chains which are only called from those
- chains.  It redirects the packet to the machine itself by changing the
- destination IP to the primary address of the incoming interface
- (locally-generated packets are mapped to the localhost address,
--127.0.0.1 for IPv4 and ::1 for IPv6).
-+127.0.0.1 for IPv4 and ::1 for IPv6, and packets arriving on
-+interfaces that don't have an IP address configured are dropped).
- .TP
- \fB\-\-to\-ports\fP \fIport\fP[\fB\-\fP\fIport\fP]
- This specifies a destination port or range of ports to use: without
---
-2.7.4
+On 8/14/2019 6:16 PM, wenxu@ucloud.cn wrote:
+> From: wenxu <wenxu@ucloud.cn>
+>
+> This series patch support more expr and obj offload: 
+> fw_nedev, set payload, tunnel encap/decap action,
+> Add tunnel match on TUNNEL_IP(6)_SRC/DST.
+> Tunnel meta match, objref offload.
+>
+> The follwing is the test sample:
+>
+> # nft add table netdev firewall
+> # nft add tunnel netdev firewall encap tunid 1000 tundst 0xf198a8ac tunsrc 0x4b98a8ac tunrelease 0
+> # nft add tunnel netdev firewall decap tunid 0 tundst 0 tunsrc 0  tunrelease 1
+> # nft add chain netdev firewall aclout { type filter hook ingress device mlx_pf0vf0 priority - 300 \; }
+> # nft --debug=netlink add rule netdev firewall aclout ip daddr 10.0.1.7  @ll,0,48 set 0x00002e9ca06e2596 @ll,48,48 set 0xfaffffffffff tunnel name encap fwd to gretap
+>   [ meta load protocol => reg 1 ] 
+>   [ cmp eq reg 1 0x00000008 ]
+>   [ payload load 4b @ network header + 16 => reg 1 ] 
+>   [ cmp eq reg 1 0x0701000a ]
+>   [ immediate reg 1 0x6ea09c2e 0x00009625 ]
+>   [ payload write reg 1 => 6b @ link header + 0 csum_type 0 csum_off 0 csum_flags 0x0 ]
+>   [ immediate reg 1 0xfffffffa 0x0000ffff ]
+>   [ payload write reg 1 => 6b @ link header + 6 csum_type 0 csum_off 0 csum_flags 0x0 ]
+>   [ objref type 6 name encap ]
+>   [ immediate reg 1 0x00000019 ]
+>   [ fwd sreg_dev 1 ] 
+>
+> # nft add chain netdev firewall aclin { type filter hook ingress device gretap priority - 300 \; }
+> # nft --debug=netlink add rule netdev firewall aclin ip daddr 10.0.0.7 tunnel tunid 1000 tunnel tundst 172.168.152.75 tunnel tunsrc 172.168.152.241 tunnel name decap @ll,0,48 set 0x0000525400001275 @ll,48,48 set 0xfaffffffffff fwd to mlx_pf0vf0
+>   [ meta load protocol => reg 1 ]
+>   [ cmp eq reg 1 0x00000008 ]
+>   [ payload load 4b @ network header + 16 => reg 1 ]
+>   [ cmp eq reg 1 0x0700000a ]
+>   [ tunnel load id => reg 1 ]
+>   [ cmp eq reg 1 0x000003e8 ]
+>   [ tunnel load tun_dst => reg 1 ]
+>   [ cmp eq reg 1 0xaca8984b ]
+>   [ tunnel load tun_src => reg 1 ]
+>   [ cmp eq reg 1 0xaca898f1 ]
+>   [ objref type 6 name decap ]
+>   [ immediate reg 1 0x00005452 0x00007512 ]
+>   [ payload write reg 1 => 6b @ link header + 0 csum_type 0 csum_off 0 csum_flags 0x0 ]
+>   [ immediate reg 1 0xfffffffa 0x0000ffff ]
+>   [ payload write reg 1 => 6b @ link header + 6 csum_type 0 csum_off 0 csum_flags 0x0 ]
+>   [ immediate reg 1 0x0000000f ]
+>   [ fwd sreg_dev 1 ]
+>
+> wenxu (12):
+>   netfilter: nf_flow_offload: add net in offload_ctx
+>   netfilter: nf_tables_offload: add offload_actions callback
+>   netfilter: nft_fwd_netdev: add fw_netdev action support
+>   netfilter: nft_payload: add nft_set_payload offload support
+>   netfilter: nft_tunnel: add nft_tunnel_mode_validate function
+>   netfilter: nft_tunnel: support NFT_TUNNEL_IP_SRC/DST match
+>   netfilter: nft_tunnel: add ipv6 check in nft_tunnel_mode_validate
+>   netfilter: nft_tunnel: support NFT_TUNNEL_IP6_SRC/DST match
+>   netfilter: nft_tunnel: support tunnel meta match offload
+>   netfilter: nft_tunnel: add NFTA_TUNNEL_KEY_RELEASE action
+>   netfilter: nft_objref: add nft_objref_type offload
+>   netfilter: nft_tunnel: support nft_tunnel_obj offload
+>
+>  include/net/netfilter/nf_tables.h         |  10 +-
+>  include/net/netfilter/nf_tables_offload.h |  10 +-
+>  include/uapi/linux/netfilter/nf_tables.h  |   5 +
+>  net/netfilter/nf_tables_api.c             |   2 +-
+>  net/netfilter/nf_tables_offload.c         |   7 +-
+>  net/netfilter/nft_fwd_netdev.c            |  27 +++++
+>  net/netfilter/nft_immediate.c             |   2 +-
+>  net/netfilter/nft_objref.c                |  15 +++
+>  net/netfilter/nft_payload.c               |  56 +++++++++++
+>  net/netfilter/nft_tunnel.c                | 159 +++++++++++++++++++++++++++---
+>  10 files changed, 271 insertions(+), 22 deletions(-)
+>
