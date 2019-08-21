@@ -2,105 +2,76 @@ Return-Path: <SRS0=lxoE=WR=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 01D5FC3A59E
-	for <netfilter-devel@archiver.kernel.org>; Wed, 21 Aug 2019 07:56:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 42626C3A59E
+	for <netfilter-devel@archiver.kernel.org>; Wed, 21 Aug 2019 09:14:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CCAC022D6D
-	for <netfilter-devel@archiver.kernel.org>; Wed, 21 Aug 2019 07:56:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1DF7E22DA7
+	for <netfilter-devel@archiver.kernel.org>; Wed, 21 Aug 2019 09:14:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726735AbfHUH4W (ORCPT
+        id S1726266AbfHUJOz (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 21 Aug 2019 03:56:22 -0400
-Received: from youngberry.canonical.com ([91.189.89.112]:42790 "EHLO
-        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726354AbfHUH4W (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 21 Aug 2019 03:56:22 -0400
-Received: from 2.general.paelzer.uk.vpn ([10.172.196.173] helo=localhost.localdomain)
-        by youngberry.canonical.com with esmtpsa (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
-        (Exim 4.76)
-        (envelope-from <christian.ehrhardt@canonical.com>)
-        id 1i0LTg-0001fr-NG; Wed, 21 Aug 2019 07:56:20 +0000
-From:   Christian Ehrhardt <christian.ehrhardt@canonical.com>
-To:     netfilter-devel@vger.kernel.org
-Cc:     Christian Ehrhardt <christian.ehrhardt@canonical.com>
-Subject: [RFC 1/1] nft: abort cache creation if mnl_genid_get fails
-Date:   Wed, 21 Aug 2019 09:56:11 +0200
-Message-Id: <20190821075611.30918-2-christian.ehrhardt@canonical.com>
-X-Mailer: git-send-email 2.22.0
-In-Reply-To: <20190821075611.30918-1-christian.ehrhardt@canonical.com>
-References: <20190821075611.30918-1-christian.ehrhardt@canonical.com>
+        Wed, 21 Aug 2019 05:14:55 -0400
+Received: from correo.us.es ([193.147.175.20]:59952 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726227AbfHUJOz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 21 Aug 2019 05:14:55 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 389DEC32C7
+        for <netfilter-devel@vger.kernel.org>; Wed, 21 Aug 2019 11:14:52 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 2A54DDA840
+        for <netfilter-devel@vger.kernel.org>; Wed, 21 Aug 2019 11:14:52 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 1FA25DA7B6; Wed, 21 Aug 2019 11:14:52 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id E3B61DA8E8;
+        Wed, 21 Aug 2019 11:14:49 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Wed, 21 Aug 2019 11:14:49 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (unknown [47.60.43.0])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id B080A4265A2F;
+        Wed, 21 Aug 2019 11:14:49 +0200 (CEST)
+Date:   Wed, 21 Aug 2019 11:14:49 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     wenxu@ucloud.cn
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft v3] meta: add ibrpvid and ibrvproto support
+Message-ID: <20190821091449.qzf4nnprg7fkhx53@salvia>
+References: <1565961026-27741-1-git-send-email-wenxu@ucloud.cn>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1565961026-27741-1-git-send-email-wenxu@ucloud.cn>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-mnl_genid_get can fail and in this case not update the genid which leads
-to a busy loop that never recovers.
+On Fri, Aug 16, 2019 at 09:10:26PM +0800, wenxu@ucloud.cn wrote:
+> From: wenxu <wenxu@ucloud.cn>
+> 
+> This allows you to match the bridge pvid and vlan protocol, for
+> instance:
+> 
+> nft add rule bridge firewall zones meta ibrvproto 0x8100
+> nft add rule bridge firewall zones meta ibrpvid 100
 
-To avoid that check the return value and abort __nft_build_cache
-if mnl_genid_get fails.
+Still one more nitpick when running tests/py:
 
-Signed-off-by: Christian Ehrhardt <christian.ehrhardt@canonical.com>
----
- iptables/nft.c | 14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
+bridge/meta.t: WARNING: line 7: 'add rule bridge test-bridge input
+meta ibrvproto 0x8100': 'meta ibrvproto 0x8100' mismatches 'meta
+ibrvproto 33024'
 
-diff --git a/iptables/nft.c b/iptables/nft.c
-index ae3740be..c9b7edbb 100644
---- a/iptables/nft.c
-+++ b/iptables/nft.c
-@@ -1597,11 +1597,13 @@ static void __nft_build_cache(struct nft_handle *h)
- 	uint32_t genid_start, genid_stop;
- 
- retry:
--	mnl_genid_get(h, &genid_start);
-+	if (mnl_genid_get(h, &genid_start) == -1)
-+		goto fatal;
- 	fetch_chain_cache(h);
- 	fetch_rule_cache(h);
- 	h->have_cache = true;
--	mnl_genid_get(h, &genid_stop);
-+	if (mnl_genid_get(h, &genid_stop) == -1)
-+		goto fatal;
- 
- 	if (genid_start != genid_stop) {
- 		flush_chain_cache(h, NULL);
-@@ -1609,6 +1611,10 @@ retry:
- 	}
- 
- 	h->nft_genid = genid_start;
-+
-+fatal:
-+	flush_chain_cache(h, NULL);
-+	h->have_cache = false;
- }
- 
- void nft_build_cache(struct nft_handle *h)
-@@ -1651,6 +1657,8 @@ struct nftnl_chain_list *nft_chain_list_get(struct nft_handle *h,
- 		return NULL;
- 
- 	nft_build_cache(h);
-+	if (!h->have_cache)
-+		return NULL;
- 
- 	return h->cache->table[t->type].chains;
- }
-@@ -2047,6 +2055,8 @@ int nft_chain_user_rename(struct nft_handle *h,const char *chain,
- static struct nftnl_table_list *nftnl_table_list_get(struct nft_handle *h)
- {
- 	nft_build_cache(h);
-+	if (!h->have_cache)
-+		return NULL;
- 
- 	return h->cache->tables;
- }
--- 
-2.22.0
-
+Please amend and send v4.
