@@ -2,135 +2,85 @@ Return-Path: <SRS0=lxoE=WR=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D7849C3A59E
-	for <netfilter-devel@archiver.kernel.org>; Wed, 21 Aug 2019 14:16:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6CD88C3A59E
+	for <netfilter-devel@archiver.kernel.org>; Wed, 21 Aug 2019 14:19:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B6AF422D6D
-	for <netfilter-devel@archiver.kernel.org>; Wed, 21 Aug 2019 14:16:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 45F5722D6D
+	for <netfilter-devel@archiver.kernel.org>; Wed, 21 Aug 2019 14:19:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729209AbfHUOQS (ORCPT
+        id S1729230AbfHUOTz (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 21 Aug 2019 10:16:18 -0400
-Received: from mx0b-001b2d01.pphosted.com ([148.163.158.5]:24730 "EHLO
-        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1728943AbfHUOQR (ORCPT
+        Wed, 21 Aug 2019 10:19:55 -0400
+Received: from rs07.intra2net.com ([85.214.138.66]:47122 "EHLO
+        rs07.intra2net.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728964AbfHUOTz (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 21 Aug 2019 10:16:17 -0400
-Received: from pps.filterd (m0098419.ppops.net [127.0.0.1])
-        by mx0b-001b2d01.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id x7LEDBGo096836
-        for <netfilter-devel@vger.kernel.org>; Wed, 21 Aug 2019 10:16:16 -0400
-Received: from e16.ny.us.ibm.com (e16.ny.us.ibm.com [129.33.205.206])
-        by mx0b-001b2d01.pphosted.com with ESMTP id 2uh6p2jx8n-1
-        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NOT)
-        for <netfilter-devel@vger.kernel.org>; Wed, 21 Aug 2019 10:16:16 -0400
-Received: from localhost
-        by e16.ny.us.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
-        for <netfilter-devel@vger.kernel.org> from <leonardo@linux.ibm.com>;
-        Wed, 21 Aug 2019 15:16:14 +0100
-Received: from b01cxnp23034.gho.pok.ibm.com (9.57.198.29)
-        by e16.ny.us.ibm.com (146.89.104.203) with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted;
-        (version=TLSv1/SSLv3 cipher=AES256-GCM-SHA384 bits=256/256)
-        Wed, 21 Aug 2019 15:16:11 +0100
-Received: from b01ledav006.gho.pok.ibm.com (b01ledav006.gho.pok.ibm.com [9.57.199.111])
-        by b01cxnp23034.gho.pok.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id x7LEGAlr39977240
-        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Wed, 21 Aug 2019 14:16:10 GMT
-Received: from b01ledav006.gho.pok.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id BFEC4AC064;
-        Wed, 21 Aug 2019 14:16:10 +0000 (GMT)
-Received: from b01ledav006.gho.pok.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id 724A6AC05F;
-        Wed, 21 Aug 2019 14:16:07 +0000 (GMT)
-Received: from LeoBras.ibmuc.com (unknown [9.85.171.79])
-        by b01ledav006.gho.pok.ibm.com (Postfix) with ESMTP;
-        Wed, 21 Aug 2019 14:16:07 +0000 (GMT)
-From:   Leonardo Bras <leonardo@linux.ibm.com>
-To:     netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc:     Leonardo Bras <leonardo@linux.ibm.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>
-Subject: [PATCH v2 1/1] netfilter: nf_tables: fib: Drop IPV6 packages if IPv6 is disabled on boot
-Date:   Wed, 21 Aug 2019 11:15:06 -0300
-X-Mailer: git-send-email 2.20.1
+        Wed, 21 Aug 2019 10:19:55 -0400
+X-Greylist: delayed 324 seconds by postgrey-1.27 at vger.kernel.org; Wed, 21 Aug 2019 10:19:54 EDT
+Received: from mail.m.i2n (unknown [172.17.128.1])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by rs07.intra2net.com (Postfix) with ESMTPS id 098DA1500138
+        for <netfilter-devel@vger.kernel.org>; Wed, 21 Aug 2019 16:14:30 +0200 (CEST)
+Received: from localhost (mail.m.i2n [127.0.0.1])
+        by localhost (Postfix) with ESMTP id BF7456A5
+        for <netfilter-devel@vger.kernel.org>; Wed, 21 Aug 2019 16:14:29 +0200 (CEST)
+X-Virus-Scanned: by Intra2net Mail Security (AVE=8.3.54.80,VDF=8.16.21.142)
+Received: from localhost (storm.m.i2n [172.16.1.2])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.m.i2n (Postfix) with ESMTPS id 3574861D
+        for <netfilter-devel@vger.kernel.org>; Wed, 21 Aug 2019 16:14:28 +0200 (CEST)
+Date:   Wed, 21 Aug 2019 16:14:28 +0200
+From:   Thomas Jarosch <thomas.jarosch@intra2net.com>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH] netfilter: nf_conntrack_ftp: Fix debug output
+Message-ID: <20190821141428.cjb535xrhpgry5zd@intra2net.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-TM-AS-GCONF: 00
-x-cbid: 19082114-0072-0000-0000-000004541531
-X-IBM-SpamModules-Scores: 
-X-IBM-SpamModules-Versions: BY=3.00011629; HX=3.00000242; KW=3.00000007;
- PH=3.00000004; SC=3.00000287; SDB=6.01250020; UDB=6.00659932; IPR=6.01031574;
- MB=3.00028261; MTD=3.00000008; XFM=3.00000015; UTC=2019-08-21 14:16:14
-X-IBM-AV-DETECTION: SAVI=unused REMOTE=unused XFE=unused
-x-cbparentid: 19082114-0073-0000-0000-00004CC5379D
-Message-Id: <20190821141505.2394-1-leonardo@linux.ibm.com>
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:,, definitions=2019-08-21_05:,,
- signatures=0
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 priorityscore=1501
- malwarescore=0 suspectscore=0 phishscore=0 bulkscore=0 spamscore=0
- clxscore=1015 lowpriorityscore=0 mlxscore=0 impostorscore=0
- mlxlogscore=999 adultscore=0 classifier=spam adjust=0 reason=mlx
- scancount=1 engine=8.0.1-1906280000 definitions=main-1908210156
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+User-Agent: NeoMutt/20180716
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-If IPv6 is disabled on boot (ipv6.disable=1), but nft_fib_inet ends up
-dealing with a IPv6 package, it causes a kernel panic in
-fib6_node_lookup_1(), crashing in bad_page_fault.
+The find_pattern() debug output was printing the 'skip' character.
+This can be a NULL-byte and messes up further pr_debug() output.
 
-The panic is caused by trying to deference a very low address (0x38
-in ppc64le), due to ipv6.fib6_main_tbl = NULL.
-BUG: Kernel NULL pointer dereference at 0x00000038
+Output without the fix:
+kernel: nf_conntrack_ftp: Pattern matches!
+kernel: nf_conntrack_ftp: Skipped up to `<7>nf_conntrack_ftp: find_pattern `PORT': dlen = 8
+kernel: nf_conntrack_ftp: find_pattern `EPRT': dlen = 8
 
-Fix this behavior by dropping IPv6 packages if !ipv6_mod_enabled().
+Output with the fix:
+kernel: nf_conntrack_ftp: Pattern matches!
+kernel: nf_conntrack_ftp: Skipped up to 0x0 delimiter!
+kernel: nf_conntrack_ftp: Match succeeded!
+kernel: nf_conntrack_ftp: conntrack_ftp: match `172,17,0,100,200,207' (20 bytes at 4150681645)
+kernel: nf_conntrack_ftp: find_pattern `PORT': dlen = 8
 
-Signed-off-by: Leonardo Bras <leonardo@linux.ibm.com>
+Signed-off-by: Thomas Jarosch <thomas.jarosch@intra2net.com>
 ---
-Changes from v1:
-- Move drop logic from nft_fib_inet_eval() to nft_fib6_eval{,_type}
-so it can affect other usages of these functions. 
+ net/netfilter/nf_conntrack_ftp.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
- net/ipv6/netfilter/nft_fib_ipv6.c | 10 ++++++++++
- 1 file changed, 10 insertions(+)
-
-diff --git a/net/ipv6/netfilter/nft_fib_ipv6.c b/net/ipv6/netfilter/nft_fib_ipv6.c
-index 7ece86afd079..75acc417e2ff 100644
---- a/net/ipv6/netfilter/nft_fib_ipv6.c
-+++ b/net/ipv6/netfilter/nft_fib_ipv6.c
-@@ -125,6 +125,11 @@ void nft_fib6_eval_type(const struct nft_expr *expr, struct nft_regs *regs,
- 	u32 *dest = &regs->data[priv->dreg];
- 	struct ipv6hdr *iph, _iph;
+diff --git a/net/netfilter/nf_conntrack_ftp.c b/net/netfilter/nf_conntrack_ftp.c
+index 0ecb3e289ef2..8d96738b7dfd 100644
+--- a/net/netfilter/nf_conntrack_ftp.c
++++ b/net/netfilter/nf_conntrack_ftp.c
+@@ -322,7 +322,7 @@ static int find_pattern(const char *data, size_t dlen,
+ 		i++;
+ 	}
  
-+	if (!ipv6_mod_enabled()) {
-+		regs->verdict.code = NF_DROP;
-+		return;
-+	}
-+
- 	iph = skb_header_pointer(pkt->skb, noff, sizeof(_iph), &_iph);
- 	if (!iph) {
- 		regs->verdict.code = NFT_BREAK;
-@@ -150,6 +155,11 @@ void nft_fib6_eval(const struct nft_expr *expr, struct nft_regs *regs,
- 	struct rt6_info *rt;
- 	int lookup_flags;
+-	pr_debug("Skipped up to `%c'!\n", skip);
++	pr_debug("Skipped up to 0x%hhx delimiter!\n", skip);
  
-+	if (!ipv6_mod_enabled()) {
-+		regs->verdict.code = NF_DROP;
-+		return;
-+	}
-+
- 	if (priv->flags & NFTA_FIB_F_IIF)
- 		oif = nft_in(pkt);
- 	else if (priv->flags & NFTA_FIB_F_OIF)
+ 	*numoff = i;
+ 	*numlen = getnum(data + i, dlen - i, cmd, term, numoff);
 -- 
-2.20.1
-
+2.17.2
