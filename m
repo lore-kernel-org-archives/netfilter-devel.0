@@ -2,96 +2,88 @@ Return-Path: <SRS0=lxoE=WR=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C53DAC3A59E
-	for <netfilter-devel@archiver.kernel.org>; Wed, 21 Aug 2019 15:05:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C692C3A59E
+	for <netfilter-devel@archiver.kernel.org>; Wed, 21 Aug 2019 15:18:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A19D620870
-	for <netfilter-devel@archiver.kernel.org>; Wed, 21 Aug 2019 15:05:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 47790216F4
+	for <netfilter-devel@archiver.kernel.org>; Wed, 21 Aug 2019 15:18:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729491AbfHUPF5 (ORCPT
+        id S1728056AbfHUPS0 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 21 Aug 2019 11:05:57 -0400
-Received: from dispatch1-us1.ppe-hosted.com ([148.163.129.52]:60534 "EHLO
-        dispatch1-us1.ppe-hosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1729424AbfHUPF5 (ORCPT
+        Wed, 21 Aug 2019 11:18:26 -0400
+Received: from vxsys-smtpclusterma-05.srv.cat ([46.16.61.66]:41733 "EHLO
+        vxsys-smtpclusterma-05.srv.cat" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726371AbfHUPSZ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 21 Aug 2019 11:05:57 -0400
-X-Virus-Scanned: Proofpoint Essentials engine
-Received: from webmail.solarflare.com (webmail.solarflare.com [12.187.104.26])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mx1-us5.ppe-hosted.com (PPE Hosted ESMTP Server) with ESMTPS id 9B4DA180092;
-        Wed, 21 Aug 2019 15:05:54 +0000 (UTC)
-Received: from [10.17.20.203] (10.17.20.203) by ocex03.SolarFlarecom.com
- (10.20.40.36) with Microsoft SMTP Server (TLS) id 15.0.1395.4; Wed, 21 Aug
- 2019 08:05:50 -0700
-Subject: Re: [PATCH net-next 1/2] net: flow_offload: mangle 128-bit packet
- field with one action
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-CC:     <netfilter-devel@vger.kernel.org>, <davem@davemloft.net>,
-        <netdev@vger.kernel.org>, <jakub.kicinski@netronome.com>,
-        <jiri@resnulli.us>, <vladbu@mellanox.com>
-References: <20190820105225.13943-1-pablo@netfilter.org>
- <f18d8369-f87d-5b9a-6c9d-daf48a3b95f1@solarflare.com>
- <20190820144453.ckme6oj2c4hmofhu@salvia>
- <c8a00a98-74eb-9f8d-660f-c2ea159dec91@solarflare.com>
- <20190820173344.3nrzfjboyztz3lji@salvia>
- <f4cf8a97-3322-d982-6068-d4c0ce997b1c@solarflare.com>
- <20190820183533.ykh7mnurpmegxb27@salvia>
-From:   Edward Cree <ecree@solarflare.com>
-Message-ID: <5f7f561d-36b5-2611-e051-4a1549e35f09@solarflare.com>
-Date:   Wed, 21 Aug 2019 16:05:49 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.7.0
-MIME-Version: 1.0
-In-Reply-To: <20190820183533.ykh7mnurpmegxb27@salvia>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Content-Language: en-GB
-X-Originating-IP: [10.17.20.203]
-X-TM-AS-Product-Ver: SMEX-12.5.0.1300-8.5.1010-24860.005
-X-TM-AS-Result: No-7.468400-4.000000-10
-X-TMASE-MatchedRID: QW5G6BKkLTobF9xF7zzuNfZvT2zYoYOwC/ExpXrHizz0nlq8x3d7MEI7
-        9pzeweHtg07k8t5CAJP9FDOEyDIuTFoAjvFQR6XL9FQh3flUIh40AJe3B5qfBkl/J9Ro+MABD3b
-        LdMpm5wQ6aYiWdCFc9Dq+dNqcVismNRmfUxjO48g2Uxn7RTIiMcnlJe2gk8vIs2A0jYj1s4DTfl
-        TvFEeDIRgmCYbQRfj7CSP2yg+Ty9PvnOSC+jk4Dh/R5SKe31ARwdaE5TU9NVgk1SrS1we7Rezn6
-        eE2grwnGzVk6wnvigU+PHq8e3nI3r9ZdlL8eonaC24oEZ6SpSlsZUSYh+N/e/q5f1QpZOPRRUu0
-        Vzgx+BEpw8RyyTGkcQJ6n92yYrqggf1QCej4QZA=
-X-TM-AS-User-Approved-Sender: No
-X-TM-AS-User-Blocked-Sender: No
-X-TMASE-Result: 10--7.468400-4.000000
-X-TMASE-Version: SMEX-12.5.0.1300-8.5.1010-24860.005
-X-MDID: 1566399956-4gMPXNvFJNuD
+        Wed, 21 Aug 2019 11:18:25 -0400
+Received: from localhost.localdomain (static-79-171-230-77.ipcom.comunitel.net [77.230.171.79])
+        by vxsys-smtpclusterma-05.srv.cat (Postfix) with ESMTPA id D9FEF243D3
+        for <netfilter-devel@vger.kernel.org>; Wed, 21 Aug 2019 17:18:22 +0200 (CEST)
+From:   Ander Juaristi <a@juaristi.eus>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nft v8 1/2] evaluate: New internal helper __expr_evaluate_range
+Date:   Wed, 21 Aug 2019 17:18:01 +0200
+Message-Id: <20190821151802.6849-1-a@juaristi.eus>
+X-Mailer: git-send-email 2.17.1
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 20/08/2019 19:35, Pablo Neira Ayuso wrote:
-> With one action that says "mangle an IPv6 at offset ip6 daddr field"
-> the driver has more global view on what is going on, rather than
-> having four actions to mangle four 32-bit words at some offset.
-But the action doesn't say that, it still says "mangle four 32-bit
- words", it's just that they're now contiguous.  The driver doesn't
- know whether that's an IPv6 address or just a bunch of fields that
- happened to be next to one another.
-(Besides, the driver can't rely on that 'global view', because if
- the actions did come from the TC uAPI, they're still going to be
- single u32 mangles.)
+This is used by the followup patch to evaluate a range without emitting
+an error when the left value is larger than the right one.
 
-> If this patch adds some loops here is because I did not want to make
-> too smart changes on the drivers.
-The thing is, the drivers are already looping over TC actions, so they
- already naturally support multiple pedits.  You don't gain any
- expressiveness by combining them into batches of four, meanwhile you
- make the API less orthogonal and more laborious to implement.
+This is done to handle time-matching such as
+23:00-01:00 -- expr_evaluate_range() will reject this, but
+we want to be able to evaluate and then handle this as a request
+to match from 23:00 to 1am.
 
-> Please, allow for incremental updates on the flow_offload API to get
-> it better now. Later we'll have way more drivers it will become harder
-> to update this.
-I'm not opposed to making the API better.  I just don't believe that
- this patch series achieves that.
+Signed-off-by: Ander Juaristi <a@juaristi.eus>
+---
+ src/evaluate.c | 20 ++++++++++++++++----
+ 1 file changed, 16 insertions(+), 4 deletions(-)
+
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 831eb7c..a707f5e 100755
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -941,16 +941,28 @@ static int expr_evaluate_range_expr(struct eval_ctx *ctx,
+ 	return 0;
+ }
+ 
+-static int expr_evaluate_range(struct eval_ctx *ctx, struct expr **expr)
++static int __expr_evaluate_range(struct eval_ctx *ctx, struct expr **expr)
+ {
+-	struct expr *range = *expr, *left, *right;
++	struct expr *range = *expr;
+ 
+ 	if (expr_evaluate_range_expr(ctx, range, &range->left) < 0)
+ 		return -1;
+-	left = range->left;
+-
+ 	if (expr_evaluate_range_expr(ctx, range, &range->right) < 0)
+ 		return -1;
++
++	return 0;
++}
++
++static int expr_evaluate_range(struct eval_ctx *ctx, struct expr **expr)
++{
++	struct expr *range = *expr, *left, *right;
++	int rc;
++
++	rc = __expr_evaluate_range(ctx, expr);
++	if (rc)
++		return rc;
++
++	left = range->left;
+ 	right = range->right;
+ 
+ 	if (mpz_cmp(left->value, right->value) >= 0)
+-- 
+2.17.1
+
