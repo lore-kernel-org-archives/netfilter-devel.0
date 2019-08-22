@@ -2,123 +2,116 @@ Return-Path: <SRS0=orVX=WS=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.3 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 44B1BC3A5A2
-	for <netfilter-devel@archiver.kernel.org>; Thu, 22 Aug 2019 06:00:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2856AC3A59D
+	for <netfilter-devel@archiver.kernel.org>; Thu, 22 Aug 2019 09:12:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1961221848
-	for <netfilter-devel@archiver.kernel.org>; Thu, 22 Aug 2019 06:00:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C088D22CE3
+	for <netfilter-devel@archiver.kernel.org>; Thu, 22 Aug 2019 09:12:02 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="tGZzA415"
+	dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b="PgVBt2Ls"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730576AbfHVGAC (ORCPT
+        id S1733005AbfHVJMC (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 22 Aug 2019 02:00:02 -0400
-Received: from mail-wr1-f54.google.com ([209.85.221.54]:42202 "EHLO
-        mail-wr1-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729081AbfHVGAB (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 22 Aug 2019 02:00:01 -0400
-Received: by mail-wr1-f54.google.com with SMTP id b16so4154578wrq.9;
-        Wed, 21 Aug 2019 23:00:00 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=WPRFSq1neyk/J1S9hjBx5tFhwspyKWNMnMQs1q9/jA8=;
-        b=tGZzA4152JJl/tIY8J7TSQjDsfyp05wKErEYL1gQ+QI3R4ZW2H/2tYEp0i0aDA7mZg
-         JPbiLlEiixH9/S/CZo1gSDs7OmCU6AOw/fUySHzxhYQWo2V6rfvIE/9jGlpaxGv8v/Ed
-         u9Jmq67QY7jEqo7Ldj2C5PmoNnuktsjmpMfhvJJCXvbjcZ/q/+u7SmmI6ipCmWlqsYH7
-         wl2vFcZmv5rMsU+RSklvdNR3YuJDFLANZNgYA/qaVPJKNDp5BUoAYnJrDsVqbt95k3Tu
-         ijmdmkIUNw8kAOjdhMBj6bBYOzaAAeHXq0DIovZfzQXmzI+e9uvDpoysnIxov2pDDocx
-         /BcQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=WPRFSq1neyk/J1S9hjBx5tFhwspyKWNMnMQs1q9/jA8=;
-        b=b0zoh2vBEOQwzyrSmCzknI6oZATHIReshvDdmp27a3QEQN9in974Os52THeXO2+TSb
-         xsd0s8RKwlLBJHBhIfnUs/JdXUEzGmrz1d1CYuWgaHbfD/aVCeTvGrIJP9o64R/fOOqa
-         vKHUCdBob7K5mbT3RoGEjWMYiZYJ+eMvUQvGFU/0dk+AyLbw+5swsXwPBe1UJqhBPeQ4
-         tmCel+dWv2Jn5KEDU8MlpzKDA61B653x3zBPsXFy7n4+k/zNX2vjY/XfHh4GUtlMmaUy
-         O0Fb6m4zjj3AVzEt3TJ4eOSSWjt9cpaak5xNUxdBnaWDdosjitIrXDisJFEGQVSzmdEC
-         c17w==
-X-Gm-Message-State: APjAAAVrB99frMF5LEPyGVHz0gw7LwA9MOkpfWJH2BuPwIRACwDpd/TZ
-        8JdtZZgPIrX7ebFv9i8eTvFKc9tNXBM+K7Ssj3I=
-X-Google-Smtp-Source: APXvYqzsQDssV9A4LDwaI8Kmseew2Y08WytO/GRgulr2N+6D2IXcned//oLTMxni3LiIk0Mqa5dubvF9N3uO0hmMiwA=
-X-Received: by 2002:a5d:4a11:: with SMTP id m17mr38371847wrq.40.1566453599721;
- Wed, 21 Aug 2019 22:59:59 -0700 (PDT)
+        Thu, 22 Aug 2019 05:12:02 -0400
+Received: from smtp-out.kfki.hu ([148.6.0.48]:35279 "EHLO smtp-out.kfki.hu"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1730869AbfHVJMC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 22 Aug 2019 05:12:02 -0400
+Received: from localhost (localhost [127.0.0.1])
+        by smtp2.kfki.hu (Postfix) with ESMTP id 16691CC010B;
+        Thu, 22 Aug 2019 11:12:00 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+        blackhole.kfki.hu; h=mime-version:user-agent:references
+        :message-id:in-reply-to:from:from:date:date:received:received
+        :received; s=20151130; t=1566465117; x=1568279518; bh=jbRmKNfADC
+        RLyLz60GpWjHYifY1zElMiJFfvn5gEdew=; b=PgVBt2LsuCRH7cvkILaMJ0r65o
+        ED80sfPU72NloBR27k+GgFVscXJO4rnMCOVtFZhYtVzKm7jLEBlFF0ithTdxcHAA
+        rlrBqw+oSuDLE8dwQYUqFLDeRcRpvOtmrUSh9e0XMpNlVlj3kL63LXRDhOFIpbtI
+        yUGwS+0OmAHXSJn7I=
+X-Virus-Scanned: Debian amavisd-new at smtp2.kfki.hu
+Received: from smtp2.kfki.hu ([127.0.0.1])
+        by localhost (smtp2.kfki.hu [127.0.0.1]) (amavisd-new, port 10026)
+        with ESMTP; Thu, 22 Aug 2019 11:11:57 +0200 (CEST)
+Received: from blackhole.kfki.hu (blackhole.kfki.hu [148.6.240.2])
+        by smtp2.kfki.hu (Postfix) with ESMTP id 0F0C2CC010A;
+        Thu, 22 Aug 2019 11:11:56 +0200 (CEST)
+Received: by blackhole.kfki.hu (Postfix, from userid 1000)
+        id 9C47020DD8; Thu, 22 Aug 2019 11:11:56 +0200 (CEST)
+Date:   Thu, 22 Aug 2019 11:11:56 +0200 (CEST)
+From:   =?UTF-8?Q?Kadlecsik_J=C3=B3zsef?= <kadlec@blackhole.kfki.hu>
+To:     Dan Carpenter <dan.carpenter@oracle.com>
+cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        Florent Fourcot <florent.fourcot@wifirst.fr>,
+        Kate Stewart <kstewart@linuxfoundation.org>,
+        Allison Randal <allison@lohutok.net>,
+        Aditya Pakki <pakki001@umn.edu>, Qian Cai <cai@gmx.us>,
+        Andrey Ryabinin <aryabinin@virtuozzo.com>,
+        Johannes Berg <johannes.berg@intel.com>,
+        Stefano Brivio <sbrivio@redhat.com>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        kernel-janitors@vger.kernel.org
+Subject: Re: [PATCH] netfilter: ipset: Fix an error code in
+ ip_set_sockfn_get()
+In-Reply-To: <20190821071830.GI26957@mwanda>
+Message-ID: <alpine.DEB.2.20.1908221109390.11879@blackhole.kfki.hu>
+References: <20190821071830.GI26957@mwanda>
+User-Agent: Alpine 2.20 (DEB 67 2015-01-07)
 MIME-Version: 1.0
-References: <CAA5aLPhf1=wzQG0BAonhR3td-RhEmXaczug8n4hzXCzreb+52g@mail.gmail.com>
- <CAM_iQpVyEtOGd5LbyGcSNKCn5XzT8+Ouup26fvE1yp7T5aLSjg@mail.gmail.com>
- <CAA5aLPiqyhnWjY7A3xsaNJ71sDOf=Rqej8d+7=_PyJPmV9uApA@mail.gmail.com>
- <CAM_iQpUH6y8oEct3FXUhqNekQ3sn3N7LoSR0chJXAPYUzvWbxA@mail.gmail.com>
- <CAA5aLPjzX+9YFRGgCgceHjkU0=e6x8YMENfp_cC9fjfHYK3e+A@mail.gmail.com> <CAM_iQpXBhrOXtfJkibyxyq781Pjck-XJNgZ-=Ucj7=DeG865mw@mail.gmail.com>
-In-Reply-To: <CAM_iQpXBhrOXtfJkibyxyq781Pjck-XJNgZ-=Ucj7=DeG865mw@mail.gmail.com>
-From:   Akshat Kakkar <akshat.1984@gmail.com>
-Date:   Thu, 22 Aug 2019 11:29:49 +0530
-Message-ID: <CAA5aLPjO9rucCLJnmQiPBxw2pJ=6okf3C88rH9GWnh3p0R+Rmw@mail.gmail.com>
-Subject: Re: Unable to create htb tc classes more than 64K
-To:     Cong Wang <xiyou.wangcong@gmail.com>,
-        Anton Danilov <littlesmilingcloud@gmail.com>
-Cc:     NetFilter <netfilter-devel@vger.kernel.org>,
-        lartc <lartc@vger.kernel.org>, netdev <netdev@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=US-ASCII
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Aug 22, 2019 at 3:37 AM Cong Wang <xiyou.wangcong@gmail.com> wrote:
-> > I am using ipset +  iptables to classify and not filters. Besides, if
-> > tc is allowing me to define qdisc -> classes -> qdsic -> classes
-> > (1,2,3 ...) sort of structure (ie like the one shown in ascii tree)
-> > then how can those lowest child classes be actually used or consumed?
->
-> Just install tc filters on the lower level too.
+Hi Dan,
 
-If I understand correctly, you are saying,
-instead of :
-tc filter add dev eno2 parent 100: protocol ip prio 1 handle
-0x00000001 fw flowid 1:10
-tc filter add dev eno2 parent 100: protocol ip prio 1 handle
-0x00000002 fw flowid 1:20
-tc filter add dev eno2 parent 100: protocol ip prio 1 handle
-0x00000003 fw flowid 2:10
-tc filter add dev eno2 parent 100: protocol ip prio 1 handle
-0x00000004 fw flowid 2:20
+On Wed, 21 Aug 2019, Dan Carpenter wrote:
 
+> The copy_to_user() function returns the number of bytes remaining to be
+> copied.  In this code, that positive return is checked at the end of the
+> function and we return zero/success.  What we should do instead is
+> return -EFAULT.
 
-I should do this: (i.e. changing parent to just immediate qdisc)
-tc filter add dev eno2 parent 1: protocol ip prio 1 handle 0x00000001
-fw flowid 1:10
-tc filter add dev eno2 parent 1: protocol ip prio 1 handle 0x00000002
-fw flowid 1:20
-tc filter add dev eno2 parent 2: protocol ip prio 1 handle 0x00000003
-fw flowid 2:10
-tc filter add dev eno2 parent 2: protocol ip prio 1 handle 0x00000004
-fw flowid 2:20
+Yes, you are right. There's another usage of copy_to_user() in this 
+function, could you fix it as well?
 
-I tried this previously. But there is not change in the result.
-Behaviour is exactly same, i.e. I am still getting 100Mbps and not
-100kbps or 300kbps
+Best regards,
+Jozsef
+ 
+> Fixes: a7b4f989a629 ("netfilter: ipset: IP set core support")
+> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+> ---
+>  net/netfilter/ipset/ip_set_core.c | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
+> 
+> diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
+> index e64d5f9a89dd..15b8d4318207 100644
+> --- a/net/netfilter/ipset/ip_set_core.c
+> +++ b/net/netfilter/ipset/ip_set_core.c
+> @@ -2129,7 +2129,8 @@ ip_set_sockfn_get(struct sock *sk, int optval, void __user *user, int *len)
+>  	}	/* end of switch(op) */
+>  
+>  copy:
+> -	ret = copy_to_user(user, data, copylen);
+> +	if (copy_to_user(user, data, copylen))
+> +		ret = -EFAULT;
+>  
+>  done:
+>  	vfree(data);
+> -- 
+> 2.20.1
+> 
+> 
 
-Besides, as I mentioned previously I am using ipset + skbprio and not
-filters stuff. Filters I used just to test.
-
-ipset  -N foo hash:ip,mark skbinfo
-
-ipset -A foo 10.10.10.10, 0x0x00000001 skbprio 1:10
-ipset -A foo 10.10.10.20, 0x0x00000002 skbprio 1:20
-ipset -A foo 10.10.10.30, 0x0x00000003 skbprio 2:10
-ipset -A foo 10.10.10.40, 0x0x00000004 skbprio 2:20
-
-iptables -A POSTROUTING -j SET --map-set foo dst,dst --map-prio
-
-That's why I added @Anton Danilov in cc, so that he can have a look as
-he designed this skbprio thing in ipset and thus would be having a
-better idea.
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
