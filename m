@@ -2,99 +2,141 @@ Return-Path: <SRS0=orVX=WS=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.4 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_IN_DEF_DKIM_WL autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E9CC5C3A59D
-	for <netfilter-devel@archiver.kernel.org>; Thu, 22 Aug 2019 11:14:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C871C3A5A1
+	for <netfilter-devel@archiver.kernel.org>; Thu, 22 Aug 2019 13:57:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BBC7D22CE3
-	for <netfilter-devel@archiver.kernel.org>; Thu, 22 Aug 2019 11:14:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0C74B22CE3
+	for <netfilter-devel@archiver.kernel.org>; Thu, 22 Aug 2019 13:57:31 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="JrjSXx0x"
+	dkim=pass (1024-bit key) header.d=cisco.com header.i=@cisco.com header.b="f2U2bFvz";
+	dkim=pass (1024-bit key) header.d=cisco.onmicrosoft.com header.i=@cisco.onmicrosoft.com header.b="WF7cFZyZ"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731777AbfHVLOx (ORCPT
+        id S1731916AbfHVN5a (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 22 Aug 2019 07:14:53 -0400
-Received: from mail-ot1-f49.google.com ([209.85.210.49]:45004 "EHLO
-        mail-ot1-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726844AbfHVLOx (ORCPT
+        Thu, 22 Aug 2019 09:57:30 -0400
+Received: from rcdn-iport-1.cisco.com ([173.37.86.72]:52701 "EHLO
+        rcdn-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730333AbfHVN5a (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 22 Aug 2019 07:14:53 -0400
-Received: by mail-ot1-f49.google.com with SMTP id w4so5046922ote.11;
-        Thu, 22 Aug 2019 04:14:52 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to;
-        bh=Cq7ZUCbmYeAgyJFVs4vUQGwvTqOF2k2OwKjIXe/c/vE=;
-        b=JrjSXx0xcktvgrVq4OGOQPmdPRGyo2vwpdrCtpkU+KkJ8wBPgGGu3r/48y7qu4s0qn
-         D40tPPIjhz/A+4jIuw10Ea7ZQW/qkmJoSJ0RVw0PrPa+JRKQ/bQbGqEV/S4B8xyRGag0
-         ZSprCcUK6uygx2E9j7XzZq9/JnL9tCDf8f4GzAiXr3HAAZkUjfBJ3pF7WAW8bRm1x5Nd
-         lPFyeGJrjPwaSCU5JeutQyBhcsD9gOEWbG2Z3B36XR2GBI35zM1fMLmapXE8/2EjS8Fp
-         nu0/LBDC5Pv5WFsMfoVQ2wnf74Vn1kU6MP0mmL0rYJGIKnbjnBQ+2OosRpcPxCJNrccv
-         0tmw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to;
-        bh=Cq7ZUCbmYeAgyJFVs4vUQGwvTqOF2k2OwKjIXe/c/vE=;
-        b=WnI9j7i3qej8xQyhhCkIi2Cnh0SGzm1sJ1JDZddc95nYdKbqKQl8oJhBlw0CpLj/ck
-         d44/Au/xRrIK3F7CIl0Q58/wdFPbJDztj3q3hyrJr6uk+eG/fZUVR3vW9i2sKh7R7wld
-         n2k9RrdL1FDj3a0vUhYIg0p8wVZnqn0vKLN0n5U5mmigiC/mCdAqzLcOOF6ASMWXeN1r
-         dWyXScgePaZvSAsUp7aoZLe6ZIJJ6WErRjzarnJcdhAlkI+7wV2AQA1IKZ0tCRxqHPFY
-         W5wUlmUFkZnIIN313rPplj5jh+DOpJPnK9fvcCfiaPUz7V016410YOoMpM0mQgbEf7nq
-         30kg==
-X-Gm-Message-State: APjAAAVnCGwFVZ7fdvgs1SU7vOXDvC/7TpLQQnHrxyLI3g4Wbtd4Ge5w
-        fVobWxeHQ0RCRzrsQqFntpmUv2bS4dGTz3kH0z/BeA==
-X-Google-Smtp-Source: APXvYqx1HWibX5BAVQ66rXONckh7+H3uxQ44ilofyrLsy15wSFbFfDz4HfY/scdX9AUf9DDUkI7Je2TKtJprdLngUZA=
-X-Received: by 2002:a05:6830:2055:: with SMTP id f21mr3863210otp.53.1566472492205;
- Thu, 22 Aug 2019 04:14:52 -0700 (PDT)
+        Thu, 22 Aug 2019 09:57:30 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=cisco.com; i=@cisco.com; l=634; q=dns/txt; s=iport;
+  t=1566482248; x=1567691848;
+  h=from:to:subject:date:message-id:content-id:
+   content-transfer-encoding:mime-version;
+  bh=AiDg1T/upMDLGmRb5HlCpSwMzt62RDE3TbJ7bxXASLU=;
+  b=f2U2bFvz5Nn5f3V2bG2Ys7MTCwRJJAgz49F2Crm3IneASI3B3X2odOHv
+   LvpDAXw5s+b9qzzphFd1Evx2TcmaCjVrL1CVdluwV4Q5BWKeOL3mXfqBT
+   Y0iRzAb22/EKNv9Keih1zFSQaSsp6fdRXlUzeVsN/Ifj3NtpDYhmEZqwW
+   M=;
+IronPort-PHdr: =?us-ascii?q?9a23=3Aeyr0HR9uWX6hgv9uRHGN82YQeigqvan1NQcJ65?=
+ =?us-ascii?q?0hzqhDabmn44+8ZR7E/fs4iljPUM2b8P9Ch+fM+4HYEW0bqdfk0jgZdYBUER?=
+ =?us-ascii?q?oMiMEYhQslVdWPBF/lIeTpRyc7B89FElRi+iLzPA=3D=3D?=
+X-IronPort-Anti-Spam-Filtered: true
+X-IronPort-Anti-Spam-Result: =?us-ascii?q?A0BzCgAsnl5d/4QNJK1kHQEBBQEHBQG?=
+ =?us-ascii?q?BZ4FFUAOBQiAECyoKhBaDRwOKak2Bao9yiBmCUgNUCQEBAQwBAS0CAQGEWIJ?=
+ =?us-ascii?q?IIzgTAgkBAQQBAQMBBgRthS0BC4VjEREMAQE4EQEiAiYCBDAVCggENYMAgWs?=
+ =?us-ascii?q?DHQGfMAKBOIhhc4EygnsBAQWCR4JXGIIWCYEMKIR6hnUYgUA/gREnDBOKWTK?=
+ =?us-ascii?q?CJoxKgk6cSAkCgh2GCI41G4IhAZYojV+YEwIEAgQFAg4BAQWBZyGBWHAVZQG?=
+ =?us-ascii?q?CQYJCg3KKU3KBKYo+AYEgAQE?=
+X-IronPort-AV: E=Sophos;i="5.64,416,1559520000"; 
+   d="scan'208";a="617190973"
+Received: from alln-core-10.cisco.com ([173.36.13.132])
+  by rcdn-iport-1.cisco.com with ESMTP/TLS/DHE-RSA-SEED-SHA; 22 Aug 2019 13:57:27 +0000
+Received: from XCH-ALN-019.cisco.com (xch-aln-019.cisco.com [173.36.7.29])
+        by alln-core-10.cisco.com (8.15.2/8.15.2) with ESMTPS id x7MDvRq7007866
+        (version=TLSv1.2 cipher=AES256-SHA bits=256 verify=FAIL)
+        for <netfilter-devel@vger.kernel.org>; Thu, 22 Aug 2019 13:57:27 GMT
+Received: from xhs-rtp-001.cisco.com (64.101.210.228) by XCH-ALN-019.cisco.com
+ (173.36.7.29) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Thu, 22 Aug
+ 2019 08:57:27 -0500
+Received: from xhs-rcd-002.cisco.com (173.37.227.247) by xhs-rtp-001.cisco.com
+ (64.101.210.228) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Thu, 22 Aug
+ 2019 09:57:25 -0400
+Received: from NAM05-BY2-obe.outbound.protection.outlook.com (72.163.14.9) by
+ xhs-rcd-002.cisco.com (173.37.227.247) with Microsoft SMTP Server (TLS) id
+ 15.0.1473.3 via Frontend Transport; Thu, 22 Aug 2019 08:57:25 -0500
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=Dv+qPYqWVAvVgTVvcSChxvoW1BTERtwqnG+RA7Angn8Kvyg++RpRdQX5ypIBXyI7PGixBkgNnRZA0c3TFN/6mL6qB8VTJDi+z2r04JfAK9neNC2hMSTz7u4MXerqLxZL61qKN844IZ7pGpKM9ahXp+2KplSkThb9Bfmd3UGh3qt9kB6/61ST6eVN7FpnsUpewRR9y9hZF4iWo8lIsdGB1nu+3sPBUPVuGYa9Msjc5qO2r9GseN8viMsNQuq9eXy0va2fxC8dTIQk4cJCokFW7g8jbTk7zGT/xFyz9e69ViaGCLcfA9G04czU/bDzhG3CLMsyAAlfNZGRMwzqu4QtTg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=AiDg1T/upMDLGmRb5HlCpSwMzt62RDE3TbJ7bxXASLU=;
+ b=Wwv+pxkDhqnaMmgevu6/+NFntv7DbIF63bMEYz44HxDfez0vUUrhXqhdA+FcK4YbnWTebNx+92AgEr9Dr6E0x9T+mqY6C+UDWau+Y2t4bPfxTb0JcxJ84J1gf5XEKQGQJM9KWmlrzANfoTN/a2UOSGc1alyVkViPLbv13vLZGI+9EV1S0Gpozm5sLv1XBY7cfKelguQou/Vvjj6s2nYNrJLFqKQv+ul12PCmb34okspXR0j59qmEU8lILifiq5wjIkmnN6XJ9pzp6w/E5eN/wmXd7E/GdGxkVpzOk32N5oZSduO8jM1t0fpCrC4GZ5jO8AC3fQHeQXrLWHLfgh3wUg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=cisco.com; dmarc=pass action=none header.from=cisco.com;
+ dkim=pass header.d=cisco.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cisco.onmicrosoft.com;
+ s=selector2-cisco-onmicrosoft-com;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=AiDg1T/upMDLGmRb5HlCpSwMzt62RDE3TbJ7bxXASLU=;
+ b=WF7cFZyZH+GtK/IfFd/6svaFwYdisx11amsGoCY22cwzuiKW6eSYIgsy/MGeQrPqdA5kgDnfT0DJIZwpmH7LpEQi6HqQn2pZ/wUkpNtjX6QmkMnQtsMje9s9GtWbMn72QwBs25j1+UZOkbmXDEQqt/ki1HcITbo+Afz6sIjjcJE=
+Received: from BN6PR11MB1460.namprd11.prod.outlook.com (10.172.21.136) by
+ BN6PR11MB1971.namprd11.prod.outlook.com (10.175.97.138) with Microsoft SMTP
+ Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.2178.18; Thu, 22 Aug 2019 13:57:24 +0000
+Received: from BN6PR11MB1460.namprd11.prod.outlook.com
+ ([fe80::531:1342:6daf:28d5]) by BN6PR11MB1460.namprd11.prod.outlook.com
+ ([fe80::531:1342:6daf:28d5%11]) with mapi id 15.20.2178.020; Thu, 22 Aug 2019
+ 13:57:24 +0000
+From:   "Serguei Bezverkhi (sbezverk)" <sbezverk@cisco.com>
+To:     "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+Subject: nft equivalent of iptables command
+Thread-Topic: nft equivalent of iptables command
+Thread-Index: AQHVWPGGzbiV3UpkmEmnxgajwrqrkQ==
+Date:   Thu, 22 Aug 2019 13:57:24 +0000
+Message-ID: <69AAC254-AF78-4918-82B5-14B3EDB10EDB@cisco.com>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+user-agent: Microsoft-MacOutlook/10.1c.0.190812
+authentication-results: spf=none (sender IP is )
+ smtp.mailfrom=sbezverk@cisco.com; 
+x-originating-ip: [173.38.117.84]
+x-ms-publictraffictype: Email
+x-ms-office365-filtering-correlation-id: 256883d0-9a11-4e89-3807-08d72708a90e
+x-microsoft-antispam: BCL:0;PCL:0;RULEID:(2390118)(7020095)(4652040)(8989299)(5600166)(711020)(4605104)(1401327)(4534185)(4627221)(201703031133081)(201702281549075)(8990200)(2017052603328)(7193020);SRVR:BN6PR11MB1971;
+x-ms-traffictypediagnostic: BN6PR11MB1971:
+x-microsoft-antispam-prvs: <BN6PR11MB1971E048422042F23BBAA546C4A50@BN6PR11MB1971.namprd11.prod.outlook.com>
+x-ms-oob-tlc-oobclassifiers: OLM:8882;
+x-forefront-prvs: 01371B902F
+x-forefront-antispam-report: SFV:NSPM;SFS:(10009020)(4636009)(346002)(396003)(136003)(376002)(366004)(39860400002)(199004)(189003)(8676002)(66946007)(64756008)(81156014)(4744005)(14454004)(5660300002)(66476007)(66556008)(8936002)(3846002)(305945005)(186003)(256004)(6116002)(6512007)(66446008)(81166006)(53936002)(91956017)(2501003)(76116006)(2906002)(99286004)(7736002)(6506007)(36756003)(2351001)(33656002)(71190400001)(71200400001)(486006)(6916009)(25786009)(66066001)(102836004)(476003)(86362001)(6486002)(6436002)(2616005)(58126008)(5640700003)(26005)(316002)(478600001);DIR:OUT;SFP:1101;SCL:1;SRVR:BN6PR11MB1971;H:BN6PR11MB1460.namprd11.prod.outlook.com;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;A:1;MX:1;
+received-spf: None (protection.outlook.com: cisco.com does not designate
+ permitted sender hosts)
+x-ms-exchange-senderadcheck: 1
+x-microsoft-antispam-message-info: nfigw9uKpYfyiw1QTG/FSvMpBqnM28aV0kG5+UfJyUXVN52b5Tj2LKXngsWLPHlDgmIy6BbazAqIKC3rFWExzosPkRzb/GRcdaYtw904cPgTZsXv417UW5i4RBt/9nRjqigKkvuzVeWR5U/MXrvCaW0e90Gi4V4DJXB2tukyKMrIW7Js9AthflTz9o8NBL+d7PtMvnIWA79XRu8QVV3LLCIy2qB9O/0R5mrXmVSNMgQ70F50rCfgjpUPdzUbuIAPLQFPQPt7awVaLCNZxqywjEqh+SHgJOjf0GaIYjCTCunTulRCAFCat0xaA/TRvhlBBp2Vg6fv4d3inqhH64dzap/Xn1QO2fmEVKK+c7HfqTljVoqdTKaz9AIjkpNC4LrZpuDSxoQ89adpq8AB9K5psjC7pznyg1c8I1wvv5rDCuI=
+x-ms-exchange-transport-forked: True
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <0DCC5576A1337A4CA8688044D0675F82@namprd11.prod.outlook.com>
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-References: <877e7qzhgh.fsf@goll.lan> <CAF90-WiPQgD7wftDxz6sT+nfH=bSRZiUJPKqBeUJRXhfPOkYsg@mail.gmail.com>
- <20190806173745.GA6175@dimstar.local.net> <CAF90-WiOo9wYWxJwAFcyjdU7OB1vgU9e=-QvDZ-vNJ1tcgmraQ@mail.gmail.com>
- <20190819040944.GB10803@dimstar.local.net>
-In-Reply-To: <20190819040944.GB10803@dimstar.local.net>
-From:   Laura Garcia <nevola@gmail.com>
-Date:   Thu, 22 Aug 2019 13:14:40 +0200
-Message-ID: <CAF90-Wgt9zBSi_as1vOsisegVFYSBHWSQwv5n_cMyEcFx3wcYw@mail.gmail.com>
-Subject: Re: meter in 0.9.1 (nft noob question)
-To:     Mail List - Netfilter <netfilter@vger.kernel.org>,
-        Netfilter Development <netfilter-devel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+X-MS-Exchange-CrossTenant-Network-Message-Id: 256883d0-9a11-4e89-3807-08d72708a90e
+X-MS-Exchange-CrossTenant-originalarrivaltime: 22 Aug 2019 13:57:24.4687
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: 5ae1af62-9505-4097-a69a-c1553ef7840e
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: BSUtTokXRYSVChKlsX1WVMOumwfnWObmU+7vfb/iCmH40eoQl+RzaFTQN2t6tFFlTyIp/tTzRsJgt88IKGRSfQ==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: BN6PR11MB1971
+X-OriginatorOrg: cisco.com
+X-Outbound-SMTP-Client: 173.36.7.29, xch-aln-019.cisco.com
+X-Outbound-Node: alln-core-10.cisco.com
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Duncan,
-
-On Mon, Aug 19, 2019 at 6:11 AM Duncan Roe <duncan_roe@optusnet.com.au> wrote:
->
-
-[...]
-
->
-> *** I had expected or at least hoped that an element's expiry would revert to
-> *** the timeout interval if it was re-added, but this doesn't happen.
->
-
-You'd have to use "element update" instead of "element add", but it's
-not supported yet for this case.
-
-> Was that possibility discussed on the list previously? Not having it leads to at
-> least 2 undesirable consequences when watching:
->
-> 1. Frequently-accessed sites drop off the bottom and re-appear at the top.
->    The lower part of the display would be more stable if expiry times reverted:
->    frequently-accessed sites would stay near the top while others would
->    percolate through.
->
-> 2. Counters reset when these elements are destroyed and re-created.
->
-
-As a workaround you can set the expiration time manually until the
-"element update" solution is in place.
-
-Cheers.
+SGVsbG8sDQoNCkkgYW0gdHJ5aW5nIHRvIGZpbmQgYW4gZXF1aXZhbGVudCBuZnQgY29tbWFuZCBm
+b3IgdGhlIGZvbGxvd2luZyBpcHRhYmxlcyBjb21tYW5kLiAgU3BlY2lmaWNhbGx5ICJwaHlzZGV2
+IiBhbmQgImFkZHJ0eXBlIiwgSSBjb3VsZCBub3QgZmluZCBzbyBmYXIsIHNvbWUgaGVscCB3b3Vs
+ZCBiZSB2ZXJ5IGFwcHJlY2lhdGVkLg0KDQotQSBLVUJFLVNFUlZJQ0VTIA0KLW0gY29tbWVudCAt
+LWNvbW1lbnQgImRlZmF1bHQvcG9ydGFsOnBvcnRhbCBleHRlcm5hbCBJUCIgDQotbSB0Y3AgDQot
+cCB0Y3AgDQotZCAxOTIuMTY4LjgwLjEwNC8zMiANCi0tZHBvcnQgODk4OSANCi1tIHBoeXNkZXYg
+ISAtLXBoeXNkZXYtaXMtaW4gICAgICAgICAgICAgDQotbSBhZGRydHlwZSAhIC0tc3JjLXR5cGUg
+TE9DQUwgDQotaiBLVUJFLVNWQy1NVVBYUFZLNFhBWkhTV0FSDQoNClRoYW5rIHlvdQ0KU2VyZ3Vl
+aQ0KDQo=
