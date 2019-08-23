@@ -2,69 +2,63 @@ Return-Path: <SRS0=Ar4o=WT=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 318B4C3A5A2
-	for <netfilter-devel@archiver.kernel.org>; Fri, 23 Aug 2019 12:43:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 121E3C3A5A2
+	for <netfilter-devel@archiver.kernel.org>; Fri, 23 Aug 2019 12:50:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0E58F2173E
-	for <netfilter-devel@archiver.kernel.org>; Fri, 23 Aug 2019 12:43:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E792C2173E
+	for <netfilter-devel@archiver.kernel.org>; Fri, 23 Aug 2019 12:50:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2394860AbfHWMnA (ORCPT
+        id S2394691AbfHWMub (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 23 Aug 2019 08:43:00 -0400
-Received: from ganesha.gnumonks.org ([213.95.27.120]:49551 "EHLO
+        Fri, 23 Aug 2019 08:50:31 -0400
+Received: from ganesha.gnumonks.org ([213.95.27.120]:49211 "EHLO
         ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2391109AbfHWMnA (ORCPT
+        with ESMTP id S2390578AbfHWMu2 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 23 Aug 2019 08:43:00 -0400
+        Fri, 23 Aug 2019 08:50:28 -0400
 Received: from [31.4.212.198] (helo=gnumonks.org)
         by ganesha.gnumonks.org with esmtpsa (TLS1.2:ECDHE_RSA_AES_256_GCM_SHA384:256)
         (Exim 4.89)
         (envelope-from <pablo@gnumonks.org>)
-        id 1i18u4-0007Ld-Oe; Fri, 23 Aug 2019 14:42:58 +0200
-Date:   Fri, 23 Aug 2019 14:42:50 +0200
+        id 1i191J-0007qy-4z; Fri, 23 Aug 2019 14:50:27 +0200
+Date:   Fri, 23 Aug 2019 14:50:19 +0200
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Fernando Fernandez Mancera <ffmancera@riseup.net>
+To:     Shekhar Sharma <shekhar250198@gmail.com>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH 1/2 nf-next v2] netfilter: nf_tables: Introduce stateful
- object update operation
-Message-ID: <20190823124250.75apok22fnbdhujd@salvia>
-References: <20190822164827.1064-1-ffmancera@riseup.net>
- <20190823124142.dsmyr3mkwt3ppz3y@salvia>
+Subject: Re: [PATCH nft v1]files: add script to generate geoip.nft file
+Message-ID: <20190823125019.g4aptpcr3jp7d4cc@salvia>
+References: <20190822041153.4680-1-shekhar250198@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20190823124142.dsmyr3mkwt3ppz3y@salvia>
+In-Reply-To: <20190822041153.4680-1-shekhar250198@gmail.com>
 User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Aug 23, 2019 at 02:41:42PM +0200, Pablo Neira Ayuso wrote:
-> On Thu, Aug 22, 2019 at 06:48:26PM +0200, Fernando Fernandez Mancera wrote:
-> > @@ -1405,10 +1409,16 @@ struct nft_trans_elem {
-> >  
-> >  struct nft_trans_obj {
-> >  	struct nft_object		*obj;
-> > +	struct nlattr			**tb;
+On Thu, Aug 22, 2019 at 09:41:53AM +0530, Shekhar Sharma wrote:
+> This patch adds a python script to download MaxMind's GeoLite2
+> database and generate a file named geoip.nft, which users can 'include'.
 > 
-> Instead of annotatint tb[] on the object, you can probably add here:
-> 
-> union {
->         struct quota {
->                 uint64_t                consumed;
->                 uint64_t                quota;
->       } quota;
-> };
-> 
-> So the initial update annotates the values in the transaction.
-> 
-> I guess you will need two new indirections? Something like
-> prepare_update() and update().
+> The nft_geoip.py file has three options:
+>  --download            : to download and unzip the database folder from MaxMind.
+>  --file-location       : to specify the .csv file containing the country names and geoname ids.
+>  --file-ipv4           : to specify the .csv file containing information about IPv4 blocks.
 
-Or you have a single update() and pass enum nft_trans_phase as
-parameter, so this only needs one single indirection.
+I'm fine with this initial version, will wait for others to have a
+look into this to give feedback.
+
+On your side: I would like to know if you will commit to extend this
+and make improvements incrementally, in particular, making a follow up
+patch to add IPv6 support I'd suggest, among other things.
+
+A --output option would be good to specify what directory and file
+name will be used to store the autogenerated .nft file.
+
+Thanks.
