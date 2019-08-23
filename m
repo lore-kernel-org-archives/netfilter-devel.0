@@ -2,139 +2,89 @@ Return-Path: <SRS0=Ar4o=WT=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 37466C3A5A2
-	for <netfilter-devel@archiver.kernel.org>; Fri, 23 Aug 2019 13:45:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B9E18C3A5A2
+	for <netfilter-devel@archiver.kernel.org>; Fri, 23 Aug 2019 18:05:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 183652339D
-	for <netfilter-devel@archiver.kernel.org>; Fri, 23 Aug 2019 13:45:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7021B21874
+	for <netfilter-devel@archiver.kernel.org>; Fri, 23 Aug 2019 18:05:35 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=riseup.net header.i=@riseup.net header.b="NQz99reu"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2405714AbfHWNpg (ORCPT
+        id S2404464AbfHWSFf (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 23 Aug 2019 09:45:36 -0400
-Received: from m9784.mail.qiye.163.com ([220.181.97.84]:16542 "EHLO
-        m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1731976AbfHWNpg (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 23 Aug 2019 09:45:36 -0400
-Received: from localhost.localdomain (unknown [123.59.132.129])
-        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id B82E441432;
-        Fri, 23 Aug 2019 21:45:28 +0800 (CST)
-From:   wenxu@ucloud.cn
-To:     pablo@netfilter.org
+        Fri, 23 Aug 2019 14:05:35 -0400
+Received: from mx1.riseup.net ([198.252.153.129]:56054 "EHLO mx1.riseup.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725976AbfHWSFe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 23 Aug 2019 14:05:34 -0400
+Received: from bell.riseup.net (bell-pn.riseup.net [10.0.1.178])
+        (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+        (Client CN "*.riseup.net", Issuer "COMODO RSA Domain Validation Secure Server CA" (verified OK))
+        by mx1.riseup.net (Postfix) with ESMTPS id F3CB41A310B;
+        Fri, 23 Aug 2019 11:05:33 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=riseup.net; s=squak;
+        t=1566583534; bh=GCgRJ2bjY/3LfTGb4SB1+CIGp10aoVKXI4DsCDTWnWc=;
+        h=Subject:To:Cc:References:From:Date:In-Reply-To:From;
+        b=NQz99reuHXdA0l0NwL9jIwYiUKA9BOJyyjyDfnw8H1OtyRY1MlmAEEKz2DY2tk4xe
+         b/2WM2ZkX4breXo91l3SIMxCo/1Sty7z6upv1Bam1DOoThJ3To5X1Ah11lNNOKJ29W
+         DvA2MWZpR8oh4muY46ttGgXVucnAof4h5GMYlTps=
+X-Riseup-User-ID: B070F95914A9866B69803AF4A4E9A80E57B6B8CC0FE9B93495104B767EC3A203
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+         by bell.riseup.net (Postfix) with ESMTPSA id 580C8221BEC;
+        Fri, 23 Aug 2019 11:05:33 -0700 (PDT)
+Subject: Re: [PATCH 1/2 nf-next v2] netfilter: nf_tables: Introduce stateful
+ object update operation
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft v5] meta: add ibrpvid and ibrvproto support
-Date:   Fri, 23 Aug 2019 21:45:28 +0800
-Message-Id: <1566567928-18121-1-git-send-email-wenxu@ucloud.cn>
-X-Mailer: git-send-email 1.8.3.1
-X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZSVVPSEtCQkJCQk9JTExCTllXWShZQU
-        lCN1dZLVlBSVdZCQ4XHghZQVk1NCk2OjckKS43PlkG
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6KxQ6TTo*HDgyNT0xKRgyPA4X
-        PhMwCkxVSlVKTk1NTk1MQklDQ0hMVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJSFVO
-        QlVKSElVSklCWVdZCAFZQUhKQ003Bg++
-X-HM-Tid: 0a6cbeb993bb2086kuqyb82e441432
+References: <20190822164827.1064-1-ffmancera@riseup.net>
+ <20190823124142.dsmyr3mkwt3ppz3y@salvia>
+ <20190823124250.75apok22fnbdhujd@salvia>
+From:   Fernando Fernandez Mancera <ffmancera@riseup.net>
+Openpgp: preference=signencrypt
+Message-ID: <fc6fe6d4-1efa-6845-f0ee-4e1f1da61da5@riseup.net>
+Date:   Fri, 23 Aug 2019 20:05:46 +0200
+MIME-Version: 1.0
+In-Reply-To: <20190823124250.75apok22fnbdhujd@salvia>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US-large
+Content-Transfer-Encoding: 7bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: wenxu <wenxu@ucloud.cn>
 
-This allows you to match the bridge pvid and vlan protocol, for
-instance:
 
-nft add rule bridge firewall zones meta ibrvproto 0x8100
-nft add rule bridge firewall zones meta ibrpvid 100
+On 8/23/19 2:42 PM, Pablo Neira Ayuso wrote:
+> On Fri, Aug 23, 2019 at 02:41:42PM +0200, Pablo Neira Ayuso wrote:
+>> On Thu, Aug 22, 2019 at 06:48:26PM +0200, Fernando Fernandez Mancera wrote:
+>>> @@ -1405,10 +1409,16 @@ struct nft_trans_elem {
+>>>  
+>>>  struct nft_trans_obj {
+>>>  	struct nft_object		*obj;
+>>> +	struct nlattr			**tb;
+>>
+>> Instead of annotatint tb[] on the object, you can probably add here:
+>>
+>> union {
+>>         struct quota {
+>>                 uint64_t                consumed;
+>>                 uint64_t                quota;
+>>       } quota;
+>> };
+>>
+>> So the initial update annotates the values in the transaction.
+>>
+>> I guess you will need two new indirections? Something like
+>> prepare_update() and update().
+> 
+> Or you have a single update() and pass enum nft_trans_phase as
+> parameter, so this only needs one single indirection.
+> 
 
-Signed-off-by: wenxu <wenxu@ucloud.cn>
----
- src/meta.c                     |  6 ++++++
- tests/py/bridge/meta.t         |  2 ++
- tests/py/bridge/meta.t.json    | 26 ++++++++++++++++++++++++++
- tests/py/bridge/meta.t.payload |  9 +++++++++
- 4 files changed, 43 insertions(+)
-
-diff --git a/src/meta.c b/src/meta.c
-index 5901c99..d45d757 100644
---- a/src/meta.c
-+++ b/src/meta.c
-@@ -442,6 +442,12 @@ const struct meta_template meta_templates[] = {
- 	[NFT_META_OIFKIND]	= META_TEMPLATE("oifkind",   &ifname_type,
- 						IFNAMSIZ * BITS_PER_BYTE,
- 						BYTEORDER_HOST_ENDIAN),
-+	[NFT_META_BRI_IIFPVID]	= META_TEMPLATE("ibrpvid",   &integer_type,
-+						2 * BITS_PER_BYTE,
-+						BYTEORDER_HOST_ENDIAN),
-+	[NFT_META_BRI_IIFVPROTO] = META_TEMPLATE("ibrvproto",   &ethertype_type,
-+						2 * BITS_PER_BYTE,
-+						BYTEORDER_HOST_ENDIAN),
- };
- 
- static bool meta_key_is_unqualified(enum nft_meta_keys key)
-diff --git a/tests/py/bridge/meta.t b/tests/py/bridge/meta.t
-index 88e819f..d9fb681 100644
---- a/tests/py/bridge/meta.t
-+++ b/tests/py/bridge/meta.t
-@@ -4,3 +4,5 @@
- 
- meta obrname "br0";ok
- meta ibrname "br0";ok
-+meta ibrvproto 0x8100;ok
-+meta ibrpvid 100;ok
-diff --git a/tests/py/bridge/meta.t.json b/tests/py/bridge/meta.t.json
-index 5df4773..0a5e64a 100644
---- a/tests/py/bridge/meta.t.json
-+++ b/tests/py/bridge/meta.t.json
-@@ -23,3 +23,29 @@
-         }
-     }
- ]
-+
-+# meta ibrvproto 0x8100
-+[
-+    {
-+        "match": {
-+            "left": {
-+                "meta": { "key": "ibrvproto" }
-+            },
-+	    "op": "==",
-+            "right": "0x8100"
-+        }
-+    }
-+]
-+
-+# meta ibrpvid 100
-+[
-+    {
-+        "match": {
-+            "left": {
-+                "meta": { "key": "ibrpvid" }
-+            },
-+	    "op": "==",
-+            "right": 100
-+        }
-+    }
-+]
-diff --git a/tests/py/bridge/meta.t.payload b/tests/py/bridge/meta.t.payload
-index 0f0d101..e5793a9 100644
---- a/tests/py/bridge/meta.t.payload
-+++ b/tests/py/bridge/meta.t.payload
-@@ -8,3 +8,12 @@ bridge test-bridge input
-   [ meta load bri_iifname => reg 1 ]
-   [ cmp eq reg 1 0x00307262 0x00000000 0x00000000 0x00000000 ]
- 
-+# meta ibrvproto 0x8100
-+bridge test-bridge input
-+  [ meta load bri_iifvproto => reg 1 ]
-+  [ cmp eq reg 1 0x00008100 ]
-+
-+# meta ibrpvid 100
-+bridge test-bridge input
-+  [ meta load bri_iifpvid => reg 1 ]
-+  [ cmp eq reg 1 0x00000064 ]
--- 
-2.15.1
-
+But also we would need to continue passing the 'bool commit' as a
+parameter too right? I will take a look to nft_trans_phase. Thanks! :-)
