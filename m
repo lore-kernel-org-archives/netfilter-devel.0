@@ -6,105 +6,63 @@ X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3BD88C3A59F
-	for <netfilter-devel@archiver.kernel.org>; Mon, 26 Aug 2019 13:52:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 890CBC3A59F
+	for <netfilter-devel@archiver.kernel.org>; Mon, 26 Aug 2019 13:56:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 14E02206E0
-	for <netfilter-devel@archiver.kernel.org>; Mon, 26 Aug 2019 13:52:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 63D302080C
+	for <netfilter-devel@archiver.kernel.org>; Mon, 26 Aug 2019 13:56:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732141AbfHZNw1 (ORCPT
+        id S1732159AbfHZN4F (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 26 Aug 2019 09:52:27 -0400
-Received: from m9784.mail.qiye.163.com ([220.181.97.84]:16339 "EHLO
+        Mon, 26 Aug 2019 09:56:05 -0400
+Received: from m9784.mail.qiye.163.com ([220.181.97.84]:19549 "EHLO
         m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1731774AbfHZNw1 (ORCPT
+        with ESMTP id S1731592AbfHZN4E (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 26 Aug 2019 09:52:27 -0400
+        Mon, 26 Aug 2019 09:56:04 -0400
 Received: from [192.168.1.4] (unknown [116.234.4.202])
-        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id 0627941624;
-        Mon, 26 Aug 2019 21:52:15 +0800 (CST)
-Subject: Re: [PATCH nft v5] meta: add ibrpvid and ibrvproto support
+        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id 2D4DE41650;
+        Mon, 26 Aug 2019 21:56:01 +0800 (CST)
+Subject: Re: [PATCH nf-next v2] netfilter: nf_table_offload: Fix the incorrect
+ rcu usage in nft_indr_block_get_and_ing_cmd
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-References: <1566567928-18121-1-git-send-email-wenxu@ucloud.cn>
- <20190826102615.cqfidve47clkhzdr@salvia>
+Cc:     fw@strlen.de, netfilter-devel@vger.kernel.org
+References: <1566220952-27225-1-git-send-email-wenxu@ucloud.cn>
+ <20190826082350.srv23fnbipovzkvu@salvia>
 From:   wenxu <wenxu@ucloud.cn>
-Message-ID: <989de2f9-c66b-aae1-ce39-50baffd98a2b@ucloud.cn>
-Date:   Mon, 26 Aug 2019 21:51:57 +0800
+Message-ID: <e0b08c4d-c041-fe3f-e9d7-d28a703d4900@ucloud.cn>
+Date:   Mon, 26 Aug 2019 21:55:43 +0800
 User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:60.0) Gecko/20100101
  Thunderbird/60.8.0
 MIME-Version: 1.0
-In-Reply-To: <20190826102615.cqfidve47clkhzdr@salvia>
+In-Reply-To: <20190826082350.srv23fnbipovzkvu@salvia>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8bit
-X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVkpVQ01NS0tLSUJPTUNOSE1ZV1koWU
+X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVkpVT0hLS0tLSEtOSkxOTENZV1koWU
         FJQjdXWS1ZQUlXWQkOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6OCI6PCo5KTgzPTxCFVE5NDI0
-        SQwaFFFVSlVKTk1NQ0lMTkhNSENIVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpKTVVJ
-        SE9VT1VJS0lZV1kIAVlBSUNLTTcG
-X-HM-Tid: 0a6cce32ded92086kuqy0627941624
+X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6MiI6Oio6UTgwVjwSFVFWNEwV
+        UStPCUNVSlVKTk1NQ0lMTE1KSEhNVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpKTVVJ
+        SE9VT1VJS0lZV1kIAVlBSkJISDcG
+X-HM-Tid: 0a6cce364e842086kuqy2d4de41650
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
 
-在 2019/8/26 18:26, Pablo Neira Ayuso 写道:
-> On Fri, Aug 23, 2019 at 09:45:28PM +0800, wenxu@ucloud.cn wrote:
+在 2019/8/26 16:38, Pablo Neira Ayuso 写道:
+> On Mon, Aug 19, 2019 at 09:22:32PM +0800, wenxu@ucloud.cn wrote:
 >> From: wenxu <wenxu@ucloud.cn>
 >>
->> This allows you to match the bridge pvid and vlan protocol, for
->> instance:
->>
->> nft add rule bridge firewall zones meta ibrvproto 0x8100
->> nft add rule bridge firewall zones meta ibrpvid 100
-> When running python nft-tests.py with -j, I get this here:
->
-> bridge/meta.t: WARNING: line 7: '{"nftables": [{"add": {"rule":
-> {"table": "test-bridge", "chain": "input", "family": "bridge", "expr":
-> [{"match": {"op": "==", "right": "0x8100", "left": {"meta": {"key":
-> "ibrvproto"}}}}]}}}]}': '[{"match": {"left": {"meta": {"key":
-> "ibrvproto"}}, "op": "==", "right": "0x8100"}}]' mismatches
-> '[{"match": {"left": {"meta": {"key": "ibrvproto"}}, "op": "==",
-> "right": 33024}}]'
-> /tmp/nftables/tests/py/bridge/meta.t.json.output.got:
-> WARNING: line 2: Wrote JSON output for rule meta ibrvproto 0x8100
->
-> Then, if I type:
->
->         nft rule x y meta protocol vlan
->
-> Then, printing shows:
->
-> table ip x {
->         chain y {
->                 meta protocol vlan
->         }
-> }
->
-> However, with:
->
->         nft rule x y meta ibrvproto vlan
->
-> I get this:
->
-> table bridge x {
->         chain y {
->                 meta ibrvproto 0x8100
->         }
-> }
->
-> I think the problem the endianess in the new key definitions are not
-> correct.
->
-> The br_vlan_get_proto() in the kernel returns a value in network byte
-> order.
->
-> I think this does not match either then? Because bytecode is
-> incorrect?
+>> The flow_block_ing_cmd() needs to call blocking functions while iterating
+>> block_ing_cb_list, nft_indr_block_get_and_ing_cmd is in the cb_list,
+>> So it is the incorrect rcu case. To fix it just traverse the list under
+>> the commit mutex.
+> The flow_indr_block_call() is called from a path that already holds
+> this lock.
 
-The br_vlan_get_proto returns vlan_proto in host byte order.
+The flow_indr_block_call already hodls this lock. But the flow_block_ing_cmd is not called
 
->
-> Thanks.
+by flow_indr_block_call. It is called by offloaded driver with unregister event for indr_dev.
+
 >
