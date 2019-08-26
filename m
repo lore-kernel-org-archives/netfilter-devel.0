@@ -2,120 +2,98 @@ Return-Path: <SRS0=4EdP=WW=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F0BBEC3A59F
-	for <netfilter-devel@archiver.kernel.org>; Mon, 26 Aug 2019 10:16:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CF650C3A59F
+	for <netfilter-devel@archiver.kernel.org>; Mon, 26 Aug 2019 10:26:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C2C0C2186A
-	for <netfilter-devel@archiver.kernel.org>; Mon, 26 Aug 2019 10:16:21 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=riseup.net header.i=@riseup.net header.b="nUyJ5e4u"
+	by mail.kernel.org (Postfix) with ESMTP id ACA2421872
+	for <netfilter-devel@archiver.kernel.org>; Mon, 26 Aug 2019 10:26:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727000AbfHZKQV (ORCPT
+        id S1730046AbfHZK00 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 26 Aug 2019 06:16:21 -0400
-Received: from mx1.riseup.net ([198.252.153.129]:57736 "EHLO mx1.riseup.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726562AbfHZKQV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 26 Aug 2019 06:16:21 -0400
-Received: from bell.riseup.net (bell-pn.riseup.net [10.0.1.178])
-        (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
-        (Client CN "*.riseup.net", Issuer "COMODO RSA Domain Validation Secure Server CA" (verified OK))
-        by mx1.riseup.net (Postfix) with ESMTPS id 305341A31CF;
-        Mon, 26 Aug 2019 03:16:20 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=riseup.net; s=squak;
-        t=1566814580; bh=KnVXg410u9TSckHU9gmskKL0w0IaSljRchb5hhBnw6s=;
-        h=Subject:To:Cc:References:From:Date:In-Reply-To:From;
-        b=nUyJ5e4uecbIKq09TpG/DuVj0MZPN0jd83Ash71/WViRCoWl29PFo9NaLR7Bt1h0/
-         uUouLb43dTrLWsuzerNTGGjkCccveAAlqW5CMDyGG2PuTk/d6scKip/jRT5jdAmelk
-         XI7pWIr2WnvErOetkqloeWAsDQZbZwqA2aJEMZgs=
-X-Riseup-User-ID: F4CEDCC0C80FB8A57295B1C9A22ADE81D2D95D15A732791C3382CEDD9779BFE0
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-         by bell.riseup.net (Postfix) with ESMTPSA id 88F00222B6A;
-        Mon, 26 Aug 2019 03:16:19 -0700 (PDT)
-Subject: Re: [PATCH 1/2 nf-next v2] netfilter: nf_tables: Introduce stateful
- object update operation
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
+        Mon, 26 Aug 2019 06:26:26 -0400
+Received: from ganesha.gnumonks.org ([213.95.27.120]:41125 "EHLO
+        ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726497AbfHZK00 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 26 Aug 2019 06:26:26 -0400
+Received: from [31.4.213.210] (helo=gnumonks.org)
+        by ganesha.gnumonks.org with esmtpsa (TLS1.2:ECDHE_RSA_AES_256_GCM_SHA384:256)
+        (Exim 4.89)
+        (envelope-from <pablo@gnumonks.org>)
+        id 1i2CCY-0006JS-88; Mon, 26 Aug 2019 12:26:24 +0200
+Date:   Mon, 26 Aug 2019 12:26:15 +0200
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     wenxu@ucloud.cn
 Cc:     netfilter-devel@vger.kernel.org
-References: <20190822164827.1064-1-ffmancera@riseup.net>
- <20190823124142.dsmyr3mkwt3ppz3y@salvia>
- <20190823124250.75apok22fnbdhujd@salvia>
- <fc6fe6d4-1efa-6845-f0ee-4e1f1da61da5@riseup.net>
- <20d36122-4d8d-e73f-a5d9-af1642d3a887@riseup.net>
- <20190824162934.sdlrz56out4tzlw7@salvia>
-From:   Fernando Fernandez Mancera <ffmancera@riseup.net>
-Openpgp: preference=signencrypt
-Message-ID: <1640db44-1d46-e1d9-ab5f-ac66131c66d8@riseup.net>
-Date:   Mon, 26 Aug 2019 12:16:34 +0200
+Subject: Re: [PATCH nft v5] meta: add ibrpvid and ibrvproto support
+Message-ID: <20190826102615.cqfidve47clkhzdr@salvia>
+References: <1566567928-18121-1-git-send-email-wenxu@ucloud.cn>
 MIME-Version: 1.0
-In-Reply-To: <20190824162934.sdlrz56out4tzlw7@salvia>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US-large
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1566567928-18121-1-git-send-email-wenxu@ucloud.cn>
+User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Pablo,
-
-On 8/24/19 6:29 PM, Pablo Neira Ayuso wrote:
-> On Fri, Aug 23, 2019 at 08:28:46PM +0200, Fernando Fernandez Mancera wrote:
->> On 8/23/19 8:05 PM, Fernando Fernandez Mancera wrote:
->>>
->>>
->>> On 8/23/19 2:42 PM, Pablo Neira Ayuso wrote:
->>>> On Fri, Aug 23, 2019 at 02:41:42PM +0200, Pablo Neira Ayuso wrote:
->>>>> On Thu, Aug 22, 2019 at 06:48:26PM +0200, Fernando Fernandez Mancera wrote:
->>>>>> @@ -1405,10 +1409,16 @@ struct nft_trans_elem {
->>>>>>  
->>>>>>  struct nft_trans_obj {
->>>>>>  	struct nft_object		*obj;
->>>>>> +	struct nlattr			**tb;
->>>>>
->>>>> Instead of annotatint tb[] on the object, you can probably add here:
->>>>>
->>>>> union {
->>>>>         struct quota {
->>>>>                 uint64_t                consumed;
->>>>>                 uint64_t                quota;
->>>>>       } quota;
->>>>> };
->>>>>
->>>>> So the initial update annotates the values in the transaction.
->>>>>
->>
->> If we follow that pattern then the indirection would need the
->> nft_trans_phase enum, the quota struct and also the tb[] as parameters
->> because in the preparation phase we always need the tb[] array.
+On Fri, Aug 23, 2019 at 09:45:28PM +0800, wenxu@ucloud.cn wrote:
+> From: wenxu <wenxu@ucloud.cn>
 > 
-> Right, so this is my next idea :-)
+> This allows you to match the bridge pvid and vlan protocol, for
+> instance:
 > 
-> For the update case, I'd suggest you use the existing 'obj' field in
-> the transaction object. The idea would be to allocate a new object via
-> nft_obj_init() from the update path. Hence, you can use the existing
-> expr->ops->init() interface to parse the attributes - I find the
-> existing parsing for ->update() a bit redundant.
-> 
-> Then, from the commit path, you use the new ->update() interface to
-> update the object accordingly taking this new object as input. I think
-> you cannot update u64 quota like you do in this patch. On 32-bit
-> arches, an assignment of u64 won't be atomic. So you have to use
-> atomic64_set() and atomic64_read() to make sure that packet path does
-> not observes an inconsistent state. BTW, once you have updated the
-> existing object, you can just release the object in the transaction
-> coming in this update. I think you will need a 'bool update' field on
-> the transaction object, so the commit path knows how to handle the
-> update.
-> 
+> nft add rule bridge firewall zones meta ibrvproto 0x8100
+> nft add rule bridge firewall zones meta ibrpvid 100
 
-I would need to add a second 'obj' field in the transaction object in
-order to have the existing object pointer and the new one.
+When running python nft-tests.py with -j, I get this here:
 
-Also, right now we are not using atomic64_set() when initializing u64
-quota is that a bug then? If it is, I could include a patch fixing it.
+bridge/meta.t: WARNING: line 7: '{"nftables": [{"add": {"rule":
+{"table": "test-bridge", "chain": "input", "family": "bridge", "expr":
+[{"match": {"op": "==", "right": "0x8100", "left": {"meta": {"key":
+"ibrvproto"}}}}]}}}]}': '[{"match": {"left": {"meta": {"key":
+"ibrvproto"}}, "op": "==", "right": "0x8100"}}]' mismatches
+'[{"match": {"left": {"meta": {"key": "ibrvproto"}}, "op": "==",
+"right": 33024}}]'
+/tmp/nftables/tests/py/bridge/meta.t.json.output.got:
+WARNING: line 2: Wrote JSON output for rule meta ibrvproto 0x8100
 
-Thanks!
+Then, if I type:
+
+        nft rule x y meta protocol vlan
+
+Then, printing shows:
+
+table ip x {
+        chain y {
+                meta protocol vlan
+        }
+}
+
+However, with:
+
+        nft rule x y meta ibrvproto vlan
+
+I get this:
+
+table bridge x {
+        chain y {
+                meta ibrvproto 0x8100
+        }
+}
+
+I think the problem the endianess in the new key definitions are not
+correct.
+
+The br_vlan_get_proto() in the kernel returns a value in network byte
+order.
+
+I think this does not match either then? Because bytecode is
+incorrect?
+
+Thanks.
