@@ -2,146 +2,109 @@ Return-Path: <SRS0=4EdP=WW=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F6AFC3A59F
-	for <netfilter-devel@archiver.kernel.org>; Mon, 26 Aug 2019 11:41:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3BD88C3A59F
+	for <netfilter-devel@archiver.kernel.org>; Mon, 26 Aug 2019 13:52:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id EA94A20874
-	for <netfilter-devel@archiver.kernel.org>; Mon, 26 Aug 2019 11:41:04 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=riseup.net header.i=@riseup.net header.b="kf7W+ut4"
+	by mail.kernel.org (Postfix) with ESMTP id 14E02206E0
+	for <netfilter-devel@archiver.kernel.org>; Mon, 26 Aug 2019 13:52:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730462AbfHZLlE (ORCPT
+        id S1732141AbfHZNw1 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 26 Aug 2019 07:41:04 -0400
-Received: from mx1.riseup.net ([198.252.153.129]:52982 "EHLO mx1.riseup.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726497AbfHZLlE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 26 Aug 2019 07:41:04 -0400
-Received: from bell.riseup.net (bell-pn.riseup.net [10.0.1.178])
-        (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
-        (Client CN "*.riseup.net", Issuer "COMODO RSA Domain Validation Secure Server CA" (verified OK))
-        by mx1.riseup.net (Postfix) with ESMTPS id D0D951A1611
-        for <netfilter-devel@vger.kernel.org>; Mon, 26 Aug 2019 04:41:03 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=riseup.net; s=squak;
-        t=1566819663; bh=saGT/03OnUNp2OcaABI7JVvdbK7Z4ydTc+BdOx3bIMA=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=kf7W+ut4pDcm1J8QrBOOgEvzGcyuAxy5AircMXSfQvqZzonnKH6+rhwoEqsTCkkA/
-         Ijd95PT69Y9iPXQ5QiNr3jE9F33rZI8388GpRESGABm56/TEKeo/SetDK07LfOyOGr
-         T8EH2lYeJ07wwr5QZwjVigE0CwZHpP5MzXHuwp1Y=
-X-Riseup-User-ID: 8EFACB0BA5F4BE461DFDE889ABB802CC0BE85B0F088B67336EB5C69391FD68D4
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-         by bell.riseup.net (Postfix) with ESMTPSA id 102ED22224B;
-        Mon, 26 Aug 2019 04:41:02 -0700 (PDT)
-From:   Fernando Fernandez Mancera <ffmancera@riseup.net>
-To:     netfilter-devel@vger.kernel.org
-Cc:     Fernando Fernandez Mancera <ffmancera@riseup.net>
-Subject: [PATCH 2/2 nf-next v3] netfilter: nft_quota: add quota object update support
-Date:   Mon, 26 Aug 2019 13:40:53 +0200
-Message-Id: <20190826114054.877-2-ffmancera@riseup.net>
-In-Reply-To: <20190826114054.877-1-ffmancera@riseup.net>
-References: <20190826114054.877-1-ffmancera@riseup.net>
+        Mon, 26 Aug 2019 09:52:27 -0400
+Received: from m9784.mail.qiye.163.com ([220.181.97.84]:16339 "EHLO
+        m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1731774AbfHZNw1 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 26 Aug 2019 09:52:27 -0400
+Received: from [192.168.1.4] (unknown [116.234.4.202])
+        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id 0627941624;
+        Mon, 26 Aug 2019 21:52:15 +0800 (CST)
+Subject: Re: [PATCH nft v5] meta: add ibrpvid and ibrvproto support
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+References: <1566567928-18121-1-git-send-email-wenxu@ucloud.cn>
+ <20190826102615.cqfidve47clkhzdr@salvia>
+From:   wenxu <wenxu@ucloud.cn>
+Message-ID: <989de2f9-c66b-aae1-ce39-50baffd98a2b@ucloud.cn>
+Date:   Mon, 26 Aug 2019 21:51:57 +0800
+User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:60.0) Gecko/20100101
+ Thunderbird/60.8.0
 MIME-Version: 1.0
+In-Reply-To: <20190826102615.cqfidve47clkhzdr@salvia>
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8bit
+X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVkpVQ01NS0tLSUJPTUNOSE1ZV1koWU
+        FJQjdXWS1ZQUlXWQkOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
+X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6OCI6PCo5KTgzPTxCFVE5NDI0
+        SQwaFFFVSlVKTk1NQ0lMTkhNSENIVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpKTVVJ
+        SE9VT1VJS0lZV1kIAVlBSUNLTTcG
+X-HM-Tid: 0a6cce32ded92086kuqy0627941624
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Signed-off-by: Fernando Fernandez Mancera <ffmancera@riseup.net>
----
- net/netfilter/nft_quota.c | 31 ++++++++++++++++++++++++-------
- 1 file changed, 24 insertions(+), 7 deletions(-)
 
-diff --git a/net/netfilter/nft_quota.c b/net/netfilter/nft_quota.c
-index c8745d454bf8..3860941f6824 100644
---- a/net/netfilter/nft_quota.c
-+++ b/net/netfilter/nft_quota.c
-@@ -13,7 +13,7 @@
- #include <net/netfilter/nf_tables.h>
- 
- struct nft_quota {
--	u64		quota;
-+	atomic64_t	quota;
- 	unsigned long	flags;
- 	atomic64_t	consumed;
- };
-@@ -21,7 +21,8 @@ struct nft_quota {
- static inline bool nft_overquota(struct nft_quota *priv,
- 				 const struct sk_buff *skb)
- {
--	return atomic64_add_return(skb->len, &priv->consumed) >= priv->quota;
-+	return atomic64_add_return(skb->len, &priv->consumed) >=
-+	       atomic64_read(&priv->quota);
- }
- 
- static inline bool nft_quota_invert(struct nft_quota *priv)
-@@ -89,7 +90,7 @@ static int nft_quota_do_init(const struct nlattr * const tb[],
- 			return -EOPNOTSUPP;
- 	}
- 
--	priv->quota = quota;
-+	atomic64_set(&priv->quota, quota);
- 	priv->flags = flags;
- 	atomic64_set(&priv->consumed, consumed);
- 
-@@ -105,10 +106,24 @@ static int nft_quota_obj_init(const struct nft_ctx *ctx,
- 	return nft_quota_do_init(tb, priv);
- }
- 
-+static int nft_quota_obj_update(struct nft_object *obj,
-+				struct nft_object *newobj)
-+{
-+	struct nft_quota *newpriv = nft_obj_data(newobj);
-+	struct nft_quota *priv = nft_obj_data(obj);
-+	u64 newquota;
-+
-+	newquota = atomic64_read(&newpriv->quota);
-+	atomic64_set(&priv->quota, newquota);
-+	priv->flags = newpriv->flags;
-+
-+	return 0;
-+}
-+
- static int nft_quota_do_dump(struct sk_buff *skb, struct nft_quota *priv,
- 			     bool reset)
- {
--	u64 consumed, consumed_cap;
-+	u64 consumed, consumed_cap, quota;
- 	u32 flags = priv->flags;
- 
- 	/* Since we inconditionally increment consumed quota for each packet
-@@ -116,14 +131,15 @@ static int nft_quota_do_dump(struct sk_buff *skb, struct nft_quota *priv,
- 	 * userspace.
- 	 */
- 	consumed = atomic64_read(&priv->consumed);
--	if (consumed >= priv->quota) {
--		consumed_cap = priv->quota;
-+	quota = atomic64_read(&priv->quota);
-+	if (consumed >= quota) {
-+		consumed_cap = quota;
- 		flags |= NFT_QUOTA_F_DEPLETED;
- 	} else {
- 		consumed_cap = consumed;
- 	}
- 
--	if (nla_put_be64(skb, NFTA_QUOTA_BYTES, cpu_to_be64(priv->quota),
-+	if (nla_put_be64(skb, NFTA_QUOTA_BYTES, cpu_to_be64(quota),
- 			 NFTA_QUOTA_PAD) ||
- 	    nla_put_be64(skb, NFTA_QUOTA_CONSUMED, cpu_to_be64(consumed_cap),
- 			 NFTA_QUOTA_PAD) ||
-@@ -155,6 +171,7 @@ static const struct nft_object_ops nft_quota_obj_ops = {
- 	.init		= nft_quota_obj_init,
- 	.eval		= nft_quota_obj_eval,
- 	.dump		= nft_quota_obj_dump,
-+	.update		= nft_quota_obj_update,
- };
- 
- static struct nft_object_type nft_quota_obj_type __read_mostly = {
--- 
-2.20.1
+在 2019/8/26 18:26, Pablo Neira Ayuso 写道:
+> On Fri, Aug 23, 2019 at 09:45:28PM +0800, wenxu@ucloud.cn wrote:
+>> From: wenxu <wenxu@ucloud.cn>
+>>
+>> This allows you to match the bridge pvid and vlan protocol, for
+>> instance:
+>>
+>> nft add rule bridge firewall zones meta ibrvproto 0x8100
+>> nft add rule bridge firewall zones meta ibrpvid 100
+> When running python nft-tests.py with -j, I get this here:
+>
+> bridge/meta.t: WARNING: line 7: '{"nftables": [{"add": {"rule":
+> {"table": "test-bridge", "chain": "input", "family": "bridge", "expr":
+> [{"match": {"op": "==", "right": "0x8100", "left": {"meta": {"key":
+> "ibrvproto"}}}}]}}}]}': '[{"match": {"left": {"meta": {"key":
+> "ibrvproto"}}, "op": "==", "right": "0x8100"}}]' mismatches
+> '[{"match": {"left": {"meta": {"key": "ibrvproto"}}, "op": "==",
+> "right": 33024}}]'
+> /tmp/nftables/tests/py/bridge/meta.t.json.output.got:
+> WARNING: line 2: Wrote JSON output for rule meta ibrvproto 0x8100
+>
+> Then, if I type:
+>
+>         nft rule x y meta protocol vlan
+>
+> Then, printing shows:
+>
+> table ip x {
+>         chain y {
+>                 meta protocol vlan
+>         }
+> }
+>
+> However, with:
+>
+>         nft rule x y meta ibrvproto vlan
+>
+> I get this:
+>
+> table bridge x {
+>         chain y {
+>                 meta ibrvproto 0x8100
+>         }
+> }
+>
+> I think the problem the endianess in the new key definitions are not
+> correct.
+>
+> The br_vlan_get_proto() in the kernel returns a value in network byte
+> order.
+>
+> I think this does not match either then? Because bytecode is
+> incorrect?
 
+The br_vlan_get_proto returns vlan_proto in host byte order.
+
+>
+> Thanks.
+>
