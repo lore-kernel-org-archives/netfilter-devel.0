@@ -6,102 +6,80 @@ X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 548E3C3A59F
-	for <netfilter-devel@archiver.kernel.org>; Mon, 26 Aug 2019 14:37:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2FEE8C3A59F
+	for <netfilter-devel@archiver.kernel.org>; Mon, 26 Aug 2019 15:40:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3293C217F5
-	for <netfilter-devel@archiver.kernel.org>; Mon, 26 Aug 2019 14:37:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0528520874
+	for <netfilter-devel@archiver.kernel.org>; Mon, 26 Aug 2019 15:40:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732529AbfHZOhm (ORCPT
+        id S1732654AbfHZPkI (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 26 Aug 2019 10:37:42 -0400
-Received: from ganesha.gnumonks.org ([213.95.27.120]:41533 "EHLO
-        ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726484AbfHZOhm (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 26 Aug 2019 10:37:42 -0400
-Received: from sys.soleta.eu ([212.170.55.40] helo=gnumonks.org)
-        by ganesha.gnumonks.org with esmtpsa (TLS1.2:ECDHE_RSA_AES_256_GCM_SHA384:256)
-        (Exim 4.89)
-        (envelope-from <pablo@gnumonks.org>)
-        id 1i2G7h-00033z-TF; Mon, 26 Aug 2019 16:37:39 +0200
-Date:   Mon, 26 Aug 2019 16:37:33 +0200
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     wenxu <wenxu@ucloud.cn>
+        Mon, 26 Aug 2019 11:40:08 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:57150 "EHLO orbyte.nwl.cc"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1732638AbfHZPkI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 26 Aug 2019 11:40:08 -0400
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.91)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1i2H6E-00028q-Gf; Mon, 26 Aug 2019 17:40:06 +0200
+Date:   Mon, 26 Aug 2019 17:40:06 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft v5] meta: add ibrpvid and ibrvproto support
-Message-ID: <20190826143733.fmbwf3gfm2r5ctf7@salvia>
-References: <1566567928-18121-1-git-send-email-wenxu@ucloud.cn>
- <20190826102615.cqfidve47clkhzdr@salvia>
- <989de2f9-c66b-aae1-ce39-50baffd98a2b@ucloud.cn>
+Subject: Re: [iptables PATCH 14/14] nft: bridge: Rudimental among extension
+ support
+Message-ID: <20190826154006.GD14469@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+References: <20190821092602.16292-1-phil@nwl.cc>
+ <20190821092602.16292-15-phil@nwl.cc>
+ <20190824165333.l4qyhk3fyzglstmp@salvia>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <989de2f9-c66b-aae1-ce39-50baffd98a2b@ucloud.cn>
-User-Agent: NeoMutt/20170113 (1.7.2)
+In-Reply-To: <20190824165333.l4qyhk3fyzglstmp@salvia>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Aug 26, 2019 at 09:51:57PM +0800, wenxu wrote:
+On Sat, Aug 24, 2019 at 06:53:34PM +0200, Pablo Neira Ayuso wrote:
+> On Wed, Aug 21, 2019 at 11:26:02AM +0200, Phil Sutter wrote:
+> [...]
+> > +/* XXX: move this into libnftnl, replacing nftnl_set_lookup() */
+> > +static struct nftnl_set *nft_set_byname(struct nft_handle *h,
+> > +					const char *table, const char *set)
 > 
-> 在 2019/8/26 18:26, Pablo Neira Ayuso 写道:
-> > On Fri, Aug 23, 2019 at 09:45:28PM +0800, wenxu@ucloud.cn wrote:
-> >> From: wenxu <wenxu@ucloud.cn>
-> >>
-> >> This allows you to match the bridge pvid and vlan protocol, for
-> >> instance:
-> >>
-> >> nft add rule bridge firewall zones meta ibrvproto 0x8100
-> >> nft add rule bridge firewall zones meta ibrpvid 100
-> > When running python nft-tests.py with -j, I get this here:
-> >
-> > bridge/meta.t: WARNING: line 7: '{"nftables": [{"add": {"rule":
-> > {"table": "test-bridge", "chain": "input", "family": "bridge", "expr":
-> > [{"match": {"op": "==", "right": "0x8100", "left": {"meta": {"key":
-> > "ibrvproto"}}}}]}}}]}': '[{"match": {"left": {"meta": {"key":
-> > "ibrvproto"}}, "op": "==", "right": "0x8100"}}]' mismatches
-> > '[{"match": {"left": {"meta": {"key": "ibrvproto"}}, "op": "==",
-> > "right": 33024}}]'
-> > /tmp/nftables/tests/py/bridge/meta.t.json.output.got:
-> > WARNING: line 2: Wrote JSON output for rule meta ibrvproto 0x8100
-> >
-> > Then, if I type:
-> >
-> >         nft rule x y meta protocol vlan
-> >
-> > Then, printing shows:
-> >
-> > table ip x {
-> >         chain y {
-> >                 meta protocol vlan
-> >         }
-> > }
-> >
-> > However, with:
-> >
-> >         nft rule x y meta ibrvproto vlan
-> >
-> > I get this:
-> >
-> > table bridge x {
-> >         chain y {
-> >                 meta ibrvproto 0x8100
-> >         }
-> > }
-> >
-> > I think the problem the endianess in the new key definitions are not
-> > correct.
-> >
-> > The br_vlan_get_proto() in the kernel returns a value in network byte
-> > order.
-> >
-> > I think this does not match either then? Because bytecode is
-> > incorrect?
+> Probably extend libnftnl to allow to take a pointer to a nftnl_set
+> object, as an alternative to the set name? The idea is that this
+> set object now belongs to the lookup extension, so this extension will
+> take care of releasing it from the destroy path.
 > 
-> The br_vlan_get_proto returns vlan_proto in host byte order.
+> Then, the lookup extension will have a pointer to the anonymous set so
+> you could then skip the cache code (and all the updates to have access
+> to it).
 
-Then, that's why ethertype datatype does not work, because it expects
-this network byteorder.
+Sounds like a nice approach! So I would add a new
+NFTNL_EXPR_LOOKUP_SET_PTR to link the set and introduce
+NFTA_LOOKUP_ANON_SET (or so) which starts a nested attribute filled
+simply by nftnl_set_nlmsg_build_payload()? Kernel code would have to be
+extended accordingly, of course.
+
+Seems like I can't reuse nftnl_set_nlmsg_parse() since
+mnl_attr_parse_nested() would have to be called. But I guess outsourcing
+the attribute handling from the further and introducing a second wrapper
+would do.
+
+Also, this would limit ebtables-nft among match to kernels supporting
+this new way of anon set creating.
+
+> Anonymous sets can only be attached to one rule and they go away when
+> the rule is released. Then, flushing the rule would also release this
+> object.
+
+Luckily, in kernel space it seems like anonymous sets are released
+automatically if the referencing rule is removed.
+
+Cheers, Phil
