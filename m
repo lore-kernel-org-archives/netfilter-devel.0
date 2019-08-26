@@ -1,138 +1,148 @@
-Return-Path: <SRS0=t1pH=WV=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=4EdP=WW=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+X-Spam-Status: No, score=-6.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 733BAC3A5A1
-	for <netfilter-devel@archiver.kernel.org>; Sun, 25 Aug 2019 17:52:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B9CBC41514
+	for <netfilter-devel@archiver.kernel.org>; Mon, 26 Aug 2019 02:46:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 498FD2082F
-	for <netfilter-devel@archiver.kernel.org>; Sun, 25 Aug 2019 17:52:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 331BB2173E
+	for <netfilter-devel@archiver.kernel.org>; Mon, 26 Aug 2019 02:46:10 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="t6Tq+Wdv"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="bnUIMT7J"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728784AbfHYRwj (ORCPT
+        id S1729290AbfHZCqF (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 25 Aug 2019 13:52:39 -0400
-Received: from mail-pf1-f179.google.com ([209.85.210.179]:33135 "EHLO
-        mail-pf1-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727835AbfHYRwj (ORCPT
+        Sun, 25 Aug 2019 22:46:05 -0400
+Received: from mail-vs1-f68.google.com ([209.85.217.68]:41515 "EHLO
+        mail-vs1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726856AbfHZCqF (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 25 Aug 2019 13:52:39 -0400
-Received: by mail-pf1-f179.google.com with SMTP id g2so10087460pfq.0;
-        Sun, 25 Aug 2019 10:52:39 -0700 (PDT)
+        Sun, 25 Aug 2019 22:46:05 -0400
+Received: by mail-vs1-f68.google.com with SMTP id m62so9901729vsc.8;
+        Sun, 25 Aug 2019 19:46:04 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=tRdy6DBgNd6uaPx/aa/9AFdmyvouH4INH60SDvCM99U=;
-        b=t6Tq+Wdvgxv62t/0yoGN2Ernd7b25qDBYgMm8mzTDcUOob1BEedzcHcnOQe+yFcTnH
-         TCzew7gxk+wRzNDUyfO5UcrlOahiaKKWMLFq0oXeeZxCsOZOhkjL0s66HutLB/U2y7pv
-         hwlkQOrO2z8r6177R9mBUUDxfUxbTuuwGywlxU5o2yVgVCEX7Pi5C89igxPrGOXFJUwQ
-         +VMyA3ImZFccy0wS+w62rElFHkhiHsOxVFGvG45SfzIPViBtPwn8Bxgh1q9cX2B8BJcB
-         eJIZKvwNHuJKGaCWvXCEUWTQAcohsK3PYuMzHdyrMO3J5spsyEttONopHQ4w15Ne9dlC
-         h0wg==
+        bh=Ng3r5ONd1UXk9XbKRQ/zQ2B6srwD/ZPTNQ4V19/Kj9k=;
+        b=bnUIMT7JohUlW4Oahlrsf7w9EBYZqsvNo09J+X+VLhDwVpX6jTeQWC6IN6sIQAq7fp
+         0a54HgDv5nhu19OUAynDvvP15aLc44u6qo11gYC5RnNCo0J3lGtNAqhB7eWX8kzNEk/r
+         hRrg9fGUKL9FK97XUN+qWd2ptbq0ggMlaPw9C9ifvDxMrj9ox9RBsmdJDuINDmZ+2Qut
+         yvN3RnEFO8fuxwRn8FSXkieO1xxa/17uHZz9eIBgCTs0py11lO5bPabcGqwRMFnmeZ3C
+         mOH/WFKR23C0xMfMtYjDn5R3uHjgc0j7kKQa5+LCkhqbZY3Fsx7eSvmew0cspGOTaZtD
+         TsUQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=tRdy6DBgNd6uaPx/aa/9AFdmyvouH4INH60SDvCM99U=;
-        b=CpMX9eIX7PQ8id9VdHJq5AHF7ixOlbNYk4AfYPP8mn2nqt3Hc2KBNBLU+cbZEDjruq
-         8ht6L/PfNk9MAyyneil4qzQk5n6SeBHFLrRXAoEIhCFurMuzEUf6Ac75PE6PkyEZDaRZ
-         aGUbwSZIX6yLewFeNdhtwrufL4199kBuqBKYue82okUmp0JC/xSO0E5f53CqdaloVF8w
-         OTUHAkoLH7Br5+sD/F2bGLh5ULnEiBDo5nBK1GtNWys/87IpUPhHCZ7le/2MZo5XVWg+
-         6/KdYqqg00GzI7RCyKw6GQvB3bkwyw4mte+KsB5Z6AXZwBJ4T3IGSWCGcJYA79w2FXF2
-         Opig==
-X-Gm-Message-State: APjAAAUhmJOxGQgw7xvHs+6HWfNz9X7ieXPsECukk0Jr7z3lJ+hwYBic
-        Xy0rs+pYjnh5A2TKzvbqyRCrlCT5JMjbUBHhf8bnq5kI
-X-Google-Smtp-Source: APXvYqzUBAdViNre6pTAcceEcq8yiQ0SRL0lMKzFdjSQo1Zdrub61iSHHApDF7DHdd/mE2hCSVdEWrZGmOq6td3Xyew=
-X-Received: by 2002:a62:2ac4:: with SMTP id q187mr15778717pfq.242.1566755558563;
- Sun, 25 Aug 2019 10:52:38 -0700 (PDT)
+        bh=Ng3r5ONd1UXk9XbKRQ/zQ2B6srwD/ZPTNQ4V19/Kj9k=;
+        b=PjQtq3LLbprJQVsauMhAo9Nratcu9WzlZWwdF3po6ZSq+M+GtI3sUBgQV9inesGlCo
+         ill/MEm6grybf/qvOPrRo/elk7AQ0oFuQ4PhoZRurVPztf2J3Og3/c9HxhsGZrDyJzuK
+         srTgGXNgiw7ZrsZ1p9b/6X0vpSh9QrD2Yb1q6kd++uSKFXQnukPEElH2nMNa4ClGn8MK
+         Nf5fT7tT57fdvKHyqBAIQepxFC0NHMgxl9ug6XMNgOxS+Phz9+PurSakpu/q27HgdFMr
+         h0Kw7O2Qp4g2xtZfwO3bMkrDvH/dcVNhRyvwqzuPH9cBCmePLgrAqKXPJURFflQZhZGy
+         xbdQ==
+X-Gm-Message-State: APjAAAWRDsDoowIIDhSLStJSo0HduqhkFUh7deHX8nGNsc/fkMf2j/Cz
+        iU6pnNlVymqp3kHlXg9/7OvTOqbbgTUf02ccBQ==
+X-Google-Smtp-Source: APXvYqzQCcgTMZNQ/nWhyrJuz9jbUm0rIgbeTEFk88hIcZ0/xc+RP1r9NgPZajYUzJYrKIyUk683wwYVBYswndDjx/Q=
+X-Received: by 2002:a67:eb12:: with SMTP id a18mr9289943vso.231.1566787563972;
+ Sun, 25 Aug 2019 19:46:03 -0700 (PDT)
 MIME-Version: 1.0
-References: <CAA5aLPhf1=wzQG0BAonhR3td-RhEmXaczug8n4hzXCzreb+52g@mail.gmail.com>
- <CAM_iQpVyEtOGd5LbyGcSNKCn5XzT8+Ouup26fvE1yp7T5aLSjg@mail.gmail.com>
- <CAA5aLPiqyhnWjY7A3xsaNJ71sDOf=Rqej8d+7=_PyJPmV9uApA@mail.gmail.com>
- <CAM_iQpUH6y8oEct3FXUhqNekQ3sn3N7LoSR0chJXAPYUzvWbxA@mail.gmail.com>
- <CAA5aLPjzX+9YFRGgCgceHjkU0=e6x8YMENfp_cC9fjfHYK3e+A@mail.gmail.com>
- <CAM_iQpXBhrOXtfJkibyxyq781Pjck-XJNgZ-=Ucj7=DeG865mw@mail.gmail.com> <CAA5aLPjO9rucCLJnmQiPBxw2pJ=6okf3C88rH9GWnh3p0R+Rmw@mail.gmail.com>
-In-Reply-To: <CAA5aLPjO9rucCLJnmQiPBxw2pJ=6okf3C88rH9GWnh3p0R+Rmw@mail.gmail.com>
-From:   Cong Wang <xiyou.wangcong@gmail.com>
-Date:   Sun, 25 Aug 2019 10:52:27 -0700
-Message-ID: <CAM_iQpVtGUH6CAAegRtTgyemLtHsO+RFP8f6LH2WtiYu9-srfw@mail.gmail.com>
-Subject: Re: Unable to create htb tc classes more than 64K
-To:     Akshat Kakkar <akshat.1984@gmail.com>
-Cc:     Anton Danilov <littlesmilingcloud@gmail.com>,
-        NetFilter <netfilter-devel@vger.kernel.org>,
-        lartc <lartc@vger.kernel.org>, netdev <netdev@vger.kernel.org>
+References: <20190730122534.30687-1-rdong.ge@gmail.com> <1dc87e69-628b-fd04-619a-8dbe5bdfa108@cumulusnetworks.com>
+In-Reply-To: <1dc87e69-628b-fd04-619a-8dbe5bdfa108@cumulusnetworks.com>
+From:   Rundong Ge <rdong.ge@gmail.com>
+Date:   Mon, 26 Aug 2019 10:45:52 +0800
+Message-ID: <CAN1LvyoL3YUot0JAfz1BwN9LBxM0XUgSkYHhWJ75DFHW_-6+zw@mail.gmail.com>
+Subject: Re: [PATCH] bridge:fragmented packets dropped by bridge
+To:     Nikolay Aleksandrov <nikolay@cumulusnetworks.com>
+Cc:     davem@davemloft.net, kuznet@ms2.inr.ac.ru, yoshfuji@linux-ipv6.org,
+        netdev@vger.kernel.org, Pablo Neira Ayuso <pablo@netfilter.org>,
+        kadlec@netfilter.org, Florian Westphal <fw@strlen.de>,
+        Roopa Prabhu <roopa@cumulusnetworks.com>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        bridge@lists.linux-foundation.org, linux-kernel@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Aug 21, 2019 at 11:00 PM Akshat Kakkar <akshat.1984@gmail.com> wrote:
+On Tue, Jul 30, 2019 at 8:41 PM Nikolay Aleksandrov
+<nikolay@cumulusnetworks.com> wrote:
 >
-> On Thu, Aug 22, 2019 at 3:37 AM Cong Wang <xiyou.wangcong@gmail.com> wrote:
-> > > I am using ipset +  iptables to classify and not filters. Besides, if
-> > > tc is allowing me to define qdisc -> classes -> qdsic -> classes
-> > > (1,2,3 ...) sort of structure (ie like the one shown in ascii tree)
-> > > then how can those lowest child classes be actually used or consumed?
+> On 30/07/2019 15:25, Rundong Ge wrote:
+> > Given following setup:
+> > -modprobe br_netfilter
+> > -echo '1' > /proc/sys/net/bridge/bridge-nf-call-iptables
+> > -brctl addbr br0
+> > -brctl addif br0 enp2s0
+> > -brctl addif br0 enp3s0
+> > -brctl addif br0 enp6s0
+> > -ifconfig enp2s0 mtu 1300
+> > -ifconfig enp3s0 mtu 1500
+> > -ifconfig enp6s0 mtu 1500
+> > -ifconfig br0 up
 > >
-> > Just install tc filters on the lower level too.
+> >                  multi-port
+> > mtu1500 - mtu1500|bridge|1500 - mtu1500
+> >   A                  |            B
+> >                    mtu1300
+> >
+> > With netfilter defragmentation/conntrack enabled, fragmented
+> > packets from A will be defragmented in prerouting, and refragmented
+> > at postrouting.
+> > But in this scenario the bridge found the frag_max_size(1500) is
+> > larger than the dst mtu stored in the fake_rtable whitch is
+> > always equal to the bridge's mtu 1300, then packets will be dopped.
+> >
+> > This modifies ip_skb_dst_mtu to use the out dev's mtu instead
+> > of bridge's mtu in bridge refragment.
+> >
+> > Signed-off-by: Rundong Ge <rdong.ge@gmail.com>
+> > ---
+> >  include/net/ip.h | 2 ++
+> >  1 file changed, 2 insertions(+)
+> >
+> > diff --git a/include/net/ip.h b/include/net/ip.h
+> > index 29d89de..0512de3 100644
+> > --- a/include/net/ip.h
+> > +++ b/include/net/ip.h
+> > @@ -450,6 +450,8 @@ static inline unsigned int ip_dst_mtu_maybe_forward(const struct dst_entry *dst,
+> >  static inline unsigned int ip_skb_dst_mtu(struct sock *sk,
+> >                                         const struct sk_buff *skb)
+> >  {
+> > +     if ((skb_dst(skb)->flags & DST_FAKE_RTABLE) && skb->dev)
+> > +             return min(skb->dev->mtu, IP_MAX_MTU);
+> >       if (!sk || !sk_fullsock(sk) || ip_sk_use_pmtu(sk)) {
+> >               bool forwarding = IPCB(skb)->flags & IPSKB_FORWARDED;
+> >
+> >
 >
-> If I understand correctly, you are saying,
-> instead of :
-> tc filter add dev eno2 parent 100: protocol ip prio 1 handle
-> 0x00000001 fw flowid 1:10
-> tc filter add dev eno2 parent 100: protocol ip prio 1 handle
-> 0x00000002 fw flowid 1:20
-> tc filter add dev eno2 parent 100: protocol ip prio 1 handle
-> 0x00000003 fw flowid 2:10
-> tc filter add dev eno2 parent 100: protocol ip prio 1 handle
-> 0x00000004 fw flowid 2:20
+> I don't think this is correct, there's a reason why the bridge chooses the smallest
+> possible MTU out of its members and this is simply a hack to circumvent it.
+> If you really like to do so just set the bridge MTU manually, we've added support
+> so it won't change automatically to the smallest, but then how do you pass packets
+> 1500 -> 1300 in this setup ?
 >
+> You're talking about the frag_size check in br_nf_ip_fragment(), right ?
 >
-> I should do this: (i.e. changing parent to just immediate qdisc)
-> tc filter add dev eno2 parent 1: protocol ip prio 1 handle 0x00000001
-> fw flowid 1:10
-> tc filter add dev eno2 parent 1: protocol ip prio 1 handle 0x00000002
-> fw flowid 1:20
-> tc filter add dev eno2 parent 2: protocol ip prio 1 handle 0x00000003
-> fw flowid 2:10
-> tc filter add dev eno2 parent 2: protocol ip prio 1 handle 0x00000004
-> fw flowid 2:20
 
+Hi Nikolay
+My setup may not be common. And may I know if there is any reason to
+use output port's MTU
+to do the re-fragment check but then use the bridge's MTU to do the re-fragment?
+Is it the expected behavior that the bridge's MTU will affect the
+FORWARD traffic re-fragment,
+because I used to think the bridge's MTU will only effect the OUTPUT
+traffic sent from "br0".
+And the modification in this patch will replace the MTU in the
+fake_rtable which is only
+used in the FORWARD re-fragment and won't affect the local traffic from "br0".
 
-Yes, this is what I meant.
-
-
->
-> I tried this previously. But there is not change in the result.
-> Behaviour is exactly same, i.e. I am still getting 100Mbps and not
-> 100kbps or 300kbps
->
-> Besides, as I mentioned previously I am using ipset + skbprio and not
-> filters stuff. Filters I used just to test.
->
-> ipset  -N foo hash:ip,mark skbinfo
->
-> ipset -A foo 10.10.10.10, 0x0x00000001 skbprio 1:10
-> ipset -A foo 10.10.10.20, 0x0x00000002 skbprio 1:20
-> ipset -A foo 10.10.10.30, 0x0x00000003 skbprio 2:10
-> ipset -A foo 10.10.10.40, 0x0x00000004 skbprio 2:20
->
-> iptables -A POSTROUTING -j SET --map-set foo dst,dst --map-prio
-
-Hmm..
-
-I am not familiar with ipset, but it seems to save the skbprio into
-skb->priority, so it doesn't need TC filter to classify it again.
-
-I guess your packets might go to the direct queue of HTB, which
-bypasses the token bucket. Can you dump the stats and check?
-
-Thanks.
+TKS
+Raydodn
