@@ -2,78 +2,194 @@ Return-Path: <SRS0=TL01=WX=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 557B8C3A5A3
-	for <netfilter-devel@archiver.kernel.org>; Tue, 27 Aug 2019 19:15:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 87574C3A5A3
+	for <netfilter-devel@archiver.kernel.org>; Tue, 27 Aug 2019 20:53:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3187E2184D
-	for <netfilter-devel@archiver.kernel.org>; Tue, 27 Aug 2019 19:15:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5B3E520679
+	for <netfilter-devel@archiver.kernel.org>; Tue, 27 Aug 2019 20:53:15 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ElsjQ0VW"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730347AbfH0TPj (ORCPT
+        id S1730142AbfH0UxN (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 27 Aug 2019 15:15:39 -0400
-Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:40086 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728972AbfH0TPi (ORCPT
+        Tue, 27 Aug 2019 16:53:13 -0400
+Received: from mail-io1-f67.google.com ([209.85.166.67]:39576 "EHLO
+        mail-io1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726735AbfH0UxM (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 27 Aug 2019 15:15:38 -0400
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1i2gwK-0005Q5-Ro; Tue, 27 Aug 2019 21:15:36 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf] netfilter: nf_flow_table: clear skb tstamp before xmit
-Date:   Tue, 27 Aug 2019 21:23:45 +0200
-Message-Id: <20190827192345.12661-1-fw@strlen.de>
-X-Mailer: git-send-email 2.21.0
+        Tue, 27 Aug 2019 16:53:12 -0400
+Received: by mail-io1-f67.google.com with SMTP id l7so1362624ioj.6;
+        Tue, 27 Aug 2019 13:53:11 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc:content-transfer-encoding;
+        bh=yFtdPdKB+5OFD7TerpRjOkHMWVZwIcvQtFqZgo3qk1c=;
+        b=ElsjQ0VW7GupsjBGpqG2M5I3UVqv2fH20DwZEAQEOY28BIn9eYZAVw5ak/JGuUs3Jy
+         0U8Pjcb5kO5FNwjxDzVWWVK8FFgwdwxQetvQMU5NQsB/fATvzU92dlK3/lEm6y7kSnPQ
+         tlYtCVC7InScVlubrPNRh4Jc5Eb9dFZo7UjnSI/XcBzHgBfi8L1Wcb9nTIpjYxPeXCyM
+         QqetSsbilh7JlEYn23tr8F9Lui7GuikjexgLaZO3Bl7MRb7vGSz0XWYiDzrZO4w+jLIw
+         HDF9SSAdbN7jYLfZiFJZwsdWZJgGpGv+MA4bdFzDouYo+YYIFyIZOI92MVb9MZlzkZFb
+         ztWg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc:content-transfer-encoding;
+        bh=yFtdPdKB+5OFD7TerpRjOkHMWVZwIcvQtFqZgo3qk1c=;
+        b=mW4XVraCA8JtUSvpiCo1T6hp17yg8EVqZfskUZIeBqUZAOYDQ04juOWAZebJz1MKjS
+         vXvJkOYqU7b8+pWu7SCUeILzt9QD1/Ig5n1n3RiZLQ5B1KHBzrONLuOHouyVDaevMplI
+         nmsGBnBNbSPpNp17TCy5BQ1GE7MXieuuhOqa8O1/HACpYXgdXaHIOKrTq0Owg53NuIw4
+         UU9Gy+HgJ0U0yykDVHuOC0oSUWwvDh7nuJXGEQGDooqbSJN7twmtow7JXwb9ZbfPiKLH
+         N7azqdVlPX8QTREncLZV7eHn7pBnWCAqi4zQBAIPfm9MRvRPCW0OG/2a88NUg+JslWYH
+         so4g==
+X-Gm-Message-State: APjAAAXqHbqi+C6KwUhzomjj4Z+Apv81NLJ1pwbkgWipmgT8J/mz6XJY
+        SEQSESFsPt06UxnaPWQWpDxLTBvkZr5gqczjlJ4WpLrk
+X-Google-Smtp-Source: APXvYqyneXeZEY6hV98mUCrnG6Ny31Of0WUmkslziPbLPuCTD2ot08eK8DoEMOKhtIGW4NcC8GdQGkRyjaRoWyxVMSE=
+X-Received: by 2002:a5d:9dd8:: with SMTP id 24mr194777ioo.249.1566939191364;
+ Tue, 27 Aug 2019 13:53:11 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <CAA5aLPhf1=wzQG0BAonhR3td-RhEmXaczug8n4hzXCzreb+52g@mail.gmail.com>
+ <CAM_iQpVyEtOGd5LbyGcSNKCn5XzT8+Ouup26fvE1yp7T5aLSjg@mail.gmail.com>
+ <CAA5aLPiqyhnWjY7A3xsaNJ71sDOf=Rqej8d+7=_PyJPmV9uApA@mail.gmail.com>
+ <CAM_iQpUH6y8oEct3FXUhqNekQ3sn3N7LoSR0chJXAPYUzvWbxA@mail.gmail.com>
+ <CAA5aLPjzX+9YFRGgCgceHjkU0=e6x8YMENfp_cC9fjfHYK3e+A@mail.gmail.com>
+ <CAM_iQpXBhrOXtfJkibyxyq781Pjck-XJNgZ-=Ucj7=DeG865mw@mail.gmail.com>
+ <CAA5aLPjO9rucCLJnmQiPBxw2pJ=6okf3C88rH9GWnh3p0R+Rmw@mail.gmail.com>
+ <CAM_iQpVtGUH6CAAegRtTgyemLtHsO+RFP8f6LH2WtiYu9-srfw@mail.gmail.com> <9cbefe10-b172-ae2a-0ac7-d972468eb7a2@gmail.com>
+In-Reply-To: <9cbefe10-b172-ae2a-0ac7-d972468eb7a2@gmail.com>
+From:   Dave Taht <dave.taht@gmail.com>
+Date:   Tue, 27 Aug 2019 13:53:02 -0700
+Message-ID: <CAA93jw6TWUmqsvBDT4tFPgwjGxAmm_S5bUibj16nwp1F=AwyRA@mail.gmail.com>
+Subject: Re: Unable to create htb tc classes more than 64K
+To:     Eric Dumazet <eric.dumazet@gmail.com>
+Cc:     Cong Wang <xiyou.wangcong@gmail.com>,
+        Akshat Kakkar <akshat.1984@gmail.com>,
+        Anton Danilov <littlesmilingcloud@gmail.com>,
+        NetFilter <netfilter-devel@vger.kernel.org>,
+        lartc <lartc@vger.kernel.org>, netdev <netdev@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-If 'fq' qdisc is used and a program has requested timestamps,
-skb->tstamp needs to be cleared, else fq will treat these as
-'transmit time'.
+On Sun, Aug 25, 2019 at 11:47 PM Eric Dumazet <eric.dumazet@gmail.com> wrot=
+e:
+>
+>
+>
+> On 8/25/19 7:52 PM, Cong Wang wrote:
+> > On Wed, Aug 21, 2019 at 11:00 PM Akshat Kakkar <akshat.1984@gmail.com> =
+wrote:
+> >>
+> >> On Thu, Aug 22, 2019 at 3:37 AM Cong Wang <xiyou.wangcong@gmail.com> w=
+rote:
+> >>>> I am using ipset +  iptables to classify and not filters. Besides, i=
+f
+> >>>> tc is allowing me to define qdisc -> classes -> qdsic -> classes
+> >>>> (1,2,3 ...) sort of structure (ie like the one shown in ascii tree)
+> >>>> then how can those lowest child classes be actually used or consumed=
+?
+> >>>
+> >>> Just install tc filters on the lower level too.
+> >>
+> >> If I understand correctly, you are saying,
+> >> instead of :
+> >> tc filter add dev eno2 parent 100: protocol ip prio 1 handle
+> >> 0x00000001 fw flowid 1:10
+> >> tc filter add dev eno2 parent 100: protocol ip prio 1 handle
+> >> 0x00000002 fw flowid 1:20
+> >> tc filter add dev eno2 parent 100: protocol ip prio 1 handle
+> >> 0x00000003 fw flowid 2:10
+> >> tc filter add dev eno2 parent 100: protocol ip prio 1 handle
+> >> 0x00000004 fw flowid 2:20
+> >>
+> >>
+> >> I should do this: (i.e. changing parent to just immediate qdisc)
+> >> tc filter add dev eno2 parent 1: protocol ip prio 1 handle 0x00000001
+> >> fw flowid 1:10
+> >> tc filter add dev eno2 parent 1: protocol ip prio 1 handle 0x00000002
+> >> fw flowid 1:20
+> >> tc filter add dev eno2 parent 2: protocol ip prio 1 handle 0x00000003
+> >> fw flowid 2:10
+> >> tc filter add dev eno2 parent 2: protocol ip prio 1 handle 0x00000004
+> >> fw flowid 2:20
+> >
+> >
+> > Yes, this is what I meant.
+> >
+> >
+> >>
+> >> I tried this previously. But there is not change in the result.
+> >> Behaviour is exactly same, i.e. I am still getting 100Mbps and not
+> >> 100kbps or 300kbps
+> >>
+> >> Besides, as I mentioned previously I am using ipset + skbprio and not
+> >> filters stuff. Filters I used just to test.
+> >>
+> >> ipset  -N foo hash:ip,mark skbinfo
+> >>
+> >> ipset -A foo 10.10.10.10, 0x0x00000001 skbprio 1:10
+> >> ipset -A foo 10.10.10.20, 0x0x00000002 skbprio 1:20
+> >> ipset -A foo 10.10.10.30, 0x0x00000003 skbprio 2:10
+> >> ipset -A foo 10.10.10.40, 0x0x00000004 skbprio 2:20
+> >>
+> >> iptables -A POSTROUTING -j SET --map-set foo dst,dst --map-prio
+> >
+> > Hmm..
+> >
+> > I am not familiar with ipset, but it seems to save the skbprio into
+> > skb->priority, so it doesn't need TC filter to classify it again.
+> >
+> > I guess your packets might go to the direct queue of HTB, which
+> > bypasses the token bucket. Can you dump the stats and check?
+>
+> With more than 64K 'classes' I suggest to use a single FQ qdisc [1], and
+> an eBPF program using EDT model (Earliest Departure Time)
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/nf_flow_table_ip.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+Although this is very cool, I think in this case the OP is being
+a router, not server?
 
-diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
-index d68c801dd614..b9e7dd6e60ce 100644
---- a/net/netfilter/nf_flow_table_ip.c
-+++ b/net/netfilter/nf_flow_table_ip.c
-@@ -228,7 +228,6 @@ static unsigned int nf_flow_xmit_xfrm(struct sk_buff *skb,
- {
- 	skb_orphan(skb);
- 	skb_dst_set_noref(skb, dst);
--	skb->tstamp = 0;
- 	dst_output(state->net, state->sk, skb);
- 	return NF_STOLEN;
- }
-@@ -284,6 +283,7 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
- 	flow->timeout = (u32)jiffies + NF_FLOW_TIMEOUT;
- 	iph = ip_hdr(skb);
- 	ip_decrease_ttl(iph);
-+	skb->tstamp = 0;
- 
- 	if (unlikely(dst_xfrm(&rt->dst))) {
- 		memset(skb->cb, 0, sizeof(struct inet_skb_parm));
-@@ -512,6 +512,7 @@ nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
- 	flow->timeout = (u32)jiffies + NF_FLOW_TIMEOUT;
- 	ip6h = ipv6_hdr(skb);
- 	ip6h->hop_limit--;
-+	skb->tstamp = 0;
- 
- 	if (unlikely(dst_xfrm(&rt->dst))) {
- 		memset(skb->cb, 0, sizeof(struct inet6_skb_parm));
--- 
-2.21.0
+> The BPF program would perform the classification, then find a data struct=
+ure
+> based on the 'class', and then update/maintain class virtual times and sk=
+b->tstamp
+>
+> TBF =3D bpf_map_lookup_elem(&map, &classid);
+>
+> uint64_t now =3D bpf_ktime_get_ns();
+> uint64_t time_to_send =3D max(TBF->time_to_send, now);
+>
+> time_to_send +=3D (u64)qdisc_pkt_len(skb) * NSEC_PER_SEC / TBF->rate;
+> if (time_to_send > TBF->max_horizon) {
+>     return TC_ACT_SHOT;
+> }
+> TBF->time_to_send =3D time_to_send;
+> skb->tstamp =3D max(time_to_send, skb->tstamp);
+> if (time_to_send - now > TBF->ecn_horizon)
+>     bpf_skb_ecn_set_ce(skb);
+> return TC_ACT_OK;
+>
+> tools/testing/selftests/bpf/progs/test_tc_edt.c shows something similar.
+>
+>
+> [1]  MQ + FQ if the device is multi-queues.
+>
+>    Note that this setup scales very well on SMP, since we no longer are f=
+orced
+>  to use a single HTB hierarchy (protected by a single spinlock)
+>
 
+
+--=20
+
+Dave T=C3=A4ht
+CTO, TekLibre, LLC
+http://www.teklibre.com
+Tel: 1-831-205-9740
