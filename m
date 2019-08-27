@@ -2,131 +2,78 @@ Return-Path: <SRS0=TL01=WX=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 66906C3A5A3
-	for <netfilter-devel@archiver.kernel.org>; Tue, 27 Aug 2019 19:02:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 557B8C3A5A3
+	for <netfilter-devel@archiver.kernel.org>; Tue, 27 Aug 2019 19:15:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 46F9D21881
-	for <netfilter-devel@archiver.kernel.org>; Tue, 27 Aug 2019 19:02:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3187E2184D
+	for <netfilter-devel@archiver.kernel.org>; Tue, 27 Aug 2019 19:15:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730960AbfH0TCz (ORCPT
+        id S1730347AbfH0TPj (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 27 Aug 2019 15:02:55 -0400
-Received: from mx0a-001b2d01.pphosted.com ([148.163.156.1]:19460 "EHLO
-        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726871AbfH0TCy (ORCPT
+        Tue, 27 Aug 2019 15:15:39 -0400
+Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:40086 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1728972AbfH0TPi (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 27 Aug 2019 15:02:54 -0400
-Received: from pps.filterd (m0098396.ppops.net [127.0.0.1])
-        by mx0a-001b2d01.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id x7RIxcWJ050616;
-        Tue, 27 Aug 2019 15:02:09 -0400
-Received: from ppma01dal.us.ibm.com (83.d6.3fa9.ip4.static.sl-reverse.com [169.63.214.131])
-        by mx0a-001b2d01.pphosted.com with ESMTP id 2un90xk84d-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Tue, 27 Aug 2019 15:02:09 -0400
-Received: from pps.filterd (ppma01dal.us.ibm.com [127.0.0.1])
-        by ppma01dal.us.ibm.com (8.16.0.27/8.16.0.27) with SMTP id x7RJ1A4Y027212;
-        Tue, 27 Aug 2019 19:02:08 GMT
-Received: from b01cxnp22035.gho.pok.ibm.com (b01cxnp22035.gho.pok.ibm.com [9.57.198.25])
-        by ppma01dal.us.ibm.com with ESMTP id 2ujvv75vwa-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Tue, 27 Aug 2019 19:02:08 +0000
-Received: from b01ledav005.gho.pok.ibm.com (b01ledav005.gho.pok.ibm.com [9.57.199.110])
-        by b01cxnp22035.gho.pok.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id x7RJ27mr46924278
-        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Tue, 27 Aug 2019 19:02:07 GMT
-Received: from b01ledav005.gho.pok.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id 5E8ACAE060;
-        Tue, 27 Aug 2019 19:02:07 +0000 (GMT)
-Received: from b01ledav005.gho.pok.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id B3669AE05F;
-        Tue, 27 Aug 2019 19:02:05 +0000 (GMT)
-Received: from LeoBras.aus.stglabs.ibm.com (unknown [9.18.235.216])
-        by b01ledav005.gho.pok.ibm.com (Postfix) with ESMTP;
-        Tue, 27 Aug 2019 19:02:05 +0000 (GMT)
-From:   Leonardo Bras <leonardo@linux.ibm.com>
-To:     netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc:     Leonardo Bras <leonardo@linux.ibm.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>
-Subject: [PATCH v3 1/1] netfilter: nf_tables: fib: Drop IPV6 packets if IPv6 is disabled on boot
-Date:   Tue, 27 Aug 2019 15:57:49 -0300
-Message-Id: <20190827185748.19148-1-leonardo@linux.ibm.com>
-X-Mailer: git-send-email 2.20.1
+        Tue, 27 Aug 2019 15:15:38 -0400
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1i2gwK-0005Q5-Ro; Tue, 27 Aug 2019 21:15:36 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf] netfilter: nf_flow_table: clear skb tstamp before xmit
+Date:   Tue, 27 Aug 2019 21:23:45 +0200
+Message-Id: <20190827192345.12661-1-fw@strlen.de>
+X-Mailer: git-send-email 2.21.0
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-TM-AS-GCONF: 00
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:,, definitions=2019-08-27_04:,,
- signatures=0
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 priorityscore=1501
- malwarescore=0 suspectscore=0 phishscore=0 bulkscore=0 spamscore=0
- clxscore=1015 lowpriorityscore=0 mlxscore=0 impostorscore=0
- mlxlogscore=999 adultscore=0 classifier=spam adjust=0 reason=mlx
- scancount=1 engine=8.0.1-1906280000 definitions=main-1908270180
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-If IPv6 is disabled on boot (ipv6.disable=1), but nft_fib_inet ends up
-dealing with a IPv6 packet, it causes a kernel panic in
-fib6_node_lookup_1(), crashing in bad_page_fault.
+If 'fq' qdisc is used and a program has requested timestamps,
+skb->tstamp needs to be cleared, else fq will treat these as
+'transmit time'.
 
-The panic is caused by trying to deference a very low address (0x38
-in ppc64le), due to ipv6.fib6_main_tbl = NULL.
-BUG: Kernel NULL pointer dereference at 0x00000038
-
-Fix this behavior by dropping IPv6 packets if !ipv6_mod_enabled().
-
-Signed-off-by: Leonardo Bras <leonardo@linux.ibm.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
-Changes from v2:
-- Replace veredict.code from NF_DROP to NFT_BREAK
-- Updated commit message (s/package/packet)
+ net/netfilter/nf_flow_table_ip.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-Changes from v1:
-- Move drop logic from nft_fib_inet_eval() to nft_fib6_eval{,_type}
-so it can affect other usages of these functions.
-
- net/ipv6/netfilter/nft_fib_ipv6.c | 10 ++++++++++
- 1 file changed, 10 insertions(+)
-
-diff --git a/net/ipv6/netfilter/nft_fib_ipv6.c b/net/ipv6/netfilter/nft_fib_ipv6.c
-index 7ece86afd079..8496e43b73bd 100644
---- a/net/ipv6/netfilter/nft_fib_ipv6.c
-+++ b/net/ipv6/netfilter/nft_fib_ipv6.c
-@@ -125,6 +125,11 @@ void nft_fib6_eval_type(const struct nft_expr *expr, struct nft_regs *regs,
- 	u32 *dest = &regs->data[priv->dreg];
- 	struct ipv6hdr *iph, _iph;
+diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
+index d68c801dd614..b9e7dd6e60ce 100644
+--- a/net/netfilter/nf_flow_table_ip.c
++++ b/net/netfilter/nf_flow_table_ip.c
+@@ -228,7 +228,6 @@ static unsigned int nf_flow_xmit_xfrm(struct sk_buff *skb,
+ {
+ 	skb_orphan(skb);
+ 	skb_dst_set_noref(skb, dst);
+-	skb->tstamp = 0;
+ 	dst_output(state->net, state->sk, skb);
+ 	return NF_STOLEN;
+ }
+@@ -284,6 +283,7 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
+ 	flow->timeout = (u32)jiffies + NF_FLOW_TIMEOUT;
+ 	iph = ip_hdr(skb);
+ 	ip_decrease_ttl(iph);
++	skb->tstamp = 0;
  
-+	if (!ipv6_mod_enabled()) {
-+		regs->verdict.code = NFT_BREAK;
-+		return;
-+	}
-+
- 	iph = skb_header_pointer(pkt->skb, noff, sizeof(_iph), &_iph);
- 	if (!iph) {
- 		regs->verdict.code = NFT_BREAK;
-@@ -150,6 +155,11 @@ void nft_fib6_eval(const struct nft_expr *expr, struct nft_regs *regs,
- 	struct rt6_info *rt;
- 	int lookup_flags;
+ 	if (unlikely(dst_xfrm(&rt->dst))) {
+ 		memset(skb->cb, 0, sizeof(struct inet_skb_parm));
+@@ -512,6 +512,7 @@ nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
+ 	flow->timeout = (u32)jiffies + NF_FLOW_TIMEOUT;
+ 	ip6h = ipv6_hdr(skb);
+ 	ip6h->hop_limit--;
++	skb->tstamp = 0;
  
-+	if (!ipv6_mod_enabled()) {
-+		regs->verdict.code = NFT_BREAK;
-+		return;
-+	}
-+
- 	if (priv->flags & NFTA_FIB_F_IIF)
- 		oif = nft_in(pkt);
- 	else if (priv->flags & NFTA_FIB_F_OIF)
+ 	if (unlikely(dst_xfrm(&rt->dst))) {
+ 		memset(skb->cb, 0, sizeof(struct inet6_skb_parm));
 -- 
-2.20.1
+2.21.0
 
