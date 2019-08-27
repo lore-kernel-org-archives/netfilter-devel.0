@@ -2,48 +2,56 @@ Return-Path: <SRS0=TL01=WX=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D95A6C3A5A3
-	for <netfilter-devel@archiver.kernel.org>; Tue, 27 Aug 2019 18:51:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C8BBC3A5A3
+	for <netfilter-devel@archiver.kernel.org>; Tue, 27 Aug 2019 18:56:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B925E20644
-	for <netfilter-devel@archiver.kernel.org>; Tue, 27 Aug 2019 18:51:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 187EA20828
+	for <netfilter-devel@archiver.kernel.org>; Tue, 27 Aug 2019 18:56:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730872AbfH0SvQ (ORCPT
+        id S1730486AbfH0S4Y (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 27 Aug 2019 14:51:16 -0400
-Received: from correo.us.es ([193.147.175.20]:37806 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730849AbfH0SvQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 27 Aug 2019 14:51:16 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id A6B9C27F8C6
-        for <netfilter-devel@vger.kernel.org>; Tue, 27 Aug 2019 20:51:12 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 999DBDA801
-        for <netfilter-devel@vger.kernel.org>; Tue, 27 Aug 2019 20:51:12 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 8E4ACD1DBB; Tue, 27 Aug 2019 20:51:12 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 718E9DA801;
-        Tue, 27 Aug 2019 20:51:10 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 27 Aug 2019 20:51:10 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (sys.soleta.eu [212.170.55.40])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 42DA14265A5A;
-        Tue, 27 Aug 2019 20:51:10 +0200 (CEST)
-Date:   Tue, 27 Aug 2019 20:51:11 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Leonardo Bras <leonardo@linux.ibm.com>
+        Tue, 27 Aug 2019 14:56:24 -0400
+Received: from mx0b-001b2d01.pphosted.com ([148.163.158.5]:36416 "EHLO
+        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1728312AbfH0S4Y (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 27 Aug 2019 14:56:24 -0400
+Received: from pps.filterd (m0098416.ppops.net [127.0.0.1])
+        by mx0b-001b2d01.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id x7RIb9oS084097;
+        Tue, 27 Aug 2019 14:55:46 -0400
+Received: from ppma05wdc.us.ibm.com (1b.90.2fa9.ip4.static.sl-reverse.com [169.47.144.27])
+        by mx0b-001b2d01.pphosted.com with ESMTP id 2un8kkcjgr-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Tue, 27 Aug 2019 14:55:46 -0400
+Received: from pps.filterd (ppma05wdc.us.ibm.com [127.0.0.1])
+        by ppma05wdc.us.ibm.com (8.16.0.27/8.16.0.27) with SMTP id x7RItYvC022964;
+        Tue, 27 Aug 2019 18:55:45 GMT
+Received: from b01cxnp22035.gho.pok.ibm.com (b01cxnp22035.gho.pok.ibm.com [9.57.198.25])
+        by ppma05wdc.us.ibm.com with ESMTP id 2ujvv71b32-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Tue, 27 Aug 2019 18:55:45 +0000
+Received: from b01ledav004.gho.pok.ibm.com (b01ledav004.gho.pok.ibm.com [9.57.199.109])
+        by b01cxnp22035.gho.pok.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id x7RItiq747972670
+        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Tue, 27 Aug 2019 18:55:44 GMT
+Received: from b01ledav004.gho.pok.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id 87A72112063;
+        Tue, 27 Aug 2019 18:55:44 +0000 (GMT)
+Received: from b01ledav004.gho.pok.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id 082D7112062;
+        Tue, 27 Aug 2019 18:55:43 +0000 (GMT)
+Received: from leobras.br.ibm.com (unknown [9.18.235.216])
+        by b01ledav004.gho.pok.ibm.com (Postfix) with ESMTP;
+        Tue, 27 Aug 2019 18:55:42 +0000 (GMT)
+Message-ID: <0c563d05f6615d5cb32716f62416a5496ad197d4.camel@linux.ibm.com>
+Subject: Re: [PATCH v2 1/1] netfilter: nf_tables: fib: Drop IPV6 packages if
+ IPv6 is disabled on boot
+From:   Leonardo Bras <leonardo@linux.ibm.com>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
         Jozsef Kadlecsik <kadlec@netfilter.org>,
@@ -51,37 +59,69 @@ Cc:     netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         "David S. Miller" <davem@davemloft.net>,
         Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
         Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>
-Subject: Re: [PATCH v2 1/1] netfilter: nf_tables: fib: Drop IPV6 packages if
- IPv6 is disabled on boot
-Message-ID: <20190827185111.cgutfqkqwsufe2nl@salvia>
+Date:   Tue, 27 Aug 2019 15:55:39 -0300
+In-Reply-To: <20190827185111.cgutfqkqwsufe2nl@salvia>
 References: <20190821141505.2394-1-leonardo@linux.ibm.com>
- <20190827103541.vzwqwg4jlbuzajxu@salvia>
- <77c43754ff72e9a2e8048ccd032351cf0186080a.camel@linux.ibm.com>
+         <20190827103541.vzwqwg4jlbuzajxu@salvia>
+         <77c43754ff72e9a2e8048ccd032351cf0186080a.camel@linux.ibm.com>
+         <20190827185111.cgutfqkqwsufe2nl@salvia>
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-bC3QiacUuz+PrqDXq2+v"
+User-Agent: Evolution 3.30.5 (3.30.5-1.fc29) 
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <77c43754ff72e9a2e8048ccd032351cf0186080a.camel@linux.ibm.com>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+X-TM-AS-GCONF: 00
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:,, definitions=2019-08-27_03:,,
+ signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 priorityscore=1501
+ malwarescore=0 suspectscore=0 phishscore=0 bulkscore=0 spamscore=0
+ clxscore=1015 lowpriorityscore=0 mlxscore=0 impostorscore=0
+ mlxlogscore=999 adultscore=0 classifier=spam adjust=0 reason=mlx
+ scancount=1 engine=8.0.1-1906280000 definitions=main-1908270179
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Aug 27, 2019 at 02:34:14PM -0300, Leonardo Bras wrote:
-> On Tue, 2019-08-27 at 12:35 +0200, Pablo Neira Ayuso wrote:
-[...]
-> > NFT_BREAK instead to stop evaluating this rule, this results in a
-> > mismatch, so you let the user decide what to do with packets that do
-> > not match your policy.
->
-> Ok, I will replace for v3.
 
-Thanks.
+--=-bC3QiacUuz+PrqDXq2+v
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-> > The drop case at the bottom of the fib eval function never actually
-> > never happens.
->
-> Which one do you mean?
+On Tue, 2019-08-27 at 20:51 +0200, Pablo Neira Ayuso wrote:
+> > > The drop case at the bottom of the fib eval function never actually
+> > > never happens.
+> >=20
+> > Which one do you mean?
+>=20
+> Line 31 of net/netfilter/nft_fib_inet.c.
+Oh, yeah, I was thinking about that when I wrote the patch.
+Thanks for explaining :)
 
-Line 31 of net/netfilter/nft_fib_inet.c.
+I will send the v3 in a few minutes.
+
+Best regards,
+
+--=-bC3QiacUuz+PrqDXq2+v
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEEMdeUgIzgjf6YmUyOlQYWtz9SttQFAl1lfKsACgkQlQYWtz9S
+ttRjNxAArsbMmS4pe2EfMQGGOr2krvP+GCUcOCHZA32WFNQUme+NlnKmkERtMUgt
+OmI+FZv3Q2W8l+dZR1sOxk8uaoyhh8ny9g4rK/qypga5NaXIId0U1RYnGKJadFqp
+lWJLHtfHGXG0ljzPtpdKzvCtMnAMm6PIEs6yGGblfIciRBhI5ldxUEcD5AzHhXdj
+yT7wNPyk+uq1LJ2QFs1doP2stuIMjXnBngKOb8us180KlEsAtvLCrIl3Hu4zrvF8
+2Ogu8PqmCf8BfogE0maGCUz8rwRMs+o+YyQP82Ra8XLjiKm3uvvAn0rKh08BGDsA
+PEcr0VZvrgT8PnbxLI6fwplERJgtSw2WO6SFMGr4v5ETCz2+nppsc1mAv18wvdK8
+GNYpSuEeG/qGAtOWmWyDqxxEsfqA83oHHilnB3stAJEYKFClB0eBDmO9cQKaHu83
+3eC5df7hl9GfIQLjo2MjeusSQt3tJfQ9fcdv8qLX7DZAw1/t/yjrg0a7DGt6VBx2
+Uauhkh3Rlzz8mNji9WLEZfsh6Lm0aO0/g1gYMfM4hJ0V43KKZ2SVqzif1WBo1RcL
+Z31Fi2ROWihgs4RZYUKFofwG/dte+n26Pol5bIOOy84sHw1I+3E8HV0H1bmZqXqW
+zzHpx5gsHVyJ/Gn712FM8bgrFxxmEL/yJ3hXzhDclPUr2iHDpr8=
+=G0DM
+-----END PGP SIGNATURE-----
+
+--=-bC3QiacUuz+PrqDXq2+v--
+
