@@ -2,129 +2,62 @@ Return-Path: <SRS0=TL01=WX=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D9C10C3A5A3
-	for <netfilter-devel@archiver.kernel.org>; Tue, 27 Aug 2019 21:41:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 45FD0C3A5A3
+	for <netfilter-devel@archiver.kernel.org>; Tue, 27 Aug 2019 22:05:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id AF7ED206E0
-	for <netfilter-devel@archiver.kernel.org>; Tue, 27 Aug 2019 21:41:18 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="nGag63u/"
+	by mail.kernel.org (Postfix) with ESMTP id 2468F20828
+	for <netfilter-devel@archiver.kernel.org>; Tue, 27 Aug 2019 22:05:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731019AbfH0VlQ (ORCPT
+        id S1726068AbfH0WFG (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 27 Aug 2019 17:41:16 -0400
-Received: from mail-io1-f45.google.com ([209.85.166.45]:35501 "EHLO
-        mail-io1-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730511AbfH0VlP (ORCPT
+        Tue, 27 Aug 2019 18:05:06 -0400
+Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:41394 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725804AbfH0WFG (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 27 Aug 2019 17:41:15 -0400
-Received: by mail-io1-f45.google.com with SMTP id b10so1671460ioj.2;
-        Tue, 27 Aug 2019 14:41:15 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc:content-transfer-encoding;
-        bh=k9+9Hu8LtaqV2cw1LoTggAA9L3QKuBbHOdCcyf8AI58=;
-        b=nGag63u/hue8uakpghxzvLChIUygqGosUm4kD2OBI3caD89k1bt58M2O+hGBOIgsRH
-         EVe7USVeRpRgc7HlH2QL6fCrx+gQN86LitEdecrnEmrT8RIgoz7uuW+t/28HsQpJ7Ypq
-         gUCWgfWsTCJcDOQDv/ajo2fDpn9iFmlCPX0didOLxSIUmWAlGuBvQIjlN6V6vYlVRHgt
-         DFZapKCP4ub7ihF7qjLQ3lBwZCOaEiZc/ztlZX55zsE8BXBA4D7Csv+kQuneeNAz1QQA
-         0Q184xFpVz6DZwYblpeUqMCD4wGfpCw3jCWRmnKWjtBzJO8U+9gSixHhTL3DfK5H1ho9
-         Fcxw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=k9+9Hu8LtaqV2cw1LoTggAA9L3QKuBbHOdCcyf8AI58=;
-        b=n3ECoficuXetVa3m9CinKHyE30aE3WmcH9ZjAfOQMltpvk46BNWrHxfBcdjvjhnJ2B
-         j8NsaSkQ3LN2oYtMzwukFx9E6RilyRweQXTaX8e5pZE8Le+tYRmm5oEFecCsHUxFYXRa
-         3ZtCz0bZKTAXF59Fd5smlQ3jAMUZ2dqM0nH+x3F+2pz3COP8M0O+Caj2e4Hye19Iwa7N
-         mFdcn21l3n4AOCwkeOhqtncOyXvaU9Tb8zl18H02vhoA9o8WYs4pwhD7g6vDgISK1WCk
-         NVxhzYYfU57nMsmnC8yxg/w/O6KmXabFSgDiSWj6Tc9dTDS7yPUBC65jgnvWxnw0k+Z5
-         RRnw==
-X-Gm-Message-State: APjAAAX30PWonGIO3XfKBspgOn3Rr34IVoeSMrn6JFN+ZbXI291JyFe8
-        FpBdT5xQHdlFL5zx2WRum6vQZsKB7LDlMospSKCaDVJv
-X-Google-Smtp-Source: APXvYqyT9Cd8H5KzbIgeFP5EbHOWjNdeCOslOptbKoLhSMF3J2FwHIEjNRpT4u6+0EEVwn+Lphqn7QBB5xTb1Dcu6M0=
-X-Received: by 2002:a02:cd82:: with SMTP id l2mr991852jap.97.1566942074523;
- Tue, 27 Aug 2019 14:41:14 -0700 (PDT)
+        Tue, 27 Aug 2019 18:05:06 -0400
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1i2jaL-0006UC-20; Wed, 28 Aug 2019 00:05:05 +0200
+Date:   Tue, 27 Aug 2019 23:58:36 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     David Miller <davemdavemloft!net@strlen.de>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH v2 1/1] netfilter: nf_tables: fib: Drop IPV6 packages if
+ IPv6 is disabled on boot
+Message-ID: <20190827215836.GA10942@strlen.de>
+References: <20190827.141950.540994003351676048.davem@davemloft.net>
 MIME-Version: 1.0
-References: <CAA5aLPhf1=wzQG0BAonhR3td-RhEmXaczug8n4hzXCzreb+52g@mail.gmail.com>
- <CAM_iQpVyEtOGd5LbyGcSNKCn5XzT8+Ouup26fvE1yp7T5aLSjg@mail.gmail.com>
- <CAA5aLPiqyhnWjY7A3xsaNJ71sDOf=Rqej8d+7=_PyJPmV9uApA@mail.gmail.com>
- <CAM_iQpUH6y8oEct3FXUhqNekQ3sn3N7LoSR0chJXAPYUzvWbxA@mail.gmail.com>
- <CAA5aLPjzX+9YFRGgCgceHjkU0=e6x8YMENfp_cC9fjfHYK3e+A@mail.gmail.com>
- <CAM_iQpXBhrOXtfJkibyxyq781Pjck-XJNgZ-=Ucj7=DeG865mw@mail.gmail.com>
- <CAA5aLPjO9rucCLJnmQiPBxw2pJ=6okf3C88rH9GWnh3p0R+Rmw@mail.gmail.com>
- <CAM_iQpVtGUH6CAAegRtTgyemLtHsO+RFP8f6LH2WtiYu9-srfw@mail.gmail.com>
- <9cbefe10-b172-ae2a-0ac7-d972468eb7a2@gmail.com> <CAA93jw6TWUmqsvBDT4tFPgwjGxAmm_S5bUibj16nwp1F=AwyRA@mail.gmail.com>
- <48a3284b-e8ba-f169-6a2d-9611f8538f07@gmail.com>
-In-Reply-To: <48a3284b-e8ba-f169-6a2d-9611f8538f07@gmail.com>
-From:   Dave Taht <dave.taht@gmail.com>
-Date:   Tue, 27 Aug 2019 14:41:05 -0700
-Message-ID: <CAA93jw69=_DnqnOUWaSJqYG-TAQD04j5qkOShNK6WmOU8=Z3mw@mail.gmail.com>
-Subject: Re: Unable to create htb tc classes more than 64K
-To:     Eric Dumazet <eric.dumazet@gmail.com>
-Cc:     Cong Wang <xiyou.wangcong@gmail.com>,
-        Akshat Kakkar <akshat.1984@gmail.com>,
-        Anton Danilov <littlesmilingcloud@gmail.com>,
-        NetFilter <netfilter-devel@vger.kernel.org>,
-        lartc <lartc@vger.kernel.org>, netdev <netdev@vger.kernel.org>,
-        bloat <bloat@lists.bufferbloat.net>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190827.141950.540994003351676048.davem@davemloft.net>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Aug 27, 2019 at 2:09 PM Eric Dumazet <eric.dumazet@gmail.com> wrote=
-:
->
->
->
-> On 8/27/19 10:53 PM, Dave Taht wrote:
-> >
-> > Although this is very cool, I think in this case the OP is being
-> > a router, not server?
->
-> This mechanism is generic. EDT has not been designed for servers only.
->
-> One HTB class (with one associated qdisc per leaf) per rate limiter
-> does not scale, and consumes a _lot_ more memory.
->
-> We have abandoned HTB at Google for these reasons.
->
-> Nice thing with EDT is that you can stack arbitrary number of rate limite=
-rs,
-> and still keep a single queue (in FQ or another layer downstream)
+David Miller <davemdavemloft!net> wrote:
+> From: Leonardo Bras <leonardo@linux.ibm.com>
+> Date: Tue, 27 Aug 2019 14:34:14 -0300
+> 
+> > I could reproduce this bug on a host ('ipv6.disable=1') starting a
+> > guest with a virtio-net interface with 'filterref' over a virtual
+> > bridge. It crashes the host during guest boot (just before login).
+> > 
+> > By that I could understand that a guest IPv6 network traffic
+> > (viavirtio-net) may cause this kernel panic.
+> 
+> Really this is bad and I suspected bridging to be involved somehow.
 
-There's a lot of nice things about EDT! I'd followed along on the
-theory, timerwheels, virtual clocks, etc, and went
-seeking ethernet hw that could do it (directly) on the low end and
-came up empty - and doing anything with the concept required a
-complete rethink on everything we were already doing in
-wifi/fq_codel/cake ;(, and after we shipped cake in 4.19, I bought a
-sailboat, and logged out for a while.
+Thats a good point -- Leonardo, is the
+"net.bridge.bridge-nf-call-ip6tables" sysctl on?
 
-The biggest problem bufferbloat.net has left is more efficient inbound
-shaping/policing on cheap hw.
-
-I don't suppose you've solved that already? :puppy dog eyes:
-
-Next year's version of openwrt we can maybe try to do something
-coherent with EDT.
-
->
-
-
---=20
-
-Dave T=C3=A4ht
-CTO, TekLibre, LLC
-http://www.teklibre.com
-Tel: 1-831-205-9740
+As much as i'd like to send a patch to remove br_netfilter, I fear
+we can't even stop passing ipv6 packets up to netfilter if
+ipv6.disable=1 is set because users might be using ip6tables for
+bridged traffic.
