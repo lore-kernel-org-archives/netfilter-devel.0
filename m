@@ -2,130 +2,86 @@ Return-Path: <SRS0=TL01=WX=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.3 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2CA46C3A5A3
-	for <netfilter-devel@archiver.kernel.org>; Tue, 27 Aug 2019 18:21:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D95A6C3A5A3
+	for <netfilter-devel@archiver.kernel.org>; Tue, 27 Aug 2019 18:51:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C714420674
-	for <netfilter-devel@archiver.kernel.org>; Tue, 27 Aug 2019 18:21:38 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b="Sg6GVqh4"
+	by mail.kernel.org (Postfix) with ESMTP id B925E20644
+	for <netfilter-devel@archiver.kernel.org>; Tue, 27 Aug 2019 18:51:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730207AbfH0SVi (ORCPT
+        id S1730872AbfH0SvQ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 27 Aug 2019 14:21:38 -0400
-Received: from smtp-out.kfki.hu ([148.6.0.46]:49301 "EHLO smtp-out.kfki.hu"
+        Tue, 27 Aug 2019 14:51:16 -0400
+Received: from correo.us.es ([193.147.175.20]:37806 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727064AbfH0SVh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 27 Aug 2019 14:21:37 -0400
-Received: from localhost (localhost [127.0.0.1])
-        by smtp1.kfki.hu (Postfix) with ESMTP id DE28D3C80105;
-        Tue, 27 Aug 2019 20:21:33 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        blackhole.kfki.hu; h=mime-version:user-agent:references
-        :message-id:in-reply-to:from:from:date:date:received:received
-        :received; s=20151130; t=1566930091; x=1568744492; bh=d0QYWJwAUo
-        ZjJHspnjU92An5niFYJC0GKb2AR5wQObg=; b=Sg6GVqh4OvCTexsWh0y6FdgivR
-        sEPXNHKlbg27jG2AEs3dEfF+e49pu0pZ09f0X6yHjYkqZZwHToBIWU2RSBsf3vXi
-        jLYQ4zpIlog3B5OcXbywNbLQpTfk+p4UL72lcE2arT6U5AFlKpkj+mXo24xhWsEu
-        ifGkdD+pBBGU34zWw=
-X-Virus-Scanned: Debian amavisd-new at smtp1.kfki.hu
-Received: from smtp1.kfki.hu ([127.0.0.1])
-        by localhost (smtp1.kfki.hu [127.0.0.1]) (amavisd-new, port 10026)
-        with ESMTP; Tue, 27 Aug 2019 20:21:31 +0200 (CEST)
-Received: from blackhole.kfki.hu (blackhole.szhk.kfki.hu [148.6.240.2])
-        by smtp1.kfki.hu (Postfix) with ESMTP id 468BD3C80104;
-        Tue, 27 Aug 2019 20:21:30 +0200 (CEST)
-Received: by blackhole.kfki.hu (Postfix, from userid 1000)
-        id E43B621F21; Tue, 27 Aug 2019 20:21:29 +0200 (CEST)
-Date:   Tue, 27 Aug 2019 20:21:29 +0200 (CEST)
-From:   =?UTF-8?Q?Kadlecsik_J=C3=B3zsef?= <kadlec@blackhole.kfki.hu>
-To:     Dan Carpenter <dan.carpenter@oracle.com>
-cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        id S1730849AbfH0SvQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 27 Aug 2019 14:51:16 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id A6B9C27F8C6
+        for <netfilter-devel@vger.kernel.org>; Tue, 27 Aug 2019 20:51:12 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 999DBDA801
+        for <netfilter-devel@vger.kernel.org>; Tue, 27 Aug 2019 20:51:12 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 8E4ACD1DBB; Tue, 27 Aug 2019 20:51:12 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 718E9DA801;
+        Tue, 27 Aug 2019 20:51:10 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Tue, 27 Aug 2019 20:51:10 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (sys.soleta.eu [212.170.55.40])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 42DA14265A5A;
+        Tue, 27 Aug 2019 20:51:10 +0200 (CEST)
+Date:   Tue, 27 Aug 2019 20:51:11 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Leonardo Bras <leonardo@linux.ibm.com>
+Cc:     netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
         Jozsef Kadlecsik <kadlec@netfilter.org>,
         Florian Westphal <fw@strlen.de>,
-        Florent Fourcot <florent.fourcot@wifirst.fr>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Andrey Ryabinin <aryabinin@virtuozzo.com>,
-        Aditya Pakki <pakki001@umn.edu>,
-        Johannes Berg <johannes.berg@intel.com>,
-        Stefano Brivio <sbrivio@redhat.com>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        kernel-janitors@vger.kernel.org
-Subject: Re: [PATCH v2] netfilter: ipset: Fix an error code in
- ip_set_sockfn_get()
-In-Reply-To: <20190824144955.GA5337@mwanda>
-Message-ID: <alpine.DEB.2.20.1908272020470.11996@blackhole.kfki.hu>
-References: <20190824144955.GA5337@mwanda>
-User-Agent: Alpine 2.20 (DEB 67 2015-01-07)
+        "David S. Miller" <davem@davemloft.net>,
+        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>
+Subject: Re: [PATCH v2 1/1] netfilter: nf_tables: fib: Drop IPV6 packages if
+ IPv6 is disabled on boot
+Message-ID: <20190827185111.cgutfqkqwsufe2nl@salvia>
+References: <20190821141505.2394-1-leonardo@linux.ibm.com>
+ <20190827103541.vzwqwg4jlbuzajxu@salvia>
+ <77c43754ff72e9a2e8048ccd032351cf0186080a.camel@linux.ibm.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <77c43754ff72e9a2e8048ccd032351cf0186080a.camel@linux.ibm.com>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+On Tue, Aug 27, 2019 at 02:34:14PM -0300, Leonardo Bras wrote:
+> On Tue, 2019-08-27 at 12:35 +0200, Pablo Neira Ayuso wrote:
+[...]
+> > NFT_BREAK instead to stop evaluating this rule, this results in a
+> > mismatch, so you let the user decide what to do with packets that do
+> > not match your policy.
+>
+> Ok, I will replace for v3.
 
-Hi Dan,
+Thanks.
 
-On Sat, 24 Aug 2019, Dan Carpenter wrote:
+> > The drop case at the bottom of the fib eval function never actually
+> > never happens.
+>
+> Which one do you mean?
 
-> The copy_to_user() function returns the number of bytes remaining to be
-> copied.  In this code, that positive return is checked at the end of the
-> function and we return zero/success.  What we should do instead is
-> return -EFAULT.
-> 
-> Fixes: a7b4f989a629 ("netfilter: ipset: IP set core support")
-> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-> ---
-> v2: I missed the other instance of this issue
-> 
->  net/netfilter/ipset/ip_set_core.c | 8 +++++---
->  1 file changed, 5 insertions(+), 3 deletions(-)
-
-Patch is applied in the ipset git tree, thanks!
-
-Best regards,
-Jozsef
-
-> diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
-> index e64d5f9a89dd..e7288eab7512 100644
-> --- a/net/netfilter/ipset/ip_set_core.c
-> +++ b/net/netfilter/ipset/ip_set_core.c
-> @@ -2069,8 +2069,9 @@ ip_set_sockfn_get(struct sock *sk, int optval, void __user *user, int *len)
->  		}
->  
->  		req_version->version = IPSET_PROTOCOL;
-> -		ret = copy_to_user(user, req_version,
-> -				   sizeof(struct ip_set_req_version));
-> +		if (copy_to_user(user, req_version,
-> +				 sizeof(struct ip_set_req_version)))
-> +			ret = -EFAULT;
->  		goto done;
->  	}
->  	case IP_SET_OP_GET_BYNAME: {
-> @@ -2129,7 +2130,8 @@ ip_set_sockfn_get(struct sock *sk, int optval, void __user *user, int *len)
->  	}	/* end of switch(op) */
->  
->  copy:
-> -	ret = copy_to_user(user, data, copylen);
-> +	if (copy_to_user(user, data, copylen))
-> +		ret = -EFAULT;
->  
->  done:
->  	vfree(data);
-> -- 
-> 2.11.0
-> 
-> 
-
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+Line 31 of net/netfilter/nft_fib_inet.c.
