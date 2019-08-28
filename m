@@ -2,91 +2,87 @@ Return-Path: <SRS0=hqFW=WY=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.7 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8AAA4C3A5A1
-	for <netfilter-devel@archiver.kernel.org>; Wed, 28 Aug 2019 07:40:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BF0FEC3A5A1
+	for <netfilter-devel@archiver.kernel.org>; Wed, 28 Aug 2019 08:19:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5FF7420679
-	for <netfilter-devel@archiver.kernel.org>; Wed, 28 Aug 2019 07:40:35 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="rGUphFce"
+	by mail.kernel.org (Postfix) with ESMTP id 9AB272189D
+	for <netfilter-devel@archiver.kernel.org>; Wed, 28 Aug 2019 08:19:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726408AbfH1Hkf (ORCPT
+        id S1726455AbfH1ITs (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 28 Aug 2019 03:40:35 -0400
-Received: from mail-wm1-f65.google.com ([209.85.128.65]:55848 "EHLO
-        mail-wm1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726382AbfH1Hkf (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 28 Aug 2019 03:40:35 -0400
-Received: by mail-wm1-f65.google.com with SMTP id f72so1613725wmf.5
-        for <netfilter-devel@vger.kernel.org>; Wed, 28 Aug 2019 00:40:33 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=date:from:to:cc:subject:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=pLNRxd+LGizjPDE3c8uqMZITCvvK9wkJZjOp7gwydeo=;
-        b=rGUphFcea/lpbIyMnzYHu+HzPYpbV6IC89Y9ahakAp7JYuCO8+Xww5d6hKbcCrlUXz
-         qttBruH0IRYClKL+4k7j0+bTBhCJdUH0rHbC/NsYffs4wpbWEVE/KgeJx3MR8QCkS0bk
-         n7+wWhQtYLqQzXIE2F5k0W33A0P5ivvSljgPaV79kRN5lywx5K7P0d1kPPDJaYLD1BRK
-         2rcOWaHH703F1hPqfYY57tg+MQgEq9sCMjhVrB7EzdoGSwAz/5tu92W/i62x09t9RU+I
-         PC5ulNokso/6dOHJHaj0R91QryIZ82wgnit07xC4B7lqc4QfbVpkIGHjVt7RH9xtigSQ
-         VDMA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=pLNRxd+LGizjPDE3c8uqMZITCvvK9wkJZjOp7gwydeo=;
-        b=LxjyeWs/8Kv8pFoMnRGdMJo7B3uVshhiMILf0xCiZSD6p2L+V2hX2V+FPu8Nl7Dbbg
-         FZpE1/5L0/aRvJy224tjpeOxl6fZgfmiI8DUpaugq59Rt1UQTs2ujSUiIjzZGxR1J5gu
-         dSgz9CjNcZtqeSzWOYbtCptX5iVZY7bqdX91p62Yan6kIDNZ9n3awj2xG9uzTZuJF/D6
-         Ma86mx0AIK5mRfyjiqGQ3nszufIT9SxVjnhC+L4Cy1ubCWPQEhHrIB7QpFbMNpxi8W8F
-         tXfPrSUqPkHTtsuRRqt4vK0v+Jz7PwZqIy3rbbrJNTLujvhss/1QcTEOngTjFugAsfym
-         w0ew==
-X-Gm-Message-State: APjAAAXLGPX3FcmTXUmxicfqr5QH1OdfW+GQQiGT/FeCcsj4QzoZ2/Rs
-        dYNK3BYM7h5L2d80x6XHmamCa8kU
-X-Google-Smtp-Source: APXvYqwjOsC8R3rwAg4QAX3jZ1G0+9wA2TwSElA83uKzHz64S1ktaqdgjiwdjrXCnJNfcll79pdS4A==
-X-Received: by 2002:a7b:c415:: with SMTP id k21mr2877597wmi.135.1566978032687;
-        Wed, 28 Aug 2019 00:40:32 -0700 (PDT)
-Received: from pixies (bzq-82-81-225-244.cablep.bezeqint.net. [82.81.225.244])
-        by smtp.gmail.com with ESMTPSA id z7sm1341304wrh.67.2019.08.28.00.40.31
-        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Wed, 28 Aug 2019 00:40:32 -0700 (PDT)
-Date:   Wed, 28 Aug 2019 10:40:30 +0300
-From:   Shmulik Ladkani <shmulik.ladkani@gmail.com>
-To:     Florian Westphal <fw@strlen.de>,
-        Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH nf] netfilter: conntrack: make sysctls per-namespace
- again
-Message-ID: <20190828104030.134f38ec@pixies>
-In-Reply-To: <20190827112452.31479-1-fw@strlen.de>
-References: <20190827135754.7d460ef8@pixies>
-        <20190827112452.31479-1-fw@strlen.de>
+        Wed, 28 Aug 2019 04:19:48 -0400
+Received: from correo.us.es ([193.147.175.20]:38860 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726454AbfH1ITs (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 28 Aug 2019 04:19:48 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 7E7F5DA72F
+        for <netfilter-devel@vger.kernel.org>; Wed, 28 Aug 2019 10:19:43 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 119D79D626
+        for <netfilter-devel@vger.kernel.org>; Wed, 28 Aug 2019 10:19:44 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 053B9CF823; Wed, 28 Aug 2019 10:19:44 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 08016B7FFB;
+        Wed, 28 Aug 2019 10:19:42 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Wed, 28 Aug 2019 10:19:42 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (sys.soleta.eu [212.170.55.40])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id DAEAA4265A5A;
+        Wed, 28 Aug 2019 10:19:41 +0200 (CEST)
+Date:   Wed, 28 Aug 2019 10:19:42 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     David Miller <davemdavemloft!net@strlen.de>,
+        netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH v2 1/1] netfilter: nf_tables: fib: Drop IPV6 packages if
+ IPv6 is disabled on boot
+Message-ID: <20190828081942.isdjcdvcqok2a6zz@salvia>
+References: <20190827.141950.540994003351676048.davem@davemloft.net>
+ <20190827215836.GA10942@strlen.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190827215836.GA10942@strlen.de>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, 27 Aug 2019 13:24:52 +0200
-Florian Westphal <fw@strlen.de> wrote:
-
-> When I merged the extension sysctl tables with the main one I forgot to
-> reset them on netns creation.  They currently read/write init_net settings.
+On Tue, Aug 27, 2019 at 11:58:36PM +0200, Florian Westphal wrote:
+> David Miller <davemdavemloft!net> wrote:
+> > From: Leonardo Bras <leonardo@linux.ibm.com>
+> > Date: Tue, 27 Aug 2019 14:34:14 -0300
+> > 
+> > > I could reproduce this bug on a host ('ipv6.disable=1') starting a
+> > > guest with a virtio-net interface with 'filterref' over a virtual
+> > > bridge. It crashes the host during guest boot (just before login).
+> > > 
+> > > By that I could understand that a guest IPv6 network traffic
+> > > (viavirtio-net) may cause this kernel panic.
+> > 
+> > Really this is bad and I suspected bridging to be involved somehow.
 > 
-> Fixes: d912dec12428 ("netfilter: conntrack: merge acct and helper sysctl table with main one")
-> Fixes: cb2833ed0044 ("netfilter: conntrack: merge ecache and timestamp sysctl tables with main one")
-> Reported-by: Shmulik Ladkani <shmulik.ladkani@gmail.com>
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-> ---
->  Shmulik, could you please check if this fixes the bug for you?
->  Thanks!
+> Thats a good point -- Leonardo, is the
+> "net.bridge.bridge-nf-call-ip6tables" sysctl on?
+> 
+> As much as i'd like to send a patch to remove br_netfilter, I fear
+> we can't even stop passing ipv6 packets up to netfilter if
+> ipv6.disable=1 is set because users might be using ip6tables for
+> bridged traffic.
 
-Tested-by: Shmulik Ladkani <shmulik.ladkani@gmail.com>
+If the br_netfilter module is in placed, then it's probably better to
+perform this check from there.
