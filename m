@@ -2,123 +2,75 @@ Return-Path: <SRS0=hqFW=WY=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.7 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C47EC3A5A7
-	for <netfilter-devel@archiver.kernel.org>; Wed, 28 Aug 2019 09:22:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BEB31C3A5A4
+	for <netfilter-devel@archiver.kernel.org>; Wed, 28 Aug 2019 10:17:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 09AAA214DA
-	for <netfilter-devel@archiver.kernel.org>; Wed, 28 Aug 2019 09:22:04 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="hlrwu8/V"
+	by mail.kernel.org (Postfix) with ESMTP id A0A8C2189D
+	for <netfilter-devel@archiver.kernel.org>; Wed, 28 Aug 2019 10:17:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726555AbfH1JV7 (ORCPT
+        id S1727233AbfH1KR1 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 28 Aug 2019 05:21:59 -0400
-Received: from mail-ua1-f68.google.com ([209.85.222.68]:45348 "EHLO
-        mail-ua1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726232AbfH1JV6 (ORCPT
+        Wed, 28 Aug 2019 06:17:27 -0400
+Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:43672 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727055AbfH1KRU (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 28 Aug 2019 05:21:58 -0400
-Received: by mail-ua1-f68.google.com with SMTP id j6so583823uae.12;
-        Wed, 28 Aug 2019 02:21:58 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc:content-transfer-encoding;
-        bh=zeW2EB44SqLEQGsY2YylFGSCLe2d8d3xyY+7YXzj+uQ=;
-        b=hlrwu8/VWPKnAzvYARwUQCB8VjdMpH9Lspg7iRQW8aFjCIvAIhUAvszDuBzJfhC2td
-         1vvgpOYxY7+z67ftLvVtHmTU0T0Y0Q3WqpOcRmhSlJ8p7MBH38IvmuT2/7HCWx11Eigy
-         x8h7b7SJFQS9XgiSdL4ZuVq300g7MoG3DbKBFr7XIJQTbh2IlOyZBrLmF7r7YvA+WdWu
-         BxQPqe36ZMIlSsf7NvWYw30y1K58nrMCX+Gp+sMkrDGYpW5iczkVMllyF05r3K/xSYNW
-         x/5wZ4TUtg6+tUp5wj4hF+SR09RkhRjYgufcZ7+c6+0EJ0RKIkGwQHaUTmCxTbNY1FL0
-         nIkA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=zeW2EB44SqLEQGsY2YylFGSCLe2d8d3xyY+7YXzj+uQ=;
-        b=gHeQea+b83rPRHwscbb5j9OSouHdZqExIcUFp0j32ywES3HptP5dq5sy8ImgDkXnyl
-         fr+zQcRgxsY74zIghCjAUJSktXOGNtk+pVORBp8YNg7G0B0TdfqlYN1yEGHwklMtQeWq
-         TJJ95qrrlP/X7Vs3042gVVYrbdf9OsVko4LPpf/Ah9M/9A6bbix0Xe66bSTSo9MO0zjR
-         5zxry0ADVcUBrCg+BCJDW6qIFRaIobMBU+dJOUFR/LY9PIrOKP5zg+Ns5qhKqH7MOrx/
-         HPeWVCZbLCfGVnp6IZYnSH/L8xhRy3mMmKCeb1JH9A4KODzJma55Fi3u4d5ygTY2XNH9
-         W3kw==
-X-Gm-Message-State: APjAAAXGV446e7c/RMvpqkSxiSfZIA6CmSakc7xyIbA+mNUfYPRoMo52
-        2qhfJImGv8GouPiWRfZE899Q4sXvAVWnAjvbsg==
-X-Google-Smtp-Source: APXvYqzCxk7EIboUwXdSq620XqQCoUQFnLvsEU4Ye7ehdepvLa4J+O5uXFRFQcXznzbD8jl5mMX0k7oO5Wsx72L/rkg=
-X-Received: by 2002:ab0:702b:: with SMTP id u11mr1405270ual.0.1566984117577;
- Wed, 28 Aug 2019 02:21:57 -0700 (PDT)
+        Wed, 28 Aug 2019 06:17:20 -0400
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1i2v0q-0001sT-6P; Wed, 28 Aug 2019 12:17:12 +0200
+Date:   Wed, 28 Aug 2019 12:17:12 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Florian Westphal <fw@strlen.de>,
+        David Miller <davem@davemloft.net>,
+        netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH v2 1/1] netfilter: nf_tables: fib: Drop IPV6 packages if
+ IPv6 is disabled on boot
+Message-ID: <20190828101712.GF20113@breakpoint.cc>
+References: <20190827.141950.540994003351676048.davem@davemloft.net>
+ <20190827215836.GA10942@strlen.de>
+ <20190828081942.isdjcdvcqok2a6zz@salvia>
 MIME-Version: 1.0
-References: <20190730122534.30687-1-rdong.ge@gmail.com> <20190730123542.zrsrfvcy7t2n3d4g@breakpoint.cc>
- <nycvar.YFH.7.76.1908260955400.22383@n3.vanv.qr>
-In-Reply-To: <nycvar.YFH.7.76.1908260955400.22383@n3.vanv.qr>
-From:   Rundong Ge <rdong.ge@gmail.com>
-Date:   Wed, 28 Aug 2019 17:21:46 +0800
-Message-ID: <CAN1Lvyp=pmu4KYbwb9sHcPyc0WXjOfb-JZspizDn1S=Uiu3rbQ@mail.gmail.com>
-Subject: Re: [PATCH] bridge:fragmented packets dropped by bridge
-To:     Jan Engelhardt <jengelh@inai.de>
-Cc:     Florian Westphal <fw@strlen.de>, davem@davemloft.net,
-        kuznet@ms2.inr.ac.ru, yoshfuji@linux-ipv6.org,
-        netdev@vger.kernel.org, Pablo Neira Ayuso <pablo@netfilter.org>,
-        kadlec@netfilter.org, Roopa Prabhu <roopa@cumulusnetworks.com>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        bridge@lists.linux-foundation.org,
-        Nikolay Aleksandrov <nikolay@cumulusnetworks.com>,
-        linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190828081942.isdjcdvcqok2a6zz@salvia>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Jan Engelhardt <jengelh@inai.de> =E4=BA=8E2019=E5=B9=B48=E6=9C=8826=E6=97=
-=A5=E5=91=A8=E4=B8=80 =E4=B8=8B=E5=8D=883:59=E5=86=99=E9=81=93=EF=BC=9A
->
->
-> On Tuesday 2019-07-30 14:35, Florian Westphal wrote:
-> >Rundong Ge <rdong.ge@gmail.com> wrote:
-> >> Given following setup:
-> >> -modprobe br_netfilter
-> >> -echo '1' > /proc/sys/net/bridge/bridge-nf-call-iptables
-> >> -brctl addbr br0
-> >> -brctl addif br0 enp2s0
-> >> -brctl addif br0 enp3s0
-> >> -brctl addif br0 enp6s0
-> >> -ifconfig enp2s0 mtu 1300
-> >> -ifconfig enp3s0 mtu 1500
-> >> -ifconfig enp6s0 mtu 1500
-> >> -ifconfig br0 up
-> >>
-> >>                  multi-port
-> >> mtu1500 - mtu1500|bridge|1500 - mtu1500
-> >>   A                  |            B
-> >>                    mtu1300
-> >
-> >How can a bridge forward a frame from A/B to mtu1300?
->
-> There might be a misunderstanding here judging from the shortness of this
-> thread.
->
-> I understood it such that the bridge ports (eth0,eth1) have MTU 1500, yet=
- br0
-> (in essence the third bridge port if you so wish) itself has MTU 1300.
->
-> Therefore, frame forwarding from eth0 to eth1 should succeed, since the
-> 1300-byte MTU is only relevant if the bridge decides the packet needs to =
-be
-> locally delivered.
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Tue, Aug 27, 2019 at 11:58:36PM +0200, Florian Westphal wrote:
+> > David Miller <davemdavemloft!net> wrote:
+> > > From: Leonardo Bras <leonardo@linux.ibm.com>
+> > > Date: Tue, 27 Aug 2019 14:34:14 -0300
+> > > 
+> > > > I could reproduce this bug on a host ('ipv6.disable=1') starting a
+> > > > guest with a virtio-net interface with 'filterref' over a virtual
+> > > > bridge. It crashes the host during guest boot (just before login).
+> > > > 
+> > > > By that I could understand that a guest IPv6 network traffic
+> > > > (viavirtio-net) may cause this kernel panic.
+> > > 
+> > > Really this is bad and I suspected bridging to be involved somehow.
+> > 
+> > Thats a good point -- Leonardo, is the
+> > "net.bridge.bridge-nf-call-ip6tables" sysctl on?
+> > 
+> > As much as i'd like to send a patch to remove br_netfilter, I fear
+> > we can't even stop passing ipv6 packets up to netfilter if
+> > ipv6.disable=1 is set because users might be using ip6tables for
+> > bridged traffic.
+> 
+> If the br_netfilter module is in placed, then it's probably better to
+> perform this check from there.
 
-Under this setup when I do "ping B -l 2000" from A, the fragmented
-packets will be dropped by bridge.
-When the "/proc/sys/net/bridge/bridge-nf-call-iptables" is on, bridge
-will do defragment at PREROUTING and re-fragment at POSTROUTING. At
-the re-fragment bridge will check if the max frag size is larger than
-the bridge's MTU in  br_nf_ip_fragment(), if it is true packets will
-be dropped.
-And this patch use the outdev's MTU instead of the bridge's MTU to do
-the br_nf_ip_fragment.
+ipt6tables won't work for filtering anymore, so I don't think this is
+something we can do.  Anyway, lets wait for Leonardo to confirm, else
+this is pointless speculation :-)
