@@ -2,82 +2,123 @@ Return-Path: <SRS0=hqFW=WY=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.7 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5BCC1C3A5A1
-	for <netfilter-devel@archiver.kernel.org>; Wed, 28 Aug 2019 08:30:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C47EC3A5A7
+	for <netfilter-devel@archiver.kernel.org>; Wed, 28 Aug 2019 09:22:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 309422342A
-	for <netfilter-devel@archiver.kernel.org>; Wed, 28 Aug 2019 08:30:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 09AAA214DA
+	for <netfilter-devel@archiver.kernel.org>; Wed, 28 Aug 2019 09:22:04 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="hlrwu8/V"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726339AbfH1Iae (ORCPT
+        id S1726555AbfH1JV7 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 28 Aug 2019 04:30:34 -0400
-Received: from correo.us.es ([193.147.175.20]:43014 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726321AbfH1Iad (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 28 Aug 2019 04:30:33 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id A539EE34CB
-        for <netfilter-devel@vger.kernel.org>; Wed, 28 Aug 2019 10:30:29 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 3ADC3DA72F
-        for <netfilter-devel@vger.kernel.org>; Wed, 28 Aug 2019 10:30:30 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 3009AA7EC8; Wed, 28 Aug 2019 10:30:30 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 2702CCA0F3;
-        Wed, 28 Aug 2019 10:30:28 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 28 Aug 2019 10:30:28 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (sys.soleta.eu [212.170.55.40])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 00D4A4265A5A;
-        Wed, 28 Aug 2019 10:30:27 +0200 (CEST)
-Date:   Wed, 28 Aug 2019 10:30:29 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     wenxu <wenxu@ucloud.cn>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft v5] meta: add ibrpvid and ibrvproto support
-Message-ID: <20190828083029.5r7t77x6yrrzp7ah@salvia>
-References: <1566567928-18121-1-git-send-email-wenxu@ucloud.cn>
- <20190826102615.cqfidve47clkhzdr@salvia>
- <989de2f9-c66b-aae1-ce39-50baffd98a2b@ucloud.cn>
- <20190826143733.fmbwf3gfm2r5ctf7@salvia>
- <ec59e03a-5c09-e803-2b85-11b6052b9406@ucloud.cn>
+        Wed, 28 Aug 2019 05:21:59 -0400
+Received: from mail-ua1-f68.google.com ([209.85.222.68]:45348 "EHLO
+        mail-ua1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726232AbfH1JV6 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 28 Aug 2019 05:21:58 -0400
+Received: by mail-ua1-f68.google.com with SMTP id j6so583823uae.12;
+        Wed, 28 Aug 2019 02:21:58 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc:content-transfer-encoding;
+        bh=zeW2EB44SqLEQGsY2YylFGSCLe2d8d3xyY+7YXzj+uQ=;
+        b=hlrwu8/VWPKnAzvYARwUQCB8VjdMpH9Lspg7iRQW8aFjCIvAIhUAvszDuBzJfhC2td
+         1vvgpOYxY7+z67ftLvVtHmTU0T0Y0Q3WqpOcRmhSlJ8p7MBH38IvmuT2/7HCWx11Eigy
+         x8h7b7SJFQS9XgiSdL4ZuVq300g7MoG3DbKBFr7XIJQTbh2IlOyZBrLmF7r7YvA+WdWu
+         BxQPqe36ZMIlSsf7NvWYw30y1K58nrMCX+Gp+sMkrDGYpW5iczkVMllyF05r3K/xSYNW
+         x/5wZ4TUtg6+tUp5wj4hF+SR09RkhRjYgufcZ7+c6+0EJ0RKIkGwQHaUTmCxTbNY1FL0
+         nIkA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc:content-transfer-encoding;
+        bh=zeW2EB44SqLEQGsY2YylFGSCLe2d8d3xyY+7YXzj+uQ=;
+        b=gHeQea+b83rPRHwscbb5j9OSouHdZqExIcUFp0j32ywES3HptP5dq5sy8ImgDkXnyl
+         fr+zQcRgxsY74zIghCjAUJSktXOGNtk+pVORBp8YNg7G0B0TdfqlYN1yEGHwklMtQeWq
+         TJJ95qrrlP/X7Vs3042gVVYrbdf9OsVko4LPpf/Ah9M/9A6bbix0Xe66bSTSo9MO0zjR
+         5zxry0ADVcUBrCg+BCJDW6qIFRaIobMBU+dJOUFR/LY9PIrOKP5zg+Ns5qhKqH7MOrx/
+         HPeWVCZbLCfGVnp6IZYnSH/L8xhRy3mMmKCeb1JH9A4KODzJma55Fi3u4d5ygTY2XNH9
+         W3kw==
+X-Gm-Message-State: APjAAAXGV446e7c/RMvpqkSxiSfZIA6CmSakc7xyIbA+mNUfYPRoMo52
+        2qhfJImGv8GouPiWRfZE899Q4sXvAVWnAjvbsg==
+X-Google-Smtp-Source: APXvYqzCxk7EIboUwXdSq620XqQCoUQFnLvsEU4Ye7ehdepvLa4J+O5uXFRFQcXznzbD8jl5mMX0k7oO5Wsx72L/rkg=
+X-Received: by 2002:ab0:702b:: with SMTP id u11mr1405270ual.0.1566984117577;
+ Wed, 28 Aug 2019 02:21:57 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <ec59e03a-5c09-e803-2b85-11b6052b9406@ucloud.cn>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+References: <20190730122534.30687-1-rdong.ge@gmail.com> <20190730123542.zrsrfvcy7t2n3d4g@breakpoint.cc>
+ <nycvar.YFH.7.76.1908260955400.22383@n3.vanv.qr>
+In-Reply-To: <nycvar.YFH.7.76.1908260955400.22383@n3.vanv.qr>
+From:   Rundong Ge <rdong.ge@gmail.com>
+Date:   Wed, 28 Aug 2019 17:21:46 +0800
+Message-ID: <CAN1Lvyp=pmu4KYbwb9sHcPyc0WXjOfb-JZspizDn1S=Uiu3rbQ@mail.gmail.com>
+Subject: Re: [PATCH] bridge:fragmented packets dropped by bridge
+To:     Jan Engelhardt <jengelh@inai.de>
+Cc:     Florian Westphal <fw@strlen.de>, davem@davemloft.net,
+        kuznet@ms2.inr.ac.ru, yoshfuji@linux-ipv6.org,
+        netdev@vger.kernel.org, Pablo Neira Ayuso <pablo@netfilter.org>,
+        kadlec@netfilter.org, Roopa Prabhu <roopa@cumulusnetworks.com>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        bridge@lists.linux-foundation.org,
+        Nikolay Aleksandrov <nikolay@cumulusnetworks.com>,
+        linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Aug 27, 2019 at 11:10:29AM +0800, wenxu wrote:
-> 
-> On 8/26/2019 10:37 PM, Pablo Neira Ayuso wrote:
-> > On Mon, Aug 26, 2019 at 09:51:57PM +0800, wenxu wrote:
-> >> 在 2019/8/26 18:26, Pablo Neira Ayuso 写道:
-[...]
-> >> The br_vlan_get_proto returns vlan_proto in host byte order.
-> > Then, that's why ethertype datatype does not work, because it expects
-> > this network byteorder.
+Jan Engelhardt <jengelh@inai.de> =E4=BA=8E2019=E5=B9=B48=E6=9C=8826=E6=97=
+=A5=E5=91=A8=E4=B8=80 =E4=B8=8B=E5=8D=883:59=E5=86=99=E9=81=93=EF=BC=9A
 >
-> So should I add new vlanproto datatype for this case? Or  Convert
-> the vlanproto to network byteorder in  kernel like what
-> NFT_META_PROTOCOL did?
+>
+> On Tuesday 2019-07-30 14:35, Florian Westphal wrote:
+> >Rundong Ge <rdong.ge@gmail.com> wrote:
+> >> Given following setup:
+> >> -modprobe br_netfilter
+> >> -echo '1' > /proc/sys/net/bridge/bridge-nf-call-iptables
+> >> -brctl addbr br0
+> >> -brctl addif br0 enp2s0
+> >> -brctl addif br0 enp3s0
+> >> -brctl addif br0 enp6s0
+> >> -ifconfig enp2s0 mtu 1300
+> >> -ifconfig enp3s0 mtu 1500
+> >> -ifconfig enp6s0 mtu 1500
+> >> -ifconfig br0 up
+> >>
+> >>                  multi-port
+> >> mtu1500 - mtu1500|bridge|1500 - mtu1500
+> >>   A                  |            B
+> >>                    mtu1300
+> >
+> >How can a bridge forward a frame from A/B to mtu1300?
+>
+> There might be a misunderstanding here judging from the shortness of this
+> thread.
+>
+> I understood it such that the bridge ports (eth0,eth1) have MTU 1500, yet=
+ br0
+> (in essence the third bridge port if you so wish) itself has MTU 1300.
+>
+> Therefore, frame forwarding from eth0 to eth1 should succeed, since the
+> 1300-byte MTU is only relevant if the bridge decides the packet needs to =
+be
+> locally delivered.
 
-Yes please, send me a patch to fix for nf.git to get
-NFT_META_BRI_IIFVPROTO in sync with NFT_META_PROTOCOL, ie. use network
-byte order.
+Under this setup when I do "ping B -l 2000" from A, the fragmented
+packets will be dropped by bridge.
+When the "/proc/sys/net/bridge/bridge-nf-call-iptables" is on, bridge
+will do defragment at PREROUTING and re-fragment at POSTROUTING. At
+the re-fragment bridge will check if the max frag size is larger than
+the bridge's MTU in  br_nf_ip_fragment(), if it is true packets will
+be dropped.
+And this patch use the outdev's MTU instead of the bridge's MTU to do
+the br_nf_ip_fragment.
