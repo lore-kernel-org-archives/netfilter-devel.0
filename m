@@ -2,153 +2,101 @@ Return-Path: <SRS0=245l=WZ=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 87670C3A59F
-	for <netfilter-devel@archiver.kernel.org>; Thu, 29 Aug 2019 09:44:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 04329C3A59F
+	for <netfilter-devel@archiver.kernel.org>; Thu, 29 Aug 2019 10:54:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 63B3C233A1
-	for <netfilter-devel@archiver.kernel.org>; Thu, 29 Aug 2019 09:44:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C44CB22CF5
+	for <netfilter-devel@archiver.kernel.org>; Thu, 29 Aug 2019 10:54:13 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1567076053;
+	bh=16fTqFdG9M6Y56zMIAUmBN+BNC2ON1gMz7VKsrMtRFE=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=anrO3iL9Tm/aPqOmLEEYyBXFjdZ4e24V3crSU717ApUyVE3lk1sVkvH933UoFpkiG
+	 bvwG2Wfij8yH8hXlyOjDkzBGA4TB6aBakn3oBhm8TIAp8W3TsAOZI5HYGz6dlDy+Fu
+	 5GRXjd2vj8Nfy7+VN2glN/m2E8zoGw93x3Ckc+6Q=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726330AbfH2JoE (ORCPT
+        id S1728128AbfH2Kug (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 29 Aug 2019 05:44:04 -0400
-Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:49354 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726038AbfH2JoE (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 29 Aug 2019 05:44:04 -0400
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1i3GyH-0002NZ-Rp; Thu, 29 Aug 2019 11:44:01 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft] src: json: add support for element deletion
-Date:   Thu, 29 Aug 2019 11:36:20 +0200
-Message-Id: <20190829093620.3594-1-fw@strlen.de>
-X-Mailer: git-send-email 2.21.0
+        Thu, 29 Aug 2019 06:50:36 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57906 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728100AbfH2Kuf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 29 Aug 2019 06:50:35 -0400
+Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 5CE2E2341B;
+        Thu, 29 Aug 2019 10:50:33 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1567075834;
+        bh=16fTqFdG9M6Y56zMIAUmBN+BNC2ON1gMz7VKsrMtRFE=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=JZasuvFj07H2Ibug+zXTjiSK56l0voJTwT3mQasMiq5MSF/B0KPAc3QgRBThCiXEd
+         aorFFL//OUT/hy5ecfEgCyX3ZFQVVXCbdn9Eo2X8BJMr/bPbjCe3LdR4oDEoQx4iIM
+         cm232DrWVY3pdUis8B6lLZy2ODPLxaBT1FehNdgY=
+From:   Sasha Levin <sashal@kernel.org>
+To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc:     Stefano Brivio <sbrivio@redhat.com>, Chen Yi <yiche@redhat.com>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Sasha Levin <sashal@kernel.org>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org
+Subject: [PATCH AUTOSEL 4.19 21/29] netfilter: ipset: Actually allow destination MAC address for hash:ip,mac sets too
+Date:   Thu, 29 Aug 2019 06:50:01 -0400
+Message-Id: <20190829105009.2265-21-sashal@kernel.org>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20190829105009.2265-1-sashal@kernel.org>
+References: <20190829105009.2265-1-sashal@kernel.org>
 MIME-Version: 1.0
+X-stable: review
+X-Patchwork-Hint: Ignore
 Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-also add a test case.
+From: Stefano Brivio <sbrivio@redhat.com>
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
+[ Upstream commit b89d15480d0cacacae1a0fe0b3da01b529f2914f ]
+
+In commit 8cc4ccf58379 ("ipset: Allow matching on destination MAC address
+for mac and ipmac sets"), ipset.git commit 1543514c46a7, I removed the
+KADT check that prevents matching on destination MAC addresses for
+hash:mac sets, but forgot to remove the same check for hash:ip,mac set.
+
+Drop this check: functionality is now commented in man pages and there's
+no reason to restrict to source MAC address matching anymore.
+
+Reported-by: Chen Yi <yiche@redhat.com>
+Fixes: 8cc4ccf58379 ("ipset: Allow matching on destination MAC address for mac and ipmac sets")
+Signed-off-by: Stefano Brivio <sbrivio@redhat.com>
+Signed-off-by: Jozsef Kadlecsik <kadlec@netfilter.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- src/parser_json.c                  |  2 ++
- tests/py/ip6/sets.t                |  1 +
- tests/py/ip6/sets.t.json           | 25 +++++++++++++++++++++++++
- tests/py/ip6/sets.t.payload.inet   |  7 +++++++
- tests/py/ip6/sets.t.payload.ip6    |  6 ++++++
- tests/py/ip6/sets.t.payload.netdev |  8 ++++++++
- 6 files changed, 49 insertions(+)
+ net/netfilter/ipset/ip_set_hash_ipmac.c | 4 ----
+ 1 file changed, 4 deletions(-)
 
-diff --git a/src/parser_json.c b/src/parser_json.c
-index a969bd4c3676..8ca07d717b13 100644
---- a/src/parser_json.c
-+++ b/src/parser_json.c
-@@ -2055,6 +2055,8 @@ static struct stmt *json_parse_set_stmt(struct json_ctx *ctx,
- 		op = NFT_DYNSET_OP_ADD;
- 	} else if (!strcmp(opstr, "update")) {
- 		op = NFT_DYNSET_OP_UPDATE;
-+	} else if (!strcmp(opstr, "delete")) {
-+		op = NFT_DYNSET_OP_DELETE;
- 	} else {
- 		json_error(ctx, "Unknown set statement op '%s'.", opstr);
- 		return NULL;
-diff --git a/tests/py/ip6/sets.t b/tests/py/ip6/sets.t
-index 5adec53f56ce..add82eb8feb8 100644
---- a/tests/py/ip6/sets.t
-+++ b/tests/py/ip6/sets.t
-@@ -40,3 +40,4 @@ ip6 saddr != @set33 drop;fail
- !set5 type ipv6_addr . ipv6_addr;ok
- ip6 saddr . ip6 daddr @set5 drop;ok
- add @set5 { ip6 saddr . ip6 daddr };ok
-+delete @set5 { ip6 saddr . ip6 daddr };ok
-diff --git a/tests/py/ip6/sets.t.json b/tests/py/ip6/sets.t.json
-index 9a75dd6fa210..948c1f168d0f 100644
---- a/tests/py/ip6/sets.t.json
-+++ b/tests/py/ip6/sets.t.json
-@@ -91,3 +91,28 @@
-     }
- ]
+diff --git a/net/netfilter/ipset/ip_set_hash_ipmac.c b/net/netfilter/ipset/ip_set_hash_ipmac.c
+index fd87de3ed55b3..75c21c8b76514 100644
+--- a/net/netfilter/ipset/ip_set_hash_ipmac.c
++++ b/net/netfilter/ipset/ip_set_hash_ipmac.c
+@@ -95,10 +95,6 @@ hash_ipmac4_kadt(struct ip_set *set, const struct sk_buff *skb,
+ 	struct hash_ipmac4_elem e = { .ip = 0, { .foo[0] = 0, .foo[1] = 0 } };
+ 	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, set);
  
-+# delete @set5 { ip6 saddr . ip6 daddr }
-+[
-+    {
-+        "set": {
-+            "elem": {
-+                "concat": [
-+                    {
-+                        "payload": {
-+                            "field": "saddr",
-+                            "protocol": "ip6"
-+                        }
-+                    },
-+                    {
-+                        "payload": {
-+                            "field": "daddr",
-+                            "protocol": "ip6"
-+                        }
-+                    }
-+                ]
-+            },
-+            "op": "delete",
-+            "set": "@set5"
-+        }
-+    }
-+]
-diff --git a/tests/py/ip6/sets.t.payload.inet b/tests/py/ip6/sets.t.payload.inet
-index 3886db67526c..47ad86a20864 100644
---- a/tests/py/ip6/sets.t.payload.inet
-+++ b/tests/py/ip6/sets.t.payload.inet
-@@ -31,3 +31,10 @@ inet test-inet input
-   [ payload load 16b @ network header + 24 => reg 2 ]
-   [ dynset add reg_key 1 set set5 ]
- 
-+# delete @set5 { ip6 saddr . ip6 daddr }
-+inet test-inet input
-+  [ meta load nfproto => reg 1 ]
-+  [ cmp eq reg 1 0x0000000a ]
-+  [ payload load 16b @ network header + 8 => reg 1 ]
-+  [ payload load 16b @ network header + 24 => reg 2 ]
-+  [ dynset delete reg_key 1 set set5 ]
-diff --git a/tests/py/ip6/sets.t.payload.ip6 b/tests/py/ip6/sets.t.payload.ip6
-index 0b318f8de97f..a5febb9fe591 100644
---- a/tests/py/ip6/sets.t.payload.ip6
-+++ b/tests/py/ip6/sets.t.payload.ip6
-@@ -23,3 +23,9 @@ ip6 test-ip6 input
-   [ payload load 16b @ network header + 24 => reg 2 ]
-   [ dynset add reg_key 1 set set5 ]
- 
-+# delete @set5 { ip6 saddr . ip6 daddr }
-+ip6 test-ip6 input
-+  [ payload load 16b @ network header + 8 => reg 1 ]
-+  [ payload load 16b @ network header + 24 => reg 2 ]
-+  [ dynset delete reg_key 1 set set5 ]
-+
-diff --git a/tests/py/ip6/sets.t.payload.netdev b/tests/py/ip6/sets.t.payload.netdev
-index 0dfabb778a0c..dab74159a098 100644
---- a/tests/py/ip6/sets.t.payload.netdev
-+++ b/tests/py/ip6/sets.t.payload.netdev
-@@ -31,3 +31,11 @@ netdev test-netdev ingress
-   [ payload load 16b @ network header + 24 => reg 2 ]
-   [ dynset add reg_key 1 set set5 ]
- 
-+# delete @set5 { ip6 saddr . ip6 daddr }
-+netdev test-netdev ingress
-+  [ meta load protocol => reg 1 ]
-+  [ cmp eq reg 1 0x0000dd86 ]
-+  [ payload load 16b @ network header + 8 => reg 1 ]
-+  [ payload load 16b @ network header + 24 => reg 2 ]
-+  [ dynset delete reg_key 1 set set5 ]
-+
+-	 /* MAC can be src only */
+-	if (!(opt->flags & IPSET_DIM_TWO_SRC))
+-		return 0;
+-
+ 	if (skb_mac_header(skb) < skb->head ||
+ 	    (skb_mac_header(skb) + ETH_HLEN) > skb->data)
+ 		return -EINVAL;
 -- 
-2.21.0
+2.20.1
 
