@@ -4,51 +4,50 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E085FC3A59F
-	for <netfilter-devel@archiver.kernel.org>; Thu, 29 Aug 2019 10:54:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BDBE3C3A59F
+	for <netfilter-devel@archiver.kernel.org>; Thu, 29 Aug 2019 10:54:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B6AE722CF5
-	for <netfilter-devel@archiver.kernel.org>; Thu, 29 Aug 2019 10:54:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 904F82053B
+	for <netfilter-devel@archiver.kernel.org>; Thu, 29 Aug 2019 10:54:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1567076058;
-	bh=8kno17t5G0+IQF9Amfj1SsO5zRRh4PZmqZoEBgEN3Kk=;
+	s=default; t=1567076082;
+	bh=w6TWzwYQCOFc+SP0vuZbTqWNDsaU89e3UP1OXZwNXp8=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=Ymcf+cjgStFJzHAQeUtEwq7be70nZ6CGn8SZQeKFcgCBGPKRrH6zV7ZbjZAmgEER/
-	 GLF4bvQLDXYlXWUcQnoDQRJQGqTXNkoLM4DJtgttzn5WjHJXMf0LmkCtmIzm3L5uFX
-	 BNWOObNOndbXtCX54D5W6u/dd2XJzQl/Oi6FWfeI=
+	b=ueMKrnoAnd4PySYTYUXL6HIn+TTIVWGoECr9VgOzabwJMpvKR4FG/Vf+Ox975dkHz
+	 b7vtm8G8YvYM5l4HwxCXguK+YDtoD5wsZC5nn0qXjW8wfN8r083r8JBNxpLbjFcNES
+	 TXiWmX68VQJlLKAhNoMHJ0fE+z1GN5M6BFtmdFKQ=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728585AbfH2KyO (ORCPT
+        id S1727985AbfH2Ku2 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 29 Aug 2019 06:54:14 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57938 "EHLO mail.kernel.org"
+        Thu, 29 Aug 2019 06:50:28 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57736 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728122AbfH2Kug (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 29 Aug 2019 06:50:36 -0400
+        id S1727958AbfH2Ku2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 29 Aug 2019 06:50:28 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id BC8B923426;
-        Thu, 29 Aug 2019 10:50:34 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 12C9C23407;
+        Thu, 29 Aug 2019 10:50:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1567075835;
-        bh=8kno17t5G0+IQF9Amfj1SsO5zRRh4PZmqZoEBgEN3Kk=;
+        s=default; t=1567075826;
+        bh=w6TWzwYQCOFc+SP0vuZbTqWNDsaU89e3UP1OXZwNXp8=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=wA9IY1BT1HHoYYGelF785HIQ0hMnu1SgT169GKQsPrO3xEgG/mjihlKKpMbZ9hMa8
-         0UWPGNXk/Hw9dW3M104PfJBIMa8oIzaVwPMGjzuGO6xn6fPaznnb1gj0mCKOdtwuZY
-         pNCyb6pyCBwKc2Plpz0isJMk3YA0fL122TUKj1go=
+        b=1Kfn3uf1+DZq7hNh2xDNOqN7L4VMc2J2XAVYfnVQ+hnJYFy/6lhNzy1+JkGftbpwF
+         yoCdx0SBVV5LjBb+pmvA4VP/wX2i+SmpSCfmp8uIPxtDQh8PQmTVA/wva6kWgwrvWf
+         nE2w+0rL85mapwBRT2EKDSjlqGO2Ci5AAj9xyaL0=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Stefano Brivio <sbrivio@redhat.com>, Chen Yi <yiche@redhat.com>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
         Sasha Levin <sashal@kernel.org>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.19 22/29] netfilter: ipset: Copy the right MAC address in bitmap:ip,mac and hash:ip,mac sets
-Date:   Thu, 29 Aug 2019 06:50:02 -0400
-Message-Id: <20190829105009.2265-22-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 15/29] netfilter: nf_tables: use-after-free in failing rule with bound set
+Date:   Thu, 29 Aug 2019 06:49:55 -0400
+Message-Id: <20190829105009.2265-15-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20190829105009.2265-1-sashal@kernel.org>
 References: <20190829105009.2265-1-sashal@kernel.org>
@@ -61,86 +60,143 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Stefano Brivio <sbrivio@redhat.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-[ Upstream commit 1b4a75108d5bc153daf965d334e77e8e94534f96 ]
+[ Upstream commit 6a0a8d10a3661a036b55af695542a714c429ab7c ]
 
-In commit 8cc4ccf58379 ("ipset: Allow matching on destination MAC address
-for mac and ipmac sets"), ipset.git commit 1543514c46a7, I added to the
-KADT functions for sets matching on MAC addreses the copy of source or
-destination MAC address depending on the configured match.
+If a rule that has already a bound anonymous set fails to be added, the
+preparation phase releases the rule and the bound set. However, the
+transaction object from the abort path still has a reference to the set
+object that is stale, leading to a use-after-free when checking for the
+set->bound field. Add a new field to the transaction that specifies if
+the set is bound, so the abort path can skip releasing it since the rule
+command owns it and it takes care of releasing it. After this update,
+the set->bound field is removed.
 
-This was done correctly for hash:mac, but for hash:ip,mac and
-bitmap:ip,mac, copying and pasting the same code block presents an
-obvious problem: in these two set types, the MAC address is the second
-dimension, not the first one, and we are actually selecting the MAC
-address depending on whether the first dimension (IP address) specifies
-source or destination.
+[   24.649883] Unable to handle kernel paging request at virtual address 0000000000040434
+[   24.657858] Mem abort info:
+[   24.660686]   ESR = 0x96000004
+[   24.663769]   Exception class = DABT (current EL), IL = 32 bits
+[   24.669725]   SET = 0, FnV = 0
+[   24.672804]   EA = 0, S1PTW = 0
+[   24.675975] Data abort info:
+[   24.678880]   ISV = 0, ISS = 0x00000004
+[   24.682743]   CM = 0, WnR = 0
+[   24.685723] user pgtable: 4k pages, 48-bit VAs, pgdp=0000000428952000
+[   24.692207] [0000000000040434] pgd=0000000000000000
+[   24.697119] Internal error: Oops: 96000004 [#1] SMP
+[...]
+[   24.889414] Call trace:
+[   24.891870]  __nf_tables_abort+0x3f0/0x7a0
+[   24.895984]  nf_tables_abort+0x20/0x40
+[   24.899750]  nfnetlink_rcv_batch+0x17c/0x588
+[   24.904037]  nfnetlink_rcv+0x13c/0x190
+[   24.907803]  netlink_unicast+0x18c/0x208
+[   24.911742]  netlink_sendmsg+0x1b0/0x350
+[   24.915682]  sock_sendmsg+0x4c/0x68
+[   24.919185]  ___sys_sendmsg+0x288/0x2c8
+[   24.923037]  __sys_sendmsg+0x7c/0xd0
+[   24.926628]  __arm64_sys_sendmsg+0x2c/0x38
+[   24.930744]  el0_svc_common.constprop.0+0x94/0x158
+[   24.935556]  el0_svc_handler+0x34/0x90
+[   24.939322]  el0_svc+0x8/0xc
+[   24.942216] Code: 37280300 f9404023 91014262 aa1703e0 (f9401863)
+[   24.948336] ---[ end trace cebbb9dcbed3b56f ]---
 
-Fix this by checking for the IPSET_DIM_TWO_SRC flag in option flags.
-
-This way, mixing source and destination matches for the two dimensions
-of ip,mac set types works as expected. With this setup:
-
-  ip netns add A
-  ip link add veth1 type veth peer name veth2 netns A
-  ip addr add 192.0.2.1/24 dev veth1
-  ip -net A addr add 192.0.2.2/24 dev veth2
-  ip link set veth1 up
-  ip -net A link set veth2 up
-
-  dst=$(ip netns exec A cat /sys/class/net/veth2/address)
-
-  ip netns exec A ipset create test_bitmap bitmap:ip,mac range 192.0.0.0/16
-  ip netns exec A ipset add test_bitmap 192.0.2.1,${dst}
-  ip netns exec A iptables -A INPUT -m set ! --match-set test_bitmap src,dst -j DROP
-
-  ip netns exec A ipset create test_hash hash:ip,mac
-  ip netns exec A ipset add test_hash 192.0.2.1,${dst}
-  ip netns exec A iptables -A INPUT -m set ! --match-set test_hash src,dst -j DROP
-
-ipset correctly matches a test packet:
-
-  # ping -c1 192.0.2.2 >/dev/null
-  # echo $?
-  0
-
-Reported-by: Chen Yi <yiche@redhat.com>
-Fixes: 8cc4ccf58379 ("ipset: Allow matching on destination MAC address for mac and ipmac sets")
-Signed-off-by: Stefano Brivio <sbrivio@redhat.com>
-Signed-off-by: Jozsef Kadlecsik <kadlec@netfilter.org>
+Fixes: f6ac85858976 ("netfilter: nf_tables: unbind set in rule from commit path")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- net/netfilter/ipset/ip_set_bitmap_ipmac.c | 2 +-
- net/netfilter/ipset/ip_set_hash_ipmac.c   | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ include/net/netfilter/nf_tables.h |  9 +++++++--
+ net/netfilter/nf_tables_api.c     | 15 ++++++++++-----
+ 2 files changed, 17 insertions(+), 7 deletions(-)
 
-diff --git a/net/netfilter/ipset/ip_set_bitmap_ipmac.c b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
-index 13ade5782847b..4f01321e793ce 100644
---- a/net/netfilter/ipset/ip_set_bitmap_ipmac.c
-+++ b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
-@@ -230,7 +230,7 @@ bitmap_ipmac_kadt(struct ip_set *set, const struct sk_buff *skb,
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index f2be5d041ba3a..7685cbda9f28b 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -418,8 +418,7 @@ struct nft_set {
+ 	unsigned char			*udata;
+ 	/* runtime data below here */
+ 	const struct nft_set_ops	*ops ____cacheline_aligned;
+-	u16				flags:13,
+-					bound:1,
++	u16				flags:14,
+ 					genmask:2;
+ 	u8				klen;
+ 	u8				dlen;
+@@ -1337,12 +1336,15 @@ struct nft_trans_rule {
+ struct nft_trans_set {
+ 	struct nft_set			*set;
+ 	u32				set_id;
++	bool				bound;
+ };
  
- 	e.id = ip_to_id(map, ip);
+ #define nft_trans_set(trans)	\
+ 	(((struct nft_trans_set *)trans->data)->set)
+ #define nft_trans_set_id(trans)	\
+ 	(((struct nft_trans_set *)trans->data)->set_id)
++#define nft_trans_set_bound(trans)	\
++	(((struct nft_trans_set *)trans->data)->bound)
  
--	if (opt->flags & IPSET_DIM_ONE_SRC)
-+	if (opt->flags & IPSET_DIM_TWO_SRC)
- 		ether_addr_copy(e.ether, eth_hdr(skb)->h_source);
- 	else
- 		ether_addr_copy(e.ether, eth_hdr(skb)->h_dest);
-diff --git a/net/netfilter/ipset/ip_set_hash_ipmac.c b/net/netfilter/ipset/ip_set_hash_ipmac.c
-index 75c21c8b76514..16ec822e40447 100644
---- a/net/netfilter/ipset/ip_set_hash_ipmac.c
-+++ b/net/netfilter/ipset/ip_set_hash_ipmac.c
-@@ -99,7 +99,7 @@ hash_ipmac4_kadt(struct ip_set *set, const struct sk_buff *skb,
- 	    (skb_mac_header(skb) + ETH_HLEN) > skb->data)
- 		return -EINVAL;
+ struct nft_trans_chain {
+ 	bool				update;
+@@ -1373,12 +1375,15 @@ struct nft_trans_table {
+ struct nft_trans_elem {
+ 	struct nft_set			*set;
+ 	struct nft_set_elem		elem;
++	bool				bound;
+ };
  
--	if (opt->flags & IPSET_DIM_ONE_SRC)
-+	if (opt->flags & IPSET_DIM_TWO_SRC)
- 		ether_addr_copy(e.ether, eth_hdr(skb)->h_source);
- 	else
- 		ether_addr_copy(e.ether, eth_hdr(skb)->h_dest);
+ #define nft_trans_elem_set(trans)	\
+ 	(((struct nft_trans_elem *)trans->data)->set)
+ #define nft_trans_elem(trans)	\
+ 	(((struct nft_trans_elem *)trans->data)->elem)
++#define nft_trans_elem_set_bound(trans)	\
++	(((struct nft_trans_elem *)trans->data)->bound)
+ 
+ struct nft_trans_obj {
+ 	struct nft_object		*obj;
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 29ff59dd99ace..2145581d7b3dc 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -121,9 +121,14 @@ static void nft_set_trans_bind(const struct nft_ctx *ctx, struct nft_set *set)
+ 		return;
+ 
+ 	list_for_each_entry_reverse(trans, &net->nft.commit_list, list) {
+-		if (trans->msg_type == NFT_MSG_NEWSET &&
+-		    nft_trans_set(trans) == set) {
+-			set->bound = true;
++		switch (trans->msg_type) {
++		case NFT_MSG_NEWSET:
++			if (nft_trans_set(trans) == set)
++				nft_trans_set_bound(trans) = true;
++			break;
++		case NFT_MSG_NEWSETELEM:
++			if (nft_trans_elem_set(trans) == set)
++				nft_trans_elem_set_bound(trans) = true;
+ 			break;
+ 		}
+ 	}
+@@ -6656,7 +6661,7 @@ static int __nf_tables_abort(struct net *net)
+ 			break;
+ 		case NFT_MSG_NEWSET:
+ 			trans->ctx.table->use--;
+-			if (nft_trans_set(trans)->bound) {
++			if (nft_trans_set_bound(trans)) {
+ 				nft_trans_destroy(trans);
+ 				break;
+ 			}
+@@ -6668,7 +6673,7 @@ static int __nf_tables_abort(struct net *net)
+ 			nft_trans_destroy(trans);
+ 			break;
+ 		case NFT_MSG_NEWSETELEM:
+-			if (nft_trans_elem_set(trans)->bound) {
++			if (nft_trans_elem_set_bound(trans)) {
+ 				nft_trans_destroy(trans);
+ 				break;
+ 			}
 -- 
 2.20.1
 
