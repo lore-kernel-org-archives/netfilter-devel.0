@@ -2,173 +2,123 @@ Return-Path: <SRS0=245l=WZ=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7676FC3A5A3
-	for <netfilter-devel@archiver.kernel.org>; Thu, 29 Aug 2019 18:34:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BA880C3A59F
+	for <netfilter-devel@archiver.kernel.org>; Thu, 29 Aug 2019 20:04:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4FC5721874
-	for <netfilter-devel@archiver.kernel.org>; Thu, 29 Aug 2019 18:34:40 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1567103680;
-	bh=/pHX4fSyz12zQkqBVAShv8MoRwtzNWYX+/zNi5Zr8bQ=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=hvO98TwpFUDHchISMQR31/8NXANxJwofF55NxVEsdJgUhet6s7E8HXXIQWkiFP1K0
-	 8AWI0+Vbf2oLSIpfKRD8ovZ5sUU7HV82Mllcc4S2sN0jvouI70NZPigW1PCzXPk3NM
-	 AaZDv935y3j5VDK209LDQT9wpZCI4VKo2AInA9LM=
+	by mail.kernel.org (Postfix) with ESMTP id 96FAA208C2
+	for <netfilter-devel@archiver.kernel.org>; Thu, 29 Aug 2019 20:04:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728063AbfH2SNU (ORCPT
+        id S1727916AbfH2UEv (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 29 Aug 2019 14:13:20 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55074 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728043AbfH2SNS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 29 Aug 2019 14:13:18 -0400
-Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 9A75C2339E;
-        Thu, 29 Aug 2019 18:13:16 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1567102397;
-        bh=/pHX4fSyz12zQkqBVAShv8MoRwtzNWYX+/zNi5Zr8bQ=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=jOyKfuGvtq1lrCITQjiQf9wkO5YR5cuu5PxFW1IrCt5nWovn5edJbwu3s23z9XrDs
-         OaX9ZX5WUhnmGFTlsi//mQ8SxRHp+sDnfR06q1gsn330pUOK+bAjKVECPDa8qMpHzA
-         zOjkpECQ9EHlvfWeIcF+4r9fBrFhDwz5WXkR50+Q=
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Florian Westphal <fw@strlen.de>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Sasha Levin <sashal@kernel.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.2 04/76] netfilter: nf_flow_table: fix offload for flows that are subject to xfrm
-Date:   Thu, 29 Aug 2019 14:11:59 -0400
-Message-Id: <20190829181311.7562-4-sashal@kernel.org>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20190829181311.7562-1-sashal@kernel.org>
-References: <20190829181311.7562-1-sashal@kernel.org>
+        Thu, 29 Aug 2019 16:04:51 -0400
+Received: from mx0b-001b2d01.pphosted.com ([148.163.158.5]:21970 "EHLO
+        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1726512AbfH2UEv (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 29 Aug 2019 16:04:51 -0400
+Received: from pps.filterd (m0098417.ppops.net [127.0.0.1])
+        by mx0a-001b2d01.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id x7TK233X040496;
+        Thu, 29 Aug 2019 16:04:10 -0400
+Received: from ppma02wdc.us.ibm.com (aa.5b.37a9.ip4.static.sl-reverse.com [169.55.91.170])
+        by mx0a-001b2d01.pphosted.com with ESMTP id 2upna189g9-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Thu, 29 Aug 2019 16:04:10 -0400
+Received: from pps.filterd (ppma02wdc.us.ibm.com [127.0.0.1])
+        by ppma02wdc.us.ibm.com (8.16.0.27/8.16.0.27) with SMTP id x7TK3CUI024417;
+        Thu, 29 Aug 2019 20:04:09 GMT
+Received: from b01cxnp23033.gho.pok.ibm.com (b01cxnp23033.gho.pok.ibm.com [9.57.198.28])
+        by ppma02wdc.us.ibm.com with ESMTP id 2ujvv6xcru-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Thu, 29 Aug 2019 20:04:09 +0000
+Received: from b01ledav004.gho.pok.ibm.com (b01ledav004.gho.pok.ibm.com [9.57.199.109])
+        by b01cxnp23033.gho.pok.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id x7TK49RY51642816
+        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Thu, 29 Aug 2019 20:04:09 GMT
+Received: from b01ledav004.gho.pok.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id 564A2112062;
+        Thu, 29 Aug 2019 20:04:09 +0000 (GMT)
+Received: from b01ledav004.gho.pok.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id CE290112061;
+        Thu, 29 Aug 2019 20:04:07 +0000 (GMT)
+Received: from leobras.br.ibm.com (unknown [9.18.235.111])
+        by b01ledav004.gho.pok.ibm.com (Postfix) with ESMTP;
+        Thu, 29 Aug 2019 20:04:07 +0000 (GMT)
+Message-ID: <db0f02c5b1a995fde174f036540a3d11008cf116.camel@linux.ibm.com>
+Subject: Re: [PATCH v2 1/1] netfilter: nf_tables: fib: Drop IPV6 packages if
+ IPv6 is disabled on boot
+From:   Leonardo Bras <leonardo@linux.ibm.com>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>
+Cc:     netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>
+Date:   Thu, 29 Aug 2019 17:04:03 -0300
+In-Reply-To: <20190821141505.2394-1-leonardo@linux.ibm.com>
+References: <20190821141505.2394-1-leonardo@linux.ibm.com>
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-FHDAs17k+gbMZaWPCpYr"
+User-Agent: Evolution 3.30.5 (3.30.5-1.fc29) 
 MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
-Content-Transfer-Encoding: 8bit
+X-TM-AS-GCONF: 00
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:,, definitions=2019-08-29_08:,,
+ signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 priorityscore=1501
+ malwarescore=0 suspectscore=0 phishscore=0 bulkscore=0 spamscore=0
+ clxscore=1015 lowpriorityscore=0 mlxscore=0 impostorscore=0
+ mlxlogscore=845 adultscore=0 classifier=spam adjust=0 reason=mlx
+ scancount=1 engine=8.0.1-1906280000 definitions=main-1908290200
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
 
-[ Upstream commit 589b474a4b7ce409d6821ef17234a995841bd131 ]
+--=-FHDAs17k+gbMZaWPCpYr
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-This makes the previously added 'encap test' pass.
-Because its possible that the xfrm dst entry becomes stale while such
-a flow is offloaded, we need to call dst_check() -- the notifier that
-handles this for non-tunneled traffic isn't sufficient, because SA or
-or policies might have changed.
+> Thats a good point -- Leonardo, is the
+> "net.bridge.bridge-nf-call-ip6tables" sysctl on?
 
-If dst becomes stale the flow offload entry will be tagged for teardown
-and packets will be passed to 'classic' forwarding path.
+Running
+# sudo sysctl -a
+I can see:
+net.bridge.bridge-nf-call-ip6tables =3D 1
+=20
+So this packets are sent to host iptables for processing?
 
-Removing the entry right away is problematic, as this would
-introduce a race condition with the gc worker.
 
-In case flow is long-lived, it could eventually be offloaded again
-once the gc worker removes the entry from the flow table.
+(Sorry for the delay, I did not received the previous e-mails.
+Please include me in to/cc.)
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- net/netfilter/nf_flow_table_ip.c | 43 ++++++++++++++++++++++++++++++++
- 1 file changed, 43 insertions(+)
+--=-FHDAs17k+gbMZaWPCpYr
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
 
-diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
-index cdfc33517e85b..d68c801dd614b 100644
---- a/net/netfilter/nf_flow_table_ip.c
-+++ b/net/netfilter/nf_flow_table_ip.c
-@@ -214,6 +214,25 @@ static bool nf_flow_exceeds_mtu(const struct sk_buff *skb, unsigned int mtu)
- 	return true;
- }
- 
-+static int nf_flow_offload_dst_check(struct dst_entry *dst)
-+{
-+	if (unlikely(dst_xfrm(dst)))
-+		return dst_check(dst, 0) ? 0 : -1;
-+
-+	return 0;
-+}
-+
-+static unsigned int nf_flow_xmit_xfrm(struct sk_buff *skb,
-+				      const struct nf_hook_state *state,
-+				      struct dst_entry *dst)
-+{
-+	skb_orphan(skb);
-+	skb_dst_set_noref(skb, dst);
-+	skb->tstamp = 0;
-+	dst_output(state->net, state->sk, skb);
-+	return NF_STOLEN;
-+}
-+
- unsigned int
- nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
- 			const struct nf_hook_state *state)
-@@ -254,6 +273,11 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
- 	if (nf_flow_state_check(flow, ip_hdr(skb)->protocol, skb, thoff))
- 		return NF_ACCEPT;
- 
-+	if (nf_flow_offload_dst_check(&rt->dst)) {
-+		flow_offload_teardown(flow);
-+		return NF_ACCEPT;
-+	}
-+
- 	if (nf_flow_nat_ip(flow, skb, thoff, dir) < 0)
- 		return NF_DROP;
- 
-@@ -261,6 +285,13 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
- 	iph = ip_hdr(skb);
- 	ip_decrease_ttl(iph);
- 
-+	if (unlikely(dst_xfrm(&rt->dst))) {
-+		memset(skb->cb, 0, sizeof(struct inet_skb_parm));
-+		IPCB(skb)->iif = skb->dev->ifindex;
-+		IPCB(skb)->flags = IPSKB_FORWARDED;
-+		return nf_flow_xmit_xfrm(skb, state, &rt->dst);
-+	}
-+
- 	skb->dev = outdev;
- 	nexthop = rt_nexthop(rt, flow->tuplehash[!dir].tuple.src_v4.s_addr);
- 	skb_dst_set_noref(skb, &rt->dst);
-@@ -467,6 +498,11 @@ nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
- 				sizeof(*ip6h)))
- 		return NF_ACCEPT;
- 
-+	if (nf_flow_offload_dst_check(&rt->dst)) {
-+		flow_offload_teardown(flow);
-+		return NF_ACCEPT;
-+	}
-+
- 	if (skb_try_make_writable(skb, sizeof(*ip6h)))
- 		return NF_DROP;
- 
-@@ -477,6 +513,13 @@ nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
- 	ip6h = ipv6_hdr(skb);
- 	ip6h->hop_limit--;
- 
-+	if (unlikely(dst_xfrm(&rt->dst))) {
-+		memset(skb->cb, 0, sizeof(struct inet6_skb_parm));
-+		IP6CB(skb)->iif = skb->dev->ifindex;
-+		IP6CB(skb)->flags = IP6SKB_FORWARDED;
-+		return nf_flow_xmit_xfrm(skb, state, &rt->dst);
-+	}
-+
- 	skb->dev = outdev;
- 	nexthop = rt6_nexthop(rt, &flow->tuplehash[!dir].tuple.src_v6);
- 	skb_dst_set_noref(skb, &rt->dst);
--- 
-2.20.1
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEEMdeUgIzgjf6YmUyOlQYWtz9SttQFAl1oL7MACgkQlQYWtz9S
+ttSUbA/5AUisorNqlRZnWcdh7AysMoIkbIMEP9J2EMxnJap4lGlqu2SG/C1SSRFK
+zOkU8AeQWHoGIwktUdJGxaux1os6s9mY3NQNmwKeQvr6Hc2IjmUfwjxNiDJMHvyE
+oSH5BuAmP8o/DDDRDmH1MHDJVdmBabmnegjxip+II14jj+gOZ9XzyMeNmBIozaYv
+y9puT0TSpYkR0QiwJ4BKOi2/zPlT1wuvDMdK66ywakTwzqNPVgA89X4e8c3EwBcM
+TjBArAtxAD1P7sm8bN00s/Tm7i1E+DTO2McHwUJdpoFbH0K4UTUxjvkhgE5LhFXH
+2aHGIErLQrTiCX7xmqMPNO3/fVC67Y1TW+AOhKWLZaYtwS82WncSzeRMsnOr0TaH
+UqVsqqZS2H56G5kBRypF5iKvf5dMLDPmWiHru7YVupMEb5oKJaofvy0HPUQ5FLam
+6tMT+xC0DUUFyZkc1t+KCxyZr/zD8yxGck7qOQJqsJn0uM3sQZ54W31iYgpr/q0H
+TUoxRZJS9J/rpoJyryVmE7V2tWJmpyP7sMvcNbu6o8odvrRvzjCZXKXN7r6r5ghG
+iTNe70wJMeHrgamx95Xbj3LAXRD7HNAVrIxh0S3nWo5Cc76ByOk3IN0SBTMpxt5G
+D0nlzyVzNorW76LvMIEfxMECpG5KtTC7OInYlnZue0zLblJR9ZU=
+=Idus
+-----END PGP SIGNATURE-----
+
+--=-FHDAs17k+gbMZaWPCpYr--
 
