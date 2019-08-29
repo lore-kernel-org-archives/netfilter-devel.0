@@ -7,47 +7,47 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 68B7FC3A59F
-	for <netfilter-devel@archiver.kernel.org>; Thu, 29 Aug 2019 18:33:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3911CC3A59F
+	for <netfilter-devel@archiver.kernel.org>; Thu, 29 Aug 2019 18:33:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3CD3C205C9
-	for <netfilter-devel@archiver.kernel.org>; Thu, 29 Aug 2019 18:33:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0E1FA2166E
+	for <netfilter-devel@archiver.kernel.org>; Thu, 29 Aug 2019 18:33:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1567103581;
-	bh=3dCUh5B5V/+pwIdVufiDbzWGJ3Fse06EB+uMp16XkV4=;
+	s=default; t=1567103636;
+	bh=9ACL6Y5floZ1bdzEYnHFCfiFYuRsK9W3Q0GQxmWY1WQ=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=LSnsn3s7w+I1uBg633RtOX0EWI81PFmb5bBOmMax2UfTeHjkh72IYPvVUv1skw/zy
-	 oM1/+OHreuQiBoSWP80LufBggFSk1A1hH6LcxzRGLcqDnjv7ZrOm9OcA+YbHdUdxeg
-	 qwrgmxAjqPMBqEhNvwzvFJKCD5+VHLrkeYj+pNvg=
+	b=GxGkwIr3PrHKBCrHa2ZGV3cKA76/8S1CuU747wHArRpj2rMmWaNyUEVQqqANw0z/R
+	 LINdl3/nxT7IngynBFb6MzZSmodmECkVDWuY3u6f6dswZotrdxnoMCsoKFR+XRysJ3
+	 gpc6S/wtu30Pdge8jkowiT0w0duZpT1hqbKpU8jE=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728644AbfH2SN4 (ORCPT
+        id S1728408AbfH2SNj (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 29 Aug 2019 14:13:56 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55656 "EHLO mail.kernel.org"
+        Thu, 29 Aug 2019 14:13:39 -0400
+Received: from mail.kernel.org ([198.145.29.99]:55358 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728628AbfH2SN4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 29 Aug 2019 14:13:56 -0400
+        id S1728372AbfH2SNj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 29 Aug 2019 14:13:39 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id BE8DD2341B;
-        Thu, 29 Aug 2019 18:13:54 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 1130E23407;
+        Thu, 29 Aug 2019 18:13:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1567102435;
-        bh=3dCUh5B5V/+pwIdVufiDbzWGJ3Fse06EB+uMp16XkV4=;
+        s=default; t=1567102417;
+        bh=9ACL6Y5floZ1bdzEYnHFCfiFYuRsK9W3Q0GQxmWY1WQ=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=v1CGOWP7r6ENB7eKqAawcPPKhvOLvfxBWM+XB+vM5Gj9WOKK+Q5uT2zGPc0by9Pa2
-         TKP3Tkpg13ZbwoFXnhvS1GMFESnjpGjmf7A6imf/caDCb9XdpgHymyWwIL7yodlTzW
-         jMDYILpA1vyNdTQ4beR1zF2PUx4SfAWrv5GS1F10=
+        b=XRjfKx70RYH/j3ErNKAw9BXGjexkewx+Lvn+DWSv2mDeIWcXL1c6Ln+4q84lAW3js
+         AwcK6QaghZLldVNiBl9Wqs3xQms2dKtelNlHpf4anuM7bWjZatNhvq8WYOlYHdzla1
+         fMJnYFKxfUoDD7Z4EDuoHQqdnK+UCe8Rcof73150=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
         Sasha Levin <sashal@kernel.org>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.2 24/76] netfilter: nft_flow_offload: skip tcp rst and fin packets
-Date:   Thu, 29 Aug 2019 14:12:19 -0400
-Message-Id: <20190829181311.7562-24-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.2 12/76] netfilter: nf_flow_table: teardown flow timeout race
+Date:   Thu, 29 Aug 2019 14:12:07 -0400
+Message-Id: <20190829181311.7562-12-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20190829181311.7562-1-sashal@kernel.org>
 References: <20190829181311.7562-1-sashal@kernel.org>
@@ -62,59 +62,102 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-[ Upstream commit dfe42be15fde16232340b8b2a57c359f51cc10d9 ]
+[ Upstream commit 1e5b2471bcc4838df298080ae1ec042c2cbc9ce9 ]
 
-TCP rst and fin packets do not qualify to place a flow into the
-flowtable. Most likely there will be no more packets after connection
-closure. Without this patch, this flow entry expires and connection
-tracking picks up the entry in ESTABLISHED state using the fixup
-timeout, which makes this look inconsistent to the user for a connection
-that is actually already closed.
+Flows that are in teardown state (due to RST / FIN TCP packet) still
+have their offload flag set on. Hence, the conntrack garbage collector
+may race to undo the timeout adjustment that the fixup routine performs,
+leaving the conntrack entry in place with the internal offload timeout
+(one day).
 
+Update teardown flow state to ESTABLISHED and set tracking to liberal,
+then once the offload bit is cleared, adjust timeout if it is more than
+the default fixup timeout (conntrack might already have set a lower
+timeout from the packet path).
+
+Fixes: da5984e51063 ("netfilter: nf_flow_table: add support for sending flows back to the slow path")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- net/netfilter/nft_flow_offload.c | 9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ net/netfilter/nf_flow_table_core.c | 34 ++++++++++++++++++++++--------
+ 1 file changed, 25 insertions(+), 9 deletions(-)
 
-diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
-index aa5f571d43619..060a4ed46d5e6 100644
---- a/net/netfilter/nft_flow_offload.c
-+++ b/net/netfilter/nft_flow_offload.c
-@@ -72,11 +72,11 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
+diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
+index 4254e42605135..49248fe5847a1 100644
+--- a/net/netfilter/nf_flow_table_core.c
++++ b/net/netfilter/nf_flow_table_core.c
+@@ -112,15 +112,16 @@ static void flow_offload_fixup_tcp(struct ip_ct_tcp *tcp)
+ #define NF_FLOWTABLE_TCP_PICKUP_TIMEOUT	(120 * HZ)
+ #define NF_FLOWTABLE_UDP_PICKUP_TIMEOUT	(30 * HZ)
+ 
+-static void flow_offload_fixup_ct(struct nf_conn *ct)
++static inline __s32 nf_flow_timeout_delta(unsigned int timeout)
++{
++	return (__s32)(timeout - (u32)jiffies);
++}
++
++static void flow_offload_fixup_ct_timeout(struct nf_conn *ct)
  {
- 	struct nft_flow_offload *priv = nft_expr_priv(expr);
- 	struct nf_flowtable *flowtable = &priv->flowtable->data;
-+	struct tcphdr _tcph, *tcph = NULL;
- 	enum ip_conntrack_info ctinfo;
- 	struct nf_flow_route route;
- 	struct flow_offload *flow;
- 	enum ip_conntrack_dir dir;
--	bool is_tcp = false;
- 	struct nf_conn *ct;
- 	int ret;
+ 	const struct nf_conntrack_l4proto *l4proto;
++	int l4num = nf_ct_protonum(ct);
+ 	unsigned int timeout;
+-	int l4num;
+-
+-	l4num = nf_ct_protonum(ct);
+-	if (l4num == IPPROTO_TCP)
+-		flow_offload_fixup_tcp(&ct->proto.tcp);
  
-@@ -89,7 +89,10 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
+ 	l4proto = nf_ct_l4proto_find(l4num);
+ 	if (!l4proto)
+@@ -133,7 +134,20 @@ static void flow_offload_fixup_ct(struct nf_conn *ct)
+ 	else
+ 		return;
  
- 	switch (ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.protonum) {
- 	case IPPROTO_TCP:
--		is_tcp = true;
-+		tcph = skb_header_pointer(pkt->skb, pkt->xt.thoff,
-+					  sizeof(_tcph), &_tcph);
-+		if (unlikely(!tcph || tcph->fin || tcph->rst))
-+			goto out;
- 		break;
- 	case IPPROTO_UDP:
- 		break;
-@@ -115,7 +118,7 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
- 	if (!flow)
- 		goto err_flow_alloc;
+-	ct->timeout = nfct_time_stamp + timeout;
++	if (nf_flow_timeout_delta(ct->timeout) > (__s32)timeout)
++		ct->timeout = nfct_time_stamp + timeout;
++}
++
++static void flow_offload_fixup_ct_state(struct nf_conn *ct)
++{
++	if (nf_ct_protonum(ct) == IPPROTO_TCP)
++		flow_offload_fixup_tcp(&ct->proto.tcp);
++}
++
++static void flow_offload_fixup_ct(struct nf_conn *ct)
++{
++	flow_offload_fixup_ct_state(ct);
++	flow_offload_fixup_ct_timeout(ct);
+ }
  
--	if (is_tcp) {
-+	if (tcph) {
- 		ct->proto.tcp.seen[0].flags |= IP_CT_TCP_FLAG_BE_LIBERAL;
- 		ct->proto.tcp.seen[1].flags |= IP_CT_TCP_FLAG_BE_LIBERAL;
- 	}
+ void flow_offload_free(struct flow_offload *flow)
+@@ -211,7 +225,7 @@ EXPORT_SYMBOL_GPL(flow_offload_add);
+ 
+ static inline bool nf_flow_has_expired(const struct flow_offload *flow)
+ {
+-	return (__s32)(flow->timeout - (u32)jiffies) <= 0;
++	return nf_flow_timeout_delta(flow->timeout) <= 0;
+ }
+ 
+ static void flow_offload_del(struct nf_flowtable *flow_table,
+@@ -231,6 +245,8 @@ static void flow_offload_del(struct nf_flowtable *flow_table,
+ 
+ 	if (nf_flow_has_expired(flow))
+ 		flow_offload_fixup_ct(e->ct);
++	else if (flow->flags & FLOW_OFFLOAD_TEARDOWN)
++		flow_offload_fixup_ct_timeout(e->ct);
+ 
+ 	flow_offload_free(flow);
+ }
+@@ -242,7 +258,7 @@ void flow_offload_teardown(struct flow_offload *flow)
+ 	flow->flags |= FLOW_OFFLOAD_TEARDOWN;
+ 
+ 	e = container_of(flow, struct flow_offload_entry, flow);
+-	flow_offload_fixup_ct(e->ct);
++	flow_offload_fixup_ct_state(e->ct);
+ }
+ EXPORT_SYMBOL_GPL(flow_offload_teardown);
+ 
 -- 
 2.20.1
 
