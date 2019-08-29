@@ -7,50 +7,50 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1DF98C3A59F
-	for <netfilter-devel@archiver.kernel.org>; Thu, 29 Aug 2019 18:26:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 68B7FC3A59F
+	for <netfilter-devel@archiver.kernel.org>; Thu, 29 Aug 2019 18:33:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id EA4D72166E
-	for <netfilter-devel@archiver.kernel.org>; Thu, 29 Aug 2019 18:26:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3CD3C205C9
+	for <netfilter-devel@archiver.kernel.org>; Thu, 29 Aug 2019 18:33:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1567103206;
-	bh=w6TWzwYQCOFc+SP0vuZbTqWNDsaU89e3UP1OXZwNXp8=;
+	s=default; t=1567103581;
+	bh=3dCUh5B5V/+pwIdVufiDbzWGJ3Fse06EB+uMp16XkV4=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=KFnwVkClnkBLWZKaXNTvTZj7qHAsP4kbzCEodmbnvE40lKfye1W0jytmoCmTwWQBV
-	 j3pu+lowrpe/Xc7Cm7S1TslIP52TVEPxLmyBiWAXSHRyzkLVeIenSkRcTwaqClS9S/
-	 AEb1uH+Ofy7uil0PpvHUZBe91xKueqo2le3iYG94=
+	b=LSnsn3s7w+I1uBg633RtOX0EWI81PFmb5bBOmMax2UfTeHjkh72IYPvVUv1skw/zy
+	 oM1/+OHreuQiBoSWP80LufBggFSk1A1hH6LcxzRGLcqDnjv7ZrOm9OcA+YbHdUdxeg
+	 qwrgmxAjqPMBqEhNvwzvFJKCD5+VHLrkeYj+pNvg=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728702AbfH2S0k (ORCPT
+        id S1728644AbfH2SN4 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 29 Aug 2019 14:26:40 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57714 "EHLO mail.kernel.org"
+        Thu, 29 Aug 2019 14:13:56 -0400
+Received: from mail.kernel.org ([198.145.29.99]:55656 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728690AbfH2SPv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 29 Aug 2019 14:15:51 -0400
+        id S1728628AbfH2SN4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 29 Aug 2019 14:13:56 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 33CA62339E;
-        Thu, 29 Aug 2019 18:15:49 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id BE8DD2341B;
+        Thu, 29 Aug 2019 18:13:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1567102549;
-        bh=w6TWzwYQCOFc+SP0vuZbTqWNDsaU89e3UP1OXZwNXp8=;
+        s=default; t=1567102435;
+        bh=3dCUh5B5V/+pwIdVufiDbzWGJ3Fse06EB+uMp16XkV4=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=onv8fgW6gPNWG1JFpbtZfptnpG1DSW04tV5emaELytKz2vpkmCEd7kp00hQCLYcwX
-         s78A8ho+nk4nJwjnXuVUoCQcPMaxl4W/MPwE3ITGOy6jFoRplW8eFbl95DWpgWimtO
-         C79NipWYbeok6GvpD5WfKHjhhehs03X4l5sVHkOg=
+        b=v1CGOWP7r6ENB7eKqAawcPPKhvOLvfxBWM+XB+vM5Gj9WOKK+Q5uT2zGPc0by9Pa2
+         TKP3Tkpg13ZbwoFXnhvS1GMFESnjpGjmf7A6imf/caDCb9XdpgHymyWwIL7yodlTzW
+         jMDYILpA1vyNdTQ4beR1zF2PUx4SfAWrv5GS1F10=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
         Sasha Levin <sashal@kernel.org>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.19 02/45] netfilter: nf_tables: use-after-free in failing rule with bound set
-Date:   Thu, 29 Aug 2019 14:15:02 -0400
-Message-Id: <20190829181547.8280-2-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.2 24/76] netfilter: nft_flow_offload: skip tcp rst and fin packets
+Date:   Thu, 29 Aug 2019 14:12:19 -0400
+Message-Id: <20190829181311.7562-24-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20190829181547.8280-1-sashal@kernel.org>
-References: <20190829181547.8280-1-sashal@kernel.org>
+In-Reply-To: <20190829181311.7562-1-sashal@kernel.org>
+References: <20190829181311.7562-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -62,141 +62,59 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-[ Upstream commit 6a0a8d10a3661a036b55af695542a714c429ab7c ]
+[ Upstream commit dfe42be15fde16232340b8b2a57c359f51cc10d9 ]
 
-If a rule that has already a bound anonymous set fails to be added, the
-preparation phase releases the rule and the bound set. However, the
-transaction object from the abort path still has a reference to the set
-object that is stale, leading to a use-after-free when checking for the
-set->bound field. Add a new field to the transaction that specifies if
-the set is bound, so the abort path can skip releasing it since the rule
-command owns it and it takes care of releasing it. After this update,
-the set->bound field is removed.
+TCP rst and fin packets do not qualify to place a flow into the
+flowtable. Most likely there will be no more packets after connection
+closure. Without this patch, this flow entry expires and connection
+tracking picks up the entry in ESTABLISHED state using the fixup
+timeout, which makes this look inconsistent to the user for a connection
+that is actually already closed.
 
-[   24.649883] Unable to handle kernel paging request at virtual address 0000000000040434
-[   24.657858] Mem abort info:
-[   24.660686]   ESR = 0x96000004
-[   24.663769]   Exception class = DABT (current EL), IL = 32 bits
-[   24.669725]   SET = 0, FnV = 0
-[   24.672804]   EA = 0, S1PTW = 0
-[   24.675975] Data abort info:
-[   24.678880]   ISV = 0, ISS = 0x00000004
-[   24.682743]   CM = 0, WnR = 0
-[   24.685723] user pgtable: 4k pages, 48-bit VAs, pgdp=0000000428952000
-[   24.692207] [0000000000040434] pgd=0000000000000000
-[   24.697119] Internal error: Oops: 96000004 [#1] SMP
-[...]
-[   24.889414] Call trace:
-[   24.891870]  __nf_tables_abort+0x3f0/0x7a0
-[   24.895984]  nf_tables_abort+0x20/0x40
-[   24.899750]  nfnetlink_rcv_batch+0x17c/0x588
-[   24.904037]  nfnetlink_rcv+0x13c/0x190
-[   24.907803]  netlink_unicast+0x18c/0x208
-[   24.911742]  netlink_sendmsg+0x1b0/0x350
-[   24.915682]  sock_sendmsg+0x4c/0x68
-[   24.919185]  ___sys_sendmsg+0x288/0x2c8
-[   24.923037]  __sys_sendmsg+0x7c/0xd0
-[   24.926628]  __arm64_sys_sendmsg+0x2c/0x38
-[   24.930744]  el0_svc_common.constprop.0+0x94/0x158
-[   24.935556]  el0_svc_handler+0x34/0x90
-[   24.939322]  el0_svc+0x8/0xc
-[   24.942216] Code: 37280300 f9404023 91014262 aa1703e0 (f9401863)
-[   24.948336] ---[ end trace cebbb9dcbed3b56f ]---
-
-Fixes: f6ac85858976 ("netfilter: nf_tables: unbind set in rule from commit path")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- include/net/netfilter/nf_tables.h |  9 +++++++--
- net/netfilter/nf_tables_api.c     | 15 ++++++++++-----
- 2 files changed, 17 insertions(+), 7 deletions(-)
+ net/netfilter/nft_flow_offload.c | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index f2be5d041ba3a..7685cbda9f28b 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -418,8 +418,7 @@ struct nft_set {
- 	unsigned char			*udata;
- 	/* runtime data below here */
- 	const struct nft_set_ops	*ops ____cacheline_aligned;
--	u16				flags:13,
--					bound:1,
-+	u16				flags:14,
- 					genmask:2;
- 	u8				klen;
- 	u8				dlen;
-@@ -1337,12 +1336,15 @@ struct nft_trans_rule {
- struct nft_trans_set {
- 	struct nft_set			*set;
- 	u32				set_id;
-+	bool				bound;
- };
+diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
+index aa5f571d43619..060a4ed46d5e6 100644
+--- a/net/netfilter/nft_flow_offload.c
++++ b/net/netfilter/nft_flow_offload.c
+@@ -72,11 +72,11 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
+ {
+ 	struct nft_flow_offload *priv = nft_expr_priv(expr);
+ 	struct nf_flowtable *flowtable = &priv->flowtable->data;
++	struct tcphdr _tcph, *tcph = NULL;
+ 	enum ip_conntrack_info ctinfo;
+ 	struct nf_flow_route route;
+ 	struct flow_offload *flow;
+ 	enum ip_conntrack_dir dir;
+-	bool is_tcp = false;
+ 	struct nf_conn *ct;
+ 	int ret;
  
- #define nft_trans_set(trans)	\
- 	(((struct nft_trans_set *)trans->data)->set)
- #define nft_trans_set_id(trans)	\
- 	(((struct nft_trans_set *)trans->data)->set_id)
-+#define nft_trans_set_bound(trans)	\
-+	(((struct nft_trans_set *)trans->data)->bound)
+@@ -89,7 +89,10 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
  
- struct nft_trans_chain {
- 	bool				update;
-@@ -1373,12 +1375,15 @@ struct nft_trans_table {
- struct nft_trans_elem {
- 	struct nft_set			*set;
- 	struct nft_set_elem		elem;
-+	bool				bound;
- };
+ 	switch (ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.protonum) {
+ 	case IPPROTO_TCP:
+-		is_tcp = true;
++		tcph = skb_header_pointer(pkt->skb, pkt->xt.thoff,
++					  sizeof(_tcph), &_tcph);
++		if (unlikely(!tcph || tcph->fin || tcph->rst))
++			goto out;
+ 		break;
+ 	case IPPROTO_UDP:
+ 		break;
+@@ -115,7 +118,7 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
+ 	if (!flow)
+ 		goto err_flow_alloc;
  
- #define nft_trans_elem_set(trans)	\
- 	(((struct nft_trans_elem *)trans->data)->set)
- #define nft_trans_elem(trans)	\
- 	(((struct nft_trans_elem *)trans->data)->elem)
-+#define nft_trans_elem_set_bound(trans)	\
-+	(((struct nft_trans_elem *)trans->data)->bound)
- 
- struct nft_trans_obj {
- 	struct nft_object		*obj;
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 29ff59dd99ace..2145581d7b3dc 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -121,9 +121,14 @@ static void nft_set_trans_bind(const struct nft_ctx *ctx, struct nft_set *set)
- 		return;
- 
- 	list_for_each_entry_reverse(trans, &net->nft.commit_list, list) {
--		if (trans->msg_type == NFT_MSG_NEWSET &&
--		    nft_trans_set(trans) == set) {
--			set->bound = true;
-+		switch (trans->msg_type) {
-+		case NFT_MSG_NEWSET:
-+			if (nft_trans_set(trans) == set)
-+				nft_trans_set_bound(trans) = true;
-+			break;
-+		case NFT_MSG_NEWSETELEM:
-+			if (nft_trans_elem_set(trans) == set)
-+				nft_trans_elem_set_bound(trans) = true;
- 			break;
- 		}
+-	if (is_tcp) {
++	if (tcph) {
+ 		ct->proto.tcp.seen[0].flags |= IP_CT_TCP_FLAG_BE_LIBERAL;
+ 		ct->proto.tcp.seen[1].flags |= IP_CT_TCP_FLAG_BE_LIBERAL;
  	}
-@@ -6656,7 +6661,7 @@ static int __nf_tables_abort(struct net *net)
- 			break;
- 		case NFT_MSG_NEWSET:
- 			trans->ctx.table->use--;
--			if (nft_trans_set(trans)->bound) {
-+			if (nft_trans_set_bound(trans)) {
- 				nft_trans_destroy(trans);
- 				break;
- 			}
-@@ -6668,7 +6673,7 @@ static int __nf_tables_abort(struct net *net)
- 			nft_trans_destroy(trans);
- 			break;
- 		case NFT_MSG_NEWSETELEM:
--			if (nft_trans_elem_set(trans)->bound) {
-+			if (nft_trans_elem_set_bound(trans)) {
- 				nft_trans_destroy(trans);
- 				break;
- 			}
 -- 
 2.20.1
 
