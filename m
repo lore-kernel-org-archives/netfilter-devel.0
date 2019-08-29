@@ -2,74 +2,119 @@ Return-Path: <SRS0=245l=WZ=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CD526C3A59F
-	for <netfilter-devel@archiver.kernel.org>; Thu, 29 Aug 2019 16:30:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2316DC3A59F
+	for <netfilter-devel@archiver.kernel.org>; Thu, 29 Aug 2019 18:25:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A89572166E
-	for <netfilter-devel@archiver.kernel.org>; Thu, 29 Aug 2019 16:30:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EC61B2339E
+	for <netfilter-devel@archiver.kernel.org>; Thu, 29 Aug 2019 18:25:43 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1567103144;
+	bh=NdQeV4T6pZxdqhEfIDTGO1OxlCJ9LTIydgRJdXQjKEA=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=axA6o7AVemSDUG1oybVUOlB6ttqRuDTLsT+zJXVT/pwDeZMNZjbIJy2ST2xEdd4Ej
+	 cA5OUL57coP/jgcepDZD9xxGP6vI4DP9/gPZQzrS5PEVq0h6OrYR+sOry4U+L6yE4t
+	 RdNjo4XC2fuDIFfhmW82cNiUMA+NZalxLUTSUZaw=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727228AbfH2Qan (ORCPT
+        id S1729591AbfH2SQG (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 29 Aug 2019 12:30:43 -0400
-Received: from correo.us.es ([193.147.175.20]:44584 "EHLO mail.us.es"
+        Thu, 29 Aug 2019 14:16:06 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58004 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727046AbfH2Qan (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 29 Aug 2019 12:30:43 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id ABB1A20A528
-        for <netfilter-devel@vger.kernel.org>; Thu, 29 Aug 2019 18:30:39 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 9E213DA72F
-        for <netfilter-devel@vger.kernel.org>; Thu, 29 Aug 2019 18:30:39 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 93C34D2B1F; Thu, 29 Aug 2019 18:30:39 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 60814DA7B6;
-        Thu, 29 Aug 2019 18:30:37 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Thu, 29 Aug 2019 18:30:37 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (sys.soleta.eu [212.170.55.40])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        id S1729537AbfH2SQF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 29 Aug 2019 14:16:05 -0400
+Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 3F7984265A5A;
-        Thu, 29 Aug 2019 18:30:37 +0200 (CEST)
-Date:   Thu, 29 Aug 2019 18:30:38 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Alin Nastac <alin.nastac@gmail.com>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH] netfilter: reject: fix ICMP csum verification
-Message-ID: <20190829163038.hfjqzj6gmaqgarxf@salvia>
-References: <1567090431-4538-1-git-send-email-alin.nastac@technicolor.com>
+        by mail.kernel.org (Postfix) with ESMTPSA id 97F7D2339E;
+        Thu, 29 Aug 2019 18:16:03 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1567102564;
+        bh=NdQeV4T6pZxdqhEfIDTGO1OxlCJ9LTIydgRJdXQjKEA=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=WGO6ng+AFqcpJzvcJxBMRg5HmZrZBXtoFSlnj+phfy04av9QnUrwPBh+1BvDa8/4+
+         plnegxylzbuCiH9k7I/p69lDG+/LBqqn0rj2J8wXJDs3zurPCqb+UvksYoXxMJ/bJb
+         S04FZPPCT9itjWvMsGO0q/G0d5BSWzLtLQ3k0KA8=
+From:   Sasha Levin <sashal@kernel.org>
+To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Sasha Levin <sashal@kernel.org>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org
+Subject: [PATCH AUTOSEL 4.19 11/45] netfilter: nft_flow_offload: skip tcp rst and fin packets
+Date:   Thu, 29 Aug 2019 14:15:11 -0400
+Message-Id: <20190829181547.8280-11-sashal@kernel.org>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20190829181547.8280-1-sashal@kernel.org>
+References: <20190829181547.8280-1-sashal@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1567090431-4538-1-git-send-email-alin.nastac@technicolor.com>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+X-stable: review
+X-Patchwork-Hint: Ignore
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Aug 29, 2019 at 04:53:51PM +0200, Alin Nastac wrote:
-> From: Alin Nastac <alin.nastac@gmail.com>
-> 
-> Typically transport protocols such as TCP and UDP use an IP
-> pseudo-header for their checksum computation, but ICMP does not
-> use it.
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-Already fixed upstream?
+[ Upstream commit dfe42be15fde16232340b8b2a57c359f51cc10d9 ]
 
-commit 5d1549847c76b1ffcf8e388ef4d0f229bdd1d7e8
-Author: He Zhe <zhe.he@windriver.com>
-Date:   Mon Jun 24 11:17:38 2019 +0800
+TCP rst and fin packets do not qualify to place a flow into the
+flowtable. Most likely there will be no more packets after connection
+closure. Without this patch, this flow entry expires and connection
+tracking picks up the entry in ESTABLISHED state using the fixup
+timeout, which makes this look inconsistent to the user for a connection
+that is actually already closed.
 
-    netfilter: Fix remainder of pseudo-header protocol 0
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ net/netfilter/nft_flow_offload.c | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
+index 6e0c26025ab13..69decbe2c9884 100644
+--- a/net/netfilter/nft_flow_offload.c
++++ b/net/netfilter/nft_flow_offload.c
+@@ -71,11 +71,11 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
+ {
+ 	struct nft_flow_offload *priv = nft_expr_priv(expr);
+ 	struct nf_flowtable *flowtable = &priv->flowtable->data;
++	struct tcphdr _tcph, *tcph = NULL;
+ 	enum ip_conntrack_info ctinfo;
+ 	struct nf_flow_route route;
+ 	struct flow_offload *flow;
+ 	enum ip_conntrack_dir dir;
+-	bool is_tcp = false;
+ 	struct nf_conn *ct;
+ 	int ret;
+ 
+@@ -88,7 +88,10 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
+ 
+ 	switch (ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.protonum) {
+ 	case IPPROTO_TCP:
+-		is_tcp = true;
++		tcph = skb_header_pointer(pkt->skb, pkt->xt.thoff,
++					  sizeof(_tcph), &_tcph);
++		if (unlikely(!tcph || tcph->fin || tcph->rst))
++			goto out;
+ 		break;
+ 	case IPPROTO_UDP:
+ 		break;
+@@ -115,7 +118,7 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
+ 	if (!flow)
+ 		goto err_flow_alloc;
+ 
+-	if (is_tcp) {
++	if (tcph) {
+ 		ct->proto.tcp.seen[0].flags |= IP_CT_TCP_FLAG_BE_LIBERAL;
+ 		ct->proto.tcp.seen[1].flags |= IP_CT_TCP_FLAG_BE_LIBERAL;
+ 	}
+-- 
+2.20.1
+
