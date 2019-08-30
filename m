@@ -6,38 +6,38 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E1BDDC3A5A6
-	for <netfilter-devel@archiver.kernel.org>; Fri, 30 Aug 2019 04:17:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 10246C3A5A3
+	for <netfilter-devel@archiver.kernel.org>; Fri, 30 Aug 2019 04:17:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id ADFBD21897
-	for <netfilter-devel@archiver.kernel.org>; Fri, 30 Aug 2019 04:17:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DB34021897
+	for <netfilter-devel@archiver.kernel.org>; Fri, 30 Aug 2019 04:17:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726358AbfH3ER1 (ORCPT
+        id S1726492AbfH3ER2 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 30 Aug 2019 00:17:27 -0400
-Received: from m9784.mail.qiye.163.com ([220.181.97.84]:42701 "EHLO
+        Fri, 30 Aug 2019 00:17:28 -0400
+Received: from m9784.mail.qiye.163.com ([220.181.97.84]:42669 "EHLO
         m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726236AbfH3ER1 (ORCPT
+        with ESMTP id S1725819AbfH3ER2 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 30 Aug 2019 00:17:27 -0400
+        Fri, 30 Aug 2019 00:17:28 -0400
 Received: from localhost.localdomain (unknown [123.59.132.129])
-        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id 28D10416B8;
-        Fri, 30 Aug 2019 12:17:23 +0800 (CST)
+        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id C25FD4166E;
+        Fri, 30 Aug 2019 12:17:22 +0800 (CST)
 From:   wenxu@ucloud.cn
 To:     pablo@netfilter.org, fw@strlen.de
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next v7 4/8] bridge: add br_vlan_get_info_rcu()
-Date:   Fri, 30 Aug 2019 12:17:18 +0800
-Message-Id: <1567138642-11446-5-git-send-email-wenxu@ucloud.cn>
+Subject: [PATCH nf-next v7 2/8] netfilter:nf_flow_table_core: Separate inet operation to single function
+Date:   Fri, 30 Aug 2019 12:17:16 +0800
+Message-Id: <1567138642-11446-3-git-send-email-wenxu@ucloud.cn>
 X-Mailer: git-send-email 1.8.3.1
 In-Reply-To: <1567138642-11446-1-git-send-email-wenxu@ucloud.cn>
 References: <1567138642-11446-1-git-send-email-wenxu@ucloud.cn>
-X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVkpVSUlDS0tLS09PQ0lJTUJZV1koWU
+X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVklVSk9IS0tLSklOQ0NOS0pZV1koWU
         FJQjdXWS1ZQUlXWQkOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6OCo6GCo6ITgzMTISFCMsLzQe
-        GiNPCQpVSlVKTk1MSkhDTU9ISUpCVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJSFVO
-        QlVKSElVSklCWVdZCAFZQUhLTkM3Bg++
-X-HM-Tid: 0a6ce0bdfceb2086kuqy28d10416b8
+X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6OhQ6Kio4PTg5HzIRMiwZLzYO
+        Ik4aCx5VSlVKTk1MSkhDTU9JQkxIVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJSFVO
+        QlVKSElVSklCWVdZCAFZQU9OSE03Bg++
+X-HM-Tid: 0a6ce0bdfb772086kuqyc25fd4166e
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
@@ -45,78 +45,120 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: wenxu <wenxu@ucloud.cn>
 
-This new function allows you to fetch vlan info from packet path.
+This patch separate the inet family operation in nf_flow_table_core to
+single function. Prepare for support the bridge family.
 
 Signed-off-by: wenxu <wenxu@ucloud.cn>
-Acked-by: Nikolay Aleksandrov <nikolay@cumulusnetworks.com>
 ---
-v7: no change
+v7: rebase with upstream fix
 
- include/linux/if_bridge.h |  7 +++++++
- net/bridge/br_vlan.c      | 25 +++++++++++++++++++++++++
- 2 files changed, 32 insertions(+)
+ net/netfilter/nf_flow_table_core.c | 52 ++++++++++++++++++++++++++++----------
+ 1 file changed, 38 insertions(+), 14 deletions(-)
 
-diff --git a/include/linux/if_bridge.h b/include/linux/if_bridge.h
-index 9e57c44..5c85608 100644
---- a/include/linux/if_bridge.h
-+++ b/include/linux/if_bridge.h
-@@ -92,6 +92,8 @@ static inline bool br_multicast_router(const struct net_device *dev)
- int br_vlan_get_proto(const struct net_device *dev, u16 *p_proto);
- int br_vlan_get_info(const struct net_device *dev, u16 vid,
- 		     struct bridge_vlan_info *p_vinfo);
-+int br_vlan_get_info_rcu(const struct net_device *dev, u16 vid,
-+			 struct bridge_vlan_info *p_vinfo);
- #else
- static inline bool br_vlan_enabled(const struct net_device *dev)
- {
-@@ -118,6 +120,11 @@ static inline int br_vlan_get_info(const struct net_device *dev, u16 vid,
- {
- 	return -EINVAL;
- }
-+static inline int br_vlan_get_info_rcu(const struct net_device *dev, u16 vid,
-+				       struct bridge_vlan_info *p_vinfo)
+diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
+index e9bc756..9492c97 100644
+--- a/net/netfilter/nf_flow_table_core.c
++++ b/net/netfilter/nf_flow_table_core.c
+@@ -22,6 +22,20 @@ struct flow_offload_entry {
+ static DEFINE_MUTEX(flowtable_lock);
+ static LIST_HEAD(flowtables);
+ 
++static struct dst_entry *
++flow_offload_fill_inet_dst(struct flow_offload_tuple *ft,
++			   struct nf_flow_route *route,
++			   enum flow_offload_tuple_dir dir)
 +{
-+	return -EINVAL;
++	struct dst_entry *other_dst = route->tuple[!dir].dst;
++	struct dst_entry *dst = route->tuple[dir].dst;
++
++	ft->iifidx = other_dst->dev->ifindex;
++	ft->dst.dst_cache = dst;
++
++	return dst;
 +}
- #endif
++
+ static void
+ flow_offload_fill_dir(struct flow_offload *flow, struct nf_conn *ct,
+ 		      struct nf_flow_dst *flow_dst,
+@@ -29,9 +43,9 @@ struct flow_offload_entry {
+ {
+ 	struct flow_offload_tuple *ft = &flow->tuplehash[dir].tuple;
+ 	struct nf_conntrack_tuple *ctt = &ct->tuplehash[dir].tuple;
+-	struct dst_entry *other_dst = flow_dst->route.tuple[!dir].dst;
+-	struct dst_entry *dst = flow_dst->route.tuple[dir].dst;
++	struct dst_entry *dst;
  
- #if IS_ENABLED(CONFIG_BRIDGE)
-diff --git a/net/bridge/br_vlan.c b/net/bridge/br_vlan.c
-index f5b2aee..dfcf098 100644
---- a/net/bridge/br_vlan.c
-+++ b/net/bridge/br_vlan.c
-@@ -1285,6 +1285,31 @@ int br_vlan_get_info(const struct net_device *dev, u16 vid,
- }
- EXPORT_SYMBOL_GPL(br_vlan_get_info);
++	dst = flow_offload_fill_inet_dst(ft, &flow_dst->route, dir);
+ 	ft->dir = dir;
  
-+int br_vlan_get_info_rcu(const struct net_device *dev, u16 vid,
-+			 struct bridge_vlan_info *p_vinfo)
+ 	switch (ctt->src.l3num) {
+@@ -51,9 +65,19 @@ struct flow_offload_entry {
+ 	ft->l4proto = ctt->dst.protonum;
+ 	ft->src_port = ctt->src.u.tcp.port;
+ 	ft->dst_port = ctt->dst.u.tcp.port;
++}
+ 
+-	ft->iifidx = other_dst->dev->ifindex;
+-	ft->dst.dst_cache = dst;
++static int flow_offload_dst_hold(struct nf_flow_dst *flow_dst)
 +{
-+	struct net_bridge_vlan_group *vg;
-+	struct net_bridge_vlan *v;
-+	struct net_bridge_port *p;
++	if (!dst_hold_safe(flow_dst->route.tuple[FLOW_OFFLOAD_DIR_ORIGINAL].dst))
++		return -1;
 +
-+	p = br_port_get_check_rcu(dev);
-+	if (p)
-+		vg = nbp_vlan_group_rcu(p);
-+	else if (netif_is_bridge_master(dev))
-+		vg = br_vlan_group_rcu(netdev_priv(dev));
-+	else
-+		return -EINVAL;
++	if (!dst_hold_safe(flow_dst->route.tuple[FLOW_OFFLOAD_DIR_REPLY].dst)) {
++		dst_release(flow_dst->route.tuple[FLOW_OFFLOAD_DIR_ORIGINAL].dst);
++		return -1;
++	}
 +
-+	v = br_vlan_find(vg, vid);
-+	if (!v)
-+		return -ENOENT;
-+
-+	p_vinfo->vid = vid;
-+	p_vinfo->flags = v->flags;
 +	return 0;
+ }
+ 
+ struct flow_offload *
+@@ -72,11 +96,8 @@ struct flow_offload *
+ 
+ 	flow = &entry->flow;
+ 
+-	if (!dst_hold_safe(flow_dst->route.tuple[FLOW_OFFLOAD_DIR_ORIGINAL].dst))
+-		goto err_dst_cache_original;
+-
+-	if (!dst_hold_safe(flow_dst->route.tuple[FLOW_OFFLOAD_DIR_REPLY].dst))
+-		goto err_dst_cache_reply;
++	if (flow_offload_dst_hold(flow_dst))
++		goto err_dst_cache;
+ 
+ 	entry->ct = ct;
+ 
+@@ -90,9 +111,7 @@ struct flow_offload *
+ 
+ 	return flow;
+ 
+-err_dst_cache_reply:
+-	dst_release(flow_dst->route.tuple[FLOW_OFFLOAD_DIR_ORIGINAL].dst);
+-err_dst_cache_original:
++err_dst_cache:
+ 	kfree(entry);
+ err_ct_refcnt:
+ 	nf_ct_put(ct);
+@@ -149,12 +168,17 @@ static void flow_offload_fixup_ct(struct nf_conn *ct)
+ 	flow_offload_fixup_ct_timeout(ct);
+ }
+ 
++static void flow_offload_dst_release(struct flow_offload *flow)
++{
++	dst_release(flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple.dst.dst_cache);
++	dst_release(flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].tuple.dst.dst_cache);
 +}
-+EXPORT_SYMBOL_GPL(br_vlan_get_info_rcu);
 +
- static int br_vlan_is_bind_vlan_dev(const struct net_device *dev)
+ void flow_offload_free(struct flow_offload *flow)
  {
- 	return is_vlan_dev(dev) &&
+ 	struct flow_offload_entry *e;
+ 
+-	dst_release(flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple.dst.dst_cache);
+-	dst_release(flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].tuple.dst.dst_cache);
++	flow_offload_dst_release(flow);
+ 	e = container_of(flow, struct flow_offload_entry, flow);
+ 	if (flow->flags & FLOW_OFFLOAD_DYING)
+ 		nf_ct_delete(e->ct, 0, 0);
 -- 
 1.8.3.1
 
