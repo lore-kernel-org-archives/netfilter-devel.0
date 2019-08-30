@@ -6,38 +6,38 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 79B53C3A5A4
-	for <netfilter-devel@archiver.kernel.org>; Fri, 30 Aug 2019 04:17:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 16344C3A5A6
+	for <netfilter-devel@archiver.kernel.org>; Fri, 30 Aug 2019 04:17:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5178221897
+	by mail.kernel.org (Postfix) with ESMTP id E1B5321897
 	for <netfilter-devel@archiver.kernel.org>; Fri, 30 Aug 2019 04:17:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726495AbfH3ERa (ORCPT
+        id S1726528AbfH3ERa (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Fri, 30 Aug 2019 00:17:30 -0400
-Received: from m9784.mail.qiye.163.com ([220.181.97.84]:42791 "EHLO
+Received: from m9784.mail.qiye.163.com ([220.181.97.84]:42793 "EHLO
         m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726236AbfH3ER3 (ORCPT
+        with ESMTP id S1725774AbfH3ER3 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Fri, 30 Aug 2019 00:17:29 -0400
 Received: from localhost.localdomain (unknown [123.59.132.129])
-        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id 3B32D417B6;
+        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id 5C703416C6;
         Fri, 30 Aug 2019 12:17:23 +0800 (CST)
 From:   wenxu@ucloud.cn
 To:     pablo@netfilter.org, fw@strlen.de
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next v7 5/8] netfilter:nf_flow_table_core: Support bridge family flow offload
-Date:   Fri, 30 Aug 2019 12:17:19 +0800
-Message-Id: <1567138642-11446-6-git-send-email-wenxu@ucloud.cn>
+Subject: [PATCH nf-next v7 6/8] netfilter:nf_flow_table_ip: Support bridge family flow offload
+Date:   Fri, 30 Aug 2019 12:17:20 +0800
+Message-Id: <1567138642-11446-7-git-send-email-wenxu@ucloud.cn>
 X-Mailer: git-send-email 1.8.3.1
 In-Reply-To: <1567138642-11446-1-git-send-email-wenxu@ucloud.cn>
 References: <1567138642-11446-1-git-send-email-wenxu@ucloud.cn>
 X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVkpVSENJS0tLS0NDTUJKTEpZV1koWU
         FJQjdXWS1ZQUlXWQkOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6NT46CRw6HjgyVjIBMiwCLzNL
-        HjcwCyJVSlVKTk1MSkhDTU9ISE5MVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJSFVO
-        QlVKSElVSklCWVdZCAFZQU1PS043Bg++
-X-HM-Tid: 0a6ce0bdfd3c2086kuqy3b32d417b6
+X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6OC46Pjo*MDg*OTIBMi4fLzkw
+        HAIwCzFVSlVKTk1MSkhDTU9IT0xOVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJSFVO
+        QlVKSElVSklCWVdZCAFZQU9CTk03Bg++
+X-HM-Tid: 0a6ce0bdfdbe2086kuqy5c703416c6
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
@@ -47,183 +47,140 @@ From: wenxu <wenxu@ucloud.cn>
 
 With nf_conntrack_bridge function. The bridge family can do
 conntrack it self. The flow offload function based on the
-conntrack. This patch add bridge family operation in
-nf_flow_table_core
+conntrack. This patch a bridge family operation in
+nf_flow_table_ip.
 
 Signed-off-by: wenxu <wenxu@ucloud.cn>
 ---
-v7: no change
+v7: rebase with upstream fix
 
- include/net/netfilter/nf_flow_table.h | 31 +++++++++++++++++--
- net/netfilter/nf_flow_table_core.c    | 58 +++++++++++++++++++++++++++++------
- 2 files changed, 78 insertions(+), 11 deletions(-)
+ net/netfilter/nf_flow_table_ip.c | 64 ++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 62 insertions(+), 2 deletions(-)
 
-diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
-index f58e09c..8820d17 100644
---- a/include/net/netfilter/nf_flow_table.h
-+++ b/include/net/netfilter/nf_flow_table.h
-@@ -36,8 +36,23 @@ enum flow_offload_tuple_dir {
- 	FLOW_OFFLOAD_DIR_MAX = IP_CT_DIR_MAX
- };
- 
-+enum flow_offload_tuple_type {
-+	FLOW_OFFLOAD_TYPE_INET,
-+	FLOW_OFFLOAD_TYPE_BRIDGE,
-+};
-+
-+struct dst_br_port {
-+	struct net_device *dev;
-+	u16	dst_vlan_tag;
-+	u16	vlan_proto;
-+};
-+
- struct flow_offload_dst {
--	struct dst_entry		*dst_cache;
-+	enum flow_offload_tuple_type type;
-+	union {
-+		struct dst_entry		*dst_cache;
-+		struct dst_br_port		dst_port;
-+	};
- };
- 
- struct flow_offload_tuple {
-@@ -55,6 +70,7 @@ struct flow_offload_tuple {
- 	};
- 
- 	int				iifidx;
-+	u16				vlan_tag;
- 
- 	u8				l3proto;
- 	u8				l4proto;
-@@ -92,8 +108,19 @@ struct nf_flow_route {
- 	} tuple[FLOW_OFFLOAD_DIR_MAX];
- };
- 
-+struct nf_flow_forward {
-+	struct {
-+		struct dst_br_port	dst_port;
-+		u16 vlan_tag;
-+	} tuple[FLOW_OFFLOAD_DIR_MAX];
-+};
-+
- struct nf_flow_dst {
--	struct nf_flow_route route;
-+	enum flow_offload_tuple_type type;
-+	union {
-+		struct nf_flow_route route;
-+		struct nf_flow_forward forward;
-+	};
- };
- 
- struct flow_offload *flow_offload_alloc(struct nf_conn *ct,
-diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
-index 9492c97..9948ab0c 100644
---- a/net/netfilter/nf_flow_table_core.c
-+++ b/net/netfilter/nf_flow_table_core.c
-@@ -36,6 +36,21 @@ struct flow_offload_entry {
- 	return dst;
+diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
+index 1c598af..6336f32 100644
+--- a/net/netfilter/nf_flow_table_ip.c
++++ b/net/netfilter/nf_flow_table_ip.c
+@@ -267,23 +267,59 @@ static int nf_flow_ipv4_xmit(struct flow_offload *flow, struct sk_buff *skb,
+ 	return NF_STOLEN;
  }
  
-+static struct dst_br_port *
-+flow_offload_fill_bridge_dst(struct flow_offload_tuple *ft,
-+			     struct nf_flow_forward *forward,
-+			     enum flow_offload_tuple_dir dir)
++static int  nf_flow_bridge_xmit(struct flow_offload *flow, struct sk_buff *skb,
++				enum flow_offload_tuple_dir dir)
 +{
-+	struct dst_br_port other_dst_port = forward->tuple[!dir].dst_port;
-+	struct dst_br_port dst_port = forward->tuple[dir].dst_port;
++	struct net_device *outdev;
++	u16 vlan_tag, vlan_proto;
 +
-+	ft->iifidx = other_dst_port.dev->ifindex;
-+	ft->dst.dst_port = dst_port;
-+	ft->vlan_tag = forward->tuple[dir].vlan_tag;
++	vlan_tag = flow->tuplehash[dir].tuple.dst.dst_port.dst_vlan_tag;
++	vlan_proto = flow->tuplehash[dir].tuple.dst.dst_port.vlan_proto;
++	outdev = flow->tuplehash[dir].tuple.dst.dst_port.dev;
++	skb->dev = outdev;
 +
-+	return &ft->dst.dst_port;
++	if (vlan_tag)
++		__vlan_hwaccel_put_tag(skb, htons(vlan_proto), vlan_tag);
++	else
++		__vlan_hwaccel_clear_tag(skb);
++
++	skb_push(skb, ETH_HLEN);
++	if (!is_skb_forwardable(skb->dev, skb))
++		goto drop;
++
++	dev_queue_xmit(skb);
++	return NF_STOLEN;
++
++drop:
++	kfree_skb(skb);
++	return NF_STOLEN;
 +}
 +
- static void
- flow_offload_fill_dir(struct flow_offload *flow, struct nf_conn *ct,
- 		      struct nf_flow_dst *flow_dst,
-@@ -43,16 +58,29 @@ struct flow_offload_entry {
+ unsigned int
+ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
+ 			const struct nf_hook_state *state)
  {
- 	struct flow_offload_tuple *ft = &flow->tuplehash[dir].tuple;
- 	struct nf_conntrack_tuple *ctt = &ct->tuplehash[dir].tuple;
-+	struct dst_br_port *dst_port;
- 	struct dst_entry *dst;
+ 	struct flow_offload_tuple_rhash *tuplehash;
+ 	struct nf_flowtable *flow_table = priv;
++	int family = flow_table->type->family;
+ 	struct flow_offload_tuple tuple = {};
+ 	enum flow_offload_tuple_dir dir;
+ 	struct flow_offload *flow;
+ 	unsigned int thoff;
++	int ret;
  
--	dst = flow_offload_fill_inet_dst(ft, &flow_dst->route, dir);
-+	switch (flow_dst->type) {
-+	case FLOW_OFFLOAD_TYPE_INET:
-+		dst = flow_offload_fill_inet_dst(ft, &flow_dst->route, dir);
+ 	if (skb->protocol != htons(ETH_P_IP))
+ 		return NF_ACCEPT;
+ 
++	if (family != NFPROTO_BRIDGE && family != NFPROTO_IPV4)
++		return NF_ACCEPT;
++
+ 	if (nf_flow_tuple_ip(skb, state->in, &tuple) < 0)
+ 		return NF_ACCEPT;
+ 
++	if (family == NFPROTO_BRIDGE && skb_vlan_tag_present(skb))
++		tuple.vlan_tag = skb_vlan_tag_get_id(skb);
++
+ 	tuplehash = flow_offload_lookup(flow_table, &tuple);
+ 	if (tuplehash == NULL)
+ 		return NF_ACCEPT;
+@@ -305,8 +341,16 @@ static int nf_flow_ipv4_xmit(struct flow_offload *flow, struct sk_buff *skb,
+ 		return NF_DROP;
+ 
+ 	flow->timeout = (u32)jiffies + NF_FLOW_TIMEOUT;
++	switch (family) {
++	case NFPROTO_IPV4:
++		ret = nf_flow_ipv4_xmit(flow, skb, state, dir);
 +		break;
-+	case FLOW_OFFLOAD_TYPE_BRIDGE:
-+		dst_port = flow_offload_fill_bridge_dst(ft, &flow_dst->forward, dir);
++	case NFPROTO_BRIDGE:
++		ret = nf_flow_bridge_xmit(flow, skb, dir);
 +		break;
 +	}
-+
-+	ft->dst.type = flow_dst->type;
- 	ft->dir = dir;
  
- 	switch (ctt->src.l3num) {
- 	case NFPROTO_IPV4:
- 		ft->src_v4 = ctt->src.u3.in;
- 		ft->dst_v4 = ctt->dst.u3.in;
--		ft->mtu = ip_dst_mtu_maybe_forward(dst, true);
-+		if (flow_dst->type == FLOW_OFFLOAD_TYPE_INET)
-+			ft->mtu = ip_dst_mtu_maybe_forward(dst, true);
-+		else
-+			ft->mtu = dst_port->dev->mtu;
- 		break;
- 	case NFPROTO_IPV6:
- 		ft->src_v6 = ctt->src.u3.in6;
-@@ -67,13 +95,13 @@ struct flow_offload_entry {
- 	ft->dst_port = ctt->dst.u.tcp.port;
+-	return nf_flow_ipv4_xmit(flow, skb, state, dir);
++	return ret;
  }
+ EXPORT_SYMBOL_GPL(nf_flow_offload_ip_hook);
  
--static int flow_offload_dst_hold(struct nf_flow_dst *flow_dst)
-+static int flow_offload_dst_hold(struct nf_flow_route *route)
+@@ -511,16 +555,24 @@ static int nf_flow_ipv6_xmit(struct flow_offload *flow, struct sk_buff *skb,
  {
--	if (!dst_hold_safe(flow_dst->route.tuple[FLOW_OFFLOAD_DIR_ORIGINAL].dst))
-+	if (!dst_hold_safe(route->tuple[FLOW_OFFLOAD_DIR_ORIGINAL].dst))
- 		return -1;
+ 	struct flow_offload_tuple_rhash *tuplehash;
+ 	struct nf_flowtable *flow_table = priv;
++	int family = flow_table->type->family;
+ 	struct flow_offload_tuple tuple = {};
+ 	enum flow_offload_tuple_dir dir;
+ 	struct flow_offload *flow;
++	int ret;
  
--	if (!dst_hold_safe(flow_dst->route.tuple[FLOW_OFFLOAD_DIR_REPLY].dst)) {
--		dst_release(flow_dst->route.tuple[FLOW_OFFLOAD_DIR_ORIGINAL].dst);
-+	if (!dst_hold_safe(route->tuple[FLOW_OFFLOAD_DIR_REPLY].dst)) {
-+		dst_release(route->tuple[FLOW_OFFLOAD_DIR_ORIGINAL].dst);
- 		return -1;
- 	}
+ 	if (skb->protocol != htons(ETH_P_IPV6))
+ 		return NF_ACCEPT;
  
-@@ -96,7 +124,8 @@ struct flow_offload *
- 
- 	flow = &entry->flow;
- 
--	if (flow_offload_dst_hold(flow_dst))
-+	if (flow_dst->type == FLOW_OFFLOAD_TYPE_INET &&
-+	    flow_offload_dst_hold(&flow_dst->route))
- 		goto err_dst_cache;
- 
- 	entry->ct = ct;
-@@ -170,8 +199,19 @@ static void flow_offload_fixup_ct(struct nf_conn *ct)
- 
- static void flow_offload_dst_release(struct flow_offload *flow)
- {
--	dst_release(flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple.dst.dst_cache);
--	dst_release(flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].tuple.dst.dst_cache);
-+	enum flow_offload_tuple_type type = flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple.dst.type;
++	if (family != NFPROTO_BRIDGE && family != NFPROTO_IPV6)
++		return NF_ACCEPT;
 +
-+	switch (type) {
-+	case FLOW_OFFLOAD_TYPE_INET:
-+		dst_release(flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple.dst.dst_cache);
-+		dst_release(flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].tuple.dst.dst_cache);
+ 	if (nf_flow_tuple_ipv6(skb, state->in, &tuple) < 0)
+ 		return NF_ACCEPT;
+ 
++	if (family == NFPROTO_BRIDGE && skb_vlan_tag_present(skb))
++		tuple.vlan_tag = skb_vlan_tag_get_id(skb);
++
+ 	tuplehash = flow_offload_lookup(flow_table, &tuple);
+ 	if (tuplehash == NULL)
+ 		return NF_ACCEPT;
+@@ -542,7 +594,15 @@ static int nf_flow_ipv6_xmit(struct flow_offload *flow, struct sk_buff *skb,
+ 		return NF_DROP;
+ 
+ 	flow->timeout = (u32)jiffies + NF_FLOW_TIMEOUT;
++	switch (family) {
++	case NFPROTO_IPV6:
++		ret = nf_flow_ipv6_xmit(flow, skb, state, dir);
 +		break;
-+
-+	case FLOW_OFFLOAD_TYPE_BRIDGE:
-+		dev_put(flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple.dst.dst_port.dev);
-+		dev_put(flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].tuple.dst.dst_port.dev);
++	case NFPROTO_BRIDGE:
++		ret = nf_flow_bridge_xmit(flow, skb, dir);
 +		break;
 +	}
- }
  
- void flow_offload_free(struct flow_offload *flow)
+-	return nf_flow_ipv6_xmit(flow, skb, state, dir);
++	return ret;
+ }
+ EXPORT_SYMBOL_GPL(nf_flow_offload_ipv6_hook);
 -- 
 1.8.3.1
 
