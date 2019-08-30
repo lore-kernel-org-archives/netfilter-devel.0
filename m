@@ -6,45 +6,45 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E3F01C3A5A6
-	for <netfilter-devel@archiver.kernel.org>; Fri, 30 Aug 2019 12:07:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 58365C3A5A4
+	for <netfilter-devel@archiver.kernel.org>; Fri, 30 Aug 2019 12:07:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BFE3321897
-	for <netfilter-devel@archiver.kernel.org>; Fri, 30 Aug 2019 12:07:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2A89C21897
+	for <netfilter-devel@archiver.kernel.org>; Fri, 30 Aug 2019 12:07:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728166AbfH3MHR (ORCPT
+        id S1728186AbfH3MHR (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Fri, 30 Aug 2019 08:07:17 -0400
-Received: from correo.us.es ([193.147.175.20]:36296 "EHLO mail.us.es"
+Received: from correo.us.es ([193.147.175.20]:36330 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727635AbfH3MHP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 30 Aug 2019 08:07:15 -0400
+        id S1728164AbfH3MHR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 30 Aug 2019 08:07:17 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 2F7ACD2BA3
-        for <netfilter-devel@vger.kernel.org>; Fri, 30 Aug 2019 14:07:12 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 94263D2AFF
+        for <netfilter-devel@vger.kernel.org>; Fri, 30 Aug 2019 14:07:13 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 1FAAADA4CA
-        for <netfilter-devel@vger.kernel.org>; Fri, 30 Aug 2019 14:07:12 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 7B2F6B7FF2
+        for <netfilter-devel@vger.kernel.org>; Fri, 30 Aug 2019 14:07:13 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 1550ADA840; Fri, 30 Aug 2019 14:07:12 +0200 (CEST)
+        id 70DA3B7FF6; Fri, 30 Aug 2019 14:07:13 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id EFF7CDA4CA;
-        Fri, 30 Aug 2019 14:07:09 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 65A25FB362;
+        Fri, 30 Aug 2019 14:07:11 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Fri, 30 Aug 2019 14:07:09 +0200 (CEST)
+ Fri, 30 Aug 2019 14:07:11 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id C5DE24251481;
-        Fri, 30 Aug 2019 14:07:09 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 32B694251481;
+        Fri, 30 Aug 2019 14:07:11 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 3/5] netfilter: conntrack: make sysctls per-namespace again
-Date:   Fri, 30 Aug 2019 14:07:02 +0200
-Message-Id: <20190830120704.6147-4-pablo@netfilter.org>
+Subject: [PATCH 5/5] netfilter: nft_meta_bridge: Fix get NFT_META_BRI_IIFVPROTO in network byteorder
+Date:   Fri, 30 Aug 2019 14:07:04 +0200
+Message-Id: <20190830120704.6147-6-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20190830120704.6147-1-pablo@netfilter.org>
 References: <20190830120704.6147-1-pablo@netfilter.org>
@@ -54,39 +54,31 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+From: wenxu <wenxu@ucloud.cn>
 
-When I merged the extension sysctl tables with the main one I forgot to
-reset them on netns creation.  They currently read/write init_net settings.
+Get the vlan_proto of ingress bridge in network byteorder as userspace
+expects. Otherwise this is inconsistent with NFT_META_PROTOCOL.
 
-Fixes: d912dec12428 ("netfilter: conntrack: merge acct and helper sysctl table with main one")
-Fixes: cb2833ed0044 ("netfilter: conntrack: merge ecache and timestamp sysctl tables with main one")
-Reported-by: Shmulik Ladkani <shmulik.ladkani@gmail.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Fixes: 2a3a93ef0ba5 ("netfilter: nft_meta_bridge: Add NFT_META_BRI_IIFVPROTO support")
+Signed-off-by: wenxu <wenxu@ucloud.cn>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_conntrack_standalone.c | 5 +++++
- 1 file changed, 5 insertions(+)
+ net/bridge/netfilter/nft_meta_bridge.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
-index e0d392cb3075..0006503d2da9 100644
---- a/net/netfilter/nf_conntrack_standalone.c
-+++ b/net/netfilter/nf_conntrack_standalone.c
-@@ -1037,9 +1037,14 @@ static int nf_conntrack_standalone_init_sysctl(struct net *net)
- 	table[NF_SYSCTL_CT_COUNT].data = &net->ct.count;
- 	table[NF_SYSCTL_CT_CHECKSUM].data = &net->ct.sysctl_checksum;
- 	table[NF_SYSCTL_CT_LOG_INVALID].data = &net->ct.sysctl_log_invalid;
-+	table[NF_SYSCTL_CT_ACCT].data = &net->ct.sysctl_acct;
-+	table[NF_SYSCTL_CT_HELPER].data = &net->ct.sysctl_auto_assign_helper;
- #ifdef CONFIG_NF_CONNTRACK_EVENTS
- 	table[NF_SYSCTL_CT_EVENTS].data = &net->ct.sysctl_events;
- #endif
-+#ifdef CONFIG_NF_CONNTRACK_TIMESTAMP
-+	table[NF_SYSCTL_CT_TIMESTAMP].data = &net->ct.sysctl_tstamp;
-+#endif
- 	table[NF_SYSCTL_CT_PROTO_TIMEOUT_GENERIC].data = &nf_generic_pernet(net)->timeout;
- 	table[NF_SYSCTL_CT_PROTO_TIMEOUT_ICMP].data = &nf_icmp_pernet(net)->timeout;
- 	table[NF_SYSCTL_CT_PROTO_TIMEOUT_ICMPV6].data = &nf_icmpv6_pernet(net)->timeout;
+diff --git a/net/bridge/netfilter/nft_meta_bridge.c b/net/bridge/netfilter/nft_meta_bridge.c
+index 1804e867f715..7c9e92b2f806 100644
+--- a/net/bridge/netfilter/nft_meta_bridge.c
++++ b/net/bridge/netfilter/nft_meta_bridge.c
+@@ -53,7 +53,7 @@ static void nft_meta_bridge_get_eval(const struct nft_expr *expr,
+ 			goto err;
+ 
+ 		br_vlan_get_proto(br_dev, &p_proto);
+-		nft_reg_store16(dest, p_proto);
++		nft_reg_store16(dest, htons(p_proto));
+ 		return;
+ 	}
+ 	default:
 -- 
 2.11.0
 
