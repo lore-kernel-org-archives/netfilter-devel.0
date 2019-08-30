@@ -6,45 +6,45 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B0E2C3A5A7
-	for <netfilter-devel@archiver.kernel.org>; Fri, 30 Aug 2019 12:07:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E3F01C3A5A6
+	for <netfilter-devel@archiver.kernel.org>; Fri, 30 Aug 2019 12:07:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0BBE821721
-	for <netfilter-devel@archiver.kernel.org>; Fri, 30 Aug 2019 12:07:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BFE3321897
+	for <netfilter-devel@archiver.kernel.org>; Fri, 30 Aug 2019 12:07:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728135AbfH3MHO (ORCPT
+        id S1728166AbfH3MHR (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 30 Aug 2019 08:07:14 -0400
-Received: from correo.us.es ([193.147.175.20]:36268 "EHLO mail.us.es"
+        Fri, 30 Aug 2019 08:07:17 -0400
+Received: from correo.us.es ([193.147.175.20]:36296 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727928AbfH3MHO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 30 Aug 2019 08:07:14 -0400
+        id S1727635AbfH3MHP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 30 Aug 2019 08:07:15 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id EFD0AD2CA7
-        for <netfilter-devel@vger.kernel.org>; Fri, 30 Aug 2019 14:07:10 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 2F7ACD2BA3
+        for <netfilter-devel@vger.kernel.org>; Fri, 30 Aug 2019 14:07:12 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id DDB98CA0F3
-        for <netfilter-devel@vger.kernel.org>; Fri, 30 Aug 2019 14:07:10 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 1FAAADA4CA
+        for <netfilter-devel@vger.kernel.org>; Fri, 30 Aug 2019 14:07:12 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id DCFCFD1911; Fri, 30 Aug 2019 14:07:10 +0200 (CEST)
+        id 1550ADA840; Fri, 30 Aug 2019 14:07:12 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 8EDD8FF6CC;
-        Fri, 30 Aug 2019 14:07:08 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id EFF7CDA4CA;
+        Fri, 30 Aug 2019 14:07:09 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Fri, 30 Aug 2019 14:07:08 +0200 (CEST)
+ Fri, 30 Aug 2019 14:07:09 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 643414251481;
-        Fri, 30 Aug 2019 14:07:08 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id C5DE24251481;
+        Fri, 30 Aug 2019 14:07:09 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 1/5] netfilter: xt_physdev: Fix spurious error message in physdev_mt_check
-Date:   Fri, 30 Aug 2019 14:07:00 +0200
-Message-Id: <20190830120704.6147-2-pablo@netfilter.org>
+Subject: [PATCH 3/5] netfilter: conntrack: make sysctls per-namespace again
+Date:   Fri, 30 Aug 2019 14:07:02 +0200
+Message-Id: <20190830120704.6147-4-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20190830120704.6147-1-pablo@netfilter.org>
 References: <20190830120704.6147-1-pablo@netfilter.org>
@@ -54,41 +54,39 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Todd Seidelmann <tseidelmann@linode.com>
+From: Florian Westphal <fw@strlen.de>
 
-Simplify the check in physdev_mt_check() to emit an error message
-only when passed an invalid chain (ie, NF_INET_LOCAL_OUT).
-This avoids cluttering up the log with errors against valid rules.
+When I merged the extension sysctl tables with the main one I forgot to
+reset them on netns creation.  They currently read/write init_net settings.
 
-For large/heavily modified rulesets, current behavior can quickly
-overwhelm the ring buffer, because this function gets called on
-every change, regardless of the rule that was changed.
-
-Signed-off-by: Todd Seidelmann <tseidelmann@linode.com>
-Acked-by: Florian Westphal <fw@strlen.de>
+Fixes: d912dec12428 ("netfilter: conntrack: merge acct and helper sysctl table with main one")
+Fixes: cb2833ed0044 ("netfilter: conntrack: merge ecache and timestamp sysctl tables with main one")
+Reported-by: Shmulik Ladkani <shmulik.ladkani@gmail.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/xt_physdev.c | 6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ net/netfilter/nf_conntrack_standalone.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff --git a/net/netfilter/xt_physdev.c b/net/netfilter/xt_physdev.c
-index ead7c6022208..b92b22ce8abd 100644
---- a/net/netfilter/xt_physdev.c
-+++ b/net/netfilter/xt_physdev.c
-@@ -101,11 +101,9 @@ static int physdev_mt_check(const struct xt_mtchk_param *par)
- 	if (info->bitmask & (XT_PHYSDEV_OP_OUT | XT_PHYSDEV_OP_ISOUT) &&
- 	    (!(info->bitmask & XT_PHYSDEV_OP_BRIDGED) ||
- 	     info->invert & XT_PHYSDEV_OP_BRIDGED) &&
--	    par->hook_mask & ((1 << NF_INET_LOCAL_OUT) |
--	    (1 << NF_INET_FORWARD) | (1 << NF_INET_POST_ROUTING))) {
-+	    par->hook_mask & (1 << NF_INET_LOCAL_OUT)) {
- 		pr_info_ratelimited("--physdev-out and --physdev-is-out only supported in the FORWARD and POSTROUTING chains with bridged traffic\n");
--		if (par->hook_mask & (1 << NF_INET_LOCAL_OUT))
--			return -EINVAL;
-+		return -EINVAL;
- 	}
- 
- 	if (!brnf_probed) {
+diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
+index e0d392cb3075..0006503d2da9 100644
+--- a/net/netfilter/nf_conntrack_standalone.c
++++ b/net/netfilter/nf_conntrack_standalone.c
+@@ -1037,9 +1037,14 @@ static int nf_conntrack_standalone_init_sysctl(struct net *net)
+ 	table[NF_SYSCTL_CT_COUNT].data = &net->ct.count;
+ 	table[NF_SYSCTL_CT_CHECKSUM].data = &net->ct.sysctl_checksum;
+ 	table[NF_SYSCTL_CT_LOG_INVALID].data = &net->ct.sysctl_log_invalid;
++	table[NF_SYSCTL_CT_ACCT].data = &net->ct.sysctl_acct;
++	table[NF_SYSCTL_CT_HELPER].data = &net->ct.sysctl_auto_assign_helper;
+ #ifdef CONFIG_NF_CONNTRACK_EVENTS
+ 	table[NF_SYSCTL_CT_EVENTS].data = &net->ct.sysctl_events;
+ #endif
++#ifdef CONFIG_NF_CONNTRACK_TIMESTAMP
++	table[NF_SYSCTL_CT_TIMESTAMP].data = &net->ct.sysctl_tstamp;
++#endif
+ 	table[NF_SYSCTL_CT_PROTO_TIMEOUT_GENERIC].data = &nf_generic_pernet(net)->timeout;
+ 	table[NF_SYSCTL_CT_PROTO_TIMEOUT_ICMP].data = &nf_icmp_pernet(net)->timeout;
+ 	table[NF_SYSCTL_CT_PROTO_TIMEOUT_ICMPV6].data = &nf_icmpv6_pernet(net)->timeout;
 -- 
 2.11.0
 
