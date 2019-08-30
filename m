@@ -2,49 +2,48 @@ Return-Path: <SRS0=JGmF=W2=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
+X-Spam-Status: No, score=-7.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 659F7C3A5A4
-	for <netfilter-devel@archiver.kernel.org>; Fri, 30 Aug 2019 12:14:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3DB3FC3A5A4
+	for <netfilter-devel@archiver.kernel.org>; Fri, 30 Aug 2019 13:30:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 050F621897
-	for <netfilter-devel@archiver.kernel.org>; Fri, 30 Aug 2019 12:14:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D344022CE9
+	for <netfilter-devel@archiver.kernel.org>; Fri, 30 Aug 2019 13:30:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728191AbfH3MN7 (ORCPT
+        id S1727729AbfH3Naw (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 30 Aug 2019 08:13:59 -0400
-Received: from mga11.intel.com ([192.55.52.93]:61484 "EHLO mga11.intel.com"
+        Fri, 30 Aug 2019 09:30:52 -0400
+Received: from mga03.intel.com ([134.134.136.65]:27229 "EHLO mga03.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727386AbfH3MN7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 30 Aug 2019 08:13:59 -0400
-X-Amp-Result: UNKNOWN
-X-Amp-Original-Verdict: FILE UNKNOWN
+        id S1727135AbfH3Naw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 30 Aug 2019 09:30:52 -0400
+X-Amp-Result: UNSCANNABLE
 X-Amp-File-Uploaded: False
-Received: from fmsmga003.fm.intel.com ([10.253.24.29])
-  by fmsmga102.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 30 Aug 2019 05:13:57 -0700
+Received: from orsmga004.jf.intel.com ([10.7.209.38])
+  by orsmga103.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 30 Aug 2019 06:30:47 -0700
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.64,447,1559545200"; 
-   d="gz'50?scan'50,208,50";a="188860675"
+   d="gz'50?scan'50,208,50";a="332858649"
 Received: from lkp-server01.sh.intel.com (HELO lkp-server01) ([10.239.97.150])
-  by FMSMGA003.fm.intel.com with ESMTP; 30 Aug 2019 05:13:55 -0700
+  by orsmga004.jf.intel.com with ESMTP; 30 Aug 2019 06:30:45 -0700
 Received: from kbuild by lkp-server01 with local (Exim 4.89)
         (envelope-from <lkp@intel.com>)
-        id 1i3fms-000AXd-KT; Fri, 30 Aug 2019 20:13:54 +0800
-Date:   Fri, 30 Aug 2019 20:12:42 +0800
+        id 1i3gzE-000FEU-Dn; Fri, 30 Aug 2019 21:30:44 +0800
+Date:   Fri, 30 Aug 2019 21:30:37 +0800
 From:   kbuild test robot <lkp@intel.com>
 To:     wenxu@ucloud.cn
 Cc:     kbuild-all@01.org, pablo@netfilter.org, fw@strlen.de,
         netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf-next v7 5/8] netfilter:nf_flow_table_core: Support
+Subject: Re: [PATCH nf-next v7 6/8] netfilter:nf_flow_table_ip: Support
  bridge family flow offload
-Message-ID: <201908302019.oGMJ7phJ%lkp@intel.com>
-References: <1567138642-11446-6-git-send-email-wenxu@ucloud.cn>
+Message-ID: <201908302126.NcBih4Y8%lkp@intel.com>
+References: <1567138642-11446-7-git-send-email-wenxu@ucloud.cn>
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="wwtb37jyvpt7vluv"
+Content-Type: multipart/mixed; boundary="wj72ly6pvvz4afli"
 Content-Disposition: inline
-In-Reply-To: <1567138642-11446-6-git-send-email-wenxu@ucloud.cn>
+In-Reply-To: <1567138642-11446-7-git-send-email-wenxu@ucloud.cn>
 X-Patchwork-Hint: ignore
 User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -53,7 +52,7 @@ List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
 
---wwtb37jyvpt7vluv
+--wj72ly6pvvz4afli
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
@@ -79,132 +78,40 @@ http://gcc.gnu.org/wiki/Better_Uninitialized_Warnings
 
 All warnings (new ones prefixed by >>):
 
-   In file included from net//netfilter/nf_flow_table_core.c:9:0:
-   net//netfilter/nf_flow_table_core.c: In function 'flow_offload_fill_dir':
->> include/net/ip6_route.h:322:26: warning: 'dst' may be used uninitialized in this function [-Wmaybe-uninitialized]
-     idev = __in6_dev_get(dst->dev);
-                          ~~~^~~~~
-   net//netfilter/nf_flow_table_core.c:62:20: note: 'dst' was declared here
-     struct dst_entry *dst;
-                       ^~~
->> net//netfilter/nf_flow_table_core.c:83:22: warning: 'dst_port' may be used uninitialized in this function [-Wmaybe-uninitialized]
-       ft->mtu = dst_port->dev->mtu;
-                 ~~~~~~~~^~~~~
---
-   In file included from net/netfilter/nf_flow_table_core.c:9:0:
-   net/netfilter/nf_flow_table_core.c: In function 'flow_offload_fill_dir':
->> include/net/ip6_route.h:322:26: warning: 'dst' may be used uninitialized in this function [-Wmaybe-uninitialized]
-     idev = __in6_dev_get(dst->dev);
-                          ~~~^~~~~
-   net/netfilter/nf_flow_table_core.c:62:20: note: 'dst' was declared here
-     struct dst_entry *dst;
-                       ^~~
-   net/netfilter/nf_flow_table_core.c:83:22: warning: 'dst_port' may be used uninitialized in this function [-Wmaybe-uninitialized]
-       ft->mtu = dst_port->dev->mtu;
-                 ~~~~~~~~^~~~~
+   net/netfilter/nf_flow_table_ip.c: In function 'nf_flow_offload_ipv6_hook':
+>> net/netfilter/nf_flow_table_ip.c:562:6: warning: 'ret' may be used uninitialized in this function [-Wmaybe-uninitialized]
+     int ret;
+         ^~~
+   net/netfilter/nf_flow_table_ip.c: In function 'nf_flow_offload_ip_hook':
+   net/netfilter/nf_flow_table_ip.c:309:6: warning: 'ret' may be used uninitialized in this function [-Wmaybe-uninitialized]
+     int ret;
+         ^~~
 
-vim +/dst_port +83 net//netfilter/nf_flow_table_core.c
+vim +/ret +562 net/netfilter/nf_flow_table_ip.c
 
-   > 9	#include <net/ip6_route.h>
-    10	#include <net/netfilter/nf_tables.h>
-    11	#include <net/netfilter/nf_flow_table.h>
-    12	#include <net/netfilter/nf_conntrack.h>
-    13	#include <net/netfilter/nf_conntrack_core.h>
-    14	#include <net/netfilter/nf_conntrack_tuple.h>
-    15	
-    16	struct flow_offload_entry {
-    17		struct flow_offload	flow;
-    18		struct nf_conn		*ct;
-    19		struct rcu_head		rcu_head;
-    20	};
-    21	
-    22	static DEFINE_MUTEX(flowtable_lock);
-    23	static LIST_HEAD(flowtables);
-    24	
-    25	static struct dst_entry *
-    26	flow_offload_fill_inet_dst(struct flow_offload_tuple *ft,
-    27				   struct nf_flow_route *route,
-    28				   enum flow_offload_tuple_dir dir)
-    29	{
-    30		struct dst_entry *other_dst = route->tuple[!dir].dst;
-    31		struct dst_entry *dst = route->tuple[dir].dst;
-    32	
-    33		ft->iifidx = other_dst->dev->ifindex;
-    34		ft->dst.dst_cache = dst;
-    35	
-    36		return dst;
-    37	}
-    38	
-    39	static struct dst_br_port *
-    40	flow_offload_fill_bridge_dst(struct flow_offload_tuple *ft,
-    41				     struct nf_flow_forward *forward,
-    42				     enum flow_offload_tuple_dir dir)
-    43	{
-    44		struct dst_br_port other_dst_port = forward->tuple[!dir].dst_port;
-    45		struct dst_br_port dst_port = forward->tuple[dir].dst_port;
-    46	
-    47		ft->iifidx = other_dst_port.dev->ifindex;
-    48		ft->dst.dst_port = dst_port;
-    49		ft->vlan_tag = forward->tuple[dir].vlan_tag;
-    50	
-    51		return &ft->dst.dst_port;
-    52	}
-    53	
-    54	static void
-    55	flow_offload_fill_dir(struct flow_offload *flow, struct nf_conn *ct,
-    56			      struct nf_flow_dst *flow_dst,
-    57			      enum flow_offload_tuple_dir dir)
-    58	{
-    59		struct flow_offload_tuple *ft = &flow->tuplehash[dir].tuple;
-    60		struct nf_conntrack_tuple *ctt = &ct->tuplehash[dir].tuple;
-    61		struct dst_br_port *dst_port;
-    62		struct dst_entry *dst;
-    63	
-    64		switch (flow_dst->type) {
-    65		case FLOW_OFFLOAD_TYPE_INET:
-    66			dst = flow_offload_fill_inet_dst(ft, &flow_dst->route, dir);
-    67			break;
-    68		case FLOW_OFFLOAD_TYPE_BRIDGE:
-    69			dst_port = flow_offload_fill_bridge_dst(ft, &flow_dst->forward, dir);
-    70			break;
-    71		}
-    72	
-    73		ft->dst.type = flow_dst->type;
-    74		ft->dir = dir;
-    75	
-    76		switch (ctt->src.l3num) {
-    77		case NFPROTO_IPV4:
-    78			ft->src_v4 = ctt->src.u3.in;
-    79			ft->dst_v4 = ctt->dst.u3.in;
-    80			if (flow_dst->type == FLOW_OFFLOAD_TYPE_INET)
-    81				ft->mtu = ip_dst_mtu_maybe_forward(dst, true);
-    82			else
-  > 83				ft->mtu = dst_port->dev->mtu;
-    84			break;
-    85		case NFPROTO_IPV6:
-    86			ft->src_v6 = ctt->src.u3.in6;
-    87			ft->dst_v6 = ctt->dst.u3.in6;
-    88			ft->mtu = ip6_dst_mtu_forward(dst);
-    89			break;
-    90		}
-    91	
-    92		ft->l3proto = ctt->src.l3num;
-    93		ft->l4proto = ctt->dst.protonum;
-    94		ft->src_port = ctt->src.u.tcp.port;
-    95		ft->dst_port = ctt->dst.u.tcp.port;
-    96	}
-    97	
+   551	
+   552	unsigned int
+   553	nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
+   554				  const struct nf_hook_state *state)
+   555	{
+   556		struct flow_offload_tuple_rhash *tuplehash;
+   557		struct nf_flowtable *flow_table = priv;
+   558		int family = flow_table->type->family;
+   559		struct flow_offload_tuple tuple = {};
+   560		enum flow_offload_tuple_dir dir;
+   561		struct flow_offload *flow;
+ > 562		int ret;
 
 ---
 0-DAY kernel test infrastructure                Open Source Technology Center
 https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
 
---wwtb37jyvpt7vluv
+--wj72ly6pvvz4afli
 Content-Type: application/gzip
 Content-Disposition: attachment; filename=".config.gz"
 Content-Transfer-Encoding: base64
 
-H4sICH8LaV0AAy5jb25maWcAlDzJctw4svf+igr3pfvgbkle2u+90AEkQRZcJMEGwFKVLwy1
+H4sICNMiaV0AAy5jb25maWcAlDzJctw4svf+igr3pfvgbkle2u+90AEkQRZcJMEGwFKVLwy1
 XPYoxpI8Wmbsv3+ZAJfEUmpPx8RYzEzsuSdQP//084o9Pd7dXD5eX11++fJ99flwe7i/fDx8
 XH26/nL4v1UhV600K14I8xsQ19e3T99+//bu7fD29erNb69+O3l5f/VmtTnc3x6+rPK720/X
 n5+g/fXd7U8//wT/+xmAN1+hq/v/XX2+unr5x+qX4vDX9eXt6o/fXkPr09Nf3V9Am8u2FNWQ
@@ -1506,4 +1413,4 @@ qSbyCperiQRYTLcL+ft0LKtsyGeyjKM0EsZ+Qq9h5aqxAiqZgwceor1o4fNbl3jmPDJdkl0B
 DDvNbe1RzTlWlngUXvwe5ryAH+uULfreQXXBlDB8rDa/xrBwVVeQHeTQjgHXl/akikaWxyXb
 K4+0AKezQQr8h65ZioAuOrC5/wca36M0A2YEAA==
 
---wwtb37jyvpt7vluv--
+--wj72ly6pvvz4afli--
