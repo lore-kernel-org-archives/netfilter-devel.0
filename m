@@ -2,67 +2,114 @@ Return-Path: <SRS0=JGmF=W2=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 703C1C3A59F
-	for <netfilter-devel@archiver.kernel.org>; Fri, 30 Aug 2019 00:48:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 507CCC3A59F
+	for <netfilter-devel@archiver.kernel.org>; Fri, 30 Aug 2019 00:53:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 43ED520673
-	for <netfilter-devel@archiver.kernel.org>; Fri, 30 Aug 2019 00:48:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 299CD2173E
+	for <netfilter-devel@archiver.kernel.org>; Fri, 30 Aug 2019 00:53:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727066AbfH3Asv (ORCPT
+        id S1727620AbfH3Axu (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 29 Aug 2019 20:48:51 -0400
-Received: from correo.us.es ([193.147.175.20]:54676 "EHLO mail.us.es"
+        Thu, 29 Aug 2019 20:53:50 -0400
+Received: from correo.us.es ([193.147.175.20]:54954 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726384AbfH3Asu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 29 Aug 2019 20:48:50 -0400
+        id S1727697AbfH3Axu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 29 Aug 2019 20:53:50 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id C6D8F27F8AF
-        for <netfilter-devel@vger.kernel.org>; Fri, 30 Aug 2019 02:48:45 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id D796927F8B7
+        for <netfilter-devel@vger.kernel.org>; Fri, 30 Aug 2019 02:53:46 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id B96F4DA4CA
-        for <netfilter-devel@vger.kernel.org>; Fri, 30 Aug 2019 02:48:45 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C046CA6B4
+        for <netfilter-devel@vger.kernel.org>; Fri, 30 Aug 2019 02:53:46 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id AF367DA8E8; Fri, 30 Aug 2019 02:48:45 +0200 (CEST)
+        id AD9F3D1929; Fri, 30 Aug 2019 02:53:46 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 99730DA72F;
-        Fri, 30 Aug 2019 02:48:43 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 99E09DA801;
+        Fri, 30 Aug 2019 02:53:44 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Fri, 30 Aug 2019 02:48:43 +0200 (CEST)
+ Fri, 30 Aug 2019 02:53:44 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (sys.soleta.eu [212.170.55.40])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 70B754265A5A;
-        Fri, 30 Aug 2019 02:48:43 +0200 (CEST)
-Date:   Fri, 30 Aug 2019 02:48:44 +0200
+Received: from salvia.here (sys.soleta.eu [212.170.55.40])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id 4939E4265A5A;
+        Fri, 30 Aug 2019 02:53:44 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     wenxu@ucloud.cn
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf] netfilter: nft_meta_bridge: Fix get
- NFT_META_BRI_IIFVPROTO in network byteorder
-Message-ID: <20190830004844.bngqog2jt5oo3plk@salvia>
-References: <1567004553-15231-1-git-send-email-wenxu@ucloud.cn>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1567004553-15231-1-git-send-email-wenxu@ucloud.cn>
-User-Agent: NeoMutt/20170113 (1.7.2)
+To:     netfilter-devel@vger.kernel.org
+Cc:     davem@davemloft.net, netdev@vger.kernel.org, vishal@chelsio.com,
+        jakub.kicinski@netronome.com, saeedm@mellanox.com, jiri@resnulli.us
+Subject: [PATCH 0/4 net-next] flow_offload: update mangle action representation
+Date:   Fri, 30 Aug 2019 02:53:32 +0200
+Message-Id: <20190830005336.23604-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.11.0
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Aug 28, 2019 at 11:02:33PM +0800, wenxu@ucloud.cn wrote:
-> From: wenxu <wenxu@ucloud.cn>
-> 
-> Get the vlan_proto of ingress bridge in network byteorder
+Hi,
 
-Applied, thanks.
+This patch updates the mangle action representation:
+
+Patch 1) Undo bitwise NOT operation on the mangle mask (coming from tc
+	 pedit userspace).
+
+Patch 2) mangle value &= mask from the front-end side.
+
+Patch 3) adjust offset, length and coalesce consecutive actions.
+
+Patch 4) add payload mangling for netfilter.
+
+After this patchset:
+
+* Offsets do not need to be on the 32-bits boundaries anymore. This
+  patchset adds front-end code to adjust the offset and length coming
+  from the tc pedit representation, so drivers get an exact header field
+  offset and length.
+
+* The front-end coalesces consecutive pedit actions into one single
+  word, so drivers can mangle IPv6 and ethernet address fields in one
+  single go.
+
+On the driver side, diffstat -t shows that drivers code to deal with
+payload mangling gets simplified:
+
+	INSERTED,DELETED,MODIFIED,FILENAME
+	46,116,0,drivers/net/ethernet/chelsio/cxgb4/cxgb4_tc_flower.c (-70 LOC)
+	12,28,0,drivers/net/ethernet/chelsio/cxgb4/cxgb4_tc_flower.h (-16 LOC)
+	30,60,0,drivers/net/ethernet/mellanox/mlx5/core/en_tc.c (-30 LOC)
+	89,111,0,drivers/net/ethernet/netronome/nfp/flower/action.c (-22 LOC)
+
+While, on the front-end side the balance is the following:
+
+	122,21,0,net/sched/cls_api.c (+101 LOC)
+
+Please, apply.
+
+P.S: This patchset comes after the "netfilter: payload mangling offload
+     support" series, although it has been heavily reworked.
+
+Pablo Neira Ayuso (4):
+  net: flow_offload: flip mangle action mask
+  net: flow_offload: bitwise AND on mangle action value field
+  net: flow_offload: mangle action at byte level
+  netfilter: nft_payload: packet mangling offload support
+
+ .../net/ethernet/chelsio/cxgb4/cxgb4_tc_flower.c   | 163 +++++------------
+ .../net/ethernet/chelsio/cxgb4/cxgb4_tc_flower.h   |  40 ++--
+ drivers/net/ethernet/mellanox/mlx5/core/en_tc.c    |  90 +++------
+ drivers/net/ethernet/netronome/nfp/flower/action.c | 201 +++++++++------------
+ include/net/flow_offload.h                         |   7 +-
+ net/netfilter/nft_payload.c                        |  72 ++++++++
+ net/sched/cls_api.c                                | 142 +++++++++++++--
+ 7 files changed, 376 insertions(+), 339 deletions(-)
+
+-- 
+2.11.0
+
