@@ -2,122 +2,88 @@ Return-Path: <SRS0=JGmF=W2=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 681ECC3A59B
-	for <netfilter-devel@archiver.kernel.org>; Fri, 30 Aug 2019 18:18:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 68B3DC3A59B
+	for <netfilter-devel@archiver.kernel.org>; Fri, 30 Aug 2019 20:55:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4A15C2342E
-	for <netfilter-devel@archiver.kernel.org>; Fri, 30 Aug 2019 18:18:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 39B8523429
+	for <netfilter-devel@archiver.kernel.org>; Fri, 30 Aug 2019 20:55:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727991AbfH3SSw (ORCPT
+        id S1728138AbfH3Uzv (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 30 Aug 2019 14:18:52 -0400
-Received: from mx0a-001b2d01.pphosted.com ([148.163.156.1]:46180 "EHLO
-        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727246AbfH3SSw (ORCPT
+        Fri, 30 Aug 2019 16:55:51 -0400
+Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:58868 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727992AbfH3Uzv (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 30 Aug 2019 14:18:52 -0400
-Received: from pps.filterd (m0098393.ppops.net [127.0.0.1])
-        by mx0a-001b2d01.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id x7UI2gaZ111190;
-        Fri, 30 Aug 2019 14:17:08 -0400
-Received: from ppma01wdc.us.ibm.com (fd.55.37a9.ip4.static.sl-reverse.com [169.55.85.253])
-        by mx0a-001b2d01.pphosted.com with ESMTP id 2uq77fb9wc-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Fri, 30 Aug 2019 14:17:08 -0400
-Received: from pps.filterd (ppma01wdc.us.ibm.com [127.0.0.1])
-        by ppma01wdc.us.ibm.com (8.16.0.27/8.16.0.27) with SMTP id x7UI4pdi023363;
-        Fri, 30 Aug 2019 18:17:06 GMT
-Received: from b01cxnp23032.gho.pok.ibm.com (b01cxnp23032.gho.pok.ibm.com [9.57.198.27])
-        by ppma01wdc.us.ibm.com with ESMTP id 2ujvv6v7ad-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Fri, 30 Aug 2019 18:17:06 +0000
-Received: from b01ledav005.gho.pok.ibm.com (b01ledav005.gho.pok.ibm.com [9.57.199.110])
-        by b01cxnp23032.gho.pok.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id x7UIH6Pj53084484
-        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Fri, 30 Aug 2019 18:17:06 GMT
-Received: from b01ledav005.gho.pok.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id 76867AE05F;
-        Fri, 30 Aug 2019 18:17:06 +0000 (GMT)
-Received: from b01ledav005.gho.pok.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id 13AC7AE064;
-        Fri, 30 Aug 2019 18:17:04 +0000 (GMT)
-Received: from LeoBras (unknown [9.85.151.141])
-        by b01ledav005.gho.pok.ibm.com (Postfix) with ESMTP;
-        Fri, 30 Aug 2019 18:17:03 +0000 (GMT)
-Message-ID: <77102bfec450d92c58d572a0af3981f7171e67e9.camel@linux.ibm.com>
-Subject: Re: [PATCH v2 1/1] netfilter: nf_tables: fib: Drop IPV6 packages if
- IPv6 is disabled on boot
-From:   Leonardo Bras <leonardo@linux.ibm.com>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Fri, 30 Aug 2019 16:55:51 -0400
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1i3nvp-0006RE-4L; Fri, 30 Aug 2019 22:55:41 +0200
+Date:   Fri, 30 Aug 2019 22:55:41 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     Leonardo Bras <leonardo@linux.ibm.com>
+Cc:     netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        bridge@lists.linux-foundation.org, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
         Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>
-Date:   Fri, 30 Aug 2019 15:16:59 -0300
-In-Reply-To: <20190829205832.GM20113@breakpoint.cc>
-References: <20190821141505.2394-1-leonardo@linux.ibm.com>
-         <db0f02c5b1a995fde174f036540a3d11008cf116.camel@linux.ibm.com>
-         <b6585989069fd832a65b73d1c4f4319a10714165.camel@linux.ibm.com>
-         <20190829205832.GM20113@breakpoint.cc>
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-LXuXxsj4EfX4WwucxL0p"
-User-Agent: Evolution 3.30.5 (3.30.5-1.fc29) 
+        Florian Westphal <fw@strlen.de>,
+        Roopa Prabhu <roopa@cumulusnetworks.com>,
+        Nikolay Aleksandrov <nikolay@cumulusnetworks.com>,
+        "David S. Miller" <davem@davemloft.net>
+Subject: Re: [PATCH v4 2/2] net: br_netfiler_hooks: Drops IPv6 packets if
+ IPv6 module is not loaded
+Message-ID: <20190830205541.GR20113@breakpoint.cc>
+References: <20190830181354.26279-1-leonardo@linux.ibm.com>
+ <20190830181354.26279-3-leonardo@linux.ibm.com>
 MIME-Version: 1.0
-X-TM-AS-GCONF: 00
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:,, definitions=2019-08-30_07:,,
- signatures=0
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 priorityscore=1501
- malwarescore=0 suspectscore=0 phishscore=0 bulkscore=0 spamscore=0
- clxscore=1015 lowpriorityscore=0 mlxscore=0 impostorscore=0
- mlxlogscore=999 adultscore=0 classifier=spam adjust=0 reason=mlx
- scancount=1 engine=8.0.1-1906280000 definitions=main-1908300176
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190830181354.26279-3-leonardo@linux.ibm.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Leonardo Bras <leonardo@linux.ibm.com> wrote:
+> A kernel panic can happen if a host has disabled IPv6 on boot and have to
+> process guest packets (coming from a bridge) using it's ip6tables.
+> 
+> IPv6 packets need to be dropped if the IPv6 module is not loaded.
+> 
+> Signed-off-by: Leonardo Bras <leonardo@linux.ibm.com>
+> ---
+>  net/bridge/br_netfilter_hooks.c | 2 ++
+>  1 file changed, 2 insertions(+)
+> 
+> diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
+> index d3f9592f4ff8..5e8693730df1 100644
+> --- a/net/bridge/br_netfilter_hooks.c
+> +++ b/net/bridge/br_netfilter_hooks.c
+> @@ -493,6 +493,8 @@ static unsigned int br_nf_pre_routing(void *priv,
+>  	brnet = net_generic(state->net, brnf_net_id);
+>  	if (IS_IPV6(skb) || is_vlan_ipv6(skb, state->net) ||
+>  	    is_pppoe_ipv6(skb, state->net)) {
+> +		if (!ipv6_mod_enabled())
+> +			return NF_DROP;
+>  		if (!brnet->call_ip6tables &&
+>  		    !br_opt_get(br, BROPT_NF_CALL_IP6TABLES))
+>  			return NF_ACCEPT;
 
---=-LXuXxsj4EfX4WwucxL0p
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+No, thats too aggressive and turns the bridge into an ipv6 blackhole.
 
-On Thu, 2019-08-29 at 22:58 +0200, Florian Westphal wrote:
+There are two solutions:
+1. The above patch, but use NF_ACCEPT instead
+2. keep the DROP, but move it below the call_ip6tables test,
+   so that users can tweak call-ip6tables to accept packets.
 
-> Ah, it was the latter.
-> Making bridge netfilter not pass packets up with ipv6 off closes
-> the problem for fib_ipv6 and inet, so only _netdev.c needs fixing.
+Perhaps it would be good to also add a pr_warn_once() that
+tells that ipv6 was disabled on command line and
+call-ip6tables isn't supported in this configuration.
 
-Ok then, preparing a v4.
-https://lkml.org/lkml/2019/8/30/843
-
-
---=-LXuXxsj4EfX4WwucxL0p
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEEMdeUgIzgjf6YmUyOlQYWtz9SttQFAl1paBsACgkQlQYWtz9S
-ttSreg//XGxhxzY/pjkpjXL6mAu4Ba2JIuox5I+MBXaU1arO1ruCqx3Ses4CVSlr
-RDydtxtS2iCPo6d30Ynsfk5MoyKCIeppFNYQzjT7AHHzym3xoZOuOBIQrf5n/Or/
-mvandv5TuEuMrsmna4ADSKxBinkJCaBgQYNufkeKzONqJhMyLaWj2DXQITpy+SEx
-yx+IXOniAkU6x3w+P44ESLBaDTX62njJGXfeQS3Taf7CQVDlOIywiT0ScfKZ0OHW
-VppqGirwDgUsBbXkjIgthgXp+exEa+gRtc8laWf+48pReY/aNiWKesSBC4zW0j9j
-bjbPx19TssSa2KhkKhre0p4Y/EjsbAfNyEJRXR2DgNvqG+aKd+ye/qI9HfczGGE6
-MTbXQ4Vg2PDxPGWczjVL4EpRS9iVAl5tQpETDXz48a4YVH2aeY1H7+3mWCcESgtY
-AhegAKFzXP9ZlSVZjgb0yoQ79lHiGkOkxdeOZMz8PC+4XnJIMvKn/ren+tZsQz4k
-EbOdS1Nnv6QMnQADnLiStgMO0uWn+rVu6ZLWK9hKxKWv2NCmNBV/e2SHxsmFElyM
-w8Kusc2KkUXG8Q1DlwpQGt8IjRPUL0oirY9xKPhoBRWdfmllH3XVFUoPaHEBEiag
-flNTnU7BS9xplMVvRxAxOuHVa2d/WxeYY23pGnO8omabU0sBNNo=
-=YKYm
------END PGP SIGNATURE-----
-
---=-LXuXxsj4EfX4WwucxL0p--
-
+I would go with option two.
