@@ -2,63 +2,113 @@ Return-Path: <SRS0=T6Q7=W3=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F56DC3A5A6
-	for <netfilter-devel@archiver.kernel.org>; Sat, 31 Aug 2019 00:52:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 203EDC3A59F
+	for <netfilter-devel@archiver.kernel.org>; Sat, 31 Aug 2019 04:41:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4D87E23431
-	for <netfilter-devel@archiver.kernel.org>; Sat, 31 Aug 2019 00:52:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EF31B23431
+	for <netfilter-devel@archiver.kernel.org>; Sat, 31 Aug 2019 04:41:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728398AbfHaAwm (ORCPT
+        id S1726074AbfHaElP (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 30 Aug 2019 20:52:42 -0400
-Received: from shards.monkeyblade.net ([23.128.96.9]:44578 "EHLO
-        shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728330AbfHaAwm (ORCPT
+        Sat, 31 Aug 2019 00:41:15 -0400
+Received: from mx0b-001b2d01.pphosted.com ([148.163.158.5]:48946 "EHLO
+        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1725836AbfHaElO (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 30 Aug 2019 20:52:42 -0400
-Received: from localhost (unknown [IPv6:2601:601:9f80:35cd::d71])
-        (using TLSv1 with cipher AES256-SHA (256/256 bits))
-        (Client did not present a certificate)
-        (Authenticated sender: davem-davemloft)
-        by shards.monkeyblade.net (Postfix) with ESMTPSA id 11525155075AD;
-        Fri, 30 Aug 2019 17:52:42 -0700 (PDT)
-Date:   Fri, 30 Aug 2019 17:52:41 -0700 (PDT)
-Message-Id: <20190830.175241.133753202603242732.davem@davemloft.net>
-To:     pablo@netfilter.org
-Cc:     netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-Subject: Re: [PATCH 0/5] Netfilter fixes for net
-From:   David Miller <davem@davemloft.net>
-In-Reply-To: <20190830120704.6147-1-pablo@netfilter.org>
-References: <20190830120704.6147-1-pablo@netfilter.org>
-X-Mailer: Mew version 6.8 on Emacs 26.1
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-X-Greylist: Sender succeeded SMTP AUTH, not delayed by milter-greylist-4.5.12 (shards.monkeyblade.net [149.20.54.216]); Fri, 30 Aug 2019 17:52:42 -0700 (PDT)
+        Sat, 31 Aug 2019 00:41:14 -0400
+Received: from pps.filterd (m0098416.ppops.net [127.0.0.1])
+        by mx0b-001b2d01.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id x7V4bC3t010070;
+        Sat, 31 Aug 2019 00:41:01 -0400
+Received: from ppma02dal.us.ibm.com (a.bd.3ea9.ip4.static.sl-reverse.com [169.62.189.10])
+        by mx0b-001b2d01.pphosted.com with ESMTP id 2uqc4pgtgg-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Sat, 31 Aug 2019 00:41:01 -0400
+Received: from pps.filterd (ppma02dal.us.ibm.com [127.0.0.1])
+        by ppma02dal.us.ibm.com (8.16.0.27/8.16.0.27) with SMTP id x7V4eTfb004166;
+        Sat, 31 Aug 2019 04:41:00 GMT
+Received: from b01cxnp22034.gho.pok.ibm.com (b01cxnp22034.gho.pok.ibm.com [9.57.198.24])
+        by ppma02dal.us.ibm.com with ESMTP id 2uqgh68fpf-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Sat, 31 Aug 2019 04:41:00 +0000
+Received: from b01ledav006.gho.pok.ibm.com (b01ledav006.gho.pok.ibm.com [9.57.199.111])
+        by b01cxnp22034.gho.pok.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id x7V4exjP22544856
+        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Sat, 31 Aug 2019 04:40:59 GMT
+Received: from b01ledav006.gho.pok.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id 6E5EFAC059;
+        Sat, 31 Aug 2019 04:40:59 +0000 (GMT)
+Received: from b01ledav006.gho.pok.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id 60978AC05B;
+        Sat, 31 Aug 2019 04:40:56 +0000 (GMT)
+Received: from LeoBras.ibmuc.com (unknown [9.80.210.156])
+        by b01ledav006.gho.pok.ibm.com (Postfix) with ESMTP;
+        Sat, 31 Aug 2019 04:40:56 +0000 (GMT)
+From:   Leonardo Bras <leonardo@linux.ibm.com>
+To:     netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        bridge@lists.linux-foundation.org, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Cc:     Leonardo Bras <leonardo@linux.ibm.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        Roopa Prabhu <roopa@cumulusnetworks.com>,
+        Nikolay Aleksandrov <nikolay@cumulusnetworks.com>,
+        "David S. Miller" <davem@davemloft.net>
+Subject: [PATCH v5 1/1] net: br_netfiler_hooks: Drops IPv6 packets if IPv6 module is not loaded
+Date:   Sat, 31 Aug 2019 01:40:33 -0300
+Message-Id: <20190831044032.31931-1-leonardo@linux.ibm.com>
+X-Mailer: git-send-email 2.20.1
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+X-TM-AS-GCONF: 00
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:,, definitions=2019-08-31_02:,,
+ signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 priorityscore=1501
+ malwarescore=0 suspectscore=0 phishscore=0 bulkscore=0 spamscore=0
+ clxscore=1015 lowpriorityscore=0 mlxscore=0 impostorscore=0
+ mlxlogscore=999 adultscore=0 classifier=spam adjust=0 reason=mlx
+ scancount=1 engine=8.0.1-1906280000 definitions=main-1908310051
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Fri, 30 Aug 2019 14:06:59 +0200
+A kernel panic can happen if a host has disabled IPv6 on boot and have to
+process guest packets (coming from a bridge) using it's ip6tables.
 
-> The following patchset contains Netfilter fixes for net:
-> 
-> 1) Spurious warning when loading rules using the physdev match,
->    from Todd Seidelmann.
-> 
-> 2) Fix FTP conntrack helper debugging output, from Thomas Jarosch.
-> 
-> 3) Restore per-netns nf_conntrack_{acct,helper,timeout} sysctl knobs,
->    from Florian Westphal.
-> 
-> 4) Clear skbuff timestamp from the flowtable datapath, also from Florian.
-> 
-> 5) Fix incorrect byteorder of NFT_META_BRI_IIFVPROTO, from wenxu.
+IPv6 packets need to be dropped if the IPv6 module is not loaded, and the
+host ip6tables will be used.
 
-Pulled, thanks.
+Signed-off-by: Leonardo Bras <leonardo@linux.ibm.com>
+---
+Changes from v4:
+- Check if the host ip6tables is going to be used before testing 
+  ipv6 module presence 
+- Adds a warning about ipv6 module disabled.
+
+
+ net/bridge/br_netfilter_hooks.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
+index d3f9592f4ff8..af7800103e51 100644
+--- a/net/bridge/br_netfilter_hooks.c
++++ b/net/bridge/br_netfilter_hooks.c
+@@ -496,6 +496,10 @@ static unsigned int br_nf_pre_routing(void *priv,
+ 		if (!brnet->call_ip6tables &&
+ 		    !br_opt_get(br, BROPT_NF_CALL_IP6TABLES))
+ 			return NF_ACCEPT;
++		if (!ipv6_mod_enabled()) {
++			pr_warn_once("Module ipv6 is disabled, so call_ip6tables is not supported.");
++			return NF_DROP;
++		}
+ 
+ 		nf_bridge_pull_encap_header_rcsum(skb);
+ 		return br_nf_pre_routing_ipv6(priv, skb, state);
+-- 
+2.20.1
+
