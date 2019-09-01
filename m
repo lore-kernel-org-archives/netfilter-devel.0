@@ -1,105 +1,89 @@
-Return-Path: <SRS0=T6Q7=W3=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=UAOK=W4=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+X-Spam-Status: No, score=-6.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C207C3A5A8
-	for <netfilter-devel@archiver.kernel.org>; Sat, 31 Aug 2019 14:22:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 482D9C3A5A4
+	for <netfilter-devel@archiver.kernel.org>; Sun,  1 Sep 2019 09:48:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0857722DA9
-	for <netfilter-devel@archiver.kernel.org>; Sat, 31 Aug 2019 14:22:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 01296216C8
+	for <netfilter-devel@archiver.kernel.org>; Sun,  1 Sep 2019 09:48:22 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=riseup.net header.i=@riseup.net header.b="XWlBLS21"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727342AbfHaOWX (ORCPT
+        id S1728610AbfIAJsW (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 31 Aug 2019 10:22:23 -0400
-Received: from correo.us.es ([193.147.175.20]:46454 "EHLO mail.us.es"
+        Sun, 1 Sep 2019 05:48:22 -0400
+Received: from mx1.riseup.net ([198.252.153.129]:50662 "EHLO mx1.riseup.net"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726516AbfHaOWW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 31 Aug 2019 10:22:22 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id BDE97DA709
-        for <netfilter-devel@vger.kernel.org>; Sat, 31 Aug 2019 16:22:18 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id AE75ED1911
-        for <netfilter-devel@vger.kernel.org>; Sat, 31 Aug 2019 16:22:18 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id A3D0BDA4D0; Sat, 31 Aug 2019 16:22:18 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 84DAADA72F;
-        Sat, 31 Aug 2019 16:22:16 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Sat, 31 Aug 2019 16:22:16 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (sys.soleta.eu [212.170.55.40])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 6395F4265A5A;
-        Sat, 31 Aug 2019 16:22:16 +0200 (CEST)
-Date:   Sat, 31 Aug 2019 16:22:17 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Jakub Kicinski <jakub.kicinski@netronome.com>
-Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org, vishal@chelsio.com, saeedm@mellanox.com,
-        jiri@resnulli.us
-Subject: Re: [PATCH 0/4 net-next] flow_offload: update mangle action
- representation
-Message-ID: <20190831142217.bvxx3vc6wpsmnxpe@salvia>
-References: <20190830005336.23604-1-pablo@netfilter.org>
- <20190829185448.0b502af8@cakuba.netronome.com>
- <20190830090710.g7q2chf3qulfs5e4@salvia>
- <20190830153351.5d5330fa@cakuba.netronome.com>
+        id S1728390AbfIAJsW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 1 Sep 2019 05:48:22 -0400
+Received: from bell.riseup.net (bell-pn.riseup.net [10.0.1.178])
+        (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+        (Client CN "*.riseup.net", Issuer "COMODO RSA Domain Validation Secure Server CA" (verified OK))
+        by mx1.riseup.net (Postfix) with ESMTPS id 9DD5E1A0593
+        for <netfilter-devel@vger.kernel.org>; Sun,  1 Sep 2019 02:48:21 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=riseup.net; s=squak;
+        t=1567331301; bh=EJFZc8kFAg8E57Z2xHWkyjTGnha2bQ4ZhEcAl6A80yM=;
+        h=From:To:Cc:Subject:Date:From;
+        b=XWlBLS21y4oil6NO1LBFQop4rbbIWPIROMFjqFUSTlSfLVFOIUaOisiwZqCywNbbG
+         tQVbQcE6XIYBiq4hFOfcphMAs9Zz1Kbl/7pP4kqQ+Q+4RLjRcGtlnM0Cxri4IpPhO4
+         45HUBN7YXtaG8aj/CxX07Tt+adiEGvjYd1/NR10I=
+X-Riseup-User-ID: 2546AE5BE5E90C8DCED0BC1E07B4113DAC11C75B4C4EAE892C69045D5FED3724
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+         by bell.riseup.net (Postfix) with ESMTPSA id 63BD322278B;
+        Sun,  1 Sep 2019 02:48:20 -0700 (PDT)
+From:   Fernando Fernandez Mancera <ffmancera@riseup.net>
+To:     netfilter-devel@vger.kernel.org
+Cc:     Fernando Fernandez Mancera <ffmancera@riseup.net>
+Subject: [PATCH nf-next v2] netfilter: nft_socket: fix erroneous socket assignment
+Date:   Sun,  1 Sep 2019 11:48:08 +0200
+Message-Id: <20190901094808.848-1-ffmancera@riseup.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190830153351.5d5330fa@cakuba.netronome.com>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Aug 30, 2019 at 03:33:51PM -0700, Jakub Kicinski wrote:
-> On Fri, 30 Aug 2019 11:07:10 +0200, Pablo Neira Ayuso wrote:
-> > > > * The front-end coalesces consecutive pedit actions into one single
-> > > >   word, so drivers can mangle IPv6 and ethernet address fields in one
-> > > >   single go.  
-> > > 
-> > > You still only coalesce up to 16 bytes, no?  
-> > 
-> > You only have to rise FLOW_ACTION_MANGLE_MAXLEN coming in this patch
-> > if you need more. I don't know of any packet field larger than 16
-> > bytes. If there is a use-case for this, it should be easy to rise that
-> > definition.
-> 
-> Please see the definitions of:
-> 
-> struct nfp_fl_set_eth
-> struct nfp_fl_set_ip4_addrs
-> struct nfp_fl_set_ip4_ttl_tos
-> struct nfp_fl_set_ipv6_tc_hl_fl
-> struct nfp_fl_set_ipv6_addr
-> struct nfp_fl_set_tport
-> 
-> These are the programming primitives for header rewrites in the NFP.
-> Since each of those contains more than just one field, we'll have to
-> keep all the field coalescing logic in the driver, even if you coalesce
-> while fields (i.e. IPv6 addresses).
+The socket assignment is wrong, see skb_orphan():
+When skb->destructor callback is not set, but skb->sk is set, this hits BUG().
 
-nfp has been updated in this patch series to deal with the new mangle
-representation.
+Link: https://bugzilla.redhat.com/show_bug.cgi?id=1651813
+Fixes: 554ced0a6e29 ("netfilter: nf_tables: add support for native socket matching")
+Signed-off-by: Fernando Fernandez Mancera <ffmancera@riseup.net>
+---
+ net/netfilter/nft_socket.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-> Perhaps it's not a serious blocker for the series, but it'd be nice if
-> rewrite action grouping was handled in the core. Since you're already
-> poking at that code..
+diff --git a/net/netfilter/nft_socket.c b/net/netfilter/nft_socket.c
+index d7f3776dfd71..637ce3e8c575 100644
+--- a/net/netfilter/nft_socket.c
++++ b/net/netfilter/nft_socket.c
+@@ -47,9 +47,6 @@ static void nft_socket_eval(const struct nft_expr *expr,
+ 		return;
+ 	}
+ 
+-	/* So that subsequent socket matching not to require other lookups. */
+-	skb->sk = sk;
+-
+ 	switch(priv->key) {
+ 	case NFT_SOCKET_TRANSPARENT:
+ 		nft_reg_store8(dest, inet_sk_transparent(sk));
+@@ -66,6 +63,9 @@ static void nft_socket_eval(const struct nft_expr *expr,
+ 		WARN_ON(1);
+ 		regs->verdict.code = NFT_BREAK;
+ 	}
++
++	if (sk != skb->sk)
++		sock_gen_put(sk);
+ }
+ 
+ static const struct nla_policy nft_socket_policy[NFTA_SOCKET_MAX + 1] = {
+-- 
+2.20.1
 
-Rewrite action grouping is already handled from the core front-end in
-this patch series.
-
-Thanks.
