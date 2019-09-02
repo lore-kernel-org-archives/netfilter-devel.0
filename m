@@ -7,20 +7,20 @@ X-Spam-Status: No, score=-9.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6DDEAC3A5A7
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B4462C3A5A5
 	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Sep 2019 23:06:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3B90221883
+	by mail.kernel.org (Postfix) with ESMTP id 81DCB216C8
 	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Sep 2019 23:06:58 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="JG1QbLy1"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="u9YL3YTg"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727129AbfIBXG5 (ORCPT
+        id S1727143AbfIBXG6 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 2 Sep 2019 19:06:57 -0400
-Received: from kadath.azazel.net ([81.187.231.250]:43576 "EHLO
+        Mon, 2 Sep 2019 19:06:58 -0400
+Received: from kadath.azazel.net ([81.187.231.250]:43574 "EHLO
         kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726845AbfIBXGy (ORCPT
+        with ESMTP id S1726796AbfIBXGy (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Mon, 2 Sep 2019 19:06:54 -0400
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
@@ -29,24 +29,24 @@ DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
         Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
         :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=0XvlM9zt1+jvZJPdOPEDpA6KU3hF66W/o5HOzzvKZ7A=; b=JG1QbLy1h/u8LScl3/Ym1n18np
-        rpVHcCuraF7z5Oyzp+08TIRtq5eJQuUE0cQxGhT4A9MccQNHqP967bmVZuipCJPATpM/5DV/EKf/V
-        UkHuZTtVMfHU8utCG9vTZujhJLvmkXRh3Y1wgEmk3SXRcyJwOrULr6kM76+cA606oqZon/fYZ2OWP
-        95SVVKBzLjqJ34MTpSVgzVillzetMZjvkJ6YB7OqcZbAdXGRY+LHsJjsZY6I25n/7m3juwCr0Bz1k
-        8BQeMB/8AAVZtW3aFEbs5UNHIj0bQxXSJFrhc+t5DiXxc6Gh/+9r0Pm8gy/glJn4N+5G/MsBguFLm
-        MeX956iw==;
+        bh=y2uX4Nq+fO08QfKQpLlmhPngoasV9LseO0YHKuuTg70=; b=u9YL3YTgHKWgIDcgnZHAt1Fqv0
+        EaulMYGFKNAns7KLKojaw0uJIn7t+s+9FA78wLuj3++vXWZpPryXW6QYUo7aNfoT63ZTye0HoT6Ex
+        h5XRuwLjHaZUj8hElKW8q63NgW1qzwPRl5wb7euiPmBsyc95pcmM9smtmdAjd3zRYzGpBz7tCY6A0
+        IoC03Z0VLmvaxENIhrOiVF5nsq0FWHVV5oSPZTmvjp0aWF5lGu9U2l/62LQ6XXHkVLFNzv4vHDhq4
+        QYRfGY/N/XoOyqKJGA01UT5RnnhKerYbo8e2GBQCS+1wwBsFuGCZpCYQPGUFSQuH4aLDLrOPkr8VN
+        uGhKs92A==;
 Received: from [2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae] (helo=ulthar.dreamlands)
         by kadath.azazel.net with esmtp (Exim 4.92)
         (envelope-from <jeremy@azazel.net>)
-        id 1i4vPP-0004la-40; Tue, 03 Sep 2019 00:06:51 +0100
+        id 1i4vPP-0004la-EO; Tue, 03 Sep 2019 00:06:51 +0100
 From:   Jeremy Sowden <jeremy@azazel.net>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>,
         Jozsef Kadlecsik <kadlec@netfilter.org>,
         Florian Westphal <fw@strlen.de>
 Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [PATCH nf-next v2 04/30] netfilter: add GPL-2.0 SPDX ID's to a couple of headers.
-Date:   Tue,  3 Sep 2019 00:06:24 +0100
-Message-Id: <20190902230650.14621-5-jeremy@azazel.net>
+Subject: [PATCH nf-next v2 06/30] netfilter: fix Kconfig formatting error.
+Date:   Tue,  3 Sep 2019 00:06:26 +0100
+Message-Id: <20190902230650.14621-7-jeremy@azazel.net>
 X-Mailer: git-send-email 2.23.0.rc1
 In-Reply-To: <20190902230650.14621-1-jeremy@azazel.net>
 References: <20190902230650.14621-1-jeremy@azazel.net>
@@ -60,38 +60,26 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Two headers are missing SPDX licence identifiers.  They contain
-copyright notices indicating that the code is GPL.  Add GPL-2.0
-identifiers.
+Indent the type of CONFIG_NETFILTER_NETLINK_ACCT correctly.
 
 Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 ---
- include/linux/netfilter_ipv4.h | 3 ++-
- include/linux/netfilter_ipv6.h | 3 ++-
- 2 files changed, 4 insertions(+), 2 deletions(-)
+ net/netfilter/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/include/linux/netfilter_ipv4.h b/include/linux/netfilter_ipv4.h
-index 082e2c41b7ff..cab891485752 100644
---- a/include/linux/netfilter_ipv4.h
-+++ b/include/linux/netfilter_ipv4.h
-@@ -1,4 +1,5 @@
--/* IPv4-specific defines for netfilter. 
-+/* SPDX-License-Identifier: GPL-2.0 */
-+/* IPv4-specific defines for netfilter.
-  * (C)1998 Rusty Russell -- This code is GPL.
-  */
- #ifndef __LINUX_IP_NETFILTER_H
-diff --git a/include/linux/netfilter_ipv6.h b/include/linux/netfilter_ipv6.h
-index 7beb681e1ce5..c2f669581d88 100644
---- a/include/linux/netfilter_ipv6.h
-+++ b/include/linux/netfilter_ipv6.h
-@@ -1,4 +1,5 @@
--/* IPv6-specific defines for netfilter. 
-+/* SPDX-License-Identifier: GPL-2.0 */
-+/* IPv6-specific defines for netfilter.
-  * (C)1998 Rusty Russell -- This code is GPL.
-  * (C)1999 David Jeffery
-  *   this header was blatantly ripped from netfilter_ipv4.h 
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index 6244bf3de4af..34ec7afec116 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -20,7 +20,7 @@ config NETFILTER_FAMILY_ARP
+ 	bool
+ 
+ config NETFILTER_NETLINK_ACCT
+-tristate "Netfilter NFACCT over NFNETLINK interface"
++	tristate "Netfilter NFACCT over NFNETLINK interface"
+ 	depends on NETFILTER_ADVANCED
+ 	select NETFILTER_NETLINK
+ 	help
 -- 
 2.23.0.rc1
 
