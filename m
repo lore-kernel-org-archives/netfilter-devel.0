@@ -2,71 +2,57 @@ Return-Path: <SRS0=xNQb=W6=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5BA20C3A5A5
-	for <netfilter-devel@archiver.kernel.org>; Tue,  3 Sep 2019 20:19:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F04A5C3A5A2
+	for <netfilter-devel@archiver.kernel.org>; Tue,  3 Sep 2019 20:34:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3B78721883
-	for <netfilter-devel@archiver.kernel.org>; Tue,  3 Sep 2019 20:19:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C4DD021897
+	for <netfilter-devel@archiver.kernel.org>; Tue,  3 Sep 2019 20:34:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726925AbfICUTK (ORCPT
+        id S1727374AbfICUew (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 3 Sep 2019 16:19:10 -0400
-Received: from correo.us.es ([193.147.175.20]:57992 "EHLO mail.us.es"
+        Tue, 3 Sep 2019 16:34:52 -0400
+Received: from correo.us.es ([193.147.175.20]:60036 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725953AbfICUTJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 3 Sep 2019 16:19:09 -0400
+        id S1726810AbfICUev (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 3 Sep 2019 16:34:51 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id EC126B6C75
-        for <netfilter-devel@vger.kernel.org>; Tue,  3 Sep 2019 22:19:05 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 3A96CB6C65
+        for <netfilter-devel@vger.kernel.org>; Tue,  3 Sep 2019 22:34:48 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id DEC37CE15C
-        for <netfilter-devel@vger.kernel.org>; Tue,  3 Sep 2019 22:19:05 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 2D809B7FF9
+        for <netfilter-devel@vger.kernel.org>; Tue,  3 Sep 2019 22:34:48 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id C6506B7FF9; Tue,  3 Sep 2019 22:19:05 +0200 (CEST)
+        id 22B0BDA72F; Tue,  3 Sep 2019 22:34:48 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id B8CACD2B1F;
-        Tue,  3 Sep 2019 22:19:03 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id EF26EDA72F;
+        Tue,  3 Sep 2019 22:34:45 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 03 Sep 2019 22:19:03 +0200 (CEST)
+ Tue, 03 Sep 2019 22:34:45 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from us.es (sys.soleta.eu [212.170.55.40])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
         (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 8A1E14265A5A;
-        Tue,  3 Sep 2019 22:19:03 +0200 (CEST)
-Date:   Tue, 3 Sep 2019 22:19:04 +0200
+        by entrada.int (Postfix) with ESMTPSA id CEBA04265A5A;
+        Tue,  3 Sep 2019 22:34:45 +0200 (CEST)
+Date:   Tue, 3 Sep 2019 22:34:47 +0200
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     Leonardo Bras <leonardo@linux.ibm.com>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        bridge@lists.linux-foundation.org, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Roopa Prabhu <roopa@cumulusnetworks.com>,
-        Nikolay Aleksandrov <nikolay@cumulusnetworks.com>,
-        "David S. Miller" <davem@davemloft.net>
-Subject: Re: [PATCH v4 1/2] netfilter: Terminate rule eval if protocol=IPv6
- and ipv6 module is disabled
-Message-ID: <20190903201904.npna6dt25ug5gwvd@salvia>
-References: <20190830181354.26279-1-leonardo@linux.ibm.com>
- <20190830181354.26279-2-leonardo@linux.ibm.com>
- <20190830205802.GS20113@breakpoint.cc>
- <99e3ef9c5ead1c95df697d49ab9cc83a95b0ac7c.camel@linux.ibm.com>
- <20190903164948.kuvtpy7viqhcmp77@salvia>
- <20190903170550.GA13660@breakpoint.cc>
- <20190903193155.v74ws47zcn6zrwpr@salvia>
- <20190903194809.GD13660@breakpoint.cc>
+To:     Phil Sutter <phil@nwl.cc>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [conntrack-tools PATCH] conntrack: Fix CIDR to mask conversion
+ on Big Endian
+Message-ID: <20190903203447.saqplkgbbxlajkqr@salvia>
+References: <20190902164431.18398-1-phil@nwl.cc>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20190903194809.GD13660@breakpoint.cc>
+In-Reply-To: <20190902164431.18398-1-phil@nwl.cc>
 User-Agent: NeoMutt/20170113 (1.7.2)
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -74,27 +60,35 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Sep 03, 2019 at 09:48:09PM +0200, Florian Westphal wrote:
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > > > I was expecting we could find a way to handle this from br_netfilter
-> > > > alone itself.
-> > > 
-> > > We can't because we support ipv6 fib lookups from the netdev family
-> > > as well.
-> > > 
-> > > Alternative is to auto-accept ipv6 packets from the nf_tables eval loop,
-> > > but I think its worse.
-> > 
-> > Could we add a restriction for nf_tables + br_netfilter + !ipv6. I
-> > mean, if this is an IPv6 packet, nf_tables is on and IPv6 module if
-> > off, then drop this packet?
+On Mon, Sep 02, 2019 at 06:44:31PM +0200, Phil Sutter wrote:
+> Code assumed host architecture to be Little Endian. Instead produce a
+> proper mask by pushing the set bits into most significant position and
+> apply htonl() on the result.
 > 
-> We could do that from nft_do_chain_netdev().
+> Fixes: 3f6a2e90936bb ("conntrack: add support for CIDR notation")
+> Signed-off-by: Phil Sutter <phil@nwl.cc>
+> ---
+>  src/conntrack.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/src/conntrack.c b/src/conntrack.c
+> index c980a13f33d2c..baafcbd869c12 100644
+> --- a/src/conntrack.c
+> +++ b/src/conntrack.c
+> @@ -2210,7 +2210,7 @@ nfct_build_netmask(uint32_t *dst, int b, int n)
+>  			dst[i] = 0xffffffff;
+>  			b -= 32;
+>  		} else if (b > 0) {
+> -			dst[i] = (1 << b) - 1;
+> +			dst[i] = htonl(((1 << b) - 1) << (32 - b));
 
-Indeed, this is all about the netdev case.
+Simply this instead?
 
-Probably add something similar to nf_ip6_route() to deal with
-ip6_route_lookup() case? This is the one trigering the problem, right?
+                        dst[i] = htonl(((1 << b) - 1);
 
-BTW, how does nft_fib_ipv6 module kicks in if ipv6 module is not
-loaded? The symbol dependency would pull in the IPv6 module anyway.
+>  			b = 0;
+>  		} else {
+>  			dst[i] = 0;
+> -- 
+> 2.22.0
+> 
