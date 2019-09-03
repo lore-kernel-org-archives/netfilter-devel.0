@@ -2,75 +2,96 @@ Return-Path: <SRS0=xNQb=W6=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E9E93C3A5A2
-	for <netfilter-devel@archiver.kernel.org>; Tue,  3 Sep 2019 23:16:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 121F6C3A5A2
+	for <netfilter-devel@archiver.kernel.org>; Tue,  3 Sep 2019 23:27:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C850322CED
-	for <netfilter-devel@archiver.kernel.org>; Tue,  3 Sep 2019 23:16:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D7A6E2339D
+	for <netfilter-devel@archiver.kernel.org>; Tue,  3 Sep 2019 23:27:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727312AbfICXQZ (ORCPT
+        id S1726441AbfICX1R (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 3 Sep 2019 19:16:25 -0400
-Received: from m9784.mail.qiye.163.com ([220.181.97.84]:31927 "EHLO
-        m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727109AbfICXQZ (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 3 Sep 2019 19:16:25 -0400
-Received: from [192.168.1.4] (unknown [58.38.6.224])
-        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id E7C744116A;
-        Wed,  4 Sep 2019 07:16:21 +0800 (CST)
-Subject: Re: [PATCH nf-next v3] netfilter: nf_table_offload: Fix the incorrect
- rcu usage in nft_indr_block_cb
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     fw@strlen.de, netfilter-devel@vger.kernel.org
-References: <1567480527-27473-1-git-send-email-wenxu@ucloud.cn>
- <20190903200649.vmc5mh56dz3f3jlo@salvia>
-From:   wenxu <wenxu@ucloud.cn>
-Message-ID: <30aeb7af-4b92-c727-e569-6c470d71b8c6@ucloud.cn>
-Date:   Wed, 4 Sep 2019 07:16:03 +0800
-User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:60.0) Gecko/20100101
- Thunderbird/60.8.0
+        Tue, 3 Sep 2019 19:27:17 -0400
+Received: from mx1.redhat.com ([209.132.183.28]:47370 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725977AbfICX1R (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 3 Sep 2019 19:27:17 -0400
+Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.phx2.redhat.com [10.5.11.16])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mx1.redhat.com (Postfix) with ESMTPS id 2190A18C4264;
+        Tue,  3 Sep 2019 23:27:16 +0000 (UTC)
+Received: from egarver.remote.csb.redhat.com (ovpn-120-189.rdu2.redhat.com [10.10.120.189])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id A55B95C219;
+        Tue,  3 Sep 2019 23:27:15 +0000 (UTC)
+From:   Eric Garver <eric@garver.life>
+To:     netfilter-devel@vger.kernel.org
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nft] tests: shell: check that rule add with index works with echo
+Date:   Tue,  3 Sep 2019 19:27:13 -0400
+Message-Id: <20190903232713.14394-1-eric@garver.life>
 MIME-Version: 1.0
-In-Reply-To: <20190903200649.vmc5mh56dz3f3jlo@salvia>
-Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8bit
-X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVkpVTUhIS0tLSU5PTUhKS09ZV1koWU
-        FJQjdXWS1ZQUlXWQkOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6OAg6LAw6Kjg6VjAhIywKEjUN
-        TCMwCw1VSlVKTk1MTk5JTkNJSktNVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWU5DVUhD
-        VU1VSUlPWVdZCAFZQUlJTUw3Bg++
-X-HM-Tid: 0a6cf96a31a12086kuqye7c744116a
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.16
+X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.6.2 (mx1.redhat.com [10.5.110.62]); Tue, 03 Sep 2019 23:27:16 +0000 (UTC)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-yes, It's an another problem. I will send another patch to fix it.
+If --echo is used the rule cache will not be populated. This causes
+rules added using the "index" keyword to be simply appended to the
+chain. The bug was introduced in commit 3ab02db5f836 ("cache: add
+NFT_CACHE_UPDATE and NFT_CACHE_FLUSHED flags").
 
-在 2019/9/4 4:06, Pablo Neira Ayuso 写道:
-> On Tue, Sep 03, 2019 at 11:15:27AM +0800, wenxu@ucloud.cn wrote:
->> diff --git a/net/netfilter/nf_tables_offload.c b/net/netfilter/nf_tables_offload.c
->> index 113ac40..ca9e0cb 100644
->> --- a/net/netfilter/nf_tables_offload.c
->> +++ b/net/netfilter/nf_tables_offload.c
->> @@ -357,11 +357,12 @@ static void nft_indr_block_cb(struct net_device *dev,
->>  	const struct nft_table *table;
->>  	const struct nft_chain *chain;
->>  
->> -	list_for_each_entry_rcu(table, &net->nft.tables, list) {
->> +	mutex_lock(&net->nft.commit_mutex);
->> +	list_for_each_entry(table, &net->nft.tables, list) {
->>  		if (table->family != NFPROTO_NETDEV)
->>  			continue;
->>  
->> -		list_for_each_entry_rcu(chain, &table->chains, list) {
->> +		list_for_each_entry(chain, &table->chains, list) {
->>  			if (!nft_is_base_chain(chain))
->>  				continue;
-> nft_indr_block_cb() does not check for the offload flag in the
-> basechain...
->
+Signed-off-by: Eric Garver <eric@garver.life>
+---
+I think the issue is in cache_evaluate(). It sets the flags to
+NFT_CACHE_FULL and then bails early, but I'm not sure of the best way to
+fix it. So I'll start by submitting a test case. :)
+---
+ tests/shell/testcases/cache/0007_echo_cache_init_0 | 14 ++++++++++++++
+ .../cache/dumps/0007_echo_cache_init_0.nft         |  7 +++++++
+ 2 files changed, 21 insertions(+)
+ create mode 100755 tests/shell/testcases/cache/0007_echo_cache_init_0
+ create mode 100644 tests/shell/testcases/cache/dumps/0007_echo_cache_init_0.nft
+
+diff --git a/tests/shell/testcases/cache/0007_echo_cache_init_0 b/tests/shell/testcases/cache/0007_echo_cache_init_0
+new file mode 100755
+index 000000000000..280a0d06bdc3
+--- /dev/null
++++ b/tests/shell/testcases/cache/0007_echo_cache_init_0
+@@ -0,0 +1,14 @@
++#!/bin/bash
++
++set -e
++
++$NFT -i >/dev/null <<EOF
++add table inet t
++add chain inet t c
++add rule inet t c accept comment "first"
++add rule inet t c accept comment "third"
++EOF
++
++# make sure the rule cache gets initialized when using echo option
++#
++$NFT --echo add rule inet t c index 0 accept comment '"second"' >/dev/null
+diff --git a/tests/shell/testcases/cache/dumps/0007_echo_cache_init_0.nft b/tests/shell/testcases/cache/dumps/0007_echo_cache_init_0.nft
+new file mode 100644
+index 000000000000..c774ee72a683
+--- /dev/null
++++ b/tests/shell/testcases/cache/dumps/0007_echo_cache_init_0.nft
+@@ -0,0 +1,7 @@
++table inet t {
++	chain c {
++		accept comment "first"
++		accept comment "second"
++		accept comment "third"
++	}
++}
+-- 
+2.20.1
+
