@@ -2,107 +2,91 @@ Return-Path: <SRS0=xNQb=W6=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CCE01C3A59E
-	for <netfilter-devel@archiver.kernel.org>; Tue,  3 Sep 2019 00:05:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 99CF7C3A59E
+	for <netfilter-devel@archiver.kernel.org>; Tue,  3 Sep 2019 03:15:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id AF68321881
-	for <netfilter-devel@archiver.kernel.org>; Tue,  3 Sep 2019 00:05:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6E036217F5
+	for <netfilter-devel@archiver.kernel.org>; Tue,  3 Sep 2019 03:15:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727929AbfICAFw (ORCPT
+        id S1725870AbfICDPd (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 2 Sep 2019 20:05:52 -0400
-Received: from correo.us.es ([193.147.175.20]:41648 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727923AbfICAFw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 2 Sep 2019 20:05:52 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id B027D1878A3
-        for <netfilter-devel@vger.kernel.org>; Tue,  3 Sep 2019 02:05:47 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id A00A3B8011
-        for <netfilter-devel@vger.kernel.org>; Tue,  3 Sep 2019 02:05:47 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 94784B7FFE; Tue,  3 Sep 2019 02:05:47 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 8CA4CDA72F;
-        Tue,  3 Sep 2019 02:05:45 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 03 Sep 2019 02:05:45 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (sys.soleta.eu [212.170.55.40])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 6C2624265A5A;
-        Tue,  3 Sep 2019 02:05:45 +0200 (CEST)
-Date:   Tue, 3 Sep 2019 02:05:46 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Jakub Kicinski <jakub.kicinski@netronome.com>
-Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org, vishal@chelsio.com, saeedm@mellanox.com,
-        jiri@resnulli.us
-Subject: Re: [PATCH 0/4 net-next] flow_offload: update mangle action
- representation
-Message-ID: <20190903000546.rmjmxqozycylgbdb@salvia>
-References: <20190830005336.23604-1-pablo@netfilter.org>
- <20190829185448.0b502af8@cakuba.netronome.com>
- <20190830090710.g7q2chf3qulfs5e4@salvia>
- <20190830153351.5d5330fa@cakuba.netronome.com>
- <20190831142217.bvxx3vc6wpsmnxpe@salvia>
- <20190901134754.1bcd72d4@cakuba.netronome.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190901134754.1bcd72d4@cakuba.netronome.com>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+        Mon, 2 Sep 2019 23:15:33 -0400
+Received: from m9784.mail.qiye.163.com ([220.181.97.84]:11866 "EHLO
+        m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725844AbfICDPd (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 2 Sep 2019 23:15:33 -0400
+Received: from localhost.localdomain (unknown [123.59.132.129])
+        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id A87D4418AC;
+        Tue,  3 Sep 2019 11:15:27 +0800 (CST)
+From:   wenxu@ucloud.cn
+To:     pablo@netfilter.org, fw@strlen.de
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nf-next v3] netfilter: nf_table_offload: Fix the incorrect rcu usage in nft_indr_block_cb
+Date:   Tue,  3 Sep 2019 11:15:27 +0800
+Message-Id: <1567480527-27473-1-git-send-email-wenxu@ucloud.cn>
+X-Mailer: git-send-email 1.8.3.1
+X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZSFVOQ0lCQkJMS01JTUNISllXWShZQU
+        lCN1dZLVlBSVdZCQ4XHghZQVk1NCk2OjckKS43PlkG
+X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6MRw6PQw*NDgrVjABEjFCMzIP
+        DggKCghVSlVKTk1MT0NLTklMQ0tCVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJSFVO
+        QlVKSElVSklCWVdZCAFZQUlJSE83Bg++
+X-HM-Tid: 0a6cf51ebb652086kuqya87d4418ac
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sun, Sep 01, 2019 at 01:47:54PM -0700, Jakub Kicinski wrote:
-> On Sat, 31 Aug 2019 16:22:17 +0200, Pablo Neira Ayuso wrote:
-[...]
-> > > Please see the definitions of:
-> > > 
-> > > struct nfp_fl_set_eth
-> > > struct nfp_fl_set_ip4_addrs
-> > > struct nfp_fl_set_ip4_ttl_tos
-> > > struct nfp_fl_set_ipv6_tc_hl_fl
-> > > struct nfp_fl_set_ipv6_addr
-> > > struct nfp_fl_set_tport
-> > > 
-> > > These are the programming primitives for header rewrites in the NFP.
-> > > Since each of those contains more than just one field, we'll have to
-> > > keep all the field coalescing logic in the driver, even if you coalesce
-> > > while fields (i.e. IPv6 addresses).  
-> > 
-> > nfp has been updated in this patch series to deal with the new mangle
-> > representation.
-> 
-> It has been updated to handle the trivial coalescing.
-> 
-> > > Perhaps it's not a serious blocker for the series, but it'd be nice if
-> > > rewrite action grouping was handled in the core. Since you're already
-> > > poking at that code..  
-> > 
-> > Rewrite action grouping is already handled from the core front-end in
-> > this patch series.
-> 
-> If you did what I'm asking the functions nfp_fl_check_mangle_start()
-> and nfp_fl_check_mangle_end() would no longer exist. They were not
-> really needed before you "common flow API" changes.
+From: wenxu <wenxu@ucloud.cn>
 
-Thanks for the pointer. This driver-level coalescing routine you are
-refering to is specific to optimize your layout. I agree the core
-could be updated to do more coalescing, but this would need a way to
-express what coalescing the driver would like to see in place. I would
-wait to see more drivers that can benefit from that. I can only make
-incremental steps, it's already hard to navigate over all this code.
+The flow_block_ing_cmd() needs to call blocking functions while iterating
+block_ing_cb_list, nft_indr_block_cb is in the cb_list,
+So it is the incorrect rcu case. To fix it just traverse the list under
+the commit mutex.
+
+Fixes: 9a32669fecfb ("netfilter: nf_tables_offload: support indr block call")
+Signed-off-by: wenxu <wenxu@ucloud.cn>
+---
+v3: rebase to patches 1156728 and 1156729
+
+ net/netfilter/nf_tables_offload.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/net/netfilter/nf_tables_offload.c b/net/netfilter/nf_tables_offload.c
+index 113ac40..ca9e0cb 100644
+--- a/net/netfilter/nf_tables_offload.c
++++ b/net/netfilter/nf_tables_offload.c
+@@ -357,11 +357,12 @@ static void nft_indr_block_cb(struct net_device *dev,
+ 	const struct nft_table *table;
+ 	const struct nft_chain *chain;
+ 
+-	list_for_each_entry_rcu(table, &net->nft.tables, list) {
++	mutex_lock(&net->nft.commit_mutex);
++	list_for_each_entry(table, &net->nft.tables, list) {
+ 		if (table->family != NFPROTO_NETDEV)
+ 			continue;
+ 
+-		list_for_each_entry_rcu(chain, &table->chains, list) {
++		list_for_each_entry(chain, &table->chains, list) {
+ 			if (!nft_is_base_chain(chain))
+ 				continue;
+ 
+@@ -370,9 +371,11 @@ static void nft_indr_block_cb(struct net_device *dev,
+ 				continue;
+ 
+ 			nft_indr_block_ing_cmd(dev, basechain, cb, cb_priv, cmd);
++			mutex_unlock(&net->nft.commit_mutex);
+ 			return;
+ 		}
+ 	}
++	mutex_unlock(&net->nft.commit_mutex);
+ }
+ 
+ static struct flow_indr_block_ing_entry block_ing_entry = {
+-- 
+1.8.3.1
+
