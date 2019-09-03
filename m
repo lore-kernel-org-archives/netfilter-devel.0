@@ -1,104 +1,108 @@
-Return-Path: <SRS0=j12K=W5=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=xNQb=W6=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 35119C3A59E
-	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Sep 2019 23:32:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CCE01C3A59E
+	for <netfilter-devel@archiver.kernel.org>; Tue,  3 Sep 2019 00:05:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0CDD422CF7
-	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Sep 2019 23:32:39 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="B5jeqmXG"
+	by mail.kernel.org (Postfix) with ESMTP id AF68321881
+	for <netfilter-devel@archiver.kernel.org>; Tue,  3 Sep 2019 00:05:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727896AbfIBXci (ORCPT
+        id S1727929AbfICAFw (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 2 Sep 2019 19:32:38 -0400
-Received: from kadath.azazel.net ([81.187.231.250]:44142 "EHLO
-        kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726623AbfIBXci (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 2 Sep 2019 19:32:38 -0400
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-         s=20190108; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
-        Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
-        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=r9S7Dxs7DO9XiJ41OrTPUN98EC2kOoXhONqBWFJaaFo=; b=B5jeqmXG8i+j2/rATJx2IO6D8m
-        UTKANUqhvejhhOH0AE9tWWx5EjUMH8kCq9edq0kpUS90CV13j+juwkbHvTZiYlFab2z4S1SczkkDx
-        V2sltHvgoWhtu/yfefe58DWkN3dFUxG/aNwSzsxkDsSFvu8OmnDpQ0QTI5RdQjvtY7npb/j5qs1xu
-        3KeQnilbmHYRvrjFQ4vGMj61dW+OU6H6ZhjFYjrPO3yuTmSP3Oj1TS465UFW2FRyJPwcQaRx+vpoA
-        PzkdOv7uxPcGDKq7qs1JazmJSd/B40q0+GUxbJ1pzvrVZHz0wmHD7f5MStmom2dJ3OLL6Tce6m0jm
-        +OwwWlsQ==;
-Received: from [2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae] (helo=ulthar.dreamlands)
-        by kadath.azazel.net with esmtp (Exim 4.92)
-        (envelope-from <jeremy@azazel.net>)
-        id 1i4vPS-0004la-9v; Tue, 03 Sep 2019 00:06:54 +0100
-From:   Jeremy Sowden <jeremy@azazel.net>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>
-Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [PATCH nf-next v2 23/30] netfilter: wrap some nat-related conntrack code in a CONFIG_NF_NAT check.
-Date:   Tue,  3 Sep 2019 00:06:43 +0100
-Message-Id: <20190902230650.14621-24-jeremy@azazel.net>
-X-Mailer: git-send-email 2.23.0.rc1
-In-Reply-To: <20190902230650.14621-1-jeremy@azazel.net>
-References: <20190902230650.14621-1-jeremy@azazel.net>
+        Mon, 2 Sep 2019 20:05:52 -0400
+Received: from correo.us.es ([193.147.175.20]:41648 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727923AbfICAFw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 2 Sep 2019 20:05:52 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id B027D1878A3
+        for <netfilter-devel@vger.kernel.org>; Tue,  3 Sep 2019 02:05:47 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A00A3B8011
+        for <netfilter-devel@vger.kernel.org>; Tue,  3 Sep 2019 02:05:47 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 94784B7FFE; Tue,  3 Sep 2019 02:05:47 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 8CA4CDA72F;
+        Tue,  3 Sep 2019 02:05:45 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Tue, 03 Sep 2019 02:05:45 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (sys.soleta.eu [212.170.55.40])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 6C2624265A5A;
+        Tue,  3 Sep 2019 02:05:45 +0200 (CEST)
+Date:   Tue, 3 Sep 2019 02:05:46 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Jakub Kicinski <jakub.kicinski@netronome.com>
+Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org, vishal@chelsio.com, saeedm@mellanox.com,
+        jiri@resnulli.us
+Subject: Re: [PATCH 0/4 net-next] flow_offload: update mangle action
+ representation
+Message-ID: <20190903000546.rmjmxqozycylgbdb@salvia>
+References: <20190830005336.23604-1-pablo@netfilter.org>
+ <20190829185448.0b502af8@cakuba.netronome.com>
+ <20190830090710.g7q2chf3qulfs5e4@salvia>
+ <20190830153351.5d5330fa@cakuba.netronome.com>
+ <20190831142217.bvxx3vc6wpsmnxpe@salvia>
+ <20190901134754.1bcd72d4@cakuba.netronome.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190901134754.1bcd72d4@cakuba.netronome.com>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-nf_conntrack_update uses nf_nat_hook to do some nat stuff.  However, it
-will only be not NULL if CONFIG_NF_NAT is enabled.  Wrap the code in a
-CONFIG_NF_NAT check to skip it altogether.
+On Sun, Sep 01, 2019 at 01:47:54PM -0700, Jakub Kicinski wrote:
+> On Sat, 31 Aug 2019 16:22:17 +0200, Pablo Neira Ayuso wrote:
+[...]
+> > > Please see the definitions of:
+> > > 
+> > > struct nfp_fl_set_eth
+> > > struct nfp_fl_set_ip4_addrs
+> > > struct nfp_fl_set_ip4_ttl_tos
+> > > struct nfp_fl_set_ipv6_tc_hl_fl
+> > > struct nfp_fl_set_ipv6_addr
+> > > struct nfp_fl_set_tport
+> > > 
+> > > These are the programming primitives for header rewrites in the NFP.
+> > > Since each of those contains more than just one field, we'll have to
+> > > keep all the field coalescing logic in the driver, even if you coalesce
+> > > while fields (i.e. IPv6 addresses).  
+> > 
+> > nfp has been updated in this patch series to deal with the new mangle
+> > representation.
+> 
+> It has been updated to handle the trivial coalescing.
+> 
+> > > Perhaps it's not a serious blocker for the series, but it'd be nice if
+> > > rewrite action grouping was handled in the core. Since you're already
+> > > poking at that code..  
+> > 
+> > Rewrite action grouping is already handled from the core front-end in
+> > this patch series.
+> 
+> If you did what I'm asking the functions nfp_fl_check_mangle_start()
+> and nfp_fl_check_mangle_end() would no longer exist. They were not
+> really needed before you "common flow API" changes.
 
-Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
----
- net/netfilter/nf_conntrack_core.c | 4 ++++
- 1 file changed, 4 insertions(+)
-
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 81a8ef42b88d..c597b3e8450b 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -1885,7 +1885,9 @@ static int nf_conntrack_update(struct net *net, struct sk_buff *skb)
- 	struct nf_conntrack_tuple_hash *h;
- 	struct nf_conntrack_tuple tuple;
- 	enum ip_conntrack_info ctinfo;
-+#if IS_ENABLED(CONFIG_NF_NAT)
- 	struct nf_nat_hook *nat_hook;
-+#endif
- 	unsigned int status;
- 	struct nf_conn *ct;
- 	int dataoff;
-@@ -1935,6 +1937,7 @@ static int nf_conntrack_update(struct net *net, struct sk_buff *skb)
- 	ct = nf_ct_tuplehash_to_ctrack(h);
- 	nf_ct_set(skb, ct, ctinfo);
- 
-+#if IS_ENABLED(CONFIG_NF_NAT)
- 	nat_hook = rcu_dereference(nf_nat_hook);
- 	if (!nat_hook)
- 		return 0;
-@@ -1948,6 +1951,7 @@ static int nf_conntrack_update(struct net *net, struct sk_buff *skb)
- 	    nat_hook->manip_pkt(skb, ct, NF_NAT_MANIP_DST,
- 				IP_CT_DIR_ORIGINAL) == NF_DROP)
- 		return -1;
-+#endif
- 
- 	return 0;
- }
--- 
-2.23.0.rc1
-
+Thanks for the pointer. This driver-level coalescing routine you are
+refering to is specific to optimize your layout. I agree the core
+could be updated to do more coalescing, but this would need a way to
+express what coalescing the driver would like to see in place. I would
+wait to see more drivers that can benefit from that. I can only make
+incremental steps, it's already hard to navigate over all this code.
