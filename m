@@ -6,47 +6,47 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6BEAEC3A5A5
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B4750C3A5A8
 	for <netfilter-devel@archiver.kernel.org>; Tue,  3 Sep 2019 16:45:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4EEEE21881
+	by mail.kernel.org (Postfix) with ESMTP id 97C9221881
 	for <netfilter-devel@archiver.kernel.org>; Tue,  3 Sep 2019 16:45:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730310AbfICQpe (ORCPT
+        id S1730248AbfICQp3 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 3 Sep 2019 12:45:34 -0400
-Received: from correo.us.es ([193.147.175.20]:35638 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730227AbfICQp3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Tue, 3 Sep 2019 12:45:29 -0400
+Received: from correo.us.es ([193.147.175.20]:35616 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1730212AbfICQp2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 3 Sep 2019 12:45:28 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 26595DA85C
-        for <netfilter-devel@vger.kernel.org>; Tue,  3 Sep 2019 18:45:26 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 6466FDA870
+        for <netfilter-devel@vger.kernel.org>; Tue,  3 Sep 2019 18:45:24 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 14A67B8014
-        for <netfilter-devel@vger.kernel.org>; Tue,  3 Sep 2019 18:45:26 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 55128DA801
+        for <netfilter-devel@vger.kernel.org>; Tue,  3 Sep 2019 18:45:24 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 09ED2B8001; Tue,  3 Sep 2019 18:45:26 +0200 (CEST)
+        id 2A4A61021A8; Tue,  3 Sep 2019 18:45:24 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id B1CECFF6CC;
-        Tue,  3 Sep 2019 18:45:23 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id DBB05B8011;
+        Tue,  3 Sep 2019 18:45:21 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 03 Sep 2019 18:45:23 +0200 (CEST)
+ Tue, 03 Sep 2019 18:45:21 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 51EC44265A5A;
-        Tue,  3 Sep 2019 18:45:23 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 81E974265A5A;
+        Tue,  3 Sep 2019 18:45:21 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org,
         jakub.kicinski@netronome.com, jiri@resnulli.us,
         saeedm@mellanox.com, vishal@chelsio.com, vladbu@mellanox.com
-Subject: [PATCH net-next,v2 4/4] netfilter: nft_payload: packet mangling offload support
-Date:   Tue,  3 Sep 2019 18:45:13 +0200
-Message-Id: <20190903164513.15462-5-pablo@netfilter.org>
+Subject: [PATCH net-next,v2 2/4] net: flow_offload: bitwise AND on mangle action value field
+Date:   Tue,  3 Sep 2019 18:45:11 +0200
+Message-Id: <20190903164513.15462-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20190903164513.15462-1-pablo@netfilter.org>
 References: <20190903164513.15462-1-pablo@netfilter.org>
@@ -56,104 +56,114 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This patch allows for mangling packet fields using hardware offload
-infrastructure.
+Drivers perform a bitwise AND on the value and the mask. Update
+tc_setup_flow_action() to perform this operation so drivers do not need
+to do this.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_payload.c | 73 +++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 73 insertions(+)
+ drivers/net/ethernet/chelsio/cxgb4/cxgb4_tc_flower.c | 3 +--
+ drivers/net/ethernet/mellanox/mlx5/core/en_tc.c      | 2 +-
+ drivers/net/ethernet/netronome/nfp/flower/action.c   | 9 ++++-----
+ net/sched/cls_api.c                                  | 3 ++-
+ 4 files changed, 8 insertions(+), 9 deletions(-)
 
-diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
-index 22a80eb60222..0efa8bfd2b51 100644
---- a/net/netfilter/nft_payload.c
-+++ b/net/netfilter/nft_payload.c
-@@ -562,12 +562,85 @@ static int nft_payload_set_dump(struct sk_buff *skb, const struct nft_expr *expr
- 	return -1;
+diff --git a/drivers/net/ethernet/chelsio/cxgb4/cxgb4_tc_flower.c b/drivers/net/ethernet/chelsio/cxgb4/cxgb4_tc_flower.c
+index 2d26dbca701d..5afc15a60199 100644
+--- a/drivers/net/ethernet/chelsio/cxgb4/cxgb4_tc_flower.c
++++ b/drivers/net/ethernet/chelsio/cxgb4/cxgb4_tc_flower.c
+@@ -275,7 +275,6 @@ static int cxgb4_validate_flow_match(struct net_device *dev,
+ static void offload_pedit(struct ch_filter_specification *fs, u32 val, u32 mask,
+ 			  u8 field)
+ {
+-	u32 set_val = val & mask;
+ 	u32 offset = 0;
+ 	u8 size = 1;
+ 	int i;
+@@ -287,7 +286,7 @@ static void offload_pedit(struct ch_filter_specification *fs, u32 val, u32 mask,
+ 			break;
+ 		}
+ 	}
+-	memcpy((u8 *)fs + offset, &set_val, size);
++	memcpy((u8 *)fs + offset, &val, size);
  }
  
-+static int nft_payload_offload_set_nh(struct nft_offload_ctx *ctx,
-+				      struct nft_flow_rule *flow,
-+				      const struct nft_payload_set *priv)
-+{
-+	int type = FLOW_ACT_MANGLE_UNSPEC;
-+
-+	switch (ctx->dep.l3num) {
-+	case htons(ETH_P_IP):
-+		type = FLOW_ACT_MANGLE_HDR_TYPE_IP4;
-+		break;
-+	case htons(ETH_P_IPV6):
-+		type = FLOW_ACT_MANGLE_HDR_TYPE_IP6;
-+		break;
-+	}
-+
-+	return type;
-+}
-+
-+static int nft_payload_offload_set_th(struct nft_offload_ctx *ctx,
-+				      struct nft_flow_rule *flow,
-+				      const struct nft_payload_set *priv)
-+{
-+	int type = FLOW_ACT_MANGLE_UNSPEC;
-+
-+	switch (ctx->dep.protonum) {
-+	case IPPROTO_TCP:
-+		type = FLOW_ACT_MANGLE_HDR_TYPE_TCP;
-+		break;
-+	case IPPROTO_UDP:
-+		type = FLOW_ACT_MANGLE_HDR_TYPE_UDP;
-+		break;
-+	}
-+
-+	return type;
-+}
-+
-+static int nft_payload_set_offload(struct nft_offload_ctx *ctx,
-+				   struct nft_flow_rule *flow,
-+				   const struct nft_expr *expr)
-+{
-+	const struct nft_payload_set *priv = nft_expr_priv(expr);
-+	struct nft_offload_reg *sreg = &ctx->regs[priv->sreg];
-+	int type = FLOW_ACT_MANGLE_UNSPEC;
-+	struct flow_action_entry *entry;
-+
-+	switch (priv->base) {
-+	case NFT_PAYLOAD_LL_HEADER:
-+		type = FLOW_ACT_MANGLE_HDR_TYPE_ETH;
-+		break;
-+	case NFT_PAYLOAD_NETWORK_HEADER:
-+		type = nft_payload_offload_set_nh(ctx, flow, priv);
-+		break;
-+	case NFT_PAYLOAD_TRANSPORT_HEADER:
-+		type = nft_payload_offload_set_th(ctx, flow, priv);
-+		break;
-+	default:
-+		WARN_ON_ONCE(1);
-+		break;
-+	}
-+
-+	entry = &flow->rule->action.entries[ctx->num_actions++];
-+	entry->id		= FLOW_ACTION_MANGLE;
-+	entry->mangle.htype	= type;
-+	entry->mangle.offset	= priv->offset;
-+	entry->mangle.len	= priv->len;
-+
-+	memcpy(entry->mangle.val, sreg->data.data, priv->len);
-+	memset(entry->mangle.mask, 0xff, priv->len);
-+
-+	return type != FLOW_ACT_MANGLE_UNSPEC ? 0 : -EOPNOTSUPP;
-+}
-+
- static const struct nft_expr_ops nft_payload_set_ops = {
- 	.type		= &nft_payload_type,
- 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_payload_set)),
- 	.eval		= nft_payload_set_eval,
- 	.init		= nft_payload_set_init,
- 	.dump		= nft_payload_set_dump,
-+	.offload	= nft_payload_set_offload,
- };
+ static void process_pedit_field(struct ch_filter_specification *fs, u32 val,
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
+index 67e82480b516..f29895b3a947 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
+@@ -2213,7 +2213,7 @@ static int set_pedit_val(u8 hdr_type, u32 mask, u32 val, u32 offset,
+ 		goto out_err;
  
- static const struct nft_expr_ops *
+ 	*curr_pmask |= mask;
+-	*curr_pval  |= (val & mask);
++	*curr_pval  |= val;
+ 
+ 	return 0;
+ 
+diff --git a/drivers/net/ethernet/netronome/nfp/flower/action.c b/drivers/net/ethernet/netronome/nfp/flower/action.c
+index ee0066a7ba87..592c36ba9e3f 100644
+--- a/drivers/net/ethernet/netronome/nfp/flower/action.c
++++ b/drivers/net/ethernet/netronome/nfp/flower/action.c
+@@ -477,7 +477,6 @@ static void nfp_fl_set_helper32(u32 value, u32 mask, u8 *p_exact, u8 *p_mask)
+ 	u32 oldvalue = get_unaligned((u32 *)p_exact);
+ 	u32 oldmask = get_unaligned((u32 *)p_mask);
+ 
+-	value &= mask;
+ 	value |= oldvalue & ~mask;
+ 
+ 	put_unaligned(oldmask | mask, (u32 *)p_mask);
+@@ -544,7 +543,7 @@ nfp_fl_set_ip4(const struct flow_action_entry *act, u32 off,
+ 	case offsetof(struct iphdr, daddr):
+ 		set_ip_addr->ipv4_dst_mask |= mask;
+ 		set_ip_addr->ipv4_dst &= ~mask;
+-		set_ip_addr->ipv4_dst |= exact & mask;
++		set_ip_addr->ipv4_dst |= exact;
+ 		set_ip_addr->head.jump_id = NFP_FL_ACTION_OPCODE_SET_IPV4_ADDRS;
+ 		set_ip_addr->head.len_lw = sizeof(*set_ip_addr) >>
+ 					   NFP_FL_LW_SIZ;
+@@ -552,7 +551,7 @@ nfp_fl_set_ip4(const struct flow_action_entry *act, u32 off,
+ 	case offsetof(struct iphdr, saddr):
+ 		set_ip_addr->ipv4_src_mask |= mask;
+ 		set_ip_addr->ipv4_src &= ~mask;
+-		set_ip_addr->ipv4_src |= exact & mask;
++		set_ip_addr->ipv4_src |= exact;
+ 		set_ip_addr->head.jump_id = NFP_FL_ACTION_OPCODE_SET_IPV4_ADDRS;
+ 		set_ip_addr->head.len_lw = sizeof(*set_ip_addr) >>
+ 					   NFP_FL_LW_SIZ;
+@@ -606,7 +605,7 @@ nfp_fl_set_ip6_helper(int opcode_tag, u8 word, __be32 exact, __be32 mask,
+ {
+ 	ip6->ipv6[word].mask |= mask;
+ 	ip6->ipv6[word].exact &= ~mask;
+-	ip6->ipv6[word].exact |= exact & mask;
++	ip6->ipv6[word].exact |= exact;
+ 
+ 	ip6->reserved = cpu_to_be16(0);
+ 	ip6->head.jump_id = opcode_tag;
+@@ -651,7 +650,7 @@ nfp_fl_set_ip6_hop_limit_flow_label(u32 off, __be32 exact, __be32 mask,
+ 
+ 		ip_hl_fl->ipv6_label_mask |= mask;
+ 		ip_hl_fl->ipv6_label &= ~mask;
+-		ip_hl_fl->ipv6_label |= exact & mask;
++		ip_hl_fl->ipv6_label |= exact;
+ 		break;
+ 	}
+ 
+diff --git a/net/sched/cls_api.c b/net/sched/cls_api.c
+index fbab004d0075..e30a151d8527 100644
+--- a/net/sched/cls_api.c
++++ b/net/sched/cls_api.c
+@@ -3380,7 +3380,8 @@ int tc_setup_flow_action(struct flow_action *flow_action,
+ 				}
+ 				entry->mangle.htype = tcf_pedit_htype(act, k);
+ 				entry->mangle.mask = ~tcf_pedit_mask(act, k);
+-				entry->mangle.val = tcf_pedit_val(act, k);
++				entry->mangle.val = tcf_pedit_val(act, k) &
++							entry->mangle.mask;
+ 				entry->mangle.offset = tcf_pedit_offset(act, k);
+ 				entry = &flow_action->entries[++j];
+ 			}
 -- 
 2.11.0
 
