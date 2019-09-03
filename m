@@ -2,85 +2,74 @@ Return-Path: <SRS0=xNQb=W6=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+X-Spam-Status: No, score=-6.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C8655C3A5A2
-	for <netfilter-devel@archiver.kernel.org>; Tue,  3 Sep 2019 20:55:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 77DE5C3A5A2
+	for <netfilter-devel@archiver.kernel.org>; Tue,  3 Sep 2019 21:33:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9A64D2339E
-	for <netfilter-devel@archiver.kernel.org>; Tue,  3 Sep 2019 20:55:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 30268204EC
+	for <netfilter-devel@archiver.kernel.org>; Tue,  3 Sep 2019 21:33:23 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=riseup.net header.i=@riseup.net header.b="bYa4QfCv"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727175AbfICUzj (ORCPT
+        id S1727346AbfICVdW (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 3 Sep 2019 16:55:39 -0400
-Received: from correo.us.es ([193.147.175.20]:34178 "EHLO mail.us.es"
+        Tue, 3 Sep 2019 17:33:22 -0400
+Received: from mx1.riseup.net ([198.252.153.129]:37440 "EHLO mx1.riseup.net"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725994AbfICUzj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 3 Sep 2019 16:55:39 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 9DBDAB6C68
-        for <netfilter-devel@vger.kernel.org>; Tue,  3 Sep 2019 22:55:35 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 90DBADA72F
-        for <netfilter-devel@vger.kernel.org>; Tue,  3 Sep 2019 22:55:35 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 75478203FE; Tue,  3 Sep 2019 22:55:35 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 709EED2B1F;
-        Tue,  3 Sep 2019 22:55:33 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 03 Sep 2019 22:55:33 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (sys.soleta.eu [212.170.55.40])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 403494251481;
-        Tue,  3 Sep 2019 22:55:33 +0200 (CEST)
-Date:   Tue, 3 Sep 2019 22:55:34 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Leonardo Bras <leonardo@linux.ibm.com>
-Cc:     netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        bridge@lists.linux-foundation.org, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        Roopa Prabhu <roopa@cumulusnetworks.com>,
-        Nikolay Aleksandrov <nikolay@cumulusnetworks.com>,
-        "David S. Miller" <davem@davemloft.net>
-Subject: Re: [PATCH v4 1/2] netfilter: Terminate rule eval if protocol=IPv6
- and ipv6 module is disabled
-Message-ID: <20190903205534.bxcty7pja5bvru5f@salvia>
-References: <20190830181354.26279-1-leonardo@linux.ibm.com>
- <20190830181354.26279-2-leonardo@linux.ibm.com>
+        id S1726567AbfICVdW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 3 Sep 2019 17:33:22 -0400
+Received: from bell.riseup.net (bell-pn.riseup.net [10.0.1.178])
+        (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+        (Client CN "*.riseup.net", Issuer "COMODO RSA Domain Validation Secure Server CA" (verified OK))
+        by mx1.riseup.net (Postfix) with ESMTPS id 171531B94C6
+        for <netfilter-devel@vger.kernel.org>; Tue,  3 Sep 2019 14:33:22 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=riseup.net; s=squak;
+        t=1567546402; bh=h9SrqIRirHmNkaUSSaWo/8tkvnZkqlbsosror37nF1E=;
+        h=From:To:Cc:Subject:Date:From;
+        b=bYa4QfCvJtGiPaVOfDQouYiHPRQ2ftPFFZe67baxTWI4nCliDRJg7eZB/agNUVGqK
+         4N3QLwOEYGANwhlL2epSqCfzMVl03oZCS18YLEUC75Ce/zOnwWEd0aN2/4CL5a/zPQ
+         aRlX90B1bShsjHtc+xh8Ce08786ETz69IXg7Cj6c=
+X-Riseup-User-ID: 5BD92957FA9C2C76D2700FF20F34947F8DC2BA8631B4BD4C85F20B84DAC148D9
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+         by bell.riseup.net (Postfix) with ESMTPSA id 28F04222E37;
+        Tue,  3 Sep 2019 14:33:20 -0700 (PDT)
+From:   Fernando Fernandez Mancera <ffmancera@riseup.net>
+To:     netfilter-devel@vger.kernel.org
+Cc:     Fernando Fernandez Mancera <ffmancera@riseup.net>
+Subject: [PATCH nf] netfilter: nf_tables: fix possible null-pointer dereference in object update
+Date:   Tue,  3 Sep 2019 23:33:13 +0200
+Message-Id: <20190903213313.1080-1-ffmancera@riseup.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190830181354.26279-2-leonardo@linux.ibm.com>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Aug 30, 2019 at 03:13:53PM -0300, Leonardo Bras wrote:
-> If IPv6 is disabled on boot (ipv6.disable=1), but nft_fib_inet ends up
-> dealing with a IPv6 packet, it causes a kernel panic in
-> fib6_node_lookup_1(), crashing in bad_page_fault.
-> 
-> The panic is caused by trying to deference a very low address (0x38
-> in ppc64le), due to ipv6.fib6_main_tbl = NULL.
-> BUG: Kernel NULL pointer dereference at 0x00000038
-> 
-> The kernel panic was reproduced in a host that disabled IPv6 on boot and
-> have to process guest packets (coming from a bridge) using it's ip6tables.
-> 
-> Terminate rule evaluation when packet protocol is IPv6 but the ipv6 module
-> is not loaded.
+Fixes: d62d0ba97b58 ("netfilter: nf_tables: Introduce stateful object update operation")
+Signed-off-by: Fernando Fernandez Mancera <ffmancera@riseup.net>
+---
+ net/netfilter/nf_tables_api.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-Patch is applied, thanks.
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index cf767bc58e18..6893de9e1389 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -6477,7 +6477,8 @@ static void nft_obj_commit_update(struct nft_trans *trans)
+ 	obj = nft_trans_obj(trans);
+ 	newobj = nft_trans_obj_newobj(trans);
+ 
+-	obj->ops->update(obj, newobj);
++	if (obj->ops->update)
++		obj->ops->update(obj, newobj);
+ 
+ 	kfree(newobj);
+ }
+-- 
+2.20.1
+
