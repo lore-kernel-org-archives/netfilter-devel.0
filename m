@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B347C3A5A9
-	for <netfilter-devel@archiver.kernel.org>; Wed,  4 Sep 2019 16:01:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A86F5C3A5AA
+	for <netfilter-devel@archiver.kernel.org>; Wed,  4 Sep 2019 16:04:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 207352087E
-	for <netfilter-devel@archiver.kernel.org>; Wed,  4 Sep 2019 16:01:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 776B42087E
+	for <netfilter-devel@archiver.kernel.org>; Wed,  4 Sep 2019 16:04:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1567612915;
-	bh=gdfIsCQ3akrb6/fwj/1NzIgPbIVHf0Aisr6RhVLPZNM=;
+	s=default; t=1567613071;
+	bh=K8B7Wh6y9l9FoIrhqj54BavdltGdVVE0/GiOLd8E3Jc=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=YSJnvH89AVdSbAzvfGDIeSdhpeMAUynL9e1dE1IGhi74zt3bi1gKKLJhd/M8FeZQx
-	 YGDLO/i5BcxccglGLK/0pt/ofbo1HKigon6HthUPC5mCriPHP16RxS9z8WxW4H/7Ou
-	 ++OaCev8mX4eagIKsYRqy7Ttb2Gd58xaaYglqsds=
+	b=QD05BNaZrz6V2pjubg85PDCxLvOgzYnmrK0m/hU9vn7OrHFmK5Z63XEqbSYFZpeel
+	 3JrE8Jysg7cTRN86EFdOopna6cjXtAq0oXIMkBle/cJomJi4l9b9bOmPeQ7tkxehgu
+	 nz2QQlpHWrp7zd/RtLhOnfAP0Yex9ePEppiXnAAQ=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1733125AbfIDQBy (ORCPT
+        id S1733310AbfIDQE1 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 4 Sep 2019 12:01:54 -0400
-Received: from mail.kernel.org ([198.145.29.99]:37508 "EHLO mail.kernel.org"
+        Wed, 4 Sep 2019 12:04:27 -0400
+Received: from mail.kernel.org ([198.145.29.99]:39836 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1733118AbfIDQBx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 4 Sep 2019 12:01:53 -0400
+        id S1732988AbfIDQDW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 4 Sep 2019 12:03:22 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id EF7A422DBF;
-        Wed,  4 Sep 2019 16:01:51 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 6D6F920820;
+        Wed,  4 Sep 2019 16:03:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1567612912;
-        bh=gdfIsCQ3akrb6/fwj/1NzIgPbIVHf0Aisr6RhVLPZNM=;
+        s=default; t=1567613001;
+        bh=K8B7Wh6y9l9FoIrhqj54BavdltGdVVE0/GiOLd8E3Jc=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=AjAJHEdPIaAkumBUU6ktWqwizMRaNk3HbkBXnPCD7tEtKNAgRLVSdLh0nrxxunlyq
-         E5+KVP4XGn+CHgOrqIcZlTtrebBMP+gZwEM4O1jF5q0MdDdTrSmTVP+N1QYa6FRK5C
-         z5I83lPuL2GaNYGsO9rYHcZOIpf/0HvQQSzj4Ddk=
+        b=eGnhgpe+6KUyoGHuqo8fKfbfa1DuMaAcjyPz0iidtTJmzceI13LbP7XHRQhRQkEAu
+         jBkTpccUT3Dbm+kCKbuHBUIGuWrbld7sS3K47ywVHOr2QE7L+hsmuyYSyCbiMBCxd0
+         +soZJVr/C+pnFNXOvNqnkwD1axXb1M1DarVWlnZg=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Thomas Jarosch <thomas.jarosch@intra2net.com>,
@@ -46,12 +46,12 @@ Cc:     Thomas Jarosch <thomas.jarosch@intra2net.com>,
         Sasha Levin <sashal@kernel.org>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.14 19/36] netfilter: nf_conntrack_ftp: Fix debug output
-Date:   Wed,  4 Sep 2019 12:01:05 -0400
-Message-Id: <20190904160122.4179-19-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.4 10/20] netfilter: nf_conntrack_ftp: Fix debug output
+Date:   Wed,  4 Sep 2019 12:02:53 -0400
+Message-Id: <20190904160303.5062-10-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20190904160122.4179-1-sashal@kernel.org>
-References: <20190904160122.4179-1-sashal@kernel.org>
+In-Reply-To: <20190904160303.5062-1-sashal@kernel.org>
+References: <20190904160303.5062-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -88,10 +88,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/net/netfilter/nf_conntrack_ftp.c b/net/netfilter/nf_conntrack_ftp.c
-index f0e9a7511e1ac..c236c7d1655d0 100644
+index b666959f17c08..b7c13179fa40a 100644
 --- a/net/netfilter/nf_conntrack_ftp.c
 +++ b/net/netfilter/nf_conntrack_ftp.c
-@@ -323,7 +323,7 @@ static int find_pattern(const char *data, size_t dlen,
+@@ -334,7 +334,7 @@ static int find_pattern(const char *data, size_t dlen,
  		i++;
  	}
  
