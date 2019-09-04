@@ -7,49 +7,48 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A8B4BC3A5A8
-	for <netfilter-devel@archiver.kernel.org>; Wed,  4 Sep 2019 16:19:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A9AB7C3A5A8
+	for <netfilter-devel@archiver.kernel.org>; Wed,  4 Sep 2019 16:20:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 81C7F21883
-	for <netfilter-devel@archiver.kernel.org>; Wed,  4 Sep 2019 16:19:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7BB6721883
+	for <netfilter-devel@archiver.kernel.org>; Wed,  4 Sep 2019 16:20:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1567613996;
-	bh=kjk+EoecReY9IsVOLIcpYHJWi8ERUAkv7rkSi+iBvn8=;
+	s=default; t=1567614004;
+	bh=N4MYkCZeAaRWbGU+XS159qwzXvVn4ucbFYUepXXL2ac=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=oAAH7ZkdMa6MwEGbFkDQsWn75pCshKk8jwcONzpegwRrou8TEtwbEPDXtLxT4ss7V
-	 5HbWDlbiYSsaO9rmnYnYi+OUoVUP/a/he0KXSgkAJAP7vRrMNXBOJVWpe3x5MM1DlJ
-	 nZlPxSBrBupkLF9sYAWAQb6i9Va51ElV/sBC2D+c=
+	b=DKiM2Zji9VDJOnF3pgGN6N6P5xXotQSNmCvciuNTG/qnvq1MS7esDytmY/s1lTmhN
+	 Z9EnNpqt6yukrcWUI1RHLMXF+GBS6DNikI98YWefEraOZyXzH1Zci0U+au40QDMqj9
+	 BqHlEKTCMhcMdq0xULhl3TUnkD1IcNpi2KuxpxpM=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732703AbfIDQTu (ORCPT
+        id S1731856AbfIDP6P (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 4 Sep 2019 12:19:50 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60272 "EHLO mail.kernel.org"
+        Wed, 4 Sep 2019 11:58:15 -0400
+Received: from mail.kernel.org ([198.145.29.99]:60194 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731828AbfIDP6R (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 4 Sep 2019 11:58:17 -0400
+        id S1731828AbfIDP6P (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 4 Sep 2019 11:58:15 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id EF86D23401;
-        Wed,  4 Sep 2019 15:58:15 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 91FE523697;
+        Wed,  4 Sep 2019 15:58:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1567612696;
-        bh=kjk+EoecReY9IsVOLIcpYHJWi8ERUAkv7rkSi+iBvn8=;
+        s=default; t=1567612694;
+        bh=N4MYkCZeAaRWbGU+XS159qwzXvVn4ucbFYUepXXL2ac=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=EvpVcIGINZxeYl0g8X4Myh0LTN4n5GAfjI2avWEMt4qObn+dh1H33+Ws32/b0PDj3
-         B6vTjXDWpHUETYPcD37SFZ85ou/3yC5pMZnW4+FgNA3xSl36C9CkshiyYBpklcYvIj
-         fUXcQrWTYGoj7q5v362Fm5iSaCMrJL9g2JplLm6E=
+        b=dpgTwS165rLSW0hyxTrYRfM5qN40u7Ggi4+Lm2IacftChcNkb4IRvN8U6BrFP3w4P
+         xsLT3LG6X8uvyU9K1xi9aMpdRK2AMv8oFZrpGMQvW3V065FcFLQAm2QykD0Wq8urPS
+         2paCcG0JOr2j5gNTeShvszsAG+1tKREbAqNjLDvo=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Juliana Rodrigueiro <juliana.rodrigueiro@intra2net.com>,
-        Florian Westphal <fw@strlen.de>,
+Cc:     Todd Seidelmann <tseidelmann@linode.com>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
         Sasha Levin <sashal@kernel.org>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.2 24/94] netfilter: xt_nfacct: Fix alignment mismatch in xt_nfacct_match_info
-Date:   Wed,  4 Sep 2019 11:56:29 -0400
-Message-Id: <20190904155739.2816-24-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.2 22/94] netfilter: ebtables: Fix argument order to ADD_COUNTER
+Date:   Wed,  4 Sep 2019 11:56:27 -0400
+Message-Id: <20190904155739.2816-22-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20190904155739.2816-1-sashal@kernel.org>
 References: <20190904155739.2816-1-sashal@kernel.org>
@@ -62,105 +61,58 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Juliana Rodrigueiro <juliana.rodrigueiro@intra2net.com>
+From: Todd Seidelmann <tseidelmann@linode.com>
 
-[ Upstream commit 89a26cd4b501e9511d3cd3d22327fc76a75a38b3 ]
+[ Upstream commit f20faa06d83de440bec8e200870784c3458793c4 ]
 
-When running a 64-bit kernel with a 32-bit iptables binary, the size of
-the xt_nfacct_match_info struct diverges.
+The ordering of arguments to the x_tables ADD_COUNTER macro
+appears to be wrong in ebtables (cf. ip_tables.c, ip6_tables.c,
+and arp_tables.c).
 
-    kernel: sizeof(struct xt_nfacct_match_info) : 40
-    iptables: sizeof(struct xt_nfacct_match_info)) : 36
+This causes data corruption in the ebtables userspace tools
+because they get incorrect packet & byte counts from the kernel.
 
-Trying to append nfacct related rules results in an unhelpful message.
-Although it is suggested to look for more information in dmesg, nothing
-can be found there.
-
-    # iptables -A <chain> -m nfacct --nfacct-name <acct-object>
-    iptables: Invalid argument. Run `dmesg' for more information.
-
-This patch fixes the memory misalignment by enforcing 8-byte alignment
-within the struct's first revision. This solution is often used in many
-other uapi netfilter headers.
-
-Signed-off-by: Juliana Rodrigueiro <juliana.rodrigueiro@intra2net.com>
-Acked-by: Florian Westphal <fw@strlen.de>
+Fixes: d72133e628803 ("netfilter: ebtables: use ADD_COUNTER macro")
+Signed-off-by: Todd Seidelmann <tseidelmann@linode.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- include/uapi/linux/netfilter/xt_nfacct.h |  5 ++++
- net/netfilter/xt_nfacct.c                | 36 ++++++++++++++++--------
- 2 files changed, 30 insertions(+), 11 deletions(-)
+ net/bridge/netfilter/ebtables.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/include/uapi/linux/netfilter/xt_nfacct.h b/include/uapi/linux/netfilter/xt_nfacct.h
-index 5c8a4d760ee34..b5123ab8d54a8 100644
---- a/include/uapi/linux/netfilter/xt_nfacct.h
-+++ b/include/uapi/linux/netfilter/xt_nfacct.h
-@@ -11,4 +11,9 @@ struct xt_nfacct_match_info {
- 	struct nf_acct	*nfacct;
- };
+diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
+index c8177a89f52c3..4096d8a74a2bd 100644
+--- a/net/bridge/netfilter/ebtables.c
++++ b/net/bridge/netfilter/ebtables.c
+@@ -221,7 +221,7 @@ unsigned int ebt_do_table(struct sk_buff *skb,
+ 			return NF_DROP;
+ 		}
  
-+struct xt_nfacct_match_info_v1 {
-+	char		name[NFACCT_NAME_MAX];
-+	struct nf_acct	*nfacct __attribute__((aligned(8)));
-+};
-+
- #endif /* _XT_NFACCT_MATCH_H */
-diff --git a/net/netfilter/xt_nfacct.c b/net/netfilter/xt_nfacct.c
-index d0ab1adf5bff8..5aab6df74e0f2 100644
---- a/net/netfilter/xt_nfacct.c
-+++ b/net/netfilter/xt_nfacct.c
-@@ -54,25 +54,39 @@ nfacct_mt_destroy(const struct xt_mtdtor_param *par)
- 	nfnl_acct_put(info->nfacct);
+-		ADD_COUNTER(*(counter_base + i), 1, skb->len);
++		ADD_COUNTER(*(counter_base + i), skb->len, 1);
+ 
+ 		/* these should only watch: not modify, nor tell us
+ 		 * what to do with the packet
+@@ -959,8 +959,8 @@ static void get_counters(const struct ebt_counter *oldcounters,
+ 			continue;
+ 		counter_base = COUNTER_BASE(oldcounters, nentries, cpu);
+ 		for (i = 0; i < nentries; i++)
+-			ADD_COUNTER(counters[i], counter_base[i].pcnt,
+-				    counter_base[i].bcnt);
++			ADD_COUNTER(counters[i], counter_base[i].bcnt,
++				    counter_base[i].pcnt);
+ 	}
  }
  
--static struct xt_match nfacct_mt_reg __read_mostly = {
--	.name       = "nfacct",
--	.family     = NFPROTO_UNSPEC,
--	.checkentry = nfacct_mt_checkentry,
--	.match      = nfacct_mt,
--	.destroy    = nfacct_mt_destroy,
--	.matchsize  = sizeof(struct xt_nfacct_match_info),
--	.usersize   = offsetof(struct xt_nfacct_match_info, nfacct),
--	.me         = THIS_MODULE,
-+static struct xt_match nfacct_mt_reg[] __read_mostly = {
-+	{
-+		.name       = "nfacct",
-+		.revision   = 0,
-+		.family     = NFPROTO_UNSPEC,
-+		.checkentry = nfacct_mt_checkentry,
-+		.match      = nfacct_mt,
-+		.destroy    = nfacct_mt_destroy,
-+		.matchsize  = sizeof(struct xt_nfacct_match_info),
-+		.usersize   = offsetof(struct xt_nfacct_match_info, nfacct),
-+		.me         = THIS_MODULE,
-+	},
-+	{
-+		.name       = "nfacct",
-+		.revision   = 1,
-+		.family     = NFPROTO_UNSPEC,
-+		.checkentry = nfacct_mt_checkentry,
-+		.match      = nfacct_mt,
-+		.destroy    = nfacct_mt_destroy,
-+		.matchsize  = sizeof(struct xt_nfacct_match_info_v1),
-+		.usersize   = offsetof(struct xt_nfacct_match_info_v1, nfacct),
-+		.me         = THIS_MODULE,
-+	},
- };
+@@ -1280,7 +1280,7 @@ static int do_update_counters(struct net *net, const char *name,
  
- static int __init nfacct_mt_init(void)
- {
--	return xt_register_match(&nfacct_mt_reg);
-+	return xt_register_matches(nfacct_mt_reg, ARRAY_SIZE(nfacct_mt_reg));
- }
+ 	/* we add to the counters of the first cpu */
+ 	for (i = 0; i < num_counters; i++)
+-		ADD_COUNTER(t->private->counters[i], tmp[i].pcnt, tmp[i].bcnt);
++		ADD_COUNTER(t->private->counters[i], tmp[i].bcnt, tmp[i].pcnt);
  
- static void __exit nfacct_mt_exit(void)
- {
--	xt_unregister_match(&nfacct_mt_reg);
-+	xt_unregister_matches(nfacct_mt_reg, ARRAY_SIZE(nfacct_mt_reg));
- }
- 
- module_init(nfacct_mt_init);
+ 	write_unlock_bh(&t->lock);
+ 	ret = 0;
 -- 
 2.20.1
 
