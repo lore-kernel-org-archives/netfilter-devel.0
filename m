@@ -7,48 +7,49 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 15959C3A5A8
-	for <netfilter-devel@archiver.kernel.org>; Wed,  4 Sep 2019 16:15:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0FDCEC3A5A8
+	for <netfilter-devel@archiver.kernel.org>; Wed,  4 Sep 2019 16:17:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D66FD21670
-	for <netfilter-devel@archiver.kernel.org>; Wed,  4 Sep 2019 16:15:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D3F6C21670
+	for <netfilter-devel@archiver.kernel.org>; Wed,  4 Sep 2019 16:17:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1567613739;
-	bh=d4SIohXQNvARrAc4/XY4cpPn0pLAAyDtVryElAjLMhM=;
+	s=default; t=1567613855;
+	bh=pR3CzoiP/l4u9WXOivvJeklVRs9Y9Mr9UyzMcf/eFN0=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=2KSNCasZ9a68DaoUXacDstqSA5zwe+6Kza3TxJKGql5MTkgNs9v4S4YMD5tjc2jFk
-	 +mAVaY873Qh3pOW68QL1MVDiESAHQihj766CHDf9S+Eqv91GAWYuk7Jkjy9DOIetm8
-	 xo5gXa3bvVQ8pTPrL3kx31xHu0BkU+jsWnGlDNJo=
+	b=HPDcgc9HfudeIumeeLOC18Tb0eaCNq+3zMMbQiPshDc8pwAlrgHk38kSOTt5Jp/XT
+	 CnE3uIKyDJRrQzuAyexvYLNQGZOuUr5VytrNOUJBFv93FLzg4smlG9d6PK2ioFViwH
+	 sxjrBahRuwQENVnWa2taCw3Hzh0YzEA8c6X6wk5o=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387578AbfIDQPA (ORCPT
+        id S1732257AbfIDP7H (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 4 Sep 2019 12:15:00 -0400
-Received: from mail.kernel.org ([198.145.29.99]:34270 "EHLO mail.kernel.org"
+        Wed, 4 Sep 2019 11:59:07 -0400
+Received: from mail.kernel.org ([198.145.29.99]:33404 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1732453AbfIDP7m (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 4 Sep 2019 11:59:42 -0400
+        id S1731561AbfIDP7H (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 4 Sep 2019 11:59:07 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 7B5B22070C;
-        Wed,  4 Sep 2019 15:59:40 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 2C32922CF5;
+        Wed,  4 Sep 2019 15:59:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1567612781;
-        bh=d4SIohXQNvARrAc4/XY4cpPn0pLAAyDtVryElAjLMhM=;
+        s=default; t=1567612746;
+        bh=pR3CzoiP/l4u9WXOivvJeklVRs9Y9Mr9UyzMcf/eFN0=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=fwxOO51Oqf/oM4Z9XnT8petGqrOPczSvKxP5hHNddoByuXZq+VHinc0WB0zeT3Bub
-         p4pncVlA+hOjDNWfMeazd1aGD/XZgYDK1F4d3aqMJmjd9uD4is0zSomryijIOFAADv
-         AioA20GM2zYq8jJpF6BiAn9VQoafuGjN3DbTqCkQ=
+        b=pPKjoXSAvfXrsJsZAqDs5H0fW+WnCJvWjbeMMQr1mMeFbBXMQoIiRrap1hIlWYcs0
+         jMz2HeCiVxNScmp0hI+tvFlATJe/TiMpSUCXI/JYk0irhWMHpyBO/Ca40b/3Zz+UWg
+         GcPuHHb0KDul4hbzhx1KHZMwgzgJ530jmtk5HSV8=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Florian Westphal <fw@strlen.de>,
+        Shmulik Ladkani <shmulik.ladkani@gmail.com>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
         Sasha Levin <sashal@kernel.org>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.2 78/94] netfilter: nf_flow_table: clear skb tstamp before xmit
-Date:   Wed,  4 Sep 2019 11:57:23 -0400
-Message-Id: <20190904155739.2816-78-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.2 57/94] netfilter: conntrack: make sysctls per-namespace again
+Date:   Wed,  4 Sep 2019 11:57:02 -0400
+Message-Id: <20190904155739.2816-57-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20190904155739.2816-1-sashal@kernel.org>
 References: <20190904155739.2816-1-sashal@kernel.org>
@@ -63,47 +64,39 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Florian Westphal <fw@strlen.de>
 
-[ Upstream commit de20900fbe1c4fd36de25a7a5a43223254ecf0d0 ]
+[ Upstream commit 478553fd1b6f819390b64a2e13ac756c4d1a2836 ]
 
-If 'fq' qdisc is used and a program has requested timestamps,
-skb->tstamp needs to be cleared, else fq will treat these as
-'transmit time'.
+When I merged the extension sysctl tables with the main one I forgot to
+reset them on netns creation.  They currently read/write init_net settings.
 
+Fixes: d912dec12428 ("netfilter: conntrack: merge acct and helper sysctl table with main one")
+Fixes: cb2833ed0044 ("netfilter: conntrack: merge ecache and timestamp sysctl tables with main one")
+Reported-by: Shmulik Ladkani <shmulik.ladkani@gmail.com>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- net/netfilter/nf_flow_table_ip.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ net/netfilter/nf_conntrack_standalone.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
-index d68c801dd614b..b9e7dd6e60ce2 100644
---- a/net/netfilter/nf_flow_table_ip.c
-+++ b/net/netfilter/nf_flow_table_ip.c
-@@ -228,7 +228,6 @@ static unsigned int nf_flow_xmit_xfrm(struct sk_buff *skb,
- {
- 	skb_orphan(skb);
- 	skb_dst_set_noref(skb, dst);
--	skb->tstamp = 0;
- 	dst_output(state->net, state->sk, skb);
- 	return NF_STOLEN;
- }
-@@ -284,6 +283,7 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
- 	flow->timeout = (u32)jiffies + NF_FLOW_TIMEOUT;
- 	iph = ip_hdr(skb);
- 	ip_decrease_ttl(iph);
-+	skb->tstamp = 0;
- 
- 	if (unlikely(dst_xfrm(&rt->dst))) {
- 		memset(skb->cb, 0, sizeof(struct inet_skb_parm));
-@@ -512,6 +512,7 @@ nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
- 	flow->timeout = (u32)jiffies + NF_FLOW_TIMEOUT;
- 	ip6h = ipv6_hdr(skb);
- 	ip6h->hop_limit--;
-+	skb->tstamp = 0;
- 
- 	if (unlikely(dst_xfrm(&rt->dst))) {
- 		memset(skb->cb, 0, sizeof(struct inet6_skb_parm));
+diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
+index e0d392cb3075a..0006503d2da97 100644
+--- a/net/netfilter/nf_conntrack_standalone.c
++++ b/net/netfilter/nf_conntrack_standalone.c
+@@ -1037,8 +1037,13 @@ static int nf_conntrack_standalone_init_sysctl(struct net *net)
+ 	table[NF_SYSCTL_CT_COUNT].data = &net->ct.count;
+ 	table[NF_SYSCTL_CT_CHECKSUM].data = &net->ct.sysctl_checksum;
+ 	table[NF_SYSCTL_CT_LOG_INVALID].data = &net->ct.sysctl_log_invalid;
++	table[NF_SYSCTL_CT_ACCT].data = &net->ct.sysctl_acct;
++	table[NF_SYSCTL_CT_HELPER].data = &net->ct.sysctl_auto_assign_helper;
+ #ifdef CONFIG_NF_CONNTRACK_EVENTS
+ 	table[NF_SYSCTL_CT_EVENTS].data = &net->ct.sysctl_events;
++#endif
++#ifdef CONFIG_NF_CONNTRACK_TIMESTAMP
++	table[NF_SYSCTL_CT_TIMESTAMP].data = &net->ct.sysctl_tstamp;
+ #endif
+ 	table[NF_SYSCTL_CT_PROTO_TIMEOUT_GENERIC].data = &nf_generic_pernet(net)->timeout;
+ 	table[NF_SYSCTL_CT_PROTO_TIMEOUT_ICMP].data = &nf_icmp_pernet(net)->timeout;
 -- 
 2.20.1
 
