@@ -7,51 +7,52 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EF57AC3A5AB
-	for <netfilter-devel@archiver.kernel.org>; Wed,  4 Sep 2019 16:05:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 11ACDC3A5A8
+	for <netfilter-devel@archiver.kernel.org>; Wed,  4 Sep 2019 16:08:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BFD092339D
-	for <netfilter-devel@archiver.kernel.org>; Wed,  4 Sep 2019 16:05:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DA4D020820
+	for <netfilter-devel@archiver.kernel.org>; Wed,  4 Sep 2019 16:08:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1567613138;
-	bh=INDJQZJbLv6NZK2YvstF0dhVGzZJAfkD6dXh5LtwKSg=;
+	s=default; t=1567613309;
+	bh=uzKKD5qqt73DIpkrsgYADca5BmE3oK1MNkTTEMz098g=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=ESSgwfmorBpk6n9+lY9GxOnbbzIe9FjbzVJrDa4eFdJ2IFDFnBWprfYWO4txBEL2N
-	 QUuytenv7jJrJL8q6fE8K7Ep9EcAWWCi8PARXOBwYP11aMNImQR1Dk1T+SrqVq+Oki
-	 qkn12RhVo3v6bhY7d6H70GhMSyhqo7wZOLbXO0DU=
+	b=mW1xkfCbvJVhIVCBWk9JmnFVYZw9qcftCYCCSuiX1Z1W9THVnOHsz3/aS0FLJTbHE
+	 fefvY/Ijeso92P7AeeZwYOs1u5JHZ7IwAu1IrAKcgpJi8rc5ahbE+HJSxurjbx/7M3
+	 3/5ME/w9KIG+xj9br0+tFCG4PqVrrzQrV8PxGz4c=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387485AbfIDQCq (ORCPT
+        id S1733105AbfIDQIY (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 4 Sep 2019 12:02:46 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38886 "EHLO mail.kernel.org"
+        Wed, 4 Sep 2019 12:08:24 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36986 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2387478AbfIDQCo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 4 Sep 2019 12:02:44 -0400
+        id S1733016AbfIDQBd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 4 Sep 2019 12:01:33 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id EE4502087E;
-        Wed,  4 Sep 2019 16:02:42 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 627AA22CF5;
+        Wed,  4 Sep 2019 16:01:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1567612963;
-        bh=INDJQZJbLv6NZK2YvstF0dhVGzZJAfkD6dXh5LtwKSg=;
+        s=default; t=1567612892;
+        bh=uzKKD5qqt73DIpkrsgYADca5BmE3oK1MNkTTEMz098g=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=wg51XjQB5B0dMPToPNo8x4vqHg39HTiGWV2dV1WlcfT4/qHhp1HVMwzB/qS6XHoKS
-         Hged2gW1okQ+epzEgTHjveZCUSB0oTn+HyrrZ4Lt8pVpksY4LqBho87sYimoiiGv2n
-         5uZMVKKK22TRpSO4dd1cfMHK1KOQTDIX+e5ejCKM=
+        b=wxhdMjIMitn1O3HHD5Z6UO/OIrZi9KJ6YP+nKr3EqCGZiIbR1x6ppswPJURIHkZni
+         yidbNkNe0bXOI4zlQoUma/EwA/hc9HB5aRcF52FzJCE4cZnQI4mg7Nwul9AzJz555f
+         Rsimr1mzEzLUH4VzB7SondFnR1hGldZoILjqLRmE=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Thomas Jarosch <thomas.jarosch@intra2net.com>,
+Cc:     Juliana Rodrigueiro <juliana.rodrigueiro@intra2net.com>,
+        Florian Westphal <fw@strlen.de>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
         Sasha Levin <sashal@kernel.org>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.9 15/27] netfilter: nf_conntrack_ftp: Fix debug output
-Date:   Wed,  4 Sep 2019 12:02:08 -0400
-Message-Id: <20190904160220.4545-15-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.14 08/36] netfilter: xt_nfacct: Fix alignment mismatch in xt_nfacct_match_info
+Date:   Wed,  4 Sep 2019 12:00:54 -0400
+Message-Id: <20190904160122.4179-8-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20190904160220.4545-1-sashal@kernel.org>
-References: <20190904160220.4545-1-sashal@kernel.org>
+In-Reply-To: <20190904160122.4179-1-sashal@kernel.org>
+References: <20190904160122.4179-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -61,45 +62,105 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Thomas Jarosch <thomas.jarosch@intra2net.com>
+From: Juliana Rodrigueiro <juliana.rodrigueiro@intra2net.com>
 
-[ Upstream commit 3a069024d371125227de3ac8fa74223fcf473520 ]
+[ Upstream commit 89a26cd4b501e9511d3cd3d22327fc76a75a38b3 ]
 
-The find_pattern() debug output was printing the 'skip' character.
-This can be a NULL-byte and messes up further pr_debug() output.
+When running a 64-bit kernel with a 32-bit iptables binary, the size of
+the xt_nfacct_match_info struct diverges.
 
-Output without the fix:
-kernel: nf_conntrack_ftp: Pattern matches!
-kernel: nf_conntrack_ftp: Skipped up to `<7>nf_conntrack_ftp: find_pattern `PORT': dlen = 8
-kernel: nf_conntrack_ftp: find_pattern `EPRT': dlen = 8
+    kernel: sizeof(struct xt_nfacct_match_info) : 40
+    iptables: sizeof(struct xt_nfacct_match_info)) : 36
 
-Output with the fix:
-kernel: nf_conntrack_ftp: Pattern matches!
-kernel: nf_conntrack_ftp: Skipped up to 0x0 delimiter!
-kernel: nf_conntrack_ftp: Match succeeded!
-kernel: nf_conntrack_ftp: conntrack_ftp: match `172,17,0,100,200,207' (20 bytes at 4150681645)
-kernel: nf_conntrack_ftp: find_pattern `PORT': dlen = 8
+Trying to append nfacct related rules results in an unhelpful message.
+Although it is suggested to look for more information in dmesg, nothing
+can be found there.
 
-Signed-off-by: Thomas Jarosch <thomas.jarosch@intra2net.com>
+    # iptables -A <chain> -m nfacct --nfacct-name <acct-object>
+    iptables: Invalid argument. Run `dmesg' for more information.
+
+This patch fixes the memory misalignment by enforcing 8-byte alignment
+within the struct's first revision. This solution is often used in many
+other uapi netfilter headers.
+
+Signed-off-by: Juliana Rodrigueiro <juliana.rodrigueiro@intra2net.com>
+Acked-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- net/netfilter/nf_conntrack_ftp.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/uapi/linux/netfilter/xt_nfacct.h |  5 ++++
+ net/netfilter/xt_nfacct.c                | 36 ++++++++++++++++--------
+ 2 files changed, 30 insertions(+), 11 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_ftp.c b/net/netfilter/nf_conntrack_ftp.c
-index e3ed200608788..562b545242492 100644
---- a/net/netfilter/nf_conntrack_ftp.c
-+++ b/net/netfilter/nf_conntrack_ftp.c
-@@ -323,7 +323,7 @@ static int find_pattern(const char *data, size_t dlen,
- 		i++;
- 	}
+diff --git a/include/uapi/linux/netfilter/xt_nfacct.h b/include/uapi/linux/netfilter/xt_nfacct.h
+index 5c8a4d760ee34..b5123ab8d54a8 100644
+--- a/include/uapi/linux/netfilter/xt_nfacct.h
++++ b/include/uapi/linux/netfilter/xt_nfacct.h
+@@ -11,4 +11,9 @@ struct xt_nfacct_match_info {
+ 	struct nf_acct	*nfacct;
+ };
  
--	pr_debug("Skipped up to `%c'!\n", skip);
-+	pr_debug("Skipped up to 0x%hhx delimiter!\n", skip);
++struct xt_nfacct_match_info_v1 {
++	char		name[NFACCT_NAME_MAX];
++	struct nf_acct	*nfacct __attribute__((aligned(8)));
++};
++
+ #endif /* _XT_NFACCT_MATCH_H */
+diff --git a/net/netfilter/xt_nfacct.c b/net/netfilter/xt_nfacct.c
+index 6f92d25590a85..ea447b437f122 100644
+--- a/net/netfilter/xt_nfacct.c
++++ b/net/netfilter/xt_nfacct.c
+@@ -55,25 +55,39 @@ nfacct_mt_destroy(const struct xt_mtdtor_param *par)
+ 	nfnl_acct_put(info->nfacct);
+ }
  
- 	*numoff = i;
- 	*numlen = getnum(data + i, dlen - i, cmd, term, numoff);
+-static struct xt_match nfacct_mt_reg __read_mostly = {
+-	.name       = "nfacct",
+-	.family     = NFPROTO_UNSPEC,
+-	.checkentry = nfacct_mt_checkentry,
+-	.match      = nfacct_mt,
+-	.destroy    = nfacct_mt_destroy,
+-	.matchsize  = sizeof(struct xt_nfacct_match_info),
+-	.usersize   = offsetof(struct xt_nfacct_match_info, nfacct),
+-	.me         = THIS_MODULE,
++static struct xt_match nfacct_mt_reg[] __read_mostly = {
++	{
++		.name       = "nfacct",
++		.revision   = 0,
++		.family     = NFPROTO_UNSPEC,
++		.checkentry = nfacct_mt_checkentry,
++		.match      = nfacct_mt,
++		.destroy    = nfacct_mt_destroy,
++		.matchsize  = sizeof(struct xt_nfacct_match_info),
++		.usersize   = offsetof(struct xt_nfacct_match_info, nfacct),
++		.me         = THIS_MODULE,
++	},
++	{
++		.name       = "nfacct",
++		.revision   = 1,
++		.family     = NFPROTO_UNSPEC,
++		.checkentry = nfacct_mt_checkentry,
++		.match      = nfacct_mt,
++		.destroy    = nfacct_mt_destroy,
++		.matchsize  = sizeof(struct xt_nfacct_match_info_v1),
++		.usersize   = offsetof(struct xt_nfacct_match_info_v1, nfacct),
++		.me         = THIS_MODULE,
++	},
+ };
+ 
+ static int __init nfacct_mt_init(void)
+ {
+-	return xt_register_match(&nfacct_mt_reg);
++	return xt_register_matches(nfacct_mt_reg, ARRAY_SIZE(nfacct_mt_reg));
+ }
+ 
+ static void __exit nfacct_mt_exit(void)
+ {
+-	xt_unregister_match(&nfacct_mt_reg);
++	xt_unregister_matches(nfacct_mt_reg, ARRAY_SIZE(nfacct_mt_reg));
+ }
+ 
+ module_init(nfacct_mt_init);
 -- 
 2.20.1
 
