@@ -4,54 +4,54 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B471C3A5A8
-	for <netfilter-devel@archiver.kernel.org>; Wed,  4 Sep 2019 16:11:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6040AC3A5A9
+	for <netfilter-devel@archiver.kernel.org>; Wed,  4 Sep 2019 16:14:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 053F921883
-	for <netfilter-devel@archiver.kernel.org>; Wed,  4 Sep 2019 16:11:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3BAF02053B
+	for <netfilter-devel@archiver.kernel.org>; Wed,  4 Sep 2019 16:14:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1567613501;
-	bh=8OfmWXLfzPUy31L8L3yXbaG3s9YW31QmNCHxQ4GyPOA=;
+	s=default; t=1567613693;
+	bh=/pHX4fSyz12zQkqBVAShv8MoRwtzNWYX+/zNi5Zr8bQ=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=XMLRir+mZZkkVTag08CIIdpZtPUxJ28GhJ5r58DmCQ8Y1DsMtXw7uH1eORsfmmUVM
-	 TGP0ZI+40d8or7MUlfhTrQXxpUheXbbjAStx0XPauOngyVE8VZem0xdbJAiBKJsTIQ
-	 xRV3tkHDnDF3cOa1spjhA5ZPgOjQaxlL52cyqhwA=
+	b=q0oaeKXVCg91EiyGYy2oTRv6EMBXPiFAs02xdAlLHh3eMb24Th/Nqn3WNB2mY0FY1
+	 jYDE6dlaXFhXWoWeUshVhJwJQDyAkhPi7xn23s0JPIYdalmrq3huAYhVzJxUqNVRQ6
+	 Xxdt92uPnVkIp8EVdrku+8/XCow7D5IFR46+NLsk=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732868AbfIDQLf (ORCPT
+        id S1732435AbfIDP7m (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 4 Sep 2019 12:11:35 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35352 "EHLO mail.kernel.org"
+        Wed, 4 Sep 2019 11:59:42 -0400
+Received: from mail.kernel.org ([198.145.29.99]:34250 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1732006AbfIDQA3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 4 Sep 2019 12:00:29 -0400
+        id S1732449AbfIDP7l (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 4 Sep 2019 11:59:41 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 75EC42341E;
-        Wed,  4 Sep 2019 16:00:27 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 4F5BC22CF5;
+        Wed,  4 Sep 2019 15:59:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1567612828;
-        bh=8OfmWXLfzPUy31L8L3yXbaG3s9YW31QmNCHxQ4GyPOA=;
+        s=default; t=1567612780;
+        bh=/pHX4fSyz12zQkqBVAShv8MoRwtzNWYX+/zNi5Zr8bQ=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=NKBAFr4vd1BMLJlEywTMKbstSC9hwXq37nNBHZtPojTmc58E2VosCd8WEtXx/sjxV
-         aDTMHLePiZ8hk7mEa7aRWyXbSsp5VHiJseHS6TjuxOk69TcPovEzs+2D0ihf4z5egB
-         xIcBg2s65VGEwMYuCeG7Qdi9AnmSTKgbVj+s/yjc=
+        b=xiUPHwSYQDAgCYLQceTgPEwiaSrzujnpwe0Ud3goKlvNVQneQs7i9SCS9+HFUOwf/
+         dj1ggcHZtFEx5IC78n2XzC+qw4smGWtC9+TxRAMS9l6G16k4FhdoS7FSr3NulIq1KN
+         2YtyNDvpYSI9yk676swMUIlQjjuD1a/XEL9Z4FPk=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Todd Seidelmann <tseidelmann@linode.com>,
+Cc:     Florian Westphal <fw@strlen.de>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
         Sasha Levin <sashal@kernel.org>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.19 16/52] netfilter: ebtables: Fix argument order to ADD_COUNTER
-Date:   Wed,  4 Sep 2019 11:59:28 -0400
-Message-Id: <20190904160004.3671-16-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.2 77/94] netfilter: nf_flow_table: fix offload for flows that are subject to xfrm
+Date:   Wed,  4 Sep 2019 11:57:22 -0400
+Message-Id: <20190904155739.2816-77-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20190904160004.3671-1-sashal@kernel.org>
-References: <20190904160004.3671-1-sashal@kernel.org>
+In-Reply-To: <20190904155739.2816-1-sashal@kernel.org>
+References: <20190904155739.2816-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -61,58 +61,114 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Todd Seidelmann <tseidelmann@linode.com>
+From: Florian Westphal <fw@strlen.de>
 
-[ Upstream commit f20faa06d83de440bec8e200870784c3458793c4 ]
+[ Upstream commit 589b474a4b7ce409d6821ef17234a995841bd131 ]
 
-The ordering of arguments to the x_tables ADD_COUNTER macro
-appears to be wrong in ebtables (cf. ip_tables.c, ip6_tables.c,
-and arp_tables.c).
+This makes the previously added 'encap test' pass.
+Because its possible that the xfrm dst entry becomes stale while such
+a flow is offloaded, we need to call dst_check() -- the notifier that
+handles this for non-tunneled traffic isn't sufficient, because SA or
+or policies might have changed.
 
-This causes data corruption in the ebtables userspace tools
-because they get incorrect packet & byte counts from the kernel.
+If dst becomes stale the flow offload entry will be tagged for teardown
+and packets will be passed to 'classic' forwarding path.
 
-Fixes: d72133e628803 ("netfilter: ebtables: use ADD_COUNTER macro")
-Signed-off-by: Todd Seidelmann <tseidelmann@linode.com>
+Removing the entry right away is problematic, as this would
+introduce a race condition with the gc worker.
+
+In case flow is long-lived, it could eventually be offloaded again
+once the gc worker removes the entry from the flow table.
+
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- net/bridge/netfilter/ebtables.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ net/netfilter/nf_flow_table_ip.c | 43 ++++++++++++++++++++++++++++++++
+ 1 file changed, 43 insertions(+)
 
-diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
-index 62ffc989a44a2..7d249afa1466c 100644
---- a/net/bridge/netfilter/ebtables.c
-+++ b/net/bridge/netfilter/ebtables.c
-@@ -225,7 +225,7 @@ unsigned int ebt_do_table(struct sk_buff *skb,
- 			return NF_DROP;
- 		}
- 
--		ADD_COUNTER(*(counter_base + i), 1, skb->len);
-+		ADD_COUNTER(*(counter_base + i), skb->len, 1);
- 
- 		/* these should only watch: not modify, nor tell us
- 		 * what to do with the packet
-@@ -963,8 +963,8 @@ static void get_counters(const struct ebt_counter *oldcounters,
- 			continue;
- 		counter_base = COUNTER_BASE(oldcounters, nentries, cpu);
- 		for (i = 0; i < nentries; i++)
--			ADD_COUNTER(counters[i], counter_base[i].pcnt,
--				    counter_base[i].bcnt);
-+			ADD_COUNTER(counters[i], counter_base[i].bcnt,
-+				    counter_base[i].pcnt);
- 	}
+diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
+index cdfc33517e85b..d68c801dd614b 100644
+--- a/net/netfilter/nf_flow_table_ip.c
++++ b/net/netfilter/nf_flow_table_ip.c
+@@ -214,6 +214,25 @@ static bool nf_flow_exceeds_mtu(const struct sk_buff *skb, unsigned int mtu)
+ 	return true;
  }
  
-@@ -1289,7 +1289,7 @@ static int do_update_counters(struct net *net, const char *name,
++static int nf_flow_offload_dst_check(struct dst_entry *dst)
++{
++	if (unlikely(dst_xfrm(dst)))
++		return dst_check(dst, 0) ? 0 : -1;
++
++	return 0;
++}
++
++static unsigned int nf_flow_xmit_xfrm(struct sk_buff *skb,
++				      const struct nf_hook_state *state,
++				      struct dst_entry *dst)
++{
++	skb_orphan(skb);
++	skb_dst_set_noref(skb, dst);
++	skb->tstamp = 0;
++	dst_output(state->net, state->sk, skb);
++	return NF_STOLEN;
++}
++
+ unsigned int
+ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
+ 			const struct nf_hook_state *state)
+@@ -254,6 +273,11 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
+ 	if (nf_flow_state_check(flow, ip_hdr(skb)->protocol, skb, thoff))
+ 		return NF_ACCEPT;
  
- 	/* we add to the counters of the first cpu */
- 	for (i = 0; i < num_counters; i++)
--		ADD_COUNTER(t->private->counters[i], tmp[i].pcnt, tmp[i].bcnt);
-+		ADD_COUNTER(t->private->counters[i], tmp[i].bcnt, tmp[i].pcnt);
++	if (nf_flow_offload_dst_check(&rt->dst)) {
++		flow_offload_teardown(flow);
++		return NF_ACCEPT;
++	}
++
+ 	if (nf_flow_nat_ip(flow, skb, thoff, dir) < 0)
+ 		return NF_DROP;
  
- 	write_unlock_bh(&t->lock);
- 	ret = 0;
+@@ -261,6 +285,13 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
+ 	iph = ip_hdr(skb);
+ 	ip_decrease_ttl(iph);
+ 
++	if (unlikely(dst_xfrm(&rt->dst))) {
++		memset(skb->cb, 0, sizeof(struct inet_skb_parm));
++		IPCB(skb)->iif = skb->dev->ifindex;
++		IPCB(skb)->flags = IPSKB_FORWARDED;
++		return nf_flow_xmit_xfrm(skb, state, &rt->dst);
++	}
++
+ 	skb->dev = outdev;
+ 	nexthop = rt_nexthop(rt, flow->tuplehash[!dir].tuple.src_v4.s_addr);
+ 	skb_dst_set_noref(skb, &rt->dst);
+@@ -467,6 +498,11 @@ nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
+ 				sizeof(*ip6h)))
+ 		return NF_ACCEPT;
+ 
++	if (nf_flow_offload_dst_check(&rt->dst)) {
++		flow_offload_teardown(flow);
++		return NF_ACCEPT;
++	}
++
+ 	if (skb_try_make_writable(skb, sizeof(*ip6h)))
+ 		return NF_DROP;
+ 
+@@ -477,6 +513,13 @@ nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
+ 	ip6h = ipv6_hdr(skb);
+ 	ip6h->hop_limit--;
+ 
++	if (unlikely(dst_xfrm(&rt->dst))) {
++		memset(skb->cb, 0, sizeof(struct inet6_skb_parm));
++		IP6CB(skb)->iif = skb->dev->ifindex;
++		IP6CB(skb)->flags = IP6SKB_FORWARDED;
++		return nf_flow_xmit_xfrm(skb, state, &rt->dst);
++	}
++
+ 	skb->dev = outdev;
+ 	nexthop = rt6_nexthop(rt, &flow->tuplehash[!dir].tuple.src_v6);
+ 	skb_dst_set_noref(skb, &rt->dst);
 -- 
 2.20.1
 
