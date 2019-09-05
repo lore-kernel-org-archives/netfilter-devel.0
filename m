@@ -4,48 +4,47 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3CCCBC43331
-	for <netfilter-devel@archiver.kernel.org>; Thu,  5 Sep 2019 16:04:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 302D5C43140
+	for <netfilter-devel@archiver.kernel.org>; Thu,  5 Sep 2019 16:04:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id DB04A2082E
-	for <netfilter-devel@archiver.kernel.org>; Thu,  5 Sep 2019 16:04:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D09132082E
+	for <netfilter-devel@archiver.kernel.org>; Thu,  5 Sep 2019 16:04:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2390810AbfIEQEM (ORCPT
+        id S2390815AbfIEQEM (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Thu, 5 Sep 2019 12:04:12 -0400
-Received: from correo.us.es ([193.147.175.20]:53094 "EHLO mail.us.es"
+Received: from correo.us.es ([193.147.175.20]:53050 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2389619AbfIEQEM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 5 Sep 2019 12:04:12 -0400
+        id S2390790AbfIEQEK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 5 Sep 2019 12:04:10 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 6773C1228CF
-        for <netfilter-devel@vger.kernel.org>; Thu,  5 Sep 2019 18:04:08 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id E51871228D0
+        for <netfilter-devel@vger.kernel.org>; Thu,  5 Sep 2019 18:04:05 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 5B40DB8017
-        for <netfilter-devel@vger.kernel.org>; Thu,  5 Sep 2019 18:04:08 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id D91E8DA4D0
+        for <netfilter-devel@vger.kernel.org>; Thu,  5 Sep 2019 18:04:05 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 50C18B8009; Thu,  5 Sep 2019 18:04:08 +0200 (CEST)
+        id CED6EDA840; Thu,  5 Sep 2019 18:04:05 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 2A13DDA4CA;
-        Thu,  5 Sep 2019 18:04:06 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A87D8CA0F3;
+        Thu,  5 Sep 2019 18:04:03 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Thu, 05 Sep 2019 18:04:06 +0200 (CEST)
+ Thu, 05 Sep 2019 18:04:03 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id F2EB442EE38E;
-        Thu,  5 Sep 2019 18:04:05 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 7A36B42EE38E;
+        Thu,  5 Sep 2019 18:04:03 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 6/8] netfilter: nf_tables: Introduce stateful object update operation
-Date:   Thu,  5 Sep 2019 18:03:58 +0200
-Message-Id: <20190905160400.25399-7-pablo@netfilter.org>
+Subject: [PATCH 2/8] netfilter: nft_meta: support for time matching
+Date:   Thu,  5 Sep 2019 18:03:54 +0200
+Message-Id: <20190905160400.25399-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20190905160400.25399-1-pablo@netfilter.org>
 References: <20190905160400.25399-1-pablo@netfilter.org>
@@ -55,173 +54,121 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Fernando Fernandez Mancera <ffmancera@riseup.net>
+From: Ander Juaristi <a@juaristi.eus>
 
-This patch adds the infrastructure needed for the stateful object update
-support.
+This patch introduces meta matches in the kernel for time (a UNIX timestamp),
+day (a day of week, represented as an integer between 0-6), and
+hour (an hour in the current day, or: number of seconds since midnight).
 
-Signed-off-by: Fernando Fernandez Mancera <ffmancera@riseup.net>
+All values are taken as unsigned 64-bit integers.
+
+The 'time' keyword is internally converted to nanoseconds by nft in
+userspace, and hence the timestamp is taken in nanoseconds as well.
+
+Signed-off-by: Ander Juaristi <a@juaristi.eus>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_tables.h |  9 +++++
- net/netfilter/nf_tables_api.c     | 78 +++++++++++++++++++++++++++++++++++----
- 2 files changed, 80 insertions(+), 7 deletions(-)
+ include/uapi/linux/netfilter/nf_tables.h |  6 +++++
+ net/netfilter/nft_meta.c                 | 46 ++++++++++++++++++++++++++++++++
+ 2 files changed, 52 insertions(+)
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 498665158ee0..3d9e66aa0139 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -1127,6 +1127,7 @@ struct nft_object_type {
-  *	@init: initialize object from netlink attributes
-  *	@destroy: release existing stateful object
-  *	@dump: netlink dump stateful object
-+ *	@update: update stateful object
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index 82abaa183fc3..b83b62eb4b01 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -799,6 +799,9 @@ enum nft_exthdr_attributes {
+  * @NFT_META_OIFKIND: packet output interface kind name (dev->rtnl_link_ops->kind)
+  * @NFT_META_BRI_IIFPVID: packet input bridge port pvid
+  * @NFT_META_BRI_IIFVPROTO: packet input bridge vlan proto
++ * @NFT_META_TIME_NS: time since epoch (in nanoseconds)
++ * @NFT_META_TIME_DAY: day of week (from 0 = Sunday to 6 = Saturday)
++ * @NFT_META_TIME_HOUR: hour of day (in seconds)
   */
- struct nft_object_ops {
- 	void				(*eval)(struct nft_object *obj,
-@@ -1141,6 +1142,8 @@ struct nft_object_ops {
- 	int				(*dump)(struct sk_buff *skb,
- 						struct nft_object *obj,
- 						bool reset);
-+	void				(*update)(struct nft_object *obj,
-+						  struct nft_object *newobj);
- 	const struct nft_object_type	*type;
+ enum nft_meta_keys {
+ 	NFT_META_LEN,
+@@ -831,6 +834,9 @@ enum nft_meta_keys {
+ 	NFT_META_OIFKIND,
+ 	NFT_META_BRI_IIFPVID,
+ 	NFT_META_BRI_IIFVPROTO,
++	NFT_META_TIME_NS,
++	NFT_META_TIME_DAY,
++	NFT_META_TIME_HOUR,
  };
  
-@@ -1429,10 +1432,16 @@ struct nft_trans_elem {
+ /**
+diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
+index f69afb9ff3cb..317e3a9e8c5b 100644
+--- a/net/netfilter/nft_meta.c
++++ b/net/netfilter/nft_meta.c
+@@ -26,8 +26,36 @@
  
- struct nft_trans_obj {
- 	struct nft_object		*obj;
-+	struct nft_object		*newobj;
-+	bool				update;
- };
+ #include <uapi/linux/netfilter_bridge.h> /* NF_BR_PRE_ROUTING */
  
- #define nft_trans_obj(trans)	\
- 	(((struct nft_trans_obj *)trans->data)->obj)
-+#define nft_trans_obj_newobj(trans) \
-+	(((struct nft_trans_obj *)trans->data)->newobj)
-+#define nft_trans_obj_update(trans)	\
-+	(((struct nft_trans_obj *)trans->data)->update)
++#define NFT_META_SECS_PER_MINUTE	60
++#define NFT_META_SECS_PER_HOUR		3600
++#define NFT_META_SECS_PER_DAY		86400
++#define NFT_META_DAYS_PER_WEEK		7
++
+ static DEFINE_PER_CPU(struct rnd_state, nft_prandom_state);
  
- struct nft_trans_flowtable {
- 	struct nft_flowtable		*flowtable;
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 6d00bef023c4..cf767bc58e18 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -5131,6 +5131,38 @@ nft_obj_type_get(struct net *net, u32 objtype)
- 	return ERR_PTR(-ENOENT);
- }
- 
-+static int nf_tables_updobj(const struct nft_ctx *ctx,
-+			    const struct nft_object_type *type,
-+			    const struct nlattr *attr,
-+			    struct nft_object *obj)
++static u8 nft_meta_weekday(unsigned long secs)
 +{
-+	struct nft_object *newobj;
-+	struct nft_trans *trans;
-+	int err;
++	unsigned int dse;
++	u8 wday;
 +
-+	trans = nft_trans_alloc(ctx, NFT_MSG_NEWOBJ,
-+				sizeof(struct nft_trans_obj));
-+	if (!trans)
-+		return -ENOMEM;
++	secs -= NFT_META_SECS_PER_MINUTE * sys_tz.tz_minuteswest;
++	dse = secs / NFT_META_SECS_PER_DAY;
++	wday = (4 + dse) % NFT_META_DAYS_PER_WEEK;
 +
-+	newobj = nft_obj_init(ctx, type, attr);
-+	if (IS_ERR(newobj)) {
-+		err = PTR_ERR(newobj);
-+		goto err1;
-+	}
-+
-+	nft_trans_obj(trans) = obj;
-+	nft_trans_obj_update(trans) = true;
-+	nft_trans_obj_newobj(trans) = newobj;
-+	list_add_tail(&trans->list, &ctx->net->nft.commit_list);
-+
-+	return 0;
-+err1:
-+	kfree(trans);
-+	kfree(newobj);
-+	return err;
++	return wday;
 +}
 +
- static int nf_tables_newobj(struct net *net, struct sock *nlsk,
- 			    struct sk_buff *skb, const struct nlmsghdr *nlh,
- 			    const struct nlattr * const nla[],
-@@ -5170,7 +5202,13 @@ static int nf_tables_newobj(struct net *net, struct sock *nlsk,
- 			NL_SET_BAD_ATTR(extack, nla[NFTA_OBJ_NAME]);
- 			return -EEXIST;
- 		}
--		return 0;
-+		if (nlh->nlmsg_flags & NLM_F_REPLACE)
-+			return -EOPNOTSUPP;
-+
-+		type = nft_obj_type_get(net, objtype);
-+		nft_ctx_init(&ctx, net, skb, nlh, family, table, NULL, nla);
-+
-+		return nf_tables_updobj(&ctx, type, nla[NFTA_OBJ_DATA], obj);
- 	}
- 
- 	nft_ctx_init(&ctx, net, skb, nlh, family, table, NULL, nla);
-@@ -6431,6 +6469,19 @@ static void nft_chain_commit_update(struct nft_trans *trans)
- 	}
- }
- 
-+static void nft_obj_commit_update(struct nft_trans *trans)
++static u32 nft_meta_hour(unsigned long secs)
 +{
-+	struct nft_object *newobj;
-+	struct nft_object *obj;
++	struct tm tm;
 +
-+	obj = nft_trans_obj(trans);
-+	newobj = nft_trans_obj_newobj(trans);
++	time64_to_tm(secs, 0, &tm);
 +
-+	obj->ops->update(obj, newobj);
-+
-+	kfree(newobj);
++	return tm.tm_hour * NFT_META_SECS_PER_HOUR
++		+ tm.tm_min * NFT_META_SECS_PER_MINUTE
++		+ tm.tm_sec;
 +}
 +
- static void nft_commit_release(struct nft_trans *trans)
- {
- 	switch (trans->msg_type) {
-@@ -6795,10 +6846,18 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
- 			te->set->ndeact--;
- 			break;
- 		case NFT_MSG_NEWOBJ:
--			nft_clear(net, nft_trans_obj(trans));
--			nf_tables_obj_notify(&trans->ctx, nft_trans_obj(trans),
--					     NFT_MSG_NEWOBJ);
--			nft_trans_destroy(trans);
-+			if (nft_trans_obj_update(trans)) {
-+				nft_obj_commit_update(trans);
-+				nf_tables_obj_notify(&trans->ctx,
-+						     nft_trans_obj(trans),
-+						     NFT_MSG_NEWOBJ);
-+			} else {
-+				nft_clear(net, nft_trans_obj(trans));
-+				nf_tables_obj_notify(&trans->ctx,
-+						     nft_trans_obj(trans),
-+						     NFT_MSG_NEWOBJ);
-+				nft_trans_destroy(trans);
-+			}
- 			break;
- 		case NFT_MSG_DELOBJ:
- 			nft_obj_del(nft_trans_obj(trans));
-@@ -6945,8 +7004,13 @@ static int __nf_tables_abort(struct net *net)
- 			nft_trans_destroy(trans);
- 			break;
- 		case NFT_MSG_NEWOBJ:
--			trans->ctx.table->use--;
--			nft_obj_del(nft_trans_obj(trans));
-+			if (nft_trans_obj_update(trans)) {
-+				kfree(nft_trans_obj_newobj(trans));
-+				nft_trans_destroy(trans);
-+			} else {
-+				trans->ctx.table->use--;
-+				nft_obj_del(nft_trans_obj(trans));
-+			}
- 			break;
- 		case NFT_MSG_DELOBJ:
- 			trans->ctx.table->use++;
+ void nft_meta_get_eval(const struct nft_expr *expr,
+ 		       struct nft_regs *regs,
+ 		       const struct nft_pktinfo *pkt)
+@@ -218,6 +246,15 @@ void nft_meta_get_eval(const struct nft_expr *expr,
+ 			goto err;
+ 		strncpy((char *)dest, out->rtnl_link_ops->kind, IFNAMSIZ);
+ 		break;
++	case NFT_META_TIME_NS:
++		nft_reg_store64(dest, ktime_get_real_ns());
++		break;
++	case NFT_META_TIME_DAY:
++		nft_reg_store8(dest, nft_meta_weekday(get_seconds()));
++		break;
++	case NFT_META_TIME_HOUR:
++		*dest = nft_meta_hour(get_seconds());
++		break;
+ 	default:
+ 		WARN_ON(1);
+ 		goto err;
+@@ -330,6 +367,15 @@ int nft_meta_get_init(const struct nft_ctx *ctx,
+ 		len = sizeof(u8);
+ 		break;
+ #endif
++	case NFT_META_TIME_NS:
++		len = sizeof(u64);
++		break;
++	case NFT_META_TIME_DAY:
++		len = sizeof(u8);
++		break;
++	case NFT_META_TIME_HOUR:
++		len = sizeof(u32);
++		break;
+ 	default:
+ 		return -EOPNOTSUPP;
+ 	}
 -- 
 2.11.0
 
