@@ -2,188 +2,107 @@ Return-Path: <SRS0=iWGL=XA=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E3F2C43140
-	for <netfilter-devel@archiver.kernel.org>; Thu,  5 Sep 2019 16:04:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 79693C43331
+	for <netfilter-devel@archiver.kernel.org>; Thu,  5 Sep 2019 16:14:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 268EA206DE
-	for <netfilter-devel@archiver.kernel.org>; Thu,  5 Sep 2019 16:04:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 293EA20825
+	for <netfilter-devel@archiver.kernel.org>; Thu,  5 Sep 2019 16:14:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2390791AbfIEQEX (ORCPT
+        id S1731631AbfIEQOA (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 5 Sep 2019 12:04:23 -0400
-Received: from correo.us.es ([193.147.175.20]:53064 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2390797AbfIEQEL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 5 Sep 2019 12:04:11 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 413DF1228CC
-        for <netfilter-devel@vger.kernel.org>; Thu,  5 Sep 2019 18:04:07 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 30AB2B8011
-        for <netfilter-devel@vger.kernel.org>; Thu,  5 Sep 2019 18:04:07 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 2647BB7FFE; Thu,  5 Sep 2019 18:04:07 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id F378CB7FFB;
-        Thu,  5 Sep 2019 18:04:04 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Thu, 05 Sep 2019 18:04:04 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from salvia.here (sys.soleta.eu [212.170.55.40])
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id C5E5C42EE38E;
-        Thu,  5 Sep 2019 18:04:04 +0200 (CEST)
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 4/8] netfilter: nft_dynset: support for element deletion
-Date:   Thu,  5 Sep 2019 18:03:56 +0200
-Message-Id: <20190905160400.25399-5-pablo@netfilter.org>
-X-Mailer: git-send-email 2.11.0
-In-Reply-To: <20190905160400.25399-1-pablo@netfilter.org>
-References: <20190905160400.25399-1-pablo@netfilter.org>
-X-Virus-Scanned: ClamAV using ClamSMTP
+        Thu, 5 Sep 2019 12:14:00 -0400
+Received: from relay7-d.mail.gandi.net ([217.70.183.200]:32967 "EHLO
+        relay7-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727014AbfIEQN7 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 5 Sep 2019 12:13:59 -0400
+X-Originating-IP: 24.35.62.146
+Received: from roberto (c-24-35-62-146.customer.broadstripe.net [24.35.62.146])
+        (Authenticated sender: eric@garver.life)
+        by relay7-d.mail.gandi.net (Postfix) with ESMTPSA id 469E920008;
+        Thu,  5 Sep 2019 16:13:56 +0000 (UTC)
+Date:   Thu, 5 Sep 2019 12:13:54 -0400
+From:   Eric Garver <eric@garver.life>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft] tests: shell: check that rule add with index works
+ with echo
+Message-ID: <20190905161354.3lqlvvhajzhdoaiy@roberto>
+Mail-Followup-To: Eric Garver <eric@garver.life>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+References: <20190903232713.14394-1-eric@garver.life>
+ <20190905155418.z2lpiet466ceixjy@salvia>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190905155418.z2lpiet466ceixjy@salvia>
+User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Ander Juaristi <a@juaristi.eus>
+On Thu, Sep 05, 2019 at 05:54:18PM +0200, Pablo Neira Ayuso wrote:
+> On Tue, Sep 03, 2019 at 07:27:13PM -0400, Eric Garver wrote:
+> > If --echo is used the rule cache will not be populated. This causes
+> > rules added using the "index" keyword to be simply appended to the
+> > chain. The bug was introduced in commit 3ab02db5f836 ("cache: add
+> > NFT_CACHE_UPDATE and NFT_CACHE_FLUSHED flags").
+> > 
+> > Signed-off-by: Eric Garver <eric@garver.life>
+> > ---
+> > I think the issue is in cache_evaluate(). It sets the flags to
+> > NFT_CACHE_FULL and then bails early, but I'm not sure of the best way to
+> > fix it. So I'll start by submitting a test case. :)
+> > ---
+> >  tests/shell/testcases/cache/0007_echo_cache_init_0 | 14 ++++++++++++++
+> >  .../cache/dumps/0007_echo_cache_init_0.nft         |  7 +++++++
+> >  2 files changed, 21 insertions(+)
+> >  create mode 100755 tests/shell/testcases/cache/0007_echo_cache_init_0
+> >  create mode 100644 tests/shell/testcases/cache/dumps/0007_echo_cache_init_0.nft
+> > 
+> > diff --git a/tests/shell/testcases/cache/0007_echo_cache_init_0 b/tests/shell/testcases/cache/0007_echo_cache_init_0
+> > new file mode 100755
+> > index 000000000000..280a0d06bdc3
+> > --- /dev/null
+> > +++ b/tests/shell/testcases/cache/0007_echo_cache_init_0
+> > @@ -0,0 +1,14 @@
+> > +#!/bin/bash
+> > +
+> > +set -e
+> > +
+> > +$NFT -i >/dev/null <<EOF
+> > +add table inet t
+> > +add chain inet t c
+> > +add rule inet t c accept comment "first"
+> > +add rule inet t c accept comment "third"
+> > +EOF
+> > +
+> > +# make sure the rule cache gets initialized when using echo option
+> > +#
+> > +$NFT --echo add rule inet t c index 0 accept comment '"second"' >/dev/null
+> 
+> Looks like the problem is index == 0?
 
-This patch implements the delete operation from the ruleset.
+No. The index gets incremented by 1 by the JSON parser (CLI does the
+same thing). It's never zero if the "index" keyword is used.
 
-It implements a new delete() function in nft_set_rhash. It is simpler
-to use than the already existing remove(), because it only takes the set
-and the key as arguments, whereas remove() expects a full
-nft_set_elem structure.
+It's just as easily reproduced if you use any other index.
 
-Signed-off-by: Ander Juaristi <a@juaristi.eus>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/net/netfilter/nf_tables.h        | 10 +++++++++-
- include/uapi/linux/netfilter/nf_tables.h |  1 +
- net/netfilter/nft_dynset.c               |  6 ++++++
- net/netfilter/nft_set_hash.c             | 19 +++++++++++++++++++
- 4 files changed, 35 insertions(+), 1 deletion(-)
+> 
+>                 if (cmd->handle.index.id ||
+>                     cmd->handle.position.id)
+>                         flags |= NFT_CACHE_RULE | NFT_CACHE_UPDATE;
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 64765140657b..498665158ee0 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -302,17 +302,23 @@ struct nft_expr;
-  *	struct nft_set_ops - nf_tables set operations
-  *
-  *	@lookup: look up an element within the set
-+ *	@update: update an element if exists, add it if doesn't exist
-+ *	@delete: delete an element
-  *	@insert: insert new element into set
-  *	@activate: activate new element in the next generation
-  *	@deactivate: lookup for element and deactivate it in the next generation
-  *	@flush: deactivate element in the next generation
-  *	@remove: remove element from set
-- *	@walk: iterate over all set elemeennts
-+ *	@walk: iterate over all set elements
-  *	@get: get set elements
-  *	@privsize: function to return size of set private data
-  *	@init: initialize private data of new set instance
-  *	@destroy: destroy private data of set instance
-  *	@elemsize: element private size
-+ *
-+ *	Operations lookup, update and delete have simpler interfaces, are faster
-+ *	and currently only used in the packet path. All the rest are slower,
-+ *	control plane functions.
-  */
- struct nft_set_ops {
- 	bool				(*lookup)(const struct net *net,
-@@ -327,6 +333,8 @@ struct nft_set_ops {
- 						  const struct nft_expr *expr,
- 						  struct nft_regs *regs,
- 						  const struct nft_set_ext **ext);
-+	bool				(*delete)(const struct nft_set *set,
-+						  const u32 *key);
- 
- 	int				(*insert)(const struct net *net,
- 						  const struct nft_set *set,
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index b83b62eb4b01..0ff932dadc8e 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -636,6 +636,7 @@ enum nft_lookup_attributes {
- enum nft_dynset_ops {
- 	NFT_DYNSET_OP_ADD,
- 	NFT_DYNSET_OP_UPDATE,
-+	NFT_DYNSET_OP_DELETE,
- };
- 
- enum nft_dynset_flags {
-diff --git a/net/netfilter/nft_dynset.c b/net/netfilter/nft_dynset.c
-index 33833a0cb989..8887295414dc 100644
---- a/net/netfilter/nft_dynset.c
-+++ b/net/netfilter/nft_dynset.c
-@@ -84,6 +84,11 @@ void nft_dynset_eval(const struct nft_expr *expr,
- 	const struct nft_expr *sexpr;
- 	u64 timeout;
- 
-+	if (priv->op == NFT_DYNSET_OP_DELETE) {
-+		set->ops->delete(set, &regs->data[priv->sreg_key]);
-+		return;
-+	}
-+
- 	if (set->ops->update(set, &regs->data[priv->sreg_key], nft_dynset_new,
- 			     expr, regs, &ext)) {
- 		sexpr = NULL;
-@@ -161,6 +166,7 @@ static int nft_dynset_init(const struct nft_ctx *ctx,
- 	priv->op = ntohl(nla_get_be32(tb[NFTA_DYNSET_OP]));
- 	switch (priv->op) {
- 	case NFT_DYNSET_OP_ADD:
-+	case NFT_DYNSET_OP_DELETE:
- 		break;
- 	case NFT_DYNSET_OP_UPDATE:
- 		if (!(set->flags & NFT_SET_TIMEOUT))
-diff --git a/net/netfilter/nft_set_hash.c b/net/netfilter/nft_set_hash.c
-index c490451fcebf..b331a3c9a3a8 100644
---- a/net/netfilter/nft_set_hash.c
-+++ b/net/netfilter/nft_set_hash.c
-@@ -234,6 +234,24 @@ static void nft_rhash_remove(const struct net *net,
- 	rhashtable_remove_fast(&priv->ht, &he->node, nft_rhash_params);
- }
- 
-+static bool nft_rhash_delete(const struct nft_set *set,
-+			     const u32 *key)
-+{
-+	struct nft_rhash *priv = nft_set_priv(set);
-+	struct nft_rhash_cmp_arg arg = {
-+		.genmask = NFT_GENMASK_ANY,
-+		.set = set,
-+		.key = key,
-+	};
-+	struct nft_rhash_elem *he;
-+
-+	he = rhashtable_lookup(&priv->ht, &arg, nft_rhash_params);
-+	if (he == NULL)
-+		return false;
-+
-+	return rhashtable_remove_fast(&priv->ht, &he->node, nft_rhash_params) == 0;
-+}
-+
- static void nft_rhash_walk(const struct nft_ctx *ctx, struct nft_set *set,
- 			   struct nft_set_iter *iter)
- {
-@@ -662,6 +680,7 @@ struct nft_set_type nft_set_rhash_type __read_mostly = {
- 		.remove		= nft_rhash_remove,
- 		.lookup		= nft_rhash_lookup,
- 		.update		= nft_rhash_update,
-+		.delete		= nft_rhash_delete,
- 		.walk		= nft_rhash_walk,
- 		.get		= nft_rhash_get,
- 	},
--- 
-2.11.0
+We never reach this code since cache_evaluate() breaks if --echo is
+used. i.e. evaluate_cache_add() is never called.
 
+> We might need to set up a flag, eg. cmd->handle.flags &
+> NFT_HANDLE_INDEX, similarly with position, given that index.id can be
+> zero. Alternatively, initialize index id to -1, assuming we'll never
+> get to ~0U index.
