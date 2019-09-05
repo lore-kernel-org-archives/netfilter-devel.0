@@ -6,81 +6,63 @@ X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D11A0C3A5A5
-	for <netfilter-devel@archiver.kernel.org>; Thu,  5 Sep 2019 04:08:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0DBA4C3A5AB
+	for <netfilter-devel@archiver.kernel.org>; Thu,  5 Sep 2019 11:22:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A4A68206BB
-	for <netfilter-devel@archiver.kernel.org>; Thu,  5 Sep 2019 04:08:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E492C20820
+	for <netfilter-devel@archiver.kernel.org>; Thu,  5 Sep 2019 11:22:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726107AbfIEEIY (ORCPT
+        id S2388349AbfIELWw (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 5 Sep 2019 00:08:24 -0400
-Received: from m9784.mail.qiye.163.com ([220.181.97.84]:41174 "EHLO
-        m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725921AbfIEEIY (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 5 Sep 2019 00:08:24 -0400
-Received: from [192.168.188.14] (unknown [120.132.1.226])
-        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id BAA6A4160F;
-        Thu,  5 Sep 2019 12:08:21 +0800 (CST)
-Subject: Re: [PATCH nf-next v5 0/8] netfilter: nf_tables_offload: support
- tunnel offload
-From:   wenxu <wenxu@ucloud.cn>
-To:     pablo@netfilter.org, fw@strlen.de
+        Thu, 5 Sep 2019 07:22:52 -0400
+Received: from correo.us.es ([193.147.175.20]:52608 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2388335AbfIELWv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 5 Sep 2019 07:22:51 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id BA65D120825
+        for <netfilter-devel@vger.kernel.org>; Thu,  5 Sep 2019 13:22:47 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id AB9AEB7FF6
+        for <netfilter-devel@vger.kernel.org>; Thu,  5 Sep 2019 13:22:47 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id AAC0FDA72F; Thu,  5 Sep 2019 13:22:47 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 8EA2BB7FF2;
+        Thu,  5 Sep 2019 13:22:45 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Thu, 05 Sep 2019 13:22:44 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (sys.soleta.eu [212.170.55.40])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 5CAC042EE38F;
+        Thu,  5 Sep 2019 13:22:45 +0200 (CEST)
+Date:   Thu, 5 Sep 2019 13:22:46 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Fernando Fernandez Mancera <ffmancera@riseup.net>
 Cc:     netfilter-devel@vger.kernel.org
-References: <1566364193-31330-1-git-send-email-wenxu@ucloud.cn>
-Message-ID: <e78d3b61-0e89-97aa-0008-c3cad2c9ac5d@ucloud.cn>
-Date:   Thu, 5 Sep 2019 12:08:18 +0800
-User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:60.0) Gecko/20100101
- Thunderbird/60.8.0
+Subject: Re: [PATCH nf-next v2] netfilter: nf_tables: fix possible
+ null-pointer dereference in object update
+Message-ID: <20190905112246.tcqmpazua2n2dr5p@salvia>
+References: <20190904122907.967-1-ffmancera@riseup.net>
 MIME-Version: 1.0
-In-Reply-To: <1566364193-31330-1-git-send-email-wenxu@ucloud.cn>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
-X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVkpVTkJIS0tLSkxITk1DTEhZV1koWU
-        FJQjdXWS1ZQUlXWQkOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6Ngw6STo4DTg1SDctEBIBVi5P
-        KDBPCxNVSlVKTk1MTU5NTktKQk9DVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJS1VK
-        SElVSlVJSU1ZV1kIAVlBSUhDSTcG
-X-HM-Tid: 0a6cff9be2752086kuqybaa6a4160f
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190904122907.967-1-ffmancera@riseup.net>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi pablo,
+On Wed, Sep 04, 2019 at 02:29:07PM +0200, Fernando Fernandez Mancera wrote:
+> Not all objects need an update operation. If the object type doesn't implement
+> an update operation and the user tries to update it there will be a EOPNOTSUPP
+> error instead of a null pointer.
 
-
-Any comments for this series?
-
-BR
-
-wenxu
-
-On 8/21/2019 1:09 PM, wenxu@ucloud.cn wrote:
-> From: wenxu <wenxu@ucloud.cn>
->
-> This series add NFT_TUNNEL_IP/6_SRC/DST match and tunnel expr offload.
-> Also add NFTA_TUNNEL_KEY_RELEASE actions adn objref, tunnel obj offload
->
-> This version just split from the orignal big seriese without dependency
-> with each other
->
-> wenxu (8):
->   netfilter: nft_tunnel: add nft_tunnel_mode_validate function
->   netfilter: nft_tunnel: support NFT_TUNNEL_IP_SRC/DST match
->   netfilter: nft_tunnel: add ipv6 check in nft_tunnel_mode_validate
->   netfilter: nft_tunnel: support NFT_TUNNEL_IP6_SRC/DST match
->   netfilter: nft_tunnel: support tunnel meta match offload
->   netfilter: nft_tunnel: add NFTA_TUNNEL_KEY_RELEASE action
->   netfilter: nft_objref: add nft_objref_type offload
->   netfilter: nft_tunnel: support nft_tunnel_obj offload
->
->  include/net/netfilter/nf_tables.h         |   3 +
->  include/net/netfilter/nf_tables_offload.h |   5 +
->  include/uapi/linux/netfilter/nf_tables.h  |   5 +
->  net/netfilter/nft_objref.c                |  14 +++
->  net/netfilter/nft_tunnel.c                | 159 +++++++++++++++++++++++++++---
->  5 files changed, 173 insertions(+), 13 deletions(-)
->
+Applied, thanks.
