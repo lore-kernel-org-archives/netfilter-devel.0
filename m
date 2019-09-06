@@ -2,159 +2,90 @@ Return-Path: <SRS0=fPey=XB=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EA7E8C00306
-	for <netfilter-devel@archiver.kernel.org>; Fri,  6 Sep 2019 00:04:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B732C43331
+	for <netfilter-devel@archiver.kernel.org>; Fri,  6 Sep 2019 00:28:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1F766206BB
-	for <netfilter-devel@archiver.kernel.org>; Fri,  6 Sep 2019 00:04:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4A5B1206DE
+	for <netfilter-devel@archiver.kernel.org>; Fri,  6 Sep 2019 00:28:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2390623AbfIFAEY (ORCPT
+        id S2389986AbfIFA2E (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 5 Sep 2019 20:04:24 -0400
-Received: from correo.us.es ([193.147.175.20]:59648 "EHLO mail.us.es"
+        Thu, 5 Sep 2019 20:28:04 -0400
+Received: from correo.us.es ([193.147.175.20]:34008 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2390424AbfIFAES (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 5 Sep 2019 20:04:18 -0400
+        id S1730587AbfIFA2E (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 5 Sep 2019 20:28:04 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 7427EDA3E3
-        for <netfilter-devel@vger.kernel.org>; Fri,  6 Sep 2019 02:04:14 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 77C6ADA38A
+        for <netfilter-devel@vger.kernel.org>; Fri,  6 Sep 2019 02:27:55 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 68408FF6E0
-        for <netfilter-devel@vger.kernel.org>; Fri,  6 Sep 2019 02:04:14 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 6B119DA840
+        for <netfilter-devel@vger.kernel.org>; Fri,  6 Sep 2019 02:27:55 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 5ACAEB8017; Fri,  6 Sep 2019 02:04:14 +0200 (CEST)
+        id 60BA4DA72F; Fri,  6 Sep 2019 02:27:55 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 3DB7AB7FF2;
-        Fri,  6 Sep 2019 02:04:12 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 3737DDA72F;
+        Fri,  6 Sep 2019 02:27:53 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Fri, 06 Sep 2019 02:04:12 +0200 (CEST)
+ Fri, 06 Sep 2019 02:27:53 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from salvia.here (sys.soleta.eu [212.170.55.40])
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id D4BFC4265A5A;
-        Fri,  6 Sep 2019 02:04:11 +0200 (CEST)
+Received: from us.es (sys.soleta.eu [212.170.55.40])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 15ADA4265A5A;
+        Fri,  6 Sep 2019 02:27:53 +0200 (CEST)
+Date:   Fri, 6 Sep 2019 02:27:54 +0200
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     davem@davemloft.net, netdev@vger.kernel.org,
-        jakub.kicinski@netronome.com, jiri@resnulli.us,
-        saeedm@mellanox.com, vishal@chelsio.com, vladbu@mellanox.com
-Subject: [PATCH net-next,v3 4/4] netfilter: nft_payload: packet mangling offload support
-Date:   Fri,  6 Sep 2019 02:04:03 +0200
-Message-Id: <20190906000403.3701-5-pablo@netfilter.org>
-X-Mailer: git-send-email 2.11.0
-In-Reply-To: <20190906000403.3701-1-pablo@netfilter.org>
-References: <20190906000403.3701-1-pablo@netfilter.org>
+To:     wenxu@ucloud.cn
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf-next v3 0/4] netfilter: nf_tables_offload: clean
+ offload things when the device unregister
+Message-ID: <20190906002754.34ge3qjx3qtu7ao5@salvia>
+References: <1567656019-6881-1-git-send-email-wenxu@ucloud.cn>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1567656019-6881-1-git-send-email-wenxu@ucloud.cn>
+User-Agent: NeoMutt/20170113 (1.7.2)
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This patch allows for mangling packet fields using hardware offload
-infrastructure.
+On Thu, Sep 05, 2019 at 12:00:15PM +0800, wenxu@ucloud.cn wrote:
+> From: wenxu <wenxu@ucloud.cn>
+> 
+> This series clean the offload things for both chain and rules when the
+> related device unregister
+> 
+> This version add a nft_offload_netdev_iterate common function
+> 
+> wenxu (4):
+>   netfilter: nf_tables_offload: refactor the nft_flow_offload_chain
+>     function
+>   netfilter: nf_tables_offload: refactor the nft_flow_offload_rule
+>     function
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nft_payload.c | 73 +++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 73 insertions(+)
+1/4 and 2/4 are not required anymore after adding the registration
+logic to nf_tables_offload.
 
-diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
-index 22a80eb60222..0efa8bfd2b51 100644
---- a/net/netfilter/nft_payload.c
-+++ b/net/netfilter/nft_payload.c
-@@ -562,12 +562,85 @@ static int nft_payload_set_dump(struct sk_buff *skb, const struct nft_expr *expr
- 	return -1;
- }
- 
-+static int nft_payload_offload_set_nh(struct nft_offload_ctx *ctx,
-+				      struct nft_flow_rule *flow,
-+				      const struct nft_payload_set *priv)
-+{
-+	int type = FLOW_ACT_MANGLE_UNSPEC;
-+
-+	switch (ctx->dep.l3num) {
-+	case htons(ETH_P_IP):
-+		type = FLOW_ACT_MANGLE_HDR_TYPE_IP4;
-+		break;
-+	case htons(ETH_P_IPV6):
-+		type = FLOW_ACT_MANGLE_HDR_TYPE_IP6;
-+		break;
-+	}
-+
-+	return type;
-+}
-+
-+static int nft_payload_offload_set_th(struct nft_offload_ctx *ctx,
-+				      struct nft_flow_rule *flow,
-+				      const struct nft_payload_set *priv)
-+{
-+	int type = FLOW_ACT_MANGLE_UNSPEC;
-+
-+	switch (ctx->dep.protonum) {
-+	case IPPROTO_TCP:
-+		type = FLOW_ACT_MANGLE_HDR_TYPE_TCP;
-+		break;
-+	case IPPROTO_UDP:
-+		type = FLOW_ACT_MANGLE_HDR_TYPE_UDP;
-+		break;
-+	}
-+
-+	return type;
-+}
-+
-+static int nft_payload_set_offload(struct nft_offload_ctx *ctx,
-+				   struct nft_flow_rule *flow,
-+				   const struct nft_expr *expr)
-+{
-+	const struct nft_payload_set *priv = nft_expr_priv(expr);
-+	struct nft_offload_reg *sreg = &ctx->regs[priv->sreg];
-+	int type = FLOW_ACT_MANGLE_UNSPEC;
-+	struct flow_action_entry *entry;
-+
-+	switch (priv->base) {
-+	case NFT_PAYLOAD_LL_HEADER:
-+		type = FLOW_ACT_MANGLE_HDR_TYPE_ETH;
-+		break;
-+	case NFT_PAYLOAD_NETWORK_HEADER:
-+		type = nft_payload_offload_set_nh(ctx, flow, priv);
-+		break;
-+	case NFT_PAYLOAD_TRANSPORT_HEADER:
-+		type = nft_payload_offload_set_th(ctx, flow, priv);
-+		break;
-+	default:
-+		WARN_ON_ONCE(1);
-+		break;
-+	}
-+
-+	entry = &flow->rule->action.entries[ctx->num_actions++];
-+	entry->id		= FLOW_ACTION_MANGLE;
-+	entry->mangle.htype	= type;
-+	entry->mangle.offset	= priv->offset;
-+	entry->mangle.len	= priv->len;
-+
-+	memcpy(entry->mangle.val, sreg->data.data, priv->len);
-+	memset(entry->mangle.mask, 0xff, priv->len);
-+
-+	return type != FLOW_ACT_MANGLE_UNSPEC ? 0 : -EOPNOTSUPP;
-+}
-+
- static const struct nft_expr_ops nft_payload_set_ops = {
- 	.type		= &nft_payload_type,
- 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_payload_set)),
- 	.eval		= nft_payload_set_eval,
- 	.init		= nft_payload_set_init,
- 	.dump		= nft_payload_set_dump,
-+	.offload	= nft_payload_set_offload,
- };
- 
- static const struct nft_expr_ops *
--- 
-2.11.0
-
+>   netfilter: nf_tables_offload: add nft_offload_netdev_iterate function
+>   netfilter: nf_tables_offload: clean offload things when the device
+>     unregister
+> 
+>  include/net/netfilter/nf_tables_offload.h |   2 +-
+>  net/netfilter/nf_tables_api.c             |   9 ++-
+>  net/netfilter/nf_tables_offload.c         | 122 ++++++++++++++++++++++++------
+>  3 files changed, 105 insertions(+), 28 deletions(-)
+> 
+> -- 
+> 1.8.3.1
+> 
