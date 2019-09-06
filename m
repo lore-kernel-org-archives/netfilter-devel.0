@@ -6,122 +6,102 @@ X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 50D06C00307
-	for <netfilter-devel@archiver.kernel.org>; Fri,  6 Sep 2019 10:56:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 508FFC43331
+	for <netfilter-devel@archiver.kernel.org>; Fri,  6 Sep 2019 12:55:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 359D42084F
-	for <netfilter-devel@archiver.kernel.org>; Fri,  6 Sep 2019 10:56:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 363672082C
+	for <netfilter-devel@archiver.kernel.org>; Fri,  6 Sep 2019 12:55:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2391720AbfIFK4p (ORCPT
+        id S2404868AbfIFMzh (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 6 Sep 2019 06:56:45 -0400
-Received: from correo.us.es ([193.147.175.20]:43730 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388816AbfIFK4p (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 6 Sep 2019 06:56:45 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 644FD303D12
-        for <netfilter-devel@vger.kernel.org>; Fri,  6 Sep 2019 12:56:39 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 51CD8A7E1C
-        for <netfilter-devel@vger.kernel.org>; Fri,  6 Sep 2019 12:56:39 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 501D7A7E0F; Fri,  6 Sep 2019 12:56:39 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 0A52DA7E18;
-        Fri,  6 Sep 2019 12:56:37 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Fri, 06 Sep 2019 12:56:37 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (sys.soleta.eu [212.170.55.40])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        Fri, 6 Sep 2019 08:55:37 -0400
+Received: from dispatch1-us1.ppe-hosted.com ([67.231.154.164]:59532 "EHLO
+        dispatch1-us1.ppe-hosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S2404862AbfIFMzh (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 6 Sep 2019 08:55:37 -0400
+X-Virus-Scanned: Proofpoint Essentials engine
+Received: from webmail.solarflare.com (webmail.solarflare.com [12.187.104.26])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
         (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id D24BE41E4800;
-        Fri,  6 Sep 2019 12:56:36 +0200 (CEST)
-Date:   Fri, 6 Sep 2019 12:56:38 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Edward Cree <ecree@solarflare.com>
-Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org, jakub.kicinski@netronome.com,
-        jiri@resnulli.us, saeedm@mellanox.com, vishal@chelsio.com,
-        vladbu@mellanox.com
+        by mx1-us2.ppe-hosted.com (PPE Hosted ESMTP Server) with ESMTPS id 59DAA80064;
+        Fri,  6 Sep 2019 12:55:35 +0000 (UTC)
+Received: from [10.17.20.203] (10.17.20.203) by ocex03.SolarFlarecom.com
+ (10.20.40.36) with Microsoft SMTP Server (TLS) id 15.0.1395.4; Fri, 6 Sep
+ 2019 05:55:30 -0700
 Subject: Re: [PATCH net-next,v3 0/4] flow_offload: update mangle action
  representation
-Message-ID: <20190906105638.hylw6quhk7t3wff2@salvia>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+CC:     <netfilter-devel@vger.kernel.org>, <davem@davemloft.net>,
+        <netdev@vger.kernel.org>, <jakub.kicinski@netronome.com>,
+        <jiri@resnulli.us>, <saeedm@mellanox.com>, <vishal@chelsio.com>,
+        <vladbu@mellanox.com>
 References: <20190906000403.3701-1-pablo@netfilter.org>
  <679ced4b-8bcd-5479-2773-7c75452c2a32@solarflare.com>
+ <20190906105638.hylw6quhk7t3wff2@salvia>
+From:   Edward Cree <ecree@solarflare.com>
+Message-ID: <b8baf681-b808-4b83-d521-0353c3136516@solarflare.com>
+Date:   Fri, 6 Sep 2019 13:55:29 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.7.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
+In-Reply-To: <20190906105638.hylw6quhk7t3wff2@salvia>
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <679ced4b-8bcd-5479-2773-7c75452c2a32@solarflare.com>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Language: en-GB
+X-Originating-IP: [10.17.20.203]
+X-TM-AS-Product-Ver: SMEX-12.5.0.1300-8.5.1010-24892.005
+X-TM-AS-Result: No-14.083900-4.000000-10
+X-TMASE-MatchedRID: eVEkOcJu0F4eimh1YYHcKB4ejJMDGBzF69aS+7/zbj+qvcIF1TcLYDS1
+        m54gUL0X+/AprGlolD3RCiTlD5priogsbrQhlb+3A9lly13c/gEA+JHhu0IR5g6QlBHhBZuwJg6
+        dxhIIpObg15yuT3ujaI6S9ESgFkF85lKdq+fFOu1l2ityh8f8aR5FmvZzFEQuy5JfHvVu9IuPtO
+        ITsGXyUQlvIRdkXB5Jrmd2YQW9ckOH0DP1fa76LHNjCNHNJIs4BGvINcfHqhcELMPQNzyJSzd36
+        q149aCOWSIvbfNk0AD8orpFUn4ofXtopSgDSMBh/ccgt/EtX/37DSw7+Hy7ebKeTtOdjMy6ttNu
+        UtVl2ix1Joq1iFPTtp/dut57ghdMNyl1nd9CIt2DGx/OQ1GV8t0H8LFZNFG7bkV4e2xSge4O3C+
+        DKtjulrE5c7tCjJn18xDNupGzB33by8j2VMPW/xyFdNnda6Rv
+X-TM-AS-User-Approved-Sender: No
+X-TM-AS-User-Blocked-Sender: No
+X-TMASE-Result: 10--14.083900-4.000000
+X-TMASE-Version: SMEX-12.5.0.1300-8.5.1010-24892.005
+X-MDID: 1567774536-VJ3_WtU_1EQl
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Sep 06, 2019 at 11:02:18AM +0100, Edward Cree wrote:
-> On 06/09/2019 01:03, Pablo Neira Ayuso wrote:
-> > This patch updates the mangle action representation:
-> >
-> > Patch 1) Undo bitwise NOT operation on the mangle mask (coming from tc
-> >          pedit userspace).
-> >
-> > Patch 2) mangle value &= mask from the front-end side.
-> >
-> > Patch 3) adjust offset, length and coalesce consecutive pedit keys into
-> >          one single action.
-> >
-> > Patch 4) add support for payload mangling for netfilter.
-> >
-> > After this patchset:
-> >
-> > * Offset to payload does not need to be on the 32-bits boundaries anymore.
-> >   This patchset adds front-end code to adjust the offset and length coming
-> >   from the tc pedit representation, so drivers get an exact header field
-> >   offset and length.
-> >
-> > * This new front-end code coalesces consecutive pedit actions into one
-> >   single action, so drivers can mangle IPv6 and ethernet address fields
-> >   in one go, instead once for each 32-bit word.
-> >
-> > On the driver side, diffstat -t shows that drivers code to deal with
-> > payload mangling gets simplified:
-> >
-> >         INSERTED,DELETED,MODIFIED,FILENAME
-> >         46,116,0,drivers/net/ethernet/chelsio/cxgb4/cxgb4_tc_flower.c (-70 LOC)
-> >         12,28,0,drivers/net/ethernet/chelsio/cxgb4/cxgb4_tc_flower.h (-16 LOC)
-> > 	26,54,0,drivers/net/ethernet/mellanox/mlx5/core/en_tc.c (-27 LOC)
-> >         89,111,0,drivers/net/ethernet/netronome/nfp/flower/action.c (-17 LOC)
-> >
-> > While, on the front-end side the balance is the following:
-> >
-> >         123,22,0,net/sched/cls_api.c (+101 LOC)
-> >
-> > Changes since v2:
-> >
-> > * Fix is_action_keys_supported() breakage in mlx5 reported by Vlad Buslov.
+On 06/09/2019 11:56, Pablo Neira Ayuso wrote:
+> On Fri, Sep 06, 2019 at 11:02:18AM +0100, Edward Cree wrote:
+>> Still NAK for the same reasons as three versions ago (when it was called
+>>  "netfilter: payload mangling offload support"), you've never managed to
+>>  explain why this extra API complexity is useful.  (Reducing LOC does not
+>>  mean you've reduced complexity.)
+> Oh well...
 >
-> Still NAK for the same reasons as three versions ago (when it was called
-> �"netfilter: payload mangling offload support"), you've never managed to
-> �explain why this extra API complexity is useful.� (Reducing LOC does not
-> �mean you've reduced complexity.)
+> Patch 1) Mask is inverted for no reason, just because tc pedit needs
+> this in this way. All drivers reverse this mask.
+>
+> Patch 2) All drivers mask out meaningless fields in the value field.
+To be clear: I have no issue with these two patches; they look fine to me.
+(Though I'd like to see some comments on struct flow_action_entry specifying
+ the semantics of these fields, especially if they're going to differ from
+ the corresponding fields in struct tc_pedit_key.)
 
-Oh well...
+> Patch 3) Without this patchset, offsets are on the 32-bit boundary.
+> Drivers need to play with the 32-bit mask to infer what field they are
+> supposed to mangle... eg. with 32-bit offset alignment, checking if
+> the use want to alter the ttl/hop_limit need for helper structures to
+> check the 32-bit mask. Mangling a IPv6 address comes with one single
+> action...
+Drivers are still going to need to handle multiple pedit actions, in
+ case the original rule wanted to mangle two non-consecutive fields.
+And you can't just coalesce all consecutive mangles, because if you
+ mangle two consecutive fields (e.g. UDP sport and dport) the driver
+ still needs to disentangle that if it works on a 'fields' (rather
+ than 'u32s') level.
+So either have the core convert things into named protocol fields
+ (i.e. "set src IPv6 to 1234::5 and add 1 to UDP sport"), or leave
+ the current sequence-of-u32-mangles as it is.  This in-between "we'll
+ coalesce things together despite not knowing what fields they are" is
+ neither fish nor fowl.
 
-Patch 1) Mask is inverted for no reason, just because tc pedit needs
-this in this way. All drivers reverse this mask.
-
-Patch 2) All drivers mask out meaningless fields in the value field.
-
-Patch 3) Without this patchset, offsets are on the 32-bit boundary.
-Drivers need to play with the 32-bit mask to infer what field they are
-supposed to mangle... eg. with 32-bit offset alignment, checking if
-the use want to alter the ttl/hop_limit need for helper structures to
-check the 32-bit mask. Mangling a IPv6 address comes with one single
-action...
+-Ed
