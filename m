@@ -2,89 +2,90 @@ Return-Path: <SRS0=fPey=XB=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C8C4C00306
-	for <netfilter-devel@archiver.kernel.org>; Fri,  6 Sep 2019 00:33:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 84E59C43331
+	for <netfilter-devel@archiver.kernel.org>; Fri,  6 Sep 2019 00:34:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3E0C820820
-	for <netfilter-devel@archiver.kernel.org>; Fri,  6 Sep 2019 00:33:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7B8E920820
+	for <netfilter-devel@archiver.kernel.org>; Fri,  6 Sep 2019 00:34:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2391555AbfIFAdF (ORCPT
+        id S2390107AbfIFAeR (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 5 Sep 2019 20:33:05 -0400
-Received: from mx1.redhat.com ([209.132.183.28]:60696 "EHLO mx1.redhat.com"
+        Thu, 5 Sep 2019 20:34:17 -0400
+Received: from correo.us.es ([193.147.175.20]:34590 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2390838AbfIFAdF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 5 Sep 2019 20:33:05 -0400
-Received: from smtp.corp.redhat.com (int-mx08.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        id S1733029AbfIFAeQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 5 Sep 2019 20:34:16 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 2CD1FDA387
+        for <netfilter-devel@vger.kernel.org>; Fri,  6 Sep 2019 02:34:13 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 201A0DA840
+        for <netfilter-devel@vger.kernel.org>; Fri,  6 Sep 2019 02:34:13 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 15EBADA72F; Fri,  6 Sep 2019 02:34:13 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id E713FDA7B6;
+        Fri,  6 Sep 2019 02:34:10 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Fri, 06 Sep 2019 02:34:10 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (sys.soleta.eu [212.170.55.40])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mx1.redhat.com (Postfix) with ESMTPS id 4E94F18C4271;
-        Fri,  6 Sep 2019 00:33:05 +0000 (UTC)
-Received: from egarver.remote.csb (ovpn-122-8.rdu2.redhat.com [10.10.122.8])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id D477F19C77;
-        Fri,  6 Sep 2019 00:33:04 +0000 (UTC)
-From:   Eric Garver <eric@garver.life>
-To:     netfilter-devel@vger.kernel.org
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 2/2] tests: shell: check that rule add with index works with echo
-Date:   Thu,  5 Sep 2019 20:33:02 -0400
-Message-Id: <20190906003302.25953-2-eric@garver.life>
-In-Reply-To: <20190906003302.25953-1-eric@garver.life>
-References: <20190906003302.25953-1-eric@garver.life>
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id C6BEF4265A5A;
+        Fri,  6 Sep 2019 02:34:10 +0200 (CEST)
+Date:   Fri, 6 Sep 2019 02:34:12 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     wenxu@ucloud.cn
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf-next v3 3/4] netfilter: nf_tables_offload: add
+ nft_offload_netdev_iterate function
+Message-ID: <20190906003412.eftkpvvhqedmq3de@salvia>
+References: <1567656019-6881-1-git-send-email-wenxu@ucloud.cn>
+ <1567656019-6881-4-git-send-email-wenxu@ucloud.cn>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 2.84 on 10.5.11.23
-X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.6.2 (mx1.redhat.com [10.5.110.62]); Fri, 06 Sep 2019 00:33:05 +0000 (UTC)
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1567656019-6881-4-git-send-email-wenxu@ucloud.cn>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Signed-off-by: Eric Garver <eric@garver.life>
----
- tests/shell/testcases/cache/0007_echo_cache_init_0 | 14 ++++++++++++++
- .../cache/dumps/0007_echo_cache_init_0.nft         |  7 +++++++
- 2 files changed, 21 insertions(+)
- create mode 100755 tests/shell/testcases/cache/0007_echo_cache_init_0
- create mode 100644 tests/shell/testcases/cache/dumps/0007_echo_cache_init_0.nft
+On Thu, Sep 05, 2019 at 12:00:18PM +0800, wenxu@ucloud.cn wrote:
+[...]
+> +static void nft_indr_block_cb(struct net_device *dev,
+> +			      flow_indr_block_bind_cb_t *cb, void *cb_priv,
+> +			      enum flow_block_command cmd)
+> +{
+> +	struct net *net = dev_net(dev);
+> +	struct nft_chain *chain;
+> +
+> +	mutex_lock(&net->nft.commit_mutex);
+> +	chain = nft_offload_netdev_iterate(dev);
 
-diff --git a/tests/shell/testcases/cache/0007_echo_cache_init_0 b/tests/shell/testcases/cache/0007_echo_cache_init_0
-new file mode 100755
-index 000000000000..280a0d06bdc3
---- /dev/null
-+++ b/tests/shell/testcases/cache/0007_echo_cache_init_0
-@@ -0,0 +1,14 @@
-+#!/bin/bash
-+
-+set -e
-+
-+$NFT -i >/dev/null <<EOF
-+add table inet t
-+add chain inet t c
-+add rule inet t c accept comment "first"
-+add rule inet t c accept comment "third"
-+EOF
-+
-+# make sure the rule cache gets initialized when using echo option
-+#
-+$NFT --echo add rule inet t c index 0 accept comment '"second"' >/dev/null
-diff --git a/tests/shell/testcases/cache/dumps/0007_echo_cache_init_0.nft b/tests/shell/testcases/cache/dumps/0007_echo_cache_init_0.nft
-new file mode 100644
-index 000000000000..c774ee72a683
---- /dev/null
-+++ b/tests/shell/testcases/cache/dumps/0007_echo_cache_init_0.nft
-@@ -0,0 +1,7 @@
-+table inet t {
-+	chain c {
-+		accept comment "first"
-+		accept comment "second"
-+		accept comment "third"
-+	}
-+}
--- 
-2.20.1
+Ah, right, not an interator. Probably __nft_offload_get_basechain(dev) ?
 
+The initial __nft_... suggests the reader that the mutex is required.
+
+> +	if (chain) {
+> +		struct nft_base_chain *basechain;
+> +
+> +		basechain = nft_base_chain(chain);
+> +		nft_indr_block_ing_cmd(dev, basechain, cb, cb_priv, cmd);
+> +	}
+>  	mutex_unlock(&net->nft.commit_mutex);
+>  }
+>  
+> -- 
+> 1.8.3.1
+> 
