@@ -6,51 +6,37 @@ X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 73915C00307
-	for <netfilter-devel@archiver.kernel.org>; Fri,  6 Sep 2019 15:58:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C0976C00307
+	for <netfilter-devel@archiver.kernel.org>; Fri,  6 Sep 2019 16:50:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 57237214DE
-	for <netfilter-devel@archiver.kernel.org>; Fri,  6 Sep 2019 15:58:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A5C252070C
+	for <netfilter-devel@archiver.kernel.org>; Fri,  6 Sep 2019 16:50:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2394974AbfIFP6K (ORCPT
+        id S2388683AbfIFQu3 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 6 Sep 2019 11:58:10 -0400
-Received: from correo.us.es ([193.147.175.20]:39244 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728741AbfIFP6K (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 6 Sep 2019 11:58:10 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 6A692ED5C8
-        for <netfilter-devel@vger.kernel.org>; Fri,  6 Sep 2019 17:58:06 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 5BF1352CCD
-        for <netfilter-devel@vger.kernel.org>; Fri,  6 Sep 2019 17:58:06 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 519F5D2B1D; Fri,  6 Sep 2019 17:58:06 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 5FC6BDA8E8;
-        Fri,  6 Sep 2019 17:58:03 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Fri, 06 Sep 2019 17:58:03 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (barqueta.lsi.us.es [150.214.188.150])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        Fri, 6 Sep 2019 12:50:29 -0400
+Received: from dispatch1-us1.ppe-hosted.com ([67.231.154.164]:39566 "EHLO
+        dispatch1-us1.ppe-hosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725921AbfIFQu3 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 6 Sep 2019 12:50:29 -0400
+X-Virus-Scanned: Proofpoint Essentials engine
+Received: from webmail.solarflare.com (webmail.solarflare.com [12.187.104.26])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
         (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 0C45241E4801;
-        Fri,  6 Sep 2019 17:58:03 +0200 (CEST)
-Date:   Fri, 6 Sep 2019 17:58:04 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Edward Cree <ecree@solarflare.com>
-Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org, jakub.kicinski@netronome.com,
-        jiri@resnulli.us, saeedm@mellanox.com, vishal@chelsio.com,
-        vladbu@mellanox.com
+        by mx1-us2.ppe-hosted.com (PPE Hosted ESMTP Server) with ESMTPS id A111680070;
+        Fri,  6 Sep 2019 16:50:27 +0000 (UTC)
+Received: from [10.17.20.203] (10.17.20.203) by ocex03.SolarFlarecom.com
+ (10.20.40.36) with Microsoft SMTP Server (TLS) id 15.0.1395.4; Fri, 6 Sep
+ 2019 09:49:09 -0700
+From:   Edward Cree <ecree@solarflare.com>
 Subject: Re: [PATCH net-next,v3 0/4] flow_offload: update mangle action
  representation
-Message-ID: <20190906155804.v4lviltxs72a45tq@salvia>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+CC:     <netfilter-devel@vger.kernel.org>, <davem@davemloft.net>,
+        <netdev@vger.kernel.org>, <jakub.kicinski@netronome.com>,
+        <jiri@resnulli.us>, <saeedm@mellanox.com>, <vishal@chelsio.com>,
+        <vladbu@mellanox.com>
 References: <20190906000403.3701-1-pablo@netfilter.org>
  <679ced4b-8bcd-5479-2773-7c75452c2a32@solarflare.com>
  <20190906105638.hylw6quhk7t3wff2@salvia>
@@ -59,111 +45,84 @@ References: <20190906000403.3701-1-pablo@netfilter.org>
  <35ac21be-ff2f-a9cd-dd71-28bc37e8a51b@solarflare.com>
  <20190906145019.2bggchaq43tcqdyc@salvia>
  <be6eee6b-9d58-f0f7-571b-7e473612e2b3@solarflare.com>
+ <20190906155804.v4lviltxs72a45tq@salvia>
+Message-ID: <1637ec50-daae-65df-fcaa-bfd763dbb1d9@solarflare.com>
+Date:   Fri, 6 Sep 2019 17:49:07 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.7.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
+In-Reply-To: <20190906155804.v4lviltxs72a45tq@salvia>
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <be6eee6b-9d58-f0f7-571b-7e473612e2b3@solarflare.com>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Language: en-GB
+X-Originating-IP: [10.17.20.203]
+X-TM-AS-Product-Ver: SMEX-12.5.0.1300-8.5.1010-24892.005
+X-TM-AS-Result: No-6.447500-4.000000-10
+X-TMASE-MatchedRID: 6lay9u8oTUMeimh1YYHcKB4ejJMDGBzF69aS+7/zbj+qvcIF1TcLYMei
+        MUc2ahXMBqA7CNiHt1aKUKec2gj23f4t5/APWrYh7k/A+V4ALMJQ87hSn/DSk/8yJFu97gAOLUw
+        eeW1jbU43GbfgvQ9IgnLFBxl01kMzNDbolUN89NDm2EH1fEek22lx94YAg21yRjHvrQ40Nxbqr8
+        lH/+vRosGLsnJdGXELBLKWMSvL2T5thJ7IXRIqNsmR5yDJkPg4jHhXj1NLbjAda1Vk3RqxOIid2
+        zVEaYMLlFshCrJ3AIuZ3eRr2UpQzgmGbpOMTi81ttAWxuM5sl6W31x27U9QYjqaX1166ot195ri
+        4fhj2G/5bYSVqPXjc8c23EbFTAfHeZuXD1T+SS0AhUzEvZ6RYzB4tWHctlhI+frbXg+Uc4U4Hju
+        n30xe7OfOVcxjDhcwAYt5KiTiutmJhnKtQtAvVsRB0bsfrpPInxMyeYT53Rnl6ACZJWJ3AEaMpP
+        yzMnL27l4AyzAz6JrTm5J/yBAF+AxX+Hk3P44Hf2GYuMA2BmtOnw0K6/0VTurMpaT7qMEwgrV3R
+        rZDzioaEFYXAylB9SUSM5mwacGkICQpusqRi2ejpeaEV8oRRFZca9RSYo/b
+X-TM-AS-User-Approved-Sender: No
+X-TM-AS-User-Blocked-Sender: No
+X-TMASE-Result: 10--6.447500-4.000000
+X-TMASE-Version: SMEX-12.5.0.1300-8.5.1010-24892.005
+X-MDID: 1567788628-bZuFuLLkOmgt
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Edward,
+On 06/09/2019 16:58, Pablo Neira Ayuso wrote:
+> In tc pedit ex, those are _indeed_ two separated actions: 
+I read the code again and I get it now, there's double iteration
+Â already over tcf_exts_for_each_action and tcf_pedit_nkeys, and
+Â it's only within the latter that you coalesce.
 
-On Fri, Sep 06, 2019 at 04:13:17PM +0100, Edward Cree wrote:
-> On 06/09/2019 15:50, Pablo Neira Ayuso wrote:
-> > On Fri, Sep 06, 2019 at 02:37:16PM +0100, Edward Cree wrote:
-[...]
-> >> So an IPv6 address mangle only comes as a single action if it's from
-> >>  netfilter, not if it's coming from TC pedit.
-> > Driver gets one single action from tc/netfilter (and potentially
-> > ethtool if it would support for this), it comes as a single action
-> > from both subsystems:
-> >
-> >         front-end -----> flow_rule API -----> drivers
-> >
-> > Front-end need to translate their representation to this
-> > FLOW_ACTION_MANGLE layout.
-> >
-> > By front-end, I refer to ethtool/netfilter/tc.
+However, have you considered that iproute2 (i.e. tc tool) isn't
+Â guaranteed to be the only userland consumer of the TC uAPI?Â  For all
+Â we know there could be another user out there producing things like
+Â a single pedit action with two keys, same offset but different
+Â masks, to mangle sport & dport separately, which your code now
+Â _would_ coalesce into a single mangle.Â  I don't know if that would
+Â lead to any problems, but I want to be sure you've thought about it ;)
+
+>> Proper thing to do is have helper functions available to drivers to test
+>> the pedit, and not just switch on the offset.Â  Why do I say that?
+>>
+>> Well, consider a pedit on UDP dport, with mask 0x00ff (network endian).
+>> Now as a u32 pedit that's 0x000000ff offset 0, so field-blind offset
+>> calculation (ffs in flow_action_mangle_entry()) will turn that into
+>> Â offset 3 mask 0xff.Â  Now driver does
+>> Â Â Â  switch(offset) { /* 3 */
+>> Â Â Â  case offsetof(struct udphdr, dest): /* 2 */
+>> Â  Â Â  Â Â  /* Whoops, we never get here! */
+>> Â Â Â  }
+>>
+>> Do you see the problem?
+> This scenario you describe cannot _work_ right now, with the existing
+> code. Without my patchset, this scenario you describe does _not_ work,
 >
->  In your patch, flow_action_mangle() looks only at the offset and type
->  (add vs. set) of each pedit, coalesces them if compatible (so, unless
->  I'm misreading the code, it _will_ coalesce adjacent pedits to
->  contiguous fields like UDP sport & dport, unlike what you said),
->  because it doesn't know whether two contiguous pedits are part of the
->  same field or not (it doesn't have any knowledge of 'fields' at all).
-
-In tc pedit ex, those are _indeed_ two separated actions:
-
-* One to mangle UDP sport.
-* One to mangle UDP dport.
-
-They are _not_ one as you describe above.
-
-The coalesce routine I made does _not_ coalesce fields in two
-different actions.
-
->  And for you to change that, while still coalescing IPv6 pedits, you
->  would need flow_action_mangle() to know what fields each pedit is in.
-
-In the particular case of IPv6 address, 'tc pedit ex' generates one
-single action with 4 nkeys. So this is:
-
-* One action to mangle four 32-bits words (the number of words in tc
-  pedit is stored in the nkeys field).
-
-The coalesce routine I made in this case merges the four 32-bits words
-into one single action.
-
-[...]
-> >>  Yes, but we don't add code/features to the kernel based on what we
-> >>  *could* use it for later
-> > This is already useful: Look at the cxgb driver in particular, it's
-> > way easier to read.
+> The drivers in the tree need a mask of 0xffff to infer that this is
+> UDP dport.
 >
->  Have you tested it?  Again, I might be misreading, but it looks like
->  your flow_action_mangle() *will* coalesce sport & dport, which it
->  appears will break that cxgb code.
-
-Because sport and dport are not place in the same action by tc pedit
-ex, _that cannot happen_.
-
-> > Other existing drivers do not need to do things like:
-> >
-> >         case round_down(offsetof(struct iphdr, tos), 4):
-> >
-> > and the play with masks to infer if the user wants to mangle the TOS
-> > field, they can just do:
-> >
-> >         case offsetof(struct iphdr, tos):
-> >
-> > which is way more natural representation.
+> The 'tc pedit ex' infrastructure does not allow for the scenario that
+> you describe above.
 >
-> Proper thing to do is have helper functions available to drivers to test
-> the pedit, and not just switch on the offset.  Why do I say that?
->
-> Well, consider a pedit on UDP dport, with mask 0x00ff (network endian).
-> Now as a u32 pedit that's 0x000000ff offset 0, so field-blind offset
-> calculation (ffs in flow_action_mangle_entry()) will turn that into
-> offset 3 mask 0xff.  Now driver does
->     switch(offset) { /* 3 */
->     case offsetof(struct udphdr, dest): /* 2 */
->         /* Whoops, we never get here! */
->     }
->
-> Do you see the problem?
-
-This scenario you describe cannot _work_ right now, with the existing
-code. Without my patchset, this scenario you describe does _not_ work,
-
-The drivers in the tree need a mask of 0xffff to infer that this is
-UDP dport.
-
-The 'tc pedit ex' infrastructure does not allow for the scenario that
-you describe above.
-
-No driver in the tree allow for what you describe already.
+> No driver in the tree allow for what you describe already.
+Looks to me like existing nfp_fl_set_tport() handles just fine any
+Â arbitrary mask across the u32 that contains UDP sport & dport.
+And the uAPI we have to maintain is the uAPI we expose, not the subset
+Â that iproute2 uses.Â  I could write a patched tc tool *today* that does
+Â a pedit of 'UDP header, offset 0, mask 0xff0000ff' and the nfp driver
+Â would accept that fine (no idea what the fw / chip would do with it,
+Â but presumably it works or Netronome folks would have put checks in),
+Â whereas with your patch it'll complain "invalid pedit L4 action"
+Â because the mask isn't all-1s.
+And if I made it produce my example from above, mask 0x000000ff, you'd
+Â calculate an offset of 3 and hit the other error, "unsupported section
+Â of L4 header", which again would have worked before.
