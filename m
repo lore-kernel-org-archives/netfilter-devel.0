@@ -6,38 +6,38 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 28DC6C4332F
-	for <netfilter-devel@archiver.kernel.org>; Sun,  8 Sep 2019 14:19:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D504EC4332F
+	for <netfilter-devel@archiver.kernel.org>; Sun,  8 Sep 2019 14:19:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id F3E982082C
-	for <netfilter-devel@archiver.kernel.org>; Sun,  8 Sep 2019 14:19:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B60F22082C
+	for <netfilter-devel@archiver.kernel.org>; Sun,  8 Sep 2019 14:19:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729001AbfIHOTJ (ORCPT
+        id S1727866AbfIHOTX (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 8 Sep 2019 10:19:09 -0400
-Received: from m9785.mail.qiye.163.com ([220.181.97.85]:3245 "EHLO
+        Sun, 8 Sep 2019 10:19:23 -0400
+Received: from m9785.mail.qiye.163.com ([220.181.97.85]:3239 "EHLO
         m9785.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725872AbfIHOTJ (ORCPT
+        with ESMTP id S1727270AbfIHOTX (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 8 Sep 2019 10:19:09 -0400
+        Sun, 8 Sep 2019 10:19:23 -0400
 Received: from localhost.localdomain (unknown [123.59.132.129])
-        by m9785.mail.qiye.163.com (Hmail) with ESMTPA id 24A535C16CA;
-        Sun,  8 Sep 2019 22:18:58 +0800 (CST)
+        by m9785.mail.qiye.163.com (Hmail) with ESMTPA id E8FD45C16C8;
+        Sun,  8 Sep 2019 22:18:57 +0800 (CST)
 From:   wenxu@ucloud.cn
 To:     pablo@netfilter.org
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next v4 3/4] netfilter: nf_tables_offload: add __nft_offload_get_chain function
-Date:   Sun,  8 Sep 2019 22:18:55 +0800
-Message-Id: <1567952336-23669-4-git-send-email-wenxu@ucloud.cn>
+Subject: [PATCH nf-next v4 1/4] netfilter: nf_offload: refactor the nft_flow_offload_chain function
+Date:   Sun,  8 Sep 2019 22:18:53 +0800
+Message-Id: <1567952336-23669-2-git-send-email-wenxu@ucloud.cn>
 X-Mailer: git-send-email 1.8.3.1
 In-Reply-To: <1567952336-23669-1-git-send-email-wenxu@ucloud.cn>
 References: <1567952336-23669-1-git-send-email-wenxu@ucloud.cn>
 X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVkpVS01OS0tLSkxNT0lCTE5ZV1koWU
         FJQjdXWS1ZQUlXWQkOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6PFE6KSo6CjgxOTVLAxwPOTcN
-        PCpPChFVSlVKTk1MQk5JSEhDSkNMVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJSFVO
-        QlVKSElVSklCWVdZCAFZQUlDQ003Bg++
-X-HM-Tid: 0a6d113dfced2087kuqy24a535c16ca
+X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6Pyo6TAw5VjgxOTVNExw4OTgR
+        PhNPCyxVSlVKTk1MQk5JSEhDS0hJVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJSFVO
+        QlVKSElVSklCWVdZCAFZQUhJTEg3Bg++
+X-HM-Tid: 0a6d113dfc2a2087kuqye8fd45c16c8
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
@@ -45,72 +45,76 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: wenxu <wenxu@ucloud.cn>
 
-Add __nft_offload_get_chain function. It make code more common
-and can be used for others.
+Refactor nft_flow_offload_chain and make it more common
 
 Signed-off-by: wenxu <wenxu@ucloud.cn>
 ---
-v4: add __nft_offload_get_chain
+v4: no change
 
- net/netfilter/nf_tables_offload.c | 32 +++++++++++++++++++++++---------
- 1 file changed, 23 insertions(+), 9 deletions(-)
+ net/netfilter/nf_tables_offload.c | 23 +++++++++++++++--------
+ 1 file changed, 15 insertions(+), 8 deletions(-)
 
 diff --git a/net/netfilter/nf_tables_offload.c b/net/netfilter/nf_tables_offload.c
-index 9657001..a471706 100644
+index 3f49fe8..9419486 100644
 --- a/net/netfilter/nf_tables_offload.c
 +++ b/net/netfilter/nf_tables_offload.c
-@@ -365,16 +365,13 @@ int nft_flow_rule_offload_commit(struct net *net)
- 	return err;
- }
+@@ -273,10 +273,9 @@ static int nft_indr_block_offload_cmd(struct nft_base_chain *chain,
  
--static void nft_indr_block_cb(struct net_device *dev,
--			      flow_indr_block_bind_cb_t *cb, void *cb_priv,
--			      enum flow_block_command cmd)
-+static struct nft_chain *__nft_offload_get_chain(struct net_device *dev)
+ #define FLOW_SETUP_BLOCK TC_SETUP_BLOCK
+ 
+-static int nft_flow_offload_chain(struct nft_trans *trans,
++static int nft_flow_offload_chain(struct nft_chain *chain,
+ 				  enum flow_block_command cmd)
  {
+-	struct nft_chain *chain = trans->ctx.chain;
  	struct nft_base_chain *basechain;
- 	struct net *net = dev_net(dev);
--	const struct nft_table *table;
--	const struct nft_chain *chain;
-+	struct nft_chain *chain;
-+	struct nft_table *table;
+ 	struct net_device *dev;
  
--	mutex_lock(&net->nft.commit_mutex);
- 	list_for_each_entry(table, &net->nft.tables, list) {
- 		if (table->family != NFPROTO_NETDEV)
- 			continue;
-@@ -388,11 +385,28 @@ static void nft_indr_block_cb(struct net_device *dev,
- 			if (strncmp(basechain->dev_name, dev->name, IFNAMSIZ))
- 				continue;
+@@ -288,16 +287,24 @@ static int nft_flow_offload_chain(struct nft_trans *trans,
+ 	if (!dev)
+ 		return -EOPNOTSUPP;
  
--			nft_indr_block_ing_cmd(dev, basechain, cb, cb_priv, cmd);
--			mutex_unlock(&net->nft.commit_mutex);
--			return;
-+			return chain;
- 		}
- 	}
-+
-+	return NULL;
++	if (dev->netdev_ops->ndo_setup_tc)
++		return nft_block_offload_cmd(basechain, dev, cmd);
++	else
++		return nft_indr_block_offload_cmd(basechain, dev, cmd);
 +}
 +
-+static void nft_indr_block_cb(struct net_device *dev,
-+			      flow_indr_block_bind_cb_t *cb, void *cb_priv,
-+			      enum flow_block_command cmd)
++static int nft_flow_offload_chain_commit(struct nft_trans *trans,
++					 enum flow_block_command cmd)
 +{
-+	struct net *net = dev_net(dev);
-+	struct nft_chain *chain;
++	struct nft_chain *chain = trans->ctx.chain;
 +
-+	mutex_lock(&net->nft.commit_mutex);
-+	chain = __nft_offload_get_chain(dev);
-+	if (chain) {
-+		struct nft_base_chain *basechain;
-+
-+		basechain = nft_base_chain(chain);
-+		nft_indr_block_ing_cmd(dev, basechain, cb, cb_priv, cmd);
-+	}
- 	mutex_unlock(&net->nft.commit_mutex);
+ 	/* Only default policy to accept is supported for now. */
+ 	if (cmd == FLOW_BLOCK_BIND &&
+ 	    nft_trans_chain_policy(trans) != -1 &&
+ 	    nft_trans_chain_policy(trans) != NF_ACCEPT)
+ 		return -EOPNOTSUPP;
+ 
+-	if (dev->netdev_ops->ndo_setup_tc)
+-		return nft_block_offload_cmd(basechain, dev, cmd);
+-	else
+-		return nft_indr_block_offload_cmd(basechain, dev, cmd);
++	return nft_flow_offload_chain(chain, cmd);
  }
  
+ int nft_flow_rule_offload_commit(struct net *net)
+@@ -314,13 +321,13 @@ int nft_flow_rule_offload_commit(struct net *net)
+ 			if (!(trans->ctx.chain->flags & NFT_CHAIN_HW_OFFLOAD))
+ 				continue;
+ 
+-			err = nft_flow_offload_chain(trans, FLOW_BLOCK_BIND);
++			err = nft_flow_offload_chain_commit(trans, FLOW_BLOCK_BIND);
+ 			break;
+ 		case NFT_MSG_DELCHAIN:
+ 			if (!(trans->ctx.chain->flags & NFT_CHAIN_HW_OFFLOAD))
+ 				continue;
+ 
+-			err = nft_flow_offload_chain(trans, FLOW_BLOCK_UNBIND);
++			err = nft_flow_offload_chain_commit(trans, FLOW_BLOCK_UNBIND);
+ 			break;
+ 		case NFT_MSG_NEWRULE:
+ 			if (!(trans->ctx.chain->flags & NFT_CHAIN_HW_OFFLOAD))
 -- 
 1.8.3.1
 
