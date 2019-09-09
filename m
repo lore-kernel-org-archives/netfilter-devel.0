@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-10.0 required=3.0
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0299AC00307
-	for <netfilter-devel@archiver.kernel.org>; Mon,  9 Sep 2019 06:22:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0252EC433EF
+	for <netfilter-devel@archiver.kernel.org>; Mon,  9 Sep 2019 06:22:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D51FD20828
-	for <netfilter-devel@archiver.kernel.org>; Mon,  9 Sep 2019 06:22:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D802420828
+	for <netfilter-devel@archiver.kernel.org>; Mon,  9 Sep 2019 06:22:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728015AbfIIGWL (ORCPT
+        id S1728060AbfIIGWO (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 9 Sep 2019 02:22:11 -0400
-Received: from m9784.mail.qiye.163.com ([220.181.97.84]:4747 "EHLO
+        Mon, 9 Sep 2019 02:22:14 -0400
+Received: from m9784.mail.qiye.163.com ([220.181.97.84]:4749 "EHLO
         m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727164AbfIIGWL (ORCPT
+        with ESMTP id S1728005AbfIIGWO (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 9 Sep 2019 02:22:11 -0400
+        Mon, 9 Sep 2019 02:22:14 -0400
 Received: from localhost.localdomain (unknown [123.59.132.129])
-        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id D6447418DC;
-        Mon,  9 Sep 2019 14:22:06 +0800 (CST)
+        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id 35F4B41A3D;
+        Mon,  9 Sep 2019 14:22:07 +0800 (CST)
 From:   wenxu@ucloud.cn
 To:     pablo@netfilter.org
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next v5 1/4] netfilter: nf_tables_offload: add __nft_offload_get_chain function
-Date:   Mon,  9 Sep 2019 14:22:03 +0800
-Message-Id: <1568010126-3173-2-git-send-email-wenxu@ucloud.cn>
+Subject: [PATCH nf-next v5 3/4] netfilter: nf_offload: refactor the nft_flow_offload_rule function
+Date:   Mon,  9 Sep 2019 14:22:05 +0800
+Message-Id: <1568010126-3173-4-git-send-email-wenxu@ucloud.cn>
 X-Mailer: git-send-email 1.8.3.1
 In-Reply-To: <1568010126-3173-1-git-send-email-wenxu@ucloud.cn>
 References: <1568010126-3173-1-git-send-email-wenxu@ucloud.cn>
-X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVkpVS0pMS0tLS0xCSk5PQkxZV1koWU
+X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVkpVQk1JS0tLSkhKTUtMS01ZV1koWU
         FJQjdXWS1ZQUlXWQkOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6Py46Syo*Cjg4MTU*Ixo5LkxC
-        IjIaCi9VSlVKTk1DS0pLSklNQkxLVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJSFVO
-        QlVKSElVSklCWVdZCAFZQUhOTEs3Bg++
-X-HM-Tid: 0a6d14afc6272086kuqyd6447418dc
+X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6OQg6Pww4MDgzSDVRIxk#Lk43
+        HRhPFAhVSlVKTk1DS0pLSklMSElOVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJSFVO
+        QlVKSElVSklCWVdZCAFZQUhISk03Bg++
+X-HM-Tid: 0a6d14afc7952086kuqy35f4b41a3d
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
@@ -46,93 +46,79 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: wenxu <wenxu@ucloud.cn>
 
-Add __nft_offload_get_chain function. It make code more common
-and can be used for others. __nft_offload_get_chain fix check
-the offload flags.
-
-The flow_block_ing_cmd() needs to call blocking functions while iterating
-block_ing_cb_list, nft_indr_block_cb is in the cb_list. Also fix
-nft_indr_block_cb in incorrect rcu case.
+Refactor nft_flow_offload_rule and make it more common
 
 Signed-off-by: wenxu <wenxu@ucloud.cn>
 ---
-v5: rebase to master
+v5: no change
 
- net/netfilter/nf_tables_offload.c | 52 +++++++++++++++++++++++++--------------
- 1 file changed, 34 insertions(+), 18 deletions(-)
+ net/netfilter/nf_tables_offload.c | 24 +++++++++++++++++-------
+ 1 file changed, 17 insertions(+), 7 deletions(-)
 
 diff --git a/net/netfilter/nf_tables_offload.c b/net/netfilter/nf_tables_offload.c
-index 8abf193..03ee823 100644
+index c49bd1a..78b95e1 100644
 --- a/net/netfilter/nf_tables_offload.c
 +++ b/net/netfilter/nf_tables_offload.c
-@@ -354,33 +354,49 @@ int nft_flow_rule_offload_commit(struct net *net)
- 	return err;
+@@ -140,20 +140,20 @@ int nft_chain_offload_priority(struct nft_base_chain *basechain)
+ 	return 0;
  }
  
--static void nft_indr_block_cb(struct net_device *dev,
--			      flow_indr_block_bind_cb_t *cb, void *cb_priv,
--			      enum flow_block_command command)
-+static struct nft_chain *__nft_offload_get_chain(struct net_device *dev)
+-static int nft_flow_offload_rule(struct nft_trans *trans,
++static int nft_flow_offload_rule(struct nft_chain *chain,
++				 struct nft_rule *rule,
++				 struct nft_flow_rule *flow,
+ 				 enum flow_cls_command command)
  {
-+	struct nft_base_chain *basechain;
- 	struct net *net = dev_net(dev);
- 	const struct nft_table *table;
--	const struct nft_chain *chain;
-+	struct nft_chain *chain;
+-	struct nft_flow_rule *flow = nft_trans_flow_rule(trans);
+-	struct nft_rule *rule = nft_trans_rule(trans);
+ 	struct flow_cls_offload cls_flow = {};
+ 	struct nft_base_chain *basechain;
+ 	struct netlink_ext_ack extack;
+ 	__be16 proto = ETH_P_ALL;
  
--	list_for_each_entry_rcu(table, &net->nft.tables, list) {
-+	list_for_each_entry(table, &net->nft.tables, list) {
- 		if (table->family != NFPROTO_NETDEV)
- 			continue;
+-	if (!nft_is_base_chain(trans->ctx.chain))
++	if (!nft_is_base_chain(chain))
+ 		return -EOPNOTSUPP;
  
--		list_for_each_entry_rcu(chain, &table->chains, list) {
--			if (nft_is_base_chain(chain)) {
--				struct nft_base_chain *basechain;
--
--				basechain = nft_base_chain(chain);
--				if (!strncmp(basechain->dev_name, dev->name,
--					     IFNAMSIZ)) {
--					nft_indr_block_ing_cmd(dev, basechain,
--							       cb, cb_priv,
--							       command);
--					return;
--				}
--			}
-+		list_for_each_entry(chain, &table->chains, list) {
-+			if (!nft_is_base_chain(chain) ||
-+			    !(chain->flags & NFT_CHAIN_HW_OFFLOAD))
-+				continue;
+-	basechain = nft_base_chain(trans->ctx.chain);
++	basechain = nft_base_chain(chain);
+ 
+ 	if (flow)
+ 		proto = flow->proto;
+@@ -168,6 +168,16 @@ static int nft_flow_offload_rule(struct nft_trans *trans,
+ 	return nft_setup_cb_call(basechain, TC_SETUP_CLSFLOWER, &cls_flow);
+ }
+ 
++static int nft_flow_offload_rule_commit(struct nft_trans *trans,
++					enum flow_cls_command command)
++{
++	struct nft_flow_rule *flow = nft_trans_flow_rule(trans);
++	struct nft_rule *rule = nft_trans_rule(trans);
++	struct nft_chain *chain = trans->ctx.chain;
 +
-+			basechain = nft_base_chain(chain);
-+			if (strncmp(basechain->dev_name, dev->name, IFNAMSIZ))
-+				continue;
-+
-+			return chain;
- 		}
- 	}
-+
-+	return NULL;
++	return nft_flow_offload_rule(chain, rule, flow, command);
 +}
 +
-+static void nft_indr_block_cb(struct net_device *dev,
-+			      flow_indr_block_bind_cb_t *cb, void *cb_priv,
-+			      enum flow_block_command cmd)
-+{
-+	struct net *net = dev_net(dev);
-+	struct nft_chain *chain;
-+
-+	mutex_lock(&net->nft.commit_mutex);
-+	chain = __nft_offload_get_chain(dev);
-+	if (chain) {
-+		struct nft_base_chain *basechain;
-+
-+		basechain = nft_base_chain(chain);
-+		nft_indr_block_ing_cmd(dev, basechain, cb, cb_priv, cmd);
-+	}
-+	mutex_unlock(&net->nft.commit_mutex);
- }
+ static int nft_flow_offload_bind(struct flow_block_offload *bo,
+ 				 struct nft_base_chain *basechain)
+ {
+@@ -343,14 +353,14 @@ int nft_flow_rule_offload_commit(struct net *net)
+ 			    !(trans->ctx.flags & NLM_F_APPEND))
+ 				return -EOPNOTSUPP;
  
- static struct flow_indr_block_ing_entry block_ing_entry = {
+-			err = nft_flow_offload_rule(trans, FLOW_CLS_REPLACE);
++			err = nft_flow_offload_rule_commit(trans, FLOW_CLS_REPLACE);
+ 			nft_flow_rule_destroy(nft_trans_flow_rule(trans));
+ 			break;
+ 		case NFT_MSG_DELRULE:
+ 			if (!(trans->ctx.chain->flags & NFT_CHAIN_HW_OFFLOAD))
+ 				continue;
+ 
+-			err = nft_flow_offload_rule(trans, FLOW_CLS_DESTROY);
++			err = nft_flow_offload_rule_commit(trans, FLOW_CLS_DESTROY);
+ 			break;
+ 		}
+ 
 -- 
 1.8.3.1
 
