@@ -6,50 +6,50 @@ X-Spam-Status: No, score=-5.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B9463C49ED7
-	for <netfilter-devel@archiver.kernel.org>; Tue, 10 Sep 2019 16:25:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 686CFC49ED7
+	for <netfilter-devel@archiver.kernel.org>; Tue, 10 Sep 2019 16:25:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 998F320872
-	for <netfilter-devel@archiver.kernel.org>; Tue, 10 Sep 2019 16:25:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4300920872
+	for <netfilter-devel@archiver.kernel.org>; Tue, 10 Sep 2019 16:25:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2394163AbfIJQZa (ORCPT
+        id S2394171AbfIJQZl (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 10 Sep 2019 12:25:30 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:36870 "EHLO orbyte.nwl.cc"
+        Tue, 10 Sep 2019 12:25:41 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:36878 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2394155AbfIJQZa (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 10 Sep 2019 12:25:30 -0400
+        id S2394155AbfIJQZk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 10 Sep 2019 12:25:40 -0400
 Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.91)
         (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1i7ixM-0006Rk-2G; Tue, 10 Sep 2019 18:25:28 +0200
-Date:   Tue, 10 Sep 2019 18:25:28 +0200
+        id 1i7ixX-0006SN-UV; Tue, 10 Sep 2019 18:25:39 +0200
+Date:   Tue, 10 Sep 2019 18:25:39 +0200
 From:   Phil Sutter <phil@nwl.cc>
 To:     Eric Garver <eric@garver.life>
 Cc:     netfilter-devel@vger.kernel.org,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH nft 1/3] tests: shell: verify huge transaction returns
- expected number of rules
-Message-ID: <20190910162527.GI1378@orbyte.nwl.cc>
+        Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH nft] parser_json: fix crash on insert rule to bad
+ references
+Message-ID: <20190910162539.GJ1378@orbyte.nwl.cc>
 Mail-Followup-To: Phil Sutter <phil@nwl.cc>, Eric Garver <eric@garver.life>,
         netfilter-devel@vger.kernel.org,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>
-References: <20190910134328.11535-1-eric@garver.life>
+        Pablo Neira Ayuso <pablo@netfilter.org>
+References: <20190910134615.11742-1-eric@garver.life>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20190910134328.11535-1-eric@garver.life>
+In-Reply-To: <20190910134615.11742-1-eric@garver.life>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Sep 10, 2019 at 09:43:26AM -0400, Eric Garver wrote:
-> Verify that we get the expected number of rules with --echo (i.e. the
-> reply wasn't truncated).
+On Tue, Sep 10, 2019 at 09:46:15AM -0400, Eric Garver wrote:
+> Pass the location via the handle so the error leg in
+> erec_print_list() can reference it. Applies to invalid references
+> to tables, chains, and indexes.
 > 
+> Fixes: 586ad210368b ("libnftables: Implement JSON parser")
 > Signed-off-by: Eric Garver <eric@garver.life>
 
-Series applied, thanks!
+Also applied, thanks!
