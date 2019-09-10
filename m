@@ -7,30 +7,30 @@ X-Spam-Status: No, score=-10.0 required=3.0
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 32CCBC49ED7
-	for <netfilter-devel@archiver.kernel.org>; Tue, 10 Sep 2019 21:10:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D401CC49ED7
+	for <netfilter-devel@archiver.kernel.org>; Tue, 10 Sep 2019 21:13:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0D66621019
-	for <netfilter-devel@archiver.kernel.org>; Tue, 10 Sep 2019 21:10:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AE8A521019
+	for <netfilter-devel@archiver.kernel.org>; Tue, 10 Sep 2019 21:13:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726043AbfIJVKb (ORCPT
+        id S1725916AbfIJVNJ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 10 Sep 2019 17:10:31 -0400
-Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:44982 "EHLO
+        Tue, 10 Sep 2019 17:13:09 -0400
+Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:44990 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725942AbfIJVKb (ORCPT
+        by vger.kernel.org with ESMTP id S1725770AbfIJVNJ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 10 Sep 2019 17:10:31 -0400
+        Tue, 10 Sep 2019 17:13:09 -0400
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@breakpoint.cc>)
-        id 1i7nPA-0000WV-Jw; Tue, 10 Sep 2019 23:10:28 +0200
+        id 1i7nRj-0000X4-DA; Tue, 10 Sep 2019 23:13:07 +0200
 From:   Florian Westphal <fw@strlen.de>
 To:     <netfilter-devel@vger.kernel.org>
-Cc:     Duncan Roe <duncan_roe@optusnet.com.au>,
-        Florian Westphal <fw@strlen.de>
-Subject: [PATCH iptables] netfilter: hashlimit: prefer PRIu64 to avoid warnings on 32bit platforms
-Date:   Tue, 10 Sep 2019 23:08:20 +0200
-Message-Id: <20190910210820.9742-1-fw@strlen.de>
+Cc:     Florian Westphal <fw@strlen.de>,
+        Arturo Borrero Gonzalez <arturo@netfilter.org>
+Subject: [PATCH ebtables-nft] ebtables: fix over-eager -o checks on custom chains
+Date:   Tue, 10 Sep 2019 23:10:59 +0200
+Message-Id: <20190910211059.9872-1-fw@strlen.de>
 X-Mailer: git-send-email 2.21.0
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -39,29 +39,46 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Duncan Roe <duncan_roe@optusnet.com.au>
+Arturo reports ebtables-nft reports an error when -o is
+used in custom chains:
 
-I found this patch attached to an older BZ, apply this finally...
+-A MYCHAIN -o someif
+makes ebtables-nft exit with an error:
+"Use -o only in OUTPUT, FORWARD and POSTROUTING chains."
 
-Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1107
+Problem is that all the "-o" checks expect <= NF_BR_POST_ROUTING
+to mean "builtin", so -1 mistakenly leads to the checks being active.
+
+Reported-by: Arturo Borrero Gonzalez <arturo@netfilter.org>
+Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1347
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- extensions/libxt_hashlimit.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ iptables/xtables-eb.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/extensions/libxt_hashlimit.c b/extensions/libxt_hashlimit.c
-index f3b6e04309bd..7f1d2a402c4f 100644
---- a/extensions/libxt_hashlimit.c
-+++ b/extensions/libxt_hashlimit.c
-@@ -772,7 +772,7 @@ static void hashlimit_mt_check(struct xt_fcheck_call *cb)
- 		if (cb->xflags & F_BURST) {
- 			if (info->cfg.burst < cost_to_bytes(info->cfg.avg))
- 				xtables_error(PARAMETER_PROBLEM,
--					"burst cannot be smaller than %lub", cost_to_bytes(info->cfg.avg));
-+					"burst cannot be smaller than %"PRIu64"b", cost_to_bytes(info->cfg.avg));
+diff --git a/iptables/xtables-eb.c b/iptables/xtables-eb.c
+index 121ecbecd0b6..3b03daef28eb 100644
+--- a/iptables/xtables-eb.c
++++ b/iptables/xtables-eb.c
+@@ -197,7 +197,8 @@ int ebt_get_current_chain(const char *chain)
+ 	else if (strcmp(chain, "POSTROUTING") == 0)
+ 		return NF_BR_POST_ROUTING;
  
- 			burst = info->cfg.burst;
- 			burst /= cost_to_bytes(info->cfg.avg);
+-	return -1;
++	/* placeholder for user defined chain */
++	return NF_BR_NUMHOOKS;
+ }
+ 
+ /*
+@@ -1223,7 +1224,7 @@ print_zero:
+ 	cs.eb.ethproto = htons(cs.eb.ethproto);
+ 
+ 	if (command == 'P') {
+-		if (selected_chain < 0) {
++		if (selected_chain >= NF_BR_NUMHOOKS) {
+ 			ret = ebt_set_user_chain_policy(h, *table, chain, policy);
+ 		} else {
+ 			if (strcmp(policy, "RETURN") == 0) {
 -- 
 2.21.0
 
