@@ -2,119 +2,81 @@ Return-Path: <SRS0=UCZI=XI=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1541EC49ED7
-	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Sep 2019 08:17:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8148CC49ED7
+	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Sep 2019 09:27:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id DDBA520717
-	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Sep 2019 08:17:57 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="a/jSRb3D"
+	by mail.kernel.org (Postfix) with ESMTP id 5D96C208C2
+	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Sep 2019 09:27:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387479AbfIMIR5 (ORCPT
+        id S2387755AbfIMJ1U (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 13 Sep 2019 04:17:57 -0400
-Received: from kadath.azazel.net ([81.187.231.250]:60872 "EHLO
-        kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2387427AbfIMIR5 (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 13 Sep 2019 04:17:57 -0400
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-         s=20190108; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
-        Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
-        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=+DPfBAu/SPNSpUV3nvs0e59K+xnn7xhNlZiEEd9i+PE=; b=a/jSRb3DdCoKDjnss8+NIvAT2G
-        Ol5w4gjDIA5kPED5sEZ8yYdUf9XFcsUkOCMSCaCb5ycM2s7wunCB7gXG55x62mrN2acni+LbpvT9s
-        Yof2KmwDTweNe4AAy21C6bQKUk/jtZE4SD/L/zMyKSZZWBgXJl69D7WPPa6BbUZpObLJxCV1CTKWa
-        HIYjdLGPeFV5nzYkfhyt9cayxFZClatWWNgeZtwcuifeXJVyCxYKlmq837ePmKyx24uz2MCLYz2Ht
-        V9AhJeMISjlRt+byH3cZYzJqttrz9fCeWGPCt+oxrfzQDzYJ3hz5ikTko5YRxkADAeznR/iDk7zcC
-        BKCjCMKA==;
-Received: from ulthar.dreamlands ([192.168.96.2])
-        by kadath.azazel.net with esmtp (Exim 4.92)
-        (envelope-from <jeremy@azazel.net>)
-        id 1i8ghl-0005yL-Qy; Fri, 13 Sep 2019 09:13:21 +0100
-From:   Jeremy Sowden <jeremy@azazel.net>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
+        Fri, 13 Sep 2019 05:27:20 -0400
+Received: from correo.us.es ([193.147.175.20]:40588 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2387623AbfIMJ1T (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 13 Sep 2019 05:27:19 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 7F9E739626C
+        for <netfilter-devel@vger.kernel.org>; Fri, 13 Sep 2019 11:27:15 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 71AABB8007
+        for <netfilter-devel@vger.kernel.org>; Fri, 13 Sep 2019 11:27:15 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 6769EB8005; Fri, 13 Sep 2019 11:27:15 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 6830BB7FFB;
+        Fri, 13 Sep 2019 11:27:13 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Fri, 13 Sep 2019 11:27:13 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (sys.soleta.eu [212.170.55.40])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 45FDC42EE396;
+        Fri, 13 Sep 2019 11:27:13 +0200 (CEST)
+Date:   Fri, 13 Sep 2019 11:27:14 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Jeremy Sowden <jeremy@azazel.net>
 Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [PATCH nf-next v3 12/18] netfilter: wrap two inline functions in config checks.
-Date:   Fri, 13 Sep 2019 09:13:12 +0100
-Message-Id: <20190913081318.16071-13-jeremy@azazel.net>
-X-Mailer: git-send-email 2.23.0
-In-Reply-To: <20190913081318.16071-1-jeremy@azazel.net>
+Subject: Re: [PATCH nf-next v3 14/18] netfilter: move nf_conntrack code to
+ linux/nf_conntrack_common.h.
+Message-ID: <20190913092714.tu37kmch6d3e6ypl@salvia>
 References: <20190913081318.16071-1-jeremy@azazel.net>
+ <20190913081318.16071-15-jeremy@azazel.net>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-SA-Exim-Connect-IP: 192.168.96.2
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190913081318.16071-15-jeremy@azazel.net>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-nf_conntrack_synproxy.h contains three inline functions.  The contents
-of two of them are wrapped in CONFIG_NETFILTER_SYNPROXY checks and just
-return NULL if it is not enabled.  The third does nothing if they return
-NULL, so wrap its contents as well.
+On Fri, Sep 13, 2019 at 09:13:14AM +0100, Jeremy Sowden wrote:
+> diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
+> index 88d4127df863..410809c669e1 100644
+> --- a/net/netfilter/nf_conntrack_standalone.c
+> +++ b/net/netfilter/nf_conntrack_standalone.c
+> @@ -1167,7 +1167,6 @@ static int __init nf_conntrack_standalone_init(void)
+>  	if (ret < 0)
+>  		goto out_start;
+>  
+> -	BUILD_BUG_ON(SKB_NFCT_PTRMASK != NFCT_PTRMASK);
 
-nf_ct_timeout_data is only called if CONFIG_NETFILTER_TIMEOUT is
-enabled.  Wrap its contents in a CONFIG_NETFILTER_TIMEOUT check like the
-other inline functions in nf_conntrack_timeout.h.
+Why do you need to remove this?
 
-Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
----
- include/net/netfilter/nf_conntrack_synproxy.h | 2 ++
- include/net/netfilter/nf_conntrack_timeout.h  | 4 ++++
- 2 files changed, 6 insertions(+)
-
-diff --git a/include/net/netfilter/nf_conntrack_synproxy.h b/include/net/netfilter/nf_conntrack_synproxy.h
-index c22f0c11cc82..6a3ab081e4bf 100644
---- a/include/net/netfilter/nf_conntrack_synproxy.h
-+++ b/include/net/netfilter/nf_conntrack_synproxy.h
-@@ -32,6 +32,7 @@ static inline struct nf_conn_synproxy *nfct_synproxy_ext_add(struct nf_conn *ct)
- static inline bool nf_ct_add_synproxy(struct nf_conn *ct,
- 				      const struct nf_conn *tmpl)
- {
-+#if IS_ENABLED(CONFIG_NETFILTER_SYNPROXY)
- 	if (tmpl && nfct_synproxy(tmpl)) {
- 		if (!nfct_seqadj_ext_add(ct))
- 			return false;
-@@ -39,6 +40,7 @@ static inline bool nf_ct_add_synproxy(struct nf_conn *ct,
- 		if (!nfct_synproxy_ext_add(ct))
- 			return false;
- 	}
-+#endif
- 
- 	return true;
- }
-diff --git a/include/net/netfilter/nf_conntrack_timeout.h b/include/net/netfilter/nf_conntrack_timeout.h
-index 00a8fbb2d735..6dd72396f534 100644
---- a/include/net/netfilter/nf_conntrack_timeout.h
-+++ b/include/net/netfilter/nf_conntrack_timeout.h
-@@ -32,6 +32,7 @@ struct nf_conn_timeout {
- static inline unsigned int *
- nf_ct_timeout_data(const struct nf_conn_timeout *t)
- {
-+#ifdef CONFIG_NF_CONNTRACK_TIMEOUT
- 	struct nf_ct_timeout *timeout;
- 
- 	timeout = rcu_dereference(t->timeout);
-@@ -39,6 +40,9 @@ nf_ct_timeout_data(const struct nf_conn_timeout *t)
- 		return NULL;
- 
- 	return (unsigned int *)timeout->data;
-+#else
-+	return NULL;
-+#endif
- }
- 
- static inline
--- 
-2.23.0
-
+>  	BUILD_BUG_ON(NFCT_INFOMASK <= IP_CT_NUMBER);
+>  
+>  #ifdef CONFIG_SYSCTL
+> -- 
+> 2.23.0
+> 
