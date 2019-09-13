@@ -2,49 +2,52 @@ Return-Path: <SRS0=UCZI=XI=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EF5ABC4CEC8
-	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Sep 2019 08:13:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A3B89C4CECA
+	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Sep 2019 08:13:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BDEE820CC7
-	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Sep 2019 08:13:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6AB0B208C2
+	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Sep 2019 08:13:27 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="dnllXEjz"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="sxfmPFKQ"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387409AbfIMIN0 (ORCPT
+        id S2387422AbfIMIN0 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Fri, 13 Sep 2019 04:13:26 -0400
-Received: from kadath.azazel.net ([81.187.231.250]:60594 "EHLO
+Received: from kadath.azazel.net ([81.187.231.250]:60596 "EHLO
         kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729302AbfIMINY (ORCPT
+        with ESMTP id S1729303AbfIMINY (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Fri, 13 Sep 2019 04:13:24 -0400
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-         s=20190108; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject
-        :Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
-        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+         s=20190108; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
+        Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=KgfaFTpd3/dacxLwUXFeaNOMNfnxFrDtCLSuEGTLs6A=; b=dnllXEjzPI53OiI5x3JkCi+AOn
-        ZLqjjyjaLA0fYjFDgwcQI/KX+pPMPHMseHBoA9ap1QvbE2T11AUC1WWiTCTxWQ9XPSpPNJZKzc1uM
-        nbG0FGAvgwMPs0T4Zk3383jtHCUs/hmjjR88btYMc2UTn7t5PtOaSNHr1bCs0gUGqfln57dE7gSBw
-        YnXnvq33Cd+z4a+O42VeW7OmMLvFaUtMiDKZ5Od5JeaUSIE1wLe+pkCx2lo+CpxdPKh8sLtXd+ZPg
-        9n9tB9LZDbVcThMa3Ly7rW49ki3I0GpmjgpXgcwHHGFRvZo16MAdhyoD3ONexsoH0NUKF8/A8YwvV
-        NwHcih9A==;
+        bh=n+Y7x7WtbhzfCnOfZpk9mRjsnvrFhee3cwONaCXkYyg=; b=sxfmPFKQ4/705VUdrpg6um357+
+        LLCcotWFNJM2/W9/CUbtX+N+XmVpEO+SCRiTFXMrkyv0v97ClUNyADXU9ImzwXsP1yiABPqFxN7aQ
+        0hxIIkDRUF28ZtM+FtWx1TJbIt6Fl6AGUnn2Q3nsvvn9IrCNGvbWe5orCudXyfaz9RPihPcCGlONS
+        mhglgnduv1+BfpmLnOVkf+otXv8RfiV8Njxv/IrZjLfuh726Zy5KySa2hBArpohfyNoUDyyoPg1kw
+        Vvqt8VaWhitbCL9MwFKijHziVvdzuHN+fOlBxSN9PGes6It/iFX9oBnfThK5U8CV1gHe1TVzL+jdF
+        MapLCxtg==;
 Received: from ulthar.dreamlands ([192.168.96.2])
         by kadath.azazel.net with esmtp (Exim 4.92)
         (envelope-from <jeremy@azazel.net>)
-        id 1i8ghj-0005yL-1C; Fri, 13 Sep 2019 09:13:19 +0100
+        id 1i8ghj-0005yL-Pp; Fri, 13 Sep 2019 09:13:19 +0100
 From:   Jeremy Sowden <jeremy@azazel.net>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [PATCH nf-next v3 00/18] Remove config option checks from netfilter headers.
-Date:   Fri, 13 Sep 2019 09:13:00 +0100
-Message-Id: <20190913081318.16071-1-jeremy@azazel.net>
+Subject: [PATCH nf-next v3 02/18] netfilter: fix coding-style errors.
+Date:   Fri, 13 Sep 2019 09:13:02 +0100
+Message-Id: <20190913081318.16071-3-jeremy@azazel.net>
 X-Mailer: git-send-email 2.23.0
+In-Reply-To: <20190913081318.16071-1-jeremy@azazel.net>
+References: <20190913081318.16071-1-jeremy@azazel.net>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-SA-Exim-Connect-IP: 192.168.96.2
@@ -55,138 +58,270 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-In a previous patch-series [0], I removed all netfilter headers from the
-blacklist of headers which could not be compiled standalone.  I did so
-by fixing the specific compilation failures of the headers in the list,
-usually by adding a preprocessor conditional to check whether a particu-
-lar config option was enabled and disable some function definition or
-struct member which depended on that option.  While this was effective,
-it was not wholly satisfactory since it left a scattering of seemingly
-random ifdefs throughout the headers.
+Several header-files, Kconfig files and Makefiles have trailing
+white-space.  Remove it.
 
-0 - https://lore.kernel.org/netfilter-devel/20190813113657.GB4840@azazel.net/T/
+In netfilter/Kconfig, indent the type of CONFIG_NETFILTER_NETLINK_ACCT
+correctly.
 
-The reason why these ad-hoc conditionals were necessary is that there
-were inconsistencies in how existing checks were used to disable code
-when particular options were turned off.  For example, a header A.h
-might define a struct S which was only available if a particular config
-option C was enabled, but A.h might be included by header B.h, which
-defined a struct T with a struct S member without checking for C.  If
-A.h and B.h were included in X.c, which was only compiled if C was
-enabled, everything worked as expected; however, trying to compile B.h
-standalone when C was disabled would result in a compilation failure.
+There are semicolons at the end of two function definitions in
+include/net/netfilter/nf_conntrack_acct.h and
+include/net/netfilter/nf_conntrack_ecache.h. Remove them.
 
-In the previous versions of this patch-series, I attempted to provide a
-more comprehensive solution by identifying the config options relevant
-to each header and adding the appropriate conditionals to it where they
-do not already exist.  However, based on feedback and looking at some
-other examples, it became apparent that a better approach was to
-endeavour to fix the inconsistencies that made the new config checks
-necessary, with a view to removing as many of them as possible.
+Fix indentation in nf_conntrack_l4proto.h.
 
-Changes since v2:
+Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
+---
+ include/linux/netfilter/x_tables.h           |  2 +-
+ include/linux/netfilter_ipv6.h               |  2 +-
+ include/net/netfilter/nf_conntrack_acct.h    |  2 +-
+ include/net/netfilter/nf_conntrack_ecache.h  |  2 +-
+ include/net/netfilter/nf_conntrack_expect.h  |  2 +-
+ include/net/netfilter/nf_conntrack_l4proto.h | 14 +++++++-------
+ include/net/netfilter/nf_conntrack_tuple.h   |  2 +-
+ net/ipv4/netfilter/Kconfig                   |  8 ++++----
+ net/ipv4/netfilter/Makefile                  |  2 +-
+ net/netfilter/Kconfig                        |  8 ++++----
+ net/netfilter/Makefile                       |  2 +-
+ 11 files changed, 23 insertions(+), 23 deletions(-)
 
-  * squashed several of the earlier patches;
-  * dropped the SPDX patch;
-  * dropped most of the later patches adding config checks;
-  * added a patch fixing the paramter type of a stub function.
-  * added a number of new patches removing config checks.
-
-Changes since v1:
-
-  * fixes for build errors reported by the kbuild test robot;
-  * corrected placement of new NF_TPROXY config option.
-
-Jeremy Sowden (18):
-  netfilter: fix include guards.
-  netfilter: fix coding-style errors.
-  netfilter: remove unused function declarations.
-  netfilter: inline three headers.
-  netfilter: update include directives.
-  netfilter: remove nf_conntrack_icmpv6.h header.
-  netfilter: move inline function to a more appropriate header.
-  netfilter: move code between synproxy headers.
-  netfilter: move struct definition function to a more appropriate
-    header.
-  netfilter: use consistent style when defining inline functions in
-    nf_conntrack_ecache.h.
-  netfilter: replace defined(CONFIG...) || defined(CONFIG...MODULE) with
-    IS_ENABLED(CONFIG...).
-  netfilter: wrap two inline functions in config checks.
-  netfilter: update stub br_nf_pre_routing_ipv6 parameter to `void
-    *priv`.
-  netfilter: move nf_conntrack code to linux/nf_conntrack_common.h.
-  netfilter: remove CONFIG_NF_CONNTRACK check from nf_conntrack_acct.h.
-  netfilter: remove CONFIG_NETFILTER checks from headers.
-  netfilter: remove CONFIG_NF_CONNTRACK checks from
-    nf_conntrack_zones.h.
-  netfilter: remove two unused functions from nf_conntrack_timestamp.h.
-
- include/linux/netfilter.h                     |  4 +-
- .../linux/netfilter/ipset/ip_set_getport.h    |  2 +-
- include/linux/netfilter/nf_conntrack_common.h | 20 +++++
- include/linux/netfilter/x_tables.h            |  8 +-
- include/linux/netfilter/xt_hashlimit.h        | 11 ---
- include/linux/netfilter/xt_physdev.h          |  8 --
- include/linux/netfilter_arp/arp_tables.h      |  2 -
- include/linux/netfilter_bridge.h              |  7 ++
- include/linux/netfilter_bridge/ebt_802_3.h    | 12 ---
- include/linux/netfilter_bridge/ebtables.h     |  3 +-
- include/linux/netfilter_ipv4/ip_tables.h      |  9 +-
- include/linux/netfilter_ipv6.h                | 28 +++++--
- include/linux/netfilter_ipv6/ip6_tables.h     | 20 +----
- include/linux/skbuff.h                        | 32 ++++---
- include/net/netfilter/br_netfilter.h          |  4 +-
- .../net/netfilter/ipv6/nf_conntrack_icmpv6.h  | 21 -----
- include/net/netfilter/nf_conntrack.h          | 25 ++----
- include/net/netfilter/nf_conntrack_acct.h     |  4 +-
- include/net/netfilter/nf_conntrack_bridge.h   | 11 +--
- include/net/netfilter/nf_conntrack_core.h     |  8 +-
- include/net/netfilter/nf_conntrack_ecache.h   | 84 +++++++++++--------
- include/net/netfilter/nf_conntrack_expect.h   |  2 +-
- include/net/netfilter/nf_conntrack_extend.h   |  2 +-
- include/net/netfilter/nf_conntrack_l4proto.h  | 16 ++--
- include/net/netfilter/nf_conntrack_labels.h   | 11 ++-
- include/net/netfilter/nf_conntrack_synproxy.h | 41 +--------
- include/net/netfilter/nf_conntrack_timeout.h  |  4 +
- .../net/netfilter/nf_conntrack_timestamp.h    | 16 ----
- include/net/netfilter/nf_conntrack_tuple.h    |  4 +-
- include/net/netfilter/nf_conntrack_zones.h    |  6 +-
- include/net/netfilter/nf_flow_table.h         |  6 +-
- include/net/netfilter/nf_nat.h                | 21 ++---
- include/net/netfilter/nf_nat_masquerade.h     |  1 +
- include/net/netfilter/nf_queue.h              |  4 -
- include/net/netfilter/nf_synproxy.h           | 44 +++++++++-
- include/net/netfilter/nf_tables.h             |  8 --
- net/bridge/netfilter/ebt_802_3.c              |  8 +-
- net/bridge/netfilter/nf_conntrack_bridge.c    | 15 ++--
- net/ipv4/netfilter/Kconfig                    |  8 +-
- net/ipv4/netfilter/Makefile                   |  2 +-
- net/ipv6/netfilter.c                          |  4 +-
- net/ipv6/netfilter/ip6t_ipv6header.c          |  4 +-
- net/ipv6/netfilter/nf_log_ipv6.c              |  4 +-
- net/ipv6/netfilter/nf_socket_ipv6.c           |  1 -
- net/netfilter/Kconfig                         |  8 +-
- net/netfilter/Makefile                        |  2 +-
- net/netfilter/nf_conntrack_ecache.c           |  1 +
- net/netfilter/nf_conntrack_expect.c           |  2 +
- net/netfilter/nf_conntrack_helper.c           |  5 +-
- net/netfilter/nf_conntrack_proto_icmpv6.c     |  1 -
- net/netfilter/nf_conntrack_standalone.c       |  1 -
- net/netfilter/nf_conntrack_timeout.c          |  1 +
- net/netfilter/nf_flow_table_core.c            |  1 +
- net/netfilter/nf_nat_core.c                   |  6 +-
- net/netfilter/nft_flow_offload.c              |  3 +-
- net/netfilter/xt_connlimit.c                  |  2 +
- net/netfilter/xt_hashlimit.c                  |  7 +-
- net/netfilter/xt_physdev.c                    |  5 +-
- net/sched/act_ct.c                            |  2 +-
- 59 files changed, 265 insertions(+), 337 deletions(-)
- delete mode 100644 include/linux/netfilter/xt_hashlimit.h
- delete mode 100644 include/linux/netfilter/xt_physdev.h
- delete mode 100644 include/linux/netfilter_bridge/ebt_802_3.h
- delete mode 100644 include/net/netfilter/ipv6/nf_conntrack_icmpv6.h
-
+diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
+index ae62bf1c6824..b9bc25f57c8e 100644
+--- a/include/linux/netfilter/x_tables.h
++++ b/include/linux/netfilter/x_tables.h
+@@ -340,7 +340,7 @@ void xt_free_table_info(struct xt_table_info *info);
+ 
+ /**
+  * xt_recseq - recursive seqcount for netfilter use
+- * 
++ *
+  * Packet processing changes the seqcount only if no recursion happened
+  * get_counters() can use read_seqcount_begin()/read_seqcount_retry(),
+  * because we use the normal seqcount convention :
+diff --git a/include/linux/netfilter_ipv6.h b/include/linux/netfilter_ipv6.h
+index 7beb681e1ce5..a889e376d197 100644
+--- a/include/linux/netfilter_ipv6.h
++++ b/include/linux/netfilter_ipv6.h
+@@ -1,7 +1,7 @@
+ /* IPv6-specific defines for netfilter. 
+  * (C)1998 Rusty Russell -- This code is GPL.
+  * (C)1999 David Jeffery
+- *   this header was blatantly ripped from netfilter_ipv4.h 
++ *   this header was blatantly ripped from netfilter_ipv4.h
+  *   it's amazing what adding a bunch of 6s can do =8^)
+  */
+ #ifndef __LINUX_IP6_NETFILTER_H
+diff --git a/include/net/netfilter/nf_conntrack_acct.h b/include/net/netfilter/nf_conntrack_acct.h
+index ad9f2172dee1..5b5287bb49db 100644
+--- a/include/net/netfilter/nf_conntrack_acct.h
++++ b/include/net/netfilter/nf_conntrack_acct.h
+@@ -45,7 +45,7 @@ struct nf_conn_acct *nf_ct_acct_ext_add(struct nf_conn *ct, gfp_t gfp)
+ #else
+ 	return NULL;
+ #endif
+-};
++}
+ 
+ /* Check if connection tracking accounting is enabled */
+ static inline bool nf_ct_acct_enabled(struct net *net)
+diff --git a/include/net/netfilter/nf_conntrack_ecache.h b/include/net/netfilter/nf_conntrack_ecache.h
+index 52b44192b43f..0815bfadfefe 100644
+--- a/include/net/netfilter/nf_conntrack_ecache.h
++++ b/include/net/netfilter/nf_conntrack_ecache.h
+@@ -61,7 +61,7 @@ nf_ct_ecache_ext_add(struct nf_conn *ct, u16 ctmask, u16 expmask, gfp_t gfp)
+ #else
+ 	return NULL;
+ #endif
+-};
++}
+ 
+ #ifdef CONFIG_NF_CONNTRACK_EVENTS
+ /* This structure is passed to event handler */
+diff --git a/include/net/netfilter/nf_conntrack_expect.h b/include/net/netfilter/nf_conntrack_expect.h
+index 573429be4d59..0855b60fba17 100644
+--- a/include/net/netfilter/nf_conntrack_expect.h
++++ b/include/net/netfilter/nf_conntrack_expect.h
+@@ -126,7 +126,7 @@ void nf_ct_expect_init(struct nf_conntrack_expect *, unsigned int, u_int8_t,
+ 		       const union nf_inet_addr *,
+ 		       u_int8_t, const __be16 *, const __be16 *);
+ void nf_ct_expect_put(struct nf_conntrack_expect *exp);
+-int nf_ct_expect_related_report(struct nf_conntrack_expect *expect, 
++int nf_ct_expect_related_report(struct nf_conntrack_expect *expect,
+ 				u32 portid, int report, unsigned int flags);
+ static inline int nf_ct_expect_related(struct nf_conntrack_expect *expect,
+ 				       unsigned int flags)
+diff --git a/include/net/netfilter/nf_conntrack_l4proto.h b/include/net/netfilter/nf_conntrack_l4proto.h
+index c200b95d27ae..97240f1a3f5f 100644
+--- a/include/net/netfilter/nf_conntrack_l4proto.h
++++ b/include/net/netfilter/nf_conntrack_l4proto.h
+@@ -181,41 +181,41 @@ void nf_ct_l4proto_log_invalid(const struct sk_buff *skb,
+ #if IS_ENABLED(CONFIG_NF_CONNTRACK)
+ static inline struct nf_generic_net *nf_generic_pernet(struct net *net)
+ {
+-       return &net->ct.nf_ct_proto.generic;
++	return &net->ct.nf_ct_proto.generic;
+ }
+ 
+ static inline struct nf_tcp_net *nf_tcp_pernet(struct net *net)
+ {
+-       return &net->ct.nf_ct_proto.tcp;
++	return &net->ct.nf_ct_proto.tcp;
+ }
+ 
+ static inline struct nf_udp_net *nf_udp_pernet(struct net *net)
+ {
+-       return &net->ct.nf_ct_proto.udp;
++	return &net->ct.nf_ct_proto.udp;
+ }
+ 
+ static inline struct nf_icmp_net *nf_icmp_pernet(struct net *net)
+ {
+-       return &net->ct.nf_ct_proto.icmp;
++	return &net->ct.nf_ct_proto.icmp;
+ }
+ 
+ static inline struct nf_icmp_net *nf_icmpv6_pernet(struct net *net)
+ {
+-       return &net->ct.nf_ct_proto.icmpv6;
++	return &net->ct.nf_ct_proto.icmpv6;
+ }
+ #endif
+ 
+ #ifdef CONFIG_NF_CT_PROTO_DCCP
+ static inline struct nf_dccp_net *nf_dccp_pernet(struct net *net)
+ {
+-       return &net->ct.nf_ct_proto.dccp;
++	return &net->ct.nf_ct_proto.dccp;
+ }
+ #endif
+ 
+ #ifdef CONFIG_NF_CT_PROTO_SCTP
+ static inline struct nf_sctp_net *nf_sctp_pernet(struct net *net)
+ {
+-       return &net->ct.nf_ct_proto.sctp;
++	return &net->ct.nf_ct_proto.sctp;
+ }
+ #endif
+ 
+diff --git a/include/net/netfilter/nf_conntrack_tuple.h b/include/net/netfilter/nf_conntrack_tuple.h
+index 480c87b44a96..68ea9b932736 100644
+--- a/include/net/netfilter/nf_conntrack_tuple.h
++++ b/include/net/netfilter/nf_conntrack_tuple.h
+@@ -124,7 +124,7 @@ struct nf_conntrack_tuple_hash {
+ #if IS_ENABLED(CONFIG_NETFILTER)
+ static inline bool __nf_ct_tuple_src_equal(const struct nf_conntrack_tuple *t1,
+ 					   const struct nf_conntrack_tuple *t2)
+-{ 
++{
+ 	return (nf_inet_addr_cmp(&t1->src.u3, &t2->src.u3) &&
+ 		t1->src.u.all == t2->src.u.all &&
+ 		t1->src.l3num == t2->src.l3num);
+diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
+index 69e76d677f9e..f17b402111ce 100644
+--- a/net/ipv4/netfilter/Kconfig
++++ b/net/ipv4/netfilter/Kconfig
+@@ -272,7 +272,7 @@ config IP_NF_TARGET_CLUSTERIP
+ 	  The CLUSTERIP target allows you to build load-balancing clusters of
+ 	  network servers without having a dedicated load-balancing
+ 	  router/server/switch.
+-	
++
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+ 
+ config IP_NF_TARGET_ECN
+@@ -281,7 +281,7 @@ config IP_NF_TARGET_ECN
+ 	depends on NETFILTER_ADVANCED
+ 	---help---
+ 	  This option adds a `ECN' target, which can be used in the iptables mangle
+-	  table.  
++	  table.
+ 
+ 	  You can use this target to remove the ECN bits from the IPv4 header of
+ 	  an IP packet.  This is particularly useful, if you need to work around
+@@ -306,7 +306,7 @@ config IP_NF_RAW
+ 	  This option adds a `raw' table to iptables. This table is the very
+ 	  first in the netfilter framework and hooks in at the PREROUTING
+ 	  and OUTPUT chains.
+-	
++
+ 	  If you want to compile it as a module, say M here and read
+ 	  <file:Documentation/kbuild/modules.rst>.  If unsure, say `N'.
+ 
+@@ -318,7 +318,7 @@ config IP_NF_SECURITY
+ 	help
+ 	  This option adds a `security' table to iptables, for use
+ 	  with Mandatory Access Control (MAC) policy.
+-	 
++
+ 	  If unsure, say N.
+ 
+ endif # IP_NF_IPTABLES
+diff --git a/net/ipv4/netfilter/Makefile b/net/ipv4/netfilter/Makefile
+index c50e0ec095d2..7c497c78105f 100644
+--- a/net/ipv4/netfilter/Makefile
++++ b/net/ipv4/netfilter/Makefile
+@@ -31,7 +31,7 @@ obj-$(CONFIG_NFT_DUP_IPV4) += nft_dup_ipv4.o
+ # flow table support
+ obj-$(CONFIG_NF_FLOW_TABLE_IPV4) += nf_flow_table_ipv4.o
+ 
+-# generic IP tables 
++# generic IP tables
+ obj-$(CONFIG_IP_NF_IPTABLES) += ip_tables.o
+ 
+ # the three instances of ip_tables
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index 0d65f4d39494..34ec7afec116 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -20,7 +20,7 @@ config NETFILTER_FAMILY_ARP
+ 	bool
+ 
+ config NETFILTER_NETLINK_ACCT
+-tristate "Netfilter NFACCT over NFNETLINK interface"
++	tristate "Netfilter NFACCT over NFNETLINK interface"
+ 	depends on NETFILTER_ADVANCED
+ 	select NETFILTER_NETLINK
+ 	help
+@@ -34,7 +34,7 @@ config NETFILTER_NETLINK_QUEUE
+ 	help
+ 	  If this option is enabled, the kernel will include support
+ 	  for queueing packets via NFNETLINK.
+-	  
++
+ config NETFILTER_NETLINK_LOG
+ 	tristate "Netfilter LOG over NFNETLINK interface"
+ 	default m if NETFILTER_ADVANCED=n
+@@ -1502,7 +1502,7 @@ config NETFILTER_XT_MATCH_REALM
+ 	  This option adds a `realm' match, which allows you to use the realm
+ 	  key from the routing subsystem inside iptables.
+ 
+-	  This match pretty much resembles the CONFIG_NET_CLS_ROUTE4 option 
++	  This match pretty much resembles the CONFIG_NET_CLS_ROUTE4 option
+ 	  in tc world.
+ 
+ 	  If you want to compile it as a module, say M here and read
+@@ -1523,7 +1523,7 @@ config NETFILTER_XT_MATCH_SCTP
+ 	depends on NETFILTER_ADVANCED
+ 	default IP_SCTP
+ 	help
+-	  With this option enabled, you will be able to use the 
++	  With this option enabled, you will be able to use the
+ 	  `sctp' match in order to match on SCTP source/destination ports
+ 	  and SCTP chunk types.
+ 
+diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
+index 9270a7fae484..4fc075b612fe 100644
+--- a/net/netfilter/Makefile
++++ b/net/netfilter/Makefile
+@@ -124,7 +124,7 @@ nf_flow_table-objs := nf_flow_table_core.o nf_flow_table_ip.o
+ 
+ obj-$(CONFIG_NF_FLOW_TABLE_INET) += nf_flow_table_inet.o
+ 
+-# generic X tables 
++# generic X tables
+ obj-$(CONFIG_NETFILTER_XTABLES) += x_tables.o xt_tcpudp.o
+ 
+ # combos
 -- 
 2.23.0
 
