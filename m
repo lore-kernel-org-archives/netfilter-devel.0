@@ -4,48 +4,48 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.0 required=3.0
 	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A22A5C4CEC7
-	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Sep 2019 11:32:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 23E36C49ED7
+	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Sep 2019 11:32:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 744F520693
-	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Sep 2019 11:32:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0090B20693
+	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Sep 2019 11:32:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388242AbfIMLb6 (ORCPT
+        id S2388239AbfIMLb6 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Fri, 13 Sep 2019 07:31:58 -0400
-Received: from correo.us.es ([193.147.175.20]:42584 "EHLO mail.us.es"
+Received: from correo.us.es ([193.147.175.20]:42632 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388035AbfIMLbX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        id S2388105AbfIMLbX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Fri, 13 Sep 2019 07:31:23 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 056D24FFE14
-        for <netfilter-devel@vger.kernel.org>; Fri, 13 Sep 2019 13:31:16 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 397874FFE1A
+        for <netfilter-devel@vger.kernel.org>; Fri, 13 Sep 2019 13:31:20 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id EA663114D9C
-        for <netfilter-devel@vger.kernel.org>; Fri, 13 Sep 2019 13:31:15 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 2C8ABA7E16
+        for <netfilter-devel@vger.kernel.org>; Fri, 13 Sep 2019 13:31:20 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id E9719114D9A; Fri, 13 Sep 2019 13:31:15 +0200 (CEST)
+        id 22110A7E18; Fri, 13 Sep 2019 13:31:20 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 8AB9DA7E19;
-        Fri, 13 Sep 2019 13:31:13 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 148EDA7EC1;
+        Fri, 13 Sep 2019 13:31:18 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Fri, 13 Sep 2019 13:31:13 +0200 (CEST)
+ Fri, 13 Sep 2019 13:31:18 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 597C042EE38F;
-        Fri, 13 Sep 2019 13:31:13 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id D87224265A5A;
+        Fri, 13 Sep 2019 13:31:17 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 04/27] netfilter: nft_synproxy: add synproxy stateful object support
-Date:   Fri, 13 Sep 2019 13:30:39 +0200
-Message-Id: <20190913113102.15776-5-pablo@netfilter.org>
+Subject: [PATCH 12/27] netfilter: ip_tables: remove unused function declarations.
+Date:   Fri, 13 Sep 2019 13:30:47 +0200
+Message-Id: <20190913113102.15776-13-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20190913113102.15776-1-pablo@netfilter.org>
 References: <20190913113102.15776-1-pablo@netfilter.org>
@@ -55,283 +55,46 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Fernando Fernandez Mancera <ffmancera@riseup.net>
+From: Jeremy Sowden <jeremy@azazel.net>
 
-Register a new synproxy stateful object type into the stateful object
-infrastructure.
+Two headers include declarations of functions which are never defined.
+Remove them.
 
-Signed-off-by: Fernando Fernandez Mancera <ffmancera@riseup.net>
+Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/uapi/linux/netfilter/nf_tables.h |   3 +-
- net/netfilter/nft_synproxy.c             | 143 ++++++++++++++++++++++++++-----
- 2 files changed, 124 insertions(+), 22 deletions(-)
+ include/linux/netfilter_ipv4/ip_tables.h  | 2 --
+ include/linux/netfilter_ipv6/ip6_tables.h | 3 +--
+ 2 files changed, 1 insertion(+), 4 deletions(-)
 
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index 0ff932dadc8e..ed8881ad18ed 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -1481,7 +1481,8 @@ enum nft_ct_expectation_attributes {
- #define NFT_OBJECT_CT_TIMEOUT	7
- #define NFT_OBJECT_SECMARK	8
- #define NFT_OBJECT_CT_EXPECT	9
--#define __NFT_OBJECT_MAX	10
-+#define NFT_OBJECT_SYNPROXY	10
-+#define __NFT_OBJECT_MAX	11
- #define NFT_OBJECT_MAX		(__NFT_OBJECT_MAX - 1)
+diff --git a/include/linux/netfilter_ipv4/ip_tables.h b/include/linux/netfilter_ipv4/ip_tables.h
+index f40a65481df4..0b0d43ad9ed9 100644
+--- a/include/linux/netfilter_ipv4/ip_tables.h
++++ b/include/linux/netfilter_ipv4/ip_tables.h
+@@ -23,8 +23,6 @@
+ #include <linux/init.h>
+ #include <uapi/linux/netfilter_ipv4/ip_tables.h>
  
- /**
-diff --git a/net/netfilter/nft_synproxy.c b/net/netfilter/nft_synproxy.c
-index db4c23f5dfcb..e2c1fc608841 100644
---- a/net/netfilter/nft_synproxy.c
-+++ b/net/netfilter/nft_synproxy.c
-@@ -24,7 +24,7 @@ static void nft_synproxy_tcp_options(struct synproxy_options *opts,
- 				     const struct tcphdr *tcp,
- 				     struct synproxy_net *snet,
- 				     struct nf_synproxy_info *info,
--				     struct nft_synproxy *priv)
-+				     const struct nft_synproxy *priv)
- {
- 	this_cpu_inc(snet->stats->syn_received);
- 	if (tcp->ece && tcp->cwr)
-@@ -41,14 +41,13 @@ static void nft_synproxy_tcp_options(struct synproxy_options *opts,
- 				   NF_SYNPROXY_OPT_ECN);
- }
- 
--static void nft_synproxy_eval_v4(const struct nft_expr *expr,
-+static void nft_synproxy_eval_v4(const struct nft_synproxy *priv,
- 				 struct nft_regs *regs,
- 				 const struct nft_pktinfo *pkt,
- 				 const struct tcphdr *tcp,
- 				 struct tcphdr *_tcph,
- 				 struct synproxy_options *opts)
- {
--	struct nft_synproxy *priv = nft_expr_priv(expr);
- 	struct nf_synproxy_info info = priv->info;
- 	struct net *net = nft_net(pkt);
- 	struct synproxy_net *snet = synproxy_pernet(net);
-@@ -73,14 +72,13 @@ static void nft_synproxy_eval_v4(const struct nft_expr *expr,
- }
- 
- #if IS_ENABLED(CONFIG_NF_TABLES_IPV6)
--static void nft_synproxy_eval_v6(const struct nft_expr *expr,
-+static void nft_synproxy_eval_v6(const struct nft_synproxy *priv,
- 				 struct nft_regs *regs,
- 				 const struct nft_pktinfo *pkt,
- 				 const struct tcphdr *tcp,
- 				 struct tcphdr *_tcph,
- 				 struct synproxy_options *opts)
- {
--	struct nft_synproxy *priv = nft_expr_priv(expr);
- 	struct nf_synproxy_info info = priv->info;
- 	struct net *net = nft_net(pkt);
- 	struct synproxy_net *snet = synproxy_pernet(net);
-@@ -105,9 +103,9 @@ static void nft_synproxy_eval_v6(const struct nft_expr *expr,
- }
- #endif /* CONFIG_NF_TABLES_IPV6*/
- 
--static void nft_synproxy_eval(const struct nft_expr *expr,
--			      struct nft_regs *regs,
--			      const struct nft_pktinfo *pkt)
-+static void nft_synproxy_do_eval(const struct nft_synproxy *priv,
-+				 struct nft_regs *regs,
-+				 const struct nft_pktinfo *pkt)
- {
- 	struct synproxy_options opts = {};
- 	struct sk_buff *skb = pkt->skb;
-@@ -140,23 +138,22 @@ static void nft_synproxy_eval(const struct nft_expr *expr,
- 
- 	switch (skb->protocol) {
- 	case htons(ETH_P_IP):
--		nft_synproxy_eval_v4(expr, regs, pkt, tcp, &_tcph, &opts);
-+		nft_synproxy_eval_v4(priv, regs, pkt, tcp, &_tcph, &opts);
- 		return;
- #if IS_ENABLED(CONFIG_NF_TABLES_IPV6)
- 	case htons(ETH_P_IPV6):
--		nft_synproxy_eval_v6(expr, regs, pkt, tcp, &_tcph, &opts);
-+		nft_synproxy_eval_v6(priv, regs, pkt, tcp, &_tcph, &opts);
- 		return;
- #endif
- 	}
- 	regs->verdict.code = NFT_BREAK;
- }
- 
--static int nft_synproxy_init(const struct nft_ctx *ctx,
--			     const struct nft_expr *expr,
--			     const struct nlattr * const tb[])
-+static int nft_synproxy_do_init(const struct nft_ctx *ctx,
-+				const struct nlattr * const tb[],
-+				struct nft_synproxy *priv)
- {
- 	struct synproxy_net *snet = synproxy_pernet(ctx->net);
--	struct nft_synproxy *priv = nft_expr_priv(expr);
- 	u32 flags;
- 	int err;
- 
-@@ -206,8 +203,7 @@ static int nft_synproxy_init(const struct nft_ctx *ctx,
- 	return err;
- }
- 
--static void nft_synproxy_destroy(const struct nft_ctx *ctx,
--				 const struct nft_expr *expr)
-+static void nft_synproxy_do_destroy(const struct nft_ctx *ctx)
- {
- 	struct synproxy_net *snet = synproxy_pernet(ctx->net);
- 
-@@ -229,10 +225,8 @@ static void nft_synproxy_destroy(const struct nft_ctx *ctx,
- 	nf_ct_netns_put(ctx->net, ctx->family);
- }
- 
--static int nft_synproxy_dump(struct sk_buff *skb, const struct nft_expr *expr)
-+static int nft_synproxy_do_dump(struct sk_buff *skb, struct nft_synproxy *priv)
- {
--	const struct nft_synproxy *priv = nft_expr_priv(expr);
+-extern void ipt_init(void) __init;
 -
- 	if (nla_put_be16(skb, NFTA_SYNPROXY_MSS, htons(priv->info.mss)) ||
- 	    nla_put_u8(skb, NFTA_SYNPROXY_WSCALE, priv->info.wscale) ||
- 	    nla_put_be32(skb, NFTA_SYNPROXY_FLAGS, htonl(priv->info.options)))
-@@ -244,6 +238,15 @@ static int nft_synproxy_dump(struct sk_buff *skb, const struct nft_expr *expr)
- 	return -1;
- }
+ #if IS_ENABLED(CONFIG_NETFILTER)
+ int ipt_register_table(struct net *net, const struct xt_table *table,
+ 		       const struct ipt_replace *repl,
+diff --git a/include/linux/netfilter_ipv6/ip6_tables.h b/include/linux/netfilter_ipv6/ip6_tables.h
+index 53b7309613bf..666450c117bf 100644
+--- a/include/linux/netfilter_ipv6/ip6_tables.h
++++ b/include/linux/netfilter_ipv6/ip6_tables.h
+@@ -23,9 +23,8 @@
+ #include <linux/init.h>
+ #include <uapi/linux/netfilter_ipv6/ip6_tables.h>
  
-+static void nft_synproxy_eval(const struct nft_expr *expr,
-+			      struct nft_regs *regs,
-+			      const struct nft_pktinfo *pkt)
-+{
-+	const struct nft_synproxy *priv = nft_expr_priv(expr);
+-extern void ip6t_init(void) __init;
+-
+ extern void *ip6t_alloc_initial_table(const struct xt_table *);
 +
-+	nft_synproxy_do_eval(priv, regs, pkt);
-+}
-+
- static int nft_synproxy_validate(const struct nft_ctx *ctx,
- 				 const struct nft_expr *expr,
- 				 const struct nft_data **data)
-@@ -252,6 +255,28 @@ static int nft_synproxy_validate(const struct nft_ctx *ctx,
- 						    (1 << NF_INET_FORWARD));
- }
- 
-+static int nft_synproxy_init(const struct nft_ctx *ctx,
-+			     const struct nft_expr *expr,
-+			     const struct nlattr * const tb[])
-+{
-+	struct nft_synproxy *priv = nft_expr_priv(expr);
-+
-+	return nft_synproxy_do_init(ctx, tb, priv);
-+}
-+
-+static void nft_synproxy_destroy(const struct nft_ctx *ctx,
-+				 const struct nft_expr *expr)
-+{
-+	nft_synproxy_do_destroy(ctx);
-+}
-+
-+static int nft_synproxy_dump(struct sk_buff *skb, const struct nft_expr *expr)
-+{
-+	struct nft_synproxy *priv = nft_expr_priv(expr);
-+
-+	return nft_synproxy_do_dump(skb, priv);
-+}
-+
- static struct nft_expr_type nft_synproxy_type;
- static const struct nft_expr_ops nft_synproxy_ops = {
- 	.eval		= nft_synproxy_eval,
-@@ -271,14 +296,89 @@ static struct nft_expr_type nft_synproxy_type __read_mostly = {
- 	.maxattr	= NFTA_SYNPROXY_MAX,
- };
- 
-+static int nft_synproxy_obj_init(const struct nft_ctx *ctx,
-+				 const struct nlattr * const tb[],
-+				 struct nft_object *obj)
-+{
-+	struct nft_synproxy *priv = nft_obj_data(obj);
-+
-+	return nft_synproxy_do_init(ctx, tb, priv);
-+}
-+
-+static void nft_synproxy_obj_destroy(const struct nft_ctx *ctx,
-+				     struct nft_object *obj)
-+{
-+	nft_synproxy_do_destroy(ctx);
-+}
-+
-+static int nft_synproxy_obj_dump(struct sk_buff *skb,
-+				 struct nft_object *obj, bool reset)
-+{
-+	struct nft_synproxy *priv = nft_obj_data(obj);
-+
-+	return nft_synproxy_do_dump(skb, priv);
-+}
-+
-+static void nft_synproxy_obj_eval(struct nft_object *obj,
-+				  struct nft_regs *regs,
-+				  const struct nft_pktinfo *pkt)
-+{
-+	const struct nft_synproxy *priv = nft_obj_data(obj);
-+
-+	nft_synproxy_do_eval(priv, regs, pkt);
-+}
-+
-+static void nft_synproxy_obj_update(struct nft_object *obj,
-+				    struct nft_object *newobj)
-+{
-+	struct nft_synproxy *newpriv = nft_obj_data(newobj);
-+	struct nft_synproxy *priv = nft_obj_data(obj);
-+
-+	priv->info = newpriv->info;
-+}
-+
-+static struct nft_object_type nft_synproxy_obj_type;
-+static const struct nft_object_ops nft_synproxy_obj_ops = {
-+	.type		= &nft_synproxy_obj_type,
-+	.size		= sizeof(struct nft_synproxy),
-+	.init		= nft_synproxy_obj_init,
-+	.destroy	= nft_synproxy_obj_destroy,
-+	.dump		= nft_synproxy_obj_dump,
-+	.eval		= nft_synproxy_obj_eval,
-+	.update		= nft_synproxy_obj_update,
-+};
-+
-+static struct nft_object_type nft_synproxy_obj_type __read_mostly = {
-+	.type		= NFT_OBJECT_SYNPROXY,
-+	.ops		= &nft_synproxy_obj_ops,
-+	.maxattr	= NFTA_SYNPROXY_MAX,
-+	.policy		= nft_synproxy_policy,
-+	.owner		= THIS_MODULE,
-+};
-+
- static int __init nft_synproxy_module_init(void)
- {
--	return nft_register_expr(&nft_synproxy_type);
-+	int err;
-+
-+	err = nft_register_obj(&nft_synproxy_obj_type);
-+	if (err < 0)
-+		return err;
-+
-+	err = nft_register_expr(&nft_synproxy_type);
-+	if (err < 0)
-+		goto err;
-+
-+	return 0;
-+
-+err:
-+	nft_unregister_obj(&nft_synproxy_obj_type);
-+	return err;
- }
- 
- static void __exit nft_synproxy_module_exit(void)
- {
--	return nft_unregister_expr(&nft_synproxy_type);
-+	nft_unregister_expr(&nft_synproxy_type);
-+	nft_unregister_obj(&nft_synproxy_obj_type);
- }
- 
- module_init(nft_synproxy_module_init);
-@@ -287,3 +387,4 @@ module_exit(nft_synproxy_module_exit);
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Fernando Fernandez <ffmancera@riseup.net>");
- MODULE_ALIAS_NFT_EXPR("synproxy");
-+MODULE_ALIAS_NFT_OBJ(NFT_OBJECT_SYNPROXY);
+ #if IS_ENABLED(CONFIG_NETFILTER)
+ int ip6t_register_table(struct net *net, const struct xt_table *table,
+ 			const struct ip6t_replace *repl,
 -- 
 2.11.0
 
