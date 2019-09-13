@@ -7,136 +7,100 @@ X-Spam-Status: No, score=-10.0 required=3.0
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D141C4CEC5
-	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Sep 2019 15:03:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 024B7C49ED7
+	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Sep 2019 15:32:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id DE19C20830
-	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Sep 2019 15:03:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D1AAC20693
+	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Sep 2019 15:32:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2390557AbfIMPDc (ORCPT
+        id S1729893AbfIMPce (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 13 Sep 2019 11:03:32 -0400
-Received: from m9784.mail.qiye.163.com ([220.181.97.84]:47521 "EHLO
-        m9784.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2390433AbfIMPDc (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 13 Sep 2019 11:03:32 -0400
-Received: from localhost.localdomain (unknown [123.59.132.129])
-        by m9784.mail.qiye.163.com (Hmail) with ESMTPA id DB30A41634;
-        Fri, 13 Sep 2019 23:03:11 +0800 (CST)
-From:   wenxu@ucloud.cn
-To:     pablo@netfilter.org
+        Fri, 13 Sep 2019 11:32:34 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:43842 "EHLO orbyte.nwl.cc"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727452AbfIMPce (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 13 Sep 2019 11:32:34 -0400
+Received: from localhost ([::1]:56932 helo=tatos)
+        by orbyte.nwl.cc with esmtp (Exim 4.91)
+        (envelope-from <phil@nwl.cc>)
+        id 1i8nYl-0000Ke-SP; Fri, 13 Sep 2019 17:32:31 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next v6 5/8] netfilter: nft_tunnel: support tunnel meta match offload
-Date:   Fri, 13 Sep 2019 23:03:07 +0800
-Message-Id: <1568386990-29660-6-git-send-email-wenxu@ucloud.cn>
-X-Mailer: git-send-email 1.8.3.1
-In-Reply-To: <1568386990-29660-1-git-send-email-wenxu@ucloud.cn>
-References: <1568386990-29660-1-git-send-email-wenxu@ucloud.cn>
-X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVkpVS05DQkJCQ0JNS09CTllXWShZQU
-        lCN1dZLVlBSVdZCQ4XHghZQVk1NCk2OjckKS43PlkG
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6MjY6GRw6Azg6TCswPzEcDxgD
-        DSpPCw9VSlVKTk1DSENNQkJKQkhCVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJSFVO
-        QlVKSElVSklCWVdZCAFZQUhDQkM3Bg++
-X-HM-Tid: 0a6d2b2647222086kuqydb30a41634
+Subject: [nft PATCH] parser_bison: Fix 'exists' keyword on Big Endian
+Date:   Fri, 13 Sep 2019 17:32:24 +0200
+Message-Id: <20190913153224.486-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.22.0
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: wenxu <wenxu@ucloud.cn>
+Size value passed to constant_expr_alloc() must correspond with actual
+data size, otherwise wrong portion of data will be taken later when
+serializing into netlink message.
 
-Add tunnel meta match offload. Currently support for NFT_TUNNEL_ID
-NFT_TUNNEL_SRC_IP and NFT_TUNNEL_DST_IP
+Booleans require really just a bit, but make type of boolean_keys be
+uint8_t (introducing new 'val8' name for it) and pass the data length
+using sizeof() to avoid any magic numbers.
 
-Signed-off-by: wenxu <wenxu@ucloud.cn>
+While being at it, fix len value in parser_json.c as well although it
+worked before due to the value being rounded up to the next multiple of
+8.
+
+Fixes: 9fd9baba43c8e ("Introduce boolean datatype and boolean expression")
+Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- include/net/netfilter/nf_tables_offload.h |  5 ++++
- net/netfilter/nft_tunnel.c                | 41 +++++++++++++++++++++++++++++++
- 2 files changed, 46 insertions(+)
+ src/parser_bison.y | 5 +++--
+ src/parser_json.c  | 3 ++-
+ 2 files changed, 5 insertions(+), 3 deletions(-)
 
-diff --git a/include/net/netfilter/nf_tables_offload.h b/include/net/netfilter/nf_tables_offload.h
-index ddd048b..a07e18b 100644
---- a/include/net/netfilter/nf_tables_offload.h
-+++ b/include/net/netfilter/nf_tables_offload.h
-@@ -45,6 +45,11 @@ struct nft_flow_key {
- 	struct flow_dissector_key_ip			ip;
- 	struct flow_dissector_key_vlan			vlan;
- 	struct flow_dissector_key_eth_addrs		eth_addrs;
-+	struct flow_dissector_key_keyid         enc_key_id;
-+	union {
-+		struct flow_dissector_key_ipv4_addrs	enc_ipv4;
-+		struct flow_dissector_key_ipv6_addrs	enc_ipv6;
-+	};
- } __aligned(BITS_PER_LONG / 8); /* Ensure that we can do comparisons as longs. */
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index 3fccea6734c0b..cd249c82d9382 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -135,6 +135,7 @@ int nft_lex(void *, void *, void *);
+ %union {
+ 	uint64_t		val;
+ 	uint32_t		val32;
++	uint8_t			val8;
+ 	const char *		string;
  
- struct nft_flow_match {
-diff --git a/net/netfilter/nft_tunnel.c b/net/netfilter/nft_tunnel.c
-index f128b28..68ca894 100644
---- a/net/netfilter/nft_tunnel.c
-+++ b/net/netfilter/nft_tunnel.c
-@@ -11,6 +11,7 @@
- #include <net/ip_tunnels.h>
- #include <net/vxlan.h>
- #include <net/erspan.h>
-+#include <net/netfilter/nf_tables_offload.h>
+ 	struct list_head	*list;
+@@ -800,7 +801,7 @@ int nft_lex(void *, void *, void *);
  
- struct nft_tunnel {
- 	enum nft_tunnel_keys	key:8;
-@@ -192,6 +193,45 @@ static int nft_tunnel_get_dump(struct sk_buff *skb,
- 	return -1;
- }
+ %type <expr>			boolean_expr
+ %destructor { expr_free($$); }	boolean_expr
+-%type <val>			boolean_keys
++%type <val8>			boolean_keys
  
-+static int nft_tunnel_get_offload(struct nft_offload_ctx *ctx,
-+				  struct nft_flow_rule *flow,
-+				  const struct nft_expr *expr)
-+{
-+	const struct nft_tunnel *priv = nft_expr_priv(expr);
-+	struct nft_offload_reg *reg = &ctx->regs[priv->dreg];
-+
-+	if (priv->mode == NFT_TUNNEL_MODE_TX)
-+		return -EOPNOTSUPP;
-+
-+	switch (priv->key) {
-+	case NFT_TUNNEL_ID:
-+		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_ENC_KEYID, enc_key_id,
-+				  keyid, sizeof(__u32), reg);
-+		break;
-+	case NFT_TUNNEL_IP_SRC:
-+		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_ENC_IPV4_ADDRS, enc_ipv4,
-+				  src, sizeof(__u32), reg);
-+		break;
-+	case NFT_TUNNEL_IP_DST:
-+		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_ENC_IPV4_ADDRS, enc_ipv4,
-+				  dst, sizeof(__u32), reg);
-+		break;
-+	case NFT_TUNNEL_IP6_SRC:
-+		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_ENC_IPV6_ADDRS, enc_ipv6,
-+				  src, sizeof(struct in6_addr), reg);
-+		break;
-+	case NFT_TUNNEL_IP6_DST:
-+		NFT_OFFLOAD_MATCH(FLOW_DISSECTOR_KEY_ENC_IPV6_ADDRS, enc_ipv6,
-+				  dst, sizeof(struct in6_addr), reg);
-+		break;
-+	case NFT_TUNNEL_PATH:
-+	default:
-+		return -EOPNOTSUPP;
-+	}
-+
-+	return 0;
-+}
-+
- static struct nft_expr_type nft_tunnel_type;
- static const struct nft_expr_ops nft_tunnel_get_ops = {
- 	.type		= &nft_tunnel_type,
-@@ -199,6 +239,7 @@ static int nft_tunnel_get_dump(struct sk_buff *skb,
- 	.eval		= nft_tunnel_get_eval,
- 	.init		= nft_tunnel_get_init,
- 	.dump		= nft_tunnel_get_dump,
-+	.offload	= nft_tunnel_get_offload,
- };
+ %type <expr>			exthdr_exists_expr
+ %destructor { expr_free($$); }	exthdr_exists_expr
+@@ -3964,7 +3965,7 @@ boolean_expr		:	boolean_keys
+ 			{
+ 				$$ = constant_expr_alloc(&@$, &boolean_type,
+ 							 BYTEORDER_HOST_ENDIAN,
+-							 1, &$1);
++							 sizeof($1) * BITS_PER_BYTE, &$1);
+ 			}
+ 			;
  
- static struct nft_expr_type nft_tunnel_type __read_mostly = {
+diff --git a/src/parser_json.c b/src/parser_json.c
+index 398ae19275c3b..06254cd6c41d4 100644
+--- a/src/parser_json.c
++++ b/src/parser_json.c
+@@ -351,7 +351,8 @@ static struct expr *json_parse_immediate(struct json_ctx *ctx, json_t *root)
+ 	case JSON_FALSE:
+ 		buf[0] = json_is_true(root);
+ 		return constant_expr_alloc(int_loc, &boolean_type,
+-					   BYTEORDER_HOST_ENDIAN, 1, buf);
++					   BYTEORDER_HOST_ENDIAN,
++					   sizeof(char) * BITS_PER_BYTE, buf);
+ 	default:
+ 		json_error(ctx, "Unexpected JSON type %s for immediate value.",
+ 			   json_typename(root));
 -- 
-1.8.3.1
+2.22.0
 
