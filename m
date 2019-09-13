@@ -4,48 +4,48 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.0 required=3.0
 	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CE2B8C49ED7
-	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Sep 2019 11:32:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A22A5C4CEC7
+	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Sep 2019 11:32:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9E65420693
-	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Sep 2019 11:32:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 744F520693
+	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Sep 2019 11:32:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388244AbfIMLb6 (ORCPT
+        id S2388242AbfIMLb6 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Fri, 13 Sep 2019 07:31:58 -0400
-Received: from correo.us.es ([193.147.175.20]:42626 "EHLO mail.us.es"
+Received: from correo.us.es ([193.147.175.20]:42584 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388122AbfIMLbX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        id S2388035AbfIMLbX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Fri, 13 Sep 2019 07:31:23 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id EC2A14FFE00
-        for <netfilter-devel@vger.kernel.org>; Fri, 13 Sep 2019 13:31:19 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 056D24FFE14
+        for <netfilter-devel@vger.kernel.org>; Fri, 13 Sep 2019 13:31:16 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id D86A1A7E18
-        for <netfilter-devel@vger.kernel.org>; Fri, 13 Sep 2019 13:31:19 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id EA663114D9C
+        for <netfilter-devel@vger.kernel.org>; Fri, 13 Sep 2019 13:31:15 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id CDFF4A7E9F; Fri, 13 Sep 2019 13:31:19 +0200 (CEST)
+        id E9719114D9A; Fri, 13 Sep 2019 13:31:15 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 81EDC10219C;
-        Fri, 13 Sep 2019 13:31:17 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 8AB9DA7E19;
+        Fri, 13 Sep 2019 13:31:13 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Fri, 13 Sep 2019 13:31:17 +0200 (CEST)
+ Fri, 13 Sep 2019 13:31:13 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 4E06E4265A5A;
-        Fri, 13 Sep 2019 13:31:17 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 597C042EE38F;
+        Fri, 13 Sep 2019 13:31:13 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 11/27] netfilter: fix coding-style errors.
-Date:   Fri, 13 Sep 2019 13:30:46 +0200
-Message-Id: <20190913113102.15776-12-pablo@netfilter.org>
+Subject: [PATCH 04/27] netfilter: nft_synproxy: add synproxy stateful object support
+Date:   Fri, 13 Sep 2019 13:30:39 +0200
+Message-Id: <20190913113102.15776-5-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20190913113102.15776-1-pablo@netfilter.org>
 References: <20190913113102.15776-1-pablo@netfilter.org>
@@ -55,273 +55,283 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Jeremy Sowden <jeremy@azazel.net>
+From: Fernando Fernandez Mancera <ffmancera@riseup.net>
 
-Several header-files, Kconfig files and Makefiles have trailing
-white-space.  Remove it.
+Register a new synproxy stateful object type into the stateful object
+infrastructure.
 
-In netfilter/Kconfig, indent the type of CONFIG_NETFILTER_NETLINK_ACCT
-correctly.
-
-There are semicolons at the end of two function definitions in
-include/net/netfilter/nf_conntrack_acct.h and
-include/net/netfilter/nf_conntrack_ecache.h. Remove them.
-
-Fix indentation in nf_conntrack_l4proto.h.
-
-Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
+Signed-off-by: Fernando Fernandez Mancera <ffmancera@riseup.net>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/linux/netfilter/x_tables.h           |  2 +-
- include/linux/netfilter_ipv6.h               |  2 +-
- include/net/netfilter/nf_conntrack_acct.h    |  2 +-
- include/net/netfilter/nf_conntrack_ecache.h  |  2 +-
- include/net/netfilter/nf_conntrack_expect.h  |  2 +-
- include/net/netfilter/nf_conntrack_l4proto.h | 14 +++++++-------
- include/net/netfilter/nf_conntrack_tuple.h   |  2 +-
- net/ipv4/netfilter/Kconfig                   |  8 ++++----
- net/ipv4/netfilter/Makefile                  |  2 +-
- net/netfilter/Kconfig                        |  8 ++++----
- net/netfilter/Makefile                       |  2 +-
- 11 files changed, 23 insertions(+), 23 deletions(-)
+ include/uapi/linux/netfilter/nf_tables.h |   3 +-
+ net/netfilter/nft_synproxy.c             | 143 ++++++++++++++++++++++++++-----
+ 2 files changed, 124 insertions(+), 22 deletions(-)
 
-diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
-index ae62bf1c6824..b9bc25f57c8e 100644
---- a/include/linux/netfilter/x_tables.h
-+++ b/include/linux/netfilter/x_tables.h
-@@ -340,7 +340,7 @@ void xt_free_table_info(struct xt_table_info *info);
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index 0ff932dadc8e..ed8881ad18ed 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -1481,7 +1481,8 @@ enum nft_ct_expectation_attributes {
+ #define NFT_OBJECT_CT_TIMEOUT	7
+ #define NFT_OBJECT_SECMARK	8
+ #define NFT_OBJECT_CT_EXPECT	9
+-#define __NFT_OBJECT_MAX	10
++#define NFT_OBJECT_SYNPROXY	10
++#define __NFT_OBJECT_MAX	11
+ #define NFT_OBJECT_MAX		(__NFT_OBJECT_MAX - 1)
  
  /**
-  * xt_recseq - recursive seqcount for netfilter use
-- * 
-+ *
-  * Packet processing changes the seqcount only if no recursion happened
-  * get_counters() can use read_seqcount_begin()/read_seqcount_retry(),
-  * because we use the normal seqcount convention :
-diff --git a/include/linux/netfilter_ipv6.h b/include/linux/netfilter_ipv6.h
-index 7beb681e1ce5..a889e376d197 100644
---- a/include/linux/netfilter_ipv6.h
-+++ b/include/linux/netfilter_ipv6.h
-@@ -1,7 +1,7 @@
- /* IPv6-specific defines for netfilter. 
-  * (C)1998 Rusty Russell -- This code is GPL.
-  * (C)1999 David Jeffery
-- *   this header was blatantly ripped from netfilter_ipv4.h 
-+ *   this header was blatantly ripped from netfilter_ipv4.h
-  *   it's amazing what adding a bunch of 6s can do =8^)
-  */
- #ifndef __LINUX_IP6_NETFILTER_H
-diff --git a/include/net/netfilter/nf_conntrack_acct.h b/include/net/netfilter/nf_conntrack_acct.h
-index ad9f2172dee1..5b5287bb49db 100644
---- a/include/net/netfilter/nf_conntrack_acct.h
-+++ b/include/net/netfilter/nf_conntrack_acct.h
-@@ -45,7 +45,7 @@ struct nf_conn_acct *nf_ct_acct_ext_add(struct nf_conn *ct, gfp_t gfp)
- #else
- 	return NULL;
+diff --git a/net/netfilter/nft_synproxy.c b/net/netfilter/nft_synproxy.c
+index db4c23f5dfcb..e2c1fc608841 100644
+--- a/net/netfilter/nft_synproxy.c
++++ b/net/netfilter/nft_synproxy.c
+@@ -24,7 +24,7 @@ static void nft_synproxy_tcp_options(struct synproxy_options *opts,
+ 				     const struct tcphdr *tcp,
+ 				     struct synproxy_net *snet,
+ 				     struct nf_synproxy_info *info,
+-				     struct nft_synproxy *priv)
++				     const struct nft_synproxy *priv)
+ {
+ 	this_cpu_inc(snet->stats->syn_received);
+ 	if (tcp->ece && tcp->cwr)
+@@ -41,14 +41,13 @@ static void nft_synproxy_tcp_options(struct synproxy_options *opts,
+ 				   NF_SYNPROXY_OPT_ECN);
+ }
+ 
+-static void nft_synproxy_eval_v4(const struct nft_expr *expr,
++static void nft_synproxy_eval_v4(const struct nft_synproxy *priv,
+ 				 struct nft_regs *regs,
+ 				 const struct nft_pktinfo *pkt,
+ 				 const struct tcphdr *tcp,
+ 				 struct tcphdr *_tcph,
+ 				 struct synproxy_options *opts)
+ {
+-	struct nft_synproxy *priv = nft_expr_priv(expr);
+ 	struct nf_synproxy_info info = priv->info;
+ 	struct net *net = nft_net(pkt);
+ 	struct synproxy_net *snet = synproxy_pernet(net);
+@@ -73,14 +72,13 @@ static void nft_synproxy_eval_v4(const struct nft_expr *expr,
+ }
+ 
+ #if IS_ENABLED(CONFIG_NF_TABLES_IPV6)
+-static void nft_synproxy_eval_v6(const struct nft_expr *expr,
++static void nft_synproxy_eval_v6(const struct nft_synproxy *priv,
+ 				 struct nft_regs *regs,
+ 				 const struct nft_pktinfo *pkt,
+ 				 const struct tcphdr *tcp,
+ 				 struct tcphdr *_tcph,
+ 				 struct synproxy_options *opts)
+ {
+-	struct nft_synproxy *priv = nft_expr_priv(expr);
+ 	struct nf_synproxy_info info = priv->info;
+ 	struct net *net = nft_net(pkt);
+ 	struct synproxy_net *snet = synproxy_pernet(net);
+@@ -105,9 +103,9 @@ static void nft_synproxy_eval_v6(const struct nft_expr *expr,
+ }
+ #endif /* CONFIG_NF_TABLES_IPV6*/
+ 
+-static void nft_synproxy_eval(const struct nft_expr *expr,
+-			      struct nft_regs *regs,
+-			      const struct nft_pktinfo *pkt)
++static void nft_synproxy_do_eval(const struct nft_synproxy *priv,
++				 struct nft_regs *regs,
++				 const struct nft_pktinfo *pkt)
+ {
+ 	struct synproxy_options opts = {};
+ 	struct sk_buff *skb = pkt->skb;
+@@ -140,23 +138,22 @@ static void nft_synproxy_eval(const struct nft_expr *expr,
+ 
+ 	switch (skb->protocol) {
+ 	case htons(ETH_P_IP):
+-		nft_synproxy_eval_v4(expr, regs, pkt, tcp, &_tcph, &opts);
++		nft_synproxy_eval_v4(priv, regs, pkt, tcp, &_tcph, &opts);
+ 		return;
+ #if IS_ENABLED(CONFIG_NF_TABLES_IPV6)
+ 	case htons(ETH_P_IPV6):
+-		nft_synproxy_eval_v6(expr, regs, pkt, tcp, &_tcph, &opts);
++		nft_synproxy_eval_v6(priv, regs, pkt, tcp, &_tcph, &opts);
+ 		return;
  #endif
--};
-+}
- 
- /* Check if connection tracking accounting is enabled */
- static inline bool nf_ct_acct_enabled(struct net *net)
-diff --git a/include/net/netfilter/nf_conntrack_ecache.h b/include/net/netfilter/nf_conntrack_ecache.h
-index 52b44192b43f..0815bfadfefe 100644
---- a/include/net/netfilter/nf_conntrack_ecache.h
-+++ b/include/net/netfilter/nf_conntrack_ecache.h
-@@ -61,7 +61,7 @@ nf_ct_ecache_ext_add(struct nf_conn *ct, u16 ctmask, u16 expmask, gfp_t gfp)
- #else
- 	return NULL;
- #endif
--};
-+}
- 
- #ifdef CONFIG_NF_CONNTRACK_EVENTS
- /* This structure is passed to event handler */
-diff --git a/include/net/netfilter/nf_conntrack_expect.h b/include/net/netfilter/nf_conntrack_expect.h
-index 573429be4d59..0855b60fba17 100644
---- a/include/net/netfilter/nf_conntrack_expect.h
-+++ b/include/net/netfilter/nf_conntrack_expect.h
-@@ -126,7 +126,7 @@ void nf_ct_expect_init(struct nf_conntrack_expect *, unsigned int, u_int8_t,
- 		       const union nf_inet_addr *,
- 		       u_int8_t, const __be16 *, const __be16 *);
- void nf_ct_expect_put(struct nf_conntrack_expect *exp);
--int nf_ct_expect_related_report(struct nf_conntrack_expect *expect, 
-+int nf_ct_expect_related_report(struct nf_conntrack_expect *expect,
- 				u32 portid, int report, unsigned int flags);
- static inline int nf_ct_expect_related(struct nf_conntrack_expect *expect,
- 				       unsigned int flags)
-diff --git a/include/net/netfilter/nf_conntrack_l4proto.h b/include/net/netfilter/nf_conntrack_l4proto.h
-index c200b95d27ae..97240f1a3f5f 100644
---- a/include/net/netfilter/nf_conntrack_l4proto.h
-+++ b/include/net/netfilter/nf_conntrack_l4proto.h
-@@ -181,41 +181,41 @@ void nf_ct_l4proto_log_invalid(const struct sk_buff *skb,
- #if IS_ENABLED(CONFIG_NF_CONNTRACK)
- static inline struct nf_generic_net *nf_generic_pernet(struct net *net)
- {
--       return &net->ct.nf_ct_proto.generic;
-+	return &net->ct.nf_ct_proto.generic;
+ 	}
+ 	regs->verdict.code = NFT_BREAK;
  }
  
- static inline struct nf_tcp_net *nf_tcp_pernet(struct net *net)
+-static int nft_synproxy_init(const struct nft_ctx *ctx,
+-			     const struct nft_expr *expr,
+-			     const struct nlattr * const tb[])
++static int nft_synproxy_do_init(const struct nft_ctx *ctx,
++				const struct nlattr * const tb[],
++				struct nft_synproxy *priv)
  {
--       return &net->ct.nf_ct_proto.tcp;
-+	return &net->ct.nf_ct_proto.tcp;
+ 	struct synproxy_net *snet = synproxy_pernet(ctx->net);
+-	struct nft_synproxy *priv = nft_expr_priv(expr);
+ 	u32 flags;
+ 	int err;
+ 
+@@ -206,8 +203,7 @@ static int nft_synproxy_init(const struct nft_ctx *ctx,
+ 	return err;
  }
  
- static inline struct nf_udp_net *nf_udp_pernet(struct net *net)
+-static void nft_synproxy_destroy(const struct nft_ctx *ctx,
+-				 const struct nft_expr *expr)
++static void nft_synproxy_do_destroy(const struct nft_ctx *ctx)
  {
--       return &net->ct.nf_ct_proto.udp;
-+	return &net->ct.nf_ct_proto.udp;
+ 	struct synproxy_net *snet = synproxy_pernet(ctx->net);
+ 
+@@ -229,10 +225,8 @@ static void nft_synproxy_destroy(const struct nft_ctx *ctx,
+ 	nf_ct_netns_put(ctx->net, ctx->family);
  }
  
- static inline struct nf_icmp_net *nf_icmp_pernet(struct net *net)
+-static int nft_synproxy_dump(struct sk_buff *skb, const struct nft_expr *expr)
++static int nft_synproxy_do_dump(struct sk_buff *skb, struct nft_synproxy *priv)
  {
--       return &net->ct.nf_ct_proto.icmp;
-+	return &net->ct.nf_ct_proto.icmp;
+-	const struct nft_synproxy *priv = nft_expr_priv(expr);
+-
+ 	if (nla_put_be16(skb, NFTA_SYNPROXY_MSS, htons(priv->info.mss)) ||
+ 	    nla_put_u8(skb, NFTA_SYNPROXY_WSCALE, priv->info.wscale) ||
+ 	    nla_put_be32(skb, NFTA_SYNPROXY_FLAGS, htonl(priv->info.options)))
+@@ -244,6 +238,15 @@ static int nft_synproxy_dump(struct sk_buff *skb, const struct nft_expr *expr)
+ 	return -1;
  }
  
- static inline struct nf_icmp_net *nf_icmpv6_pernet(struct net *net)
- {
--       return &net->ct.nf_ct_proto.icmpv6;
-+	return &net->ct.nf_ct_proto.icmpv6;
- }
- #endif
- 
- #ifdef CONFIG_NF_CT_PROTO_DCCP
- static inline struct nf_dccp_net *nf_dccp_pernet(struct net *net)
- {
--       return &net->ct.nf_ct_proto.dccp;
-+	return &net->ct.nf_ct_proto.dccp;
- }
- #endif
- 
- #ifdef CONFIG_NF_CT_PROTO_SCTP
- static inline struct nf_sctp_net *nf_sctp_pernet(struct net *net)
- {
--       return &net->ct.nf_ct_proto.sctp;
-+	return &net->ct.nf_ct_proto.sctp;
- }
- #endif
- 
-diff --git a/include/net/netfilter/nf_conntrack_tuple.h b/include/net/netfilter/nf_conntrack_tuple.h
-index 480c87b44a96..68ea9b932736 100644
---- a/include/net/netfilter/nf_conntrack_tuple.h
-+++ b/include/net/netfilter/nf_conntrack_tuple.h
-@@ -124,7 +124,7 @@ struct nf_conntrack_tuple_hash {
- #if IS_ENABLED(CONFIG_NETFILTER)
- static inline bool __nf_ct_tuple_src_equal(const struct nf_conntrack_tuple *t1,
- 					   const struct nf_conntrack_tuple *t2)
--{ 
++static void nft_synproxy_eval(const struct nft_expr *expr,
++			      struct nft_regs *regs,
++			      const struct nft_pktinfo *pkt)
 +{
- 	return (nf_inet_addr_cmp(&t1->src.u3, &t2->src.u3) &&
- 		t1->src.u.all == t2->src.u.all &&
- 		t1->src.l3num == t2->src.l3num);
-diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
-index 69e76d677f9e..f17b402111ce 100644
---- a/net/ipv4/netfilter/Kconfig
-+++ b/net/ipv4/netfilter/Kconfig
-@@ -272,7 +272,7 @@ config IP_NF_TARGET_CLUSTERIP
- 	  The CLUSTERIP target allows you to build load-balancing clusters of
- 	  network servers without having a dedicated load-balancing
- 	  router/server/switch.
--	
++	const struct nft_synproxy *priv = nft_expr_priv(expr);
 +
- 	  To compile it as a module, choose M here.  If unsure, say N.
- 
- config IP_NF_TARGET_ECN
-@@ -281,7 +281,7 @@ config IP_NF_TARGET_ECN
- 	depends on NETFILTER_ADVANCED
- 	---help---
- 	  This option adds a `ECN' target, which can be used in the iptables mangle
--	  table.  
-+	  table.
- 
- 	  You can use this target to remove the ECN bits from the IPv4 header of
- 	  an IP packet.  This is particularly useful, if you need to work around
-@@ -306,7 +306,7 @@ config IP_NF_RAW
- 	  This option adds a `raw' table to iptables. This table is the very
- 	  first in the netfilter framework and hooks in at the PREROUTING
- 	  and OUTPUT chains.
--	
++	nft_synproxy_do_eval(priv, regs, pkt);
++}
 +
- 	  If you want to compile it as a module, say M here and read
- 	  <file:Documentation/kbuild/modules.rst>.  If unsure, say `N'.
+ static int nft_synproxy_validate(const struct nft_ctx *ctx,
+ 				 const struct nft_expr *expr,
+ 				 const struct nft_data **data)
+@@ -252,6 +255,28 @@ static int nft_synproxy_validate(const struct nft_ctx *ctx,
+ 						    (1 << NF_INET_FORWARD));
+ }
  
-@@ -318,7 +318,7 @@ config IP_NF_SECURITY
- 	help
- 	  This option adds a `security' table to iptables, for use
- 	  with Mandatory Access Control (MAC) policy.
--	 
++static int nft_synproxy_init(const struct nft_ctx *ctx,
++			     const struct nft_expr *expr,
++			     const struct nlattr * const tb[])
++{
++	struct nft_synproxy *priv = nft_expr_priv(expr);
 +
- 	  If unsure, say N.
- 
- endif # IP_NF_IPTABLES
-diff --git a/net/ipv4/netfilter/Makefile b/net/ipv4/netfilter/Makefile
-index c50e0ec095d2..7c497c78105f 100644
---- a/net/ipv4/netfilter/Makefile
-+++ b/net/ipv4/netfilter/Makefile
-@@ -31,7 +31,7 @@ obj-$(CONFIG_NFT_DUP_IPV4) += nft_dup_ipv4.o
- # flow table support
- obj-$(CONFIG_NF_FLOW_TABLE_IPV4) += nf_flow_table_ipv4.o
- 
--# generic IP tables 
-+# generic IP tables
- obj-$(CONFIG_IP_NF_IPTABLES) += ip_tables.o
- 
- # the three instances of ip_tables
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index 0d65f4d39494..34ec7afec116 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -20,7 +20,7 @@ config NETFILTER_FAMILY_ARP
- 	bool
- 
- config NETFILTER_NETLINK_ACCT
--tristate "Netfilter NFACCT over NFNETLINK interface"
-+	tristate "Netfilter NFACCT over NFNETLINK interface"
- 	depends on NETFILTER_ADVANCED
- 	select NETFILTER_NETLINK
- 	help
-@@ -34,7 +34,7 @@ config NETFILTER_NETLINK_QUEUE
- 	help
- 	  If this option is enabled, the kernel will include support
- 	  for queueing packets via NFNETLINK.
--	  
++	return nft_synproxy_do_init(ctx, tb, priv);
++}
 +
- config NETFILTER_NETLINK_LOG
- 	tristate "Netfilter LOG over NFNETLINK interface"
- 	default m if NETFILTER_ADVANCED=n
-@@ -1502,7 +1502,7 @@ config NETFILTER_XT_MATCH_REALM
- 	  This option adds a `realm' match, which allows you to use the realm
- 	  key from the routing subsystem inside iptables.
++static void nft_synproxy_destroy(const struct nft_ctx *ctx,
++				 const struct nft_expr *expr)
++{
++	nft_synproxy_do_destroy(ctx);
++}
++
++static int nft_synproxy_dump(struct sk_buff *skb, const struct nft_expr *expr)
++{
++	struct nft_synproxy *priv = nft_expr_priv(expr);
++
++	return nft_synproxy_do_dump(skb, priv);
++}
++
+ static struct nft_expr_type nft_synproxy_type;
+ static const struct nft_expr_ops nft_synproxy_ops = {
+ 	.eval		= nft_synproxy_eval,
+@@ -271,14 +296,89 @@ static struct nft_expr_type nft_synproxy_type __read_mostly = {
+ 	.maxattr	= NFTA_SYNPROXY_MAX,
+ };
  
--	  This match pretty much resembles the CONFIG_NET_CLS_ROUTE4 option 
-+	  This match pretty much resembles the CONFIG_NET_CLS_ROUTE4 option
- 	  in tc world.
++static int nft_synproxy_obj_init(const struct nft_ctx *ctx,
++				 const struct nlattr * const tb[],
++				 struct nft_object *obj)
++{
++	struct nft_synproxy *priv = nft_obj_data(obj);
++
++	return nft_synproxy_do_init(ctx, tb, priv);
++}
++
++static void nft_synproxy_obj_destroy(const struct nft_ctx *ctx,
++				     struct nft_object *obj)
++{
++	nft_synproxy_do_destroy(ctx);
++}
++
++static int nft_synproxy_obj_dump(struct sk_buff *skb,
++				 struct nft_object *obj, bool reset)
++{
++	struct nft_synproxy *priv = nft_obj_data(obj);
++
++	return nft_synproxy_do_dump(skb, priv);
++}
++
++static void nft_synproxy_obj_eval(struct nft_object *obj,
++				  struct nft_regs *regs,
++				  const struct nft_pktinfo *pkt)
++{
++	const struct nft_synproxy *priv = nft_obj_data(obj);
++
++	nft_synproxy_do_eval(priv, regs, pkt);
++}
++
++static void nft_synproxy_obj_update(struct nft_object *obj,
++				    struct nft_object *newobj)
++{
++	struct nft_synproxy *newpriv = nft_obj_data(newobj);
++	struct nft_synproxy *priv = nft_obj_data(obj);
++
++	priv->info = newpriv->info;
++}
++
++static struct nft_object_type nft_synproxy_obj_type;
++static const struct nft_object_ops nft_synproxy_obj_ops = {
++	.type		= &nft_synproxy_obj_type,
++	.size		= sizeof(struct nft_synproxy),
++	.init		= nft_synproxy_obj_init,
++	.destroy	= nft_synproxy_obj_destroy,
++	.dump		= nft_synproxy_obj_dump,
++	.eval		= nft_synproxy_obj_eval,
++	.update		= nft_synproxy_obj_update,
++};
++
++static struct nft_object_type nft_synproxy_obj_type __read_mostly = {
++	.type		= NFT_OBJECT_SYNPROXY,
++	.ops		= &nft_synproxy_obj_ops,
++	.maxattr	= NFTA_SYNPROXY_MAX,
++	.policy		= nft_synproxy_policy,
++	.owner		= THIS_MODULE,
++};
++
+ static int __init nft_synproxy_module_init(void)
+ {
+-	return nft_register_expr(&nft_synproxy_type);
++	int err;
++
++	err = nft_register_obj(&nft_synproxy_obj_type);
++	if (err < 0)
++		return err;
++
++	err = nft_register_expr(&nft_synproxy_type);
++	if (err < 0)
++		goto err;
++
++	return 0;
++
++err:
++	nft_unregister_obj(&nft_synproxy_obj_type);
++	return err;
+ }
  
- 	  If you want to compile it as a module, say M here and read
-@@ -1523,7 +1523,7 @@ config NETFILTER_XT_MATCH_SCTP
- 	depends on NETFILTER_ADVANCED
- 	default IP_SCTP
- 	help
--	  With this option enabled, you will be able to use the 
-+	  With this option enabled, you will be able to use the
- 	  `sctp' match in order to match on SCTP source/destination ports
- 	  and SCTP chunk types.
+ static void __exit nft_synproxy_module_exit(void)
+ {
+-	return nft_unregister_expr(&nft_synproxy_type);
++	nft_unregister_expr(&nft_synproxy_type);
++	nft_unregister_obj(&nft_synproxy_obj_type);
+ }
  
-diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index 9270a7fae484..4fc075b612fe 100644
---- a/net/netfilter/Makefile
-+++ b/net/netfilter/Makefile
-@@ -124,7 +124,7 @@ nf_flow_table-objs := nf_flow_table_core.o nf_flow_table_ip.o
- 
- obj-$(CONFIG_NF_FLOW_TABLE_INET) += nf_flow_table_inet.o
- 
--# generic X tables 
-+# generic X tables
- obj-$(CONFIG_NETFILTER_XTABLES) += x_tables.o xt_tcpudp.o
- 
- # combos
+ module_init(nft_synproxy_module_init);
+@@ -287,3 +387,4 @@ module_exit(nft_synproxy_module_exit);
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Fernando Fernandez <ffmancera@riseup.net>");
+ MODULE_ALIAS_NFT_EXPR("synproxy");
++MODULE_ALIAS_NFT_OBJ(NFT_OBJECT_SYNPROXY);
 -- 
 2.11.0
 
