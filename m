@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-10.0 required=3.0
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C9AACC4CEC5
-	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Sep 2019 11:31:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F4DCC4CEC5
+	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Sep 2019 11:31:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id ABCAE20693
-	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Sep 2019 11:31:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id ECB4720693
+	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Sep 2019 11:31:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388153AbfIMLb0 (ORCPT
+        id S2388175AbfIMLb2 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 13 Sep 2019 07:31:26 -0400
-Received: from correo.us.es ([193.147.175.20]:42586 "EHLO mail.us.es"
+        Fri, 13 Sep 2019 07:31:28 -0400
+Received: from correo.us.es ([193.147.175.20]:42754 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388132AbfIMLbY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 13 Sep 2019 07:31:24 -0400
+        id S2388065AbfIMLb2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 13 Sep 2019 07:31:28 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id D3A804FFE1D
-        for <netfilter-devel@vger.kernel.org>; Fri, 13 Sep 2019 13:31:20 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 4BA1E4FFE0A
+        for <netfilter-devel@vger.kernel.org>; Fri, 13 Sep 2019 13:31:24 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id C42C0A7E1F
-        for <netfilter-devel@vger.kernel.org>; Fri, 13 Sep 2019 13:31:20 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 3A8C0A7E26
+        for <netfilter-devel@vger.kernel.org>; Fri, 13 Sep 2019 13:31:24 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id C2A8BA7E1A; Fri, 13 Sep 2019 13:31:20 +0200 (CEST)
+        id 2FDA9A7E1D; Fri, 13 Sep 2019 13:31:24 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 991FFA7EC6;
-        Fri, 13 Sep 2019 13:31:18 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id F25E0A7E1F;
+        Fri, 13 Sep 2019 13:31:21 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Fri, 13 Sep 2019 13:31:18 +0200 (CEST)
+ Fri, 13 Sep 2019 13:31:21 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 6D3EB4265A5A;
-        Fri, 13 Sep 2019 13:31:18 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id BD2884265A5A;
+        Fri, 13 Sep 2019 13:31:21 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 13/27] netfilter: inline xt_hashlimit, ebt_802_3 and xt_physdev headers
-Date:   Fri, 13 Sep 2019 13:30:48 +0200
-Message-Id: <20190913113102.15776-14-pablo@netfilter.org>
+Subject: [PATCH 19/27] netfilter: conntrack: use consistent style when defining inline functions
+Date:   Fri, 13 Sep 2019 13:30:54 +0200
+Message-Id: <20190913113102.15776-20-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20190913113102.15776-1-pablo@netfilter.org>
 References: <20190913113102.15776-1-pablo@netfilter.org>
@@ -57,131 +57,199 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Jeremy Sowden <jeremy@azazel.net>
 
-Three netfilter headers are only included once.  Inline their contents
-at those sites and remove them.
+The header contains some inline functions defined as:
+
+  static inline f (...)
+  {
+  #ifdef CONFIG_NF_CONNTRACK_EVENTS
+    ...
+  #else
+    ...
+  #endif
+  }
+
+and a few others as:
+
+  #ifdef CONFIG_NF_CONNTRACK_EVENTS
+  static inline f (...)
+  {
+    ...
+  }
+  #else
+  static inline f (...)
+  {
+    ...
+  }
+  #endif
+
+Prefer the former style, which is more numerous.
 
 Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/linux/netfilter/xt_hashlimit.h     | 11 -----------
- include/linux/netfilter/xt_physdev.h       |  8 --------
- include/linux/netfilter_bridge/ebt_802_3.h | 12 ------------
- net/bridge/netfilter/ebt_802_3.c           |  8 +++++++-
- net/netfilter/xt_hashlimit.c               |  7 ++++++-
- net/netfilter/xt_physdev.c                 |  5 +++--
- 6 files changed, 16 insertions(+), 35 deletions(-)
- delete mode 100644 include/linux/netfilter/xt_hashlimit.h
- delete mode 100644 include/linux/netfilter/xt_physdev.h
- delete mode 100644 include/linux/netfilter_bridge/ebt_802_3.h
+ include/net/netfilter/nf_conntrack_ecache.h | 82 ++++++++++++++++++-----------
+ 1 file changed, 50 insertions(+), 32 deletions(-)
 
-diff --git a/include/linux/netfilter/xt_hashlimit.h b/include/linux/netfilter/xt_hashlimit.h
-deleted file mode 100644
-index 169d03983589..000000000000
---- a/include/linux/netfilter/xt_hashlimit.h
-+++ /dev/null
-@@ -1,11 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 */
--#ifndef _XT_HASHLIMIT_H
--#define _XT_HASHLIMIT_H
--
--#include <uapi/linux/netfilter/xt_hashlimit.h>
--
--#define XT_HASHLIMIT_ALL (XT_HASHLIMIT_HASH_DIP | XT_HASHLIMIT_HASH_DPT | \
--			  XT_HASHLIMIT_HASH_SIP | XT_HASHLIMIT_HASH_SPT | \
--			  XT_HASHLIMIT_INVERT | XT_HASHLIMIT_BYTES |\
--			  XT_HASHLIMIT_RATE_MATCH)
--#endif /*_XT_HASHLIMIT_H*/
-diff --git a/include/linux/netfilter/xt_physdev.h b/include/linux/netfilter/xt_physdev.h
-deleted file mode 100644
-index 4ca0593949cd..000000000000
---- a/include/linux/netfilter/xt_physdev.h
-+++ /dev/null
-@@ -1,8 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 */
--#ifndef _XT_PHYSDEV_H
--#define _XT_PHYSDEV_H
--
--#include <linux/if.h>
--#include <uapi/linux/netfilter/xt_physdev.h>
--
--#endif /*_XT_PHYSDEV_H*/
-diff --git a/include/linux/netfilter_bridge/ebt_802_3.h b/include/linux/netfilter_bridge/ebt_802_3.h
-deleted file mode 100644
-index c6147f9c0d80..000000000000
---- a/include/linux/netfilter_bridge/ebt_802_3.h
-+++ /dev/null
-@@ -1,12 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 */
--#ifndef __LINUX_BRIDGE_EBT_802_3_H
--#define __LINUX_BRIDGE_EBT_802_3_H
--
--#include <linux/skbuff.h>
--#include <uapi/linux/netfilter_bridge/ebt_802_3.h>
--
--static inline struct ebt_802_3_hdr *ebt_802_3_hdr(const struct sk_buff *skb)
--{
--	return (struct ebt_802_3_hdr *)skb_mac_header(skb);
--}
--#endif
-diff --git a/net/bridge/netfilter/ebt_802_3.c b/net/bridge/netfilter/ebt_802_3.c
-index 2c8fe24400e5..68c2519bdc52 100644
---- a/net/bridge/netfilter/ebt_802_3.c
-+++ b/net/bridge/netfilter/ebt_802_3.c
-@@ -11,7 +11,13 @@
- #include <linux/module.h>
- #include <linux/netfilter/x_tables.h>
- #include <linux/netfilter_bridge/ebtables.h>
--#include <linux/netfilter_bridge/ebt_802_3.h>
-+#include <linux/skbuff.h>
-+#include <uapi/linux/netfilter_bridge/ebt_802_3.h>
+diff --git a/include/net/netfilter/nf_conntrack_ecache.h b/include/net/netfilter/nf_conntrack_ecache.h
+index 0815bfadfefe..eb81f9195e28 100644
+--- a/include/net/netfilter/nf_conntrack_ecache.h
++++ b/include/net/netfilter/nf_conntrack_ecache.h
+@@ -64,6 +64,7 @@ nf_ct_ecache_ext_add(struct nf_conn *ct, u16 ctmask, u16 expmask, gfp_t gfp)
+ }
+ 
+ #ifdef CONFIG_NF_CONNTRACK_EVENTS
 +
-+static struct ebt_802_3_hdr *ebt_802_3_hdr(const struct sk_buff *skb)
+ /* This structure is passed to event handler */
+ struct nf_ct_event {
+ 	struct nf_conn *ct;
+@@ -84,9 +85,26 @@ void nf_ct_deliver_cached_events(struct nf_conn *ct);
+ int nf_conntrack_eventmask_report(unsigned int eventmask, struct nf_conn *ct,
+ 				  u32 portid, int report);
+ 
++#else
++
++static inline void nf_ct_deliver_cached_events(const struct nf_conn *ct)
 +{
-+	return (struct ebt_802_3_hdr *)skb_mac_header(skb);
 +}
- 
- static bool
- ebt_802_3_mt(const struct sk_buff *skb, struct xt_action_param *par)
-diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
-index 2d2691dd51e0..ced3fc8fad7c 100644
---- a/net/netfilter/xt_hashlimit.c
-+++ b/net/netfilter/xt_hashlimit.c
-@@ -34,9 +34,14 @@
- #include <linux/netfilter/x_tables.h>
- #include <linux/netfilter_ipv4/ip_tables.h>
- #include <linux/netfilter_ipv6/ip6_tables.h>
--#include <linux/netfilter/xt_hashlimit.h>
- #include <linux/mutex.h>
- #include <linux/kernel.h>
-+#include <uapi/linux/netfilter/xt_hashlimit.h>
 +
-+#define XT_HASHLIMIT_ALL (XT_HASHLIMIT_HASH_DIP | XT_HASHLIMIT_HASH_DPT | \
-+			  XT_HASHLIMIT_HASH_SIP | XT_HASHLIMIT_HASH_SPT | \
-+			  XT_HASHLIMIT_INVERT | XT_HASHLIMIT_BYTES |\
-+			  XT_HASHLIMIT_RATE_MATCH)
- 
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Harald Welte <laforge@netfilter.org>");
-diff --git a/net/netfilter/xt_physdev.c b/net/netfilter/xt_physdev.c
-index b92b22ce8abd..ec6ed6fda96c 100644
---- a/net/netfilter/xt_physdev.c
-+++ b/net/netfilter/xt_physdev.c
-@@ -5,12 +5,13 @@
- /* (C) 2001-2003 Bart De Schuymer <bdschuym@pandora.be>
-  */
- #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++static inline int nf_conntrack_eventmask_report(unsigned int eventmask,
++						struct nf_conn *ct,
++						u32 portid,
++						int report)
++{
++	return 0;
++}
 +
-+#include <linux/if.h>
- #include <linux/module.h>
- #include <linux/skbuff.h>
- #include <linux/netfilter_bridge.h>
--#include <linux/netfilter/xt_physdev.h>
- #include <linux/netfilter/x_tables.h>
--#include <net/netfilter/br_netfilter.h>
-+#include <uapi/linux/netfilter/xt_physdev.h>
++#endif
++
+ static inline void
+ nf_conntrack_event_cache(enum ip_conntrack_events event, struct nf_conn *ct)
+ {
++#ifdef CONFIG_NF_CONNTRACK_EVENTS
+ 	struct net *net = nf_ct_net(ct);
+ 	struct nf_conntrack_ecache *e;
  
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Bart De Schuymer <bdschuym@pandora.be>");
+@@ -98,31 +116,42 @@ nf_conntrack_event_cache(enum ip_conntrack_events event, struct nf_conn *ct)
+ 		return;
+ 
+ 	set_bit(event, &e->cache);
++#endif
+ }
+ 
+ static inline int
+ nf_conntrack_event_report(enum ip_conntrack_events event, struct nf_conn *ct,
+ 			  u32 portid, int report)
+ {
++#ifdef CONFIG_NF_CONNTRACK_EVENTS
+ 	const struct net *net = nf_ct_net(ct);
+ 
+ 	if (!rcu_access_pointer(net->ct.nf_conntrack_event_cb))
+ 		return 0;
+ 
+ 	return nf_conntrack_eventmask_report(1 << event, ct, portid, report);
++#else
++	return 0;
++#endif
+ }
+ 
+ static inline int
+ nf_conntrack_event(enum ip_conntrack_events event, struct nf_conn *ct)
+ {
++#ifdef CONFIG_NF_CONNTRACK_EVENTS
+ 	const struct net *net = nf_ct_net(ct);
+ 
+ 	if (!rcu_access_pointer(net->ct.nf_conntrack_event_cb))
+ 		return 0;
+ 
+ 	return nf_conntrack_eventmask_report(1 << event, ct, 0, 0);
++#else
++	return 0;
++#endif
+ }
+ 
++#ifdef CONFIG_NF_CONNTRACK_EVENTS
++
+ struct nf_exp_event {
+ 	struct nf_conntrack_expect *exp;
+ 	u32 portid;
+@@ -148,41 +177,18 @@ void nf_conntrack_ecache_pernet_fini(struct net *net);
+ int nf_conntrack_ecache_init(void);
+ void nf_conntrack_ecache_fini(void);
+ 
+-static inline void nf_conntrack_ecache_delayed_work(struct net *net)
++#else /* CONFIG_NF_CONNTRACK_EVENTS */
++
++static inline void nf_ct_expect_event_report(enum ip_conntrack_expect_events e,
++					     struct nf_conntrack_expect *exp,
++					     u32 portid,
++					     int report)
+ {
+-	if (!delayed_work_pending(&net->ct.ecache_dwork)) {
+-		schedule_delayed_work(&net->ct.ecache_dwork, HZ);
+-		net->ct.ecache_dwork_pending = true;
+-	}
+ }
+ 
+-static inline void nf_conntrack_ecache_work(struct net *net)
++static inline void nf_conntrack_ecache_pernet_init(struct net *net)
+ {
+-	if (net->ct.ecache_dwork_pending) {
+-		net->ct.ecache_dwork_pending = false;
+-		mod_delayed_work(system_wq, &net->ct.ecache_dwork, 0);
+-	}
+ }
+-#else /* CONFIG_NF_CONNTRACK_EVENTS */
+-static inline void nf_conntrack_event_cache(enum ip_conntrack_events event,
+-					    struct nf_conn *ct) {}
+-static inline int nf_conntrack_eventmask_report(unsigned int eventmask,
+-						struct nf_conn *ct,
+-						u32 portid,
+-						int report) { return 0; }
+-static inline int nf_conntrack_event(enum ip_conntrack_events event,
+-				     struct nf_conn *ct) { return 0; }
+-static inline int nf_conntrack_event_report(enum ip_conntrack_events event,
+-					    struct nf_conn *ct,
+-					    u32 portid,
+-					    int report) { return 0; }
+-static inline void nf_ct_deliver_cached_events(const struct nf_conn *ct) {}
+-static inline void nf_ct_expect_event_report(enum ip_conntrack_expect_events e,
+-					     struct nf_conntrack_expect *exp,
+- 					     u32 portid,
+- 					     int report) {}
+-
+-static inline void nf_conntrack_ecache_pernet_init(struct net *net) {}
+ 
+ static inline void nf_conntrack_ecache_pernet_fini(struct net *net)
+ {
+@@ -197,14 +203,26 @@ static inline void nf_conntrack_ecache_fini(void)
+ {
+ }
+ 
++#endif /* CONFIG_NF_CONNTRACK_EVENTS */
++
+ static inline void nf_conntrack_ecache_delayed_work(struct net *net)
+ {
++#ifdef CONFIG_NF_CONNTRACK_EVENTS
++	if (!delayed_work_pending(&net->ct.ecache_dwork)) {
++		schedule_delayed_work(&net->ct.ecache_dwork, HZ);
++		net->ct.ecache_dwork_pending = true;
++	}
++#endif
+ }
+ 
+ static inline void nf_conntrack_ecache_work(struct net *net)
+ {
++#ifdef CONFIG_NF_CONNTRACK_EVENTS
++	if (net->ct.ecache_dwork_pending) {
++		net->ct.ecache_dwork_pending = false;
++		mod_delayed_work(system_wq, &net->ct.ecache_dwork, 0);
++	}
++#endif
+ }
+-#endif /* CONFIG_NF_CONNTRACK_EVENTS */
+ 
+ #endif /*_NF_CONNTRACK_ECACHE_H*/
+-
 -- 
 2.11.0
 
