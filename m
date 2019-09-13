@@ -7,44 +7,44 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DB982C49ED7
-	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Sep 2019 08:13:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B4FF8C49ED7
+	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Sep 2019 08:17:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A8D56208C2
-	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Sep 2019 08:13:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7F27D20717
+	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Sep 2019 08:17:47 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="rY6e/eVr"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="rAjGSOG1"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729365AbfIMINZ (ORCPT
+        id S2387459AbfIMIRr (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 13 Sep 2019 04:13:25 -0400
-Received: from kadath.azazel.net ([81.187.231.250]:60600 "EHLO
+        Fri, 13 Sep 2019 04:17:47 -0400
+Received: from kadath.azazel.net ([81.187.231.250]:60808 "EHLO
         kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729356AbfIMINY (ORCPT
+        with ESMTP id S2387427AbfIMIRr (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 13 Sep 2019 04:13:24 -0400
+        Fri, 13 Sep 2019 04:17:47 -0400
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
          s=20190108; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
         Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
         Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
         :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=2I4/46mfleS42WmYq2LwPDYUhYxLEACXnhd4/Wk6l48=; b=rY6e/eVrIOnHauZ0FIIveV1II2
-        wRFHsrt0j1xUTfTEvdvbl8BIUegKp8ggHWdE/2rm1vdgyt/G2pXPsEMCHsf+Enuhcdak/0PYxoEz7
-        mExU+bMkPBbteC9uvmMNxAN3M0oCnNVTdxWPVsa+D6SGnm3tnhIOlSRUXY71OgivYavNCUp0WShmd
-        P5kh5VYo4kYOkSobssFifduq0T8YuYPuBUVvbjHoXCcuCkh7hw4n0CWMqjgjOnz1Hj3U5s0exRix2
-        xZc1d9r7RnrKex5WW4HXu7H/uOs2yMIFU+zYRXgi/p25km3bmuQ2nXrF1mGq0Bdo2Qfk5X8pwNhlX
-        ge7fjp/w==;
+        bh=l9bZDRfs3gp89WF4IBLip4aLCVLmdrc6gzB2P1045tw=; b=rAjGSOG1C3QmJAV5PTXCClNulR
+        ti3/xLpQTYSnU3I3AHVYY8nOfGcwhxHHBE8MZrT9WcO5NjPLSsK+nm+P7SlnLZ/9LbN8QPHuTDIzt
+        Q1nmJUhbfQzqnEil+RzY4Zmv4fxPfnbXf1QlYaaJkvBNovsdmRGGvbOioltX4eFIuvphwcQ6zi5vt
+        +DnseBFEwhRAi0xMPsIzMHOjdeRRjhNR55Ir+o00X3v31CIJxpHMLtP47J54A74f82mCZECBptlf/
+        87Gbngpw6T939Iu2p4WW4yRprXw9Za7Fn4HAQbT6UfR9dQSNBQYThjeXmA5AUun2nBSB/82KRKoOv
+        9WwVREOQ==;
 Received: from ulthar.dreamlands ([192.168.96.2])
         by kadath.azazel.net with esmtp (Exim 4.92)
         (envelope-from <jeremy@azazel.net>)
-        id 1i8ghk-0005yL-3X; Fri, 13 Sep 2019 09:13:20 +0100
+        id 1i8ghm-0005yL-Tt; Fri, 13 Sep 2019 09:13:23 +0100
 From:   Jeremy Sowden <jeremy@azazel.net>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [PATCH nf-next v3 03/18] netfilter: remove unused function declarations.
-Date:   Fri, 13 Sep 2019 09:13:03 +0100
-Message-Id: <20190913081318.16071-4-jeremy@azazel.net>
+Subject: [PATCH nf-next v3 18/18] netfilter: remove two unused functions from nf_conntrack_timestamp.h.
+Date:   Fri, 13 Sep 2019 09:13:18 +0100
+Message-Id: <20190913081318.16071-19-jeremy@azazel.net>
 X-Mailer: git-send-email 2.23.0
 In-Reply-To: <20190913081318.16071-1-jeremy@azazel.net>
 References: <20190913081318.16071-1-jeremy@azazel.net>
@@ -58,43 +58,42 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Two headers include declarations of functions which are never defined.
+Two inline functions defined in nf_conntrack_timestamp.h,
+`nf_ct_tstamp_enabled` and `nf_ct_set_tstamp`, are not called anywhere.
 Remove them.
 
 Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 ---
- include/linux/netfilter_ipv4/ip_tables.h  | 2 --
- include/linux/netfilter_ipv6/ip6_tables.h | 3 +--
- 2 files changed, 1 insertion(+), 4 deletions(-)
+ include/net/netfilter/nf_conntrack_timestamp.h | 16 ----------------
+ 1 file changed, 16 deletions(-)
 
-diff --git a/include/linux/netfilter_ipv4/ip_tables.h b/include/linux/netfilter_ipv4/ip_tables.h
-index f40a65481df4..0b0d43ad9ed9 100644
---- a/include/linux/netfilter_ipv4/ip_tables.h
-+++ b/include/linux/netfilter_ipv4/ip_tables.h
-@@ -23,8 +23,6 @@
- #include <linux/init.h>
- #include <uapi/linux/netfilter_ipv4/ip_tables.h>
+diff --git a/include/net/netfilter/nf_conntrack_timestamp.h b/include/net/netfilter/nf_conntrack_timestamp.h
+index 2b8aeba649aa..820ea34b6029 100644
+--- a/include/net/netfilter/nf_conntrack_timestamp.h
++++ b/include/net/netfilter/nf_conntrack_timestamp.h
+@@ -38,22 +38,6 @@ struct nf_conn_tstamp *nf_ct_tstamp_ext_add(struct nf_conn *ct, gfp_t gfp)
+ #endif
+ };
  
--extern void ipt_init(void) __init;
+-static inline bool nf_ct_tstamp_enabled(struct net *net)
+-{
+-#if IS_ENABLED(CONFIG_NF_CONNTRACK)
+-	return net->ct.sysctl_tstamp != 0;
+-#else
+-	return false;
+-#endif
+-}
 -
- #if IS_ENABLED(CONFIG_NETFILTER)
- int ipt_register_table(struct net *net, const struct xt_table *table,
- 		       const struct ipt_replace *repl,
-diff --git a/include/linux/netfilter_ipv6/ip6_tables.h b/include/linux/netfilter_ipv6/ip6_tables.h
-index 53b7309613bf..666450c117bf 100644
---- a/include/linux/netfilter_ipv6/ip6_tables.h
-+++ b/include/linux/netfilter_ipv6/ip6_tables.h
-@@ -23,9 +23,8 @@
- #include <linux/init.h>
- #include <uapi/linux/netfilter_ipv6/ip6_tables.h>
+-static inline void nf_ct_set_tstamp(struct net *net, bool enable)
+-{
+-#if IS_ENABLED(CONFIG_NF_CONNTRACK)
+-	net->ct.sysctl_tstamp = enable;
+-#endif
+-}
+-
+ #ifdef CONFIG_NF_CONNTRACK_TIMESTAMP
+ void nf_conntrack_tstamp_pernet_init(struct net *net);
  
--extern void ip6t_init(void) __init;
--
- extern void *ip6t_alloc_initial_table(const struct xt_table *);
-+
- #if IS_ENABLED(CONFIG_NETFILTER)
- int ip6t_register_table(struct net *net, const struct xt_table *table,
- 			const struct ip6t_replace *repl,
 -- 
 2.23.0
 
