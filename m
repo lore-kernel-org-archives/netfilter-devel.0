@@ -2,50 +2,50 @@ Return-Path: <SRS0=UCZI=XI=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.0 required=3.0
-	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	UNWANTED_LANGUAGE_BODY,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 42446C4CEC9
-	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Sep 2019 11:31:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DB070C49ED7
+	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Sep 2019 11:31:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2228D20693
-	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Sep 2019 11:31:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AD81C20693
+	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Sep 2019 11:31:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388187AbfIMLba (ORCPT
+        id S2388220AbfIMLbs (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 13 Sep 2019 07:31:30 -0400
-Received: from correo.us.es ([193.147.175.20]:42768 "EHLO mail.us.es"
+        Fri, 13 Sep 2019 07:31:48 -0400
+Received: from correo.us.es ([193.147.175.20]:42602 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388156AbfIMLb2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 13 Sep 2019 07:31:28 -0400
+        id S2388168AbfIMLb3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 13 Sep 2019 07:31:29 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id BA52E4FFE21
-        for <netfilter-devel@vger.kernel.org>; Fri, 13 Sep 2019 13:31:24 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 685374FFE16
+        for <netfilter-devel@vger.kernel.org>; Fri, 13 Sep 2019 13:31:26 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id ACF72A7E20
-        for <netfilter-devel@vger.kernel.org>; Fri, 13 Sep 2019 13:31:24 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 56098A7E21
+        for <netfilter-devel@vger.kernel.org>; Fri, 13 Sep 2019 13:31:26 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 9DE1FA7E28; Fri, 13 Sep 2019 13:31:24 +0200 (CEST)
+        id 4B2A1A7E25; Fri, 13 Sep 2019 13:31:26 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 7CF2BA7E0F;
-        Fri, 13 Sep 2019 13:31:22 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 1C9E0A7E21;
+        Fri, 13 Sep 2019 13:31:24 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Fri, 13 Sep 2019 13:31:22 +0200 (CEST)
+ Fri, 13 Sep 2019 13:31:24 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 4A9D442EE393;
-        Fri, 13 Sep 2019 13:31:22 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id DEE5042EE395;
+        Fri, 13 Sep 2019 13:31:23 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 20/27] netfilter: replace defined(CONFIG...) || defined(CONFIG...MODULE) with IS_ENABLED(CONFIG...).
-Date:   Fri, 13 Sep 2019 13:30:55 +0200
-Message-Id: <20190913113102.15776-21-pablo@netfilter.org>
+Subject: [PATCH 23/27] netfilter: conntrack: move code to linux/nf_conntrack_common.h.
+Date:   Fri, 13 Sep 2019 13:30:58 +0200
+Message-Id: <20190913113102.15776-24-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20190913113102.15776-1-pablo@netfilter.org>
 References: <20190913113102.15776-1-pablo@netfilter.org>
@@ -57,84 +57,224 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Jeremy Sowden <jeremy@azazel.net>
 
-A few headers contain instances of:
-
-  #if defined(CONFIG_XXX) or defined(CONFIG_XXX_MODULE)
-
-Replace them with:
-
-  #if IS_ENABLED(CONFIG_XXX)
+Move some `struct nf_conntrack` code from linux/skbuff.h to
+linux/nf_conntrack_common.h.  Together with a couple of helpers for
+getting and setting skb->_nfct, it allows us to remove
+CONFIG_NF_CONNTRACK checks from net/netfilter/nf_conntrack.h.
 
 Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/linux/netfilter.h                      | 2 +-
- include/linux/netfilter/ipset/ip_set_getport.h | 2 +-
- include/net/netfilter/nf_conntrack_extend.h    | 2 +-
- include/net/netfilter/nf_nat.h                 | 4 ++--
- 4 files changed, 5 insertions(+), 5 deletions(-)
+ include/linux/netfilter/nf_conntrack_common.h | 20 +++++++++++++++++
+ include/linux/skbuff.h                        | 32 +++++++++++++--------------
+ include/net/netfilter/nf_conntrack.h          | 24 +++++---------------
+ net/netfilter/nf_conntrack_standalone.c       |  1 -
+ 4 files changed, 40 insertions(+), 37 deletions(-)
 
-diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
-index 049aeb40fa35..754995d028e2 100644
---- a/include/linux/netfilter.h
-+++ b/include/linux/netfilter.h
-@@ -422,7 +422,7 @@ nf_nat_decode_session(struct sk_buff *skb, struct flowi *fl, u_int8_t family)
- }
- #endif /*CONFIG_NETFILTER*/
+diff --git a/include/linux/netfilter/nf_conntrack_common.h b/include/linux/netfilter/nf_conntrack_common.h
+index e142b2b5f1ea..1db83c931d9c 100644
+--- a/include/linux/netfilter/nf_conntrack_common.h
++++ b/include/linux/netfilter/nf_conntrack_common.h
+@@ -2,6 +2,7 @@
+ #ifndef _NF_CONNTRACK_COMMON_H
+ #define _NF_CONNTRACK_COMMON_H
+ 
++#include <linux/atomic.h>
+ #include <uapi/linux/netfilter/nf_conntrack_common.h>
+ 
+ struct ip_conntrack_stat {
+@@ -19,4 +20,23 @@ struct ip_conntrack_stat {
+ 	unsigned int search_restart;
+ };
+ 
++#define NFCT_INFOMASK	7UL
++#define NFCT_PTRMASK	~(NFCT_INFOMASK)
++
++struct nf_conntrack {
++	atomic_t use;
++};
++
++void nf_conntrack_destroy(struct nf_conntrack *nfct);
++static inline void nf_conntrack_put(struct nf_conntrack *nfct)
++{
++	if (nfct && atomic_dec_and_test(&nfct->use))
++		nf_conntrack_destroy(nfct);
++}
++static inline void nf_conntrack_get(struct nf_conntrack *nfct)
++{
++	if (nfct)
++		atomic_inc(&nfct->use);
++}
++
+ #endif /* _NF_CONNTRACK_COMMON_H */
+diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
+index 028e684fa974..907209c0794e 100644
+--- a/include/linux/skbuff.h
++++ b/include/linux/skbuff.h
+@@ -37,6 +37,9 @@
+ #include <linux/in6.h>
+ #include <linux/if_packet.h>
+ #include <net/flow.h>
++#if IS_ENABLED(CONFIG_NF_CONNTRACK)
++#include <linux/netfilter/nf_conntrack_common.h>
++#endif
+ 
+ /* The interface for checksum offload between the stack and networking drivers
+  * is as follows...
+@@ -244,12 +247,6 @@ struct bpf_prog;
+ union bpf_attr;
+ struct skb_ext;
  
 -#if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
-+#if IS_ENABLED(CONFIG_NF_CONNTRACK)
- #include <linux/netfilter/nf_conntrack_zones_common.h>
+-struct nf_conntrack {
+-	atomic_t use;
+-};
+-#endif
+-
+ #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
+ struct nf_bridge_info {
+ 	enum {
+@@ -914,7 +911,6 @@ static inline bool skb_pfmemalloc(const struct sk_buff *skb)
+ #define SKB_DST_NOREF	1UL
+ #define SKB_DST_PTRMASK	~(SKB_DST_NOREF)
  
- extern void (*ip_ct_attach)(struct sk_buff *, const struct sk_buff *) __rcu;
-diff --git a/include/linux/netfilter/ipset/ip_set_getport.h b/include/linux/netfilter/ipset/ip_set_getport.h
-index a906df06948b..d74cd112b88a 100644
---- a/include/linux/netfilter/ipset/ip_set_getport.h
-+++ b/include/linux/netfilter/ipset/ip_set_getport.h
-@@ -9,7 +9,7 @@
- extern bool ip_set_get_ip4_port(const struct sk_buff *skb, bool src,
- 				__be16 *port, u8 *proto);
- 
--#if defined(CONFIG_IP6_NF_IPTABLES) || defined(CONFIG_IP6_NF_IPTABLES_MODULE)
-+#if IS_ENABLED(CONFIG_IP6_NF_IPTABLES)
- extern bool ip_set_get_ip6_port(const struct sk_buff *skb, bool src,
- 				__be16 *port, u8 *proto);
- #else
-diff --git a/include/net/netfilter/nf_conntrack_extend.h b/include/net/netfilter/nf_conntrack_extend.h
-index 21f887c5058c..112a6f40dfaf 100644
---- a/include/net/netfilter/nf_conntrack_extend.h
-+++ b/include/net/netfilter/nf_conntrack_extend.h
-@@ -8,7 +8,7 @@
- 
- enum nf_ct_ext_id {
- 	NF_CT_EXT_HELPER,
--#if defined(CONFIG_NF_NAT) || defined(CONFIG_NF_NAT_MODULE)
-+#if IS_ENABLED(CONFIG_NF_NAT)
- 	NF_CT_EXT_NAT,
- #endif
- 	NF_CT_EXT_SEQADJ,
-diff --git a/include/net/netfilter/nf_nat.h b/include/net/netfilter/nf_nat.h
-index eeb336809679..362ff94fa6b0 100644
---- a/include/net/netfilter/nf_nat.h
-+++ b/include/net/netfilter/nf_nat.h
-@@ -22,7 +22,7 @@ enum nf_nat_manip_type {
- /* per conntrack: nat application helper private data */
- union nf_conntrack_nat_help {
- 	/* insert nat helper private data here */
--#if defined(CONFIG_NF_NAT_PPTP) || defined(CONFIG_NF_NAT_PPTP_MODULE)
-+#if IS_ENABLED(CONFIG_NF_NAT_PPTP)
- 	struct nf_nat_pptp nat_pptp_info;
- #endif
- };
-@@ -47,7 +47,7 @@ struct nf_conn_nat *nf_ct_nat_ext_add(struct nf_conn *ct);
- 
- static inline struct nf_conn_nat *nfct_nat(const struct nf_conn *ct)
+-#define SKB_NFCT_PTRMASK	~(7UL)
+ /**
+  * skb_dst - returns skb dst_entry
+  * @skb: buffer
+@@ -4040,25 +4036,27 @@ static inline void skb_remcsum_process(struct sk_buff *skb, void *ptr,
+ static inline struct nf_conntrack *skb_nfct(const struct sk_buff *skb)
  {
--#if defined(CONFIG_NF_NAT) || defined(CONFIG_NF_NAT_MODULE)
-+#if IS_ENABLED(CONFIG_NF_NAT)
- 	return nf_ct_ext_find(ct, NF_CT_EXT_NAT);
+ #if IS_ENABLED(CONFIG_NF_CONNTRACK)
+-	return (void *)(skb->_nfct & SKB_NFCT_PTRMASK);
++	return (void *)(skb->_nfct & NFCT_PTRMASK);
  #else
  	return NULL;
+ #endif
+ }
+ 
+-#if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
+-void nf_conntrack_destroy(struct nf_conntrack *nfct);
+-static inline void nf_conntrack_put(struct nf_conntrack *nfct)
++static inline unsigned long skb_get_nfct(const struct sk_buff *skb)
+ {
+-	if (nfct && atomic_dec_and_test(&nfct->use))
+-		nf_conntrack_destroy(nfct);
++#if IS_ENABLED(CONFIG_NF_CONNTRACK)
++	return skb->_nfct;
++#else
++	return 0UL;
++#endif
+ }
+-static inline void nf_conntrack_get(struct nf_conntrack *nfct)
++
++static inline void skb_set_nfct(struct sk_buff *skb, unsigned long nfct)
+ {
+-	if (nfct)
+-		atomic_inc(&nfct->use);
+-}
++#if IS_ENABLED(CONFIG_NF_CONNTRACK)
++	skb->_nfct = nfct;
+ #endif
++}
+ 
+ #ifdef CONFIG_SKB_EXTENSIONS
+ enum skb_ext_id {
+diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
+index 22275f42f0bb..9f551f3b69c6 100644
+--- a/include/net/netfilter/nf_conntrack.h
++++ b/include/net/netfilter/nf_conntrack.h
+@@ -13,12 +13,10 @@
+ #ifndef _NF_CONNTRACK_H
+ #define _NF_CONNTRACK_H
+ 
+-#include <linux/netfilter/nf_conntrack_common.h>
+-
+ #include <linux/bitops.h>
+ #include <linux/compiler.h>
+-#include <linux/atomic.h>
+ 
++#include <linux/netfilter/nf_conntrack_common.h>
+ #include <linux/netfilter/nf_conntrack_tcp.h>
+ #include <linux/netfilter/nf_conntrack_dccp.h>
+ #include <linux/netfilter/nf_conntrack_sctp.h>
+@@ -58,7 +56,6 @@ struct nf_conntrack_net {
+ #include <net/netfilter/ipv6/nf_conntrack_ipv6.h>
+ 
+ struct nf_conn {
+-#if IS_ENABLED(CONFIG_NF_CONNTRACK)
+ 	/* Usage count in here is 1 for hash table, 1 per skb,
+ 	 * plus 1 for any connection(s) we are `master' for
+ 	 *
+@@ -68,7 +65,6 @@ struct nf_conn {
+ 	 * beware nf_ct_get() is different and don't inc refcnt.
+ 	 */
+ 	struct nf_conntrack ct_general;
+-#endif
+ 
+ 	spinlock_t	lock;
+ 	/* jiffies32 when this ct is considered dead */
+@@ -149,18 +145,14 @@ void nf_conntrack_alter_reply(struct nf_conn *ct,
+ int nf_conntrack_tuple_taken(const struct nf_conntrack_tuple *tuple,
+ 			     const struct nf_conn *ignored_conntrack);
+ 
+-#if IS_ENABLED(CONFIG_NF_CONNTRACK)
+-
+-#define NFCT_INFOMASK	7UL
+-#define NFCT_PTRMASK	~(NFCT_INFOMASK)
+-
+ /* Return conntrack_info and tuple hash for given skb. */
+ static inline struct nf_conn *
+ nf_ct_get(const struct sk_buff *skb, enum ip_conntrack_info *ctinfo)
+ {
+-	*ctinfo = skb->_nfct & NFCT_INFOMASK;
++	unsigned long nfct = skb_get_nfct(skb);
+ 
+-	return (struct nf_conn *)(skb->_nfct & NFCT_PTRMASK);
++	*ctinfo = nfct & NFCT_INFOMASK;
++	return (struct nf_conn *)(nfct & NFCT_PTRMASK);
+ }
+ 
+ /* decrement reference count on a conntrack */
+@@ -170,8 +162,6 @@ static inline void nf_ct_put(struct nf_conn *ct)
+ 	nf_conntrack_put(&ct->ct_general);
+ }
+ 
+-#endif
+-
+ /* Protocol module loading */
+ int nf_ct_l3proto_try_module_get(unsigned short l3proto);
+ void nf_ct_l3proto_module_put(unsigned short l3proto);
+@@ -323,16 +313,12 @@ void nf_ct_tmpl_free(struct nf_conn *tmpl);
+ 
+ u32 nf_ct_get_id(const struct nf_conn *ct);
+ 
+-#if IS_ENABLED(CONFIG_NF_CONNTRACK)
+-
+ static inline void
+ nf_ct_set(struct sk_buff *skb, struct nf_conn *ct, enum ip_conntrack_info info)
+ {
+-	skb->_nfct = (unsigned long)ct | info;
++	skb_set_nfct(skb, (unsigned long)ct | info);
+ }
+ 
+-#endif
+-
+ #define NF_CT_STAT_INC(net, count)	  __this_cpu_inc((net)->ct.stat->count)
+ #define NF_CT_STAT_INC_ATOMIC(net, count) this_cpu_inc((net)->ct.stat->count)
+ #define NF_CT_STAT_ADD_ATOMIC(net, count, v) this_cpu_add((net)->ct.stat->count, (v))
+diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
+index 88d4127df863..410809c669e1 100644
+--- a/net/netfilter/nf_conntrack_standalone.c
++++ b/net/netfilter/nf_conntrack_standalone.c
+@@ -1167,7 +1167,6 @@ static int __init nf_conntrack_standalone_init(void)
+ 	if (ret < 0)
+ 		goto out_start;
+ 
+-	BUILD_BUG_ON(SKB_NFCT_PTRMASK != NFCT_PTRMASK);
+ 	BUILD_BUG_ON(NFCT_INFOMASK <= IP_CT_NUMBER);
+ 
+ #ifdef CONFIG_SYSCTL
 -- 
 2.11.0
 
