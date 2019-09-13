@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-10.0 required=3.0
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 97863C4CEC5
-	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Sep 2019 11:31:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 00B83C4CEC5
+	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Sep 2019 11:31:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 79E972054F
-	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Sep 2019 11:31:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D80A020693
+	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Sep 2019 11:31:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388120AbfIMLbV (ORCPT
+        id S2388141AbfIMLbY (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 13 Sep 2019 07:31:21 -0400
-Received: from correo.us.es ([193.147.175.20]:42628 "EHLO mail.us.es"
+        Fri, 13 Sep 2019 07:31:24 -0400
+Received: from correo.us.es ([193.147.175.20]:42602 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388105AbfIMLbV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 13 Sep 2019 07:31:21 -0400
+        id S2387962AbfIMLbX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 13 Sep 2019 07:31:23 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 733254FFE09
-        for <netfilter-devel@vger.kernel.org>; Fri, 13 Sep 2019 13:31:17 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id AB1124FFE1F
+        for <netfilter-devel@vger.kernel.org>; Fri, 13 Sep 2019 13:31:18 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 6438610079C
-        for <netfilter-devel@vger.kernel.org>; Fri, 13 Sep 2019 13:31:17 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 9AA85A7EE4
+        for <netfilter-devel@vger.kernel.org>; Fri, 13 Sep 2019 13:31:18 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 59FB2FF6FA; Fri, 13 Sep 2019 13:31:17 +0200 (CEST)
+        id 90450A7EE5; Fri, 13 Sep 2019 13:31:18 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 452BCA7D66;
-        Fri, 13 Sep 2019 13:31:15 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 6D200A7D6A;
+        Fri, 13 Sep 2019 13:31:16 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Fri, 13 Sep 2019 13:31:15 +0200 (CEST)
+ Fri, 13 Sep 2019 13:31:16 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 1684D42EE393;
-        Fri, 13 Sep 2019 13:31:15 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 38EC842EE393;
+        Fri, 13 Sep 2019 13:31:16 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 07/27] netfilter: nf_tables_offload: refactor the nft_flow_offload_chain function
-Date:   Fri, 13 Sep 2019 13:30:42 +0200
-Message-Id: <20190913113102.15776-8-pablo@netfilter.org>
+Subject: [PATCH 09/27] netfilter: nf_tables_offload: remove rules when the device unregisters
+Date:   Fri, 13 Sep 2019 13:30:44 +0200
+Message-Id: <20190913113102.15776-10-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20190913113102.15776-1-pablo@netfilter.org>
 References: <20190913113102.15776-1-pablo@netfilter.org>
@@ -57,76 +57,131 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: wenxu <wenxu@ucloud.cn>
 
-Pass chain and policy parameters to nft_flow_offload_chain to reuse it.
+If the net_device unregisters, clean up the offload rules before the
+chain is destroy.
 
 Signed-off-by: wenxu <wenxu@ucloud.cn>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_offload.c | 20 +++++++++++++-------
- 1 file changed, 13 insertions(+), 7 deletions(-)
+ include/net/netfilter/nf_tables_offload.h |  2 +-
+ net/netfilter/nf_tables_api.c             | 11 +++++---
+ net/netfilter/nf_tables_offload.c         | 43 ++++++++++++++++++++++++++++++-
+ 3 files changed, 51 insertions(+), 5 deletions(-)
 
+diff --git a/include/net/netfilter/nf_tables_offload.h b/include/net/netfilter/nf_tables_offload.h
+index ddd048be4330..03cf5856d76f 100644
+--- a/include/net/netfilter/nf_tables_offload.h
++++ b/include/net/netfilter/nf_tables_offload.h
+@@ -77,7 +77,7 @@ int nft_flow_rule_offload_commit(struct net *net);
+ 
+ int nft_chain_offload_priority(struct nft_base_chain *basechain);
+ 
+-void nft_offload_init(void);
++int nft_offload_init(void);
+ void nft_offload_exit(void);
+ 
+ #endif
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index c6f59ef96017..e4a68dc42694 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -7694,15 +7694,20 @@ static int __init nf_tables_module_init(void)
+ 	if (err < 0)
+ 		goto err4;
+ 
++	err = nft_offload_init();
++	if (err < 0)
++		goto err5;
++
+ 	/* must be last */
+ 	err = nfnetlink_subsys_register(&nf_tables_subsys);
+ 	if (err < 0)
+-		goto err5;
++		goto err6;
+ 
+ 	nft_chain_route_init();
+-	nft_offload_init();
+ 
+ 	return err;
++err6:
++	nft_offload_exit();
+ err5:
+ 	rhltable_destroy(&nft_objname_ht);
+ err4:
+@@ -7718,8 +7723,8 @@ static int __init nf_tables_module_init(void)
+ 
+ static void __exit nf_tables_module_exit(void)
+ {
+-	nft_offload_exit();
+ 	nfnetlink_subsys_unregister(&nf_tables_subsys);
++	nft_offload_exit();
+ 	unregister_netdevice_notifier(&nf_tables_flowtable_notifier);
+ 	nft_chain_filter_fini();
+ 	nft_chain_route_fini();
 diff --git a/net/netfilter/nf_tables_offload.c b/net/netfilter/nf_tables_offload.c
-index e200491ec672..367a7fa5c9dd 100644
+index 739a79cdb741..21bb772cb4b7 100644
 --- a/net/netfilter/nf_tables_offload.c
 +++ b/net/netfilter/nf_tables_offload.c
-@@ -294,12 +294,13 @@ static int nft_indr_block_offload_cmd(struct nft_base_chain *chain,
+@@ -426,17 +426,58 @@ static void nft_indr_block_cb(struct net_device *dev,
+ 	mutex_unlock(&net->nft.commit_mutex);
+ }
  
- #define FLOW_SETUP_BLOCK TC_SETUP_BLOCK
- 
--static int nft_flow_offload_chain(struct nft_trans *trans,
-+static int nft_flow_offload_chain(struct nft_chain *chain,
-+				  u8 *ppolicy,
- 				  enum flow_block_command cmd)
- {
--	struct nft_chain *chain = trans->ctx.chain;
- 	struct nft_base_chain *basechain;
- 	struct net_device *dev;
-+	u8 policy;
- 
- 	if (!nft_is_base_chain(chain))
- 		return -EOPNOTSUPP;
-@@ -309,10 +310,10 @@ static int nft_flow_offload_chain(struct nft_trans *trans,
- 	if (!dev)
- 		return -EOPNOTSUPP;
- 
-+	policy = ppolicy ? *ppolicy : basechain->policy;
++static void nft_offload_chain_clean(struct nft_chain *chain)
++{
++	struct nft_rule *rule;
 +
- 	/* Only default policy to accept is supported for now. */
--	if (cmd == FLOW_BLOCK_BIND &&
--	    nft_trans_chain_policy(trans) != -1 &&
--	    nft_trans_chain_policy(trans) != NF_ACCEPT)
-+	if (cmd == FLOW_BLOCK_BIND && policy != -1 && policy != NF_ACCEPT)
- 		return -EOPNOTSUPP;
++	list_for_each_entry(rule, &chain->rules, list) {
++		nft_flow_offload_rule(chain, rule,
++				      NULL, FLOW_CLS_DESTROY);
++	}
++
++	nft_flow_offload_chain(chain, NULL, FLOW_BLOCK_UNBIND);
++}
++
++static int nft_offload_netdev_event(struct notifier_block *this,
++				    unsigned long event, void *ptr)
++{
++	struct net_device *dev = netdev_notifier_info_to_dev(ptr);
++	struct net *net = dev_net(dev);
++	struct nft_chain *chain;
++
++	mutex_lock(&net->nft.commit_mutex);
++	chain = __nft_offload_get_chain(dev);
++	if (chain)
++		nft_offload_chain_clean(chain);
++	mutex_unlock(&net->nft.commit_mutex);
++
++	return NOTIFY_DONE;
++}
++
+ static struct flow_indr_block_ing_entry block_ing_entry = {
+ 	.cb	= nft_indr_block_cb,
+ 	.list	= LIST_HEAD_INIT(block_ing_entry.list),
+ };
  
- 	if (dev->netdev_ops->ndo_setup_tc)
-@@ -325,6 +326,7 @@ int nft_flow_rule_offload_commit(struct net *net)
+-void nft_offload_init(void)
++static struct notifier_block nft_offload_netdev_notifier = {
++	.notifier_call	= nft_offload_netdev_event,
++};
++
++int nft_offload_init(void)
  {
- 	struct nft_trans *trans;
- 	int err = 0;
-+	u8 policy;
++	int err;
++
++	err = register_netdevice_notifier(&nft_offload_netdev_notifier);
++	if (err < 0)
++		return err;
++
+ 	flow_indr_add_block_ing_cb(&block_ing_entry);
++
++	return 0;
+ }
  
- 	list_for_each_entry(trans, &net->nft.commit_list, list) {
- 		if (trans->ctx.family != NFPROTO_NETDEV)
-@@ -335,13 +337,17 @@ int nft_flow_rule_offload_commit(struct net *net)
- 			if (!(trans->ctx.chain->flags & NFT_CHAIN_HW_OFFLOAD))
- 				continue;
- 
--			err = nft_flow_offload_chain(trans, FLOW_BLOCK_BIND);
-+			policy = nft_trans_chain_policy(trans);
-+			err = nft_flow_offload_chain(trans->ctx.chain, &policy,
-+						     FLOW_BLOCK_BIND);
- 			break;
- 		case NFT_MSG_DELCHAIN:
- 			if (!(trans->ctx.chain->flags & NFT_CHAIN_HW_OFFLOAD))
- 				continue;
- 
--			err = nft_flow_offload_chain(trans, FLOW_BLOCK_UNBIND);
-+			policy = nft_trans_chain_policy(trans);
-+			err = nft_flow_offload_chain(trans->ctx.chain, &policy,
-+						     FLOW_BLOCK_BIND);
- 			break;
- 		case NFT_MSG_NEWRULE:
- 			if (!(trans->ctx.chain->flags & NFT_CHAIN_HW_OFFLOAD))
+ void nft_offload_exit(void)
+ {
+ 	flow_indr_del_block_ing_cb(&block_ing_entry);
++	unregister_netdevice_notifier(&nft_offload_netdev_notifier);
+ }
 -- 
 2.11.0
 
