@@ -2,55 +2,95 @@ Return-Path: <SRS0=UCZI=XI=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 408ACC4CEC5
-	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Sep 2019 13:40:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BF50EC4CEC5
+	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Sep 2019 13:44:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 23E0E206BB
-	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Sep 2019 13:40:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 94D8B206BB
+	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Sep 2019 13:44:04 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="CUOYo1gu"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389477AbfIMNkR (ORCPT
+        id S2389482AbfIMNoA (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 13 Sep 2019 09:40:17 -0400
-Received: from shards.monkeyblade.net ([23.128.96.9]:43948 "EHLO
-        shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2388387AbfIMNkQ (ORCPT
+        Fri, 13 Sep 2019 09:44:00 -0400
+Received: from mail-vs1-f65.google.com ([209.85.217.65]:45488 "EHLO
+        mail-vs1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2388331AbfIMNn7 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 13 Sep 2019 09:40:16 -0400
-Received: from localhost (93-63-141-166.ip28.fastwebnet.it [93.63.141.166])
-        (using TLSv1 with cipher AES256-SHA (256/256 bits))
-        (Client did not present a certificate)
-        (Authenticated sender: davem-davemloft)
-        by shards.monkeyblade.net (Postfix) with ESMTPSA id 74A8514C612A5;
-        Fri, 13 Sep 2019 06:40:15 -0700 (PDT)
-Date:   Fri, 13 Sep 2019 14:40:10 +0100 (WEST)
-Message-Id: <20190913.144010.502199587356682472.davem@davemloft.net>
-To:     pablo@netfilter.org
-Cc:     netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-Subject: Re: [PATCH 00/27] Netfilter updates for net-next
-From:   David Miller <davem@davemloft.net>
-In-Reply-To: <20190913113102.15776-1-pablo@netfilter.org>
-References: <20190913113102.15776-1-pablo@netfilter.org>
-X-Mailer: Mew version 6.8 on Emacs 26.2
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-X-Greylist: Sender succeeded SMTP AUTH, not delayed by milter-greylist-4.5.12 (shards.monkeyblade.net [149.20.54.216]); Fri, 13 Sep 2019 06:40:16 -0700 (PDT)
+        Fri, 13 Sep 2019 09:43:59 -0400
+Received: by mail-vs1-f65.google.com with SMTP id s3so18612488vsi.12;
+        Fri, 13 Sep 2019 06:43:59 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to;
+        bh=RXJnZ+nPgE9agHywMSnWPQ7t9VoBgm2R0CEtC5otomY=;
+        b=CUOYo1guETjrYNQEhNyJG1uIGxnJ1ZmaQsuceauYUPtMTJiqGbiT/kWdtVH5EcwVkB
+         E4B4NaFUxLu/m+BmxEWXWZ7trw1d0IaJxvUrKqN+y9udk4PLYwSbSXaznaIeMOHlrjQG
+         n3ZDK5IhR3Yu0gdc1xMw3rqnkfdEcp/5e0F6zmiHz9pj724sVjzahRh/cSA0oMvQS61S
+         OsJOh/4CkzqZ63Klvrz6Nqw1IQaFyFqfNOQhj33sjtuyt6DTImJoEE1EZMw8jC9I8is6
+         WYYZZh8X1r42SENsaTQMDfXvGc0DBYfg86kkkHUJcpVAMwnMVWUtVKjNpDVaZVx/bHUB
+         gcLg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to;
+        bh=RXJnZ+nPgE9agHywMSnWPQ7t9VoBgm2R0CEtC5otomY=;
+        b=TxOB4ctLA2BjYN4fjIlHRq3PSMGGFU5WyOMhk7f2MqltkThH8u4mxRrLaonmEdzTRn
+         OXJdmoTeLc5QA/MwTdpKTFBkYLUiKs72CAilrgT8KO3OThilGKEK4eK3Ujo4V0ayMz+M
+         nkHcOaPsJZS/ysV2NbbqJwQ/7EItq9uaE57bSpY5VhJeKNfQiQ1AVaCU6u923p/7zHBz
+         YB/KY1AEAd/r9V4HP7mFxAoIjHmwSIzI6i+C4418FtiIqrxBXA4Narj27Bt9xamxIXW6
+         uk01PNgXwIj4cRguZ1V6QCJRjIyZQPffw3hICgXsfz33EJcMN5oMtYrjJSbyVHx92Rl4
+         rlZg==
+X-Gm-Message-State: APjAAAX902rIcGg46DbNM2y6D4G2g+cahcfMclSekCRhDHBHGSGL2SAm
+        UH1KcuPULfcwGjJ7AxUrkI7y3S3RG8IkWjOA5qwk
+X-Google-Smtp-Source: APXvYqw9PNt4u6KSrpSVrBXM2L7xr6JaasI+kZg3SKmYAITPc2ir9OYfofSEVx6LRX7xFiHf6Yn19MCoEVskqy8b7jM=
+X-Received: by 2002:a67:6187:: with SMTP id v129mr5104474vsb.230.1568382238685;
+ Fri, 13 Sep 2019 06:43:58 -0700 (PDT)
+MIME-Version: 1.0
+References: <20190724143733.17433-1-rsalvaterra@gmail.com>
+In-Reply-To: <20190724143733.17433-1-rsalvaterra@gmail.com>
+From:   Rui Salvaterra <rsalvaterra@gmail.com>
+Date:   Fri, 13 Sep 2019 14:43:47 +0100
+Message-ID: <CALjTZvYi+3VdYJ4Od4Epx08VTFg0TReo_-NkqYxFonR_-=GN6A@mail.gmail.com>
+Subject: Re: [PATCH] netfilter: trivial: remove extraneous space from message
+To:     pablo@netfilter.org, davem@davemloft.net,
+        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Fri, 13 Sep 2019 13:30:35 +0200
+Friendly ping.
 
-> The following patchset contains Netfilter updates for net-next:
- ...
-> You can pull these changes from:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git
-
-Looks good, pulled.
+On Wed, 24 Jul 2019 at 15:37, Rui Salvaterra <rsalvaterra@gmail.com> wrote:
+>
+> Pure ocd, but this one has been bugging me for a while.
+>
+> Signed-off-by: Rui Salvaterra <rsalvaterra@gmail.com>
+> ---
+>  net/netfilter/nf_conntrack_helper.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
+> index 8d729e7c36ff..209123f35b4a 100644
+> --- a/net/netfilter/nf_conntrack_helper.c
+> +++ b/net/netfilter/nf_conntrack_helper.c
+> @@ -218,7 +218,7 @@ nf_ct_lookup_helper(struct nf_conn *ct, struct net *net)
+>                         return NULL;
+>                 pr_info("nf_conntrack: default automatic helper assignment "
+>                         "has been turned off for security reasons and CT-based "
+> -                       " firewall rule not found. Use the iptables CT target "
+> +                       "firewall rule not found. Use the iptables CT target "
+>                         "to attach helpers instead.\n");
+>                 net->ct.auto_assign_helper_warned = 1;
+>                 return NULL;
+> --
+> 2.22.0
+>
