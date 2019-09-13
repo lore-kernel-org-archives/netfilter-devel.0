@@ -2,50 +2,50 @@ Return-Path: <SRS0=UCZI=XI=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	UNWANTED_LANGUAGE_BODY,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-10.0 required=3.0
+	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1CAF8C4CEC7
-	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Sep 2019 11:31:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 59861C49ED7
+	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Sep 2019 11:31:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C3A7820693
-	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Sep 2019 11:31:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 362B820693
+	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Sep 2019 11:31:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388193AbfIMLbb (ORCPT
+        id S2388201AbfIMLbc (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 13 Sep 2019 07:31:31 -0400
-Received: from correo.us.es ([193.147.175.20]:42588 "EHLO mail.us.es"
+        Fri, 13 Sep 2019 07:31:32 -0400
+Received: from correo.us.es ([193.147.175.20]:42768 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388147AbfIMLb2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 13 Sep 2019 07:31:28 -0400
+        id S2388184AbfIMLbb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 13 Sep 2019 07:31:31 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id AB90F4FFE0B
-        for <netfilter-devel@vger.kernel.org>; Fri, 13 Sep 2019 13:31:23 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 500434FFE01
+        for <netfilter-devel@vger.kernel.org>; Fri, 13 Sep 2019 13:31:28 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 98BEBA7E2B
-        for <netfilter-devel@vger.kernel.org>; Fri, 13 Sep 2019 13:31:23 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 414CAA7E1C
+        for <netfilter-devel@vger.kernel.org>; Fri, 13 Sep 2019 13:31:28 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 97A20A7E2A; Fri, 13 Sep 2019 13:31:23 +0200 (CEST)
+        id 36AF5A7E0F; Fri, 13 Sep 2019 13:31:28 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 6ACB0A7E1D;
-        Fri, 13 Sep 2019 13:31:21 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 31AE8A7E1C;
+        Fri, 13 Sep 2019 13:31:26 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Fri, 13 Sep 2019 13:31:21 +0200 (CEST)
+ Fri, 13 Sep 2019 13:31:26 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 389CA4265A5A;
-        Fri, 13 Sep 2019 13:31:21 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 0056F4265A5A;
+        Fri, 13 Sep 2019 13:31:25 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org
-Subject: [PATCH 18/27] netfilter: move nf_bridge_frag_data struct definition to a more appropriate header.
-Date:   Fri, 13 Sep 2019 13:30:53 +0200
-Message-Id: <20190913113102.15776-19-pablo@netfilter.org>
+Subject: [PATCH 27/27] netfilter: conntrack: remove two unused functions from nf_conntrack_timestamp.h.
+Date:   Fri, 13 Sep 2019 13:31:02 +0200
+Message-Id: <20190913113102.15776-28-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20190913113102.15776-1-pablo@netfilter.org>
 References: <20190913113102.15776-1-pablo@netfilter.org>
@@ -57,172 +57,43 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Jeremy Sowden <jeremy@azazel.net>
 
-There is a struct definition function in nf_conntrack_bridge.h which is
-not specific to conntrack and is used elswhere in netfilter.  Move it
-into netfilter_bridge.h.
+Two inline functions defined in nf_conntrack_timestamp.h,
+`nf_ct_tstamp_enabled` and `nf_ct_set_tstamp`, are not called anywhere.
+Remove them.
 
 Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/linux/netfilter_bridge.h            |  7 +++++++
- include/linux/netfilter_ipv6.h              | 14 +++++++-------
- include/net/netfilter/nf_conntrack_bridge.h |  7 -------
- net/bridge/netfilter/nf_conntrack_bridge.c  | 14 +++++++-------
- net/ipv6/netfilter.c                        |  4 ++--
- 5 files changed, 23 insertions(+), 23 deletions(-)
+ include/net/netfilter/nf_conntrack_timestamp.h | 16 ----------------
+ 1 file changed, 16 deletions(-)
 
-diff --git a/include/linux/netfilter_bridge.h b/include/linux/netfilter_bridge.h
-index 5f2614d02e03..f980edfdd278 100644
---- a/include/linux/netfilter_bridge.h
-+++ b/include/linux/netfilter_bridge.h
-@@ -5,6 +5,13 @@
- #include <uapi/linux/netfilter_bridge.h>
- #include <linux/skbuff.h>
- 
-+struct nf_bridge_frag_data {
-+	char    mac[ETH_HLEN];
-+	bool    vlan_present;
-+	u16     vlan_tci;
-+	__be16  vlan_proto;
-+};
-+
- #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
- 
- int br_handle_frame_finish(struct net *net, struct sock *sk, struct sk_buff *skb);
-diff --git a/include/linux/netfilter_ipv6.h b/include/linux/netfilter_ipv6.h
-index c1500209cfaf..aac42c28fe62 100644
---- a/include/linux/netfilter_ipv6.h
-+++ b/include/linux/netfilter_ipv6.h
-@@ -32,7 +32,7 @@ struct ip6_rt_info {
- };
- 
- struct nf_queue_entry;
--struct nf_ct_bridge_frag_data;
-+struct nf_bridge_frag_data;
- 
- /*
-  * Hook functions for ipv6 to allow xt_* modules to be built-in even
-@@ -61,9 +61,9 @@ struct nf_ipv6_ops {
- 	int (*br_defrag)(struct net *net, struct sk_buff *skb, u32 user);
- 	int (*br_fragment)(struct net *net, struct sock *sk,
- 			   struct sk_buff *skb,
--			   struct nf_ct_bridge_frag_data *data,
-+			   struct nf_bridge_frag_data *data,
- 			   int (*output)(struct net *, struct sock *sk,
--					 const struct nf_ct_bridge_frag_data *data,
-+					 const struct nf_bridge_frag_data *data,
- 					 struct sk_buff *));
+diff --git a/include/net/netfilter/nf_conntrack_timestamp.h b/include/net/netfilter/nf_conntrack_timestamp.h
+index 2b8aeba649aa..820ea34b6029 100644
+--- a/include/net/netfilter/nf_conntrack_timestamp.h
++++ b/include/net/netfilter/nf_conntrack_timestamp.h
+@@ -38,22 +38,6 @@ struct nf_conn_tstamp *nf_ct_tstamp_ext_add(struct nf_conn *ct, gfp_t gfp)
  #endif
  };
-@@ -135,16 +135,16 @@ static inline int nf_ipv6_br_defrag(struct net *net, struct sk_buff *skb,
- }
  
- int br_ip6_fragment(struct net *net, struct sock *sk, struct sk_buff *skb,
--		    struct nf_ct_bridge_frag_data *data,
-+		    struct nf_bridge_frag_data *data,
- 		    int (*output)(struct net *, struct sock *sk,
--				  const struct nf_ct_bridge_frag_data *data,
-+				  const struct nf_bridge_frag_data *data,
- 				  struct sk_buff *));
- 
- static inline int nf_br_ip6_fragment(struct net *net, struct sock *sk,
- 				     struct sk_buff *skb,
--				     struct nf_ct_bridge_frag_data *data,
-+				     struct nf_bridge_frag_data *data,
- 				     int (*output)(struct net *, struct sock *sk,
--						   const struct nf_ct_bridge_frag_data *data,
-+						   const struct nf_bridge_frag_data *data,
- 						   struct sk_buff *))
- {
- #if IS_MODULE(CONFIG_IPV6)
-diff --git a/include/net/netfilter/nf_conntrack_bridge.h b/include/net/netfilter/nf_conntrack_bridge.h
-index 34c28f248b18..01b62fd5efa2 100644
---- a/include/net/netfilter/nf_conntrack_bridge.h
-+++ b/include/net/netfilter/nf_conntrack_bridge.h
-@@ -16,11 +16,4 @@ struct nf_ct_bridge_info {
- void nf_ct_bridge_register(struct nf_ct_bridge_info *info);
- void nf_ct_bridge_unregister(struct nf_ct_bridge_info *info);
- 
--struct nf_ct_bridge_frag_data {
--	char	mac[ETH_HLEN];
--	bool	vlan_present;
--	u16	vlan_tci;
--	__be16	vlan_proto;
--};
+-static inline bool nf_ct_tstamp_enabled(struct net *net)
+-{
+-#if IS_ENABLED(CONFIG_NF_CONNTRACK)
+-	return net->ct.sysctl_tstamp != 0;
+-#else
+-	return false;
+-#endif
+-}
 -
- #endif
-diff --git a/net/bridge/netfilter/nf_conntrack_bridge.c b/net/bridge/netfilter/nf_conntrack_bridge.c
-index c9ce321fcac1..8842798c29e6 100644
---- a/net/bridge/netfilter/nf_conntrack_bridge.c
-+++ b/net/bridge/netfilter/nf_conntrack_bridge.c
-@@ -26,9 +26,9 @@
-  */
- static int nf_br_ip_fragment(struct net *net, struct sock *sk,
- 			     struct sk_buff *skb,
--			     struct nf_ct_bridge_frag_data *data,
-+			     struct nf_bridge_frag_data *data,
- 			     int (*output)(struct net *, struct sock *sk,
--					   const struct nf_ct_bridge_frag_data *data,
-+					   const struct nf_bridge_frag_data *data,
- 					   struct sk_buff *))
- {
- 	int frag_max_size = BR_INPUT_SKB_CB(skb)->frag_max_size;
-@@ -278,7 +278,7 @@ static unsigned int nf_ct_bridge_pre(void *priv, struct sk_buff *skb,
- }
+-static inline void nf_ct_set_tstamp(struct net *net, bool enable)
+-{
+-#if IS_ENABLED(CONFIG_NF_CONNTRACK)
+-	net->ct.sysctl_tstamp = enable;
+-#endif
+-}
+-
+ #ifdef CONFIG_NF_CONNTRACK_TIMESTAMP
+ void nf_conntrack_tstamp_pernet_init(struct net *net);
  
- static void nf_ct_bridge_frag_save(struct sk_buff *skb,
--				   struct nf_ct_bridge_frag_data *data)
-+				   struct nf_bridge_frag_data *data)
- {
- 	if (skb_vlan_tag_present(skb)) {
- 		data->vlan_present = true;
-@@ -293,10 +293,10 @@ static void nf_ct_bridge_frag_save(struct sk_buff *skb,
- static unsigned int
- nf_ct_bridge_refrag(struct sk_buff *skb, const struct nf_hook_state *state,
- 		    int (*output)(struct net *, struct sock *sk,
--				  const struct nf_ct_bridge_frag_data *data,
-+				  const struct nf_bridge_frag_data *data,
- 				  struct sk_buff *))
- {
--	struct nf_ct_bridge_frag_data data;
-+	struct nf_bridge_frag_data data;
- 
- 	if (!BR_INPUT_SKB_CB(skb)->frag_max_size)
- 		return NF_ACCEPT;
-@@ -319,7 +319,7 @@ nf_ct_bridge_refrag(struct sk_buff *skb, const struct nf_hook_state *state,
- 
- /* Actually only slow path refragmentation needs this. */
- static int nf_ct_bridge_frag_restore(struct sk_buff *skb,
--				     const struct nf_ct_bridge_frag_data *data)
-+				     const struct nf_bridge_frag_data *data)
- {
- 	int err;
- 
-@@ -340,7 +340,7 @@ static int nf_ct_bridge_frag_restore(struct sk_buff *skb,
- }
- 
- static int nf_ct_bridge_refrag_post(struct net *net, struct sock *sk,
--				    const struct nf_ct_bridge_frag_data *data,
-+				    const struct nf_bridge_frag_data *data,
- 				    struct sk_buff *skb)
- {
- 	int err;
-diff --git a/net/ipv6/netfilter.c b/net/ipv6/netfilter.c
-index 61819ed858b1..a9bff556d3b2 100644
---- a/net/ipv6/netfilter.c
-+++ b/net/ipv6/netfilter.c
-@@ -113,9 +113,9 @@ int __nf_ip6_route(struct net *net, struct dst_entry **dst,
- EXPORT_SYMBOL_GPL(__nf_ip6_route);
- 
- int br_ip6_fragment(struct net *net, struct sock *sk, struct sk_buff *skb,
--		    struct nf_ct_bridge_frag_data *data,
-+		    struct nf_bridge_frag_data *data,
- 		    int (*output)(struct net *, struct sock *sk,
--				  const struct nf_ct_bridge_frag_data *data,
-+				  const struct nf_bridge_frag_data *data,
- 				  struct sk_buff *))
- {
- 	int frag_max_size = BR_INPUT_SKB_CB(skb)->frag_max_size;
 -- 
 2.11.0
 
