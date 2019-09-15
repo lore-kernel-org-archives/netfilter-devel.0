@@ -2,76 +2,100 @@ Return-Path: <SRS0=dRBk=XK=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-2.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 99E23C4CEC7
-	for <netfilter-devel@archiver.kernel.org>; Sun, 15 Sep 2019 12:40:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 43A53C4CECC
+	for <netfilter-devel@archiver.kernel.org>; Sun, 15 Sep 2019 16:05:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4A2A9214C6
-	for <netfilter-devel@archiver.kernel.org>; Sun, 15 Sep 2019 12:40:08 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=riseup.net header.i=@riseup.net header.b="Ajliy1j2"
+	by mail.kernel.org (Postfix) with ESMTP id 1B236214D8
+	for <netfilter-devel@archiver.kernel.org>; Sun, 15 Sep 2019 16:05:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726340AbfIOMkH (ORCPT
+        id S1731594AbfIOQFW (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 15 Sep 2019 08:40:07 -0400
-Received: from mx1.riseup.net ([198.252.153.129]:42964 "EHLO mx1.riseup.net"
+        Sun, 15 Sep 2019 12:05:22 -0400
+Received: from mga06.intel.com ([134.134.136.31]:14875 "EHLO mga06.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726268AbfIOMkH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 15 Sep 2019 08:40:07 -0400
-Received: from capuchin.riseup.net (capuchin-pn.riseup.net [10.0.1.176])
-        (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
-        (Client CN "*.riseup.net", Issuer "COMODO RSA Domain Validation Secure Server CA" (verified OK))
-        by mx1.riseup.net (Postfix) with ESMTPS id 007521A3215
-        for <netfilter-devel@vger.kernel.org>; Sun, 15 Sep 2019 05:40:06 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=riseup.net; s=squak;
-        t=1568551207; bh=VY14p9VEwCetK5qD7jzGDmGVPWYn3Sld58ckse3QG7Q=;
-        h=From:To:Cc:Subject:Date:From;
-        b=Ajliy1j2iP/A66yIwu9Zh7EV4VuZT048vjaJXM93FYcbi0p098uL0t/WnOdtvv55F
-         XauPqrFY0yQ2W+Llqq3INwJh1d9CYKvOxuYkmX7HCIsaCYlADZXWUOOnlufRiWaeft
-         +Ha4n3QthXljVFQrnwzg89vMx9F1WdEF3BQy5nBc=
-X-Riseup-User-ID: 7A021D95372E1169604E5B080C10FBBD4291A845EAFA3DA7373E0CFDCF643C80
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-         by capuchin.riseup.net (Postfix) with ESMTPSA id B84AA120698;
-        Sun, 15 Sep 2019 05:40:05 -0700 (PDT)
-From:   Fernando Fernandez Mancera <ffmancera@riseup.net>
-To:     netfilter-devel@vger.kernel.org
-Cc:     Fernando Fernandez Mancera <ffmancera@riseup.net>
-Subject: [PATCH nft] json: tests: fix typo in ct expectation json test
-Date:   Sun, 15 Sep 2019 14:39:55 +0200
-Message-Id: <20190915123955.1969-1-ffmancera@riseup.net>
+        id S1730825AbfIOQFW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 15 Sep 2019 12:05:22 -0400
+X-Amp-Result: UNKNOWN
+X-Amp-Original-Verdict: FILE UNKNOWN
+X-Amp-File-Uploaded: False
+Received: from fmsmga007.fm.intel.com ([10.253.24.52])
+  by orsmga104.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 15 Sep 2019 09:05:21 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.64,509,1559545200"; 
+   d="scan'208";a="186947704"
+Received: from lkp-server01.sh.intel.com (HELO lkp-server01) ([10.239.97.150])
+  by fmsmga007.fm.intel.com with ESMTP; 15 Sep 2019 09:05:20 -0700
+Received: from kbuild by lkp-server01 with local (Exim 4.89)
+        (envelope-from <lkp@intel.com>)
+        id 1i9X1b-000J6h-Tc; Mon, 16 Sep 2019 00:05:19 +0800
+Date:   Mon, 16 Sep 2019 00:04:28 +0800
+From:   kbuild test robot <lkp@intel.com>
+To:     wenxu <wenxu@ucloud.cn>
+Cc:     kbuild-all@01.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [nf-next:master 7/27] net/netfilter/nf_tables_offload.c:316
+ nft_flow_offload_chain() warn: always true condition '(policy != -1) =>
+ (0-255 != (-1))'
+Message-ID: <201909160022.dXjOfKz9%lkp@intel.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+X-Patchwork-Hint: ignore
+User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The correct form is "ct expectation" not "ct expect". That was causing the
-tests/py/ip/object.t json test to fail.
+tree:   https://kernel.googlesource.com/pub/scm/linux/kernel/git/pablo/nf-next.git master
+head:   0d32e7048d927418300b9f5415ca546e44621ef1
+commit: 8fc618c52d163baa7ae020e4c92474159b6006b7 [7/27] netfilter: nf_tables_offload: refactor the nft_flow_offload_chain function
 
-Fixes: 1dd08fcfa07a ("src: add ct expectations support")
-Signed-off-by: Fernando Fernandez Mancera <ffmancera@riseup.net>
+If you fix the issue, kindly add following tag
+Reported-by: kbuild test robot <lkp@intel.com>
+
+New smatch warnings:
+net/netfilter/nf_tables_offload.c:316 nft_flow_offload_chain() warn: always true condition '(policy != -1) => (0-255 != (-1))'
+
+Old smatch warnings:
+include/linux/compiler.h:226 __write_once_size() warn: potential memory corrupting cast 8 vs 4 bytes
+
+vim +316 net/netfilter/nf_tables_offload.c
+
+   296	
+   297	static int nft_flow_offload_chain(struct nft_chain *chain,
+   298					  u8 *ppolicy,
+   299					  enum flow_block_command cmd)
+   300	{
+   301		struct nft_base_chain *basechain;
+   302		struct net_device *dev;
+   303		u8 policy;
+   304	
+   305		if (!nft_is_base_chain(chain))
+   306			return -EOPNOTSUPP;
+   307	
+   308		basechain = nft_base_chain(chain);
+   309		dev = basechain->ops.dev;
+   310		if (!dev)
+   311			return -EOPNOTSUPP;
+   312	
+   313		policy = ppolicy ? *ppolicy : basechain->policy;
+   314	
+   315		/* Only default policy to accept is supported for now. */
+ > 316		if (cmd == FLOW_BLOCK_BIND && policy != -1 && policy != NF_ACCEPT)
+   317			return -EOPNOTSUPP;
+   318	
+   319		if (dev->netdev_ops->ndo_setup_tc)
+   320			return nft_block_offload_cmd(basechain, dev, cmd);
+   321		else
+   322			return nft_indr_block_offload_cmd(basechain, dev, cmd);
+   323	}
+   324	
+
 ---
- tests/py/ip/objects.t.json | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/tests/py/ip/objects.t.json b/tests/py/ip/objects.t.json
-index 634f192..a70dd9e 100644
---- a/tests/py/ip/objects.t.json
-+++ b/tests/py/ip/objects.t.json
-@@ -196,7 +196,7 @@
- # ct expectation set "ctexpect1"
- [
-     {
--        "ct expect": "ctexpect1"
-+        "ct expectation": "ctexpect1"
-     }
- ]
- 
--- 
-2.20.1
-
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
