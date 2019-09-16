@@ -2,76 +2,119 @@ Return-Path: <SRS0=EuAs=XL=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.0 required=3.0
-	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9F8BCC4CEC4
-	for <netfilter-devel@archiver.kernel.org>; Mon, 16 Sep 2019 00:05:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A6E62C49ED7
+	for <netfilter-devel@archiver.kernel.org>; Mon, 16 Sep 2019 07:33:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 79E142053B
-	for <netfilter-devel@archiver.kernel.org>; Mon, 16 Sep 2019 00:05:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7E7222067B
+	for <netfilter-devel@archiver.kernel.org>; Mon, 16 Sep 2019 07:33:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728884AbfIPAFg (ORCPT
+        id S1727505AbfIPHdl (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 15 Sep 2019 20:05:36 -0400
-Received: from tartarus.angband.pl ([54.37.238.230]:46714 "EHLO
-        tartarus.angband.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726502AbfIPAFg (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 15 Sep 2019 20:05:36 -0400
-Received: from [2a02:a31c:853f:a300::4] (helo=valinor.angband.pl)
-        by tartarus.angband.pl with esmtps (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
-        (Exim 4.92)
-        (envelope-from <kilobyte@angband.pl>)
-        id 1i9eWB-0003hj-CY; Mon, 16 Sep 2019 02:05:25 +0200
-Received: from kilobyte by valinor.angband.pl with local (Exim 4.92.2)
-        (envelope-from <kilobyte@valinor.angband.pl>)
-        id 1i9eWB-000MEv-3e; Mon, 16 Sep 2019 02:05:23 +0200
-From:   Adam Borowski <kilobyte@angband.pl>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Mon, 16 Sep 2019 03:33:41 -0400
+Received: from smtp.gentoo.org ([140.211.166.183]:34286 "EHLO smtp.gentoo.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725776AbfIPHdl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 16 Sep 2019 03:33:41 -0400
+Received: from sf.home (unknown [85.255.236.110])
+        (using TLSv1 with cipher ECDHE-RSA-AES128-SHA (128/128 bits))
+        (No client certificate requested)
+        (Authenticated sender: slyfox)
+        by smtp.gentoo.org (Postfix) with ESMTPSA id 547E034B21E;
+        Mon, 16 Sep 2019 07:33:40 +0000 (UTC)
+Received: by sf.home (Postfix, from userid 1000)
+        id 6671324CB5A47; Mon, 16 Sep 2019 08:33:33 +0100 (BST)
+From:   Sergei Trofimovich <slyfox@gentoo.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     Sergei Trofimovich <slyfox@gentoo.org>,
         Florian Westphal <fw@strlen.de>,
-        Roopa Prabhu <roopa@cumulusnetworks.com>,
-        Nikolay Aleksandrov <nikolay@cumulusnetworks.com>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org
-Cc:     Adam Borowski <kilobyte@angband.pl>
-Date:   Mon, 16 Sep 2019 02:05:16 +0200
-Message-Id: <20190916000517.45028-1-kilobyte@angband.pl>
+        Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH] nftables: don't crash in 'list ruleset' if policy is not set
+Date:   Mon, 16 Sep 2019 08:33:20 +0100
+Message-Id: <20190916073320.2799091-1-slyfox@gentoo.org>
 X-Mailer: git-send-email 2.23.0
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-SA-Exim-Connect-IP: 2a02:a31c:853f:a300::4
-X-SA-Exim-Mail-From: kilobyte@angband.pl
-Subject: [PATCH] netfilter: bridge: drop a broken include
-X-SA-Exim-Version: 4.2.1 (built Wed, 08 May 2019 21:11:16 +0000)
-X-SA-Exim-Scanned: Yes (on tartarus.angband.pl)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This caused a build failure if CONFIG_NF_CONNTRACK_BRIDGE is set but
-CONFIG_NF_TABLES=n -- and appears to be unused anyway.
+Minimal reproducer:
 
-Signed-off-by: Adam Borowski <kilobyte@angband.pl>
+```
+  $ cat nft.ruleset
+    # filters
+    table inet filter {
+        chain prerouting {
+            type filter hook prerouting priority -50
+        }
+    }
+
+    # dump new state
+    list ruleset
+
+  $ nft -c -f ./nft.ruleset
+    table inet filter {
+    chain prerouting {
+    Segmentation fault (core dumped)
+```
+
+The crash happens in `chain_print_declaration()`:
+
+```
+    if (chain->flags & CHAIN_F_BASECHAIN) {
+        mpz_export_data(&policy, chain->policy->value,
+                        BYTEORDER_HOST_ENDIAN, sizeof(int));
+```
+
+Here `chain->policy` is `NULL` (as textual rule does not mention it).
+
+The change is not to print the policy if it's not set
+(similar to `chain_evaluate()` handling).
+
+CC: Florian Westphal <fw@strlen.de>
+CC: Pablo Neira Ayuso <pablo@netfilter.org>
+CC: netfilter-devel@vger.kernel.org
+Bug: https://bugzilla.netfilter.org/show_bug.cgi?id=1365
+Signed-off-by: Sergei Trofimovich <slyfox@gentoo.org>
 ---
- net/bridge/netfilter/nf_conntrack_bridge.c | 1 -
- 1 file changed, 1 deletion(-)
+ src/rule.c | 14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
 
-diff --git a/net/bridge/netfilter/nf_conntrack_bridge.c b/net/bridge/netfilter/nf_conntrack_bridge.c
-index 4f5444d2a526..844ef5a53f87 100644
---- a/net/bridge/netfilter/nf_conntrack_bridge.c
-+++ b/net/bridge/netfilter/nf_conntrack_bridge.c
-@@ -18,7 +18,6 @@
- 
- #include <linux/netfilter/nf_tables.h>
- #include <net/netfilter/ipv6/nf_defrag_ipv6.h>
--#include <net/netfilter/nf_tables.h>
- 
- #include "../br_private.h"
+diff --git a/src/rule.c b/src/rule.c
+index 5bb1c1d3..0cc1fa59 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -1107,17 +1107,21 @@ static void chain_print_declaration(const struct chain *chain,
+ 		nft_print(octx, " # handle %" PRIu64, chain->handle.handle.id);
+ 	nft_print(octx, "\n");
+ 	if (chain->flags & CHAIN_F_BASECHAIN) {
+-		mpz_export_data(&policy, chain->policy->value,
+-				BYTEORDER_HOST_ENDIAN, sizeof(int));
+ 		nft_print(octx, "\t\ttype %s hook %s", chain->type,
+ 			  hooknum2str(chain->handle.family, chain->hooknum));
+ 		if (chain->dev != NULL)
+ 			nft_print(octx, " device \"%s\"", chain->dev);
+-		nft_print(octx, " priority %s; policy %s;\n",
++		nft_print(octx, " priority %s;",
+ 			  prio2str(octx, priobuf, sizeof(priobuf),
+ 				   chain->handle.family, chain->hooknum,
+-				   chain->priority.expr),
+-			  chain_policy2str(policy));
++				   chain->priority.expr));
++		if (chain->policy) {
++			mpz_export_data(&policy, chain->policy->value,
++					BYTEORDER_HOST_ENDIAN, sizeof(int));
++			nft_print(octx, " policy %s;",
++				  chain_policy2str(policy));
++		}
++		nft_print(octx, "\n");
+ 	}
+ }
  
 -- 
 2.23.0
