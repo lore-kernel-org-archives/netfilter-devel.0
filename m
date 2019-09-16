@@ -2,107 +2,83 @@ Return-Path: <SRS0=EuAs=XL=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.5 required=3.0 tests=DKIM_ADSP_CUSTOM_MED,
-	FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E904C49ED7
-	for <netfilter-devel@archiver.kernel.org>; Mon, 16 Sep 2019 10:24:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B4337C49ED7
+	for <netfilter-devel@archiver.kernel.org>; Mon, 16 Sep 2019 12:42:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id DC253206C2
-	for <netfilter-devel@archiver.kernel.org>; Mon, 16 Sep 2019 10:24:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 56E6A20665
+	for <netfilter-devel@archiver.kernel.org>; Mon, 16 Sep 2019 12:42:10 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="JPn+dzj5"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727700AbfIPKYs (ORCPT
+        id S1727964AbfIPMmJ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 16 Sep 2019 06:24:48 -0400
-Received: from 195-154-211-226.rev.poneytelecom.eu ([195.154.211.226]:42274
-        "EHLO flash.glorub.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725850AbfIPKYs (ORCPT
+        Mon, 16 Sep 2019 08:42:09 -0400
+Received: from kadath.azazel.net ([81.187.231.250]:44740 "EHLO
+        kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727872AbfIPMmI (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 16 Sep 2019 06:24:48 -0400
-Received: from eric by flash.glorub.net with local (Exim 4.89)
-        (envelope-from <ejallot@gmail.com>)
-        id 1i9oBa-0009qg-Kq; Mon, 16 Sep 2019 12:24:46 +0200
-From:   Eric Jallot <ejallot@gmail.com>
-To:     netfilter-devel@vger.kernel.org
-Cc:     Eric Jallot <ejallot@gmail.com>
-Subject: [PATCH nft v2] src: parser_json: fix crash while restoring secmark object
-Date:   Mon, 16 Sep 2019 12:24:44 +0200
-Message-Id: <20190916102444.37776-1-ejallot@gmail.com>
-X-Mailer: git-send-email 2.11.0
+        Mon, 16 Sep 2019 08:42:08 -0400
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
+         s=20190108; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
+        Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=19IMJlb1CPUT8A9KNa6qlTK8ne4IbOWpM9XVrHpqHDc=; b=JPn+dzj5QTp0ZPZH4ISpF+mWyk
+        zjqqlj3eWEnI8ANuca5djs8zd1QhYPuzpyTpEW9dbZA6lBUfpUVQm8hKiDumdUgs4eutyiuCcQbtP
+        y+BYiuFI5X2SvN4X3cZMh2Dn9JIKf9poyKi7raAV99pifzVC6A3HBUuu/tXnPQlEDXVgJjlWFMoSf
+        E2zdeqT/fUJ88lwxq0SbINjRlzeS/SZloKrUirHr7FgAimiaTcuic/nmNOU6k09o99fAayC1RJntl
+        wiQytvF5hnxtYZpbj4N3XQ0bvu91rrPnLmkW7UJmhpIQvObxSuPNgFHRKft8fI8px1wXHJRgVAk/t
+        7fRuhzmg==;
+Received: from ulthar.dreamlands ([192.168.96.2])
+        by kadath.azazel.net with esmtp (Exim 4.92)
+        (envelope-from <jeremy@azazel.net>)
+        id 1i9qKS-0005OR-Gx; Mon, 16 Sep 2019 13:42:04 +0100
+From:   Jeremy Sowden <jeremy@azazel.net>
+To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
+Cc:     Sebastian Priebe <sebastian.priebe@de.sii.group>
+Subject: [PATCH RFC nftables 2/4] cli: remove unused declaration.
+Date:   Mon, 16 Sep 2019 13:42:01 +0100
+Message-Id: <20190916124203.31380-3-jeremy@azazel.net>
+X-Mailer: git-send-email 2.23.0
+In-Reply-To: <20190916124203.31380-1-jeremy@azazel.net>
+References: <4df20614cd10434b9f91080d0862dd0c@de.sii.group>
+ <20190916124203.31380-1-jeremy@azazel.net>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+X-SA-Exim-Connect-IP: 192.168.96.2
+X-SA-Exim-Mail-From: jeremy@azazel.net
+X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Before patch:
- # nft -j list ruleset | tee rules.json | jq '.'
- {
-   "nftables": [
-     {
-       "metainfo": {
-         "version": "0.9.2",
-         "release_name": "Scram",
-         "json_schema_version": 1
-       }
-     },
-     {
-       "table": {
-         "family": "inet",
-         "name": "t",
-         "handle": 11
-       }
-     },
-     {
-       "secmark": {
-         "family": "inet",
-         "name": "s",
-         "table": "t",
-         "handle": 1,
-         "context": "system_u:object_r:ssh_server_packet_t:s0"
-       }
-     }
-   ]
- }
+cli.h includes a forward declaration of struct parser_state which is not
+needed.  Remove it.
 
- # nft flush ruleset
- # nft -j -f rules.json
- Segmentation fault
-
-Use "&tmp" instead of "tmp" in json_unpack() while translating "context" keyword.
-
-After patch:
- # nft -j -f rules.json
- # nft list ruleset
- table inet t {
-         secmark s {
-                 "system_u:object_r:ssh_server_packet_t:s0"
-         }
- }
-
-Fixes: 3bc84e5c1fdd1 ("src: add support for setting secmark")
-Signed-off-by: Eric Jallot <ejallot@gmail.com>
+Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 ---
-v1: Initial patch.
-v2: Missing table creation. Use 'ruleset' instead of 'secmarks' to dump rules.
+ include/cli.h | 1 -
+ 1 file changed, 1 deletion(-)
 
- src/parser_json.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/src/parser_json.c b/src/parser_json.c
-index 5dd410af4b07..bc29dedf5b4c 100644
---- a/src/parser_json.c
-+++ b/src/parser_json.c
-@@ -3093,7 +3093,7 @@ static struct cmd *json_parse_cmd_add_object(struct json_ctx *ctx,
- 		break;
- 	case CMD_OBJ_SECMARK:
- 		obj->type = NFT_OBJECT_SECMARK;
--		if (!json_unpack(root, "{s:s}", "context", tmp)) {
-+		if (!json_unpack(root, "{s:s}", "context", &tmp)) {
- 			int ret;
- 			ret = snprintf(obj->secmark.ctx, sizeof(obj->secmark.ctx), "%s", tmp);
- 			if (ret < 0 || ret >= (int)sizeof(obj->secmark.ctx)) {
+diff --git a/include/cli.h b/include/cli.h
+index c1819d464327..023f004b8dab 100644
+--- a/include/cli.h
++++ b/include/cli.h
+@@ -4,7 +4,6 @@
+ #include <nftables/libnftables.h>
+ #include <config.h>
+ 
+-struct parser_state;
+ #ifdef HAVE_LIBREADLINE
+ extern int cli_init(struct nft_ctx *nft);
+ #else
 -- 
-2.11.0
+2.23.0
 
