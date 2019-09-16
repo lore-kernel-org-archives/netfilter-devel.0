@@ -6,29 +6,29 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C1388C49ED7
-	for <netfilter-devel@archiver.kernel.org>; Mon, 16 Sep 2019 16:50:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6CFE2C49ED7
+	for <netfilter-devel@archiver.kernel.org>; Mon, 16 Sep 2019 16:50:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9E616214D9
-	for <netfilter-devel@archiver.kernel.org>; Mon, 16 Sep 2019 16:50:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4A9DC214D9
+	for <netfilter-devel@archiver.kernel.org>; Mon, 16 Sep 2019 16:50:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2390260AbfIPQuh (ORCPT
+        id S2390245AbfIPQum (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 16 Sep 2019 12:50:37 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:51178 "EHLO orbyte.nwl.cc"
+        Mon, 16 Sep 2019 12:50:42 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:51184 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729084AbfIPQuh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 16 Sep 2019 12:50:37 -0400
-Received: from localhost ([::1]:36036 helo=tatos)
+        id S1729084AbfIPQum (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 16 Sep 2019 12:50:42 -0400
+Received: from localhost ([::1]:36042 helo=tatos)
         by orbyte.nwl.cc with esmtp (Exim 4.91)
         (envelope-from <phil@nwl.cc>)
-        id 1i9uCx-0003oP-KW; Mon, 16 Sep 2019 18:50:35 +0200
+        id 1i9uD2-0003ol-U5; Mon, 16 Sep 2019 18:50:40 +0200
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH 04/14] nft: Use nftnl_*_set_str() functions
-Date:   Mon, 16 Sep 2019 18:49:50 +0200
-Message-Id: <20190916165000.18217-5-phil@nwl.cc>
+Subject: [iptables PATCH 06/14] nft: Fix for add and delete of same rule in single batch
+Date:   Mon, 16 Sep 2019 18:49:52 +0200
+Message-Id: <20190916165000.18217-7-phil@nwl.cc>
 X-Mailer: git-send-email 2.23.0
 In-Reply-To: <20190916165000.18217-1-phil@nwl.cc>
 References: <20190916165000.18217-1-phil@nwl.cc>
@@ -39,100 +39,97 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Although it doesn't make a difference in practice, they are the correct
-API functions to use when assigning string attributes.
+Another corner-case found when extending restore ordering test: If a
+delete command in a dump referenced a rule added earlier within the same
+dump, kernel would reject the resulting NFT_MSG_DELRULE command.
 
-While doing so, also drop the needless casts to non-const.
+Catch this by assigning the rule to delete a RULE_ID value if it doesn't
+have a handle yet. Since __nft_rule_del() does not duplicate the
+nftnl_rule object when creating the NFT_COMPAT_RULE_DELETE command, this
+RULE_ID value is added to both NEWRULE and DELRULE commands - exactly
+what is needed to establish the reference.
 
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- iptables/nft.c | 28 ++++++++++++++--------------
- 1 file changed, 14 insertions(+), 14 deletions(-)
+ iptables/nft.c                                 |  3 +++
+ .../ipt-restore/0003-restore-ordering_0        | 18 +++++++++++++-----
+ 2 files changed, 16 insertions(+), 5 deletions(-)
 
 diff --git a/iptables/nft.c b/iptables/nft.c
-index ae3740be6bed5..81d01310c7f8c 100644
+index 77ebc4f651e15..6248b9eb10a85 100644
 --- a/iptables/nft.c
 +++ b/iptables/nft.c
-@@ -662,7 +662,7 @@ static int nft_table_builtin_add(struct nft_handle *h,
- 	if (t == NULL)
- 		return -1;
+@@ -2199,6 +2199,9 @@ static int __nft_rule_del(struct nft_handle *h, struct nftnl_rule *r)
  
--	nftnl_table_set(t, NFTNL_TABLE_NAME, (char *)_t->name);
-+	nftnl_table_set_str(t, NFTNL_TABLE_NAME, _t->name);
+ 	nftnl_rule_list_del(r);
  
- 	ret = batch_table_add(h, NFT_COMPAT_TABLE_ADD, t) ? 0 : - 1;
- 
-@@ -679,12 +679,12 @@ nft_chain_builtin_alloc(const struct builtin_table *table,
- 	if (c == NULL)
- 		return NULL;
- 
--	nftnl_chain_set(c, NFTNL_CHAIN_TABLE, (char *)table->name);
--	nftnl_chain_set(c, NFTNL_CHAIN_NAME, (char *)chain->name);
-+	nftnl_chain_set_str(c, NFTNL_CHAIN_TABLE, table->name);
-+	nftnl_chain_set_str(c, NFTNL_CHAIN_NAME, chain->name);
- 	nftnl_chain_set_u32(c, NFTNL_CHAIN_HOOKNUM, chain->hook);
- 	nftnl_chain_set_u32(c, NFTNL_CHAIN_PRIO, chain->prio);
- 	nftnl_chain_set_u32(c, NFTNL_CHAIN_POLICY, policy);
--	nftnl_chain_set(c, NFTNL_CHAIN_TYPE, (char *)chain->type);
-+	nftnl_chain_set_str(c, NFTNL_CHAIN_TYPE, chain->type);
- 
- 	return c;
- }
-@@ -1250,8 +1250,8 @@ nft_rule_new(struct nft_handle *h, const char *chain, const char *table,
- 		return NULL;
- 
- 	nftnl_rule_set_u32(r, NFTNL_RULE_FAMILY, h->family);
--	nftnl_rule_set(r, NFTNL_RULE_TABLE, (char *)table);
--	nftnl_rule_set(r, NFTNL_RULE_CHAIN, (char *)chain);
-+	nftnl_rule_set_str(r, NFTNL_RULE_TABLE, table);
-+	nftnl_rule_set_str(r, NFTNL_RULE_CHAIN, chain);
- 
- 	if (h->ops->add(r, data) < 0)
- 		goto err;
-@@ -1768,8 +1768,8 @@ __nft_rule_flush(struct nft_handle *h, const char *table,
- 	if (r == NULL)
- 		return;
- 
--	nftnl_rule_set(r, NFTNL_RULE_TABLE, (char *)table);
--	nftnl_rule_set(r, NFTNL_RULE_CHAIN, (char *)chain);
-+	nftnl_rule_set_str(r, NFTNL_RULE_TABLE, table);
-+	nftnl_rule_set_str(r, NFTNL_RULE_CHAIN, chain);
- 
- 	obj = batch_rule_add(h, NFT_COMPAT_RULE_FLUSH, r);
++	if (!nftnl_rule_get_u64(r, NFTNL_RULE_HANDLE))
++		nftnl_rule_set_u32(r, NFTNL_RULE_ID, ++h->rule_id);
++
+ 	obj = batch_rule_add(h, NFT_COMPAT_RULE_DELETE, r);
  	if (!obj) {
-@@ -1850,8 +1850,8 @@ int nft_chain_user_add(struct nft_handle *h, const char *chain, const char *tabl
- 	if (c == NULL)
- 		return 0;
+ 		nftnl_rule_free(r);
+diff --git a/iptables/tests/shell/testcases/ipt-restore/0003-restore-ordering_0 b/iptables/tests/shell/testcases/ipt-restore/0003-restore-ordering_0
+index 51f2422e15259..3f1d229e915ff 100755
+--- a/iptables/tests/shell/testcases/ipt-restore/0003-restore-ordering_0
++++ b/iptables/tests/shell/testcases/ipt-restore/0003-restore-ordering_0
+@@ -14,7 +14,7 @@ ipt_show() {
  
--	nftnl_chain_set(c, NFTNL_CHAIN_TABLE, (char *)table);
--	nftnl_chain_set(c, NFTNL_CHAIN_NAME, (char *)chain);
-+	nftnl_chain_set_str(c, NFTNL_CHAIN_TABLE, table);
-+	nftnl_chain_set_str(c, NFTNL_CHAIN_NAME, chain);
- 	if (h->family == NFPROTO_BRIDGE)
- 		nftnl_chain_set_u32(c, NFTNL_CHAIN_POLICY, NF_ACCEPT);
+ $XT_MULTI iptables-restore <<EOF
+ *filter
+--A FORWARD -m comment --comment "appended rule" -j ACCEPT
++-A FORWARD -m comment --comment "rule 4" -j ACCEPT
+ -I FORWARD 1 -m comment --comment "rule 1" -j ACCEPT
+ -I FORWARD 2 -m comment --comment "rule 2" -j ACCEPT
+ -I FORWARD 3 -m comment --comment "rule 3" -j ACCEPT
+@@ -24,7 +24,7 @@ EOF
+ EXPECT='-A FORWARD -m comment --comment "rule 1" -j ACCEPT
+ -A FORWARD -m comment --comment "rule 2" -j ACCEPT
+ -A FORWARD -m comment --comment "rule 3" -j ACCEPT
+--A FORWARD -m comment --comment "appended rule" -j ACCEPT'
++-A FORWARD -m comment --comment "rule 4" -j ACCEPT'
  
-@@ -1884,8 +1884,8 @@ int nft_chain_restore(struct nft_handle *h, const char *chain, const char *table
- 		if (!c)
- 			return -1;
+ diff -u -Z <(echo -e "$EXPECT") <(ipt_show)
  
--		nftnl_chain_set(c, NFTNL_CHAIN_TABLE, (char *)table);
--		nftnl_chain_set(c, NFTNL_CHAIN_NAME, (char *)chain);
-+		nftnl_chain_set_str(c, NFTNL_CHAIN_TABLE, table);
-+		nftnl_chain_set_str(c, NFTNL_CHAIN_NAME, chain);
- 		created = true;
- 	}
+@@ -32,11 +32,14 @@ diff -u -Z <(echo -e "$EXPECT") <(ipt_show)
  
-@@ -2034,8 +2034,8 @@ int nft_chain_user_rename(struct nft_handle *h,const char *chain,
- 	if (c == NULL)
- 		return 0;
+ $XT_MULTI iptables-restore --noflush <<EOF
+ *filter
++-A FORWARD -m comment --comment "rule 5" -j ACCEPT
+ -I FORWARD 1 -m comment --comment "rule 0.5" -j ACCEPT
+ -I FORWARD 3 -m comment --comment "rule 1.5" -j ACCEPT
+ -I FORWARD 5 -m comment --comment "rule 2.5" -j ACCEPT
+ -I FORWARD 7 -m comment --comment "rule 3.5" -j ACCEPT
+--I FORWARD 9 -m comment --comment "appended rule 2" -j ACCEPT
++-I FORWARD 9 -m comment --comment "rule 4.5" -j ACCEPT
++-I FORWARD 11 -m comment --comment "rule 5.5" -j ACCEPT
++-A FORWARD -m comment --comment "rule 6" -j ACCEPT
+ COMMIT
+ EOF
  
--	nftnl_chain_set(c, NFTNL_CHAIN_TABLE, (char *)table);
--	nftnl_chain_set(c, NFTNL_CHAIN_NAME, (char *)newname);
-+	nftnl_chain_set_str(c, NFTNL_CHAIN_TABLE, table);
-+	nftnl_chain_set_str(c, NFTNL_CHAIN_NAME, newname);
- 	nftnl_chain_set_u64(c, NFTNL_CHAIN_HANDLE, handle);
+@@ -47,8 +50,11 @@ EXPECT='-A FORWARD -m comment --comment "rule 0.5" -j ACCEPT
+ -A FORWARD -m comment --comment "rule 2.5" -j ACCEPT
+ -A FORWARD -m comment --comment "rule 3" -j ACCEPT
+ -A FORWARD -m comment --comment "rule 3.5" -j ACCEPT
+--A FORWARD -m comment --comment "appended rule" -j ACCEPT
+--A FORWARD -m comment --comment "appended rule 2" -j ACCEPT'
++-A FORWARD -m comment --comment "rule 4" -j ACCEPT
++-A FORWARD -m comment --comment "rule 4.5" -j ACCEPT
++-A FORWARD -m comment --comment "rule 5" -j ACCEPT
++-A FORWARD -m comment --comment "rule 5.5" -j ACCEPT
++-A FORWARD -m comment --comment "rule 6" -j ACCEPT'
  
- 	ret = batch_chain_add(h, NFT_COMPAT_CHAIN_RENAME, c);
+ diff -u -Z <(echo -e "$EXPECT") <(ipt_show)
+ 
+@@ -78,6 +84,8 @@ diff -u -Z <(echo -e "$EXPECT") <(ipt_show)
+ 
+ $XT_MULTI iptables-restore --noflush <<EOF
+ *filter
++-A FORWARD -m comment --comment "appended rule 4" -j ACCEPT
++-D FORWARD 7
+ -D FORWARD -m comment --comment "appended rule 1" -j ACCEPT
+ -D FORWARD 3
+ -I FORWARD 3 -m comment --comment "manually replaced rule 2" -j ACCEPT
 -- 
 2.23.0
 
