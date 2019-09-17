@@ -2,127 +2,148 @@ Return-Path: <SRS0=KcvN=XM=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.1 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_2 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A4DE4C4CEC9
-	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Sep 2019 14:59:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C8AA5C4CECD
+	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Sep 2019 18:44:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7832721852
-	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Sep 2019 14:59:17 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="VEpq3EXK"
+	by mail.kernel.org (Postfix) with ESMTP id AAA762054F
+	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Sep 2019 18:44:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728889AbfIQO7R (ORCPT
+        id S1727447AbfIQSot (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 17 Sep 2019 10:59:17 -0400
-Received: from kadath.azazel.net ([81.187.231.250]:50678 "EHLO
-        kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727820AbfIQO7R (ORCPT
+        Tue, 17 Sep 2019 14:44:49 -0400
+Received: from smtp-out-2.tiscali.co.uk ([62.24.135.130]:51935 "EHLO
+        smtp-out-2.tiscali.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726283AbfIQSot (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 17 Sep 2019 10:59:17 -0400
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-         s=20190108; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-        Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=C8TQmvkPKAOAup0/mB2BEf4yrtgGv/WnkEAhPEPVr8g=; b=VEpq3EXKynSpDcVtK4UoA4wcCv
-        hoEbEZmsb4FPXYyKe1ClB+clBkYSP+a9eMwxzBmExTKstbDO5dD3VTROPfxCbJJFnxBQhJRmEAcWZ
-        sDkILC17JL106f2HCmj5HxvF1FkaKJSZd3mxHLnnu5Z9oCo1wdCMzVmLH1NRgxXGRP6yHX1x2gMVL
-        Ztnjl7R/eK12IAvpH6bEIcrivpT5L2Rzou+D02ToI6jrzXyt0KyQiMQtvmjvaP7mSbT0dNEAOHQAt
-        +5m53iLxT61OTkV2HYJZkZZVbV3ST9yoskXLuV1LYbb9121VCKnibraWSdPMP9oxmJEn/ySLGy/Ut
-        FTueFv/A==;
-Received: from pnakotus.dreamlands ([192.168.96.5] helo=azazel.net)
-        by kadath.azazel.net with esmtpsa (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
-        (Exim 4.92)
-        (envelope-from <jeremy@azazel.net>)
-        id 1iAEwe-0008LI-7J; Tue, 17 Sep 2019 15:59:08 +0100
-Date:   Tue, 17 Sep 2019 15:59:08 +0100
-From:   Jeremy Sowden <jeremy@azazel.net>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Adam Borowski <kilobyte@angband.pl>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        Roopa Prabhu <roopa@cumulusnetworks.com>,
-        Nikolay Aleksandrov <nikolay@cumulusnetworks.com>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org
-Subject: Re: [PATCH] netfilter: bridge: drop a broken include
-Message-ID: <20190917145907.GA2241@azazel.net>
-References: <20190916000517.45028-1-kilobyte@angband.pl>
- <20190916130811.GA29776@azazel.net>
- <20190917050946.kmzajvqh3kjr4ch5@salvia>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="Nq2Wo0NMKNjxTN9z"
-Content-Disposition: inline
-In-Reply-To: <20190917050946.kmzajvqh3kjr4ch5@salvia>
-User-Agent: Mutt/1.10.1 (2018-07-13)
-X-SA-Exim-Connect-IP: 192.168.96.5
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
+        Tue, 17 Sep 2019 14:44:49 -0400
+X-Greylist: delayed 487 seconds by postgrey-1.27 at vger.kernel.org; Tue, 17 Sep 2019 14:44:49 EDT
+Received: from nabal.armitage.org.uk ([92.27.6.192])
+        by smtp.talktalk.net with SMTP
+        id AILAiDjj5UgmGAILAiwQsB; Tue, 17 Sep 2019 19:36:40 +0100
+X-Originating-IP: [92.27.6.192]
+Received: from localhost (localhost.localdomain [127.0.0.1])
+        by nabal.armitage.org.uk (Postfix) with ESMTP id 05D9EE0509;
+        Tue, 17 Sep 2019 19:36:38 +0100 (BST)
+X-Virus-Scanned: amavisd-new at armitage.org.uk
+Received: from nabal.armitage.org.uk ([127.0.0.1])
+        by localhost (nabal.armitage.org.uk [127.0.0.1]) (amavisd-new, port 10024)
+        with LMTP id MweI300X0lcv; Tue, 17 Sep 2019 19:36:34 +0100 (BST)
+Received: from samson.armitage.org.uk (samson.armitage.org.uk [IPv6:2001:470:69dd:35::210])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by nabal.armitage.org.uk (Postfix) with ESMTPSA id 6A4E7E02D2;
+        Tue, 17 Sep 2019 19:36:34 +0100 (BST)
+Message-ID: <1568745392.3595.107.camel@armitage.org.uk>
+Subject: [PATCH] extensions: fix iptables-{nft,translate} with conntrack
+ EXPECTED
+From:   Quentin Armitage <quentin@armitage.org.uk>
+Reply-To: quentin@armitage.org.uk
+To:     netfilter-devel@vger.kernel.org
+Cc:     Quentin Armitage <quentin@armitage.org.uk>
+Date:   Tue, 17 Sep 2019 19:36:32 +0100
+Organization: The Armitage family
+Content-Type: text/plain; charset="UTF-8"
+X-Mailer: Evolution 3.24.6 (3.24.6-1.fc26) 
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
+X-CMAE-Envelope: MS4wfDuoU3I1WN8uNX6JQ0nze6Bu6R2Nnxxk18PcicHfbqbgpFuMYZ4tSm5UIirA4KTnnrEVVzTyQn5b7c9f/bQJVmFs5zIe2qLX/t5QZ/2yZUrdWPAjILcz
+ VwI7Rv8AKs2eiKIwif8XEvfc6uOHxOUale6fBTpeD8b9j/RR5rVFv7XBVQ40rKd7RV3YFwKPvxVQ+14CJFdNlazjugssw3XjcqY=
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+iptables-translate -A INPUT -m conntrack --ctstatus EXPECTED,ASSURED
+  outputs:
+nft add rule ip filter INPUT ct status expected,assured counter
+  and
+iptables-nft -A INPUT -m conntrack --ctstatus EXPECTED,ASSURED
+  produces nft list output:
+chain INPUT {
+	ct status expected,assured counter packets 0 bytes 0 accept
+}
+which are correct.
 
---Nq2Wo0NMKNjxTN9z
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+However,
+iptables-translate -A INPUT -m conntrack --ctstatus EXPECTED
+  outputs:
+nft # -A INPUT -m conntrack --ctstatus EXPECTED
+  and
+iptables-nft -A INPUT -m conntrack --ctstatus EXPECTED
+  produces nft list output:
+chain INPUT {
+          counter packets 0 bytes 0 accept
+}
+neither of which is what is desired.
 
-On 2019-09-17, at 07:09:46 +0200, Pablo Neira Ayuso wrote:
-> On Mon, Sep 16, 2019 at 02:08:12PM +0100, Jeremy Sowden wrote:
-> > On 2019-09-16, at 02:05:16 +0200, Adam Borowski wrote:
-> > > This caused a build failure if CONFIG_NF_CONNTRACK_BRIDGE is set
-> > > but CONFIG_NF_TABLES=3Dn -- and appears to be unused anyway.
-> [...]
-> > There are already changes in the net-next tree that will fix it.
->
-> If the fix needs to go to -stable 5.3 kernel release, then you have to
-> point to the particular commit ID of this patch to fix this one.
-> net-next contains 5.4-rc material. I'd appreciate also if you can help
-> identify the patch with a Fixes: tag.
+Commit 6223ead0d - "extensions: libxt_conntrack: Add translation to nft"
+included the following code in _conntrack3_mt_xlate():
+	if (sinfo->match_flags & XT_CONNTRACK_STATUS) {
+		if (sinfo->status_mask == 1)
+			return 0;
+		...
 
-The commit in the mainline that needs fixing is:
+If the intention had been not to produce output when status_mask == 1,
+it would have been written as:
+                if (sinfo->status_mask == IPS_EXPECTED)
+                        return 0;
+so it looks as though this is debugging code accidently left in the
+original patch.
 
-  3c171f496ef5 ("netfilter: bridge: add connection tracking system")
+Removing the lines:
+                if (sinfo->status_mask == 1)
+                        return 0;
+resolves the problems, and
+iptables-translate -A INPUT -m conntrack --ctstatus EXPECTED
+  outputs:
+nft add rule ip filter INPUT ct status expected counter
+  and
+iptables-nft -A INPUT -m conntrack --ctstatus EXPECTED
+  produces nft list output:
+chain INPUT {
+        ct status expected counter packets 0 bytes 0 accept
+}
 
-The commit in net-next that fixes it is:
+This commit also includes an additional txlate test to check when
+only the status EXPECTED is specified.
 
-  47e640af2e49 ("netfilter: add missing IS_ENABLED(CONFIG_NF_TABLES) check =
-to header-file.")
+Signed-off-by: Quentin Armitage <quentin@armitage.org.uk>
+---
+ extensions/libxt_conntrack.c      | 2 --
+ extensions/libxt_conntrack.txlate | 3 +++
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
-I applied it to the mainline and compile-tested it to verify that it
-does indeed fix the build failure.
+diff --git a/extensions/libxt_conntrack.c b/extensions/libxt_conntrack.c
+index 1817d335..6f350393 100644
+--- a/extensions/libxt_conntrack.c
++++ b/extensions/libxt_conntrack.c
+@@ -1257,8 +1257,6 @@ static int _conntrack3_mt_xlate(struct xt_xlate *xl,
+ 	}
+ 
+ 	if (sinfo->match_flags & XT_CONNTRACK_STATUS) {
+-		if (sinfo->status_mask == 1)
+-			return 0;
+ 		xt_xlate_add(xl, "%sct status %s", space,
+ 			     sinfo->invert_flags & XT_CONNTRACK_STATUS ?
+ 			     "!= " : "");
+diff --git a/extensions/libxt_conntrack.txlate b/extensions/libxt_conntrack.txlate
+index e35d5ce8..8a3d0181 100644
+--- a/extensions/libxt_conntrack.txlate
++++ b/extensions/libxt_conntrack.txlate
+@@ -28,6 +28,9 @@ nft add rule ip filter INPUT ct reply daddr 10.100.2.131 counter accept
+ iptables-translate -t filter -A INPUT -m conntrack --ctproto tcp --ctorigsrcport 443:444 -j ACCEPT
+ nft add rule ip filter INPUT ct original protocol 6 ct original proto-src 443-444 counter accept
+ 
++iptables-translate -t filter -A INPUT -m conntrack --ctstatus EXPECTED -j ACCEPT
++nft add rule ip filter INPUT ct status expected counter accept
++
+ iptables-translate -t filter -A INPUT -m conntrack ! --ctstatus CONFIRMED -j ACCEPT
+ nft add rule ip filter INPUT ct status != confirmed counter accept
+ 
+-- 
+2.23.0
 
-=46rom my reading of stable-kernel-rules.rst and netdev-FAQ.rst, it
-appears that the fix should come from the mainline, so I will wait for
-it to get there.
-
-J.
-
---Nq2Wo0NMKNjxTN9z
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEEZ8d+2N/NBLDbUxIF0Z7UzfnX9sMFAl2A9K8ACgkQ0Z7UzfnX
-9sMMfg//UW4T21PuLvesjUcpNbOxecnpOHRVWY5SGHpeVpgW7aO+PLxxNswwNA8E
-icSuIznj2J/EyHg9ZDeUrd6VqTxWxmQeqkhYJ3G9geLkI2bqDtxXW6dIuSD04FPB
-wIQ24eC8phPjlvwWkraWET9reEq8WNgc+ekCaE+7+9WyQBPa8x0r1jEJlSvcfPiH
-xDPiwecuoYaJSusZkkW888eF1tFPYML+QGIXrBT7bQOA7tO8PtrLqGnXGFlh8OIa
-EwvYTsA47b6UvDR99UVXPvGsjDzCOBGF0tKRpO5ghgq/O9rnbUt9tvb+njHU10ff
-/RJTvKNMNPaWTbjM/SCTnkCRXx6qgZhFk8DclJHJRLiYoiRkFwsMx18lGS/dzmd7
-Yf9RXkKXFjixCwOJojUfKjDWc+JS8KOq1HlA6QCGffaqEaJQB+o2uEzxtrmIOr2I
-nhly+fgfHTqvQoyWM0lLlibR/S/8sNm3gqOmsKrTNY9oZCx9zHFjPOsI7/GtGSQC
-BRJbVWj7egsBMAQJP37hNcAoyvPbwpfkm3jt6n/yilKlmXvQkbU8+Pz5NrYx42xM
-XKLw/lmmEXgWd1924Si31NWllVK1MVerquNWe/1JPkKV4EFAR08z2iNEXd6TLtAk
-YII6g7O8yT2FwAGJfqy8kW/2SlEve4YE5pnxtnhoV3BWN0XaBVo=
-=bzR5
------END PGP SIGNATURE-----
-
---Nq2Wo0NMKNjxTN9z--
