@@ -2,71 +2,127 @@ Return-Path: <SRS0=KcvN=XM=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.1 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D19C6C4CEC9
-	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Sep 2019 14:08:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A4DE4C4CEC9
+	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Sep 2019 14:59:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id AD9E1206C2
-	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Sep 2019 14:08:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7832721852
+	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Sep 2019 14:59:17 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="VEpq3EXK"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726621AbfIQOI0 (ORCPT
+        id S1728889AbfIQO7R (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 17 Sep 2019 10:08:26 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:53726 "EHLO orbyte.nwl.cc"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726404AbfIQOI0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 17 Sep 2019 10:08:26 -0400
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.91)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1iAE9Y-0005Y3-8E; Tue, 17 Sep 2019 16:08:24 +0200
-Date:   Tue, 17 Sep 2019 16:08:24 +0200
-From:   Phil Sutter <phil@nwl.cc>
+        Tue, 17 Sep 2019 10:59:17 -0400
+Received: from kadath.azazel.net ([81.187.231.250]:50678 "EHLO
+        kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727820AbfIQO7R (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 17 Sep 2019 10:59:17 -0400
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
+         s=20190108; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+        Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=C8TQmvkPKAOAup0/mB2BEf4yrtgGv/WnkEAhPEPVr8g=; b=VEpq3EXKynSpDcVtK4UoA4wcCv
+        hoEbEZmsb4FPXYyKe1ClB+clBkYSP+a9eMwxzBmExTKstbDO5dD3VTROPfxCbJJFnxBQhJRmEAcWZ
+        sDkILC17JL106f2HCmj5HxvF1FkaKJSZd3mxHLnnu5Z9oCo1wdCMzVmLH1NRgxXGRP6yHX1x2gMVL
+        Ztnjl7R/eK12IAvpH6bEIcrivpT5L2Rzou+D02ToI6jrzXyt0KyQiMQtvmjvaP7mSbT0dNEAOHQAt
+        +5m53iLxT61OTkV2HYJZkZZVbV3ST9yoskXLuV1LYbb9121VCKnibraWSdPMP9oxmJEn/ySLGy/Ut
+        FTueFv/A==;
+Received: from pnakotus.dreamlands ([192.168.96.5] helo=azazel.net)
+        by kadath.azazel.net with esmtpsa (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
+        (Exim 4.92)
+        (envelope-from <jeremy@azazel.net>)
+        id 1iAEwe-0008LI-7J; Tue, 17 Sep 2019 15:59:08 +0100
+Date:   Tue, 17 Sep 2019 15:59:08 +0100
+From:   Jeremy Sowden <jeremy@azazel.net>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [iptables PATCH 07/14] nft Increase mnl_talk() receive buffer
- size
-Message-ID: <20190917140824.GG9943@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-References: <20190916165000.18217-1-phil@nwl.cc>
- <20190916165000.18217-8-phil@nwl.cc>
- <20190917050038.mi4omfwlctacjfze@salvia>
+Cc:     Adam Borowski <kilobyte@angband.pl>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        Roopa Prabhu <roopa@cumulusnetworks.com>,
+        Nikolay Aleksandrov <nikolay@cumulusnetworks.com>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org
+Subject: Re: [PATCH] netfilter: bridge: drop a broken include
+Message-ID: <20190917145907.GA2241@azazel.net>
+References: <20190916000517.45028-1-kilobyte@angband.pl>
+ <20190916130811.GA29776@azazel.net>
+ <20190917050946.kmzajvqh3kjr4ch5@salvia>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="Nq2Wo0NMKNjxTN9z"
 Content-Disposition: inline
-In-Reply-To: <20190917050038.mi4omfwlctacjfze@salvia>
+In-Reply-To: <20190917050946.kmzajvqh3kjr4ch5@salvia>
 User-Agent: Mutt/1.10.1 (2018-07-13)
+X-SA-Exim-Connect-IP: 192.168.96.5
+X-SA-Exim-Mail-From: jeremy@azazel.net
+X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Pablo,
 
-On Tue, Sep 17, 2019 at 07:00:38AM +0200, Pablo Neira Ayuso wrote:
-> On Mon, Sep 16, 2019 at 06:49:53PM +0200, Phil Sutter wrote:
-> > This improves cache population quite a bit and therefore helps when
-> > dealing with large rulesets. A simple hard to improve use-case is
-> > listing the last rule in a large chain.
-> 
-> You might consider extending the netlink interface too for this
-> particularly case, GETRULE plus position attribute could be used for
-> this I think. You won't be able to use this new operation from
-> userspace anytime soon though, given there is no way so far to expose
-> interface capabilities so far rather than probing.
-> 
-> If there are more particular corner cases like this, I would also
-> encourage to extend the netlink interface.
-> 
-> Just a side note, not a comment specifically on this patch :-).
+--Nq2Wo0NMKNjxTN9z
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Thanks for suggesting, I didn't consider extending kernel to support the
-index stuff yet. In general, I refrained from kernel changes simply
-because of the compat problem. Implementing failure tolerance can
-quickly turn into a mess, too.
+On 2019-09-17, at 07:09:46 +0200, Pablo Neira Ayuso wrote:
+> On Mon, Sep 16, 2019 at 02:08:12PM +0100, Jeremy Sowden wrote:
+> > On 2019-09-16, at 02:05:16 +0200, Adam Borowski wrote:
+> > > This caused a build failure if CONFIG_NF_CONNTRACK_BRIDGE is set
+> > > but CONFIG_NF_TABLES=3Dn -- and appears to be unused anyway.
+> [...]
+> > There are already changes in the net-next tree that will fix it.
+>
+> If the fix needs to go to -stable 5.3 kernel release, then you have to
+> point to the particular commit ID of this patch to fix this one.
+> net-next contains 5.4-rc material. I'd appreciate also if you can help
+> identify the patch with a Fixes: tag.
 
-Cheers, Phil
+The commit in the mainline that needs fixing is:
+
+  3c171f496ef5 ("netfilter: bridge: add connection tracking system")
+
+The commit in net-next that fixes it is:
+
+  47e640af2e49 ("netfilter: add missing IS_ENABLED(CONFIG_NF_TABLES) check =
+to header-file.")
+
+I applied it to the mainline and compile-tested it to verify that it
+does indeed fix the build failure.
+
+=46rom my reading of stable-kernel-rules.rst and netdev-FAQ.rst, it
+appears that the fix should come from the mainline, so I will wait for
+it to get there.
+
+J.
+
+--Nq2Wo0NMKNjxTN9z
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEEZ8d+2N/NBLDbUxIF0Z7UzfnX9sMFAl2A9K8ACgkQ0Z7UzfnX
+9sMMfg//UW4T21PuLvesjUcpNbOxecnpOHRVWY5SGHpeVpgW7aO+PLxxNswwNA8E
+icSuIznj2J/EyHg9ZDeUrd6VqTxWxmQeqkhYJ3G9geLkI2bqDtxXW6dIuSD04FPB
+wIQ24eC8phPjlvwWkraWET9reEq8WNgc+ekCaE+7+9WyQBPa8x0r1jEJlSvcfPiH
+xDPiwecuoYaJSusZkkW888eF1tFPYML+QGIXrBT7bQOA7tO8PtrLqGnXGFlh8OIa
+EwvYTsA47b6UvDR99UVXPvGsjDzCOBGF0tKRpO5ghgq/O9rnbUt9tvb+njHU10ff
+/RJTvKNMNPaWTbjM/SCTnkCRXx6qgZhFk8DclJHJRLiYoiRkFwsMx18lGS/dzmd7
+Yf9RXkKXFjixCwOJojUfKjDWc+JS8KOq1HlA6QCGffaqEaJQB+o2uEzxtrmIOr2I
+nhly+fgfHTqvQoyWM0lLlibR/S/8sNm3gqOmsKrTNY9oZCx9zHFjPOsI7/GtGSQC
+BRJbVWj7egsBMAQJP37hNcAoyvPbwpfkm3jt6n/yilKlmXvQkbU8+Pz5NrYx42xM
+XKLw/lmmEXgWd1924Si31NWllVK1MVerquNWe/1JPkKV4EFAR08z2iNEXd6TLtAk
+YII6g7O8yT2FwAGJfqy8kW/2SlEve4YE5pnxtnhoV3BWN0XaBVo=
+=bzR5
+-----END PGP SIGNATURE-----
+
+--Nq2Wo0NMKNjxTN9z--
