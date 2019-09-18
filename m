@@ -1,149 +1,90 @@
-Return-Path: <SRS0=KcvN=XM=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=T2b5=XN=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_SANE_2 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C8AA5C4CECD
-	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Sep 2019 18:44:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7548DC4CEC9
+	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Sep 2019 02:53:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id AAA762054F
-	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Sep 2019 18:44:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 41BF821848
+	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Sep 2019 02:53:23 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="mSTsyn3V"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727447AbfIQSot (ORCPT
+        id S1726118AbfIRCxW (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 17 Sep 2019 14:44:49 -0400
-Received: from smtp-out-2.tiscali.co.uk ([62.24.135.130]:51935 "EHLO
-        smtp-out-2.tiscali.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726283AbfIQSot (ORCPT
+        Tue, 17 Sep 2019 22:53:22 -0400
+Received: from mail-vk1-f173.google.com ([209.85.221.173]:39607 "EHLO
+        mail-vk1-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725902AbfIRCxW (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 17 Sep 2019 14:44:49 -0400
-X-Greylist: delayed 487 seconds by postgrey-1.27 at vger.kernel.org; Tue, 17 Sep 2019 14:44:49 EDT
-Received: from nabal.armitage.org.uk ([92.27.6.192])
-        by smtp.talktalk.net with SMTP
-        id AILAiDjj5UgmGAILAiwQsB; Tue, 17 Sep 2019 19:36:40 +0100
-X-Originating-IP: [92.27.6.192]
-Received: from localhost (localhost.localdomain [127.0.0.1])
-        by nabal.armitage.org.uk (Postfix) with ESMTP id 05D9EE0509;
-        Tue, 17 Sep 2019 19:36:38 +0100 (BST)
-X-Virus-Scanned: amavisd-new at armitage.org.uk
-Received: from nabal.armitage.org.uk ([127.0.0.1])
-        by localhost (nabal.armitage.org.uk [127.0.0.1]) (amavisd-new, port 10024)
-        with LMTP id MweI300X0lcv; Tue, 17 Sep 2019 19:36:34 +0100 (BST)
-Received: from samson.armitage.org.uk (samson.armitage.org.uk [IPv6:2001:470:69dd:35::210])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by nabal.armitage.org.uk (Postfix) with ESMTPSA id 6A4E7E02D2;
-        Tue, 17 Sep 2019 19:36:34 +0100 (BST)
-Message-ID: <1568745392.3595.107.camel@armitage.org.uk>
-Subject: [PATCH] extensions: fix iptables-{nft,translate} with conntrack
- EXPECTED
-From:   Quentin Armitage <quentin@armitage.org.uk>
-Reply-To: quentin@armitage.org.uk
+        Tue, 17 Sep 2019 22:53:22 -0400
+Received: by mail-vk1-f173.google.com with SMTP id u4so1201455vkl.6
+        for <netfilter-devel@vger.kernel.org>; Tue, 17 Sep 2019 19:53:20 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:from:date:message-id:subject:to;
+        bh=Z6X215MvJQ7TBdcJ6siDoEFM/+vEMam1c6oliRUVUYg=;
+        b=mSTsyn3Va+D9HVCT450zRx9d3e2vlClhYb3za3C2AFkcwKdHnDWA6Z3HVOpu9PjESP
+         pWznmYA2APPwR89ISCxkAexq+i5aN2fFxhrNPKv+7MsO/YgTHl6u/K/bRwxSEobfHQeb
+         ktkL6+oVxTQZbuakE3OvqudztjDIZknmvD5Ty5CDkF6ar/REp5rAKsRoKswUM0hKRPj+
+         ukRrjpyr42TclTHXgErX5mJcIfAq0/ng3XptnkFyr4IBf2NH9ythJRgkwbS5g5KO5Onb
+         h/zSMJ+W1giKJ/R2feELtlHgIX5q6AFRewlrsfi/MQY0Iqitc4LbnITx+UdKS75gNCMW
+         Z7hw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:from:date:message-id:subject:to;
+        bh=Z6X215MvJQ7TBdcJ6siDoEFM/+vEMam1c6oliRUVUYg=;
+        b=djz1MI4oVNOsLnJuDhhi3zITwdcCaFRDeXJGdbN9XFPtBITmIOxrpfUfecCd4PhRn9
+         T1jt8I7XojaHcoHAPD79aFS44dTqiYt/RIBEg4iUokoX6hFEkA5tlk3H0GdxSlKo2uu/
+         wf2KARF68eouvos8529UU5EdRCoSc/haY0P5yeM82xLWoU4hvn8BBSF64m87z8aWO+I+
+         WJF/FZFa/7ML7LAuU1viV09IijxeBgXrMkwANIAiYcKv0tTYG+xQ+69uvJt/jBOZUiXi
+         qC6yX/2BJGSfSfbCJd6ecxJFvYc83T7KqUoVrYFhd8KnX31dwyEI5cK5zvaQw8XIBBWK
+         CpSA==
+X-Gm-Message-State: APjAAAVBJsmkhakqQWIfdi8Eeu3/Og5SJ3DChRzy+iIZmbpVDb3pkCu5
+        BJDLrF8Wb0z80+jKB/ZOqXWuL36kXduCCHARftHasyl9g8Y=
+X-Google-Smtp-Source: APXvYqzp4WdhArIq1AkGXhIAtnCoiJ+378BrSySGeUvyNa4l4RYj4sfnVTU9ag5QLzxbJ69SOUuMim1h9Nq6FmHKXGw=
+X-Received: by 2002:a1f:c55:: with SMTP id 82mr956557vkm.9.1568775199995; Tue,
+ 17 Sep 2019 19:53:19 -0700 (PDT)
+MIME-Version: 1.0
+From:   Olivia Nelson <the.warl0ck.1989@gmail.com>
+Date:   Wed, 18 Sep 2019 10:53:09 +0800
+Message-ID: <CAJZVxRm=-htSywNjtQKnUYoTeEXoTqcxgNbRabEE22FSQwW9jg@mail.gmail.com>
+Subject: icmp_hdr is wrong on CentOS 6 kernels (2.6.32-754.12.1)
 To:     netfilter-devel@vger.kernel.org
-Cc:     Quentin Armitage <quentin@armitage.org.uk>
-Date:   Tue, 17 Sep 2019 19:36:32 +0100
-Organization: The Armitage family
 Content-Type: text/plain; charset="UTF-8"
-X-Mailer: Evolution 3.24.6 (3.24.6-1.fc26) 
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-X-CMAE-Envelope: MS4wfDuoU3I1WN8uNX6JQ0nze6Bu6R2Nnxxk18PcicHfbqbgpFuMYZ4tSm5UIirA4KTnnrEVVzTyQn5b7c9f/bQJVmFs5zIe2qLX/t5QZ/2yZUrdWPAjILcz
- VwI7Rv8AKs2eiKIwif8XEvfc6uOHxOUale6fBTpeD8b9j/RR5rVFv7XBVQ40rKd7RV3YFwKPvxVQ+14CJFdNlazjugssw3XjcqY=
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-iptables-translate -A INPUT -m conntrack --ctstatus EXPECTED,ASSURED
-  outputs:
-nft add rule ip filter INPUT ct status expected,assured counter
-  and
-iptables-nft -A INPUT -m conntrack --ctstatus EXPECTED,ASSURED
-  produces nft list output:
-chain INPUT {
-	ct status expected,assured counter packets 0 bytes 0 accept
-}
-which are correct.
+I have a simple netfilter module to test icmp_hdr function:
 
-However,
-iptables-translate -A INPUT -m conntrack --ctstatus EXPECTED
-  outputs:
-nft # -A INPUT -m conntrack --ctstatus EXPECTED
-  and
-iptables-nft -A INPUT -m conntrack --ctstatus EXPECTED
-  produces nft list output:
-chain INPUT {
-          counter packets 0 bytes 0 accept
-}
-neither of which is what is desired.
+unsigned int hook_func(
+    unsigned int hooknum,
+    struct sk_buff *skb,
+    const struct net_device *in,
+    const struct net_device *out,
+    int (*okfn)(struct sk_buff *))
+{
+    const struct iphdr *ip_header = ip_hdr(skb);
+    if (ip_header && ip_header->protocol == IPPROTO_ICMP)
+    {
+        const struct icmphdr *icmp_header = icmp_hdr(skb);
+        printk(KERN_INFO "ICMP type %d", icmp_header->type);
+    }
 
-Commit 6223ead0d - "extensions: libxt_conntrack: Add translation to nft"
-included the following code in _conntrack3_mt_xlate():
-	if (sinfo->match_flags & XT_CONNTRACK_STATUS) {
-		if (sinfo->status_mask == 1)
-			return 0;
-		...
-
-If the intention had been not to produce output when status_mask == 1,
-it would have been written as:
-                if (sinfo->status_mask == IPS_EXPECTED)
-                        return 0;
-so it looks as though this is debugging code accidently left in the
-original patch.
-
-Removing the lines:
-                if (sinfo->status_mask == 1)
-                        return 0;
-resolves the problems, and
-iptables-translate -A INPUT -m conntrack --ctstatus EXPECTED
-  outputs:
-nft add rule ip filter INPUT ct status expected counter
-  and
-iptables-nft -A INPUT -m conntrack --ctstatus EXPECTED
-  produces nft list output:
-chain INPUT {
-        ct status expected counter packets 0 bytes 0 accept
+    return NF_ACCEPT;
 }
 
-This commit also includes an additional txlate test to check when
-only the status EXPECTED is specified.
+Then I start to PING the HOST.
 
-Signed-off-by: Quentin Armitage <quentin@armitage.org.uk>
----
- extensions/libxt_conntrack.c      | 2 --
- extensions/libxt_conntrack.txlate | 3 +++
- 2 files changed, 3 insertions(+), 2 deletions(-)
+On CentOS 6 (2.6.32-754.12.1.el6.x86_64), he printed ICMP type is
+always 69 (INVALID).
+On CentOS 7 (3.10) the result is ICMP_ECHO (8), which is correct.
 
-diff --git a/extensions/libxt_conntrack.c b/extensions/libxt_conntrack.c
-index 1817d335..6f350393 100644
---- a/extensions/libxt_conntrack.c
-+++ b/extensions/libxt_conntrack.c
-@@ -1257,8 +1257,6 @@ static int _conntrack3_mt_xlate(struct xt_xlate *xl,
- 	}
- 
- 	if (sinfo->match_flags & XT_CONNTRACK_STATUS) {
--		if (sinfo->status_mask == 1)
--			return 0;
- 		xt_xlate_add(xl, "%sct status %s", space,
- 			     sinfo->invert_flags & XT_CONNTRACK_STATUS ?
- 			     "!= " : "");
-diff --git a/extensions/libxt_conntrack.txlate b/extensions/libxt_conntrack.txlate
-index e35d5ce8..8a3d0181 100644
---- a/extensions/libxt_conntrack.txlate
-+++ b/extensions/libxt_conntrack.txlate
-@@ -28,6 +28,9 @@ nft add rule ip filter INPUT ct reply daddr 10.100.2.131 counter accept
- iptables-translate -t filter -A INPUT -m conntrack --ctproto tcp --ctorigsrcport 443:444 -j ACCEPT
- nft add rule ip filter INPUT ct original protocol 6 ct original proto-src 443-444 counter accept
- 
-+iptables-translate -t filter -A INPUT -m conntrack --ctstatus EXPECTED -j ACCEPT
-+nft add rule ip filter INPUT ct status expected counter accept
-+
- iptables-translate -t filter -A INPUT -m conntrack ! --ctstatus CONFIRMED -j ACCEPT
- nft add rule ip filter INPUT ct status != confirmed counter accept
- 
--- 
-2.23.0
-
+Was it a bug?
