@@ -2,145 +2,172 @@ Return-Path: <SRS0=X33E=XO=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D4453C4CEC4
-	for <netfilter-devel@archiver.kernel.org>; Thu, 19 Sep 2019 01:27:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E79C8C3A5A6
+	for <netfilter-devel@archiver.kernel.org>; Thu, 19 Sep 2019 08:43:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B211221927
-	for <netfilter-devel@archiver.kernel.org>; Thu, 19 Sep 2019 01:27:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C7DB5217D6
+	for <netfilter-devel@archiver.kernel.org>; Thu, 19 Sep 2019 08:43:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388045AbfISB1m (ORCPT
+        id S2387759AbfISIn2 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 18 Sep 2019 21:27:42 -0400
-Received: from mx1.redhat.com ([209.132.183.28]:50522 "EHLO mx1.redhat.com"
+        Thu, 19 Sep 2019 04:43:28 -0400
+Received: from correo.us.es ([193.147.175.20]:34708 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2387591AbfISB1m (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 18 Sep 2019 21:27:42 -0400
-Received: from smtp.corp.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        id S1731341AbfISIn2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 19 Sep 2019 04:43:28 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 378D118D002
+        for <netfilter-devel@vger.kernel.org>; Thu, 19 Sep 2019 10:43:24 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 257A3CA0F3
+        for <netfilter-devel@vger.kernel.org>; Thu, 19 Sep 2019 10:43:24 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 1A759D2B1E; Thu, 19 Sep 2019 10:43:24 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id F2BD9B8001;
+        Thu, 19 Sep 2019 10:43:21 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Thu, 19 Sep 2019 10:43:21 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (unknown [193.47.165.251])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mx1.redhat.com (Postfix) with ESMTPS id 066FE3084295;
-        Thu, 19 Sep 2019 01:27:42 +0000 (UTC)
-Received: from madcap2.tricolour.ca (ovpn-112-19.phx2.redhat.com [10.3.112.19])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 31F5B6B49C;
-        Thu, 19 Sep 2019 01:27:33 +0000 (UTC)
-From:   Richard Guy Briggs <rgb@redhat.com>
-To:     containers@lists.linux-foundation.org, linux-api@vger.kernel.org,
-        Linux-Audit Mailing List <linux-audit@redhat.com>,
-        linux-fsdevel@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-Cc:     Paul Moore <paul@paul-moore.com>, sgrubb@redhat.com,
-        omosnace@redhat.com, dhowells@redhat.com, simo@redhat.com,
-        eparis@parisplace.org, serge@hallyn.com, ebiederm@xmission.com,
-        nhorman@tuxdriver.com, dwalsh@redhat.com, mpatel@redhat.com,
-        Richard Guy Briggs <rgb@redhat.com>
-Subject: [PATCH ghak90 V7 21/21] audit: add proc interface for capcontid
-Date:   Wed, 18 Sep 2019 21:22:38 -0400
-Message-Id: <67a482f9dcde6362bbca2a2facb24a3d68e0c07a.1568834525.git.rgb@redhat.com>
-In-Reply-To: <cover.1568834524.git.rgb@redhat.com>
-References: <cover.1568834524.git.rgb@redhat.com>
-In-Reply-To: <cover.1568834524.git.rgb@redhat.com>
-References: <cover.1568834524.git.rgb@redhat.com>
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.12
-X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.5.16 (mx1.redhat.com [10.5.110.40]); Thu, 19 Sep 2019 01:27:42 +0000 (UTC)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 997D64265A5A;
+        Thu, 19 Sep 2019 10:43:21 +0200 (CEST)
+Date:   Thu, 19 Sep 2019 10:43:21 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     Laura Garcia <nevola@gmail.com>,
+        netfilter-devel <netfilter-devel@vger.kernel.org>
+Subject: Re: What is 'dynamic' set flag supposed to mean?
+Message-ID: <20190919084321.2g2hzrcrtz4r6nex@salvia>
+References: <20190918115325.GM6961@breakpoint.cc>
+ <CAF90-WifdkWm5xu0utZqjoAtW9SW4JyFrVqyxf5EbD9vUZJucw@mail.gmail.com>
+ <20190918144235.GN6961@breakpoint.cc>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190918144235.GN6961@breakpoint.cc>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Add a /proc interface to capcontid for testing purposes.  This isn't
-intended to be merged upstream.  Container orchestrators/engines are
-expected to link to libaudit to use the functions audit_set_capcontid()
-and audit_get_capcontid.
+On Wed, Sep 18, 2019 at 04:42:35PM +0200, Florian Westphal wrote:
+> Laura Garcia <nevola@gmail.com> wrote:
+> > > Following example loads fine:
+> > > table ip NAT {
+> > >   set set1 {
+> > >     type ipv4_addr
+> > >     size 64
+> > >     flags dynamic,timeout
+> > >     timeout 1m
+> > >   }
+> > >
+> > >   chain PREROUTING {
+> > >      type nat hook prerouting priority -101; policy accept;
+> > >   }
+> > > }
+> > >
+> > > But adding/using this set doesn't work:
+> > > nft -- add rule NAT PREROUTING tcp dport 80 ip saddr @set1 counter
+> > > Error: Could not process rule: Operation not supported
+> > 
+> > If this set is only for matching, 'dynamic' is not required.
+> 
+> I know, and the example above works if the 'dynamic' flag is omitted.
 
-Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
----
- fs/proc/base.c | 55 +++++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 55 insertions(+)
+Looks like a kernel bug, kernel is selecting the fixed size hash with
+the dynamic flag. That should not happen.
 
-diff --git a/fs/proc/base.c b/fs/proc/base.c
-index 26091800180c..283ef8e006e7 100644
---- a/fs/proc/base.c
-+++ b/fs/proc/base.c
-@@ -1360,6 +1360,59 @@ static ssize_t proc_contid_write(struct file *file, const char __user *buf,
- 	.write		= proc_contid_write,
- 	.llseek		= generic_file_llseek,
- };
-+
-+static ssize_t proc_capcontid_read(struct file *file, char __user *buf,
-+				  size_t count, loff_t *ppos)
-+{
-+	struct inode *inode = file_inode(file);
-+	struct task_struct *task = get_proc_task(inode);
-+	ssize_t length;
-+	char tmpbuf[TMPBUFLEN];
-+
-+	if (!task)
-+		return -ESRCH;
-+	/* if we don't have caps, reject */
-+	if (!capable(CAP_AUDIT_CONTROL) && !audit_get_capcontid(current))
-+		return -EPERM;
-+	length = scnprintf(tmpbuf, TMPBUFLEN, "%u", audit_get_capcontid(task));
-+	put_task_struct(task);
-+	return simple_read_from_buffer(buf, count, ppos, tmpbuf, length);
-+}
-+
-+static ssize_t proc_capcontid_write(struct file *file, const char __user *buf,
-+				   size_t count, loff_t *ppos)
-+{
-+	struct inode *inode = file_inode(file);
-+	u32 capcontid;
-+	int rv;
-+	struct task_struct *task = get_proc_task(inode);
-+
-+	if (!task)
-+		return -ESRCH;
-+	if (*ppos != 0) {
-+		/* No partial writes. */
-+		put_task_struct(task);
-+		return -EINVAL;
-+	}
-+
-+	rv = kstrtou32_from_user(buf, count, 10, &capcontid);
-+	if (rv < 0) {
-+		put_task_struct(task);
-+		return rv;
-+	}
-+
-+	rv = audit_set_capcontid(task, capcontid);
-+	put_task_struct(task);
-+	if (rv < 0)
-+		return rv;
-+	return count;
-+}
-+
-+static const struct file_operations proc_capcontid_operations = {
-+	.read		= proc_capcontid_read,
-+	.write		= proc_capcontid_write,
-+	.llseek		= generic_file_llseek,
-+};
- #endif
- 
- #ifdef CONFIG_FAULT_INJECTION
-@@ -3121,6 +3174,7 @@ static int proc_stack_depth(struct seq_file *m, struct pid_namespace *ns,
- 	REG("loginuid",   S_IWUSR|S_IRUGO, proc_loginuid_operations),
- 	REG("sessionid",  S_IRUGO, proc_sessionid_operations),
- 	REG("audit_containerid", S_IWUSR|S_IRUSR, proc_contid_operations),
-+	REG("audit_capcontainerid", S_IWUSR|S_IRUSR|S_IRUSR, proc_capcontid_operations),
- #endif
- #ifdef CONFIG_FAULT_INJECTION
- 	REG("make-it-fail", S_IRUGO|S_IWUSR, proc_fault_inject_operations),
-@@ -3522,6 +3576,7 @@ static int proc_tid_comm_permission(struct inode *inode, int mask)
- 	REG("loginuid",  S_IWUSR|S_IRUGO, proc_loginuid_operations),
- 	REG("sessionid",  S_IRUGO, proc_sessionid_operations),
- 	REG("audit_containerid", S_IWUSR|S_IRUSR, proc_contid_operations),
-+	REG("audit_capcontainerid", S_IWUSR|S_IRUSR|S_IRUSR, proc_capcontid_operations),
- #endif
- #ifdef CONFIG_FAULT_INJECTION
- 	REG("make-it-fail", S_IRUGO|S_IWUSR, proc_fault_inject_operations),
--- 
-1.8.3.1
+> > > This is because the 'dynamic' flag sets NFT_SET_EVAL.
+> > >
+> > > According to kernel comment, that flag means:
+> > >  * @NFT_SET_EVAL: set can be updated from the evaluation path
+> > >
+> > > The rule add is rejected from the lookup expression (nft_lookup_init)
+> > > which has:
+> > >
+> > > if (set->flags & NFT_SET_EVAL)
+> > >     return -EOPNOTSUPP;
+> > >
+> > > From looking at the git history, the NFT_SET_EVAL flag means that the
+> > > set contains expressions (i.e., a meter).
+> > >
+> > > And I can see why doing a lookup on meters isn't meaningful.
+> > >
+> > > Can someone please explain the exact precise meaning of 'dynamic'?
+> > > Was it supposed to mean 'set can be updated from packet path'?
+> > > Or was it supposed to mean 'set contains expressions'?
+> > >
+> > 
+> > AFAIK, I traduce the 'dynamic' flag as a 'set that is updated from the
+> > packet path using an expression', formerly 'meter'.
+> 
+> That would mean the kernel comment quoted above is wrong and should be
+> patched to say
+> 
+> * @NFT_SET_EVAL: set can be updated from the packet path and stores expressions.
 
+The comment is correct. NFT_SET_EVAL semantics is "this set can be
+updated from the packet path", this helps the kernel selects a set
+backend that implements the ->update interface.
+
+The expression is option, if the netlink attribute to describe the
+extension is set, then it used.
+
+> Unfortunately, this seems to contradict various nftables.git changelog
+> messages which seem to imply that 'dynamic' means
+> 
+> @NFT_SET_EVAL: set can be updated from the evaluation path
+> 
+> i.e., make sure that set provides an ->update() implementation so
+> 
+> 'add @set1 { ip saddr }' and the like work.
+> 
+> The core issue is that when saying
+> 
+>    set set1 {
+>       type ipv4_addr
+>       size 64
+>        flags timeout
+>        timeout 1m
+>     }
+> 
+> The kernel has no information on how this set is going to be used.
+> For 'ip saddr @set1' this will just work as all sets implement
+> ->lookup().
+> 
+> But will this work reliably:
+> nft add rule ... add @set1 { ip saddr }
+
+No, because the dynamic flag is not set.
+
+> At this time, it looks like when specifiying the mandatory 'timeout'
+> flag, the kernel happens to pick the rhashtable backend so it will work.
+
+Probably it would be good to implicitly set on timeout flag if dynamic
+flag is set on, just like it happens with set size. To relax the
+control plane interface a bit (IIRC the user currently gets an error
+if you forget to set the timeout flag in a set that is updated from
+the packet path).
+
+> But I wonder if we're just lucky or if this is intentional, i.e.
+> 'timeout' means that the set can be altered from the packet path.
+
+I think we're just being lucky :-)
+
+> In any case, this needs to be documented in nft.8, its telling that I
+> can't be 100% about the intent of dynamic/EVAL even after reading both
+> nftables.git and kernel implementation.
+
+Sure.
