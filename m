@@ -2,35 +2,52 @@ Return-Path: <SRS0=X33E=XO=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 54041C49ED7
-	for <netfilter-devel@archiver.kernel.org>; Thu, 19 Sep 2019 11:56:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8956BC3A5A6
+	for <netfilter-devel@archiver.kernel.org>; Thu, 19 Sep 2019 13:28:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2BFB921924
-	for <netfilter-devel@archiver.kernel.org>; Thu, 19 Sep 2019 11:56:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 65E3C2196F
+	for <netfilter-devel@archiver.kernel.org>; Thu, 19 Sep 2019 13:28:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2390022AbfISL4k (ORCPT
+        id S2389819AbfISN2i (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 19 Sep 2019 07:56:40 -0400
-Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:46936 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S2388771AbfISL4k (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 19 Sep 2019 07:56:40 -0400
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1iAv36-0004ga-Tw; Thu, 19 Sep 2019 13:56:36 +0200
-Date:   Thu, 19 Sep 2019 13:56:36 +0200
-From:   Florian Westphal <fw@strlen.de>
+        Thu, 19 Sep 2019 09:28:38 -0400
+Received: from correo.us.es ([193.147.175.20]:40408 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2388551AbfISN2h (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 19 Sep 2019 09:28:37 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id BAAE6DA711
+        for <netfilter-devel@vger.kernel.org>; Thu, 19 Sep 2019 15:28:32 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id AC08DA594
+        for <netfilter-devel@vger.kernel.org>; Thu, 19 Sep 2019 15:28:32 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id A1A2EDA4CA; Thu, 19 Sep 2019 15:28:32 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 78991B7FF6;
+        Thu, 19 Sep 2019 15:28:30 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Thu, 19 Sep 2019 15:28:30 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (unknown [193.47.165.251])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 20E854265A5A;
+        Thu, 19 Sep 2019 15:28:30 +0200 (CEST)
+Date:   Thu, 19 Sep 2019 15:28:28 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     Florian Westphal <fw@strlen.de>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Laura Garcia <nevola@gmail.com>,
+Cc:     Laura Garcia <nevola@gmail.com>,
         netfilter-devel <netfilter-devel@vger.kernel.org>
 Subject: Re: What is 'dynamic' set flag supposed to mean?
-Message-ID: <20190919115636.GQ6961@breakpoint.cc>
+Message-ID: <20190919132828.nydpzdt3qqupgtg5@salvia>
 References: <20190918115325.GM6961@breakpoint.cc>
  <CAF90-WifdkWm5xu0utZqjoAtW9SW4JyFrVqyxf5EbD9vUZJucw@mail.gmail.com>
  <20190918144235.GN6961@breakpoint.cc>
@@ -38,206 +55,101 @@ References: <20190918115325.GM6961@breakpoint.cc>
  <20190919092442.GO6961@breakpoint.cc>
  <20190919094055.4b2nd6aarjxi2bt6@salvia>
  <20190919100329.GP6961@breakpoint.cc>
+ <20190919115636.GQ6961@breakpoint.cc>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20190919100329.GP6961@breakpoint.cc>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <20190919115636.GQ6961@breakpoint.cc>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Florian Westphal <fw@strlen.de> wrote:
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > > I can't remove the if () because that would make it possible to lookup
-> > > for meter-type sets.
-> > 
-> > Why is this a problem?
+On Thu, Sep 19, 2019 at 01:56:36PM +0200, Florian Westphal wrote:
+[...]
+> My conclusion is that meters are anon sets with expressions attached to them.
+> So, I don't think they should be deprecated.
+
+At least, meters with names should be I think. There is now a way to
+represent them 
+
+> I would propose to:
 > 
-> I was worried about this exposing expr pointers in the nft registers but
-> that won't happen (lookup expr doesn't care, only dynset will check for
-> attached expression coming from set).
+> 1. add this kernel patch:
 > 
-> I will send a patch to zap this check.
+> diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+> --- a/net/netfilter/nf_tables_api.c
+> +++ b/net/netfilter/nf_tables_api.c
+> @@ -3562,8 +3562,11 @@ static int nf_tables_newset(struct net *net, struct sock *nlsk,
+>  			      NFT_SET_OBJECT))
+>  			return -EINVAL;
+>  		/* Only one of these operations is supported */
+> -		if ((flags & (NFT_SET_MAP | NFT_SET_EVAL | NFT_SET_OBJECT)) ==
+> -			     (NFT_SET_MAP | NFT_SET_EVAL | NFT_SET_OBJECT))
+> +		if ((flags & (NFT_SET_MAP | NFT_SET_OBJECT)) ==
+> +			     (NFT_SET_MAP | NFT_SET_OBJECT))
 
-Scratch that, I still don't understand all of this.
-nf_tables_api.c had this check:
+That's fine by now. But look, combining map and objects should be fine
+in the future. A user might want to combine this by specifying an IP
+address as the right hand side of a mapping and a stateful counter
+(with a name) to be updated when matching on that element. This is not
+supported yet though.
 
-/* Only one of both operations is supported */
-if ((flags & (NFT_SET_MAP | NFT_SET_EVAL)) == (NFT_SET_MAP | NFT_SET_EVAL))
-     return -EOPNOTSUPP;
+> +			return -EOPNOTSUPP;
+> +		if ((flags & (NFT_SET_EVAL | NFT_SET_OBJECT)) ==
+> +			     (NFT_SET_EVAL | NFT_SET_OBJECT))
 
-This got converted to
-/* Only one of these operations is supported */
-if ((flags & (NFT_SET_MAP | NFT_SET_EVAL | NFT_SET_OBJECT)) ==
-             (NFT_SET_MAP | NFT_SET_EVAL | NFT_SET_OBJECT))
-     return -EOPNOTSUPP;
+This looks fine.
 
-So, comment and code do not match anymore
+>  			return -EOPNOTSUPP;
+>  	}
+>  
+> diff --git a/net/netfilter/nft_lookup.c b/net/netfilter/nft_lookup.c
+> --- a/net/netfilter/nft_lookup.c
+> +++ b/net/netfilter/nft_lookup.c
+> @@ -73,9 +73,6 @@ static int nft_lookup_init(const struct nft_ctx *ctx,
+>  	if (IS_ERR(set))
+>  		return PTR_ERR(set);
+>  
+> -	if (set->flags & NFT_SET_EVAL)
+> -		return -EOPNOTSUPP;
+> -
+>  	priv->sreg = nft_parse_register(tb[NFTA_LOOKUP_SREG]);
+>  	err = nft_validate_register_load(priv->sreg, set->klen);
+>  	if (err < 0)
+> 
+> 2. avoid depreaction of 'meter', since thats what is documented everywhere
+>    and appears to work fine
 
-Fixing the code to reflect the comment:
+OK, but only for anonymous meters.
 
-const u32 excl = NFT_SET_MAP | NFT_SET_EVAL | NFT_SET_OBJECT;
-if (hweight32(flags & excl) > 1)
-      return -EOPNOTSUPP;
+We have a better way, more aligned to set/map definitions, to represent
+updates to dynamic named sets from the packet path now.
 
-breaks cases in the test suite, for example:
-W: [FAILED]     tests/shell/testcases/cache/0005_cache_chain_flush: got 1
-/dev/stdin:4:1-79: Error: Could not process rule: Operation not supported
-add map ip x mapping { type ipv4_addr : inet_service; flags dynamic,timeout; }
+We can probably introduce a syntax more aligned to the existing
+set/map syntax for the _anonymous_ dynamic set/map case, so we don't
+need this 'meter' keyword syntactic sugar.
 
-... because this sets NFT_SET_MAP|NFT_SET_EVAL.
+> 3. patch nft to hide normal sets from 'nft list meters' output
 
-What is the purpose/intent of that check, i.e. which combinations
-are safe and which should be rejected?
+This makes no sense for anonymous meters. Since the kernel picks the
+name, I don't think nft should expose them to the user.
 
-I would guess the check should be
-NFT_SET_MAP|NFT_SET_OBJECT -> reject
-NFT_SET_EVAL|NFT_SET_OBJECT -> reject
+> What to do with dynamic, I fear we have to remove it, i.e. just ignore
+> the "dynamic" flag when talking to the kernel.  Otherwise sets using dynamic flag
+> will only work on future/very recent kernels.
 
-... and nft tests pass on a kernel with that change.
+I would not go that path.
 
-Removing the NFT_SET_EVAL rejection in nft_lookup init routine makes
-this work:
+You are just hitting a limitation on the existing implementation.
+People cannot make lookups on a dynamic set on existing kernels,
+that's all.
 
-table ip filter {
-        set set1 {
-                type ipv4_addr
-                size 65535
-                flags dynamic,timeout
-        }
+There is no NFT_SET_EXPR support for nft_lookup either, is this a bug?
+This infrastructure is just incomplete and just need to be finished.
 
-        chain input {
-                type filter hook input priority filter; policy accept;
-                add @set1 { ip saddr }
-                update @set1 { ip daddr timeout 23s counter }
-                ip saddr @set1 counter
-        }
-}
-
-$ nft list ruleset
-table ip filter {
-  set set1 {
-     type ipv4_addr
-     size 65535
-     flags dynamic,timeout
-     elements = { 192.168.7.1, 192.168.7.2 expires 22s991ms counter packets 33 bytes 2300 }
-  }
- ...
-
-but nft -f can't restore this because it chokes on unexpected 'counter' appearing in elements = {}.
-
-Note that the new proposed 'set dynamic' as replacement of 'meters' also means users can mix
-different expressions, e.g.
-add @set1 { ip saddr }			# add element with no expression
-add @set1 { ip daddr counter }		# add element with counter
-# this could be another rule adding another address with quota etc.
-
-This is fine from kernel pov, but it needs to be documented as well.
-
-Things get even more confusing when adding a meter:
-
-nft add rule filter input meter foo { ip saddr timeout 5m limit rate 10/second }
-
-yields:
-table ip filter {
-        set set1 {
-                type ipv4_addr
-                size 65535
-                flags dynamic,timeout
-                elements = { 192.168.7.1, 192.168.7.2 expires 22s992ms counter packets 15 bytes 1064 }
-        }
-
-        chain input {
-                type filter hook input priority filter; policy accept;
-                add @set1 { ip saddr }
-                update @set1 { ip daddr timeout 23s counter }
-                ip saddr @set1 counter packets 706 bytes 49516
-                meter foo size 65535 { ip saddr timeout 5m limit rate 10/second }
-        }
-}
-
-nft list meters
-table ip filter {
-        set set1 {
-                type ipv4_addr
-                size 65535
-                flags dynamic,timeout
-        }
-        meter foo {
-                type ipv4_addr
-                size 65535
-                flags dynamic,timeout
-        }
-}
-# Note: set1 is a set, foo is a meter.
-# This is because nft will show "meter" for sets
-# that have flags NFT_SET_EVAL|NFT_SET_ANONYMOUS.
-
-I think it might be better to suppress the 'set1' in this
-listing, or treat it like a meter:
-nft list meter filter set1
-Error: No such file or directory
-
-... because they can't be listed this way.
-'nft list set filter set1' works of course.
-
-nft list meter filter foo
-table ip filter {
-        meter foo {
-                type ipv4_addr
-                size 65535
-                flags dynamic,timeout
-                elements = { 192.168.7.1 expires 4m59s992ms limit rate 10/second }
-        }
-}
-
-My conclusion is that meters are anon sets with expressions attached to them.
-So, I don't think they should be deprecated.
-
-I would propose to:
-
-1. add this kernel patch:
-
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -3562,8 +3562,11 @@ static int nf_tables_newset(struct net *net, struct sock *nlsk,
- 			      NFT_SET_OBJECT))
- 			return -EINVAL;
- 		/* Only one of these operations is supported */
--		if ((flags & (NFT_SET_MAP | NFT_SET_EVAL | NFT_SET_OBJECT)) ==
--			     (NFT_SET_MAP | NFT_SET_EVAL | NFT_SET_OBJECT))
-+		if ((flags & (NFT_SET_MAP | NFT_SET_OBJECT)) ==
-+			     (NFT_SET_MAP | NFT_SET_OBJECT))
-+			return -EOPNOTSUPP;
-+		if ((flags & (NFT_SET_EVAL | NFT_SET_OBJECT)) ==
-+			     (NFT_SET_EVAL | NFT_SET_OBJECT))
- 			return -EOPNOTSUPP;
- 	}
- 
-diff --git a/net/netfilter/nft_lookup.c b/net/netfilter/nft_lookup.c
---- a/net/netfilter/nft_lookup.c
-+++ b/net/netfilter/nft_lookup.c
-@@ -73,9 +73,6 @@ static int nft_lookup_init(const struct nft_ctx *ctx,
- 	if (IS_ERR(set))
- 		return PTR_ERR(set);
- 
--	if (set->flags & NFT_SET_EVAL)
--		return -EOPNOTSUPP;
--
- 	priv->sreg = nft_parse_register(tb[NFTA_LOOKUP_SREG]);
- 	err = nft_validate_register_load(priv->sreg, set->klen);
- 	if (err < 0)
-
-2. avoid depreaction of 'meter', since thats what is documented everywhere
-   and appears to work fine
-
-3. patch nft to hide normal sets from 'nft list meters' output
-
-What to do with dynamic, I fear we have to remove it, i.e. just ignore
-the "dynamic" flag when talking to the kernel.  Otherwise sets using dynamic flag
-will only work on future/very recent kernels.
-
-Seems we need to rely on 'flag timeout' picking an update-able set.
+There is no way to combine NFT_SET_MAP with NFT_SET_OBJ, but that is
+also artificial, this is just happening again because the code is
+incomplete and needs an extension.
