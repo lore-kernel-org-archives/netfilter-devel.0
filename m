@@ -6,54 +6,54 @@ X-Spam-Status: No, score=-5.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2BDA8C49ED7
-	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Sep 2019 10:32:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 266C5C4CEC9
+	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Sep 2019 10:32:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id EA1912080F
-	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Sep 2019 10:32:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F15D22080F
+	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Sep 2019 10:32:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2391893AbfITKcI (ORCPT
+        id S2393567AbfITKct (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 20 Sep 2019 06:32:08 -0400
-Received: from correo.us.es ([193.147.175.20]:47100 "EHLO mail.us.es"
+        Fri, 20 Sep 2019 06:32:49 -0400
+Received: from correo.us.es ([193.147.175.20]:47932 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2390710AbfITKcI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 20 Sep 2019 06:32:08 -0400
+        id S2390710AbfITKcs (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 20 Sep 2019 06:32:48 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 6378A27F8B3
-        for <netfilter-devel@vger.kernel.org>; Fri, 20 Sep 2019 12:32:04 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 337272A2BAF
+        for <netfilter-devel@vger.kernel.org>; Fri, 20 Sep 2019 12:32:45 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 551E5CE15C
-        for <netfilter-devel@vger.kernel.org>; Fri, 20 Sep 2019 12:32:04 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 141CAA7E1D
+        for <netfilter-devel@vger.kernel.org>; Fri, 20 Sep 2019 12:32:45 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 49B67D190C; Fri, 20 Sep 2019 12:32:04 +0200 (CEST)
+        id 20E8EB7FFE; Fri, 20 Sep 2019 12:32:29 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 22C04B7FF2;
-        Fri, 20 Sep 2019 12:32:02 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 39A89A7EE4;
+        Fri, 20 Sep 2019 12:32:27 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Fri, 20 Sep 2019 12:32:02 +0200 (CEST)
+ Fri, 20 Sep 2019 12:32:27 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from us.es (unknown [5.182.56.138])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
         (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id BB3E542EE38E;
-        Fri, 20 Sep 2019 12:32:01 +0200 (CEST)
-Date:   Fri, 20 Sep 2019 12:32:02 +0200
+        by entrada.int (Postfix) with ESMTPSA id D0F8F4265A5A;
+        Fri, 20 Sep 2019 12:32:26 +0200 (CEST)
+Date:   Fri, 20 Sep 2019 12:32:26 +0200
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     Phil Sutter <phil@nwl.cc>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [iptables PATCH 01/14] tests/shell: Make ebtables-basic test
- more verbose
-Message-ID: <20190920103202.o4eepygegjnq3cso@salvia>
+Subject: Re: [iptables PATCH 03/14] DEBUG: Print to stderr to not disturb
+ iptables-save
+Message-ID: <20190920103226.hdpr3ovsqkipnxej@salvia>
 References: <20190916165000.18217-1-phil@nwl.cc>
- <20190916165000.18217-2-phil@nwl.cc>
+ <20190916165000.18217-4-phil@nwl.cc>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20190916165000.18217-2-phil@nwl.cc>
+In-Reply-To: <20190916165000.18217-4-phil@nwl.cc>
 User-Agent: NeoMutt/20170113 (1.7.2)
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -61,8 +61,9 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Sep 16, 2019 at 06:49:47PM +0200, Phil Sutter wrote:
-> Print expected entries count if it doesn't match.
+On Mon, Sep 16, 2019 at 06:49:49PM +0200, Phil Sutter wrote:
+> This way there's at least a chance to get meaningful results from
+> testsuite with debugging being turned on.
 > 
 > Signed-off-by: Phil Sutter <phil@nwl.cc>
 
