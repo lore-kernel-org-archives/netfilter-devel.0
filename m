@@ -6,98 +6,179 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A6266C3A5A2
-	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Sep 2019 15:32:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4DE3CC3A5A2
+	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Sep 2019 15:49:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8551120882
-	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Sep 2019 15:32:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 278EE2086A
+	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Sep 2019 15:49:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2403969AbfITPcD (ORCPT
+        id S2403863AbfITPta (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 20 Sep 2019 11:32:03 -0400
-Received: from correo.us.es ([193.147.175.20]:47520 "EHLO mail.us.es"
+        Fri, 20 Sep 2019 11:49:30 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:32864 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2403963AbfITPcC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 20 Sep 2019 11:32:02 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 2CDFFD2F68
-        for <netfilter-devel@vger.kernel.org>; Fri, 20 Sep 2019 17:31:59 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 1F218D2B1E
-        for <netfilter-devel@vger.kernel.org>; Fri, 20 Sep 2019 17:31:59 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 14E1EDA72F; Fri, 20 Sep 2019 17:31:59 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id C81ABDA840
-        for <netfilter-devel@vger.kernel.org>; Fri, 20 Sep 2019 17:31:56 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Fri, 20 Sep 2019 17:31:56 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from salvia.here (unknown [5.182.56.138])
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 79EED4265A5A
-        for <netfilter-devel@vger.kernel.org>; Fri, 20 Sep 2019 17:31:56 +0200 (CEST)
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft] mnl: do not cache sender buffer size
-Date:   Fri, 20 Sep 2019 17:31:54 +0200
-Message-Id: <20190920153154.26734-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.11.0
-X-Virus-Scanned: ClamAV using ClamSMTP
+        id S2403836AbfITPta (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 20 Sep 2019 11:49:30 -0400
+Received: from localhost ([::1]:45954 helo=tatos)
+        by orbyte.nwl.cc with esmtp (Exim 4.91)
+        (envelope-from <phil@nwl.cc>)
+        id 1iBLA1-0002Uq-C1; Fri, 20 Sep 2019 17:49:29 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [iptables PATCH] xtables-restore: Fix --table parameter check
+Date:   Fri, 20 Sep 2019 17:49:20 +0200
+Message-Id: <20190920154920.7927-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.23.0
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-SO_SNDBUF never fails, this socket option just provides a hint to the
-kernel.  SO_SNDBUFFORCE sets the buffer size to zero if the value goes
-over INT_MAX. Userspace is caching the buffer hint that sends to the
-kernel, so it might leave userspace out of sync if the kernel ignores
-the hint. Do not make assumptions, fetch the sender buffer size from the
-kernel via getsockopt().
+Xtables-restore tries to reject rule commands in input which contain a
+--table parameter (since it is adding this itself based on the previous
+table line). Sadly getopt_long's flexibility makes it hard to get this
+check right: Since the last fix, comments starting with a dash and
+containing a 't' character somewhere later were rejected. Simple
+example:
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+| *filter
+| -A FORWARD -m comment --comment "- allow this one" -j ACCEPT
+| COMMIT
+
+To hopefully sort this once and for all, introduce is_table_param()
+which should cover all possible variants of legal and illegal
+parameters. Also add a test to make sure it does what it is supposed to.
+
+Fixes: f8e5ebc5986bf ("iptables: Fix crash on malformed iptables-restore")
+Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- src/mnl.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ .../ipt-restore/0009-table-name-comment_0     | 48 +++++++++++++++++++
+ iptables/xshared.c                            | 44 ++++++++++++++---
+ 2 files changed, 86 insertions(+), 6 deletions(-)
+ create mode 100755 iptables/tests/shell/testcases/ipt-restore/0009-table-name-comment_0
 
-diff --git a/src/mnl.c b/src/mnl.c
-index 57ff89f50e23..19631e33dc9d 100644
---- a/src/mnl.c
-+++ b/src/mnl.c
-@@ -218,24 +218,24 @@ void mnl_err_list_free(struct mnl_err *err)
- 	xfree(err);
+diff --git a/iptables/tests/shell/testcases/ipt-restore/0009-table-name-comment_0 b/iptables/tests/shell/testcases/ipt-restore/0009-table-name-comment_0
+new file mode 100755
+index 0000000000000..71c8feffd5adf
+--- /dev/null
++++ b/iptables/tests/shell/testcases/ipt-restore/0009-table-name-comment_0
+@@ -0,0 +1,48 @@
++#!/bin/bash
++
++OKLINES="- some comment
++--asdf
++-asdf t
++-?t"
++
++NONOLINES="-t foo
++-t
++--table
++--table foo
++--table=foo
++-asdft
++-tasdf
++--tab=foo
++-dfetbl"
++
++to_dump() { # (comment)
++	echo "*filter"
++	echo "-A FORWARD -m comment --comment \"$@\" -j ACCEPT"
++	echo "COMMIT"
++}
++
++ret=0
++
++while read okline; do
++	$XT_MULTI iptables -A FORWARD -m comment --comment "$okline" -j ACCEPT || {
++		echo "iptables failed for comment '$okline'"
++		ret=1
++	}
++	to_dump "$okline" | $XT_MULTI iptables-restore || {
++		echo "iptables-restore failed for comment '$okline'"
++		ret=1
++	}
++done <<< "$OKLINES"
++
++while read nonoline; do
++	$XT_MULTI iptables -A FORWARD -m comment --comment "$nonoline" -j ACCEPT >/dev/null 2>&1 || {
++		echo "iptables accepted comment '$nonoline'"
++		ret=1
++	}
++	to_dump "$nonoline" | $XT_MULTI iptables-restore >/dev/null 2>&1 && {
++		echo "iptables-restore accepted comment '$nonoline'"
++		ret=1
++	}
++done <<< "$NONOLINES"
++
++exit $ret
+diff --git a/iptables/xshared.c b/iptables/xshared.c
+index 36a2ec5f193d3..faa21d6cd69af 100644
+--- a/iptables/xshared.c
++++ b/iptables/xshared.c
+@@ -446,6 +446,43 @@ static void add_param(struct xt_param_buf *param, const char *curchar)
+ 			      "Parameter too long!");
  }
  
--static int nlbuffsiz;
--
- static void mnl_set_sndbuffer(const struct mnl_socket *nl,
- 			      struct nftnl_batch *batch)
++static bool is_table_param(const char *s)
++{
++	if (s[0] != '-')
++		return false;
++
++	/* it is an option */
++	switch (s[1]) {
++	case 't':
++		/* -t found */
++		return true;
++	case '-':
++		/* it is a long option */
++		if (s[2] != 't')
++			return false;
++		if (index(s, '='))
++			return !strncmp(s, "--table", index(s, '=') - s);
++		return !strncmp(s, "--table", 7);
++	default:
++		break;
++	}
++	/* short options may be combined, check if 't' is among them */
++next:
++	s++;
++	switch (*s) {
++	case 't':
++	case ' ':
++	case '\0':
++		break;
++	case 'a' ... 's':
++	case 'u' ... 'z':
++	case 'A' ... 'Z':
++	case '0' ... '9':
++		goto next;
++	}
++	return *s == 't';
++}
++
+ void add_param_to_argv(char *parsestart, int line)
  {
-+	int sndnlbuffsiz = 0;
- 	int newbuffsiz;
-+	socklen_t len;
+ 	int quote_open = 0, escaped = 0;
+@@ -499,15 +536,10 @@ void add_param_to_argv(char *parsestart, int line)
+ 		param.buffer[param.len] = '\0';
  
--	if (nftnl_batch_iovec_len(batch) * BATCH_PAGE_SIZE <= nlbuffsiz)
--		return;
-+	getsockopt(mnl_socket_get_fd(nl), SOL_SOCKET, SO_SNDBUF,
-+		   &sndnlbuffsiz, &len);
+ 		/* check if table name specified */
+-		if ((param.buffer[0] == '-' &&
+-		     param.buffer[1] != '-' &&
+-		     strchr(param.buffer, 't')) ||
+-		    (!strncmp(param.buffer, "--t", 3) &&
+-		     !strncmp(param.buffer, "--table", strlen(param.buffer)))) {
++		if (is_table_param(param.buffer))
+ 			xtables_error(PARAMETER_PROBLEM,
+ 				      "The -t option (seen in line %u) cannot be used in %s.\n",
+ 				      line, xt_params->program_name);
+-		}
  
- 	newbuffsiz = nftnl_batch_iovec_len(batch) * BATCH_PAGE_SIZE;
-+	if (newbuffsiz <= sndnlbuffsiz)
-+		return;
- 
- 	/* Rise sender buffer length to avoid hitting -EMSGSIZE */
- 	if (setsockopt(mnl_socket_get_fd(nl), SOL_SOCKET, SO_SNDBUFFORCE,
- 		       &newbuffsiz, sizeof(socklen_t)) < 0)
- 		return;
--
--	nlbuffsiz = newbuffsiz;
- }
- 
- static unsigned int nlsndbufsiz;
+ 		add_argv(param.buffer, 0);
+ 		param.len = 0;
 -- 
-2.11.0
+2.23.0
 
