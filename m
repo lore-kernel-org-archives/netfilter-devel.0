@@ -2,138 +2,113 @@ Return-Path: <SRS0=NOIG=XP=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CAF5CC49ED7
-	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Sep 2019 11:57:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 38CCBC49ED7
+	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Sep 2019 13:44:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A860E2086A
-	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Sep 2019 11:57:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 19ACA20717
+	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Sep 2019 13:44:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2406083AbfITL5R (ORCPT
+        id S1728303AbfITNoc (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 20 Sep 2019 07:57:17 -0400
-Received: from correo.us.es ([193.147.175.20]:53058 "EHLO mail.us.es"
+        Fri, 20 Sep 2019 09:44:32 -0400
+Received: from correo.us.es ([193.147.175.20]:44894 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2404368AbfITL5Q (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 20 Sep 2019 07:57:16 -0400
+        id S1726924AbfITNob (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 20 Sep 2019 09:44:31 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 7F57B18CDC3
-        for <netfilter-devel@vger.kernel.org>; Fri, 20 Sep 2019 13:57:12 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 7DAA8508CC7
+        for <netfilter-devel@vger.kernel.org>; Fri, 20 Sep 2019 15:44:27 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 66B85A7DA9
-        for <netfilter-devel@vger.kernel.org>; Fri, 20 Sep 2019 13:57:12 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 6F785DA72F
+        for <netfilter-devel@vger.kernel.org>; Fri, 20 Sep 2019 15:44:27 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 5A01CA7E3C; Fri, 20 Sep 2019 13:57:12 +0200 (CEST)
+        id 65195D190C; Fri, 20 Sep 2019 15:44:27 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id F2822DA840;
-        Fri, 20 Sep 2019 13:57:02 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 50623DA72F
+        for <netfilter-devel@vger.kernel.org>; Fri, 20 Sep 2019 15:44:25 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Fri, 20 Sep 2019 13:57:02 +0200 (CEST)
+ Fri, 20 Sep 2019 15:44:25 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [5.182.56.138])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 9EA1E42EE38F;
-        Fri, 20 Sep 2019 13:57:02 +0200 (CEST)
-Date:   Fri, 20 Sep 2019 13:57:02 +0200
+Received: from salvia.here (unknown [5.182.56.138])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id 07E374265A5A
+        for <netfilter-devel@vger.kernel.org>; Fri, 20 Sep 2019 15:44:24 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Phil Sutter <phil@nwl.cc>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [iptables PATCH 08/14] xtables-restore: Avoid cache population
- when flushing
-Message-ID: <20190920115702.tn4xp5gltcejk6sy@salvia>
-References: <20190916165000.18217-1-phil@nwl.cc>
- <20190916165000.18217-9-phil@nwl.cc>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190916165000.18217-9-phil@nwl.cc>
-User-Agent: NeoMutt/20170113 (1.7.2)
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH conntrack-tools 1/2] conntrackd: Fix "Address Accept" filter case
+Date:   Fri, 20 Sep 2019 15:44:20 +0200
+Message-Id: <20190920134421.11628-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.11.0
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Phil,
+From: Robin Geuze <robing@transip.nl>
 
-On Mon, Sep 16, 2019 at 06:49:54PM +0200, Phil Sutter wrote:
-> When called without --noflush, don't fetch full ruleset from kernel but
-> merely list of tables and the current genid. Locally, initialize chain
-> lists and set have_cache to simulate an empty ruleset.
-> 
-> Doing so reduces execution time significantly if a large ruleset exists
-> in kernel space. A simple test case consisting of a dump with 100,000
-> rules can be restored within 15s on my testing VM. Restoring it a second
-> time took 21s before this patch and only 17s after it.
-> 
-> Signed-off-by: Phil Sutter <phil@nwl.cc>
-> ---
->  iptables/nft.c             | 27 ++++++++++++++++++++++++++-
->  iptables/nft.h             |  1 +
->  iptables/xtables-restore.c |  7 +++++--
->  3 files changed, 32 insertions(+), 3 deletions(-)
-> 
-> diff --git a/iptables/nft.c b/iptables/nft.c
-> index 7f0f9e1234ae4..820f3392dd495 100644
-> --- a/iptables/nft.c
-> +++ b/iptables/nft.c
-> @@ -882,7 +882,8 @@ static int flush_cache(struct nft_cache *c, const struct builtin_table *tables,
->  		nftnl_chain_list_free(c->table[i].chains);
->  		c->table[i].chains = NULL;
->  	}
-> -	nftnl_table_list_free(c->tables);
-> +	if (c->tables)
-> +		nftnl_table_list_free(c->tables);
->  	c->tables = NULL;
->  
->  	return 1;
-> @@ -1617,6 +1618,30 @@ void nft_build_cache(struct nft_handle *h)
->  		__nft_build_cache(h);
->  }
->  
-> +void nft_fake_cache(struct nft_handle *h)
-> +{
-> +	int i;
-> +
-> +	if (h->have_cache)
-> +		return;
-> +
-> +	/* fetch tables so conditional table delete logic works */
-> +	if (!h->cache->tables)
-> +		fetch_table_cache(h);
-> +
-> +	for (i = 0; i < NFT_TABLE_MAX; i++) {
-> +		enum nft_table_type type = h->tables[i].type;
-> +
-> +		if (!h->tables[i].name ||
-> +		    h->cache->table[type].chains)
-> +			continue;
-> +
-> +		h->cache->table[type].chains = nftnl_chain_list_alloc();
-> +	}
-> +	mnl_genid_get(h, &h->nft_genid);
-> +	h->have_cache = true;
-> +}
+This fixes a bug in the Address Accept filter case where if you only
+specify either addresses or masks it would never match, eg.
 
-Looking at patches from 8/24 onwards, I think it's time to introduce
-cache flags logic to iptables.
+Filter From Usespace {
+    Address Accept {
+        IPv4_address 127.0.0.1
+    }
+}
 
-In patch 9/14 there is a new field have_chain_cache.
+or
 
-In patch 10/14 there is have_rule_cache.
+Filter From Usespace {
+    Address Accept {
+        IPv4_address 0.0.0.0/0
+    }
+}
 
-Then moving on, the logic is based on checking for this booleans and
-then checking if the caches are initialized or not.
+Signed-off-by: Robin Geuze <robing@transip.nl>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/filter.c | 16 ++++++++++++----
+ 1 file changed, 12 insertions(+), 4 deletions(-)
 
-I think if we move towards cache flags logic (the flags tell us what
-if we need no cache, partial cache (only tables, tables + chains) or
-full cache.
+diff --git a/src/filter.c b/src/filter.c
+index 00a5e96ecc24..3c5ab6fc66f1 100644
+--- a/src/filter.c
++++ b/src/filter.c
+@@ -335,16 +335,24 @@ ct_filter_check(struct ct_filter *f, const struct nf_conntrack *ct)
+ 		switch(nfct_get_attr_u8(ct, ATTR_L3PROTO)) {
+ 		case AF_INET:
+ 			ret = vector_iterate(f->v, ct, __ct_filter_test_mask4);
+-			if (ret ^ f->logic[CT_FILTER_ADDRESS])
+-				return 0;
++			if (ret) {
++				if (f->logic[CT_FILTER_ADDRESS])
++					break;
++				else if (!f->logic[CT_FILTER_ADDRESS])
++					return 0;
++			}
+ 			ret = __ct_filter_test_ipv4(f, ct);
+ 			if (ret ^ f->logic[CT_FILTER_ADDRESS])
+ 				return 0;
+ 			break;
+ 		case AF_INET6:
+ 			ret = vector_iterate(f->v6, ct, __ct_filter_test_mask6);
+-			if (ret ^ f->logic[CT_FILTER_ADDRESS])
+-				return 0;
++			if (ret) {
++				if (f->logic[CT_FILTER_ADDRESS])
++					break;
++				else if (!f->logic[CT_FILTER_ADDRESS])
++					return 0;
++			}
+ 			ret = __ct_filter_test_ipv6(f, ct);
+ 			if (ret ^ f->logic[CT_FILTER_ADDRESS])
+ 				return 0;
+-- 
+2.11.0
 
-This would make this logic easier to understand and more maintainable.
