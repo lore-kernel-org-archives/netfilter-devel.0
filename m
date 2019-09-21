@@ -2,51 +2,53 @@ Return-Path: <SRS0=2UWv=XQ=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 33009C4CEC4
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6106FC4CEC9
 	for <netfilter-devel@archiver.kernel.org>; Sat, 21 Sep 2019 12:21:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0694B20717
+	by mail.kernel.org (Postfix) with ESMTP id 367E52070C
 	for <netfilter-devel@archiver.kernel.org>; Sat, 21 Sep 2019 12:21:03 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="Lq2ObE6N"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="UXXaCXGp"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2437855AbfIUMVC (ORCPT
+        id S2437857AbfIUMVD (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 21 Sep 2019 08:21:02 -0400
-Received: from kadath.azazel.net ([81.187.231.250]:33098 "EHLO
+        Sat, 21 Sep 2019 08:21:03 -0400
+Received: from kadath.azazel.net ([81.187.231.250]:33112 "EHLO
         kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2437848AbfIUMVC (ORCPT
+        with ESMTP id S2437852AbfIUMVC (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Sat, 21 Sep 2019 08:21:02 -0400
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-         s=20190108; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject
-        :Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
-        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+         s=20190108; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
+        Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=6NaNsrxU16SDh6FjDULaOTwcyGZuPsObHyGIX8x3b00=; b=Lq2ObE6NXIM0H/v82qCCsfxnoQ
-        YiZsgr0/8mHqRaAY+kFf9AqCFY2dR4PzDnpgcvRFqaXsgN3BE8bRVwJRsITv0kNGFZrYAI9f6glbt
-        bhQQnkmXRN5XAN4vDW0mZGPsUcLAj/3kCVGU1iFkSOzfms5LmCwY1gZFvjYR0kVwuQI8dLei6ZA61
-        N1KTP0C9VNIsvgMNN6JVcLRDot7lBtc48jkG8pplZmRKhwrcCvGWMT4QgeB9ubCyyBx0VUVicDBNL
-        HN9wc5/+g0QUfrL48t/ZK7Ao1Pcnw8NzkgLEME3uWDpigovk3NB7YMH3kLBgcSV1j1Ulu0tvpUZ71
-        gK0AkBDg==;
+        bh=gdRzOZfspBFi3ANtm5ZgTrZWrWCSFu7gx9e8XOa752Q=; b=UXXaCXGpwGgMYc3yAPDGeHsHhF
+        YLvzVT2M9oMIavvk9/IzSP7UcFqLm1vo/uyaPVhWtPoZM2iOtBEIKjnHCJZQMR1CKYmH357/vmcrw
+        ATp1C2GQOpnOICaZyAO7mmXRSqnZbJKFowE+SlpO1AakYNaqcBZNGCKWQYTJeC3bhXWOidTWEU7jO
+        8hVbQB5Ic20cM+CCl+yJMmkeKOmFxrBSAY1//NLal3kY2et6r/7l/1GMH5gv3ftqtjr08wvKlUyMX
+        x6fZ7dAsyTvieRi0a5+XwpBzKfQfCJ2p8pFY6BP9KjOt2YLK5eC0c37yKWYa3gUZWyni8pafw8WxM
+        KJTypQzw==;
 Received: from ulthar.dreamlands ([192.168.96.2])
         by kadath.azazel.net with esmtp (Exim 4.92)
         (envelope-from <jeremy@azazel.net>)
-        id 1iBeNo-0000qr-VH; Sat, 21 Sep 2019 13:21:01 +0100
+        id 1iBeNp-0000qr-G9; Sat, 21 Sep 2019 13:21:01 +0100
 From:   Jeremy Sowden <jeremy@azazel.net>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>,
         Sebastian Priebe <sebastian.priebe@de.sii.group>
-Subject: [PATCH nftables 0/3] Add Linenoise support to the CLI.
-Date:   Sat, 21 Sep 2019 13:20:57 +0100
-Message-Id: <20190921122100.3740-1-jeremy@azazel.net>
+Subject: [PATCH nftables 3/3] main: add more information to `nft -v`.
+Date:   Sat, 21 Sep 2019 13:21:00 +0100
+Message-Id: <20190921122100.3740-4-jeremy@azazel.net>
 X-Mailer: git-send-email 2.23.0
+In-Reply-To: <20190921122100.3740-1-jeremy@azazel.net>
+References: <20190921122100.3740-1-jeremy@azazel.net>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-SA-Exim-Connect-IP: 192.168.96.2
@@ -57,52 +59,80 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Sebastian Priebe [0] requested Linenoise support for the CLI as an
-alternative to Readline, so I thought I'd have a go at providing it.
-Linenoise is a minimal, zero-config, BSD licensed, Readline replacement
-used in Redis, MongoDB, and Android [1].
+In addition to the package-version and release-name, output the CLI
+implementation (if any) and whether mini-gmp was used, e.g.:
 
- 0 - https://lore.kernel.org/netfilter-devel/4df20614cd10434b9f91080d0862dd0c@de.sii.group/
- 1 - https://github.com/antirez/linenoise/
+    $ ./src/nft -v
+    nftables v0.9.2 (Scram)
+      cli:          linenoise
+      minigmp:      no
 
-The upstream repo doesn't contain the infrastructure for building or
-installing libraries.  I've taken a look at how Redis and MongoDB handle
-this, and they both include the upstream sources in their trees (MongoDB
-actually uses a C++ fork, Linenoise NG [2]), so I've done the same.
+Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
+---
+ src/Makefile.am |  3 +++
+ src/main.c      | 28 ++++++++++++++++++++++++++--
+ 2 files changed, 29 insertions(+), 2 deletions(-)
 
- 2 - https://github.com/arangodb/linenoise-ng
-
-By default, the CLI continues to be build using Readline, but passing
-`--with-cli=linenoise` instead causes Linenoise to be used instead.
-
-`nft -v` has been extended to display what CLI implementation was built
-and whether mini-gmp was used.
-
-Changes since RFC:
-
- * two tidy-up patches dropped because they have already been applied;
- * source now added to include/ and src/;
- * tests/build/run-tests.sh updated to test `--with-cli=linenoise`;
- * `nft -v` extended.
-
-Jeremy Sowden (3):
-  src, include: add upstream linenoise source.
-  cli: add linenoise CLI implementation.
-  main: add more information to `nft -v`.
-
- configure.ac             |   14 +-
- include/Makefile.am      |    1 +
- include/cli.h            |    2 +-
- include/linenoise.h      |   73 +++
- src/Makefile.am          |   12 +
- src/cli.c                |   64 +-
- src/linenoise.c          | 1201 ++++++++++++++++++++++++++++++++++++++
- src/main.c               |   28 +-
- tests/build/run-tests.sh |    4 +-
- 9 files changed, 1381 insertions(+), 18 deletions(-)
- create mode 100644 include/linenoise.h
- create mode 100644 src/linenoise.c
-
+diff --git a/src/Makefile.am b/src/Makefile.am
+index 5c2ecbd87288..780f8c6b2b0b 100644
+--- a/src/Makefile.am
++++ b/src/Makefile.am
+@@ -16,6 +16,9 @@ endif
+ if BUILD_CLI_LINENOISE
+ AM_CPPFLAGS += -DHAVE_LINENOISE
+ endif
++if BUILD_MINIGMP
++AM_CPPFLAGS += -DHAVE_MINIGMP
++endif
+ 
+ AM_CFLAGS = -Wall								\
+ 	    -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations	\
+diff --git a/src/main.c b/src/main.c
+index f77d8a820a02..866f66e288e2 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -154,6 +154,31 @@ static void show_help(const char *name)
+ 	name, DEFAULT_INCLUDE_PATH);
+ }
+ 
++static void show_version(void)
++{
++	const char *cli, *minigmp;
++
++#if defined(HAVE_LIBREADLINE)
++	cli = "readline";
++#elif defined(HAVE_LINENOISE)
++	cli = "linenoise";
++#else
++	cli = "no";
++#endif
++
++#if defined(HAVE_MINIGMP)
++	minigmp = "yes";
++#else
++	minigmp = "no";
++#endif
++
++	printf("%s v%s (%s)\n"
++	       "  cli:		%s\n"
++	       "  minigmp:	%s\n",
++	       PACKAGE_NAME, PACKAGE_VERSION, RELEASE_NAME,
++	       cli, minigmp);
++}
++
+ static const struct {
+ 	const char		*name;
+ 	enum nft_debug_level	level;
+@@ -213,8 +238,7 @@ int main(int argc, char * const *argv)
+ 			show_help(argv[0]);
+ 			exit(EXIT_SUCCESS);
+ 		case OPT_VERSION:
+-			printf("%s v%s (%s)\n",
+-			       PACKAGE_NAME, PACKAGE_VERSION, RELEASE_NAME);
++			show_version();
+ 			exit(EXIT_SUCCESS);
+ 		case OPT_CHECK:
+ 			nft_ctx_set_dry_run(nft, true);
 -- 
 2.23.0
 
