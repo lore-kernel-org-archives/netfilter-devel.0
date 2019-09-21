@@ -3,43 +3,64 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-6.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1EF80C49ED7
-	for <netfilter-devel@archiver.kernel.org>; Sat, 21 Sep 2019 10:25:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 61336C49ED7
+	for <netfilter-devel@archiver.kernel.org>; Sat, 21 Sep 2019 10:32:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C39BD208C0
-	for <netfilter-devel@archiver.kernel.org>; Sat, 21 Sep 2019 10:25:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 145B02086A
+	for <netfilter-devel@archiver.kernel.org>; Sat, 21 Sep 2019 10:32:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2407333AbfIUKZb (ORCPT
+        id S2407426AbfIUKci (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 21 Sep 2019 06:25:31 -0400
-Received: from mail105.syd.optusnet.com.au ([211.29.132.249]:33837 "EHLO
-        mail105.syd.optusnet.com.au" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1731108AbfIUKZb (ORCPT
+        Sat, 21 Sep 2019 06:32:38 -0400
+Received: from mail104.syd.optusnet.com.au ([211.29.132.246]:52871 "EHLO
+        mail104.syd.optusnet.com.au" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1731142AbfIUKci (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 21 Sep 2019 06:25:31 -0400
+        Sat, 21 Sep 2019 06:32:38 -0400
 Received: from dimstar.local.net (n122-110-44-45.sun2.vic.optusnet.com.au [122.110.44.45])
-        by mail105.syd.optusnet.com.au (Postfix) with SMTP id BFA7D36277D
-        for <netfilter-devel@vger.kernel.org>; Sat, 21 Sep 2019 20:25:09 +1000 (AEST)
-Received: (qmail 29493 invoked by uid 501); 21 Sep 2019 10:25:09 -0000
+        by mail104.syd.optusnet.com.au (Postfix) with SMTP id 5024843E173
+        for <netfilter-devel@vger.kernel.org>; Sat, 21 Sep 2019 20:32:15 +1000 (AEST)
+Received: (qmail 29612 invoked by uid 501); 21 Sep 2019 10:32:14 -0000
 From:   Duncan Roe <duncan_roe@optusnet.com.au>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH libmnl, v2] Enable doxygen to generate Function Documentation
-Date:   Sat, 21 Sep 2019 20:25:09 +1000
-Message-Id: <20190921102509.29450-1-duncan_roe@optusnet.com.au>
+Subject: [PATCH libmnl, v3] Enable doxygen to generate Function Documentation
+Date:   Sat, 21 Sep 2019 20:32:14 +1000
+Message-Id: <20190921103214.29569-1-duncan_roe@optusnet.com.au>
 X-Mailer: git-send-email 2.14.5
 X-Optus-CM-Score: 0
-X-Optus-CM-Analysis: v=2.2 cv=P6RKvmIu c=1 sm=1 tr=0
+X-Optus-CM-Analysis: v=2.2 cv=D+Q3ErZj c=1 sm=1 tr=0
         a=4DzML1vCOQ6Odsy8BUtSXQ==:117 a=4DzML1vCOQ6Odsy8BUtSXQ==:17
-        a=J70Eh1EUuV4A:10 a=LxFQV76i8Y1Hx0oS4XgA:9
-        a=7Zwj6sZBwVKJAoWSPKxL6X1jA+E=:19 a=fSfJpgpAdJjWzu3Z:21
-        a=cZgfgscdzYn0CD3p:21
+        a=J70Eh1EUuV4A:10 a=qhLOVHrUzZAvz4SvXkwA:9
+        a=7Zwj6sZBwVKJAoWSPKxL6X1jA+E=:19 a=fGjeIg8U-xbbA0qX:21
+        a=_7BLhNcWpLgqkrr2:21
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
+
+The C source files all contain doxygen documentation for each defined function
+but this was not appearing in the generated HTML or man pages.
+Fix is to move all EXPORT_SYMBOL macro calls to near the start of each file.
+Doxygen seems to otherwise forget the documentation on encountering
+EXPORT_SYMBOL which is flagged in the EXCLUDE_SYMBOLS tag in doxygen.cfg.in.
+I encountered this "feature" in doxygen 1.8.9.1 but it still appears to be
+present in 1.8.16
+Tested against gcc and clang builds
+Also fixed a missing doxygen section trailer in nlmsg.c
+---
+v2: - Move EXPORT_SYMBOL lines to after last #include line
+    - Slip in an extra fix for a missing doxygen section trailer
+      (didn't think it warrantied an extra patch)
+    - Tweak commit message
+ 
+ src/attr.c     | 71 +++++++++++++++++++++++++++++-----------------------------
+ src/callback.c |  5 +++--
+ src/nlmsg.c    | 45 ++++++++++++++++++++-----------------
+ src/socket.c   | 23 ++++++++++---------
+ 4 files changed, 76 insertions(+), 68 deletions(-)
 
 diff --git a/src/attr.c b/src/attr.c
 index 0359ba9..00a5354 100644
