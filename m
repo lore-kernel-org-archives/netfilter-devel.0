@@ -2,113 +2,103 @@ Return-Path: <SRS0=2UWv=XQ=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D3583C49ED7
-	for <netfilter-devel@archiver.kernel.org>; Sat, 21 Sep 2019 10:55:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 15ED6C4CEC9
+	for <netfilter-devel@archiver.kernel.org>; Sat, 21 Sep 2019 11:05:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B00C6217F5
-	for <netfilter-devel@archiver.kernel.org>; Sat, 21 Sep 2019 10:55:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DCADE2184C
+	for <netfilter-devel@archiver.kernel.org>; Sat, 21 Sep 2019 11:05:31 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="OZR0YIZ9"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2437752AbfIUKzi (ORCPT
+        id S2407527AbfIULFb (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 21 Sep 2019 06:55:38 -0400
-Received: from mail105.syd.optusnet.com.au ([211.29.132.249]:41292 "EHLO
-        mail105.syd.optusnet.com.au" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S2437750AbfIUKzh (ORCPT
+        Sat, 21 Sep 2019 07:05:31 -0400
+Received: from kadath.azazel.net ([81.187.231.250]:59676 "EHLO
+        kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2407499AbfIULFa (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 21 Sep 2019 06:55:37 -0400
-Received: from dimstar.local.net (n122-110-44-45.sun2.vic.optusnet.com.au [122.110.44.45])
-        by mail105.syd.optusnet.com.au (Postfix) with SMTP id CB7B93628A4
-        for <netfilter-devel@vger.kernel.org>; Sat, 21 Sep 2019 20:55:24 +1000 (AEST)
-Received: (qmail 29712 invoked by uid 501); 21 Sep 2019 10:55:23 -0000
-Date:   Sat, 21 Sep 2019 20:55:23 +1000
-From:   Duncan Roe <duncan_roe@optusnet.com.au>
-To:     Netfilter Development <netfilter-devel@vger.kernel.org>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] src: Enable doxygen to generate Function Documentation
-Message-ID: <20190921105523.GB29627@dimstar.local.net>
-Mail-Followup-To: Netfilter Development <netfilter-devel@vger.kernel.org>,
-        Pablo Neira Ayuso <pablo@netfilter.org>
-References: <20190908082505.3320-1-duncan_roe@optusnet.com.au>
- <20190914032556.GA14997@dimstar.local.net>
- <20190920000006.GA23488@dimstar.local.net>
- <20190920090509.2izzplgcgeepe4bh@salvia>
+        Sat, 21 Sep 2019 07:05:30 -0400
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
+         s=20190108; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
+        Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=oTYzKmLCbhjNQvlwj09BIgb0blu6z/+b5YJM1oAt/R4=; b=OZR0YIZ943L8wpJgP+B8sqEyPR
+        87TgkGfZelOuApD1BjMI+Qm0dzJczEk3TuNK1RNmXaEwYWgvFe5DSkizoqoANwBWCdeKlSmsmJqY7
+        kTkpp5zaz2kDlKxMpKC41OuvsY75yv0qLwwr+CGCNwp7Oan/AA0TvMrIWjMGaVwH/qjSDva0y/bY6
+        ojsvwpvmq1XrRizQKe+LgDnT2bJHnm0VdBDnDZ2+74sbgjDJrVUSputMjn/kA6GRY5BAPi6j6AMMs
+        rS4frwOZbkmCzalG4yaEAHa3HBda6nhCqFZRLQ2/kL09+hx9fMfZgy9lu9R6ReEFlg3Ks9Q9ea5oY
+        4OKzciQQ==;
+Received: from ulthar.dreamlands ([192.168.96.2])
+        by kadath.azazel.net with esmtp (Exim 4.92)
+        (envelope-from <jeremy@azazel.net>)
+        id 1iBdCd-0007fj-D6; Sat, 21 Sep 2019 12:05:23 +0100
+From:   Jeremy Sowden <jeremy@azazel.net>
+To:     stable@vger.kernel.org
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Netfilter Devel <netfilter-devel@vger.kernel.org>,
+        Adam Borowski <kilobyte@angband.pl>
+Subject: [PATCH 1/1] netfilter: add missing IS_ENABLED(CONFIG_NF_TABLES) check to header-file.
+Date:   Sat, 21 Sep 2019 12:05:23 +0100
+Message-Id: <20190921110523.15085-2-jeremy@azazel.net>
+X-Mailer: git-send-email 2.23.0
+In-Reply-To: <20190921110523.15085-1-jeremy@azazel.net>
+References: <20190921110523.15085-1-jeremy@azazel.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190920090509.2izzplgcgeepe4bh@salvia>
-User-Agent: Mutt/1.10.1 (2018-07-13)
-X-Optus-CM-Score: 0
-X-Optus-CM-Analysis: v=2.2 cv=FNpr/6gs c=1 sm=1 tr=0
-        a=4DzML1vCOQ6Odsy8BUtSXQ==:117 a=4DzML1vCOQ6Odsy8BUtSXQ==:17
-        a=jpOVt7BSZ2e4Z31A5e1TngXxSK0=:19 a=kj9zAlcOel0A:10 a=J70Eh1EUuV4A:10
-        a=PO7r1zJSAAAA:8 a=NicSApd2x7r0FlQviCEA:9 a=CjuIK1q_8ugA:10
+Content-Transfer-Encoding: 8bit
+X-SA-Exim-Connect-IP: 192.168.96.2
+X-SA-Exim-Mail-From: jeremy@azazel.net
+X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Pablo,
+nf_tables.h defines an API comprising several inline functions and
+macros that depend on the nft member of struct net.  However, this is
+only defined is CONFIG_NF_TABLES is enabled.  Added preprocessor checks
+to ensure that nf_tables.h will compile if CONFIG_NF_TABLES is disabled.
 
-On Fri, Sep 20, 2019 at 11:05:09AM +0200, Pablo Neira Ayuso wrote:
-> On Fri, Sep 20, 2019 at 10:00:06AM +1000, Duncan Roe wrote:
-> > (cc'ing list - already sent to Pablo)
-> >
-> > Hi Pablo,
-> >
-> > On Sat, Sep 14, 2019 at 01:25:56PM +1000, Duncan Roe wrote:
-> > > Hi Pablo,
-> > >
-> > > On Sun, Sep 08, 2019 at 06:25:05PM +1000, Duncan Roe wrote:
-> > > > The C source files all contain doxygen documentation for each defined function
-> > > > but this was not appearing in the generated HTML.
-> > > > Fix is to move all EXPORT_SYMBOL macro calls to after the function definition.
-> > > > Doxygen seems to otherwise forget the documentation on encountering
-> > > > EXPORT_SYMBOL which is flagged in the EXCLUDE_SYMBOLS tag in doxygen.cfg.in.
-> > > > I encountered this "feature" in doxygen 1.8.9.1 but it still appears to be
-> > > > present in 1.8.16
-> > > >
-> > > > Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
-> > > > ---
-> > > >  src/attr.c     | 70 +++++++++++++++++++++++++++++-----------------------------
-> > > >  src/callback.c |  4 ++--
-> > > >  src/nlmsg.c    | 40 ++++++++++++++++-----------------
-> > > >  src/socket.c   | 22 +++++++++---------
-> > > >  4 files changed, 68 insertions(+), 68 deletions(-)
-> > > >
-> > > > diff --git a/src/attr.c b/src/attr.c
-> > > > index 0359ba9..ca42d3e 100644
-> > > > --- a/src/attr.c
-> > > > +++ b/src/attr.c
-> > > > @@ -35,11 +35,11 @@
-> > > >   *
-> > > >   * This function returns the attribute type.
-> > > >   */
-> > > > -EXPORT_SYMBOL(mnl_attr_get_type);
-> > > >  uint16_t mnl_attr_get_type(const struct nlattr *attr)
-> > > >  {
-> > > >  	return attr->nla_type & NLA_TYPE_MASK;
-> > > >  }
-> > > > +EXPORT_SYMBOL(mnl_attr_get_type);
-> > > >
-> > > [...]
-> > >
-> > > Oops! I forgot to say: this is a patch for libmnl.
-> > >
-> > > Cheers ... Duncan.
-> >
-> > Any feedback re this patch?
->
-> Your patch breaks clang compilation, we need to find a different
-> solution for this bug.
->
-> Thank you.
+(cherry picked from commit 47e640af2e492cc28778dd6f894d50313f7fba75)
 
-I submitted a v3 (v2 lost its commit message somehow)
+Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Fixes: 3c171f496ef5 ("netfilter: bridge: add connection tracking system")
+Reported-by: Adam Borowski <kilobyte@angband.pl>
+Link: https://lore.kernel.org/netfilter-devel/20190920094925.aw7actk4tdnk3rke@salvia/T/
+Cc: stable@vger.kernel.org
+---
+ include/net/netfilter/nf_tables.h | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-libnetfilter_queue fails with clang as_is - will send a patch.
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index 475d6f28ca67..7f7a4d9137e5 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -1206,6 +1206,8 @@ void nft_trace_notify(struct nft_traceinfo *info);
+ #define MODULE_ALIAS_NFT_OBJ(type) \
+ 	MODULE_ALIAS("nft-obj-" __stringify(type))
+ 
++#if IS_ENABLED(CONFIG_NF_TABLES)
++
+ /*
+  * The gencursor defines two generations, the currently active and the
+  * next one. Objects contain a bitmask of 2 bits specifying the generations
+@@ -1279,6 +1281,8 @@ static inline void nft_set_elem_change_active(const struct net *net,
+ 	ext->genmask ^= nft_genmask_next(net);
+ }
+ 
++#endif /* IS_ENABLED(CONFIG_NF_TABLES) */
++
+ /*
+  * We use a free bit in the genmask field to indicate the element
+  * is busy, meaning it is currently being processed either by
+-- 
+2.23.0
 
-Cheers ... Duncan.
