@@ -2,104 +2,127 @@ Return-Path: <SRS0=d85k=XR=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.0 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 148EBC3A5A6
-	for <netfilter-devel@archiver.kernel.org>; Sun, 22 Sep 2019 07:17:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C5E91C3A5A2
+	for <netfilter-devel@archiver.kernel.org>; Sun, 22 Sep 2019 09:22:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id DA44620830
-	for <netfilter-devel@archiver.kernel.org>; Sun, 22 Sep 2019 07:17:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4468D2070C
+	for <netfilter-devel@archiver.kernel.org>; Sun, 22 Sep 2019 09:22:45 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="P9gl1t5b"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727635AbfIVHRV (ORCPT
+        id S1728052AbfIVJWp (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 22 Sep 2019 03:17:21 -0400
-Received: from correo.us.es ([193.147.175.20]:37534 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727598AbfIVHRV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 22 Sep 2019 03:17:21 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 77F28E1222
-        for <netfilter-devel@vger.kernel.org>; Sun, 22 Sep 2019 09:17:17 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 6A102CE17F
-        for <netfilter-devel@vger.kernel.org>; Sun, 22 Sep 2019 09:17:17 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 5FB18DA72F; Sun, 22 Sep 2019 09:17:17 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 3E228D1DBB
-        for <netfilter-devel@vger.kernel.org>; Sun, 22 Sep 2019 09:17:15 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Sun, 22 Sep 2019 09:17:15 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from salvia.here (unknown [193.47.165.251])
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id E63DA4265A5A
-        for <netfilter-devel@vger.kernel.org>; Sun, 22 Sep 2019 09:17:14 +0200 (CEST)
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft,v2] mnl: do not cache sender buffer size
-Date:   Sun, 22 Sep 2019 09:17:11 +0200
-Message-Id: <20190922071711.4083-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.11.0
-X-Virus-Scanned: ClamAV using ClamSMTP
+        Sun, 22 Sep 2019 05:22:45 -0400
+Received: from kadath.azazel.net ([81.187.231.250]:59108 "EHLO
+        kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727943AbfIVJWo (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 22 Sep 2019 05:22:44 -0400
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
+         s=20190108; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+        Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=joQD4rs3aZSU9STcgMyFUSQACkHE49n9ySXFViziTiQ=; b=P9gl1t5by+IoDqEirTK5O0DJX2
+        B/jz2i5g0SpxQZaJdSFiTVi5aNz9ao2FiQK3KR+KdWEm/+uIJ8mUtvwPX68FuLXXJT4GnQRgviBst
+        GiSPJOL+zBjT8SIjW4lRnEd39iBx1fGscpYnT8gPbIRk4+egMYI5L2kUDgtpQglBgZoXoGYWeQBGO
+        XZ9emM2ZomJCKky7JGTCZs7s4RoBI3gxx6PDbtcT1Xee5hVDZHD1qhQd7RhxmyOfb6BI8RCoL5Shh
+        Ymk0iE8pbHqgfJ46JFqTw3Y9+Bfpvcc8L4jbZmqnxMSo3mLdneTMtS85Klc3cNBKLytN3UQ+VdbIH
+        Hjx+EBtw==;
+Received: from celephais.dreamlands ([192.168.96.3] helo=azazel.net)
+        by kadath.azazel.net with esmtpsa (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
+        (Exim 4.92)
+        (envelope-from <jeremy@azazel.net>)
+        id 1iBy4m-0001DE-4l; Sun, 22 Sep 2019 10:22:40 +0100
+Date:   Sun, 22 Sep 2019 10:22:38 +0100
+From:   Jeremy Sowden <jeremy@azazel.net>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Jan Engelhardt <jengelh@inai.de>,
+        Netfilter Devel <netfilter-devel@vger.kernel.org>,
+        Sebastian Priebe <sebastian.priebe@de.sii.group>
+Subject: Re: [PATCH nftables 1/3] src, include: add upstream linenoise source.
+Message-ID: <20190922092237.GC28617@azazel.net>
+References: <20190921122100.3740-1-jeremy@azazel.net>
+ <20190921122100.3740-2-jeremy@azazel.net>
+ <nycvar.YFH.7.76.1909212114010.6443@n3.vanv.qr>
+ <20190922070924.uzfjofvga3nufulb@salvia>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="kVXhAStRUZ/+rrGn"
+Content-Disposition: inline
+In-Reply-To: <20190922070924.uzfjofvga3nufulb@salvia>
+User-Agent: Mutt/1.10.1 (2018-07-13)
+X-SA-Exim-Connect-IP: 192.168.96.3
+X-SA-Exim-Mail-From: jeremy@azazel.net
+X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-SO_SNDBUF never fails, this socket option just provides a hint to the
-kernel.  SO_SNDBUFFORCE sets the buffer size to zero if the value goes
-over INT_MAX. Userspace is caching the buffer hint that sends to the
-kernel, so it might leave userspace out of sync if the kernel ignores
-the hint. Do not make assumptions, fetch the sender buffer size from the
-kernel via getsockopt().
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-v2: Missing len variable initialization - Florian Westphal.
+--kVXhAStRUZ/+rrGn
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
- src/mnl.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+On 2019-09-22, at 09:09:24 +0200, Pablo Neira Ayuso wrote:
+> On Sat, Sep 21, 2019 at 09:19:23PM +0200, Jan Engelhardt wrote:
+> >
+> > On Saturday 2019-09-21 14:20, Jeremy Sowden wrote:
+> >
+> > >  https://github.com/antirez/linenoise/
+> > >
+> > >The upstream repo doesn't contain the infrastructure for building or
+> > >installing libraries.  There was a 1.0 release made in 2015, but there
+> > >have been a number of bug-fixes committed since.  Therefore, add the
+> > >latest upstream source:
+> >
+> > > src/linenoise.c     | 1201 +++++++++++++++++++++++++++++++++++++++++++
+> >
+> > That seems like a recipe to end up with stale code. For a distribution,
+> > it's static linking worsened by another degree.
+> >
+> > (https://fedoraproject.org/wiki/Bundled_Libraries?rd=Packaging:Bundled_Libraries)
+>
+> I thought this is like mini-gmp.c?
 
-diff --git a/src/mnl.c b/src/mnl.c
-index 57ff89f50e23..14fa4a7186fd 100644
---- a/src/mnl.c
-+++ b/src/mnl.c
-@@ -218,24 +218,24 @@ void mnl_err_list_free(struct mnl_err *err)
- 	xfree(err);
- }
- 
--static int nlbuffsiz;
--
- static void mnl_set_sndbuffer(const struct mnl_socket *nl,
- 			      struct nftnl_batch *batch)
- {
-+	socklen_t len = sizeof(int);
-+	int sndnlbuffsiz = 0;
- 	int newbuffsiz;
- 
--	if (nftnl_batch_iovec_len(batch) * BATCH_PAGE_SIZE <= nlbuffsiz)
--		return;
-+	getsockopt(mnl_socket_get_fd(nl), SOL_SOCKET, SO_SNDBUF,
-+		   &sndnlbuffsiz, &len);
- 
- 	newbuffsiz = nftnl_batch_iovec_len(batch) * BATCH_PAGE_SIZE;
-+	if (newbuffsiz <= sndnlbuffsiz)
-+		return;
- 
- 	/* Rise sender buffer length to avoid hitting -EMSGSIZE */
- 	if (setsockopt(mnl_socket_get_fd(nl), SOL_SOCKET, SO_SNDBUFFORCE,
- 		       &newbuffsiz, sizeof(socklen_t)) < 0)
- 		return;
--
--	nlbuffsiz = newbuffsiz;
- }
- 
- static unsigned int nlsndbufsiz;
--- 
-2.11.0
+That was also my impression.
 
+> Are distributors packaging this as a library?
+
+It turns out that Fedora has packaged an old fork of it, which is also
+available in EPEL, and I missed it.  Apologies.  There's nothing in
+Debian or Ubuntu.
+
+How about adding an `AC_CHECK_LIB([linenoise], ...)` check and falling
+back to the bundled copy?
+
+J.
+
+--kVXhAStRUZ/+rrGn
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEEZ8d+2N/NBLDbUxIF0Z7UzfnX9sMFAl2HPVQACgkQ0Z7UzfnX
+9sPIOBAAxr9HFzPakI9IkokSYz33uP2e1IAt324vOhKUxh0EJZLsdZG6aj7/cDMT
+o3vGc4n69x8eL7wzye6Xa1SM2WwdcJVnpvIWv6JLEEaRXFczcHGo0kylDfKbuvHL
+/dNeytwF2GOhfTc4+WUzaB6ZQCTye1jU+5uHITUf9CI2bqLhZtrs/K1oRo2Ux0jA
+ZQPiTSIqXLdtGoR6g0aZpPBAtEiyCXwl+95mhBmLUluy5GF+gvlx6L4wm3F5yuOK
+t/l0axGAUdb3+bXSOx5NbhRJ+QPSUvYhoI5FEe2/4H8PJddMsG3xWA+rbSKFiJlv
+hMBCBX5Dx/U6v/YEC02tw0446HwtHHwD0Qsnnz8CUFA9VL2zyBvuHxkrGaUap/n7
+N8cCnzOrfdW54etQeraF9tixJ3abHU14HYQx3HIEM14cfzUdXCLo0239DdSfKkjM
+J8rbXrRMJLKUFQVyaco9vmBtm29bOsNtyyBKZcmCivoudt59T+JeJHCXYpKIvXqF
+AiKlWF7vEO7pHR7mSIDmm9thgueIT3s1uINMdfAOAVHhgmiYEPsUpBJkwP7kQFDg
+O81QJSRe5FlmbTooX2Mx4bDi9cxLymXkJaGo0Gr8UJ3fmIkYrGidVrYD6hjXctNi
+oM7Grxqd00uG3ENg/CEP+JfaigwHXGpZWg1wQm73UZrU2gAIQss=
+=4aj7
+-----END PGP SIGNATURE-----
+
+--kVXhAStRUZ/+rrGn--
