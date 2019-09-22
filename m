@@ -2,105 +2,104 @@ Return-Path: <SRS0=d85k=XR=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A275C3A5A6
-	for <netfilter-devel@archiver.kernel.org>; Sun, 22 Sep 2019 07:13:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 148EBC3A5A6
+	for <netfilter-devel@archiver.kernel.org>; Sun, 22 Sep 2019 07:17:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 210A72070C
-	for <netfilter-devel@archiver.kernel.org>; Sun, 22 Sep 2019 07:13:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DA44620830
+	for <netfilter-devel@archiver.kernel.org>; Sun, 22 Sep 2019 07:17:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727714AbfIVHNW (ORCPT
+        id S1727635AbfIVHRV (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 22 Sep 2019 03:13:22 -0400
-Received: from correo.us.es ([193.147.175.20]:36936 "EHLO mail.us.es"
+        Sun, 22 Sep 2019 03:17:21 -0400
+Received: from correo.us.es ([193.147.175.20]:37534 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727638AbfIVHNW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 22 Sep 2019 03:13:22 -0400
+        id S1727598AbfIVHRV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 22 Sep 2019 03:17:21 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id A0B06E1224
-        for <netfilter-devel@vger.kernel.org>; Sun, 22 Sep 2019 09:13:18 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 77F28E1222
+        for <netfilter-devel@vger.kernel.org>; Sun, 22 Sep 2019 09:17:17 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 91656DA840
-        for <netfilter-devel@vger.kernel.org>; Sun, 22 Sep 2019 09:13:18 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 6A102CE17F
+        for <netfilter-devel@vger.kernel.org>; Sun, 22 Sep 2019 09:17:17 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 87118DA801; Sun, 22 Sep 2019 09:13:18 +0200 (CEST)
+        id 5FB18DA72F; Sun, 22 Sep 2019 09:17:17 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 42664DA72F;
-        Sun, 22 Sep 2019 09:13:16 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 3E228D1DBB
+        for <netfilter-devel@vger.kernel.org>; Sun, 22 Sep 2019 09:17:15 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Sun, 22 Sep 2019 09:13:16 +0200 (CEST)
+ Sun, 22 Sep 2019 09:17:15 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (unknown [193.47.165.251])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id E32BA4265A5A;
-        Sun, 22 Sep 2019 09:13:15 +0200 (CEST)
-Date:   Sun, 22 Sep 2019 09:13:15 +0200
+Received: from salvia.here (unknown [193.47.165.251])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id E63DA4265A5A
+        for <netfilter-devel@vger.kernel.org>; Sun, 22 Sep 2019 09:17:14 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Masahiro Yamada <yamada.masahiro@socionext.com>
-Cc:     Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] netfilter: use __u8 instead of uint8_t in uapi header
-Message-ID: <20190922071315.iig2lbey5ophuipu@salvia>
-References: <20190921134648.1259-1-yamada.masahiro@socionext.com>
- <20190922071111.3gflycy6t4jnjpd4@salvia>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20190922071111.3gflycy6t4jnjpd4@salvia>
-User-Agent: NeoMutt/20170113 (1.7.2)
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nft,v2] mnl: do not cache sender buffer size
+Date:   Sun, 22 Sep 2019 09:17:11 +0200
+Message-Id: <20190922071711.4083-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.11.0
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sun, Sep 22, 2019 at 09:11:11AM +0200, Pablo Neira Ayuso wrote:
-> On Sat, Sep 21, 2019 at 10:46:48PM +0900, Masahiro Yamada wrote:
-> > When CONFIG_UAPI_HEADER_TEST=y, exported headers are compile-tested to
-> > make sure they can be included from user-space.
-> > 
-> > Currently, linux/netfilter_bridge/ebtables.h is excluded from the test
-> > coverage. To make it join the compile-test, we need to fix the build
-> > errors attached below.
-> > 
-> > For a case like this, we decided to use __u{8,16,32,64} variable types
-> > in this discussion:
-> > 
-> >   https://lkml.org/lkml/2019/6/5/18
-> > 
-> > Build log:
-> > 
-> >   CC      usr/include/linux/netfilter_bridge/ebtables.h.s
-> > In file included from <command-line>:32:0:
-> > ./usr/include/linux/netfilter_bridge/ebtables.h:126:4: error: unknown type name ‘uint8_t’
-> >     uint8_t revision;
-> >     ^~~~~~~
-> > ./usr/include/linux/netfilter_bridge/ebtables.h:139:4: error: unknown type name ‘uint8_t’
-> >     uint8_t revision;
-> >     ^~~~~~~
-> > ./usr/include/linux/netfilter_bridge/ebtables.h:152:4: error: unknown type name ‘uint8_t’
-> >     uint8_t revision;
-> >     ^~~~~~~
-> 
-> Applied.
+SO_SNDBUF never fails, this socket option just provides a hint to the
+kernel.  SO_SNDBUFFORCE sets the buffer size to zero if the value goes
+over INT_MAX. Userspace is caching the buffer hint that sends to the
+kernel, so it might leave userspace out of sync if the kernel ignores
+the hint. Do not make assumptions, fetch the sender buffer size from the
+kernel via getsockopt().
 
-Patch does not apply cleanly to nf.git, I have to keep it back, sorry
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+v2: Missing len variable initialization - Florian Westphal.
 
-$ git am /tmp/yamada.masahiro.txt -s
-Applying: netfilter: use __u8 instead of uint8_t in uapi header
-error: patch failed: usr/include/Makefile:37
-error: usr/include/Makefile: patch does not apply
-Patch failed at 0001 netfilter: use __u8 instead of uint8_t in uapi header
-The copy of the patch that failed is found in: .git/rebase-apply/patch
-When you have resolved this problem, run "git am --continue".
-If you prefer to skip this patch, run "git am --skip" instead.
-To restore the original branch and stop patching, run "git am --abort".
+ src/mnl.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/src/mnl.c b/src/mnl.c
+index 57ff89f50e23..14fa4a7186fd 100644
+--- a/src/mnl.c
++++ b/src/mnl.c
+@@ -218,24 +218,24 @@ void mnl_err_list_free(struct mnl_err *err)
+ 	xfree(err);
+ }
+ 
+-static int nlbuffsiz;
+-
+ static void mnl_set_sndbuffer(const struct mnl_socket *nl,
+ 			      struct nftnl_batch *batch)
+ {
++	socklen_t len = sizeof(int);
++	int sndnlbuffsiz = 0;
+ 	int newbuffsiz;
+ 
+-	if (nftnl_batch_iovec_len(batch) * BATCH_PAGE_SIZE <= nlbuffsiz)
+-		return;
++	getsockopt(mnl_socket_get_fd(nl), SOL_SOCKET, SO_SNDBUF,
++		   &sndnlbuffsiz, &len);
+ 
+ 	newbuffsiz = nftnl_batch_iovec_len(batch) * BATCH_PAGE_SIZE;
++	if (newbuffsiz <= sndnlbuffsiz)
++		return;
+ 
+ 	/* Rise sender buffer length to avoid hitting -EMSGSIZE */
+ 	if (setsockopt(mnl_socket_get_fd(nl), SOL_SOCKET, SO_SNDBUFFORCE,
+ 		       &newbuffsiz, sizeof(socklen_t)) < 0)
+ 		return;
+-
+-	nlbuffsiz = newbuffsiz;
+ }
+ 
+ static unsigned int nlsndbufsiz;
+-- 
+2.11.0
+
