@@ -2,127 +2,133 @@ Return-Path: <SRS0=d85k=XR=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C5E91C3A5A2
-	for <netfilter-devel@archiver.kernel.org>; Sun, 22 Sep 2019 09:22:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C0620C3A5A2
+	for <netfilter-devel@archiver.kernel.org>; Sun, 22 Sep 2019 11:50:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4468D2070C
-	for <netfilter-devel@archiver.kernel.org>; Sun, 22 Sep 2019 09:22:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 977C420820
+	for <netfilter-devel@archiver.kernel.org>; Sun, 22 Sep 2019 11:50:15 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="P9gl1t5b"
+	dkim=pass (2048-bit key) header.d=nifty.com header.i=@nifty.com header.b="n+14iuM3"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728052AbfIVJWp (ORCPT
+        id S1728683AbfIVLuM (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 22 Sep 2019 05:22:45 -0400
-Received: from kadath.azazel.net ([81.187.231.250]:59108 "EHLO
-        kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727943AbfIVJWo (ORCPT
+        Sun, 22 Sep 2019 07:50:12 -0400
+Received: from conssluserg-06.nifty.com ([210.131.2.91]:32452 "EHLO
+        conssluserg-06.nifty.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726129AbfIVLuL (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 22 Sep 2019 05:22:44 -0400
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-         s=20190108; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-        Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=joQD4rs3aZSU9STcgMyFUSQACkHE49n9ySXFViziTiQ=; b=P9gl1t5by+IoDqEirTK5O0DJX2
-        B/jz2i5g0SpxQZaJdSFiTVi5aNz9ao2FiQK3KR+KdWEm/+uIJ8mUtvwPX68FuLXXJT4GnQRgviBst
-        GiSPJOL+zBjT8SIjW4lRnEd39iBx1fGscpYnT8gPbIRk4+egMYI5L2kUDgtpQglBgZoXoGYWeQBGO
-        XZ9emM2ZomJCKky7JGTCZs7s4RoBI3gxx6PDbtcT1Xee5hVDZHD1qhQd7RhxmyOfb6BI8RCoL5Shh
-        Ymk0iE8pbHqgfJ46JFqTw3Y9+Bfpvcc8L4jbZmqnxMSo3mLdneTMtS85Klc3cNBKLytN3UQ+VdbIH
-        Hjx+EBtw==;
-Received: from celephais.dreamlands ([192.168.96.3] helo=azazel.net)
-        by kadath.azazel.net with esmtpsa (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
-        (Exim 4.92)
-        (envelope-from <jeremy@azazel.net>)
-        id 1iBy4m-0001DE-4l; Sun, 22 Sep 2019 10:22:40 +0100
-Date:   Sun, 22 Sep 2019 10:22:38 +0100
-From:   Jeremy Sowden <jeremy@azazel.net>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Jan Engelhardt <jengelh@inai.de>,
-        Netfilter Devel <netfilter-devel@vger.kernel.org>,
-        Sebastian Priebe <sebastian.priebe@de.sii.group>
-Subject: Re: [PATCH nftables 1/3] src, include: add upstream linenoise source.
-Message-ID: <20190922092237.GC28617@azazel.net>
-References: <20190921122100.3740-1-jeremy@azazel.net>
- <20190921122100.3740-2-jeremy@azazel.net>
- <nycvar.YFH.7.76.1909212114010.6443@n3.vanv.qr>
- <20190922070924.uzfjofvga3nufulb@salvia>
+        Sun, 22 Sep 2019 07:50:11 -0400
+X-Greylist: delayed 79364 seconds by postgrey-1.27 at vger.kernel.org; Sun, 22 Sep 2019 07:50:10 EDT
+Received: from mail-vs1-f44.google.com (mail-vs1-f44.google.com [209.85.217.44]) (authenticated)
+        by conssluserg-06.nifty.com with ESMTP id x8MBnmOm002048;
+        Sun, 22 Sep 2019 20:49:48 +0900
+DKIM-Filter: OpenDKIM Filter v2.10.3 conssluserg-06.nifty.com x8MBnmOm002048
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nifty.com;
+        s=dec2015msa; t=1569152989;
+        bh=e0LO2NCdAWPfrCQ7zpdpWdqIiGjNOGEohifdGVmgHQI=;
+        h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+        b=n+14iuM3gHo2Dc92TivlL2YTV9BnAhvuH4ZaY9kTQPEdMIOag80OltBAxp6wQNE0q
+         UQk4miG3Jh3+SzpgBSNT3TyfVBLtzQ3nIX6hAnGUPir0e1loBVaJp8vrtSxxkkffH4
+         b8BO+UhuzarrQoDisau939CfX9/OBa3G3UCJmPzdyhdrVQ1dgWqulYe3IJqtoMxWTd
+         /eIbPu1rRKloHbesceTPbs5c5wlF+vzuGJcVzrtLyH2RoxNGqtbCGmAd90KtUdPjfU
+         IbhiXcjr42S99W2m6oE4Hv5nH/RH49jepmxWrLF2ZYzpQbf67LJ0EW5eDe1Osb11Ga
+         98+MkqduzxuSQ==
+X-Nifty-SrcIP: [209.85.217.44]
+Received: by mail-vs1-f44.google.com with SMTP id w195so7591995vsw.11;
+        Sun, 22 Sep 2019 04:49:48 -0700 (PDT)
+X-Gm-Message-State: APjAAAU1XxbxXL1c3w1ZQFPqWfLWmvmYn9nwFm9zilHO5zKO6z6fzMeF
+        ROsL4099qf6AsakXwbx7RCOKc/VuFzO0tX5e3Wc=
+X-Google-Smtp-Source: APXvYqwy69RHF4oJbH42DeM+6B2sx/v6WqbVGud7je70F1t49ct60LYDwHZluqQaI+ANjgC783WlTsMZ7CbS1Ao+LJ0=
+X-Received: by 2002:a67:88c9:: with SMTP id k192mr7622437vsd.181.1569152987650;
+ Sun, 22 Sep 2019 04:49:47 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="kVXhAStRUZ/+rrGn"
-Content-Disposition: inline
-In-Reply-To: <20190922070924.uzfjofvga3nufulb@salvia>
-User-Agent: Mutt/1.10.1 (2018-07-13)
-X-SA-Exim-Connect-IP: 192.168.96.3
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
+References: <20190921134648.1259-1-yamada.masahiro@socionext.com>
+ <20190922071111.3gflycy6t4jnjpd4@salvia> <20190922071315.iig2lbey5ophuipu@salvia>
+In-Reply-To: <20190922071315.iig2lbey5ophuipu@salvia>
+From:   Masahiro Yamada <yamada.masahiro@socionext.com>
+Date:   Sun, 22 Sep 2019 20:49:11 +0900
+X-Gmail-Original-Message-ID: <CAK7LNASAcHCJOsjrE5O8s_8WYUtbvz_4acmxQhsEZJSsoo7U5A@mail.gmail.com>
+Message-ID: <CAK7LNASAcHCJOsjrE5O8s_8WYUtbvz_4acmxQhsEZJSsoo7U5A@mail.gmail.com>
+Subject: Re: [PATCH] netfilter: use __u8 instead of uint8_t in uapi header
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        Netfilter Development Mailing list 
+        <netfilter-devel@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Hi Pablo,
 
---kVXhAStRUZ/+rrGn
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On 2019-09-22, at 09:09:24 +0200, Pablo Neira Ayuso wrote:
-> On Sat, Sep 21, 2019 at 09:19:23PM +0200, Jan Engelhardt wrote:
-> >
-> > On Saturday 2019-09-21 14:20, Jeremy Sowden wrote:
-> >
-> > >  https://github.com/antirez/linenoise/
-> > >
-> > >The upstream repo doesn't contain the infrastructure for building or
-> > >installing libraries.  There was a 1.0 release made in 2015, but there
-> > >have been a number of bug-fixes committed since.  Therefore, add the
-> > >latest upstream source:
-> >
-> > > src/linenoise.c     | 1201 +++++++++++++++++++++++++++++++++++++++++++
-> >
-> > That seems like a recipe to end up with stale code. For a distribution,
-> > it's static linking worsened by another degree.
-> >
-> > (https://fedoraproject.org/wiki/Bundled_Libraries?rd=Packaging:Bundled_Libraries)
+On Sun, Sep 22, 2019 at 4:13 PM Pablo Neira Ayuso <pablo@netfilter.org> wro=
+te:
 >
-> I thought this is like mini-gmp.c?
+> On Sun, Sep 22, 2019 at 09:11:11AM +0200, Pablo Neira Ayuso wrote:
+> > On Sat, Sep 21, 2019 at 10:46:48PM +0900, Masahiro Yamada wrote:
+> > > When CONFIG_UAPI_HEADER_TEST=3Dy, exported headers are compile-tested=
+ to
+> > > make sure they can be included from user-space.
+> > >
+> > > Currently, linux/netfilter_bridge/ebtables.h is excluded from the tes=
+t
+> > > coverage. To make it join the compile-test, we need to fix the build
+> > > errors attached below.
+> > >
+> > > For a case like this, we decided to use __u{8,16,32,64} variable type=
+s
+> > > in this discussion:
+> > >
+> > >   https://lkml.org/lkml/2019/6/5/18
+> > >
+> > > Build log:
+> > >
+> > >   CC      usr/include/linux/netfilter_bridge/ebtables.h.s
+> > > In file included from <command-line>:32:0:
+> > > ./usr/include/linux/netfilter_bridge/ebtables.h:126:4: error: unknown=
+ type name =E2=80=98uint8_t=E2=80=99
+> > >     uint8_t revision;
+> > >     ^~~~~~~
+> > > ./usr/include/linux/netfilter_bridge/ebtables.h:139:4: error: unknown=
+ type name =E2=80=98uint8_t=E2=80=99
+> > >     uint8_t revision;
+> > >     ^~~~~~~
+> > > ./usr/include/linux/netfilter_bridge/ebtables.h:152:4: error: unknown=
+ type name =E2=80=98uint8_t=E2=80=99
+> > >     uint8_t revision;
+> > >     ^~~~~~~
+> >
+> > Applied.
+>
+> Patch does not apply cleanly to nf.git, I have to keep it back, sorry
 
-That was also my impression.
+Perhaps, reducing the context (git am -C<N>) might help.
 
-> Are distributors packaging this as a library?
+Shall I rebase and resend it?
 
-It turns out that Fedora has packaged an old fork of it, which is also
-available in EPEL, and I missed it.  Apologies.  There's nothing in
-Debian or Ubuntu.
+Thanks.
 
-How about adding an `AC_CHECK_LIB([linenoise], ...)` check and falling
-back to the bundled copy?
+> $ git am /tmp/yamada.masahiro.txt -s
+> Applying: netfilter: use __u8 instead of uint8_t in uapi header
+> error: patch failed: usr/include/Makefile:37
+> error: usr/include/Makefile: patch does not apply
+> Patch failed at 0001 netfilter: use __u8 instead of uint8_t in uapi heade=
+r
+> The copy of the patch that failed is found in: .git/rebase-apply/patch
+> When you have resolved this problem, run "git am --continue".
+> If you prefer to skip this patch, run "git am --skip" instead.
+> To restore the original branch and stop patching, run "git am --abort".
 
-J.
 
---kVXhAStRUZ/+rrGn
-Content-Type: application/pgp-signature; name="signature.asc"
 
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEEZ8d+2N/NBLDbUxIF0Z7UzfnX9sMFAl2HPVQACgkQ0Z7UzfnX
-9sPIOBAAxr9HFzPakI9IkokSYz33uP2e1IAt324vOhKUxh0EJZLsdZG6aj7/cDMT
-o3vGc4n69x8eL7wzye6Xa1SM2WwdcJVnpvIWv6JLEEaRXFczcHGo0kylDfKbuvHL
-/dNeytwF2GOhfTc4+WUzaB6ZQCTye1jU+5uHITUf9CI2bqLhZtrs/K1oRo2Ux0jA
-ZQPiTSIqXLdtGoR6g0aZpPBAtEiyCXwl+95mhBmLUluy5GF+gvlx6L4wm3F5yuOK
-t/l0axGAUdb3+bXSOx5NbhRJ+QPSUvYhoI5FEe2/4H8PJddMsG3xWA+rbSKFiJlv
-hMBCBX5Dx/U6v/YEC02tw0446HwtHHwD0Qsnnz8CUFA9VL2zyBvuHxkrGaUap/n7
-N8cCnzOrfdW54etQeraF9tixJ3abHU14HYQx3HIEM14cfzUdXCLo0239DdSfKkjM
-J8rbXrRMJLKUFQVyaco9vmBtm29bOsNtyyBKZcmCivoudt59T+JeJHCXYpKIvXqF
-AiKlWF7vEO7pHR7mSIDmm9thgueIT3s1uINMdfAOAVHhgmiYEPsUpBJkwP7kQFDg
-O81QJSRe5FlmbTooX2Mx4bDi9cxLymXkJaGo0Gr8UJ3fmIkYrGidVrYD6hjXctNi
-oM7Grxqd00uG3ENg/CEP+JfaigwHXGpZWg1wQm73UZrU2gAIQss=
-=4aj7
------END PGP SIGNATURE-----
-
---kVXhAStRUZ/+rrGn--
+--=20
+Best Regards
+Masahiro Yamada
