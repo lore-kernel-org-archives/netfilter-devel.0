@@ -2,141 +2,135 @@ Return-Path: <SRS0=FqmY=XS=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.0 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C10C9C4CED2
-	for <netfilter-devel@archiver.kernel.org>; Mon, 23 Sep 2019 18:05:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 71149C4CED0
+	for <netfilter-devel@archiver.kernel.org>; Mon, 23 Sep 2019 18:15:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8EC5A2089F
-	for <netfilter-devel@archiver.kernel.org>; Mon, 23 Sep 2019 18:05:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 49E7D20856
+	for <netfilter-devel@archiver.kernel.org>; Mon, 23 Sep 2019 18:15:17 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=narfation.org header.i=@narfation.org header.b="dVWTU2YR"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="T7LecIMS"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2440300AbfIWSFx (ORCPT
+        id S2440368AbfIWSPQ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 23 Sep 2019 14:05:53 -0400
-Received: from dvalin.narfation.org ([213.160.73.56]:38386 "EHLO
-        dvalin.narfation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2390851AbfIWSFx (ORCPT
+        Mon, 23 Sep 2019 14:15:16 -0400
+Received: from kadath.azazel.net ([81.187.231.250]:44534 "EHLO
+        kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2394280AbfIWSPQ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 23 Sep 2019 14:05:53 -0400
-X-Greylist: delayed 572 seconds by postgrey-1.27 at vger.kernel.org; Mon, 23 Sep 2019 14:05:50 EDT
-Received: from sven-edge.localnet (unknown [IPv6:2a00:1ca0:1480:f9fc::4065])
-        by dvalin.narfation.org (Postfix) with ESMTPSA id D9AF31FFAB;
-        Mon, 23 Sep 2019 17:26:50 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=narfation.org;
-        s=20121; t=1569259611;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=JUegENmeIHHiT+O9uIIOxc1zWJHPwvIxI2SvuwGf54A=;
-        b=dVWTU2YRhbvNTjzU5zWqJuZwGuXdr2Y5i4h8fAIbmfcxuBJK1ZG+fGo/W/YblVDINcKj0n
-        B670FTOeqbkbbqdtvLu3HbF2eoleJzXw6Dgnm1/VfifonzNleM7VytHWdyYL6G301L3qIC
-        tdTHwh8/l2Z9JQUVmzRFgWWvKZS3wUo=
-From:   Sven Eckelmann <sven@narfation.org>
-To:     b.a.t.m.a.n@lists.open-mesh.org
-Cc:     Krzysztof Kozlowski <krzk@kernel.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Michael Grzeschik <m.grzeschik@pengutronix.de>,
-        Wolfgang Grandegger <wg@grandegger.com>,
-        Marc Kleine-Budde <mkl@pengutronix.de>,
-        Andrew Lunn <andrew@lunn.ch>,
-        Florian Fainelli <f.fainelli@gmail.com>,
-        Heiner Kallweit <hkallweit1@gmail.com>,
-        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        Jiri Kosina <trivial@kernel.org>, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-can@vger.kernel.org,
-        linux-rdma@vger.kernel.org, linux-wireless@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        lvs-devel@vger.kernel.org, rds-devel@oss.oracle.com
-Subject: Re: [PATCH trivial 1/2] net: Fix Kconfig indentation
-Date:   Mon, 23 Sep 2019 19:56:12 +0200
-Message-ID: <2354684.0ZvKvX0iQ3@sven-edge>
-In-Reply-To: <20190923155243.6997-1-krzk@kernel.org>
-References: <20190923155243.6997-1-krzk@kernel.org>
+        Mon, 23 Sep 2019 14:15:16 -0400
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
+         s=20190108; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+        Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=qaE3AancGsXcD24abjS9u02RSPw6Io0g/1z1IzBReZo=; b=T7LecIMS7O5H0U4RsTXAmR9Q2R
+        +DvbaJIuy8ebSukng3v4b3yAuJzYt6lj8cVfn3jnPoT8DM+2cOYmYvrBCUXcaZvJs/MX7BRcHVbkJ
+        oW8W+awXT7PXGKXvdYKMcWOmGHTe25X2zGwbiw4iQoKQZZVhmKfDNfXAXPm8wG48D1WxS2Y/7df8Z
+        +0vRz0UEyyBOH8+z7wkFRLCpqjx4vsVPL3c33fPAKJjmXY+zQbYmPtwD6O+0oGcGfcVTVbTkiO8H+
+        +udjE6dMxG1dS7YQYdRMtbUXaioNaYnDhfDAr/6gNfW+BrRw29csJhFx7bCqPcuPdeF6IaQr4uG09
+        Zww0ub/A==;
+Received: from celephais.dreamlands ([192.168.96.3] helo=azazel.net)
+        by kadath.azazel.net with esmtpsa (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
+        (Exim 4.92)
+        (envelope-from <jeremy@azazel.net>)
+        id 1iCSrg-0002UY-EK; Mon, 23 Sep 2019 19:15:12 +0100
+Date:   Mon, 23 Sep 2019 19:15:11 +0100
+From:   Jeremy Sowden <jeremy@azazel.net>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Jan Engelhardt <jengelh@inai.de>,
+        Netfilter Devel <netfilter-devel@vger.kernel.org>,
+        Sebastian Priebe <sebastian.priebe@de.sii.group>
+Subject: Re: [PATCH nftables 1/3] src, include: add upstream linenoise source.
+Message-ID: <20190923181511.GE28617@azazel.net>
+References: <20190921122100.3740-1-jeremy@azazel.net>
+ <20190921122100.3740-2-jeremy@azazel.net>
+ <nycvar.YFH.7.76.1909212114010.6443@n3.vanv.qr>
+ <20190922070924.uzfjofvga3nufulb@salvia>
+ <nycvar.YFH.7.76.1909231041310.14433@n3.vanv.qr>
+ <20190923092756.p5563jdmp2wljnex@salvia>
 MIME-Version: 1.0
-Content-Type: multipart/signed; boundary="nextPart2306317.z6aVZVsvuq"; micalg="pgp-sha512"; protocol="application/pgp-signature"
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=narfation.org;
-        s=20121; t=1569259612;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=JUegENmeIHHiT+O9uIIOxc1zWJHPwvIxI2SvuwGf54A=;
-        b=x1TVkKv99+ozAK7NGhKJppOQTZ3rt6BG5uCQ9jX1Cu6VwaJ1Z9e2XjHeZoi0ylFmE0Qgv2
-        uPumTYEhEqN0pwscCMrxg05p8YgwwZxS95AE3BnKHxJCx8DfTCCPdTAyKbC6OzxnJqzLC+
-        xMuRoeIhRMuvm0RcjlgRZSLiQKlXzBQ=
-ARC-Seal: i=1; s=20121; d=narfation.org; t=1569259612; a=rsa-sha256;
-        cv=none;
-        b=sC+Bw4VcxyWYjzxCJPweIGNX+Yyrk334W9KKcHzvmcS/hWk8OQo5sJew0irtt83lHu620y
-        GR1yOu+K+tFNotiu7Ji8FKdtPcJdPj6tP5KcJpiNcjdVnKzc1GUdEDf7J4u+rCReuDLD9y
-        a6G6B/KjsDql8SBNK00XkdLiqUmNeNQ=
-ARC-Authentication-Results: i=1;
-        ORIGINATING;
-        auth=pass smtp.auth=sven smtp.mailfrom=sven@narfation.org
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="zjcmjzIkjQU2rmur"
+Content-Disposition: inline
+In-Reply-To: <20190923092756.p5563jdmp2wljnex@salvia>
+User-Agent: Mutt/1.10.1 (2018-07-13)
+X-SA-Exim-Connect-IP: 192.168.96.3
+X-SA-Exim-Mail-From: jeremy@azazel.net
+X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
---nextPart2306317.z6aVZVsvuq
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
 
-On Monday, 23 September 2019 17:52:42 CEST Krzysztof Kozlowski wrote:
-> --- a/net/batman-adv/Kconfig
-> +++ b/net/batman-adv/Kconfig
-> @@ -12,11 +12,11 @@ config BATMAN_ADV
->         depends on NET
->         select LIBCRC32C
->         help
-> -          B.A.T.M.A.N. (better approach to mobile ad-hoc networking) is
-> -          a routing protocol for multi-hop ad-hoc mesh networks. The
-> -          networks may be wired or wireless. See
-> -          https://www.open-mesh.org/ for more information and user space
-> -          tools.
-> +         B.A.T.M.A.N. (better approach to mobile ad-hoc networking) is
-> +         a routing protocol for multi-hop ad-hoc mesh networks. The
-> +         networks may be wired or wireless. See
-> +         https://www.open-mesh.org/ for more information and user space
-> +         tools.
->  
->  config BATMAN_ADV_BATMAN_V
->         bool "B.A.T.M.A.N. V protocol"
+--zjcmjzIkjQU2rmur
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Acked-by: Sven Eckelmann <sven@narfation.org>
+On 2019-09-23, at 11:27:56 +0200, Pablo Neira Ayuso wrote:
+> On Mon, Sep 23, 2019 at 10:47:40AM +0200, Jan Engelhardt wrote:
+> > On Sunday 2019-09-22 09:09, Pablo Neira Ayuso wrote:
+> > >> > src/linenoise.c     | 1201 +++++++++++++++++++++++++++++++++++++++++++
+> > >>
+> > >> That seems like a recipe to end up with stale code. For a
+> > >> distribution, it's static linking worsened by another degree.
+> > >>
+> > >> (https://fedoraproject.org/wiki/Bundled_Libraries?rd=Packaging:Bundled_Libraries)
+> > >
+> > >I thought this is like mini-gmp.c? Are distributors packaging this
+> > >as a library?
+> >
+> > Yes; No.
+> >
+> > After an update to a static library, a distro would have to rebuild
+> > dependent packages and then distribute that. Doable, but cumbersome.
+> >
+> > But bundled code evades even that. If there is a problem, all
+> > instances of the "static library" would need updating. Doable, but
+> > even more cumbersome.
+> >
+> > Basically the question is: how is NF going to guarantee that
+> > linenoise (or mini-gmp for that matter) are always up to date?
+>
+> It seems to me that mini-gmp.c was designed to be used like we do.
+>
+> For the linenoise case, given that there's already a package in
+> Fedora, I'm fine to go for AC_CHECK_LIB([linenoise], ...) and _not_
+> including the copy in our tree.
 
-Kind regards,
-	Sven
+Righto.  Will send out v2 in a bit.
 
---nextPart2306317.z6aVZVsvuq
+> Probably other distributions might provide a package soon for this
+> library.
+
+I've nearly finished a package for Debian.  Will see if anyone fancies
+sponsoring it.
+
+J.
+
+--zjcmjzIkjQU2rmur
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part.
-Content-Transfer-Encoding: 7Bit
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAABCgAdFiEEF10rh2Elc9zjMuACXYcKB8Eme0YFAl2JBzwACgkQXYcKB8Em
-e0YTVg/+PgtfvbyO8UPeEG3nkvaRcMywQsGWWB2nkRfHXA+QnFghJNXsvPHonkd+
-QQ1E5I3loiK90VFbdRR8R0o5G57WPTFAivY334UAL1m5qOZT1bMKwI971dT0GCny
-a9+BhZEjt729e7WlSOvkT/v7BHo8lxyHH5+x33dxMJF0oSD5UDdH8VZX9PCBTJ1g
-4+O3e18WyQdsXFi3G2N75DcT+OhRle2P7T6yfgD0Ro5ViMqeTigsdmw+kpq8x8IK
-fyUN3oo5vqFnH3sEEXFshmxAqAVjPjzzoRYTFTupTw8yDOTL2REIgU75HZ0WP2w6
-eQ03/+7hKhujukr4V/bwVPMf6WJ1mi9+cz88Op8BkY/UgFgAYJSUhnfeoLo1pK6q
-ewEwagQfFibXUqtebAoam3z20Mb7rnrUmQJbUvPLQatL76qUaonJp3yxUMnrOWo+
-GmDWR4zgHgwatjOBeGCPBuF3PBMPWe1NBrA0EF7+33gZu6pttf3Z6XLNUWCw3unx
-xQCR1dn7VzUA+/FdFZfVoUlGBPeqWzqdyp3Os2ymDHJRp6jZWTd2gX6KvldvWTDR
-dU2SmyvoOovNLFWyBd7rC7vud0aWMJUHypD2IlEMCPprnu+m33Lhqx8nrbF/goZL
-drH0F1BJDs5jlWehfTwnnaNdqZEuzamWT8GEJAUBj8Iq5R6+35s=
-=OS2O
+iQIzBAABCgAdFiEEZ8d+2N/NBLDbUxIF0Z7UzfnX9sMFAl2JC6cACgkQ0Z7UzfnX
+9sNo2Q/+LpuvTUKTWqH4vy0zNt4zTSA/ti+zVyglBRWDMnm/yuC7ts8W8TVdN3qY
+Rp7+6tWLnBi8TSxXJ8EjVg3/+KGfUdHZGdmMDfVuRyV02VHWu7WB56oW8vcb1gv9
+Mc9nMtYKAq5xW7rxvS+zRIa0a/PkFjWSC0W7l6jXE9vquxv9QtZRIGW8OWeskEbC
+297POy9FrUlKz3adHtL65jmEYjsZUWhBNKLA3STR3WNvPzCILQRjihHdl3rKHYxm
+jxUmr0M86twzddxoYQT/vd56X7RpwZttXSivto/bu4uSM6Tkrh+zOpGYrJ0HMyUp
+ljgJ5qodn2y/EzWsgqeJbNFgABqP+DZlEgqQ4MvaN2Q6nRevuGHeLuSqk84z315v
+sWC87vH3/v1jfZdlUEOqOQqrjDg23uPVShXZMLDsicjfj2Ex/HQ8J5AL460tDHxz
+dhz084D0GH/RdUlIOEoZoXvhQfm77Jw7lkvU8+EUZgJ+ENpqeMSoy6RVVwuFK9+Z
+6DNvGNtT2cAshLgV5xtmpOLn0XO7dzLol00FOI2bx4Wr8SuhtZvAxlgo2UkdYc3+
+/WE/9xvbnrDfUib943/uydeATqAxoPeuaTTbP7UgFR/alte2ryk48yBH7Jll8Tnz
+WODrGll979qR7hOHFV0wsusTgdBakE+0BZ6nP7pzwyNcOtn2tzs=
+=HPyo
 -----END PGP SIGNATURE-----
 
---nextPart2306317.z6aVZVsvuq--
-
-
-
+--zjcmjzIkjQU2rmur--
