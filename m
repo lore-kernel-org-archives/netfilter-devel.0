@@ -2,169 +2,101 @@ Return-Path: <SRS0=Dg9R=XT=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.3 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-2.0 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 815BAC432C2
-	for <netfilter-devel@archiver.kernel.org>; Tue, 24 Sep 2019 11:24:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F643C432C2
+	for <netfilter-devel@archiver.kernel.org>; Tue, 24 Sep 2019 12:11:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5214320872
-	for <netfilter-devel@archiver.kernel.org>; Tue, 24 Sep 2019 11:24:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 51B522146E
+	for <netfilter-devel@archiver.kernel.org>; Tue, 24 Sep 2019 12:11:33 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="oBXXckMV"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="XrZkKR+Y"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2409610AbfIXLYJ (ORCPT
+        id S2504890AbfIXMLd (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 24 Sep 2019 07:24:09 -0400
-Received: from mail-wr1-f65.google.com ([209.85.221.65]:37661 "EHLO
-        mail-wr1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2409609AbfIXLYJ (ORCPT
+        Tue, 24 Sep 2019 08:11:33 -0400
+Received: from kadath.azazel.net ([81.187.231.250]:39542 "EHLO
+        kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2387414AbfIXMLc (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 24 Sep 2019 07:24:09 -0400
-Received: by mail-wr1-f65.google.com with SMTP id i1so1514174wro.4
-        for <netfilter-devel@vger.kernel.org>; Tue, 24 Sep 2019 04:24:07 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=date:from:to:cc:subject:message-id:mime-version:content-disposition
-         :user-agent;
-        bh=rgyrwQJvnY7ABWFFFsZzEoxMkZk9QHBeE8pzrK7dcy4=;
-        b=oBXXckMVC0EbONhhN8z7tzkz92S55YBWmwS650tmTuUb1j2op5I3TSCF0VxSW6YJju
-         uEDh1rIx+JJtNu8C6WNQmHRaOeRdWOTME//H3UW0+VPh4q4jplMBS+FVEMKw4oxQi5IU
-         DIR+lwVJ95vaYvpIGq5gJg3GNE04/GIPFnlxVfNPlL3JFD40hxd9xNNadCSz4L26Om5k
-         4QIdLaFBmdqnPxVuB0XP+OEcZgxsOF9yrV3n2fIZ8naoOVZUMYMFvvnnvE/W7H6Oz86A
-         boKqXgmt0KR7ElVDL1gKKmZnIZDxbdn+cNB1ZaGsTe3QQXFJlGvf8neg2thtwU1cZhgh
-         lo4w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:mime-version
-         :content-disposition:user-agent;
-        bh=rgyrwQJvnY7ABWFFFsZzEoxMkZk9QHBeE8pzrK7dcy4=;
-        b=G++LiGw37d6F9ZdxfsmqEUmp/e1c+NNeqPJSSf8NCnK/QYsJPMoxJ/uAldEf12u7jc
-         5XT8YgFCiESjUzl/Jkk+wBOWTooYO93hWiZJJiVTvylOkbRQfv1J4cL+abo5NvL8VKQR
-         Vr4OH9/4PxdyiPcPeLElsp2kzpcgBdQ+J4vZc/xH+wlhtdrHGsHGBJn8Z+apv/jZbLcd
-         o/witNC1erD5y2skmLrhTpO3Dd1thItIdYBZpgCYLSpaKIVtpB8cPOFOIevhEclWTC+1
-         5xeGaLM+BLFiBON/emM5zcioSGo94RxPDJhB1ktGKwhRf/BEqTCqSDOXTFFuVAA2Zph0
-         WLlQ==
-X-Gm-Message-State: APjAAAVficHRIjpMN46yz7wWkespSNWLuvVOHCrCineE542xVAQcmmKr
-        9Cd2RP0avsawFINy0dDzVke1rty1
-X-Google-Smtp-Source: APXvYqwKfkq9PLrD0VsozHWzl3Vdd0vaGwU0BGrcDbIHmaqbELzaTXm1lO92sdIxNA7c5/Kn/Sc/kw==
-X-Received: by 2002:a05:6000:82:: with SMTP id m2mr1955685wrx.241.1569324246828;
-        Tue, 24 Sep 2019 04:24:06 -0700 (PDT)
-Received: from nevthink ([185.79.20.147])
-        by smtp.gmail.com with ESMTPSA id y3sm2668118wmg.2.2019.09.24.04.24.05
-        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Tue, 24 Sep 2019 04:24:06 -0700 (PDT)
-Date:   Tue, 24 Sep 2019 13:24:03 +0200
-From:   Laura Garcia Liebana <nevola@gmail.com>
-To:     netfilter-devel@vger.kernel.org
-Cc:     pablo@netfilter.org
-Subject: [PATCH nf] netfilter: nf_tables: bogus EBUSY when deleting flowtable
- after flush
-Message-ID: <20190924112403.wljydfejrs7ktv6v@nevthink>
+        Tue, 24 Sep 2019 08:11:32 -0400
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
+         s=20190108; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+        Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=cPKuLRvt92qEwZH0XWo71YgX9gr3ltnW9OBLc0ZSW8E=; b=XrZkKR+YhhHAQCb5/SB5c1XIOf
+        DZss8aD4gGlIwqn+6B4XlEKWgFlXC7Bogvy3Kyhzfj9+W/U/oeV2QH/Vv3TeeArflJRrsXCxzgxWw
+        Mhs+sae/8T02/kHB+hkLd+CG7JGiPpM0YqH4MLvNRWj27WVrwp53PA1bhY0rw2/UajH2oDVw4YcQc
+        kuRV271ZaR791pnBFcALClUs+O8CX7fxHH6wCp7eFQkbqe34Fue8wrKlBlfR1+PftIZQGVFOAkekX
+        DRrdCGEWMtM4GET6UOSWD6yfJqCi0DiznVvrp0kJdWOKT/QokajV7LTrO/osUY1QMnfXgh7IoOaDh
+        gViBMtlA==;
+Received: from pnakotus.dreamlands ([192.168.96.5] helo=azazel.net)
+        by kadath.azazel.net with esmtpsa (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
+        (Exim 4.92)
+        (envelope-from <jeremy@azazel.net>)
+        id 1iCjfF-0007ZH-Hq; Tue, 24 Sep 2019 13:11:29 +0100
+Date:   Tue, 24 Sep 2019 13:11:29 +0100
+From:   Jeremy Sowden <jeremy@azazel.net>
+To:     Duncan Roe <duncan_roe@optusnet.com.au>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH libnetfilter_queue] src: Enable clang build
+Message-ID: <20190924121129.GA32094@azazel.net>
+References: <20190922001031.30848-1-duncan_roe@optusnet.com.au>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="M9NhX3UHpAaciwkO"
 Content-Disposition: inline
-User-Agent: NeoMutt/20170113 (1.7.2)
+In-Reply-To: <20190922001031.30848-1-duncan_roe@optusnet.com.au>
+User-Agent: Mutt/1.10.1 (2018-07-13)
+X-SA-Exim-Connect-IP: 192.168.96.5
+X-SA-Exim-Mail-From: jeremy@azazel.net
+X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The deletion os a flowtable after a flush in the same transaction
-results in EBUSY. This patch adds an activation and deactivation of
-flowtables in order to update the _use_ counter.
 
-Signed-off-by: Laura Garcia Liebana <nevola@gmail.com>
----
- include/net/netfilter/nf_tables.h |  4 ++++
- net/netfilter/nf_tables_api.c     | 18 ++++++++++++++++++
- net/netfilter/nft_flow_offload.c  | 19 +++++++++++++++++++
- 3 files changed, 41 insertions(+)
+--M9NhX3UHpAaciwkO
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 2655e03dbe1b..53c1f43a3591 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -1181,6 +1181,10 @@ struct nft_flowtable *nft_flowtable_lookup(const struct nft_table *table,
- 					   const struct nlattr *nla,
- 					   u8 genmask);
- 
-+void nf_tables_deactivate_flowtable(const struct nft_ctx *ctx,
-+				    struct nft_flowtable *flowtable,
-+				    enum nft_trans_phase phase);
-+
- void nft_register_flowtable_type(struct nf_flowtable_type *type);
- void nft_unregister_flowtable_type(struct nf_flowtable_type *type);
- 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index e4a68dc42694..5b0b95cfe6eb 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -5595,6 +5595,24 @@ struct nft_flowtable *nft_flowtable_lookup(const struct nft_table *table,
- }
- EXPORT_SYMBOL_GPL(nft_flowtable_lookup);
- 
-+void nf_tables_deactivate_flowtable(const struct nft_ctx *ctx,
-+				    struct nft_flowtable *flowtable,
-+				    enum nft_trans_phase phase)
-+{
-+	switch (phase) {
-+	case NFT_TRANS_PREPARE:
-+		flowtable->use--;
-+		return;
-+	case NFT_TRANS_ABORT:
-+	case NFT_TRANS_RELEASE:
-+		flowtable->use--;
-+		return;
-+	default:
-+		return;
-+	}
-+}
-+EXPORT_SYMBOL_GPL(nf_tables_deactivate_flowtable);
-+
- static struct nft_flowtable *
- nft_flowtable_lookup_byhandle(const struct nft_table *table,
- 			      const struct nlattr *nla, u8 genmask)
-diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
-index 22cf236eb5d5..f29bbc74c4bf 100644
---- a/net/netfilter/nft_flow_offload.c
-+++ b/net/netfilter/nft_flow_offload.c
-@@ -177,6 +177,23 @@ static int nft_flow_offload_init(const struct nft_ctx *ctx,
- 	return nf_ct_netns_get(ctx->net, ctx->family);
- }
- 
-+static void nft_flow_offload_deactivate(const struct nft_ctx *ctx,
-+					const struct nft_expr *expr,
-+					enum nft_trans_phase phase)
-+{
-+	struct nft_flow_offload *priv = nft_expr_priv(expr);
-+
-+	nf_tables_deactivate_flowtable(ctx, priv->flowtable, phase);
-+}
-+
-+static void nft_flow_offload_activate(const struct nft_ctx *ctx,
-+				      const struct nft_expr *expr)
-+{
-+	struct nft_flow_offload *priv = nft_expr_priv(expr);
-+
-+	priv->flowtable->use++;
-+}
-+
- static void nft_flow_offload_destroy(const struct nft_ctx *ctx,
- 				     const struct nft_expr *expr)
- {
-@@ -205,6 +222,8 @@ static const struct nft_expr_ops nft_flow_offload_ops = {
- 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_flow_offload)),
- 	.eval		= nft_flow_offload_eval,
- 	.init		= nft_flow_offload_init,
-+	.activate	= nft_flow_offload_activate,
-+	.deactivate	= nft_flow_offload_deactivate,
- 	.destroy	= nft_flow_offload_destroy,
- 	.validate	= nft_flow_offload_validate,
- 	.dump		= nft_flow_offload_dump,
--- 
-2.11.0
+On 2019-09-22, at 10:10:31 +1000, Duncan Roe wrote:
+> Unlike gcc, clang insists to have EXPORT_SYMBOL(x) come before the definition
+> of x. So move all EXPORT_SYMBOL lines to just after the last #include line.
+>
+> pktbuff.c was missing its associated header, so correct that as well.
+>
+> gcc & clang produce different warnings. gcc warns that nfq_set_verdict_mark is
+> deprecated while clang warns of invalid conversion specifier 'Z' at
+> src/extra/ipv6.c:138 (should that be lower-case?)
 
+It should, yes.
+
+J.
+
+--M9NhX3UHpAaciwkO
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEEZ8d+2N/NBLDbUxIF0Z7UzfnX9sMFAl2KB+QACgkQ0Z7UzfnX
+9sP7NRAAvF1jlIzi2DYvrg+qxQiqHmuJFIX4w4+vpDQQdDG22AkN0r9/37YPeYXf
+MaL/qrjdhDAti2kn6a5NJ7HBiwjKi7AhXuR2Iv91sACkSbK2H2UbBbReYJn0GxMq
+mCCynXaSFOBCkFSEC5TVH/ExlK0CXYGYWXBsvyuJsaW7C78yqUNwvQvlGODUY6wb
+2FPjcYftO1XFO02go2X7ieG44GW8750iIF1O//0PmpSNaOEI94msD7MwKFon8I7Y
+0iV/vUcIceA4T4P2wscabcPW5NtkkspLPKGPcfngpaah22D9sejGol3cQW3HC+v6
+tHbf5sfxpKp1xXyhSztYRz8bs3RseR4ZuxVZybVGNthNQuWGvDe/VjVMJolc0yla
+uVMDX/CKwb6ZEu6zmjwtBIi0lq5LBpv5kvOxtudz3f1GfnO0t7j1f8SW7AICwAYa
+nCxMk7dQTODerolBAz9aCt0A+4dqnme1BGkGHle8grFaRmcpLH6d78ViEuFOCW+N
+nZ1xUh0o1pGGM1jPqDf4PII031XqvAhIqUMlWWipRz5k6N4yBuqfh61xXRa9DKrt
+G56HQqMxS9eFjIOxh10R6KHjWOuainpjlb39vMZa3Pxn7e1pLIf6lwRYG+xg4gHx
+C3OAWupnerJIj4ymgo2RTE8gbKv6uhScColRc0DfvaaZE3WlPKY=
+=abUk
+-----END PGP SIGNATURE-----
+
+--M9NhX3UHpAaciwkO--
