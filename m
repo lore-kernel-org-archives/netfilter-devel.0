@@ -2,169 +2,113 @@ Return-Path: <SRS0=Dg9R=XT=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.3 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A102C432C1
-	for <netfilter-devel@archiver.kernel.org>; Tue, 24 Sep 2019 12:42:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 52CD6C432C1
+	for <netfilter-devel@archiver.kernel.org>; Tue, 24 Sep 2019 14:43:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CE752214DA
-	for <netfilter-devel@archiver.kernel.org>; Tue, 24 Sep 2019 12:42:51 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ex9lJ9Qx"
+	by mail.kernel.org (Postfix) with ESMTP id 2F44820640
+	for <netfilter-devel@archiver.kernel.org>; Tue, 24 Sep 2019 14:43:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2504951AbfIXMmv (ORCPT
+        id S1728950AbfIXOn6 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 24 Sep 2019 08:42:51 -0400
-Received: from mail-wm1-f67.google.com ([209.85.128.67]:54227 "EHLO
-        mail-wm1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2504949AbfIXMmv (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 24 Sep 2019 08:42:51 -0400
-Received: by mail-wm1-f67.google.com with SMTP id i16so2126993wmd.3
-        for <netfilter-devel@vger.kernel.org>; Tue, 24 Sep 2019 05:42:49 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=date:from:to:cc:subject:message-id:mime-version:content-disposition
-         :user-agent;
-        bh=T+ftxq8ndwJez69NIKUo0sZGI9Yu86V5tHn7T1Io/E0=;
-        b=ex9lJ9Qxfe7HdrHVZC8glzQsVrTcRoXLYQnu3LsGT71yL1HAqvIPElB0t8IsQlbzvL
-         8RR9+z7UjWm/nA9UsTRoBEyLkaT2Bqv2RrR8O3HoYt2XNYoETZ4989E5EBCOIq8OAfTi
-         R5F7erPKQXuB40crL2sRP+HGrz5c1+SsUadH6D3uQtOg50PbS+7MKf0K6nypztGbY50X
-         NU46RKmdcEdpMEVUI3Rveqg/cZE0zCKFExhhglNSWe/n3XrBQvD/Cii3NZueelwg1kNE
-         LiTJXIgsAgMJlpNDprG0ziR7h/l2qoGO8Yb4PycxowZL036hALWxMMwiI3h2g+06y+vh
-         0YGg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:mime-version
-         :content-disposition:user-agent;
-        bh=T+ftxq8ndwJez69NIKUo0sZGI9Yu86V5tHn7T1Io/E0=;
-        b=WY2ntgDoh9Kb2ETcnS7LkclDaYsMwxYqJIRNYuf06pSb6oX+7q5Eo7EjZYIqny+Ler
-         OuBqfmEBTDRkpivNka/GVfXTKw548zOkiy4b/KfnKO3LBC7o9QQCAdG9QMkQVv1G3H9O
-         I7lwws/qp0Z0dVnJp0lR1k9tX3h3QULYlJHrFNZ0aDVGLRZ5i2s6JwwEMjaLlfjvgIho
-         mXw5LxMDgIsw+CTrTyiyvNDxmMU9hNeYuYwa8ysdNbpKTty3J2ePYDjmW10F4CvLoaKz
-         pmqoBeZLc3wEtXj+ujrOfPPNi2bgSBw+abOc+/rjpf0zMBRWtdIzz/E5pdMk4GglLZ9T
-         mGbw==
-X-Gm-Message-State: APjAAAVHqF6x2wieaK22OMQOQqYG5GZ0sAS2N6S0mzEo4W/FUeJs/JfT
-        whlCiavmX5WHoP8vysYkQH4Am0tI
-X-Google-Smtp-Source: APXvYqxKXNAU04Aee0xzLS6hq5TEthz7Puz4pUlsdNjIlM+gMTUyjpF8fSdoxhc1NemP6+AKl94R/Q==
-X-Received: by 2002:a1c:5444:: with SMTP id p4mr2613277wmi.69.1569328968659;
-        Tue, 24 Sep 2019 05:42:48 -0700 (PDT)
-Received: from nevthink ([185.79.20.147])
-        by smtp.gmail.com with ESMTPSA id j1sm3111189wrg.24.2019.09.24.05.42.46
-        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Tue, 24 Sep 2019 05:42:47 -0700 (PDT)
-Date:   Tue, 24 Sep 2019 14:42:44 +0200
-From:   Laura Garcia Liebana <nevola@gmail.com>
-To:     netfilter-devel@vger.kernel.org
-Cc:     pablo@netfilter.org
-Subject: [PATCH v2 nf] netfilter: nf_tables: bogus EBUSY when deleting
- flowtable after flush
-Message-ID: <20190924124244.3wrbb5ba7nc6cj2o@nevthink>
+        Tue, 24 Sep 2019 10:43:58 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:42300 "EHLO orbyte.nwl.cc"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726130AbfIXOn6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 24 Sep 2019 10:43:58 -0400
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.91)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1iCm2n-0004PC-4F; Tue, 24 Sep 2019 16:43:57 +0200
+Date:   Tue, 24 Sep 2019 16:43:57 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [iptables PATCH 08/14] xtables-restore: Avoid cache population
+ when flushing
+Message-ID: <20190924144357.GB22129@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+References: <20190916165000.18217-1-phil@nwl.cc>
+ <20190916165000.18217-9-phil@nwl.cc>
+ <20190920115702.tn4xp5gltcejk6sy@salvia>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-User-Agent: NeoMutt/20170113 (1.7.2)
+In-Reply-To: <20190920115702.tn4xp5gltcejk6sy@salvia>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The deletion of a flowtable after a flush in the same transaction
-results in EBUSY. This patch adds an activation and deactivation of
-flowtables in order to update the _use_ counter.
+Hi Pablo,
 
-Signed-off-by: Laura Garcia Liebana <nevola@gmail.com>
----
-v2: simplify switch case
+On Fri, Sep 20, 2019 at 01:57:02PM +0200, Pablo Neira Ayuso wrote:
+[...]
+> Looking at patches from 8/24 onwards, I think it's time to introduce
+> cache flags logic to iptables.
+> 
+> In patch 9/14 there is a new field have_chain_cache.
+> 
+> In patch 10/14 there is have_rule_cache.
+> 
+> Then moving on, the logic is based on checking for this booleans and
+> then checking if the caches are initialized or not.
+> 
+> I think if we move towards cache flags logic (the flags tell us what
+> if we need no cache, partial cache (only tables, tables + chains) or
+> full cache.
+> 
+> This would make this logic easier to understand and more maintainable.
 
- include/net/netfilter/nf_tables.h |  4 ++++
- net/netfilter/nf_tables_api.c     | 16 ++++++++++++++++
- net/netfilter/nft_flow_offload.c  | 19 +++++++++++++++++++
- 3 files changed, 39 insertions(+)
+I am not entirely sure this is a feasible approach:
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index a26d64056fc8..001d294edf57 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -1183,6 +1183,10 @@ struct nft_flowtable *nft_flowtable_lookup(const struct nft_table *table,
- 					   const struct nlattr *nla,
- 					   u8 genmask);
- 
-+void nf_tables_deactivate_flowtable(const struct nft_ctx *ctx,
-+				    struct nft_flowtable *flowtable,
-+				    enum nft_trans_phase phase);
-+
- void nft_register_flowtable_type(struct nf_flowtable_type *type);
- void nft_unregister_flowtable_type(struct nf_flowtable_type *type);
- 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 6dc46f9b5f7b..d481f9baca2f 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -5598,6 +5598,22 @@ struct nft_flowtable *nft_flowtable_lookup(const struct nft_table *table,
- }
- EXPORT_SYMBOL_GPL(nft_flowtable_lookup);
- 
-+void nf_tables_deactivate_flowtable(const struct nft_ctx *ctx,
-+				    struct nft_flowtable *flowtable,
-+				    enum nft_trans_phase phase)
-+{
-+	switch (phase) {
-+	case NFT_TRANS_PREPARE:
-+	case NFT_TRANS_ABORT:
-+	case NFT_TRANS_RELEASE:
-+		flowtable->use--;
-+		/* fall through */
-+	default:
-+		return;
-+	}
-+}
-+EXPORT_SYMBOL_GPL(nf_tables_deactivate_flowtable);
-+
- static struct nft_flowtable *
- nft_flowtable_lookup_byhandle(const struct nft_table *table,
- 			      const struct nlattr *nla, u8 genmask)
-diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
-index 22cf236eb5d5..f29bbc74c4bf 100644
---- a/net/netfilter/nft_flow_offload.c
-+++ b/net/netfilter/nft_flow_offload.c
-@@ -177,6 +177,23 @@ static int nft_flow_offload_init(const struct nft_ctx *ctx,
- 	return nf_ct_netns_get(ctx->net, ctx->family);
- }
- 
-+static void nft_flow_offload_deactivate(const struct nft_ctx *ctx,
-+					const struct nft_expr *expr,
-+					enum nft_trans_phase phase)
-+{
-+	struct nft_flow_offload *priv = nft_expr_priv(expr);
-+
-+	nf_tables_deactivate_flowtable(ctx, priv->flowtable, phase);
-+}
-+
-+static void nft_flow_offload_activate(const struct nft_ctx *ctx,
-+				      const struct nft_expr *expr)
-+{
-+	struct nft_flow_offload *priv = nft_expr_priv(expr);
-+
-+	priv->flowtable->use++;
-+}
-+
- static void nft_flow_offload_destroy(const struct nft_ctx *ctx,
- 				     const struct nft_expr *expr)
- {
-@@ -205,6 +222,8 @@ static const struct nft_expr_ops nft_flow_offload_ops = {
- 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_flow_offload)),
- 	.eval		= nft_flow_offload_eval,
- 	.init		= nft_flow_offload_init,
-+	.activate	= nft_flow_offload_activate,
-+	.deactivate	= nft_flow_offload_deactivate,
- 	.destroy	= nft_flow_offload_destroy,
- 	.validate	= nft_flow_offload_validate,
- 	.dump		= nft_flow_offload_dump,
--- 
-2.11.0
+On one hand, we certainly can introduce cache "levels" to distinguish
+between:
 
+- no cache
+- tables
+- chains
+- rules
+
+simply because all these naturally build upon each others. On the other
+hand, in my series I pushed the envelope (and watched it bend) a bit
+further: There are basically two modes of caching:
+
+- "traditional" breadth-first, compatible with above: e.g. all tables,
+  if needed all chains as well, etc.
+
+- a new depth-first mode which allows to fetch e.g. a certain chain's
+  rules but no other chains/rules.
+
+While the first mode is fine, second one really gives us the edge in
+situations where legacy iptables is faster simply because "number
+crunching" is more optimized there.
+
+This second mode doesn't have explicit completion indicators like the
+first one (with 'have_cache', etc.). In fact, the code treats it like a
+fire-and-forget situation: If e.g. the same chain is requested twice,
+the second time cache is simply fetched again but nftnl_chain_list_cb()
+discards the fetched chain if one with same name already exists in
+table's chain list.
+
+Actually, the only application which requires more attention is
+xtables-restore with --noflush. It is able to run multiple commands
+consecutively and these may need kernel ruleset as context. Still we
+don't want to fetch the full kernel ruleset upon each invocation because
+it's how users speed up their ruleset manipulations.
+
+In summary, things boil down to the following options:
+
+A) Avoid caching, fetch only the most necessary things to do the job.
+B) Build a full cache if needed anyway or if we can't predict.
+C) Create a fake cache if we know kernel's ruleset is irrelevant.
+
+I'll give it another try, aligning cache update logic to the above and
+see if things become clean enough to be considered maintainable.
+
+Cheers, Phil
