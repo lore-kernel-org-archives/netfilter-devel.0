@@ -2,88 +2,137 @@ Return-Path: <SRS0=Dg9R=XT=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable
+X-Spam-Status: No, score=-9.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7574AC432C1
-	for <netfilter-devel@archiver.kernel.org>; Tue, 24 Sep 2019 07:03:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0271EC432C2
+	for <netfilter-devel@archiver.kernel.org>; Tue, 24 Sep 2019 07:40:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4D7E4214D9
-	for <netfilter-devel@archiver.kernel.org>; Tue, 24 Sep 2019 07:03:13 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1569308593;
-	bh=AlEW8CxXuFn8P/oDpAqEk3frXBsRLiuf+egkL9mACt8=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=HVn1M2blhgdlXs+rv0DXruKa0gRlDG4aWh6D7V6+mreGTlVuZiYSDHreszMhAyNO8
-	 RF+oAnEMb8cFoHVqexOFTPdXeR6Ao3/BQ6SvGnnpIkpAswzQZFnh00fpozKGdogUuK
-	 6iMPPwHMBKWD7eW1oIPXiyrJ1oGMVn98BOhJUehw=
+	by mail.kernel.org (Postfix) with ESMTP id CD065214D9
+	for <netfilter-devel@archiver.kernel.org>; Tue, 24 Sep 2019 07:40:36 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="OaUWOoP1"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2409173AbfIXHDJ (ORCPT
+        id S2438411AbfIXHkg (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 24 Sep 2019 03:03:09 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55814 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2409158AbfIXHDJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 24 Sep 2019 03:03:09 -0400
-Received: from localhost (unknown [193.47.165.251])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 9D8F720673;
-        Tue, 24 Sep 2019 07:03:07 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1569308588;
-        bh=AlEW8CxXuFn8P/oDpAqEk3frXBsRLiuf+egkL9mACt8=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=NgPhsXprAhfXfXBMPmhNi6zDCC8P+Lv1t1OJaBYYq/OuXI2l+wTr48atArBd4iujI
-         pEiGSyKx2TzTQHYLZDzoFRzF7eIxparEi1i+IHrr5h2FzyssV4vjBmgrl3X4i81jMA
-         Gpzm0UZN6E6YR5znnHJXZueTNcgVSqzF9xZTqB1c=
-Date:   Tue, 24 Sep 2019 10:03:05 +0300
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Krzysztof Kozlowski <krzk@kernel.org>
-Cc:     "David S. Miller" <davem@davemloft.net>,
-        Michael Grzeschik <m.grzeschik@pengutronix.de>,
-        Wolfgang Grandegger <wg@grandegger.com>,
-        Marc Kleine-Budde <mkl@pengutronix.de>,
-        Andrew Lunn <andrew@lunn.ch>,
-        Florian Fainelli <f.fainelli@gmail.com>,
-        Heiner Kallweit <hkallweit1@gmail.com>,
-        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        Jiri Kosina <trivial@kernel.org>, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-can@vger.kernel.org,
-        linux-rdma@vger.kernel.org, linux-wireless@vger.kernel.org,
-        b.a.t.m.a.n@lists.open-mesh.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, lvs-devel@vger.kernel.org,
-        rds-devel@oss.oracle.com
-Subject: Re: [PATCH trivial 2/2] drivers: net: Fix Kconfig indentation
-Message-ID: <20190924070305.GP14368@unreal>
-References: <20190923155243.6997-1-krzk@kernel.org>
- <20190923155243.6997-2-krzk@kernel.org>
+        Tue, 24 Sep 2019 03:40:36 -0400
+Received: from kadath.azazel.net ([81.187.231.250]:33506 "EHLO
+        kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2394667AbfIXHkg (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 24 Sep 2019 03:40:36 -0400
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
+         s=20190108; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
+        Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=gdRzOZfspBFi3ANtm5ZgTrZWrWCSFu7gx9e8XOa752Q=; b=OaUWOoP1s+hWOJmD3J7crEKq6q
+        RYZQW5IsoMV5eckVjSrLJeRdxOZWtATQsk4M77vqq/tQt4N2Ld/Y/bXF89Mvv12XVFTkQsvuaNc3b
+        qffAYJTUlX2IukSvTS2jTOi49UHqbsv1kqGudS+1zx13sehYgVBF7QsMgXdaxfEMe3Bc7WkcjCHWa
+        a08qlKlfY4HzKooqHBM16CD7uG5QTDzpFt/6ICP7zVblVhbH2gz/+gRZEGAzoL/McRNNm7tJAOumj
+        RNF03ebpHe42yYk6wrOjMNxoDFAiesHxpF82/W22jvucI/Za/bJMtJ6lfSVg0YlY3QnyVQYnFc0BF
+        wWnbpfTQ==;
+Received: from ulthar.dreamlands ([192.168.96.2])
+        by kadath.azazel.net with esmtp (Exim 4.92)
+        (envelope-from <jeremy@azazel.net>)
+        id 1iCfR5-0001Re-1t; Tue, 24 Sep 2019 08:40:35 +0100
+From:   Jeremy Sowden <jeremy@azazel.net>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>,
+        Sebastian Priebe <sebastian.priebe@de.sii.group>
+Subject: [PATCH nftables 3/3] main: add more information to `nft -v`.
+Date:   Tue, 24 Sep 2019 08:40:34 +0100
+Message-Id: <20190924074034.4099-4-jeremy@azazel.net>
+X-Mailer: git-send-email 2.23.0
+In-Reply-To: <20190924074034.4099-1-jeremy@azazel.net>
+References: <20190924074034.4099-1-jeremy@azazel.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190923155243.6997-2-krzk@kernel.org>
-User-Agent: Mutt/1.12.1 (2019-06-15)
+Content-Transfer-Encoding: 8bit
+X-SA-Exim-Connect-IP: 192.168.96.2
+X-SA-Exim-Mail-From: jeremy@azazel.net
+X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Sep 23, 2019 at 05:52:43PM +0200, Krzysztof Kozlowski wrote:
-> Adjust indentation from spaces to tab (+optional two spaces) as in
-> coding style with command like:
->     $ sed -e 's/^        /\t/' -i */Kconfig
->
-> Signed-off-by: Krzysztof Kozlowski <krzk@kernel.org>
+In addition to the package-version and release-name, output the CLI
+implementation (if any) and whether mini-gmp was used, e.g.:
 
-<--->
+    $ ./src/nft -v
+    nftables v0.9.2 (Scram)
+      cli:          linenoise
+      minigmp:      no
 
->  .../net/ethernet/mellanox/mlx5/core/Kconfig   |  36 +++---
+Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
+---
+ src/Makefile.am |  3 +++
+ src/main.c      | 28 ++++++++++++++++++++++++++--
+ 2 files changed, 29 insertions(+), 2 deletions(-)
 
-Thanks,
-Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
+diff --git a/src/Makefile.am b/src/Makefile.am
+index 5c2ecbd87288..780f8c6b2b0b 100644
+--- a/src/Makefile.am
++++ b/src/Makefile.am
+@@ -16,6 +16,9 @@ endif
+ if BUILD_CLI_LINENOISE
+ AM_CPPFLAGS += -DHAVE_LINENOISE
+ endif
++if BUILD_MINIGMP
++AM_CPPFLAGS += -DHAVE_MINIGMP
++endif
+ 
+ AM_CFLAGS = -Wall								\
+ 	    -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations	\
+diff --git a/src/main.c b/src/main.c
+index f77d8a820a02..866f66e288e2 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -154,6 +154,31 @@ static void show_help(const char *name)
+ 	name, DEFAULT_INCLUDE_PATH);
+ }
+ 
++static void show_version(void)
++{
++	const char *cli, *minigmp;
++
++#if defined(HAVE_LIBREADLINE)
++	cli = "readline";
++#elif defined(HAVE_LINENOISE)
++	cli = "linenoise";
++#else
++	cli = "no";
++#endif
++
++#if defined(HAVE_MINIGMP)
++	minigmp = "yes";
++#else
++	minigmp = "no";
++#endif
++
++	printf("%s v%s (%s)\n"
++	       "  cli:		%s\n"
++	       "  minigmp:	%s\n",
++	       PACKAGE_NAME, PACKAGE_VERSION, RELEASE_NAME,
++	       cli, minigmp);
++}
++
+ static const struct {
+ 	const char		*name;
+ 	enum nft_debug_level	level;
+@@ -213,8 +238,7 @@ int main(int argc, char * const *argv)
+ 			show_help(argv[0]);
+ 			exit(EXIT_SUCCESS);
+ 		case OPT_VERSION:
+-			printf("%s v%s (%s)\n",
+-			       PACKAGE_NAME, PACKAGE_VERSION, RELEASE_NAME);
++			show_version();
+ 			exit(EXIT_SUCCESS);
+ 		case OPT_CHECK:
+ 			nft_ctx_set_dry_run(nft, true);
+-- 
+2.23.0
+
