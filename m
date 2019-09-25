@@ -2,33 +2,33 @@ Return-Path: <SRS0=+tY6=XU=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CC016C432C2
-	for <netfilter-devel@archiver.kernel.org>; Wed, 25 Sep 2019 21:26:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8214DC432C2
+	for <netfilter-devel@archiver.kernel.org>; Wed, 25 Sep 2019 21:26:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A7BBD2054F
-	for <netfilter-devel@archiver.kernel.org>; Wed, 25 Sep 2019 21:26:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5B1312054F
+	for <netfilter-devel@archiver.kernel.org>; Wed, 25 Sep 2019 21:26:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726234AbfIYV0n (ORCPT
+        id S1726320AbfIYV0s (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 25 Sep 2019 17:26:43 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:45818 "EHLO orbyte.nwl.cc"
+        Wed, 25 Sep 2019 17:26:48 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:45824 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726137AbfIYV0n (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 25 Sep 2019 17:26:43 -0400
-Received: from localhost ([::1]:58908 helo=tatos)
+        id S1726139AbfIYV0s (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 25 Sep 2019 17:26:48 -0400
+Received: from localhost ([::1]:58914 helo=tatos)
         by orbyte.nwl.cc with esmtp (Exim 4.91)
         (envelope-from <phil@nwl.cc>)
-        id 1iDEo5-0005Df-HN; Wed, 25 Sep 2019 23:26:41 +0200
+        id 1iDEoB-0005E1-94; Wed, 25 Sep 2019 23:26:47 +0200
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH v2 24/24] xtables-restore: Improve performance of --noflush operation
-Date:   Wed, 25 Sep 2019 23:26:05 +0200
-Message-Id: <20190925212605.1005-25-phil@nwl.cc>
+Subject: [iptables PATCH v2 08/24] nft: Fetch only chains in nft_chain_list_get()
+Date:   Wed, 25 Sep 2019 23:25:49 +0200
+Message-Id: <20190925212605.1005-9-phil@nwl.cc>
 X-Mailer: git-send-email 2.23.0
 In-Reply-To: <20190925212605.1005-1-phil@nwl.cc>
 References: <20190925212605.1005-1-phil@nwl.cc>
@@ -39,138 +39,128 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The reason for that full cache fetching when called with --noflush even
-before looking at any input data was that there might be a command
-requiring a rule cache following some rule add/insert ones which don't.
-At that point one needs to fetch rules from kernel and try to insert the
-local ones at the right spot which is non-trivial.
+The function is used to return the given table's chains, so fetching
+chain cache is enough.
 
-At the same time there is a performance-critical use-case for --noflush,
-namely fast insertion of a bunch of rules in one go, avoiding the
-process spawn overhead.
+This requires a bunch of manual rule cache updates in different places.
+To still support the fake cache logic from xtables-restore, make
+fetch_rule_cache() do nothing in case have_cache is set.
 
-Optimize for this use-case by preloading input into a 64KB buffer to see
-if it fits. If so, search for commands requiring a rule cache. If there
-are none, skip initial full cache fetching.
-
-The above algorithm may abort at any point, so actual input parsing must
-happen in three stages:
-
-1) parse all preloaded lines from 64KB buffer
-2) parse any leftover line in line buffer (happens if input exceeds
-   the preload buffer size)
-3) parse remaining input from input file pointer
+Accidental double rule cache updates for the same chain need to be
+prevented. This is complicated by the fact that chain's rule list is
+managed by libnftnl. Hence the same logic as used for table list, namely
+checking list pointer value, can't be used. Instead, simply fetch rules
+only if the given chain's rule list is empty. If it isn't, rules have
+been fetched before; if it is, a second rule fetch won't hurt.
 
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- iptables/xtables-restore.c | 85 ++++++++++++++++++++++++++++++++++----
- 1 file changed, 78 insertions(+), 7 deletions(-)
+ iptables/nft.c | 29 ++++++++++++++++++++++++++++-
+ 1 file changed, 28 insertions(+), 1 deletion(-)
 
-diff --git a/iptables/xtables-restore.c b/iptables/xtables-restore.c
-index d065e1a921be7..1b84f78070fa0 100644
---- a/iptables/xtables-restore.c
-+++ b/iptables/xtables-restore.c
-@@ -262,22 +262,93 @@ static void xtables_restore_parse_line(struct nft_handle *h,
- 	}
- }
+diff --git a/iptables/nft.c b/iptables/nft.c
+index 7c974af8b4141..729b88d990f9f 100644
+--- a/iptables/nft.c
++++ b/iptables/nft.c
+@@ -1264,6 +1264,7 @@ err:
  
-+/* return true if given iptables-restore line references a rule */
-+static bool is_ruleref_cmd(char *cmd)
-+{
-+	char c, chain[32];
-+	int rulenum, mcount;
-+
-+	mcount = sscanf(cmd, "-%c %31s %d", &c, chain, &rulenum);
-+
-+	if (mcount == 3)
-+		return true;
-+
-+	switch (c) {
-+	case 'D':
-+	case 'C':
-+	case 'S':
-+	case 'L':
-+	case 'Z':
-+		return true;
+ static struct nftnl_chain *
+ nft_chain_find(struct nft_handle *h, const char *table, const char *chain);
++static int fetch_rule_cache(struct nft_handle *h, struct nftnl_chain *c);
+ 
+ int
+ nft_rule_append(struct nft_handle *h, const char *chain, const char *table,
+@@ -1275,6 +1276,14 @@ nft_rule_append(struct nft_handle *h, const char *chain, const char *table,
+ 
+ 	nft_xt_builtin_init(h, table);
+ 
++	/* Since ebtables user-defined chain policies are implemented as last
++	 * rule in nftables, rule cache is required here to treat them right. */
++	if (h->family == NFPROTO_BRIDGE) {
++		c = nft_chain_find(h, table, chain);
++		if (c && !nft_chain_builtin(c))
++			fetch_rule_cache(h, c);
 +	}
 +
-+	return false;
-+}
+ 	nft_fn = nft_rule_append;
+ 
+ 	r = nft_rule_new(h, chain, table, data);
+@@ -1550,6 +1559,9 @@ static int nft_rule_list_update(struct nftnl_chain *c, void *data)
+ 	struct nftnl_rule *rule;
+ 	int ret;
+ 
++	if (nftnl_rule_lookup_byindex(c, 0))
++		return 0;
 +
-+#define PREBUFSIZ	65536
-+
- void xtables_restore_parse(struct nft_handle *h,
- 			   struct nft_xt_restore_parse *p,
- 			   struct nft_xt_restore_cb *cb)
+ 	rule = nftnl_rule_alloc();
+ 	if (!rule)
+ 		return -1;
+@@ -1579,6 +1591,9 @@ static int fetch_rule_cache(struct nft_handle *h, struct nftnl_chain *c)
  {
--	char buffer[10240];
--
--	line = 0;
-+	char preload_buffer[PREBUFSIZ] = {}, buffer[10240], *ptr;
+ 	int i;
  
--	if (!h->noflush)
-+	if (!h->noflush) {
- 		nft_fake_cache(h);
--	else
--		nft_build_cache(h);
-+	} else {
-+		ssize_t pblen = sizeof(preload_buffer);
-+		bool do_cache = false;
++	if (h->have_cache)
++		return 0;
 +
-+		ptr = preload_buffer;
-+		while (fgets(buffer, sizeof(buffer), p->in)) {
-+			size_t blen = strlen(buffer);
-+
-+			/* drop trailing newline; add_param_to_argv() changes
-+			 * it into nul, causing unpredictable string delimiting
-+			 * in preload_buffer */
-+			if (buffer[blen - 1] == '\n')
-+				buffer[blen - 1] = '\0';
-+			else
-+				blen++;
+ 	if (c)
+ 		return nft_rule_list_update(c, h);
  
--	/* Grab standard input. */
-+			pblen -= blen;
-+			if (pblen <= 0) {
-+				/* buffer exhausted */
-+				do_cache = true;
-+				break;
-+			}
+@@ -1670,7 +1685,8 @@ struct nftnl_chain_list *nft_chain_list_get(struct nft_handle *h,
+ 	if (!t)
+ 		return NULL;
+ 
+-	nft_build_cache(h);
++	if (!h->have_cache && !h->cache->table[t->type].chains)
++		fetch_chain_cache(h);
+ 
+ 	return h->cache->table[t->type].chains;
+ }
+@@ -1761,6 +1777,7 @@ int nft_rule_save(struct nft_handle *h, const char *table, unsigned int format)
+ 
+ 	c = nftnl_chain_list_iter_next(iter);
+ 	while (c) {
++		fetch_rule_cache(h, c);
+ 		ret = nft_chain_save_rules(h, c, format);
+ 		if (ret != 0)
+ 			break;
+@@ -1949,6 +1966,10 @@ static int __nft_chain_user_del(struct nftnl_chain *c, void *data)
+ 		fprintf(stdout, "Deleting chain `%s'\n",
+ 			nftnl_chain_get_str(c, NFTNL_CHAIN_NAME));
+ 
++	/* This triggers required policy rule deletion. */
++	if (h->family == NFPROTO_BRIDGE)
++		fetch_rule_cache(h, c);
 +
-+			if (is_ruleref_cmd(buffer)) {
-+				do_cache = true;
-+				break;
-+			}
+ 	/* XXX This triggers a fast lookup from the kernel. */
+ 	nftnl_chain_unset(c, NFTNL_CHAIN_HANDLE);
+ 	ret = batch_chain_add(h, NFT_COMPAT_CHAIN_USER_DEL, c);
+@@ -2238,6 +2259,8 @@ nft_rule_find(struct nft_handle *h, struct nftnl_chain *c, void *data, int rulen
+ 	struct nftnl_rule_iter *iter;
+ 	bool found = false;
+ 
++	fetch_rule_cache(h, c);
 +
-+			/* keep strings nul-terminated */
-+			memcpy(ptr, buffer, blen);
-+			ptr += blen;
-+			buffer[0] = '\0';
-+		}
+ 	if (rulenum >= 0)
+ 		/* Delete by rule number case */
+ 		return nftnl_rule_lookup_byindex(c, rulenum);
+@@ -3063,6 +3086,8 @@ int ebt_set_user_chain_policy(struct nft_handle *h, const char *table,
+ 	else
+ 		return 0;
+ 
++	fetch_rule_cache(h, c);
 +
-+		if (do_cache)
-+			nft_build_cache(h);
-+	}
+ 	nftnl_chain_set_u32(c, NFTNL_CHAIN_POLICY, pval);
+ 	return 1;
+ }
+@@ -3402,6 +3427,8 @@ static int nft_is_chain_compatible(struct nftnl_chain *c, void *data)
+ 	enum nf_inet_hooks hook;
+ 	int prio;
+ 
++	fetch_rule_cache(h, c);
 +
-+	line = 0;
-+	ptr = preload_buffer;
-+	while (*ptr) {
-+		h->error.lineno = ++line;
-+		DEBUGP("%s: buffered line %d: '%s'\n", __func__, line, ptr);
-+		xtables_restore_parse_line(h, p, cb, ptr);
-+		ptr += strlen(ptr) + 1;
-+	}
-+	if (*buffer) {
-+		h->error.lineno = ++line;
-+		DEBUGP("%s: overrun line %d: '%s'\n", __func__, line, buffer);
-+		xtables_restore_parse_line(h, p, cb, buffer);
-+	}
- 	while (fgets(buffer, sizeof(buffer), p->in)) {
- 		h->error.lineno = ++line;
-+		DEBUGP("%s: input line %d: '%s'\n", __func__, line, buffer);
- 		xtables_restore_parse_line(h, p, cb, buffer);
- 	}
- 	if (p->in_table && p->commit) {
+ 	if (nftnl_rule_foreach(c, nft_is_rule_compatible, NULL))
+ 		return -1;
+ 
 -- 
 2.23.0
 
