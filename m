@@ -6,29 +6,29 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DDCA6C432C2
-	for <netfilter-devel@archiver.kernel.org>; Wed, 25 Sep 2019 21:27:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CA1A1C432C2
+	for <netfilter-devel@archiver.kernel.org>; Wed, 25 Sep 2019 21:27:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B672620673
-	for <netfilter-devel@archiver.kernel.org>; Wed, 25 Sep 2019 21:27:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A254F20673
+	for <netfilter-devel@archiver.kernel.org>; Wed, 25 Sep 2019 21:27:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726435AbfIYV1y (ORCPT
+        id S1726440AbfIYV17 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 25 Sep 2019 17:27:54 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:45896 "EHLO orbyte.nwl.cc"
+        Wed, 25 Sep 2019 17:27:59 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:45902 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726139AbfIYV1y (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 25 Sep 2019 17:27:54 -0400
-Received: from localhost ([::1]:58986 helo=tatos)
+        id S1726139AbfIYV17 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 25 Sep 2019 17:27:59 -0400
+Received: from localhost ([::1]:58992 helo=tatos)
         by orbyte.nwl.cc with esmtp (Exim 4.91)
         (envelope-from <phil@nwl.cc>)
-        id 1iDEpE-0005ID-R6; Wed, 25 Sep 2019 23:27:52 +0200
+        id 1iDEpK-0005Ib-5I; Wed, 25 Sep 2019 23:27:58 +0200
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH v2 02/24] tests/shell: Speed up ipt-restore/0004-restore-race_0
-Date:   Wed, 25 Sep 2019 23:25:43 +0200
-Message-Id: <20190925212605.1005-3-phil@nwl.cc>
+Subject: [iptables PATCH v2 21/24] tests: shell: Add ipt-restore/0007-flush-noflush_0
+Date:   Wed, 25 Sep 2019 23:26:02 +0200
+Message-Id: <20190925212605.1005-22-phil@nwl.cc>
 X-Mailer: git-send-email 2.23.0
 In-Reply-To: <20190925212605.1005-1-phil@nwl.cc>
 References: <20190925212605.1005-1-phil@nwl.cc>
@@ -39,39 +39,63 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This test tended to cause quite excessive load on my system, sometimes
-taking longer than all other tests combined. Even with the reduced
-numbers, it still fails reliably after reverting commit 58d7de0181f61
-("xtables: handle concurrent ruleset modifications").
+Simple test to make sure iptables-restore does not touch tables it is
+not supposed to.
 
-Fixes: 4000b4cf2ea38 ("tests: add test script for race-free restore")
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- .../tests/shell/testcases/ipt-restore/0004-restore-race_0     | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ .../ipt-restore/0007-flush-noflush_0          | 42 +++++++++++++++++++
+ 1 file changed, 42 insertions(+)
+ create mode 100755 iptables/tests/shell/testcases/ipt-restore/0007-flush-noflush_0
 
-diff --git a/iptables/tests/shell/testcases/ipt-restore/0004-restore-race_0 b/iptables/tests/shell/testcases/ipt-restore/0004-restore-race_0
-index a92d18dcee058..96a5e66d0ab81 100755
---- a/iptables/tests/shell/testcases/ipt-restore/0004-restore-race_0
-+++ b/iptables/tests/shell/testcases/ipt-restore/0004-restore-race_0
-@@ -24,7 +24,7 @@ clean_tempfile()
- 
- trap clean_tempfile EXIT
- 
--ENTRY_NUM=$((RANDOM%100))
-+ENTRY_NUM=$((RANDOM%10))
- UCHAIN_NUM=$((RANDOM%10))
- 
- get_target()
-@@ -87,7 +87,7 @@ fi
- 
- case "$XT_MULTI" in
- */xtables-nft-multi)
--	attempts=$((RANDOM%200))
-+	attempts=$((RANDOM%10))
- 	attempts=$((attempts+1))
- 	;;
- *)
+diff --git a/iptables/tests/shell/testcases/ipt-restore/0007-flush-noflush_0 b/iptables/tests/shell/testcases/ipt-restore/0007-flush-noflush_0
+new file mode 100755
+index 0000000000000..029db2235b9a4
+--- /dev/null
++++ b/iptables/tests/shell/testcases/ipt-restore/0007-flush-noflush_0
+@@ -0,0 +1,42 @@
++#!/bin/bash
++
++# Make sure iptables-restore without --noflush does not flush tables other than
++# those contained in the dump it's reading from
++
++set -e
++
++$XT_MULTI iptables-restore <<EOF
++*nat
++-A POSTROUTING -j ACCEPT
++COMMIT
++EOF
++
++EXPECT="*nat
++:PREROUTING ACCEPT [0:0]
++:INPUT ACCEPT [0:0]
++:OUTPUT ACCEPT [0:0]
++:POSTROUTING ACCEPT [0:0]
++-A POSTROUTING -j ACCEPT
++COMMIT"
++diff -u -Z <(echo -e "$EXPECT" | sort) <($XT_MULTI iptables-save | grep -v '^#' | sort)
++
++$XT_MULTI iptables-restore <<EOF
++*filter
++-A FORWARD -j ACCEPT
++COMMIT
++EOF
++
++EXPECT="*filter
++:INPUT ACCEPT [0:0]
++:FORWARD ACCEPT [0:0]
++:OUTPUT ACCEPT [0:0]
++-A FORWARD -j ACCEPT
++COMMIT
++*nat
++:PREROUTING ACCEPT [0:0]
++:INPUT ACCEPT [0:0]
++:OUTPUT ACCEPT [0:0]
++:POSTROUTING ACCEPT [0:0]
++-A POSTROUTING -j ACCEPT
++COMMIT"
++diff -u -Z <(echo -e "$EXPECT" | sort) <($XT_MULTI iptables-save | grep -v '^#' | sort)
 -- 
 2.23.0
 
