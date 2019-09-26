@@ -3,61 +3,83 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-5.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
-	autolearn=ham autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E9C31C432C2
-	for <netfilter-devel@archiver.kernel.org>; Thu, 26 Sep 2019 08:29:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D2020C432C2
+	for <netfilter-devel@archiver.kernel.org>; Thu, 26 Sep 2019 08:37:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C5428222C0
-	for <netfilter-devel@archiver.kernel.org>; Thu, 26 Sep 2019 08:29:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B05B3222BF
+	for <netfilter-devel@archiver.kernel.org>; Thu, 26 Sep 2019 08:37:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726120AbfIZI3u (ORCPT
+        id S1726978AbfIZIhe (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 26 Sep 2019 04:29:50 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:47046 "EHLO orbyte.nwl.cc"
+        Thu, 26 Sep 2019 04:37:34 -0400
+Received: from correo.us.es ([193.147.175.20]:44090 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725208AbfIZI3u (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 26 Sep 2019 04:29:50 -0400
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.91)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1iDP9o-0003XO-KA; Thu, 26 Sep 2019 10:29:48 +0200
-Date:   Thu, 26 Sep 2019 10:29:48 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [iptables PATCH 03/14] nft: Keep nft_handle pointer in nft_xt_ctx
-Message-ID: <20190926082948.GG22129@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
+        id S1726393AbfIZIhe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 26 Sep 2019 04:37:34 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id C462E1022AA
+        for <netfilter-devel@vger.kernel.org>; Thu, 26 Sep 2019 10:37:29 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id B4427D2B1E
+        for <netfilter-devel@vger.kernel.org>; Thu, 26 Sep 2019 10:37:29 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id B3400DA4D0; Thu, 26 Sep 2019 10:37:29 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 63AE7B8004;
+        Thu, 26 Sep 2019 10:37:27 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Thu, 26 Sep 2019 10:37:27 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (barqueta.lsi.us.es [150.214.188.150])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 54B9342EE38F;
+        Thu, 26 Sep 2019 10:37:27 +0200 (CEST)
+Date:   Thu, 26 Sep 2019 10:37:29 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Fernando Fernandez Mancera <ffmancera@riseup.net>,
         netfilter-devel@vger.kernel.org
-References: <20190821092602.16292-1-phil@nwl.cc>
- <20190821092602.16292-4-phil@nwl.cc>
- <20190824164107.qrccw4nwp62acdcr@salvia>
+Subject: Re: [PATCH libmnl] src: fix doxygen function documentation
+Message-ID: <20190926083729.qcxkz7anewywvdy7@salvia>
+References: <20190925131418.7711-1-ffmancera@riseup.net>
+ <20190926000558.GA27134@dimstar.local.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20190824164107.qrccw4nwp62acdcr@salvia>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <20190926000558.GA27134@dimstar.local.net>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi,
+On Thu, Sep 26, 2019 at 10:05:58AM +1000, Duncan Roe wrote:
+> On Wed, Sep 25, 2019 at 03:14:19PM +0200, Fernando Fernandez Mancera wrote:
+> > Currently clang requires EXPORT_SYMBOL() to be above the function
+> > implementation. At the same time doxygen is not generating the proper
+> > documentation because of that.
+> >
+> > This patch solves that problem but EXPORT_SYMBOL looks less like the Linux
+> > kernel way exporting symbols.
+> >
+> > Reported-by: Duncan Roe <duncan_roe@optusnet.com.au>
+> > Signed-off-by: Fernando Fernandez Mancera <ffmancera@riseup.net>
+> > ---
+> >  src/attr.c     | 145 +++++++++++++++++++++----------------------------
+> >  src/callback.c |  14 ++---
+> >  src/internal.h |   3 +-
+> >  src/nlmsg.c    |  68 +++++++++--------------
+> >  src/socket.c   |  42 ++++++--------
+> >  5 files changed, 113 insertions(+), 159 deletions(-)
+> >
+>
+> Why do we need EXPORT_SYMBOL anyway?
 
-On Sat, Aug 24, 2019 at 06:41:07PM +0200, Pablo Neira Ayuso wrote:
-> On Wed, Aug 21, 2019 at 11:25:51AM +0200, Phil Sutter wrote:
-> > Instead of carrying the family value, carry the handle (which contains
-> > the family value) and relieve expression parsers from having to call
-> > nft_family_ops_lookup().
-> > 
-> > Signed-off-by: Phil Sutter <phil@nwl.cc>
-> 
-> Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
-
-I broke things when reordering, this patch depends on later changes.
-Hence I'll push only the first two and get the rest sorted for upcoming
-v2.
-
-Sorry, Phil
+For __attribute__((visibility("default"))).
