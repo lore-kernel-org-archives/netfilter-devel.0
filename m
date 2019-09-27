@@ -2,67 +2,70 @@ Return-Path: <SRS0=c7vx=XW=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7501BC4360C
-	for <netfilter-devel@archiver.kernel.org>; Fri, 27 Sep 2019 12:57:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 44EC0C4360C
+	for <netfilter-devel@archiver.kernel.org>; Fri, 27 Sep 2019 12:57:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 54DAD217D9
-	for <netfilter-devel@archiver.kernel.org>; Fri, 27 Sep 2019 12:57:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 20B45217D9
+	for <netfilter-devel@archiver.kernel.org>; Fri, 27 Sep 2019 12:57:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727311AbfI0M5A (ORCPT
+        id S1727128AbfI0M50 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 27 Sep 2019 08:57:00 -0400
-Received: from mail104.syd.optusnet.com.au ([211.29.132.246]:43526 "EHLO
-        mail104.syd.optusnet.com.au" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727088AbfI0M5A (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 27 Sep 2019 08:57:00 -0400
-Received: from dimstar.local.net (n122-110-44-45.sun2.vic.optusnet.com.au [122.110.44.45])
-        by mail104.syd.optusnet.com.au (Postfix) with SMTP id 6DBFD43EEAB
-        for <netfilter-devel@vger.kernel.org>; Fri, 27 Sep 2019 22:56:45 +1000 (AEST)
-Received: (qmail 7912 invoked by uid 501); 27 Sep 2019 12:56:45 -0000
-From:   Duncan Roe <duncan_roe@optusnet.com.au>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH libnetfilter_queue] BUG: src: Update UDP header length field after mangling
-Date:   Fri, 27 Sep 2019 22:56:45 +1000
-Message-Id: <20190927125645.7869-1-duncan_roe@optusnet.com.au>
-X-Mailer: git-send-email 2.14.5
-X-Optus-CM-Score: 0
-X-Optus-CM-Analysis: v=2.2 cv=FNpr/6gs c=1 sm=1 tr=0
-        a=4DzML1vCOQ6Odsy8BUtSXQ==:117 a=4DzML1vCOQ6Odsy8BUtSXQ==:17
-        a=J70Eh1EUuV4A:10 a=6nuk8M2LySgND5QPvBgA:9 a=pLouTN30JE-JXwSG:21
-        a=taJqi5g1KmyLCurM:21
+        Fri, 27 Sep 2019 08:57:26 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:49858 "EHLO orbyte.nwl.cc"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727088AbfI0M50 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 27 Sep 2019 08:57:26 -0400
+Received: from localhost ([::1]:34716 helo=tatos)
+        by orbyte.nwl.cc with esmtp (Exim 4.91)
+        (envelope-from <phil@nwl.cc>)
+        id 1iDpoL-0005i7-7Q; Fri, 27 Sep 2019 14:57:25 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [iptables PATCH] iptables-test: Run tests in lexical order
+Date:   Fri, 27 Sep 2019 14:57:16 +0200
+Message-Id: <20190927125716.1769-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.23.0
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-One would expect nfq_udp_mangle_ipv4() to take care of the length field in
-the UDP header but it did not.
-With this patch, it does.
-This patch is very unlikely to adversely affect any existing userspace
-software (that did its own length adjustment),
-because UDP checksumming was broken
----
- src/extra/udp.c | 2 ++
- 1 file changed, 2 insertions(+)
+To quickly see if a given test was run or not, sort the file list. Also
+filter non-test files right when preparing the list.
 
-diff --git a/src/extra/udp.c b/src/extra/udp.c
-index 8c44a66..6836230 100644
---- a/src/extra/udp.c
-+++ b/src/extra/udp.c
-@@ -140,6 +140,8 @@ nfq_udp_mangle_ipv4(struct pkt_buff *pkt,
- 	iph = (struct iphdr *)pkt->network_header;
- 	udph = (struct udphdr *)(pkt->network_header + iph->ihl*4);
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ iptables-test.py | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/iptables-test.py b/iptables-test.py
+index 2aac8ef2256dc..fdb4e6a3644e4 100755
+--- a/iptables-test.py
++++ b/iptables-test.py
+@@ -359,10 +359,14 @@ def main():
+         print("Couldn't open log file %s" % LOGFILE)
+         return
  
-+	udph->len = htons(ntohs(udph->len) + rep_len - match_len);
+-    file_list = [os.path.join(EXTENSIONS_PATH, i)
+-                 for i in os.listdir(EXTENSIONS_PATH)]
+     if args.filename:
+         file_list = [args.filename]
++    else:
++        file_list = [os.path.join(EXTENSIONS_PATH, i)
++                     for i in os.listdir(EXTENSIONS_PATH)
++                     if i.endswith('.t')]
++        file_list.sort()
 +
- 	if (!nfq_ip_mangle(pkt, iph->ihl*4 + sizeof(struct udphdr),
- 				match_offset, match_len, rep_buffer, rep_len))
- 		return 0;
+     for filename in file_list:
+         file_tests, file_passed = run_test_file(filename, args.netns)
+         if file_tests:
 -- 
-2.14.5
+2.23.0
 
