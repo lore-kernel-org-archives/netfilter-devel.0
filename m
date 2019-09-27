@@ -2,36 +2,34 @@ Return-Path: <SRS0=c7vx=XW=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 220C7C4360C
-	for <netfilter-devel@archiver.kernel.org>; Fri, 27 Sep 2019 14:05:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6FDF1C4360C
+	for <netfilter-devel@archiver.kernel.org>; Fri, 27 Sep 2019 14:05:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E98B6217D7
-	for <netfilter-devel@archiver.kernel.org>; Fri, 27 Sep 2019 14:05:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4CC54217D7
+	for <netfilter-devel@archiver.kernel.org>; Fri, 27 Sep 2019 14:05:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727518AbfI0OFi (ORCPT
+        id S1727539AbfI0OFo (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 27 Sep 2019 10:05:38 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:50036 "EHLO orbyte.nwl.cc"
+        Fri, 27 Sep 2019 10:05:44 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:50042 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726163AbfI0OFi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 27 Sep 2019 10:05:38 -0400
-Received: from localhost ([::1]:34894 helo=tatos)
+        id S1726163AbfI0OFo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 27 Sep 2019 10:05:44 -0400
+Received: from localhost ([::1]:34900 helo=tatos)
         by orbyte.nwl.cc with esmtp (Exim 4.91)
         (envelope-from <phil@nwl.cc>)
-        id 1iDqsL-0006xa-Jc; Fri, 27 Sep 2019 16:05:37 +0200
+        id 1iDqsQ-0006xy-TX; Fri, 27 Sep 2019 16:05:42 +0200
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH v2 09/12] nft: Bore up nft_parse_payload()
-Date:   Fri, 27 Sep 2019 16:04:30 +0200
-Message-Id: <20190927140433.9504-10-phil@nwl.cc>
+Subject: [iptables PATCH v2 00/12] Implement among match support
+Date:   Fri, 27 Sep 2019 16:04:21 +0200
+Message-Id: <20190927140433.9504-1-phil@nwl.cc>
 X-Mailer: git-send-email 2.23.0
-In-Reply-To: <20190927140433.9504-1-phil@nwl.cc>
-References: <20190927140433.9504-1-phil@nwl.cc>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -39,61 +37,66 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Allow for closer inspection by storing payload expression's base and
-length values. Also facilitate for two consecutive payload expressions
-as LHS of a (cmp/lookup) statement as used with concatenations.
+Changes since v1:
+- Rebased onto my performance improvements patch series.
+- Aligned set caching routines with changes in above series.
+- Fixed patch ordering so builds are not broken intermittently.
+- Replaced magic numbers by defines or offsetof() statements. Note that
+  I did not move any defines into libnftnl; the remaining ones are for
+  values in sets' key_type attribute which neither libnftnl nor kernel
+  care about. Setting that is merely for compatibility with nft tool.
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- iptables/nft-shared.c | 8 ++++++++
- iptables/nft-shared.h | 4 +++-
- 2 files changed, 11 insertions(+), 1 deletion(-)
+This series ultimately adds among match support to ebtables-nft. The
+implementation merely shares the user interface with legacy one,
+internally the code is distinct: libebt_among.c does not make use of the
+wormhash data structure but a much simpler one for "temporary" storage
+of data until being converted into an anonymous set and associated
+lookup expression.
 
-diff --git a/iptables/nft-shared.c b/iptables/nft-shared.c
-index 80d4e1fcdcea1..a67302ee621ae 100644
---- a/iptables/nft-shared.c
-+++ b/iptables/nft-shared.c
-@@ -445,8 +445,16 @@ static void nft_parse_meta(struct nft_xt_ctx *ctx, struct nftnl_expr *e)
- 
- static void nft_parse_payload(struct nft_xt_ctx *ctx, struct nftnl_expr *e)
- {
-+	if (ctx->flags & NFT_XT_CTX_PAYLOAD) {
-+		memcpy(&ctx->prev_payload, &ctx->payload,
-+		       sizeof(ctx->prev_payload));
-+		ctx->flags |= NFT_XT_CTX_PREV_PAYLOAD;
-+	}
-+
- 	ctx->reg = nftnl_expr_get_u32(e, NFTNL_EXPR_META_DREG);
-+	ctx->payload.base = nftnl_expr_get_u32(e, NFTNL_EXPR_PAYLOAD_BASE);
- 	ctx->payload.offset = nftnl_expr_get_u32(e, NFTNL_EXPR_PAYLOAD_OFFSET);
-+	ctx->payload.len = nftnl_expr_get_u32(e, NFTNL_EXPR_PAYLOAD_LEN);
- 	ctx->flags |= NFT_XT_CTX_PAYLOAD;
- }
- 
-diff --git a/iptables/nft-shared.h b/iptables/nft-shared.h
-index efc40e7714e0f..684d7e40c3bf3 100644
---- a/iptables/nft-shared.h
-+++ b/iptables/nft-shared.h
-@@ -43,6 +43,7 @@ enum {
- 	NFT_XT_CTX_META		= (1 << 1),
- 	NFT_XT_CTX_BITWISE	= (1 << 2),
- 	NFT_XT_CTX_IMMEDIATE	= (1 << 3),
-+	NFT_XT_CTX_PREV_PAYLOAD	= (1 << 4),
- };
- 
- struct nft_xt_ctx {
-@@ -53,9 +54,10 @@ struct nft_xt_ctx {
- 
- 	uint32_t reg;
- 	struct {
-+		uint32_t base;
- 		uint32_t offset;
- 		uint32_t len;
--	} payload;
-+	} payload, prev_payload;
- 	struct {
- 		uint32_t key;
- 	} meta;
+Patches 1 to 5 implement required changes and are rather boring by
+themselves: When converting an nftnl rule to iptables command state,
+cache access is required (to lookup set references).
+
+Patch 6 simplifies things a bit with the above in place.
+
+Patches 7 to 11 implement anonymous set support.
+
+Patch 12 then adds the actual among match implementation for
+ebtables-nft.
+
+Phil Sutter (12):
+  nft: family_ops: Pass nft_handle to 'add' callback
+  nft: family_ops: Pass nft_handle to 'rule_find' callback
+  nft: family_ops: Pass nft_handle to 'print_rule' callback
+  nft: family_ops: Pass nft_handle to 'rule_to_cs' callback
+  nft: Keep nft_handle pointer in nft_xt_ctx
+  nft: Eliminate pointless calls to nft_family_ops_lookup()
+  nft: Fetch sets when updating rule cache
+  nft: Support NFT_COMPAT_SET_ADD
+  nft: Bore up nft_parse_payload()
+  nft: Embed rule's table name in nft_xt_ctx
+  nft: Support parsing lookup expression
+  nft: bridge: Rudimental among extension support
+
+ extensions/libebt_among.c  | 278 ++++++++++++++++++++
+ extensions/libebt_among.t  |  16 ++
+ iptables/ebtables-nft.8    |  66 ++---
+ iptables/nft-arp.c         |  13 +-
+ iptables/nft-bridge.c      | 244 +++++++++++++++++-
+ iptables/nft-bridge.h      |  21 ++
+ iptables/nft-ipv4.c        |  10 +-
+ iptables/nft-ipv6.c        |  10 +-
+ iptables/nft-shared.c      |  70 +++---
+ iptables/nft-shared.h      |  26 +-
+ iptables/nft.c             | 502 +++++++++++++++++++++++++++++++++----
+ iptables/nft.h             |  14 +-
+ iptables/xtables-eb.c      |   1 +
+ iptables/xtables-monitor.c |  17 +-
+ iptables/xtables-save.c    |   3 +
+ 15 files changed, 1135 insertions(+), 156 deletions(-)
+ create mode 100644 extensions/libebt_among.c
+ create mode 100644 extensions/libebt_among.t
+
 -- 
 2.23.0
 
