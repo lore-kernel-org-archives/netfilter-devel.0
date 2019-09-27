@@ -4,117 +4,75 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C205FC4360C
-	for <netfilter-devel@archiver.kernel.org>; Fri, 27 Sep 2019 06:22:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D25F0C4360C
+	for <netfilter-devel@archiver.kernel.org>; Fri, 27 Sep 2019 06:38:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9D388217F4
-	for <netfilter-devel@archiver.kernel.org>; Fri, 27 Sep 2019 06:22:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AF99C20872
+	for <netfilter-devel@archiver.kernel.org>; Fri, 27 Sep 2019 06:38:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726054AbfI0GWR (ORCPT
+        id S1726133AbfI0Gij (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 27 Sep 2019 02:22:17 -0400
-Received: from cmccmta2.chinamobile.com ([221.176.66.80]:2747 "EHLO
-        cmccmta2.chinamobile.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725769AbfI0GWR (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 27 Sep 2019 02:22:17 -0400
-Received: from spf.mail.chinamobile.com (unknown[172.16.121.1]) by rmmx-syy-dmz-app07-12007 (RichMail) with SMTP id 2ee75d8daa7e602-3c291; Fri, 27 Sep 2019 14:21:51 +0800 (CST)
-X-RM-TRANSID: 2ee75d8daa7e602-3c291
-X-RM-TagInfo: emlType=0                                       
-X-RM-SPAM-FLAG: 00000000
-Received: from localhost (unknown[223.105.0.241])
-        by rmsmtp-syy-appsvr01-12001 (RichMail) with SMTP id 2ee15d8daa7ddd2-9c951;
-        Fri, 27 Sep 2019 14:21:51 +0800 (CST)
-X-RM-TRANSID: 2ee15d8daa7ddd2-9c951
-From:   Haishuang Yan <yanhaishuang@cmss.chinamobile.com>
-To:     Shuah Khan <shuah@kernel.org>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        "David S. Miller" <davem@davemloft.net>
-Cc:     Julian Anastasov <ja@ssi.bg>, linux-kernel@vger.kernel.org,
-        linux-kselftest@vger.kernel.org, lvs-devel@vger.kernel.org,
-        netfilter-devel@vger.kernel.org,
-        Haishuang Yan <yanhaishuang@cmss.chinamobile.com>
-Subject: [PATCH v2 3/3] selftests: netfilter: add ipvs tunnel test case
-Date:   Fri, 27 Sep 2019 14:21:06 +0800
-Message-Id: <1569565266-31566-4-git-send-email-yanhaishuang@cmss.chinamobile.com>
-X-Mailer: git-send-email 1.8.3.1
-In-Reply-To: <1569565266-31566-1-git-send-email-yanhaishuang@cmss.chinamobile.com>
-References: <1569565266-31566-1-git-send-email-yanhaishuang@cmss.chinamobile.com>
+        Fri, 27 Sep 2019 02:38:39 -0400
+Received: from correo.us.es ([193.147.175.20]:54794 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725804AbfI0Gij (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 27 Sep 2019 02:38:39 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id C8C371694A9
+        for <netfilter-devel@vger.kernel.org>; Fri, 27 Sep 2019 08:38:34 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id BAA03FF6EB
+        for <netfilter-devel@vger.kernel.org>; Fri, 27 Sep 2019 08:38:34 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id AFEA9FF6E0; Fri, 27 Sep 2019 08:38:34 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 9A564DA72F;
+        Fri, 27 Sep 2019 08:38:32 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Fri, 27 Sep 2019 08:38:32 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from salvia.here (sys.soleta.eu [212.170.55.40])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id 708514265A5A;
+        Fri, 27 Sep 2019 08:38:32 +0200 (CEST)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     jeremy@azazel.net
+Subject: [PATCH nft] libnftables: memleak when no batch commands in list
+Date:   Fri, 27 Sep 2019 08:38:31 +0200
+Message-Id: <20190927063831.9705-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.11.0
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Test virtual server via ipip tunnel.
+A ruleset listing triggers this bug.
 
-Tested:
-# selftests: netfilter: ipvs.sh
-# Testing DR mode...
-# Testing NAT mode...
-# Testing Tunnel mode...
-# ipvs.sh: PASS
-ok 6 selftests: netfilter: ipvs.sh
-
-Signed-off-by: Haishuang Yan <yanhaishuang@cmss.chinamobile.com>
+Fixes: fc6d0f8b0cb1 ("libnftables: get rid of repeated initialization of netlink_ctx")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-v2: optimize test script
----
- tools/testing/selftests/netfilter/ipvs.sh | 30 ++++++++++++++++++++++++++++++
- 1 file changed, 30 insertions(+)
+ src/libnftables.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/tools/testing/selftests/netfilter/ipvs.sh b/tools/testing/selftests/netfilter/ipvs.sh
-index e95453b..b09994e 100755
---- a/tools/testing/selftests/netfilter/ipvs.sh
-+++ b/tools/testing/selftests/netfilter/ipvs.sh
-@@ -174,6 +174,30 @@ test_nat() {
-     test_service
- }
+diff --git a/src/libnftables.c b/src/libnftables.c
+index a19636b22683..e20372438db6 100644
+--- a/src/libnftables.c
++++ b/src/libnftables.c
+@@ -34,7 +34,7 @@ static int nft_netlink(struct nft_ctx *nft,
+ 	int ret = 0;
  
-+test_tun() {
-+    ip netns exec ns0 ip route add ${vip_v4} via ${gip_v4} dev br0
-+
-+    ip netns exec ns1 modprobe ipip
-+    ip netns exec ns1 ip link set tunl0 up
-+    ip netns exec ns1 sysctl -qw net.ipv4.ip_forward=0
-+    ip netns exec ns1 sysctl -qw net.ipv4.conf.all.send_redirects=0
-+    ip netns exec ns1 sysctl -qw net.ipv4.conf.default.send_redirects=0
-+    ip netns exec ns1 ipvsadm -A -t ${vip_v4}:${port} -s rr
-+    ip netns exec ns1 ipvsadm -a -i -t ${vip_v4}:${port} -r ${rip_v4}:${port}
-+    ip netns exec ns1 ip addr add ${vip_v4}/32 dev lo:1
-+
-+    ip netns exec ns2 modprobe ipip
-+    ip netns exec ns2 ip link set tunl0 up
-+    ip netns exec ns2 sysctl -qw net.ipv4.conf.all.arp_ignore=1
-+    ip netns exec ns2 sysctl -qw net.ipv4.conf.all.arp_announce=2
-+    ip netns exec ns2 sysctl -qw net.ipv4.conf.all.rp_filter=0
-+    ip netns exec ns2 sysctl -qw net.ipv4.conf.tunl0.rp_filter=0
-+    ip netns exec ns2 sysctl -qw net.ipv4.conf.veth21.rp_filter=0
-+    ip netns exec ns2 ip addr add ${vip_v4}/32 dev lo:1
-+
-+    test_service
-+}
-+
- run_tests() {
- 	local errors=
+ 	if (list_empty(cmds))
+-		return 0;
++		goto out;
  
-@@ -189,6 +213,12 @@ run_tests() {
- 	test_nat
- 	errors=$(( $errors + $? ))
- 
-+	echo "Testing Tunnel mode..."
-+	cleanup
-+	setup
-+	test_tun
-+	errors=$(( $errors + $? ))
-+
- 	return $errors
- }
- 
+ 	batch_seqnum = mnl_batch_begin(ctx.batch, mnl_seqnum_alloc(&seqnum));
+ 	list_for_each_entry(cmd, cmds, list) {
 -- 
-1.8.3.1
-
-
+2.11.0
 
