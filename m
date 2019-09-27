@@ -2,80 +2,154 @@ Return-Path: <SRS0=c7vx=XW=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F1071C4360C
-	for <netfilter-devel@archiver.kernel.org>; Fri, 27 Sep 2019 00:42:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2A81DC352AB
+	for <netfilter-devel@archiver.kernel.org>; Fri, 27 Sep 2019 05:04:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BA94A2086A
-	for <netfilter-devel@archiver.kernel.org>; Fri, 27 Sep 2019 00:42:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 06DF620863
+	for <netfilter-devel@archiver.kernel.org>; Fri, 27 Sep 2019 05:04:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726105AbfI0Amj (ORCPT
+        id S1726385AbfI0FEt (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 26 Sep 2019 20:42:39 -0400
-Received: from mail104.syd.optusnet.com.au ([211.29.132.246]:41115 "EHLO
-        mail104.syd.optusnet.com.au" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725808AbfI0Amj (ORCPT
+        Fri, 27 Sep 2019 01:04:49 -0400
+Received: from cmccmta3.chinamobile.com ([221.176.66.81]:2543 "EHLO
+        cmccmta3.chinamobile.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725996AbfI0FEt (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 26 Sep 2019 20:42:39 -0400
-Received: from dimstar.local.net (n122-110-44-45.sun2.vic.optusnet.com.au [122.110.44.45])
-        by mail104.syd.optusnet.com.au (Postfix) with SMTP id 0BBCB43E165
-        for <netfilter-devel@vger.kernel.org>; Fri, 27 Sep 2019 10:42:36 +1000 (AEST)
-Received: (qmail 32297 invoked by uid 501); 27 Sep 2019 00:42:36 -0000
-Date:   Fri, 27 Sep 2019 10:42:36 +1000
-From:   Duncan Roe <duncan_roe@optusnet.com.au>
-To:     Jeremy Sowden <jeremy@azazel.net>
-Cc:     Netfilter Development <netfilter-devel@vger.kernel.org>,
+        Fri, 27 Sep 2019 01:04:49 -0400
+X-Greylist: delayed 554 seconds by postgrey-1.27 at vger.kernel.org; Fri, 27 Sep 2019 01:04:48 EDT
+Received: from spf.mail.chinamobile.com (unknown[172.16.121.15]) by rmmx-syy-dmz-app09-12009 (RichMail) with SMTP id 2ee95d8d96370f6-3ae8b; Fri, 27 Sep 2019 12:55:19 +0800 (CST)
+X-RM-TRANSID: 2ee95d8d96370f6-3ae8b
+X-RM-TagInfo: emlType=0                                       
+X-RM-SPAM-FLAG: 00000000
+Received: from localhost (unknown[223.105.0.241])
+        by rmsmtp-syy-appsvr08-12008 (RichMail) with SMTP id 2ee85d8d96366cb-a12cb;
+        Fri, 27 Sep 2019 12:55:19 +0800 (CST)
+X-RM-TRANSID: 2ee85d8d96366cb-a12cb
+From:   Haishuang Yan <yanhaishuang@cmss.chinamobile.com>
+To:     Julian Anastasov <ja@ssi.bg>,
+        "David S. Miller" <davem@davemloft.net>,
         Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH libnetfilter_queue] src: Enable clang build
-Message-ID: <20190927004236.GB31954@dimstar.local.net>
-Mail-Followup-To: Jeremy Sowden <jeremy@azazel.net>,
-        Netfilter Development <netfilter-devel@vger.kernel.org>,
-        Pablo Neira Ayuso <pablo@netfilter.org>
-References: <20190922001031.30848-1-duncan_roe@optusnet.com.au>
- <20190924121129.GA32094@azazel.net>
- <20190925022812.GA16766@dimstar.local.net>
- <20190927000032.GA31954@dimstar.local.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190927000032.GA31954@dimstar.local.net>
-User-Agent: Mutt/1.10.1 (2018-07-13)
-X-Optus-CM-Score: 0
-X-Optus-CM-Analysis: v=2.2 cv=P6RKvmIu c=1 sm=1 tr=0
-        a=4DzML1vCOQ6Odsy8BUtSXQ==:117 a=4DzML1vCOQ6Odsy8BUtSXQ==:17
-        a=jpOVt7BSZ2e4Z31A5e1TngXxSK0=:19 a=kj9zAlcOel0A:10 a=J70Eh1EUuV4A:10
-        a=amA5tBAHi04z8VDdgLoA:9 a=CjuIK1q_8ugA:10
+Cc:     netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
+        linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        Haishuang Yan <yanhaishuang@cmss.chinamobile.com>
+Subject: [PATCH v2 1/2] ipvs: batch __ip_vs_cleanup
+Date:   Fri, 27 Sep 2019 12:54:50 +0800
+Message-Id: <1569560091-20553-2-git-send-email-yanhaishuang@cmss.chinamobile.com>
+X-Mailer: git-send-email 1.8.3.1
+In-Reply-To: <1569560091-20553-1-git-send-email-yanhaishuang@cmss.chinamobile.com>
+References: <1569560091-20553-1-git-send-email-yanhaishuang@cmss.chinamobile.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Sep 27, 2019 at 10:00:32AM +1000, Duncan Roe wrote:
-> On Wed, Sep 25, 2019 at 12:28:12PM +1000, Duncan Roe wrote:
-> > On Tue, Sep 24, 2019 at 01:11:29PM +0100, Jeremy Sowden wrote:
-> > > On 2019-09-22, at 10:10:31 +1000, Duncan Roe wrote:
-> > > > Unlike gcc, clang insists to have EXPORT_SYMBOL(x) come before the definition
-> > > > of x. So move all EXPORT_SYMBOL lines to just after the last #include line.
-> > > >
-> > > > pktbuff.c was missing its associated header, so correct that as well.
-> > > >
-> > > > gcc & clang produce different warnings. gcc warns that nfq_set_verdict_mark is
-> > > > deprecated while clang warns of invalid conversion specifier 'Z' at
-> > > > src/extra/ipv6.c:138 (should that be lower-case?)
-> > >
-> > > It should, yes.
-> > >
-> > > J.
-> >
-> > Will send a v2 then.
-> >
-> > Cheers ... Duncan.
->
-> On second thoughts, will send a separate 1-liner patch for 5z as time permits.
->
-> Cheers ... Duncan.
+It's better to batch __ip_vs_cleanup to speedup ipvs
+connections dismantle.
 
-s/5/%/
+Signed-off-by: Haishuang Yan <yanhaishuang@cmss.chinamobile.com>
+---
+v2: remove unused pointer list
+---
+ include/net/ip_vs.h             |  2 +-
+ net/netfilter/ipvs/ip_vs_core.c | 28 ++++++++++++++++------------
+ net/netfilter/ipvs/ip_vs_ctl.c  | 12 +++++++++---
+ 3 files changed, 26 insertions(+), 16 deletions(-)
+
+diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
+index 3759167..93e7a25 100644
+--- a/include/net/ip_vs.h
++++ b/include/net/ip_vs.h
+@@ -1324,7 +1324,7 @@ static inline void ip_vs_control_del(struct ip_vs_conn *cp)
+ void ip_vs_control_net_cleanup(struct netns_ipvs *ipvs);
+ void ip_vs_estimator_net_cleanup(struct netns_ipvs *ipvs);
+ void ip_vs_sync_net_cleanup(struct netns_ipvs *ipvs);
+-void ip_vs_service_net_cleanup(struct netns_ipvs *ipvs);
++void ip_vs_service_nets_cleanup(struct list_head *net_list);
+ 
+ /* IPVS application functions
+  * (from ip_vs_app.c)
+diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+index 8b80ab7..93cfb47 100644
+--- a/net/netfilter/ipvs/ip_vs_core.c
++++ b/net/netfilter/ipvs/ip_vs_core.c
+@@ -2402,18 +2402,22 @@ static int __net_init __ip_vs_init(struct net *net)
+ 	return -ENOMEM;
+ }
+ 
+-static void __net_exit __ip_vs_cleanup(struct net *net)
++static void __net_exit __ip_vs_cleanup_batch(struct list_head *net_list)
+ {
+-	struct netns_ipvs *ipvs = net_ipvs(net);
+-
+-	ip_vs_service_net_cleanup(ipvs);	/* ip_vs_flush() with locks */
+-	ip_vs_conn_net_cleanup(ipvs);
+-	ip_vs_app_net_cleanup(ipvs);
+-	ip_vs_protocol_net_cleanup(ipvs);
+-	ip_vs_control_net_cleanup(ipvs);
+-	ip_vs_estimator_net_cleanup(ipvs);
+-	IP_VS_DBG(2, "ipvs netns %d released\n", ipvs->gen);
+-	net->ipvs = NULL;
++	struct netns_ipvs *ipvs;
++	struct net *net;
++
++	ip_vs_service_nets_cleanup(net_list);	/* ip_vs_flush() with locks */
++	list_for_each_entry(net, net_list, exit_list) {
++		ipvs = net_ipvs(net);
++		ip_vs_conn_net_cleanup(ipvs);
++		ip_vs_app_net_cleanup(ipvs);
++		ip_vs_protocol_net_cleanup(ipvs);
++		ip_vs_control_net_cleanup(ipvs);
++		ip_vs_estimator_net_cleanup(ipvs);
++		IP_VS_DBG(2, "ipvs netns %d released\n", ipvs->gen);
++		net->ipvs = NULL;
++	}
+ }
+ 
+ static int __net_init __ip_vs_dev_init(struct net *net)
+@@ -2442,7 +2446,7 @@ static void __net_exit __ip_vs_dev_cleanup(struct net *net)
+ 
+ static struct pernet_operations ipvs_core_ops = {
+ 	.init = __ip_vs_init,
+-	.exit = __ip_vs_cleanup,
++	.exit_batch = __ip_vs_cleanup_batch,
+ 	.id   = &ip_vs_net_id,
+ 	.size = sizeof(struct netns_ipvs),
+ };
+diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+index 8b48e7c..153c77b 100644
+--- a/net/netfilter/ipvs/ip_vs_ctl.c
++++ b/net/netfilter/ipvs/ip_vs_ctl.c
+@@ -1607,14 +1607,20 @@ static int ip_vs_flush(struct netns_ipvs *ipvs, bool cleanup)
+ 
+ /*
+  *	Delete service by {netns} in the service table.
+- *	Called by __ip_vs_cleanup()
++ *	Called by __ip_vs_batch_cleanup()
+  */
+-void ip_vs_service_net_cleanup(struct netns_ipvs *ipvs)
++void ip_vs_service_nets_cleanup(struct list_head *net_list)
+ {
++	struct netns_ipvs *ipvs;
++	struct net *net;
++
+ 	EnterFunction(2);
+ 	/* Check for "full" addressed entries */
+ 	mutex_lock(&__ip_vs_mutex);
+-	ip_vs_flush(ipvs, true);
++	list_for_each_entry(net, net_list, exit_list) {
++		ipvs = net_ipvs(net);
++		ip_vs_flush(ipvs, true);
++	}
+ 	mutex_unlock(&__ip_vs_mutex);
+ 	LeaveFunction(2);
+ }
+-- 
+1.8.3.1
+
+
+
