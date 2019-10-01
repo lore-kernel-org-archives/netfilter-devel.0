@@ -4,41 +4,41 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BAC51C352AA
-	for <netfilter-devel@archiver.kernel.org>; Tue,  1 Oct 2019 16:50:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 18EA5ECE587
+	for <netfilter-devel@archiver.kernel.org>; Tue,  1 Oct 2019 16:53:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8F77420659
-	for <netfilter-devel@archiver.kernel.org>; Tue,  1 Oct 2019 16:50:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E28B52168B
+	for <netfilter-devel@archiver.kernel.org>; Tue,  1 Oct 2019 16:53:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1569948623;
-	bh=EeiAg+K/3A2Za8StxoLCNIy6rbE/vHV061xjoJvSjzU=;
+	s=default; t=1569948805;
+	bh=+uCVdUA5lVCZ9a/ht/Z8yKNn/Mvm0QLIKe/8pzuMvFA=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=MA03SXrbZ98C1qDEydnFloWEm43Pq9p/4MAXrVm0IWjgXYUPeSGh2w2jiGMmSQF1u
-	 Bza3b6UZ163eYjIp7r/lUaSFP1xOx0WqEOWUHz+d3zpdLWw/6ubFUFWZALTD4TtZmC
-	 dclBctOCCP4MuG6bVZAKr/S2JewWr7Ajvfd1Hw1Y=
+	b=GzgtSW43eCc5cKshDO5Q2xRIWIChBS0dR1YUulaKNLbuKd8KNiIX0fCufHl8tGwII
+	 fTYVuJan4RGp2UcIMD/akUB85AtIO93cLp5ZHuxHdT/+xy93YoN6qTBeR1+PVMNMjf
+	 0KqJ1elDGmSs9ixXa3KK9OfTa5GtFeGhLAxx9M3E=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388978AbfJAQuW (ORCPT
+        id S1732726AbfJAQn1 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 1 Oct 2019 12:50:22 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56804 "EHLO mail.kernel.org"
+        Tue, 1 Oct 2019 12:43:27 -0400
+Received: from mail.kernel.org ([198.145.29.99]:55506 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726860AbfJAQof (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 1 Oct 2019 12:44:35 -0400
+        id S1732698AbfJAQn1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 1 Oct 2019 12:43:27 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 4802721906;
-        Tue,  1 Oct 2019 16:44:33 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 22FD821906;
+        Tue,  1 Oct 2019 16:43:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1569948274;
-        bh=EeiAg+K/3A2Za8StxoLCNIy6rbE/vHV061xjoJvSjzU=;
+        s=default; t=1569948206;
+        bh=+uCVdUA5lVCZ9a/ht/Z8yKNn/Mvm0QLIKe/8pzuMvFA=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=gKj9PfWFI6mF23wa536yj7WdqpJUNjPaB2laZuzkxXa1tYWNC8OKKECWs7E2wc7gp
-         +OlAIoEsgAsb3/6sUIF+oSHKSpzGCyM5iCTLiaU0Ov3ee+q0HwPM894FncfKXBO28j
-         5I4mp/FfeIoFuvxFYHZ1vutyKNAK34RxsJikgWvY=
+        b=XbIG82ThkL96qTzblGCFgDtKZF6Eq1DiiiDdtOmNfL8G9e2882xQYmwPJ/R9POsSc
+         7K28XtrA9ohbYdT8rm8LyC+fhxkyCfL36TmEqXf14a6HrjD9NoaX+bL11kjP+PrWSg
+         jgkX7QmlHS8iBiQCbl/OK4JF6Yf42sGxTSv+eLLw=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Florian Westphal <fw@strlen.de>,
@@ -46,12 +46,12 @@ Cc:     Florian Westphal <fw@strlen.de>,
         Sasha Levin <sashal@kernel.org>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.14 09/29] netfilter: nf_tables: allow lookups in dynamic sets
-Date:   Tue,  1 Oct 2019 12:44:03 -0400
-Message-Id: <20191001164423.16406-9-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 12/43] netfilter: nf_tables: allow lookups in dynamic sets
+Date:   Tue,  1 Oct 2019 12:42:40 -0400
+Message-Id: <20191001164311.15993-12-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20191001164423.16406-1-sashal@kernel.org>
-References: <20191001164423.16406-1-sashal@kernel.org>
+In-Reply-To: <20191001164311.15993-1-sashal@kernel.org>
+References: <20191001164311.15993-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -129,10 +129,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  2 files changed, 5 insertions(+), 5 deletions(-)
 
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index b149a72190846..7ef126489d4ed 100644
+index 2145581d7b3dc..24fddf0322790 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -3131,8 +3131,11 @@ static int nf_tables_newset(struct net *net, struct sock *nlsk,
+@@ -3429,8 +3429,11 @@ static int nf_tables_newset(struct net *net, struct sock *nlsk,
  			      NFT_SET_OBJECT))
  			return -EINVAL;
  		/* Only one of these operations is supported */
@@ -147,7 +147,7 @@ index b149a72190846..7ef126489d4ed 100644
  	}
  
 diff --git a/net/netfilter/nft_lookup.c b/net/netfilter/nft_lookup.c
-index 475570e89ede7..44015a151ad69 100644
+index 161c3451a747a..55754d9939b50 100644
 --- a/net/netfilter/nft_lookup.c
 +++ b/net/netfilter/nft_lookup.c
 @@ -76,9 +76,6 @@ static int nft_lookup_init(const struct nft_ctx *ctx,
