@@ -2,101 +2,119 @@ Return-Path: <SRS0=ZC8Q=X2=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EFC15C388F3
-	for <netfilter-devel@archiver.kernel.org>; Tue,  1 Oct 2019 09:54:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 27F00ECE58A
+	for <netfilter-devel@archiver.kernel.org>; Tue,  1 Oct 2019 14:22:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C59C72190F
-	for <netfilter-devel@archiver.kernel.org>; Tue,  1 Oct 2019 09:54:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 08E9A2190F
+	for <netfilter-devel@archiver.kernel.org>; Tue,  1 Oct 2019 14:22:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729816AbfJAJyU (ORCPT
+        id S2389065AbfJAOWg (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 1 Oct 2019 05:54:20 -0400
-Received: from kirsty.vergenet.net ([202.4.237.240]:34398 "EHLO
-        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729792AbfJAJyU (ORCPT
+        Tue, 1 Oct 2019 10:22:36 -0400
+Received: from cmccmta3.chinamobile.com ([221.176.66.81]:25105 "EHLO
+        cmccmta3.chinamobile.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2389055AbfJAOWg (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 1 Oct 2019 05:54:20 -0400
-Received: from reginn.horms.nl (watermunt.horms.nl [80.127.179.77])
-        by kirsty.vergenet.net (Postfix) with ESMTPA id 665AB25BDFF;
-        Tue,  1 Oct 2019 19:54:17 +1000 (AEST)
-Received: by reginn.horms.nl (Postfix, from userid 7100)
-        id 5EC7094046A; Tue,  1 Oct 2019 11:54:15 +0200 (CEST)
-Date:   Tue, 1 Oct 2019 11:54:15 +0200
-From:   Simon Horman <horms@verge.net.au>
-To:     Julian Anastasov <ja@ssi.bg>
-Cc:     Haishuang Yan <yanhaishuang@cmss.chinamobile.com>,
-        "David S. Miller" <davem@davemloft.net>,
+        Tue, 1 Oct 2019 10:22:36 -0400
+Received: from spf.mail.chinamobile.com (unknown[172.16.121.5]) by rmmx-syy-dmz-app11-12011 (RichMail) with SMTP id 2eeb5d936119580-943cf; Tue, 01 Oct 2019 22:22:17 +0800 (CST)
+X-RM-TRANSID: 2eeb5d936119580-943cf
+X-RM-TagInfo: emlType=0                                       
+X-RM-SPAM-FLAG: 00000000
+Received: from localhost (unknown[223.105.0.241])
+        by rmsmtp-syy-appsvr03-12003 (RichMail) with SMTP id 2ee35d936118070-0678c;
+        Tue, 01 Oct 2019 22:22:16 +0800 (CST)
+X-RM-TRANSID: 2ee35d936118070-0678c
+From:   Haishuang Yan <yanhaishuang@cmss.chinamobile.com>
+To:     Shuah Khan <shuah@kernel.org>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
-        netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH v2 0/2] ipvs: speedup ipvs netns dismantle
-Message-ID: <20191001095415.fari4ntiszkbkgxr@verge.net.au>
-References: <1569560091-20553-1-git-send-email-yanhaishuang@cmss.chinamobile.com>
- <alpine.LFD.2.21.1909302205360.2706@ja.home.ssi.bg>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.21.1909302205360.2706@ja.home.ssi.bg>
-Organisation: Horms Solutions BV
-User-Agent: NeoMutt/20170113 (1.7.2)
+        "David S. Miller" <davem@davemloft.net>,
+        Simon Horman <horms@verge.net.au>
+Cc:     Julian Anastasov <ja@ssi.bg>, linux-kernel@vger.kernel.org,
+        linux-kselftest@vger.kernel.org, lvs-devel@vger.kernel.org,
+        netfilter-devel@vger.kernel.org,
+        Haishuang Yan <yanhaishuang@cmss.chinamobile.com>
+Subject: [PATCH v3 3/3] selftests: netfilter: add ipvs tunnel test case
+Date:   Tue,  1 Oct 2019 22:19:59 +0800
+Message-Id: <1569939599-1872-4-git-send-email-yanhaishuang@cmss.chinamobile.com>
+X-Mailer: git-send-email 1.8.3.1
+In-Reply-To: <1569939599-1872-1-git-send-email-yanhaishuang@cmss.chinamobile.com>
+References: <1569939599-1872-1-git-send-email-yanhaishuang@cmss.chinamobile.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Sep 30, 2019 at 10:08:23PM +0300, Julian Anastasov wrote:
-> 
-> 	Hello,
-> 
-> On Fri, 27 Sep 2019, Haishuang Yan wrote:
-> 
-> > Implement exit_batch() method to dismantle more ipvs netns
-> > per round.
-> > 
-> > Tested:
-> > $  cat add_del_unshare.sh
-> > #!/bin/bash
-> > 
-> > for i in `seq 1 100`
-> >     do
-> >      (for j in `seq 1 40` ; do  unshare -n ipvsadm -A -t 172.16.$i.$j:80 >/dev/null ; done) &
-> >     done
-> > wait; grep net_namespace /proc/slabinfo
-> > 
-> > Befor patch:
-> > $  time sh add_del_unshare.sh
-> > net_namespace       4020   4020   4736    6    8 : tunables    0    0    0 : slabdata    670    670      0
-> > 
-> > real    0m8.086s
-> > user    0m2.025s
-> > sys     0m36.956s
-> > 
-> > After patch:
-> > $  time sh add_del_unshare.sh
-> > net_namespace       4020   4020   4736    6    8 : tunables    0    0    0 : slabdata    670    670      0
-> > 
-> > real    0m7.623s
-> > user    0m2.003s
-> > sys     0m32.935s
-> > 
-> > Haishuang Yan (2):
-> >   ipvs: batch __ip_vs_cleanup
-> >   ipvs: batch __ip_vs_dev_cleanup
-> > 
-> >  include/net/ip_vs.h             |  2 +-
-> >  net/netfilter/ipvs/ip_vs_core.c | 47 ++++++++++++++++++++++++-----------------
-> >  net/netfilter/ipvs/ip_vs_ctl.c  | 12 ++++++++---
-> >  3 files changed, 38 insertions(+), 23 deletions(-)
-> 
-> 	Both patches in v2 look good to me, thanks!
-> 
-> Acked-by: Julian Anastasov <ja@ssi.bg>
-> 
-> 	This is for the -next kernels...
+Test virtual server via ipip tunnel.
 
-Thanks, applied to ipvs-next.
+Tested:
+# selftests: netfilter: ipvs.sh
+# Testing DR mode...
+# Testing NAT mode...
+# Testing Tunnel mode...
+# ipvs.sh: PASS
+ok 6 selftests: netfilter: ipvs.sh
+
+Signed-off-by: Haishuang Yan <yanhaishuang@cmss.chinamobile.com>
+---
+v2: optimize test script
+---
+ tools/testing/selftests/netfilter/ipvs.sh | 30 ++++++++++++++++++++++++++++++
+ 1 file changed, 30 insertions(+)
+
+diff --git a/tools/testing/selftests/netfilter/ipvs.sh b/tools/testing/selftests/netfilter/ipvs.sh
+index 270b5da..a8f6e70 100755
+--- a/tools/testing/selftests/netfilter/ipvs.sh
++++ b/tools/testing/selftests/netfilter/ipvs.sh
+@@ -174,6 +174,30 @@ test_nat() {
+     test_service
+ }
+ 
++test_tun() {
++    ip netns exec ns0 ip route add ${vip_v4} via ${gip_v4} dev br0
++
++    ip netns exec ns1 modprobe ipip
++    ip netns exec ns1 ip link set tunl0 up
++    ip netns exec ns1 sysctl -qw net.ipv4.ip_forward=0
++    ip netns exec ns1 sysctl -qw net.ipv4.conf.all.send_redirects=0
++    ip netns exec ns1 sysctl -qw net.ipv4.conf.default.send_redirects=0
++    ip netns exec ns1 ipvsadm -A -t ${vip_v4}:${port} -s rr
++    ip netns exec ns1 ipvsadm -a -i -t ${vip_v4}:${port} -r ${rip_v4}:${port}
++    ip netns exec ns1 ip addr add ${vip_v4}/32 dev lo:1
++
++    ip netns exec ns2 modprobe ipip
++    ip netns exec ns2 ip link set tunl0 up
++    ip netns exec ns2 sysctl -qw net.ipv4.conf.all.arp_ignore=1
++    ip netns exec ns2 sysctl -qw net.ipv4.conf.all.arp_announce=2
++    ip netns exec ns2 sysctl -qw net.ipv4.conf.all.rp_filter=0
++    ip netns exec ns2 sysctl -qw net.ipv4.conf.tunl0.rp_filter=0
++    ip netns exec ns2 sysctl -qw net.ipv4.conf.veth21.rp_filter=0
++    ip netns exec ns2 ip addr add ${vip_v4}/32 dev lo:1
++
++    test_service
++}
++
+ run_tests() {
+ 	local errors=
+ 
+@@ -189,6 +213,12 @@ run_tests() {
+ 	test_nat
+ 	errors=$(( $errors + $? ))
+ 
++	echo "Testing Tunnel mode..."
++	cleanup
++	setup
++	test_tun
++	errors=$(( $errors + $? ))
++
+ 	return $errors
+ }
+ 
+-- 
+1.8.3.1
+
+
+
