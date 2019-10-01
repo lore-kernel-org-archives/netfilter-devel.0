@@ -2,113 +2,164 @@ Return-Path: <SRS0=ZC8Q=X2=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6FB2EECE58A
-	for <netfilter-devel@archiver.kernel.org>; Tue,  1 Oct 2019 14:22:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 763D6ECE58A
+	for <netfilter-devel@archiver.kernel.org>; Tue,  1 Oct 2019 16:39:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 48AB321D82
-	for <netfilter-devel@archiver.kernel.org>; Tue,  1 Oct 2019 14:22:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4CC4D222CB
+	for <netfilter-devel@archiver.kernel.org>; Tue,  1 Oct 2019 16:39:49 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1569947989;
+	bh=VS50HS4GAI4UbJUyzF+xJ0UN7GNEKsohNTeuNnlWgOw=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=mC/1jf3Nt+OrgUPUgPrdql3AMFBl4gutWFbwTEHd8K5V9F1Nw8YCZdQuUjd+AltVB
+	 keoHhZ+621i0vZ1C+7KBxDS0PcNr3hO8p1ifPBgW0qbA4qMv03wLx3TdmDZET2GhiF
+	 tdutreeTKvNKzV6ZQeim5K8VHE1upFTQ1KDW0vbw=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389084AbfJAOWj (ORCPT
+        id S1728470AbfJAQjs (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 1 Oct 2019 10:22:39 -0400
-Received: from cmccmta3.chinamobile.com ([221.176.66.81]:2984 "EHLO
-        cmccmta3.chinamobile.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2389056AbfJAOWi (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 1 Oct 2019 10:22:38 -0400
-Received: from spf.mail.chinamobile.com (unknown[172.16.121.9]) by rmmx-syy-dmz-app09-12009 (RichMail) with SMTP id 2ee95d9361128d7-947af; Tue, 01 Oct 2019 22:22:11 +0800 (CST)
-X-RM-TRANSID: 2ee95d9361128d7-947af
-X-RM-TagInfo: emlType=0                                       
-X-RM-SPAM-FLAG: 00000000
-Received: from localhost (unknown[223.105.0.241])
-        by rmsmtp-syy-appsvr05-12005 (RichMail) with SMTP id 2ee55d93611272e-e91a2;
-        Tue, 01 Oct 2019 22:22:11 +0800 (CST)
-X-RM-TRANSID: 2ee55d93611272e-e91a2
-From:   Haishuang Yan <yanhaishuang@cmss.chinamobile.com>
-To:     Shuah Khan <shuah@kernel.org>,
+        Tue, 1 Oct 2019 12:39:48 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50828 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728397AbfJAQjs (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 1 Oct 2019 12:39:48 -0400
+Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 4A35A21872;
+        Tue,  1 Oct 2019 16:39:46 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1569947987;
+        bh=VS50HS4GAI4UbJUyzF+xJ0UN7GNEKsohNTeuNnlWgOw=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=GIkpckC8EjiyZvwC0G+RTSxgq62HBDPmI/zmdM+k97Z86ZUFDSmP5tLDmkcsj5Toh
+         fBisFNjVF+hTQtR3M+Y/h3U2kIguf2PnwDncVDxwmbweNzgBVcUnGMTi4muqOUfXsi
+         iksJHqcHUcg71xz85iNSZ7OxCPynjz7ypXiH/IUo=
+From:   Sasha Levin <sashal@kernel.org>
+To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc:     Florian Westphal <fw@strlen.de>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Simon Horman <horms@verge.net.au>
-Cc:     Julian Anastasov <ja@ssi.bg>, linux-kernel@vger.kernel.org,
-        linux-kselftest@vger.kernel.org, lvs-devel@vger.kernel.org,
-        netfilter-devel@vger.kernel.org,
-        Haishuang Yan <yanhaishuang@cmss.chinamobile.com>
-Subject: [PATCH v3 2/3] selftests: netfilter: add ipvs nat test case
-Date:   Tue,  1 Oct 2019 22:19:58 +0800
-Message-Id: <1569939599-1872-3-git-send-email-yanhaishuang@cmss.chinamobile.com>
-X-Mailer: git-send-email 1.8.3.1
-In-Reply-To: <1569939599-1872-1-git-send-email-yanhaishuang@cmss.chinamobile.com>
-References: <1569939599-1872-1-git-send-email-yanhaishuang@cmss.chinamobile.com>
+        Sasha Levin <sashal@kernel.org>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org
+Subject: [PATCH AUTOSEL 5.3 18/71] netfilter: nf_tables: allow lookups in dynamic sets
+Date:   Tue,  1 Oct 2019 12:38:28 -0400
+Message-Id: <20191001163922.14735-18-sashal@kernel.org>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20191001163922.14735-1-sashal@kernel.org>
+References: <20191001163922.14735-1-sashal@kernel.org>
+MIME-Version: 1.0
+X-stable: review
+X-Patchwork-Hint: Ignore
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Test virtual server via NAT.
+From: Florian Westphal <fw@strlen.de>
 
-Tested:
-# selftests: netfilter: ipvs.sh
-# Testing DR mode...
-# Testing NAT mode...
-# ipvs.sh: PASS
+[ Upstream commit acab713177377d9e0889c46bac7ff0cfb9a90c4d ]
 
-Signed-off-by: Haishuang Yan <yanhaishuang@cmss.chinamobile.com>
+This un-breaks lookups in sets that have the 'dynamic' flag set.
+Given this active example configuration:
+
+table filter {
+  set set1 {
+    type ipv4_addr
+    size 64
+    flags dynamic,timeout
+    timeout 1m
+  }
+
+  chain input {
+     type filter hook input priority 0; policy accept;
+  }
+}
+
+... this works:
+nft add rule ip filter input add @set1 { ip saddr }
+
+-> whenever rule is triggered, the source ip address is inserted
+into the set (if it did not exist).
+
+This won't work:
+nft add rule ip filter input ip saddr @set1 counter
+Error: Could not process rule: Operation not supported
+
+In other words, we can add entries to the set, but then can't make
+matching decision based on that set.
+
+That is just wrong -- all set backends support lookups (else they would
+not be very useful).
+The failure comes from an explicit rejection in nft_lookup.c.
+
+Looking at the history, it seems like NFT_SET_EVAL used to mean
+'set contains expressions' (aka. "is a meter"), for instance something like
+
+ nft add rule ip filter input meter example { ip saddr limit rate 10/second }
+ or
+ nft add rule ip filter input meter example { ip saddr counter }
+
+The actual meaning of NFT_SET_EVAL however, is
+'set can be updated from the packet path'.
+
+'meters' and packet-path insertions into sets, such as
+'add @set { ip saddr }' use exactly the same kernel code (nft_dynset.c)
+and thus require a set backend that provides the ->update() function.
+
+The only set that provides this also is the only one that has the
+NFT_SET_EVAL feature flag.
+
+Removing the wrong check makes the above example work.
+While at it, also fix the flag check during set instantiation to
+allow supported combinations only.
+
+Fixes: 8aeff920dcc9b3f ("netfilter: nf_tables: add stateful object reference to set elements")
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- tools/testing/selftests/netfilter/ipvs.sh | 22 +++++++++++++++++++++-
- 1 file changed, 21 insertions(+), 1 deletion(-)
+ net/netfilter/nf_tables_api.c | 7 +++++--
+ net/netfilter/nft_lookup.c    | 3 ---
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/tools/testing/selftests/netfilter/ipvs.sh b/tools/testing/selftests/netfilter/ipvs.sh
-index 6201046..270b5da 100755
---- a/tools/testing/selftests/netfilter/ipvs.sh
-+++ b/tools/testing/selftests/netfilter/ipvs.sh
-@@ -160,20 +160,40 @@ test_dr() {
-     test_service
- }
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index d47469f824a10..3b81323fa0171 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -3562,8 +3562,11 @@ static int nf_tables_newset(struct net *net, struct sock *nlsk,
+ 			      NFT_SET_OBJECT))
+ 			return -EINVAL;
+ 		/* Only one of these operations is supported */
+-		if ((flags & (NFT_SET_MAP | NFT_SET_EVAL | NFT_SET_OBJECT)) ==
+-			     (NFT_SET_MAP | NFT_SET_EVAL | NFT_SET_OBJECT))
++		if ((flags & (NFT_SET_MAP | NFT_SET_OBJECT)) ==
++			     (NFT_SET_MAP | NFT_SET_OBJECT))
++			return -EOPNOTSUPP;
++		if ((flags & (NFT_SET_EVAL | NFT_SET_OBJECT)) ==
++			     (NFT_SET_EVAL | NFT_SET_OBJECT))
+ 			return -EOPNOTSUPP;
+ 	}
  
-+test_nat() {
-+    ip netns exec ns0 ip route add ${vip_v4} via ${gip_v4} dev br0
-+
-+    ip netns exec ns1 sysctl -qw net.ipv4.ip_forward=1
-+    ip netns exec ns1 ipvsadm -A -t ${vip_v4}:${port} -s rr
-+    ip netns exec ns1 ipvsadm -a -m -t ${vip_v4}:${port} -r ${rip_v4}:${port}
-+    ip netns exec ns1 ip addr add ${vip_v4}/32 dev lo:1
-+
-+    ip netns exec ns2 ip link del veth20
-+    ip netns exec ns2 ip route add default via ${dip_v4} dev veth21
-+
-+    test_service
-+}
-+
- run_tests() {
- 	local errors=
+diff --git a/net/netfilter/nft_lookup.c b/net/netfilter/nft_lookup.c
+index c0560bf3c31bd..660bad688e2bc 100644
+--- a/net/netfilter/nft_lookup.c
++++ b/net/netfilter/nft_lookup.c
+@@ -73,9 +73,6 @@ static int nft_lookup_init(const struct nft_ctx *ctx,
+ 	if (IS_ERR(set))
+ 		return PTR_ERR(set);
  
- 	echo "Testing DR mode..."
-+	cleanup
- 	setup
- 	test_dr
- 	errors=$(( $errors + $? ))
- 
-+	echo "Testing NAT mode..."
-+	cleanup
-+	setup
-+	test_nat
-+	errors=$(( $errors + $? ))
-+
- 	return $errors
- }
- 
- trap cleanup EXIT
- 
--cleanup
- run_tests
- 
- if [ $? -ne 0 ]; then
+-	if (set->flags & NFT_SET_EVAL)
+-		return -EOPNOTSUPP;
+-
+ 	priv->sreg = nft_parse_register(tb[NFTA_LOOKUP_SREG]);
+ 	err = nft_validate_register_load(priv->sreg, set->klen);
+ 	if (err < 0)
 -- 
-1.8.3.1
-
-
+2.20.1
 
