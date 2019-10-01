@@ -1,113 +1,65 @@
-Return-Path: <SRS0=Tpyl=XZ=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=ZC8Q=X2=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-2.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 14563C32792
-	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Sep 2019 22:46:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B031C32792
+	for <netfilter-devel@archiver.kernel.org>; Tue,  1 Oct 2019 01:29:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C85D82086A
-	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Sep 2019 22:46:56 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=riseup.net header.i=@riseup.net header.b="aLCZk9FZ"
+	by mail.kernel.org (Postfix) with ESMTP id 5D15B20842
+	for <netfilter-devel@archiver.kernel.org>; Tue,  1 Oct 2019 01:29:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727220AbfI3Wq4 (ORCPT
+        id S1727621AbfJAB3D (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 30 Sep 2019 18:46:56 -0400
-Received: from mx1.riseup.net ([198.252.153.129]:48794 "EHLO mx1.riseup.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726350AbfI3Wq4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 30 Sep 2019 18:46:56 -0400
-Received: from bell.riseup.net (bell-pn.riseup.net [10.0.1.178])
-        (using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
-        (Client CN "*.riseup.net", Issuer "COMODO RSA Domain Validation Secure Server CA" (verified OK))
-        by mx1.riseup.net (Postfix) with ESMTPS id 46hqBD1SkyzDvrw
-        for <netfilter-devel@vger.kernel.org>; Mon, 30 Sep 2019 10:28:36 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=riseup.net; s=squak;
-        t=1569864516; bh=f7WzG+dPGpbDADwZOFytU94CBXfrPQUEQncYS3Nlp3c=;
-        h=From:To:Subject:Date:From;
-        b=aLCZk9FZltBU+jfOVTRYagBBlt44uFVTFh25bbEAfkyOA8IXdHOf4kTq0D2qrSZcn
-         te6/q7zOHnoqmF7XU0prEGyZnsSNdMcgixCSI3+GObN4IVGnc5QQcseNzBD/O52BPk
-         /8KGTpj6b4xKi3XODHL77kOI8NeWb0H4yZhv/Dsw=
-X-Riseup-User-ID: 16226807323C5B0F2934F18E6EF1FE24248A95BB83A4AD22AC0E3FCEF8F8FB1D
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-         by bell.riseup.net (Postfix) with ESMTPSA id 46hqBC49LBzJr3v
-        for <netfilter-devel@vger.kernel.org>; Mon, 30 Sep 2019 10:28:35 -0700 (PDT)
-From:   "Jose M. Guisado Gomez" <guigom@riseup.net>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH iptables] extensions: add libxt_SYNPROXY xlate method
-Date:   Mon, 30 Sep 2019 19:28:07 +0200
-Message-Id: <20190930172807.5452-1-guigom@riseup.net>
+        Mon, 30 Sep 2019 21:29:03 -0400
+Received: from mail104.syd.optusnet.com.au ([211.29.132.246]:58375 "EHLO
+        mail104.syd.optusnet.com.au" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726789AbfJAB3D (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 30 Sep 2019 21:29:03 -0400
+Received: from dimstar.local.net (n122-110-44-45.sun2.vic.optusnet.com.au [122.110.44.45])
+        by mail104.syd.optusnet.com.au (Postfix) with SMTP id 55DCD43E6FB
+        for <netfilter-devel@vger.kernel.org>; Tue,  1 Oct 2019 11:28:51 +1000 (AEST)
+Received: (qmail 22112 invoked by uid 501); 1 Oct 2019 01:28:50 -0000
+Date:   Tue, 1 Oct 2019 11:28:50 +1000
+From:   Duncan Roe <duncan_roe@optusnet.com.au>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Netfilter Development <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH libnetfilter_queue] BUG: src: Fix UDP checksum calculation
+Message-ID: <20191001012850.GA27559@dimstar.local.net>
+Mail-Followup-To: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Netfilter Development <netfilter-devel@vger.kernel.org>
+References: <20190927121838.7680-1-duncan_roe@optusnet.com.au>
+ <20190930142840.l6wsena3hfki56qn@salvia>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190930142840.l6wsena3hfki56qn@salvia>
+User-Agent: Mutt/1.10.1 (2018-07-13)
+X-Optus-CM-Score: 0
+X-Optus-CM-Analysis: v=2.2 cv=P6RKvmIu c=1 sm=1 tr=0
+        a=4DzML1vCOQ6Odsy8BUtSXQ==:117 a=4DzML1vCOQ6Odsy8BUtSXQ==:17
+        a=jpOVt7BSZ2e4Z31A5e1TngXxSK0=:19 a=kj9zAlcOel0A:10 a=XobE76Q3jBoA:10
+        a=voM4FWlXAAAA:8 a=PO7r1zJSAAAA:8 a=A-9kNuJ67zNmM8BpBvcA:9
+        a=CjuIK1q_8ugA:10 a=IC2XNlieTeVoXbcui8wp:22
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This adds translation capabilities when encountering SYNPROXY inside
-iptables rules.
+On Mon, Sep 30, 2019 at 04:28:40PM +0200, Pablo Neira Ayuso wrote:
+> On Fri, Sep 27, 2019 at 10:18:38PM +1000, Duncan Roe wrote:
+> > The level 4 protocol is part of the UDP and TCP calculations.
+> > nfq_checksum_tcpudp_ipv4() was using IPPROTO_TCP in this calculation,
+> > which gave the wrong answer for UDP.
+>
+> Thanks Duncan, I sent this patch to fix IPv6 too:
+>
+> https://patchwork.ozlabs.org/patch/1169407/
+>
+LGTM
 
-Signed-off-by: Jose M. Guisado Gomez <guigom@riseup.net>
----
- extensions/libxt_SYNPROXY.c      | 23 +++++++++++++++++++++++
- extensions/libxt_SYNPROXY.txlate |  2 ++
- 2 files changed, 25 insertions(+)
- create mode 100644 extensions/libxt_SYNPROXY.txlate
-
-diff --git a/extensions/libxt_SYNPROXY.c b/extensions/libxt_SYNPROXY.c
-index 475590ea..6a0b913e 100644
---- a/extensions/libxt_SYNPROXY.c
-+++ b/extensions/libxt_SYNPROXY.c
-@@ -106,6 +106,28 @@ static void SYNPROXY_save(const void *ip, const struct xt_entry_target *target)
- 		printf(" --ecn");
- }
- 
-+static int SYNPROXY_xlate(struct xt_xlate *xl,
-+		          const struct xt_xlate_tg_params *params)
-+{
-+	const struct xt_synproxy_info *info =
-+		(const struct xt_synproxy_info *)params->target->data;
-+
-+	xt_xlate_add(xl, "synproxy ");
-+
-+	if (info->options & XT_SYNPROXY_OPT_SACK_PERM)
-+		xt_xlate_add(xl, "sack-perm ");
-+	if (info->options & XT_SYNPROXY_OPT_TIMESTAMP)
-+		xt_xlate_add(xl, "timestamp ");
-+	if (info->options & XT_SYNPROXY_OPT_WSCALE)
-+		xt_xlate_add(xl, "wscale %u ", info->wscale);
-+	if (info->options & XT_SYNPROXY_OPT_MSS)
-+		xt_xlate_add(xl, "mss %u ", info->mss);
-+	if (info->options & XT_SYNPROXY_OPT_ECN)
-+		xt_xlate_add(xl, "ecn ");
-+
-+	return 1;
-+}
-+
- static struct xtables_target synproxy_tg_reg = {
- 	.family        = NFPROTO_UNSPEC,
- 	.name          = "SYNPROXY",
-@@ -119,6 +141,7 @@ static struct xtables_target synproxy_tg_reg = {
- 	.x6_parse      = SYNPROXY_parse,
- 	.x6_fcheck     = SYNPROXY_check,
- 	.x6_options    = SYNPROXY_opts,
-+	.xlate         = SYNPROXY_xlate,
- };
- 
- void _init(void)
-diff --git a/extensions/libxt_SYNPROXY.txlate b/extensions/libxt_SYNPROXY.txlate
-new file mode 100644
-index 00000000..b347d3b7
---- /dev/null
-+++ b/extensions/libxt_SYNPROXY.txlate
-@@ -0,0 +1,2 @@
-+iptables-translate -t mangle -A INPUT -i iifname -p tcp -m tcp --dport 80 -m state --state INVALID,UNTRACKED -j SYNPROXY --sack-perm --timestamp --wscale 7 --mss 1460
-+nft add rule ip mangle INPUT iifname "iifname" tcp dport 80 ct state invalid,untracked  counter synproxy sack-perm timestamp wscale 7 mss 1460 
--- 
-2.23.0
-
+Acked-by: Duncan Roe <duncan_roe@optusnet.com.au>
