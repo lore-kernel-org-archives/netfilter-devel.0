@@ -2,69 +2,108 @@ Return-Path: <SRS0=1WdE=X3=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AA42DC35280
-	for <netfilter-devel@archiver.kernel.org>; Wed,  2 Oct 2019 06:49:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 00FEEC352AA
+	for <netfilter-devel@archiver.kernel.org>; Wed,  2 Oct 2019 07:29:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 80702215EA
-	for <netfilter-devel@archiver.kernel.org>; Wed,  2 Oct 2019 06:49:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D67A3222C3
+	for <netfilter-devel@archiver.kernel.org>; Wed,  2 Oct 2019 07:29:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726184AbfJBGtI (ORCPT
+        id S1726227AbfJBH3g (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 2 Oct 2019 02:49:08 -0400
-Received: from mail104.syd.optusnet.com.au ([211.29.132.246]:38943 "EHLO
-        mail104.syd.optusnet.com.au" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725860AbfJBGtI (ORCPT
+        Wed, 2 Oct 2019 03:29:36 -0400
+Received: from kirsty.vergenet.net ([202.4.237.240]:54588 "EHLO
+        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725991AbfJBH3f (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 2 Oct 2019 02:49:08 -0400
-Received: from dimstar.local.net (n122-110-44-45.sun2.vic.optusnet.com.au [122.110.44.45])
-        by mail104.syd.optusnet.com.au (Postfix) with SMTP id 9897B43EB03
-        for <netfilter-devel@vger.kernel.org>; Wed,  2 Oct 2019 16:48:49 +1000 (AEST)
-Received: (qmail 30751 invoked by uid 501); 2 Oct 2019 06:48:48 -0000
-From:   Duncan Roe <duncan_roe@optusnet.com.au>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH] Fix a missing doxygen section trailer in nlmsg.c
-Date:   Wed,  2 Oct 2019 16:48:48 +1000
-Message-Id: <20191002064848.30620-1-duncan_roe@optusnet.com.au>
-X-Mailer: git-send-email 2.14.5
-X-Optus-CM-Score: 0
-X-Optus-CM-Analysis: v=2.2 cv=P6RKvmIu c=1 sm=1 tr=0
-        a=4DzML1vCOQ6Odsy8BUtSXQ==:117 a=4DzML1vCOQ6Odsy8BUtSXQ==:17
-        a=XobE76Q3jBoA:10 a=aBizlib_ZF6BrrbkkwIA:9
+        Wed, 2 Oct 2019 03:29:35 -0400
+Received: from reginn.horms.nl (watermunt.horms.nl [80.127.179.77])
+        by kirsty.vergenet.net (Postfix) with ESMTPA id 9D0E925B7E3;
+        Wed,  2 Oct 2019 17:29:33 +1000 (AEST)
+Received: by reginn.horms.nl (Postfix, from userid 7100)
+        id A9CD4940376; Wed,  2 Oct 2019 09:29:31 +0200 (CEST)
+Date:   Wed, 2 Oct 2019 09:29:31 +0200
+From:   Simon Horman <horms@verge.net.au>
+To:     Julian Anastasov <ja@ssi.bg>,
+        Haishuang Yan <yanhaishuang@cmss.chinamobile.com>,
+        Shuah Khan <shuah@kernel.org>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org,
+        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH v3 0/3] selftests: netfilter: introduce test cases for
+ ipvs
+Message-ID: <20191002072931.fmrxcfggn7b5stud@verge.net.au>
+References: <1569939599-1872-1-git-send-email-yanhaishuang@cmss.chinamobile.com>
+ <alpine.LFD.2.21.1910012133330.3887@ja.home.ssi.bg>
+ <20191002012726.GB9810@dimstar.local.net>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20191002012726.GB9810@dimstar.local.net>
+Organisation: Horms Solutions BV
+User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This corrects an oddity in the web doco (and presumably in the man pages as
-well) whereby "Netlink message batch helpers" was showing up as a sub-topic of
-"Netlink message helpers".
+On Wed, Oct 02, 2019 at 11:27:26AM +1000, Duncan Roe wrote:
+> On Tue, Oct 01, 2019 at 09:34:13PM +0300, Julian Anastasov wrote:
+> >
+> > 	Hello,
+> >
+> > On Tue, 1 Oct 2019, Haishuang Yan wrote:
+> >
+> > > This series patch include test cases for ipvs.
+> > >
+> > > The test topology is who as below:
+> > > +--------------------------------------------------------------+
+> > > |                      |                                       |
+> > > |         ns0          |         ns1                           |
+> > > |      -----------     |     -----------    -----------        |
+> > > |      | veth01  | --------- | veth10  |    | veth12  |        |
+> > > |      -----------    peer   -----------    -----------        |
+> > > |           |          |                        |              |
+> > > |      -----------     |                        |              |
+> > > |      |  br0    |     |-----------------  peer |--------------|
+> > > |      -----------     |                        |              |
+> > > |           |          |                        |              |
+> > > |      ----------     peer   ----------      -----------       |
+> > > |      |  veth02 | --------- |  veth20 |     | veth12  |       |
+> > > |      ----------      |     ----------      -----------       |
+> > > |                      |         ns2                           |
+> > > |                      |                                       |
+> > > +--------------------------------------------------------------+
+> > >
+> > > Test results:
+> > > # selftests: netfilter: ipvs.sh
+> > > # Testing DR mode...
+> > > # Testing NAT mode...
+> > > # Testing Tunnel mode...
+> > > # ipvs.sh: PASS
+> > > ok 6 selftests: netfilter: ipvs.sh
+> > >
+> > > Haishuang Yan (3):
+> > >   selftests: netfilter: add ipvs test script
+> > >   selftests: netfilter: add ipvs nat test case
+> > >   selftests: netfilter: add ipvs tunnel test case
+> >
+> > Acked-by: Julian Anastasov <ja@ssi.bg>
+> >
+> > >  tools/testing/selftests/netfilter/Makefile |   2 +-
+> > >  tools/testing/selftests/netfilter/ipvs.sh  | 234 +++++++++++++++++++++++++++++
+> > >  2 files changed, 235 insertions(+), 1 deletion(-)
+> > >  create mode 100755 tools/testing/selftests/netfilter/ipvs.sh
+> >
+> > Regards
+> >
+> > --
+> > Julian Anastasov <ja@ssi.bg>
+> 
+> I still prefer #!/bin/sh in 1/3. You never know what's in someone's environment
 
-This was included in my original (rejected) patch "Enable doxygen to generate
-Function Documentation" with a comment "(didn't think it warrantied an extra
-patch)" - clearly wrong
----
- src/nlmsg.c | 4 ++++
- 1 file changed, 4 insertions(+)
-
-diff --git a/src/nlmsg.c b/src/nlmsg.c
-index fb99135..d398e63 100644
---- a/src/nlmsg.c
-+++ b/src/nlmsg.c
-@@ -370,6 +370,10 @@ EXPORT_SYMBOL void mnl_nlmsg_fprintf(FILE *fd, const void *data, size_t datalen,
- 	}
- }
- 
-+/**
-+ * @}
-+ */
-+
- /**
-  * \defgroup batch Netlink message batch helpers
-  *
--- 
-2.14.5
-
+That would be my preference too.
