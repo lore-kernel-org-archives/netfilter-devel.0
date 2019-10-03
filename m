@@ -2,96 +2,67 @@ Return-Path: <SRS0=hHnn=X4=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 80703C10F14
-	for <netfilter-devel@archiver.kernel.org>; Thu,  3 Oct 2019 10:03:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E0397C10F14
+	for <netfilter-devel@archiver.kernel.org>; Thu,  3 Oct 2019 10:24:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 57F3E2133F
-	for <netfilter-devel@archiver.kernel.org>; Thu,  3 Oct 2019 10:03:09 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="hvqa5pFl"
+	by mail.kernel.org (Postfix) with ESMTP id BFC99218DE
+	for <netfilter-devel@archiver.kernel.org>; Thu,  3 Oct 2019 10:24:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727024AbfJCKDI (ORCPT
+        id S1727410AbfJCKYY (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 3 Oct 2019 06:03:08 -0400
-Received: from mail-io1-f67.google.com ([209.85.166.67]:44061 "EHLO
-        mail-io1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725874AbfJCKDI (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 3 Oct 2019 06:03:08 -0400
-Received: by mail-io1-f67.google.com with SMTP id w12so4029661iol.11
-        for <netfilter-devel@vger.kernel.org>; Thu, 03 Oct 2019 03:03:07 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc:content-transfer-encoding;
-        bh=haN053pXPW+4JaMfooKbsrH8qmubXQo7WvhpyXsdHjY=;
-        b=hvqa5pFl3w9VkMa9GociF/dgixJhCajjgAcqJ/KcEl2UKZd6w9Xi8PmWhiTV6/Idtw
-         BexKytsVepe01JRl0lwKtcvKFp8ZPtwTVtCGA5zURJvQFjfq6K5YabA8L97xiapghp/C
-         7CqOOhVtRRkOn8kQAouC3Cw6s/mOVY5iZNJ0ON7q+9qaov5SK33K4viKKSCQ496m8mvb
-         TLgFXXboxBiMC3YlnC5XL4FgLd/JR5G0MWEh3N2GzOj9fso72SUhHSdsgRAgiLk3vvHX
-         7MJ8n0+cGDPe+QPpjDxTeIvo8Sv9X7QbAUDmQYkY7fGaMCjN//uGrInYfIOHlrfjYTKF
-         D7Gg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=haN053pXPW+4JaMfooKbsrH8qmubXQo7WvhpyXsdHjY=;
-        b=AgV8YzuKqDCCTNdJqaNMmoBVg/WU/Tn9IaZve1SfizZc9cYuzyewBBG0TOcC2cHo/b
-         kWzouqFwn00PP6oBSPZoybjC+n/Z/ZXY0XIMkmzYa2C93HKw1YHOkNJFLnlvppQD54qi
-         5UZe+8HOQ3Oq8LIibMlcfLYR02IaYSkO60KvNdFnniicMI6WRkUA351nXJf93INgkTrL
-         vjlWDyPYoRBF/rARVqoUWfp8rGKhdANijDq9pFk/M5ob/4wtJtVHzYZS4YA3lbWDsRRo
-         B41Cg7JcuCZ9T/pGhF+xrUdWUkE/xNpqqKRTf2rbivnVVoVnLTeJZG/X5+oZ40ZZoE49
-         QfOA==
-X-Gm-Message-State: APjAAAUizlpMqTZPGMffM02nXQjNxSyWmfT/2xgTTUgT6NprMXRQH+BD
-        HhF8wo1WiaUIQSLpFV6IcztmsiwBOWcV8WQTbtAi8OtF
-X-Google-Smtp-Source: APXvYqyDgU/m0fcXVLnztSPD3/4Aot9Zo+Gcz2LBSZzRPsZ0swgvu1V55YFvxpm3uCh4MC3hlyqhBaccUIN0qcPHbdI=
-X-Received: by 2002:a92:bbd2:: with SMTP id x79mr9127026ilk.162.1570096987551;
- Thu, 03 Oct 2019 03:03:07 -0700 (PDT)
+        Thu, 3 Oct 2019 06:24:24 -0400
+Received: from correo.us.es ([193.147.175.20]:48172 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725892AbfJCKYY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 3 Oct 2019 06:24:24 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id A12B1ED5CE
+        for <netfilter-devel@vger.kernel.org>; Thu,  3 Oct 2019 12:24:19 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 925C6B8017
+        for <netfilter-devel@vger.kernel.org>; Thu,  3 Oct 2019 12:24:19 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 8821AB8011; Thu,  3 Oct 2019 12:24:19 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 91AD6B7FF9
+        for <netfilter-devel@vger.kernel.org>; Thu,  3 Oct 2019 12:24:17 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Thu, 03 Oct 2019 12:24:17 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (sys.soleta.eu [212.170.55.40])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 6998341E4802
+        for <netfilter-devel@vger.kernel.org>; Thu,  3 Oct 2019 12:24:17 +0200 (CEST)
+Date:   Thu, 3 Oct 2019 12:24:19 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH] Fix a missing doxygen section trailer in nlmsg.c
+Message-ID: <20191003102419.qlotnheuu5cocw7z@salvia>
+References: <20191002064848.30620-1-duncan_roe@optusnet.com.au>
+ <20191002235634.GA8689@dimstar.local.net>
 MIME-Version: 1.0
-References: <20190926105354.8301-1-kristian.evensen@gmail.com> <alpine.DEB.2.20.1910022039530.21131@blackhole.kfki.hu>
-In-Reply-To: <alpine.DEB.2.20.1910022039530.21131@blackhole.kfki.hu>
-From:   Kristian Evensen <kristian.evensen@gmail.com>
-Date:   Thu, 3 Oct 2019 12:02:55 +0200
-Message-ID: <CAKfDRXiMFs5PswdukyWjb60HpoeaUXHG7Hj4gH5Hvx_-0s=-wQ@mail.gmail.com>
-Subject: Re: [PATCH] ipset: Add wildcard support to net,iface
-To:     =?UTF-8?Q?Kadlecsik_J=C3=B3zsef?= <kadlec@blackhole.kfki.hu>
-Cc:     Netfilter Development Mailing list 
-        <netfilter-devel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20191002235634.GA8689@dimstar.local.net>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Jozsef,
+On Thu, Oct 03, 2019 at 09:56:34AM +1000, Duncan Roe wrote:
+> On Wed, Oct 02, 2019 at 04:48:48PM +1000, Duncan Roe wrote:
+> > This corrects an oddity in the web doco (and presumably in the man pages as
+> > well) whereby "Netlink message batch helpers" was showing up as a sub-topic of
+> > "Netlink message helpers".
 
-On Wed, Oct 2, 2019 at 8:46 PM Kadlecsik J=C3=B3zsef
-<kadlec@blackhole.kfki.hu> wrote:
-> Sorry for the long delay - I'm still pondering on the syntax.
->
-> ip[6]tables uses the "+" notation for prefix matching. So in order to be
-> compatible with it, it'd be better to use "ifac+" instead of
-> "ifac prefix". The parsing/printing could be solved in the interface
-> parser/printer functions internally. What do you think?
-
-No worries about the delay :)
-
-Before submitting the patch, I spent a lot of time thinking about the
-syntax since, as you say, ip[6]tables uses "+" to indicate prefix
-matching. The first version of the change checked for a "+"  at the
-end of the interface name, instead of the wildcard flag. However, the
-reason I went with the wildcard flag, was that I discovered that "+"
-is a valid character in interface names on Linux. One thing we could
-do, is to remove any trailing "+" if the wildcard flag is set.
-However, I believe such a solution will be a bit redundant, but I have
-no strong opinion on how to parse the interface name provided by the
-user :)
-
-BR,
-Kristian
+Applied, thanks.
