@@ -2,50 +2,53 @@ Return-Path: <SRS0=hHnn=X4=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B1E3ECE596
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 258EDECE595
 	for <netfilter-devel@archiver.kernel.org>; Thu,  3 Oct 2019 19:56:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 285D02133F
-	for <netfilter-devel@archiver.kernel.org>; Thu,  3 Oct 2019 19:56:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F1A1F207FF
+	for <netfilter-devel@archiver.kernel.org>; Thu,  3 Oct 2019 19:56:13 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="abiFCtJY"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="MeTOte+0"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387919AbfJCT4N (ORCPT
+        id S1732973AbfJCT4L (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 3 Oct 2019 15:56:13 -0400
-Received: from kadath.azazel.net ([81.187.231.250]:51174 "EHLO
+        Thu, 3 Oct 2019 15:56:11 -0400
+Received: from kadath.azazel.net ([81.187.231.250]:51200 "EHLO
         kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1732358AbfJCT4L (ORCPT
+        with ESMTP id S1732353AbfJCT4L (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Thu, 3 Oct 2019 15:56:11 -0400
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-         s=20190108; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject
-        :Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
-        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+         s=20190108; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
+        Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=HOkc+OL7jjzZMQPc4SIE4Q97cZxU7vHFloZWkyrPhn8=; b=abiFCtJY0AfQ+9A5C6sKIt5EU9
-        y8eUI23U0KHbWG422Mbm5vIaZ74eRaNptySbLaxrVN3bwKIl35JI9gQG4TjPHOqwpNKQJkNz6Egb5
-        S9Px8205VKnNvur1DzR5/qfjZaKJXgwezsFiUSoFnaoNX5dqm+GRnXBpuyTWz52YbxBCoJ58PPawy
-        AcR5K7ueeU8iJGmswPHUluazGscfaZhFSl0kwk5kIkirCpiCWundfRqBAQRdeJPMHBlFzrRabhjZ2
-        ktlkq+hI+TpjKrRa3zQzzdKyHfCK+h1jjmrd773wKTc5CqAtxC/eZt5jYqXD6QqApx1heohysIT9H
-        AbPie2aw==;
+        bh=aN+O3kKZELULojA7fH218brBujoNjSOV2qsZR4V+mmM=; b=MeTOte+0Gf1YKx1PVkHsptoUbr
+        F2RgjjVa3D7i5Z5MlJPLe3mDpKhS2Zg7/P0oa8U739RlOR3hisvqiMNxNbsj7PexGK4W74ayKrndk
+        +VHjj3ZZP7jfuYco+l4e/elLB7JmPl6WbvFYpVivcv//uWousq2a3LdqJpl8ArVVlFOHOcQjioR+s
+        0revj4nd3INhuUx9EiU7wqJOgD2hvfTJCZAEpAbLu4jmzqKATUNFA2dzKRO9ijZOZ19/w/9eX5SIq
+        AHMuIi4FhYjQq+cO90xIOp0vRMjSp2uZYG42jyDZgUkdI6ZV/3ERXa8TU/oeWz6nrpAOoDFggIvCW
+        qGrFG1lw==;
 Received: from ulthar.dreamlands ([192.168.96.2])
         by kadath.azazel.net with esmtp (Exim 4.92)
         (envelope-from <jeremy@azazel.net>)
-        id 1iG7Cp-0004KM-Nq; Thu, 03 Oct 2019 20:56:07 +0100
+        id 1iG7Cq-0004KM-PO; Thu, 03 Oct 2019 20:56:08 +0100
 From:   Jeremy Sowden <jeremy@azazel.net>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>,
         Jozsef Kadlecsik <kadlec@netfilter.org>
 Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [PATCH nf-next 0/7] ipset: remove static inline functions
-Date:   Thu,  3 Oct 2019 20:56:00 +0100
-Message-Id: <20191003195607.13180-1-jeremy@azazel.net>
+Subject: [PATCH nf-next 6/7] netfilter: ipset: move function to ip_set_bitmap_ip.c.
+Date:   Thu,  3 Oct 2019 20:56:06 +0100
+Message-Id: <20191003195607.13180-7-jeremy@azazel.net>
 X-Mailer: git-send-email 2.23.0
+In-Reply-To: <20191003195607.13180-1-jeremy@azazel.net>
+References: <20191003195607.13180-1-jeremy@azazel.net>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-SA-Exim-Connect-IP: 192.168.96.2
@@ -56,57 +59,61 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-In his feedback on an earlier patch series [0], Pablo suggested reducing
-the number of ipset static inline functions.
+One inline function in ip_set_bitmap.h is only called in
+ip_set_bitmap_ip.c: move it and remove inline function specifier.
 
-0 - https://lore.kernel.org/netfilter-devel/20190808112355.w3ax3twuf6b7pwc7@salvia/
+Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
+---
+ include/linux/netfilter/ipset/ip_set_bitmap.h | 14 --------------
+ net/netfilter/ipset/ip_set_bitmap_ip.c        | 12 ++++++++++++
+ 2 files changed, 12 insertions(+), 14 deletions(-)
 
-This series:
-
-  * removes inline from static functions in .c files;
-  * moves some static functions out of headers and removes inline from
-    them if they are only called from one .c file,
-  * moves some static functions out of headers, removes inline from them
-    and makes them extern if they are too big.
-
-The changes reduced the size of the ipset modules by c. 13kB, when
-compiled with GCC 9 on x86-64.
-
-Jeremy Sowden (7):
-  netfilter: ipset: add a coding-style fix to ip_set_ext_destroy.
-  netfilter: ipset: remove inline from static functions in .c files.
-  netfilter: ipset: move ip_set_comment functions from ip_set.h to
-    ip_set_core.c.
-  netfilter: ipset: move functions to ip_set_core.c.
-  netfilter: ipset: make ip_set_put_flags extern.
-  netfilter: ipset: move function to ip_set_bitmap_ip.c.
-  netfilter: ipset: move ip_set_get_ip_port() to ip_set_bitmap_port.c.
-
- include/linux/netfilter/ipset/ip_set.h        | 196 +---------------
- include/linux/netfilter/ipset/ip_set_bitmap.h |  14 --
- .../linux/netfilter/ipset/ip_set_getport.h    |   3 -
- net/netfilter/ipset/ip_set_bitmap_gen.h       |   2 +-
- net/netfilter/ipset/ip_set_bitmap_ip.c        |  26 ++-
- net/netfilter/ipset/ip_set_bitmap_ipmac.c     |  18 +-
- net/netfilter/ipset/ip_set_bitmap_port.c      |  41 +++-
- net/netfilter/ipset/ip_set_core.c             | 212 +++++++++++++++++-
- net/netfilter/ipset/ip_set_getport.c          |  28 ---
- net/netfilter/ipset/ip_set_hash_gen.h         |   4 +-
- net/netfilter/ipset/ip_set_hash_ip.c          |  10 +-
- net/netfilter/ipset/ip_set_hash_ipmac.c       |   8 +-
- net/netfilter/ipset/ip_set_hash_ipmark.c      |   8 +-
- net/netfilter/ipset/ip_set_hash_ipport.c      |   8 +-
- net/netfilter/ipset/ip_set_hash_ipportip.c    |   8 +-
- net/netfilter/ipset/ip_set_hash_ipportnet.c   |  24 +-
- net/netfilter/ipset/ip_set_hash_mac.c         |   6 +-
- net/netfilter/ipset/ip_set_hash_net.c         |  24 +-
- net/netfilter/ipset/ip_set_hash_netiface.c    |  24 +-
- net/netfilter/ipset/ip_set_hash_netnet.c      |  28 +--
- net/netfilter/ipset/ip_set_hash_netport.c     |  24 +-
- net/netfilter/ipset/ip_set_hash_netportnet.c  |  28 +--
- net/netfilter/ipset/ip_set_list_set.c         |   4 +-
- 23 files changed, 376 insertions(+), 372 deletions(-)
-
+diff --git a/include/linux/netfilter/ipset/ip_set_bitmap.h b/include/linux/netfilter/ipset/ip_set_bitmap.h
+index 2dddbc6dcac7..fcc4d214a788 100644
+--- a/include/linux/netfilter/ipset/ip_set_bitmap.h
++++ b/include/linux/netfilter/ipset/ip_set_bitmap.h
+@@ -12,18 +12,4 @@ enum {
+ 	IPSET_ADD_START_STORED_TIMEOUT,
+ };
+ 
+-/* Common functions */
+-
+-static inline u32
+-range_to_mask(u32 from, u32 to, u8 *bits)
+-{
+-	u32 mask = 0xFFFFFFFE;
+-
+-	*bits = 32;
+-	while (--(*bits) > 0 && mask && (to & mask) != from)
+-		mask <<= 1;
+-
+-	return mask;
+-}
+-
+ #endif /* __IP_SET_BITMAP_H */
+diff --git a/net/netfilter/ipset/ip_set_bitmap_ip.c b/net/netfilter/ipset/ip_set_bitmap_ip.c
+index c06172d5b017..abe8f77d7d23 100644
+--- a/net/netfilter/ipset/ip_set_bitmap_ip.c
++++ b/net/netfilter/ipset/ip_set_bitmap_ip.c
+@@ -237,6 +237,18 @@ init_map_ip(struct ip_set *set, struct bitmap_ip *map,
+ 	return true;
+ }
+ 
++static u32
++range_to_mask(u32 from, u32 to, u8 *bits)
++{
++	u32 mask = 0xFFFFFFFE;
++
++	*bits = 32;
++	while (--(*bits) > 0 && mask && (to & mask) != from)
++		mask <<= 1;
++
++	return mask;
++}
++
+ static int
+ bitmap_ip_create(struct net *net, struct ip_set *set, struct nlattr *tb[],
+ 		 u32 flags)
 -- 
 2.23.0
 
