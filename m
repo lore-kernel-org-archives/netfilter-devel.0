@@ -1,176 +1,140 @@
-Return-Path: <SRS0=hHnn=X4=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=QlJu=X5=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.5 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS,UNWANTED_LANGUAGE_BODY,USER_AGENT_SANE_1 autolearn=unavailable
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 72D5DC10F14
-	for <netfilter-devel@archiver.kernel.org>; Thu,  3 Oct 2019 20:29:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4AB58C4CED1
+	for <netfilter-devel@archiver.kernel.org>; Fri,  4 Oct 2019 11:48:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4925C20862
-	for <netfilter-devel@archiver.kernel.org>; Thu,  3 Oct 2019 20:29:31 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="He4q4BaV"
+	by mail.kernel.org (Postfix) with ESMTP id 27EB920867
+	for <netfilter-devel@archiver.kernel.org>; Fri,  4 Oct 2019 11:48:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732804AbfJCU33 (ORCPT
+        id S1730750AbfJDLsE (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 3 Oct 2019 16:29:29 -0400
-Received: from mail-ed1-f66.google.com ([209.85.208.66]:40652 "EHLO
-        mail-ed1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725957AbfJCU33 (ORCPT
+        Fri, 4 Oct 2019 07:48:04 -0400
+Received: from mail104.syd.optusnet.com.au ([211.29.132.246]:51196 "EHLO
+        mail104.syd.optusnet.com.au" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1729926AbfJDLsE (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 3 Oct 2019 16:29:29 -0400
-Received: by mail-ed1-f66.google.com with SMTP id v38so3826403edm.7;
-        Thu, 03 Oct 2019 13:29:27 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=date:from:to:cc:subject:message-id:mime-version:content-disposition
-         :user-agent;
-        bh=u7ZYonuNP9SAqKQUA4lb0Fri1p8aW+ORUTZ38/PqnQA=;
-        b=He4q4BaVzz3ysrDjqZmQhSBfWZlpceOetRwr/NpYef80KX0Qruy9e8fdi4wXzf2kDX
-         R3WhG4toYhzzvFCma3V937xC5vMzpVdN/q9rWM5LSF8OUwWWGdtvd/lEOpxqdpG+TEFg
-         PbXOUYo6dA4m1VKnSNbnu/2uWRffLzPSn3PN8qbyybBiGga65wjPuIYtf/oj2a5z1+MV
-         8E7k8owGm3tUFkiqTrKkwNolcmIgl5RT951yANA7krwczT45eYgfDr3TtXvApssqvKME
-         uRN+KgaPIcGdw0qyCqjRAMUUSpCmZ80s2r3VewekJS8DkLNSR6/LpiJ5DKUiunF4lcCW
-         jl9w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:mime-version
-         :content-disposition:user-agent;
-        bh=u7ZYonuNP9SAqKQUA4lb0Fri1p8aW+ORUTZ38/PqnQA=;
-        b=O+IiJjWBrOLH/buOKnqJsR0EieTD69o68pwY9+g0GkiGqVEHXPw3eJ2fyXzTrVunJA
-         94hmGGK7YrU9unLUrnmV6EJkRueKldhYtu4yigC079w27tFnK6+ELmDzxd651j2LnEPt
-         PRNmx1lifGBU04xNETg9ZK4nYimKmYFijg8VQuNaQR7XMhJOwJ6g6/iy63bCDAN15tSz
-         7EaCjNMxNrMe7GS/Fm4Zq2b6qtPkzK4v9f5G0v9FdWvEtrNxL06Zb0DPB/fPyDmK0Uh3
-         5/eJZG/uaEtDSZsBDPJULGi5GC6jyiOPUImVysJYBbI6izv3UyLMzSb202xf9TSZVK8b
-         3+XA==
-X-Gm-Message-State: APjAAAW/w3aTlWuxwTn1LFig6+fViJHsbLsvUh9KS3X+J+nP/9by/xgF
-        4GmVj/mcsMvkWV+0fMyNJQ==
-X-Google-Smtp-Source: APXvYqxm4qn6mXmhwnprpw33vR7yG2Zefk8mywl9KAbSBAJFJ6LB7yDYFggcdc6aA1kL894UxSoqRA==
-X-Received: by 2002:a17:907:20a2:: with SMTP id pw2mr9203607ejb.163.1570134566810;
-        Thu, 03 Oct 2019 13:29:26 -0700 (PDT)
-Received: from avx2 ([46.53.250.203])
-        by smtp.gmail.com with ESMTPSA id c26sm664660edb.2.2019.10.03.13.29.25
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 03 Oct 2019 13:29:26 -0700 (PDT)
-Date:   Thu, 3 Oct 2019 23:29:24 +0300
-From:   Alexey Dobriyan <adobriyan@gmail.com>
-To:     davem@davemloft.net
-Cc:     pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
-        netfilter-devel@vger.kernel.org, jon.maloy@ericsson.com,
-        ying.xue@windriver.com, netdev@vger.kernel.org, mst@redhat.com,
-        jasowang@redhat.com, virtualization@lists.linux-foundation.org
-Subject: [PATCH net-next] net, uapi: fix -Wpointer-arith warnings
-Message-ID: <20191003202924.GA21016@avx2>
+        Fri, 4 Oct 2019 07:48:04 -0400
+Received: from dimstar.local.net (n122-110-44-45.sun2.vic.optusnet.com.au [122.110.44.45])
+        by mail104.syd.optusnet.com.au (Postfix) with SMTP id 1A0C843EE9C
+        for <netfilter-devel@vger.kernel.org>; Fri,  4 Oct 2019 21:47:45 +1000 (AEST)
+Received: (qmail 23038 invoked by uid 501); 4 Oct 2019 11:47:45 -0000
+Date:   Fri, 4 Oct 2019 21:47:45 +1000
+From:   Duncan Roe <duncan_roe@optusnet.com.au>
+To:     Haishuang Yan <yanhaishuang@cmss.chinamobile.com>
+Cc:     Julian Anastasov <ja@ssi.bg>, Shuah Khan <shuah@kernel.org>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Simon Horman <horms@verge.net.au>,
+        linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org,
+        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH v3 0/3] selftests: netfilter: introduce test cases for
+ ipvs
+Message-ID: <20191004114745.GB6803@dimstar.local.net>
+Mail-Followup-To: Haishuang Yan <yanhaishuang@cmss.chinamobile.com>,
+        Julian Anastasov <ja@ssi.bg>, Shuah Khan <shuah@kernel.org>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Simon Horman <horms@verge.net.au>, linux-kernel@vger.kernel.org,
+        linux-kselftest@vger.kernel.org, lvs-devel@vger.kernel.org,
+        netfilter-devel@vger.kernel.org
+References: <1569939599-1872-1-git-send-email-yanhaishuang@cmss.chinamobile.com>
+ <alpine.LFD.2.21.1910012133330.3887@ja.home.ssi.bg>
+ <20191002012726.GB9810@dimstar.local.net>
+ <8E2E81F3-8385-4397-9A22-F513E507507D@cmss.chinamobile.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+In-Reply-To: <8E2E81F3-8385-4397-9A22-F513E507507D@cmss.chinamobile.com>
 User-Agent: Mutt/1.10.1 (2018-07-13)
+X-Optus-CM-Score: 0
+X-Optus-CM-Analysis: v=2.2 cv=FNpr/6gs c=1 sm=1 tr=0
+        a=4DzML1vCOQ6Odsy8BUtSXQ==:117 a=4DzML1vCOQ6Odsy8BUtSXQ==:17
+        a=jpOVt7BSZ2e4Z31A5e1TngXxSK0=:19 a=kj9zAlcOel0A:10 a=XobE76Q3jBoA:10
+        a=PO7r1zJSAAAA:8 a=YExiR9hJhUxYzP8DYcgA:9 a=CjuIK1q_8ugA:10
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Add casts to fix these warnings:
+On Thu, Oct 03, 2019 at 10:41:06PM +0800, Haishuang Yan wrote:
+>
+>
+> > On 2019??10??2??, at ????9:27, Duncan Roe <duncan_roe@optusnet.com.au> wrote:
+> >
+> > On Tue, Oct 01, 2019 at 09:34:13PM +0300, Julian Anastasov wrote:
+> >>
+> >> 	Hello,
+> >>
+> >> On Tue, 1 Oct 2019, Haishuang Yan wrote:
+> >>
+> >>> This series patch include test cases for ipvs.
+> >>>
+> >>> The test topology is who as below:
+> >>> +--------------------------------------------------------------+
+> >>> |                      |                                       |
+> >>> |         ns0          |         ns1                           |
+> >>> |      -----------     |     -----------    -----------        |
+> >>> |      | veth01  | --------- | veth10  |    | veth12  |        |
+> >>> |      -----------    peer   -----------    -----------        |
+> >>> |           |          |                        |              |
+> >>> |      -----------     |                        |              |
+> >>> |      |  br0    |     |-----------------  peer |--------------|
+> >>> |      -----------     |                        |              |
+> >>> |           |          |                        |              |
+> >>> |      ----------     peer   ----------      -----------       |
+> >>> |      |  veth02 | --------- |  veth20 |     | veth12  |       |
+> >>> |      ----------      |     ----------      -----------       |
+> >>> |                      |         ns2                           |
+> >>> |                      |                                       |
+> >>> +--------------------------------------------------------------+
+> >>>
+> >>> Test results:
+> >>> # selftests: netfilter: ipvs.sh
+> >>> # Testing DR mode...
+> >>> # Testing NAT mode...
+> >>> # Testing Tunnel mode...
+> >>> # ipvs.sh: PASS
+> >>> ok 6 selftests: netfilter: ipvs.sh
+> >>>
+> >>> Haishuang Yan (3):
+> >>>  selftests: netfilter: add ipvs test script
+> >>>  selftests: netfilter: add ipvs nat test case
+> >>>  selftests: netfilter: add ipvs tunnel test case
+> >>
+> >> Acked-by: Julian Anastasov <ja@ssi.bg>
+> >>
+> >>> tools/testing/selftests/netfilter/Makefile |   2 +-
+> >>> tools/testing/selftests/netfilter/ipvs.sh  | 234 +++++++++++++++++++++++++++++
+> >>> 2 files changed, 235 insertions(+), 1 deletion(-)
+> >>> create mode 100755 tools/testing/selftests/netfilter/ipvs.sh
+> >>
+> >> Regards
+> >>
+> >> --
+> >> Julian Anastasov <ja@ssi.bg>
+> >
+> > I still prefer #!/bin/sh in 1/3. You never know what's in someone's environment
+> >
+> > Cheers ... Duncan.
+> >
+>
+> It??s also my preference too. "_"	
+>
+> I have tested both #!/bin/bash and #!/bin/sh script, they all works properly.
 
-./usr/include/linux/netfilter_arp/arp_tables.h:200:19: error: pointer of type 'void *' used in arithmetic [-Werror=pointer-arith]
-./usr/include/linux/netfilter_bridge/ebtables.h:197:19: error: pointer of type 'void *' used in arithmetic [-Werror=pointer-arith]
-./usr/include/linux/netfilter_ipv4/ip_tables.h:223:19: error: pointer of type 'void *' used in arithmetic [-Werror=pointer-arith]
-./usr/include/linux/netfilter_ipv6/ip6_tables.h:263:19: error: pointer of type 'void *' used in arithmetic [-Werror=pointer-arith]
-./usr/include/linux/tipc_config.h:310:28: error: pointer of type 'void *' used in arithmetic [-Werror=pointer-arith]
-./usr/include/linux/tipc_config.h:410:24: error: pointer of type 'void *' used in arithmetic [-Werror=pointer-arith]
-./usr/include/linux/virtio_ring.h:170:16: error: pointer of type 'void *' used in arithmetic [-Werror=pointer-arith]
+Enter these 2 lines:
+> ip(){ return 0; }
+> export -f ip
 
-Those are theoretical probably but kernel doesn't control compiler flags
-in userspace.
+Now try the #!/bin/bash script. If that now fails, try again with #!/bin/bash
+changed to #!/bin/bash -p
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
----
+Any better now?
 
- include/uapi/linux/netfilter_arp/arp_tables.h  |    2 +-
- include/uapi/linux/netfilter_bridge/ebtables.h |    2 +-
- include/uapi/linux/netfilter_ipv4/ip_tables.h  |    2 +-
- include/uapi/linux/netfilter_ipv6/ip6_tables.h |    2 +-
- include/uapi/linux/tipc_config.h               |    4 ++--
- include/uapi/linux/virtio_ring.h               |    2 +-
- 6 files changed, 7 insertions(+), 7 deletions(-)
-
---- a/include/uapi/linux/netfilter_arp/arp_tables.h
-+++ b/include/uapi/linux/netfilter_arp/arp_tables.h
-@@ -199,7 +199,7 @@ struct arpt_get_entries {
- /* Helper functions */
- static __inline__ struct xt_entry_target *arpt_get_target(struct arpt_entry *e)
- {
--	return (void *)e + e->target_offset;
-+	return (struct xt_entry_target *)((char *)e + e->target_offset);
- }
- 
- /*
---- a/include/uapi/linux/netfilter_bridge/ebtables.h
-+++ b/include/uapi/linux/netfilter_bridge/ebtables.h
-@@ -194,7 +194,7 @@ struct ebt_entry {
- static __inline__ struct ebt_entry_target *
- ebt_get_target(struct ebt_entry *e)
- {
--	return (void *)e + e->target_offset;
-+	return (struct ebt_entry_target *)((char *)e + e->target_offset);
- }
- 
- /* {g,s}etsockopt numbers */
---- a/include/uapi/linux/netfilter_ipv4/ip_tables.h
-+++ b/include/uapi/linux/netfilter_ipv4/ip_tables.h
-@@ -222,7 +222,7 @@ struct ipt_get_entries {
- static __inline__ struct xt_entry_target *
- ipt_get_target(struct ipt_entry *e)
- {
--	return (void *)e + e->target_offset;
-+	return (struct xt_entry_target *)((char *)e + e->target_offset);
- }
- 
- /*
---- a/include/uapi/linux/netfilter_ipv6/ip6_tables.h
-+++ b/include/uapi/linux/netfilter_ipv6/ip6_tables.h
-@@ -262,7 +262,7 @@ struct ip6t_get_entries {
- static __inline__ struct xt_entry_target *
- ip6t_get_target(struct ip6t_entry *e)
- {
--	return (void *)e + e->target_offset;
-+	return (struct xt_entry_target *)((char *)e + e->target_offset);
- }
- 
- /*
---- a/include/uapi/linux/tipc_config.h
-+++ b/include/uapi/linux/tipc_config.h
-@@ -309,7 +309,7 @@ static inline int TLV_SET(void *tlv, __u16 type, void *data, __u16 len)
- 	tlv_ptr->tlv_len  = htons(tlv_len);
- 	if (len && data) {
- 		memcpy(TLV_DATA(tlv_ptr), data, len);
--		memset(TLV_DATA(tlv_ptr) + len, 0, TLV_SPACE(len) - tlv_len);
-+		memset((char *)TLV_DATA(tlv_ptr) + len, 0, TLV_SPACE(len) - tlv_len);
- 	}
- 	return TLV_SPACE(len);
- }
-@@ -409,7 +409,7 @@ static inline int TCM_SET(void *msg, __u16 cmd, __u16 flags,
- 	tcm_hdr->tcm_flags = htons(flags);
- 	if (data_len && data) {
- 		memcpy(TCM_DATA(msg), data, data_len);
--		memset(TCM_DATA(msg) + data_len, 0, TCM_SPACE(data_len) - msg_len);
-+		memset((char *)TCM_DATA(msg) + data_len, 0, TCM_SPACE(data_len) - msg_len);
- 	}
- 	return TCM_SPACE(data_len);
- }
---- a/include/uapi/linux/virtio_ring.h
-+++ b/include/uapi/linux/virtio_ring.h
-@@ -169,7 +169,7 @@ static inline void vring_init(struct vring *vr, unsigned int num, void *p,
- {
- 	vr->num = num;
- 	vr->desc = p;
--	vr->avail = p + num*sizeof(struct vring_desc);
-+	vr->avail = (struct vring_avail *)((char *)p + num * sizeof(struct vring_desc));
- 	vr->used = (void *)(((uintptr_t)&vr->avail->ring[num] + sizeof(__virtio16)
- 		+ align-1) & ~(align - 1));
- }
+Cheers ... Duncan.
