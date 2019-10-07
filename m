@@ -1,79 +1,93 @@
-Return-Path: <SRS0=ECQ/=X7=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=Ckc6=YA=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2FB44C4360C
-	for <netfilter-devel@archiver.kernel.org>; Sun,  6 Oct 2019 20:45:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DE9EEC47404
+	for <netfilter-devel@archiver.kernel.org>; Mon,  7 Oct 2019 20:08:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 06C1C2077B
-	for <netfilter-devel@archiver.kernel.org>; Sun,  6 Oct 2019 20:45:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 84AA820835
+	for <netfilter-devel@archiver.kernel.org>; Mon,  7 Oct 2019 20:08:36 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b="KeURC8C2"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725958AbfJFUpR (ORCPT
+        id S1729167AbfJGUIf (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 6 Oct 2019 16:45:17 -0400
-Received: from mail104.syd.optusnet.com.au ([211.29.132.246]:48257 "EHLO
-        mail104.syd.optusnet.com.au" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725865AbfJFUpR (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 6 Oct 2019 16:45:17 -0400
-Received: from dimstar.local.net (n122-110-44-45.sun2.vic.optusnet.com.au [122.110.44.45])
-        by mail104.syd.optusnet.com.au (Postfix) with SMTP id 2467643FA1D
-        for <netfilter-devel@vger.kernel.org>; Mon,  7 Oct 2019 07:45:04 +1100 (AEDT)
-Received: (qmail 16784 invoked by uid 501); 6 Oct 2019 20:45:04 -0000
-Date:   Mon, 7 Oct 2019 07:45:04 +1100
-From:   Duncan Roe <duncan_roe@optusnet.com.au>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, ffmancera@riseup.net
-Subject: Re: [PATCH] libmnl: doxygen: remove EXPORT_SYMBOL from the output
-Message-ID: <20191006204504.GA4779@dimstar.local.net>
-Mail-Followup-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org, ffmancera@riseup.net
-References: <20191006174658.14069-1-pablo@netfilter.org>
+        Mon, 7 Oct 2019 16:08:35 -0400
+Received: from smtp-out.kfki.hu ([148.6.0.48]:45531 "EHLO smtp-out.kfki.hu"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728786AbfJGUIe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 7 Oct 2019 16:08:34 -0400
+Received: from localhost (localhost [127.0.0.1])
+        by smtp2.kfki.hu (Postfix) with ESMTP id EFC2CCC00F4;
+        Mon,  7 Oct 2019 22:08:31 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+        blackhole.kfki.hu; h=mime-version:user-agent:references
+        :message-id:in-reply-to:from:from:date:date:received:received
+        :received; s=20151130; t=1570478909; x=1572293310; bh=D2x1JMS/je
+        ejuiFcz4vFCUP/V6CAlyGIwfqOsHsPBJE=; b=KeURC8C2I/WmfccWcQf3yBazfn
+        JS1nmae1oQ3pfREqYweo33dIdRT+R2isZe75mg/gXyCLz+JsmprQ6/1xjOJTUhYK
+        LwFSHYyyyTQRSYoJscn4OyGIlKEivhZDubYh1t02jHp2Ke1iSRRpxrvldFQB81zu
+        4MdDcev/RyFRvla0g=
+X-Virus-Scanned: Debian amavisd-new at smtp2.kfki.hu
+Received: from smtp2.kfki.hu ([127.0.0.1])
+        by localhost (smtp2.kfki.hu [127.0.0.1]) (amavisd-new, port 10026)
+        with ESMTP; Mon,  7 Oct 2019 22:08:29 +0200 (CEST)
+Received: from blackhole.kfki.hu (blackhole.szhk.kfki.hu [IPv6:2001:738:5001:1::240:2])
+        by smtp2.kfki.hu (Postfix) with ESMTP id 6B7A7CC00F3;
+        Mon,  7 Oct 2019 22:08:29 +0200 (CEST)
+Received: by blackhole.kfki.hu (Postfix, from userid 1000)
+        id 031A1211B0; Mon,  7 Oct 2019 22:08:28 +0200 (CEST)
+Date:   Mon, 7 Oct 2019 22:08:28 +0200 (CEST)
+From:   =?UTF-8?Q?Kadlecsik_J=C3=B3zsef?= <kadlec@blackhole.kfki.hu>
+To:     Jeremy Sowden <jeremy@azazel.net>
+cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH nf-next 0/7] ipset: remove static inline functions
+In-Reply-To: <20191003195607.13180-1-jeremy@azazel.net>
+Message-ID: <alpine.DEB.2.20.1910072206070.16051@blackhole.kfki.hu>
+References: <20191003195607.13180-1-jeremy@azazel.net>
+User-Agent: Alpine 2.20 (DEB 67 2015-01-07)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20191006174658.14069-1-pablo@netfilter.org>
-User-Agent: Mutt/1.10.1 (2018-07-13)
-X-Optus-CM-Score: 0
-X-Optus-CM-Analysis: v=2.2 cv=D+Q3ErZj c=1 sm=1 tr=0
-        a=4DzML1vCOQ6Odsy8BUtSXQ==:117 a=4DzML1vCOQ6Odsy8BUtSXQ==:17
-        a=jpOVt7BSZ2e4Z31A5e1TngXxSK0=:19 a=kj9zAlcOel0A:10 a=XobE76Q3jBoA:10
-        a=3HDBlxybAAAA:8 a=PO7r1zJSAAAA:8 a=ka6nVi-J5l0Biw0LpC8A:9
-        a=CjuIK1q_8ugA:10 a=laEoCiVfU_Unz3mSdgXN:22
+Content-Type: text/plain; charset=US-ASCII
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sun, Oct 06, 2019 at 07:46:58PM +0200, Pablo Neira Ayuso wrote:
-> Add input filter to remove the internal EXPORT_SYMBOL macro that turns
-> on the compiler visibility attribute.
->
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> ---
->  doxygen.cfg.in | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/doxygen.cfg.in b/doxygen.cfg.in
-> index ee8fdfae97ce..31f01028aff6 100644
-> --- a/doxygen.cfg.in
-> +++ b/doxygen.cfg.in
-> @@ -77,7 +77,7 @@ EXAMPLE_PATH           =
->  EXAMPLE_PATTERNS       =
->  EXAMPLE_RECURSIVE      = NO
->  IMAGE_PATH             =
-> -INPUT_FILTER           =
-> +INPUT_FILTER           = "sed 's/EXPORT_SYMBOL//g'"
->  FILTER_PATTERNS        =
->  FILTER_SOURCE_FILES    = NO
->  SOURCE_BROWSER         = YES
-> --
-> 2.11.0
->
-Just tried this. Looks good.
+Hi Jeremy, Pablo,
 
-Acked-by: Duncan Roe <duncan_roe@optusnet.com.au>
+On Thu, 3 Oct 2019, Jeremy Sowden wrote:
+
+> In his feedback on an earlier patch series [0], Pablo suggested reducing
+> the number of ipset static inline functions.
+> 
+> 0 - https://lore.kernel.org/netfilter-devel/20190808112355.w3ax3twuf6b7pwc7@salvia/
+> 
+> This series:
+> 
+>   * removes inline from static functions in .c files;
+>   * moves some static functions out of headers and removes inline from
+>     them if they are only called from one .c file,
+>   * moves some static functions out of headers, removes inline from them
+>     and makes them extern if they are too big.
+> 
+> The changes reduced the size of the ipset modules by c. 13kB, when
+> compiled with GCC 9 on x86-64.
+
+I have reviewed all of the patches and they are all right. Pablo, could 
+you queue them for nf-next? I applied the patches in the ipset git tree.
+
+Acked-by: Jozsef Kadlecsik <kadlec@netfilter.org>
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics
+          H-1525 Budapest 114, POB. 49, Hungary
