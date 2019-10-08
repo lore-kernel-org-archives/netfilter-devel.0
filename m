@@ -2,36 +2,34 @@ Return-Path: <SRS0=bnKo=YB=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 46ACCC35280
-	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Oct 2019 16:15:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 613BFC35280
+	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Oct 2019 16:15:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 26E032070B
-	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Oct 2019 16:15:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 366B02070B
+	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Oct 2019 16:15:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728767AbfJHQPf (ORCPT
+        id S1728798AbfJHQPk (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 8 Oct 2019 12:15:35 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:48514 "EHLO orbyte.nwl.cc"
+        Tue, 8 Oct 2019 12:15:40 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:48520 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725966AbfJHQPe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 8 Oct 2019 12:15:34 -0400
-Received: from localhost ([::1]:33372 helo=tatos)
+        id S1725966AbfJHQPj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 8 Oct 2019 12:15:39 -0400
+Received: from localhost ([::1]:33378 helo=tatos)
         by orbyte.nwl.cc with esmtp (Exim 4.91)
         (envelope-from <phil@nwl.cc>)
-        id 1iHs97-0004X7-Fq; Tue, 08 Oct 2019 18:15:33 +0200
+        id 1iHs9C-0004XW-PP; Tue, 08 Oct 2019 18:15:38 +0200
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH v3 11/11] nft: Optimize flushing all chains of a table
-Date:   Tue,  8 Oct 2019 18:14:47 +0200
-Message-Id: <20191008161447.6595-12-phil@nwl.cc>
+Subject: [iptables PATCH v3 00/11] Improve iptables-nft performance with large rulesets
+Date:   Tue,  8 Oct 2019 18:14:36 +0200
+Message-Id: <20191008161447.6595-1-phil@nwl.cc>
 X-Mailer: git-send-email 2.23.0
-In-Reply-To: <20191008161447.6595-1-phil@nwl.cc>
-References: <20191008161447.6595-1-phil@nwl.cc>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -39,167 +37,52 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Leverage nftables' support for flushing all chains of a table by
-omitting NFTNL_RULE_CHAIN attribute in NFT_MSG_DELRULE payload.
+Third approach at caching optimizations implementation.
 
-The only caveat is with verbose output, as that still requires to have a
-list of (existing) chains to iterate over. Apart from that, implementing
-this shortcut is pretty straightforward: Don't retrieve a chain list and
-just call __nft_rule_flush() directly which doesn't set above attribute
-if chain name pointer is NULL.
+The goal of reducing scope of cached data remains the same: First,
+optimize cache depth (i.e., omit caching rules or chains if not needed).
+Second, optimize cache width (i.e., cache only required chains).
 
-A bigger deal is keeping rule cache consistent: Instead of just clearing
-rule list for each flushed chain, flush_rule_cache() is updated to
-iterate over all cached chains of the given table, clearing their rule
-lists if not called for a specific chain.
+Changes since v2:
 
-While being at it, sort local variable declarations in nft_rule_flush()
-from longest to shortest and drop the loop-local 'chain_name' variable
-(but instead use 'chain' function parameter which is not used at that
-point).
+* Move all cache-related code into a dedicated source file.
+* Replace have_cache boolean by a cache level, indicating cache
+  completeness from a depth view.
+* Keep a central function to populate the cache, perform consistency
+  checking based on generation ID and update cache level.
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- iptables/nft-cache.c | 22 +++++++++++++++++++---
- iptables/nft-cache.h |  3 ++-
- iptables/nft.c       | 32 ++++++++++++++++++--------------
- 3 files changed, 39 insertions(+), 18 deletions(-)
+The first two patches contain preparational work for the changes
+described above. Patch 3 performs the code relocation, patches 4 to 8
+extend functionality of the separated caching code and the last three
+patches optimize core code in nft.c to put optimized caching into full
+effect.
 
-diff --git a/iptables/nft-cache.c b/iptables/nft-cache.c
-index 07406960030cf..8a33326a5bc24 100644
---- a/iptables/nft-cache.c
-+++ b/iptables/nft-cache.c
-@@ -381,7 +381,7 @@ static void __nft_flush_cache(struct nft_handle *h)
- 	}
- }
- 
--static int __flush_rule_cache(struct nftnl_rule *r, void *data)
-+static int ____flush_rule_cache(struct nftnl_rule *r, void *data)
- {
- 	nftnl_rule_list_del(r);
- 	nftnl_rule_free(r);
-@@ -389,9 +389,25 @@ static int __flush_rule_cache(struct nftnl_rule *r, void *data)
- 	return 0;
- }
- 
--void flush_rule_cache(struct nftnl_chain *c)
-+static int __flush_rule_cache(struct nftnl_chain *c, void *data)
- {
--	nftnl_rule_foreach(c, __flush_rule_cache, NULL);
-+	return nftnl_rule_foreach(c, ____flush_rule_cache, NULL);
-+}
-+
-+int flush_rule_cache(struct nft_handle *h, const char *table,
-+		     struct nftnl_chain *c)
-+{
-+	const struct builtin_table *t;
-+
-+	if (c)
-+		return __flush_rule_cache(c, NULL);
-+
-+	t = nft_table_builtin_find(h, table);
-+	if (!t || !h->cache->table[t->type].chains)
-+		return 0;
-+
-+	return nftnl_chain_list_foreach(h->cache->table[t->type].chains,
-+					__flush_rule_cache, NULL);
- }
- 
- static int __flush_chain_cache(struct nftnl_chain *c, void *data)
-diff --git a/iptables/nft-cache.h b/iptables/nft-cache.h
-index 793a85f453ffc..cb7a7688be37a 100644
---- a/iptables/nft-cache.h
-+++ b/iptables/nft-cache.h
-@@ -8,7 +8,8 @@ void nft_build_cache(struct nft_handle *h, struct nftnl_chain *c);
- void nft_rebuild_cache(struct nft_handle *h);
- void nft_release_cache(struct nft_handle *h);
- void flush_chain_cache(struct nft_handle *h, const char *tablename);
--void flush_rule_cache(struct nftnl_chain *c);
-+int flush_rule_cache(struct nft_handle *h, const char *table,
-+		     struct nftnl_chain *c);
- 
- struct nftnl_chain_list *
- nft_chain_list_get(struct nft_handle *h, const char *table, const char *chain);
-diff --git a/iptables/nft.c b/iptables/nft.c
-index 12cc423c87bbb..89b1c7a808f57 100644
---- a/iptables/nft.c
-+++ b/iptables/nft.c
-@@ -1437,7 +1437,7 @@ __nft_rule_flush(struct nft_handle *h, const char *table,
- 	struct obj_update *obj;
- 	struct nftnl_rule *r;
- 
--	if (verbose)
-+	if (verbose && chain)
- 		fprintf(stdout, "Flushing chain `%s'\n", chain);
- 
- 	r = nftnl_rule_alloc();
-@@ -1445,7 +1445,8 @@ __nft_rule_flush(struct nft_handle *h, const char *table,
- 		return;
- 
- 	nftnl_rule_set_str(r, NFTNL_RULE_TABLE, table);
--	nftnl_rule_set_str(r, NFTNL_RULE_CHAIN, chain);
-+	if (chain)
-+		nftnl_rule_set_str(r, NFTNL_RULE_CHAIN, chain);
- 
- 	obj = batch_rule_add(h, NFT_COMPAT_RULE_FLUSH, r);
- 	if (!obj) {
-@@ -1459,19 +1460,21 @@ __nft_rule_flush(struct nft_handle *h, const char *table,
- int nft_rule_flush(struct nft_handle *h, const char *chain, const char *table,
- 		   bool verbose)
- {
--	int ret = 0;
--	struct nftnl_chain_list *list;
- 	struct nftnl_chain_list_iter *iter;
--	struct nftnl_chain *c;
-+	struct nftnl_chain_list *list;
-+	struct nftnl_chain *c = NULL;
-+	int ret = 0;
- 
- 	nft_xt_builtin_init(h, table);
- 
- 	nft_fn = nft_rule_flush;
- 
--	list = nft_chain_list_get(h, table, chain);
--	if (list == NULL) {
--		ret = 1;
--		goto err;
-+	if (chain || verbose) {
-+		list = nft_chain_list_get(h, table, chain);
-+		if (list == NULL) {
-+			ret = 1;
-+			goto err;
-+		}
- 	}
- 
- 	if (chain) {
-@@ -1480,9 +1483,11 @@ int nft_rule_flush(struct nft_handle *h, const char *chain, const char *table,
- 			errno = ENOENT;
- 			return 0;
- 		}
-+	}
- 
-+	if (chain || !verbose) {
- 		__nft_rule_flush(h, table, chain, verbose, false);
--		flush_rule_cache(c);
-+		flush_rule_cache(h, table, c);
- 		return 1;
- 	}
- 
-@@ -1494,11 +1499,10 @@ int nft_rule_flush(struct nft_handle *h, const char *chain, const char *table,
- 
- 	c = nftnl_chain_list_iter_next(iter);
- 	while (c != NULL) {
--		const char *chain_name =
--			nftnl_chain_get_str(c, NFTNL_CHAIN_NAME);
-+		chain = nftnl_chain_get_str(c, NFTNL_CHAIN_NAME);
- 
--		__nft_rule_flush(h, table, chain_name, verbose, false);
--		flush_rule_cache(c);
-+		__nft_rule_flush(h, table, chain, verbose, false);
-+		flush_rule_cache(h, table, c);
- 		c = nftnl_chain_list_iter_next(iter);
- 	}
- 	nftnl_chain_list_iter_destroy(iter);
+A follow-up series will deal with xtables-restore performance.
+
+Phil Sutter (11):
+  nft: Pass nft_handle to flush_cache()
+  nft: Avoid nested cache fetching
+  nft: Extract cache routines into nft-cache.c
+  nft-cache: Introduce cache levels
+  nft-cache: Fetch only chains in nft_chain_list_get()
+  nft-cache: Cover for multiple fetcher invocation
+  nft-cache: Support partial cache per table
+  nft-cache: Support partial rule cache per chain
+  nft: Reduce cache overhead of nft_chain_builtin_init()
+  nft: Support nft_is_table_compatible() per chain
+  nft: Optimize flushing all chains of a table
+
+ iptables/Makefile.am       |   2 +-
+ iptables/nft-cache.c       | 498 +++++++++++++++++++++++++++++++++++++
+ iptables/nft-cache.h       |  18 ++
+ iptables/nft.c             | 487 +++++++-----------------------------
+ iptables/nft.h             |  22 +-
+ iptables/xtables-restore.c |   5 +-
+ iptables/xtables-save.c    |   5 +-
+ 7 files changed, 623 insertions(+), 414 deletions(-)
+ create mode 100644 iptables/nft-cache.c
+ create mode 100644 iptables/nft-cache.h
+
 -- 
 2.23.0
 
