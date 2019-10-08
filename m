@@ -6,29 +6,29 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 44DAEC4360C
-	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Oct 2019 16:15:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 20A67C4360C
+	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Oct 2019 16:15:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2668D20815
-	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Oct 2019 16:15:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EAD0B2070B
+	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Oct 2019 16:15:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728340AbfJHQPS (ORCPT
+        id S1728763AbfJHQPY (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 8 Oct 2019 12:15:18 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:48496 "EHLO orbyte.nwl.cc"
+        Tue, 8 Oct 2019 12:15:24 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:48502 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725966AbfJHQPS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 8 Oct 2019 12:15:18 -0400
-Received: from localhost ([::1]:33354 helo=tatos)
+        id S1725966AbfJHQPY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 8 Oct 2019 12:15:24 -0400
+Received: from localhost ([::1]:33360 helo=tatos)
         by orbyte.nwl.cc with esmtp (Exim 4.91)
         (envelope-from <phil@nwl.cc>)
-        id 1iHs8r-0004Vs-Jz; Tue, 08 Oct 2019 18:15:17 +0200
+        id 1iHs8w-0004WH-UC; Tue, 08 Oct 2019 18:15:22 +0200
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH v3 10/11] nft: Support nft_is_table_compatible() per chain
-Date:   Tue,  8 Oct 2019 18:14:46 +0200
-Message-Id: <20191008161447.6595-11-phil@nwl.cc>
+Subject: [iptables PATCH v3 07/11] nft-cache: Support partial cache per table
+Date:   Tue,  8 Oct 2019 18:14:43 +0200
+Message-Id: <20191008161447.6595-8-phil@nwl.cc>
 X-Mailer: git-send-email 2.23.0
 In-Reply-To: <20191008161447.6595-1-phil@nwl.cc>
 References: <20191008161447.6595-1-phil@nwl.cc>
@@ -39,118 +39,213 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-When operating on a single chain only, compatibility checking causes
-unwanted overhead by checking all chains of the current table. Avoid
-this by accepting the current chain name as parameter and pass it along
-to nft_chain_list_get().
+Accept a builtin_table pointer in __nft_build_cache() and pass it along
+when fetching chains and rules to operate on that table only (unless the
+pointer is NULL).
 
-While being at it, introduce nft_assert_table_compatible() which
-calls xtables_error() in case compatibility check fails. If a chain name
-was given, include that in error message.
+Make use of it in nft_chain_list_get() since that accepts a table name
+and performs a builtin table lookup internally already.
 
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- iptables/nft.c          | 32 ++++++++++++++++++++++++--------
- iptables/nft.h          |  5 ++++-
- iptables/xtables-save.c |  2 +-
- 3 files changed, 29 insertions(+), 10 deletions(-)
+ iptables/nft-cache.c | 82 ++++++++++++++++++++++++++++++--------------
+ 1 file changed, 57 insertions(+), 25 deletions(-)
 
-diff --git a/iptables/nft.c b/iptables/nft.c
-index 7e019d54ee475..12cc423c87bbb 100644
---- a/iptables/nft.c
-+++ b/iptables/nft.c
-@@ -2192,12 +2192,10 @@ int nft_rule_list(struct nft_handle *h, const char *chain, const char *table,
- 	bool found = false;
+diff --git a/iptables/nft-cache.c b/iptables/nft-cache.c
+index a2cfb6ef6dbcf..3cb397c805a9a 100644
+--- a/iptables/nft-cache.c
++++ b/iptables/nft-cache.c
+@@ -11,6 +11,7 @@
  
- 	nft_xt_builtin_init(h, table);
-+	nft_assert_table_compatible(h, table, chain);
+ #include <assert.h>
+ #include <errno.h>
++#include <string.h>
+ #include <xtables.h>
  
- 	ops = nft_family_ops_lookup(h->family);
+ #include <linux/netfilter/nf_tables.h>
+@@ -105,13 +106,19 @@ static int fetch_table_cache(struct nft_handle *h)
+ 	return 1;
+ }
  
--	if (!nft_is_table_compatible(h, table))
--		xtables_error(OTHER_PROBLEM, "table `%s' is incompatible, use 'nft' tool.\n", table);
--
- 	list = nft_chain_list_get(h, table, chain);
- 	if (!list)
- 		return 0;
-@@ -2295,9 +2293,7 @@ int nft_rule_list_save(struct nft_handle *h, const char *chain,
- 	int ret = 0;
++struct nftnl_chain_list_cb_data {
++	struct nft_handle *h;
++	const struct builtin_table *t;
++};
++
+ static int nftnl_chain_list_cb(const struct nlmsghdr *nlh, void *data)
+ {
+-	struct nft_handle *h = data;
+-	const struct builtin_table *t;
++	struct nftnl_chain_list_cb_data *d = data;
++	const struct builtin_table *t = d->t;
+ 	struct nftnl_chain_list *list;
++	struct nft_handle *h = d->h;
++	const char *tname, *cname;
+ 	struct nftnl_chain *c;
+-	const char *cname;
  
- 	nft_xt_builtin_init(h, table);
--
--	if (!nft_is_table_compatible(h, table))
--		xtables_error(OTHER_PROBLEM, "table `%s' is incompatible, use 'nft' tool.\n", table);
-+	nft_assert_table_compatible(h, table, chain);
+ 	c = nftnl_chain_alloc();
+ 	if (c == NULL)
+@@ -120,10 +127,15 @@ static int nftnl_chain_list_cb(const struct nlmsghdr *nlh, void *data)
+ 	if (nftnl_chain_nlmsg_parse(nlh, c) < 0)
+ 		goto out;
  
- 	list = nft_chain_list_get(h, table, chain);
- 	if (!list)
-@@ -3085,11 +3081,12 @@ static int nft_is_chain_compatible(struct nftnl_chain *c, void *data)
+-	t = nft_table_builtin_find(h,
+-			nftnl_chain_get_str(c, NFTNL_CHAIN_TABLE));
+-	if (!t)
++	tname = nftnl_chain_get_str(c, NFTNL_CHAIN_TABLE);
++
++	if (!t) {
++		t = nft_table_builtin_find(h, tname);
++		if (!t)
++			goto out;
++	} else if (strcmp(t->name, tname)) {
+ 		goto out;
++	}
+ 
+ 	list = h->cache->table[t->type].chains;
+ 	cname = nftnl_chain_get_str(c, NFTNL_CHAIN_NAME);
+@@ -140,30 +152,41 @@ err:
+ 	return MNL_CB_OK;
+ }
+ 
+-static int fetch_chain_cache(struct nft_handle *h)
++static int fetch_chain_cache(struct nft_handle *h,
++			     const struct builtin_table *t)
+ {
++	struct nftnl_chain_list_cb_data d = {
++		.h = h,
++		.t = t,
++	};
+ 	char buf[16536];
+ 	struct nlmsghdr *nlh;
+ 	int i, ret;
+ 
+-	for (i = 0; i < NFT_TABLE_MAX; i++) {
+-		enum nft_table_type type = h->tables[i].type;
++	if (!t) {
++		for (i = 0; i < NFT_TABLE_MAX; i++) {
++			enum nft_table_type type = h->tables[i].type;
+ 
+-		if (!h->tables[i].name)
+-			continue;
++			if (!h->tables[i].name)
++				continue;
+ 
+-		if (h->cache->table[type].chains)
+-			continue;
++			if (h->cache->table[type].chains)
++				continue;
+ 
+-		h->cache->table[type].chains = nftnl_chain_list_alloc();
+-		if (!h->cache->table[type].chains)
++			h->cache->table[type].chains = nftnl_chain_list_alloc();
++			if (!h->cache->table[type].chains)
++				return -1;
++		}
++	} else if (!h->cache->table[t->type].chains) {
++		h->cache->table[t->type].chains = nftnl_chain_list_alloc();
++		if (!h->cache->table[t->type].chains)
+ 			return -1;
+ 	}
+ 
+ 	nlh = nftnl_chain_nlmsg_build_hdr(buf, NFT_MSG_GETCHAIN, h->family,
+ 					NLM_F_DUMP, h->seq);
+ 
+-	ret = mnl_talk(h, nlh, nftnl_chain_list_cb, h);
++	ret = mnl_talk(h, nlh, nftnl_chain_list_cb, &d);
+ 	if (ret < 0 && errno == EINTR)
+ 		assert(nft_restart(h) >= 0);
+ 
+@@ -224,10 +247,14 @@ static int nft_rule_list_update(struct nftnl_chain *c, void *data)
  	return 0;
  }
  
--bool nft_is_table_compatible(struct nft_handle *h, const char *tablename)
-+bool nft_is_table_compatible(struct nft_handle *h,
-+			     const char *table, const char *chain)
+-static int fetch_rule_cache(struct nft_handle *h)
++static int fetch_rule_cache(struct nft_handle *h, const struct builtin_table *t)
  {
- 	struct nftnl_chain_list *clist;
+ 	int i;
  
--	clist = nft_chain_list_get(h, tablename, NULL);
-+	clist = nft_chain_list_get(h, table, chain);
- 	if (clist == NULL)
- 		return false;
++	if (t)
++		return nftnl_chain_list_foreach(h->cache->table[t->type].chains,
++						nft_rule_list_update, h);
++
+ 	for (i = 0; i < NFT_TABLE_MAX; i++) {
+ 		enum nft_table_type type = h->tables[i].type;
  
-@@ -3098,3 +3095,22 @@ bool nft_is_table_compatible(struct nft_handle *h, const char *tablename)
- 
- 	return true;
+@@ -241,7 +268,8 @@ static int fetch_rule_cache(struct nft_handle *h)
+ 	return 0;
  }
+ 
+-static void __nft_build_cache(struct nft_handle *h, enum nft_cache_level level)
++static void __nft_build_cache(struct nft_handle *h, enum nft_cache_level level,
++			      const struct builtin_table *t)
+ {
+ 	uint32_t genid_start, genid_stop;
+ 
+@@ -257,12 +285,12 @@ retry:
+ 			break;
+ 		/* fall through */
+ 	case NFT_CL_TABLES:
+-		fetch_chain_cache(h);
++		fetch_chain_cache(h, t);
+ 		if (level == NFT_CL_CHAINS)
+ 			break;
+ 		/* fall through */
+ 	case NFT_CL_CHAINS:
+-		fetch_rule_cache(h);
++		fetch_rule_cache(h, t);
+ 		if (level == NFT_CL_RULES)
+ 			break;
+ 		/* fall through */
+@@ -276,14 +304,18 @@ retry:
+ 		goto retry;
+ 	}
+ 
+-	h->cache_level = level;
++	if (!t)
++		h->cache_level = level;
++	else if (h->cache_level < NFT_CL_TABLES)
++		h->cache_level = NFT_CL_TABLES;
 +
-+void nft_assert_table_compatible(struct nft_handle *h,
-+				 const char *table, const char *chain)
-+{
-+	const char *pfx = "", *sfx = "";
-+
-+	if (nft_is_table_compatible(h, table, chain))
-+		return;
-+
-+	if (chain) {
-+		pfx = "chain `";
-+		sfx = "' in ";
-+	} else {
-+		chain = "";
-+	}
-+	xtables_error(OTHER_PROBLEM,
-+		      "%s%s%stable `%s' is incompatible, use 'nft' tool.\n",
-+		      pfx, chain, sfx, table);
-+}
-diff --git a/iptables/nft.h b/iptables/nft.h
-index 9ae3122a1c515..4b8b3033a56c0 100644
---- a/iptables/nft.h
-+++ b/iptables/nft.h
-@@ -206,7 +206,10 @@ int nft_arp_rule_insert(struct nft_handle *h, const char *chain,
+ 	h->nft_genid = genid_start;
+ }
  
- void nft_rule_to_arpt_entry(struct nftnl_rule *r, struct arpt_entry *fw);
+ void nft_build_cache(struct nft_handle *h)
+ {
+ 	if (h->cache_level < NFT_CL_RULES)
+-		__nft_build_cache(h, NFT_CL_RULES);
++		__nft_build_cache(h, NFT_CL_RULES, NULL);
+ }
  
--bool nft_is_table_compatible(struct nft_handle *h, const char *name);
-+bool nft_is_table_compatible(struct nft_handle *h,
-+			     const char *table, const char *chain);
-+void nft_assert_table_compatible(struct nft_handle *h,
-+				 const char *table, const char *chain);
+ void nft_fake_cache(struct nft_handle *h)
+@@ -382,7 +414,7 @@ void nft_rebuild_cache(struct nft_handle *h)
+ 		__nft_flush_cache(h);
  
- int ebt_set_user_chain_policy(struct nft_handle *h, const char *table,
- 			      const char *chain, const char *policy);
-diff --git a/iptables/xtables-save.c b/iptables/xtables-save.c
-index e234425ded293..44687f998c91a 100644
---- a/iptables/xtables-save.c
-+++ b/iptables/xtables-save.c
-@@ -77,7 +77,7 @@ __do_output(struct nft_handle *h, const char *tablename, void *data)
- 	if (!nft_table_builtin_find(h, tablename))
- 		return 0;
+ 	h->cache_level = NFT_CL_NONE;
+-	__nft_build_cache(h, level);
++	__nft_build_cache(h, level, NULL);
+ }
  
--	if (!nft_is_table_compatible(h, tablename)) {
-+	if (!nft_is_table_compatible(h, tablename, NULL)) {
- 		printf("# Table `%s' is incompatible, use 'nft' tool.\n",
- 		       tablename);
- 		return 0;
+ void nft_release_cache(struct nft_handle *h)
+@@ -393,7 +425,7 @@ void nft_release_cache(struct nft_handle *h)
+ 
+ struct nftnl_table_list *nftnl_table_list_get(struct nft_handle *h)
+ {
+-	__nft_build_cache(h, NFT_CL_TABLES);
++	__nft_build_cache(h, NFT_CL_TABLES, NULL);
+ 
+ 	return h->cache->tables;
+ }
+@@ -407,7 +439,7 @@ struct nftnl_chain_list *nft_chain_list_get(struct nft_handle *h,
+ 	if (!t)
+ 		return NULL;
+ 
+-	__nft_build_cache(h, NFT_CL_CHAINS);
++	__nft_build_cache(h, NFT_CL_CHAINS, t);
+ 
+ 	return h->cache->table[t->type].chains;
+ }
 -- 
 2.23.0
 
