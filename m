@@ -2,295 +2,76 @@ Return-Path: <SRS0=bnKo=YB=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D8C01C4360C
-	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Oct 2019 09:42:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 86025C4360C
+	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Oct 2019 10:27:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B27B6206BB
-	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Oct 2019 09:42:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 59D7C206BB
+	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Oct 2019 10:27:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730093AbfJHJmW (ORCPT
+        id S1730056AbfJHK1y (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 8 Oct 2019 05:42:22 -0400
-Received: from kirsty.vergenet.net ([202.4.237.240]:58362 "EHLO
-        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729375AbfJHJmW (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 8 Oct 2019 05:42:22 -0400
-Received: from reginn.horms.nl (watermunt.horms.nl [80.127.179.77])
-        by kirsty.vergenet.net (Postfix) with ESMTPA id C3F3925B7E6;
-        Tue,  8 Oct 2019 20:42:15 +1100 (AEDT)
-Received: by reginn.horms.nl (Postfix, from userid 7100)
-        id B2D3E940841; Tue,  8 Oct 2019 11:42:13 +0200 (CEST)
-Date:   Tue, 8 Oct 2019 11:42:13 +0200
-From:   Simon Horman <horms@verge.net.au>
-To:     Haishuang Yan <yanhaishuang@cmss.chinamobile.com>
-Cc:     Shuah Khan <shuah@kernel.org>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Julian Anastasov <ja@ssi.bg>, linux-kernel@vger.kernel.org,
-        linux-kselftest@vger.kernel.org, lvs-devel@vger.kernel.org,
-        netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH v4 1/3] selftests: netfilter: add ipvs test script
-Message-ID: <20191008094209.wsnd7ay6dz3jrl7w@verge.net.au>
-References: <1570286265-15855-1-git-send-email-yanhaishuang@cmss.chinamobile.com>
- <1570286265-15855-2-git-send-email-yanhaishuang@cmss.chinamobile.com>
+        Tue, 8 Oct 2019 06:27:54 -0400
+Received: from correo.us.es ([193.147.175.20]:59458 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1730026AbfJHK1x (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 8 Oct 2019 06:27:53 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id F3666E3EE4F
+        for <netfilter-devel@vger.kernel.org>; Tue,  8 Oct 2019 12:27:46 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id E2F07FB362
+        for <netfilter-devel@vger.kernel.org>; Tue,  8 Oct 2019 12:27:46 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id D82522DC7B; Tue,  8 Oct 2019 12:27:46 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id D62CEB7FF2;
+        Tue,  8 Oct 2019 12:27:44 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Tue, 08 Oct 2019 12:27:44 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (sys.soleta.eu [212.170.55.40])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id BC83E42EF4E1;
+        Tue,  8 Oct 2019 12:27:44 +0200 (CEST)
+Date:   Tue, 8 Oct 2019 12:27:46 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Duncan Roe <duncan_roe@optusnet.com.au>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH libnetfilter_queue 0/5] clang and documentation updates
+Message-ID: <20191008102746.h72le7hizrxqa4j5@salvia>
+References: <20191008004948.25632-1-duncan_roe@optusnet.com.au>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <1570286265-15855-2-git-send-email-yanhaishuang@cmss.chinamobile.com>
-Organisation: Horms Solutions BV
+In-Reply-To: <20191008004948.25632-1-duncan_roe@optusnet.com.au>
 User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sat, Oct 05, 2019 at 10:37:43PM +0800, Haishuang Yan wrote:
-> Test virutal server via directing routing for IPv4.
+On Tue, Oct 08, 2019 at 11:49:43AM +1100, Duncan Roe wrote:
+> This series is a mixture of patches to enable clang build and correct / insert
+> doxygen comments. It ended up that way after git merges of local branches where
+> they were originally developed.
 > 
-> Tested:
-> 
-> # selftests: netfilter: ipvs.sh
-> # Testing DR mode...
-> # ipvs.sh: PASS
-> ok 6 selftests: netfilter: ipvs.sh
-> 
-> Signed-off-by: Haishuang Yan <yanhaishuang@cmss.chinamobile.com>
-> ---
-> v4: use #!/bin/bash -p suggested by Duncan Roe
-> v3: use bash style
-> v2: optimize test script
-> ---
->  tools/testing/selftests/netfilter/Makefile |   2 +-
->  tools/testing/selftests/netfilter/ipvs.sh  | 184 +++++++++++++++++++++++++++++
->  2 files changed, 185 insertions(+), 1 deletion(-)
->  create mode 100755 tools/testing/selftests/netfilter/ipvs.sh
-> 
-> diff --git a/tools/testing/selftests/netfilter/Makefile b/tools/testing/selftests/netfilter/Makefile
-> index 4144984..de1032b 100644
-> --- a/tools/testing/selftests/netfilter/Makefile
-> +++ b/tools/testing/selftests/netfilter/Makefile
-> @@ -2,6 +2,6 @@
->  # Makefile for netfilter selftests
->  
->  TEST_PROGS := nft_trans_stress.sh nft_nat.sh bridge_brouter.sh \
-> -	conntrack_icmp_related.sh nft_flowtable.sh
-> +	conntrack_icmp_related.sh nft_flowtable.sh ipvs.sh
->  
->  include ../lib.mk
-> diff --git a/tools/testing/selftests/netfilter/ipvs.sh b/tools/testing/selftests/netfilter/ipvs.sh
-> new file mode 100755
-> index 0000000..f6da1bd
-> --- /dev/null
-> +++ b/tools/testing/selftests/netfilter/ipvs.sh
-> @@ -0,0 +1,184 @@
-> +#!/bin/bash -p
-> +# SPDX-License-Identifier: GPL-2.0
-> +#
-> +# End-to-end ipvs test suite
-> +# Topology:
-> +#--------------------------------------------------------------+
-> +#                      |                                       |
-> +#         ns0          |         ns1                           |
-> +#      -----------     |     -----------    -----------        |
-> +#      | veth01  | --------- | veth10  |    | veth12  |        |
-> +#      -----------    peer   -----------    -----------        |
-> +#           |          |                        |              |
-> +#      -----------     |                        |              |
-> +#      |  br0    |     |-----------------  peer |--------------|
-> +#      -----------     |                        |              |
-> +#           |          |                        |              |
-> +#      ----------     peer   ----------      -----------       |
-> +#      |  veth02 | --------- |  veth20 |     | veth21  |       |
-> +#      ----------      |     ----------      -----------       |
-> +#                      |         ns2                           |
-> +#                      |                                       |
-> +#--------------------------------------------------------------+
-> +#
-> +# We assume that all network driver are loaded
-> +#
-> +
-> +# Kselftest framework requirement - SKIP code is 4.
-> +ksft_skip=4
-> +ret=0
-> +GREEN='\033[0;92m'
-> +RED='\033[0;31m'
-> +NC='\033[0m' # No Color
-> +
-> +readonly port=8080
-> +
-> +readonly vip_v4=207.175.44.110
-> +readonly cip_v4=10.0.0.2
-> +readonly gip_v4=10.0.0.1
-> +readonly dip_v4=172.16.0.1
-> +readonly rip_v4=172.16.0.2
-> +readonly sip_v4=10.0.0.3
-> +
-> +readonly infile="$(mktemp)"
-> +readonly outfile="$(mktemp)"
-> +
-> +sysipvsnet=/proc/sys/net/ipv4/vs/
-> +if [ ! -d /proc/sys/net/ipv4/vs/ ]; then
-> +    modprobe -q ip_vs
-> +    if [ $? -ne 0 ]; then
-> +        echo "SKIP: Could not run test without ipvs module"
-> +    	exit $ksft_skip
+> Hopefully they are all uncontroversial so can just be applied.
 
-There are some leading spaces before the tab on the line above.
+Series applied, thanks.
 
+I have just mangled "src: Enable clang build" not to split the
+function definition from its return value, it's a personal preference,
+I like to git grep for function definitions occasionally when
+searching for symbols. This is something in between your original
+proposal and what it's done in libmnl.
 
-> +    fi
-> +fi
-> +
-> +ip -Version > /dev/null 2>&1
-> +if [ $? -ne 0 ]; then
-> +	echo "SKIP: Could not run test without ip tool"
-> +	exit $ksft_skip
-> +fi
-> +
-> +ipvsadm -v > /dev/null 2>&1
-> +if [ $? -ne 0 ]; then
-> +	echo "SKIP: Could not run test without ipvsadm"
-> +	exit $ksft_skip
-> +fi
-> +
-> +nc --version > /dev/null 2>&1
-> +if [ $? -ne 0 ]; then
-> +	echo "SKIP: Could not run test without ncat"
-> +	exit $ksft_skip
-> +fi
-> +
-> +setup() {
-> +    ip netns add ns0
-> +    ip netns add ns1
-> +    ip netns add ns2
-> +
-> +    ip link add veth01 netns ns0 type veth peer name veth10 netns ns1
-> +    ip link add veth02 netns ns0 type veth peer name veth20 netns ns2
-> +    ip link add veth12 netns ns1 type veth peer name veth21 netns ns2
-> +
-> +    ip netns exec ns0 ip link set veth01 up
-> +    ip netns exec ns0 ip link set veth02 up
-> +    ip netns exec ns0 ip link add br0 type bridge
-> +    ip netns exec ns0 ip link set veth01 master br0
-> +    ip netns exec ns0 ip link set veth02 master br0
-> +    ip netns exec ns0 ip link set br0 up
-> +    ip netns exec ns0 ip addr add ${cip_v4}/24 dev br0
-> +
-> +    ip netns exec ns1 ip link set lo up
-> +    ip netns exec ns1 ip link set veth10 up
-> +    ip netns exec ns1 ip addr add ${gip_v4}/24 dev veth10
-> +    ip netns exec ns1 ip link set veth12 up
-> +    ip netns exec ns1 ip addr add ${dip_v4}/24 dev veth12
-> +
-> +    ip netns exec ns2 ip link set lo up
-> +    ip netns exec ns2 ip link set veth21 up
-> +    ip netns exec ns2 ip addr add ${rip_v4}/24 dev veth21
-> +    ip netns exec ns2 ip link set veth20 up
-> +    ip netns exec ns2 ip addr add ${sip_v4}/24 dev veth20
-> +}
-> +
-> +cleanup() {
-> +    for i in 0 1 2
-> +    do
-> +	ip netns del ns$i > /dev/null 2>&1
-> +    done
-> +    pkill nc
-> +}
-> +
-> +server_listen() {
-> +	ip netns exec ns2 nc -l -p 8080 > "${outfile}" &
-> +	server_pid=$!
-> +	sleep 0.2
-> +}
-> +
-> +client_connect() {
-> +	ip netns exec ns0 timeout 2 nc -w 1 ${vip_v4} ${port} < "${infile}"
-> +}
-> +
-> +verify_data() {
-> +	wait "${server_pid}"
-> +	# sha1sum returns two fields [sha1] [filepath]
-> +	# convert to bash array and access first elem
-> +	insum=($(sha1sum ${infile}))
-> +	outsum=($(sha1sum ${outfile}))
-> +	if [[ "${insum[0]}" != "${outsum[0]}" ]]; then
-> +		echo "data mismatch"
-> +		exit 1
-> +	fi
-
-I believe that the above code contains the only bashisms.
-I'm wondering if we could consider changing it and using #!/bin/sh.
-
-The following appears to work when /bin/sh is dash.
-
-	wait "${server_pid}"
-	if ! cmp "$infile" "$outfile"; then
-		echo "data mismatch"
-		exit 1
-	fi
-
-> +}
-> +
-> +test_service() {
-> +    server_listen
-> +    client_connect
-> +    ret=$?
-> +    if [ $ret -ne 0 ]; then
-> +	return $ret
-> +    fi
-> +    verify_data
-> +}
-> +
-> +
-> +test_dr() {
-> +    ip netns exec ns0 ip route add ${vip_v4} via ${gip_v4} dev br0
-> +
-> +    ip netns exec ns1 sysctl -qw net.ipv4.ip_forward=1
-> +    ip netns exec ns1 ipvsadm -A -t ${vip_v4}:${port} -s rr
-> +    ip netns exec ns1 ipvsadm -a -t ${vip_v4}:${port} -r ${rip_v4}:${port}
-> +    ip netns exec ns1 ip addr add ${vip_v4}/32 dev lo:1
-> +
-> +    # avoid incorrect arp response
-> +    ip netns exec ns2 sysctl -qw net.ipv4.conf.all.arp_ignore=1
-> +    ip netns exec ns2 sysctl -qw net.ipv4.conf.all.arp_announce=2
-> +    # avoid reverse route lookup
-> +    ip netns exec ns2 sysctl -qw  net.ipv4.conf.all.rp_filter=0
-> +    ip netns exec ns2 sysctl -qw  net.ipv4.conf.veth21.rp_filter=0
-> +    ip netns exec ns2 ip addr add ${vip_v4}/32 dev lo:1
-> +
-> +    test_service
-> +}
-> +
-> +run_tests() {
-> +	local errors=
-> +
-> +	echo "Testing DR mode..."
-> +	setup
-> +	test_dr
-> +	errors=$(( $errors + $? ))
-> +
-> +	return $errors
-> +}
-> +
-> +trap cleanup EXIT
-> +
-> +cleanup
-> +run_tests
-> +
-> +if [ $? -ne 0 ]; then
-> +	echo -e "$(basename $0): ${RED}FAIL${NC}"
-> +	exit 1
-> +fi
-> +echo -e "$(basename $0): ${GREEN}PASS${NC}"
-> +exit 0
-> -- 
-> 1.8.3.1
-> 
-> 
-> 
+Thanks.
