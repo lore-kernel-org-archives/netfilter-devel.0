@@ -2,70 +2,93 @@ Return-Path: <SRS0=M1Ox=YC=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+X-Spam-Status: No, score=-6.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B61A9C47404
-	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Oct 2019 10:47:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 678F8ECE58D
+	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Oct 2019 11:17:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9A49821721
-	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Oct 2019 10:47:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4B40F2133F
+	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Oct 2019 11:17:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730827AbfJIKrf (ORCPT
+        id S1729575AbfJILRM (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 9 Oct 2019 06:47:35 -0400
-Received: from correo.us.es ([193.147.175.20]:35084 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726765AbfJIKre (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 9 Oct 2019 06:47:34 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id B49A5C9D205
-        for <netfilter-devel@vger.kernel.org>; Wed,  9 Oct 2019 12:47:30 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id A6559FB362
-        for <netfilter-devel@vger.kernel.org>; Wed,  9 Oct 2019 12:47:30 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 9BD9A4C3BF; Wed,  9 Oct 2019 12:47:30 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 88C81B7FF6;
-        Wed,  9 Oct 2019 12:47:28 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Wed, 09 Oct 2019 12:47:28 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (sys.soleta.eu [212.170.55.40])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 66EE942EE38F;
-        Wed,  9 Oct 2019 12:47:28 +0200 (CEST)
-Date:   Wed, 9 Oct 2019 12:47:30 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Phil Sutter <phil@nwl.cc>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [libnftnl PATCH v2] set: Export nftnl_set_list_lookup_byname()
-Message-ID: <20191009104730.nqrxqu3t2d3n7vuz@salvia>
-References: <20191008203751.1529-1-phil@nwl.cc>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20191008203751.1529-1-phil@nwl.cc>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+        Wed, 9 Oct 2019 07:17:12 -0400
+Received: from cmccmta1.chinamobile.com ([221.176.66.79]:5552 "EHLO
+        cmccmta1.chinamobile.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727219AbfJILRM (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 9 Oct 2019 07:17:12 -0400
+Received: from spf.mail.chinamobile.com (unknown[172.16.121.11]) by rmmx-syy-dmz-app03-12003 (RichMail) with SMTP id 2ee35d9dc196913-087e5; Wed, 09 Oct 2019 19:16:38 +0800 (CST)
+X-RM-TRANSID: 2ee35d9dc196913-087e5
+X-RM-TagInfo: emlType=0                                       
+X-RM-SPAM-FLAG: 00000000
+Received: from localhost (unknown[223.105.0.241])
+        by rmsmtp-syy-appsvr06-12006 (RichMail) with SMTP id 2ee65d9dc1959a6-fa78c;
+        Wed, 09 Oct 2019 19:16:38 +0800 (CST)
+X-RM-TRANSID: 2ee65d9dc1959a6-fa78c
+From:   Haishuang Yan <yanhaishuang@cmss.chinamobile.com>
+To:     Shuah Khan <shuah@kernel.org>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Simon Horman <horms@verge.net.au>
+Cc:     Julian Anastasov <ja@ssi.bg>, linux-kernel@vger.kernel.org,
+        linux-kselftest@vger.kernel.org, lvs-devel@vger.kernel.org,
+        netfilter-devel@vger.kernel.org,
+        Haishuang Yan <yanhaishuang@cmss.chinamobile.com>
+Subject: [PATCH v5 0/3] selftests: netfilter: introduce test cases for ipvs
+Date:   Wed,  9 Oct 2019 19:16:27 +0800
+Message-Id: <1570619790-6086-1-git-send-email-yanhaishuang@cmss.chinamobile.com>
+X-Mailer: git-send-email 1.8.3.1
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Oct 08, 2019 at 10:37:51PM +0200, Phil Sutter wrote:
-> Rename and optimize internal function nftnl_set_lookup() for external
-> use. Just like with nftnl_chain_list, use a hash table for fast set name
-> lookups.
-> 
-> Signed-off-by: Phil Sutter <phil@nwl.cc>
+This series patch include test cases for ipvs.
 
-Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
+The test topology is who as below:
++--------------------------------------------------------------+
+|                      |                                       |
+|         ns0          |         ns1                           |
+|      -----------     |     -----------    -----------        |
+|      | veth01  | --------- | veth10  |    | veth12  |        |
+|      -----------    peer   -----------    -----------        |
+|           |          |                        |              |
+|      -----------     |                        |              |
+|      |  br0    |     |-----------------  peer |--------------|
+|      -----------     |                        |              |
+|           |          |                        |              |
+|      ----------     peer   ----------      -----------       |
+|      |  veth02 | --------- |  veth20 |     | veth12  |       |
+|      ----------      |     ----------      -----------       |
+|                      |         ns2                           |
+|                      |                                       |
++--------------------------------------------------------------+
 
-Thanks Phil.
+Test results:
+# selftests: netfilter: ipvs.sh
+# Testing DR mode...
+# Testing NAT mode...
+# Testing Tunnel mode...
+# ipvs.sh: PASS
+ok 6 selftests: netfilter: ipvs.sh
+
+Signed-off-by: Haishuang Yan <yanhaishuang@cmss.chinamobile.com>
+
+Haishuang Yan (3):
+  selftests: netfilter: add ipvs test script
+  selftests: netfilter: add ipvs nat test case
+  selftests: netfilter: add ipvs tunnel test case
+
+ tools/testing/selftests/netfilter/Makefile |   2 +-
+ tools/testing/selftests/netfilter/ipvs.sh  | 228 +++++++++++++++++++++++++++++
+ 2 files changed, 229 insertions(+), 1 deletion(-)
+ create mode 100755 tools/testing/selftests/netfilter/ipvs.sh
+
+-- 
+1.8.3.1
+
+
+
