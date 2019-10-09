@@ -2,156 +2,127 @@ Return-Path: <SRS0=M1Ox=YC=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-22.4 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT,USER_IN_DEF_DKIM_WL autolearn=unavailable
+X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 30E6BECE58C
-	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Oct 2019 16:19:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A8B33ECE58D
+	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Oct 2019 17:30:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 084AD2067B
-	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Oct 2019 16:19:20 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="EUnGVRCq"
+	by mail.kernel.org (Postfix) with ESMTP id 8271620679
+	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Oct 2019 17:30:06 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1570642206;
+	bh=WxL+isxSLqVyP/vPvSWCFfVBslLsA4hnCVMimY/E5uU=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=TGy0owh4VYcEICfftTpQGg0rFAnEpU4MyeSE2G8KN6hUvYft6wJIldpDwCOMsGBQi
+	 cEP9l2VavBvpkkpiDCOeMR/+uXLtY0X9uZrXQwsWK5FIgvdK9MDXnFVl9Q0VgGzy8i
+	 3cAYk1d/zRAzkyY2TL8IVo/43xE6OPkAv5+i55wg=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731751AbfJIQTT (ORCPT
+        id S1732459AbfJIRaB (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 9 Oct 2019 12:19:19 -0400
-Received: from mail-pl1-f202.google.com ([209.85.214.202]:50589 "EHLO
-        mail-pl1-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1731083AbfJIQTT (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 9 Oct 2019 12:19:19 -0400
-Received: by mail-pl1-f202.google.com with SMTP id y13so1785676plr.17
-        for <netfilter-devel@vger.kernel.org>; Wed, 09 Oct 2019 09:19:17 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20161025;
-        h=date:message-id:mime-version:subject:from:to:cc;
-        bh=FFXVGfca53SiSL7HqaRqfk9Hg68uxc6K6z/nepNQII8=;
-        b=EUnGVRCqYymy2Sq/LMdSpcx2rxJHRSnPqmH66R3NvRjfhqeNWd/S3XXFRMMlN+cqu6
-         uA29QA1U+xgIRZuJUKxptgvtaMI6bHHD1hya6aoUJmLqMLBETjuOaTaHj5yD3RMiq9HF
-         NIzyJR25Jc1ld2cM6+aAV6z8WCQy0aVRr/lI/XIY7LqQ19rcGel9CCKSUXCHY+ln2r3Z
-         C0sUp9KwNN7AT7KyyMyqn0nTIkHKrEzMlM/eKLaMwvRWP/xDr1CVpR7wy30vKuaP0968
-         Wy+Cv41M5KDhd7uZYs1qVfTqtYkfoaBv6wEKidX1kHVey6FoXvaxFbok1w93KNYiMYP8
-         MpqQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:message-id:mime-version:subject:from:to:cc;
-        bh=FFXVGfca53SiSL7HqaRqfk9Hg68uxc6K6z/nepNQII8=;
-        b=KPju8bb/FUq1sdJHOwK9gNVukzvgbRdl+fa+/qlV/+dvXrwW2Cxt19P9MC+XLQYeuZ
-         B+CBduPUBK/1mF7VrS/1MKdZnzPVLZ+Kl/2pMABDsTl0qzJxc5Q4htDLzNS5pk1t0Hc+
-         ttEPIGadJYYxGP0psREdiHXkNqOfZEm+pjnKwMNRZAifbfmuZ9dg8E4lcV6eGS6FgpNU
-         1C6+hqDAbVxtxT281trmNLYd86Kmvo4T9y5oPAzOxKp0/s7Nt5sz7etW7o/HErJwYYj4
-         4xVIO+4rnlgmZTstBx4m2PGP3F4b7ad8t3N4X59/uQ7uMR16C+e3EmtEWZHodAHf2z/H
-         vSHQ==
-X-Gm-Message-State: APjAAAXtW8xGobWRKlddKShqOLWrLHX5DhaKBz554q1bIcJTlSuKbbbj
-        SoIllDA8l4GKKA2vfFuXnmRFrybjMtUUzg==
-X-Google-Smtp-Source: APXvYqwmU1FFrtv+wXrGnf2TMoVSzSEk1J5FQ8b5ObV2cM7Fn1mzSuNLKCS5Hik7xTV07sHREOLf9tgFXkN9BQ==
-X-Received: by 2002:a63:ff1c:: with SMTP id k28mr5277749pgi.281.1570637956834;
- Wed, 09 Oct 2019 09:19:16 -0700 (PDT)
-Date:   Wed,  9 Oct 2019 09:19:13 -0700
-Message-Id: <20191009161913.18600-1-edumazet@google.com>
-Mime-Version: 1.0
-X-Mailer: git-send-email 2.23.0.581.g78d2f28ef7-goog
-Subject: [PATCH net] netfilter: conntrack: avoid possible false sharing
-From:   Eric Dumazet <edumazet@google.com>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org, netdev <netdev@vger.kernel.org>,
-        Eric Dumazet <edumazet@google.com>,
-        Eric Dumazet <eric.dumazet@gmail.com>,
-        syzbot <syzkaller@googlegroups.com>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>
-Content-Type: text/plain; charset="UTF-8"
+        Wed, 9 Oct 2019 13:30:01 -0400
+Received: from mail.kernel.org ([198.145.29.99]:48626 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1732165AbfJIRYK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 9 Oct 2019 13:24:10 -0400
+Received: from sasha-vm.mshome.net (unknown [167.220.2.234])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id AD11821D6C;
+        Wed,  9 Oct 2019 17:24:09 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1570641849;
+        bh=WxL+isxSLqVyP/vPvSWCFfVBslLsA4hnCVMimY/E5uU=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=RuPvJtzWPaNkQYPMmFawFJJIsZe5ktwdYsAiNueWKyipNKr5iwq+6aETsBjxPOjfB
+         6yIe0wJbHQvhYIWCE8mYtaLWmuTsXEGvBRBfNHkMButOFXh8PeAcdabDuQLQjJ3+Z3
+         lAb0wxRHIqetiZoNORdsL6g+/JIZrMAi7h6N23wc=
+From:   Sasha Levin <sashal@kernel.org>
+To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Laura Garcia Liebana <nevola@gmail.com>,
+        Sasha Levin <sashal@kernel.org>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org
+Subject: [PATCH AUTOSEL 4.19 18/26] netfilter: nft_connlimit: disable bh on garbage collection
+Date:   Wed,  9 Oct 2019 13:05:50 -0400
+Message-Id: <20191009170558.32517-18-sashal@kernel.org>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20191009170558.32517-1-sashal@kernel.org>
+References: <20191009170558.32517-1-sashal@kernel.org>
+MIME-Version: 1.0
+X-stable: review
+X-Patchwork-Hint: Ignore
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-As hinted by KCSAN, we need at least one READ_ONCE()
-to prevent a compiler optimization.
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-More details on :
-https://github.com/google/ktsan/wiki/READ_ONCE-and-WRITE_ONCE#it-may-improve-performance
+[ Upstream commit 34a4c95abd25ab41fb390b985a08a651b1fa0b0f ]
 
-sysbot report :
-BUG: KCSAN: data-race in __nf_ct_refresh_acct / __nf_ct_refresh_acct
+BH must be disabled when invoking nf_conncount_gc_list() to perform
+garbage collection, otherwise deadlock might happen.
 
-read to 0xffff888123eb4f08 of 4 bytes by interrupt on cpu 0:
- __nf_ct_refresh_acct+0xd4/0x1b0 net/netfilter/nf_conntrack_core.c:1796
- nf_ct_refresh_acct include/net/netfilter/nf_conntrack.h:201 [inline]
- nf_conntrack_tcp_packet+0xd40/0x3390 net/netfilter/nf_conntrack_proto_tcp.c:1161
- nf_conntrack_handle_packet net/netfilter/nf_conntrack_core.c:1633 [inline]
- nf_conntrack_in+0x410/0xaa0 net/netfilter/nf_conntrack_core.c:1727
- ipv4_conntrack_in+0x27/0x40 net/netfilter/nf_conntrack_proto.c:178
- nf_hook_entry_hookfn include/linux/netfilter.h:135 [inline]
- nf_hook_slow+0x83/0x160 net/netfilter/core.c:512
- nf_hook include/linux/netfilter.h:260 [inline]
- NF_HOOK include/linux/netfilter.h:303 [inline]
- ip_rcv+0x12f/0x1a0 net/ipv4/ip_input.c:523
- __netif_receive_skb_one_core+0xa7/0xe0 net/core/dev.c:5004
- __netif_receive_skb+0x37/0xf0 net/core/dev.c:5118
- netif_receive_skb_internal+0x59/0x190 net/core/dev.c:5208
- napi_skb_finish net/core/dev.c:5671 [inline]
- napi_gro_receive+0x28f/0x330 net/core/dev.c:5704
- receive_buf+0x284/0x30b0 drivers/net/virtio_net.c:1061
- virtnet_receive drivers/net/virtio_net.c:1323 [inline]
- virtnet_poll+0x436/0x7d0 drivers/net/virtio_net.c:1428
- napi_poll net/core/dev.c:6352 [inline]
- net_rx_action+0x3ae/0xa50 net/core/dev.c:6418
- __do_softirq+0x115/0x33f kernel/softirq.c:292
+  nf_conncount_add+0x1f/0x50 [nf_conncount]
+  nft_connlimit_eval+0x4c/0xe0 [nft_connlimit]
+  nft_dynset_eval+0xb5/0x100 [nf_tables]
+  nft_do_chain+0xea/0x420 [nf_tables]
+  ? sch_direct_xmit+0x111/0x360
+  ? noqueue_init+0x10/0x10
+  ? __qdisc_run+0x84/0x510
+  ? tcp_packet+0x655/0x1610 [nf_conntrack]
+  ? ip_finish_output2+0x1a7/0x430
+  ? tcp_error+0x130/0x150 [nf_conntrack]
+  ? nf_conntrack_in+0x1fc/0x4c0 [nf_conntrack]
+  nft_do_chain_ipv4+0x66/0x80 [nf_tables]
+  nf_hook_slow+0x44/0xc0
+  ip_rcv+0xb5/0xd0
+  ? ip_rcv_finish_core.isra.19+0x360/0x360
+  __netif_receive_skb_one_core+0x52/0x70
+  netif_receive_skb_internal+0x34/0xe0
+  napi_gro_receive+0xba/0xe0
+  e1000_clean_rx_irq+0x1e9/0x420 [e1000e]
+  e1000e_poll+0xbe/0x290 [e1000e]
+  net_rx_action+0x149/0x3b0
+  __do_softirq+0xde/0x2d8
+  irq_exit+0xba/0xc0
+  do_IRQ+0x85/0xd0
+  common_interrupt+0xf/0xf
+  </IRQ>
+  RIP: 0010:nf_conncount_gc_list+0x3b/0x130 [nf_conncount]
 
-write to 0xffff888123eb4f08 of 4 bytes by task 7191 on cpu 1:
- __nf_ct_refresh_acct+0xfb/0x1b0 net/netfilter/nf_conntrack_core.c:1797
- nf_ct_refresh_acct include/net/netfilter/nf_conntrack.h:201 [inline]
- nf_conntrack_tcp_packet+0xd40/0x3390 net/netfilter/nf_conntrack_proto_tcp.c:1161
- nf_conntrack_handle_packet net/netfilter/nf_conntrack_core.c:1633 [inline]
- nf_conntrack_in+0x410/0xaa0 net/netfilter/nf_conntrack_core.c:1727
- ipv4_conntrack_local+0xbe/0x130 net/netfilter/nf_conntrack_proto.c:200
- nf_hook_entry_hookfn include/linux/netfilter.h:135 [inline]
- nf_hook_slow+0x83/0x160 net/netfilter/core.c:512
- nf_hook include/linux/netfilter.h:260 [inline]
- __ip_local_out+0x1f7/0x2b0 net/ipv4/ip_output.c:114
- ip_local_out+0x31/0x90 net/ipv4/ip_output.c:123
- __ip_queue_xmit+0x3a8/0xa40 net/ipv4/ip_output.c:532
- ip_queue_xmit+0x45/0x60 include/net/ip.h:236
- __tcp_transmit_skb+0xdeb/0x1cd0 net/ipv4/tcp_output.c:1158
- __tcp_send_ack+0x246/0x300 net/ipv4/tcp_output.c:3685
- tcp_send_ack+0x34/0x40 net/ipv4/tcp_output.c:3691
- tcp_cleanup_rbuf+0x130/0x360 net/ipv4/tcp.c:1575
-
-Reported by Kernel Concurrency Sanitizer on:
-CPU: 1 PID: 7191 Comm: syz-fuzzer Not tainted 5.3.0+ #0
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
-
-Fixes: cc16921351d8 ("netfilter: conntrack: avoid same-timeout update")
-Signed-off-by: Eric Dumazet <edumazet@google.com>
-Reported-by: syzbot <syzkaller@googlegroups.com>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Jozsef Kadlecsik <kadlec@netfilter.org>
-Cc: Florian Westphal <fw@strlen.de>
+Fixes: 2f971a8f4255 ("netfilter: nf_conncount: move all list iterations under spinlock")
+Reported-by: Laura Garcia Liebana <nevola@gmail.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- net/netfilter/nf_conntrack_core.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ net/netfilter/nft_connlimit.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 0c63120b2db2e1ea9983a6b1ce8d2aefebc29501..5cd610b547e0d1e3463a65ba3627f265c836bdc5 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -1792,8 +1792,8 @@ void __nf_ct_refresh_acct(struct nf_conn *ct,
- 	if (nf_ct_is_confirmed(ct))
- 		extra_jiffies += nfct_time_stamp;
+diff --git a/net/netfilter/nft_connlimit.c b/net/netfilter/nft_connlimit.c
+index af1497ab94642..69d6173f91e2b 100644
+--- a/net/netfilter/nft_connlimit.c
++++ b/net/netfilter/nft_connlimit.c
+@@ -218,8 +218,13 @@ static void nft_connlimit_destroy_clone(const struct nft_ctx *ctx,
+ static bool nft_connlimit_gc(struct net *net, const struct nft_expr *expr)
+ {
+ 	struct nft_connlimit *priv = nft_expr_priv(expr);
++	bool ret;
  
--	if (ct->timeout != extra_jiffies)
--		ct->timeout = extra_jiffies;
-+	if (READ_ONCE(ct->timeout) != extra_jiffies)
-+		WRITE_ONCE(ct->timeout, extra_jiffies);
- acct:
- 	if (do_acct)
- 		nf_ct_acct_update(ct, ctinfo, skb->len);
+-	return nf_conncount_gc_list(net, &priv->list);
++	local_bh_disable();
++	ret = nf_conncount_gc_list(net, &priv->list);
++	local_bh_enable();
++
++	return ret;
+ }
+ 
+ static struct nft_expr_type nft_connlimit_type;
 -- 
-2.23.0.581.g78d2f28ef7-goog
+2.20.1
 
