@@ -2,63 +2,65 @@ Return-Path: <SRS0=6wcg=YD=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+X-Spam-Status: No, score=-10.3 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
-	autolearn_force=no version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C0B85ECE596
-	for <netfilter-devel@archiver.kernel.org>; Thu, 10 Oct 2019 04:25:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 28A0FC10F14
+	for <netfilter-devel@archiver.kernel.org>; Thu, 10 Oct 2019 04:30:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9CAFB218AC
-	for <netfilter-devel@archiver.kernel.org>; Thu, 10 Oct 2019 04:25:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 01866208C3
+	for <netfilter-devel@archiver.kernel.org>; Thu, 10 Oct 2019 04:30:34 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=netronome-com.20150623.gappssmtp.com header.i=@netronome-com.20150623.gappssmtp.com header.b="eZn5FosL"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="bf70iZzy"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726201AbfJJEZG (ORCPT
+        id S1727391AbfJJEa0 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 10 Oct 2019 00:25:06 -0400
-Received: from mail-pl1-f196.google.com ([209.85.214.196]:32915 "EHLO
-        mail-pl1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725822AbfJJEZG (ORCPT
+        Thu, 10 Oct 2019 00:30:26 -0400
+Received: from mail-pg1-f196.google.com ([209.85.215.196]:34298 "EHLO
+        mail-pg1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725829AbfJJEaZ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 10 Oct 2019 00:25:06 -0400
-Received: by mail-pl1-f196.google.com with SMTP id d22so2146375pls.0
-        for <netfilter-devel@vger.kernel.org>; Wed, 09 Oct 2019 21:25:05 -0700 (PDT)
+        Thu, 10 Oct 2019 00:30:25 -0400
+Received: by mail-pg1-f196.google.com with SMTP id y35so2833261pgl.1;
+        Wed, 09 Oct 2019 21:30:25 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=netronome-com.20150623.gappssmtp.com; s=20150623;
-        h=date:from:to:cc:subject:message-id:in-reply-to:references
-         :organization:mime-version:content-transfer-encoding;
-        bh=F2mWN6iONW+mLLRJyrXLX3Mqwxx68njinFB093kEhkw=;
-        b=eZn5FosLXe+fiRRmpB6ryaaoYD1tGLkVUMy4O2wDqlMSTpoyb/ivArjB+DV5gr7+Sf
-         9zj1ab4evn+7oQJEETVg0tHAr4v+PSKgH/xW2+3kWA8RmvdAnDX+f48hQhhhXZv77+tB
-         vRmd4YNclxFP2s+9bLvWEn0wYs1jQzjt/u3IWYqKo5annaJKePlMXFdfGJqwWUSuTgeL
-         T40rWhEFQYaXcVdTio+3mcmH7+pc4yq+hiV/jj+gEmfB3N7LVsKMZocFt3kO4ydEC7c2
-         YWhGn9507jTzbrpc8qxWa5UXCY8u/Y7U8MjejDrcMISQQ2LjXT8MpR2HtX+tbsGuRXBE
-         QKTQ==
+        d=gmail.com; s=20161025;
+        h=subject:to:cc:references:from:message-id:date:user-agent
+         :mime-version:in-reply-to:content-language:content-transfer-encoding;
+        bh=AT1qXEvZ+lQA7q1Z71j11lVp8JI+71RILIKUCFl5DKI=;
+        b=bf70iZzyYJHlRpq3VlAxj/4S5gY1uZNsyF6fU1xHSUCByV+eMZBMvgaCY7OC0WGGI5
+         xy/2Lg09kPSUy2iEaUpTWfJk38pJTVfUp7n8OkH5axKB0NoWP/khROfd61VTuvF9XBn4
+         NXwgnGb8EVFJyku92dH2NlmnQgiIA1Ov7pHUVMWO64r258kPf3lAO9EwRRH4k1BIf5V6
+         Tq4OlS79M6v7lgBpYqNnBfgysdvyTxqFP9yrpwRtOFOSrHTW0bqGyiTSDN2SFKynU660
+         nhgtimefy+yoxqPiJfNaMFQFV+c73rJAeBnS9DM663vNuus7QCAdW7uQvFq7cxu3SbLa
+         h2MQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:in-reply-to
-         :references:organization:mime-version:content-transfer-encoding;
-        bh=F2mWN6iONW+mLLRJyrXLX3Mqwxx68njinFB093kEhkw=;
-        b=cKpP6fJJp+F0crL+WKQzCrjjeEYF/T0FyeNMF0uK4GlNIBhQcDIn68/9axlS/akQVY
-         6doCi5+b2ao2LOlxFQzVqeHcH6mhDZP+SLCVNSUh5xgBCS4J2sNXGvcxd+EMMo6aRu/F
-         j8FGwAOAtDgqx/KruKGsapPXgp+mLJ8vY+z21zCn4YmaUl4A8HOxwvaV2ToCNeqvA4Hl
-         /0ZUDFoxXBC3OU2GLGpYfI2+STPfxtsWSNVBUglanGcRW3aiSArLth9sxE2USZvM5CkY
-         pVehx6g6mqDtAJGfHZd6/N/4SwgbtxfcYjH5Yws0OudQxFl/Ymw1YAJ7Ud8D6ZlvqOHl
-         +Miw==
-X-Gm-Message-State: APjAAAVttshi0zCmU8IEcImZfcJX1f+4tjhVUVgPYcXrrYVcJaOxpIg4
-        g2/rhNZtrvc42yw6ZRaNYmILUw==
-X-Google-Smtp-Source: APXvYqynM/govpFUXiDmKtrtBuM+YvQonis/gzdNY0zb3g+8xM5GSCV5XpIVAUZNAKVdywvpRG05Eg==
-X-Received: by 2002:a17:902:bc4c:: with SMTP id t12mr6816220plz.53.1570681505624;
-        Wed, 09 Oct 2019 21:25:05 -0700 (PDT)
-Received: from cakuba.netronome.com (c-73-202-202-92.hsd1.ca.comcast.net. [73.202.202.92])
-        by smtp.gmail.com with ESMTPSA id k93sm7601550pjh.3.2019.10.09.21.25.04
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 09 Oct 2019 21:25:05 -0700 (PDT)
-Date:   Wed, 9 Oct 2019 21:24:51 -0700
-From:   Jakub Kicinski <jakub.kicinski@netronome.com>
-To:     Eric Dumazet <edumazet@google.com>
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-language
+         :content-transfer-encoding;
+        bh=AT1qXEvZ+lQA7q1Z71j11lVp8JI+71RILIKUCFl5DKI=;
+        b=WyY9cL7gcPJiD1F9KsJAJP6WpLEp4VHQfdUwgD45DOnH06sVbwoSHQBAXnkXqe6xFW
+         NaoS+/XVcI8Tlo6nQX2K03iBXg7xFEkQ58jwjmizkGj8+uQAMGpjgdTSiGuLEc1Df+qh
+         fpq432SOpsZLdx6KRELQu+SX2qR9R9srVw8qPNa3I0BnpHbaoidjEALSMiXgZaapqv7M
+         +aKUB8LuAIFUZUyz9sbc88wVK9RKgP/X3Bg3kSZdgW5TSe+S5ClHE3X+hYpAUKhf1g0J
+         h+VjmyWk0+rr/BZGp2aHU/77DqYr9vmHcQWZpOEU5l+Kd2VGDwKSJw2PO4QUXIQVHR3d
+         iqYw==
+X-Gm-Message-State: APjAAAWEGW2zvzAvq8Vka0VvWhQRtPD9Am7RaaRzL0SiRrTvJ+Tc6Wzy
+        thah3a9TC+V+T8BXgw25/wA=
+X-Google-Smtp-Source: APXvYqxAGi9RKiZZfYMaYp3blstGL8vkWv2x/vmRLdHFU7Vu+wMMTuEUBcdFzSMOO4Ll9Tn6GCVuMA==
+X-Received: by 2002:a17:90a:f495:: with SMTP id bx21mr8347624pjb.84.1570681824990;
+        Wed, 09 Oct 2019 21:30:24 -0700 (PDT)
+Received: from [192.168.86.235] (c-73-241-150-70.hsd1.ca.comcast.net. [73.241.150.70])
+        by smtp.gmail.com with ESMTPSA id i132sm3404043pgd.47.2019.10.09.21.30.23
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 09 Oct 2019 21:30:24 -0700 (PDT)
+Subject: Re: [PATCH net] netfilter: conntrack: avoid possible false sharing
+To:     Jakub Kicinski <jakub.kicinski@netronome.com>,
+        Eric Dumazet <edumazet@google.com>
 Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
         Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
         Florian Westphal <fw@strlen.de>,
@@ -66,35 +68,45 @@ Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
         Eric Dumazet <eric.dumazet@gmail.com>,
         syzbot <syzkaller@googlegroups.com>,
         Jozsef Kadlecsik <kadlec@netfilter.org>
-Subject: Re: [PATCH net] netfilter: conntrack: avoid possible false sharing
-Message-ID: <20191009212451.0522979f@cakuba.netronome.com>
-In-Reply-To: <20191009161913.18600-1-edumazet@google.com>
 References: <20191009161913.18600-1-edumazet@google.com>
-Organization: Netronome Systems, Ltd.
+ <20191009212451.0522979f@cakuba.netronome.com>
+From:   Eric Dumazet <eric.dumazet@gmail.com>
+Message-ID: <7b7193d5-c93f-b81a-f4a0-ad63ed8196c3@gmail.com>
+Date:   Wed, 9 Oct 2019 21:30:22 -0700
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.8.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <20191009212451.0522979f@cakuba.netronome.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed,  9 Oct 2019 09:19:13 -0700, Eric Dumazet wrote:
-> As hinted by KCSAN, we need at least one READ_ONCE()
-> to prevent a compiler optimization.
-> 
-> More details on :
-> https://github.com/google/ktsan/wiki/READ_ONCE-and-WRITE_ONCE#it-may-improve-performance
-> 
-> [...]
-> 
-> Fixes: cc16921351d8 ("netfilter: conntrack: avoid same-timeout update")
-> Signed-off-by: Eric Dumazet <edumazet@google.com>
-> Reported-by: syzbot <syzkaller@googlegroups.com>
-> Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-> Cc: Jozsef Kadlecsik <kadlec@netfilter.org>
-> Cc: Florian Westphal <fw@strlen.de>
 
-Applied, thank you. 
 
-Not queuing for stable, please let me know if I should.
+On 10/9/19 9:24 PM, Jakub Kicinski wrote:
+> On Wed,  9 Oct 2019 09:19:13 -0700, Eric Dumazet wrote:
+>> As hinted by KCSAN, we need at least one READ_ONCE()
+>> to prevent a compiler optimization.
+>>
+>> More details on :
+>> https://github.com/google/ktsan/wiki/READ_ONCE-and-WRITE_ONCE#it-may-improve-performance
+>>
+>> [...]
+>>
+>> Fixes: cc16921351d8 ("netfilter: conntrack: avoid same-timeout update")
+>> Signed-off-by: Eric Dumazet <edumazet@google.com>
+>> Reported-by: syzbot <syzkaller@googlegroups.com>
+>> Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+>> Cc: Jozsef Kadlecsik <kadlec@netfilter.org>
+>> Cc: Florian Westphal <fw@strlen.de>
+> 
+> Applied, thank you. 
+> 
+> Not queuing for stable, please let me know if I should.
+> 
+
+This is fine really, thanks.
