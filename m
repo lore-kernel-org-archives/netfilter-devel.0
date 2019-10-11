@@ -6,58 +6,59 @@ X-Spam-Status: No, score=-3.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
 	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F0C09C10F14
-	for <netfilter-devel@archiver.kernel.org>; Fri, 11 Oct 2019 00:40:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 77D2BECE596
+	for <netfilter-devel@archiver.kernel.org>; Fri, 11 Oct 2019 00:41:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CC75F2190F
-	for <netfilter-devel@archiver.kernel.org>; Fri, 11 Oct 2019 00:40:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 527302053B
+	for <netfilter-devel@archiver.kernel.org>; Fri, 11 Oct 2019 00:41:05 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=paul-moore-com.20150623.gappssmtp.com header.i=@paul-moore-com.20150623.gappssmtp.com header.b="excfJ/xP"
+	dkim=pass (2048-bit key) header.d=paul-moore-com.20150623.gappssmtp.com header.i=@paul-moore-com.20150623.gappssmtp.com header.b="G3J9DjEz"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728059AbfJKAku (ORCPT
+        id S1728080AbfJKAlB (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 10 Oct 2019 20:40:50 -0400
-Received: from mail-lj1-f193.google.com ([209.85.208.193]:35276 "EHLO
-        mail-lj1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727864AbfJKAkt (ORCPT
+        Thu, 10 Oct 2019 20:41:01 -0400
+Received: from mail-lj1-f194.google.com ([209.85.208.194]:35295 "EHLO
+        mail-lj1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728049AbfJKAlB (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 10 Oct 2019 20:40:49 -0400
-Received: by mail-lj1-f193.google.com with SMTP id m7so8075828lji.2
-        for <netfilter-devel@vger.kernel.org>; Thu, 10 Oct 2019 17:40:48 -0700 (PDT)
+        Thu, 10 Oct 2019 20:41:01 -0400
+Received: by mail-lj1-f194.google.com with SMTP id m7so8076121lji.2
+        for <netfilter-devel@vger.kernel.org>; Thu, 10 Oct 2019 17:40:59 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=paul-moore-com.20150623.gappssmtp.com; s=20150623;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=H2FS1xOZd/52wDxpWUrAmpLbVkhqrk6X7y4KWQdphOQ=;
-        b=excfJ/xPWZ2+jilbteJY4Vi+c9HHFbmh8FkB0VkVQqsRNzfaN29He3nWLonU+RXfhK
-         3pXMA0TLVwHppNQr0AUdUG53U42HF+9GxxpGlj/4kcIRtN2pAGAhjypJkZNwf6iE4U2K
-         QnDU6KwbkTBSAhWjCsQuxo6Yvo3mAnUXyeDgSEkA6Cy+jFD7qJ0JXa3ufc+Z8Ubil/UN
-         0Cdjgen9Fv8pItZNyHwfvmTyOXAjZeb7m1pS8EB6mZ+mIjfO5jq4nE77VYMmJNXOtxB7
-         kvPLp8grvYwauQ5k1eqQDdg2eooaCdMYqVLWUpqPOHk/o0cD7moYJjQphs+tsLLeny72
-         W+eg==
+        bh=CfDaZT4bXkWgxnluWp+WhmE+OpX1r8BSHHGhbM539S4=;
+        b=G3J9DjEzJwvLYCWfemWN27LvdJrNNcUTEOJesbm+hDT6nSc4AxxnauaNC5OPkYNWHv
+         EwPZHD9Hg/H8ArC5g3+ik5/9zXU1YiSGtHEwF2ExCsLHGakwfvrA0Ss46FpefN5CZre8
+         cUJMn5kmLSF2zvecYGh+jg7shNGju9rCNctKgpBJFWyc6C3B7IH4U92epYuprDdI76Oj
+         Tz27IJHKhtslTrB9KtusXYzKqXkPMFJZDZG+8oUypn/sHfPJnp3q981Jw25+qra8yJxN
+         QY9kgc07gEjemDQPV77JrgVmoJ9X1PfcEz9wdswo05ZA7ud1WugjIM3O6/+JaEug5MVn
+         IDvw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=H2FS1xOZd/52wDxpWUrAmpLbVkhqrk6X7y4KWQdphOQ=;
-        b=tcLr4csVuzwZYHQj4GypswENODamr7GPitLC1DQxnke71uHN/wZ9Qtj4Gv6AonGN6k
-         ljb59JB60F4g1MKKAYzJAY3FD8Hai3+1Q8hq5m0ZYhAtU8iZsQ3vwqxxeKTKVxKEYsuF
-         GmBTY0Y5zwfQo7WYxrKiZFem/e+naxDxFvxZth8BtAVWI62ivtwaUw0vKlSFA0rrRGEU
-         W0kqnTb5f4CMQA0ScjY0/+TOSgcp0QdGCtD5AX1QInaGsNtth1y7jX1mn3849enN9vxP
-         PVOeKs7unn/qEn5WDZQcImck+mu9BbiRB70YMKhv60cQ/Em2ZauksY1BfDtd/yHStmLL
-         0Ldw==
-X-Gm-Message-State: APjAAAWWWGYXHVPBN/dnJfedRPdTUaPsGURK5wDp/UUzH+xGtZYwRKFx
-        oiQBVUxx+t70DkQxhEqUIfOuJiNx5hpdZZSdECPx
-X-Google-Smtp-Source: APXvYqxJgQInWarY5/M7kUO7HpwvMg1Nlpj/lgKKRdJtv+USUKJpyXPsrOQoku+hafT+CZ2zq5wB40bIA3VRiBrUbu8=
-X-Received: by 2002:a2e:8ec2:: with SMTP id e2mr7129095ljl.126.1570754447449;
- Thu, 10 Oct 2019 17:40:47 -0700 (PDT)
+        bh=CfDaZT4bXkWgxnluWp+WhmE+OpX1r8BSHHGhbM539S4=;
+        b=ZgctswkNe55xS3w53vpOgMuc0C1TQRQfGBLyHwEKiZtY772wWkpEJS2H8KDAZ6KeOh
+         J0254DBgnbeG0ebK/1hZpLFfSv1Qmh4WQ8z43GQJyi83myNEeldcoOohRkuUdZurrTLu
+         9O5kqgvxiLgY6Jn1o+ghf+lBgh7q8fSPNYkAhXNP9IxADkDlM0ZcInjyHdrkRwd+Rowz
+         4MzhFkRyqCi4GXeWfmbcBlPUFOe+Brs4v0l+jaZOPPZDdC8K4mTmVgDIOztf15MYfK5q
+         2irycIhK0Bgw/IQkaKgcCJREeP/mqClQkqqyctPrsS/e3zqxhyBefeulVaBRvv++4AhQ
+         fTyw==
+X-Gm-Message-State: APjAAAWpQ7d4+uhjZaN42uaAxXmpq2XWSQE877p9ATR6vXC2XzL8GY39
+        T8C1t6MEg5sbIhNYLA147qpdi6qA/iIvIQ74XMVS
+X-Google-Smtp-Source: APXvYqzYZFKZde2jj/9GQoDK0Z4ns4uY9vTPu7Bp/zGHrqgX2RFr1p2j3XCc2e9Pvk/AmyCJXkusYSvrW8G5t9z7Nts=
+X-Received: by 2002:a2e:286:: with SMTP id y6mr8034574lje.184.1570754459003;
+ Thu, 10 Oct 2019 17:40:59 -0700 (PDT)
 MIME-Version: 1.0
-References: <cover.1568834524.git.rgb@redhat.com> <ea4e8352fd1671f91d1b015a15abee785ea17136.1568834525.git.rgb@redhat.com>
-In-Reply-To: <ea4e8352fd1671f91d1b015a15abee785ea17136.1568834525.git.rgb@redhat.com>
+References: <cover.1568834524.git.rgb@redhat.com> <6cef16c2a019e61e49f4d62497b5ca8dab79b45f.1568834525.git.rgb@redhat.com>
+In-Reply-To: <6cef16c2a019e61e49f4d62497b5ca8dab79b45f.1568834525.git.rgb@redhat.com>
 From:   Paul Moore <paul@paul-moore.com>
-Date:   Thu, 10 Oct 2019 20:40:36 -0400
-Message-ID: <CAHC9VhRUmHiuRH6xYZo36hoV34ouNv4Ny0sWZYcz2dnEhx9nsA@mail.gmail.com>
-Subject: Re: [PATCH ghak90 V7 16/21] audit: add support for contid set/get by netlink
+Date:   Thu, 10 Oct 2019 20:40:47 -0400
+Message-ID: <CAHC9VhRtZc0R6Lo9Ea4pz+h8XtOD5LE2wKuCpnQHeb8aTBerWg@mail.gmail.com>
+Subject: Re: [PATCH ghak90 V7 17/21] audit: add support for loginuid/sessionid
+ set/get by netlink
 To:     Richard Guy Briggs <rgb@redhat.com>
 Cc:     containers@lists.linux-foundation.org, linux-api@vger.kernel.org,
         Linux-Audit Mailing List <linux-audit@redhat.com>,
@@ -74,29 +75,20 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Sep 18, 2019 at 9:26 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> Add the ability to get and set the audit container identifier using an
-> audit netlink message using message types AUDIT_SET_CONTID 1023 and
-> AUDIT_GET_CONTID 1022 in addition to using the proc filesystem.  The
-> message format includes the data structure:
->
-> struct audit_contid_status {
->        pid_t   pid;
->        u64     id;
-> };
+On Wed, Sep 18, 2019 at 9:27 PM Richard Guy Briggs <rgb@redhat.com> wrote:
+> Add the ability to get and set the login uid and to get the session id
+> using an audit netlink message using message types AUDIT_GET_LOGINUID
+> 1024, AUDIT_SET_LOGINUID 1025 and AUDIT_GET_SESSIONID 1026 in addition
+> to using the proc filesystem.
 >
 > Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
 > ---
->  include/uapi/linux/audit.h |  2 ++
->  kernel/audit.c             | 40 ++++++++++++++++++++++++++++++++++++++++
->  kernel/audit.h             |  5 +++++
->  3 files changed, 47 insertions(+)
+>  include/uapi/linux/audit.h |  3 +++
+>  kernel/audit.c             | 62 ++++++++++++++++++++++++++++++++++++++++++++++
+>  2 files changed, 65 insertions(+)
 
-I'm not a fan of having multiple interfaces to do one thing if it can
-be avoided.  Presumably the argument for the netlink API is the
-container folks don't want to have to mount /proc inside containers
-which are going to host nested orchestrators?  Can you reasonably run
-a fully fledged orchestrator without a valid /proc?
+This is completely independent of the audit container ID work, yes?
+If so, it shouldn't be part of this patchset.
 
 --
 paul moore
