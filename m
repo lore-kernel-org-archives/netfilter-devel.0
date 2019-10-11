@@ -2,121 +2,174 @@ Return-Path: <SRS0=pLNN=YE=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D61EBC10F14
-	for <netfilter-devel@archiver.kernel.org>; Fri, 11 Oct 2019 00:41:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CE53AECE58C
+	for <netfilter-devel@archiver.kernel.org>; Fri, 11 Oct 2019 09:28:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id AE12A2190F
-	for <netfilter-devel@archiver.kernel.org>; Fri, 11 Oct 2019 00:41:13 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=paul-moore-com.20150623.gappssmtp.com header.i=@paul-moore-com.20150623.gappssmtp.com header.b="Ebgr6hpe"
+	by mail.kernel.org (Postfix) with ESMTP id AA02821D6C
+	for <netfilter-devel@archiver.kernel.org>; Fri, 11 Oct 2019 09:28:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728097AbfJKAlM (ORCPT
+        id S1727649AbfJKJ2c (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 10 Oct 2019 20:41:12 -0400
-Received: from mail-lj1-f195.google.com ([209.85.208.195]:45064 "EHLO
-        mail-lj1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727506AbfJKAlM (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 10 Oct 2019 20:41:12 -0400
-Received: by mail-lj1-f195.google.com with SMTP id q64so8010704ljb.12
-        for <netfilter-devel@vger.kernel.org>; Thu, 10 Oct 2019 17:41:10 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=paul-moore-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=9wNy6JFK5djKAuZbuRMlDS+XyW8tF2WH1HB98CJhwX4=;
-        b=Ebgr6hpepFByF0DkP5utDnq8dgpXwryts91lmQkxebHKHDitPBleV83coxn3yI9W2o
-         4bjKmKWCPPjMPhL8Nq/Rdml5kvyzOdaMmxDE1iIeADKjQ4B3ePZan8TAafgqsmoQqDBo
-         DPSQq0Dom4ILIzKaOPRAGB6iBjZKCOwLqRUsFj6Doy+Ihf3ofxWf6aVnflJ+uXxgpKYc
-         bbkJw50tNvEfHUPIhBMY1Zh/pD7QtrHNUoMxcmVpT5dFWXFUE49Oh+2y3HcTvrkmCGKi
-         d1cVCQqj7IfTxrHF88A0gj3Twf8bqPV2nRUrW6tYaMCpO+AnG3VtKUhbnJoR6lVbp5wI
-         hqMA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=9wNy6JFK5djKAuZbuRMlDS+XyW8tF2WH1HB98CJhwX4=;
-        b=GIatYkkB1zgMK1R7mFqM8WF/VfSidVZ2VC2acDIrT+HgyHjhv+CywJer6V2h2qT3Jc
-         jNkoqOpRnckflW0lTlbJjiHQqA7v9E4V/pf4ubaFJA+NHpXzQlskKz1tvDYyWwDK61HM
-         GLDrFaHOlQJYOr3RhFJ0+xWMu6RkSBVylqZNQIANjqBmfLHiH223T1D42bQtj1+LBvwP
-         PZ7FMwbIeVdKrv76shPW8+BMnVN2NGgeL1hDBJsBPdioaL+J4mOR9BPITV7219mjhRsY
-         XxzGQRSU00ySO+i5vJWFfjfyHbef01eq2gKdxWfAEqEzesi1lI/O4VExDgino2rCD0vo
-         P3RA==
-X-Gm-Message-State: APjAAAWpL/cA094TYw+dxFK2ADl6FbTbXe9ujixvJg0+WYSl7+33dV9q
-        BqbFV0PQ6t17WujMUaotE3XaVBGwXrlfpbRe7fCv
-X-Google-Smtp-Source: APXvYqyMEnp+g0nirg0RbsN817lbDmHEIQg2bqDza4Lalp8B5gyrzCzWjpLPJS7tANwgfZue3U1+820n9L5ACEXWqxU=
-X-Received: by 2002:a2e:b17b:: with SMTP id a27mr7770213ljm.243.1570754469730;
- Thu, 10 Oct 2019 17:41:09 -0700 (PDT)
+        Fri, 11 Oct 2019 05:28:32 -0400
+Received: from correo.us.es ([193.147.175.20]:36226 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727314AbfJKJ2c (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 11 Oct 2019 05:28:32 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id E9B83E4434C
+        for <netfilter-devel@vger.kernel.org>; Fri, 11 Oct 2019 11:28:27 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id D7B8FBAACC
+        for <netfilter-devel@vger.kernel.org>; Fri, 11 Oct 2019 11:28:27 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id CD3128E524; Fri, 11 Oct 2019 11:28:27 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 7483CB7FFB;
+        Fri, 11 Oct 2019 11:28:21 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Fri, 11 Oct 2019 11:28:21 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (sys.soleta.eu [212.170.55.40])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 5418642EE38E;
+        Fri, 11 Oct 2019 11:28:21 +0200 (CEST)
+Date:   Fri, 11 Oct 2019 11:28:23 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
+Subject: Re: [iptables PATCH v3 04/11] nft-cache: Introduce cache levels
+Message-ID: <20191011092823.dfzjjxmmgqx63eae@salvia>
+References: <20191008161447.6595-1-phil@nwl.cc>
+ <20191008161447.6595-5-phil@nwl.cc>
+ <20191009093723.snbyd6xvtd5gpnto@salvia>
+ <20191009102901.6kel2u36u3yv4myu@salvia>
+ <20191010220911.GM12661@orbyte.nwl.cc>
 MIME-Version: 1.0
-References: <cover.1568834524.git.rgb@redhat.com> <a6b00624ac746bc0df9dd0044311b8364374b25b.1568834525.git.rgb@redhat.com>
-In-Reply-To: <a6b00624ac746bc0df9dd0044311b8364374b25b.1568834525.git.rgb@redhat.com>
-From:   Paul Moore <paul@paul-moore.com>
-Date:   Thu, 10 Oct 2019 20:40:58 -0400
-Message-ID: <CAHC9VhT3QNHxXCc_QsC5K5HadAv7AqwNw-Fk+yLECquE_dKmfQ@mail.gmail.com>
-Subject: Re: [PATCH ghak90 V7 18/21] audit: track container nesting
-To:     Richard Guy Briggs <rgb@redhat.com>
-Cc:     containers@lists.linux-foundation.org, linux-api@vger.kernel.org,
-        Linux-Audit Mailing List <linux-audit@redhat.com>,
-        linux-fsdevel@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        sgrubb@redhat.com, omosnace@redhat.com, dhowells@redhat.com,
-        simo@redhat.com, Eric Paris <eparis@parisplace.org>,
-        Serge Hallyn <serge@hallyn.com>, ebiederm@xmission.com,
-        nhorman@tuxdriver.com, Dan Walsh <dwalsh@redhat.com>,
-        mpatel@redhat.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20191010220911.GM12661@orbyte.nwl.cc>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Sep 18, 2019 at 9:27 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> Track the parent container of a container to be able to filter and
-> report nesting.
->
-> Now that we have a way to track and check the parent container of a
-> container, fixup other patches, or squash all nesting fixes together.
->
-> fixup! audit: add container id
-> fixup! audit: log drop of contid on exit of last task
-> fixup! audit: log container info of syscalls
-> fixup! audit: add containerid filtering
-> fixup! audit: NETFILTER_PKT: record each container ID associated with a netNS
-> fixup! audit: convert to contid list to check for orch/engine ownership softirq (for netfilter) audit: protect contid list lock from softirq
->
-> Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
-> ---
->  include/linux/audit.h |  1 +
->  kernel/audit.c        | 67 ++++++++++++++++++++++++++++++++++++++++++---------
->  kernel/audit.h        |  3 +++
->  kernel/auditfilter.c  | 20 ++++++++++++++-
->  kernel/auditsc.c      |  2 +-
->  5 files changed, 79 insertions(+), 14 deletions(-)
+On Fri, Oct 11, 2019 at 12:09:11AM +0200, Phil Sutter wrote:
+> Hi Pablo,
+> 
+> On Wed, Oct 09, 2019 at 12:29:01PM +0200, Pablo Neira Ayuso wrote:
+> > On Wed, Oct 09, 2019 at 11:37:23AM +0200, Pablo Neira Ayuso wrote:
+> > > Hi Phil,
+> > > 
+> > > On Tue, Oct 08, 2019 at 06:14:40PM +0200, Phil Sutter wrote:
+> > > > Replace the simple have_cache boolean by a cache level indicator
+> > > > defining how complete the cache is. Since have_cache indicated full
+> > > > cache (including rules), make code depending on it check for cache level
+> > > > NFT_CL_RULES.
+> > > > 
+> > > > Core cache fetching routine __nft_build_cache() accepts a new level via
+> > > > parameter and raises cache completeness to that level.
+> > > > 
+> > > > Signed-off-by: Phil Sutter <phil@nwl.cc>
+> > > > ---
+> > > >  iptables/nft-cache.c | 51 +++++++++++++++++++++++++++++++-------------
+> > > >  iptables/nft.h       |  9 +++++++-
+> > > >  2 files changed, 44 insertions(+), 16 deletions(-)
+> > > > 
+> > > > diff --git a/iptables/nft-cache.c b/iptables/nft-cache.c
+> > > > index 5444419a5cc3b..22a87e94efd76 100644
+> > > > --- a/iptables/nft-cache.c
+> > > > +++ b/iptables/nft-cache.c
+> > > > @@ -224,30 +224,49 @@ static int fetch_rule_cache(struct nft_handle *h)
+> > > >  	return 0;
+> > > >  }
+> > > >  
+> > > > -static void __nft_build_cache(struct nft_handle *h)
+> > > > +static void __nft_build_cache(struct nft_handle *h, enum nft_cache_level level)
+> > > >  {
+> > > >  	uint32_t genid_start, genid_stop;
+> > > >  
+> > > > +	if (level <= h->cache_level)
+> > > > +		return;
+> > > >  retry:
+> > > >  	mnl_genid_get(h, &genid_start);
+> > > > -	fetch_table_cache(h);
+> > > > -	fetch_chain_cache(h);
+> > > > -	fetch_rule_cache(h);
+> > > > -	h->have_cache = true;
+> > > > -	mnl_genid_get(h, &genid_stop);
+> > > >  
+> > > > +	switch (h->cache_level) {
+> > > > +	case NFT_CL_NONE:
+> > > > +		fetch_table_cache(h);
+> > > > +		if (level == NFT_CL_TABLES)
+> > > > +			break;
+> > > > +		/* fall through */
+> > > > +	case NFT_CL_TABLES:
+> > > 
+> > > If the existing level is TABLES and use wants chains, then you have to
+> > > invalidate the existing table cache, then fetch the tables and chains
+> > > to make sure cache is consistent. I mean, extending an existing cache
+> > > might lead to inconsistencies.
+> > > 
+> > > Am I missing anything?
+> 
+> Hmm, this is a valid point indeed. At least one can't depend on stored
+> genid to match the local cache's state which defeats its purpose.
 
-This is my last comment of the patchset because this is where it
-starts to get a little weird.  I know we've talked about fixup!
-patches some in the past, but perhaps I didn't do a very good job
-communicating my poin; let me try again.
+Exactly.
 
-Submitting a fixup patch is okay if you've already posted a (lengthy)
-patchset and there was a small nit that someone uncovered that needed
-to be fixed prior to merging, assuming everyone (this includes the
-reviewer, the patch author, and the maintainer) is okay with the
-author posting the fix as fixup! patch then go for it.  Done this way,
-fixup patches can save a lot of development, testing, and review time.
-However, in my opinion it is wrong to submit a patchset that has fixup
-patches as part of the original posting.  In this case fixup patches
-have the opposite effect: the patchset becomes more complicated,
-reviews take longer, and the likelihood of missing important details
-increases.
+> > If I'm correct, I wonder if we should go for splitting the parsing
+> > from the evaluation phase here. Probably generate the rule by pointing
+> > to the table and chain as string, then evaluate the ruleset update
+> > batch to obtain the cache level in one go. This is the approach that
+> > I had in mind with nftables, so you might avoid dumping the ruleset
+> > over and over in an environment where dynamic updates are frequent.
+> > 
+> > The idea is to avoid fetching a cache, then canceling it by the rule
+> > coming afterwards just because the cache is incomplete. So the cache
+> > that is required is calculated once, then you go to the kernel and
+> > fetch it (making sure generation number tells you that your cache is
+> > consistent).
+> > 
+> > Makes sense to you?
+> 
+> Well, I understand your approach and it's a proper way to deal with the
+> situation, but I fear this means quite some effort. I imagine we either
+> extend the xtables-restore table delete logic to add and disable more
+> dependency commands based on kernel ruleset contents or add these
+> dependency commands when iterating over the command set and populating
+> the cache.
 
-When in doubt, don't submit separate fixup patches, fold them into the
-original patches instead.
+It's always more work to make a bit of architectural changes, yes.
 
---
-paul moore
-www.paul-moore.com
+> The thing is, we do this mostly just for xtables-restore --noflush
+> logic, which in turn is probably not used often but popular among "power
+> users" trying to speed up the bunch of iptables commands they have to
+> enter at once.
+
+Yes, this is the kind of user that deals with frequent dynamic
+updates.
+
+> Maybe we could go with a simpler solution for now, which is to check
+> kernel genid again and drop the local cache if it differs from what's
+> stored. If it doesn't, the current cache is still up to date and we may
+> just fetch what's missing. Or does that leave room for a race condition?
+
+You could also just parse the ruleset twice in userspace, once to
+calculate the cache you need and another to actually create the
+transaction batch and push it into the kernel. That's a bit poor man
+approach, but it might work. You would need to invoke
+xtables_restore_parse() twice.
+
+This more simpler approach probably requires less changes to the
+existing codebase, that can be "reverted" later on if someone needs to
+speed up this by removing this parsing happening twice.
