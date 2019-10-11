@@ -4,132 +4,203 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-6.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
-	version=3.4.0
+	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B5C77ECE58D
-	for <netfilter-devel@archiver.kernel.org>; Fri, 11 Oct 2019 00:39:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9A04CC4360C
+	for <netfilter-devel@archiver.kernel.org>; Fri, 11 Oct 2019 00:39:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 915B52190F
-	for <netfilter-devel@archiver.kernel.org>; Fri, 11 Oct 2019 00:39:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 678202190F
+	for <netfilter-devel@archiver.kernel.org>; Fri, 11 Oct 2019 00:39:37 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=paul-moore-com.20150623.gappssmtp.com header.i=@paul-moore-com.20150623.gappssmtp.com header.b="SUM+Ozmq"
+	dkim=pass (2048-bit key) header.d=paul-moore-com.20150623.gappssmtp.com header.i=@paul-moore-com.20150623.gappssmtp.com header.b="iP81mvJ6"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727854AbfJKAjM (ORCPT
+        id S1727882AbfJKAjh (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 10 Oct 2019 20:39:12 -0400
-Received: from mail-lf1-f68.google.com ([209.85.167.68]:43394 "EHLO
-        mail-lf1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727793AbfJKAjM (ORCPT
+        Thu, 10 Oct 2019 20:39:37 -0400
+Received: from mail-lj1-f193.google.com ([209.85.208.193]:33272 "EHLO
+        mail-lj1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727873AbfJKAjg (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 10 Oct 2019 20:39:12 -0400
-Received: by mail-lf1-f68.google.com with SMTP id u3so5721257lfl.10
-        for <netfilter-devel@vger.kernel.org>; Thu, 10 Oct 2019 17:39:10 -0700 (PDT)
+        Thu, 10 Oct 2019 20:39:36 -0400
+Received: by mail-lj1-f193.google.com with SMTP id a22so8082588ljd.0
+        for <netfilter-devel@vger.kernel.org>; Thu, 10 Oct 2019 17:39:33 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=paul-moore-com.20150623.gappssmtp.com; s=20150623;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=aFT8cm8S0DEJCyLgBpASXj1oSQTtinFEh4s2GyLpCAk=;
-        b=SUM+Ozmq/ACZrOTEwqmyCavmWazXGQLL83huZDzHGsYRooxZavBq96G3gSZB8aZEun
-         4tNuU+9vatgFwhZ2C3CnGZuIm6rSCm9tF7Ri4hZuTLyRNG9wMsfSGbDW4ixy4pABeYx8
-         RiZoc4KtGQBAZafsKpyIRkoagGDxiybFw91oHrLAIp2elU9Glh7hQMRnxYemxk3LXdAf
-         83242C0BufY7yeIMuHD1/BJ/mBqjnb4LbON2RYZFDpSRI7c5hR+satKSZpXAtXUtZp2a
-         IsbLva/X8n/wCo/lzhff7J2wgO0KRpDAcFyAp4oyWjPRYAF/2wcK+vpAQmg9N9Fs+doF
-         90IQ==
+        bh=hNUOlKgtAsIE5sVaiGZXUcvdRA2PQ04IbA6oz24c6V8=;
+        b=iP81mvJ6NRHztHSh53vzlkBNXKSKrdUZFa4QghmB7J5WhFdcG7DP8odULQ1+LossNA
+         HyY0EtjSe+2D65p1cF1RolTRImCUmAhtf34UnnJiv5bb4byWcyiu0rvjrmfl2vbW40+K
+         uYDLMHcrUwNLTf4ZMgF+AbSbAFzYG0VlkyZVjWslSX3CfO8wHTZpCXr6615M3Yfpj4l0
+         8f2g26wlubWzyKR8Pe5U+v+67VdFF5Q1pQ0ct6gdTXUOBEg2ZBgOPL9yrMl6iozvVkf1
+         p+2xg2upTdzGk4pdFz6YYWPnDIYnEiY4bZ7ccwy25bJtoqymfHPpN9PGVFPFLhREQFOY
+         jCcQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=aFT8cm8S0DEJCyLgBpASXj1oSQTtinFEh4s2GyLpCAk=;
-        b=p/hveLA2xKiJReeIsn/zBxt3aW3t7JDB/4m4ar9HnlweoA7V4n4aL4idpn3bD4LzZ4
-         3Z7e/2mFYk92yvkyzGToj8TtK8Ym3jUeX+bJ4U+hUm5avv2Nge4GJ1Sa8VeZ+141ajU5
-         Gz8mHBk9vfetW1xHKWZPH4lzTbgdYRKha2e5soAMgt/st/1D6HY4LY2aH9+ev6xw710z
-         UuKayoqN3rLf4lBGxxrdCoVcoA/jE4i3IR72JjZwC8zMJntYv08N4gSdV1JwKwfFe4S4
-         fJeor7t4FzL3IfNnEfTX9RkOOTB/+CPsCdgb7ZlNgKc7Vr15ZxJ9jN5r/TGEi3ca6uZF
-         besg==
-X-Gm-Message-State: APjAAAXjfEhPzuVdYj8TlzE6+AgjQ7Wp2HvDxUDbHhynZdohCyEy9uPI
-        hMferkjU6mPiK68dX1wcCiCaAzh/rqtFTSf0/LmQ
-X-Google-Smtp-Source: APXvYqy7lQItMV1AedUlABKN6Qqbi/t4grfJyN2rcTNd4EtP3vm905LTdxYK80Osnp73B/vBccWvg766BbHJwloILAc=
-X-Received: by 2002:a19:520d:: with SMTP id m13mr7617840lfb.137.1570754349796;
- Thu, 10 Oct 2019 17:39:09 -0700 (PDT)
+        bh=hNUOlKgtAsIE5sVaiGZXUcvdRA2PQ04IbA6oz24c6V8=;
+        b=UF1aHCw2o0vQ9RPtqRd9rMHsqG8C+lgIYUWQr9mFieJ0m3VcYuAPNUqc4fMOWQxaGW
+         Zn8Gec/O468zWeuqiSBwhKvr1VFUqmxUz2YE3K5OobBOBGj6lAP/P4yJBzAcwt8hp2FD
+         timbKHbAUqVgCOKhMveJDjksODaIoMPsAvKoov4W54u3UWnSXV54PZxxqvt2Wcuq0UjU
+         U0rq2dIiPY3tM9Ey3CCgt9V0Q6jvkEllt69+8nNB/Ct9rJhPfKEsgYBtHd9i6BGnVTF7
+         xoXlwoFeFBv1Bi0AKMww0nvnTzTJhzDhbsTceCa8H71czbxPEcg+Ldn65cV+I9O0G/C/
+         3Ucw==
+X-Gm-Message-State: APjAAAVcCfOvoDU2IIqdoj9y9Z7UVua3p8yAy0qdbfr2ITiQ27C6jU8o
+        wWLdVLh7S0ND1rCBsm29ht09itmjo2RPEyfinZ7O
+X-Google-Smtp-Source: APXvYqwpaPJtcZV1PwuU4AeNVWnL9+Nw3+LElDHT8e77zerC7lPTAOUcw5b4UEWy9HlrwEw0xG4KWIzRTp7isyiM8F8=
+X-Received: by 2002:a2e:6e18:: with SMTP id j24mr1202454ljc.57.1570754372500;
+ Thu, 10 Oct 2019 17:39:32 -0700 (PDT)
 MIME-Version: 1.0
-References: <cover.1568834524.git.rgb@redhat.com> <230e91cd3e50a3d8015daac135c24c4c58cf0a21.1568834524.git.rgb@redhat.com>
- <20190927125142.GA25764@hmswarspite.think-freely.org>
-In-Reply-To: <20190927125142.GA25764@hmswarspite.think-freely.org>
+References: <cover.1568834524.git.rgb@redhat.com> <0850eaa785e2ff30c8c4818fd53e9544b34ed884.1568834524.git.rgb@redhat.com>
+In-Reply-To: <0850eaa785e2ff30c8c4818fd53e9544b34ed884.1568834524.git.rgb@redhat.com>
 From:   Paul Moore <paul@paul-moore.com>
-Date:   Thu, 10 Oct 2019 20:38:58 -0400
-Message-ID: <CAHC9VhRbSUCB0OZorC4+y+5uJDR5uMXdRn2LOTYGu2gcFJSrcA@mail.gmail.com>
-Subject: Re: [PATCH ghak90 V7 06/21] audit: contid limit of 32k imposed to
- avoid DoS
-To:     Neil Horman <nhorman@tuxdriver.com>
-Cc:     Richard Guy Briggs <rgb@redhat.com>,
-        containers@lists.linux-foundation.org, linux-api@vger.kernel.org,
+Date:   Thu, 10 Oct 2019 20:39:21 -0400
+Message-ID: <CAHC9VhQoFFaQACbV4QHG_NPUCJu1+V=x3=i-yyGjbsYq8HuPtg@mail.gmail.com>
+Subject: Re: [PATCH ghak90 V7 08/21] audit: add contid support for signalling
+ the audit daemon
+To:     Richard Guy Briggs <rgb@redhat.com>
+Cc:     containers@lists.linux-foundation.org, linux-api@vger.kernel.org,
         Linux-Audit Mailing List <linux-audit@redhat.com>,
         linux-fsdevel@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
         netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
         sgrubb@redhat.com, omosnace@redhat.com, dhowells@redhat.com,
         simo@redhat.com, Eric Paris <eparis@parisplace.org>,
         Serge Hallyn <serge@hallyn.com>, ebiederm@xmission.com,
-        Dan Walsh <dwalsh@redhat.com>, mpatel@redhat.com
+        nhorman@tuxdriver.com, Dan Walsh <dwalsh@redhat.com>,
+        mpatel@redhat.com
 Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Sep 27, 2019 at 8:52 AM Neil Horman <nhorman@tuxdriver.com> wrote:
-> On Wed, Sep 18, 2019 at 09:22:23PM -0400, Richard Guy Briggs wrote:
-> > Set an arbitrary limit on the number of audit container identifiers to
-> > limit abuse.
-> >
-> > Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
-> > ---
-> >  kernel/audit.c | 8 ++++++++
-> >  kernel/audit.h | 4 ++++
-> >  2 files changed, 12 insertions(+)
-> >
-> > diff --git a/kernel/audit.c b/kernel/audit.c
-> > index 53d13d638c63..329916534dd2 100644
-> > --- a/kernel/audit.c
-> > +++ b/kernel/audit.c
-
-...
-
-> > @@ -2465,6 +2472,7 @@ int audit_set_contid(struct task_struct *task, u64 contid)
-> >                               newcont->owner = current;
-> >                               refcount_set(&newcont->refcount, 1);
-> >                               list_add_rcu(&newcont->list, &audit_contid_hash[h]);
-> > +                             audit_contid_count++;
-> >                       } else {
-> >                               rc = -ENOMEM;
-> >                               goto conterror;
-> > diff --git a/kernel/audit.h b/kernel/audit.h
-> > index 162de8366b32..543f1334ba47 100644
-> > --- a/kernel/audit.h
-> > +++ b/kernel/audit.h
-> > @@ -219,6 +219,10 @@ static inline int audit_hash_contid(u64 contid)
-> >       return (contid & (AUDIT_CONTID_BUCKETS-1));
-> >  }
-> >
-> > +extern int audit_contid_count;
-> > +
-> > +#define AUDIT_CONTID_COUNT   1 << 16
-> > +
+On Wed, Sep 18, 2019 at 9:25 PM Richard Guy Briggs <rgb@redhat.com> wrote:
+> Add audit container identifier support to the action of signalling the
+> audit daemon.
 >
-> Just to ask the question, since it wasn't clear in the changelog, what
-> abuse are you avoiding here?  Ostensibly you should be able to create as
-> many container ids as you have space for, and the simple creation of
-> container ids doesn't seem like the resource strain I would be concerned
-> about here, given that an orchestrator can still create as many
-> containers as the system will otherwise allow, which will consume
-> significantly more ram/disk/etc.
+> Since this would need to add an element to the audit_sig_info struct,
+> a new record type AUDIT_SIGNAL_INFO2 was created with a new
+> audit_sig_info2 struct.  Corresponding support is required in the
+> userspace code to reflect the new record request and reply type.
+> An older userspace won't break since it won't know to request this
+> record type.
+>
+> Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
+> ---
+>  include/linux/audit.h       |  7 +++++++
+>  include/uapi/linux/audit.h  |  1 +
+>  kernel/audit.c              | 28 ++++++++++++++++++++++++++++
+>  kernel/audit.h              |  1 +
+>  security/selinux/nlmsgtab.c |  1 +
+>  5 files changed, 38 insertions(+)
+>
+> diff --git a/include/linux/audit.h b/include/linux/audit.h
+> index 0c18d8e30620..7b640c4da4ee 100644
+> --- a/include/linux/audit.h
+> +++ b/include/linux/audit.h
+> @@ -23,6 +23,13 @@ struct audit_sig_info {
+>         char            ctx[0];
+>  };
+>
+> +struct audit_sig_info2 {
+> +       uid_t           uid;
+> +       pid_t           pid;
+> +       u64             cid;
+> +       char            ctx[0];
+> +};
+> +
+>  struct audit_buffer;
+>  struct audit_context;
+>  struct inode;
+> diff --git a/include/uapi/linux/audit.h b/include/uapi/linux/audit.h
+> index 4ed080f28b47..693ec6e0288b 100644
+> --- a/include/uapi/linux/audit.h
+> +++ b/include/uapi/linux/audit.h
+> @@ -72,6 +72,7 @@
+>  #define AUDIT_SET_FEATURE      1018    /* Turn an audit feature on or off */
+>  #define AUDIT_GET_FEATURE      1019    /* Get which features are enabled */
+>  #define AUDIT_CONTAINER_OP     1020    /* Define the container id and info */
+> +#define AUDIT_SIGNAL_INFO2     1021    /* Get info auditd signal sender */
+>
+>  #define AUDIT_FIRST_USER_MSG   1100    /* Userspace messages mostly uninteresting to kernel */
+>  #define AUDIT_USER_AVC         1107    /* We filter this differently */
+> diff --git a/kernel/audit.c b/kernel/audit.c
+> index adfb3e6a7f0c..df3db29f5a8a 100644
+> --- a/kernel/audit.c
+> +++ b/kernel/audit.c
+> @@ -125,6 +125,7 @@ struct audit_net {
+>  kuid_t         audit_sig_uid = INVALID_UID;
+>  pid_t          audit_sig_pid = -1;
+>  u32            audit_sig_sid = 0;
+> +u64            audit_sig_cid = AUDIT_CID_UNSET;
+>
+>  /* Records can be lost in several ways:
+>     0) [suppressed in audit_alloc]
+> @@ -1094,6 +1095,7 @@ static int audit_netlink_ok(struct sk_buff *skb, u16 msg_type)
+>         case AUDIT_ADD_RULE:
+>         case AUDIT_DEL_RULE:
+>         case AUDIT_SIGNAL_INFO:
+> +       case AUDIT_SIGNAL_INFO2:
+>         case AUDIT_TTY_GET:
+>         case AUDIT_TTY_SET:
+>         case AUDIT_TRIM:
+> @@ -1257,6 +1259,7 @@ static int audit_receive_msg(struct sk_buff *skb, struct nlmsghdr *nlh)
+>         struct audit_buffer     *ab;
+>         u16                     msg_type = nlh->nlmsg_type;
+>         struct audit_sig_info   *sig_data;
+> +       struct audit_sig_info2  *sig_data2;
+>         char                    *ctx = NULL;
+>         u32                     len;
+>
+> @@ -1516,6 +1519,30 @@ static int audit_receive_msg(struct sk_buff *skb, struct nlmsghdr *nlh)
+>                                  sig_data, sizeof(*sig_data) + len);
+>                 kfree(sig_data);
+>                 break;
+> +       case AUDIT_SIGNAL_INFO2:
+> +               len = 0;
+> +               if (audit_sig_sid) {
+> +                       err = security_secid_to_secctx(audit_sig_sid, &ctx, &len);
+> +                       if (err)
+> +                               return err;
+> +               }
+> +               sig_data2 = kmalloc(sizeof(*sig_data2) + len, GFP_KERNEL);
+> +               if (!sig_data2) {
+> +                       if (audit_sig_sid)
+> +                               security_release_secctx(ctx, len);
+> +                       return -ENOMEM;
+> +               }
+> +               sig_data2->uid = from_kuid(&init_user_ns, audit_sig_uid);
+> +               sig_data2->pid = audit_sig_pid;
+> +               if (audit_sig_sid) {
+> +                       memcpy(sig_data2->ctx, ctx, len);
+> +                       security_release_secctx(ctx, len);
+> +               }
+> +               sig_data2->cid = audit_sig_cid;
+> +               audit_send_reply(skb, seq, AUDIT_SIGNAL_INFO2, 0, 0,
+> +                                sig_data2, sizeof(*sig_data2) + len);
+> +               kfree(sig_data2);
+> +               break;
+>         case AUDIT_TTY_GET: {
+>                 struct audit_tty_status s;
+>                 unsigned int t;
+> @@ -2384,6 +2411,7 @@ int audit_signal_info(int sig, struct task_struct *t)
+>                 else
+>                         audit_sig_uid = uid;
+>                 security_task_getsecid(current, &audit_sig_sid);
+> +               audit_sig_cid = audit_get_contid(current);
+>         }
 
-I've got a similar question.  Up to this point in the patchset, there
-is a potential issue of hash bucket chain lengths and traversing them
-with a spinlock held, but it seems like we shouldn't be putting an
-arbitrary limit on audit container IDs unless we have a good reason
-for it.  If for some reason we do want to enforce a limit, it should
-probably be a tunable value like a sysctl, or similar.
+I've been wondering something as I've been working my way through
+these patches and this patch seems like a good spot to discuss this
+... Now that we have the concept of an audit container ID "lifetime"
+in the kernel, when do we consider the ID gone?  Is it when the last
+process in the container exits, or is it when we generate the last
+audit record which could possibly contain the audit container ID?
+This patch would appear to support the former, but if we wanted the
+latter we would need to grab a reference to the audit container ID
+struct so it wouldn't "die" on us before we could emit the signal info
+record.
 
 --
 paul moore
