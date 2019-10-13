@@ -1,174 +1,79 @@
-Return-Path: <SRS0=W4zY=YF=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=Y4cQ=YG=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3845CC4360C
-	for <netfilter-devel@archiver.kernel.org>; Sat, 12 Oct 2019 22:47:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0C3C9C4360C
+	for <netfilter-devel@archiver.kernel.org>; Sun, 13 Oct 2019 00:13:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id EA95D206CD
-	for <netfilter-devel@archiver.kernel.org>; Sat, 12 Oct 2019 22:47:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B9D022067B
+	for <netfilter-devel@archiver.kernel.org>; Sun, 13 Oct 2019 00:13:25 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=rasmussen.co.za header.i=@rasmussen.co.za header.b="rDWLr58D"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727188AbfJLWrR (ORCPT
+        id S1728154AbfJMANZ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 12 Oct 2019 18:47:17 -0400
-Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:33418 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727109AbfJLWrR (ORCPT
+        Sat, 12 Oct 2019 20:13:25 -0400
+Received: from mail-oi1-f196.google.com ([209.85.167.196]:44470 "EHLO
+        mail-oi1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727606AbfJMANZ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 12 Oct 2019 18:47:17 -0400
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1iJQAM-0002d7-12; Sun, 13 Oct 2019 00:47:14 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft] expression: extend 'nft describe' to allow listing data types
-Date:   Sun, 13 Oct 2019 00:17:52 +0200
-Message-Id: <20191012221752.4812-1-fw@strlen.de>
-X-Mailer: git-send-email 2.21.0
+        Sat, 12 Oct 2019 20:13:25 -0400
+Received: by mail-oi1-f196.google.com with SMTP id w6so10976367oie.11
+        for <netfilter-devel@vger.kernel.org>; Sat, 12 Oct 2019 17:13:25 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=rasmussen.co.za; s=google;
+        h=mime-version:from:date:message-id:subject:to;
+        bh=1+4b292GOM9/VOSFBCpcQKmQU9mq1jNxWAlIW22T1yM=;
+        b=rDWLr58DNM7II2IkVI47XVypNTJnU3fMmnzVuA35fN02X3hW5TaDa1Fx8oURTEcOzS
+         S+vu253q1tWaDCkKASSgxXShwltyXxN6Q/ScRRPdtQVfBpkhf8db+vRNnYH4NovXt9WK
+         trRAUlNDvW2WqpodO6tAu1djvFP1tKuL+zA7o=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:from:date:message-id:subject:to;
+        bh=1+4b292GOM9/VOSFBCpcQKmQU9mq1jNxWAlIW22T1yM=;
+        b=pyckWGPSQLlF+7DBAAgmqTiKAMlSkiKTKWscQmjHgT+7tm+Hl6QdxhNxDjxffMNVOf
+         qDH0xXktVh0ESJ6f8Ow7ZDVSXbGt56fptlVbgnl8/uQQiL2WSqbc7rv3dsrLK90Vyyhj
+         zOlAWA4bihM9gMTbtYIvBM7NetvtFIZeXcbglXewvNfKSB21FPkDu84Cd7dgA7S+NAJR
+         KeZCkYxIiowwZzRLLoWhyyjADp17yW7TVgGG2WbkhzA4znsMjM9kb4dT0D1eVGj9jcqF
+         1xNFduPTVLJ4KmVmjMCjfQNXd/1FKqcE4AqBEklyW5ISwAijmdDpq+B+EEnmtFOmWLcq
+         WLfg==
+X-Gm-Message-State: APjAAAVH1W5yQjnOVJ9rhDWQSGPrPJ7iQhejYneMgzHGbufQESozz6UP
+        SJTJokv51sPmG4iBrxEqbLQIJF3jzGeGPwxswUKCpzlnJ5M=
+X-Google-Smtp-Source: APXvYqxniF8KojrJq27jl7P0g/wzLNNAs7KCtuZks1xDri1M2P2d2RakuW/DrCayD5dxV1Zg8mZyy7HfnEqOAyMUdrE=
+X-Received: by 2002:aca:5714:: with SMTP id l20mr17897512oib.175.1570925604040;
+ Sat, 12 Oct 2019 17:13:24 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+From:   Norman Rasmussen <norman@rasmussen.co.za>
+Date:   Sat, 12 Oct 2019 17:13:12 -0700
+Message-ID: <CAGF1phamt2yiip0XrRT7TWYb9hQFPgjzP7QHCdByHDCMpxDoyQ@mail.gmail.com>
+Subject: [PATCH trivial] netfilter: nft_tproxy: Fix typo in IPv6 module description.
+To:     netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-nft describe ct_status
-before:
-symbol expression, datatype invalid (invalid), 0 bits
-
-after:
-datatype ct_status (conntrack status) (basetype bitmask, integer), 32 bits
-
-pre-defined symbolic constants (in hexadecimal):
-        expected                        0x00000001
-        seen-reply                      0x00000002
-	[..]
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Norman Rasmussen <norman@rasmussen.co.za>
 ---
- doc/nft.txt                | 15 ++++++++++++++-
- doc/primary-expression.txt |  2 ++
- src/expression.c           | 34 +++++++++++++++++++++++++---------
- 3 files changed, 41 insertions(+), 10 deletions(-)
+ net/ipv6/netfilter/nf_tproxy_ipv6.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/doc/nft.txt b/doc/nft.txt
-index 482e55b97002..610d91e9e1a4 100644
---- a/doc/nft.txt
-+++ b/doc/nft.txt
-@@ -658,9 +658,11 @@ representation of symbolic values and type compatibility with other expressions.
- DESCRIBE COMMAND
- ~~~~~~~~~~~~~~~~
- [verse]
--*describe* 'expression'
-+*describe* 'expression' | 'data type'
- 
- The *describe* command shows information about the type of an expression and its data type.
-+A data type may also be given, in which nft will display more information
-+about the type.
- 
- .The describe command
- ---------------------
-@@ -686,6 +688,17 @@ and type compatibility of expressions. A number of global data types exist, in
- addition some expression types define further data types specific to the
- expression type. Most data types have a fixed size, some however may have a
- dynamic size, f.i. the string type. +
-+Some types also have predefined symbolic constants.  Those can be listed
-+using the nft *describe* command:
-+
-+---------------------
-+$ nft describe ct_state
-+datatype ct_state (conntrack state) (basetype bitmask, integer), 32 bits
-+
-+pre-defined symbolic constants (in hexadecimal):
-+invalid                         0x00000001
-+new ...
-+---------------------
- 
- Types may be derived from lower order types, f.i. the IPv4 address type is
- derived from the integer type, meaning an IPv4 address can also be specified as
-diff --git a/doc/primary-expression.txt b/doc/primary-expression.txt
-index c5d25eee3c37..0316a7e1ab8e 100644
---- a/doc/primary-expression.txt
-+++ b/doc/primary-expression.txt
-@@ -292,6 +292,8 @@ Address type |
- fib_addrtype
- |=======================
- 
-+Use *nft* *describe* *fib_addrtype* to get a list of all address types.
-+
- .Using fib expressions
- ----------------------
- # drop packets without a reverse path
-diff --git a/src/expression.c b/src/expression.c
-index cb49e0b73f5a..e456010ff8b0 100644
---- a/src/expression.c
-+++ b/src/expression.c
-@@ -122,11 +122,24 @@ const char *expr_name(const struct expr *e)
- 
- void expr_describe(const struct expr *expr, struct output_ctx *octx)
- {
--	const struct datatype *dtype = expr->dtype;
-+	const struct datatype *dtype = expr->dtype, *edtype = NULL;
-+	unsigned int len = expr->len;
- 	const char *delim = "";
- 
--	nft_print(octx, "%s expression, datatype %s (%s)",
--		  expr_name(expr), dtype->name, dtype->desc);
-+	if (dtype == &invalid_type &&
-+	    expr->etype == EXPR_SYMBOL)
-+		edtype = datatype_lookup_byname(expr->identifier);
-+
-+	if (edtype) {
-+		dtype = edtype;
-+		nft_print(octx, "datatype %s (%s)",
-+			  dtype->name, dtype->desc);
-+		len = dtype->size;
-+	} else {
-+		nft_print(octx, "%s expression, datatype %s (%s)",
-+			  expr_name(expr), dtype->name, dtype->desc);
-+	}
-+
- 	if (dtype->basetype != NULL) {
- 		nft_print(octx, " (basetype ");
- 		for (dtype = dtype->basetype; dtype != NULL;
-@@ -138,23 +151,26 @@ void expr_describe(const struct expr *expr, struct output_ctx *octx)
- 	}
- 
- 	if (expr_basetype(expr)->type == TYPE_STRING) {
--		if (expr->len)
-+		if (len)
- 			nft_print(octx, ", %u characters",
--				  expr->len / BITS_PER_BYTE);
-+				  len / BITS_PER_BYTE);
- 		else
- 			nft_print(octx, ", dynamic length");
- 	} else
--		nft_print(octx, ", %u bits", expr->len);
-+		nft_print(octx, ", %u bits", len);
-+
-+	if (!edtype)
-+		edtype = expr->dtype;
- 
- 	nft_print(octx, "\n");
- 
--	if (expr->dtype->sym_tbl != NULL) {
-+	if (edtype->sym_tbl != NULL) {
- 		nft_print(octx, "\npre-defined symbolic constants ");
--		if (expr->dtype->sym_tbl->base == BASE_DECIMAL)
-+		if (edtype->sym_tbl->base == BASE_DECIMAL)
- 			nft_print(octx, "(in decimal):\n");
- 		else
- 			nft_print(octx, "(in hexadecimal):\n");
--		symbol_table_print(expr->dtype->sym_tbl, expr->dtype,
-+		symbol_table_print(edtype->sym_tbl, edtype,
- 				   expr->byteorder, octx);
- 	}
- }
+diff --git a/net/ipv6/netfilter/nf_tproxy_ipv6.c
+b/net/ipv6/netfilter/nf_tproxy_ipv6.c
+index 34d51cd42..6bac68fb2 100644
+--- a/net/ipv6/netfilter/nf_tproxy_ipv6.c
++++ b/net/ipv6/netfilter/nf_tproxy_ipv6.c
+@@ -150,4 +150,4 @@ EXPORT_SYMBOL_GPL(nf_tproxy_get_sock_v6);
+
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Balazs Scheidler, Krisztian Kovacs");
+-MODULE_DESCRIPTION("Netfilter IPv4 transparent proxy support");
++MODULE_DESCRIPTION("Netfilter IPv6 transparent proxy support");
 -- 
-2.21.0
-
+2.19.2
