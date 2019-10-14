@@ -4,46 +4,47 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DC56DECE58D
-	for <netfilter-devel@archiver.kernel.org>; Mon, 14 Oct 2019 09:03:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 14BB1ECE587
+	for <netfilter-devel@archiver.kernel.org>; Mon, 14 Oct 2019 09:14:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A2B16207FF
-	for <netfilter-devel@archiver.kernel.org>; Mon, 14 Oct 2019 09:03:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DEE83207FF
+	for <netfilter-devel@archiver.kernel.org>; Mon, 14 Oct 2019 09:14:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730432AbfJNJDW (ORCPT
+        id S1730667AbfJNJOA (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 14 Oct 2019 05:03:22 -0400
-Received: from correo.us.es ([193.147.175.20]:56036 "EHLO mail.us.es"
+        Mon, 14 Oct 2019 05:14:00 -0400
+Received: from correo.us.es ([193.147.175.20]:35830 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730423AbfJNJDW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 14 Oct 2019 05:03:22 -0400
+        id S1730585AbfJNJOA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 14 Oct 2019 05:14:00 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id D51B720A53B
-        for <netfilter-devel@vger.kernel.org>; Mon, 14 Oct 2019 11:03:17 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id D40E5303D07
+        for <netfilter-devel@vger.kernel.org>; Mon, 14 Oct 2019 11:13:55 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id C3DBCB8004
-        for <netfilter-devel@vger.kernel.org>; Mon, 14 Oct 2019 11:03:17 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C4AF3B7FFE
+        for <netfilter-devel@vger.kernel.org>; Mon, 14 Oct 2019 11:13:55 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id B9472B7FFB; Mon, 14 Oct 2019 11:03:17 +0200 (CEST)
+        id BA537B7FFB; Mon, 14 Oct 2019 11:13:55 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 7021BD2B1D
-        for <netfilter-devel@vger.kernel.org>; Mon, 14 Oct 2019 11:03:15 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 7E282B7FF9;
+        Mon, 14 Oct 2019 11:13:53 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Mon, 14 Oct 2019 11:03:15 +0200 (CEST)
+ Mon, 14 Oct 2019 11:13:53 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 58F8742EE38F
-        for <netfilter-devel@vger.kernel.org>; Mon, 14 Oct 2019 11:03:15 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 50D1642EE393;
+        Mon, 14 Oct 2019 11:13:53 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf] netfilter: nf_flow_table: set timeout before insertion into hashes
-Date:   Mon, 14 Oct 2019 11:03:15 +0200
-Message-Id: <20191014090315.5326-1-pablo@netfilter.org>
+Cc:     phil@nwl.cc, edumazet@google.com
+Subject: [PATCH libmnl] include: add MNL_SOCKET_DUMP_SIZE definition
+Date:   Mon, 14 Oct 2019 11:13:51 +0200
+Message-Id: <20191014091351.5880-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -51,56 +52,173 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Other garbage collector might remove an entry not fully set up yet.
+Add definition to recommend a new buffer size for netlink dumps.
+Details are available here:
 
-[570953.958293] RIP: 0010:memcmp+0x9/0x50
-[...]
-[570953.958567]  flow_offload_hash_cmp+0x1e/0x30 [nf_flow_table]
-[570953.958585]  flow_offload_lookup+0x8c/0x110 [nf_flow_table]
-[570953.958606]  nf_flow_offload_ip_hook+0x135/0xb30 [nf_flow_table]
-[570953.958624]  nf_flow_offload_inet_hook+0x35/0x37 [nf_flow_table_inet]
-[570953.958646]  nf_hook_slow+0x3c/0xb0
-[570953.958664]  __netif_receive_skb_core+0x90f/0xb10
-[570953.958678]  ? ip_rcv_finish+0x82/0xa0
-[570953.958692]  __netif_receive_skb_one_core+0x3b/0x80
-[570953.958711]  __netif_receive_skb+0x18/0x60
-[570953.958727]  netif_receive_skb_internal+0x45/0xf0
-[570953.958741]  napi_gro_receive+0xcd/0xf0
-[570953.958764]  ixgbe_clean_rx_irq+0x432/0xe00 [ixgbe]
-[570953.958782]  ixgbe_poll+0x27b/0x700 [ixgbe]
-[570953.958796]  net_rx_action+0x284/0x3c0
-[570953.958817]  __do_softirq+0xcc/0x27c
-[570953.959464]  irq_exit+0xe8/0x100
-[570953.960097]  do_IRQ+0x59/0xe0
-[570953.960734]  common_interrupt+0xf/0xf
+ commit d35c99ff77ecb2eb239731b799386f3b3637a31e
+ Author: Eric Dumazet <edumazet@google.com>
+ Date:   Thu Oct 6 04:13:18 2016 +0900
 
-Fixes: 43c8f131184f ("netfilter: nf_flow_table: fix missing error check for rhashtable_insert_fast")
+    netlink: do not enter direct reclaim from netlink_dump()
+
+ iproute2 is using 32 KBytes buffer in netlink dumps to speed up netlink
+ dumps for a while. Let's recommend this buffer size through this new
+ definitions.
+
+Update examples too.
+
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_flow_table_core.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ examples/netfilter/nfct-dump.c  | 2 +-
+ examples/rtnl/rtnl-addr-dump.c  | 4 ++--
+ examples/rtnl/rtnl-link-dump.c  | 4 ++--
+ examples/rtnl/rtnl-link-dump2.c | 4 ++--
+ examples/rtnl/rtnl-link-dump3.c | 4 ++--
+ examples/rtnl/rtnl-neigh-dump.c | 4 ++--
+ examples/rtnl/rtnl-route-dump.c | 4 ++--
+ include/libmnl/libmnl.h         | 1 +
+ 8 files changed, 14 insertions(+), 13 deletions(-)
 
-diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
-index 132f5228b431..128245efe84a 100644
---- a/net/netfilter/nf_flow_table_core.c
-+++ b/net/netfilter/nf_flow_table_core.c
-@@ -202,6 +202,8 @@ int flow_offload_add(struct nf_flowtable *flow_table, struct flow_offload *flow)
+diff --git a/examples/netfilter/nfct-dump.c b/examples/netfilter/nfct-dump.c
+index 114af616977b..cb8e52ccad0e 100644
+--- a/examples/netfilter/nfct-dump.c
++++ b/examples/netfilter/nfct-dump.c
+@@ -263,8 +263,8 @@ static int data_cb(const struct nlmsghdr *nlh, void *data)
+ 
+ int main(void)
  {
- 	int err;
++	char buf[MNL_SOCKET_DUMP_SIZE];
+ 	struct mnl_socket *nl;
+-	char buf[MNL_SOCKET_BUFFER_SIZE];
+ 	struct nlmsghdr *nlh;
+ 	struct nfgenmsg *nfh;
+ 	uint32_t seq, portid;
+diff --git a/examples/rtnl/rtnl-addr-dump.c b/examples/rtnl/rtnl-addr-dump.c
+index b92b75f6eef3..675e9b0b5256 100644
+--- a/examples/rtnl/rtnl-addr-dump.c
++++ b/examples/rtnl/rtnl-addr-dump.c
+@@ -76,12 +76,12 @@ static int data_cb(const struct nlmsghdr *nlh, void *data)
  
-+	flow->timeout = (u32)jiffies + NF_FLOW_TIMEOUT;
-+
- 	err = rhashtable_insert_fast(&flow_table->rhashtable,
- 				     &flow->tuplehash[0].node,
- 				     nf_flow_offload_rhash_params);
-@@ -218,7 +220,6 @@ int flow_offload_add(struct nf_flowtable *flow_table, struct flow_offload *flow)
- 		return err;
- 	}
+ int main(int argc, char *argv[])
+ {
++	char buf[MNL_SOCKET_DUMP_SIZE];
++	unsigned int seq, portid;
+ 	struct mnl_socket *nl;
+-	char buf[MNL_SOCKET_BUFFER_SIZE];
+ 	struct nlmsghdr *nlh;
+ 	struct rtgenmsg *rt;
+ 	int ret;
+-	unsigned int seq, portid;
  
--	flow->timeout = (u32)jiffies + NF_FLOW_TIMEOUT;
- 	return 0;
- }
- EXPORT_SYMBOL_GPL(flow_offload_add);
+ 	if (argc != 2) {
+ 		fprintf(stderr, "Usage: %s <inet|inet6>\n", argv[0]);
+diff --git a/examples/rtnl/rtnl-link-dump.c b/examples/rtnl/rtnl-link-dump.c
+index f5d63125c60c..031346fbf61a 100644
+--- a/examples/rtnl/rtnl-link-dump.c
++++ b/examples/rtnl/rtnl-link-dump.c
+@@ -81,12 +81,12 @@ static int data_cb(const struct nlmsghdr *nlh, void *data)
+ 
+ int main(void)
+ {
++	char buf[MNL_SOCKET_DUMP_SIZE];
++	unsigned int seq, portid;
+ 	struct mnl_socket *nl;
+-	char buf[MNL_SOCKET_BUFFER_SIZE];
+ 	struct nlmsghdr *nlh;
+ 	struct rtgenmsg *rt;
+ 	int ret;
+-	unsigned int seq, portid;
+ 
+ 	nlh = mnl_nlmsg_put_header(buf);
+ 	nlh->nlmsg_type	= RTM_GETLINK;
+diff --git a/examples/rtnl/rtnl-link-dump2.c b/examples/rtnl/rtnl-link-dump2.c
+index b3ca3fa6be4b..890e51ad43d0 100644
+--- a/examples/rtnl/rtnl-link-dump2.c
++++ b/examples/rtnl/rtnl-link-dump2.c
+@@ -54,12 +54,12 @@ static int data_cb(const struct nlmsghdr *nlh, void *data)
+ 
+ int main(void)
+ {
++	char buf[MNL_SOCKET_DUMP_SIZE];
++	unsigned int seq, portid;
+ 	struct mnl_socket *nl;
+-	char buf[MNL_SOCKET_BUFFER_SIZE];
+ 	struct nlmsghdr *nlh;
+ 	struct rtgenmsg *rt;
+ 	int ret;
+-	unsigned int seq, portid;
+ 
+ 	nlh = mnl_nlmsg_put_header(buf);
+ 	nlh->nlmsg_type	= RTM_GETLINK;
+diff --git a/examples/rtnl/rtnl-link-dump3.c b/examples/rtnl/rtnl-link-dump3.c
+index 2521214ed597..a381da1bd697 100644
+--- a/examples/rtnl/rtnl-link-dump3.c
++++ b/examples/rtnl/rtnl-link-dump3.c
+@@ -54,12 +54,12 @@ static int data_cb(const struct nlmsghdr *nlh, void *data)
+ 
+ int main(void)
+ {
++	char buf[MNL_SOCKET_DUMP_SIZE];
++	unsigned int seq, portid;
+ 	struct mnl_socket *nl;
+-	char buf[MNL_SOCKET_BUFFER_SIZE];
+ 	struct nlmsghdr *nlh;
+ 	struct rtgenmsg *rt;
+ 	int ret;
+-	unsigned int seq, portid;
+ 
+ 	nlh = mnl_nlmsg_put_header(buf);
+ 	nlh->nlmsg_type	= RTM_GETLINK;
+diff --git a/examples/rtnl/rtnl-neigh-dump.c b/examples/rtnl/rtnl-neigh-dump.c
+index f4d500078388..786e31d8ded3 100644
+--- a/examples/rtnl/rtnl-neigh-dump.c
++++ b/examples/rtnl/rtnl-neigh-dump.c
+@@ -99,12 +99,12 @@ static int data_cb(const struct nlmsghdr *nlh, void *data)
+ 
+ int main(int argc, char *argv[])
+ {
++	char buf[MNL_SOCKET_DUMP_SIZE];
++	unsigned int seq, portid;
+ 	struct mnl_socket *nl;
+-	char buf[MNL_SOCKET_BUFFER_SIZE];
+ 	struct nlmsghdr *nlh;
+ 	struct rtgenmsg *rt;
+ 	int ret;
+-	unsigned int seq, portid;
+ 
+ 	if (argc != 2) {
+ 		fprintf(stderr, "Usage: %s <inet|inet6>\n", argv[0]);
+diff --git a/examples/rtnl/rtnl-route-dump.c b/examples/rtnl/rtnl-route-dump.c
+index 17da80b90d1d..02ac6b20c644 100644
+--- a/examples/rtnl/rtnl-route-dump.c
++++ b/examples/rtnl/rtnl-route-dump.c
+@@ -298,12 +298,12 @@ static int data_cb(const struct nlmsghdr *nlh, void *data)
+ 
+ int main(int argc, char *argv[])
+ {
++	char buf[MNL_SOCKET_DUMP_SIZE];
++	unsigned int seq, portid;
+ 	struct mnl_socket *nl;
+-	char buf[MNL_SOCKET_BUFFER_SIZE];
+ 	struct nlmsghdr *nlh;
+ 	struct rtmsg *rtm;
+ 	int ret;
+-	unsigned int seq, portid;
+ 
+ 	if (argc != 2) {
+ 		fprintf(stderr, "Usage: %s <inet|inet6>\n", argv[0]);
+diff --git a/include/libmnl/libmnl.h b/include/libmnl/libmnl.h
+index 0331da71775f..4bd0b92e8742 100644
+--- a/include/libmnl/libmnl.h
++++ b/include/libmnl/libmnl.h
+@@ -18,6 +18,7 @@ extern "C" {
+ 
+ #define MNL_SOCKET_AUTOPID	0
+ #define MNL_SOCKET_BUFFER_SIZE (sysconf(_SC_PAGESIZE) < 8192L ? sysconf(_SC_PAGESIZE) : 8192L)
++#define MNL_SOCKET_DUMP_SIZE	32768
+ 
+ struct mnl_socket;
+ 
 -- 
 2.11.0
 
