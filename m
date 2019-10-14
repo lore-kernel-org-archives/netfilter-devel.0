@@ -2,102 +2,185 @@ Return-Path: <SRS0=Oskt=YH=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E5AC1C4CECE
-	for <netfilter-devel@archiver.kernel.org>; Mon, 14 Oct 2019 13:57:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5BC27C4CECE
+	for <netfilter-devel@archiver.kernel.org>; Mon, 14 Oct 2019 19:56:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C3FBC2133F
-	for <netfilter-devel@archiver.kernel.org>; Mon, 14 Oct 2019 13:57:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 41039206A3
+	for <netfilter-devel@archiver.kernel.org>; Mon, 14 Oct 2019 19:56:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732317AbfJNN5B convert rfc822-to-8bit (ORCPT
+        id S1730668AbfJNT4v (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 14 Oct 2019 09:57:01 -0400
-Received: from dispatchb-us1.ppe-hosted.com ([148.163.129.53]:54214 "EHLO
-        dispatchb-us1.ppe-hosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1730477AbfJNN5B (ORCPT
+        Mon, 14 Oct 2019 15:56:51 -0400
+Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:39696 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1730641AbfJNT4u (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 14 Oct 2019 09:57:01 -0400
-X-Virus-Scanned: Proofpoint Essentials engine
-Received: from webmail.solarflare.com (webmail.solarflare.com [12.187.104.26])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mx1-us4.ppe-hosted.com (PPE Hosted ESMTP Server) with ESMTPS id 4492E4C0074;
-        Mon, 14 Oct 2019 13:56:58 +0000 (UTC)
-Received: from [10.17.20.203] (10.17.20.203) by ocex03.SolarFlarecom.com
- (10.20.40.36) with Microsoft SMTP Server (TLS) id 15.0.1395.4; Mon, 14 Oct
- 2019 06:56:55 -0700
-Subject: Re: [PATCH v2 nf-next] netfilter: add and use nf_hook_slow_list()
-To:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>
-CC:     <netfilter-devel@vger.kernel.org>
-References: <20191010223037.10811-1-fw@strlen.de>
- <2d9864c9-95d2-02c2-b256-85a07c2b2232@solarflare.com>
- <20191010225433.GK25052@breakpoint.cc>
- <20191014110201.6gnd4ewsls7bsmry@salvia>
-From:   Edward Cree <ecree@solarflare.com>
-Message-ID: <4b19cd06-010c-bfcd-8a29-5b041fb9bc70@solarflare.com>
-Date:   Mon, 14 Oct 2019 14:56:53 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.7.0
+        Mon, 14 Oct 2019 15:56:50 -0400
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1iK6SW-0006NU-40; Mon, 14 Oct 2019 21:56:48 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf-next] netfilter: ctnetlink: don't dump ct extensions of unconfirmed conntracks
+Date:   Mon, 14 Oct 2019 21:41:41 +0200
+Message-Id: <20191014194141.17626-1-fw@strlen.de>
+X-Mailer: git-send-email 2.21.0
 MIME-Version: 1.0
-In-Reply-To: <20191014110201.6gnd4ewsls7bsmry@salvia>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Content-Language: en-GB
-X-Originating-IP: [10.17.20.203]
-X-TM-AS-Product-Ver: SMEX-12.5.0.1300-8.5.1010-24974.005
-X-TM-AS-Result: No-7.495600-4.000000-10
-X-TMASE-MatchedRID: HXSqh3WYKfuHYS4ybQtcOh4ejJMDGBzF69aS+7/zbj+qvcIF1TcLYNiU
-        K419XDm1bINQ5/egIOoZkOuFEoLztGwqGkf8xvfdW1M77Gh1ugYCn5QffvZFlR3RY4pGTCyHEoN
-        4n3g9RrYldHjCZtJgv3UDKCdNHP2uYeOFZSwS7nSLzZSKyQypzFsP0tBwe3qDFBQ5IKls/A6sL4
-        qRg1YXFlTbzoq5KvFKnkZQaFZBlMaiexRwf5KEhM36paW7ZnFofS0Ip2eEHny+qryzYw2E8LLn+
-        0Vm71Lcq7rFUcuGp/EnRE+fI6etkqn/XlherE2UNSf9iCKZAs4uqd4AAeJ/GxTgSpQcKLmtmPiE
-        wyTKewRtWVT/FwjEHJGNKvZY3ZLXMjwaCGlraS1H0v8MENAgBPAdfn5DyOPDXC6uJnc/p0Ssglk
-        ltB8xdGpozkualSTDOvxFSbveVNw=
-X-TM-AS-User-Approved-Sender: No
-X-TM-AS-User-Blocked-Sender: No
-X-TMASE-Result: 10--7.495600-4.000000
-X-TMASE-Version: SMEX-12.5.0.1300-8.5.1010-24974.005
-X-MDID: 1571061420-Me1ZBEw8Ws3E
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 14/10/2019 12:02, Pablo Neira Ayuso wrote:
-> On Fri, Oct 11, 2019 at 12:54:33AM +0200, Florian Westphal wrote:
->> Edward Cree <ecree@solarflare.com> wrote:
->>> On 10/10/2019 23:30, Florian Westphal wrote:
->>>> NF_HOOK_LIST now only works for ipv4 and ipv6, as those are the only
->>>> callers.
->>> ...
->>>> +
->>>> +     rcu_read_lock();
->>>> +     switch (pf) {
->>>> +     case NFPROTO_IPV4:
->>>> +             hook_head = rcu_dereference(net->nf.hooks_ipv4[hook]);
->>>> +             break;
->>>> +     case NFPROTO_IPV6:
->>>> +             hook_head = rcu_dereference(net->nf.hooks_ipv6[hook]);
->>>> +             break;
->>>> +     default:
->>>> +             WARN_ON_ONCE(1);
->>>> +             break;
->>>>       }
->>> Would it not make sense instead to abstract out the switch in nf_hook()
->>>  into, say, an inline function that could be called from here?  That
->>>  would satisfy SPOT and also save updating this code if new callers of
->>>  NF_HOOK_LIST are added in the future.
->> Its a matter of taste I guess.  I don't really like having all these
->> inline wrappers for wrappers wrapped in wrappers.
->>
->> Pablo, its up to you.  I could add __nf_hook_get_hook_head() or similar
->> and use that instead of open-coding.
-> I'm fine with your approach, Florian. If new callers are added, this
-> can be done later on.
-Fine, in that case feel free to add my
-Acked-by: Edward Cree <ecree@solarflare.com>
-The information contained in this message is confidential and is intended for the addressee(s) only. If you have received this message in error, please notify the sender immediately and delete the message. Unless you are an addressee (or authorized to receive for an addressee), you may not use, copy or disclose to anyone this message or any information contained in this message. The unauthorized use, disclosure, copying or alteration of this message is strictly prohibited.
+When dumping the unconfirmed lists, the cpu that is processing the ct
+entry can realloc ct->ext at any time.
+
+Accessing extensions from another CPU is ok provided rcu read lock is held.
+
+Once extension space will be reallocated with plain krealloc
+this isn't used anymore.
+
+Dumping the extension area for confirmed or dying conntracks is fine:
+no reallocations are allowed and list iteration holds appropriate
+locks that prevent ct (and thus ct->ext) from getting free'd.
+
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ net/netfilter/nf_conntrack_netlink.c | 77 ++++++++++++++++++----------
+ 1 file changed, 51 insertions(+), 26 deletions(-)
+
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index e2d13cd18875..db04e1bfb04d 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -506,9 +506,44 @@ static int ctnetlink_dump_use(struct sk_buff *skb, const struct nf_conn *ct)
+ 	return -1;
+ }
+ 
++/* all these functions access ct->ext. Caller must either hold a reference
++ * on ct or prevent its deletion by holding either the bucket spinlock or
++ * pcpu dying list lock.
++ */
++static int ctnetlink_dump_extinfo(struct sk_buff *skb,
++				  const struct nf_conn *ct, u32 type)
++{
++	if (ctnetlink_dump_acct(skb, ct, type) < 0 ||
++	    ctnetlink_dump_timestamp(skb, ct) < 0 ||
++	    ctnetlink_dump_helpinfo(skb, ct) < 0 ||
++	    ctnetlink_dump_labels(skb, ct) < 0 ||
++	    ctnetlink_dump_ct_seq_adj(skb, ct) < 0 ||
++	    ctnetlink_dump_ct_synproxy(skb, ct) < 0)
++		return -1;
++
++	return 0;
++}
++
++static int ctnetlink_dump_info(struct sk_buff *skb, struct nf_conn *ct)
++{
++	if (ctnetlink_dump_status(skb, ct) < 0 ||
++	    ctnetlink_dump_mark(skb, ct) < 0 ||
++	    ctnetlink_dump_secctx(skb, ct) < 0 ||
++	    ctnetlink_dump_id(skb, ct) < 0 ||
++	    ctnetlink_dump_use(skb, ct) < 0 ||
++	    ctnetlink_dump_master(skb, ct) < 0)
++		return -1;
++
++	if (!test_bit(IPS_OFFLOAD_BIT, &ct->status) &&
++	    (ctnetlink_dump_timeout(skb, ct) < 0 ||
++	     ctnetlink_dump_protoinfo(skb, ct) < 0))
++
++	return 0;
++}
++
+ static int
+ ctnetlink_fill_info(struct sk_buff *skb, u32 portid, u32 seq, u32 type,
+-		    struct nf_conn *ct)
++		    struct nf_conn *ct, bool extinfo)
+ {
+ 	const struct nf_conntrack_zone *zone;
+ 	struct nlmsghdr *nlh;
+@@ -552,23 +587,9 @@ ctnetlink_fill_info(struct sk_buff *skb, u32 portid, u32 seq, u32 type,
+ 				   NF_CT_DEFAULT_ZONE_DIR) < 0)
+ 		goto nla_put_failure;
+ 
+-	if (ctnetlink_dump_status(skb, ct) < 0 ||
+-	    ctnetlink_dump_acct(skb, ct, type) < 0 ||
+-	    ctnetlink_dump_timestamp(skb, ct) < 0 ||
+-	    ctnetlink_dump_helpinfo(skb, ct) < 0 ||
+-	    ctnetlink_dump_mark(skb, ct) < 0 ||
+-	    ctnetlink_dump_secctx(skb, ct) < 0 ||
+-	    ctnetlink_dump_labels(skb, ct) < 0 ||
+-	    ctnetlink_dump_id(skb, ct) < 0 ||
+-	    ctnetlink_dump_use(skb, ct) < 0 ||
+-	    ctnetlink_dump_master(skb, ct) < 0 ||
+-	    ctnetlink_dump_ct_seq_adj(skb, ct) < 0 ||
+-	    ctnetlink_dump_ct_synproxy(skb, ct) < 0)
++	if (ctnetlink_dump_info(skb, ct) < 0)
+ 		goto nla_put_failure;
+-
+-	if (!test_bit(IPS_OFFLOAD_BIT, &ct->status) &&
+-	    (ctnetlink_dump_timeout(skb, ct) < 0 ||
+-	     ctnetlink_dump_protoinfo(skb, ct) < 0))
++	if (extinfo && ctnetlink_dump_extinfo(skb, ct, type) < 0)
+ 		goto nla_put_failure;
+ 
+ 	nlmsg_end(skb, nlh);
+@@ -953,13 +974,11 @@ ctnetlink_dump_table(struct sk_buff *skb, struct netlink_callback *cb)
+ 			if (!ctnetlink_filter_match(ct, cb->data))
+ 				continue;
+ 
+-			rcu_read_lock();
+ 			res =
+ 			ctnetlink_fill_info(skb, NETLINK_CB(cb->skb).portid,
+ 					    cb->nlh->nlmsg_seq,
+ 					    NFNL_MSG_TYPE(cb->nlh->nlmsg_type),
+-					    ct);
+-			rcu_read_unlock();
++					    ct, true);
+ 			if (res < 0) {
+ 				nf_conntrack_get(&ct->ct_general);
+ 				cb->args[1] = (unsigned long)ct;
+@@ -1364,10 +1383,8 @@ static int ctnetlink_get_conntrack(struct net *net, struct sock *ctnl,
+ 		return -ENOMEM;
+ 	}
+ 
+-	rcu_read_lock();
+ 	err = ctnetlink_fill_info(skb2, NETLINK_CB(skb).portid, nlh->nlmsg_seq,
+-				  NFNL_MSG_TYPE(nlh->nlmsg_type), ct);
+-	rcu_read_unlock();
++				  NFNL_MSG_TYPE(nlh->nlmsg_type), ct, true);
+ 	nf_ct_put(ct);
+ 	if (err <= 0)
+ 		goto free;
+@@ -1429,12 +1446,20 @@ ctnetlink_dump_list(struct sk_buff *skb, struct netlink_callback *cb, bool dying
+ 					continue;
+ 				cb->args[1] = 0;
+ 			}
+-			rcu_read_lock();
++
++			/* We can't dump extension info for the unconfirmed
++			 * list because unconfirmed conntracks can have ct->ext
++			 * reallocated (and thus freed).
++			 *
++			 * In the dying list case ct->ext can't be altered during
++			 * list walk anymore, and free can only occur after ct
++			 * has been unlinked from the dying list (which can't
++			 * happen until after we drop pcpu->lock).
++			 */
+ 			res = ctnetlink_fill_info(skb, NETLINK_CB(cb->skb).portid,
+ 						  cb->nlh->nlmsg_seq,
+ 						  NFNL_MSG_TYPE(cb->nlh->nlmsg_type),
+-						  ct);
+-			rcu_read_unlock();
++						  ct, dying ? true : false);
+ 			if (res < 0) {
+ 				if (!atomic_inc_not_zero(&ct->ct_general.use))
+ 					continue;
+-- 
+2.21.0
+
