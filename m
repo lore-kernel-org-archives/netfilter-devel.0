@@ -2,43 +2,43 @@ Return-Path: <SRS0=TYlN=YI=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E7517ECE588
-	for <netfilter-devel@archiver.kernel.org>; Tue, 15 Oct 2019 16:11:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BC6BAECE588
+	for <netfilter-devel@archiver.kernel.org>; Tue, 15 Oct 2019 16:21:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C31FB20640
-	for <netfilter-devel@archiver.kernel.org>; Tue, 15 Oct 2019 16:11:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9D4E72086A
+	for <netfilter-devel@archiver.kernel.org>; Tue, 15 Oct 2019 16:21:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727973AbfJOQLg (ORCPT
+        id S1727809AbfJOQVb (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 15 Oct 2019 12:11:36 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:37118 "EHLO orbyte.nwl.cc"
+        Tue, 15 Oct 2019 12:21:31 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:37138 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727610AbfJOQLg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 15 Oct 2019 12:11:36 -0400
+        id S1726237AbfJOQVb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 15 Oct 2019 12:21:31 -0400
 Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.91)
         (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1iKPQ6-0007rK-Ma; Tue, 15 Oct 2019 18:11:34 +0200
-Date:   Tue, 15 Oct 2019 18:11:34 +0200
+        id 1iKPZi-00085t-4G; Tue, 15 Oct 2019 18:21:30 +0200
+Date:   Tue, 15 Oct 2019 18:21:30 +0200
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [libnftnl PATCH 4/6] set: Don't bypass checks in
- nftnl_set_set_u{32,64}()
-Message-ID: <20191015161134.GY12661@orbyte.nwl.cc>
+Subject: Re: [libnftnl PATCH 5/6] obj/ct_timeout: Avoid array overrun in
+ timeout_parse_attr_data()
+Message-ID: <20191015162130.GZ12661@orbyte.nwl.cc>
 Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
         netfilter-devel@vger.kernel.org
 References: <20191015141658.11325-1-phil@nwl.cc>
- <20191015141658.11325-5-phil@nwl.cc>
- <20191015155346.qgd55w7iypj44q6m@salvia>
+ <20191015141658.11325-6-phil@nwl.cc>
+ <20191015155716.n5amfyrcs5pe42cd@salvia>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20191015155346.qgd55w7iypj44q6m@salvia>
+In-Reply-To: <20191015155716.n5amfyrcs5pe42cd@salvia>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
@@ -47,23 +47,68 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 Hi,
 
-On Tue, Oct 15, 2019 at 05:53:46PM +0200, Pablo Neira Ayuso wrote:
-> On Tue, Oct 15, 2019 at 04:16:56PM +0200, Phil Sutter wrote:
-> > By calling nftnl_set_set(), any data size checks are effectively
-> > bypassed. Better call nftnl_set_set_data() directly, passing the real
-> > size for validation.
+On Tue, Oct 15, 2019 at 05:57:16PM +0200, Pablo Neira Ayuso wrote:
+> On Tue, Oct 15, 2019 at 04:16:57PM +0200, Phil Sutter wrote:
+> > Array 'tb' has only 'attr_max' elements, the loop overstepped its
+> > boundary by one. Copy array_size() macro from include/utils.h in
+> > nftables.git to make sure code does the right thing.
 > > 
+> > Fixes: 0adceeab1597a ("src: add ct timeout support")
 > > Signed-off-by: Phil Sutter <phil@nwl.cc>
+> > ---
+> >  include/utils.h      | 8 ++++++++
+> >  src/obj/ct_timeout.c | 2 +-
+> >  2 files changed, 9 insertions(+), 1 deletion(-)
+> > 
+> > diff --git a/include/utils.h b/include/utils.h
+> > index 3cc659652fe2e..91fbebb1956fd 100644
+> > --- a/include/utils.h
+> > +++ b/include/utils.h
+> > @@ -58,6 +58,14 @@ void __nftnl_assert_attr_exists(uint16_t attr, uint16_t attr_max,
+> >  		ret = remain;				\
+> >  	remain -= ret;					\
+> >  
+> > +
+> > +#define BUILD_BUG_ON_ZERO(e)	(sizeof(char[1 - 2 * !!(e)]) - 1)
+> > +
+> > +#define __must_be_array(a) \
+> > +	BUILD_BUG_ON_ZERO(__builtin_types_compatible_p(typeof(a), typeof(&a[0])))
+> > +
+> > +#define array_size(arr)		(sizeof(arr) / sizeof((arr)[0]) + __must_be_array(arr))
+> > +
+> >  const char *nftnl_family2str(uint32_t family);
+> >  int nftnl_str2family(const char *family);
+> >  
+> > diff --git a/src/obj/ct_timeout.c b/src/obj/ct_timeout.c
+> > index a439432deee18..a09e25ae5d44f 100644
+> > --- a/src/obj/ct_timeout.c
+> > +++ b/src/obj/ct_timeout.c
+> > @@ -134,7 +134,7 @@ timeout_parse_attr_data(struct nftnl_obj *e,
+> >  	if (mnl_attr_parse_nested(nest, parse_timeout_attr_policy_cb, &cnt) < 0)
+> >  		return -1;
+> >  
+> > -	for (i = 1; i <= attr_max; i++) {
+> > +	for (i = 1; i < array_size(tb); i++) {
 > 
-> Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> Are you sure this is correct?
 > 
-> Probably attribute((deprecated)) is better so we don't forget. Anyway,
-> we can probably nuke this function in the next release.
+> array use NFTNL_CTTIMEOUT_* while tb uses netlink NFTA_* attributes.
 
-But if we drop it, we break ABI, no? Sadly, nftables use(d) the symbol,
-so we would break older nftables versions with the new libnftnl release.
+The old code can't be correct. Basically it was:
 
-Should I send a v2 setting attribute((deprecated))? I think it's worth
-doing it.
+| struct nlattr *tb[attr_max];
+[...]
+| for (i = 1; i <= attr_max; i++) {
+|   if (tb[i]) {
+[...]
 
-Thanks, Phil
+So in the last round, it accesses 'tb[attr_max]' which is out of bounds.
+
+Regarding the question of whether the array is big enough at all, I had
+a look at values in 'timeout_protocol' array struct field values
+'attr_max': either NFTNL_CTTIMEOUT_TCP_MAX or NFTNL_CTTIMEOUT_UDP_MAX.
+Both are last items in unions so serve only for defining array sizes.
+Without checking differences between NFTNL_CTTIMEOUT_* and respective
+NFTA_* symbols, I'd bet the array is large enough! :)
+
+Cheers, Phil
