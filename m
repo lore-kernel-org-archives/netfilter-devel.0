@@ -2,144 +2,92 @@ Return-Path: <SRS0=TYlN=YI=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=DKIM_ADSP_CUSTOM_MED,
-	FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,HEADER_FROM_DIFFERENT_DOMAINS,
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A6B63ECE588
-	for <netfilter-devel@archiver.kernel.org>; Tue, 15 Oct 2019 14:13:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D6E9CC10F14
+	for <netfilter-devel@archiver.kernel.org>; Tue, 15 Oct 2019 14:17:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8508D20650
-	for <netfilter-devel@archiver.kernel.org>; Tue, 15 Oct 2019 14:13:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B4B4C20650
+	for <netfilter-devel@archiver.kernel.org>; Tue, 15 Oct 2019 14:17:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732506AbfJOON6 (ORCPT
+        id S1732261AbfJOORI (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 15 Oct 2019 10:13:58 -0400
-Received: from 195-154-211-226.rev.poneytelecom.eu ([195.154.211.226]:46998
-        "EHLO flash.glorub.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1732546AbfJOON5 (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 15 Oct 2019 10:13:57 -0400
-Received: from eric by flash.glorub.net with local (Exim 4.89)
-        (envelope-from <ejallot@gmail.com>)
-        id 1iKNaE-000BYg-Pk; Tue, 15 Oct 2019 16:13:54 +0200
-From:   Eric Jallot <ejallot@gmail.com>
-To:     netfilter-devel@vger.kernel.org
-Cc:     Eric Jallot <ejallot@gmail.com>
-Subject: [PATCH nft] flowtable: fix memleak in exit path
-Date:   Tue, 15 Oct 2019 15:59:01 +0200
-Message-Id: <20191015135901.43758-1-ejallot@gmail.com>
-X-Mailer: git-send-email 2.11.0
+        Tue, 15 Oct 2019 10:17:08 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:36876 "EHLO orbyte.nwl.cc"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1731553AbfJOORI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 15 Oct 2019 10:17:08 -0400
+Received: from localhost ([::1]:49966 helo=tatos)
+        by orbyte.nwl.cc with esmtp (Exim 4.91)
+        (envelope-from <phil@nwl.cc>)
+        id 1iKNdK-00036a-Q9; Tue, 15 Oct 2019 16:17:06 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [libnftnl PATCH 3/6] set_elem: Validate nftnl_set_elem_set() parameters
+Date:   Tue, 15 Oct 2019 16:16:55 +0200
+Message-Id: <20191015141658.11325-4-phil@nwl.cc>
+X-Mailer: git-send-email 2.23.0
+In-Reply-To: <20191015141658.11325-1-phil@nwl.cc>
+References: <20191015141658.11325-1-phil@nwl.cc>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Add missing loop in table_free().
-Free all objects in flowtable_free() and add conditions in case of error recovery
-in the parser (See commit 4be0a3f922a29).
+Copying from nftnl_table_set_data(), validate input to
+nftnl_set_elem_set() as well. Given that for some attributes the
+function assumes passed data size, this seems necessary.
 
-Also, fix memleak in the parser.
-
-This fixes the following memleak:
-
- # valgrind --leak-check=full nft add flowtable inet raw f '{ hook ingress priority filter; devices = { eth0 }; }'
- ==15414== Memcheck, a memory error detector
- ==15414== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
- ==15414== Using Valgrind-3.14.0 and LibVEX; rerun with -h for copyright info
- ==15414== Command: nft add flowtable inet raw f {\ hook\ ingress\ priority\ filter;\ devices\ =\ {\ eth0\ };\ }
- ==15414==
- ==15414==
- ==15414== HEAP SUMMARY:
- ==15414==     in use at exit: 266 bytes in 4 blocks
- ==15414==   total heap usage: 55 allocs, 51 frees, 208,105 bytes allocated
- ==15414==
- ==15414== 5 bytes in 1 blocks are definitely lost in loss record 2 of 4
- ==15414==    at 0x4C29EA3: malloc (vg_replace_malloc.c:309)
- ==15414==    by 0x5C64AA9: strdup (strdup.c:42)
- ==15414==    by 0x4E705ED: xstrdup (utils.c:75)
- ==15414==    by 0x4E93F01: nft_lex (scanner.l:648)
- ==15414==    by 0x4E85C1C: nft_parse (parser_bison.c:5577)
- ==15414==    by 0x4E75A07: nft_parse_bison_buffer (libnftables.c:375)
- ==15414==    by 0x4E75A07: nft_run_cmd_from_buffer (libnftables.c:443)
- ==15414==    by 0x40170F: main (main.c:326)
- ==15414==
- ==15414== 261 (128 direct, 133 indirect) bytes in 1 blocks are definitely lost in loss record 4 of 4
- ==15414==    at 0x4C29EA3: malloc (vg_replace_malloc.c:309)
- ==15414==    by 0x4E705AD: xmalloc (utils.c:36)
- ==15414==    by 0x4E705AD: xzalloc (utils.c:65)
- ==15414==    by 0x4E560B6: expr_alloc (expression.c:45)
- ==15414==    by 0x4E56288: symbol_expr_alloc (expression.c:286)
- ==15414==    by 0x4E8A601: nft_parse (parser_bison.y:1842)
- ==15414==    by 0x4E75A07: nft_parse_bison_buffer (libnftables.c:375)
- ==15414==    by 0x4E75A07: nft_run_cmd_from_buffer (libnftables.c:443)
- ==15414==    by 0x40170F: main (main.c:326)
-
-Fixes: 92911b362e906 ("src: add support to add flowtables")
-Signed-off-by: Eric Jallot <ejallot@gmail.com>
+Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- src/parser_bison.y |  1 +
- src/rule.c         | 16 ++++++++++++++++
- 2 files changed, 17 insertions(+)
+ include/libnftnl/set.h |  2 ++
+ src/set_elem.c         | 10 ++++++++++
+ 2 files changed, 12 insertions(+)
 
-diff --git a/src/parser_bison.y b/src/parser_bison.y
-index 1e2b30015f78..09bc99aa7f31 100644
---- a/src/parser_bison.y
-+++ b/src/parser_bison.y
-@@ -1842,6 +1842,7 @@ flowtable_expr_member	:	STRING
- 				$$ = symbol_expr_alloc(&@$, SYMBOL_VALUE,
- 						       current_scope(state),
- 						       $1);
-+				xfree($1);
- 			}
- 			;
+diff --git a/include/libnftnl/set.h b/include/libnftnl/set.h
+index 6640ad929f346..2ea2e9a56ce4f 100644
+--- a/include/libnftnl/set.h
++++ b/include/libnftnl/set.h
+@@ -104,7 +104,9 @@ enum {
+ 	NFTNL_SET_ELEM_USERDATA,
+ 	NFTNL_SET_ELEM_EXPR,
+ 	NFTNL_SET_ELEM_OBJREF,
++	__NFTNL_SET_ELEM_MAX
+ };
++#define NFTNL_SET_ELEM_MAX (__NFTNL_SET_ELEM_MAX - 1)
  
-diff --git a/src/rule.c b/src/rule.c
-index 2d35bae44c9e..cb18a248f955 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -1182,6 +1182,7 @@ void table_free(struct table *table)
- 	struct chain *chain, *next;
- 	struct set *set, *nset;
- 	struct obj *obj, *nobj;
-+	struct flowtable *ft, *nft;
+ struct nftnl_set_elem;
  
- 	if (--table->refcnt > 0)
- 		return;
-@@ -1189,6 +1190,8 @@ void table_free(struct table *table)
- 		chain_free(chain);
- 	list_for_each_entry_safe(set, nset, &table->sets, list)
- 		set_free(set);
-+	list_for_each_entry_safe(ft, nft, &table->flowtables, list)
-+		flowtable_free(ft);
- 	list_for_each_entry_safe(obj, nobj, &table->objs, list)
- 		obj_free(obj);
- 	handle_free(&table->handle);
-@@ -2104,10 +2107,23 @@ struct flowtable *flowtable_get(struct flowtable *flowtable)
- 
- void flowtable_free(struct flowtable *flowtable)
- {
-+	struct expr *e, *next;
-+	int i;
-+
- 	if (--flowtable->refcnt > 0)
- 		return;
- 	handle_free(&flowtable->handle);
- 	expr_free(flowtable->priority.expr);
-+	if (flowtable->dev_expr != NULL) {
-+		list_for_each_entry_safe(e, next, &flowtable->dev_expr->expressions, list)
-+			expr_free(e);
-+		expr_free(flowtable->dev_expr);
-+	}
-+	if (flowtable->dev_array != NULL) {
-+		for (i = 0; i < flowtable->dev_array_len; i++)
-+			xfree(flowtable->dev_array[i]);
-+		xfree(flowtable->dev_array);
-+	}
- 	xfree(flowtable);
+diff --git a/src/set_elem.c b/src/set_elem.c
+index 3794f12594079..4225a96ee5a0a 100644
+--- a/src/set_elem.c
++++ b/src/set_elem.c
+@@ -96,10 +96,20 @@ void nftnl_set_elem_unset(struct nftnl_set_elem *s, uint16_t attr)
+ 	s->flags &= ~(1 << attr);
  }
  
++static uint32_t nftnl_set_elem_validate[NFTNL_SET_ELEM_MAX + 1] = {
++	[NFTNL_SET_ELEM_FLAGS]		= sizeof(uint32_t),
++	[NFTNL_SET_ELEM_VERDICT]	= sizeof(int), /* FIXME: data.verdict is int?! */
++	[NFTNL_SET_ELEM_TIMEOUT]	= sizeof(uint64_t),
++	[NFTNL_SET_ELEM_EXPIRATION]	= sizeof(uint64_t),
++};
++
+ EXPORT_SYMBOL(nftnl_set_elem_set);
+ int nftnl_set_elem_set(struct nftnl_set_elem *s, uint16_t attr,
+ 		       const void *data, uint32_t data_len)
+ {
++	nftnl_assert_attr_exists(attr, NFTNL_SET_ELEM_MAX);
++	nftnl_assert_validate(data, nftnl_set_elem_validate, attr, data_len);
++
+ 	switch(attr) {
+ 	case NFTNL_SET_ELEM_FLAGS:
+ 		memcpy(&s->set_elem_flags, data, sizeof(s->set_elem_flags));
 -- 
-2.11.0
+2.23.0
 
