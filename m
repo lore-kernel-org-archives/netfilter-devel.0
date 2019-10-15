@@ -2,95 +2,86 @@ Return-Path: <SRS0=TYlN=YI=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.8 required=3.0
+	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PULL_REQUEST,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B096C10F14
-	for <netfilter-devel@archiver.kernel.org>; Tue, 15 Oct 2019 07:32:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D7261ECE58E
+	for <netfilter-devel@archiver.kernel.org>; Tue, 15 Oct 2019 07:32:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5FF812067B
-	for <netfilter-devel@archiver.kernel.org>; Tue, 15 Oct 2019 07:32:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AF4702067B
+	for <netfilter-devel@archiver.kernel.org>; Tue, 15 Oct 2019 07:32:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727649AbfJOHc5 (ORCPT
+        id S1727782AbfJOHc7 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 15 Oct 2019 03:32:57 -0400
-Received: from kirsty.vergenet.net ([202.4.237.240]:42110 "EHLO
+        Tue, 15 Oct 2019 03:32:59 -0400
+Received: from kirsty.vergenet.net ([202.4.237.240]:42146 "EHLO
         kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725710AbfJOHc5 (ORCPT
+        with ESMTP id S1725710AbfJOHc7 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 15 Oct 2019 03:32:57 -0400
+        Tue, 15 Oct 2019 03:32:59 -0400
 Received: from penelope.horms.nl (ip4dab7138.direct-adsl.nl [77.171.113.56])
-        by kirsty.vergenet.net (Postfix) with ESMTPA id 67E1225B701;
+        by kirsty.vergenet.net (Postfix) with ESMTPA id 7423825B818;
         Tue, 15 Oct 2019 18:32:54 +1100 (AEDT)
 Received: by penelope.horms.nl (Postfix, from userid 7100)
-        id 6EC99E202B4; Tue, 15 Oct 2019 09:32:52 +0200 (CEST)
+        id 6BF3AE2046E; Tue, 15 Oct 2019 09:32:52 +0200 (CEST)
 From:   Simon Horman <horms@verge.net.au>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
         netfilter-devel@vger.kernel.org,
         Wensong Zhang <wensong@linux-vs.org>,
-        Julian Anastasov <ja@ssi.bg>, zhang kai <zhangkaiheb@126.com>,
-        Simon Horman <horms@verge.net.au>
-Subject: [PATCH 1/6] ipvs: no need to update skb route entry for local destination packets.
-Date:   Tue, 15 Oct 2019 09:32:07 +0200
-Message-Id: <20191015073212.19394-2-horms@verge.net.au>
+        Julian Anastasov <ja@ssi.bg>, Simon Horman <horms@verge.net.au>
+Subject: [PATCH 0/6] [GIT PULL ipvs-next] IPVS updates for v5.5
+Date:   Tue, 15 Oct 2019 09:32:06 +0200
+Message-Id: <20191015073212.19394-1-horms@verge.net.au>
 X-Mailer: git-send-email 2.11.0
-In-Reply-To: <20191015073212.19394-1-horms@verge.net.au>
-References: <20191015073212.19394-1-horms@verge.net.au>
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: zhang kai <zhangkaiheb@126.com>
+Hi Pablo,
 
-In the end of function __ip_vs_get_out_rt/__ip_vs_get_out_rt_v6,the
-'local' variable is always zero.
+Please consider these IPVS updates for v5.5.
 
-Signed-off-by: zhang kai <zhangkaiheb@126.com>
-Acked-by: Julian Anastasov <ja@ssi.bg>
-Signed-off-by: Simon Horman <horms@verge.net.au>
----
- net/netfilter/ipvs/ip_vs_xmit.c | 18 ++++++------------
- 1 file changed, 6 insertions(+), 12 deletions(-)
+As there are a few more changes than usual I'm sending a pull request
+rather than asking you to apply the patches directly.
 
-diff --git a/net/netfilter/ipvs/ip_vs_xmit.c b/net/netfilter/ipvs/ip_vs_xmit.c
-index 888d3068a492..b1e300f8881b 100644
---- a/net/netfilter/ipvs/ip_vs_xmit.c
-+++ b/net/netfilter/ipvs/ip_vs_xmit.c
-@@ -407,12 +407,9 @@ __ip_vs_get_out_rt(struct netns_ipvs *ipvs, int skb_af, struct sk_buff *skb,
- 		goto err_put;
- 
- 	skb_dst_drop(skb);
--	if (noref) {
--		if (!local)
--			skb_dst_set_noref(skb, &rt->dst);
--		else
--			skb_dst_set(skb, dst_clone(&rt->dst));
--	} else
-+	if (noref)
-+		skb_dst_set_noref(skb, &rt->dst);
-+	else
- 		skb_dst_set(skb, &rt->dst);
- 
- 	return local;
-@@ -574,12 +571,9 @@ __ip_vs_get_out_rt_v6(struct netns_ipvs *ipvs, int skb_af, struct sk_buff *skb,
- 		goto err_put;
- 
- 	skb_dst_drop(skb);
--	if (noref) {
--		if (!local)
--			skb_dst_set_noref(skb, &rt->dst);
--		else
--			skb_dst_set(skb, dst_clone(&rt->dst));
--	} else
-+	if (noref)
-+		skb_dst_set_noref(skb, &rt->dst);
-+	else
- 		skb_dst_set(skb, &rt->dst);
- 
- 	return local;
+This pull request is based on nf-next.
+
+The following changes since commit f8615bf8a3dabd84bf844c6f888929495039d389:
+
+  netfilter: ipset: move ip_set_get_ip_port() to ip_set_bitmap_port.c. (2019-10-07 23:59:02 +0200)
+
+are available in the git repository at:
+
+  https://git.kernel.org/pub/scm/linux/kernel/git/horms/ipvs-next.git tags/ipvs-next-for-v5.5
+
+for you to fetch changes up to 176a52043ab853f1db7581ed02e1096aba78b4d1:
+
+  selftests: netfilter: add ipvs tunnel test case (2019-10-11 10:05:27 +0200)
+
+----------------------------------------------------------------
+Haishuang Yan (5):
+      ipvs: batch __ip_vs_cleanup
+      ipvs: batch __ip_vs_dev_cleanup
+      selftests: netfilter: add ipvs test script
+      selftests: netfilter: add ipvs nat test case
+      selftests: netfilter: add ipvs tunnel test case
+
+zhang kai (1):
+      ipvs: no need to update skb route entry for local destination packets.
+
+ include/net/ip_vs.h                        |   2 +-
+ net/netfilter/ipvs/ip_vs_core.c            |  47 +++---
+ net/netfilter/ipvs/ip_vs_ctl.c             |  12 +-
+ net/netfilter/ipvs/ip_vs_xmit.c            |  18 +--
+ tools/testing/selftests/netfilter/Makefile |   2 +-
+ tools/testing/selftests/netfilter/ipvs.sh  | 228 +++++++++++++++++++++++++++++
+ 6 files changed, 273 insertions(+), 36 deletions(-)
+ create mode 100755 tools/testing/selftests/netfilter/ipvs.sh
+
 -- 
 2.11.0
 
