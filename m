@@ -4,166 +4,127 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C1B8FECE588
-	for <netfilter-devel@archiver.kernel.org>; Tue, 15 Oct 2019 13:15:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 402D7ECE588
+	for <netfilter-devel@archiver.kernel.org>; Tue, 15 Oct 2019 13:48:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9E4B721848
-	for <netfilter-devel@archiver.kernel.org>; Tue, 15 Oct 2019 13:15:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1E5EC2064A
+	for <netfilter-devel@archiver.kernel.org>; Tue, 15 Oct 2019 13:48:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731713AbfJONPi (ORCPT
+        id S1732155AbfJONsn (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 15 Oct 2019 09:15:38 -0400
-Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:43596 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1729551AbfJONPh (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 15 Oct 2019 09:15:37 -0400
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1iKMfn-0003l7-P3; Tue, 15 Oct 2019 15:15:35 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next 2/2] netfilter: conntrack: free extension area immediately
-Date:   Tue, 15 Oct 2019 15:19:15 +0200
-Message-Id: <20191015131915.28385-3-fw@strlen.de>
-X-Mailer: git-send-email 2.21.0
-In-Reply-To: <20191015131915.28385-1-fw@strlen.de>
-References: <20191015131915.28385-1-fw@strlen.de>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        Tue, 15 Oct 2019 09:48:43 -0400
+Received: from correo.us.es ([193.147.175.20]:42458 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728652AbfJONsn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 15 Oct 2019 09:48:43 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id CCF75396273
+        for <netfilter-devel@vger.kernel.org>; Tue, 15 Oct 2019 15:48:36 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id BE995DA72F
+        for <netfilter-devel@vger.kernel.org>; Tue, 15 Oct 2019 15:48:36 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id B3ED6D1911; Tue, 15 Oct 2019 15:48:36 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 623332DC79
+        for <netfilter-devel@vger.kernel.org>; Tue, 15 Oct 2019 15:48:34 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Tue, 15 Oct 2019 15:48:34 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from salvia.here (sys.soleta.eu [212.170.55.40])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id 4937C42EE38F
+        for <netfilter-devel@vger.kernel.org>; Tue, 15 Oct 2019 15:48:34 +0200 (CEST)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nft] rule: fix flowtable memleaks
+Date:   Tue, 15 Oct 2019 15:48:33 +0200
+Message-Id: <20191015134833.2147-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.11.0
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Instead of waiting for rcu grace period just free it directly.
+[...]
+==13530== 694 (536 direct, 158 indirect) bytes in 1 blocks are definitely lost in loss record 7 of 7
+==13530==    at 0x483577F: malloc (vg_replace_malloc.c:309)
+==13530==    by 0x489C3A8: xmalloc (utils.c:36)
+==13530==    by 0x489C479: xzalloc (utils.c:65)
+==13530==    by 0x487CE1D: flowtable_alloc (rule.c:2091)
+==13530==    by 0x488EC7F: netlink_delinearize_flowtable (netlink.c:1115)
+==13530==    by 0x488EC7F: list_flowtable_cb (netlink.c:1151)
+==13530==    by 0x4CCA424: nftnl_flowtable_list_foreach (flowtable.c:673)
+==13530==    by 0x489104E: netlink_list_flowtables (netlink.c:1171)
+==13530==    by 0x487BE0D: cache_init_objects (rule.c:183)
+==13530==    by 0x487BE0D: cache_init (rule.c:222)
+==13530==    by 0x487BE0D: cache_update (rule.c:272)
+==13530==    by 0x48A12BE: nft_evaluate (libnftables.c:406)
+==13530==    by 0x48A1AC1: nft_run_cmd_from_buffer (libnftables.c:447)
+==13530==    by 0x10954E: main (main.c:350)
 
-This is safe because conntrack lookup doesn't consider extensions.
+[...]
+==13768== 14 (8 direct, 6 indirect) bytes in 1 blocks are definitel
+==13768==    at 0x4837B65: calloc (vg_replace_malloc.c:762)
+==13768==    by 0x488EDC3: netlink_delinearize_flowtable (netlink.c
+==13768==    by 0x488EDC3: list_flowtable_cb (netlink.c:1151)
+==13768==    by 0x4CCA424: nftnl_flowtable_list_foreach (flowtable.
+==13768==    by 0x48910FE: netlink_list_flowtables (netlink.c:1171)
+==13768==    by 0x487BE7D: cache_init_objects (rule.c:183)
+==13768==    by 0x487BE7D: cache_init (rule.c:222)
+==13768==    by 0x487BE7D: cache_update (rule.c:272)
+==13768==    by 0x48A136E: nft_evaluate (libnftables.c:406)
+==13768==    by 0x48A1B71: nft_run_cmd_from_buffer (libnftables.c:4
+==13768==    by 0x10953E: main (main.c:326)
 
-Other accesses happen while ct->ext can't be free'd, either because
-a ct refcount was taken or because the conntrack hash bucket lock or
-the dying list spinlock have been taken.
-
-This allows to remove __krealloc in a followup patch, netfilter was the
-only user.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Fixes: db0697ce7f60 ("src: support for flowtable listing")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_conntrack_extend.h | 10 ----------
- net/netfilter/nf_conntrack_core.c           |  2 --
- net/netfilter/nf_conntrack_extend.c         | 21 ++++++++++-----------
- 3 files changed, 10 insertions(+), 23 deletions(-)
+ src/rule.c | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff --git a/include/net/netfilter/nf_conntrack_extend.h b/include/net/netfilter/nf_conntrack_extend.h
-index 112a6f40dfaf..5ae5295aa46d 100644
---- a/include/net/netfilter/nf_conntrack_extend.h
-+++ b/include/net/netfilter/nf_conntrack_extend.h
-@@ -43,7 +43,6 @@ enum nf_ct_ext_id {
+diff --git a/src/rule.c b/src/rule.c
+index 2d35bae44c9e..e86e1a01c6ed 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -1179,6 +1179,7 @@ struct table *table_alloc(void)
  
- /* Extensions: optional stuff which isn't permanently in struct. */
- struct nf_ct_ext {
--	struct rcu_head rcu;
- 	u8 offset[NF_CT_EXT_NUM];
- 	u8 len;
- 	char data[0];
-@@ -72,15 +71,6 @@ static inline void *__nf_ct_ext_find(const struct nf_conn *ct, u8 id)
- /* Destroy all relationships */
- void nf_ct_ext_destroy(struct nf_conn *ct);
- 
--/* Free operation. If you want to free a object referred from private area,
-- * please implement __nf_ct_ext_free() and call it.
-- */
--static inline void nf_ct_ext_free(struct nf_conn *ct)
--{
--	if (ct->ext)
--		kfree_rcu(ct->ext, rcu);
--}
--
- /* Add this type, returns pointer to data or NULL. */
- void *nf_ct_ext_add(struct nf_conn *ct, enum nf_ct_ext_id id, gfp_t gfp);
- 
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 0c63120b2db2..bcccaa7ec34c 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -573,7 +573,6 @@ EXPORT_SYMBOL_GPL(nf_ct_tmpl_alloc);
- void nf_ct_tmpl_free(struct nf_conn *tmpl)
+ void table_free(struct table *table)
  {
- 	nf_ct_ext_destroy(tmpl);
--	nf_ct_ext_free(tmpl);
++	struct flowtable *flowtable, *nflowtable;
+ 	struct chain *chain, *next;
+ 	struct set *set, *nset;
+ 	struct obj *obj, *nobj;
+@@ -1191,6 +1192,8 @@ void table_free(struct table *table)
+ 		set_free(set);
+ 	list_for_each_entry_safe(obj, nobj, &table->objs, list)
+ 		obj_free(obj);
++	list_for_each_entry_safe(flowtable, nflowtable, &table->flowtables, list)
++		flowtable_free(flowtable);
+ 	handle_free(&table->handle);
+ 	scope_release(&table->scope);
+ 	xfree(table);
+@@ -2104,8 +2107,15 @@ struct flowtable *flowtable_get(struct flowtable *flowtable)
  
- 	if (ARCH_KMALLOC_MINALIGN <= NFCT_INFOMASK)
- 		kfree((char *)tmpl - tmpl->proto.tmpl_padto);
-@@ -1417,7 +1416,6 @@ void nf_conntrack_free(struct nf_conn *ct)
- 	WARN_ON(atomic_read(&ct->ct_general.use) != 0);
- 
- 	nf_ct_ext_destroy(ct);
--	nf_ct_ext_free(ct);
- 	kmem_cache_free(nf_conntrack_cachep, ct);
- 	smp_mb__before_atomic();
- 	atomic_dec(&net->ct.count);
-diff --git a/net/netfilter/nf_conntrack_extend.c b/net/netfilter/nf_conntrack_extend.c
-index d4ed1e197921..c24e5b64b00c 100644
---- a/net/netfilter/nf_conntrack_extend.c
-+++ b/net/netfilter/nf_conntrack_extend.c
-@@ -34,21 +34,24 @@ void nf_ct_ext_destroy(struct nf_conn *ct)
- 			t->destroy(ct);
- 		rcu_read_unlock();
- 	}
-+
-+	kfree(ct->ext);
- }
- EXPORT_SYMBOL(nf_ct_ext_destroy);
- 
- void *nf_ct_ext_add(struct nf_conn *ct, enum nf_ct_ext_id id, gfp_t gfp)
+ void flowtable_free(struct flowtable *flowtable)
  {
- 	unsigned int newlen, newoff, oldlen, alloc;
--	struct nf_ct_ext *old, *new;
- 	struct nf_ct_ext_type *t;
-+	struct nf_ct_ext *new;
- 
- 	/* Conntrack must not be confirmed to avoid races on reallocation. */
- 	WARN_ON(nf_ct_is_confirmed(ct));
- 
--	old = ct->ext;
- 
--	if (old) {
-+	if (ct->ext) {
-+		const struct nf_ct_ext *old = ct->ext;
++	int i;
 +
- 		if (__nf_ct_ext_exist(old, id))
- 			return NULL;
- 		oldlen = old->len;
-@@ -68,22 +71,18 @@ void *nf_ct_ext_add(struct nf_conn *ct, enum nf_ct_ext_id id, gfp_t gfp)
- 	rcu_read_unlock();
- 
- 	alloc = max(newlen, NF_CT_EXT_PREALLOC);
--	kmemleak_not_leak(old);
--	new = __krealloc(old, alloc, gfp);
-+	new = krealloc(ct->ext, alloc, gfp);
- 	if (!new)
- 		return NULL;
- 
--	if (!old) {
-+	if (!ct->ext)
- 		memset(new->offset, 0, sizeof(new->offset));
--		ct->ext = new;
--	} else if (new != old) {
--		kfree_rcu(old, rcu);
--		rcu_assign_pointer(ct->ext, new);
--	}
- 
- 	new->offset[id] = newoff;
- 	new->len = newlen;
- 	memset((void *)new + newoff, 0, newlen - newoff);
+ 	if (--flowtable->refcnt > 0)
+ 		return;
 +
-+	ct->ext = new;
- 	return (void *)new + newoff;
- }
- EXPORT_SYMBOL(nf_ct_ext_add);
++	for (i = 0; i < flowtable->dev_array_len; i++)
++		xfree(flowtable->dev_array[i]);
++
++	free(flowtable->dev_array);
+ 	handle_free(&flowtable->handle);
+ 	expr_free(flowtable->priority.expr);
+ 	xfree(flowtable);
 -- 
-2.21.0
+2.11.0
 
