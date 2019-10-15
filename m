@@ -6,25 +6,25 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 22645ECE587
-	for <netfilter-devel@archiver.kernel.org>; Tue, 15 Oct 2019 07:33:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E919EC10F14
+	for <netfilter-devel@archiver.kernel.org>; Tue, 15 Oct 2019 07:33:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 03E172067B
-	for <netfilter-devel@archiver.kernel.org>; Tue, 15 Oct 2019 07:33:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C04D42086A
+	for <netfilter-devel@archiver.kernel.org>; Tue, 15 Oct 2019 07:33:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727829AbfJOHdH (ORCPT
+        id S1727887AbfJOHdJ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 15 Oct 2019 03:33:07 -0400
+        Tue, 15 Oct 2019 03:33:09 -0400
 Received: from kirsty.vergenet.net ([202.4.237.240]:42146 "EHLO
         kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727818AbfJOHdG (ORCPT
+        with ESMTP id S1727842AbfJOHdI (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 15 Oct 2019 03:33:06 -0400
+        Tue, 15 Oct 2019 03:33:08 -0400
 Received: from penelope.horms.nl (ip4dab7138.direct-adsl.nl [77.171.113.56])
-        by kirsty.vergenet.net (Postfix) with ESMTPA id 8084D25BE09;
-        Tue, 15 Oct 2019 18:32:54 +1100 (AEDT)
+        by kirsty.vergenet.net (Postfix) with ESMTPA id EB60A25BE36;
+        Tue, 15 Oct 2019 18:32:56 +1100 (AEDT)
 Received: by penelope.horms.nl (Postfix, from userid 7100)
-        id 7448AE2077B; Tue, 15 Oct 2019 09:32:52 +0200 (CEST)
+        id 836C5E207B6; Tue, 15 Oct 2019 09:32:52 +0200 (CEST)
 From:   Simon Horman <horms@verge.net.au>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
@@ -33,9 +33,9 @@ Cc:     lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
         Julian Anastasov <ja@ssi.bg>,
         Haishuang Yan <yanhaishuang@cmss.chinamobile.com>,
         Simon Horman <horms@verge.net.au>
-Subject: [PATCH 2/6] ipvs: batch __ip_vs_cleanup
-Date:   Tue, 15 Oct 2019 09:32:08 +0200
-Message-Id: <20191015073212.19394-3-horms@verge.net.au>
+Subject: [PATCH 5/6] selftests: netfilter: add ipvs nat test case
+Date:   Tue, 15 Oct 2019 09:32:11 +0200
+Message-Id: <20191015073212.19394-6-horms@verge.net.au>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20191015073212.19394-1-horms@verge.net.au>
 References: <20191015073212.19394-1-horms@verge.net.au>
@@ -46,106 +46,66 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Haishuang Yan <yanhaishuang@cmss.chinamobile.com>
 
-It's better to batch __ip_vs_cleanup to speedup ipvs
-connections dismantle.
+Test virtual server via NAT.
+
+Tested:
+# selftests: netfilter: ipvs.sh
+# Testing DR mode...
+# Testing NAT mode...
+# ipvs.sh: PASS
 
 Signed-off-by: Haishuang Yan <yanhaishuang@cmss.chinamobile.com>
-Acked-by: Julian Anastasov <ja@ssi.bg>
 Signed-off-by: Simon Horman <horms@verge.net.au>
 ---
- include/net/ip_vs.h             |  2 +-
- net/netfilter/ipvs/ip_vs_core.c | 28 ++++++++++++++++------------
- net/netfilter/ipvs/ip_vs_ctl.c  | 12 +++++++++---
- 3 files changed, 26 insertions(+), 16 deletions(-)
+ tools/testing/selftests/netfilter/ipvs.sh | 22 +++++++++++++++++++++-
+ 1 file changed, 21 insertions(+), 1 deletion(-)
 
-diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
-index 3759167f91f5..93e7a252993d 100644
---- a/include/net/ip_vs.h
-+++ b/include/net/ip_vs.h
-@@ -1324,7 +1324,7 @@ void ip_vs_protocol_net_cleanup(struct netns_ipvs *ipvs);
- void ip_vs_control_net_cleanup(struct netns_ipvs *ipvs);
- void ip_vs_estimator_net_cleanup(struct netns_ipvs *ipvs);
- void ip_vs_sync_net_cleanup(struct netns_ipvs *ipvs);
--void ip_vs_service_net_cleanup(struct netns_ipvs *ipvs);
-+void ip_vs_service_nets_cleanup(struct list_head *net_list);
- 
- /* IPVS application functions
-  * (from ip_vs_app.c)
-diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-index 8b80ab794a92..93cfb47823d1 100644
---- a/net/netfilter/ipvs/ip_vs_core.c
-+++ b/net/netfilter/ipvs/ip_vs_core.c
-@@ -2402,18 +2402,22 @@ static int __net_init __ip_vs_init(struct net *net)
- 	return -ENOMEM;
+diff --git a/tools/testing/selftests/netfilter/ipvs.sh b/tools/testing/selftests/netfilter/ipvs.sh
+index 3d11d87f3e84..8b2e618d6a6a 100755
+--- a/tools/testing/selftests/netfilter/ipvs.sh
++++ b/tools/testing/selftests/netfilter/ipvs.sh
+@@ -154,20 +154,40 @@ test_dr() {
+ 	test_service
  }
  
--static void __net_exit __ip_vs_cleanup(struct net *net)
-+static void __net_exit __ip_vs_cleanup_batch(struct list_head *net_list)
- {
--	struct netns_ipvs *ipvs = net_ipvs(net);
--
--	ip_vs_service_net_cleanup(ipvs);	/* ip_vs_flush() with locks */
--	ip_vs_conn_net_cleanup(ipvs);
--	ip_vs_app_net_cleanup(ipvs);
--	ip_vs_protocol_net_cleanup(ipvs);
--	ip_vs_control_net_cleanup(ipvs);
--	ip_vs_estimator_net_cleanup(ipvs);
--	IP_VS_DBG(2, "ipvs netns %d released\n", ipvs->gen);
--	net->ipvs = NULL;
-+	struct netns_ipvs *ipvs;
-+	struct net *net;
++test_nat() {
++	ip netns exec ns0 ip route add ${vip_v4} via ${gip_v4} dev br0
 +
-+	ip_vs_service_nets_cleanup(net_list);	/* ip_vs_flush() with locks */
-+	list_for_each_entry(net, net_list, exit_list) {
-+		ipvs = net_ipvs(net);
-+		ip_vs_conn_net_cleanup(ipvs);
-+		ip_vs_app_net_cleanup(ipvs);
-+		ip_vs_protocol_net_cleanup(ipvs);
-+		ip_vs_control_net_cleanup(ipvs);
-+		ip_vs_estimator_net_cleanup(ipvs);
-+		IP_VS_DBG(2, "ipvs netns %d released\n", ipvs->gen);
-+		net->ipvs = NULL;
-+	}
- }
- 
- static int __net_init __ip_vs_dev_init(struct net *net)
-@@ -2442,7 +2446,7 @@ static void __net_exit __ip_vs_dev_cleanup(struct net *net)
- 
- static struct pernet_operations ipvs_core_ops = {
- 	.init = __ip_vs_init,
--	.exit = __ip_vs_cleanup,
-+	.exit_batch = __ip_vs_cleanup_batch,
- 	.id   = &ip_vs_net_id,
- 	.size = sizeof(struct netns_ipvs),
- };
-diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index 8b48e7ce1c2c..153c77b5c4f5 100644
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -1607,14 +1607,20 @@ static int ip_vs_flush(struct netns_ipvs *ipvs, bool cleanup)
- 
- /*
-  *	Delete service by {netns} in the service table.
-- *	Called by __ip_vs_cleanup()
-+ *	Called by __ip_vs_batch_cleanup()
-  */
--void ip_vs_service_net_cleanup(struct netns_ipvs *ipvs)
-+void ip_vs_service_nets_cleanup(struct list_head *net_list)
- {
-+	struct netns_ipvs *ipvs;
-+	struct net *net;
++	ip netns exec ns1 sysctl -qw net.ipv4.ip_forward=1
++	ip netns exec ns1 ipvsadm -A -t ${vip_v4}:${port} -s rr
++	ip netns exec ns1 ipvsadm -a -m -t ${vip_v4}:${port} -r ${rip_v4}:${port}
++	ip netns exec ns1 ip addr add ${vip_v4}/32 dev lo:1
 +
- 	EnterFunction(2);
- 	/* Check for "full" addressed entries */
- 	mutex_lock(&__ip_vs_mutex);
--	ip_vs_flush(ipvs, true);
-+	list_for_each_entry(net, net_list, exit_list) {
-+		ipvs = net_ipvs(net);
-+		ip_vs_flush(ipvs, true);
-+	}
- 	mutex_unlock(&__ip_vs_mutex);
- 	LeaveFunction(2);
++	ip netns exec ns2 ip link del veth20
++	ip netns exec ns2 ip route add default via ${dip_v4} dev veth21
++
++	test_service
++}
++
+ run_tests() {
+ 	local errors=
+ 
+ 	echo "Testing DR mode..."
++	cleanup
+ 	setup
+ 	test_dr
+ 	errors=$(( $errors + $? ))
+ 
++	echo "Testing NAT mode..."
++	cleanup
++	setup
++	test_nat
++	errors=$(( $errors + $? ))
++
+ 	return $errors
  }
+ 
+ trap cleanup EXIT
+ 
+-cleanup
+ run_tests
+ 
+ if [ $? -ne 0 ]; then
 -- 
 2.11.0
 
