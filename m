@@ -2,63 +2,68 @@ Return-Path: <SRS0=TYlN=YI=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B3A43ECE588
-	for <netfilter-devel@archiver.kernel.org>; Tue, 15 Oct 2019 14:17:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EF7A6ECE588
+	for <netfilter-devel@archiver.kernel.org>; Tue, 15 Oct 2019 14:30:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9297420650
-	for <netfilter-devel@archiver.kernel.org>; Tue, 15 Oct 2019 14:17:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C02C02064A
+	for <netfilter-devel@archiver.kernel.org>; Tue, 15 Oct 2019 14:30:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732514AbfJOORz (ORCPT
+        id S1732747AbfJOOa3 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 15 Oct 2019 10:17:55 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:36918 "EHLO orbyte.nwl.cc"
+        Tue, 15 Oct 2019 10:30:29 -0400
+Received: from correo.us.es ([193.147.175.20]:41426 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731553AbfJOORz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 15 Oct 2019 10:17:55 -0400
-Received: from localhost ([::1]:50008 helo=tatos)
-        by orbyte.nwl.cc with esmtp (Exim 4.91)
-        (envelope-from <phil@nwl.cc>)
-        id 1iKNe6-0003B4-5E; Tue, 15 Oct 2019 16:17:54 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
+        id S1732661AbfJOOa3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 15 Oct 2019 10:30:29 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 23ABB4DE723
+        for <netfilter-devel@vger.kernel.org>; Tue, 15 Oct 2019 16:30:25 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 18102FF6EC
+        for <netfilter-devel@vger.kernel.org>; Tue, 15 Oct 2019 16:30:25 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id 0C467FF6C4; Tue, 15 Oct 2019 16:30:25 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 0DC3A52577;
+        Tue, 15 Oct 2019 16:30:23 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Tue, 15 Oct 2019 16:30:23 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from us.es (sys.soleta.eu [212.170.55.40])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id CEEFF42EE38F;
+        Tue, 15 Oct 2019 16:30:22 +0200 (CEST)
+Date:   Tue, 15 Oct 2019 16:30:25 +0200
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Phil Sutter <phil@nwl.cc>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [nft PATCH] mnl: Don't use nftnl_set_set()
-Date:   Tue, 15 Oct 2019 16:17:45 +0200
-Message-Id: <20191015141745.11908-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.23.0
+Subject: Re: [nft PATCH] mnl: Don't use nftnl_set_set()
+Message-ID: <20191015143025.s7qrggqewtelcg5p@salvia>
+References: <20191015141745.11908-1-phil@nwl.cc>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20191015141745.11908-1-phil@nwl.cc>
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The function is unsafe to use as it effectively bypasses data length
-checks. Instead use nftnl_set_set_str() which at least asserts a const
-char pointer is passed.
+On Tue, Oct 15, 2019 at 04:17:45PM +0200, Phil Sutter wrote:
+> The function is unsafe to use as it effectively bypasses data length
+> checks. Instead use nftnl_set_set_str() which at least asserts a const
+> char pointer is passed.
+> 
+> Signed-off-by: Phil Sutter <phil@nwl.cc>
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- src/mnl.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/src/mnl.c b/src/mnl.c
-index 14fa4a7186fd3..75ab07b045aa5 100644
---- a/src/mnl.c
-+++ b/src/mnl.c
-@@ -945,7 +945,7 @@ mnl_nft_set_dump(struct netlink_ctx *ctx, int family, const char *table)
- 	nlh = nftnl_nlmsg_build_hdr(buf, NFT_MSG_GETSET, family,
- 				    NLM_F_DUMP, ctx->seqnum);
- 	if (table != NULL)
--		nftnl_set_set(s, NFTNL_SET_TABLE, table);
-+		nftnl_set_set_str(s, NFTNL_SET_TABLE, table);
- 	nftnl_set_nlmsg_build_payload(nlh, s);
- 	nftnl_set_free(s);
- 
--- 
-2.23.0
-
+Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
