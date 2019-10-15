@@ -2,67 +2,121 @@ Return-Path: <SRS0=TYlN=YI=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 220FDECE58E
-	for <netfilter-devel@archiver.kernel.org>; Tue, 15 Oct 2019 08:32:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 16A87C10F14
+	for <netfilter-devel@archiver.kernel.org>; Tue, 15 Oct 2019 08:48:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id F1FA02064B
-	for <netfilter-devel@archiver.kernel.org>; Tue, 15 Oct 2019 08:32:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EB0B12089C
+	for <netfilter-devel@archiver.kernel.org>; Tue, 15 Oct 2019 08:48:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729013AbfJOIc5 (ORCPT
+        id S1729378AbfJOIsx (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 15 Oct 2019 04:32:57 -0400
-Received: from correo.us.es ([193.147.175.20]:34654 "EHLO mail.us.es"
+        Tue, 15 Oct 2019 04:48:53 -0400
+Received: from mga17.intel.com ([192.55.52.151]:61669 "EHLO mga17.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727273AbfJOIc5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 15 Oct 2019 04:32:57 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id B64A4E0439
-        for <netfilter-devel@vger.kernel.org>; Tue, 15 Oct 2019 10:32:52 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id A5DDFFF6E4
-        for <netfilter-devel@vger.kernel.org>; Tue, 15 Oct 2019 10:32:52 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id A5043FF6C4; Tue, 15 Oct 2019 10:32:52 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 90A074C3C3;
-        Tue, 15 Oct 2019 10:32:50 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 15 Oct 2019 10:32:50 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (sys.soleta.eu [212.170.55.40])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 62C8641E4801;
-        Tue, 15 Oct 2019 10:32:50 +0200 (CEST)
-Date:   Tue, 15 Oct 2019 10:32:52 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Jeremy Sowden <jeremy@azazel.net>
-Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>,
-        Sebastian Priebe <sebastian.priebe@de.sii.group>
-Subject: Re: [PATCH nftables v2 1/2] cli: add linenoise CLI implementation.
-Message-ID: <20191015083252.rm22hgssh4inezq4@salvia>
-References: <20190924074055.4146-1-jeremy@azazel.net>
- <20190924074055.4146-2-jeremy@azazel.net>
+        id S1727735AbfJOIsx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 15 Oct 2019 04:48:53 -0400
+X-Amp-Result: UNKNOWN
+X-Amp-Original-Verdict: FILE UNKNOWN
+X-Amp-File-Uploaded: False
+Received: from orsmga001.jf.intel.com ([10.7.209.18])
+  by fmsmga107.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 15 Oct 2019 01:48:52 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.67,298,1566889200"; 
+   d="scan'208";a="279124843"
+Received: from lkp-server01.sh.intel.com (HELO lkp-server01) ([10.239.97.150])
+  by orsmga001.jf.intel.com with ESMTP; 15 Oct 2019 01:48:50 -0700
+Received: from kbuild by lkp-server01 with local (Exim 4.89)
+        (envelope-from <lkp@intel.com>)
+        id 1iKIVd-0005Wf-KZ; Tue, 15 Oct 2019 16:48:49 +0800
+Date:   Tue, 15 Oct 2019 16:48:47 +0800
+From:   kbuild test robot <lkp@intel.com>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     kbuild-all@lists.01.org, netfilter-devel@vger.kernel.org,
+        davem@davemloft.net, netdev@vger.kernel.org,
+        jakub.kicinski@netronome.com, jiri@resnulli.us,
+        saeedm@mellanox.com, vishal@chelsio.com, vladbu@mellanox.com,
+        ecree@solarflare.com
+Subject: Re: [PATCH net-next,v5 3/4] net: flow_offload: mangle action at byte
+ level
+Message-ID: <201910151628.aXIOUKNY%lkp@intel.com>
+References: <20191014221051.8084-4-pablo@netfilter.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20190924074055.4146-2-jeremy@azazel.net>
+In-Reply-To: <20191014221051.8084-4-pablo@netfilter.org>
+X-Patchwork-Hint: ignore
 User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Sep 24, 2019 at 08:40:54AM +0100, Jeremy Sowden wrote:
-> By default, continue to use libreadline, but if `--with-cli=linenoise`
-> is passed to configure, build the linenoise implementation instead.
+Hi Pablo,
 
-Applied, thanks Jeremy.
+I love your patch! Perhaps something to improve:
+
+[auto build test WARNING on net-next/master]
+[cannot apply to v5.4-rc3 next-20191014]
+[if your patch is applied to the wrong git tree, please drop us a note to help
+improve the system. BTW, we also suggest to use '--base' option to specify the
+base tree in git format-patch, please see https://stackoverflow.com/a/37406982]
+
+url:    https://github.com/0day-ci/linux/commits/Pablo-Neira-Ayuso/flow_offload-update-mangle-action-representation/20191015-061232
+reproduce:
+        # apt-get install sparse
+        # sparse version: v0.6.1-rc1-43-g0ccb3b4-dirty
+        make ARCH=x86_64 allmodconfig
+        make C=1 CF='-fdiagnostic-prefix -D__CHECK_ENDIAN__'
+
+If you fix the issue, kindly add following tag
+Reported-by: kbuild test robot <lkp@intel.com>
+
+
+sparse warnings: (new ones prefixed by >>)
+
+   net/sched/cls_api.c:200:22: sparse: sparse: incorrect type in assignment (different base types) @@    expected restricted __be16 [usertype] protocol @@    got icted __be16 [usertype] protocol @@
+   net/sched/cls_api.c:200:22: sparse:    expected restricted __be16 [usertype] protocol
+   net/sched/cls_api.c:200:22: sparse:    got unsigned int [usertype] protocol
+   net/sched/cls_api.c:1587:16: sparse: sparse: incompatible types in comparison expression (different address spaces):
+   net/sched/cls_api.c:1587:16: sparse:    struct tcf_proto *
+   net/sched/cls_api.c:1587:16: sparse:    struct tcf_proto [noderef] <asn:4> *
+   net/sched/cls_api.c:1680:20: sparse: sparse: incompatible types in comparison expression (different address spaces):
+   net/sched/cls_api.c:1680:20: sparse:    struct tcf_proto [noderef] <asn:4> *
+   net/sched/cls_api.c:1680:20: sparse:    struct tcf_proto *
+   net/sched/cls_api.c:1643:25: sparse: sparse: incompatible types in comparison expression (different address spaces):
+   net/sched/cls_api.c:1643:25: sparse:    struct tcf_proto [noderef] <asn:4> *
+   net/sched/cls_api.c:1643:25: sparse:    struct tcf_proto *
+   net/sched/cls_api.c:1662:16: sparse: sparse: incompatible types in comparison expression (different address spaces):
+   net/sched/cls_api.c:1662:16: sparse:    struct tcf_proto *
+   net/sched/cls_api.c:1662:16: sparse:    struct tcf_proto [noderef] <asn:4> *
+   net/sched/cls_api.c:1727:25: sparse: sparse: restricted __be16 degrades to integer
+   net/sched/cls_api.c:2372:50: sparse: sparse: restricted __be16 degrades to integer
+>> net/sched/cls_api.c:3396:27: sparse: sparse: symbol 'tc_proto_udp_hdr' was not declared. Should it be static?
+>> net/sched/cls_api.c:3499:27: sparse: sparse: cast to restricted __be32
+>> net/sched/cls_api.c:3499:27: sparse: sparse: cast to restricted __be32
+>> net/sched/cls_api.c:3499:27: sparse: sparse: cast to restricted __be32
+>> net/sched/cls_api.c:3499:27: sparse: sparse: cast to restricted __be32
+>> net/sched/cls_api.c:3499:27: sparse: sparse: cast to restricted __be32
+>> net/sched/cls_api.c:3499:27: sparse: sparse: cast to restricted __be32
+   net/sched/cls_api.c:3533:33: sparse: sparse: cast to restricted __be32
+   net/sched/cls_api.c:3533:33: sparse: sparse: cast to restricted __be32
+   net/sched/cls_api.c:3533:33: sparse: sparse: cast to restricted __be32
+   net/sched/cls_api.c:3533:33: sparse: sparse: cast to restricted __be32
+   net/sched/cls_api.c:3533:33: sparse: sparse: cast to restricted __be32
+   net/sched/cls_api.c:3533:33: sparse: sparse: cast to restricted __be32
+   net/sched/cls_api.c:3543:25: sparse: sparse: cast to restricted __be32
+   net/sched/cls_api.c:3543:25: sparse: sparse: cast to restricted __be32
+   net/sched/cls_api.c:3543:25: sparse: sparse: cast to restricted __be32
+   net/sched/cls_api.c:3543:25: sparse: sparse: cast to restricted __be32
+   net/sched/cls_api.c:3543:25: sparse: sparse: cast to restricted __be32
+   net/sched/cls_api.c:3543:25: sparse: sparse: cast to restricted __be32
+
+Please review and possibly fold the followup patch.
+
+---
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
