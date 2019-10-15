@@ -6,29 +6,29 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E6D57ECE588
-	for <netfilter-devel@archiver.kernel.org>; Tue, 15 Oct 2019 14:17:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CF108ECE588
+	for <netfilter-devel@archiver.kernel.org>; Tue, 15 Oct 2019 14:17:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C543E20650
-	for <netfilter-devel@archiver.kernel.org>; Tue, 15 Oct 2019 14:17:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AE30E20650
+	for <netfilter-devel@archiver.kernel.org>; Tue, 15 Oct 2019 14:17:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732501AbfJOOR3 (ORCPT
+        id S1732506AbfJOORe (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 15 Oct 2019 10:17:29 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:36900 "EHLO orbyte.nwl.cc"
+        Tue, 15 Oct 2019 10:17:34 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:36906 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731553AbfJOOR3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 15 Oct 2019 10:17:29 -0400
-Received: from localhost ([::1]:49990 helo=tatos)
+        id S1731553AbfJOORe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 15 Oct 2019 10:17:34 -0400
+Received: from localhost ([::1]:49996 helo=tatos)
         by orbyte.nwl.cc with esmtp (Exim 4.91)
         (envelope-from <phil@nwl.cc>)
-        id 1iKNdf-000393-V2; Tue, 15 Oct 2019 16:17:28 +0200
+        id 1iKNdl-00039Y-7x; Tue, 15 Oct 2019 16:17:33 +0200
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [libnftnl PATCH 4/6] set: Don't bypass checks in nftnl_set_set_u{32,64}()
-Date:   Tue, 15 Oct 2019 16:16:56 +0200
-Message-Id: <20191015141658.11325-5-phil@nwl.cc>
+Subject: [libnftnl PATCH 2/6] set_elem: Fix return code of nftnl_set_elem_set()
+Date:   Tue, 15 Oct 2019 16:16:54 +0200
+Message-Id: <20191015141658.11325-3-phil@nwl.cc>
 X-Mailer: git-send-email 2.23.0
 In-Reply-To: <20191015141658.11325-1-phil@nwl.cc>
 References: <20191015141658.11325-1-phil@nwl.cc>
@@ -39,43 +39,26 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-By calling nftnl_set_set(), any data size checks are effectively
-bypassed. Better call nftnl_set_set_data() directly, passing the real
-size for validation.
+The function returned -1 on success.
 
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- src/set.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ src/set_elem.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/src/set.c b/src/set.c
-index e6db7258cc224..b1ffe7e6de975 100644
---- a/src/set.c
-+++ b/src/set.c
-@@ -195,6 +195,7 @@ int nftnl_set_set_data(struct nftnl_set *s, uint16_t attr, const void *data,
- 	return 0;
+diff --git a/src/set_elem.c b/src/set_elem.c
+index 47965249691dd..3794f12594079 100644
+--- a/src/set_elem.c
++++ b/src/set_elem.c
+@@ -149,7 +149,7 @@ int nftnl_set_elem_set(struct nftnl_set_elem *s, uint16_t attr,
+ 		break;
+ 	}
+ 	s->flags |= (1 << attr);
+-	return -1;
++	return 0;
  }
  
-+/* XXX: Deprecate this, it is simply unsafe */
- EXPORT_SYMBOL(nftnl_set_set);
- int nftnl_set_set(struct nftnl_set *s, uint16_t attr, const void *data)
- {
-@@ -204,13 +205,13 @@ int nftnl_set_set(struct nftnl_set *s, uint16_t attr, const void *data)
- EXPORT_SYMBOL(nftnl_set_set_u32);
- void nftnl_set_set_u32(struct nftnl_set *s, uint16_t attr, uint32_t val)
- {
--	nftnl_set_set(s, attr, &val);
-+	nftnl_set_set_data(s, attr, &val, sizeof(uint32_t));
- }
- 
- EXPORT_SYMBOL(nftnl_set_set_u64);
- void nftnl_set_set_u64(struct nftnl_set *s, uint16_t attr, uint64_t val)
- {
--	nftnl_set_set(s, attr, &val);
-+	nftnl_set_set_data(s, attr, &val, sizeof(uint64_t));
- }
- 
- EXPORT_SYMBOL(nftnl_set_set_str);
+ EXPORT_SYMBOL(nftnl_set_elem_set_u32);
 -- 
 2.23.0
 
