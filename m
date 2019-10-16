@@ -2,119 +2,124 @@ Return-Path: <SRS0=cZSN=YJ=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.0 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+X-Spam-Status: No, score=-2.3 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 03468FA372A
-	for <netfilter-devel@archiver.kernel.org>; Wed, 16 Oct 2019 13:34:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8BCF2ECE599
+	for <netfilter-devel@archiver.kernel.org>; Wed, 16 Oct 2019 20:51:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CC30A2168B
-	for <netfilter-devel@archiver.kernel.org>; Wed, 16 Oct 2019 13:34:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5AC80207FF
+	for <netfilter-devel@archiver.kernel.org>; Wed, 16 Oct 2019 20:51:20 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="HoMRjxqn"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="miScS8+c"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2405464AbfJPNeh (ORCPT
+        id S1727806AbfJPUvU (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 16 Oct 2019 09:34:37 -0400
-Received: from kadath.azazel.net ([81.187.231.250]:33718 "EHLO
-        kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729612AbfJPNeh (ORCPT
+        Wed, 16 Oct 2019 16:51:20 -0400
+Received: from mail-pg1-f177.google.com ([209.85.215.177]:42955 "EHLO
+        mail-pg1-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727156AbfJPUvT (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 16 Oct 2019 09:34:37 -0400
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-         s=20190108; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-        Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=F8gVZ7zXFRQSOUmIyUtupdtMu7+/WmsJYlxyDn/3kp8=; b=HoMRjxqnUlDLAfM7EjQL+9dFrO
-        KzkNrSjo99Ar8GK/jWR6L34WLfna4TAGtiAl9Bt7WjPCW4fZEaX0UZYnmtA4wqkjcTfm+ScdqXGoM
-        qmaSbGofvQoudBnWOX/mAMaOAZcjHN6k7sl96tjyZ5ZYDZUhWj99dqGmVAabBM/2VD4MzLNiH/kpU
-        oZyfyIvDFTXLdQecoX6TXGv1iDHSq/HY+I0UFG5LUKTVDu5riVdyvHvgj6URZTgjPq52fjWlo84Pg
-        tUyh88Jn0VdAmLfceVvhwzFejp1sNJhdSnxOlkwg5B7EHU6p9DVS83IWC+5EqJTy+fFTPQARX35Va
-        YbEmwl8w==;
-Received: from pnakotus.dreamlands ([192.168.96.5] helo=azazel.net)
-        by kadath.azazel.net with esmtpsa (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
-        (Exim 4.92)
-        (envelope-from <jeremy@azazel.net>)
-        id 1iKjRk-00065E-0r; Wed, 16 Oct 2019 14:34:36 +0100
-Date:   Wed, 16 Oct 2019 14:34:36 +0100
-From:   Jeremy Sowden <jeremy@azazel.net>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>,
-        Sebastian Priebe <sebastian.priebe@de.sii.group>
-Subject: Re: [PATCH nftables v2 1/2] cli: add linenoise CLI implementation.
-Message-ID: <20191016133435.GB5825@azazel.net>
-References: <20190924074055.4146-1-jeremy@azazel.net>
- <20190924074055.4146-2-jeremy@azazel.net>
- <20191015083252.rm22hgssh4inezq4@salvia>
- <20191016105501.GA5825@azazel.net>
- <20191016121930.ufjztmd7ep4kyq4r@salvia>
+        Wed, 16 Oct 2019 16:51:19 -0400
+Received: by mail-pg1-f177.google.com with SMTP id f14so9875680pgi.9
+        for <netfilter-devel@vger.kernel.org>; Wed, 16 Oct 2019 13:51:19 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=to:from:subject:message-id:date:user-agent:mime-version
+         :content-transfer-encoding:content-language;
+        bh=mE8KgPtgfjmRtLiqTEmiADVQTDcU7JQy6/WcTmCeXbk=;
+        b=miScS8+cShqCN77dJcPp2omJEXadDMumDna30lqgdwsoxiqOHF26iKhLyvwNKA/yYR
+         QjVuIf82W24Jr31M/www7Ue630ku2tnkPk990o2k9ViQv9N1PtxNvGG9As8AwSCD2LdI
+         D5Kue8SGhsJjAy1KP23+A41IAtFmexP/Ib6aR/VdtVJWC4vFPMhZJwExqgeDOln8hJNM
+         N715qVjZYTnE7mEJpWsuDk54OwnUjaWiSkItGX3E6ZYZWHheWkSrBNOIDlJP4a6ymtks
+         HPf838l9AklvuziSSnQk8eqoRLZ18WtrSTFX4HjWbAyYhDlUcLLAbG38Pm+v6fjOEJa0
+         L3Mw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:to:from:subject:message-id:date:user-agent
+         :mime-version:content-transfer-encoding:content-language;
+        bh=mE8KgPtgfjmRtLiqTEmiADVQTDcU7JQy6/WcTmCeXbk=;
+        b=dylMIEwtyMmDHLVO+xlR2KeQx4q1kh8OOSz1psGiE3IsidN78rnFAI2gQ+B+W9lRrn
+         Ff0Fk7UTNij50jDahhZlT4XsnPRb6b+IVJNJnoDnce1pVgy6mpyBF47iAbC/lzE+y4eX
+         hrmZcYUUgpp56VMZ648Qvo5ARYJoaEhKVys+0ECxpbz/YNMxarKPl59psvdmMFC5ajJP
+         +kt61PdAIqSUBnnL4GraPc8RCDBfv6p6ylWyFByePfp7zLQwe1iIOBgvnbe45rsHuFy9
+         tT7T3fxVPRxog8hIcChFGOdLkAkeepulWfrE6FL8kN02R3KWiG+c/QEysgzHlfJI2Kwh
+         L+tQ==
+X-Gm-Message-State: APjAAAVk2tZBdXOvsMbBnrZOng3ke1rFIgsnDOeogSHBLcl6nmIT9G6a
+        Y8sQcSVtck5g52KQ5kv6hNzfKmXT
+X-Google-Smtp-Source: APXvYqyHEsdjYUy76P1kggYmyU3+8gnr0JncfBs4dEJzcJBLPgQhm0BmOqQo/R0j2v+GLOW8E80+FQ==
+X-Received: by 2002:a62:3203:: with SMTP id y3mr45443477pfy.221.1571259078456;
+        Wed, 16 Oct 2019 13:51:18 -0700 (PDT)
+Received: from [192.168.0.77] ([78.19.104.55])
+        by smtp.gmail.com with ESMTPSA id m68sm28982194pfb.122.2019.10.16.13.51.16
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 16 Oct 2019 13:51:17 -0700 (PDT)
+To:     netfilter-devel@vger.kernel.org
+From:   Dmitri Seletski <drjoms@gmail.com>
+Subject: feature request, way to check specific IP/port/protocol/etc
+Message-ID: <74c57209-2f6e-5cc9-d64b-e2e0eddcae6e@gmail.com>
+Date:   Wed, 16 Oct 2019 21:50:33 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.9.0
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="i0/AhcQY5QxfSsSZ"
-Content-Disposition: inline
-In-Reply-To: <20191016121930.ufjztmd7ep4kyq4r@salvia>
-User-Agent: Mutt/1.10.1 (2018-07-13)
-X-SA-Exim-Connect-IP: 192.168.96.5
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Hello Dear IPTABLES/Netfilter Devs.
 
---i0/AhcQY5QxfSsSZ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
 
-On 2019-10-16, at 14:19:30 +0200, Pablo Neira Ayuso wrote:
-> On Wed, Oct 16, 2019 at 11:55:02AM +0100, Jeremy Sowden wrote:
-> > On 2019-10-15, at 10:32:52 +0200, Pablo Neira Ayuso wrote:
-> > > On Tue, Sep 24, 2019 at 08:40:54AM +0100, Jeremy Sowden wrote:
-> > > > By default, continue to use libreadline, but if
-> > > > `--with-cli=linenoise` is passed to configure, build the
-> > > > linenoise implementation instead.
-> > >
-> > > Applied, thanks Jeremy.
-> >
-> > Thanks, Pablo.  Don't know whether you change your mind about it,
-> > but there was a second patch with changes to `nft -v` that you
-> > suggested:
-> >
-> >   https://lore.kernel.org/netfilter-devel/20190924074055.4146-3-jeremy@azazel.net/
-> >
-> > Need to find something else to do now. :) Will go and have a poke
-> > about in Bugzilla.
->
-> This might be useful:
->
-> https://bugzilla.netfilter.org/show_bug.cgi?id=1374
+Thank you very much for your efforts.
 
-Cheers.  I'll pick that up.
+I am strong  believer, that if you don't do something yourself - it wont 
+be done.
+With that said, I am no coder.(No C coder and not a competent by any 
+stretch of imagination)
 
-J.
 
---i0/AhcQY5QxfSsSZ
-Content-Type: application/pgp-signature; name="signature.asc"
+I have come across a situation where I need to write a script. In this 
+script would be nice to check if specific port is opened. I checked 
+iptables --help and I can't seem to find an easy way to check it.
 
------BEGIN PGP SIGNATURE-----
+I can do something like iptables -Ln and get a range and try to work 
+around that. But I think it would be better to implement couple of ideas 
+below:
 
-iQIzBAABCgAdFiEEZ8d+2N/NBLDbUxIF0Z7UzfnX9sMFAl2nHGcACgkQ0Z7UzfnX
-9sN2rhAAlqOaUS/CYej0kcoOCTNe1YalB5jX29iEC2y6+yetXfhapZYqxcWs4YP2
-f19mzD6xe9xY36YcrbdUs6/osMOK8AD3lECwki8cW1/tzUQk2uAuG/aMRz+VMAI8
-jftcuKeXVja3nam4M4hkQtH+DbNbKelaGfmv6j+jE6yIHHaLJmZQn+0KzX1A+gRh
-QR3tCXTLoSN+S2DofErnSuJIpjwi8mt1jzzS5Vc1jBFgANk9Du2+VrJOn7zeMaNg
-+6T4UzL0bboTsejwKzwnmWNCY4f8NSMMTTsTa2JfR/y735/36s2VK/ec0mHgZJ+c
-Qnpb3CvW507gI2Qq8xZ/kWscraTeYjOycJMJAk2mtbUJV2d8F9UdEJf3iXIFYcGD
-JBLSK7Kc4IOgmbISBF6FaZ9f9Ij3zL6giGwVhBaP/TN8ttWY4u1GmTyyY4xYe10+
-4NQ36yHnXBD1YppK+l88iGx+Q+eVZHr+A1NCT07nnnMsZcUph0r3xjV0jSpbgxas
-7pOziFDDsnKF6Rdc5JYZPC3Elw6FiGMwQCHEXW7YofF8Xz5idrdXM6DT2f0dzwVK
-N4Byg8ppD3f08/SMKadH7cwQSJWCETADf/FSpzUN1kOv4StSaMVZ40vpN64QXroi
-Y4EnDQKJVgCYOictiiIq93JqELEH9PtfqFjl36PfPxwsRc2bKPc=
-=eJOp
------END PGP SIGNATURE-----
 
---i0/AhcQY5QxfSsSZ--
+1. To make a new option. Similar to -L , that will verbosely show all 
+subnets/port ranges. So user can grep anything that may be remotely 
+relevant. And yes I understand it may take a lot of time in some cases, 
+but sometimes CPU time is a commodity you do have.
+
+2. To make new option. May be call it -S, that will search, based on 
+parameters, any and all rules that match for e.g. specific port or IP or 
+protocol or combination of those.
+
+So for example, -S -p tcp -s 127.0.0.1 -d 192.168.0.1
+
+should show any rules that match search criteria above  and default 
+policy. In other words likely to affect tcp ip coomunication between 
+127.0.0.1 and 192.168.0.1
+
+Which will give indication to script writers, if communication between 
+script or some other app is possible to outside of the machine or to 
+other VM or some other such stuff.
+
+It's my first suggestion to a big list like this. So hit me on the face 
+with soldier boots, but gently please. English is not my native tongue, 
+so if you need clarification of stuff I have written above -  I'd be 
+very happy to try to insult your intelligence with my attempts at 
+english again.
+
+
+Kind Regards
+
+Dmitri
+
