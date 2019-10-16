@@ -2,67 +2,195 @@ Return-Path: <SRS0=cZSN=YJ=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.7 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6EC39FA3728
-	for <netfilter-devel@archiver.kernel.org>; Wed, 16 Oct 2019 23:03:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CE0AEFA372B
+	for <netfilter-devel@archiver.kernel.org>; Wed, 16 Oct 2019 23:37:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4AE10207FF
-	for <netfilter-devel@archiver.kernel.org>; Wed, 16 Oct 2019 23:03:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9963E2168B
+	for <netfilter-devel@archiver.kernel.org>; Wed, 16 Oct 2019 23:37:06 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=netronome-com.20150623.gappssmtp.com header.i=@netronome-com.20150623.gappssmtp.com header.b="KAul3z8S"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2405695AbfJPXDz (ORCPT
+        id S2391458AbfJPXhE (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 16 Oct 2019 19:03:55 -0400
-Received: from orbyte.nwl.cc ([151.80.46.58]:40214 "EHLO orbyte.nwl.cc"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731616AbfJPXDy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 16 Oct 2019 19:03:54 -0400
-Received: from localhost ([::1]:53304 helo=tatos)
-        by orbyte.nwl.cc with esmtp (Exim 4.91)
-        (envelope-from <phil@nwl.cc>)
-        id 1iKsKf-0005fb-AT; Thu, 17 Oct 2019 01:03:53 +0200
-From:   Phil Sutter <phil@nwl.cc>
+        Wed, 16 Oct 2019 19:37:04 -0400
+Received: from mail-lj1-f193.google.com ([209.85.208.193]:39461 "EHLO
+        mail-lj1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726335AbfJPXhE (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 16 Oct 2019 19:37:04 -0400
+Received: by mail-lj1-f193.google.com with SMTP id y3so505237ljj.6
+        for <netfilter-devel@vger.kernel.org>; Wed, 16 Oct 2019 16:37:02 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=netronome-com.20150623.gappssmtp.com; s=20150623;
+        h=date:from:to:cc:subject:message-id:in-reply-to:references
+         :organization:mime-version:content-transfer-encoding;
+        bh=tLUZSgXbqOUuhFVQiMgZKVhpYys1gWWINbtrup0/G/o=;
+        b=KAul3z8SPDvCmuRkShkwSAYyncl8n+Y8aF+R69/LSWJORXiqxJXT0yejzm+NEQDkLE
+         t6XMWvR26sTdnxbfjDMBtb8TD3M1tVyKNaQ2W9aPUmkPj6+SZiSE4NbSGhwPW1MsiY4r
+         qskod5yEvO3JHidMr0WUgvubmk0Tk0qFJzgxRFB094V1pqXpwKhV0axOytPe36EIf98T
+         UR94D3FH3FBfXHll3IqhbONiV/s4cDUuRD++lew9Ac9nn4rlwkUWmrQmRRbtoT3bgKtW
+         s14S18ehsANo8w05iW5AciznWDMGOPZD+KELx7M/nMZtxQlt5QnXlRGrRdWS2wuq/7GU
+         iEsA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:in-reply-to
+         :references:organization:mime-version:content-transfer-encoding;
+        bh=tLUZSgXbqOUuhFVQiMgZKVhpYys1gWWINbtrup0/G/o=;
+        b=ivGL90Nv6zeyCNOTAg03SloTYbQ2HbeK35CxTnNM5Wsy6DGy4TdNbGwWVJYFaQdcPP
+         bn5qmZs3xFKbnWLVEhtJHy0gm0bQrvcCoi5zLIvT3Nv+Ou3XPbbQFaDo9xv1m1mJiaFa
+         CPCunD9vqNlMAnOt9P+O4HPWHt3m4D4RldbyOKuvVnMwUeOlo3nPbryKj35lQj7tkYsu
+         zZ8jX3NbH2lvhUcw7V0+2ObsY8erdD41YNFxrBcsdkgI4BMGTRLYFWiysQyiOcnuv3xU
+         dMAWNwCslKpf8lJwgb089RoNk2poWLHoNQjLTL4O5jqGFeniBUXoK1EhML6IewNXxgfW
+         C4Vg==
+X-Gm-Message-State: APjAAAU2d9JPcIPBOboTf2QGnQ7DA6cFU+DEMIFGU+tuiJVRnXMh3jhu
+        +2CZ7kqsOumjn0nY1dKhGVkBOQ==
+X-Google-Smtp-Source: APXvYqx1eJ/oNU1f1SOytjZP3t4GhF3y1jfLon93bB37cyU25ZBXtB09S/H+4dsvD91pOlp1C3LXLw==
+X-Received: by 2002:a2e:b4ee:: with SMTP id s14mr440548ljm.88.1571269021542;
+        Wed, 16 Oct 2019 16:37:01 -0700 (PDT)
+Received: from cakuba.netronome.com ([66.60.152.14])
+        by smtp.gmail.com with ESMTPSA id n17sm142943ljc.44.2019.10.16.16.36.58
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 16 Oct 2019 16:37:01 -0700 (PDT)
+Date:   Wed, 16 Oct 2019 16:36:51 -0700
+From:   Jakub Kicinski <jakub.kicinski@netronome.com>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: [nft PATCH 4/4] rule: Fix for single line ct timeout printing
-Date:   Thu, 17 Oct 2019 01:03:22 +0200
-Message-Id: <20191016230322.24432-5-phil@nwl.cc>
-X-Mailer: git-send-email 2.23.0
-In-Reply-To: <20191016230322.24432-1-phil@nwl.cc>
-References: <20191016230322.24432-1-phil@nwl.cc>
+Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org, jiri@resnulli.us, saeedm@mellanox.com,
+        vishal@chelsio.com, vladbu@mellanox.com, ecree@solarflare.com
+Subject: Re: [PATCH net-next,v5 3/4] net: flow_offload: mangle action at
+ byte level
+Message-ID: <20191016163651.230b60e1@cakuba.netronome.com>
+In-Reply-To: <20191014221051.8084-4-pablo@netfilter.org>
+References: <20191014221051.8084-1-pablo@netfilter.org>
+        <20191014221051.8084-4-pablo@netfilter.org>
+Organization: Netronome Systems, Ltd.
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Commit 43ae7a48ae3de ("rule: do not print semicolon in ct timeout")
-removed an extra semicolon at end of line, but thereby broke single line
-output. The correct fix is to use opts->stmt_separator which holds
-either newline or semicolon chars depending on output mode.
+On Tue, 15 Oct 2019 00:10:50 +0200, Pablo Neira Ayuso wrote:
+> The flow mangle action is originally modeled after the tc pedit action,
+> this has a number of shortcomings:
+> 
+> 1) The tc pedit offset must be set on the 32-bits boundaries. Many
+>    protocol header field offsets are not aligned to 32-bits, eg. port
+>    destination, port source and ethernet destination. This patch adjusts
+>    the offset accordingly and trim off length in these case, so drivers get
+>    an exact offset and length to the header fields.
+> 
+> 2) The maximum mangle length is one word of 32-bits, hence you need to
+>    up to four actions to mangle an IPv6 address. This patch coalesces
+>    consecutive tc pedit actions into one single action so drivers can
+>    configure the IPv6 mangling in one go. Ethernet address fields now
+>    require one single action instead of two too.
+> 
+> This patch finds the header field from the 32-bit offset and mask. If
+> there is no matching header field, fall back to passing the original
+> list of mangle actions to the driver.
+> 
+> The following drivers have been updated accordingly to use this new
+> mangle action layout:
+> 
+> 1) The cxgb4 driver does not need to split protocol field matching
+>    larger than one 32-bit words into multiple definitions. Instead one
+>    single definition per protocol field is enough. Checking for
+>    transport protocol ports is also simplified.
+> 
+> 2) The mlx5 driver logic to disallow IPv4 ttl and IPv6 hoplimit fields
+>    becomes more simple too.
+> 
+> 3) The nfp driver uses the nfp_fl_set_helper() function to configure the
+>    payload mangling. The memchr_inv() function is used to check for
+>    proper initialization of the value and mask. The driver has been
+>    updated to refer to the exact protocol header offsets too.
+> 
+> As a result, this patch reduces code complexity on the driver side at
+> the cost of adding code to the core to perform offset and length
+> adjustment; and to coalesce consecutive actions.
+> 
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> ---
+> v5: add header field definitions to calculate header field from offset
+>     and mask.
 
-Fixes: 43ae7a48ae3de ("rule: do not print semicolon in ct timeout")
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- src/rule.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Let's see if I can recount the facts:
+ (1) this is a "improvement" to simplify driver work but driver
+     developers (Ed and I) don't like it;
+ (2) it's supposed to simplify things yet it makes the code longer;
+ (3) it causes loss of functionality (looks like a single u32 changing
+     both sport and dport is rejected by the IR since it wouldn't
+     match fields); 
+ (4) at v5 it still is buggy (see below).
 
-diff --git a/src/rule.c b/src/rule.c
-index 2d35bae44c9e5..3c7c8d63f8cdf 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -1869,7 +1869,7 @@ static void obj_print_data(const struct obj *obj,
- 		nft_print(octx, "%s", opts->nl);
- 		nft_print(octx, "%s%sprotocol ", opts->tab, opts->tab);
- 		print_proto_name_proto(obj->ct_timeout.l4proto, octx);
--		nft_print(octx, "%s", opts->nl);
-+		nft_print(octx, "%s", opts->stmt_separator);
- 		nft_print(octx, "%s%sl3proto %s%s",
- 			  opts->tab, opts->tab,
- 			  family2str(obj->ct_timeout.l3proto),
--- 
-2.23.0
+The motivation for this patch remains unclear.
 
+You are posting new versions at a slow pace which makes it hard to
+keep re-reviewing it (v1 on Aug 30th).
+
+With that I'd like to one more time ask you to please stop reposting
+this patch and post patches 1 and 2 as separate improvements.
+
+>  int tc_setup_flow_action(struct flow_action *flow_action,
+>  			 const struct tcf_exts *exts, bool rtnl_held)
+>  {
+>  	const struct tc_action *act;
+> -	int i, j, k, err = 0;
+> +	int i, j, err = 0;
+>  
+>  	if (!exts)
+>  		return 0;
+> @@ -3396,25 +3612,9 @@ int tc_setup_flow_action(struct flow_action *flow_action,
+>  		} else if (is_tcf_tunnel_release(act)) {
+>  			entry->id = FLOW_ACTION_TUNNEL_DECAP;
+>  		} else if (is_tcf_pedit(act)) {
+> -			for (k = 0; k < tcf_pedit_nkeys(act); k++) {
+> -				switch (tcf_pedit_cmd(act, k)) {
+> -				case TCA_PEDIT_KEY_EX_CMD_SET:
+> -					entry->id = FLOW_ACTION_MANGLE;
+> -					break;
+> -				case TCA_PEDIT_KEY_EX_CMD_ADD:
+> -					entry->id = FLOW_ACTION_ADD;
+> -					break;
+> -				default:
+> -					err = -EOPNOTSUPP;
+> -					goto err_out;
+> -				}
+> -				entry->mangle.htype = tcf_pedit_htype(act, k);
+> -				entry->mangle.mask = ~tcf_pedit_mask(act, k);
+> -				entry->mangle.val = tcf_pedit_val(act, k) &
+> -							entry->mangle.mask;
+> -				entry->mangle.offset = tcf_pedit_offset(act, k);
+> -				entry = &flow_action->entries[++j];
+> -			}
+> +			j = flow_action_mangle(flow_action, act, j);
+> +			if (j < 0)
+> +				goto err_out;
+
+Here we goto out without setting err, so return success even though the
+actions didn't really get translated?
+
+Any error from flow_action_mangle() seems to get effectively ignored?
+
+>  		} else if (is_tcf_csum(act)) {
+>  			entry->id = FLOW_ACTION_CSUM;
+>  			entry->csum_flags = tcf_csum_update_flags(act);
+> @@ -3468,9 +3668,9 @@ int tc_setup_flow_action(struct flow_action *flow_action,
+>  			goto err_out;
+>  		}
+>  
+> -		if (!is_tcf_pedit(act))
+> -			j++;
+> +		j++;
+>  	}
+> +	flow_action->num_entries = j;
+>  
+>  err_out:
+>  	if (!rtnl_held)
