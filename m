@@ -6,75 +6,128 @@ X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C5979ECE58D
-	for <netfilter-devel@archiver.kernel.org>; Thu, 17 Oct 2019 17:46:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 58074ECE58E
+	for <netfilter-devel@archiver.kernel.org>; Thu, 17 Oct 2019 17:59:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id ACC3F21925
-	for <netfilter-devel@archiver.kernel.org>; Thu, 17 Oct 2019 17:46:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3C4642089C
+	for <netfilter-devel@archiver.kernel.org>; Thu, 17 Oct 2019 17:59:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2440791AbfJQRqJ (ORCPT
+        id S2391497AbfJQR7d (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 17 Oct 2019 13:46:09 -0400
-Received: from correo.us.es ([193.147.175.20]:58094 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2394636AbfJQRqI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 17 Oct 2019 13:46:08 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 80A9CA1A334
-        for <netfilter-devel@vger.kernel.org>; Thu, 17 Oct 2019 19:46:03 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 73239B8004
-        for <netfilter-devel@vger.kernel.org>; Thu, 17 Oct 2019 19:46:03 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 6805FBAACC; Thu, 17 Oct 2019 19:46:03 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 81F7A202B7;
-        Thu, 17 Oct 2019 19:46:01 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Thu, 17 Oct 2019 19:46:01 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (sys.soleta.eu [212.170.55.40])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        Thu, 17 Oct 2019 13:59:33 -0400
+Received: from dispatch1-us1.ppe-hosted.com ([148.163.129.52]:55248 "EHLO
+        dispatch1-us1.ppe-hosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1729325AbfJQR7d (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 17 Oct 2019 13:59:33 -0400
+X-Virus-Scanned: Proofpoint Essentials engine
+Received: from webmail.solarflare.com (webmail.solarflare.com [12.187.104.26])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
         (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 4E87242EF4E2;
-        Thu, 17 Oct 2019 19:46:01 +0200 (CEST)
-Date:   Thu, 17 Oct 2019 19:46:03 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Jakub Kicinski <jakub.kicinski@netronome.com>
-Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org, jiri@resnulli.us, saeedm@mellanox.com,
-        vishal@chelsio.com, vladbu@mellanox.com, ecree@solarflare.com
+        by mx1-us4.ppe-hosted.com (PPE Hosted ESMTP Server) with ESMTPS id 4153C800084;
+        Thu, 17 Oct 2019 17:59:31 +0000 (UTC)
+Received: from [10.17.20.203] (10.17.20.203) by ocex03.SolarFlarecom.com
+ (10.20.40.36) with Microsoft SMTP Server (TLS) id 15.0.1395.4; Thu, 17 Oct
+ 2019 10:59:24 -0700
 Subject: Re: [PATCH net-next,v5 3/4] net: flow_offload: mangle action at byte
  level
-Message-ID: <20191017174603.m3riooywbgy2r5hr@salvia>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jakub Kicinski <jakub.kicinski@netronome.com>
+CC:     <netfilter-devel@vger.kernel.org>, <davem@davemloft.net>,
+        <netdev@vger.kernel.org>, <jiri@resnulli.us>,
+        <saeedm@mellanox.com>, <vishal@chelsio.com>, <vladbu@mellanox.com>
 References: <20191014221051.8084-1-pablo@netfilter.org>
  <20191014221051.8084-4-pablo@netfilter.org>
  <20191016163651.230b60e1@cakuba.netronome.com>
  <20191017161157.rr4lrolsjbnmk3ke@salvia>
- <20191017103059.3b7ff828@cakuba.netronome.com>
+ <20191017162237.h4e6bdoosd5b2ipj@salvia>
+From:   Edward Cree <ecree@solarflare.com>
+Message-ID: <c4d14782-25dd-11a1-4147-2d8547ced3d1@solarflare.com>
+Date:   Thu, 17 Oct 2019 18:59:22 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.7.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20191017103059.3b7ff828@cakuba.netronome.com>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+In-Reply-To: <20191017162237.h4e6bdoosd5b2ipj@salvia>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+Content-Language: en-GB
+X-Originating-IP: [10.17.20.203]
+X-TM-AS-Product-Ver: SMEX-12.5.0.1300-8.5.1010-24982.005
+X-TM-AS-Result: No-10.700600-4.000000-10
+X-TMASE-MatchedRID: 9vvqFUF7IWkbF9xF7zzuNfZvT2zYoYOwC/ExpXrHizx68+i8GTH6noXs
+        ThVwDUvYkZy8iW8THfMA/Q43xHXqxxc1U+EFS2my7+etKcKRtq6wqLgRdvwAikGDUY9EEYrsR+X
+        4fj4ypMkjk5nJ43ka/Qz9pU3X9LWh6sRuS6yGtfT27WtDgGBc8uChnL3c+k98VI7KaIl9Nhc73D
+        IZt1OvmVfk7+g08q3sxAdO595FIkHm8Tq/Qity6k+zv2ByYSDQnzPrJkGalpCsIKZ2EtsOgnFaJ
+        RjHZFgbSRvuKtM0SbVAusMt0rqlzLQYXgk3R5pdUPktDdOX0fv5qGeseGYAlPQkrXkUDmL194do
+        8m0JE5JaVofDcjXVSCBFdNGSzsPuSURlVF5LmCyQmLXB14cW2joSfZud5+Ggy5JfHvVu9It4wWi
+        C1lUZQqsS/YcdHdrDowGZK1+ebLYE2uNXYzS5v/SG/+sPtZVkLUKRFvXchm5QKAQSutQYXNxwX6
+        9jh9hhn1rHCTKgIH9mWH64atfLC3Ze/7gEt+VklTsGW3DmpUsB4JHtiamkLAp+tuYb4NtQbfuQO
+        2/rMosuLbwcx7geGUnzu99Xkc4W9wWUtZcWqU6KR0fcRBoRNcK2EIRFRDecwEgSPNlM5Q139f9f
+        xq2qS5SKO/2nz9g59EIQaSiFQKwM8jMXjBF+sIMbH85DUZXyAPpGmOpAZoX6C0ePs7A07cNbTFV
+        OzjU8LjRQdZg/woqNeKuk+fEdYymBMk2frH0zYoFYygu1lts=
+X-TM-AS-User-Approved-Sender: No
+X-TM-AS-User-Blocked-Sender: No
+X-TMASE-Result: 10--10.700600-4.000000
+X-TMASE-Version: SMEX-12.5.0.1300-8.5.1010-24982.005
+X-MDID: 1571335172-VxXwl59WhtBz
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+On 17/10/2019 17:22, Pablo Neira Ayuso wrote:
+> You refer to single u32 word changing both sport and dport.
+>
+> What's the point with including this in the subset of the uAPI to be
+> supported?
+What's the point with removing this from the uAPI which implicitly the
+ kernel internal layers supported (whether individual drivers did or
+ not)?
 
+> In software, it really makes sense to use this representation since it
+> is speeding up packet processing.
+>
+> In hardware, supporting this uAPI really gets you nothing at all.
+That depends how the hardware works.  Current hardware tends to do pedit
+ offload based on protocol(-ossified) fields, but there's no guarantee
+ that every future piece of hardware will be the same.  Someone might
+ build HW whose packet-editing part is based on the pedit uAPI approach,
+ explicitly designing their HW to support Linux semantics.  And you'd be
+ telling them "sorry, we decided to remove part of that uAPI because,
+ uhh, well we didn't actually have a reason but we did it anyway".
 
-On Thu, Oct 17, 2019 at 10:30:59AM -0700, Jakub Kicinski wrote:
-[...]
-> Ed requested this was a opt-in/helper the driver can call if they
-> choose to. Please do that. Please provide selftests.
+> We have to document what subset of the uAPI is support through
+> hardware offloads. Pretending that we can support all uAPI is not
+> true, we only support for tc pedit extended mode right now.
+Who's "we"?  AIUI the kernel will pass any pedits to drivers, they don't
+ have to be extended mode, and they certainly don't have to have come
+ from the iproute2 'tc' binary, so they might not bear any relation to
+ the protocol fields tc knows about.
+Pedit is supposed to work even in the absence of protocol knowledge in
+ the kernel (e.g. in combination with cls_u32, you can filter and mangle
+ traffic in a completely new protocol), you're turning it into Yet
+ Another Ossified TCP/IP Monoculture.  This is not the direction the
+ networking offloads community is trying to move in.
 
-I will follow up to support for mangling two ports with one single u32
-word, no problem.
++100 to everything Jakub said, and please remember that some of us have
+ to maintain driver support for slightly more than just the latest
+ kernel, and your pointless churn makes that much harder.  ("A slow sort
+ of country; here, it takes all the running _you_ can do, just to stay
+ in the same place.")  I'm not talking about drivers stretching back to
+ 2.6 era here; we _expect_ that to be painful.  But when code to build
+ on as recent as 4.20 is a thicket of clustered ifdefs, without a single
+ piece of user-visible functionality being added as a result (and some
+ removed; not only are you chopping bits of the pedit API off, but TC
+ action stats are *still* broken since 5.1), something is _very_ wrong.
 
-Making this opt-in will just leave things as bad as they are right
-now, with drivers that are very much hard to read.
+Of course we know the real reason you're making all these API changes is
+ for netfilter offload (I have my doubts whether anyone is actually
+ using netfilter in the wild; crusties still use iptables and early-
+ adopters have all jumped ship to eBPF solutions, but if you're so
+ desperate for netfilter to remain relevant I suppose we have to humour
+ you at least a little), but there's absolutely no technical reason I
+ can see why netfilter couldn't translate its mangles into existing
+ pedit language.  If patch 3 is truly and unavoidably a prerequisite of
+ patch 4, you'll need to explain why if you want a sympathetic hearing.
+
+-Ed
