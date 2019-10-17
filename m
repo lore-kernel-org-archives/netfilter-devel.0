@@ -2,128 +2,236 @@ Return-Path: <SRS0=QRwA=YQ=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.8 required=3.0 tests=DATE_IN_PAST_96_XX,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,UNWANTED_LANGUAGE_BODY,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D5B6CA9EAE
-	for <netfilter-devel@archiver.kernel.org>; Wed, 23 Oct 2019 03:57:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3143CCA9EB7
+	for <netfilter-devel@archiver.kernel.org>; Wed, 23 Oct 2019 07:25:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id DDF552086D
-	for <netfilter-devel@archiver.kernel.org>; Wed, 23 Oct 2019 03:57:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id ECA5C214B2
+	for <netfilter-devel@archiver.kernel.org>; Wed, 23 Oct 2019 07:25:27 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ZgCVaCH5"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732753AbfJWD5h (ORCPT
+        id S2389845AbfJWHZV (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 22 Oct 2019 23:57:37 -0400
-Received: from m9785.mail.qiye.163.com ([220.181.97.85]:12707 "EHLO
-        m9785.mail.qiye.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725836AbfJWD5h (ORCPT
+        Wed, 23 Oct 2019 03:25:21 -0400
+Received: from mail-pf1-f193.google.com ([209.85.210.193]:40910 "EHLO
+        mail-pf1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2389835AbfJWHZU (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 22 Oct 2019 23:57:37 -0400
-X-Greylist: delayed 449 seconds by postgrey-1.27 at vger.kernel.org; Tue, 22 Oct 2019 23:57:35 EDT
-Received: from [192.168.188.14] (unknown [120.132.1.226])
-        by m9785.mail.qiye.163.com (Hmail) with ESMTPA id 222215C1874;
-        Wed, 23 Oct 2019 11:50:04 +0800 (CST)
-Subject: Re: [PATCH nf-next,RFC 0/2] nf_tables encapsulation/decapsulation
- support
-To:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-Cc:     fw@strlen.de
-References: <20191022154733.8789-1-pablo@netfilter.org>
-From:   wenxu <wenxu@ucloud.cn>
-Message-ID: <10ad5a64-f9cb-0ee6-2daa-5b88884fd224@ucloud.cn>
-Date:   Wed, 23 Oct 2019 11:49:57 +0800
-User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:60.0) Gecko/20100101
- Thunderbird/60.9.0
-MIME-Version: 1.0
-In-Reply-To: <20191022154733.8789-1-pablo@netfilter.org>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
-X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZVkpVSENNS0tLSk5NT0tJTkJZV1koWU
-        FJQjdXWS1ZQUlXWQkOFx4IWUFZNTQpNjo3JCkuNz5ZBg++
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6MhQ6Chw6KTg2IR9WSRZJSTg8
-        KiEKCQxVSlVKTkxKQ0tJTUtPT0pNVTMWGhIXVQweFQMOOw4YFxQOH1UYFUVZV1kSC1lBWUpJS1VK
-        SElVSlVJSU1ZV1kIAVlBSE5MTTcG
-X-HM-Tid: 0a6df6bc63242087kuqy222215c1874
+        Wed, 23 Oct 2019 03:25:20 -0400
+Received: by mail-pf1-f193.google.com with SMTP id x127so12348366pfb.7;
+        Wed, 23 Oct 2019 00:25:20 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id;
+        bh=3ED0+h6gAQw+Yq1D40Ef4ktI1oPwDQrbBfgGUVBxZ24=;
+        b=ZgCVaCH5uO4HTNSVIkTIdba60a6aazGUV68Y0JUn288vDgHNX9noslSF8ezFCX7/de
+         9Nomh6dQSUFnGm+49tJGt9MRSe6oTw6bSjPgCTDApYr/B1NZhe9NC3WhlBelKLvPXTR9
+         u5VP5vRU7OwpkZxC1L6+mTVJzaAE6XBXV1fLjMsamZjnlYqNxK7lls6u46+txYYbP+sk
+         GmXQVIemRhxxTbhLByxIimmD1iJn/ln48nrGUKxPf2Q8ejxDvsCcHjMNoUqYf9z1LiNX
+         DhfklsNFzSrxyMZDxZiGNdmmEwwnFwBEY6PLiEn5NY/APPfUSChQWEyKnzZyozyz1Yuh
+         zh6w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id;
+        bh=3ED0+h6gAQw+Yq1D40Ef4ktI1oPwDQrbBfgGUVBxZ24=;
+        b=RL5DyTstrWolrHmB9olqBFl6IP++cKcg26kfPvFBE7F4KmltThfsZjsWaI9E8k86Ny
+         yPbWviymf+5c7YKp/LZJKJeDpqPO79X95O5E8ss8gxX4AlhtWyWbx5ZPeKdzHZAiVMLc
+         oQ5stBO0Jw3Nc5vuHkpkDvHR7a4kmbc0YG6dt4ediZmHbhVeXM66HJaWm+5w2dHeL7/m
+         RH+BxfG3Z+d3jf/yrDM7F0twpJvNEntSvcyQZwz3ZdYIaYLcbJVTUbT+aQ8Gaz58F6iM
+         AjCCqkUf8sA/KQ6zBpWbe1Rq4jnZANoN7P9Scub6W2hNOacDCX3nqvILLRKVogWPzUuG
+         JdkQ==
+X-Gm-Message-State: APjAAAUyHDybPs9YlHnTF2C/bKMohkJOoXeB/ekJu8ta3K4IEOVSiK+B
+        i4UDrBOZWjINkASqBticuu4=
+X-Google-Smtp-Source: APXvYqyLDFrxZjdwFcBxl1ypqAtAPKvW3nZpMrI7hNcuiFBuXxPPa7JP9BcFtGVg2NfccC5PhMXMTw==
+X-Received: by 2002:a17:90a:1701:: with SMTP id z1mr9585733pjd.63.1571815520091;
+        Wed, 23 Oct 2019 00:25:20 -0700 (PDT)
+Received: from local.opencloud.tech.localdomain ([203.100.54.194])
+        by smtp.gmail.com with ESMTPSA id d20sm23123603pfq.88.2019.10.23.00.25.18
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 23 Oct 2019 00:25:19 -0700 (PDT)
+From:   xiangxia.m.yue@gmail.com
+To:     pablo@netfilter.org
+Cc:     netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+        Tonghao Zhang <xiangxia.m.yue@gmail.com>
+Subject: [PATCH net-next] netfilter: nf_conntrack: introduce conntrack limit per-zone
+Date:   Thu, 17 Oct 2019 13:03:04 +0800
+Message-Id: <1571288584-46449-1-git-send-email-xiangxia.m.yue@gmail.com>
+X-Mailer: git-send-email 1.8.3.1
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+From: Tonghao Zhang <xiangxia.m.yue@gmail.com>
 
-On 10/22/2019 11:47 PM, Pablo Neira Ayuso wrote:
-> Hi,
->
-> This is a RFC patchset, untested, to introduce new infrastructure to
-> specify protocol decapsulation and encapsulation actions. This patchset
-> comes with initial support for VLAN, eg.
->
-> 1) VLAN decapsulation:
->
-> 	... meta iif . vlan id { eth0 . 10, eth1 . 11} decap vlan
->
-> The decapsulation is a single statement with no extra options.
+nf_conntrack_max is used to limit the maximum number of
+conntrack entries in the conntrack table for every network
+namespace. For the containers that reside in the same namespace,
+they share the same conntrack table, and the total # of conntrack
+entries for all containers are limited by nf_conntrack_max.
+In this case, if one of the container abuses the usage the
+conntrack entries, it blocks the others from committing valid
+conntrack entries into the conntrack table.
 
-Currently there is no vlan meta match expr.  So it is better to extend the meta expr or add new
+To address the issue, this patch adds conntrack counter for zones
+and max count which zone wanted, So that any zone can't consume
+all conntrack entries in the conntrack table.
 
-ntf_vlan_get_expr?
+This feature can be used for openvswitch or iptables.
 
->
-> 2) VLAN encapsulation:
->
-> 	add vlan "network0" { type push; id 100; proto 0x8100; }
->         add vlan "network1" { type update; id 101; }
-> 	... encap vlan set ip daddr map { 192.168.0.0/24 : "network0",
-> 					  192.168.1.0/24 : "network1" }
->
-> The idea is that the user specifies the vlan policy through object
-> definition, eg. "network0" and "network1", then it applies this policy
-> via the "encap vlan set" statement.
->
-> This infrastructure should allow for more encapsulation protocols
-> with little work, eg. MPLS.
+Signed-off-by: Tonghao Zhang <xiangxia.m.yue@gmail.com>
+---
+ .../linux/netfilter/nf_conntrack_zones_common.h    |  2 ++
+ include/net/netfilter/nf_conntrack_zones.h         | 36 ++++++++++++++++++++++
+ include/net/netns/conntrack.h                      |  5 +++
+ net/netfilter/nf_conntrack_core.c                  | 15 +++++++--
+ 4 files changed, 55 insertions(+), 3 deletions(-)
 
-So the tunnel already exist in nft_tunnel also can add in this encapsulation protocols
+diff --git a/include/linux/netfilter/nf_conntrack_zones_common.h b/include/linux/netfilter/nf_conntrack_zones_common.h
+index 8f3905e1..0d50880 100644
+--- a/include/linux/netfilter/nf_conntrack_zones_common.h
++++ b/include/linux/netfilter/nf_conntrack_zones_common.h
+@@ -12,11 +12,13 @@
+ #define NF_CT_DEFAULT_ZONE_DIR	(NF_CT_ZONE_DIR_ORIG | NF_CT_ZONE_DIR_REPL)
+ 
+ #define NF_CT_FLAG_MARK		1
++#define NF_CT_ZONE_CONN_MAX	65535
+ 
+ struct nf_conntrack_zone {
+ 	u16	id;
+ 	u8	flags;
+ 	u8	dir;
++	unsigned int max_wanted;
+ };
+ 
+ extern const struct nf_conntrack_zone nf_ct_zone_dflt;
+diff --git a/include/net/netfilter/nf_conntrack_zones.h b/include/net/netfilter/nf_conntrack_zones.h
+index 48dbadb..f072374 100644
+--- a/include/net/netfilter/nf_conntrack_zones.h
++++ b/include/net/netfilter/nf_conntrack_zones.h
+@@ -5,6 +5,42 @@
+ #include <linux/netfilter/nf_conntrack_zones_common.h>
+ #include <net/netfilter/nf_conntrack.h>
+ 
++static inline void nf_ct_zone_count_init(struct net *net)
++{
++#ifdef CONFIG_NF_CONNTRACK_ZONES
++	int i;
++	for (i = 0; i < NF_CT_ZONE_CONN_MAX; i ++)
++		atomic_set(&net->ct.zone_conn_max[i], 0);
++#endif
++}
++
++static inline void nf_ct_zone_count_inc(struct net *net,
++					const struct nf_conntrack_zone *zone)
++{
++#ifdef CONFIG_NF_CONNTRACK_ZONES
++	atomic_inc(&net->ct.zone_conn_max[zone->id]);
++#endif
++}
++
++static inline void nf_ct_zone_count_dec(struct net *net,
++					const struct nf_conntrack_zone *zone)
++{
++#ifdef CONFIG_NF_CONNTRACK_ZONES
++	atomic_dec(&net->ct.zone_conn_max[zone->id]);
++#endif
++}
++
++static inline unsigned int
++nf_ct_zone_count_read(struct net *net,
++		      const struct nf_conntrack_zone *zone)
++{
++#ifdef CONFIG_NF_CONNTRACK_ZONES
++	return atomic_read(&net->ct.zone_conn_max[zone->id]);
++#else
++	return 0;
++#endif
++}
++
+ static inline const struct nf_conntrack_zone *
+ nf_ct_zone(const struct nf_conn *ct)
+ {
+diff --git a/include/net/netns/conntrack.h b/include/net/netns/conntrack.h
+index 806454e..da50d1e 100644
+--- a/include/net/netns/conntrack.h
++++ b/include/net/netns/conntrack.h
+@@ -6,6 +6,7 @@
+ #include <linux/list_nulls.h>
+ #include <linux/atomic.h>
+ #include <linux/workqueue.h>
++#include <linux/netfilter/nf_conntrack_zones_common.h>
+ #include <linux/netfilter/nf_conntrack_tcp.h>
+ #ifdef CONFIG_NF_CT_PROTO_DCCP
+ #include <linux/netfilter/nf_conntrack_dccp.h>
+@@ -118,5 +119,9 @@ struct netns_ct {
+ #if defined(CONFIG_NF_CONNTRACK_LABELS)
+ 	unsigned int		labels_used;
+ #endif
++
++#ifdef CONFIG_NF_CONNTRACK_ZONES
++	atomic_t zone_conn_max[NF_CT_ZONE_CONN_MAX];
++#endif
+ };
+ #endif
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 0c63120..a2f7c27d 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -1352,14 +1352,20 @@ static void conntrack_gc_work_init(struct conntrack_gc_work *gc_work)
+ 
+ 	/* We don't want any race condition at early drop stage */
+ 	atomic_inc(&net->ct.count);
++	nf_ct_zone_count_inc(net, zone);
++
++	if ((nf_conntrack_max &&
++	     unlikely(atomic_read(&net->ct.count) > nf_conntrack_max)) ||
++	    (zone->max_wanted &&
++	     unlikely(nf_ct_zone_count_read(net, zone) > zone->max_wanted))) {
+ 
+-	if (nf_conntrack_max &&
+-	    unlikely(atomic_read(&net->ct.count) > nf_conntrack_max)) {
+ 		if (!early_drop(net, hash)) {
+ 			if (!conntrack_gc_work.early_drop)
+ 				conntrack_gc_work.early_drop = true;
++
+ 			atomic_dec(&net->ct.count);
+-			net_warn_ratelimited("nf_conntrack: table full, dropping packet\n");
++			nf_ct_zone_count_dec(net, zone);
++			net_warn_ratelimited("nf_conntrack: table or zone full, dropping packet\n");
+ 			return ERR_PTR(-ENOMEM);
+ 		}
+ 	}
+@@ -1394,6 +1400,7 @@ static void conntrack_gc_work_init(struct conntrack_gc_work *gc_work)
+ 	return ct;
+ out:
+ 	atomic_dec(&net->ct.count);
++	nf_ct_zone_count_dec(net, zone);
+ 	return ERR_PTR(-ENOMEM);
+ }
+ 
+@@ -1421,6 +1428,7 @@ void nf_conntrack_free(struct nf_conn *ct)
+ 	kmem_cache_free(nf_conntrack_cachep, ct);
+ 	smp_mb__before_atomic();
+ 	atomic_dec(&net->ct.count);
++	nf_ct_zone_count_dec(net, nf_ct_zone(ct));
+ }
+ EXPORT_SYMBOL_GPL(nf_conntrack_free);
+ 
+@@ -2510,6 +2518,7 @@ int nf_conntrack_init_net(struct net *net)
+ 	BUILD_BUG_ON(IP_CT_UNTRACKED == IP_CT_NUMBER);
+ 	BUILD_BUG_ON_NOT_POWER_OF_2(CONNTRACK_LOCKS);
+ 	atomic_set(&net->ct.count, 0);
++	nf_ct_zone_count_init(net);
+ 
+ 	net->ct.pcpu_lists = alloc_percpu(struct ct_pcpu);
+ 	if (!net->ct.pcpu_lists)
+-- 
+1.8.3.1
 
-as ip.
-
-like ip-route
-
-encap ip id 100 dst 10.0.0.1?
-
->
-> I have places the encap object and the decap expression in the same
-> nft_encap module.
->
-> I'm still considering to extend the object infrastructure to specify
-> the operation type through the rule, ie.
->
-> 	add vlan "network0" { id 100; proto 0x8100; }
->         add vlan "network1" { id 101; }
-> 	... encap vlan push ip daddr map { 192.168.0.0/24 : "network0",
-> 					   192.168.1.0/24 : "network1" }
->
-> So the VLAN object does not come with the operation type, instead this
-> is specified through the encap statement, that would require a bit more
-> work on the object infrastructure which is probably a good idea.
->
-> This is work-in-progress, syntax is tentative, comments welcome.
->
-> Thanks.
->
-> Pablo Neira Ayuso (2):
->   netfilter: nf_tables: add decapsulation support
->   netfilter: nf_tables: add encapsulation support
->
->  include/uapi/linux/netfilter/nf_tables.h |  56 ++++-
->  net/netfilter/Kconfig                    |   6 +
->  net/netfilter/Makefile                   |   1 +
->  net/netfilter/nft_encap.c                | 341 +++++++++++++++++++++++++++++++
->  4 files changed, 403 insertions(+), 1 deletion(-)
->  create mode 100644 net/netfilter/nft_encap.c
->
-> --
-> 2.11.0
->
->
