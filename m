@@ -2,105 +2,108 @@ Return-Path: <SRS0=wLp+=YK=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 58232ECE58E
-	for <netfilter-devel@archiver.kernel.org>; Thu, 17 Oct 2019 16:22:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 336EBECE58E
+	for <netfilter-devel@archiver.kernel.org>; Thu, 17 Oct 2019 16:53:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 35F8F2089C
-	for <netfilter-devel@archiver.kernel.org>; Thu, 17 Oct 2019 16:22:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 12D1520872
+	for <netfilter-devel@archiver.kernel.org>; Thu, 17 Oct 2019 16:53:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2502212AbfJQQWm (ORCPT
+        id S2440510AbfJQQxW (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 17 Oct 2019 12:22:42 -0400
-Received: from correo.us.es ([193.147.175.20]:56864 "EHLO mail.us.es"
+        Thu, 17 Oct 2019 12:53:22 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:41996 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2440465AbfJQQWm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 17 Oct 2019 12:22:42 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 4C9044A7073
-        for <netfilter-devel@vger.kernel.org>; Thu, 17 Oct 2019 18:22:37 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 3BAB9A7EC0
-        for <netfilter-devel@vger.kernel.org>; Thu, 17 Oct 2019 18:22:37 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 2954CB8019; Thu, 17 Oct 2019 18:22:37 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 30B6D59B;
-        Thu, 17 Oct 2019 18:22:35 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Thu, 17 Oct 2019 18:22:35 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (sys.soleta.eu [212.170.55.40])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 0162C42EF4E1;
-        Thu, 17 Oct 2019 18:22:34 +0200 (CEST)
-Date:   Thu, 17 Oct 2019 18:22:37 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Jakub Kicinski <jakub.kicinski@netronome.com>
-Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org, jiri@resnulli.us, saeedm@mellanox.com,
-        vishal@chelsio.com, vladbu@mellanox.com, ecree@solarflare.com
-Subject: Re: [PATCH net-next,v5 3/4] net: flow_offload: mangle action at byte
- level
-Message-ID: <20191017162237.h4e6bdoosd5b2ipj@salvia>
-References: <20191014221051.8084-1-pablo@netfilter.org>
- <20191014221051.8084-4-pablo@netfilter.org>
- <20191016163651.230b60e1@cakuba.netronome.com>
- <20191017161157.rr4lrolsjbnmk3ke@salvia>
+        id S2436732AbfJQQxW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 17 Oct 2019 12:53:22 -0400
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.91)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1iL91c-0007k3-Cy; Thu, 17 Oct 2019 18:53:20 +0200
+Date:   Thu, 17 Oct 2019 18:53:20 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft] src: restore --echo with anonymous sets
+Message-ID: <20191017165320.GM12661@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+References: <20191017133455.17560-1-pablo@netfilter.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20191017161157.rr4lrolsjbnmk3ke@salvia>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+In-Reply-To: <20191017133455.17560-1-pablo@netfilter.org>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Oct 17, 2019 at 06:11:57PM +0200, Pablo Neira Ayuso wrote:
+Hi Pablo,
+
+On Thu, Oct 17, 2019 at 03:34:55PM +0200, Pablo Neira Ayuso wrote:
+> If --echo is passed, then the cache already contains the commands that
+> have been sent to the kernel. However, anonymous sets are an exception
+> since the cache needs to be updated in this case.
+> 
+> Remove the old cache logic from the monitor code that has been replaced
+> by 01e5c6f0ed03 ("src: add cache level flags").
+> 
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+
+This is a nice solution, thanks! A few nits below:
+
 [...]
-> >  (3) it causes loss of functionality (looks like a single u32 changing
-> >      both sport and dport is rejected by the IR since it wouldn't
-> >      match fields);
-> 
-> Not correct.
-> 
-> tc filter add dev eth0 protocol ip \
->         parent ffff: \
->         pref 11 \
->         flower ip_proto tcp \
->         dst_port 80 \
->         src_ip 1.1.2.3/24 \
->         action pedit ex munge tcp src 2004 \
->         action pedit ex munge tcp dst 80
-> 
-> This results in two independent tc pedit actions:
-> 
-> * One tc pedit action with one single key, with value 0xd4070000 /
->   0x0000ffff.
-> * Another tc pedit action with one single key, with value 0x00005000
->   / 0xffff0000.
-> 
-> This works perfectly with this patchset.
+> diff --git a/src/monitor.c b/src/monitor.c
+> index 40c381149cda..b7b00d7b1343 100644
+> --- a/src/monitor.c
+> +++ b/src/monitor.c
+> @@ -609,6 +609,12 @@ static void netlink_events_cache_addset(struct netlink_mon_handler *monh,
+>  		goto out;
+>  	}
+>  
+> +	if (nft_output_echo(&monh->ctx->nft->output) &&
+> +	    !(s->flags & NFT_SET_ANONYMOUS)) {
 
-You refer to single u32 word changing both sport and dport.
+There is set_is_anonymous(), set and element printing callbacks use it
+as well.
 
-What's the point with including this in the subset of the uAPI to be
-supported?
+[...]
+> @@ -636,6 +642,10 @@ static void netlink_events_cache_addsetelem(struct netlink_mon_handler *monh,
+>  		goto out;
+>  	}
+>  
+> +	if (nft_output_echo(&monh->ctx->nft->output) &&
+> +	    !(set->flags & NFT_SET_ANONYMOUS))
 
-In software, it really makes sense to use this representation since it
-is speeding up packet processing.
+Same here.
 
-In hardware, supporting this uAPI really gets you nothing at all.
+[...]
+> @@ -744,7 +754,8 @@ out:
+>  static void netlink_events_cache_update(struct netlink_mon_handler *monh,
+>  					const struct nlmsghdr *nlh, int type)
+>  {
+> -	if (!monh->cache_needed)
+> +	if (nft_output_echo(&monh->ctx->nft->output) &&
+> +	    type != NFT_MSG_NEWSET && type != NFT_MSG_NEWSETELEM)
+>  		return;
 
-We have to document what subset of the uAPI is support through
-hardware offloads. Pretending that we can support all uAPI is not
-true, we only support for tc pedit extended mode right now.
+I would use switch() here, like so:
+
+|	if (nft_output_echo(&monh->ctx->nft->output)) {
+|		switch (type) {
+|		case NFT_MSG_NEWSET:
+|		case NFT_MSG_NEWSETELEM:
+|			break;
+|		default:
+|			return;
+|		}
+|	}
+
+it emphasises that code is filtering for certain event types. Up to you,
+I'm fine with both.
+
+Thanks, Phil
