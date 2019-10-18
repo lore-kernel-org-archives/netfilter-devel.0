@@ -2,65 +2,152 @@ Return-Path: <SRS0=5/AD=YL=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 75C57CA9EA9
-	for <netfilter-devel@archiver.kernel.org>; Fri, 18 Oct 2019 20:58:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1E2FCCA9EAB
+	for <netfilter-devel@archiver.kernel.org>; Fri, 18 Oct 2019 22:22:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 50B4B2070B
-	for <netfilter-devel@archiver.kernel.org>; Fri, 18 Oct 2019 20:58:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E479E20872
+	for <netfilter-devel@archiver.kernel.org>; Fri, 18 Oct 2019 22:22:27 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1571437348;
+	bh=b/VTm9YJ1NJyWJzB9JlmSk2ByMW0IN3eqaHT/MLyop0=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=U+MjAl3KW/eniR6jggyoYS7uPvgC6hafYA9PyGh8litRFl3t6xVYfPUk8DyX1hp3w
+	 1xquX7yqZYmUzcYHlPLlP7YnSfuiA0uRkaHN4DpNslIcY9p2q3Ygi6pR5OOunN3129
+	 quYwiWckbwCXouvGTQroWgwMGDo1I5XcnMFETqnA=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2391535AbfJRU6L (ORCPT
+        id S1730382AbfJRWFx (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 18 Oct 2019 16:58:11 -0400
-Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:37718 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S2388245AbfJRU6K (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 18 Oct 2019 16:58:10 -0400
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1iLZK4-0006ch-Qz; Fri, 18 Oct 2019 22:58:08 +0200
-Date:   Fri, 18 Oct 2019 22:58:08 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Phil Sutter <phil@nwl.cc>, Florian Westphal <fw@strlen.de>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-Subject: Re: [iptables PATCH] xtables-restore: Fix --table parameter check
-Message-ID: <20191018205808.GC25052@breakpoint.cc>
-References: <20190920154920.7927-1-phil@nwl.cc>
- <20191018140508.GB25052@breakpoint.cc>
- <20191018144806.GG26123@orbyte.nwl.cc>
+        Fri, 18 Oct 2019 18:05:53 -0400
+Received: from mail.kernel.org ([198.145.29.99]:37850 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1730287AbfJRWFw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 18 Oct 2019 18:05:52 -0400
+Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 03F98222C6;
+        Fri, 18 Oct 2019 22:05:50 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1571436351;
+        bh=b/VTm9YJ1NJyWJzB9JlmSk2ByMW0IN3eqaHT/MLyop0=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=bf/2qEGtvoEcwAf4RRZZYCaYdgKRj1UFxLH5qby1z7AhEg1Y53ERk3vLAX5ftD/au
+         vb3s/QLUqRckuocTjrPlE/GHBk13w2d5XRpKpqxezOoz8norSLFEPJnPI7BPxntDuX
+         e36qa/KUP9suiQNfpzfoCoaaiaBK0ROQ3y2SnN00=
+From:   Sasha Levin <sashal@kernel.org>
+To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc:     Stefano Brivio <sbrivio@redhat.com>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Sasha Levin <sashal@kernel.org>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org
+Subject: [PATCH AUTOSEL 4.19 016/100] netfilter: ipset: Make invalid MAC address checks consistent
+Date:   Fri, 18 Oct 2019 18:04:01 -0400
+Message-Id: <20191018220525.9042-16-sashal@kernel.org>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20191018220525.9042-1-sashal@kernel.org>
+References: <20191018220525.9042-1-sashal@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20191018144806.GG26123@orbyte.nwl.cc>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+X-stable: review
+X-Patchwork-Hint: Ignore
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Phil Sutter <phil@nwl.cc> wrote:
-> > How did you generate it?  The added code is pure voodoo magic to me,
-> > so I wonder if we can just remove the 'test for -t in iptables-restore
-> > files' code.
-> 
-> Sorry, I didn't mean to create such unreadable code. I guess after
-> managing to wrap my head around to understand the old code, the new one
-> seemed much more clear to me. ;)
+From: Stefano Brivio <sbrivio@redhat.com>
 
-Fair enough, my main point was where the test cases come from, i.e.
-did you see such rule dumps in the wild, or did you create this manually
-to catch all corner cases?
+[ Upstream commit 29edbc3ebdb0faa934114f14bf12fc0b784d4f1b ]
 
-I see you have a test for things like "-?t", so I wondered where that
-came from.
+Set types bitmap:ipmac and hash:ipmac check that MAC addresses
+are not all zeroes.
 
-> What do you think? Or should I respin after adding a bunch of comments
-> to is_table_param() to make it more clear?
+Introduce one missing check, and make the remaining ones
+consistent, using is_zero_ether_addr() instead of comparing
+against an array containing zeroes.
 
-I think thats the best option, I don't have any objections at the check
-per se given older iptables does this too.
+This was already done for hash:mac sets in commit 26c97c5d8dac
+("netfilter: ipset: Use is_zero_ether_addr instead of static and
+memcmp").
+
+Signed-off-by: Stefano Brivio <sbrivio@redhat.com>
+Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ net/netfilter/ipset/ip_set_bitmap_ipmac.c |  3 +++
+ net/netfilter/ipset/ip_set_hash_ipmac.c   | 11 ++++-------
+ 2 files changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/net/netfilter/ipset/ip_set_bitmap_ipmac.c b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
+index 4f01321e793ce..794e0335a8648 100644
+--- a/net/netfilter/ipset/ip_set_bitmap_ipmac.c
++++ b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
+@@ -235,6 +235,9 @@ bitmap_ipmac_kadt(struct ip_set *set, const struct sk_buff *skb,
+ 	else
+ 		ether_addr_copy(e.ether, eth_hdr(skb)->h_dest);
+ 
++	if (is_zero_ether_addr(e.ether))
++		return -EINVAL;
++
+ 	return adtfn(set, &e, &ext, &opt->ext, opt->cmdflags);
+ }
+ 
+diff --git a/net/netfilter/ipset/ip_set_hash_ipmac.c b/net/netfilter/ipset/ip_set_hash_ipmac.c
+index 16ec822e40447..25560ea742d66 100644
+--- a/net/netfilter/ipset/ip_set_hash_ipmac.c
++++ b/net/netfilter/ipset/ip_set_hash_ipmac.c
+@@ -36,9 +36,6 @@ MODULE_ALIAS("ip_set_hash:ip,mac");
+ /* Type specific function prefix */
+ #define HTYPE		hash_ipmac
+ 
+-/* Zero valued element is not supported */
+-static const unsigned char invalid_ether[ETH_ALEN] = { 0 };
+-
+ /* IPv4 variant */
+ 
+ /* Member elements */
+@@ -104,7 +101,7 @@ hash_ipmac4_kadt(struct ip_set *set, const struct sk_buff *skb,
+ 	else
+ 		ether_addr_copy(e.ether, eth_hdr(skb)->h_dest);
+ 
+-	if (ether_addr_equal(e.ether, invalid_ether))
++	if (is_zero_ether_addr(e.ether))
+ 		return -EINVAL;
+ 
+ 	ip4addrptr(skb, opt->flags & IPSET_DIM_ONE_SRC, &e.ip);
+@@ -140,7 +137,7 @@ hash_ipmac4_uadt(struct ip_set *set, struct nlattr *tb[],
+ 	if (ret)
+ 		return ret;
+ 	memcpy(e.ether, nla_data(tb[IPSET_ATTR_ETHER]), ETH_ALEN);
+-	if (ether_addr_equal(e.ether, invalid_ether))
++	if (is_zero_ether_addr(e.ether))
+ 		return -IPSET_ERR_HASH_ELEM;
+ 
+ 	return adtfn(set, &e, &ext, &ext, flags);
+@@ -220,7 +217,7 @@ hash_ipmac6_kadt(struct ip_set *set, const struct sk_buff *skb,
+ 	else
+ 		ether_addr_copy(e.ether, eth_hdr(skb)->h_dest);
+ 
+-	if (ether_addr_equal(e.ether, invalid_ether))
++	if (is_zero_ether_addr(e.ether))
+ 		return -EINVAL;
+ 
+ 	ip6addrptr(skb, opt->flags & IPSET_DIM_ONE_SRC, &e.ip.in6);
+@@ -260,7 +257,7 @@ hash_ipmac6_uadt(struct ip_set *set, struct nlattr *tb[],
+ 		return ret;
+ 
+ 	memcpy(e.ether, nla_data(tb[IPSET_ATTR_ETHER]), ETH_ALEN);
+-	if (ether_addr_equal(e.ether, invalid_ether))
++	if (is_zero_ether_addr(e.ether))
+ 		return -IPSET_ERR_HASH_ELEM;
+ 
+ 	return adtfn(set, &e, &ext, &ext, flags);
+-- 
+2.20.1
+
