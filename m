@@ -6,305 +6,362 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 09C8ACA9EA1
-	for <netfilter-devel@archiver.kernel.org>; Fri, 18 Oct 2019 09:49:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4FBE2CA9EA1
+	for <netfilter-devel@archiver.kernel.org>; Fri, 18 Oct 2019 09:50:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D30EF222BD
-	for <netfilter-devel@archiver.kernel.org>; Fri, 18 Oct 2019 09:49:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 193DA222BD
+	for <netfilter-devel@archiver.kernel.org>; Fri, 18 Oct 2019 09:50:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2407773AbfJRJt5 (ORCPT
+        id S2404799AbfJRJua (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 18 Oct 2019 05:49:57 -0400
-Received: from correo.us.es ([193.147.175.20]:56046 "EHLO mail.us.es"
+        Fri, 18 Oct 2019 05:50:30 -0400
+Received: from correo.us.es ([193.147.175.20]:56394 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2391488AbfJRJt5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 18 Oct 2019 05:49:57 -0400
+        id S1730808AbfJRJua (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 18 Oct 2019 05:50:30 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 4BBE51C4388
-        for <netfilter-devel@vger.kernel.org>; Fri, 18 Oct 2019 11:49:51 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 95DCB1C438E
+        for <netfilter-devel@vger.kernel.org>; Fri, 18 Oct 2019 11:50:23 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 388DDB7FF2
-        for <netfilter-devel@vger.kernel.org>; Fri, 18 Oct 2019 11:49:51 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 7D653A7E9D
+        for <netfilter-devel@vger.kernel.org>; Fri, 18 Oct 2019 11:50:23 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 2E1562DC8F; Fri, 18 Oct 2019 11:49:51 +0200 (CEST)
+        id 72796A7E98; Fri, 18 Oct 2019 11:50:23 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 1F83BDA840
-        for <netfilter-devel@vger.kernel.org>; Fri, 18 Oct 2019 11:49:49 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 04F45B7FF2
+        for <netfilter-devel@vger.kernel.org>; Fri, 18 Oct 2019 11:50:21 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Fri, 18 Oct 2019 11:49:49 +0200 (CEST)
+ Fri, 18 Oct 2019 11:50:21 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 0637F42EF4E2
-        for <netfilter-devel@vger.kernel.org>; Fri, 18 Oct 2019 11:49:48 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id E01C542EF4E3
+        for <netfilter-devel@vger.kernel.org>; Fri, 18 Oct 2019 11:50:20 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH libnftnl 2/2] chain: multi-device support
-Date:   Fri, 18 Oct 2019 11:49:47 +0200
-Message-Id: <20191018094947.9531-2-pablo@netfilter.org>
+Subject: [PATCH nft] src: add multidevice support for netdev chain
+Date:   Fri, 18 Oct 2019 11:50:20 +0200
+Message-Id: <20191018095020.9663-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
-In-Reply-To: <20191018094947.9531-1-pablo@netfilter.org>
-References: <20191018094947.9531-1-pablo@netfilter.org>
 X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Add support for NFTA_HOOK_DEVS.
+This patch allows you to specify multiple netdevices to be bound to the
+netdev basechain, eg.
+
+ # nft add chain netdev x y { \
+	type filter hook ingress devices = { eth0, eth1 } priority 0\; }
+
+json codebase has been updated to support for one single device with the
+existing representation, no support for multidevice is included in this
+patch.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/libnftnl/chain.h            |   1 +
- include/linux/netfilter/nf_tables.h |   2 +
- src/chain.c                         | 107 +++++++++++++++++++++++++++++++++++-
- 3 files changed, 109 insertions(+), 1 deletion(-)
+ include/rule.h     |  4 +++-
+ src/json.c         | 17 +++++++++++++----
+ src/mnl.c          | 29 ++++++++++++++++++++++++-----
+ src/netlink.c      | 20 +++++++++++++++++---
+ src/parser_bison.y | 26 ++++++++++++++++++++------
+ src/parser_json.c  | 18 +++++++++++++++---
+ src/rule.c         | 22 +++++++++++++++++-----
+ 7 files changed, 109 insertions(+), 27 deletions(-)
 
-diff --git a/include/libnftnl/chain.h b/include/libnftnl/chain.h
-index 31b48cf32bed..f84a2a3a20f2 100644
---- a/include/libnftnl/chain.h
-+++ b/include/libnftnl/chain.h
-@@ -31,6 +31,7 @@ enum nftnl_chain_attr {
- 	NFTNL_CHAIN_HANDLE,
- 	NFTNL_CHAIN_TYPE,
- 	NFTNL_CHAIN_DEV,
-+	NFTNL_CHAIN_DEVICES,
- 	__NFTNL_CHAIN_MAX
+diff --git a/include/rule.h b/include/rule.h
+index 2708cbebc9f8..ba40db8806fc 100644
+--- a/include/rule.h
++++ b/include/rule.h
+@@ -208,7 +208,9 @@ struct chain {
+ 	struct prio_spec	priority;
+ 	struct expr		*policy;
+ 	const char		*type;
+-	const char		*dev;
++	const char		**dev_array;
++	struct expr		*dev_expr;
++	int			dev_array_len;
+ 	struct scope		scope;
+ 	struct list_head	rules;
  };
- #define NFTNL_CHAIN_MAX (__NFTNL_CHAIN_MAX - 1)
-diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
-index 2e49bc6541a4..81c27d3c9ffd 100644
---- a/include/linux/netfilter/nf_tables.h
-+++ b/include/linux/netfilter/nf_tables.h
-@@ -144,12 +144,14 @@ enum nft_list_attributes {
-  * @NFTA_HOOK_HOOKNUM: netfilter hook number (NLA_U32)
-  * @NFTA_HOOK_PRIORITY: netfilter hook priority (NLA_U32)
-  * @NFTA_HOOK_DEV: netdevice name (NLA_STRING)
-+ * @NFTA_HOOK_DEVS: list of netdevices (NLA_NESTED)
-  */
- enum nft_hook_attributes {
- 	NFTA_HOOK_UNSPEC,
- 	NFTA_HOOK_HOOKNUM,
- 	NFTA_HOOK_PRIORITY,
- 	NFTA_HOOK_DEV,
-+	NFTA_HOOK_DEVS,
- 	__NFTA_HOOK_MAX
- };
- #define NFTA_HOOK_MAX		(__NFTA_HOOK_MAX - 1)
-diff --git a/src/chain.c b/src/chain.c
-index 26f9b9d61053..c64bf8d583fe 100644
---- a/src/chain.c
-+++ b/src/chain.c
-@@ -38,6 +38,8 @@ struct nftnl_chain {
- 	const char	*type;
- 	const char	*table;
- 	const char	*dev;
-+	const char	**dev_array;
-+	int		dev_array_len;
- 	uint32_t	family;
- 	uint32_t	policy;
- 	uint32_t	hooknum;
-@@ -109,6 +111,7 @@ EXPORT_SYMBOL(nftnl_chain_free);
- void nftnl_chain_free(const struct nftnl_chain *c)
+diff --git a/src/json.c b/src/json.c
+index 13a064249d90..56b20549bd73 100644
+--- a/src/json.c
++++ b/src/json.c
+@@ -222,9 +222,9 @@ static json_t *rule_print_json(struct output_ctx *octx,
+ 
+ static json_t *chain_print_json(const struct chain *chain)
  {
- 	struct nftnl_rule *r, *tmp;
-+	int i;
++	int priority, policy, n = 0;
++	struct expr *dev, *expr;
+ 	json_t *root, *tmp;
+-	int priority;
+-	int policy;
  
- 	list_for_each_entry_safe(r, tmp, &c->rule_list, head)
- 		nftnl_rule_free(r);
-@@ -121,6 +124,12 @@ void nftnl_chain_free(const struct nftnl_chain *c)
- 		xfree(c->type);
- 	if (c->flags & (1 << NFTNL_CHAIN_DEV))
- 		xfree(c->dev);
-+	if (c->flags & (1 << NFTNL_CHAIN_DEVICES)) {
-+		for (i = 0; i < c->dev_array_len; i++)
-+			xfree(c->dev_array[i]);
-+
-+		xfree(c->dev_array);
-+	}
- 	xfree(c);
- }
- 
-@@ -133,6 +142,8 @@ bool nftnl_chain_is_set(const struct nftnl_chain *c, uint16_t attr)
- EXPORT_SYMBOL(nftnl_chain_unset);
- void nftnl_chain_unset(struct nftnl_chain *c, uint16_t attr)
- {
-+	int i;
-+
- 	if (!(c->flags & (1 << attr)))
- 		return;
- 
-@@ -159,6 +170,11 @@ void nftnl_chain_unset(struct nftnl_chain *c, uint16_t attr)
- 	case NFTNL_CHAIN_DEV:
- 		xfree(c->dev);
- 		break;
-+	case NFTNL_CHAIN_DEVICES:
-+		for (i = 0; i < c->dev_array_len; i++)
-+			xfree(c->dev_array[i]);
-+		xfree(c->dev_array);
-+		break;
- 	default:
- 		return;
- 	}
-@@ -180,6 +196,9 @@ EXPORT_SYMBOL(nftnl_chain_set_data);
- int nftnl_chain_set_data(struct nftnl_chain *c, uint16_t attr,
- 			 const void *data, uint32_t data_len)
- {
-+	const char **dev_array;
-+	int len = 0, i;
-+
- 	nftnl_assert_attr_exists(attr, NFTNL_CHAIN_MAX);
- 	nftnl_assert_validate(data, nftnl_chain_validate, attr, data_len);
- 
-@@ -240,6 +259,26 @@ int nftnl_chain_set_data(struct nftnl_chain *c, uint16_t attr,
- 		if (!c->dev)
- 			return -1;
- 		break;
-+	case NFTNL_CHAIN_DEVICES:
-+		dev_array = (const char **)data;
-+		while (dev_array[len] != NULL)
-+			len++;
-+
-+		if (c->flags & (1 << NFTNL_CHAIN_DEVICES)) {
-+			for (i = 0; i < c->dev_array_len; i++)
-+				xfree(c->dev_array[i]);
-+			xfree(c->dev_array);
-+		}
-+
-+		c->dev_array = calloc(len + 1, sizeof(char *));
-+		if (!c->dev_array)
-+			return -1;
-+
-+		for (i = 0; i < len; i++)
-+			c->dev_array[i] = strdup(dev_array[i]);
-+
-+		c->dev_array_len = len;
-+		break;
- 	}
- 	c->flags |= (1 << attr);
- 	return 0;
-@@ -325,6 +364,8 @@ const void *nftnl_chain_get_data(const struct nftnl_chain *c, uint16_t attr,
- 	case NFTNL_CHAIN_DEV:
- 		*data_len = strlen(c->dev) + 1;
- 		return c->dev;
-+	case NFTNL_CHAIN_DEVICES:
-+		return &c->dev_array[0];
- 	}
- 	return NULL;
- }
-@@ -389,6 +430,8 @@ uint8_t nftnl_chain_get_u8(const struct nftnl_chain *c, uint16_t attr)
- EXPORT_SYMBOL(nftnl_chain_nlmsg_build_payload);
- void nftnl_chain_nlmsg_build_payload(struct nlmsghdr *nlh, const struct nftnl_chain *c)
- {
-+	int i;
-+
- 	if (c->flags & (1 << NFTNL_CHAIN_TABLE))
- 		mnl_attr_put_strz(nlh, NFTA_CHAIN_TABLE, c->table);
- 	if (c->flags & (1 << NFTNL_CHAIN_NAME))
-@@ -402,6 +445,15 @@ void nftnl_chain_nlmsg_build_payload(struct nlmsghdr *nlh, const struct nftnl_ch
- 		mnl_attr_put_u32(nlh, NFTA_HOOK_PRIORITY, htonl(c->prio));
- 		if (c->flags & (1 << NFTNL_CHAIN_DEV))
- 			mnl_attr_put_strz(nlh, NFTA_HOOK_DEV, c->dev);
-+		else if (c->flags & (1 << NFTNL_CHAIN_DEVICES)) {
-+			struct nlattr *nest_dev;
-+
-+			nest_dev = mnl_attr_nest_start(nlh, NFTA_HOOK_DEVS);
-+			for (i = 0; i < c->dev_array_len; i++)
-+				mnl_attr_put_strz(nlh, NFTA_DEVICE_NAME,
-+						  c->dev_array[i]);
-+			mnl_attr_nest_end(nlh, nest_dev);
-+		}
- 		mnl_attr_nest_end(nlh, nest);
- 	}
- 	if (c->flags & (1 << NFTNL_CHAIN_POLICY))
-@@ -551,9 +603,44 @@ static int nftnl_chain_parse_hook_cb(const struct nlattr *attr, void *data)
- 	return MNL_CB_OK;
- }
- 
-+static int nftnl_chain_parse_devs(struct nlattr *nest, struct nftnl_chain *c)
-+{
-+	const char **dev_array;
-+	int len = 0, size = 8;
-+	struct nlattr *attr;
-+
-+	dev_array = calloc(8, sizeof(char *));
-+	if (!dev_array)
-+		return -1;
-+
-+	mnl_attr_for_each_nested(attr, nest) {
-+		if (mnl_attr_get_type(attr) != NFTA_DEVICE_NAME)
-+			goto err;
-+		dev_array[len++] = strdup(mnl_attr_get_str(attr));
-+		if (len >= size) {
-+			dev_array = realloc(dev_array, size * 2);
-+			if (!dev_array)
-+				goto err;
-+
-+			size *= 2;
-+			memset(&dev_array[len], 0, size - len);
-+		}
-+	}
-+
-+	c->dev_array = dev_array;
-+	c->dev_array_len = len;
-+
-+	return 0;
-+err:
-+	while (len--)
-+		xfree(dev_array[len]);
-+	return -1;
-+}
-+
- static int nftnl_chain_parse_hook(struct nlattr *attr, struct nftnl_chain *c)
- {
- 	struct nlattr *tb[NFTA_HOOK_MAX+1] = {};
-+	int ret;
- 
- 	if (mnl_attr_parse_nested(attr, nftnl_chain_parse_hook_cb, tb) < 0)
- 		return -1;
-@@ -572,6 +659,12 @@ static int nftnl_chain_parse_hook(struct nlattr *attr, struct nftnl_chain *c)
- 			return -1;
- 		c->flags |= (1 << NFTNL_CHAIN_DEV);
- 	}
-+	if (tb[NFTA_HOOK_DEVS]) {
-+		ret = nftnl_chain_parse_devs(tb[NFTA_HOOK_DEVS], c);
-+		if (ret < 0)
-+			return -1;
-+		c->flags |= (1 << NFTNL_CHAIN_DEVICES);
-+	}
- 
- 	return 0;
- }
-@@ -653,7 +746,7 @@ static inline int nftnl_str2hooknum(int family, const char *hook)
- static int nftnl_chain_snprintf_default(char *buf, size_t size,
- 					const struct nftnl_chain *c)
- {
--	int ret, remain = size, offset = 0;
-+	int ret, remain = size, offset = 0, i;
- 
- 	ret = snprintf(buf, remain, "%s %s %s use %u",
- 		       nftnl_family2str(c->family), c->table, c->name, c->use);
-@@ -681,6 +774,18 @@ static int nftnl_chain_snprintf_default(char *buf, size_t size,
- 				       c->dev);
- 			SNPRINTF_BUFFER_SIZE(ret, remain, offset);
- 		}
-+		if (c->flags & (1 << NFTNL_CHAIN_DEVICES)) {
-+			ret = snprintf(buf + offset, remain, " dev { ");
-+			SNPRINTF_BUFFER_SIZE(ret, remain, offset);
-+
-+			for (i = 0; i < c->dev_array_len; i++) {
-+				ret = snprintf(buf + offset, remain, " %s ",
-+					       c->dev_array[i]);
-+				SNPRINTF_BUFFER_SIZE(ret, remain, offset);
+ 	root = json_pack("{s:s, s:s, s:s, s:I}",
+ 			 "family", family2str(chain->handle.family),
+@@ -243,8 +243,17 @@ static json_t *chain_print_json(const struct chain *chain)
+ 						    chain->hooknum),
+ 				"prio", priority,
+ 				"policy", chain_policy2str(policy));
+-		if (chain->dev)
+-			json_object_set_new(tmp, "dev", json_string(chain->dev));
++		if (chain->dev_expr) {
++			list_for_each_entry(expr, &chain->dev_expr->expressions, list) {
++				dev = expr;
++				n++;
 +			}
-+			ret = snprintf(buf + offset, remain, " } ");
-+			SNPRINTF_BUFFER_SIZE(ret, remain, offset);
++		}
++
++		if (n == 1) {
++			json_object_set_new(tmp, "dev",
++					    json_string(dev->identifier));
++		}
+ 		json_object_update(root, tmp);
+ 		json_decref(tmp);
+ 	}
+diff --git a/src/mnl.c b/src/mnl.c
+index 75ab07b045aa..ee5d0a1a2a15 100644
+--- a/src/mnl.c
++++ b/src/mnl.c
+@@ -526,10 +526,12 @@ err:
+ int mnl_nft_chain_add(struct netlink_ctx *ctx, const struct cmd *cmd,
+ 		      unsigned int flags)
+ {
++	int priority, policy, i = 0;
+ 	struct nftnl_chain *nlc;
++	const char **dev_array;
+ 	struct nlmsghdr *nlh;
+-	int priority;
+-	int policy;
++	struct expr *expr;
++	int dev_array_len;
+ 
+ 	nlc = nftnl_chain_alloc();
+ 	if (nlc == NULL)
+@@ -555,9 +557,26 @@ int mnl_nft_chain_add(struct netlink_ctx *ctx, const struct cmd *cmd,
+ 					BYTEORDER_HOST_ENDIAN, sizeof(int));
+ 			nftnl_chain_set_u32(nlc, NFTNL_CHAIN_POLICY, policy);
+ 		}
+-		if (cmd->chain->dev != NULL)
+-			nftnl_chain_set_str(nlc, NFTNL_CHAIN_DEV,
+-					    cmd->chain->dev);
++		if (cmd->chain->dev_expr) {
++			dev_array = xmalloc(sizeof(char *) * 8);
++			dev_array_len = 8;
++			list_for_each_entry(expr, &cmd->chain->dev_expr->expressions, list) {
++				dev_array[i++] = expr->identifier;
++				if (i == dev_array_len) {
++					dev_array_len *= 2;
++					dev_array = xrealloc(dev_array,
++							     dev_array_len);
++				}
++			}
++
++			dev_array[i] = NULL;
++			if (i == 1)
++				nftnl_chain_set_str(nlc, NFTNL_CHAIN_DEV, dev_array[0]);
++			else if (i > 1)
++				nftnl_chain_set(nlc, NFTNL_CHAIN_DEVICES, dev_array);
++
++			xfree(dev_array);
 +		}
  	}
+ 	netlink_dump_chain(nlc, ctx);
  
- 	return offset;
+diff --git a/src/netlink.c b/src/netlink.c
+index 1e669e5dcaa1..c47771d3c801 100644
+--- a/src/netlink.c
++++ b/src/netlink.c
+@@ -378,9 +378,9 @@ void netlink_dump_chain(const struct nftnl_chain *nlc, struct netlink_ctx *ctx)
+ struct chain *netlink_delinearize_chain(struct netlink_ctx *ctx,
+ 					const struct nftnl_chain *nlc)
+ {
++	int priority, policy, len = 0, i;
++	const char * const *dev_array;
+ 	struct chain *chain;
+-	int priority;
+-	int policy;
+ 
+ 	chain = chain_alloc(nftnl_chain_get_str(nlc, NFTNL_CHAIN_NAME));
+ 	chain->handle.family =
+@@ -415,8 +415,22 @@ struct chain *netlink_delinearize_chain(struct netlink_ctx *ctx,
+ 						    &policy);
+ 			nftnl_chain_get_u32(nlc, NFTNL_CHAIN_POLICY);
+ 		if (nftnl_chain_is_set(nlc, NFTNL_CHAIN_DEV)) {
+-			chain->dev	=
++			chain->dev_array = xmalloc(sizeof(char *));
++			chain->dev_array_len = 1;
++			chain->dev_array[0] =
+ 				xstrdup(nftnl_chain_get_str(nlc, NFTNL_CHAIN_DEV));
++			chain->dev_array[1] = NULL;
++		} else if (nftnl_chain_is_set(nlc, NFTNL_CHAIN_DEVICES)) {
++			dev_array = nftnl_chain_get(nlc, NFTNL_CHAIN_DEVICES);
++			while (dev_array[len])
++				len++;
++
++			chain->dev_array = xmalloc(len * sizeof(char *));
++			for (i = 0; i < len; i++)
++				chain->dev_array[i] = xstrdup(dev_array[i]);
++
++			chain->dev_array[i] = NULL;
++			chain->dev_array_len = len;
+ 		}
+ 		chain->flags        |= CHAIN_F_BASECHAIN;
+ 	}
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index 11f0dc8b2153..7f9b1752f41d 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -564,11 +564,11 @@ int nft_lex(void *, void *, void *);
+ %type <val>			family_spec family_spec_explicit
+ %type <val32>			int_num	chain_policy
+ %type <prio_spec>		extended_prio_spec prio_spec
+-%type <string>			extended_prio_name
+-%destructor { xfree($$); }	extended_prio_name
++%type <string>			extended_prio_name quota_unit
++%destructor { xfree($$); }	extended_prio_name quota_unit
+ 
+-%type <string>			dev_spec quota_unit
+-%destructor { xfree($$); }	dev_spec quota_unit
++%type <expr>			dev_spec
++%destructor { xfree($$); }	dev_spec
+ 
+ %type <table>			table_block_alloc table_block
+ %destructor { close_scope(state); table_free($$); }	table_block_alloc
+@@ -1992,7 +1992,7 @@ hook_spec		:	TYPE		STRING		HOOK		STRING		dev_spec	prio_spec
+ 				}
+ 				xfree($4);
+ 
+-				$<chain>0->dev		= $5;
++				$<chain>0->dev_expr	= $5;
+ 				$<chain>0->priority	= $6;
+ 				$<chain>0->flags	|= CHAIN_F_BASECHAIN;
+ 			}
+@@ -2072,7 +2072,21 @@ int_num			:	NUM			{ $$ = $1; }
+ 			|	DASH	NUM		{ $$ = -$2; }
+ 			;
+ 
+-dev_spec		:	DEVICE	string		{ $$ = $2; }
++dev_spec		:	DEVICE	string
++			{
++				struct expr *expr;
++
++				expr = constant_expr_alloc(&@$, &string_type,
++							   BYTEORDER_HOST_ENDIAN,
++							   strlen($2) * BITS_PER_BYTE, $2);
++				$$ = compound_expr_alloc(&@$, EXPR_LIST);
++				compound_expr_add($$, expr);
++
++			}
++			|	DEVICES		'='	flowtable_expr
++			{
++				$$ = $3;
++			}
+ 			|	/* empty */		{ $$ = NULL; }
+ 			;
+ 
+diff --git a/src/parser_json.c b/src/parser_json.c
+index 55dbc177cc98..0c79189ec526 100644
+--- a/src/parser_json.c
++++ b/src/parser_json.c
+@@ -17,6 +17,7 @@
+ #include <netinet/icmp6.h>
+ #include <netinet/ip.h>
+ #include <netinet/ip_icmp.h>
++#include <net/if.h>
+ #include <linux/xfrm.h>
+ 
+ #include <linux/netfilter.h>
+@@ -2581,8 +2582,9 @@ static struct cmd *json_parse_cmd_add_chain(struct json_ctx *ctx, json_t *root,
+ 		.table.location = *int_loc,
+ 	};
+ 	const char *family = "", *policy = "", *type, *hookstr;
+-	int prio;
++	const char name[IFNAMSIZ];
+ 	struct chain *chain;
++	int prio;
+ 
+ 	if (json_unpack_err(ctx, root, "{s:s, s:s}",
+ 			    "family", &family,
+@@ -2626,8 +2628,18 @@ static struct cmd *json_parse_cmd_add_chain(struct json_ctx *ctx, json_t *root,
+ 		return NULL;
+ 	}
+ 
+-	if (!json_unpack(root, "{s:s}", "dev", &chain->dev))
+-		chain->dev = xstrdup(chain->dev);
++	if (!json_unpack(root, "{s:s}", "dev", &name)) {
++		struct expr *dev_expr, *expr;
++
++		dev_expr = compound_expr_alloc(int_loc, EXPR_LIST);
++		expr = constant_expr_alloc(int_loc, &integer_type,
++					   BYTEORDER_HOST_ENDIAN,
++					   strlen(name) * BITS_PER_BYTE,
++					   name);
++		compound_expr_add(dev_expr, expr);
++		chain->dev_expr = dev_expr;
++	}
++
+ 	if (!json_unpack(root, "{s:s}", "policy", &policy)) {
+ 		chain->policy = parse_policy(policy);
+ 		if (chain->policy < 0) {
+diff --git a/src/rule.c b/src/rule.c
+index 55894cbdb766..ec7bcb97425e 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -813,6 +813,7 @@ struct chain *chain_get(struct chain *chain)
+ void chain_free(struct chain *chain)
+ {
+ 	struct rule *rule, *next;
++	int i;
+ 
+ 	if (--chain->refcnt > 0)
+ 		return;
+@@ -821,8 +822,10 @@ void chain_free(struct chain *chain)
+ 	handle_free(&chain->handle);
+ 	scope_release(&chain->scope);
+ 	xfree(chain->type);
+-	if (chain->dev != NULL)
+-		xfree(chain->dev);
++	expr_free(chain->dev_expr);
++	for (i = 0; i < chain->dev_array_len; i++)
++		xfree(chain->dev_array[i]);
++	xfree(chain->dev_array);
+ 	expr_free(chain->priority.expr);
+ 	expr_free(chain->policy);
+ 	xfree(chain);
+@@ -1101,7 +1104,7 @@ static void chain_print_declaration(const struct chain *chain,
+ 				    struct output_ctx *octx)
+ {
+ 	char priobuf[STD_PRIO_BUFSIZE];
+-	int policy;
++	int policy, i;
+ 
+ 	nft_print(octx, "\tchain %s {", chain->handle.chain.name);
+ 	if (nft_output_handle(octx))
+@@ -1110,8 +1113,17 @@ static void chain_print_declaration(const struct chain *chain,
+ 	if (chain->flags & CHAIN_F_BASECHAIN) {
+ 		nft_print(octx, "\t\ttype %s hook %s", chain->type,
+ 			  hooknum2str(chain->handle.family, chain->hooknum));
+-		if (chain->dev != NULL)
+-			nft_print(octx, " device \"%s\"", chain->dev);
++		if (chain->dev_array_len == 1) {
++			nft_print(octx, " device \"%s\"", chain->dev_array[0]);
++		} else if (chain->dev_array_len > 1) {
++			nft_print(octx, " devices = { ");
++			for (i = 0; i < chain->dev_array_len; i++) {
++				nft_print(octx, "%s", chain->dev_array[i]);
++					if (i + 1 != chain->dev_array_len)
++						nft_print(octx, ", ");
++			}
++			nft_print(octx, " }");
++		}
+ 		nft_print(octx, " priority %s;",
+ 			  prio2str(octx, priobuf, sizeof(priobuf),
+ 				   chain->handle.family, chain->hooknum,
 -- 
 2.11.0
 
