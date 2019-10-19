@@ -2,306 +2,90 @@ Return-Path: <SRS0=D3nJ=YM=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 06283CA9EA9
-	for <netfilter-devel@archiver.kernel.org>; Sat, 19 Oct 2019 01:40:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 19587CA9EAC
+	for <netfilter-devel@archiver.kernel.org>; Sat, 19 Oct 2019 10:15:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CD49E21897
-	for <netfilter-devel@archiver.kernel.org>; Sat, 19 Oct 2019 01:40:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E617221D7C
+	for <netfilter-devel@archiver.kernel.org>; Sat, 19 Oct 2019 10:15:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726474AbfJSBjc (ORCPT
+        id S1725792AbfJSKP2 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 18 Oct 2019 21:39:32 -0400
-Received: from mx1.redhat.com ([209.132.183.28]:55076 "EHLO mx1.redhat.com"
+        Sat, 19 Oct 2019 06:15:28 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:46188 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726195AbfJSBjc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 18 Oct 2019 21:39:32 -0400
-Received: from smtp.corp.redhat.com (int-mx08.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mx1.redhat.com (Postfix) with ESMTPS id 3B7FE18CB8E6;
-        Sat, 19 Oct 2019 01:39:27 +0000 (UTC)
-Received: from madcap2.tricolour.ca (ovpn-112-19.phx2.redhat.com [10.3.112.19])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id EFB0A19C7F;
-        Sat, 19 Oct 2019 01:39:06 +0000 (UTC)
-Date:   Fri, 18 Oct 2019 21:39:04 -0400
-From:   Richard Guy Briggs <rgb@redhat.com>
-To:     containers@lists.linux-foundation.org, linux-api@vger.kernel.org,
-        Linux-Audit Mailing List <linux-audit@redhat.com>,
-        linux-fsdevel@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-Cc:     Paul Moore <paul@paul-moore.com>, sgrubb@redhat.com,
-        omosnace@redhat.com, dhowells@redhat.com, simo@redhat.com,
-        eparis@parisplace.org, serge@hallyn.com, ebiederm@xmission.com,
-        nhorman@tuxdriver.com, dwalsh@redhat.com, mpatel@redhat.com
-Subject: Re: [PATCH ghak90 V7 20/21] audit: add capcontid to set contid
- outside init_user_ns
-Message-ID: <20191019013904.uevmrzbmztsbhpnh@madcap2.tricolour.ca>
-References: <cover.1568834524.git.rgb@redhat.com>
- <214163d11a75126f610bcedfad67a4d89575dc77.1568834525.git.rgb@redhat.com>
+        id S1725535AbfJSKP2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 19 Oct 2019 06:15:28 -0400
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.91)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1iLlle-0000D9-6N; Sat, 19 Oct 2019 12:15:26 +0200
+Date:   Sat, 19 Oct 2019 12:15:26 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+Subject: Re: [iptables PATCH] xtables-restore: Fix --table parameter check
+Message-ID: <20191019101526.GI26123@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Florian Westphal <fw@strlen.de>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+References: <20190920154920.7927-1-phil@nwl.cc>
+ <20191018140508.GB25052@breakpoint.cc>
+ <20191018144806.GG26123@orbyte.nwl.cc>
+ <20191018205808.GC25052@breakpoint.cc>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <214163d11a75126f610bcedfad67a4d89575dc77.1568834525.git.rgb@redhat.com>
-User-Agent: NeoMutt/20180716
-X-Scanned-By: MIMEDefang 2.84 on 10.5.11.23
-X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.6.2 (mx1.redhat.com [10.5.110.63]); Sat, 19 Oct 2019 01:39:31 +0000 (UTC)
+In-Reply-To: <20191018205808.GC25052@breakpoint.cc>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 2019-09-18 21:22, Richard Guy Briggs wrote:
-> Provide a mechanism similar to CAP_AUDIT_CONTROL to explicitly give a
-> process in a non-init user namespace the capability to set audit
-> container identifiers.
+Hi,
+
+On Fri, Oct 18, 2019 at 10:58:08PM +0200, Florian Westphal wrote:
+> Phil Sutter <phil@nwl.cc> wrote:
+> > > How did you generate it?  The added code is pure voodoo magic to me,
+> > > so I wonder if we can just remove the 'test for -t in iptables-restore
+> > > files' code.
+> > 
+> > Sorry, I didn't mean to create such unreadable code. I guess after
+> > managing to wrap my head around to understand the old code, the new one
+> > seemed much more clear to me. ;)
 > 
-> Use audit netlink message types AUDIT_GET_CAPCONTID 1027 and
-> AUDIT_SET_CAPCONTID 1028.  The message format includes the data
-> structure:
-> struct audit_capcontid_status {
->         pid_t   pid;
->         u32     enable;
-> };
-
-Paul, can I get a review of the general idea here to see if you're ok
-with this way of effectively extending CAP_AUDIT_CONTROL for the sake of
-setting contid from beyond the init user namespace where capable() can't
-reach and ns_capable() is meaningless for these purposes?
-
-Last weekend was Canadian Thanksgiving where I took an extra day for an
-annual bike trip and I'm buried to my neck in a complete kitchen gut
-(down to 1920 structural double brick and knob/tube wiring), but I've
-got fixes or responses to almost everything else you've raised which
-I'll post shortly.
-
-Thanks!
-
-> Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
-> ---
->  include/linux/audit.h      | 14 +++++++
->  include/uapi/linux/audit.h |  2 +
->  kernel/audit.c             | 98 +++++++++++++++++++++++++++++++++++++++++++++-
->  kernel/audit.h             |  5 +++
->  4 files changed, 117 insertions(+), 2 deletions(-)
+> Fair enough, my main point was where the test cases come from, i.e.
+> did you see such rule dumps in the wild, or did you create this manually
+> to catch all corner cases?
 > 
-> diff --git a/include/linux/audit.h b/include/linux/audit.h
-> index 1ce27af686ea..dcc53e62e266 100644
-> --- a/include/linux/audit.h
-> +++ b/include/linux/audit.h
-> @@ -117,6 +117,7 @@ struct audit_task_info {
->  	kuid_t			loginuid;
->  	unsigned int		sessionid;
->  	struct audit_cont	*cont;
-> +	u32			capcontid;
->  #ifdef CONFIG_AUDITSYSCALL
->  	struct audit_context	*ctx;
->  #endif
-> @@ -224,6 +225,14 @@ static inline unsigned int audit_get_sessionid(struct task_struct *tsk)
->  	return tsk->audit->sessionid;
->  }
->  
-> +static inline u32 audit_get_capcontid(struct task_struct *tsk)
-> +{
-> +	if (!tsk->audit)
-> +		return 0;
-> +	return tsk->audit->capcontid;
-> +}
-> +
-> +extern int audit_set_capcontid(struct task_struct *tsk, u32 enable);
->  extern int audit_set_contid(struct task_struct *tsk, u64 contid);
->  
->  static inline u64 audit_get_contid(struct task_struct *tsk)
-> @@ -309,6 +318,11 @@ static inline unsigned int audit_get_sessionid(struct task_struct *tsk)
->  	return AUDIT_SID_UNSET;
->  }
->  
-> +static inline u32 audit_get_capcontid(struct task_struct *tsk)
-> +{
-> +	return 0;
-> +}
-> +
->  static inline u64 audit_get_contid(struct task_struct *tsk)
->  {
->  	return AUDIT_CID_UNSET;
-> diff --git a/include/uapi/linux/audit.h b/include/uapi/linux/audit.h
-> index eef42c8eea77..011b0a8ee9b2 100644
-> --- a/include/uapi/linux/audit.h
-> +++ b/include/uapi/linux/audit.h
-> @@ -78,6 +78,8 @@
->  #define AUDIT_GET_LOGINUID	1024	/* Get loginuid of a task */
->  #define AUDIT_SET_LOGINUID	1025	/* Set loginuid of a task */
->  #define AUDIT_GET_SESSIONID	1026	/* Set sessionid of a task */
-> +#define AUDIT_GET_CAPCONTID	1027	/* Get cap_contid of a task */
-> +#define AUDIT_SET_CAPCONTID	1028	/* Set cap_contid of a task */
->  
->  #define AUDIT_FIRST_USER_MSG	1100	/* Userspace messages mostly uninteresting to kernel */
->  #define AUDIT_USER_AVC		1107	/* We filter this differently */
-> diff --git a/kernel/audit.c b/kernel/audit.c
-> index a70c9184e5d9..7160da464849 100644
-> --- a/kernel/audit.c
-> +++ b/kernel/audit.c
-> @@ -1192,6 +1192,14 @@ static int audit_netlink_ok(struct sk_buff *skb, u16 msg_type)
->  	case AUDIT_GET_SESSIONID:
->  		return 0;
->  		break;
-> +	case AUDIT_GET_CAPCONTID:
-> +	case AUDIT_SET_CAPCONTID:
-> +	case AUDIT_GET_CONTID:
-> +	case AUDIT_SET_CONTID:
-> +		if (!netlink_capable(skb, CAP_AUDIT_CONTROL) && !audit_get_capcontid(current))
-> +			return -EPERM;
-> +		return 0;
-> +		break;
->  	default:  /* do more checks below */
->  		break;
->  	}
-> @@ -1227,8 +1235,6 @@ static int audit_netlink_ok(struct sk_buff *skb, u16 msg_type)
->  	case AUDIT_TTY_SET:
->  	case AUDIT_TRIM:
->  	case AUDIT_MAKE_EQUIV:
-> -	case AUDIT_GET_CONTID:
-> -	case AUDIT_SET_CONTID:
->  	case AUDIT_SET_LOGINUID:
->  		/* Only support auditd and auditctl in initial pid namespace
->  		 * for now. */
-> @@ -1304,6 +1310,23 @@ static int audit_get_contid_status(struct sk_buff *skb)
->  	return 0;
->  }
->  
-> +static int audit_get_capcontid_status(struct sk_buff *skb)
-> +{
-> +	struct nlmsghdr *nlh = nlmsg_hdr(skb);
-> +	u32 seq = nlh->nlmsg_seq;
-> +	void *data = nlmsg_data(nlh);
-> +	struct audit_capcontid_status cs;
-> +
-> +	cs.pid = ((struct audit_capcontid_status *)data)->pid;
-> +	if (!cs.pid)
-> +		cs.pid = task_tgid_nr(current);
-> +	rcu_read_lock();
-> +	cs.enable = audit_get_capcontid(find_task_by_vpid(cs.pid));
-> +	rcu_read_unlock();
-> +	audit_send_reply(skb, seq, AUDIT_GET_CAPCONTID, 0, 0, &cs, sizeof(cs));
-> +	return 0;
-> +}
-> +
->  struct audit_loginuid_status { uid_t loginuid; };
->  
->  static int audit_get_loginuid_status(struct sk_buff *skb)
-> @@ -1779,6 +1802,27 @@ static int audit_receive_msg(struct sk_buff *skb, struct nlmsghdr *nlh)
->  		if (err)
->  			return err;
->  		break;
-> +	case AUDIT_SET_CAPCONTID: {
-> +		struct audit_capcontid_status *s = data;
-> +		struct task_struct *tsk;
-> +
-> +		/* check if new data is valid */
-> +		if (nlmsg_len(nlh) < sizeof(*s))
-> +			return -EINVAL;
-> +		tsk = find_get_task_by_vpid(s->pid);
-> +		if (!tsk)
-> +			return -EINVAL;
-> +
-> +		err = audit_set_capcontid(tsk, s->enable);
-> +		put_task_struct(tsk);
-> +		return err;
-> +		break;
-> +	}
-> +	case AUDIT_GET_CAPCONTID:
-> +		err = audit_get_capcontid_status(skb);
-> +		if (err)
-> +			return err;
-> +		break;
->  	case AUDIT_SET_LOGINUID: {
->  		uid_t *loginuid = data;
->  		kuid_t kloginuid;
-> @@ -2711,6 +2755,56 @@ static struct task_struct *audit_cont_owner(struct task_struct *tsk)
->  	return NULL;
->  }
->  
-> +int audit_set_capcontid(struct task_struct *task, u32 enable)
-> +{
-> +	u32 oldcapcontid;
-> +	int rc = 0;
-> +	struct audit_buffer *ab;
-> +	uid_t uid;
-> +	struct tty_struct *tty;
-> +	char comm[sizeof(current->comm)];
-> +
-> +	if (!task->audit)
-> +		return -ENOPROTOOPT;
-> +	oldcapcontid = audit_get_capcontid(task);
-> +	/* if task is not descendant, block */
-> +	if (task == current)
-> +		rc = -EBADSLT;
-> +	else if (!task_is_descendant(current, task))
-> +		rc = -EXDEV;
-> +	else if (current_user_ns() == &init_user_ns) {
-> +		if (!capable(CAP_AUDIT_CONTROL) && !audit_get_capcontid(current))
-> +			rc = -EPERM;
-> +	}
-> +	if (!rc)
-> +		task->audit->capcontid = enable;
-> +
-> +	if (!audit_enabled)
-> +		return rc;
-> +
-> +	ab = audit_log_start(audit_context(), GFP_KERNEL, AUDIT_SET_CAPCONTID);
-> +	if (!ab)
-> +		return rc;
-> +
-> +	uid = from_kuid(&init_user_ns, task_uid(current));
-> +	tty = audit_get_tty();
-> +	audit_log_format(ab,
-> +			 "opid=%d capcontid=%u old-capcontid=%u pid=%d uid=%u auid=%u tty=%s ses=%u",
-> +			 task_tgid_nr(task), enable, oldcapcontid,
-> +			 task_tgid_nr(current), uid,
-> +			 from_kuid(&init_user_ns, audit_get_loginuid(current)),
-> +			 tty ? tty_name(tty) : "(none)",
-> +			 audit_get_sessionid(current));
-> +	audit_put_tty(tty);
-> +	audit_log_task_context(ab);
-> +	audit_log_format(ab, " comm=");
-> +	audit_log_untrustedstring(ab, get_task_comm(comm, current));
-> +	audit_log_d_path_exe(ab, current->mm);
-> +	audit_log_format(ab, " res=%d", !rc);
-> +	audit_log_end(ab);
-> +	return rc;
-> +}
-> +
->  /*
->   * audit_set_contid - set current task's audit contid
->   * @task: target task
-> diff --git a/kernel/audit.h b/kernel/audit.h
-> index cb25341c1a0f..ac4694e88485 100644
-> --- a/kernel/audit.h
-> +++ b/kernel/audit.h
-> @@ -231,6 +231,11 @@ struct audit_contid_status {
->  	u64	id;
->  };
->  
-> +struct audit_capcontid_status {
-> +	pid_t	pid;
-> +	u32	enable;
-> +};
-> +
->  #define AUDIT_CONTID_DEPTH	5
->  
->  /* Indicates that audit should log the full pathname. */
-> -- 
-> 1.8.3.1
+> I see you have a test for things like "-?t", so I wondered where that
+> came from.
+
+Ah! Originally this comes from a Red Hat BZ, not sure what reporter
+actually tested with but as long as the comment started with a dash and
+contained a 't' somewhere it would trigger the bug.
+
+I wrote the test case along with the new implementation, searching for
+things that could be mismatched. The '-?t' for instance is to make sure
+combined short-options are matched correctly: Since '?' is not a valid
+short option (at least not in iptables), this must not match as '-t'
+option.
+
+> > What do you think? Or should I respin after adding a bunch of comments
+> > to is_table_param() to make it more clear?
 > 
+> I think thats the best option, I don't have any objections at the check
+> per se given older iptables does this too.
 
-- RGB
+I don't quite like this check, hence I don't overly cling to it. As you
+see, checking for presence of an option in getopt() format is not easy
+and we do that for every option of every rule in a dump. Maybe we should
+really just append the explicit table param and accept that user's table
+option is not rejected but simply ignored.
 
---
-Richard Guy Briggs <rgb@redhat.com>
-Sr. S/W Engineer, Kernel Security, Base Operating Systems
-Remote, Ottawa, Red Hat Canada
-IRC: rgb, SunRaycer
-Voice: +1.647.777.2635, Internal: (81) 32635
+Cheers, Phil
