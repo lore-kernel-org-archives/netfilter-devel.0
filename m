@@ -1,153 +1,307 @@
-Return-Path: <SRS0=5/AD=YL=vger.kernel.org=netfilter-devel-owner@kernel.org>
+Return-Path: <SRS0=D3nJ=YM=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1E2FCCA9EAB
-	for <netfilter-devel@archiver.kernel.org>; Fri, 18 Oct 2019 22:22:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 06283CA9EA9
+	for <netfilter-devel@archiver.kernel.org>; Sat, 19 Oct 2019 01:40:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E479E20872
-	for <netfilter-devel@archiver.kernel.org>; Fri, 18 Oct 2019 22:22:27 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1571437348;
-	bh=b/VTm9YJ1NJyWJzB9JlmSk2ByMW0IN3eqaHT/MLyop0=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=U+MjAl3KW/eniR6jggyoYS7uPvgC6hafYA9PyGh8litRFl3t6xVYfPUk8DyX1hp3w
-	 1xquX7yqZYmUzcYHlPLlP7YnSfuiA0uRkaHN4DpNslIcY9p2q3Ygi6pR5OOunN3129
-	 quYwiWckbwCXouvGTQroWgwMGDo1I5XcnMFETqnA=
+	by mail.kernel.org (Postfix) with ESMTP id CD49E21897
+	for <netfilter-devel@archiver.kernel.org>; Sat, 19 Oct 2019 01:40:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730382AbfJRWFx (ORCPT
+        id S1726474AbfJSBjc (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 18 Oct 2019 18:05:53 -0400
-Received: from mail.kernel.org ([198.145.29.99]:37850 "EHLO mail.kernel.org"
+        Fri, 18 Oct 2019 21:39:32 -0400
+Received: from mx1.redhat.com ([209.132.183.28]:55076 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730287AbfJRWFw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 18 Oct 2019 18:05:52 -0400
-Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        id S1726195AbfJSBjc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 18 Oct 2019 21:39:32 -0400
+Received: from smtp.corp.redhat.com (int-mx08.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 03F98222C6;
-        Fri, 18 Oct 2019 22:05:50 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1571436351;
-        bh=b/VTm9YJ1NJyWJzB9JlmSk2ByMW0IN3eqaHT/MLyop0=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=bf/2qEGtvoEcwAf4RRZZYCaYdgKRj1UFxLH5qby1z7AhEg1Y53ERk3vLAX5ftD/au
-         vb3s/QLUqRckuocTjrPlE/GHBk13w2d5XRpKpqxezOoz8norSLFEPJnPI7BPxntDuX
-         e36qa/KUP9suiQNfpzfoCoaaiaBK0ROQ3y2SnN00=
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Stefano Brivio <sbrivio@redhat.com>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Sasha Levin <sashal@kernel.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.19 016/100] netfilter: ipset: Make invalid MAC address checks consistent
-Date:   Fri, 18 Oct 2019 18:04:01 -0400
-Message-Id: <20191018220525.9042-16-sashal@kernel.org>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20191018220525.9042-1-sashal@kernel.org>
-References: <20191018220525.9042-1-sashal@kernel.org>
+        by mx1.redhat.com (Postfix) with ESMTPS id 3B7FE18CB8E6;
+        Sat, 19 Oct 2019 01:39:27 +0000 (UTC)
+Received: from madcap2.tricolour.ca (ovpn-112-19.phx2.redhat.com [10.3.112.19])
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id EFB0A19C7F;
+        Sat, 19 Oct 2019 01:39:06 +0000 (UTC)
+Date:   Fri, 18 Oct 2019 21:39:04 -0400
+From:   Richard Guy Briggs <rgb@redhat.com>
+To:     containers@lists.linux-foundation.org, linux-api@vger.kernel.org,
+        Linux-Audit Mailing List <linux-audit@redhat.com>,
+        linux-fsdevel@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+Cc:     Paul Moore <paul@paul-moore.com>, sgrubb@redhat.com,
+        omosnace@redhat.com, dhowells@redhat.com, simo@redhat.com,
+        eparis@parisplace.org, serge@hallyn.com, ebiederm@xmission.com,
+        nhorman@tuxdriver.com, dwalsh@redhat.com, mpatel@redhat.com
+Subject: Re: [PATCH ghak90 V7 20/21] audit: add capcontid to set contid
+ outside init_user_ns
+Message-ID: <20191019013904.uevmrzbmztsbhpnh@madcap2.tricolour.ca>
+References: <cover.1568834524.git.rgb@redhat.com>
+ <214163d11a75126f610bcedfad67a4d89575dc77.1568834525.git.rgb@redhat.com>
 MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <214163d11a75126f610bcedfad67a4d89575dc77.1568834525.git.rgb@redhat.com>
+User-Agent: NeoMutt/20180716
+X-Scanned-By: MIMEDefang 2.84 on 10.5.11.23
+X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.6.2 (mx1.redhat.com [10.5.110.63]); Sat, 19 Oct 2019 01:39:31 +0000 (UTC)
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Stefano Brivio <sbrivio@redhat.com>
+On 2019-09-18 21:22, Richard Guy Briggs wrote:
+> Provide a mechanism similar to CAP_AUDIT_CONTROL to explicitly give a
+> process in a non-init user namespace the capability to set audit
+> container identifiers.
+> 
+> Use audit netlink message types AUDIT_GET_CAPCONTID 1027 and
+> AUDIT_SET_CAPCONTID 1028.  The message format includes the data
+> structure:
+> struct audit_capcontid_status {
+>         pid_t   pid;
+>         u32     enable;
+> };
 
-[ Upstream commit 29edbc3ebdb0faa934114f14bf12fc0b784d4f1b ]
+Paul, can I get a review of the general idea here to see if you're ok
+with this way of effectively extending CAP_AUDIT_CONTROL for the sake of
+setting contid from beyond the init user namespace where capable() can't
+reach and ns_capable() is meaningless for these purposes?
 
-Set types bitmap:ipmac and hash:ipmac check that MAC addresses
-are not all zeroes.
+Last weekend was Canadian Thanksgiving where I took an extra day for an
+annual bike trip and I'm buried to my neck in a complete kitchen gut
+(down to 1920 structural double brick and knob/tube wiring), but I've
+got fixes or responses to almost everything else you've raised which
+I'll post shortly.
 
-Introduce one missing check, and make the remaining ones
-consistent, using is_zero_ether_addr() instead of comparing
-against an array containing zeroes.
+Thanks!
 
-This was already done for hash:mac sets in commit 26c97c5d8dac
-("netfilter: ipset: Use is_zero_ether_addr instead of static and
-memcmp").
+> Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
+> ---
+>  include/linux/audit.h      | 14 +++++++
+>  include/uapi/linux/audit.h |  2 +
+>  kernel/audit.c             | 98 +++++++++++++++++++++++++++++++++++++++++++++-
+>  kernel/audit.h             |  5 +++
+>  4 files changed, 117 insertions(+), 2 deletions(-)
+> 
+> diff --git a/include/linux/audit.h b/include/linux/audit.h
+> index 1ce27af686ea..dcc53e62e266 100644
+> --- a/include/linux/audit.h
+> +++ b/include/linux/audit.h
+> @@ -117,6 +117,7 @@ struct audit_task_info {
+>  	kuid_t			loginuid;
+>  	unsigned int		sessionid;
+>  	struct audit_cont	*cont;
+> +	u32			capcontid;
+>  #ifdef CONFIG_AUDITSYSCALL
+>  	struct audit_context	*ctx;
+>  #endif
+> @@ -224,6 +225,14 @@ static inline unsigned int audit_get_sessionid(struct task_struct *tsk)
+>  	return tsk->audit->sessionid;
+>  }
+>  
+> +static inline u32 audit_get_capcontid(struct task_struct *tsk)
+> +{
+> +	if (!tsk->audit)
+> +		return 0;
+> +	return tsk->audit->capcontid;
+> +}
+> +
+> +extern int audit_set_capcontid(struct task_struct *tsk, u32 enable);
+>  extern int audit_set_contid(struct task_struct *tsk, u64 contid);
+>  
+>  static inline u64 audit_get_contid(struct task_struct *tsk)
+> @@ -309,6 +318,11 @@ static inline unsigned int audit_get_sessionid(struct task_struct *tsk)
+>  	return AUDIT_SID_UNSET;
+>  }
+>  
+> +static inline u32 audit_get_capcontid(struct task_struct *tsk)
+> +{
+> +	return 0;
+> +}
+> +
+>  static inline u64 audit_get_contid(struct task_struct *tsk)
+>  {
+>  	return AUDIT_CID_UNSET;
+> diff --git a/include/uapi/linux/audit.h b/include/uapi/linux/audit.h
+> index eef42c8eea77..011b0a8ee9b2 100644
+> --- a/include/uapi/linux/audit.h
+> +++ b/include/uapi/linux/audit.h
+> @@ -78,6 +78,8 @@
+>  #define AUDIT_GET_LOGINUID	1024	/* Get loginuid of a task */
+>  #define AUDIT_SET_LOGINUID	1025	/* Set loginuid of a task */
+>  #define AUDIT_GET_SESSIONID	1026	/* Set sessionid of a task */
+> +#define AUDIT_GET_CAPCONTID	1027	/* Get cap_contid of a task */
+> +#define AUDIT_SET_CAPCONTID	1028	/* Set cap_contid of a task */
+>  
+>  #define AUDIT_FIRST_USER_MSG	1100	/* Userspace messages mostly uninteresting to kernel */
+>  #define AUDIT_USER_AVC		1107	/* We filter this differently */
+> diff --git a/kernel/audit.c b/kernel/audit.c
+> index a70c9184e5d9..7160da464849 100644
+> --- a/kernel/audit.c
+> +++ b/kernel/audit.c
+> @@ -1192,6 +1192,14 @@ static int audit_netlink_ok(struct sk_buff *skb, u16 msg_type)
+>  	case AUDIT_GET_SESSIONID:
+>  		return 0;
+>  		break;
+> +	case AUDIT_GET_CAPCONTID:
+> +	case AUDIT_SET_CAPCONTID:
+> +	case AUDIT_GET_CONTID:
+> +	case AUDIT_SET_CONTID:
+> +		if (!netlink_capable(skb, CAP_AUDIT_CONTROL) && !audit_get_capcontid(current))
+> +			return -EPERM;
+> +		return 0;
+> +		break;
+>  	default:  /* do more checks below */
+>  		break;
+>  	}
+> @@ -1227,8 +1235,6 @@ static int audit_netlink_ok(struct sk_buff *skb, u16 msg_type)
+>  	case AUDIT_TTY_SET:
+>  	case AUDIT_TRIM:
+>  	case AUDIT_MAKE_EQUIV:
+> -	case AUDIT_GET_CONTID:
+> -	case AUDIT_SET_CONTID:
+>  	case AUDIT_SET_LOGINUID:
+>  		/* Only support auditd and auditctl in initial pid namespace
+>  		 * for now. */
+> @@ -1304,6 +1310,23 @@ static int audit_get_contid_status(struct sk_buff *skb)
+>  	return 0;
+>  }
+>  
+> +static int audit_get_capcontid_status(struct sk_buff *skb)
+> +{
+> +	struct nlmsghdr *nlh = nlmsg_hdr(skb);
+> +	u32 seq = nlh->nlmsg_seq;
+> +	void *data = nlmsg_data(nlh);
+> +	struct audit_capcontid_status cs;
+> +
+> +	cs.pid = ((struct audit_capcontid_status *)data)->pid;
+> +	if (!cs.pid)
+> +		cs.pid = task_tgid_nr(current);
+> +	rcu_read_lock();
+> +	cs.enable = audit_get_capcontid(find_task_by_vpid(cs.pid));
+> +	rcu_read_unlock();
+> +	audit_send_reply(skb, seq, AUDIT_GET_CAPCONTID, 0, 0, &cs, sizeof(cs));
+> +	return 0;
+> +}
+> +
+>  struct audit_loginuid_status { uid_t loginuid; };
+>  
+>  static int audit_get_loginuid_status(struct sk_buff *skb)
+> @@ -1779,6 +1802,27 @@ static int audit_receive_msg(struct sk_buff *skb, struct nlmsghdr *nlh)
+>  		if (err)
+>  			return err;
+>  		break;
+> +	case AUDIT_SET_CAPCONTID: {
+> +		struct audit_capcontid_status *s = data;
+> +		struct task_struct *tsk;
+> +
+> +		/* check if new data is valid */
+> +		if (nlmsg_len(nlh) < sizeof(*s))
+> +			return -EINVAL;
+> +		tsk = find_get_task_by_vpid(s->pid);
+> +		if (!tsk)
+> +			return -EINVAL;
+> +
+> +		err = audit_set_capcontid(tsk, s->enable);
+> +		put_task_struct(tsk);
+> +		return err;
+> +		break;
+> +	}
+> +	case AUDIT_GET_CAPCONTID:
+> +		err = audit_get_capcontid_status(skb);
+> +		if (err)
+> +			return err;
+> +		break;
+>  	case AUDIT_SET_LOGINUID: {
+>  		uid_t *loginuid = data;
+>  		kuid_t kloginuid;
+> @@ -2711,6 +2755,56 @@ static struct task_struct *audit_cont_owner(struct task_struct *tsk)
+>  	return NULL;
+>  }
+>  
+> +int audit_set_capcontid(struct task_struct *task, u32 enable)
+> +{
+> +	u32 oldcapcontid;
+> +	int rc = 0;
+> +	struct audit_buffer *ab;
+> +	uid_t uid;
+> +	struct tty_struct *tty;
+> +	char comm[sizeof(current->comm)];
+> +
+> +	if (!task->audit)
+> +		return -ENOPROTOOPT;
+> +	oldcapcontid = audit_get_capcontid(task);
+> +	/* if task is not descendant, block */
+> +	if (task == current)
+> +		rc = -EBADSLT;
+> +	else if (!task_is_descendant(current, task))
+> +		rc = -EXDEV;
+> +	else if (current_user_ns() == &init_user_ns) {
+> +		if (!capable(CAP_AUDIT_CONTROL) && !audit_get_capcontid(current))
+> +			rc = -EPERM;
+> +	}
+> +	if (!rc)
+> +		task->audit->capcontid = enable;
+> +
+> +	if (!audit_enabled)
+> +		return rc;
+> +
+> +	ab = audit_log_start(audit_context(), GFP_KERNEL, AUDIT_SET_CAPCONTID);
+> +	if (!ab)
+> +		return rc;
+> +
+> +	uid = from_kuid(&init_user_ns, task_uid(current));
+> +	tty = audit_get_tty();
+> +	audit_log_format(ab,
+> +			 "opid=%d capcontid=%u old-capcontid=%u pid=%d uid=%u auid=%u tty=%s ses=%u",
+> +			 task_tgid_nr(task), enable, oldcapcontid,
+> +			 task_tgid_nr(current), uid,
+> +			 from_kuid(&init_user_ns, audit_get_loginuid(current)),
+> +			 tty ? tty_name(tty) : "(none)",
+> +			 audit_get_sessionid(current));
+> +	audit_put_tty(tty);
+> +	audit_log_task_context(ab);
+> +	audit_log_format(ab, " comm=");
+> +	audit_log_untrustedstring(ab, get_task_comm(comm, current));
+> +	audit_log_d_path_exe(ab, current->mm);
+> +	audit_log_format(ab, " res=%d", !rc);
+> +	audit_log_end(ab);
+> +	return rc;
+> +}
+> +
+>  /*
+>   * audit_set_contid - set current task's audit contid
+>   * @task: target task
+> diff --git a/kernel/audit.h b/kernel/audit.h
+> index cb25341c1a0f..ac4694e88485 100644
+> --- a/kernel/audit.h
+> +++ b/kernel/audit.h
+> @@ -231,6 +231,11 @@ struct audit_contid_status {
+>  	u64	id;
+>  };
+>  
+> +struct audit_capcontid_status {
+> +	pid_t	pid;
+> +	u32	enable;
+> +};
+> +
+>  #define AUDIT_CONTID_DEPTH	5
+>  
+>  /* Indicates that audit should log the full pathname. */
+> -- 
+> 1.8.3.1
+> 
 
-Signed-off-by: Stefano Brivio <sbrivio@redhat.com>
-Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- net/netfilter/ipset/ip_set_bitmap_ipmac.c |  3 +++
- net/netfilter/ipset/ip_set_hash_ipmac.c   | 11 ++++-------
- 2 files changed, 7 insertions(+), 7 deletions(-)
+- RGB
 
-diff --git a/net/netfilter/ipset/ip_set_bitmap_ipmac.c b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
-index 4f01321e793ce..794e0335a8648 100644
---- a/net/netfilter/ipset/ip_set_bitmap_ipmac.c
-+++ b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
-@@ -235,6 +235,9 @@ bitmap_ipmac_kadt(struct ip_set *set, const struct sk_buff *skb,
- 	else
- 		ether_addr_copy(e.ether, eth_hdr(skb)->h_dest);
- 
-+	if (is_zero_ether_addr(e.ether))
-+		return -EINVAL;
-+
- 	return adtfn(set, &e, &ext, &opt->ext, opt->cmdflags);
- }
- 
-diff --git a/net/netfilter/ipset/ip_set_hash_ipmac.c b/net/netfilter/ipset/ip_set_hash_ipmac.c
-index 16ec822e40447..25560ea742d66 100644
---- a/net/netfilter/ipset/ip_set_hash_ipmac.c
-+++ b/net/netfilter/ipset/ip_set_hash_ipmac.c
-@@ -36,9 +36,6 @@ MODULE_ALIAS("ip_set_hash:ip,mac");
- /* Type specific function prefix */
- #define HTYPE		hash_ipmac
- 
--/* Zero valued element is not supported */
--static const unsigned char invalid_ether[ETH_ALEN] = { 0 };
--
- /* IPv4 variant */
- 
- /* Member elements */
-@@ -104,7 +101,7 @@ hash_ipmac4_kadt(struct ip_set *set, const struct sk_buff *skb,
- 	else
- 		ether_addr_copy(e.ether, eth_hdr(skb)->h_dest);
- 
--	if (ether_addr_equal(e.ether, invalid_ether))
-+	if (is_zero_ether_addr(e.ether))
- 		return -EINVAL;
- 
- 	ip4addrptr(skb, opt->flags & IPSET_DIM_ONE_SRC, &e.ip);
-@@ -140,7 +137,7 @@ hash_ipmac4_uadt(struct ip_set *set, struct nlattr *tb[],
- 	if (ret)
- 		return ret;
- 	memcpy(e.ether, nla_data(tb[IPSET_ATTR_ETHER]), ETH_ALEN);
--	if (ether_addr_equal(e.ether, invalid_ether))
-+	if (is_zero_ether_addr(e.ether))
- 		return -IPSET_ERR_HASH_ELEM;
- 
- 	return adtfn(set, &e, &ext, &ext, flags);
-@@ -220,7 +217,7 @@ hash_ipmac6_kadt(struct ip_set *set, const struct sk_buff *skb,
- 	else
- 		ether_addr_copy(e.ether, eth_hdr(skb)->h_dest);
- 
--	if (ether_addr_equal(e.ether, invalid_ether))
-+	if (is_zero_ether_addr(e.ether))
- 		return -EINVAL;
- 
- 	ip6addrptr(skb, opt->flags & IPSET_DIM_ONE_SRC, &e.ip.in6);
-@@ -260,7 +257,7 @@ hash_ipmac6_uadt(struct ip_set *set, struct nlattr *tb[],
- 		return ret;
- 
- 	memcpy(e.ether, nla_data(tb[IPSET_ATTR_ETHER]), ETH_ALEN);
--	if (ether_addr_equal(e.ether, invalid_ether))
-+	if (is_zero_ether_addr(e.ether))
- 		return -IPSET_ERR_HASH_ELEM;
- 
- 	return adtfn(set, &e, &ext, &ext, flags);
--- 
-2.20.1
-
+--
+Richard Guy Briggs <rgb@redhat.com>
+Sr. S/W Engineer, Kernel Security, Base Operating Systems
+Remote, Ottawa, Red Hat Canada
+IRC: rgb, SunRaycer
+Voice: +1.647.777.2635, Internal: (81) 32635
