@@ -7,20 +7,20 @@ X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A0FACCA9EB7
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DE556CA9EB0
 	for <netfilter-devel@archiver.kernel.org>; Mon, 21 Oct 2019 21:49:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6E86A20659
+	by mail.kernel.org (Postfix) with ESMTP id B5BAC20659
 	for <netfilter-devel@archiver.kernel.org>; Mon, 21 Oct 2019 21:49:25 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="iuzzaF/2"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="qwa5WqIo"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730254AbfJUVtZ (ORCPT
+        id S1730203AbfJUVtZ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Mon, 21 Oct 2019 17:49:25 -0400
-Received: from kadath.azazel.net ([81.187.231.250]:38482 "EHLO
+Received: from kadath.azazel.net ([81.187.231.250]:38478 "EHLO
         kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728943AbfJUVtY (ORCPT
+        with ESMTP id S1729869AbfJUVtY (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Mon, 21 Oct 2019 17:49:24 -0400
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
@@ -29,22 +29,22 @@ DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
         Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
         :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=qzThRLLU/oiqgpov/KHVowRWUWIR4HpHO7VAFAFwrdg=; b=iuzzaF/2hHQtjEjID6+FtnWoD0
-        Uj2BLNM8WlGlNmQ8ro0LCo9TnuVvO7I0RFIqCADNTd0f6TcjKDzyuEcY6bujWE7MYt35qaJ7/x4O+
-        rrD4xyAOd0UtsIMQOz8sle2w48nR83JhVn9xkbA3w4veIzjZ/NR7a8nPuYdbkC6plkfwLUmXDJ4Lb
-        4OJiAnurbyqd96AW7peeZQRvBX4uMgswhkUGizS2AeJkPAG6RRYX1dLc2NwMaEVJiW/MV4/f9SjbB
-        ZaIvCYIzp7GVfWOXJE7MUb+4In0kW/MF4fSDp8YO3oMM8Wb63cEObPZaxet4ldTpVip9OvtVNXcKk
-        O3uuEPEg==;
+        bh=SG7nkDhGRv5muRs9l+Mkv2ORqsXxx5DnxQEH8zWBnqg=; b=qwa5WqIo/+TBdQh39CG+CFI6aJ
+        A112dZO6HbIIOWejgLvXqDGXh3I3vemv8hR29QU9Ty5VtIEOF5gKUllhuBFTMNRFuaTwXD/B5pBNq
+        WN3bq7qCqXbUoxQ/HOUBnS9FfRQBokXS/7WbuymSpIeR1iEc4KoEXeZzeXl1aMLLK7ZWo4DGKfs0M
+        c3ddmQ2Zrnxh79Ggm+E1qmSqCEqkBgG4WR4JZiN+LpI2vIvcB//FV+fpyeBhpc15AZeEIjKcLOCx1
+        bigie+Ziy3y9KcLgUlhkrTI951BSt78TzIOzjcUdTjXsmyNXcL3aX8dCTfVObqneRvssxJqYkkN6/
+        2qKJvNuA==;
 Received: from ulthar.dreamlands ([192.168.96.2])
         by kadath.azazel.net with esmtp (Exim 4.92)
         (envelope-from <jeremy@azazel.net>)
-        id 1iMfYJ-00047s-2X; Mon, 21 Oct 2019 22:49:23 +0100
+        id 1iMfYI-00047s-SF; Mon, 21 Oct 2019 22:49:22 +0100
 From:   Jeremy Sowden <jeremy@azazel.net>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [PATCH nft v3 2/2] src: add --terse to suppress output of set elements.
-Date:   Mon, 21 Oct 2019 22:49:22 +0100
-Message-Id: <20191021214922.8943-3-jeremy@azazel.net>
+Subject: [PATCH nft v3 1/2] src: use `-T` as the short option for `--numeric-time`.
+Date:   Mon, 21 Oct 2019 22:49:21 +0100
+Message-Id: <20191021214922.8943-2-jeremy@azazel.net>
 X-Mailer: git-send-email 2.23.0
 In-Reply-To: <20191021214922.8943-1-jeremy@azazel.net>
 References: <20191021214922.8943-1-jeremy@azazel.net>
@@ -58,165 +58,55 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Listing an entire ruleset or a table with `nft list` prints the elements
-of all set definitions within the ruleset or table.  Seeing the full set
-contents is not often necessary especially when requesting to see
-someone's ruleset for help and support purposes.  Add a new option '-t,
---terse' options to suppress the output of set contents.
+A new `--terse` option will be introduced in a later patch.  Change the
+short option used for `--numeric-time` from `-t` to `-T` in order to
+leave `-t` free.
 
-Link: https://bugzilla.netfilter.org/show_bug.cgi?id=1374
 Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 ---
- doc/libnftables.adoc           | 21 ++++++++++++---------
- doc/nft.txt                    |  4 ++++
- include/nftables.h             |  5 +++++
- include/nftables/libnftables.h |  1 +
- src/main.c                     | 11 ++++++++++-
- src/rule.c                     |  3 ++-
- 6 files changed, 34 insertions(+), 11 deletions(-)
+ doc/nft.txt | 2 +-
+ src/main.c  | 6 +++---
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/doc/libnftables.adoc b/doc/libnftables.adoc
-index ea9626afa101..8ce1196fd47e 100644
---- a/doc/libnftables.adoc
-+++ b/doc/libnftables.adoc
-@@ -80,16 +80,17 @@ The flags setting controls the output format.
- 
- ----
- enum {
--        NFT_CTX_OUTPUT_REVERSEDNS  = (1 << 0),
--        NFT_CTX_OUTPUT_SERVICE     = (1 << 1),
--        NFT_CTX_OUTPUT_STATELESS   = (1 << 2),
--        NFT_CTX_OUTPUT_HANDLE      = (1 << 3),
--        NFT_CTX_OUTPUT_JSON        = (1 << 4),
--        NFT_CTX_OUTPUT_ECHO        = (1 << 5),
--        NFT_CTX_OUTPUT_GUID        = (1 << 6),
--        NFT_CTX_OUTPUT_NUMERIC_PROTO = (1 << 7),
--        NFT_CTX_OUTPUT_NUMERIC_PRIO = (1 << 8),
-+        NFT_CTX_OUTPUT_REVERSEDNS     = (1 << 0),
-+        NFT_CTX_OUTPUT_SERVICE        = (1 << 1),
-+        NFT_CTX_OUTPUT_STATELESS      = (1 << 2),
-+        NFT_CTX_OUTPUT_HANDLE         = (1 << 3),
-+        NFT_CTX_OUTPUT_JSON           = (1 << 4),
-+        NFT_CTX_OUTPUT_ECHO           = (1 << 5),
-+        NFT_CTX_OUTPUT_GUID           = (1 << 6),
-+        NFT_CTX_OUTPUT_NUMERIC_PROTO  = (1 << 7),
-+        NFT_CTX_OUTPUT_NUMERIC_PRIO   = (1 << 8),
-         NFT_CTX_OUTPUT_NUMERIC_SYMBOL = (1 << 9),
-+        NFT_CTX_OUTPUT_TERSE          = (1 << 11),
- };
- ----
- 
-@@ -123,6 +124,8 @@ NFT_CTX_OUTPUT_NUMERIC_SYMBOL::
- 	Display expression datatype as numeric value.
- NFT_CTX_OUTPUT_NUMERIC_ALL::
- 	Display all numerically.
-+NFT_CTX_OUTPUT_TERSE::
-+	If terse output has been requested, then the contents of sets are not printed.
- 
- The *nft_ctx_output_get_flags*() function returns the output flags setting's value in 'ctx'.
- 
 diff --git a/doc/nft.txt b/doc/nft.txt
-index 616640a84c94..2c79009948a5 100644
+index 9bc5986b6416..616640a84c94 100644
 --- a/doc/nft.txt
 +++ b/doc/nft.txt
-@@ -97,6 +97,10 @@ For a full summary of options, run *nft --help*.
+@@ -93,7 +93,7 @@ For a full summary of options, run *nft --help*.
+ 	Read input from an interactive readline CLI. You can use quit to exit, or use the EOF marker,
+ 	normally this is CTRL-D.
+ 
+-*-t*::
++*-T*::
  *--numeric-time*::
  	Show time, day and hour values in numeric format.
  
-+*-t*::
-+*--terse*::
-+	Omit contents of sets from output.
-+
- INPUT FILE FORMATS
- ------------------
- LEXICAL CONVENTIONS
-diff --git a/include/nftables.h b/include/nftables.h
-index 1ecf5ef5269c..21553c6bb3a5 100644
---- a/include/nftables.h
-+++ b/include/nftables.h
-@@ -90,6 +90,11 @@ static inline bool nft_output_numeric_symbol(const struct output_ctx *octx)
- 	return octx->flags & NFT_CTX_OUTPUT_NUMERIC_SYMBOL;
- }
- 
-+static inline bool nft_output_terse(const struct output_ctx *octx)
-+{
-+	return octx->flags & NFT_CTX_OUTPUT_TERSE;
-+}
-+
- struct nft_cache {
- 	uint32_t		genid;
- 	struct list_head	list;
-diff --git a/include/nftables/libnftables.h b/include/nftables/libnftables.h
-index 7a7a46f3358a..765b20dd71ee 100644
---- a/include/nftables/libnftables.h
-+++ b/include/nftables/libnftables.h
-@@ -56,6 +56,7 @@ enum {
- 	NFT_CTX_OUTPUT_NUMERIC_ALL	= (NFT_CTX_OUTPUT_NUMERIC_PROTO |
- 					   NFT_CTX_OUTPUT_NUMERIC_PRIO |
- 					   NFT_CTX_OUTPUT_NUMERIC_SYMBOL),
-+	NFT_CTX_OUTPUT_TERSE		= (1 << 11),
- };
- 
- unsigned int nft_ctx_output_get_flags(struct nft_ctx *ctx);
 diff --git a/src/main.c b/src/main.c
-index 238c5e0bf9ef..ebd6d7c322d7 100644
+index 577850e54f68..238c5e0bf9ef 100644
 --- a/src/main.c
 +++ b/src/main.c
-@@ -43,9 +43,10 @@ enum opt_vals {
+@@ -42,10 +42,10 @@ enum opt_vals {
+ 	OPT_GUID		= 'u',
  	OPT_NUMERIC_PRIO	= 'y',
  	OPT_NUMERIC_PROTO	= 'p',
- 	OPT_NUMERIC_TIME	= 'T',
-+	OPT_TERSE		= 't',
+-	OPT_NUMERIC_TIME	= 't',
++	OPT_NUMERIC_TIME	= 'T',
  	OPT_INVALID		= '?',
  };
--#define OPTSTRING	"+hvcf:iI:jvnsNaeSupypT"
-+#define OPTSTRING	"+hvcf:iI:jvnsNaeSupypTt"
+-#define OPTSTRING	"+hvcf:iI:jvnsNaeSupypt"
++#define OPTSTRING	"+hvcf:iI:jvnsNaeSupypT"
  
  static const struct option options[] = {
  	{
-@@ -119,6 +120,10 @@ static const struct option options[] = {
- 		.name		= "numeric-time",
- 		.val		= OPT_NUMERIC_TIME,
- 	},
-+	{
-+		.name		= "terse",
-+		.val		= OPT_TERSE,
-+	},
- 	{
- 		.name		= NULL
- 	}
-@@ -140,6 +145,7 @@ static void show_help(const char *name)
- "  -j, --json			Format output in JSON\n"
- "  -n, --numeric			Print fully numerical output.\n"
- "  -s, --stateless		Omit stateful information of ruleset.\n"
-+"  -t, --terse			Omit contents of sets.\n"
- "  -u, --guid			Print UID/GID as defined in /etc/passwd and /etc/group.\n"
- "  -N				Translate IP addresses to names.\n"
+@@ -145,7 +145,7 @@ static void show_help(const char *name)
  "  -S, --service			Translate ports to service names as described in /etc/services.\n"
-@@ -301,6 +307,9 @@ int main(int argc, char * const *argv)
- 		case OPT_NUMERIC_TIME:
- 			output_flags |= NFT_CTX_OUTPUT_NUMERIC_TIME;
- 			break;
-+		case OPT_TERSE:
-+			output_flags |= NFT_CTX_OUTPUT_TERSE;
-+			break;
- 		case OPT_INVALID:
- 			exit(EXIT_FAILURE);
- 		}
-diff --git a/src/rule.c b/src/rule.c
-index 55894cbdb766..64756bcee6b8 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -538,7 +538,8 @@ static void do_set_print(const struct set *set, struct print_fmt_options *opts,
- {
- 	set_print_declaration(set, opts, octx);
- 
--	if (set->flags & NFT_SET_EVAL && nft_output_stateless(octx)) {
-+	if ((set->flags & NFT_SET_EVAL && nft_output_stateless(octx)) ||
-+	    nft_output_terse(octx)) {
- 		nft_print(octx, "%s}%s", opts->tab, opts->nl);
- 		return;
- 	}
+ "  -p, --numeric-protocol	Print layer 4 protocols numerically.\n"
+ "  -y, --numeric-priority	Print chain priority numerically.\n"
+-"  -t, --numeric-time		Print time values numerically.\n"
++"  -T, --numeric-time		Print time values numerically.\n"
+ "  -a, --handle			Output rule handle.\n"
+ "  -e, --echo			Echo what has been added, inserted or replaced.\n"
+ "  -I, --includepath <directory>	Add <directory> to the paths searched for include files. Default is: %s\n"
 -- 
 2.23.0
 
