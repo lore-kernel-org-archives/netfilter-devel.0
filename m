@@ -2,110 +2,161 @@ Return-Path: <SRS0=/SeC=YO=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.0 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 54AB2CA9EB5
-	for <netfilter-devel@archiver.kernel.org>; Mon, 21 Oct 2019 07:50:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C1C1ECA9EAF
+	for <netfilter-devel@archiver.kernel.org>; Mon, 21 Oct 2019 13:23:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1DDA020830
-	for <netfilter-devel@archiver.kernel.org>; Mon, 21 Oct 2019 07:50:10 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="UvpBEkEs"
+	by mail.kernel.org (Postfix) with ESMTP id 9EC0820873
+	for <netfilter-devel@archiver.kernel.org>; Mon, 21 Oct 2019 13:23:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727122AbfJUHuJ (ORCPT
+        id S1728810AbfJUNXf (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 21 Oct 2019 03:50:09 -0400
-Received: from kadath.azazel.net ([81.187.231.250]:45480 "EHLO
-        kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726480AbfJUHuJ (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 21 Oct 2019 03:50:09 -0400
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-         s=20190108; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-        Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=2g0KJu3lfiAqq33SS9VQXKsglPJX/eD5LJAxN2HSiWo=; b=UvpBEkEsdFPjij+g7iBGlWtmGu
-        cLVSnFxM0AZzcBQhdilxj9y/PeqGY7kTwItinFDR4qCiYBaEI7CTFXjikqxcDNRBIsds1TdwfViOX
-        6TKGPAgWUNIlQee7+DQ3ObLkbtrPVyCRiWxQjTvY86MeudlRIRoL09a0MvhS5wLgG8fBzYOMm3flf
-        set4n8LiKSi+pQHO2hof0v8cGdsOe3YSPhbaaHXtadxHqJrFJNx0OhZFS8gL/AXH+iOzmmUDZaDV+
-        eYskS2I1Ww8ZiCqlPqJiz1QLjYpgMqcPFDK+YCSI602D5N6mZoR9PnPVDAXTKID+eGlYwdyBRbw66
-        4vU2PnQQ==;
-Received: from pnakotus.dreamlands ([192.168.96.5] helo=azazel.net)
-        by kadath.azazel.net with esmtpsa (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
-        (Exim 4.92)
-        (envelope-from <jeremy@azazel.net>)
-        id 1iMSS4-0003Hs-1z; Mon, 21 Oct 2019 08:50:05 +0100
-Date:   Mon, 21 Oct 2019 08:50:04 +0100
-From:   Jeremy Sowden <jeremy@azazel.net>
+        Mon, 21 Oct 2019 09:23:35 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:51348 "EHLO orbyte.nwl.cc"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727256AbfJUNXf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 21 Oct 2019 09:23:35 -0400
+Received: from localhost ([::1]:36204 helo=tatos)
+        by orbyte.nwl.cc with esmtp (Exim 4.91)
+        (envelope-from <phil@nwl.cc>)
+        id 1iMXen-00057X-B5; Mon, 21 Oct 2019 15:23:33 +0200
+From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH nft] src: extend --stateless to suppress output of
- non-dynamic set elements.
-Message-ID: <20191021075002.GA28709@azazel.net>
-References: <20191020194403.19298-1-jeremy@azazel.net>
+Cc:     netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
+Subject: [iptables PATCH v2] xtables-restore: Fix --table parameter check
+Date:   Mon, 21 Oct 2019 15:23:24 +0200
+Message-Id: <20191021132324.11039-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.23.0
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="J/dobhs11T7y2rNN"
-Content-Disposition: inline
-In-Reply-To: <20191020194403.19298-1-jeremy@azazel.net>
-User-Agent: Mutt/1.10.1 (2018-07-13)
-X-SA-Exim-Connect-IP: 192.168.96.5
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Xtables-restore tries to reject rule commands in input which contain a
+--table parameter (since it is adding this itself based on the previous
+table line). The manual check was not perfect though as it caught any
+parameter starting with a dash and containing a 't' somewhere, even in
+rule comments:
 
---J/dobhs11T7y2rNN
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+| *filter
+| -A FORWARD -m comment --comment "- allow this one" -j ACCEPT
+| COMMIT
 
-On 2019-10-20, at 20:44:03 +0100, Jeremy Sowden wrote:
-> Currently, --stateless only suppresses the output of the contents of
-> dynamic sets.  Extend it to support an optional parameter which may be
-> `dynamic` (the current behaviour) or `all`.  If it is `all`, `nft
-> list` will also omit the elements of sets which are not marked
-> `dynamic`.
->
-> Link: https://bugzilla.netfilter.org/show_bug.cgi?id=1374
-> Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
-> ---
->  doc/libnftables.adoc           |  7 +++++--
->  include/nftables.h             |  5 +++++
->  include/nftables/libnftables.h |  1 +
->  src/main.c                     | 15 +++++++++++++--
->  src/rule.c                     |  3 ++-
->  5 files changed, 26 insertions(+), 5 deletions(-)
+Instead of error-prone manual checking, go a much simpler route: All
+do_command callbacks are passed a boolean indicating they're called from
+*tables-restore. React upon this when handling a table parameter and
+error out if it's not the first one.
 
-Haven't updated the man-page.  Will send out v2 shortly.
+Fixes: f8e5ebc5986bf ("iptables: Fix crash on malformed iptables-restore")
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+Changes since v1:
 
-J.
+Completely rewritten: While simplifying v1 code, I noticed that even
+valid --table options may appear in comments without problem, so
+searched for a different approach than manual option parsing. This
+solution is much easier and fully backwards compatible.
+---
+ iptables/iptables.c                                 |  4 ++++
+ .../testcases/ipt-restore/0009-table-name-comment_0 | 13 +++++++++++++
+ iptables/xshared.c                                  | 12 ------------
+ iptables/xtables-eb.c                               |  4 ++++
+ iptables/xtables.c                                  |  4 ++++
+ 5 files changed, 25 insertions(+), 12 deletions(-)
+ create mode 100755 iptables/tests/shell/testcases/ipt-restore/0009-table-name-comment_0
 
---J/dobhs11T7y2rNN
-Content-Type: application/pgp-signature; name="signature.asc"
+diff --git a/iptables/iptables.c b/iptables/iptables.c
+index 0fbe3ec96bb27..d7a41321760e0 100644
+--- a/iptables/iptables.c
++++ b/iptables/iptables.c
+@@ -1494,6 +1494,10 @@ int do_command4(int argc, char *argv[], char **table,
+ 			if (cs.invert)
+ 				xtables_error(PARAMETER_PROBLEM,
+ 					   "unexpected ! flag before --table");
++			if (restore && *table)
++				xtables_error(PARAMETER_PROBLEM,
++					      "The -t option (seen in line %u) cannot be used in %s.\n",
++					      line, xt_params->program_name);
+ 			*table = optarg;
+ 			break;
+ 
+diff --git a/iptables/tests/shell/testcases/ipt-restore/0009-table-name-comment_0 b/iptables/tests/shell/testcases/ipt-restore/0009-table-name-comment_0
+new file mode 100755
+index 0000000000000..4e2202df986cf
+--- /dev/null
++++ b/iptables/tests/shell/testcases/ipt-restore/0009-table-name-comment_0
+@@ -0,0 +1,13 @@
++#!/bin/bash
++
++# when restoring a ruleset, *tables-restore prefixes each rule with
++# '-t <tablename>' so standard rule parsing routines may be used. This means
++# that it has to detect and reject rules which already contain a table option.
++
++$XT_MULTI iptables-restore <<EOF
++*filter
++-t nat -A FORWARD -j ACCEPT
++COMMIT
++EOF
++
++[[ $? != 0 ]] || exit 1
+diff --git a/iptables/xshared.c b/iptables/xshared.c
+index ba723f59dbaad..5211b6472ed81 100644
+--- a/iptables/xshared.c
++++ b/iptables/xshared.c
+@@ -533,18 +533,6 @@ void add_param_to_argv(char *parsestart, int line)
+ 		}
+ 
+ 		param.buffer[param.len] = '\0';
+-
+-		/* check if table name specified */
+-		if ((param.buffer[0] == '-' &&
+-		     param.buffer[1] != '-' &&
+-		     strchr(param.buffer, 't')) ||
+-		    (!strncmp(param.buffer, "--t", 3) &&
+-		     !strncmp(param.buffer, "--table", strlen(param.buffer)))) {
+-			xtables_error(PARAMETER_PROBLEM,
+-				      "The -t option (seen in line %u) cannot be used in %s.\n",
+-				      line, xt_params->program_name);
+-		}
+-
+ 		add_argv(param.buffer, 0);
+ 		param.len = 0;
+ 	}
+diff --git a/iptables/xtables-eb.c b/iptables/xtables-eb.c
+index 3b03daef28eb3..aa754d79608da 100644
+--- a/iptables/xtables-eb.c
++++ b/iptables/xtables-eb.c
+@@ -947,6 +947,10 @@ print_zero:
+ 			break;
+ 		case 't': /* Table */
+ 			ebt_check_option2(&flags, OPT_TABLE);
++			if (restore && *table)
++				xtables_error(PARAMETER_PROBLEM,
++					      "The -t option (seen in line %u) cannot be used in %s.\n",
++					      line, xt_params->program_name);
+ 			if (strlen(optarg) > EBT_TABLE_MAXNAMELEN - 1)
+ 				xtables_error(PARAMETER_PROBLEM,
+ 					      "Table name length cannot exceed %d characters",
+diff --git a/iptables/xtables.c b/iptables/xtables.c
+index 0e0cb5f53d421..89f3271e36dd0 100644
+--- a/iptables/xtables.c
++++ b/iptables/xtables.c
+@@ -879,6 +879,10 @@ void do_parse(struct nft_handle *h, int argc, char *argv[],
+ 			if (cs->invert)
+ 				xtables_error(PARAMETER_PROBLEM,
+ 					   "unexpected ! flag before --table");
++			if (p->restore && p->table)
++				xtables_error(PARAMETER_PROBLEM,
++					      "The -t option (seen in line %u) cannot be used in %s.\n",
++					      line, xt_params->program_name);
+ 			if (!nft_table_builtin_find(h, optarg))
+ 				xtables_error(VERSION_PROBLEM,
+ 					      "table '%s' does not exist",
+-- 
+2.23.0
 
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEEZ8d+2N/NBLDbUxIF0Z7UzfnX9sMFAl2tYx0ACgkQ0Z7UzfnX
-9sP+Yw/+ODtPy04RI0D4BP5M95hiaqv61iTHRfEDTYBA0af9ewcPVTUdze6r0QkY
-idhQHXZOgr9cZSxZw/jRLmIsywOkn1tfjGOAkXVeCktS+gjfIvksm0DLZBdNG3Y4
-kVv/aTzBk7+cnug2mlxzNKL4AGDCS6Ex36a1zary6Etbzzhq+cU9L0SGVg9uJjG6
-m9vv1dVtq4eQUJwOsAmECXr/B1RQq0SVOBroSWRCKa/ga+gfKpfbca+SaWaaMsy6
-5X13TpKB6yytikLZ/vzA6+uZykLGJC2NyvhYZPCUkVW/X2A6+D7SMRr+Nnl/r2h0
-ID2XapYvSCmfChCoKgLiyFhUba3M4eD8yv5RoVokZuJIn+Kxf4mZ7p+C1gzKFnvH
-m5nR4cxiKpvRBprkAVE9MKs4mQ88bWLM9fyfSfFku7OI+zOPqPbiWvrFIGVM1P6Z
-5A8Blg1FsPwqSvyKCgLa0wT4ILcljwCt6mME/CJ9sD5ZqFtMkYC7HC0KEUVtQybe
-xr0OXwncQ/Q7ZNNqJ5sC/hFsSVy62nM9YJuW02JOSMJrhpSQFDApZqEXqFdACcch
-whc8Tg91/hHLPoU6uS82Ul3jsO7V4vd+nNGjgNqrzTUVDUCqCI1NuN/71pyXiW14
-7IWAjmN/RBk7vfq1gfnDZ+62TltOnSz9jGFfBLhtRApPZCb8e4M=
-=10sz
------END PGP SIGNATURE-----
-
---J/dobhs11T7y2rNN--
