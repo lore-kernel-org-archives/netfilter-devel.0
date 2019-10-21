@@ -2,65 +2,50 @@ Return-Path: <SRS0=/SeC=YO=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 08241CA9EB7
-	for <netfilter-devel@archiver.kernel.org>; Mon, 21 Oct 2019 19:53:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EA267CA9EAF
+	for <netfilter-devel@archiver.kernel.org>; Mon, 21 Oct 2019 21:38:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D5BC52086D
-	for <netfilter-devel@archiver.kernel.org>; Mon, 21 Oct 2019 19:53:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C11F52084B
+	for <netfilter-devel@archiver.kernel.org>; Mon, 21 Oct 2019 21:38:58 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=paul-moore-com.20150623.gappssmtp.com header.i=@paul-moore-com.20150623.gappssmtp.com header.b="1U3vsiCG"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="aW5eOUlp"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730069AbfJUTxe (ORCPT
+        id S1730254AbfJUViy (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 21 Oct 2019 15:53:34 -0400
-Received: from mail-lj1-f196.google.com ([209.85.208.196]:41576 "EHLO
-        mail-lj1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729406AbfJUTxd (ORCPT
+        Mon, 21 Oct 2019 17:38:54 -0400
+Received: from us-smtp-delivery-1.mimecast.com ([207.211.31.120]:54397 "EHLO
+        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1726672AbfJUViy (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 21 Oct 2019 15:53:33 -0400
-Received: by mail-lj1-f196.google.com with SMTP id f5so14669648ljg.8
-        for <netfilter-devel@vger.kernel.org>; Mon, 21 Oct 2019 12:53:32 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=paul-moore-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=B3ZB5cTWc/+E0YKg8QEclL2Ljwj65q5hsf0zgj4Z+rY=;
-        b=1U3vsiCGcdSTOTzaQ4vA8rtgFMEgeQgVyd8UdGC3o/CdMtwBWN4F0gK1w2XsWWSBGH
-         YNQV5ahyV/O6yw4h2p7vwNKddLsSKZA8aEdokn0w75hdbMsvb43uRjbJi8H6JHxCG71w
-         Q4NjPgZg63RufqnWqJjnk2UAQF7YnLs+zbq9EPZiF4/9fTsCtv4l9nCyYbMUGLPTXat5
-         APjvja2QOXD7cHp9B0BCAW/vEBE/sR2BENyelP9rlWUJuII/ey98aimoJiTVDGxwlViu
-         HWB3hhBN5+9iFMdxD2Riji0ncS9ufRQXCLy1K0bA0PdNKWfK7SpaFe+eM4GU9HA2y+6W
-         mAKQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=B3ZB5cTWc/+E0YKg8QEclL2Ljwj65q5hsf0zgj4Z+rY=;
-        b=uJ2PGm4idWuz2QKBPQ2DGBqUrVnuflflAQbuw88oc0iCu4OTbbzCOsPmDQEcNULl3/
-         SMUuiHfX1qJzy5sDT52ywR+IXQzlvDhFulIO/msmNS1NUdQ/IgqWyQXnP7R2wfaTR9e5
-         Yzop91SEqVVOdIAd33/M2pcZ8GmjDjOMyf2s16HFilJKtHuXAdrAr0F+7Gpirk1QEC4c
-         7g8Vv6jp3PWmUIN0kfQ/fcpoapxXqZHPwLjGNb4HtPP+tubc5MVqE6kvMLhHGfHWX7xn
-         XmmfeVep1LQRzJ6yylxLFjq/PXui20TsjaIQykpA0BqJ8zNxpYJbr8sE0Q+6XQ/TKSu5
-         ttnw==
-X-Gm-Message-State: APjAAAVbvixd/ELx6Y7POw112Svvms6J99c4s12FJmRqtYY6ep3i1B/l
-        gMbD8b9ECeoZlHyNbW1e81ODzwFIhVXGjrwg4/gT
-X-Google-Smtp-Source: APXvYqwGLlTHAz4uYJDRoYV7X3sKMFSAWJhdAvt0BgqLKoPKw91r1AdS6gVNJnxX99zDNcARmS/mrYca8VZXodUJ0TA=
-X-Received: by 2002:a2e:5b82:: with SMTP id m2mr394137lje.184.1571687611172;
- Mon, 21 Oct 2019 12:53:31 -0700 (PDT)
-MIME-Version: 1.0
-References: <cover.1568834524.git.rgb@redhat.com> <214163d11a75126f610bcedfad67a4d89575dc77.1568834525.git.rgb@redhat.com>
- <20191019013904.uevmrzbmztsbhpnh@madcap2.tricolour.ca>
-In-Reply-To: <20191019013904.uevmrzbmztsbhpnh@madcap2.tricolour.ca>
-From:   Paul Moore <paul@paul-moore.com>
-Date:   Mon, 21 Oct 2019 15:53:20 -0400
-Message-ID: <CAHC9VhRPygA=LsHLUqv+K=ouAiPFJ6fb2_As=OT-_zB7kGc_aQ@mail.gmail.com>
-Subject: Re: [PATCH ghak90 V7 20/21] audit: add capcontid to set contid
- outside init_user_ns
-To:     Richard Guy Briggs <rgb@redhat.com>
+        Mon, 21 Oct 2019 17:38:54 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1571693932;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=0ydo/TL5LDscvwdIxWlFvz3d4kbBSbMTez/KsfHBMEM=;
+        b=aW5eOUlpsUnlhg9LVoJ/+KqAWiJqJJ0rVV6jwt2GiW1hCAwVWjUf/tB/VSbSteyLZKNeGv
+        XmVBldIXztH0/acGET+J7lY4Vmz+5k9KUtq/iStCaNNQUec493rWmVliWRgRZusCYnUZpV
+        0Y4sa4imLjm76BYj9AsSB4X4x1sWPNg=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-297-2lBc4Mw4NFGMJ83795y3WA-1; Mon, 21 Oct 2019 17:38:49 -0400
+Received: from smtp.corp.redhat.com (int-mx07.intmail.prod.int.phx2.redhat.com [10.5.11.22])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id D3658800D41;
+        Mon, 21 Oct 2019 21:38:45 +0000 (UTC)
+Received: from madcap2.tricolour.ca (ovpn-112-19.phx2.redhat.com [10.3.112.19])
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id B2D4E1001B20;
+        Mon, 21 Oct 2019 21:38:27 +0000 (UTC)
+Date:   Mon, 21 Oct 2019 17:38:24 -0400
+From:   Richard Guy Briggs <rgb@redhat.com>
+To:     Paul Moore <paul@paul-moore.com>
 Cc:     containers@lists.linux-foundation.org, linux-api@vger.kernel.org,
         Linux-Audit Mailing List <linux-audit@redhat.com>,
         linux-fsdevel@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
@@ -70,37 +55,79 @@ Cc:     containers@lists.linux-foundation.org, linux-api@vger.kernel.org,
         Serge Hallyn <serge@hallyn.com>, ebiederm@xmission.com,
         nhorman@tuxdriver.com, Dan Walsh <dwalsh@redhat.com>,
         mpatel@redhat.com
-Content-Type: text/plain; charset="UTF-8"
+Subject: Re: [PATCH ghak90 V7 20/21] audit: add capcontid to set contid
+ outside init_user_ns
+Message-ID: <20191021213824.6zti5ndxu7sqs772@madcap2.tricolour.ca>
+References: <cover.1568834524.git.rgb@redhat.com>
+ <214163d11a75126f610bcedfad67a4d89575dc77.1568834525.git.rgb@redhat.com>
+ <20191019013904.uevmrzbmztsbhpnh@madcap2.tricolour.ca>
+ <CAHC9VhRPygA=LsHLUqv+K=ouAiPFJ6fb2_As=OT-_zB7kGc_aQ@mail.gmail.com>
+MIME-Version: 1.0
+In-Reply-To: <CAHC9VhRPygA=LsHLUqv+K=ouAiPFJ6fb2_As=OT-_zB7kGc_aQ@mail.gmail.com>
+User-Agent: NeoMutt/20180716
+X-Scanned-By: MIMEDefang 2.84 on 10.5.11.22
+X-MC-Unique: 2lBc4Mw4NFGMJ83795y3WA-1
+X-Mimecast-Spam-Score: 0
+Content-Type: text/plain; charset=WINDOWS-1252
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Oct 18, 2019 at 9:39 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> On 2019-09-18 21:22, Richard Guy Briggs wrote:
-> > Provide a mechanism similar to CAP_AUDIT_CONTROL to explicitly give a
-> > process in a non-init user namespace the capability to set audit
-> > container identifiers.
+On 2019-10-21 15:53, Paul Moore wrote:
+> On Fri, Oct 18, 2019 at 9:39 PM Richard Guy Briggs <rgb@redhat.com> wrote=
+:
+> > On 2019-09-18 21:22, Richard Guy Briggs wrote:
+> > > Provide a mechanism similar to CAP_AUDIT_CONTROL to explicitly give a
+> > > process in a non-init user namespace the capability to set audit
+> > > container identifiers.
+> > >
+> > > Use audit netlink message types AUDIT_GET_CAPCONTID 1027 and
+> > > AUDIT_SET_CAPCONTID 1028.  The message format includes the data
+> > > structure:
+> > > struct audit_capcontid_status {
+> > >         pid_t   pid;
+> > >         u32     enable;
+> > > };
 > >
-> > Use audit netlink message types AUDIT_GET_CAPCONTID 1027 and
-> > AUDIT_SET_CAPCONTID 1028.  The message format includes the data
-> > structure:
-> > struct audit_capcontid_status {
-> >         pid_t   pid;
-> >         u32     enable;
-> > };
->
-> Paul, can I get a review of the general idea here to see if you're ok
-> with this way of effectively extending CAP_AUDIT_CONTROL for the sake of
-> setting contid from beyond the init user namespace where capable() can't
-> reach and ns_capable() is meaningless for these purposes?
+> > Paul, can I get a review of the general idea here to see if you're ok
+> > with this way of effectively extending CAP_AUDIT_CONTROL for the sake o=
+f
+> > setting contid from beyond the init user namespace where capable() can'=
+t
+> > reach and ns_capable() is meaningless for these purposes?
+>=20
+> I think my previous comment about having both the procfs and netlink
+> interfaces apply here.  I don't see why we need two different APIs at
+> the start; explain to me why procfs isn't sufficient.  If the argument
+> is simply the desire to avoid mounting procfs in the container, how
+> many container orchestrators can function today without a valid /proc?
 
-I think my previous comment about having both the procfs and netlink
-interfaces apply here.  I don't see why we need two different APIs at
-the start; explain to me why procfs isn't sufficient.  If the argument
-is simply the desire to avoid mounting procfs in the container, how
-many container orchestrators can function today without a valid /proc?
+Ok, sorry, I meant to address that question from a previous patch
+comment at the same time.
 
--- 
-paul moore
-www.paul-moore.com
+It was raised by Eric Biederman that the proc filesystem interface for
+audit had its limitations and he had suggested an audit netlink
+interface made more sense.
+
+The intent was to switch to the audit netlink interface for contid,
+capcontid and to add the audit netlink interface for loginuid and
+sessionid while deprecating the proc interface for loginuid and
+sessionid.  This was alluded to in the cover letter, but not very clear,
+I'm afraid.  I have patches to remove the contid and loginuid/sessionid
+interfaces in another tree which is why I had forgotten to outline that
+plan more explicitly in the cover letter.
+
+> paul moore
+
+- RGB
+
+--
+Richard Guy Briggs <rgb@redhat.com>
+Sr. S/W Engineer, Kernel Security, Base Operating Systems
+Remote, Ottawa, Red Hat Canada
+IRC: rgb, SunRaycer
+Voice: +1.647.777.2635, Internal: (81) 32635
+
