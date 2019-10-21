@@ -2,69 +2,74 @@ Return-Path: <SRS0=/SeC=YO=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B5D68CA9EAF
-	for <netfilter-devel@archiver.kernel.org>; Mon, 21 Oct 2019 13:27:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DDDEBCA9EAF
+	for <netfilter-devel@archiver.kernel.org>; Mon, 21 Oct 2019 14:40:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 92AA120873
-	for <netfilter-devel@archiver.kernel.org>; Mon, 21 Oct 2019 13:27:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BB50E2053B
+	for <netfilter-devel@archiver.kernel.org>; Mon, 21 Oct 2019 14:40:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728616AbfJUN16 (ORCPT
+        id S1727355AbfJUOkN (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 21 Oct 2019 09:27:58 -0400
-Received: from Chamillionaire.breakpoint.cc ([193.142.43.52]:45058 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728017AbfJUN16 (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 21 Oct 2019 09:27:58 -0400
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1iMXj1-0004E9-Kj; Mon, 21 Oct 2019 15:27:55 +0200
-Date:   Mon, 21 Oct 2019 15:27:55 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Phil Sutter <phil@nwl.cc>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
-Subject: Re: [iptables PATCH v2] xtables-restore: Fix --table parameter check
-Message-ID: <20191021132755.GE25052@breakpoint.cc>
-References: <20191021132324.11039-1-phil@nwl.cc>
+        Mon, 21 Oct 2019 10:40:13 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:51482 "EHLO orbyte.nwl.cc"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727049AbfJUOkN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 21 Oct 2019 10:40:13 -0400
+Received: from localhost ([::1]:36340 helo=tatos)
+        by orbyte.nwl.cc with esmtp (Exim 4.91)
+        (envelope-from <phil@nwl.cc>)
+        id 1iMYqx-0006CB-9h; Mon, 21 Oct 2019 16:40:11 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org,
+        =?UTF-8?q?M=C3=A1t=C3=A9=20Eckl?= <ecklm94@gmail.com>
+Subject: [nft PATCH] tproxy: Add missing error checking when parsing from netlink
+Date:   Mon, 21 Oct 2019 16:40:03 +0200
+Message-Id: <20191021144003.13415-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.23.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20191021132324.11039-1-phil@nwl.cc>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Phil Sutter <phil@nwl.cc> wrote:
-> Xtables-restore tries to reject rule commands in input which contain a
-> --table parameter (since it is adding this itself based on the previous
-> table line). The manual check was not perfect though as it caught any
-> parameter starting with a dash and containing a 't' somewhere, even in
-> rule comments:
-> 
-> | *filter
-> | -A FORWARD -m comment --comment "- allow this one" -j ACCEPT
-> | COMMIT
-> 
-> Instead of error-prone manual checking, go a much simpler route: All
-> do_command callbacks are passed a boolean indicating they're called from
-> *tables-restore. React upon this when handling a table parameter and
-> error out if it's not the first one.
-> 
->  			if (cs.invert)
->  				xtables_error(PARAMETER_PROBLEM,
->  					   "unexpected ! flag before --table");
-> +			if (restore && *table)
-> +				xtables_error(PARAMETER_PROBLEM,
-> +					      "The -t option (seen in line %u) cannot be used in %s.\n",
-> +					      line, xt_params->program_name);
+netlink_get_register() may return NULL and every other caller checks
+that. Assuming this situation is not expected, just jump to 'err' label
+without queueing an explicit error message.
 
-Oh, thats much better indeed.
+Fixes: 2be1d52644cf7 ("src: Add tproxy support")
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ src/netlink_delinearize.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-Acked-by: Florian Westphal <fw@strlen.de>
+diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
+index f7d328a836998..154353b8161a0 100644
+--- a/src/netlink_delinearize.c
++++ b/src/netlink_delinearize.c
+@@ -1041,6 +1041,8 @@ static void netlink_parse_tproxy(struct netlink_parse_ctx *ctx,
+ 	reg = netlink_parse_register(nle, NFTNL_EXPR_TPROXY_REG_ADDR);
+ 	if (reg) {
+ 		addr = netlink_get_register(ctx, loc, reg);
++		if (addr == NULL)
++			goto err;
+ 
+ 		switch (stmt->tproxy.family) {
+ 		case NFPROTO_IPV4:
+@@ -1060,6 +1062,8 @@ static void netlink_parse_tproxy(struct netlink_parse_ctx *ctx,
+ 	reg = netlink_parse_register(nle, NFTNL_EXPR_TPROXY_REG_PORT);
+ 	if (reg) {
+ 		port = netlink_get_register(ctx, loc, reg);
++		if (port == NULL)
++			goto err;
+ 		expr_set_type(port, &inet_service_type, BYTEORDER_BIG_ENDIAN);
+ 		stmt->tproxy.port = port;
+ 	}
+-- 
+2.23.0
+
