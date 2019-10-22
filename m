@@ -2,96 +2,112 @@ Return-Path: <SRS0=RVZI=YP=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E88AECA9EBA
-	for <netfilter-devel@archiver.kernel.org>; Tue, 22 Oct 2019 14:35:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 40431CA9EA0
+	for <netfilter-devel@archiver.kernel.org>; Tue, 22 Oct 2019 15:47:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BE8292184C
-	for <netfilter-devel@archiver.kernel.org>; Tue, 22 Oct 2019 14:35:10 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=paul-moore-com.20150623.gappssmtp.com header.i=@paul-moore-com.20150623.gappssmtp.com header.b="waU2hphe"
+	by mail.kernel.org (Postfix) with ESMTP id 1E985214B2
+	for <netfilter-devel@archiver.kernel.org>; Tue, 22 Oct 2019 15:47:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732056AbfJVOfJ (ORCPT
+        id S2387946AbfJVPrq (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 22 Oct 2019 10:35:09 -0400
-Received: from mail-lj1-f194.google.com ([209.85.208.194]:33490 "EHLO
-        mail-lj1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727907AbfJVOfI (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 22 Oct 2019 10:35:08 -0400
-Received: by mail-lj1-f194.google.com with SMTP id a22so17477061ljd.0
-        for <netfilter-devel@vger.kernel.org>; Tue, 22 Oct 2019 07:35:06 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=paul-moore-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=BYDYFcrmZnPsA3wNhTxT7xGFYYOAAOh9Vy6atnzjLi0=;
-        b=waU2hpheX/TrBzV4vEgbgCSQZavQHRKBJyf3We9Oa6EO8pqIzKn/x0RR8yVxAJtXif
-         o5wV6xEZj6OmkN+gsNlUIE3SlrYWpP6FnQR91Mkel7Yc31DCKJCqxLVac9zBJWfrqAig
-         AnSHfrBGwdsobSt4I2ex8H13Pw5VSILZpZP+0W9/3gOphmAg2NFATMuQ5R5i0fTwxMHa
-         mhvxoAYbxgHGF854kilNFHJ9Ees7EW7wGZpA08bLcn+TV5//6T+8yvwOpxDYnmTocS9P
-         uzp8bmCNZ414ELtk0X90GazUNbo+1P3jEAIUYD/1uT+dLLXF/88QLkWvgCN4cSI9DcT+
-         xtYw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=BYDYFcrmZnPsA3wNhTxT7xGFYYOAAOh9Vy6atnzjLi0=;
-        b=K2ifZSslhPdDmrLeo+/qjh40PUZ+3+NtK/fVstyNt22919Qyehi6ETuWeF+IXe+X+6
-         KmD+rr/8DVH9uIIV4C12nf7PQ4VPCq0ePQQtXd9Ex2P/QcL4D+lbASo48+V+Bemxvaw1
-         cLC2rIC6w8n6Rg+x9F0ftYDWtkQg0ODmpnB3TyiotlkJLGh33Rxw3VkJAMh/LFXbWLmd
-         Eee5mThpkeNE3wlr4nDP4jaZVkeVlGoy4FZJmKRjj6FqbqjQz/FjuBiqvtPoDCu05hlh
-         63r/PmKqRbMsG5STSt0JgcysCHfb569lk6GbUnS0wwadxBPlHWCbr+ELq+K2aWHflupw
-         GFiA==
-X-Gm-Message-State: APjAAAVTkDUQztqwSAqq5QeAUP/ygJBfv45zid3/5Y5dwHIXu7mC9qsM
-        rurEJPhoH7fY5sI24v0miv5XcmTBhSm9DzeqKjps
-X-Google-Smtp-Source: APXvYqxWl+VJRD6qwDm3xnMIjUjL7khHepxMxomEkV8ULQEiUK2eWkxiHdieTFB5R0wrN5wi4Wq/lLVlZuZfm59x+Po=
-X-Received: by 2002:a2e:3505:: with SMTP id z5mr11579413ljz.126.1571754905226;
- Tue, 22 Oct 2019 07:35:05 -0700 (PDT)
-MIME-Version: 1.0
-References: <cover.1568834524.git.rgb@redhat.com> <214163d11a75126f610bcedfad67a4d89575dc77.1568834525.git.rgb@redhat.com>
- <20191019013904.uevmrzbmztsbhpnh@madcap2.tricolour.ca> <CAHC9VhRPygA=LsHLUqv+K=ouAiPFJ6fb2_As=OT-_zB7kGc_aQ@mail.gmail.com>
- <20191021213824.6zti5ndxu7sqs772@madcap2.tricolour.ca> <CAHC9VhRdNXsY4neJpSoNyJoAVEoiEc2oW5kSscF99tjmoQAxFA@mail.gmail.com>
- <20191021235734.mgcjotdqoe73e4ha@madcap2.tricolour.ca> <CAHC9VhSiwnY-+2awxvGeO4a0NgfVkOPd8fzzBVujp=HtjskTuQ@mail.gmail.com>
- <20191022142716.sgxcmc27w4uaqh3u@madcap2.tricolour.ca>
-In-Reply-To: <20191022142716.sgxcmc27w4uaqh3u@madcap2.tricolour.ca>
-From:   Paul Moore <paul@paul-moore.com>
-Date:   Tue, 22 Oct 2019 10:34:54 -0400
-Message-ID: <CAHC9VhQwXzyZzrN3fcc=OOqJPu+=CrkWUWGWjKNzP5OPVT_0_g@mail.gmail.com>
-Subject: Re: [PATCH ghak90 V7 20/21] audit: add capcontid to set contid
- outside init_user_ns
-To:     Richard Guy Briggs <rgb@redhat.com>
-Cc:     containers@lists.linux-foundation.org, linux-api@vger.kernel.org,
-        Linux-Audit Mailing List <linux-audit@redhat.com>,
-        linux-fsdevel@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        sgrubb@redhat.com, omosnace@redhat.com, dhowells@redhat.com,
-        simo@redhat.com, Eric Paris <eparis@parisplace.org>,
-        Serge Hallyn <serge@hallyn.com>, ebiederm@xmission.com,
-        nhorman@tuxdriver.com, Dan Walsh <dwalsh@redhat.com>,
-        mpatel@redhat.com
-Content-Type: text/plain; charset="UTF-8"
+        Tue, 22 Oct 2019 11:47:46 -0400
+Received: from correo.us.es ([193.147.175.20]:41900 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2387914AbfJVPrq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 22 Oct 2019 11:47:46 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 0B6421C4427
+        for <netfilter-devel@vger.kernel.org>; Tue, 22 Oct 2019 17:47:41 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id EBF80FF6CD
+        for <netfilter-devel@vger.kernel.org>; Tue, 22 Oct 2019 17:47:40 +0200 (CEST)
+Received: by antivirus1-rhel7.int (Postfix, from userid 99)
+        id E15FDB8014; Tue, 22 Oct 2019 17:47:40 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id DA93D9661A;
+        Tue, 22 Oct 2019 17:47:38 +0200 (CEST)
+Received: from 192.168.1.97 (192.168.1.97)
+ by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
+ Tue, 22 Oct 2019 17:47:38 +0200 (CEST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
+Received: from salvia.here (sys.soleta.eu [212.170.55.40])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id B25AC42EE38E;
+        Tue, 22 Oct 2019 17:47:38 +0200 (CEST)
+X-SMTPAUTHUS: auth mail.us.es
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     fw@strlen.de, wenxu@ucloud.cn
+Subject: [PATCH nf-next,RFC 0/2] nf_tables encapsulation/decapsulation support
+Date:   Tue, 22 Oct 2019 17:47:31 +0200
+Message-Id: <20191022154733.8789-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.11.0
+X-Virus-Scanned: ClamAV using ClamSMTP
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Oct 22, 2019 at 10:27 AM Richard Guy Briggs <rgb@redhat.com> wrote:
-> I'd like your perspective on how the capcontid feature was implemented
-> (aside from the proc/netlink api issue which was intended to be
-> consistent across loginuid/sessionid/contid/capcontid).  Do you see this
-> feature as potentially solving the nested container issue in child user
-> namespaces?
+Hi,
 
-The patchset is a bit messy at this point in the stack due to the
-"fixup!" confusion and a few other things which I already mentioned so
-I don't really want to comment too much on that until I can see
-everything in a reasonable patch stack.  Let's leave that for the next
-draft.
+This is a RFC patchset, untested, to introduce new infrastructure to
+specify protocol decapsulation and encapsulation actions. This patchset
+comes with initial support for VLAN, eg.
 
--- 
-paul moore
-www.paul-moore.com
+1) VLAN decapsulation:
+
+	... meta iif . vlan id { eth0 . 10, eth1 . 11} decap vlan
+
+The decapsulation is a single statement with no extra options.
+
+2) VLAN encapsulation:
+
+	add vlan "network0" { type push; id 100; proto 0x8100; }
+        add vlan "network1" { type update; id 101; }
+	... encap vlan set ip daddr map { 192.168.0.0/24 : "network0",
+					  192.168.1.0/24 : "network1" }
+
+The idea is that the user specifies the vlan policy through object
+definition, eg. "network0" and "network1", then it applies this policy
+via the "encap vlan set" statement.
+
+This infrastructure should allow for more encapsulation protocols
+with little work, eg. MPLS.
+
+I have places the encap object and the decap expression in the same
+nft_encap module.
+
+I'm still considering to extend the object infrastructure to specify
+the operation type through the rule, ie.
+
+	add vlan "network0" { id 100; proto 0x8100; }
+        add vlan "network1" { id 101; }
+	... encap vlan push ip daddr map { 192.168.0.0/24 : "network0",
+					   192.168.1.0/24 : "network1" }
+
+So the VLAN object does not come with the operation type, instead this
+is specified through the encap statement, that would require a bit more
+work on the object infrastructure which is probably a good idea.
+
+This is work-in-progress, syntax is tentative, comments welcome.
+
+Thanks.
+
+Pablo Neira Ayuso (2):
+  netfilter: nf_tables: add decapsulation support
+  netfilter: nf_tables: add encapsulation support
+
+ include/uapi/linux/netfilter/nf_tables.h |  56 ++++-
+ net/netfilter/Kconfig                    |   6 +
+ net/netfilter/Makefile                   |   1 +
+ net/netfilter/nft_encap.c                | 341 +++++++++++++++++++++++++++++++
+ 4 files changed, 403 insertions(+), 1 deletion(-)
+ create mode 100644 net/netfilter/nft_encap.c
+
+--
+2.11.0
+
