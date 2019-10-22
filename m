@@ -2,147 +2,105 @@ Return-Path: <SRS0=RVZI=YP=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7AD66CA9EA0
-	for <netfilter-devel@archiver.kernel.org>; Tue, 22 Oct 2019 17:34:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9A7A9CA9EA0
+	for <netfilter-devel@archiver.kernel.org>; Tue, 22 Oct 2019 19:12:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5C68220700
-	for <netfilter-devel@archiver.kernel.org>; Tue, 22 Oct 2019 17:34:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6B01321872
+	for <netfilter-devel@archiver.kernel.org>; Tue, 22 Oct 2019 19:12:57 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1571771577;
+	bh=h6lApnQoH4yeAnt+863Onqkxe9q1Vrdvkyfiparmxl8=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=idJPco2Ohxr+b5i5yTK0r/Ut6i0Dx9Q6aK7js+nHv+llhYjfC3+5Iihbsh6TKgE5N
+	 a97wvsqL/yMvlMqV03pPeM8ttLWj2+v+4OLJKUvgzYIp7lDca9HJBwBDbu2yawOw+h
+	 VX1b+0l/qFyPG8WalRHg9TI+NfmiuxerOToUtoqs=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727885AbfJVReR (ORCPT
+        id S2388865AbfJVTMv (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 22 Oct 2019 13:34:17 -0400
-Received: from correo.us.es ([193.147.175.20]:59170 "EHLO mail.us.es"
+        Tue, 22 Oct 2019 15:12:51 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43770 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726569AbfJVReQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 22 Oct 2019 13:34:16 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 412D0E2C54
-        for <netfilter-devel@vger.kernel.org>; Tue, 22 Oct 2019 19:34:12 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 2C4F3BAACC
-        for <netfilter-devel@vger.kernel.org>; Tue, 22 Oct 2019 19:34:12 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id 1F1E7CA0F3; Tue, 22 Oct 2019 19:34:12 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id C9763DA8E8;
-        Tue, 22 Oct 2019 19:34:09 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 22 Oct 2019 19:34:09 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from us.es (sys.soleta.eu [212.170.55.40])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        id S1733029AbfJVTMf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 22 Oct 2019 15:12:35 -0400
+Received: from localhost.localdomain (rrcs-50-75-166-42.nys.biz.rr.com [50.75.166.42])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id AABCC42EE38E;
-        Tue, 22 Oct 2019 19:34:09 +0200 (CEST)
-Date:   Tue, 22 Oct 2019 19:34:11 +0200
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Christian =?iso-8859-1?Q?G=F6ttsche?= <cgzones@googlemail.com>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: nftables: secmark support
-Message-ID: <20191022173411.zh3o2wnoqxpjhjkq@salvia>
-References: <CAJ2a_DcUH1ZaovOTNS14Z64Bwj5R5y4LLmZUeEPWFaNKECS6mQ@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAJ2a_DcUH1ZaovOTNS14Z64Bwj5R5y4LLmZUeEPWFaNKECS6mQ@mail.gmail.com>
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-Virus-Scanned: ClamAV using ClamSMTP
+        by mail.kernel.org (Postfix) with ESMTPSA id CFC4621925;
+        Tue, 22 Oct 2019 19:12:32 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1571771554;
+        bh=h6lApnQoH4yeAnt+863Onqkxe9q1Vrdvkyfiparmxl8=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=QSQdChrx2xCJVCgmc3ZIuW5sMYO4c5xYW9i/zxPQ5EKpxbt5Ysqzc+2hs2IT1yfVS
+         q7BLNoQ8M0H/AVQZJKW0qtqppzRMae3AIXDxq7ywjpxd69IdaDpVUJgQaFh78xzAKh
+         M6w6pV3AfHezs2jvBVi5DOmy1yFhHs8dHfsAQNtE=
+From:   paulmck@kernel.org
+To:     rcu@vger.kernel.org
+Cc:     linux-kernel@vger.kernel.org, mingo@kernel.org,
+        jiangshanlai@gmail.com, dipankar@in.ibm.com,
+        akpm@linux-foundation.org, mathieu.desnoyers@efficios.com,
+        josh@joshtriplett.org, tglx@linutronix.de, peterz@infradead.org,
+        rostedt@goodmis.org, dhowells@redhat.com, edumazet@google.com,
+        fweisbec@gmail.com, oleg@redhat.com, joel@joelfernandes.org,
+        "Paul E. McKenney" <paulmck@kernel.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org
+Subject: [PATCH tip/core/rcu 08/10] net/netfilter: Replace rcu_swap_protected() with rcu_replace()
+Date:   Tue, 22 Oct 2019 12:12:13 -0700
+Message-Id: <20191022191215.25781-8-paulmck@kernel.org>
+X-Mailer: git-send-email 2.9.5
+In-Reply-To: <20191022191136.GA25627@paulmck-ThinkPad-P72>
+References: <20191022191136.GA25627@paulmck-ThinkPad-P72>
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Oct 22, 2019 at 05:57:25PM +0200, Christian Göttsche wrote:
-> Hi,
-> I am trying to finally get secmark with nftables to work.
-> The kernel[1][2] and libnftnl[3] parts are done.
-> For the nft front-end I think some things need a further change than
-> already introduced[4].
-> 
-> 1.
-> I found no way to store the secmark label into the connection tracking
-> state and thereby set the label on established,related packets.
-> Using a patch[5] it works with the following syntax:
-> (Note: The patch will currently probably not apply to current master,
-> due to [6])
-> 
->     [... define secmarks and port maps ...]
->     chain input {
->         type filter hook input priority 0;
->         ct state new meta secmark set tcp dport map @secmapping_in
->         ct state new ip protocol icmp meta secmark set "icmp_server"
->         ct state new ip6 nexthdr icmpv6 meta secmark set "icmp_server"
->         ct state new ct secmark_raw set meta secmark_raw
->         ct state established,related meta secmark_raw set ct secmark_raw
+From: "Paul E. McKenney" <paulmck@kernel.org>
 
-So your concern is the need for this extra secmark_raw, correct?
+This commit replaces the use of rcu_swap_protected() with the more
+intuitively appealing rcu_replace() as a step towards removing
+rcu_swap_protected().
 
-This is what your patch [6] does, right? If you don't mind to rebase
-it I can have a look if I can propose you something else than this new
-keyword.
+Link: https://lore.kernel.org/lkml/CAHk-=wiAsJLw1egFEE=Z7-GGtM6wcvtyytXZA1+BHqta4gg6Hw@mail.gmail.com/
+Reported-by: Linus Torvalds <torvalds@linux-foundation.org>
+[ paulmck: From rcu_replace() to rcu_replace_pointer() per Ingo Molnar. ]
+Signed-off-by: Paul E. McKenney <paulmck@kernel.org>
+Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Jozsef Kadlecsik <kadlec@netfilter.org>
+Cc: Florian Westphal <fw@strlen.de>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: <netfilter-devel@vger.kernel.org>
+Cc: <coreteam@netfilter.org>
+Cc: <netdev@vger.kernel.org>
+---
+ net/netfilter/nf_tables_api.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
->     }
->     chain output {
->         type filter hook output priority 0;
->         ct state new meta secmark set tcp dport map @secmapping_out
->         ct state new ip protocol icmp meta secmark set "icmp_client"
->         ct state new ip6 nexthdr icmpv6 meta secmark set "icmp_client"
->         ct state new ct secmark_raw set meta secmark_raw
->         ct state established,related meta secmark_raw set ct secmark_raw
->     }
-> 
-> 2.
-> The rules in 1. are not idempotent. The output of 'nft list ruleset' is:
-> 
->     chain input {
->         type filter hook input priority filter; policy accept;
->         ct state new secmark name tcp dport map @secmapping_in
->         ct state new ip protocol icmp secmark name "icmp_server"
->         ct state new ip6 nexthdr ipv6-icmp secmark name "icmp_server"
->         ct state new ct secmark set secmark
->         ct state established,related secmark set ct secmark
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index d481f9b..3379974 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -1461,8 +1461,9 @@ static void nft_chain_stats_replace(struct nft_trans *trans)
+ 	if (!nft_trans_chain_stats(trans))
+ 		return;
+ 
+-	rcu_swap_protected(chain->stats, nft_trans_chain_stats(trans),
+-			   lockdep_commit_lock_is_held(trans->ctx.net));
++	nft_trans_chain_stats(trans) =
++		rcu_replace_pointer(chain->stats, nft_trans_chain_stats(trans),
++				    lockdep_commit_lock_is_held(trans->ctx.net));
+ 
+ 	if (!nft_trans_chain_stats(trans))
+ 		static_branch_inc(&nft_counters_enabled);
+-- 
+2.9.5
 
-This is the listing after you add ruleset in 1., correct?
-
->     }
->     chain output {
->         type filter hook output priority filter; policy accept;
->         ct state new secmark name tcp dport map @secmapping_out
->         ct state new ip protocol icmp secmark name "icmp_client"
->         ct state new ip6 nexthdr ipv6-icmp secmark name "icmp_client"
->         ct state new ct secmark set secmark
->         ct state established,related secmark set ct secmark
->     }
-> 
-> What are the code locations to fix?
-> 
-> 3.
-> The patch also adds the ability to reset secmarks.
-> Is there a way to query the kernel about the actual secid (to verify
-> the reset works)?
-
-What do you mean by "reset secmarks", example please.
-
-> 4.
-> Maybe I can contribute a howto for wiki.nftables.org. What is the
-> preferred format?
-
-That would be great indeed.
-
-Sorry for the many questions!
-
-[...]
-> [1] https://github.com/torvalds/linux/commit/fb961945457f5177072c968aa38fee910ab893b9
-> [2] https://github.com/torvalds/linux/commit/b473a1f5ddee5f73392c387940f4fbcbabfc3431
-> [3] https://git.netfilter.org/libnftnl/commit/?id=aaf20ad0dc22d2ebcad1b2c43288e984f0efe2c3
-> [4] https://git.netfilter.org/nftables/commit/?id=3bc84e5c1fdd1ff011af9788fe174e0514c2c9ea
-> [5] https://salsa.debian.org/cgzones-guest/pkg-nftables/blob/master/debian/patches/0004-secmark-add-missing-pieces.patch
-> [6] https://git.netfilter.org/nftables/commit/?id=998142c71d095d79488495ea545a704213fa0ba0
