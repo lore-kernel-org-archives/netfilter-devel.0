@@ -2,374 +2,145 @@ Return-Path: <SRS0=RVZI=YP=vger.kernel.org=netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1CFCDCA9EB9
-	for <netfilter-devel@archiver.kernel.org>; Tue, 22 Oct 2019 15:47:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A4E47CA9EA0
+	for <netfilter-devel@archiver.kernel.org>; Tue, 22 Oct 2019 15:57:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E3675214B2
-	for <netfilter-devel@archiver.kernel.org>; Tue, 22 Oct 2019 15:47:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 77262214B2
+	for <netfilter-devel@archiver.kernel.org>; Tue, 22 Oct 2019 15:57:40 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=googlemail.com header.i=@googlemail.com header.b="UyulZTi7"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387966AbfJVPrr (ORCPT
+        id S1731941AbfJVP5k (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 22 Oct 2019 11:47:47 -0400
-Received: from correo.us.es ([193.147.175.20]:41934 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2387922AbfJVPrr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 22 Oct 2019 11:47:47 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id EE2661C4442
-        for <netfilter-devel@vger.kernel.org>; Tue, 22 Oct 2019 17:47:42 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id DED21B8005
-        for <netfilter-devel@vger.kernel.org>; Tue, 22 Oct 2019 17:47:42 +0200 (CEST)
-Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id D44BBB8001; Tue, 22 Oct 2019 17:47:42 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id BFB2AB8005;
-        Tue, 22 Oct 2019 17:47:40 +0200 (CEST)
-Received: from 192.168.1.97 (192.168.1.97)
- by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 22 Oct 2019 17:47:40 +0200 (CEST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
-Received: from salvia.here (sys.soleta.eu [212.170.55.40])
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 9853542EE38E;
-        Tue, 22 Oct 2019 17:47:40 +0200 (CEST)
-X-SMTPAUTHUS: auth mail.us.es
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
+        Tue, 22 Oct 2019 11:57:40 -0400
+Received: from mail-ua1-f66.google.com ([209.85.222.66]:39848 "EHLO
+        mail-ua1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1731671AbfJVP5j (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 22 Oct 2019 11:57:39 -0400
+Received: by mail-ua1-f66.google.com with SMTP id b14so5072292uap.6
+        for <netfilter-devel@vger.kernel.org>; Tue, 22 Oct 2019 08:57:38 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=googlemail.com; s=20161025;
+        h=mime-version:from:date:message-id:subject:to
+         :content-transfer-encoding;
+        bh=NK8u/aGX2NmYqKTBfpAK9Fl3I6ETdvXZPf0sGewxybc=;
+        b=UyulZTi7Auu7Mx9xe+Xq9lL9C9MllBGt+zH7z0RzxWeMmOm9yQtlysNG9jLcUHtBTc
+         p7dbuyHRjqYKZxxDNF0W9QHRmqfTwj1Tt+aoEYz7bpMLOQaZNo21aR2288aKRIERzukr
+         52C6XKEtUCcseTbuhxIu6zYjn0yn36YrZdhbeDh/KTuIkwlTkFij4183OfaA4JlgbzuP
+         7+KPGgKAvfyUzZkyBSLaz3a5oXgVWFRx+DK1iKqEt1RMsmPLmDvYpNUg/oAn9l3xJvWR
+         zUMD14phCVdtUaUzIu1UNf4tCbneOExZNchblikq16679wyFhsrQ18Jg5zbjaGWSrT4C
+         tEHA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:from:date:message-id:subject:to
+         :content-transfer-encoding;
+        bh=NK8u/aGX2NmYqKTBfpAK9Fl3I6ETdvXZPf0sGewxybc=;
+        b=GxmWyZLNEecXzMA3nrcMfcXqpwCp/L6xvfiZQFFkdtisKIsHF9LznXAt+PRXm1vnQq
+         w0Ap1mumvJfJKhTvyga+QeTiaUjHnHac+yAhpU1ENst/1UgdianJluFvQibANvsR+Pu5
+         MobHFMk5MGvBxMEdVQvK3pvEUcE3tc5FblxsIO5lKztTDcisQ3JKr6yBrgpA56XuMIp2
+         F/MDThTebKhhjtR6OmZ4TkjzrnATxjd6+3wOvK/URzc2bumWsZl8TVLHeFxCM0wpoDbn
+         W1ih4VNqaHooQRDVn8ygdW5y8Wfvowvnr7FUfP3ejArZ1smIoKwC2HmHboIsDnRvvXC1
+         K3pw==
+X-Gm-Message-State: APjAAAU1bT21y8IV0HVfvppm9Y8vvIGkaPcoD4mjwvjbIeinKFaQ6rDD
+        oRKxylr8ze5OUgd2T/7IRNok4oGDoSbUJMIPtz1GVX9cgEU=
+X-Google-Smtp-Source: APXvYqwX7hLCcce3rj3cxvB9tv3TJGDoZJi8ObdmvcWOjCY64zOEI2ZcjBxoW+HiecXD3oCx0b3TQ1sKTmIikDSLAnI=
+X-Received: by 2002:ab0:5bdb:: with SMTP id z27mr2476716uae.118.1571759856899;
+ Tue, 22 Oct 2019 08:57:36 -0700 (PDT)
+MIME-Version: 1.0
+From:   =?UTF-8?Q?Christian_G=C3=B6ttsche?= <cgzones@googlemail.com>
+Date:   Tue, 22 Oct 2019 17:57:25 +0200
+Message-ID: <CAJ2a_DcUH1ZaovOTNS14Z64Bwj5R5y4LLmZUeEPWFaNKECS6mQ@mail.gmail.com>
+Subject: nftables: secmark support
 To:     netfilter-devel@vger.kernel.org
-Cc:     fw@strlen.de, wenxu@ucloud.cn
-Subject: [PATCH nf-next,RFC 2/2] netfilter: nf_tables: add encapsulation support
-Date:   Tue, 22 Oct 2019 17:47:33 +0200
-Message-Id: <20191022154733.8789-3-pablo@netfilter.org>
-X-Mailer: git-send-email 2.11.0
-In-Reply-To: <20191022154733.8789-1-pablo@netfilter.org>
-References: <20191022154733.8789-1-pablo@netfilter.org>
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: netfilter-devel-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This patch adds encapsulation support through the encapsulation object,
-that specifies the encapsulation policy.
+Hi,
+I am trying to finally get secmark with nftables to work.
+The kernel[1][2] and libnftnl[3] parts are done.
+For the nft front-end I think some things need a further change than
+already introduced[4].
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/uapi/linux/netfilter/nf_tables.h |  40 +++++-
- net/netfilter/nft_encap.c                | 224 ++++++++++++++++++++++++++++++-
- 2 files changed, 262 insertions(+), 2 deletions(-)
+1.
+I found no way to store the secmark label into the connection tracking
+state and thereby set the label on established,related packets.
+Using a patch[5] it works with the following syntax:
+(Note: The patch will currently probably not apply to current master,
+due to [6])
 
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index 25e26340a0ba..e5997a13ba71 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -1484,7 +1484,8 @@ enum nft_ct_expectation_attributes {
- #define NFT_OBJECT_SECMARK	8
- #define NFT_OBJECT_CT_EXPECT	9
- #define NFT_OBJECT_SYNPROXY	10
--#define __NFT_OBJECT_MAX	11
-+#define NFT_OBJECT_ENCAP	11
-+#define __NFT_OBJECT_MAX	12
- #define NFT_OBJECT_MAX		(__NFT_OBJECT_MAX - 1)
- 
- /**
-@@ -1629,6 +1630,43 @@ enum nft_encap_type {
- 	NFT_ENCAP_VLAN	= 0,
- };
- 
-+enum nft_encap_op {
-+	NFT_ENCAP_ADD	= 0,
-+	NFT_ENCAP_UPDATE,
-+};
-+
-+/**
-+ * enum nft_encap_vlan_attributes - nf_tables VLAN encapsulation expression netlink attributes
-+ *
-+ * @NFTA_ENCAP_VLAN_ID: VLAN id (NLA_U16)
-+ * @NFTA_ENCAP_VLAN_PROTO: VLAN protocol (NLA_U16)
-+ * @NFTA_ENCAP_VLAN_PRIO: VLAN priority (NLA_U8)
-+ */
-+enum nft_encap_vlan_attributes {
-+	NFTA_ENCAP_VLAN_UNSPEC,
-+	NFTA_ENCAP_VLAN_ID,
-+	NFTA_ENCAP_VLAN_PROTO,
-+	NFTA_ENCAP_VLAN_PRIO,
-+	__NFTA_ENCAP_VLAN_MAX
-+};
-+#define NFTA_ENCAP_VLAN_MAX	(__NFTA_ENCAP_VLAN_MAX - 1)
-+
-+/**
-+ * enum nft_encap_attributes - nf_tables encapsulation expression netlink attributes
-+ *
-+ * @NFTA_ENCAP_TYPE: encapsulation type (NLA_U32)
-+ * @NFTA_ENCAP_OP: encapsulation operation (NLA_U32)
-+ * @NFTA_ENCAP_DATA: encapsulation data (NLA_NESTED)
-+ */
-+enum nft_encap_attributes {
-+	NFTA_ENCAP_UNSPEC,
-+	NFTA_ENCAP_TYPE,
-+	NFTA_ENCAP_OP,
-+	NFTA_ENCAP_DATA,
-+	__NFTA_ENCAP_MAX
-+};
-+#define NFTA_ENCAP_MAX	(__NFTA_ENCAP_MAX - 1)
-+
- /**
-  * enum nft_decap_attributes - nf_tables decapsulation expression netlink attributes
-  *
-diff --git a/net/netfilter/nft_encap.c b/net/netfilter/nft_encap.c
-index 657a62e4c283..13643b3daf85 100644
---- a/net/netfilter/nft_encap.c
-+++ b/net/netfilter/nft_encap.c
-@@ -2,6 +2,7 @@
- #include <linux/kernel.h>
- #include <linux/init.h>
- #include <linux/module.h>
-+#include <linux/if_vlan.h>
- #include <linux/netlink.h>
- #include <linux/netfilter.h>
- #include <linux/netfilter/nf_tables.h>
-@@ -101,14 +102,235 @@ static struct nft_expr_type nft_decap_type __read_mostly = {
- 	.owner		= THIS_MODULE,
- };
- 
-+struct nft_encap {
-+	enum nft_encap_type	type;
-+	enum nft_encap_op	op;
-+
-+	union {
-+		struct {
-+			__u16	id;
-+			__be16	proto;
-+			__u8	prio;
-+		} vlan;
-+	};
-+};
-+
-+static u16 nft_encap_vlan_tci(struct nft_encap *priv)
-+{
-+	return priv->vlan.id | (priv->vlan.prio << VLAN_PRIO_SHIFT);
-+}
-+
-+static int nft_encap_vlan_eval(struct nft_encap *priv,
-+			       struct nft_regs *regs,
-+			       const struct nft_pktinfo *pkt)
-+{
-+	struct sk_buff *skb = pkt->skb;
-+	int err;
-+	u16 tci;
-+
-+	switch (priv->op) {
-+	case NFT_ENCAP_ADD:
-+		err = skb_vlan_push(skb, priv->vlan.proto,
-+				    nft_encap_vlan_tci(priv));
-+		if (err)
-+			return err;
-+		break;
-+	case NFT_ENCAP_UPDATE:
-+		if (!skb_vlan_tagged(skb))
-+			return -1;
-+
-+		err = 0;
-+		if (skb_vlan_tag_present(skb)) {
-+			tci = skb_vlan_tag_get(skb);
-+			__vlan_hwaccel_clear_tag(skb);
-+		} else {
-+			err = __skb_vlan_pop(skb, &tci);
-+		}
-+		if (err)
-+			return err;
-+
-+		tci = (tci & ~VLAN_VID_MASK) | priv->vlan.id;
-+		if (priv->vlan.prio) {
-+			tci &= ~VLAN_PRIO_MASK;
-+			tci |= priv->vlan.prio << VLAN_PRIO_SHIFT;
-+		}
-+
-+		__vlan_hwaccel_put_tag(skb, priv->vlan.proto, tci);
-+		break;
-+	default:
-+		break;
-+	}
-+
-+	return 0;
-+}
-+
-+static void nft_encap_obj_eval(struct nft_object *obj,
-+			       struct nft_regs *regs,
-+			       const struct nft_pktinfo *pkt)
-+{
-+	struct nft_encap *priv = nft_obj_data(obj);
-+	int err;
-+
-+	switch (priv->type) {
-+	case NFT_ENCAP_VLAN:
-+		err = nft_encap_vlan_eval(priv, regs, pkt);
-+		break;
-+	default:
-+		WARN_ON_ONCE(1);
-+		err = -1;
-+	}
-+
-+	if (err < 0)
-+		regs->verdict.code = NFT_BREAK;
-+}
-+
-+static const struct nla_policy nft_encap_vlan_policy[NFTA_ENCAP_VLAN_MAX + 1] = {
-+	[NFTA_ENCAP_VLAN_ID]	= { .type = NLA_U16 },
-+	[NFTA_ENCAP_VLAN_PROTO]	= { .type = NLA_U16 },
-+	[NFTA_ENCAP_VLAN_PRIO]	= { .type = NLA_U8 },
-+};
-+
-+static int nft_encap_vlan_parse(const struct nlattr *attr,
-+				struct nft_encap *priv)
-+{
-+	struct nlattr *tb[NFTA_ENCAP_VLAN_MAX + 1];
-+	int err;
-+
-+	err = nla_parse_nested_deprecated(tb, NFTA_ENCAP_VLAN_MAX, attr,
-+					  nft_encap_vlan_policy, NULL);
-+	if (err < 0)
-+		return err;
-+
-+	if (!tb[NFTA_ENCAP_VLAN_PRIO] ||
-+	    !tb[NFTA_ENCAP_VLAN_PROTO] ||
-+	    !tb[NFTA_ENCAP_VLAN_ID])
-+		return -EINVAL;
-+
-+	priv->vlan.id = ntohs(nla_get_be16(tb[NFTA_ENCAP_VLAN_ID]));
-+	priv->vlan.proto = nla_get_be16(tb[NFTA_ENCAP_VLAN_PROTO]);
-+	priv->vlan.prio = nla_get_u8(tb[NFTA_ENCAP_VLAN_PRIO]);
-+
-+	return 0;
-+}
-+
-+static int nft_encap_obj_init(const struct nft_ctx *ctx,
-+			      const struct nlattr * const tb[],
-+			      struct nft_object *obj)
-+{
-+	struct nft_encap *priv = nft_obj_data(obj);
-+	int err = 0;
-+
-+	if (!tb[NFTA_ENCAP_TYPE] ||
-+	    !tb[NFTA_ENCAP_OP])
-+		return -EINVAL;
-+
-+	priv->type = ntohl(nla_get_be32(tb[NFTA_ENCAP_TYPE]));
-+	priv->op = ntohl(nla_get_be32(tb[NFTA_ENCAP_OP]));
-+
-+	switch (priv->type) {
-+	case NFT_ENCAP_VLAN:
-+		if (priv->op != NFT_ENCAP_ADD &&
-+		    priv->op != NFT_ENCAP_UPDATE)
-+			return -EOPNOTSUPP;
-+
-+		err = nft_encap_vlan_parse(tb[NFTA_ENCAP_DATA], priv);
-+		break;
-+	default:
-+		return -EOPNOTSUPP;
-+	}
-+
-+	return err;
-+}
-+
-+static int nft_encap_type_dump(struct sk_buff *skb, struct nft_encap *priv)
-+{
-+	struct nlattr *nest;
-+
-+	nest = nla_nest_start_noflag(skb, NFTA_ENCAP_DATA);
-+	if (!nest)
-+		goto nla_put_failure;
-+
-+	switch (priv->type) {
-+	case NFT_ENCAP_VLAN:
-+		if (nla_put_be16(skb, NFTA_ENCAP_VLAN_ID, htons(priv->vlan.id)) ||
-+		    nla_put_be16(skb, NFTA_ENCAP_VLAN_PROTO, priv->vlan.proto) ||
-+		    nla_put_u8(skb, NFTA_ENCAP_VLAN_PRIO, priv->vlan.prio))
-+			goto nla_put_failure;
-+		break;
-+	default:
-+		WARN_ON_ONCE(1);
-+		break;
-+	}
-+	nla_nest_end(skb, nest);
-+
-+	return 0;
-+
-+nla_put_failure:
-+	return -1;
-+}
-+
-+static int nft_encap_obj_dump(struct sk_buff *skb, struct nft_object *obj,
-+			      bool reset)
-+{
-+	struct nft_encap *priv = nft_obj_data(obj);
-+
-+	if (nla_put_be32(skb, NFTA_ENCAP_TYPE, htonl(priv->type)) ||
-+	    nla_put_be32(skb, NFTA_ENCAP_OP, htonl(priv->op)) ||
-+	    nft_encap_type_dump(skb, priv))
-+		goto nla_put_failure;
-+
-+	return 0;
-+
-+nla_put_failure:
-+	return -1;
-+}
-+
-+static const struct nla_policy nft_encap_policy[NFTA_ENCAP_MAX + 1] = {
-+	[NFTA_ENCAP_TYPE]	= { .type = NLA_U32 },
-+	[NFTA_ENCAP_OP]		= { .type = NLA_U32 },
-+	[NFTA_ENCAP_DATA]	= { .type = NLA_NESTED },
-+};
-+
-+static struct nft_object_type nft_encap_obj_type;
-+static const struct nft_object_ops nft_encap_obj_ops = {
-+	.type		= &nft_encap_obj_type,
-+	.size		= sizeof(struct nft_encap),
-+	.eval		= nft_encap_obj_eval,
-+	.init		= nft_encap_obj_init,
-+	.dump		= nft_encap_obj_dump,
-+};
-+
-+static struct nft_object_type nft_encap_obj_type __read_mostly = {
-+	.type           = NFT_OBJECT_ENCAP,
-+	.ops            = &nft_encap_obj_ops,
-+	.maxattr        = NFTA_ENCAP_MAX,
-+	.policy         = nft_encap_policy,
-+	.owner          = THIS_MODULE,
-+};
-+
- static int __init nft_encap_netdev_module_init(void)
- {
--	return nft_register_expr(&nft_decap_type);
-+	int err;
-+
-+	err = nft_register_obj(&nft_encap_obj_type);
-+	if (err < 0)
-+		return err;
-+
-+	err = nft_register_expr(&nft_decap_type);
-+	if (err < 0)
-+		goto err_unregister;
-+
-+	return 0;
-+
-+err_unregister:
-+	nft_unregister_obj(&nft_encap_obj_type);
-+	return err;
- }
- 
- static void __exit nft_encap_netdev_module_exit(void)
- {
- 	nft_unregister_expr(&nft_decap_type);
-+	nft_unregister_obj(&nft_encap_obj_type);
- }
- 
- module_init(nft_encap_netdev_module_init);
--- 
-2.11.0
+    [... define secmarks and port maps ...]
+    chain input {
+        type filter hook input priority 0;
+        ct state new meta secmark set tcp dport map @secmapping_in
+        ct state new ip protocol icmp meta secmark set "icmp_server"
+        ct state new ip6 nexthdr icmpv6 meta secmark set "icmp_server"
+        ct state new ct secmark_raw set meta secmark_raw
+        ct state established,related meta secmark_raw set ct secmark_raw
+    }
+    chain output {
+        type filter hook output priority 0;
+        ct state new meta secmark set tcp dport map @secmapping_out
+        ct state new ip protocol icmp meta secmark set "icmp_client"
+        ct state new ip6 nexthdr icmpv6 meta secmark set "icmp_client"
+        ct state new ct secmark_raw set meta secmark_raw
+        ct state established,related meta secmark_raw set ct secmark_raw
+    }
 
+2.
+The rules in 1. are not idempotent. The output of 'nft list ruleset' is:
+
+    chain input {
+        type filter hook input priority filter; policy accept;
+        ct state new secmark name tcp dport map @secmapping_in
+        ct state new ip protocol icmp secmark name "icmp_server"
+        ct state new ip6 nexthdr ipv6-icmp secmark name "icmp_server"
+        ct state new ct secmark set secmark
+        ct state established,related secmark set ct secmark
+    }
+    chain output {
+        type filter hook output priority filter; policy accept;
+        ct state new secmark name tcp dport map @secmapping_out
+        ct state new ip protocol icmp secmark name "icmp_client"
+        ct state new ip6 nexthdr ipv6-icmp secmark name "icmp_client"
+        ct state new ct secmark set secmark
+        ct state established,related secmark set ct secmark
+    }
+
+What are the code locations to fix?
+
+3.
+The patch also adds the ability to reset secmarks.
+Is there a way to query the kernel about the actual secid (to verify
+the reset works)?
+
+4.
+Maybe I can contribute a howto for wiki.nftables.org. What is the
+preferred format?
+
+Best regards,
+     Christian G=C3=B6ttsche
+
+
+[1] https://github.com/torvalds/linux/commit/fb961945457f5177072c968aa38fee=
+910ab893b9
+[2] https://github.com/torvalds/linux/commit/b473a1f5ddee5f73392c387940f4fb=
+cbabfc3431
+[3] https://git.netfilter.org/libnftnl/commit/?id=3Daaf20ad0dc22d2ebcad1b2c=
+43288e984f0efe2c3
+[4] https://git.netfilter.org/nftables/commit/?id=3D3bc84e5c1fdd1ff011af978=
+8fe174e0514c2c9ea
+[5] https://salsa.debian.org/cgzones-guest/pkg-nftables/blob/master/debian/=
+patches/0004-secmark-add-missing-pieces.patch
+[6] https://git.netfilter.org/nftables/commit/?id=3D998142c71d095d79488495e=
+a545a704213fa0ba0
