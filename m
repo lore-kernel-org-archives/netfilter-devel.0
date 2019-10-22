@@ -6,45 +6,45 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9BF29C47E49
-	for <netfilter-devel@archiver.kernel.org>; Tue, 22 Oct 2019 15:47:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1CFCDCA9EB9
+	for <netfilter-devel@archiver.kernel.org>; Tue, 22 Oct 2019 15:47:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 71BC6214B2
+	by mail.kernel.org (Postfix) with ESMTP id E3675214B2
 	for <netfilter-devel@archiver.kernel.org>; Tue, 22 Oct 2019 15:47:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387964AbfJVPrr (ORCPT
+        id S2387966AbfJVPrr (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Tue, 22 Oct 2019 11:47:47 -0400
-Received: from correo.us.es ([193.147.175.20]:41910 "EHLO mail.us.es"
+Received: from correo.us.es ([193.147.175.20]:41934 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2387918AbfJVPrq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 22 Oct 2019 11:47:46 -0400
+        id S2387922AbfJVPrr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 22 Oct 2019 11:47:47 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 05EE81C442B
+        by mail.us.es (Postfix) with ESMTP id EE2661C4442
         for <netfilter-devel@vger.kernel.org>; Tue, 22 Oct 2019 17:47:42 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id E8D6FA7EC5
-        for <netfilter-devel@vger.kernel.org>; Tue, 22 Oct 2019 17:47:41 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id DED21B8005
+        for <netfilter-devel@vger.kernel.org>; Tue, 22 Oct 2019 17:47:42 +0200 (CEST)
 Received: by antivirus1-rhel7.int (Postfix, from userid 99)
-        id DC69BA7EC2; Tue, 22 Oct 2019 17:47:41 +0200 (CEST)
+        id D44BBB8001; Tue, 22 Oct 2019 17:47:42 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id D708DB7FF9;
-        Tue, 22 Oct 2019 17:47:39 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id BFB2AB8005;
+        Tue, 22 Oct 2019 17:47:40 +0200 (CEST)
 Received: from 192.168.1.97 (192.168.1.97)
  by antivirus1-rhel7.int (F-Secure/fsigk_smtp/550/antivirus1-rhel7.int);
- Tue, 22 Oct 2019 17:47:39 +0200 (CEST)
+ Tue, 22 Oct 2019 17:47:40 +0200 (CEST)
 X-Virus-Status: clean(F-Secure/fsigk_smtp/550/antivirus1-rhel7.int)
 Received: from salvia.here (sys.soleta.eu [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id B05DF42EE38E;
-        Tue, 22 Oct 2019 17:47:39 +0200 (CEST)
+        by entrada.int (Postfix) with ESMTPA id 9853542EE38E;
+        Tue, 22 Oct 2019 17:47:40 +0200 (CEST)
 X-SMTPAUTHUS: auth mail.us.es
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     fw@strlen.de, wenxu@ucloud.cn
-Subject: [PATCH nf-next,RFC 1/2] netfilter: nf_tables: add decapsulation support
-Date:   Tue, 22 Oct 2019 17:47:32 +0200
-Message-Id: <20191022154733.8789-2-pablo@netfilter.org>
+Subject: [PATCH nf-next,RFC 2/2] netfilter: nf_tables: add encapsulation support
+Date:   Tue, 22 Oct 2019 17:47:33 +0200
+Message-Id: <20191022154733.8789-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20191022154733.8789-1-pablo@netfilter.org>
 References: <20191022154733.8789-1-pablo@netfilter.org>
@@ -54,104 +54,161 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This patch adds support for the decapsulation infrastructure, including
-VLAN support for this.
+This patch adds encapsulation support through the encapsulation object,
+that specifies the encapsulation policy.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/uapi/linux/netfilter/nf_tables.h |  16 +++++
- net/netfilter/Kconfig                    |   6 ++
- net/netfilter/Makefile                   |   1 +
- net/netfilter/nft_encap.c                | 119 +++++++++++++++++++++++++++++++
- 4 files changed, 142 insertions(+)
- create mode 100644 net/netfilter/nft_encap.c
+ include/uapi/linux/netfilter/nf_tables.h |  40 +++++-
+ net/netfilter/nft_encap.c                | 224 ++++++++++++++++++++++++++++++-
+ 2 files changed, 262 insertions(+), 2 deletions(-)
 
 diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index 81fed16fe2b2..25e26340a0ba 100644
+index 25e26340a0ba..e5997a13ba71 100644
 --- a/include/uapi/linux/netfilter/nf_tables.h
 +++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -1625,6 +1625,22 @@ enum nft_xfrm_keys {
- };
- #define NFT_XFRM_KEY_MAX (__NFT_XFRM_KEY_MAX - 1)
+@@ -1484,7 +1484,8 @@ enum nft_ct_expectation_attributes {
+ #define NFT_OBJECT_SECMARK	8
+ #define NFT_OBJECT_CT_EXPECT	9
+ #define NFT_OBJECT_SYNPROXY	10
+-#define __NFT_OBJECT_MAX	11
++#define NFT_OBJECT_ENCAP	11
++#define __NFT_OBJECT_MAX	12
+ #define NFT_OBJECT_MAX		(__NFT_OBJECT_MAX - 1)
  
-+enum nft_encap_type {
-+	NFT_ENCAP_VLAN	= 0,
+ /**
+@@ -1629,6 +1630,43 @@ enum nft_encap_type {
+ 	NFT_ENCAP_VLAN	= 0,
+ };
+ 
++enum nft_encap_op {
++	NFT_ENCAP_ADD	= 0,
++	NFT_ENCAP_UPDATE,
 +};
 +
 +/**
-+ * enum nft_decap_attributes - nf_tables decapsulation expression netlink attributes
++ * enum nft_encap_vlan_attributes - nf_tables VLAN encapsulation expression netlink attributes
 + *
-+ * @NFTA_DECAP_TYPE: decapsulation type (NLA_U32)
++ * @NFTA_ENCAP_VLAN_ID: VLAN id (NLA_U16)
++ * @NFTA_ENCAP_VLAN_PROTO: VLAN protocol (NLA_U16)
++ * @NFTA_ENCAP_VLAN_PRIO: VLAN priority (NLA_U8)
 + */
-+enum nft_decap_attributes {
-+	NFTA_DECAP_UNSPEC,
-+	NFTA_DECAP_TYPE,
-+	__NFTA_DECAP_MAX,
++enum nft_encap_vlan_attributes {
++	NFTA_ENCAP_VLAN_UNSPEC,
++	NFTA_ENCAP_VLAN_ID,
++	NFTA_ENCAP_VLAN_PROTO,
++	NFTA_ENCAP_VLAN_PRIO,
++	__NFTA_ENCAP_VLAN_MAX
 +};
-+#define NFTA_DECAP_MAX	(__NFTA_DECAP_MAX - 1)
++#define NFTA_ENCAP_VLAN_MAX	(__NFTA_ENCAP_VLAN_MAX - 1)
++
++/**
++ * enum nft_encap_attributes - nf_tables encapsulation expression netlink attributes
++ *
++ * @NFTA_ENCAP_TYPE: encapsulation type (NLA_U32)
++ * @NFTA_ENCAP_OP: encapsulation operation (NLA_U32)
++ * @NFTA_ENCAP_DATA: encapsulation data (NLA_NESTED)
++ */
++enum nft_encap_attributes {
++	NFTA_ENCAP_UNSPEC,
++	NFTA_ENCAP_TYPE,
++	NFTA_ENCAP_OP,
++	NFTA_ENCAP_DATA,
++	__NFTA_ENCAP_MAX
++};
++#define NFTA_ENCAP_MAX	(__NFTA_ENCAP_MAX - 1)
 +
  /**
-  * enum nft_trace_attributes - nf_tables trace netlink attributes
+  * enum nft_decap_attributes - nf_tables decapsulation expression netlink attributes
   *
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index 91efae88e8c2..573ea56aecfe 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -489,6 +489,12 @@ config NFT_CT
- 	  This option adds the "ct" expression that you can use to match
- 	  connection tracking information such as the flow state.
- 
-+config NFT_ENCAP
-+	tristate "Netfilter nf_tables encapsulation/decapsulation module"
-+	help
-+	  This option adds the encapsulation expression used to decapsulate
-+	  and to encapsulate packets through VLAN.
-+
- config NFT_FLOW_OFFLOAD
- 	depends on NF_CONNTRACK && NF_FLOW_TABLE
- 	tristate "Netfilter nf_tables hardware flow offload module"
-diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index 4fc075b612fe..be8345c14a6e 100644
---- a/net/netfilter/Makefile
-+++ b/net/netfilter/Makefile
-@@ -89,6 +89,7 @@ obj-$(CONFIG_NFT_COMPAT)	+= nft_compat.o
- obj-$(CONFIG_NFT_CONNLIMIT)	+= nft_connlimit.o
- obj-$(CONFIG_NFT_NUMGEN)	+= nft_numgen.o
- obj-$(CONFIG_NFT_CT)		+= nft_ct.o
-+obj-$(CONFIG_NFT_ENCAP)		+= nft_encap.o
- obj-$(CONFIG_NFT_FLOW_OFFLOAD)	+= nft_flow_offload.o
- obj-$(CONFIG_NFT_LIMIT)		+= nft_limit.o
- obj-$(CONFIG_NFT_NAT)		+= nft_nat.o
 diff --git a/net/netfilter/nft_encap.c b/net/netfilter/nft_encap.c
-new file mode 100644
-index 000000000000..657a62e4c283
---- /dev/null
+index 657a62e4c283..13643b3daf85 100644
+--- a/net/netfilter/nft_encap.c
 +++ b/net/netfilter/nft_encap.c
-@@ -0,0 +1,119 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/module.h>
-+#include <linux/netlink.h>
-+#include <linux/netfilter.h>
-+#include <linux/netfilter/nf_tables.h>
-+#include <net/netfilter/nf_tables_core.h>
-+#include <net/netfilter/nf_tables.h>
-+
-+struct nft_decap {
+@@ -2,6 +2,7 @@
+ #include <linux/kernel.h>
+ #include <linux/init.h>
+ #include <linux/module.h>
++#include <linux/if_vlan.h>
+ #include <linux/netlink.h>
+ #include <linux/netfilter.h>
+ #include <linux/netfilter/nf_tables.h>
+@@ -101,14 +102,235 @@ static struct nft_expr_type nft_decap_type __read_mostly = {
+ 	.owner		= THIS_MODULE,
+ };
+ 
++struct nft_encap {
 +	enum nft_encap_type	type;
++	enum nft_encap_op	op;
++
++	union {
++		struct {
++			__u16	id;
++			__be16	proto;
++			__u8	prio;
++		} vlan;
++	};
 +};
 +
-+void nft_decap_eval(const struct nft_expr *expr,
-+		    struct nft_regs *regs,
-+		    const struct nft_pktinfo *pkt)
++static u16 nft_encap_vlan_tci(struct nft_encap *priv)
 +{
-+	const struct nft_decap *priv = nft_expr_priv(expr);
++	return priv->vlan.id | (priv->vlan.prio << VLAN_PRIO_SHIFT);
++}
++
++static int nft_encap_vlan_eval(struct nft_encap *priv,
++			       struct nft_regs *regs,
++			       const struct nft_pktinfo *pkt)
++{
++	struct sk_buff *skb = pkt->skb;
++	int err;
++	u16 tci;
++
++	switch (priv->op) {
++	case NFT_ENCAP_ADD:
++		err = skb_vlan_push(skb, priv->vlan.proto,
++				    nft_encap_vlan_tci(priv));
++		if (err)
++			return err;
++		break;
++	case NFT_ENCAP_UPDATE:
++		if (!skb_vlan_tagged(skb))
++			return -1;
++
++		err = 0;
++		if (skb_vlan_tag_present(skb)) {
++			tci = skb_vlan_tag_get(skb);
++			__vlan_hwaccel_clear_tag(skb);
++		} else {
++			err = __skb_vlan_pop(skb, &tci);
++		}
++		if (err)
++			return err;
++
++		tci = (tci & ~VLAN_VID_MASK) | priv->vlan.id;
++		if (priv->vlan.prio) {
++			tci &= ~VLAN_PRIO_MASK;
++			tci |= priv->vlan.prio << VLAN_PRIO_SHIFT;
++		}
++
++		__vlan_hwaccel_put_tag(skb, priv->vlan.proto, tci);
++		break;
++	default:
++		break;
++	}
++
++	return 0;
++}
++
++static void nft_encap_obj_eval(struct nft_object *obj,
++			       struct nft_regs *regs,
++			       const struct nft_pktinfo *pkt)
++{
++	struct nft_encap *priv = nft_obj_data(obj);
 +	int err;
 +
 +	switch (priv->type) {
 +	case NFT_ENCAP_VLAN:
-+		err = skb_vlan_pop(pkt->skb);
++		err = nft_encap_vlan_eval(priv, regs, pkt);
 +		break;
 +	default:
 +		WARN_ON_ONCE(1);
@@ -159,42 +216,102 @@ index 000000000000..657a62e4c283
 +	}
 +
 +	if (err < 0)
-+		goto decap_error;
-+
-+	return;
-+decap_error:
-+	regs->verdict.code = NFT_BREAK;
++		regs->verdict.code = NFT_BREAK;
 +}
 +
-+static const struct nla_policy nft_decap_policy[NFTA_DECAP_MAX + 1] = {
-+	[NFTA_DECAP_TYPE]	= { .type = NLA_U32 },
++static const struct nla_policy nft_encap_vlan_policy[NFTA_ENCAP_VLAN_MAX + 1] = {
++	[NFTA_ENCAP_VLAN_ID]	= { .type = NLA_U16 },
++	[NFTA_ENCAP_VLAN_PROTO]	= { .type = NLA_U16 },
++	[NFTA_ENCAP_VLAN_PRIO]	= { .type = NLA_U8 },
 +};
 +
-+static int nft_decap_init(const struct nft_ctx *ctx,
-+			  const struct nft_expr *expr,
-+			  const struct nlattr * const tb[])
++static int nft_encap_vlan_parse(const struct nlattr *attr,
++				struct nft_encap *priv)
 +{
-+	struct nft_decap *priv = nft_expr_priv(expr);
++	struct nlattr *tb[NFTA_ENCAP_VLAN_MAX + 1];
++	int err;
 +
-+	if (!tb[NFTA_DECAP_TYPE])
++	err = nla_parse_nested_deprecated(tb, NFTA_ENCAP_VLAN_MAX, attr,
++					  nft_encap_vlan_policy, NULL);
++	if (err < 0)
++		return err;
++
++	if (!tb[NFTA_ENCAP_VLAN_PRIO] ||
++	    !tb[NFTA_ENCAP_VLAN_PROTO] ||
++	    !tb[NFTA_ENCAP_VLAN_ID])
 +		return -EINVAL;
 +
-+	priv->type = ntohl(nla_get_be32(tb[NFTA_DECAP_TYPE]));
++	priv->vlan.id = ntohs(nla_get_be16(tb[NFTA_ENCAP_VLAN_ID]));
++	priv->vlan.proto = nla_get_be16(tb[NFTA_ENCAP_VLAN_PROTO]);
++	priv->vlan.prio = nla_get_u8(tb[NFTA_ENCAP_VLAN_PRIO]);
++
++	return 0;
++}
++
++static int nft_encap_obj_init(const struct nft_ctx *ctx,
++			      const struct nlattr * const tb[],
++			      struct nft_object *obj)
++{
++	struct nft_encap *priv = nft_obj_data(obj);
++	int err = 0;
++
++	if (!tb[NFTA_ENCAP_TYPE] ||
++	    !tb[NFTA_ENCAP_OP])
++		return -EINVAL;
++
++	priv->type = ntohl(nla_get_be32(tb[NFTA_ENCAP_TYPE]));
++	priv->op = ntohl(nla_get_be32(tb[NFTA_ENCAP_OP]));
++
 +	switch (priv->type) {
 +	case NFT_ENCAP_VLAN:
++		if (priv->op != NFT_ENCAP_ADD &&
++		    priv->op != NFT_ENCAP_UPDATE)
++			return -EOPNOTSUPP;
++
++		err = nft_encap_vlan_parse(tb[NFTA_ENCAP_DATA], priv);
 +		break;
 +	default:
 +		return -EOPNOTSUPP;
 +	}
 +
-+	return 0;
++	return err;
 +}
 +
-+static int nft_decap_dump(struct sk_buff *skb, const struct nft_expr *expr)
++static int nft_encap_type_dump(struct sk_buff *skb, struct nft_encap *priv)
 +{
-+	const struct nft_decap *priv = nft_expr_priv(expr);
++	struct nlattr *nest;
 +
-+	if (nla_put_be32(skb, NFTA_DECAP_TYPE, htonl(priv->type)))
++	nest = nla_nest_start_noflag(skb, NFTA_ENCAP_DATA);
++	if (!nest)
++		goto nla_put_failure;
++
++	switch (priv->type) {
++	case NFT_ENCAP_VLAN:
++		if (nla_put_be16(skb, NFTA_ENCAP_VLAN_ID, htons(priv->vlan.id)) ||
++		    nla_put_be16(skb, NFTA_ENCAP_VLAN_PROTO, priv->vlan.proto) ||
++		    nla_put_u8(skb, NFTA_ENCAP_VLAN_PRIO, priv->vlan.prio))
++			goto nla_put_failure;
++		break;
++	default:
++		WARN_ON_ONCE(1);
++		break;
++	}
++	nla_nest_end(skb, nest);
++
++	return 0;
++
++nla_put_failure:
++	return -1;
++}
++
++static int nft_encap_obj_dump(struct sk_buff *skb, struct nft_object *obj,
++			      bool reset)
++{
++	struct nft_encap *priv = nft_obj_data(obj);
++
++	if (nla_put_be32(skb, NFTA_ENCAP_TYPE, htonl(priv->type)) ||
++	    nla_put_be32(skb, NFTA_ENCAP_OP, htonl(priv->op)) ||
++	    nft_encap_type_dump(skb, priv))
 +		goto nla_put_failure;
 +
 +	return 0;
@@ -203,50 +320,56 @@ index 000000000000..657a62e4c283
 +	return -1;
 +}
 +
-+static int nft_decap_validate(const struct nft_ctx *ctx,
-+			      const struct nft_expr *expr,
-+			      const struct nft_data **data)
-+{
-+	if (ctx->family != NFPROTO_NETDEV)
-+		return -EOPNOTSUPP;
-+
-+	return nft_chain_validate_hooks(ctx->chain, 1 << NF_NETDEV_INGRESS);
-+}
-+
-+static struct nft_expr_type nft_decap_type;
-+static const struct nft_expr_ops nft_decap_ops = {
-+	.type		= &nft_decap_type,
-+	.size		= NFT_EXPR_SIZE(sizeof(struct nft_decap)),
-+	.eval		= nft_decap_eval,
-+	.init		= nft_decap_init,
-+	.dump		= nft_decap_dump,
-+	.validate	= nft_decap_validate,
++static const struct nla_policy nft_encap_policy[NFTA_ENCAP_MAX + 1] = {
++	[NFTA_ENCAP_TYPE]	= { .type = NLA_U32 },
++	[NFTA_ENCAP_OP]		= { .type = NLA_U32 },
++	[NFTA_ENCAP_DATA]	= { .type = NLA_NESTED },
 +};
 +
-+static struct nft_expr_type nft_decap_type __read_mostly = {
-+	.name		= "decap",
-+	.ops		= &nft_decap_ops,
-+	.policy		= nft_decap_policy,
-+	.maxattr	= NFTA_DECAP_MAX,
-+	.owner		= THIS_MODULE,
++static struct nft_object_type nft_encap_obj_type;
++static const struct nft_object_ops nft_encap_obj_ops = {
++	.type		= &nft_encap_obj_type,
++	.size		= sizeof(struct nft_encap),
++	.eval		= nft_encap_obj_eval,
++	.init		= nft_encap_obj_init,
++	.dump		= nft_encap_obj_dump,
 +};
 +
-+static int __init nft_encap_netdev_module_init(void)
-+{
-+	return nft_register_expr(&nft_decap_type);
-+}
++static struct nft_object_type nft_encap_obj_type __read_mostly = {
++	.type           = NFT_OBJECT_ENCAP,
++	.ops            = &nft_encap_obj_ops,
++	.maxattr        = NFTA_ENCAP_MAX,
++	.policy         = nft_encap_policy,
++	.owner          = THIS_MODULE,
++};
 +
-+static void __exit nft_encap_netdev_module_exit(void)
-+{
-+	nft_unregister_expr(&nft_decap_type);
-+}
+ static int __init nft_encap_netdev_module_init(void)
+ {
+-	return nft_register_expr(&nft_decap_type);
++	int err;
 +
-+module_init(nft_encap_netdev_module_init);
-+module_exit(nft_encap_netdev_module_exit);
++	err = nft_register_obj(&nft_encap_obj_type);
++	if (err < 0)
++		return err;
 +
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Pablo Neira Ayuso <pablo@netfilter.org>");
-+MODULE_ALIAS_NFT_AF_EXPR(5, "decap");
++	err = nft_register_expr(&nft_decap_type);
++	if (err < 0)
++		goto err_unregister;
++
++	return 0;
++
++err_unregister:
++	nft_unregister_obj(&nft_encap_obj_type);
++	return err;
+ }
+ 
+ static void __exit nft_encap_netdev_module_exit(void)
+ {
+ 	nft_unregister_expr(&nft_decap_type);
++	nft_unregister_obj(&nft_encap_obj_type);
+ }
+ 
+ module_init(nft_encap_netdev_module_init);
 -- 
 2.11.0
 
