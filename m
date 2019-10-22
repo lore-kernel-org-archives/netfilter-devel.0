@@ -7,20 +7,20 @@ X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7033FCA9EB7
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DB216CA9EBB
 	for <netfilter-devel@archiver.kernel.org>; Tue, 22 Oct 2019 20:58:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3603E20679
+	by mail.kernel.org (Postfix) with ESMTP id 9FAA920679
 	for <netfilter-devel@archiver.kernel.org>; Tue, 22 Oct 2019 20:58:58 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="MeVZfz/K"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="Zxma8tpM"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731682AbfJVU65 (ORCPT
+        id S1731679AbfJVU65 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Tue, 22 Oct 2019 16:58:57 -0400
-Received: from kadath.azazel.net ([81.187.231.250]:44374 "EHLO
+Received: from kadath.azazel.net ([81.187.231.250]:44382 "EHLO
         kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1731193AbfJVU65 (ORCPT
+        with ESMTP id S1731583AbfJVU65 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Tue, 22 Oct 2019 16:58:57 -0400
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
@@ -29,22 +29,22 @@ DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
         Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
         :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=bpAIAOoKyt9TArIYO0pao/9MpXlo6vYLY2uejujR4+o=; b=MeVZfz/KTIxfvOWlbPpPlex5hD
-        RsFdtxo+PCzQTbLxXizjUJb2HdAtWEfCNflwXJbo8ZJL7RrRYzR60vTH8KsOvzp9NfJvmLToG9nOR
-        /9EfdA3xEPT+FmcI/dyW6vbmYYMbtTREJ2fEuIJ6tnbqePELzMySnpdloki+EGacVxuDsK07V6HKT
-        +OCjvgi2/DZaE2Lj68veGuzqjdHeuyfA/EYSaRa1hFIQRG17AloS/+L57S5EqmKuXPbJfGvybfVXP
-        4nErOenAxVXnXJ6kQC6+KwqUn/If794AYXCYvM+TCIC7QaAEyh8YJmFVcAOrWmDzOLYLQQH1ys4Rk
-        SdOyCicg==;
+        bh=25quoZCCYiIyiazwz2MALf83UbZHAzPoupVaRdAasp4=; b=Zxma8tpMfDkEih2vjnk1z8SJIS
+        QTk0Zs3IKjwlTkfcXKhBDavj7Xx43KM+ruqi4htTNsewLR/YznohhXDASrF8ZtlJvIDrzIqv4NM3U
+        YCajekvBElWcF6DhDkSDpM8UFlOPKGGe47QSjy+CGKNNHY2RieYYRCB092tXW49IUQPGSzgzKgF78
+        Hm5qIOAMEfxfusYZbjMzUevw0qxagMGRZoUTUiuS0mSKYPsM3DhffQrxLtklykbZfh/7KeU+kVmlt
+        CRef+jbJqgtBfG47Km6lzFRPEQZ/9MfHXXLsEpN9EL74APtODzOfUPMmdLjTEje3EmTkgDTvKHQq8
+        qZqr3PEw==;
 Received: from ulthar.dreamlands ([192.168.96.2])
         by kadath.azazel.net with esmtp (Exim 4.92)
         (envelope-from <jeremy@azazel.net>)
-        id 1iN1F1-0002CC-C4; Tue, 22 Oct 2019 21:58:55 +0100
+        id 1iN1F1-0002CC-LY; Tue, 22 Oct 2019 21:58:55 +0100
 From:   Jeremy Sowden <jeremy@azazel.net>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [PATCH nft 1/4] doc: add missing output flag documentation.
-Date:   Tue, 22 Oct 2019 21:58:52 +0100
-Message-Id: <20191022205855.22507-2-jeremy@azazel.net>
+Subject: [PATCH nft 3/4] main: add missing `OPT_NUMERIC_PROTO` long option.
+Date:   Tue, 22 Oct 2019 21:58:54 +0100
+Message-Id: <20191022205855.22507-4-jeremy@azazel.net>
 X-Mailer: git-send-email 2.23.0
 In-Reply-To: <20191022205855.22507-1-jeremy@azazel.net>
 References: <20191022205855.22507-1-jeremy@azazel.net>
@@ -58,38 +58,29 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The documentation for NFT_CTX_OUTPUT_FLAG_NUMERIC_TIME and
-NFT_CTX_OUTPUT_FLAG_NUMERIC_ALL is incomplete.  Add the missing bits.
+The `options` array is missing an entry for `OPT_NUMERIC_PROTO`.  Add a
+new option, `--numeric-protocol`, consistent with the documentation.
 
 Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 ---
- doc/libnftables.adoc | 6 ++++++
- 1 file changed, 6 insertions(+)
+ src/main.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/doc/libnftables.adoc b/doc/libnftables.adoc
-index 8ce1196fd47e..ce4a361b84cc 100644
---- a/doc/libnftables.adoc
-+++ b/doc/libnftables.adoc
-@@ -90,6 +90,10 @@ enum {
-         NFT_CTX_OUTPUT_NUMERIC_PROTO  = (1 << 7),
-         NFT_CTX_OUTPUT_NUMERIC_PRIO   = (1 << 8),
-         NFT_CTX_OUTPUT_NUMERIC_SYMBOL = (1 << 9),
-+        NFT_CTX_OUTPUT_NUMERIC_TIME   = (1 << 10),
-+        NFT_CTX_OUTPUT_NUMERIC_ALL    = (NFT_CTX_OUTPUT_NUMERIC_PROTO |
-+                                         NFT_CTX_OUTPUT_NUMERIC_PRIO  |
-+                                         NFT_CTX_OUTPUT_NUMERIC_TIME),
-         NFT_CTX_OUTPUT_TERSE          = (1 << 11),
- };
- ----
-@@ -122,6 +126,8 @@ NFT_CTX_OUTPUT_NUMERIC_PRIO::
- 	Display base chain priority numerically.
- NFT_CTX_OUTPUT_NUMERIC_SYMBOL::
- 	Display expression datatype as numeric value.
-+NFT_CTX_OUTPUT_NUMERIC_TIME::
-+	Display time, day and hour values in numeric format.
- NFT_CTX_OUTPUT_NUMERIC_ALL::
- 	Display all numerically.
- NFT_CTX_OUTPUT_TERSE::
+diff --git a/src/main.c b/src/main.c
+index ebd6d7c322d7..c1c404e14eeb 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -116,6 +116,10 @@ static const struct option options[] = {
+ 		.name		= "numeric-priority",
+ 		.val		= OPT_NUMERIC_PRIO,
+ 	},
++	{
++		.name		= "numeric-protocol",
++		.val		= OPT_NUMERIC_PROTO,
++	},
+ 	{
+ 		.name		= "numeric-time",
+ 		.val		= OPT_NUMERIC_TIME,
 -- 
 2.23.0
 
